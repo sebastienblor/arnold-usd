@@ -193,6 +193,8 @@ driver_close
 
    // AJJ: This is a little hack to avoid returning control here, until the display update has finished
    s_displayUpdateFinishedEvent.wait();
+
+   s_outputDriverData.rendering = FALSE;
 }  // driver_close()
 
 node_finish
