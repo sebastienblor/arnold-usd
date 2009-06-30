@@ -1,0 +1,169 @@
+
+#include "RenderCmd.h"
+#include "MayaScene.h"
+#include "OutputDriver.h"
+
+#include <ai_api.h>
+#include <ai_dotass.h>
+#include <ai_msg.h>
+#include <ai_nodes.h>
+#include <ai_render.h>
+#include <ai_threads.h>
+#include <ai_universe.h>
+#include <ai_version.h>
+
+#include <maya/M3dView.h>
+#include <maya/MComputation.h>
+#include <maya/MFnDependencyNode.h>
+#include <maya/MPlug.h>
+#include <maya/MPlugArray.h>
+#include <maya/MRenderView.h>
+#include <maya/MSelectionList.h>
+
+extern AtNodeMethods* mtoa_driver_mtd;
+
+// This is the code for the render thread. This thread is used only to run the AiRender() process outside of the main thread.
+unsigned int RenderThread(AtVoid* data)
+{
+   AiRender( AI_RENDER_MODE_CAMERA );
+
+   return 0;
+} // RenderThread()
+
+MStatus CRenderCmd::doIt(const MArgList& argList)
+{
+   MStatus status;
+
+   AiBegin();
+
+   // TODO: For now, we will use stdout (in Maya, it will go to the output window)
+   AiSetLogOptions(NULL, AI_LOG_ALL, 1000, 4);
+
+   status = ProcessMayaScene(MItDag::kDepthFirst);
+
+   if (MRenderView::doesRenderEditorExist())
+   {
+      MDagPath cameraPath;
+
+      M3dView::active3dView().getCamera(cameraPath);
+
+      MRenderView::setCurrentCamera(cameraPath);
+   }
+
+   AtUInt32 width, height;
+
+   GetOutputResolution(width, height);
+
+   AiNodeSetInt(AiUniverseGetOptions(), "xres", width);
+   AiNodeSetInt(AiUniverseGetOptions(), "yres", height);
+
+   MComputation comp;
+
+   comp.beginComputation();
+
+   if (MRenderView::doesRenderEditorExist())
+   {
+      InitOutputDriver();
+
+      // Exports .ass file for debugging purposes.
+      //AiMsgDebug( "Exporting Maya scene for debug.\n" );
+      //AiASSWrite( "c:/Maya2Arnold.ass", AI_NODE_ALL, false );
+
+      if (MRenderView::startRender(width, height, true) == MS::kSuccess)
+      {
+         Render();
+
+         MRenderView::endRender();
+      }
+   }
+   else
+   {
+      Render();
+   }
+
+   comp.endComputation();
+
+   AiEnd();
+
+   return status;
+}  // doIt()
+
+void CRenderCmd::InitOutputDriver()
+{
+   AiNodeInstall(AI_NODE_DRIVER, AI_TYPE_NONE, "renderview_display",  NULL, (AtNodeMethods*) mtoa_driver_mtd, AI_VERSION);
+
+   AtNode* filter = AiNode("box_filter");
+   AtNode* driver = AiNode("renderview_display");
+
+   AtChar   str[1024];
+   AtArray* outputs;
+
+   sprintf(str, "RGB RGB %s %s", AiNodeGetName(filter), AiNodeGetName(driver));
+   outputs = AiArray(1, 1, AI_TYPE_STRING, str);
+   AiNodeSetArray(AiUniverseGetOptions(), "outputs", outputs);
+}  // InitOutputDriver()
+
+void CRenderCmd::Render()
+{
+   InitializeDisplayUpdateQueue();
+
+   AtVoid* handler = AiThreadCreate(RenderThread, NULL, AI_PRIORITY_LOW);
+
+   // Process messages sent by the render thread, and exit when rendering is finished or aborted
+   ProcessDisplayUpdateQueue();
+
+   // Wait for the render thread to release everything and close it
+   AiThreadWait(handler);
+   AiThreadClose(handler);
+}  // Render()
+
+void CRenderCmd::GetOutputResolution(AtUInt32& width, AtUInt32& height)
+{
+   width  = 0;
+   height = 0;
+
+   // Get render globals
+   MStatus        status;
+   MSelectionList renderGlobalsList;
+   MObject        renderGlobalsNode;
+
+   renderGlobalsList.add("defaultRenderGlobals");
+
+   if (renderGlobalsList.length() > 0)
+   {
+      renderGlobalsList.getDependNode(0, renderGlobalsNode);
+
+      MFnDependencyNode fnRenderGlobals(renderGlobalsNode);
+
+      // Find the resolution node and get the width and height
+      // 
+      MPlugArray connectedPlugs;
+      MPlug      resPlug = fnRenderGlobals.findPlug("resolution");
+
+      resPlug.connectedTo(connectedPlugs,
+         true,  // asDestination
+         false, // asSource
+         &status);
+
+      // Must be length 1 or we would have fan-in
+      //
+      if (status && (connectedPlugs.length() == 1))
+      {
+         MObject resNode = connectedPlugs[0].node(&status);
+
+         if (status)
+         {
+            MFnDependencyNode fnRes(resNode);
+            MPlug             resWidth  = fnRes.findPlug("width");
+            MPlug             resHeight = fnRes.findPlug("height");
+            short             res_width, res_height;
+
+            resWidth.getValue(res_width);
+            resHeight.getValue(res_height);
+
+            width  = res_width;
+            height = res_height;
+         }
+      }
+   }
+}  // GetOutputResolution()
