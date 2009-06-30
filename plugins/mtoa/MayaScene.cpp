@@ -75,178 +75,6 @@ namespace  // <anonymous>
 
    }  // GetNodeShader()
 
-   /*
-   CImage* ProcessTexture( const char* texture )
-   {
-
-   if ( !texture )
-   {
-   return NULL;
-   }
-
-   for (AtUInt32 J = 0; ( J < exportData.textureMaps.size() ); ++J)
-   {
-   std::map<std::string, CImage*>::iterator it = exportData.textureMaps.find( texture );
-
-   if ( it != exportData.textureMaps.end() )
-   {
-   return it->second;
-   }
-   }
-
-   MImage         image;
-   unsigned int   width, height;
-
-   image.readFromFile( texture );
-   image.getSize( width, height );
-
-   CImage*   textureMap = TheImageManager::GetInstance().createImage( width, height, NULL );
-
-   CRGBColor   color;
-   AtUInt32*     pixel = (AtUInt32*) image.pixels();
-
-   for (unsigned int J = 0; ( J < height ); J++)
-   {
-   for (unsigned int I = 0; ( I < width ); I++)
-   {
-   color.getFromDWord( *pixel );
-
-   textureMap->setPixel( I, J, color );
-
-   pixel++;
-   }
-   }
-
-   image.release();
-
-   exportData.textureMaps[texture] = textureMap;
-
-   exportData.scene->addMap( textureMap );
-
-   return textureMap;
-
-   }  // ProcessTexture()
-
-
-   EResult ProcessBumpAttrib( MFnLambertShader shader, const char* name, CMaterialBumpProperty& property )
-   {
-
-   MObject             fileName;
-   MPlug               filePlug, colorPlug;
-   MPlugArray          connections;
-   MFnDependencyNode   fnDGNode; 
-
-   colorPlug = shader.findPlug( name );
-
-   colorPlug.connectedTo( connections, true, false );
-
-   if ( connections.length() == 0 )
-   {
-   return RESULT_ERROR;
-   }
-
-   fnDGNode.setObject( connections[0].node() );
-
-   filePlug = fnDGNode.findPlug( "bumpValue" );
-
-   connections.clear();
-
-   filePlug.connectedTo( connections, true, false );
-
-   if ( connections.length() == 0 )
-   {
-   return RESULT_ERROR;
-   }
-
-   fnDGNode.setObject( connections[0].node() );
-
-   filePlug = fnDGNode.findPlug( "fileTextureName" );
-
-   filePlug.getValue( fileName );
-
-   MFnStringData   fileNameString( fileName );
-
-   CImage*   textureMap = ProcessTexture( fileNameString.string().asChar(), exportData );
-
-   property.setTexture( textureMap );
-
-   return RESULT_OK;
-
-   }  // ProcessBumpAttrib()
-
-
-   EResult ProcessColorAttrib( MFnLambertShader shader, const char* name, MColor color, CMaterialColorProperty& property )
-   {
-
-   MObject             fileName;
-   MPlug               filePlug, colorPlug;
-   MPlugArray          connections;
-   MFnDependencyNode   fnDGNode; 
-
-   colorPlug = shader.findPlug( name );
-
-   colorPlug.connectedTo( connections, true, false );
-
-   if ( connections.length() == 0 )
-   {
-   property.setConstant( CRGBColor( color.r, color.g, color.b ) );
-
-   return RESULT_OK;
-   }
-
-   fnDGNode.setObject( connections[0].node() );
-
-   filePlug = fnDGNode.findPlug( "fileTextureName" );
-
-   filePlug.getValue( fileName );
-
-   MFnStringData   fileNameString( fileName );
-
-   CImage*   textureMap = ProcessTexture( fileNameString.string().asChar(), exportData );
-
-   property.setTexture( textureMap );
-
-   return RESULT_OK;
-
-   }  // ProcessColorAttrib()
-
-
-   EResult ProcessFloatAttrib( MFnLambertShader shader, const char* name, float value, CMaterialFloatProperty& property )
-   {
-
-   MObject             fileName;
-   MPlug               filePlug, colorPlug;
-   MPlugArray          connections;
-   MFnDependencyNode   fnDGNode; 
-
-   colorPlug = shader.findPlug( name );
-
-   colorPlug.connectedTo( connections, true, false );
-
-   if ( connections.length() == 0 )
-   {
-   property.setConstant( value );
-
-   return RESULT_OK;
-   }
-
-   fnDGNode.setObject( connections[0].node() );
-
-   filePlug = fnDGNode.findPlug( "fileTextureName" );
-
-   filePlug.getValue( fileName );
-
-   MFnStringData   fileNameString( fileName );
-
-   CImage*   textureMap = ProcessTexture( fileNameString.string().asChar(), exportData );
-
-   property.setTexture( textureMap );
-
-   return RESULT_OK;
-
-   }  // ProcessFloatAttrib()
-   */
-
 
    AtNode* ProcessShader(MObject mayaShader)
    {
@@ -268,41 +96,16 @@ namespace  // <anonymous>
             MFnLambertShader fnShader(mayaShader);
 
             shader = AiNode("lambert");
-
-            //ProcessBumpAttrib( fnShader, "normalCamera", material->bump, exportData );
-            //ProcessColorAttrib( fnShader, "incandescence", fnShader.incandescence(), material->emission, exportData );
-            //ProcessColorAttrib( fnShader, "color", fnShader.color(), material->diffuseColor, exportData );
-            //ProcessFloatAttrib( fnShader, "diffuse", fnShader.diffuseCoeff(), material->diffuseCoefficient, exportData );
          }
          break;
 
       case MFn::kPhong:
          {
-            //MFnPhongShader   fnShader( mayaMaterial );
-
-            //material->bsdf = new CPhongBSDF( material );
-
-            //ProcessBumpAttrib( fnShader, "normalCamera", material->bump, exportData );
-            //ProcessColorAttrib( fnShader, "incandescence", fnShader.incandescence(), material->emission, exportData );
-            //ProcessColorAttrib( fnShader, "color", fnShader.color(), material->diffuseColor, exportData );
-            //ProcessFloatAttrib( fnShader, "diffuse", fnShader.diffuseCoeff(), material->diffuseCoefficient, exportData );
-            //ProcessColorAttrib( fnShader, "specular color", fnShader.specularColor(), material->specularColor, exportData );
-            //ProcessFloatAttrib( fnShader, "reflectivity", fnShader.reflectivity(), material->specularCoefficient, exportData );
-            //ProcessFloatAttrib( fnShader, "cosine power", fnShader.cosPower(), material->specularExponent, exportData );
          }
          break;
 
       case MFn::kBlinn:
          {
-            //MFnBlinnShader   fnShader( mayaMaterial );
-
-            //// [_AJJ_TODO_] Crear una BSDF con el método de Blinn
-            //material->bsdf = new CLambertianBSDF( material );
-
-            //ProcessBumpAttrib( fnShader, "normalCamera", material->bump, exportData );
-            //ProcessColorAttrib( fnShader, "incandescence", fnShader.incandescence(), material->emission, exportData );
-            //ProcessColorAttrib( fnShader, "color", fnShader.color(), material->diffuseColor, exportData );
-            //ProcessFloatAttrib( fnShader, "diffuse", fnShader.diffuseCoeff(), material->diffuseCoefficient, exportData );
          }
          break;
       }
@@ -441,21 +244,6 @@ namespace  // <anonymous>
       AiNodeSetBool(polymesh, "smoothing", 1);
 
       //
-      // SHADERS
-      //
-
-      //MObject   mayaShader = GetNodeShader( dagNode );
-
-      //if (!mayaShader.isNull())
-      //{
-      //	// This object has a single shader
-      //}
-      //else
-      //{
-      //	// This object has multiple shaders
-      //}
-
-      //
       // GEOMETRY
       //
 
@@ -564,203 +352,6 @@ namespace  // <anonymous>
 
       delete[] nsides;
 
-      /*
-      MObjectArray        shaders;
-      CMaterial*          material = 0;
-
-      std::vector<CMaterial*>   meshMaterials;
-
-      if ( !mayaMaterial.isNull() )
-      {
-      material = ProcessMaterial( mayaMaterial, exportData );
-      }
-      else
-      {
-      fnMesh.getConnectedShaders( 0, shaders, indices );
-
-      for (int J = 0; ( J < (int) shaders.length() ); ++J)
-      {
-      MPlugArray          connections;
-      MFnDependencyNode   fnDGNode( shaders[J] );
-      MPlug               shaderPlug( shaders[J], fnDGNode.attribute( "surfaceShader" ) );
-
-      shaderPlug.connectedTo( connections, true, false );
-
-      meshMaterials.push_back( ProcessMaterial( connections[0].node(), exportData ) );
-      }
-      }
-
-      MPoint   point;
-      CMesh*   mesh = new CMesh;
-
-      for (; ( !itMeshPolygon.isDone() ); itMeshPolygon.next())
-      {
-      CMaterial*   triangleMaterial;
-
-      if ( material )
-      {
-      triangleMaterial = material;
-      }
-      else
-      {
-      AtUInt32   shaderIndex = indices[itMeshPolygon.index()];
-
-      triangleMaterial = meshMaterials[shaderIndex];
-      }
-
-      int      numTriangles;
-      double   area;
-
-      itMeshPolygon.getArea( area );
-      itMeshPolygon.numTriangles( numTriangles );
-
-      if ( numTriangles == 1 )
-      {
-      assert ( itMeshPolygon.polygonVertexCount( &status ) == 3 );
-
-      if ( area < 1e-5 )
-      {
-      continue;
-      }
-
-      CTriangle              triangle;
-      CTriangleShadingData   triData;
-
-      for (AtUInt32 I = 0; ( I < 3 ); I++)
-      {
-      int   index;
-
-      fnMesh.getPoint( itMeshPolygon.vertexIndex( I ), point, MSpace::kWorld );
-
-      triangle.vertices[I].set( (float) point.x, (float) point.y, (float) point.z );
-
-      index = itMeshPolygon.normalIndex( I );
-
-      triData.n[I].set( normalArray[index].x, normalArray[index].y, normalArray[index].z );
-
-      if ( hasUV )
-      {
-      itMeshPolygon.getUVIndex( I, index );
-
-      triData.tu[I] = uArray[index];
-      triData.tv[I] = vArray[index];
-      }
-      }
-
-      if ( triangle.initialize() < 0 )
-      {
-      continue;
-      }
-
-      triData.material = triangleMaterial;
-
-      mesh->addTriangle( triangle, triData );
-      }
-      else
-      {
-      if ( !itMeshPolygon.hasValidTriangulation() || ( area < 1e-5 ) )
-      {
-      continue;
-      }
-
-      for (AtUInt32 J = 1; ( J < (itMeshPolygon.polygonVertexCount() - 1) ); ++J)
-      {
-      int       index;
-      CVector   v1, v2, v3;
-
-      CTriangle              triangle;
-      CTriangleShadingData   triData;
-
-      fnMesh.getPoint( itMeshPolygon.vertexIndex( 0 ), point, MSpace::kWorld );
-      v1.set( (float) point.x, (float) point.y, (float) point.z );
-      fnMesh.getPoint( itMeshPolygon.vertexIndex( J ), point, MSpace::kWorld );
-      v2.set( (float) point.x, (float) point.y, (float) point.z );
-      fnMesh.getPoint( itMeshPolygon.vertexIndex( J + 1 ), point, MSpace::kWorld );
-      v3.set( (float) point.x, (float) point.y, (float) point.z );
-
-      CVector cross;
-
-      CrossProduct( cross, v2 - v1, v3 - v2 );
-
-      if ( fabs( cross.norm() ) < 1e-5 )
-      {
-      continue;
-      }
-
-      // Write Vertex 0
-      fnMesh.getPoint( itMeshPolygon.vertexIndex( 0 ), point, MSpace::kWorld );
-
-      triangle.vertices[0].set( (float) point.x, (float) point.y, (float) point.z );
-
-      index = itMeshPolygon.normalIndex( 0 );
-
-      triData.n[0].set( normalArray[index].x, normalArray[index].y, normalArray[index].z );
-
-      if ( hasUV )
-      {
-      itMeshPolygon.getUVIndex( 0, index );
-
-      triData.tu[0] = uArray[index];
-      triData.tv[0] = vArray[index];
-      }
-
-      // Write Vertex J
-      fnMesh.getPoint( itMeshPolygon.vertexIndex( J ), point, MSpace::kWorld );
-
-      triangle.vertices[J].set( (float) point.x, (float) point.y, (float) point.z );
-
-      index = itMeshPolygon.normalIndex( J );
-
-      triData.n[J].set( normalArray[index].x, normalArray[index].y, normalArray[index].z );
-
-      if ( hasUV )
-      {
-      itMeshPolygon.getUVIndex( J, index );
-
-      triData.tu[J] = uArray[index];
-      triData.tv[J] = vArray[index];
-      }
-
-      // Write Vertex J + 1
-      fnMesh.getPoint( itMeshPolygon.vertexIndex( J + 1 ), point, MSpace::kWorld );
-
-      triangle.vertices[J + 1].set( (float) point.x, (float) point.y, (float) point.z );
-
-      index = itMeshPolygon.normalIndex( J + 1 );
-
-      triData.n[J + 1].set( normalArray[index].x, normalArray[index].y, normalArray[index].z );
-
-      if ( hasUV )
-      {
-      itMeshPolygon.getUVIndex( J + 1, index );
-
-      triData.tu[J + 1] = uArray[index];
-      triData.tv[J + 1] = vArray[index];
-      }
-
-      if ( triangle.initialize() < 0 )
-      {
-      continue;
-      }
-
-      triData.material = triangleMaterial;
-
-      mesh->addTriangle( triangle, triData );
-      }
-      }
-      }
-
-      // Create a new TriObject in Escher and add to scene
-      CTriObject*   triObject = new CTriObject();
-      CSceneNode*   node      = new CSceneNode();
-
-      node->setObject( triObject );
-
-      triObject->setMesh( mesh );
-
-      exportData.scene->addNode( node );
-      */
-
    }  // processMesh()
 
 }  // namespace <anonymous>
@@ -792,27 +383,6 @@ MStatus ProcessMayaScene(MItDag::TraversalType traversalType)
          return status;
       }
 
-      //MFnDagNode   dagNode( dagPath, &status );
-
-      //if ( !status )
-      //{
-      //	AiMsgError( "ERROR: Could not get node.\n" );
-      //
-      //	return status;
-      //}
-      //
-      //printf ("<NODE>\n");
-      //printf ("  Name: %s\n", dagNode.name().asChar());
-      //printf ("  Type: %s\n", dagNode.typeName().asChar());
-      //printf ("  Path: %s\n", dagPath.fullPathName().asChar());
-      //printf ("  Chld: %u\n", dagNode.childCount());
-
-      // CON EL CHILDCOUNT DEL NODO PODEMOS SABER SI TIENE HIJOS O NO...
-      // pero MItDag::item devuelve en MObject al que le podemos preguntar con hasFn que es con lo cual
-      // parece que evitamos el problema de que una transformacion diga que es una camara (dagPath.hasFn
-      // dice si el path (del cual al final puede haber un nodo que sea una camara), contiene una camara
-      // con lo que el nodo de la transformacion dara como resultado true con lo que nos engaña.
-
       MMatrix tm = dagPath.inclusiveMatrix();
 
       if (dagIterator.item().hasFn(MFn::kLight))
@@ -835,8 +405,6 @@ MStatus ProcessMayaScene(MItDag::TraversalType traversalType)
          MObject     meshDataObject = meshData.create();
 
          meshFromNURBS = surface.tesselate(MTesselationParams::fsDefaultTesselationParams, meshDataObject);
-
-         AiMsgInfo("[mtoa] Processing NURBS surface...");
 
          ProcessMesh(meshFromNURBS, dagIterator.item(), tm);
       }
@@ -869,8 +437,6 @@ MStatus ProcessMayaScene(MItDag::TraversalType traversalType)
          }
          else
          {
-            AiMsgInfo( "[mtoa] Processing mesh..." );
-
             ProcessMesh(dagIterator.item(), dagIterator.item(), tm);
          }
       }
