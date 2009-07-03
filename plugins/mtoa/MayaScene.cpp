@@ -127,6 +127,7 @@ namespace  // <anonymous>
 
    void ProcessCamera(const MDagPath& dagPath)
    {
+      AiMsgDebug("[mtoa] Processing camera");
 
       MPoint     point;
       MVector    vector;
@@ -155,6 +156,7 @@ namespace  // <anonymous>
 
    void ProcessLight(const MDagPath& dagPath)
    {
+      AiMsgDebug("[mtoa] Processing light");
 
       MTransformationMatrix   lightWorldMatrix;
       MFloatVector            vector;
@@ -221,6 +223,7 @@ namespace  // <anonymous>
 
    void ProcessMesh(MObject mayaMesh, MObject dagNode, MMatrix tm)
    {
+      AiMsgDebug("[mtoa] Processing mesh");
 
       MFnMesh    fnMesh(mayaMesh);
       MFnDagNode fnDagNode(dagNode);
@@ -352,10 +355,28 @@ namespace  // <anonymous>
 
       delete[] nsides;
 
-   }  // processMesh()
+   }  // ProcessMesh()
+
+   bool IsVisible(MFnDagNode node)
+   {
+      MStatus status;
+
+      if (node.isIntermediateObject())
+         return false;
+
+      MPlug visPlug = node.findPlug("visibility", &status);
+
+      if (status == MStatus::kFailure)
+         return false;
+
+      bool visible;
+      visPlug.getValue(visible);
+
+      return visible;
+
+   }  // IsVisible()
 
 }  // namespace <anonymous>
-
 
 MStatus ProcessMayaScene(MItDag::TraversalType traversalType)
 {
@@ -382,6 +403,16 @@ MStatus ProcessMayaScene(MItDag::TraversalType traversalType)
 
          return status;
       }
+
+      MFnDagNode node(dagPath.node());
+
+      if (!IsVisible(node))
+      {
+         dagIterator.prune();
+         continue;
+      }
+
+      //AiMsgDebug("Node: %s", node.name().asChar());
 
       MMatrix tm = dagPath.inclusiveMatrix();
 
