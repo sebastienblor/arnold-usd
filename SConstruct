@@ -27,7 +27,8 @@ vars.AddVariables(
       PathVariable('EXTERNAL_PATH', 'External dependencies are found here', '.'),
       PathVariable('ARNOLD_API_INCLUDES', 'Where to find Arnold API includes', '.'),
       PathVariable('ARNOLD_API_LIB', 'Where to find Arnold API libraries', '.'),
-      PathVariable('TARGET_PLUGIN_PATH', 'Path used for installation of plugins', '.')
+      PathVariable('TARGET_PLUGIN_PATH', 'Path used for installation of plugins', '.'),
+      PathVariable('TARGET_SCRIPTS_PATH', 'Path used for installation of scripts', '.')
 )
 
 env = Environment(variables = vars)
@@ -186,6 +187,7 @@ mtoa_shaders_new = os.path.splitext(str(MTOA_SHADERS[0]))[0] + '.mll'
 env.Command(mtoa_new, str(MTOA[0]), Copy("$TARGET", "$SOURCE"))
 env.Command(mtoa_shaders_new, str(MTOA_SHADERS[0]), Copy("$TARGET", "$SOURCE"))
 env.Install(env['TARGET_PLUGIN_PATH'], [mtoa_new, mtoa_shaders_new])
+env.Install(env['TARGET_SCRIPTS_PATH'], glob.glob(os.path.join('scripts', '*.mel')))
 
 ################################
 ## TARGETS ALIASES AND DEPENDENCIES
@@ -206,6 +208,7 @@ env.AlwaysBuild('install')
 
 env.Depends('install', MTOA)
 env.Depends('install', MTOA_SHADERS)
+env.Depends('install', env['TARGET_SCRIPTS_PATH'])
 
 Default('mtoa')
 

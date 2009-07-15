@@ -1,0 +1,50 @@
+
+global proc CreateArnoldOutputSettings()
+{
+   setUITemplate -pushTemplate attributeEditorTemplate;
+
+   frameLayout -label "Render settings"
+      -labelVisible true -borderVisible true 
+      -borderStyle "etchedIn"
+      -labelAlign "center" -labelWidth 150
+      -collapsable false -collapse false;
+   
+      frameLayout -label "Threads"
+         -labelVisible true -borderVisible true 
+         -borderStyle "etchedIn"
+         -labelAlign "center" -labelWidth 150
+         -collapsable false -collapse false;
+   
+      columnLayout -adjustableColumn true;
+           
+      attrControlGrp -label "Threads"
+         -attribute defaultArnoldRenderOptions.threads
+         os_threads;
+    
+   setParent ..;
+   setParent ..;
+
+   setParent ..;
+   setUITemplate -popTemplate;
+}
+
+global proc CreateArnoldRendererGlobalsTab()
+{
+   string $parentForm = `setParent -query`;
+
+//   scrollLayout -horizontalScrollBarThickness 0 arnoldGlobalsScrollLayout;
+   columnLayout -adjustableColumn true arnoldTabColumn;
+
+   // Output
+   //
+   frameLayout -label "Output" -cll true -cl 0 arnoldOutputSettings;
+   CreateArnoldOutputSettings;
+   setParent ..;
+   
+   setParent $parentForm;
+}
+
+global proc UpdateArnoldRendererGlobalsTab()
+{
+   print "UpdateArnoldRendererGlobalsTab()";
+}
