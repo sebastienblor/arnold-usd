@@ -74,8 +74,8 @@ driver_open
       AtInt aaLevel = AiNodeGetInt(AiUniverseGetOptions(), "AA_samples");
 
       s_outputDriverData.aaSize      = (aaLevel < 0) ? (1 << -aaLevel) : 1;
-      s_outputDriverData.imageWidth  = displayWindow.maxx - displayWindow.minx + 1;
-      s_outputDriverData.imageHeight = displayWindow.maxy - displayWindow.miny + 1;
+      s_outputDriverData.imageWidth  = display_window.maxx - display_window.minx + 1;
+      s_outputDriverData.imageHeight = display_window.maxy - display_window.miny + 1;
       s_outputDriverData.bucketSize  = bucket_size;
       s_outputDriverData.rendering   = TRUE;
    }
