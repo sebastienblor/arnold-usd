@@ -22,7 +22,17 @@ public:
 
    // Attributes
 
-   static MObject s_Threads;
+   static MObject s_threads;
+   static MObject s_threads_autodetect;
+   static MObject s_bucket_scanning;
+   static MObject s_bucket_size;
+   static MObject s_abort_on_errors;
+
+   static MObject s_AA_samples;
+   static MObject s_GI_hemi_samples;
+   static MObject s_GI_specular_samples;
+   static MObject s_use_sample_clamp;
+   static MObject s_AA_sample_clamp;
 
 };  // class CArnoldRenderOptionsNode
 

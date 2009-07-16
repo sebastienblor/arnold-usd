@@ -9,22 +9,91 @@ global proc CreateArnoldOutputSettings()
       -labelAlign "center" -labelWidth 150
       -collapsable false -collapse false;
    
-      frameLayout -label "Threads"
-         -labelVisible true -borderVisible true 
-         -borderStyle "etchedIn"
-         -labelAlign "center" -labelWidth 150
-         -collapsable false -collapse false;
+      columnLayout -adjustableColumn true;
+      
+         frameLayout -label "Threads"
+            -labelVisible true -borderVisible true 
+            -borderStyle "etchedIn"
+            -labelAlign "center" -labelWidth 150
+            -collapsable false -collapse false;
+      
+            columnLayout;
+           
+               attrControlGrp -label "Autodetect"
+                  -attribute defaultArnoldRenderOptions.threads_autodetect
+                  os_threads_autodetect;
+    
+               attrControlGrp -label "Threads"
+                  -attribute defaultArnoldRenderOptions.threads
+                  os_threads;
+    
+               setParent ..;
+            setParent ..;
+
+         frameLayout -label "Buckets"
+            -labelVisible true -borderVisible true 
+            -borderStyle "etchedIn"
+            -labelAlign "center" -labelWidth 150
+            -collapsable false -collapse false;
+   
+            columnLayout;
+           
+               attrControlGrp -label "Scanning"
+                  -attribute defaultArnoldRenderOptions.bucket_scanning
+                  os_bucket_scanning;
+               
+               attrControlGrp -label "Size"
+                  -attribute defaultArnoldRenderOptions.bucket_size
+                  os_bucket_size;
+               
+               setParent ..;
+            setParent ..;
+
+            attrControlGrp -label "Abort On Errors"
+               -attribute defaultArnoldRenderOptions.abort_on_errors
+               os_abort_on_errors;
+                  
+         setParent ..;
+      setParent ..;
+
+   setUITemplate -popTemplate;
+}
+
+global proc CreateArnoldSamplingSettings()
+{
+   setUITemplate -pushTemplate attributeEditorTemplate;
+
+   frameLayout -label "Settings"
+      -labelVisible true -borderVisible true 
+      -borderStyle "etchedIn"
+      -labelAlign "center" -labelWidth 150
+      -collapsable false -collapse false;
    
       columnLayout -adjustableColumn true;
-           
-      attrControlGrp -label "Threads"
-         -attribute defaultArnoldRenderOptions.threads
-         os_threads;
-    
-   setParent ..;
-   setParent ..;
+      
+         attrControlGrp -label "AA Samples"
+            -attribute defaultArnoldRenderOptions.AA_samples
+            ss_AA_samples;
 
-   setParent ..;
+         attrControlGrp -label "Hemi Samples"
+            -attribute defaultArnoldRenderOptions.GI_hemi_samples
+            ss_hemi_samples;
+
+         attrControlGrp -label "Glossy Samples"
+            -attribute defaultArnoldRenderOptions.GI_specular_samples
+            ss_glossy_samples;
+
+         attrControlGrp -label "Clamp Sample Values"
+            -attribute defaultArnoldRenderOptions.use_sample_clamp
+            ss_clamp_sample_values;
+
+         attrControlGrp -label "Max. Value"
+            -attribute defaultArnoldRenderOptions.AA_sample_clamp
+            ss_max_value;
+
+         setParent ..;
+      setParent ..;
+
    setUITemplate -popTemplate;
 }
 
@@ -33,14 +102,24 @@ global proc CreateArnoldRendererGlobalsTab()
    string $parentForm = `setParent -query`;
 
 //   scrollLayout -horizontalScrollBarThickness 0 arnoldGlobalsScrollLayout;
-   columnLayout -adjustableColumn true arnoldTabColumn;
-
-   // Output
-   //
-   frameLayout -label "Output" -cll true -cl 0 arnoldOutputSettings;
-   CreateArnoldOutputSettings;
-   setParent ..;
+      columnLayout -adjustableColumn true arnoldTabColumn;
    
+         // Output
+         //
+         frameLayout -label "Output" -cll true -cl 0 arnoldOutputSettings;
+            columnLayout -adjustableColumn true;
+               CreateArnoldOutputSettings;
+               setParent ..;
+            setParent ..;
+         
+         // Sampling
+         //
+         frameLayout -label "Sampling" -cll true -cl 0 arnoldSamplingSettings;
+            columnLayout -adjustableColumn true;
+               CreateArnoldSamplingSettings;
+               setParent ..;
+            setParent ..;
+      
    setParent $parentForm;
 }
 
