@@ -1,4 +1,16 @@
 
+global proc UpdateOutputSettings()
+{
+   int $flag = `getAttr defaultArnoldRenderOptions.threads_autodetect` == false;
+   attrControlGrp -edit -enable $flag os_threads;
+}
+
+global proc UpdateSamplingSettings()
+{
+   int $flag = `getAttr defaultArnoldRenderOptions.use_sample_clamp` == true;
+   attrControlGrp -edit -enable $flag ss_max_value;
+}
+
 global proc CreateArnoldOutputSettings()
 {
    setUITemplate -pushTemplate attributeEditorTemplate;
@@ -21,6 +33,7 @@ global proc CreateArnoldOutputSettings()
            
                attrControlGrp -label "Autodetect"
                   -attribute defaultArnoldRenderOptions.threads_autodetect
+                  -cc UpdateOutputSettings
                   os_threads_autodetect;
     
                attrControlGrp -label "Threads"
@@ -85,6 +98,7 @@ global proc CreateArnoldSamplingSettings()
 
          attrControlGrp -label "Clamp Sample Values"
             -attribute defaultArnoldRenderOptions.use_sample_clamp
+            -cc UpdateSamplingSettings
             ss_clamp_sample_values;
 
          attrControlGrp -label "Max. Value"
@@ -121,9 +135,12 @@ global proc CreateArnoldRendererGlobalsTab()
             setParent ..;
       
    setParent $parentForm;
+   
+   UpdateArnoldRendererGlobalsTab();
 }
 
 global proc UpdateArnoldRendererGlobalsTab()
 {
-   print "UpdateArnoldRendererGlobalsTab()";
+   UpdateOutputSettings();
+   UpdateSamplingSettings();
 }
