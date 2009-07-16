@@ -49,9 +49,9 @@ global proc CreateArnoldOutputSettings()
                setParent ..;
             setParent ..;
 
-            attrControlGrp -label "Abort On Errors"
-               -attribute defaultArnoldRenderOptions.abort_on_errors
-               os_abort_on_errors;
+            attrControlGrp -label "Abort On Error"
+               -attribute defaultArnoldRenderOptions.abort_on_error
+               os_abort_on_error;
                   
          setParent ..;
       setParent ..;

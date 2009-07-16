@@ -10,7 +10,7 @@ MObject CArnoldRenderOptionsNode::s_threads;
 MObject CArnoldRenderOptionsNode::s_threads_autodetect;
 MObject CArnoldRenderOptionsNode::s_bucket_scanning;
 MObject CArnoldRenderOptionsNode::s_bucket_size;
-MObject CArnoldRenderOptionsNode::s_abort_on_errors;
+MObject CArnoldRenderOptionsNode::s_abort_on_error;
 MObject CArnoldRenderOptionsNode::s_AA_samples;
 MObject CArnoldRenderOptionsNode::s_GI_hemi_samples;
 MObject CArnoldRenderOptionsNode::s_GI_specular_samples;
@@ -56,9 +56,9 @@ MStatus CArnoldRenderOptionsNode::initialize()
    nAttr.setSoftMax(256);
    addAttribute(s_bucket_size);
 
-   s_abort_on_errors = nAttr.create("abort_on_errors", "abort", MFnNumericData::kBoolean, 1);
+   s_abort_on_error = nAttr.create("abort_on_error", "abort", MFnNumericData::kBoolean, 1);
    nAttr.setKeyable(false);
-   addAttribute(s_abort_on_errors);
+   addAttribute(s_abort_on_error);
 
    s_AA_samples = nAttr.create("AA_samples", "AAsmpls", MFnNumericData::kInt, 3);
    nAttr.setKeyable(false);

@@ -26,7 +26,7 @@ public:
    static MObject s_threads_autodetect;
    static MObject s_bucket_scanning;
    static MObject s_bucket_size;
-   static MObject s_abort_on_errors;
+   static MObject s_abort_on_error;
 
    static MObject s_AA_samples;
    static MObject s_GI_hemi_samples;
