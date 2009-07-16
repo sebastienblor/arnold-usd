@@ -4,6 +4,7 @@
 #include "OutputDriver.h"
 
 #include <ai_api.h>
+#include <ai_constants.h>
 #include <ai_dotass.h>
 #include <ai_msg.h>
 #include <ai_nodes.h>
@@ -56,6 +57,8 @@ MStatus CRenderCmd::doIt(const MArgList& argList)
 
    AiNodeSetInt(AiUniverseGetOptions(), "xres", width);
    AiNodeSetInt(AiUniverseGetOptions(), "yres", height);
+
+   ProcessArnoldRenderOptions();
 
    MComputation comp;
 
@@ -167,3 +170,28 @@ void CRenderCmd::GetOutputResolution(AtUInt32& width, AtUInt32& height)
       }
    }
 }  // GetOutputResolution()
+
+void CRenderCmd::ProcessArnoldRenderOptions()
+{
+   MSelectionList list;
+   MObject        node;
+
+   list.add("defaultArnoldRenderOptions");
+
+   if (list.length() > 0)
+   {
+      list.getDependNode(0, node);
+
+      MFnDependencyNode fnArnoldRenderOptions(node);
+
+      AiNodeSetInt(AiUniverseGetOptions(), "threads", fnArnoldRenderOptions.findPlug("threads_autodetect").asBool() ? 0 : fnArnoldRenderOptions.findPlug("threads").asInt());
+      AiNodeSetInt(AiUniverseGetOptions(), "bucket_scanning", fnArnoldRenderOptions.findPlug("bucket_scanning").asInt());
+      AiNodeSetInt(AiUniverseGetOptions(), "bucket_size", fnArnoldRenderOptions.findPlug("bucket_size").asInt());
+      AiNodeSetBool(AiUniverseGetOptions(), "abort_on_error", fnArnoldRenderOptions.findPlug("abort_on_error").asBool());
+
+      AiNodeSetInt(AiUniverseGetOptions(), "AA_samples", fnArnoldRenderOptions.findPlug("AA_samples").asInt());
+      AiNodeSetInt(AiUniverseGetOptions(), "GI_hemi_samples", fnArnoldRenderOptions.findPlug("GI_hemi_samples").asInt());
+      AiNodeSetInt(AiUniverseGetOptions(), "GI_specular_samples", fnArnoldRenderOptions.findPlug("GI_specular_samples").asInt());
+      AiNodeSetFlt(AiUniverseGetOptions(), "AA_sample_clamp", fnArnoldRenderOptions.findPlug("use_sample_clamp").asBool() ? fnArnoldRenderOptions.findPlug("AA_sample_clamp").asFloat() : (float) AI_INFINITE);
+   }
+}

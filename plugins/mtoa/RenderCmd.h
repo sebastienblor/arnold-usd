@@ -41,6 +41,7 @@ protected:
    void InitOutputDriver();
    void Render();
    void GetOutputResolution(AtUInt32& width, AtUInt32& height);
+   void ProcessArnoldRenderOptions();
 
 }; // class CRenderCmd
 
