@@ -1,7 +1,7 @@
 
 #include "RenderCmd.h"
-#include "MayaScene.h"
 #include "OutputDriver.h"
+#include "maya_scene/MayaScene.h"
 
 #include <ai_api.h>
 #include <ai_constants.h>
