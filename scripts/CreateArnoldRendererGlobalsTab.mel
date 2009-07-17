@@ -13,60 +13,51 @@ global proc UpdateSamplingSettings()
 
 global proc CreateArnoldOutputSettings()
 {
+      
    setUITemplate -pushTemplate attributeEditorTemplate;
-
-   frameLayout -label "Render settings"
-      -labelVisible true -borderVisible true 
-      -borderStyle "etchedIn"
-      -labelAlign "center" -labelWidth 150
-      -collapsable false -collapse false;
-   
-      columnLayout -adjustableColumn true;
+   columnLayout -adjustableColumn true arnoldOutputLayout;
       
-         frameLayout -label "Threads"
-            -labelVisible true -borderVisible true 
-            -borderStyle "etchedIn"
-            -labelAlign "center" -labelWidth 150
-            -collapsable false -collapse false;
-      
-            columnLayout;
-           
-               attrControlGrp -label "Autodetect"
-                  -attribute defaultArnoldRenderOptions.threads_autodetect
-                  -cc UpdateOutputSettings
-                  os_threads_autodetect;
-    
+      frameLayout -label "Threads"
+         -labelVisible true -borderVisible true 
+         -borderStyle "etchedIn"
+         -collapsable false -collapse false;
+         
+         columnLayout;
+              
+            attrControlGrp -label "Autodetect"
+               -attribute defaultArnoldRenderOptions.threads_autodetect
+               -cc UpdateOutputSettings
+               os_threads_autodetect;
+       
                attrControlGrp -label "Threads"
                   -attribute defaultArnoldRenderOptions.threads
                   os_threads;
-    
+       
                setParent ..;
-            setParent ..;
-
-         frameLayout -label "Buckets"
-            -labelVisible true -borderVisible true 
-            -borderStyle "etchedIn"
-            -labelAlign "center" -labelWidth 150
-            -collapsable false -collapse false;
-   
-            columnLayout;
-           
-               attrControlGrp -label "Scanning"
-                  -attribute defaultArnoldRenderOptions.bucket_scanning
-                  os_bucket_scanning;
-               
-               attrControlGrp -label "Size"
-                  -attribute defaultArnoldRenderOptions.bucket_size
-                  os_bucket_size;
-               
-               setParent ..;
-            setParent ..;
-
-            attrControlGrp -label "Abort On Error"
-               -attribute defaultArnoldRenderOptions.abort_on_error
-               os_abort_on_error;
-                  
          setParent ..;
+   
+      frameLayout -label "Buckets"
+         -labelVisible true -borderVisible true 
+         -borderStyle "etchedIn"
+         -collapsable false -collapse false;
+      
+         columnLayout;
+              
+            attrControlGrp -label "Scanning"
+               -attribute defaultArnoldRenderOptions.bucket_scanning
+               os_bucket_scanning;
+                  
+            attrControlGrp -label "Size"
+               -attribute defaultArnoldRenderOptions.bucket_size
+               os_bucket_size;
+                  
+            setParent ..;
+         setParent ..;
+   
+      attrControlGrp -label "Abort On Error"
+         -attribute defaultArnoldRenderOptions.abort_on_error
+         os_abort_on_error;
+                     
       setParent ..;
 
    setUITemplate -popTemplate;
@@ -75,37 +66,29 @@ global proc CreateArnoldOutputSettings()
 global proc CreateArnoldSamplingSettings()
 {
    setUITemplate -pushTemplate attributeEditorTemplate;
-
-   frameLayout -label "Settings"
-      -labelVisible true -borderVisible true 
-      -borderStyle "etchedIn"
-      -labelAlign "center" -labelWidth 150
-      -collapsable false -collapse false;
-   
-      columnLayout -adjustableColumn true;
+   columnLayout -adjustableColumn true;
       
-         attrControlGrp -label "AA Samples"
-            -attribute defaultArnoldRenderOptions.AA_samples
-            ss_AA_samples;
+      attrControlGrp -label "AA Samples"
+         -attribute defaultArnoldRenderOptions.AA_samples
+         ss_AA_samples;
 
-         attrControlGrp -label "Hemi Samples"
-            -attribute defaultArnoldRenderOptions.GI_hemi_samples
-            ss_hemi_samples;
+      attrControlGrp -label "Hemi Samples"
+         -attribute defaultArnoldRenderOptions.GI_hemi_samples
+         ss_hemi_samples;
 
-         attrControlGrp -label "Glossy Samples"
-            -attribute defaultArnoldRenderOptions.GI_specular_samples
-            ss_glossy_samples;
+      attrControlGrp -label "Glossy Samples"
+         -attribute defaultArnoldRenderOptions.GI_specular_samples
+         ss_glossy_samples;
 
-         attrControlGrp -label "Clamp Sample Values"
-            -attribute defaultArnoldRenderOptions.use_sample_clamp
-            -cc UpdateSamplingSettings
-            ss_clamp_sample_values;
+      attrControlGrp -label "Clamp Sample Values"
+         -attribute defaultArnoldRenderOptions.use_sample_clamp
+         -cc UpdateSamplingSettings
+         ss_clamp_sample_values;
 
-         attrControlGrp -label "Max. Value"
-            -attribute defaultArnoldRenderOptions.AA_sample_clamp
-            ss_max_value;
+      attrControlGrp -label "Max. Value"
+         -attribute defaultArnoldRenderOptions.AA_sample_clamp
+         ss_max_value;
 
-         setParent ..;
       setParent ..;
 
    setUITemplate -popTemplate;
@@ -115,26 +98,33 @@ global proc CreateArnoldRendererGlobalsTab()
 {
    string $parentForm = `setParent -query`;
 
-//   scrollLayout -horizontalScrollBarThickness 0 arnoldGlobalsScrollLayout;
+   setUITemplate -pushTemplate attributeEditorTemplate;
+   scrollLayout -horizontalScrollBarThickness 0 arnoldGlobalsScrollLayout;
       columnLayout -adjustableColumn true arnoldTabColumn;
-   
-         // Output
-         //
-         frameLayout -label "Output" -cll true -cl 0 arnoldOutputSettings;
-            columnLayout -adjustableColumn true;
-               CreateArnoldOutputSettings;
-               setParent ..;
-            setParent ..;
-         
+      
          // Sampling
          //
-         frameLayout -label "Sampling" -cll true -cl 0 arnoldSamplingSettings;
-            columnLayout -adjustableColumn true;
-               CreateArnoldSamplingSettings;
-               setParent ..;
+         frameLayout -label "Sampling" -lw 100 -cll true -cl 0 arnoldSamplingSettings;
+            CreateArnoldSamplingSettings;
             setParent ..;
-      
-   setParent $parentForm;
+            
+            
+         // Output
+         //
+         frameLayout -label "System" -lw 100 -cll true -cl 0 arnoldOutputSettings;
+            CreateArnoldOutputSettings;
+            setParent ..;
+         
+         setParent ..;
+         
+      formLayout -edit
+         -af arnoldGlobalsScrollLayout "top" 0
+         -af arnoldGlobalsScrollLayout "bottom" 0
+         -af arnoldGlobalsScrollLayout "left" 0
+         -af arnoldGlobalsScrollLayout "right" 0
+         $parentForm;
+     
+      setParent $parentForm;
    
    UpdateArnoldRendererGlobalsTab();
 }
