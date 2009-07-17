@@ -66,181 +66,155 @@ void* CArnoldStandardShaderNode::creator()
    return new CArnoldStandardShaderNode();
 }
 
+#define MAKE_INPUT(attr, name) \
+   attr.setKeyable(true); \
+   attr.setStorable(true);	\
+   attr.setReadable(true);	\
+   attr.setWritable(true); \
+   addAttribute(name)
+
+#define MAKE_OUTPUT(attr, name) \
+   attr.setKeyable(false); \
+   attr.setStorable(false); \
+   attr.setReadable(true); \
+   attr.setWritable(false); \
+   addAttribute(name)
+
 #define ATTRIB_COLOR(attrib, name, shortname) \
    attrib##R = nAttr.create(name##"R", shortname##"r", MFnNumericData::kFloat, 1);\
    attrib##G = nAttr.create(name##"G", shortname##"g", MFnNumericData::kFloat, 1);\
    attrib##B = nAttr.create(name##"B", shortname##"b", MFnNumericData::kFloat, 1);\
    attrib = nAttr.create(name, shortname, attrib##R, attrib##G, attrib##B);\
-   nAttr.setKeyable(true);\
-   nAttr.setStorable(true);\
    nAttr.setUsedAsColor(true);\
    nAttr.setDefault(1, 1, 1);\
    addAttribute(attrib##R);\
    addAttribute(attrib##G);\
-   addAttribute(attrib##B);\
-   addAttribute(attrib);\
+   addAttribute(attrib##B);
 
 MStatus CArnoldStandardShaderNode::initialize()
 {
    MFnNumericAttribute  nAttr;
 
    s_Fresnel = nAttr.create("Fresnel", "frn", MFnNumericData::kBoolean, 0);
-   nAttr.setKeyable(true);
-   nAttr.setStorable(true);
-   addAttribute(s_Fresnel);
+   MAKE_INPUT(nAttr, s_Fresnel);
 
    s_Fresnel_affect_diff = nAttr.create("Fresnel_affect_diff", "frndiff", MFnNumericData::kBoolean, 1);
-   nAttr.setKeyable(true);
-   nAttr.setStorable(true);
-   addAttribute(s_Fresnel_affect_diff);
+   MAKE_INPUT(nAttr, s_Fresnel_affect_diff);
 
    s_IOR = nAttr.create("IOR", "ior", MFnNumericData::kFloat, 1);
-   nAttr.setKeyable(true);
-   nAttr.setStorable(true);
    nAttr.setMin(0);
    nAttr.setMax(10);
-   addAttribute(s_IOR);
+   MAKE_INPUT(nAttr, s_IOR);
 
    ATTRIB_COLOR(s_Katt, "Katt", "katt");
+   MAKE_INPUT(nAttr, s_Katt);
 
    s_Kb = nAttr.create("Kb", "kb", MFnNumericData::kFloat, 0);
-   nAttr.setKeyable(true);
-   nAttr.setStorable(true);
    nAttr.setMin(0);
    nAttr.setMax(1);
-   addAttribute(s_Kb);
+   MAKE_INPUT(nAttr, s_Kb);
 
    s_Kd = nAttr.create("Kd", "kd", MFnNumericData::kFloat, 0.7f);
-   nAttr.setKeyable(true);
-   nAttr.setStorable(true);
    nAttr.setMin(0);
    nAttr.setMax(1);
-   addAttribute(s_Kd);
+   MAKE_INPUT(nAttr, s_Kd);
 
    ATTRIB_COLOR(s_Kd_color, "Kd_color", "kdc");
+   MAKE_INPUT(nAttr, s_Kd_color);
 
    s_Kr = nAttr.create("Kr", "kr", MFnNumericData::kFloat, 0);
-   nAttr.setKeyable(true);
-   nAttr.setStorable(true);
    nAttr.setMin(0);
    nAttr.setMax(1);
-   addAttribute(s_Kr);
+   MAKE_INPUT(nAttr, s_Kr);
 
    ATTRIB_COLOR(s_Kr_color, "Kr_color", "krc");
+   MAKE_INPUT(nAttr, s_Kr_color);
 
    s_Krn = nAttr.create("Krn", "krn", MFnNumericData::kFloat, 0);
-   nAttr.setKeyable(true);
-   nAttr.setStorable(true);
    nAttr.setMin(0);
    nAttr.setMax(1);
-   addAttribute(s_Krn);
+   MAKE_INPUT(nAttr, s_Krn);
 
    s_Ks = nAttr.create("Ks", "ks", MFnNumericData::kFloat, 0);
-   nAttr.setKeyable(true);
-   nAttr.setStorable(true);
    nAttr.setMin(0);
    nAttr.setMax(1);
-   addAttribute(s_Ks);
+   MAKE_INPUT(nAttr, s_Ks);
 
    ATTRIB_COLOR(s_Ks_color, "Ks_color", "ksc");
+   MAKE_INPUT(nAttr, s_Ks_color);
 
    s_Ksn = nAttr.create("Ksn", "ksn", MFnNumericData::kFloat, 0);
-   nAttr.setKeyable(true);
-   nAttr.setStorable(true);
    nAttr.setMin(0);
    nAttr.setMax(1);
-   addAttribute(s_Ksn);
+   MAKE_INPUT(nAttr, s_Ksn);
 
    s_Ksss = nAttr.create("Ksss", "ksss", MFnNumericData::kFloat, 0);
-   nAttr.setKeyable(true);
-   nAttr.setStorable(true);
    nAttr.setMin(0);
    nAttr.setMax(1);
-   addAttribute(s_Ksss);
+   MAKE_INPUT(nAttr, s_Ksss);
 
    ATTRIB_COLOR(s_Ksss_color, "Ksss_color", "ksssc");
+   MAKE_INPUT(nAttr, s_Ksss_color);
 
    s_Kt = nAttr.create("Kt", "kt", MFnNumericData::kFloat, 0);
-   nAttr.setKeyable(true);
-   nAttr.setStorable(true);
    nAttr.setMin(0);
    nAttr.setMax(1);
-   addAttribute(s_Kt);
+   MAKE_INPUT(nAttr, s_Kt);
 
    s_Phong_exponent = nAttr.create("Phong_exponent", "phonge", MFnNumericData::kFloat, 10);
-   nAttr.setKeyable(true);
-   nAttr.setStorable(true);
    nAttr.setMin(0);
    nAttr.setMax(60);
-   addAttribute(s_Phong_exponent);
+   MAKE_INPUT(nAttr, s_Phong_exponent);
 
    s_bounce_factor = nAttr.create("bounce_factor", "bouncef", MFnNumericData::kFloat, 1);
-   nAttr.setKeyable(true);
-   nAttr.setStorable(true);
    nAttr.setMin(0);
    nAttr.setMax(4);
-   addAttribute(s_bounce_factor);
+   MAKE_INPUT(nAttr, s_bounce_factor);
 
    s_caustics = nAttr.create("caustics", "caust", MFnNumericData::kBoolean, 0);
-   nAttr.setKeyable(true);
-   nAttr.setStorable(true);
-   addAttribute(s_caustics);
+   MAKE_INPUT(nAttr, s_caustics);
 
    s_direct_diffuse = nAttr.create("direct_diffuse", "directd", MFnNumericData::kFloat, 1);
-   nAttr.setKeyable(true);
-   nAttr.setStorable(true);
    nAttr.setMin(0);
    nAttr.setMax(1);
-   addAttribute(s_direct_diffuse);
+   MAKE_INPUT(nAttr, s_direct_diffuse);
 
    s_direct_specular = nAttr.create("direct_specular", "directs", MFnNumericData::kFloat, 1);
-   nAttr.setKeyable(true);
-   nAttr.setStorable(true);
    nAttr.setMin(0);
    nAttr.setMax(1);
-   addAttribute(s_direct_specular);
+   MAKE_INPUT(nAttr, s_direct_specular);
 
    s_emission = nAttr.create("emission", "emiss", MFnNumericData::kFloat, 0);
-   nAttr.setKeyable(true);
-   nAttr.setStorable(true);
    nAttr.setMin(0);
    nAttr.setMax(1);
-   addAttribute(s_emission);
+   MAKE_INPUT(nAttr, s_emission);
 
    ATTRIB_COLOR(s_emission_color, "emission_color", "emissc");
+   MAKE_INPUT(nAttr, s_emission_color);
 
    s_indirect_diffuse = nAttr.create("indirect_diffuse", "indirectd", MFnNumericData::kFloat, 1);
-   nAttr.setKeyable(true);
-   nAttr.setStorable(true);
    nAttr.setMin(0);
    nAttr.setMax(1);
-   addAttribute(s_indirect_diffuse);
+   MAKE_INPUT(nAttr, s_indirect_diffuse);
 
    s_indirect_specular = nAttr.create("indirect_specular", "indirects", MFnNumericData::kFloat, 1);
-   nAttr.setKeyable(true);
-   nAttr.setStorable(true);
    nAttr.setMin(0);
    nAttr.setMax(1);
-   addAttribute(s_indirect_specular);
+   MAKE_INPUT(nAttr, s_indirect_specular);
 
    ATTRIB_COLOR(s_opacity, "opacity", "opac");
+   MAKE_INPUT(nAttr, s_opacity);
 
    s_retro_reflector = nAttr.create("retro_reflector", "retror", MFnNumericData::kBoolean, 0);
-   nAttr.setKeyable(true);
-   nAttr.setStorable(true);
-   addAttribute(s_retro_reflector);
+   MAKE_INPUT(nAttr, s_retro_reflector);
 
    s_specular_Fresnel = nAttr.create("specular_Fresnel", "specf", MFnNumericData::kBoolean, 0);
-   nAttr.setKeyable(true);
-   nAttr.setStorable(true);
-   addAttribute(s_specular_Fresnel);
+   MAKE_INPUT(nAttr, s_specular_Fresnel);
 
    s_sss_radius = nAttr.create("sss_radius", "sssr", MFnNumericData::kFloat, 0.1f);
-   nAttr.setKeyable(true);
-   nAttr.setStorable(true);
    nAttr.setMin(0);
    nAttr.setMax(10);
-   addAttribute(s_sss_radius);
+   MAKE_INPUT(nAttr, s_sss_radius);
 
    return MS::kSuccess;
 }
