@@ -10,6 +10,11 @@ class CArnoldStandardShaderNode
 
 public:
 
+   virtual void postConstructor()
+   {
+      setMPSafe(true);
+   }
+
    virtual MStatus compute(const MPlug& plug, MDataBlock& data);
 
    static void* creator();
@@ -17,7 +22,7 @@ public:
 
 	static MTypeId id;
 
-   // Attributes
+   // Input attributes
    static MObject s_Fresnel;
    static MObject s_Fresnel_affect_diff;
    static MObject s_IOR;
@@ -68,6 +73,16 @@ public:
    static MObject s_retro_reflector;
    static MObject s_specular_Fresnel;
    static MObject s_sss_radius;
+
+   // Output attributes
+   static MObject s_OUT_colorR;
+   static MObject s_OUT_colorG;
+   static MObject s_OUT_colorB;
+   static MObject s_OUT_color;
+   static MObject s_OUT_transparencyR;
+   static MObject s_OUT_transparencyG;
+   static MObject s_OUT_transparencyB;
+   static MObject s_OUT_transparency;
 
 };  // class CArnoldStandardShaderNode
 

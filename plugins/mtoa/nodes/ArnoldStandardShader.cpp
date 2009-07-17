@@ -55,10 +55,18 @@ MObject CArnoldStandardShaderNode::s_opacity;
 MObject CArnoldStandardShaderNode::s_retro_reflector;
 MObject CArnoldStandardShaderNode::s_specular_Fresnel;
 MObject CArnoldStandardShaderNode::s_sss_radius;
+MObject CArnoldStandardShaderNode::s_OUT_colorR;
+MObject CArnoldStandardShaderNode::s_OUT_colorG;
+MObject CArnoldStandardShaderNode::s_OUT_colorB;
+MObject CArnoldStandardShaderNode::s_OUT_color;
+MObject CArnoldStandardShaderNode::s_OUT_transparencyR;
+MObject CArnoldStandardShaderNode::s_OUT_transparencyG;
+MObject CArnoldStandardShaderNode::s_OUT_transparencyB;
+MObject CArnoldStandardShaderNode::s_OUT_transparency;
 
 MStatus CArnoldStandardShaderNode::compute(const MPlug& plug, MDataBlock& data)
 {
-   return MS::kSuccess;
+   return MS::kUnknownParameter;
 }
 
 void* CArnoldStandardShaderNode::creator()
@@ -80,7 +88,7 @@ void* CArnoldStandardShaderNode::creator()
    attr.setWritable(false); \
    addAttribute(name)
 
-#define ATTRIB_COLOR(attrib, name, shortname) \
+#define MAKE_COLOR(attrib, name, shortname) \
    attrib##R = nAttr.create(name##"R", shortname##"r", MFnNumericData::kFloat, 1);\
    attrib##G = nAttr.create(name##"G", shortname##"g", MFnNumericData::kFloat, 1);\
    attrib##B = nAttr.create(name##"B", shortname##"b", MFnNumericData::kFloat, 1);\
@@ -106,7 +114,7 @@ MStatus CArnoldStandardShaderNode::initialize()
    nAttr.setMax(10);
    MAKE_INPUT(nAttr, s_IOR);
 
-   ATTRIB_COLOR(s_Katt, "Katt", "katt");
+   MAKE_COLOR(s_Katt, "Katt", "katt");
    MAKE_INPUT(nAttr, s_Katt);
 
    s_Kb = nAttr.create("Kb", "kb", MFnNumericData::kFloat, 0);
@@ -119,7 +127,7 @@ MStatus CArnoldStandardShaderNode::initialize()
    nAttr.setMax(1);
    MAKE_INPUT(nAttr, s_Kd);
 
-   ATTRIB_COLOR(s_Kd_color, "Kd_color", "kdc");
+   MAKE_COLOR(s_Kd_color, "Kd_color", "kdc");
    MAKE_INPUT(nAttr, s_Kd_color);
 
    s_Kr = nAttr.create("Kr", "kr", MFnNumericData::kFloat, 0);
@@ -127,7 +135,7 @@ MStatus CArnoldStandardShaderNode::initialize()
    nAttr.setMax(1);
    MAKE_INPUT(nAttr, s_Kr);
 
-   ATTRIB_COLOR(s_Kr_color, "Kr_color", "krc");
+   MAKE_COLOR(s_Kr_color, "Kr_color", "krc");
    MAKE_INPUT(nAttr, s_Kr_color);
 
    s_Krn = nAttr.create("Krn", "krn", MFnNumericData::kFloat, 0);
@@ -140,7 +148,7 @@ MStatus CArnoldStandardShaderNode::initialize()
    nAttr.setMax(1);
    MAKE_INPUT(nAttr, s_Ks);
 
-   ATTRIB_COLOR(s_Ks_color, "Ks_color", "ksc");
+   MAKE_COLOR(s_Ks_color, "Ks_color", "ksc");
    MAKE_INPUT(nAttr, s_Ks_color);
 
    s_Ksn = nAttr.create("Ksn", "ksn", MFnNumericData::kFloat, 0);
@@ -153,7 +161,7 @@ MStatus CArnoldStandardShaderNode::initialize()
    nAttr.setMax(1);
    MAKE_INPUT(nAttr, s_Ksss);
 
-   ATTRIB_COLOR(s_Ksss_color, "Ksss_color", "ksssc");
+   MAKE_COLOR(s_Ksss_color, "Ksss_color", "ksssc");
    MAKE_INPUT(nAttr, s_Ksss_color);
 
    s_Kt = nAttr.create("Kt", "kt", MFnNumericData::kFloat, 0);
@@ -189,7 +197,7 @@ MStatus CArnoldStandardShaderNode::initialize()
    nAttr.setMax(1);
    MAKE_INPUT(nAttr, s_emission);
 
-   ATTRIB_COLOR(s_emission_color, "emission_color", "emissc");
+   MAKE_COLOR(s_emission_color, "emission_color", "emissc");
    MAKE_INPUT(nAttr, s_emission_color);
 
    s_indirect_diffuse = nAttr.create("indirect_diffuse", "indirectd", MFnNumericData::kFloat, 1);
@@ -202,7 +210,7 @@ MStatus CArnoldStandardShaderNode::initialize()
    nAttr.setMax(1);
    MAKE_INPUT(nAttr, s_indirect_specular);
 
-   ATTRIB_COLOR(s_opacity, "opacity", "opac");
+   MAKE_COLOR(s_opacity, "opacity", "opac");
    MAKE_INPUT(nAttr, s_opacity);
 
    s_retro_reflector = nAttr.create("retro_reflector", "retror", MFnNumericData::kBoolean, 0);
@@ -215,6 +223,48 @@ MStatus CArnoldStandardShaderNode::initialize()
    nAttr.setMin(0);
    nAttr.setMax(10);
    MAKE_INPUT(nAttr, s_sss_radius);
+
+   // OUTPUT ATTRIBUTES
+
+   MAKE_COLOR(s_OUT_color, "outColor", "oc");
+   MAKE_OUTPUT(nAttr, s_OUT_color);
+
+   MAKE_COLOR(s_OUT_transparency, "outTransparency", "ot");
+   MAKE_OUTPUT(nAttr, s_OUT_transparency);
+
+   // DEPENDENCIES
+
+   attributeAffects(s_Fresnel, s_OUT_color);
+   attributeAffects(s_Fresnel_affect_diff, s_OUT_color);
+   attributeAffects(s_IOR, s_OUT_color);
+   attributeAffects(s_Katt, s_OUT_color);
+   attributeAffects(s_Kb, s_OUT_color);
+   attributeAffects(s_Kd, s_OUT_color);
+   attributeAffects(s_Kd_color, s_OUT_color);
+   attributeAffects(s_Kr, s_OUT_color);
+   attributeAffects(s_Kr_color, s_OUT_color);
+   attributeAffects(s_Krn, s_OUT_color);
+   attributeAffects(s_Ks, s_OUT_color);
+   attributeAffects(s_Ks_color, s_OUT_color);
+   attributeAffects(s_Ksn, s_OUT_color);
+   attributeAffects(s_Ksss, s_OUT_color);
+   attributeAffects(s_Ksss_color, s_OUT_color);
+   attributeAffects(s_Kt, s_OUT_color);
+   attributeAffects(s_Phong_exponent, s_OUT_color);
+   attributeAffects(s_bounce_factor, s_OUT_color);
+   attributeAffects(s_caustics, s_OUT_color);
+   attributeAffects(s_direct_diffuse, s_OUT_color);
+   attributeAffects(s_direct_specular, s_OUT_color);
+   attributeAffects(s_emission, s_OUT_color);
+   attributeAffects(s_emission_color, s_OUT_color);
+   attributeAffects(s_indirect_diffuse, s_OUT_color);
+   attributeAffects(s_indirect_specular, s_OUT_color);
+   attributeAffects(s_opacity, s_OUT_color);
+   attributeAffects(s_retro_reflector, s_OUT_color);
+   attributeAffects(s_specular_Fresnel, s_OUT_color);
+   attributeAffects(s_sss_radius, s_OUT_color);
+
+   attributeAffects(s_opacity, s_OUT_transparency);
 
    return MS::kSuccess;
 }
