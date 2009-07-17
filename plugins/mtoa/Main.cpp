@@ -1,6 +1,7 @@
 
 #include "RenderCmd.h"
 #include "nodes/ArnoldRenderOptions.h"
+#include "nodes/ArnoldStandardShader.h"
 #include <maya/MFnPlugin.h>
 #include <maya/MGlobal.h>
 
@@ -14,6 +15,7 @@ MStatus initializePlugin(MObject object)
    // TODO: Add proper checking and handling of returned status
    status = plugin.registerCommand("ArnoldRender", CRenderCmd::creator, CRenderCmd::newSyntax);
    status = plugin.registerNode("ArnoldRenderOptions", CArnoldRenderOptionsNode::id, CArnoldRenderOptionsNode::creator, CArnoldRenderOptionsNode::initialize);
+   status = plugin.registerNode("ArnoldStandardShader", CArnoldStandardShaderNode::id, CArnoldStandardShaderNode::creator, CArnoldStandardShaderNode::initialize);
 
    MGlobal::executeCommand( MString("renderer arnold -rendererUIName \"Arnold Renderer\" -renderProcedure \"ArnoldRender\"") );
    MGlobal::executeCommand( MString("SetupArnoldGlobalsTabs;") );
@@ -33,6 +35,7 @@ MStatus uninitializePlugin(MObject object)
    // TODO: Add proper checking and handling of returned status
    status = plugin.deregisterCommand("ArnoldRender");
    status = plugin.deregisterNode(CArnoldRenderOptionsNode::id);
+   status = plugin.deregisterNode(CArnoldStandardShaderNode::id);
 
    return MS::kSuccess;
 

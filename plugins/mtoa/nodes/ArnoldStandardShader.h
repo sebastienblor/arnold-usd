@@ -1,0 +1,74 @@
+
+#include <maya/MPxNode.h>
+
+#ifndef ARNOLD_STANDARD_SHADER_H
+#define ARNOLD_STANDARD_SHADER_H
+
+class CArnoldStandardShaderNode
+   :  public MPxNode
+{
+
+public:
+
+   virtual MStatus compute(const MPlug& plug, MDataBlock& data);
+
+   static void* creator();
+   static MStatus initialize();
+
+	static MTypeId id;
+
+   // Attributes
+   static MObject s_Fresnel;
+   static MObject s_Fresnel_affect_diff;
+   static MObject s_IOR;
+   static MObject s_KattR;
+   static MObject s_KattG;
+   static MObject s_KattB;
+   static MObject s_Katt;
+   static MObject s_Kb;
+   static MObject s_Kd;
+   static MObject s_Kd_colorR;
+   static MObject s_Kd_colorG;
+   static MObject s_Kd_colorB;
+   static MObject s_Kd_color;
+   static MObject s_Kr;
+   static MObject s_Kr_colorR;
+   static MObject s_Kr_colorG;
+   static MObject s_Kr_colorB;
+   static MObject s_Kr_color;
+   static MObject s_Krn;
+   static MObject s_Ks;
+   static MObject s_Ks_colorR;
+   static MObject s_Ks_colorG;
+   static MObject s_Ks_colorB;
+   static MObject s_Ks_color;
+   static MObject s_Ksn;
+   static MObject s_Ksss;
+   static MObject s_Ksss_colorR;
+   static MObject s_Ksss_colorG;
+   static MObject s_Ksss_colorB;
+   static MObject s_Ksss_color;
+   static MObject s_Kt;
+   static MObject s_Phong_exponent;
+   static MObject s_bounce_factor;
+   static MObject s_caustics;
+   static MObject s_direct_diffuse;
+   static MObject s_direct_specular;
+   static MObject s_emission;
+   static MObject s_emission_colorR;
+   static MObject s_emission_colorG;
+   static MObject s_emission_colorB;
+   static MObject s_emission_color;
+   static MObject s_indirect_diffuse;
+   static MObject s_indirect_specular;
+   static MObject s_opacityR;
+   static MObject s_opacityG;
+   static MObject s_opacityB;
+   static MObject s_opacity;
+   static MObject s_retro_reflector;
+   static MObject s_specular_Fresnel;
+   static MObject s_sss_radius;
+
+};  // class CArnoldStandardShaderNode
+
+#endif // ARNOLD_STANDARD_SHADER_H
