@@ -12,10 +12,12 @@ MStatus initializePlugin(MObject object)
 
    MFnPlugin plugin(object, "mtoa", "0.1", "Any");
 
+   const MString ShaderClass("shader/surface");
+
    // TODO: Add proper checking and handling of returned status
    status = plugin.registerCommand("ArnoldRender", CRenderCmd::creator, CRenderCmd::newSyntax);
    status = plugin.registerNode("ArnoldRenderOptions", CArnoldRenderOptionsNode::id, CArnoldRenderOptionsNode::creator, CArnoldRenderOptionsNode::initialize);
-   status = plugin.registerNode("ArnoldStandardShader", CArnoldStandardShaderNode::id, CArnoldStandardShaderNode::creator, CArnoldStandardShaderNode::initialize);
+   status = plugin.registerNode("ArnoldStandardShader", CArnoldStandardShaderNode::id, CArnoldStandardShaderNode::creator, CArnoldStandardShaderNode::initialize, MPxNode::kDependNode, &ShaderClass);
 
    MGlobal::executeCommand( MString("renderer arnold -rendererUIName \"Arnold Renderer\" -renderProcedure \"ArnoldRender\"") );
    MGlobal::executeCommand( MString("SetupArnoldGlobalsTabs;") );
