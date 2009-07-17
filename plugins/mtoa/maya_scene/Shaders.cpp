@@ -1,4 +1,7 @@
 
+#include "Shaders.h"
+
+#include <ai_msg.h>
 #include <ai_nodes.h>
 
 #include <maya/MFnBlinnShader.h>
@@ -9,19 +12,10 @@
 
 #include <vector>
 
-struct CShaderData
-{
-
-   MObject mayaShader;
-   AtNode* arnoldShader;
-
-};  // struct CShaderData
-
-std::vector<CShaderData> processedShaders;
+static std::vector<CShaderData> s_processedShaders;
 
 MObject GetNodeShader(MObject dagNode)
 {
-
    MPlugArray        connections;
    MFnDependencyNode fnDGNode(dagNode);
 
@@ -46,14 +40,13 @@ MObject GetNodeShader(MObject dagNode)
    shaderPlug.connectedTo(connections, true, false);
 
    return connections[0].node();
-
 }  // GetNodeShader()
 
 
 AtNode* ProcessShader(MObject mayaShader)
 {
    // First check if this shader has already been processed
-   for (std::vector<CShaderData>::const_iterator it = processedShaders.begin(); (it != processedShaders.end()); ++it)
+   for (std::vector<CShaderData>::const_iterator it = s_processedShaders.begin(); (it != s_processedShaders.end()); ++it)
    {
       if (it->mayaShader == mayaShader)
       {
@@ -62,6 +55,8 @@ AtNode* ProcessShader(MObject mayaShader)
    }
 
    AtNode* shader = NULL;
+
+   AiMsgDebug("[mtoa] Processing shader");
 
    switch (mayaShader.apiType())
    {
@@ -82,6 +77,27 @@ AtNode* ProcessShader(MObject mayaShader)
       {
       }
       break;
+
+   case MFn::kPluginDependNode:
+      {
+         MFnDependencyNode node(mayaShader);
+
+         AiMsgDebug(node.typeName().asChar());
+
+         if (!strcmp(node.typeName().asChar(), "ArnoldStandardShader"))
+         {
+         }
+         else
+         {
+            AiMsgWarning("[mtoa] Shader type not supported.");
+         }
+      }
+      break;
+
+   default:
+      {
+         AiMsgWarning("[mtoa] Shader type not supported.");
+      }
    }
 
    if (shader)
@@ -91,7 +107,7 @@ AtNode* ProcessShader(MObject mayaShader)
       data.mayaShader   = mayaShader;
       data.arnoldShader = shader;
 
-      processedShaders.push_back(data);
+      s_processedShaders.push_back(data);
    }
 
    return shader;

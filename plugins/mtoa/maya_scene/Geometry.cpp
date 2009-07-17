@@ -1,12 +1,17 @@
 
+#include "Shaders.h"
+
 #include <ai_nodes.h>
 
 #include <maya/MFloatPointArray.h>
 #include <maya/MFnMesh.h>
 #include <maya/MFnMeshData.h>
 #include <maya/MFnNurbsSurface.h>
+#include <maya/MIntArray.h>
 #include <maya/MItMeshPolygon.h>
 #include <maya/MMatrix.h>
+#include <maya/MPlug.h>
+#include <maya/MPlugArray.h>
 
 #include <vector>
 
@@ -30,8 +35,37 @@ void ProcessMesh(MObject mayaMesh, MObject dagNode, MMatrix tm)
    }
 
    AiNodeSetMatrix(polymesh, "matrix", matrix);
-
    AiNodeSetBool(polymesh, "smoothing", 1);
+
+   //
+   // SHADERS
+   //
+
+   std::vector<AtNode*> meshShaders;
+   MObject mayaShader = GetNodeShader(dagNode);
+
+   if (!mayaShader.isNull())
+   {
+      meshShaders.push_back(ProcessShader(mayaShader));
+   }
+   else
+   {
+      MObjectArray shaders;
+      MIntArray indices;
+
+      fnMesh.getConnectedShaders(0, shaders, indices);
+
+      for (int J = 0; (J < (int) shaders.length()); ++J)
+      {
+         MPlugArray        connections;
+         MFnDependencyNode fnDGNode(shaders[J]);
+         MPlug             shaderPlug(shaders[J], fnDGNode.attribute("surfaceShader"));
+
+         shaderPlug.connectedTo(connections, true, false);
+
+         meshShaders.push_back(ProcessShader(connections[0].node()));
+      }
+   }
 
    //
    // GEOMETRY

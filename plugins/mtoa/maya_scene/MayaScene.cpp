@@ -2,32 +2,20 @@
 #include "MayaScene.h"
 #include "Utils.h"
 
-//#include <ai_constants.h>
 #include <ai_msg.h>
 #include <ai_nodes.h>
 
 #include <maya/M3DView.h>
 #include <maya/MDagPath.h>
-//#include <maya/MFloatVector.h>
-//#include <maya/MFloatPointArray.h>
 #include <maya/MFnMesh.h>
 #include <maya/MFnMeshData.h>
 #include <maya/MFnNurbsSurface.h>
-//#include <maya/MFnStringData.h>
-//#include <maya/MImage.h>
 #include <maya/MMatrix.h>
 #include <maya/MPlug.h>
-//#include <maya/MPlugArray.h>
-//#include <maya/MPoint.h>
-//#include <maya/MVector.h>
-
-//#include <vector>
 
 void ProcessCamera(const MDagPath& dagPath);
 void ProcessLight(const MDagPath& dagPath);
-AtNode* ProcessShader(MObject mayaShader);
 void ProcessMesh(MObject mayaMesh, MObject dagNode, MMatrix tm);
-
 
 MStatus ProcessMayaScene(MItDag::TraversalType traversalType)
 {
