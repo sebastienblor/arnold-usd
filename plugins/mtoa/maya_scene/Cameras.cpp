@@ -1,11 +1,14 @@
 
+#include "MayaScene.h"
+
 #include <ai_cameras.h>
 #include <ai_constants.h>
 
 #include <maya/MFnCamera.h>
 
-void ProcessCamera(const MDagPath& dagPath)
+void CMayaScene::ExportCamera(const MDagPath& dagPath)
 {
+
    MPoint     point;
    MVector    vector;
    MFnCamera  fnCamera(dagPath);
@@ -27,4 +30,5 @@ void ProcessCamera(const MDagPath& dagPath)
 
    AiNodeSetFlt(camera, "fov", static_cast<float>(AI_RTOD * fnCamera.horizontalFieldOfView()));
    AiNodeSetStr(camera, "handedness", "right");
-}  // ProcessCamera()
+
+}  // ExportCamera()

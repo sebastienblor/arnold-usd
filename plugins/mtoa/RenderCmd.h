@@ -24,8 +24,6 @@ public:
       return syntax;
    }
 
-   static AtVoid LogMessage(AtInt logMask, AtInt severity, const char* msg, AtInt tabs);
-
    CRenderCmd()
    {
    }

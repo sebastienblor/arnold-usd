@@ -40,7 +40,9 @@ MStatus CRenderCmd::doIt(const MArgList& argList)
    // TODO: For now, we will use stdout (in Maya, it will go to the output window)
    AiSetLogOptions(NULL, AI_LOG_ALL, 1000, 4);
 
-   status = ProcessMayaScene(MItDag::kDepthFirst);
+   CMayaScene scene;
+
+   status = scene.ExportToArnold();
 
    if (MRenderView::doesRenderEditorExist())
    {

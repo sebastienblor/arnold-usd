@@ -1,5 +1,5 @@
 
-#include "Shaders.h"
+#include "MayaScene.h"
 
 #include <ai_nodes.h>
 
@@ -15,7 +15,7 @@
 
 #include <vector>
 
-void ProcessMesh(MObject mayaMesh, MObject dagNode, MMatrix tm)
+void CMayaScene::ExportMesh(MObject mayaMesh, MObject dagNode, MMatrix tm)
 {
    MFnMesh    fnMesh(mayaMesh);
    MFnDagNode fnDagNode(dagNode);
@@ -44,9 +44,14 @@ void ProcessMesh(MObject mayaMesh, MObject dagNode, MMatrix tm)
    std::vector<AtNode*> meshShaders;
    MObject mayaShader = GetNodeShader(dagNode);
 
+   // TODO: Implement the case for multiple materials in the same mesh, without hurting performance for the single material case.
    if (!mayaShader.isNull())
    {
-      meshShaders.push_back(ProcessShader(mayaShader));
+      AtNode* shader = ExportShader(mayaShader);
+
+      AiNodeSetPtr(polymesh, "shader", shader);
+
+      meshShaders.push_back(shader);
    }
    else
    {
@@ -63,7 +68,7 @@ void ProcessMesh(MObject mayaMesh, MObject dagNode, MMatrix tm)
 
          shaderPlug.connectedTo(connections, true, false);
 
-         meshShaders.push_back(ProcessShader(connections[0].node()));
+         meshShaders.push_back(ExportShader(connections[0].node()));
       }
    }
 
@@ -143,6 +148,7 @@ void ProcessMesh(MObject mayaMesh, MObject dagNode, MMatrix tm)
 
    for (; (!itMeshPolygon.isDone()); itMeshPolygon.next())
    {
+
       unsigned int vertexCount = itMeshPolygon.polygonVertexCount();
 
       nsides[polygonIndex] = vertexCount;
@@ -176,4 +182,4 @@ void ProcessMesh(MObject mayaMesh, MObject dagNode, MMatrix tm)
 
    delete[] nsides;
 
-}  // ProcessMesh()
+}  // ExportMesh()

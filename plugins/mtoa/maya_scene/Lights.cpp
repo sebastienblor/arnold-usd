@@ -1,4 +1,6 @@
 
+#include "MayaScene.h"
+
 #include <ai_msg.h>
 #include <ai_nodes.h>
 
@@ -13,8 +15,9 @@
 #include <maya/MTransformationMatrix.h>
 #include <maya/MVector.h>
 
-void ProcessLight(const MDagPath& dagPath)
+void CMayaScene::ExportLight(const MDagPath& dagPath)
 {
+
    MTransformationMatrix   lightWorldMatrix;
    MFloatVector            vector;
    MColor                  color;
@@ -75,4 +78,4 @@ void ProcessLight(const MDagPath& dagPath)
       AiMsgError("[mtoa] ERROR: Unknown light type (%s).\n", fnLight.typeName().asChar());
    }
 
-}  // ProcessLight()
+}  // ExportLight()

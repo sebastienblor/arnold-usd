@@ -1,8 +1,41 @@
 #ifndef MAYA_SCENE_H
 #define MAYA_SCENE_H
 
-#include <maya/MItDag.h>
+#include <ai_nodes.h>
 
-MStatus ProcessMayaScene(MItDag::TraversalType traversalType);
+#include <maya/MFnDagNode.h>
+#include <maya/MItDag.h>
+#include <maya/MMatrix.h>
+
+#include <vector>
+
+class CMayaScene
+{
+
+public:
+
+   MStatus ExportToArnold();
+
+private:
+
+   void ExportCamera(const MDagPath& dagPath);
+   void ExportLight(const MDagPath& dagPath);
+   void ExportMesh(MObject mayaMesh, MObject dagNode, MMatrix tm);
+   AtNode* ExportShader(MObject mayaShader);
+   MObject GetNodeShader(MObject dagNode);
+
+   bool IsVisible(MFnDagNode node);
+
+private:
+
+   struct CShaderData
+   {
+      MObject mayaShader;
+      AtNode* arnoldShader;
+   };  // struct CShaderData
+
+   std::vector<CShaderData> m_processedShaders;
+
+};  // class CMayaScene
 
 #endif // MAYA_SCENE_H

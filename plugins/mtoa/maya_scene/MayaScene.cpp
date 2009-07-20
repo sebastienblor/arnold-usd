@@ -1,6 +1,5 @@
 
 #include "MayaScene.h"
-#include "Utils.h"
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
@@ -13,24 +12,20 @@
 #include <maya/MMatrix.h>
 #include <maya/MPlug.h>
 
-void ProcessCamera(const MDagPath& dagPath);
-void ProcessLight(const MDagPath& dagPath);
-void ProcessMesh(MObject mayaMesh, MObject dagNode, MMatrix tm);
-
-MStatus ProcessMayaScene(MItDag::TraversalType traversalType)
+MStatus CMayaScene::ExportToArnold()
 {
 
    MDagPath dagPath;
    MStatus  status;
-   MItDag   dagIterator(traversalType, MFn::kInvalid);
+   MItDag   dagIterator(MItDag::kDepthFirst, MFn::kInvalid);
 
    // Export current camera
    MDagPath cameraPath;
 
    M3dView::active3dView().getCamera(cameraPath);
 
-   AiMsgDebug("[mtoa] Processing camera");
-   ProcessCamera(cameraPath);
+   AiMsgDebug("[mtoa] Exporting camera");
+   ExportCamera(cameraPath);
 
    for (dagIterator.reset(); (!dagIterator.isDone()); dagIterator.next())
    {
@@ -58,8 +53,8 @@ MStatus ProcessMayaScene(MItDag::TraversalType traversalType)
 
       if (dagIterator.item().hasFn(MFn::kLight))
       {
-         AiMsgDebug("[mtoa] Processing light");
-         ProcessLight(dagPath);
+         AiMsgDebug("[mtoa] Exporting light");
+         ExportLight(dagPath);
       }
       else if (dagIterator.item().hasFn(MFn::kNurbsSurface))
       {
@@ -76,10 +71,10 @@ MStatus ProcessMayaScene(MItDag::TraversalType traversalType)
          MObject     meshFromNURBS;
          MObject     meshDataObject = meshData.create();
 
-         AiMsgDebug("[mtoa] Processing NURBS surface");
+         AiMsgDebug("[mtoa] Exporting NURBS surface");
          meshFromNURBS = surface.tesselate(MTesselationParams::fsDefaultTesselationParams, meshDataObject);
 
-         ProcessMesh(meshFromNURBS, dagIterator.item(), tm);
+         ExportMesh(meshFromNURBS, dagIterator.item(), tm);
       }
       else if (dagIterator.item().hasFn(MFn::kMesh))
       {
@@ -110,8 +105,8 @@ MStatus ProcessMayaScene(MItDag::TraversalType traversalType)
          }
          else
          {
-            AiMsgDebug("[mtoa] Processing mesh");
-            ProcessMesh(dagIterator.item(), dagIterator.item(), tm);
+            AiMsgDebug("[mtoa] Exporting mesh");
+            ExportMesh(dagIterator.item(), dagIterator.item(), tm);
          }
       }
       else
@@ -127,4 +122,22 @@ MStatus ProcessMayaScene(MItDag::TraversalType traversalType)
 
    return MS::kSuccess;
 
-}  // ProcessMayaScene()
+}  // ExportToArnold()
+
+
+bool CMayaScene::IsVisible(MFnDagNode node)
+{
+
+   MStatus status;
+
+   if (node.isIntermediateObject())
+      return false;
+
+   MPlug visPlug = node.findPlug("visibility", &status);
+
+   if (status == MStatus::kFailure)
+      return false;
+
+   return visPlug.asBool();
+
+}  // IsVisible()
