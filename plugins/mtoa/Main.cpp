@@ -36,6 +36,7 @@ namespace // <anonymous>
       // SHADERS
       status = plugin.deregisterNode(CArnoldStandardShaderNode::id);
       status = plugin.deregisterNode(CArnoldUtilityShaderNode::id);
+      status = plugin.deregisterNode(CArnoldAmbientOcclusionShaderNode::id);
    }
 
 }  // namespace <anonymous>
