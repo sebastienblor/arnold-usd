@@ -46,6 +46,11 @@ namespace // <anonymous>
                AiNodeSetInt(arnoldShader, arnoldAttrib, plug.asInt());
             }
             break;
+         case AI_TYPE_INT:
+            {
+               AiNodeSetInt(arnoldShader, arnoldAttrib, plug.asInt());
+            }
+            break;
          }
       }
       else
@@ -121,6 +126,19 @@ namespace // <anonymous>
          SHADER_PARAM("color", AI_TYPE_RGB);
          SHADER_PARAM("color_mode", AI_TYPE_ENUM);
          SHADER_PARAM("shader_mode", AI_TYPE_ENUM);
+      }
+      else if (!strcmp(mayaNode.typeName().asChar(), "ArnoldAmbientOcclusionShader"))
+      {
+         shader = AiNode("ambient_occlusion");
+
+         SHADER_PARAM("black", AI_TYPE_RGB);
+         SHADER_PARAM("falloff", AI_TYPE_FLOAT);
+         SHADER_PARAM("far_clip", AI_TYPE_FLOAT);
+         SHADER_PARAM("near_clip", AI_TYPE_FLOAT);
+         SHADER_PARAM("opacity", AI_TYPE_RGB);
+         SHADER_PARAM("samples", AI_TYPE_INT);
+         SHADER_PARAM("spread", AI_TYPE_FLOAT);
+         SHADER_PARAM("white", AI_TYPE_RGB);
       }
       else
       {
