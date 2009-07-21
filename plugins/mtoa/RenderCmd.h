@@ -34,12 +34,16 @@ public:
 
    MStatus doIt(const MArgList& argList);
 
-protected:
+private:
 
    void InitOutputDriver();
    void Render();
    void GetOutputResolution(AtUInt32& width, AtUInt32& height);
    void ProcessArnoldRenderOptions();
+
+private:
+
+   bool m_clearBeforeRender; 
 
 }; // class CRenderCmd
 

@@ -51,6 +51,10 @@ global proc CreateArnoldOutputSettings()
                -attribute defaultArnoldRenderOptions.bucket_size
                os_bucket_size;
                   
+            attrControlGrp -label "Clear Before Render"
+               -attribute defaultArnoldRenderOptions.clear_before_render
+               os_clear_before_render;
+               
             setParent ..;
          setParent ..;
    

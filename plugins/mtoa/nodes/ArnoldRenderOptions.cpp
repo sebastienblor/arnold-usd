@@ -10,6 +10,7 @@ MObject CArnoldRenderOptionsNode::s_threads;
 MObject CArnoldRenderOptionsNode::s_threads_autodetect;
 MObject CArnoldRenderOptionsNode::s_bucket_scanning;
 MObject CArnoldRenderOptionsNode::s_bucket_size;
+MObject CArnoldRenderOptionsNode::s_clear_before_render;
 MObject CArnoldRenderOptionsNode::s_abort_on_error;
 MObject CArnoldRenderOptionsNode::s_AA_samples;
 MObject CArnoldRenderOptionsNode::s_GI_hemi_samples;
@@ -55,6 +56,10 @@ MStatus CArnoldRenderOptionsNode::initialize()
    nAttr.setSoftMin(1);
    nAttr.setSoftMax(256);
    addAttribute(s_bucket_size);
+
+   s_clear_before_render = nAttr.create("clear_before_render", "clear", MFnNumericData::kBoolean, 0);
+   nAttr.setKeyable(false);
+   addAttribute(s_clear_before_render);
 
    s_abort_on_error = nAttr.create("abort_on_error", "abort", MFnNumericData::kBoolean, 1);
    nAttr.setKeyable(false);

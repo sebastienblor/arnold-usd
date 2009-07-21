@@ -74,7 +74,7 @@ MStatus CRenderCmd::doIt(const MArgList& argList)
       //AiMsgDebug( "Exporting Maya scene for debug.\n" );
       //AiASSWrite( "c:/Maya2Arnold.ass", AI_NODE_ALL, false );
 
-      if (MRenderView::startRender(width, height, true) == MS::kSuccess)
+      if (MRenderView::startRender(width, height, !m_clearBeforeRender, true) == MS::kSuccess)
       {
          Render();
 
@@ -195,5 +195,7 @@ void CRenderCmd::ProcessArnoldRenderOptions()
       AiNodeSetInt(AiUniverseGetOptions(), "GI_hemi_samples", fnArnoldRenderOptions.findPlug("GI_hemi_samples").asInt());
       AiNodeSetInt(AiUniverseGetOptions(), "GI_specular_samples", fnArnoldRenderOptions.findPlug("GI_specular_samples").asInt());
       AiNodeSetFlt(AiUniverseGetOptions(), "AA_sample_clamp", fnArnoldRenderOptions.findPlug("use_sample_clamp").asBool() ? fnArnoldRenderOptions.findPlug("AA_sample_clamp").asFloat() : (float) AI_INFINITE);
+
+      m_clearBeforeRender = fnArnoldRenderOptions.findPlug("clear_before_render").asBool();
    }
 }

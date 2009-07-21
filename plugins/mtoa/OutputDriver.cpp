@@ -13,9 +13,7 @@ AI_DRIVER_NODE_EXPORT_METHODS(mtoa_driver_mtd);
 
 struct COutputDriverData
 {
-   AtUInt    aaSize;
    AtUInt    imageWidth, imageHeight;
-   AtInt     bucketSize;
    AtBoolean rendering;
 };  // struct COutputDriverData
 
@@ -71,12 +69,8 @@ driver_open
 {
    if (!s_outputDriverData.rendering)
    {
-      AtInt aaLevel = AiNodeGetInt(AiUniverseGetOptions(), "AA_samples");
-
-      s_outputDriverData.aaSize      = (aaLevel < 0) ? (1 << -aaLevel) : 1;
       s_outputDriverData.imageWidth  = display_window.maxx - display_window.minx + 1;
       s_outputDriverData.imageHeight = display_window.maxy - display_window.miny + 1;
-      s_outputDriverData.bucketSize  = bucket_size;
       s_outputDriverData.rendering   = TRUE;
    }
 }  // driver_open()
@@ -90,8 +84,8 @@ driver_prepare_bucket
    msg.msgType = MSG_BUCKET_PREPARE;
    msg.bucketRect.minx = bucket_xo;
    msg.bucketRect.miny = bucket_yo;
-   msg.bucketRect.maxx = bucket_xo + s_outputDriverData.bucketSize - 1;
-   msg.bucketRect.maxy = bucket_yo + s_outputDriverData.bucketSize - 1;
+   msg.bucketRect.maxx = bucket_xo + bucket_size_x - 1;
+   msg.bucketRect.maxy = bucket_yo + bucket_size_y - 1;
    msg.pixels          = NULL;
    msg.finished        = false;
 
@@ -200,8 +194,9 @@ driver_close
 node_finish
 {
    // release the driver
-   AiDriverDestroy( node );
+   AiDriverDestroy(node);
 }  // node_finish()
+
 
 void UpdateBucket(const AtBBox2& bucketRect, RV_PIXEL* pixels)
 {
@@ -237,7 +232,7 @@ void ProcessDisplayUpdateQueue()
       {
          CDisplayUpdateMessage   msg;
 
-         if (s_displayUpdateQueue.pop( msg ))
+         if (s_displayUpdateQueue.pop(msg))
          {
             if (!msg.finished)
             {
@@ -247,7 +242,7 @@ void ProcessDisplayUpdateQueue()
                   // TODO: Implement this...
                   break;
                case MSG_BUCKET_UPDATE:
-                  UpdateBucket( msg.bucketRect, msg.pixels );
+                  UpdateBucket(msg.bucketRect, msg.pixels);
                   break;
                case MSG_IMAGE_UPDATE:
                   break;
