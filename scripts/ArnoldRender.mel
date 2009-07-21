@@ -1,0 +1,8 @@
+global proc ArnoldRender(int $width, int $height, int $doShadows, int $doGlowPass, string $camera, string $options)
+{
+   // Make sure the ArnoldRenderOptions node exists
+   createNode -shared -n "defaultArnoldRenderOptions" ArnoldRenderOptions;
+
+   // For now, just handles control to main Arnold render command
+   arnoldRenderer;   
+}

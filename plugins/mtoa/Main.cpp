@@ -49,7 +49,7 @@ MStatus initializePlugin(MObject object)
    MFnPlugin plugin(object, "mtoa", "0.1", "Any");
 
    // TODO: Add proper checking and handling of returned status
-   status = plugin.registerCommand("ArnoldRender", CRenderCmd::creator, CRenderCmd::newSyntax);
+   status = plugin.registerCommand("arnoldRenderer", CRenderCmd::creator, CRenderCmd::newSyntax);
 
    RegisterArnoldNodes(object);
 
@@ -71,7 +71,7 @@ MStatus uninitializePlugin(MObject object)
    UnregisterArnoldNodes(object);
 
    // TODO: Add proper checking and handling of returned status
-   status = plugin.deregisterCommand("ArnoldRender");
+   status = plugin.deregisterCommand("arnoldRenderer");
 
    return MS::kSuccess;
 }  // uninitializePlugin()
