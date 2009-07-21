@@ -51,10 +51,10 @@ MStatus initializePlugin(MObject object)
    // TODO: Add proper checking and handling of returned status
    status = plugin.registerCommand("ArnoldRender", CRenderCmd::creator, CRenderCmd::newSyntax);
 
+   RegisterArnoldNodes(object);
+
    MGlobal::executeCommand( MString("renderer arnold -rendererUIName \"Arnold Renderer\" -renderProcedure \"ArnoldRender\"") );
    MGlobal::executeCommand( MString("SetupArnoldGlobalsTabs;") );
-
-   RegisterArnoldNodes(object);
 
    return MS::kSuccess;
 } // initializePlugin()
@@ -68,10 +68,10 @@ MStatus uninitializePlugin(MObject object)
 
    MGlobal::executeCommand( MString("renderer arnold -unregisterRenderer"));
 
+   UnregisterArnoldNodes(object);
+
    // TODO: Add proper checking and handling of returned status
    status = plugin.deregisterCommand("ArnoldRender");
-
-   UnregisterArnoldNodes(object);
 
    return MS::kSuccess;
 }  // uninitializePlugin()
