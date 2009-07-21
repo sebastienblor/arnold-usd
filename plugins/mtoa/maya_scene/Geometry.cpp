@@ -17,6 +17,7 @@
 
 void CMayaScene::ExportMesh(MObject mayaMesh, MObject dagNode, MMatrix tm)
 {
+   MIntArray  indices;
    MFnMesh    fnMesh(mayaMesh);
    MFnDagNode fnDagNode(dagNode);
    bool       hasUVs = (fnMesh.numUVs() > 0);
@@ -44,7 +45,6 @@ void CMayaScene::ExportMesh(MObject mayaMesh, MObject dagNode, MMatrix tm)
    std::vector<AtNode*> meshShaders;
    MObject mayaShader = GetNodeShader(dagNode);
 
-   // TODO: Implement the case for multiple materials in the same mesh, without hurting performance for the single material case.
    if (!mayaShader.isNull())
    {
       AtNode* shader = ExportShader(mayaShader);
@@ -56,7 +56,6 @@ void CMayaScene::ExportMesh(MObject mayaMesh, MObject dagNode, MMatrix tm)
    else
    {
       MObjectArray shaders;
-      MIntArray indices;
 
       fnMesh.getConnectedShaders(0, shaders, indices);
 
@@ -70,6 +69,8 @@ void CMayaScene::ExportMesh(MObject mayaMesh, MObject dagNode, MMatrix tm)
 
          meshShaders.push_back(ExportShader(connections[0].node()));
       }
+
+      AiNodeSetArray(polymesh, "shader", AiArrayConvert(meshShaders.size(), 1, AI_TYPE_POINTER, &meshShaders[0], TRUE));
    }
 
    //
@@ -146,8 +147,15 @@ void CMayaScene::ExportMesh(MObject mayaMesh, MObject dagNode, MMatrix tm)
    MItMeshPolygon itMeshPolygon(mayaMesh);
    unsigned int   polygonIndex = 0;
 
+   bool multiShader = (meshShaders.size() > 1);
+   std::vector<AtUInt> shidxs;
+
    for (; (!itMeshPolygon.isDone()); itMeshPolygon.next())
    {
+      if (multiShader)
+      {
+			shidxs.push_back(indices[itMeshPolygon.index()]);
+      }
 
       unsigned int vertexCount = itMeshPolygon.polygonVertexCount();
 
@@ -178,6 +186,11 @@ void CMayaScene::ExportMesh(MObject mayaMesh, MObject dagNode, MMatrix tm)
    if (hasUVs)
    {
       AiNodeSetArray(polymesh, "uvidxs", AiArrayConvert(uvidxs.size(), 1, AI_TYPE_UINT, &(uvidxs[0]), TRUE));
+   }
+
+   if (multiShader)
+   {
+      AiNodeSetArray(polymesh, "shidxs", AiArrayConvert(shidxs.size(), 1, AI_TYPE_UINT, &(shidxs[0]), TRUE));
    }
 
    delete[] nsides;
