@@ -1,5 +1,6 @@
 
 #include "ArnoldStandardShader.h"
+#include "ShaderUtils.h"
 
 #include <maya/MFnNumericAttribute.h>
 
@@ -74,31 +75,6 @@ void* CArnoldStandardShaderNode::creator()
    return new CArnoldStandardShaderNode();
 }
 
-#define MAKE_INPUT(attr, name) \
-   attr.setKeyable(true); \
-   attr.setStorable(true);	\
-   attr.setReadable(true);	\
-   attr.setWritable(true); \
-   addAttribute(name)
-
-#define MAKE_OUTPUT(attr, name) \
-   attr.setKeyable(false); \
-   attr.setStorable(false); \
-   attr.setReadable(true); \
-   attr.setWritable(false); \
-   addAttribute(name)
-
-#define MAKE_COLOR(attrib, name, shortname) \
-   attrib##R = nAttr.create(name##"R", shortname##"r", MFnNumericData::kFloat, 1);\
-   attrib##G = nAttr.create(name##"G", shortname##"g", MFnNumericData::kFloat, 1);\
-   attrib##B = nAttr.create(name##"B", shortname##"b", MFnNumericData::kFloat, 1);\
-   attrib = nAttr.create(name, shortname, attrib##R, attrib##G, attrib##B);\
-   nAttr.setUsedAsColor(true);\
-   nAttr.setDefault(1, 1, 1);\
-   addAttribute(attrib##R);\
-   addAttribute(attrib##G);\
-   addAttribute(attrib##B);
-
 MStatus CArnoldStandardShaderNode::initialize()
 {
    MFnNumericAttribute  nAttr;
@@ -114,7 +90,7 @@ MStatus CArnoldStandardShaderNode::initialize()
    nAttr.setMax(10);
    MAKE_INPUT(nAttr, s_IOR);
 
-   MAKE_COLOR(s_Katt, "Katt", "katt");
+   MAKE_COLOR(s_Katt, "Katt", "katt", 1, 1, 1);
    MAKE_INPUT(nAttr, s_Katt);
 
    s_Kb = nAttr.create("Kb", "kb", MFnNumericData::kFloat, 0);
@@ -127,7 +103,7 @@ MStatus CArnoldStandardShaderNode::initialize()
    nAttr.setMax(1);
    MAKE_INPUT(nAttr, s_Kd);
 
-   MAKE_COLOR(s_Kd_color, "Kd_color", "kdc");
+   MAKE_COLOR(s_Kd_color, "Kd_color", "kdc", 1, 1, 1);
    MAKE_INPUT(nAttr, s_Kd_color);
 
    s_Kr = nAttr.create("Kr", "kr", MFnNumericData::kFloat, 0);
@@ -135,7 +111,7 @@ MStatus CArnoldStandardShaderNode::initialize()
    nAttr.setMax(1);
    MAKE_INPUT(nAttr, s_Kr);
 
-   MAKE_COLOR(s_Kr_color, "Kr_color", "krc");
+   MAKE_COLOR(s_Kr_color, "Kr_color", "krc", 1, 1, 1);
    MAKE_INPUT(nAttr, s_Kr_color);
 
    s_Krn = nAttr.create("Krn", "krn", MFnNumericData::kFloat, 0);
@@ -148,7 +124,7 @@ MStatus CArnoldStandardShaderNode::initialize()
    nAttr.setMax(1);
    MAKE_INPUT(nAttr, s_Ks);
 
-   MAKE_COLOR(s_Ks_color, "Ks_color", "ksc");
+   MAKE_COLOR(s_Ks_color, "Ks_color", "ksc", 1, 1, 1);
    MAKE_INPUT(nAttr, s_Ks_color);
 
    s_Ksn = nAttr.create("Ksn", "ksn", MFnNumericData::kFloat, 0);
@@ -161,7 +137,7 @@ MStatus CArnoldStandardShaderNode::initialize()
    nAttr.setMax(1);
    MAKE_INPUT(nAttr, s_Ksss);
 
-   MAKE_COLOR(s_Ksss_color, "Ksss_color", "ksssc");
+   MAKE_COLOR(s_Ksss_color, "Ksss_color", "ksssc", 1, 1, 1);
    MAKE_INPUT(nAttr, s_Ksss_color);
 
    s_Kt = nAttr.create("Kt", "kt", MFnNumericData::kFloat, 0);
@@ -197,7 +173,7 @@ MStatus CArnoldStandardShaderNode::initialize()
    nAttr.setMax(1);
    MAKE_INPUT(nAttr, s_emission);
 
-   MAKE_COLOR(s_emission_color, "emission_color", "emissc");
+   MAKE_COLOR(s_emission_color, "emission_color", "emissc", 1, 1, 1);
    MAKE_INPUT(nAttr, s_emission_color);
 
    s_indirect_diffuse = nAttr.create("indirect_diffuse", "indirectd", MFnNumericData::kFloat, 1);
@@ -210,7 +186,7 @@ MStatus CArnoldStandardShaderNode::initialize()
    nAttr.setMax(1);
    MAKE_INPUT(nAttr, s_indirect_specular);
 
-   MAKE_COLOR(s_opacity, "opacity", "opac");
+   MAKE_COLOR(s_opacity, "opacity", "opac", 1, 1, 1);
    MAKE_INPUT(nAttr, s_opacity);
 
    s_retro_reflector = nAttr.create("retro_reflector", "retror", MFnNumericData::kBoolean, 0);
@@ -226,10 +202,10 @@ MStatus CArnoldStandardShaderNode::initialize()
 
    // OUTPUT ATTRIBUTES
 
-   MAKE_COLOR(s_OUT_color, "outColor", "oc");
+   MAKE_COLOR(s_OUT_color, "outColor", "oc", 0, 0, 0);
    MAKE_OUTPUT(nAttr, s_OUT_color);
 
-   MAKE_COLOR(s_OUT_transparency, "outTransparency", "ot");
+   MAKE_COLOR(s_OUT_transparency, "outTransparency", "ot", 0, 0, 0);
    MAKE_OUTPUT(nAttr, s_OUT_transparency);
 
    // DEPENDENCIES

@@ -1,5 +1,6 @@
 
 #include "ArnoldAmbientOcclusionShader.h"
+#include "ShaderUtils.h"
 
 #include <maya/MFnNumericAttribute.h>
 
@@ -42,36 +43,11 @@ void* CArnoldAmbientOcclusionShaderNode::creator()
    return new CArnoldAmbientOcclusionShaderNode();
 }
 
-#define MAKE_INPUT(attr, name) \
-   attr.setKeyable(true); \
-   attr.setStorable(true);	\
-   attr.setReadable(true);	\
-   attr.setWritable(true); \
-   addAttribute(name)
-
-#define MAKE_OUTPUT(attr, name) \
-   attr.setKeyable(false); \
-   attr.setStorable(false); \
-   attr.setReadable(true); \
-   attr.setWritable(false); \
-   addAttribute(name)
-
-#define MAKE_COLOR(attrib, name, shortname) \
-   attrib##R = nAttr.create(name##"R", shortname##"r", MFnNumericData::kFloat, 1);\
-   attrib##G = nAttr.create(name##"G", shortname##"g", MFnNumericData::kFloat, 1);\
-   attrib##B = nAttr.create(name##"B", shortname##"b", MFnNumericData::kFloat, 1);\
-   attrib = nAttr.create(name, shortname, attrib##R, attrib##G, attrib##B);\
-   nAttr.setUsedAsColor(true);\
-   nAttr.setDefault(1, 1, 1);\
-   addAttribute(attrib##R);\
-   addAttribute(attrib##G);\
-   addAttribute(attrib##B);
-
 MStatus CArnoldAmbientOcclusionShaderNode::initialize()
 {
    MFnNumericAttribute  nAttr;
 
-   MAKE_COLOR(s_black, "black", "bk");
+   MAKE_COLOR(s_black, "black", "bk", 0, 0, 0);
    MAKE_INPUT(nAttr, s_black);
 
    s_falloff = nAttr.create("falloff", "fo", MFnNumericData::kFloat, 0);
@@ -89,7 +65,7 @@ MStatus CArnoldAmbientOcclusionShaderNode::initialize()
    nAttr.setMax(100000);
    MAKE_INPUT(nAttr, s_near_clip);
 
-   MAKE_COLOR(s_opacity, "opacity", "op");
+   MAKE_COLOR(s_opacity, "opacity", "op", 1, 1, 1);
    MAKE_INPUT(nAttr, s_opacity);
 
    s_samples = nAttr.create("samples", "sm", MFnNumericData::kInt, 3);
@@ -102,15 +78,15 @@ MStatus CArnoldAmbientOcclusionShaderNode::initialize()
    nAttr.setMax(1);
    MAKE_INPUT(nAttr, s_spread);
 
-   MAKE_COLOR(s_white, "white", "wt");
+   MAKE_COLOR(s_white, "white", "wt", 1, 1, 1);
    MAKE_INPUT(nAttr, s_white);
 
    // OUTPUT ATTRIBUTES
 
-   MAKE_COLOR(s_OUT_color, "outColor", "oc");
+   MAKE_COLOR(s_OUT_color, "outColor", "oc", 0, 0, 0);
    MAKE_OUTPUT(nAttr, s_OUT_color);
 
-   MAKE_COLOR(s_OUT_transparency, "outTransparency", "ot");
+   MAKE_COLOR(s_OUT_transparency, "outTransparency", "ot", 0, 0, 0);
    MAKE_OUTPUT(nAttr, s_OUT_transparency);
 
    // DEPENDENCIES

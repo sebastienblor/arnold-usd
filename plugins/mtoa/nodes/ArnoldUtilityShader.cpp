@@ -1,5 +1,6 @@
 
 #include "ArnoldUtilityShader.h"
+#include "ShaderUtils.h"
 
 #include <maya/MFnEnumAttribute.h>
 #include <maya/MFnNumericAttribute.h>
@@ -31,37 +32,12 @@ void* CArnoldUtilityShaderNode::creator()
    return new CArnoldUtilityShaderNode();
 }
 
-#define MAKE_INPUT(attr, name) \
-   attr.setKeyable(true); \
-   attr.setStorable(true);	\
-   attr.setReadable(true);	\
-   attr.setWritable(true); \
-   addAttribute(name)
-
-#define MAKE_OUTPUT(attr, name) \
-   attr.setKeyable(false); \
-   attr.setStorable(false); \
-   attr.setReadable(true); \
-   attr.setWritable(false); \
-   addAttribute(name)
-
-#define MAKE_COLOR(attrib, name, shortname) \
-   attrib##R = nAttr.create(name##"R", shortname##"r", MFnNumericData::kFloat, 1);\
-   attrib##G = nAttr.create(name##"G", shortname##"g", MFnNumericData::kFloat, 1);\
-   attrib##B = nAttr.create(name##"B", shortname##"b", MFnNumericData::kFloat, 1);\
-   attrib = nAttr.create(name, shortname, attrib##R, attrib##G, attrib##B);\
-   nAttr.setUsedAsColor(true);\
-   nAttr.setDefault(1, 1, 1);\
-   addAttribute(attrib##R);\
-   addAttribute(attrib##G);\
-   addAttribute(attrib##B);
-
 MStatus CArnoldUtilityShaderNode::initialize()
 {
    MFnNumericAttribute  nAttr;
    MFnEnumAttribute eAttr;
 
-   MAKE_COLOR(s_color, "color", "col");
+   MAKE_COLOR(s_color, "color", "col", 1, 1, 1);
    MAKE_INPUT(nAttr, s_color);
 
    s_color_mode = eAttr.create("color_mode", "cm", 0);
@@ -89,10 +65,10 @@ MStatus CArnoldUtilityShaderNode::initialize()
 
    // OUTPUT ATTRIBUTES
 
-   MAKE_COLOR(s_OUT_color, "outColor", "oc");
+   MAKE_COLOR(s_OUT_color, "outColor", "oc", 0, 0, 0);
    MAKE_OUTPUT(nAttr, s_OUT_color);
 
-   MAKE_COLOR(s_OUT_transparency, "outTransparency", "ot");
+   MAKE_COLOR(s_OUT_transparency, "outTransparency", "ot", 0, 0, 0);
    MAKE_OUTPUT(nAttr, s_OUT_transparency);
 
    // DEPENDENCIES
