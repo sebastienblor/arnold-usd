@@ -125,7 +125,7 @@ namespace // <anonymous>
 
          SHADER_PARAM("color", AI_TYPE_RGB);
          SHADER_PARAM("color_mode", AI_TYPE_ENUM);
-         SHADER_PARAM("shader_mode", AI_TYPE_ENUM);
+         SHADER_PARAM("shade_mode", AI_TYPE_ENUM);
       }
       else if (!strcmp(mayaNode.typeName().asChar(), "ArnoldAmbientOcclusionShader"))
       {
