@@ -3,7 +3,7 @@
 
 #include <maya/MFnNumericAttribute.h>
 
-MTypeId CArnoldStandardShaderNode::id(0x00072222);
+MTypeId CArnoldStandardShaderNode::id(0x00072000);
 
 MObject CArnoldStandardShaderNode::s_Fresnel;
 MObject CArnoldStandardShaderNode::s_Fresnel_affect_diff;

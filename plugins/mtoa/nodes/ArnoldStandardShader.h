@@ -1,8 +1,7 @@
-
-#include <maya/MPxNode.h>
-
 #ifndef ARNOLD_STANDARD_SHADER_H
 #define ARNOLD_STANDARD_SHADER_H
+
+#include <maya/MPxNode.h>
 
 class CArnoldStandardShaderNode
    :  public MPxNode

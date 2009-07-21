@@ -4,7 +4,7 @@
 #include <maya/MFnEnumAttribute.h>
 #include <maya/MFnNumericAttribute.h>
 
-MTypeId CArnoldRenderOptionsNode::id(0x00071111);
+MTypeId CArnoldRenderOptionsNode::id(0x00071000);
 
 MObject CArnoldRenderOptionsNode::s_threads;
 MObject CArnoldRenderOptionsNode::s_threads_autodetect;

@@ -41,6 +41,11 @@ namespace // <anonymous>
                AiNodeSetBool(arnoldShader, arnoldAttrib, plug.asBool());
             }
             break;
+         case AI_TYPE_ENUM:
+            {
+               AiNodeSetInt(arnoldShader, arnoldAttrib, plug.asInt());
+            }
+            break;
          }
       }
       else
@@ -67,7 +72,67 @@ namespace // <anonymous>
 
    }  // ProcessColorAttrib()
 
+   // This is a shortcut for Arnold shaders (parameter name is the same in Maya and Arnold)
+   #define SHADER_PARAM(name, type) ProcessShaderParameter(mayaShader, name, shader, name, type)
+
+   AtNode* ExportArnoldShader(MObject mayaShader)
+   {
+      AtNode* shader = NULL;
+      MFnDependencyNode mayaNode(mayaShader);
+
+      if (!strcmp(mayaNode.typeName().asChar(), "ArnoldStandardShader"))
+      {
+         shader = AiNode("standard");
+
+         SHADER_PARAM("Fresnel", AI_TYPE_BOOLEAN);
+         SHADER_PARAM("Fresnel_affect_diff", AI_TYPE_BOOLEAN);
+         SHADER_PARAM("IOR", AI_TYPE_FLOAT);
+         SHADER_PARAM("Katt", AI_TYPE_RGB);
+         SHADER_PARAM("Kb", AI_TYPE_FLOAT);
+         SHADER_PARAM("Kd", AI_TYPE_FLOAT);
+         SHADER_PARAM("Kd_color", AI_TYPE_RGB);
+         SHADER_PARAM("Kr", AI_TYPE_FLOAT);
+         SHADER_PARAM("Kr_color", AI_TYPE_RGB);
+         SHADER_PARAM("Krn", AI_TYPE_FLOAT);
+         SHADER_PARAM("Ks", AI_TYPE_FLOAT);
+         SHADER_PARAM("Ks_color", AI_TYPE_RGB);
+         SHADER_PARAM("Ksn", AI_TYPE_FLOAT);
+         SHADER_PARAM("Ksss", AI_TYPE_FLOAT);
+         SHADER_PARAM("Ksss_color", AI_TYPE_RGB);
+         SHADER_PARAM("Kt", AI_TYPE_FLOAT);
+         SHADER_PARAM("Phong_exponent", AI_TYPE_FLOAT);
+         SHADER_PARAM("bounce_factor", AI_TYPE_FLOAT);
+         SHADER_PARAM("caustics", AI_TYPE_BOOLEAN);
+         SHADER_PARAM("direct_diffuse", AI_TYPE_FLOAT);
+         SHADER_PARAM("direct_specular", AI_TYPE_FLOAT);
+         SHADER_PARAM("emission", AI_TYPE_FLOAT);
+         SHADER_PARAM("emission_color", AI_TYPE_RGB);
+         SHADER_PARAM("indirect_diffuse", AI_TYPE_FLOAT);
+         SHADER_PARAM("indirect_specular", AI_TYPE_FLOAT);
+         SHADER_PARAM("opacity", AI_TYPE_RGB);
+         SHADER_PARAM("retro_reflector", AI_TYPE_BOOLEAN);
+         SHADER_PARAM("specular_Fresnel", AI_TYPE_BOOLEAN);
+         SHADER_PARAM("sss_radius", AI_TYPE_FLOAT);
+      }
+      else if (!strcmp(mayaNode.typeName().asChar(), "ArnoldUtilityShader"))
+      {
+         shader = AiNode("utility");
+
+         SHADER_PARAM("color", AI_TYPE_RGB);
+         SHADER_PARAM("color_mode", AI_TYPE_ENUM);
+         SHADER_PARAM("shader_mode", AI_TYPE_ENUM);
+      }
+      else
+      {
+         AiMsgWarning("[mtoa] Shader type not supported.");
+      }
+
+      return shader;
+
+   } // ExportArnoldShader()
+
 }  // namespace <anonymous>
+
 
 MObject CMayaScene::GetNodeShader(MObject dagNode)
 {
@@ -98,8 +163,6 @@ MObject CMayaScene::GetNodeShader(MObject dagNode)
 
 }  // GetNodeShader()
 
-// This is a shortcut for Arnold shaders (parameter name is the same in Maya and Arnold)
-#define SHADER_PARAM(name, type) ProcessShaderParameter(mayaShader, name, shader, name, type)
 
 AtNode* CMayaScene::ExportShader(MObject mayaShader)
 {
@@ -138,46 +201,7 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader)
 
    case MFn::kPluginDependNode:
       {
-         MFnDependencyNode mayaNode(mayaShader);
-
-         if (!strcmp(mayaNode.typeName().asChar(), "ArnoldStandardShader"))
-         {
-            shader = AiNode("standard");
-
-            SHADER_PARAM("Fresnel", AI_TYPE_BOOLEAN);
-            SHADER_PARAM("Fresnel_affect_diff", AI_TYPE_BOOLEAN);
-            SHADER_PARAM("IOR", AI_TYPE_FLOAT);
-            SHADER_PARAM("Katt", AI_TYPE_RGB);
-            SHADER_PARAM("Kb", AI_TYPE_FLOAT);
-            SHADER_PARAM("Kd", AI_TYPE_FLOAT);
-            SHADER_PARAM("Kd_color", AI_TYPE_RGB);
-            SHADER_PARAM("Kr", AI_TYPE_FLOAT);
-            SHADER_PARAM("Kr_color", AI_TYPE_RGB);
-            SHADER_PARAM("Krn", AI_TYPE_FLOAT);
-            SHADER_PARAM("Ks", AI_TYPE_FLOAT);
-            SHADER_PARAM("Ks_color", AI_TYPE_RGB);
-            SHADER_PARAM("Ksn", AI_TYPE_FLOAT);
-            SHADER_PARAM("Ksss", AI_TYPE_FLOAT);
-            SHADER_PARAM("Ksss_color", AI_TYPE_RGB);
-            SHADER_PARAM("Kt", AI_TYPE_FLOAT);
-            SHADER_PARAM("Phong_exponent", AI_TYPE_FLOAT);
-            SHADER_PARAM("bounce_factor", AI_TYPE_FLOAT);
-            SHADER_PARAM("caustics", AI_TYPE_BOOLEAN);
-            SHADER_PARAM("direct_diffuse", AI_TYPE_FLOAT);
-            SHADER_PARAM("direct_specular", AI_TYPE_FLOAT);
-            SHADER_PARAM("emission", AI_TYPE_FLOAT);
-            SHADER_PARAM("emission_color", AI_TYPE_RGB);
-            SHADER_PARAM("indirect_diffuse", AI_TYPE_FLOAT);
-            SHADER_PARAM("indirect_specular", AI_TYPE_FLOAT);
-            SHADER_PARAM("opacity", AI_TYPE_RGB);
-            SHADER_PARAM("retro_reflector", AI_TYPE_BOOLEAN);
-            SHADER_PARAM("specular_Fresnel", AI_TYPE_BOOLEAN);
-            SHADER_PARAM("sss_radius", AI_TYPE_FLOAT);
-         }
-         else
-         {
-            AiMsgWarning("[mtoa] Shader type not supported.");
-         }
+         shader = ExportArnoldShader(mayaShader);
       }
       break;
 

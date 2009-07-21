@@ -2,6 +2,7 @@
 #include "RenderCmd.h"
 #include "nodes/ArnoldRenderOptions.h"
 #include "nodes/ArnoldStandardShader.h"
+#include "nodes/ArnoldUtilityShader.h"
 #include <maya/MFnPlugin.h>
 #include <maya/MGlobal.h>
 
@@ -18,6 +19,7 @@ MStatus initializePlugin(MObject object)
    status = plugin.registerCommand("ArnoldRender", CRenderCmd::creator, CRenderCmd::newSyntax);
    status = plugin.registerNode("ArnoldRenderOptions", CArnoldRenderOptionsNode::id, CArnoldRenderOptionsNode::creator, CArnoldRenderOptionsNode::initialize);
    status = plugin.registerNode("ArnoldStandardShader", CArnoldStandardShaderNode::id, CArnoldStandardShaderNode::creator, CArnoldStandardShaderNode::initialize, MPxNode::kDependNode, &ShaderClass);
+   status = plugin.registerNode("ArnoldUtilityShader", CArnoldUtilityShaderNode::id, CArnoldUtilityShaderNode::creator, CArnoldUtilityShaderNode::initialize, MPxNode::kDependNode, &ShaderClass);
 
    MGlobal::executeCommand( MString("renderer arnold -rendererUIName \"Arnold Renderer\" -renderProcedure \"ArnoldRender\"") );
    MGlobal::executeCommand( MString("SetupArnoldGlobalsTabs;") );
@@ -38,6 +40,7 @@ MStatus uninitializePlugin(MObject object)
    status = plugin.deregisterCommand("ArnoldRender");
    status = plugin.deregisterNode(CArnoldRenderOptionsNode::id);
    status = plugin.deregisterNode(CArnoldStandardShaderNode::id);
+   status = plugin.deregisterNode(CArnoldUtilityShaderNode::id);
 
    return MS::kSuccess;
 
