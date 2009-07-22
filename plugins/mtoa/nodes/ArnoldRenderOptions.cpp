@@ -108,7 +108,7 @@ MStatus CArnoldRenderOptionsNode::initialize()
    nAttr.setSoftMax(100);
    addAttribute(s_AA_sample_clamp);
 
-   s_driver_gamma = nAttr.create("driver_gamma", "dgamma", MFnNumericData::kFloat, 1);
+   s_driver_gamma = nAttr.create("driver_gamma", "dgamma", MFnNumericData::kFloat, 2.2f);
    nAttr.setKeyable(false);
    nAttr.setSoftMin(0);
    nAttr.setSoftMax(3);
