@@ -17,51 +17,33 @@ global proc CreateArnoldOutputSettings()
    setUITemplate -pushTemplate attributeEditorTemplate;
    columnLayout -adjustableColumn true arnoldOutputLayout;
       
-      frameLayout -label "Threads"
-         -labelVisible true -borderVisible true 
-         -borderStyle "etchedIn"
-         -collapsable false -collapse false;
+      attrControlGrp -label "Autodetect Threads"
+         -attribute defaultArnoldRenderOptions.threads_autodetect
+         -cc UpdateOutputSettings
+         os_threads_autodetect;
+ 
+      attrControlGrp -label "Threads"
+         -attribute defaultArnoldRenderOptions.threads
+         os_threads;
+ 
+      separator;
+                 
+      attrControlGrp -label "Bucket Scanning"
+         -attribute defaultArnoldRenderOptions.bucket_scanning
+         os_bucket_scanning;
+            
+      attrControlGrp -label "Bucket Size"
+         -attribute defaultArnoldRenderOptions.bucket_size
+         os_bucket_size;
+            
+      attrControlGrp -label "Clear Before Render"
+         -attribute defaultArnoldRenderOptions.clear_before_render
+         os_clear_before_render;
          
-         columnLayout;
-              
-            attrControlGrp -label "Autodetect"
-               -attribute defaultArnoldRenderOptions.threads_autodetect
-               -cc UpdateOutputSettings
-               os_threads_autodetect;
-       
-               attrControlGrp -label "Threads"
-                  -attribute defaultArnoldRenderOptions.threads
-                  os_threads;
-       
-               setParent ..;
-         setParent ..;
-   
-      frameLayout -label "Buckets"
-         -labelVisible true -borderVisible true 
-         -borderStyle "etchedIn"
-         -collapsable false -collapse false;
-      
-         columnLayout;
-              
-            attrControlGrp -label "Scanning"
-               -attribute defaultArnoldRenderOptions.bucket_scanning
-               os_bucket_scanning;
-                  
-            attrControlGrp -label "Size"
-               -attribute defaultArnoldRenderOptions.bucket_size
-               os_bucket_size;
-                  
-            attrControlGrp -label "Clear Before Render"
-               -attribute defaultArnoldRenderOptions.clear_before_render
-               os_clear_before_render;
-               
-            setParent ..;
-         setParent ..;
-   
       attrControlGrp -label "Abort On Error"
          -attribute defaultArnoldRenderOptions.abort_on_error
          os_abort_on_error;
-                     
+                        
       setParent ..;
 
    setUITemplate -popTemplate;
@@ -135,7 +117,7 @@ global proc CreateArnoldRayDepthSettings()
          -attribute defaultArnoldRenderOptions.GI_total_depth
          rs_total_depth;
 
-      separator;
+      separator -style "none";
       
       attrControlGrp -label "Diffuse depth"
          -attribute defaultArnoldRenderOptions.GI_diffuse_depth
@@ -175,6 +157,12 @@ global proc CreateArnoldRendererGlobalsTab()
             CreateArnoldSamplingSettings;
             setParent ..;
             
+         // Ray depth
+         //
+         frameLayout -label "Ray Depth" -lw 100 -cll true -cl 0 arnoldRayDepthSettings;
+            CreateArnoldRayDepthSettings;
+            setParent ..;
+         
          // Output
          //
          frameLayout -label "System" -lw 100 -cll true -cl 0 arnoldOutputSettings;
@@ -185,12 +173,6 @@ global proc CreateArnoldRendererGlobalsTab()
          //
          frameLayout -label "Gamma Correction" -lw 150 -cll true -cl 0 arnoldGammaSettings;
             CreateArnoldGammaSettings;
-            setParent ..;
-         
-         // Ray depth
-         //
-         frameLayout -label "Ray Depth" -lw 100 -cll true -cl 0 arnoldRayDepthSettings;
-            CreateArnoldRayDepthSettings;
             setParent ..;
          
          setParent ..;
