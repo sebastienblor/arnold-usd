@@ -7,7 +7,6 @@
 #include <ai_constants.h>
 #include <ai_dotass.h>
 #include <ai_msg.h>
-#include <ai_nodes.h>
 #include <ai_render.h>
 #include <ai_threads.h>
 #include <ai_universe.h>
@@ -100,12 +99,15 @@ void CRenderCmd::InitOutputDriver()
    AtNode* filter = AiNode("box_filter");
    AtNode* driver = AiNode("renderview_display");
 
+   AiNodeSetFlt(driver, "gamma", m_gamma);
+
    AtChar   str[1024];
    AtArray* outputs;
 
    sprintf(str, "RGBA RGBA %s %s", AiNodeGetName(filter), AiNodeGetName(driver));
    outputs = AiArray(1, 1, AI_TYPE_STRING, str);
    AiNodeSetArray(AiUniverseGetOptions(), "outputs", outputs);
+
 }  // InitOutputDriver()
 
 void CRenderCmd::Render()
@@ -195,6 +197,12 @@ void CRenderCmd::ProcessArnoldRenderOptions()
       AiNodeSetInt(AiUniverseGetOptions(), "GI_hemi_samples", fnArnoldRenderOptions.findPlug("GI_hemi_samples").asInt());
       AiNodeSetInt(AiUniverseGetOptions(), "GI_specular_samples", fnArnoldRenderOptions.findPlug("GI_specular_samples").asInt());
       AiNodeSetFlt(AiUniverseGetOptions(), "AA_sample_clamp", fnArnoldRenderOptions.findPlug("use_sample_clamp").asBool() ? fnArnoldRenderOptions.findPlug("AA_sample_clamp").asFloat() : (float) AI_INFINITE);
+
+      m_gamma = fnArnoldRenderOptions.findPlug("driver_gamma").asFloat();
+
+      AiNodeSetFlt(AiUniverseGetOptions(), "TM_lgamma", fnArnoldRenderOptions.findPlug("TM_lgamma").asFloat());
+      AiNodeSetFlt(AiUniverseGetOptions(), "TM_sgamma", fnArnoldRenderOptions.findPlug("TM_sgamma").asFloat());
+      AiNodeSetFlt(AiUniverseGetOptions(), "TM_tgamma", fnArnoldRenderOptions.findPlug("TM_tgamma").asFloat());
 
       m_clearBeforeRender = fnArnoldRenderOptions.findPlug("clear_before_render").asBool();
    }

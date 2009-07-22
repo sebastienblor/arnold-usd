@@ -1,6 +1,7 @@
 #ifndef RENDER_CMD_H
 #define RENDER_CMD_H
 
+#include <ai_nodes.h>
 #include <ai_types.h>
 
 #include <maya/MPxCommand.h>
@@ -43,6 +44,7 @@ private:
 
 private:
 
+   float m_gamma;
    bool m_clearBeforeRender; 
 
 }; // class CRenderCmd

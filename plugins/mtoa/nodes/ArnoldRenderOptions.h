@@ -35,6 +35,11 @@ public:
    static MObject s_use_sample_clamp;
    static MObject s_AA_sample_clamp;
 
+   static MObject s_driver_gamma;
+   static MObject s_TM_lgamma;
+   static MObject s_TM_sgamma;
+   static MObject s_TM_tgamma;
+
 };  // class CArnoldRenderOptionsNode
 
 #endif // ARNOLD_RENDER_OPTIONS_H

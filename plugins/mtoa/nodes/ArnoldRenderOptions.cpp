@@ -17,6 +17,10 @@ MObject CArnoldRenderOptionsNode::s_GI_hemi_samples;
 MObject CArnoldRenderOptionsNode::s_GI_specular_samples;
 MObject CArnoldRenderOptionsNode::s_use_sample_clamp;
 MObject CArnoldRenderOptionsNode::s_AA_sample_clamp;
+MObject CArnoldRenderOptionsNode::s_driver_gamma;
+MObject CArnoldRenderOptionsNode::s_TM_lgamma;
+MObject CArnoldRenderOptionsNode::s_TM_sgamma;
+MObject CArnoldRenderOptionsNode::s_TM_tgamma;
 
 void* CArnoldRenderOptionsNode::creator()
 {
@@ -98,6 +102,38 @@ MStatus CArnoldRenderOptionsNode::initialize()
    nAttr.setSoftMin(0.001);
    nAttr.setSoftMax(100);
    addAttribute(s_AA_sample_clamp);
+
+   s_driver_gamma = nAttr.create("driver_gamma", "dgamma", MFnNumericData::kFloat, 1);
+   nAttr.setKeyable(false);
+   nAttr.setSoftMin(0);
+   nAttr.setSoftMax(3);
+   nAttr.setSoftMin(0);
+   nAttr.setSoftMax(10);
+   addAttribute(s_driver_gamma);
+
+   s_TM_lgamma = nAttr.create("TM_lgamma", "lgamma", MFnNumericData::kFloat, 1);
+   nAttr.setKeyable(false);
+   nAttr.setSoftMin(0);
+   nAttr.setSoftMax(3);
+   nAttr.setSoftMin(0);
+   nAttr.setSoftMax(10);
+   addAttribute(s_TM_lgamma);
+
+   s_TM_sgamma = nAttr.create("TM_sgamma", "sgamma", MFnNumericData::kFloat, 1);
+   nAttr.setKeyable(false);
+   nAttr.setSoftMin(0);
+   nAttr.setSoftMax(3);
+   nAttr.setSoftMin(0);
+   nAttr.setSoftMax(10);
+   addAttribute(s_TM_sgamma);
+
+   s_TM_tgamma = nAttr.create("TM_tgamma", "tgamma", MFnNumericData::kFloat, 1);
+   nAttr.setKeyable(false);
+   nAttr.setSoftMin(0);
+   nAttr.setSoftMax(3);
+   nAttr.setSoftMin(0);
+   nAttr.setSoftMax(10);
+   addAttribute(s_TM_tgamma);
 
    return MS::kSuccess;
 }

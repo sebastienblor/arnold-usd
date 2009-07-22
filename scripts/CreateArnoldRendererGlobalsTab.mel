@@ -98,6 +98,34 @@ global proc CreateArnoldSamplingSettings()
    setUITemplate -popTemplate;
 }
 
+global proc CreateArnoldGammaSettings()
+{
+   setUITemplate -pushTemplate attributeEditorTemplate;
+   columnLayout -adjustableColumn true;
+      
+      attrControlGrp -label "Driver gamma"
+         -attribute defaultArnoldRenderOptions.driver_gamma
+         ss_driver_gamma;
+
+      separator;
+      
+      attrControlGrp -label "Lights"
+         -attribute defaultArnoldRenderOptions.TM_lgamma
+         ss_light_gamma;
+
+      attrControlGrp -label "Shaders"
+         -attribute defaultArnoldRenderOptions.TM_sgamma
+         ss_shader_gamma;
+
+      attrControlGrp -label "Textures"
+         -attribute defaultArnoldRenderOptions.TM_tgamma
+         ss_texture_gamma;
+
+      setParent ..;
+
+   setUITemplate -popTemplate;
+}
+
 global proc CreateArnoldRendererGlobalsTab()
 {
    // Make sure the ArnoldRenderOptions node exists
@@ -119,6 +147,12 @@ global proc CreateArnoldRendererGlobalsTab()
          //
          frameLayout -label "System" -lw 100 -cll true -cl 0 arnoldOutputSettings;
             CreateArnoldOutputSettings;
+            setParent ..;
+         
+         // Gamma correction
+         //
+         frameLayout -label "Gamma Correction" -lw 100 -cll true -cl 0 arnoldGammaSettings;
+            CreateArnoldGammaSettings;
             setParent ..;
          
          setParent ..;

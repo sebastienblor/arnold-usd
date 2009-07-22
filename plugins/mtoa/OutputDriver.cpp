@@ -9,11 +9,14 @@
 
 #include <maya/MRenderView.h>
 
+#define _gamma          (params[0].FLT )  /**< accessor for driver's gamma parameter */
+
 AI_DRIVER_NODE_EXPORT_METHODS(mtoa_driver_mtd);
 
 struct COutputDriverData
 {
    AtUInt    imageWidth, imageHeight;
+   float     gamma;
    AtBoolean rendering;
 };  // struct COutputDriverData
 
@@ -39,13 +42,14 @@ static COutputDriverData                       s_outputDriverData;
 
 node_parameters
 {
-}  // node_parameters()
+   AiParameterFLT ("gamma", 1.0f);
+}
 
 
 node_initialize
 {
    AiDriverInitialize(node, FALSE, NULL);
-}  // node_initialize()
+}
 
 
 driver_supports_pixel_type
@@ -67,10 +71,13 @@ driver_extension
 
 driver_open
 {
+   AtParamValue *params = node->params;
+
    if (!s_outputDriverData.rendering)
    {
       s_outputDriverData.imageWidth  = display_window.maxx - display_window.minx + 1;
       s_outputDriverData.imageHeight = display_window.maxy - display_window.miny + 1;
+      s_outputDriverData.gamma       = _gamma;
       s_outputDriverData.rendering   = TRUE;
    }
 }  // driver_open()
@@ -129,9 +136,13 @@ driver_write_bucket
                AtUInt out_idx = targetY * bucket_size_x + targetX;
                RV_PIXEL* pixel = &pixels[out_idx];
 
+               AiColorClamp(rgb, rgb, 0, 1);
+               AiColorGamma(&rgb, s_outputDriverData.gamma);
+
                pixel->r = rgb.r * 255;
                pixel->g = rgb.g * 255;
                pixel->b = rgb.b * 255;
+               pixel->a = 0;
             }
          }
          break;
@@ -152,6 +163,9 @@ driver_write_bucket
 
                AtUInt out_idx = targetY * bucket_size_x + targetX;
                RV_PIXEL* pixel = &pixels[out_idx];
+
+               AiRGBAClamp(rgba, rgba, 0, 1);
+               AiRGBAGamma(&rgba, s_outputDriverData.gamma);
 
                pixel->r = rgba.r * 255;
                pixel->g = rgba.g * 255;
