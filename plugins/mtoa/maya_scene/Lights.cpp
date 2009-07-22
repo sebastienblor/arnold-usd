@@ -12,6 +12,7 @@
 #include <maya/MFnPointLight.h>
 #include <maya/MFnSpotLight.h>
 #include <maya/MMatrix.h>
+#include <maya/MPlug.h>
 #include <maya/MTransformationMatrix.h>
 #include <maya/MVector.h>
 
@@ -44,6 +45,9 @@ void CMayaScene::ExportLight(const MDagPath& dagPath)
 
       AiNodeSetVec(light, "direction", vector.x, vector.y, vector.z);
       AiNodeSetBool(light, "cast_shadows", fnLight.useRayTraceShadows());
+
+      AiNodeSetFlt(light, "angle", fnLight.shadowAngle());
+      AiNodeSetInt(light, "samples", fnDagNode.findPlug("shadowRays").asInt());
    }
    else if (dagPath.hasFn(MFn::kPointLight))
    {
