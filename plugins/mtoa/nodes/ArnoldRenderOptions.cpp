@@ -21,6 +21,11 @@ MObject CArnoldRenderOptionsNode::s_driver_gamma;
 MObject CArnoldRenderOptionsNode::s_TM_lgamma;
 MObject CArnoldRenderOptionsNode::s_TM_sgamma;
 MObject CArnoldRenderOptionsNode::s_TM_tgamma;
+MObject CArnoldRenderOptionsNode::s_GI_diffuse_depth;
+MObject CArnoldRenderOptionsNode::s_GI_glossy_depth;
+MObject CArnoldRenderOptionsNode::s_GI_reflection_depth;
+MObject CArnoldRenderOptionsNode::s_GI_refraction_depth;
+MObject CArnoldRenderOptionsNode::s_GI_total_depth;
 
 void* CArnoldRenderOptionsNode::creator()
 {
@@ -107,33 +112,73 @@ MStatus CArnoldRenderOptionsNode::initialize()
    nAttr.setKeyable(false);
    nAttr.setSoftMin(0);
    nAttr.setSoftMax(3);
-   nAttr.setSoftMin(0);
-   nAttr.setSoftMax(10);
+   nAttr.setMin(0);
+   nAttr.setMax(10);
    addAttribute(s_driver_gamma);
 
    s_TM_lgamma = nAttr.create("TM_lgamma", "lgamma", MFnNumericData::kFloat, 1);
    nAttr.setKeyable(false);
    nAttr.setSoftMin(0);
    nAttr.setSoftMax(3);
-   nAttr.setSoftMin(0);
-   nAttr.setSoftMax(10);
+   nAttr.setMin(0);
+   nAttr.setMax(10);
    addAttribute(s_TM_lgamma);
 
    s_TM_sgamma = nAttr.create("TM_sgamma", "sgamma", MFnNumericData::kFloat, 1);
    nAttr.setKeyable(false);
    nAttr.setSoftMin(0);
    nAttr.setSoftMax(3);
-   nAttr.setSoftMin(0);
-   nAttr.setSoftMax(10);
+   nAttr.setMin(0);
+   nAttr.setMax(10);
    addAttribute(s_TM_sgamma);
 
    s_TM_tgamma = nAttr.create("TM_tgamma", "tgamma", MFnNumericData::kFloat, 1);
    nAttr.setKeyable(false);
    nAttr.setSoftMin(0);
    nAttr.setSoftMax(3);
-   nAttr.setSoftMin(0);
-   nAttr.setSoftMax(10);
+   nAttr.setMin(0);
+   nAttr.setMax(10);
    addAttribute(s_TM_tgamma);
+
+   s_GI_diffuse_depth = nAttr.create("GI_diffuse_depth", "GI_dd", MFnNumericData::kInt, 1);
+   nAttr.setKeyable(false);
+   nAttr.setSoftMin(0);
+   nAttr.setSoftMax(16);
+   nAttr.setMin(0);
+   nAttr.setMax(10000);
+   addAttribute(s_GI_diffuse_depth);
+
+   s_GI_glossy_depth = nAttr.create("GI_glossy_depth", "GI_gd", MFnNumericData::kInt, 1);
+   nAttr.setKeyable(false);
+   nAttr.setSoftMin(0);
+   nAttr.setSoftMax(16);
+   nAttr.setMin(0);
+   nAttr.setMax(10000);
+   addAttribute(s_GI_glossy_depth);
+
+   s_GI_reflection_depth = nAttr.create("GI_reflection_depth", "GI_rld", MFnNumericData::kInt, 2);
+   nAttr.setKeyable(false);
+   nAttr.setSoftMin(0);
+   nAttr.setSoftMax(16);
+   nAttr.setMin(0);
+   nAttr.setMax(10000);
+   addAttribute(s_GI_reflection_depth);
+
+   s_GI_refraction_depth = nAttr.create("GI_refraction_depth", "GI_rrd", MFnNumericData::kInt, 2);
+   nAttr.setKeyable(false);
+   nAttr.setSoftMin(0);
+   nAttr.setSoftMax(16);
+   nAttr.setMin(0);
+   nAttr.setMax(10000);
+   addAttribute(s_GI_refraction_depth);
+
+   s_GI_total_depth = nAttr.create("GI_total_depth", "GI_td", MFnNumericData::kInt, 10);
+   nAttr.setKeyable(false);
+   nAttr.setSoftMin(0);
+   nAttr.setSoftMax(16);
+   nAttr.setMin(0);
+   nAttr.setMax(10000);
+   addAttribute(s_GI_total_depth);
 
    return MS::kSuccess;
 }

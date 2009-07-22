@@ -126,6 +126,38 @@ global proc CreateArnoldGammaSettings()
    setUITemplate -popTemplate;
 }
 
+global proc CreateArnoldRayDepthSettings()
+{
+   setUITemplate -pushTemplate attributeEditorTemplate;
+   columnLayout -adjustableColumn true;
+      
+      attrControlGrp -label "Total depth"
+         -attribute defaultArnoldRenderOptions.GI_total_depth
+         rs_total_depth;
+
+      separator;
+      
+      attrControlGrp -label "Diffuse depth"
+         -attribute defaultArnoldRenderOptions.GI_diffuse_depth
+         rs_diffuse_depth;
+
+      attrControlGrp -label "Glossy depth"
+         -attribute defaultArnoldRenderOptions.GI_glossy_depth
+         rs_glossy_depth;
+
+      attrControlGrp -label "Reflection depth"
+         -attribute defaultArnoldRenderOptions.GI_reflection_depth
+         rs_reflection_depth;
+
+      attrControlGrp -label "Refraction depth"
+         -attribute defaultArnoldRenderOptions.GI_refraction_depth
+         rs_refraction_depth;
+
+      setParent ..;
+
+   setUITemplate -popTemplate;
+}
+
 global proc CreateArnoldRendererGlobalsTab()
 {
    // Make sure the ArnoldRenderOptions node exists
@@ -151,8 +183,14 @@ global proc CreateArnoldRendererGlobalsTab()
          
          // Gamma correction
          //
-         frameLayout -label "Gamma Correction" -lw 100 -cll true -cl 0 arnoldGammaSettings;
+         frameLayout -label "Gamma Correction" -lw 150 -cll true -cl 0 arnoldGammaSettings;
             CreateArnoldGammaSettings;
+            setParent ..;
+         
+         // Ray depth
+         //
+         frameLayout -label "Ray Depth" -lw 100 -cll true -cl 0 arnoldRayDepthSettings;
+            CreateArnoldRayDepthSettings;
             setParent ..;
          
          setParent ..;

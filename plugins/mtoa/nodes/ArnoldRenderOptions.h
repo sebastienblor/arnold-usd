@@ -40,6 +40,12 @@ public:
    static MObject s_TM_sgamma;
    static MObject s_TM_tgamma;
 
+   static MObject s_GI_diffuse_depth;
+   static MObject s_GI_glossy_depth;
+   static MObject s_GI_reflection_depth;
+   static MObject s_GI_refraction_depth;
+   static MObject s_GI_total_depth;
+
 };  // class CArnoldRenderOptionsNode
 
 #endif // ARNOLD_RENDER_OPTIONS_H

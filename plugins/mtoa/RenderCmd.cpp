@@ -205,5 +205,11 @@ void CRenderCmd::ProcessArnoldRenderOptions()
       AiNodeSetFlt(AiUniverseGetOptions(), "TM_tgamma", fnArnoldRenderOptions.findPlug("TM_tgamma").asFloat());
 
       m_clearBeforeRender = fnArnoldRenderOptions.findPlug("clear_before_render").asBool();
+
+      AiNodeSetInt(AiUniverseGetOptions(), "GI_diffuse_depth", fnArnoldRenderOptions.findPlug("GI_diffuse_depth").asInt());
+      AiNodeSetInt(AiUniverseGetOptions(), "GI_glossy_depth", fnArnoldRenderOptions.findPlug("GI_glossy_depth").asInt());
+      AiNodeSetInt(AiUniverseGetOptions(), "GI_reflection_depth", fnArnoldRenderOptions.findPlug("GI_reflection_depth").asInt());
+      AiNodeSetInt(AiUniverseGetOptions(), "GI_refraction_depth", fnArnoldRenderOptions.findPlug("GI_refraction_depth").asInt());
+      AiNodeSetInt(AiUniverseGetOptions(), "GI_total_depth", fnArnoldRenderOptions.findPlug("GI_total_depth").asInt());
    }
 }
