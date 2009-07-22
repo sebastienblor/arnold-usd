@@ -115,7 +115,6 @@ global proc CreateArnoldRendererGlobalsTab()
             CreateArnoldSamplingSettings;
             setParent ..;
             
-            
          // Output
          //
          frameLayout -label "System" -lw 100 -cll true -cl 0 arnoldOutputSettings;
