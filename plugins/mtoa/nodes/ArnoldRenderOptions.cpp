@@ -116,7 +116,7 @@ MStatus CArnoldRenderOptionsNode::initialize()
    nAttr.setMax(10);
    addAttribute(s_driver_gamma);
 
-   s_TM_lgamma = nAttr.create("TM_lgamma", "lgamma", MFnNumericData::kFloat, 1);
+   s_TM_lgamma = nAttr.create("TM_lgamma", "lgamma", MFnNumericData::kFloat, 2.2f);
    nAttr.setKeyable(false);
    nAttr.setSoftMin(0);
    nAttr.setSoftMax(3);
@@ -124,7 +124,7 @@ MStatus CArnoldRenderOptionsNode::initialize()
    nAttr.setMax(10);
    addAttribute(s_TM_lgamma);
 
-   s_TM_sgamma = nAttr.create("TM_sgamma", "sgamma", MFnNumericData::kFloat, 1);
+   s_TM_sgamma = nAttr.create("TM_sgamma", "sgamma", MFnNumericData::kFloat, 2.2f);
    nAttr.setKeyable(false);
    nAttr.setSoftMin(0);
    nAttr.setSoftMax(3);
@@ -132,7 +132,7 @@ MStatus CArnoldRenderOptionsNode::initialize()
    nAttr.setMax(10);
    addAttribute(s_TM_sgamma);
 
-   s_TM_tgamma = nAttr.create("TM_tgamma", "tgamma", MFnNumericData::kFloat, 1);
+   s_TM_tgamma = nAttr.create("TM_tgamma", "tgamma", MFnNumericData::kFloat, 2.2f);
    nAttr.setKeyable(false);
    nAttr.setSoftMin(0);
    nAttr.setSoftMax(3);
