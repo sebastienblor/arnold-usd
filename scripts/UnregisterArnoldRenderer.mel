@@ -1,0 +1,4 @@
+global proc UnregisterArnoldRenderer()
+{
+   renderer arnold -unregisterRenderer;
+}

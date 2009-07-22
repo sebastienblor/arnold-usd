@@ -53,8 +53,7 @@ MStatus initializePlugin(MObject object)
 
    RegisterArnoldNodes(object);
 
-   MGlobal::executeCommand( MString("renderer arnold -rendererUIName \"Arnold Renderer\" -renderProcedure \"ArnoldRender\"") );
-   MGlobal::executeCommand( MString("SetupArnoldGlobalsTabs;") );
+   MGlobal::executeCommand( MString("RegisterArnoldRenderer;") );
 
    return MS::kSuccess;
 } // initializePlugin()
@@ -66,7 +65,7 @@ MStatus uninitializePlugin(MObject object)
    MStatus status;
    MFnPlugin plugin(object);
 
-   MGlobal::executeCommand( MString("renderer arnold -unregisterRenderer"));
+   MGlobal::executeCommand( MString("UnregisterArnoldRenderer;"));
 
    UnregisterArnoldNodes(object);
 

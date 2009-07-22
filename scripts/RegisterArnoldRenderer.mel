@@ -1,7 +1,8 @@
-global proc SetupArnoldGlobalsTabs()
+global proc RegisterArnoldRenderer()
 {
    createNode -skipSelect -shared -n "defaultArnoldRenderOptions" ArnoldRenderOptions;
    
+   renderer arnold -rendererUIName "Arnold Renderer" -renderProcedure "ArnoldRender";
    renderer -edit arnold -addGlobalsTab "Common" "createMayaSoftwareCommonGlobalsTab" "updateMayaSoftwareCommonGlobalsTab";
    renderer -edit arnold -addGlobalsTab "Arnold Renderer" "CreateArnoldRendererGlobalsTab" "UpdateArnoldRendererGlobalsTab";
    renderer -edit arnold -addGlobalsNode "defaultArnoldRenderOptions";
