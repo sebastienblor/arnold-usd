@@ -103,7 +103,7 @@ void CRenderCmd::InitOutputDriver()
    AtChar   str[1024];
    AtArray* outputs;
 
-   sprintf(str, "RGB RGB %s %s", AiNodeGetName(filter), AiNodeGetName(driver));
+   sprintf(str, "RGBA RGBA %s %s", AiNodeGetName(filter), AiNodeGetName(driver));
    outputs = AiArray(1, 1, AI_TYPE_STRING, str);
    AiNodeSetArray(AiUniverseGetOptions(), "outputs", outputs);
 }  // InitOutputDriver()
