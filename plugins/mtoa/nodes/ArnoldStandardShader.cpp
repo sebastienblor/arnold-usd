@@ -146,8 +146,10 @@ MStatus CArnoldStandardShaderNode::initialize()
    MAKE_INPUT(nAttr, s_Kt);
 
    s_Phong_exponent = nAttr.create("Phong_exponent", "phonge", MFnNumericData::kFloat, 10);
+   nAttr.setSoftMin(0);
+   nAttr.setSoftMax(100);
    nAttr.setMin(0);
-   nAttr.setMax(60);
+   nAttr.setMax(5000);
    MAKE_INPUT(nAttr, s_Phong_exponent);
 
    s_bounce_factor = nAttr.create("bounce_factor", "bouncef", MFnNumericData::kFloat, 1);
