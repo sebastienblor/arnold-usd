@@ -55,11 +55,13 @@ MStatus CRenderCmd::doIt(const MArgList& argList)
    }
 
    AtUInt32 width, height;
+   AtFloat pixelAspectRatio;
 
-   GetOutputResolution(width, height);
+   GetOutputResolution(width, height, pixelAspectRatio);
 
    AiNodeSetInt(AiUniverseGetOptions(), "xres", width);
    AiNodeSetInt(AiUniverseGetOptions(), "yres", height);
+   AiNodeSetFlt(AiUniverseGetOptions(), "aspect_ratio", pixelAspectRatio);
 
    MComputation comp;
 
@@ -125,10 +127,11 @@ void CRenderCmd::Render()
    AiThreadClose(handler);
 }  // Render()
 
-void CRenderCmd::GetOutputResolution(AtUInt32& width, AtUInt32& height)
+void CRenderCmd::GetOutputResolution(AtUInt32& width, AtUInt32& height, AtFloat& pixelAspectRatio)
 {
    width  = 0;
    height = 0;
+   pixelAspectRatio = 1.0f;
 
    // Get render globals
    MStatus        status;
@@ -162,15 +165,10 @@ void CRenderCmd::GetOutputResolution(AtUInt32& width, AtUInt32& height)
          if (status)
          {
             MFnDependencyNode fnRes(resNode);
-            MPlug             resWidth  = fnRes.findPlug("width");
-            MPlug             resHeight = fnRes.findPlug("height");
-            short             res_width, res_height;
 
-            resWidth.getValue(res_width);
-            resHeight.getValue(res_height);
-
-            width  = res_width;
-            height = res_height;
+            width  = fnRes.findPlug("width").asShort();
+            height = fnRes.findPlug("height").asShort();
+            pixelAspectRatio = ((float)height/width) * fnRes.findPlug("deviceAspectRatio").asFloat();
          }
       }
    }

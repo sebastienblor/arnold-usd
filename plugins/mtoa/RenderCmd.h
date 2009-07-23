@@ -39,7 +39,7 @@ private:
 
    void InitOutputDriver();
    void Render();
-   void GetOutputResolution(AtUInt32& width, AtUInt32& height);
+   void GetOutputResolution(AtUInt32& width, AtUInt32& height, AtFloat& pixelAspectRatio);
    void ProcessArnoldRenderOptions();
 
 private:
