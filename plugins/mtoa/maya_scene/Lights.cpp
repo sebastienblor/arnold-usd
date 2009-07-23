@@ -37,17 +37,18 @@ void CMayaScene::ExportLight(const MDagPath& dagPath)
       AiNodeSetStr(light, "name", fnDagNode.name().asChar());
 
       color = fnLight.color();
-
       AiNodeSetRGB(light, "color", color.r, color.g, color.b);
       AiNodeSetFlt(light, "intensity", fnLight.intensity());
 
       vector = fnLight.lightDirection(0, MSpace::kWorld);
-
       AiNodeSetVec(light, "direction", vector.x, vector.y, vector.z);
-      AiNodeSetBool(light, "cast_shadows", fnLight.useRayTraceShadows());
 
+      AiNodeSetBool(light, "cast_shadows", fnLight.useRayTraceShadows());
       AiNodeSetFlt(light, "angle", fnLight.shadowAngle());
       AiNodeSetInt(light, "samples", fnDagNode.findPlug("shadowRays").asInt());
+
+      AiNodeSetBool(light, "affect_diffuse", fnLight.lightDiffuse());
+      AiNodeSetBool(light, "affect_specular", fnLight.lightSpecular());
    }
    else if (dagPath.hasFn(MFn::kPointLight))
    {
@@ -58,7 +59,6 @@ void CMayaScene::ExportLight(const MDagPath& dagPath)
       AiNodeSetStr(light, "name", fnDagNode.name().asChar());
 
       color = fnLight.color();
-
       AiNodeSetRGB(light, "color", color.r, color.g, color.b);
       AiNodeSetFlt(light, "intensity", fnLight.intensity());
 
@@ -68,9 +68,11 @@ void CMayaScene::ExportLight(const MDagPath& dagPath)
       AiNodeSetVec(light, "position", vector.x, vector.y, vector.z);
 
       AiNodeSetBool(light, "cast_shadows", fnLight.useRayTraceShadows());
-
       AiNodeSetFlt(light, "radius", fnLight.shadowRadius());
       AiNodeSetInt(light, "samples", fnDagNode.findPlug("shadowRays").asInt());
+
+      AiNodeSetBool(light, "affect_diffuse", fnLight.lightDiffuse());
+      AiNodeSetBool(light, "affect_specular", fnLight.lightSpecular());
    }
    else if (dagPath.hasFn(MFn::kSpotLight))
    {
