@@ -46,7 +46,9 @@ MStatus initializePlugin(MObject object)
 {
    MStatus status;
 
-   MFnPlugin plugin(object, "mtoa", "0.1", "Any");
+   MFnPlugin plugin(object, "SolidAngle", "0.2", "Any");
+
+   plugin.setName("Arnold Render");
 
    // TODO: Add proper checking and handling of returned status
    status = plugin.registerCommand("arnoldRenderer", CRenderCmd::creator, CRenderCmd::newSyntax);
