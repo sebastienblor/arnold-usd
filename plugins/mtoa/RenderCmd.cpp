@@ -99,6 +99,7 @@ void CRenderCmd::InitOutputDriver()
    AtNode* filter = AiNode("box_filter");
    AtNode* driver = AiNode("renderview_display");
 
+   AiNodeSetStr(driver, "name", "renderview_display");
    AiNodeSetFlt(driver, "gamma", m_gamma);
 
    AtChar   str[1024];

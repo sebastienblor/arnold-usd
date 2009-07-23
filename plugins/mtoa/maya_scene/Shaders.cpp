@@ -89,6 +89,8 @@ namespace // <anonymous>
       {
          shader = AiNode("standard");
 
+         AiNodeSetStr(shader, "name", mayaNode.name().asChar());
+
          SHADER_PARAM("Fresnel", AI_TYPE_BOOLEAN);
          SHADER_PARAM("Fresnel_affect_diff", AI_TYPE_BOOLEAN);
          SHADER_PARAM("IOR", AI_TYPE_FLOAT);
@@ -123,6 +125,8 @@ namespace // <anonymous>
       {
          shader = AiNode("utility");
 
+         AiNodeSetStr(shader, "name", mayaNode.name().asChar());
+
          SHADER_PARAM("color", AI_TYPE_RGB);
          SHADER_PARAM("color_mode", AI_TYPE_ENUM);
          SHADER_PARAM("shade_mode", AI_TYPE_ENUM);
@@ -130,6 +134,8 @@ namespace // <anonymous>
       else if (!strcmp(mayaNode.typeName().asChar(), "ArnoldAmbientOcclusionShader"))
       {
          shader = AiNode("ambient_occlusion");
+
+         AiNodeSetStr(shader, "name", mayaNode.name().asChar());
 
          SHADER_PARAM("black", AI_TYPE_RGB);
          SHADER_PARAM("falloff", AI_TYPE_FLOAT);
@@ -204,6 +210,8 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader)
          MFnLambertShader fnShader(mayaShader);
 
          shader = AiNode("lambert");
+      
+         AiNodeSetStr(shader, "name", fnShader.name().asChar());
       }
       break;
 
