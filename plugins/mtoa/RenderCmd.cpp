@@ -39,6 +39,8 @@ MStatus CRenderCmd::doIt(const MArgList& argList)
    // TODO: For now, we will use stdout (in Maya, it will go to the output window)
    AiSetLogOptions(NULL, AI_LOG_ALL, 1000, 4);
 
+   ProcessArnoldRenderOptions();
+
    CMayaScene scene;
 
    status = scene.ExportToArnold();
@@ -58,8 +60,6 @@ MStatus CRenderCmd::doIt(const MArgList& argList)
 
    AiNodeSetInt(AiUniverseGetOptions(), "xres", width);
    AiNodeSetInt(AiUniverseGetOptions(), "yres", height);
-
-   ProcessArnoldRenderOptions();
 
    MComputation comp;
 
