@@ -143,7 +143,7 @@ global proc CreateArnoldRayDepthSettings()
 global proc CreateArnoldRendererGlobalsTab()
 {
    // Make sure the ArnoldRenderOptions node exists
-   createNode -shared -n "defaultArnoldRenderOptions" ArnoldRenderOptions;
+   createNode -skipSelect -shared -n "defaultArnoldRenderOptions" ArnoldRenderOptions;
    
    string $parentForm = `setParent -query`;
 
