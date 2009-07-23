@@ -68,6 +68,9 @@ void CMayaScene::ExportLight(const MDagPath& dagPath)
       AiNodeSetVec(light, "position", vector.x, vector.y, vector.z);
 
       AiNodeSetBool(light, "cast_shadows", fnLight.useRayTraceShadows());
+
+      AiNodeSetFlt(light, "radius", fnLight.shadowRadius());
+      AiNodeSetInt(light, "samples", fnDagNode.findPlug("shadowRays").asInt());
    }
    else if (dagPath.hasFn(MFn::kSpotLight))
    {
