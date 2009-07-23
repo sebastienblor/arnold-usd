@@ -28,7 +28,17 @@ unsigned int RenderThread(AtVoid* data)
    AiRender( AI_RENDER_MODE_CAMERA );
 
    return 0;
-} // RenderThread()
+}
+
+CRenderCmd::CRenderCmd()
+:  m_minx(0), m_miny(0), m_maxx(0), m_maxy(0)
+,  m_width(0), m_height(0)
+,  m_pixelAspectRatio(1.0f)
+,  m_useRenderRegion(false)
+,  m_clearBeforeRender(false)
+,  m_gamma(1.0f)
+{
+}
 
 MStatus CRenderCmd::doIt(const MArgList& argList)
 {
@@ -39,6 +49,7 @@ MStatus CRenderCmd::doIt(const MArgList& argList)
    // TODO: For now, we will use stdout (in Maya, it will go to the output window)
    AiSetLogOptions(NULL, AI_LOG_ALL, 1000, 4);
 
+   ProcessCommonRenderOptions();
    ProcessArnoldRenderOptions();
 
    CMayaScene scene;
@@ -54,15 +65,6 @@ MStatus CRenderCmd::doIt(const MArgList& argList)
       MRenderView::setCurrentCamera(cameraPath);
    }
 
-   AtUInt32 width, height;
-   AtFloat pixelAspectRatio;
-
-   GetOutputResolution(width, height, pixelAspectRatio);
-
-   AiNodeSetInt(AiUniverseGetOptions(), "xres", width);
-   AiNodeSetInt(AiUniverseGetOptions(), "yres", height);
-   AiNodeSetFlt(AiUniverseGetOptions(), "aspect_ratio", pixelAspectRatio);
-
    MComputation comp;
 
    comp.beginComputation();
@@ -75,7 +77,11 @@ MStatus CRenderCmd::doIt(const MArgList& argList)
       //AiMsgDebug( "Exporting Maya scene for debug.\n" );
       //AiASSWrite( "c:/Maya2Arnold.ass", AI_NODE_ALL, false );
 
-      if (MRenderView::startRender(width, height, !m_clearBeforeRender, true) == MS::kSuccess)
+      if (m_useRenderRegion)
+         status = m_useRenderRegion ? MRenderView::startRegionRender(m_width, m_height, m_minx, m_maxx, m_miny, m_maxy, !m_clearBeforeRender, true)
+                                    : MRenderView::startRender(m_width, m_height, !m_clearBeforeRender, true);
+
+      if ( status == MS::kSuccess)
       {
          Render();
 
@@ -127,27 +133,26 @@ void CRenderCmd::Render()
    AiThreadClose(handler);
 }  // Render()
 
-void CRenderCmd::GetOutputResolution(AtUInt32& width, AtUInt32& height, AtFloat& pixelAspectRatio)
+void CRenderCmd::ProcessCommonRenderOptions()
 {
-   width  = 0;
-   height = 0;
-   pixelAspectRatio = 1.0f;
-
-   // Get render globals
    MStatus        status;
-   MSelectionList renderGlobalsList;
-   MObject        renderGlobalsNode;
+   MSelectionList list;
+   MObject        node;
 
-   renderGlobalsList.add("defaultRenderGlobals");
+   list.add("defaultRenderGlobals");
 
-   if (renderGlobalsList.length() > 0)
+   if (list.length() > 0)
    {
-      renderGlobalsList.getDependNode(0, renderGlobalsNode);
+      list.getDependNode(0, node);
 
-      MFnDependencyNode fnRenderGlobals(renderGlobalsNode);
+      MFnDependencyNode fnRenderGlobals(node);
 
-      // Find the resolution node and get the width and height
-      // 
+      m_useRenderRegion = fnRenderGlobals.findPlug("useRenderRegion").asBool();
+      m_minx = fnRenderGlobals.findPlug("left").asInt();
+      m_miny = fnRenderGlobals.findPlug("bot").asInt();
+      m_maxx = fnRenderGlobals.findPlug("rght").asInt();
+      m_maxy = fnRenderGlobals.findPlug("top").asInt();
+
       MPlugArray connectedPlugs;
       MPlug      resPlug = fnRenderGlobals.findPlug("resolution");
 
@@ -157,7 +162,6 @@ void CRenderCmd::GetOutputResolution(AtUInt32& width, AtUInt32& height, AtFloat&
          &status);
 
       // Must be length 1 or we would have fan-in
-      //
       if (status && (connectedPlugs.length() == 1))
       {
          MObject resNode = connectedPlugs[0].node(&status);
@@ -166,13 +170,28 @@ void CRenderCmd::GetOutputResolution(AtUInt32& width, AtUInt32& height, AtFloat&
          {
             MFnDependencyNode fnRes(resNode);
 
-            width  = fnRes.findPlug("width").asShort();
-            height = fnRes.findPlug("height").asShort();
-            pixelAspectRatio = ((float)height/width) * fnRes.findPlug("deviceAspectRatio").asFloat();
+            m_width  = fnRes.findPlug("width").asShort();
+            m_height = fnRes.findPlug("height").asShort();
+            m_pixelAspectRatio = ((float)m_height / m_width) * fnRes.findPlug("deviceAspectRatio").asFloat();
+   
+            if (m_useRenderRegion)
+            {
+               char buffer[200];
+               sprintf(buffer, "region: (%u, %u, %u, %u), width = %u, height = %u", m_minx, m_height - m_miny - 1, m_maxx, m_height - m_maxy - 1, m_width, m_height);
+               AiMsgDebug(buffer);
+               AiNodeSetInt(AiUniverseGetOptions(), "region_min_x", m_minx);
+               AiNodeSetInt(AiUniverseGetOptions(), "region_min_y", m_height - m_maxy - 1);
+               AiNodeSetInt(AiUniverseGetOptions(), "region_max_x", m_maxx);
+               AiNodeSetInt(AiUniverseGetOptions(), "region_max_y", m_height - m_miny - 1);
+            }
+
+            AiNodeSetInt(AiUniverseGetOptions(), "xres", m_width);
+            AiNodeSetInt(AiUniverseGetOptions(), "yres", m_height);
+            AiNodeSetFlt(AiUniverseGetOptions(), "aspect_ratio", m_pixelAspectRatio);
          }
       }
    }
-}  // GetOutputResolution()
+}
 
 void CRenderCmd::ProcessArnoldRenderOptions()
 {

@@ -25,9 +25,7 @@ public:
       return syntax;
    }
 
-   CRenderCmd()
-   {
-   }
+   CRenderCmd();
 
    ~CRenderCmd()
    {
@@ -39,13 +37,17 @@ private:
 
    void InitOutputDriver();
    void Render();
-   void GetOutputResolution(AtUInt32& width, AtUInt32& height, AtFloat& pixelAspectRatio);
+   void ProcessCommonRenderOptions();
    void ProcessArnoldRenderOptions();
 
 private:
 
-   float m_gamma;
-   bool m_clearBeforeRender; 
+   AtUInt32 m_minx, m_miny, m_maxx, m_maxy;
+   AtUInt32 m_width, m_height;
+   float    m_pixelAspectRatio;
+   bool     m_useRenderRegion;
+   bool     m_clearBeforeRender; 
+   float    m_gamma;
 
 }; // class CRenderCmd
 
