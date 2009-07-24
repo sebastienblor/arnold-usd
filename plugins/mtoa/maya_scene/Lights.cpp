@@ -28,6 +28,21 @@ void CMayaScene::ExportLight(const MDagPath& dagPath)
 
    if (dagPath.hasFn(MFn::kAmbientLight))
    {
+      MFnAmbientLight fnLight(dagPath);
+
+      light = AiNode("ambient_light");
+
+      AiNodeSetStr(light, "name", fnDagNode.name().asChar());
+
+      color = fnLight.color();
+      AiNodeSetRGB(light, "color", color.r, color.g, color.b);
+      AiNodeSetFlt(light, "intensity", fnLight.intensity());
+
+      AiNodeSetBool(light, "cast_shadows", fnLight.useRayTraceShadows());
+      AiNodeSetInt(light, "samples", fnDagNode.findPlug("shadowRays").asInt());
+
+      AiNodeSetBool(light, "affect_diffuse", fnLight.lightDiffuse());
+      AiNodeSetBool(light, "affect_specular", fnLight.lightSpecular());
    }
    else if (dagPath.hasFn(MFn::kDirectionalLight))
    {
