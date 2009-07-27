@@ -148,10 +148,14 @@ void CRenderCmd::ProcessCommonRenderOptions()
       MFnDependencyNode fnRenderGlobals(node);
 
       m_useRenderRegion = fnRenderGlobals.findPlug("useRenderRegion").asBool();
-      m_minx = fnRenderGlobals.findPlug("left").asInt();
-      m_miny = fnRenderGlobals.findPlug("bot").asInt();
-      m_maxx = fnRenderGlobals.findPlug("rght").asInt();
-      m_maxy = fnRenderGlobals.findPlug("top").asInt();
+
+      if (m_useRenderRegion)
+      {
+         m_minx = fnRenderGlobals.findPlug("left").asInt();
+         m_miny = fnRenderGlobals.findPlug("bot").asInt();
+         m_maxx = fnRenderGlobals.findPlug("rght").asInt();
+         m_maxy = fnRenderGlobals.findPlug("top").asInt();
+      }
 
       MPlugArray connectedPlugs;
       MPlug      resPlug = fnRenderGlobals.findPlug("resolution");
@@ -176,9 +180,6 @@ void CRenderCmd::ProcessCommonRenderOptions()
    
             if (m_useRenderRegion)
             {
-               char buffer[200];
-               sprintf(buffer, "region: (%u, %u, %u, %u), width = %u, height = %u", m_minx, m_height - m_miny - 1, m_maxx, m_height - m_maxy - 1, m_width, m_height);
-               AiMsgDebug(buffer);
                AiNodeSetInt(AiUniverseGetOptions(), "region_min_x", m_minx);
                AiNodeSetInt(AiUniverseGetOptions(), "region_min_y", m_height - m_maxy - 1);
                AiNodeSetInt(AiUniverseGetOptions(), "region_max_x", m_maxx);
