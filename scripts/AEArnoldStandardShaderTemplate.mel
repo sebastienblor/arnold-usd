@@ -1,0 +1,81 @@
+source "ShaderFunctions.mel";
+
+global proc AEArnoldCheckSpecularFresnel(string $nodeName)
+{
+   AEArnoldDimControlIfTrue($nodeName, "Ksn", "specular_Fresnel");
+}
+
+global proc AEArnoldCheckReflectionFresnel(string $nodeName)
+{
+   AEArnoldDimControlIfTrue($nodeName, "Krn", "Fresnel");
+}
+
+global proc AEArnoldStandardShaderTemplate( string $nodeName )
+{
+   AEswatchDisplay $nodeName;
+
+   editorTemplate -beginScrollLayout;
+   
+      editorTemplate -callCustom AEshaderTypeNew AEshaderTypeReplace "message";
+            
+      editorTemplate -beginLayout "Diffuse" -collapse false;
+         editorTemplate -l "Color" -addControl "Kd_color";
+         editorTemplate -l "Weight" -addControl "Kd";
+         editorTemplate -addSeparator;
+         editorTemplate -l "Fresnel affects Diffuse" -addControl "Fresnel_affect_diff";
+         
+         editorTemplate -beginLayout "Extended Controls" -collapse true;
+            editorTemplate -l "Direct Diffuse" -addControl "direct_diffuse";
+            editorTemplate -l "Indirect Diffuse" -addControl "indirect_diffuse";
+         editorTemplate -endLayout;
+      editorTemplate -endLayout;
+      
+      editorTemplate -beginLayout "Specular" -collapse false;
+         editorTemplate -l "Color" -addControl "Ks_color";
+         editorTemplate -l "Weight" -addControl "Ks";
+         editorTemplate -l "Glossiness" -addControl "Phong_exponent";
+         editorTemplate -addSeparator;
+         editorTemplate -l "Fresnel" -addControl "specular_Fresnel" "AEArnoldCheckSpecularFresnel";
+         editorTemplate -l "Fresnel Coefficient" -addControl "Ksn";
+         
+         editorTemplate -beginLayout "Extended Controls" -collapse true;
+            //editorTemplate -l "Receive Caustics" -addControl "caustics";
+            editorTemplate -l "Retro Reflector" -addControl "retro_reflector";
+            editorTemplate -l "Direct Specularity" -addControl "direct_specular";
+            editorTemplate -l "Indirect Specularity" -addControl "indirect_specular";
+         editorTemplate -endLayout;
+      editorTemplate -endLayout;
+      
+      editorTemplate -beginLayout "Reflection" -collapse true;
+         editorTemplate -l "Color" -addControl "Kr_color";
+         editorTemplate -l "Weight" -addControl "Kr";
+         editorTemplate -addSeparator;
+         editorTemplate -l "Fresnel" -addControl "Fresnel" "AEArnoldCheckReflectionFresnel";
+         editorTemplate -l "Fresnel Coefficient" -addControl "Krn";
+      editorTemplate -endLayout;
+      
+      editorTemplate -beginLayout "Transparency" -collapse true;
+         editorTemplate -l "Weight" -addControl "Kt";
+         editorTemplate -l "Index of Refraction" -addControl "IOR";
+         editorTemplate -l "Backlight" -addControl "Kb";
+         editorTemplate -l "Attenuation" -addControl "Katt";
+      editorTemplate -endLayout;
+      
+      editorTemplate -beginLayout "Subsurface scattering" -collapse true;
+         editorTemplate -l "Color" -addControl "Ksss_color";
+         editorTemplate -l "Weight" -addControl "Ksss";
+         editorTemplate -l "Radius" -addControl "sss_radius";
+      editorTemplate -endLayout;
+      
+      editorTemplate -beginLayout "Emission" -collapse true;
+         editorTemplate -l "Color" -addControl "emission_color";
+         editorTemplate -l "Weight" -addControl "emission";
+      editorTemplate -endLayout;
+   
+      editorTemplate -addExtraControls;
+
+   editorTemplate -endScrollLayout;
+
+   editorTemplate -suppress "caching"; 
+   editorTemplate -suppress "nodeState";
+}

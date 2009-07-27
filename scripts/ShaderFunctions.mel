@@ -1,0 +1,22 @@
+
+global proc int AEArnoldGetDimValue(string $node, string $attr)
+{
+   string $fullAttr = $node + "." + $attr;
+   int $value = `getAttr $fullAttr`;
+   return $value;
+}
+
+// Dims target control if source attribute is true.
+global proc AEArnoldDimControlIfTrue(string $node, string $target, string $source)
+{
+   int $dim = AEArnoldGetDimValue($node, $source);
+   editorTemplate -dimControl $node $target $dim;
+}
+
+
+// Dims target control if source attribute is false.
+global proc AEArnoldDimControlIfFalse(string $node, string $target, string $source)
+{
+   int $dim = !AEArnoldGetDimValue($node, $source);
+   editorTemplate -dimControl $node $target $dim;
+}
