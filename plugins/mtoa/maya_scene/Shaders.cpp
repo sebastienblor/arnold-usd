@@ -51,6 +51,16 @@ namespace // <anonymous>
                AiNodeSetInt(arnoldShader, arnoldAttrib, plug.asInt());
             }
             break;
+         case AI_TYPE_STRING:
+            {
+               AiNodeSetStr(arnoldShader, arnoldAttrib, plug.asString().asChar());
+            }
+            break;
+         case AI_TYPE_VECTOR:
+            {
+               AiNodeSetVec(arnoldShader, arnoldAttrib, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+            }
+            break;
          }
       }
       else
@@ -146,6 +156,58 @@ namespace // <anonymous>
          SHADER_PARAM("spread", AI_TYPE_FLOAT);
          SHADER_PARAM("white", AI_TYPE_RGB);
       }
+      else if (!strcmp(mayaNode.typeName().asChar(), "ArnoldBackgroundImageShader"))
+      {
+         shader = AiNode("background_image");
+
+         AiNodeSetStr(shader, "name", mayaNode.name().asChar());
+
+         SHADER_PARAM("filename", AI_TYPE_STRING);
+      }
+      else if (!strcmp(mayaNode.typeName().asChar(), "ArnoldSkyShader"))
+      {
+         shader = AiNode("sky");
+
+         AiNodeSetStr(shader, "name", mayaNode.name().asChar());
+
+         if (mayaNode.findPlug("separate_colors").asBool())
+         {
+            SHADER_PARAM("emission_color", AI_TYPE_RGB);
+            SHADER_PARAM("emission_intensity", AI_TYPE_FLOAT);
+         }
+         else
+         {
+            AiNodeSetRGB(shader, "emission_color", -1.0f, -1.0f, -1.0f);
+            AiNodeSetFlt(shader, "emission_intensity", -1.0f);
+         }
+
+         SHADER_PARAM("color", AI_TYPE_RGB);
+         SHADER_PARAM("intensity", AI_TYPE_FLOAT);
+         SHADER_PARAM("opaque_alpha", AI_TYPE_BOOLEAN);
+         SHADER_PARAM("visible", AI_TYPE_BOOLEAN);
+      }
+      else if (!strcmp(mayaNode.typeName().asChar(), "ArnoldSky_HDRIShader"))
+      {
+         shader = AiNode("sky_HDRI");
+
+         AiNodeSetStr(shader, "name", mayaNode.name().asChar());
+
+         SHADER_PARAM("HDRI_map", AI_TYPE_STRING);
+         SHADER_PARAM("X", AI_TYPE_VECTOR);
+         SHADER_PARAM("Y", AI_TYPE_VECTOR);
+         SHADER_PARAM("Z", AI_TYPE_VECTOR);
+         SHADER_PARAM("X_angle", AI_TYPE_FLOAT);
+         SHADER_PARAM("Y_angle", AI_TYPE_FLOAT);
+         SHADER_PARAM("Z_angle", AI_TYPE_FLOAT);
+         SHADER_PARAM("flip_X", AI_TYPE_BOOLEAN);
+         SHADER_PARAM("flip_Y", AI_TYPE_BOOLEAN);
+         SHADER_PARAM("flip_Z", AI_TYPE_BOOLEAN);
+         SHADER_PARAM("format", AI_TYPE_ENUM);
+         SHADER_PARAM("multiplier", AI_TYPE_FLOAT);
+         SHADER_PARAM("opaque_alpha", AI_TYPE_BOOLEAN);
+         SHADER_PARAM("rgb_multiplier", AI_TYPE_RGB);
+         SHADER_PARAM("visibility", AI_TYPE_INT);
+      }
       else
       {
          AiMsgWarning("[mtoa] Shader type not supported.");
@@ -201,7 +263,11 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader)
 
    AtNode* shader = NULL;
 
-   AiMsgDebug("[mtoa] Exporting shader");
+   MFnDependencyNode node(mayaShader);
+
+   static char buffer[128];
+   sprintf(buffer, "[mtoa] Exporting shader: %s", node.name().asChar());
+   AiMsgDebug(buffer);
 
    switch (mayaShader.apiType())
    {

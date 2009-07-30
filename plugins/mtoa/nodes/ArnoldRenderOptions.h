@@ -46,6 +46,8 @@ public:
    static MObject s_GI_refraction_depth;
    static MObject s_GI_total_depth;
 
+   static MObject s_background;
+
 };  // class CArnoldRenderOptionsNode
 
 #endif // ARNOLD_RENDER_OPTIONS_H

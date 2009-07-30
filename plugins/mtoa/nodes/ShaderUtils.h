@@ -25,4 +25,13 @@
    addAttribute(attrib##G);\
    addAttribute(attrib##B);
 
+#define MAKE_VECTOR(attrib, name, shortname, defaultX, defaultY, defaultZ) \
+   attrib##X = nAttr.create(name##"X", shortname##"x", MFnNumericData::kFloat, defaultX);\
+   attrib##Y = nAttr.create(name##"Y", shortname##"y", MFnNumericData::kFloat, defaultY);\
+   attrib##Z = nAttr.create(name##"Z", shortname##"z", MFnNumericData::kFloat, defaultZ);\
+   attrib = nAttr.create(name, shortname, attrib##X, attrib##Y, attrib##Z);\
+   addAttribute(attrib##X);\
+   addAttribute(attrib##Y);\
+   addAttribute(attrib##Z);
+
 #endif // SHADER_UTILS_H

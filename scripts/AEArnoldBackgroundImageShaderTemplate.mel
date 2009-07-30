@@ -1,0 +1,13 @@
+global proc AEArnoldBackgroundImageShaderTemplate(string $nodeName)
+{
+   AEswatchDisplay $nodeName;
+
+   editorTemplate -beginScrollLayout;
+      editorTemplate -callCustom AEshaderTypeNew AEshaderTypeReplace "message";
+            
+      editorTemplate -l "Map" -addControl "filename";
+   editorTemplate -endScrollLayout;
+
+   editorTemplate -suppress "caching"; 
+   editorTemplate -suppress "nodeState";
+}

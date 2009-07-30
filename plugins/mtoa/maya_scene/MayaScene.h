@@ -15,13 +15,13 @@ class CMayaScene
 public:
 
    MStatus ExportToArnold();
+   AtNode* ExportShader(MObject mayaShader);
 
 private:
 
    void ExportCamera(const MDagPath& dagPath);
    void ExportLight(const MDagPath& dagPath);
    void ExportMesh(MObject mayaMesh, MObject dagNode, MMatrix tm);
-   AtNode* ExportShader(MObject mayaShader);
    MObject GetNodeShader(MObject dagNode);
 
    bool IsVisible(MFnDagNode node);

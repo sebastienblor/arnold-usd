@@ -1,6 +1,8 @@
 #ifndef RENDER_CMD_H
 #define RENDER_CMD_H
 
+#include "maya_scene/MayaScene.h"
+
 #include <ai_nodes.h>
 #include <ai_types.h>
 
@@ -41,6 +43,8 @@ private:
    void ProcessArnoldRenderOptions();
 
 private:
+
+   CMayaScene m_scene;
 
    AtUInt32 m_minx, m_miny, m_maxx, m_maxy;
    AtUInt32 m_width, m_height;

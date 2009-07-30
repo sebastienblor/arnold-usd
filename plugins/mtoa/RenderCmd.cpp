@@ -1,7 +1,6 @@
 
 #include "RenderCmd.h"
 #include "OutputDriver.h"
-#include "maya_scene/MayaScene.h"
 
 #include <ai_api.h>
 #include <ai_constants.h>
@@ -52,9 +51,7 @@ MStatus CRenderCmd::doIt(const MArgList& argList)
    ProcessCommonRenderOptions();
    ProcessArnoldRenderOptions();
 
-   CMayaScene scene;
-
-   status = scene.ExportToArnold();
+   status = m_scene.ExportToArnold();
 
    if (MRenderView::doesRenderEditorExist())
    {
@@ -230,5 +227,42 @@ void CRenderCmd::ProcessArnoldRenderOptions()
       AiNodeSetInt(AiUniverseGetOptions(), "GI_reflection_depth", fnArnoldRenderOptions.findPlug("GI_reflection_depth").asInt());
       AiNodeSetInt(AiUniverseGetOptions(), "GI_refraction_depth", fnArnoldRenderOptions.findPlug("GI_refraction_depth").asInt());
       AiNodeSetInt(AiUniverseGetOptions(), "GI_total_depth", fnArnoldRenderOptions.findPlug("GI_total_depth").asInt());
+
+      int background = fnArnoldRenderOptions.findPlug("background").asInt();
+
+      list.clear();
+
+      switch (background)
+      {
+      case 0:
+         break;
+
+      case 1:  // Image
+         list.add("defaultBackgroundImageShader");
+         if (list.length() > 0)
+         {
+            list.getDependNode(0, node);
+            AiNodeSetPtr(AiUniverseGetOptions(), "background", m_scene.ExportShader(node));
+         }
+         break;
+
+      case 2:  // Sky
+         list.add("defaultSkyShader");
+         if (list.length() > 0)
+         {
+            list.getDependNode(0, node);
+            AiNodeSetPtr(AiUniverseGetOptions(), "background", m_scene.ExportShader(node));
+         }
+         break;
+
+      case 3:  // Sky_HDRI
+         list.add("defaultSky_HDRIShader");
+         if (list.length() > 0)
+         {
+            list.getDependNode(0, node);
+            AiNodeSetPtr(AiUniverseGetOptions(), "background", m_scene.ExportShader(node));
+         }
+         break;
+      }
    }
 }

@@ -1,0 +1,34 @@
+source "ShaderFunctions.mel";
+
+global proc AEArnoldCheckSeparateColors(string $nodeName)
+{
+   AEArnoldDimControlIfFalse($nodeName, "emission_color", "separate_colors");
+   AEArnoldDimControlIfFalse($nodeName, "emission_intensity", "separate_colors");
+}
+
+global proc AEArnoldSkyShaderTemplate( string $nodeName )
+{
+   AEswatchDisplay $nodeName;
+
+   editorTemplate -beginScrollLayout;
+   
+      editorTemplate -callCustom AEshaderTypeNew AEshaderTypeReplace "message";
+            
+      editorTemplate -l "Separate colors" -addControl "separate_colors" "AEArnoldCheckSeparateColors";
+      editorTemplate -beginLayout "Visible color" -collapse false;
+         editorTemplate -l "Color" -addControl "color";
+         editorTemplate -l "Intensity" -addControl "intensity";
+      editorTemplate -endLayout;
+
+      editorTemplate -beginLayout "Emission color" -collapse false;
+         editorTemplate -l "Color" -addControl "emission_color";
+         editorTemplate -l "Intensity" -addControl "emission_intensity";
+      editorTemplate -endLayout;
+      
+      editorTemplate -addExtraControls;
+
+   editorTemplate -endScrollLayout;
+
+   editorTemplate -suppress "caching"; 
+   editorTemplate -suppress "nodeState";
+}

@@ -26,6 +26,7 @@ MObject CArnoldRenderOptionsNode::s_GI_glossy_depth;
 MObject CArnoldRenderOptionsNode::s_GI_reflection_depth;
 MObject CArnoldRenderOptionsNode::s_GI_refraction_depth;
 MObject CArnoldRenderOptionsNode::s_GI_total_depth;
+MObject CArnoldRenderOptionsNode::s_background;
 
 void* CArnoldRenderOptionsNode::creator()
 {
@@ -179,6 +180,14 @@ MStatus CArnoldRenderOptionsNode::initialize()
    nAttr.setMin(0);
    nAttr.setMax(10000);
    addAttribute(s_GI_total_depth);
+
+   s_background = eAttr.create("background", "bkg", 0);
+   nAttr.setKeyable(false);
+   eAttr.addField("None", 0);
+   eAttr.addField("Image", 1);
+   eAttr.addField("Sky", 2);
+   eAttr.addField("Sky HDRI", 3);
+   addAttribute(s_background);
 
    return MS::kSuccess;
 }

@@ -11,9 +11,37 @@ global proc UpdateSamplingSettings()
    attrControlGrp -edit -enable $flag ss_max_value;
 }
 
+global proc UpdateEnvironmentSettings()
+{
+   int $bkg = `getAttr defaultArnoldRenderOptions.background`;
+
+   switch ($bkg)
+   {
+      case 0:
+      break;
+      
+      case 1: // Image
+      {
+         createNode -shared -n "defaultBackgroundImageShader" ArnoldBackgroundImageShader;
+      }
+      break;
+      
+      case 2: // Sky
+      {
+         createNode -shared -n "defaultSkyShader" ArnoldSkyShader;
+      }
+      break;
+      
+      case 3: // Sky HDRI
+      {
+         createNode -shared -n "defaultSky_HDRIShader" ArnoldSky_HDRIShader;
+      }
+      break;
+   }
+}
+
 global proc CreateArnoldOutputSettings()
 {
-      
    setUITemplate -pushTemplate attributeEditorTemplate;
    columnLayout -adjustableColumn true arnoldOutputLayout;
       
@@ -140,6 +168,23 @@ global proc CreateArnoldRayDepthSettings()
    setUITemplate -popTemplate;
 }
 
+global proc CreateArnoldEnvironmentSettings()
+{
+   setUITemplate -pushTemplate attributeEditorTemplate;
+   columnLayout -adjustableColumn true;
+      
+      attrControlGrp -label "Background"
+         -attribute defaultArnoldRenderOptions.background
+         -cc UpdateEnvironmentSettings
+         es_background;
+
+      button -c UpdateEnvironmentSettings Edit;
+      
+      setParent ..;
+
+   setUITemplate -popTemplate;
+}
+
 global proc CreateArnoldRendererGlobalsTab()
 {
    // Make sure the ArnoldRenderOptions node exists
@@ -175,6 +220,12 @@ global proc CreateArnoldRendererGlobalsTab()
             CreateArnoldGammaSettings;
             setParent ..;
          
+         // Environment
+         //
+         frameLayout -label "Environment" -lw 150 -cll true -cl 0 arnoldEnvironmentSettings;
+            CreateArnoldEnvironmentSettings;
+            setParent ..;
+         
          setParent ..;
          
       formLayout -edit
@@ -193,4 +244,5 @@ global proc UpdateArnoldRendererGlobalsTab()
 {
    UpdateOutputSettings();
    UpdateSamplingSettings();
+   UpdateEnvironmentSettings();
 }
