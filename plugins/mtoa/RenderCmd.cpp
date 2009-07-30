@@ -74,9 +74,8 @@ MStatus CRenderCmd::doIt(const MArgList& argList)
       //AiMsgDebug( "Exporting Maya scene for debug.\n" );
       //AiASSWrite( "c:/Maya2Arnold.ass", AI_NODE_ALL, false );
 
-      if (m_useRenderRegion)
-         status = m_useRenderRegion ? MRenderView::startRegionRender(m_width, m_height, m_minx, m_maxx, m_miny, m_maxy, !m_clearBeforeRender, true)
-                                    : MRenderView::startRender(m_width, m_height, !m_clearBeforeRender, true);
+      status = m_useRenderRegion ? MRenderView::startRegionRender(m_width, m_height, m_minx, m_maxx, m_miny, m_maxy, !m_clearBeforeRender, true)
+                                 : MRenderView::startRender(m_width, m_height, !m_clearBeforeRender, true);
 
       if ( status == MS::kSuccess)
       {
