@@ -58,7 +58,7 @@ MStatus initializePlugin(MObject object)
 {
    MStatus status;
 
-   MFnPlugin plugin(object, "SolidAngle", "0.2", "Any");
+   MFnPlugin plugin(object, "SolidAngle", "0.3", "Any");
 
    plugin.setName("Arnold Render");
 
