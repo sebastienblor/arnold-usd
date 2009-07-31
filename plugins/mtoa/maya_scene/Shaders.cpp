@@ -61,6 +61,11 @@ namespace // <anonymous>
                AiNodeSetVec(arnoldShader, arnoldAttrib, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
             }
             break;
+         case AI_TYPE_POINT:
+            {
+               AiNodeSetPnt(arnoldShader, arnoldAttrib, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+            }
+            break;
          }
       }
       else
@@ -207,6 +212,38 @@ namespace // <anonymous>
          SHADER_PARAM("opaque_alpha", AI_TYPE_BOOLEAN);
          SHADER_PARAM("rgb_multiplier", AI_TYPE_RGB);
          SHADER_PARAM("visibility", AI_TYPE_INT);
+      }
+      else if (!strcmp(mayaNode.typeName().asChar(), "ArnoldFogShader"))
+      {
+         shader = AiNode("fog");
+
+         AiNodeSetStr(shader, "name", mayaNode.name().asChar());
+
+         SHADER_PARAM("color", AI_TYPE_RGB);
+         SHADER_PARAM("distance", AI_TYPE_FLOAT);
+         SHADER_PARAM("ground_normal", AI_TYPE_VECTOR);
+         SHADER_PARAM("ground_point", AI_TYPE_POINT);
+         SHADER_PARAM("height", AI_TYPE_FLOAT);
+      }
+      else if (!strcmp(mayaNode.typeName().asChar(), "ArnoldVolumeScatteringShader"))
+      {
+         shader = AiNode("volume_scattering");
+
+         AiNodeSetStr(shader, "name", mayaNode.name().asChar());
+
+         SHADER_PARAM("affect_diffuse", AI_TYPE_FLOAT);
+         SHADER_PARAM("affect_reflection", AI_TYPE_FLOAT);
+         SHADER_PARAM("attenuation", AI_TYPE_FLOAT);
+         SHADER_PARAM("density", AI_TYPE_FLOAT);
+         SHADER_PARAM("eccentricity", AI_TYPE_FLOAT);
+         SHADER_PARAM("importance_sampling", AI_TYPE_BOOLEAN);
+         SHADER_PARAM("mscattering_depth", AI_TYPE_INT);
+         SHADER_PARAM("mscattering_samples", AI_TYPE_INT);
+         SHADER_PARAM("phase_function", AI_TYPE_ENUM);
+         SHADER_PARAM("rgb_attenuation", AI_TYPE_RGB);
+         SHADER_PARAM("rgb_density", AI_TYPE_RGB);
+         SHADER_PARAM("samples", AI_TYPE_INT);
+         SHADER_PARAM("sampling_pattern", AI_TYPE_ENUM);
       }
       else
       {

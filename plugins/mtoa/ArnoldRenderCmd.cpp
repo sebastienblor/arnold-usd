@@ -227,6 +227,8 @@ void CArnoldRenderCmd::ProcessArnoldRenderOptions()
       AiNodeSetInt(AiUniverseGetOptions(), "GI_refraction_depth", fnArnoldRenderOptions.findPlug("GI_refraction_depth").asInt());
       AiNodeSetInt(AiUniverseGetOptions(), "GI_total_depth", fnArnoldRenderOptions.findPlug("GI_total_depth").asInt());
 
+      // BACKGROUND SHADER
+      //
       int background = fnArnoldRenderOptions.findPlug("background").asInt();
 
       list.clear();
@@ -260,6 +262,36 @@ void CArnoldRenderCmd::ProcessArnoldRenderOptions()
          {
             list.getDependNode(0, node);
             AiNodeSetPtr(AiUniverseGetOptions(), "background", m_scene.ExportShader(node));
+         }
+         break;
+      }
+
+      // ATMOSPHERE SHADER
+      //
+      int atmosphere = fnArnoldRenderOptions.findPlug("atmosphere").asInt();
+
+      list.clear();
+
+      switch (atmosphere)
+      {
+      case 0:
+         break;
+
+      case 1:  // Fog
+         list.add("defaultFogShader");
+         if (list.length() > 0)
+         {
+            list.getDependNode(0, node);
+            AiNodeSetPtr(AiUniverseGetOptions(), "atmosphere", m_scene.ExportShader(node));
+         }
+         break;
+
+      case 2:  // Volume Scattering
+         list.add("defaultVolumeScatteringShader");
+         if (list.length() > 0)
+         {
+            list.getDependNode(0, node);
+            AiNodeSetPtr(AiUniverseGetOptions(), "atmosphere", m_scene.ExportShader(node));
          }
          break;
       }

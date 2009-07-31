@@ -34,4 +34,7 @@
    addAttribute(attrib##Y);\
    addAttribute(attrib##Z);
 
+#define MAKE_POINT(attrib, name, shortname, defaultX, defaultY, defaultZ) \
+   MAKE_VECTOR(attrib, name, shortname, defaultX, defaultY, defaultZ)
+
 #endif // SHADER_UTILS_H

@@ -47,6 +47,7 @@ public:
    static MObject s_GI_total_depth;
 
    static MObject s_background;
+   static MObject s_atmosphere;
 
 };  // class CArnoldRenderOptionsNode
 

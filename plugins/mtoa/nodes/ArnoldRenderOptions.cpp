@@ -27,6 +27,7 @@ MObject CArnoldRenderOptionsNode::s_GI_reflection_depth;
 MObject CArnoldRenderOptionsNode::s_GI_refraction_depth;
 MObject CArnoldRenderOptionsNode::s_GI_total_depth;
 MObject CArnoldRenderOptionsNode::s_background;
+MObject CArnoldRenderOptionsNode::s_atmosphere;
 
 void* CArnoldRenderOptionsNode::creator()
 {
@@ -188,6 +189,13 @@ MStatus CArnoldRenderOptionsNode::initialize()
    eAttr.addField("Sky", 2);
    eAttr.addField("Sky HDRI", 3);
    addAttribute(s_background);
+
+   s_atmosphere = eAttr.create("atmosphere", "atm", 0);
+   nAttr.setKeyable(false);
+   eAttr.addField("None", 0);
+   eAttr.addField("Fog", 1);
+   eAttr.addField("Volume Scattering", 2);
+   addAttribute(s_atmosphere);
 
    return MS::kSuccess;
 }

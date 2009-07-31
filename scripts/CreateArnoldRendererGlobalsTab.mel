@@ -11,7 +11,7 @@ global proc UpdateSamplingSettings()
    attrControlGrp -edit -enable $flag ss_max_value;
 }
 
-global proc UpdateEnvironmentSettings()
+global proc SelectBackground()
 {
    int $bkg = `getAttr defaultArnoldRenderOptions.background`;
 
@@ -35,6 +35,29 @@ global proc UpdateEnvironmentSettings()
       case 3: // Sky HDRI
       {
          createNode -shared -n "defaultSky_HDRIShader" ArnoldSky_HDRIShader;
+      }
+      break;
+   }
+}
+
+global proc SelectAtmosphere()
+{
+   int $bkg = `getAttr defaultArnoldRenderOptions.atmosphere`;
+
+   switch ($bkg)
+   {
+      case 0:
+      break;
+      
+      case 1: // Fog
+      {
+         createNode -shared -n "defaultFogShader" ArnoldFogShader;
+      }
+      break;
+      
+      case 2: // Volume Scattering
+      {
+         createNode -shared -n "defaultVolumeScatteringShader" ArnoldVolumeScatteringShader;
       }
       break;
    }
@@ -175,11 +198,20 @@ global proc CreateArnoldEnvironmentSettings()
       
       attrControlGrp -label "Background"
          -attribute defaultArnoldRenderOptions.background
-         -cc UpdateEnvironmentSettings
+         -cc SelectBackground
          es_background;
 
-      button -c UpdateEnvironmentSettings Edit;
-      
+      button -label "Edit Background" -c SelectBackground;
+
+      separator -style "none";
+            
+      attrControlGrp -label "Atmosphere"
+         -attribute defaultArnoldRenderOptions.atmosphere
+         -cc SelectAtmosphere
+         es_atmosphere;
+
+      button -label "Edit Atmosphere" -c SelectAtmosphere;
+
       setParent ..;
 
    setUITemplate -popTemplate;
@@ -244,5 +276,4 @@ global proc UpdateArnoldRendererGlobalsTab()
 {
    UpdateOutputSettings();
    UpdateSamplingSettings();
-   UpdateEnvironmentSettings();
 }
