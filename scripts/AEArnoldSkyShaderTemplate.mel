@@ -11,9 +11,7 @@ global proc AEArnoldSkyShaderTemplate( string $nodeName )
    AEswatchDisplay $nodeName;
 
    editorTemplate -beginScrollLayout;
-   
-      editorTemplate -callCustom AEshaderTypeNew AEshaderTypeReplace "message";
-            
+           
       editorTemplate -l "Separate colors" -addControl "separate_colors" "AEArnoldCheckSeparateColors";
       editorTemplate -beginLayout "Visible color" -collapse false;
          editorTemplate -l "Color" -addControl "color";
