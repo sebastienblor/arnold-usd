@@ -182,8 +182,9 @@ namespace // <anonymous>
          }
          else
          {
-            AiNodeSetRGB(shader, "emission_color", -1.0f, -1.0f, -1.0f);
-            AiNodeSetFlt(shader, "emission_intensity", -1.0f);
+            MPlug plug = mayaNode.findPlug("color");
+            AiNodeSetRGB(shader, "emission_color", plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+            AiNodeSetFlt(shader, "emission_intensity", mayaNode.findPlug("intensity").asFloat());
          }
 
          SHADER_PARAM("color", AI_TYPE_RGB);
