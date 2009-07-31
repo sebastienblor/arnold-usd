@@ -1,5 +1,6 @@
 
-#include "RenderCmd.h"
+#include "ArnoldRenderCmd.h"
+#include "ArnoldIprCmd.h"
 #include "nodes/ArnoldBackgroundImageShader.h"
 #include "nodes/ArnoldRenderOptions.h"
 #include "nodes/ArnoldSkyShader.h"
@@ -63,7 +64,8 @@ MStatus initializePlugin(MObject object)
    plugin.setName("Arnold Render");
 
    // TODO: Add proper checking and handling of returned status
-   status = plugin.registerCommand("arnoldRenderer", CRenderCmd::creator, CRenderCmd::newSyntax);
+   status = plugin.registerCommand("arnoldRender", CArnoldRenderCmd::creator, CArnoldRenderCmd::newSyntax);
+   status = plugin.registerCommand("arnoldIpr", CArnoldIprCmd::creator, CArnoldIprCmd::newSyntax);
 
    RegisterArnoldNodes(object);
 
@@ -84,7 +86,8 @@ MStatus uninitializePlugin(MObject object)
    UnregisterArnoldNodes(object);
 
    // TODO: Add proper checking and handling of returned status
-   status = plugin.deregisterCommand("arnoldRenderer");
+   status = plugin.deregisterCommand("arnoldRender");
+   status = plugin.deregisterCommand("arnoldIpr");
 
    return MS::kSuccess;
 }  // uninitializePlugin()

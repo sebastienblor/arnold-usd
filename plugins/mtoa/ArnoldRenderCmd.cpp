@@ -1,5 +1,5 @@
 
-#include "RenderCmd.h"
+#include "ArnoldRenderCmd.h"
 #include "OutputDriver.h"
 
 #include <ai_api.h>
@@ -22,14 +22,14 @@
 extern AtNodeMethods* mtoa_driver_mtd;
 
 // This is the code for the render thread. This thread is used only to run the AiRender() process outside of the main thread.
-unsigned int RenderThread(AtVoid* data)
+static unsigned int RenderThread(AtVoid* data)
 {
    AiRender( AI_RENDER_MODE_CAMERA );
 
    return 0;
 }
 
-CRenderCmd::CRenderCmd()
+CArnoldRenderCmd::CArnoldRenderCmd()
 :  m_minx(0), m_miny(0), m_maxx(0), m_maxy(0)
 ,  m_width(0), m_height(0)
 ,  m_pixelAspectRatio(1.0f)
@@ -39,7 +39,7 @@ CRenderCmd::CRenderCmd()
 {
 }
 
-MStatus CRenderCmd::doIt(const MArgList& argList)
+MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
 {
    MStatus status;
 
@@ -71,8 +71,8 @@ MStatus CRenderCmd::doIt(const MArgList& argList)
       InitOutputDriver();
 
       // Exports .ass file for debugging purposes.
-      //AiMsgDebug( "Exporting Maya scene for debug.\n" );
-      //AiASSWrite( "c:/Maya2Arnold.ass", AI_NODE_ALL, false );
+//      AiMsgDebug("Exporting Maya scene for debug");
+//      AiASSWrite("c:\\Users\\Angel\\Temp\\Maya2Arnold.ass", AI_NODE_ALL, false);
 
       status = m_useRenderRegion ? MRenderView::startRegionRender(m_width, m_height, m_minx, m_maxx, m_miny, m_maxy, !m_clearBeforeRender, true)
                                  : MRenderView::startRender(m_width, m_height, !m_clearBeforeRender, true);
@@ -96,7 +96,7 @@ MStatus CRenderCmd::doIt(const MArgList& argList)
    return status;
 }  // doIt()
 
-void CRenderCmd::InitOutputDriver()
+void CArnoldRenderCmd::InitOutputDriver()
 {
    AiNodeInstall(AI_NODE_DRIVER, AI_TYPE_NONE, "renderview_display",  NULL, (AtNodeMethods*) mtoa_driver_mtd, AI_VERSION);
 
@@ -115,7 +115,7 @@ void CRenderCmd::InitOutputDriver()
 
 }  // InitOutputDriver()
 
-void CRenderCmd::Render()
+void CArnoldRenderCmd::Render()
 {
    InitializeDisplayUpdateQueue();
 
@@ -129,7 +129,7 @@ void CRenderCmd::Render()
    AiThreadClose(handler);
 }  // Render()
 
-void CRenderCmd::ProcessCommonRenderOptions()
+void CArnoldRenderCmd::ProcessCommonRenderOptions()
 {
    MStatus        status;
    MSelectionList list;
@@ -190,7 +190,7 @@ void CRenderCmd::ProcessCommonRenderOptions()
    }
 }
 
-void CRenderCmd::ProcessArnoldRenderOptions()
+void CArnoldRenderCmd::ProcessArnoldRenderOptions()
 {
    MSelectionList list;
    MObject        node;

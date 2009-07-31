@@ -3,6 +3,51 @@ global proc ArnoldRender(int $width, int $height, int $doShadows, int $doGlowPas
    // Make sure the ArnoldRenderOptions node exists
    createNode -skipSelect -shared -n "defaultArnoldRenderOptions" ArnoldRenderOptions;
 
-   // For now, just handles control to main Arnold render command
-   arnoldRenderer;   
+   arnoldRender;   
+}
+
+global proc ArnoldIprStart(string $editor, int $resolutionX, int $resolutionY, string $camera)
+{
+   // Make sure the ArnoldRenderOptions node exists
+   createNode -skipSelect -shared -n "defaultArnoldRenderOptions" ArnoldRenderOptions;
+
+   arnoldIpr -mode start;   
+}
+
+global proc ArnoldIprStop()
+{
+   arnoldIpr -mode stop;   
+}
+
+global proc int ArnoldIprIsRunning()
+{
+   $val = `arnoldIpr`;
+   return $val;   
+}
+
+global proc ArnoldIprRender(int $width, int $height, int $doShadows, int $doGlowPass, string $camera)
+{
+   arnoldIpr -mode render;   
+}
+
+global proc ArnoldIprRefresh()
+{
+   arnoldIpr -mode refresh;   
+}
+
+global proc ArnoldIprPause(string $editor, int $pause)
+{
+   if ($pause)
+   {
+      arnoldIpr -mode pause;
+   }
+   else
+   {
+      arnoldIpr -mode unpause;
+   }   
+}
+
+global proc ArnoldIprChangeRegion(string $renderPanel)
+{
+   arnoldIpr -mode region;   
 }

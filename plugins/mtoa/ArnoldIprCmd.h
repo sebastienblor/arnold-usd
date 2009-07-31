@@ -1,5 +1,5 @@
-#ifndef RENDER_CMD_H
-#define RENDER_CMD_H
+#ifndef ARNOLD_IPR_CMD_H
+#define ARNOLD_IPR_CMD_H
 
 #include "maya_scene/MayaScene.h"
 
@@ -9,7 +9,7 @@
 #include <maya/MPxCommand.h>
 #include <maya/MSyntax.h>
 
-class CRenderCmd
+class CArnoldIprCmd
    :	public MPxCommand
 {
 
@@ -17,19 +17,14 @@ public:
 
    static void* creator()
    {
-      return new CRenderCmd();
+      return new CArnoldIprCmd();
    }
 
-   static MSyntax newSyntax()
-   {
-      MSyntax syntax;
+   static MSyntax newSyntax();
 
-      return syntax;
-   }
+   CArnoldIprCmd();
 
-   CRenderCmd();
-
-   ~CRenderCmd()
+   ~CArnoldIprCmd()
    {
    }
 
@@ -53,6 +48,6 @@ private:
    bool     m_clearBeforeRender; 
    float    m_gamma;
 
-}; // class CRenderCmd
+}; // class CArnoldIprCmd
 
 #endif // RENDER_CMD_H
