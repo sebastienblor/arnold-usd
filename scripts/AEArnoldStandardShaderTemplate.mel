@@ -2,12 +2,12 @@ source "ShaderFunctions.mel";
 
 global proc AEArnoldCheckSpecularFresnel(string $nodeName)
 {
-   AEArnoldDimControlIfTrue($nodeName, "Ksn", "specular_Fresnel");
+   AEArnoldDimControlIfFalse($nodeName, "Ksn", "specular_Fresnel");
 }
 
 global proc AEArnoldCheckReflectionFresnel(string $nodeName)
 {
-   AEArnoldDimControlIfTrue($nodeName, "Krn", "Fresnel");
+   AEArnoldDimControlIfFalse($nodeName, "Krn", "Fresnel");
 }
 
 global proc AEArnoldStandardShaderTemplate( string $nodeName )
