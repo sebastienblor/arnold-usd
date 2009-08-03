@@ -42,18 +42,18 @@ MStatus CArnoldSkyShaderNode::initialize()
 {
    MFnNumericAttribute nAttr;
 
-   MAKE_COLOR(s_color, "color", "c", 1, 1, 1);
+   MAKE_COLOR(s_color, "color", "c", 0.9f, 0.92f, 1);
    MAKE_INPUT(nAttr, s_color);
 
    MAKE_COLOR(s_emission_color, "emission_color", "ec", 1, 1, 1);
    MAKE_INPUT(nAttr, s_emission_color);
 
-   s_emission_intensity = nAttr.create("emission_intensity", "ei", MFnNumericData::kFloat, 0);
+   s_emission_intensity = nAttr.create("emission_intensity", "ei", MFnNumericData::kFloat, 1);
    nAttr.setMin(0);
    nAttr.setMax(10);
    MAKE_INPUT(nAttr, s_emission_intensity);
 
-   s_intensity = nAttr.create("intensity", "i", MFnNumericData::kFloat, 0);
+   s_intensity = nAttr.create("intensity", "i", MFnNumericData::kFloat, 1);
    nAttr.setMin(0);
    nAttr.setMax(10);
    MAKE_INPUT(nAttr, s_intensity);

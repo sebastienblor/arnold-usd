@@ -21,6 +21,7 @@
    attrib##B = nAttr.create(name##"B", shortname##"b", MFnNumericData::kFloat, defaultB);\
    attrib = nAttr.create(name, shortname, attrib##R, attrib##G, attrib##B);\
    nAttr.setUsedAsColor(true);\
+   nAttr.setDefault(float(defaultR), float(defaultG), float(defaultB));\
    addAttribute(attrib##R);\
    addAttribute(attrib##G);\
    addAttribute(attrib##B);
@@ -30,6 +31,7 @@
    attrib##Y = nAttr.create(name##"Y", shortname##"y", MFnNumericData::kFloat, defaultY);\
    attrib##Z = nAttr.create(name##"Z", shortname##"z", MFnNumericData::kFloat, defaultZ);\
    attrib = nAttr.create(name, shortname, attrib##X, attrib##Y, attrib##Z);\
+   nAttr.setDefault(float(defaultX), float(defaultY), float(defaultZ));\
    addAttribute(attrib##X);\
    addAttribute(attrib##Y);\
    addAttribute(attrib##Z);
