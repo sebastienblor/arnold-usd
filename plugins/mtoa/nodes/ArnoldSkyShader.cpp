@@ -50,12 +50,12 @@ MStatus CArnoldSkyShaderNode::initialize()
 
    s_emission_intensity = nAttr.create("emission_intensity", "ei", MFnNumericData::kFloat, 0);
    nAttr.setMin(0);
-   nAttr.setMax(1);
+   nAttr.setMax(10);
    MAKE_INPUT(nAttr, s_emission_intensity);
 
    s_intensity = nAttr.create("intensity", "i", MFnNumericData::kFloat, 0);
    nAttr.setMin(0);
-   nAttr.setMax(1);
+   nAttr.setMax(10);
    MAKE_INPUT(nAttr, s_intensity);
 
    s_opaque_alpha = nAttr.create("opaque_alpha", "oa", MFnNumericData::kBoolean, 1);
