@@ -1,15 +1,17 @@
 
 #include "common/MTBlockingQueue.h"
 
-#include <ai_drivers.h>
 #include <ai_critsec.h>
+#include <ai_drivers.h>
 #include <ai_filters.h>
 #include <ai_msg.h>
+#include <ai_render.h>
 #include <ai_universe.h>
 
+#include <maya/MComputation.h>
 #include <maya/MRenderView.h>
 
-#define _gamma          (params[0].FLT )  /**< accessor for driver's gamma parameter */
+#define _gamma  (params[0].FLT )  /**< accessor for driver's gamma parameter */
 
 AI_DRIVER_NODE_EXPORT_METHODS(mtoa_driver_mtd);
 
@@ -18,7 +20,7 @@ struct COutputDriverData
    AtUInt    imageWidth, imageHeight;
    float     gamma;
    AtBoolean rendering;
-};  // struct COutputDriverData
+};
 
 enum EDisplayUpdateMessageType
 {
@@ -34,7 +36,7 @@ struct CDisplayUpdateMessage
    AtBBox2                   bucketRect;
    RV_PIXEL*                 pixels;
    bool                      finished;
-};  // struct CDisplayUpdateMessage
+};
 
 static CMTBlockingQueue<CDisplayUpdateMessage> s_displayUpdateQueue;
 static CEvent                                  s_displayUpdateFinishedEvent;
@@ -45,12 +47,10 @@ node_parameters
    AiParameterFLT ("gamma", 1.0f);
 }
 
-
 node_initialize
 {
    AiDriverInitialize(node, FALSE, NULL);
 }
-
 
 driver_supports_pixel_type
 {
@@ -80,12 +80,10 @@ driver_open
       s_outputDriverData.gamma       = _gamma;
       s_outputDriverData.rendering   = TRUE;
    }
-}  // driver_open()
-
+}
 
 driver_prepare_bucket
 {
-
    CDisplayUpdateMessage   msg;
 
    msg.msgType = MSG_BUCKET_PREPARE;
@@ -97,13 +95,10 @@ driver_prepare_bucket
    msg.finished        = false;
 
    s_displayUpdateQueue.push(msg);
-
-}  // driver_prepare_bucket()
-
+}
 
 driver_write_bucket
 {
-
    AtInt         pixel_type;
    const AtVoid* bucket_data;
 
@@ -188,8 +183,7 @@ driver_write_bucket
    msg.finished        = false;
 
    s_displayUpdateQueue.push( msg );
-
-}  // driver_write_bucket()
+}
 
 driver_close
 {
@@ -203,14 +197,13 @@ driver_close
    s_displayUpdateFinishedEvent.wait();
 
    s_outputDriverData.rendering = FALSE;
-}  // driver_close()
+}
 
 node_finish
 {
    // release the driver
    AiDriverDestroy(node);
-}  // node_finish()
-
+}
 
 void UpdateBucket(const AtBBox2& bucketRect, RV_PIXEL* pixels)
 {
@@ -222,26 +215,32 @@ void UpdateBucket(const AtBBox2& bucketRect, RV_PIXEL* pixels)
    MRenderView::refresh(bucketRect.minx, bucketRect.maxx, miny, maxy);
 
    delete[] pixels;
-} // UpdateBucket()
-
+}
 
 void InitializeDisplayUpdateQueue()
 {
-
    // This event is used to hold the render thread from releasing buffers after sending the last message.
    s_displayUpdateFinishedEvent.unset();
 
    // Clears the display update queue, in case we had aborted a previous render.
    s_displayUpdateQueue.reset();
-
-}  // InitializeDisplayUpdateQueue()
-
+}
 
 void ProcessDisplayUpdateQueue()
 {
+   MComputation comp;
 
+   bool aborted = false;
+
+   comp.beginComputation();
    while (true)
    {
+      if (!aborted && comp.isInterruptRequested())
+      {
+         AiRenderAbort();
+         aborted = true;
+      }
+
       if (s_displayUpdateQueue.waitForNotEmpty(10))
       {
          CDisplayUpdateMessage   msg;
@@ -274,4 +273,5 @@ void ProcessDisplayUpdateQueue()
    // Notify the render thread that we are done with the renderview update
    s_displayUpdateFinishedEvent.set();
 
-}  // ProcessDisplayUpdateQueue()
+   comp.endComputation();
+}

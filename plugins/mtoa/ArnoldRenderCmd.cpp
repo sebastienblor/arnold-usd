@@ -1,33 +1,16 @@
 
 #include "ArnoldRenderCmd.h"
-#include "OutputDriver.h"
+#include "RenderInstance.h"
 
-#include <ai_api.h>
-#include <ai_constants.h>
-#include <ai_dotass.h>
-#include <ai_msg.h>
-#include <ai_render.h>
-#include <ai_threads.h>
 #include <ai_universe.h>
-#include <ai_version.h>
+#include <ai_constants.h>
 
 #include <maya/M3dView.h>
-#include <maya/MComputation.h>
 #include <maya/MFnDependencyNode.h>
 #include <maya/MPlug.h>
 #include <maya/MPlugArray.h>
 #include <maya/MRenderView.h>
 #include <maya/MSelectionList.h>
-
-extern AtNodeMethods* mtoa_driver_mtd;
-
-// This is the code for the render thread. This thread is used only to run the AiRender() process outside of the main thread.
-static unsigned int RenderThread(AtVoid* data)
-{
-   AiRender( AI_RENDER_MODE_CAMERA );
-
-   return 0;
-}
 
 CArnoldRenderCmd::CArnoldRenderCmd()
 :  m_minx(0), m_miny(0), m_maxx(0), m_maxy(0)
@@ -42,14 +25,14 @@ CArnoldRenderCmd::CArnoldRenderCmd()
 MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
 {
    MStatus status;
+   CRenderInstance renderInstance;
 
-   AiBegin();
-
-   // TODO: For now, we will use stdout (in Maya, it will go to the output window)
-   AiSetLogOptions(NULL, AI_LOG_ALL, 1000, 4);
+   renderInstance.Init();
 
    ProcessCommonRenderOptions();
    ProcessArnoldRenderOptions();
+
+   renderInstance.SetGamma(m_gamma);
 
    status = m_scene.ExportToArnold();
 
@@ -62,14 +45,8 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       MRenderView::setCurrentCamera(cameraPath);
    }
 
-   MComputation comp;
-
-   comp.beginComputation();
-
    if (MRenderView::doesRenderEditorExist())
    {
-      InitOutputDriver();
-
       // Exports .ass file for debugging purposes.
 //      AiMsgDebug("Exporting Maya scene for debug");
 //      AiASSWrite("c:\\Users\\Angel\\Temp\\Maya2Arnold.ass", AI_NODE_ALL, false);
@@ -79,55 +56,20 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
 
       if ( status == MS::kSuccess)
       {
-         Render();
+         renderInstance.DoRender();
 
          MRenderView::endRender();
       }
    }
    else
    {
-      Render();
+      renderInstance.DoRender();
    }
 
-   comp.endComputation();
-
-   AiEnd();
+   renderInstance.End();
 
    return status;
-}  // doIt()
-
-void CArnoldRenderCmd::InitOutputDriver()
-{
-   AiNodeInstall(AI_NODE_DRIVER, AI_TYPE_NONE, "renderview_display",  NULL, (AtNodeMethods*) mtoa_driver_mtd, AI_VERSION);
-
-   AtNode* filter = AiNode("box_filter");
-   AtNode* driver = AiNode("renderview_display");
-
-   AiNodeSetStr(driver, "name", "renderview_display");
-   AiNodeSetFlt(driver, "gamma", m_gamma);
-
-   AtChar   str[1024];
-   AtArray* outputs;
-
-   sprintf(str, "RGBA RGBA %s %s", AiNodeGetName(filter), AiNodeGetName(driver));
-   outputs = AiArray(1, 1, AI_TYPE_STRING, str);
-   AiNodeSetArray(AiUniverseGetOptions(), "outputs", outputs);
-
-}  // InitOutputDriver()
-
-void CArnoldRenderCmd::Render()
-{
-   InitializeDisplayUpdateQueue();
-
-   AtVoid* handler = AiThreadCreate(RenderThread, NULL, AI_PRIORITY_LOW);
-
-   // Process messages sent by the render thread, and exit when rendering is finished or aborted
-   ProcessDisplayUpdateQueue();
-
-   // Wait for the render thread to release everything and close it
-   AiThreadWait(handler);
-   AiThreadClose(handler);
-}  // Render()
+}
 
 void CArnoldRenderCmd::ProcessCommonRenderOptions()
 {
