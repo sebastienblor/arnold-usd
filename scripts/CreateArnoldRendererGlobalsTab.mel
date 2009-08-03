@@ -240,22 +240,22 @@ global proc CreateArnoldRendererGlobalsTab()
             CreateArnoldRayDepthSettings;
             setParent ..;
          
+         // Environment
+         //
+         frameLayout -label "Environment" -lw 150 -cll true -cl 1 arnoldEnvironmentSettings;
+            CreateArnoldEnvironmentSettings;
+            setParent ..;
+         
          // Output
          //
-         frameLayout -label "System" -lw 100 -cll true -cl 0 arnoldOutputSettings;
+         frameLayout -label "System" -lw 100 -cll true -cl 1 arnoldOutputSettings;
             CreateArnoldOutputSettings;
             setParent ..;
          
          // Gamma correction
          //
-         frameLayout -label "Gamma Correction" -lw 150 -cll true -cl 0 arnoldGammaSettings;
+         frameLayout -label "Gamma Correction" -lw 150 -cll true -cl 1 arnoldGammaSettings;
             CreateArnoldGammaSettings;
-            setParent ..;
-         
-         // Environment
-         //
-         frameLayout -label "Environment" -lw 150 -cll true -cl 0 arnoldEnvironmentSettings;
-            CreateArnoldEnvironmentSettings;
             setParent ..;
          
          setParent ..;
