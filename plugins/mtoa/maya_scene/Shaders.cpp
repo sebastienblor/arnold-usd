@@ -350,6 +350,16 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader)
       }
       break;
 
+   case MFn::kSurfaceShader:
+      {
+         shader = AiNode("flat");
+      
+         AiNodeSetStr(shader, "name", node.name().asChar());
+
+         ProcessShaderParameter(node, "outColor", shader, "color", AI_TYPE_RGB);
+      }
+      break;
+
    case MFn::kPluginDependNode:
       {
          shader = ExportArnoldShader(mayaShader);
