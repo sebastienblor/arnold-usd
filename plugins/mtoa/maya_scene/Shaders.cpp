@@ -357,6 +357,7 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader)
          AiNodeSetStr(shader, "name", node.name().asChar());
 
          ProcessShaderParameter(node, "outColor", shader, "color", AI_TYPE_RGB);
+         ProcessShaderParameter(node, "outMatteOpacity", shader, "opacity", AI_TYPE_RGB);
       }
       break;
 
