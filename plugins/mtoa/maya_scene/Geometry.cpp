@@ -2,6 +2,7 @@
 #include "MayaScene.h"
 
 #include <ai_nodes.h>
+#include <ai_ray.h>
 
 #include <maya/MFloatPointArray.h>
 #include <maya/MFnMesh.h>
@@ -36,7 +37,35 @@ void CMayaScene::ExportMesh(MObject mayaMesh, MObject dagNode, MMatrix tm)
    }
 
    AiNodeSetMatrix(polymesh, "matrix", matrix);
-   AiNodeSetBool(polymesh, "smoothing", 1);
+
+   AiNodeSetBool(polymesh, "smoothing", fnDagNode.findPlug("smoothShading").asBool());
+   AiNodeSetBool(polymesh, "receive_shadows", fnDagNode.findPlug("receiveShadows").asBool());
+   AiNodeSetBool(polymesh, "self_shadows", !fnDagNode.findPlug("ignoreSelfShadowing").asBool());
+
+   if (fnDagNode.findPlug("doubleSided").asBool())
+   {
+      AiNodeSetInt(polymesh, "sidedness", 65535);
+      AiNodeSetBool(polymesh, "inv_normals", fnDagNode.findPlug("opposite").asBool());
+   }
+   else
+      AiNodeSetInt(polymesh, "sidedness", 0);
+
+   // Visibility options
+   AtInt visibility = 65535;
+
+   if (!fnDagNode.findPlug("castsShadows").asBool())
+      visibility &= ~AI_RAY_SHADOW;
+
+   if (!fnDagNode.findPlug("primaryVisibility").asBool())
+      visibility &= ~AI_RAY_CAMERA;
+
+   if (!fnDagNode.findPlug("visibleInReflections").asBool())
+      visibility &= ~AI_RAY_REFLECTED;
+
+   if (!fnDagNode.findPlug("visibleInRefractions").asBool())
+      visibility &= ~AI_RAY_REFRACTED;
+
+   AiNodeSetInt(polymesh, "visibility", visibility);
 
    //
    // SHADERS
