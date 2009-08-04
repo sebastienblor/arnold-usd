@@ -246,6 +246,18 @@ namespace // <anonymous>
          SHADER_PARAM("samples", AI_TYPE_INT);
          SHADER_PARAM("sampling_pattern", AI_TYPE_ENUM);
       }
+      else if (!strcmp(mayaNode.typeName().asChar(), "ArnoldWireframeShader"))
+      {
+         shader = AiNode("wireframe");
+
+         AiNodeSetStr(shader, "name", mayaNode.name().asChar());
+
+         SHADER_PARAM("edge_type", AI_TYPE_ENUM);
+         SHADER_PARAM("fill_color", AI_TYPE_RGB);
+         SHADER_PARAM("line_color", AI_TYPE_RGB);
+         SHADER_PARAM("line_width", AI_TYPE_FLOAT);
+         SHADER_PARAM("raster_space", AI_TYPE_BOOLEAN);
+      }
       else
       {
          AiMsgWarning("[mtoa] Shader type not supported.");

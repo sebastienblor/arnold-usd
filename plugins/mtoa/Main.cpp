@@ -10,6 +10,7 @@
 #include "nodes/ArnoldStandardShader.h"
 #include "nodes/ArnoldUtilityShader.h"
 #include "nodes/ArnoldVolumeScatteringShader.h"
+#include "nodes/ArnoldWireframeShader.h"
 
 #include <maya/MFnPlugin.h>
 #include <maya/MGlobal.h>
@@ -27,15 +28,16 @@ namespace // <anonymous>
       status = plugin.registerNode("ArnoldRenderOptions", CArnoldRenderOptionsNode::id, CArnoldRenderOptionsNode::creator, CArnoldRenderOptionsNode::initialize);
 
       // SHADERS
+      status = plugin.registerNode("ArnoldAmbientOcclusionShader", CArnoldAmbientOcclusionShaderNode::id, CArnoldAmbientOcclusionShaderNode::creator, CArnoldAmbientOcclusionShaderNode::initialize, MPxNode::kDependNode, &ShaderClass);
       status = plugin.registerNode("ArnoldStandardShader", CArnoldStandardShaderNode::id, CArnoldStandardShaderNode::creator, CArnoldStandardShaderNode::initialize, MPxNode::kDependNode, &ShaderClass);
       status = plugin.registerNode("ArnoldUtilityShader", CArnoldUtilityShaderNode::id, CArnoldUtilityShaderNode::creator, CArnoldUtilityShaderNode::initialize, MPxNode::kDependNode, &ShaderClass);
-      status = plugin.registerNode("ArnoldAmbientOcclusionShader", CArnoldAmbientOcclusionShaderNode::id, CArnoldAmbientOcclusionShaderNode::creator, CArnoldAmbientOcclusionShaderNode::initialize, MPxNode::kDependNode, &ShaderClass);
+      status = plugin.registerNode("ArnoldWireframeShader", CArnoldWireframeShaderNode::id, CArnoldWireframeShaderNode::creator, CArnoldWireframeShaderNode::initialize, MPxNode::kDependNode, &ShaderClass);
 
       // Special shaders (not visible from Maya shaders menu)
       status = plugin.registerNode("ArnoldBackgroundImageShader", CArnoldBackgroundImageShaderNode::id, CArnoldBackgroundImageShaderNode::creator, CArnoldBackgroundImageShaderNode::initialize);
+      status = plugin.registerNode("ArnoldFogShader", CArnoldFogShaderNode::id, CArnoldFogShaderNode::creator, CArnoldFogShaderNode::initialize);
       status = plugin.registerNode("ArnoldSkyShader", CArnoldSkyShaderNode::id, CArnoldSkyShaderNode::creator, CArnoldSkyShaderNode::initialize);
       status = plugin.registerNode("ArnoldSky_HDRIShader", CArnoldSky_HDRIShaderNode::id, CArnoldSky_HDRIShaderNode::creator, CArnoldSky_HDRIShaderNode::initialize);
-      status = plugin.registerNode("ArnoldFogShader", CArnoldFogShaderNode::id, CArnoldFogShaderNode::creator, CArnoldFogShaderNode::initialize);
       status = plugin.registerNode("ArnoldVolumeScatteringShader", CArnoldVolumeScatteringShaderNode::id, CArnoldVolumeScatteringShaderNode::creator, CArnoldVolumeScatteringShaderNode::initialize);
    }
 
@@ -48,14 +50,15 @@ namespace // <anonymous>
       status = plugin.deregisterNode(CArnoldRenderOptionsNode::id);
 
       // SHADERS
+      status = plugin.deregisterNode(CArnoldAmbientOcclusionShaderNode::id);
       status = plugin.deregisterNode(CArnoldStandardShaderNode::id);
       status = plugin.deregisterNode(CArnoldUtilityShaderNode::id);
-      status = plugin.deregisterNode(CArnoldAmbientOcclusionShaderNode::id);
+      status = plugin.deregisterNode(CArnoldWireframeShaderNode::id);
 
       status = plugin.deregisterNode(CArnoldBackgroundImageShaderNode::id);
+      status = plugin.deregisterNode(CArnoldFogShaderNode::id);
       status = plugin.deregisterNode(CArnoldSkyShaderNode::id);
       status = plugin.deregisterNode(CArnoldSky_HDRIShaderNode::id);
-      status = plugin.deregisterNode(CArnoldFogShaderNode::id);
       status = plugin.deregisterNode(CArnoldVolumeScatteringShaderNode::id);
    }
 
