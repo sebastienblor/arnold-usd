@@ -9,6 +9,7 @@
 #include <maya/MDagPath.h>
 #include <maya/MFloatVector.h>
 #include <maya/MFnAmbientLight.h>
+#include <maya/MFnAreaLight.h>
 #include <maya/MFnDirectionalLight.h>
 #include <maya/MFnPointLight.h>
 #include <maya/MFnSpotLight.h>
@@ -120,6 +121,47 @@ void CMayaScene::ExportLight(const MDagPath& dagPath)
    }
    else if (dagPath.hasFn(MFn::kAreaLight))
    {
+      MFnAreaLight fnLight(dagPath);
+
+      light = AiNode("quad_light");
+
+      AiNodeSetStr(light, "name", fnDagNode.name().asChar());
+
+      color = fnLight.color();
+      AiNodeSetRGB(light, "color", color.r, color.g, color.b);
+      AiNodeSetFlt(light, "intensity", fnLight.intensity());
+
+      MMatrix tm = dagPath.inclusiveMatrix();
+      
+      AtMatrix matrix;
+
+      for (int J = 0; (J < 4); ++J)
+      {
+         for (int I = 0; (I < 4); ++I)
+         {
+            matrix[I][J] = (float) tm[I][J];
+         }
+      }
+
+      AiNodeSetMatrix(light, "matrix", matrix);
+
+      AtPoint vertices[4];
+      
+      AiV3Create(vertices[0], 1, 1, 0);
+      AiV3Create(vertices[1], 1, -1, 0);
+      AiV3Create(vertices[2], -1, -1, 0);
+      AiV3Create(vertices[3], -1, 1, 0);
+
+      AiNodeSetArray(light, "vertices", AiArrayConvert(4, 1, AI_TYPE_POINT, vertices, true));
+
+      AiNodeSetInt(light, "sidedness", 1);
+      //AiNodeSetBool(light, "solid_angle", true);
+
+      AiNodeSetBool(light, "cast_shadows", fnLight.useRayTraceShadows());
+      AiNodeSetInt(light, "samples", fnDagNode.findPlug("shadowRays").asInt());
+
+      AiNodeSetBool(light, "affect_diffuse", fnLight.lightDiffuse());
+      AiNodeSetBool(light, "affect_specular", fnLight.lightSpecular());
    }
    else
    {
