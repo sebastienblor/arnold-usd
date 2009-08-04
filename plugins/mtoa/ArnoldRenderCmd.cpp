@@ -25,14 +25,14 @@ CArnoldRenderCmd::CArnoldRenderCmd()
 MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
 {
    MStatus status;
-   CRenderInstance renderInstance;
+   CRenderInstance* renderInstance = CRenderInstance::GetInstance();
 
-   renderInstance.Init();
+   renderInstance->Init();
 
    ProcessCommonRenderOptions();
    ProcessArnoldRenderOptions();
 
-   renderInstance.SetGamma(m_gamma);
+   renderInstance->SetGamma(m_gamma);
 
    status = m_scene.ExportToArnold();
 
@@ -56,17 +56,17 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
 
       if ( status == MS::kSuccess)
       {
-         renderInstance.DoRender();
+         renderInstance->DoRender();
 
          MRenderView::endRender();
       }
    }
    else
    {
-      renderInstance.DoRender();
+      renderInstance->DoRender();
    }
 
-   renderInstance.End();
+   renderInstance->End();
 
    return status;
 }

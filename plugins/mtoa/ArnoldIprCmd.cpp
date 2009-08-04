@@ -1,15 +1,10 @@
 
 #include "ArnoldIprCmd.h"
 #include "OutputDriver.h"
+#include "RenderInstance.h"
 
-#include <ai_api.h>
 #include <ai_constants.h>
-#include <ai_dotass.h>
-#include <ai_msg.h>
-#include <ai_render.h>
-#include <ai_threads.h>
 #include <ai_universe.h>
-#include <ai_version.h>
 
 #include <maya/M3dView.h>
 #include <maya/MArgDatabase.h>
@@ -21,14 +16,6 @@
 #include <maya/MSelectionList.h>
 
 extern AtNodeMethods* mtoa_driver_mtd;
-
-// This is the code for the render thread. This thread is used only to run the AiRender() process outside of the main thread.
-static unsigned int RenderThread(AtVoid* data)
-{
-   AiRender( AI_RENDER_MODE_CAMERA );
-
-   return 0;
-}
 
 MSyntax CArnoldIprCmd::newSyntax()
 {
@@ -51,15 +38,20 @@ CArnoldIprCmd::CArnoldIprCmd()
 
 MStatus CArnoldIprCmd::doIt(const MArgList& argList)
 {
+   // IPR only works in interactive GUI mode
+   if (!MRenderView::doesRenderEditorExist())
+      return MS::kFailure;
+
+   CRenderInstance* renderInstance = CRenderInstance::GetInstance();
+
    MStatus status;
    MArgDatabase args(syntax(), argList);
 
    // "-mode" flag is not set, so we simply return a bool with the rendering status
    if (!args.isFlagSet("mode"))
    {
-      setResult(AiUniverseIsActive());
-
-      return status;
+      setResult(renderInstance->IsActive());
+      return MS::kSuccess;
    }
 
    // Get argument to "-mode" flag
@@ -67,21 +59,16 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
 
    printf("MODE = %s\n", mode);
 
-   return status;
    if (mode == "start")
    {
-      if (!AiUniverseIsActive())
+      if (!renderInstance->IsActive())
       {
-         if (!MRenderView::doesRenderEditorExist())
-            return MStatus::kFailure;
-
-         AiBegin();
-
-         // TODO: For now, we will use stdout (in Maya, it will go to the output window)
-         AiSetLogOptions(NULL, AI_LOG_ALL, 1000, 4);
+         renderInstance->Init();
 
          ProcessCommonRenderOptions();
          ProcessArnoldRenderOptions();
+
+         renderInstance->SetGamma(m_gamma);
 
          status = m_scene.ExportToArnold();
 
@@ -89,85 +76,42 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
 
          M3dView::active3dView().getCamera(cameraPath);
          MRenderView::setCurrentCamera(cameraPath);
-
-         InitOutputDriver();
-
-         status = m_useRenderRegion ? MRenderView::startRegionRender(m_width, m_height, m_minx, m_maxx, m_miny, m_maxy, !m_clearBeforeRender, true)
-                                    : MRenderView::startRender(m_width, m_height, !m_clearBeforeRender, true);
-
-         if ( status == MS::kSuccess)
-         {
-            Render();
-
-            MRenderView::endRender();
-         }
-      }
-      else
-      {
-         if (AiRendering())
-            AiRenderInterrupt();
       }
    }
    else if (mode == "stop")
    {
+      renderInstance->End();
    }
    else if (mode == "render")
    {
    }
-
-   MComputation comp;
-
-   comp.beginComputation();
-
-   status = m_useRenderRegion ? MRenderView::startRegionRender(m_width, m_height, m_minx, m_maxx, m_miny, m_maxy, !m_clearBeforeRender, true)
-                              : MRenderView::startRender(m_width, m_height, !m_clearBeforeRender, true);
-
-   if ( status == MS::kSuccess)
+   else if (mode == "refresh")
    {
-      Render();
+      ProcessCommonRenderOptions();
+      ProcessArnoldRenderOptions();
 
-      MRenderView::endRender();
+      //status = m_useRenderRegion ? MRenderView::startRegionRender(m_width, m_height, m_minx, m_maxx, m_miny, m_maxy, !m_clearBeforeRender, true)
+      //                           : MRenderView::startRender(m_width, m_height, !m_clearBeforeRender, true);
+      status = MRenderView::startRender(m_width, m_height, !m_clearBeforeRender, true);
+
+      if ( status == MS::kSuccess)
+      {
+         renderInstance->DoRender();
+         MRenderView::endRender();
+      }
+   }
+   else if (mode == "pause")
+   {
+   }
+   else if (mode == "unpause")
+   {
+   }
+   else if (mode == "region")
+   {
    }
 
-   comp.endComputation();
-
-   AiEnd();
-
    return status;
-}  // doIt()
-
-void CArnoldIprCmd::InitOutputDriver()
-{
-   AiNodeInstall(AI_NODE_DRIVER, AI_TYPE_NONE, "renderview_display",  NULL, (AtNodeMethods*) mtoa_driver_mtd, AI_VERSION);
-
-   AtNode* filter = AiNode("box_filter");
-   AtNode* driver = AiNode("renderview_display");
-
-   AiNodeSetStr(driver, "name", "renderview_display");
-   AiNodeSetFlt(driver, "gamma", m_gamma);
-
-   AtChar   str[1024];
-   AtArray* outputs;
-
-   sprintf(str, "RGBA RGBA %s %s", AiNodeGetName(filter), AiNodeGetName(driver));
-   outputs = AiArray(1, 1, AI_TYPE_STRING, str);
-   AiNodeSetArray(AiUniverseGetOptions(), "outputs", outputs);
-
-}  // InitOutputDriver()
-
-void CArnoldIprCmd::Render()
-{
-   InitializeDisplayUpdateQueue();
-
-   AtVoid* handler = AiThreadCreate(RenderThread, NULL, AI_PRIORITY_LOW);
-
-   // Process messages sent by the render thread, and exit when rendering is finished or aborted
-   ProcessDisplayUpdateQueue();
-
-   // Wait for the render thread to release everything and close it
-   AiThreadWait(handler);
-   AiThreadClose(handler);
-}  // Render()
+}
 
 void CArnoldIprCmd::ProcessCommonRenderOptions()
 {
@@ -300,6 +244,36 @@ void CArnoldIprCmd::ProcessArnoldRenderOptions()
          {
             list.getDependNode(0, node);
             AiNodeSetPtr(AiUniverseGetOptions(), "background", m_scene.ExportShader(node));
+         }
+         break;
+      }
+
+      // ATMOSPHERE SHADER
+      //
+      int atmosphere = fnArnoldRenderOptions.findPlug("atmosphere").asInt();
+
+      list.clear();
+
+      switch (atmosphere)
+      {
+      case 0:
+         break;
+
+      case 1:  // Fog
+         list.add("defaultFogShader");
+         if (list.length() > 0)
+         {
+            list.getDependNode(0, node);
+            AiNodeSetPtr(AiUniverseGetOptions(), "atmosphere", m_scene.ExportShader(node));
+         }
+         break;
+
+      case 2:  // Volume Scattering
+         list.add("defaultVolumeScatteringShader");
+         if (list.length() > 0)
+         {
+            list.getDependNode(0, node);
+            AiNodeSetPtr(AiUniverseGetOptions(), "atmosphere", m_scene.ExportShader(node));
          }
          break;
       }

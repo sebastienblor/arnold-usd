@@ -3,7 +3,6 @@
 
 #include "maya_scene/MayaScene.h"
 
-#include <ai_nodes.h>
 #include <ai_types.h>
 
 #include <maya/MPxCommand.h>
@@ -32,8 +31,6 @@ public:
 
 private:
 
-   void InitOutputDriver();
-   void Render();
    void ProcessCommonRenderOptions();
    void ProcessArnoldRenderOptions();
 

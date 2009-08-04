@@ -11,12 +11,23 @@
 
 extern AtNodeMethods* mtoa_driver_mtd;
 
+static CRenderInstance* s_renderInstance = NULL;
+
 // This is the code for the render thread. This thread is used only to run the AiRender() process outside of the main thread.
 static unsigned int RenderThread(AtVoid* data)
 {
    AiRender( AI_RENDER_MODE_CAMERA );
 
    return 0;
+}
+
+// Cheap singleton
+CRenderInstance* CRenderInstance::GetInstance()
+{
+   if (!s_renderInstance)
+      s_renderInstance = new CRenderInstance();
+
+   return s_renderInstance;
 }
 
 void CRenderInstance::Init()
