@@ -38,7 +38,8 @@ void CMayaScene::ExportMesh(MObject mayaMesh, MObject dagNode, MMatrix tm)
 
    AiNodeSetMatrix(polymesh, "matrix", matrix);
 
-   AiNodeSetBool(polymesh, "smoothing", fnDagNode.findPlug("smoothShading").asBool());
+   bool smoothing = fnDagNode.findPlug("smoothShading").asBool();
+   AiNodeSetBool(polymesh, "smoothing", smoothing);
    AiNodeSetBool(polymesh, "receive_shadows", fnDagNode.findPlug("receiveShadows").asBool());
    AiNodeSetBool(polymesh, "self_shadows", !fnDagNode.findPlug("ignoreSelfShadowing").asBool());
 
@@ -128,7 +129,7 @@ void CMayaScene::ExportMesh(MObject mayaMesh, MObject dagNode, MMatrix tm)
    }
 
    // Get all normals
-   if (fnMesh.numNormals() > 0)
+   if (smoothing && (fnMesh.numNormals() > 0))
    {
       MFloatVectorArray normalArray;
 
@@ -182,9 +183,7 @@ void CMayaScene::ExportMesh(MObject mayaMesh, MObject dagNode, MMatrix tm)
    for (; (!itMeshPolygon.isDone()); itMeshPolygon.next())
    {
       if (multiShader)
-      {
 			shidxs.push_back(indices[itMeshPolygon.index()]);
-      }
 
       unsigned int vertexCount = itMeshPolygon.polygonVertexCount();
 
@@ -193,7 +192,8 @@ void CMayaScene::ExportMesh(MObject mayaMesh, MObject dagNode, MMatrix tm)
       for (size_t V = 0; (V < vertexCount); ++V)
       {
          vidxs.push_back(itMeshPolygon.vertexIndex(V));
-         nidxs.push_back(itMeshPolygon.normalIndex(V));
+         if (smoothing)
+            nidxs.push_back(itMeshPolygon.normalIndex(V));
 
          if (hasUVs)
          {
@@ -210,17 +210,15 @@ void CMayaScene::ExportMesh(MObject mayaMesh, MObject dagNode, MMatrix tm)
 
    AiNodeSetArray(polymesh, "nsides", AiArrayConvert(fnMesh.numPolygons(), 1, AI_TYPE_BYTE, nsides, TRUE));
    AiNodeSetArray(polymesh, "vidxs", AiArrayConvert(vidxs.size(), 1, AI_TYPE_UINT, &(vidxs[0]), TRUE));
-   AiNodeSetArray(polymesh, "nidxs", AiArrayConvert(nidxs.size(), 1, AI_TYPE_UINT, &(nidxs[0]), TRUE));
+   
+   if (smoothing)
+      AiNodeSetArray(polymesh, "nidxs", AiArrayConvert(nidxs.size(), 1, AI_TYPE_UINT, &(nidxs[0]), TRUE));
 
    if (hasUVs)
-   {
       AiNodeSetArray(polymesh, "uvidxs", AiArrayConvert(uvidxs.size(), 1, AI_TYPE_UINT, &(uvidxs[0]), TRUE));
-   }
 
    if (multiShader)
-   {
       AiNodeSetArray(polymesh, "shidxs", AiArrayConvert(shidxs.size(), 1, AI_TYPE_UINT, &(shidxs[0]), TRUE));
-   }
 
    delete[] nsides;
 
