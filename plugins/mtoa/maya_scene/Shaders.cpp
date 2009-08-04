@@ -258,6 +258,15 @@ namespace // <anonymous>
          SHADER_PARAM("line_width", AI_TYPE_FLOAT);
          SHADER_PARAM("raster_space", AI_TYPE_BOOLEAN);
       }
+      else if (!strcmp(mayaNode.typeName().asChar(), "ArnoldBSSRDFShader"))
+      {
+         shader = AiNode("bssrdf");
+
+         AiNodeSetStr(shader, "name", mayaNode.name().asChar());
+
+         SHADER_PARAM("color", AI_TYPE_ENUM);
+         SHADER_PARAM("radius", AI_TYPE_RGB);
+      }
       else
       {
          AiMsgWarning("[mtoa] Shader type not supported.");

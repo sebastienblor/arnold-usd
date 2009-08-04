@@ -3,6 +3,7 @@
 #include "ArnoldIprCmd.h"
 #include "nodes/ArnoldAmbientOcclusionShader.h"
 #include "nodes/ArnoldBackgroundImageShader.h"
+#include "nodes/ArnoldBSSRDFShader.h"
 #include "nodes/ArnoldFogShader.h"
 #include "nodes/ArnoldRenderOptions.h"
 #include "nodes/ArnoldSkyShader.h"
@@ -29,6 +30,7 @@ namespace // <anonymous>
 
       // SHADERS
       status = plugin.registerNode("ArnoldAmbientOcclusionShader", CArnoldAmbientOcclusionShaderNode::id, CArnoldAmbientOcclusionShaderNode::creator, CArnoldAmbientOcclusionShaderNode::initialize, MPxNode::kDependNode, &ShaderClass);
+      status = plugin.registerNode("ArnoldBSSRDFShader", CArnoldBSSRDFShaderNode::id, CArnoldBSSRDFShaderNode::creator, CArnoldBSSRDFShaderNode::initialize, MPxNode::kDependNode, &ShaderClass);
       status = plugin.registerNode("ArnoldStandardShader", CArnoldStandardShaderNode::id, CArnoldStandardShaderNode::creator, CArnoldStandardShaderNode::initialize, MPxNode::kDependNode, &ShaderClass);
       status = plugin.registerNode("ArnoldUtilityShader", CArnoldUtilityShaderNode::id, CArnoldUtilityShaderNode::creator, CArnoldUtilityShaderNode::initialize, MPxNode::kDependNode, &ShaderClass);
       status = plugin.registerNode("ArnoldWireframeShader", CArnoldWireframeShaderNode::id, CArnoldWireframeShaderNode::creator, CArnoldWireframeShaderNode::initialize, MPxNode::kDependNode, &ShaderClass);
@@ -51,6 +53,7 @@ namespace // <anonymous>
 
       // SHADERS
       status = plugin.deregisterNode(CArnoldAmbientOcclusionShaderNode::id);
+      status = plugin.deregisterNode(CArnoldBSSRDFShaderNode::id);
       status = plugin.deregisterNode(CArnoldStandardShaderNode::id);
       status = plugin.deregisterNode(CArnoldUtilityShaderNode::id);
       status = plugin.deregisterNode(CArnoldWireframeShaderNode::id);
