@@ -2,8 +2,10 @@
 #include "ArnoldRenderCmd.h"
 #include "RenderInstance.h"
 
-#include <ai_universe.h>
 #include <ai_constants.h>
+#include <ai_dotass.h>
+#include <ai_msg.h>
+#include <ai_universe.h>
 
 #include <maya/M3dView.h>
 #include <maya/MFnDependencyNode.h>
