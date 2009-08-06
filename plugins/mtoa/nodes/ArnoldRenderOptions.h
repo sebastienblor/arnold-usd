@@ -46,6 +46,15 @@ public:
    static MObject s_GI_refraction_depth;
    static MObject s_GI_total_depth;
 
+   static MObject s_motion_blur_enable;
+   static MObject s_mb_camera_enable;
+   static MObject s_mb_objects_enable;
+   static MObject s_mb_lights_enable;
+   static MObject s_shutter_start;
+   static MObject s_shutter_end;
+   static MObject s_shutter_type;
+   static MObject s_motion_steps;
+
    static MObject s_background;
    static MObject s_atmosphere;
 

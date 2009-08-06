@@ -11,6 +11,18 @@ global proc UpdateSamplingSettings()
    attrControlGrp -edit -enable $flag ss_max_value;
 }
 
+global proc UpdateMotionBlurSettings()
+{
+   int $flag = `getAttr defaultArnoldRenderOptions.motion_blur_enable` == true;
+   attrControlGrp -edit -enable $flag mb_camera_enable;
+   attrControlGrp -edit -enable $flag mb_objects_enable;
+   attrControlGrp -edit -enable $flag mb_lights_enable;
+   attrControlGrp -edit -enable $flag mb_shutter_start;
+   attrControlGrp -edit -enable $flag mb_shutter_end;
+   attrControlGrp -edit -enable $flag mb_shutter_type;
+   attrControlGrp -edit -enable $flag mb_motion_steps;
+}
+
 global proc SelectBackground()
 {
    int $bkg = `getAttr defaultArnoldRenderOptions.background`;
@@ -217,6 +229,51 @@ global proc CreateArnoldEnvironmentSettings()
    setUITemplate -popTemplate;
 }
 
+global proc CreateArnoldMotionBlurSettings()
+{
+   setUITemplate -pushTemplate attributeEditorTemplate;
+   columnLayout -adjustableColumn true;
+      
+      attrControlGrp -label "Enable"
+         -attribute defaultArnoldRenderOptions.motion_blur_enable
+         -cc UpdateMotionBlurSettings
+         mb_enable;
+
+      attrControlGrp -label "Enable MB for camera"
+         -attribute defaultArnoldRenderOptions.mb_camera_enable
+         mb_camera_enable;
+
+      attrControlGrp -label "Enable MB for objects"
+         -attribute defaultArnoldRenderOptions.mb_objects_enable
+         mb_objects_enable;
+
+      attrControlGrp -label "Enable MB for lights"
+         -attribute defaultArnoldRenderOptions.mb_lights_enable
+         mb_lights_enable;
+
+      separator;
+      
+      attrControlGrp -label "Shutter Start"
+         -attribute defaultArnoldRenderOptions.shutter_start
+         mb_shutter_start;
+
+      attrControlGrp -label "Shutter End"
+         -attribute defaultArnoldRenderOptions.shutter_end
+         mb_shutter_end;
+
+      attrControlGrp -label "Shutter Type"
+         -attribute defaultArnoldRenderOptions.shutter_type
+         mb_shutter_type;
+
+      attrControlGrp -label "Motion steps"
+         -attribute defaultArnoldRenderOptions.motion_steps
+         mb_motion_steps;
+
+      setParent ..;
+
+   setUITemplate -popTemplate;
+}
+
 global proc CreateArnoldRendererGlobalsTab()
 {
    // Make sure the ArnoldRenderOptions node exists
@@ -244,6 +301,12 @@ global proc CreateArnoldRendererGlobalsTab()
          //
          frameLayout -label "Environment" -lw 150 -cll true -cl 1 arnoldEnvironmentSettings;
             CreateArnoldEnvironmentSettings;
+            setParent ..;
+         
+         // Motion Blur
+         //
+         frameLayout -label "Motion Blur" -lw 150 -cll true -cl 1 arnoldMotionBlurSettings;
+            CreateArnoldMotionBlurSettings;
             setParent ..;
          
          // Output
@@ -276,4 +339,5 @@ global proc UpdateArnoldRendererGlobalsTab()
 {
    UpdateOutputSettings();
    UpdateSamplingSettings();
+   UpdateMotionBlurSettings();
 }

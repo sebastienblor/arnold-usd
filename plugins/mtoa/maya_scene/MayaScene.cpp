@@ -5,37 +5,55 @@
 #include <ai_nodes.h>
 
 #include <maya/M3DView.h>
-#include <maya/MDagPath.h>
+#include <maya/MAnimControl.h>
 #include <maya/MFnMesh.h>
 #include <maya/MFnMeshData.h>
 #include <maya/MFnNurbsSurface.h>
 #include <maya/MMatrix.h>
 #include <maya/MPlug.h>
+#include <maya/MSelectionList.h>
 
 MStatus CMayaScene::ExportToArnold()
 {
+   MStatus status;
+
+   PrepareExport();
+
+   bool mb = m_motionBlurData.enabled && (m_fnArnoldRenderOptions->findPlug("mb_camera_enable").asBool() ||
+                                          m_fnArnoldRenderOptions->findPlug("mb_objects_enable").asBool() ||
+                                          m_fnArnoldRenderOptions->findPlug("mb_lights_enable").asBool());
+
+   if (!mb)
+   {
+      status = ExportScene(0);
+   }
+   else
+   {
+      for (int J = 0; (J < m_motionBlurData.motion_steps); ++J)
+      {
+         MAnimControl::setCurrentTime(MTime(m_motionBlurData.frames[J], MTime::uiUnit()));
+         status = ExportScene(J);
+      }
+      MAnimControl::setCurrentTime(MTime(m_currentFrame, MTime::uiUnit()));
+   }
+
+   return status;
+}
+
+MStatus CMayaScene::ExportScene(AtUInt step)
+{
+   MStatus  status;
+
+   ExportCamera(m_camera, step);
 
    MDagPath dagPath;
-   MStatus  status;
    MItDag   dagIterator(MItDag::kDepthFirst, MFn::kInvalid);
-
-   // Export current camera
-   MDagPath cameraPath;
-
-   M3dView::active3dView().getCamera(cameraPath);
-
-   AiMsgDebug("[mtoa] Exporting camera");
-   ExportCamera(cameraPath);
 
    for (dagIterator.reset(); (!dagIterator.isDone()); dagIterator.next())
    {
-      // MItDag::getPath() gets the reference to the object that the iterator is currently on.
-      // This DAG path can then be used in a function set to operate on the object.
-      // In general it is not a good idea to rearrange the DAG from with an iterator.
       if (!dagIterator.getPath(dagPath))
       {
          AiMsgError("[mtoa] ERROR: Could not get path for DAG iterator.");
-
          return status;
       }
 
@@ -49,12 +67,9 @@ MStatus CMayaScene::ExportToArnold()
 
       //AiMsgDebug("Node: %s", node.name().asChar());
 
-      MMatrix tm = dagPath.inclusiveMatrix();
-
       if (dagIterator.item().hasFn(MFn::kLight))
       {
-         AiMsgDebug("[mtoa] Exporting light");
-         ExportLight(dagPath);
+         ExportLight(dagPath, step);
       }
       else if (dagIterator.item().hasFn(MFn::kNurbsSurface))
       {
@@ -71,17 +86,14 @@ MStatus CMayaScene::ExportToArnold()
          MObject     meshFromNURBS;
          MObject     meshDataObject = meshData.create();
 
-         AiMsgDebug("[mtoa] Exporting NURBS surface");
          meshFromNURBS = surface.tesselate(MTesselationParams::fsDefaultTesselationParams, meshDataObject);
-
-         ExportMesh(meshFromNURBS, dagIterator.item(), tm);
+         ExportMesh(meshFromNURBS, dagPath, step);
       }
       else if (dagIterator.item().hasFn(MFn::kMesh))
       {
          unsigned int      numMeshGroups;
          MFnDependencyNode fnDGNode(dagIterator.item());
 
-         // Buscamos el atributo "instObjGroups" del nodo para ver si esta conectado
          MPlug plug(dagIterator.item(), fnDGNode.attribute("instObjGroups"));
 
          if (plug.elementByLogicalIndex(0).isConnected())
@@ -101,12 +113,12 @@ MStatus CMayaScene::ExportToArnold()
 
          if (numMeshGroups == 0)
          {
-            AiMsgError("[mtoa] ERROR: Mesh not exported. It has 0 groups.");
+            if (step == 0)
+               AiMsgError("[mtoa] ERROR: Mesh not exported. It has 0 groups.");
          }
          else
          {
-            AiMsgDebug("[mtoa] Exporting mesh");
-            ExportMesh(dagIterator.item(), dagIterator.item(), tm);
+            ExportMesh(dagIterator.item(), dagPath, step);
          }
       }
       else
@@ -121,23 +133,52 @@ MStatus CMayaScene::ExportToArnold()
    }
 
    return MS::kSuccess;
+}
 
-}  // ExportToArnold()
-
-
-bool CMayaScene::IsVisible(MFnDagNode node)
+void CMayaScene::PrepareExport()
 {
+   MSelectionList list;
+   MObject        node;
 
-   MStatus status;
+   list.add("defaultRenderGlobals");
+   if (list.length() > 0)
+   {
+      list.getDependNode(0, node);
+      m_fnCommonRenderOptions = new MFnDependencyNode(node);
+   }
 
-   if (node.isIntermediateObject())
-      return false;
+   list.clear();
 
-   MPlug visPlug = node.findPlug("visibility", &status);
+   list.add("defaultArnoldRenderOptions");
+   if (list.length() > 0)
+   {
+      list.getDependNode(0, node);
+      m_fnArnoldRenderOptions = new MFnDependencyNode(node);
+   }
 
-   if (status == MStatus::kFailure)
-      return false;
+   m_currentFrame = MAnimControl::currentTime().as(MTime::uiUnit());
 
-   return visPlug.asBool();
+   GetMotionBlurData();
 
-}  // IsVisible()
+   M3dView::active3dView().getCamera(m_camera);
+}
+
+void CMayaScene::GetMotionBlurData()
+{
+   m_motionBlurData.enabled       = m_fnArnoldRenderOptions->findPlug("motion_blur_enable").asBool();
+   m_motionBlurData.shutter_start = m_fnArnoldRenderOptions->findPlug("shutter_start").asFloat();
+   m_motionBlurData.shutter_end   = m_fnArnoldRenderOptions->findPlug("shutter_end").asFloat();
+   m_motionBlurData.shutter_type  = m_fnArnoldRenderOptions->findPlug("shutter_type").asInt();
+   m_motionBlurData.motion_steps  = m_fnArnoldRenderOptions->findPlug("motion_steps").asInt();
+
+   if (m_motionBlurData.enabled)
+   {
+      for (int J = 0; (J < m_motionBlurData.motion_steps); ++J)
+      {
+         float frame = m_currentFrame + m_motionBlurData.shutter_start +
+                       (m_motionBlurData.shutter_end - m_motionBlurData.shutter_start) / (m_motionBlurData.motion_steps - 1) * J;
+
+         m_motionBlurData.frames.push_back(frame);
+      }
+   }
+}

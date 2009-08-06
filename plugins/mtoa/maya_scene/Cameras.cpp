@@ -5,30 +5,55 @@
 #include <ai_constants.h>
 
 #include <maya/MFnCamera.h>
+#include <maya/MPlug.h>
 
-void CMayaScene::ExportCamera(const MDagPath& dagPath)
+void CMayaScene::ExportCamera(const MDagPath& dagPath, AtUInt step)
 {
-
-   MPoint     point;
-   MVector    vector;
-   MFnCamera  fnCamera(dagPath);
+   AtNode* camera;
+   AtMatrix matrix;
+   MFnCamera fnCamera(dagPath);
    MFnDagNode fnDagNode(dagPath);
 
-   AtNode* camera = AiNode("persp_camera");
+   bool mb = m_motionBlurData.enabled && m_fnArnoldRenderOptions->findPlug("mb_camera_enable").asBool();
 
-   AiNodeSetStr(camera, "name", fnDagNode.name().asChar());
+   GetMatrix(matrix, dagPath);
+   
+   float fov = static_cast<float>(AI_RTOD * fnCamera.horizontalFieldOfView());
 
-   point = fnCamera.eyePoint(MSpace::kWorld);
-   AiNodeSetPnt(camera, "position", point.x, point.y, point.z);
+   if (step == 0)
+   {
+      camera = AiNode("persp_camera");
 
-   vector = fnCamera.viewDirection(MSpace::kWorld);
-   point  = point + vector;
-   AiNodeSetPnt(camera, "look_at", point.x, point.y, point.z);
+      AiNodeSetStr(camera, "name", fnDagNode.name().asChar());
 
-   vector = fnCamera.upDirection(MSpace::kWorld);
-   AiNodeSetVec(camera, "up", vector.x, vector.y, vector.z);
+      if (mb)
+      {
+         AiNodeSetFlt(camera, "shutter_start", m_fnArnoldRenderOptions->findPlug("shutter_start").asFloat());
+         AiNodeSetFlt(camera, "shutter_end", m_fnArnoldRenderOptions->findPlug("shutter_end").asFloat());
+         AiNodeSetInt(camera, "shutter_type", m_fnArnoldRenderOptions->findPlug("shutter_type").asInt());
 
-   AiNodeSetFlt(camera, "fov", static_cast<float>(AI_RTOD * fnCamera.horizontalFieldOfView()));
-   AiNodeSetStr(camera, "handedness", "right");
+         AtArray* matrices = AiArrayAllocate(1, m_motionBlurData.motion_steps, AI_TYPE_MATRIX);
+         AiArraySetMtx(matrices, step, matrix);
+         AiNodeSetArray(camera, "matrix", matrices);
 
-}  // ExportCamera()
+         AtArray* fovs = AiArrayAllocate(1, m_motionBlurData.motion_steps, AI_TYPE_FLOAT);
+         AiArraySetFlt(fovs, step, fov);
+         AiNodeSetArray(camera, "fov", fovs);
+      }
+      else
+      {
+         AiNodeSetMatrix(camera, "matrix", matrix);
+         AiNodeSetFlt(camera, "fov", fov);
+      }
+   }
+   else if (mb)
+   {
+      camera = AiNodeLookUpByName(fnDagNode.name().asChar());
+
+      AtArray* matrices = AiNodeGetArray(camera, "matrix");
+      AiArraySetMtx(matrices, step, matrix);
+
+      AtArray* fovs = AiNodeGetArray(camera, "fov");
+      AiArraySetFlt(fovs, step, fov);
+   }
+}
