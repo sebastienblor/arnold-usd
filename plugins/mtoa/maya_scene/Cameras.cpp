@@ -28,8 +28,9 @@ void CMayaScene::ExportCamera(const MDagPath& dagPath, AtUInt step)
 
       if (mb)
       {
-         AiNodeSetFlt(camera, "shutter_start", m_fnArnoldRenderOptions->findPlug("shutter_start").asFloat());
-         AiNodeSetFlt(camera, "shutter_end", m_fnArnoldRenderOptions->findPlug("shutter_end").asFloat());
+         float shutter = m_motionBlurData.shutter_end - m_motionBlurData.shutter_start;
+         AiNodeSetFlt(camera, "shutter_start", 0);
+         AiNodeSetFlt(camera, "shutter_end", shutter);
          AiNodeSetInt(camera, "shutter_type", m_fnArnoldRenderOptions->findPlug("shutter_type").asInt());
 
          AtArray* matrices = AiArrayAllocate(1, m_motionBlurData.motion_steps, AI_TYPE_MATRIX);

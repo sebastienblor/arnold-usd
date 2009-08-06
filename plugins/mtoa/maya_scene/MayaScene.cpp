@@ -175,7 +175,8 @@ void CMayaScene::GetMotionBlurData()
    {
       for (int J = 0; (J < m_motionBlurData.motion_steps); ++J)
       {
-         float frame = m_currentFrame + m_motionBlurData.shutter_start +
+         float frame = m_currentFrame + 
+                       m_motionBlurData.shutter_start +
                        (m_motionBlurData.shutter_end - m_motionBlurData.shutter_start) / (m_motionBlurData.motion_steps - 1) * J;
 
          m_motionBlurData.frames.push_back(frame);
