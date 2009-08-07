@@ -51,7 +51,7 @@ MStatus CArnoldFogShaderNode::initialize()
    nAttr.setMax(1000);
    MAKE_INPUT(nAttr, s_distance);
 
-   MAKE_VECTOR(s_ground_normal, "ground_normal", "gn", 0, 0, 1);
+   MAKE_VECTOR(s_ground_normal, "ground_normal", "gn", 0, 1, 0);
    MAKE_INPUT(nAttr, s_ground_normal);
 
    MAKE_POINT(s_ground_point, "ground_point", "gp", 0, 0, 0);
