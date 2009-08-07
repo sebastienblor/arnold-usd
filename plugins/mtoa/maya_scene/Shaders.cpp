@@ -337,6 +337,10 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader)
          shader = AiNode("lambert");
       
          AiNodeSetStr(shader, "name", fnShader.name().asChar());
+
+         ProcessShaderParameter(node, "diffuse", shader, "Kd", AI_TYPE_FLOAT);
+         ProcessShaderParameter(node, "color", shader, "Kd_color", AI_TYPE_RGB);
+         ProcessShaderParameter(node, "outMatteOpacity", shader, "opacity", AI_TYPE_RGB);
       }
       break;
 
