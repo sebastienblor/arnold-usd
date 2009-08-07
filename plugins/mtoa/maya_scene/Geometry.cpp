@@ -290,12 +290,12 @@ void CMayaScene::ExportMesh(MObject mayaMesh, const MDagPath& dagPath, AtUInt st
       AiNodeSetBool(polymesh, "self_shadows", !fnDagNode.findPlug("ignoreSelfShadowing").asBool());
 
       if (fnDagNode.findPlug("doubleSided").asBool())
-      {
          AiNodeSetInt(polymesh, "sidedness", 65535);
-         AiNodeSetBool(polymesh, "inv_normals", fnDagNode.findPlug("opposite").asBool());
-      }
       else
+      {
+         AiNodeSetBool(polymesh, "inv_normals", fnDagNode.findPlug("opposite").asBool());
          AiNodeSetInt(polymesh, "sidedness", 0);
+      }
 
       // Visibility options
       AtInt visibility = 65535;
@@ -313,6 +313,19 @@ void CMayaScene::ExportMesh(MObject mayaMesh, const MDagPath& dagPath, AtUInt st
          visibility &= ~AI_RAY_REFRACTED;
 
       AiNodeSetInt(polymesh, "visibility", visibility);
+
+      bool subdivision = fnDagNode.findPlug("displaySmoothMesh").asBool();
+
+      if (subdivision)
+      {
+         AiNodeSetInt(polymesh, "subdiv_type", 1);
+         
+         int iter = fnDagNode.findPlug("useSmoothPreviewForRender ").asBool() ?
+            fnDagNode.findPlug("smoothLevel").asInt() :
+            fnDagNode.findPlug("renderSmoothLevel").asInt();
+
+         AiNodeSetInt(polymesh, "subdiv_iterations", iter);
+      }
 
       ExportMeshGeometryData(polymesh, mayaMesh, dagPath, step);
    }
