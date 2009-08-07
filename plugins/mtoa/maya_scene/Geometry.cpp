@@ -17,69 +17,48 @@
 
 #include <vector>
 
-void CMayaScene::ExportMesh(MObject mayaMesh, const MDagPath& dagPath, AtUInt step)
+namespace
 {
-   AtMatrix matrix;
-   AtNode* polymesh;
+   void SetKeyData(AtArray* arr, AtUInt step, const std::vector<float>& data, AtUInt size)
+   {
+      AtUInt index = 0;
+
+      switch(arr->type)
+      {
+         case AI_TYPE_POINT:
+         {
+            AtPoint pnt;
+            for(AtUInt J = 0; (J < size); ++J)
+            {
+               AiV3Create(pnt, data[index++], data[index++], data[index++]);
+               AiArraySetPnt(arr, J + (size * step), pnt);
+            }
+         }
+         break;
+
+         case AI_TYPE_VECTOR:
+         {
+            AtVector vec;
+            for(AtUInt J = 0; (J < size); ++J)
+            {
+               AiV3Create(vec, data[index++], data[index++], data[index++]);
+               AiArraySetVec(arr, J + (size * step), vec);
+            }
+         }
+      }
+   }
+}
+
+void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, const MDagPath& dagPath, AtUInt step)
+{
+   MFnMesh fnMesh(mayaMesh);
    MFnDagNode fnDagNode(dagPath.node());
 
-   bool mb = m_motionBlurData.enabled &&
-             m_fnArnoldRenderOptions->findPlug("mb_objects_enable").asBool() &&
-             fnDagNode.findPlug("motionBlur").asBool();
-
-   GetMatrix(matrix, dagPath);
+   MIntArray indices;
+   bool multiShader = false;
 
    if (step == 0)
    {
-      polymesh = AiNode("polymesh");
-
-      AiNodeSetStr(polymesh, "name", fnDagNode.name().asChar());
-
-      if (mb)
-      {
-         AtArray* matrices = AiArrayAllocate(1, m_motionBlurData.motion_steps, AI_TYPE_MATRIX);
-         AiArraySetMtx(matrices, step, matrix);
-         AiNodeSetArray(polymesh, "matrix", matrices);
-      }
-      else
-      {
-         AiNodeSetMatrix(polymesh, "matrix", matrix);
-      }
-
-      MIntArray  indices;
-      MFnMesh    fnMesh(mayaMesh);
-      bool       hasUVs = (fnMesh.numUVs() > 0);
-
-      bool smoothing = fnDagNode.findPlug("smoothShading").asBool();
-      AiNodeSetBool(polymesh, "smoothing", smoothing);
-      AiNodeSetBool(polymesh, "receive_shadows", fnDagNode.findPlug("receiveShadows").asBool());
-      AiNodeSetBool(polymesh, "self_shadows", !fnDagNode.findPlug("ignoreSelfShadowing").asBool());
-
-      if (fnDagNode.findPlug("doubleSided").asBool())
-      {
-         AiNodeSetInt(polymesh, "sidedness", 65535);
-         AiNodeSetBool(polymesh, "inv_normals", fnDagNode.findPlug("opposite").asBool());
-      }
-      else
-         AiNodeSetInt(polymesh, "sidedness", 0);
-
-      // Visibility options
-      AtInt visibility = 65535;
-
-      if (!fnDagNode.findPlug("castsShadows").asBool())
-         visibility &= ~AI_RAY_SHADOW;
-
-      if (!fnDagNode.findPlug("primaryVisibility").asBool())
-         visibility &= ~AI_RAY_CAMERA;
-
-      if (!fnDagNode.findPlug("visibleInReflections").asBool())
-         visibility &= ~AI_RAY_REFLECTED;
-
-      if (!fnDagNode.findPlug("visibleInRefractions").asBool())
-         visibility &= ~AI_RAY_REFRACTED;
-
-      AiNodeSetInt(polymesh, "visibility", visibility);
-
       //
       // SHADERS
       //
@@ -112,90 +91,86 @@ void CMayaScene::ExportMesh(MObject mayaMesh, const MDagPath& dagPath, AtUInt st
             meshShaders.push_back(ExportShader(connections[0].node()));
          }
 
+         multiShader = true;
+
          AiNodeSetArray(polymesh, "shader", AiArrayConvert(meshShaders.size(), 1, AI_TYPE_POINTER, &meshShaders[0], TRUE));
       }
+   }
 
-      //
-      // GEOMETRY
-      //
+   // 
+   // GEOMETRY
+   //
 
-      // Get all vertices
-      if (fnMesh.numVertices() > 0)
+   // Get all vertices
+   std::vector<float> vertices;
+   if (fnMesh.numVertices() > 0)
+   {
+      vertices.resize(fnMesh.numVertices() * 3);
+
+      MFloatPointArray pointsArray;
+      fnMesh.getPoints(pointsArray, MSpace::kObject);
+
+      for (int J = 0; ( J < fnMesh.numVertices() ); ++J)
       {
-         MFloatPointArray pointsArray;
-
-         fnMesh.getPoints(pointsArray, MSpace::kObject);
-
-         float* vertices = new float[fnMesh.numVertices() * 3];
-
-         for (int J = 0; ( J < fnMesh.numVertices() ); ++J)
-         {
-            vertices[J * 3 + 0] = pointsArray[J].x;
-            vertices[J * 3 + 1] = pointsArray[J].y;
-            vertices[J * 3 + 2] = pointsArray[J].z;
-         }
-
-         AiNodeSetArray(polymesh, "vlist", AiArrayConvert(fnMesh.numVertices() * 3, 1, AI_TYPE_FLOAT, vertices, TRUE));
-
-         delete[] vertices;
+         vertices[J * 3 + 0] = pointsArray[J].x;
+         vertices[J * 3 + 1] = pointsArray[J].y;
+         vertices[J * 3 + 2] = pointsArray[J].z;
       }
+   }
 
-      // Get all normals
-      if (smoothing && (fnMesh.numNormals() > 0))
+   bool smoothing = fnDagNode.findPlug("smoothShading").asBool();
+
+   // Get all normals
+   std::vector<float> normals;
+   if (smoothing && (fnMesh.numNormals() > 0))
+   {
+      normals.resize(fnMesh.numNormals() * 3);
+
+      MFloatVectorArray normalArray;
+      fnMesh.getNormals(normalArray, MSpace::kObject);
+
+      for (int J = 0; (J < fnMesh.numNormals()); ++J)
       {
-         MFloatVectorArray normalArray;
-
-         fnMesh.getNormals(normalArray, MSpace::kObject);
-
-         float* normals = new float[fnMesh.numNormals() * 3];
-
-         for (int J = 0; (J < fnMesh.numNormals()); ++J)
-         {
-            normals[J * 3 + 0] = normalArray[J].x;
-            normals[J * 3 + 1] = normalArray[J].y;
-            normals[J * 3 + 2] = normalArray[J].z;
-         }
-
-         AiNodeSetArray(polymesh, "nlist", AiArrayConvert(fnMesh.numNormals() * 3, 1, AI_TYPE_FLOAT, normals, TRUE));
-
-         delete[] normals;
+         normals[J * 3 + 0] = normalArray[J].x;
+         normals[J * 3 + 1] = normalArray[J].y;
+         normals[J * 3 + 2] = normalArray[J].z;
       }
+   }
 
+   std::vector<AtByte> nsides;
+   std::vector<AtLong> vidxs, nidxs, uvidxs;
+   std::vector<float> uvs;
+   std::vector<AtUInt> shidxs;
+
+   bool hasUVs = (fnMesh.numUVs() > 0);
+
+   if (step == 0)
+   {
       // Get all UVs
       if (hasUVs)
       {
+         uvs.resize(fnMesh.numUVs() * 2);
+
          MFloatArray uArray, vArray;
-
          fnMesh.getUVs(uArray, vArray);
-
-         float* uvs = new float[fnMesh.numUVs() * 2];
 
          for (int J = 0; (J < fnMesh.numUVs()); ++J)
          {
             uvs[J * 2 + 0] = uArray[J];
             uvs[J * 2 + 1] = vArray[J];
          }
-
-         AiNodeSetArray(polymesh, "uvlist", AiArrayConvert(fnMesh.numUVs() * 2, 1, AI_TYPE_FLOAT, uvs, TRUE));
-
-         delete[] uvs;
       }
 
       // Traverse all polygons to export vidxs, nidxs, uvindxs y nsides
-      AtByte* nsides = new AtByte[fnMesh.numPolygons()];
-
-      std::vector<AtLong> vidxs, nidxs, uvidxs;
+      nsides.resize(fnMesh.numPolygons());
 
       MItMeshPolygon itMeshPolygon(mayaMesh);
       unsigned int   polygonIndex = 0;
 
-      bool multiShader = (meshShaders.size() > 1);
-      std::vector<AtUInt> shidxs;
-
       for (; (!itMeshPolygon.isDone()); itMeshPolygon.next())
       {
          if (multiShader)
-			   shidxs.push_back(indices[itMeshPolygon.index()]);
+		      shidxs.push_back(indices[itMeshPolygon.index()]);
 
          unsigned int vertexCount = itMeshPolygon.polygonVertexCount();
 
@@ -219,26 +194,145 @@ void CMayaScene::ExportMesh(MObject mayaMesh, const MDagPath& dagPath, AtUInt st
 
          ++polygonIndex;
       }
+   }
 
-      AiNodeSetArray(polymesh, "nsides", AiArrayConvert(fnMesh.numPolygons(), 1, AI_TYPE_BYTE, nsides, TRUE));
-      AiNodeSetArray(polymesh, "vidxs", AiArrayConvert(vidxs.size(), 1, AI_TYPE_UINT, &(vidxs[0]), TRUE));
+   if (step == 0)
+   {
+      bool mb_deform = m_motionBlurData.enabled &&
+                       m_fnArnoldRenderOptions->findPlug("mb_object_deform_enable").asBool() &&
+                       fnDagNode.findPlug("motionBlur").asBool();
+
+      if (!mb_deform)
+      {
+         // No deformation motion blur, so we create normal arrays
+         AiNodeSetArray(polymesh, "vlist", AiArrayConvert(fnMesh.numVertices() * 3, 1, AI_TYPE_FLOAT, &(vertices[0]), TRUE));
       
-      if (smoothing)
+         if (smoothing && (fnMesh.numNormals() > 0))
+            AiNodeSetArray(polymesh, "nlist", AiArrayConvert(fnMesh.numNormals() * 3, 1, AI_TYPE_FLOAT, &(normals[0]), TRUE));
+      }
+      else
+      {
+         // Deformation motion blur. We need to create keyable arrays for vlist and nlist
+         AtArray* vlist_array = AiArrayAllocate(fnMesh.numVertices(), m_motionBlurData.motion_steps, AI_TYPE_POINT);
+         SetKeyData(vlist_array, step, vertices, fnMesh.numVertices());
+         AiNodeSetArray(polymesh, "vlist", vlist_array);
+
+         if (smoothing && (fnMesh.numNormals() > 0))
+         {
+            AtArray* nlist_array = AiArrayAllocate(fnMesh.numNormals(), m_motionBlurData.motion_steps, AI_TYPE_VECTOR);
+            SetKeyData(nlist_array, step, normals, fnMesh.numNormals());
+            AiNodeSetArray(polymesh, "nlist", nlist_array);
+         }
+      }
+
+      AiNodeSetArray(polymesh, "nsides", AiArrayConvert(fnMesh.numPolygons(), 1, AI_TYPE_BYTE, &(nsides[0]), TRUE));
+      AiNodeSetArray(polymesh, "vidxs", AiArrayConvert(vidxs.size(), 1, AI_TYPE_UINT, &(vidxs[0]), TRUE));
+
+      if (smoothing && (fnMesh.numNormals() > 0))
+      {
          AiNodeSetArray(polymesh, "nidxs", AiArrayConvert(nidxs.size(), 1, AI_TYPE_UINT, &(nidxs[0]), TRUE));
+      }
 
       if (hasUVs)
+      {
+         AiNodeSetArray(polymesh, "uvlist", AiArrayConvert(fnMesh.numUVs() * 2, 1, AI_TYPE_FLOAT, &(uvs[0]), TRUE));
          AiNodeSetArray(polymesh, "uvidxs", AiArrayConvert(uvidxs.size(), 1, AI_TYPE_UINT, &(uvidxs[0]), TRUE));
+      }
 
       if (multiShader)
          AiNodeSetArray(polymesh, "shidxs", AiArrayConvert(shidxs.size(), 1, AI_TYPE_UINT, &(shidxs[0]), TRUE));
-
-      delete[] nsides;
    }
-   else if (mb)
+   else
+   {
+      // Export motion blur keys information (for deformation)
+      AtArray* vlist_array = AiNodeGetArray(polymesh, "vlist");
+      SetKeyData(vlist_array, step, vertices, fnMesh.numVertices());
+      
+      if (smoothing && (fnMesh.numNormals() > 0))
+      {
+         AtArray* nlist_array = AiNodeGetArray(polymesh, "nlist");
+         SetKeyData(nlist_array, step, normals, fnMesh.numNormals());
+      }
+   }
+}
+
+void CMayaScene::ExportMesh(MObject mayaMesh, const MDagPath& dagPath, AtUInt step)
+{
+   AtMatrix matrix;
+   AtNode* polymesh;
+   MFnDagNode fnDagNode(dagPath.node());
+
+   bool mb = m_motionBlurData.enabled &&
+             m_fnArnoldRenderOptions->findPlug("mb_objects_enable").asBool() &&
+             fnDagNode.findPlug("motionBlur").asBool();
+
+   GetMatrix(matrix, dagPath);
+
+   if (step == 0)
+   {
+      polymesh = AiNode("polymesh");
+
+      AiNodeSetStr(polymesh, "name", fnDagNode.name().asChar());
+
+      if (mb)
+      {
+         AtArray* matrices = AiArrayAllocate(1, m_motionBlurData.motion_steps, AI_TYPE_MATRIX);
+         AiArraySetMtx(matrices, step, matrix);
+         AiNodeSetArray(polymesh, "matrix", matrices);
+      }
+      else
+      {
+         AiNodeSetMatrix(polymesh, "matrix", matrix);
+      }
+
+      AiNodeSetBool(polymesh, "smoothing", fnDagNode.findPlug("smoothShading").asBool());
+      AiNodeSetBool(polymesh, "receive_shadows", fnDagNode.findPlug("receiveShadows").asBool());
+      AiNodeSetBool(polymesh, "self_shadows", !fnDagNode.findPlug("ignoreSelfShadowing").asBool());
+
+      if (fnDagNode.findPlug("doubleSided").asBool())
+      {
+         AiNodeSetInt(polymesh, "sidedness", 65535);
+         AiNodeSetBool(polymesh, "inv_normals", fnDagNode.findPlug("opposite").asBool());
+      }
+      else
+         AiNodeSetInt(polymesh, "sidedness", 0);
+
+      // Visibility options
+      AtInt visibility = 65535;
+
+      if (!fnDagNode.findPlug("castsShadows").asBool())
+         visibility &= ~AI_RAY_SHADOW;
+
+      if (!fnDagNode.findPlug("primaryVisibility").asBool())
+         visibility &= ~AI_RAY_CAMERA;
+
+      if (!fnDagNode.findPlug("visibleInReflections").asBool())
+         visibility &= ~AI_RAY_REFLECTED;
+
+      if (!fnDagNode.findPlug("visibleInRefractions").asBool())
+         visibility &= ~AI_RAY_REFRACTED;
+
+      AiNodeSetInt(polymesh, "visibility", visibility);
+
+      ExportMeshGeometryData(polymesh, mayaMesh, dagPath, step);
+   }
+   else
    {
       polymesh = AiNodeLookUpByName(fnDagNode.name().asChar());
 
-      AtArray* matrices = AiNodeGetArray(polymesh, "matrix");
-      AiArraySetMtx(matrices, step, matrix);
+      if (mb)
+      {
+         AtArray* matrices = AiNodeGetArray(polymesh, "matrix");
+         AiArraySetMtx(matrices, step, matrix);
+      }
+
+      bool mb_deform = m_motionBlurData.enabled &&
+                       m_fnArnoldRenderOptions->findPlug("mb_object_deform_enable").asBool() &&
+                       fnDagNode.findPlug("motionBlur").asBool();
+
+      if (mb_deform)
+      {
+         ExportMeshGeometryData(polymesh, mayaMesh, dagPath, step);
+      }
    }
 }

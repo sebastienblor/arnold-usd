@@ -27,13 +27,15 @@ MObject CArnoldRenderOptionsNode::s_GI_reflection_depth;
 MObject CArnoldRenderOptionsNode::s_GI_refraction_depth;
 MObject CArnoldRenderOptionsNode::s_GI_total_depth;
 MObject CArnoldRenderOptionsNode::s_motion_blur_enable;
+MObject CArnoldRenderOptionsNode::s_mb_lights_enable;
 MObject CArnoldRenderOptionsNode::s_mb_camera_enable;
 MObject CArnoldRenderOptionsNode::s_mb_objects_enable;
-MObject CArnoldRenderOptionsNode::s_mb_lights_enable;
-MObject CArnoldRenderOptionsNode::s_shutter_start;
-MObject CArnoldRenderOptionsNode::s_shutter_end;
+MObject CArnoldRenderOptionsNode::s_mb_object_deform_enable;
+MObject CArnoldRenderOptionsNode::s_shutter_size;
+MObject CArnoldRenderOptionsNode::s_shutter_offset;
 MObject CArnoldRenderOptionsNode::s_shutter_type;
 MObject CArnoldRenderOptionsNode::s_motion_steps;
+MObject CArnoldRenderOptionsNode::s_motion_frames;
 MObject CArnoldRenderOptionsNode::s_background;
 MObject CArnoldRenderOptionsNode::s_atmosphere;
 
@@ -194,6 +196,10 @@ MStatus CArnoldRenderOptionsNode::initialize()
    nAttr.setKeyable(false);
    addAttribute(s_motion_blur_enable);
 
+   s_mb_lights_enable = nAttr.create("mb_lights_enable", "mb_len", MFnNumericData::kBoolean, 1);
+   nAttr.setKeyable(false);
+   addAttribute(s_mb_lights_enable);
+
    s_mb_camera_enable = nAttr.create("mb_camera_enable", "mb_cen", MFnNumericData::kBoolean, 1);
    nAttr.setKeyable(false);
    addAttribute(s_mb_camera_enable);
@@ -202,21 +208,23 @@ MStatus CArnoldRenderOptionsNode::initialize()
    nAttr.setKeyable(false);
    addAttribute(s_mb_objects_enable);
 
-   s_mb_lights_enable = nAttr.create("mb_lights_enable", "mb_len", MFnNumericData::kBoolean, 1);
+   s_mb_object_deform_enable = nAttr.create("mb_object_deform_enable", "mb_den", MFnNumericData::kBoolean, 1);
    nAttr.setKeyable(false);
-   addAttribute(s_mb_lights_enable);
+   addAttribute(s_mb_object_deform_enable);
 
-   s_shutter_start = nAttr.create("shutter_start", "shuts", MFnNumericData::kFloat, -0.5f);
-   nAttr.setKeyable(false);
-   nAttr.setMin(-1);
-   nAttr.setMax(0);
-   addAttribute(s_shutter_start);
-
-   s_shutter_end = nAttr.create("shutter_end", "shute", MFnNumericData::kFloat, 0.5f);
+   s_shutter_size = nAttr.create("shutter_size", "shuts", MFnNumericData::kFloat, 0.5f);
    nAttr.setKeyable(false);
    nAttr.setMin(0);
    nAttr.setMax(1);
-   addAttribute(s_shutter_end);
+   addAttribute(s_shutter_size);
+
+   s_shutter_offset = nAttr.create("shutter_offset", "shuto", MFnNumericData::kFloat, 0);
+   nAttr.setKeyable(false);
+   nAttr.setSoftMin(-0.5f);
+   nAttr.setSoftMax(0.5f);
+   nAttr.setMin(-1);
+   nAttr.setMax(1);
+   addAttribute(s_shutter_offset);
 
    s_shutter_type = eAttr.create("shutter_type", "shutt", 0);
    nAttr.setKeyable(false);
@@ -229,6 +237,14 @@ MStatus CArnoldRenderOptionsNode::initialize()
    nAttr.setMin(2);
    nAttr.setMax(30);
    addAttribute(s_motion_steps);
+
+   s_motion_frames = nAttr.create("motion_frames", "motf", MFnNumericData::kFloat, 1);
+   nAttr.setKeyable(false);
+   nAttr.setSoftMin(0);
+   nAttr.setSoftMax(2);
+   nAttr.setMin(0);
+   nAttr.setMax(20);
+   addAttribute(s_motion_frames);
 
    s_background = eAttr.create("background", "bkg", 0);
    nAttr.setKeyable(false);

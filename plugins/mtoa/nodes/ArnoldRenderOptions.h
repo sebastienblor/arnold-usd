@@ -49,11 +49,13 @@ public:
    static MObject s_motion_blur_enable;
    static MObject s_mb_camera_enable;
    static MObject s_mb_objects_enable;
+   static MObject s_mb_object_deform_enable;
    static MObject s_mb_lights_enable;
-   static MObject s_shutter_start;
-   static MObject s_shutter_end;
+   static MObject s_shutter_size;
+   static MObject s_shutter_offset;
    static MObject s_shutter_type;
    static MObject s_motion_steps;
+   static MObject s_motion_frames;
 
    static MObject s_background;
    static MObject s_atmosphere;

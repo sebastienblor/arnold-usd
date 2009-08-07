@@ -13,10 +13,11 @@
 struct CMotionBlurData
 {
    bool enabled;
-   float shutter_start;
-   float shutter_end;
+   float shutter_size;
+   float shutter_offset;
    int shutter_type;
    int motion_steps;
+   float motion_frames;
 
    std::vector<float> frames;
 };
@@ -52,6 +53,8 @@ private:
    void ExportLightData(AtNode* light, const MDagPath& dagPath, bool mb);
    void ExportLightMBData(const MDagPath& dagPath, AtUInt step);
    void ExportMesh(MObject mayaMesh, const MDagPath& dagPath, AtUInt step);
+   void ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, const MDagPath& dagPath, AtUInt step);
+
    MObject GetNodeShader(MObject dagNode);
 
    bool IsVisible(MFnDagNode node);

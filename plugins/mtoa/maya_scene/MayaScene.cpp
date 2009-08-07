@@ -165,19 +165,21 @@ void CMayaScene::PrepareExport()
 
 void CMayaScene::GetMotionBlurData()
 {
-   m_motionBlurData.enabled       = m_fnArnoldRenderOptions->findPlug("motion_blur_enable").asBool();
-   m_motionBlurData.shutter_start = m_fnArnoldRenderOptions->findPlug("shutter_start").asFloat();
-   m_motionBlurData.shutter_end   = m_fnArnoldRenderOptions->findPlug("shutter_end").asFloat();
-   m_motionBlurData.shutter_type  = m_fnArnoldRenderOptions->findPlug("shutter_type").asInt();
-   m_motionBlurData.motion_steps  = m_fnArnoldRenderOptions->findPlug("motion_steps").asInt();
+   m_motionBlurData.enabled        = m_fnArnoldRenderOptions->findPlug("motion_blur_enable").asBool();
+   m_motionBlurData.shutter_size   = m_fnArnoldRenderOptions->findPlug("shutter_size").asFloat();
+   m_motionBlurData.shutter_offset = m_fnArnoldRenderOptions->findPlug("shutter_offset").asFloat();
+   m_motionBlurData.shutter_type   = m_fnArnoldRenderOptions->findPlug("shutter_type").asInt();
+   m_motionBlurData.motion_steps   = m_fnArnoldRenderOptions->findPlug("motion_steps").asInt();
+   m_motionBlurData.motion_frames  = m_fnArnoldRenderOptions->findPlug("motion_frames").asFloat();
 
    if (m_motionBlurData.enabled)
    {
       for (int J = 0; (J < m_motionBlurData.motion_steps); ++J)
       {
-         float frame = m_currentFrame + 
-                       m_motionBlurData.shutter_start +
-                       (m_motionBlurData.shutter_end - m_motionBlurData.shutter_start) / (m_motionBlurData.motion_steps - 1) * J;
+         float frame = m_currentFrame -
+                       m_motionBlurData.motion_frames * 0.5f +
+                       m_motionBlurData.shutter_offset +
+                       m_motionBlurData.motion_frames / (m_motionBlurData.motion_steps - 1) * J;
 
          m_motionBlurData.frames.push_back(frame);
       }
