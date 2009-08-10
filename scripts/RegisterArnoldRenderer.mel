@@ -1,4 +1,5 @@
 source "ArnoldRender.mel";
+source "AEArnoldShapeTemplate.mel";
 
 global proc RegisterArnoldRenderer()
 {

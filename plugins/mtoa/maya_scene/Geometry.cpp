@@ -118,11 +118,11 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
       }
    }
 
-   bool smoothing = fnDagNode.findPlug("smoothShading").asBool();
+   bool useNormals = !fnDagNode.findPlug("smoothShading").asBool() && !fnDagNode.findPlug("subdiv_type").asBool();
 
    // Get all normals
    std::vector<float> normals;
-   if (smoothing && (fnMesh.numNormals() > 0))
+   if (useNormals && (fnMesh.numNormals() > 0))
    {
       normals.resize(fnMesh.numNormals() * 3);
 
@@ -179,7 +179,7 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
          for (size_t V = 0; (V < vertexCount); ++V)
          {
             vidxs.push_back(itMeshPolygon.vertexIndex(V));
-            if (smoothing)
+            if (useNormals)
                nidxs.push_back(itMeshPolygon.normalIndex(V));
 
             if (hasUVs)
@@ -207,7 +207,7 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
          // No deformation motion blur, so we create normal arrays
          AiNodeSetArray(polymesh, "vlist", AiArrayConvert(fnMesh.numVertices() * 3, 1, AI_TYPE_FLOAT, &(vertices[0]), TRUE));
       
-         if (smoothing && (fnMesh.numNormals() > 0))
+         if (useNormals && (fnMesh.numNormals() > 0))
             AiNodeSetArray(polymesh, "nlist", AiArrayConvert(fnMesh.numNormals() * 3, 1, AI_TYPE_FLOAT, &(normals[0]), TRUE));
       }
       else
@@ -217,7 +217,7 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
          SetKeyData(vlist_array, step, vertices, fnMesh.numVertices());
          AiNodeSetArray(polymesh, "vlist", vlist_array);
 
-         if (smoothing && (fnMesh.numNormals() > 0))
+         if (useNormals && (fnMesh.numNormals() > 0))
          {
             AtArray* nlist_array = AiArrayAllocate(fnMesh.numNormals(), m_motionBlurData.motion_steps, AI_TYPE_VECTOR);
             SetKeyData(nlist_array, step, normals, fnMesh.numNormals());
@@ -228,7 +228,7 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
       AiNodeSetArray(polymesh, "nsides", AiArrayConvert(fnMesh.numPolygons(), 1, AI_TYPE_BYTE, &(nsides[0]), TRUE));
       AiNodeSetArray(polymesh, "vidxs", AiArrayConvert(vidxs.size(), 1, AI_TYPE_UINT, &(vidxs[0]), TRUE));
 
-      if (smoothing && (fnMesh.numNormals() > 0))
+      if (useNormals && (fnMesh.numNormals() > 0))
       {
          AiNodeSetArray(polymesh, "nidxs", AiArrayConvert(nidxs.size(), 1, AI_TYPE_UINT, &(nidxs[0]), TRUE));
       }
@@ -248,7 +248,7 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
       AtArray* vlist_array = AiNodeGetArray(polymesh, "vlist");
       SetKeyData(vlist_array, step, vertices, fnMesh.numVertices());
       
-      if (smoothing && (fnMesh.numNormals() > 0))
+      if (useNormals && (fnMesh.numNormals() > 0))
       {
          AtArray* nlist_array = AiNodeGetArray(polymesh, "nlist");
          SetKeyData(nlist_array, step, normals, fnMesh.numNormals());
@@ -314,17 +314,12 @@ void CMayaScene::ExportMesh(MObject mayaMesh, const MDagPath& dagPath, AtUInt st
 
       AiNodeSetInt(polymesh, "visibility", visibility);
 
-      bool subdivision = fnDagNode.findPlug("displaySmoothMesh").asBool();
+      bool subdivision = fnDagNode.findPlug("subdiv_type").asInt();
 
       if (subdivision)
       {
          AiNodeSetInt(polymesh, "subdiv_type", 1);
-         
-         int iter = fnDagNode.findPlug("useSmoothPreviewForRender ").asBool() ?
-            fnDagNode.findPlug("smoothLevel").asInt() :
-            fnDagNode.findPlug("renderSmoothLevel").asInt();
-
-         AiNodeSetInt(polymesh, "subdiv_iterations", iter);
+         AiNodeSetInt(polymesh, "subdiv_iterations", fnDagNode.findPlug("subdiv_iterations").asInt());
       }
 
       ExportMeshGeometryData(polymesh, mayaMesh, dagPath, step);

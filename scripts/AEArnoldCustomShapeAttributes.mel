@@ -1,0 +1,18 @@
+source "ArnoldCustomAttrs.mel";
+
+global proc AEArnoldCustomShapeAttributes(string $nodeName)
+{
+   string $nodeType = `objectType $nodeName`;
+
+   switch ($nodeType)
+   {
+      case "mesh":
+      {
+        editorTemplate -beginLayout "Arnold";
+           editorTemplate -callCustom "ArnoldCustomBoolNew" "ArnoldCustomBoolChanged" "subdiv_type";
+           editorTemplate -callCustom "ArnoldCustomIntNew" "ArnoldCustomIntChanged" "subdiv_iterations";
+        editorTemplate -endLayout;
+        break;
+      }
+   }
+}

@@ -1,0 +1,68 @@
+
+global string $ArnoldMeshAttributes[] =
+{
+   "subdiv_type", "Subdivision Surface", "0", "0", "0",
+   "subdiv_iterations", "Iterations", "1", "1", "10"
+};
+
+global proc string[] GetCustomAttributeData(string $attrib)
+{
+   global string $ArnoldMeshAttributes[];
+   
+   string $data[];
+   
+   for ($J = 0; ($J < size($ArnoldMeshAttributes)); $J += 5)
+   {
+      if ($ArnoldMeshAttributes[$J] == $attrib)
+      {
+         $data[0] = $ArnoldMeshAttributes[$J + 1]; // Label
+         $data[1] = $ArnoldMeshAttributes[$J + 2]; // Default value
+         $data[2] = $ArnoldMeshAttributes[$J + 3]; // Minimum value
+         $data[3] = $ArnoldMeshAttributes[$J + 4]; // Maximum value
+         return $data; 
+      }
+   }
+
+   $data = { "<Unknown Attribute>", "0", "0", "0" };
+   return $data;
+}
+
+global proc ArnoldCustomBoolNew(string $attr)
+{
+   string $buffer[];
+   tokenize $attr "." $buffer;
+   
+   string $nodeName  = $buffer[0]; 
+   string $attribName = $buffer[1];
+
+   string $attribData[] = GetCustomAttributeData($attribName);   
+      
+   if (!attributeExists($attribName, $nodeName))
+      addAttr -ln $attribName -at bool -dv ((int)$attribData[1]) $nodeName;
+   
+   attrControlGrp -label $attribData[0] -attribute $attr;
+}
+
+global proc ArnoldCustomBoolChanged(string $attr)
+{
+}
+
+global proc ArnoldCustomIntNew(string $attr)
+{
+   string $buffer[];
+   tokenize $attr "." $buffer;
+   
+   string $nodeName  = $buffer[0]; 
+   string $attribName = $buffer[1];
+
+   string $attribData[] = GetCustomAttributeData($attribName);   
+      
+   if (!attributeExists($attribName, $nodeName))
+      addAttr -ln $attribName -at long -dv ((int)$attribData[1]) -min ((int)$attribData[2]) -max ((int)$attribData[3]) $nodeName;
+   
+   attrControlGrp -label $attribData[0] -attribute $attr;
+}
+
+global proc ArnoldCustomIntChanged(string $attr)
+{
+}
