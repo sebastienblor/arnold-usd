@@ -1,14 +1,20 @@
 
 global string $ArnoldMeshAttributes[] =
 {
-//   Attribute                Label                   Def         Min   Max            SMin  Smax
+//   Attribute                Label                   Def         Min   Max            SMin  Smax        Change callback
 
-   "subdiv_type",          "Subdivision Surface",     "0",        "0",  "0",           "0",  "0",
-   "subdiv_iterations",    "Iterations",              "1",        "1",  "100",         "1",  "10",
-   "sss_use_gi",           "Use GI for SSS",          "1",        "0",  "0",           "0",  "0",
-   "sss_max_samples",      "Max. Samples for SSS",    "100000",   "0",  "1000000000",  "0",  "1000000",
-   "sss_sample_spacing",   "SSS Sample Spacing",      "0.1",      "0",  "10",          "0",  "1"
+   "subdiv_type",          "Subdivision Surface",     "0",        "0",  "0",           "0",  "0",        "SubdivChange",
+   "subdiv_iterations",    "Iterations",              "1",        "1",  "100",         "1",  "10",       "",
+   "sss_use_gi",           "Use GI for SSS",          "1",        "0",  "0",           "0",  "0",        "",
+   "sss_max_samples",      "Max. Samples for SSS",    "100000",   "0",  "1000000000",  "0",  "1000000",  "",
+   "sss_sample_spacing",   "SSS Sample Spacing",      "0.1",      "0",  "10",          "0",  "1",        ""
 };
+
+global proc SubdivChange()
+{
+   int $flag = `checkBoxGrp -query -value1 mesh_subdiv_type` == true;
+   control -edit -enable $flag mesh_subdiv_iterations;
+}
 
 global proc string[] GetCustomAttributeData(string $attrib)
 {
@@ -16,7 +22,7 @@ global proc string[] GetCustomAttributeData(string $attrib)
    
    string $data[];
    
-   for ($J = 0; ($J < size($ArnoldMeshAttributes)); $J += 7)
+   for ($J = 0; ($J < size($ArnoldMeshAttributes)); $J += 8)
    {
       if ($ArnoldMeshAttributes[$J] == $attrib)
       {
@@ -26,6 +32,7 @@ global proc string[] GetCustomAttributeData(string $attrib)
          $data[3] = $ArnoldMeshAttributes[$J + 4]; // Maximum value
          $data[4] = $ArnoldMeshAttributes[$J + 5]; // Soft Minimum value
          $data[5] = $ArnoldMeshAttributes[$J + 6]; // Soft Maximum value
+         $data[6] = $ArnoldMeshAttributes[$J + 7]; // Value change callback
          return $data; 
       }
    }
@@ -49,6 +56,12 @@ global proc ArnoldCustomBoolNew(string $attr)
       addAttr -ln $attribName -at bool -dv ((int)$attribData[1]) $nodeName;
    
    checkBoxGrp -label $attribData[0] ($nodeType + "_" + $attribName);
+   
+   if ($attribData[6] != "")
+   {
+      checkBoxGrp -edit -cc $attribData[6] ($nodeType + "_" + $attribName);
+      evalDeferred $attribData[6];
+   }
    connectControl -index 2 ($nodeType + "_" + $attribName) $attr;
 }
 
@@ -84,6 +97,13 @@ global proc ArnoldCustomIntNew(string $attr)
       addAttr -ln $attribName -at long -dv ((int)$attribData[1]) -min ((int)$attribData[2]) -max ((int)$attribData[3]) $nodeName;
    
    intSliderGrp -label $attribData[0] -min ((int)$attribData[4]) -max ((int)$attribData[5]) ($nodeType + "_" + $attribName);
+
+   if ($attribData[6] != "")
+   {
+      intSliderGrp -edit -cc $attribData[6] ($nodeType + "_" + $attribName);
+      evalDeferred $attribData[6];
+   }
+   
    connectControl ($nodeType + "_" + $attribName) $attr;
 }
 
@@ -119,6 +139,13 @@ global proc ArnoldCustomFloatNew(string $attr)
       addAttr -ln $attribName -at "float" -dv ((float)$attribData[1]) -min ((float)$attribData[2]) -max ((float)$attribData[3]) $nodeName;
    
    floatSliderGrp -label $attribData[0] -min ((float)$attribData[4]) -max ((float)$attribData[5]) ($nodeType + "_" + $attribName);
+   
+   if ($attribData[6] != "")
+   {
+      floatSliderGrp -edit -cc $attribData[6] ($nodeType + "_" + $attribName);
+      evalDeferred $attribData[6];
+   }
+ 
    connectControl ($nodeType + "_" + $attribName) $attr;
 }
 
