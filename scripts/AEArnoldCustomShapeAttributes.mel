@@ -9,8 +9,13 @@ global proc AEArnoldCustomShapeAttributes(string $nodeName)
       case "mesh":
       {
         editorTemplate -beginLayout "Arnold";
-           editorTemplate -callCustom "ArnoldCustomBoolNew" "ArnoldCustomBoolChanged" "subdiv_type";
-           editorTemplate -callCustom "ArnoldCustomIntNew" "ArnoldCustomIntChanged" "subdiv_iterations";
+           editorTemplate -callCustom "ArnoldCustomBoolNew" "ArnoldCustomBoolReplace" "subdiv_type";
+           editorTemplate -callCustom "ArnoldCustomIntNew" "ArnoldCustomIntReplace" "subdiv_iterations";
+           editorTemplate -addSeparator;
+           editorTemplate -callCustom "ArnoldCustomBoolNew" "ArnoldCustomBoolReplace" "sss_use_gi";
+           editorTemplate -callCustom "ArnoldCustomIntNew" "ArnoldCustomIntReplace" "sss_max_samples";
+           editorTemplate -callCustom "ArnoldCustomFloatNew" "ArnoldCustomFloatReplace" "sss_sample_spacing";
+           
         editorTemplate -endLayout;
         break;
       }

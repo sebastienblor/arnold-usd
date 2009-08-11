@@ -1,8 +1,13 @@
 
 global string $ArnoldMeshAttributes[] =
 {
-   "subdiv_type", "Subdivision Surface", "0", "0", "0",
-   "subdiv_iterations", "Iterations", "1", "1", "10"
+//   Attribute                Label                   Def         Min   Max            SMin  Smax
+
+   "subdiv_type",          "Subdivision Surface",     "0",        "0",  "0",           "0",  "0",
+   "subdiv_iterations",    "Iterations",              "1",        "1",  "100",         "1",  "10",
+   "sss_use_gi",           "Use GI for SSS",          "1",        "0",  "0",           "0",  "0",
+   "sss_max_samples",      "Max. Samples for SSS",    "100000",   "0",  "1000000000",  "0",  "1000000",
+   "sss_sample_spacing",   "SSS Sample Spacing",      "0.1",      "0",  "10",          "0",  "1"
 };
 
 global proc string[] GetCustomAttributeData(string $attrib)
@@ -11,7 +16,7 @@ global proc string[] GetCustomAttributeData(string $attrib)
    
    string $data[];
    
-   for ($J = 0; ($J < size($ArnoldMeshAttributes)); $J += 5)
+   for ($J = 0; ($J < size($ArnoldMeshAttributes)); $J += 7)
    {
       if ($ArnoldMeshAttributes[$J] == $attrib)
       {
@@ -19,11 +24,13 @@ global proc string[] GetCustomAttributeData(string $attrib)
          $data[1] = $ArnoldMeshAttributes[$J + 2]; // Default value
          $data[2] = $ArnoldMeshAttributes[$J + 3]; // Minimum value
          $data[3] = $ArnoldMeshAttributes[$J + 4]; // Maximum value
+         $data[4] = $ArnoldMeshAttributes[$J + 5]; // Soft Minimum value
+         $data[5] = $ArnoldMeshAttributes[$J + 6]; // Soft Maximum value
          return $data; 
       }
    }
 
-   $data = { "<Unknown Attribute>", "0", "0", "0" };
+   $data = { "<Unknown Attribute>", "0", "0", "0", "0", "0" };
    return $data;
 }
 
@@ -32,19 +39,34 @@ global proc ArnoldCustomBoolNew(string $attr)
    string $buffer[];
    tokenize $attr "." $buffer;
    
-   string $nodeName  = $buffer[0]; 
+   string $nodeName   = $buffer[0]; 
    string $attribName = $buffer[1];
+   string $nodeType   = `nodeType $nodeName`; 
 
    string $attribData[] = GetCustomAttributeData($attribName);   
       
    if (!attributeExists($attribName, $nodeName))
       addAttr -ln $attribName -at bool -dv ((int)$attribData[1]) $nodeName;
    
-   attrControlGrp -label $attribData[0] -attribute $attr;
+   checkBoxGrp -label $attribData[0] ($nodeType + "_" + $attribName);
+   connectControl -index 2 ($nodeType + "_" + $attribName) $attr;
 }
 
-global proc ArnoldCustomBoolChanged(string $attr)
+global proc ArnoldCustomBoolReplace(string $attr)
 {
+   string $buffer[];
+   tokenize $attr "." $buffer;
+   
+   string $nodeName   = $buffer[0]; 
+   string $attribName = $buffer[1];
+   string $nodeType   = `nodeType $nodeName`; 
+
+   string $attribData[] = GetCustomAttributeData($attribName);   
+      
+   if (!attributeExists($attribName, $nodeName))
+      addAttr -ln $attribName -at bool -dv ((int)$attribData[1]) $nodeName;
+
+   connectControl -index 2 ($nodeType + "_" + $attribName) $attr;
 }
 
 global proc ArnoldCustomIntNew(string $attr)
@@ -52,17 +74,67 @@ global proc ArnoldCustomIntNew(string $attr)
    string $buffer[];
    tokenize $attr "." $buffer;
    
-   string $nodeName  = $buffer[0]; 
+   string $nodeName   = $buffer[0]; 
    string $attribName = $buffer[1];
+   string $nodeType   = `nodeType $nodeName`; 
 
    string $attribData[] = GetCustomAttributeData($attribName);   
       
    if (!attributeExists($attribName, $nodeName))
       addAttr -ln $attribName -at long -dv ((int)$attribData[1]) -min ((int)$attribData[2]) -max ((int)$attribData[3]) $nodeName;
    
-   attrControlGrp -label $attribData[0] -attribute $attr;
+   intSliderGrp -label $attribData[0] -min ((int)$attribData[4]) -max ((int)$attribData[5]) ($nodeType + "_" + $attribName);
+   connectControl ($nodeType + "_" + $attribName) $attr;
 }
 
-global proc ArnoldCustomIntChanged(string $attr)
+global proc ArnoldCustomIntReplace(string $attr)
 {
+   string $buffer[];
+   tokenize $attr "." $buffer;
+   
+   string $nodeName   = $buffer[0]; 
+   string $attribName = $buffer[1];
+   string $nodeType   = `nodeType $nodeName`; 
+
+   string $attribData[] = GetCustomAttributeData($attribName);   
+      
+   if (!attributeExists($attribName, $nodeName))
+      addAttr -ln $attribName -at long -dv ((int)$attribData[1]) -min ((int)$attribData[2]) -max ((int)$attribData[3]) $nodeName;
+   
+   connectControl ($nodeType + "_" + $attribName) $attr;
+}
+
+global proc ArnoldCustomFloatNew(string $attr)
+{
+   string $buffer[];
+   tokenize $attr "." $buffer;
+   
+   string $nodeName   = $buffer[0]; 
+   string $attribName = $buffer[1];
+   string $nodeType   = `nodeType $nodeName`; 
+
+   string $attribData[] = GetCustomAttributeData($attribName);   
+      
+   if (!attributeExists($attribName, $nodeName))
+      addAttr -ln $attribName -at "float" -dv ((float)$attribData[1]) -min ((float)$attribData[2]) -max ((float)$attribData[3]) $nodeName;
+   
+   floatSliderGrp -label $attribData[0] -min ((float)$attribData[4]) -max ((float)$attribData[5]) ($nodeType + "_" + $attribName);
+   connectControl ($nodeType + "_" + $attribName) $attr;
+}
+
+global proc ArnoldCustomFloatReplace(string $attr)
+{
+   string $buffer[];
+   tokenize $attr "." $buffer;
+   
+   string $nodeName   = $buffer[0]; 
+   string $attribName = $buffer[1];
+   string $nodeType   = `nodeType $nodeName`; 
+
+   string $attribData[] = GetCustomAttributeData($attribName);   
+      
+   if (!attributeExists($attribName, $nodeName))
+      addAttr -ln $attribName -at "float" -dv ((float)$attribData[1]) -min ((float)$attribData[2]) -max ((float)$attribData[3]) $nodeName;
+   
+   connectControl ($nodeType + "_" + $attribName) $attr;
 }

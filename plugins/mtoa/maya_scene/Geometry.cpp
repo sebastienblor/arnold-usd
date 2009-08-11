@@ -314,6 +314,8 @@ void CMayaScene::ExportMesh(MObject mayaMesh, const MDagPath& dagPath, AtUInt st
 
       AiNodeSetInt(polymesh, "visibility", visibility);
 
+      // Subdivision surfaces
+      //
       bool subdivision = fnDagNode.findPlug("subdiv_type").asInt();
 
       if (subdivision)
@@ -321,6 +323,12 @@ void CMayaScene::ExportMesh(MObject mayaMesh, const MDagPath& dagPath, AtUInt st
          AiNodeSetInt(polymesh, "subdiv_type", 1);
          AiNodeSetInt(polymesh, "subdiv_iterations", fnDagNode.findPlug("subdiv_iterations").asInt());
       }
+
+      // Subsurface Scattering
+      //
+      AiNodeSetInt(polymesh, "sss_max_samples", fnDagNode.findPlug("sss_max_samples").asInt());
+      AiNodeSetFlt(polymesh, "sss_sample_spacing", fnDagNode.findPlug("sss_sample_spacing").asFloat());
+      AiNodeSetBool(polymesh, "sss_use_gi", fnDagNode.findPlug("sss_use_gi").asBool());
 
       ExportMeshGeometryData(polymesh, mayaMesh, dagPath, step);
    }
