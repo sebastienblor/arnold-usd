@@ -11,6 +11,7 @@ global proc AEArnoldCustomShapeAttributes(string $nodeName)
         editorTemplate -beginLayout "Arnold";
            editorTemplate -callCustom "ArnoldCustomBoolNew" "ArnoldCustomBoolReplace" "subdiv_type";
            editorTemplate -callCustom "ArnoldCustomIntNew" "ArnoldCustomIntReplace" "subdiv_iterations";
+           editorTemplate -callCustom "ArnoldCustomEnumNew" "ArnoldCustomEnumReplace" "subdiv_adaptive_metric";
            editorTemplate -addSeparator;
            editorTemplate -callCustom "ArnoldCustomBoolNew" "ArnoldCustomBoolReplace" "sss_use_gi";
            editorTemplate -callCustom "ArnoldCustomIntNew" "ArnoldCustomIntReplace" "sss_max_samples";

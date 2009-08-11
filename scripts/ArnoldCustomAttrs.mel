@@ -1,19 +1,28 @@
 
 global string $ArnoldMeshAttributes[] =
 {
-//   Attribute                Label                   Def         Min   Max            SMin  Smax        Change callback
+//   Attribute                   Label                   Def         Min   Max            SMin  Smax        Change callback
 
-   "subdiv_type",          "Subdivision Surface",     "0",        "0",  "0",           "0",  "0",        "SubdivChange",
-   "subdiv_iterations",    "Iterations",              "1",        "1",  "100",         "1",  "10",       "",
-   "sss_use_gi",           "Use GI for SSS",          "1",        "0",  "0",           "0",  "0",        "",
-   "sss_max_samples",      "Max. Samples for SSS",    "100000",   "0",  "1000000000",  "0",  "1000000",  "",
-   "sss_sample_spacing",   "SSS Sample Spacing",      "0.1",      "0",  "10",          "0",  "1",        ""
+   "subdiv_type",             "Subdivision Surface",     "0",        "0",  "0",           "0",  "0",        "SubdivChange",
+   "subdiv_iterations",       "Iterations",              "1",        "1",  "100",         "1",  "10",       "",
+   "sss_use_gi",              "Use GI for SSS",          "1",        "0",  "0",           "0",  "0",        "",
+   "sss_max_samples",         "Max. Samples for SSS",    "100000",   "0",  "1000000000",  "0",  "1000000",  "",
+   "sss_sample_spacing",      "SSS Sample Spacing",      "0.1",      "0",  "10",          "0",  "1",        "",
+
+// Enums
+
+//   Attribute                   Label                   Def   Enum values                            Change callback
+
+   "subdiv_adaptive_metric",  "Adaptive Metric",         "0",  "$SubdivMetricValues",  "0", "0",  "0", ""
 };
+
+global string $SubdivMetricValues[] = { "Automatic", "Edge Length", "Flatness" };
 
 global proc SubdivChange()
 {
    int $flag = `checkBoxGrp -query -value1 mesh_subdiv_type` == true;
    control -edit -enable $flag mesh_subdiv_iterations;
+   control -edit -enable $flag mesh_subdiv_adaptive_metric;
 }
 
 global proc string[] GetCustomAttributeData(string $attrib)
@@ -164,4 +173,65 @@ global proc ArnoldCustomFloatReplace(string $attr)
       addAttr -ln $attribName -at "float" -dv ((float)$attribData[1]) -min ((float)$attribData[2]) -max ((float)$attribData[3]) $nodeName;
    
    connectControl ($nodeType + "_" + $attribName) $attr;
+}
+
+global proc ArnoldCustomEnumChanged(string $attr, string $userChangeCB)
+{
+   string $buffer[];
+   tokenize $attr "." $buffer;
+   
+   string $nodeName   = $buffer[0]; 
+   string $attribName = $buffer[1];
+   string $nodeType   = `nodeType $nodeName`; 
+
+   int $val = `optionMenuGrp -query -select ($nodeType + "_" + $attribName)`;
+   
+   setAttr $attr ($val - 1);
+
+   if ($userChangeCB != "")
+      evalDeferred($userChangeCB);
+}
+
+global proc ArnoldCustomEnumNew(string $attr)
+{
+   string $buffer[];
+   tokenize $attr "." $buffer;
+   
+   string $nodeName   = $buffer[0]; 
+   string $attribName = $buffer[1];
+   string $nodeType   = `nodeType $nodeName`; 
+
+   string $attribData[] = GetCustomAttributeData($attribName);   
+      
+   if (!attributeExists($attribName, $nodeName))
+      addAttr -ln $attribName -at "long" -dv ((int)$attribData[1]) $nodeName;
+   
+   optionMenuGrp -label $attribData[0] ($nodeType + "_" + $attribName);
+   
+   // The things that MEL forces you to do...
+   string $values[] = eval("string $_dummy[] = " + $attribData[2]); 
+   for ($J = 0; ($J < size($values)); $J++)
+      menuItem -label $values[$J];
+   
+   optionMenuGrp -edit -cc ("ArnoldCustomEnumChanged \"" + $attr + "\" \"" + $attribData[6] + "\"") ($nodeType + "_" + $attribName);
+   
+   if ($attribData[6] != "")
+   {
+      evalDeferred $attribData[6];
+   }
+}
+
+global proc ArnoldCustomEnumReplace(string $attr)
+{
+   string $buffer[];
+   tokenize $attr "." $buffer;
+   
+   string $nodeName   = $buffer[0]; 
+   string $attribName = $buffer[1];
+   string $nodeType   = `nodeType $nodeName`; 
+
+   string $attribData[] = GetCustomAttributeData($attribName);   
+      
+   if (!attributeExists($attribName, $nodeName))
+      addAttr -ln $attribName -at "long" -dv ((int)$attribData[1]) $nodeName;
 }
