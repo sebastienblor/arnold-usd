@@ -18,7 +18,7 @@
 #include <maya/MTransformationMatrix.h>
 #include <maya/MVector.h>
 
-void CMayaScene::ExportLightData(AtNode* light, const MDagPath& dagPath, bool mb)
+void CMayaScene::ExportLightData(AtNode* light, const MDagPath& dagPath, bool mb, bool custom)
 {
    MColor color;
    AtMatrix matrix;
@@ -37,10 +37,18 @@ void CMayaScene::ExportLightData(AtNode* light, const MDagPath& dagPath, bool mb
    AiNodeSetBool(light, "affect_diffuse", fnLight.lightDiffuse());
    AiNodeSetBool(light, "affect_specular", fnLight.lightSpecular());
 
-   AiNodeSetInt(light, "sss_samples", fnDagNode.findPlug("override_sss_samples").asBool() ? fnDagNode.findPlug("sss_samples").asInt() : -1);
+   // Check if custom attributes have been created, ignore them otherwise
+   MStatus status;
+   fnDagNode.findPlug("bounces", &status);
+   bool customAttributes = (status == MS::kSuccess);
 
-   AiNodeSetInt(light, "bounces", fnDagNode.findPlug("bounces").asInt());
-   AiNodeSetFlt(light, "bounce_factor", fnDagNode.findPlug("bounce_factor").asFloat());
+   if (customAttributes)
+   {
+      AiNodeSetInt(light, "sss_samples", fnDagNode.findPlug("sss_samples").asInt());
+
+      AiNodeSetInt(light, "bounces", fnDagNode.findPlug("bounces").asInt());
+      AiNodeSetFlt(light, "bounce_factor", fnDagNode.findPlug("bounce_factor").asFloat());
+   }
 
    GetMatrix(matrix, dagPath);
 
@@ -79,13 +87,18 @@ void CMayaScene::ExportLight(const MDagPath& dagPath, AtUInt step)
 
    bool mb = m_motionBlurData.enabled && m_fnArnoldRenderOptions->findPlug("mb_lights_enable").asBool();
 
+   // Check if custom attributes have been created, ignore them otherwise
+   MStatus status;
+   fnDagNode.findPlug("bounces", &status);
+   bool customAttributes = (status == MS::kSuccess);
+
    if (dagPath.hasFn(MFn::kAmbientLight))
    {
       if (step == 0)
       {
          light = AiNode("ambient_light");
 
-         ExportLightData(light, dagPath, mb);
+         ExportLightData(light, dagPath, mb, customAttributes);
       }
    }
    else if (dagPath.hasFn(MFn::kDirectionalLight))
@@ -96,7 +109,7 @@ void CMayaScene::ExportLight(const MDagPath& dagPath, AtUInt step)
 
          light = AiNode("distant_light");
 
-         ExportLightData(light, dagPath, mb);
+         ExportLightData(light, dagPath, mb, customAttributes);
 
          AiNodeSetFlt(light, "angle", fnLight.shadowAngle());
       }
@@ -113,12 +126,15 @@ void CMayaScene::ExportLight(const MDagPath& dagPath, AtUInt step)
 
          light = AiNode("point_light");
 
-         ExportLightData(light, dagPath, mb);
+         ExportLightData(light, dagPath, mb, customAttributes);
 
          AiNodeSetFlt(light, "radius", fnLight.shadowRadius());
 
-         AiNodeSetBool(light, "affect_volumetrics", fnDagNode.findPlug("affect_volumetrics").asBool());
-         AiNodeSetBool(light, "cast_volumetric_shadows", fnDagNode.findPlug("cast_volumetric_shadows").asBool());
+         if (customAttributes)
+         {
+            AiNodeSetBool(light, "affect_volumetrics", fnDagNode.findPlug("affect_volumetrics").asBool());
+            AiNodeSetBool(light, "cast_volumetric_shadows", fnDagNode.findPlug("cast_volumetric_shadows").asBool());
+         }
       }
       else if (mb)
       {
@@ -133,18 +149,21 @@ void CMayaScene::ExportLight(const MDagPath& dagPath, AtUInt step)
 
          light = AiNode("spot_light");
 
-         ExportLightData(light, dagPath, mb);
+         ExportLightData(light, dagPath, mb, customAttributes);
 
          AiNodeSetFlt(light, "radius", fnLight.shadowRadius());
          AiNodeSetFlt(light, "cone_angle", (fnLight.coneAngle() + fnLight.penumbraAngle()) * AI_RTOD);
          AiNodeSetFlt(light, "penumbra_angle", fabsf(fnLight.penumbraAngle()) * AI_RTOD);
 
-         AiNodeSetBool(light, "affect_volumetrics", fnDagNode.findPlug("affect_volumetrics").asBool());
-         AiNodeSetBool(light, "cast_volumetric_shadows", fnDagNode.findPlug("cast_volumetric_shadows").asBool());
+         if (customAttributes)
+         {
+            AiNodeSetBool(light, "affect_volumetrics", fnDagNode.findPlug("affect_volumetrics").asBool());
+            AiNodeSetBool(light, "cast_volumetric_shadows", fnDagNode.findPlug("cast_volumetric_shadows").asBool());
 
-         AiNodeSetFlt(light, "aspect_ratio", fnDagNode.findPlug("aspect_ratio").asFloat());
-         AiNodeSetFlt(light, "cosine_power", fnDagNode.findPlug("cosine_power").asFloat());
-         AiNodeSetFlt(light, "lens_radius", fnDagNode.findPlug("lens_radius").asFloat());
+            AiNodeSetFlt(light, "aspect_ratio", fnDagNode.findPlug("aspect_ratio").asFloat());
+            AiNodeSetFlt(light, "cosine_power", fnDagNode.findPlug("cosine_power").asFloat());
+            AiNodeSetFlt(light, "lens_radius", fnDagNode.findPlug("lens_radius").asFloat());
+         }
       }
       else if (mb)
       {
@@ -159,7 +178,7 @@ void CMayaScene::ExportLight(const MDagPath& dagPath, AtUInt step)
 
          light = AiNode("quad_light");
 
-         ExportLightData(light, dagPath, mb);
+         ExportLightData(light, dagPath, mb, customAttributes);
 
          AtPoint vertices[4];
          
@@ -170,11 +189,14 @@ void CMayaScene::ExportLight(const MDagPath& dagPath, AtUInt step)
 
          AiNodeSetArray(light, "vertices", AiArrayConvert(4, 1, AI_TYPE_POINT, vertices, true));
 
-         AiNodeSetBool(light, "affect_volumetrics", fnDagNode.findPlug("affect_volumetrics").asBool());
-         AiNodeSetBool(light, "cast_volumetric_shadows", fnDagNode.findPlug("cast_volumetric_shadows").asBool());
+         if (customAttributes)
+         {
+            AiNodeSetBool(light, "affect_volumetrics", fnDagNode.findPlug("affect_volumetrics").asBool());
+            AiNodeSetBool(light, "cast_volumetric_shadows", fnDagNode.findPlug("cast_volumetric_shadows").asBool());
 
-         AiNodeSetInt(light, "sidedness", fnDagNode.findPlug("sidedness").asInt());
-         AiNodeSetBool(light, "solid_angle", fnDagNode.findPlug("solid_angle").asBool());
+            AiNodeSetInt(light, "sidedness", fnDagNode.findPlug("sidedness").asInt());
+            AiNodeSetBool(light, "solid_angle", fnDagNode.findPlug("solid_angle").asBool());
+         }
       }
       else if (mb)
       {

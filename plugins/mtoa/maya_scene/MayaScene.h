@@ -50,7 +50,7 @@ private:
 
    void ExportCamera(const MDagPath& dagPath, AtUInt step);
    void ExportLight(const MDagPath& dagPath, AtUInt step);
-   void ExportLightData(AtNode* light, const MDagPath& dagPath, bool mb);
+   void ExportLightData(AtNode* light, const MDagPath& dagPath, bool mb, bool custom);
    void ExportLightMBData(const MDagPath& dagPath, AtUInt step);
    void ExportMesh(MObject mayaMesh, const MDagPath& dagPath, AtUInt step);
    void ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, const MDagPath& dagPath, AtUInt step);
@@ -68,7 +68,7 @@ private:
    {
       MObject mayaShader;
       AtNode* arnoldShader;
-   };  // struct CShaderData
+   };
 
    std::vector<CShaderData> m_processedShaders;
 

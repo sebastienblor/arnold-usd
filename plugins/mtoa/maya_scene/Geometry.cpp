@@ -266,6 +266,11 @@ void CMayaScene::ExportMesh(MObject mayaMesh, const MDagPath& dagPath, AtUInt st
              m_fnArnoldRenderOptions->findPlug("mb_objects_enable").asBool() &&
              fnDagNode.findPlug("motionBlur").asBool();
 
+   // Check if custom attributes have been created, ignore them otherwise
+   MStatus status;
+   fnDagNode.findPlug("subdiv_type", &status);
+   bool customAttributes = (status == MS::kSuccess);
+
    GetMatrix(matrix, dagPath);
 
    if (step == 0)
@@ -312,30 +317,36 @@ void CMayaScene::ExportMesh(MObject mayaMesh, const MDagPath& dagPath, AtUInt st
       if (!fnDagNode.findPlug("visibleInRefractions").asBool())
          visibility &= ~AI_RAY_REFRACTED;
 
-      if (!fnDagNode.findPlug("diffuse_visibility").asBool())
-         visibility &= ~AI_RAY_DIFFUSE;
+      if (customAttributes)
+      {
+         if (!fnDagNode.findPlug("diffuse_visibility").asBool())
+            visibility &= ~AI_RAY_DIFFUSE;
 
-      if (!fnDagNode.findPlug("glossy_visibility").asBool())
-         visibility &= ~AI_RAY_GLOSSY;
+         if (!fnDagNode.findPlug("glossy_visibility").asBool())
+            visibility &= ~AI_RAY_GLOSSY;
+      }
 
       AiNodeSetInt(polymesh, "visibility", visibility);
 
-      // Subdivision surfaces
-      //
-      bool subdivision = fnDagNode.findPlug("subdiv_type").asInt();
-
-      if (subdivision)
+      if (customAttributes)
       {
-         AiNodeSetInt(polymesh, "subdiv_type", 1);
-         AiNodeSetInt(polymesh, "subdiv_iterations", fnDagNode.findPlug("subdiv_iterations").asInt());
-         AiNodeSetInt(polymesh, "subdiv_adaptive_metric", fnDagNode.findPlug("subdiv_adaptive_metric").asInt());
-      }
+         // Subdivision surfaces
+         //
+         bool subdivision = fnDagNode.findPlug("subdiv_type").asInt();
 
-      // Subsurface Scattering
-      //
-      AiNodeSetInt(polymesh, "sss_max_samples", fnDagNode.findPlug("sss_max_samples").asInt());
-      AiNodeSetFlt(polymesh, "sss_sample_spacing", fnDagNode.findPlug("sss_sample_spacing").asFloat());
-      AiNodeSetBool(polymesh, "sss_use_gi", fnDagNode.findPlug("sss_use_gi").asBool());
+         if (subdivision)
+         {
+            AiNodeSetInt(polymesh, "subdiv_type", 1);
+            AiNodeSetInt(polymesh, "subdiv_iterations", fnDagNode.findPlug("subdiv_iterations").asInt());
+            AiNodeSetInt(polymesh, "subdiv_adaptive_metric", fnDagNode.findPlug("subdiv_adaptive_metric").asInt());
+         }
+
+         // Subsurface Scattering
+         //
+         AiNodeSetInt(polymesh, "sss_max_samples", fnDagNode.findPlug("sss_max_samples").asInt());
+         AiNodeSetFlt(polymesh, "sss_sample_spacing", fnDagNode.findPlug("sss_sample_spacing").asFloat());
+         AiNodeSetBool(polymesh, "sss_use_gi", fnDagNode.findPlug("sss_use_gi").asBool());
+      }
 
       ExportMeshGeometryData(polymesh, mayaMesh, dagPath, step);
    }
