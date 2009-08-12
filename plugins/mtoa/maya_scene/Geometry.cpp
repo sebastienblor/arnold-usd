@@ -342,7 +342,7 @@ void CMayaScene::ExportMesh(MObject mayaMesh, const MDagPath& dagPath, AtUInt st
             AiNodeSetFlt(polymesh, "subdiv_pixel_error", fnDagNode.findPlug("subdiv_pixel_error").asFloat());
 
             MString cameraName = fnDagNode.findPlug("subdiv_dicing_camera").asString();
-            AtNode* camera = ((cameraName != "") && (cameraName != "None")) ? AiNodeLookUpByName(cameraName.asChar()) : NULL;
+            AtNode* camera = ((cameraName != "") && (cameraName != "Default")) ? AiNodeLookUpByName(cameraName.asChar()) : NULL;
             AiNodeSetPtr(polymesh, "subdiv_dicing_camera", camera);
          }
 

@@ -57,7 +57,7 @@ global proc DicingCameraGetList()
 {
    string $values[] = `ls -type camera`;
    
-   menuItem -label "None";
+   menuItem -label "Default";
    for ($J = 0; ($J < size($values)); $J++)
    {
       int $perspective = `camera -query -orthographic $values[$J]` != true;
