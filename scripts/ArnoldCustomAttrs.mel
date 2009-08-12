@@ -88,6 +88,9 @@ global proc ArnoldCustomBoolReplace(string $attr)
    if (!attributeExists($attribName, $nodeName))
       addAttr -ln $attribName -at bool -dv ((int)$attribData[1]) $nodeName;
 
+   if ($attribData[6] != "")
+      evalDeferred $attribData[6];
+
    connectControl -index 2 ($nodeType + "_" + $attribName) $attr;
 }
 
@@ -130,6 +133,9 @@ global proc ArnoldCustomIntReplace(string $attr)
    if (!attributeExists($attribName, $nodeName))
       addAttr -ln $attribName -at long -dv ((int)$attribData[1]) -min ((int)$attribData[2]) -max ((int)$attribData[3]) $nodeName;
    
+   if ($attribData[6] != "")
+      evalDeferred $attribData[6];
+
    connectControl ($nodeType + "_" + $attribName) $attr;
 }
 
@@ -172,6 +178,9 @@ global proc ArnoldCustomFloatReplace(string $attr)
    if (!attributeExists($attribName, $nodeName))
       addAttr -ln $attribName -at "float" -dv ((float)$attribData[1]) -min ((float)$attribData[2]) -max ((float)$attribData[3]) $nodeName;
    
+   if ($attribData[6] != "")
+      evalDeferred $attribData[6];
+
    connectControl ($nodeType + "_" + $attribName) $attr;
 }
 
@@ -206,19 +215,19 @@ global proc ArnoldCustomEnumNew(string $attr)
    if (!attributeExists($attribName, $nodeName))
       addAttr -ln $attribName -at "long" -dv ((int)$attribData[1]) $nodeName;
    
+   int $val = `getAttr $attr` + 1;
+
    optionMenuGrp -label $attribData[0] ($nodeType + "_" + $attribName);
    
    // The things that MEL forces you to do...
    string $values[] = eval("string $_dummy[] = " + $attribData[2]); 
    for ($J = 0; ($J < size($values)); $J++)
       menuItem -label $values[$J];
-   
-   optionMenuGrp -edit -cc ("ArnoldCustomEnumChanged \"" + $attr + "\" \"" + $attribData[6] + "\"") ($nodeType + "_" + $attribName);
+
+   optionMenuGrp -edit -select $val -cc ("ArnoldCustomEnumChanged \"" + $attr + "\" \"" + $attribData[6] + "\"") ($nodeType + "_" + $attribName);
    
    if ($attribData[6] != "")
-   {
       evalDeferred $attribData[6];
-   }
 }
 
 global proc ArnoldCustomEnumReplace(string $attr)
@@ -234,4 +243,11 @@ global proc ArnoldCustomEnumReplace(string $attr)
       
    if (!attributeExists($attribName, $nodeName))
       addAttr -ln $attribName -at "long" -dv ((int)$attribData[1]) $nodeName;
+
+   int $val = `getAttr $attr` + 1;
+
+   optionMenuGrp -edit -select $val -cc ("ArnoldCustomEnumChanged \"" + $attr + "\" \"" + $attribData[6] + "\"") ($nodeType + "_" + $attribName);
+
+   if ($attribData[6] != "")
+      evalDeferred $attribData[6];
 }
