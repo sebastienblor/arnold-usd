@@ -154,6 +154,7 @@ void CMayaScene::ExportLight(const MDagPath& dagPath, AtUInt step)
          AiNodeSetFlt(light, "radius", fnLight.shadowRadius());
          AiNodeSetFlt(light, "cone_angle", (fnLight.coneAngle() + fnLight.penumbraAngle()) * AI_RTOD);
          AiNodeSetFlt(light, "penumbra_angle", fabsf(fnLight.penumbraAngle()) * AI_RTOD);
+         AiNodeSetFlt(light, "cosine_power", fnLight.dropOff());
 
          if (customAttributes)
          {
@@ -161,7 +162,6 @@ void CMayaScene::ExportLight(const MDagPath& dagPath, AtUInt step)
             AiNodeSetBool(light, "cast_volumetric_shadows", fnDagNode.findPlug("cast_volumetric_shadows").asBool());
 
             AiNodeSetFlt(light, "aspect_ratio", fnDagNode.findPlug("aspect_ratio").asFloat());
-            AiNodeSetFlt(light, "cosine_power", fnDagNode.findPlug("cosine_power").asFloat());
             AiNodeSetFlt(light, "lens_radius", fnDagNode.findPlug("lens_radius").asFloat());
          }
       }
