@@ -24,6 +24,8 @@ global proc AEArnoldCustomShapeAttributes(string $nodeName)
             editorTemplate -callCustom "ArnoldCustomBoolNew" "ArnoldCustomBoolReplace" "subdiv_type";
             editorTemplate -callCustom "ArnoldCustomIntNew" "ArnoldCustomIntReplace" "subdiv_iterations";
             editorTemplate -callCustom "ArnoldCustomEnumNew" "ArnoldCustomEnumReplace" "subdiv_adaptive_metric";
+            editorTemplate -callCustom "ArnoldCustomFloatNew" "ArnoldCustomFloatReplace" "subdiv_pixel_error";
+            editorTemplate -callCustom "ArnoldCustomObjectListNew" "ArnoldCustomObjectListReplace" "subdiv_dicing_camera";
             editorTemplate -addSeparator;
             editorTemplate -callCustom "ArnoldCustomBoolNew" "ArnoldCustomBoolReplace" "sss_use_gi";
             editorTemplate -callCustom "ArnoldCustomIntNew" "ArnoldCustomIntReplace" "sss_max_samples";
@@ -51,10 +53,10 @@ global proc AEArnoldCustomShapeAttributes(string $nodeName)
       case "pointLight":
       {
          editorTemplate -beginLayout "Arnold";
-            AEArnoldCommonLightAttributes($nodeName);                     
-            editorTemplate -addSeparator;
             editorTemplate -callCustom "ArnoldCustomBoolNew" "ArnoldCustomBoolReplace" "affect_volumetrics";
             editorTemplate -callCustom "ArnoldCustomBoolNew" "ArnoldCustomBoolReplace" "cast_volumetric_shadows";
+            editorTemplate -addSeparator;
+            AEArnoldCommonLightAttributes($nodeName);                     
          editorTemplate -endLayout;
          break;
       }
@@ -62,15 +64,13 @@ global proc AEArnoldCustomShapeAttributes(string $nodeName)
       case "spotLight":
       {
          editorTemplate -beginLayout "Arnold";
-            AEArnoldCommonLightAttributes($nodeName);                     
+            editorTemplate -callCustom "ArnoldCustomFloatNew" "ArnoldCustomFloatReplace" "aspect_ratio";
+            editorTemplate -callCustom "ArnoldCustomFloatNew" "ArnoldCustomFloatReplace" "lens_radius";
             editorTemplate -addSeparator;
             editorTemplate -callCustom "ArnoldCustomBoolNew" "ArnoldCustomBoolReplace" "affect_volumetrics";
             editorTemplate -callCustom "ArnoldCustomBoolNew" "ArnoldCustomBoolReplace" "cast_volumetric_shadows";
             editorTemplate -addSeparator;
-            editorTemplate -callCustom "ArnoldCustomFloatNew" "ArnoldCustomFloatReplace" "aspect_ratio";
-            editorTemplate -callCustom "ArnoldCustomFloatNew" "ArnoldCustomFloatReplace" "cosine_power";
-            editorTemplate -callCustom "ArnoldCustomFloatNew" "ArnoldCustomFloatReplace" "lens_radius";
-            
+            AEArnoldCommonLightAttributes($nodeName);                     
          editorTemplate -endLayout;
          break;
       }
@@ -78,13 +78,13 @@ global proc AEArnoldCustomShapeAttributes(string $nodeName)
       case "areaLight":
       {
          editorTemplate -beginLayout "Arnold";
-            AEArnoldCommonLightAttributes($nodeName);                     
+            editorTemplate -callCustom "ArnoldCustomEnumNew" "ArnoldCustomEnumReplace" "sidedness";
+            editorTemplate -callCustom "ArnoldCustomBoolNew" "ArnoldCustomBoolReplace" "solid_angle";
             editorTemplate -addSeparator;
             editorTemplate -callCustom "ArnoldCustomBoolNew" "ArnoldCustomBoolReplace" "affect_volumetrics";
             editorTemplate -callCustom "ArnoldCustomBoolNew" "ArnoldCustomBoolReplace" "cast_volumetric_shadows";
             editorTemplate -addSeparator;
-            editorTemplate -callCustom "ArnoldCustomEnumNew" "ArnoldCustomEnumReplace" "sidedness";
-            editorTemplate -callCustom "ArnoldCustomBoolNew" "ArnoldCustomBoolReplace" "solid_angle";
+            AEArnoldCommonLightAttributes($nodeName);                     
          editorTemplate -endLayout;
          break;
       }

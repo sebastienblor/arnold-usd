@@ -339,6 +339,11 @@ void CMayaScene::ExportMesh(MObject mayaMesh, const MDagPath& dagPath, AtUInt st
             AiNodeSetInt(polymesh, "subdiv_type", 1);
             AiNodeSetInt(polymesh, "subdiv_iterations", fnDagNode.findPlug("subdiv_iterations").asInt());
             AiNodeSetInt(polymesh, "subdiv_adaptive_metric", fnDagNode.findPlug("subdiv_adaptive_metric").asInt());
+            AiNodeSetFlt(polymesh, "subdiv_pixel_error", fnDagNode.findPlug("subdiv_pixel_error").asFloat());
+
+            MString cameraName = fnDagNode.findPlug("subdiv_dicing_camera").asString();
+            AtNode* camera = ((cameraName != "") && (cameraName != "None")) ? AiNodeLookUpByName(cameraName.asChar()) : NULL;
+            AiNodeSetPtr(polymesh, "subdiv_dicing_camera", camera);
          }
 
          // Subsurface Scattering

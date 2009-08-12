@@ -43,12 +43,23 @@ MStatus CMayaScene::ExportToArnold()
 MStatus CMayaScene::ExportScene(AtUInt step)
 {
    MStatus  status;
-
-   ExportCamera(m_camera, step);
-
    MDagPath dagPath;
-   MItDag   dagIterator(MItDag::kDepthFirst, MFn::kInvalid);
+   MItDag   dagIterCameras(MItDag::kDepthFirst, MFn::kCamera);
 
+   // First we export all cameras
+   for (dagIterCameras.reset(); (!dagIterCameras.isDone()); dagIterCameras.next())
+   {
+      if (!dagIterCameras.getPath(dagPath))
+      {
+         AiMsgError("[mtoa] ERROR: Could not get path for DAG iterator.");
+         return status;
+      }
+
+      ExportCamera(dagPath, step);
+   }
+
+   // And now we export the rest of the DAG
+   MItDag   dagIterator(MItDag::kDepthFirst, MFn::kInvalid);
    for (dagIterator.reset(); (!dagIterator.isDone()); dagIterator.next())
    {
       if (!dagIterator.getPath(dagPath))
@@ -64,8 +75,6 @@ MStatus CMayaScene::ExportScene(AtUInt step)
          dagIterator.prune();
          continue;
       }
-
-      //AiMsgDebug("Node: %s", node.name().asChar());
 
       if (dagIterator.item().hasFn(MFn::kLight))
       {
@@ -159,8 +168,6 @@ void CMayaScene::PrepareExport()
    m_currentFrame = MAnimControl::currentTime().as(MTime::uiUnit());
 
    GetMotionBlurData();
-
-   M3dView::active3dView().getCamera(m_camera);
 }
 
 void CMayaScene::GetMotionBlurData()

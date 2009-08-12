@@ -73,9 +73,11 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
          status = m_scene.ExportToArnold();
 
          MDagPath cameraPath;
-
          M3dView::active3dView().getCamera(cameraPath);
          MRenderView::setCurrentCamera(cameraPath);
+
+         MFnDagNode cameraNode(cameraPath.node());
+         AiNodeSetPtr(AiUniverseGetOptions(), "camera", AiNodeLookUpByName(cameraNode.name().asChar()));
       }
    }
    else if (mode == "stop")

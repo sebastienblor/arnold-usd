@@ -41,10 +41,11 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
    if (MRenderView::doesRenderEditorExist())
    {
       MDagPath cameraPath;
-
       M3dView::active3dView().getCamera(cameraPath);
-
       MRenderView::setCurrentCamera(cameraPath);
+
+      MFnDagNode cameraNode(cameraPath.node());
+      AiNodeSetPtr(AiUniverseGetOptions(), "camera", AiNodeLookUpByName(cameraNode.name().asChar()));
    }
 
    if (MRenderView::doesRenderEditorExist())
