@@ -312,6 +312,12 @@ void CMayaScene::ExportMesh(MObject mayaMesh, const MDagPath& dagPath, AtUInt st
       if (!fnDagNode.findPlug("visibleInRefractions").asBool())
          visibility &= ~AI_RAY_REFRACTED;
 
+      if (!fnDagNode.findPlug("diffuse_visibility").asBool())
+         visibility &= ~AI_RAY_DIFFUSE;
+
+      if (!fnDagNode.findPlug("glossy_visibility").asBool())
+         visibility &= ~AI_RAY_GLOSSY;
+
       AiNodeSetInt(polymesh, "visibility", visibility);
 
       // Subdivision surfaces

@@ -3,20 +3,39 @@ global string $ArnoldMeshAttributes[] =
 {
 //   Attribute                   Label                   Def         Min   Max            SMin  Smax        Change callback
 
-   "subdiv_type",             "Subdivision Surface",     "0",        "0",  "0",           "0",  "0",        "SubdivChange",
+   // Mesh
+   //
+   "diffuse_visibility",      "Diffuse Visibility",      "1",        "0",  "1",           "0",  "1",        "",
+   "glossy_visibility",       "Glossy Visibility",       "1",        "0",  "1",           "0",  "1",        "",
+   "subdiv_type",             "Subdivision Surface",     "0",        "0",  "1",           "0",  "1",        "SubdivChange",
    "subdiv_iterations",       "Iterations",              "1",        "1",  "100",         "1",  "10",       "",
-   "sss_use_gi",              "Use GI for SSS",          "1",        "0",  "0",           "0",  "0",        "",
+   "sss_use_gi",              "Use GI for SSS",          "1",        "0",  "1",           "0",  "1",        "",
    "sss_max_samples",         "Max. Samples for SSS",    "100000",   "0",  "1000000000",  "0",  "1000000",  "",
    "sss_sample_spacing",      "SSS Sample Spacing",      "0.1",      "0",  "10",          "0",  "1",        "",
 
+   // Lights
+   //
+   "normalize",               "Normalize",               "1",        "0",  "1",           "0",  "1",        "",
+   "bounce_factor",           "Bounce Factor",           "1",        "0",  "20",          "0",  "20",       "",
+   "bounces",                 "Bounces",                 "999",      "0",  "10000",       "0",  "999",      "",
+   "sss_samples",             "SSS Samples",             "-1",       "0",  "100",         "-1", "100",      "",
+   "affect_volumetrics",      "Affects Volumetrics",     "1",        "0",  "1",           "0",  "1",        "",
+   "cast_volumetric_shadows", "Casts Volumetric Shadows","1",        "0",  "1",           "0",  "1",        "",
+   "aspect_ratio",            "Aspect Ratio",            "1",        "0",  "100",         "0",  "1",        "",
+   "cosine_power",            "Cosine Power",            "0",        "0",  "10000",       "0",  "100",      "",
+   "lens_radius",             "Lens Radius",             "0",        "0",  "100",         "0",  "1",        "",
+   "solid_angle",             "Solid Angle Sampling",    "0",        "0",  "1",           "0",  "1",        "",
+   
 // Enums
 
-//   Attribute                   Label                   Def   Enum values                            Change callback
+//   Attribute                   Label                   Def   Enum values                             Change callback
 
-   "subdiv_adaptive_metric",  "Adaptive Metric",         "0",  "$SubdivMetricValues",  "0", "0",  "0", ""
+   "subdiv_adaptive_metric",  "Adaptive Metric",         "0",  "$SubdivMetricValues",  "0", "0",  "0", "",
+   "sidedness",               "Sidedness",               "1",  "$SidednessValues",     "0", "0",  "0", ""
 };
 
 global string $SubdivMetricValues[] = { "Automatic", "Edge Length", "Flatness" };
+global string $SidednessValues[] = { "Double", "Single" };
 
 global proc SubdivChange()
 {
@@ -50,6 +69,23 @@ global proc string[] GetCustomAttributeData(string $attrib)
    return $data;
 }
 
+proc string GetNodeType(string $name)
+{
+   string $nodeType = `nodeType $name`;
+  
+   switch($nodeType)
+   {
+      case "ambientLight":
+      case "directionalLight":
+      case "pointLight":
+      case "spotLight":
+      case "areaLight":
+         return "light";
+   }
+
+   return $nodeType;
+}
+
 global proc ArnoldCustomBoolNew(string $attr)
 {
    string $buffer[];
@@ -57,14 +93,14 @@ global proc ArnoldCustomBoolNew(string $attr)
    
    string $nodeName   = $buffer[0]; 
    string $attribName = $buffer[1];
-   string $nodeType   = `nodeType $nodeName`; 
+   string $nodeType   = GetNodeType($nodeName); 
 
    string $attribData[] = GetCustomAttributeData($attribName);   
       
    if (!attributeExists($attribName, $nodeName))
       addAttr -ln $attribName -at bool -dv ((int)$attribData[1]) $nodeName;
    
-   checkBoxGrp -label $attribData[0] ($nodeType + "_" + $attribName);
+   checkBoxGrp -label1 $attribData[0] ($nodeType + "_" + $attribName);
    
    if ($attribData[6] != "")
    {
@@ -81,7 +117,7 @@ global proc ArnoldCustomBoolReplace(string $attr)
    
    string $nodeName   = $buffer[0]; 
    string $attribName = $buffer[1];
-   string $nodeType   = `nodeType $nodeName`; 
+   string $nodeType   = GetNodeType($nodeName); 
 
    string $attribData[] = GetCustomAttributeData($attribName);   
       
@@ -101,14 +137,14 @@ global proc ArnoldCustomIntNew(string $attr)
    
    string $nodeName   = $buffer[0]; 
    string $attribName = $buffer[1];
-   string $nodeType   = `nodeType $nodeName`; 
+   string $nodeType   = GetNodeType($nodeName); 
 
    string $attribData[] = GetCustomAttributeData($attribName);   
       
    if (!attributeExists($attribName, $nodeName))
       addAttr -ln $attribName -at long -dv ((int)$attribData[1]) -min ((int)$attribData[2]) -max ((int)$attribData[3]) $nodeName;
    
-   intSliderGrp -label $attribData[0] -min ((int)$attribData[4]) -max ((int)$attribData[5]) ($nodeType + "_" + $attribName);
+   intSliderGrp -label $attribData[0] -min ((int)$attribData[4]) -max ((int)$attribData[5]) -fmn ((int)$attribData[2]) -fmx ((int)$attribData[3]) ($nodeType + "_" + $attribName);
 
    if ($attribData[6] != "")
    {
@@ -126,7 +162,7 @@ global proc ArnoldCustomIntReplace(string $attr)
    
    string $nodeName   = $buffer[0]; 
    string $attribName = $buffer[1];
-   string $nodeType   = `nodeType $nodeName`; 
+   string $nodeType   = GetNodeType($nodeName); 
 
    string $attribData[] = GetCustomAttributeData($attribName);   
       
@@ -146,14 +182,14 @@ global proc ArnoldCustomFloatNew(string $attr)
    
    string $nodeName   = $buffer[0]; 
    string $attribName = $buffer[1];
-   string $nodeType   = `nodeType $nodeName`; 
+   string $nodeType   = GetNodeType($nodeName); 
 
    string $attribData[] = GetCustomAttributeData($attribName);   
       
    if (!attributeExists($attribName, $nodeName))
       addAttr -ln $attribName -at "float" -dv ((float)$attribData[1]) -min ((float)$attribData[2]) -max ((float)$attribData[3]) $nodeName;
    
-   floatSliderGrp -label $attribData[0] -min ((float)$attribData[4]) -max ((float)$attribData[5]) ($nodeType + "_" + $attribName);
+   floatSliderGrp -label $attribData[0] -min ((float)$attribData[4]) -max ((float)$attribData[5]) -fmn ((float)$attribData[2]) -fmx ((float)$attribData[3]) ($nodeType + "_" + $attribName);
    
    if ($attribData[6] != "")
    {
@@ -171,7 +207,7 @@ global proc ArnoldCustomFloatReplace(string $attr)
    
    string $nodeName   = $buffer[0]; 
    string $attribName = $buffer[1];
-   string $nodeType   = `nodeType $nodeName`; 
+   string $nodeType   = GetNodeType($nodeName); 
 
    string $attribData[] = GetCustomAttributeData($attribName);   
       
@@ -191,7 +227,7 @@ global proc ArnoldCustomEnumChanged(string $attr, string $userChangeCB)
    
    string $nodeName   = $buffer[0]; 
    string $attribName = $buffer[1];
-   string $nodeType   = `nodeType $nodeName`; 
+   string $nodeType   = GetNodeType($nodeName); 
 
    int $val = `optionMenuGrp -query -select ($nodeType + "_" + $attribName)`;
    
@@ -208,7 +244,7 @@ global proc ArnoldCustomEnumNew(string $attr)
    
    string $nodeName   = $buffer[0]; 
    string $attribName = $buffer[1];
-   string $nodeType   = `nodeType $nodeName`; 
+   string $nodeType   = GetNodeType($nodeName); 
 
    string $attribData[] = GetCustomAttributeData($attribName);   
       
@@ -237,7 +273,7 @@ global proc ArnoldCustomEnumReplace(string $attr)
    
    string $nodeName   = $buffer[0]; 
    string $attribName = $buffer[1];
-   string $nodeType   = `nodeType $nodeName`; 
+   string $nodeType   = GetNodeType($nodeName); 
 
    string $attribData[] = GetCustomAttributeData($attribName);   
       
