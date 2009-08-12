@@ -4,20 +4,24 @@ source "AEArnoldShapeTemplate.mel";
 global proc RegisterArnoldRenderer()
 {
    createNode -skipSelect -shared -n "defaultArnoldRenderOptions" ArnoldRenderOptions;
-   
-   renderer -rendererUIName "Arnold Renderer"
-            -renderProcedure "ArnoldRender"
-            -renderRegionProcedure "mayaRenderRegion"
-            -iprRenderProcedure "ArnoldIprRender"
-            -isRunningIprProcedure "ArnoldIprIsRunning"
-            -startIprRenderProcedure "ArnoldIprStart"
-            -stopIprRenderProcedure "ArnoldIprStop"
-            -refreshIprRenderProcedure "ArnoldIprRefresh"
-            -pauseIprRenderProcedure "ArnoldIprPause"
-            -changeIprRegionProcedure "ArnoldIprChangeRegion"
-            arnold;
+
+   int $alreadyRegistered = `renderer -exists arnold`;
+   if (!$alreadyRegistered)
+   {   
+      renderer -rendererUIName "Arnold Renderer"
+               -renderProcedure "ArnoldRender"
+               -renderRegionProcedure "mayaRenderRegion"
+               -iprRenderProcedure "ArnoldIprRender"
+               -isRunningIprProcedure "ArnoldIprIsRunning"
+               -startIprRenderProcedure "ArnoldIprStart"
+               -stopIprRenderProcedure "ArnoldIprStop"
+               -refreshIprRenderProcedure "ArnoldIprRefresh"
+               -pauseIprRenderProcedure "ArnoldIprPause"
+               -changeIprRegionProcedure "ArnoldIprChangeRegion"
+               arnold;
                    
-   renderer -edit arnold -addGlobalsTab "Common" "createMayaSoftwareCommonGlobalsTab" "updateMayaSoftwareCommonGlobalsTab";
-   renderer -edit arnold -addGlobalsTab "Arnold Renderer" "CreateArnoldRendererGlobalsTab" "UpdateArnoldRendererGlobalsTab";
-   renderer -edit arnold -addGlobalsNode "defaultArnoldRenderOptions";
+      renderer -edit arnold -addGlobalsTab "Common" "createMayaSoftwareCommonGlobalsTab" "updateMayaSoftwareCommonGlobalsTab";
+      renderer -edit arnold -addGlobalsTab "Arnold Renderer" "CreateArnoldRendererGlobalsTab" "UpdateArnoldRendererGlobalsTab";
+      renderer -edit arnold -addGlobalsNode "defaultArnoldRenderOptions";
+   }
 }
