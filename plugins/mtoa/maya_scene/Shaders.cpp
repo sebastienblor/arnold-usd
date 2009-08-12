@@ -324,9 +324,7 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader)
 
    MFnDependencyNode node(mayaShader);
 
-   static char buffer[128];
-   sprintf(buffer, "[mtoa] Exporting shader: %s", node.name().asChar());
-   AiMsgDebug(buffer);
+   AiMsgDebug("[mtoa] Exporting shader: %s", node.name().asChar());
 
    switch (mayaShader.apiType())
    {
