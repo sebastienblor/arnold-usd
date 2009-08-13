@@ -6,6 +6,7 @@ global string $ArnoldMeshAttributes[] =
    // Mesh
    //
    "self_shadows",            "Self Shadows",            "1",        "0",  "1",           "0",  "1",        "",
+   "opaque",                  "Opaque",                  "1",        "0",  "1",           "0",  "1",        "",
    "diffuse_visibility",      "Visible In Diffuse",      "1",        "0",  "1",           "0",  "1",        "",
    "glossy_visibility",       "Visible In Glossy",       "1",        "0",  "1",           "0",  "1",        "",
    "subdiv_type",             "Subdivision Surface",     "0",        "0",  "1",           "0",  "1",        "SubdivChange",

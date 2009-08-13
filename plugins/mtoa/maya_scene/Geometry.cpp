@@ -330,6 +330,7 @@ void CMayaScene::ExportMesh(MObject mayaMesh, const MDagPath& dagPath, AtUInt st
       if (customAttributes)
       {
          AiNodeSetBool(polymesh, "self_shadows", fnDagNode.findPlug("self_shadows").asBool());
+         AiNodeSetBool(polymesh, "opaque", fnDagNode.findPlug("opaque").asBool());
 
          // Subdivision surfaces
          //
