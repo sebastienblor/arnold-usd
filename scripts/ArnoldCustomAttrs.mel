@@ -20,7 +20,7 @@ global string $ArnoldMeshAttributes[] =
    "bounce_factor",           "Bounce Factor",           "1",        "0",  "20",          "0",  "20",       "",
    "bounces",                 "Bounces",                 "999",      "0",  "10000",       "0",  "999",      "",
    "sss_samples",             "SSS Samples",             "-1",       "0",  "100",         "-1", "100",      "",
-   "affect_volumetrics",      "Affects Volumetrics",     "1",        "0",  "1",           "0",  "1",        "",
+   "affect_volumetrics",      "Affects Volumetrics",     "1",        "0",  "1",           "0",  "1",        "VolumetricsChange",
    "cast_volumetric_shadows", "Casts Volumetric Shadows","1",        "0",  "1",           "0",  "1",        "",
    "aspect_ratio",            "Aspect Ratio",            "1",        "0",  "100",         "0",  "1",        "",
    "lens_radius",             "Lens Radius",             "0",        "0",  "100",         "0",  "1",        "",
@@ -51,6 +51,12 @@ global proc SubdivChange()
    control -edit -enable $flag mesh_subdiv_adaptive_metric;
    control -edit -enable $flag mesh_subdiv_pixel_error;
    control -edit -enable $flag mesh_subdiv_dicing_camera;
+}
+
+global proc VolumetricsChange()
+{
+   int $flag = `checkBoxGrp -query -value1 light_affect_volumetrics` == true;
+   control -edit -enable $flag light_cast_volumetric_shadows;
 }
 
 global proc DicingCameraGetList()
