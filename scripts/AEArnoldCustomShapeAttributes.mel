@@ -18,6 +18,8 @@ global proc AEArnoldCustomShapeAttributes(string $nodeName)
       case "mesh":
       {
          editorTemplate -beginLayout "Arnold";
+            editorTemplate -callCustom "ArnoldCustomBoolNew" "ArnoldCustomBoolReplace" "self_shadows";
+            editorTemplate -addSeparator;
             editorTemplate -callCustom "ArnoldCustomBoolNew" "ArnoldCustomBoolReplace" "diffuse_visibility";
             editorTemplate -callCustom "ArnoldCustomBoolNew" "ArnoldCustomBoolReplace" "glossy_visibility";
             editorTemplate -addSeparator;

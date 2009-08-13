@@ -292,7 +292,6 @@ void CMayaScene::ExportMesh(MObject mayaMesh, const MDagPath& dagPath, AtUInt st
 
       AiNodeSetBool(polymesh, "smoothing", fnDagNode.findPlug("smoothShading").asBool());
       AiNodeSetBool(polymesh, "receive_shadows", fnDagNode.findPlug("receiveShadows").asBool());
-      AiNodeSetBool(polymesh, "self_shadows", !fnDagNode.findPlug("ignoreSelfShadowing").asBool());
 
       if (fnDagNode.findPlug("doubleSided").asBool())
          AiNodeSetInt(polymesh, "sidedness", 65535);
@@ -330,6 +329,8 @@ void CMayaScene::ExportMesh(MObject mayaMesh, const MDagPath& dagPath, AtUInt st
 
       if (customAttributes)
       {
+         AiNodeSetBool(polymesh, "self_shadows", fnDagNode.findPlug("self_shadows").asBool());
+
          // Subdivision surfaces
          //
          bool subdivision = fnDagNode.findPlug("subdiv_type").asInt();
