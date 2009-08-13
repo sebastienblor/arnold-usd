@@ -32,7 +32,14 @@ vars.AddVariables(
       PathVariable('TARGET_ICONS_PATH', 'Path used for installation of icons', '.')
 )
 
-env = Environment(variables = vars)
+if system.os() == 'windows':
+   # Ugly hack. Create a temporary environment, without loading any tool, so we can set the MSVS_ARCH
+   # variable from the contents of the TARGET_ARCH variable. Then we can load tools.
+   tmp_env = Environment(variables = vars, tools=[])
+   tmp_env.Append(MSVS_ARCH = ('amd64' if tmp_env['TARGET_ARCH'] == 'x86_64' else 'x86'))
+   env = tmp_env.Clone(tools=['default'])
+else:
+   env = Environment(variables = vars)
 
 system.set_target_arch(env['TARGET_ARCH'])
 
@@ -187,7 +194,7 @@ mtoa_new = os.path.splitext(str(MTOA[0]))[0] + '.mll'
 mtoa_shaders_new = os.path.splitext(str(MTOA_SHADERS[0]))[0] + '.mll'
 env.Command(mtoa_new, str(MTOA[0]), Copy("$TARGET", "$SOURCE"))
 env.Command(mtoa_shaders_new, str(MTOA_SHADERS[0]), Copy("$TARGET", "$SOURCE"))
-env.Install(env['TARGET_PLUGIN_PATH'], [mtoa_new, mtoa_shaders_new])
+env.Install(env['TARGET_PLUGIN_PATH'], [mtoa_new, mtoa_shaders_new] + glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*.dll')))
 env.Install(env['TARGET_SCRIPTS_PATH'], glob.glob(os.path.join('scripts', '*.mel')))
 env.Install(env['TARGET_ICONS_PATH'], glob.glob(os.path.join('icons', '*.xpm')))
 
