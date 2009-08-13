@@ -35,9 +35,9 @@ global string $ArnoldMeshAttributes[] =
    
 // Object lists
 
-//   Attribute                   Label                   Def      Enum values                             Change callback
+//   Attribute                   Label                   Def         Enum values                             Change callback
 
-   "subdiv_dicing_camera",    "Dicing Camera",           "None",  "DicingCameraGetList",  "0", "0",  "0", ""
+   "subdiv_dicing_camera",    "Dicing Camera",           "Default",  "DicingCameraGetList",  "0", "0",  "0", ""
    
 };
 
