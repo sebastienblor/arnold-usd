@@ -1,0 +1,29 @@
+
+global proc ArnoldExportAss()
+{
+   // Make sure the ArnoldRenderOptions node exists
+   createNode -skipSelect -shared -n "defaultArnoldRenderOptions" ArnoldRenderOptions;
+
+   string $window = `window -title "Export to .ass Options" -widthHeight 300 200`;
+
+   columnLayout -adjustableColumn true
+                -columnOffset "both" 20
+                -rowSpacing 10;
+      text -align "left" "File Name";
+      textField -fileName "" oa_filename;
+      
+      connectControl -fileName "oa_filename" "defaultArnoldRenderOptions.output_ass_filename"; 
+
+      checkBox -label "Use Compression" oa_compressed;
+      connectControl "oa_compressed" "defaultArnoldRenderOptions.output_ass_compressed"; 
+      
+      separator -style "none";
+      
+      rowLayout -numberOfColumns 2;
+         button -width 80 -label "Export" -command ("arnoldExportAss; deleteUI -window " + $window);
+         button -width 80 -label "Close" -command ("deleteUI -window " + $window);
+         setParent ..;
+      
+      setParent ..;
+   showWindow $window;
+}

@@ -3,6 +3,7 @@
 
 #include <maya/MFnEnumAttribute.h>
 #include <maya/MFnNumericAttribute.h>
+#include <maya/MFnTypedAttribute.h>
 
 MTypeId CArnoldRenderOptionsNode::id(0x00071000);
 
@@ -37,6 +38,8 @@ MObject CArnoldRenderOptionsNode::s_shutter_type;
 MObject CArnoldRenderOptionsNode::s_motion_steps;
 MObject CArnoldRenderOptionsNode::s_motion_frames;
 MObject CArnoldRenderOptionsNode::s_max_subdivisions;
+MObject CArnoldRenderOptionsNode::s_output_ass_filename;
+MObject CArnoldRenderOptionsNode::s_output_ass_compressed;
 MObject CArnoldRenderOptionsNode::s_background;
 MObject CArnoldRenderOptionsNode::s_atmosphere;
 
@@ -49,6 +52,7 @@ MStatus CArnoldRenderOptionsNode::initialize()
 {
    MFnNumericAttribute  nAttr;
    MFnEnumAttribute eAttr;
+   MFnTypedAttribute tAttr;
 
    s_threads_autodetect = nAttr.create("threads_autodetect", "thr_auto", MFnNumericData::kBoolean, 1);
    nAttr.setKeyable(false);
@@ -252,6 +256,14 @@ MStatus CArnoldRenderOptionsNode::initialize()
    nAttr.setMin(0);
    nAttr.setMax(999);
    addAttribute(s_max_subdivisions);
+
+   s_output_ass_filename = tAttr.create("output_ass_filename", "file", MFnData::kString);
+   tAttr.setKeyable(false);
+   addAttribute(s_output_ass_filename);
+
+   s_output_ass_compressed = nAttr.create("output_ass_compressed", "oasc", MFnNumericData::kBoolean, 0);
+   nAttr.setKeyable(false);
+   addAttribute(s_output_ass_compressed);
 
    s_background = eAttr.create("background", "bkg", 0);
    nAttr.setKeyable(false);

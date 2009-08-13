@@ -1,4 +1,5 @@
 
+#include "ArnoldExportAssCmd.h"
 #include "ArnoldRenderCmd.h"
 #include "ArnoldIprCmd.h"
 #include "nodes/ArnoldAmbientOcclusionShader.h"
@@ -79,13 +80,14 @@ MStatus initializePlugin(MObject object)
    // TODO: Add proper checking and handling of returned status
    status = plugin.registerCommand("arnoldRender", CArnoldRenderCmd::creator, CArnoldRenderCmd::newSyntax);
    status = plugin.registerCommand("arnoldIpr", CArnoldIprCmd::creator, CArnoldIprCmd::newSyntax);
+   status = plugin.registerCommand("arnoldExportAss", CArnoldExportAssCmd::creator, CArnoldExportAssCmd::newSyntax);
 
    RegisterArnoldNodes(object);
 
    MGlobal::executeCommand( MString("RegisterArnoldRenderer;") );
 
    return MS::kSuccess;
-} // initializePlugin()
+}
 
 
 __declspec(dllexport)
@@ -101,6 +103,7 @@ MStatus uninitializePlugin(MObject object)
    // TODO: Add proper checking and handling of returned status
    status = plugin.deregisterCommand("arnoldRender");
    status = plugin.deregisterCommand("arnoldIpr");
+   status = plugin.deregisterCommand("arnoldExportAss");
 
    return MS::kSuccess;
-}  // uninitializePlugin()
+}
