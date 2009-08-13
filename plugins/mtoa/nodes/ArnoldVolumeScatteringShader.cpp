@@ -50,7 +50,7 @@ MStatus CArnoldVolumeScatteringShaderNode::initialize()
    MFnEnumAttribute eAttr;
    MFnNumericAttribute nAttr;
 
-   s_affect_diffuse = nAttr.create("affect_diffuse", "ad", MFnNumericData::kFloat, 0);
+   s_affect_diffuse = nAttr.create("affect_diffuse", "ad", MFnNumericData::kFloat, 1);
    nAttr.setMin(0);
    nAttr.setMax(1);
    MAKE_INPUT(nAttr, s_affect_diffuse);
