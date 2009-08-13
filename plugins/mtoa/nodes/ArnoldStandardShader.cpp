@@ -114,7 +114,7 @@ MStatus CArnoldStandardShaderNode::initialize()
    MAKE_COLOR(s_Kr_color, "Kr_color", "krc", 1, 1, 1);
    MAKE_INPUT(nAttr, s_Kr_color);
 
-   s_Krn = nAttr.create("Krn", "krn", MFnNumericData::kFloat, 0);
+   s_Krn = nAttr.create("Krn", "krn", MFnNumericData::kFloat, 0.05f);
    nAttr.setMin(0);
    nAttr.setMax(1);
    MAKE_INPUT(nAttr, s_Krn);
@@ -194,7 +194,7 @@ MStatus CArnoldStandardShaderNode::initialize()
    s_retro_reflector = nAttr.create("retro_reflector", "retror", MFnNumericData::kBoolean, 0);
    MAKE_INPUT(nAttr, s_retro_reflector);
 
-   s_specular_Fresnel = nAttr.create("specular_Fresnel", "specf", MFnNumericData::kBoolean, 0);
+   s_specular_Fresnel = nAttr.create("specular_Fresnel", "specf", MFnNumericData::kBoolean, 0.05f);
    MAKE_INPUT(nAttr, s_specular_Fresnel);
 
    s_sss_radius = nAttr.create("sss_radius", "sssr", MFnNumericData::kFloat, 0.1f);
