@@ -14,6 +14,10 @@ void CMayaScene::ExportCamera(const MDagPath& dagPath, AtUInt step)
    MFnCamera fnCamera(dagPath);
    MFnDagNode fnDagNode(dagPath);
 
+   // Avoid exporting orthographic cameras until they are properly implemented
+   if (fnCamera.isOrtho())
+      return;
+
    bool mb = m_motionBlurData.enabled && m_fnArnoldRenderOptions->findPlug("mb_camera_enable").asBool();
 
    GetMatrix(matrix, dagPath);
