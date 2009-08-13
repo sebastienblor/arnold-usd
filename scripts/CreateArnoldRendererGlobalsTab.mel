@@ -1,5 +1,5 @@
 
-global proc UpdateOutputSettings()
+global proc UpdateRenderSettings()
 {
    int $flag = `getAttr defaultArnoldRenderOptions.threads_autodetect` == false;
    attrControlGrp -edit -enable $flag os_threads;
@@ -77,14 +77,14 @@ global proc SelectAtmosphere()
    }
 }
 
-global proc CreateArnoldOutputSettings()
+global proc CreateArnoldRenderSettings()
 {
    setUITemplate -pushTemplate attributeEditorTemplate;
-   columnLayout -adjustableColumn true arnoldOutputLayout;
+   columnLayout -adjustableColumn true arnoldRenderLayout;
       
       attrControlGrp -label "Autodetect Threads"
          -attribute defaultArnoldRenderOptions.threads_autodetect
-         -cc UpdateOutputSettings
+         -cc UpdateRenderSettings
          os_threads_autodetect;
  
       attrControlGrp -label "Threads"
@@ -339,10 +339,10 @@ global proc CreateArnoldRendererGlobalsTab()
             CreateArnoldSubdivSettings;
             setParent ..;
          
-         // Output
+         // Render
          //
-         frameLayout -label "System" -lw 100 -cll true -cl 1 arnoldOutputSettings;
-            CreateArnoldOutputSettings;
+         frameLayout -label "Render Settings" -lw 100 -cll true -cl 1 arnoldRenderSettings;
+            CreateArnoldRenderSettings;
             setParent ..;
          
          // Gamma correction
@@ -367,7 +367,7 @@ global proc CreateArnoldRendererGlobalsTab()
 
 global proc UpdateArnoldRendererGlobalsTab()
 {
-   UpdateOutputSettings();
+   UpdateRenderSettings();
    UpdateSamplingSettings();
    UpdateMotionBlurSettings();
 }
