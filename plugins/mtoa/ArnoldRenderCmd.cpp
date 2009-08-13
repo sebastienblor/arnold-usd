@@ -172,6 +172,8 @@ void CArnoldRenderCmd::ProcessArnoldRenderOptions()
       AiNodeSetInt(AiUniverseGetOptions(), "GI_refraction_depth", fnArnoldRenderOptions.findPlug("GI_refraction_depth").asInt());
       AiNodeSetInt(AiUniverseGetOptions(), "GI_total_depth", fnArnoldRenderOptions.findPlug("GI_total_depth").asInt());
 
+      AiNodeSetInt(AiUniverseGetOptions(), "max_subdivisions", fnArnoldRenderOptions.findPlug("max_subdivisions").asInt());
+
       // BACKGROUND SHADER
       //
       int background = fnArnoldRenderOptions.findPlug("background").asInt();

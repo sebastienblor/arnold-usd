@@ -57,6 +57,8 @@ public:
    static MObject s_motion_steps;
    static MObject s_motion_frames;
 
+   static MObject s_max_subdivisions;
+
    static MObject s_background;
    static MObject s_atmosphere;
 

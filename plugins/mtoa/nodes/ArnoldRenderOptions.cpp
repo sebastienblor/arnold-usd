@@ -36,6 +36,7 @@ MObject CArnoldRenderOptionsNode::s_shutter_offset;
 MObject CArnoldRenderOptionsNode::s_shutter_type;
 MObject CArnoldRenderOptionsNode::s_motion_steps;
 MObject CArnoldRenderOptionsNode::s_motion_frames;
+MObject CArnoldRenderOptionsNode::s_max_subdivisions;
 MObject CArnoldRenderOptionsNode::s_background;
 MObject CArnoldRenderOptionsNode::s_atmosphere;
 
@@ -245,6 +246,12 @@ MStatus CArnoldRenderOptionsNode::initialize()
    nAttr.setMin(0);
    nAttr.setMax(20);
    addAttribute(s_motion_frames);
+
+   s_max_subdivisions = nAttr.create("max_subdivisions", "maxs", MFnNumericData::kInt, 999);
+   nAttr.setKeyable(false);
+   nAttr.setMin(0);
+   nAttr.setMax(999);
+   addAttribute(s_max_subdivisions);
 
    s_background = eAttr.create("background", "bkg", 0);
    nAttr.setKeyable(false);

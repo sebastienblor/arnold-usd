@@ -284,6 +284,20 @@ global proc CreateArnoldMotionBlurSettings()
    setUITemplate -popTemplate;
 }
 
+global proc CreateArnoldSubdivSettings()
+{
+   setUITemplate -pushTemplate attributeEditorTemplate;
+   columnLayout -adjustableColumn true;
+      
+      attrControlGrp -label "Max. Subdivisions"
+         -attribute defaultArnoldRenderOptions.max_subdivisions
+         sub_max_subdivisions;
+
+      setParent ..;
+
+   setUITemplate -popTemplate;
+}
+
 global proc CreateArnoldRendererGlobalsTab()
 {
    // Make sure the ArnoldRenderOptions node exists
@@ -317,6 +331,12 @@ global proc CreateArnoldRendererGlobalsTab()
          //
          frameLayout -label "Motion Blur" -lw 150 -cll true -cl 1 arnoldMotionBlurSettings;
             CreateArnoldMotionBlurSettings;
+            setParent ..;
+         
+         // Subdivision Surfaces
+         //
+         frameLayout -label "Subdivision" -lw 150 -cll true -cl 1 arnoldSubdivSettings;
+            CreateArnoldSubdivSettings;
             setParent ..;
          
          // Output

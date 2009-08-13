@@ -213,6 +213,8 @@ void CArnoldIprCmd::ProcessArnoldRenderOptions()
       AiNodeSetInt(AiUniverseGetOptions(), "GI_refraction_depth", fnArnoldRenderOptions.findPlug("GI_refraction_depth").asInt());
       AiNodeSetInt(AiUniverseGetOptions(), "GI_total_depth", fnArnoldRenderOptions.findPlug("GI_total_depth").asInt());
 
+      AiNodeSetInt(AiUniverseGetOptions(), "max_subdivisions", fnArnoldRenderOptions.findPlug("max_subdivisions").asInt());
+
       int background = fnArnoldRenderOptions.findPlug("background").asInt();
 
       list.clear();
