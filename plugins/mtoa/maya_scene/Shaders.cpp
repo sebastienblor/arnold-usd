@@ -109,7 +109,6 @@ namespace // <anonymous>
          SHADER_PARAM("Fresnel", AI_TYPE_BOOLEAN);
          SHADER_PARAM("Fresnel_affect_diff", AI_TYPE_BOOLEAN);
          SHADER_PARAM("IOR", AI_TYPE_FLOAT);
-         SHADER_PARAM("Katt", AI_TYPE_RGB);
          SHADER_PARAM("Kb", AI_TYPE_FLOAT);
          SHADER_PARAM("Kd", AI_TYPE_FLOAT);
          SHADER_PARAM("Kd_color", AI_TYPE_RGB);
@@ -122,6 +121,7 @@ namespace // <anonymous>
          SHADER_PARAM("Ksss", AI_TYPE_FLOAT);
          SHADER_PARAM("Ksss_color", AI_TYPE_RGB);
          SHADER_PARAM("Kt", AI_TYPE_FLOAT);
+         SHADER_PARAM("Kt_color", AI_TYPE_RGB);
          SHADER_PARAM("Phong_exponent", AI_TYPE_FLOAT);
          SHADER_PARAM("bounce_factor", AI_TYPE_FLOAT);
          SHADER_PARAM("caustics", AI_TYPE_BOOLEAN);
@@ -132,9 +132,8 @@ namespace // <anonymous>
          SHADER_PARAM("indirect_diffuse", AI_TYPE_FLOAT);
          SHADER_PARAM("indirect_specular", AI_TYPE_FLOAT);
          SHADER_PARAM("opacity", AI_TYPE_RGB);
-         SHADER_PARAM("retro_reflector", AI_TYPE_BOOLEAN);
          SHADER_PARAM("specular_Fresnel", AI_TYPE_BOOLEAN);
-         SHADER_PARAM("sss_radius", AI_TYPE_FLOAT);
+         SHADER_PARAM("sss_radius", AI_TYPE_RGB);
       }
       else if (!strcmp(mayaNode.typeName().asChar(), "ArnoldUtilityShader"))
       {
@@ -160,14 +159,6 @@ namespace // <anonymous>
          SHADER_PARAM("samples", AI_TYPE_INT);
          SHADER_PARAM("spread", AI_TYPE_FLOAT);
          SHADER_PARAM("white", AI_TYPE_RGB);
-      }
-      else if (!strcmp(mayaNode.typeName().asChar(), "ArnoldBackgroundImageShader"))
-      {
-         shader = AiNode("background_image");
-
-         AiNodeSetStr(shader, "name", mayaNode.name().asChar());
-
-         SHADER_PARAM("filename", AI_TYPE_STRING);
       }
       else if (!strcmp(mayaNode.typeName().asChar(), "ArnoldSkyShader"))
       {
@@ -257,15 +248,6 @@ namespace // <anonymous>
          SHADER_PARAM("line_color", AI_TYPE_RGB);
          SHADER_PARAM("line_width", AI_TYPE_FLOAT);
          SHADER_PARAM("raster_space", AI_TYPE_BOOLEAN);
-      }
-      else if (!strcmp(mayaNode.typeName().asChar(), "ArnoldBSSRDFShader"))
-      {
-         shader = AiNode("bssrdf");
-
-         AiNodeSetStr(shader, "name", mayaNode.name().asChar());
-
-         SHADER_PARAM("color", AI_TYPE_ENUM);
-         SHADER_PARAM("radius", AI_TYPE_RGB);
       }
       else
       {

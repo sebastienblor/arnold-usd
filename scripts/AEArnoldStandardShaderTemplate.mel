@@ -40,7 +40,6 @@ global proc AEArnoldStandardShaderTemplate( string $nodeName )
          
          editorTemplate -beginLayout "Extended Controls" -collapse true;
             //editorTemplate -l "Receive Caustics" -addControl "caustics";
-            editorTemplate -l "Retro Reflector" -addControl "retro_reflector";
             editorTemplate -l "Direct Specularity" -addControl "direct_specular";
             editorTemplate -l "Indirect Specularity" -addControl "indirect_specular";
          editorTemplate -endLayout;
@@ -55,10 +54,10 @@ global proc AEArnoldStandardShaderTemplate( string $nodeName )
       editorTemplate -endLayout;
       
       editorTemplate -beginLayout "Transparency" -collapse true;
+         editorTemplate -l "Color" -addControl "Kt_color";
          editorTemplate -l "Weight" -addControl "Kt";
          editorTemplate -l "Index of Refraction" -addControl "IOR";
          editorTemplate -l "Backlight" -addControl "Kb";
-         editorTemplate -l "Attenuation" -addControl "Katt";
       editorTemplate -endLayout;
       
       editorTemplate -beginLayout "Subsurface scattering" -collapse true;

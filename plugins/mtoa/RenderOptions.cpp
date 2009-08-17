@@ -148,16 +148,7 @@ void CRenderOptions::ProcessArnoldRenderOptions()
       case 0:
          break;
 
-      case 1:  // Image
-         list.add("defaultBackgroundImageShader");
-         if (list.length() > 0)
-         {
-            list.getDependNode(0, node);
-            AiNodeSetPtr(AiUniverseGetOptions(), "background", m_scene->ExportShader(node));
-         }
-         break;
-
-      case 2:  // Sky
+      case 1:  // Sky
          list.add("defaultSkyShader");
          if (list.length() > 0)
          {
@@ -166,7 +157,7 @@ void CRenderOptions::ProcessArnoldRenderOptions()
          }
          break;
 
-      case 3:  // Sky_HDRI
+      case 2:  // Sky_HDRI
          list.add("defaultSky_HDRIShader");
          if (list.length() > 0)
          {

@@ -34,19 +34,13 @@ global proc SelectBackground()
       case 0:
       break;
       
-      case 1: // Image
-      {
-         createNode -shared -n "defaultBackgroundImageShader" ArnoldBackgroundImageShader;
-      }
-      break;
-      
-      case 2: // Sky
+      case 1: // Sky
       {
          createNode -shared -n "defaultSkyShader" ArnoldSkyShader;
       }
       break;
       
-      case 3: // Sky HDRI
+      case 2: // Sky HDRI
       {
          createNode -shared -n "defaultSky_HDRIShader" ArnoldSky_HDRIShader;
       }

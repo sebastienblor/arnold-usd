@@ -268,9 +268,8 @@ MStatus CArnoldRenderOptionsNode::initialize()
    s_background = eAttr.create("background", "bkg", 0);
    nAttr.setKeyable(false);
    eAttr.addField("None", 0);
-   eAttr.addField("Image", 1);
-   eAttr.addField("Sky", 2);
-   eAttr.addField("Sky HDRI", 3);
+   eAttr.addField("Sky", 1);
+   eAttr.addField("Sky HDRI", 2);
    addAttribute(s_background);
 
    s_atmosphere = eAttr.create("atmosphere", "atm", 0);

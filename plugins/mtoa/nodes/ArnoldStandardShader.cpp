@@ -9,10 +9,6 @@ MTypeId CArnoldStandardShaderNode::id(0x00072000);
 MObject CArnoldStandardShaderNode::s_Fresnel;
 MObject CArnoldStandardShaderNode::s_Fresnel_affect_diff;
 MObject CArnoldStandardShaderNode::s_IOR;
-MObject CArnoldStandardShaderNode::s_KattR;
-MObject CArnoldStandardShaderNode::s_KattG;
-MObject CArnoldStandardShaderNode::s_KattB;
-MObject CArnoldStandardShaderNode::s_Katt;
 MObject CArnoldStandardShaderNode::s_Kb;
 MObject CArnoldStandardShaderNode::s_Kd;
 MObject CArnoldStandardShaderNode::s_Kd_colorR;
@@ -37,9 +33,15 @@ MObject CArnoldStandardShaderNode::s_Ksss_colorG;
 MObject CArnoldStandardShaderNode::s_Ksss_colorB;
 MObject CArnoldStandardShaderNode::s_Ksss_color;
 MObject CArnoldStandardShaderNode::s_Kt;
+MObject CArnoldStandardShaderNode::s_Kt_colorR;
+MObject CArnoldStandardShaderNode::s_Kt_colorG;
+MObject CArnoldStandardShaderNode::s_Kt_colorB;
+MObject CArnoldStandardShaderNode::s_Kt_color;
 MObject CArnoldStandardShaderNode::s_Phong_exponent;
 MObject CArnoldStandardShaderNode::s_bounce_factor;
-MObject CArnoldStandardShaderNode::s_caustics;
+MObject CArnoldStandardShaderNode::s_enable_glossy_caustics;
+MObject CArnoldStandardShaderNode::s_enable_reflective_caustics;
+MObject CArnoldStandardShaderNode::s_enable_refractive_caustics;
 MObject CArnoldStandardShaderNode::s_direct_diffuse;
 MObject CArnoldStandardShaderNode::s_direct_specular;
 MObject CArnoldStandardShaderNode::s_emission;
@@ -53,8 +55,10 @@ MObject CArnoldStandardShaderNode::s_opacityR;
 MObject CArnoldStandardShaderNode::s_opacityG;
 MObject CArnoldStandardShaderNode::s_opacityB;
 MObject CArnoldStandardShaderNode::s_opacity;
-MObject CArnoldStandardShaderNode::s_retro_reflector;
 MObject CArnoldStandardShaderNode::s_specular_Fresnel;
+MObject CArnoldStandardShaderNode::s_sss_radiusR;
+MObject CArnoldStandardShaderNode::s_sss_radiusG;
+MObject CArnoldStandardShaderNode::s_sss_radiusB;
 MObject CArnoldStandardShaderNode::s_sss_radius;
 MObject CArnoldStandardShaderNode::s_OUT_colorR;
 MObject CArnoldStandardShaderNode::s_OUT_colorG;
@@ -89,9 +93,6 @@ MStatus CArnoldStandardShaderNode::initialize()
    nAttr.setMin(0);
    nAttr.setMax(10);
    MAKE_INPUT(nAttr, s_IOR);
-
-   MAKE_COLOR(s_Katt, "Katt", "katt", 1, 1, 1);
-   MAKE_INPUT(nAttr, s_Katt);
 
    s_Kb = nAttr.create("Kb", "kb", MFnNumericData::kFloat, 0);
    nAttr.setMin(0);
@@ -145,6 +146,9 @@ MStatus CArnoldStandardShaderNode::initialize()
    nAttr.setMax(1);
    MAKE_INPUT(nAttr, s_Kt);
 
+   MAKE_COLOR(s_Kt_color, "Kt_color", "ktc", 1, 1, 1);
+   MAKE_INPUT(nAttr, s_Kt_color);
+
    s_Phong_exponent = nAttr.create("Phong_exponent", "phonge", MFnNumericData::kFloat, 10);
    nAttr.setSoftMin(0);
    nAttr.setSoftMax(100);
@@ -157,8 +161,14 @@ MStatus CArnoldStandardShaderNode::initialize()
    nAttr.setMax(4);
    MAKE_INPUT(nAttr, s_bounce_factor);
 
-   s_caustics = nAttr.create("caustics", "caust", MFnNumericData::kBoolean, 0);
-   MAKE_INPUT(nAttr, s_caustics);
+   s_enable_glossy_caustics = nAttr.create("enable_glossy_caustics", "gcau", MFnNumericData::kBoolean, 0);
+   MAKE_INPUT(nAttr, s_enable_glossy_caustics);
+
+   s_enable_reflective_caustics = nAttr.create("enable_reflective_caustics", "rcau", MFnNumericData::kBoolean, 0);
+   MAKE_INPUT(nAttr, s_enable_reflective_caustics);
+
+   s_enable_refractive_caustics = nAttr.create("enable_refractive_caustics", "fcau", MFnNumericData::kBoolean, 0);
+   MAKE_INPUT(nAttr, s_enable_refractive_caustics);
 
    s_direct_diffuse = nAttr.create("direct_diffuse", "directd", MFnNumericData::kFloat, 1);
    nAttr.setMin(0);
@@ -191,15 +201,10 @@ MStatus CArnoldStandardShaderNode::initialize()
    MAKE_COLOR(s_opacity, "opacity", "opac", 1, 1, 1);
    MAKE_INPUT(nAttr, s_opacity);
 
-   s_retro_reflector = nAttr.create("retro_reflector", "retror", MFnNumericData::kBoolean, 0);
-   MAKE_INPUT(nAttr, s_retro_reflector);
-
    s_specular_Fresnel = nAttr.create("specular_Fresnel", "specf", MFnNumericData::kBoolean, 0.05f);
    MAKE_INPUT(nAttr, s_specular_Fresnel);
 
-   s_sss_radius = nAttr.create("sss_radius", "sssr", MFnNumericData::kFloat, 0.1f);
-   nAttr.setMin(0);
-   nAttr.setMax(10);
+   MAKE_COLOR(s_sss_radius, "sss_radius", "sssr", 0.1f, 0.1f, 0.1f);
    MAKE_INPUT(nAttr, s_sss_radius);
 
    // OUTPUT ATTRIBUTES
@@ -215,7 +220,6 @@ MStatus CArnoldStandardShaderNode::initialize()
    attributeAffects(s_Fresnel, s_OUT_color);
    attributeAffects(s_Fresnel_affect_diff, s_OUT_color);
    attributeAffects(s_IOR, s_OUT_color);
-   attributeAffects(s_Katt, s_OUT_color);
    attributeAffects(s_Kb, s_OUT_color);
    attributeAffects(s_Kd, s_OUT_color);
    attributeAffects(s_Kd_color, s_OUT_color);
@@ -228,9 +232,12 @@ MStatus CArnoldStandardShaderNode::initialize()
    attributeAffects(s_Ksss, s_OUT_color);
    attributeAffects(s_Ksss_color, s_OUT_color);
    attributeAffects(s_Kt, s_OUT_color);
+   attributeAffects(s_Kt_color, s_OUT_color);
    attributeAffects(s_Phong_exponent, s_OUT_color);
    attributeAffects(s_bounce_factor, s_OUT_color);
-   attributeAffects(s_caustics, s_OUT_color);
+   attributeAffects(s_enable_glossy_caustics, s_OUT_color);
+   attributeAffects(s_enable_reflective_caustics, s_OUT_color);
+   attributeAffects(s_enable_refractive_caustics, s_OUT_color);
    attributeAffects(s_direct_diffuse, s_OUT_color);
    attributeAffects(s_direct_specular, s_OUT_color);
    attributeAffects(s_emission, s_OUT_color);
@@ -238,7 +245,6 @@ MStatus CArnoldStandardShaderNode::initialize()
    attributeAffects(s_indirect_diffuse, s_OUT_color);
    attributeAffects(s_indirect_specular, s_OUT_color);
    attributeAffects(s_opacity, s_OUT_color);
-   attributeAffects(s_retro_reflector, s_OUT_color);
    attributeAffects(s_specular_Fresnel, s_OUT_color);
    attributeAffects(s_sss_radius, s_OUT_color);
 

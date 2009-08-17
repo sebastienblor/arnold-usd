@@ -25,10 +25,6 @@ public:
    static MObject s_Fresnel;
    static MObject s_Fresnel_affect_diff;
    static MObject s_IOR;
-   static MObject s_KattR;
-   static MObject s_KattG;
-   static MObject s_KattB;
-   static MObject s_Katt;
    static MObject s_Kb;
    static MObject s_Kd;
    static MObject s_Kd_colorR;
@@ -53,9 +49,15 @@ public:
    static MObject s_Ksss_colorB;
    static MObject s_Ksss_color;
    static MObject s_Kt;
+   static MObject s_Kt_colorR;
+   static MObject s_Kt_colorG;
+   static MObject s_Kt_colorB;
+   static MObject s_Kt_color;
    static MObject s_Phong_exponent;
    static MObject s_bounce_factor;
-   static MObject s_caustics;
+   static MObject s_enable_glossy_caustics;
+   static MObject s_enable_reflective_caustics;
+   static MObject s_enable_refractive_caustics;
    static MObject s_direct_diffuse;
    static MObject s_direct_specular;
    static MObject s_emission;
@@ -69,8 +71,10 @@ public:
    static MObject s_opacityG;
    static MObject s_opacityB;
    static MObject s_opacity;
-   static MObject s_retro_reflector;
    static MObject s_specular_Fresnel;
+   static MObject s_sss_radiusR;
+   static MObject s_sss_radiusG;
+   static MObject s_sss_radiusB;
    static MObject s_sss_radius;
 
    // Output attributes
