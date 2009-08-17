@@ -41,7 +41,7 @@ void CRenderInstance::Init()
    AiBegin();
 
    // TODO: For now, we will use stdout (in Maya, it will go to the output window)
-   AiSetLogOptions(NULL, AI_LOG_ALL, 1000, 4);
+   AiMsgSetLogOptions(NULL, AI_LOG_ALL, 1000);
 
    AiNodeInstall(AI_NODE_DRIVER, AI_TYPE_NONE, "renderview_display",  NULL, (AtNodeMethods*) mtoa_driver_mtd, AI_VERSION);
 
