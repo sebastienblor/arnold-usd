@@ -23,5 +23,10 @@ global proc RegisterArnoldRenderer()
       renderer -edit arnold -addGlobalsTab "Common" "createMayaSoftwareCommonGlobalsTab" "updateMayaSoftwareCommonGlobalsTab";
       renderer -edit arnold -addGlobalsTab "Arnold Renderer" "CreateArnoldRendererGlobalsTab" "UpdateArnoldRendererGlobalsTab";
       renderer -edit arnold -addGlobalsNode "defaultArnoldRenderOptions";
+
+      // Add option in 'Render' menu to export to an .ass file 
+      RenRenderMenu mainRenderMenu;
+      menuItem -parent mainRenderMenu -divider true;
+      menuItem -parent mainRenderMenu -label "Export to Ass..." -c "ArnoldExportAss" exportToAssMenuItem;
    }
 }

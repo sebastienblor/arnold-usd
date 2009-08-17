@@ -1,4 +1,6 @@
 global proc UnregisterArnoldRenderer()
 {
    renderer arnold -unregisterRenderer;
+
+   deleteUI exportToAssMenuItem;
 }
