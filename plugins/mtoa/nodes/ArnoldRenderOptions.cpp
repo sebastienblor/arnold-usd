@@ -40,6 +40,7 @@ MObject CArnoldRenderOptionsNode::s_motion_frames;
 MObject CArnoldRenderOptionsNode::s_max_subdivisions;
 MObject CArnoldRenderOptionsNode::s_output_ass_filename;
 MObject CArnoldRenderOptionsNode::s_output_ass_compressed;
+MObject CArnoldRenderOptionsNode::s_output_ass_mask;
 MObject CArnoldRenderOptionsNode::s_background;
 MObject CArnoldRenderOptionsNode::s_atmosphere;
 
@@ -264,6 +265,12 @@ MStatus CArnoldRenderOptionsNode::initialize()
    s_output_ass_compressed = nAttr.create("output_ass_compressed", "oasc", MFnNumericData::kBoolean, 0);
    nAttr.setKeyable(false);
    addAttribute(s_output_ass_compressed);
+
+   s_output_ass_mask = nAttr.create("output_ass_mask", "oamask", MFnNumericData::kInt, 0xFFFF);
+   nAttr.setKeyable(false);
+   nAttr.setMin(0);
+   nAttr.setMax(0xFFFF);
+   addAttribute(s_output_ass_mask);
 
    s_background = eAttr.create("background", "bkg", 0);
    nAttr.setKeyable(false);

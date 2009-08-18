@@ -1,10 +1,42 @@
 
+global proc GetMaskAndExportAss()
+{
+   int $mask = 0;
+   
+   if (`checkBox -q -value oa_export_options` == true) $mask += 1;
+   if (`checkBox -q -value oa_export_cameras` == true) $mask += 2;
+   if (`checkBox -q -value oa_export_lights` == true) $mask += 4;
+   if (`checkBox -q -value oa_export_shapes` == true) $mask += 8;
+   if (`checkBox -q -value oa_export_shaders` == true) $mask += 16;
+   if (`checkBox -q -value oa_export_override` == true) $mask += 32;
+   if (`checkBox -q -value oa_export_drivers` == true) $mask += 64;
+   if (`checkBox -q -value oa_export_filters` == true) $mask += 128;
+
+   setAttr defaultArnoldRenderOptions.output_ass_mask $mask;
+   
+   arnoldExportAss;
+}
+
+global proc ReadMaskValues()
+{
+   int $mask = `getAttr defaultArnoldRenderOptions.output_ass_mask`;
+   
+   checkBox -edit -value ($mask / 128) oa_export_filters; $mask = $mask % 128;
+   checkBox -edit -value ($mask / 64) oa_export_drivers; $mask = $mask % 64;
+   checkBox -edit -value ($mask / 32) oa_export_override; $mask = $mask % 32;
+   checkBox -edit -value ($mask / 16) oa_export_shaders; $mask = $mask % 16;
+   checkBox -edit -value ($mask / 8) oa_export_shapes; $mask = $mask % 8;
+   checkBox -edit -value ($mask / 4) oa_export_lights; $mask = $mask % 4;
+   checkBox -edit -value ($mask / 2) oa_export_cameras; $mask = $mask % 2;
+   checkBox -edit -value $mask oa_export_options;
+}
+
 global proc ArnoldExportAss()
 {
    // Make sure the ArnoldRenderOptions node exists
    createNode -skipSelect -shared -n "defaultArnoldRenderOptions" ArnoldRenderOptions;
 
-   string $window = `window -title "Export to .ass Options" -widthHeight 300 200`;
+   string $window = `window -title "Export to .ass Options" -resizeToFitChildren true`;
 
    columnLayout -adjustableColumn true
                 -columnOffset "both" 20
@@ -18,12 +50,34 @@ global proc ArnoldExportAss()
       connectControl "oa_compressed" "defaultArnoldRenderOptions.output_ass_compressed"; 
       
       separator -style "none";
+
+      text "Export Node Types";
+      frameLayout -label "";
+         columnLayout -adjustableColumn true
+               -columnOffset "both" 10
+               -rowSpacing 10;
+            checkBox -align "left" -label "Export Options Node" -value true oa_export_options;
+            checkBox -align "left" -label "Export Cameras" -value true oa_export_cameras;
+            checkBox -align "left" -label "Export Lights" -value true oa_export_lights;
+            checkBox -align "left" -label "Export Shapes" -value true oa_export_shapes;
+            checkBox -align "left" -label "Export Shaders" -value true oa_export_shaders;
+            checkBox -align "left" -label "Export Override Nodes" -value true oa_export_override;
+            checkBox -align "left" -label "Export Drivers" -value true oa_export_drivers;
+            checkBox -align "left" -label "Export Filters" -value true oa_export_filters;
+         
+            ReadMaskValues();
+            
+            setParent ..;
+         setParent ..;
+
+      separator -style "none";
       
       rowLayout -numberOfColumns 2;
-         button -width 80 -label "Export" -command ("arnoldExportAss; deleteUI -window " + $window);
+         button -width 80 -label "Export" -command ("GetMaskAndExportAss; deleteUI -window " + $window);
          button -width 80 -label "Close" -command ("deleteUI -window " + $window);
          setParent ..;
       
       setParent ..;
+   
    showWindow $window;
 }

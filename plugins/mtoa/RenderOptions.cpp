@@ -19,6 +19,7 @@ CRenderOptions::CRenderOptions()
 ,  m_clearBeforeRender(false)
 ,  m_gamma(1.0f)
 ,  m_scene(NULL)
+,  m_outputAssMask(AI_NODE_ALL)
 {
 }
 
@@ -132,6 +133,7 @@ void CRenderOptions::ProcessArnoldRenderOptions()
 
       m_outputAssFile       = fnArnoldRenderOptions.findPlug("output_ass_filename").asString();
       m_outputAssCompressed = fnArnoldRenderOptions.findPlug("output_ass_compressed").asBool();
+      m_outputAssMask       = fnArnoldRenderOptions.findPlug("output_ass_mask").asInt();
 
       // If the scene has not been set, avoid crashing by using a NULL pointer
       if (!m_scene)

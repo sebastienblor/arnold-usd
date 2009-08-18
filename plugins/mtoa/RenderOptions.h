@@ -75,6 +75,11 @@ public:
       return m_outputAssCompressed;
    }
 
+   AtUInt outputAssMask() const
+   {
+      return m_outputAssMask;
+   }
+
 private:
 
    void ProcessCommonRenderOptions();
@@ -91,6 +96,7 @@ private:
 
    MString m_outputAssFile;
    bool m_outputAssCompressed;
+   AtUInt m_outputAssMask;
 
    CMayaScene* m_scene;
 };

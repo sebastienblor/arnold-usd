@@ -61,6 +61,7 @@ public:
 
    static MObject s_output_ass_filename;
    static MObject s_output_ass_compressed;
+   static MObject s_output_ass_mask;
 
    static MObject s_background;
    static MObject s_atmosphere;

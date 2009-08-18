@@ -53,7 +53,7 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    else
    {
       AiMsgInfo("[mtoa] Exporting Maya scene to file '%s'", fileName.asChar());
-      AiASSWrite(fileName.asChar(), AI_NODE_ALL, false);
+      AiASSWrite(fileName.asChar(), m_renderOptions.outputAssMask(), false);
    }
 
    AiEnd();
