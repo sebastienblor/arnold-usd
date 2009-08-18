@@ -73,7 +73,7 @@ void CRenderOptions::ProcessCommonRenderOptions()
 
             m_width  = fnRes.findPlug("width").asShort();
             m_height = fnRes.findPlug("height").asShort();
-            m_pixelAspectRatio = ((float)m_height / m_width) * fnRes.findPlug("deviceAspectRatio").asFloat();
+            m_pixelAspectRatio = 1.0f / (((float)m_height / m_width) * fnRes.findPlug("deviceAspectRatio").asFloat());
    
             if (m_useRenderRegion)
             {
