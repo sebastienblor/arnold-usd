@@ -30,7 +30,8 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    AiBegin();
 
    // TODO: For now, we will use stdout (in Maya, it will go to the output window)
-   AiMsgSetLogOptions(NULL, AI_LOG_ALL, 1000);
+   AiMsgSetMaxWarnings(1000);
+   AiMsgSetConsoleFlags(AI_LOG_ALL);
 
    m_renderOptions.GetRenderOptions(&m_scene);
 

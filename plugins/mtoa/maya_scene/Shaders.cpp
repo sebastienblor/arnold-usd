@@ -166,44 +166,17 @@ namespace // <anonymous>
 
          AiNodeSetStr(shader, "name", mayaNode.name().asChar());
 
-         if (mayaNode.findPlug("separate_colors").asBool())
-         {
-            SHADER_PARAM("emission_color", AI_TYPE_RGB);
-            SHADER_PARAM("emission_intensity", AI_TYPE_FLOAT);
-         }
-         else
-         {
-            MPlug plug = mayaNode.findPlug("color");
-            AiNodeSetRGB(shader, "emission_color", plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
-            AiNodeSetFlt(shader, "emission_intensity", mayaNode.findPlug("intensity").asFloat());
-         }
-
-         SHADER_PARAM("color", AI_TYPE_RGB);
-         SHADER_PARAM("intensity", AI_TYPE_FLOAT);
-         SHADER_PARAM("opaque_alpha", AI_TYPE_BOOLEAN);
-         SHADER_PARAM("visible", AI_TYPE_BOOLEAN);
-      }
-      else if (!strcmp(mayaNode.typeName().asChar(), "ArnoldSky_HDRIShader"))
-      {
-         shader = AiNode("sky_HDRI");
-
-         AiNodeSetStr(shader, "name", mayaNode.name().asChar());
-
-         SHADER_PARAM("HDRI_map", AI_TYPE_STRING);
          SHADER_PARAM("X", AI_TYPE_VECTOR);
          SHADER_PARAM("Y", AI_TYPE_VECTOR);
          SHADER_PARAM("Z", AI_TYPE_VECTOR);
          SHADER_PARAM("X_angle", AI_TYPE_FLOAT);
          SHADER_PARAM("Y_angle", AI_TYPE_FLOAT);
          SHADER_PARAM("Z_angle", AI_TYPE_FLOAT);
-         SHADER_PARAM("flip_X", AI_TYPE_BOOLEAN);
-         SHADER_PARAM("flip_Y", AI_TYPE_BOOLEAN);
-         SHADER_PARAM("flip_Z", AI_TYPE_BOOLEAN);
          SHADER_PARAM("format", AI_TYPE_ENUM);
-         SHADER_PARAM("multiplier", AI_TYPE_FLOAT);
+         SHADER_PARAM("color", AI_TYPE_RGB);
+         SHADER_PARAM("intensity", AI_TYPE_FLOAT);
          SHADER_PARAM("opaque_alpha", AI_TYPE_BOOLEAN);
-         SHADER_PARAM("rgb_multiplier", AI_TYPE_RGB);
-         SHADER_PARAM("visibility", AI_TYPE_INT);
+         SHADER_PARAM("visible", AI_TYPE_BOOLEAN);
       }
       else if (!strcmp(mayaNode.typeName().asChar(), "ArnoldFogShader"))
       {

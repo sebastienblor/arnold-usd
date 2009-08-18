@@ -6,7 +6,6 @@
 #include "nodes/ArnoldFogShader.h"
 #include "nodes/ArnoldRenderOptions.h"
 #include "nodes/ArnoldSkyShader.h"
-#include "nodes/ArnoldSky_HDRIShader.h"
 #include "nodes/ArnoldStandardShader.h"
 #include "nodes/ArnoldUtilityShader.h"
 #include "nodes/ArnoldVolumeScatteringShader.h"
@@ -36,7 +35,6 @@ namespace // <anonymous>
       // Special shaders (not visible from Maya shaders menu)
       status = plugin.registerNode("ArnoldFogShader", CArnoldFogShaderNode::id, CArnoldFogShaderNode::creator, CArnoldFogShaderNode::initialize);
       status = plugin.registerNode("ArnoldSkyShader", CArnoldSkyShaderNode::id, CArnoldSkyShaderNode::creator, CArnoldSkyShaderNode::initialize);
-      status = plugin.registerNode("ArnoldSky_HDRIShader", CArnoldSky_HDRIShaderNode::id, CArnoldSky_HDRIShaderNode::creator, CArnoldSky_HDRIShaderNode::initialize);
       status = plugin.registerNode("ArnoldVolumeScatteringShader", CArnoldVolumeScatteringShaderNode::id, CArnoldVolumeScatteringShaderNode::creator, CArnoldVolumeScatteringShaderNode::initialize);
    }
 
@@ -56,7 +54,6 @@ namespace // <anonymous>
 
       status = plugin.deregisterNode(CArnoldFogShaderNode::id);
       status = plugin.deregisterNode(CArnoldSkyShaderNode::id);
-      status = plugin.deregisterNode(CArnoldSky_HDRIShaderNode::id);
       status = plugin.deregisterNode(CArnoldVolumeScatteringShaderNode::id);
    }
 

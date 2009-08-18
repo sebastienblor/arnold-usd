@@ -156,15 +156,6 @@ void CRenderOptions::ProcessArnoldRenderOptions()
             AiNodeSetPtr(AiUniverseGetOptions(), "background", m_scene->ExportShader(node));
          }
          break;
-
-      case 2:  // Sky_HDRI
-         list.add("defaultSky_HDRIShader");
-         if (list.length() > 0)
-         {
-            list.getDependNode(0, node);
-            AiNodeSetPtr(AiUniverseGetOptions(), "background", m_scene->ExportShader(node));
-         }
-         break;
       }
 
       // ATMOSPHERE SHADER

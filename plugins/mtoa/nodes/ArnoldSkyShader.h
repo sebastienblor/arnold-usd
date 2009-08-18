@@ -22,20 +22,29 @@ public:
 	static MTypeId id;
 
    // Input attributes
+   static MObject s_XX;
+   static MObject s_XY;
+   static MObject s_XZ;
+   static MObject s_X;
+   static MObject s_X_angle;
+   static MObject s_YX;
+   static MObject s_YY;
+   static MObject s_YZ;
+   static MObject s_Y;
+   static MObject s_Y_angle;
+   static MObject s_ZX;
+   static MObject s_ZY;
+   static MObject s_ZZ;
+   static MObject s_Z;
+   static MObject s_Z_angle;
    static MObject s_colorR;
    static MObject s_colorG;
    static MObject s_colorB;
    static MObject s_color;
-   static MObject s_emission_colorR;
-   static MObject s_emission_colorG;
-   static MObject s_emission_colorB;
-   static MObject s_emission_color;
-   static MObject s_emission_intensity;
    static MObject s_intensity;
+   static MObject s_format;
    static MObject s_opaque_alpha;
    static MObject s_visible;
-
-   static MObject s_separate_colors;
 
    // Output attributes
    static MObject s_OUT_colorR;

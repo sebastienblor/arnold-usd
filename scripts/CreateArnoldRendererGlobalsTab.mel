@@ -39,12 +39,6 @@ global proc SelectBackground()
          createNode -shared -n "defaultSkyShader" ArnoldSkyShader;
       }
       break;
-      
-      case 2: // Sky HDRI
-      {
-         createNode -shared -n "defaultSky_HDRIShader" ArnoldSky_HDRIShader;
-      }
-      break;
    }
 }
 
