@@ -15,8 +15,41 @@
 #include <maya/MFnSpotLight.h>
 #include <maya/MMatrix.h>
 #include <maya/MPlug.h>
+#include <maya/MSelectionList.h>
 #include <maya/MTransformationMatrix.h>
 #include <maya/MVector.h>
+
+#include <vector>
+
+void CMayaScene::ExportLightFilters(AtNode* light, MString filterNames)
+{
+   MSelectionList list;
+   MObject        node;
+
+   char* filterList = const_cast<char*>(filterNames.asChar());
+   char* filterName = strtok(filterList, ":");
+   
+   std::vector<AtNode*> filters;
+
+   while (filterName != NULL)
+   {
+      list.clear();
+      list.add(filterName);
+
+      if (list.length() > 0)
+      {
+         list.getDependNode(0, node);
+
+         AtNode* filter = ExportShader(node);
+
+         filters.push_back(filter);
+
+         filterName = strtok(NULL, ":");
+      }
+   }
+
+   AiNodeSetArray(light, "filters", AiArrayConvert(filters.size(), 1, AI_TYPE_POINTER, &filters[0], TRUE));
+}
 
 void CMayaScene::ExportLightData(AtNode* light, const MDagPath& dagPath, bool mb, bool custom)
 {
@@ -48,6 +81,11 @@ void CMayaScene::ExportLightData(AtNode* light, const MDagPath& dagPath, bool mb
 
       AiNodeSetInt(light, "bounces", fnDagNode.findPlug("bounces").asInt());
       AiNodeSetFlt(light, "bounce_factor", fnDagNode.findPlug("bounce_factor").asFloat());
+
+      MString filters = fnDagNode.findPlug("light_filters").asString();
+
+      if (filters != "")
+         ExportLightFilters(light, filters);
    }
 
    GetMatrix(matrix, dagPath);

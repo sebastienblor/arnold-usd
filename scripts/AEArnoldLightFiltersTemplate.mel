@@ -1,0 +1,161 @@
+
+global proc AddLightFilterCB(string $lightNode, string $list)
+{
+   string $attr = ($lightNode + ".light_filters");
+   string $filter[] = `textScrollList -q -si alf_filter_list`;
+   string $filters  = `getAttr $attr`;
+   
+   switch($filter[0])
+   {
+      case "Barndoor": $filters += ":" + `createNode -skipSelect ArnoldBarndoorShader`; break;
+      case "Gobo": $filters += ":" + `createNode -skipSelect ArnoldGoboShader`; break;
+      case "Light Blocker": $filters += ":" + `createNode -skipSelect ArnoldLightBlockerShader`; break;
+      case "Light Decay": $filters += ":" + `createNode -skipSelect ArnoldLightDecayShader`; break;
+   }
+   
+   setAttr -type "string" $attr $filters;
+   
+   LightFiltersGetList($lightNode, $list);
+}
+
+global proc AddLightFilter(string $lightNode, string $list)
+{
+   string $window = `window -title "Add Light Filter" -resizeToFitChildren true`;
+
+   string $addCmd = "AddLightFilterCB " + $lightNode + " " + $list; 
+   
+   columnLayout -adjustableColumn true
+                -columnOffset "both" 20
+                -rowSpacing 10;
+      textScrollList -nr 4 -ams false -dcc ($addCmd + "; deleteUI -window " + $window)
+         -append "Barndoor"
+         -append "Gobo"
+         -append "Light Blocker"
+         -append "Light Decay"
+         alf_filter_list;
+   
+      rowLayout -numberOfColumns 2;
+         button -width 80 -label "Add" -command ($addCmd + "; deleteUI -window " + $window);
+         button -width 80 -label "Cancel" -command ("deleteUI -window " + $window);
+         setParent ..;
+      setParent ..;      
+   
+   showWindow $window;
+}
+
+global proc RemoveLightFilter(string $lightNode, string $list)
+{
+   string $attr = ($lightNode + ".light_filters");
+   string $filter[] = `textScrollList -q -si $list`;
+   string $filters  = `getAttr $attr`;
+
+   string $buffer[];
+   tokenize $filters ":" $buffer;
+   
+   string $new_filters = "";
+   for ($J = 0; ($J < size($buffer)); $J++)
+   {
+      if ($buffer[$J] != $filter[0])
+         $new_filters += ($new_filters == "") ? $buffer[$J] : ":" + $buffer[$J]; 
+   }
+
+   setAttr -type "string" $attr $new_filters;
+   
+   LightFiltersGetList($lightNode, $list);
+}
+
+global proc LightFiltersGetList(string $node, string $list)
+{
+   string $values = `getAttr ($node + ".light_filters")`;
+   
+   string $buffer[];
+   tokenize $values ":" $buffer;
+   
+   textScrollList -edit -removeAll $list;
+   for ($J = 0; ($J < size($buffer)); $J++)
+   {
+      textScrollList -edit -append $buffer[$J] $list;
+   }
+}
+
+global proc ArnoldCustomLightFiltersChanged(string $attr, string $userChangeCB)
+{
+   string $buffer[];
+   tokenize $attr "." $buffer;
+   
+   string $nodeName   = $buffer[0]; 
+   string $attribName = $buffer[1];
+   string $nodeType   = GetNodeType($nodeName); 
+
+   if ($userChangeCB != "")
+      evalDeferred($userChangeCB);
+}
+
+global proc ArnoldCustomLightFiltersNew(string $attr)
+{
+   string $buffer[];
+   tokenize $attr "." $buffer;
+   
+   string $nodeName   = $buffer[0]; 
+   string $attribName = $buffer[1];
+   string $nodeType   = GetNodeType($nodeName);
+
+   string $attribData[] = GetCustomAttributeData($attribName);   
+
+   if (!attributeExists($attribName, $nodeName))
+   {
+      addAttr -ln $attribName -dt "string" $nodeName;
+      setAttr -type "string" $attr $attribData[1];
+   }
+
+   string $uiName = $nodeType + "_" + $attribName; 
+   string $updateCmd = "string $val[] = \`textScrollList -q -si " + $uiName + "\`; updateAE $val[0]";
+   
+   rowLayout -nc 2 -cw2 100 40 -adjustableColumn 1;
+      textScrollList -nr 4 -ams false -dcc $updateCmd $uiName;
+      columnLayout -rs 10;
+         symbolButton -image arrowUp.xpm -c MoveLightFilterUp;
+         symbolButton -image arrowDown.xpm -c MoveLightFilterDown;
+         setParent ..;
+      setParent ..;
+
+   rowLayout -nc 2;
+      button -w 50 -label "Add" -c ("AddLightFilter " + $nodeName + " " + $uiName) lf_add_button;
+      button -w 50 -label "Remove" -c ("RemoveLightFilter " + $nodeName + " " + $uiName) lf_remove_button;
+      setParent ..;
+   
+   LightFiltersGetList($nodeName, $uiName);
+
+   if ($attribData[6] != "")
+      evalDeferred $attribData[6];
+}
+
+global proc ArnoldCustomLightFiltersReplace(string $attr)
+{
+   string $buffer[];
+   tokenize $attr "." $buffer;
+   
+   string $nodeName   = $buffer[0]; 
+   string $attribName = $buffer[1];
+   string $nodeType   = GetNodeType($nodeName); 
+
+   string $attribData[] = GetCustomAttributeData($attribName);   
+
+   if (!attributeExists($attribName, $nodeName))
+   {
+      addAttr -ln $attribName -dt "string" $nodeName;
+      setAttr -type "string" $attr $attribData[1];
+   }
+
+   string $uiName = $nodeType + "_" + $attribName; 
+   string $updateCmd = "string $val[] = \`textScrollList -q -si " + $uiName + "\`; updateAE $val[0]";
+   
+   textScrollList -edit -dcc $updateCmd $uiName;
+   button -edit -c ("AddLightFilter " + $nodeName + " " + $uiName) lf_add_button;
+   button -edit -c ("RemoveLightFilter " + $nodeName + " " + $uiName) lf_remove_button;
+   
+   LightFiltersGetList($nodeName, $uiName);
+
+   if ($attribData[6] != "")
+      evalDeferred $attribData[6];
+}

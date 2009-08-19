@@ -44,7 +44,7 @@ global string $ArnoldMeshAttributes[] =
 
 // Light filters
 
-   "light_filters",           "Light Filters",           "",         "LightFiltersGetList",  "0", "0",  "0", ""
+   "light_filters",           "Light Filters",           "",         "",  "0", "0",  "0", ""
    
 };
 
@@ -79,19 +79,6 @@ global proc DicingCameraGetList()
    }
 } 
 
-global proc LightFiltersGetList(string $node, string $list)
-{
-   string $values = `getAttr $node + ".filters"`;
-   
-   string $buffer[];
-   tokenize $values ":" $buffer;
-   
-   for ($J = 0; ($J < size($buffer)); $J++)
-   {
-      textScrollList -edit -append $buffer[$J] $list;
-   }
-}
-
 global proc string[] GetCustomAttributeData(string $attrib)
 {
    global string $ArnoldMeshAttributes[];
@@ -117,7 +104,7 @@ global proc string[] GetCustomAttributeData(string $attrib)
    return $data;
 }
 
-proc string GetNodeType(string $name)
+global proc string GetNodeType(string $name)
 {
    string $nodeType = `nodeType $name`;
   
@@ -407,71 +394,6 @@ global proc ArnoldCustomObjectListReplace(string $attr)
    string $val = `getAttr $attr`;
 
    optionMenuGrp -edit -value $val -cc ("ArnoldCustomObjectListChanged \"" + $attr + "\" \"" + $attribData[6] + "\"") ($nodeType + "_" + $attribName);
-
-   if ($attribData[6] != "")
-      evalDeferred $attribData[6];
-}
-
-global proc ArnoldCustomLightFiltersChanged(string $attr, string $userChangeCB)
-{
-   string $buffer[];
-   tokenize $attr "." $buffer;
-   
-   string $nodeName   = $buffer[0]; 
-   string $attribName = $buffer[1];
-   string $nodeType   = GetNodeType($nodeName); 
-
-   if ($userChangeCB != "")
-      evalDeferred($userChangeCB);
-}
-
-global proc ArnoldCustomLightFiltersNew(string $attr)
-{
-   string $buffer[];
-   tokenize $attr "." $buffer;
-   
-   string $nodeName   = $buffer[0]; 
-   string $attribName = $buffer[1];
-   string $nodeType   = GetNodeType($nodeName); 
-
-   string $attribData[] = GetCustomAttributeData($attribName);   
-      
-   if (!attributeExists($attribName, $nodeName))
-   {
-      addAttr -ln $attribName -dt "string" $nodeName;
-      setAttr -type "string" $attr $attribData[1];
-   }
-
-   textScrollList ($nodeType + "_" + $attribName);
-   
-   eval($attribData[2] + " " + $nodeName + " " + ($nodeType + "_" + $attribName)); 
-
-   if ($attribData[6] != "")
-      evalDeferred $attribData[6];
-}
-
-global proc ArnoldCustomLightFiltersReplace(string $attr)
-{
-   string $buffer[];
-   tokenize $attr "." $buffer;
-   
-   string $nodeName   = $buffer[0]; 
-   string $attribName = $buffer[1];
-   string $nodeType   = GetNodeType($nodeName); 
-
-   string $attribData[] = GetCustomAttributeData($attribName);   
-
-   if (!attributeExists($attribName, $nodeName))
-   {
-      addAttr -ln $attribName -dt "string" $nodeName;
-      setAttr -type "string" $attr $attribData[1];
-   }
-
-   deleteUI ($nodeType + "_" + $attribName);
-   
-   textScrollList ($nodeType + "_" + $attribName);
-   
-   eval($attribData[2] + " " + $nodeName + " " + ($nodeType + "_" + $attribName)); 
 
    if ($attribData[6] != "")
       evalDeferred $attribData[6];
