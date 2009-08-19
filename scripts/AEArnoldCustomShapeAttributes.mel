@@ -7,6 +7,11 @@ global proc AEArnoldCommonLightAttributes(string $nodeName)
    editorTemplate -callCustom "ArnoldCustomIntNew" "ArnoldCustomIntReplace" "bounces";
    editorTemplate -addSeparator;
    editorTemplate -callCustom "ArnoldCustomIntNew" "ArnoldCustomIntReplace" "sss_samples";
+   editorTemplate -addSeparator;
+   
+   editorTemplate -beginLayout "Light Filters";
+      editorTemplate -callCustom "ArnoldCustomLightFiltersNew" "ArnoldCustomLightFiltersReplace" "light_filters";
+   editorTemplate -endLayout;
 }
 
 global proc AEArnoldCustomShapeAttributes(string $nodeName)

@@ -1,11 +1,12 @@
 
 #include "ArnoldVolumeScatteringShader.h"
-#include "ShaderUtils.h"
+#include "nodes/ShaderUtils.h"
+#include "nodes/ArnoldNodeIds.h"
 
 #include <maya/MFnEnumAttribute.h>
 #include <maya/MFnNumericAttribute.h>
 
-MTypeId CArnoldVolumeScatteringShaderNode::id(0x00072007);
+MTypeId CArnoldVolumeScatteringShaderNode::id(ARNOLD_NODEID_VOLUME_SCATTERING);
 
 MObject CArnoldVolumeScatteringShaderNode::s_affect_diffuse;
 MObject CArnoldVolumeScatteringShaderNode::s_affect_reflection;

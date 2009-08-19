@@ -1,12 +1,13 @@
 
 #include "ArnoldSkyShader.h"
-#include "ShaderUtils.h"
+#include "nodes/ShaderUtils.h"
+#include "nodes/ArnoldNodeIds.h"
 
 #include <maya/MFnEnumAttribute.h>
 #include <maya/MFnNumericAttribute.h>
 #include <maya/MFnTypedAttribute.h>
 
-MTypeId CArnoldSkyShaderNode::id(0x00072004);
+MTypeId CArnoldSkyShaderNode::id(ARNOLD_NODEID_SKY);
 
 MObject CArnoldSkyShaderNode::s_XX;
 MObject CArnoldSkyShaderNode::s_XY;

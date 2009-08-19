@@ -1,11 +1,12 @@
 
 #include "ArnoldUtilityShader.h"
-#include "ShaderUtils.h"
+#include "nodes/ShaderUtils.h"
+#include "nodes/ArnoldNodeIds.h"
 
 #include <maya/MFnEnumAttribute.h>
 #include <maya/MFnNumericAttribute.h>
 
-MTypeId CArnoldUtilityShaderNode::id(0x00072001);
+MTypeId CArnoldUtilityShaderNode::id(ARNOLD_NODEID_UTILITY);
 
 MObject CArnoldUtilityShaderNode::s_colorR;
 MObject CArnoldUtilityShaderNode::s_colorG;

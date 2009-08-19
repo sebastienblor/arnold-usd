@@ -26,6 +26,17 @@
    addAttribute(attrib##G);\
    addAttribute(attrib##B);
 
+#define MAKE_VECTOR2(attrib, name, shortname, defaultX, defaultY) \
+   attrib##X = nAttr.create(name##"X", shortname##"x", MFnNumericData::kFloat, defaultX);\
+   attrib##Y = nAttr.create(name##"Y", shortname##"y", MFnNumericData::kFloat, defaultY);\
+   attrib = nAttr.create(name, shortname, attrib##X, attrib##Y);\
+   nAttr.setDefault(float(defaultX), float(defaultY));\
+   addAttribute(attrib##X);\
+   addAttribute(attrib##Y);
+
+#define MAKE_POINT2(attrib, name, shortname, defaultX, defaultY) \
+   MAKE_VECTOR2(attrib, name, shortname, defaultX, defaultY)
+
 #define MAKE_VECTOR(attrib, name, shortname, defaultX, defaultY, defaultZ) \
    attrib##X = nAttr.create(name##"X", shortname##"x", MFnNumericData::kFloat, defaultX);\
    attrib##Y = nAttr.create(name##"Y", shortname##"y", MFnNumericData::kFloat, defaultY);\

@@ -2,14 +2,18 @@
 #include "ArnoldExportAssCmd.h"
 #include "ArnoldRenderCmd.h"
 #include "ArnoldIprCmd.h"
-#include "nodes/ArnoldAmbientOcclusionShader.h"
-#include "nodes/ArnoldFogShader.h"
 #include "nodes/ArnoldRenderOptions.h"
-#include "nodes/ArnoldSkyShader.h"
-#include "nodes/ArnoldStandardShader.h"
-#include "nodes/ArnoldUtilityShader.h"
-#include "nodes/ArnoldVolumeScatteringShader.h"
-#include "nodes/ArnoldWireframeShader.h"
+#include "nodes/shaders/atmosphere/ArnoldFogShader.h"
+#include "nodes/shaders/atmosphere/ArnoldVolumeScatteringShader.h"
+#include "nodes/shaders/background/ArnoldSkyShader.h"
+#include "nodes/shaders/light/ArnoldBarndoorShader.h"
+#include "nodes/shaders/light/ArnoldGoboShader.h"
+#include "nodes/shaders/light/ArnoldLightBlockerShader.h"
+#include "nodes/shaders/light/ArnoldLightDecayShader.h"
+#include "nodes/shaders/surface/ArnoldAmbientOcclusionShader.h"
+#include "nodes/shaders/surface/ArnoldStandardShader.h"
+#include "nodes/shaders/surface/ArnoldUtilityShader.h"
+#include "nodes/shaders/surface/ArnoldWireframeShader.h"
 
 #include <maya/MFnPlugin.h>
 #include <maya/MGlobal.h>
@@ -26,11 +30,17 @@ namespace // <anonymous>
       // RENDER OPTIONS
       status = plugin.registerNode("ArnoldRenderOptions", CArnoldRenderOptionsNode::id, CArnoldRenderOptionsNode::creator, CArnoldRenderOptionsNode::initialize);
 
-      // SHADERS
+      // Surface Shaders
       status = plugin.registerNode("ArnoldAmbientOcclusionShader", CArnoldAmbientOcclusionShaderNode::id, CArnoldAmbientOcclusionShaderNode::creator, CArnoldAmbientOcclusionShaderNode::initialize, MPxNode::kDependNode, &ShaderClass);
       status = plugin.registerNode("ArnoldStandardShader", CArnoldStandardShaderNode::id, CArnoldStandardShaderNode::creator, CArnoldStandardShaderNode::initialize, MPxNode::kDependNode, &ShaderClass);
       status = plugin.registerNode("ArnoldUtilityShader", CArnoldUtilityShaderNode::id, CArnoldUtilityShaderNode::creator, CArnoldUtilityShaderNode::initialize, MPxNode::kDependNode, &ShaderClass);
       status = plugin.registerNode("ArnoldWireframeShader", CArnoldWireframeShaderNode::id, CArnoldWireframeShaderNode::creator, CArnoldWireframeShaderNode::initialize, MPxNode::kDependNode, &ShaderClass);
+
+      // Light Shaders
+      status = plugin.registerNode("ArnoldBarndoorShader", CArnoldBarndoorShaderNode::id, CArnoldBarndoorShaderNode::creator, CArnoldBarndoorShaderNode::initialize);
+      status = plugin.registerNode("ArnoldGoboShader", CArnoldGoboShaderNode::id, CArnoldGoboShaderNode::creator, CArnoldGoboShaderNode::initialize);
+      status = plugin.registerNode("ArnoldLightBlockerShader", CArnoldLightBlockerShaderNode::id, CArnoldLightBlockerShaderNode::creator, CArnoldLightBlockerShaderNode::initialize);
+      status = plugin.registerNode("ArnoldLightDecayShader", CArnoldLightDecayShaderNode::id, CArnoldLightDecayShaderNode::creator, CArnoldLightDecayShaderNode::initialize);
 
       // Special shaders (not visible from Maya shaders menu)
       status = plugin.registerNode("ArnoldFogShader", CArnoldFogShaderNode::id, CArnoldFogShaderNode::creator, CArnoldFogShaderNode::initialize);
@@ -46,11 +56,17 @@ namespace // <anonymous>
       // RENDER OPTIONS
       status = plugin.deregisterNode(CArnoldRenderOptionsNode::id);
 
-      // SHADERS
+      // Surface Shaders
       status = plugin.deregisterNode(CArnoldAmbientOcclusionShaderNode::id);
       status = plugin.deregisterNode(CArnoldStandardShaderNode::id);
       status = plugin.deregisterNode(CArnoldUtilityShaderNode::id);
       status = plugin.deregisterNode(CArnoldWireframeShaderNode::id);
+
+      // Light Shaders
+      status = plugin.deregisterNode(CArnoldBarndoorShaderNode::id);
+      status = plugin.deregisterNode(CArnoldGoboShaderNode::id);
+      status = plugin.deregisterNode(CArnoldLightBlockerShaderNode::id);
+      status = plugin.deregisterNode(CArnoldLightDecayShaderNode::id);
 
       status = plugin.deregisterNode(CArnoldFogShaderNode::id);
       status = plugin.deregisterNode(CArnoldSkyShaderNode::id);

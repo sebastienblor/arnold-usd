@@ -1,10 +1,11 @@
 
 #include "ArnoldStandardShader.h"
-#include "ShaderUtils.h"
+#include "nodes/ShaderUtils.h"
+#include "nodes/ArnoldNodeIds.h"
 
 #include <maya/MFnNumericAttribute.h>
 
-MTypeId CArnoldStandardShaderNode::id(0x00072000);
+MTypeId CArnoldStandardShaderNode::id(ARNOLD_NODEID_STANDARD);
 
 MObject CArnoldStandardShaderNode::s_Fresnel;
 MObject CArnoldStandardShaderNode::s_Fresnel_affect_diff;
@@ -128,7 +129,7 @@ MStatus CArnoldStandardShaderNode::initialize()
    MAKE_COLOR(s_Ks_color, "Ks_color", "ksc", 1, 1, 1);
    MAKE_INPUT(nAttr, s_Ks_color);
 
-   s_Ksn = nAttr.create("Ksn", "ksn", MFnNumericData::kFloat, 0);
+   s_Ksn = nAttr.create("Ksn", "ksn", MFnNumericData::kFloat, 0.05f);
    nAttr.setMin(0);
    nAttr.setMax(1);
    MAKE_INPUT(nAttr, s_Ksn);
@@ -201,7 +202,7 @@ MStatus CArnoldStandardShaderNode::initialize()
    MAKE_COLOR(s_opacity, "opacity", "opac", 1, 1, 1);
    MAKE_INPUT(nAttr, s_opacity);
 
-   s_specular_Fresnel = nAttr.create("specular_Fresnel", "specf", MFnNumericData::kBoolean, 0.05f);
+   s_specular_Fresnel = nAttr.create("specular_Fresnel", "specf", MFnNumericData::kBoolean, 0);
    MAKE_INPUT(nAttr, s_specular_Fresnel);
 
    MAKE_COLOR(s_sss_radius, "sss_radius", "sssr", 0.1f, 0.1f, 0.1f);

@@ -1,0 +1,16 @@
+#ifndef ARNOLD_NODE_IDS_H
+#define ARNOLD_NODE_IDS_H
+
+#define ARNOLD_NODEID_AMBIENT_OCCLUSION         0x00072002
+#define ARNOLD_NODEID_BARNDOOR                  0x00072010
+#define ARNOLD_NODEID_FOG                       0x00072006
+#define ARNOLD_NODEID_GOBO                      0x00072003
+#define ARNOLD_NODEID_LIGHT_BLOCKER             0x00072009
+#define ARNOLD_NODEID_LIGHT_DECAY               0x00072005
+#define ARNOLD_NODEID_SKY                       0x00072004
+#define ARNOLD_NODEID_STANDARD                  0x00072000
+#define ARNOLD_NODEID_UTILITY                   0x00072001
+#define ARNOLD_NODEID_VOLUME_SCATTERING         0x00072007
+#define ARNOLD_NODEID_WIREFRAME                 0x00072008
+
+#endif // ARNOLD_NODE_IDS_H

@@ -1,10 +1,11 @@
 
 #include "ArnoldAmbientOcclusionShader.h"
-#include "ShaderUtils.h"
+#include "nodes/ShaderUtils.h"
+#include "nodes/ArnoldNodeIds.h"
 
 #include <maya/MFnNumericAttribute.h>
 
-MTypeId CArnoldAmbientOcclusionShaderNode::id(0x00072002);
+MTypeId CArnoldAmbientOcclusionShaderNode::id(ARNOLD_NODEID_AMBIENT_OCCLUSION);
 
 MObject CArnoldAmbientOcclusionShaderNode::s_blackR;
 MObject CArnoldAmbientOcclusionShaderNode::s_blackG;

@@ -1,10 +1,11 @@
 
 #include "ArnoldFogShader.h"
-#include "ShaderUtils.h"
+#include "nodes/ShaderUtils.h"
+#include "nodes/ArnoldNodeIds.h"
 
 #include <maya/MFnNumericAttribute.h>
 
-MTypeId CArnoldFogShaderNode::id(0x00072006);
+MTypeId CArnoldFogShaderNode::id(ARNOLD_NODEID_FOG);
 
 MObject CArnoldFogShaderNode::s_colorR;
 MObject CArnoldFogShaderNode::s_colorG;

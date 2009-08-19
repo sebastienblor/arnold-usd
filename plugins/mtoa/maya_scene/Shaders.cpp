@@ -222,6 +222,72 @@ namespace // <anonymous>
          SHADER_PARAM("line_width", AI_TYPE_FLOAT);
          SHADER_PARAM("raster_space", AI_TYPE_BOOLEAN);
       }
+      else if (!strcmp(mayaNode.typeName().asChar(), "ArnoldBarndoorShader"))
+      {
+         shader = AiNode("barndoor");
+
+         AiNodeSetStr(shader, "name", mayaNode.name().asChar());
+
+         SHADER_PARAM("barndoor_bottom_edge", AI_TYPE_FLOAT);
+         SHADER_PARAM("barndoor_bottom_left", AI_TYPE_FLOAT);
+         SHADER_PARAM("barndoor_bottom_right", AI_TYPE_FLOAT);
+         SHADER_PARAM("barndoor_top_edge", AI_TYPE_FLOAT);
+         SHADER_PARAM("barndoor_top_left", AI_TYPE_FLOAT);
+         SHADER_PARAM("barndoor_top_right", AI_TYPE_FLOAT);
+         SHADER_PARAM("barndoor_left_edge", AI_TYPE_FLOAT);
+         SHADER_PARAM("barndoor_left_bottom", AI_TYPE_FLOAT);
+         SHADER_PARAM("barndoor_left_top", AI_TYPE_FLOAT);
+         SHADER_PARAM("barndoor_right_edge", AI_TYPE_FLOAT);
+         SHADER_PARAM("barndoor_right_bottom", AI_TYPE_FLOAT);
+         SHADER_PARAM("barndoor_right_top", AI_TYPE_FLOAT);
+      }
+      else if (!strcmp(mayaNode.typeName().asChar(), "ArnoldGoboShader"))
+      {
+         shader = AiNode("gobo");
+
+         AiNodeSetStr(shader, "name", mayaNode.name().asChar());
+
+         SHADER_PARAM("density", AI_TYPE_FLOAT);
+         SHADER_PARAM("filter_mode", AI_TYPE_ENUM);
+         SHADER_PARAM("offset", AI_TYPE_POINT2);
+         SHADER_PARAM("rotate", AI_TYPE_FLOAT);
+         SHADER_PARAM("scale_s", AI_TYPE_FLOAT);
+         SHADER_PARAM("scale_t", AI_TYPE_FLOAT);
+         SHADER_PARAM("slidemap", AI_TYPE_RGB);
+         SHADER_PARAM("wrap_s", AI_TYPE_ENUM);
+         SHADER_PARAM("wrap_t", AI_TYPE_ENUM);
+      }
+      else if (!strcmp(mayaNode.typeName().asChar(), "ArnoldLightBlockerShader"))
+      {
+         shader = AiNode("light_blocker");
+
+         AiNodeSetStr(shader, "name", mayaNode.name().asChar());
+
+         SHADER_PARAM("density", AI_TYPE_FLOAT);
+         SHADER_PARAM("geometry_matrix", AI_TYPE_MATRIX);
+         SHADER_PARAM("geometry_type", AI_TYPE_ENUM);
+         SHADER_PARAM("height_edge", AI_TYPE_FLOAT);
+         SHADER_PARAM("ramp", AI_TYPE_FLOAT);
+         SHADER_PARAM("ramp_axis", AI_TYPE_ENUM);
+         SHADER_PARAM("roundness", AI_TYPE_FLOAT);
+         SHADER_PARAM("width_edge", AI_TYPE_FLOAT);
+      }
+      else if (!strcmp(mayaNode.typeName().asChar(), "ArnoldLightDecayShader"))
+      {
+         shader = AiNode("light_decay");
+
+         AiNodeSetStr(shader, "name", mayaNode.name().asChar());
+
+         SHADER_PARAM("decay_clamp", AI_TYPE_BOOLEAN);
+         SHADER_PARAM("decay_radius", AI_TYPE_FLOAT);
+         SHADER_PARAM("decay_type", AI_TYPE_ENUM);
+         SHADER_PARAM("far_end", AI_TYPE_FLOAT);
+         SHADER_PARAM("far_start", AI_TYPE_FLOAT);
+         SHADER_PARAM("near_end", AI_TYPE_FLOAT);
+         SHADER_PARAM("near_start", AI_TYPE_FLOAT);
+         SHADER_PARAM("use_far_atten", AI_TYPE_BOOLEAN);
+         SHADER_PARAM("use_near_atten", AI_TYPE_BOOLEAN);
+      }
       else
       {
          AiMsgWarning("[mtoa] Shader type not supported.");

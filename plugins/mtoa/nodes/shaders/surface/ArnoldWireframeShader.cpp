@@ -1,11 +1,12 @@
 
 #include "ArnoldWireframeShader.h"
-#include "ShaderUtils.h"
+#include "nodes/ShaderUtils.h"
+#include "nodes/ArnoldNodeIds.h"
 
 #include <maya/MFnEnumAttribute.h>
 #include <maya/MFnNumericAttribute.h>
 
-MTypeId CArnoldWireframeShaderNode::id(0x00072008);
+MTypeId CArnoldWireframeShaderNode::id(ARNOLD_NODEID_WIREFRAME);
 
 MObject CArnoldWireframeShaderNode::s_edge_type;
 MObject CArnoldWireframeShaderNode::s_fill_colorR;
