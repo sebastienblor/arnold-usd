@@ -4,18 +4,26 @@ global proc AddLightFilterCB(string $lightNode, string $list)
    string $attr = ($lightNode + ".light_filters");
    string $filter[] = `textScrollList -q -si alf_filter_list`;
    string $filters  = `getAttr $attr`;
+   string $new_filter = "";
    
    switch($filter[0])
    {
-      case "Barndoor": $filters += ":" + `createNode -skipSelect ArnoldBarndoorShader`; break;
-      case "Gobo": $filters += ":" + `createNode -skipSelect ArnoldGoboShader`; break;
-      case "Light Blocker": $filters += ":" + `createNode -skipSelect ArnoldLightBlockerShader`; break;
-      case "Light Decay": $filters += ":" + `createNode -skipSelect ArnoldLightDecayShader`; break;
+      case "Barndoor": $new_filter = `createNode -skipSelect ArnoldBarndoorShader`; break;
+      case "Gobo": $new_filter = `createNode -skipSelect ArnoldGoboShader`; break;
+      case "Light Blocker": $new_filter = `createNode -skipSelect ArnoldLightBlockerShader`; break;
+      case "Light Decay": $new_filter = `createNode -skipSelect ArnoldLightDecayShader`; break;
    }
    
-   setAttr -type "string" $attr $filters;
+   if ($new_filter != "")
+   {
+      $filters += ":" + $new_filter;
    
-   LightFiltersGetList($lightNode, $list);
+      setAttr -type "string" $attr $filters;
+   
+      LightFiltersGetList($lightNode, $list);
+   
+      updateAE $new_filter;
+   } 
 }
 
 global proc AddLightFilter(string $lightNode, string $list)
