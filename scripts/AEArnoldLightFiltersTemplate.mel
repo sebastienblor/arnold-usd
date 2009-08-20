@@ -1,4 +1,59 @@
 
+global proc MoveLightFilterUp(string $node, string $list)
+{
+   string $attr = ($node + ".light_filters");
+   int $items[] = `textScrollList -q -sii $list`;
+   int $current = $items[0] - 1;
+   
+   if ($current > 0)
+   {
+      string $values = `getAttr $attr`;
+      string $buffer[] = stringToStringArray($values, ":");
+      
+      string $temp = $buffer[$current - 1];
+      $buffer[$current - 1] = $buffer[$current];
+      $buffer[$current] = $temp;
+   
+      $values = stringArrayToString($buffer, ":");
+      setAttr -type "string" $attr $values;
+   
+      LightFiltersGetList($node, $list);
+   }
+}
+
+global proc MoveLightFilterDown(string $node, string $list)
+{
+   string $attr = ($node + ".light_filters");
+   int $items[] = `textScrollList -q -sii $list`;
+   int $current = $items[0];
+   
+   string $values = `getAttr $attr`;
+   string $buffer[] = stringToStringArray($values, ":");
+   
+   if ($current < size($buffer))
+   {
+      string $temp = $buffer[$current];
+      $buffer[$current] = $buffer[$current - 1];
+      $buffer[$current - 1] = $temp;
+      
+      $values = stringArrayToString($buffer, ":");
+      setAttr -type "string" $attr $values;
+
+      LightFiltersGetList($node, $list);
+   }
+}
+
+global proc LightFilterListChanged(string $list)
+{
+   string $items[] = `textScrollList -q -si $list`;
+   
+   int $selection = ($items[0] != "");
+   
+   button -edit -enable $selection lf_remove_button;
+   button -edit -enable $selection lf_move_up_button;
+   button -edit -enable $selection lf_move_down_button;
+}
+
 global proc AddLightFilterCB(string $lightNode, string $list)
 {
    string $attr = ($lightNode + ".light_filters");
@@ -58,18 +113,13 @@ global proc RemoveLightFilter(string $lightNode, string $list)
    string $attr = ($lightNode + ".light_filters");
    string $filter[] = `textScrollList -q -si $list`;
    string $filters  = `getAttr $attr`;
-
-   string $buffer[];
-   tokenize $filters ":" $buffer;
+   string $buffer[] = stringToStringArray($filters, ":");
    
-   string $new_filters = "";
-   for ($J = 0; ($J < size($buffer)); $J++)
-   {
-      if ($buffer[$J] != $filter[0])
-         $new_filters += ($new_filters == "") ? $buffer[$J] : ":" + $buffer[$J]; 
-   }
-
+   string $new_filters = stringArrayToString(stringArrayRemove($filter, $buffer), ":");
+   
    setAttr -type "string" $attr $new_filters;
+   
+   delete $filter[0];
    
    LightFiltersGetList($lightNode, $list);
 }
@@ -77,15 +127,20 @@ global proc RemoveLightFilter(string $lightNode, string $list)
 global proc LightFiltersGetList(string $node, string $list)
 {
    string $values = `getAttr ($node + ".light_filters")`;
-   
-   string $buffer[];
-   tokenize $values ":" $buffer;
-   
+   string $buffer[] = stringToStringArray($values, ":");
+
+   string $selection[] = `textScrollList -q -si $list`; 
+     
    textScrollList -edit -removeAll $list;
    for ($J = 0; ($J < size($buffer)); $J++)
    {
       textScrollList -edit -append $buffer[$J] $list;
+
+      if ($selection[0] == $buffer[$J])
+         textScrollList -edit -si $selection[0] $list; 
    }
+
+   LightFilterListChanged($list);
 }
 
 global proc ArnoldCustomLightFiltersChanged(string $attr, string $userChangeCB)
@@ -124,19 +179,17 @@ global proc ArnoldCustomLightFiltersNew(string $attr)
    rowLayout -nc 3 -rat 1 "top" 0  -cw 1 30 -cw 2 330;
       text -label "";
       columnLayout -adj true -cat "both" 0 -rs 5;
-         textScrollList -h 150 -ams false -dcc $updateCmd $uiName;
+         textScrollList -h 150 -ams false -sc ("LightFilterListChanged " + $uiName) -dcc $updateCmd $uiName;
          rowLayout -nc 2 -cw2 80 80 -columnAttach2 "both" "both" -columnAlign2 "center" "center" -co2 2 2;
             button -label "Add" -c ("AddLightFilter " + $nodeName + " " + $uiName) lf_add_button;
             button -label "Remove" -c ("RemoveLightFilter " + $nodeName + " " + $uiName) lf_remove_button;
             setParent ..;
          setParent ..;
       columnLayout -adj true -cat "both" 0 -rs 5;
-         symbolButton -image arrowUp.xpm -c MoveLightFilterUp;
-         symbolButton -image arrowDown.xpm -c MoveLightFilterDown;
+         symbolButton -image arrowUp.xpm -c ("MoveLightFilterUp " + $nodeName + " " + $uiName) lf_move_up_button;
+         symbolButton -image arrowDown.xpm -c ("MoveLightFilterDown " + $nodeName + " " + $uiName) lf_move_down_button;
          setParent ..;
       setParent ..;
-
-
    
    LightFiltersGetList($nodeName, $uiName);
 
@@ -165,6 +218,8 @@ global proc ArnoldCustomLightFiltersReplace(string $attr)
    string $updateCmd = "string $val[] = \`textScrollList -q -si " + $uiName + "\`; updateAE $val[0]";
    
    textScrollList -edit -dcc $updateCmd $uiName;
+   symbolButton -edit -c ("MoveLightFilterUp " + $nodeName + " " + $uiName) lf_move_up_button;
+   symbolButton -edit -c ("MoveLightFilterDown " + $nodeName + " " + $uiName) lf_move_down_button;
    button -edit -c ("AddLightFilter " + $nodeName + " " + $uiName) lf_add_button;
    button -edit -c ("RemoveLightFilter " + $nodeName + " " + $uiName) lf_remove_button;
    
