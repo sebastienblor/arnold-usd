@@ -18,12 +18,7 @@ public:
       return new CArnoldRenderCmd();
    }
 
-   static MSyntax newSyntax()
-   {
-      MSyntax syntax;
-
-      return syntax;
-   }
+   static MSyntax newSyntax();
 
    MStatus doIt(const MArgList& argList);
 

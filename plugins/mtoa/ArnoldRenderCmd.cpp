@@ -6,12 +6,28 @@
 #include <ai_universe.h>
 
 #include <maya/M3dView.h>
+#include <maya/MArgDatabase.h>
 #include <maya/MRenderView.h>
+
+MSyntax CArnoldRenderCmd::newSyntax()
+{
+   MSyntax syntax;
+
+   syntax.addFlag("cam", "camera", MSyntax::MArgType::kString);
+
+   return syntax;
+}
 
 MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
 {
    MStatus status;
    CRenderInstance* renderInstance = CRenderInstance::GetInstance();
+   MArgDatabase args(syntax(), argList);
+
+   if (!args.isFlagSet("camera"))
+   {
+      return MS::kFailure;
+   }
 
    renderInstance->Init();
 
@@ -21,15 +37,20 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
 
    status = m_scene.ExportToArnold();
 
-   if (MRenderView::doesRenderEditorExist())
-   {
-      MDagPath cameraPath;
-      M3dView::active3dView().getCamera(cameraPath);
-      MRenderView::setCurrentCamera(cameraPath);
+   MString cameraName = args.flagArgumentString("camera", 0);
+   
+   AtNode* camera = AiNodeLookUpByName(cameraName.asChar());
 
-      MFnDagNode cameraNode(cameraPath.node());
-      AiNodeSetPtr(AiUniverseGetOptions(), "camera", AiNodeLookUpByName(cameraNode.name().asChar()));
+   if (!camera)
+   {
+      cameraName += "Shape";
+      camera = AiNodeLookUpByName(cameraName.asChar());
    }
+
+   if (!camera)
+      return MS::kFailure;
+
+   AiNodeSetPtr(AiUniverseGetOptions(), "camera", camera);
 
    if (MRenderView::doesRenderEditorExist())
    {
