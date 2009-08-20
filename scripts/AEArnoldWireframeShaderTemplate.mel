@@ -1,0 +1,23 @@
+global proc AEArnoldWireframeShaderTemplate( string $nodeName )
+{
+   AEswatchDisplay $nodeName;
+
+   editorTemplate -beginScrollLayout;
+
+      editorTemplate -callCustom AEshaderTypeNew AEshaderTypeReplace "message";
+
+      editorTemplate -beginLayout "Wireframe Attributes" -collapse false;
+         editorTemplate -l "Edge Type" -addControl "edge_type";
+         editorTemplate -l "Fill Color" -addControl "fill_color";
+         editorTemplate -l "Line Color" -addControl "line_color";
+         editorTemplate -l "Line Width" -addControl "line_width";
+         editorTemplate -l "Raster Space" -addControl "raster_space";
+      editorTemplate -endLayout;
+
+      editorTemplate -addExtraControls;   
+
+   editorTemplate -endScrollLayout;
+
+   editorTemplate -suppress "caching"; 
+   editorTemplate -suppress "nodeState";
+}

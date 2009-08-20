@@ -22,10 +22,12 @@ global proc AddLightFilter(string $lightNode, string $list)
 {
    string $window = `window -title "Add Light Filter" -resizeToFitChildren true`;
 
-   string $addCmd = "AddLightFilterCB " + $lightNode + " " + $list; 
+   string $addCmd = "AddLightFilterCB " + $lightNode + " " + $list;
+    
+   windowPref -ra;
    
    columnLayout -adjustableColumn true
-                -columnOffset "both" 20
+                -columnOffset "both" 10
                 -rowSpacing 10;
       textScrollList -nr 4 -ams false -dcc ($addCmd + "; deleteUI -window " + $window)
          -append "Barndoor"
@@ -34,7 +36,7 @@ global proc AddLightFilter(string $lightNode, string $list)
          -append "Light Decay"
          alf_filter_list;
    
-      rowLayout -numberOfColumns 2;
+      rowLayout -numberOfColumns 2 -columnAlign2 "center" "center";
          button -width 80 -label "Add" -command ($addCmd + "; deleteUI -window " + $window);
          button -width 80 -label "Cancel" -command ("deleteUI -window " + $window);
          setParent ..;
@@ -111,18 +113,22 @@ global proc ArnoldCustomLightFiltersNew(string $attr)
    string $uiName = $nodeType + "_" + $attribName; 
    string $updateCmd = "string $val[] = \`textScrollList -q -si " + $uiName + "\`; updateAE $val[0]";
    
-   rowLayout -nc 2 -cw2 100 40 -adjustableColumn 1;
-      textScrollList -nr 4 -ams false -dcc $updateCmd $uiName;
-      columnLayout -rs 10;
+   rowLayout -nc 3 -rat 1 "top" 0  -cw 1 30 -cw 2 330;
+      text -label "";
+      columnLayout -adj true -cat "both" 0 -rs 5;
+         textScrollList -h 150 -ams false -dcc $updateCmd $uiName;
+         rowLayout -nc 2 -cw2 80 80 -columnAttach2 "both" "both" -columnAlign2 "center" "center" -co2 2 2;
+            button -label "Add" -c ("AddLightFilter " + $nodeName + " " + $uiName) lf_add_button;
+            button -label "Remove" -c ("RemoveLightFilter " + $nodeName + " " + $uiName) lf_remove_button;
+            setParent ..;
+         setParent ..;
+      columnLayout -adj true -cat "both" 0 -rs 5;
          symbolButton -image arrowUp.xpm -c MoveLightFilterUp;
          symbolButton -image arrowDown.xpm -c MoveLightFilterDown;
          setParent ..;
       setParent ..;
 
-   rowLayout -nc 2;
-      button -w 50 -label "Add" -c ("AddLightFilter " + $nodeName + " " + $uiName) lf_add_button;
-      button -w 50 -label "Remove" -c ("RemoveLightFilter " + $nodeName + " " + $uiName) lf_remove_button;
-      setParent ..;
+
    
    LightFiltersGetList($nodeName, $uiName);
 

@@ -1,0 +1,21 @@
+global proc AEArnoldUtilityShaderTemplate( string $nodeName )
+{
+   AEswatchDisplay $nodeName;
+
+   editorTemplate -beginScrollLayout;
+
+      editorTemplate -callCustom AEshaderTypeNew AEshaderTypeReplace "message";
+
+      editorTemplate -beginLayout "Utility Attributes" -collapse false;
+         editorTemplate -l "Shade Mode" -addControl "shade_mode";
+         editorTemplate -l "Color Mode" -addControl "color_mode";
+         editorTemplate -l "Color" -addControl "color";
+      editorTemplate -endLayout;
+
+      editorTemplate -addExtraControls;   
+
+   editorTemplate -endScrollLayout;
+
+   editorTemplate -suppress "caching"; 
+   editorTemplate -suppress "nodeState";
+}

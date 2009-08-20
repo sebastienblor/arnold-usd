@@ -1,0 +1,41 @@
+source "ShaderFunctions.mel";
+
+global proc AEArnoldCheckNearAtten(string $nodeName)
+{
+   AEArnoldDimControlIfFalse($nodeName, "near_start", "use_near_atten");
+   AEArnoldDimControlIfFalse($nodeName, "near_end", "use_near_atten");
+}
+
+global proc AEArnoldCheckFarAtten(string $nodeName)
+{
+   AEArnoldDimControlIfFalse($nodeName, "far_start", "use_far_atten");
+   AEArnoldDimControlIfFalse($nodeName, "far_end", "use_far_atten");
+}
+
+global proc AEArnoldLightDecayShaderTemplate( string $nodeName )
+{
+   editorTemplate -beginScrollLayout;
+
+      editorTemplate -beginLayout "Decay Attributes" -collapse false;
+         editorTemplate -l "Decay Type" -addControl "decay_type";
+         editorTemplate -l "Decay Radius" -addControl "decay_radius";
+         editorTemplate -l "Decay Clamp" -addControl "decay_clamp";
+      editorTemplate -endLayout;
+
+      editorTemplate -beginLayout "Attenuation" -collapse false;
+         editorTemplate -l "Use Near Attenuation" -addControl "use_near_atten" "AEArnoldCheckNearAtten";
+         editorTemplate -l "Near Start" -addControl "near_start";
+         editorTemplate -l "Near End" -addControl "near_end";
+         editorTemplate -addSeparator;
+         editorTemplate -l "Use Far Attenuation" -addControl "use_far_atten" "AEArnoldCheckFarAtten";
+         editorTemplate -l "Far Start" -addControl "far_start";
+         editorTemplate -l "Far End" -addControl "far_end";
+      editorTemplate -endLayout;
+
+      editorTemplate -addExtraControls;   
+
+   editorTemplate -endScrollLayout;
+
+   editorTemplate -suppress "caching"; 
+   editorTemplate -suppress "nodeState";
+}

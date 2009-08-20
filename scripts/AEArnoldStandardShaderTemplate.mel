@@ -21,6 +21,7 @@ global proc AEArnoldStandardShaderTemplate( string $nodeName )
       editorTemplate -beginLayout "Diffuse" -collapse false;
          editorTemplate -l "Color" -addControl "Kd_color";
          editorTemplate -l "Weight" -addControl "Kd";
+         editorTemplate -l "Backlight" -addControl "Kb";
          editorTemplate -addSeparator;
          editorTemplate -l "Fresnel affects Diffuse" -addControl "Fresnel_affect_diff";
          
@@ -39,7 +40,6 @@ global proc AEArnoldStandardShaderTemplate( string $nodeName )
          editorTemplate -l "Fresnel Coefficient" -addControl "Ksn";
          
          editorTemplate -beginLayout "Extended Controls" -collapse true;
-            //editorTemplate -l "Receive Caustics" -addControl "caustics";
             editorTemplate -l "Direct Specularity" -addControl "direct_specular";
             editorTemplate -l "Indirect Specularity" -addControl "indirect_specular";
          editorTemplate -endLayout;
@@ -53,11 +53,10 @@ global proc AEArnoldStandardShaderTemplate( string $nodeName )
          editorTemplate -l "Fresnel Coefficient" -addControl "Krn";
       editorTemplate -endLayout;
       
-      editorTemplate -beginLayout "Transparency" -collapse true;
-         editorTemplate -l "Color" -addControl "Kt_color";
-         editorTemplate -l "Weight" -addControl "Kt";
+      editorTemplate -beginLayout "Refraction" -collapse true;
          editorTemplate -l "Index of Refraction" -addControl "IOR";
-         editorTemplate -l "Backlight" -addControl "Kb";
+         editorTemplate -l "Color" -addControl "Kt_color";
+         editorTemplate -l "Transparency" -addControl "Kt";
       editorTemplate -endLayout;
       
       editorTemplate -beginLayout "Subsurface scattering" -collapse true;
@@ -70,7 +69,20 @@ global proc AEArnoldStandardShaderTemplate( string $nodeName )
          editorTemplate -l "Color" -addControl "emission_color";
          editorTemplate -l "Weight" -addControl "emission";
       editorTemplate -endLayout;
-   
+
+      editorTemplate -beginLayout "Caustics" -collapse true;
+         editorTemplate -beginNoOptimize;
+         editorTemplate -l "Enable Glossy Caustics" -addControl "enable_glossy_caustics";
+         editorTemplate -l "Enable Reflective Caustics" -addControl "enable_reflective_caustics";
+         editorTemplate -l "Enable Refractive Caustics" -addControl "enable_refractive_caustics";
+         editorTemplate -endNoOptimize;
+      editorTemplate -endLayout;
+
+      editorTemplate -beginLayout "Advanced" -collapse true;
+         editorTemplate -l "Bounce Factor" -addControl "bounce_factor";
+         editorTemplate -l "Opacity" -addControl "opacity";
+      editorTemplate -endLayout;
+
       editorTemplate -addExtraControls;
 
    editorTemplate -endScrollLayout;
