@@ -92,13 +92,19 @@ global proc AddLightFilter(string $lightNode, string $list)
    columnLayout -adjustableColumn true
                 -columnOffset "both" 10
                 -rowSpacing 10;
-      textScrollList -nr 4 -ams false -dcc ($addCmd + "; deleteUI -window " + $window)
-         -append "Barndoor"
-         -append "Gobo"
-         -append "Light Blocker"
-         -append "Light Decay"
-         alf_filter_list;
+      textScrollList -nr 4 -ams false -dcc ($addCmd + "; deleteUI -window " + $window) alf_filter_list;
+
+      string $nodeType = `objectType $lightNode`;
+      
+      if ($nodeType == "spotLight")
+      {
+         textScrollList -edit -append "Barndoor" alf_filter_list;
+         textScrollList -edit -append "Gobo" alf_filter_list;
+      }
    
+      textScrollList -edit -append "Light Blocker" alf_filter_list;
+      textScrollList -edit -append "Light Decay" alf_filter_list;
+
       rowLayout -numberOfColumns 2 -columnAlign2 "center" "center";
          button -width 80 -label "Add" -command ($addCmd + "; deleteUI -window " + $window);
          button -width 80 -label "Cancel" -command ("deleteUI -window " + $window);
