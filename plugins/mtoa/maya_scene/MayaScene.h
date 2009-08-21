@@ -49,6 +49,8 @@ private:
    MStatus ExportScene(AtUInt step);
 
    void ExportCamera(const MDagPath& dagPath, AtUInt step);
+   void ExportCameraData(AtNode* camera, const MDagPath& dagPath, bool mb);
+   void ExportCameraMBData(const MDagPath& dagPath, AtUInt step);
    void ExportLight(const MDagPath& dagPath, AtUInt step);
    void ExportLightData(AtNode* light, const MDagPath& dagPath, bool mb, bool custom);
    void ExportLightMBData(const MDagPath& dagPath, AtUInt step);

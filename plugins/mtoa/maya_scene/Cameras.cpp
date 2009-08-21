@@ -7,61 +7,105 @@
 #include <maya/MFnCamera.h>
 #include <maya/MPlug.h>
 
-void CMayaScene::ExportCamera(const MDagPath& dagPath, AtUInt step)
+void CMayaScene::ExportCameraData(AtNode* camera, const MDagPath& dagPath, bool mb)
 {
-   AtNode* camera;
    AtMatrix matrix;
-   MFnCamera fnCamera(dagPath);
    MFnDagNode fnDagNode(dagPath);
 
-   // Avoid exporting orthographic cameras until they are properly implemented
-   if (fnCamera.isOrtho())
-      return;
+   AiNodeSetStr(camera, "name", fnDagNode.name().asChar());
 
-   bool mb = m_motionBlurData.enabled && m_fnArnoldRenderOptions->findPlug("mb_camera_enable").asBool();
+   if (m_motionBlurData.enabled)
+   {
+      float halfShutter = m_motionBlurData.shutter_size * 0.5f;
+      AiNodeSetFlt(camera, "shutter_start", 0.5f - halfShutter);
+      AiNodeSetFlt(camera, "shutter_end", 0.5f + halfShutter);
+      AiNodeSetInt(camera, "shutter_type", m_fnArnoldRenderOptions->findPlug("shutter_type").asInt());
+   }
 
    GetMatrix(matrix, dagPath);
    
-   float fov = static_cast<float>(AI_RTOD * fnCamera.horizontalFieldOfView());
+   if (mb)
+   {
+      AtArray* matrices = AiArrayAllocate(1, m_motionBlurData.motion_steps, AI_TYPE_MATRIX);
+      AiArraySetMtx(matrices, 0, matrix);
+      AiNodeSetArray(camera, "matrix", matrices);
+   }
+   else
+   {
+      AiNodeSetMatrix(camera, "matrix", matrix);
+   }
+}
 
-   if (step == 0)
+void CMayaScene::ExportCameraMBData(const MDagPath& dagPath, AtUInt step)
+{
+   AtMatrix matrix;
+   MFnDagNode fnDagNode(dagPath);
+
+   AtNode* camera = AiNodeLookUpByName(fnDagNode.name().asChar());
+
+   GetMatrix(matrix, dagPath);
+
+   AtArray* matrices = AiNodeGetArray(camera, "matrix");
+   AiArraySetMtx(matrices, step, matrix);
+}
+
+void CMayaScene::ExportCamera(const MDagPath& dagPath, AtUInt step)
+{
+   AtNode* camera;
+   MFnCamera fnCamera(dagPath);
+   MFnDagNode fnDagNode(dagPath);
+
+   bool mb = m_motionBlurData.enabled && m_fnArnoldRenderOptions->findPlug("mb_camera_enable").asBool();
+
+   if (fnCamera.isOrtho())
+   {
+      camera = AiNode("ortho_camera");
+
+      if (step == 0)
+      {
+         ExportCameraData(camera, dagPath, mb);
+
+         // TODO: This is probably wrong, but for now it is working
+         float width = fnCamera.orthoWidth();
+         float height = width;
+
+         AiNodeSetPnt2(camera, "screen_window_min", -width/2, -height/2);
+         AiNodeSetPnt2(camera, "screen_window_max", width/2, height/2);
+      }
+      else if (mb)
+      {
+         ExportCameraMBData(dagPath, step);
+      }
+   }
+   else
    {
       camera = AiNode("persp_camera");
 
-      AiNodeSetStr(camera, "name", fnDagNode.name().asChar());
+      float fov = static_cast<float>(AI_RTOD * fnCamera.horizontalFieldOfView());
 
-      if (m_motionBlurData.enabled)
+      if (step == 0)
       {
-         float halfShutter = m_motionBlurData.shutter_size * 0.5f;
-         AiNodeSetFlt(camera, "shutter_start", 0.5f - halfShutter);
-         AiNodeSetFlt(camera, "shutter_end", 0.5f + halfShutter);
-         AiNodeSetInt(camera, "shutter_type", m_fnArnoldRenderOptions->findPlug("shutter_type").asInt());
+         ExportCameraData(camera, dagPath, mb);
+
+         if (mb)
+         {
+            AtArray* fovs = AiArrayAllocate(1, m_motionBlurData.motion_steps, AI_TYPE_FLOAT);
+            AiArraySetFlt(fovs, step, fov);
+            AiNodeSetArray(camera, "fov", fovs);
+         }
+         else
+         {
+            AiNodeSetFlt(camera, "fov", fov);
+         }
       }
-
-      if (mb)
+      else if (mb)
       {
-         AtArray* matrices = AiArrayAllocate(1, m_motionBlurData.motion_steps, AI_TYPE_MATRIX);
-         AiArraySetMtx(matrices, step, matrix);
-         AiNodeSetArray(camera, "matrix", matrices);
+         ExportCameraMBData(dagPath, step);
 
-         AtArray* fovs = AiArrayAllocate(1, m_motionBlurData.motion_steps, AI_TYPE_FLOAT);
+         camera = AiNodeLookUpByName(fnDagNode.name().asChar());
+
+         AtArray* fovs = AiNodeGetArray(camera, "fov");
          AiArraySetFlt(fovs, step, fov);
-         AiNodeSetArray(camera, "fov", fovs);
       }
-      else
-      {
-         AiNodeSetMatrix(camera, "matrix", matrix);
-         AiNodeSetFlt(camera, "fov", fov);
-      }
-   }
-   else if (mb)
-   {
-      camera = AiNodeLookUpByName(fnDagNode.name().asChar());
-
-      AtArray* matrices = AiNodeGetArray(camera, "matrix");
-      AiArraySetMtx(matrices, step, matrix);
-
-      AtArray* fovs = AiNodeGetArray(camera, "fov");
-      AiArraySetFlt(fovs, step, fov);
    }
 }
