@@ -16,6 +16,8 @@ MSyntax CArnoldIprCmd::newSyntax()
    MSyntax syntax;
 
    syntax.addFlag("cam", "camera", MSyntax::MArgType::kString);
+   syntax.addFlag("w", "width", MSyntax::MArgType::kUnsigned);
+   syntax.addFlag("h", "height", MSyntax::MArgType::kUnsigned);
    syntax.addFlag("m", "mode", MSyntax::MArgType::kString);
 
    return syntax;

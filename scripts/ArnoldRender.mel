@@ -3,7 +3,7 @@ global proc ArnoldRender(int $width, int $height, int $doShadows, int $doGlowPas
    // Make sure the ArnoldRenderOptions node exists
    createNode -skipSelect -shared -n "defaultArnoldRenderOptions" ArnoldRenderOptions;
 
-   arnoldRender -cam $camera;   
+   arnoldRender -cam $camera -w $width -h $height;   
 }
 
 global proc ArnoldIprStart(string $editor, int $resolutionX, int $resolutionY, string $camera)
@@ -11,7 +11,7 @@ global proc ArnoldIprStart(string $editor, int $resolutionX, int $resolutionY, s
    // Make sure the ArnoldRenderOptions node exists
    createNode -skipSelect -shared -n "defaultArnoldRenderOptions" ArnoldRenderOptions;
 
-   arnoldIpr -cam $camera -mode start;   
+   arnoldIpr -cam $camera -w $resolutionX -h $resolutionY -mode start;   
 }
 
 global proc ArnoldIprStop()
@@ -27,7 +27,7 @@ global proc int ArnoldIprIsRunning()
 
 global proc ArnoldIprRender(int $width, int $height, int $doShadows, int $doGlowPass, string $camera)
 {
-   arnoldIpr -cam $camera -mode render;   
+   arnoldIpr -cam $camera -w $width -h $height -mode render;   
 }
 
 global proc ArnoldIprRefresh()

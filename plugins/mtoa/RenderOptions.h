@@ -14,6 +14,20 @@ public:
    CRenderOptions();
 
    void GetRenderOptions(CMayaScene* scene);
+   
+   void SetWidth(AtUInt width)
+   {
+      m_width = width;
+
+      SetupImageOptions();
+   }
+
+   void SetHeight(AtUInt height)
+   {
+      m_height = height;
+
+      SetupImageOptions();
+   }
 
    AtUInt32 minX() const
    {
@@ -84,6 +98,8 @@ private:
 
    void ProcessCommonRenderOptions();
    void ProcessArnoldRenderOptions();
+   
+   void SetupImageOptions();
 
 private:
 

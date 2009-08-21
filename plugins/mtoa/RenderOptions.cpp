@@ -75,18 +75,8 @@ void CRenderOptions::ProcessCommonRenderOptions()
             m_width  = fnRes.findPlug("width").asShort();
             m_height = fnRes.findPlug("height").asShort();
             m_pixelAspectRatio = 1.0f / (((float)m_height / m_width) * fnRes.findPlug("deviceAspectRatio").asFloat());
-   
-            if (m_useRenderRegion)
-            {
-               AiNodeSetInt(AiUniverseGetOptions(), "region_min_x", m_minx);
-               AiNodeSetInt(AiUniverseGetOptions(), "region_min_y", m_height - m_maxy - 1);
-               AiNodeSetInt(AiUniverseGetOptions(), "region_max_x", m_maxx);
-               AiNodeSetInt(AiUniverseGetOptions(), "region_max_y", m_height - m_miny - 1);
-            }
 
-            AiNodeSetInt(AiUniverseGetOptions(), "xres", m_width);
-            AiNodeSetInt(AiUniverseGetOptions(), "yres", m_height);
-            AiNodeSetFlt(AiUniverseGetOptions(), "aspect_ratio", m_pixelAspectRatio);
+            SetupImageOptions();
          }
       }
    }
@@ -190,4 +180,19 @@ void CRenderOptions::ProcessArnoldRenderOptions()
          break;
       }
    }
+}
+
+void CRenderOptions::SetupImageOptions()
+{
+   if (m_useRenderRegion)
+   {
+      AiNodeSetInt(AiUniverseGetOptions(), "region_min_x", m_minx);
+      AiNodeSetInt(AiUniverseGetOptions(), "region_min_y", m_height - m_maxy - 1);
+      AiNodeSetInt(AiUniverseGetOptions(), "region_max_x", m_maxx);
+      AiNodeSetInt(AiUniverseGetOptions(), "region_max_y", m_height - m_miny - 1);
+   }
+
+   AiNodeSetInt(AiUniverseGetOptions(), "xres", m_width);
+   AiNodeSetInt(AiUniverseGetOptions(), "yres", m_height);
+   AiNodeSetFlt(AiUniverseGetOptions(), "aspect_ratio", m_pixelAspectRatio);
 }
