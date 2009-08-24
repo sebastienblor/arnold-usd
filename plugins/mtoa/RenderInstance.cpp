@@ -1,5 +1,6 @@
 
 #include "RenderInstance.h"
+#include "RenderOptions.h"
 #include "OutputDriver.h"
 
 #include <ai_msg.h>
@@ -40,21 +41,20 @@ void CRenderInstance::Init()
 
    AiBegin();
 
-   // TODO: For now, we will use stdout (in Maya, it will go to the output window)
-   AiMsgSetMaxWarnings(1000);
-   AiMsgSetConsoleFlags(AI_LOG_ALL);
+   m_renderOptions->SetupRender();
 
    AiNodeInstall(AI_NODE_DRIVER, AI_TYPE_NONE, "renderview_display",  NULL, (AtNodeMethods*) mtoa_driver_mtd, AI_VERSION);
 
    AtNode* filter = AiNode("box_filter");
-   m_driver = AiNode("renderview_display");
+   AtNode* driver = AiNode("renderview_display");
 
-   AiNodeSetStr(m_driver, "name", "renderview_display");
+   AiNodeSetStr(driver, "name", "renderview_display");
+   AiNodeSetFlt(driver, "gamma", m_renderOptions->outputGamma());
 
    AtChar   str[1024];
    AtArray* outputs;
 
-   sprintf(str, "RGBA RGBA %s %s", AiNodeGetName(filter), AiNodeGetName(m_driver));
+   sprintf(str, "RGBA RGBA %s %s", AiNodeGetName(filter), AiNodeGetName(driver));
    outputs = AiArray(1, 1, AI_TYPE_STRING, str);
    AiNodeSetArray(AiUniverseGetOptions(), "outputs", outputs);
 }
@@ -62,12 +62,6 @@ void CRenderInstance::Init()
 void CRenderInstance::End()
 {
    AiEnd();
-}
-
-void CRenderInstance::SetGamma(float gamma)
-{
-   if (m_driver != NULL)
-      AiNodeSetFlt(m_driver, "gamma", gamma);
 }
 
 void CRenderInstance::DoRender()

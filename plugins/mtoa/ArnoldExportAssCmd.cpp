@@ -27,13 +27,11 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
       return MS::kFailure;
    }
 
+   m_renderOptions.GetRenderOptions(&m_scene);
+
    AiBegin();
 
-   // TODO: For now, we will use stdout (in Maya, it will go to the output window)
-   AiMsgSetMaxWarnings(1000);
-   AiMsgSetConsoleFlags(AI_LOG_ALL);
-
-   m_renderOptions.GetRenderOptions(&m_scene);
+   m_renderOptions.SetupRender();
 
    status = m_scene.ExportToArnold();
 

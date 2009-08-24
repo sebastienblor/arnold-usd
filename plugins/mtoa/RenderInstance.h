@@ -4,6 +4,8 @@
 #include <ai_nodes.h>
 #include <ai_universe.h>
 
+class CRenderOptions;
+
 class CRenderInstance
 {
 
@@ -19,20 +21,22 @@ public:
       return AiUniverseIsActive();
    }
 
-   void SetGamma(float gamma);
+   void SetRenderOptions(CRenderOptions* renderOptions)
+   {
+      m_renderOptions = renderOptions;
+   }
 
    void DoRender();
 
 private:
 
    CRenderInstance()
-      :  m_driver(NULL)
    {
    }
 
 private:
 
-   AtNode* m_driver;
+   CRenderOptions* m_renderOptions;
 
 }; // class CRenderInstance
 

@@ -13,21 +13,11 @@ public:
 
    CRenderOptions();
 
+   // GETTING OPTIONS FROM MAYA
+
    void GetRenderOptions(CMayaScene* scene);
-   
-   void SetWidth(AtUInt width)
-   {
-      m_width = width;
 
-      SetupImageOptions();
-   }
-
-   void SetHeight(AtUInt height)
-   {
-      m_height = height;
-
-      SetupImageOptions();
-   }
+   // MODIFYING OPTIONS
 
    AtUInt32 minX() const
    {
@@ -66,7 +56,7 @@ public:
 
    float outputGamma() const
    {
-      return m_gamma;
+      return m_output_gamma;
    }
 
    bool useRenderRegion() const
@@ -94,12 +84,33 @@ public:
       return m_outputAssMask;
    }
 
+   void SetWidth(AtUInt width)
+   {
+      m_width = width;
+
+      SetupImageOptions();
+   }
+
+   void SetHeight(AtUInt height)
+   {
+      m_height = height;
+
+      SetupImageOptions();
+   }
+
+   // SETTING OPTIONS IN ARNOLD
+
+   void SetupRender() const;
+   
 private:
 
    void ProcessCommonRenderOptions();
    void ProcessArnoldRenderOptions();
    
-   void SetupImageOptions();
+   void SetupLog() const;
+   void SetupImageOptions() const;
+
+   AtInt GetFlagsFromVerbosityLevel(AtUInt level) const;
 
 private:
 
@@ -108,11 +119,41 @@ private:
    float    m_pixelAspectRatio;
    bool     m_useRenderRegion;
    bool     m_clearBeforeRender; 
-   float    m_gamma;
+   
+   AtUInt   m_threads;
+   AtUInt   m_bucket_scanning;
+   AtUInt   m_bucket_size;
+   bool     m_abort_on_error;
+
+   AtUInt    m_AA_samples;
+   AtUInt    m_GI_hemi_samples;
+   AtUInt    m_GI_specular_samples;
+   float     m_AA_sample_clamp;
+
+   float    m_output_gamma;
+   float    m_TM_lgamma;
+   float    m_TM_sgamma;
+   float    m_TM_tgamma;
+
+   AtUInt   m_GI_diffuse_depth;
+   AtUInt   m_GI_glossy_depth;
+   AtUInt   m_GI_reflection_depth;
+   AtUInt   m_GI_refraction_depth;
+   AtUInt   m_GI_total_depth;
+
+   AtUInt   m_max_subdivisions;
+
+   AtUInt   m_background;
+   AtUInt   m_atmosphere;
 
    MString m_outputAssFile;
-   bool m_outputAssCompressed;
-   AtUInt m_outputAssMask;
+   bool    m_outputAssCompressed;
+   AtUInt  m_outputAssMask;
+
+   MString m_log_filename;
+   AtUInt  m_log_max_warnings;
+   AtUInt  m_log_console_verbosity;
+   AtUInt  m_log_file_verbosity;
 
    CMayaScene* m_scene;
 };

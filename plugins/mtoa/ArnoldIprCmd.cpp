@@ -15,10 +15,10 @@ MSyntax CArnoldIprCmd::newSyntax()
 {
    MSyntax syntax;
 
-   syntax.addFlag("cam", "camera", MSyntax::MArgType::kString);
-   syntax.addFlag("w", "width", MSyntax::MArgType::kUnsigned);
-   syntax.addFlag("h", "height", MSyntax::MArgType::kUnsigned);
-   syntax.addFlag("m", "mode", MSyntax::MArgType::kString);
+   syntax.addFlag("cam", "camera", MSyntax::kString);
+   syntax.addFlag("w", "width", MSyntax::kUnsigned);
+   syntax.addFlag("h", "height", MSyntax::kUnsigned);
+   syntax.addFlag("m", "mode", MSyntax::kString);
 
    return syntax;
 }
@@ -50,11 +50,10 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
    {
       if (!renderInstance->IsActive())
       {
-         renderInstance->Init();
-
          m_renderOptions.GetRenderOptions(&m_scene);
 
-         renderInstance->SetGamma(m_renderOptions.outputGamma());
+         renderInstance->SetRenderOptions(&m_renderOptions);
+         renderInstance->Init();
 
          status = m_scene.ExportToArnold();
 

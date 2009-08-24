@@ -25,6 +25,13 @@ global proc UpdateMotionBlurSettings()
    attrControlGrp -edit -enable $flag mb_motion_frames;
 }
 
+global proc UpdateLogSettings()
+{
+   string $name = `getAttr defaultArnoldRenderOptions.log_filename`;
+   
+   attrControlGrp -edit -enable ($name != "") log_file_verbosity;
+}
+
 global proc SelectBackground()
 {
    int $bkg = `getAttr defaultArnoldRenderOptions.background`;
@@ -286,6 +293,33 @@ global proc CreateArnoldSubdivSettings()
    setUITemplate -popTemplate;
 }
 
+global proc CreateArnoldLogSettings()
+{
+   setUITemplate -pushTemplate attributeEditorTemplate;
+   columnLayout -adjustableColumn true;
+      
+      attrControlGrp -label "Filename"
+         -attribute defaultArnoldRenderOptions.log_filename
+         -cc UpdateLogSettings
+         log_filename;
+
+      attrControlGrp -label "Max. Warnings"
+         -attribute defaultArnoldRenderOptions.log_max_warnings
+         log_max_warnings;
+
+      attrControlGrp -label "Console Verbosity Level"
+         -attribute defaultArnoldRenderOptions.log_console_verbosity
+         log_console_verbosity;
+
+      attrControlGrp -label "File Verbosity Level"
+         -attribute defaultArnoldRenderOptions.log_file_verbosity
+         log_file_verbosity;
+
+      setParent ..;
+
+   setUITemplate -popTemplate;
+}
+
 global proc CreateArnoldRendererGlobalsTab()
 {
    // Make sure the ArnoldRenderOptions node exists
@@ -339,6 +373,12 @@ global proc CreateArnoldRendererGlobalsTab()
             CreateArnoldGammaSettings;
             setParent ..;
          
+         // Log
+         //
+         frameLayout -label "Log" -lw 150 -cll true -cl 1 arnoldLogSettings;
+            CreateArnoldLogSettings;
+            setParent ..;
+         
          setParent ..;
          
       formLayout -edit
@@ -358,4 +398,5 @@ global proc UpdateArnoldRendererGlobalsTab()
    UpdateRenderSettings();
    UpdateSamplingSettings();
    UpdateMotionBlurSettings();
+   UpdateLogSettings();
 }

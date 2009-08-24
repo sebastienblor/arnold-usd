@@ -63,6 +63,11 @@ public:
    static MObject s_output_ass_compressed;
    static MObject s_output_ass_mask;
 
+   static MObject s_log_filename;
+   static MObject s_log_max_warnings;
+   static MObject s_log_console_verbosity;
+   static MObject s_log_file_verbosity;
+
    static MObject s_background;
    static MObject s_atmosphere;
 

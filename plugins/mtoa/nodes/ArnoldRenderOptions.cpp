@@ -41,6 +41,10 @@ MObject CArnoldRenderOptionsNode::s_max_subdivisions;
 MObject CArnoldRenderOptionsNode::s_output_ass_filename;
 MObject CArnoldRenderOptionsNode::s_output_ass_compressed;
 MObject CArnoldRenderOptionsNode::s_output_ass_mask;
+MObject CArnoldRenderOptionsNode::s_log_filename;
+MObject CArnoldRenderOptionsNode::s_log_max_warnings;
+MObject CArnoldRenderOptionsNode::s_log_console_verbosity;
+MObject CArnoldRenderOptionsNode::s_log_file_verbosity;
 MObject CArnoldRenderOptionsNode::s_background;
 MObject CArnoldRenderOptionsNode::s_atmosphere;
 
@@ -271,6 +275,28 @@ MStatus CArnoldRenderOptionsNode::initialize()
    nAttr.setMin(0);
    nAttr.setMax(0xFFFF);
    addAttribute(s_output_ass_mask);
+
+   s_log_filename = tAttr.create("log_filename", "logf", MFnData::kString);
+   tAttr.setKeyable(false);
+   addAttribute(s_log_filename);
+
+   s_log_max_warnings = nAttr.create("log_max_warnings", "logw", MFnNumericData::kInt, 100);
+   nAttr.setKeyable(false);
+   nAttr.setMin(0);
+   nAttr.setMax(100000);
+   addAttribute(s_log_max_warnings);
+
+   s_log_console_verbosity = nAttr.create("log_console_verbosity", "logcv", MFnNumericData::kInt, 6);
+   nAttr.setKeyable(false);
+   nAttr.setMin(0);
+   nAttr.setMax(6);
+   addAttribute(s_log_console_verbosity);
+
+   s_log_file_verbosity = nAttr.create("log_file_verbosity", "logfv", MFnNumericData::kInt, 6);
+   nAttr.setKeyable(false);
+   nAttr.setMin(0);
+   nAttr.setMax(6);
+   addAttribute(s_log_file_verbosity);
 
    s_background = eAttr.create("background", "bkg", 0);
    nAttr.setKeyable(false);

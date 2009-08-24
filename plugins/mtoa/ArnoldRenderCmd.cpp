@@ -13,9 +13,9 @@ MSyntax CArnoldRenderCmd::newSyntax()
 {
    MSyntax syntax;
 
-   syntax.addFlag("cam", "camera", MSyntax::MArgType::kString);
-   syntax.addFlag("w", "width", MSyntax::MArgType::kUnsigned);
-   syntax.addFlag("h", "height", MSyntax::MArgType::kUnsigned);
+   syntax.addFlag("cam", "camera", MSyntax::kString);
+   syntax.addFlag("w", "width", MSyntax::kUnsigned);
+   syntax.addFlag("h", "height", MSyntax::kUnsigned);
 
    return syntax;
 }
@@ -31,10 +31,8 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       return MS::kFailure;
    }
 
-   renderInstance->Init();
-
    m_renderOptions.GetRenderOptions(&m_scene);
-
+   
    if (args.isFlagSet("width"))
    {
       m_renderOptions.SetWidth(args.flagArgumentInt("width", 0));
@@ -45,7 +43,8 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       m_renderOptions.SetHeight(args.flagArgumentInt("height", 0));
    }
 
-   renderInstance->SetGamma(m_renderOptions.outputGamma());
+   renderInstance->SetRenderOptions(&m_renderOptions);
+   renderInstance->Init();
 
    status = m_scene.ExportToArnold();
 
