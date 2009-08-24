@@ -48,7 +48,7 @@ MStatus CArnoldLightBlockerShaderNode::initialize()
    nAttr.setMax(10);
    MAKE_INPUT(nAttr, s_density);
 
-   s_geometry_matrix = mAttr.create("geometry_matrix", "gmat", MFnMatrixAttribute::Type::kFloat);
+   s_geometry_matrix = mAttr.create("geometry_matrix", "gmat", MFnMatrixAttribute::kFloat);
    MAKE_INPUT(mAttr, s_geometry_matrix);
 
    s_geometry_type = eAttr.create("geometry_type", "gtype", 0);
