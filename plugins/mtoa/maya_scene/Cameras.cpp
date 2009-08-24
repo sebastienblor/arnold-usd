@@ -14,6 +14,9 @@ void CMayaScene::ExportCameraData(AtNode* camera, const MDagPath& dagPath, bool 
 
    AiNodeSetStr(camera, "name", fnDagNode.name().asChar());
 
+   AiNodeSetFlt(camera, "near_clip", fnDagNode.findPlug("nearClipPlane").asFloat());
+   AiNodeSetFlt(camera, "far_clip", fnDagNode.findPlug("farClipPlane").asFloat());
+
    if (m_motionBlurData.enabled)
    {
       float halfShutter = m_motionBlurData.shutter_size * 0.5f;
