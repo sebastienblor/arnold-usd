@@ -12,293 +12,71 @@
 #include <maya/MPlug.h>
 #include <maya/MPlugArray.h>
 
-namespace // <anonymous>
+// This is a shortcut for Arnold shaders (parameter name is the same in Maya and Arnold)
+#define SHADER_PARAM(name, type) ProcessShaderParameter(mayaShader, name, shader, name, type)
+
+void CMayaScene::ProcessShaderParameter(MFnDependencyNode shader, const char* param, AtNode* arnoldShader, const char* arnoldAttrib, int arnoldAttribType)
 {
-   void ProcessShaderParameter(MFnDependencyNode shader, const char* param, AtNode* arnoldShader, const char* arnoldAttrib, int arnoldAttribType)
+   MPlugArray connections;
+
+   MPlug plug = shader.findPlug(param);
+
+   plug.connectedTo(connections, true, false);
+
+   if (connections.length() == 0)
    {
-      MPlugArray connections;
-
-      MPlug plug = shader.findPlug(param);
-
-      plug.connectedTo(connections, true, false);
-
-      if (connections.length() == 0)
+      switch(arnoldAttribType)
       {
-         switch(arnoldAttribType)
+      case AI_TYPE_RGB:
          {
-         case AI_TYPE_RGB:
-            {
-               AiNodeSetRGB(arnoldShader, arnoldAttrib, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
-            }
-            break;
-         case AI_TYPE_FLOAT:
-            {
-               AiNodeSetFlt(arnoldShader, arnoldAttrib, plug.asFloat());
-            }
-            break;
-         case AI_TYPE_BOOLEAN:
-            {
-               AiNodeSetBool(arnoldShader, arnoldAttrib, plug.asBool());
-            }
-            break;
-         case AI_TYPE_ENUM:
-            {
-               AiNodeSetInt(arnoldShader, arnoldAttrib, plug.asInt());
-            }
-            break;
-         case AI_TYPE_INT:
-            {
-               AiNodeSetInt(arnoldShader, arnoldAttrib, plug.asInt());
-            }
-            break;
-         case AI_TYPE_STRING:
-            {
-               AiNodeSetStr(arnoldShader, arnoldAttrib, plug.asString().asChar());
-            }
-            break;
-         case AI_TYPE_VECTOR:
-            {
-               AiNodeSetVec(arnoldShader, arnoldAttrib, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
-            }
-            break;
-         case AI_TYPE_POINT:
-            {
-               AiNodeSetPnt(arnoldShader, arnoldAttrib, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
-            }
-            break;
+            AiNodeSetRGB(arnoldShader, arnoldAttrib, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
          }
+         break;
+      case AI_TYPE_FLOAT:
+         {
+            AiNodeSetFlt(arnoldShader, arnoldAttrib, plug.asFloat());
+         }
+         break;
+      case AI_TYPE_BOOLEAN:
+         {
+            AiNodeSetBool(arnoldShader, arnoldAttrib, plug.asBool());
+         }
+         break;
+      case AI_TYPE_ENUM:
+         {
+            AiNodeSetInt(arnoldShader, arnoldAttrib, plug.asInt());
+         }
+         break;
+      case AI_TYPE_INT:
+         {
+            AiNodeSetInt(arnoldShader, arnoldAttrib, plug.asInt());
+         }
+         break;
+      case AI_TYPE_STRING:
+         {
+            AiNodeSetStr(arnoldShader, arnoldAttrib, plug.asString().asChar());
+         }
+         break;
+      case AI_TYPE_VECTOR:
+         {
+            AiNodeSetVec(arnoldShader, arnoldAttrib, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+         }
+         break;
+      case AI_TYPE_POINT:
+         {
+            AiNodeSetPnt(arnoldShader, arnoldAttrib, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+         }
+         break;
       }
-      else
-      {
-         // TODO: Implement this properly, with recursive export of connected nodes.
-
-         MObject fileName;
-         MPlug   filePlug;
-         MFnDependencyNode fnDGNode; 
-
-         fnDGNode.setObject(connections[0].node());
-
-         filePlug = fnDGNode.findPlug("fileTextureName");
-
-         filePlug.getValue(fileName);
-
-         MFnStringData fileNameString(fileName);
-
-         AtNode* image = AiNode("image");
-
-         AiNodeSetStr(image, "image_map", fileNameString.string().asChar());
-         AiNodeLink(image, arnoldAttrib, arnoldShader);
-      }
-
-   }  // ProcessColorAttrib()
-
-   // This is a shortcut for Arnold shaders (parameter name is the same in Maya and Arnold)
-   #define SHADER_PARAM(name, type) ProcessShaderParameter(mayaShader, name, shader, name, type)
-
-   AtNode* ExportArnoldShader(MObject mayaShader)
+   }
+   else
    {
-      AtNode* shader = NULL;
-      MFnDependencyNode mayaNode(mayaShader);
+      AtNode* node = ExportShader(connections[0].node());
 
-      if (!strcmp(mayaNode.typeName().asChar(), "ArnoldStandardShader"))
-      {
-         shader = AiNode("standard");
-
-         AiNodeSetStr(shader, "name", mayaNode.name().asChar());
-
-         SHADER_PARAM("Fresnel", AI_TYPE_BOOLEAN);
-         SHADER_PARAM("Fresnel_affect_diff", AI_TYPE_BOOLEAN);
-         SHADER_PARAM("IOR", AI_TYPE_FLOAT);
-         SHADER_PARAM("Kb", AI_TYPE_FLOAT);
-         SHADER_PARAM("Kd", AI_TYPE_FLOAT);
-         SHADER_PARAM("Kd_color", AI_TYPE_RGB);
-         SHADER_PARAM("Kr", AI_TYPE_FLOAT);
-         SHADER_PARAM("Kr_color", AI_TYPE_RGB);
-         SHADER_PARAM("Krn", AI_TYPE_FLOAT);
-         SHADER_PARAM("Ks", AI_TYPE_FLOAT);
-         SHADER_PARAM("Ks_color", AI_TYPE_RGB);
-         SHADER_PARAM("Ksn", AI_TYPE_FLOAT);
-         SHADER_PARAM("Ksss", AI_TYPE_FLOAT);
-         SHADER_PARAM("Ksss_color", AI_TYPE_RGB);
-         SHADER_PARAM("Kt", AI_TYPE_FLOAT);
-         SHADER_PARAM("Kt_color", AI_TYPE_RGB);
-         SHADER_PARAM("Phong_exponent", AI_TYPE_FLOAT);
-         SHADER_PARAM("bounce_factor", AI_TYPE_FLOAT);
-         SHADER_PARAM("caustics", AI_TYPE_BOOLEAN);
-         SHADER_PARAM("direct_diffuse", AI_TYPE_FLOAT);
-         SHADER_PARAM("direct_specular", AI_TYPE_FLOAT);
-         SHADER_PARAM("emission", AI_TYPE_FLOAT);
-         SHADER_PARAM("emission_color", AI_TYPE_RGB);
-         SHADER_PARAM("indirect_diffuse", AI_TYPE_FLOAT);
-         SHADER_PARAM("indirect_specular", AI_TYPE_FLOAT);
-         SHADER_PARAM("opacity", AI_TYPE_RGB);
-         SHADER_PARAM("specular_Fresnel", AI_TYPE_BOOLEAN);
-         SHADER_PARAM("sss_radius", AI_TYPE_RGB);
-      }
-      else if (!strcmp(mayaNode.typeName().asChar(), "ArnoldUtilityShader"))
-      {
-         shader = AiNode("utility");
-
-         AiNodeSetStr(shader, "name", mayaNode.name().asChar());
-
-         SHADER_PARAM("color", AI_TYPE_RGB);
-         SHADER_PARAM("color_mode", AI_TYPE_ENUM);
-         SHADER_PARAM("shade_mode", AI_TYPE_ENUM);
-      }
-      else if (!strcmp(mayaNode.typeName().asChar(), "ArnoldAmbientOcclusionShader"))
-      {
-         shader = AiNode("ambient_occlusion");
-
-         AiNodeSetStr(shader, "name", mayaNode.name().asChar());
-
-         SHADER_PARAM("black", AI_TYPE_RGB);
-         SHADER_PARAM("falloff", AI_TYPE_FLOAT);
-         SHADER_PARAM("far_clip", AI_TYPE_FLOAT);
-         SHADER_PARAM("near_clip", AI_TYPE_FLOAT);
-         SHADER_PARAM("opacity", AI_TYPE_RGB);
-         SHADER_PARAM("samples", AI_TYPE_INT);
-         SHADER_PARAM("spread", AI_TYPE_FLOAT);
-         SHADER_PARAM("white", AI_TYPE_RGB);
-      }
-      else if (!strcmp(mayaNode.typeName().asChar(), "ArnoldSkyShader"))
-      {
-         shader = AiNode("sky");
-
-         AiNodeSetStr(shader, "name", mayaNode.name().asChar());
-
-         SHADER_PARAM("X", AI_TYPE_VECTOR);
-         SHADER_PARAM("Y", AI_TYPE_VECTOR);
-         SHADER_PARAM("Z", AI_TYPE_VECTOR);
-         SHADER_PARAM("X_angle", AI_TYPE_FLOAT);
-         SHADER_PARAM("Y_angle", AI_TYPE_FLOAT);
-         SHADER_PARAM("Z_angle", AI_TYPE_FLOAT);
-         SHADER_PARAM("format", AI_TYPE_ENUM);
-         SHADER_PARAM("color", AI_TYPE_RGB);
-         SHADER_PARAM("intensity", AI_TYPE_FLOAT);
-         SHADER_PARAM("opaque_alpha", AI_TYPE_BOOLEAN);
-         SHADER_PARAM("visible", AI_TYPE_BOOLEAN);
-      }
-      else if (!strcmp(mayaNode.typeName().asChar(), "ArnoldFogShader"))
-      {
-         shader = AiNode("fog");
-
-         AiNodeSetStr(shader, "name", mayaNode.name().asChar());
-
-         SHADER_PARAM("color", AI_TYPE_RGB);
-         SHADER_PARAM("distance", AI_TYPE_FLOAT);
-         SHADER_PARAM("ground_normal", AI_TYPE_VECTOR);
-         SHADER_PARAM("ground_point", AI_TYPE_POINT);
-         SHADER_PARAM("height", AI_TYPE_FLOAT);
-      }
-      else if (!strcmp(mayaNode.typeName().asChar(), "ArnoldVolumeScatteringShader"))
-      {
-         shader = AiNode("volume_scattering");
-
-         AiNodeSetStr(shader, "name", mayaNode.name().asChar());
-
-         SHADER_PARAM("affect_diffuse", AI_TYPE_FLOAT);
-         SHADER_PARAM("affect_reflection", AI_TYPE_FLOAT);
-         SHADER_PARAM("attenuation", AI_TYPE_FLOAT);
-         SHADER_PARAM("density", AI_TYPE_FLOAT);
-         SHADER_PARAM("eccentricity", AI_TYPE_FLOAT);
-         SHADER_PARAM("importance_sampling", AI_TYPE_BOOLEAN);
-         SHADER_PARAM("mscattering_depth", AI_TYPE_INT);
-         SHADER_PARAM("mscattering_samples", AI_TYPE_INT);
-         SHADER_PARAM("phase_function", AI_TYPE_ENUM);
-         SHADER_PARAM("rgb_attenuation", AI_TYPE_RGB);
-         SHADER_PARAM("rgb_density", AI_TYPE_RGB);
-         SHADER_PARAM("samples", AI_TYPE_INT);
-         SHADER_PARAM("sampling_pattern", AI_TYPE_ENUM);
-      }
-      else if (!strcmp(mayaNode.typeName().asChar(), "ArnoldWireframeShader"))
-      {
-         shader = AiNode("wireframe");
-
-         AiNodeSetStr(shader, "name", mayaNode.name().asChar());
-
-         SHADER_PARAM("edge_type", AI_TYPE_ENUM);
-         SHADER_PARAM("fill_color", AI_TYPE_RGB);
-         SHADER_PARAM("line_color", AI_TYPE_RGB);
-         SHADER_PARAM("line_width", AI_TYPE_FLOAT);
-         SHADER_PARAM("raster_space", AI_TYPE_BOOLEAN);
-      }
-      else if (!strcmp(mayaNode.typeName().asChar(), "ArnoldBarndoorShader"))
-      {
-         shader = AiNode("barndoor");
-
-         AiNodeSetStr(shader, "name", mayaNode.name().asChar());
-
-         SHADER_PARAM("barndoor_bottom_edge", AI_TYPE_FLOAT);
-         SHADER_PARAM("barndoor_bottom_left", AI_TYPE_FLOAT);
-         SHADER_PARAM("barndoor_bottom_right", AI_TYPE_FLOAT);
-         SHADER_PARAM("barndoor_top_edge", AI_TYPE_FLOAT);
-         SHADER_PARAM("barndoor_top_left", AI_TYPE_FLOAT);
-         SHADER_PARAM("barndoor_top_right", AI_TYPE_FLOAT);
-         SHADER_PARAM("barndoor_left_edge", AI_TYPE_FLOAT);
-         SHADER_PARAM("barndoor_left_bottom", AI_TYPE_FLOAT);
-         SHADER_PARAM("barndoor_left_top", AI_TYPE_FLOAT);
-         SHADER_PARAM("barndoor_right_edge", AI_TYPE_FLOAT);
-         SHADER_PARAM("barndoor_right_bottom", AI_TYPE_FLOAT);
-         SHADER_PARAM("barndoor_right_top", AI_TYPE_FLOAT);
-      }
-      else if (!strcmp(mayaNode.typeName().asChar(), "ArnoldGoboShader"))
-      {
-         shader = AiNode("gobo");
-
-         AiNodeSetStr(shader, "name", mayaNode.name().asChar());
-
-         SHADER_PARAM("density", AI_TYPE_FLOAT);
-         SHADER_PARAM("filter_mode", AI_TYPE_ENUM);
-         SHADER_PARAM("offset", AI_TYPE_POINT2);
-         SHADER_PARAM("rotate", AI_TYPE_FLOAT);
-         SHADER_PARAM("scale_s", AI_TYPE_FLOAT);
-         SHADER_PARAM("scale_t", AI_TYPE_FLOAT);
-         SHADER_PARAM("slidemap", AI_TYPE_RGB);
-         SHADER_PARAM("wrap_s", AI_TYPE_ENUM);
-         SHADER_PARAM("wrap_t", AI_TYPE_ENUM);
-      }
-      else if (!strcmp(mayaNode.typeName().asChar(), "ArnoldLightBlockerShader"))
-      {
-         shader = AiNode("light_blocker");
-
-         AiNodeSetStr(shader, "name", mayaNode.name().asChar());
-
-         SHADER_PARAM("density", AI_TYPE_FLOAT);
-         SHADER_PARAM("geometry_matrix", AI_TYPE_MATRIX);
-         SHADER_PARAM("geometry_type", AI_TYPE_ENUM);
-         SHADER_PARAM("height_edge", AI_TYPE_FLOAT);
-         SHADER_PARAM("ramp", AI_TYPE_FLOAT);
-         SHADER_PARAM("ramp_axis", AI_TYPE_ENUM);
-         SHADER_PARAM("roundness", AI_TYPE_FLOAT);
-         SHADER_PARAM("width_edge", AI_TYPE_FLOAT);
-      }
-      else if (!strcmp(mayaNode.typeName().asChar(), "ArnoldLightDecayShader"))
-      {
-         shader = AiNode("light_decay");
-
-         AiNodeSetStr(shader, "name", mayaNode.name().asChar());
-
-         SHADER_PARAM("decay_clamp", AI_TYPE_BOOLEAN);
-         SHADER_PARAM("decay_radius", AI_TYPE_FLOAT);
-         SHADER_PARAM("decay_type", AI_TYPE_ENUM);
-         SHADER_PARAM("far_end", AI_TYPE_FLOAT);
-         SHADER_PARAM("far_start", AI_TYPE_FLOAT);
-         SHADER_PARAM("near_end", AI_TYPE_FLOAT);
-         SHADER_PARAM("near_start", AI_TYPE_FLOAT);
-         SHADER_PARAM("use_far_atten", AI_TYPE_BOOLEAN);
-         SHADER_PARAM("use_near_atten", AI_TYPE_BOOLEAN);
-      }
-      else
-      {
-         AiMsgWarning("[mtoa] Shader type not supported.");
-      }
-
-      return shader;
-
-   } // ExportArnoldShader()
-
-}  // namespace <anonymous>
-
+      if (node != NULL)
+         AiNodeLink(node, arnoldAttrib, arnoldShader);
+   }
+}
 
 MObject CMayaScene::GetNodeShader(MObject dagNode)
 {
@@ -326,9 +104,34 @@ MObject CMayaScene::GetNodeShader(MObject dagNode)
    shaderPlug.connectedTo(connections, true, false);
 
    return connections[0].node();
+}
 
-}  // GetNodeShader()
+AtNode* CMayaScene::ExportArnoldShader(MObject mayaShader, MString arnoldShader)
+{
+   AtNode* shader = NULL;
+   MFnDependencyNode node(mayaShader);
 
+   const AtNodeEntry* nodeEntry = AiNodeEntryLookUp(arnoldShader.asChar());
+
+   if (nodeEntry != NULL)
+   {
+      shader = AiNode(arnoldShader.asChar());
+
+      AiNodeSetStr(shader, "name", node.name().asChar());
+
+      AtInt numParams = AiNodeEntryGetNumParams(nodeEntry);
+
+      for (AtInt J = 0; (J < numParams); ++J)
+      {
+         const AtParamEntry* paramEntry = AiNodeEntryGetParameter(nodeEntry, J);
+
+         if (AiParamGetName(paramEntry) != "name")
+            SHADER_PARAM(AiParamGetName(paramEntry), AiParamGetType(paramEntry));
+      }
+   }
+
+   return shader;
+ }
 
 AtNode* CMayaScene::ExportShader(MObject mayaShader)
 {
@@ -347,53 +150,84 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader)
 
    AiMsgDebug("[mtoa] Exporting shader: %s", node.name().asChar());
 
-   switch (mayaShader.apiType())
+   if (node.typeName() == "ArnoldStandardShader")
    {
-   case MFn::kLambert:
-      {
-         MFnLambertShader fnShader(mayaShader);
+      shader = ExportArnoldShader(mayaShader, "standard");
+   }
+   else if (node.typeName() == "ArnoldUtilityShader")
+   {
+      shader = ExportArnoldShader(mayaShader, "utility");
+   }
+   else if (node.typeName() == "ArnoldAmbientOcclusionShader")
+   {
+      shader = ExportArnoldShader(mayaShader, "ambient_occlusion");
+   }
+   else if (node.typeName() == "ArnoldSkyShader")
+   {
+      shader = ExportArnoldShader(mayaShader, "sky");
+   }
+   else if (node.typeName() == "ArnoldFogShader")
+   {
+      shader = ExportArnoldShader(mayaShader, "fog");
+   }
+   else if (node.typeName() == "ArnoldVolumeScatteringShader")
+   {
+      shader = ExportArnoldShader(mayaShader, "volume_scattering");
+   }
+   else if (node.typeName() == "ArnoldWireframeShader")
+   {
+      shader = ExportArnoldShader(mayaShader, "wireframe");
+   }
+   else if (node.typeName() == "ArnoldBarndoorShader")
+   {
+      shader = ExportArnoldShader(mayaShader, "barndoor");
+   }
+   else if (node.typeName() == "ArnoldGoboShader")
+   {
+      shader = ExportArnoldShader(mayaShader, "gobo");
+   }
+   else if (node.typeName() == "ArnoldLightBlockerShader")
+   {
+      shader = ExportArnoldShader(mayaShader, "light_blocker");
+   }
+   else if (node.typeName() == "ArnoldLightDecayShader")
+   {
+      shader = ExportArnoldShader(mayaShader, "light_decay");
+   }
+   else if (node.typeName() == "lambert")
+   {
+      MFnLambertShader fnShader(mayaShader);
 
-         shader = AiNode("lambert");
+      shader = AiNode("lambert");
+   
+      AiNodeSetStr(shader, "name", fnShader.name().asChar());
+
+      ProcessShaderParameter(node, "diffuse", shader, "Kd", AI_TYPE_FLOAT);
+      ProcessShaderParameter(node, "color", shader, "Kd_color", AI_TYPE_RGB);
+      ProcessShaderParameter(node, "outMatteOpacity", shader, "opacity", AI_TYPE_RGB);
+   }
+   else if (node.typeName() == "surfaceShader")
+   {
+      shader = AiNode("flat");
+   
+      AiNodeSetStr(shader, "name", node.name().asChar());
+
+      ProcessShaderParameter(node, "outColor", shader, "color", AI_TYPE_RGB);
+      ProcessShaderParameter(node, "outMatteOpacity", shader, "opacity", AI_TYPE_RGB);
+   }
+   else if (node.typeName() == "file")
+   {
+      shader = AiNode("image");
       
-         AiNodeSetStr(shader, "name", fnShader.name().asChar());
-
-         ProcessShaderParameter(node, "diffuse", shader, "Kd", AI_TYPE_FLOAT);
-         ProcessShaderParameter(node, "color", shader, "Kd_color", AI_TYPE_RGB);
-         ProcessShaderParameter(node, "outMatteOpacity", shader, "opacity", AI_TYPE_RGB);
-      }
-      break;
-
-   case MFn::kPhong:
-      {
-      }
-      break;
-
-   case MFn::kBlinn:
-      {
-      }
-      break;
-
-   case MFn::kSurfaceShader:
-      {
-         shader = AiNode("flat");
-      
-         AiNodeSetStr(shader, "name", node.name().asChar());
-
-         ProcessShaderParameter(node, "outColor", shader, "color", AI_TYPE_RGB);
-         ProcessShaderParameter(node, "outMatteOpacity", shader, "opacity", AI_TYPE_RGB);
-      }
-      break;
-
-   case MFn::kPluginDependNode:
-      {
-         shader = ExportArnoldShader(mayaShader);
-      }
-      break;
-
-   default:
-      {
-         AiMsgWarning("[mtoa] Shader type not supported.");
-      }
+      AiNodeSetStr(shader, "image_map", node.findPlug("fileTextureName").asString().asChar());
+   }
+   else if (node.typeName() == "multiplyDivide")
+   {
+      shader = ExportArnoldShader(mayaShader, "MayaMultiplyDivide");
+   }
+   else
+   {
+      AiMsgWarning("[mtoa] Shader type not supported: %s", node.typeName().asChar());
    }
 
    if (shader)
@@ -407,5 +241,4 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader)
    }
 
    return shader;
-
-}  // ExportShader()
+}
