@@ -191,10 +191,8 @@ SConscriptChdir(1)
 
 # Rename plugins as .mll and install them in the target path
 mtoa_new = os.path.splitext(str(MTOA[0]))[0] + '.mll'
-mtoa_shaders_new = os.path.splitext(str(MTOA_SHADERS[0]))[0] + '.mll'
 env.Command(mtoa_new, str(MTOA[0]), Copy("$TARGET", "$SOURCE"))
-env.Command(mtoa_shaders_new, str(MTOA_SHADERS[0]), Copy("$TARGET", "$SOURCE"))
-env.Install(env['TARGET_PLUGIN_PATH'], [mtoa_new, mtoa_shaders_new] + glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*.dll')))
+env.Install(env['TARGET_PLUGIN_PATH'], [mtoa_new, str(MTOA_SHADERS[0])] + glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*.dll')))
 env.Install(env['TARGET_SCRIPTS_PATH'], glob.glob(os.path.join('scripts', '*.mel')))
 env.Install(env['TARGET_ICONS_PATH'], glob.glob(os.path.join('icons', '*.xpm')))
 
