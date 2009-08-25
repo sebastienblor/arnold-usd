@@ -3,6 +3,7 @@
 
 #include <maya/MFnEnumAttribute.h>
 #include <maya/MFnNumericAttribute.h>
+#include <maya/MFnStringData.h>
 #include <maya/MFnTypedAttribute.h>
 
 MTypeId CArnoldRenderOptionsNode::id(0x00071000);
@@ -57,6 +58,7 @@ MStatus CArnoldRenderOptionsNode::initialize()
 {
    MFnNumericAttribute  nAttr;
    MFnEnumAttribute eAttr;
+   MFnStringData sData;
    MFnTypedAttribute tAttr;
 
    s_threads_autodetect = nAttr.create("threads_autodetect", "thr_auto", MFnNumericData::kBoolean, 1);
@@ -278,6 +280,7 @@ MStatus CArnoldRenderOptionsNode::initialize()
 
    s_log_filename = tAttr.create("log_filename", "logf", MFnData::kString);
    tAttr.setKeyable(false);
+   tAttr.setDefault(sData.create("arnold.log"));
    addAttribute(s_log_filename);
 
    s_log_max_warnings = nAttr.create("log_max_warnings", "logw", MFnNumericData::kInt, 100);
