@@ -98,15 +98,16 @@ void CRenderOptions::ProcessArnoldRenderOptions()
 
       MFnDependencyNode fnArnoldRenderOptions(node);
 
-      m_threads = fnArnoldRenderOptions.findPlug("threads_autodetect").asBool() ? 0 : fnArnoldRenderOptions.findPlug("threads").asInt();
+      m_threads         = fnArnoldRenderOptions.findPlug("threads_autodetect").asBool() ? 0 : fnArnoldRenderOptions.findPlug("threads").asInt();
       m_bucket_scanning = fnArnoldRenderOptions.findPlug("bucket_scanning").asInt();
-      m_bucket_size = fnArnoldRenderOptions.findPlug("bucket_size").asInt();
-      m_abort_on_error = fnArnoldRenderOptions.findPlug("abort_on_error").asBool();
+      m_bucket_size     = fnArnoldRenderOptions.findPlug("bucket_size").asInt();
+      m_abort_on_error  = fnArnoldRenderOptions.findPlug("abort_on_error").asBool();
+      m_plugins_path    = fnArnoldRenderOptions.findPlug("plugins_path").asString();
 
-      m_AA_samples = fnArnoldRenderOptions.findPlug("AA_samples").asInt();
-      m_GI_hemi_samples = fnArnoldRenderOptions.findPlug("GI_hemi_samples").asInt();
+      m_AA_samples          = fnArnoldRenderOptions.findPlug("AA_samples").asInt();
+      m_GI_hemi_samples     = fnArnoldRenderOptions.findPlug("GI_hemi_samples").asInt();
       m_GI_specular_samples = fnArnoldRenderOptions.findPlug("GI_specular_samples").asInt();
-      m_AA_sample_clamp = fnArnoldRenderOptions.findPlug("use_sample_clamp").asBool() ? fnArnoldRenderOptions.findPlug("AA_sample_clamp").asFloat() : (float) AI_INFINITE;
+      m_AA_sample_clamp     = fnArnoldRenderOptions.findPlug("use_sample_clamp").asBool() ? fnArnoldRenderOptions.findPlug("AA_sample_clamp").asFloat() : (float) AI_INFINITE;
 
 
       m_output_gamma = fnArnoldRenderOptions.findPlug("driver_gamma").asFloat();
@@ -140,7 +141,6 @@ void CRenderOptions::ProcessArnoldRenderOptions()
 
 void CRenderOptions::SetupRender() const
 {
-   SetupLog();
    SetupImageOptions();
 
    AiNodeSetInt(AiUniverseGetOptions(), "threads", m_threads);
@@ -223,7 +223,7 @@ void CRenderOptions::SetupRender() const
 void CRenderOptions::SetupLog() const
 {
    if (m_log_filename != "")
-      AiMsgSetLogFileName(m_log_filename.asChar());
+      AiMsgSetLogFileName(m_log_filename.expandEnvironmentVariablesAndTilde().asChar());
 
    AiMsgSetMaxWarnings(m_log_max_warnings);
    AiMsgSetConsoleFlags(GetFlagsFromVerbosityLevel(m_log_console_verbosity));

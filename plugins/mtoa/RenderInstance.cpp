@@ -4,6 +4,7 @@
 #include "OutputDriver.h"
 
 #include <ai_msg.h>
+#include <ai_plugins.h>
 #include <ai_render.h>
 #include <ai_threads.h>
 #include <ai_universe.h>
@@ -40,6 +41,12 @@ void CRenderInstance::Init()
    }
 
    AiBegin();
+
+   m_renderOptions->SetupLog();
+
+   MString resolvedPathList = m_renderOptions->pluginsPath().expandEnvironmentVariablesAndTilde();
+
+   AiLoadPlugins(resolvedPathList.asChar());
 
    m_renderOptions->SetupRender();
 

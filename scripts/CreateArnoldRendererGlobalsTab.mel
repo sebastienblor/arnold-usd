@@ -104,6 +104,12 @@ global proc CreateArnoldRenderSettings()
          -attribute defaultArnoldRenderOptions.abort_on_error
          os_abort_on_error;
                         
+      separator;
+
+      attrControlGrp -label "Plug-ins Path"
+         -attribute defaultArnoldRenderOptions.plugins_path
+         os_plugins_path;
+                        
       setParent ..;
 
    setUITemplate -popTemplate;

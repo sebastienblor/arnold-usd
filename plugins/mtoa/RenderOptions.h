@@ -84,6 +84,11 @@ public:
       return m_outputAssMask;
    }
 
+   MString pluginsPath() const
+   {
+      return m_plugins_path;
+   }
+
    void SetWidth(AtUInt width)
    {
       m_width = width;
@@ -100,6 +105,7 @@ public:
 
    // SETTING OPTIONS IN ARNOLD
 
+   void SetupLog() const;
    void SetupRender() const;
    
 private:
@@ -107,7 +113,6 @@ private:
    void ProcessCommonRenderOptions();
    void ProcessArnoldRenderOptions();
    
-   void SetupLog() const;
    void SetupImageOptions() const;
 
    AtInt GetFlagsFromVerbosityLevel(AtUInt level) const;
@@ -124,6 +129,7 @@ private:
    AtUInt   m_bucket_scanning;
    AtUInt   m_bucket_size;
    bool     m_abort_on_error;
+   MString  m_plugins_path;
 
    AtUInt    m_AA_samples;
    AtUInt    m_GI_hemi_samples;

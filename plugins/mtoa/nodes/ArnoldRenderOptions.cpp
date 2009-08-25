@@ -14,6 +14,7 @@ MObject CArnoldRenderOptionsNode::s_bucket_scanning;
 MObject CArnoldRenderOptionsNode::s_bucket_size;
 MObject CArnoldRenderOptionsNode::s_clear_before_render;
 MObject CArnoldRenderOptionsNode::s_abort_on_error;
+MObject CArnoldRenderOptionsNode::s_plugins_path;
 MObject CArnoldRenderOptionsNode::s_AA_samples;
 MObject CArnoldRenderOptionsNode::s_GI_hemi_samples;
 MObject CArnoldRenderOptionsNode::s_GI_specular_samples;
@@ -97,6 +98,11 @@ MStatus CArnoldRenderOptionsNode::initialize()
    s_abort_on_error = nAttr.create("abort_on_error", "abort", MFnNumericData::kBoolean, 1);
    nAttr.setKeyable(false);
    addAttribute(s_abort_on_error);
+
+   s_plugins_path = tAttr.create("plugins_path", "ppath", MFnData::kString);
+   tAttr.setKeyable(false);
+   tAttr.setDefault(sData.create("$MTOA_PLUGINS_PATH"));
+   addAttribute(s_plugins_path);
 
    s_AA_samples = nAttr.create("AA_samples", "AAsmpls", MFnNumericData::kInt, 3);
    nAttr.setKeyable(false);
@@ -266,6 +272,7 @@ MStatus CArnoldRenderOptionsNode::initialize()
 
    s_output_ass_filename = tAttr.create("output_ass_filename", "file", MFnData::kString);
    tAttr.setKeyable(false);
+   tAttr.setDefault(sData.create("$MTOA_ASS_PATH/mtoa.ass"));
    addAttribute(s_output_ass_filename);
 
    s_output_ass_compressed = nAttr.create("output_ass_compressed", "oasc", MFnNumericData::kBoolean, 0);
@@ -280,7 +287,7 @@ MStatus CArnoldRenderOptionsNode::initialize()
 
    s_log_filename = tAttr.create("log_filename", "logf", MFnData::kString);
    tAttr.setKeyable(false);
-   tAttr.setDefault(sData.create("arnold.log"));
+   tAttr.setDefault(sData.create("$MTOA_LOG_PATH/arnold.log"));
    addAttribute(s_log_filename);
 
    s_log_max_warnings = nAttr.create("log_max_warnings", "logw", MFnNumericData::kInt, 100);
