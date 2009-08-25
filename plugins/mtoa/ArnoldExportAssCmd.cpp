@@ -31,6 +31,7 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
 
    AiBegin();
 
+   m_renderOptions.SetupLog();
    m_renderOptions.SetupRender();
 
    status = m_scene.ExportToArnold();
@@ -44,7 +45,7 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
       AiNodeSetPtr(AiUniverseGetOptions(), "camera", AiNodeLookUpByName(cameraNode.name().asChar()));
    }
 
-   MString fileName = VerifyFileName(m_renderOptions.outputAssFile(), m_renderOptions.outputAssCompressed());
+   MString fileName = VerifyFileName(m_renderOptions.outputAssFile().expandEnvironmentVariablesAndTilde(), m_renderOptions.outputAssCompressed());
 
    if (fileName == "")
       AiMsgError("[mtoa] File name must be set before exporting .ass file");
