@@ -75,7 +75,7 @@ namespace // <anonymous>
 
 }  // namespace <anonymous>
 
-__declspec(dllexport)
+OPENMAYA_EXPORT
 MStatus initializePlugin(MObject object)
 {
    MStatus status;
@@ -97,7 +97,7 @@ MStatus initializePlugin(MObject object)
 }
 
 
-__declspec(dllexport)
+OPENMAYA_EXPORT
 MStatus uninitializePlugin(MObject object)
 {
    MStatus status;
