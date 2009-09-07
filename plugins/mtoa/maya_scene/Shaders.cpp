@@ -247,6 +247,18 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader)
    {
       shader = ExportArnoldShader(mayaShader, "MayaGammaCorrect");
    }
+   else if (node.typeName() == "condition")
+   {
+      shader = AiNode("MayaCondition");
+   
+      AiNodeSetStr(shader, "name", node.name().asChar());
+
+      ProcessShaderParameter(node, "operation", shader, "operation", AI_TYPE_ENUM);
+      ProcessShaderParameter(node, "firstTerm", shader, "first_term", AI_TYPE_FLOAT);
+      ProcessShaderParameter(node, "secondTerm", shader, "second_term", AI_TYPE_FLOAT);
+      ProcessShaderParameter(node, "colorIfTrue", shader, "color_if_true", AI_TYPE_RGB);
+      ProcessShaderParameter(node, "colorIfFalse", shader, "color_if_false", AI_TYPE_RGB);
+   }
    else if (node.typeName() == "blendColors")
    {
       shader = AiNode("blend");
