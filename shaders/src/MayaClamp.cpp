@@ -1,0 +1,39 @@
+
+#include <ai_nodes.h>
+#include <ai_shaderglobals.h>
+#include <ai_shaders.h>
+#include <ai_shader_parameval.h>
+
+enum MayaClampParams {
+   p_min,
+   p_max,
+   p_input
+};
+
+extern "C" { AI_SHADER_NODE_EXPORT_METHODS(MayaClampMtd); }
+
+node_parameters
+{
+   AiParameterRGB("min", 0, 0, 0);
+   AiParameterRGB("max", 1, 1, 1);
+   AiParameterRGB("input", 0, 0, 0);
+}
+
+node_initialize
+{
+}
+
+node_finish
+{
+}
+
+shader_evaluate
+{
+   AtColor input = AiShaderEvalParamRGB(p_input);
+   AtColor min   = AiShaderEvalParamRGB(p_min);
+   AtColor max   = AiShaderEvalParamRGB(p_max);
+
+   sg->out.RGB.r = (input.r < min.r) ? min.r : ((input.r > max.r) ? max.r : input.r);
+   sg->out.RGB.g = (input.g < min.g) ? min.g : ((input.g > max.g) ? max.g : input.g);
+   sg->out.RGB.b = (input.b < min.b) ? min.b : ((input.b > max.b) ? max.b : input.b);
+}
