@@ -32,6 +32,20 @@ void CMayaScene::ProcessShaderParameter(MFnDependencyNode shader, const char* pa
             AiNodeSetRGB(arnoldShader, arnoldAttrib, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
          }
          break;
+      case AI_TYPE_RGBA:
+         {
+            // Is the source parameter RGB or RGBA?
+            if (plug.numChildren() == 4)
+            {
+               AiNodeSetRGBA(arnoldShader, arnoldAttrib, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat(), plug.child(3).asFloat());
+            }
+            else
+            {
+               // For RGB source parameter, set alpha value to 1
+               AiNodeSetRGBA(arnoldShader, arnoldAttrib, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat(), 1);
+            }
+         }
+         break;
       case AI_TYPE_FLOAT:
          {
             AiNodeSetFlt(arnoldShader, arnoldAttrib, plug.asFloat());
@@ -224,6 +238,18 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader)
    else if (node.typeName() == "multiplyDivide")
    {
       shader = ExportArnoldShader(mayaShader, "MayaMultiplyDivide");
+   }
+   else if (node.typeName() == "blendColors")
+   {
+      shader = AiNode("blend");
+   
+      AiNodeSetStr(shader, "name", node.name().asChar());
+
+      AiNodeSetInt(shader, "type", 0); // Always lerp based on blend value
+
+      ProcessShaderParameter(node, "color1", shader, "color2", AI_TYPE_RGBA);
+      ProcessShaderParameter(node, "color2", shader, "color1", AI_TYPE_RGBA);
+      ProcessShaderParameter(node, "blender", shader, "blend", AI_TYPE_FLOAT);
    }
    else
    {
