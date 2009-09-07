@@ -43,7 +43,9 @@ shader_evaluate
       AiColorMult(sg->out.RGB, input1, input2);
       break;
    case 2: // Divide (output = input1 / input2)
-      AiColorDiv(sg->out.RGB, input1, input2);
+      sg->out.RGB.r = (input2.r == 0) ? input1.r : (input1.r / input2.r);
+      sg->out.RGB.g = (input2.g == 0) ? input1.g : (input1.g / input2.g);
+      sg->out.RGB.b = (input2.b == 0) ? input1.b : (input1.b / input2.b);
       break;
    case 3: // Power (output = input1 ^ input2)
       sg->out.RGB.r = powf(input1.r, input2.r);
