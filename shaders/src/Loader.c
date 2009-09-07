@@ -5,6 +5,7 @@
 
 extern void* MayaMultiplyDivideMtd;
 extern void* MayaClampMtd;
+extern void* MayaGammaCorrectMtd;
 
 node_loader
 {
@@ -21,6 +22,13 @@ node_loader
       node->methods     = MayaClampMtd;
       node->output_type = AI_TYPE_RGB;
       node->name        = "MayaClamp";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+
+   case 2:
+      node->methods     = MayaGammaCorrectMtd;
+      node->output_type = AI_TYPE_RGB;
+      node->name        = "MayaGammaCorrect";
       node->node_type   = AI_NODE_SHADER;
       break;
 

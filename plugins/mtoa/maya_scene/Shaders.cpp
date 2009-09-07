@@ -243,6 +243,10 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader)
    {
       shader = ExportArnoldShader(mayaShader, "MayaClamp");
    }
+   else if (node.typeName() == "gammaCorrect")
+   {
+      shader = ExportArnoldShader(mayaShader, "MayaGammaCorrect");
+   }
    else if (node.typeName() == "blendColors")
    {
       shader = AiNode("blend");
