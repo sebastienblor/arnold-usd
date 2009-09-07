@@ -75,7 +75,9 @@ namespace // <anonymous>
 
 }  // namespace <anonymous>
 
-OPENMAYA_EXPORT
+#ifdef _WIN32
+__declspec(dllexport)
+#endif
 MStatus initializePlugin(MObject object)
 {
    MStatus status;
@@ -96,8 +98,9 @@ MStatus initializePlugin(MObject object)
    return MS::kSuccess;
 }
 
-
-OPENMAYA_EXPORT
+#ifdef _WIN32
+__declspec(dllexport)
+#endif
 MStatus uninitializePlugin(MObject object)
 {
    MStatus status;
