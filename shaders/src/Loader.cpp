@@ -3,10 +3,10 @@
 
 #include <stdio.h>
 
-extern void* MayaMultiplyDivideMtd;
-extern void* MayaClampMtd;
-extern void* MayaGammaCorrectMtd;
-extern void* MayaConditionMtd;
+extern AtNodeMethods* MayaMultiplyDivideMtd;
+extern AtNodeMethods* MayaClampMtd;
+extern AtNodeMethods* MayaGammaCorrectMtd;
+extern AtNodeMethods* MayaConditionMtd;
 
 node_loader
 {

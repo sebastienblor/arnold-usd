@@ -10,7 +10,7 @@ enum MayaClampParams {
    p_input
 };
 
-extern "C" { AI_SHADER_NODE_EXPORT_METHODS(MayaClampMtd); }
+AI_SHADER_NODE_EXPORT_METHODS(MayaClampMtd);
 
 node_parameters
 {

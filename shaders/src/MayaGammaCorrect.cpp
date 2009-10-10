@@ -10,7 +10,7 @@ enum MayaClampParams {
    p_gamma
 };
 
-extern "C" { AI_SHADER_NODE_EXPORT_METHODS(MayaGammaCorrectMtd); }
+AI_SHADER_NODE_EXPORT_METHODS(MayaGammaCorrectMtd);
 
 node_parameters
 {

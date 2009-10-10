@@ -12,7 +12,9 @@ enum MayaConditionParams {
    p_color_if_false
 };
 
-extern "C" { AI_SHADER_NODE_EXPORT_METHODS(MayaConditionMtd); }
+AI_SHADER_NODE_EXPORT_METHODS(MayaConditionMtd);
+
+enum OperationNames { OP_EQUAL = 0, OP_NOT_EQUAL, OP_GREATER_THAN, OP_GREATER_OR_EQUAL, OP_LESS_THAN, OP_LESS_OR_EQUAL };
 
 static const char* enum_operation[] = { "equal", "notequal", "greaterthan", "greaterorequal", "lessthan", "lessorequal", NULL };
 
@@ -43,22 +45,22 @@ shader_evaluate
 
    switch (op)
    {
-   case 0: // Equal
+   case OP_EQUAL:
       sg->out.RGB = (firstTerm == secondTerm) ? colorIfTrue : colorIfFalse;
       break;
-   case 1: // Not equal
+   case OP_NOT_EQUAL:
       sg->out.RGB = (firstTerm != secondTerm) ? colorIfTrue : colorIfFalse;
       break;
-   case 2: // Greater than
+   case OP_GREATER_THAN:
       sg->out.RGB = (firstTerm > secondTerm) ? colorIfTrue : colorIfFalse;
       break;
-   case 3: // Greater or equal
+   case OP_GREATER_OR_EQUAL:
       sg->out.RGB = (firstTerm >= secondTerm) ? colorIfTrue : colorIfFalse;
       break;
-   case 4: // Less than
+   case OP_LESS_THAN:
       sg->out.RGB = (firstTerm < secondTerm) ? colorIfTrue : colorIfFalse;
       break;
-   case 5: // Less or equal
+   case OP_LESS_OR_EQUAL:
       sg->out.RGB = (firstTerm <= secondTerm) ? colorIfTrue : colorIfFalse;
       break;
    }

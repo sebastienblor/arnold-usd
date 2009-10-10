@@ -10,7 +10,7 @@ enum MayaMultiplyDivideParams {
    p_operation
 };
 
-extern "C" { AI_SHADER_NODE_EXPORT_METHODS(MayaMultiplyDivideMtd); }
+AI_SHADER_NODE_EXPORT_METHODS(MayaMultiplyDivideMtd);
 
 static const char* enum_operation[] = { "nop", "multiply", "divide", "power", NULL };
 
