@@ -239,6 +239,10 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader)
    {
       shader = ExportArnoldShader(mayaShader, "MayaMultiplyDivide");
    }
+   else if (node.typeName() == "reverse")
+   {
+      shader = ExportArnoldShader(mayaShader, "MayaReverse");
+   }
    else if (node.typeName() == "clamp")
    {
       shader = ExportArnoldShader(mayaShader, "MayaClamp");

@@ -7,6 +7,7 @@ extern AtNodeMethods* MayaMultiplyDivideMtd;
 extern AtNodeMethods* MayaClampMtd;
 extern AtNodeMethods* MayaGammaCorrectMtd;
 extern AtNodeMethods* MayaConditionMtd;
+extern AtNodeMethods* MayaReverseMtd;
 
 node_loader
 {
@@ -37,6 +38,13 @@ node_loader
       node->methods     = MayaConditionMtd;
       node->output_type = AI_TYPE_RGB;
       node->name        = "MayaCondition";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+
+   case 4:
+      node->methods     = MayaReverseMtd;
+      node->output_type = AI_TYPE_RGB;
+      node->name        = "MayaReverse";
       node->node_type   = AI_NODE_SHADER;
       break;
 
