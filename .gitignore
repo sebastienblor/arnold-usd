@@ -5,3 +5,9 @@ build*
 .kdev_include_paths
 mtoa.kdev4
 Makefile
+*.pyc
+*.sln
+*.suo
+*.ncb
+*.vcproj
+/custom.py
