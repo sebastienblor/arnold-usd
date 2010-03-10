@@ -20,6 +20,12 @@ MObject CArnoldRenderOptionsNode::s_GI_hemi_samples;
 MObject CArnoldRenderOptionsNode::s_GI_specular_samples;
 MObject CArnoldRenderOptionsNode::s_use_sample_clamp;
 MObject CArnoldRenderOptionsNode::s_AA_sample_clamp;
+MObject CArnoldRenderOptionsNode::s_filter_type;
+MObject CArnoldRenderOptionsNode::s_filter_width;
+MObject CArnoldRenderOptionsNode::s_filter_domain;
+MObject CArnoldRenderOptionsNode::s_filter_scalar_mode;
+MObject CArnoldRenderOptionsNode::s_filter_maximum;
+MObject CArnoldRenderOptionsNode::s_filter_minimum;
 MObject CArnoldRenderOptionsNode::s_driver_gamma;
 MObject CArnoldRenderOptionsNode::s_TM_lgamma;
 MObject CArnoldRenderOptionsNode::s_TM_sgamma;
@@ -91,7 +97,7 @@ MStatus CArnoldRenderOptionsNode::initialize()
    nAttr.setSoftMax(256);
    addAttribute(s_bucket_size);
 
-   s_clear_before_render = nAttr.create("clear_before_render", "clear", MFnNumericData::kBoolean, 0);
+   s_clear_before_render = nAttr.create("clear_before_render", "clear", MFnNumericData::kBoolean, 1);
    nAttr.setKeyable(false);
    addAttribute(s_clear_before_render);
 
@@ -137,6 +143,54 @@ MStatus CArnoldRenderOptionsNode::initialize()
    nAttr.setSoftMin(0.001);
    nAttr.setSoftMax(100);
    addAttribute(s_AA_sample_clamp);
+
+   s_filter_type = eAttr.create("filter_type", "flttyp", 9);
+   nAttr.setKeyable(false);
+   eAttr.addField("box_filter",0);
+   eAttr.addField("catrom2d_filter",1);
+   eAttr.addField("catrom_filter",2);
+   eAttr.addField("closest_filter",3);
+   eAttr.addField("cone_filter",4);
+   eAttr.addField("cook_filter",5);
+   eAttr.addField("cubic_filter",6);
+   eAttr.addField("disk_filter",7);
+   eAttr.addField("farthest_filter",8);
+   eAttr.addField("gaussian_filter",9);
+   eAttr.addField("heatmap_filter",10);
+   eAttr.addField("mitnet_filter",11);
+   eAttr.addField("sinc_filter",12);
+   eAttr.addField("triangle_filter",13);
+   eAttr.addField("variance_filter",14);
+   eAttr.addField("video_filter",15);
+   addAttribute(s_filter_type);
+
+   s_filter_width = nAttr.create("filter_width", "fltwdth", MFnNumericData::kFloat, 2.0f);
+   nAttr.setKeyable(false);
+   nAttr.setSoftMin(0);
+   nAttr.setSoftMax(4);
+   addAttribute(s_filter_width);
+
+   s_filter_domain = eAttr.create("filter_domain", "fltdomn", 0);
+   nAttr.setKeyable(false);
+   eAttr.addField("first_hit",0);
+   eAttr.addField("all_hits",1);
+   addAttribute(s_filter_domain);
+
+   s_filter_scalar_mode = nAttr.create("filter_scalar_mode", "fltscmd", MFnNumericData::kBoolean, 0);
+   nAttr.setKeyable(false);
+   addAttribute(s_filter_scalar_mode);
+
+   s_filter_maximum = nAttr.create("filter_maximum", "fltmax", MFnNumericData::kFloat, 1.0f);
+   nAttr.setKeyable(false);
+   nAttr.setSoftMin(0);
+   nAttr.setSoftMax(10);
+   addAttribute(s_filter_maximum);
+
+   s_filter_minimum = nAttr.create("filter_minimum", "fltmin", MFnNumericData::kFloat, 0.0f);
+   nAttr.setKeyable(false);
+   nAttr.setSoftMin(0);
+   nAttr.setSoftMax(10);
+   addAttribute(s_filter_minimum);
 
    s_driver_gamma = nAttr.create("driver_gamma", "dgamma", MFnNumericData::kFloat, 2.2f);
    nAttr.setKeyable(false);

@@ -8,6 +8,7 @@
 #include <ai_universe.h>
 
 #include <maya/MFnDependencyNode.h>
+#include <maya/MFnEnumAttribute.h>
 #include <maya/MPlug.h>
 #include <maya/MPlugArray.h>
 #include <maya/MSelectionList.h>
@@ -109,6 +110,17 @@ void CRenderOptions::ProcessArnoldRenderOptions()
       m_GI_specular_samples = fnArnoldRenderOptions.findPlug("GI_specular_samples").asInt();
       m_AA_sample_clamp     = fnArnoldRenderOptions.findPlug("use_sample_clamp").asBool() ? fnArnoldRenderOptions.findPlug("AA_sample_clamp").asFloat() : (float) AI_INFINITE;
 
+      MFnEnumAttribute enum_filter_type(fnArnoldRenderOptions.findPlug("filter_type").attribute());
+
+      m_filter_type  = enum_filter_type.fieldName(fnArnoldRenderOptions.findPlug("filter_type").asShort());
+      m_filter_width = fnArnoldRenderOptions.findPlug("filter_width").asFloat();
+
+      MFnEnumAttribute enum_filter_domain(fnArnoldRenderOptions.findPlug("filter_domain").attribute());
+
+      m_filter_domain      = enum_filter_domain.fieldName(fnArnoldRenderOptions.findPlug("filter_domain").asShort());
+      m_filter_scalar_mode = fnArnoldRenderOptions.findPlug("filter_scalar_mode").asBool();
+      m_filter_maximum     = fnArnoldRenderOptions.findPlug("filter_maximum").asFloat();
+      m_filter_minimum     = fnArnoldRenderOptions.findPlug("filter_minimum").asFloat();
 
       m_output_gamma = fnArnoldRenderOptions.findPlug("driver_gamma").asFloat();
       m_TM_lgamma    = fnArnoldRenderOptions.findPlug("TM_lgamma").asFloat();

@@ -59,6 +59,36 @@ public:
       return m_output_gamma;
    }
 
+   MString filterType() const
+   {
+      return m_filter_type;
+   }
+
+   float filterWidth() const
+   {
+      return m_filter_width;
+   }
+
+   MString filterDomain() const
+   {
+      return m_filter_domain;
+   }
+
+   bool filterScalarMode() const
+   {
+      return m_filter_scalar_mode;
+   }
+
+   float filterMaximum() const
+   {
+      return m_filter_maximum;
+   }
+
+   float filterMinimum() const
+   {
+      return m_filter_minimum;
+   }
+
    bool useRenderRegion() const
    {
       return m_useRenderRegion;
@@ -135,6 +165,13 @@ private:
    AtUInt    m_GI_hemi_samples;
    AtUInt    m_GI_specular_samples;
    float     m_AA_sample_clamp;
+
+   MString  m_filter_type;
+   float    m_filter_width;
+   MString  m_filter_domain;
+   bool     m_filter_scalar_mode;
+   float    m_filter_maximum;
+   float    m_filter_minimum;
 
    float    m_output_gamma;
    float    m_TM_lgamma;

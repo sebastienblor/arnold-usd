@@ -35,6 +35,12 @@ public:
    static MObject s_GI_specular_samples;
    static MObject s_use_sample_clamp;
    static MObject s_AA_sample_clamp;
+   static MObject s_filter_type;
+   static MObject s_filter_width;
+   static MObject s_filter_domain;
+   static MObject s_filter_scalar_mode;
+   static MObject s_filter_maximum;
+   static MObject s_filter_minimum;
 
    static MObject s_driver_gamma;
    static MObject s_TM_lgamma;
