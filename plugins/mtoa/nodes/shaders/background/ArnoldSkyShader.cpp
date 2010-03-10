@@ -85,7 +85,7 @@ MStatus CArnoldSkyShaderNode::initialize()
    MAKE_COLOR(s_color, "color", "c", 1, 1, 1);
    MAKE_INPUT(nAttr, s_color);
 
-   s_intensity = nAttr.create("intensity", "i", MFnNumericData::kFloat, 0);
+   s_intensity = nAttr.create("intensity", "i", MFnNumericData::kFloat, 1);
    nAttr.setMin(0);
    nAttr.setMax(10);
    MAKE_INPUT(nAttr, s_intensity);
@@ -97,10 +97,10 @@ MStatus CArnoldSkyShaderNode::initialize()
    eAttr.addField("cubic", 3);
    addAttribute(s_format);
 
-   s_opaque_alpha = nAttr.create("opaque_alpha", "oa", MFnNumericData::kBoolean, 1);
+   s_opaque_alpha = nAttr.create("opaque_alpha", "oa", MFnNumericData::kBoolean, 0);
    MAKE_INPUT(nAttr, s_opaque_alpha);
 
-   s_visible = nAttr.create("visible", "vis", MFnNumericData::kBoolean, 1);
+   s_visible = nAttr.create("visible", "vis", MFnNumericData::kBoolean, 0);
    MAKE_INPUT(nAttr, s_visible);
 
    // OUTPUT ATTRIBUTES
