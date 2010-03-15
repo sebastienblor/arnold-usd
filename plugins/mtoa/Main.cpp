@@ -15,6 +15,8 @@
 #include "nodes/shaders/surface/ArnoldUtilityShader.h"
 #include "nodes/shaders/surface/ArnoldWireframeShader.h"
 
+#include <ai_render.h>
+
 #include <maya/MFnPlugin.h>
 #include <maya/MGlobal.h>
 
@@ -86,6 +88,8 @@ MStatus initializePlugin(MObject object)
 
    plugin.setName("Arnold Render");
 
+   AiBegin();
+
    // TODO: Add proper checking and handling of returned status
    status = plugin.registerCommand("arnoldRender", CArnoldRenderCmd::creator, CArnoldRenderCmd::newSyntax);
    status = plugin.registerCommand("arnoldIpr", CArnoldIprCmd::creator, CArnoldIprCmd::newSyntax);
@@ -94,6 +98,8 @@ MStatus initializePlugin(MObject object)
    RegisterArnoldNodes(object);
 
    MGlobal::executeCommand( MString("RegisterArnoldRenderer;") );
+
+   AiEnd();
 
    return MS::kSuccess;
 }
