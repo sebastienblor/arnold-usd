@@ -139,8 +139,10 @@ AtNode* CMayaScene::ExportArnoldShader(MObject mayaShader, MString arnoldShader)
       {
          const AtParamEntry* paramEntry = AiNodeEntryGetParameter(nodeEntry, J);
 
-         if (AiParamGetName(paramEntry) != "name")
+         if (strcmp(AiParamGetName(paramEntry), "name"))
+         {
             SHADER_PARAM(AiParamGetName(paramEntry), AiParamGetType(paramEntry));
+         }
       }
    }
 
