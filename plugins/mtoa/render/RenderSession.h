@@ -1,17 +1,17 @@
-#ifndef RENDER_INSTANCE_H
-#define RENDER_INSTANCE_H
+#ifndef RENDER_SESSION_H
+#define RENDER_SESSION_H
 
 #include <ai_nodes.h>
 #include <ai_universe.h>
 
 class CRenderOptions;
 
-class CRenderInstance
+class CRenderSession
 {
 
 public:
 
-   static CRenderInstance* GetInstance();
+   static CRenderSession* GetInstance();
 
    void Init();
    void End();
@@ -30,7 +30,7 @@ public:
 
 private:
 
-   CRenderInstance()
+   CRenderSession()
    {
    }
 
@@ -38,6 +38,6 @@ private:
 
    CRenderOptions* m_renderOptions;
 
-}; // class CRenderInstance
+}; // class CRenderSession
 
-#endif // RENDER_INSTANCE_H
+#endif // RENDER_SESSION_H

@@ -1,5 +1,5 @@
 
-#include "RenderInstance.h"
+#include "RenderSession.h"
 #include "RenderOptions.h"
 #include "OutputDriver.h"
 
@@ -13,7 +13,7 @@
 
 extern AtNodeMethods* mtoa_driver_mtd;
 
-static CRenderInstance* s_renderInstance = NULL;
+static CRenderSession* s_renderSession = NULL;
 
 // This is the code for the render thread. This thread is used only to run the AiRender() process outside of the main thread.
 static unsigned int RenderThread(AtVoid* data)
@@ -24,15 +24,15 @@ static unsigned int RenderThread(AtVoid* data)
 }
 
 // Cheap singleton
-CRenderInstance* CRenderInstance::GetInstance()
+CRenderSession* CRenderSession::GetInstance()
 {
-   if (!s_renderInstance)
-      s_renderInstance = new CRenderInstance();
+   if (!s_renderSession)
+      s_renderSession = new CRenderSession();
 
-   return s_renderInstance;
+   return s_renderSession;
 }
 
-void CRenderInstance::Init()
+void CRenderSession::Init()
 {
    if (AiUniverseIsActive())
    {
@@ -65,12 +65,12 @@ void CRenderInstance::Init()
    AiNodeSetArray(AiUniverseGetOptions(), "outputs", outputs);
 }
 
-void CRenderInstance::End()
+void CRenderSession::End()
 {
    AiEnd();
 }
 
-void CRenderInstance::DoRender()
+void CRenderSession::DoRender()
 {
    InitializeDisplayUpdateQueue();
 
