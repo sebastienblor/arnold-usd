@@ -1,15 +1,12 @@
 
 #include "ArnoldIprCmd.h"
-#include "OutputDriver.h"
-#include "RenderInstance.h"
+#include "render/RenderSession.h"
 
 #include <ai_universe.h>
 
 #include <maya/M3dView.h>
 #include <maya/MArgDatabase.h>
 #include <maya/MRenderView.h>
-
-extern AtNodeMethods* mtoa_driver_mtd;
 
 MSyntax CArnoldIprCmd::newSyntax()
 {
@@ -29,7 +26,7 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
    if (!MRenderView::doesRenderEditorExist())
       return MS::kFailure;
 
-   CRenderInstance* renderInstance = CRenderInstance::GetInstance();
+   CRenderSession* renderSession = CRenderSession::GetInstance();
 
    MStatus status;
    MArgDatabase args(syntax(), argList);
@@ -37,7 +34,7 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
    // "-mode" flag is not set, so we simply return a bool with the rendering status
    if (!args.isFlagSet("mode"))
    {
-      setResult(renderInstance->IsActive());
+      setResult(renderSession->IsActive());
       return MS::kSuccess;
    }
 
@@ -48,12 +45,12 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
 
    if (mode == "start")
    {
-      if (!renderInstance->IsActive())
+      if (!renderSession->IsActive())
       {
          m_renderOptions.GetRenderOptions(&m_scene);
 
-         renderInstance->SetRenderOptions(&m_renderOptions);
-         renderInstance->Init();
+         renderSession->SetRenderOptions(&m_renderOptions);
+         renderSession->Init();
 
          status = m_scene.ExportToArnold();
 
@@ -67,7 +64,7 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
    }
    else if (mode == "stop")
    {
-      renderInstance->End();
+      renderSession->End();
    }
    else if (mode == "render")
    {
@@ -82,7 +79,7 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
 
       if ( status == MS::kSuccess)
       {
-         renderInstance->DoRender();
+         renderSession->DoRender();
          MRenderView::endRender();
       }
    }

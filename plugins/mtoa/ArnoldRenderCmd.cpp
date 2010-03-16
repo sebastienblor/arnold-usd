@@ -1,6 +1,6 @@
 
 #include "ArnoldRenderCmd.h"
-#include "RenderInstance.h"
+#include "render/RenderSession.h"
 
 #include <ai_msg.h>
 #include <ai_universe.h>
@@ -23,7 +23,7 @@ MSyntax CArnoldRenderCmd::newSyntax()
 MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
 {
    MStatus status;
-   CRenderInstance* renderInstance = CRenderInstance::GetInstance();
+   CRenderSession* renderSession = CRenderSession::GetInstance();
    MArgDatabase args(syntax(), argList);
 
    if (!args.isFlagSet("camera"))
@@ -43,8 +43,8 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       m_renderOptions.SetHeight(args.flagArgumentInt("height", 0));
    }
 
-   renderInstance->SetRenderOptions(&m_renderOptions);
-   renderInstance->Init();
+   renderSession->SetRenderOptions(&m_renderOptions);
+   renderSession->Init();
 
    status = m_scene.ExportToArnold();
 
@@ -80,17 +80,17 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
 
       if ( status == MS::kSuccess)
       {
-         renderInstance->DoRender();
+         renderSession->DoRender();
 
          MRenderView::endRender();
       }
    }
    else
    {
-      renderInstance->DoRender();
+      renderSession->DoRender();
    }
 
-   renderInstance->End();
+   renderSession->End();
 
    return status;
 }

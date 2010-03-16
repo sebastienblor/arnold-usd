@@ -1,8 +1,8 @@
 #ifndef ARNOLD_IPR_CMD_H
 #define ARNOLD_IPR_CMD_H
 
-#include "RenderOptions.h"
 #include "maya_scene/MayaScene.h"
+#include "render/RenderOptions.h"
 
 #include <maya/MPxCommand.h>
 #include <maya/MSyntax.h>
