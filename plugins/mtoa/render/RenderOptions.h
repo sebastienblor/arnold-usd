@@ -133,6 +133,11 @@ public:
       SetupImageOptions();
    }
 
+   MString FilterNodeName() const
+   {
+      return m_filterNodeName;
+   }
+
    // SETTING OPTIONS IN ARNOLD
 
    void SetupLog() const;
@@ -144,10 +149,13 @@ private:
    void ProcessArnoldRenderOptions();
    
    void SetupImageOptions() const;
+   void SetupImageFilter() const;
 
    AtInt GetFlagsFromVerbosityLevel(AtUInt level) const;
 
 private:
+
+   MString  m_filterNodeName;
 
    AtUInt32 m_minx, m_miny, m_maxx, m_maxy;
    AtUInt32 m_width, m_height;

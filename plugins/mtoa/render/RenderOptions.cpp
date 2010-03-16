@@ -154,6 +154,7 @@ void CRenderOptions::ProcessArnoldRenderOptions()
 void CRenderOptions::SetupRender() const
 {
    SetupImageOptions();
+   SetupImageFilter();
 
    AiNodeSetInt(AiUniverseGetOptions(), "threads", m_threads);
    AiNodeSetInt(AiUniverseGetOptions(), "bucket_scanning", m_bucket_scanning);
@@ -240,6 +241,35 @@ void CRenderOptions::SetupLog() const
    AiMsgSetMaxWarnings(m_log_max_warnings);
    AiMsgSetConsoleFlags(GetFlagsFromVerbosityLevel(m_log_console_verbosity));
    AiMsgSetLogFileFlags(GetFlagsFromVerbosityLevel(m_log_file_verbosity));
+}
+
+void CRenderOptions::SetupImageFilter() const
+{
+   AtNode* filter = AiNode(filterType().asChar());
+
+   m_filterNodeName = AiNodeGetName(filter);
+
+   // Only set filter parameters if they exist within that specific node
+   if (AiNodeEntryLookUpParameter(filter->base_node, "width"))
+   {
+      AiNodeSetFlt(filter, "width", filterWidth());
+   }
+   if (AiNodeEntryLookUpParameter(filter->base_node, "domain"))
+   {
+      AiNodeSetStr(filter, "domain", filterDomain().asChar());
+   }
+   if (AiNodeEntryLookUpParameter(filter->base_node, "scalar_mode"))
+   {
+      AiNodeSetBool(filter, "scalar_mode", filterScalarMode());
+   }
+   if (AiNodeEntryLookUpParameter(filter->base_node, "maximum"))
+   {
+      AiNodeSetFlt(filter, "maximum", filterMaximum());
+   }
+   if (AiNodeEntryLookUpParameter(filter->base_node, "minimum"))
+   {
+      AiNodeSetFlt(filter, "minimum", filterMinimum());
+   }
 }
 
 void CRenderOptions::SetupImageOptions() const

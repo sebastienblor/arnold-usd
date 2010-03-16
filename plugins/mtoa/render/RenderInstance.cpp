@@ -52,37 +52,15 @@ void CRenderInstance::Init()
 
    AiNodeInstall(AI_NODE_DRIVER, AI_TYPE_NONE, "renderview_display",  NULL, (AtNodeMethods*) mtoa_driver_mtd, AI_VERSION);
 
-   AtNode* filter = AiNode(m_renderOptions->filterType().asChar());
    AtNode* driver = AiNode("renderview_display");
 
    AiNodeSetStr(driver, "name", "renderview_display");
    AiNodeSetFlt(driver, "gamma", m_renderOptions->outputGamma());
 
-   if ( AiNodeEntryLookUpParameter(filter->base_node,"width") )
-   {
-      AiNodeSetFlt(filter, "width", m_renderOptions->filterWidth());
-   }
-   if ( AiNodeEntryLookUpParameter(filter->base_node,"domain") )
-   {
-      AiNodeSetStr(filter, "domain", m_renderOptions->filterDomain().asChar());
-   }
-   if ( AiNodeEntryLookUpParameter(filter->base_node,"scalar_mode") )
-   {
-      AiNodeSetBool(filter, "scalar_mode", m_renderOptions->filterScalarMode());
-   }
-   if ( AiNodeEntryLookUpParameter(filter->base_node,"maximum") )
-   {
-      AiNodeSetFlt(filter, "maximum", m_renderOptions->filterMaximum());
-   }
-   if ( AiNodeEntryLookUpParameter(filter->base_node,",minimum") )
-   {
-      AiNodeSetFlt(filter, "minimum", m_renderOptions->filterMinimum());
-   }
-
    AtChar   str[1024];
    AtArray* outputs;
 
-   sprintf(str, "RGBA RGBA %s %s", AiNodeGetName(filter), AiNodeGetName(driver));
+   sprintf(str, "RGBA RGBA %s %s", m_renderOptions->FilterNodeName().asChar(), AiNodeGetName(driver));
    outputs = AiArray(1, 1, AI_TYPE_STRING, str);
    AiNodeSetArray(AiUniverseGetOptions(), "outputs", outputs);
 }
