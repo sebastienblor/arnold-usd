@@ -1,5 +1,6 @@
 
 #include "ArnoldExportAssCmd.h"
+#include "render/RenderSession.h"
 
 #include <ai_dotass.h>
 #include <ai_msg.h>
@@ -7,6 +8,8 @@
 #include <ai_universe.h>
 
 #include <maya/M3dView.h>
+#include <maya/MDagPath.h>
+#include <maya/MFnDagNode.h>
 #include <maya/MGlobal.h>
 
 MSyntax CArnoldExportAssCmd::newSyntax()
@@ -19,6 +22,7 @@ MSyntax CArnoldExportAssCmd::newSyntax()
 MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
 {
    MStatus status;
+   CRenderSession* renderSession = CRenderSession::GetInstance();
 
    if (AiUniverseIsActive())
    {
@@ -27,14 +31,7 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
       return MS::kFailure;
    }
 
-   m_renderOptions.GetRenderOptions(&m_scene);
-
-   AiBegin();
-
-   m_renderOptions.SetupLog();
-   m_renderOptions.SetupRender();
-
-   status = m_scene.ExportToArnold();
+   renderSession->Init();
 
    if (MGlobal::mayaState() == MGlobal::kInteractive)
    {
@@ -42,45 +39,12 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
       M3dView::active3dView().getCamera(cameraPath);
 
       MFnDagNode cameraNode(cameraPath.node());
-      AiNodeSetPtr(AiUniverseGetOptions(), "camera", AiNodeLookUpByName(cameraNode.name().asChar()));
+      renderSession->SetCamera(cameraNode.name());
    }
 
-   MString fileName = VerifyFileName(m_renderOptions.outputAssFile().expandEnvironmentVariablesAndTilde(), m_renderOptions.outputAssCompressed());
+   renderSession->DoExport();
 
-   if (fileName == "")
-      AiMsgError("[mtoa] File name must be set before exporting .ass file");
-   else
-   {
-      AiMsgInfo("[mtoa] Exporting Maya scene to file '%s'", fileName.asChar());
-      AiASSWrite(fileName.asChar(), m_renderOptions.outputAssMask(), false);
-   }
-
-   AiEnd();
+   renderSession->End();
 
    return status;
-}
-
-MString CArnoldExportAssCmd::VerifyFileName(MString fileName, bool compressed)
-{
-   unsigned int len = fileName.length();
-
-   if (!compressed)
-   {
-      if ((len < 4) || (fileName.substring(len - 4, len - 1).toLowerCase() != ".ass"))
-         fileName += ".ass";
-   }
-   else
-   {
-      if ((len < 7) || (fileName.substring(len - 7, len - 1).toLowerCase() != ".ass.gz"))
-      {
-         if ((len < 4) || (fileName.substring(len - 4, len - 1).toLowerCase() == ".ass"))
-            fileName += ".gz";
-         else if ((len < 3) || (fileName.substring(len - 3, len - 1).toLowerCase() == ".gz"))
-            fileName = fileName.substring(0, len - 4) + ".ass.gz";
-         else
-            fileName += ".ass.gz";
-      }
-   }
-
-   return fileName;
 }

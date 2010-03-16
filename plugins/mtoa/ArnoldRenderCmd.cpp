@@ -31,54 +31,43 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       return MS::kFailure;
    }
 
-   m_renderOptions.GetRenderOptions(&m_scene);
-   
-   if (args.isFlagSet("width"))
+   bool batchMode = !MRenderView::doesRenderEditorExist();
+
+   renderSession->Reset();
+
+   int width  = args.isFlagSet("width") ? args.flagArgumentInt("width", 0) : -1;
+   int height = args.isFlagSet("height") ? args.flagArgumentInt("height", 0) : -1;
+
+   MString camera = args.flagArgumentString("camera", 0);
+
+   renderSession->SetWidth(width);
+   renderSession->SetHeight(height);
+   renderSession->SetCamera(camera);
+
+   if (!batchMode)
    {
-      m_renderOptions.SetWidth(args.flagArgumentInt("width", 0));
-   }
+      const CRenderOptions* renderOptions = renderSession->RenderOptions();
 
-   if (args.isFlagSet("height"))
-   {
-      m_renderOptions.SetHeight(args.flagArgumentInt("height", 0));
-   }
+      if (renderOptions->useRenderRegion())
+      {
+         status = MRenderView::startRegionRender(renderOptions->width(),
+                                                 renderOptions->height(),
+                                                 renderOptions->minX(),
+                                                 renderOptions->maxX(),
+                                                 renderOptions->minY(),
+                                                 renderOptions->maxY(),
+                                                 !renderOptions->clearBeforeRender(),
+                                                 true);
+      }
+      else
+      {
+         status = MRenderView::startRender(renderOptions->width(),
+                                           renderOptions->height(),
+                                           !renderOptions->clearBeforeRender(),
+                                           true);
+      }
 
-   renderSession->SetRenderOptions(&m_renderOptions);
-   renderSession->Init();
-
-   status = m_scene.ExportToArnold();
-
-   MString cameraName = args.flagArgumentString("camera", 0);
-   
-   AtNode* camera = AiNodeLookUpByName(cameraName.asChar());
-
-   if (!camera)
-   {
-      cameraName += "Shape";
-      camera = AiNodeLookUpByName(cameraName.asChar());
-   }
-
-   if (!camera)
-      return MS::kFailure;
-
-   AiNodeSetPtr(AiUniverseGetOptions(), "camera", camera);
-
-   if (MRenderView::doesRenderEditorExist())
-   {
-      status = m_renderOptions.useRenderRegion() ? MRenderView::startRegionRender(m_renderOptions.width(),
-                                                                                  m_renderOptions.height(),
-                                                                                  m_renderOptions.minX(),
-                                                                                  m_renderOptions.maxX(),
-                                                                                  m_renderOptions.minY(),
-                                                                                  m_renderOptions.maxY(),
-                                                                                  !m_renderOptions.clearBeforeRender(),
-                                                                                  true)
-                                                 : MRenderView::startRender(m_renderOptions.width(),
-                                                                            m_renderOptions.height(),
-                                                                            !m_renderOptions.clearBeforeRender(),
-                                                                            true);
-
-      if ( status == MS::kSuccess)
+      if (status == MS::kSuccess)
       {
          renderSession->DoRender();
 

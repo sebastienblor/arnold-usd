@@ -6,6 +6,7 @@
 
 #include <maya/M3dView.h>
 #include <maya/MArgDatabase.h>
+#include <maya/MFnDagNode.h>
 #include <maya/MRenderView.h>
 
 MSyntax CArnoldIprCmd::newSyntax()
@@ -47,19 +48,14 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
    {
       if (!renderSession->IsActive())
       {
-         m_renderOptions.GetRenderOptions(&m_scene);
-
-         renderSession->SetRenderOptions(&m_renderOptions);
          renderSession->Init();
-
-         status = m_scene.ExportToArnold();
 
          MDagPath cameraPath;
          M3dView::active3dView().getCamera(cameraPath);
          MRenderView::setCurrentCamera(cameraPath);
 
          MFnDagNode cameraNode(cameraPath.node());
-         AiNodeSetPtr(AiUniverseGetOptions(), "camera", AiNodeLookUpByName(cameraNode.name().asChar()));
+         renderSession->SetCamera(cameraNode.name());
       }
    }
    else if (mode == "stop")
@@ -71,6 +67,7 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
    }
    else if (mode == "refresh")
    {
+/*
       m_renderOptions.GetRenderOptions(&m_scene);
 
       //status = m_useRenderRegion ? MRenderView::startRegionRender(m_width, m_height, m_minx, m_maxx, m_miny, m_maxy, !m_clearBeforeRender, true)
@@ -82,6 +79,7 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
          renderSession->DoRender();
          MRenderView::endRender();
       }
+*/
    }
    else if (mode == "pause")
    {

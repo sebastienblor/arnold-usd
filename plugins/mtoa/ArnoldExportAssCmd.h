@@ -1,9 +1,6 @@
 #ifndef ARNOLD_EXPORT_ASS_CMD_H
 #define ARNOLD_EXPORT_ASS_CMD_H
 
-#include "maya_scene/MayaScene.h"
-#include "render/RenderOptions.h"
-
 #include <maya/MPxCommand.h>
 #include <maya/MSyntax.h>
 
@@ -21,16 +18,6 @@ public:
    static MSyntax newSyntax();
 
    MStatus doIt(const MArgList& argList);
-
-private:
-
-   MString VerifyFileName(MString fileName, bool compressed);
-
-private:
-
-   CMayaScene m_scene;
-
-   CRenderOptions m_renderOptions;
 
 }; // class CArnoldExportAssCmd
 

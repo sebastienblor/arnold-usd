@@ -13,12 +13,6 @@ public:
 
    CRenderOptions();
 
-   // GETTING OPTIONS FROM MAYA
-
-   void GetRenderOptions(CMayaScene* scene);
-
-   // MODIFYING OPTIONS
-
    AtUInt32 minX() const
    {
       return m_minx;
@@ -133,16 +127,13 @@ public:
       SetupImageOptions();
    }
 
-   MString FilterNodeName() const
-   {
-      return m_filterNodeName;
-   }
-
-   // SETTING OPTIONS IN ARNOLD
+   void GetFromMaya(CMayaScene* scene);
 
    void SetupLog() const;
-   void SetupRender() const;
+   void SetupRenderOptions() const;
    
+   MString VerifyFileName(MString fileName, bool compressed);
+
 private:
 
    void ProcessCommonRenderOptions();
@@ -154,8 +145,6 @@ private:
    AtInt GetFlagsFromVerbosityLevel(AtUInt level) const;
 
 private:
-
-   MString  m_filterNodeName;
 
    AtUInt32 m_minx, m_miny, m_maxx, m_maxy;
    AtUInt32 m_width, m_height;

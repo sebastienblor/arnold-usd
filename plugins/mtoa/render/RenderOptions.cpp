@@ -29,7 +29,7 @@ CRenderOptions::CRenderOptions()
 {
 }
 
-void CRenderOptions::GetRenderOptions(CMayaScene* scene)
+void CRenderOptions::GetFromMaya(CMayaScene* scene)
 {
    m_scene = scene;
 
@@ -151,10 +151,9 @@ void CRenderOptions::ProcessArnoldRenderOptions()
    }
 }
 
-void CRenderOptions::SetupRender() const
+void CRenderOptions::SetupRenderOptions() const
 {
    SetupImageOptions();
-   SetupImageFilter();
 
    AiNodeSetInt(AiUniverseGetOptions(), "threads", m_threads);
    AiNodeSetInt(AiUniverseGetOptions(), "bucket_scanning", m_bucket_scanning);
@@ -243,35 +242,6 @@ void CRenderOptions::SetupLog() const
    AiMsgSetLogFileFlags(GetFlagsFromVerbosityLevel(m_log_file_verbosity));
 }
 
-void CRenderOptions::SetupImageFilter() const
-{
-   AtNode* filter = AiNode(filterType().asChar());
-
-   m_filterNodeName = AiNodeGetName(filter);
-
-   // Only set filter parameters if they exist within that specific node
-   if (AiNodeEntryLookUpParameter(filter->base_node, "width"))
-   {
-      AiNodeSetFlt(filter, "width", filterWidth());
-   }
-   if (AiNodeEntryLookUpParameter(filter->base_node, "domain"))
-   {
-      AiNodeSetStr(filter, "domain", filterDomain().asChar());
-   }
-   if (AiNodeEntryLookUpParameter(filter->base_node, "scalar_mode"))
-   {
-      AiNodeSetBool(filter, "scalar_mode", filterScalarMode());
-   }
-   if (AiNodeEntryLookUpParameter(filter->base_node, "maximum"))
-   {
-      AiNodeSetFlt(filter, "maximum", filterMaximum());
-   }
-   if (AiNodeEntryLookUpParameter(filter->base_node, "minimum"))
-   {
-      AiNodeSetFlt(filter, "minimum", filterMinimum());
-   }
-}
-
 void CRenderOptions::SetupImageOptions() const
 {
    if (m_useRenderRegion)
@@ -303,4 +273,29 @@ AtInt CRenderOptions::GetFlagsFromVerbosityLevel(AtUInt level) const
    }
 
    return flags;
+}
+
+MString CRenderOptions::VerifyFileName(MString fileName, bool compressed)
+{
+   unsigned int len = fileName.length();
+
+   if (!compressed)
+   {
+      if ((len < 4) || (fileName.substring(len - 4, len - 1).toLowerCase() != ".ass"))
+         fileName += ".ass";
+   }
+   else
+   {
+      if ((len < 7) || (fileName.substring(len - 7, len - 1).toLowerCase() != ".ass.gz"))
+      {
+         if ((len < 4) || (fileName.substring(len - 4, len - 1).toLowerCase() == ".ass"))
+            fileName += ".gz";
+         else if ((len < 3) || (fileName.substring(len - 3, len - 1).toLowerCase() == ".gz"))
+            fileName = fileName.substring(0, len - 4) + ".ass.gz";
+         else
+            fileName += ".ass.gz";
+      }
+   }
+
+   return fileName;
 }
