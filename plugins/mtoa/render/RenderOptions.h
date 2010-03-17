@@ -127,12 +127,75 @@ public:
       SetupImageOptions();
    }
 
+   bool BatchMode()
+   {
+      return m_batchMode;
+   }
+
+   MString RenderDriver()
+   {
+      return m_renderDriver;
+   }
+
+   MString arnoldRenderImageFormat()
+   {
+      return m_arnoldRenderImageFormat;
+   }
+
+   AtUInt32 arnoldRenderImageCompression()
+   {
+      return m_arnoldRenderImageCompression;
+   }
+
+   bool arnoldRenderImageHalfPrecision()
+   {
+      return m_arnoldRenderImageHalfPrecision;
+   }
+
+   bool arnoldRenderImageOutputPadded()
+   {
+      return m_arnoldRenderImageOutputPadded;
+   }
+
+   float arnoldRenderImageGamma()
+   {
+      return m_arnoldRenderImageGamma;
+   }
+
+   AtUInt32 arnoldRenderImageQuality()
+   {
+      return m_arnoldRenderImageQuality;
+   }
+
+   AtUInt32 arnoldRenderImageOutputFormat()
+   {
+      return m_arnoldRenderImageOutputFormat;
+   }
+
+   bool arnoldRenderImageTiled()
+   {
+      return m_arnoldRenderImageTiled;
+   }
+
+   bool arnoldRenderImageUnpremultAlpha()
+   {
+      return m_arnoldRenderImageUnpremultAlpha;
+   }
+
+   AtUInt32 arnoldRenderFileNameFormat()
+   {
+      return m_arnoldRenderFileNameFormat;
+   }
+
    void GetFromMaya(CMayaScene* scene);
 
    void SetupLog() const;
    void SetupRenderOptions() const;
+   void SetupImageOutputs();
    
    MString VerifyFileName(MString fileName, bool compressed);
+   MString ImageFilename();
+   MString BuildPadding();
 
 private:
 
@@ -144,6 +207,26 @@ private:
 
    AtInt GetFlagsFromVerbosityLevel(AtUInt level) const;
 
+   MString imageFilePrefix() const
+   {
+      return m_imageFilePrefix;
+   }
+
+   MString ImageFileExtension()
+   {
+      return m_imageFileExtension;
+   }
+
+   AtUInt32 extensionPadding()
+   {
+      return m_extensionPadding;
+   }
+
+   MString arnoldRenderImageFormat() const
+   {
+      return m_arnoldRenderImageFormat;
+   }
+
 private:
 
    AtUInt32 m_minx, m_miny, m_maxx, m_maxy;
@@ -151,6 +234,23 @@ private:
    float    m_pixelAspectRatio;
    bool     m_useRenderRegion;
    bool     m_clearBeforeRender; 
+
+   bool     m_batchMode;
+   MString  m_renderDriver;
+   MString  m_imageFilePrefix;
+   MString  m_imageFileExtension;
+   AtUInt32 m_extensionPadding;
+
+   MString   m_arnoldRenderImageFormat;
+   AtUInt32  m_arnoldRenderImageCompression;
+   bool      m_arnoldRenderImageHalfPrecision;
+   bool      m_arnoldRenderImageOutputPadded;
+   float     m_arnoldRenderImageGamma;
+   AtUInt32  m_arnoldRenderImageQuality;
+   AtUInt32  m_arnoldRenderImageOutputFormat;
+   bool      m_arnoldRenderImageTiled;
+   bool      m_arnoldRenderImageUnpremultAlpha;
+   AtUInt32  m_arnoldRenderFileNameFormat;
    
    AtUInt   m_threads;
    AtUInt   m_bucket_scanning;
@@ -158,10 +258,10 @@ private:
    bool     m_abort_on_error;
    MString  m_plugins_path;
 
-   AtUInt    m_AA_samples;
-   AtUInt    m_GI_hemi_samples;
-   AtUInt    m_GI_specular_samples;
-   float     m_AA_sample_clamp;
+   AtUInt   m_AA_samples;
+   AtUInt   m_GI_hemi_samples;
+   AtUInt   m_GI_specular_samples;
+   float    m_AA_sample_clamp;
 
    MString  m_filter_type;
    float    m_filter_width;

@@ -76,7 +76,75 @@ global proc CreateArnoldRenderSettings()
 {
    setUITemplate -pushTemplate attributeEditorTemplate;
    columnLayout -adjustableColumn true arnoldRenderLayout;
-      
+
+      // TMP IMAGE FORMAT
+      attrControlGrp -label "Image Format"
+         -attribute defaultArnoldRenderOptions.arnoldRenderImageFormat
+         -cc UpdateArnoldOutputOptions
+         os_arnoldRenderImageFormat;
+
+      separator -style "none";
+
+      columnLayout -vis 0 cl_output_compression;      
+       attrControlGrp -label "Image Compression"
+           -attribute defaultArnoldRenderOptions.compression
+           os_output_compression;
+       setParent ..;
+
+      columnLayout -vis 0 cl_output_half_precision;      
+       attrControlGrp -label "Half Precision"
+           -attribute defaultArnoldRenderOptions.half_precision
+           os_output_half_precision;
+       setParent ..;
+
+      columnLayout -vis 0 cl_output_padded;      
+       attrControlGrp -label "Output Padded"
+           -attribute defaultArnoldRenderOptions.output_padded
+           os_output_padded;
+       setParent ..;
+
+      columnLayout -vis 0 cl_output_gamma;      
+       attrControlGrp -label "Gamma"
+           -attribute defaultArnoldRenderOptions.gamma
+           os_output_gamma;
+       setParent ..;
+
+      columnLayout -vis 0 cl_output_quality;      
+       attrControlGrp -label "Quality"
+           -attribute defaultArnoldRenderOptions.quality
+           os_output_quality;
+       setParent ..;
+
+      columnLayout -vis 0 cl_output_format;      
+       attrControlGrp -label "Format"
+           -attribute defaultArnoldRenderOptions.format
+           os_output_format;
+       setParent ..;
+
+      columnLayout -vis 0 cl_output_tiled;      
+       attrControlGrp -label "Tiled"
+           -attribute defaultArnoldRenderOptions.tiled
+           os_output_tiled;
+       setParent ..;
+
+      columnLayout -vis 0 cl_output_unpremult_alpha;      
+       attrControlGrp -label "Unpremultiplied Alpha"
+           -attribute defaultArnoldRenderOptions.unpremult_alpha
+           os_output_unpremult_alpha;
+       setParent ..;
+
+      separator -style "none";
+
+      attrControlGrp -label "Frame/Animation ext"
+         -attribute defaultArnoldRenderOptions.arnoldRenderFileNameFormat
+         os_arnoldRenderFileNameFormat;
+
+      separator -style "none";
+
+      // TMP IMAGE FORMAT
+  
+      separator;
+
       attrControlGrp -label "Autodetect Threads"
          -attribute defaultArnoldRenderOptions.threads_autodetect
          -cc UpdateRenderSettings
@@ -86,8 +154,6 @@ global proc CreateArnoldRenderSettings()
          -attribute defaultArnoldRenderOptions.threads
          os_threads;
  
-      separator;
-                 
       attrControlGrp -label "Bucket Scanning"
          -attribute defaultArnoldRenderOptions.bucket_scanning
          os_bucket_scanning;
@@ -113,8 +179,56 @@ global proc CreateArnoldRenderSettings()
       setParent ..;
 
    setUITemplate -popTemplate;
+   UpdateArnoldOutputOptions;
 }
 
+global proc UpdateArnoldOutputOptions()
+{
+   string $selected_output_type = `getAttr -as defaultArnoldRenderOptions.arnoldRenderImageFormat`;
+   switch($selected_output_type)
+   {
+      case "OpenEXR":
+         columnLayout -e -vis 1 cl_output_compression;
+         columnLayout -e -vis 1 cl_output_half_precision;
+         columnLayout -e -vis 0 cl_output_padded;
+         columnLayout -e -vis 0 cl_output_gamma;
+         columnLayout -e -vis 0 cl_output_quality;
+         columnLayout -e -vis 0 cl_output_format;
+         columnLayout -e -vis 0 cl_output_tiled;
+         columnLayout -e -vis 0 cl_output_unpremult_alpha;
+         break;
+      case "Tiff":
+         columnLayout -e -vis 1 cl_output_compression;
+         columnLayout -e -vis 0 cl_output_half_precision;
+         columnLayout -e -vis 1 cl_output_padded;
+         columnLayout -e -vis 1 cl_output_gamma;
+         columnLayout -e -vis 0 cl_output_quality;
+         columnLayout -e -vis 1 cl_output_format;
+         columnLayout -e -vis 1 cl_output_tiled;
+         columnLayout -e -vis 1 cl_output_unpremult_alpha;
+         break;
+      case "Jpg":
+         columnLayout -e -vis 0 cl_output_compression;
+         columnLayout -e -vis 0 cl_output_half_precision;
+         columnLayout -e -vis 1 cl_output_padded;
+         columnLayout -e -vis 1 cl_output_gamma;
+         columnLayout -e -vis 1 cl_output_quality;
+         columnLayout -e -vis 0 cl_output_format;
+         columnLayout -e -vis 0 cl_output_tiled;
+         columnLayout -e -vis 0 cl_output_unpremult_alpha;
+         break;
+      case "Png":
+         columnLayout -e -vis 0 cl_output_compression;
+         columnLayout -e -vis 0 cl_output_half_precision;
+         columnLayout -e -vis 1 cl_output_padded;
+         columnLayout -e -vis 1 cl_output_gamma;
+         columnLayout -e -vis 0 cl_output_quality;
+         columnLayout -e -vis 0 cl_output_format;
+         columnLayout -e -vis 0 cl_output_tiled;
+         columnLayout -e -vis 0 cl_output_unpremult_alpha;
+         break;
+   }
+}
 global proc UpdateArnoldFilterOptions()
 {
    string $selected_filter_type = `getAttr -as defaultArnoldRenderOptions.filter_type`;
@@ -199,8 +313,7 @@ global proc CreateArnoldSamplingSettings()
          -cc UpdateArnoldFilterOptions
          os_filter_type;
 
-      // default filter is Gaussian, showing only its parameters
-      columnLayout -vis 1 cl_filter_width;      
+      columnLayout -vis 0 cl_filter_width;      
          attrControlGrp -label "Filter Width"
              -attribute defaultArnoldRenderOptions.filter_width
              os_filter_width;
@@ -235,6 +348,7 @@ global proc CreateArnoldSamplingSettings()
       setParent ..;
 
    setUITemplate -popTemplate;
+   UpdateArnoldFilterOptions;
 }
 
 global proc CreateArnoldGammaSettings()
@@ -242,7 +356,7 @@ global proc CreateArnoldGammaSettings()
    setUITemplate -pushTemplate attributeEditorTemplate;
    columnLayout -adjustableColumn true;
       
-      attrControlGrp -label "Driver gamma"
+      attrControlGrp -label "Display Driver gamma"
          -attribute defaultArnoldRenderOptions.driver_gamma
          ss_driver_gamma;
 

@@ -12,6 +12,11 @@
 #include <maya/MPlug.h>
 #include <maya/MPlugArray.h>
 #include <maya/MSelectionList.h>
+#include <maya/MAnimControl.h>
+#include <maya/MRenderView.h>
+#include <maya/MGlobal.h>
+
+#include <direct.h>
 
 CRenderOptions::CRenderOptions()
 :  m_minx(0), m_miny(0), m_maxx(0), m_maxy(0)
@@ -27,6 +32,10 @@ CRenderOptions::CRenderOptions()
 ,  m_log_console_verbosity(5)
 ,  m_log_file_verbosity(5)
 {
+   // Check if we are on batch mode by checking if the
+   // render view exists ( it should always do exist 
+   // unless we are in batch mode )
+   m_batchMode = !MRenderView::doesRenderEditorExist();
 }
 
 void CRenderOptions::GetFromMaya(CMayaScene* scene)
@@ -35,6 +44,125 @@ void CRenderOptions::GetFromMaya(CMayaScene* scene)
 
    ProcessCommonRenderOptions();
    ProcessArnoldRenderOptions();
+}
+
+MString CRenderOptions::BuildPadding() 
+{
+   MString fileFrameNumber;
+
+   // get the frame number
+   MTime cT = MAnimControl::currentTime();
+   int currentTime = int( cT.value() );
+   fileFrameNumber = currentTime;
+
+   // build padding
+   MString stringFrameNumber = "";
+   int padding = extensionPadding();
+   if(padding>0)
+   {
+      AiMsgDebug("%d",fileFrameNumber.length());
+      for(int numZeros=0; numZeros<(padding-fileFrameNumber.length()) ;numZeros++)
+      {  
+         stringFrameNumber += "0";
+      }
+      stringFrameNumber += fileFrameNumber;
+   }
+   else
+   {
+      stringFrameNumber = fileFrameNumber;
+   }
+   return stringFrameNumber;
+}
+
+MString CRenderOptions::ImageFilename() 
+{
+   MString imageOutputFolder;
+   MString renderFilename;
+   MString workspaceFolder;
+   MString sceneFileName;
+
+   // get workspace and file names
+   MGlobal::executeCommand("workspace -q -rd",workspaceFolder);
+   MGlobal::executeCommand("workspace -q -rte \"images\"",imageOutputFolder);
+   MGlobal::executeCommand("basename( (`file -q -sceneName -shortName`),(\".\"+(fileExtension((`file -q -sceneName -shortName`)))))", sceneFileName);
+
+   // build the output filename
+   imageOutputFolder = workspaceFolder + imageOutputFolder;
+   if (!BatchMode())
+   {
+      imageOutputFolder += "/tmp";
+   }
+   else
+   {
+      imageOutputFolder += "/" + sceneFileName;
+   }
+
+   mkdir(imageOutputFolder.asChar());
+
+   if(imageFilePrefix() == "")
+   {
+      renderFilename = imageOutputFolder + "/" + sceneFileName;
+   }
+   else
+   {
+      renderFilename = imageOutputFolder + "/" + imageFilePrefix();
+   }
+
+   // naming scheme
+   MString returned_filename;
+   switch(m_arnoldRenderFileNameFormat)
+   {
+      case 0:
+         returned_filename = renderFilename;
+         break;
+      case 1:
+         returned_filename = renderFilename+"."+ImageFileExtension();
+         break;
+      case 2:
+         returned_filename = renderFilename+"."+BuildPadding()+"."+ImageFileExtension();
+         break;
+      case 3:
+         returned_filename = renderFilename+"."+ImageFileExtension()+"."+BuildPadding();
+         break;
+      case 4:
+         returned_filename = renderFilename+"."+BuildPadding();
+         break;
+      case 5:
+         returned_filename = renderFilename+BuildPadding()+"."+ImageFileExtension();
+         break;
+      case 6:
+         returned_filename = renderFilename+"_"+BuildPadding()+"."+ImageFileExtension();
+         break;
+   }
+   
+   return returned_filename;
+
+}
+
+void CRenderOptions::SetupImageOutputs()
+{
+   MString imageRenderFormat = arnoldRenderImageFormat();
+
+   if (imageRenderFormat == "OpenEXR")
+   {
+      m_renderDriver = "driver_exr";
+      m_imageFileExtension = "exr";
+   }
+   if (imageRenderFormat == "Tiff")
+   {
+      m_renderDriver = "driver_tiff";
+      m_imageFileExtension = "tif";
+   }
+   if (imageRenderFormat == "Jpg")
+   {
+      m_renderDriver = "driver_jpeg";
+      m_imageFileExtension = "jpg";
+   }
+   if (imageRenderFormat == "Png")
+   {
+      m_renderDriver = "driver_png";
+      m_imageFileExtension = "png";
+   }
 }
 
 void CRenderOptions::ProcessCommonRenderOptions()
@@ -99,6 +227,18 @@ void CRenderOptions::ProcessArnoldRenderOptions()
 
       MFnDependencyNode fnArnoldRenderOptions(node);
 
+      MFnEnumAttribute arnold_render_format(fnArnoldRenderOptions.findPlug("arnoldRenderImageFormat").attribute());
+      m_arnoldRenderImageFormat  = arnold_render_format.fieldName(fnArnoldRenderOptions.findPlug("arnoldRenderImageFormat").asShort());
+      m_arnoldRenderImageCompression    = fnArnoldRenderOptions.findPlug("compression").asInt();
+      m_arnoldRenderImageHalfPrecision  = fnArnoldRenderOptions.findPlug("half_precision").asBool();
+      m_arnoldRenderImageOutputPadded   = fnArnoldRenderOptions.findPlug("output_padded").asBool();
+      m_arnoldRenderImageGamma          = fnArnoldRenderOptions.findPlug("gamma").asFloat();
+      m_arnoldRenderImageQuality        = fnArnoldRenderOptions.findPlug("quality").asInt();
+      m_arnoldRenderImageOutputFormat   = fnArnoldRenderOptions.findPlug("format").asInt();
+      m_arnoldRenderImageTiled          = fnArnoldRenderOptions.findPlug("tiled").asBool();
+      m_arnoldRenderImageUnpremultAlpha = fnArnoldRenderOptions.findPlug("unpremult_alpha").asBool();
+      m_arnoldRenderFileNameFormat      = fnArnoldRenderOptions.findPlug("arnoldRenderFileNameFormat").asInt();
+
       m_threads         = fnArnoldRenderOptions.findPlug("threads_autodetect").asBool() ? 0 : fnArnoldRenderOptions.findPlug("threads").asInt();
       m_bucket_scanning = fnArnoldRenderOptions.findPlug("bucket_scanning").asInt();
       m_bucket_size     = fnArnoldRenderOptions.findPlug("bucket_size").asInt();
@@ -111,7 +251,6 @@ void CRenderOptions::ProcessArnoldRenderOptions()
       m_AA_sample_clamp     = fnArnoldRenderOptions.findPlug("use_sample_clamp").asBool() ? fnArnoldRenderOptions.findPlug("AA_sample_clamp").asFloat() : (float) AI_INFINITE;
 
       MFnEnumAttribute enum_filter_type(fnArnoldRenderOptions.findPlug("filter_type").attribute());
-
       m_filter_type  = enum_filter_type.fieldName(fnArnoldRenderOptions.findPlug("filter_type").asShort());
       m_filter_width = fnArnoldRenderOptions.findPlug("filter_width").asFloat();
 
@@ -149,6 +288,9 @@ void CRenderOptions::ProcessArnoldRenderOptions()
       m_background = fnArnoldRenderOptions.findPlug("background").asInt();
       m_atmosphere = fnArnoldRenderOptions.findPlug("atmosphere").asInt();
    }
+
+   SetupImageOutputs();
+
 }
 
 void CRenderOptions::SetupRenderOptions() const

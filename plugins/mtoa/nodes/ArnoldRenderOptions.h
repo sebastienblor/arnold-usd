@@ -22,6 +22,17 @@ public:
 
    // Attributes
 
+   static MObject s_arnoldRenderImageFormat;
+   static MObject s_arnoldRenderImageCompression;
+   static MObject s_arnoldRenderImageHalfPrecision;
+   static MObject s_arnoldRenderImageOutputPadded;
+   static MObject s_arnoldRenderImageGamma;
+   static MObject s_arnoldRenderImageQuality;
+   static MObject s_arnoldRenderImageOutputFormat;
+   static MObject s_arnoldRenderImageTiled;
+   static MObject s_arnoldRenderImageUnpremultAlpha;
+   static MObject s_arnoldRenderFileNameFormat;
+
    static MObject s_threads;
    static MObject s_threads_autodetect;
    static MObject s_bucket_scanning;

@@ -146,14 +146,58 @@ void CRenderSession::DoExport()
 
 void CRenderSession::SetupRenderOutput()
 {
-   // DISPLAY DRIVER (for interactive rendering)
-   //
-   AiNodeInstall(AI_NODE_DRIVER, AI_TYPE_NONE, "renderview_display",  NULL, (AtNodeMethods*) mtoa_driver_mtd, AI_VERSION);
+   AtNode* driver;
+   AtNode* renderViewDriver;
 
-   AtNode* driver = AiNode("renderview_display");
+   if (!m_renderOptions.BatchMode())
+   {
+      // render in the renderview
+      AiNodeInstall(AI_NODE_DRIVER, AI_TYPE_NONE, "renderview_display",  NULL, (AtNodeMethods*) mtoa_driver_mtd, AI_VERSION);
+      renderViewDriver = AiNode("renderview_display");
+      AiNodeSetStr(renderViewDriver, "name", "renderview_display");
+      AiNodeSetFlt(renderViewDriver, "gamma", m_renderOptions.outputGamma());
+   }
 
-   AiNodeSetStr(driver, "name", "renderview_display");
-   AiNodeSetFlt(driver, "gamma", m_renderOptions.outputGamma());
+   // set the output driver
+
+   driver = AiNode(m_renderOptions.RenderDriver().asChar());
+   AiNodeSetStr(driver, "filename",m_renderOptions.ImageFilename().asChar());
+   AiNodeSetStr(driver, "name",m_renderOptions.RenderDriver().asChar());
+
+   // set output driver parameters
+   // Only set output parameters if they exist within that specific node
+   if (AiNodeEntryLookUpParameter(driver->base_node, "compression"))
+   {
+      AiNodeSetInt(driver, "compression", m_renderOptions.arnoldRenderImageCompression());
+   }
+   if (AiNodeEntryLookUpParameter(driver->base_node, "half_precision"))
+   {
+      AiNodeSetBool(driver, "half_precision", m_renderOptions.arnoldRenderImageHalfPrecision());
+   }
+   if (AiNodeEntryLookUpParameter(driver->base_node, "output_padded"))
+   {
+      AiNodeSetBool(driver, "output_padded", m_renderOptions.arnoldRenderImageOutputPadded());
+   }
+   if (AiNodeEntryLookUpParameter(driver->base_node, "gamma"))
+   {
+      AiNodeSetFlt(driver, "gamma", m_renderOptions.arnoldRenderImageGamma());
+   }
+   if (AiNodeEntryLookUpParameter(driver->base_node, "quality"))
+   {
+      AiNodeSetInt(driver, "quality", m_renderOptions.arnoldRenderImageQuality());
+   }
+   if (AiNodeEntryLookUpParameter(driver->base_node, "format"))
+   {
+      AiNodeSetInt(driver, "format", m_renderOptions.arnoldRenderImageOutputFormat());
+   }
+   if (AiNodeEntryLookUpParameter(driver->base_node, "tiled"))
+   {
+      AiNodeSetBool(driver, "tiled", m_renderOptions.arnoldRenderImageTiled());
+   }
+   if (AiNodeEntryLookUpParameter(driver->base_node, "unpremult_alpha"))
+   {
+      AiNodeSetBool(driver, "unpremult_alpha", m_renderOptions.arnoldRenderImageUnpremultAlpha());
+   }
 
    // OUTPUT FILTER (use for all image outputs)
    //
@@ -183,10 +227,18 @@ void CRenderSession::SetupRenderOutput()
 
    // OUTPUT STRINGS
    //
-   AtChar   str[1024];
-   AtArray* outputs;
+  AtChar   str[1024];
+  int      ndrivers = m_renderOptions.BatchMode() ? 1 : 2;
+  AtArray* outputs  = AiArrayAllocate(ndrivers, 1, AI_TYPE_STRING);
 
-   sprintf(str, "RGBA RGBA %s %s", AiNodeGetName(filter), AiNodeGetName(driver));
-   outputs = AiArray(1, 1, AI_TYPE_STRING, str);
-   AiNodeSetArray(AiUniverseGetOptions(), "outputs", outputs);
+  sprintf(str, "RGBA RGBA %s %s", AiNodeGetName(filter), AiNodeGetName(driver));
+  AiArraySetStr(outputs, 0, str);
+ 
+  if (!m_renderOptions.BatchMode())
+  {
+     sprintf(str, "RGBA RGBA %s %s", AiNodeGetName(filter), "renderview_display");
+     AiArraySetStr(outputs, 1, str);
+  }
+ 
+  AiNodeSetArray(AiUniverseGetOptions(), "outputs", outputs);
 }

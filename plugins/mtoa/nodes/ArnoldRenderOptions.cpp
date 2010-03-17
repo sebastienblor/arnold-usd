@@ -8,6 +8,16 @@
 
 MTypeId CArnoldRenderOptionsNode::id(0x00071000);
 
+MObject CArnoldRenderOptionsNode::s_arnoldRenderImageFormat;
+MObject CArnoldRenderOptionsNode::s_arnoldRenderImageCompression;
+MObject CArnoldRenderOptionsNode::s_arnoldRenderImageHalfPrecision;
+MObject CArnoldRenderOptionsNode::s_arnoldRenderImageGamma;
+MObject CArnoldRenderOptionsNode::s_arnoldRenderImageOutputPadded;
+MObject CArnoldRenderOptionsNode::s_arnoldRenderImageQuality;
+MObject CArnoldRenderOptionsNode::s_arnoldRenderImageOutputFormat;
+MObject CArnoldRenderOptionsNode::s_arnoldRenderImageTiled;
+MObject CArnoldRenderOptionsNode::s_arnoldRenderImageUnpremultAlpha;
+MObject CArnoldRenderOptionsNode::s_arnoldRenderFileNameFormat;
 MObject CArnoldRenderOptionsNode::s_threads;
 MObject CArnoldRenderOptionsNode::s_threads_autodetect;
 MObject CArnoldRenderOptionsNode::s_bucket_scanning;
@@ -67,6 +77,70 @@ MStatus CArnoldRenderOptionsNode::initialize()
    MFnEnumAttribute eAttr;
    MFnStringData sData;
    MFnTypedAttribute tAttr;
+
+   s_arnoldRenderImageFormat = eAttr.create("arnoldRenderImageFormat", "arnif", 0);
+   nAttr.setKeyable(false);
+   eAttr.addField("OpenEXR", 0);
+   eAttr.addField("Tiff", 1);
+   eAttr.addField("Jpg", 2);
+   eAttr.addField("Png", 3);
+   addAttribute(s_arnoldRenderImageFormat);
+
+   s_arnoldRenderImageCompression = eAttr.create("compression","arnic",0);
+   nAttr.setKeyable(false);
+   eAttr.addField("none", 0);
+   eAttr.addField("rle", 1);
+   eAttr.addField("zip", 2);
+   eAttr.addField("piz", 3);
+   eAttr.addField("pxr24", 4);
+   addAttribute(s_arnoldRenderImageCompression);
+
+   s_arnoldRenderImageHalfPrecision = nAttr.create("half_precision", "arnihp", MFnNumericData::kBoolean, 0);
+   nAttr.setKeyable(false);
+   addAttribute(s_arnoldRenderImageHalfPrecision);
+
+   s_arnoldRenderImageGamma = nAttr.create("gamma", "arnig", MFnNumericData::kFloat, 1);
+   nAttr.setKeyable(false);
+   nAttr.setSoftMin(0.001);
+   nAttr.setSoftMax(5);
+   addAttribute(s_arnoldRenderImageGamma);
+
+   s_arnoldRenderImageOutputPadded = nAttr.create("output_padded", "arniop", MFnNumericData::kBoolean, 0);
+   nAttr.setKeyable(false);
+   addAttribute(s_arnoldRenderImageOutputPadded);
+
+   s_arnoldRenderImageQuality = nAttr.create("quality", "arniq", MFnNumericData::kInt, 100);
+   nAttr.setKeyable(false);
+   nAttr.setMin(0);
+   nAttr.setMax(100);
+   addAttribute(s_arnoldRenderImageQuality);
+
+   s_arnoldRenderImageOutputFormat = eAttr.create("format","arniof",0);
+   nAttr.setKeyable(false);
+   eAttr.addField("int8", 0);
+   eAttr.addField("int16", 1);
+   eAttr.addField("int32", 2);
+   eAttr.addField("float32", 3);
+   addAttribute(s_arnoldRenderImageOutputFormat);
+
+   s_arnoldRenderImageTiled = nAttr.create("tiled", "arnitld", MFnNumericData::kBoolean, 0);
+   nAttr.setKeyable(false);
+   addAttribute(s_arnoldRenderImageTiled);
+
+   s_arnoldRenderImageUnpremultAlpha = nAttr.create("unpremult_alpha", "arniua", MFnNumericData::kBoolean, 0);
+   nAttr.setKeyable(false);
+   addAttribute(s_arnoldRenderImageUnpremultAlpha);
+
+   s_arnoldRenderFileNameFormat = eAttr.create("arnoldRenderFileNameFormat", "arnfnf", 0);
+   nAttr.setKeyable(false);
+   eAttr.addField("name", 0);
+   eAttr.addField("name.ext", 1);
+   eAttr.addField("name.#.ext", 2);
+   eAttr.addField("name.ext.#", 3);
+   eAttr.addField("name.#", 4);
+   eAttr.addField("name#.ext", 5);
+   eAttr.addField("name_#.ext", 6);
+   addAttribute(s_arnoldRenderFileNameFormat);
 
    s_threads_autodetect = nAttr.create("threads_autodetect", "thr_auto", MFnNumericData::kBoolean, 1);
    nAttr.setKeyable(false);
