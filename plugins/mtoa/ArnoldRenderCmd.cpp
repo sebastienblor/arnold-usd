@@ -31,8 +31,6 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       return MS::kFailure;
    }
 
-   bool batchMode = !MRenderView::doesRenderEditorExist();
-
    renderSession->Reset();
 
    int width  = args.isFlagSet("width") ? args.flagArgumentInt("width", 0) : -1;
@@ -44,10 +42,10 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
    renderSession->SetHeight(height);
    renderSession->SetCamera(camera);
 
-   if (!batchMode)
-   {
-      const CRenderOptions* renderOptions = renderSession->RenderOptions();
+   const CRenderOptions* renderOptions = renderSession->RenderOptions();
 
+   if (!renderOptions->BatchMode())
+   {
       if (renderOptions->useRenderRegion())
       {
          status = MRenderView::startRegionRender(renderOptions->width(),
