@@ -127,62 +127,62 @@ public:
       SetupImageOptions();
    }
 
-   bool BatchMode()
+   bool BatchMode() const
    {
       return m_batchMode;
    }
 
-   MString RenderDriver()
+   MString RenderDriver() const
    {
       return m_renderDriver;
    }
 
-   MString arnoldRenderImageFormat()
+   MString arnoldRenderImageFormat() const
    {
       return m_arnoldRenderImageFormat;
    }
 
-   AtUInt32 arnoldRenderImageCompression()
+   AtUInt32 arnoldRenderImageCompression() const
    {
       return m_arnoldRenderImageCompression;
    }
 
-   bool arnoldRenderImageHalfPrecision()
+   bool arnoldRenderImageHalfPrecision() const
    {
       return m_arnoldRenderImageHalfPrecision;
    }
 
-   bool arnoldRenderImageOutputPadded()
+   bool arnoldRenderImageOutputPadded() const
    {
       return m_arnoldRenderImageOutputPadded;
    }
 
-   float arnoldRenderImageGamma()
+   float arnoldRenderImageGamma() const
    {
       return m_arnoldRenderImageGamma;
    }
 
-   AtUInt32 arnoldRenderImageQuality()
+   AtUInt32 arnoldRenderImageQuality() const
    {
       return m_arnoldRenderImageQuality;
    }
 
-   AtUInt32 arnoldRenderImageOutputFormat()
+   AtUInt32 arnoldRenderImageOutputFormat() const
    {
       return m_arnoldRenderImageOutputFormat;
    }
 
-   bool arnoldRenderImageTiled()
+   bool arnoldRenderImageTiled() const
    {
       return m_arnoldRenderImageTiled;
    }
 
-   bool arnoldRenderImageUnpremultAlpha()
+   bool arnoldRenderImageUnpremultAlpha() const
    {
       return m_arnoldRenderImageUnpremultAlpha;
    }
 
-   AtUInt32 arnoldRenderFileNameFormat()
+   AtUInt32 arnoldRenderFileNameFormat() const
    {
       return m_arnoldRenderFileNameFormat;
    }
@@ -191,11 +191,9 @@ public:
 
    void SetupLog() const;
    void SetupRenderOptions() const;
-   void SetupImageOutputs();
    
    MString VerifyFileName(MString fileName, bool compressed);
-   MString ImageFilename();
-   MString BuildPadding();
+   MString ImageFilename() const;
 
 private:
 
@@ -204,28 +202,10 @@ private:
    
    void SetupImageOptions() const;
    void SetupImageFilter() const;
+   void SetupImageOutputs();
 
+   MString BuildPadding() const;
    AtInt GetFlagsFromVerbosityLevel(AtUInt level) const;
-
-   MString imageFilePrefix() const
-   {
-      return m_imageFilePrefix;
-   }
-
-   MString ImageFileExtension()
-   {
-      return m_imageFileExtension;
-   }
-
-   AtUInt32 extensionPadding()
-   {
-      return m_extensionPadding;
-   }
-
-   MString arnoldRenderImageFormat() const
-   {
-      return m_arnoldRenderImageFormat;
-   }
 
 private:
 

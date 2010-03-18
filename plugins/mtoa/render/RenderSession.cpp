@@ -161,8 +161,8 @@ void CRenderSession::SetupRenderOutput()
    // set the output driver
 
    driver = AiNode(m_renderOptions.RenderDriver().asChar());
-   AiNodeSetStr(driver, "filename",m_renderOptions.ImageFilename().asChar());
-   AiNodeSetStr(driver, "name",m_renderOptions.RenderDriver().asChar());
+   AiNodeSetStr(driver, "filename", m_renderOptions.ImageFilename().asChar());
+   AiNodeSetStr(driver, "name", m_renderOptions.RenderDriver().asChar());
 
    // set output driver parameters
    // Only set output parameters if they exist within that specific node

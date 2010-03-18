@@ -46,35 +46,7 @@ void CRenderOptions::GetFromMaya(CMayaScene* scene)
    ProcessArnoldRenderOptions();
 }
 
-MString CRenderOptions::BuildPadding() 
-{
-   MString fileFrameNumber;
-
-   // get the frame number
-   MTime cT = MAnimControl::currentTime();
-   int currentTime = int( cT.value() );
-   fileFrameNumber = currentTime;
-
-   // build padding
-   MString stringFrameNumber = "";
-   int padding = extensionPadding();
-   if(padding>0)
-   {
-      AiMsgDebug("%d",fileFrameNumber.length());
-      for(int numZeros=0; numZeros<(padding-fileFrameNumber.length()) ;numZeros++)
-      {  
-         stringFrameNumber += "0";
-      }
-      stringFrameNumber += fileFrameNumber;
-   }
-   else
-   {
-      stringFrameNumber = fileFrameNumber;
-   }
-   return stringFrameNumber;
-}
-
-MString CRenderOptions::ImageFilename() 
+MString CRenderOptions::ImageFilename() const
 {
    MString imageOutputFolder;
    MString renderFilename;
@@ -82,9 +54,9 @@ MString CRenderOptions::ImageFilename()
    MString sceneFileName;
 
    // get workspace and file names
-   MGlobal::executeCommand("workspace -q -rd",workspaceFolder);
-   MGlobal::executeCommand("workspace -q -rte \"images\"",imageOutputFolder);
-   MGlobal::executeCommand("basename( (`file -q -sceneName -shortName`),(\".\"+(fileExtension((`file -q -sceneName -shortName`)))))", sceneFileName);
+   MGlobal::executeCommand("workspace -q -rd", workspaceFolder);
+   MGlobal::executeCommand("workspace -q -rte \"images\"", imageOutputFolder);
+   MGlobal::executeCommand("basename( (`file -q -sceneName -shortName`),(\".\" + (fileExtension((`file -q -sceneName -shortName`)))))", sceneFileName);
 
    // build the output filename
    imageOutputFolder = workspaceFolder + imageOutputFolder;
@@ -99,70 +71,44 @@ MString CRenderOptions::ImageFilename()
 
    mkdir(imageOutputFolder.asChar());
 
-   if(imageFilePrefix() == "")
+   if (m_imageFilePrefix == "")
    {
       renderFilename = imageOutputFolder + "/" + sceneFileName;
    }
    else
    {
-      renderFilename = imageOutputFolder + "/" + imageFilePrefix();
+      renderFilename = imageOutputFolder + "/" + m_imageFilePrefix;
    }
 
    // naming scheme
    MString returned_filename;
-   switch(m_arnoldRenderFileNameFormat)
+   switch (m_arnoldRenderFileNameFormat)
    {
       case 0:
          returned_filename = renderFilename;
          break;
       case 1:
-         returned_filename = renderFilename+"."+ImageFileExtension();
+         returned_filename = renderFilename + "." + m_imageFileExtension;
          break;
       case 2:
-         returned_filename = renderFilename+"."+BuildPadding()+"."+ImageFileExtension();
+         returned_filename = renderFilename + "." + BuildPadding() + "." + m_imageFileExtension;
          break;
       case 3:
-         returned_filename = renderFilename+"."+ImageFileExtension()+"."+BuildPadding();
+         returned_filename = renderFilename + "." + m_imageFileExtension + "." + BuildPadding();
          break;
       case 4:
-         returned_filename = renderFilename+"."+BuildPadding();
+         returned_filename = renderFilename + "." + BuildPadding();
          break;
       case 5:
-         returned_filename = renderFilename+BuildPadding()+"."+ImageFileExtension();
+         returned_filename = renderFilename + BuildPadding() + "." + m_imageFileExtension;
          break;
       case 6:
-         returned_filename = renderFilename+"_"+BuildPadding()+"."+ImageFileExtension();
+         returned_filename = renderFilename + "_" + BuildPadding() + "." + m_imageFileExtension;
          break;
    }
    
    return returned_filename;
 
-}
-
-void CRenderOptions::SetupImageOutputs()
-{
-   MString imageRenderFormat = arnoldRenderImageFormat();
-
-   if (imageRenderFormat == "OpenEXR")
-   {
-      m_renderDriver = "driver_exr";
-      m_imageFileExtension = "exr";
-   }
-   if (imageRenderFormat == "Tiff")
-   {
-      m_renderDriver = "driver_tiff";
-      m_imageFileExtension = "tif";
-   }
-   if (imageRenderFormat == "Jpg")
-   {
-      m_renderDriver = "driver_jpeg";
-      m_imageFileExtension = "jpg";
-   }
-   if (imageRenderFormat == "Png")
-   {
-      m_renderDriver = "driver_png";
-      m_imageFileExtension = "png";
-   }
 }
 
 void CRenderOptions::ProcessCommonRenderOptions()
@@ -228,7 +174,7 @@ void CRenderOptions::ProcessArnoldRenderOptions()
       MFnDependencyNode fnArnoldRenderOptions(node);
 
       MFnEnumAttribute arnold_render_format(fnArnoldRenderOptions.findPlug("arnoldRenderImageFormat").attribute());
-      m_arnoldRenderImageFormat  = arnold_render_format.fieldName(fnArnoldRenderOptions.findPlug("arnoldRenderImageFormat").asShort());
+      m_arnoldRenderImageFormat         = arnold_render_format.fieldName(fnArnoldRenderOptions.findPlug("arnoldRenderImageFormat").asShort());
       m_arnoldRenderImageCompression    = fnArnoldRenderOptions.findPlug("compression").asInt();
       m_arnoldRenderImageHalfPrecision  = fnArnoldRenderOptions.findPlug("half_precision").asBool();
       m_arnoldRenderImageOutputPadded   = fnArnoldRenderOptions.findPlug("output_padded").asBool();
@@ -290,7 +236,6 @@ void CRenderOptions::ProcessArnoldRenderOptions()
    }
 
    SetupImageOutputs();
-
 }
 
 void CRenderOptions::SetupRenderOptions() const
@@ -441,3 +386,58 @@ MString CRenderOptions::VerifyFileName(MString fileName, bool compressed)
 
    return fileName;
 }
+
+MString CRenderOptions::BuildPadding() const
+{
+   MString fileFrameNumber;
+
+   // get the frame number
+   MTime cT = MAnimControl::currentTime();
+   int currentTime = int(cT.value());
+   fileFrameNumber = currentTime;
+
+   // build padding
+   MString stringFrameNumber = "";
+   int padding = m_extensionPadding;
+   if (padding > 0)
+   {
+      AiMsgDebug("%d", fileFrameNumber.length());
+      for(int numZeros = 0; (numZeros < (padding - fileFrameNumber.length())); numZeros++)
+      {  
+         stringFrameNumber += "0";
+      }
+      stringFrameNumber += fileFrameNumber;
+   }
+   else
+   {
+      stringFrameNumber = fileFrameNumber;
+   }
+   return stringFrameNumber;
+}
+
+void CRenderOptions::SetupImageOutputs()
+{
+   MString imageRenderFormat = arnoldRenderImageFormat();
+
+   if (imageRenderFormat == "OpenEXR")
+   {
+      m_renderDriver       = "driver_exr";
+      m_imageFileExtension = "exr";
+   }
+   if (imageRenderFormat == "Tiff")
+   {
+      m_renderDriver       = "driver_tiff";
+      m_imageFileExtension = "tif";
+   }
+   if (imageRenderFormat == "Jpg")
+   {
+      m_renderDriver       = "driver_jpeg";
+      m_imageFileExtension = "jpg";
+   }
+   if (imageRenderFormat == "Png")
+   {
+      m_renderDriver       = "driver_png";
+      m_imageFileExtension = "png";
+   }
+}
+
