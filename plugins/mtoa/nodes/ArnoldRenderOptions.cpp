@@ -131,14 +131,15 @@ MStatus CArnoldRenderOptionsNode::initialize()
    nAttr.setKeyable(false);
    addAttribute(s_arnoldRenderImageUnpremultAlpha);
 
-   s_arnoldRenderFileNameFormat = eAttr.create("arnoldRenderFileNameFormat", "arnfnf", 0);
+   s_arnoldRenderFileNameFormat = eAttr.create("arnoldRenderFileNameFormat", "arnfnf", 1);
    nAttr.setKeyable(false);
-   eAttr.addField("name.ext", 0);
-   eAttr.addField("name.#.ext", 1);
-   eAttr.addField("name.ext.#", 2);
-   eAttr.addField("name.#", 3);
-   eAttr.addField("name#.ext", 4);
-   eAttr.addField("name_#.ext", 5);
+   eAttr.addField("name", 0);
+   eAttr.addField("name.ext", 1);
+   eAttr.addField("name.#.ext", 2);
+   eAttr.addField("name.ext.#", 3);
+   eAttr.addField("name.#", 4);
+   eAttr.addField("name#.ext", 5);
+   eAttr.addField("name_#.ext", 6);
    addAttribute(s_arnoldRenderFileNameFormat);
 
    s_threads_autodetect = nAttr.create("threads_autodetect", "thr_auto", MFnNumericData::kBoolean, 1);
