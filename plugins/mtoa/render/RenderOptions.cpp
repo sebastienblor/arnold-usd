@@ -85,24 +85,21 @@ MString CRenderOptions::ImageFilename() const
    switch (m_arnoldRenderFileNameFormat)
    {
       case 0:
-         returned_filename = renderFilename;
-         break;
-      case 1:
          returned_filename = renderFilename + "." + m_imageFileExtension;
          break;
-      case 2:
+      case 1:
          returned_filename = renderFilename + "." + BuildPadding() + "." + m_imageFileExtension;
          break;
-      case 3:
+      case 2:
          returned_filename = renderFilename + "." + m_imageFileExtension + "." + BuildPadding();
          break;
-      case 4:
+      case 3:
          returned_filename = renderFilename + "." + BuildPadding();
          break;
-      case 5:
+      case 4:
          returned_filename = renderFilename + BuildPadding() + "." + m_imageFileExtension;
          break;
-      case 6:
+      case 5:
          returned_filename = renderFilename + "_" + BuildPadding() + "." + m_imageFileExtension;
          break;
    }
