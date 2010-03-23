@@ -36,6 +36,7 @@ public:
    }
 
    void DoRender();
+   void DoBatchRender();
    void DoExport();
 
 private:

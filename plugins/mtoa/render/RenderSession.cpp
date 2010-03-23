@@ -20,7 +20,7 @@ static CRenderSession* s_renderSession = NULL;
 // This is the code for the render thread. This thread is used only to run the AiRender() process outside of the main thread.
 static unsigned int RenderThread(AtVoid* data)
 {
-   AiRender( AI_RENDER_MODE_CAMERA );
+   AiRender(AI_RENDER_MODE_CAMERA);
 
    return 0;
 }
@@ -129,6 +129,13 @@ void CRenderSession::DoRender()
    // Wait for the render thread to release everything and close it
    AiThreadWait(handler);
    AiThreadClose(handler);
+}
+
+void CRenderSession::DoBatchRender()
+{
+   m_renderOptions.SetupRenderOptions();
+
+   AiRender(AI_RENDER_MODE_CAMERA);
 }
 
 void CRenderSession::DoExport()

@@ -77,7 +77,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
    }
    else
    {
-      renderSession->DoRender();
+      renderSession->DoBatchRender();
    }
 
    renderSession->End();
