@@ -113,6 +113,11 @@ public:
       return m_plugins_path;
    }
 
+   void SetBatch(bool batch)
+   {
+      m_batchMode = batch;
+   }
+
    void SetWidth(AtUInt width)
    {
       m_width = width;

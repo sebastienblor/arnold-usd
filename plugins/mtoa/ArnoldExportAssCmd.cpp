@@ -31,6 +31,8 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
       return MS::kFailure;
    }
 
+   // We don't need renderview_display so we need to set Batch mode on.
+   renderSession->SetBatch(true);
    renderSession->Init();
 
    if (MGlobal::mayaState() == MGlobal::kInteractive)

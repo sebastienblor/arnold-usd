@@ -76,6 +76,11 @@ void CRenderSession::Reset()
    Init();
 }
 
+void CRenderSession::SetBatch(bool batch)
+{
+   m_renderOptions.SetBatch(batch);
+}
+
 void CRenderSession::SetWidth(int width)
 {
    if (width != -1)

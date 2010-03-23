@@ -20,6 +20,7 @@ public:
 
    void Reset();
 
+   void SetBatch(bool batch);
    void SetWidth(int width);
    void SetHeight(int height);
    void SetCamera(MString cameraNode);

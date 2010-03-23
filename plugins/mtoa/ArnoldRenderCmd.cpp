@@ -13,6 +13,7 @@ MSyntax CArnoldRenderCmd::newSyntax()
 {
    MSyntax syntax;
 
+   syntax.addFlag("b", "batch", MSyntax::kNoArg);
    syntax.addFlag("cam", "camera", MSyntax::kString);
    syntax.addFlag("w", "width", MSyntax::kUnsigned);
    syntax.addFlag("h", "height", MSyntax::kUnsigned);
@@ -33,11 +34,13 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
 
    renderSession->Reset();
 
+   bool batch  = args.isFlagSet("batch") ? true : false;
    int width  = args.isFlagSet("width") ? args.flagArgumentInt("width", 0) : -1;
    int height = args.isFlagSet("height") ? args.flagArgumentInt("height", 0) : -1;
 
    MString camera = args.flagArgumentString("camera", 0);
 
+   renderSession->SetBatch(batch);
    renderSession->SetWidth(width);
    renderSession->SetHeight(height);
    renderSession->SetCamera(camera);

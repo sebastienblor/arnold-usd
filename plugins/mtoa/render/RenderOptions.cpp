@@ -31,12 +31,7 @@ CRenderOptions::CRenderOptions()
 ,  m_log_max_warnings(100)
 ,  m_log_console_verbosity(5)
 ,  m_log_file_verbosity(5)
-{
-   // Check if we are on batch mode by checking if the
-   // render view exists ( it should always do exist 
-   // unless we are in batch mode )
-   m_batchMode = !MRenderView::doesRenderEditorExist();
-}
+{}
 
 void CRenderOptions::GetFromMaya(CMayaScene* scene)
 {
