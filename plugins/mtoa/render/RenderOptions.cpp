@@ -16,6 +16,9 @@
 #include <maya/MRenderView.h>
 #include <maya/MGlobal.h>
 #include <maya/MTime.h>
+#include <maya/MRenderUtil.h> 
+#include <maya/MFnRenderLayer.h>
+#include <maya/MObject.h>
 
 #include <direct.h>
 
@@ -45,74 +48,45 @@ void CRenderOptions::GetFromMaya(CMayaScene* scene)
 
 void CRenderOptions::UpdateImageFilename() 
 {
-   MString imageOutputFolder;
-   MString renderFilename;
-   MString workspaceFolder;
-   MString sceneFileName;
 
-   // get workspace and file names
-   MGlobal::executeCommand("workspace -q -rd", workspaceFolder);
-   MGlobal::executeCommand("workspace -q -rte \"images\"", imageOutputFolder);
+   MString sceneFileName, nameCamera;
+   MString cameraFolderName;
+   MObject renderLayer = MFnRenderLayer::defaultRenderLayer();  	
+   double  fileFrameNumber;
+
+   // get the frame number
+   MTime cT = MAnimControl::currentTime();
+   fileFrameNumber = double(cT.value());
    MGlobal::executeCommand("basename( (`file -q -sceneName -shortName`),(\".\" + (fileExtension((`file -q -sceneName -shortName`)))))", sceneFileName);
 
-   // build the output filename
-   // check if we are in batch mode and rendering a multi camera scene
-   imageOutputFolder = workspaceFolder + imageOutputFolder;
 
    if (BatchMode())
    {
-      imageOutputFolder += "/" + sceneFileName;
-      mkdir(imageOutputFolder.asChar());
+
+      // get camera transform node for folder name
+      MSelectionList list;
+      MObject        node,parentNode;
+      list.add(GetCameraName());
+      list.getDependNode(0, node);
+      MFnDagNode camDag(node);
+      parentNode = camDag.parent(0);
+      MFnDagNode camDagParent(parentNode);
+      nameCamera = camDagParent.name();
 
       if (MultiCameraRender())
-         {
-            imageOutputFolder = imageOutputFolder + "/" + GetCameraName();
-            mkdir(imageOutputFolder.asChar());
-         }
+      {
+         nameCamera = sceneFileName + "/" + nameCamera;
+      }
+      else
+      {
+         sceneFileName = sceneFileName + "/" + sceneFileName;
+      }
+      m_imageFilename = m_defaultRenderGlobalsData.getImageName(m_defaultRenderGlobalsData.kFullPathImage, fileFrameNumber, sceneFileName, nameCamera, m_imageFileExtension, renderLayer, 1);
    }
    else
    {
-      imageOutputFolder += "/tmp";
-      mkdir(imageOutputFolder.asChar());
+      m_imageFilename = m_defaultRenderGlobalsData.getImageName(m_defaultRenderGlobalsData.kFullPathTmp, fileFrameNumber, sceneFileName, nameCamera, m_imageFileExtension, renderLayer, 1);
    }
-
-   if (m_imageFilePrefix == "")
-   {
-      renderFilename = imageOutputFolder + "/" + sceneFileName;
-   }
-   else
-   {
-      renderFilename = imageOutputFolder + "/" + m_imageFilePrefix;
-   }
-
-   // naming scheme
-   MString returned_filename;
-   switch (m_arnoldRenderFileNameFormat)
-   {
-      case 0:
-         returned_filename = renderFilename;
-         break;
-      case 1:
-         returned_filename = renderFilename + "." + m_imageFileExtension;
-         break;
-      case 2:
-         returned_filename = renderFilename + "." + BuildPadding() + "." + m_imageFileExtension;
-         break;
-      case 3:
-         returned_filename = renderFilename + "." + m_imageFileExtension + "." + BuildPadding();
-         break;
-      case 4:
-         returned_filename = renderFilename + "." + BuildPadding();
-         break;
-      case 5:
-         returned_filename = renderFilename + BuildPadding() + "." + m_imageFileExtension;
-         break;
-      case 6:
-         returned_filename = renderFilename + "_" + BuildPadding() + "." + m_imageFileExtension;
-         break;
-   }
-   
-   m_imageFilename = returned_filename;
 
 }
 
@@ -133,11 +107,15 @@ void CRenderOptions::ProcessCommonRenderOptions()
 
       m_useRenderRegion = fnRenderGlobals.findPlug("useRenderRegion").asBool();
       m_extensionPadding = fnRenderGlobals.findPlug("extensionPadding").asInt();
+
       fnRenderGlobals.findPlug("startFrame").getValue(time);
       m_startFrame = time.as(MTime::uiUnit());
       fnRenderGlobals.findPlug("endFrame").getValue(time);
       m_endFrame = time.as(MTime::uiUnit());
       m_byFrameStep = fnRenderGlobals.findPlug("byFrameStep").asFloat();
+
+      MRenderUtil::getCommonRenderSettings(m_defaultRenderGlobalsData);
+      m_isAnimated = m_defaultRenderGlobalsData.isAnimated();
 
       if (m_useRenderRegion)
       {
@@ -195,7 +173,6 @@ void CRenderOptions::ProcessArnoldRenderOptions()
       m_arnoldRenderImageOutputFormat   = fnArnoldRenderOptions.findPlug("format").asInt();
       m_arnoldRenderImageTiled          = fnArnoldRenderOptions.findPlug("tiled").asBool();
       m_arnoldRenderImageUnpremultAlpha = fnArnoldRenderOptions.findPlug("unpremult_alpha").asBool();
-      m_arnoldRenderFileNameFormat      = fnArnoldRenderOptions.findPlug("arnoldRenderFileNameFormat").asInt();
 
       m_threads         = fnArnoldRenderOptions.findPlug("threads_autodetect").asBool() ? 0 : fnArnoldRenderOptions.findPlug("threads").asInt();
       m_bucket_scanning = fnArnoldRenderOptions.findPlug("bucket_scanning").asInt();
@@ -397,33 +374,6 @@ MString CRenderOptions::VerifyFileName(MString fileName, bool compressed)
    }
 
    return fileName;
-}
-
-MString CRenderOptions::BuildPadding() const
-{
-   MString fileFrameNumber;
-
-   // get the frame number
-   MTime cT = MAnimControl::currentTime();
-   int currentTime = int(cT.value());
-   fileFrameNumber = currentTime;
-
-   // build padding
-   MString stringFrameNumber = "";
-   int padding = m_extensionPadding;
-   if (padding > 0)
-   {
-      for(int numZeros = 0; (numZeros < (padding - fileFrameNumber.length())); numZeros++)
-      {  
-         stringFrameNumber += "0";
-      }
-      stringFrameNumber += fileFrameNumber;
-   }
-   else
-   {
-      stringFrameNumber = fileFrameNumber;
-   }
-   return stringFrameNumber;
 }
 
 void CRenderOptions::SetupImageOutputs()

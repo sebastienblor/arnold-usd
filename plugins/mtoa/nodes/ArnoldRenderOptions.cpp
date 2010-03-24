@@ -17,7 +17,6 @@ MObject CArnoldRenderOptionsNode::s_arnoldRenderImageQuality;
 MObject CArnoldRenderOptionsNode::s_arnoldRenderImageOutputFormat;
 MObject CArnoldRenderOptionsNode::s_arnoldRenderImageTiled;
 MObject CArnoldRenderOptionsNode::s_arnoldRenderImageUnpremultAlpha;
-MObject CArnoldRenderOptionsNode::s_arnoldRenderFileNameFormat;
 MObject CArnoldRenderOptionsNode::s_threads;
 MObject CArnoldRenderOptionsNode::s_threads_autodetect;
 MObject CArnoldRenderOptionsNode::s_bucket_scanning;
@@ -130,17 +129,6 @@ MStatus CArnoldRenderOptionsNode::initialize()
    s_arnoldRenderImageUnpremultAlpha = nAttr.create("unpremult_alpha", "arniua", MFnNumericData::kBoolean, 0);
    nAttr.setKeyable(false);
    addAttribute(s_arnoldRenderImageUnpremultAlpha);
-
-   s_arnoldRenderFileNameFormat = eAttr.create("arnoldRenderFileNameFormat", "arnfnf", 1);
-   nAttr.setKeyable(false);
-   eAttr.addField("name", 0);
-   eAttr.addField("name.ext", 1);
-   eAttr.addField("name.#.ext", 2);
-   eAttr.addField("name.ext.#", 3);
-   eAttr.addField("name.#", 4);
-   eAttr.addField("name#.ext", 5);
-   eAttr.addField("name_#.ext", 6);
-   addAttribute(s_arnoldRenderFileNameFormat);
 
    s_threads_autodetect = nAttr.create("threads_autodetect", "thr_auto", MFnNumericData::kBoolean, 1);
    nAttr.setKeyable(false);

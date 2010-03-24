@@ -4,6 +4,7 @@
 #include <ai_types.h>
 
 #include <maya/MString.h>
+#include <maya/MCommonRenderSettingsData.h> 
 
 class CMayaScene;
 
@@ -227,9 +228,9 @@ public:
       return m_arnoldRenderImageUnpremultAlpha;
    }
 
-   AtUInt32 arnoldRenderFileNameFormat() const
+   bool isAnimated() const
    {
-      return m_arnoldRenderFileNameFormat;
+      return m_isAnimated;
    }
 
    void GetFromMaya(CMayaScene* scene);
@@ -249,7 +250,6 @@ private:
    void SetupImageFilter() const;
    void SetupImageOutputs();
 
-   MString BuildPadding() const;
    AtInt GetFlagsFromVerbosityLevel(AtUInt level) const;
 
 private:
@@ -267,7 +267,6 @@ private:
    bool     m_multiCameraRender;
    MString  m_cameraName;
    MString  m_renderDriver;
-   MString  m_imageFilePrefix;
    MString  m_imageFileExtension;
    MString  m_imageFilename;
    AtUInt32 m_extensionPadding;
@@ -281,7 +280,9 @@ private:
    AtUInt32  m_arnoldRenderImageOutputFormat;
    bool      m_arnoldRenderImageTiled;
    bool      m_arnoldRenderImageUnpremultAlpha;
-   AtUInt32  m_arnoldRenderFileNameFormat;
+   bool      m_isAnimated;
+
+   MCommonRenderSettingsData m_defaultRenderGlobalsData;
    
    AtUInt   m_threads;
    AtUInt   m_bucket_scanning;

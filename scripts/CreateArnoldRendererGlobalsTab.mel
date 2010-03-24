@@ -135,12 +135,6 @@ global proc CreateArnoldRenderSettings()
 
       separator -style "none";
 
-      attrControlGrp -label "Frame/Animation ext"
-         -attribute defaultArnoldRenderOptions.arnoldRenderFileNameFormat
-         os_arnoldRenderFileNameFormat;
-
-      separator -style "none";
-
       // TMP IMAGE FORMAT
   
       separator;

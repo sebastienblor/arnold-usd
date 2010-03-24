@@ -53,9 +53,8 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       AtFloat startframe;
       AtFloat endframe;
       AtFloat byframestep;
-      int     fileNameFormat = renderOptions->arnoldRenderFileNameFormat() ;
 
-      if (fileNameFormat > 1)
+      if (renderOptions->isAnimated())
       {
          startframe = renderOptions->startFrame();
          endframe = renderOptions->endFrame();
@@ -71,7 +70,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       for (AtFloat framerender = startframe; framerender <= endframe; framerender += byframestep)
       {
 
-         if (fileNameFormat > 1)
+         if (renderOptions->isAnimated())
          {
             MGlobal::viewFrame((double)framerender);
          }
