@@ -99,7 +99,7 @@ MStatus CArnoldRenderOptionsNode::initialize()
    nAttr.setKeyable(false);
    addAttribute(s_arnoldRenderImageHalfPrecision);
 
-   s_arnoldRenderImageGamma = nAttr.create("gamma", "arnig", MFnNumericData::kFloat, 1);
+   s_arnoldRenderImageGamma = nAttr.create("gamma", "arnig", MFnNumericData::kFloat, 2.2f);
    nAttr.setKeyable(false);
    nAttr.setSoftMin(0.001);
    nAttr.setSoftMax(5);
