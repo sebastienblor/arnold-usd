@@ -24,6 +24,7 @@ public:
    void SetWidth(int width);
    void SetHeight(int height);
    void SetCamera(MString cameraNode);
+   void SetMultiCameraRender(bool multi);
 
    const CRenderOptions* RenderOptions() const
    {

@@ -6,6 +6,7 @@
 
 #include <maya/M3DView.h>
 #include <maya/MAnimControl.h>
+#include <maya/MGlobal.h>
 #include <maya/MFnMesh.h>
 #include <maya/MFnMeshData.h>
 #include <maya/MFnNurbsSurface.h>
@@ -31,10 +32,10 @@ MStatus CMayaScene::ExportToArnold()
    {
       for (int J = 0; (J < m_motionBlurData.motion_steps); ++J)
       {
-         MAnimControl::setCurrentTime(MTime(m_motionBlurData.frames[J], MTime::uiUnit()));
+         MGlobal::viewFrame(MTime(m_motionBlurData.frames[J], MTime::uiUnit()));
          status = ExportScene(J);
       }
-      MAnimControl::setCurrentTime(MTime(m_currentFrame, MTime::uiUnit()));
+      MGlobal::viewFrame(MTime(m_currentFrame, MTime::uiUnit()));
    }
 
    return status;

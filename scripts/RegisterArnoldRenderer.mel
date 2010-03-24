@@ -11,6 +11,8 @@ global proc RegisterArnoldRenderer()
       renderer -rendererUIName "Arnold Renderer"
                -renderProcedure "ArnoldRender"
                -renderRegionProcedure "mayaRenderRegion"
+               -commandRenderProcedure "ArnoldBatchRender"
+               -batchRenderProcedure "ArnoldBatchRender"
                -iprRenderProcedure "ArnoldIprRender"
                -isRunningIprProcedure "ArnoldIprIsRunning"
                -startIprRenderProcedure "ArnoldIprStart"

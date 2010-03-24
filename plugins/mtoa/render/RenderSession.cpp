@@ -13,6 +13,8 @@
 
 #include <cstdio>
 
+#include <maya/MGlobal.h>
+
 extern AtNodeMethods* mtoa_driver_mtd;
 
 static CRenderSession* s_renderSession = NULL;
@@ -42,6 +44,7 @@ void CRenderSession::Init()
       return;
    }
 
+
    m_scene = new CMayaScene;
    
    m_renderOptions.GetFromMaya(m_scene);
@@ -56,7 +59,6 @@ void CRenderSession::Init()
 
    m_scene->ExportToArnold();
 
-   SetupRenderOutput();
 }
 
 void CRenderSession::End()
@@ -97,6 +99,8 @@ void CRenderSession::SetCamera(MString cameraNode)
 {
    if (cameraNode != "")
    {
+      m_renderOptions.SetCameraName(cameraNode);
+      m_renderOptions.UpdateImageFilename();
       AtNode* camera = AiNodeLookUpByName(cameraNode.asChar());
 
       if (!camera)
@@ -115,8 +119,14 @@ void CRenderSession::SetCamera(MString cameraNode)
    }
 }
 
+void CRenderSession::SetMultiCameraRender(bool multi)
+{
+   m_renderOptions.SetMultiCameraRender(multi);
+}
+
 void CRenderSession::DoRender()
 {
+   SetupRenderOutput();
    m_renderOptions.SetupRenderOptions();
 
    InitializeDisplayUpdateQueue();
@@ -133,6 +143,7 @@ void CRenderSession::DoRender()
 
 void CRenderSession::DoBatchRender()
 {
+   SetupRenderOutput();
    m_renderOptions.SetupRenderOptions();
 
    AiRender(AI_RENDER_MODE_CAMERA);
@@ -150,6 +161,7 @@ void CRenderSession::DoExport()
    {
       AiMsgInfo("[mtoa] Exporting Maya scene to file '%s'", fileName.asChar());
 
+      SetupRenderOutput();
       m_renderOptions.SetupRenderOptions();
 
       AiASSWrite(fileName.asChar(), m_renderOptions.outputAssMask(), false);
@@ -171,9 +183,8 @@ void CRenderSession::SetupRenderOutput()
    }
 
    // set the output driver
-
    driver = AiNode(m_renderOptions.RenderDriver().asChar());
-   AiNodeSetStr(driver, "filename", m_renderOptions.ImageFilename().asChar());
+   AiNodeSetStr(driver, "filename", m_renderOptions.GetImageFilename().asChar());
    AiNodeSetStr(driver, "name", m_renderOptions.RenderDriver().asChar());
 
    // set output driver parameters

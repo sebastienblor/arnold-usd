@@ -43,6 +43,21 @@ public:
       return m_height;
    }
 
+   AtFloat startFrame() const
+   {
+      return m_startFrame;
+   }
+
+   AtFloat endFrame() const
+   {
+      return m_endFrame;
+   }
+
+   AtFloat byFrameStep() const
+   {
+      return m_byFrameStep;
+   }
+
    float pixelAspectRatio() const
    {
       return m_pixelAspectRatio;
@@ -113,6 +128,21 @@ public:
       return m_plugins_path;
    }
 
+   MString GetImageFilename() const
+   {
+      return m_imageFilename;
+   }
+
+   void SetCameraName(MString name)
+   {
+      m_cameraName = name;
+   }
+
+   void SetMultiCameraRender(bool multicam)
+   {
+      m_multiCameraRender = multicam;
+   }
+
    void SetBatch(bool batch)
    {
       m_batchMode = batch;
@@ -130,6 +160,16 @@ public:
       m_height = height;
 
       SetupImageOptions();
+   }
+
+   MString GetCameraName() const
+   {
+      return m_cameraName;
+   }
+
+   bool MultiCameraRender() const
+   {
+      return m_multiCameraRender;
    }
 
    bool BatchMode() const
@@ -198,7 +238,7 @@ public:
    void SetupRenderOptions() const;
    
    MString VerifyFileName(MString fileName, bool compressed);
-   MString ImageFilename() const;
+   void    UpdateImageFilename();
 
 private:
 
@@ -220,10 +260,16 @@ private:
    bool     m_useRenderRegion;
    bool     m_clearBeforeRender; 
 
+   AtFloat  m_startFrame;
+   AtFloat  m_endFrame;
+   AtFloat  m_byFrameStep;
    bool     m_batchMode;
+   bool     m_multiCameraRender;
+   MString  m_cameraName;
    MString  m_renderDriver;
    MString  m_imageFilePrefix;
    MString  m_imageFileExtension;
+   MString  m_imageFilename;
    AtUInt32 m_extensionPadding;
 
    MString   m_arnoldRenderImageFormat;

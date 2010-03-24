@@ -8,6 +8,11 @@
 #include <maya/M3dView.h>
 #include <maya/MArgDatabase.h>
 #include <maya/MRenderView.h>
+#include <maya/MStringArray.h>
+#include <maya/MItDag.h>
+#include <maya/MPlug.h>
+#include <maya/MFnDagNode.h>
+#include <maya/MGlobal.h>
 
 MSyntax CArnoldRenderCmd::newSyntax()
 {
@@ -26,29 +31,101 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
    MStatus status;
    CRenderSession* renderSession = CRenderSession::GetInstance();
    MArgDatabase args(syntax(), argList);
+   MDagPath dagPath;
 
-   if (!args.isFlagSet("camera"))
+   bool batch = args.isFlagSet("batch") ? true : false;
+
+   // no camera set on interactive mode, abort
+   if (!args.isFlagSet("camera") && !batch)
    {
       return MS::kFailure;
    }
 
+
    renderSession->Reset();
-
-   bool batch  = args.isFlagSet("batch") ? true : false;
-   int width  = args.isFlagSet("width") ? args.flagArgumentInt("width", 0) : -1;
-   int height = args.isFlagSet("height") ? args.flagArgumentInt("height", 0) : -1;
-
-   MString camera = args.flagArgumentString("camera", 0);
-
    renderSession->SetBatch(batch);
-   renderSession->SetWidth(width);
-   renderSession->SetHeight(height);
-   renderSession->SetCamera(camera);
-
    const CRenderOptions* renderOptions = renderSession->RenderOptions();
 
-   if (!renderOptions->BatchMode())
+   // Check if in batch mode
+   if (batch)
    {
+
+      AtFloat startframe;
+      AtFloat endframe;
+      AtFloat byframestep;
+      int     fileNameFormat = renderOptions->arnoldRenderFileNameFormat() ;
+
+      if (fileNameFormat > 1)
+      {
+         startframe = renderOptions->startFrame();
+         endframe = renderOptions->endFrame();
+         byframestep = renderOptions->byFrameStep();
+      }
+      else
+      {
+         startframe = 0;
+         endframe = 0;
+         byframestep = 1;
+      }
+
+      for (AtFloat framerender = startframe; framerender <= endframe; framerender += byframestep)
+      {
+
+         if (fileNameFormat > 1)
+         {
+            MGlobal::viewFrame((double)framerender);
+         }
+
+         renderSession->Reset();
+         renderSession->SetBatch(batch);
+         renderSession->RenderOptions();
+
+         MStringArray cameras;
+         MItDag  dagIterCameras(MItDag::kDepthFirst, MFn::kCamera);
+
+         // get all renderable cameras
+         for (dagIterCameras.reset(); (!dagIterCameras.isDone()); dagIterCameras.next())
+         {
+            if (!dagIterCameras.getPath(dagPath))
+            {
+               AiMsgError("[mtoa] ERROR: Could not get path for DAG iterator.");
+               return status;
+            }
+
+            MFnDependencyNode camDag(dagIterCameras.item());
+            if(camDag.findPlug("renderable").asBool())
+            {
+               MFnDagNode cameraNode(dagPath);
+               cameras.append(cameraNode.name().asChar());
+            }
+         }
+
+         if (cameras.length()>1)
+         {
+            renderSession->SetMultiCameraRender(true);
+         }
+
+         for (int arrayIter=0;arrayIter<cameras.length();arrayIter++)
+         {
+            renderSession->SetCamera(cameras[arrayIter]);
+            renderSession->DoBatchRender();
+         }
+
+         renderSession->End();
+      
+      }
+   }
+
+   // or interactive mode
+   else
+   {
+      int width  = args.isFlagSet("width") ? args.flagArgumentInt("width", 0) : -1;
+      int height = args.isFlagSet("height") ? args.flagArgumentInt("height", 0) : -1;
+      MString camera = args.flagArgumentString("camera", 0);
+      renderSession->SetWidth(width);
+      renderSession->SetHeight(height);
+      renderSession->SetCamera(camera);
+
       if (renderOptions->useRenderRegion())
       {
          status = MRenderView::startRegionRender(renderOptions->width(),
@@ -71,16 +148,13 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       if (status == MS::kSuccess)
       {
          renderSession->DoRender();
-
          MRenderView::endRender();
       }
-   }
-   else
-   {
-      renderSession->DoBatchRender();
+
+      renderSession->End();
+
    }
 
-   renderSession->End();
 
    return status;
 }

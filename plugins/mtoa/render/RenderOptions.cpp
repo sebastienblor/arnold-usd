@@ -15,6 +15,7 @@
 #include <maya/MAnimControl.h>
 #include <maya/MRenderView.h>
 #include <maya/MGlobal.h>
+#include <maya/MTime.h>
 
 #include <direct.h>
 
@@ -31,6 +32,7 @@ CRenderOptions::CRenderOptions()
 ,  m_log_max_warnings(100)
 ,  m_log_console_verbosity(5)
 ,  m_log_file_verbosity(5)
+,  m_multiCameraRender(false)
 {}
 
 void CRenderOptions::GetFromMaya(CMayaScene* scene)
@@ -41,7 +43,7 @@ void CRenderOptions::GetFromMaya(CMayaScene* scene)
    ProcessArnoldRenderOptions();
 }
 
-MString CRenderOptions::ImageFilename() const
+void CRenderOptions::UpdateImageFilename() 
 {
    MString imageOutputFolder;
    MString renderFilename;
@@ -54,17 +56,25 @@ MString CRenderOptions::ImageFilename() const
    MGlobal::executeCommand("basename( (`file -q -sceneName -shortName`),(\".\" + (fileExtension((`file -q -sceneName -shortName`)))))", sceneFileName);
 
    // build the output filename
+   // check if we are in batch mode and rendering a multi camera scene
    imageOutputFolder = workspaceFolder + imageOutputFolder;
-   if (!BatchMode())
+
+   if (BatchMode())
    {
-      imageOutputFolder += "/tmp";
+      imageOutputFolder += "/" + sceneFileName;
+      mkdir(imageOutputFolder.asChar());
+
+      if (MultiCameraRender())
+         {
+            imageOutputFolder = imageOutputFolder + "/" + GetCameraName();
+            mkdir(imageOutputFolder.asChar());
+         }
    }
    else
    {
-      imageOutputFolder += "/" + sceneFileName;
+      imageOutputFolder += "/tmp";
+      mkdir(imageOutputFolder.asChar());
    }
-
-   mkdir(imageOutputFolder.asChar());
 
    if (m_imageFilePrefix == "")
    {
@@ -102,7 +112,7 @@ MString CRenderOptions::ImageFilename() const
          break;
    }
    
-   return returned_filename;
+   m_imageFilename = returned_filename;
 
 }
 
@@ -111,6 +121,7 @@ void CRenderOptions::ProcessCommonRenderOptions()
    MStatus        status;
    MSelectionList list;
    MObject        node;
+   MTime          time;
 
    list.add("defaultRenderGlobals");
 
@@ -121,6 +132,12 @@ void CRenderOptions::ProcessCommonRenderOptions()
       MFnDependencyNode fnRenderGlobals(node);
 
       m_useRenderRegion = fnRenderGlobals.findPlug("useRenderRegion").asBool();
+      m_extensionPadding = fnRenderGlobals.findPlug("extensionPadding").asInt();
+      fnRenderGlobals.findPlug("startFrame").getValue(time);
+      m_startFrame = time.as(MTime::uiUnit());
+      fnRenderGlobals.findPlug("endFrame").getValue(time);
+      m_endFrame = time.as(MTime::uiUnit());
+      m_byFrameStep = fnRenderGlobals.findPlug("byFrameStep").asFloat();
 
       if (m_useRenderRegion)
       {
@@ -396,7 +413,6 @@ MString CRenderOptions::BuildPadding() const
    int padding = m_extensionPadding;
    if (padding > 0)
    {
-      AiMsgDebug("%d", fileFrameNumber.length());
       for(int numZeros = 0; (numZeros < (padding - fileFrameNumber.length())); numZeros++)
       {  
          stringFrameNumber += "0";

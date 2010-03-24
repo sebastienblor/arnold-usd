@@ -6,6 +6,12 @@ global proc ArnoldRender(int $width, int $height, int $doShadows, int $doGlowPas
    arnoldRender -cam $camera -w $width -h $height;   
 }
 
+global proc ArnoldBatchRender(string $option)
+{
+   string $cmd = "arnoldRender -batch " + $option;
+   eval $cmd;   
+}
+
 global proc ArnoldIprStart(string $editor, int $resolutionX, int $resolutionY, string $camera)
 {
    // Make sure the ArnoldRenderOptions node exists

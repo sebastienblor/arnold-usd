@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<!DOCTYPE renderer SYSTEM "renderer.dtd">
+<!--
+  Top level tag, mandatory:
+    <renderer>: "desc" gives a one line description.
+
+  Header tags, not mandatory, must be specified only once.
+    <melheader>: "s" is a mel script executed just after the file is read 
+    <meltrailer>: "s" is a mel script executed after all flags are converted
+        to mel. Should contain at least the rendering command.
+
+  Other tags:
+    <sep>: "desc" produces a line in the help. Blank if desc is missing.
+    <attr>: produces a setAttr line.
+        "n" is the flag name.
+        "s" the attribute name.
+        "t" the parameter type, used in help description.
+        "h" the help description.
+    <attrString>: produces a setAttr line for a string attribute.
+        Same parameters as <attr>, but for string attributes.
+    <mel>: Calls a mel script.
+        "n" is the flag name.
+        "p" the number of parameters.
+        "s" the string defining the action %1 ... %p are replaced with values
+                read after the flag.
+        "t" the parameter types, used in help description.
+        "h" the help description.
+-->
+<renderer desc="Arnold renderer">
+	<melheader s='string $opt=""; loadPlugin -quiet mtoa;'/>
+	<meltrailer s='mayaBatchRenderProcedure(0, "", "", "arnold", $opt); '/>
+	<sep/>
+	<!-- ______________________________________________________________ -->
+	<sep desc="Samples options"/>
+	<attr n="as" s="defaultArnoldRenderOptions.AA_samples" t="int" h="Set anti-aliasing samples"/>
+	<attr n="hs" s="defaultArnoldRenderOptions.GI_hemi_samples" t="int" h="Set hemi samples"/>
+	<attr n="ss" s="defaultArnoldRenderOptions.GI_specular_samples" t="int" h="Set specular samples"/>
+	<sep/>
+	<!-- ______________________________________________________________ -->
+	<sep desc="Depth options"/>
+	<attr n="td" s="defaultArnoldRenderOptions.GI_total_depth" t="int" h="Set total depth"/>
+	<attr n="dif" s="defaultArnoldRenderOptions.GI_diffuse_depth" t="int" h="Set diffuse depth"/>
+	<attr n="glo" s="defaultArnoldRenderOptions.GI_glossy_depth" t="int" h="Set glossy depth"/>
+	<attr n="rfl" s="defaultArnoldRenderOptions.GI_reflection_depth" t="int" h="Set reflection depth"/>
+	<attr n="rfr" s="defaultArnoldRenderOptions.GI_refraction_depth" t="int" h="Set refraction depth"/>
+	<!-- ______________________________________________________________ -->
+	<sep desc=" *** Remember to place a space between option flags and their arguments. ***"/>
+	<sep desc="Any boolean flag will take the following values as TRUE: on, yes, true, or 1."/>
+	<sep desc="Any boolean flag will take the following values as FALSE: off, no, false, or 0."/>
+	<sep/>
+	<sep desc="    e.g. -as 4 -hs 2 -dif 2 file."/>
+</renderer>

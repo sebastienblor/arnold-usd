@@ -84,7 +84,7 @@ private:
 
    CMotionBlurData m_motionBlurData;
 
-   AtInt m_currentFrame;
+   AtFloat m_currentFrame;
 
 };  // class CMayaScene
 
