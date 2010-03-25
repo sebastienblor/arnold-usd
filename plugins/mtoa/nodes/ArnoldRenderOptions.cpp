@@ -27,6 +27,7 @@ MObject CArnoldRenderOptionsNode::s_plugins_path;
 MObject CArnoldRenderOptionsNode::s_AA_samples;
 MObject CArnoldRenderOptionsNode::s_GI_hemi_samples;
 MObject CArnoldRenderOptionsNode::s_GI_specular_samples;
+MObject CArnoldRenderOptionsNode::s_GI_sss_hemi_samples;
 MObject CArnoldRenderOptionsNode::s_use_sample_clamp;
 MObject CArnoldRenderOptionsNode::s_AA_sample_clamp;
 MObject CArnoldRenderOptionsNode::s_filter_type;
@@ -54,6 +55,9 @@ MObject CArnoldRenderOptionsNode::s_shutter_offset;
 MObject CArnoldRenderOptionsNode::s_shutter_type;
 MObject CArnoldRenderOptionsNode::s_motion_steps;
 MObject CArnoldRenderOptionsNode::s_motion_frames;
+MObject CArnoldRenderOptionsNode::s_sss_lazy_evaluation;
+MObject CArnoldRenderOptionsNode::s_sss_subpixel_cache;
+MObject CArnoldRenderOptionsNode::s_show_samples;
 MObject CArnoldRenderOptionsNode::s_max_subdivisions;
 MObject CArnoldRenderOptionsNode::s_output_ass_filename;
 MObject CArnoldRenderOptionsNode::s_output_ass_compressed;
@@ -195,6 +199,14 @@ MStatus CArnoldRenderOptionsNode::initialize()
    nAttr.setMin(0);
    nAttr.setMax(100);
    addAttribute(s_GI_specular_samples);
+
+   s_GI_sss_hemi_samples = nAttr.create("GI_sss_hemi_samples", "GIssshemismpls", MFnNumericData::kInt, 2);
+   nAttr.setKeyable(false);
+   nAttr.setSoftMin(0);
+   nAttr.setSoftMax(10);
+   nAttr.setMin(0);
+   nAttr.setMax(100);
+   addAttribute(s_GI_sss_hemi_samples);
 
    s_use_sample_clamp = nAttr.create("use_sample_clamp", "usesmpclamp", MFnNumericData::kBoolean, 0);
    nAttr.setKeyable(false);
@@ -379,6 +391,21 @@ MStatus CArnoldRenderOptionsNode::initialize()
    nAttr.setMin(0);
    nAttr.setMax(20);
    addAttribute(s_motion_frames);
+
+   s_sss_lazy_evaluation = nAttr.create("sss_lazy_evaluation", "ssslze", MFnNumericData::kBoolean, 0);
+   nAttr.setKeyable(false);
+   addAttribute(s_sss_lazy_evaluation);
+
+   s_sss_subpixel_cache = nAttr.create("sss_subpixel_cache", "sssspc", MFnNumericData::kBoolean, 0);
+   nAttr.setKeyable(false);
+   addAttribute(s_sss_subpixel_cache);
+
+   s_show_samples = eAttr.create("show_samples", "sssshs", 0);
+   nAttr.setKeyable(false);
+   eAttr.addField("off",0);
+   eAttr.addField("sss_points",1);
+   eAttr.addField("sss_irradiance",2);
+   addAttribute(s_show_samples);
 
    s_max_subdivisions = nAttr.create("max_subdivisions", "maxs", MFnNumericData::kInt, 999);
    nAttr.setKeyable(false);

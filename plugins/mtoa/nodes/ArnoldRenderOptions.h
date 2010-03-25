@@ -43,6 +43,7 @@ public:
    static MObject s_AA_samples;
    static MObject s_GI_hemi_samples;
    static MObject s_GI_specular_samples;
+   static MObject s_GI_sss_hemi_samples;
    static MObject s_use_sample_clamp;
    static MObject s_AA_sample_clamp;
    static MObject s_filter_type;
@@ -73,6 +74,10 @@ public:
    static MObject s_shutter_type;
    static MObject s_motion_steps;
    static MObject s_motion_frames;
+
+   static MObject s_sss_lazy_evaluation;
+   static MObject s_sss_subpixel_cache;
+   static MObject s_show_samples;
 
    static MObject s_max_subdivisions;
 

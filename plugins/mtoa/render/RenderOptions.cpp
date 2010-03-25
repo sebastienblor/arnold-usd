@@ -183,6 +183,7 @@ void CRenderOptions::ProcessArnoldRenderOptions()
       m_AA_samples          = fnArnoldRenderOptions.findPlug("AA_samples").asInt();
       m_GI_hemi_samples     = fnArnoldRenderOptions.findPlug("GI_hemi_samples").asInt();
       m_GI_specular_samples = fnArnoldRenderOptions.findPlug("GI_specular_samples").asInt();
+      m_GI_sss_hemi_samples = fnArnoldRenderOptions.findPlug("GI_sss_hemi_samples").asInt();
       m_AA_sample_clamp     = fnArnoldRenderOptions.findPlug("use_sample_clamp").asBool() ? fnArnoldRenderOptions.findPlug("AA_sample_clamp").asFloat() : (float) AI_INFINITE;
 
       MFnEnumAttribute enum_filter_type(fnArnoldRenderOptions.findPlug("filter_type").attribute());
@@ -190,7 +191,6 @@ void CRenderOptions::ProcessArnoldRenderOptions()
       m_filter_width = fnArnoldRenderOptions.findPlug("filter_width").asFloat();
 
       MFnEnumAttribute enum_filter_domain(fnArnoldRenderOptions.findPlug("filter_domain").attribute());
-
       m_filter_domain      = enum_filter_domain.fieldName(fnArnoldRenderOptions.findPlug("filter_domain").asShort());
       m_filter_scalar_mode = fnArnoldRenderOptions.findPlug("filter_scalar_mode").asBool();
       m_filter_maximum     = fnArnoldRenderOptions.findPlug("filter_maximum").asFloat();
@@ -208,6 +208,10 @@ void CRenderOptions::ProcessArnoldRenderOptions()
       m_GI_reflection_depth = fnArnoldRenderOptions.findPlug("GI_reflection_depth").asInt();
       m_GI_refraction_depth = fnArnoldRenderOptions.findPlug("GI_refraction_depth").asInt();
       m_GI_total_depth      = fnArnoldRenderOptions.findPlug("GI_total_depth").asInt();
+
+      m_sss_lazy_evaluation = fnArnoldRenderOptions.findPlug("sss_lazy_evaluation").asBool();
+      m_sss_subpixel_cache  = fnArnoldRenderOptions.findPlug("sss_subpixel_cache").asBool();
+      m_show_samples        = fnArnoldRenderOptions.findPlug("show_samples").asInt();
 
       m_max_subdivisions = fnArnoldRenderOptions.findPlug("max_subdivisions").asInt();
 
@@ -239,6 +243,7 @@ void CRenderOptions::SetupRenderOptions() const
    AiNodeSetInt(AiUniverseGetOptions(), "AA_samples", m_AA_samples);
    AiNodeSetInt(AiUniverseGetOptions(), "GI_hemi_samples", m_GI_hemi_samples);
    AiNodeSetInt(AiUniverseGetOptions(), "GI_specular_samples", m_GI_specular_samples);
+   AiNodeSetInt(AiUniverseGetOptions(), "GI_sss_hemi_samples", m_GI_sss_hemi_samples);
    AiNodeSetFlt(AiUniverseGetOptions(), "AA_sample_clamp", m_AA_sample_clamp);
 
    AiNodeSetFlt(AiUniverseGetOptions(), "TM_lgamma", m_TM_lgamma);
@@ -250,6 +255,10 @@ void CRenderOptions::SetupRenderOptions() const
    AiNodeSetInt(AiUniverseGetOptions(), "GI_reflection_depth", m_GI_reflection_depth);
    AiNodeSetInt(AiUniverseGetOptions(), "GI_refraction_depth", m_GI_refraction_depth);
    AiNodeSetInt(AiUniverseGetOptions(), "GI_total_depth", m_GI_total_depth);
+
+   AiNodeSetBool(AiUniverseGetOptions(), "sss_lazy_evaluation", m_sss_lazy_evaluation);
+   AiNodeSetBool(AiUniverseGetOptions(), "sss_subpixel_cache", m_sss_subpixel_cache);
+   AiNodeSetInt(AiUniverseGetOptions(), "show_samples", m_show_samples);
 
    AiNodeSetInt(AiUniverseGetOptions(), "max_subdivisions", m_max_subdivisions);
 

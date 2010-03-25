@@ -77,7 +77,6 @@ global proc CreateArnoldRenderSettings()
    setUITemplate -pushTemplate attributeEditorTemplate;
    columnLayout -adjustableColumn true arnoldRenderLayout;
 
-      // TMP IMAGE FORMAT
       attrControlGrp -label "Image Format"
          -attribute defaultArnoldRenderOptions.arnoldRenderImageFormat
          -cc UpdateArnoldOutputOptions
@@ -135,8 +134,6 @@ global proc CreateArnoldRenderSettings()
 
       separator -style "none";
 
-      // TMP IMAGE FORMAT
-  
       separator;
 
       attrControlGrp -label "Autodetect Threads"
@@ -290,6 +287,10 @@ global proc CreateArnoldSamplingSettings()
       attrControlGrp -label "Glossy Samples"
          -attribute defaultArnoldRenderOptions.GI_specular_samples
          ss_glossy_samples;
+
+      attrControlGrp -label "SSS Samples"
+         -attribute defaultArnoldRenderOptions.GI_sss_hemi_samples
+         ss_sss_hemi_samples;
 
       attrControlGrp -label "Clamp Sample Values"
          -attribute defaultArnoldRenderOptions.use_sample_clamp
@@ -484,6 +485,29 @@ global proc CreateArnoldMotionBlurSettings()
    setUITemplate -popTemplate;
 }
 
+global proc CreateArnoldSSSSettings()
+{
+   setUITemplate -pushTemplate attributeEditorTemplate;
+   columnLayout -adjustableColumn true;
+
+      attrControlGrp -label "SSS lazy evaluation"
+         -attribute defaultArnoldRenderOptions.sss_lazy_evaluation
+         mb_sss_lazy_evaluation;
+
+      attrControlGrp -label "SSS subpixel cache"
+         -attribute defaultArnoldRenderOptions.sss_subpixel_cache
+         mb_sss_subpixel_cache;
+
+      attrControlGrp -label "Show samples"
+         -attribute defaultArnoldRenderOptions.show_samples
+         mb_show_samples;
+
+      setParent ..;
+
+   setUITemplate -popTemplate;
+
+}
+
 global proc CreateArnoldSubdivSettings()
 {
    setUITemplate -pushTemplate attributeEditorTemplate;
@@ -560,6 +584,12 @@ global proc CreateArnoldRendererGlobalsTab()
             CreateArnoldMotionBlurSettings;
             setParent ..;
          
+         // Subsurface scattering
+         //
+         frameLayout -label "Subsurface scattering" -lw 150 -cll true -cl 1 arnoldSSSSettings;
+            CreateArnoldSSSSettings;
+            setParent ..;
+
          // Subdivision Surfaces
          //
          frameLayout -label "Subdivision" -lw 150 -cll true -cl 1 arnoldSubdivSettings;

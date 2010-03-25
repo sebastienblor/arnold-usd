@@ -293,6 +293,7 @@ private:
    AtUInt   m_AA_samples;
    AtUInt   m_GI_hemi_samples;
    AtUInt   m_GI_specular_samples;
+   AtUInt   m_GI_sss_hemi_samples;
    float    m_AA_sample_clamp;
 
    MString  m_filter_type;
@@ -312,6 +313,10 @@ private:
    AtUInt   m_GI_reflection_depth;
    AtUInt   m_GI_refraction_depth;
    AtUInt   m_GI_total_depth;
+
+   bool     m_sss_lazy_evaluation;
+   bool     m_sss_subpixel_cache;
+   AtUInt   m_show_samples;
 
    AtUInt   m_max_subdivisions;
 
