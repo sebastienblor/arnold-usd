@@ -14,6 +14,8 @@
 #include <cstdio>
 
 #include <maya/MGlobal.h>
+#include <maya/MSelectionList.h>
+#include <maya/MFnDagNode.h>
 
 extern AtNodeMethods* mtoa_driver_mtd;
 
@@ -105,7 +107,20 @@ void CRenderSession::SetCamera(MString cameraNode)
 
       if (!camera)
       {
-         cameraNode += "Shape";
+         MSelectionList list;
+         MObject        node;
+         MFnDagNode     dagNode;
+         
+         list.add(cameraNode);
+         list.getDependNode(0, node);
+         
+         for (int J = 0; (J < MFnDagNode(node).childCount()); ++J)
+         if (MFnDagNode(MFnDagNode(node).child(J)).typeName() == "camera")
+         {
+            cameraNode = MFnDagNode(MFnDagNode(node).child(0)).name();
+            break;
+         }
+
          camera = AiNodeLookUpByName(cameraNode.asChar());
       }
 
