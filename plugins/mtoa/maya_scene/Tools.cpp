@@ -11,11 +11,15 @@ bool CMayaScene::IsVisible(MFnDagNode node)
       return false;
 
    MPlug visPlug = node.findPlug("visibility", &status);
+   MPlug overVisPlug = node.findPlug("overrideVisibility", &status);
 
    if (status == MStatus::kFailure)
       return false;
 
-   return visPlug.asBool();
+   if (visPlug.asBool() && overVisPlug.asBool())
+      return true;
+   else
+      return false;
 }
 
 void CMayaScene::GetMatrix(AtMatrix& matrix, const MDagPath& dagPath)
