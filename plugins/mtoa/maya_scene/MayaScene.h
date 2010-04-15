@@ -43,6 +43,9 @@ public:
    MStatus ExportToArnold();
    AtNode* ExportShader(MObject mayaShader);
 
+   void ExportImagePlanes(const MDagPath& dagPath, bool isRenderingCamera);
+
+
 private:
    
    void PrepareExport();

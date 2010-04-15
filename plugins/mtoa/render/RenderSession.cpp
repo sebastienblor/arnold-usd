@@ -131,6 +131,26 @@ void CRenderSession::SetCamera(MString cameraNode)
       }
 
       AiNodeSetPtr(AiUniverseGetOptions(), "camera", camera);
+      
+      // create all image planes.
+      MDagPath dagPath;
+      MItDag   dagIterCameras(MItDag::kDepthFirst, MFn::kCamera);
+      for (dagIterCameras.reset(); (!dagIterCameras.isDone()); dagIterCameras.next())
+      {
+         if (!dagIterCameras.getPath(dagPath))
+         {
+            AiMsgError("[mtoa] ERROR: Could not get path for DAG iterator.");
+            return;
+         }
+         bool isRenderingCamera = false;
+         MFnDagNode fnDagNode(dagPath);
+         if ( fnDagNode.name().asChar() == cameraNode.asChar())
+         {
+            isRenderingCamera = true;
+         }
+         m_scene->ExportImagePlanes(dagPath,isRenderingCamera);
+      }
+
    }
 }
 
