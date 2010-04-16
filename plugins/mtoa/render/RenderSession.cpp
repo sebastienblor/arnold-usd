@@ -144,11 +144,11 @@ void CRenderSession::SetCamera(MString cameraNode)
          }
          bool isRenderingCamera = false;
          MFnDagNode fnDagNode(dagPath);
-         if ( fnDagNode.name().asChar() == cameraNode.asChar())
+         if (fnDagNode.name().asChar() == cameraNode.asChar())
          {
             isRenderingCamera = true;
          }
-         m_scene->ExportImagePlanes(dagPath,isRenderingCamera);
+         m_scene->ExportImagePlanes(dagPath, isRenderingCamera);
       }
 
    }
