@@ -1,0 +1,825 @@
+// Copyright (C) 1997-2010 Autodesk, Inc., and/or its licensors.
+// All rights reserved.
+//
+// The coded instructions, statements, computer programs, and/or related
+// material (collectively the "Data") in these files contain unpublished
+// information proprietary to Autodesk, Inc. ("Autodesk") and/or its licensors,
+// which is protected by U.S. and Canadian federal copyright law and by
+// international treaties.
+//
+// The Data is provided for use exclusively by You. You have the right to use,
+// modify, and incorporate this Data into other products for purposes authorized 
+// by the Autodesk software license agreement, without fee.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND. AUTODESK
+// DOES NOT MAKE AND HEREBY DISCLAIMS ANY EXPRESS OR IMPLIED WARRANTIES
+// INCLUDING, BUT NOT LIMITED TO, THE WARRANTIES OF NON-INFRINGEMENT,
+// MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, OR ARISING FROM A COURSE 
+// OF DEALING, USAGE, OR TRADE PRACTICE. IN NO EVENT WILL AUTODESK AND/OR ITS
+// LICENSORS BE LIABLE FOR ANY LOST REVENUES, DATA, OR PROFITS, OR SPECIAL,
+// DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES, EVEN IF AUTODESK AND/OR ITS
+// LICENSORS HAS BEEN ADVISED OF THE POSSIBILITY OR PROBABILITY OF SUCH DAMAGES.
+
+global proc buildArnoldImageFormatsMenu() 
+{
+	menuItem -label "OpenEXR" -data 0;
+	menuItem -label "Tiff"    -data 1;
+	menuItem -label "Jpg"     -data 2;
+	menuItem -label "Png"     -data 3;
+}
+
+global proc string GetArnoldImageFormatExt()
+{
+    string $ext;
+    string $imageFormat = `getAttr -asString "defaultArnoldRenderOptions.arnoldRenderImageFormat"`;
+    
+    switch($imageFormat)
+    {
+      case "OpenEXR":
+         $ext = "exr";
+         break;
+      case "Tiff":
+         $ext = "tif";
+         break;
+      case "Jpg":
+         $ext = "jpg";
+         break;
+      case "Png":
+         $ext = "png";
+         break;
+    }
+
+    return $ext;
+}
+
+global proc updateArnoldTargetFilePreview()
+{
+	//
+	// Description:
+	//	This procedure is called any time an attribute change occurs which
+	// 	would affect the name(s) of the file(s) that would be created when the
+	// 	user performs a render.
+	//	This procedure updates the lines of text in the General tab that allow
+	//	the user to see what files are going to be created when they render.
+	//
+
+	string $oldParent = `setParent -query`;
+
+	global string $gMasterLayerRendererName;
+	string $renderer = isDisplayingAllRendererTabs() ? $gMasterLayerRendererName : `currentRenderer`;
+	string $tabLayout = rendererTabLayoutName($renderer);
+	if( `tabLayout -exists $tabLayout` )	setParent $tabLayout;
+
+	//
+	// Update the Path portion of the preview.
+	//
+
+	// get the project's image directory
+	//
+	string $imgDir = `workspace -q -rte "images"`;
+	string $fullPath = `workspace -expandName $imgDir`;
+	string $pathLabel = (uiRes("m_createMayaSoftwareCommonGlobalsTab.kNewPath"));
+	$path = `format -s $fullPath $pathLabel`;
+	text -edit -label $path exampleText0;
+
+	//
+	// Update the File Name portion of the preview.
+	//
+
+	string $title1 = (uiRes("m_createMayaSoftwareCommonGlobalsTab.kNewFileName"));
+	string $title2 = (uiRes("m_createMayaSoftwareCommonGlobalsTab.kNewTo"));
+	// TODO: DEFINE FIELDS FOR SW RENDER
+	string $images[];
+    if (`getApplicationVersionAsFloat` >= 2011)
+        $images = `renderSettings -fin -lin -lut`;
+    else
+        $images = `renderSettings -fin -lin`;
+	string $oldExt = `fileExtension $images[0]`;
+	string $newExt = GetArnoldImageFormatExt();
+	$images[0] = `substitute $oldExt $images[0] $newExt`;
+	text -edit -label `format -s $images[0] $title1` exampleArnoldText1;
+	if ($images[1] != "")
+	{
+	    $images[1] = `substitute $oldExt $images[1] $newExt`;
+		text -edit -label `format -s $images[1] $title2` exampleArnoldText2;
+	}
+	else
+		text -edit -label "" exampleArnoldText2;
+
+	//
+	// Update the Image Size portion of the preview.
+	//
+
+	// Get attributes
+	//
+	int $width = `getAttr defaultResolution.width`;
+	int $height = `getAttr defaultResolution.height`;
+	float $dpi = `getAttr defaultResolution.dotsPerInch`;
+	int $sizeUnits = `getAttr defaultResolution.imageSizeUnits`;
+	int $resUnits = `getAttr defaultResolution.pixelDensityUnits`;
+
+	// Default measurement units to inches if pixels selected
+	if( $sizeUnits == 0 ) $sizeUnits = 1;
+
+	global string $gMeasurementUnitsNames[];
+	global string $gResolutionUnitsNames[];
+
+	if (size($gResolutionUnitsNames) == 0)
+	{
+		eval("source resolutionFormats");
+	}
+
+	// Convert from pixels to the correct measurement units
+	float $docWidth = convertMeasurement(
+		convertPixelsToInches( $width, $dpi ),
+		"inches",
+		$gMeasurementUnitsNames[$sizeUnits]
+	);
+	float $docHeight = convertMeasurement(
+		convertPixelsToInches( $height, $dpi ),
+		"inches",
+		$gMeasurementUnitsNames[$sizeUnits]
+	);
+
+	// Convert from DPI to the correct resolution units
+	float $res = convertResolutionMeasurement(
+		$dpi,
+		"pixels/inch",
+		$gResolutionUnitsNames[$resUnits]
+	);
+
+	// Convert to strings, rounding applicable floats to 1 decimal place
+	string $imW = $width;
+	string $imH = $height;
+	string $docW = setDecimalPrecision( $docWidth, 1 );
+	string $docH = setDecimalPrecision( $docHeight, 1 );
+	string $units = resolutionFormats_melToUI($gMeasurementUnitsNames[$sizeUnits]);
+	string $resVal = setDecimalPrecision( $res, 1 );
+	string $resUnitsStr = resolutionFormats_melToUI($gResolutionUnitsNames[$resUnits]);
+
+	string $imageLabel = (uiRes("m_createMayaSoftwareCommonGlobalsTab.kNewImageSize"));
+	string $imageSizeString = ` format -s $imW -s $imH -s $docW -s $docH -s $units -s $resVal -s $resUnitsStr $imageLabel`;
+
+	text -edit -label $imageSizeString exampleText3;
+
+	setParent $oldParent;
+}
+
+proc createTargetFilePreview()
+{
+	string $oldParent = `setParent -query`;
+
+	columnLayout
+		-adjustableColumn true
+		targetFilePreview;
+
+		text
+			-align "left"
+			-font "smallBoldLabelFont"
+			-label (uiRes("m_createMayaSoftwareCommonGlobalsTab.kPath"))
+			exampleText0;
+		text
+			-align "left"
+			-font "smallBoldLabelFont"
+			-label (uiRes("m_createMayaSoftwareCommonGlobalsTab.kFileName"))
+			exampleArnoldText1;
+		text
+			-align "left"
+			-font "smallBoldLabelFont"
+			-label (uiRes("m_createMayaSoftwareCommonGlobalsTab.kTo"))
+			exampleArnoldText2;
+		text
+			-align "left"
+			-font "smallBoldLabelFont"
+			-label (uiRes("m_createMayaSoftwareCommonGlobalsTab.kImageSize"))
+			exampleText3;
+
+	setParent $oldParent;
+
+	// This target file preview is affected by a number of attributes.
+	// If any of those attributes change, this preview needs to be updated.
+	//
+	// Here we fill an array with the names of all of the current renderer's
+	// attributes which affect the naming of the target file.
+	//
+	string $attrArray[];
+
+	$attrArray[size($attrArray)] = "defaultRenderGlobals.imageFilePrefix";
+	$attrArray[size($attrArray)] = "defaultRenderGlobals.outFormatControl";
+	$attrArray[size($attrArray)] = "defaultArnoldRenderOptions.arnoldRenderImageFormat";
+	$attrArray[size($attrArray)] = "defaultRenderGlobals.imfPluginKey";
+	$attrArray[size($attrArray)] = "defaultRenderGlobals.outFormatExt";
+	$attrArray[size($attrArray)] = "defaultRenderGlobals.animation";
+	$attrArray[size($attrArray)] = "defaultRenderGlobals.byFrameStep";
+	$attrArray[size($attrArray)] = "defaultRenderGlobals.extensionPadding";
+	$attrArray[size($attrArray)] = "defaultRenderGlobals.startFrame";
+	$attrArray[size($attrArray)] = "defaultRenderGlobals.endFrame";
+	$attrArray[size($attrArray)] = "defaultRenderGlobals.modifyExtension";
+	$attrArray[size($attrArray)] = "defaultRenderGlobals.startExtension";
+	$attrArray[size($attrArray)] = "defaultRenderGlobals.byExtension";
+	$attrArray[size($attrArray)] = "defaultRenderGlobals.periodInExt";
+	$attrArray[size($attrArray)] = "defaultResolution.fields";
+	$attrArray[size($attrArray)] = "defaultRenderGlobals.fieldExtControl";
+	$attrArray[size($attrArray)] = "defaultRenderGlobals.oddFieldExt";
+	$attrArray[size($attrArray)] = "defaultRenderGlobals.evenFieldExt";
+	$attrArray[size($attrArray)] = "defaultRenderGlobals.putFrameBeforeExt";
+	$attrArray[size($attrArray)] = "defaultResolution.width";
+	$attrArray[size($attrArray)] = "defaultResolution.height";
+	$attrArray[size($attrArray)] = "defaultResolution.dotsPerInch";
+	$attrArray[size($attrArray)] = "defaultResolution.imageSizeUnits";
+	$attrArray[size($attrArray)] = "defaultResolution.pixelDensityUnits";
+	$attrArray[size($attrArray)] = "defaultRenderGlobals.renderVersion";
+
+	// Now we establish scriptJobs to invoke the procedure which updates the
+	// target file preview when any of the above attributes change.
+	//
+	int $i;
+
+	for ($i = 0; $i < size($attrArray); $i++)
+	{
+		scriptJob
+			-attributeChange
+				$attrArray[$i]
+				"updateArnoldTargetFilePreview"
+			-parent targetFilePreview;
+	}
+
+	scriptJob
+		-parent targetFilePreview
+		-event
+			workspaceChanged
+			"updateArnoldTargetFilePreview";
+			
+	updateArnoldTargetFilePreview();
+}
+
+proc createFileNameFormatControl()
+{
+	optionMenuGrp
+		-label (uiRes("m_createMayaSoftwareCommonGlobalsTab.kFrameAnimationExt"))
+		-changeCommand ("changeMayaSoftwareFileNameFormat")
+		extMenu;
+
+		menuItem -label (uiRes("m_createMayaSoftwareCommonGlobalsTab.kExt1"));
+		menuItem -label (uiRes("m_createMayaSoftwareCommonGlobalsTab.kExt2"));
+		menuItem -label (uiRes("m_createMayaSoftwareCommonGlobalsTab.kExt3")) mayaSoftwareNameDotFrameDotExtension;
+		menuItem -label (uiRes("m_createMayaSoftwareCommonGlobalsTab.kExt4")) mayaSoftwareNameDotExtensionDotFrame;
+		menuItem -label (uiRes("m_createMayaSoftwareCommonGlobalsTab.kExt5")) mayaSoftwareNameDotFrame;
+		menuItem -label (uiRes("m_createMayaSoftwareCommonGlobalsTab.kExt6")) mayaSoftwareFrameDotExtension;
+		menuItem -label (uiRes("m_createMayaSoftwareCommonGlobalsTab.kExt7")) mayaSoftwareNameUnderFrameDotExtension;
+		menuItem -label (uiRes("m_createMayaSoftwareCommonGlobalsTab.kExt8")) mayaSoftwareMultiFrame;
+		menuItem -label (uiRes("m_createMayaSoftwareCommonGlobalsTab.kExt9"))
+            mayaSoftwareMultiFrameDotExtension;
+
+	string $attrArray[];
+
+	$attrArray[size($attrArray)] = "defaultRenderGlobals.outFormatControl";
+	$attrArray[size($attrArray)] = "defaultRenderGlobals.animation";
+	$attrArray[size($attrArray)] = "defaultRenderGlobals.periodInExt";
+	$attrArray[size($attrArray)] = "defaultRenderGlobals.putFrameBeforeExt";
+	$attrArray[size($attrArray)] = "defaultRenderGlobals.imageFormat";
+	$attrArray[size($attrArray)] = "defaultRenderGlobals.imfPluginKey";
+
+	// Now we establish scriptJobs to invoke the procedure which updates the
+	// file name format control when any of the above attributes change.
+	//
+	int $i;
+
+	for ($i = 0; $i < size($attrArray); $i++)
+	{
+		scriptJob
+			-attributeChange
+				$attrArray[$i]
+				"updateMayaSoftwareFileNameFormatControl"
+			-parent extMenu;
+	}
+}
+
+// ----------------------------------------------------------------------------
+// Code to create and update the Image File Output frame
+//
+proc createFileNamePrefixControl()
+{
+	// Create the control
+	//
+	textFieldGrp
+		-label (uiRes("m_createMayaSoftwareCommonGlobalsTab.kFileNamePrefix"))
+		-changeCommand ("changeMayaSoftwareFileNamePrefix")
+		-annotation (uiRes("m_createMayaSoftwareCommonGlobalsTab.kFileNamePrefixAnn"))
+		mayaSoftwareFileName;
+
+	string $popup; 
+    if (`getApplicationVersionAsFloat` >= 2011)
+        $popup = `popupMenu -parent mayaSoftwareFileName|field`;
+    else
+        $popup = `popupMenu -parent mayaSoftwareFileName`;
+	popupMenu -edit -postMenuCommand ("createInsertKeywordMenu "+$popup) $popup;
+
+	// connect the label, so we can change its color
+	connectControl -index 1 mayaSoftwareFileName defaultRenderGlobals.imageFilePrefix;
+
+	// Create a scriptJob which will update the control when the value of the
+	// attribute it represents is changed.
+	//
+	scriptJob
+		-parent mayaSoftwareFileName
+		-attributeChange
+			"defaultRenderGlobals.imageFilePrefix"
+			"updateMayaSoftwareFileNamePrefixControl";
+}
+
+global proc changeArnoldImageFormat()
+{
+   string $selected_output_type = `getAttr -as defaultArnoldRenderOptions.arnoldRenderImageFormat`;
+   switch($selected_output_type)
+   {
+      case "OpenEXR":
+         columnLayout -e -vis 1 cl_output_exr;
+         columnLayout -e -vis 0 cl_output_tiff;
+         columnLayout -e -vis 0 cl_output_jpg;
+         columnLayout -e -vis 0 cl_output_png;
+         break;
+      case "Tiff":
+         columnLayout -e -vis 0 cl_output_exr;
+         columnLayout -e -vis 1 cl_output_tiff;
+         columnLayout -e -vis 0 cl_output_jpg;
+         columnLayout -e -vis 0 cl_output_png;
+         break;
+      case "Jpg":
+         columnLayout -e -vis 0 cl_output_exr;
+         columnLayout -e -vis 0 cl_output_tiff;
+         columnLayout -e -vis 1 cl_output_jpg;
+         columnLayout -e -vis 0 cl_output_png;
+         break;
+      case "Png":
+         columnLayout -e -vis 0 cl_output_exr;
+         columnLayout -e -vis 0 cl_output_tiff;
+         columnLayout -e -vis 0 cl_output_jpg;
+         columnLayout -e -vis 1 cl_output_png;
+         break;
+   }
+}
+
+global proc string createArnoldImageFormatControl()
+{
+	string $currentRenderer = currentRenderer();
+	if( $currentRenderer == "mentalRay" )
+		return createMRImageFormatControl();
+	if( $currentRenderer == "mayaSoftware" )
+		return createMayaImageFormatControl();
+
+	string $parent = `setParent -query`;
+
+	// Delete the control if it already exists
+	//
+	string $fullPath = $parent + "|imageMenuMayaSW";
+	if (`layout -exists $fullPath`) {
+		deleteUI $fullPath;
+	}
+
+	optionMenuGrp
+		-label (uiRes("m_createMayaSoftwareCommonGlobalsTab.kImageFormatMenu"))
+		-changeCommand "changeArnoldImageFormat"
+		imageMenuMayaSW;
+
+	buildArnoldImageFormatsMenu();
+
+	// connect the label, so we can change its color
+	connectControl -index 1 imageMenuMayaSW defaultArnoldRenderOptions.arnoldRenderImageFormat;
+	// connect the menu, so it will always match the attribute
+	connectControl -index 2 imageMenuMayaSW defaultArnoldRenderOptions.arnoldRenderImageFormat;
+
+    columnLayout -vis 0 -rowSpacing 0 cl_output_exr;
+        attrControlGrp -label "Image Compression"
+            -attribute defaultArnoldRenderOptions.compression
+            os_output_compression;
+        attrControlGrp -label "Half Precision"
+            -attribute defaultArnoldRenderOptions.half_precision
+            os_output_half_precision;      
+    setParent ..;
+
+    columnLayout -vis 0 -rowSpacing 0 cl_output_tiff;
+        attrControlGrp -label "Image Compression"
+            -attribute defaultArnoldRenderOptions.compression
+            os_output_compression;
+        attrControlGrp -label "Format"
+            -attribute defaultArnoldRenderOptions.format
+            os_output_format;
+        attrControlGrp -label "Tiled"
+            -attribute defaultArnoldRenderOptions.tiled
+            os_output_tiled;
+        attrControlGrp -label "Unpremultiplied Alpha"
+            -attribute defaultArnoldRenderOptions.unpremult_alpha
+            os_output_unpremult_alpha;      
+        attrControlGrp -label "Output Padded"
+            -attribute defaultArnoldRenderOptions.output_padded
+            os_output_padded;
+        attrControlGrp -label "Gamma"
+            -attribute defaultArnoldRenderOptions.gamma
+            os_output_gamma;
+    setParent ..;
+
+    columnLayout -vis 0 -rowSpacing 0 cl_output_jpg;      
+        attrControlGrp -label "Output Padded"
+            -attribute defaultArnoldRenderOptions.output_padded
+            os_output_padded;
+        attrControlGrp -label "Gamma"
+            -attribute defaultArnoldRenderOptions.gamma
+            os_output_gamma;
+        attrControlGrp -label "Quality"
+            -attribute defaultArnoldRenderOptions.quality
+            os_output_quality;
+    setParent ..;
+
+    columnLayout -vis 0 -rowSpacing 0 cl_output_png;
+        attrControlGrp -label "Output Padded"
+            -attribute defaultArnoldRenderOptions.output_padded
+            os_output_padded;      
+        attrControlGrp -label "Gamma"
+            -attribute defaultArnoldRenderOptions.gamma
+            os_output_gamma;
+    setParent ..;
+
+    separator;
+
+/*	scriptJob
+		-parent $parent
+		-attributeChange
+			"defaultRenderGlobals.imageFormat"
+			"updateArnoldImageFormatControl";
+*/
+    changeArnoldImageFormat();
+	return "imageMenuMayaSW";
+}
+
+global proc updateArnoldImageFormatControl()
+{
+
+}
+
+proc createCommonImageFile()
+//
+//  Procedure Name:
+//      createCommonImageFile
+//
+//  Description:
+//      Creates the UI in the "Image File Output" expand/collapse section.
+//		This section is always created so is treated differently
+//		then the sections created when the tab is expanded.
+//
+{
+	string $parent = `setParent -query`;
+
+	// Delete the control if it already exists
+	//
+	string $fullPath = $parent + "|imageFileOutputSW";
+	if (`layout -exists $fullPath`) {
+		deleteUI $fullPath;
+	}
+
+	setUITemplate -pushTemplate attributeEditorTemplate;
+
+	columnLayout -adjustableColumn true imageFileOutputSW;
+
+		createFileNamePrefixControl();
+
+		createArnoldImageFormatControl();
+
+		createFileNameFormatControl();
+
+		attrControlGrp
+			-attribute defaultRenderGlobals.extensionPadding
+			-label (uiRes("m_createMayaSoftwareCommonGlobalsTab.kFramePadding"))
+			-hideMapButton true
+			extensionPaddingCtrl;
+
+    setParent $parent;
+	setUITemplate -popTemplate;
+
+	// Perform an initial update of the UI created above, so that controls
+	// which are not directly connected to attributes are properly initialized.
+	//
+	updateMayaSoftwareFileNamePrefixControl();
+	updateArnoldImageFormatControl();
+}
+
+proc createCommonFrameRange()
+//
+//  Procedure Name:
+//      createCommonFrameRange
+//
+//  Description:
+//      Creates the UI in the "Frame Range" expand/collapse section.
+//		This section is always created so is treated differently
+//		then the sections created when the tab is expanded.
+//
+{
+	string $parent = `setParent -query`;
+
+	// Delete the control if it already exists
+	//
+	string $fullPath = $parent + "|frameRangeSW";
+	if (`layout -exists $fullPath`) {
+		deleteUI $fullPath;
+	}
+
+	setUITemplate -pushTemplate attributeEditorTemplate;
+
+	columnLayout -adjustableColumn true frameRangeSW;
+
+		attrControlGrp
+			-attribute defaultRenderGlobals.startFrame
+			-label (uiRes("m_createMayaSoftwareCommonGlobalsTab.kStartFrame"))
+			-hideMapButton true
+			startFrameCtrl;
+		attrControlGrp
+			-attribute defaultRenderGlobals.endFrame
+			-label (uiRes("m_createMayaSoftwareCommonGlobalsTab.kEndFrame"))
+			-hideMapButton true
+			endFrameCtrl;
+		attrControlGrp
+			-attribute defaultRenderGlobals.byFrameStep
+			-label (uiRes("m_createMayaSoftwareCommonGlobalsTab.kByFrame"))
+			-hideMapButton true
+			byFrameStepCtrl;
+
+		separator;
+
+		attrControlGrp
+			-attribute defaultRenderGlobals.modifyExtension
+			-changeCommand "updateMayaSoftwareFrameNumberControls"
+			-label (uiRes("m_createMayaSoftwareCommonGlobalsTab.kRenumberFramesUsing"))
+			modifyExtensionCtrl;
+		attrControlGrp
+			-attribute defaultRenderGlobals.startExtension
+			-enable (`getAttr defaultRenderGlobals.modifyExtension`)
+			-hideMapButton true
+			-label (uiRes("m_createMayaSoftwareCommonGlobalsTab.kStartNumber"))
+			startExtensionCtrl;
+		attrControlGrp
+			-attribute defaultRenderGlobals.byExtension
+			-enable (`getAttr defaultRenderGlobals.modifyExtension`)
+			-hideMapButton true
+			-label (uiRes("m_createMayaSoftwareCommonGlobalsTab.kRenumberByFrame"))
+			byExtensionCtrl;
+
+    setParent $parent;
+	setUITemplate -popTemplate;
+
+	// Perform an initial update of the UI created above, so that controls
+	// which are not directly connected to attributes are properly initialized.
+	//
+	updateMayaSoftwareFileNameFormatControl();
+}
+
+proc createCommonRenderCameras()
+//
+//  Procedure Name:
+//      createCommonRenderCameras
+//
+//  Description:
+//      Creates the UI in the "Renderable Cameras" expand/collapse section.
+//		This section is always created so is treated differently
+//		then the sections created when the tab is expanded.
+//
+{
+	string $parent = `setParent -query`;
+
+	// Delete the control if it already exists
+	//
+	string $fullPath = $parent + "|renderableCamerasSW";
+	if (`layout -exists $fullPath`) {
+		deleteUI $fullPath;
+	}
+
+	setUITemplate -pushTemplate attributeEditorTemplate;
+
+	columnLayout -adjustableColumn true renderableCamerasSW;
+
+		// Cameras ------------------------------------------------
+		columnLayout mayaSoftwareCameraLayout;
+	    updateMayaSoftwareCameraControl();
+		setParent .. ;
+
+    setParent $parent;
+	setUITemplate -popTemplate;
+}
+
+proc createCommonRenderOptions()
+{
+	string $parent = `setParent -query`;
+
+	setUITemplate -pushTemplate attributeEditorTemplate;
+
+
+	columnLayout -adjustableColumn true;
+
+		attrControlGrp
+			-attribute "defaultRenderGlobals.enableDefaultLight";
+		attrControlGrp
+			-attribute defaultRenderGlobals.preMel
+			-label (uiRes("m_createMayaSoftwareCommonGlobalsTab.kPreRenderMEL"))
+			-preventOverride true
+			preMelSwGrp;
+		attrControlGrp
+			-attribute defaultRenderGlobals.postMel
+			-label (uiRes("m_createMayaSoftwareCommonGlobalsTab.kPostRenderMEL"))
+			-preventOverride true
+			postMelSwGrp;
+
+		textFieldGrp
+			-label (uiRes("m_createMayaSoftwareCommonGlobalsTab.kPreRenderLayerMEL"))
+			-changeCommand ("changeMayaMelCallbacks(\"preRenderLayerMelSwGrp\", \"defaultRenderGlobals.preRenderLayerMel\")")
+			preRenderLayerMelSwGrp;
+
+		textFieldGrp
+			-label (uiRes("m_createMayaSoftwareCommonGlobalsTab.kPostRenderLayerMEL"))
+			-changeCommand ("changeMayaMelCallbacks(\"postRenderLayerMelSwGrp\", \"defaultRenderGlobals.postRenderLayerMel\")")
+			postRenderLayerMelSwGrp;
+
+		textFieldGrp
+			-label (uiRes("m_createMayaSoftwareCommonGlobalsTab.kPreRenderFrameMEL"))
+			-changeCommand ("changeMayaMelCallbacks(\"preRenderMelSwGrp\", \"defaultRenderGlobals.preRenderMel\")")
+			preRenderMelSwGrp;
+
+		textFieldGrp
+			-label (uiRes("m_createMayaSoftwareCommonGlobalsTab.kPostRenderFrameMEL"))
+			-changeCommand ("changeMayaMelCallbacks(\"postRenderMelSwGrp\", \"defaultRenderGlobals.postRenderMel\")")
+			postRenderMelSwGrp;
+
+		connectControl -index 1 preRenderLayerMelSwGrp defaultRenderGlobals.preRenderLayerMel;
+		connectControl -index 1 postRenderLayerMelSwGrp defaultRenderGlobals.postRenderLayerMel;
+		connectControl -index 1 preRenderMelSwGrp defaultRenderGlobals.preRenderMel;
+		connectControl -index 1 postRenderMelSwGrp defaultRenderGlobals.postRenderMel;
+
+		if (`about -evalVersion`)
+		{
+			attrControlGrp -e -enable false preMelSwGrp;
+			attrControlGrp -e -enable false postMelSwGrp;
+			textFieldGrp -e -enable false preRenderLayerMelSwGrp;
+			textFieldGrp -e -enable false postRenderLayerMelSwGrp;
+			textFieldGrp -e -enable false preRenderMelSwGrp;
+			textFieldGrp -e -enable false postRenderMelSwGrp;
+		}
+
+		updateMayaMelCallbacks();
+
+		// Set up script jobs for those attributes which require updating of
+		// multiple controls.
+		// This is especially important when a user changes render layers.
+		//
+		string $attrArray[];	clear($attrArray);
+		$attrArray[size($attrArray)] = "defaultRenderGlobals.preRenderLayerMel";
+		$attrArray[size($attrArray)] = "defaultRenderGlobals.preRenderLayerMel";
+		$attrArray[size($attrArray)] = "defaultRenderGlobals.preRenderMel";
+		$attrArray[size($attrArray)] = "defaultRenderGlobals.postRenderMel";
+
+		for ($i = 0; $i < size($attrArray); $i++)
+		{
+			scriptJob
+				-attributeChange
+					$attrArray[$i]
+					updateMayaMelCallbacks
+				-parent `setParent -query`;
+		}
+
+	setParent $parent;
+	setUITemplate -popTemplate;
+}
+
+
+//==================================================================
+// Common Tab
+//==================================================================
+
+global proc UpdateArnoldRendererCommonGlobalsTab()
+{
+	//
+	// Description:
+	//	This procedure is called when the current renderer changes to be the
+	//	Maya Software Renderer.
+	//	This procedure updates controls in the Common tab of the Maya Software
+	//	renderer to reflect values which may have been copied from the previous
+	//	current renderer.
+	//
+	updateMayaSoftwareFileNamePrefixControl();
+	updateMayaSoftwareFileNameFormatControl();
+
+	// Must recreate the Image Format option menu because it is renderer specific.
+	// This is only required for the master layer layout.
+	//
+/*	if( isDisplayingAllRendererTabs()){
+
+		// Set the correct parent
+		setParentToCommonTab();
+		setParent rgImageFileFrame;
+
+		// Recreate the tab
+		createCommonImageFile();
+	}*/
+	updateArnoldImageFormatControl();
+	updateMayaSoftwareCameraControl();
+	updateMayaSoftwareResolution();
+	updateMayaMelCallbacks();
+	updateArnoldTargetFilePreview();
+}
+
+global proc CreateArnoldRendererCommonGlobalsTab()
+{
+	//
+	// Description:
+	//	This procedure is called when building the render globals tabs for the
+	//	Maya Software renderer.
+	//	This procedure builds the "General" tab for the Maya Software renderer.
+	//
+	string $parentForm = `setParent -query`;
+
+		createTargetFilePreview();
+
+	setParent $parentForm;
+
+    scrollLayout
+		-horizontalScrollBarThickness 0
+		scrollLayout;
+
+		string $commonTabColumn = `columnLayout
+			-adjustableColumn true
+			commonTabColumn`;
+
+			// Image File Name
+			//
+			frameLayout
+				-label (uiRes("m_createMayaSoftwareCommonGlobalsTab.kImageFileOutput"))
+				-collapsable true
+				-collapse false
+				rgImageFileFrame;
+
+				createCommonImageFile();
+
+			setParent $commonTabColumn;
+
+			// Frame Range Output
+			//
+			frameLayout
+				-label "Frame Range"
+				-collapsable true
+				-collapse false
+				rgFrameRangeFrame;
+
+				createCommonFrameRange();
+
+			setParent $commonTabColumn;
+			
+			// Renderable Cameras
+			//
+			frameLayout
+				-label (uiRes("m_createMayaSoftwareCommonGlobalsTab.kRenderableCameras"))
+				-collapsable true
+				-collapse false
+				rgRenderableCamerasFrame;
+
+				createCommonRenderCameras();
+
+			setParent $commonTabColumn;
+			
+			// Resolution ("Image Size") Section
+			//
+			frameLayout
+				-label (uiRes("m_createMayaSoftwareCommonGlobalsTab.kLayoutImageSize"))
+				-collapsable true
+				-collapse false
+				rgResolutionFrame;
+
+				createCommonResolution();
+
+			setParent $commonTabColumn;
+			
+			// Render Options
+			//
+			frameLayout
+				-label (uiRes("m_createMayaSoftwareCommonGlobalsTab.kRenderOptions"))
+				-collapsable true
+				-collapse true
+				mayaSoftwareOptionFrame;
+
+				createCommonRenderOptions();
+
+			setParent $commonTabColumn;
+
+    setParent $parentForm;
+
+	formLayout
+		-edit
+		-af targetFilePreview "top" 5
+		-an targetFilePreview "bottom"
+		-af targetFilePreview "left" 0
+		-af targetFilePreview "right" 0
+		-ac scrollLayout "top" 5 targetFilePreview
+		-af scrollLayout "bottom" 0
+		-af scrollLayout "left" 0
+		-af scrollLayout "right" 0
+		$parentForm;
+
+	// Update the target file preview.
+	//
+	updateArnoldTargetFilePreview;
+}

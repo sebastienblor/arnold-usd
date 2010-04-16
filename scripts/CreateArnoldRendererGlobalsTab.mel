@@ -77,65 +77,6 @@ global proc CreateArnoldRenderSettings()
    setUITemplate -pushTemplate attributeEditorTemplate;
    columnLayout -adjustableColumn true arnoldRenderLayout;
 
-      attrControlGrp -label "Image Format"
-         -attribute defaultArnoldRenderOptions.arnoldRenderImageFormat
-         -cc UpdateArnoldOutputOptions
-         os_arnoldRenderImageFormat;
-
-      separator -style "none";
-
-      columnLayout -vis 0 cl_output_compression;      
-       attrControlGrp -label "Image Compression"
-           -attribute defaultArnoldRenderOptions.compression
-           os_output_compression;
-       setParent ..;
-
-      columnLayout -vis 0 cl_output_half_precision;      
-       attrControlGrp -label "Half Precision"
-           -attribute defaultArnoldRenderOptions.half_precision
-           os_output_half_precision;
-       setParent ..;
-
-      columnLayout -vis 0 cl_output_padded;      
-       attrControlGrp -label "Output Padded"
-           -attribute defaultArnoldRenderOptions.output_padded
-           os_output_padded;
-       setParent ..;
-
-      columnLayout -vis 0 cl_output_gamma;      
-       attrControlGrp -label "Gamma"
-           -attribute defaultArnoldRenderOptions.gamma
-           os_output_gamma;
-       setParent ..;
-
-      columnLayout -vis 0 cl_output_quality;      
-       attrControlGrp -label "Quality"
-           -attribute defaultArnoldRenderOptions.quality
-           os_output_quality;
-       setParent ..;
-
-      columnLayout -vis 0 cl_output_format;      
-       attrControlGrp -label "Format"
-           -attribute defaultArnoldRenderOptions.format
-           os_output_format;
-       setParent ..;
-
-      columnLayout -vis 0 cl_output_tiled;      
-       attrControlGrp -label "Tiled"
-           -attribute defaultArnoldRenderOptions.tiled
-           os_output_tiled;
-       setParent ..;
-
-      columnLayout -vis 0 cl_output_unpremult_alpha;      
-       attrControlGrp -label "Unpremultiplied Alpha"
-           -attribute defaultArnoldRenderOptions.unpremult_alpha
-           os_output_unpremult_alpha;
-       setParent ..;
-
-      separator -style "none";
-
-      separator;
-
       attrControlGrp -label "Autodetect Threads"
          -attribute defaultArnoldRenderOptions.threads_autodetect
          -cc UpdateRenderSettings
@@ -170,56 +111,8 @@ global proc CreateArnoldRenderSettings()
       setParent ..;
 
    setUITemplate -popTemplate;
-   UpdateArnoldOutputOptions;
 }
 
-global proc UpdateArnoldOutputOptions()
-{
-   string $selected_output_type = `getAttr -as defaultArnoldRenderOptions.arnoldRenderImageFormat`;
-   switch($selected_output_type)
-   {
-      case "OpenEXR":
-         columnLayout -e -vis 1 cl_output_compression;
-         columnLayout -e -vis 1 cl_output_half_precision;
-         columnLayout -e -vis 0 cl_output_padded;
-         columnLayout -e -vis 0 cl_output_gamma;
-         columnLayout -e -vis 0 cl_output_quality;
-         columnLayout -e -vis 0 cl_output_format;
-         columnLayout -e -vis 0 cl_output_tiled;
-         columnLayout -e -vis 0 cl_output_unpremult_alpha;
-         break;
-      case "Tiff":
-         columnLayout -e -vis 1 cl_output_compression;
-         columnLayout -e -vis 0 cl_output_half_precision;
-         columnLayout -e -vis 1 cl_output_padded;
-         columnLayout -e -vis 1 cl_output_gamma;
-         columnLayout -e -vis 0 cl_output_quality;
-         columnLayout -e -vis 1 cl_output_format;
-         columnLayout -e -vis 1 cl_output_tiled;
-         columnLayout -e -vis 1 cl_output_unpremult_alpha;
-         break;
-      case "Jpg":
-         columnLayout -e -vis 0 cl_output_compression;
-         columnLayout -e -vis 0 cl_output_half_precision;
-         columnLayout -e -vis 1 cl_output_padded;
-         columnLayout -e -vis 1 cl_output_gamma;
-         columnLayout -e -vis 1 cl_output_quality;
-         columnLayout -e -vis 0 cl_output_format;
-         columnLayout -e -vis 0 cl_output_tiled;
-         columnLayout -e -vis 0 cl_output_unpremult_alpha;
-         break;
-      case "Png":
-         columnLayout -e -vis 0 cl_output_compression;
-         columnLayout -e -vis 0 cl_output_half_precision;
-         columnLayout -e -vis 1 cl_output_padded;
-         columnLayout -e -vis 1 cl_output_gamma;
-         columnLayout -e -vis 0 cl_output_quality;
-         columnLayout -e -vis 0 cl_output_format;
-         columnLayout -e -vis 0 cl_output_tiled;
-         columnLayout -e -vis 0 cl_output_unpremult_alpha;
-         break;
-   }
-}
 global proc UpdateArnoldFilterOptions()
 {
    string $selected_filter_type = `getAttr -as defaultArnoldRenderOptions.filter_type`;
