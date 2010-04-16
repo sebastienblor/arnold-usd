@@ -1,6 +1,26 @@
 source "ArnoldRender.mel";
 source "AEArnoldShapeTemplate.mel";
 
+global proc ArnoldAddGlobalsTabs()
+{
+    renderer -edit -addGlobalsTab "Common" "CreateArnoldRendererCommonGlobalsTab" "UpdateArnoldRendererCommonGlobalsTab" arnold;
+    renderer -edit -addGlobalsTab "Arnold Renderer" "CreateArnoldRendererGlobalsTab" "UpdateArnoldRendererGlobalsTab" arnold;
+}
+
+global proc ArnoldChangeRendererUpdate()
+{
+    if(!`pluginInfo -q -l "Arnold Render"`)
+        return;
+
+    if (`getApplicationVersionAsFloat` >= 2009)
+    {
+        if (`window -exists unifiedRenderGlobalsWindow`) {
+            addRendererTabsToGlobalsWindow("arnold");
+            fillSelectedTabForCurrentRenderer();
+        }
+    }    
+}
+
 global proc RegisterArnoldRenderer()
 {
    createNode -skipSelect -shared -n "defaultArnoldRenderOptions" ArnoldRenderOptions;
@@ -22,9 +42,12 @@ global proc RegisterArnoldRenderer()
                -changeIprRegionProcedure "ArnoldIprChangeRegion"
                arnold;
                    
-      renderer -edit arnold -addGlobalsTab "Common" "CreateArnoldRendererCommonGlobalsTab" "UpdateArnoldRendererCommonGlobalsTab";
-      renderer -edit arnold -addGlobalsTab "Arnold Renderer" "CreateArnoldRendererGlobalsTab" "UpdateArnoldRendererGlobalsTab";
-      renderer -edit arnold -addGlobalsNode "defaultArnoldRenderOptions";
+      evalDeferred ArnoldAddGlobalsTabs;
+
+      renderer -edit -addGlobalsNode "defaultArnoldRenderOptions" arnold;
+      
+      scriptJob -attributeChange ("defaultRenderGlobals.currentRenderer") "ArnoldChangeRendererUpdate";
+      scriptJob -event ("SceneOpened") "ArnoldChangeRendererUpdate";
 
       // Add option in 'Render' menu to export to an .ass file 
       RenRenderMenu mainRenderMenu;
@@ -32,3 +55,4 @@ global proc RegisterArnoldRenderer()
       menuItem -parent mainRenderMenu -label "Export to Ass..." -c "ArnoldExportAss" exportToAssMenuItem;
    }
 }
+

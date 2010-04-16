@@ -725,6 +725,7 @@ global proc UpdateArnoldRendererCommonGlobalsTab()
 
 global proc CreateArnoldRendererCommonGlobalsTab()
 {
+
 	//
 	// Description:
 	//	This procedure is called when building the render globals tabs for the
@@ -822,4 +823,10 @@ global proc CreateArnoldRendererCommonGlobalsTab()
 	// Update the target file preview.
 	//
 	updateArnoldTargetFilePreview;
+
+    if( `getApplicationVersionAsFloat` >= 2009 )
+    {
+    // Maya deletes Arnold common tab, when a scene is opened, we need to create it.
+    scriptJob -uiDeleted $parentForm "ArnoldChangeRendererUpdate";
+    }
 }
