@@ -455,55 +455,55 @@ global proc CreateArnoldRendererGlobalsTab()
       
          // Sampling
          //
-         frameLayout -label "Sampling" -lw 100 -cll true -cl 0 arnoldSamplingSettings;
+         frameLayout -label "Sampling" -cll true -cl 0 arnoldSamplingSettings;
             CreateArnoldSamplingSettings;
             setParent ..;
             
          // Ray depth
          //
-         frameLayout -label "Ray Depth" -lw 100 -cll true -cl 0 arnoldRayDepthSettings;
+         frameLayout -label "Ray Depth" -cll true -cl 0 arnoldRayDepthSettings;
             CreateArnoldRayDepthSettings;
             setParent ..;
          
          // Environment
          //
-         frameLayout -label "Environment" -lw 150 -cll true -cl 1 arnoldEnvironmentSettings;
+         frameLayout -label "Environment" -cll true -cl 1 arnoldEnvironmentSettings;
             CreateArnoldEnvironmentSettings;
             setParent ..;
          
          // Motion Blur
          //
-         frameLayout -label "Motion Blur" -lw 150 -cll true -cl 1 arnoldMotionBlurSettings;
+         frameLayout -label "Motion Blur" -cll true -cl 1 arnoldMotionBlurSettings;
             CreateArnoldMotionBlurSettings;
             setParent ..;
          
          // Subsurface scattering
          //
-         frameLayout -label "Subsurface scattering" -lw 150 -cll true -cl 1 arnoldSSSSettings;
+         frameLayout -label "Subsurface scattering" -cll true -cl 1 arnoldSSSSettings;
             CreateArnoldSSSSettings;
             setParent ..;
 
          // Subdivision Surfaces
          //
-         frameLayout -label "Subdivision" -lw 150 -cll true -cl 1 arnoldSubdivSettings;
+         frameLayout -label "Subdivision" -cll true -cl 1 arnoldSubdivSettings;
             CreateArnoldSubdivSettings;
             setParent ..;
          
          // Render
          //
-         frameLayout -label "Render Settings" -lw 100 -cll true -cl 1 arnoldRenderSettings;
+         frameLayout -label "Render Settings" -cll true -cl 1 arnoldRenderSettings;
             CreateArnoldRenderSettings;
             setParent ..;
          
          // Gamma correction
          //
-         frameLayout -label "Gamma Correction" -lw 150 -cll true -cl 1 arnoldGammaSettings;
+         frameLayout -label "Gamma Correction" -cll true -cl 1 arnoldGammaSettings;
             CreateArnoldGammaSettings;
             setParent ..;
          
          // Log
          //
-         frameLayout -label "Log" -lw 150 -cll true -cl 1 arnoldLogSettings;
+         frameLayout -label "Log" -cll true -cl 1 arnoldLogSettings;
             CreateArnoldLogSettings;
             setParent ..;
          
