@@ -34,8 +34,9 @@ void CMayaScene::ExportImagePlanes(const MDagPath& dagPath, bool isRenderingCame
    
             // check if the image plane should be created
             bool displayOnlyIfCurrent = fnRes.findPlug("displayOnlyIfCurrent", &status).asBool();
+            int displayMode          = fnRes.findPlug("displayMode", &status).asBool();
             
-            if (!displayOnlyIfCurrent || isRenderingCamera)
+            if ( (!displayOnlyIfCurrent || isRenderingCamera) && ( displayMode > 1 ))
             {
    
                // get data
