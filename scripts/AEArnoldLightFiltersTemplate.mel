@@ -83,16 +83,20 @@ global proc AddLightFilterCB(string $lightNode, string $list)
 
 global proc AddLightFilter(string $lightNode, string $list)
 {
-   string $window = `window -title "Add Light Filter" -resizeToFitChildren true`;
+   string $win = "arnold_filter_list_win";
+   if (`window -exists $win`)
+      deleteUI $win; 
+
+   window -title "Add Light Filter" -resizeToFitChildren true $win;
 
    string $addCmd = "AddLightFilterCB " + $lightNode + " " + $list;
-    
+
    windowPref -ra;
-   
+
    columnLayout -adjustableColumn true
                 -columnOffset "both" 10
                 -rowSpacing 10;
-      textScrollList -nr 4 -ams false -dcc ($addCmd + "; deleteUI -window " + $window) alf_filter_list;
+      textScrollList -nr 4 -ams false -dcc ($addCmd + "; window -edit -visible 0 " + $win) alf_filter_list;
 
       string $nodeType = `objectType $lightNode`;
       
@@ -106,12 +110,12 @@ global proc AddLightFilter(string $lightNode, string $list)
       textScrollList -edit -append "Light Decay" alf_filter_list;
 
       rowLayout -numberOfColumns 2 -columnAlign2 "center" "center";
-         button -width 80 -label "Add" -command ($addCmd + "; deleteUI -window " + $window);
-         button -width 80 -label "Cancel" -command ("deleteUI -window " + $window);
+         button -width 80 -label "Add" -command ($addCmd + "; deleteUI -window " + $win);
+         button -width 80 -label "Cancel" -command ("deleteUI -window " + $win);
          setParent ..;
       setParent ..;      
    
-   showWindow $window;
+   showWindow $win;
 }
 
 global proc RemoveLightFilter(string $lightNode, string $list)
