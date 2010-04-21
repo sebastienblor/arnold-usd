@@ -118,7 +118,7 @@ MStatus CMayaScene::ExportScene(AtUInt step)
 
             mesh.getConnectedShaders(0, shaders, indices);
 
-            unsigned int numMeshGroups = shaders.length();
+            numMeshGroups = shaders.length();
          }
 
          if (numMeshGroups == 0)
