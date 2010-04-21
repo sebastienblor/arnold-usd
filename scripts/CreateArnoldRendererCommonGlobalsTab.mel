@@ -2397,6 +2397,10 @@ global proc CreateArnoldRendererCommonGlobalsTab()
    // Maya Software renderer.
    // This procedure builds the "General" tab for the Maya Software renderer.
    //
+   
+   // Make sure the ArnoldRenderOptions node exists
+   createNode -skipSelect -shared -n "defaultArnoldRenderOptions" ArnoldRenderOptions;
+   
    string $parentForm = `setParent -query`;
 
       CreateTargetFilePreview();
