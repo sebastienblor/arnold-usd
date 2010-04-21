@@ -1,25 +1,27 @@
 #ifndef ARNOLD_STANDARD_SHADER_H
 #define ARNOLD_STANDARD_SHADER_H
 
-#include <maya/MPxNode.h>
+#include <maya/MPxHwShaderNode.h>
+#include <maya/MObjectArray.h>
 
 class CArnoldStandardShaderNode
    :  public MPxNode
 {
 
+private:
+
+   static MObjectArray s_PlugsAffecting;
+
 public:
 
-   virtual void postConstructor()
-   {
-      setMPSafe(true);
-   }
+   virtual void postConstructor();
 
    virtual MStatus compute(const MPlug& plug, MDataBlock& data);
 
    static void* creator();
    static MStatus initialize();
 
-	static MTypeId id;
+   static MTypeId id;
 
    // Input attributes
    static MObject s_Fresnel;
@@ -86,6 +88,33 @@ public:
    static MObject s_OUT_transparencyG;
    static MObject s_OUT_transparencyB;
    static MObject s_OUT_transparency;
+   static MObject s_OUT_glow_colorR;
+   static MObject s_OUT_glow_colorG;
+   static MObject s_OUT_glow_colorB;
+   static MObject s_OUT_glow_color;
+   static MObject s_OUT_matte_opacityR;
+   static MObject s_OUT_matte_opacityG;
+   static MObject s_OUT_matte_opacityB;
+   static MObject s_OUT_matte_opacity;
+
+   // swatch compute attributes
+   static MObject s_point_camera;
+   static MObject s_normal_camera;
+   static MObject s_light_direction;
+   static MObject s_light_intensity;
+   static MObject s_light_ambient;
+   static MObject s_light_diffuse;
+   static MObject s_light_specular;
+   static MObject s_light_shadow_fraction;
+   static MObject s_light_pre_shadow_intensity;
+   static MObject s_light_blind_data;
+   static MObject s_light_data;
+   static MObject s_ray_origin;
+   static MObject s_ray_direction;
+   static MObject s_object_id;
+   static MObject s_ray_sampler;
+   static MObject s_ray_depth;
+   static MObject s_triangle_normal_camera;
 
 };  // class CArnoldStandardShaderNode
 
