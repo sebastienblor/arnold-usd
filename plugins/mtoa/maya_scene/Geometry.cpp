@@ -277,7 +277,7 @@ void CMayaScene::ExportMesh(MObject mayaMesh, const MDagPath& dagPath, AtUInt st
    {
       polymesh = AiNode("polymesh");
 
-      AiNodeSetStr(polymesh, "name", fnDagNode.name().asChar());
+      AiNodeSetStr(polymesh, "name", fnDagNode.partialPathName().asChar());
 
       if (mb)
       {
@@ -359,7 +359,7 @@ void CMayaScene::ExportMesh(MObject mayaMesh, const MDagPath& dagPath, AtUInt st
    }
    else
    {
-      polymesh = AiNodeLookUpByName(fnDagNode.name().asChar());
+      polymesh = AiNodeLookUpByName(fnDagNode.partialPathName().asChar());
 
       if (mb)
       {

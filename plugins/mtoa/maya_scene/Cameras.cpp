@@ -12,7 +12,7 @@ void CMayaScene::ExportCameraData(AtNode* camera, const MDagPath& dagPath, bool 
    AtMatrix matrix;
    MFnDagNode fnDagNode(dagPath);
 
-   AiNodeSetStr(camera, "name", fnDagNode.name().asChar());
+   AiNodeSetStr(camera, "name", fnDagNode.partialPathName().asChar());
 
    AiNodeSetFlt(camera, "near_clip", fnDagNode.findPlug("nearClipPlane").asFloat());
    AiNodeSetFlt(camera, "far_clip", fnDagNode.findPlug("farClipPlane").asFloat());
@@ -44,7 +44,7 @@ void CMayaScene::ExportCameraMBData(const MDagPath& dagPath, AtUInt step)
    AtMatrix matrix;
    MFnDagNode fnDagNode(dagPath);
 
-   AtNode* camera = AiNodeLookUpByName(fnDagNode.name().asChar());
+   AtNode* camera = AiNodeLookUpByName(fnDagNode.partialPathName().asChar());
 
    GetMatrix(matrix, dagPath);
 
@@ -105,7 +105,7 @@ void CMayaScene::ExportCamera(const MDagPath& dagPath, AtUInt step)
       {
          ExportCameraMBData(dagPath, step);
 
-         camera = AiNodeLookUpByName(fnDagNode.name().asChar());
+         camera = AiNodeLookUpByName(fnDagNode.partialPathName().asChar());
 
          AtArray* fovs = AiNodeGetArray(camera, "fov");
          AiArraySetFlt(fovs, step, fov);

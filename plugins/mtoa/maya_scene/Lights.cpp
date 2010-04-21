@@ -58,7 +58,7 @@ void CMayaScene::ExportLightData(AtNode* light, const MDagPath& dagPath, bool mb
    MFnDagNode fnDagNode(dagPath);
    MFnLight fnLight(dagPath);
 
-   AiNodeSetStr(light, "name", fnDagNode.name().asChar());
+   AiNodeSetStr(light, "name", fnDagNode.partialPathName().asChar());
 
    color = fnLight.color();
    AiNodeSetRGB(light, "color", color.r, color.g, color.b);
@@ -107,7 +107,7 @@ void CMayaScene::ExportLightMBData(const MDagPath& dagPath, AtUInt step)
    AtMatrix matrix;
    MFnDagNode fnDagNode(dagPath);
 
-   AtNode* light = AiNodeLookUpByName(fnDagNode.name().asChar());
+   AtNode* light = AiNodeLookUpByName(fnDagNode.partialPathName().asChar());
 
    GetMatrix(matrix, dagPath);
 
