@@ -78,7 +78,9 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
       {
          MObjectArray shaders;
 
-         fnMesh.getConnectedShaders(0, shaders, indices);
+         int instanceNum = dagPath.isInstanced() ? dagPath.instanceNumber() : 0;
+
+         fnMesh.getConnectedShaders(instanceNum, shaders, indices);
 
          for (int J = 0; (J < (int) shaders.length()); ++J)
          {
@@ -271,13 +273,17 @@ void CMayaScene::ExportMesh(MObject mayaMesh, const MDagPath& dagPath, AtUInt st
    fnDagNode.findPlug("subdiv_type", &status);
    bool customAttributes = (status == MS::kSuccess);
 
-   GetMatrix(matrix, dagPath);
+   // we need to get the matrix from the transform node
+   MFnDagNode dagNodeTransform(dagPath.transform());
+   MDagPath   dagPathTransform;
+   dagNodeTransform.getPath(dagPathTransform);
+   GetMatrix(matrix, dagPathTransform);
 
    if (step == 0)
    {
       polymesh = AiNode("polymesh");
 
-      AiNodeSetStr(polymesh, "name", fnDagNode.partialPathName().asChar());
+      AiNodeSetStr(polymesh, "name", dagPathTransform.partialPathName().asChar());
 
       if (mb)
       {
@@ -359,7 +365,7 @@ void CMayaScene::ExportMesh(MObject mayaMesh, const MDagPath& dagPath, AtUInt st
    }
    else
    {
-      polymesh = AiNodeLookUpByName(fnDagNode.partialPathName().asChar());
+      polymesh = AiNodeLookUpByName(dagPathTransform.partialPathName().asChar());
 
       if (mb)
       {
@@ -374,6 +380,63 @@ void CMayaScene::ExportMesh(MObject mayaMesh, const MDagPath& dagPath, AtUInt st
       if (mb_deform)
       {
          ExportMeshGeometryData(polymesh, mayaMesh, dagPath, step);
+      }
+   }
+}
+void CMayaScene::ExportMeshInstance(const MDagPath& dagPath, const MDagPath& masterInstance, AtUInt step)
+{
+   MTransformationMatrix worldMatrix;
+   AtMatrix matrix, masterMatrix, masterMatrixInv;
+   MFloatVector vector;
+   AtNode* instanceNode = NULL;
+   MFnDagNode fnDagNodeInstance(dagPath);
+   MFnDagNode fnDagNodeMaster(masterInstance.transform());
+   AtNode* masterNode = AiNodeLookUpByName(fnDagNodeMaster.partialPathName().asChar());
+
+   bool mb = m_motionBlurData.enabled &&
+             m_fnArnoldRenderOptions->findPlug("mb_objects_enable").asBool() &&
+             fnDagNodeInstance.findPlug("motionBlur").asBool();
+
+   // we need to get the matrix from the transform node
+   MFnDagNode dagNodeTransform(dagPath.transform());
+   MDagPath   dagPathTransform;
+   dagNodeTransform.getPath(dagPathTransform);
+
+   MFnDagNode dagNodeMasterTransform(masterInstance.transform());
+   MDagPath   dagPathMasterTransform;
+   dagNodeMasterTransform.getPath(dagPathMasterTransform);
+
+   GetMatrix(matrix, dagPathTransform);
+   GetMatrix(masterMatrix, dagPathMasterTransform);
+   AiM4Invert(masterMatrix,masterMatrixInv);
+   AiM4Mult(matrix, matrix, masterMatrixInv);
+
+   if (step == 0)
+   {
+      instanceNode = AiNode("ginstance");
+      AiNodeSetStr(instanceNode, "name", dagPathTransform.partialPathName().asChar());
+
+      if (mb)
+      {
+         AtArray* matrices = AiArrayAllocate(1, m_motionBlurData.motion_steps, AI_TYPE_MATRIX);
+         AiArraySetMtx(matrices, step, matrix);
+         AiNodeSetArray(instanceNode, "matrix", matrices);
+      }
+      else
+      {
+         AiNodeSetMatrix(instanceNode, "matrix", matrix);
+      }
+
+      AiNodeSetPtr(instanceNode, "node", masterNode);
+   }
+   else
+   {
+      instanceNode = AiNodeLookUpByName(dagPathTransform.partialPathName().asChar());
+
+      if (mb)
+      {
+         AtArray* matrices = AiNodeGetArray(instanceNode, "matrix");
+         AiArraySetMtx(matrices, step, matrix);
       }
    }
 }

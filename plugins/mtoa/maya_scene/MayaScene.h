@@ -60,6 +60,7 @@ private:
    void ExportLightFilters(AtNode* light, MString filterNames);
    void ExportMesh(MObject mayaMesh, const MDagPath& dagPath, AtUInt step);
    void ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, const MDagPath& dagPath, AtUInt step);
+   void ExportMeshInstance(const MDagPath& dagPath, const MDagPath& masterInstance, AtUInt step);
 
    void ProcessShaderParameter(MFnDependencyNode shader, const char* param, AtNode* arnoldShader, const char* arnoldAttrib, int arnoldAttribType);
    AtNode* ExportArnoldShader(MObject mayaShader, MString arnoldShader);

@@ -13,6 +13,7 @@
 #include <maya/MMatrix.h>
 #include <maya/MPlug.h>
 #include <maya/MSelectionList.h>
+#include <maya/MDagPathArray.h>
 
 MStatus CMayaScene::ExportToArnold()
 {
@@ -76,11 +77,30 @@ MStatus CMayaScene::ExportScene(AtUInt step)
          dagIterator.prune();
          continue;
       }
+      
+      // Find if the node is directly instanced ( hence the false parameter )
+      bool instancedDag = dagIterator.isInstanced(false);
+      if (instancedDag)
+      {
+         // once we find an instanced object, we export all instances
+         // so if step is 0, we do not create again the instance if it's already created
+         MFnDagNode dagNodeTransform(dagPath.transform());
+         MDagPath   dagPathTransform;
+         dagNodeTransform.getPath(dagPathTransform);
+         if( (AiNodeLookUpByName(dagPathTransform.partialPathName().asChar())) && ( step == 0 ))
+         {
+            dagIterator.prune();
+            continue;
+         }
+      }
 
+      // Lights
       if (dagIterator.item().hasFn(MFn::kLight))
       {
          ExportLight(dagPath, step);
       }
+    
+      // Nurbs 
       else if (dagIterator.item().hasFn(MFn::kNurbsSurface))
       {
          MFnNurbsSurface surface(dagPath, &status);
@@ -99,6 +119,8 @@ MStatus CMayaScene::ExportScene(AtUInt step)
          meshFromNURBS = surface.tesselate(MTesselationParams::fsDefaultTesselationParams, meshDataObject);
          ExportMesh(meshFromNURBS, dagPath, step);
       }
+
+      // Polygons
       else if (dagIterator.item().hasFn(MFn::kMesh))
       {
          unsigned int      numMeshGroups;
@@ -128,7 +150,22 @@ MStatus CMayaScene::ExportScene(AtUInt step)
          }
          else
          {
-            ExportMesh(dagIterator.item(), dagPath, step);
+            // if its an instance, get all the instances and export them
+            if (instancedDag)
+            {
+               MDagPathArray allInstances;
+               dagIterator.getAllPaths(allInstances);
+               // export the first one normally
+               ExportMesh(allInstances[0].node(), allInstances[0], step);
+               for (int i=1; i<allInstances.length(); i++)
+               {
+                  ExportMeshInstance(allInstances[i], allInstances[0], step);
+               } 
+            }
+            else
+            {
+               ExportMesh(dagIterator.item(), dagPath, step);
+            }
          }
       }
       else
