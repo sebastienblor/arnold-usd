@@ -3,6 +3,7 @@
 
 #define ARNOLD_NODEID_AMBIENT_OCCLUSION         0x00072002
 #define ARNOLD_NODEID_BARNDOOR                  0x00072010
+#define ARNOLD_NODEID_DISPLACEMENT              0x00072011
 #define ARNOLD_NODEID_FOG                       0x00072006
 #define ARNOLD_NODEID_GOBO                      0x00072003
 #define ARNOLD_NODEID_LIGHT_BLOCKER             0x00072009

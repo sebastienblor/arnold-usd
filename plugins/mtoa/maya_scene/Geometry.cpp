@@ -97,6 +97,29 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
 
          AiNodeSetArray(polymesh, "shader", AiArrayConvert(meshShaders.size(), 1, AI_TYPE_POINTER, &meshShaders[instanceNum], TRUE));
       }
+
+      ///
+      /// DISPLACEMENT
+      ///
+
+      MObjectArray      shaderDisp;
+      fnMesh.getConnectedShaders(instanceNum, shaderDisp, indices);
+
+      MPlugArray        connections;
+      MFnDependencyNode fnDGNode(shaderDisp[0]);
+      MPlug             shaderPlug(shaderDisp[0], fnDGNode.attribute("displacementShader"));
+
+      shaderPlug.connectedTo(connections, true, false);
+      MFnDependencyNode dispNode(connections[0].node());
+
+      AiNodeSetFlt(polymesh, "disp_height", dispNode.findPlug("disp_height").asFloat());
+      AiNodeSetFlt(polymesh, "disp_zero_value", dispNode.findPlug("disp_zero_value").asFloat());
+      AiNodeSetBool(polymesh, "autobump", dispNode.findPlug("autobump").asBool());
+
+      dispNode.findPlug("disp_map").connectedTo(connections,true,false);
+      AtNode* dispImage(ExportShader(connections[0].node()));
+      AiNodeSetPtr(polymesh, "disp_map", dispImage);
+      
    }
 
    // 
@@ -471,7 +494,6 @@ void CMayaScene::ExportMeshInstance(const MDagPath& dagPath, const MDagPath& mas
 
       if ((shaderPlug != shaderPlugMaster) || (!equalShaderArrays))
       {
-         MFnDagNode tmp(connections[0].node());
          AtNode* shader = ExportShader(connections[0].node());
          AiNodeSetPtr(instanceNode, "shader", shader);
       }

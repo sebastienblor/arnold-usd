@@ -6,6 +6,7 @@
 #include "nodes/shaders/atmosphere/ArnoldFogShader.h"
 #include "nodes/shaders/atmosphere/ArnoldVolumeScatteringShader.h"
 #include "nodes/shaders/background/ArnoldSkyShader.h"
+#include "nodes/shaders/displacement/ArnoldDisplacementShader.h"
 #include "nodes/shaders/light/ArnoldBarndoorShader.h"
 #include "nodes/shaders/light/ArnoldGoboShader.h"
 #include "nodes/shaders/light/ArnoldLightBlockerShader.h"
@@ -28,6 +29,7 @@ namespace // <anonymous>
       MStatus status;
       MFnPlugin plugin(object);
       const MString ShaderClass("shader/surface");
+      const MString DisplacementClass("shader/displacement");
 
       // RENDER OPTIONS
       status = plugin.registerNode("ArnoldRenderOptions", CArnoldRenderOptionsNode::id, CArnoldRenderOptionsNode::creator, CArnoldRenderOptionsNode::initialize);
@@ -37,6 +39,9 @@ namespace // <anonymous>
       status = plugin.registerNode("ArnoldStandardShader", CArnoldStandardShaderNode::id, CArnoldStandardShaderNode::creator, CArnoldStandardShaderNode::initialize, MPxNode::kDependNode, &ShaderClass);
       status = plugin.registerNode("ArnoldUtilityShader", CArnoldUtilityShaderNode::id, CArnoldUtilityShaderNode::creator, CArnoldUtilityShaderNode::initialize, MPxNode::kDependNode, &ShaderClass);
       status = plugin.registerNode("ArnoldWireframeShader", CArnoldWireframeShaderNode::id, CArnoldWireframeShaderNode::creator, CArnoldWireframeShaderNode::initialize, MPxNode::kDependNode, &ShaderClass);
+
+      // Displacement Shaders
+      status = plugin.registerNode("ArnoldDisplacementShader", CArnoldDisplacementShaderNode::id, CArnoldDisplacementShaderNode::creator, CArnoldDisplacementShaderNode::initialize, MPxNode::kDependNode, &DisplacementClass);
 
       // Light Shaders
       status = plugin.registerNode("ArnoldBarndoorShader", CArnoldBarndoorShaderNode::id, CArnoldBarndoorShaderNode::creator, CArnoldBarndoorShaderNode::initialize);
@@ -63,6 +68,9 @@ namespace // <anonymous>
       status = plugin.deregisterNode(CArnoldStandardShaderNode::id);
       status = plugin.deregisterNode(CArnoldUtilityShaderNode::id);
       status = plugin.deregisterNode(CArnoldWireframeShaderNode::id);
+
+      // Displacement Shaders
+      status = plugin.deregisterNode(CArnoldDisplacementShaderNode::id);
 
       // Light Shaders
       status = plugin.deregisterNode(CArnoldBarndoorShaderNode::id);
