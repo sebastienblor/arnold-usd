@@ -98,9 +98,9 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
          AiNodeSetArray(polymesh, "shader", AiArrayConvert(meshShaders.size(), 1, AI_TYPE_POINTER, &meshShaders[instanceNum], TRUE));
       }
 
-      ///
-      /// DISPLACEMENT
-      ///
+      //
+      // DISPLACEMENT
+      //
 
       MObjectArray      shaderDisp;
       fnMesh.getConnectedShaders(instanceNum, shaderDisp, indices);
