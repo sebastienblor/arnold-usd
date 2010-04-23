@@ -64,7 +64,7 @@ private:
 
    void ProcessShaderParameter(MFnDependencyNode shader, const char* param, AtNode* arnoldShader, const char* arnoldAttrib, int arnoldAttribType);
    AtNode* ExportArnoldShader(MObject mayaShader, MString arnoldShader);
-   MObject GetNodeShader(MObject dagNode);
+   MObject GetNodeShader(MObject dagNode, int instanceNum);
 
    bool IsVisible(MFnDagNode node);
    void GetMatrix(AtMatrix& matrix, const MDagPath& dagPath);

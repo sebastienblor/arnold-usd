@@ -59,12 +59,14 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
 
    if (step == 0)
    {
+      int instanceNum = dagPath.isInstanced() ? dagPath.instanceNumber() : 0;
+
       //
       // SHADERS
       //
 
       std::vector<AtNode*> meshShaders;
-      MObject mayaShader = GetNodeShader(dagPath.node());
+      MObject mayaShader = GetNodeShader(dagPath.node(),instanceNum);
 
       if (!mayaShader.isNull())
       {
@@ -78,8 +80,6 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
       {
          MObjectArray shaders;
 
-         int instanceNum = dagPath.isInstanced() ? dagPath.instanceNumber() : 0;
-
          fnMesh.getConnectedShaders(instanceNum, shaders, indices);
 
          for (int J = 0; (J < (int) shaders.length()); ++J)
@@ -90,12 +90,12 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
 
             shaderPlug.connectedTo(connections, true, false);
 
-            meshShaders.push_back(ExportShader(connections[0].node()));
+            meshShaders.push_back(ExportShader(connections[instanceNum].node()));
          }
 
          multiShader = true;
 
-         AiNodeSetArray(polymesh, "shader", AiArrayConvert(meshShaders.size(), 1, AI_TYPE_POINTER, &meshShaders[0], TRUE));
+         AiNodeSetArray(polymesh, "shader", AiArrayConvert(meshShaders.size(), 1, AI_TYPE_POINTER, &meshShaders[instanceNum], TRUE));
       }
    }
 
@@ -413,6 +413,8 @@ void CMayaScene::ExportMeshInstance(const MDagPath& dagPath, const MDagPath& mas
 
    if (step == 0)
    {
+      int instanceNum = dagPath.isInstanced() ? dagPath.instanceNumber() : 0;
+
       instanceNode = AiNode("ginstance");
       AiNodeSetStr(instanceNode, "name", dagPathTransform.partialPathName().asChar());
 
@@ -428,6 +430,52 @@ void CMayaScene::ExportMeshInstance(const MDagPath& dagPath, const MDagPath& mas
       }
 
       AiNodeSetPtr(instanceNode, "node", masterNode);
+
+      //
+      // SHADERS
+      //
+      MFnMesh           meshNode(dagPath.node());
+      MObjectArray      shaders, shadersMaster;
+      MIntArray         indices, indicesMaster;
+
+      meshNode.getConnectedShaders(instanceNum, shaders, indices);
+      meshNode.getConnectedShaders(0, shadersMaster, indicesMaster);
+
+      // As arnold does not support different shaders per face
+      // on ginstances
+      // we keep the master's per face assignment only
+      // if it's completely the same
+      bool equalShaderArrays = ((shaders.length() == shadersMaster.length()) && (indices.length() == indicesMaster.length()));
+        
+      for(int j=0; (equalShaderArrays && (j<indices.length())); j++)
+      {
+         if(indices[j] != indicesMaster[j])
+         {
+            equalShaderArrays = false;
+         }
+      }
+      for(int i=0; (equalShaderArrays && (i<shaders.length())); i++)
+      {
+         if (shaders[i] != shadersMaster[i])
+         {
+            equalShaderArrays = false;
+         }
+      }
+
+      MPlugArray        connections;
+      MFnDependencyNode fnDGNode(shaders[0]);
+      MPlug             shaderPlug(shaders[0], fnDGNode.attribute("surfaceShader"));
+      MPlug             shaderPlugMaster(shadersMaster[0], fnDGNode.attribute("surfaceShader"));
+
+      shaderPlug.connectedTo(connections, true, false);
+
+      if ((shaderPlug != shaderPlugMaster) || (!equalShaderArrays))
+      {
+         MFnDagNode tmp(connections[0].node());
+         AtNode* shader = ExportShader(connections[0].node());
+         AiNodeSetPtr(instanceNode, "shader", shader);
+      }
+
    }
    else
    {
