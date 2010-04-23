@@ -1,5 +1,5 @@
 # vim: filetype=python
- 
+
 ## first we extend the module path to load our own modules
 import sys
 sys.path = ["tools/python"] + sys.path
