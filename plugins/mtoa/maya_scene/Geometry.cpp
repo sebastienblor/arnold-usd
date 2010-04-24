@@ -110,16 +110,19 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
       MPlug             shaderPlug(shaderDisp[0], fnDGNode.attribute("displacementShader"));
 
       shaderPlug.connectedTo(connections, true, false);
-      MFnDependencyNode dispNode(connections[0].node());
 
-      AiNodeSetFlt(polymesh, "disp_height", dispNode.findPlug("disp_height").asFloat());
-      AiNodeSetFlt(polymesh, "disp_zero_value", dispNode.findPlug("disp_zero_value").asFloat());
-      AiNodeSetBool(polymesh, "autobump", dispNode.findPlug("autobump").asBool());
+      if (connections.length() == 1)
+      {
+         MFnDependencyNode dispNode(connections[0].node());
 
-      dispNode.findPlug("disp_map").connectedTo(connections,true,false);
-      AtNode* dispImage(ExportShader(connections[0].node()));
-      AiNodeSetPtr(polymesh, "disp_map", dispImage);
-      
+         AiNodeSetFlt(polymesh, "disp_height", dispNode.findPlug("disp_height").asFloat());
+         AiNodeSetFlt(polymesh, "disp_zero_value", dispNode.findPlug("disp_zero_value").asFloat());
+         AiNodeSetBool(polymesh, "autobump", dispNode.findPlug("autobump").asBool());
+
+         dispNode.findPlug("disp_map").connectedTo(connections,true,false);
+         AtNode* dispImage(ExportShader(connections[0].node()));
+         AiNodeSetPtr(polymesh, "disp_map", dispImage);
+      }
    }
 
    // 
