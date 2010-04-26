@@ -10,7 +10,7 @@ global string $ArnoldMeshAttributes[] =
    "diffuse_visibility",      "Visible In Diffuse",      "1",        "0",  "1",           "0",  "1",        "",
    "glossy_visibility",       "Visible In Glossy",       "1",        "0",  "1",           "0",  "1",        "",
    "subdiv_type",             "Subdivision Surface",     "0",        "0",  "1",           "0",  "1",        "SubdivChange",
-   "subdiv_iterations",       "Iterations",              "1",        "1",  "100",         "1",  "10",       "",
+   "subdiv_iterations",       "Iterations",              "1",        "0",  "100",         "0",  "10",       "",
    "subdiv_pixel_error",      "Pixel Error",             "0",        "0",  "50",          "0",  "10",       "",
    "sss_use_gi",              "Use GI for SSS",          "1",        "0",  "1",           "0",  "1",        "",
    "sss_max_samples",         "Max. Samples for SSS",    "100000",   "0",  "1000000000",  "0",  "1000000",  "",
