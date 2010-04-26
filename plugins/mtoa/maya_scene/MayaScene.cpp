@@ -78,16 +78,13 @@ MStatus CMayaScene::ExportScene(AtUInt step)
          continue;
       }
       
-      // Find if the node is directly instanced ( hence the false parameter )
-      bool instancedDag = dagIterator.isInstanced(false);
+      // Find if the node is instanced
+      bool instancedDag = dagIterator.isInstanced(true);
       if (instancedDag)
       {
          // once we find an instanced object, we export all instances
          // so if step is 0, we do not create again the instance if it's already created
-         MFnDagNode dagNodeTransform(dagPath.transform());
-         MDagPath   dagPathTransform;
-         dagNodeTransform.getPath(dagPathTransform);
-         if( (AiNodeLookUpByName(dagPathTransform.partialPathName().asChar())) && ( step == 0 ))
+         if( (AiNodeLookUpByName(dagPath.fullPathName().asChar())) && ( step == 0 ))
          {
             dagIterator.prune();
             continue;
@@ -150,15 +147,17 @@ MStatus CMayaScene::ExportScene(AtUInt step)
          }
          else
          {
-            // if its an instance, get all the instances and export them
+            // if its a direct instance, get all the instances and export them
             if (instancedDag)
             {
                MDagPathArray allInstances;
                dagIterator.getAllPaths(allInstances);
                // export the first one normally
+
                ExportMesh(allInstances[0].node(), allInstances[0], step);
                for (int i=1; i<allInstances.length(); i++)
                {
+                  // then instanced meshes
                   ExportMeshInstance(allInstances[i], allInstances[0], step);
                } 
             }

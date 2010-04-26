@@ -300,16 +300,13 @@ void CMayaScene::ExportMesh(MObject mayaMesh, const MDagPath& dagPath, AtUInt st
    bool customAttributes = (status == MS::kSuccess);
 
    // we need to get the matrix from the transform node
-   MFnDagNode dagNodeTransform(dagPath.transform());
-   MDagPath   dagPathTransform;
-   dagNodeTransform.getPath(dagPathTransform);
-   GetMatrix(matrix, dagPathTransform);
+   GetMatrix(matrix, dagPath);
 
    if (step == 0)
    {
       polymesh = AiNode("polymesh");
 
-      AiNodeSetStr(polymesh, "name", dagPathTransform.partialPathName().asChar());
+      AiNodeSetStr(polymesh, "name", dagPath.fullPathName().asChar());
 
       if (mb)
       {
@@ -391,7 +388,7 @@ void CMayaScene::ExportMesh(MObject mayaMesh, const MDagPath& dagPath, AtUInt st
    }
    else
    {
-      polymesh = AiNodeLookUpByName(dagPathTransform.partialPathName().asChar());
+      polymesh = AiNodeLookUpByName(dagPath.fullPathName().asChar());
 
       if (mb)
       {
@@ -416,24 +413,14 @@ void CMayaScene::ExportMeshInstance(const MDagPath& dagPath, const MDagPath& mas
    MFloatVector vector;
    AtNode* instanceNode = NULL;
    MFnDagNode fnDagNodeInstance(dagPath);
-   MFnDagNode fnDagNodeMaster(masterInstance.transform());
-   AtNode* masterNode = AiNodeLookUpByName(fnDagNodeMaster.partialPathName().asChar());
+   AtNode* masterNode = AiNodeLookUpByName(masterInstance.fullPathName().asChar());
 
    bool mb = m_motionBlurData.enabled &&
              m_fnArnoldRenderOptions->findPlug("mb_objects_enable").asBool() &&
              fnDagNodeInstance.findPlug("motionBlur").asBool();
 
-   // we need to get the matrix from the transform node
-   MFnDagNode dagNodeTransform(dagPath.transform());
-   MDagPath   dagPathTransform;
-   dagNodeTransform.getPath(dagPathTransform);
-
-   MFnDagNode dagNodeMasterTransform(masterInstance.transform());
-   MDagPath   dagPathMasterTransform;
-   dagNodeMasterTransform.getPath(dagPathMasterTransform);
-
-   GetMatrix(matrix, dagPathTransform);
-   GetMatrix(masterMatrix, dagPathMasterTransform);
+   GetMatrix(matrix, dagPath);
+   GetMatrix(masterMatrix, masterInstance);
    AiM4Invert(masterMatrix,masterMatrixInv);
    AiM4Mult(matrix, matrix, masterMatrixInv);
 
@@ -442,7 +429,7 @@ void CMayaScene::ExportMeshInstance(const MDagPath& dagPath, const MDagPath& mas
       int instanceNum = dagPath.isInstanced() ? dagPath.instanceNumber() : 0;
 
       instanceNode = AiNode("ginstance");
-      AiNodeSetStr(instanceNode, "name", dagPathTransform.partialPathName().asChar());
+      AiNodeSetStr(instanceNode, "name", dagPath.fullPathName().asChar());
 
       if (mb)
       {
@@ -504,7 +491,7 @@ void CMayaScene::ExportMeshInstance(const MDagPath& dagPath, const MDagPath& mas
    }
    else
    {
-      instanceNode = AiNodeLookUpByName(dagPathTransform.partialPathName().asChar());
+      instanceNode = AiNodeLookUpByName(dagPath.fullPathName().asChar());
 
       if (mb)
       {
