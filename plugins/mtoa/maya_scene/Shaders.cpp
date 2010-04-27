@@ -107,7 +107,7 @@ MObject CMayaScene::GetNodeShader(MObject dagNode, int instanceNum)
       return MObject::kNullObj;
    }
 
-   MObject shadingGroup(connections[instanceNum].node());
+   MObject shadingGroup(connections[0].node());
 
    fnDGNode.setObject(shadingGroup);
 
@@ -117,7 +117,7 @@ MObject CMayaScene::GetNodeShader(MObject dagNode, int instanceNum)
 
    shaderPlug.connectedTo(connections, true, false);
 
-   return connections[instanceNum].node();
+   return connections[0].node();
 }
 
 AtNode* CMayaScene::ExportArnoldShader(MObject mayaShader, MString arnoldShader)

@@ -49,6 +49,10 @@ MStatus CMayaScene::ExportScene(AtUInt step)
    MDagPath dagPath;
    MItDag   dagIterCameras(MItDag::kDepthFirst, MFn::kCamera);
 
+   // Since arnold does not support a ginstance pointing to another ginstance
+   // we need to keep track of which nodes , in arnold, are the "master" ones
+   MDagPathArray masterInstances;
+
    // First we export all cameras
    for (dagIterCameras.reset(); (!dagIterCameras.isDone()); dagIterCameras.next())
    {
@@ -81,16 +85,6 @@ MStatus CMayaScene::ExportScene(AtUInt step)
       
       // Find if the node is instanced
       bool instancedDag = dagIterator.isInstanced(true);
-      if (instancedDag)
-      {
-         // once we find an instanced object, we export all instances
-         // so if step is 0, we do not create again the instance if it's already created
-         if( (AiNodeLookUpByName(dagPath.fullPathName().asChar())) && ( step == 0 ))
-         {
-            dagIterator.prune();
-            continue;
-         }
-      }
 
       // Lights
       if (dagIterator.item().hasFn(MFn::kLight))
@@ -110,7 +104,6 @@ MStatus CMayaScene::ExportScene(AtUInt step)
             return status;
          }
 
-         // currently only non-instanced NURBS are supported
          if (!instancedDag)
          {
             MFnMeshData meshData;
@@ -137,31 +130,55 @@ MStatus CMayaScene::ExportScene(AtUInt step)
             MDagPathArray allInstances;
             dagIterator.getAllPaths(allInstances);
 
-            MFnMeshData meshData;
-            MObject     meshFromNURBS;
-            MObject     meshDataObject = meshData.create();
-
-            MFnNurbsSurface surface(allInstances[0], &status);
-
-            meshFromNURBS = surface.tesselate(MTesselationParams::fsDefaultTesselationParams, meshDataObject);
-            // in order to get displacement, we need a couple of attributes
-            MFnNumericAttribute  nAttr;   
-
-            MObject subdiv_type = nAttr.create("subdiv_type", "sdbt", MFnNumericData::kInt, 1);
-            surface.addAttribute(subdiv_type);
-            MObject subdiv_iterations = nAttr.create("subdiv_iterations", "sdbit", MFnNumericData::kInt, 1);
-            surface.addAttribute(subdiv_iterations);
-            MObject subdiv_adaptive_metric = nAttr.create("subdiv_adaptive_metric", "sdbam", MFnNumericData::kInt, 1);
-            surface.addAttribute(subdiv_adaptive_metric);
-            MObject subdiv_pixel_error = nAttr.create("subdiv_pixel_error", "sdbpe", MFnNumericData::kInt, 0);
-            surface.addAttribute(subdiv_pixel_error);
-
-            // export the first one normally
-            ExportMesh(meshFromNURBS, allInstances[0], step);
-            for (int i=1; i<allInstances.length(); i++)
+            // check if there is a created master node
+            bool thereIsMaster = false;
+            MDagPath masterDag;
+            for (int i=0; ((i<masterInstances.length())&&(!thereIsMaster)); i++)
             {
-               // then instanced nurbs
-               ExportMeshInstance(allInstances[i], allInstances[0], step);
+               for (int j=0; ((j<allInstances.length())&&(!thereIsMaster)); j++)
+               {
+                  // if there is a master already created, break
+                  if (allInstances[j]==masterInstances[i])
+                  {
+                     masterDag = masterInstances[j];
+                     thereIsMaster = true; 
+                  }
+               }
+            }
+
+            // there is no masternode yet created, we create the first one
+            if(!thereIsMaster)
+            {
+               // make this one the master in the masters array
+               masterInstances.append(dagPath);
+
+               MFnMeshData meshData;
+               MObject     meshFromNURBS;
+               MObject     meshDataObject = meshData.create();
+
+               MFnNurbsSurface surface(dagPath, &status);
+
+               meshFromNURBS = surface.tesselate(MTesselationParams::fsDefaultTesselationParams, meshDataObject);
+               // in order to get displacement, we need a couple of attributes
+               MFnNumericAttribute  nAttr;   
+
+               MObject subdiv_type = nAttr.create("subdiv_type", "sdbt", MFnNumericData::kInt, 1);
+               surface.addAttribute(subdiv_type);
+               MObject subdiv_iterations = nAttr.create("subdiv_iterations", "sdbit", MFnNumericData::kInt, 1);
+               surface.addAttribute(subdiv_iterations);
+               MObject subdiv_adaptive_metric = nAttr.create("subdiv_adaptive_metric", "sdbam", MFnNumericData::kInt, 1);
+               surface.addAttribute(subdiv_adaptive_metric);
+               MObject subdiv_pixel_error = nAttr.create("subdiv_pixel_error", "sdbpe", MFnNumericData::kInt, 0);
+               surface.addAttribute(subdiv_pixel_error);
+
+               // export the first one normally
+               // check if there is a master instance created
+               ExportMesh(meshFromNURBS, dagPath, step);
+            }
+            // there is already a master, so we create an instance
+            else
+            {
+               ExportMeshInstance(dagPath, masterDag, step);
             } 
          }
       }
@@ -171,10 +188,11 @@ MStatus CMayaScene::ExportScene(AtUInt step)
       {
          unsigned int      numMeshGroups;
          MFnDependencyNode fnDGNode(dagIterator.item());
+      int instanceNum = dagPath.isInstanced() ? dagPath.instanceNumber() : 0;
 
          MPlug plug(dagIterator.item(), fnDGNode.attribute("instObjGroups"));
 
-         if (plug.elementByLogicalIndex(0).isConnected())
+         if (plug.elementByLogicalIndex(instanceNum).isConnected())
          {
             numMeshGroups = 1;
          }
@@ -184,7 +202,7 @@ MStatus CMayaScene::ExportScene(AtUInt step)
             MObjectArray shaders;
             MIntArray    indices;
 
-            mesh.getConnectedShaders(0, shaders, indices);
+            mesh.getConnectedShaders(instanceNum, shaders, indices);
 
             numMeshGroups = shaders.length();
          }
@@ -196,18 +214,40 @@ MStatus CMayaScene::ExportScene(AtUInt step)
          }
          else
          {
-            // if its a instance, get all the instances and export them
+            // if its an instance
             if (instancedDag)
             {
                MDagPathArray allInstances;
                dagIterator.getAllPaths(allInstances);
 
-               // export the first one normally
-               ExportMesh(allInstances[0].node(), allInstances[0], step);
-               for (int i=1; i<allInstances.length(); i++)
+               // check if there is a created master node
+               bool thereIsMaster = false;
+               MDagPath masterDag;
+               for (int i=0; ((i<masterInstances.length())&&(!thereIsMaster)); i++)
                {
-                  // then instanced meshes
-                  ExportMeshInstance(allInstances[i], allInstances[0], step);
+                  for (int j=0; ((j<allInstances.length())&&(!thereIsMaster)); j++)
+                  {
+                     // if there is a master already created, break
+                     if (allInstances[j]==masterInstances[i])
+                     {
+                        masterDag = masterInstances[i];
+                        thereIsMaster = true; 
+                     }
+                  }
+               }
+
+               // there is no masternode yet created, we create the first one
+               if(!thereIsMaster)
+               {
+                  // make this one the master in the masters array
+                  masterInstances.append(dagPath);
+
+                  ExportMesh(dagIterator.item(), dagPath, step);
+               } 
+               // instanced meshes
+               else
+               {
+                  ExportMeshInstance(dagPath, masterDag, step);
                } 
             }
             else

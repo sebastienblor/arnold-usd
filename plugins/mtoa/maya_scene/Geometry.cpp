@@ -82,7 +82,7 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
 
          fnMesh.getConnectedShaders(instanceNum, shaders, indices);
 
-         for (int J = 0; (J < (int) shaders.length()); ++J)
+         for (int J = 0; (J < (int) shaders.length()); J++)
          {
             MPlugArray        connections;
             MFnDependencyNode fnDGNode(shaders[J]);
@@ -90,12 +90,12 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
 
             shaderPlug.connectedTo(connections, true, false);
 
-            meshShaders.push_back(ExportShader(connections[instanceNum].node()));
+            meshShaders.push_back(ExportShader(connections[0].node()));
          }
 
          multiShader = true;
 
-         AiNodeSetArray(polymesh, "shader", AiArrayConvert(meshShaders.size(), 1, AI_TYPE_POINTER, &meshShaders[instanceNum], TRUE));
+         AiNodeSetArray(polymesh, "shader", AiArrayConvert(meshShaders.size(), 1, AI_TYPE_POINTER, &meshShaders[0], TRUE));
       }
 
       //
@@ -112,7 +112,7 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
       // are there any connections to instObjGroups?
       if (connections.length() > 0)
       {
-         MObject shadingGroup(connections[instanceNum].node());
+         MObject shadingGroup(connections[0].node());
          fnDGNode.setObject(shadingGroup);
          MPlug shaderPlug(shadingGroup, fnDGNode.attribute("displacementShader"));
          connections.clear();
@@ -454,7 +454,7 @@ void CMayaScene::ExportMeshInstance(const MDagPath& dagPath, const MDagPath& mas
       }
 
       AiNodeSetPtr(instanceNode, "node", masterNode);
-
+     
       //
       // SHADERS
       //
