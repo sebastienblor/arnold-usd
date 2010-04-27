@@ -13,6 +13,7 @@
 #include <maya/MMatrix.h>
 #include <maya/MPlug.h>
 #include <maya/MSelectionList.h>
+#include <maya/MFnNumericAttribute.h>
 #include <maya/MDagPathArray.h>
 
 MStatus CMayaScene::ExportToArnold()
@@ -109,12 +110,60 @@ MStatus CMayaScene::ExportScene(AtUInt step)
             return status;
          }
 
-         MFnMeshData meshData;
-         MObject     meshFromNURBS;
-         MObject     meshDataObject = meshData.create();
+         // currently only non-instanced NURBS are supported
+         if (!instancedDag)
+         {
+            MFnMeshData meshData;
+            MObject     meshFromNURBS;
+            MObject     meshDataObject = meshData.create();
 
-         meshFromNURBS = surface.tesselate(MTesselationParams::fsDefaultTesselationParams, meshDataObject);
-         ExportMesh(meshFromNURBS, dagPath, step);
+            meshFromNURBS = surface.tesselate(MTesselationParams::fsDefaultTesselationParams, meshDataObject);
+            // in order to get displacement, we need a couple of attributes
+            MFnNumericAttribute  nAttr;   
+
+            MObject subdiv_type = nAttr.create("subdiv_type", "sdbt", MFnNumericData::kInt, 1);
+            surface.addAttribute(subdiv_type);
+            MObject subdiv_iterations = nAttr.create("subdiv_iterations", "sdbit", MFnNumericData::kInt, 1);
+            surface.addAttribute(subdiv_iterations);
+            MObject subdiv_adaptive_metric = nAttr.create("subdiv_adaptive_metric", "sdbam", MFnNumericData::kInt, 1);
+            surface.addAttribute(subdiv_adaptive_metric);
+            MObject subdiv_pixel_error = nAttr.create("subdiv_pixel_error", "sdbpe", MFnNumericData::kInt, 0);
+            surface.addAttribute(subdiv_pixel_error);
+
+            ExportMesh(meshFromNURBS, dagPath, step);
+         }
+         else
+         {
+            MDagPathArray allInstances;
+            dagIterator.getAllPaths(allInstances);
+
+            MFnMeshData meshData;
+            MObject     meshFromNURBS;
+            MObject     meshDataObject = meshData.create();
+
+            MFnNurbsSurface surface(allInstances[0], &status);
+
+            meshFromNURBS = surface.tesselate(MTesselationParams::fsDefaultTesselationParams, meshDataObject);
+            // in order to get displacement, we need a couple of attributes
+            MFnNumericAttribute  nAttr;   
+
+            MObject subdiv_type = nAttr.create("subdiv_type", "sdbt", MFnNumericData::kInt, 1);
+            surface.addAttribute(subdiv_type);
+            MObject subdiv_iterations = nAttr.create("subdiv_iterations", "sdbit", MFnNumericData::kInt, 1);
+            surface.addAttribute(subdiv_iterations);
+            MObject subdiv_adaptive_metric = nAttr.create("subdiv_adaptive_metric", "sdbam", MFnNumericData::kInt, 1);
+            surface.addAttribute(subdiv_adaptive_metric);
+            MObject subdiv_pixel_error = nAttr.create("subdiv_pixel_error", "sdbpe", MFnNumericData::kInt, 0);
+            surface.addAttribute(subdiv_pixel_error);
+
+            // export the first one normally
+            ExportMesh(meshFromNURBS, allInstances[0], step);
+            for (int i=1; i<allInstances.length(); i++)
+            {
+               // then instanced nurbs
+               ExportMeshInstance(allInstances[i], allInstances[0], step);
+            } 
+         }
       }
 
       // Polygons
@@ -147,13 +196,13 @@ MStatus CMayaScene::ExportScene(AtUInt step)
          }
          else
          {
-            // if its a direct instance, get all the instances and export them
+            // if its a instance, get all the instances and export them
             if (instancedDag)
             {
                MDagPathArray allInstances;
                dagIterator.getAllPaths(allInstances);
-               // export the first one normally
 
+               // export the first one normally
                ExportMesh(allInstances[0].node(), allInstances[0], step);
                for (int i=1; i<allInstances.length(); i++)
                {

@@ -102,26 +102,38 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
       // DISPLACEMENT
       //
 
-      MObjectArray      shaderDisp;
-      fnMesh.getConnectedShaders(instanceNum, shaderDisp, indices);
-
       MPlugArray        connections;
-      MFnDependencyNode fnDGNode(shaderDisp[0]);
-      MPlug             shaderPlug(shaderDisp[0], fnDGNode.attribute("displacementShader"));
+      MFnDependencyNode fnDGNode(fnDagNode);
 
-      shaderPlug.connectedTo(connections, true, false);
+      MPlug plug(dagPath.node(), fnDGNode.attribute("instObjGroups"));
 
-      if (connections.length() == 1)
+      plug.elementByLogicalIndex(instanceNum).connectedTo(connections, false, true);
+
+      // are there any connections to instObjGroups?
+      if (connections.length() > 0)
       {
-         MFnDependencyNode dispNode(connections[0].node());
+         MObject shadingGroup(connections[instanceNum].node());
+         fnDGNode.setObject(shadingGroup);
+         MPlug shaderPlug(shadingGroup, fnDGNode.attribute("displacementShader"));
+         connections.clear();
+         shaderPlug.connectedTo(connections, true, false);
 
-         AiNodeSetFlt(polymesh, "disp_height", dispNode.findPlug("disp_height").asFloat());
-         AiNodeSetFlt(polymesh, "disp_zero_value", dispNode.findPlug("disp_zero_value").asFloat());
-         AiNodeSetBool(polymesh, "autobump", dispNode.findPlug("autobump").asBool());
+         // are there any connections to displacementShader?
+         if (connections.length() > 0)
+         {
+            MObjectArray      shaderDisp;
+            fnMesh.getConnectedShaders(instanceNum, shaderDisp, indices);
 
-         dispNode.findPlug("disp_map").connectedTo(connections,true,false);
-         AtNode* dispImage(ExportShader(connections[0].node()));
-         AiNodeSetPtr(polymesh, "disp_map", dispImage);
+            MFnDependencyNode dispNode(connections[0].node());
+
+            AiNodeSetFlt(polymesh, "disp_height", dispNode.findPlug("disp_height").asFloat());
+            AiNodeSetFlt(polymesh, "disp_zero_value", dispNode.findPlug("disp_zero_value").asFloat());
+            AiNodeSetBool(polymesh, "autobump", dispNode.findPlug("autobump").asBool());
+
+            dispNode.findPlug("disp_map").connectedTo(connections,true,false);
+            AtNode* dispImage(ExportShader(connections[0].node()));
+            AiNodeSetPtr(polymesh, "disp_map", dispImage);
+         }
       }
    }
 
@@ -299,7 +311,6 @@ void CMayaScene::ExportMesh(MObject mayaMesh, const MDagPath& dagPath, AtUInt st
    fnDagNode.findPlug("subdiv_type", &status);
    bool customAttributes = (status == MS::kSuccess);
 
-   // we need to get the matrix from the transform node
    GetMatrix(matrix, dagPath);
 
    if (step == 0)
@@ -475,19 +486,21 @@ void CMayaScene::ExportMeshInstance(const MDagPath& dagPath, const MDagPath& mas
          }
       }
 
-      MPlugArray        connections;
-      MFnDependencyNode fnDGNode(shaders[0]);
-      MPlug             shaderPlug(shaders[0], fnDGNode.attribute("surfaceShader"));
-      MPlug             shaderPlugMaster(shadersMaster[0], fnDGNode.attribute("surfaceShader"));
-
-      shaderPlug.connectedTo(connections, true, false);
-
-      if ((shaderPlug != shaderPlugMaster) || (!equalShaderArrays))
+      if ( (shaders.length()>0) && (shadersMaster.length()>0) )
       {
-         AtNode* shader = ExportShader(connections[0].node());
-         AiNodeSetPtr(instanceNode, "shader", shader);
-      }
+         MPlugArray        connections;
+         MFnDependencyNode fnDGNode(shaders[0]);
+         MPlug             shaderPlug(shaders[0], fnDGNode.attribute("surfaceShader"));
+         MPlug             shaderPlugMaster(shadersMaster[0], fnDGNode.attribute("surfaceShader"));
 
+         shaderPlug.connectedTo(connections, true, false);
+
+         if ((shaderPlug != shaderPlugMaster) || (!equalShaderArrays))
+         {
+            AtNode* shader = ExportShader(connections[0].node());
+            AiNodeSetPtr(instanceNode, "shader", shader);
+         }
+      }
    }
    else
    {
