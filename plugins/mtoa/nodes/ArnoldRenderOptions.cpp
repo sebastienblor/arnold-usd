@@ -1,5 +1,8 @@
 
 #include "ArnoldRenderOptions.h"
+#include "nodes/ShaderUtils.h"
+
+#include <ai_universe.h>
 
 #include <maya/MFnEnumAttribute.h>
 #include <maya/MFnNumericAttribute.h>
@@ -81,13 +84,18 @@ MStatus CArnoldRenderOptionsNode::initialize()
    MFnStringData sData;
    MFnTypedAttribute tAttr;
 
-   s_arnoldRenderImageFormat = eAttr.create("arnoldRenderImageFormat", "arnif", 0);
-   nAttr.setKeyable(false);
-   eAttr.addField("OpenEXR", 0);
-   eAttr.addField("Tiff", 1);
-   eAttr.addField("Jpg", 2);
-   eAttr.addField("Png", 3);
-   addAttribute(s_arnoldRenderImageFormat);
+   {
+      s_arnoldRenderImageFormat = eAttr.create("arnoldRenderImageFormat", "arnif", 0);
+      AtNodeEntryIterator* it = AiUniverseGetNodeEntryIterator(AI_NODE_DRIVER);
+      int i = 0;
+      while (!AiNodeEntryIteratorFinished(it))
+      {
+         AtNodeEntry* nentry = AiNodeEntryIteratorGetNext(it);
+
+         eAttr.addField(AiNodeEntryGetName(nentry), i++);
+      }
+      addAttribute(s_arnoldRenderImageFormat);
+   }
 
    s_arnoldRenderImageCompression = eAttr.create("compression","arnic",0);
    nAttr.setKeyable(false);
@@ -144,18 +152,7 @@ MStatus CArnoldRenderOptionsNode::initialize()
    nAttr.setSoftMax(16);
    addAttribute(s_threads);
 
-   s_bucket_scanning = eAttr.create("bucket_scanning", "bktsc", 0);
-   nAttr.setKeyable(false);
-   eAttr.addField("Top Down", 0);
-   eAttr.addField("Bottom Up", 1);
-   eAttr.addField("Left To Right", 2);
-   eAttr.addField("Right To Left", 3);
-   eAttr.addField("Random", 4);
-   eAttr.addField("Woven", 5);
-   eAttr.addField("Spiral", 6);
-   eAttr.addField("Hilbert", 7);
-   eAttr.addField("List", 8);
-   addAttribute(s_bucket_scanning);
+   MAKE_ENUM(s_bucket_scanning, "bucket_scanning", "bktsc", 0, "options", "bucket_scanning");
 
    s_bucket_size = nAttr.create("bucket_size", "bktsz", MFnNumericData::kInt, 64);
    nAttr.setKeyable(false);
@@ -218,25 +215,19 @@ MStatus CArnoldRenderOptionsNode::initialize()
    nAttr.setSoftMax(100);
    addAttribute(s_AA_sample_clamp);
 
-   s_filter_type = eAttr.create("filter_type", "flttyp", 9);
-   nAttr.setKeyable(false);
-   eAttr.addField("box_filter",0);
-   eAttr.addField("catrom2d_filter",1);
-   eAttr.addField("catrom_filter",2);
-   eAttr.addField("closest_filter",3);
-   eAttr.addField("cone_filter",4);
-   eAttr.addField("cook_filter",5);
-   eAttr.addField("cubic_filter",6);
-   eAttr.addField("disk_filter",7);
-   eAttr.addField("farthest_filter",8);
-   eAttr.addField("gaussian_filter",9);
-   eAttr.addField("heatmap_filter",10);
-   eAttr.addField("mitnet_filter",11);
-   eAttr.addField("sinc_filter",12);
-   eAttr.addField("triangle_filter",13);
-   eAttr.addField("variance_filter",14);
-   eAttr.addField("video_filter",15);
-   addAttribute(s_filter_type);
+   {
+      s_filter_type = eAttr.create("filter_type", "flttyp", 0);
+      AtNodeEntryIterator* it = AiUniverseGetNodeEntryIterator(AI_NODE_FILTER);
+      int i = 0;
+      while (!AiNodeEntryIteratorFinished(it))
+      {
+         AtNodeEntry* nentry = AiNodeEntryIteratorGetNext(it);
+
+         eAttr.addField(AiNodeEntryGetName(nentry), i++);
+      }
+      eAttr.setDefault("gaussian_filter");
+      addAttribute(s_filter_type);
+   }
 
    s_filter_width = nAttr.create("filter_width", "fltwdth", MFnNumericData::kFloat, 2.0f);
    nAttr.setKeyable(false);
@@ -400,12 +391,7 @@ MStatus CArnoldRenderOptionsNode::initialize()
    nAttr.setKeyable(false);
    addAttribute(s_sss_subpixel_cache);
 
-   s_show_samples = eAttr.create("show_samples", "sssshs", 0);
-   nAttr.setKeyable(false);
-   eAttr.addField("off",0);
-   eAttr.addField("sss_points",1);
-   eAttr.addField("sss_irradiance",2);
-   addAttribute(s_show_samples);
+   MAKE_ENUM(s_show_samples, "show_samples", "sssshs", 0, "options", "show_samples");
 
    s_max_subdivisions = nAttr.create("max_subdivisions", "maxs", MFnNumericData::kInt, 999);
    nAttr.setKeyable(false);
