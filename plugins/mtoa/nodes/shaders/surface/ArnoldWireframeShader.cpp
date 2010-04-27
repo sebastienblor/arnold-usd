@@ -44,11 +44,7 @@ MStatus CArnoldWireframeShaderNode::initialize()
    MFnEnumAttribute eAttr;
    MFnNumericAttribute  nAttr;
 
-   s_edge_type = eAttr.create("edge_type", "et", 0);
-   eAttr.addField("triangles", 0);
-   eAttr.addField("polygons", 1);
-   eAttr.addField("patches", 2);
-   addAttribute(s_edge_type);
+   MAKE_ENUM(s_edge_type, "edge_type", "et", 0, "wireframe", "edge_type");
 
    MAKE_COLOR(s_fill_color, "fill_color", "fc", 1, 1, 1);
    MAKE_INPUT(nAttr, s_fill_color);

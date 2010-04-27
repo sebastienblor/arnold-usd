@@ -90,12 +90,7 @@ MStatus CArnoldSkyShaderNode::initialize()
    nAttr.setMax(10);
    MAKE_INPUT(nAttr, s_intensity);
 
-   s_format = eAttr.create("format", "for", 1);
-   eAttr.addField("mirrored_ball", 0);
-   eAttr.addField("angular", 1);
-   eAttr.addField("latlong", 2);
-   eAttr.addField("cubic", 3);
-   addAttribute(s_format);
+   MAKE_ENUM(s_format, "format", "for", 1, "sky", "format");
 
    s_opaque_alpha = nAttr.create("opaque_alpha", "oa", MFnNumericData::kBoolean, 0);
    MAKE_INPUT(nAttr, s_opaque_alpha);

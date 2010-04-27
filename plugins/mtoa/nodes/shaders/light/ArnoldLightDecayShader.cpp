@@ -50,12 +50,7 @@ MStatus CArnoldLightDecayShaderNode::initialize()
    nAttr.setMax(1000);
    MAKE_INPUT(nAttr, s_decay_radius);
 
-   s_decay_type = eAttr.create("decay_type", "dtype", 0);
-   eAttr.addField("constant", 0);
-   eAttr.addField("linear", 1);
-   eAttr.addField("quadratic", 2);
-   eAttr.addField("cubic", 3);
-   addAttribute(s_decay_type);
+   MAKE_ENUM(s_decay_type, "decay_type", "dtype", 0, "light_decay", "decay_type");
 
    s_far_end = nAttr.create("far_end", "fend", MFnNumericData::kFloat, 0);
    nAttr.setMin(0);

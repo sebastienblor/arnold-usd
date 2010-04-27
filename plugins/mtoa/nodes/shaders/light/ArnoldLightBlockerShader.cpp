@@ -51,6 +51,7 @@ MStatus CArnoldLightBlockerShaderNode::initialize()
    s_geometry_matrix = mAttr.create("geometry_matrix", "gmat", MFnMatrixAttribute::kFloat);
    MAKE_INPUT(mAttr, s_geometry_matrix);
 
+   MAKE_ENUM(s_geometry_type, "geometry_type", "gtype", 0, "light_blocker", "geometry_type");
    s_geometry_type = eAttr.create("geometry_type", "gtype", 0);
    eAttr.addField("box", 0);
    eAttr.addField("sphere", 1);
@@ -73,14 +74,7 @@ MStatus CArnoldLightBlockerShaderNode::initialize()
    nAttr.setMax(1000);
    MAKE_INPUT(nAttr, s_ramp);
 
-   s_ramp_axis = eAttr.create("ramp_axis", "rax", 0);
-   eAttr.addField("x", 0);
-   eAttr.addField("y", 1);
-   eAttr.addField("z", 2);
-   eAttr.addField("X", 3);
-   eAttr.addField("Y", 4);
-   eAttr.addField("Z", 5);
-   addAttribute(s_ramp_axis);
+   MAKE_ENUM(s_ramp_axis, "ramp_axis", "rax", 0, "light_blocker", "ramp_axis");
 
    s_roundness = nAttr.create("roundness", "ro", MFnNumericData::kFloat, 0);
    nAttr.setMin(0);

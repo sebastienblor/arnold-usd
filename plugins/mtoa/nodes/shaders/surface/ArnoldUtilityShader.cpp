@@ -41,28 +41,9 @@ MStatus CArnoldUtilityShaderNode::initialize()
    MAKE_COLOR(s_color, "color", "col", 1, 1, 1);
    MAKE_INPUT(nAttr, s_color);
 
-   s_color_mode = eAttr.create("color_mode", "cm", 0);
-   eAttr.addField("color", 0);
-   eAttr.addField("ng", 1);
-   eAttr.addField("n", 2);
-   eAttr.addField("bary", 3);
-   eAttr.addField("uv", 4);
-   eAttr.addField("dpdu", 5);
-   eAttr.addField("dpdv", 6);
-   eAttr.addField("p", 7);
-   eAttr.addField("prims", 8);
-   eAttr.addField("wire", 9);
-   eAttr.addField("polywire", 10);
-   eAttr.addField("obj", 11);
-   eAttr.addField("edgelength", 12);
-   eAttr.addField("floatgrid", 13);
-   addAttribute(s_color_mode);
+   MAKE_ENUM(s_color_mode, "color_mode", "cm", 0, "utility", "color_mode");
 
-   s_shade_mode = eAttr.create("shade_mode", "sm", 0);
-   eAttr.addField("ndoteye", 0);
-   eAttr.addField("lambert", 1);
-   eAttr.addField("flat", 2);
-   addAttribute(s_shade_mode);
+   MAKE_ENUM(s_shade_mode, "shade_mode", "sm", 0, "utility", "shade_mode");
 
    // OUTPUT ATTRIBUTES
 

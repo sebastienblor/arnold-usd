@@ -89,13 +89,7 @@ MStatus CArnoldVolumeScatteringShaderNode::initialize()
    nAttr.setMax(10);
    MAKE_INPUT(nAttr, s_mscattering_samples);
 
-   s_phase_function = eAttr.create("phase_function", "pf", 0);
-   eAttr.addField("isotropic", 0);
-   eAttr.addField("rayleigh", 1);
-   eAttr.addField("mie_hazy", 2);
-   eAttr.addField("mie_murky", 3);
-   eAttr.addField("hg", 4);
-   addAttribute(s_phase_function);
+   MAKE_ENUM(s_phase_function, "phase_function", "pf", 0, "volume_scattering", "phase_function");
 
    MAKE_COLOR(s_rgb_attenuation, "rgb_attenuation", "rgbatt", 1, 1, 1);
    MAKE_INPUT(nAttr, s_rgb_attenuation);
@@ -108,21 +102,7 @@ MStatus CArnoldVolumeScatteringShaderNode::initialize()
    nAttr.setMax(64);
    MAKE_INPUT(nAttr, s_samples);
 
-   s_sampling_pattern = eAttr.create("sampling_pattern", "sp", 11);
-   eAttr.addField("regular", 0);
-   eAttr.addField("random", 1);
-   eAttr.addField("jittered", 2);
-   eAttr.addField("multi_jittered", 3);
-   eAttr.addField("halton", 4);
-   eAttr.addField("hammersley", 5);
-   eAttr.addField("zaremba", 6);
-   eAttr.addField("larcher", 7);
-   eAttr.addField("poisson_bc", 8);
-   eAttr.addField("poisson_dr", 9);
-   eAttr.addField("dithered", 10);
-   eAttr.addField("non_uniform", 11);
-   eAttr.addField("nrooks", 12);
-   addAttribute(s_sampling_pattern);
+   MAKE_ENUM(s_sampling_pattern, "sampling_pattern", "sp", 11, "volume_scattering", "sampling_pattern");
 
    // OUTPUT ATTRIBUTES
 

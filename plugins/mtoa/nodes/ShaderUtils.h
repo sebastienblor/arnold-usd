@@ -1,6 +1,9 @@
 #ifndef SHADER_UTILS_H
 #define SHADER_UTILS_H
 
+#include <ai_params.h>
+#include <ai_node_entry.h>
+
 #define MAKE_INPUT(attr, name) \
    attr.setKeyable(true); \
    attr.setStorable(true);	\
@@ -49,5 +52,20 @@
 
 #define MAKE_POINT(attrib, name, shortname, defaultX, defaultY, defaultZ) \
    MAKE_VECTOR(attrib, name, shortname, defaultX, defaultY, defaultZ)
+
+#define MAKE_ENUM(attrib, name, shortname, default_value, arnold_node, arnold_param) \
+   attrib = eAttr.create(name, shortname, default_value); \
+   { \
+      const AtNodeEntry*  nentry = AiNodeEntryLookUp(arnold_node); \
+      const AtParamEntry* pentry = AiNodeEntryLookUpParameter(nentry, arnold_param); \
+      for (int i=0;;i++) \
+      { \
+         const char* enum_string = AiEnumGetString(AiParamGetEnum(pentry), i); \
+         if (!enum_string) \
+            break; \
+         eAttr.addField(enum_string, i); \
+      } \
+   } \
+   addAttribute(attrib);
 
 #endif // SHADER_UTILS_H

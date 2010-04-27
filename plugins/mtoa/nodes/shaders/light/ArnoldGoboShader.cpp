@@ -52,13 +52,7 @@ MStatus CArnoldGoboShaderNode::initialize()
    nAttr.setMax(10);
    MAKE_INPUT(nAttr, s_density);
 
-   s_filter_mode = eAttr.create("filter_mode", "fm", 0);
-   eAttr.addField("blend", 0);
-   eAttr.addField("replace", 1);
-   eAttr.addField("add", 2);
-   eAttr.addField("sub", 3);
-   eAttr.addField("mix", 4);
-   addAttribute(s_filter_mode);
+   MAKE_ENUM(s_filter_mode, "filter_mode", "fm", 0, "gobo", "filter_mode");
 
    MAKE_POINT2(s_offset, "offset", "off", 0, 0);
    MAKE_INPUT(nAttr, s_offset);
@@ -81,21 +75,9 @@ MStatus CArnoldGoboShaderNode::initialize()
    MAKE_COLOR(s_slidemap, "slidemap", "sl", 1, 1, 1);
    MAKE_INPUT(nAttr, s_slidemap);
 
-   s_wrap_s = eAttr.create("wrap_s", "ws", 2);
-   eAttr.addField("periodic", 0);
-   eAttr.addField("black", 1);
-   eAttr.addField("clamp", 2);
-   eAttr.addField("mirror", 3);
-   eAttr.addField("file", 4);
-   addAttribute(s_wrap_s);
+   MAKE_ENUM(s_wrap_s, "wrap_s", "ws", 2, "gobo", "wrap_s");
 
-   s_wrap_t = eAttr.create("wrap_t", "wt", 2);
-   eAttr.addField("periodic", 0);
-   eAttr.addField("black", 1);
-   eAttr.addField("clamp", 2);
-   eAttr.addField("mirror", 3);
-   eAttr.addField("file", 4);
-   addAttribute(s_wrap_t);
+   MAKE_ENUM(s_wrap_s, "wrap_t", "wt", 2, "gobo", "wrap_t");
 
    // OUTPUT ATTRIBUTES
 
