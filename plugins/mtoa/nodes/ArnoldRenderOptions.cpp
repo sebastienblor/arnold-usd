@@ -85,18 +85,13 @@ MStatus CArnoldRenderOptionsNode::initialize()
    MFnStringData sData;
    MFnTypedAttribute tAttr;
 
-   {
-      s_arnoldRenderImageFormat = eAttr.create("arnoldRenderImageFormat", "arnif", 0);
-      AtNodeEntryIterator* it = AiUniverseGetNodeEntryIterator(AI_NODE_DRIVER);
-      int i = 0;
-      while (!AiNodeEntryIteratorFinished(it))
-      {
-         AtNodeEntry* nentry = AiNodeEntryIteratorGetNext(it);
-
-         eAttr.addField(AiNodeEntryGetName(nentry), i++);
-      }
-      addAttribute(s_arnoldRenderImageFormat);
-   }
+   s_arnoldRenderImageFormat = eAttr.create("arnoldRenderImageFormat", "arnif", 0);
+   nAttr.setKeyable(false);
+   eAttr.addField("OpenEXR", 0);
+   eAttr.addField("Tiff", 1);
+   eAttr.addField("Jpg", 2);
+   eAttr.addField("Png", 3);
+   addAttribute(s_arnoldRenderImageFormat);
 
    s_arnoldRenderImageCompression = eAttr.create("compression","arnic",0);
    nAttr.setKeyable(false);
