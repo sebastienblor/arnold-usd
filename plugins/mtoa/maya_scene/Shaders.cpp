@@ -235,7 +235,7 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader)
    {
       shader = AiNode("image");
       
-      AiNodeSetStr(shader, "image_map", node.findPlug("fileTextureName").asString().asChar());
+      AiNodeSetStr(shader, "filename", node.findPlug("fileTextureName").asString().asChar());
    }
    else if (node.typeName() == "multiplyDivide")
    {

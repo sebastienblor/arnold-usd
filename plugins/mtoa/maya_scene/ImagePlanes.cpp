@@ -79,7 +79,7 @@ void CMayaScene::ExportImagePlanes(const MDagPath& dagPath, bool isRenderingCame
                // create a flat shader with the needed image
                AtNode* imagePlaneShader = AiNode("flat");
                AtNode* imagePlaneImage = AiNode("image");
-               AiNodeSetStr(imagePlaneImage, "image_map", imageName.asChar());
+               AiNodeSetStr(imagePlaneImage, "filename", imageName.asChar());
                AiNodeLink(imagePlaneImage, "color", imagePlaneShader);
                AiNodeLink(imagePlaneImage, "opacity", imagePlaneShader);
                AiNodeSetPtr(imagePlane, "shader", imagePlaneShader);
