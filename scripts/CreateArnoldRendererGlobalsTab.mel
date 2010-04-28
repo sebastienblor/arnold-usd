@@ -178,7 +178,7 @@ global proc CreateArnoldSamplingSettings()
          ss_AA_samples;
 
       attrControlGrp -label "Hemi Samples"
-         -attribute defaultArnoldRenderOptions.GI_hemi_samples
+         -attribute defaultArnoldRenderOptions.GI_diffuse_samples
          ss_hemi_samples;
 
       attrControlGrp -label "Glossy Samples"

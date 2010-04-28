@@ -29,7 +29,7 @@ MObject CArnoldRenderOptionsNode::s_abort_on_error;
 MObject CArnoldRenderOptionsNode::s_abort_on_license_fail;
 MObject CArnoldRenderOptionsNode::s_plugins_path;
 MObject CArnoldRenderOptionsNode::s_AA_samples;
-MObject CArnoldRenderOptionsNode::s_GI_hemi_samples;
+MObject CArnoldRenderOptionsNode::s_GI_diffuse_samples;
 MObject CArnoldRenderOptionsNode::s_GI_specular_samples;
 MObject CArnoldRenderOptionsNode::s_GI_sss_hemi_samples;
 MObject CArnoldRenderOptionsNode::s_use_sample_clamp;
@@ -186,13 +186,13 @@ MStatus CArnoldRenderOptionsNode::initialize()
    nAttr.setMax(100);
    addAttribute(s_AA_samples);
 
-   s_GI_hemi_samples = nAttr.create("GI_hemi_samples", "GIhemismpls", MFnNumericData::kInt, 2);
+   s_GI_diffuse_samples = nAttr.create("GI_diffuse_samples", "GIdiffsmpls", MFnNumericData::kInt, 2);
    nAttr.setKeyable(false);
    nAttr.setSoftMin(0);
    nAttr.setSoftMax(10);
    nAttr.setMin(0);
    nAttr.setMax(100);
-   addAttribute(s_GI_hemi_samples);
+   addAttribute(s_GI_diffuse_samples);
 
    s_GI_specular_samples = nAttr.create("GI_specular_samples", "GIspecsmpls", MFnNumericData::kInt, 2);
    nAttr.setKeyable(false);

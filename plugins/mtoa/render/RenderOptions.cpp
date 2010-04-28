@@ -181,7 +181,7 @@ void CRenderOptions::ProcessArnoldRenderOptions()
       m_plugins_path    = fnArnoldRenderOptions.findPlug("plugins_path").asString();
 
       m_AA_samples          = fnArnoldRenderOptions.findPlug("AA_samples").asInt();
-      m_GI_hemi_samples     = fnArnoldRenderOptions.findPlug("GI_hemi_samples").asInt();
+      m_GI_diffuse_samples  = fnArnoldRenderOptions.findPlug("GI_diffuse_samples").asInt();
       m_GI_specular_samples = fnArnoldRenderOptions.findPlug("GI_specular_samples").asInt();
       m_GI_sss_hemi_samples = fnArnoldRenderOptions.findPlug("GI_sss_hemi_samples").asInt();
       m_AA_sample_clamp     = fnArnoldRenderOptions.findPlug("use_sample_clamp").asBool() ? fnArnoldRenderOptions.findPlug("AA_sample_clamp").asFloat() : (float) AI_INFINITE;
@@ -241,7 +241,7 @@ void CRenderOptions::SetupRenderOptions() const
    AiNodeSetBool(AiUniverseGetOptions(), "abort_on_error", m_abort_on_error);
 
    AiNodeSetInt(AiUniverseGetOptions(), "AA_samples", m_AA_samples);
-   AiNodeSetInt(AiUniverseGetOptions(), "GI_hemi_samples", m_GI_hemi_samples);
+   AiNodeSetInt(AiUniverseGetOptions(), "GI_diffuse_samples", m_GI_diffuse_samples);
    AiNodeSetInt(AiUniverseGetOptions(), "GI_specular_samples", m_GI_specular_samples);
    AiNodeSetInt(AiUniverseGetOptions(), "GI_sss_hemi_samples", m_GI_sss_hemi_samples);
    AiNodeSetFlt(AiUniverseGetOptions(), "AA_sample_clamp", m_AA_sample_clamp);
