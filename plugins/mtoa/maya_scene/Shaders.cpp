@@ -267,15 +267,7 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader)
    }
    else if (node.typeName() == "blendColors")
    {
-      shader = AiNode("blend");
-   
-      AiNodeSetStr(shader, "name", node.name().asChar());
-
-      AiNodeSetInt(shader, "type", 0); // Always lerp based on blend value
-
-      ProcessShaderParameter(node, "color1", shader, "color2", AI_TYPE_RGBA);
-      ProcessShaderParameter(node, "color2", shader, "color1", AI_TYPE_RGBA);
-      ProcessShaderParameter(node, "blender", shader, "blend", AI_TYPE_FLOAT);
+      shader = ExportArnoldShader(mayaShader, "MayaBlendColors");
    }
    else
    {

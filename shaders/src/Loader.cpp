@@ -8,6 +8,7 @@ extern AtNodeMethods* MayaClampMtd;
 extern AtNodeMethods* MayaGammaCorrectMtd;
 extern AtNodeMethods* MayaConditionMtd;
 extern AtNodeMethods* MayaReverseMtd;
+extern AtNodeMethods* MayaBlendColorsMtd;
 
 node_loader
 {
@@ -45,6 +46,13 @@ node_loader
       node->methods     = MayaReverseMtd;
       node->output_type = AI_TYPE_RGB;
       node->name        = "MayaReverse";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+
+   case 5:
+      node->methods     = MayaBlendColorsMtd;
+      node->output_type = AI_TYPE_RGB;
+      node->name        = "MayaBlendColors";
       node->node_type   = AI_NODE_SHADER;
       break;
 
