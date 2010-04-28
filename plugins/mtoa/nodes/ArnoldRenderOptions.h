@@ -55,9 +55,9 @@ public:
    static MObject s_filter_minimum;
 
    static MObject s_driver_gamma;
-   static MObject s_TM_lgamma;
-   static MObject s_TM_sgamma;
-   static MObject s_TM_tgamma;
+   static MObject s_light_gamma;
+   static MObject s_shader_gamma;
+   static MObject s_texture_gamma;
 
    static MObject s_GI_diffuse_depth;
    static MObject s_GI_glossy_depth;

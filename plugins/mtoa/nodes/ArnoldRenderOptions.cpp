@@ -41,9 +41,9 @@ MObject CArnoldRenderOptionsNode::s_filter_scalar_mode;
 MObject CArnoldRenderOptionsNode::s_filter_maximum;
 MObject CArnoldRenderOptionsNode::s_filter_minimum;
 MObject CArnoldRenderOptionsNode::s_driver_gamma;
-MObject CArnoldRenderOptionsNode::s_TM_lgamma;
-MObject CArnoldRenderOptionsNode::s_TM_sgamma;
-MObject CArnoldRenderOptionsNode::s_TM_tgamma;
+MObject CArnoldRenderOptionsNode::s_light_gamma;
+MObject CArnoldRenderOptionsNode::s_shader_gamma;
+MObject CArnoldRenderOptionsNode::s_texture_gamma;
 MObject CArnoldRenderOptionsNode::s_GI_diffuse_depth;
 MObject CArnoldRenderOptionsNode::s_GI_glossy_depth;
 MObject CArnoldRenderOptionsNode::s_GI_reflection_depth;
@@ -270,29 +270,29 @@ MStatus CArnoldRenderOptionsNode::initialize()
    nAttr.setMax(10);
    addAttribute(s_driver_gamma);
 
-   s_TM_lgamma = nAttr.create("TM_lgamma", "lgamma", MFnNumericData::kFloat, 2.2f);
+   s_light_gamma = nAttr.create("light_gamma", "lgamma", MFnNumericData::kFloat, 2.2f);
    nAttr.setKeyable(false);
    nAttr.setSoftMin(0);
    nAttr.setSoftMax(3);
    nAttr.setMin(0);
    nAttr.setMax(10);
-   addAttribute(s_TM_lgamma);
+   addAttribute(s_light_gamma);
 
-   s_TM_sgamma = nAttr.create("TM_sgamma", "sgamma", MFnNumericData::kFloat, 2.2f);
+   s_shader_gamma = nAttr.create("shader_gamma", "sgamma", MFnNumericData::kFloat, 2.2f);
    nAttr.setKeyable(false);
    nAttr.setSoftMin(0);
    nAttr.setSoftMax(3);
    nAttr.setMin(0);
    nAttr.setMax(10);
-   addAttribute(s_TM_sgamma);
+   addAttribute(s_shader_gamma);
 
-   s_TM_tgamma = nAttr.create("TM_tgamma", "tgamma", MFnNumericData::kFloat, 2.2f);
+   s_texture_gamma = nAttr.create("texture_gamma", "tgamma", MFnNumericData::kFloat, 2.2f);
    nAttr.setKeyable(false);
    nAttr.setSoftMin(0);
    nAttr.setSoftMax(3);
    nAttr.setMin(0);
    nAttr.setMax(10);
-   addAttribute(s_TM_tgamma);
+   addAttribute(s_texture_gamma);
 
    s_GI_diffuse_depth = nAttr.create("GI_diffuse_depth", "GI_dd", MFnNumericData::kInt, 1);
    nAttr.setKeyable(false);

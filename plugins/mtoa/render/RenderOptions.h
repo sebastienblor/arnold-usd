@@ -304,9 +304,9 @@ private:
    float    m_filter_minimum;
 
    float    m_output_gamma;
-   float    m_TM_lgamma;
-   float    m_TM_sgamma;
-   float    m_TM_tgamma;
+   float    m_light_gamma;
+   float    m_shader_gamma;
+   float    m_texture_gamma;
 
    AtUInt   m_GI_diffuse_depth;
    AtUInt   m_GI_glossy_depth;

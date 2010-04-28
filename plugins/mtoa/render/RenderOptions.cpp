@@ -196,10 +196,10 @@ void CRenderOptions::ProcessArnoldRenderOptions()
       m_filter_maximum     = fnArnoldRenderOptions.findPlug("filter_maximum").asFloat();
       m_filter_minimum     = fnArnoldRenderOptions.findPlug("filter_minimum").asFloat();
 
-      m_output_gamma = fnArnoldRenderOptions.findPlug("driver_gamma").asFloat();
-      m_TM_lgamma    = fnArnoldRenderOptions.findPlug("TM_lgamma").asFloat();
-      m_TM_sgamma    = fnArnoldRenderOptions.findPlug("TM_sgamma").asFloat();
-      m_TM_tgamma    = fnArnoldRenderOptions.findPlug("TM_tgamma").asFloat();
+      m_output_gamma  = fnArnoldRenderOptions.findPlug("driver_gamma").asFloat();
+      m_light_gamma   = fnArnoldRenderOptions.findPlug("light_gamma").asFloat();
+      m_shader_gamma  = fnArnoldRenderOptions.findPlug("shader_gamma").asFloat();
+      m_texture_gamma = fnArnoldRenderOptions.findPlug("texture_gamma").asFloat();
 
       m_clearBeforeRender = fnArnoldRenderOptions.findPlug("clear_before_render").asBool();
 
@@ -246,9 +246,9 @@ void CRenderOptions::SetupRenderOptions() const
    AiNodeSetInt(AiUniverseGetOptions(), "GI_sss_hemi_samples", m_GI_sss_hemi_samples);
    AiNodeSetFlt(AiUniverseGetOptions(), "AA_sample_clamp", m_AA_sample_clamp);
 
-   AiNodeSetFlt(AiUniverseGetOptions(), "TM_lgamma", m_TM_lgamma);
-   AiNodeSetFlt(AiUniverseGetOptions(), "TM_sgamma", m_TM_sgamma);
-   AiNodeSetFlt(AiUniverseGetOptions(), "TM_tgamma", m_TM_tgamma);
+   AiNodeSetFlt(AiUniverseGetOptions(), "light_gamma", m_light_gamma);
+   AiNodeSetFlt(AiUniverseGetOptions(), "shader_gamma", m_shader_gamma);
+   AiNodeSetFlt(AiUniverseGetOptions(), "texture_gamma", m_texture_gamma);
 
    AiNodeSetInt(AiUniverseGetOptions(), "GI_diffuse_depth", m_GI_diffuse_depth);
    AiNodeSetInt(AiUniverseGetOptions(), "GI_glossy_depth", m_GI_glossy_depth);

@@ -255,15 +255,15 @@ global proc CreateArnoldGammaSettings()
       separator;
       
       attrControlGrp -label "Lights"
-         -attribute defaultArnoldRenderOptions.TM_lgamma
+         -attribute defaultArnoldRenderOptions.light_gamma
          ss_light_gamma;
 
       attrControlGrp -label "Shaders"
-         -attribute defaultArnoldRenderOptions.TM_sgamma
+         -attribute defaultArnoldRenderOptions.shader_gamma
          ss_shader_gamma;
 
       attrControlGrp -label "Textures"
-         -attribute defaultArnoldRenderOptions.TM_tgamma
+         -attribute defaultArnoldRenderOptions.texture_gamma
          ss_texture_gamma;
 
       setParent ..;
