@@ -13,7 +13,7 @@ global proc AEArnoldUtilityShaderTemplate( string $nodeName )
       editorTemplate -endLayout;
 
       // include/call base class/node attributes
-		AEdependNodeTemplate $nodeName;
+      AEdependNodeTemplate $nodeName;
       editorTemplate -addExtraControls;   
 
    editorTemplate -endScrollLayout;
