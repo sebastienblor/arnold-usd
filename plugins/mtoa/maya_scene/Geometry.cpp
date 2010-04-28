@@ -431,9 +431,6 @@ void CMayaScene::ExportMeshInstance(const MDagPath& dagPath, const MDagPath& mas
              fnDagNodeInstance.findPlug("motionBlur").asBool();
 
    GetMatrix(matrix, dagPath);
-   GetMatrix(masterMatrix, masterInstance);
-   AiM4Invert(masterMatrix,masterMatrixInv);
-   AiM4Mult(matrix, matrix, masterMatrixInv);
 
    if (step == 0)
    {
@@ -454,6 +451,7 @@ void CMayaScene::ExportMeshInstance(const MDagPath& dagPath, const MDagPath& mas
       }
 
       AiNodeSetPtr(instanceNode, "node", masterNode);
+      AiNodeSetBool(instanceNode, "inherit_xform", false);
      
       //
       // SHADERS
