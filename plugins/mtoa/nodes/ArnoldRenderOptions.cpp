@@ -150,7 +150,7 @@ MStatus CArnoldRenderOptionsNode::initialize()
    s_threads = nAttr.create("threads", "thrds", MFnNumericData::kInt, 1);
    nAttr.setKeyable(false);
    nAttr.setSoftMin(1);
-   nAttr.setSoftMax(16);
+   nAttr.setSoftMax(64);
    addAttribute(s_threads);
 
    MAKE_ENUM(s_bucket_scanning, "bucket_scanning", "bktsc", 0, "options", "bucket_scanning");
