@@ -44,7 +44,7 @@ public:
    static MObject s_intensity;
    static MObject s_format;
    static MObject s_opaque_alpha;
-   static MObject s_visible;
+   static MObject s_visibility;
 
    // Output attributes
    static MObject s_OUT_colorR;

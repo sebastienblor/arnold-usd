@@ -3,6 +3,8 @@
 #include "nodes/ShaderUtils.h"
 #include "nodes/ArnoldNodeIds.h"
 
+#include <ai_ray.h>
+
 #include <maya/MFnEnumAttribute.h>
 #include <maya/MFnNumericAttribute.h>
 #include <maya/MFnTypedAttribute.h>
@@ -31,7 +33,7 @@ MObject CArnoldSkyShaderNode::s_color;
 MObject CArnoldSkyShaderNode::s_intensity;
 MObject CArnoldSkyShaderNode::s_format;
 MObject CArnoldSkyShaderNode::s_opaque_alpha;
-MObject CArnoldSkyShaderNode::s_visible;
+MObject CArnoldSkyShaderNode::s_visibility;
 
 MObject CArnoldSkyShaderNode::s_OUT_colorR;
 MObject CArnoldSkyShaderNode::s_OUT_colorG;
@@ -95,8 +97,8 @@ MStatus CArnoldSkyShaderNode::initialize()
    s_opaque_alpha = nAttr.create("opaque_alpha", "oa", MFnNumericData::kBoolean, 0);
    MAKE_INPUT(nAttr, s_opaque_alpha);
 
-   s_visible = nAttr.create("visible", "vis", MFnNumericData::kBoolean, 0);
-   MAKE_INPUT(nAttr, s_visible);
+   s_visibility = nAttr.create("visibility", "vis", MFnNumericData::kInt, AI_RAY_ALL);
+   MAKE_INPUT(nAttr, s_visibility);
 
    // OUTPUT ATTRIBUTES
 
@@ -118,7 +120,7 @@ MStatus CArnoldSkyShaderNode::initialize()
    attributeAffects(s_intensity, s_OUT_color);
    attributeAffects(s_format, s_OUT_color);
    attributeAffects(s_opaque_alpha, s_OUT_color);
-   attributeAffects(s_visible, s_OUT_color);
+   attributeAffects(s_visibility, s_OUT_color);
 
    return MS::kSuccess;
 }
