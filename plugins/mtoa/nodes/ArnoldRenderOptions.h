@@ -43,7 +43,7 @@ public:
 
    static MObject s_AA_samples;
    static MObject s_GI_diffuse_samples;
-   static MObject s_GI_specular_samples;
+   static MObject s_GI_glossy_samples;
    static MObject s_GI_sss_hemi_samples;
    static MObject s_use_sample_clamp;
    static MObject s_AA_sample_clamp;

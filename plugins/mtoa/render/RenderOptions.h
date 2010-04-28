@@ -292,7 +292,7 @@ private:
 
    AtUInt   m_AA_samples;
    AtUInt   m_GI_diffuse_samples;
-   AtUInt   m_GI_specular_samples;
+   AtUInt   m_GI_glossy_samples;
    AtUInt   m_GI_sss_hemi_samples;
    float    m_AA_sample_clamp;
 

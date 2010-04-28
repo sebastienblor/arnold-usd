@@ -182,7 +182,7 @@ global proc CreateArnoldSamplingSettings()
          ss_hemi_samples;
 
       attrControlGrp -label "Glossy Samples"
-         -attribute defaultArnoldRenderOptions.GI_specular_samples
+         -attribute defaultArnoldRenderOptions.GI_glossy_samples
          ss_glossy_samples;
 
       attrControlGrp -label "SSS Samples"
