@@ -4,7 +4,8 @@
 #include <ai_shaders.h>
 #include <ai_shader_parameval.h>
 
-enum MayaMultiplyDivideParams {
+enum MayaMultiplyDivideParams
+{
    p_input1,
    p_input2,
    p_operation

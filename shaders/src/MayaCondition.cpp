@@ -4,7 +4,8 @@
 #include <ai_shaders.h>
 #include <ai_shader_parameval.h>
 
-enum MayaConditionParams {
+enum MayaConditionParams
+{
    p_operation,
    p_first_term,
    p_second_term,

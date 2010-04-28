@@ -4,7 +4,8 @@
 #include <ai_shaders.h>
 #include <ai_shader_parameval.h>
 
-enum MayaClampParams {
+enum MayaClampParams
+{
    p_min,
    p_max,
    p_input
