@@ -337,7 +337,7 @@ void CMayaScene::ExportMesh(MObject mayaMesh, const MDagPath& dagPath, AtUInt st
          AiNodeSetInt(polymesh, "sidedness", 65535);
       else
       {
-         AiNodeSetBool(polymesh, "inv_normals", fnDagNode.findPlug("opposite").asBool());
+         AiNodeSetBool(polymesh, "invert_normals", fnDagNode.findPlug("opposite").asBool());
          AiNodeSetInt(polymesh, "sidedness", 0);
       }
 
