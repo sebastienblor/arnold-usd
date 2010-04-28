@@ -38,6 +38,7 @@ public:
    static MObject s_bucket_size;
    static MObject s_clear_before_render;
    static MObject s_abort_on_error;
+   static MObject s_abort_on_license_fail;
    static MObject s_plugins_path;
 
    static MObject s_AA_samples;

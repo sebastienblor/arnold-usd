@@ -102,6 +102,10 @@ global proc CreateArnoldRenderSettings()
          -attribute defaultArnoldRenderOptions.abort_on_error
          os_abort_on_error;
                         
+      attrControlGrp -label "Abort On License Fail"
+         -attribute defaultArnoldRenderOptions.abort_on_license_fail
+         os_abort_on_license_fail;
+                        
       separator;
 
       attrControlGrp -label "Plug-ins Path"
