@@ -48,7 +48,7 @@ void CMayaScene::ExportLightFilters(AtNode* light, MString filterNames)
       }
    }
 
-   AiNodeSetArray(light, "filters", AiArrayConvert(filters.size(), 1, AI_TYPE_POINTER, &filters[0], TRUE));
+   AiNodeSetArray(light, "filters", AiArrayConvert(filters.size(), 1, AI_TYPE_NODE, &filters[0], TRUE));
 }
 
 void CMayaScene::ExportLightData(AtNode* light, const MDagPath& dagPath, bool mb, bool custom)
