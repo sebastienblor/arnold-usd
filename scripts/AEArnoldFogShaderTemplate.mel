@@ -1,0 +1,19 @@
+global proc AEArnoldFogShaderTemplate( string $nodeName )
+{
+   editorTemplate -beginScrollLayout;
+
+      editorTemplate -beginLayout "Fog Attributes" -collapse false;
+         editorTemplate -l "Color" -addControl "color";
+         editorTemplate -l "Distance" -addControl "distance";
+         editorTemplate -l "Height" -addControl "height";
+         editorTemplate -addSeparator;
+         editorTemplate -l "Ground Normal" -addControl "ground_normal";
+         editorTemplate -l "Ground Point" -addControl "ground_point";
+      editorTemplate -endLayout;
+
+      // include/call base class/node attributes
+		AEdependNodeTemplate $nodeName;
+      editorTemplate -addExtraControls;   
+
+   editorTemplate -endScrollLayout;
+}

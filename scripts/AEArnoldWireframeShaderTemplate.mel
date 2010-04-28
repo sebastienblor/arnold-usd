@@ -14,10 +14,9 @@ global proc AEArnoldWireframeShaderTemplate( string $nodeName )
          editorTemplate -l "Raster Space" -addControl "raster_space";
       editorTemplate -endLayout;
 
+      // include/call base class/node attributes
+		AEdependNodeTemplate $nodeName;
       editorTemplate -addExtraControls;   
 
    editorTemplate -endScrollLayout;
-
-   editorTemplate -suppress "caching"; 
-   editorTemplate -suppress "nodeState";
 }

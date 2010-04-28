@@ -1,0 +1,25 @@
+global proc AEArnoldLightBlockerShaderTemplate( string $nodeName )
+{
+   editorTemplate -beginScrollLayout;
+
+      editorTemplate -beginLayout "Light Blocker Attributes" -collapse false;
+         editorTemplate -l "Geometry Type" -addControl "geometry_type";
+         editorTemplate -l "Density" -addControl "density";
+         editorTemplate -addSeparator;
+         editorTemplate -l "Ramp Axis" -addControl "ramp_axis";
+         editorTemplate -l "Ramp" -addControl "ramp";
+         editorTemplate -l "Height Edge" -addControl "height_edge";
+         editorTemplate -l "Width Edge" -addControl "width_edge";
+         editorTemplate -l "Roundness" -addControl "roundness";
+      editorTemplate -endLayout;
+
+      editorTemplate -beginLayout "Transform Attributes" -collapse false;
+         editorTemplate -l "Geometry Matrix" -addControl "geometry_matrix";
+      editorTemplate -endLayout;
+
+      // include/call base class/node attributes
+		AEdependNodeTemplate $nodeName;
+      editorTemplate -addExtraControls;   
+
+   editorTemplate -endScrollLayout;
+}

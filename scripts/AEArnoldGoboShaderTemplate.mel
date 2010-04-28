@@ -1,0 +1,25 @@
+global proc AEArnoldGoboShaderTemplate( string $nodeName )
+{
+   editorTemplate -beginScrollLayout;
+
+      editorTemplate -beginLayout "Gobo Attributes" -collapse false;
+         editorTemplate -l "Filter Mode" -addControl "filter_mode";
+         editorTemplate -l "Color" -addControl "slidemap";
+         editorTemplate -l "Density" -addControl "density";
+      editorTemplate -endLayout;
+
+      editorTemplate -beginLayout "Placement Attributes" -collapse false;
+         editorTemplate -l "Offset" -addControl "offset";
+         editorTemplate -l "Rotate" -addControl "rotate";
+         editorTemplate -l "Scale S" -addControl "scale_s";
+         editorTemplate -l "Scale T" -addControl "scale_t";
+         editorTemplate -l "Wrap S" -addControl "wrap_s";
+         editorTemplate -l "Wrap T" -addControl "wrap_t";
+      editorTemplate -endLayout;
+
+      // include/call base class/node attributes
+		AEdependNodeTemplate $nodeName;
+      editorTemplate -addExtraControls;   
+
+   editorTemplate -endScrollLayout;
+}

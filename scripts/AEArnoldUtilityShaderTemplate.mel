@@ -12,10 +12,9 @@ global proc AEArnoldUtilityShaderTemplate( string $nodeName )
          editorTemplate -l "Color" -addControl "color";
       editorTemplate -endLayout;
 
+      // include/call base class/node attributes
+		AEdependNodeTemplate $nodeName;
       editorTemplate -addExtraControls;   
 
    editorTemplate -endScrollLayout;
-
-   editorTemplate -suppress "caching"; 
-   editorTemplate -suppress "nodeState";
 }

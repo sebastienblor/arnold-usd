@@ -83,10 +83,9 @@ global proc AEArnoldStandardShaderTemplate( string $nodeName )
          editorTemplate -l "Opacity" -addControl "opacity";
       editorTemplate -endLayout;
 
-      editorTemplate -addExtraControls;
+      // include/call base class/node attributes
+		AEdependNodeTemplate $nodeName;
+      editorTemplate -addExtraControls;   
 
    editorTemplate -endScrollLayout;
-
-   editorTemplate -suppress "caching"; 
-   editorTemplate -suppress "nodeState";
 }

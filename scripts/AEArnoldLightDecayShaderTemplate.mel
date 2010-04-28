@@ -32,10 +32,9 @@ global proc AEArnoldLightDecayShaderTemplate( string $nodeName )
          editorTemplate -l "Far End" -addControl "far_end";
       editorTemplate -endLayout;
 
+      // include/call base class/node attributes
+		AEdependNodeTemplate $nodeName;
       editorTemplate -addExtraControls;   
 
    editorTemplate -endScrollLayout;
-
-   editorTemplate -suppress "caching"; 
-   editorTemplate -suppress "nodeState";
 }
