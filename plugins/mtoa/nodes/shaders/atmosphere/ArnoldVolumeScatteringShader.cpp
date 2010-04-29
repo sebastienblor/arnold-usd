@@ -8,6 +8,7 @@
 
 MTypeId CArnoldVolumeScatteringShaderNode::id(ARNOLD_NODEID_VOLUME_SCATTERING);
 
+MObject CArnoldVolumeScatteringShaderNode::s_affect_camera;
 MObject CArnoldVolumeScatteringShaderNode::s_affect_diffuse;
 MObject CArnoldVolumeScatteringShaderNode::s_affect_reflection;
 MObject CArnoldVolumeScatteringShaderNode::s_attenuation;
@@ -51,7 +52,12 @@ MStatus CArnoldVolumeScatteringShaderNode::initialize()
    MFnEnumAttribute eAttr;
    MFnNumericAttribute nAttr;
 
-   s_affect_diffuse = nAttr.create("affect_diffuse", "ad", MFnNumericData::kFloat, 1);
+   s_affect_camera = nAttr.create("affect_camera", "ac", MFnNumericData::kFloat, 1);
+   nAttr.setMin(0);
+   nAttr.setMax(1);
+   MAKE_INPUT(nAttr, s_affect_camera);
+
+   s_affect_diffuse = nAttr.create("affect_diffuse", "ad", MFnNumericData::kFloat, 0);
    nAttr.setMin(0);
    nAttr.setMax(1);
    MAKE_INPUT(nAttr, s_affect_diffuse);
@@ -114,6 +120,7 @@ MStatus CArnoldVolumeScatteringShaderNode::initialize()
 
    // DEPENDENCIES
 
+   attributeAffects(s_affect_camera, s_OUT_color);
    attributeAffects(s_affect_diffuse, s_OUT_color);
    attributeAffects(s_affect_reflection, s_OUT_color);
    attributeAffects(s_attenuation, s_OUT_color);

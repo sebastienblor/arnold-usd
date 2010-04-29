@@ -22,6 +22,7 @@ public:
 	static MTypeId id;
 
    // Input attributes
+   static MObject s_affect_camera;
    static MObject s_affect_diffuse;
    static MObject s_affect_reflection;
    static MObject s_attenuation;
