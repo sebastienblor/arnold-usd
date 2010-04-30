@@ -56,7 +56,8 @@ MStatus CMayaScene::ExportScene(AtUInt step)
    MDagPathArray masterInstances;
 
    // First we export all cameras
-   for (dagIterCameras.reset(); (!dagIterCameras.isDone()); dagIterCameras.next())
+   // We do not reset the iterator to avoid getting kWorld
+   for (; (!dagIterCameras.isDone()); dagIterCameras.next())
    {
       if (!dagIterCameras.getPath(dagPath))
       {

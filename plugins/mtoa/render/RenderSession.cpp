@@ -118,7 +118,7 @@ void CRenderSession::SetCamera(MString cameraNode)
          for (int J = 0; (J < MFnDagNode(node).childCount()); ++J)
          if (MFnDagNode(MFnDagNode(node).child(J)).typeName() == "camera")
          {
-            cameraNode = MFnDagNode(MFnDagNode(node).child(0)).name();
+            cameraNode = MFnDagNode(MFnDagNode(node).child(0)).partialPathName();
             break;
          }
 
