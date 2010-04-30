@@ -32,8 +32,12 @@ MObject CArnoldSkyShaderNode::s_colorB;
 MObject CArnoldSkyShaderNode::s_color;
 MObject CArnoldSkyShaderNode::s_intensity;
 MObject CArnoldSkyShaderNode::s_format;
-MObject CArnoldSkyShaderNode::s_opaque_alpha;
-MObject CArnoldSkyShaderNode::s_visibility;
+MObject CArnoldSkyShaderNode::s_casts_shadows;
+MObject CArnoldSkyShaderNode::s_primary_visibility;
+MObject CArnoldSkyShaderNode::s_visible_in_reflections;
+MObject CArnoldSkyShaderNode::s_visible_in_refractions;
+MObject CArnoldSkyShaderNode::s_diffuse_visibility;
+MObject CArnoldSkyShaderNode::s_glossy_visibility;
 
 MObject CArnoldSkyShaderNode::s_OUT_colorR;
 MObject CArnoldSkyShaderNode::s_OUT_colorG;
@@ -94,11 +98,23 @@ MStatus CArnoldSkyShaderNode::initialize()
 
    MAKE_ENUM(s_format, "format", "for", 1, "sky", "format");
 
-   s_opaque_alpha = nAttr.create("opaque_alpha", "oa", MFnNumericData::kBoolean, 0);
-   MAKE_INPUT(nAttr, s_opaque_alpha);
-
-   s_visibility = nAttr.create("visibility", "vis", MFnNumericData::kInt, AI_RAY_ALL);
-   MAKE_INPUT(nAttr, s_visibility);
+   s_casts_shadows = nAttr.create("casts_shadows", "shd", MFnNumericData::kBoolean, 1);
+   MAKE_INPUT(nAttr, s_casts_shadows);
+   
+   s_primary_visibility = nAttr.create("primary_visibility", "vis", MFnNumericData::kBoolean, 0);
+   MAKE_INPUT(nAttr, s_primary_visibility);
+   
+   s_visible_in_reflections = nAttr.create("visible_in_reflections", "rfl", MFnNumericData::kBoolean, 1);
+   MAKE_INPUT(nAttr, s_visible_in_reflections);
+   
+   s_visible_in_refractions = nAttr.create("visible_in_refractions", "rfr", MFnNumericData::kBoolean, 1);
+   MAKE_INPUT(nAttr, s_visible_in_refractions);
+   
+   s_diffuse_visibility = nAttr.create("diffuse_visibility", "dvis", MFnNumericData::kBoolean, 1);
+   MAKE_INPUT(nAttr, s_diffuse_visibility);
+   
+   s_glossy_visibility = nAttr.create("glossy_visibility", "gvis", MFnNumericData::kBoolean, 1);
+   MAKE_INPUT(nAttr, s_glossy_visibility);
 
    // OUTPUT ATTRIBUTES
 
@@ -119,8 +135,11 @@ MStatus CArnoldSkyShaderNode::initialize()
    attributeAffects(s_color, s_OUT_color);
    attributeAffects(s_intensity, s_OUT_color);
    attributeAffects(s_format, s_OUT_color);
-   attributeAffects(s_opaque_alpha, s_OUT_color);
-   attributeAffects(s_visibility, s_OUT_color);
+   attributeAffects(s_primary_visibility, s_OUT_color);
+   attributeAffects(s_visible_in_reflections, s_OUT_color);
+   attributeAffects(s_visible_in_refractions, s_OUT_color);
+   attributeAffects(s_diffuse_visibility, s_OUT_color);
+   attributeAffects(s_glossy_visibility, s_OUT_color);
 
    return MS::kSuccess;
 }

@@ -3,6 +3,7 @@
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
+#include <ai_ray.h>
 
 #include <maya/MColor.h>
 #include <maya/MFnBlinnShader.h>
@@ -180,7 +181,45 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader)
    }
    else if (node.typeName() == "ArnoldSkyShader")
    {
-      shader = ExportArnoldShader(mayaShader, "sky");
+      shader = AiNode("sky");
+
+      AiNodeSetStr(shader, "name", node.name().asChar());
+
+      ProcessShaderParameter(node, "X", shader, "X", AI_TYPE_VECTOR);
+      ProcessShaderParameter(node, "X_angle", shader, "X_angle", AI_TYPE_FLOAT);
+      ProcessShaderParameter(node, "Y", shader, "Y", AI_TYPE_VECTOR);
+      ProcessShaderParameter(node, "Y_angle", shader, "Y_angle", AI_TYPE_FLOAT);
+      ProcessShaderParameter(node, "Z", shader, "Z", AI_TYPE_VECTOR);
+      ProcessShaderParameter(node, "Z_angle", shader, "Z_angle", AI_TYPE_FLOAT);
+      ProcessShaderParameter(node, "color", shader, "color", AI_TYPE_RGB);
+      ProcessShaderParameter(node, "format", shader, "format", AI_TYPE_ENUM);;
+      ProcessShaderParameter(node, "intensity", shader, "intensity", AI_TYPE_FLOAT);
+      AiNodeSetBool(shader, "opaque_alpha", 1);
+
+      AtInt visibility = 65535;
+
+      if (!node.findPlug("casts_shadows").asBool())
+         visibility &= ~AI_RAY_SHADOW;
+
+      if (!node.findPlug("primary_visibility").asBool())
+      {
+         visibility &= ~AI_RAY_CAMERA;
+         AiNodeSetBool(shader, "opaque_alpha", 0);
+      }
+
+      if (!node.findPlug("visible_in_reflections").asBool())
+         visibility &= ~AI_RAY_REFLECTED;
+
+      if (!node.findPlug("visible_in_refractions").asBool())
+         visibility &= ~AI_RAY_REFRACTED;
+
+      if (!node.findPlug("diffuse_visibility").asBool())
+         visibility &= ~AI_RAY_DIFFUSE;
+
+      if (!node.findPlug("glossy_visibility").asBool())
+         visibility &= ~AI_RAY_GLOSSY;
+
+      AiNodeSetInt(shader, "visibility", visibility);
    }
    else if (node.typeName() == "ArnoldFogShader")
    {

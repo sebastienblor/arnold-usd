@@ -1,0 +1,37 @@
+global proc AEArnoldSkyShaderTemplate( string $nodeName )
+{
+   editorTemplate -beginScrollLayout;
+
+      editorTemplate -beginLayout "Sky Attributes" -collapse false;
+         editorTemplate -l "Format" -addControl "format";
+         editorTemplate -l "Color" -addControl "color";
+         editorTemplate -l "Intensity" -addControl "intensity";
+      editorTemplate -endLayout;
+
+      editorTemplate -beginLayout "Transform Attributes" -collapse false;
+         editorTemplate -l "X Angle" -addControl "X_angle";
+         editorTemplate -l "Y Angle" -addControl "Y_angle";
+         editorTemplate -l "Z Angle" -addControl "Z_angle";
+         editorTemplate -addSeparator;
+         editorTemplate -l "X" -addControl "X";
+         editorTemplate -l "Y" -addControl "Y";
+         editorTemplate -l "Z" -addControl "Z";
+      editorTemplate -endLayout;
+
+      editorTemplate -beginLayout "Render Stats" -collapse true;
+         editorTemplate -beginNoOptimize; 
+         editorTemplate -l "Casts Shadows" -addControl "casts_shadows";
+         editorTemplate -l "Primary Visibility" -addControl "primary_visibility";
+         editorTemplate -l "Visible In Diffuse" -addControl "diffuse_visibility";
+         editorTemplate -l "Visible In Glossy" -addControl "glossy_visibility";
+         editorTemplate -l "Visible In Reflections" -addControl "visible_in_reflections";
+         editorTemplate -l "Visible In Refractions" -addControl "visible_in_refractions";
+         editorTemplate -endNoOptimize;
+      editorTemplate -endLayout;
+
+      // include/call base class/node attributes
+      AEdependNodeTemplate $nodeName;
+      editorTemplate -addExtraControls;   
+
+   editorTemplate -endScrollLayout;
+}

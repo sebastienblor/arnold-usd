@@ -43,8 +43,12 @@ public:
    static MObject s_color;
    static MObject s_intensity;
    static MObject s_format;
-   static MObject s_opaque_alpha;
-   static MObject s_visibility;
+   static MObject s_casts_shadows;
+   static MObject s_primary_visibility;
+   static MObject s_visible_in_reflections;
+   static MObject s_visible_in_refractions;
+   static MObject s_diffuse_visibility;
+   static MObject s_glossy_visibility;
 
    // Output attributes
    static MObject s_OUT_colorR;
