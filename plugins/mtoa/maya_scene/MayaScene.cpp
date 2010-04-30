@@ -15,6 +15,8 @@
 #include <maya/MSelectionList.h>
 #include <maya/MFnNumericAttribute.h>
 #include <maya/MDagPathArray.h>
+#include <maya/MFnInstancer.h>
+#include <maya/MItInstancer.h>
 
 MStatus CMayaScene::ExportToArnold()
 {
@@ -188,7 +190,7 @@ MStatus CMayaScene::ExportScene(AtUInt step)
       {
          unsigned int      numMeshGroups;
          MFnDependencyNode fnDGNode(dagIterator.item());
-      int instanceNum = dagPath.isInstanced() ? dagPath.instanceNumber() : 0;
+         int instanceNum = dagPath.isInstanced() ? dagPath.instanceNumber() : 0;
 
          MPlug plug(dagIterator.item(), fnDGNode.attribute("instObjGroups"));
 
@@ -266,6 +268,20 @@ MStatus CMayaScene::ExportScene(AtUInt step)
          }
       }
    }
+
+   // Once all regular objects are created, check for FX
+   
+   // Particle Instancer
+   MItInstancer   instIterator;
+   for (instIterator.reset(); (!instIterator.isDone()); instIterator.nextInstancer())
+   {
+      dagPath = instIterator.instancerPath();
+      MFnDagNode node(dagPath.node());
+
+      if (IsVisible(node))
+         ExportInstancerReplacement(dagPath, step);
+   }
+
 
    return MS::kSuccess;
 }

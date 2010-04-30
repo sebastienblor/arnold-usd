@@ -61,6 +61,7 @@ private:
    void ExportMesh(MObject mayaMesh, const MDagPath& dagPath, AtUInt step);
    void ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, const MDagPath& dagPath, AtUInt step);
    void ExportMeshInstance(const MDagPath& dagPath, const MDagPath& masterInstance, AtUInt step);
+   void ExportInstancerReplacement(const MDagPath& dagPath, AtUInt step);
 
    void ProcessShaderParameter(MFnDependencyNode shader, const char* param, AtNode* arnoldShader, const char* arnoldAttrib, int arnoldAttribType);
    AtNode* ExportArnoldShader(MObject mayaShader, MString arnoldShader);
@@ -68,6 +69,7 @@ private:
 
    bool IsVisible(MFnDagNode node);
    void GetMatrix(AtMatrix& matrix, const MDagPath& dagPath);
+   void ConvertMatrix(AtMatrix& matrix, const MMatrix& mayamatrix);
 
    void GetMotionBlurData();
 
