@@ -20,6 +20,7 @@ MObject CArnoldRenderOptionsNode::s_arnoldRenderImageQuality;
 MObject CArnoldRenderOptionsNode::s_arnoldRenderImageOutputFormat;
 MObject CArnoldRenderOptionsNode::s_arnoldRenderImageTiled;
 MObject CArnoldRenderOptionsNode::s_arnoldRenderImageUnpremultAlpha;
+MObject CArnoldRenderOptionsNode::s_progressive_rendering;
 MObject CArnoldRenderOptionsNode::s_threads;
 MObject CArnoldRenderOptionsNode::s_threads_autodetect;
 MObject CArnoldRenderOptionsNode::s_bucket_scanning;
@@ -138,6 +139,10 @@ MStatus CArnoldRenderOptionsNode::initialize()
    nAttr.setKeyable(false);
    addAttribute(s_arnoldRenderImageUnpremultAlpha);
 
+   s_progressive_rendering = nAttr.create("progressive_rendering", "prog", MFnNumericData::kBoolean, 0);
+   nAttr.setKeyable(false);
+   addAttribute(s_progressive_rendering);
+
    s_threads_autodetect = nAttr.create("threads_autodetect", "thr_auto", MFnNumericData::kBoolean, 1);
    nAttr.setKeyable(false);
    addAttribute(s_threads_autodetect);
@@ -177,7 +182,7 @@ MStatus CArnoldRenderOptionsNode::initialize()
    nAttr.setKeyable(false);
    nAttr.setSoftMin(1);
    nAttr.setSoftMax(10);
-   nAttr.setMin(0);
+   nAttr.setMin(1);
    nAttr.setMax(100);
    addAttribute(s_AA_samples);
 

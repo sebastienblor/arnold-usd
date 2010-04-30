@@ -233,6 +233,17 @@ public:
       return m_isAnimated;
    }
 
+   bool isProgressive() const
+   {
+      return m_progressive_rendering;
+   }
+
+   AtUInt NumAASamples() const
+   {
+      return m_AA_samples;
+   }
+
+
    void GetFromMaya(CMayaScene* scene);
 
    void SetupLog() const;
@@ -284,6 +295,7 @@ private:
 
    MCommonRenderSettingsData m_defaultRenderGlobalsData;
    
+   bool     m_progressive_rendering;
    AtUInt   m_threads;
    AtUInt   m_bucket_scanning;
    AtUInt   m_bucket_size;

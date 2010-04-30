@@ -77,6 +77,11 @@ global proc CreateArnoldRenderSettings()
    setUITemplate -pushTemplate attributeEditorTemplate;
    columnLayout -adjustableColumn true arnoldRenderLayout;
 
+      attrControlGrp -label "Progressive Rendering"
+         -attribute defaultArnoldRenderOptions.progressive_rendering
+         -cc UpdateRenderSettings
+         os_progressive_rendering;
+ 
       attrControlGrp -label "Autodetect Threads"
          -attribute defaultArnoldRenderOptions.threads_autodetect
          -cc UpdateRenderSettings

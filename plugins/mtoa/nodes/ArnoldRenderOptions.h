@@ -32,6 +32,7 @@ public:
    static MObject s_arnoldRenderImageTiled;
    static MObject s_arnoldRenderImageUnpremultAlpha;
 
+   static MObject s_progressive_rendering;
    static MObject s_threads;
    static MObject s_threads_autodetect;
    static MObject s_bucket_scanning;

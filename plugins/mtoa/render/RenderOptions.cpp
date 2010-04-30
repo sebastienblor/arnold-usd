@@ -174,6 +174,8 @@ void CRenderOptions::ProcessArnoldRenderOptions()
       m_arnoldRenderImageTiled          = fnArnoldRenderOptions.findPlug("tiled").asBool();
       m_arnoldRenderImageUnpremultAlpha = fnArnoldRenderOptions.findPlug("unpremult_alpha").asBool();
 
+      m_progressive_rendering           = fnArnoldRenderOptions.findPlug("progressive_rendering").asBool();
+
       m_threads         = fnArnoldRenderOptions.findPlug("threads_autodetect").asBool() ? 0 : fnArnoldRenderOptions.findPlug("threads").asInt();
       m_bucket_scanning = fnArnoldRenderOptions.findPlug("bucket_scanning").asInt();
       m_bucket_size     = fnArnoldRenderOptions.findPlug("bucket_size").asInt();

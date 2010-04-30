@@ -16,6 +16,7 @@
 #include <maya/MGlobal.h>
 #include <maya/MSelectionList.h>
 #include <maya/MFnDagNode.h>
+#include <maya/MComputation.h>
 
 extern AtNodeMethods* mtoa_driver_mtd;
 
@@ -166,14 +167,43 @@ void CRenderSession::DoRender()
 
    InitializeDisplayUpdateQueue();
 
-   AtVoid* handler = AiThreadCreate(RenderThread, NULL, AI_PRIORITY_LOW);
+   // set progressive start point on AA
+   AtInt init_progressive_samples = m_renderOptions.isProgressive() ? -3 : m_renderOptions.NumAASamples() ;
+   AtUInt prog_passes = m_renderOptions.isProgressive() ? ((-init_progressive_samples) + 2) : 1;
 
-   // Process messages sent by the render thread, and exit when rendering is finished or aborted
-   ProcessDisplayUpdateQueue();
+   MComputation comp;
+   comp.beginComputation();
+   bool aborted = false;
 
-   // Wait for the render thread to release everything and close it
-   AiThreadWait(handler);
-   AiThreadClose(handler);
+   for (int i=0; i<prog_passes; i++)
+   {
+      AtInt sampling = i + init_progressive_samples;
+      if (i+1 == prog_passes)
+      {
+        sampling = m_renderOptions.NumAASamples();
+      }
+
+      AiNodeSetInt(AiUniverseGetOptions(), "AA_samples", sampling);
+      AtVoid* handler = AiThreadCreate(RenderThread, NULL, AI_PRIORITY_LOW);
+
+      // Process messages sent by the render thread, and exit when rendering is finished or aborted
+      ProcessDisplayUpdateQueue(comp);
+
+      if (!aborted && comp.isInterruptRequested())
+      {
+         AiRenderAbort();
+         aborted = true;
+         AiThreadWait(handler);
+         AiThreadClose(handler);
+         break;
+      }
+
+      // Wait for the render thread to release everything and close it
+      AiThreadWait(handler);
+      AiThreadClose(handler);
+   }
+
+   comp.endComputation();
 }
 
 void CRenderSession::DoBatchRender()

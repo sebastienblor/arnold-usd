@@ -226,13 +226,11 @@ void InitializeDisplayUpdateQueue()
    s_displayUpdateQueue.reset();
 }
 
-void ProcessDisplayUpdateQueue()
+void ProcessDisplayUpdateQueue(MComputation& comp)
 {
-   MComputation comp;
 
    bool aborted = false;
 
-   comp.beginComputation();
    while (true)
    {
       if (!aborted && comp.isInterruptRequested())
