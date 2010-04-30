@@ -13,6 +13,7 @@
 #include <maya/MPlug.h>
 #include <maya/MFnDagNode.h>
 #include <maya/MGlobal.h>
+#include <maya/MSelectionList.h>
 
 MSyntax CArnoldRenderCmd::newSyntax()
 {
@@ -124,6 +125,14 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       renderSession->SetWidth(width);
       renderSession->SetHeight(height);
       renderSession->SetCamera(camera);
+      
+      // We need to set the current camera in renderView,
+      // so the buttons render from the camera you want.
+      MSelectionList list;
+      MDagPath       cameraDagPath;
+      list.add(camera);
+      list.getDagPath(0, cameraDagPath);
+      MRenderView::setCurrentCamera(cameraDagPath);
 
       if (renderOptions->useRenderRegion())
       {
