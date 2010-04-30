@@ -53,7 +53,7 @@ void CMayaScene::ExportInstancerReplacement(const MDagPath& dagPath, AtUInt step
          {
             AtNode* instanceNode;
             MString instanceName = dagPath.fullPathName();
-            instanceName = instanceName + "_particle_" + arrayParticleIds[i];
+            instanceName = instanceName + "_" + dagPathArray[j].fullPathName() + "_particle_" + arrayParticleIds[i];
 
             if (step == 0)
             {
