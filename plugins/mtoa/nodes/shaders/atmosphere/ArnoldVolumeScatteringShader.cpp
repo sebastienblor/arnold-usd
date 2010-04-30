@@ -108,7 +108,7 @@ MStatus CArnoldVolumeScatteringShaderNode::initialize()
    nAttr.setMax(64);
    MAKE_INPUT(nAttr, s_samples);
 
-   MAKE_ENUM(s_sampling_pattern, "sampling_pattern", "sp", 11, "volume_scattering", "sampling_pattern");
+   MAKE_ENUM(s_sampling_pattern, "sampling_pattern", "sp", 2, "volume_scattering", "sampling_pattern");
 
    // OUTPUT ATTRIBUTES
 
