@@ -17,6 +17,15 @@ void CMayaScene::ExportCameraData(AtNode* camera, const MDagPath& dagPath, bool 
    AiNodeSetFlt(camera, "near_clip", fnDagNode.findPlug("nearClipPlane").asFloat());
    AiNodeSetFlt(camera, "far_clip", fnDagNode.findPlug("farClipPlane").asFloat());
 
+   if (m_fnArnoldRenderOptions->findPlug("enable_dof").asBool())
+   {
+      AiNodeSetFlt(camera, "focal_distance", m_fnArnoldRenderOptions->findPlug("focal_distance").asFloat());
+      AiNodeSetFlt(camera, "aperture_size", m_fnArnoldRenderOptions->findPlug("aperture_size").asFloat());
+      AiNodeSetInt(camera, "aperture_blades", m_fnArnoldRenderOptions->findPlug("aperture_blades").asInt());
+      AiNodeSetInt(camera, "aperture_rotation", m_fnArnoldRenderOptions->findPlug("aperture_rotation").asInt());
+      AiNodeSetFlt(camera, "aperture_blade_curvature", m_fnArnoldRenderOptions->findPlug("aperture_blade_curvature").asFloat());
+   }
+   
    if (m_motionBlurData.enabled)
    {
       float halfShutter = m_motionBlurData.shutter_size * 0.5f;
