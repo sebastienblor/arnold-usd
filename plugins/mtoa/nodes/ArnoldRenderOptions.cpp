@@ -60,15 +60,6 @@ MObject CArnoldRenderOptionsNode::s_shutter_offset;
 MObject CArnoldRenderOptionsNode::s_shutter_type;
 MObject CArnoldRenderOptionsNode::s_motion_steps;
 MObject CArnoldRenderOptionsNode::s_motion_frames;
-
-MObject CArnoldRenderOptionsNode::s_enable_dof;
-MObject CArnoldRenderOptionsNode::s_focal_distance;
-MObject CArnoldRenderOptionsNode::s_aperture_size;
-MObject CArnoldRenderOptionsNode::s_aperture_blades;
-MObject CArnoldRenderOptionsNode::s_aperture_rotation;
-MObject CArnoldRenderOptionsNode::s_aperture_blade_curvature;
-
-
 MObject CArnoldRenderOptionsNode::s_sss_lazy_evaluation;
 MObject CArnoldRenderOptionsNode::s_sss_subpixel_cache;
 MObject CArnoldRenderOptionsNode::s_show_samples;
@@ -397,47 +388,6 @@ MStatus CArnoldRenderOptionsNode::initialize()
    nAttr.setMax(20);
    addAttribute(s_motion_frames);
    
-   s_enable_dof = nAttr.create("enable_dof", "dof_en", MFnNumericData::kBoolean, 0);
-   nAttr.setKeyable(false);
-   addAttribute(s_enable_dof);
-
-   s_focal_distance = nAttr.create("focal_distance", "dof_fd", MFnNumericData::kFloat, 5.0f);
-   nAttr.setKeyable(false);
-   nAttr.setSoftMin(0);
-   nAttr.setSoftMax(20);
-   nAttr.setMin(0);
-   nAttr.setMax(200);
-   addAttribute(s_focal_distance);
-   
-   s_aperture_size = nAttr.create("aperture_size", "dof_as", MFnNumericData::kFloat, 0.2f);
-   nAttr.setSoftMin(0);
-   nAttr.setSoftMax(5);
-   nAttr.setMin(0);
-   nAttr.setMax(20);
-   addAttribute(s_aperture_size);
-
-   s_aperture_blades = nAttr.create("aperture_blades", "dof_ab", MFnNumericData::kInt, 0);
-   nAttr.setSoftMin(0);
-   nAttr.setSoftMax(5);
-   nAttr.setMin(0);
-   nAttr.setMax(20);
-   addAttribute(s_aperture_blades);
-   
-   s_aperture_rotation = nAttr.create("aperture_rotation", "dof_ar", MFnNumericData::kInt, 0);
-   nAttr.setSoftMin(0);
-   nAttr.setSoftMax(5);
-   nAttr.setMin(0);
-   nAttr.setMax(20);
-   addAttribute(s_aperture_rotation);
-
-   s_aperture_blade_curvature = nAttr.create("aperture_blade_curvature", "dof_abc", MFnNumericData::kFloat, 0);
-   nAttr.setSoftMin(0);
-   nAttr.setSoftMax(5);
-   nAttr.setMin(0);
-   nAttr.setMax(20);
-   addAttribute(s_aperture_blade_curvature);
-   
-
    s_sss_lazy_evaluation = nAttr.create("sss_lazy_evaluation", "ssslze", MFnNumericData::kBoolean, 0);
    nAttr.setKeyable(false);
    addAttribute(s_sss_lazy_evaluation);

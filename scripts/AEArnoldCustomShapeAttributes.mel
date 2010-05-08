@@ -85,6 +85,7 @@ global proc AEArnoldCustomShapeAttributes(string $nodeName)
 
       case "areaLight":
       {
+
          editorTemplate -beginLayout "Arnold";
             editorTemplate -callCustom "ArnoldCustomBoolNew" "ArnoldCustomBoolReplace" "affect_volumetrics";
             editorTemplate -callCustom "ArnoldCustomBoolNew" "ArnoldCustomBoolReplace" "cast_volumetric_shadows";
@@ -92,7 +93,23 @@ global proc AEArnoldCustomShapeAttributes(string $nodeName)
             editorTemplate -callCustom "ArnoldCustomEnumNew" "ArnoldCustomEnumReplace" "sidedness";
             editorTemplate -callCustom "ArnoldCustomBoolNew" "ArnoldCustomBoolReplace" "solid_angle";
             editorTemplate -addSeparator;
-            AEArnoldCommonLightAttributes($nodeName);                     
+            AEArnoldCommonLightAttributes($nodeName);
+         editorTemplate -endLayout;
+         break;
+      }
+
+      case "camera":
+      {
+         editorTemplate -beginLayout "Arnold";
+            editorTemplate -callCustom "ArnoldCustomBoolNew" "ArnoldCustomBoolReplace" "enable_dof";
+            editorTemplate -addSeparator;
+            editorTemplate -callCustom "ArnoldCustomFloatNew" "ArnoldCustomFloatReplace" "focal_distance";
+            editorTemplate -callCustom "ArnoldCustomFloatNew" "ArnoldCustomFloatReplace" "aperture_size";
+            editorTemplate -addSeparator;
+            editorTemplate -callCustom "ArnoldCustomIntNew"   "ArnoldCustomIntReplace"   "aperture_blades";
+            editorTemplate -callCustom "ArnoldCustomFloatNew" "ArnoldCustomFloatReplace" "aperture_blade_curvature";
+            editorTemplate -callCustom "ArnoldCustomFloatNew" "ArnoldCustomFloatReplace" "aperture_rotation";
+            editorTemplate -addSeparator;
          editorTemplate -endLayout;
          break;
       }

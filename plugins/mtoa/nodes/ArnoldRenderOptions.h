@@ -77,13 +77,6 @@ public:
    static MObject s_motion_steps;
    static MObject s_motion_frames;
 
-   static MObject s_enable_dof;
-   static MObject s_focal_distance;
-   static MObject s_aperture_size;
-   static MObject s_aperture_blades;
-   static MObject s_aperture_rotation;
-   static MObject s_aperture_blade_curvature;
-
    static MObject s_sss_lazy_evaluation;
    static MObject s_sss_subpixel_cache;
    static MObject s_show_samples;

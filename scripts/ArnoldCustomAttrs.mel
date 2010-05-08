@@ -34,7 +34,7 @@ global string $ArnoldMeshAttributes[] =
 
    "subdiv_adaptive_metric",  "Adaptive Metric",         "0",  "$SubdivMetricValues",  "0", "0",  "0", "",
    "sidedness",               "Sidedness",               "1",  "$SidednessValues",     "0", "0",  "0", "",
-   
+
 // Object lists
 
 //   Attribute                   Label                   Def         Enum values                             Change callback
@@ -44,8 +44,19 @@ global string $ArnoldMeshAttributes[] =
 
 // Light filters
 
-   "light_filters",           "Light Filters",           "",         "",  "0", "0",  "0", ""
-   
+   "light_filters",           "Light Filters",           "",         "",  "0", "0",  "0", "",
+
+
+//   Cameras
+
+//   Attribute                   Label                   Def         Enum values                        Change callback
+
+   "enable_dof",                "Depth of field",        "0",        "0",   "1",          "0",   "0",   "DofChange",
+   "focal_distance",            "Distance",              "5",        "0",   "1000000000", "0",   "200", "",
+   "aperture_size",             "Size",                  "0.2",      "0",   "20",         "0",   "2",   "",
+   "aperture_blades",           "Blades",                "20",       "3",   "40",         "0",   "20",  "",
+   "aperture_blade_curvature",  "Blade_curvature",       "0",        "-20", "20",         "-5", "5",    "",
+   "aperture_rotation",         "Rotation",              "0",        "0",   "360",        "0",   "50",  ""
 };
 
 global string $SubdivMetricValues[] = { "Automatic", "Edge Length", "Flatness" };
@@ -58,6 +69,16 @@ global proc SubdivChange()
    control -edit -enable $flag mesh_subdiv_adaptive_metric;
    control -edit -enable $flag mesh_subdiv_pixel_error;
    control -edit -enable $flag mesh_subdiv_dicing_camera;
+}
+
+global proc DofChange()
+{
+   int $flag = `checkBoxGrp -query -value1 camera_enable_dof` == true;
+   control -edit -enable $flag camera_focal_distance;
+   control -edit -enable $flag camera_aperture_size;
+   control -edit -enable $flag camera_aperture_blades;
+   control -edit -enable $flag camera_aperture_blade_curvature;
+   control -edit -enable $flag camera_aperture_rotation;
 }
 
 global proc VolumetricsChange()

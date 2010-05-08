@@ -25,17 +25,6 @@ global proc UpdateMotionBlurSettings()
    attrControlGrp -edit -enable $flag mb_motion_frames;
 }
 
-global proc UpdateDofSettings()
-{
-   int $flag = `getAttr defaultArnoldRenderOptions.enable_dof` == true;
-   attrControlGrp -edit -enable $flag dof_focal_distance;
-   attrControlGrp -edit -enable $flag dof_aperture_size;
-   attrControlGrp -edit -enable $flag dof_aperture_blades;
-   attrControlGrp -edit -enable $flag dof_aperture_blade_curvature;
-   attrControlGrp -edit -enable $flag dof_aperture_rotation;
-
-}
-
 global proc UpdateLogSettings()
 {
    string $name = `getAttr defaultArnoldRenderOptions.log_filename`;
@@ -398,43 +387,6 @@ global proc CreateArnoldMotionBlurSettings()
    setUITemplate -popTemplate;
 }
 
-global proc CreateArnoldDofSettings()
-{
-   setUITemplate -pushTemplate attributeEditorTemplate;
-   columnLayout -adjustableColumn true;
-
-      attrControlGrp -label "Enable"
-         -attribute defaultArnoldRenderOptions.enable_dof
-         -cc UpdateDofSettings
-         dof_enable;
-
-      attrControlGrp -label "Distance"
-         -attribute defaultArnoldRenderOptions.focal_distance
-         dof_focal_distance;
-
-      attrControlGrp -label "Size"
-         -attribute defaultArnoldRenderOptions.aperture_size
-         dof_aperture_size;
-         
-      separator;         
-
-      attrControlGrp -label "Blades"
-         -attribute defaultArnoldRenderOptions.aperture_blades
-         dof_aperture_blades;
-
-      attrControlGrp -label "Blade_curvature"
-         -attribute defaultArnoldRenderOptions.aperture_blade_curvature
-         dof_aperture_blade_curvature;
-         
-      attrControlGrp -label "Rotationn"
-         -attribute defaultArnoldRenderOptions.aperture_rotation
-         dof_aperture_rotation;
-
-      setParent ..;
-
-   setUITemplate -popTemplate;
-}
-
 global proc CreateArnoldSSSSettings()
 {
    setUITemplate -pushTemplate attributeEditorTemplate;
@@ -533,12 +485,6 @@ global proc CreateArnoldRendererGlobalsTab()
          frameLayout -label "Motion Blur" -cll true -cl 1 arnoldMotionBlurSettings;
             CreateArnoldMotionBlurSettings;
             setParent ..;
-            
-         // Depth of field
-         //
-         frameLayout -label "Depth of field" -cll true -cl 1 arnoldDepthOfFieldSettings;
-            CreateArnoldDofSettings;
-            setParent ..;
          
          // Subsurface scattering
          //
@@ -571,7 +517,7 @@ global proc CreateArnoldRendererGlobalsTab()
             setParent ..;
          
          setParent ..;
-         
+
       formLayout -edit
          -af arnoldGlobalsScrollLayout "top" 0
          -af arnoldGlobalsScrollLayout "bottom" 0
@@ -589,6 +535,5 @@ global proc UpdateArnoldRendererGlobalsTab()
    UpdateRenderSettings();
    UpdateSamplingSettings();
    UpdateMotionBlurSettings();
-   UpdateDofSettings();   
    UpdateLogSettings();
 }
