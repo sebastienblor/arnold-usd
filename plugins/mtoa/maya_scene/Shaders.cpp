@@ -260,6 +260,19 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader)
       ProcessShaderParameter(node, "diffuse", shader, "Kd", AI_TYPE_FLOAT);
       ProcessShaderParameter(node, "color", shader, "Kd_color", AI_TYPE_RGB);
       ProcessShaderParameter(node, "outMatteOpacity", shader, "opacity", AI_TYPE_RGB);
+
+      MPlugArray connections;
+
+      MPlug plug = fnShader.findPlug("normalCamera");
+
+      plug.connectedTo(connections, true, false);
+      if (connections.length() > 0)
+      {
+         AtNode* node = ExportShader(connections[0].node());
+
+         if (node != NULL)
+            AiNodeLink(node, "@before", shader);
+      }
    }
    else if (node.typeName() == "surfaceShader")
    {
@@ -307,6 +320,15 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader)
    else if (node.typeName() == "blendColors")
    {
       shader = ExportArnoldShader(mayaShader, "MayaBlendColors");
+   }
+   else if (node.typeName() == "bump2d")
+   {
+      shader = AiNode("bump2d");
+   
+      AiNodeSetStr(shader, "name", node.name().asChar());
+
+      ProcessShaderParameter(node, "bumpValue", shader, "bump_map", AI_TYPE_FLOAT);
+      ProcessShaderParameter(node, "bumpDepth", shader, "bump_height", AI_TYPE_FLOAT);
    }
    else
    {
