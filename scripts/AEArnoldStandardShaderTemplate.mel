@@ -1,5 +1,17 @@
 source "ShaderFunctions.mel";
 
+global proc AEarnoldBumpNew(string $attrName)
+{
+   setUITemplate -pst attributeEditorTemplate;
+   attrNavigationControlGrp -label "Bump Mapping" -at $attrName bumpControl;
+   setUITemplate -ppt;
+}
+
+global proc AEshaderBumpReplace(string $attrName)
+{
+   attrNavigationControlGrp -edit -at $attrName bumpControl;
+}
+
 global proc AEArnoldCheckSpecularFresnel(string $nodeName)
 {
    AEArnoldDimControlIfFalse($nodeName, "Ksn", "specular_Fresnel");
@@ -59,6 +71,10 @@ global proc AEArnoldStandardShaderTemplate( string $nodeName )
          editorTemplate -l "Transparency" -addControl "Kt";
       editorTemplate -endLayout;
       
+      editorTemplate -beginLayout "Bump Mapping" -collapse true;
+         editorTemplate -callCustom "AEarnoldBumpNew" "AEarnoldBumpReplace" "normalCamera";
+      editorTemplate -endLayout;
+
       editorTemplate -beginLayout "Subsurface scattering" -collapse true;
          editorTemplate -l "Color" -addControl "Ksss_color";
          editorTemplate -l "Weight" -addControl "Ksss";

@@ -145,6 +145,19 @@ AtNode* CMayaScene::ExportArnoldShader(MObject mayaShader, MString arnoldShader)
             SHADER_PARAM(AiParamGetName(paramEntry), AiParamGetType(paramEntry));
          }
       }
+
+      MPlugArray connections;
+
+      MPlug plug = node.findPlug("normalCamera");
+
+      plug.connectedTo(connections, true, false);
+      if (connections.length() > 0)
+      {
+         AtNode* bump = ExportShader(connections[0].node());
+
+         if (bump != NULL)
+            AiNodeLink(bump, "@before", shader);
+      }
    }
 
    return shader;
