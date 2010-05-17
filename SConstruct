@@ -36,7 +36,7 @@ vars.AddVariables(
       PathVariable('TARGET_ICONS_PATH', 'Path used for installation of icons', '.')
 )
 if system.os() == 'windows':
-   vars.Add(EnumVariable('MSVC_VERSION', 'Version of MS Visual Studio to use', '9.0', allowed_values=('8.0', '8.0Exp', '9.0', '9.0Exp')))
+   vars.Add(EnumVariable('MSVS_VERSION', 'Version of MS Visual Studio to use', '8.0', allowed_values=('8.0', '8.0Exp', '9.0', '9.0Exp')))
 
 if system.os() == 'windows':
    # Ugly hack. Create a temporary environment, without loading any tool, so we can set the MSVS_ARCH

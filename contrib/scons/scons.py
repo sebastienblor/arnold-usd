@@ -2,7 +2,7 @@
 #
 # SCons - a Software Constructor
 #
-# Copyright (c) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 The SCons Foundation
+# Copyright (c) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 The SCons Foundation
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -24,15 +24,15 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 
-__revision__ = "src/script/scons.py 4629 2010/01/17 22:23:21 scons"
+__revision__ = "src/script/scons.py 4043 2009/02/23 09:06:45 scons"
 
-__version__ = "1.2.0.d20100117"
+__version__ = "1.2.0.d20090223"
 
-__build__ = "r4629"
+__build__ = "r4043"
 
 __buildsys__ = "scons-dev"
 
-__date__ = "2010/01/17 22:23:21"
+__date__ = "2009/02/23 09:06:45"
 
 __developer__ = "scons"
 
@@ -55,19 +55,6 @@ import sys
 # (version-specific first, in case they installed by hand there,
 # followed by generic) so we pick up the right version of the build
 # engine modules if they're in either directory.
-
-
-# Check to see if the python version is > 3.0 which is currently unsupported
-# If so exit with error message
-try:
-    if  sys.version_info >= (3,0,0):
-        msg = "scons: *** SCons version %s does not run under Python version %s.\n"
-        sys.stderr.write(msg % (__version__, sys.version.split()[0]))
-        sys.exit(1)
-except AttributeError:
-    # Pre-1.6 Python has no sys.version_info
-    # No need to check version as we then know the version is < 3.0.0 and supported
-    pass
 
 script_dir = sys.path[0]
 

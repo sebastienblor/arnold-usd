@@ -9,7 +9,7 @@ selection method.
 """
 
 #
-# Copyright (c) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 The SCons Foundation
+# Copyright (c) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 The SCons Foundation
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -31,7 +31,7 @@ selection method.
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 
-__revision__ = "src/engine/SCons/Tool/msvs.py 4629 2010/01/17 22:23:21 scons"
+__revision__ = "src/engine/SCons/Tool/msvs.py 4043 2009/02/23 09:06:45 scons"
 
 import base64
 import hashlib
@@ -49,8 +49,7 @@ import SCons.Script.SConscript
 import SCons.Util
 import SCons.Warnings
 
-from SCons.Tool.MSCommon import msvc_exists, msvc_setup_env_once
-from SCons.Defaults import processDefines
+from SCons.Tool.MSCommon import detect_msvs, merge_default_version
 
 ##############################################################################
 # Below here are the classes and functions for generation of
@@ -701,7 +700,7 @@ class _GenerateV7DSP(_DSPGenerator):
             # TODO(1.5)
             #preprocdefs = xmlify(';'.join(self.env.get('CPPDEFINES', [])))
             #includepath = xmlify(';'.join(self.env.get('CPPPATH', [])))
-            preprocdefs = xmlify(string.join(processDefines(self.env.get('CPPDEFINES', [])), ';'))
+            preprocdefs = xmlify(string.join(self.env.get('CPPDEFINES', []), ';'))
             includepath = xmlify(string.join(self.env.get('CPPPATH', []), ';'))
 
             if not env_has_buildtarget:
@@ -1436,14 +1435,9 @@ def generate(env):
     env['MSVSENCODING'] = 'Windows-1252'
 
     # Set-up ms tools paths for default version
-    msvc_setup_env_once(env)
+    merge_default_version(env)
 
-    if env.has_key('MSVS_VERSION'):
-        version_num, suite = msvs_parse_version(env['MSVS_VERSION'])
-    else:
-        (version_num, suite) = (7.0, None) # guess at a default
-    if not env.has_key('MSVS'):
-        env['MSVS'] = {}
+    version_num, suite = msvs_parse_version(env['MSVS_VERSION'])
     if (version_num < 7.0):
         env['MSVS']['PROJECTSUFFIX']  = '.dsp'
         env['MSVS']['SOLUTIONSUFFIX'] = '.dsw'
@@ -1458,7 +1452,7 @@ def generate(env):
     env['SCONS_HOME'] = os.environ.get('SCONS_HOME')
 
 def exists(env):
-    return msvc_exists()
+    return detect_msvs()
 
 # Local Variables:
 # tab-width:4
