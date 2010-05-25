@@ -259,6 +259,10 @@ MStatus CMayaScene::ExportScene(AtUInt step)
             }
          }
       }
+      else if (dagIterator.item().hasFn(MFn::kHairSystem))
+      {
+         ExportHair(dagPath, step);
+      }
       else
       {
          if (!status)

@@ -234,6 +234,10 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader)
 
       AiNodeSetInt(shader, "visibility", visibility);
    }
+   else if (node.typeName() == "ArnoldHairShader")
+   {
+      shader = ExportArnoldShader(mayaShader, "hair");
+   }
    else if (node.typeName() == "ArnoldFogShader")
    {
       shader = ExportArnoldShader(mayaShader, "fog");

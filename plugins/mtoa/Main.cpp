@@ -15,6 +15,7 @@
 #include "nodes/shaders/surface/ArnoldStandardShader.h"
 #include "nodes/shaders/surface/ArnoldUtilityShader.h"
 #include "nodes/shaders/surface/ArnoldWireframeShader.h"
+#include "nodes/shaders/surface/ArnoldHairShader.h"
 
 #include <ai_render.h>
 
@@ -39,6 +40,7 @@ namespace // <anonymous>
       status = plugin.registerNode("ArnoldStandardShader", CArnoldStandardShaderNode::id, CArnoldStandardShaderNode::creator, CArnoldStandardShaderNode::initialize, MPxNode::kDependNode, &ShaderClass);
       status = plugin.registerNode("ArnoldUtilityShader", CArnoldUtilityShaderNode::id, CArnoldUtilityShaderNode::creator, CArnoldUtilityShaderNode::initialize, MPxNode::kDependNode, &ShaderClass);
       status = plugin.registerNode("ArnoldWireframeShader", CArnoldWireframeShaderNode::id, CArnoldWireframeShaderNode::creator, CArnoldWireframeShaderNode::initialize, MPxNode::kDependNode, &ShaderClass);
+      status = plugin.registerNode("ArnoldHairShader", CArnoldHairShaderNode::id, CArnoldHairShaderNode::creator, CArnoldHairShaderNode::initialize, MPxNode::kDependNode, &ShaderClass);
 
       // Displacement Shaders
       status = plugin.registerNode("ArnoldDisplacementShader", CArnoldDisplacementShaderNode::id, CArnoldDisplacementShaderNode::creator, CArnoldDisplacementShaderNode::initialize, MPxNode::kDependNode, &DisplacementClass);
@@ -68,6 +70,7 @@ namespace // <anonymous>
       status = plugin.deregisterNode(CArnoldStandardShaderNode::id);
       status = plugin.deregisterNode(CArnoldUtilityShaderNode::id);
       status = plugin.deregisterNode(CArnoldWireframeShaderNode::id);
+      status = plugin.deregisterNode(CArnoldHairShaderNode::id);
 
       // Displacement Shaders
       status = plugin.deregisterNode(CArnoldDisplacementShaderNode::id);

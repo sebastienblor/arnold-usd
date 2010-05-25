@@ -1,0 +1,32 @@
+global proc AEArnoldHairShaderTemplate( string $nodeName )
+{
+   AEswatchDisplay $nodeName;
+
+   editorTemplate -beginScrollLayout;
+   
+      editorTemplate -beginLayout "Color" -collapse false;
+         editorTemplate -l "Root Color" -addControl "rootcolor";
+         editorTemplate -l "Tip Color" -addControl "tipcolor";
+      editorTemplate -endLayout;
+
+      editorTemplate -beginLayout "Diffuse" -collapse true;
+         editorTemplate -l "Ambient Diffuse" -addControl "ambdiff";
+         editorTemplate -l "Indirect Diffuse" -addControl "kd_ind";
+      editorTemplate -endLayout;
+
+      editorTemplate -beginLayout "Specular" -collapse false;
+         editorTemplate -l "Gloss" -addControl "gloss";
+         editorTemplate -l "Specular" -addControl "spec";
+         editorTemplate -l "Specular Color" -addControl "spec_color";
+      editorTemplate -endLayout;
+
+      editorTemplate -beginLayout "Extra" -collapse true;
+         editorTemplate -l "Opacity" -addControl "opacity";
+      editorTemplate -endLayout;
+
+      // include/call base class/node attributes
+      AEdependNodeTemplate $nodeName;
+      editorTemplate -addExtraControls;   
+
+   editorTemplate -endScrollLayout;
+}

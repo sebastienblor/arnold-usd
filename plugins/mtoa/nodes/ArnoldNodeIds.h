@@ -13,5 +13,6 @@
 #define ARNOLD_NODEID_UTILITY                   0x00072001
 #define ARNOLD_NODEID_VOLUME_SCATTERING         0x00072007
 #define ARNOLD_NODEID_WIREFRAME                 0x00072008
+#define ARNOLD_NODEID_HAIR                      0x00072012
 
 #endif // ARNOLD_NODE_IDS_H

@@ -41,6 +41,31 @@ global proc AEArnoldCustomShapeAttributes(string $nodeName)
          editorTemplate -endLayout;
          break;
       }
+  
+      case "hairSystem":
+      {
+         editorTemplate -beginLayout "Arnold";
+            editorTemplate -callCustom "ArnoldCustomBoolNew" "ArnoldCustomBoolReplace" "receive_shadows";
+            editorTemplate -callCustom "ArnoldCustomBoolNew" "ArnoldCustomBoolReplace" "castsShadows";
+            editorTemplate -callCustom "ArnoldCustomBoolNew" "ArnoldCustomBoolReplace" "self_shadows";
+            editorTemplate -callCustom "ArnoldCustomBoolNew" "ArnoldCustomBoolReplace" "diffuse_visibility";
+            editorTemplate -callCustom "ArnoldCustomBoolNew" "ArnoldCustomBoolReplace" "glossy_visibility";
+            editorTemplate -callCustom "ArnoldCustomBoolNew" "ArnoldCustomBoolReplace" "visibleInReflections";
+            editorTemplate -callCustom "ArnoldCustomBoolNew" "ArnoldCustomBoolReplace" "visibleInRefractions";
+            editorTemplate -addSeparator;
+            editorTemplate -callCustom "ArnoldCustomBoolNew" "ArnoldCustomBoolReplace" "override_hair";
+            editorTemplate -callCustom "ArnoldCustomShaderNew" "ArnoldCustomShaderReplace" "hair_shader";
+            editorTemplate -addSeparator;
+            editorTemplate -callCustom "ArnoldCustomFloatNew" "ArnoldCustomFloatReplace" "min_pixel_width";
+            editorTemplate -callCustom "ArnoldCustomEnumNew" "ArnoldCustomEnumReplace" "mode";
+            editorTemplate -callCustom "ArnoldCustomBoolNew" "ArnoldCustomBoolReplace" "opaque";
+            editorTemplate -addSeparator;
+            editorTemplate -callCustom "ArnoldCustomIntNew" "ArnoldCustomIntReplace" "sss_max_samples";
+            editorTemplate -callCustom "ArnoldCustomFloatNew" "ArnoldCustomFloatReplace" "sss_sample_spacing";
+            editorTemplate -callCustom "ArnoldCustomBoolNew" "ArnoldCustomBoolReplace" "sss_use_gi";
+         editorTemplate -endLayout;
+         break;
+      }
 
       case "ambientLight":
       {

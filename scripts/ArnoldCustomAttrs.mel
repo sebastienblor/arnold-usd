@@ -27,6 +27,25 @@ global string $ArnoldMeshAttributes[] =
    "aspect_ratio",            "Aspect Ratio",            "1",        "0",  "100",         "0",  "1",        "",
    "lens_radius",             "Lens Radius",             "0",        "0",  "100",         "0",  "1",        "",
    "solid_angle",             "Solid Angle Sampling",    "0",        "0",  "1",           "0",  "1",        "",
+
+   // Hairs
+   //
+   "override_hair",           "Override Hair Shader",    "0",        "0",  "1",           "0",  "1",        "OverrideHairChange",
+   "hair_shader",             "Hair Shader",             "",         "",   "",            "",   "",         "",
+   "min_pixel_width",         "Minimum Pixel Width",     "0",        "0",  "1",           "0",  "1",        "",
+   "receive_shadows",         "Receive Shadows",         "1",        "0",  "1",           "0",  "1",        "",
+   "castsShadows",            "Cast Shadows",            "1",        "0",  "1",           "0",  "1",        "",
+   "visibleInReflections",    "Visible in Reflections",  "1",        "0",  "1",           "0",  "1",        "",
+   "visibleInRefractions",    "Visible in Refractions",  "1",        "0",  "1",           "0",  "1",        "",
+//   Some hair attributes already defined on Mesh, no need for redeclaration
+//   This can lead to problems if different default values exist for diferent nodes
+//   "sss_use_gi",              "Use GI for SSS",          "1",        "0",  "1",           "0",  "1",        "",
+//   "sss_max_samples",         "Max. Samples for SSS",    "100000",   "0",  "1000000000",  "0",  "1000000",  "",
+//   "sss_sample_spacing",      "SSS Sample Spacing",      "0.1",      "0",  "10",          "0",  "1",        "",
+//   "self_shadows",            "Self Shadows",            "1",        "0",  "1",           "0",  "1",        "",
+//   "opaque",                  "Opaque",                  "1",        "0",  "1",           "0",  "1",        "",
+//   "diffuse_visibility",      "Visible In Diffuse",      "1",        "0",  "1",           "0",  "1",        "",
+//   "glossy_visibility",       "Visible In Glossy",       "1",        "0",  "1",           "0",  "1",        "",
    
 // Enums
 
@@ -34,6 +53,7 @@ global string $ArnoldMeshAttributes[] =
 
    "subdiv_adaptive_metric",  "Adaptive Metric",         "0",  "$SubdivMetricValues",  "0", "0",  "0", "",
    "sidedness",               "Sidedness",               "1",  "$SidednessValues",     "0", "0",  "0", "",
+   "mode",                    "Hair Mode",               "0",  "$HairModeValues",      "0", "0",  "0", "",
 
 // Object lists
 
@@ -61,6 +81,13 @@ global string $ArnoldMeshAttributes[] =
 
 global string $SubdivMetricValues[] = { "Automatic", "Edge Length", "Flatness" };
 global string $SidednessValues[] = { "Double", "Single" };
+global string $HairModeValues[] = { "Ribbon", "Thick" };
+
+global proc OverrideHairChange()
+{
+   int $flag = `checkBoxGrp -query -value1 hairSystem_override_hair` == true;
+   control -edit -enable $flag hairSystem_hair_shader;
+}
 
 global proc SubdivChange()
 {
@@ -140,6 +167,45 @@ global proc string GetNodeType(string $name)
    }
 
    return $nodeType;
+}
+
+global proc ArnoldCustomShaderNew(string $attr)
+{
+   string $buffer[];
+   tokenize $attr "." $buffer;
+   
+   string $nodeName   = $buffer[0]; 
+   string $attribName = $buffer[1];
+   string $nodeType   = GetNodeType($nodeName); 
+ 
+   string $attribData[] = GetCustomAttributeData($attribName);   
+
+   if (!attributeExists($attribName, $nodeName))
+   {
+      addAttr -longName $attribName -usedAsColor -attributeType float3 $nodeName;
+      addAttr -longName ($attribName + "R") -attributeType "float" -parent $attribName $nodeName;
+      addAttr -longName ($attribName + "G") -attributeType "float" -parent $attribName $nodeName;
+      addAttr -longName ($attribName + "B") -attributeType "float" -parent $attribName $nodeName;
+   }
+
+   attrNavigationControlGrp -label ($attribData[0]) -attribute $attr ($nodeType + "_" + $attribName);
+}
+
+global proc ArnoldCustomShaderReplace(string $attr)
+{
+   string $buffer[];
+   tokenize $attr "." $buffer;
+   
+   string $nodeName   = $buffer[0]; 
+   string $attribName = $buffer[1];
+   string $nodeType   = GetNodeType($nodeName); 
+ 
+   string $attribData[] = GetCustomAttributeData($attribName);   
+
+   if (!attributeExists($attribName, $nodeName))
+      addAttr -ln $attribName -at message $nodeName;
+
+   attrNavigationControlGrp -edit -attribute $attr ($nodeType + "_" + $attribName);
 }
 
 global proc ArnoldCustomBoolNew(string $attr)
