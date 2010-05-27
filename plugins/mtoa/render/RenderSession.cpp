@@ -58,7 +58,20 @@ void CRenderSession::Init()
 
    MString resolvedPathList = m_renderOptions.pluginsPath().expandEnvironmentVariablesAndTilde();
 
-   AiLoadPlugins(resolvedPathList.asChar());
+   MStringArray pluginPaths;
+#ifdef _WIN32
+   resolvedPathList.split(';', pluginPaths);
+#else
+   resolvedPathList.split(':', pluginPaths);
+#endif
+   for (unsigned int i=0; i<pluginPaths.length(); ++i)
+   {
+      MString pluginPath = pluginPaths[i];
+      if (pluginPath.length() > 0)
+      {
+         AiLoadPlugins(pluginPath.asChar());
+      }
+   }
 
    m_scene->ExportToArnold();
 

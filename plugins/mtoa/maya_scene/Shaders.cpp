@@ -86,7 +86,9 @@ void CMayaScene::ProcessShaderParameter(MFnDependencyNode shader, const char* pa
    }
    else
    {
-      AtNode* node = ExportShader(connections[0].node());
+      MString attrName = connections[0].partialName(false, false, false, false, false, true);
+
+      AtNode* node = ExportShader(connections[0].node(), attrName);
 
       if (node != NULL)
          AiNodeLink(node, arnoldAttrib, arnoldShader);
@@ -153,7 +155,9 @@ AtNode* CMayaScene::ExportArnoldShader(MObject mayaShader, MString arnoldShader)
       plug.connectedTo(connections, true, false);
       if (connections.length() > 0)
       {
-         AtNode* bump = ExportShader(connections[0].node());
+         MString attrName = connections[0].partialName(false, false, false, false, false, true);
+
+         AtNode* bump = ExportShader(connections[0].node(), attrName);
 
          if (bump != NULL)
             AiNodeLink(bump, "@before", shader);
@@ -161,14 +165,14 @@ AtNode* CMayaScene::ExportArnoldShader(MObject mayaShader, MString arnoldShader)
    }
 
    return shader;
- }
+}
 
-AtNode* CMayaScene::ExportShader(MObject mayaShader)
+AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
 {
    // First check if this shader has already been processed
    for (std::vector<CShaderData>::const_iterator it = m_processedShaders.begin(); (it != m_processedShaders.end()); ++it)
    {
-      if (it->mayaShader == mayaShader)
+      if (it->mayaShader == mayaShader && it->attrName == attrName)
       {
          return it->arnoldShader;
       }
@@ -285,7 +289,9 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader)
       plug.connectedTo(connections, true, false);
       if (connections.length() > 0)
       {
-         AtNode* node = ExportShader(connections[0].node());
+         MString attrName = connections[0].partialName(false, false, false, false, false, true);
+
+         AtNode* node = ExportShader(connections[0].node(), attrName);
 
          if (node != NULL)
             AiNodeLink(node, "@before", shader);
@@ -347,6 +353,22 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader)
       ProcessShaderParameter(node, "bumpValue", shader, "bump_map", AI_TYPE_FLOAT);
       ProcessShaderParameter(node, "bumpDepth", shader, "bump_height", AI_TYPE_FLOAT);
    }
+   else if (node.typeName() == "samplerInfo")
+   {
+      if (attrName == "facingRatio")
+      {
+         shader = AiNode("MayaFacingRatio");
+      }
+      else if (attrName == "flippedNormal")
+      {
+         shader = AiNode("MayaFlippedNormal");
+      }
+      if (shader != 0)
+      {
+         MString name = node.name() + "_" + attrName;
+         AiNodeSetStr(shader, "name", name.asChar());
+      }
+   }
    else
    {
       AiMsgWarning("[mtoa] Shader type not supported: %s", node.typeName().asChar());
@@ -358,6 +380,7 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader)
 
       data.mayaShader   = mayaShader;
       data.arnoldShader = shader;
+      data.attrName     = attrName;
 
       m_processedShaders.push_back(data);
    }

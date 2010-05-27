@@ -9,6 +9,8 @@ extern AtNodeMethods* MayaGammaCorrectMtd;
 extern AtNodeMethods* MayaConditionMtd;
 extern AtNodeMethods* MayaReverseMtd;
 extern AtNodeMethods* MayaBlendColorsMtd;
+extern AtNodeMethods* MayaFacingRatioMtd;
+extern AtNodeMethods* MayaFlippedNormalMtd;
 
 node_loader
 {
@@ -53,6 +55,20 @@ node_loader
       node->methods     = MayaBlendColorsMtd;
       node->output_type = AI_TYPE_RGB;
       node->name        = "MayaBlendColors";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+
+   case 6:
+      node->methods     = MayaFacingRatioMtd;
+      node->output_type = AI_TYPE_FLOAT;
+      node->name        = "MayaFacingRatio";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+
+   case 7:
+      node->methods     = MayaFlippedNormalMtd;
+      node->output_type = AI_TYPE_FLOAT;
+      node->name        = "MayaFlippedNormal";
       node->node_type   = AI_NODE_SHADER;
       break;
 

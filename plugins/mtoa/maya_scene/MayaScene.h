@@ -41,7 +41,7 @@ public:
    }
 
    MStatus ExportToArnold();
-   AtNode* ExportShader(MObject mayaShader);
+   AtNode* ExportShader(MObject mayaShader, const MString &attrName="");
 
    void ExportImagePlanes(const MDagPath& dagPath, bool isRenderingCamera);
 
@@ -80,6 +80,7 @@ private:
    {
       MObject mayaShader;
       AtNode* arnoldShader;
+      MString attrName;
    };
 
    std::vector<CShaderData> m_processedShaders;
