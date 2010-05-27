@@ -9,6 +9,8 @@
 #include <maya/MMatrix.h>
 
 #include <vector>
+#include <map>
+#include <string>
 
 struct CMotionBlurData
 {
@@ -73,6 +75,8 @@ private:
    void ConvertMatrix(AtMatrix& matrix, const MMatrix& mayamatrix);
 
    void GetMotionBlurData();
+   void GetCustomShapes();
+   bool RegisterCustomShape(std::string &shapeType);
 
 private:
 
@@ -93,6 +97,8 @@ private:
    CMotionBlurData m_motionBlurData;
 
    AtFloat m_currentFrame;
+   
+   std::map<std::string, std::string> m_customShapes;
 
 };  // class CMayaScene
 
