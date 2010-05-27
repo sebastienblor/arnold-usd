@@ -13,6 +13,247 @@
 #include <maya/MPlug.h>
 #include <maya/MPlugArray.h>
 
+#include <string>
+
+
+static const char *g_remapInterpolationStrings[] =
+{
+   "none",
+   "linear",
+   "smooth",
+   "spline"
+};
+
+static bool SortFloatArray(AtArray *a, int *shuffle=0)
+{
+   bool modified = false;
+
+   if (a && a->nelements > 0)
+   {      
+      float p0, p1;
+      int tmp;
+
+      bool swapped = true;
+      AtUInt32 n = a->nelements;
+
+      if (shuffle)
+      {
+         for (int i=0; i<n; ++i)
+         {
+            shuffle[i] = i;
+         }
+      }
+
+      while (swapped)
+      {
+         swapped = false;
+         n -= 1;
+         for (AtUInt32 i=0; i<n; ++i)
+         {
+            p0 = AiArrayGetFlt(a, i);
+            p1 = AiArrayGetFlt(a, i+1);
+            if (p0 > p1)
+            {
+               swapped = true;
+               modified = true;
+
+               AiArraySetFlt(a, i, p1);
+               AiArraySetFlt(a, i+1, p0);
+
+               if (shuffle)
+               {
+                  tmp = shuffle[i];
+                  shuffle[i] = shuffle[i+1];
+                  shuffle[i+1] = tmp;
+               }
+            }
+         }
+      }
+   }
+   
+   return modified;
+}
+
+static void ShuffleArray(AtArray *a, int *shuffle, int arnoldType)
+{
+   if (!a || !shuffle)
+   {
+      return;
+   }
+
+   if (arnoldType == AI_TYPE_FLOAT)
+   {
+      float tmp;
+      for (int i=0; i<a->nelements; ++i)
+      {
+         if (shuffle[i] < i)
+            continue;
+         tmp = AiArrayGetFlt(a, i);
+         AiArraySetFlt(a, i, AiArrayGetFlt(a, shuffle[i]));
+         AiArraySetFlt(a, shuffle[i], tmp);
+      }
+   }
+   else if (arnoldType == AI_TYPE_RGB)
+   {
+      AtRGB tmp;
+      for (int i=0; i<a->nelements; ++i)
+      {
+         if (shuffle[i] < i)
+            continue;
+         tmp = AiArrayGetRGB(a, i);
+         AiArraySetRGB(a, i, AiArrayGetRGB(a, shuffle[i]));
+         AiArraySetRGB(a, shuffle[i], tmp);
+      }
+   }
+   else if (arnoldType == AI_TYPE_RGBA)
+   {
+      AtRGBA tmp;
+      for (int i=0; i<a->nelements; ++i)
+      {
+         if (shuffle[i] < i)
+            continue;
+         tmp = AiArrayGetRGBA(a, i);
+         AiArraySetRGBA(a, i, AiArrayGetRGBA(a, shuffle[i]));
+         AiArraySetRGBA(a, shuffle[i], tmp);
+      }
+   }
+   else if (arnoldType == AI_TYPE_STRING)
+   {
+      std::string tmp0, tmp1;
+      for (int i=0; i<a->nelements; ++i)
+      {
+         if (shuffle[i] < i)
+            continue;
+         tmp0 = AiArrayGetStr(a, i);
+         tmp1 = AiArrayGetStr(a, shuffle[i]);
+         AiArraySetStr(a, i, tmp1.c_str());
+         AiArraySetStr(a, shuffle[i], tmp0.c_str());
+      }
+   }
+   else if (arnoldType == AI_TYPE_BYTE)
+   {
+      AtByte tmp;
+      for (int i=0; i<a->nelements; ++i)
+      {
+         if (shuffle[i] < i)
+            continue;
+         tmp = AiArrayGetByte(a, i);
+         AiArraySetByte(a, i, AiArrayGetByte(a, shuffle[i]));
+         AiArraySetByte(a, shuffle[i], tmp);
+      }
+   }
+   else if (arnoldType == AI_TYPE_INT)
+   {
+      AtInt tmp;
+      for (int i=0; i<a->nelements; ++i)
+      {
+         if (shuffle[i] < i)
+            continue;
+         tmp = AiArrayGetByte(a, i);
+         AiArraySetByte(a, i, AiArrayGetByte(a, shuffle[i]));
+         AiArraySetByte(a, shuffle[i], tmp);
+      }
+   }
+   else if (arnoldType == AI_TYPE_UINT)
+   {
+      AtUInt tmp;
+      for (int i=0; i<a->nelements; ++i)
+      {
+         if (shuffle[i] < i)
+            continue;
+         tmp = AiArrayGetByte(a, i);
+         AiArraySetByte(a, i, AiArrayGetByte(a, shuffle[i]));
+         AiArraySetByte(a, shuffle[i], tmp);
+      }
+   }
+   else if (arnoldType == AI_TYPE_BOOLEAN)
+   {
+      bool tmp;
+      for (int i=0; i<a->nelements; ++i)
+      {
+         if (shuffle[i] < i)
+            continue;
+         tmp = AiArrayGetBool(a, i);
+         AiArraySetBool(a, i, AiArrayGetBool(a, shuffle[i]));
+         AiArraySetBool(a, shuffle[i], tmp);
+      }
+   }
+   else if (arnoldType == AI_TYPE_VECTOR)
+   {
+      AtVector tmp;
+      for (int i=0; i<a->nelements; ++i)
+      {
+         if (shuffle[i] < i)
+            continue;
+         tmp = AiArrayGetVec(a, i);
+         AiArraySetVec(a, i, AiArrayGetVec(a, shuffle[i]));
+         AiArraySetVec(a, shuffle[i], tmp);
+      }
+   }
+   else if (arnoldType == AI_TYPE_POINT)
+   {
+      AtPoint tmp;
+      for (int i=0; i<a->nelements; ++i)
+      {
+         if (shuffle[i] < i)
+            continue;
+         tmp = AiArrayGetPnt(a, i);
+         AiArraySetPnt(a, i, AiArrayGetPnt(a, shuffle[i]));
+         AiArraySetPnt(a, shuffle[i], tmp);
+      }
+   }
+   else if (arnoldType == AI_TYPE_POINT2)
+   {
+      AtPoint2 tmp;
+      for (int i=0; i<a->nelements; ++i)
+      {
+         if (shuffle[i] < i)
+            continue;
+         tmp = AiArrayGetPnt2(a, i);
+         AiArraySetPnt2(a, i, AiArrayGetPnt2(a, shuffle[i]));
+         AiArraySetPnt2(a, shuffle[i], tmp);
+      }
+   }
+   else if (arnoldType == AI_TYPE_POINTER)
+   {
+      void *tmp;
+      for (int i=0; i<a->nelements; ++i)
+      {
+         if (shuffle[i] < i)
+            continue;
+         tmp = AiArrayGetPtr(a, i);
+         AiArraySetPtr(a, i, AiArrayGetPtr(a, shuffle[i]));
+         AiArraySetPtr(a, shuffle[i], tmp);
+      }
+   }
+   else if (arnoldType == AI_TYPE_MATRIX)
+   {
+      AtMatrix tmp0;
+      AtMatrix tmp1;
+      for (int i=0; i<a->nelements; ++i)
+      {
+         if (shuffle[i] < i)
+            continue;
+         AiArrayGetMtx(a, i, tmp0);
+         AiArrayGetMtx(a, shuffle[i], tmp1);
+         AiArraySetMtx(a, i, tmp1);
+         AiArraySetMtx(a, shuffle[i], tmp0);
+      }
+   }
+   else if (arnoldType == AI_TYPE_ENUM)
+   {
+      AtInt tmp;
+      for (int i=0; i<a->nelements; ++i)
+      {
+         if (shuffle[i] < i)
+            continue;
+         tmp = AiArrayGetInt(a, i);
+         AiArraySetInt(a, i, AiArrayGetInt(a, shuffle[i]));
+         AiArraySetInt(a, shuffle[i], tmp);
+      }
+   }
+}
+
 // This is a shortcut for Arnold shaders (parameter name is the same in Maya and Arnold)
 #define SHADER_PARAM(name, type) ProcessShaderParameter(mayaShader, name, shader, name, type)
 
@@ -300,7 +541,7 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
    else if (node.typeName() == "surfaceShader")
    {
       shader = AiNode("flat");
-   
+
       AiNodeSetStr(shader, "name", node.name().asChar());
 
       ProcessShaderParameter(node, "outColor", shader, "color", AI_TYPE_RGB);
@@ -452,6 +693,110 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
          }
          AiNodeSetArray(shader, "values", values);
 
+      }
+      if (shader != 0)
+      {
+         MString name = node.name() + "_" + attrName;
+         AiNodeSetStr(shader, "name", name.asChar());
+      }
+   }
+   else if (node.typeName() == "remapValue")
+   {
+      if (attrName == "outValue")
+      {
+         MPlug attr, elem, pos, val, interp;
+
+         MObject opos = node.attribute("value_Position");
+         MObject oval = node.attribute("value_FloatValue");
+         MObject ointerp = node.attribute("value_Interp");
+
+         shader = AiNode("MayaRemapValueToValue");
+
+         ProcessShaderParameter(node, "inputValue", shader, "input", AI_TYPE_FLOAT);
+         ProcessShaderParameter(node, "inputMin", shader, "inputMin", AI_TYPE_FLOAT);
+         ProcessShaderParameter(node, "inputMax", shader, "inputMax", AI_TYPE_FLOAT);
+         ProcessShaderParameter(node, "outputMin", shader, "outputMin", AI_TYPE_FLOAT);
+         ProcessShaderParameter(node, "outputMax", shader, "outputMax", AI_TYPE_FLOAT);
+
+         // Note: this doesn't handle connection coming in individual elements
+         attr = node.findPlug("value");
+         AtArray *positions = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_FLOAT);
+         AtArray *values = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_FLOAT);
+         AtArray *interps = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_STRING);
+         for (unsigned int i=0; i<attr.numElements(); ++i)
+         {
+            elem = attr.elementByPhysicalIndex(i);
+            pos = elem.child(opos);
+            val = elem.child(oval);
+            interp = elem.child(ointerp);
+            AiArraySetFlt(positions, i, pos.asFloat());
+            AiArraySetFlt(values, i, val.asFloat());
+            AiArraySetStr(interps, i, g_remapInterpolationStrings[interp.asInt()]);
+         }
+         // Need to sort the arrays (maya has the excellent idea not to do it)
+         if (positions->nelements > 1)
+         {
+            int *shuffle = new int[positions->nelements];
+            if (SortFloatArray(positions, shuffle))
+            {
+               ShuffleArray(values, shuffle, AI_TYPE_FLOAT);
+               ShuffleArray(interps, shuffle, AI_TYPE_STRING);
+            }
+            delete[] shuffle;
+         }
+         AiNodeSetArray(shader, "positions", positions);
+         AiNodeSetArray(shader, "values", values);
+         AiNodeSetArray(shader, "interpolations", interps);
+      }
+      else if (attrName == "outColor")
+      {
+         MPlug attr, elem, pos, val, interp;
+
+         MObject opos = node.attribute("color_Position");
+         MObject oval = node.attribute("color_Color");
+         MObject ointerp = node.attribute("color_Interp");
+
+         shader = AiNode("MayaRemapValueToColor");
+
+         ProcessShaderParameter(node, "inputValue", shader, "input", AI_TYPE_FLOAT);
+         ProcessShaderParameter(node, "inputMin", shader, "inputMin", AI_TYPE_FLOAT);
+         ProcessShaderParameter(node, "inputMax", shader, "inputMax", AI_TYPE_FLOAT);
+         ProcessShaderParameter(node, "outputMin", shader, "outputMin", AI_TYPE_FLOAT);
+         ProcessShaderParameter(node, "outputMax", shader, "outputMax", AI_TYPE_FLOAT);
+
+         // Note: this doesn't handle connection coming in individual elements
+         attr = node.findPlug("color");
+         AtArray *positions = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_FLOAT);
+         AtArray *values = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_RGB);
+         AtArray *interps = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_STRING);
+         for (unsigned int i=0; i<attr.numElements(); ++i)
+         {
+            elem = attr.elementByPhysicalIndex(i);
+            pos = elem.child(opos);
+            val = elem.child(oval);
+            interp = elem.child(ointerp);
+            AiArraySetFlt(positions, i, pos.asFloat());
+            AtRGB value;
+            value.r = val.child(0).asFloat();
+            value.g = val.child(1).asFloat();
+            value.b = val.child(2).asFloat();
+            AiArraySetRGB(values, i, value);
+            AiArraySetStr(interps, i, g_remapInterpolationStrings[interp.asInt()]);
+         }
+         // Need to sort the arrays (maya has the excellent idea not to do it)
+         if (positions->nelements > 1)
+         {
+            int *shuffle = new int[positions->nelements];
+            if (SortFloatArray(positions, shuffle))
+            {
+               ShuffleArray(values, shuffle, AI_TYPE_RGB);
+               ShuffleArray(interps, shuffle, AI_TYPE_STRING);
+            }
+            delete[] shuffle;
+         }
+         AiNodeSetArray(shader, "positions", positions);
+         AiNodeSetArray(shader, "values", values);
+         AiNodeSetArray(shader, "interpolations", interps);
       }
       if (shader != 0)
       {

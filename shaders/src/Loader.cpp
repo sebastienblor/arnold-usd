@@ -14,6 +14,8 @@ extern AtNodeMethods* MayaFlippedNormalMtd;
 extern AtNodeMethods* MayaPlusMinusAverage1DMtd;
 extern AtNodeMethods* MayaPlusMinusAverage2DMtd;
 extern AtNodeMethods* MayaPlusMinusAverage3DMtd;
+extern AtNodeMethods* MayaRemapValueToValueMtd;
+extern AtNodeMethods* MayaRemapValueToColorMtd;
 
 node_loader
 {
@@ -93,6 +95,20 @@ node_loader
       node->methods     = MayaPlusMinusAverage3DMtd;
       node->output_type = AI_TYPE_RGB;
       node->name        = "MayaPlusMinusAverage3D";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+
+   case 11:
+      node->methods     = MayaRemapValueToValueMtd;
+      node->output_type = AI_TYPE_FLOAT;
+      node->name        = "MayaRemapValueToValue";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+
+   case 12:
+      node->methods     = MayaRemapValueToColorMtd;
+      node->output_type = AI_TYPE_RGB;
+      node->name        = "MayaRemapValueToColor";
       node->node_type   = AI_NODE_SHADER;
       break;
 
