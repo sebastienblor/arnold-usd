@@ -369,6 +369,96 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
          AiNodeSetStr(shader, "name", name.asChar());
       }
    }
+   else if (node.typeName() == "plusMinusAverage")
+   {
+      if (attrName == "output1D")
+      {
+         shader = AiNode("MayaPlusMinusAverage1D");
+
+         MPlug elem, attr;
+
+         attr = node.findPlug("operation");
+         AiNodeSetInt(shader, "operation", attr.asInt());
+
+         attr = node.findPlug("input1D");
+         AtArray *values = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_FLOAT);
+         for (unsigned int i=0; i<attr.numElements(); ++i)
+         {
+            elem = attr.elementByPhysicalIndex(i);
+            // This could actually be a connection but Arnold does not support
+            // array element connections for now
+            AiArraySetFlt(values, i, elem.asFloat());
+         }
+         AiNodeSetArray(shader, "values", values);
+
+      }
+      else if (attrName == "output2D")
+      {
+         shader = AiNode("MayaPlusMinusAverage2D");
+
+         MObject oinx = node.attribute("input2Dx");
+         MObject oiny = node.attribute("input2Dy");
+
+         MPlug attr, elem, inx, iny;
+         AtPoint2 value;
+
+         attr = node.findPlug("operation");
+         AiNodeSetInt(shader, "operation", attr.asInt());
+
+         attr = node.findPlug("input2D");
+         AtArray *values = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_POINT2);
+         for (unsigned int i=0; i<attr.numElements(); ++i)
+         {
+            elem = attr.elementByPhysicalIndex(i);
+            // This could actually be a connection but Arnold does not support
+            // array element connections for now
+            inx = elem.child(oinx);
+            iny = elem.child(oiny);
+            value.x = inx.asFloat();
+            value.y = iny.asFloat();
+            AiArraySetPnt2(values, i, value);
+         }
+         AiNodeSetArray(shader, "values", values);
+
+      }
+      else if (attrName == "output3D")
+      {
+         shader = AiNode("MayaPlusMinusAverage3D");
+
+         MObject oinx = node.attribute("input3Dx");
+         MObject oiny = node.attribute("input3Dy");
+         MObject oinz = node.attribute("input3Dz");
+
+         MPlug attr, elem, inx, iny, inz;
+         AtRGB value;
+
+         attr = node.findPlug("operation");
+         AiNodeSetInt(shader, "operation", attr.asInt());
+
+         attr = node.findPlug("input3D");
+         AtArray *values = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_RGB);
+         for (unsigned int i=0; i<attr.numElements(); ++i)
+         {
+            elem = attr.elementByPhysicalIndex(i);
+            // This could actually be a connection but Arnold does not support
+            // array element connections for now
+            inx = elem.child(oinx);
+            iny = elem.child(oiny);
+            inz = elem.child(oinz);
+            value.r = inx.asFloat();
+            value.g = iny.asFloat();
+            value.b = inz.asFloat();
+            AiArraySetRGB(values, i, value);
+         }
+         AiNodeSetArray(shader, "values", values);
+
+      }
+      if (shader != 0)
+      {
+         MString name = node.name() + "_" + attrName;
+         AiNodeSetStr(shader, "name", name.asChar());
+      }
+   }
    else
    {
       AiMsgWarning("[mtoa] Shader type not supported: %s", node.typeName().asChar());

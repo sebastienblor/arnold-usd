@@ -11,6 +11,9 @@ extern AtNodeMethods* MayaReverseMtd;
 extern AtNodeMethods* MayaBlendColorsMtd;
 extern AtNodeMethods* MayaFacingRatioMtd;
 extern AtNodeMethods* MayaFlippedNormalMtd;
+extern AtNodeMethods* MayaPlusMinusAverage1DMtd;
+extern AtNodeMethods* MayaPlusMinusAverage2DMtd;
+extern AtNodeMethods* MayaPlusMinusAverage3DMtd;
 
 node_loader
 {
@@ -69,6 +72,27 @@ node_loader
       node->methods     = MayaFlippedNormalMtd;
       node->output_type = AI_TYPE_FLOAT;
       node->name        = "MayaFlippedNormal";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+
+   case 8:
+      node->methods     = MayaPlusMinusAverage1DMtd;
+      node->output_type = AI_TYPE_FLOAT;
+      node->name        = "MayaPlusMinusAverage1D";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+
+   case 9:
+      node->methods     = MayaPlusMinusAverage2DMtd;
+      node->output_type = AI_TYPE_POINT2;
+      node->name        = "MayaPlusMinusAverage2D";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+
+   case 10:
+      node->methods     = MayaPlusMinusAverage3DMtd;
+      node->output_type = AI_TYPE_RGB;
+      node->name        = "MayaPlusMinusAverage3D";
       node->node_type   = AI_NODE_SHADER;
       break;
 
