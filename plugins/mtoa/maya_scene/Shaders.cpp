@@ -804,6 +804,74 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
          AiNodeSetStr(shader, "name", name.asChar());
       }
    }
+   else if (node.typeName() == "remapColor")
+   {
+      if (attrName == "outColor")
+      {
+         shader = AiNode("MayaRemapColor");
+
+         MPlug attr, elem, pos, val, interp;
+
+         const char *plugNames[3] = {"red", "green", "blue"};
+         const char *posNames[6] = {"red_Position",   "rPositions",
+                                    "green_Position", "gPositions",
+                                    "blue_Position",  "bPositions"};
+         const char *valNames[6] = {"red_FloatValue",   "rValues",
+                                    "green_FloatValue", "gValues",
+                                    "blue_FloatValue",  "bValues"};
+         const char *interpNames[6] = {"red_Interp",   "rInterpolations",
+                                       "green_Interp", "gInterpolations",
+                                       "blue_Interp",  "bInterpolations"};
+
+         ProcessShaderParameter(node, "color", shader, "input", AI_TYPE_RGB);
+         ProcessShaderParameter(node, "inputMin", shader, "inputMin", AI_TYPE_FLOAT);
+         ProcessShaderParameter(node, "inputMax", shader, "inputMax", AI_TYPE_FLOAT);
+         ProcessShaderParameter(node, "outputMin", shader, "outputMin", AI_TYPE_FLOAT);
+         ProcessShaderParameter(node, "outputMax", shader, "outputMax", AI_TYPE_FLOAT);
+
+         for (int ci=0; ci<3; ++ci)
+         {
+            MObject opos = node.attribute(posNames[ci*2]);
+            MObject oval = node.attribute(valNames[ci*2]);
+            MObject ointerp = node.attribute(interpNames[ci*2]);
+
+            // Note: this doesn't handle connection coming in individual elements
+            attr = node.findPlug(plugNames[ci]);
+            AtArray *positions = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_FLOAT);
+            AtArray *values = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_FLOAT);
+            AtArray *interps = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_STRING);
+            for (unsigned int i=0; i<attr.numElements(); ++i)
+            {
+               elem = attr.elementByPhysicalIndex(i);
+               pos = elem.child(opos);
+               val = elem.child(oval);
+               interp = elem.child(ointerp);
+               AiArraySetFlt(positions, i, pos.asFloat());
+               AiArraySetFlt(values, i, val.asFloat());
+               AiArraySetStr(interps, i, g_remapInterpolationStrings[interp.asInt()]);
+            }
+            // Need to sort array (maya has the excellent idea not to do it)
+            if (positions->nelements > 1)
+            {
+               int *shuffle = new int[positions->nelements];
+               if (SortFloatArray(positions, shuffle))
+               {
+                  ShuffleArray(values, shuffle, AI_TYPE_FLOAT);
+                  ShuffleArray(interps, shuffle, AI_TYPE_STRING);
+               }
+               delete[] shuffle;
+            }
+            AiNodeSetArray(shader, posNames[ci*2 + 1], positions);
+            AiNodeSetArray(shader, valNames[ci*2 + 1], values);
+            AiNodeSetArray(shader, interpNames[ci*2 + 1], interps);
+         }
+      }
+      if (shader != 0)
+      {
+         MString name = node.name() + "_" + attrName;
+         AiNodeSetStr(shader, "name", name.asChar());
+      }
+   }
    else
    {
       AiMsgWarning("[mtoa] Shader type not supported: %s", node.typeName().asChar());

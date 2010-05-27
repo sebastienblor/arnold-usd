@@ -16,6 +16,8 @@ extern AtNodeMethods* MayaPlusMinusAverage2DMtd;
 extern AtNodeMethods* MayaPlusMinusAverage3DMtd;
 extern AtNodeMethods* MayaRemapValueToValueMtd;
 extern AtNodeMethods* MayaRemapValueToColorMtd;
+extern AtNodeMethods* MayaRemapColorMtd;
+
 
 node_loader
 {
@@ -109,6 +111,13 @@ node_loader
       node->methods     = MayaRemapValueToColorMtd;
       node->output_type = AI_TYPE_RGB;
       node->name        = "MayaRemapValueToColor";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+
+   case 13:
+      node->methods     = MayaRemapColorMtd;
+      node->output_type = AI_TYPE_RGB;
+      node->name        = "MayaRemapColor";
       node->node_type   = AI_NODE_SHADER;
       break;
 
