@@ -20,6 +20,7 @@ extern AtNodeMethods* MayaRemapColorMtd;
 extern AtNodeMethods* MayaFileMtd;
 extern AtNodeMethods* MayaPlace2dTextureMtd;
 extern AtNodeMethods* MayaRampMtd;
+extern AtNodeMethods* MayaProjectionMtd;
 
 node_loader
 {
@@ -141,6 +142,13 @@ node_loader
       node->methods     = MayaRampMtd;
       node->output_type = AI_TYPE_RGBA;
       node->name        = "MayaRamp";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+
+   case 17:
+      node->methods     = MayaProjectionMtd;
+      node->output_type = AI_TYPE_RGBA;
+      node->name        = "MayaProjection";
       node->node_type   = AI_NODE_SHADER;
       break;
 

@@ -13,6 +13,8 @@
 #include <maya/MPlug.h>
 #include <maya/MPlugArray.h>
 #include <maya/MFnNumericData.h>
+#include <maya/MFnMatrixData.h>
+#include <maya/MFnCamera.h>
 
 #include <string>
 
@@ -301,6 +303,16 @@ void CMayaScene::ProcessShaderParameter(MFnDependencyNode shader, const char* pa
             MFnNumericData numData(numObj);
             numData.getData2Float(x, y);
             AiNodeSetPnt2(arnoldShader, arnoldAttrib, x, y);
+         }
+         break;
+      case AI_TYPE_MATRIX:
+         {
+            AtMatrix am;
+            MObject matObj = plug.asMObject();
+            MFnMatrixData matData(matObj);
+            MMatrix mm = matData.matrix();
+            ConvertMatrix(am, mm);
+            AiNodeSetMatrix(arnoldShader, arnoldAttrib, am);
          }
          break;
       case AI_TYPE_BOOLEAN:
@@ -922,6 +934,68 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
       {
          MString name = node.name() + "_" + attrName;
          AiNodeSetStr(shader, "name", name.asChar());
+      }
+   }
+   else if (node.typeName() == "projection")
+   {
+      shader = AiNode("MayaProjection");
+
+      AiNodeSetStr(shader, "name", node.name().asChar());
+
+      ProcessShaderParameter(node, "projType", shader, "type", AI_TYPE_INT);
+      ProcessShaderParameter(node, "uAngle", shader, "uAngle", AI_TYPE_FLOAT);
+      ProcessShaderParameter(node, "vAngle", shader, "vAngle", AI_TYPE_FLOAT);
+      ProcessShaderParameter(node, "local", shader, "local", AI_TYPE_BOOLEAN);
+      ProcessShaderParameter(node, "wrap", shader, "wrap", AI_TYPE_BOOLEAN);
+      ProcessShaderParameter(node, "invert", shader, "invert", AI_TYPE_BOOLEAN);
+      ProcessShaderParameter(node, "colorGain", shader, "colorGain", AI_TYPE_RGB);
+      ProcessShaderParameter(node, "colorOffset", shader, "colorOffset", AI_TYPE_RGB);
+      ProcessShaderParameter(node, "defaultColor", shader, "defaultColor", AI_TYPE_RGB);
+      ProcessShaderParameter(node, "alphaGain", shader, "alphaGain", AI_TYPE_FLOAT);
+      ProcessShaderParameter(node, "alphaOffset", shader, "alphaOffset", AI_TYPE_FLOAT);
+      ProcessShaderParameter(node, "image", shader, "image", AI_TYPE_RGBA);
+
+      // alphaIsLuminance?
+
+      // placementMatrix
+      MPlug plug = node.findPlug("placementMatrix");
+      // should follow connections here also
+      // temporarily just read the value
+      AtMatrix ipm;
+      MObject matObj = plug.asMObject();
+      MFnMatrixData matData(matObj);
+      MMatrix mm = matData.matrix();
+      ConvertMatrix(ipm, mm);
+      AiNodeSetMatrix(shader, "mappingCoordinate", ipm);
+
+      ProcessShaderParameter(node, "fitType", shader, "fitType", AI_TYPE_INT);
+      ProcessShaderParameter(node, "fitFill", shader, "fillType", AI_TYPE_INT);
+
+      plug = node.findPlug("linkedCamera");
+      MPlugArray connections;
+      plug.connectedTo(connections, true, false);
+      if (connections.length() >= 1)
+      {
+         MObject camObj = connections[0].node();
+
+         MFnCamera cam(camObj);
+
+         MDagPath camPath;
+         cam.getPath(camPath);
+
+         AiNodeSetFlt(shader, "cameraNearPlane", cam.nearClippingPlane());
+         AiNodeSetFlt(shader, "cameraHorizontalFOV", cam.horizontalFieldOfView());
+         AiNodeSetFlt(shader, "cameraAspectRatio", cam.aspectRatio());
+
+         MMatrix trans = camPath.inclusiveMatrixInverse();
+         AtMatrix atrans;
+         ConvertMatrix(atrans, trans);
+         AiNodeSetMatrix(shader, "cameraInverseMatrix", atrans);
+      }
+      else
+      {
+         // no linked camera, fit type needs to be None ?
+         AiNodeSetInt(shader, "fitType", 0);
       }
    }
    else if (node.typeName() == "ramp")
