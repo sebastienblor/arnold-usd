@@ -3,6 +3,9 @@
 
 #include <ai.h>
 
+extern float Luminance(const AtRGB &color);
+extern float Luminance(const AtRGBA &color);
+
 enum InterpolationType
 {
    IT_NONE = 0,

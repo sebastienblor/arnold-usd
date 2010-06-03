@@ -17,7 +17,8 @@ extern AtNodeMethods* MayaPlusMinusAverage3DMtd;
 extern AtNodeMethods* MayaRemapValueToValueMtd;
 extern AtNodeMethods* MayaRemapValueToColorMtd;
 extern AtNodeMethods* MayaRemapColorMtd;
-
+extern AtNodeMethods* MayaFileMtd;
+extern AtNodeMethods* MayaPlace2dTextureMtd;
 
 node_loader
 {
@@ -118,6 +119,20 @@ node_loader
       node->methods     = MayaRemapColorMtd;
       node->output_type = AI_TYPE_RGB;
       node->name        = "MayaRemapColor";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+
+   case 14:
+      node->methods     = MayaFileMtd;
+      node->output_type = AI_TYPE_RGBA;
+      node->name        = "MayaFile";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+
+   case 15:
+      node->methods     = MayaPlace2dTextureMtd;
+      node->output_type = AI_TYPE_POINT2;
+      node->name        = "MayaPlace2dTexture";
       node->node_type   = AI_NODE_SHADER;
       break;
 

@@ -12,6 +12,7 @@
 #include <maya/MFnStringData.h>
 #include <maya/MPlug.h>
 #include <maya/MPlugArray.h>
+#include <maya/MFnNumericData.h>
 
 #include <string>
 
@@ -293,6 +294,15 @@ void CMayaScene::ProcessShaderParameter(MFnDependencyNode shader, const char* pa
             AiNodeSetFlt(arnoldShader, arnoldAttrib, plug.asFloat());
          }
          break;
+      case AI_TYPE_POINT2:
+         {
+            float x, y;
+            MObject numObj = plug.asMObject();
+            MFnNumericData numData(numObj);
+            numData.getData2Float(x, y);
+            AiNodeSetPnt2(arnoldShader, arnoldAttrib, x, y);
+         }
+         break;
       case AI_TYPE_BOOLEAN:
          {
             AiNodeSetBool(arnoldShader, arnoldAttrib, plug.asBool());
@@ -549,9 +559,51 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
    }
    else if (node.typeName() == "file")
    {
-      shader = AiNode("image");
-      
-      AiNodeSetStr(shader, "filename", node.findPlug("fileTextureName").asString().asChar());
+      MPlugArray connections;
+
+      MPlug plug = node.findPlug("uvCoord");
+
+      plug.connectedTo(connections, true, false);
+
+      if (connections.length() != 0)
+      {
+         MObject srcObj = connections[0].node();
+         MFnDependencyNode srcNode(srcObj);
+
+         if (srcNode.typeName() == "place2dTexture")
+         {
+            shader = AiNode("MayaFile");
+            AiNodeSetStr(shader, "filename", node.findPlug("fileTextureName").asString().asChar());
+            
+            ProcessShaderParameter(srcNode, "coverage", shader, "coverage", AI_TYPE_POINT2);
+            ProcessShaderParameter(srcNode, "rotateFrame", shader, "rotateFrame", AI_TYPE_FLOAT);
+            ProcessShaderParameter(srcNode, "translateFrame", shader, "translateFrame", AI_TYPE_POINT2);
+            ProcessShaderParameter(srcNode, "mirrorU", shader, "mirrorU", AI_TYPE_BOOLEAN);
+            ProcessShaderParameter(srcNode, "mirrorV", shader, "mirrorV", AI_TYPE_BOOLEAN);
+            ProcessShaderParameter(srcNode, "wrapU", shader, "wrapU", AI_TYPE_BOOLEAN);
+            ProcessShaderParameter(srcNode, "wrapV", shader, "wrapV", AI_TYPE_BOOLEAN);
+            ProcessShaderParameter(srcNode, "stagger", shader, "stagger", AI_TYPE_BOOLEAN);
+            ProcessShaderParameter(srcNode, "repeatUV", shader, "repeatUV", AI_TYPE_POINT2);
+            ProcessShaderParameter(srcNode, "rotateUV", shader, "rotateUV", AI_TYPE_FLOAT);
+            ProcessShaderParameter(srcNode, "offset", shader, "offsetUV", AI_TYPE_POINT2);
+            ProcessShaderParameter(srcNode, "noiseUV", shader, "noiseUV", AI_TYPE_POINT2);
+            ProcessShaderParameter(node, "colorGain", shader, "colorGain", AI_TYPE_RGB);
+            ProcessShaderParameter(node, "colorOffset", shader, "colorOffset", AI_TYPE_RGB);
+            ProcessShaderParameter(node, "alphaGain", shader, "alphaGain", AI_TYPE_FLOAT);
+            ProcessShaderParameter(node, "alphaOffset", shader, "alphaOffset", AI_TYPE_FLOAT);
+            ProcessShaderParameter(node, "alphaIsLuminance", shader, "alphaIsLuminance", AI_TYPE_BOOLEAN);
+            ProcessShaderParameter(node, "invert", shader, "invert", AI_TYPE_BOOLEAN);
+            ProcessShaderParameter(node, "defaultColor", shader, "defaultColor", AI_TYPE_RGB);
+         }
+      }
+
+      if (!shader)
+      {
+         shader = AiNode("image");
+         AiNodeSetStr(shader, "filename", node.findPlug("fileTextureName").asString().asChar());
+      }
+
+      AiNodeSetStr(shader, "name", node.name().asChar());
    }
    else if (node.typeName() == "multiplyDivide")
    {

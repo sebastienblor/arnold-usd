@@ -4,6 +4,16 @@
 #endif
 #include <cmath>
 
+float Luminance(const AtRGB &color)
+{
+   return (0.3f * color.r + 0.59f * color.g + 0.11f * color.b);
+}
+
+float Luminance(const AtRGBA &color)
+{
+   return (0.3f * color.r + 0.59f * color.g + 0.11f * color.b);
+}
+
 const char* InterpolationNames[] =
 {
    "none",
