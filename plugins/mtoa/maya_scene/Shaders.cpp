@@ -924,6 +924,96 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
          AiNodeSetStr(shader, "name", name.asChar());
       }
    }
+   else if (node.typeName() == "ramp")
+   {
+      shader = AiNode("MayaRamp");
+
+      AiNodeSetStr(shader, "name", node.name().asChar());
+      ProcessShaderParameter(node, "type", shader, "type", AI_TYPE_INT);
+      ProcessShaderParameter(node, "interpolation", shader, "interpolation", AI_TYPE_INT);
+      ProcessShaderParameter(node, "uWave", shader, "uWave", AI_TYPE_FLOAT);
+      ProcessShaderParameter(node, "vWave", shader, "vWave", AI_TYPE_FLOAT);
+      ProcessShaderParameter(node, "noise", shader, "noise", AI_TYPE_FLOAT);
+      ProcessShaderParameter(node, "noiseFreq", shader, "noiseFreq", AI_TYPE_FLOAT);
+      ProcessShaderParameter(node, "colorGain", shader, "colorGain", AI_TYPE_RGB);
+      ProcessShaderParameter(node, "colorOffset", shader, "colorOffset", AI_TYPE_RGB);
+      ProcessShaderParameter(node, "defaultColor", shader, "defaultColor", AI_TYPE_RGB);
+      ProcessShaderParameter(node, "alphaGain", shader, "alphaGain", AI_TYPE_FLOAT);
+      ProcessShaderParameter(node, "alphaOffset", shader, "alphaOffset", AI_TYPE_FLOAT);
+      ProcessShaderParameter(node, "invert", shader, "invert", AI_TYPE_BOOLEAN);
+
+      MPlug plug, elem, pos, col;
+      MPlugArray connections;
+      AtNode *placement = NULL;
+
+      plug = node.findPlug("uvCoord");
+      plug.connectedTo(connections, true, false);
+
+      if (connections.length() != 0)
+      {
+         MObject srcObj = connections[0].node();
+         MFnDependencyNode srcNode(srcObj);
+
+         if (srcNode.typeName() == "place2dTexture")
+         {
+            placement = AiNode("MayaPlace2dTexture");
+
+            AiNodeSetStr(placement, "name", srcNode.name().asChar());
+            ProcessShaderParameter(srcNode, "coverage", placement, "coverage", AI_TYPE_POINT2);
+            ProcessShaderParameter(srcNode, "rotateFrame", placement, "rotateFrame", AI_TYPE_FLOAT);
+            ProcessShaderParameter(srcNode, "translateFrame", placement, "translateFrame", AI_TYPE_POINT2);
+            ProcessShaderParameter(srcNode, "mirrorU", placement, "mirrorU", AI_TYPE_BOOLEAN);
+            ProcessShaderParameter(srcNode, "mirrorV", placement, "mirrorV", AI_TYPE_BOOLEAN);
+            ProcessShaderParameter(srcNode, "wrapU", placement, "wrapU", AI_TYPE_BOOLEAN);
+            ProcessShaderParameter(srcNode, "wrapV", placement, "wrapV", AI_TYPE_BOOLEAN);
+            ProcessShaderParameter(srcNode, "stagger", placement, "stagger", AI_TYPE_BOOLEAN);
+            ProcessShaderParameter(srcNode, "repeatUV", placement, "repeatUV", AI_TYPE_POINT2);
+            ProcessShaderParameter(srcNode, "rotateUV", placement, "rotateUV", AI_TYPE_FLOAT);
+            ProcessShaderParameter(srcNode, "offset", placement, "offsetUV", AI_TYPE_POINT2);
+            ProcessShaderParameter(srcNode, "noiseUV", placement, "noiseUV", AI_TYPE_POINT2);
+         }
+      }
+      if (placement != NULL)
+      {
+         AiNodeSetBool(shader, "overrideUV", true);
+         AiNodeLink(placement, "uv", shader);
+      }
+      else
+      {
+         AiNodeSetBool(shader, "overrideUV", false);
+      }
+
+      MObject opos = node.attribute("position");
+      MObject ocol = node.attribute("color");
+      plug = node.findPlug("colorEntryList");
+      AtArray *positions = AiArrayAllocate(plug.numElements(), 1, AI_TYPE_FLOAT);
+      AtArray *colors = AiArrayAllocate(plug.numElements(), 1, AI_TYPE_RGB);
+      // Connections on individual array element are not handled
+      for (unsigned int i=0; i<plug.numElements(); ++i)
+      {
+         elem = plug.elementByPhysicalIndex(i);
+         pos = elem.child(opos);
+         col = elem.child(ocol);
+         AtRGB v;
+         v.r = col.child(0).asFloat();
+         v.g = col.child(1).asFloat();
+         v.b = col.child(2).asFloat();
+         AiArraySetFlt(positions, i, pos.asFloat());
+         AiArraySetRGB(colors, i, v);
+      }
+      // Sort position array
+      if (positions->nelements > 1)
+      {
+         int *shuffle = new int[positions->nelements];
+         if (SortFloatArray(positions, shuffle))
+         {
+            ShuffleArray(colors, shuffle, AI_TYPE_RGB);
+         }
+         delete[] shuffle;
+      }
+      AiNodeSetArray(shader, "positions", positions);
+      AiNodeSetArray(shader, "colors", colors);
+   }
    else
    {
       AiMsgWarning("[mtoa] Shader type not supported: %s", node.typeName().asChar());

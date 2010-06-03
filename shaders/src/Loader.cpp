@@ -19,6 +19,7 @@ extern AtNodeMethods* MayaRemapValueToColorMtd;
 extern AtNodeMethods* MayaRemapColorMtd;
 extern AtNodeMethods* MayaFileMtd;
 extern AtNodeMethods* MayaPlace2dTextureMtd;
+extern AtNodeMethods* MayaRampMtd;
 
 node_loader
 {
@@ -133,6 +134,13 @@ node_loader
       node->methods     = MayaPlace2dTextureMtd;
       node->output_type = AI_TYPE_POINT2;
       node->name        = "MayaPlace2dTexture";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+
+   case 16:
+      node->methods     = MayaRampMtd;
+      node->output_type = AI_TYPE_RGBA;
+      node->name        = "MayaRamp";
       node->node_type   = AI_NODE_SHADER;
       break;
 
