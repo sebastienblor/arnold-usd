@@ -29,6 +29,7 @@ public:
    static MObject s_IOR;
    static MObject s_Kb;
    static MObject s_Kd;
+   static MObject s_diffuse_roughness;
    static MObject s_Kd_colorR;
    static MObject s_Kd_colorG;
    static MObject s_Kd_colorB;

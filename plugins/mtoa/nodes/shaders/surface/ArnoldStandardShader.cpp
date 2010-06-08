@@ -22,6 +22,7 @@ MObject CArnoldStandardShaderNode::s_Fresnel_affect_diff;
 MObject CArnoldStandardShaderNode::s_IOR;
 MObject CArnoldStandardShaderNode::s_Kb;
 MObject CArnoldStandardShaderNode::s_Kd;
+MObject CArnoldStandardShaderNode::s_diffuse_roughness;
 MObject CArnoldStandardShaderNode::s_Kd_colorR;
 MObject CArnoldStandardShaderNode::s_Kd_colorG;
 MObject CArnoldStandardShaderNode::s_Kd_colorB;
@@ -358,6 +359,11 @@ MStatus CArnoldStandardShaderNode::initialize()
    nAttr.setMin(0);
    nAttr.setMax(1);
    MAKE_INPUT(nAttr, s_Kd);
+
+   s_diffuse_roughness = nAttr.create("diffuse_roughness", "drgh", MFnNumericData::kFloat, 0.0f);
+   nAttr.setMin(0);
+   nAttr.setMax(1);
+   MAKE_INPUT(nAttr, s_diffuse_roughness);
 
    MAKE_COLOR(s_Kd_color, "Kd_color", "kdc", 1, 1, 1);
    MAKE_INPUT(nAttr, s_Kd_color);

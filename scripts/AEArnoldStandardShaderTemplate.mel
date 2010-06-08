@@ -33,6 +33,7 @@ global proc AEArnoldStandardShaderTemplate( string $nodeName )
       editorTemplate -beginLayout "Diffuse" -collapse false;
          editorTemplate -l "Color" -addControl "Kd_color";
          editorTemplate -l "Weight" -addControl "Kd";
+         editorTemplate -l "Roughness" -addControl "diffuse_roughness";
          editorTemplate -l "Backlight" -addControl "Kb";
          editorTemplate -addSeparator;
          editorTemplate -l "Fresnel affects Diffuse" -addControl "Fresnel_affect_diff";
