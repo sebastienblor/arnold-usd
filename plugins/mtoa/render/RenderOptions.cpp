@@ -211,6 +211,9 @@ void CRenderOptions::ProcessArnoldRenderOptions()
       m_GI_refraction_depth = fnArnoldRenderOptions.findPlug("GI_refraction_depth").asInt();
       m_GI_total_depth      = fnArnoldRenderOptions.findPlug("GI_total_depth").asInt();
 
+      m_auto_transparency_depth = fnArnoldRenderOptions.findPlug("auto_transparency_depth").asInt();
+      m_auto_transparency_threshold = fnArnoldRenderOptions.findPlug("auto_transparency_threshold").asFloat();
+
       m_sss_lazy_evaluation = fnArnoldRenderOptions.findPlug("sss_lazy_evaluation").asBool();
       m_sss_subpixel_cache  = fnArnoldRenderOptions.findPlug("sss_subpixel_cache").asBool();
       m_show_samples        = fnArnoldRenderOptions.findPlug("show_samples").asInt();
@@ -257,6 +260,9 @@ void CRenderOptions::SetupRenderOptions() const
    AiNodeSetInt(AiUniverseGetOptions(), "GI_reflection_depth", m_GI_reflection_depth);
    AiNodeSetInt(AiUniverseGetOptions(), "GI_refraction_depth", m_GI_refraction_depth);
    AiNodeSetInt(AiUniverseGetOptions(), "GI_total_depth", m_GI_total_depth);
+
+   AiNodeSetInt(AiUniverseGetOptions(), "auto_transparency_depth", m_auto_transparency_depth);
+   AiNodeSetFlt(AiUniverseGetOptions(), "auto_transparency_threshold", m_auto_transparency_threshold);
 
    AiNodeSetBool(AiUniverseGetOptions(), "sss_lazy_evaluation", m_sss_lazy_evaluation);
    AiNodeSetBool(AiUniverseGetOptions(), "sss_subpixel_cache", m_sss_subpixel_cache);

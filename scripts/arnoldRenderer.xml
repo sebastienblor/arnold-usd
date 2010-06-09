@@ -69,6 +69,8 @@
 	<attr n="glo" s="defaultArnoldRenderOptions.GI_glossy_depth" t="int" h="Set glossy depth"/>
 	<attr n="rfl" s="defaultArnoldRenderOptions.GI_reflection_depth" t="int" h="Set reflection depth"/>
 	<attr n="rfr" s="defaultArnoldRenderOptions.GI_refraction_depth" t="int" h="Set refraction depth"/>
+	<attr n="atd" s="defaultArnoldRenderOptions.auto_transparency_depth" t="int" h="Set auto-transparency depth"/>
+	<attr n="att" s="defaultArnoldRenderOptions.auto_transparency_threshold" t="float" h="Set auto-transparency threshold"/>
 	<sep/>
 	<!-- ______________________________________________________________ -->
 	<sep desc=" *** Remember to place a space between option flags and their arguments. ***"/>

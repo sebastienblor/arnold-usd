@@ -326,6 +326,9 @@ private:
    AtUInt   m_GI_refraction_depth;
    AtUInt   m_GI_total_depth;
 
+   AtInt    m_auto_transparency_depth;
+   AtFloat  m_auto_transparency_threshold;
+
    bool     m_sss_lazy_evaluation;
    bool     m_sss_subpixel_cache;
    AtUInt   m_show_samples;

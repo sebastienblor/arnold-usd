@@ -303,6 +303,16 @@ global proc CreateArnoldRayDepthSettings()
          -attribute defaultArnoldRenderOptions.GI_refraction_depth
          rs_refraction_depth;
 
+      separator -style "none";
+
+      attrControlGrp -label "Auto transp. depth"
+         -attribute defaultArnoldRenderOptions.auto_transparency_depth
+         rs_auto_transparency_depth;
+
+      attrControlGrp -label "Auto transp. threshold"
+         -attribute defaultArnoldRenderOptions.auto_transparency_threshold
+         rs_auto_transparency_threshold;
+
       setParent ..;
 
    setUITemplate -popTemplate;

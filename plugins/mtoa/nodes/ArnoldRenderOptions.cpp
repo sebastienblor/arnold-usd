@@ -50,6 +50,8 @@ MObject CArnoldRenderOptionsNode::s_GI_glossy_depth;
 MObject CArnoldRenderOptionsNode::s_GI_reflection_depth;
 MObject CArnoldRenderOptionsNode::s_GI_refraction_depth;
 MObject CArnoldRenderOptionsNode::s_GI_total_depth;
+MObject CArnoldRenderOptionsNode::s_auto_transparency_depth;
+MObject CArnoldRenderOptionsNode::s_auto_transparency_threshold;
 MObject CArnoldRenderOptionsNode::s_motion_blur_enable;
 MObject CArnoldRenderOptionsNode::s_mb_lights_enable;
 MObject CArnoldRenderOptionsNode::s_mb_camera_enable;
@@ -333,6 +335,20 @@ MStatus CArnoldRenderOptionsNode::initialize()
    nAttr.setMin(0);
    nAttr.setMax(10000);
    addAttribute(s_GI_total_depth);
+
+   s_auto_transparency_depth = nAttr.create("auto_transparency_depth", "at_d", MFnNumericData::kInt, 10);
+   nAttr.setKeyable(false);
+   nAttr.setSoftMin(0);
+   nAttr.setSoftMax(16);
+   nAttr.setMin(0);
+   nAttr.setMax(10000);
+   addAttribute(s_auto_transparency_depth);
+
+   s_auto_transparency_threshold = nAttr.create("auto_transparency_threshold", "at_t", MFnNumericData::kFloat, 0.99);
+   nAttr.setKeyable(false);
+   nAttr.setMin(0);
+   nAttr.setMax(10);
+   addAttribute(s_auto_transparency_threshold);
 
    s_motion_blur_enable = nAttr.create("motion_blur_enable", "mb_en", MFnNumericData::kBoolean, 0);
    nAttr.setKeyable(false);
