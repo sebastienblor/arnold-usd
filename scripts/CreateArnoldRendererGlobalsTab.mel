@@ -43,7 +43,15 @@ global proc SelectBackground()
       
       case 1: // Sky
       {
-         createNode -shared -n "defaultSkyShader" ArnoldSkyShader;
+         string $trSkyName = "defaultArnoldSky";
+         createNode -shared "transform" -n $trSkyName;
+         setAttr -lock true -keyable false -channelBox false ($trSkyName + ".tx");
+         setAttr -lock true -keyable false -channelBox false ($trSkyName + ".ty");
+         setAttr -lock true -keyable false -channelBox false ($trSkyName + ".tz");
+         setAttr -lock true -keyable false -channelBox false ($trSkyName + ".visibility");
+         setAttr ($trSkyName+".template") 1;
+         string $skyShaderName = `createNode -shared -n "defaultArnoldSkyShader" ArnoldSkyShader -p $trSkyName`;
+         setAttr ($skyShaderName+".template") 1;
       }
       break;
    }

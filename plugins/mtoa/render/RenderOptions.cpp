@@ -287,7 +287,7 @@ void CRenderOptions::SetupRenderOptions() const
       break;
 
    case 1:  // Sky
-      list.add("defaultSkyShader");
+      list.add("defaultArnoldSkyShader");
       if (list.length() > 0)
       {
          list.getDependNode(0, node);

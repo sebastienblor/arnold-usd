@@ -12,12 +12,12 @@
 #include <maya/MFnStringData.h>
 #include <maya/MPlug.h>
 #include <maya/MPlugArray.h>
+#include <maya/MAngle.h>
 #include <maya/MFnNumericData.h>
 #include <maya/MFnMatrixData.h>
 #include <maya/MFnCamera.h>
 
 #include <string>
-
 
 static const char *g_remapInterpolationStrings[] =
 {
@@ -465,12 +465,29 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
 
       AiNodeSetStr(shader, "name", node.name().asChar());
 
-      ProcessShaderParameter(node, "X", shader, "X", AI_TYPE_VECTOR);
-      ProcessShaderParameter(node, "X_angle", shader, "X_angle", AI_TYPE_FLOAT);
-      ProcessShaderParameter(node, "Y", shader, "Y", AI_TYPE_VECTOR);
-      ProcessShaderParameter(node, "Y_angle", shader, "Y_angle", AI_TYPE_FLOAT);
-      ProcessShaderParameter(node, "Z", shader, "Z", AI_TYPE_VECTOR);
-      ProcessShaderParameter(node, "Z_angle", shader, "Z_angle", AI_TYPE_FLOAT);
+      // Maya's X Y and Z Vectors
+      AiNodeSetVec(shader, "X", 1.0f, 0.0f, 0.0f);
+      AiNodeSetVec(shader, "Y", 0.0f, 1.0f, 0.0f);
+      AiNodeSetVec(shader, "Z", 0.0f, 0.0f, -1.0f);
+
+      MFnDagNode nodeDagNode(mayaShader);
+      MDagPath nodeDagPath;
+      nodeDagNode.getPath(nodeDagPath);
+      MFnDependencyNode trNode(nodeDagPath.transform());
+
+      MPlug plug   = trNode.findPlug("rotateX");
+      MAngle angle;
+      plug.getValue(angle);
+      AiNodeSetFlt(shader, "X_angle", -angle.asDegrees());
+
+      plug = trNode.findPlug("rotateY");
+      plug.getValue(angle);
+      AiNodeSetFlt(shader, "Y_angle", angle.asDegrees());
+
+      plug = trNode.findPlug("rotateZ");
+      plug.getValue(angle);
+      AiNodeSetFlt(shader, "Z_angle", -angle.asDegrees());
+
       ProcessShaderParameter(node, "color", shader, "color", AI_TYPE_RGB);
       ProcessShaderParameter(node, "format", shader, "format", AI_TYPE_ENUM);;
       ProcessShaderParameter(node, "intensity", shader, "intensity", AI_TYPE_FLOAT);

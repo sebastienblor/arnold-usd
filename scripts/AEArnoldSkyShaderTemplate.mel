@@ -8,16 +8,6 @@ global proc AEArnoldSkyShaderTemplate( string $nodeName )
          editorTemplate -l "Intensity" -addControl "intensity";
       editorTemplate -endLayout;
 
-      editorTemplate -beginLayout "Transform Attributes" -collapse false;
-         editorTemplate -l "X Angle" -addControl "X_angle";
-         editorTemplate -l "Y Angle" -addControl "Y_angle";
-         editorTemplate -l "Z Angle" -addControl "Z_angle";
-         editorTemplate -addSeparator;
-         editorTemplate -l "X" -addControl "X";
-         editorTemplate -l "Y" -addControl "Y";
-         editorTemplate -l "Z" -addControl "Z";
-      editorTemplate -endLayout;
-
       editorTemplate -beginLayout "Render Stats" -collapse true;
          editorTemplate -beginNoOptimize; 
          editorTemplate -l "Casts Shadows" -addControl "casts_shadows";
@@ -27,6 +17,11 @@ global proc AEArnoldSkyShaderTemplate( string $nodeName )
          editorTemplate -l "Visible In Reflections" -addControl "visible_in_reflections";
          editorTemplate -l "Visible In Refractions" -addControl "visible_in_refractions";
          editorTemplate -endNoOptimize;
+      editorTemplate -endLayout;
+
+      editorTemplate -beginLayout "Hardware Texturing" -collapse true;
+         editorTemplate -l "Texture Resolution" -addControl "sampling";
+         editorTemplate -l "Opacity" -addControl "hwtexalpha";
       editorTemplate -endLayout;
 
       // include/call base class/node attributes

@@ -53,7 +53,7 @@ namespace // <anonymous>
 
       // Special shaders (not visible from Maya shaders menu)
       status = plugin.registerNode("ArnoldFogShader", CArnoldFogShaderNode::id, CArnoldFogShaderNode::creator, CArnoldFogShaderNode::initialize);
-      status = plugin.registerNode("ArnoldSkyShader", CArnoldSkyShaderNode::id, CArnoldSkyShaderNode::creator, CArnoldSkyShaderNode::initialize);
+      status = plugin.registerNode("ArnoldSkyShader", CArnoldSkyShaderNode::id, CArnoldSkyShaderNode::creator, CArnoldSkyShaderNode::initialize, MPxNode::kLocatorNode);
       status = plugin.registerNode("ArnoldVolumeScatteringShader", CArnoldVolumeScatteringShaderNode::id, CArnoldVolumeScatteringShaderNode::creator, CArnoldVolumeScatteringShaderNode::initialize);
    }
 
