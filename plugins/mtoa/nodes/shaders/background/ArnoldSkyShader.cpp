@@ -232,7 +232,6 @@ void CArnoldSkyShaderNode::SampleSN(const MPlug &colorPlug)
       // Get all the data based on UVs
       MFnDependencyNode fnThisNode(thisMObject());
       int numSampleBase = NumSampleBase();
-      float hwTexAlpha  = fnThisNode.findPlug("hwtexalpha").asFloat();
       int numSamples    = numSampleBase*numSampleBase;
  
       m_colorDataSize = numSamples*4;
@@ -262,7 +261,7 @@ void CArnoldSkyShaderNode::SampleSN(const MPlug &colorPlug)
          m_colorData[i*4] = static_cast<byte>(static_cast<int>(fv.x));
          m_colorData[(i*4)+1] = static_cast<byte>(static_cast<int>(fv.y));
          m_colorData[(i*4)+2] = static_cast<byte>(static_cast<int>(fv.z));
-         m_colorData[(i*4)+3] = static_cast<byte>(static_cast<int>(((1-transps[i].x)*255*(1-hwTexAlpha))));
+         m_colorData[(i*4)+3] = static_cast<byte>(static_cast<int>(((transps[i].x)*255)));
       }
    }
    m_goSample = false;
@@ -276,7 +275,6 @@ MStatus CArnoldSkyShaderNode::setDependentsDirty(const MPlug &plugBeingDirtied, 
    MStringArray attributesAffecting;
 
    attributesAffecting.append("color");
-   attributesAffecting.append("hwtexalpha");
    attributesAffecting.append("sampling");
 
    for(int i=0; i<attributesAffecting.length(); i++)
@@ -327,9 +325,6 @@ void CArnoldSkyShaderNode::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3
 
    GLUquadricObj *quadratic;
 
-   // Disable depth testing and enable alpha blending.
-   glEnable(GL_BLEND);
-   glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
    // do not write to the z buffer.
    glDepthMask(0);
 
@@ -375,7 +370,10 @@ void CArnoldSkyShaderNode::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3
          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-         glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
+         float hwTexAlpha  = fn.findPlug("hwtexalpha").asFloat();
+         glColor4f(0.0f, 0.0f, 0.0f, 1 - hwTexAlpha);
+         glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
          glPolygonMode(GL_BACK, GL_FILL);
 
          // Our Custom Sphere
