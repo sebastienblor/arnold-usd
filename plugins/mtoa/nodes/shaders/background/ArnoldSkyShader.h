@@ -47,20 +47,6 @@ public:
    void DrawUVSphere(float radius, int divisionsX, int divisionsY, int format);
    int NumSampleBase();
 
-   /******************************************************************************
-      Environment mapping functions
-   ******************************************************************************/
-   // This is taken directly from arnold, and should be substituted as soon
-   // as these functions become available through the API
-   void MappingMirroredBall(const AtVector *dir, AtFloat *u, AtFloat *v);
-   void MappingAngularMap(const AtVector *dir, AtFloat *u, AtFloat *v);
-   void MappingLatLong(const AtVector *dir, AtFloat *u, AtFloat *v);
-   float safe_acosf(float x);
-   /******************************************************************************
-      Environment mapping functions
-   ******************************************************************************/
-
-
    static MTypeId id;
 
    // Input attributes

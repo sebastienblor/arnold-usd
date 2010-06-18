@@ -3,6 +3,7 @@
 #include "nodes/ArnoldNodeIds.h"
 
 #include <ai_ray.h>
+#include <ai_shader_util.h>
 
 #include <maya/MFnEnumAttribute.h>
 #include <maya/MFnNumericAttribute.h>
@@ -66,55 +67,6 @@ MObject CArnoldSkyShaderNode::s_OUT_transparency;
 
 MObject CArnoldSkyShaderNode::s_sampling;
 MObject CArnoldSkyShaderNode::s_hwtexalpha;
-
-/******************************************************************************
-   Environment mapping functions
-******************************************************************************/
-// This is taken directly from arnold, and should be substituted as soon
-// as these functions become available through the API
-float CArnoldSkyShaderNode::safe_acosf(float x)
-{
-   if (x >=  1.0f) return 0.0f;
-   if (x <= -1.0f) return AI_PI;
-   return acos (x);
-}
-
-void CArnoldSkyShaderNode::MappingMirroredBall(const AtVector *dir, AtFloat *u, AtFloat *v)
-{
-   AtFloat r, radial, nradial;
-
-   radial  = atan2f(-dir->y, dir->x);
-   nradial = safe_acosf(dir->z);
-
-   r  = 0.5f * sinf(nradial * 0.5f);
-   *u = 0.5f + r * cosf(radial);
-   *v = 0.5f - r * sinf(radial);
-}
-void CArnoldSkyShaderNode::MappingAngularMap(const AtVector *dir, AtFloat *u, AtFloat *v)
-{
-   AtFloat r, radial, nradial;
-   radial  = atan2f(-dir->y, dir->x);
-   nradial = safe_acosf(dir->z);
-
-   r  = nradial * (float)AI_ONEOVER2PI; // from [0,PI] to [0,1/2]
-   *u = 0.5f + r * cosf(radial);
-   *v = 0.5f - r * sinf(radial);
-}
-
-void CArnoldSkyShaderNode::MappingLatLong(const AtVector *dir, AtFloat *u, AtFloat *v)
-{
-   AtFloat tu, tv;
-   tu = atan2f(-dir->x, dir->z);
-   tu = (tu * (float)AI_ONEOVER2PI) + 0.5f;
-   tu = 1.0f - tu;
-   tv = safe_acosf(dir->y) / (float)AI_PI; // [0,1]
-   tv = 1.0f - tv;
-   *u = tu;
-   *v = tv;
-}
-/******************************************************************************
-   Environment mapping functions
-******************************************************************************/
 
 void CArnoldSkyShaderNode::DrawUVSphere(float radius, int divisionsX, int divisionsY, int format)
 {
@@ -186,15 +138,20 @@ void CArnoldSkyShaderNode::DrawUVSphere(float radius, int divisionsX, int divisi
                AiV3Normalize(dir, dir);
                // Mirrored Ball
                if (format==0)
-                  MappingMirroredBall(&dir, &u, &v);
+                  AiMappingMirroredBall(&dir, &u, &v);
                else
                {
                   // Angular
                   if (format==1)
-                     MappingAngularMap(&dir, &u, &v);
+                     AiMappingAngularMap(&dir, &u, &v);
                   // Latlong (and cubic since cubic is broken)
                   else
-                     MappingLatLong(&dir, &u, &v);
+                  {
+                     if (format==2)
+                        AiMappingLatLong(&dir, &u, &v);
+                     else
+                        AiMappingCubicMap(&dir, &u, &v);
+                  }
                }
                m_UData[uv_counter] = u;
                m_VData[uv_counter] = v;
@@ -489,22 +446,46 @@ MStatus CArnoldSkyShaderNode::initialize()
    MAKE_ENUM(s_format, "format", "for", 1, "sky", "format");
 
    s_casts_shadows = nAttr.create("casts_shadows", "shd", MFnNumericData::kBoolean, 1);
-   MAKE_INPUT(nAttr, s_casts_shadows);
+   nAttr.setKeyable(false);
+   nAttr.setStorable(true);
+   nAttr.setReadable(true);
+   nAttr.setWritable(true);
+   addAttribute(s_casts_shadows);
    
    s_primary_visibility = nAttr.create("primary_visibility", "pvis", MFnNumericData::kBoolean, 0);
-   MAKE_INPUT(nAttr, s_primary_visibility);
+   nAttr.setKeyable(false);
+   nAttr.setStorable(true);
+   nAttr.setReadable(true);
+   nAttr.setWritable(true);
+   addAttribute(s_primary_visibility);
    
    s_visible_in_reflections = nAttr.create("visible_in_reflections", "rfl", MFnNumericData::kBoolean, 1);
-   MAKE_INPUT(nAttr, s_visible_in_reflections);
+   nAttr.setKeyable(false);
+   nAttr.setStorable(true);
+   nAttr.setReadable(true);
+   nAttr.setWritable(true);
+   addAttribute(s_visible_in_reflections);
    
    s_visible_in_refractions = nAttr.create("visible_in_refractions", "rfr", MFnNumericData::kBoolean, 1);
-   MAKE_INPUT(nAttr, s_visible_in_refractions);
+   nAttr.setKeyable(false);
+   nAttr.setStorable(true);
+   nAttr.setReadable(true);
+   nAttr.setWritable(true);
+   addAttribute(s_visible_in_refractions);
    
    s_diffuse_visibility = nAttr.create("diffuse_visibility", "dvis", MFnNumericData::kBoolean, 1);
-   MAKE_INPUT(nAttr, s_diffuse_visibility);
+   nAttr.setKeyable(false);
+   nAttr.setStorable(true);
+   nAttr.setReadable(true);
+   nAttr.setWritable(true);
+   addAttribute(s_diffuse_visibility);
    
    s_glossy_visibility = nAttr.create("glossy_visibility", "gvis", MFnNumericData::kBoolean, 1);
-   MAKE_INPUT(nAttr, s_glossy_visibility);
+   nAttr.setKeyable(false);
+   nAttr.setStorable(true);
+   nAttr.setReadable(true);
+   nAttr.setWritable(true);
+   addAttribute(s_glossy_visibility);
 
    s_skyRadius = nAttr.create("skyRadius", "gskrd", MFnNumericData::kFloat, 10000);
    MAKE_INPUT(nAttr, s_skyRadius);
@@ -527,7 +508,11 @@ MStatus CArnoldSkyShaderNode::initialize()
    s_hwtexalpha = nAttr.create("hwtexalpha", "hwta", MFnNumericData::kFloat, 0);
    nAttr.setMin(0);
    nAttr.setMax(1);
-   MAKE_INPUT(nAttr, s_hwtexalpha);
+   nAttr.setKeyable(false);
+   nAttr.setStorable(true);
+   nAttr.setReadable(true);
+   nAttr.setWritable(true);
+   addAttribute(s_hwtexalpha);
 
    return MS::kSuccess;
 }

@@ -24,6 +24,18 @@ global proc AEArnoldSkyShaderTemplate( string $nodeName )
          editorTemplate -l "Opacity" -addControl "hwtexalpha";
       editorTemplate -endLayout;
 
+      editorTemplate -beginLayout "Viewport" -collapse true;
+         editorTemplate -l "Sky Radius" -addControl "skyRadius";
+      editorTemplate -endLayout;
+
+      // Do not show extra attributes
+
+      string $extra[] = {"visibility", "intermediateObject", "template", "ghosting", "instObjGroups", "useObjectColor", "objectColor", "drawOverride", "lodVisibility", "renderInfo", "renderLayerInfo", "ghostingControl", "ghostCustomSteps", "ghostFrames", "ghostRangeStart", "ghostRangeEnd", "ghostDriver", "motionBlur", "visibleInReflections", "visibleInRefractions", "castsShadows", "receiveShadows", "maxVisibilitySamplesOverride", "maxVisibilitySamples", "geometryAntialiasingOverride", "antialiasingLevel", "shadingSamplesOverride", "shadingSamples", "maxShadingSamples", "volumeSamplesOverride", "volumeSamples", "depthJitter", "ignoreSelfShadowing", "primaryVisibility", "compInstObjGroups", "localPosition", "localScale"};
+      for ($ex in $extra)
+      {
+         editorTemplate -suppress $ex $nodeName;
+      }
+
       // include/call base class/node attributes
       AEdependNodeTemplate $nodeName;
       editorTemplate -addExtraControls;   
