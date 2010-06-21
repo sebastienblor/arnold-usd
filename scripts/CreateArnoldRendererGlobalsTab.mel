@@ -39,7 +39,14 @@ global proc SelectBackground()
    switch ($bkg)
    {
       case 0:
-      break;
+      {
+         string $trSkyName[] = `ls defaultArnoldSky`;
+         if ($trSkyName[0] == "defaultArnoldSky")
+         {
+            delete $trSkyName;
+         }
+         break;
+      }
       
       case 1: // Sky
       {
@@ -52,8 +59,8 @@ global proc SelectBackground()
          setAttr ($trSkyName+".template") 1;
          string $skyShaderName = `createNode -shared -n "defaultArnoldSkyShader" ArnoldSkyShader -p $trSkyName`;
          setAttr ($skyShaderName+".template") 1;
+         break;
       }
-      break;
    }
 }
 

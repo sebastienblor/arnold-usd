@@ -7,18 +7,31 @@
 #include <maya/MBoundingBox.h>
 #include <gl\gl.h>
 #include <gl\glu.h>
-   
 
-// Environment Mapping needed files
-#include <ai_types.h>
-#include <ai_vector.h>
-// Environment Mapping needed files
+#include <maya/MDGMessage.h>
+#include <maya/MSelectionList.h>
+#include <maya/MFnDependencyNode.h>
+#include <maya/MStatus.h>
 
 class CArnoldSkyShaderNode
    :  public MPxLocatorNode
 {
 
 public:
+
+   static void removeSky(MObject& node, void* clientData)
+   {
+      MSelectionList list;
+      list.add("defaultArnoldRenderOptions");
+      MObject obj;
+      list.getDependNode(0, obj);
+      MFnDependencyNode depGlobals(obj);
+      int bkgValue = depGlobals.findPlug("background").asInt();
+      if (bkgValue == 1)
+      {
+         depGlobals.findPlug("background").setValue(0);
+      }
+   }
 
    virtual void postConstructor()
    {
@@ -30,6 +43,7 @@ public:
       m_goUVSample  = true;
 
       setMPSafe(true);
+      MDGMessage::addNodeRemovedCallback(removeSky, "ArnoldSkyShader");
    }
 
    virtual void draw(M3dView& view, const MDagPath& DGpath, M3dView::DisplayStyle style, M3dView::DisplayStatus status);
