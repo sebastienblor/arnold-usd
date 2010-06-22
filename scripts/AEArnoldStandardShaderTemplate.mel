@@ -64,12 +64,18 @@ global proc AEArnoldStandardShaderTemplate( string $nodeName )
          editorTemplate -addSeparator;
          editorTemplate -l "Fresnel" -addControl "Fresnel" "AEArnoldCheckReflectionFresnel";
          editorTemplate -l "Fresnel Coefficient" -addControl "Krn";
+         editorTemplate -addSeparator;
+         editorTemplate -l "Reflection Exit Use Environment" -addControl "reflection_exit_use_environment";
+         editorTemplate -l "Reflection Exit Color" -addControl "reflection_exit_color";
       editorTemplate -endLayout;
       
       editorTemplate -beginLayout "Refraction" -collapse true;
          editorTemplate -l "Index of Refraction" -addControl "IOR";
          editorTemplate -l "Color" -addControl "Kt_color";
          editorTemplate -l "Transparency" -addControl "Kt";
+         editorTemplate -addSeparator;
+         editorTemplate -l "Refraction Exit Use Environment" -addControl "refraction_exit_use_environment";
+         editorTemplate -l "Refraction Exit Color" -addControl "refraction_exit_color";
       editorTemplate -endLayout;
       
       editorTemplate -beginLayout "Bump Mapping" -collapse true;

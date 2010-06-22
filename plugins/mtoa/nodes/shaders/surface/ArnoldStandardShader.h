@@ -39,6 +39,11 @@ public:
    static MObject s_Kr_colorG;
    static MObject s_Kr_colorB;
    static MObject s_Kr_color;
+   static MObject s_reflection_exit_use_environment;
+   static MObject s_reflection_exit_colorR;
+   static MObject s_reflection_exit_colorG;
+   static MObject s_reflection_exit_colorB;
+   static MObject s_reflection_exit_color;
    static MObject s_Krn;
    static MObject s_Ks;
    static MObject s_Ks_colorR;
@@ -56,6 +61,11 @@ public:
    static MObject s_Kt_colorG;
    static MObject s_Kt_colorB;
    static MObject s_Kt_color;
+   static MObject s_refraction_exit_use_environment;
+   static MObject s_refraction_exit_colorR;
+   static MObject s_refraction_exit_colorG;
+   static MObject s_refraction_exit_colorB;
+   static MObject s_refraction_exit_color;
    static MObject s_Phong_exponent;
    static MObject s_bounce_factor;
    static MObject s_enable_glossy_caustics;

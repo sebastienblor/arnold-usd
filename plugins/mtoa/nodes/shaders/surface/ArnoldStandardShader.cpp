@@ -32,6 +32,11 @@ MObject CArnoldStandardShaderNode::s_Kr_colorR;
 MObject CArnoldStandardShaderNode::s_Kr_colorG;
 MObject CArnoldStandardShaderNode::s_Kr_colorB;
 MObject CArnoldStandardShaderNode::s_Kr_color;
+MObject CArnoldStandardShaderNode::s_reflection_exit_use_environment;
+MObject CArnoldStandardShaderNode::s_reflection_exit_colorR;
+MObject CArnoldStandardShaderNode::s_reflection_exit_colorG;
+MObject CArnoldStandardShaderNode::s_reflection_exit_colorB;
+MObject CArnoldStandardShaderNode::s_reflection_exit_color;
 MObject CArnoldStandardShaderNode::s_Krn;
 MObject CArnoldStandardShaderNode::s_Ks;
 MObject CArnoldStandardShaderNode::s_Ks_colorR;
@@ -48,6 +53,11 @@ MObject CArnoldStandardShaderNode::s_Kt;
 MObject CArnoldStandardShaderNode::s_Kt_colorR;
 MObject CArnoldStandardShaderNode::s_Kt_colorG;
 MObject CArnoldStandardShaderNode::s_Kt_colorB;
+MObject CArnoldStandardShaderNode::s_refraction_exit_use_environment;
+MObject CArnoldStandardShaderNode::s_refraction_exit_colorR;
+MObject CArnoldStandardShaderNode::s_refraction_exit_colorG;
+MObject CArnoldStandardShaderNode::s_refraction_exit_colorB;
+MObject CArnoldStandardShaderNode::s_refraction_exit_color;
 MObject CArnoldStandardShaderNode::s_Kt_color;
 MObject CArnoldStandardShaderNode::s_Phong_exponent;
 MObject CArnoldStandardShaderNode::s_bounce_factor;
@@ -381,6 +391,12 @@ MStatus CArnoldStandardShaderNode::initialize()
    nAttr.setMax(1);
    MAKE_INPUT(nAttr, s_Krn);
 
+   s_reflection_exit_use_environment = nAttr.create("reflection_exit_use_environment", "rfxee", MFnNumericData::kBoolean, 0);
+   MAKE_INPUT(nAttr, s_reflection_exit_use_environment);
+
+   MAKE_COLOR(s_reflection_exit_color, "reflection_exit_color", "rfxec", 0.0f, 0.0f, 0.0f);
+   MAKE_INPUT(nAttr, s_reflection_exit_color);
+
    s_Ks = nAttr.create("Ks", "ks", MFnNumericData::kFloat, 0);
    nAttr.setMin(0);
    nAttr.setMax(1);
@@ -409,6 +425,12 @@ MStatus CArnoldStandardShaderNode::initialize()
 
    MAKE_COLOR(s_Kt_color, "Kt_color", "ktc", 1, 1, 1);
    MAKE_INPUT(nAttr, s_Kt_color);
+
+   s_refraction_exit_use_environment = nAttr.create("refraction_exit_use_environment", "rfcee", MFnNumericData::kBoolean, 0);
+   MAKE_INPUT(nAttr, s_refraction_exit_use_environment);
+
+   MAKE_COLOR(s_refraction_exit_color, "refraction_exit_color", "rfcec", 0.0f, 0.0f, 0.0f);
+   MAKE_INPUT(nAttr, s_refraction_exit_color);
 
    s_Phong_exponent = nAttr.create("Phong_exponent", "phonge", MFnNumericData::kFloat, 10);
    nAttr.setSoftMin(0);
