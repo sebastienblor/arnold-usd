@@ -218,7 +218,7 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
 
          for (size_t V = 0; (V < vertexCount); ++V)
          {
-            vidxs.push_back(AtLong(itMeshPolygon.vertexIndex(V)));
+            vidxs.push_back(itMeshPolygon.vertexIndex(V));
             if (useNormals)
                nidxs.push_back(itMeshPolygon.normalIndex(V));
 
@@ -270,18 +270,18 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
       // Passing vidxs directly put Arnold in trouble
       //AiNodeSetArray(polymesh, "vidxs", AiArrayConvert(vidxs.size(), 1, AI_TYPE_UINT, &(vidxs[0]), TRUE));
       AtArray *vidxsTmp = AiArrayAllocate(vidxs.size(), 1, AI_TYPE_UINT);
-	  for(long i=0; i<vidxs.size(); i++)
-		  AiArraySetUInt(vidxsTmp, i, vidxs[i]);
-	  AiNodeSetArray(polymesh, "vidxs", vidxsTmp);
+      for(long i=0; i<vidxs.size(); i++)
+         AiArraySetUInt(vidxsTmp, i, vidxs[i]);
+      AiNodeSetArray(polymesh, "vidxs", vidxsTmp);
 
       if (useNormals && (fnMesh.numNormals() > 0))
       {
-    	 // Same goes here
+         // Same goes here
          //AiNodeSetArray(polymesh, "nidxs", AiArrayConvert(nidxs.size(), 1, AI_TYPE_UINT, &(nidxs[0]), TRUE));
          AtArray *nidxsTmp = AiArrayAllocate(nidxs.size(), 1, AI_TYPE_UINT);
-		 for(long i=0; i<nidxs.size(); i++)
-			 AiArraySetUInt(nidxsTmp, i, nidxs[i]);
-		 AiNodeSetArray(polymesh, "nidxs", nidxsTmp);
+         for(long i=0; i<nidxs.size(); i++)
+            AiArraySetUInt(nidxsTmp, i, nidxs[i]);
+         AiNodeSetArray(polymesh, "nidxs", nidxsTmp);
       }
 
       if (hasUVs)
@@ -290,9 +290,9 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
          // Same problem here
          //AiNodeSetArray(polymesh, "uvidxs", AiArrayConvert(uvidxs.size(), 1, AI_TYPE_UINT, &(uvidxs[0]), TRUE));
          AtArray *uvidxsTmp = AiArrayAllocate(uvidxs.size(), 1, AI_TYPE_UINT);
-		 for(long i=0; i<uvidxs.size(); i++)
-			 AiArraySetUInt(uvidxsTmp, i, uvidxs[i]);
-		 AiNodeSetArray(polymesh, "uvidxs", uvidxsTmp);
+         for(long i=0; i<uvidxs.size(); i++)
+            AiArraySetUInt(uvidxsTmp, i, uvidxs[i]);
+         AiNodeSetArray(polymesh, "uvidxs", uvidxsTmp);
 
       }
 
