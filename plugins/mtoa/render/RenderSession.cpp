@@ -39,18 +39,19 @@ CRenderSession* CRenderSession::GetInstance()
    return s_renderSession;
 }
 
-void CRenderSession::Init()
+
+void CRenderSession::Init(ExportMode exportMode)
 {
+
    if (AiUniverseIsActive())
    {
       AiMsgError("[mtoa] ERROR: There can only be one RenderSession active.");
       return;
    }
 
-
-   m_scene = new CMayaScene;
-   
+   m_scene = new CMayaScene;          
    m_renderOptions.GetFromMaya(m_scene);
+
 
    AiBegin();
 
@@ -73,7 +74,7 @@ void CRenderSession::Init()
       }
    }
 
-   m_scene->ExportToArnold();
+   m_scene->ExportToArnold(exportMode);
 
 }
 
@@ -227,11 +228,18 @@ void CRenderSession::DoBatchRender()
    AiRender(AI_RENDER_MODE_CAMERA);
 }
 
-void CRenderSession::DoExport()
+void CRenderSession::DoExport(MString customFileName)
 {
-   MString fileName = m_renderOptions.VerifyFileName(m_renderOptions.outputAssFile().expandEnvironmentVariablesAndTilde(), m_renderOptions.outputAssCompressed());
+   MString fileName;
 
-   if (fileName == "")
+   // if no custom fileName is given, use the default one in the environment variable
+   if (customFileName.length() > 0)
+      fileName = m_renderOptions.VerifyFileName(customFileName.asChar(), m_renderOptions.outputAssCompressed());
+   else
+      fileName = m_renderOptions.VerifyFileName(m_renderOptions.outputAssFile().expandEnvironmentVariablesAndTilde(), m_renderOptions.outputAssCompressed());
+
+
+   if (fileName.length() < 0)
    {
       AiMsgError("[mtoa] File name must be set before exporting .ass file");
    }
@@ -241,7 +249,6 @@ void CRenderSession::DoExport()
 
       SetupRenderOutput();
       m_renderOptions.SetupRenderOptions();
-
       AiASSWrite(fileName.asChar(), m_renderOptions.outputAssMask(), false);
    }
 }

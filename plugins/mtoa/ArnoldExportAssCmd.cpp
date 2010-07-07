@@ -1,6 +1,7 @@
 
 #include "ArnoldExportAssCmd.h"
 #include "render/RenderSession.h"
+#include "maya_scene/MayaScene.h"
 
 #include <ai_dotass.h>
 #include <ai_msg.h>
@@ -11,11 +12,13 @@
 #include <maya/MDagPath.h>
 #include <maya/MFnDagNode.h>
 #include <maya/MGlobal.h>
+#include <maya/MArgDatabase.h>
 
 MSyntax CArnoldExportAssCmd::newSyntax()
 {
    MSyntax syntax;
-
+   syntax.addFlag("s", "selected");
+   syntax.addFlag("f", "filename", MSyntax::kString);
    return syntax;
 }
 
@@ -24,27 +27,47 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    MStatus status;
    CRenderSession* renderSession = CRenderSession::GetInstance();
 
+   MArgDatabase argDB(newSyntax(), argList, &status);
+
    if (AiUniverseIsActive())
    {
       AiMsgError("[mtoa] ERROR: Cannot export to .ass while rendering.");
-      
       return MS::kFailure;
    }
 
+
    // We don't need renderview_display so we need to set Batch mode on.
    renderSession->SetBatch(true);
-   renderSession->Init();
+   MString customFileName = "";
 
-   if (MGlobal::mayaState() == MGlobal::kInteractive)
+   // custom filename
+   if(argDB.isFlagSet("filename"))
+      argDB.getFlagArgument("filename", 0, customFileName);
+
+
+   // exporet only selected objects
+   if(argDB.isFlagSet("selected"))
    {
-      MDagPath cameraPath;
-      M3dView::active3dView().getCamera(cameraPath);
-
-      MFnDagNode cameraNode(cameraPath.node());
-      renderSession->SetCamera(cameraNode.name());
+	   renderSession->Init(MTOA_EXPORT_SELECTED);
+      if (MGlobal::mayaState() == MGlobal::kInteractive)
+		  renderSession->DoExport(customFileName);
    }
 
-   renderSession->DoExport();
+   // export the entire maya scene
+   else
+   {
+      renderSession->Init();
+
+      if (MGlobal::mayaState() == MGlobal::kInteractive)
+      {
+         MDagPath cameraPath;
+         M3dView::active3dView().getCamera(cameraPath);
+
+         MFnDagNode cameraNode(cameraPath.node());
+         renderSession->SetCamera(cameraNode.name());
+      }
+      renderSession->DoExport(customFileName);
+   }
 
    renderSession->End();
 

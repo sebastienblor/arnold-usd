@@ -7,10 +7,17 @@
 #include <maya/MFnDagNode.h>
 #include <maya/MItDag.h>
 #include <maya/MMatrix.h>
+#include <maya/MSelectionList.h>
 
 #include <vector>
 #include <map>
 #include <string>
+
+enum ExportMode
+{
+   MTOA_EXPORT_ALL,
+   MTOA_EXPORT_SELECTED
+};
 
 struct CMotionBlurData
 {
@@ -42,7 +49,7 @@ public:
       delete m_fnArnoldRenderOptions;
    }
 
-   MStatus ExportToArnold();
+   MStatus ExportToArnold(ExportMode exportMode = MTOA_EXPORT_ALL);
    AtNode* ExportShader(MObject mayaShader, const MString &attrName="");
 
    void ExportImagePlanes(const MDagPath& dagPath, bool isRenderingCamera);
@@ -51,7 +58,9 @@ public:
 private:
    
    void PrepareExport();
+   MStatus IterSelection(MSelectionList selected);
    MStatus ExportScene(AtUInt step);
+   MStatus ExportSelected();   
 
    void ExportCamera(const MDagPath& dagPath, AtUInt step);
    void ExportCameraData(AtNode* camera, const MDagPath& dagPath, bool mb);

@@ -2,9 +2,11 @@
 #define RENDER_SESSION_H
 
 #include "render/RenderOptions.h"
+#include "maya_scene/MayaScene.h"
 
 #include <ai_nodes.h>
 #include <ai_universe.h>
+
 
 class CMayaScene;
 
@@ -15,7 +17,7 @@ public:
 
    static CRenderSession* GetInstance();
 
-   void Init();
+   void Init(ExportMode exportMode=MTOA_EXPORT_ALL);
    void End();
 
    void Reset();
@@ -38,7 +40,7 @@ public:
 
    void DoRender();
    void DoBatchRender();
-   void DoExport();
+   void DoExport(MString customFileName = "");
 
 private:
 

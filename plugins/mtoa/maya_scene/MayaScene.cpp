@@ -1,4 +1,3 @@
-
 #include "MayaScene.h"
 
 #include <ai_msg.h>
@@ -14,6 +13,8 @@
 #include <maya/MMatrix.h>
 #include <maya/MPlug.h>
 #include <maya/MSelectionList.h>
+#include <maya/MItSelectionList.h>
+#include <maya/MFnTransform.h>
 #include <maya/MFnNumericAttribute.h>
 #include <maya/MDagPathArray.h>
 #include <maya/MFnInstancer.h>
@@ -33,32 +34,104 @@ static bool StringInList(const MString &str, const MStringArray &ary)
    return false;
 }
 
-MStatus CMayaScene::ExportToArnold()
+MStatus CMayaScene::ExportToArnold(ExportMode exportMode)
 {
    MStatus status;
 
-   PrepareExport();
+   if (exportMode == exportMode)
+   {
+      PrepareExport();
 
-   bool mb = m_motionBlurData.enabled && (m_fnArnoldRenderOptions->findPlug("mb_camera_enable").asBool() ||
+      bool mb = m_motionBlurData.enabled && (m_fnArnoldRenderOptions->findPlug("mb_camera_enable").asBool() ||
                                           m_fnArnoldRenderOptions->findPlug("mb_objects_enable").asBool() ||
                                           m_fnArnoldRenderOptions->findPlug("mb_lights_enable").asBool());
 
-   if (!mb)
-   {
-      status = ExportScene(0);
+      if (!mb)
+      {
+         status = ExportScene(0);
+      }
+      else
+      {
+         for (int J = 0; (J < m_motionBlurData.motion_steps); ++J)
+         {
+            MGlobal::viewFrame(MTime(m_motionBlurData.frames[J], MTime::uiUnit()));
+            status = ExportScene(J);
+         }
+         MGlobal::viewFrame(MTime(m_currentFrame, MTime::uiUnit()));
+      }
    }
    else
    {
-      for (int J = 0; (J < m_motionBlurData.motion_steps); ++J)
-      {
-         MGlobal::viewFrame(MTime(m_motionBlurData.frames[J], MTime::uiUnit()));
-         status = ExportScene(J);
-      }
-      MGlobal::viewFrame(MTime(m_currentFrame, MTime::uiUnit()));
+      PrepareExport();
+      status = ExportSelected();
    }
 
    return status;
 }
+
+// Loop and export the selection and all its hirarchy down stream
+//
+MStatus CMayaScene::IterSelection(MSelectionList selected)
+{
+   MStatus status;
+   MItSelectionList it(selected, MFn::kInvalid, &status);
+
+   // loop users selection
+   for (it.reset(); !it.isDone(); it.next())
+   {
+      MDagPath path;
+      it.getDagPath(path);
+
+      // iterate Hierarchy
+      if (IsVisible(path.node()))
+	  {
+         for (int child=0; child<path.childCount(); child++)
+         {
+            MObject ChildObject = path.child(child);
+            path.push(ChildObject);
+
+            selected.clear();
+            selected.add(path.fullPathName());
+
+		    MFnDagNode node(path.node());
+            if (!node.isIntermediateObject())
+            {
+               // Export poly mesh
+               if (path.apiType() == 295)
+               {
+                  ExportMesh(path.node(), path, 0);
+		       }
+		       // Exports maya hair
+		       else if (path.apiType() == 916)
+		       {
+                  ExportHair(path, 0);
+               }
+		    }
+            path.pop(1);
+            IterSelection(selected);
+         }
+      }
+   }
+   return status;
+}
+
+
+MStatus CMayaScene::ExportSelected()
+{
+   MStatus status;
+
+   MSelectionList selected;
+   MGlobal::getActiveSelectionList(selected);
+
+   IterSelection(selected);
+
+   selected.clear();
+
+   return status;
+}
+
+
+
 
 MStatus CMayaScene::ExportScene(AtUInt step)
 {
@@ -102,11 +175,11 @@ MStatus CMayaScene::ExportScene(AtUInt step)
          dagIterator.prune();
          continue;
       }
-      
+
       // Find if the node is instanced
       bool instancedDag = dagIterator.isInstanced(true);
-      
-      
+
+
       // Custom shapes [do them first so we can overrides built-in ones]
       customShapeIt = m_customShapes.find(node.typeName().asChar());
 
@@ -117,7 +190,7 @@ MStatus CMayaScene::ExportScene(AtUInt step)
          bool transformBlur = m_motionBlurData.enabled &&
                               m_fnArnoldRenderOptions->findPlug("mb_objects_enable").asBool() &&
                               node.findPlug("motionBlur").asBool();
-         
+
          bool deformBlur = m_motionBlurData.enabled &&
                            m_fnArnoldRenderOptions->findPlug("mb_object_deform_enable").asBool() &&
                            node.findPlug("motionBlur").asBool();
@@ -163,7 +236,7 @@ MStatus CMayaScene::ExportScene(AtUInt step)
                   if (allInstances[j] == masterInstances[i])
                   {
                      masterDag = masterInstances[i];
-                     thereIsMaster = true; 
+                     thereIsMaster = true;
                   }
                }
             }
@@ -175,12 +248,12 @@ MStatus CMayaScene::ExportScene(AtUInt step)
                masterInstances.append(dagPath);
 
                command += "\"" + dagPath.fullPathName() + "\", 0, \"\"";
-            } 
+            }
             // instanced meshes
             else
             {
                command += "\"" + dagPath.fullPathName() + "\", 1, \"" + masterDag.fullPathName() + "\"";
-            } 
+            }
          }
 
          command += ")";
@@ -201,7 +274,7 @@ MStatus CMayaScene::ExportScene(AtUInt step)
             // Set transformation matrices
             if (transformBlur && !StringInList("matrix", attrs))
             {
-               
+
                if (step == 0)
                {
                   AtArray* matrices = AiArrayAllocate(1, m_motionBlurData.motion_steps, AI_TYPE_MATRIX);
@@ -228,10 +301,10 @@ MStatus CMayaScene::ExportScene(AtUInt step)
                   {
                      // set for the first time
                      MBoundingBox bbox = node.boundingBox();
-   
+
                      MPoint bmin = bbox.min() * mmatrix;
                      MPoint bmax = bbox.max() * mmatrix;
-   
+
                      AiNodeSetPnt(proc, "min", bmin.x, bmin.y, bmin.z);
                      AiNodeSetPnt(proc, "max", bmax.x, bmax.y, bmax.z);
                   }
@@ -241,12 +314,12 @@ MStatus CMayaScene::ExportScene(AtUInt step)
                      {
                         AtPoint cmin = AiNodeGetPnt(proc, "min");
                         AtPoint cmax = AiNodeGetPnt(proc, "max");
-   
+
                         MBoundingBox bbox = node.boundingBox();
-   
+
                         MPoint bmin = bbox.min() * mmatrix;
                         MPoint bmax = bbox.max() * mmatrix;
-   
+
                         if (bmin.x < cmin.x)
                            cmin.x = bmin.x;
                         if (bmin.y < cmin.y)
@@ -259,7 +332,7 @@ MStatus CMayaScene::ExportScene(AtUInt step)
                            cmax.y = bmax.y;
                         if (bmax.z > cmax.z)
                            cmax.z = bmax.z;
-   
+
                         AiNodeSetPnt(proc, "min", cmin.x, cmin.y, cmin.z);
                         AiNodeSetPnt(proc, "max", cmax.x, cmax.y, cmax.z);
                      }
@@ -332,37 +405,37 @@ MStatus CMayaScene::ExportScene(AtUInt step)
                   {
                      visibility &= ~AI_RAY_SHADOW;
                   }
-   
+
                   plug = node.findPlug("primaryVisibility");
                   if (!plug.isNull() && !plug.asBool())
                   {
                      visibility &= ~AI_RAY_CAMERA;
                   }
-   
+
                   plug = node.findPlug("visibleInReflections");
                   if (!plug.isNull() && !plug.asBool())
                   {
                      visibility &= ~AI_RAY_REFLECTED;
                   }
-   
+
                   plug = node.findPlug("visibleInRefractions");
                   if (!plug.isNull() && !plug.asBool())
                   {
                      visibility &= ~AI_RAY_REFRACTED;
                   }
-   
+
                   plug = node.findPlug("diffuse_visibility");
                   if (!plug.isNull() && !plug.asBool())
                   {
                      visibility &= ~AI_RAY_DIFFUSE;
                   }
-   
+
                   plug = node.findPlug("glossy_visibility");
                   if (!plug.isNull() && !plug.asBool())
                   {
                      visibility &= ~AI_RAY_GLOSSY;
                   }
-   
+
                   AiNodeSetInt(proc, "visibility", visibility);
                }
             }
@@ -415,8 +488,8 @@ MStatus CMayaScene::ExportScene(AtUInt step)
       {
          ExportLight(dagPath, step);
       }
-    
-      // Nurbs 
+
+      // Nurbs
       else if (dagIterator.item().hasFn(MFn::kNurbsSurface))
       {
          MFnNurbsSurface surface(dagPath, &status);
@@ -436,7 +509,7 @@ MStatus CMayaScene::ExportScene(AtUInt step)
 
             meshFromNURBS = surface.tesselate(MTesselationParams::fsDefaultTesselationParams, meshDataObject);
             // in order to get displacement, we need a couple of attributes
-            MFnNumericAttribute  nAttr;   
+            MFnNumericAttribute  nAttr;
 
             MObject subdiv_type = nAttr.create("subdiv_type", "sdbt", MFnNumericData::kInt, 1);
             surface.addAttribute(subdiv_type);
@@ -465,7 +538,7 @@ MStatus CMayaScene::ExportScene(AtUInt step)
                   if (allInstances[j]==masterInstances[i])
                   {
                      masterDag = masterInstances[j];
-                     thereIsMaster = true; 
+                     thereIsMaster = true;
                   }
                }
             }
@@ -484,7 +557,7 @@ MStatus CMayaScene::ExportScene(AtUInt step)
 
                meshFromNURBS = surface.tesselate(MTesselationParams::fsDefaultTesselationParams, meshDataObject);
                // in order to get displacement, we need a couple of attributes
-               MFnNumericAttribute  nAttr;   
+               MFnNumericAttribute  nAttr;
 
                MObject subdiv_type = nAttr.create("subdiv_type", "sdbt", MFnNumericData::kInt, 1);
                surface.addAttribute(subdiv_type);
@@ -503,7 +576,7 @@ MStatus CMayaScene::ExportScene(AtUInt step)
             else
             {
                ExportMeshInstance(dagPath, masterDag, step);
-            } 
+            }
          }
       }
 
@@ -555,7 +628,7 @@ MStatus CMayaScene::ExportScene(AtUInt step)
                      if (allInstances[j]==masterInstances[i])
                      {
                         masterDag = masterInstances[i];
-                        thereIsMaster = true; 
+                        thereIsMaster = true;
                      }
                   }
                }
@@ -567,12 +640,12 @@ MStatus CMayaScene::ExportScene(AtUInt step)
                   masterInstances.append(dagPath);
 
                   ExportMesh(dagIterator.item(), dagPath, step);
-               } 
+               }
                // instanced meshes
                else
                {
                   ExportMeshInstance(dagPath, masterDag, step);
-               } 
+               }
             }
             else
             {
@@ -596,7 +669,7 @@ MStatus CMayaScene::ExportScene(AtUInt step)
    }
 
    // Once all regular objects are created, check for FX
-   
+
    // Particle Instancer
    MItInstancer   instIterator;
    for (instIterator.reset(); (!instIterator.isDone()); instIterator.nextInstancer())
