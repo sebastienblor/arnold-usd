@@ -137,7 +137,7 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
       }
    }
 
-   // 
+   //
    // GEOMETRY
    //
 
@@ -218,7 +218,7 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
 
          for (size_t V = 0; (V < vertexCount); ++V)
          {
-            vidxs.push_back(itMeshPolygon.vertexIndex(V));
+            vidxs.push_back(AtLong(itMeshPolygon.vertexIndex(V)));
             if (useNormals)
                nidxs.push_back(itMeshPolygon.normalIndex(V));
 
@@ -246,7 +246,7 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
       {
          // No deformation motion blur, so we create normal arrays
          AiNodeSetArray(polymesh, "vlist", AiArrayConvert(fnMesh.numVertices() * 3, 1, AI_TYPE_FLOAT, &(vertices[0]), TRUE));
-      
+
          if (useNormals && (fnMesh.numNormals() > 0))
             AiNodeSetArray(polymesh, "nlist", AiArrayConvert(fnMesh.numNormals() * 3, 1, AI_TYPE_FLOAT, &(normals[0]), TRUE));
       }
@@ -266,17 +266,34 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
       }
 
       AiNodeSetArray(polymesh, "nsides", AiArrayConvert(fnMesh.numPolygons(), 1, AI_TYPE_BYTE, &(nsides[0]), TRUE));
-      AiNodeSetArray(polymesh, "vidxs", AiArrayConvert(vidxs.size(), 1, AI_TYPE_UINT, &(vidxs[0]), TRUE));
+
+      // Passing vidxs directly put Arnold in trouble
+      //AiNodeSetArray(polymesh, "vidxs", AiArrayConvert(vidxs.size(), 1, AI_TYPE_UINT, &(vidxs[0]), TRUE));
+      AtArray *vidxsTmp = AiArrayAllocate(vidxs.size(), 1, AI_TYPE_UINT);
+	  for(long i=0; i<vidxs.size(); i++)
+		  AiArraySetUInt(vidxsTmp, i, vidxs[i]);
+	  AiNodeSetArray(polymesh, "vidxs", vidxsTmp);
 
       if (useNormals && (fnMesh.numNormals() > 0))
       {
-         AiNodeSetArray(polymesh, "nidxs", AiArrayConvert(nidxs.size(), 1, AI_TYPE_UINT, &(nidxs[0]), TRUE));
+    	 // Same goes here
+         //AiNodeSetArray(polymesh, "nidxs", AiArrayConvert(nidxs.size(), 1, AI_TYPE_UINT, &(nidxs[0]), TRUE));
+         AtArray *nidxsTmp = AiArrayAllocate(nidxs.size(), 1, AI_TYPE_UINT);
+		 for(long i=0; i<nidxs.size(); i++)
+			 AiArraySetUInt(nidxsTmp, i, nidxs[i]);
+		 AiNodeSetArray(polymesh, "nidxs", nidxsTmp);
       }
 
       if (hasUVs)
       {
          AiNodeSetArray(polymesh, "uvlist", AiArrayConvert(fnMesh.numUVs() * 2, 1, AI_TYPE_FLOAT, &(uvs[0]), TRUE));
-         AiNodeSetArray(polymesh, "uvidxs", AiArrayConvert(uvidxs.size(), 1, AI_TYPE_UINT, &(uvidxs[0]), TRUE));
+         // Same problem here
+         //AiNodeSetArray(polymesh, "uvidxs", AiArrayConvert(uvidxs.size(), 1, AI_TYPE_UINT, &(uvidxs[0]), TRUE));
+         AtArray *uvidxsTmp = AiArrayAllocate(uvidxs.size(), 1, AI_TYPE_UINT);
+		 for(long i=0; i<uvidxs.size(); i++)
+			 AiArraySetUInt(uvidxsTmp, i, uvidxs[i]);
+		 AiNodeSetArray(polymesh, "uvidxs", uvidxsTmp);
+
       }
 
       if (multiShader)
@@ -287,7 +304,7 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
       // Export motion blur keys information (for deformation)
       AtArray* vlist_array = AiNodeGetArray(polymesh, "vlist");
       SetKeyData(vlist_array, step, vertices, fnMesh.numVertices());
-      
+
       if (useNormals && (fnMesh.numNormals() > 0))
       {
          AtArray* nlist_array = AiNodeGetArray(polymesh, "nlist");
@@ -452,7 +469,7 @@ void CMayaScene::ExportMeshInstance(const MDagPath& dagPath, const MDagPath& mas
 
       AiNodeSetPtr(instanceNode, "node", masterNode);
       AiNodeSetBool(instanceNode, "inherit_xform", false);
-     
+
       //
       // SHADERS
       //
@@ -468,7 +485,7 @@ void CMayaScene::ExportMeshInstance(const MDagPath& dagPath, const MDagPath& mas
       // we keep the master's per face assignment only
       // if it's completely the same
       bool equalShaderArrays = ((shaders.length() == shadersMaster.length()) && (indices.length() == indicesMaster.length()));
-        
+
       for(int j=0; (equalShaderArrays && (j<indices.length())); j++)
       {
          if(indices[j] != indicesMaster[j])
