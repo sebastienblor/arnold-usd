@@ -209,16 +209,16 @@ void CArnoldSkyShaderNode::SampleSN(const MPlug &colorPlug)
       MStatus status = MRenderUtil::sampleShadingNetwork(depNodeSkyColorName, numSamples, false, false, cameraMat, NULL, &uCoords, &vCoords, NULL, NULL, NULL, NULL, NULL, colors, transps);
 
       int numSamplesCol = numSamples*4;
-      m_colorData = new byte[numSamplesCol];
+      m_colorData = new char[numSamplesCol];
  
       for(int i=0;i<colors.length();i++)
       {
          MFloatVector fv = colors[i];
          fv *= 255;
-         m_colorData[i*4] = static_cast<byte>(static_cast<int>(fv.x));
-         m_colorData[(i*4)+1] = static_cast<byte>(static_cast<int>(fv.y));
-         m_colorData[(i*4)+2] = static_cast<byte>(static_cast<int>(fv.z));
-         m_colorData[(i*4)+3] = static_cast<byte>(static_cast<int>(((transps[i].x)*255)));
+         m_colorData[i*4] = static_cast<char>(static_cast<int>(fv.x));
+         m_colorData[(i*4)+1] = static_cast<char>(static_cast<int>(fv.y));
+         m_colorData[(i*4)+2] = static_cast<char>(static_cast<int>(fv.z));
+         m_colorData[(i*4)+3] = static_cast<char>(static_cast<int>(((transps[i].x)*255)));
       }
    }
    m_goSample = false;

@@ -20,6 +20,7 @@
 #include <maya/MVector.h>
 
 #include <vector>
+#include <string.h>
 
 void CMayaScene::ExportLightFilters(AtNode* light, MString filterNames)
 {

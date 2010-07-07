@@ -5,9 +5,8 @@
 #include <maya/M3dView.h>
 #include <maya/MDagPath.h>
 #include <maya/MBoundingBox.h>
-#include <gl\gl.h>
-#include <gl\glu.h>
-
+#include <GL/gl.h>
+#include <GL/glu.h>
 #include <maya/MDGMessage.h>
 #include <maya/MSelectionList.h>
 #include <maya/MFnDependencyNode.h>
@@ -47,7 +46,7 @@ public:
    }
 
    virtual void draw(M3dView& view, const MDagPath& DGpath, M3dView::DisplayStyle style, M3dView::DisplayStatus status);
-   virtual void OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView::DisplayStatus status); 
+   virtual void OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView::DisplayStatus status);
    virtual bool isBounded() const;
    virtual bool drawLast() const;
    virtual bool isTransparent() const;
@@ -107,7 +106,7 @@ public:
    static MObject s_sampling;
    static MObject s_hwtexalpha;
 
-   byte *  m_colorData;
+   char *  m_colorData;
    int     m_colorDataSize;
    float * m_UData;
    float * m_VData;

@@ -5,7 +5,7 @@
 #include <ai_nodes.h>
 #include <ai_ray.h>
 
-#include <maya/M3DView.h>
+#include <maya/M3dView.h>
 #include <maya/MAnimControl.h>
 #include <maya/MGlobal.h>
 #include <maya/MFnMesh.h>

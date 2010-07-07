@@ -20,7 +20,9 @@
 #include <maya/MFnRenderLayer.h>
 #include <maya/MObject.h>
 
+#ifdef WIN32
 #include <direct.h>
+#endif // WIN32
 
 CRenderOptions::CRenderOptions()
 :  m_minx(0), m_miny(0), m_maxx(0), m_maxy(0)

@@ -18,6 +18,7 @@
 #include <maya/MFnCamera.h>
 
 #include <string>
+#include <string.h>
 
 static const char *g_remapInterpolationStrings[] =
 {
@@ -32,7 +33,7 @@ static bool SortFloatArray(AtArray *a, int *shuffle=0)
    bool modified = false;
 
    if (a && a->nelements > 0)
-   {      
+   {
       float p0, p1;
       int tmp;
 
@@ -73,7 +74,7 @@ static bool SortFloatArray(AtArray *a, int *shuffle=0)
          }
       }
    }
-   
+
    return modified;
 }
 
@@ -555,7 +556,7 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
       MFnLambertShader fnShader(mayaShader);
 
       shader = AiNode("lambert");
-   
+
       AiNodeSetStr(shader, "name", fnShader.name().asChar());
 
       ProcessShaderParameter(node, "diffuse", shader, "Kd", AI_TYPE_FLOAT);
@@ -603,7 +604,7 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
          {
             shader = AiNode("MayaFile");
             AiNodeSetStr(shader, "filename", node.findPlug("fileTextureName").asString().asChar());
-            
+
             ProcessShaderParameter(srcNode, "coverage", shader, "coverage", AI_TYPE_POINT2);
             ProcessShaderParameter(srcNode, "rotateFrame", shader, "rotateFrame", AI_TYPE_FLOAT);
             ProcessShaderParameter(srcNode, "translateFrame", shader, "translateFrame", AI_TYPE_POINT2);
@@ -653,7 +654,7 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
    else if (node.typeName() == "condition")
    {
       shader = AiNode("MayaCondition");
-   
+
       AiNodeSetStr(shader, "name", node.name().asChar());
 
       ProcessShaderParameter(node, "operation", shader, "operation", AI_TYPE_ENUM);
@@ -669,7 +670,7 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
    else if (node.typeName() == "bump2d")
    {
       shader = AiNode("bump2d");
-   
+
       AiNodeSetStr(shader, "name", node.name().asChar());
 
       ProcessShaderParameter(node, "bumpValue", shader, "bump_map", AI_TYPE_FLOAT);

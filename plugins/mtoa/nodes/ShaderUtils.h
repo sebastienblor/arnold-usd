@@ -19,9 +19,9 @@
    addAttribute(name)
 
 #define MAKE_COLOR(attrib, name, shortname, defaultR, defaultG, defaultB) \
-   attrib##R = nAttr.create(name##"R", shortname##"r", MFnNumericData::kFloat, defaultR);\
-   attrib##G = nAttr.create(name##"G", shortname##"g", MFnNumericData::kFloat, defaultG);\
-   attrib##B = nAttr.create(name##"B", shortname##"b", MFnNumericData::kFloat, defaultB);\
+   attrib##R = nAttr.create(MString(name) + "R", MString(shortname) + "r", MFnNumericData::kFloat, defaultR);\
+   attrib##G = nAttr.create(MString(name) + "G", MString(shortname) + "g", MFnNumericData::kFloat, defaultG);\
+   attrib##B = nAttr.create(MString(name) + "B", MString(shortname) + "b", MFnNumericData::kFloat, defaultB);\
    attrib = nAttr.create(name, shortname, attrib##R, attrib##G, attrib##B);\
    nAttr.setUsedAsColor(true);\
    nAttr.setDefault(float(defaultR), float(defaultG), float(defaultB));\
@@ -30,8 +30,8 @@
    addAttribute(attrib##B);
 
 #define MAKE_VECTOR2(attrib, name, shortname, defaultX, defaultY) \
-   attrib##X = nAttr.create(name##"X", shortname##"x", MFnNumericData::kFloat, defaultX);\
-   attrib##Y = nAttr.create(name##"Y", shortname##"y", MFnNumericData::kFloat, defaultY);\
+   attrib##X = nAttr.create(MString(name) + "X", MString(shortname) + "x", MFnNumericData::kFloat, defaultX);\
+   attrib##Y = nAttr.create(MString(name) + "Y", MString(shortname) + "y", MFnNumericData::kFloat, defaultY);\
    attrib = nAttr.create(name, shortname, attrib##X, attrib##Y);\
    nAttr.setDefault(float(defaultX), float(defaultY));\
    addAttribute(attrib##X);\
@@ -41,9 +41,9 @@
    MAKE_VECTOR2(attrib, name, shortname, defaultX, defaultY)
 
 #define MAKE_VECTOR(attrib, name, shortname, defaultX, defaultY, defaultZ) \
-   attrib##X = nAttr.create(name##"X", shortname##"x", MFnNumericData::kFloat, defaultX);\
-   attrib##Y = nAttr.create(name##"Y", shortname##"y", MFnNumericData::kFloat, defaultY);\
-   attrib##Z = nAttr.create(name##"Z", shortname##"z", MFnNumericData::kFloat, defaultZ);\
+   attrib##X = nAttr.create(MString(name) + "X", MString(shortname) + "x", MFnNumericData::kFloat, defaultX);\
+   attrib##Y = nAttr.create(MString(name) + "Y", MString(shortname) + "y", MFnNumericData::kFloat, defaultY);\
+   attrib##Z = nAttr.create(MString(name) + "Z", MString(shortname) + "z", MFnNumericData::kFloat, defaultZ);\
    attrib = nAttr.create(name, shortname, attrib##X, attrib##Y, attrib##Z);\
    nAttr.setDefault(float(defaultX), float(defaultY), float(defaultZ));\
    addAttribute(attrib##X);\
