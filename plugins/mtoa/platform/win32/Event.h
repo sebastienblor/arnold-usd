@@ -8,29 +8,29 @@ class CEvent
 
 public:
 
-   CEvent( bool manual = true, bool initialValue = true )
+   CEvent(bool manual = true, bool initialValue = true)
    {
-      m_event = CreateEvent( NULL, manual ? TRUE : FALSE, initialValue ? TRUE : FALSE, NULL );
+      m_event = CreateEvent(NULL, manual ? TRUE : FALSE, initialValue ? TRUE : FALSE, NULL);
    }
 
-   ~CEvent( void )
+   ~CEvent()
    {
-      CloseHandle( m_event );
+      CloseHandle(m_event);
    }
 
-   void set( void )
+   void set()
    {
-      SetEvent( m_event );
+      SetEvent(m_event);
    }
 
-   void unset( void )
+   void unset()
    {
-      ResetEvent( m_event );
+      ResetEvent(m_event);
    }
 
-   bool wait( DWORD ms = INFINITE )
+   bool wait(DWORD ms = INFINITE)
    {
-      return ( WaitForSingleObject( m_event, ms ) == WAIT_OBJECT_0 );
+      return (WaitForSingleObject(m_event, ms) == WAIT_OBJECT_0);
    }
 
 private:
