@@ -607,7 +607,7 @@ shader_evaluate
       dudx = sg->dudx;
       dudy = sg->dudy;
       dvdx = sg->dvdx;
-      dvdx = sg->dvdy;
+      dvdy = sg->dvdy;
 
       sg->u = st.x;
       sg->v = st.y;
@@ -645,6 +645,4 @@ shader_evaluate
    }
 
    sg->out.RGBA = outColor;
-
 }
-
