@@ -221,38 +221,36 @@ MStatus CMayaScene::ExportScene(AtUInt step)
             command += "\"" + dagIterator.fullPathName() + "\", 0, \"\"";
          }
          else
+         // if its an instance
          {
-            MDagPathArray allInstances;
-            dagIterator.getAllPaths(allInstances);
-
-            // check if there is a created master node
-            MDagPath masterDag;
-
-            for (int i=0; (i < masterInstances.length()) && !thereIsMaster; ++i)
+            // only if it is the 0 instance , export all
+            if (dagPath.instanceNumber()==0)
             {
-               for (int j=0; (j < allInstances.length()) && !thereIsMaster; ++j)
+               // get all paths and make the first visible the master
+               MDagPathArray allInstances;
+               dagIterator.getAllPaths(allInstances);
+
+               MDagPath masterDag;
+               bool master_found = false;
+               int master_index = 0;
+               for (; ((master_index<allInstances.length())); master_index++)
                {
-                  // if there is a master already created, break
-                  if (allInstances[j] == masterInstances[i])
+                  MFnDagNode node(allInstances[master_index].node());        
+                  // master set
+                  if (IsVisible(node))
                   {
-                     masterDag = masterInstances[i];
-                     thereIsMaster = true;
+                     if (!master_found)
+                     {
+                        masterDag = allInstances[master_index];
+                        master_found = true;
+                        command += "\"" + dagPath.fullPathName() + "\", 0, \"\"";
+                     }
+                     else
+                     {
+                        command += "\"" + dagPath.fullPathName() + "\", 1, \"" + masterDag.fullPathName() + "\"";
+                     }
                   }
-               }
-            }
-
-            // there is no masternode yet created, we create the first one
-            if(!thereIsMaster)
-            {
-               // make this one the master in the masters array
-               masterInstances.append(dagPath);
-
-               command += "\"" + dagPath.fullPathName() + "\", 0, \"\"";
-            }
-            // instanced meshes
-            else
-            {
-               command += "\"" + dagPath.fullPathName() + "\", 1, \"" + masterDag.fullPathName() + "\"";
+               } 
             }
          }
 
@@ -524,58 +522,54 @@ MStatus CMayaScene::ExportScene(AtUInt step)
          }
          else
          {
-            MDagPathArray allInstances;
-            dagIterator.getAllPaths(allInstances);
-
-            // check if there is a created master node
-            bool thereIsMaster = false;
-            MDagPath masterDag;
-            for (int i=0; ((i<masterInstances.length())&&(!thereIsMaster)); i++)
+            // only if it is the 0 instance , export all
+            if (dagPath.instanceNumber()==0)
             {
-               for (int j=0; ((j<allInstances.length())&&(!thereIsMaster)); j++)
+               // get all paths and make the first visible the master
+               MDagPathArray allInstances;
+               dagIterator.getAllPaths(allInstances);
+
+               MDagPath masterDag;
+               bool master_found = false;
+               int master_index = 0;
+               for (; ((master_index<allInstances.length())); master_index++)
                {
-                  // if there is a master already created, break
-                  if (allInstances[j]==masterInstances[i])
+                  MFnDagNode node(allInstances[master_index].node());        
+                  // master set
+                  if (IsVisible(node))
                   {
-                     masterDag = masterInstances[j];
-                     thereIsMaster = true;
+                     if (!master_found)
+                     {
+                        masterDag = allInstances[master_index];
+                        master_found = true;
+                        MFnMeshData meshData;
+                        MObject     meshFromNURBS;
+                        MObject     meshDataObject = meshData.create();
+
+                        MFnNurbsSurface surface(dagPath, &status);
+
+                        meshFromNURBS = surface.tesselate(MTesselationParams::fsDefaultTesselationParams, meshDataObject);
+                        // in order to get displacement, we need a couple of attributes
+                        MFnNumericAttribute  nAttr;
+
+                        MObject subdiv_type = nAttr.create("subdiv_type", "sdbt", MFnNumericData::kInt, 1);
+                        surface.addAttribute(subdiv_type);
+                        MObject subdiv_iterations = nAttr.create("subdiv_iterations", "sdbit", MFnNumericData::kInt, 1);
+                        surface.addAttribute(subdiv_iterations);
+                        MObject subdiv_adaptive_metric = nAttr.create("subdiv_adaptive_metric", "sdbam", MFnNumericData::kInt, 1);
+                        surface.addAttribute(subdiv_adaptive_metric);
+                        MObject subdiv_pixel_error = nAttr.create("subdiv_pixel_error", "sdbpe", MFnNumericData::kInt, 0);
+                        surface.addAttribute(subdiv_pixel_error);
+
+                        // export the first one normally
+                        ExportMesh(meshFromNURBS, masterDag, step);
+                     }
+                     else
+                     {
+                        ExportMeshInstance(allInstances[master_index], masterDag, step);
+                     }
                   }
-               }
-            }
-
-            // there is no masternode yet created, we create the first one
-            if(!thereIsMaster)
-            {
-               // make this one the master in the masters array
-               masterInstances.append(dagPath);
-
-               MFnMeshData meshData;
-               MObject     meshFromNURBS;
-               MObject     meshDataObject = meshData.create();
-
-               MFnNurbsSurface surface(dagPath, &status);
-
-               meshFromNURBS = surface.tesselate(MTesselationParams::fsDefaultTesselationParams, meshDataObject);
-               // in order to get displacement, we need a couple of attributes
-               MFnNumericAttribute  nAttr;
-
-               MObject subdiv_type = nAttr.create("subdiv_type", "sdbt", MFnNumericData::kInt, 1);
-               surface.addAttribute(subdiv_type);
-               MObject subdiv_iterations = nAttr.create("subdiv_iterations", "sdbit", MFnNumericData::kInt, 1);
-               surface.addAttribute(subdiv_iterations);
-               MObject subdiv_adaptive_metric = nAttr.create("subdiv_adaptive_metric", "sdbam", MFnNumericData::kInt, 1);
-               surface.addAttribute(subdiv_adaptive_metric);
-               MObject subdiv_pixel_error = nAttr.create("subdiv_pixel_error", "sdbpe", MFnNumericData::kInt, 0);
-               surface.addAttribute(subdiv_pixel_error);
-
-               // export the first one normally
-               // check if there is a master instance created
-               ExportMesh(meshFromNURBS, dagPath, step);
-            }
-            // there is already a master, so we create an instance
-            else
-            {
-               ExportMeshInstance(dagPath, masterDag, step);
+               } 
             }
          }
       }
@@ -614,39 +608,37 @@ MStatus CMayaScene::ExportScene(AtUInt step)
             // if its an instance
             if (instancedDag)
             {
-               MDagPathArray allInstances;
-               dagIterator.getAllPaths(allInstances);
-
-               // check if there is a created master node
-               bool thereIsMaster = false;
-               MDagPath masterDag;
-               for (int i=0; ((i<masterInstances.length())&&(!thereIsMaster)); i++)
+               // only if it is the 0 instance , export all
+               if (dagPath.instanceNumber()==0)
                {
-                  for (int j=0; ((j<allInstances.length())&&(!thereIsMaster)); j++)
+                  // get all paths and make the first visible the master
+                  MDagPathArray allInstances;
+                  dagIterator.getAllPaths(allInstances);
+
+                  MDagPath masterDag;
+                  bool master_found = false;
+                  int master_index = 0;
+                  for (; ((master_index<allInstances.length())); master_index++)
                   {
-                     // if there is a master already created, break
-                     if (allInstances[j]==masterInstances[i])
+                     MFnDagNode node(allInstances[master_index].node());        
+                     // master set
+                     if (IsVisible(node))
                      {
-                        masterDag = masterInstances[i];
-                        thereIsMaster = true;
+                        if (!master_found)
+                        {
+                           masterDag = allInstances[master_index];
+                           master_found = true;
+                           ExportMesh(masterDag.node(), masterDag, step);
+                        }
+                        else
+                        {
+                           ExportMeshInstance(allInstances[master_index], masterDag, step);
+                        }
                      }
-                  }
-               }
-
-               // there is no masternode yet created, we create the first one
-               if(!thereIsMaster)
-               {
-                  // make this one the master in the masters array
-                  masterInstances.append(dagPath);
-
-                  ExportMesh(dagIterator.item(), dagPath, step);
-               }
-               // instanced meshes
-               else
-               {
-                  ExportMeshInstance(dagPath, masterDag, step);
+                  } 
                }
             }
+
             else
             {
                ExportMesh(dagIterator.item(), dagPath, step);
