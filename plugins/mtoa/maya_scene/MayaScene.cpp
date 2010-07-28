@@ -139,10 +139,6 @@ MStatus CMayaScene::ExportScene(AtUInt step)
    MDagPath dagPath;
    MItDag   dagIterCameras(MItDag::kDepthFirst, MFn::kCamera);
 
-   // Since arnold does not support a ginstance pointing to another ginstance
-   // we need to keep track of which nodes , in arnold, are the "master" ones
-   MDagPathArray masterInstances;
-
    // First we export all cameras
    // We do not reset the iterator to avoid getting kWorld
    for (; (!dagIterCameras.isDone()); dagIterCameras.next())
