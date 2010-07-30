@@ -42,7 +42,7 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
    // Get argument to "-mode" flag
    MString mode = args.flagArgumentString("mode", 0);
 
-   printf("MODE = %s\n", mode);
+   printf("MODE = %s\n", mode.asChar());
 
    if (mode == "start")
    {
