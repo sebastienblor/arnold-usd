@@ -1,14 +1,19 @@
+
 #include "MayaUtils.h"
 #include <ai.h>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+
 #ifdef _MSC_VER
-# define _USE_MATH_DEFINES
+#define _USE_MATH_DEFINES
 #endif
 #include <cmath>
 
 AI_SHADER_NODE_EXPORT_METHODS(MayaFileMtd);
+
+namespace
+{
 
 enum FileParams
 {
@@ -32,6 +37,13 @@ enum FileParams
    p_alpha_is_luminance,
    p_invert,
    p_noise
+};
+
+inline float mod(float n, float d)
+{
+   return (n - (floor(n / d) * d));
+}
+
 };
 
 node_parameters
@@ -62,13 +74,12 @@ node_initialize
 {
 }
 
-node_finish
+node_update
 {
 }
 
-inline float mod(float n, float d)
+node_finish
 {
-   return (n - (floor(n / d) * d));
 }
 
 shader_evaluate

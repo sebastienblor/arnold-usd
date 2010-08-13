@@ -1,13 +1,18 @@
+
 #include <ai.h>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+
 #ifdef _MSC_VER
-# define _USE_MATH_DEFINES
+#define _USE_MATH_DEFINES
 #endif
 #include <cmath>
 
 AI_SHADER_NODE_EXPORT_METHODS(MayaPlace2dTextureMtd);
+
+namespace
+{
 
 enum Place2dTextureParams
 {
@@ -23,6 +28,26 @@ enum Place2dTextureParams
    p_offset,
    p_rotate,
    p_noise
+};
+
+inline float mod(float n, float d)
+{
+   return (n - (floor(n / d) * d));
+}
+
+inline void rotate2d(float a, float &u, float &v)
+{
+   if (a <= -AI_EPSILON || a >= AI_EPSILON)
+   {
+      float x = u - 0.5f;
+      float y = v - 0.5f;
+      float ca = cos(a);
+      float sa = sin(a);
+      u = 0.5f + ca * x - sa * y;
+      v = 0.5f + ca * y + sa * x;
+   }
+}
+
 };
 
 node_parameters
@@ -45,26 +70,12 @@ node_initialize
 {
 }
 
+node_update
+{
+}
+
 node_finish
 {
-}
-
-inline float mod(float n, float d)
-{
-   return (n - (floor(n / d) * d));
-}
-
-inline void rotate2d(float a, float &u, float &v)
-{
-   if (a <= -AI_EPSILON || a >= AI_EPSILON)
-   {
-      float x = u - 0.5f;
-      float y = v - 0.5f;
-      float ca = cos(a);
-      float sa = sin(a);
-      u = 0.5f + ca * x - sa * y;
-      v = 0.5f + ca * y + sa * x;
-   }
 }
 
 shader_evaluate

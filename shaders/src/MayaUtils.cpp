@@ -1,14 +1,115 @@
+
 #include "MayaUtils.h"
+
 #ifdef _MSC_VER
-#  define _USE_MATH_DEFINES
+#define _USE_MATH_DEFINES
 #endif
 #include <cmath>
 
+namespace
+{
+
 // This one is defined for the RampT template function to work properly
-static float Luminance(float v)
+float Luminance(float v)
 {
    return v;
 }
+
+float _GetArrayFlt(AtArray *a, int i)
+{
+   return AiArrayGetFlt(a, i);
+}
+
+AtRGB _GetArrayRGB(AtArray *a, int i)
+{
+   return AiArrayGetRGB(a, i);
+}
+
+template <typename ValType>
+void RampT(AtArray *p, AtArray *c, float t, RampInterpolationType it, ValType &result, ValType (*getv)(AtArray*, int))
+{
+   int inext = p->nelements;
+
+   for (int i=0; i<p->nelements; ++i)
+   {
+      if (t < AiArrayGetFlt(p, i))
+      {
+         inext = i;
+         break;
+      }
+   }
+
+   if (inext >= p->nelements)
+   {
+      result = getv(c, p->nelements - 1);
+      return;
+   }
+
+   int icur = inext - 1;
+
+   if (icur < 0)
+   {
+      result = getv(c, 0);
+      return;
+   }
+
+   float tcur = AiArrayGetFlt(p, icur);
+   float tnext = AiArrayGetFlt(p, inext);
+   ValType ccur = getv(c, icur);
+   ValType cnext = getv(c, inext);
+   float u = (t - tcur) / (tnext - tcur);
+
+   switch (it)
+   {
+   case RIT_LINEAR:
+      // u = u;
+      break;
+   case RIT_EXP_UP:
+      u = u * u;
+      break;
+   case RIT_EXP_DOWN:
+      u = 1.0f - (1.0f - u) * (1.0f - u);
+      break;
+   case RIT_SMOOTH:
+      u = 0.5f * (cos((u + 1.0f) * M_PI) + 1.0f);
+      break;
+   case RIT_BUMP:
+      {
+         float lcur = Luminance(ccur);
+         float lnext = Luminance(cnext);
+         if (lcur > lnext)
+         {
+            u = sin(u * M_PI / 2.0f);
+         }
+         else
+         {
+            u = sin((u - 1.0f) * M_PI / 2.0f) + 1.0f;
+         }
+      }
+      break;
+   case RIT_SPIKE:
+      {
+         float lcur = Luminance(ccur);
+         float lnext = Luminance(cnext);
+         if (lcur < lnext)
+         {
+            u = sin(u * M_PI / 2.0f);
+         }
+         else
+         {
+            u = sin((u - 1.0f) * M_PI / 2.0f) + 1.0f;
+         }
+      }
+      break;
+   case RIT_NONE:
+   default:
+      u = 0.0f;
+   }
+
+   result = Mix(ccur, cnext, u);
+}
+
+};
 
 float Luminance(const AtRGB &color)
 {
@@ -179,100 +280,6 @@ RampInterpolationType RampInterpolationNameToType(const char *n)
    return (RampInterpolationType) AiEnumGetValue(RampInterpolationNames, n);
 }
 
-template <typename ValType>
-static void RampT(AtArray *p, AtArray *c, float t, RampInterpolationType it, ValType &result, ValType (*getv)(AtArray*, int))
-{
-   int inext = p->nelements;
-
-   for (int i=0; i<p->nelements; ++i)
-   {
-      if (t < AiArrayGetFlt(p, i))
-      {
-         inext = i;
-         break;
-      }
-   }
-
-   if (inext >= p->nelements)
-   {
-      result = getv(c, p->nelements - 1);
-      return;
-   }
-
-   int icur = inext - 1;
-
-   if (icur < 0)
-   {
-      result = getv(c, 0);
-      return;
-   }
-
-   float tcur = AiArrayGetFlt(p, icur);
-   float tnext = AiArrayGetFlt(p, inext);
-   ValType ccur = getv(c, icur);
-   ValType cnext = getv(c, inext);
-   float u = (t - tcur) / (tnext - tcur);
-
-   switch (it)
-   {
-   case RIT_LINEAR:
-      // u = u;
-      break;
-   case RIT_EXP_UP:
-      u = u * u;
-      break;
-   case RIT_EXP_DOWN:
-      u = 1.0f - (1.0f - u) * (1.0f - u);
-      break;
-   case RIT_SMOOTH:
-      u = 0.5f * (cos((u + 1.0f) * M_PI) + 1.0f);
-      break;
-   case RIT_BUMP:
-      {
-         float lcur = Luminance(ccur);
-         float lnext = Luminance(cnext);
-         if (lcur > lnext)
-         {
-            u = sin(u * M_PI / 2.0f);
-         }
-         else
-         {
-            u = sin((u - 1.0f) * M_PI / 2.0f) + 1.0f;
-         }
-      }
-      break;
-   case RIT_SPIKE:
-      {
-         float lcur = Luminance(ccur);
-         float lnext = Luminance(cnext);
-         if (lcur < lnext)
-         {
-            u = sin(u * M_PI / 2.0f);
-         }
-         else
-         {
-            u = sin((u - 1.0f) * M_PI / 2.0f) + 1.0f;
-         }
-      }
-      break;
-   case RIT_NONE:
-   default:
-      u = 0.0f;
-   }
-
-   result = Mix(ccur, cnext, u);
-}
-
-static float _GetArrayFlt(AtArray *a, int i)
-{
-   return AiArrayGetFlt(a, i);
-}
-
-static AtRGB _GetArrayRGB(AtArray *a, int i)
-{
-   return AiArrayGetRGB(a, i);
-}
-
 void Interpolate(AtArray *p, AtArray *v, AtArray *it, float t, float &out)
 {
    InterpolateT(p, v, it, t, out, _GetArrayFlt);
@@ -292,4 +299,3 @@ void Ramp(AtArray *p, AtArray *v, float t, RampInterpolationType it, AtRGB &out)
 {
    RampT(p, v, t, it, out, _GetArrayRGB);
 }
-

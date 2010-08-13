@@ -52,6 +52,10 @@ node_initialize
    AiDriverInitialize(node, FALSE, NULL);
 }
 
+node_update
+{
+}
+
 driver_supports_pixel_type
 {
    switch (pixel_type)

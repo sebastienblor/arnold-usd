@@ -1,3 +1,4 @@
+
 #include "MayaUtils.h"
 #include <ai.h>
 #include <cstdio>
@@ -5,6 +6,9 @@
 #include <cstring>
 
 AI_SHADER_NODE_EXPORT_METHODS(MayaRemapValueToValueMtd);
+
+namespace
+{
 
 enum RemapParams
 {
@@ -18,13 +22,17 @@ enum RemapParams
    p_output_max
 };
 
-static float map_value(float v, float vmin, float vmax) {
+float map_value(float v, float vmin, float vmax)
+{
    return ((v - vmin) / (vmax - vmin));
 }
 
-static float unmap_value(float v, float vmin, float vmax) {
+float unmap_value(float v, float vmin, float vmax)
+{
    return (vmin + (vmax - vmin) * v);
 }
+
+};
 
 node_parameters
 {
@@ -39,6 +47,10 @@ node_parameters
 }
 
 node_initialize
+{
+}
+
+node_update
 {
 }
 

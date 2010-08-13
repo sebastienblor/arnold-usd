@@ -4,11 +4,16 @@
 #include <ai_shaders.h>
 #include <ai_nodes.h>
 
+namespace
+{
+
 enum MayaBlendColorsParams
 {
    p_blender,
    p_color1,
    p_color2
+};
+
 };
 
 AI_SHADER_NODE_EXPORT_METHODS(MayaBlendColorsMtd);
@@ -20,8 +25,6 @@ node_parameters
    AiParameterRGB("color2", 0, 0, 1);
 }
 
-
-
 shader_evaluate
 {
    AtFloat blend  = AiShaderEvalParamFlt(p_blender);
@@ -32,6 +35,10 @@ shader_evaluate
 }
 
 node_initialize
+{
+}
+
+node_update
 {
 }
 

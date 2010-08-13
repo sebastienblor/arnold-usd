@@ -1,3 +1,4 @@
+
 #include <ai.h>
 #include <cstdio>
 #include <cstdlib>
@@ -5,25 +6,32 @@
 
 AI_SHADER_NODE_EXPORT_METHODS(MayaPlusMinusAverage2DMtd);
 
+namespace
+{
+
 enum PlusMinusAverageParams
 {
    p_op,
    p_values
 };
 
-enum Operations {
+enum Operations
+{
    OP_NONE = 0,
    OP_PLUS,
    OP_MINUS,
    OP_AVERAGE
 };
 
-static const char* enum_operation[] = {
+const char* enum_operation[] =
+{
    "none",
    "sum",
    "subtract",
    "average",
    NULL
+};
+
 };
 
 node_parameters
@@ -36,6 +44,10 @@ node_parameters
 }
 
 node_initialize
+{
+}
+
+node_update
 {
 }
 

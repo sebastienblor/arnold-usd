@@ -4,9 +4,14 @@
 #include <ai_shaders.h>
 #include <ai_shader_parameval.h>
 
+namespace
+{
+
 enum MayaReverseParams
 {
    p_input
+};
+
 };
 
 AI_SHADER_NODE_EXPORT_METHODS(MayaReverseMtd);
@@ -17,6 +22,10 @@ node_parameters
 }
 
 node_initialize
+{
+}
+
+node_update
 {
 }
 

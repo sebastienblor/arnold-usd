@@ -4,11 +4,16 @@
 #include <ai_shaders.h>
 #include <ai_shader_parameval.h>
 
+namespace
+{
+
 enum MayaClampParams
 {
    p_min,
    p_max,
    p_input
+};
+
 };
 
 AI_SHADER_NODE_EXPORT_METHODS(MayaClampMtd);
@@ -21,6 +26,10 @@ node_parameters
 }
 
 node_initialize
+{
+}
+
+node_update
 {
 }
 

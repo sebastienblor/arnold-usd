@@ -1,3 +1,4 @@
+
 #include <ai_nodes.h>
 #include <ai_shaderglobals.h>
 #include <ai_shaders.h>
@@ -6,11 +7,16 @@
 
 #include <cstdio>
 #include <cstring>
+
 #ifdef _MSC_VER
 #define _USE_MATH_DEFINES
 #endif
 #include <cmath>
 
+AI_SHADER_NODE_EXPORT_METHODS(MayaProjectionMtd);
+
+namespace
+{
 
 enum MayaProjectionParams
 {
@@ -35,8 +41,6 @@ enum MayaProjectionParams
    p_camera_aspect
 };
 
-AI_SHADER_NODE_EXPORT_METHODS(MayaProjectionMtd);
-
 enum ProjectionType
 {
    PT_NONE = 0,
@@ -50,7 +54,7 @@ enum ProjectionType
    PT_PERSPECTIVE
 };
 
-static const char* gs_ProjectionTypeNames[] =
+const char* gs_ProjectionTypeNames[] =
 {
    "off",
    "planar",
@@ -71,7 +75,7 @@ enum FitType
    FIT_CAMERA_RESOLUTION
 };
 
-static const char *gs_FitTypeNames[] =
+const char *gs_FitTypeNames[] =
 {
    "none",
    "camera_film_gate",
@@ -86,7 +90,7 @@ enum FillType
    FILL_VERTICAL
 };
 
-static const char *gs_FillTypeNames[] =
+const char *gs_FillTypeNames[] =
 {
    "fill",
    "horizontal",
@@ -94,37 +98,12 @@ static const char *gs_FillTypeNames[] =
    NULL
 };
 
-
-node_parameters
+enum TargetPoint
 {
-   AiParameterENUM("type", 0, gs_ProjectionTypeNames);
-   AiParameterRGBA("image", 0.0f, 0.0f, 0.0f, 1.0f);
-   AiParameterFLT("uAngle", 180.0f);
-   AiParameterFLT("vAngle", 90.0f);
-   AiParameterRGB("defaultColor", 0.5f, 0.5f, 0.5f);
-   AiParameterRGB("colorGain", 1.0f, 1.0f, 1.0f);
-   AiParameterRGB("colorOffset", 0.0f, 0.0f, 0.0f);
-   AiParameterFLT("alphaGain", 1.0f);
-   AiParameterFLT("alphaOffset", 0.0f);
-   AiParameterBOOL("invert", false);
-   AiParameterBOOL("wrap", true);
-   AiParameterBOOL("local", false);
-   AiParameterMTX("mappingCoordinate", AI_M4_IDENTITY);
-   AiParameterENUM("fitType", 1, gs_FitTypeNames);
-   AiParameterENUM("fillType", 0, gs_FillTypeNames);
-   AiParameterMTX("cameraInverseMatrix", AI_M4_IDENTITY);
-   AiParameterFLT("cameraNearPlane", 1.0f);
-   AiParameterFLT("cameraHorizontalFOV", 0.97738438111682457); // 56 degrees
-   AiParameterFLT("cameraAspectRatio", 1.0f);
-}
-
-node_initialize
-{
-}
-
-node_finish
-{
-}
+   TP_SAMPLE = 0,
+   TP_SAMPLE_DX,
+   TP_SAMPLE_DY
+};
 
 inline float Adjust(float v)
 {
@@ -163,7 +142,7 @@ inline bool IsInsideCylinder(AtVector V)
    return ((V.x*V.x + V.z*V.z) <= 1 && fabs(V.y) <= 1);
 }
 
-static AtPoint2 PlanarMapping(AtVector V)
+AtPoint2 PlanarMapping(AtVector V)
 {
    AtPoint2 st;
 
@@ -173,7 +152,7 @@ static AtPoint2 PlanarMapping(AtVector V)
    return st;
 }
 
-static AtPoint2 SphericalMapping(AtVector V, AtFloat uAngle, AtFloat vAngle)
+AtPoint2 SphericalMapping(AtVector V, AtFloat uAngle, AtFloat vAngle)
 {
    AtPoint2 st;
 
@@ -186,7 +165,7 @@ static AtPoint2 SphericalMapping(AtVector V, AtFloat uAngle, AtFloat vAngle)
    return st;
 }
 
-static AtPoint2 CylindricalMapping(AtVector V, AtFloat uAngle)
+AtPoint2 CylindricalMapping(AtVector V, AtFloat uAngle)
 {
    AtPoint2 st;
 
@@ -199,7 +178,7 @@ static AtPoint2 CylindricalMapping(AtVector V, AtFloat uAngle)
    return st;
 }
 
-static AtPoint2 CubicMapping(AtVector V)
+AtPoint2 CubicMapping(AtVector V)
 {
    AtPoint2 st;
 
@@ -241,7 +220,7 @@ static AtPoint2 CubicMapping(AtVector V)
    return st;
 }
 
-static AtPoint2 BallMapping(AtVector V)
+AtPoint2 BallMapping(AtVector V)
 {
    AtPoint2 st;
    AtVector Vn;
@@ -258,7 +237,7 @@ static AtPoint2 BallMapping(AtVector V)
    return st;
 }
 
-static AtPoint2 TriPlanarMapping(AtVector V, AtVector N)
+AtPoint2 TriPlanarMapping(AtVector V, AtVector N)
 {
    AtPoint2 st;
 
@@ -291,15 +270,7 @@ static AtPoint2 TriPlanarMapping(AtVector V, AtVector N)
    return st;
 }
 
-
-enum TargetPoint
-{
-   TP_SAMPLE = 0,
-   TP_SAMPLE_DX,
-   TP_SAMPLE_DY
-};
-
-static AtVector ComputePoint(AtShaderGlobals *sg, TargetPoint which, bool local, AtMatrix *placement, AtMatrix *camera)
+AtVector ComputePoint(AtShaderGlobals *sg, TargetPoint which, bool local, AtMatrix *placement, AtMatrix *camera)
 {
    AtPoint p;
 
@@ -360,7 +331,7 @@ static AtVector ComputePoint(AtShaderGlobals *sg, TargetPoint which, bool local,
    return AtVector(p);
 }
 
-static void GetWorldToCameraMatrix(AtMatrix &w2c)
+void GetWorldToCameraMatrix(AtMatrix &w2c)
 {
    AtMatrix cameraMatrix;
 
@@ -369,7 +340,7 @@ static void GetWorldToCameraMatrix(AtMatrix &w2c)
    AiM4Invert(cameraMatrix, w2c);
 }
 
-static float GetImageAspectRatio(AtNode *node)
+float GetImageAspectRatio(AtNode *node)
 {
    AtNode *n = AiNodeGetLink(node, "image");
    float imgAR = 1.0f;
@@ -386,7 +357,7 @@ static float GetImageAspectRatio(AtNode *node)
    return imgAR;
 }
 
-static float GetRenderAspectRatio()
+float GetRenderAspectRatio()
 {
    AtNode *univ = AiUniverseGetOptions();
    int xres = AiNodeGetInt(univ, "xres");
@@ -394,6 +365,42 @@ static float GetRenderAspectRatio()
    return (float(xres) / float(yres));
 }
 
+};
+
+node_parameters
+{
+   AiParameterENUM("type", 0, gs_ProjectionTypeNames);
+   AiParameterRGBA("image", 0.0f, 0.0f, 0.0f, 1.0f);
+   AiParameterFLT("uAngle", 180.0f);
+   AiParameterFLT("vAngle", 90.0f);
+   AiParameterRGB("defaultColor", 0.5f, 0.5f, 0.5f);
+   AiParameterRGB("colorGain", 1.0f, 1.0f, 1.0f);
+   AiParameterRGB("colorOffset", 0.0f, 0.0f, 0.0f);
+   AiParameterFLT("alphaGain", 1.0f);
+   AiParameterFLT("alphaOffset", 0.0f);
+   AiParameterBOOL("invert", false);
+   AiParameterBOOL("wrap", true);
+   AiParameterBOOL("local", false);
+   AiParameterMTX("mappingCoordinate", AI_M4_IDENTITY);
+   AiParameterENUM("fitType", 1, gs_FitTypeNames);
+   AiParameterENUM("fillType", 0, gs_FillTypeNames);
+   AiParameterMTX("cameraInverseMatrix", AI_M4_IDENTITY);
+   AiParameterFLT("cameraNearPlane", 1.0f);
+   AiParameterFLT("cameraHorizontalFOV", 0.97738438111682457); // 56 degrees
+   AiParameterFLT("cameraAspectRatio", 1.0f);
+}
+
+node_initialize
+{
+}
+
+node_update
+{
+}
+
+node_finish
+{
+}
 
 shader_evaluate
 {

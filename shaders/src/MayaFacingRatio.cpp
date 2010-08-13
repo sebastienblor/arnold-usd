@@ -10,6 +10,10 @@ node_initialize
 { 
 }
 
+node_update
+{ 
+}
+
 node_finish
 {
 }

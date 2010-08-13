@@ -4,6 +4,11 @@
 #include <ai_shaders.h>
 #include <ai_shader_parameval.h>
 
+AI_SHADER_NODE_EXPORT_METHODS(MayaConditionMtd);
+
+namespace
+{
+
 enum MayaConditionParams
 {
    p_operation,
@@ -13,11 +18,28 @@ enum MayaConditionParams
    p_color_if_false
 };
 
-AI_SHADER_NODE_EXPORT_METHODS(MayaConditionMtd);
+enum OperationNames
+{
+   OP_EQUAL = 0,
+   OP_NOT_EQUAL,
+   OP_GREATER_THAN,
+   OP_GREATER_OR_EQUAL,
+   OP_LESS_THAN,
+   OP_LESS_OR_EQUAL
+};
 
-enum OperationNames { OP_EQUAL = 0, OP_NOT_EQUAL, OP_GREATER_THAN, OP_GREATER_OR_EQUAL, OP_LESS_THAN, OP_LESS_OR_EQUAL };
+const char* enum_operation[] =
+{
+   "equal",
+   "notequal",
+   "greaterthan",
+   "greaterorequal",
+   "lessthan",
+   "lessorequal",
+   NULL
+};
 
-static const char* enum_operation[] = { "equal", "notequal", "greaterthan", "greaterorequal", "lessthan", "lessorequal", NULL };
+};
 
 node_parameters
 {
@@ -29,6 +51,10 @@ node_parameters
 }
 
 node_initialize
+{
+}
+
+node_update
 {
 }
 

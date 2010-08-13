@@ -4,6 +4,11 @@
 #include <ai_shaders.h>
 #include <ai_shader_parameval.h>
 
+AI_SHADER_NODE_EXPORT_METHODS(MayaMultiplyDivideMtd);
+
+namespace
+{
+
 enum MayaMultiplyDivideParams
 {
    p_input1,
@@ -11,9 +16,16 @@ enum MayaMultiplyDivideParams
    p_operation
 };
 
-AI_SHADER_NODE_EXPORT_METHODS(MayaMultiplyDivideMtd);
+const char* enum_operation[] =
+{
+   "nop",
+   "multiply",
+   "divide",
+   "power",
+   NULL
+};
 
-static const char* enum_operation[] = { "nop", "multiply", "divide", "power", NULL };
+};
 
 node_parameters
 {
@@ -23,6 +35,10 @@ node_parameters
 }
 
 node_initialize
+{
+}
+
+node_update
 {
 }
 

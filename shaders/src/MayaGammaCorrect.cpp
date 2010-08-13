@@ -5,13 +5,18 @@
 #include <ai_shaders.h>
 #include <ai_shader_parameval.h>
 
+AI_SHADER_NODE_EXPORT_METHODS(MayaGammaCorrectMtd);
+
+namespace
+{
+   
 enum MayaClampParams
 {
    p_value,
    p_gamma
 };
 
-AI_SHADER_NODE_EXPORT_METHODS(MayaGammaCorrectMtd);
+};
 
 node_parameters
 {
@@ -21,6 +26,10 @@ node_parameters
 }
 
 node_initialize
+{
+}
+
+node_update
 {
 }
 

@@ -1,15 +1,20 @@
+
 #include "MayaUtils.h"
 #include <ai_nodes.h>
 #include <ai_shaderglobals.h>
 #include <ai_shaders.h>
 #include <ai_shader_parameval.h>
+
 #ifdef _MSC_VER
-#  define _USE_MATH_DEFINES
+#define _USE_MATH_DEFINES
 #endif
 #include <cmath>
 #include <algorithm>
 
 AI_SHADER_NODE_EXPORT_METHODS(MayaRampMtd);
+
+namespace
+{
 
 enum RampParameters
 {
@@ -44,7 +49,7 @@ enum RampType
    RT_TARTAN
 };
 
-static const char* ramp_type_enum[] =
+const char* ramp_type_enum[] =
 {
    "v",
    "u",
@@ -56,6 +61,13 @@ static const char* ramp_type_enum[] =
    "fourcorner",
    "tartan",
    NULL
+};
+
+inline float mod(float n, float d)
+{
+   return (n - (floor(n / d) * d));
+}
+
 };
 
 node_parameters
@@ -86,13 +98,12 @@ node_initialize
 {
 }
 
-node_finish
+node_update
 {
 }
 
-inline float mod(float n, float d)
+node_finish
 {
-   return (n - (floor(n / d) * d));
 }
 
 shader_evaluate
