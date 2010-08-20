@@ -7,6 +7,7 @@
 #include <maya/MFnDagNode.h>
 #include <maya/MItDag.h>
 #include <maya/MMatrix.h>
+#include <maya/MObjectArray.h>
 #include <maya/MSelectionList.h>
 
 #include <vector>
@@ -68,7 +69,7 @@ private:
    void ExportLight(const MDagPath& dagPath, AtUInt step);
    void ExportLightData(AtNode* light, const MDagPath& dagPath, bool mb, bool custom);
    void ExportLightMBData(const MDagPath& dagPath, AtUInt step);
-   void ExportLightFilters(AtNode* light, MString filterNames);
+   void ExportLightFilters(AtNode* light, const MObjectArray &filters);
    void ExportMesh(MObject mayaMesh, const MDagPath& dagPath, AtUInt step);
    void ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, const MDagPath& dagPath, AtUInt step);
    void ExportMeshInstance(const MDagPath& dagPath, const MDagPath& masterInstance, AtUInt step);

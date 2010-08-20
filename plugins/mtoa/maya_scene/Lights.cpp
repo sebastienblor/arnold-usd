@@ -18,38 +18,26 @@
 #include <maya/MSelectionList.h>
 #include <maya/MTransformationMatrix.h>
 #include <maya/MVector.h>
+#include <maya/MPlugArray.h>
 
 #include <vector>
 #include <string.h>
 
-void CMayaScene::ExportLightFilters(AtNode* light, MString filterNames)
+void CMayaScene::ExportLightFilters(AtNode* light, const MObjectArray &filterNodes)
 {
-   MSelectionList list;
-   MObject        node;
-
-   char* filterList = const_cast<char*>(filterNames.asChar());
-   char* filterName = strtok(filterList, ":");
-   
    std::vector<AtNode*> filters;
 
-   while (filterName != NULL)
+   for (unsigned int i=0; i<filterNodes.length(); ++i)
    {
-      list.clear();
-      list.add(filterName);
+      AtNode* filter = ExportShader(filterNodes[i]);
 
-      if (list.length() > 0)
-      {
-         list.getDependNode(0, node);
-
-         AtNode* filter = ExportShader(node);
-
-         filters.push_back(filter);
-
-         filterName = strtok(NULL, ":");
-      }
+      filters.push_back(filter);
    }
 
-   AiNodeSetArray(light, "filters", AiArrayConvert(filters.size(), 1, AI_TYPE_NODE, &filters[0], TRUE));
+   if (filters.size() > 0)
+   {
+      AiNodeSetArray(light, "filters", AiArrayConvert(filters.size(), 1, AI_TYPE_NODE, &filters[0], TRUE));
+   }
 }
 
 void CMayaScene::ExportLightData(AtNode* light, const MDagPath& dagPath, bool mb, bool custom)
@@ -83,10 +71,21 @@ void CMayaScene::ExportLightData(AtNode* light, const MDagPath& dagPath, bool mb
       AiNodeSetInt(light, "bounces", fnDagNode.findPlug("bounces").asInt());
       AiNodeSetFlt(light, "bounce_factor", fnDagNode.findPlug("bounce_factor").asFloat());
 
-      MString filters = fnDagNode.findPlug("light_filters").asString();
+      MObjectArray filters;
+      MPlugArray pSources;
+      MPlug pFilters = fnDagNode.findPlug("light_filters");
 
-      if (filters != "")
-         ExportLightFilters(light, filters);
+      for (unsigned int i=0; i<pFilters.numElements(); ++i)
+      {
+         MPlug pFilter = pFilters[i];
+         pFilter.connectedTo(pSources, true, false);
+         if (pSources.length() == 1)
+         {
+            filters.append(pSources[0].node());
+         }
+      }
+
+      ExportLightFilters(light, filters);
    }
 
    GetMatrix(matrix, dagPath);

@@ -1,21 +1,99 @@
 
+proc string GetSourcePlug(string $plugname, int $index)
+{
+   string $conns[];
+   if ($index < 0)
+   {
+      $conns = `listConnections -p 1 -s 1 -d 0 $plugname`;
+   }
+   else
+   {
+      $conns = `listConnections -p 1 -s 1 -d 0 ($plugname+"["+$index+"]")`;
+   }
+
+   if (size($conns) == 1)
+   {
+      return $conns[0];
+   }
+   else
+   {
+      return "";
+   }
+}
+
+proc string GetNodeName(string $plugname)
+{
+   string $nodeAttrs[];
+   tokenize $plugname "." $nodeAttrs;
+
+   if (size($nodeAttrs) >= 1)
+   {
+      return $nodeAttrs[0];
+   }
+   else
+   {
+      return "";
+   }
+}
+
+proc int GetConnectedCount(string $plugname)
+{
+   string $srcplug;
+   int $i, $n = `getAttr -size $plugname`;
+   int $c = 0;
+
+   for ($i=0; $i<$n; $i++)
+   {
+      $srcplug = GetSourcePlug($plugname, $i);
+      if ($srcplug != "")
+      {
+         $c++;
+      }
+   }
+
+   return $c;
+}
+
+proc SwapConnections(string $plugname, int $i0, int $i1)
+{
+   string $dstPlug0 = $plugname + "[" + $i0 + "]";
+   string $dstPlug1 = $plugname + "[" + $i1 + "]";
+   string $srcPlug0 = GetSourcePlug($dstPlug0, -1);
+   string $srcPlug1 = GetSourcePlug($dstPlug1, -1);
+
+   if ($srcPlug0 != "")
+   {
+      disconnectAttr $srcPlug0 $dstPlug0;
+   }
+   if ($srcPlug1 != "")
+   {
+      disconnectAttr $srcPlug1 $dstPlug1;
+   }
+   if ($srcPlug0 != "")
+   {
+      connectAttr $srcPlug0 $dstPlug1;
+   }
+   if ($srcPlug1 != "")
+   {
+      connectAttr $srcPlug1 $dstPlug0;
+   }
+}
+
+// ---
+
 global proc MoveLightFilterUp(string $node, string $list)
 {
    string $attr = ($node + ".light_filters");
    int $items[] = `textScrollList -q -sii $list`;
+   if (size($items) == 0)
+   {
+      return;
+   }
    int $current = $items[0] - 1;
-   
+
    if ($current > 0)
    {
-      string $values = `getAttr $attr`;
-      string $buffer[] = stringToStringArray($values, ":");
-      
-      string $temp = $buffer[$current - 1];
-      $buffer[$current - 1] = $buffer[$current];
-      $buffer[$current] = $temp;
-   
-      $values = stringArrayToString($buffer, ":");
-      setAttr -type "string" $attr $values;
+      SwapConnections($attr, $current-1, $current);
    
       LightFiltersGetList($node, $list);
    }
@@ -25,19 +103,15 @@ global proc MoveLightFilterDown(string $node, string $list)
 {
    string $attr = ($node + ".light_filters");
    int $items[] = `textScrollList -q -sii $list`;
-   int $current = $items[0];
-   
-   string $values = `getAttr $attr`;
-   string $buffer[] = stringToStringArray($values, ":");
-   
-   if ($current < size($buffer))
+   if (size($items) == 0)
    {
-      string $temp = $buffer[$current];
-      $buffer[$current] = $buffer[$current - 1];
-      $buffer[$current - 1] = $temp;
-      
-      $values = stringArrayToString($buffer, ":");
-      setAttr -type "string" $attr $values;
+      return;
+   }
+   int $current = $items[0];
+
+   if ($current < GetConnectedCount($attr))
+   {
+      SwapConnections($attr, $current-1, $current);
 
       LightFiltersGetList($node, $list);
    }
@@ -47,7 +121,7 @@ global proc LightFilterListChanged(string $list)
 {
    string $items[] = `textScrollList -q -si $list`;
    
-   int $selection = ($items[0] != "");
+   int $selection = (size($items) > 0 && $items[0] != "");
    
    button -edit -enable $selection lf_remove_button;
    button -edit -enable $selection lf_move_up_button;
@@ -57,26 +131,34 @@ global proc LightFilterListChanged(string $list)
 global proc AddLightFilterCB(string $lightNode, string $list)
 {
    string $attr = ($lightNode + ".light_filters");
-   string $filter[] = `textScrollList -q -si alf_filter_list`;
-   string $filters  = `getAttr $attr`;
+   string $filterTypes[] = `textScrollList -q -si alf_filter_list`;
+   string $filterType = (size($filterTypes) > 0 ? $filterTypes[0] : "");
    string $new_filter = "";
    
-   switch($filter[0])
+   switch ($filterType)
    {
-      case "Barndoor": $new_filter = `createNode -skipSelect ArnoldBarndoorShader`; break;
-      case "Gobo": $new_filter = `createNode -skipSelect ArnoldGoboShader`; break;
-      case "Light Blocker": $new_filter = `createNode -skipSelect ArnoldLightBlockerShader`; break;
-      case "Light Decay": $new_filter = `createNode -skipSelect ArnoldLightDecayShader`; break;
+      case "Barndoor":
+         $new_filter = `createNode -skipSelect ArnoldBarndoorShader`;
+         break;
+      case "Gobo":
+         $new_filter = `createNode -skipSelect ArnoldGoboShader`;
+         break;
+      case "Light Blocker":
+         $new_filter = `createNode -skipSelect ArnoldLightBlockerShader`;
+         break;
+      case "Light Decay":
+         $new_filter = `createNode -skipSelect ArnoldLightDecayShader`;
+         break;
    }
    
    if ($new_filter != "")
    {
-      $filters += ":" + $new_filter;
-   
-      setAttr -type "string" $attr $filters;
-   
+      int $nfilters = GetConnectedCount($attr);
+
+      connectAttr ($new_filter+".message") ($attr+"["+$nfilters+"]");
+
       LightFiltersGetList($lightNode, $list);
-   
+
       updateAE $new_filter;
    } 
 }
@@ -121,36 +203,55 @@ global proc AddLightFilter(string $lightNode, string $list)
 global proc RemoveLightFilter(string $lightNode, string $list)
 {
    string $attr = ($lightNode + ".light_filters");
-   string $filter[] = `textScrollList -q -si $list`;
-   string $filters  = `getAttr $attr`;
-   string $buffer[] = stringToStringArray($filters, ":");
-   
-   string $new_filters = stringArrayToString(stringArrayRemove($filter, $buffer), ":");
-   
-   setAttr -type "string" $attr $new_filters;
-   
-   delete $filter[0];
-   
+
+   string $selection[] = `textScrollList -q -si $list`;
+   string $selected = (size($selection) > 0 ? $selection[0] : "");
+
+   int $nfilters = GetConnectedCount($attr);
+
+   for ($J = 0; $J < $nfilters; $J++)
+   {
+      string $srcplug = GetSourcePlug($attr, $J);
+      string $filter = GetNodeName($srcplug);
+
+      if ($filter == $selected)
+      {
+         for ($K = $J+1; $K < $nfilters; $J++, $K++)
+         {
+            SwapConnections($attr, $J, $K);
+         }
+         disconnectAttr $srcplug ($attr + "[" + ($nfilters-1) + "]");
+         delete $filter;
+         break;
+      }
+   }
+
    LightFiltersGetList($lightNode, $list);
 }
 
 global proc LightFiltersGetList(string $node, string $list)
 {
-   string $values = `getAttr ($node + ".light_filters")`;
-   string $buffer[] = stringToStringArray($values, ":");
+   int $nfilters = GetConnectedCount($node+".light_filters");
 
-   string $selection[] = `textScrollList -q -si $list`; 
-     
+   string $selection[] = `textScrollList -q -si $list`;
+   string $selected = (size($selection) > 0 ? $selection[0] : "");
+
    textScrollList -edit -removeAll $list;
-   for ($J = 0; ($J < size($buffer)); $J++)
+   for ($J = 0; $J < $nfilters; $J++)
    {
-      textScrollList -edit -append $buffer[$J] $list;
-
-      if ($selection[0] == $buffer[$J])
-         textScrollList -edit -si $selection[0] $list; 
+      string $filter = GetNodeName(GetSourcePlug($node+".light_filters", $J));
+      if ($filter == "")
+      {
+         continue;
+      }
+      textScrollList -edit -append $filter $list;
+      if ($filter == $selected)
+      {
+         textScrollList -edit -si $selected $list;
+      }
    }
 
-   LightFilterListChanged($list);
+   LightFilterListChanged($list);   
 }
 
 global proc ArnoldCustomLightFiltersChanged(string $attr, string $userChangeCB)
@@ -175,12 +276,9 @@ global proc ArnoldCustomLightFiltersNew(string $attr)
    string $attribName = $buffer[1];
    string $nodeType   = GetNodeType($nodeName);
 
-   string $attribData[] = GetCustomAttributeData($attribName);   
-
    if (!attributeExists($attribName, $nodeName))
    {
-      addAttr -ln $attribName -dt "string" $nodeName;
-      setAttr -type "string" $attr $attribData[1];
+      addAttr -ln $attribName -at "message" -multi $nodeName;
    }
 
    string $uiName = $nodeType + "_" + $attribName; 
@@ -202,9 +300,6 @@ global proc ArnoldCustomLightFiltersNew(string $attr)
       setParent ..;
    
    LightFiltersGetList($nodeName, $uiName);
-
-   if ($attribData[6] != "")
-      evalDeferred $attribData[6];
 }
 
 global proc ArnoldCustomLightFiltersReplace(string $attr)
@@ -216,12 +311,9 @@ global proc ArnoldCustomLightFiltersReplace(string $attr)
    string $attribName = $buffer[1];
    string $nodeType   = GetNodeType($nodeName); 
 
-   string $attribData[] = GetCustomAttributeData($attribName);   
-
    if (!attributeExists($attribName, $nodeName))
    {
-      addAttr -ln $attribName -dt "string" $nodeName;
-      setAttr -type "string" $attr $attribData[1];
+      addAttr -ln $attribName -at "message" -multi $nodeName;
    }
 
    string $uiName = $nodeType + "_" + $attribName; 
@@ -234,7 +326,4 @@ global proc ArnoldCustomLightFiltersReplace(string $attr)
    button -edit -c ("RemoveLightFilter " + $nodeName + " " + $uiName) lf_remove_button;
    
    LightFiltersGetList($nodeName, $uiName);
-
-   if ($attribData[6] != "")
-      evalDeferred $attribData[6];
 }
