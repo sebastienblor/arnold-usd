@@ -7,7 +7,7 @@ global proc AEarnoldBumpNew(string $attrName)
    setUITemplate -ppt;
 }
 
-global proc AEshaderBumpReplace(string $attrName)
+global proc AEarnoldBumpReplace(string $attrName)
 {
    attrNavigationControlGrp -edit -at $attrName bumpControl;
 }

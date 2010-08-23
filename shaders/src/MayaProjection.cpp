@@ -582,7 +582,7 @@ shader_evaluate
          }
          else
          {
-            if (wrap || (P.z < 0.0f && fabs(P.x) <= -P.z && fabs(P.y) <= -P.z))
+            if (P.z < 0.0f && (wrap || (P.z >= -1.0f && fabs(P.x) <= -P.z && fabs(P.y) <= -P.z)))
             {
                st.x = Adjust(P.x / -P.z);
                st.y = Adjust(P.y / -P.z);

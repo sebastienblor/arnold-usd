@@ -492,7 +492,7 @@ MStatus CArnoldSkyShaderNode::initialize()
    
    // OUTPUT ATTRIBUTES
 
-   MAKE_COLOR(s_OUT_color, "outColor", "oc", 0, 0, 0);
+   MAKE_COLOR(s_OUT_color, "outColor", "ocl", 0, 0, 0);
    MAKE_OUTPUT(nAttr, s_OUT_color);
 
    MAKE_COLOR(s_OUT_transparency, "outTransparency", "ot", 0, 0, 0);
