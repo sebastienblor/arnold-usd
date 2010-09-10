@@ -24,7 +24,7 @@
 
 static bool StringInList(const MString &str, const MStringArray &ary)
 {
-   for (unsigned int i=0; i<ary.length(); ++i)
+   for (unsigned int i = 0; i < ary.length(); ++i)
    {
       if (ary[i] == str)
       {
@@ -38,7 +38,7 @@ MStatus CMayaScene::ExportToArnold(ExportMode exportMode)
 {
    MStatus status;
 
-   if (exportMode == exportMode)
+   if (exportMode == MTOA_EXPORT_ALL)
    {
       PrepareExport();
 
@@ -69,7 +69,9 @@ MStatus CMayaScene::ExportToArnold(ExportMode exportMode)
    return status;
 }
 
-// Loop and export the selection and all its hirarchy down stream
+// Loop and export the selection, and all its hirarchy down stream
+//
+// @return              MS::kSuccess / MS::kFailure is returned in case of failure.
 //
 MStatus CMayaScene::IterSelection(MSelectionList selected)
 {
@@ -84,8 +86,8 @@ MStatus CMayaScene::IterSelection(MSelectionList selected)
 
       // iterate Hierarchy
       if (IsVisible(path.node()))
-	  {
-         for (int child=0; child<path.childCount(); child++)
+      {
+         for (int child = 0; child < path.childCount(); child++)
          {
             MObject ChildObject = path.child(child);
             path.push(ChildObject);
@@ -93,20 +95,20 @@ MStatus CMayaScene::IterSelection(MSelectionList selected)
             selected.clear();
             selected.add(path.fullPathName());
 
-		    MFnDagNode node(path.node());
+            MFnDagNode node(path.node());
             if (!node.isIntermediateObject())
             {
-               // Export poly mesh
+            // Export poly mesh
                if (path.apiType() == 295)
                {
                   ExportMesh(path.node(), path, 0);
-		       }
-		       // Exports maya hair
-		       else if (path.apiType() == 916)
-		       {
+               }
+               // Exports maya hair
+               else if (path.apiType() == 916)
+               {
                   ExportHair(path, 0);
                }
-		    }
+            }
             path.pop(1);
             IterSelection(selected);
          }
@@ -115,7 +117,10 @@ MStatus CMayaScene::IterSelection(MSelectionList selected)
    return status;
 }
 
-
+// Get the selection from maya and export it with the IterSelection methode
+//
+// @return              MS::kSuccess / MS::kFailure is returned in case of failure.
+//
 MStatus CMayaScene::ExportSelected()
 {
    MStatus status;
@@ -130,9 +135,10 @@ MStatus CMayaScene::ExportSelected()
    return status;
 }
 
-
-
-
+// Export the maya scene
+//
+// @return              MS::kSuccess / MS::kFailure is returned in case of failure.
+//
 MStatus CMayaScene::ExportScene(AtUInt step)
 {
    MStatus  status;
@@ -231,7 +237,7 @@ MStatus CMayaScene::ExportScene(AtUInt step)
                int master_index = 0;
                for (; ((master_index<allInstances.length())); master_index++)
                {
-                  MFnDagNode node(allInstances[master_index].node());        
+                  MFnDagNode node(allInstances[master_index].node());
                   // master set
                   if (IsVisible(node))
                   {
@@ -246,7 +252,7 @@ MStatus CMayaScene::ExportScene(AtUInt step)
                         command += "\"" + dagPath.fullPathName() + "\", 1, \"" + masterDag.fullPathName() + "\"";
                      }
                   }
-               } 
+               }
             }
          }
 
@@ -519,7 +525,7 @@ MStatus CMayaScene::ExportScene(AtUInt step)
          else
          {
             // only if it is the 0 instance , export all
-            if (dagPath.instanceNumber()==0)
+            if (dagPath.instanceNumber() == 0)
             {
                // get all paths and make the first visible the master
                MDagPathArray allInstances;
@@ -530,7 +536,7 @@ MStatus CMayaScene::ExportScene(AtUInt step)
                int master_index = 0;
                for (; ((master_index<allInstances.length())); master_index++)
                {
-                  MFnDagNode node(allInstances[master_index].node());        
+                  MFnDagNode node(allInstances[master_index].node());
                   // master set
                   if (IsVisible(node))
                   {
@@ -565,7 +571,7 @@ MStatus CMayaScene::ExportScene(AtUInt step)
                         ExportMeshInstance(allInstances[master_index], masterDag, step);
                      }
                   }
-               } 
+               }
             }
          }
       }
@@ -605,7 +611,7 @@ MStatus CMayaScene::ExportScene(AtUInt step)
             if (instancedDag)
             {
                // only if it is the 0 instance , export all
-               if (dagPath.instanceNumber()==0)
+               if (dagPath.instanceNumber() == 0)
                {
                   // get all paths and make the first visible the master
                   MDagPathArray allInstances;
@@ -616,7 +622,7 @@ MStatus CMayaScene::ExportScene(AtUInt step)
                   int master_index = 0;
                   for (; ((master_index<allInstances.length())); master_index++)
                   {
-                     MFnDagNode node(allInstances[master_index].node());        
+                     MFnDagNode node(allInstances[master_index].node());
                      // master set
                      if (IsVisible(node))
                      {
@@ -631,7 +637,7 @@ MStatus CMayaScene::ExportScene(AtUInt step)
                            ExportMeshInstance(allInstances[master_index], masterDag, step);
                         }
                      }
-                  } 
+                  }
                }
             }
 

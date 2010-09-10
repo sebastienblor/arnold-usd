@@ -22,7 +22,7 @@ void CMayaScene::ExportCameraData(AtNode* camera, const MDagPath& dagPath, bool 
       AiNodeSetFlt(camera, "focal_distance", fnDagNode.findPlug("focal_distance").asFloat());
       AiNodeSetFlt(camera, "aperture_size", fnDagNode.findPlug("aperture_size").asFloat());
       AiNodeSetInt(camera, "aperture_blades", fnDagNode.findPlug("aperture_blades").asInt());
-      AiNodeSetInt(camera, "aperture_rotation", fnDagNode.findPlug("aperture_rotation").asFloat());
+      AiNodeSetFlt(camera, "aperture_rotation", fnDagNode.findPlug("aperture_rotation").asFloat());
       AiNodeSetFlt(camera, "aperture_blade_curvature", fnDagNode.findPlug("aperture_blade_curvature").asFloat());
    }
    

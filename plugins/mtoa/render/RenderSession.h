@@ -40,7 +40,7 @@ public:
 
    void DoRender();
    void DoBatchRender();
-   void DoExport(MString customFileName = "");
+   void DoExport(MString customFileName = "", ExportMode exportMode=MTOA_EXPORT_ALL);
 
 private:
 

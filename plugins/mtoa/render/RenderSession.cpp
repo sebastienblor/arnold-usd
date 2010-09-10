@@ -228,7 +228,7 @@ void CRenderSession::DoBatchRender()
    AiRender(AI_RENDER_MODE_CAMERA);
 }
 
-void CRenderSession::DoExport(MString customFileName)
+void CRenderSession::DoExport(MString customFileName, ExportMode exportMode)
 {
    MString fileName;
 
@@ -247,8 +247,11 @@ void CRenderSession::DoExport(MString customFileName)
    {
       AiMsgInfo("[mtoa] Exporting Maya scene to file '%s'", fileName.asChar());
 
-      SetupRenderOutput();
-      m_renderOptions.SetupRenderOptions();
+      if (exportMode==MTOA_EXPORT_ALL)
+      {
+         SetupRenderOutput();
+         m_renderOptions.SetupRenderOptions();
+      }   
       AiASSWrite(fileName.asChar(), m_renderOptions.outputAssMask(), false);
    }
 }
@@ -338,18 +341,18 @@ void CRenderSession::SetupRenderOutput()
 
    // OUTPUT STRINGS
    //
-  AtChar   str[1024];
-  int      ndrivers = m_renderOptions.BatchMode() ? 1 : 2;
-  AtArray* outputs  = AiArrayAllocate(ndrivers, 1, AI_TYPE_STRING);
+   AtChar   str[1024];
+   int      ndrivers = m_renderOptions.BatchMode() ? 1 : 2;
+   AtArray* outputs  = AiArrayAllocate(ndrivers, 1, AI_TYPE_STRING);
 
-  sprintf(str, "RGBA RGBA %s %s", AiNodeGetName(filter), AiNodeGetName(driver));
-  AiArraySetStr(outputs, 0, str);
- 
-  if (!m_renderOptions.BatchMode())
-  {
-     sprintf(str, "RGBA RGBA %s %s", AiNodeGetName(filter), "renderview_display");
-     AiArraySetStr(outputs, 1, str);
-  }
- 
-  AiNodeSetArray(AiUniverseGetOptions(), "outputs", outputs);
+   sprintf(str, "RGBA RGBA %s %s", AiNodeGetName(filter), AiNodeGetName(driver));
+   AiArraySetStr(outputs, 0, str);
+
+   if (!m_renderOptions.BatchMode())
+   {
+      sprintf(str, "RGBA RGBA %s %s", AiNodeGetName(filter), "renderview_display");
+      AiArraySetStr(outputs, 1, str);
+   }
+
+   AiNodeSetArray(AiUniverseGetOptions(), "outputs", outputs);
 }

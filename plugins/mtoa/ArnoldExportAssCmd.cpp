@@ -48,9 +48,9 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    // exporet only selected objects
    if(argDB.isFlagSet("selected"))
    {
-	   renderSession->Init(MTOA_EXPORT_SELECTED);
+      renderSession->Init(MTOA_EXPORT_SELECTED);
       if (MGlobal::mayaState() == MGlobal::kInteractive)
-		  renderSession->DoExport(customFileName);
+         renderSession->DoExport(customFileName, MTOA_EXPORT_SELECTED);
    }
 
    // export the entire maya scene
