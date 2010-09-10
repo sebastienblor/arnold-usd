@@ -2,6 +2,7 @@
 #define EVENT_H
 
 #include <windows.h>
+#include <limits.h>
 
 class CEvent
 {
