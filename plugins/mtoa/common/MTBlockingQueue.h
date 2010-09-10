@@ -5,6 +5,7 @@
 #include <ai_critsec.h>
 #include <ai_types.h>
 #include <queue>
+#include <limits.h>
 
 template <typename T>
 class CMTBlockingQueue
@@ -74,12 +75,12 @@ public:
       return result;
    }
 
-   bool waitForNotEmpty(DWORD timeout = INFINITE)
+   bool waitForNotEmpty(unsigned int timeout = UINT_MAX)
    {
       return m_notEmpty.wait(timeout);
    }
 
-   bool waitForNotFull(DWORD timeout = INFINITE)
+   bool waitForNotFull(unsigned int timeout = UINT_MAX)
    {
       return m_notFull.wait(timeout);
    }

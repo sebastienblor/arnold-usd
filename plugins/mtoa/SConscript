@@ -26,7 +26,7 @@ else:
    local_env.Append(CPPPATH = [os.path.join(env['MAYA_ROOT'], 'include')])
    local_env.Append(CPPDEFINES = Split('LINUX _BOOL REQUIRE_IOSTREAM'))
    local_env.Append(LIBPATH = [os.path.join(env['MAYA_ROOT'], 'lib')])
-   local_env.Append(LIBS=Split('ai GL GLU Foundation OpenMaya OpenMayaRender OpenMayaUI OpenMayaAnim OpenMayaFX'))
+   local_env.Append(LIBS=Split('ai GL GLU pthread Foundation OpenMaya OpenMayaRender OpenMayaUI OpenMayaAnim OpenMayaFX'))
 
 MTOA = local_env.SharedLibrary('mtoa', source_files)
 

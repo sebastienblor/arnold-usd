@@ -5,5 +5,8 @@
 #define WIN32_LEAN_AND_MEAN
 #include "platform/win32/Event.h"
 #endif
+#ifdef LINUX
+#include "platform/linux/Event.h"
+#endif
 
 #endif  // PLATFORM_H

@@ -18,6 +18,10 @@ include_files = find_files_recursive(src_base_dir, ['.h'])
 if system.os() =='windows':
    local_env.Append(CPPPATH = ['.'])
    local_env.Append(LIBS=Split('ai.lib'))
+else:
+   local_env.Append(CPPPATH = ['.'])
+   local_env.Append(LIBS=Split('ai'))
+
 
 MTOA_SHADERS = local_env.SharedLibrary('mtoa_shaders', source_files)
 

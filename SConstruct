@@ -199,9 +199,13 @@ if system.os() == 'windows':
    # Rename plugins as .mll and install them in the target path
    mtoa_new = os.path.splitext(str(MTOA[0]))[0] + '.mll'
    env.Command(mtoa_new, str(MTOA[0]), Copy("$TARGET", "$SOURCE"))
+   env.Install(env['TARGET_PLUGIN_PATH'], [mtoa_new, str(MTOA_SHADERS[0])] + glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*.dll')))
 else:
-   mtoa_new = MTOA[0]
-env.Install(env['TARGET_PLUGIN_PATH'], [mtoa_new, str(MTOA_SHADERS[0])] + glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*.dll')))
+   # Remove the lib prefix
+   mtoa_new = str(MTOA[0]).replace('lib', '')
+   env.Command(mtoa_new, str(MTOA[0]), Copy("$TARGET", "$SOURCE"))
+   env.Install(env['TARGET_PLUGIN_PATH'], [mtoa_new, str(MTOA_SHADERS[0])] + glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*.so')))
+
 env.Install(env['TARGET_SCRIPTS_PATH'], glob.glob(os.path.join('scripts', '*.mel')))
 env.Install(env['TARGET_ICONS_PATH'], glob.glob(os.path.join('icons', '*.xpm')))
 

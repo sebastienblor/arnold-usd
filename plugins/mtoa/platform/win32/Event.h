@@ -28,9 +28,9 @@ public:
       ResetEvent(m_event);
    }
 
-   bool wait(DWORD ms = INFINITE)
+   bool wait(unsigned int ms = UINT_MAX)
    {
-      return (WaitForSingleObject(m_event, ms) == WAIT_OBJECT_0);
+      return (WaitForSingleObject(m_event, static_cast<DWORD>(ms)) == WAIT_OBJECT_0);
    }
 
 private:
