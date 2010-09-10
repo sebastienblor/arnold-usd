@@ -9,10 +9,15 @@ from build_tools import *
 
 import glob, shutil
 
-if system.os() == 'windows':
-	ALLOWED_COMPILERS = ['msvc', 'icc']
+if system.os() == 'darwin':
+   ALLOWED_COMPILERS = ('gcc')
+elif system.os() == 'linux':
+   ALLOWED_COMPILERS = ('gcc')
+elif system.os() == 'windows':
+   ALLOWED_COMPILERS = ('msvc', 'icc')
 else:
-	ALLOWED_COMPILERS = ['gcc']
+   print "Unknown operating system: %s" % system.os()
+   Exit(1)
 
 vars = Variables('custom.py')
 vars.AddVariables(
@@ -26,6 +31,7 @@ vars.AddVariables(
       EnumVariable('SHOW_TEST_OUTPUT', 'Display the test log as it is being run', 'single', allowed_values=('always', 'never', 'single') ),
       BoolVariable('UPDATE_REFERENCE', 'Update the reference log/image for the specified targets', False),
       ('TEST_PATTERN' , 'Glob pattern of tests to be run', 'test_*'),
+      ('GCC_OPT_FLAGS', 'Optimization flags for gcc', '-O3 -funroll-loops'),
 
       PathVariable('MAYA_ROOT', 'Directory where Maya is installed', get_default_path('MAYA_ROOT', '.')),
       PathVariable('EXTERNAL_PATH', 'External dependencies are found here', '.'),
@@ -71,8 +77,42 @@ elif system.os() == 'windows':
    if system.target_arch() == 'x86_64':
       env.Append(CPPDEFINES = Split('_WIN64'))
 
-if env['COMPILER'] == 'msvc':
+if env['COMPILER'] == 'gcc':
+   ## warning level
+   if env['WARN_LEVEL'] == 'none':
+      env.Append(CCFLAGS = Split('-w'))
+   else:
+      env.Append(CCFLAGS = Split('-Wall -Wsign-compare'))
+      if env['WARN_LEVEL'] == 'strict':
+         env.Append(CCFLAGS = Split('-Werror'))
+
+   ## optimization flags
+   if env['MODE'] == 'opt' or env['MODE'] == 'profile':
+      env.Append(CCFLAGS = Split(env['GCC_OPT_FLAGS']))
+   if env['MODE'] == 'debug' or env['MODE'] == 'profile':
+      if system.os() == 'darwin': 
+         env.Append(CCFLAGS = Split('-gstabs')) 
+         env.Append(LINKFLAGS = Split('-gstabs')) 
+      else: 
+         env.Append(CCFLAGS = Split('-g')) 
+         env.Append(LINKFLAGS = Split('-g')) 
+   if system.os() == 'linux' and env['MODE'] == 'profile':
+      env.Append(CCFLAGS = Split('-pg'))
+      env.Append(LINKFLAGS = Split('-pg'))
+
+   if system.os() == 'darwin':
+      if system.target_arch() == 'x86_64':
+         ## tell gcc to compile a 64 bit binary
+         env.Append(CCFLAGS = Split('-arch x86_64'))
+         env.Append(LINKFLAGS = Split('-arch x86_64'))
+      else:
+         ## tell gcc to compile a 32 bit binary
+         env.Append(CCFLAGS = Split('-arch i386'))
+         env.Append(LINKFLAGS = Split('-arch i386'))
+
+elif env['COMPILER'] == 'msvc':
    env.Append(CCFLAGS = Split('/EHsc /Gd /fp:precise'))
+   env.Append(LINKFLAGS = Split('/LARGEADDRESSAWARE'))
    
    if env['MODE'] == 'opt':
       env.Append(CCFLAGS = Split('/Ob2 /MD'))
@@ -89,9 +129,9 @@ elif env['COMPILER'] == 'icc':
    else:
       env.Tool('intelc', abi = 'x86')
    
-   env['LINK']  = 'xilink'
-   
-   env.Append(CCFLAGS = Split('/EHsc /GS /GR /Qprec /Qvec-report0 /Qwd1478 /Qwd1786 /Qwd537 /Qwd1572 /Qwd991 /Qwd424'))
+   env.Append(CCFLAGS = Split('/Qstd=c99 /EHsc /GS /GR /Qprec /Qvec-report0 /Qwd1478 /Qwd1786 /Qwd537 /Qwd1572 /Qwd991 /Qwd424'))
+   env.Append(LINKFLAGS = Split('/LARGEADDRESSAWARE'))
+
    if system.target_arch() == 'x86_64':
    	pass
       # Enable this for 64 bit portability warnings
@@ -104,11 +144,15 @@ elif env['COMPILER'] == 'icc':
       env.Append(LINKFLAGS = Split('/INCREMENTAL:NO'))
       env.Append(CPPDEFINES = Split('NDEBUG'))
    elif env['MODE'] == 'profile':
-      env.Append(CCFLAGS = Split('/Ob2 /MD -G7 -O3 -QaxW -Qipo /Zi'))
+      env.Append(CCFLAGS = Split('/Ob2 /MD -G7 -O3 -QaxW -Qipo /Zi /FR /debug:all'))
+      env.Append(LINKFLAGS = Split('/FIXED:no /DEBUG /INCREMENTAL:NO'))
    else:  ## Debug mode
       env.Append(CCFLAGS = Split('/Od /Zi /MDd'))
       env.Append(LINKFLAGS = Split('/DEBUG /INCREMENTAL'))
       env.Append(CPPDEFINES = Split('_DEBUG'))
+else:
+   print "Compiler %s is not supported yet" % (env['COMPILER'])
+   Exit(1)
 
 ## Add path to Arnold API by default
 env.Append(CPPPATH = [env['ARNOLD_API_INCLUDES']])
