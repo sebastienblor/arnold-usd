@@ -52,12 +52,6 @@ MStatus CArnoldLightBlockerShaderNode::initialize()
    MAKE_INPUT(mAttr, s_geometry_matrix);
 
    MAKE_ENUM(s_geometry_type, "geometry_type", "gtype", 0, "light_blocker", "geometry_type");
-   s_geometry_type = eAttr.create("geometry_type", "gtype", 0);
-   eAttr.addField("box", 0);
-   eAttr.addField("sphere", 1);
-   eAttr.addField("plane", 2);
-   eAttr.addField("cylinder", 3);
-   addAttribute(s_geometry_type);
 
    s_height_edge = nAttr.create("height_edge", "hedge", MFnNumericData::kFloat, 0);
    nAttr.setMin(0);
