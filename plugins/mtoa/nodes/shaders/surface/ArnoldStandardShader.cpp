@@ -657,7 +657,7 @@ MStatus CArnoldStandardShaderNode::initialize()
    s_PlugsAffecting.append(s_bounce_factor);
    s_PlugsAffecting.append(s_emission);
 
-   for(int i=0; i<s_PlugsAffecting.length(); i++)
+   for(AtUInt i = 0; (i < s_PlugsAffecting.length()); i++)
    {
       attributeAffects(s_PlugsAffecting[i], s_OUT_color);
    }

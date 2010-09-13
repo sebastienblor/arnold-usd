@@ -154,13 +154,13 @@ shader_evaluate
 
    if (vWave > 0.0f)
    {
-      v += vWave * sin(u * 2.0f * M_PI);
+      v += vWave * static_cast<float>(sin(u * AI_PITIMES2));
       v = mod(v, 1);
    }
 
    if (uWave > 0.0f)
    {
-      u -= uWave * sin(preWaveV * 2.0f * M_PI);
+      u -= uWave * static_cast<float>(sin(preWaveV * AI_PITIMES2));
       u = mod(u, 1);
    }
 
@@ -183,7 +183,7 @@ shader_evaluate
          float x = u - 0.5f;
          float y = v - 0.5f;
          float a = atan2(y, x);
-         float t = a / (2.0f * M_PI);
+         float t = static_cast<float>(a * AI_ONEOVER2PI);
          t = - t - 0.25f;
          if (t < 0.0f)
             t += 1.0f;
@@ -206,8 +206,8 @@ shader_evaluate
       break;
    case RT_UV:
       {
-         float t0 = 2.0f * fabs(u - 0.5);
-         float t1 = 2.0f * fabs(v - 0.5);
+         float t0 = 2.0f * fabs(u - 0.5f);
+         float t1 = 2.0f * fabs(v - 0.5f);
          AtRGB c0, c1;
          Ramp(positions, colors, t0, interp, c0);
          Ramp(positions, colors, t1, interp, c1);
@@ -242,8 +242,8 @@ shader_evaluate
       break;
    case RT_TARTAN:
       {
-         float t0 = 2.0f * fabs(u - 0.5);
-         float t1 = 2.0f * fabs(v - 0.5);
+         float t0 = 2.0f * fabs(u - 0.5f);
+         float t1 = 2.0f * fabs(v - 0.5f);
          AtRGB c0, c1;
          Ramp(positions, colors, t0, interp, c0);
          Ramp(positions, colors, t1, interp, c1);
@@ -260,7 +260,7 @@ shader_evaluate
    AtRGB co = AiShaderEvalParamRGB(p_color_offset);
    float ag = AiShaderEvalParamFlt(p_alpha_gain);
    float ao = AiShaderEvalParamFlt(p_alpha_offset);
-   bool invert = AiShaderEvalParamBool(p_invert);
+   bool invert = (AiShaderEvalParamBool(p_invert) == TRUE);
 
    if (invert)
    {

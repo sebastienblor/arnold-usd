@@ -78,7 +78,7 @@ void CMayaScene::ExportCamera(const MDagPath& dagPath, AtUInt step)
          ExportCameraData(camera, dagPath, mb);
 
          // TODO: This is probably wrong, but for now it is working
-         float width = fnCamera.orthoWidth();
+         float width = static_cast<float>(fnCamera.orthoWidth());
          float height = width;
 
          AiNodeSetPnt2(camera, "screen_window_min", -width/2, -height/2);

@@ -386,7 +386,7 @@ node_parameters
    AiParameterENUM("fillType", 0, gs_FillTypeNames);
    AiParameterMTX("cameraInverseMatrix", AI_M4_IDENTITY);
    AiParameterFLT("cameraNearPlane", 1.0f);
-   AiParameterFLT("cameraHorizontalFOV", 0.97738438111682457); // 56 degrees
+   AiParameterFLT("cameraHorizontalFOV", 0.97738438111682457f); // 56 degrees
    AiParameterFLT("cameraAspectRatio", 1.0f);
 }
 
@@ -415,9 +415,9 @@ shader_evaluate
    AtFloat alphaGain   = AiShaderEvalParamFlt(p_alpha_gain);
    AtFloat alphaOffset = AiShaderEvalParamFlt(p_alpha_offset);
 
-   bool invert = AiShaderEvalParamBool(p_invert);
-   bool wrap   = AiShaderEvalParamBool(p_wrap);
-   bool local  = AiShaderEvalParamBool(p_local);
+   bool invert = (AiShaderEvalParamBool(p_invert) == TRUE);
+   bool wrap   = (AiShaderEvalParamBool(p_wrap) == TRUE);
+   bool local  = (AiShaderEvalParamBool(p_local) == TRUE);
 
    AtMatrix* mappingCoordinate = AiShaderEvalParamMtx(p_mapping_coordinate);
 

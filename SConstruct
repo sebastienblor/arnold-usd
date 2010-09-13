@@ -10,9 +10,9 @@ from build_tools import *
 import glob, shutil
 
 if system.os() == 'darwin':
-   ALLOWED_COMPILERS = ('gcc')
+   ALLOWED_COMPILERS = ('gcc',)   # Do not remove this comma, it's magic
 elif system.os() == 'linux':
-   ALLOWED_COMPILERS = ('gcc')
+   ALLOWED_COMPILERS = ('gcc',)   # Do not remove this comma, it's magic
 elif system.os() == 'windows':
    ALLOWED_COMPILERS = ('msvc', 'icc')
 else:

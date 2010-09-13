@@ -129,7 +129,7 @@ void CRenderSession::SetCamera(MString cameraNode)
          list.add(cameraNode);
          list.getDependNode(0, node);
          
-         for (int J = 0; (J < MFnDagNode(node).childCount()); ++J)
+         for (AtUInt J = 0; (J < MFnDagNode(node).childCount()); ++J)
          if (MFnDagNode(MFnDagNode(node).child(J)).typeName() == "camera")
          {
             cameraNode = MFnDagNode(MFnDagNode(node).child(0)).partialPathName();
@@ -189,10 +189,10 @@ void CRenderSession::DoRender()
    comp.beginComputation();
    bool aborted = false;
 
-   for (int i=0; i<prog_passes; i++)
+   for (AtUInt i = 0; (i < prog_passes); i++)
    {
       AtInt sampling = i + init_progressive_samples;
-      if (i+1 == prog_passes)
+      if (i + 1 == prog_passes)
       {
         sampling = m_renderOptions.NumAASamples();
       }
@@ -239,7 +239,7 @@ void CRenderSession::DoExport(MString customFileName, ExportMode exportMode)
       fileName = m_renderOptions.VerifyFileName(m_renderOptions.outputAssFile().expandEnvironmentVariablesAndTilde(), m_renderOptions.outputAssCompressed());
 
 
-   if (fileName.length() < 0)
+   if (fileName.length() == 0)
    {
       AiMsgError("[mtoa] File name must be set before exporting .ass file");
    }

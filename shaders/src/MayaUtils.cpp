@@ -1,10 +1,7 @@
 
 #include "MayaUtils.h"
 
-#ifdef _MSC_VER
-#define _USE_MATH_DEFINES
-#endif
-#include <cmath>
+#include <ai_types.h>
 
 namespace
 {
@@ -15,22 +12,22 @@ float Luminance(float v)
    return v;
 }
 
-float _GetArrayFlt(AtArray *a, int i)
+float _GetArrayFlt(AtArray *a, AtUInt i)
 {
    return AiArrayGetFlt(a, i);
 }
 
-AtRGB _GetArrayRGB(AtArray *a, int i)
+AtRGB _GetArrayRGB(AtArray *a, AtUInt i)
 {
    return AiArrayGetRGB(a, i);
 }
 
 template <typename ValType>
-void RampT(AtArray *p, AtArray *c, float t, RampInterpolationType it, ValType &result, ValType (*getv)(AtArray*, int))
+void RampT(AtArray *p, AtArray *c, float t, RampInterpolationType it, ValType &result, ValType (*getv)(AtArray*, AtUInt))
 {
-   int inext = p->nelements;
+   AtUInt inext = p->nelements;
 
-   for (int i=0; i<p->nelements; ++i)
+   for (AtUInt i = 0; (i < p->nelements); ++i)
    {
       if (t < AiArrayGetFlt(p, i))
       {
@@ -45,7 +42,7 @@ void RampT(AtArray *p, AtArray *c, float t, RampInterpolationType it, ValType &r
       return;
    }
 
-   int icur = inext - 1;
+   AtUInt icur = inext - 1;
 
    if (icur < 0)
    {
@@ -71,7 +68,7 @@ void RampT(AtArray *p, AtArray *c, float t, RampInterpolationType it, ValType &r
       u = 1.0f - (1.0f - u) * (1.0f - u);
       break;
    case RIT_SMOOTH:
-      u = 0.5f * (cos((u + 1.0f) * M_PI) + 1.0f);
+      u = 0.5f * (static_cast<float>(cos((u + 1.0f) * AI_PI)) + 1.0f);
       break;
    case RIT_BUMP:
       {
@@ -79,11 +76,11 @@ void RampT(AtArray *p, AtArray *c, float t, RampInterpolationType it, ValType &r
          float lnext = Luminance(cnext);
          if (lcur > lnext)
          {
-            u = sin(u * M_PI / 2.0f);
+            u = sin(u * static_cast<float>(AI_PI) / 2.0f);
          }
          else
          {
-            u = sin((u - 1.0f) * M_PI / 2.0f) + 1.0f;
+            u = sin((u - 1.0f) * static_cast<float>(AI_PI) / 2.0f) + 1.0f;
          }
       }
       break;
@@ -93,11 +90,11 @@ void RampT(AtArray *p, AtArray *c, float t, RampInterpolationType it, ValType &r
          float lnext = Luminance(cnext);
          if (lcur < lnext)
          {
-            u = sin(u * M_PI / 2.0f);
+            u = sin(u * static_cast<float>(AI_PI) / 2.0f);
          }
          else
          {
-            u = sin((u - 1.0f) * M_PI / 2.0f) + 1.0f;
+            u = sin((u - 1.0f) * static_cast<float>(AI_PI) / 2.0f) + 1.0f;
          }
       }
       break;
@@ -156,11 +153,11 @@ InterpolationType InterpolationNameToType(const char *n)
 }
 
 template <typename ValType>
-void InterpolateT(AtArray *p, AtArray *v, AtArray *it, float t, ValType &result, ValType (*getv)(AtArray*, int))
+void InterpolateT(AtArray *p, AtArray *v, AtArray *it, float t, ValType &result, ValType (*getv)(AtArray*, AtUInt))
 {
-   int inext = p->nelements;
+   AtUInt inext = p->nelements;
 
-   for (int i=0; i<p->nelements; ++i)
+   for (AtUInt i = 0; (i < p->nelements); ++i)
    {
       if (t < AiArrayGetFlt(p, i))
       {

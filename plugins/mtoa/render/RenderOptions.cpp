@@ -111,9 +111,9 @@ void CRenderOptions::ProcessCommonRenderOptions()
       m_extensionPadding = fnRenderGlobals.findPlug("extensionPadding").asInt();
 
       fnRenderGlobals.findPlug("startFrame").getValue(time);
-      m_startFrame = time.as(MTime::uiUnit());
+      m_startFrame = static_cast<float>(time.as(MTime::uiUnit()));
       fnRenderGlobals.findPlug("endFrame").getValue(time);
-      m_endFrame = time.as(MTime::uiUnit());
+      m_endFrame = static_cast<float>(time.as(MTime::uiUnit()));
       m_byFrameStep = fnRenderGlobals.findPlug("byFrameStep").asFloat();
 
       MRenderUtil::getCommonRenderSettings(m_defaultRenderGlobalsData);

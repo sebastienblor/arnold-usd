@@ -37,7 +37,7 @@ void CMayaScene::ExportInstancerReplacement(const MDagPath& dagPath, AtUInt step
       MMatrix       particleMatrix;
 
       instancer.instancesForParticle(i, dagPathArray, particleMatrix);
-      for(int j=0; j<dagPathArray.length(); j++)
+      for(AtUInt j = 0; (j < dagPathArray.length()); j++)
       {
          MDagPath dagPathMaster = dagPathArray[j];
 

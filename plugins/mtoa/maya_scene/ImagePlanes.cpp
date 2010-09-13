@@ -17,12 +17,10 @@ void CMayaScene::ExportImagePlanes(const MDagPath& dagPath, bool isRenderingCame
    // first we get the image planes connected to this camera
    imagePlanePlug = fnDagNode.findPlug("imagePlane");
    
-   if (imagePlanePlug.numConnectedElements()>0)
+   if (imagePlanePlug.numConnectedElements() > 0)
    {
-      for(int ips=0; ips<imagePlanePlug.numElements(); ips++)
+      for(AtUInt ips = 0; (ips < imagePlanePlug.numElements()); ips++)
       {
-   
-   
          imagePlaneNodePlug = imagePlanePlug.elementByPhysicalIndex(ips);
          imagePlaneNodePlug.connectedTo(connectedPlugs, true, false, &status);
          MObject resNode = connectedPlugs[0].node(&status);
@@ -34,7 +32,7 @@ void CMayaScene::ExportImagePlanes(const MDagPath& dagPath, bool isRenderingCame
    
             // check if the image plane should be created
             bool displayOnlyIfCurrent = fnRes.findPlug("displayOnlyIfCurrent", &status).asBool();
-            int displayMode          = fnRes.findPlug("displayMode", &status).asBool();
+            int displayMode           = fnRes.findPlug("displayMode", &status).asBool();
             
             if ( (!displayOnlyIfCurrent || isRenderingCamera) && ( displayMode > 1 ))
             {
@@ -46,8 +44,8 @@ void CMayaScene::ExportImagePlanes(const MDagPath& dagPath, bool isRenderingCame
                double planeDepth = fnRes.findPlug("depth").asDouble();
                double camFocal = fnDagNode.findPlug("focalLength").asDouble();
                double camScale = fnDagNode.findPlug("cameraScale").asDouble();
-               double ipWidth = ( planeSizeX * planeDepth ) / ( ( camFocal * 0.0393700787 ) / camScale );
-               double ipHeight = ( planeSizeY * planeDepth ) / ( ( camFocal * 0.0393700787 ) / camScale );
+               double ipWidth = (planeSizeX * planeDepth) / ((camFocal * 0.0393700787) / camScale);
+               double ipHeight = (planeSizeY * planeDepth) / ((camFocal * 0.0393700787) / camScale);
    
                // CREATE PLANE
    
@@ -90,8 +88,8 @@ void CMayaScene::ExportImagePlanes(const MDagPath& dagPath, bool isRenderingCame
                AtVector depthVector;
                AtVector scaleVector;
    
-               AiV3Create(depthVector, 0, 0, planeDepth*-1);
-               AiV3Create(scaleVector, ipWidth, ipHeight, 1);
+               AiV3Create(depthVector, 0.0f, 0.0f, static_cast<float>(-planeDepth));
+               AiV3Create(scaleVector, static_cast<float>(ipWidth), static_cast<float>(ipHeight), 1.0f);
                AiM4Translation(depthMatrix, &depthVector);
                AiM4Scaling(scaleMatrix, &scaleVector);
    

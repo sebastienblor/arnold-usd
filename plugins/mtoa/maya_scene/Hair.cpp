@@ -33,8 +33,9 @@ namespace
       MPoint point(line[0].x, line[0].y, line[0].z);
       MPoint closest;
       float uv[2];
+      MString currentUVSet = mesh.currentUVSetName();
       mesh.getClosestPoint(point, closest, MSpace::kObject);
-      mesh.getUVAtPoint(closest, uv, MSpace::kObject, &mesh.currentUVSetName());
+      mesh.getUVAtPoint(closest, uv, MSpace::kObject, &currentUVSet);
       
       returned_vector.x = uv[0];
       returned_vector.y = uv[1];
@@ -49,7 +50,7 @@ namespace
 
       // Loop through all follicles to find the shapes connected
       MHairSystem::getFollicle(hair, follicles, indices);
-      for(int i=0; i<follicles.length(); i++)
+      for(AtUInt i = 0; (i < follicles.length()); i++)
       {
          MFnDependencyNode depNodeFollicle(follicles[i]);
          MPlugArray        meshes;
@@ -329,13 +330,13 @@ void CMayaScene::ExportHair(const MDagPath& dagPath, AtUInt step)
                // Animated widths are not supported, so just on STEP 0
                if (step == 0)
                {
-                  AiArraySetFlt(curve_widths, (j + curve_line_starts_i) , width[j]);
+                  AiArraySetFlt(curve_widths, (j + curve_line_starts_i) , static_cast<float>(width[j]));
                }
 
-               if(j==(renderLineLength-1))
+               if(j == (renderLineLength - 1))
                {
                   AiV3Create(curve_point, (AtFloat) line[j].x, (AtFloat) line[j].y, (AtFloat) line[j].z);
-                  AiArraySetPnt(curve_points, ((j+2) + curve_line_interp_starts_i + (step * curve_num_points_per_step)), curve_point);
+                  AiArraySetPnt(curve_points, ((j + 2) + curve_line_interp_starts_i + (step * curve_num_points_per_step)), curve_point);
                }
             }
          }
@@ -347,5 +348,4 @@ void CMayaScene::ExportHair(const MDagPath& dagPath, AtUInt step)
    mainLines.deleteArray();
    leafLines.deleteArray();
    flowerLines.deleteArray();
-   
 }

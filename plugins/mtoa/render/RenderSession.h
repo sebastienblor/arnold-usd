@@ -35,7 +35,7 @@ public:
 
    bool IsActive() const
    {
-      return AiUniverseIsActive();
+      return (AiUniverseIsActive() == TRUE);
    }
 
    void DoRender();

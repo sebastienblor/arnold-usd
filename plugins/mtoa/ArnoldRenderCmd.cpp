@@ -105,7 +105,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
             renderSession->SetMultiCameraRender(true);
          }
 
-         for (int arrayIter=0;arrayIter<cameras.length();arrayIter++)
+         for (unsigned int arrayIter = 0; (arrayIter < cameras.length()); arrayIter++)
          {
             renderSession->SetCamera(cameras[arrayIter]);
             renderSession->DoBatchRender();

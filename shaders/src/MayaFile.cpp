@@ -88,11 +88,11 @@ shader_evaluate
    AtPoint2 coverage = AiShaderEvalParamPnt2(p_coverage);
    AtPoint2 translate = AiShaderEvalParamPnt2(p_translate_frame);
    float frotate = AiShaderEvalParamFlt(p_rotate_frame);
-   bool mirrorU = AiShaderEvalParamBool(p_mirror_u);
-   bool mirrorV = AiShaderEvalParamBool(p_mirror_v);
-   bool wrapU = AiShaderEvalParamBool(p_wrap_u);
-   bool wrapV = AiShaderEvalParamBool(p_wrap_v);
-   bool stagger = AiShaderEvalParamBool(p_stagger);
+   bool mirrorU = (AiShaderEvalParamBool(p_mirror_u) == TRUE);
+   bool mirrorV = (AiShaderEvalParamBool(p_mirror_v) == TRUE);
+   bool wrapU = (AiShaderEvalParamBool(p_wrap_u) == TRUE);
+   bool wrapV = (AiShaderEvalParamBool(p_wrap_v) == TRUE);
+   bool stagger = (AiShaderEvalParamBool(p_stagger) == TRUE);
    AtPoint2 repeat = AiShaderEvalParamPnt2(p_repeat);
    AtPoint2 offset = AiShaderEvalParamPnt2(p_offset);
    float rotate = AiShaderEvalParamFlt(p_rotate);
@@ -101,8 +101,8 @@ shader_evaluate
    AtRGB defaultColor = AiShaderEvalParamRGB(p_default_color);
    float alphaGain = AiShaderEvalParamFlt(p_alpha_gain);
    float alphaOffset = AiShaderEvalParamFlt(p_alpha_offset);
-   bool alphaIsLuminance = AiShaderEvalParamBool(p_alpha_is_luminance);
-   bool invert = AiShaderEvalParamBool(p_invert);
+   bool alphaIsLuminance = (AiShaderEvalParamBool(p_alpha_is_luminance) == TRUE);
+   bool invert = (AiShaderEvalParamBool(p_invert) == TRUE);
    AtPoint2 noise = AiShaderEvalParamPnt2(p_noise);
 
    float inU = sg->u;
@@ -131,8 +131,8 @@ shader_evaluate
    if (noise.y > 0.0f)
    {
       AtPoint uv;
-      uv.x = (1.0 - inU) * 16;
-      uv.y = (1.0 - inV) * 16;
+      uv.x = (1 - inU) * 16;
+      uv.y = (1 - inV) * 16;
       uv.z = 0.0f;
       outV += noise.y * AiPerlin3(uv);
    }

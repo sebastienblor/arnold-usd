@@ -28,7 +28,7 @@ static const char *g_remapInterpolationStrings[] =
    "spline"
 };
 
-static bool SortFloatArray(AtArray *a, int *shuffle=0)
+static bool SortFloatArray(AtArray *a, AtUInt *shuffle = NULL)
 {
    bool modified = false;
 
@@ -42,7 +42,7 @@ static bool SortFloatArray(AtArray *a, int *shuffle=0)
 
       if (shuffle)
       {
-         for (int i=0; i<n; ++i)
+         for (AtUInt32 i = 0; (i < n); ++i)
          {
             shuffle[i] = i;
          }
@@ -52,23 +52,23 @@ static bool SortFloatArray(AtArray *a, int *shuffle=0)
       {
          swapped = false;
          n -= 1;
-         for (AtUInt32 i=0; i<n; ++i)
+         for (AtUInt32 i = 0; (i < n); ++i)
          {
             p0 = AiArrayGetFlt(a, i);
-            p1 = AiArrayGetFlt(a, i+1);
+            p1 = AiArrayGetFlt(a, i + 1);
             if (p0 > p1)
             {
                swapped = true;
                modified = true;
 
                AiArraySetFlt(a, i, p1);
-               AiArraySetFlt(a, i+1, p0);
+               AiArraySetFlt(a, i + 1, p0);
 
                if (shuffle)
                {
                   tmp = shuffle[i];
-                  shuffle[i] = shuffle[i+1];
-                  shuffle[i+1] = tmp;
+                  shuffle[i] = shuffle[i + 1];
+                  shuffle[i + 1] = tmp;
                }
             }
          }
@@ -78,7 +78,7 @@ static bool SortFloatArray(AtArray *a, int *shuffle=0)
    return modified;
 }
 
-static void ShuffleArray(AtArray *a, int *shuffle, int arnoldType)
+static void ShuffleArray(AtArray *a, AtUInt *shuffle, int arnoldType)
 {
    if (!a || !shuffle)
    {
@@ -88,7 +88,7 @@ static void ShuffleArray(AtArray *a, int *shuffle, int arnoldType)
    if (arnoldType == AI_TYPE_FLOAT)
    {
       float tmp;
-      for (int i=0; i<a->nelements; ++i)
+      for (AtUInt32 i = 0; (i < a->nelements); ++i)
       {
          if (shuffle[i] < i)
             continue;
@@ -100,7 +100,7 @@ static void ShuffleArray(AtArray *a, int *shuffle, int arnoldType)
    else if (arnoldType == AI_TYPE_RGB)
    {
       AtRGB tmp;
-      for (int i=0; i<a->nelements; ++i)
+      for (AtUInt32 i = 0; (i < a->nelements); ++i)
       {
          if (shuffle[i] < i)
             continue;
@@ -112,7 +112,7 @@ static void ShuffleArray(AtArray *a, int *shuffle, int arnoldType)
    else if (arnoldType == AI_TYPE_RGBA)
    {
       AtRGBA tmp;
-      for (int i=0; i<a->nelements; ++i)
+      for (AtUInt32 i = 0; (i < a->nelements); ++i)
       {
          if (shuffle[i] < i)
             continue;
@@ -124,7 +124,7 @@ static void ShuffleArray(AtArray *a, int *shuffle, int arnoldType)
    else if (arnoldType == AI_TYPE_STRING)
    {
       std::string tmp0, tmp1;
-      for (int i=0; i<a->nelements; ++i)
+      for (AtUInt32 i = 0; (i < a->nelements); ++i)
       {
          if (shuffle[i] < i)
             continue;
@@ -137,7 +137,7 @@ static void ShuffleArray(AtArray *a, int *shuffle, int arnoldType)
    else if (arnoldType == AI_TYPE_BYTE)
    {
       AtByte tmp;
-      for (int i=0; i<a->nelements; ++i)
+      for (AtUInt32 i = 0; (i < a->nelements); ++i)
       {
          if (shuffle[i] < i)
             continue;
@@ -149,7 +149,7 @@ static void ShuffleArray(AtArray *a, int *shuffle, int arnoldType)
    else if (arnoldType == AI_TYPE_INT)
    {
       AtInt tmp;
-      for (int i=0; i<a->nelements; ++i)
+      for (AtUInt32 i = 0; (i < a->nelements); ++i)
       {
          if (shuffle[i] < i)
             continue;
@@ -161,7 +161,7 @@ static void ShuffleArray(AtArray *a, int *shuffle, int arnoldType)
    else if (arnoldType == AI_TYPE_UINT)
    {
       AtUInt tmp;
-      for (int i=0; i<a->nelements; ++i)
+      for (AtUInt32 i = 0; (i < a->nelements); ++i)
       {
          if (shuffle[i] < i)
             continue;
@@ -173,11 +173,11 @@ static void ShuffleArray(AtArray *a, int *shuffle, int arnoldType)
    else if (arnoldType == AI_TYPE_BOOLEAN)
    {
       bool tmp;
-      for (int i=0; i<a->nelements; ++i)
+      for (AtUInt32 i = 0; (i < a->nelements); ++i)
       {
          if (shuffle[i] < i)
             continue;
-         tmp = AiArrayGetBool(a, i);
+         tmp = (AiArrayGetBool(a, i) == TRUE);
          AiArraySetBool(a, i, AiArrayGetBool(a, shuffle[i]));
          AiArraySetBool(a, shuffle[i], tmp);
       }
@@ -185,7 +185,7 @@ static void ShuffleArray(AtArray *a, int *shuffle, int arnoldType)
    else if (arnoldType == AI_TYPE_VECTOR)
    {
       AtVector tmp;
-      for (int i=0; i<a->nelements; ++i)
+      for (AtUInt32 i = 0; (i < a->nelements); ++i)
       {
          if (shuffle[i] < i)
             continue;
@@ -197,7 +197,7 @@ static void ShuffleArray(AtArray *a, int *shuffle, int arnoldType)
    else if (arnoldType == AI_TYPE_POINT)
    {
       AtPoint tmp;
-      for (int i=0; i<a->nelements; ++i)
+      for (AtUInt32 i = 0; (i < a->nelements); ++i)
       {
          if (shuffle[i] < i)
             continue;
@@ -209,7 +209,7 @@ static void ShuffleArray(AtArray *a, int *shuffle, int arnoldType)
    else if (arnoldType == AI_TYPE_POINT2)
    {
       AtPoint2 tmp;
-      for (int i=0; i<a->nelements; ++i)
+      for (AtUInt32 i = 0; (i < a->nelements); ++i)
       {
          if (shuffle[i] < i)
             continue;
@@ -221,7 +221,7 @@ static void ShuffleArray(AtArray *a, int *shuffle, int arnoldType)
    else if (arnoldType == AI_TYPE_POINTER)
    {
       void *tmp;
-      for (int i=0; i<a->nelements; ++i)
+      for (AtUInt32 i = 0; (i < a->nelements); ++i)
       {
          if (shuffle[i] < i)
             continue;
@@ -234,7 +234,7 @@ static void ShuffleArray(AtArray *a, int *shuffle, int arnoldType)
    {
       AtMatrix tmp0;
       AtMatrix tmp1;
-      for (int i=0; i<a->nelements; ++i)
+      for (AtUInt32 i = 0; (i < a->nelements); ++i)
       {
          if (shuffle[i] < i)
             continue;
@@ -247,7 +247,7 @@ static void ShuffleArray(AtArray *a, int *shuffle, int arnoldType)
    else if (arnoldType == AI_TYPE_ENUM)
    {
       AtInt tmp;
-      for (int i=0; i<a->nelements; ++i)
+      for (AtUInt32 i = 0; (i < a->nelements); ++i)
       {
          if (shuffle[i] < i)
             continue;
@@ -479,15 +479,15 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
       MPlug plug   = trNode.findPlug("rotateX");
       MAngle angle;
       plug.getValue(angle);
-      AiNodeSetFlt(shader, "X_angle", -angle.asDegrees());
+      AiNodeSetFlt(shader, "X_angle", static_cast<float>(-angle.asDegrees()));
 
       plug = trNode.findPlug("rotateY");
       plug.getValue(angle);
-      AiNodeSetFlt(shader, "Y_angle", angle.asDegrees());
+      AiNodeSetFlt(shader, "Y_angle", static_cast<float>(angle.asDegrees()));
 
       plug = trNode.findPlug("rotateZ");
       plug.getValue(angle);
-      AiNodeSetFlt(shader, "Z_angle", -angle.asDegrees());
+      AiNodeSetFlt(shader, "Z_angle", static_cast<float>(-angle.asDegrees()));
 
       ProcessShaderParameter(node, "color", shader, "color", AI_TYPE_RGB);
       ProcessShaderParameter(node, "format", shader, "format", AI_TYPE_ENUM);;
@@ -818,7 +818,7 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
          // Need to sort the arrays (maya has the excellent idea not to do it)
          if (positions->nelements > 1)
          {
-            int *shuffle = new int[positions->nelements];
+            AtUInt* shuffle = new AtUInt[positions->nelements];
             if (SortFloatArray(positions, shuffle))
             {
                ShuffleArray(values, shuffle, AI_TYPE_FLOAT);
@@ -868,7 +868,7 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
          // Need to sort the arrays (maya has the excellent idea not to do it)
          if (positions->nelements > 1)
          {
-            int *shuffle = new int[positions->nelements];
+            AtUInt* shuffle = new AtUInt[positions->nelements];
             if (SortFloatArray(positions, shuffle))
             {
                ShuffleArray(values, shuffle, AI_TYPE_RGB);
@@ -935,7 +935,7 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
             // Need to sort array (maya has the excellent idea not to do it)
             if (positions->nelements > 1)
             {
-               int *shuffle = new int[positions->nelements];
+               AtUInt* shuffle = new AtUInt[positions->nelements];
                if (SortFloatArray(positions, shuffle))
                {
                   ShuffleArray(values, shuffle, AI_TYPE_FLOAT);
@@ -1001,9 +1001,9 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
          MDagPath camPath;
          cam.getPath(camPath);
 
-         AiNodeSetFlt(shader, "cameraNearPlane", cam.nearClippingPlane());
-         AiNodeSetFlt(shader, "cameraHorizontalFOV", cam.horizontalFieldOfView());
-         AiNodeSetFlt(shader, "cameraAspectRatio", cam.aspectRatio());
+         AiNodeSetFlt(shader, "cameraNearPlane", static_cast<float>(cam.nearClippingPlane()));
+         AiNodeSetFlt(shader, "cameraHorizontalFOV", static_cast<float>(cam.horizontalFieldOfView()));
+         AiNodeSetFlt(shader, "cameraAspectRatio", static_cast<float>(cam.aspectRatio()));
 
          MMatrix trans = camPath.inclusiveMatrixInverse();
          AtMatrix atrans;
@@ -1096,7 +1096,7 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
       // Sort position array
       if (positions->nelements > 1)
       {
-         int *shuffle = new int[positions->nelements];
+         AtUInt* shuffle = new AtUInt[positions->nelements];
          if (SortFloatArray(positions, shuffle))
          {
             ShuffleArray(colors, shuffle, AI_TYPE_RGB);

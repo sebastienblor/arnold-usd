@@ -65,14 +65,14 @@ shader_evaluate
       {
       case OP_PLUS:
       case OP_AVERAGE:
-         for (int i=0; i<values->nelements; ++i)
+         for (AtUInt32 i = 0; (i < values->nelements); ++i)
          {
             result += AiArrayGetFlt(values, i);
          }
          break;
       case OP_MINUS:
          result = AiArrayGetFlt(values, 0);
-         for (int i=1; i<values->nelements; ++i)
+         for (AtUInt32 i = 1; (i < values->nelements); ++i)
          {
             result -= AiArrayGetFlt(values, i);
          }

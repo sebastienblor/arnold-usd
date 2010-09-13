@@ -118,7 +118,6 @@ void CMayaScene::ExportLightMBData(const MDagPath& dagPath, AtUInt step)
 void CMayaScene::ExportLight(const MDagPath& dagPath, AtUInt step)
 {
    MTransformationMatrix lightWorldMatrix;
-   AtMatrix matrix;
    MFloatVector vector;
    AtNode* light = NULL;
    MFnDagNode fnDagNode(dagPath);
@@ -190,9 +189,9 @@ void CMayaScene::ExportLight(const MDagPath& dagPath, AtUInt step)
          ExportLightData(light, dagPath, mb, customAttributes);
 
          AiNodeSetFlt(light, "radius", fnLight.shadowRadius());
-         AiNodeSetFlt(light, "cone_angle", (fnLight.coneAngle() + fnLight.penumbraAngle()) * AI_RTOD);
-         AiNodeSetFlt(light, "penumbra_angle", fabsf(fnLight.penumbraAngle()) * AI_RTOD);
-         AiNodeSetFlt(light, "cosine_power", fnLight.dropOff());
+         AiNodeSetFlt(light, "cone_angle", static_cast<float>((fnLight.coneAngle() + fnLight.penumbraAngle()) * AI_RTOD));
+         AiNodeSetFlt(light, "penumbra_angle", static_cast<float>(fabs(fnLight.penumbraAngle()) * AI_RTOD));
+         AiNodeSetFlt(light, "cosine_power", static_cast<float>(fnLight.dropOff()));
 
          if (customAttributes)
          {

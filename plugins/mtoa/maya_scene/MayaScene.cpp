@@ -87,7 +87,7 @@ MStatus CMayaScene::IterSelection(MSelectionList selected)
       // iterate Hierarchy
       if (IsVisible(path.node()))
       {
-         for (int child = 0; child < path.childCount(); child++)
+         for (AtUInt child = 0; (child < path.childCount()); child++)
          {
             MObject ChildObject = path.child(child);
             path.push(ChildObject);
@@ -98,7 +98,7 @@ MStatus CMayaScene::IterSelection(MSelectionList selected)
             MFnDagNode node(path.node());
             if (!node.isIntermediateObject())
             {
-            // Export poly mesh
+               // Export poly mesh
                if (path.apiType() == 295)
                {
                   ExportMesh(path.node(), path, 0);
@@ -234,8 +234,8 @@ MStatus CMayaScene::ExportScene(AtUInt step)
 
                MDagPath masterDag;
                bool master_found = false;
-               int master_index = 0;
-               for (; ((master_index<allInstances.length())); master_index++)
+               AtUInt master_index = 0;
+               for (; (master_index < allInstances.length()); master_index++)
                {
                   MFnDagNode node(allInstances[master_index].node());
                   // master set
@@ -305,8 +305,8 @@ MStatus CMayaScene::ExportScene(AtUInt step)
                      MPoint bmin = bbox.min() * mmatrix;
                      MPoint bmax = bbox.max() * mmatrix;
 
-                     AiNodeSetPnt(proc, "min", bmin.x, bmin.y, bmin.z);
-                     AiNodeSetPnt(proc, "max", bmax.x, bmax.y, bmax.z);
+                     AiNodeSetPnt(proc, "min", static_cast<float>(bmin.x), static_cast<float>(bmin.y), static_cast<float>(bmin.z));
+                     AiNodeSetPnt(proc, "max", static_cast<float>(bmax.x), static_cast<float>(bmax.y), static_cast<float>(bmax.z));
                   }
                   else
                   {
@@ -321,17 +321,17 @@ MStatus CMayaScene::ExportScene(AtUInt step)
                         MPoint bmax = bbox.max() * mmatrix;
 
                         if (bmin.x < cmin.x)
-                           cmin.x = bmin.x;
+                           cmin.x = static_cast<float>(bmin.x);
                         if (bmin.y < cmin.y)
-                           cmin.y = bmin.y;
+                           cmin.y = static_cast<float>(bmin.y);
                         if (bmin.z < cmin.z)
-                           cmin.z = bmin.z;
+                           cmin.z = static_cast<float>(bmin.z);
                         if (bmax.x > cmax.x)
-                           cmax.x = bmax.x;
+                           cmax.x = static_cast<float>(bmax.x);
                         if (bmax.y > cmax.y)
-                           cmax.y = bmax.y;
+                           cmax.y = static_cast<float>(bmax.y);
                         if (bmax.z > cmax.z)
-                           cmax.z = bmax.z;
+                           cmax.z = static_cast<float>(bmax.z);
 
                         AiNodeSetPnt(proc, "min", cmin.x, cmin.y, cmin.z);
                         AiNodeSetPnt(proc, "max", cmax.x, cmax.y, cmax.z);
@@ -533,8 +533,8 @@ MStatus CMayaScene::ExportScene(AtUInt step)
 
                MDagPath masterDag;
                bool master_found = false;
-               int master_index = 0;
-               for (; ((master_index<allInstances.length())); master_index++)
+               AtUInt master_index = 0;
+               for (; (master_index < allInstances.length()); master_index++)
                {
                   MFnDagNode node(allInstances[master_index].node());
                   // master set
@@ -619,8 +619,8 @@ MStatus CMayaScene::ExportScene(AtUInt step)
 
                   MDagPath masterDag;
                   bool master_found = false;
-                  int master_index = 0;
-                  for (; ((master_index<allInstances.length())); master_index++)
+                  AtUInt master_index = 0;
+                  for (; (master_index < allInstances.length()); master_index++)
                   {
                      MFnDagNode node(allInstances[master_index].node());
                      // master set
@@ -700,7 +700,7 @@ void CMayaScene::PrepareExport()
       m_fnArnoldRenderOptions = new MFnDependencyNode(node);
    }
 
-   m_currentFrame = MAnimControl::currentTime().as(MTime::uiUnit());
+   m_currentFrame = static_cast<float>(MAnimControl::currentTime().as(MTime::uiUnit()));
 
    GetCustomShapes();
 

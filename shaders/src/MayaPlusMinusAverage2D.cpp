@@ -69,7 +69,7 @@ shader_evaluate
       {
       case OP_PLUS:
       case OP_AVERAGE:
-         for (int i=0; i<values->nelements; ++i)
+         for (AtUInt32 i = 0; (i < values->nelements); ++i)
          {
             item = AiArrayGetPnt2(values, i);
             result.x += item.x;
@@ -78,7 +78,7 @@ shader_evaluate
          break;
       case OP_MINUS:
          result = AiArrayGetPnt2(values, 0);
-         for (int i=1; i<values->nelements; ++i)
+         for (AtUInt32 i = 1; (i < values->nelements); ++i)
          {
             item = AiArrayGetPnt2(values, i);
             result.x -= item.x;

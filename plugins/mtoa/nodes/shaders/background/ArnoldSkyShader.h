@@ -1,6 +1,8 @@
 #ifndef ARNOLD_SKY_SHADER_H
 #define ARNOLD_SKY_SHADER_H
 
+#include <ai_types.h>
+
 #include <maya/MPxLocatorNode.h>
 #include <maya/M3dView.h>
 #include <maya/MDagPath.h>
@@ -58,7 +60,7 @@ public:
    static MStatus initialize();
    void SampleSN(const MPlug &colorPlug);
    void DrawUVSphere(float radius, int divisionsX, int divisionsY, int format);
-   int NumSampleBase();
+   AtUInt NumSampleBase();
 
    static MTypeId id;
 

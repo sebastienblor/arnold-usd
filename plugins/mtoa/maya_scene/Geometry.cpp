@@ -270,7 +270,7 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
       // Passing vidxs directly put Arnold in trouble
       //AiNodeSetArray(polymesh, "vidxs", AiArrayConvert(vidxs.size(), 1, AI_TYPE_UINT, &(vidxs[0]), TRUE));
       AtArray *vidxsTmp = AiArrayAllocate(vidxs.size(), 1, AI_TYPE_UINT);
-      for(long i=0; i<vidxs.size(); i++)
+      for(AtUInt i = 0; (i < vidxs.size()); i++)
          AiArraySetUInt(vidxsTmp, i, vidxs[i]);
       AiNodeSetArray(polymesh, "vidxs", vidxsTmp);
 
@@ -279,7 +279,7 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
          // Same goes here
          //AiNodeSetArray(polymesh, "nidxs", AiArrayConvert(nidxs.size(), 1, AI_TYPE_UINT, &(nidxs[0]), TRUE));
          AtArray *nidxsTmp = AiArrayAllocate(nidxs.size(), 1, AI_TYPE_UINT);
-         for(long i=0; i<nidxs.size(); i++)
+         for(AtUInt i = 0; (i < nidxs.size()); i++)
             AiArraySetUInt(nidxsTmp, i, nidxs[i]);
          AiNodeSetArray(polymesh, "nidxs", nidxsTmp);
       }
@@ -290,7 +290,7 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
          // Same problem here
          //AiNodeSetArray(polymesh, "uvidxs", AiArrayConvert(uvidxs.size(), 1, AI_TYPE_UINT, &(uvidxs[0]), TRUE));
          AtArray *uvidxsTmp = AiArrayAllocate(uvidxs.size(), 1, AI_TYPE_UINT);
-         for(long i=0; i<uvidxs.size(); i++)
+         for(AtUInt i = 0; (i < uvidxs.size()); i++)
             AiArraySetUInt(uvidxsTmp, i, uvidxs[i]);
          AiNodeSetArray(polymesh, "uvidxs", uvidxsTmp);
 
@@ -391,7 +391,7 @@ void CMayaScene::ExportMesh(MObject mayaMesh, const MDagPath& dagPath, AtUInt st
 
          // Subdivision surfaces
          //
-         bool subdivision = fnDagNode.findPlug("subdiv_type").asInt();
+         bool subdivision = (fnDagNode.findPlug("subdiv_type").asInt() != 0);
 
          if (subdivision)
          {
@@ -437,7 +437,7 @@ void CMayaScene::ExportMesh(MObject mayaMesh, const MDagPath& dagPath, AtUInt st
 void CMayaScene::ExportMeshInstance(const MDagPath& dagPath, const MDagPath& masterInstance, AtUInt step)
 {
    MTransformationMatrix worldMatrix;
-   AtMatrix matrix, masterMatrix, masterMatrixInv;
+   AtMatrix matrix;
    MFloatVector vector;
    AtNode* instanceNode = NULL;
    MFnDagNode fnDagNodeInstance(dagPath);
@@ -486,14 +486,14 @@ void CMayaScene::ExportMeshInstance(const MDagPath& dagPath, const MDagPath& mas
       // if it's completely the same
       bool equalShaderArrays = ((shaders.length() == shadersMaster.length()) && (indices.length() == indicesMaster.length()));
 
-      for(int j=0; (equalShaderArrays && (j<indices.length())); j++)
+      for(AtUInt j=0; (equalShaderArrays && (j < indices.length())); j++)
       {
          if(indices[j] != indicesMaster[j])
          {
             equalShaderArrays = false;
          }
       }
-      for(int i=0; (equalShaderArrays && (i<shaders.length())); i++)
+      for(AtUInt i=0; (equalShaderArrays && (i < shaders.length())); i++)
       {
          if (shaders[i] != shadersMaster[i])
          {
@@ -501,7 +501,7 @@ void CMayaScene::ExportMeshInstance(const MDagPath& dagPath, const MDagPath& mas
          }
       }
 
-      if ( (shaders.length()>0) && (shadersMaster.length()>0) )
+      if ( (shaders.length() > 0) && (shadersMaster.length() > 0) )
       {
          MPlugArray        connections;
          MFnDependencyNode fnDGNode(shaders[0]);

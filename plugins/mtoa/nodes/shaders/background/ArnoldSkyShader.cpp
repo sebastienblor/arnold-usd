@@ -107,51 +107,41 @@ void CArnoldSkyShaderNode::DrawUVSphere(float radius, int divisionsX, int divisi
             switch(numpoint)
             {
                case 3:
-                  x = cos(theta*DTOR) * cos(phi*DTOR);
-                  y = cos(theta*DTOR) * sin(phi*DTOR);
-                  z = sin(theta*DTOR);
+                  x = static_cast<float>(cos(theta * DTOR) * cos(phi * DTOR));
+                  y = static_cast<float>(cos(theta * DTOR) * sin(phi * DTOR));
+                  z = static_cast<float>(sin(theta * DTOR));
                   // 1st vertex of the quad
                   break;
                case 2:
-                  x = cos((theta+dtheta)*DTOR) * cos(phi*DTOR);
-                  y = cos((theta+dtheta)*DTOR) * sin(phi*DTOR);
-                  z = sin((theta+dtheta)*DTOR);
+                  x = static_cast<float>(cos((theta + dtheta) * DTOR) * cos(phi * DTOR));
+                  y = static_cast<float>(cos((theta + dtheta) * DTOR) * sin(phi * DTOR));
+                  z = static_cast<float>(sin((theta + dtheta) * DTOR));
                   // 2nd vertex of the quad
                   break;
                case 1:
-                  x = cos((theta+dtheta)*DTOR) * cos((phi+dphi)*DTOR);
-                  y = cos((theta+dtheta)*DTOR) * sin((phi+dphi)*DTOR);
-                  z = sin((theta+dtheta)*DTOR);
+                  x = static_cast<float>(cos((theta + dtheta) * DTOR) * cos((phi + dphi) * DTOR));
+                  y = static_cast<float>(cos((theta + dtheta) * DTOR) * sin((phi + dphi) * DTOR));
+                  z = static_cast<float>(sin((theta + dtheta) * DTOR));
                   // 3rd vertex of the quad
                   break;
                case 0:
-                  x = cos(theta*DTOR) * cos((phi+dphi)*DTOR);
-                  y = cos(theta*DTOR) * sin((phi+dphi)*DTOR);
-                  z = sin(theta*DTOR);
+                  x = static_cast<float>(cos(theta * DTOR) * cos((phi + dphi) * DTOR));
+                  y = static_cast<float>(cos(theta * DTOR) * sin((phi + dphi) * DTOR));
+                  z = static_cast<float>(sin(theta * DTOR));
                   // 4th and last vertex of the quad
                   break;
             }
 
-            if(m_goUVSample)
+            if (m_goUVSample)
             {
                AiV3Create(dir, x, -z, -y);
                AiV3Normalize(dir, dir);
-               // Mirrored Ball
-               if (format==0)
-                  AiMappingMirroredBall(&dir, &u, &v);
-               else
+               switch (format)
                {
-                  // Angular
-                  if (format==1)
-                     AiMappingAngularMap(&dir, &u, &v);
-                  // Latlong (and cubic since cubic is broken)
-                  else
-                  {
-                     if (format==2)
-                        AiMappingLatLong(&dir, &u, &v);
-                     else
-                        AiMappingCubicMap(&dir, &u, &v);
-                  }
+                  case 0: AiMappingMirroredBall(&dir, &u, &v); break;   // Mirrored Ball
+                  case 1: AiMappingAngularMap(&dir, &u, &v); break;     // Angular
+                  case 2: AiMappingLatLong(&dir, &u, &v); break;        // Latlong (and cubic since cubic is broken)
+                  default: AiMappingCubicMap(&dir, &u, &v);
                }
                m_UData[uv_counter] = u;
                m_VData[uv_counter] = v;
@@ -159,7 +149,7 @@ void CArnoldSkyShaderNode::DrawUVSphere(float radius, int divisionsX, int divisi
 
             glTexCoord2f(m_UData[uv_counter], m_VData[uv_counter]);
             glNormal3f(x, y, z);
-            glVertex3f(x*radius, y*radius, z*radius);
+            glVertex3f(x * radius, y * radius, z * radius);
 
             uv_counter++;
          }
@@ -173,12 +163,12 @@ void CArnoldSkyShaderNode::SampleSN(const MPlug &colorPlug)
 {
    MPlugArray conn;
    colorPlug.connectedTo(conn, true, false);
-   if (conn.length()>0)
+   if (conn.length() > 0)
    {
       // Sample the shading network
       MMatrix mat;
       mat.setToIdentity();
-      MFloatMatrix cameraMat( mat.matrix );
+      MFloatMatrix cameraMat(mat.matrix);
 
       MFloatArray uCoords, vCoords, filterSizes;
       MFloatVectorArray colors, transps;
@@ -188,37 +178,37 @@ void CArnoldSkyShaderNode::SampleSN(const MPlug &colorPlug)
 
       // Get all the data based on UVs
       MFnDependencyNode fnThisNode(thisMObject());
-      int numSampleBase = NumSampleBase();
-      int numSamples    = numSampleBase*numSampleBase;
+      AtUInt numSampleBase = NumSampleBase();
+      AtUInt numSamples    = numSampleBase * numSampleBase;
  
-      m_colorDataSize = numSamples*4;
+      m_colorDataSize = numSamples * 4;
 
-      for (int i=0; i<numSampleBase; i++)
+      for (AtUInt i = 0; (i < numSampleBase); i++)
       {
-         float valuei = (float)i / (float)numSampleBase;
-         for (int j=0; j<numSampleBase; j++)
+         float valuei = static_cast<float>(i) / numSampleBase;
+         for (AtUInt j = 0; (j < numSampleBase); j++)
          {
-            float valuej = (float)j / (float)numSampleBase;
+            float valuej = static_cast<float>(j) / numSampleBase;
             uCoords.append(valuej);
             vCoords.append(valuei);
-            filterSizes.append(0.001);
+            filterSizes.append(0.001f);
          }
       }
 
-      MString depNodeSkyColorName(depNodeSkyColor.name()+".outColor");
+      MString depNodeSkyColorName(depNodeSkyColor.name() + ".outColor");
       MStatus status = MRenderUtil::sampleShadingNetwork(depNodeSkyColorName, numSamples, false, false, cameraMat, NULL, &uCoords, &vCoords, NULL, NULL, NULL, NULL, NULL, colors, transps);
 
       int numSamplesCol = numSamples*4;
       m_colorData = new char[numSamplesCol];
  
-      for(int i=0;i<colors.length();i++)
+      for(AtUInt i = 0; (i < colors.length()); i++)
       {
          MFloatVector fv = colors[i];
          fv *= 255;
-         m_colorData[i*4] = static_cast<char>(static_cast<int>(fv.x));
-         m_colorData[(i*4)+1] = static_cast<char>(static_cast<int>(fv.y));
-         m_colorData[(i*4)+2] = static_cast<char>(static_cast<int>(fv.z));
-         m_colorData[(i*4)+3] = static_cast<char>(static_cast<int>(((transps[i].x)*255)));
+         m_colorData[(i * 4) + 0] = static_cast<char>(static_cast<int>(fv.x));
+         m_colorData[(i * 4) + 1] = static_cast<char>(static_cast<int>(fv.y));
+         m_colorData[(i * 4) + 2] = static_cast<char>(static_cast<int>(fv.z));
+         m_colorData[(i * 4) + 3] = static_cast<char>(static_cast<int>(((transps[i].x) * 255)));
       }
    }
    m_goSample = false;
@@ -234,7 +224,7 @@ MStatus CArnoldSkyShaderNode::setDependentsDirty(const MPlug &plugBeingDirtied, 
    attributesAffecting.append("color");
    attributesAffecting.append("sampling");
 
-   for(int i=0; i<attributesAffecting.length(); i++)
+   for(AtUInt i = 0; (i < attributesAffecting.length()); i++)
    {
      MString attrName  = fnThisNode.name() + "." + attributesAffecting[i];
      if (plugBeingDirtied.name() == attrName)
@@ -262,11 +252,10 @@ void CArnoldSkyShaderNode::draw(M3dView& view, const MDagPath& DGpath, M3dView::
    view.endGL();
 }
 
-int CArnoldSkyShaderNode::NumSampleBase()
+AtUInt CArnoldSkyShaderNode::NumSampleBase()
 {
       MFnDependencyNode fnThisNode(thisMObject());
-      int returnValue = pow(2.0,(fnThisNode.findPlug("sampling").asInt()+6));
-      return returnValue;
+      return static_cast<AtUInt>(pow(2.0, (fnThisNode.findPlug("sampling").asInt() + 6)));
 }
 
 void CArnoldSkyShaderNode::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView::DisplayStatus displayStatus)
