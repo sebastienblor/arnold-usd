@@ -111,7 +111,7 @@ if env['COMPILER'] == 'gcc':
          env.Append(LINKFLAGS = Split('-arch i386'))
 
 elif env['COMPILER'] == 'msvc':
-   env.Append(CCFLAGS = Split('/EHsc /Gd /fp:precise'))
+   env.Append(CCFLAGS = Split('/W3 -D_CRT_SECURE_NO_WARNINGS /EHsc /Gd /fp:precise'))
    env.Append(LINKFLAGS = Split('/LARGEADDRESSAWARE'))
    
    if env['MODE'] == 'opt':
@@ -129,7 +129,7 @@ elif env['COMPILER'] == 'icc':
    else:
       env.Tool('intelc', abi = 'x86')
    
-   env.Append(CCFLAGS = Split('/Qstd=c99 /EHsc /GS /GR /Qprec /Qvec-report0 /Qwd1478 /Qwd1786 /Qwd537 /Qwd1572 /Qwd991 /Qwd424'))
+   env.Append(CCFLAGS = Split('/W3 /Qstd=c99 /EHsc /GS /GR /Qprec /Qvec-report0 /Qwd1478 /Qwd1786 /Qwd537 /Qwd1572 /Qwd991 /Qwd424'))
    env.Append(LINKFLAGS = Split('/LARGEADDRESSAWARE'))
 
    if system.target_arch() == 'x86_64':
