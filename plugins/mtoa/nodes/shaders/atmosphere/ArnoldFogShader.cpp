@@ -49,7 +49,7 @@ MStatus CArnoldFogShaderNode::initialize()
 
    s_distance = nAttr.create("distance", "d", MFnNumericData::kFloat, 0.02f);
    nAttr.setMin(0);
-   nAttr.setMax(1000);
+   nAttr.setSoftMax(1000);
    MAKE_INPUT(nAttr, s_distance);
 
    MAKE_VECTOR(s_ground_normal, "ground_normal", "gn", 0, 1, 0);
@@ -60,7 +60,7 @@ MStatus CArnoldFogShaderNode::initialize()
 
    s_height = nAttr.create("height", "h", MFnNumericData::kFloat, 5);
    nAttr.setMin(0);
-   nAttr.setMax(1000);
+   nAttr.setSoftMax(1000);
    MAKE_INPUT(nAttr, s_height);
 
    // OUTPUT ATTRIBUTES
