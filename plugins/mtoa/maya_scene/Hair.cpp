@@ -107,16 +107,20 @@ void CMayaScene::ExportHair(const MDagPath& dagPath, AtUInt step)
    bool customAttributes = (status == MS::kSuccess);
    bool transformHairDefinition = true;
 
-   AtNode* shader;
-   bool  receive_shadows, self_shadows, sss_use_gi;
-   AtUInt  sss_max_samples, mode;
+   AtNode* shader = NULL;
+   bool receive_shadows = true;
+   bool self_shadows = true;
+   bool sss_use_gi = true;
+   AtUInt sss_max_samples = 100000;
+   AtUInt mode = 0;
    AtInt visibility = 65535;
 
    // Primary visibility is located on the pfxHairShape Node
    if (!fnDagNode.findPlug("primaryVisibility").asBool())
       visibility &= ~AI_RAY_CAMERA;
  
-   AtFloat sss_sample_spacing, min_pixel_width;
+   AtFloat sss_sample_spacing = 0.1f;
+   AtFloat min_pixel_width = 0.0f;
 
    // The curve node for this hair
    AtNode*  curve;
@@ -125,7 +129,7 @@ void CMayaScene::ExportHair(const MDagPath& dagPath, AtUInt step)
    AtArray* curve_points;
 
    // The curve_widths array 
-   AtArray* curve_widths;
+   AtArray* curve_widths = NULL;
    
    // The num_points array (int array the size of numLines, no motionsteps)
    AtArray* curve_num_points = AiArrayAllocate(numMainLines, 1, AI_TYPE_INT);
