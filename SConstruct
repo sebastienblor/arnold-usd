@@ -39,7 +39,8 @@ vars.AddVariables(
       PathVariable('ARNOLD_API_LIB', 'Where to find Arnold API libraries', '.'),
       PathVariable('TARGET_PLUGIN_PATH', 'Path used for installation of plugins', '.'),
       PathVariable('TARGET_SCRIPTS_PATH', 'Path used for installation of scripts', '.'),
-      PathVariable('TARGET_ICONS_PATH', 'Path used for installation of icons', '.')
+      PathVariable('TARGET_ICONS_PATH', 'Path used for installation of icons', '.'),
+      PathVariable('TARGET_DESCR_PATH', 'Path for renderer description file', '.')
 )
 if system.os() == 'windows':
    vars.Add(EnumVariable('MSVS_VERSION', 'Version of MS Visual Studio to use', '8.0', allowed_values=('8.0', '8.0Exp', '9.0', '9.0Exp')))
@@ -252,6 +253,7 @@ else:
 
 env.Install(env['TARGET_SCRIPTS_PATH'], glob.glob(os.path.join('scripts', '*.mel')))
 env.Install(env['TARGET_ICONS_PATH'], glob.glob(os.path.join('icons', '*.xpm')))
+env.Install(env['TARGET_DESCR_PATH'], glob.glob(os.path.join('scripts', '*.xml')))
 
 ################################
 ## TARGETS ALIASES AND DEPENDENCIES
