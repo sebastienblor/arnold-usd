@@ -42,14 +42,13 @@ void RampT(AtArray *p, AtArray *c, float t, RampInterpolationType it, ValType &r
       return;
    }
 
-   AtUInt icur = inext - 1;
-
-   if (icur < 0)
+   if (inext == 0)
    {
       result = getv(c, 0);
       return;
    }
 
+   AtUInt icur = inext - 1;
    float tcur = AiArrayGetFlt(p, icur);
    float tnext = AiArrayGetFlt(p, inext);
    ValType ccur = getv(c, icur);
