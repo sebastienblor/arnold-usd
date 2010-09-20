@@ -21,7 +21,7 @@
 #include <maya/MPlugArray.h>
 
 #include <vector>
-#include <string.h>
+#include <cstring>
 
 void CMayaScene::ExportLightFilters(AtNode* light, const MObjectArray &filterNodes)
 {

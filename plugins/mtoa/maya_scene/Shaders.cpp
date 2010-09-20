@@ -18,7 +18,7 @@
 #include <maya/MFnCamera.h>
 
 #include <string>
-#include <string.h>
+#include <cstring>
 
 static const char *g_remapInterpolationStrings[] =
 {

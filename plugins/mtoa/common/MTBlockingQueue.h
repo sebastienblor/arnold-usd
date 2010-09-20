@@ -5,7 +5,7 @@
 #include <ai_critsec.h>
 #include <ai_types.h>
 #include <queue>
-#include <limits.h>
+#include <climits>
 
 template <typename T>
 class CMTBlockingQueue

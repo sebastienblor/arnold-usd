@@ -1,7 +1,7 @@
 
 #include <ai.h>
 
-#include <stdio.h>
+#include <cstdio>
 
 extern AtNodeMethods* MayaMultiplyDivideMtd;
 extern AtNodeMethods* MayaClampMtd;

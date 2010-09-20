@@ -2,11 +2,11 @@
 #define EVENT_H
 
 #include <ai_msg.h>
-#include <limits.h>
+#include <climits>
 #include <pthread.h>
-#include <time.h>
-#include <errno.h>
-#include <stdlib.h>
+#include <ctime>
+#include <cerrno>
+#include <cstdlib>
 
 class CEvent
 {
