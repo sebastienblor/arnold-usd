@@ -27,6 +27,7 @@ else:
    local_env.Append(CPPDEFINES = Split('LINUX _BOOL REQUIRE_IOSTREAM'))
    local_env.Append(LIBPATH = [os.path.join(env['MAYA_ROOT'], 'lib')])
    local_env.Append(LIBS=Split('ai GL GLU pthread Foundation OpenMaya OpenMayaRender OpenMayaUI OpenMayaAnim OpenMayaFX'))
+   local_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
 
 MTOA = local_env.SharedLibrary('mtoa', source_files)
 

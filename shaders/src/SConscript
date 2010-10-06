@@ -21,6 +21,7 @@ if system.os() =='windows':
 else:
    local_env.Append(CPPPATH = ['.'])
    local_env.Append(LIBS=Split('ai'))
+   local_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
 
 
 MTOA_SHADERS = local_env.SharedLibrary('mtoa_shaders', source_files)
