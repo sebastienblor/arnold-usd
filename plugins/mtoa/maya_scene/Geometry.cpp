@@ -177,7 +177,7 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
       }
    }
 
-   std::vector<AtByte> nsides;
+   std::vector<AtUInt> nsides;
    std::vector<AtLong> vidxs, nidxs, uvidxs;
    std::vector<float> uvs;
    std::vector<AtUInt> shidxs;
@@ -265,7 +265,13 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
          }
       }
 
-      AiNodeSetArray(polymesh, "nsides", AiArrayConvert(fnMesh.numPolygons(), 1, AI_TYPE_BYTE, &(nsides[0]), TRUE));
+
+      // Passing nsides directly put Arnold in trouble
+      // AiNodeSetArray(polymesh, "nsides", AiArrayConvert(fnMesh.numPolygons(), 1, AI_TYPE_UINT, &(nsides[0]), TRUE));
+      AtArray *nsidesTmp = AiArrayAllocate(nsides.size(), 1, AI_TYPE_UINT);
+      for(AtUInt i = 0; (i < nsides.size()); i++)
+         AiArraySetUInt(nsidesTmp, i, nsides[i]);
+      AiNodeSetArray(polymesh, "nsides", nsidesTmp);
 
       // Passing vidxs directly put Arnold in trouble
       //AiNodeSetArray(polymesh, "vidxs", AiArrayConvert(vidxs.size(), 1, AI_TYPE_UINT, &(vidxs[0]), TRUE));
