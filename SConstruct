@@ -276,6 +276,7 @@ env.Depends('install', MTOA)
 env.Depends('install', MTOA_SHADERS)
 env.Depends('install', env['TARGET_SCRIPTS_PATH'])
 env.Depends('install', env['TARGET_ICONS_PATH'])
+env.Depends('install', env['TARGET_DESCR_PATH'])
 
 Default('mtoa')
 
