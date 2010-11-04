@@ -133,6 +133,9 @@ shader_evaluate
       return;
    }
 
+   u = mod(u, 1.0f);
+   v = mod(v, 1.0f);
+
    AtRGB result;
 
    float uWave = AiShaderEvalParamFlt(p_u_wave);
@@ -155,13 +158,11 @@ shader_evaluate
    if (vWave > 0.0f)
    {
       v += vWave * static_cast<float>(sin(u * AI_PITIMES2));
-      v = mod(v, 1);
    }
 
    if (uWave > 0.0f)
    {
       u -= uWave * static_cast<float>(sin(preWaveV * AI_PITIMES2));
-      u = mod(u, 1);
    }
 
    switch (type)
