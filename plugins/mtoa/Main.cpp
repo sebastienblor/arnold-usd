@@ -100,8 +100,6 @@ MTOA_DLLEXPORT MStatus initializePlugin(MObject object)
 
    MFnPlugin plugin(object, "SolidAngle", "0.3", "Any");
 
-   plugin.setName("Arnold Render");
-
    AiBegin();
 
    // TODO: Add proper checking and handling of returned status
