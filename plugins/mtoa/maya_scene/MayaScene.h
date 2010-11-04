@@ -9,6 +9,7 @@
 #include <maya/MMatrix.h>
 #include <maya/MObjectArray.h>
 #include <maya/MSelectionList.h>
+#include <maya/MObjectHandle.h>
 
 #include <vector>
 #include <map>
@@ -81,6 +82,8 @@ private:
    MObject GetNodeShader(MObject dagNode, int instanceNum);
 
    bool IsVisible(MFnDagNode node);
+   bool IsVisibleDag(MDagPath dagPath);
+   bool IsMasterInstance(const MDagPath &dagPath, MDagPath &masterDag);
    void GetMatrix(AtMatrix& matrix, const MDagPath& dagPath);
    void ConvertMatrix(AtMatrix& matrix, const MMatrix& mayamatrix);
 
@@ -98,6 +101,17 @@ private:
    };
 
    std::vector<CShaderData> m_processedShaders;
+
+   struct mobjcompare
+   {
+      bool operator()(MObjectHandle h1, MObjectHandle h2) const
+      {
+        return h1.hashCode() < h2.hashCode();
+      }
+   };
+
+   typedef std::map<MObjectHandle, MDagPath, mobjcompare> ObjectHandleToDagMap;
+   ObjectHandleToDagMap m_masterInstances;
 
    MFnDependencyNode* m_fnCommonRenderOptions;
    MFnDependencyNode* m_fnArnoldRenderOptions;
