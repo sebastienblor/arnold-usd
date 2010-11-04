@@ -1,0 +1,10 @@
+syntax: glob
+.git
+contrib/scons
+build
+*.rej
+*.pyc
+*~
+*.orig
+custom.py
+.sconsign.dblite
