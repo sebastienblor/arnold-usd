@@ -76,6 +76,7 @@ private:
    void ExportMeshInstance(const MDagPath& dagPath, const MDagPath& masterInstance, AtUInt step);
    void ExportHair(const MDagPath& dagPath, AtUInt step);
    void ExportInstancerReplacement(const MDagPath& dagPath, AtUInt step);
+   void ExportCustomShape(const MDagPath& dagPath, AtUInt step, const char* cmd);
 
    void ProcessShaderParameter(MFnDependencyNode shader, const char* param, AtNode* arnoldShader, const char* arnoldAttrib, int arnoldAttribType);
    AtNode* ExportArnoldShader(MObject mayaShader, MString arnoldShader);
