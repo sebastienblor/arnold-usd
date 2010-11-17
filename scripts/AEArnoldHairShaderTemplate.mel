@@ -10,6 +10,7 @@ global proc AEArnoldHairShaderTemplate( string $nodeName )
       editorTemplate -endLayout;
 
       editorTemplate -beginLayout "Diffuse" -collapse true;
+         editorTemplate -l "Diffuse Cache" -addControl "diffuse_cache";
          editorTemplate -l "Ambient Diffuse" -addControl "ambdiff";
          editorTemplate -l "Indirect Diffuse" -addControl "kd_ind";
       editorTemplate -endLayout;

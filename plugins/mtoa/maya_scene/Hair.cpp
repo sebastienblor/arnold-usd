@@ -3,32 +3,60 @@
 
 #include <maya/MPlugArray.h>
 #include <maya/MPlug.h>
-#include <maya/MFnPfxGeometry.h>
 #include <maya/MRenderLineArray.h>
 #include <maya/MFloatPointArray.h>
 #include <maya/MRenderLine.h>
 #include <maya/MVectorArray.h>
 #include <maya/MDoubleArray.h>
 #include <maya/MStatus.h>
-#include <maya/MFnDagNode.h>
 #include <maya/MDagPathArray.h>
 #include <maya/MHairSystem.h>
 #include <maya/MObjectArray.h>
 #include <maya/MIntArray.h>
-#include <maya/MFnMesh.h>
+#include <maya/MPointArray.h>
+#include <maya/MVector.h>
 #include <maya/MPoint.h>
+#include <maya/MRampAttribute.h>
+
+#include <maya/MFnPfxGeometry.h>
+#include <maya/MFnDagNode.h>
+#include <maya/MFnNurbsCurve.h>
+#include <maya/MFnMesh.h>
 
 #include <ai_nodes.h>
 #include <ai_vector.h>
 #include <ai_ray.h>
 
+#include <vector>
+
+class CHairLine
+{
+
+public:
+
+   CHairLine() {}
+   ~CHairLine() {}
+   void SetCurvePoints( MVectorArray points ) { curvePoints = points; };
+   void SetCurveWidths( MDoubleArray widths ) { curveWidths = widths; };
+   MVectorArray GetCurvePoints() { return curvePoints; };
+   MDoubleArray GetCurveWidths() { return curveWidths; };
+
+private:
+
+   MVectorArray curvePoints;
+   MDoubleArray curveWidths;
+   
+};
+
 namespace
 {
-   AtVector2 GetHairRootUVs(const MVectorArray& line, int index, const MDagPathArray& shapes)
+   AtVector2 GetHairRootUVs(const MVectorArray& line, const MDagPathArray& shapes)
    {
       AtVector2 returned_vector;
       
       // Find the closest point from the line[0] to the surface (shapes[index])
+      // we should check for all connected meshes and get the value for
+      // the closest one. Defaulting to 0
       MFnMesh mesh(shapes[0].node());
       MPoint point(line[0].x, line[0].y, line[0].z);
       MPoint closest;
@@ -75,31 +103,117 @@ void CMayaScene::ExportHair(const MDagPath& dagPath, AtUInt step)
    dagNodeTransform.getPath(dagPathTransform);
    GetMatrix(matrix,dagPathTransform);
 
-   // Get the pfx hair node
+   bool mb = false;
+   bool mb_deform = false;
+
+   std::vector<CHairLine> hairLines;
+   int numMainLines = 0;
+
+   MDagPathArray m_shapesConnected;
+
+   // Get connected shapes
+   m_shapesConnected = GetHairShapeMeshes(dagPath.node());
+
+
+   // Check out if there are pfx hairs
    MPlugArray pfxHairPlug;
    MFnDependencyNode depNodeHair(dagPath.node());
    depNodeHair.findPlug("outputRenderHairs").connectedTo(pfxHairPlug, false, true);
-   MFnPfxGeometry pfxHair(pfxHairPlug[0].node());
+   if ( pfxHairPlug.length() > 0 )
+   {
+      MFnPfxGeometry pfxHair(pfxHairPlug[0].node());
 
-   // Get connected shapes
-   MDagPathArray m_shapesConnected = GetHairShapeMeshes(dagPath.node());
+      MRenderLineArray mainLines;
+      MRenderLineArray leafLines;
+      MRenderLineArray flowerLines;
 
-   // And then all lines, we'll only need mainLines
-   MRenderLineArray mainLines;
-   MRenderLineArray leafLines;
-   MRenderLineArray flowerLines;
-   pfxHair.getLineData(mainLines, leafLines, flowerLines, true, true, true, true, true, true, true, false, true);
-   int numMainLines = mainLines.length();
+      // And then all lines, we'll only need mainLines
+      pfxHair.getLineData(mainLines, leafLines, flowerLines, true, true, true, true, true, true, true, false, true);
+      numMainLines += mainLines.length();
+      hairLines.reserve(numMainLines);
 
-   // Check if motion blur is ON for hairs
-   MFnDagNode fnDagNode(pfxHairPlug[0].node());
-   bool mb = m_fnArnoldRenderOptions->findPlug("motion_blur_enable").asBool()  &&
-        m_fnArnoldRenderOptions->findPlug("mb_objects_enable").asBool() &&
-        fnDagNode.findPlug("motionBlurred").asBool();
+      // Move all renderlines to our CHairLine
+      for(int i=0; i<numMainLines; i++)
+      {
+         MStatus status;
+         MRenderLine m_renderLine = mainLines.renderLine(i, &status);
+         MVectorArray line        = m_renderLine.getLine();
+         MDoubleArray width       = m_renderLine.getWidth();
 
-   bool mb_deform = m_fnArnoldRenderOptions->findPlug("motion_blur_enable").asBool()  &&
-               m_fnArnoldRenderOptions->findPlug("mb_object_deform_enable").asBool() &&
-               fnDagNode.findPlug("motionBlurred").asBool();
+         CHairLine hairLine;
+         hairLine.SetCurvePoints(line);
+         hairLine.SetCurveWidths(width);
+         hairLines.push_back(hairLine);
+      }
+      
+
+      // Check if motion blur is ON for hairs
+      MFnDagNode fnDagNode(pfxHairPlug[0].node());
+      mb = m_fnArnoldRenderOptions->findPlug("motion_blur_enable").asBool()  &&
+           m_fnArnoldRenderOptions->findPlug("mb_objects_enable").asBool() &&
+           fnDagNode.findPlug("motionBlurred").asBool();
+
+      mb_deform = m_fnArnoldRenderOptions->findPlug("motion_blur_enable").asBool()  &&
+                  m_fnArnoldRenderOptions->findPlug("mb_object_deform_enable").asBool() &&
+                  fnDagNode.findPlug("motionBlurred").asBool();
+
+      // As told in the docs, destructor does not free mem allocated by mainLines, leafLines etc
+      mainLines.deleteArray();
+      leafLines.deleteArray();
+      flowerLines.deleteArray();
+   }
+
+   // Check for NURBS Curves
+   MPlug outputHairPlug = depNodeHair.findPlug("outputHair");
+
+   if ( outputHairPlug.numConnectedElements() > 0 )
+   {
+      numMainLines += outputHairPlug.numConnectedElements();
+      hairLines.reserve(numMainLines);
+
+      float nurbsHairWidth = depNodeHair.findPlug("hairWidth").asFloat();
+      // NURBS hairs get width from the hairsystem multiplied
+      // by the rampattribute in that same node
+      MRampAttribute hairWidthScale(depNodeHair.findPlug("hairWidthScale"));
+
+      // for all follicles, get the connected curve
+      for (unsigned int i=0; i<outputHairPlug.numConnectedElements(); i++)
+      {
+         MPlug connection = outputHairPlug.elementByPhysicalIndex(i);
+         MPlugArray follicleHairPlug;
+         connection.connectedTo(follicleHairPlug, false, true);
+         
+         MPlugArray nurbsHairPlug;
+         MFnDependencyNode depNodeCurveHair(follicleHairPlug[0].node());
+         depNodeCurveHair.findPlug("outCurve").connectedTo(nurbsHairPlug, false, true);
+
+         MFnNurbsCurve follicleCurve(nurbsHairPlug[0].node());
+   
+         MPointArray cvs;
+         follicleCurve.getCVs(cvs);
+         MVectorArray line;
+         MDoubleArray width;
+
+         // Transform from MPointArray to MVectorArray
+         for(unsigned int j=0; j<cvs.length(); j++)
+         {
+            MVector vector(cvs[j]);
+            line.append(vector);
+            double rampParam;
+            follicleCurve.getParamAtPoint(cvs[j], rampParam);
+            // transform the param value to 0 .. 1 range
+            rampParam = rampParam / float(follicleCurve.numSpans());
+            float rampValue;
+            hairWidthScale.getValueAtPosition(float(rampParam), rampValue);
+            width.append(nurbsHairWidth * rampValue);
+         }
+
+         CHairLine hairLine;
+         hairLine.SetCurvePoints(line);
+         hairLine.SetCurveWidths(width);
+         hairLines.push_back(hairLine);
+      }
+   }
 
    // Check if custom attributes have been created, ignore them otherwise
    MStatus status;
@@ -115,10 +229,6 @@ void CMayaScene::ExportHair(const MDagPath& dagPath, AtUInt step)
    AtUInt mode = 0;
    AtInt visibility = 65535;
 
-   // Primary visibility is located on the pfxHairShape Node
-   if (!fnDagNode.findPlug("primaryVisibility").asBool())
-      visibility &= ~AI_RAY_CAMERA;
- 
    AtFloat sss_sample_spacing = 0.1f;
    AtFloat min_pixel_width = 0.0f;
 
@@ -171,6 +281,9 @@ void CMayaScene::ExportHair(const MDagPath& dagPath, AtUInt step)
          min_pixel_width    = fnDagNodeHairShape.findPlug("min_pixel_width").asFloat();
          mode               = fnDagNodeHairShape.findPlug("mode").asInt();
 
+         if (!fnDagNodeHairShape.findPlug("primary_visibility").asBool())
+            visibility &= ~AI_RAY_CAMERA;
+ 
          if (!fnDagNodeHairShape.findPlug("castsShadows").asBool())
             visibility &= ~AI_RAY_SHADOW;
 
@@ -205,8 +318,7 @@ void CMayaScene::ExportHair(const MDagPath& dagPath, AtUInt step)
       for(int i=0; i<numMainLines; i++)
       {
          MStatus status;
-         MRenderLine m_renderLine = mainLines.renderLine(i, &status);
-         MVectorArray line        = m_renderLine.getLine();
+         MVectorArray line        = hairLines[i].GetCurvePoints();
          int renderLineLength     = line.length();
          num_points += renderLineLength;
          
@@ -218,7 +330,7 @@ void CMayaScene::ExportHair(const MDagPath& dagPath, AtUInt step)
          // Get the UV values of the surface point on which the hair is rooted
          if (customAttributes)
          {
-            AtVector2 uvparam = GetHairRootUVs(line, i, m_shapesConnected);
+            AtVector2 uvparam = GetHairRootUVs(line, m_shapesConnected);
             AiArraySetFlt(curve_uparamcoord, i, uvparam.x);
             AiArraySetFlt(curve_vparamcoord, i, uvparam.y);
          }
@@ -302,14 +414,13 @@ void CMayaScene::ExportHair(const MDagPath& dagPath, AtUInt step)
    for(int i=0; i<numMainLines; i++)
    {
       MStatus status;
-      MRenderLine m_renderLine = mainLines.renderLine(i, &status);
-      MVectorArray line        = m_renderLine.getLine();
+      MVectorArray line        = hairLines[i].GetCurvePoints();
       int renderLineLength     = line.length();
 
       // Ignore one or less cv curves
       if (renderLineLength>1)
       {
-         MDoubleArray width     = m_renderLine.getWidth();
+         MDoubleArray width     = hairLines[i].GetCurveWidths();
          AtPoint curve_point;
 
          if (mb_deform || mb || (step == 0))
@@ -345,11 +456,5 @@ void CMayaScene::ExportHair(const MDagPath& dagPath, AtUInt step)
             }
          }
       }
-   
    }
-
-   // As told in the docs, destructor does not free mem allocated by mainLines, leafLines etc
-   mainLines.deleteArray();
-   leafLines.deleteArray();
-   flowerLines.deleteArray();
 }

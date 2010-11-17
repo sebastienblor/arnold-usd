@@ -11,10 +11,6 @@
 #include <maya/MFloatVector.h>
 #include <maya/MRenderUtil.h>
 
-//DELETEME
-#include <ai_msg.h>
-//DELETEME
-
 MTypeId CArnoldHairShaderNode::id(ARNOLD_NODEID_HAIR);
 
 MObject CArnoldHairShaderNode::s_ambdiff;
@@ -39,7 +35,7 @@ MObject CArnoldHairShaderNode::s_tipcolorB;
 MObject CArnoldHairShaderNode::s_tipcolor;
 MObject CArnoldHairShaderNode::s_uparam;
 MObject CArnoldHairShaderNode::s_vparam;
-MObject CArnoldHairShaderNode::s_mode;
+MObject CArnoldHairShaderNode::s_diffuse_cache;
 
 MObject CArnoldHairShaderNode::s_OUT_colorR;
 MObject CArnoldHairShaderNode::s_OUT_colorG;
@@ -261,10 +257,8 @@ MStatus CArnoldHairShaderNode::initialize()
    s_vparam = tAttr.create("vparam", "vprm", MFnData::kString);
    MAKE_INPUT(tAttr, s_vparam); 
 
-   s_mode = eAttr.create("mode","mod",0);
-   eAttr.addField("ribbon", 0);
-   eAttr.addField("thick", 1);
-   addAttribute(s_mode);
+   s_diffuse_cache = nAttr.create("diffuse_cache", "dche", MFnNumericData::kBoolean, 0);
+   MAKE_INPUT(nAttr, s_diffuse_cache); 
 
    MAKE_COLOR(s_OUT_color, "outColor", "oc", 1, 1, 1);
    MAKE_OUTPUT(nAttr, s_OUT_color);

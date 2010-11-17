@@ -37,6 +37,7 @@ global string $ArnoldMeshAttributes[] =
    "castsShadows",            "Cast Shadows",            "1",        "0",  "1",           "0",  "1",        "",
    "visibleInReflections",    "Visible in Reflections",  "1",        "0",  "1",           "0",  "1",        "",
    "visibleInRefractions",    "Visible in Refractions",  "1",        "0",  "1",           "0",  "1",        "",
+   "primary_visibility",      "Primary Visibility",                 "1",        "0",  "1",           "0",  "1",        "",
 //   Some hair attributes already defined on Mesh, no need for redeclaration
 //   This can lead to problems if different default values exist for diferent nodes
 //   "sss_use_gi",              "Use GI for SSS",          "1",        "0",  "1",           "0",  "1",        "",

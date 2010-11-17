@@ -43,7 +43,8 @@ class CArnoldHairShaderNode
    static MObject s_tipcolor;
    static MObject s_uparam;
    static MObject s_vparam;
-   static MObject s_mode;
+   static MObject s_diffuse_cache;
+
 
    // Output Attributes
 

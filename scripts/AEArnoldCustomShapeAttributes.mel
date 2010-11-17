@@ -45,6 +45,7 @@ global proc AEArnoldCustomShapeAttributes(string $nodeName)
       case "hairSystem":
       {
          editorTemplate -beginLayout "Arnold";
+            editorTemplate -callCustom "ArnoldCustomBoolNew" "ArnoldCustomBoolReplace" "primary_visibility";
             editorTemplate -callCustom "ArnoldCustomBoolNew" "ArnoldCustomBoolReplace" "receive_shadows";
             editorTemplate -callCustom "ArnoldCustomBoolNew" "ArnoldCustomBoolReplace" "castsShadows";
             editorTemplate -callCustom "ArnoldCustomBoolNew" "ArnoldCustomBoolReplace" "self_shadows";
