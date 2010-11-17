@@ -110,7 +110,7 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
 
          multiShader = true;
 
-         AiNodeSetArray(polymesh, "shader", AiArrayConvert(meshShaders.size(), 1, AI_TYPE_NODE, &meshShaders[0], TRUE));
+         AiNodeSetArray(polymesh, "shader", AiArrayConvert((AtInt)meshShaders.size(), 1, AI_TYPE_NODE, &meshShaders[0], TRUE));
       }
 
       //
@@ -231,7 +231,7 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
 
          nsides[polygonIndex] = vertexCount;
 
-         for (size_t V = 0; (V < vertexCount); ++V)
+         for (unsigned int V = 0; (V < vertexCount); ++V)
          {
             vidxs.push_back(itMeshPolygon.vertexIndex(V));
             if (useNormals)
@@ -280,11 +280,11 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
          }
       }
 
-      AiNodeSetArray(polymesh, "nsides", AiArrayConvert(nsides.size(), 1, AI_TYPE_UINT, &(nsides[0]), TRUE));
+      AiNodeSetArray(polymesh, "nsides", AiArrayConvert((AtInt)nsides.size(), 1, AI_TYPE_UINT, &(nsides[0]), TRUE));
 
       // Passing vidxs directly put Arnold in trouble
       //AiNodeSetArray(polymesh, "vidxs", AiArrayConvert(vidxs.size(), 1, AI_TYPE_UINT, &(vidxs[0]), TRUE));
-      AtArray *vidxsTmp = AiArrayAllocate(vidxs.size(), 1, AI_TYPE_UINT);
+      AtArray *vidxsTmp = AiArrayAllocate((AtInt)vidxs.size(), 1, AI_TYPE_UINT);
       for(AtUInt i = 0; (i < vidxs.size()); i++)
          AiArraySetUInt(vidxsTmp, i, vidxs[i]);
       AiNodeSetArray(polymesh, "vidxs", vidxsTmp);
@@ -293,7 +293,7 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
       {
          // Same goes here
          //AiNodeSetArray(polymesh, "nidxs", AiArrayConvert(nidxs.size(), 1, AI_TYPE_UINT, &(nidxs[0]), TRUE));
-         AtArray *nidxsTmp = AiArrayAllocate(nidxs.size(), 1, AI_TYPE_UINT);
+         AtArray *nidxsTmp = AiArrayAllocate((AtInt)nidxs.size(), 1, AI_TYPE_UINT);
          for(AtUInt i = 0; (i < nidxs.size()); i++)
             AiArraySetUInt(nidxsTmp, i, nidxs[i]);
          AiNodeSetArray(polymesh, "nidxs", nidxsTmp);
@@ -304,7 +304,7 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
          AiNodeSetArray(polymesh, "uvlist", AiArrayConvert(fnMesh.numUVs() * 2, 1, AI_TYPE_FLOAT, &(uvs[0]), TRUE));
          // Same problem here
          //AiNodeSetArray(polymesh, "uvidxs", AiArrayConvert(uvidxs.size(), 1, AI_TYPE_UINT, &(uvidxs[0]), TRUE));
-         AtArray *uvidxsTmp = AiArrayAllocate(uvidxs.size(), 1, AI_TYPE_UINT);
+         AtArray *uvidxsTmp = AiArrayAllocate((AtInt)uvidxs.size(), 1, AI_TYPE_UINT);
          for(AtUInt i = 0; (i < uvidxs.size()); i++)
             AiArraySetUInt(uvidxsTmp, i, uvidxs[i]);
          AiNodeSetArray(polymesh, "uvidxs", uvidxsTmp);
@@ -312,7 +312,7 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
       }
 
       if (multiShader)
-         AiNodeSetArray(polymesh, "shidxs", AiArrayConvert(shidxs.size(), 1, AI_TYPE_UINT, &(shidxs[0]), TRUE));
+         AiNodeSetArray(polymesh, "shidxs", AiArrayConvert((AtInt)shidxs.size(), 1, AI_TYPE_UINT, &(shidxs[0]), TRUE));
    }
    else
    {

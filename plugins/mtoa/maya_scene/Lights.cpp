@@ -36,7 +36,7 @@ void CMayaScene::ExportLightFilters(AtNode* light, const MObjectArray &filterNod
 
    if (filters.size() > 0)
    {
-      AiNodeSetArray(light, "filters", AiArrayConvert(filters.size(), 1, AI_TYPE_NODE, &filters[0], TRUE));
+      AiNodeSetArray(light, "filters", AiArrayConvert((AtInt)filters.size(), 1, AI_TYPE_NODE, &filters[0], TRUE));
    }
 }
 
