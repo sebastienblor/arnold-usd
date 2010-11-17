@@ -30,6 +30,7 @@
 
 #include <vector>
 
+
 class CHairLine
 {
 
@@ -56,20 +57,36 @@ namespace
       AtVector2 returned_vector;
       
       // Find the closest point from the line[0] to the surface (shapes[index])
-      // we should check for all connected meshes and get the value for
-      // the closest one. Defaulting to 0
-      MFnMesh mesh(shapes[0].node());
-      MMatrix matrix = shapes[0].inclusiveMatrix();
-      MMeshIntersector meshInt;
-      meshInt.create(shapes[0].node(), matrix);
-      MPoint point(line[0].x, line[0].y, line[0].z);
-      MPointOnMesh closest;
+      // we should check for the closest point for all connected shapes
+      // to support a hairsystem that was applied to more than
+      // one mesh
 
+      MPoint closestPoint;
+      double distance = 0;
       float uv[2];
-      MString currentUVSet = mesh.currentUVSetName();
-      meshInt.getClosestPoint(point, closest);
-      MPoint closestPoint( closest.getPoint() );
-      mesh.getUVAtPoint(closestPoint, uv, MSpace::kObject, &currentUVSet);
+      MString currentUVSet;
+
+      for(unsigned int i=0; i<shapes.length(); i++)
+      {
+         MFnMesh mesh(shapes[i].node());
+         MMatrix matrix = shapes[i].inclusiveMatrix();
+         MMeshIntersector meshInt;
+         meshInt.create(shapes[i].node(), matrix);
+         MPoint point(line[0].x, line[0].y, line[0].z);
+         MPointOnMesh closest;
+
+         currentUVSet = mesh.currentUVSetName();
+         meshInt.getClosestPoint(point, closest);
+         MPoint closePoint( closest.getPoint() );
+         
+         if ((closePoint.distanceTo(point) < distance) || (i==0))
+         {
+            distance = closePoint.distanceTo(point);
+            closestPoint = closePoint;
+            mesh.getUVAtPoint(closestPoint, uv, MSpace::kObject, &currentUVSet);
+         }
+      }
+      
       
       returned_vector.x = uv[0];
       returned_vector.y = uv[1];
@@ -82,7 +99,7 @@ namespace
       MObjectArray  follicles;
       MIntArray     indices;
 
-      // Loop through all follicles to find the shapes connected
+      // Loop through all follicles to find all connected shapes
       MHairSystem::getFollicle(hair, follicles, indices);
       for(AtUInt i = 0; (i < follicles.length()); i++)
       {
@@ -92,7 +109,18 @@ namespace
          MFnDagNode meshDagNode(meshes[0].node());
          MDagPath dagPath;
          meshDagNode.getPath(dagPath);
-         shapes.append(dagPath);
+         // check if it is already there
+         bool append = true;
+         for(unsigned int j = 0; j<shapes.length(); j++)
+         {
+            if ( shapes[j] == dagPath )
+            {
+               append = false;
+               break;
+            }
+         }
+         if ( append == true )
+            shapes.append(dagPath);
       }
       return shapes; 
    }
