@@ -22,6 +22,7 @@
 #include <maya/MFnDagNode.h>
 #include <maya/MFnNurbsCurve.h>
 #include <maya/MFnMesh.h>
+#include <maya/MMeshIntersector.h>
 
 #include <ai_nodes.h>
 #include <ai_vector.h>
@@ -58,12 +59,17 @@ namespace
       // we should check for all connected meshes and get the value for
       // the closest one. Defaulting to 0
       MFnMesh mesh(shapes[0].node());
+      MMatrix matrix = shapes[0].inclusiveMatrix();
+      MMeshIntersector meshInt;
+      meshInt.create(shapes[0].node(), matrix);
       MPoint point(line[0].x, line[0].y, line[0].z);
-      MPoint closest;
+      MPointOnMesh closest;
+
       float uv[2];
       MString currentUVSet = mesh.currentUVSetName();
-      mesh.getClosestPoint(point, closest, MSpace::kObject);
-      mesh.getUVAtPoint(closest, uv, MSpace::kObject, &currentUVSet);
+      meshInt.getClosestPoint(point, closest);
+      MPoint closestPoint( closest.getPoint() );
+      mesh.getUVAtPoint(closestPoint, uv, MSpace::kObject, &currentUVSet);
       
       returned_vector.x = uv[0];
       returned_vector.y = uv[1];
@@ -190,7 +196,7 @@ void CMayaScene::ExportHair(const MDagPath& dagPath, AtUInt step)
          MFnNurbsCurve follicleCurve(nurbsHairPlug[0].node());
    
          MPointArray cvs;
-         follicleCurve.getCVs(cvs);
+         follicleCurve.getCVs(cvs, MSpace::kWorld);
          MVectorArray line;
          MDoubleArray width;
 
