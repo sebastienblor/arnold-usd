@@ -4,6 +4,8 @@
 #include <maya/MPlugArray.h>
 #include <maya/MObject.h>
 #include <maya/MFnDependencyNode.h>
+
+#include <maya/MRenderUtil.h>
    
 void CMayaScene::ExportImagePlanes(const MDagPath& dagPath, bool isRenderingCamera)
    {
@@ -32,13 +34,16 @@ void CMayaScene::ExportImagePlanes(const MDagPath& dagPath, bool isRenderingCame
    
             // check if the image plane should be created
             bool displayOnlyIfCurrent = fnRes.findPlug("displayOnlyIfCurrent", &status).asBool();
-            int displayMode           = fnRes.findPlug("displayMode", &status).asBool();
+            int displayMode           = fnRes.findPlug("displayMode", &status).asInt();
             
             if ( (!displayOnlyIfCurrent || isRenderingCamera) && ( displayMode > 1 ))
             {
    
                // get data
-               MString imageName = fnRes.findPlug("imageName", &status).asString();
+               
+               MString imageName;
+               imageName = MRenderUtil::exactImagePlaneFileName(resNode);
+
                double planeSizeX = fnRes.findPlug("sizeX", &status).asDouble();
                double planeSizeY = fnRes.findPlug("sizeY", &status).asDouble();
                double planeDepth = fnRes.findPlug("depth").asDouble();
