@@ -18,7 +18,6 @@
 #include <maya/MFnCamera.h>
 
 #include <maya/MRenderUtil.h>
-#include <maya/MStatus.h>
 
 #include <string>
 #include <cstring>
