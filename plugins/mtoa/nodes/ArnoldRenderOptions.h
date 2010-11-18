@@ -68,6 +68,7 @@ public:
 
    static MObject s_auto_transparency_depth;
    static MObject s_auto_transparency_threshold;
+   static MObject s_auto_transparency_probabilistic;
 
    static MObject s_motion_blur_enable;
    static MObject s_mb_camera_enable;

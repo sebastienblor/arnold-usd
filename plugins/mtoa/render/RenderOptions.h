@@ -328,6 +328,7 @@ private:
 
    AtInt    m_auto_transparency_depth;
    AtFloat  m_auto_transparency_threshold;
+   bool     m_auto_transparency_probabilistic;
 
    bool     m_sss_lazy_evaluation;
    bool     m_sss_subpixel_cache;

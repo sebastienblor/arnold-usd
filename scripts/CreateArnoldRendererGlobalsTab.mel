@@ -328,6 +328,10 @@ global proc CreateArnoldRayDepthSettings()
          -attribute defaultArnoldRenderOptions.auto_transparency_threshold
          rs_auto_transparency_threshold;
 
+      attrControlGrp -label "Auto transp. probabilistic"
+         -attribute defaultArnoldRenderOptions.auto_transparency_probabilistic
+         rs_auto_transparency_probabilistic;
+
       setParent ..;
 
    setUITemplate -popTemplate;
