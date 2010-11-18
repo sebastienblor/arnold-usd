@@ -635,7 +635,6 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
       {
          shader = AiNode("image");
          MString resolvedFilename;
-         MStatus * status;
          MRenderUtil::exactFileTextureName(mayaShader, resolvedFilename);
          AiNodeSetStr(shader, "filename", resolvedFilename.asChar());
       }
