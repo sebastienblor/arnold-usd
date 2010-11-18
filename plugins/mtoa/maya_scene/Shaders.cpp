@@ -17,6 +17,9 @@
 #include <maya/MFnMatrixData.h>
 #include <maya/MFnCamera.h>
 
+#include <maya/MRenderUtil.h>
+#include <maya/MStatus.h>
+
 #include <string>
 #include <cstring>
 
@@ -603,7 +606,9 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
          if (srcNode.typeName() == "place2dTexture")
          {
             shader = AiNode("MayaFile");
-            AiNodeSetStr(shader, "filename", node.findPlug("fileTextureName").asString().asChar());
+            MString resolvedFilename;
+            MRenderUtil::exactFileTextureName(mayaShader, resolvedFilename);
+            AiNodeSetStr(shader, "filename", resolvedFilename.asChar());
 
             ProcessShaderParameter(srcNode, "coverage", shader, "coverage", AI_TYPE_POINT2);
             ProcessShaderParameter(srcNode, "rotateFrame", shader, "rotateFrame", AI_TYPE_FLOAT);
@@ -630,7 +635,10 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
       if (!shader)
       {
          shader = AiNode("image");
-         AiNodeSetStr(shader, "filename", node.findPlug("fileTextureName").asString().asChar());
+         MString resolvedFilename;
+         MStatus * status;
+         MRenderUtil::exactFileTextureName(mayaShader, resolvedFilename);
+         AiNodeSetStr(shader, "filename", resolvedFilename.asChar());
       }
 
       AiNodeSetStr(shader, "name", node.name().asChar());
