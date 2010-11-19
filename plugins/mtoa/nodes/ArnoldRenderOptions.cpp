@@ -63,7 +63,6 @@ MObject CArnoldRenderOptionsNode::s_shutter_offset;
 MObject CArnoldRenderOptionsNode::s_shutter_type;
 MObject CArnoldRenderOptionsNode::s_motion_steps;
 MObject CArnoldRenderOptionsNode::s_motion_frames;
-MObject CArnoldRenderOptionsNode::s_sss_lazy_evaluation;
 MObject CArnoldRenderOptionsNode::s_sss_subpixel_cache;
 MObject CArnoldRenderOptionsNode::s_show_samples;
 MObject CArnoldRenderOptionsNode::s_max_subdivisions;
@@ -408,10 +407,6 @@ MStatus CArnoldRenderOptionsNode::initialize()
    nAttr.setMin(0);
    nAttr.setMax(20);
    addAttribute(s_motion_frames);
-   
-   s_sss_lazy_evaluation = nAttr.create("sss_lazy_evaluation", "ssslze", MFnNumericData::kBoolean, 0);
-   nAttr.setKeyable(false);
-   addAttribute(s_sss_lazy_evaluation);
 
    s_sss_subpixel_cache = nAttr.create("sss_subpixel_cache", "sssspc", MFnNumericData::kBoolean, 0);
    nAttr.setKeyable(false);

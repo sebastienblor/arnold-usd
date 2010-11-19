@@ -217,7 +217,6 @@ void CRenderOptions::ProcessArnoldRenderOptions()
       m_auto_transparency_threshold = fnArnoldRenderOptions.findPlug("auto_transparency_threshold").asFloat();
       m_auto_transparency_probabilistic = fnArnoldRenderOptions.findPlug("auto_transparency_probabilistic").asBool();
 
-      m_sss_lazy_evaluation = fnArnoldRenderOptions.findPlug("sss_lazy_evaluation").asBool();
       m_sss_subpixel_cache  = fnArnoldRenderOptions.findPlug("sss_subpixel_cache").asBool();
       m_show_samples        = fnArnoldRenderOptions.findPlug("show_samples").asInt();
 
@@ -268,7 +267,6 @@ void CRenderOptions::SetupRenderOptions() const
    AiNodeSetFlt(AiUniverseGetOptions(), "auto_transparency_threshold", m_auto_transparency_threshold);
    AiNodeSetBool(AiUniverseGetOptions(), "auto_transparency_probabilistic", m_auto_transparency_probabilistic);
 
-   AiNodeSetBool(AiUniverseGetOptions(), "sss_lazy_evaluation", m_sss_lazy_evaluation);
    AiNodeSetBool(AiUniverseGetOptions(), "sss_subpixel_cache", m_sss_subpixel_cache);
    AiNodeSetInt(AiUniverseGetOptions(), "show_samples", m_show_samples);
 

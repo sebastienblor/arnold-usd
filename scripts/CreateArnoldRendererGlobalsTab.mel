@@ -421,10 +421,6 @@ global proc CreateArnoldSSSSettings()
    setUITemplate -pushTemplate attributeEditorTemplate;
    columnLayout -adjustableColumn true;
 
-      attrControlGrp -label "SSS lazy evaluation"
-         -attribute defaultArnoldRenderOptions.sss_lazy_evaluation
-         mb_sss_lazy_evaluation;
-
       attrControlGrp -label "SSS subpixel cache"
          -attribute defaultArnoldRenderOptions.sss_subpixel_cache
          mb_sss_subpixel_cache;

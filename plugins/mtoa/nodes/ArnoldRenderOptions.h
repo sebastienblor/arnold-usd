@@ -81,7 +81,6 @@ public:
    static MObject s_motion_steps;
    static MObject s_motion_frames;
 
-   static MObject s_sss_lazy_evaluation;
    static MObject s_sss_subpixel_cache;
    static MObject s_show_samples;
 
