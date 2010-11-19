@@ -18,11 +18,6 @@
 #include <maya/MFnDagNode.h>
 #include <maya/MComputation.h>
 
-
-//DELETEME
-#include <maya/MGlobal.h>
-//DELETEME
-
 extern AtNodeMethods* mtoa_driver_mtd;
 
 static CRenderSession* s_renderSession = NULL;
