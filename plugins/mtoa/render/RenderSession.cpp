@@ -10,6 +10,7 @@
 #include <ai_render.h>
 #include <ai_threads.h>
 #include <ai_universe.h>
+#include <ai_ray.h>
 
 #include <cstdio>
 
@@ -17,6 +18,9 @@
 #include <maya/MSelectionList.h>
 #include <maya/MFnDagNode.h>
 #include <maya/MComputation.h>
+#include <maya/MStatus.h>
+#include <maya/MPlug.h>
+#include <maya/MPlugArray.h>
 
 extern AtNodeMethods* mtoa_driver_mtd;
 
@@ -147,9 +151,11 @@ void CRenderSession::SetCamera(MString cameraNode)
 
       AiNodeSetPtr(AiUniverseGetOptions(), "camera", camera);
       
-      // create all image planes.
+      // check visibility for all image planes.
       MDagPath dagPath;
       MItDag   dagIterCameras(MItDag::kDepthFirst, MFn::kCamera);
+
+      // for all cameras
       for (dagIterCameras.reset(); (!dagIterCameras.isDone()); dagIterCameras.next())
       {
          if (!dagIterCameras.getPath(dagPath))
@@ -163,9 +169,44 @@ void CRenderSession::SetCamera(MString cameraNode)
          {
             isRenderingCamera = true;
          }
-         m_scene->ExportImagePlanes(dagPath, isRenderingCamera);
-      }
 
+         // check all of it's imageplanes
+         MPlugArray connectedPlugs;
+         MPlug      imagePlanePlug;
+         MPlug      imagePlaneNodePlug;
+         imagePlanePlug = fnDagNode.findPlug("imagePlane");
+         if (imagePlanePlug.numConnectedElements() > 0)
+         {
+            for(AtUInt ips = 0; (ips < imagePlanePlug.numElements()); ips++)
+            {
+               MStatus status;
+               imagePlaneNodePlug = imagePlanePlug.elementByPhysicalIndex(ips);
+               imagePlaneNodePlug.connectedTo(connectedPlugs, true, false, &status);
+               MObject resNode = connectedPlugs[0].node(&status);
+               if (status)
+               {
+                  // get the dependency node of the image plane 
+                  MFnDependencyNode fnRes(resNode);
+                  MString imagePlaneName(fnDagNode.partialPathName());
+                  imagePlaneName += "_IP_"; 
+                  imagePlaneName += ips; 
+                  bool displayOnlyIfCurrent = fnRes.findPlug("displayOnlyIfCurrent", &status).asBool();
+                  AtNode* imagePlane = AiNodeLookUpByName(imagePlaneName.asChar());
+                  AtInt visibility = 0;
+
+                  if ( (displayOnlyIfCurrent && isRenderingCamera) || (!displayOnlyIfCurrent) )
+                  {
+                     visibility = AI_RAY_CAMERA;  
+                  }
+                  if ( (displayOnlyIfCurrent && !isRenderingCamera) )
+                  {
+                     visibility = 0;  
+                  }
+                  AiNodeSetInt(imagePlane, "visibility", visibility);
+               }
+            }
+         }
+      }
    }
 }
 

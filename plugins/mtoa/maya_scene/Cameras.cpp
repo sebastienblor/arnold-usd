@@ -76,6 +76,7 @@ void CMayaScene::ExportCamera(const MDagPath& dagPath, AtUInt step)
       if (step == 0)
       {
          ExportCameraData(camera, dagPath, mb);
+         ExportImagePlane(dagPath, mb, step);
 
          // TODO: This is probably wrong, but for now it is working
          float width = static_cast<float>(fnCamera.orthoWidth());
@@ -87,6 +88,7 @@ void CMayaScene::ExportCamera(const MDagPath& dagPath, AtUInt step)
       else if (mb)
       {
          ExportCameraMBData(dagPath, step);
+         ExportImagePlane(dagPath, mb, step);
       }
    }
    else
@@ -98,6 +100,7 @@ void CMayaScene::ExportCamera(const MDagPath& dagPath, AtUInt step)
       if (step == 0)
       {
          ExportCameraData(camera, dagPath, mb);
+         ExportImagePlane(dagPath, mb, step);
 
          if (mb)
          {
@@ -113,6 +116,7 @@ void CMayaScene::ExportCamera(const MDagPath& dagPath, AtUInt step)
       else if (mb)
       {
          ExportCameraMBData(dagPath, step);
+         ExportImagePlane(dagPath, mb, step);
 
          camera = AiNodeLookUpByName(fnDagNode.partialPathName().asChar());
 

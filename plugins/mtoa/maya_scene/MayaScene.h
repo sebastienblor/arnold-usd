@@ -54,8 +54,6 @@ public:
    MStatus ExportToArnold(ExportMode exportMode = MTOA_EXPORT_ALL);
    AtNode* ExportShader(MObject mayaShader, const MString &attrName="");
 
-   void ExportImagePlanes(const MDagPath& dagPath, bool isRenderingCamera);
-
 
 private:
    
@@ -67,6 +65,7 @@ private:
    void ExportCamera(const MDagPath& dagPath, AtUInt step);
    void ExportCameraData(AtNode* camera, const MDagPath& dagPath, bool mb);
    void ExportCameraMBData(const MDagPath& dagPath, AtUInt step);
+   void ExportImagePlane(const MDagPath& dagPath, bool mb, AtUInt step);
    void ExportLight(const MDagPath& dagPath, AtUInt step);
    void ExportLightData(AtNode* light, const MDagPath& dagPath, bool mb, bool custom);
    void ExportLightMBData(const MDagPath& dagPath, AtUInt step);
