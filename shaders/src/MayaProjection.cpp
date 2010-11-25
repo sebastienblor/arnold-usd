@@ -331,15 +331,6 @@ AtVector ComputePoint(AtShaderGlobals *sg, TargetPoint which, bool local, AtMatr
    return AtVector(p);
 }
 
-void GetWorldToCameraMatrix(AtMatrix &w2c)
-{
-   AtMatrix cameraMatrix;
-
-   AtNode* curCam = AiUniverseGetCamera();
-   AiNodeGetMatrix(curCam, "matrix", cameraMatrix);
-   AiM4Invert(cameraMatrix, w2c);
-}
-
 float GetImageAspectRatio(AtNode *node)
 {
    AtNode *n = AiNodeGetLink(node, "image");
@@ -390,20 +381,35 @@ node_parameters
    AiParameterFLT("cameraAspectRatio", 1.0f);
 }
 
+typedef struct 
+{
+   AtNode*  camera;
+} ShaderData;
+
 node_initialize
 {
+   ShaderData *data = (ShaderData*) AiMalloc(sizeof(ShaderData));
+
+   node->local_data = data;
 }
 
 node_update
 {
+   ShaderData *data = (ShaderData*)node->local_data;
+
+   data->camera = AiUniverseGetCamera();
 }
 
 node_finish
 {
+   ShaderData *data = (ShaderData*)node->local_data;
+   AiFree(data);
 }
 
 shader_evaluate
 {
+   ShaderData *data = (ShaderData*)node->local_data;
+
    AtInt pt = AiShaderEvalParamEnum(p_type);
 
    AtFloat uAngle = AiShaderEvalParamFlt(p_u_angle);
@@ -439,7 +445,7 @@ shader_evaluate
          {
             // Maya is an awesome piece of crap!!
             // For planar mapping, local space means camera space
-            GetWorldToCameraMatrix(camm);
+            AiWorldToCameraMatrix(data->camera, sg->time, camm);  
             pcamm = &camm;
             P = ComputePoint(sg, TP_SAMPLE, true, mappingCoordinate, pcamm);
          }
@@ -494,7 +500,7 @@ shader_evaluate
          if (local)
          {
             // See my comment on planar mapping
-            GetWorldToCameraMatrix(camm);
+            AiWorldToCameraMatrix(data->camera, sg->time, camm);  
             pcamm = &camm;
             P = ComputePoint(sg, TP_SAMPLE, true, mappingCoordinate, pcamm);
             AiM4VectorByMatrixMult(&N, camm, &N);
