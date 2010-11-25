@@ -54,6 +54,7 @@ public:
    MStatus ExportToArnold(ExportMode exportMode = MTOA_EXPORT_ALL);
    AtNode* ExportShader(MObject mayaShader, const MString &attrName="");
 
+   AtFloat GetCurrentFrame() { return m_currentFrame;};
 
 private:
    

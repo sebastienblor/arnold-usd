@@ -606,7 +606,11 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
          {
             shader = AiNode("MayaFile");
             MString resolvedFilename;
+            MString frameNumber("0");
+            frameNumber += GetCurrentFrame() + node.findPlug("frameOffset").asInt();
             MRenderUtil::exactFileTextureName(mayaShader, resolvedFilename);
+            resolvedFilename = MRenderUtil::exactFileTextureName(resolvedFilename, node.findPlug("useFrameExtension").asBool(), frameNumber);
+
             AiNodeSetStr(shader, "filename", resolvedFilename.asChar());
 
             ProcessShaderParameter(srcNode, "coverage", shader, "coverage", AI_TYPE_POINT2);
@@ -635,7 +639,10 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
       {
          shader = AiNode("image");
          MString resolvedFilename;
+         MString frameNumber("0");
+         frameNumber += GetCurrentFrame() + node.findPlug("frameOffset").asInt();
          MRenderUtil::exactFileTextureName(mayaShader, resolvedFilename);
+         resolvedFilename = MRenderUtil::exactFileTextureName(resolvedFilename, node.findPlug("useFrameExtension").asBool(), frameNumber);
          AiNodeSetStr(shader, "filename", resolvedFilename.asChar());
       }
 

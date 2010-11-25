@@ -6,7 +6,7 @@
 #include <maya/MFnDependencyNode.h>
 
 #include <maya/MRenderUtil.h>
-   
+
 void CMayaScene::ExportImagePlane(const MDagPath& dagPath, bool mb, AtUInt step)
 {
    MFnDagNode fnDagNode(dagPath);
@@ -51,7 +51,10 @@ void CMayaScene::ExportImagePlane(const MDagPath& dagPath, bool mb, AtUInt step)
                {
                   // get data
                   MString imageName;
+                  MString frameNumber("0");
+                  frameNumber += GetCurrentFrame() + fnRes.findPlug("frameOffset").asInt();
                   imageName = MRenderUtil::exactImagePlaneFileName(resNode);
+                  imageName = MRenderUtil::exactFileTextureName(imageName, fnRes.findPlug("useFrameExtension").asBool(), frameNumber);
 
                   // CREATE PLANE
                   AtNode* imagePlane = AiNode("polymesh");
