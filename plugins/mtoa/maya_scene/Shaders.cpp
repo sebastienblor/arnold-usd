@@ -1007,14 +1007,10 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
          MDagPath camPath;
          cam.getPath(camPath);
 
+         AiNodeSetStr(shader, "cameraName", cam.name().asChar());
          AiNodeSetFlt(shader, "cameraNearPlane", static_cast<float>(cam.nearClippingPlane()));
          AiNodeSetFlt(shader, "cameraHorizontalFOV", static_cast<float>(cam.horizontalFieldOfView()));
          AiNodeSetFlt(shader, "cameraAspectRatio", static_cast<float>(cam.aspectRatio()));
-
-         MMatrix trans = camPath.inclusiveMatrixInverse();
-         AtMatrix atrans;
-         ConvertMatrix(atrans, trans);
-         AiNodeSetMatrix(shader, "cameraInverseMatrix", atrans);
       }
       else
       {

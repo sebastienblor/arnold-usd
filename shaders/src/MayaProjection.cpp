@@ -35,7 +35,7 @@ enum MayaProjectionParams
    p_mapping_coordinate,
    p_fit_type,
    p_fill_type,
-   p_camera_inverse_matrix,
+   p_camera_name,
    p_camera_near,
    p_camera_hfov,
    p_camera_aspect
@@ -375,7 +375,7 @@ node_parameters
    AiParameterMTX("mappingCoordinate", AI_M4_IDENTITY);
    AiParameterENUM("fitType", 1, gs_FitTypeNames);
    AiParameterENUM("fillType", 0, gs_FillTypeNames);
-   AiParameterMTX("cameraInverseMatrix", AI_M4_IDENTITY);
+   AiParameterSTR("cameraName", "");
    AiParameterFLT("cameraNearPlane", 1.0f);
    AiParameterFLT("cameraHorizontalFOV", 0.97738438111682457f); // 56 degrees
    AiParameterFLT("cameraAspectRatio", 1.0f);
@@ -525,9 +525,15 @@ shader_evaluate
          {
             if (wrap)
             {
-               AtMatrix *mtrans = AiShaderEvalParamMtx(p_camera_inverse_matrix);
+               const char *cameraName = AiNodeGetStr(node, "cameraName");
+               if(strcmp(cameraName, "") != 0) // Use a custom camera for the projection
+                  data->camera = AiNodeLookUpByName(cameraName);
 
-               AtVector Pc = ComputePoint(sg, TP_SAMPLE, local, mtrans, 0);
+               AtMatrix camm, *pcamm = 0;
+               AiWorldToCameraMatrix(data->camera, sg->time, camm);
+               pcamm = &camm;
+               
+               AtVector Pc = ComputePoint(sg, TP_SAMPLE, local, pcamm, 0);
 
                if (Pc.z < 0.0f)
                {
@@ -574,11 +580,11 @@ shader_evaluate
                   st.x = Adjust(-nearp * uScale * Pc.x / (Pc.z * maxw));
                   st.y = Adjust(-nearp * vScale * Pc.y / (Pc.z * maxh));
 
-                  AtVector Pxc = ComputePoint(sg, TP_SAMPLE_DX, local, mtrans, 0);
+                  AtVector Pxc = ComputePoint(sg, TP_SAMPLE_DX, local, pcamm, 0);
                   stx.x = Adjust(-nearp * uScale * Pxc.x / (Pxc.z * maxw));
                   stx.y = Adjust(-nearp * vScale * Pxc.y / (Pxc.z * maxh));
 
-                  AtVector Pyc = ComputePoint(sg, TP_SAMPLE_DY, local, mtrans, 0);
+                  AtVector Pyc = ComputePoint(sg, TP_SAMPLE_DY, local, pcamm, 0);
                   sty.x = Adjust(-nearp * uScale * Pyc.x / (Pyc.z * maxw));
                   sty.y = Adjust(-nearp * vScale * Pyc.y / (Pyc.z * maxh));
 
