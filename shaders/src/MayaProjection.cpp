@@ -398,6 +398,10 @@ node_update
    ShaderData *data = (ShaderData*)node->local_data;
 
    data->camera = AiUniverseGetCamera();
+   
+   const char *cameraName = AiNodeGetStr(node, "cameraName");
+   if(strcmp(cameraName, "") != 0) // Use a custom camera for the perspective projection
+      data->camera = AiNodeLookUpByName(cameraName);
 }
 
 node_finish
@@ -525,10 +529,6 @@ shader_evaluate
          {
             if (wrap)
             {
-               const char *cameraName = AiNodeGetStr(node, "cameraName");
-               if(strcmp(cameraName, "") != 0) // Use a custom camera for the projection
-                  data->camera = AiNodeLookUpByName(cameraName);
-
                AtMatrix camm, *pcamm = 0;
                AiWorldToCameraMatrix(data->camera, sg->time, camm);
                pcamm = &camm;

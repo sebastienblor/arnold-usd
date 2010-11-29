@@ -1002,10 +1002,11 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
       ProcessShaderParameter(node, "fitType", shader, "fitType", AI_TYPE_INT);
       ProcessShaderParameter(node, "fitFill", shader, "fillType", AI_TYPE_INT);
 
+      MPlug typePlug = node.findPlug("projType");
       plug = node.findPlug("linkedCamera");
       MPlugArray connections;
       plug.connectedTo(connections, true, false);
-      if (connections.length() >= 1)
+      if (connections.length() >= 1 && typePlug.asInt() == 8)
       {
          MObject camObj = connections[0].node();
 
