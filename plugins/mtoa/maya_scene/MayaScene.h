@@ -76,7 +76,7 @@ private:
    void ExportMeshInstance(const MDagPath& dagPath, const MDagPath& masterInstance, AtUInt step);
    void ExportHair(const MDagPath& dagPath, AtUInt step);
    void ExportInstancerReplacement(const MDagPath& dagPath, AtUInt step);
-   void ExportCustomShape(const MDagPath& dagPath, AtUInt step, const char* cmd);
+   void ExportCustomShape(const MDagPath &dagPath, AtUInt step, const MString &exportCmd, const MString &cleanupCmd);
 
    void ProcessShaderParameter(MFnDependencyNode shader, const char* param, AtNode* arnoldShader, const char* arnoldAttrib, int arnoldAttribType);
    AtNode* ExportArnoldShader(MObject mayaShader, MString arnoldShader);
@@ -91,6 +91,7 @@ private:
    void GetMotionBlurData();
    void GetCustomShapes();
    bool RegisterCustomShape(std::string &shapeType);
+   void GetCustomShapeInstanceShader(const MDagPath &path, MFnDependencyNode &shadingEngineNode);
 
 private:
 
@@ -100,6 +101,12 @@ private:
       AtNode* arnoldShader;
       MString attrName;
    };
+   
+   struct CCustomData
+   {
+      MString exportCmd;
+      MString cleanupCmd;
+   };
 
    std::vector<CShaderData> m_processedShaders;
 
@@ -107,7 +114,7 @@ private:
    {
       bool operator()(MObjectHandle h1, MObjectHandle h2) const
       {
-        return h1.hashCode() < h2.hashCode();
+         return h1.hashCode() < h2.hashCode();
       }
    };
 
@@ -123,7 +130,7 @@ private:
 
    AtFloat m_currentFrame;
    
-   std::map<std::string, std::string> m_customShapes;
+   std::map<std::string, CCustomData> m_customShapes;
 
 };  // class CMayaScene
 

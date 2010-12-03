@@ -122,6 +122,57 @@ MStatus CMayaScene::ExportSelected()
    return status;
 }
 
+// Get shading engine associated with a custom shape
+//
+void CMayaScene::GetCustomShapeInstanceShader(const MDagPath &path, MFnDependencyNode &shadingEngineNode)
+{
+   // Get instance shadingEngine
+   shadingEngineNode.setObject(MObject::kNullObj);
+
+   char buffer[64];
+
+   MStringArray connections;
+   MGlobal::executeCommand("listConnections -s 1 -d 0 -c 1 -type shadingEngine "+path.fullPathName(), connections);
+
+   MSelectionList sl;
+
+   if (connections.length() == 2)
+   {
+      sl.add(connections[1]);
+   }
+   else if (connections.length() > 2)
+   {
+      sprintf(buffer, "[%d]", path.instanceNumber());
+      MString iidx = buffer;
+
+      for (unsigned int cidx = 0; cidx < connections.length(); cidx += 2)
+      {
+         MString conn = connections[cidx];
+
+         if (conn.length() < iidx.length())
+         {
+            continue;
+         }
+
+         if (conn.substring(conn.length() - iidx.length(), conn.length() - 1) != iidx)
+         {
+            continue;
+         }
+
+         sl.add(connections[cidx+1]);
+         break;
+      }
+   }
+
+   if (sl.length() == 1)
+   {
+      MObject shadingEngineObj;
+      sl.getDependNode(0, shadingEngineObj);
+
+      shadingEngineNode.setObject(shadingEngineObj);
+   }
+}
+
 // Export the maya scene
 //
 // @return              MS::kSuccess / MS::kFailure is returned in case of failure.
@@ -145,7 +196,7 @@ MStatus CMayaScene::ExportScene(AtUInt step)
       ExportCamera(dagPath, step);
    }
 
-   std::map<std::string, std::string>::iterator customShapeIt;
+   std::map<std::string, CCustomData>::iterator customShapeIt;
 
    // And now we export the rest of the DAG
    MItDag   dagIterator(MItDag::kDepthFirst, MFn::kInvalid);
@@ -170,7 +221,7 @@ MStatus CMayaScene::ExportScene(AtUInt step)
 
       if (customShapeIt != m_customShapes.end())
       {
-         ExportCustomShape(dagPath, step, customShapeIt->second.c_str());
+         ExportCustomShape(dagPath, step, customShapeIt->second.exportCmd, customShapeIt->second.cleanupCmd);
       }
 
       // Lights
@@ -336,7 +387,7 @@ bool CMayaScene::RegisterCustomShape(std::string &shapeType)
       if (shapeType.length() > 0)
       {
          // check if shapeType already registered
-         std::map<std::string, std::string>::iterator it = m_customShapes.find(shapeType);
+         std::map<std::string, CCustomData>::iterator it = m_customShapes.find(shapeType);
 
          if (it == m_customShapes.end())
          {
@@ -347,7 +398,19 @@ bool CMayaScene::RegisterCustomShape(std::string &shapeType)
 
             if (rv != "Unknown")
             {
-               m_customShapes[shapeType] = scriptName;
+               m_customShapes[shapeType].exportCmd = scriptName.c_str();
+               
+               std::string scriptName = "mtoa_cleanup_" + shapeType;
+               
+               rv = MGlobal::executeCommandStringResult("whatIs " + MString(scriptName.c_str()));
+               
+               if (rv == "Unknown")
+               {
+                  scriptName = "";
+               }
+               
+               m_customShapes[shapeType].cleanupCmd = scriptName.c_str();
+               
                return true;
             }
          }

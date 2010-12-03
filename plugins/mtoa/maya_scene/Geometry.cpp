@@ -544,9 +544,10 @@ void CMayaScene::ExportMeshInstance(const MDagPath& dagPath, const MDagPath& mas
    }
 }
 
-void CMayaScene::ExportCustomShape(const MDagPath& dagPath, AtUInt step, const char* cmd)
+void CMayaScene::ExportCustomShape(const MDagPath &dagPath, AtUInt step, const MString &exportCmd, const MString &cleanupCmd)
 {
-   bool thereIsMaster = false;
+   bool isMasterDag = false;
+
    MFnDagNode node(dagPath.node());
 
    bool transformBlur = m_motionBlurData.enabled &&
@@ -557,13 +558,9 @@ void CMayaScene::ExportCustomShape(const MDagPath& dagPath, AtUInt step, const c
                      m_fnArnoldRenderOptions->findPlug("mb_object_deform_enable").asBool() &&
                      node.findPlug("motionBlur").asBool();
 
-   AtMatrix matrix;
-   MMatrix mmatrix = dagPath.inclusiveMatrix();
-   ConvertMatrix(matrix, mmatrix);
-
    char buffer[64];
 
-   MString command = MString(cmd);
+   MString command = exportCmd;
    command += "(";
 
    sprintf(buffer, "%f", m_currentFrame);
@@ -578,109 +575,336 @@ void CMayaScene::ExportCustomShape(const MDagPath& dagPath, AtUInt step, const c
    command += buffer;
    command += ", ";
 
+   // List of arnold attributes the custom shape export command has overriden
+   MStringArray attrs;
+
    MDagPath masterDag;
    if (IsMasterInstance(dagPath, masterDag))
    {
-      command += "\"" + dagPath.fullPathName() + "\", 0, \"\"";
+      command += "\"" + dagPath.fullPathName() + "\", 0, \"\")";
+      isMasterDag = true;
+      // If IsMasterInstance return true, masterDag won't get set
+      masterDag = dagPath;
    }
    else
    {
-      command += "\"" + dagPath.fullPathName() + "\", 1, \"" + masterDag.fullPathName() + "\"";
+      command += "\"" + dagPath.fullPathName() + "\", 1, \"" + masterDag.fullPathName() + "\")";
    }
 
-   command += ")";
-
-   MStringArray attrs;
    MStatus status = MGlobal::executeCommand(command, attrs);
-
-   if (status == MStatus::kFailure)
+   if (!status)
    {
       AiMsgError("[mtoa] ERROR: Failed to export custom shape \"%s\".", node.name().asChar());
       return;
    }
 
-   AtNode *proc = AiNodeLookUpByName(dagPath.fullPathName().asChar());
 
-   if (proc)
+   MFnDependencyNode masterShadingEngine;
+   MFnDependencyNode shadingEngine;
+   float dispHeight = 0.0f;
+
+   // Figure out displacement height
+   // -> suppose disp_map has its value in [0, 1] range and disp_height is constant)
+   // -> all instances share the same displacement shader, the one of the master dag
+   // NOTE: this might not work properly if the master shape overrides the disp_height
+   //       and instances do not use the ginstance but another procedural node
+
+   GetCustomShapeInstanceShader(masterDag, masterShadingEngine);
+
+   if (masterShadingEngine.object() != MObject::kNullObj)
    {
-      // Set transformation matrices
+      MPlug pDispShader = masterShadingEngine.findPlug("displacementShader");
+      if (!pDispShader.isNull())
+      {
+         MPlugArray conns;
+
+         pDispShader.connectedTo(conns, true, false);
+
+         if (conns.length() > 0)
+         {
+            MFnDependencyNode dispNode(conns[0].node());
+
+            MPlug pDispHeight = dispNode.findPlug("disp_height");
+
+            if (!pDispHeight.isNull())
+            {
+               dispHeight = pDispHeight.asFloat();
+            }
+         }
+      }
+   }
+
+   AtNode *anode = AiNodeLookUpByName(dagPath.fullPathName().asChar());
+
+   if (anode)
+   {
+      GetCustomShapeInstanceShader(dagPath, shadingEngine);
+
+      AtMatrix matrix;
+      MMatrix mmatrix = dagPath.inclusiveMatrix();
+      ConvertMatrix(matrix, mmatrix);
+
+      // Set transformation matrix
       if (transformBlur && !StringInList("matrix", attrs))
       {
-
          if (step == 0)
          {
             AtArray* matrices = AiArrayAllocate(1, m_motionBlurData.motion_steps, AI_TYPE_MATRIX);
             AiArraySetMtx(matrices, step, matrix);
-            AiNodeSetArray(proc, "matrix", matrices);
+            AiNodeSetArray(anode, "matrix", matrices);
          }
          else
          {
-            AtArray* matrices = AiNodeGetArray(proc, "matrix");
+            AtArray* matrices = AiNodeGetArray(anode, "matrix");
             AiArraySetMtx(matrices, step, matrix);
          }
       }
       else
       {
-         AiNodeSetMatrix(proc, "matrix", matrix);
+         AiNodeSetMatrix(anode, "matrix", matrix);
       }
 
-      // FIXME: thereIsMaster is always false!
-      if (!dagPath.isInstanced() || !thereIsMaster)
+      // Set bounding box (in local space)
+      if (!StringInList("min", attrs) && !StringInList("max", attrs))
       {
-         // Set bounding box
-         if (!StringInList("min", attrs) && !StringInList("max", attrs))
+         if (step == 0)
          {
-            if (step == 0)
+            // set for the first time
+            MBoundingBox bbox = node.boundingBox();
+
+            MPoint bmin = bbox.min(); // * mmatrix;
+            MPoint bmax = bbox.max(); // * mmatrix;
+
+            bmin.x -= dispHeight;
+            bmin.y -= dispHeight;
+            bmin.z -= dispHeight;
+
+            bmax.x += dispHeight;
+            bmax.y += dispHeight;
+            bmax.z += dispHeight;
+
+            AiNodeSetPnt(anode, "min", static_cast<float>(bmin.x), static_cast<float>(bmin.y), static_cast<float>(bmin.z));
+            AiNodeSetPnt(anode, "max", static_cast<float>(bmax.x), static_cast<float>(bmax.y), static_cast<float>(bmax.z));
+         }
+         else
+         {
+            if (transformBlur || deformBlur)
             {
-               // set for the first time
+               AtPoint cmin = AiNodeGetPnt(anode, "min");
+               AtPoint cmax = AiNodeGetPnt(anode, "max");
+
                MBoundingBox bbox = node.boundingBox();
 
-               MPoint bmin = bbox.min() * mmatrix;
-               MPoint bmax = bbox.max() * mmatrix;
+               MPoint bmin = bbox.min(); // * mmatrix;
+               MPoint bmax = bbox.max(); // * mmatrix;
 
-               AiNodeSetPnt(proc, "min", static_cast<float>(bmin.x), static_cast<float>(bmin.y), static_cast<float>(bmin.z));
-               AiNodeSetPnt(proc, "max", static_cast<float>(bmax.x), static_cast<float>(bmax.y), static_cast<float>(bmax.z));
+               bmin.x -= dispHeight;
+               bmin.y -= dispHeight;
+               bmin.z -= dispHeight;
+
+               bmax.x += dispHeight;
+               bmax.y += dispHeight;
+               bmax.z += dispHeight;
+
+               if (bmin.x < cmin.x)
+                  cmin.x = static_cast<float>(bmin.x);
+               if (bmin.y < cmin.y)
+                  cmin.y = static_cast<float>(bmin.y);
+               if (bmin.z < cmin.z)
+                  cmin.z = static_cast<float>(bmin.z);
+               if (bmax.x > cmax.x)
+                  cmax.x = static_cast<float>(bmax.x);
+               if (bmax.y > cmax.y)
+                  cmax.y = static_cast<float>(bmax.y);
+               if (bmax.z > cmax.z)
+                  cmax.z = static_cast<float>(bmax.z);
+
+               AiNodeSetPnt(anode, "min", cmin.x, cmin.y, cmin.z);
+               AiNodeSetPnt(anode, "max", cmax.x, cmax.y, cmax.z);
             }
-            else
+         }
+      }
+
+      if (step == 0)
+      {
+         // Set common attributes
+         MPlug plug;
+
+         if (isMasterDag)
+         {
+            // For master node only if there are instances
+
+            if (!StringInList("subdiv_type", attrs))
             {
-               if (transformBlur || deformBlur)
+               plug = node.findPlug("subdiv_type");
+               if (!plug.isNull())
                {
-                  AtPoint cmin = AiNodeGetPnt(proc, "min");
-                  AtPoint cmax = AiNodeGetPnt(proc, "max");
+                  if (AiNodeEntryLookUpParameter(anode->base_node, "subdiv_type") != 0 ||
+                      AiNodeDeclare(anode, "subdiv_type", "constant INT"))
+                  {
+                     AiNodeSetInt(anode, "subdiv_type", plug.asInt());
+                  }
+               }
+            }
 
-                  MBoundingBox bbox = node.boundingBox();
+            if (!StringInList("subdiv_iterations", attrs))
+            {
+               plug = node.findPlug("subdiv_iterations");
+               if (!plug.isNull())
+               {
+                  if (AiNodeEntryLookUpParameter(anode->base_node, "subdiv_iterations") != 0 ||
+                      AiNodeDeclare(anode, "subdiv_iterations", "constant INT"))
+                  {
+                     AiNodeSetInt(anode, "subdiv_iterations", plug.asInt());
+                  }
+               }
+            }
 
-                  MPoint bmin = bbox.min() * mmatrix;
-                  MPoint bmax = bbox.max() * mmatrix;
+            if (!StringInList("subdiv_adaptive_metric", attrs))
+            {
+               plug = node.findPlug("subdiv_adaptive_metric");
+               if (!plug.isNull())
+               {
+                  if (AiNodeEntryLookUpParameter(anode->base_node, "subdiv_adaptive_metric") != 0 ||
+                      AiNodeDeclare(anode, "subdiv_adaptive_metric", "constant INT"))
+                  {
+                     AiNodeSetInt(anode, "subdiv_adaptive_metric", plug.asInt());
+                  }
+               }
+            }
 
-                  if (bmin.x < cmin.x)
-                     cmin.x = static_cast<float>(bmin.x);
-                  if (bmin.y < cmin.y)
-                     cmin.y = static_cast<float>(bmin.y);
-                  if (bmin.z < cmin.z)
-                     cmin.z = static_cast<float>(bmin.z);
-                  if (bmax.x > cmax.x)
-                     cmax.x = static_cast<float>(bmax.x);
-                  if (bmax.y > cmax.y)
-                     cmax.y = static_cast<float>(bmax.y);
-                  if (bmax.z > cmax.z)
-                     cmax.z = static_cast<float>(bmax.z);
+            if (!StringInList("subdiv_pixel_error", attrs))
+            {
+               plug = node.findPlug("subdiv_pixel_error");
+               if (!plug.isNull())
+               {
+                  if (AiNodeEntryLookUpParameter(anode->base_node, "subdiv_pixel_error") != 0 ||
+                      AiNodeDeclare(anode, "subdiv_pixel_error", "constant FLOAT"))
+                  {
+                     AiNodeSetFlt(anode, "subdiv_pixel_error", plug.asFloat());
+                  }
+               }
+            }
 
-                  AiNodeSetPnt(proc, "min", cmin.x, cmin.y, cmin.z);
-                  AiNodeSetPnt(proc, "max", cmax.x, cmax.y, cmax.z);
+            if (!StringInList("subdiv_dicing_camera", attrs))
+            {
+               plug = node.findPlug("subdiv_dicing_camera");
+               if (!plug.isNull())
+               {
+                  MString cameraName = plug.asString();
+
+                  AtNode *cameraNode = NULL;
+
+                  if (cameraName != "" && cameraName != "Default")
+                  {
+                     cameraNode = AiNodeLookUpByName(cameraName.asChar());
+                  }
+
+                  if (AiNodeEntryLookUpParameter(anode->base_node, "subdiv_dicing_camera") != 0 ||
+                      AiNodeDeclare(anode, "subdiv_dicing_camera", "constant NODE"))
+                  {
+                     AiNodeSetPtr(anode, "subdiv_dicing_camera", cameraNode);
+                  }
+               }
+            }
+
+            if (!StringInList("smoothing", attrs))
+            {
+               plug = node.findPlug("smoothShading");
+               if (!plug.isNull())
+               {
+                  if (AiNodeEntryLookUpParameter(anode->base_node, "smoothing") != 0 ||
+                      AiNodeDeclare(anode, "smoothing", "constant BOOL"))
+                  {
+                     AiNodeSetBool(anode, "smoothing", plug.asBool());
+                  }
+               }
+            }
+
+            // Set diplacement shader
+            if (!StringInList("disp_map", attrs))
+            {
+               if (shadingEngine.object() != MObject::kNullObj)
+               {
+                  MPlugArray shaderConns;
+
+                  MPlug shaderPlug = shadingEngine.findPlug("displacementShader");
+
+                  shaderPlug.connectedTo(shaderConns, true, false);
+
+                  if (shaderConns.length() > 0)
+                  {
+                     MFnDependencyNode dispNode(shaderConns[0].node());
+
+                     if (!StringInList("disp_height", attrs) &&
+                         (AiNodeEntryLookUpParameter(anode->base_node, "disp_height") != 0 ||
+                          AiNodeDeclare(anode, "disp_height", "constant FLOAT")))
+                     {
+                        plug = dispNode.findPlug("disp_height");
+                        if (!plug.isNull())
+                        {
+                           ProcessShaderParameter(dispNode, "disp_height", anode, "disp_height", AI_TYPE_FLOAT);
+                        }
+                     }
+
+                     if (!StringInList("disp_zero_value", attrs) &&
+                         (AiNodeEntryLookUpParameter(anode->base_node, "disp_zero_value") != 0 ||
+                          AiNodeDeclare(anode, "disp_zero_value", "constant FLOAT")))
+                     {
+                        plug = dispNode.findPlug("disp_zero_value");
+                        if (!plug.isNull())
+                        {
+                           ProcessShaderParameter(dispNode, "disp_zero_value", anode, "disp_zero_value", AI_TYPE_FLOAT);
+                        }
+                     }
+
+                     shaderConns.clear();
+                     dispNode.findPlug("disp_map").connectedTo(shaderConns, true, false);
+
+                     if (shaderConns.length() > 0 &&
+                         (AiNodeEntryLookUpParameter(anode->base_node, "disp_map") != 0 ||
+                          AiNodeDeclare(anode, "disp_map", "constant NODE")))
+                     {
+                        plug = dispNode.findPlug("disp_map");
+                        if (!plug.isNull())
+                        {
+                           MString attrName = shaderConns[0].partialName(false, false, false, false, false, true);
+                           AtNode* dispImage(ExportShader(shaderConns[0].node(), attrName));
+                           AiNodeSetPtr(anode, "disp_map", dispImage);
+                        }
+                     }
+
+                     AiNodeSetBool(anode, "autobump", dispNode.findPlug("autobump").asBool());
+                  }
                }
             }
          }
 
-         // Set common attributes
-         MPlug plug;
+         if (!StringInList("sidedness", attrs))
+         {
+            plug = node.findPlug("doubleSided");
+            if (!plug.isNull())
+            {
+               AiNodeSetInt(anode, "sidedness", plug.asBool() ? 65535 : 0);
+
+               // only set invert_normals if doubleSided attribute could be found
+               if (!StringInList("invert_normals", attrs))
+               {
+                  plug = node.findPlug("opposite");
+                  if (!plug.isNull())
+                  {
+                     AiNodeSetBool(anode, "invert_normals", plug.asBool());
+                  }
+               }
+            }
+         }
 
          if (!StringInList("sss_max_samples", attrs))
          {
             plug = node.findPlug("sss_max_samples");
             if (!plug.isNull())
             {
-               AiNodeSetInt(proc, "sss_max_samples", plug.asInt());
+               AiNodeSetInt(anode, "sss_max_samples", plug.asInt());
             }
          }
 
@@ -689,7 +913,7 @@ void CMayaScene::ExportCustomShape(const MDagPath& dagPath, AtUInt step, const c
             plug = node.findPlug("sss_sample_spacing");
             if (!plug.isNull())
             {
-               AiNodeSetFlt(proc, "sss_sample_spacing", plug.asFloat());
+               AiNodeSetFlt(anode, "sss_sample_spacing", plug.asFloat());
             }
          }
 
@@ -698,7 +922,7 @@ void CMayaScene::ExportCustomShape(const MDagPath& dagPath, AtUInt step, const c
             plug = node.findPlug("sss_use_gi");
             if (!plug.isNull())
             {
-               AiNodeSetBool(proc, "sss_use_gi", plug.asBool());
+               AiNodeSetBool(anode, "sss_use_gi", plug.asBool());
             }
          }
 
@@ -707,7 +931,7 @@ void CMayaScene::ExportCustomShape(const MDagPath& dagPath, AtUInt step, const c
             plug = node.findPlug("receiveShadows");
             if (!plug.isNull())
             {
-               AiNodeSetBool(proc, "receive_shadows", plug.asBool());
+               AiNodeSetBool(anode, "receive_shadows", plug.asBool());
             }
          }
 
@@ -716,7 +940,7 @@ void CMayaScene::ExportCustomShape(const MDagPath& dagPath, AtUInt step, const c
             plug = node.findPlug("self_shadows");
             if (!plug.isNull())
             {
-               AiNodeSetBool(proc, "self_shadows", plug.asBool());
+               AiNodeSetBool(anode, "self_shadows", plug.asBool());
             }
          }
 
@@ -725,7 +949,7 @@ void CMayaScene::ExportCustomShape(const MDagPath& dagPath, AtUInt step, const c
             plug = node.findPlug("opaque");
             if (!plug.isNull())
             {
-               AiNodeSetBool(proc, "opaque", plug.asBool());
+               AiNodeSetBool(anode, "opaque", plug.asBool());
             }
          }
 
@@ -769,50 +993,56 @@ void CMayaScene::ExportCustomShape(const MDagPath& dagPath, AtUInt step, const c
                visibility &= ~AI_RAY_GLOSSY;
             }
 
-            AiNodeSetInt(proc, "visibility", visibility);
+            AiNodeSetInt(anode, "visibility", visibility);
          }
-      }
 
-      // Surface shader
-      if (!StringInList("shader", attrs))
-      {
-         MStringArray connections;
-         MGlobal::executeCommand("listConnections -s 1 -d 0 -type shadingEngine "+dagPath.fullPathName(), connections);
-
-         if (connections.length() == 1)
+         // Set surface shader
+         if (!StringInList("shader", attrs))
          {
-            MSelectionList sl;
-            sl.add(connections[0]);
-
-            MObject shadingEngineObj;
-            sl.getDependNode(0, shadingEngineObj);
-
-            MFnDependencyNode shadingEngine(shadingEngineObj);
-
-            MPlugArray shaderConns;
-
-            MPlug shaderPlug = shadingEngine.findPlug("surfaceShader");
-
-            shaderPlug.connectedTo(shaderConns, true, false);
-
-            if (shaderConns.length() > 0)
+            if (shadingEngine.object() != MObject::kNullObj)
             {
-               AtNode *shader = ExportShader(shaderConns[0].node());
+               MPlugArray shaderConns;
 
-               AiNodeSetPtr(proc, "shader", shader);
+               MPlug shaderPlug = shadingEngine.findPlug("surfaceShader");
+
+               shaderPlug.connectedTo(shaderConns, true, false);
+
+               if (shaderConns.length() > 0)
+               {
+                  AtNode *shader = ExportShader(shaderConns[0].node());
+                  AiNodeSetPtr(anode, "shader", shader);
+               }
             }
          }
       }
 
-      // NOTE: no displacement attributes on procedural nodes
+      // Call cleanup command
+      if ((m_motionBlurData.enabled == false || int(step) >= (int(m_motionBlurData.motion_steps) - 1)) && cleanupCmd != "")
+      {
+         command = cleanupCmd;
+         command += "(\"";
+         command += dagPath.fullPathName();
+         command += "\", ";
 
-      //shaderPlug = shadingEngine.findPlug("displacementShader");
-      //
-      //shaderPlug.connectedTo(shaderConns, true, false);
-      //
-      //if (shaderConns.length() > 0)
-      //{
-      //}
+         if (isMasterDag)
+         {
+            command += "0, \"\")";
+         }
+         else
+         {
+            command += "1, \"";
+            command += masterDag.fullPathName();
+            command += "\")";
+         }
+
+         status = MGlobal::executeCommand(command);
+
+         if (!status)
+         {
+            AiMsgError("[mtoa] ERROR: Failed to cleanup custom shape \"%s\".", node.name().asChar());
+            return;
+         }
+      }
    }
 }
 
