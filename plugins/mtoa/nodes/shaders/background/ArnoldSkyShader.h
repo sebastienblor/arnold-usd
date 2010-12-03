@@ -13,6 +13,9 @@
 #include <maya/MSelectionList.h>
 #include <maya/MFnDependencyNode.h>
 #include <maya/MStatus.h>
+#include <maya/MPlugArray.h>
+#include <maya/MDGModifier.h>
+#include <maya/MGlobal.h>
 
 class CArnoldSkyShaderNode
    :  public MPxLocatorNode
@@ -22,15 +25,33 @@ public:
 
    static void removeSky(MObject& node, void* clientData)
    {
-      MSelectionList list;
-      list.add("defaultArnoldRenderOptions");
-      MObject obj;
-      list.getDependNode(0, obj);
-      MFnDependencyNode depGlobals(obj);
-      int bkgValue = depGlobals.findPlug("background").asInt();
-      if (bkgValue == 1)
+      MFnDependencyNode depNode(node);
+
+      MPlug plug = depNode.findPlug("message");
+
+      MPlugArray conns;
+
+      if (plug.connectedTo(conns, false, true))
       {
-         depGlobals.findPlug("background").setValue(0);
+         MObject dstObj;
+         MFnDependencyNode dstNode;
+         MDGModifier dgMod;
+
+         for (unsigned int i=0; i<conns.length(); ++i)
+         {
+            dstObj = conns[i].node();
+            dstNode.setObject(dstObj);
+
+            if (dstNode.name() == "defaultArnoldRenderOptions")
+            {
+               // Disconnect to avoid defaultArnoldRenderGlobals be deleted
+               dgMod.disconnect(plug, conns[i]);
+               dgMod.doIt();
+               // And refresh arnold render options tab
+               MGlobal::executeCommand("UpdateArnoldRendererGlobalsTab()");
+               break;
+            }
+         }
       }
    }
 

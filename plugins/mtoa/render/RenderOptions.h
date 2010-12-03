@@ -335,7 +335,7 @@ private:
 
    AtUInt   m_max_subdivisions;
 
-   AtUInt   m_background;
+   MObject  m_background;
    AtUInt   m_atmosphere;
 
    MString m_outputAssFile;

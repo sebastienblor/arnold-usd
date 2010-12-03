@@ -32,36 +32,112 @@ global proc UpdateLogSettings()
    attrControlGrp -edit -enable ($name != "") log_file_verbosity;
 }
 
-global proc SelectBackground()
+proc string GetBackgroundShader()
 {
-   int $bkg = `getAttr defaultArnoldRenderOptions.background`;
-
-   switch ($bkg)
+   string $conns[] = `listConnections -s 1 -d 0 -p 1 defaultArnoldRenderOptions.background`;
+   if (size($conns) == 1)
    {
-      case 0:
+      string $tokens[];
+      tokenize $conns[0] "." $tokens;
+      return $tokens[0];
+   }
+   return "";
+}
+
+global proc UpdateBackgroundSettings()
+{
+   string $node = GetBackgroundShader();
+
+   textField -edit -text $node environment_background;
+}
+
+global proc ShowBackgroundAE()
+{
+   string $node = GetBackgroundShader();
+   if ($node != "")
+   {
+      select -r $node;
+   }
+}
+
+global proc ChangeBackground(string $node, string $field)
+{
+   connectAttr -f ($node+".message") defaultArnoldRenderOptions.background;
+   textField -edit -text $node $field;
+   ShowBackgroundAE();
+}
+
+global proc CreateBackground(string $type, string $field)
+{
+   string $node = `shadingNode -asShader $type`;
+   ChangeBackground($node, $field);
+}
+
+global proc DisconnectBackground(string $field)
+{
+   string $node = GetBackgroundShader();
+   if ($node != "")
+   {
+      disconnectAttr ($node+".message") defaultArnoldRenderOptions.background;
+      textField -edit -text "" $field;
+   }
+}
+
+global proc DeleteBackground(string $field)
+{
+   string $node = GetBackgroundShader();
+   if ($node != "")
+   {
+      disconnectAttr ($node+".message") defaultArnoldRenderOptions.background;
+      textField -edit -text "" $field;
+
+      string $parent, $parents[] = `listRelatives -allParents -fullPath`;
+      delete $node;
+      for ($parent in $parents)
       {
-         string $trSkyName[] = `ls defaultArnoldSky`;
-         if ($trSkyName[0] == "defaultArnoldSky")
+         if (`objExists $parent` == 0)
          {
-            delete $trSkyName;
+            continue;
          }
-         break;
-      }
-      
-      case 1: // Sky
-      {
-         string $trSkyName = "defaultArnoldSky";
-         createNode -shared "transform" -n $trSkyName;
-         setAttr -lock true -keyable false -channelBox false ($trSkyName + ".tx");
-         setAttr -lock true -keyable false -channelBox false ($trSkyName + ".ty");
-         setAttr -lock true -keyable false -channelBox false ($trSkyName + ".tz");
-         setAttr -lock true -keyable false -channelBox false ($trSkyName + ".visibility");
-         setAttr ($trSkyName+".template") 1;
-         string $skyShaderName = `createNode -shared -n "defaultArnoldSkyShader" ArnoldSkyShader -p $trSkyName`;
-         setAttr ($skyShaderName+".template") 1;
-         break;
+         string $children[] = `listRelatives -children $parent`;
+         if (size($children) == 0)
+         {
+            delete $parent;
+         }
       }
    }
+}
+
+global proc BuildBackgroundMenu(string $popup, string $field)
+{
+   string $item;
+   string $switches[] = `ls -type ArnoldRaySwitchShader`;
+   string $skies[] = `ls -type ArnoldSkyShader`;
+
+   popupMenu -edit -deleteAllItems $popup;
+
+   for ($item in $skies)
+   {
+      menuItem -parent $popup -label $item -command ("ChangeBackground(\""+$item+"\", \""+$field+"\")");
+   }
+
+   for ($item in $switches)
+   {
+      menuItem -parent $popup -label $item -command ("ChangeBackground(\""+$item+"\", \""+$field+"\")");
+   }
+
+   menuItem -parent $popup -divider true;
+
+   menuItem -parent $popup -label "Create Sky Shader" -command ("CreateBackground(\"ArnoldSkyShader\", \""+$field+"\")");
+   menuItem -parent $popup -label "Create RaySwitch Shader" -command ("CreateBackground(\"ArnoldRaySwitchShader\", \""+$field+"\")");
+
+   menuItem -parent $popup -divider true;
+
+   menuItem -parent $popup -label "Disconnect" -command ("DisconnectBackground(\""+$field+"\")");
+
+   menuItem -parent $popup -divider true;
+
+   menuItem -parent $popup -label "Delete" -command ("DeleteBackground(\""+$field+"\")");
 }
 
 global proc SelectAtmosphere()
@@ -342,12 +418,19 @@ global proc CreateArnoldEnvironmentSettings()
    setUITemplate -pushTemplate attributeEditorTemplate;
    columnLayout -adjustableColumn true;
       
-      attrControlGrp -label "Background"
-         -attribute defaultArnoldRenderOptions.background
-         -cc SelectBackground
-         es_background;
+      rowLayout -adjustableColumn 2 -numberOfColumns 3;
+         text -label "Background";
+         string $bgfield = `textField -editable false environment_background`;
+         string $bgpopup = `popupMenu -parent $bgfield`;
+         popupMenu -edit -postMenuCommand ("BuildBackgroundMenu(\""+$bgpopup+"\", \""+$bgfield+"\")") $bgpopup;
+         button -label "AE" -height 22 -command "ShowBackgroundAE";
+         setParent ..;
 
-      button -label "Edit Background" -c SelectBackground;
+      string $conns[] = `listConnections -s 1 -d 0 -shapes 1 defaultArnoldRenderOptions.background`;
+      if (size($conns) == 1)
+      {
+         textField -edit -text $conns[0] $bgfield;
+      }
 
       separator -style "none";
             
@@ -561,4 +644,5 @@ global proc UpdateArnoldRendererGlobalsTab()
    UpdateSamplingSettings();
    UpdateMotionBlurSettings();
    UpdateLogSettings();
+   UpdateBackgroundSettings();
 }

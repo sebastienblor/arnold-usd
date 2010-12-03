@@ -1,6 +1,7 @@
 
 #include "ArnoldRenderOptions.h"
 #include "nodes/ShaderUtils.h"
+#include "nodes/ArnoldNodeIds.h"
 
 #include <ai_universe.h>
 
@@ -8,8 +9,9 @@
 #include <maya/MFnNumericAttribute.h>
 #include <maya/MFnStringData.h>
 #include <maya/MFnTypedAttribute.h>
+#include <maya/MFnMessageAttribute.h>
 
-MTypeId CArnoldRenderOptionsNode::id(0x00071000);
+MTypeId CArnoldRenderOptionsNode::id(ARNOLD_NODEID_RENDER_OPTIONS);
 
 MObject CArnoldRenderOptionsNode::s_arnoldRenderImageFormat;
 MObject CArnoldRenderOptionsNode::s_arnoldRenderImageCompression;
@@ -87,6 +89,7 @@ MStatus CArnoldRenderOptionsNode::initialize()
    MFnEnumAttribute eAttr;
    MFnStringData sData;
    MFnTypedAttribute tAttr;
+   MFnMessageAttribute mAttr;
 
    s_arnoldRenderImageFormat = eAttr.create("arnoldRenderImageFormat", "arnif", 0);
    nAttr.setKeyable(false);
@@ -458,10 +461,8 @@ MStatus CArnoldRenderOptionsNode::initialize()
    nAttr.setMax(6);
    addAttribute(s_log_file_verbosity);
 
-   s_background = eAttr.create("background", "bkg", 0);
-   nAttr.setKeyable(false);
-   eAttr.addField("None", 0);
-   eAttr.addField("Sky", 1);
+   s_background = mAttr.create("background", "bkg");
+   mAttr.setKeyable(false);
    addAttribute(s_background);
 
    s_atmosphere = eAttr.create("atmosphere", "atm", 0);

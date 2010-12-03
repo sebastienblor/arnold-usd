@@ -454,6 +454,10 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
    {
       shader = ExportArnoldShader(mayaShader, "standard");
    }
+   else if (node.typeName() == "ArnoldRaySwitchShader")
+   {
+      shader = ExportArnoldShader(mayaShader, "ray_switch");
+   }
    else if (node.typeName() == "ArnoldUtilityShader")
    {
       shader = ExportArnoldShader(mayaShader, "utility");

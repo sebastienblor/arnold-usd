@@ -16,6 +16,7 @@
 #include "nodes/shaders/surface/ArnoldUtilityShader.h"
 #include "nodes/shaders/surface/ArnoldWireframeShader.h"
 #include "nodes/shaders/surface/ArnoldHairShader.h"
+#include "nodes/shaders/ArnoldRaySwitchShader.h"
 
 #include <ai_render.h>
 
@@ -37,10 +38,13 @@ namespace // <anonymous>
       MFnPlugin plugin(object);
       const MString ShaderClass("shader/surface");
       const MString DisplacementClass("shader/displacement");
+      const MString LightClass("light");
 
       // RENDER OPTIONS
       status = plugin.registerNode("ArnoldRenderOptions", CArnoldRenderOptionsNode::id, CArnoldRenderOptionsNode::creator, CArnoldRenderOptionsNode::initialize);
 
+      // Ray swicth shader [could be surface or environment...]
+      status = plugin.registerNode("ArnoldRaySwitchShader", CArnoldRaySwitchShaderNode::id, CArnoldRaySwitchShaderNode::creator, CArnoldRaySwitchShaderNode::initialize, MPxNode::kDependNode, &ShaderClass);
       // Surface Shaders
       status = plugin.registerNode("ArnoldAmbientOcclusionShader", CArnoldAmbientOcclusionShaderNode::id, CArnoldAmbientOcclusionShaderNode::creator, CArnoldAmbientOcclusionShaderNode::initialize, MPxNode::kDependNode, &ShaderClass);
       status = plugin.registerNode("ArnoldStandardShader", CArnoldStandardShaderNode::id, CArnoldStandardShaderNode::creator, CArnoldStandardShaderNode::initialize, MPxNode::kDependNode, &ShaderClass);
@@ -59,7 +63,7 @@ namespace // <anonymous>
 
       // Special shaders (not visible from Maya shaders menu)
       status = plugin.registerNode("ArnoldFogShader", CArnoldFogShaderNode::id, CArnoldFogShaderNode::creator, CArnoldFogShaderNode::initialize);
-      status = plugin.registerNode("ArnoldSkyShader", CArnoldSkyShaderNode::id, CArnoldSkyShaderNode::creator, CArnoldSkyShaderNode::initialize, MPxNode::kLocatorNode);
+      status = plugin.registerNode("ArnoldSkyShader", CArnoldSkyShaderNode::id, CArnoldSkyShaderNode::creator, CArnoldSkyShaderNode::initialize, MPxNode::kLocatorNode, &LightClass);
       status = plugin.registerNode("ArnoldVolumeScatteringShader", CArnoldVolumeScatteringShaderNode::id, CArnoldVolumeScatteringShaderNode::creator, CArnoldVolumeScatteringShaderNode::initialize);
    }
 
@@ -70,6 +74,9 @@ namespace // <anonymous>
 
       // RENDER OPTIONS
       status = plugin.deregisterNode(CArnoldRenderOptionsNode::id);
+
+      // Ray switch shader
+      status = plugin.deregisterNode(CArnoldRaySwitchShaderNode::id);
 
       // Surface Shaders
       status = plugin.deregisterNode(CArnoldAmbientOcclusionShaderNode::id);

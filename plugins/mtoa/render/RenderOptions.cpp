@@ -161,6 +161,8 @@ void CRenderOptions::ProcessArnoldRenderOptions()
 
    if (list.length() > 0)
    {
+      MPlugArray conns;
+
       list.getDependNode(0, node);
 
       MFnDependencyNode fnArnoldRenderOptions(node);
@@ -231,7 +233,16 @@ void CRenderOptions::ProcessArnoldRenderOptions()
       m_log_console_verbosity = fnArnoldRenderOptions.findPlug("log_console_verbosity").asInt();
       m_log_file_verbosity    = fnArnoldRenderOptions.findPlug("log_file_verbosity").asInt();
 
-      m_background = fnArnoldRenderOptions.findPlug("background").asInt();
+      MPlug pBG = fnArnoldRenderOptions.findPlug("background");
+      pBG.connectedTo(conns, true, false);
+      if (conns.length() == 1)
+      {
+         m_background = conns[0].node();
+      }
+      else
+      {
+         m_background = MObject::kNullObj;
+      }
       m_atmosphere = fnArnoldRenderOptions.findPlug("atmosphere").asInt();
    }
 
@@ -281,21 +292,9 @@ void CRenderOptions::SetupRenderOptions() const
 
    // BACKGROUND SHADER
    //
-   list.clear();
-
-   switch (m_background)
+   if (!m_background.isNull())
    {
-   case 0:
-      break;
-
-   case 1:  // Sky
-      list.add("defaultArnoldSkyShader");
-      if (list.length() > 0)
-      {
-         list.getDependNode(0, node);
-         AiNodeSetPtr(AiUniverseGetOptions(), "background", m_scene->ExportShader(node));
-      }
-      break;
+      AiNodeSetPtr(AiUniverseGetOptions(), "background", m_scene->ExportShader(m_background));
    }
 
    // ATMOSPHERE SHADER
