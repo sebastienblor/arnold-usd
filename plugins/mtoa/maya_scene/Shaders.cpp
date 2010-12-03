@@ -689,6 +689,15 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
       ProcessShaderParameter(node, "bumpValue", shader, "bump_map", AI_TYPE_FLOAT);
       ProcessShaderParameter(node, "bumpDepth", shader, "bump_height", AI_TYPE_FLOAT);
    }
+   else if (node.typeName() == "bump3d")
+   {
+      shader = AiNode("bump3d");
+
+      AiNodeSetStr(shader, "name", node.name().asChar());
+
+      ProcessShaderParameter(node, "bumpValue", shader, "bump_map", AI_TYPE_FLOAT);
+      ProcessShaderParameter(node, "bumpDepth", shader, "bump_height", AI_TYPE_FLOAT);
+   }
    else if (node.typeName() == "samplerInfo")
    {
       if (attrName == "facingRatio")
