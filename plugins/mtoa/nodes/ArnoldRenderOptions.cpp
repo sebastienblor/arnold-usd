@@ -22,6 +22,7 @@ MObject CArnoldRenderOptionsNode::s_arnoldRenderImageQuality;
 MObject CArnoldRenderOptionsNode::s_arnoldRenderImageOutputFormat;
 MObject CArnoldRenderOptionsNode::s_arnoldRenderImageTiled;
 MObject CArnoldRenderOptionsNode::s_arnoldRenderImageUnpremultAlpha;
+MObject CArnoldRenderOptionsNode::s_aovs;
 MObject CArnoldRenderOptionsNode::s_progressive_rendering;
 MObject CArnoldRenderOptionsNode::s_threads;
 MObject CArnoldRenderOptionsNode::s_threads_autodetect;
@@ -143,6 +144,10 @@ MStatus CArnoldRenderOptionsNode::initialize()
    s_arnoldRenderImageUnpremultAlpha = nAttr.create("unpremult_alpha", "arniua", MFnNumericData::kBoolean, 0);
    nAttr.setKeyable(false);
    addAttribute(s_arnoldRenderImageUnpremultAlpha);
+
+   s_aovs = mAttr.create("aovs", "arniaovs");
+   mAttr.setKeyable(false);
+   addAttribute(s_aovs);
 
    s_progressive_rendering = nAttr.create("progressive_rendering", "prog", MFnNumericData::kBoolean, 0);
    nAttr.setKeyable(false);

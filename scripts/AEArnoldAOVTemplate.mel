@@ -1,0 +1,19 @@
+global proc AEarnoldAOVNew(string $attr)
+{
+   setUITemplate -pst attributeEditorTemplate;
+   setUITemplate -ppt;
+}
+
+global proc AEarnoldAOVReplace(string $attr)
+{
+}
+
+global proc AEArnoldAOVTemplate(string $nodeName)
+{
+   editorTemplate -suppress "aov_name";
+   editorTemplate -suppress "aov_prefix";
+
+   editorTemplate -beginScrollLayout;
+      editorTemplate -callCustom AEarnoldAOVNew AEarnoldAOVReplace "aovs";
+   editorTemplate -endScrollLayout;
+}

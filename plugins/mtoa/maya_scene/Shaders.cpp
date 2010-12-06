@@ -1,5 +1,7 @@
 
 #include "MayaScene.h"
+#include "render/RenderOptions.h"
+#include "render/RenderSession.h"
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
@@ -407,8 +409,25 @@ AtNode* CMayaScene::ExportArnoldShader(MObject mayaShader, MString arnoldShader)
       for (AtInt J = 0; (J < numParams); ++J)
       {
          const AtParamEntry* paramEntry = AiNodeEntryGetParameter(nodeEntry, J);
+      
+         if (!strncmp(AiParamGetName(paramEntry), "aov_", 4))
+         {
+            CRenderSession *renderSession = CRenderSession::GetInstance();
+            const CRenderOptions *renderOptions = renderSession->RenderOptions();
 
-         if (strcmp(AiParamGetName(paramEntry), "name"))
+            // do not check type for now
+            MString aovName = AiParamGetName(paramEntry) + 4;
+
+            if (renderOptions->FindAOV(aovName) != size_t(-1))
+            {
+               AiNodeSetStr(shader, AiParamGetName(paramEntry), aovName.asChar());
+            }
+            else
+            {
+               AiNodeSetStr(shader, AiParamGetName(paramEntry), "");
+            }
+         }
+         else if (strcmp(AiParamGetName(paramEntry), "name"))
          {
             SHADER_PARAM(AiParamGetName(paramEntry), AiParamGetType(paramEntry));
          }

@@ -53,7 +53,7 @@ void CRenderOptions::UpdateImageFilename()
 
    MString sceneFileName, nameCamera;
    MString cameraFolderName;
-   MObject renderLayer = MFnRenderLayer::defaultRenderLayer();  	
+   MObject renderLayer = MFnRenderLayer::defaultRenderLayer();     
    double  fileFrameNumber;
 
    // get the frame number
@@ -90,6 +90,10 @@ void CRenderOptions::UpdateImageFilename()
       m_imageFilename = m_defaultRenderGlobalsData.getImageName(m_defaultRenderGlobalsData.kFullPathTmp, fileFrameNumber, sceneFileName, nameCamera, m_imageFileExtension, renderLayer, 1);
    }
 
+   for (size_t i=0; i<NumAOVs(); ++i)
+   {
+      m_aovs[i].UpdateImageFilename(GetCameraName(), m_imageFileExtension, MultiCameraRender(), BatchMode());
+   }
 }
 
 void CRenderOptions::ProcessCommonRenderOptions()
@@ -244,6 +248,30 @@ void CRenderOptions::ProcessArnoldRenderOptions()
          m_background = MObject::kNullObj;
       }
       m_atmosphere = fnArnoldRenderOptions.findPlug("atmosphere").asInt();
+
+      // AOVs
+      ClearAOVs();
+      MPlug pAOV = fnArnoldRenderOptions.findPlug("aovs");
+      pAOV.connectedTo(conns, true, false);
+      if (conns.length() == 1)
+      {
+         MObject oAOV = conns[0].node();
+         MFnDependencyNode nAOV(oAOV);
+
+         MPlug pBMO = nAOV.findPlug("aov_batch_mode_only");
+         if (BatchMode() || (!pBMO.isNull() && !pBMO.asBool()))
+         {
+            MPlug pAOVs = nAOV.findPlug("aovs");
+            for (unsigned int i=0; i<pAOVs.numElements(); ++i)
+            {
+               CAOV aov;
+               if (aov.FromMaya(pAOVs[i]))
+               {
+                  AddAOV(aov);
+               }
+            }
+         }
+      }
    }
 
    SetupImageOutputs();

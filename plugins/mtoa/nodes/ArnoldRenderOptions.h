@@ -31,6 +31,7 @@ public:
    static MObject s_arnoldRenderImageOutputFormat;
    static MObject s_arnoldRenderImageTiled;
    static MObject s_arnoldRenderImageUnpremultAlpha;
+   static MObject s_aovs;
 
    static MObject s_progressive_rendering;
    static MObject s_threads;

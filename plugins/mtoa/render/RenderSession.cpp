@@ -384,7 +384,7 @@ void CRenderSession::SetupRenderOutput()
    //
    AtChar   str[1024];
    int      ndrivers = m_renderOptions.BatchMode() ? 1 : 2;
-   AtArray* outputs  = AiArrayAllocate(ndrivers, 1, AI_TYPE_STRING);
+   AtArray* outputs  = AiArrayAllocate(ndrivers+static_cast<AtInt>(m_renderOptions.NumAOVs()), 1, AI_TYPE_STRING);
 
    sprintf(str, "RGBA RGBA %s %s", AiNodeGetName(filter), AiNodeGetName(driver));
    AiArraySetStr(outputs, 0, str);
@@ -393,6 +393,11 @@ void CRenderSession::SetupRenderOutput()
    {
       sprintf(str, "RGBA RGBA %s %s", AiNodeGetName(filter), "renderview_display");
       AiArraySetStr(outputs, 1, str);
+   }
+
+   for (size_t i=0; i<m_renderOptions.NumAOVs(); ++i)
+   {
+      m_renderOptions.GetAOV(i).SetupOutput(outputs, ndrivers+static_cast<int>(i), driver, filter);
    }
 
    AiNodeSetArray(AiUniverseGetOptions(), "outputs", outputs);

@@ -3,6 +3,7 @@
 #include "ArnoldRenderCmd.h"
 #include "ArnoldIprCmd.h"
 #include "nodes/ArnoldRenderOptions.h"
+#include "nodes/ArnoldAOV.h"
 #include "nodes/shaders/atmosphere/ArnoldFogShader.h"
 #include "nodes/shaders/atmosphere/ArnoldVolumeScatteringShader.h"
 #include "nodes/shaders/background/ArnoldSkyShader.h"
@@ -43,6 +44,9 @@ namespace // <anonymous>
       // RENDER OPTIONS
       status = plugin.registerNode("ArnoldRenderOptions", CArnoldRenderOptionsNode::id, CArnoldRenderOptionsNode::creator, CArnoldRenderOptionsNode::initialize);
 
+      // AOV
+      status = plugin.registerNode("ArnoldAOV", CArnoldAOVNode::id, CArnoldAOVNode::creator, CArnoldAOVNode::initialize);
+
       // Ray swicth shader [could be surface or environment...]
       status = plugin.registerNode("ArnoldRaySwitchShader", CArnoldRaySwitchShaderNode::id, CArnoldRaySwitchShaderNode::creator, CArnoldRaySwitchShaderNode::initialize, MPxNode::kDependNode, &ShaderClass);
       // Surface Shaders
@@ -74,6 +78,9 @@ namespace // <anonymous>
 
       // RENDER OPTIONS
       status = plugin.deregisterNode(CArnoldRenderOptionsNode::id);
+
+      // AOV
+      status = plugin.deregisterNode(CArnoldAOVNode::id);
 
       // Ray switch shader
       status = plugin.deregisterNode(CArnoldRaySwitchShaderNode::id);

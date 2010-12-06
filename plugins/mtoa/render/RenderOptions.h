@@ -1,10 +1,14 @@
 #ifndef RENDER_OPTIONS_H
 #define RENDER_OPTIONS_H
 
+#include "AOV.h"
+
 #include <ai_types.h>
 
 #include <maya/MString.h>
-#include <maya/MCommonRenderSettingsData.h> 
+#include <maya/MCommonRenderSettingsData.h>
+
+#include <vector>
 
 class CMayaScene;
 
@@ -243,6 +247,45 @@ public:
       return m_AA_samples;
    }
 
+   size_t NumAOVs() const
+   {
+      return m_aovs.size();
+   }
+
+   size_t FindAOV(const MString &name) const
+   {
+      for (size_t i=0; i<m_aovs.size(); ++i)
+      {
+         if (m_aovs[i].GetName() == name)
+         {
+            return i;
+         }
+      }
+      return size_t(-1);
+   }
+
+   const CAOV& GetAOV(size_t idx) const
+   {
+      return m_aovs[idx];
+   }   
+
+   void AddAOV(const CAOV &aov)
+   {
+      size_t idx = FindAOV(aov.GetName());
+      if (idx != size_t(-1))
+      {
+         m_aovs[idx] = aov;
+      }
+      else
+      {
+         m_aovs.push_back(aov);
+      }
+   }
+   
+   void ClearAOVs()
+   {
+      m_aovs.clear();
+   }
 
    void GetFromMaya(CMayaScene* scene);
 
@@ -346,6 +389,8 @@ private:
    AtUInt  m_log_max_warnings;
    AtUInt  m_log_console_verbosity;
    AtUInt  m_log_file_verbosity;
+
+   std::vector<CAOV> m_aovs;
 
    CMayaScene* m_scene;
 };

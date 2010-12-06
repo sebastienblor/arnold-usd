@@ -207,7 +207,11 @@ global proc CreateArnoldRenderSettings()
       attrControlGrp -label "Plug-ins Path"
          -attribute defaultArnoldRenderOptions.plugins_path
          os_plugins_path;
-                        
+
+      separator;
+
+      button -label "Setup AOVs" -command "ArnoldAOVEditor()";
+
       setParent ..;
 
    setUITemplate -popTemplate;
