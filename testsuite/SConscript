@@ -119,7 +119,7 @@ def run_test(target, source, env):
    TEST_NAME = env['TEST_NAME']
 
    test_env = env.Clone()
-      
+   
    # add libai to library search path
    if system.os() == 'darwin':
       os.environ['DYLD_LIBRARY_PATH'] = test_env['ENV']['DYLD_LIBRARY_PATH']
@@ -143,19 +143,23 @@ def run_test(target, source, env):
       ## TODO: attach valgrind to each command
       output_to_file = not show_test_output or test_env['UPDATE_REFERENCE']
       before_time = time.time()
+      
+      # replace test render dir with this test dir
+      # image filename "testrender" and format "Tiff" are set in the test scene render settings
+      cmd = string.replace(cmd, "testrenderdir", os.path.abspath(os.path.dirname(test_env['OUTPUT_IMAGE'])))
+      
       ## redirect test output
       if output_to_file:
          file = open("%s.log" % TEST_NAME, 'w')
-         p = subprocess.Popen(cmd, shell=True, stdout = file, stderr = subprocess.STDOUT)
+         p = subprocess.Popen(cmd, stdout = file, stderr = subprocess.STDOUT)
          retcode = p.wait()
          file.close()
       else:
-         p = subprocess.Popen(cmd, shell=True)
+         p = subprocess.Popen(cmd)
          retcode = p.wait()
       running_time = time.time() - before_time
       TOTAL_RUNNING_TIME += running_time
       status = process_return_code(retcode)
-      print "-- " + str(status) + " -- " + str(retcode)
       if test_env['FORCE_RESULT'] == 'FAILED':
          # In this case, retcode interpretation is fliped (except for crashed tests)
          if status == 'FAILED':
@@ -430,10 +434,9 @@ testsuite_bld = Builder(action = process_testsuite)
 
 class Test:
    def __init__(self,
-                script = '%s -r Arnold -im %s %s' % (
-                   os.path.join(env['MAYA_ROOT'], 'render'),
-                   'aaa',
-                   'bbb'),
+                script = '"%s" -rd testrenderdir -r arnold "%s"' % (
+                   os.path.join(env['MAYA_ROOT'], 'bin', 'render'),
+                   'test.mb'),
                 plugin_sources      = '*.c*',
                 program_sources     = '',
                 program_name        = 'prog',
@@ -495,9 +498,6 @@ class Test:
          SHADERS += test_env.Program(os.path.join(test_build_dir, self.program_name), [os.path.join(test_build_dir, f) for f in Split(self.program_sources)], LIBS=Split('ai'))
       FILES = []
       FILES += test_env.Install(test_build_dir, os.path.join(test_dir, 'README'))
-      
-      if os.path.exists(os.path.join(test_dir, 'execute_test.js')):
-         FILES += test_env.Install(test_build_dir, os.path.join(test_dir, 'execute_test.js'))
    
       for root, dirs, files in os.walk(test_data_dir):
          if '.svn' in dirs:
@@ -568,6 +568,7 @@ if system.os() == 'darwin' or system.os() == 'windows':
 ## make sure we can find difftiff and any generated programs
 add_to_path(test_env, os.path.abspath(str(DIFFTIFF[0].dir)))
 add_to_path(test_env, os.path.abspath(str(TIFF2JPEG[0].dir)))
+add_to_path(test_env, env['TARGET_PLUGIN_PATH'])
 
 ## First stage. Process build targets, expanding the groups and patterns into single tests
 index = 0
