@@ -300,6 +300,12 @@ global proc CreateArnoldSamplingSettings()
 
       separator;
 
+      attrControlGrp -label "Lock sample noise"
+         -attribute defaultArnoldRenderOptions.lock_sampling_noise
+         ss_lock_sampling_noise;
+
+      separator;
+
       attrControlGrp -label "Filter Type"
          -attribute defaultArnoldRenderOptions.filter_type
          -cc UpdateArnoldFilterOptions

@@ -10,8 +10,15 @@
 #include <maya/MFnStringData.h>
 #include <maya/MFnTypedAttribute.h>
 #include <maya/MFnMessageAttribute.h>
+#include <maya/MFnUnitAttribute.h>
+#include <maya/MSelectionList.h>
+#include <maya/MFnDependencyNode.h>
+#include <maya/MDGModifier.h>
+#include <maya/MDGMessage.h>
 
 MTypeId CArnoldRenderOptionsNode::id(ARNOLD_NODEID_RENDER_OPTIONS);
+
+MCallbackId CArnoldRenderOptionsNode::sId;
 
 MObject CArnoldRenderOptionsNode::s_arnoldRenderImageFormat;
 MObject CArnoldRenderOptionsNode::s_arnoldRenderImageCompression;
@@ -38,6 +45,8 @@ MObject CArnoldRenderOptionsNode::s_GI_glossy_samples;
 MObject CArnoldRenderOptionsNode::s_GI_sss_hemi_samples;
 MObject CArnoldRenderOptionsNode::s_use_sample_clamp;
 MObject CArnoldRenderOptionsNode::s_AA_sample_clamp;
+MObject CArnoldRenderOptionsNode::s_lock_sampling_noise;
+MObject CArnoldRenderOptionsNode::s_aa_seed;
 MObject CArnoldRenderOptionsNode::s_filter_type;
 MObject CArnoldRenderOptionsNode::s_filter_width;
 MObject CArnoldRenderOptionsNode::s_filter_domain;
@@ -87,6 +96,33 @@ void* CArnoldRenderOptionsNode::creator()
    return new CArnoldRenderOptionsNode();
 }
 
+// Callback is called whenever a ArnoldRenderOptions node is created
+void CArnoldRenderOptionsNode::createdCallback(MObject& node, void* clientData)
+{  
+   MSelectionList list;
+	
+   list.add( "time1" );
+   MObject timeNode;
+   list.getDependNode( 0, timeNode ); 
+   MFnDependencyNode timeFn( timeNode );
+   MObject timeOutAttr = timeFn.attribute( "outTime" );
+
+   MFnDependencyNode renderOptionsFn(node);
+   MObject aaSeedAttr = renderOptionsFn.attribute( "aa_seed" );
+   
+   // Connect to time node
+   // 
+   MDGModifier modifier;
+   modifier.connect( timeNode, timeOutAttr, node, aaSeedAttr );
+   modifier.doIt();
+}
+
+// Setup the on creation callback
+void CArnoldRenderOptionsNode::postConstructor()
+{
+   CArnoldRenderOptionsNode::sId = MDGMessage::addNodeAddedCallback( CArnoldRenderOptionsNode::createdCallback, "ArnoldRenderOptions" );
+}
+
 MStatus CArnoldRenderOptionsNode::initialize()
 {
    MFnNumericAttribute  nAttr;
@@ -94,6 +130,7 @@ MStatus CArnoldRenderOptionsNode::initialize()
    MFnStringData sData;
    MFnTypedAttribute tAttr;
    MFnMessageAttribute mAttr;
+   MFnUnitAttribute	uAttr;
 
    s_arnoldRenderImageFormat = eAttr.create("arnoldRenderImageFormat", "arnif", 0);
    nAttr.setKeyable(false);
@@ -233,6 +270,17 @@ MStatus CArnoldRenderOptionsNode::initialize()
    nAttr.setSoftMax(100);
    addAttribute(s_AA_sample_clamp);
 
+   s_lock_sampling_noise = nAttr.create("lock_sampling_noise", "locksn", MFnNumericData::kBoolean, 0);
+   nAttr.setKeyable(false);
+   addAttribute(s_lock_sampling_noise);
+      
+   s_aa_seed = uAttr.create( "aa_seed", "aaseed", MFnUnitAttribute::kTime );
+   uAttr.setStorable(false);
+   uAttr.setConnectable(true);
+   uAttr.setWritable(true);
+   uAttr.setKeyable(false);
+   addAttribute(s_aa_seed);
+   
    {
       s_filter_type = eAttr.create("filter_type", "flttyp", 0);
       AtNodeEntryIterator* it = AiUniverseGetNodeEntryIterator(AI_NODE_FILTER);

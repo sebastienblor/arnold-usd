@@ -78,6 +78,8 @@ namespace // <anonymous>
 
       // RENDER OPTIONS
       status = plugin.deregisterNode(CArnoldRenderOptionsNode::id);
+      // Remove creation callback
+      MDGMessage::removeCallback( CArnoldRenderOptionsNode::sId );
 
       // AOV
       status = plugin.deregisterNode(CArnoldAOVNode::id);

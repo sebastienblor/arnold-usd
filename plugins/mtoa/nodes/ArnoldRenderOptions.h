@@ -3,6 +3,11 @@
 
 #include <maya/MPxNode.h>
 #include <maya/MTypeId.h>
+#include <maya/MStatus.h>
+#include <maya/MPlug.h>
+#include <maya/MDataBlock.h>
+#include <maya/MObject.h>
+#include <maya/MMessage.h>
 
 class CArnoldRenderOptionsNode
    :  public MPxNode
@@ -12,13 +17,15 @@ public:
 
    virtual MStatus compute(const MPlug& plug, MDataBlock& data)
    {
-      return MS::kSuccess;
+     return MS::kSuccess;
    }
 
    static void* creator();
    static MStatus initialize();
-
-	static MTypeId id;
+   void postConstructor();
+   static void createdCallback(MObject& node, void* clientData);
+   static MTypeId id;
+   static MCallbackId sId;
 
    // Attributes
 
@@ -49,6 +56,8 @@ public:
    static MObject s_GI_sss_hemi_samples;
    static MObject s_use_sample_clamp;
    static MObject s_AA_sample_clamp;
+   static MObject s_lock_sampling_noise;
+   static MObject s_aa_seed;
    static MObject s_filter_type;
    static MObject s_filter_width;
    static MObject s_filter_domain;

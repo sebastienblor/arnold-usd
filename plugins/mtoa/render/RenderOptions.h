@@ -350,6 +350,7 @@ private:
    AtUInt   m_GI_glossy_samples;
    AtUInt   m_GI_sss_hemi_samples;
    float    m_AA_sample_clamp;
+   bool     m_lock_sampling_noise;
 
    MString  m_filter_type;
    float    m_filter_width;

@@ -196,6 +196,8 @@ void CRenderOptions::ProcessArnoldRenderOptions()
       m_GI_sss_hemi_samples = fnArnoldRenderOptions.findPlug("GI_sss_hemi_samples").asInt();
       m_AA_sample_clamp     = fnArnoldRenderOptions.findPlug("use_sample_clamp").asBool() ? fnArnoldRenderOptions.findPlug("AA_sample_clamp").asFloat() : (float) AI_INFINITE;
 
+      m_lock_sampling_noise = fnArnoldRenderOptions.findPlug("lock_sampling_noise").asBool();
+
       MFnEnumAttribute enum_filter_type(fnArnoldRenderOptions.findPlug("filter_type").attribute());
       m_filter_type  = enum_filter_type.fieldName(fnArnoldRenderOptions.findPlug("filter_type").asShort());
       m_filter_width = fnArnoldRenderOptions.findPlug("filter_width").asFloat();
@@ -284,6 +286,9 @@ void CRenderOptions::ProcessArnoldRenderOptions()
 void CRenderOptions::SetupRenderOptions() const
 {
    SetupImageOptions();
+   MTime currentTime;
+
+   currentTime = MAnimControl::currentTime();
 
    AiNodeSetInt(AiUniverseGetOptions(), "threads", m_threads);
    AiNodeSetInt(AiUniverseGetOptions(), "bucket_scanning", m_bucket_scanning);
@@ -295,6 +300,9 @@ void CRenderOptions::SetupRenderOptions() const
    AiNodeSetInt(AiUniverseGetOptions(), "GI_glossy_samples", m_GI_glossy_samples);
    AiNodeSetInt(AiUniverseGetOptions(), "GI_sss_hemi_samples", m_GI_sss_hemi_samples);
    AiNodeSetFlt(AiUniverseGetOptions(), "AA_sample_clamp", m_AA_sample_clamp);
+
+   if (!m_lock_sampling_noise)
+      AiNodeSetInt(AiUniverseGetOptions(), "AA_seed", (AtInt)currentTime.value());
 
    AiNodeSetFlt(AiUniverseGetOptions(), "light_gamma", m_light_gamma);
    AiNodeSetFlt(AiUniverseGetOptions(), "shader_gamma", m_shader_gamma);
