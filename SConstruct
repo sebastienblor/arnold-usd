@@ -1,13 +1,23 @@
 # vim: filetype=python
 
 ## first we extend the module path to load our own modules
-import sys
+import sys, os
 sys.path = ["tools/python"] + sys.path
 
 import system
 from build_tools import *
 
 import glob, shutil
+
+def SymLink(target, source, env):
+   print "making link %s pointing to target %s" % (target[0], source[0])
+   os.symlink(os.path.split(str(source[0]))[1], str(target[0]))
+
+def MakeModule(env, target, source):
+   # TODO: get mtoa version from somewhere...
+   f = open(source[0], 'w' )
+   f.write('+ mtoa 0.4 %s\n' % target[0])
+   f.close()
 
 if system.os() == 'darwin':
    ALLOWED_COMPILERS = ('gcc',)   # Do not remove this comma, it's magic
@@ -37,11 +47,17 @@ vars.AddVariables(
       PathVariable('EXTERNAL_PATH', 'External dependencies are found here', '.'),
       PathVariable('ARNOLD_API_INCLUDES', 'Where to find Arnold API includes', '.'),
       PathVariable('ARNOLD_API_LIB', 'Where to find Arnold API libraries', '.'),
-      PathVariable('TARGET_PLUGIN_PATH', 'Path used for installation of plugins', '.'),
-      PathVariable('TARGET_SCRIPTS_PATH', 'Path used for installation of scripts', '.'),
-      PathVariable('TARGET_ICONS_PATH', 'Path used for installation of icons', '.'),
-      PathVariable('TARGET_DESCR_PATH', 'Path for renderer description file', '.')
+      PathVariable('TARGET_MODULE_PATH', 'Path used for installation of the mtoa plugin', '.', PathVariable.PathIsDirCreate),
+      PathVariable('TARGET_PLUGIN_PATH', 'Path used for installation of the mtoa plugin', '$TARGET_MODULE_PATH/plug-ins', PathVariable.PathIsDirCreate),
+      PathVariable('TARGET_SCRIPTS_PATH', 'Path used for installation of scripts', '$TARGET_MODULE_PATH/scripts', PathVariable.PathIsDirCreate),
+      PathVariable('TARGET_PYTHON_PATH', 'Path used for installation of Python scripts', '$TARGET_SCRIPTS_PATH', PathVariable.PathIsDirCreate),
+      PathVariable('TARGET_ICONS_PATH', 'Path used for installation of icons', '$TARGET_MODULE_PATH/icons', PathVariable.PathIsDirCreate),
+      PathVariable('TARGET_DESCR_PATH', 'Path for renderer description file', '.'),
+      PathVariable('TARGET_SHADER_PATH', 'Path used for installation of arnold shaders', '$TARGET_MODULE_PATH/shaders', PathVariable.PathIsDirCreate),
+      PathVariable('TARGET_EXTENSION_PATH', 'Path used for installation of mtoa translator extensions', '$TARGET_MODULE_PATH/extensions', PathVariable.PathIsDirCreate),
+      PathVariable('TARGET_LIB_PATH', 'Path for libraries', '$TARGET_MODULE_PATH/lib', PathVariable.PathIsDirCreate)
 )
+
 if system.os() == 'windows':
    vars.Add(EnumVariable('MSVS_VERSION', 'Version of MS Visual Studio to use', '8.0', allowed_values=('8.0', '8.0Exp', '9.0', '9.0Exp')))
 
@@ -53,6 +69,8 @@ if system.os() == 'windows':
    env = tmp_env.Clone(tools=['default'])
 else:
    env = Environment(variables = vars)
+
+env.Append(BUILDERS = {'MakeModule' : MakeModule})
 
 system.set_target_arch(env['TARGET_ARCH'])
 
@@ -178,10 +196,17 @@ if not env['SHOW_CMDS']:
 env['ROOT_DIR'] = os.getcwd()
 
 if system.os() == 'windows':
+   maya_env = env.Clone()
+   maya_env.Append(CPPPATH = ['.'])
+   maya_env.Append(CPPPATH = [os.path.join(env['MAYA_ROOT'], 'include')])
+   maya_env.Append(CPPDEFINES = Split('NT_PLUGIN REQUIRE_IOSTREAM'))
+   maya_env.Append(LIBPATH = [os.path.join(env['MAYA_ROOT'], 'lib')])
+   maya_env.Append(LIBS=Split('ai.lib OpenGl32.lib glu32.lib Foundation.lib OpenMaya.lib OpenMayaRender.lib OpenMayaUI.lib OpenMayaAnim.lib OpenMayaFX.lib'))
+
    [MTOA, MTOA_PRJ] = env.SConscript(os.path.join('plugins', 'mtoa', 'SConscript'),
                                      build_dir = os.path.join(BUILD_BASE_DIR, 'mtoa'),
                                      duplicate = 0,
-                                     exports   = 'env')
+                                     exports   = 'maya_env')
 
    [MTOA_SHADERS, MTOA_SHADERS_PRJ] = env.SConscript(os.path.join('shaders', 'src', 'SConscript'),
                                                      build_dir = os.path.join(BUILD_BASE_DIR, 'shaders'),
@@ -213,10 +238,17 @@ if system.os() == 'windows':
                                           'Opt_MSVC|Win32',
                                           'Opt_ICC|Win32'])
 else:
+   maya_env = env.Clone()
+   maya_env.Append(CPPPATH = ['.'])
+   maya_env.Append(CPPPATH = [os.path.join(env['MAYA_ROOT'], 'include')])
+   maya_env.Append(CPPDEFINES = Split('LINUX _BOOL REQUIRE_IOSTREAM'))
+   maya_env.Append(LIBPATH = [os.path.join(env['MAYA_ROOT'], 'lib')])
+   maya_env.Append(LIBS=Split('ai GL GLU pthread Foundation OpenMaya OpenMayaRender OpenMayaUI OpenMayaAnim OpenMayaFX'))
+
    MTOA = env.SConscript(os.path.join('plugins', 'mtoa', 'SConscript'),
                          build_dir = os.path.join(BUILD_BASE_DIR, 'mtoa'),
                          duplicate = 0,
-                         exports   = 'env')
+                         exports   = 'maya_env')
 
    MTOA_SHADERS = env.SConscript(os.path.join('shaders', 'src', 'SConscript'),
                                  build_dir = os.path.join(BUILD_BASE_DIR, 'shaders'),
@@ -244,16 +276,21 @@ if system.os() == 'windows':
    # Rename plugins as .mll and install them in the target path
    mtoa_new = os.path.splitext(str(MTOA[0]))[0] + '.mll'
    env.Command(mtoa_new, str(MTOA[0]), Copy("$TARGET", "$SOURCE"))
-   env.Install(env['TARGET_PLUGIN_PATH'], [mtoa_new, str(MTOA_SHADERS[0])] + glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*.dll')))
+   env.Install(env['TARGET_PLUGIN_PATH'], [mtoa_new] + glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*.dll')))
+   env.Install(env['TARGET_SHADER_PATH'], MTOA_SHADERS)
 else:
-   # Remove the lib prefix
-   mtoa_new = str(MTOA[0]).replace('lib', '')
-   env.Command(mtoa_new, str(MTOA[0]), Copy("$TARGET", "$SOURCE"))
-   env.Install(env['TARGET_PLUGIN_PATH'], [mtoa_new, str(MTOA_SHADERS[0])] + glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*.so')))
+   env.Install(env['TARGET_PLUGIN_PATH'], MTOA + glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*.so')))
+   env.Install(env['TARGET_SHADER_PATH'], MTOA_SHADERS)
 
 env.Install(env['TARGET_SCRIPTS_PATH'], glob.glob(os.path.join('scripts', '*.mel')))
+pyfiles = find_files_recursive('scripts', ['.py'])
+env.InstallAs([os.path.join(env['TARGET_PYTHON_PATH'], x) for x in pyfiles],
+              [os.path.join('scripts', x) for x in  pyfiles])
 env.Install(env['TARGET_ICONS_PATH'], glob.glob(os.path.join('icons', '*.xpm')))
 env.Install(env['TARGET_DESCR_PATH'], glob.glob(os.path.join('scripts', '*.xml')))
+
+env.MakeModule(env['TARGET_MODULE_PATH'], 'mtoa.mod')
+env.Install(env['TARGET_MODULE_PATH'], 'mtoa.mod')
 
 ################################
 ## TARGETS ALIASES AND DEPENDENCIES
@@ -265,19 +302,23 @@ if system.os() == 'windows':
    env.Depends(SOLUTION, INSTALL_PRJ)
    env.AlwaysBuild(INSTALL_PRJ)
    top_level_alias(env, 'solution', SOLUTION)
-                            
+
+#env.Depends('install', MTOA)
+#env.Depends('install', MTOA_SHADERS)
+aliases = []
+aliases.append(env.Alias('install-scripts', env['TARGET_SCRIPTS_PATH']))
+aliases.append(env.Alias('install-python', env['TARGET_PYTHON_PATH']))
+aliases.append(env.Alias('install-icons', env['TARGET_ICONS_PATH']))
+aliases.append(env.Alias('install-descr', env['TARGET_DESCR_PATH']))
+aliases.append(env.Alias('install-lib', env['TARGET_LIB_PATH']))
+aliases.append(env.Alias('install-plugins', env['TARGET_PLUGIN_PATH']))
+
 top_level_alias(env, 'mtoa', MTOA)
 top_level_alias(env, 'shaders', MTOA_SHADERS)
-top_level_alias(env, 'install', env['TARGET_PLUGIN_PATH'])
 top_level_alias(env, 'testsuite', TESTSUITE)
-env.AlwaysBuild('install')
+top_level_alias(env, 'install', aliases)
 
-env.Depends('install', MTOA)
-env.Depends('install', MTOA_SHADERS)
-env.Depends('install', env['TARGET_SCRIPTS_PATH'])
-env.Depends('install', env['TARGET_ICONS_PATH'])
-env.Depends('install', env['TARGET_DESCR_PATH'])
-
+#env.AlwaysBuild('install')
 Default('mtoa')
 
 ## Process top level aliases into the help message

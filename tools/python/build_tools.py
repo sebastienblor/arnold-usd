@@ -5,9 +5,9 @@ import system
 
 import os, string, platform, subprocess, shutil
 
-## create a top level alias so that the help system will know about it
 ALIASES = ''
 def top_level_alias(env, name, targets):
+   '''create a top level alias so that the help system will know about it'''
    global ALIASES
    ALIASES = '%s %s' % (ALIASES, name)
    env.Alias(name, targets)
@@ -15,14 +15,19 @@ def top_level_alias(env, name, targets):
 def get_all_aliases():
    return ALIASES
    
-## Searches for file in the system path. Returns a list of directories containing file
+
 def find_in_path(file):
+   '''
+   Searches for file in the system path. Returns a list of directories containing file
+   '''
    path = os.environ['PATH']
    path = string.split(path, os.pathsep)
    return filter(os.path.exists, map(lambda dir, file=file: os.path.join(dir, file), path))
 
-## Returns a list of all files with an extension from the 'valid_extensions' list
 def find_files_recursive(path, valid_extensions):
+   '''
+   Returns a list of all files with an extension from the 'valid_extensions' list
+   '''
    path = os.path.normpath(path)
    list = []
    for root, dirs, files in os.walk(path):
@@ -35,9 +40,11 @@ def find_files_recursive(path, valid_extensions):
             list += [file]
    return list
 
-## Copy directories recursively, ignoring .svn dirs
-## <dest> directory must not exist
 def copy_dir_recursive(src, dest):
+   '''
+   Copy directories recursively, ignoring .svn dirs
+   <dest> directory must not exist
+   '''
    for f in os.listdir(src):
       src_path  = os.path.join(src, f)
       dest_path = os.path.join(dest, f)
@@ -49,13 +56,17 @@ def copy_dir_recursive(src, dest):
       else:
          shutil.copy2(src_path, dest_path)
 
-## handy function to remove files only if they exist
 def saferemove(path):
+   '''
+   handy function to remove files only if they exist
+   '''
    if os.path.exists(path):
       os.remove(path)
 
-## translates a process return code (as obtained by os.system or subprocess) into a status string
 def process_return_code(retcode):
+   '''
+   translates a process return code (as obtained by os.system or subprocess) into a status string
+   '''
    if retcode == 0:
       status = 'OK'
    else:
@@ -71,8 +82,10 @@ def process_return_code(retcode):
             status = 'FAILED'
    return status      
 
-## Obtains SItoA version by parsing 'Version.cpp'
 def get_sitoa_version(path, components = 3):
+   '''
+   Obtains SItoA version by parsing 'Version.cpp'
+   '''
    MAJOR_VERSION=''
    MINOR_VERSION=''
    FIX_VERSION=''
@@ -102,8 +115,10 @@ def get_sitoa_version(path, components = 3):
       version += '.' + FIX_VERSION
    return version      
 
-## Obtains Arnold library version by parsing 'ai_version.h'
 def get_arnold_version(path, components = 4):
+   '''
+   Obtains Arnold library version by parsing 'ai_version.h'
+   '''
    ARCH_VERSION=''
    MAJOR_VERSION=''
    MINOR_VERSION=''
@@ -137,8 +152,10 @@ def get_arnold_version(path, components = 4):
       version += '.' + FIX_VERSION
    return version      
 
-## This function will give us the information we need about the latest snv revision of the root arnold directory
 def get_latest_revision():
+   '''
+   This function will give us the information we need about the latest snv revision of the root arnold directory
+   '''
    p = subprocess.Popen('svn info .', shell=True, stdout = subprocess.PIPE)
    retcode = p.wait()
   
@@ -167,3 +184,24 @@ def get_escaped_path(path):
       return path.replace("\\", "\\\\")
    else:
       return path
+
+try:
+    # available in python >= 2.6
+    relpath = os.path.relpath
+except AttributeError:
+    def relpath(path, start=curdir):
+        """Return a relative version of a path"""
+    
+        if not path:
+            raise ValueError("no path specified")
+    
+        start_list = abspath(start).split(sep)
+        path_list = abspath(path).split(sep)
+    
+        # Work out how much of the filepath is shared by start and path.
+        i = len(commonprefix([start_list, path_list]))
+    
+        rel_list = [pardir] * (len(start_list)-i) + path_list[i:]
+        if not rel_list:
+            return curdir
+        return join(*rel_list)

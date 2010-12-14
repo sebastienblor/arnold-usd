@@ -25,7 +25,10 @@ local_env.Append(CPPPATH = [os.path.join(env['EXTERNAL_PATH'], 'tiff-3.8.2', 'di
 local_env.Append(CPPPATH = [os.path.join(env['EXTERNAL_PATH'], 'jpeg-6b', 'dist', 'include', arch)])
 local_env.Append(LIBPATH = [os.path.join(env['EXTERNAL_PATH'], 'tiff-3.8.2', 'dist', 'lib', arch)])
 local_env.Append(LIBPATH = [os.path.join(env['EXTERNAL_PATH'], 'jpeg-6b', 'dist', 'lib', arch)])
-local_env.Append(LIBS = Split('libtiff jpeglib'))
+if system.os() == 'windows':
+    local_env.Append(LIBS = Split('libtiff jpeglib'))
+else:
+    local_env.Append(LIBS = Split('libtiff libjpeg'))
 
 # make Program (.bin, .app, .exe, etc) with env
 TIFF2JPEG = local_env.Program('tiff2jpeg', source_files)
