@@ -10,6 +10,8 @@
 #include <maya/MObjectArray.h>
 #include <maya/MSelectionList.h>
 #include <maya/MObjectHandle.h>
+#include <maya/MFnCamera.h>
+#include <maya/MVectorArray.h>
 
 #include <vector>
 #include <map>
@@ -66,6 +68,10 @@ private:
    void ExportCamera(const MDagPath& dagPath, AtUInt step);
    void ExportCameraData(AtNode* camera, const MDagPath& dagPath, bool mb);
    void ExportCameraMBData(const MDagPath& dagPath, AtUInt step);
+   double GetDeviceAspect();
+   void GetOrthoFilmback(AtNode* camera, MFnCamera& fnCamera);
+   float GetPerspFilmback(AtNode* camera, MFnCamera& fnCamera);
+   MVectorArray GetFilmTransform(MFnCamera& fnCamera, double width=0, bool persp=true);
    void ExportImagePlane(const MDagPath& dagPath, bool mb, AtUInt step);
    void ExportLight(const MDagPath& dagPath, AtUInt step);
    void ExportLightData(AtNode* light, const MDagPath& dagPath, bool mb, bool custom);
