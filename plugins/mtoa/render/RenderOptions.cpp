@@ -271,7 +271,8 @@ void CRenderOptions::ProcessArnoldRenderOptions()
             for (unsigned int i=0; i<pAOVs.numElements(); ++i)
             {
                CAOV aov;
-               if (aov.FromMaya(pAOVs[i]))
+               MPlug ipAOVs = pAOVs[i];
+               if (aov.FromMaya(ipAOVs))
                {
                   AddAOV(aov);
                }
