@@ -69,6 +69,9 @@ MObject CArnoldRenderOptionsNode::s_motion_frames;
 MObject CArnoldRenderOptionsNode::s_sss_subpixel_cache;
 MObject CArnoldRenderOptionsNode::s_show_samples;
 MObject CArnoldRenderOptionsNode::s_max_subdivisions;
+MObject CArnoldRenderOptionsNode::s_texture_automip;
+MObject CArnoldRenderOptionsNode::s_texture_autotile;
+MObject CArnoldRenderOptionsNode::s_texture_max_memory_MB;
 MObject CArnoldRenderOptionsNode::s_output_ass_filename;
 MObject CArnoldRenderOptionsNode::s_output_ass_compressed;
 MObject CArnoldRenderOptionsNode::s_output_ass_mask;
@@ -427,6 +430,18 @@ MStatus CArnoldRenderOptionsNode::initialize()
    nAttr.setMin(0);
    nAttr.setMax(999);
    addAttribute(s_max_subdivisions);
+
+   s_texture_automip = nAttr.create("texture_automip", "tx_am", MFnNumericData::kBoolean, 1);
+   nAttr.setKeyable(false);
+   addAttribute(s_texture_automip);
+
+   s_texture_autotile = nAttr.create("texture_autotile", "tx_at", MFnNumericData::kInt, 64);
+   nAttr.setKeyable(false);
+   addAttribute(s_texture_autotile);
+
+   s_texture_max_memory_MB = nAttr.create("texture_max_memory_MB", "tx_mm", MFnNumericData::kFloat, 100);
+   nAttr.setKeyable(false);
+   addAttribute(s_texture_max_memory_MB);
 
    s_output_ass_filename = tAttr.create("output_ass_filename", "file", MFnData::kString);
    tAttr.setKeyable(false);

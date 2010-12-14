@@ -87,6 +87,10 @@ public:
 
    static MObject s_max_subdivisions;
 
+   static MObject s_texture_automip;
+   static MObject s_texture_autotile;
+   static MObject s_texture_max_memory_MB;
+
    static MObject s_output_ass_filename;
    static MObject s_output_ass_compressed;
    static MObject s_output_ass_mask;

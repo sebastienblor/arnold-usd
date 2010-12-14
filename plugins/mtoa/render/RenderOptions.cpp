@@ -228,6 +228,10 @@ void CRenderOptions::ProcessArnoldRenderOptions()
 
       m_max_subdivisions = fnArnoldRenderOptions.findPlug("max_subdivisions").asInt();
 
+      m_texture_automip = fnArnoldRenderOptions.findPlug("texture_automip").asBool();
+      m_texture_autotile = fnArnoldRenderOptions.findPlug("texture_autotile").asInt();
+      m_texture_max_memory_MB = fnArnoldRenderOptions.findPlug("texture_max_memory_MB").asFloat();
+
       m_outputAssFile       = fnArnoldRenderOptions.findPlug("output_ass_filename").asString();
       m_outputAssCompressed = fnArnoldRenderOptions.findPlug("output_ass_compressed").asBool();
       m_outputAssMask       = fnArnoldRenderOptions.findPlug("output_ass_mask").asInt();
@@ -310,6 +314,10 @@ void CRenderOptions::SetupRenderOptions() const
    AiNodeSetInt(AiUniverseGetOptions(), "show_samples", m_show_samples);
 
    AiNodeSetInt(AiUniverseGetOptions(), "max_subdivisions", m_max_subdivisions);
+
+   AiNodeSetBool(AiUniverseGetOptions(), "texture_automip", m_texture_automip);
+   AiNodeSetInt(AiUniverseGetOptions(), "texture_autotile", m_texture_autotile);
+   AiNodeSetFlt(AiUniverseGetOptions(), "texture_max_memory_MB", m_texture_max_memory_MB);
 
    // If the scene has not been set, avoid crashing by using a NULL pointer
    if (!m_scene)

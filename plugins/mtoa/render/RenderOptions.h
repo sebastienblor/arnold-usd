@@ -378,6 +378,10 @@ private:
 
    AtUInt   m_max_subdivisions;
 
+   bool     m_texture_automip;
+   AtUInt   m_texture_autotile;
+   float    m_texture_max_memory_MB;
+
    MObject  m_background;
    AtUInt   m_atmosphere;
 

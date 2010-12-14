@@ -536,6 +536,28 @@ global proc CreateArnoldSubdivSettings()
    setUITemplate -popTemplate;
 }
 
+global proc CreateArnoldTextureSettings()
+{
+   setUITemplate -pushTemplate attributeEditorTemplate;
+   columnLayout -adjustableColumn true;
+      
+      attrControlGrp -label "Auto Mipmap"
+         -attribute defaultArnoldRenderOptions.texture_automip
+         texture_automip;
+
+      attrControlGrp -label "Auto Tile Size"
+         -attribute defaultArnoldRenderOptions.texture_autotile
+         texture_autotile;
+
+      attrControlGrp -label "Max Cache Size (MB)"
+         -attribute defaultArnoldRenderOptions.texture_max_memory_MB
+         texture_max_memory_MB;
+
+      setParent ..;
+
+   setUITemplate -popTemplate;
+}
+
 global proc CreateArnoldLogSettings()
 {
    setUITemplate -pushTemplate attributeEditorTemplate;
@@ -621,7 +643,13 @@ global proc CreateArnoldRendererGlobalsTab()
          frameLayout -label "Gamma Correction" -cll true -cl 1 arnoldGammaSettings;
             CreateArnoldGammaSettings;
             setParent ..;
-         
+
+         // Gamma correction
+         //
+         frameLayout -label "Textures" -cll true -cl 1 arnoldTextureSettings;
+            CreateArnoldTextureSettings;
+            setParent ..;
+
          // Log
          //
          frameLayout -label "Log" -cll true -cl 1 arnoldLogSettings;
