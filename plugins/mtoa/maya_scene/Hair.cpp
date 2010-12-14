@@ -68,10 +68,11 @@ namespace
 
       for(unsigned int i=0; i<shapes.length(); i++)
       {
-         MFnMesh mesh(shapes[i].node());
-         MMatrix matrix = shapes[i].inclusiveMatrix();
+         MObject shapeNode = shapes[i].node();
+         MFnMesh mesh(shapeNode);
+         const MMatrix matrix = shapes[i].inclusiveMatrix();
          MMeshIntersector meshInt;
-         meshInt.create(shapes[i].node(), matrix);
+         meshInt.create(shapeNode, matrix);
          MPoint point(line[0].x, line[0].y, line[0].z);
          MPointOnMesh closest;
 
