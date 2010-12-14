@@ -125,7 +125,7 @@ MTOA_DLLEXPORT MStatus initializePlugin(MObject object)
 
    RegisterArnoldNodes(object);
 
-   MGlobal::executeCommand( MString("RegisterArnoldRenderer;") );
+   MGlobal::executePythonCommand( MString("import mtoa.cmds.registerArnoldRenderer;mtoa.cmds.registerArnoldRenderer.registerArnoldRenderer()") );
 
    AiEnd();
 
@@ -137,7 +137,7 @@ MTOA_DLLEXPORT MStatus uninitializePlugin(MObject object)
    MStatus status;
    MFnPlugin plugin(object);
 
-   MGlobal::executeCommand( MString("UnregisterArnoldRenderer;"));
+   MGlobal::executePythonCommand( MString("import mtoa.cmds.unregisterArnoldRenderer;mtoa.cmds.unregisterArnoldRenderer.unregisterArnoldRenderer()"));
 
    UnregisterArnoldNodes(object);
 
