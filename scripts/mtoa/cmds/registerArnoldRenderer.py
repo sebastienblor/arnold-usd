@@ -105,7 +105,7 @@ def addOneTabToGlobalsWindow(renderer, tabLabel, createProc):
     #
     tabLayoutName = ''
     if displayAllTabs:
-       gMasterLayerRendererName = mel.eval('global string $gMasterLayerRendererName; $temp = $gMasterLayerRendererName')
+       gMasterLayerRendererName = mel.eval('global string $gMasterLayerRendererName; $a_temps = $gMasterLayerRendererName')
        tabLayoutName = mel.eval('getRendererTabLayout("%s")'%gMasterLayerRendererName)
     else:
        tabLayoutName = mel.eval('getRendererTabLayout("%s")'%(renderer))
@@ -188,13 +188,12 @@ def registerArnoldRenderer():
                       changeIprRegionProcedure=utils.pyToMelProc(arnoldRender.arnoldIprChangeRegion, ('string', 'renderPanel')))
 
 
-        cmds.evalDeferred('%s.arnoldAddGlobalsTabs()'%__name__)
+        cmds.evalDeferred(arnoldAddGlobalsTabs)
 
         utils.pyToMelProc(addOneTabToGlobalsWindow, ('string', 'renderer'), ('string', 'tabLabel'), ('string', 'createProc'), shortName=True)
         utils.pyToMelProc(renderSettingsTabLabel_melToUI, ('string', 'mel'), shortName=True)
         utils.pyToMelProc(updateMayaImageFormatControl, shortName=True)
-
-        mel.eval('source resolutionFormats.mel;')
+        
         aeUtils.loadAETemplates()
 
         cmds.renderer('arnold', edit=True, addGlobalsNode='defaultArnoldRenderOptions')

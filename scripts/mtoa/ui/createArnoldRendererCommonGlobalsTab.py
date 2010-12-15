@@ -266,8 +266,10 @@ def updateArnoldTargetFilePreview(*args):
     gMeasurementUnitsNames = mel.eval('global string {0}[];string $a_tempsa[]={0}'.format('$gMeasurementUnitsNames'))
     gResolutionUnitsNames = mel.eval('global string {0}[];string $a_tempsa[]={0}'.format('$gResolutionUnitsNames'))
 
-    #if gResolutionUnitsNames:
-    #   mel.eval("source resolutionFormats")
+    if not gResolutionUnitsNames:
+        mel.eval("source resolutionFormats.mel")
+        gMeasurementUnitsNames = mel.eval('global string {0}[];string $a_tempsa[]={0}'.format('$gMeasurementUnitsNames'))
+        gResolutionUnitsNames = mel.eval('global string {0}[];string $a_tempsa[]={0}'.format('$gResolutionUnitsNames'))
 
     # Convert from pixels to the correct measurement units
     docWidth = mel.eval('convertMeasurement(convertPixelsToInches( %s, %s), "inches", "%s")'%(width, dpi, gMeasurementUnitsNames[sizeUnits]))
@@ -1258,12 +1260,12 @@ def createArnoldCommonResolution():
     gUserImageFormatData = mel.eval('global string {0}[];$a_tempsa={0};'.format('$gUserImageFormatData'))
 
     if len(gImageFormatData) == 0:
-        mel.eval('catchQuiet(eval("source imageFormats.mel"))')
+        mel.eval('source imageFormats.mel')
         gImageFormatData = mel.eval('global string {0}[];$a_tempsa={0};'.format('$gImageFormatData'))
 
 
     if not mel.eval('exists imageFormats_melToUI'):
-        mel.eval('catchQuiet(eval("source imageFormats.mel"))')
+        mel.eval('source imageFormats.mel')
         gUserImageFormatData = mel.eval('global string {0}[];$a_tempsa={0};'.format('$gUserImageFormatData'))
 
 
@@ -1271,7 +1273,7 @@ def createArnoldCommonResolution():
     gMeasurementUnitsNames = mel.eval('global string {0}[];$a_tempsa={0};'.format('$gMeasurementUnitsNames'))
 
     if len(gResolutionUnitsNames) == 0:
-        mel.eval('catchQuiet(eval("resolutionFormats"))')
+        mel.eval('source resolutionFormats.mel')
         gResolutionUnitsNames = mel.eval('global string {0}[];$a_tempsa={0};'.format('$gResolutionUnitsNames'))
 
     isMayaEvalVersion = cmds.about(ev=True)
@@ -1738,7 +1740,7 @@ def changeArnoldResolution(*args):
     # We are suppose to get proper image formats for PLE.
     isMayaEvalVersion = cmds.about(ev=True)
     if isMayaEvalVersion:
-        gPLEImageFormatData = mel.eval('global string {0}[];$a_temps={0};'.format('$gPLEImageFormatData'))
+        gPLEImageFormatData = mel.eval('global string {0}[];$a_tempsa={0};'.format('$gPLEImageFormatData'))
         gImageFormatData = gPLEImageFormatData
 
     numResolutionPresets = len(gImageFormatData)
