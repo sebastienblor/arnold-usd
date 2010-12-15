@@ -380,6 +380,10 @@ def createArnoldRayDepthSettings():
     cmds.attrControlGrp('rs_auto_transparency_threshold',
                         label="Auto transp. threshold",
                         attribute='defaultArnoldRenderOptions.auto_transparency_threshold')
+                        
+    cmds.attrControlGrp('rs_auto_transparency_probabilistic',
+                        label="Auto transp. probabilistic",
+                        attribute='defaultArnoldRenderOptions.auto_transparency_probabilistic')
 
     cmds.setParent('..')
 
