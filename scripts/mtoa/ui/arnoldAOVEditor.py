@@ -22,15 +22,17 @@ def listIndex(item, list):
 
 def arnoldAddAOV(node):
     sel = cmds.textScrollList('%s_availableLst'%UI_NAME, query=True, selectItem=True)
-
+    if sel is None:
+        sel = []
+    
     for aov in sel:
         n = cmds.getAttr('%s.aovs'%node, size=True)
         i = 0
-        for a in range(0, n):
-            name = cmds.getAttr('%s.aovs[%d].aov_name'%(node, a))
-            i+=1
-            if not name:
+        while i < n:
+            name = cmds.getAttr('%s.aovs[%d].aov_name'%(node, i))
+            if len(name) == 0:
                 break
+            i += 1
 
         cmds.setAttr('%s.aovs[%d].aov_name'%(node, i), aov, type="string")
         cmds.setAttr('%s.aovs[%d].aov_prefix'%(node, i), '', type="string")
@@ -40,6 +42,8 @@ def arnoldAddAOV(node):
 
 def arnoldRemAOV(node):
     sel = cmds.textScrollList('%s_activeLst'%UI_NAME, query=True, selectItem=True)
+    if sel is None:
+        sel = []
 
     for aov in sel:
         n = cmds.getAttr('%s.aovs'%node, size=True)
@@ -64,6 +68,9 @@ def arnoldRemAOV(node):
 
 def arnoldSetAOVPrefix(node):
     sel = cmds.textScrollList('%s_activeLst'%UI_NAME, query=True, selectItem=True)
+    if sel is None:
+        sel = []
+    
     if len(sel) != 1:
         return
     
@@ -73,14 +80,16 @@ def arnoldSetAOVPrefix(node):
     for i in range(0, n):
         name = cmds.getAttr('%s.aovs[%d].aov_name'%(node, i))
         if name == aov:
-            cmds.setAttr("%s.aovs[%d].aov_prefix"%(node, i), cmds.textField('%s_prefixFld'%UI_NAME, query=True, text=True, type='string'))
+            cmds.setAttr("%s.aovs[%d].aov_prefix"%(node, i), cmds.textField('%s_prefixFld'%UI_NAME, query=True, text=True), type='string')
             break
       
 
 def arnoldSelectAOV(node):
 
     sel = cmds.textScrollList('%s_activeLst'%UI_NAME, query=True, selectItem=True)
-
+    if sel is None:
+        sel = []
+    
     if len(sel) != 1:
         cmds.textField('%s_prefixFld'%UI_NAME, edit=True, enable=False)
         return
