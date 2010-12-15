@@ -1,5 +1,6 @@
 import maya.cmds as cmds
 from mtoa.ui.callback import *
+import mtoa.ui.arnoldAOVEditor as AOVEditor
 
 def updateRenderSettings(*args):
     flag = cmds.getAttr('defaultArnoldRenderOptions.threads_autodetect') == False
@@ -168,7 +169,7 @@ def createArnoldRenderSettings():
 
     cmds.separator()
 
-    cmds.button(label="Setup AOVs", command="%s.arnoldAOVEditor.arnoldAOVEditor()"%__name__)
+    cmds.button(label="Setup AOVs", command=AOVEditor.arnoldAOVEditor)
 
     cmds.setParent('..')
 

@@ -103,7 +103,7 @@ def arnoldToggleAOVBatchModeOnly(node):
     
 
 
-def arnoldAOVEditor():
+def arnoldAOVEditor(*args):
     
     if cmds.window(UI_NAME, exists=True):
         cmds.deleteUI(UI_NAME)
