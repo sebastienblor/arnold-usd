@@ -289,8 +289,8 @@ env.InstallAs([os.path.join(env['TARGET_PYTHON_PATH'], x) for x in pyfiles],
 env.Install(env['TARGET_ICONS_PATH'], glob.glob(os.path.join('icons', '*.xpm')))
 env.Install(env['TARGET_DESCR_PATH'], glob.glob(os.path.join('scripts', '*.xml')))
 
-env.MakeModule(env['TARGET_MODULE_PATH'], 'mtoa.mod')
-env.Install(env['TARGET_MODULE_PATH'], 'mtoa.mod')
+env.MakeModule(env['TARGET_MODULE_PATH'], os.path.join(BUILD_BASE_DIR, 'mtoa.mod'))
+env.Install(env['TARGET_MODULE_PATH'], os.path.join(BUILD_BASE_DIR, 'mtoa.mod'))
 
 ################################
 ## TARGETS ALIASES AND DEPENDENCIES
