@@ -15,6 +15,8 @@ def SymLink(target, source, env):
 
 def MakeModule(env, target, source):
    # TODO: get mtoa version from somewhere...
+   if not os.path.exists(os.path.dirname(source[0])):
+      os.makedirs(os.path.dirname(source[0]))
    f = open(source[0], 'w' )
    f.write('+ mtoa 0.4 %s\n' % target[0])
    f.close()
