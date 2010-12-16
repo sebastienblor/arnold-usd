@@ -33,6 +33,7 @@
 	<!-- ______________________________________________________________ -->
 	<sep desc="General purpose flags:"/>
 	<mel n="rd" p="1" s='workspace -rt "images" "%1";workspace -rt "depth" "%1";' t="path" h="Directory in which to store image files"/>
+	<attrString n="im" s="defaultRenderGlobals.imageFilePrefix" t="filename" h="Image file output name"/>
 	<sep/>
 	<!-- ______________________________________________________________ -->
 	<sep desc="Frame numbering options"/>
@@ -71,6 +72,22 @@
 	<attr n="rfr" s="defaultArnoldRenderOptions.GI_refraction_depth" t="int" h="Set refraction depth"/>
 	<attr n="atd" s="defaultArnoldRenderOptions.auto_transparency_depth" t="int" h="Set auto-transparency depth"/>
 	<attr n="att" s="defaultArnoldRenderOptions.auto_transparency_threshold" t="float" h="Set auto-transparency threshold"/>
+	<sep/>
+	<!-- ______________________________________________________________ -->
+	<sep desc="Mel callbacks"/>
+	<mel n="preRender"  p="1" s='string $pm=`getAttr defaultRenderGlobals.preMel`;             setAttr -type "string" defaultRenderGlobals.preMel             ($pm + ";%1");' t="string" h="add Mel code executed before rendering"/>
+	<mel n="postRender" p="1" s='string $pm=`getAttr defaultRenderGlobals.postMel`;            setAttr -type "string" defaultRenderGlobals.postMel            ($pm + ";%1");' t="string" h="add Mel code executed after rendering"/>
+	<mel n="preLayer"   p="1" s='string $pm=`getAttr defaultRenderGlobals.preRenderLayerMel`;  setAttr -type "string" defaultRenderGlobals.preRenderLayerMel  ($pm + ";%1");' t="string" h="add Mel code executed before each render layer"/>
+	<mel n="postLayer"  p="1" s='string $pm=`getAttr defaultRenderGlobals.postRenderLayerMel`; setAttr -type "string" defaultRenderGlobals.postRenderLayerMel ($pm + ";%1");' t="string" h="add Mel code executed after each render layer"/>
+	<mel n="preFrame"   p="1" s='string $pm=`getAttr defaultRenderGlobals.preRenderMel`;       setAttr -type "string" defaultRenderGlobals.preRenderMel       ($pm + ";%1");' t="string" h="add Mel code executed before each frame"/>
+	<mel n="postFrame"  p="1" s='string $pm=`getAttr defaultRenderGlobals.postRenderMel`;      setAttr -type "string" defaultRenderGlobals.postRenderMel      ($pm + ";%1");' t="string" h="add Mel code executed after each frame"/>
+
+	<mel n="insertPreRender"  p="1" s='string $pm=`getAttr defaultRenderGlobals.preMel`;             setAttr -type "string" defaultRenderGlobals.preMel             ("%1;" + $pm);' t="string" h="insert Mel code executed before rendering"/>
+	<mel n="insertPostRender" p="1" s='string $pm=`getAttr defaultRenderGlobals.postMel`;            setAttr -type "string" defaultRenderGlobals.postMel            ("%1;" + $pm);' t="string" h="insert Mel code executed after rendering"/>
+	<mel n="insertPreLayer"   p="1" s='string $pm=`getAttr defaultRenderGlobals.preRenderLayerMel`;  setAttr -type "string" defaultRenderGlobals.preRenderLayerMel  ("%1;" + $pm);' t="string" h="insert Mel code executed before each render layer"/>
+	<mel n="insertPostLayer"  p="1" s='string $pm=`getAttr defaultRenderGlobals.postRenderLayerMel`; setAttr -type "string" defaultRenderGlobals.postRenderLayerMel ("%1;" + $pm);' t="string" h="insert Mel code executed after each render layer"/>
+	<mel n="insertPreFrame"   p="1" s='string $pm=`getAttr defaultRenderGlobals.preRenderMel`;       setAttr -type "string" defaultRenderGlobals.preRenderMel       ("%1;" + $pm);' t="string" h="insert Mel code executed before each frame"/>
+	<mel n="insertPostFrame"  p="1" s='string $pm=`getAttr defaultRenderGlobals.postRenderMel`;      setAttr -type "string" defaultRenderGlobals.postRenderMel      ("%1;" + $pm);' t="string" h="insert Mel code executed after each frame"/>
 	<sep/>
 	<!-- ______________________________________________________________ -->
 	<sep desc=" *** Remember to place a space between option flags and their arguments. ***"/>
