@@ -277,7 +277,7 @@ if system.os() == 'windows':
    mtoa_new = os.path.splitext(str(MTOA[0]))[0] + '.mll'
    env.Command(mtoa_new, str(MTOA[0]), Copy("$TARGET", "$SOURCE"))
    env.Install(env['TARGET_PLUGIN_PATH'], [mtoa_new] + glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*.dll')))
-   env.Install(env['TARGET_SHADER_PATH'], MTOA_SHADERS)
+   env.Install(env['TARGET_SHADER_PATH'], MTOA_SHADERS[0])
 else:
    env.Install(env['TARGET_PLUGIN_PATH'], MTOA + glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*.so')))
    env.Install(env['TARGET_SHADER_PATH'], MTOA_SHADERS)
@@ -303,8 +303,6 @@ if system.os() == 'windows':
    env.AlwaysBuild(INSTALL_PRJ)
    top_level_alias(env, 'solution', SOLUTION)
 
-#env.Depends('install', MTOA)
-#env.Depends('install', MTOA_SHADERS)
 aliases = []
 aliases.append(env.Alias('install-scripts', env['TARGET_SCRIPTS_PATH']))
 aliases.append(env.Alias('install-python', env['TARGET_PYTHON_PATH']))
@@ -312,6 +310,8 @@ aliases.append(env.Alias('install-icons', env['TARGET_ICONS_PATH']))
 aliases.append(env.Alias('install-descr', env['TARGET_DESCR_PATH']))
 aliases.append(env.Alias('install-lib', env['TARGET_LIB_PATH']))
 aliases.append(env.Alias('install-plugins', env['TARGET_PLUGIN_PATH']))
+aliases.append(env.Alias('install-shaders', env['TARGET_SHADER_PATH']))
+aliases.append(env.Alias('install-module', env['TARGET_MODULE_PATH']))
 
 top_level_alias(env, 'mtoa', MTOA)
 top_level_alias(env, 'shaders', MTOA_SHADERS)
