@@ -50,6 +50,7 @@ def customShapeAttributes(nodeName):
         cmds.editorTemplate(addSeparator=True)
 
         cmds.editorTemplate(aeCallback(customAttrs.boolNew), aeCallback(customAttrs.boolReplace), "export_tangents", callCustom=True)
+        cmds.editorTemplate(aeCallback(customAttrs.boolNew), aeCallback(customAttrs.boolReplace), "export_colors", callCustom=True)
 
         cmds.editorTemplate(endLayout=True)
 

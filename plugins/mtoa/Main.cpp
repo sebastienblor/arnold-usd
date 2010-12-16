@@ -15,6 +15,7 @@
 #include "nodes/shaders/surface/ArnoldAmbientOcclusionShader.h"
 #include "nodes/shaders/surface/ArnoldStandardShader.h"
 #include "nodes/shaders/surface/ArnoldUtilityShader.h"
+#include "nodes/shaders/surface/ArnoldUtility2Shader.h"
 #include "nodes/shaders/surface/ArnoldWireframeShader.h"
 #include "nodes/shaders/surface/ArnoldHairShader.h"
 #include "nodes/shaders/ArnoldRaySwitchShader.h"
@@ -53,6 +54,7 @@ namespace // <anonymous>
       status = plugin.registerNode("ArnoldAmbientOcclusionShader", CArnoldAmbientOcclusionShaderNode::id, CArnoldAmbientOcclusionShaderNode::creator, CArnoldAmbientOcclusionShaderNode::initialize, MPxNode::kDependNode, &ShaderClass);
       status = plugin.registerNode("ArnoldStandardShader", CArnoldStandardShaderNode::id, CArnoldStandardShaderNode::creator, CArnoldStandardShaderNode::initialize, MPxNode::kDependNode, &ShaderClass);
       status = plugin.registerNode("ArnoldUtilityShader", CArnoldUtilityShaderNode::id, CArnoldUtilityShaderNode::creator, CArnoldUtilityShaderNode::initialize, MPxNode::kDependNode, &ShaderClass);
+      status = plugin.registerNode("ArnoldUtility2Shader", CArnoldUtility2ShaderNode::id, CArnoldUtility2ShaderNode::creator, CArnoldUtility2ShaderNode::initialize, MPxNode::kDependNode, &ShaderClass);
       status = plugin.registerNode("ArnoldWireframeShader", CArnoldWireframeShaderNode::id, CArnoldWireframeShaderNode::creator, CArnoldWireframeShaderNode::initialize, MPxNode::kDependNode, &ShaderClass);
       status = plugin.registerNode("ArnoldHairShader", CArnoldHairShaderNode::id, CArnoldHairShaderNode::creator, CArnoldHairShaderNode::initialize, MPxNode::kDependNode, &ShaderClass);
 
@@ -91,6 +93,7 @@ namespace // <anonymous>
       status = plugin.deregisterNode(CArnoldAmbientOcclusionShaderNode::id);
       status = plugin.deregisterNode(CArnoldStandardShaderNode::id);
       status = plugin.deregisterNode(CArnoldUtilityShaderNode::id);
+      status = plugin.deregisterNode(CArnoldUtility2ShaderNode::id);
       status = plugin.deregisterNode(CArnoldWireframeShaderNode::id);
       status = plugin.deregisterNode(CArnoldHairShaderNode::id);
 

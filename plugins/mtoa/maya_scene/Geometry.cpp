@@ -314,6 +314,69 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
       }
    }
 
+   // Export Vertex Color
+   //
+   bool exportColors = false;
+   std::map<std::string, std::vector<float> > vcolors;
+   int dim = 4;
+
+   if (fnMesh.numColorSets() > 0)
+   {
+      MPlug plug = fnMesh.findPlug("export_colors");
+      if (!plug.isNull())
+      {
+         exportColors = plug.asBool();
+      }
+   }
+
+   if (step == 0)
+   {
+      if (exportColors)
+      {
+         MStringArray names;
+         MIntArray faces;
+         unsigned int i = 0;
+         float scale = 1.0f;
+         MColor col;
+
+         fnMesh.getColorSetNames(names);
+         for (unsigned int j=0; j<names.length(); ++j)
+         {
+            std::vector<float> &colors = vcolors[names[j].asChar()];
+            colors.resize(fnMesh.numVertices() * dim, 0.0f);
+
+            MItMeshVertex itVertex(fnMesh.object());
+
+            while (!itVertex.isDone())
+            {
+               faces.clear();
+               itVertex.getConnectedFaces(faces);
+
+               if (faces.length() > 0)
+               {
+                  scale = 1.0f / float(faces.length());
+                  i = itVertex.index() * dim;
+
+                  for (unsigned int k=0; k<faces.length(); ++k)
+                  {
+                     itVertex.getColor(col, faces[k], &names[j]);
+                     for (int l=0; l<dim; ++l)
+                     {
+                        colors[i+l] += col[l];
+                     }
+                  }
+                  for (int l=0; l<dim; ++l)
+                  {
+                     colors[i+l] *= scale;
+                  }
+               }
+
+               itVertex.next();
+            }
+         }
+      }
+   }
+
    if (step == 0)
    {
       bool mb_deform = m_motionBlurData.enabled &&
@@ -326,6 +389,17 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
          AiNodeDeclare(polymesh, "tangent", "varying VECTOR");
          AiNodeDeclare(polymesh, "bitangent", "varying VECTOR");
       }
+
+      if (exportColors)
+      {
+         std::map<std::string, std::vector<float> >::iterator it = vcolors.begin();
+         while (it != vcolors.end())
+         {
+            AiNodeDeclare(polymesh, it->first.c_str(), "varying RGBA");
+            ++it;
+         }
+      }
+
       if (!mb_deform)
       {
          // No deformation motion blur, so we create normal arrays
@@ -399,6 +473,16 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
 
       if (multiShader)
          AiNodeSetArray(polymesh, "shidxs", AiArrayConvert((AtInt)shidxs.size(), 1, AI_TYPE_UINT, &(shidxs[0]), TRUE));
+         
+      if (exportColors)
+      {
+         std::map<std::string, std::vector<float> >::iterator it = vcolors.begin();
+         while (it != vcolors.end())
+         {
+            AiNodeSetArray(polymesh, it->first.c_str(), AiArrayConvert(fnMesh.numVertices(), 1, AI_TYPE_RGBA, &(it->second[0]), TRUE));
+            ++it;
+         }
+      }
    }
    else
    {

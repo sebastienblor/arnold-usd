@@ -21,6 +21,7 @@ extern AtNodeMethods* MayaFileMtd;
 extern AtNodeMethods* MayaPlace2dTextureMtd;
 extern AtNodeMethods* MayaRampMtd;
 extern AtNodeMethods* MayaProjectionMtd;
+extern AtNodeMethods* Utility2Mtd;
 
 node_loader
 {
@@ -149,6 +150,13 @@ node_loader
       node->methods     = MayaProjectionMtd;
       node->output_type = AI_TYPE_RGBA;
       node->name        = "MayaProjection";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+
+   case 18:
+      node->methods     = Utility2Mtd;
+      node->output_type = AI_TYPE_RGB;
+      node->name        = "utility2";
       node->node_type   = AI_NODE_SHADER;
       break;
 
