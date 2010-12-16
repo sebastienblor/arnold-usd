@@ -7,9 +7,34 @@ def arnoldRender(width, height, doShadows, doGlowPass, camera, options):
     cmds.arnoldRender(cam=camera, w=width, h=height)
 
 def arnoldBatchRender(option):
-    cmds.arnoldRender(batch=option)
-    #cmd = 'arnoldRender -batch %s'%option
-    #mel.eval(cmd)
+    # Parse option string
+    kwargs = {}
+    options = option.split(" ")
+    i, n = 0, len(options)
+    while i < n:
+        if options[i] in ["-w", "-width"]:
+            i += 1
+            if i >= n:
+                break
+            try:
+                kwargs["width"] = int(options[i])
+            except:
+                pass
+        elif options[i] in ["-h", "-height"]:
+            i += 1
+            if i >= n:
+                break
+            try:
+                kwargs["height"] = int(options[i])
+            except:
+                pass
+        elif options[i] in ["-cam", "-camera"]:
+            i += 1
+            if i >= n:
+                break
+            kwargs["camera"] = options[i]
+        i += 1
+    cmds.arnoldRender(batch=True, **kwargs)
 
 def arnoldIprStart(editor, resolutionX, resolutionY, camera):
     # Make sure the ArnoldRenderOptions node exists
