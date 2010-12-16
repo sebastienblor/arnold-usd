@@ -4,6 +4,8 @@
 #include "render/RenderOptions.h"
 #include "maya_scene/MayaScene.h"
 
+#include <maya/MGlobal.h>
+
 #include <ai_nodes.h>
 #include <ai_universe.h>
 
@@ -17,10 +19,10 @@ public:
 
    static CRenderSession* GetInstance();
 
-   void Init(ExportMode exportMode=MTOA_EXPORT_ALL);
-   void End();
+   void Init(ExportMode exportMode=MTOA_EXPORT_ALL, bool preMel=false, bool preLayerMel=false, bool preFrameMel=false);
+   void End(bool postMel=false, bool postLayerMel=false, bool postFrameMel=false);
 
-   void Reset();
+   void Reset(bool postMel=false, bool postLayerMel=false, bool postFrameMel=false, bool preMel=false, bool preLayerMel=false, bool preFrameMel=false);
 
    void SetBatch(bool batch);
    void SetWidth(int width);
@@ -36,6 +38,14 @@ public:
    bool IsActive() const
    {
       return (AiUniverseIsActive() == TRUE);
+   }
+
+   void ExecuteScript(const MString &str, bool echo=false)
+   {
+      if (str.length() > 0)
+      {
+         MGlobal::executeCommand(str, echo);
+      }
    }
 
    void DoRender();

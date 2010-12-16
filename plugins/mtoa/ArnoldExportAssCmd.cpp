@@ -48,7 +48,7 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    // exporet only selected objects
    if(argDB.isFlagSet("selected"))
    {
-      renderSession->Init(MTOA_EXPORT_SELECTED);
+      renderSession->Init(MTOA_EXPORT_SELECTED, true, true, true);
       if (MGlobal::mayaState() == MGlobal::kInteractive)
          renderSession->DoExport(customFileName, MTOA_EXPORT_SELECTED);
    }
@@ -56,7 +56,7 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    // export the entire maya scene
    else
    {
-      renderSession->Init();
+      renderSession->Init(MTOA_EXPORT_ALL, true, true, true);
 
       if (MGlobal::mayaState() == MGlobal::kInteractive)
       {
@@ -69,7 +69,7 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
       renderSession->DoExport(customFileName);
    }
 
-   renderSession->End();
+   renderSession->End(true, true, true);
 
    return status;
 }

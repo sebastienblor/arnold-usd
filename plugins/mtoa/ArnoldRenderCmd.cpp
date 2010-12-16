@@ -42,14 +42,16 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       return MS::kFailure;
    }
 
-
-   renderSession->Reset();
+   // Note: Maya seems to internally calls the preRender preLayerRender scripts
+   //       as well as the postRender and postLayerRender ones
    renderSession->SetBatch(batch);
    const CRenderOptions* renderOptions = renderSession->RenderOptions();
 
    // Check if in batch mode
    if (batch)
    {
+      // Dummy init, we need to get the render options, do not execute any scripts
+      renderSession->Reset(false, false, false, false, false, false);
 
       AtFloat startframe;
       AtFloat endframe;
@@ -68,6 +70,8 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
          byframestep = 1;
       }
 
+      bool firstframe = true;
+
       for (AtFloat framerender = startframe; framerender <= endframe; framerender += byframestep)
       {
 
@@ -76,9 +80,9 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
             MGlobal::viewFrame((double)framerender);
          }
 
-         renderSession->Reset();
          renderSession->SetBatch(batch);
-         renderSession->RenderOptions();
+         renderSession->Reset(false, false, !firstframe, false, false, true);
+         //renderSession->RenderOptions();
 
          MStringArray cameras;
          MItDag  dagIterCameras(MItDag::kDepthFirst, MFn::kCamera);
@@ -111,14 +115,18 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
             renderSession->DoBatchRender();
          }
 
-         renderSession->End();
-      
+         // execute postFrame script only
+         renderSession->End(false, false, true);
+
+         firstframe = false;
       }
    }
 
    // or interactive mode
    else
    {
+      renderSession->Reset(false, false, false, false, false, true);
+      
       int width  = args.isFlagSet("width") ? args.flagArgumentInt("width", 0) : -1;
       int height = args.isFlagSet("height") ? args.flagArgumentInt("height", 0) : -1;
       MString camera = args.flagArgumentString("camera", 0);
@@ -159,7 +167,8 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
          MRenderView::endRender();
       }
 
-      renderSession->End();
+      // execute post-frame script only
+      renderSession->End(false, false, true);
 
    }
 

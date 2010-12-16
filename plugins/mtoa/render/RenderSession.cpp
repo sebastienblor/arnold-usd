@@ -18,6 +18,8 @@
 #include <maya/MSelectionList.h>
 #include <maya/MFnDagNode.h>
 #include <maya/MComputation.h>
+#include <maya/MCommonRenderSettingsData.h>
+#include <maya/MRenderUtil.h> 
 #include <maya/MStatus.h>
 #include <maya/MPlug.h>
 #include <maya/MPlugArray.h>
@@ -44,13 +46,29 @@ CRenderSession* CRenderSession::GetInstance()
 }
 
 
-void CRenderSession::Init(ExportMode exportMode)
+void CRenderSession::Init(ExportMode exportMode, bool preMel, bool preLayerMel, bool preFrameMel)
 {
 
    if (AiUniverseIsActive())
    {
       AiMsgError("[mtoa] ERROR: There can only be one RenderSession active.");
       return;
+   }
+
+   MCommonRenderSettingsData renderGlobals;
+   MRenderUtil::getCommonRenderSettings(renderGlobals);
+
+   if (preMel)
+   {
+      ExecuteScript(renderGlobals.preMel);
+   }
+   if (preLayerMel)
+   {
+      ExecuteScript(renderGlobals.preRenderLayerMel);
+   }
+   if (preFrameMel)
+   {
+      ExecuteScript(renderGlobals.preRenderMel);
    }
 
    m_scene = new CMayaScene;          
@@ -82,21 +100,37 @@ void CRenderSession::Init(ExportMode exportMode)
 
 }
 
-void CRenderSession::End()
+void CRenderSession::End(bool postMel, bool postLayerMel, bool postFrameMel)
 {
    AiEnd();
+
+   MCommonRenderSettingsData renderGlobals;
+   MRenderUtil::getCommonRenderSettings(renderGlobals);
+
+   if (postFrameMel)
+   {
+      ExecuteScript(renderGlobals.postRenderMel);
+   }
+   if (postLayerMel)
+   {
+      ExecuteScript(renderGlobals.postRenderLayerMel);
+   }
+   if (postMel)
+   {
+      ExecuteScript(renderGlobals.postMel);
+   }
 
    delete m_scene;
 }
 
-void CRenderSession::Reset()
+void CRenderSession::Reset(bool postMel, bool postLayerMel, bool postFrameMel, bool preMel, bool preLayerMel, bool preFrameMel)
 {
    if (IsActive())
    {
-      End();
+      End(postMel, postLayerMel, postFrameMel);
    }
 
-   Init();
+   Init(MTOA_EXPORT_ALL, preMel, preLayerMel, preFrameMel);
 }
 
 void CRenderSession::SetBatch(bool batch)
