@@ -15,6 +15,7 @@
 #include <maya/MMatrix.h>
 #include <maya/MPlug.h>
 #include <maya/MPlugArray.h>
+#include <maya/MItMeshVertex.h>
 #include <maya/MGlobal.h>
 #include <maya/MBoundingBox.h>
 
@@ -192,6 +193,68 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
       }
    }
 
+   // Get all tangents, bitangents
+   MStatus stat;
+   bool exportTangents = false;
+   std::vector<float> tangents;
+   std::vector<float> bitangents;
+
+   MPlug pExportTangents(mayaMesh, fnMesh.attribute("export_tangents", &stat));
+
+   if (stat == MStatus::kSuccess)
+   {
+      exportTangents = pExportTangents.asBool();
+   }
+
+   if (exportTangents)
+   {      
+      MItMeshVertex itVertex(mayaMesh);
+      MIntArray iarray;
+      MVector ttmp, btmp, tangent, bitangent;
+      float scale = 1.0f;
+      unsigned int i = 0;
+
+      tangents.resize(fnMesh.numVertices() * 3);
+      bitangents.resize(fnMesh.numVertices() * 3);
+
+      while (!itVertex.isDone())
+      {
+         iarray.clear();
+         itVertex.getConnectedFaces(iarray);
+
+         i = itVertex.index() * 3;
+
+         tangent = MVector::zero;
+         bitangent = MVector::zero;
+
+         if (iarray.length() > 0)
+         {
+            scale = 1.0f / float(iarray.length());
+
+            for (unsigned int j=0; j<iarray.length(); ++j)
+            {
+               fnMesh.getFaceVertexTangent(iarray[j], itVertex.index(), ttmp, MSpace::kObject);
+               fnMesh.getFaceVertexBinormal(iarray[j], itVertex.index(), btmp, MSpace::kObject);
+               tangent += ttmp;
+               bitangent += btmp;
+            }
+
+            tangent *= scale;
+            bitangent *= scale;
+         }
+
+         tangents[i] = (float) tangent.x;
+         tangents[i+1] = (float) tangent.y;
+         tangents[i+2] = (float) tangent.z;
+
+         bitangents[i] = (float) bitangent.x;
+         bitangents[i+1] = (float) bitangent.y;
+         bitangents[i+2] = (float) bitangent.z;
+
+         itVertex.next();
+      }
+   }
+
    std::vector<AtUInt> nsides;
    std::vector<AtLong> vidxs, nidxs, uvidxs;
    std::vector<float> uvs;
@@ -225,7 +288,7 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
       for (; (!itMeshPolygon.isDone()); itMeshPolygon.next())
       {
          if (multiShader)
-		      shidxs.push_back(indices[itMeshPolygon.index()]);
+            shidxs.push_back(indices[itMeshPolygon.index()]);
 
          unsigned int vertexCount = itMeshPolygon.polygonVertexCount();
 
@@ -257,6 +320,12 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
                        m_fnArnoldRenderOptions->findPlug("mb_object_deform_enable").asBool() &&
                        fnDagNode.findPlug("motionBlur").asBool();
 
+      // declare user defined attributes
+      if (exportTangents)
+      {
+         AiNodeDeclare(polymesh, "tangent", "varying VECTOR");
+         AiNodeDeclare(polymesh, "bitangent", "varying VECTOR");
+      }
       if (!mb_deform)
       {
          // No deformation motion blur, so we create normal arrays
@@ -264,6 +333,12 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
 
          if (useNormals && (fnMesh.numNormals() > 0))
             AiNodeSetArray(polymesh, "nlist", AiArrayConvert(fnMesh.numNormals() * 3, 1, AI_TYPE_FLOAT, &(normals[0]), TRUE));
+
+         if (exportTangents)
+         {
+            AiNodeSetArray(polymesh, "tangent", AiArrayConvert(fnMesh.numVertices(), 1, AI_TYPE_VECTOR, &(tangents[0]), TRUE));
+            AiNodeSetArray(polymesh, "bitangent", AiArrayConvert(fnMesh.numVertices(), 1, AI_TYPE_VECTOR, &(bitangents[0]), TRUE));
+         }
       }
       else
       {
@@ -277,6 +352,17 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
             AtArray* nlist_array = AiArrayAllocate(fnMesh.numNormals(), m_motionBlurData.motion_steps, AI_TYPE_VECTOR);
             SetKeyData(nlist_array, step, normals, fnMesh.numNormals());
             AiNodeSetArray(polymesh, "nlist", nlist_array);
+         }
+
+         if (exportTangents)
+         {
+            AtArray* tangent_array = AiArrayAllocate(fnMesh.numVertices(), m_motionBlurData.motion_steps, AI_TYPE_VECTOR);
+            SetKeyData(tangent_array, step, tangents, fnMesh.numVertices());
+            AiNodeSetArray(polymesh, "tangent", tangent_array);
+
+            AtArray* bitangent_array = AiArrayAllocate(fnMesh.numVertices(), m_motionBlurData.motion_steps, AI_TYPE_VECTOR);
+            SetKeyData(bitangent_array, step, bitangents, fnMesh.numVertices());
+            AiNodeSetArray(polymesh, "bitangent", bitangent_array);
          }
       }
 
@@ -324,6 +410,15 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
       {
          AtArray* nlist_array = AiNodeGetArray(polymesh, "nlist");
          SetKeyData(nlist_array, step, normals, fnMesh.numNormals());
+      }
+
+      if (exportTangents)
+      {
+         AtArray* tangent_array = AiNodeGetArray(polymesh, "tangent");
+         SetKeyData(tangent_array, step, tangents, fnMesh.numVertices());
+
+         AtArray* bitangent_array = AiNodeGetArray(polymesh, "bitangent");
+         SetKeyData(bitangent_array, step, bitangents, fnMesh.numVertices());
       }
    }
 }

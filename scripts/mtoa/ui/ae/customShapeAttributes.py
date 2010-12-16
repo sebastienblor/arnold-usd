@@ -47,6 +47,10 @@ def customShapeAttributes(nodeName):
         cmds.editorTemplate(aeCallback(customAttrs.intNew), aeCallback(customAttrs.intReplace), "sss_max_samples", callCustom=True)
         cmds.editorTemplate(aeCallback(customAttrs.floatNew), aeCallback(customAttrs.floatReplace), "sss_sample_spacing", callCustom=True)
 
+        cmds.editorTemplate(addSeparator=True)
+
+        cmds.editorTemplate(aeCallback(customAttrs.boolNew), aeCallback(customAttrs.boolReplace), "export_tangents", callCustom=True)
+
         cmds.editorTemplate(endLayout=True)
 
     elif nodeType == "hairSystem":

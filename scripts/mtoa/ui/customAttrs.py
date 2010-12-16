@@ -16,6 +16,7 @@ MESH_ATTRIBUTES ={
    "sss_use_gi":{         'label':"Use GI for SSS",       'default':1,      'min':0, 'max':1,          'sMin':0, 'sMax':1,       'changeCallback':None },
    "sss_max_samples":{    'label':"Max. Samples for SSS", 'default':100000, 'min':0, 'max':1000000000, 'sMin':0, 'sMax':1000000, 'changeCallback':None },
    "sss_sample_spacing":{ 'label':"SSS Sample Spacing",   'default':0.1,    'min':0, 'max':10,         'sMin':0, 'sMax':1,       'changeCallback':None },
+   "export_tangents":{    'label':"Export tangents",      'default':0,      'min':0, 'max':0,          'sMin':0, 'sMax':1,       'changeCallback':None },
 
    # Lights
    #
