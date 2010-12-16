@@ -5,7 +5,7 @@
 #include <maya/MSyntax.h>
 
 class CArnoldExportAssCmd
-   :	public MPxCommand
+   :   public MPxCommand
 {
 
 public:
@@ -16,7 +16,7 @@ public:
    }
 
    static MSyntax newSyntax();
-
+   static MString GetCameraName();
    MStatus doIt(const MArgList& argList);
 
 }; // class CArnoldExportAssCmd
