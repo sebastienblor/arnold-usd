@@ -29,6 +29,8 @@ public:
    static MObject s_mapB;
    static MObject s_map;
    static MObject s_autobump;
+   static MObject s_vector_displacement;
+   static MObject s_vector_displacement_scale;
 
    // Output attributes
    static MObject s_OUT_colorR;

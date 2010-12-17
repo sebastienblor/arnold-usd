@@ -128,11 +128,19 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
       // are there any connections to instObjGroups?
       if (connections.length() > 0)
       {
-         MObject shadingGroup(connections[0].node());
-         fnDGNode.setObject(shadingGroup);
-         MPlug shaderPlug(shadingGroup, fnDGNode.attribute("displacementShader"));
+         MPlugArray connected(connections);
          connections.clear();
-         shaderPlug.connectedTo(connections, true, false);
+         for (unsigned int k=0; k<connected.length(); ++k)
+         {
+            MObject shadingGroup(connections[k].node());
+            if (shadingGroup.apiType() == MFn::kShadingEngine )
+            {
+               fnDGNode.setObject(shadingGroup);
+               MPlug shaderPlug(shadingGroup, fnDGNode.attribute("displacementShader"));
+               shaderPlug.connectedTo(connections, true, false);
+               break;
+            }
+         }
 
          // are there any connections to displacementShader?
          if (connections.length() > 0)
@@ -142,13 +150,34 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
 
             MFnDependencyNode dispNode(connections[0].node());
 
+            // Note that disp_height has no actual influence on the scale of the displacement if it is vector based
+            // it only influences the computation of the displacement bounds
             AiNodeSetFlt(polymesh, "disp_height", dispNode.findPlug("disp_height").asFloat());
             AiNodeSetFlt(polymesh, "disp_zero_value", dispNode.findPlug("disp_zero_value").asFloat());
             AiNodeSetBool(polymesh, "autobump", dispNode.findPlug("autobump").asBool());
 
-            dispNode.findPlug("disp_map").connectedTo(connections,true,false);
-            AtNode* dispImage(ExportShader(connections[0].node()));
-            AiNodeSetPtr(polymesh, "disp_map", dispImage);
+            connections.clear();
+            dispNode.findPlug("disp_map").connectedTo(connections, true, false);
+
+            if (connections.length() > 0)
+            {
+               MString attrName = connections[0].partialName(false, false, false, false, false, true);
+               AtNode* dispImage(ExportShader(connections[0].node(), attrName));
+
+               MPlug pVectorDisp = dispNode.findPlug("vector_displacement");
+               if (!pVectorDisp.isNull() && pVectorDisp.asBool())
+               {
+                  AtNode* tangentToObject = AiNode("tangentToObjectSpace");
+                  ProcessShaderParameter(dispNode, "vector_displacement_scale", tangentToObject, "scale", AI_TYPE_VECTOR);
+                  AiNodeLink(dispImage, "map", tangentToObject);
+
+                  AiNodeSetPtr(polymesh, "disp_map", tangentToObject);
+               }
+               else
+               {
+                  AiNodeSetPtr(polymesh, "disp_map", dispImage);
+               }
+            }
          }
       }
    }
@@ -1022,7 +1051,7 @@ void CMayaScene::ExportCustomShape(const MDagPath &dagPath, AtUInt step, const M
                         plug = dispNode.findPlug("disp_height");
                         if (!plug.isNull())
                         {
-                           ProcessShaderParameter(dispNode, "disp_height", anode, "disp_height", AI_TYPE_FLOAT);
+                           AiNodeSetFlt(anode, "disp_height", plug.asFloat());
                         }
                      }
 
@@ -1033,7 +1062,7 @@ void CMayaScene::ExportCustomShape(const MDagPath &dagPath, AtUInt step, const M
                         plug = dispNode.findPlug("disp_zero_value");
                         if (!plug.isNull())
                         {
-                           ProcessShaderParameter(dispNode, "disp_zero_value", anode, "disp_zero_value", AI_TYPE_FLOAT);
+                           AiNodeSetFlt(anode, "disp_zero_value", plug.asFloat());
                         }
                      }
 
@@ -1049,7 +1078,20 @@ void CMayaScene::ExportCustomShape(const MDagPath &dagPath, AtUInt step, const M
                         {
                            MString attrName = shaderConns[0].partialName(false, false, false, false, false, true);
                            AtNode* dispImage(ExportShader(shaderConns[0].node(), attrName));
-                           AiNodeSetPtr(anode, "disp_map", dispImage);
+
+                           MPlug pVectorDisp = dispNode.findPlug("vector_displacement");
+                           if (!pVectorDisp.isNull() && pVectorDisp.asBool())
+                           {
+                              AtNode* tangentToObject = AiNode("tangentToObjectSpace");
+                              ProcessShaderParameter(dispNode, "vector_displacement_scale", tangentToObject, "scale", AI_TYPE_VECTOR);
+                              AiNodeLink(dispImage, "map", tangentToObject);
+
+                              AiNodeSetPtr(anode, "disp_map", tangentToObject);
+                           }
+                           else
+                           {
+                              AiNodeSetPtr(anode, "disp_map", dispImage);
+                           }
                         }
                      }
 

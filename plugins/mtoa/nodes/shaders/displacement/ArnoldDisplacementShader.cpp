@@ -24,6 +24,8 @@ MObject CArnoldDisplacementShaderNode::s_mapG;
 MObject CArnoldDisplacementShaderNode::s_mapB;
 MObject CArnoldDisplacementShaderNode::s_map;
 MObject CArnoldDisplacementShaderNode::s_autobump;
+MObject CArnoldDisplacementShaderNode::s_vector_displacement;
+MObject CArnoldDisplacementShaderNode::s_vector_displacement_scale;
 MObject CArnoldDisplacementShaderNode::s_OUT_colorR;
 MObject CArnoldDisplacementShaderNode::s_OUT_colorG;
 MObject CArnoldDisplacementShaderNode::s_OUT_colorB;
@@ -66,6 +68,12 @@ MStatus CArnoldDisplacementShaderNode::initialize()
 
    s_autobump = nAttr.create("autobump", "atbmp", MFnNumericData::kBoolean, 0);
    MAKE_INPUT(nAttr, s_autobump);
+
+   s_vector_displacement = nAttr.create("vector_displacement", "vdisp", MFnNumericData::kBoolean, 0);
+   MAKE_INPUT(nAttr, s_vector_displacement);
+
+   s_vector_displacement_scale = nAttr.create("vector_displacement_scale", "vdispscale", MFnNumericData::k3Float, 1.0);
+   MAKE_INPUT(nAttr, s_vector_displacement_scale);
 
    // OUTPUT ATTRIBUTES
 

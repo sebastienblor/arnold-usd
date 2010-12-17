@@ -13,6 +13,8 @@ def displacementShaderTemplate(nodeName):
     cmds.editorTemplate("disp_zero_value", addControl=True, label="Zero Value")
     cmds.editorTemplate("disp_map", addControl=True, label="Map")
     cmds.editorTemplate("autobump", addControl=True, label="Auto Bump")
+    cmds.editorTemplate("vector_displacement", addControl=True, label="Vector Displacement")
+    cmds.editorTemplate("vector_displacement_scale", addControl=True, label="Vector Displacement Scale")
 
     cmds.editorTemplate(endLayout=True)
 

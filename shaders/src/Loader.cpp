@@ -22,6 +22,7 @@ extern AtNodeMethods* MayaPlace2dTextureMtd;
 extern AtNodeMethods* MayaRampMtd;
 extern AtNodeMethods* MayaProjectionMtd;
 extern AtNodeMethods* Utility2Mtd;
+extern AtNodeMethods* TangentToObjectSpaceMtd;
 
 node_loader
 {
@@ -157,6 +158,13 @@ node_loader
       node->methods     = Utility2Mtd;
       node->output_type = AI_TYPE_RGB;
       node->name        = "utility2";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+
+   case 19:
+      node->methods     = TangentToObjectSpaceMtd;
+      node->output_type = AI_TYPE_VECTOR;
+      node->name        = "tangentToObjectSpace";
       node->node_type   = AI_NODE_SHADER;
       break;
 
