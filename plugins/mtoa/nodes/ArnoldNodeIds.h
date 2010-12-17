@@ -17,5 +17,5 @@
 #define ARNOLD_NODEID_HAIR                      0x00072012
 #define ARNOLD_NODEID_AOV                       0x00072013
 #define ARNOLD_NODEID_RAY_SWITCH                0x00072015
-#define ARNOLD_NODEID_UTILITY2                  0x00072016
+#define ARNOLD_NODEID_MESHINFO                  0x00072016
 #endif // ARNOLD_NODE_IDS_H

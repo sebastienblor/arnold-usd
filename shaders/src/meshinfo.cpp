@@ -4,7 +4,7 @@
 namespace
 {
 
-enum Utility2Parameters
+enum MeshInfoParameters
 {
    p_what = 0,
    p_colorSetName
@@ -27,7 +27,7 @@ static const char *WhatNames[] =
 
 }
 
-AI_SHADER_NODE_EXPORT_METHODS(Utility2Mtd);
+AI_SHADER_NODE_EXPORT_METHODS(MeshInfoMtd);
 
 node_parameters
 {

@@ -1,5 +1,5 @@
 
-#include "ArnoldUtility2Shader.h"
+#include "ArnoldMeshInfoShader.h"
 #include "nodes/ShaderUtils.h"
 #include "nodes/ArnoldNodeIds.h"
 
@@ -7,30 +7,30 @@
 #include <maya/MFnNumericAttribute.h>
 #include <maya/MFnTypedAttribute.h>
 
-MTypeId CArnoldUtility2ShaderNode::id(ARNOLD_NODEID_UTILITY2);
+MTypeId CArnoldMeshInfoShaderNode::id(ARNOLD_NODEID_MESHINFO);
 
-MObject CArnoldUtility2ShaderNode::s_what;
-MObject CArnoldUtility2ShaderNode::s_colorSetName;
-MObject CArnoldUtility2ShaderNode::s_OUT_colorR;
-MObject CArnoldUtility2ShaderNode::s_OUT_colorG;
-MObject CArnoldUtility2ShaderNode::s_OUT_colorB;
-MObject CArnoldUtility2ShaderNode::s_OUT_color;
-MObject CArnoldUtility2ShaderNode::s_OUT_transparencyR;
-MObject CArnoldUtility2ShaderNode::s_OUT_transparencyG;
-MObject CArnoldUtility2ShaderNode::s_OUT_transparencyB;
-MObject CArnoldUtility2ShaderNode::s_OUT_transparency;
+MObject CArnoldMeshInfoShaderNode::s_what;
+MObject CArnoldMeshInfoShaderNode::s_colorSetName;
+MObject CArnoldMeshInfoShaderNode::s_OUT_colorR;
+MObject CArnoldMeshInfoShaderNode::s_OUT_colorG;
+MObject CArnoldMeshInfoShaderNode::s_OUT_colorB;
+MObject CArnoldMeshInfoShaderNode::s_OUT_color;
+MObject CArnoldMeshInfoShaderNode::s_OUT_transparencyR;
+MObject CArnoldMeshInfoShaderNode::s_OUT_transparencyG;
+MObject CArnoldMeshInfoShaderNode::s_OUT_transparencyB;
+MObject CArnoldMeshInfoShaderNode::s_OUT_transparency;
 
-MStatus CArnoldUtility2ShaderNode::compute(const MPlug& plug, MDataBlock& data)
+MStatus CArnoldMeshInfoShaderNode::compute(const MPlug& plug, MDataBlock& data)
 {
    return MS::kUnknownParameter;
 }
 
-void* CArnoldUtility2ShaderNode::creator()
+void* CArnoldMeshInfoShaderNode::creator()
 {
-   return new CArnoldUtility2ShaderNode();
+   return new CArnoldMeshInfoShaderNode();
 }
 
-MStatus CArnoldUtility2ShaderNode::initialize()
+MStatus CArnoldMeshInfoShaderNode::initialize()
 {
    MFnNumericAttribute  nAttr;
    MFnEnumAttribute eAttr;

@@ -481,9 +481,9 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
    {
       shader = ExportArnoldShader(mayaShader, "utility");
    }
-   else if (node.typeName() == "ArnoldUtility2Shader")
+   else if (node.typeName() == "ArnoldMeshInfoShader")
    {
-      shader = ExportArnoldShader(mayaShader, "utility2");
+      shader = ExportArnoldShader(mayaShader, "meshinfo");
    }
    else if (node.typeName() == "ArnoldAmbientOcclusionShader")
    {

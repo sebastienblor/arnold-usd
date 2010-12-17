@@ -21,7 +21,7 @@ extern AtNodeMethods* MayaFileMtd;
 extern AtNodeMethods* MayaPlace2dTextureMtd;
 extern AtNodeMethods* MayaRampMtd;
 extern AtNodeMethods* MayaProjectionMtd;
-extern AtNodeMethods* Utility2Mtd;
+extern AtNodeMethods* MeshInfoMtd;
 extern AtNodeMethods* TangentToObjectSpaceMtd;
 
 node_loader
@@ -155,9 +155,9 @@ node_loader
       break;
 
    case 18:
-      node->methods     = Utility2Mtd;
+      node->methods     = MeshInfoMtd;
       node->output_type = AI_TYPE_RGB;
-      node->name        = "utility2";
+      node->name        = "meshinfo";
       node->node_type   = AI_NODE_SHADER;
       break;
 

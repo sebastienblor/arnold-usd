@@ -1,9 +1,9 @@
-#ifndef ARNOLD_UTILITY2_SHADER_H
-#define ARNOLD_UTILITY2_SHADER_H
+#ifndef ARNOLD_MESHINFO_SHADER_H
+#define ARNOLD_MESHINFO_SHADER_H
 
 #include <maya/MPxNode.h>
 
-class CArnoldUtility2ShaderNode
+class CArnoldMeshInfoShaderNode
    :  public MPxNode
 {
 
@@ -37,4 +37,4 @@ public:
 
 };  // class CArnoldUtility2ShaderNode
 
-#endif // ARNOLD_UTILITY2_SHADER_H
+#endif // ARNOLD_MESHINFO_SHADER_H
