@@ -1,3 +1,6 @@
+import maya.cmds as cmds
+import maya.mel as mel
+
 import mtoa.ui.ae.utils as aeUtils
 from mtoa.ui.ae.utils import aeCallback
 
@@ -19,7 +22,7 @@ def lightDecayShaderTemplate(nodeName):
     cmds.editorTemplate("decay_radius", addControl=True, label="Density")
     cmds.editorTemplate("decay_clamp", addControl=True, label="Geometry Type")
 
-    editorTemplate(endLayout=True)
+    cmds.editorTemplate(endLayout=True)
 
     cmds.editorTemplate(beginLayout="Attenuation", collapse=False)
 
@@ -33,13 +36,13 @@ def lightDecayShaderTemplate(nodeName):
     cmds.editorTemplate("far_start", addControl=True, label="Far Start")
     cmds.editorTemplate("far_end", addControl=True, label="Far End")
 
-    editorTemplate(endLayout=True)
+    cmds.editorTemplate(endLayout=True)
 
     cmds.editorTemplate(beginLayout="Transform Attributes", collapse=False)
 
     cmds.editorTemplate("geometry_matrix", addControl=True, label="Geometry Matrix")
 
-    editorTemplate(endLayout=True)
+    cmds.editorTemplate(endLayout=True)
 
     # include/call base class/node attributes
     mel.eval('AEdependNodeTemplate "%s"'%nodeName)

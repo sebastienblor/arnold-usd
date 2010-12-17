@@ -18,13 +18,13 @@ def lightBlockerShaderTemplate(nodeName):
     cmds.editorTemplate("width_edge", addControl=True, label="Width Edge")
     cmds.editorTemplate("roundness", addControl=True, label="Roundness")
 
-    editorTemplate(endLayout=True)
+    cmds.editorTemplate(endLayout=True)
 
     cmds.editorTemplate(beginLayout="Transform Attributes", collapse=False)
 
     cmds.editorTemplate("geometry_matrix", addControl=True, label="Geometry Matrix")
 
-    editorTemplate(endLayout=True)
+    cmds.editorTemplate(endLayout=True)
 
     # include/call base class/node attributes
     mel.eval('AEdependNodeTemplate "%s"'%nodeName)

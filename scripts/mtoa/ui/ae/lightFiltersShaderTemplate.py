@@ -148,7 +148,8 @@ def addLightFilter(lightNode, list):
                       columnOffset=("both", 10),
                       rowSpacing=10)
 
-    list = cmds.textScrollList('alf_filter_list', nr=4, ams=False, dcc=Callback(addFilterAndHide, lightNode, list, win))
+    list = cmds.textScrollList('alf_filter_list', nr=4, ams=False)
+    cmds.textScrollList(list, e=True, dcc=Callback(addFilterAndHide, lightNode, list, win))
 
     nodeType = cmds.objectType(lightNode)
 
@@ -162,7 +163,7 @@ def addLightFilter(lightNode, list):
 
     cmds.rowLayout(numberOfColumns=2, columnAlign2=("center", "center"))
     cmds.button(width=80, label="Add", command=Callback(addFilterAndHide, lightNode, list, win))
-    cmds.button(width=80, label="Cancel", command=Callback(cmds.deleteUI, window=win))
+    cmds.button(width=80, label="Cancel", command=Callback(cmds.deleteUI, win, window=True))
 
     cmds.setParent('..')
     cmds.setParent('..')
