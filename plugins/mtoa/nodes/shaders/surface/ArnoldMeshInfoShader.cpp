@@ -7,7 +7,7 @@
 #include <maya/MFnNumericAttribute.h>
 #include <maya/MFnTypedAttribute.h>
 
-MTypeId CArnoldMeshInfoShaderNode::id(ARNOLD_NODEID_MESHINFO);
+MTypeId CArnoldMeshInfoShaderNode::id(ARNOLD_NODEID_MESH_INFO);
 
 MObject CArnoldMeshInfoShaderNode::s_what;
 MObject CArnoldMeshInfoShaderNode::s_colorSetName;

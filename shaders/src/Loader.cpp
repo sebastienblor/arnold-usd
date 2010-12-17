@@ -157,14 +157,14 @@ node_loader
    case 18:
       node->methods     = MeshInfoMtd;
       node->output_type = AI_TYPE_RGB;
-      node->name        = "meshinfo";
+      node->name        = "MeshInfo";
       node->node_type   = AI_NODE_SHADER;
       break;
 
    case 19:
       node->methods     = TangentToObjectSpaceMtd;
       node->output_type = AI_TYPE_VECTOR;
-      node->name        = "tangentToObjectSpace";
+      node->name        = "TangentToObjectSpace";
       node->node_type   = AI_NODE_SHADER;
       break;
 

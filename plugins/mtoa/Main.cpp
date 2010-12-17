@@ -48,7 +48,7 @@ namespace // <anonymous>
       // AOV
       status = plugin.registerNode("ArnoldAOV", CArnoldAOVNode::id, CArnoldAOVNode::creator, CArnoldAOVNode::initialize);
 
-      // Ray swicth shader [could be surface or environment...]
+      // Ray switch shader [could be surface or environment...]
       status = plugin.registerNode("ArnoldRaySwitchShader", CArnoldRaySwitchShaderNode::id, CArnoldRaySwitchShaderNode::creator, CArnoldRaySwitchShaderNode::initialize, MPxNode::kDependNode, &ShaderClass);
       // Surface Shaders
       status = plugin.registerNode("ArnoldAmbientOcclusionShader", CArnoldAmbientOcclusionShaderNode::id, CArnoldAmbientOcclusionShaderNode::creator, CArnoldAmbientOcclusionShaderNode::initialize, MPxNode::kDependNode, &ShaderClass);
