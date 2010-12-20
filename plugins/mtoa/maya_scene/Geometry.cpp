@@ -374,7 +374,8 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
             std::vector<float> &colors = vcolors[names[j].asChar()];
             colors.resize(fnMesh.numVertices() * dim, 0.0f);
 
-            MItMeshVertex itVertex(fnMesh.object());
+			MObject meshObject = fnMesh.object();
+            MItMeshVertex itVertex(meshObject);
 
             while (!itVertex.isDone())
             {
