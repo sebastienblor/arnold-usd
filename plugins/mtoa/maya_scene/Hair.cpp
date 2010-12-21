@@ -107,21 +107,24 @@ namespace
          MFnDependencyNode depNodeFollicle(follicles[i]);
          MPlugArray        meshes;
          depNodeFollicle.findPlug("inputMesh").connectedTo(meshes, true, false);
-         MFnDagNode meshDagNode(meshes[0].node());
-         MDagPath dagPath;
-         meshDagNode.getPath(dagPath);
-         // check if it is already there
-         bool append = true;
-         for(unsigned int j = 0; j<shapes.length(); j++)
-         {
-            if ( shapes[j] == dagPath )
-            {
-               append = false;
-               break;
-            }
-         }
-         if ( append == true )
-            shapes.append(dagPath);
+		 if (meshes.length() > 0)
+		 {
+			 MFnDagNode meshDagNode(meshes[0].node());
+			 MDagPath dagPath;
+			 meshDagNode.getPath(dagPath);
+			 // check if it is already there
+			 bool append = true;
+			 for(unsigned int j = 0; j<shapes.length(); j++)
+			 {
+				if ( shapes[j] == dagPath )
+				{
+				   append = false;
+				   break;
+				}
+			 }
+			 if ( append == true )
+				shapes.append(dagPath);
+		 }
       }
       return shapes; 
    }
