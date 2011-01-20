@@ -101,16 +101,7 @@ MStatus CMayaScene::IterSelection(MSelectionList selected)
             MFnDagNode node(path.node());
             if (!node.isIntermediateObject())
             {
-               // Export poly mesh
-               if (path.apiType() == 295)
-               {
-                  ExportMesh(path.node(), path, 0);
-               }
-               // Exports maya hair
-               else if (path.apiType() == 916)
-               {
-                  ExportHair(path, 0);
-               }
+               ExportDagPath(path, 0);
             }
             path.pop(1);
             IterSelection(selected);

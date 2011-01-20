@@ -23,6 +23,7 @@
 #include "nodes/shaders/ArnoldRaySwitchShader.h"
 #include "maya_scene/Shaders.h"
 #include "maya_scene/Lights.h"
+#include "maya_scene/Geometry.h"
 
 #include <ai_render.h>
 #include <ai_msg.h>
@@ -97,6 +98,9 @@ namespace // <anonymous>
       arnoldPluginFactory->RegisterDagTranslator("areaLight", MAYA_NODEID_AREA_LIGHT, CAreaLightTranslator::creator, CAreaLightTranslator::NodeInitializer);
       arnoldPluginFactory->RegisterDagTranslator("pointLight", MAYA_NODEID_POINT_LIGHT, CPointLightTranslator::creator, CPointLightTranslator::NodeInitializer);
       arnoldPluginFactory->RegisterDagTranslator("ambientLight", MAYA_NODEID_AMBIENT_LIGHT, CAmbientLightTranslator::creator, CLightTranslator::NodeInitializer);
+
+      arnoldPluginFactory->RegisterDagTranslator("mesh", MAYA_NODEID_MESH, CMeshTranslator::creator);
+      arnoldPluginFactory->RegisterDagTranslator("nurbsSurface", MAYA_NODEID_NURBS_SURFACE, CNurbsSurfaceTranslator::creator);
 
       arnoldPluginFactory->MapToMayaNode("ambient_occlusion", "ArnoldAmbientOcclusionShader", CArnoldAmbientOcclusionShaderNode::id.id());
       arnoldPluginFactory->MapToMayaNode("standard", "ArnoldStandardShader", CArnoldStandardShaderNode::id.id());

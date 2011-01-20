@@ -39,4 +39,7 @@
 #define MAYA_NODEID_AREA_LIGHT                  0x41524c54
 #define MAYA_NODEID_POINT_LIGHT                 0x504f4954
 
+#define MAYA_NODEID_MESH                        0x444d5348
+#define MAYA_NODEID_NURBS_SURFACE               0x4e535246
+
 #endif // ARNOLD_NODE_IDS_H

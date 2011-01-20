@@ -1,5 +1,5 @@
 
-#include "MayaScene.h"
+#include "Geometry.h"
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
@@ -7,7 +7,6 @@
 
 #include <maya/MDagPath.h>
 #include <maya/MFloatPointArray.h>
-#include <maya/MFnMesh.h>
 #include <maya/MFnMeshData.h>
 #include <maya/MFnNurbsSurface.h>
 #include <maya/MIntArray.h>
@@ -53,158 +52,39 @@ namespace
    }
 }
 
-
-MObject CMayaScene::GetNodeShader(MObject dagNode, int instanceNum)
+MObject CGeoTranslator::GetNodeShadingGroup(MObject dagNode, int instanceNum)
 {
    MPlugArray        connections;
    MFnDependencyNode fnDGNode(dagNode);
 
-   // Find the "instObjGroups" attribute. Follow that plug to see where it is connected.
    MPlug plug(dagNode, fnDGNode.attribute("instObjGroups"));
 
    plug.elementByLogicalIndex(instanceNum).connectedTo(connections, false, true);
 
-   if (connections.length() != 1)
+   for (unsigned int k=0; k<connections.length(); ++k)
    {
-      return MObject::kNullObj;
+      MObject shadingGroup(connections[k].node());
+      if (shadingGroup.apiType() == MFn::kShadingEngine )
+      {
+         return shadingGroup;
+      }
    }
+   return MObject::kNullObj;
+}
 
-   MObject shadingGroup(connections[0].node());
-
-   fnDGNode.setObject(shadingGroup);
-
-   MPlug shaderPlug(shadingGroup, fnDGNode.attribute("surfaceShader"));
-
-   connections.clear();
-
+MObject CGeoTranslator::GetNodeShader(MObject dagNode, int instanceNum)
+{
+   MPlugArray        connections;
+   MObject shadingGroup = GetNodeShadingGroup(dagNode, instanceNum);
+   MFnDependencyNode fnDGNode(shadingGroup);
+   MPlug shaderPlug = fnDGNode.findPlug("surfaceShader");
    shaderPlug.connectedTo(connections, true, false);
 
    return connections[0].node();
 }
 
-void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, const MDagPath& dagPath, AtUInt step)
+bool CGeoTranslator::GetVertices(MFnMesh &fnMesh, std::vector<float> &vertices)
 {
-   MFnMesh fnMesh(mayaMesh);
-   MFnDagNode fnDagNode(dagPath.node());
-
-   MIntArray indices;
-   bool multiShader = false;
-
-   if (step == 0)
-   {
-      int instanceNum = dagPath.isInstanced() ? dagPath.instanceNumber() : 0;
-
-      //
-      // SHADERS
-      //
-
-      std::vector<AtNode*> meshShaders;
-      MObject mayaShader = GetNodeShader(dagPath.node(),instanceNum);
-
-      if (!mayaShader.isNull())
-      {
-         AtNode* shader = ExportShader(mayaShader);
-
-         AiNodeSetPtr(polymesh, "shader", shader);
-
-         meshShaders.push_back(shader);
-      }
-      else
-      {
-         MObjectArray shaders;
-
-         fnMesh.getConnectedShaders(instanceNum, shaders, indices);
-
-         for (int J = 0; (J < (int) shaders.length()); J++)
-         {
-            MPlugArray        connections;
-            MFnDependencyNode fnDGNode(shaders[J]);
-            MPlug             shaderPlug(shaders[J], fnDGNode.attribute("surfaceShader"));
-
-            shaderPlug.connectedTo(connections, true, false);
-
-            meshShaders.push_back(ExportShader(connections[0].node()));
-         }
-
-         multiShader = true;
-
-         AiNodeSetArray(polymesh, "shader", AiArrayConvert((AtInt)meshShaders.size(), 1, AI_TYPE_NODE, &meshShaders[0], TRUE));
-      }
-
-      //
-      // DISPLACEMENT
-      //
-
-      MPlugArray        connections;
-      MFnDependencyNode fnDGNode(fnDagNode);
-
-      MPlug plug(dagPath.node(), fnDGNode.attribute("instObjGroups"));
-
-      plug.elementByLogicalIndex(instanceNum).connectedTo(connections, false, true);
-
-      // are there any connections to instObjGroups?
-      if (connections.length() > 0)
-      {
-         MPlugArray connected(connections);
-         connections.clear();
-         for (unsigned int k=0; k<connected.length(); ++k)
-         {
-            MObject shadingGroup(connections[k].node());
-            if (shadingGroup.apiType() == MFn::kShadingEngine )
-            {
-               fnDGNode.setObject(shadingGroup);
-               MPlug shaderPlug(shadingGroup, fnDGNode.attribute("displacementShader"));
-               shaderPlug.connectedTo(connections, true, false);
-               break;
-            }
-         }
-
-         // are there any connections to displacementShader?
-         if (connections.length() > 0)
-         {
-            MObjectArray      shaderDisp;
-            fnMesh.getConnectedShaders(instanceNum, shaderDisp, indices);
-
-            MFnDependencyNode dispNode(connections[0].node());
-
-            // Note that disp_height has no actual influence on the scale of the displacement if it is vector based
-            // it only influences the computation of the displacement bounds
-            AiNodeSetFlt(polymesh, "disp_height", dispNode.findPlug("disp_height").asFloat());
-            AiNodeSetFlt(polymesh, "disp_zero_value", dispNode.findPlug("disp_zero_value").asFloat());
-            AiNodeSetBool(polymesh, "autobump", dispNode.findPlug("autobump").asBool());
-
-            connections.clear();
-            dispNode.findPlug("disp_map").connectedTo(connections, true, false);
-
-            if (connections.length() > 0)
-            {
-               MString attrName = connections[0].partialName(false, false, false, false, false, true);
-               AtNode* dispImage(ExportShader(connections[0].node(), attrName));
-
-               MPlug pVectorDisp = dispNode.findPlug("vector_displacement");
-               if (!pVectorDisp.isNull() && pVectorDisp.asBool())
-               {
-                  AtNode* tangentToObject = AiNode("tangentToObjectSpace");
-                  ProcessShaderParameter(dispNode, "vector_displacement_scale", tangentToObject, "scale", AI_TYPE_VECTOR);
-                  AiNodeLink(dispImage, "map", tangentToObject);
-
-                  AiNodeSetPtr(polymesh, "disp_map", tangentToObject);
-               }
-               else
-               {
-                  AiNodeSetPtr(polymesh, "disp_map", dispImage);
-               }
-            }
-         }
-      }
-   }
-
-   //
-   // GEOMETRY
-   //
-
-   // Get all vertices
-   std::vector<float> vertices;
    if (fnMesh.numVertices() > 0)
    {
       vertices.resize(fnMesh.numVertices() * 3);
@@ -218,13 +98,16 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
          vertices[J * 3 + 1] = pointsArray[J].y;
          vertices[J * 3 + 2] = pointsArray[J].z;
       }
+      return true;
    }
+   return false;
+}
 
-   bool useNormals = fnDagNode.findPlug("smoothShading").asBool() && !fnDagNode.findPlug("subdiv_type").asBool();
-
-   // Get all normals
-   std::vector<float> normals;
-   if (useNormals && (fnMesh.numNormals() > 0))
+bool CGeoTranslator::GetNormals(MFnMesh &fnMesh, std::vector<float> &normals)
+{
+   if (m_fnNode.findPlug("smoothShading").asBool() &&
+         !m_fnNode.findPlug("subdiv_type").asBool() &&
+         fnMesh.numNormals() > 0)
    {
       normals.resize(fnMesh.numNormals() * 3);
 
@@ -237,24 +120,23 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
          normals[J * 3 + 1] = normalArray[J].y;
          normals[J * 3 + 2] = normalArray[J].z;
       }
+      return true;
    }
+   return false;
+}
 
-   // Get all tangents, bitangents
+bool CGeoTranslator::GetTangents(MFnMesh &fnMesh, std::vector<float> &tangents, std::vector<float> &bitangents)
+{
    MStatus stat;
-   bool exportTangents = false;
-   std::vector<float> tangents;
-   std::vector<float> bitangents;
+   MPlug pExportTangents = fnMesh.findPlug("export_tangents", false, &stat);
 
-   MPlug pExportTangents(mayaMesh, fnMesh.attribute("export_tangents", &stat));
+   if (stat != MStatus::kSuccess)
+      return false;
 
-   if (stat == MStatus::kSuccess)
+   if (pExportTangents.asBool())
    {
-      exportTangents = pExportTangents.asBool();
-   }
-
-   if (exportTangents)
-   {      
-      MItMeshVertex itVertex(mayaMesh);
+      MObject meshObject = fnMesh.object();
+      MItMeshVertex itVertex(meshObject);
       MIntArray iarray;
       MVector ttmp, btmp, tangent, bitangent;
       float scale = 1.0f;
@@ -299,71 +181,35 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
 
          itVertex.next();
       }
+      return true;
    }
+   return false;
+}
 
-   std::vector<AtUInt> nsides;
-   std::vector<AtLong> vidxs, nidxs, uvidxs;
-   std::vector<float> uvs;
-   std::vector<AtUInt> shidxs;
-
-   bool hasUVs = (fnMesh.numUVs() > 0);
-
-   if (step == 0)
+bool CGeoTranslator::GetUVs(MFnMesh &fnMesh, std::vector<float> &uvs)
+{
+   // Get all UVs
+   if (fnMesh.numUVs() > 0)
    {
-      // Get all UVs
-      if (hasUVs)
+      uvs.resize(fnMesh.numUVs() * 2);
+
+      MFloatArray uArray, vArray;
+      fnMesh.getUVs(uArray, vArray);
+
+      for (int J = 0; (J < fnMesh.numUVs()); ++J)
       {
-         uvs.resize(fnMesh.numUVs() * 2);
-
-         MFloatArray uArray, vArray;
-         fnMesh.getUVs(uArray, vArray);
-
-         for (int J = 0; (J < fnMesh.numUVs()); ++J)
-         {
-            uvs[J * 2 + 0] = uArray[J];
-            uvs[J * 2 + 1] = vArray[J];
-         }
+         uvs[J * 2 + 0] = uArray[J];
+         uvs[J * 2 + 1] = vArray[J];
       }
-
-      // Traverse all polygons to export vidxs, nidxs, uvindxs y nsides
-      nsides.resize(fnMesh.numPolygons());
-
-      MItMeshPolygon itMeshPolygon(mayaMesh);
-      unsigned int   polygonIndex = 0;
-
-      for (; (!itMeshPolygon.isDone()); itMeshPolygon.next())
-      {
-         if (multiShader)
-            shidxs.push_back(indices[itMeshPolygon.index()]);
-
-         unsigned int vertexCount = itMeshPolygon.polygonVertexCount();
-
-         nsides[polygonIndex] = vertexCount;
-
-         for (unsigned int V = 0; (V < vertexCount); ++V)
-         {
-            vidxs.push_back(itMeshPolygon.vertexIndex(V));
-            if (useNormals)
-               nidxs.push_back(itMeshPolygon.normalIndex(V));
-
-            if (hasUVs)
-            {
-               int uvIndex;
-
-               itMeshPolygon.getUVIndex(V, uvIndex);
-
-               uvidxs.push_back(uvIndex);
-            }
-         }
-
-         ++polygonIndex;
-      }
+      return true;
    }
+   return false;
+}
 
-   // Export Vertex Color
-   //
+bool CGeoTranslator::GetVertexColors(MFnMesh &fnMesh, std::map<std::string, std::vector<float> > &vcolors)
+{
    bool exportColors = false;
-   std::map<std::string, std::vector<float> > vcolors;
+
    int dim = 4;
 
    if (fnMesh.numColorSets() > 0)
@@ -374,60 +220,238 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
          exportColors = plug.asBool();
       }
    }
-
-   if (step == 0)
+   if (exportColors)
    {
-      if (exportColors)
+      MStringArray names;
+      MIntArray faces;
+      unsigned int i = 0;
+      float scale = 1.0f;
+      MColor col;
+
+      fnMesh.getColorSetNames(names);
+      for (unsigned int j=0; j<names.length(); ++j)
       {
-         MStringArray names;
-         MIntArray faces;
-         unsigned int i = 0;
-         float scale = 1.0f;
-         MColor col;
+         std::vector<float> &colors = vcolors[names[j].asChar()];
+         colors.resize(fnMesh.numVertices() * dim, 0.0f);
 
-         fnMesh.getColorSetNames(names);
-         for (unsigned int j=0; j<names.length(); ++j)
+         MObject meshObject = fnMesh.object();
+         MItMeshVertex itVertex(meshObject);
+
+         while (!itVertex.isDone())
          {
-            std::vector<float> &colors = vcolors[names[j].asChar()];
-            colors.resize(fnMesh.numVertices() * dim, 0.0f);
+            faces.clear();
+            itVertex.getConnectedFaces(faces);
 
-			MObject meshObject = fnMesh.object();
-            MItMeshVertex itVertex(meshObject);
-
-            while (!itVertex.isDone())
+            if (faces.length() > 0)
             {
-               faces.clear();
-               itVertex.getConnectedFaces(faces);
+               scale = 1.0f / float(faces.length());
+               i = itVertex.index() * dim;
 
-               if (faces.length() > 0)
+               for (unsigned int k=0; k<faces.length(); ++k)
                {
-                  scale = 1.0f / float(faces.length());
-                  i = itVertex.index() * dim;
-
-                  for (unsigned int k=0; k<faces.length(); ++k)
-                  {
-                     itVertex.getColor(col, faces[k], &names[j]);
-                     for (int l=0; l<dim; ++l)
-                     {
-                        colors[i+l] += col[l];
-                     }
-                  }
+                  itVertex.getColor(col, faces[k], &names[j]);
                   for (int l=0; l<dim; ++l)
                   {
-                     colors[i+l] *= scale;
+                     colors[i+l] += col[l];
                   }
                }
-
-               itVertex.next();
+               for (int l=0; l<dim; ++l)
+               {
+                  colors[i+l] *= scale;
+               }
             }
+
+            itVertex.next();
          }
       }
    }
+   return exportColors;
+}
+
+void CGeoTranslator::GetComponentIDs(MFnMesh &fnMesh,
+      std::vector<AtUInt> &nsides,
+      std::vector<AtLong> &vidxs,
+      std::vector<AtLong> &nidxs,
+      std::vector<AtLong> &uvidxs,
+      bool exportNormals,
+      bool exportUVs
+      )
+{
+   // Traverse all polygons to export vidxs, nidxs, uvindxs y nsides
+   nsides.resize(fnMesh.numPolygons());
+
+   MObject mayaMesh = fnMesh.object();
+   MItMeshPolygon itMeshPolygon(mayaMesh);
+   unsigned int   polygonIndex = 0;
+
+   for (; (!itMeshPolygon.isDone()); itMeshPolygon.next())
+   {
+      unsigned int vertexCount = itMeshPolygon.polygonVertexCount();
+
+      nsides[polygonIndex] = vertexCount;
+
+      for (unsigned int V = 0; (V < vertexCount); ++V)
+      {
+         vidxs.push_back(itMeshPolygon.vertexIndex(V));
+         if (exportNormals)
+            nidxs.push_back(itMeshPolygon.normalIndex(V));
+
+         if (exportUVs)
+         {
+            int uvIndex;
+            itMeshPolygon.getUVIndex(V, uvIndex);
+            uvidxs.push_back(uvIndex);
+         }
+      }
+
+      ++polygonIndex;
+   }
+}
+
+void CGeoTranslator::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, AtUInt step)
+{
+   MFnMesh fnMesh(mayaMesh);
+   MFnDagNode fnDagNode(m_dagPath.node());
+
+   MIntArray indices;
+   bool multiShader = false;
 
    if (step == 0)
    {
-      bool mb_deform = m_motionBlurData.enabled &&
-                       m_fnArnoldRenderOptions->findPlug("mb_object_deform_enable").asBool() &&
+      int instanceNum = m_dagPath.isInstanced() ? m_dagPath.instanceNumber() : 0;
+
+      //
+      // SHADERS
+      //
+
+      std::vector<AtNode*> meshShaders;
+
+      MObject shadingGroup = GetNodeShadingGroup(m_dagPath.node(), instanceNum);
+      if (!shadingGroup.isNull())
+      {
+         MPlugArray        connections;
+         MFnDependencyNode fnDGNode(shadingGroup);
+         MPlug shaderPlug = fnDGNode.findPlug("surfaceShader");
+         shaderPlug.connectedTo(connections, true, false);
+         if (connections.length() > 0)
+         {
+            // shader assigned to node
+            AtNode* shader = m_scene->ExportShader(connections[0].node());
+
+            AiNodeSetPtr(polymesh, "shader", shader);
+            meshShaders.push_back(shader);
+         }
+         else
+            AiMsgWarning("[mtoa] shadingGroup %s has no surfaceShader input.", fnDGNode.name().asChar());
+      }
+      else
+      {
+         // per-face assignment
+         MObjectArray shadingGroups;
+
+         // indices are used later when exporting shidxs
+         fnMesh.getConnectedShaders(instanceNum, shadingGroups, indices);
+
+         for (int J = 0; (J < (int) shadingGroups.length()); J++)
+         {
+            MPlugArray        connections;
+            MFnDependencyNode fnDGNode(shadingGroups[J]);
+            MPlug             shaderPlug(shadingGroups[J], fnDGNode.attribute("surfaceShader"));
+
+            shaderPlug.connectedTo(connections, true, false);
+            // FIXME: there should be a check if connections.length() > 0
+            // this is not a simple fix because it will shift all the indices,
+            // but as it is now, it will crash if nothing is connected to "surfaceShader"
+            meshShaders.push_back(m_scene->ExportShader(connections[0].node()));
+         }
+
+         multiShader = true;
+
+         AiNodeSetArray(polymesh, "shader", AiArrayConvert((AtInt)meshShaders.size(), 1, AI_TYPE_NODE, &meshShaders[0], TRUE));
+      }
+
+      //
+      // DISPLACEMENT
+      //
+      // currently does not work for per-face assignment
+      if (!shadingGroup.isNull())
+      {
+         MPlugArray        connections;
+         MFnDependencyNode fnDGNode(shadingGroup);
+         MPlug shaderPlug = fnDGNode.findPlug("displacementShader");
+         shaderPlug.connectedTo(connections, true, false);
+
+         // are there any connections to displacementShader?
+         if (connections.length() > 0)
+         {
+            MFnDependencyNode dispNode(connections[0].node());
+
+            // Note that disp_height has no actual influence on the scale of the displacement if it is vector based
+            // it only influences the computation of the displacement bounds
+            AiNodeSetFlt(polymesh, "disp_height", dispNode.findPlug("disp_height").asFloat());
+            AiNodeSetFlt(polymesh, "disp_zero_value", dispNode.findPlug("disp_zero_value").asFloat());
+            AiNodeSetBool(polymesh, "autobump", dispNode.findPlug("autobump").asBool());
+
+            connections.clear();
+            dispNode.findPlug("disp_map").connectedTo(connections, true, false);
+
+            if (connections.length() > 0)
+            {
+               MString attrName = connections[0].partialName(false, false, false, false, false, true);
+               AtNode* dispImage(m_scene->ExportShader(connections[0].node(), attrName));
+
+               MPlug pVectorDisp = dispNode.findPlug("vector_displacement", false);
+               if (!pVectorDisp.isNull() && pVectorDisp.asBool())
+               {
+                  AtNode* tangentToObject = AiNode("tangentToObjectSpace");
+                  m_scene->ProcessShaderParameter(dispNode, "vector_displacement_scale", tangentToObject, "scale", AI_TYPE_VECTOR);
+                  AiNodeLink(dispImage, "map", tangentToObject);
+
+                  AiNodeSetPtr(polymesh, "disp_map", tangentToObject);
+               }
+               else
+               {
+                  AiNodeSetPtr(polymesh, "disp_map", dispImage);
+               }
+            }
+         }
+      }
+   } // if step == 0
+
+   //
+   // GEOMETRY
+   //
+
+   std::vector<float> vertices, normals, tangents, bitangents;
+
+   // Get all vertices
+   GetVertices(fnMesh, vertices);
+
+   // Get all normals
+   bool exportNormals = GetNormals(fnMesh, normals);
+
+   // Get all tangents, bitangents
+   bool exportTangents = GetTangents(fnMesh, tangents, bitangents);
+
+   if (step == 0)
+   {
+
+      std::vector<float> uvs;
+      std::vector<AtUInt> nsides;
+      std::vector<AtLong> vidxs, nidxs, uvidxs;
+      std::map<std::string, std::vector<float> > vcolors;
+
+      // Get UVs
+      bool exportUVs = GetUVs(fnMesh, uvs);
+
+      // Get Component IDs
+      GetComponentIDs(fnMesh, nsides, vidxs, nidxs, uvidxs, exportNormals, exportUVs);
+
+      // Get Vertex Colors
+      bool exportColors = GetVertexColors(fnMesh, vcolors);
+
+      bool mb_deform = m_scene->m_motionBlurData.enabled &&
+                       m_scene->m_fnArnoldRenderOptions->findPlug("mb_object_deform_enable").asBool() &&
                        fnDagNode.findPlug("motionBlur").asBool();
 
       // declare user defined attributes
@@ -452,7 +476,7 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
          // No deformation motion blur, so we create normal arrays
          AiNodeSetArray(polymesh, "vlist", AiArrayConvert(fnMesh.numVertices() * 3, 1, AI_TYPE_FLOAT, &(vertices[0]), TRUE));
 
-         if (useNormals && (fnMesh.numNormals() > 0))
+         if (exportNormals && (fnMesh.numNormals() > 0))
             AiNodeSetArray(polymesh, "nlist", AiArrayConvert(fnMesh.numNormals() * 3, 1, AI_TYPE_FLOAT, &(normals[0]), TRUE));
 
          if (exportTangents)
@@ -464,24 +488,24 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
       else
       {
          // Deformation motion blur. We need to create keyable arrays for vlist and nlist
-         AtArray* vlist_array = AiArrayAllocate(fnMesh.numVertices(), m_motionBlurData.motion_steps, AI_TYPE_POINT);
+         AtArray* vlist_array = AiArrayAllocate(fnMesh.numVertices(), m_scene->m_motionBlurData.motion_steps, AI_TYPE_POINT);
          SetKeyData(vlist_array, step, vertices, fnMesh.numVertices());
          AiNodeSetArray(polymesh, "vlist", vlist_array);
 
-         if (useNormals && (fnMesh.numNormals() > 0))
+         if (exportNormals)
          {
-            AtArray* nlist_array = AiArrayAllocate(fnMesh.numNormals(), m_motionBlurData.motion_steps, AI_TYPE_VECTOR);
+            AtArray* nlist_array = AiArrayAllocate(fnMesh.numNormals(), m_scene->m_motionBlurData.motion_steps, AI_TYPE_VECTOR);
             SetKeyData(nlist_array, step, normals, fnMesh.numNormals());
             AiNodeSetArray(polymesh, "nlist", nlist_array);
          }
 
          if (exportTangents)
          {
-            AtArray* tangent_array = AiArrayAllocate(fnMesh.numVertices(), m_motionBlurData.motion_steps, AI_TYPE_VECTOR);
+            AtArray* tangent_array = AiArrayAllocate(fnMesh.numVertices(), m_scene->m_motionBlurData.motion_steps, AI_TYPE_VECTOR);
             SetKeyData(tangent_array, step, tangents, fnMesh.numVertices());
             AiNodeSetArray(polymesh, "tangent", tangent_array);
 
-            AtArray* bitangent_array = AiArrayAllocate(fnMesh.numVertices(), m_motionBlurData.motion_steps, AI_TYPE_VECTOR);
+            AtArray* bitangent_array = AiArrayAllocate(fnMesh.numVertices(), m_scene->m_motionBlurData.motion_steps, AI_TYPE_VECTOR);
             SetKeyData(bitangent_array, step, bitangents, fnMesh.numVertices());
             AiNodeSetArray(polymesh, "bitangent", bitangent_array);
          }
@@ -496,7 +520,7 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
          AiArraySetUInt(vidxsTmp, i, vidxs[i]);
       AiNodeSetArray(polymesh, "vidxs", vidxsTmp);
 
-      if (useNormals && (fnMesh.numNormals() > 0))
+      if (exportNormals)
       {
          // Same goes here
          //AiNodeSetArray(polymesh, "nidxs", AiArrayConvert(nidxs.size(), 1, AI_TYPE_UINT, &(nidxs[0]), TRUE));
@@ -506,7 +530,7 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
          AiNodeSetArray(polymesh, "nidxs", nidxsTmp);
       }
 
-      if (hasUVs)
+      if (exportUVs)
       {
          AiNodeSetArray(polymesh, "uvlist", AiArrayConvert(fnMesh.numUVs() * 2, 1, AI_TYPE_FLOAT, &(uvs[0]), TRUE));
          // Same problem here
@@ -519,8 +543,14 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
       }
 
       if (multiShader)
+      {
+         // export face to shader indices
+         // first convert from MIntArray to AtUInt vector
+         std::vector<AtUInt> shidxs;
+         for(AtUInt i = 0; i < indices.length(); i++)
+            shidxs.push_back(indices[i]);
          AiNodeSetArray(polymesh, "shidxs", AiArrayConvert((AtInt)shidxs.size(), 1, AI_TYPE_UINT, &(shidxs[0]), TRUE));
-         
+      }
       if (exportColors)
       {
          std::map<std::string, std::vector<float> >::iterator it = vcolors.begin();
@@ -530,19 +560,23 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
             ++it;
          }
       }
-   }
+   } // step == 0
    else
    {
       // Export motion blur keys information (for deformation)
+
+      // vertices
       AtArray* vlist_array = AiNodeGetArray(polymesh, "vlist");
       SetKeyData(vlist_array, step, vertices, fnMesh.numVertices());
 
-      if (useNormals && (fnMesh.numNormals() > 0))
+      // normals
+      if (exportNormals)
       {
          AtArray* nlist_array = AiNodeGetArray(polymesh, "nlist");
          SetKeyData(nlist_array, step, normals, fnMesh.numNormals());
       }
 
+      // tangents
       if (exportTangents)
       {
          AtArray* tangent_array = AiNodeGetArray(polymesh, "tangent");
@@ -554,240 +588,176 @@ void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, cons
    }
 }
 
-void CMayaScene::ExportMesh(MObject mayaMesh, const MDagPath& dagPath, AtUInt step)
+AtNode* CGeoTranslator::ExportMesh(MObject mayaMesh)
 {
-   AtMatrix matrix;
    AtNode* polymesh;
-   MFnDagNode fnDagNode(dagPath.node());
-
-   bool mb = m_motionBlurData.enabled &&
-             m_fnArnoldRenderOptions->findPlug("mb_objects_enable").asBool() &&
-             fnDagNode.findPlug("motionBlur").asBool();
+   MFnDagNode fnDagNode(m_dagPath.node());
 
    // Check if custom attributes have been created, ignore them otherwise
    MStatus status;
    fnDagNode.findPlug("subdiv_type", &status);
    bool customAttributes = (status == MS::kSuccess);
 
-   GetMatrix(matrix, dagPath);
+   polymesh = AiNode("polymesh");
 
-   if (step == 0)
-   {
-      polymesh = AiNode("polymesh");
+   AiNodeSetStr(polymesh, "name", m_dagPath.fullPathName().asChar());
 
-      AiNodeSetStr(polymesh, "name", dagPath.fullPathName().asChar());
+   ExportMatrix(polymesh, 0);
 
-      if (mb)
-      {
-         AtArray* matrices = AiArrayAllocate(1, m_motionBlurData.motion_steps, AI_TYPE_MATRIX);
-         AiArraySetMtx(matrices, step, matrix);
-         AiNodeSetArray(polymesh, "matrix", matrices);
-      }
-      else
-      {
-         AiNodeSetMatrix(polymesh, "matrix", matrix);
-      }
+   AiNodeSetBool(polymesh, "smoothing", fnDagNode.findPlug("smoothShading").asBool());
+   AiNodeSetBool(polymesh, "receive_shadows", fnDagNode.findPlug("receiveShadows").asBool());
 
-      AiNodeSetBool(polymesh, "smoothing", fnDagNode.findPlug("smoothShading").asBool());
-      AiNodeSetBool(polymesh, "receive_shadows", fnDagNode.findPlug("receiveShadows").asBool());
-
-      if (fnDagNode.findPlug("doubleSided").asBool())
-         AiNodeSetInt(polymesh, "sidedness", 65535);
-      else
-      {
-         AiNodeSetBool(polymesh, "invert_normals", fnDagNode.findPlug("opposite").asBool());
-         AiNodeSetInt(polymesh, "sidedness", 0);
-      }
-
-      // Visibility options
-      AtInt visibility = 65535;
-
-      if (!fnDagNode.findPlug("castsShadows").asBool())
-         visibility &= ~AI_RAY_SHADOW;
-
-      if (!fnDagNode.findPlug("primaryVisibility").asBool())
-         visibility &= ~AI_RAY_CAMERA;
-
-      if (!fnDagNode.findPlug("visibleInReflections").asBool())
-         visibility &= ~AI_RAY_REFLECTED;
-
-      if (!fnDagNode.findPlug("visibleInRefractions").asBool())
-         visibility &= ~AI_RAY_REFRACTED;
-
-      if (customAttributes)
-      {
-         if (!fnDagNode.findPlug("diffuse_visibility").asBool())
-            visibility &= ~AI_RAY_DIFFUSE;
-
-         if (!fnDagNode.findPlug("glossy_visibility").asBool())
-            visibility &= ~AI_RAY_GLOSSY;
-      }
-
-      AiNodeSetInt(polymesh, "visibility", visibility);
-
-      if (customAttributes)
-      {
-         AiNodeSetBool(polymesh, "self_shadows", fnDagNode.findPlug("self_shadows").asBool());
-         AiNodeSetBool(polymesh, "opaque", fnDagNode.findPlug("opaque").asBool());
-
-         // Subdivision surfaces
-         //
-         bool subdivision = (fnDagNode.findPlug("subdiv_type").asInt() != 0);
-
-         if (subdivision)
-         {
-            AiNodeSetStr(polymesh, "subdiv_type", "catclark");
-            AiNodeSetInt(polymesh, "subdiv_iterations", fnDagNode.findPlug("subdiv_iterations").asInt());
-            AiNodeSetInt(polymesh, "subdiv_adaptive_metric", fnDagNode.findPlug("subdiv_adaptive_metric").asInt());
-            AiNodeSetFlt(polymesh, "subdiv_pixel_error", fnDagNode.findPlug("subdiv_pixel_error").asFloat());
-
-            MString cameraName = fnDagNode.findPlug("subdiv_dicing_camera").asString();
-            AtNode* camera = ((cameraName != "") && (cameraName != "Default")) ? AiNodeLookUpByName(cameraName.asChar()) : NULL;
-            AiNodeSetPtr(polymesh, "subdiv_dicing_camera", camera);
-         }
-
-         // Subsurface Scattering
-         //
-         AiNodeSetInt(polymesh, "sss_max_samples", fnDagNode.findPlug("sss_max_samples").asInt());
-         AiNodeSetFlt(polymesh, "sss_sample_spacing", fnDagNode.findPlug("sss_sample_spacing").asFloat());
-         AiNodeSetBool(polymesh, "sss_use_gi", fnDagNode.findPlug("sss_use_gi").asBool());
-      }
-
-      ExportMeshGeometryData(polymesh, mayaMesh, dagPath, step);
-   }
+   if (fnDagNode.findPlug("doubleSided").asBool())
+      AiNodeSetInt(polymesh, "sidedness", 65535);
    else
    {
-      polymesh = AiNodeLookUpByName(dagPath.fullPathName().asChar());
+      AiNodeSetBool(polymesh, "invert_normals", fnDagNode.findPlug("opposite").asBool());
+      AiNodeSetInt(polymesh, "sidedness", 0);
+   }
 
-      if (mb)
+   // Visibility options
+   AtInt visibility = ComputeVisibility();
+   AiNodeSetInt(polymesh, "visibility", visibility);
+
+   if (customAttributes)
+   {
+      AiNodeSetBool(polymesh, "self_shadows", fnDagNode.findPlug("self_shadows").asBool());
+      AiNodeSetBool(polymesh, "opaque", fnDagNode.findPlug("opaque").asBool());
+
+      // Subdivision surfaces
+      //
+      bool subdivision = (fnDagNode.findPlug("subdiv_type").asInt() != 0);
+
+      if (subdivision)
       {
-         AtArray* matrices = AiNodeGetArray(polymesh, "matrix");
-         AiArraySetMtx(matrices, step, matrix);
+         AiNodeSetStr(polymesh, "subdiv_type", "catclark");
+         AiNodeSetInt(polymesh, "subdiv_iterations", fnDagNode.findPlug("subdiv_iterations").asInt());
+         AiNodeSetInt(polymesh, "subdiv_adaptive_metric", fnDagNode.findPlug("subdiv_adaptive_metric").asInt());
+         AiNodeSetFlt(polymesh, "subdiv_pixel_error", fnDagNode.findPlug("subdiv_pixel_error").asFloat());
+
+         MString cameraName = fnDagNode.findPlug("subdiv_dicing_camera").asString();
+         AtNode* camera = ((cameraName != "") && (cameraName != "Default")) ? AiNodeLookUpByName(cameraName.asChar()) : NULL;
+         AiNodeSetPtr(polymesh, "subdiv_dicing_camera", camera);
       }
 
-      bool mb_deform = m_motionBlurData.enabled &&
-                       m_fnArnoldRenderOptions->findPlug("mb_object_deform_enable").asBool() &&
-                       fnDagNode.findPlug("motionBlur").asBool();
+      // Subsurface Scattering
+      //
+      AiNodeSetInt(polymesh, "sss_max_samples", fnDagNode.findPlug("sss_max_samples").asInt());
+      AiNodeSetFlt(polymesh, "sss_sample_spacing", fnDagNode.findPlug("sss_sample_spacing").asFloat());
+      AiNodeSetBool(polymesh, "sss_use_gi", fnDagNode.findPlug("sss_use_gi").asBool());
+   }
 
-      if (mb_deform)
-      {
-         ExportMeshGeometryData(polymesh, mayaMesh, dagPath, step);
-      }
+   ExportMeshGeometryData(polymesh, mayaMesh, 0);
+   return polymesh;
+}
+
+void CGeoTranslator::ExportMeshMotion(AtNode* polymesh, MObject mayaMesh, AtUInt step)
+{
+   ExportMatrix(polymesh, step);
+
+   bool mb_deform = m_scene->m_motionBlurData.enabled &&
+                    m_scene->m_fnArnoldRenderOptions->findPlug("mb_object_deform_enable").asBool() &&
+                    m_fnNode.findPlug("motionBlur").asBool();
+
+   if (mb_deform)
+   {
+      ExportMeshGeometryData(polymesh, mayaMesh, step);
    }
 }
-void CMayaScene::ExportMeshInstance(const MDagPath& dagPath, const MDagPath& masterInstance, AtUInt step)
+
+AtNode* CGeoTranslator::ExportMeshInstance(const MDagPath& masterInstance)
 {
    MTransformationMatrix worldMatrix;
-   AtMatrix matrix;
    MFloatVector vector;
    AtNode* instanceNode = NULL;
-   MFnDagNode fnDagNodeInstance(dagPath);
+   MFnDagNode fnDagNodeInstance(m_dagPath);
    AtNode* masterNode = AiNodeLookUpByName(masterInstance.fullPathName().asChar());
 
-   bool mb = m_motionBlurData.enabled &&
-             m_fnArnoldRenderOptions->findPlug("mb_objects_enable").asBool() &&
-             fnDagNodeInstance.findPlug("motionBlur").asBool();
+   int instanceNum = m_dagPath.isInstanced() ? m_dagPath.instanceNumber() : 0;
 
-   GetMatrix(matrix, dagPath);
+   instanceNode = AiNode("ginstance");
+   AiNodeSetStr(instanceNode, "name", m_dagPath.fullPathName().asChar());
 
-   if (step == 0)
+   ExportMatrix(instanceNode, 0);
+
+   AiNodeSetPtr(instanceNode, "node", masterNode);
+   AiNodeSetBool(instanceNode, "inherit_xform", false);
+
+   //
+   // SHADERS
+   //
+   MFnMesh           meshNode(m_dagPath.node());
+   MObjectArray      shaders, shadersMaster;
+   MIntArray         indices, indicesMaster;
+
+   meshNode.getConnectedShaders(instanceNum, shaders, indices);
+   // FIXME: it is incorrect to assume that instance 0 is the master as it may be hidden
+   meshNode.getConnectedShaders(0, shadersMaster, indicesMaster);
+
+   // As arnold does not support different shaders per face
+   // on ginstances
+   // we keep the master's per face assignment only
+   // if it's completely the same
+   bool equalShaderArrays = ((shaders.length() == shadersMaster.length()) && (indices.length() == indicesMaster.length()));
+
+   for(AtUInt j=0; (equalShaderArrays && (j < indices.length())); j++)
    {
-      int instanceNum = dagPath.isInstanced() ? dagPath.instanceNumber() : 0;
-
-      instanceNode = AiNode("ginstance");
-      AiNodeSetStr(instanceNode, "name", dagPath.fullPathName().asChar());
-
-      if (mb)
+      if(indices[j] != indicesMaster[j])
       {
-         AtArray* matrices = AiArrayAllocate(1, m_motionBlurData.motion_steps, AI_TYPE_MATRIX);
-         AiArraySetMtx(matrices, step, matrix);
-         AiNodeSetArray(instanceNode, "matrix", matrices);
-      }
-      else
-      {
-         AiNodeSetMatrix(instanceNode, "matrix", matrix);
-      }
-
-      AiNodeSetPtr(instanceNode, "node", masterNode);
-      AiNodeSetBool(instanceNode, "inherit_xform", false);
-
-      //
-      // SHADERS
-      //
-      MFnMesh           meshNode(dagPath.node());
-      MObjectArray      shaders, shadersMaster;
-      MIntArray         indices, indicesMaster;
-
-      meshNode.getConnectedShaders(instanceNum, shaders, indices);
-      meshNode.getConnectedShaders(0, shadersMaster, indicesMaster);
-
-      // As arnold does not support different shaders per face
-      // on ginstances
-      // we keep the master's per face assignment only
-      // if it's completely the same
-      bool equalShaderArrays = ((shaders.length() == shadersMaster.length()) && (indices.length() == indicesMaster.length()));
-
-      for(AtUInt j=0; (equalShaderArrays && (j < indices.length())); j++)
-      {
-         if(indices[j] != indicesMaster[j])
-         {
-            equalShaderArrays = false;
-         }
-      }
-      for(AtUInt i=0; (equalShaderArrays && (i < shaders.length())); i++)
-      {
-         if (shaders[i] != shadersMaster[i])
-         {
-            equalShaderArrays = false;
-         }
-      }
-
-      if ( (shaders.length() > 0) && (shadersMaster.length() > 0) )
-      {
-         MPlugArray        connections;
-         MFnDependencyNode fnDGNode(shaders[0]);
-         MPlug             shaderPlug(shaders[0], fnDGNode.attribute("surfaceShader"));
-         MPlug             shaderPlugMaster(shadersMaster[0], fnDGNode.attribute("surfaceShader"));
-
-         shaderPlug.connectedTo(connections, true, false);
-
-         if ((shaderPlug != shaderPlugMaster) || (!equalShaderArrays))
-         {
-            AtNode* shader = ExportShader(connections[0].node());
-            AiNodeSetPtr(instanceNode, "shader", shader);
-         }
+         equalShaderArrays = false;
       }
    }
-   else
+   for(AtUInt i=0; (equalShaderArrays && (i < shaders.length())); i++)
    {
-      instanceNode = AiNodeLookUpByName(dagPath.fullPathName().asChar());
-
-      if (mb)
+      if (shaders[i] != shadersMaster[i])
       {
-         AtArray* matrices = AiNodeGetArray(instanceNode, "matrix");
-         AiArraySetMtx(matrices, step, matrix);
+         equalShaderArrays = false;
       }
    }
+
+   if ( (shaders.length() > 0) && (shadersMaster.length() > 0) )
+   {
+      MPlugArray        connections;
+      MFnDependencyNode fnDGNode(shaders[0]);
+      MPlug             shaderPlug(shaders[0], fnDGNode.attribute("surfaceShader"));
+      MPlug             shaderPlugMaster(shadersMaster[0], fnDGNode.attribute("surfaceShader"));
+
+      shaderPlug.connectedTo(connections, true, false);
+
+      if ((shaderPlug != shaderPlugMaster) || (!equalShaderArrays))
+      {
+         AtNode* shader = m_scene->ExportShader(connections[0].node());
+         AiNodeSetPtr(instanceNode, "shader", shader);
+      }
+   }
+   return instanceNode;
 }
 
-void CMayaScene::ExportNurbs(const MDagPath& dagPath, AtUInt step)
+void CGeoTranslator::ExportMeshInstanceMotion(AtNode* instance, AtUInt step)
+{
+   ExportMatrix(instance, step);
+}
+
+// CNurbsTranslator
+//
+AtNode* CNurbsSurfaceTranslator::Export()
 {
    MStatus status;
-   MFnNurbsSurface surface(dagPath, &status);
+   MFnNurbsSurface surface(m_dagPath, &status);
 
    if (!status)
    {
       AiMsgError("[mtoa] ERROR: Could not create NURBS surface.");
-      return;
+      return NULL;
    }
    MDagPath masterDag;
-   if (IsMasterInstance(dagPath, masterDag))
+   m_isMasterDag = IsMasterInstance(masterDag);
+   if (m_isMasterDag)
    {
       MFnMeshData meshData;
-      MObject     meshFromNURBS;
       MObject     meshDataObject = meshData.create();
 
-      meshFromNURBS = surface.tesselate(MTesselationParams::fsDefaultTesselationParams, meshDataObject);
+      m_tesselatedMesh = surface.tesselate(MTesselationParams::fsDefaultTesselationParams, meshDataObject);
       // in order to get displacement, we need a couple of attributes
       MFnNumericAttribute  nAttr;
 
@@ -799,27 +769,44 @@ void CMayaScene::ExportNurbs(const MDagPath& dagPath, AtUInt step)
       surface.addAttribute(subdiv_adaptive_metric);
       MObject subdiv_pixel_error = nAttr.create("subdiv_pixel_error", "sdbpe", MFnNumericData::kInt, 0);
       surface.addAttribute(subdiv_pixel_error);
-
-      ExportMesh(meshFromNURBS, dagPath, step);
+      return ExportMesh(m_tesselatedMesh);
    }
    else
    {
-      ExportMeshInstance(dagPath, masterDag, step);
+      return ExportMeshInstance(masterDag);
    }
 }
 
-void CMayaScene::ExportPoly(const MDagPath& dagPath, AtUInt step)
+// FIXME: bogus Update method
+void CNurbsSurfaceTranslator::Update(AtNode *polymesh)
 {
-   unsigned int      numMeshGroups;
-   MObject node = dagPath.node();
+}
+
+void CNurbsSurfaceTranslator::ExportMotion(AtNode* polymesh, AtUInt step)
+{
+   if (m_isMasterDag)
+   {
+      ExportMeshMotion(polymesh, m_tesselatedMesh, step);
+   }
+   else
+   {
+      ExportMeshInstanceMotion(polymesh, step);
+   }
+}
+
+// CPolyTranslator
+//
+unsigned int CMeshTranslator::GetNumMeshGroups()
+{
+   MObject node = m_dagPath.node();
    MFnDependencyNode fnDGNode(node);
-   int instanceNum = dagPath.isInstanced() ? dagPath.instanceNumber() : 0;
+   int instanceNum = m_dagPath.isInstanced() ? m_dagPath.instanceNumber() : 0;
 
    MPlug plug = fnDGNode.findPlug("instObjGroups");
 
    if (plug.elementByLogicalIndex(instanceNum).isConnected())
    {
-      numMeshGroups = 1;
+      return 1;
    }
    else
    {
@@ -829,24 +816,44 @@ void CMayaScene::ExportPoly(const MDagPath& dagPath, AtUInt step)
 
       mesh.getConnectedShaders(instanceNum, shaders, indices);
 
-      numMeshGroups = shaders.length();
+      return shaders.length();
+   }
+}
+
+AtNode* CMeshTranslator::Export()
+{
+   if (GetNumMeshGroups() == 0)
+   {
+      AiMsgError("[mtoa] ERROR: Mesh not exported. It has 0 groups.");
+      return NULL;
    }
 
-   if (numMeshGroups == 0)
+   MDagPath masterDag;
+   m_isMasterDag = IsMasterInstance(masterDag);
+   if (m_isMasterDag)
    {
-      if (step == 0)
-         AiMsgError("[mtoa] ERROR: Mesh not exported. It has 0 groups.");
+      return ExportMesh(m_dagPath.node());
    }
    else
    {
-      MDagPath masterDag;
-      if (IsMasterInstance(dagPath, masterDag))
-      {
-         ExportMesh(node, dagPath, step);
-      }
-      else
-      {
-         ExportMeshInstance(dagPath, masterDag, step);
-      }
+      return ExportMeshInstance(masterDag);
    }
 }
+
+// FIXME: bogus Update method
+void CMeshTranslator::Update(AtNode *polymesh)
+{
+}
+
+void CMeshTranslator::ExportMotion(AtNode* polymesh, AtUInt step)
+{
+   if (m_isMasterDag)
+   {
+      ExportMeshMotion(polymesh, m_dagPath.node(), step);
+   }
+   else
+   {
+      ExportMeshInstanceMotion(polymesh, step);
+   }
+}
+

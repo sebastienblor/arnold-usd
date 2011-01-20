@@ -48,7 +48,6 @@ struct mobjcompare
    }
 };
 
-typedef std::map<MObjectHandle, MDagPath, mobjcompare> ObjectHandleToDagMap;
 typedef std::map<MObjectHandle, CNodeTranslator*, mobjcompare> ObjectToTranslatorMap;
 
 typedef void *   (*CreatorFunction)();
@@ -91,17 +90,11 @@ public:
    void GetPerspFilmback(AtNode* camera, MFnCamera& fnCamera);
    MVectorArray GetFilmTransform(MFnCamera& fnCamera, double width=0, bool persp=true);
    void ExportImagePlane(const MDagPath& dagPath, bool mb, AtUInt step);
-   void ExportMesh(MObject mayaMesh, const MDagPath& dagPath, AtUInt step);
-   void ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, const MDagPath& dagPath, AtUInt step);
-   void ExportMeshInstance(const MDagPath& dagPath, const MDagPath& masterInstance, AtUInt step);
-   void ExportNurbs(const MDagPath& dagPath, AtUInt step);
-   void ExportPoly(const MDagPath& dagPath, AtUInt step);
    void ExportHair(const MDagPath& dagPath, AtUInt step);
    void ExportInstancerReplacement(const MDagPath& dagPath, AtUInt step);
 
    void ProcessShaderParameter(MFnDependencyNode shader, const char* param, AtNode* arnoldShader, const char* arnoldAttrib, int arnoldAttribType, int element=-1);
    AtNode* ExportArnoldShader(MObject mayaShader, MString arnoldShader);
-   MObject GetNodeShader(MObject dagNode, int instanceNum);
 
    static bool IsVisible(MFnDagNode node);
    static bool IsVisibleDag(MDagPath dagPath);
@@ -122,7 +115,6 @@ public:
 
    std::vector<CShaderData> m_processedShaders;
 
-   ObjectHandleToDagMap m_masterInstances;
    ObjectToTranslatorMap m_processedTranslators;
 
    MFnDependencyNode* m_fnCommonRenderOptions;
