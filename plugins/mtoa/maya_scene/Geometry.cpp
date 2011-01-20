@@ -17,6 +17,7 @@
 #include <maya/MPlugArray.h>
 #include <maya/MItMeshVertex.h>
 #include <maya/MGlobal.h>
+#include <maya/MFnNumericAttribute.h>
 
 #include <vector>
 
@@ -50,6 +51,35 @@ namespace
          }
       }
    }
+}
+
+
+MObject CMayaScene::GetNodeShader(MObject dagNode, int instanceNum)
+{
+   MPlugArray        connections;
+   MFnDependencyNode fnDGNode(dagNode);
+
+   // Find the "instObjGroups" attribute. Follow that plug to see where it is connected.
+   MPlug plug(dagNode, fnDGNode.attribute("instObjGroups"));
+
+   plug.elementByLogicalIndex(instanceNum).connectedTo(connections, false, true);
+
+   if (connections.length() != 1)
+   {
+      return MObject::kNullObj;
+   }
+
+   MObject shadingGroup(connections[0].node());
+
+   fnDGNode.setObject(shadingGroup);
+
+   MPlug shaderPlug(shadingGroup, fnDGNode.attribute("surfaceShader"));
+
+   connections.clear();
+
+   shaderPlug.connectedTo(connections, true, false);
+
+   return connections[0].node();
 }
 
 void CMayaScene::ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, const MDagPath& dagPath, AtUInt step)
@@ -736,6 +766,87 @@ void CMayaScene::ExportMeshInstance(const MDagPath& dagPath, const MDagPath& mas
       {
          AtArray* matrices = AiNodeGetArray(instanceNode, "matrix");
          AiArraySetMtx(matrices, step, matrix);
+      }
+   }
+}
+
+void CMayaScene::ExportNurbs(const MDagPath& dagPath, AtUInt step)
+{
+   MStatus status;
+   MFnNurbsSurface surface(dagPath, &status);
+
+   if (!status)
+   {
+      AiMsgError("[mtoa] ERROR: Could not create NURBS surface.");
+      return;
+   }
+   MDagPath masterDag;
+   if (IsMasterInstance(dagPath, masterDag))
+   {
+      MFnMeshData meshData;
+      MObject     meshFromNURBS;
+      MObject     meshDataObject = meshData.create();
+
+      meshFromNURBS = surface.tesselate(MTesselationParams::fsDefaultTesselationParams, meshDataObject);
+      // in order to get displacement, we need a couple of attributes
+      MFnNumericAttribute  nAttr;
+
+      MObject subdiv_type = nAttr.create("subdiv_type", "sdbt", MFnNumericData::kInt, 1);
+      surface.addAttribute(subdiv_type);
+      MObject subdiv_iterations = nAttr.create("subdiv_iterations", "sdbit", MFnNumericData::kInt, 1);
+      surface.addAttribute(subdiv_iterations);
+      MObject subdiv_adaptive_metric = nAttr.create("subdiv_adaptive_metric", "sdbam", MFnNumericData::kInt, 1);
+      surface.addAttribute(subdiv_adaptive_metric);
+      MObject subdiv_pixel_error = nAttr.create("subdiv_pixel_error", "sdbpe", MFnNumericData::kInt, 0);
+      surface.addAttribute(subdiv_pixel_error);
+
+      ExportMesh(meshFromNURBS, dagPath, step);
+   }
+   else
+   {
+      ExportMeshInstance(dagPath, masterDag, step);
+   }
+}
+
+void CMayaScene::ExportPoly(const MDagPath& dagPath, AtUInt step)
+{
+   unsigned int      numMeshGroups;
+   MObject node = dagPath.node();
+   MFnDependencyNode fnDGNode(node);
+   int instanceNum = dagPath.isInstanced() ? dagPath.instanceNumber() : 0;
+
+   MPlug plug = fnDGNode.findPlug("instObjGroups");
+
+   if (plug.elementByLogicalIndex(instanceNum).isConnected())
+   {
+      numMeshGroups = 1;
+   }
+   else
+   {
+      MFnMesh      mesh(node);
+      MObjectArray shaders;
+      MIntArray    indices;
+
+      mesh.getConnectedShaders(instanceNum, shaders, indices);
+
+      numMeshGroups = shaders.length();
+   }
+
+   if (numMeshGroups == 0)
+   {
+      if (step == 0)
+         AiMsgError("[mtoa] ERROR: Mesh not exported. It has 0 groups.");
+   }
+   else
+   {
+      MDagPath masterDag;
+      if (IsMasterInstance(dagPath, masterDag))
+      {
+         ExportMesh(node, dagPath, step);
+      }
+      else
+      {
+         ExportMeshInstance(dagPath, masterDag, step);
       }
    }
 }

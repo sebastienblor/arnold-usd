@@ -15,7 +15,6 @@
 #include <maya/MSelectionList.h>
 #include <maya/MItSelectionList.h>
 #include <maya/MFnTransform.h>
-#include <maya/MFnNumericAttribute.h>
 #include <maya/MDagPathArray.h>
 #include <maya/MFnInstancer.h>
 #include <maya/MItInstancer.h>
@@ -182,83 +181,13 @@ MStatus CMayaScene::ExportScene(AtUInt step)
       // Nurbs
       else if (dagIterator.item().hasFn(MFn::kNurbsSurface))
       {
-         MFnNurbsSurface surface(dagPath, &status);
-
-         if (!status)
-         {
-            AiMsgError("[mtoa] ERROR: Could not create NURBS surface.");
-
-            return status;
-         }
-         MDagPath masterDag;
-         if (IsMasterInstance(dagPath, masterDag))
-         {
-            MFnMeshData meshData;
-            MObject     meshFromNURBS;
-            MObject     meshDataObject = meshData.create();
-
-            meshFromNURBS = surface.tesselate(MTesselationParams::fsDefaultTesselationParams, meshDataObject);
-            // in order to get displacement, we need a couple of attributes
-            MFnNumericAttribute  nAttr;
-
-            MObject subdiv_type = nAttr.create("subdiv_type", "sdbt", MFnNumericData::kInt, 1);
-            surface.addAttribute(subdiv_type);
-            MObject subdiv_iterations = nAttr.create("subdiv_iterations", "sdbit", MFnNumericData::kInt, 1);
-            surface.addAttribute(subdiv_iterations);
-            MObject subdiv_adaptive_metric = nAttr.create("subdiv_adaptive_metric", "sdbam", MFnNumericData::kInt, 1);
-            surface.addAttribute(subdiv_adaptive_metric);
-            MObject subdiv_pixel_error = nAttr.create("subdiv_pixel_error", "sdbpe", MFnNumericData::kInt, 0);
-            surface.addAttribute(subdiv_pixel_error);
-
-            ExportMesh(meshFromNURBS, dagPath, step);
-         }
-         else
-         {
-            ExportMeshInstance(dagPath, masterDag, step);
-         }
+         ExportNurbs(dagPath, step);
       }
 
       // Polygons
       else if (dagIterator.item().hasFn(MFn::kMesh))
       {
-         unsigned int      numMeshGroups;
-         MFnDependencyNode fnDGNode(dagIterator.item());
-         int instanceNum = dagPath.isInstanced() ? dagPath.instanceNumber() : 0;
-
-         MPlug plug(dagIterator.item(), fnDGNode.attribute("instObjGroups"));
-
-         if (plug.elementByLogicalIndex(instanceNum).isConnected())
-         {
-            numMeshGroups = 1;
-         }
-         else
-         {
-            MFnMesh      mesh(dagIterator.item());
-            MObjectArray shaders;
-            MIntArray    indices;
-
-            mesh.getConnectedShaders(instanceNum, shaders, indices);
-
-            numMeshGroups = shaders.length();
-         }
-
-         if (numMeshGroups == 0)
-         {
-            if (step == 0)
-               AiMsgError("[mtoa] ERROR: Mesh not exported. It has 0 groups.");
-         }
-         else
-         {
-            MDagPath masterDag;
-            if (IsMasterInstance(dagPath, masterDag))
-            {
-               ExportMesh(dagIterator.item(), dagPath, step);
-            }
-            else
-            {
-               ExportMeshInstance(dagPath, masterDag, step);
-            }
-         }
+         ExportPoly(dagPath, step);
       }
       else if (dagIterator.item().hasFn(MFn::kHairSystem))
       {

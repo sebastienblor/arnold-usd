@@ -80,6 +80,8 @@ private:
    void ExportMesh(MObject mayaMesh, const MDagPath& dagPath, AtUInt step);
    void ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, const MDagPath& dagPath, AtUInt step);
    void ExportMeshInstance(const MDagPath& dagPath, const MDagPath& masterInstance, AtUInt step);
+   void ExportNurbs(const MDagPath& dagPath, AtUInt step);
+   void ExportPoly(const MDagPath& dagPath, AtUInt step);
    void ExportHair(const MDagPath& dagPath, AtUInt step);
    void ExportInstancerReplacement(const MDagPath& dagPath, AtUInt step);
    void ExportCustomShape(const MDagPath &dagPath, AtUInt step, const MString &exportCmd, const MString &cleanupCmd);

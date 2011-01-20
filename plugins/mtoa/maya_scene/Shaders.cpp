@@ -363,34 +363,6 @@ void CMayaScene::ProcessShaderParameter(MFnDependencyNode shader, const char* pa
    }
 }
 
-MObject CMayaScene::GetNodeShader(MObject dagNode, int instanceNum)
-{
-   MPlugArray        connections;
-   MFnDependencyNode fnDGNode(dagNode);
-
-   // Find the "instObjGroups" attribute. Follow that plug to see where it is connected.
-   MPlug plug(dagNode, fnDGNode.attribute("instObjGroups"));
-
-   plug.elementByLogicalIndex(instanceNum).connectedTo(connections, false, true);
-
-   if (connections.length() != 1)
-   {
-      return MObject::kNullObj;
-   }
-
-   MObject shadingGroup(connections[0].node());
-
-   fnDGNode.setObject(shadingGroup);
-
-   MPlug shaderPlug(shadingGroup, fnDGNode.attribute("surfaceShader"));
-
-   connections.clear();
-
-   shaderPlug.connectedTo(connections, true, false);
-
-   return connections[0].node();
-}
-
 AtNode* CMayaScene::ExportArnoldShader(MObject mayaShader, MString arnoldShader)
 {
    AtNode* shader = NULL;
