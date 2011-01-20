@@ -333,10 +333,10 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
                // rgba? homogeneous point?
                if (pAttr.isArray())
                {
-                  AtRGBA rgba;
-                  double r, g, b, a;
                   if (AiNodeDeclare(anode, aname, "constant ARRAY RGBA"))
                   {
+                     AtRGBA rgba;
+                     double r, g, b, a;
                      AtArray *ary = AiArrayAllocate(pAttr.numElements(), 1, AI_TYPE_RGBA);
                      for (unsigned int i=0; i<pAttr.numElements(); ++i)
                      {
@@ -542,7 +542,7 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, MPlug& plug, const
       plug = plug.elementByPhysicalIndex(element);
 
    MPlugArray connections;
-   bool isShader =  AiNodeEntryGetType(arnoldNode->base_node) & AI_NODE_SHADER;
+   bool isShader = (AiNodeEntryGetType(arnoldNode->base_node) & AI_NODE_SHADER) ? true : false;
    // links only supported on shaders
    if (isShader)
       plug.connectedTo(connections, true, false);

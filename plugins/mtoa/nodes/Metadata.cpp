@@ -27,7 +27,7 @@ bool HasMetadata(const AtNodeEntry *entry, const char *param, const char *name)
    int result;
    MStatus stat = MGlobal::executePythonCommand(command, result);
    if (stat == MS::kSuccess)
-      return (bool)result;
+      return result ? true: false ;
    else
       return false;
 }

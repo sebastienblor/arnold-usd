@@ -45,7 +45,7 @@ CMayaScene::~CMayaScene()
 
    // Delete translators
    ObjectToTranslatorMap::iterator it;
-   for(it = m_processedTranslators.begin(); it != m_processedTranslators.end(); it++)
+   for(it = m_processedTranslators.begin(); it != m_processedTranslators.end(); ++it)
    {
       delete it->second;
    }
@@ -351,7 +351,7 @@ void CMayaScene::ClearIPRCallbacks()
 
 
    ObjectToTranslatorMap::iterator it;
-   for(it = m_processedTranslators.begin(); it != m_processedTranslators.end(); it++)
+   for(it = m_processedTranslators.begin(); it != m_processedTranslators.end(); ++it)
    {
       if ( it->second != 0x0 ) it->second->RemoveCallbacks();
    }

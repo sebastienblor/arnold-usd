@@ -2,6 +2,8 @@
 #include "nodes/ShaderUtils.h"
 #include "Metadata.h"
 
+#include "Utils.h"
+
 #include <ai_msg.h>
 
 #include <maya/MFnStringData.h>
@@ -277,8 +279,8 @@ void CBaseAttrHelper::MakeInputInt(MObject& attrib, CAttrData& data)
       nAttr.setSoftMin((AtInt)data.softMin);
    if (data.hasSoftMax)
       nAttr.setSoftMax((AtInt)data.softMax);
-   nAttr.setArray(data.isArray);
-   nAttr.setKeyable(data.keyable);
+   nAttr.setArray(AtBooleanToBool(data.isArray));
+   nAttr.setKeyable(AtBooleanToBool(data.keyable));
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
@@ -296,8 +298,8 @@ void CBaseAttrHelper::MakeInputBoolean(MObject& attrib, CAttrData& data)
 {
    MFnNumericAttribute nAttr;
    attrib = nAttr.create(data.name, data.shortName, MFnNumericData::kBoolean, data.defaultValue.BOOL);
-   nAttr.setArray(data.isArray);
-   nAttr.setKeyable(data.keyable);
+   nAttr.setArray(AtBooleanToBool(data.isArray));
+   nAttr.setKeyable(AtBooleanToBool(data.keyable));
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
@@ -323,8 +325,8 @@ void CBaseAttrHelper::MakeInputFloat(MObject& attrib, CAttrData& data)
       nAttr.setSoftMin((AtFloat)data.softMin);
    if (data.hasSoftMax)
       nAttr.setSoftMax((AtFloat)data.softMax);
-   nAttr.setArray(data.isArray);
-   nAttr.setKeyable(data.keyable);
+   nAttr.setArray(AtBooleanToBool(data.isArray));
+   nAttr.setKeyable(AtBooleanToBool(data.keyable));
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
@@ -344,8 +346,8 @@ void CBaseAttrHelper::MakeInputRGB(MObject& attrib, CAttrData& data)
 
    attrib = nAttr.createColor(data.name, data.shortName);
    nAttr.setDefault(data.defaultValue.RGB.r, data.defaultValue.RGB.g, data.defaultValue.RGB.b);
-   nAttr.setArray(data.isArray);
-   nAttr.setKeyable(data.keyable);
+   nAttr.setArray(AtBooleanToBool(data.isArray));
+   nAttr.setKeyable(AtBooleanToBool(data.keyable));
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
@@ -365,8 +367,8 @@ void CBaseAttrHelper::MakeInputRGBA(MObject& attrib, MObject& attribA, CAttrData
 
    attrib = nAttr.createColor(data.name, data.shortName);
    nAttr.setDefault(data.defaultValue.RGBA.r, data.defaultValue.RGBA.g, data.defaultValue.RGBA.b);
-   nAttr.setArray(data.isArray);
-   nAttr.setKeyable(data.keyable);
+   nAttr.setArray(AtBooleanToBool(data.isArray));
+   nAttr.setKeyable(AtBooleanToBool(data.keyable));
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
@@ -374,7 +376,7 @@ void CBaseAttrHelper::MakeInputRGBA(MObject& attrib, MObject& attribA, CAttrData
 
    attribA = nAttr.create(data.name + "A", data.shortName + "a", MFnNumericData::kFloat, data.defaultValue.RGBA.a);
    nAttr.setHidden(true);
-   nAttr.setKeyable(data.keyable);
+   nAttr.setKeyable(AtBooleanToBool(data.keyable));
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
@@ -394,8 +396,8 @@ void CBaseAttrHelper::MakeInputVector(MObject& attrib, CAttrData& data)
 
    attrib = nAttr.createPoint(data.name, data.shortName);
    nAttr.setDefault(data.defaultValue.VEC.x, data.defaultValue.VEC.y, data.defaultValue.VEC.z);
-   nAttr.setArray(data.isArray);
-   nAttr.setKeyable(data.keyable);
+   nAttr.setArray(AtBooleanToBool(data.isArray));
+   nAttr.setKeyable(AtBooleanToBool(data.keyable));
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
@@ -415,8 +417,8 @@ void CBaseAttrHelper::MakeInputPoint(MObject& attrib, CAttrData& data)
 
    attrib = nAttr.createPoint(data.name, data.shortName);
    nAttr.setDefault(data.defaultValue.PNT.x, data.defaultValue.PNT.y, data.defaultValue.PNT.z);
-   nAttr.setArray(data.isArray);
-   nAttr.setKeyable(data.keyable);
+   nAttr.setArray(AtBooleanToBool(data.isArray));
+   nAttr.setKeyable(AtBooleanToBool(data.keyable));
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
@@ -437,8 +439,8 @@ void CBaseAttrHelper::MakeInputPoint2(MObject& attrib, MObject& attribX, MObject
    attribY = nAttr.create(data.name + "Y", data.shortName + "y", MFnNumericData::kFloat, data.defaultValue.PNT2.y);
    attrib = nAttr.create(data.name, data.shortName, attribX, attribY);
    nAttr.setDefault(float(data.defaultValue.PNT2.x), float(data.defaultValue.PNT2.y));
-   nAttr.setArray(data.isArray);
-   nAttr.setKeyable(data.keyable);
+   nAttr.setArray(AtBooleanToBool(data.isArray));
+   nAttr.setKeyable(AtBooleanToBool(data.keyable));
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
@@ -460,8 +462,8 @@ void CBaseAttrHelper::MakeInputString(MObject& attrib, CAttrData& data)
    MFnStringData strData;
    MObject defObj = strData.create(data.defaultValue.STR);
    tAttr.setDefault(defObj);
-   tAttr.setArray(data.isArray);
-   tAttr.setKeyable(data.keyable);
+   tAttr.setArray(AtBooleanToBool(data.isArray));
+   tAttr.setKeyable(AtBooleanToBool(data.keyable));
    tAttr.setStorable(true);
    tAttr.setReadable(true);
    tAttr.setWritable(true);
@@ -480,7 +482,7 @@ void CBaseAttrHelper::MakeInputMatrix(MObject& attrib, CAttrData& data)
    MFnMatrixAttribute mAttr;
 
    attrib = mAttr.create(data.name, data.shortName, MFnMatrixAttribute::kFloat);
-   mAttr.setArray(data.isArray);
+   mAttr.setArray(AtBooleanToBool(data.isArray));
    MAKE_INPUT(mAttr, attrib);
 
 //   const AtParamValue* data.defaultValue = AiParamGetDefault(paramEntry);
@@ -510,7 +512,7 @@ void CBaseAttrHelper::MakeInputEnum(MObject& attrib, const char*paramName, CAttr
       }
    }
    addAttribute(attrib);
-   eAttr.setArray(data.isArray);
+   eAttr.setArray(AtBooleanToBool(data.isArray));
 }
 
 void CBaseAttrHelper::MakeInputNode(MObject& attrib, const char* paramName)
@@ -525,7 +527,7 @@ void CBaseAttrHelper::MakeInputNode(MObject& attrib, CAttrData& data)
    MFnMessageAttribute msgAttr;
 
    attrib = msgAttr.create(data.name, data.shortName);
-   msgAttr.setArray(data.isArray);
+   msgAttr.setArray(AtBooleanToBool(data.isArray));
    MAKE_INPUT(msgAttr, attrib);
 }
 

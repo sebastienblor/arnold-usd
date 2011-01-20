@@ -40,8 +40,8 @@ public:
    ~CHairLine() {}
    void SetCurvePoints( MVectorArray points ) { curvePoints = points; };
    void SetCurveWidths( MDoubleArray widths ) { curveWidths = widths; };
-   MVectorArray GetCurvePoints() { return curvePoints; };
-   MDoubleArray GetCurveWidths() { return curveWidths; };
+   MVectorArray GetCurvePoints() const { return curvePoints; };
+   MDoubleArray GetCurveWidths() const { return curveWidths; };
 
 private:
 

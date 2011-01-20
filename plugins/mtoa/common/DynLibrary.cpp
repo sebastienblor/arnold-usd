@@ -1,6 +1,7 @@
 
 #include "DynLibrary.h"
-//#include "../tools.h"
+
+#include "platform/Platform.h"
 
 #include <ai_allocate.h>
 

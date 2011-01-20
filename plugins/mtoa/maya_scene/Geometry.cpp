@@ -276,8 +276,6 @@ bool CGeoTranslator::GetVertexColors(MFnMesh &fnMesh, std::map<std::string, std:
 {
    bool exportColors = false;
 
-   int dim = 4;
-
    if (fnMesh.numColorSets() > 0)
    {
       MPlug plug = fnMesh.findPlug("export_colors");
@@ -292,6 +290,7 @@ bool CGeoTranslator::GetVertexColors(MFnMesh &fnMesh, std::map<std::string, std:
       MIntArray faces;
       unsigned int i = 0;
       float scale = 1.0f;
+      int dim = 4;
       MColor col;
 
       fnMesh.getColorSetNames(names);

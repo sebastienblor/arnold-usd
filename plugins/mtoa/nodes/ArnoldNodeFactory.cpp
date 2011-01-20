@@ -436,7 +436,7 @@ void CArnoldNodeFactory::UnregisterAllNodes()
    MStatus status;
    MString str;
    ArnoldPluginData::iterator it;
-   for (it = s_arnoldPlugins.begin(); it!=s_arnoldPlugins.end(); it++)
+   for (it = s_arnoldPlugins.begin(); it!=s_arnoldPlugins.end(); ++it)
    {
       std::vector<std::string> nodes = it->second;
       for (unsigned int i=0; i < nodes.size(); i++)

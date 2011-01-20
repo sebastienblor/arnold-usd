@@ -19,14 +19,14 @@
 bool setRefPts(AtShaderGlobals *sg, AtPoint &tmpPts)
 {
 	AtPoint Pref;
-	bool usePref = AiUDataGetPnt("Pref",&Pref);
+	AtBoolean usePref = AiUDataGetPnt("Pref",&Pref);
 	if (usePref)
 	{
 		tmpPts = sg->P;
 		sg->P = Pref;
-		return 1;
+		return true;
 	}
-	return 0;
+	return false;
 }
 
 // Set sg->N to Nref if Nref is existing on the object.
@@ -47,15 +47,15 @@ bool setRefPts(AtShaderGlobals *sg, AtPoint &tmpPts)
 //
 bool setRefNmrs(AtShaderGlobals *sg, AtVector &tmpNmrs)
 {
-	AtVector Nref;
-	bool useNref = AiUDataGetPnt("Nref",&Nref);
+   AtVector Nref;
+	AtBoolean useNref = AiUDataGetPnt("Nref",&Nref);
 	if (useNref)
 	{
 		tmpNmrs = sg->N;
 		sg->N = Nref;
-		return 1;
+		return true;
 	}
-	return 0;
+	return false;
 }
 
 // Restore sg->P with original P. Use in combinaison with setRefPts.
@@ -65,7 +65,7 @@ bool setRefNmrs(AtShaderGlobals *sg, AtVector &tmpNmrs)
 //
 void restorePts(AtShaderGlobals *sg, AtPoint tmpPts)
 {
-		sg->P = tmpPts;
+   sg->P = tmpPts;
 }
 
 // Restore sg->N with original N. Use in combinaison with setRefNmrs.
@@ -74,5 +74,5 @@ void restorePts(AtShaderGlobals *sg, AtPoint tmpPts)
 //
 void restoreNmrs(AtShaderGlobals *sg, AtVector tmpNmrs)
 {
-		sg->N = tmpNmrs;
+   sg->N = tmpNmrs;
 }

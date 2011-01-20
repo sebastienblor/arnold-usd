@@ -5,6 +5,10 @@
 #define WIN32_LEAN_AND_MEAN
 #define DLLEXPORT __declspec(dllexport)
 #include "platform/win32/Event.h"
+#ifdef _MSC_VER
+#pragma warning(disable:4251)
+#pragma warning(disable:4267)
+#endif // _MSC_VER
 #endif // _WIN32
 
 #ifdef _LINUX
