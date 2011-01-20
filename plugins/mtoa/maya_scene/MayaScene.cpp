@@ -126,7 +126,7 @@ MStatus CMayaScene::IterSelection(MSelectionList selected)
       it.getDagPath(path);
 
       // iterate Hierarchy
-      if (IsVisible(path.node()))
+      if (IsVisible(path.node()) || !IsTemplated(path.node()))
       {
          for (AtUInt child = 0; (child < path.childCount()); child++)
          {
@@ -232,7 +232,7 @@ MStatus CMayaScene::ExportScene(AtUInt step)
 
       MFnDagNode node(dagPath.node());
 
-      if (!IsVisible(node))
+      if (!IsVisible(node) || IsTemplated(node))
       {
          dagIterator.prune();
          continue;
