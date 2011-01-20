@@ -11,6 +11,8 @@
 #include <maya/MComputation.h>
 #include <maya/MRenderView.h>
 
+#include "render/OutputDriver.h"
+
 #define _gamma  (params[0].FLT )  /**< accessor for driver's gamma parameter */
 
 AI_DRIVER_NODE_EXPORT_METHODS(mtoa_driver_mtd);
@@ -210,14 +212,14 @@ node_finish
 }
 
 
-void UpdateBucket(const AtBBox2& bucketRect, RV_PIXEL* pixels)
+void UpdateBucket(const AtBBox2& bucketRect, RV_PIXEL* pixels, const bool refresh )
 {
    // Flip vertically
    AtInt   miny = s_outputDriverData.imageHeight - bucketRect.maxy - 1;
    AtInt   maxy = s_outputDriverData.imageHeight - bucketRect.miny - 1;
 
    MRenderView::updatePixels(bucketRect.minx, bucketRect.maxx, miny, maxy, pixels);
-   MRenderView::refresh(bucketRect.minx, bucketRect.maxx, miny, maxy);
+   if (refresh) MRenderView::refresh(bucketRect.minx, bucketRect.maxx, miny, maxy);
 
    delete[] pixels;
 }
@@ -242,7 +244,7 @@ void ClearDisplayUpdateQueue()
    s_displayUpdateQueue.reset();
 }
 
-bool ProcessSomeOfDisplayUpdateQueue()
+bool ProcessSomeOfDisplayUpdateQueue(const bool refresh)
 {
    if (s_displayUpdateQueue.waitForNotEmpty(10))
    {
@@ -258,7 +260,7 @@ bool ProcessSomeOfDisplayUpdateQueue()
                // TODO: Implement this...
                break;
             case MSG_BUCKET_UPDATE:
-               UpdateBucket(msg.bucketRect, msg.pixels);
+               UpdateBucket(msg.bucketRect, msg.pixels, refresh);
                break;
             case MSG_IMAGE_UPDATE:
                break;
@@ -275,21 +277,30 @@ bool ProcessSomeOfDisplayUpdateQueue()
    return true;
 }
 
-void ProcessDisplayUpdateQueue(MComputation * comp)
+void ProcessDisplayUpdateQueue()
+{
+   while( !s_displayUpdateQueue.isEmpty() )
+   {
+      ProcessSomeOfDisplayUpdateQueue(false);
+   }
+}
+
+void ProcessDisplayUpdateQueueWithInterupt(MComputation * comp)
 {
 
-   bool aborted = false;
-
-   while (true)
+   while( true )
    {
-      if (!aborted && comp->isInterruptRequested())
+      if (comp!= 0x0 && comp->isInterruptRequested())
       {
+         // Kill the render.
          AiRenderAbort();
-         aborted = true;
       }
-
-      if (!ProcessSomeOfDisplayUpdateQueue()) break;
+      
+      // Break out the loop when we've displayed the last complete image.
+      // ProcessSomeOfDisplayUpdateQueue returns false on end of render message.
+      if ( !ProcessSomeOfDisplayUpdateQueue() ) break;
    }
 
-   comp->endComputation();
+   if ( comp != 0x0 ) comp->endComputation();
 }
+

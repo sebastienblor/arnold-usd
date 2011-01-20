@@ -79,7 +79,12 @@ private:
    {
    }
 
+   static void updateRenderViewCallback(void *);
+
    void SetupRenderOutput();
+   AtNode * CreateFileOutput();
+   AtNode * CreateRenderViewOutput();
+   AtNode * CreateOutputFilter();
 
 private:
 

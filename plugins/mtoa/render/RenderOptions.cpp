@@ -86,7 +86,7 @@ void CRenderOptions::UpdateImageFilename()
       m_imageFilename = m_defaultRenderGlobalsData.getImageName(m_defaultRenderGlobalsData.kFullPathTmp, fileFrameNumber, sceneFileName, nameCamera, m_imageFileExtension, renderLayer, 1);
    }
 
-   for (size_t i=0; i<NumAOVs(); ++i)
+   for (AtUInt i=0; i<NumAOVs(); ++i)
    {
       m_aovs[i].UpdateImageFilename(GetCameraName(), m_imageFileExtension, MultiCameraRender(), BatchMode());
    }

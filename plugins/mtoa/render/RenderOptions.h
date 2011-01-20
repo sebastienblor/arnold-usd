@@ -264,9 +264,9 @@ public:
       return m_AA_samples;
    }
 
-   size_t NumAOVs() const
+   AtUInt NumAOVs() const
    {
-      return m_aovs.size();
+      return static_cast<AtUInt>(m_aovs.size());
    }
 
    size_t FindAOV(const MString &name) const

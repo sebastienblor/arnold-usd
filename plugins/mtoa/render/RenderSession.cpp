@@ -40,7 +40,7 @@ static CRenderSession* s_renderSession = NULL;
 // This will update the render view if needed.
 // It's called from a maya idle event callback.
 // This means it's called a *lot*.
-void updateRenderViewCallback( void * data )
+void CRenderSession::updateRenderViewCallback(void *)
 {
    ProcessSomeOfDisplayUpdateQueue();
 }
@@ -168,7 +168,7 @@ void CRenderSession::Init(ExportMode exportMode, bool preMel, bool preLayerMel, 
 
 void CRenderSession::End(bool postMel, bool postLayerMel, bool postFrameMel)
 {
-   ClearIdleRenderViewCallback();
+   Interrupt();
    AiRenderAbort();
    AiEnd();
    MCommonRenderSettingsData renderGlobals;
@@ -371,7 +371,7 @@ void CRenderSession::DoRender()
       AtVoid* handler = AiThreadCreate(RenderThread, NULL, AI_PRIORITY_LOW);
 
       // Process messages sent by the render thread, and exit when rendering is finished or aborted
-      ProcessDisplayUpdateQueue(&comp);
+      ProcessDisplayUpdateQueueWithInterupt(&comp);
 
       if (!aborted && comp.isInterruptRequested())
       {
@@ -428,32 +428,57 @@ void CRenderSession::DoExport(MString customFileName, ExportMode exportMode)
 
 void CRenderSession::SetupRenderOutput()
 {
-   AtNode* driver;
-   AtNode* renderViewDriver;
 
-   if (!m_renderOptions.BatchMode())
+   AtNode * render_view = CreateRenderViewOutput();
+   AtNode * file_driver = CreateFileOutput();
+   AtNode * filter = CreateOutputFilter();
+
+   // OUTPUT STRINGS
+   AtChar   str[1024];
+   int ndrivers = 0;
+   if ( render_view != 0x0 ) ++ndrivers;
+   if ( file_driver != 0x0 ) ++ndrivers;
+
+   AtArray* outputs  = AiArrayAllocate(ndrivers+m_renderOptions.NumAOVs(), 1, AI_TYPE_STRING);
+
+   int driver_num(0);
+   if (render_view != 0x0)
    {
-      // render in the renderview
-      renderViewDriver = AiNodeLookUpByName( "renderview_display" );
-      if ( renderViewDriver == 0x0 )
-      {
-      AiNodeInstall(AI_NODE_DRIVER, AI_TYPE_NONE, "renderview_display",  NULL, (AtNodeMethods*) mtoa_driver_mtd, AI_VERSION);
-      renderViewDriver = AiNode("renderview_display");
-      AiNodeSetStr(renderViewDriver, "name", "renderview_display");
-      }
-      AiNodeSetFlt(renderViewDriver, "gamma", m_renderOptions.outputGamma());
+      sprintf(str, "RGBA RGBA %s %s", AiNodeGetName(filter), AiNodeGetName(render_view) );
+      AiArraySetStr(outputs, driver_num++, str);
    }
 
+   if ( file_driver != 0x0 )
+   {
+      sprintf(str, "RGBA RGBA %s %s", AiNodeGetName(filter), AiNodeGetName(file_driver));
+      AiArraySetStr(outputs, driver_num++, str);
+
+      for (size_t i=0; i<m_renderOptions.NumAOVs(); ++i)
+      {
+         m_renderOptions.GetAOV(i).SetupOutput(outputs, ndrivers+static_cast<int>(i), file_driver, filter);
+      }
+   }
+
+   AiNodeSetArray(AiUniverseGetOptions(), "outputs", outputs);
+
+}
+
+AtNode * CRenderSession::CreateFileOutput()
+{
+   // Don't install the file driver when in IPR mode.
+   if ( GetMayaScene()->GetExportMode() == MTOA_EXPORT_IPR ) return 0x0;
+
+   AtNode* driver;
    // set the output driver
    MString driverCamName = m_renderOptions.RenderDriver() + "_" + m_renderOptions.GetCameraName();
    driver = AiNodeLookUpByName( driverCamName.asChar() );
    if ( driver == 0x0 )
    {
-   driver = AiNode(m_renderOptions.RenderDriver().asChar());
-   AiNodeSetStr(driver, "filename", m_renderOptions.GetImageFilename().asChar());
+      driver = AiNode(m_renderOptions.RenderDriver().asChar());
+      AiNodeSetStr(driver, "filename", m_renderOptions.GetImageFilename().asChar());
 
-   // Set the driver name depending on the camera name to avoid nodes with the same name on renders with multiple cameras
-   AiNodeSetStr(driver, "name", driverCamName.asChar());
+      // Set the driver name depending on the camera name to avoid nodes with the same name on renders with multiple cameras
+      AiNodeSetStr(driver, "name", driverCamName.asChar());
    }
 
    // set output driver parameters
@@ -491,9 +516,32 @@ void CRenderSession::SetupRenderOutput()
       AiNodeSetBool(driver, "unpremult_alpha", m_renderOptions.arnoldRenderImageUnpremultAlpha());
    }
 
+   return driver;
+}
+
+AtNode * CRenderSession::CreateRenderViewOutput()
+{
+   // Don't create it if we're in batch mode.
+   if (m_renderOptions.BatchMode()) return 0x0;
+
+   AtNode * driver = AiNodeLookUpByName( "renderview_display" );
+   if ( driver == 0x0 )
+   {
+      AiNodeInstall(AI_NODE_DRIVER, AI_TYPE_NONE, "renderview_display",  NULL, (AtNodeMethods*) mtoa_driver_mtd, AI_VERSION);
+      driver = AiNode("renderview_display");
+      AiNodeSetStr(driver, "name", "renderview_display");
+   }
+
+   AiNodeSetFlt(driver, "gamma", m_renderOptions.outputGamma());
+
+   return driver;
+}
+
+AtNode * CRenderSession::CreateOutputFilter()
+{
    // OUTPUT FILTER (use for all image outputs)
-   //
-   AtNode* filter = AiNode(m_renderOptions.filterType().asChar());
+   AtNode* filter = AiNodeLookUpByName( m_renderOptions.filterType().asChar() );
+   if (filter == 0x0) filter = AiNode(m_renderOptions.filterType().asChar());
 
    // Only set filter parameters if they exist within that specific node
    if (AiNodeEntryLookUpParameter(filter->base_node, "width"))
@@ -517,27 +565,7 @@ void CRenderSession::SetupRenderOutput()
       AiNodeSetFlt(filter, "minimum", m_renderOptions.filterMinimum());
    }
 
-   // OUTPUT STRINGS
-   //
-   AtChar   str[1024];
-   int      ndrivers = m_renderOptions.BatchMode() ? 1 : 2;
-   AtArray* outputs  = AiArrayAllocate(ndrivers+static_cast<AtInt>(m_renderOptions.NumAOVs()), 1, AI_TYPE_STRING);
-
-   sprintf(str, "RGBA RGBA %s %s", AiNodeGetName(filter), AiNodeGetName(driver));
-   AiArraySetStr(outputs, 0, str);
-
-   if (!m_renderOptions.BatchMode())
-   {
-      sprintf(str, "RGBA RGBA %s %s", AiNodeGetName(filter), "renderview_display");
-      AiArraySetStr(outputs, 1, str);
-   }
-
-   for (size_t i=0; i<m_renderOptions.NumAOVs(); ++i)
-   {
-      m_renderOptions.GetAOV(i).SetupOutput(outputs, ndrivers+static_cast<int>(i), driver, filter);
-   }
-
-   AiNodeSetArray(AiUniverseGetOptions(), "outputs", outputs);
+   return filter;
 }
 
 MStatus CRenderSession::PrepareIPR()
@@ -677,12 +705,14 @@ void CRenderSession::AddIdleRenderViewCallback()
    if ( 0 == m_idle_cb )
    {
       MStatus status;
-      m_idle_cb = MEventMessage::addEventCallback( "idle", updateRenderViewCallback, NULL, &status );
+      m_idle_cb = MEventMessage::addEventCallback( "idle", CRenderSession::updateRenderViewCallback, NULL, &status );
    }
 }
 
 void CRenderSession::ClearIdleRenderViewCallback()
 {
+   // Get the rest of the rendered image processed.
+   ProcessDisplayUpdateQueue();
    // If we don't do this the render thread will never finish.
    FinishedWithDisplayUpdateQueue();
 
