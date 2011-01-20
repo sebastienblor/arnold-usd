@@ -345,9 +345,9 @@ bool CArnoldNodeFactory::RegisterMayaNode(AtNodeEntry* arnoldNode)
       return true;
 
    // map to an existing maya node?
-   const char* mayaCounterpart;
+   char mayaCounterpart[128];
    int mayaCounterpartId;
-   if (MAiMetaDataGetStr(arnoldNode, NULL, "maya.counterpart", &mayaCounterpart) && AiMetaDataGetInt(arnoldNode, NULL, "maya.counterpart_id", &mayaCounterpartId))
+   if (MAiMetaDataGetStr(arnoldNode, NULL, "maya.counterpart", mayaCounterpart) && AiMetaDataGetInt(arnoldNode, NULL, "maya.counterpart_id", &mayaCounterpartId))
    {
       if (!MapToMayaNode(arnoldNodeName, mayaCounterpart, mayaCounterpartId))
       {
@@ -357,9 +357,9 @@ bool CArnoldNodeFactory::RegisterMayaNode(AtNodeEntry* arnoldNode)
       return true;
    }
    // remap node name?
-   const char* mayaNodeName;
-   if (!MAiMetaDataGetStr(arnoldNode, NULL, "maya.name", &mayaNodeName))
-      mayaNodeName = arnoldNodeName;
+   char mayaNodeName[128];
+   if (!MAiMetaDataGetStr(arnoldNode, NULL, "maya.name", mayaNodeName))
+      strcpy(mayaNodeName, arnoldNodeName);
 
    // get nodeID
    AtInt nodeId;
@@ -373,10 +373,10 @@ bool CArnoldNodeFactory::RegisterMayaNode(AtNodeEntry* arnoldNode)
    MGlobal::displayInfo(MString("[mtoa] INFO: Loading shader: ") + arnoldNodeName);
 
    // classification string
-   const char* tmp;
-   if (!MAiMetaDataGetStr(arnoldNode, NULL, "maya.class", &tmp))
-      tmp = "shader/surface";
-   const MString shaderClass(tmp);
+   MString shaderClass("shader/surface");
+   char tmp[256];
+   if (MAiMetaDataGetStr(arnoldNode, NULL, "maya.class", tmp))
+      shaderClass = tmp;
 
    // Create a custom named shader node type
    CArnoldCustomShaderNode::s_shaderName = arnoldNodeName;

@@ -10,7 +10,7 @@ AtBoolean  MAiMetaDataGetFlt (const AtNodeEntry *entry, const char *param, const
 //AtBoolean  MAiMetaDataGetVec (const AtNodeEntry *entry, const char *param, const char *name, AtVector *value);
 //AtBoolean  MAiMetaDataGetPnt2 (const AtNodeEntry *entry, const char *param, const char *name, AtPoint2 *value);
 //AtBoolean  MAiMetaDataGetRGB (const AtNodeEntry *entry, const char *param, const char *name, AtColor *value);
-AtBoolean  MAiMetaDataGetStr (const AtNodeEntry *entry, const char *param, const char *name, const char **value);
+AtBoolean  MAiMetaDataGetStr (const AtNodeEntry *entry, const char *param, const char *name, char *value);
 
 AtParamValue MAiParamGetDefault(const AtNodeEntry *entry, const AtParamEntry* paramEntry);
 

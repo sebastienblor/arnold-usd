@@ -4,6 +4,8 @@
 
 #include <maya/MGlobal.h>
 
+#include <cstring>
+
 bool HasMetadata(const AtNodeEntry *entry, const char *param, const char *name)
 {
    MString command = "import mtoa.metadata as meta;meta.";
@@ -96,18 +98,29 @@ AtBoolean  MAiMetaDataGetFlt (const AtNodeEntry *entry, const char *param, const
 //AtBoolean  MAiMetaDataGetVec (const AtNodeEntry *entry, const char *param, const char *name, AtVector *value);
 //AtBoolean  MAiMetaDataGetPnt2 (const AtNodeEntry *entry, const char *param, const char *name, AtPoint2 *value);
 //AtBoolean  MAiMetaDataGetRGB (const AtNodeEntry *entry, const char *param, const char *name, AtColor *value);
-AtBoolean  MAiMetaDataGetStr (const AtNodeEntry *entry, const char *param, const char *name, const char **value)
+
+
+AtBoolean  MAiMetaDataGetStr (const AtNodeEntry *entry, const char *param, const char *name, char *value)
 {
    if (HasMetadata(entry, param, name))
    {
       MString result;
       MString command = FormatCommand(entry, param, name);
       MStatus stat = MGlobal::executePythonCommand(command, result);
-      *value = result.asChar();
+      strcpy(value, result.asChar());
       return true;
    }
    else
-      return AiMetaDataGetStr(entry, param, name, value);
+   {
+      const char *sptr;
+      if (AiMetaDataGetStr(entry, param, name, &sptr))
+      {
+         // succeeded. copy in the value
+         strcpy(value, sptr);
+         return true;
+      }
+      return false;
+   }
 }
 
 AtParamValue MAiParamGetDefault(const AtNodeEntry *entry, const AtParamEntry* paramEntry)

@@ -33,8 +33,8 @@ MString toMayaStyle(MString s)
 // "arnold_style" to "mayaStyle"
 MString CBaseAttrHelper::GetMayaAttrName(const char* paramName)
 {
-   const char* attrName;
-   if (MAiMetaDataGetStr(m_nodeEntry, paramName, "maya.name", &attrName))
+   char attrName[128];
+   if (MAiMetaDataGetStr(m_nodeEntry, paramName, "maya.name", attrName))
       MString(attrName);
    return toMayaStyle(paramName);
 }
@@ -43,8 +43,8 @@ MString CBaseAttrHelper::GetMayaAttrName(const char* paramName)
 // parameter name
 MString CBaseAttrHelper::GetMayaAttrShortName(const char* paramName)
 {
-   const char* attrShortName;
-   if (MAiMetaDataGetStr(m_nodeEntry, paramName, "maya.shortname", &attrShortName))
+   char attrShortName[128];
+   if (MAiMetaDataGetStr(m_nodeEntry, paramName, "maya.shortname", attrShortName))
       return MString(attrShortName);
    return MString(paramName);
 }
