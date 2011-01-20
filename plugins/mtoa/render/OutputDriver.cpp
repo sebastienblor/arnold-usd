@@ -19,9 +19,15 @@
 #include <time.h>
 time_t s_start_time;
 
+/// \defgroup render_view Render View Output Driver
+/// These are the methods that make up the arnold side of the Render View update code.
+/// @{
+
+
 #define _gamma  (params[0].FLT )  /**< accessor for driver's gamma parameter */
 
 AI_DRIVER_NODE_EXPORT_METHODS(mtoa_driver_mtd);
+
 
 struct COutputDriverData
 {
@@ -38,18 +44,20 @@ enum EDisplayUpdateMessageType
    MSG_RENDER_DONE
 };
 
-// This struct holds the data for a display update message
 struct CDisplayUpdateMessage
 {
    EDisplayUpdateMessageType msgType;
    AtBBox2                   bucketRect;
-   RV_PIXEL*                 pixels;
+   RV_PIXEL*                 pixels;      ///< These will be in the range of 0-255, not 0-1.
 };
 
 static CMTBlockingQueue<CDisplayUpdateMessage> s_displayUpdateQueue;
 static COutputDriverData                       s_outputDriverData;
 static bool                                    s_finishedRendering;
 
+
+/// \name Arnold Output Driver.
+/// \{
 node_parameters
 {
    AiParameterFLT ("gamma", 1.0f);
@@ -108,6 +116,9 @@ driver_prepare_bucket
    s_displayUpdateQueue.push(msg);
 }
 
+/// Convert the data to Maya format.
+/// driver_write_bucket takes the data from Arnold and converts it to
+/// 0-255 instead of 0-1. It also flips it around height.
 driver_write_bucket
 {
    AtInt         pixel_type;
@@ -196,6 +207,7 @@ driver_write_bucket
    s_displayUpdateQueue.push( msg );
 }
 
+
 driver_close
 {
    CDisplayUpdateMessage msg;
@@ -211,8 +223,11 @@ node_finish
    AiDriverDestroy(node);
 }
 
+/// \}
 
 
+/// \name Render View and Queue processing.
+/// \{
 
 void UpdateBucket(const AtBBox2& bucketRect, RV_PIXEL* pixels, const bool refresh )
 {
@@ -398,4 +413,6 @@ void ProcessDisplayUpdateQueueWithInterupt(MComputation & comp)
       if (comp.isInterruptRequested()) break;
    }
 }
+/// \}
+/// @}
 
