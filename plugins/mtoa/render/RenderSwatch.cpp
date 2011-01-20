@@ -20,7 +20,6 @@ CRenderSwatchGenerator::CRenderSwatchGenerator(MObject dependNode,
                                                                     renderNode,
                                                                     imageResolution)
                                                 , m_renderSession(0x0)
-                                                , m_error(false)
                                                 , m_iteration(0)
 {
 }
@@ -88,7 +87,7 @@ bool CRenderSwatchGenerator::doIteration()
    // Scene/ass is built, so start the render.
    else if ( m_iteration == 1)
    {
-      if (!AiUniverseIsActive() || m_error)
+      if (!AiUniverseIsActive())
       {
          ErrorSwatch("Arnold universe not active.");
          return true; // Stop iterating/rendering.
