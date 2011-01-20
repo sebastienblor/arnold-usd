@@ -12,27 +12,89 @@
 #include <ai_universe.h>
 #include <ai_ray.h>
 
-#include <cstdio>
 
 #include <maya/MGlobal.h>
 #include <maya/MSelectionList.h>
 #include <maya/MFnDagNode.h>
 #include <maya/MComputation.h>
+#include <maya/MEventMessage.h>
+#include <maya/MNodeMessage.h>
+#include <maya/MMessage.h> // for MCallbackId
 #include <maya/MCommonRenderSettingsData.h>
 #include <maya/MRenderUtil.h> 
 #include <maya/MStatus.h>
 #include <maya/MPlug.h>
 #include <maya/MPlugArray.h>
 
+#include <maya/M3dView.h>
+#include <maya/MRenderView.h>
+
+#include <time.h>
+#include <cstdio>
+
 extern AtNodeMethods* mtoa_driver_mtd;
 
 static CRenderSession* s_renderSession = NULL;
 
-// This is the code for the render thread. This thread is used only to run the AiRender() process outside of the main thread.
+// This will update the render view if needed.
+// It's called from a maya idle event callback.
+// This means it's called a *lot*.
+void updateRenderViewCallback( void * data )
+{
+   ProcessSomeOfDisplayUpdateQueue();
+}
+
+
+// This is the code for the render thread. This version is used for IPR
+// to run the AiRender() process outside of the main thread.
+static unsigned int RenderThreadIPR(AtVoid* data)
+{
+   CRenderOptions * render_options = static_cast< CRenderOptions * >( data );
+   // set progressive start point on AA
+   AtInt init_progressive_samples = render_options->isProgressive() ? -3 : render_options->NumAASamples();
+   AtUInt prog_passes = render_options->isProgressive() ? ((-init_progressive_samples) + 2) : 1;
+
+   // Get rid of any previous renders tiles that have not yet
+   // been displayed.
+   InitializeDisplayUpdateQueue();
+
+   const time_t start_time = time(0x0);
+
+   AtULong ai_status(AI_SUCCESS);
+   for (AtUInt i = 0; (i < prog_passes ); ++i)
+   {
+
+      AtInt sampling = i + init_progressive_samples;
+      if (i + 1 == prog_passes)
+      {
+        sampling = render_options->NumAASamples();
+      }
+
+      AiNodeSetInt(AiUniverseGetOptions(), "AA_samples", sampling);
+      // Begin a render!
+      ai_status = AiRender(AI_RENDER_MODE_CAMERA);
+      if ( ai_status != AI_SUCCESS ) break;
+   }
+
+   // Call this as we are done tuning the render. Only call this if
+   // we actually finished, not if we interrupt or abort.
+   if ( AI_SUCCESS == ai_status )
+   {
+      // Is there a nicer way to do this?
+      const time_t elapsed = time(0x0) - start_time;
+      char command_str[256]; // Can't image a time taking more than this can store!
+      sprintf( command_str, "arnoldIpr -mode finishedIPR -elapsedTime \"%ld:%02ld\" ;", elapsed / 60, elapsed % 60 );
+      MGlobal::executeCommandOnIdle( command_str, false );
+   }
+
+   return 0;
+}
+
+// This versoin of render thread just wraps AiRender to run it
+// outside of the main thread.
 static unsigned int RenderThread(AtVoid* data)
 {
    AiRender(AI_RENDER_MODE_CAMERA);
-
    return 0;
 }
 
@@ -52,12 +114,12 @@ CMayaScene* CRenderSession::GetMayaScene()
 
 void CRenderSession::Init(ExportMode exportMode, bool preMel, bool preLayerMel, bool preFrameMel)
 {
-
    if (AiUniverseIsActive())
    {
       AiMsgError("[mtoa] ERROR: There can only be one RenderSession active.");
       return;
    }
+
 
    MCommonRenderSettingsData renderGlobals;
    MRenderUtil::getCommonRenderSettings(renderGlobals);
@@ -77,7 +139,6 @@ void CRenderSession::Init(ExportMode exportMode, bool preMel, bool preLayerMel, 
 
    m_scene = new CMayaScene;          
    m_renderOptions.GetFromMaya(m_scene);
-
 
    AiBegin();
 
@@ -106,8 +167,9 @@ void CRenderSession::Init(ExportMode exportMode, bool preMel, bool preLayerMel, 
 
 void CRenderSession::End(bool postMel, bool postLayerMel, bool postFrameMel)
 {
+   ClearIdleRenderViewCallback();
+   AiRenderAbort();
    AiEnd();
-
    MCommonRenderSettingsData renderGlobals;
    MRenderUtil::getCommonRenderSettings(renderGlobals);
 
@@ -125,6 +187,25 @@ void CRenderSession::End(bool postMel, bool postLayerMel, bool postFrameMel)
    }
 
    delete m_scene;
+}
+
+void CRenderSession::Interrupt()
+{
+
+   if ( AiRendering() )
+   {
+      AiRenderInterrupt();
+   }
+
+   // Stop the Idle update.
+   ClearIdleRenderViewCallback();
+
+   // Wait for the thread to clear.
+   if (m_render_thread != 0x0 )
+   {
+      AiThreadWait(m_render_thread);
+      AiThreadClose(m_render_thread);
+   }
 }
 
 void CRenderSession::Reset(bool postMel, bool postLayerMel, bool postFrameMel, bool preMel, bool preLayerMel, bool preFrameMel)
@@ -152,6 +233,16 @@ void CRenderSession::SetHeight(int height)
 {
    if (height != -1)
       m_renderOptions.SetHeight(height);
+}
+
+void CRenderSession::SetRegion( const AtUInt left, const AtUInt right, const AtUInt bottom, const AtUInt top )
+{
+   m_renderOptions.SetRegion( left, right, bottom, top );
+}
+
+void CRenderSession::SetProgressive( const bool is_progressive )
+{
+   m_renderOptions.SetProgressive( is_progressive );
 }
 
 void CRenderSession::SetCamera(MString cameraNode)
@@ -257,7 +348,6 @@ void CRenderSession::DoRender()
 {
    SetupRenderOutput();
    m_renderOptions.SetupRenderOptions();
-
    InitializeDisplayUpdateQueue();
 
    // set progressive start point on AA
@@ -343,19 +433,27 @@ void CRenderSession::SetupRenderOutput()
    if (!m_renderOptions.BatchMode())
    {
       // render in the renderview
+      renderViewDriver = AiNodeLookUpByName( "renderview_display" );
+      if ( renderViewDriver == 0x0 )
+      {
       AiNodeInstall(AI_NODE_DRIVER, AI_TYPE_NONE, "renderview_display",  NULL, (AtNodeMethods*) mtoa_driver_mtd, AI_VERSION);
       renderViewDriver = AiNode("renderview_display");
       AiNodeSetStr(renderViewDriver, "name", "renderview_display");
+      }
       AiNodeSetFlt(renderViewDriver, "gamma", m_renderOptions.outputGamma());
    }
 
    // set the output driver
+   MString driverCamName = m_renderOptions.RenderDriver() + "_" + m_renderOptions.GetCameraName();
+   driver = AiNodeLookUpByName( driverCamName.asChar() );
+   if ( driver == 0x0 )
+   {
    driver = AiNode(m_renderOptions.RenderDriver().asChar());
    AiNodeSetStr(driver, "filename", m_renderOptions.GetImageFilename().asChar());
 
    // Set the driver name depending on the camera name to avoid nodes with the same name on renders with multiple cameras
-   MString driverCamName = m_renderOptions.RenderDriver() + "_" + m_renderOptions.GetCameraName();
    AiNodeSetStr(driver, "name", driverCamName.asChar());
+   }
 
    // set output driver parameters
    // Only set output parameters if they exist within that specific node
@@ -439,4 +537,158 @@ void CRenderSession::SetupRenderOutput()
    }
 
    AiNodeSetArray(AiUniverseGetOptions(), "outputs", outputs);
+}
+
+MStatus CRenderSession::PrepareIPR()
+{
+   MStatus status( MS::kSuccess );
+
+   if (AiUniverseIsActive())
+   {
+      End();
+   }
+   
+   // This will export the scene.
+   Init( MTOA_EXPORT_IPR );
+   status = PrepareRenderView();
+
+   // Set the camera for Arnold.
+   MDagPath cameraPath;
+   M3dView::active3dView().getCamera(cameraPath);
+   MRenderView::setCurrentCamera(cameraPath);
+   MObject camera_mobj( cameraPath.node() );
+   MFnDagNode cameraNode( camera_mobj );
+   SetCamera(cameraNode.name());
+
+   // Use progressive for now. This should be an option.
+   SetProgressive( true );
+   SetBatch(false);
+
+   SetupRenderOutput();
+   m_renderOptions.SetupRenderOptions();
+
+   return status;
+}
+
+MStatus CRenderSession::PrepareRenderView()
+{
+   MStatus status( MS::kSuccess );
+
+   // We need to set the current camera in renderView,
+   // so the buttons render from the camera you want.
+   MSelectionList list;
+   MDagPath       cameraDagPath;
+   list.add( m_renderOptions.GetCameraName() );
+   list.getDagPath(0, cameraDagPath);
+   MRenderView::setCurrentCamera(cameraDagPath);
+
+   if (m_renderOptions.useRenderRegion())
+   {
+      status = MRenderView::startRegionRender(  m_renderOptions.width(),
+                                                m_renderOptions.height(),
+                                                m_renderOptions.minX(),
+                                                m_renderOptions.maxX(),
+                                                m_renderOptions.minY(),
+                                                m_renderOptions.maxY(),
+                                                !m_renderOptions.clearBeforeRender(),
+                                                true);
+   }
+   else
+   {
+      status = MRenderView::startRender(  m_renderOptions.width(),
+                                          m_renderOptions.height(),
+                                          !m_renderOptions.clearBeforeRender(),
+                                          true);
+   }
+
+   if (MStatus::kSuccess != status)
+   {
+      MGlobal::displayError("Render view is not able to render.");
+   }
+
+   return status;
+}
+
+void CRenderSession::DoIPRRender()
+{
+   if (!m_paused_ipr)
+   {
+      PrepareRenderView();
+      AddIdleRenderViewCallback();
+      m_render_thread = AiThreadCreate(RenderThreadIPR, &m_renderOptions, AI_PRIORITY_LOW);
+   }
+}
+
+void CRenderSession::StopIPR()
+{
+   if (IsActive())
+   {
+      // Stop Arnold.
+      Interrupt();
+
+      ClearIdleRenderViewCallback();
+
+      // Remove the callbacks on nodes in the Maya scene.
+      // This method is provided in a later patch.
+      // m_scene->ClearMayaCallbacks();
+
+      // End will delete m_scene.
+      End();
+   }
+}
+
+// This just cleans up when all the progressive
+// passes are done for an IPR render.
+void CRenderSession::FinishedIPRTuning()
+{
+   // Clear the render view callback, we're not going to need it.
+   //ClearIdleRenderViewCallback();
+
+   // Transfer the rest of the image tiles.
+   //ClearDisplayUpdateQueue( true );
+
+   // We not actually interrupting,
+   // but this will clean up.
+   Interrupt();
+}
+
+void CRenderSession::PauseIPR()
+{
+   Interrupt();
+   ClearIdleRenderViewCallback();
+   m_paused_ipr = true;
+}
+
+void CRenderSession::UnPauseIPR()
+{
+   m_paused_ipr = false;
+   DoIPRRender();
+}
+
+AtUInt64 CRenderSession::GetUsedMemory()
+{
+   return AiMsgUtilGetUsedMemory() / 1024 / 1024;
+}
+
+
+void CRenderSession::AddIdleRenderViewCallback()
+{
+   if ( 0 == m_idle_cb )
+   {
+      MStatus status;
+      m_idle_cb = MEventMessage::addEventCallback( "idle", updateRenderViewCallback, NULL, &status );
+   }
+}
+
+void CRenderSession::ClearIdleRenderViewCallback()
+{
+   // If we don't do this the render thread will never finish.
+   FinishedWithDisplayUpdateQueue();
+
+   if ( m_idle_cb > 0 )
+   {
+      MMessage::removeCallback( m_idle_cb );
+      MRenderView::endRender();
+      m_idle_cb = 0;
+   }
 }

@@ -167,6 +167,18 @@ public:
       SetupImageOptions();
    }
 
+   void SetRegion( const AtUInt left, const AtUInt right, const AtUInt bottom, const AtUInt top )
+   {
+		m_useRenderRegion = true;
+
+		m_minx = left;
+		m_miny = bottom;
+		m_maxx = right;
+		m_maxy = top;
+
+		SetupImageOptions();
+   }
+
    MString GetCameraName() const
    {
       return m_cameraName;
@@ -240,6 +252,11 @@ public:
    bool isProgressive() const
    {
       return m_progressive_rendering;
+   }
+
+   void SetProgressive( const bool is_progressive )
+   {
+      m_progressive_rendering = is_progressive;
    }
 
    AtUInt NumAASamples() const

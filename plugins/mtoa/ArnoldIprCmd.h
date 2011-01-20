@@ -1,15 +1,18 @@
 #ifndef ARNOLD_IPR_CMD_H
 #define ARNOLD_IPR_CMD_H
 
+
 #include <maya/MPxCommand.h>
 #include <maya/MSyntax.h>
+#include <maya/MMessage.h> // for MCallbackId
+
+#include <vector>
 
 class CArnoldIprCmd
    :	public MPxCommand
 {
 
 public:
-
    static void* creator()
    {
       return new CArnoldIprCmd();
