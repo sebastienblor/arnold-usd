@@ -21,6 +21,7 @@
 #include "nodes/shaders/surface/ArnoldWireframeShader.h"
 #include "nodes/shaders/surface/ArnoldHairShader.h"
 #include "nodes/shaders/ArnoldRaySwitchShader.h"
+#include "maya_scene/Shaders.h"
 
 #include <ai_render.h>
 #include <ai_msg.h>
@@ -73,6 +74,40 @@ namespace // <anonymous>
       arnoldPluginFactory = new CArnoldNodeFactory(object);
 
       arnoldPluginFactory->LoadPlugins();
+
+      arnoldPluginFactory->RegisterDependTranslator("surfaceShader", MAYA_NODEID_SURFACE_SHADER, CSurfaceShaderTranslator::creator);
+      arnoldPluginFactory->RegisterDependTranslator("lambert", MAYA_NODEID_LAMBERT, CLambertTranslator::creator);
+      arnoldPluginFactory->RegisterDependTranslator("file", MAYA_NODEID_FILE, CFileTranslator::creator);
+      arnoldPluginFactory->RegisterDependTranslator("place2dTexture", MAYA_NODEID_PLACE2D_TEXTURE, CPlace2dTextureTranslator::creator);
+      arnoldPluginFactory->RegisterDependTranslator("bump2d", MAYA_NODEID_BUMP2D, CBump2dTranslator::creator);
+      arnoldPluginFactory->RegisterDependTranslator("bump3d", MAYA_NODEID_BUMP3D, CBump3dTranslator::creator);
+      arnoldPluginFactory->RegisterDependTranslator("samplerInfo", MAYA_NODEID_SAMPLER_INFO, CSamplerInfoTranslator::creator);
+      arnoldPluginFactory->RegisterDependTranslator("plusMinusAverage", MAYA_NODEID_PLUS_MINUS_AVERAGE, CPlusMinusAverageTranslator::creator);
+      arnoldPluginFactory->RegisterDependTranslator("remapValue", MAYA_NODEID_REMAP_VALUE, CRemapValueTranslator::creator);
+      arnoldPluginFactory->RegisterDependTranslator("remapColor", MAYA_NODEID_REMAP_COLOR, CRemapColorTranslator::creator);
+      arnoldPluginFactory->RegisterDependTranslator("projection", MAYA_NODEID_PROJECTION, CProjectionTranslator::creator);
+      arnoldPluginFactory->RegisterDependTranslator("ramp", MAYA_NODEID_RAMP, CRampTranslator::creator);
+
+      // sky is technically a DAG node, but it behaves like a DG node (i.e. it is only exported when a connection is processed)
+      // therefore, it is not registered as a DagTranslator
+      arnoldPluginFactory->RegisterDependTranslator("ArnoldSkyShader", CArnoldSkyShaderNode::id.id(), CSkyShaderTranslator::creator);
+
+      arnoldPluginFactory->MapToMayaNode("ambient_occlusion", "ArnoldAmbientOcclusionShader", CArnoldAmbientOcclusionShaderNode::id.id());
+      arnoldPluginFactory->MapToMayaNode("standard", "ArnoldStandardShader", CArnoldStandardShaderNode::id.id());
+      arnoldPluginFactory->MapToMayaNode("utility", "ArnoldUtilityShader", CArnoldUtilityShaderNode::id.id());
+      arnoldPluginFactory->MapToMayaNode("wireframe", "ArnoldWireframeShader", CArnoldWireframeShaderNode::id.id());
+      arnoldPluginFactory->MapToMayaNode("hair", "ArnoldHairShader", CArnoldHairShaderNode::id.id());
+
+      arnoldPluginFactory->MapToMayaNode("MeshInfo", "ArnoldMeshInfoShader", CArnoldMeshInfoShaderNode::id.id());
+      arnoldPluginFactory->MapToMayaNode("TangentToObjectSpace", "ArnoldHairShader", CArnoldUtilityShaderNode::id.id());
+
+      arnoldPluginFactory->MapToMayaNode("barndoor", "ArnoldBarndoorShader", CArnoldBarndoorShaderNode::id.id());
+      arnoldPluginFactory->MapToMayaNode("gobo", "ArnoldGoboShader", CArnoldGoboShaderNode::id.id());
+      arnoldPluginFactory->MapToMayaNode("light_blocker", "ArnoldLightBlockerShader", CArnoldLightBlockerShaderNode::id.id());
+      arnoldPluginFactory->MapToMayaNode("light_decay", "ArnoldLightDecayShader", CArnoldLightDecayShaderNode::id.id());
+
+      arnoldPluginFactory->MapToMayaNode("fog", "ArnoldFogShader", CArnoldFogShaderNode::id.id());
+      arnoldPluginFactory->MapToMayaNode("volume_scattering", "ArnoldVolumeScatteringShader", CArnoldVolumeScatteringShaderNode::id.id());
 
       // Load extensions last so that they can override default translators
       arnoldPluginFactory->LoadExtensions();

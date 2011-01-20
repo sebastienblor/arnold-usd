@@ -1,4 +1,4 @@
-
+#include "Shaders.h"
 #include "MayaScene.h"
 #include "NodeTranslator.h"
 #include "render/RenderOptions.h"
@@ -374,7 +374,7 @@ AtNode* CMayaScene::ExportArnoldShader(MObject mayaShader, MString arnoldShader)
 
    if (nodeEntry != NULL)
    {
-      shader = AiNode(arnoldShader.asChar());
+      AtNode* shader = AiNode(arnoldShader.asChar());
 
       AiNodeSetStr(shader, "name", node.name().asChar());
 
@@ -468,336 +468,524 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
          m_processedTranslators[MObjectHandle(mayaShader)] = translator;
       }
    }
-   else if (node.typeName() == "ArnoldSkyShader")
+   else
+      AiMsgWarning("[mtoa] Shader type not supported: %s", node.typeName().asChar());
+
+   if (shader)
    {
-      shader = AiNode("sky");
+      CShaderData   data;
+      data.mayaShader   = mayaShader;
+      data.arnoldShader = shader;
+      data.attrName     = attrName;
+      m_processedShaders.push_back(data);
+   }
+   return shader;
+}
 
-      AiNodeSetStr(shader, "name", node.name().asChar());
+// Sky
+//
+AtNode* CSkyShaderTranslator::Export()
+{
+   AtNode* shader = AiNode("sky");
+   AiNodeSetStr(shader, "name", m_fnNode.name().asChar());
+   Update(shader);
+   return shader;
+}
 
-      // Maya's X Y and Z Vectors
-      AiNodeSetVec(shader, "X", 1.0f, 0.0f, 0.0f);
-      AiNodeSetVec(shader, "Y", 0.0f, 1.0f, 0.0f);
-      AiNodeSetVec(shader, "Z", 0.0f, 0.0f, -1.0f);
+void CSkyShaderTranslator::Update(AtNode* shader)
+{
+   // Maya's X Y and Z Vectors
+   AiNodeSetVec(shader, "X", 1.0f, 0.0f, 0.0f);
+   AiNodeSetVec(shader, "Y", 0.0f, 1.0f, 0.0f);
+   AiNodeSetVec(shader, "Z", 0.0f, 0.0f, -1.0f);
 
-      MFnDagNode nodeDagNode(mayaShader);
-      MDagPath nodeDagPath;
-      nodeDagNode.getPath(nodeDagPath);
-      MFnDependencyNode trNode(nodeDagPath.transform());
+   MDagPath nodeDagPath;
+   m_fnNode.getPath(nodeDagPath);
+   MFnDependencyNode trNode(nodeDagPath.transform());
 
-      MPlug plug   = trNode.findPlug("rotateX");
-      MAngle angle;
-      plug.getValue(angle);
-      AiNodeSetFlt(shader, "X_angle", static_cast<float>(-angle.asDegrees()));
+   MPlug plug   = trNode.findPlug("rotateX");
+   MAngle angle;
+   plug.getValue(angle);
+   AiNodeSetFlt(shader, "X_angle", static_cast<float>(-angle.asDegrees()));
 
-      plug = trNode.findPlug("rotateY");
-      plug.getValue(angle);
-      AiNodeSetFlt(shader, "Y_angle", static_cast<float>(angle.asDegrees()));
+   plug = trNode.findPlug("rotateY");
+   plug.getValue(angle);
+   AiNodeSetFlt(shader, "Y_angle", static_cast<float>(angle.asDegrees()));
 
-      plug = trNode.findPlug("rotateZ");
-      plug.getValue(angle);
-      AiNodeSetFlt(shader, "Z_angle", static_cast<float>(-angle.asDegrees()));
+   plug = trNode.findPlug("rotateZ");
+   plug.getValue(angle);
+   AiNodeSetFlt(shader, "Z_angle", static_cast<float>(-angle.asDegrees()));
 
-      ProcessShaderParameter(node, "color", shader, "color", AI_TYPE_RGB);
-      ProcessShaderParameter(node, "format", shader, "format", AI_TYPE_ENUM);;
-      ProcessShaderParameter(node, "intensity", shader, "intensity", AI_TYPE_FLOAT);
-      AiNodeSetBool(shader, "opaque_alpha", 1);
+   ProcessParameter(shader, "color", AI_TYPE_RGB);
+   ProcessParameter(shader, "format", AI_TYPE_ENUM);
+   ProcessParameter(shader, "intensity", AI_TYPE_FLOAT);
 
-      AtInt visibility = 65535;
+   AtInt visibility = ComputeVisibility();
+   AiNodeSetBool(shader, "opaque_alpha", (AtInt)(visibility & AI_RAY_CAMERA));
+   AiNodeSetInt(shader, "visibility", visibility);
+}
 
-      if (!node.findPlug("casts_shadows").asBool())
-         visibility &= ~AI_RAY_SHADOW;
+// Lambert
+//
+AtNode* CLambertTranslator::Export()
+{
+   AtNode* shader = AiNode("lambert");
+   AiNodeSetStr(shader, "name", m_fnNode.name().asChar());
+   Update(shader);
+   return shader;
+}
 
-      if (!node.findPlug("primary_visibility").asBool())
+void CLambertTranslator::Update(AtNode* shader)
+{
+   ProcessParameter(shader, "diffuse", "Kd", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "color", "Kd_color", AI_TYPE_RGB);
+   ProcessParameter(shader, "outMatteOpacity", "opacity", AI_TYPE_RGB);
+
+   MPlugArray connections;
+
+   MPlug plug = m_fnNode.findPlug("normalCamera");
+
+   plug.connectedTo(connections, true, false);
+   if (connections.length() > 0)
+   {
+      MString m_outputAttr = connections[0].partialName(false, false, false, false, false, true);
+
+      AtNode* m_fnNode = m_scene->ExportShader(connections[0].node(), m_outputAttr);
+
+      if (m_fnNode != NULL)
+         AiNodeLink(m_fnNode, "@before", shader);
+   }
+}
+
+// SurfaceShader
+//
+AtNode* CSurfaceShaderTranslator::Export()
+{
+   AtNode* shader = AiNode("flat");
+   AiNodeSetStr(shader, "name", m_fnNode.name().asChar());
+   Update(shader);
+   return shader;
+}
+
+void CSurfaceShaderTranslator::Update(AtNode* shader)
+{
+   ProcessParameter(shader, "outColor", "color", AI_TYPE_RGB);
+   ProcessParameter(shader, "outMatteOpacity", "opacity", AI_TYPE_RGB);
+}
+
+// File
+//
+AtNode* CFileTranslator::Export()
+{
+   AtNode* shader = AiNode("MayaFile");
+   AiNodeSetStr(shader, "name", m_fnNode.name().asChar());
+   Update(shader);
+   return shader;
+}
+
+void CFileTranslator::Update(AtNode* shader)
+{
+   MPlugArray connections;
+
+   MPlug plug = m_fnNode.findPlug("uvCoord");
+
+   plug.connectedTo(connections, true, false);
+
+   if (connections.length() != 0)
+   {
+      MObject srcObj = connections[0].node();
+      MFnDependencyNode srcNode(srcObj);
+
+      if (srcNode.typeName() == "place2dTexture")
       {
-         visibility &= ~AI_RAY_CAMERA;
-         AiNodeSetBool(shader, "opaque_alpha", 0);
+         // until multiple outputs are supporte, place2d outputs are added to
+         // inputs on the file node itself
+         m_scene->ProcessShaderParameter(srcNode, "coverage", shader, "coverage", AI_TYPE_POINT2);
+         m_scene->ProcessShaderParameter(srcNode, "rotateFrame", shader, "rotateFrame", AI_TYPE_FLOAT);
+         m_scene->ProcessShaderParameter(srcNode, "translateFrame", shader, "translateFrame", AI_TYPE_POINT2);
+         m_scene->ProcessShaderParameter(srcNode, "mirrorU", shader, "mirrorU", AI_TYPE_BOOLEAN);
+         m_scene->ProcessShaderParameter(srcNode, "mirrorV", shader, "mirrorV", AI_TYPE_BOOLEAN);
+         m_scene->ProcessShaderParameter(srcNode, "wrapU", shader, "wrapU", AI_TYPE_BOOLEAN);
+         m_scene->ProcessShaderParameter(srcNode, "wrapV", shader, "wrapV", AI_TYPE_BOOLEAN);
+         m_scene->ProcessShaderParameter(srcNode, "stagger", shader, "stagger", AI_TYPE_BOOLEAN);
+         m_scene->ProcessShaderParameter(srcNode, "repeatUV", shader, "repeatUV", AI_TYPE_POINT2);
+         m_scene->ProcessShaderParameter(srcNode, "rotateUV", shader, "rotateUV", AI_TYPE_FLOAT);
+         m_scene->ProcessShaderParameter(srcNode, "offset", shader, "offsetUV", AI_TYPE_POINT2);
+         m_scene->ProcessShaderParameter(srcNode, "noiseUV", shader, "noiseUV", AI_TYPE_POINT2);
       }
-
-      if (!node.findPlug("visible_in_reflections").asBool())
-         visibility &= ~AI_RAY_REFLECTED;
-
-      if (!node.findPlug("visible_in_refractions").asBool())
-         visibility &= ~AI_RAY_REFRACTED;
-
-      if (!node.findPlug("diffuse_visibility").asBool())
-         visibility &= ~AI_RAY_DIFFUSE;
-
-      if (!node.findPlug("glossy_visibility").asBool())
-         visibility &= ~AI_RAY_GLOSSY;
-
-      AiNodeSetInt(shader, "visibility", visibility);
    }
-   else if (node.typeName() == "lambert")
+   MString filename;
+   MString resolvedFilename;
+   MString frameNumber("0");
+   MStatus status;
+   frameNumber += m_scene->GetCurrentFrame() + m_fnNode.findPlug("frameOffset").asInt();
+   MRenderUtil::exactFileTextureName(m_object, filename);
+   resolvedFilename = MRenderUtil::exactFileTextureName(filename, m_fnNode.findPlug("useFrameExtension").asBool(), frameNumber, &status);
+   if (status == MStatus::kSuccess)
    {
-      MFnLambertShader fnShader(mayaShader);
+      resolvedFilename = filename;
 
-      shader = AiNode("lambert");
-
-      AiNodeSetStr(shader, "name", fnShader.name().asChar());
-
-      ProcessShaderParameter(node, "diffuse", shader, "Kd", AI_TYPE_FLOAT);
-      ProcessShaderParameter(node, "color", shader, "Kd_color", AI_TYPE_RGB);
-      ProcessShaderParameter(node, "outMatteOpacity", shader, "opacity", AI_TYPE_RGB);
-
-      MPlugArray connections;
-
-      MPlug plug = fnShader.findPlug("normalCamera");
-
-      plug.connectedTo(connections, true, false);
-      if (connections.length() > 0)
+      /*
+      // FIXME : detect when to do this second resolution since it is ruining tokens
+      // by returing an empty string while also returning kSuccess
+      resolvedFilename = MRenderUtil::exactFileTextureName(filename, m_fnNode.findPlug("useFrameExtension").asBool(), frameNumber, &status);
+      if (status != MStatus::kSuccess)
       {
-         MString attrName = connections[0].partialName(false, false, false, false, false, true);
-
-         AtNode* node = ExportShader(connections[0].node(), attrName);
-
-         if (node != NULL)
-            AiNodeLink(node, "@before", shader);
+         cout << "failed 2nd resolution" << endl;
+         resolvedFilename = filename;
       }
+      */
    }
-   else if (node.typeName() == "surfaceShader")
+   else
    {
-      shader = AiNode("flat");
-
-      AiNodeSetStr(shader, "name", node.name().asChar());
-
-      ProcessShaderParameter(node, "outColor", shader, "color", AI_TYPE_RGB);
-      ProcessShaderParameter(node, "outMatteOpacity", shader, "opacity", AI_TYPE_RGB);
+      resolvedFilename = m_fnNode.findPlug("filename").asString();
    }
-   else if (node.typeName() == "file")
+   AiNodeSetStr(shader, "filename", resolvedFilename.asChar());
+
+   ProcessParameter(shader, "colorGain", AI_TYPE_RGB);
+   ProcessParameter(shader, "colorOffset", AI_TYPE_RGB);
+   ProcessParameter(shader, "alphaGain", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "alphaOffset", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "alphaIsLuminance", AI_TYPE_BOOLEAN);
+   ProcessParameter(shader, "invert", AI_TYPE_BOOLEAN);
+   ProcessParameter(shader, "defaultColor", AI_TYPE_RGB);
+}
+
+// Bump2d
+//
+AtNode* CBump2dTranslator::Export()
+{
+   AtNode* shader = AiNode("bump2d");
+   AiNodeSetStr(shader, "name", m_fnNode.name().asChar());
+   Update(shader);
+   return shader;
+}
+
+void CBump2dTranslator::Update(AtNode* shader)
+{
+   ProcessParameter(shader, "bumpValue", "bump_map", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "bumpDepth", "bump_height", AI_TYPE_FLOAT);
+}
+
+// Bump3d
+//
+AtNode* CBump3dTranslator::Export()
+{
+   AtNode* shader = AiNode("bump3d");
+   AiNodeSetStr(shader, "name", m_fnNode.name().asChar());
+   Update(shader);
+   return shader;
+}
+
+void CBump3dTranslator::Update(AtNode* shader)
+{
+   ProcessParameter(shader, "bumpValue", "bump_map", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "bumpDepth", "bump_height", AI_TYPE_FLOAT);
+}
+
+// SamplerInfo
+//
+AtNode* CSamplerInfoTranslator::Export()
+{
+   AtNode* shader = NULL;
+   if (m_outputAttr == "facingRatio")
    {
-      MPlugArray connections;
+      shader = AiNode("MayaFacingRatio");
+   }
+   else if (m_outputAttr == "flippedNormal")
+   {
+      shader = AiNode("MayaFlippedNormal");
+   }
+   if (shader != NULL)
+   {
+      MString name = m_fnNode.name() + "_" + m_outputAttr;
+      AiNodeSetStr(shader, "name", name.asChar());
+   }
 
-      MPlug plug = node.findPlug("uvCoord");
+   return shader;
+}
 
-      plug.connectedTo(connections, true, false);
+void CSamplerInfoTranslator::Update(AtNode* shader)
+{}
 
-      if (connections.length() != 0)
+// PlusMinusAverage
+//
+AtNode* CPlusMinusAverageTranslator::Export()
+{
+   AtNode* shader = NULL;
+   if (m_outputAttr == "output1D")
+   {
+      shader = AiNode("MayaPlusMinusAverage1D");
+   }
+   else if (m_outputAttr == "output2D")
+   {
+      shader = AiNode("MayaPlusMinusAverage2D");
+   }
+   else if (m_outputAttr == "output3D")
+   {
+      shader = AiNode("MayaPlusMinusAverage3D");
+   }
+   if (shader != NULL)
+   {
+      MString name = m_fnNode.name() + "_" + m_outputAttr;
+      AiNodeSetStr(shader, "name", name.asChar());
+      Update(shader);
+   }
+
+   return shader;
+}
+
+void CPlusMinusAverageTranslator::Update(AtNode* shader)
+{
+   if (m_outputAttr == "output1D")
+   {
+      MPlug elem, attr;
+
+      attr = m_fnNode.findPlug("operation");
+      AiNodeSetInt(shader, "operation", attr.asInt());
+
+      attr = m_fnNode.findPlug("input1D");
+      AtArray *values = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_FLOAT);
+      for (unsigned int i=0; i<attr.numElements(); ++i)
       {
-         MObject srcObj = connections[0].node();
-         MFnDependencyNode srcNode(srcObj);
+         elem = attr.elementByPhysicalIndex(i);
+         // This could actually be a connection but Arnold does not support
+         // array element connections for now
+         AiArraySetFlt(values, i, elem.asFloat());
+      }
+      AiNodeSetArray(shader, "values", values);
 
-         if (srcNode.typeName() == "place2dTexture")
+   }
+   else if (m_outputAttr == "output2D")
+   {
+      MObject oinx = m_fnNode.attribute("input2Dx");
+      MObject oiny = m_fnNode.attribute("input2Dy");
+
+      MPlug attr, elem, inx, iny;
+      AtPoint2 value;
+
+      attr = m_fnNode.findPlug("operation");
+      AiNodeSetInt(shader, "operation", attr.asInt());
+
+      attr = m_fnNode.findPlug("input2D");
+      AtArray *values = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_POINT2);
+      for (unsigned int i=0; i<attr.numElements(); ++i)
+      {
+         elem = attr.elementByPhysicalIndex(i);
+         // This could actually be a connection but Arnold does not support
+         // array element connections for now
+         inx = elem.child(oinx);
+         iny = elem.child(oiny);
+         value.x = inx.asFloat();
+         value.y = iny.asFloat();
+         AiArraySetPnt2(values, i, value);
+      }
+      AiNodeSetArray(shader, "values", values);
+
+   }
+   else if (m_outputAttr == "output3D")
+   {
+      MObject oinx = m_fnNode.attribute("input3Dx");
+      MObject oiny = m_fnNode.attribute("input3Dy");
+      MObject oinz = m_fnNode.attribute("input3Dz");
+
+      MPlug attr, elem, inx, iny, inz;
+      AtRGB value;
+
+      attr = m_fnNode.findPlug("operation");
+      AiNodeSetInt(shader, "operation", attr.asInt());
+
+      attr = m_fnNode.findPlug("input3D");
+      AtArray *values = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_RGB);
+      for (unsigned int i=0; i<attr.numElements(); ++i)
+      {
+         elem = attr.elementByPhysicalIndex(i);
+         // This could actually be a connection but Arnold does not support
+         // array element connections for now
+         inx = elem.child(oinx);
+         iny = elem.child(oiny);
+         inz = elem.child(oinz);
+         value.r = inx.asFloat();
+         value.g = iny.asFloat();
+         value.b = inz.asFloat();
+         AiArraySetRGB(values, i, value);
+      }
+      AiNodeSetArray(shader, "values", values);
+   }
+}
+
+// RemapValue
+//
+AtNode* CRemapValueTranslator::Export()
+{
+   AtNode* shader = NULL;
+   if (m_outputAttr == "outValue")
+   {
+      shader = AiNode("MayaRemapValueToValue");
+   }
+   else if (m_outputAttr == "outColor")
+   {
+      shader = AiNode("MayaRemapValueToColor");
+   }
+   if (shader != NULL)
+   {
+      MString name = m_fnNode.name() + "_" + m_outputAttr;
+      AiNodeSetStr(shader, "name", name.asChar());
+      Update(shader);
+   }
+
+   return shader;
+}
+
+void CRemapValueTranslator::Update(AtNode* shader)
+{
+   if (m_outputAttr == "outValue")
+   {
+      MPlug attr, elem, pos, val, interp;
+
+      MObject opos = m_fnNode.attribute("value_Position");
+      MObject oval = m_fnNode.attribute("value_FloatValue");
+      MObject ointerp = m_fnNode.attribute("value_Interp");
+
+      // FIXME: make inputValue the name of the parameter on the MayaRemapValue shader
+      ProcessParameter(shader, "inputValue", "input", AI_TYPE_FLOAT);
+      ProcessParameter(shader, "inputMin", AI_TYPE_FLOAT);
+      ProcessParameter(shader, "inputMax", AI_TYPE_FLOAT);
+      ProcessParameter(shader, "outputMin", AI_TYPE_FLOAT);
+      ProcessParameter(shader, "outputMax", AI_TYPE_FLOAT);
+
+      // Note: this doesn't handle connection coming in individual elements
+      attr = m_fnNode.findPlug("value");
+      AtArray *positions = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_FLOAT);
+      AtArray *values = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_FLOAT);
+      AtArray *interps = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_STRING);
+      for (unsigned int i=0; i<attr.numElements(); ++i)
+      {
+         elem = attr.elementByPhysicalIndex(i);
+         pos = elem.child(opos);
+         val = elem.child(oval);
+         interp = elem.child(ointerp);
+         AiArraySetFlt(positions, i, pos.asFloat());
+         AiArraySetFlt(values, i, val.asFloat());
+         AiArraySetStr(interps, i, g_remapInterpolationStrings[interp.asInt()]);
+      }
+      // Need to sort the arrays (maya has the excellent idea not to do it)
+      if (positions->nelements > 1)
+      {
+         AtUInt* shuffle = new AtUInt[positions->nelements];
+         if (SortFloatArray(positions, shuffle))
          {
-            shader = AiNode("MayaFile");
-            MString resolvedFilename;
-            MString frameNumber("0");
-            frameNumber += GetCurrentFrame() + node.findPlug("frameOffset").asInt();
-            MRenderUtil::exactFileTextureName(mayaShader, resolvedFilename);
-            resolvedFilename = MRenderUtil::exactFileTextureName(resolvedFilename, node.findPlug("useFrameExtension").asBool(), frameNumber);
-
-            AiNodeSetStr(shader, "filename", resolvedFilename.asChar());
-
-            ProcessShaderParameter(srcNode, "coverage", shader, "coverage", AI_TYPE_POINT2);
-            ProcessShaderParameter(srcNode, "rotateFrame", shader, "rotateFrame", AI_TYPE_FLOAT);
-            ProcessShaderParameter(srcNode, "translateFrame", shader, "translateFrame", AI_TYPE_POINT2);
-            ProcessShaderParameter(srcNode, "mirrorU", shader, "mirrorU", AI_TYPE_BOOLEAN);
-            ProcessShaderParameter(srcNode, "mirrorV", shader, "mirrorV", AI_TYPE_BOOLEAN);
-            ProcessShaderParameter(srcNode, "wrapU", shader, "wrapU", AI_TYPE_BOOLEAN);
-            ProcessShaderParameter(srcNode, "wrapV", shader, "wrapV", AI_TYPE_BOOLEAN);
-            ProcessShaderParameter(srcNode, "stagger", shader, "stagger", AI_TYPE_BOOLEAN);
-            ProcessShaderParameter(srcNode, "repeatUV", shader, "repeatUV", AI_TYPE_POINT2);
-            ProcessShaderParameter(srcNode, "rotateUV", shader, "rotateUV", AI_TYPE_FLOAT);
-            ProcessShaderParameter(srcNode, "offset", shader, "offsetUV", AI_TYPE_POINT2);
-            ProcessShaderParameter(srcNode, "noiseUV", shader, "noiseUV", AI_TYPE_POINT2);
-            ProcessShaderParameter(node, "colorGain", shader, "colorGain", AI_TYPE_RGB);
-            ProcessShaderParameter(node, "colorOffset", shader, "colorOffset", AI_TYPE_RGB);
-            ProcessShaderParameter(node, "alphaGain", shader, "alphaGain", AI_TYPE_FLOAT);
-            ProcessShaderParameter(node, "alphaOffset", shader, "alphaOffset", AI_TYPE_FLOAT);
-            ProcessShaderParameter(node, "alphaIsLuminance", shader, "alphaIsLuminance", AI_TYPE_BOOLEAN);
-            ProcessShaderParameter(node, "invert", shader, "invert", AI_TYPE_BOOLEAN);
-            ProcessShaderParameter(node, "defaultColor", shader, "defaultColor", AI_TYPE_RGB);
+            ShuffleArray(values, shuffle, AI_TYPE_FLOAT);
+            ShuffleArray(interps, shuffle, AI_TYPE_STRING);
          }
+         delete[] shuffle;
       }
+      AiNodeSetArray(shader, "positions", positions);
+      AiNodeSetArray(shader, "values", values);
+      AiNodeSetArray(shader, "interpolations", interps);
+   }
+   else if (m_outputAttr == "outColor")
+   {
+      MPlug attr, elem, pos, val, interp;
 
-      if (!shader)
+      MObject opos = m_fnNode.attribute("color_Position");
+      MObject oval = m_fnNode.attribute("color_Color");
+      MObject ointerp = m_fnNode.attribute("color_Interp");
+
+      // FIXME: make inputValue the name of the parameter on the MayaRemapValue shader
+      ProcessParameter(shader, "inputValue", "input", AI_TYPE_FLOAT);
+      ProcessParameter(shader, "inputMin", AI_TYPE_FLOAT);
+      ProcessParameter(shader, "inputMax", AI_TYPE_FLOAT);
+      ProcessParameter(shader, "outputMin", AI_TYPE_FLOAT);
+      ProcessParameter(shader, "outputMax", AI_TYPE_FLOAT);
+
+      // Note: this doesn't handle connection coming in individual elements
+      attr = m_fnNode.findPlug("color");
+      AtArray *positions = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_FLOAT);
+      AtArray *values = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_RGB);
+      AtArray *interps = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_STRING);
+      for (unsigned int i=0; i<attr.numElements(); ++i)
       {
-         shader = AiNode("image");
-         MString resolvedFilename;
-         MString frameNumber("0");
-         frameNumber += GetCurrentFrame() + node.findPlug("frameOffset").asInt();
-         MRenderUtil::exactFileTextureName(mayaShader, resolvedFilename);
-         resolvedFilename = MRenderUtil::exactFileTextureName(resolvedFilename, node.findPlug("useFrameExtension").asBool(), frameNumber);
-         AiNodeSetStr(shader, "filename", resolvedFilename.asChar());
-      }
-
-      AiNodeSetStr(shader, "name", node.name().asChar());
-   }
-   else if (node.typeName() == "multiplyDivide")
-   {
-      shader = ExportArnoldShader(mayaShader, "MayaMultiplyDivide");
-   }
-   else if (node.typeName() == "reverse")
-   {
-      shader = ExportArnoldShader(mayaShader, "MayaReverse");
-   }
-   else if (node.typeName() == "clamp")
-   {
-      shader = ExportArnoldShader(mayaShader, "MayaClamp");
-   }
-   else if (node.typeName() == "gammaCorrect")
-   {
-      shader = ExportArnoldShader(mayaShader, "MayaGammaCorrect");
-   }
-   else if (node.typeName() == "condition")
-   {
-      shader = AiNode("MayaCondition");
-
-      AiNodeSetStr(shader, "name", node.name().asChar());
-
-      ProcessShaderParameter(node, "operation", shader, "operation", AI_TYPE_ENUM);
-      ProcessShaderParameter(node, "firstTerm", shader, "first_term", AI_TYPE_FLOAT);
-      ProcessShaderParameter(node, "secondTerm", shader, "second_term", AI_TYPE_FLOAT);
-      ProcessShaderParameter(node, "colorIfTrue", shader, "color_if_true", AI_TYPE_RGB);
-      ProcessShaderParameter(node, "colorIfFalse", shader, "color_if_false", AI_TYPE_RGB);
-   }
-   else if (node.typeName() == "blendColors")
-   {
-      shader = ExportArnoldShader(mayaShader, "MayaBlendColors");
-   }
-   else if (node.typeName() == "bump2d")
-   {
-      shader = AiNode("bump2d");
-
-      AiNodeSetStr(shader, "name", node.name().asChar());
-
-      ProcessShaderParameter(node, "bumpValue", shader, "bump_map", AI_TYPE_FLOAT);
-      ProcessShaderParameter(node, "bumpDepth", shader, "bump_height", AI_TYPE_FLOAT);
-   }
-   else if (node.typeName() == "bump3d")
-   {
-      shader = AiNode("bump3d");
-
-      AiNodeSetStr(shader, "name", node.name().asChar());
-
-      ProcessShaderParameter(node, "bumpValue", shader, "bump_map", AI_TYPE_FLOAT);
-      ProcessShaderParameter(node, "bumpDepth", shader, "bump_height", AI_TYPE_FLOAT);
-   }
-   else if (node.typeName() == "samplerInfo")
-   {
-      if (attrName == "facingRatio")
-      {
-         shader = AiNode("MayaFacingRatio");
-      }
-      else if (attrName == "flippedNormal")
-      {
-         shader = AiNode("MayaFlippedNormal");
-      }
-      if (shader != 0)
-      {
-         MString name = node.name() + "_" + attrName;
-         AiNodeSetStr(shader, "name", name.asChar());
-      }
-   }
-   else if (node.typeName() == "plusMinusAverage")
-   {
-      if (attrName == "output1D")
-      {
-         shader = AiNode("MayaPlusMinusAverage1D");
-
-         MPlug elem, attr;
-
-         attr = node.findPlug("operation");
-         AiNodeSetInt(shader, "operation", attr.asInt());
-
-         attr = node.findPlug("input1D");
-         AtArray *values = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_FLOAT);
-         for (unsigned int i=0; i<attr.numElements(); ++i)
-         {
-            elem = attr.elementByPhysicalIndex(i);
-            // This could actually be a connection but Arnold does not support
-            // array element connections for now
-            AiArraySetFlt(values, i, elem.asFloat());
-         }
-         AiNodeSetArray(shader, "values", values);
-
-      }
-      else if (attrName == "output2D")
-      {
-         shader = AiNode("MayaPlusMinusAverage2D");
-
-         MObject oinx = node.attribute("input2Dx");
-         MObject oiny = node.attribute("input2Dy");
-
-         MPlug attr, elem, inx, iny;
-         AtPoint2 value;
-
-         attr = node.findPlug("operation");
-         AiNodeSetInt(shader, "operation", attr.asInt());
-
-         attr = node.findPlug("input2D");
-         AtArray *values = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_POINT2);
-         for (unsigned int i=0; i<attr.numElements(); ++i)
-         {
-            elem = attr.elementByPhysicalIndex(i);
-            // This could actually be a connection but Arnold does not support
-            // array element connections for now
-            inx = elem.child(oinx);
-            iny = elem.child(oiny);
-            value.x = inx.asFloat();
-            value.y = iny.asFloat();
-            AiArraySetPnt2(values, i, value);
-         }
-         AiNodeSetArray(shader, "values", values);
-
-      }
-      else if (attrName == "output3D")
-      {
-         shader = AiNode("MayaPlusMinusAverage3D");
-
-         MObject oinx = node.attribute("input3Dx");
-         MObject oiny = node.attribute("input3Dy");
-         MObject oinz = node.attribute("input3Dz");
-
-         MPlug attr, elem, inx, iny, inz;
+         elem = attr.elementByPhysicalIndex(i);
+         pos = elem.child(opos);
+         val = elem.child(oval);
+         interp = elem.child(ointerp);
+         AiArraySetFlt(positions, i, pos.asFloat());
          AtRGB value;
-
-         attr = node.findPlug("operation");
-         AiNodeSetInt(shader, "operation", attr.asInt());
-
-         attr = node.findPlug("input3D");
-         AtArray *values = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_RGB);
-         for (unsigned int i=0; i<attr.numElements(); ++i)
+         value.r = val.child(0).asFloat();
+         value.g = val.child(1).asFloat();
+         value.b = val.child(2).asFloat();
+         AiArraySetRGB(values, i, value);
+         AiArraySetStr(interps, i, g_remapInterpolationStrings[interp.asInt()]);
+      }
+      // Need to sort the arrays (maya has the excellent idea not to do it)
+      if (positions->nelements > 1)
+      {
+         AtUInt* shuffle = new AtUInt[positions->nelements];
+         if (SortFloatArray(positions, shuffle))
          {
-            elem = attr.elementByPhysicalIndex(i);
-            // This could actually be a connection but Arnold does not support
-            // array element connections for now
-            inx = elem.child(oinx);
-            iny = elem.child(oiny);
-            inz = elem.child(oinz);
-            value.r = inx.asFloat();
-            value.g = iny.asFloat();
-            value.b = inz.asFloat();
-            AiArraySetRGB(values, i, value);
+            ShuffleArray(values, shuffle, AI_TYPE_RGB);
+            ShuffleArray(interps, shuffle, AI_TYPE_STRING);
          }
-         AiNodeSetArray(shader, "values", values);
-
+         delete[] shuffle;
       }
-      if (shader != 0)
-      {
-         MString name = node.name() + "_" + attrName;
-         AiNodeSetStr(shader, "name", name.asChar());
-      }
+      AiNodeSetArray(shader, "positions", positions);
+      AiNodeSetArray(shader, "values", values);
+      AiNodeSetArray(shader, "interpolations", interps);
    }
-   else if (node.typeName() == "remapValue")
+}
+
+// Remap Color
+//
+AtNode* CRemapColorTranslator::Export()
+{
+   AtNode* shader = NULL;
+   if (m_outputAttr == "outColor")
    {
-      if (attrName == "outValue")
+      //FIXME: missing AiNode()!
+   }
+   if (shader != NULL)
+   {
+      MString name = m_fnNode.name() + "_" + m_outputAttr;
+      AiNodeSetStr(shader, "name", name.asChar());
+      Update(shader);
+   }
+
+   return shader;
+}
+
+void CRemapColorTranslator::Update(AtNode* shader)
+{
+   if (m_outputAttr == "outColor")
+   {
+      MPlug attr, elem, pos, val, interp;
+
+      const char *plugNames[3] = {"red", "green", "blue"};
+      const char *posNames[6] = {"red_Position",   "rPositions",
+                                 "green_Position", "gPositions",
+                                 "blue_Position",  "bPositions"};
+      const char *valNames[6] = {"red_FloatValue",   "rValues",
+                                 "green_FloatValue", "gValues",
+                                 "blue_FloatValue",  "bValues"};
+      const char *interpNames[6] = {"red_Interp",   "rInterpolations",
+                                    "green_Interp", "gInterpolations",
+                                    "blue_Interp",  "bInterpolations"};
+
+      // FIXME: change shader parameter name to match maya
+      ProcessParameter(shader, "color", "input", AI_TYPE_RGB);
+      ProcessParameter(shader, "inputMin", AI_TYPE_FLOAT);
+      ProcessParameter(shader, "inputMax", AI_TYPE_FLOAT);
+      ProcessParameter(shader, "outputMin", AI_TYPE_FLOAT);
+      ProcessParameter(shader, "outputMax", AI_TYPE_FLOAT);
+
+      for (int ci=0; ci<3; ++ci)
       {
-         MPlug attr, elem, pos, val, interp;
-
-         MObject opos = node.attribute("value_Position");
-         MObject oval = node.attribute("value_FloatValue");
-         MObject ointerp = node.attribute("value_Interp");
-
-         shader = AiNode("MayaRemapValueToValue");
-
-         ProcessShaderParameter(node, "inputValue", shader, "input", AI_TYPE_FLOAT);
-         ProcessShaderParameter(node, "inputMin", shader, "inputMin", AI_TYPE_FLOAT);
-         ProcessShaderParameter(node, "inputMax", shader, "inputMax", AI_TYPE_FLOAT);
-         ProcessShaderParameter(node, "outputMin", shader, "outputMin", AI_TYPE_FLOAT);
-         ProcessShaderParameter(node, "outputMax", shader, "outputMax", AI_TYPE_FLOAT);
+         MObject opos = m_fnNode.attribute(posNames[ci*2]);
+         MObject oval = m_fnNode.attribute(valNames[ci*2]);
+         MObject ointerp = m_fnNode.attribute(interpNames[ci*2]);
 
          // Note: this doesn't handle connection coming in individual elements
-         attr = node.findPlug("value");
+         attr = m_fnNode.findPlug(plugNames[ci]);
          AtArray *positions = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_FLOAT);
          AtArray *values = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_FLOAT);
          AtArray *interps = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_STRING);
@@ -811,7 +999,7 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
             AiArraySetFlt(values, i, val.asFloat());
             AiArraySetStr(interps, i, g_remapInterpolationStrings[interp.asInt()]);
          }
-         // Need to sort the arrays (maya has the excellent idea not to do it)
+         // Need to sort array (maya has the excellent idea not to do it)
          if (positions->nelements > 1)
          {
             AtUInt* shuffle = new AtUInt[positions->nelements];
@@ -822,298 +1010,209 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
             }
             delete[] shuffle;
          }
-         AiNodeSetArray(shader, "positions", positions);
-         AiNodeSetArray(shader, "values", values);
-         AiNodeSetArray(shader, "interpolations", interps);
-      }
-      else if (attrName == "outColor")
-      {
-         MPlug attr, elem, pos, val, interp;
-
-         MObject opos = node.attribute("color_Position");
-         MObject oval = node.attribute("color_Color");
-         MObject ointerp = node.attribute("color_Interp");
-
-         shader = AiNode("MayaRemapValueToColor");
-
-         ProcessShaderParameter(node, "inputValue", shader, "input", AI_TYPE_FLOAT);
-         ProcessShaderParameter(node, "inputMin", shader, "inputMin", AI_TYPE_FLOAT);
-         ProcessShaderParameter(node, "inputMax", shader, "inputMax", AI_TYPE_FLOAT);
-         ProcessShaderParameter(node, "outputMin", shader, "outputMin", AI_TYPE_FLOAT);
-         ProcessShaderParameter(node, "outputMax", shader, "outputMax", AI_TYPE_FLOAT);
-
-         // Note: this doesn't handle connection coming in individual elements
-         attr = node.findPlug("color");
-         AtArray *positions = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_FLOAT);
-         AtArray *values = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_RGB);
-         AtArray *interps = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_STRING);
-         for (unsigned int i=0; i<attr.numElements(); ++i)
-         {
-            elem = attr.elementByPhysicalIndex(i);
-            pos = elem.child(opos);
-            val = elem.child(oval);
-            interp = elem.child(ointerp);
-            AiArraySetFlt(positions, i, pos.asFloat());
-            AtRGB value;
-            value.r = val.child(0).asFloat();
-            value.g = val.child(1).asFloat();
-            value.b = val.child(2).asFloat();
-            AiArraySetRGB(values, i, value);
-            AiArraySetStr(interps, i, g_remapInterpolationStrings[interp.asInt()]);
-         }
-         // Need to sort the arrays (maya has the excellent idea not to do it)
-         if (positions->nelements > 1)
-         {
-            AtUInt* shuffle = new AtUInt[positions->nelements];
-            if (SortFloatArray(positions, shuffle))
-            {
-               ShuffleArray(values, shuffle, AI_TYPE_RGB);
-               ShuffleArray(interps, shuffle, AI_TYPE_STRING);
-            }
-            delete[] shuffle;
-         }
-         AiNodeSetArray(shader, "positions", positions);
-         AiNodeSetArray(shader, "values", values);
-         AiNodeSetArray(shader, "interpolations", interps);
-      }
-      if (shader != 0)
-      {
-         MString name = node.name() + "_" + attrName;
-         AiNodeSetStr(shader, "name", name.asChar());
+         AiNodeSetArray(shader, posNames[ci*2 + 1], positions);
+         AiNodeSetArray(shader, valNames[ci*2 + 1], values);
+         AiNodeSetArray(shader, interpNames[ci*2 + 1], interps);
       }
    }
-   else if (node.typeName() == "remapColor")
+}
+
+// Projection
+//
+AtNode* CProjectionTranslator::Export()
+{
+   AtNode* shader = AiNode("MayaProjection");
+   AiNodeSetStr(shader, "name", m_fnNode.name().asChar());
+   Update(shader);
+   return shader;
+}
+
+void CProjectionTranslator::Update(AtNode* shader)
+{
+   // FIXME: change shader parameter name to match maya
+   ProcessParameter(shader, "projType", "type", AI_TYPE_INT);
+   ProcessParameter(shader, "uAngle", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "vAngle", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "local", AI_TYPE_BOOLEAN);
+   ProcessParameter(shader, "wrap", AI_TYPE_BOOLEAN);
+   ProcessParameter(shader, "invert", AI_TYPE_BOOLEAN);
+   ProcessParameter(shader, "colorGain", AI_TYPE_RGB);
+   ProcessParameter(shader, "colorOffset", AI_TYPE_RGB);
+   ProcessParameter(shader, "defaultColor", AI_TYPE_RGB);
+   ProcessParameter(shader, "alphaGain", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "alphaOffset", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "image", AI_TYPE_RGBA);
+
+   // alphaIsLuminance?
+
+   // shaderMatrix
+   MPlug plug = m_fnNode.findPlug("shaderMatrix");
+   // should follow connections here also
+   // temporarily just read the value
+   AtMatrix ipm;
+   MObject matObj = plug.asMObject();
+   MFnMatrixData matData(matObj);
+   MMatrix mm = matData.matrix();
+   ConvertMatrix(ipm, mm);
+   AiNodeSetMatrix(shader, "mappingCoordinate", ipm);
+
+   ProcessParameter(shader, "fitType", AI_TYPE_INT);
+   // FIXME: change shader parameter name to match maya
+   ProcessParameter(shader, "fitFill", "fillType", AI_TYPE_INT);
+
+   MPlug typePlug = m_fnNode.findPlug("projType");
+   plug = m_fnNode.findPlug("linkedCamera");
+   MPlugArray connections;
+   plug.connectedTo(connections, true, false);
+   if (connections.length() >= 1 && typePlug.asInt() == 8)
    {
-      if (attrName == "outColor")
-      {
-         shader = AiNode("MayaRemapColor");
+      MObject camObj = connections[0].node();
 
-         MPlug attr, elem, pos, val, interp;
+      MFnCamera cam(camObj);
 
-         const char *plugNames[3] = {"red", "green", "blue"};
-         const char *posNames[6] = {"red_Position",   "rPositions",
-                                    "green_Position", "gPositions",
-                                    "blue_Position",  "bPositions"};
-         const char *valNames[6] = {"red_FloatValue",   "rValues",
-                                    "green_FloatValue", "gValues",
-                                    "blue_FloatValue",  "bValues"};
-         const char *interpNames[6] = {"red_Interp",   "rInterpolations",
-                                       "green_Interp", "gInterpolations",
-                                       "blue_Interp",  "bInterpolations"};
+      MDagPath camPath;
+      cam.getPath(camPath);
 
-         ProcessShaderParameter(node, "color", shader, "input", AI_TYPE_RGB);
-         ProcessShaderParameter(node, "inputMin", shader, "inputMin", AI_TYPE_FLOAT);
-         ProcessShaderParameter(node, "inputMax", shader, "inputMax", AI_TYPE_FLOAT);
-         ProcessShaderParameter(node, "outputMin", shader, "outputMin", AI_TYPE_FLOAT);
-         ProcessShaderParameter(node, "outputMax", shader, "outputMax", AI_TYPE_FLOAT);
-
-         for (int ci=0; ci<3; ++ci)
-         {
-            MObject opos = node.attribute(posNames[ci*2]);
-            MObject oval = node.attribute(valNames[ci*2]);
-            MObject ointerp = node.attribute(interpNames[ci*2]);
-
-            // Note: this doesn't handle connection coming in individual elements
-            attr = node.findPlug(plugNames[ci]);
-            AtArray *positions = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_FLOAT);
-            AtArray *values = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_FLOAT);
-            AtArray *interps = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_STRING);
-            for (unsigned int i=0; i<attr.numElements(); ++i)
-            {
-               elem = attr.elementByPhysicalIndex(i);
-               pos = elem.child(opos);
-               val = elem.child(oval);
-               interp = elem.child(ointerp);
-               AiArraySetFlt(positions, i, pos.asFloat());
-               AiArraySetFlt(values, i, val.asFloat());
-               AiArraySetStr(interps, i, g_remapInterpolationStrings[interp.asInt()]);
-            }
-            // Need to sort array (maya has the excellent idea not to do it)
-            if (positions->nelements > 1)
-            {
-               AtUInt* shuffle = new AtUInt[positions->nelements];
-               if (SortFloatArray(positions, shuffle))
-               {
-                  ShuffleArray(values, shuffle, AI_TYPE_FLOAT);
-                  ShuffleArray(interps, shuffle, AI_TYPE_STRING);
-               }
-               delete[] shuffle;
-            }
-            AiNodeSetArray(shader, posNames[ci*2 + 1], positions);
-            AiNodeSetArray(shader, valNames[ci*2 + 1], values);
-            AiNodeSetArray(shader, interpNames[ci*2 + 1], interps);
-         }
-      }
-      if (shader != 0)
-      {
-         MString name = node.name() + "_" + attrName;
-         AiNodeSetStr(shader, "name", name.asChar());
-      }
-   }
-   else if (node.typeName() == "projection")
-   {
-      shader = AiNode("MayaProjection");
-
-      AiNodeSetStr(shader, "name", node.name().asChar());
-
-      ProcessShaderParameter(node, "projType", shader, "type", AI_TYPE_INT);
-      ProcessShaderParameter(node, "uAngle", shader, "uAngle", AI_TYPE_FLOAT);
-      ProcessShaderParameter(node, "vAngle", shader, "vAngle", AI_TYPE_FLOAT);
-      ProcessShaderParameter(node, "local", shader, "local", AI_TYPE_BOOLEAN);
-      ProcessShaderParameter(node, "wrap", shader, "wrap", AI_TYPE_BOOLEAN);
-      ProcessShaderParameter(node, "invert", shader, "invert", AI_TYPE_BOOLEAN);
-      ProcessShaderParameter(node, "colorGain", shader, "colorGain", AI_TYPE_RGB);
-      ProcessShaderParameter(node, "colorOffset", shader, "colorOffset", AI_TYPE_RGB);
-      ProcessShaderParameter(node, "defaultColor", shader, "defaultColor", AI_TYPE_RGB);
-      ProcessShaderParameter(node, "alphaGain", shader, "alphaGain", AI_TYPE_FLOAT);
-      ProcessShaderParameter(node, "alphaOffset", shader, "alphaOffset", AI_TYPE_FLOAT);
-      ProcessShaderParameter(node, "image", shader, "image", AI_TYPE_RGBA);
-
-      // alphaIsLuminance?
-
-      // placementMatrix
-      MPlug plug = node.findPlug("placementMatrix");
-      // should follow connections here also
-      // temporarily just read the value
-      AtMatrix ipm;
-      MObject matObj = plug.asMObject();
-      MFnMatrixData matData(matObj);
-      MMatrix mm = matData.matrix();
-      ConvertMatrix(ipm, mm);
-      AiNodeSetMatrix(shader, "mappingCoordinate", ipm);
-
-      ProcessShaderParameter(node, "fitType", shader, "fitType", AI_TYPE_INT);
-      ProcessShaderParameter(node, "fitFill", shader, "fillType", AI_TYPE_INT);
-
-      MPlug typePlug = node.findPlug("projType");
-      plug = node.findPlug("linkedCamera");
-      MPlugArray connections;
-      plug.connectedTo(connections, true, false);
-      if (connections.length() >= 1 && typePlug.asInt() == 8)
-      {
-         MObject camObj = connections[0].node();
-
-         MFnCamera cam(camObj);
-
-         MDagPath camPath;
-         cam.getPath(camPath);
-
-         AiNodeSetStr(shader, "cameraName", cam.name().asChar());
-         AiNodeSetFlt(shader, "cameraNearPlane", static_cast<float>(cam.nearClippingPlane()));
-         AiNodeSetFlt(shader, "cameraHorizontalFOV", static_cast<float>(cam.horizontalFieldOfView()));
-         AiNodeSetFlt(shader, "cameraAspectRatio", static_cast<float>(cam.aspectRatio()));
-      }
-      else
-      {
-         // no linked camera, fit type needs to be None ?
-         AiNodeSetInt(shader, "fitType", 0);
-      }
-   }
-   else if (node.typeName() == "ramp")
-   {
-      shader = AiNode("MayaRamp");
-
-      AiNodeSetStr(shader, "name", node.name().asChar());
-      ProcessShaderParameter(node, "type", shader, "type", AI_TYPE_INT);
-      ProcessShaderParameter(node, "interpolation", shader, "interpolation", AI_TYPE_INT);
-      ProcessShaderParameter(node, "uWave", shader, "uWave", AI_TYPE_FLOAT);
-      ProcessShaderParameter(node, "vWave", shader, "vWave", AI_TYPE_FLOAT);
-      ProcessShaderParameter(node, "noise", shader, "noise", AI_TYPE_FLOAT);
-      ProcessShaderParameter(node, "noiseFreq", shader, "noiseFreq", AI_TYPE_FLOAT);
-      ProcessShaderParameter(node, "colorGain", shader, "colorGain", AI_TYPE_RGB);
-      ProcessShaderParameter(node, "colorOffset", shader, "colorOffset", AI_TYPE_RGB);
-      ProcessShaderParameter(node, "defaultColor", shader, "defaultColor", AI_TYPE_RGB);
-      ProcessShaderParameter(node, "alphaGain", shader, "alphaGain", AI_TYPE_FLOAT);
-      ProcessShaderParameter(node, "alphaOffset", shader, "alphaOffset", AI_TYPE_FLOAT);
-      ProcessShaderParameter(node, "invert", shader, "invert", AI_TYPE_BOOLEAN);
-
-      MPlug plug, elem, pos, col;
-      MPlugArray connections;
-      AtNode *placement = NULL;
-
-      plug = node.findPlug("uvCoord");
-      plug.connectedTo(connections, true, false);
-
-      if (connections.length() != 0)
-      {
-         MObject srcObj = connections[0].node();
-         MFnDependencyNode srcNode(srcObj);
-
-         if (srcNode.typeName() == "place2dTexture")
-         {
-            placement = AiNode("MayaPlace2dTexture");
-
-            AiNodeSetStr(placement, "name", srcNode.name().asChar());
-            ProcessShaderParameter(srcNode, "coverage", placement, "coverage", AI_TYPE_POINT2);
-            ProcessShaderParameter(srcNode, "rotateFrame", placement, "rotateFrame", AI_TYPE_FLOAT);
-            ProcessShaderParameter(srcNode, "translateFrame", placement, "translateFrame", AI_TYPE_POINT2);
-            ProcessShaderParameter(srcNode, "mirrorU", placement, "mirrorU", AI_TYPE_BOOLEAN);
-            ProcessShaderParameter(srcNode, "mirrorV", placement, "mirrorV", AI_TYPE_BOOLEAN);
-            ProcessShaderParameter(srcNode, "wrapU", placement, "wrapU", AI_TYPE_BOOLEAN);
-            ProcessShaderParameter(srcNode, "wrapV", placement, "wrapV", AI_TYPE_BOOLEAN);
-            ProcessShaderParameter(srcNode, "stagger", placement, "stagger", AI_TYPE_BOOLEAN);
-            ProcessShaderParameter(srcNode, "repeatUV", placement, "repeatUV", AI_TYPE_POINT2);
-            ProcessShaderParameter(srcNode, "rotateUV", placement, "rotateUV", AI_TYPE_FLOAT);
-            ProcessShaderParameter(srcNode, "offset", placement, "offsetUV", AI_TYPE_POINT2);
-            ProcessShaderParameter(srcNode, "noiseUV", placement, "noiseUV", AI_TYPE_POINT2);
-         }
-      }
-      if (placement != NULL)
-      {
-         AiNodeSetBool(shader, "overrideUV", true);
-         AiNodeLink(placement, "uv", shader);
-      }
-      else
-      {
-         AiNodeSetBool(shader, "overrideUV", false);
-      }
-
-      MObject opos = node.attribute("position");
-      MObject ocol = node.attribute("color");
-      plug = node.findPlug("colorEntryList");
-      AtArray *positions = AiArrayAllocate(plug.numElements(), 1, AI_TYPE_FLOAT);
-      AtArray *colors = AiArrayAllocate(plug.numElements(), 1, AI_TYPE_RGB);
-      // Connections on individual array element are not handled
-      for (unsigned int i=0; i<plug.numElements(); ++i)
-      {
-         elem = plug.elementByPhysicalIndex(i);
-         pos = elem.child(opos);
-         col = elem.child(ocol);
-         AtRGB v;
-         v.r = col.child(0).asFloat();
-         v.g = col.child(1).asFloat();
-         v.b = col.child(2).asFloat();
-         AiArraySetFlt(positions, i, pos.asFloat());
-         AiArraySetRGB(colors, i, v);
-      }
-      // Sort position array
-      if (positions->nelements > 1)
-      {
-         AtUInt* shuffle = new AtUInt[positions->nelements];
-         if (SortFloatArray(positions, shuffle))
-         {
-            ShuffleArray(colors, shuffle, AI_TYPE_RGB);
-         }
-         delete[] shuffle;
-      }
-      AiNodeSetArray(shader, "positions", positions);
-      AiNodeSetArray(shader, "colors", colors);
+      AiNodeSetStr(shader, "cameraName", cam.name().asChar());
+      AiNodeSetFlt(shader, "cameraNearPlane", static_cast<float>(cam.nearClippingPlane()));
+      AiNodeSetFlt(shader, "cameraHorizontalFOV", static_cast<float>(cam.horizontalFieldOfView()));
+      AiNodeSetFlt(shader, "cameraAspectRatio", static_cast<float>(cam.aspectRatio()));
    }
    else
    {
-      AiMsgWarning("[mtoa] Shader type not supported: %s", node.typeName().asChar());
+      // no linked camera, fit type needs to be None ?
+      AiNodeSetInt(shader, "fitType", 0);
    }
+}
 
-   if (shader)
-   {
-      CShaderData   data;
-
-      data.mayaShader   = mayaShader;
-      data.arnoldShader = shader;
-      data.attrName     = attrName;
-
-      m_processedShaders.push_back(data);
-   }
-
+// Ramp
+//
+AtNode* CRampTranslator::Export()
+{
+   AtNode* shader = AiNode("MayaRamp");
+   AiNodeSetStr(shader, "name", m_fnNode.name().asChar());
+   Update(shader);
    return shader;
+}
+
+void CRampTranslator::Update(AtNode* shader)
+{
+   ProcessParameter(shader, "type", AI_TYPE_INT);
+   ProcessParameter(shader, "interpolation", AI_TYPE_INT);
+   ProcessParameter(shader, "uWave", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "vWave", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "noise", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "noiseFreq", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "colorGain", AI_TYPE_RGB);
+   ProcessParameter(shader, "colorOffset", AI_TYPE_RGB);
+   ProcessParameter(shader, "defaultColor", AI_TYPE_RGB);
+   ProcessParameter(shader, "alphaGain", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "alphaOffset", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "invert", AI_TYPE_BOOLEAN);
+
+   MPlug plug, elem, pos, col;
+   MPlugArray connections;
+
+   if (ProcessParameter(shader, "uv", AI_TYPE_POINT2) != NULL)
+   {
+      AiNodeSetBool(shader, "overrideUV", true);
+   }
+   else
+   {
+      AiNodeSetBool(shader, "overrideUV", false);
+   }
+   /*
+    * AtNode *shader = NULL;
+   plug = m_fnNode.findPlug("uvCoord");
+   plug.connectedTo(connections, true, false);
+
+   if (connections.length() != 0)
+   {
+      MObject srcObj = connections[0].node();
+      MFnDependencyNode srcNode(srcObj);
+
+      if (srcNode.typeName() == "place2dTexture")
+      {
+         shader = AiNode("MayaPlace2dTexture");
+
+         AiNodeSetStr(shader, "name", srcNode.name().asChar());
+         ProcessParameter("coverage", shader, "coverage", AI_TYPE_POINT2);
+         ProcessParameter("rotateFrame", shader, "rotateFrame", AI_TYPE_FLOAT);
+         ProcessParameter("translateFrame", shader, "translateFrame", AI_TYPE_POINT2);
+         ProcessParameter("mirrorU", shader, "mirrorU", AI_TYPE_BOOLEAN);
+         ProcessParameter("mirrorV", shader, "mirrorV", AI_TYPE_BOOLEAN);
+         ProcessParameter("wrapU", shader, "wrapU", AI_TYPE_BOOLEAN);
+         ProcessParameter("wrapV", shader, "wrapV", AI_TYPE_BOOLEAN);
+         ProcessParameter("stagger", shader, "stagger", AI_TYPE_BOOLEAN);
+         ProcessParameter("repeatUV", shader, "repeatUV", AI_TYPE_POINT2);
+         ProcessParameter("rotateUV", shader, "rotateUV", AI_TYPE_FLOAT);
+         ProcessParameter("offset", shader, "offsetUV", AI_TYPE_POINT2);
+         ProcessParameter("noiseUV", shader, "noiseUV", AI_TYPE_POINT2);
+      }
+   }
+   if (shader != NULL)
+   {
+      AiNodeSetBool(shader, "overrideUV", true);
+      AiNodeLink(shader, "uv", shader);
+   }
+   else
+   {
+      AiNodeSetBool(shader, "overrideUV", false);
+   }
+   */
+
+   MObject opos = m_fnNode.attribute("position");
+   MObject ocol = m_fnNode.attribute("color");
+   plug = m_fnNode.findPlug("colorEntryList");
+   AtArray *positions = AiArrayAllocate(plug.numElements(), 1, AI_TYPE_FLOAT);
+   AtArray *colors = AiArrayAllocate(plug.numElements(), 1, AI_TYPE_RGB);
+   // Connections on individual array element are not handled
+   for (unsigned int i=0; i<plug.numElements(); ++i)
+   {
+      elem = plug.elementByPhysicalIndex(i);
+      pos = elem.child(opos);
+      col = elem.child(ocol);
+      AtRGB v;
+      v.r = col.child(0).asFloat();
+      v.g = col.child(1).asFloat();
+      v.b = col.child(2).asFloat();
+      AiArraySetFlt(positions, i, pos.asFloat());
+      AiArraySetRGB(colors, i, v);
+   }
+   // Sort position array
+   if (positions->nelements > 1)
+   {
+      AtUInt* shuffle = new AtUInt[positions->nelements];
+      if (SortFloatArray(positions, shuffle))
+      {
+         ShuffleArray(colors, shuffle, AI_TYPE_RGB);
+      }
+      delete[] shuffle;
+   }
+   AiNodeSetArray(shader, "positions", positions);
+   AiNodeSetArray(shader, "colors", colors);
+}
+
+AtNode* CPlace2dTextureTranslator::Export()
+{
+   AtNode* shader = AiNode("MayaPlace2dTexture");
+   AiNodeSetStr(shader, "name", m_fnNode.name().asChar());
+   Update(shader);
+   return shader;
+}
+
+void CPlace2dTextureTranslator::Update(AtNode* shader)
+{
+   ProcessParameter(shader, "coverage", AI_TYPE_POINT2);
+   ProcessParameter(shader, "rotateFrame", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "translateFrame", AI_TYPE_POINT2);
+   ProcessParameter(shader, "mirrorU", AI_TYPE_BOOLEAN);
+   ProcessParameter(shader, "mirrorV", AI_TYPE_BOOLEAN);
+   ProcessParameter(shader, "wrapU", AI_TYPE_BOOLEAN);
+   ProcessParameter(shader, "wrapV", AI_TYPE_BOOLEAN);
+   ProcessParameter(shader, "stagger", AI_TYPE_BOOLEAN);
+   ProcessParameter(shader, "repeatUV", AI_TYPE_POINT2);
+   ProcessParameter(shader, "rotateUV", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "offsetUV", AI_TYPE_POINT2);
+   ProcessParameter(shader, "noiseUV", AI_TYPE_POINT2);
 }

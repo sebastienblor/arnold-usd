@@ -19,4 +19,18 @@
 #define ARNOLD_NODEID_RAY_SWITCH                0x00072015
 #define ARNOLD_NODEID_CUSTOM                    0x00073000
 #define ARNOLD_NODEID_MESH_INFO                 0x00072016
+
+#define MAYA_NODEID_SURFACE_SHADER              0x52535348
+#define MAYA_NODEID_LAMBERT                     0x524c414d
+#define MAYA_NODEID_FILE                        0x52544654
+#define MAYA_NODEID_PLACE2D_TEXTURE             0x52504c32
+#define MAYA_NODEID_BUMP2D                      0x5242554d
+#define MAYA_NODEID_BUMP3D                      0x52425533
+#define MAYA_NODEID_SAMPLER_INFO                0x5253494e
+#define MAYA_NODEID_PLUS_MINUS_AVERAGE          0x52504d41
+#define MAYA_NODEID_REMAP_VALUE                 0x524d564c
+#define MAYA_NODEID_REMAP_COLOR                 0x524d434c
+#define MAYA_NODEID_PROJECTION                  0x5250524a
+#define MAYA_NODEID_RAMP                        0x52545241
+
 #endif // ARNOLD_NODE_IDS_H
