@@ -15,6 +15,9 @@ public:
       m_motion = m_scene->m_motionBlurData.enabled &&
                   m_scene->m_fnArnoldRenderOptions->findPlug("mb_objects_enable").asBool() &&
                   m_fnNode.findPlug("motionBlur").asBool();
+      m_motionDeform = m_scene->m_motionBlurData.enabled &&
+                       m_scene->m_fnArnoldRenderOptions->findPlug("mb_object_deform_enable").asBool() &&
+                       m_fnNode.findPlug("motionBlur").asBool();
       m_dagPath = dagPath;
       m_fnNode.setObject(dagPath);
       m_scene = scene;
@@ -24,6 +27,10 @@ public:
    {
       return m_motion;
    }
+   void Update(AtNode* anode);
+   void ExportMotion(AtNode* anode, AtUInt step);
+   void UpdateMotion(AtNode* anode, AtUInt step);
+
 
 protected:
    bool GetVertices(MFnMesh &fnMesh, std::vector<float> &vertices);
@@ -42,18 +49,21 @@ protected:
 
    MObject GetNodeShadingGroup(MObject dagNode, int instanceNum);
    MObject GetNodeShader(MObject dagNode, int instanceNum);
+   void ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh);
 
-   void ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, AtUInt step);
-   AtNode* ExportMesh(MObject mayaMesh);
-   void ExportMeshMotion(AtNode* polymesh, MObject mayaMesh, AtUInt step);
-   AtNode* ExportMeshInstance(const MDagPath& masterInstance);
-   void ExportMeshInstanceMotion(AtNode* instance, AtUInt step);
-
-
+   void ExportMeshGeoData(AtNode* polymesh, AtUInt step);
+   void ExportMeshParameters(AtNode* polymesh);
+   AtNode* ExportMesh(AtNode* polymesh, bool update);
+   void ExportMeshMotion(AtNode* polymesh, AtUInt step);
+   AtNode* ExportInstance(AtNode* instance, const MDagPath& masterInstance);
+   void ExportInstanceMotion(AtNode* instance, AtUInt step);
 
 protected:
    bool m_isMasterDag;
    bool m_motion;
+   bool m_motionDeform;
+   MFnMesh m_fnMesh;
+   MDagPath m_masterDag;
 };
 
 
@@ -61,8 +71,6 @@ class CMeshTranslator : public CGeoTranslator
 {
 public:
    AtNode* Export();
-   void ExportMotion(AtNode* polymesh, AtUInt step);
-   void Update(AtNode* polymesh);
    static void* creator()
    {
       return new CMeshTranslator();
@@ -76,8 +84,6 @@ class CNurbsSurfaceTranslator : public CGeoTranslator
 {
 public:
    AtNode* Export();
-   void ExportMotion(AtNode* polymesh, AtUInt step);
-   void Update(AtNode* polymesh);
    static void* creator()
    {
       return new CNurbsSurfaceTranslator();
