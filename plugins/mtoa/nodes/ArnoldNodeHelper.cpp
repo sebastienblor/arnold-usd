@@ -55,8 +55,7 @@ void CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
    const AtParamEntry* paramEntry = AiNodeEntryLookUpParameter(m_nodeEntry, paramName);
    if (paramEntry == NULL)
       AiMsgError("[mtoa] parameter does not exist: %s", paramName);
-   const AtParamValue* value = AiParamGetDefault(paramEntry);
-   memcpy(&data.defaultValue, value, sizeof(AtParamValue));
+   data.defaultValue = MAiParamGetDefault(m_nodeEntry, paramEntry);
    data.name = GetMayaAttrName(paramName);
    data.shortName = GetMayaAttrShortName(paramName);
    data.type = AiParamGetType(paramEntry);

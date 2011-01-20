@@ -1,5 +1,7 @@
 #include "Metadata.h"
 
+#include <ai_msg.h>
+
 #include <maya/MGlobal.h>
 
 bool HasMetadata(const AtNodeEntry *entry, const char *param, const char *name)
@@ -106,4 +108,72 @@ AtBoolean  MAiMetaDataGetStr (const AtNodeEntry *entry, const char *param, const
    }
    else
       return AiMetaDataGetStr(entry, param, name, value);
+}
+
+AtParamValue MAiParamGetDefault(const AtNodeEntry *entry, const AtParamEntry* paramEntry)
+{
+   const char* param = AiParamGetName(paramEntry);
+   const AtParamValue* real = AiParamGetDefault(paramEntry);
+   AtParamValue value;
+   memcpy(&value, real, sizeof(AtParamValue));
+
+   if (HasMetadata(entry, param, "default"))
+   {
+      AtInt type = AiParamGetType(paramEntry);
+      MString command = FormatCommand(entry, param, "default");
+      bool isArray = false;
+      if (type == AI_TYPE_ARRAY)
+      {
+         type = value.ARRAY->type;
+         isArray = true;
+      }
+      switch (type)
+      {
+         case AI_TYPE_INT:
+         {
+            int result;
+            MStatus stat = MGlobal::executePythonCommand(command, result);
+            if (isArray)
+               AiArraySetInt(value.ARRAY, 0, (AtInt)result);
+            else
+               value.INT = (AtInt)result;
+            break;
+         }
+         case AI_TYPE_UINT:
+         {
+            int result;
+            MStatus stat = MGlobal::executePythonCommand(command, result);
+            if (isArray)
+               AiArraySetUInt(value.ARRAY, 0, (AtUInt)result);
+            else
+               value.UINT = (AtUInt)result;
+            break;
+         }
+         case AI_TYPE_BOOLEAN:
+         {
+            int result;
+            MStatus stat = MGlobal::executePythonCommand(command, result);
+            if (isArray)
+               AiArraySetBool(value.ARRAY, 0, (AtBoolean)(true ? result : false));
+            else
+               value.BOOL = (AtBoolean)(true ? result : false);
+            break;
+         }
+         case AI_TYPE_FLOAT:
+         {
+            double result;
+            MStatus stat = MGlobal::executePythonCommand(command, result);
+            if (isArray)
+               AiArraySetFlt(value.ARRAY, 0, (AtFloat)result);
+            else
+               value.FLT = (AtFloat)result;
+            break;
+         }
+         default:
+         {
+            AiMsgError("[mtoa] plain text defaults only supports basic numeric types");
+         }
+      }
+   }
+   return value;
 }

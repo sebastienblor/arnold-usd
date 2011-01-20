@@ -12,4 +12,6 @@ AtBoolean  MAiMetaDataGetFlt (const AtNodeEntry *entry, const char *param, const
 //AtBoolean  MAiMetaDataGetRGB (const AtNodeEntry *entry, const char *param, const char *name, AtColor *value);
 AtBoolean  MAiMetaDataGetStr (const AtNodeEntry *entry, const char *param, const char *name, const char **value);
 
+AtParamValue MAiParamGetDefault(const AtNodeEntry *entry, const AtParamEntry* paramEntry);
+
 #endif
