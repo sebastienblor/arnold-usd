@@ -8,3 +8,4 @@ build
 *.orig
 custom.py
 .sconsign.dblite
+Debug
