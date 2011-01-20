@@ -39,22 +39,30 @@ CMayaScene::~CMayaScene()
 
 MStatus CMayaScene::ExportToArnold(ExportMode exportMode)
 {
+   // This export mode is used here, but also in the NodeTranslators.
+   // For example, if it's IPR mode, they install callbacks to trigger
+   // a refresh of the data sent to Arnold.
+   m_exportMode = exportMode;
+   
    MStatus status;
+
+   PrepareExport();
+   
+   // Are we motion blurred?
+   const bool mb = m_motionBlurData.enabled &&
+                   ( m_fnArnoldRenderOptions->findPlug("mb_camera_enable").asBool()    ||
+                     m_fnArnoldRenderOptions->findPlug("mb_objects_enable").asBool()   ||
+                     m_fnArnoldRenderOptions->findPlug("mb_lights_enable").asBool()    );
 
    if (exportMode == MTOA_EXPORT_ALL)
    {
-      PrepareExport();
-
-      bool mb = m_motionBlurData.enabled && (m_fnArnoldRenderOptions->findPlug("mb_camera_enable").asBool() ||
-                                          m_fnArnoldRenderOptions->findPlug("mb_objects_enable").asBool() ||
-                                          m_fnArnoldRenderOptions->findPlug("mb_lights_enable").asBool());
-
       if (!mb)
       {
          status = ExportScene(0);
       }
       else
       {
+         // Scene is motion blured, get the data for the steps.
          for (int J = 0; (J < m_motionBlurData.motion_steps); ++J)
          {
             MGlobal::viewFrame(MTime(m_motionBlurData.frames[J], MTime::uiUnit()));
@@ -63,9 +71,25 @@ MStatus CMayaScene::ExportToArnold(ExportMode exportMode)
          MGlobal::viewFrame(MTime(m_currentFrame, MTime::uiUnit()));
       }
    }
+   else if ( exportMode == MTOA_EXPORT_IPR )
+   {
+      if (!mb)
+      {
+         status = ExportForIPR(0);
+      }
+      else
+      {
+         // Scene is motion blured, get the data for the steps.
+         for (int J = 0; (J < m_motionBlurData.motion_steps); ++J)
+         {
+            MGlobal::viewFrame(MTime(m_motionBlurData.frames[J], MTime::uiUnit()));
+            status = ExportForIPR(J);
+         }
+         MGlobal::viewFrame(MTime(m_currentFrame, MTime::uiUnit()));
+      }
+   }
    else
    {
-      PrepareExport();
       status = ExportSelected();
    }
 
@@ -205,6 +229,14 @@ MStatus CMayaScene::ExportScene(AtUInt step)
    return MS::kSuccess;
 }
 
+MStatus CMayaScene::ExportForIPR(AtUInt step )
+{
+   // Export scene installing message callbacks (the 'true')
+   // so we can pickup changes in the scene.
+   return ExportScene( step );
+}
+
+
 void CMayaScene::PrepareExport()
 {
    MSelectionList list;
@@ -230,6 +262,7 @@ void CMayaScene::PrepareExport()
 
    GetMotionBlurData();
 }
+
 
 void CMayaScene::GetMotionBlurData()
 {

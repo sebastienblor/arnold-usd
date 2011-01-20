@@ -24,7 +24,8 @@ class CNodeTranslator;
 enum ExportMode
 {
    MTOA_EXPORT_ALL,
-   MTOA_EXPORT_SELECTED
+   MTOA_EXPORT_SELECTED,
+   MTOA_EXPORT_IPR
 };
 
 struct CMotionBlurData
@@ -70,13 +71,16 @@ public:
    MStatus ExportToArnold(ExportMode exportMode = MTOA_EXPORT_ALL);
    AtNode* ExportShader(MObject mayaShader, const MString &attrName="");
 
-   AtFloat GetCurrentFrame() { return m_currentFrame;};
+   AtFloat GetCurrentFrame() { return m_currentFrame;}
 
+   ExportMode GetExportMode() { return m_exportMode; }
+   
 //private:
    
    void PrepareExport();
    MStatus IterSelection(MSelectionList selected);
    MStatus ExportScene(AtUInt step);
+   MStatus ExportForIPR(AtUInt step);
    MStatus ExportSelected();
    bool ExportDagPath(MDagPath &dagPath, AtUInt step);
    static void RegisterDagTranslator(int typeId, CreatorFunction creator){s_dagTranslators[typeId] = creator;}
@@ -97,7 +101,8 @@ public:
    void GetMotionBlurData();
 
 //private:
-
+   ExportMode m_exportMode;
+   
    struct CShaderData
    {
       MObject mayaShader;
