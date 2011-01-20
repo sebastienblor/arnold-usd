@@ -11,7 +11,8 @@ g_ArnoldStdAOVs = ["direct_diffuse",
                   "emission",
                   "reflection",
                   "refraction",
-                  "sss"]
+                  "sss",
+                  "Z"]
 
 def listIndex(item, list):
     for i in range(0, len(list)):

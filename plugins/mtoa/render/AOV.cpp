@@ -12,12 +12,12 @@
 
 
 CAOV::CAOV()
-   : m_name(""), m_prefix(""), m_filename("")
+   : m_name(""), m_type(""), m_prefix(""), m_filename("")
 {
 }
 
 CAOV::CAOV(const CAOV &rhs)
-   : m_name(rhs.m_name), m_prefix(rhs.m_prefix), m_filename(rhs.m_filename)
+   : m_name(rhs.m_name), m_type(rhs.m_type), m_prefix(rhs.m_prefix), m_filename(rhs.m_filename)
 {
 }
 
@@ -30,10 +30,30 @@ CAOV& CAOV::operator=(const CAOV &rhs)
    if (this != &rhs)
    {
       m_name = rhs.m_name;
+      m_type = rhs.m_type;
       m_prefix = rhs.m_prefix;
       m_filename = rhs.m_filename;
    }
    return *this;
+}
+
+void CAOV::ReturnType(MString &mtype) const
+{
+	switch (mtype.asInt())
+	{
+	case 0:
+		mtype.set("FLOAT");
+		break;
+	case 1:
+		mtype.set("RGB");
+		break;
+	case 2:
+		mtype.set("RGBA");
+		break;
+	case 3:
+		mtype.set("VECTOR");
+		break;
+	}
 }
 
 void CAOV::NormalizePath(MString &path) const
@@ -86,7 +106,11 @@ bool CAOV::FromMaya(MPlug &pAOV)
       return false;
    }
 
-   m_prefix = pAOV.child(1).asString();
+   m_type = pAOV.child(1).asInt();
+   ReturnType(m_type);
+
+
+   m_prefix = pAOV.child(2).asString();
    Strip(m_prefix);
    NormalizePath(m_prefix);
 
@@ -228,9 +252,9 @@ void CAOV::SetupOutput(AtArray *outputs, int i, AtNode *defaultDriver, AtNode *d
       AiNodeSetBool(driver, "unpremult_alpha", AiNodeGetBool(defaultDriver, "unpremult_alpha"));
    }
 
-   // for now, output type is always RGB, and filter is default one
+   // for now, filter is default one
    char str[1024];
-   sprintf(str, "%s RGB %s %s", m_name.asChar(), AiNodeGetName(defaultFilter), driverName.asChar());
+   sprintf(str, "%s %s %s %s", m_name.asChar(), m_type.asChar(), AiNodeGetName(defaultFilter), driverName.asChar());
 
    AiArraySetStr(outputs, i, str);
 }

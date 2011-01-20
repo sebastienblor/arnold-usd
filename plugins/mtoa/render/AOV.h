@@ -9,20 +9,20 @@
 class CAOV
 {
 public:
-   
-   enum Type
-   {
-      AOV_BOOL = 0,
-      AOV_INT,
-      AOV_FLT,
-      AOV_RGB,
-      AOV_RGBA,
-      AOV_VEC,
-      AOV_PNT,
-      AOV_PNT2,
-      AOV_PTR,
-      AOV_UNKNOWN
-   };
+//Deprecated ?
+//   enum Type
+//   {
+//      AOV_BOOL = 0,
+//      AOV_INT,
+//      AOV_FLT,
+//      AOV_RGB,
+//      AOV_RGBA,
+//      AOV_VEC,
+//      AOV_PNT,
+//      AOV_PNT2,
+//      AOV_PTR,
+//      AOV_UNKNOWN
+//   };
 
    CAOV();
    CAOV(const CAOV &rhs);
@@ -48,12 +48,14 @@ public:
 
 protected:
 
+   void ReturnType(MString &mtype) const;
    void NormalizePath(MString &path) const;
    void Strip(MString &str) const;
 
 protected:
 
    MString   m_name;
+   MString   m_type;
    MString   m_prefix;
    MString   m_filename;
 };

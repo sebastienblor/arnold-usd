@@ -23,6 +23,7 @@ public:
    // Attributes
    static MObject s_aovs;
    static MObject s_name;
+   static MObject s_type;
    static MObject s_prefix;
    static MObject s_batch_mode_only;
    

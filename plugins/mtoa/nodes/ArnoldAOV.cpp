@@ -14,6 +14,7 @@ MTypeId CArnoldAOVNode::id(ARNOLD_NODEID_AOV);
 
 MObject CArnoldAOVNode::s_aovs;
 MObject CArnoldAOVNode::s_name;
+MObject CArnoldAOVNode::s_type;
 MObject CArnoldAOVNode::s_prefix;
 MObject CArnoldAOVNode::s_batch_mode_only;
 
@@ -40,6 +41,13 @@ MStatus CArnoldAOVNode::initialize()
    tAttr.setDefault(sData.create(""));
    addAttribute(s_name);
 
+   s_type = nAttr.create("aov_type", "arniat", MFnNumericData::kInt);
+   nAttr.setKeyable(false);
+   nAttr.setMin(0);
+   nAttr.setMax(3);
+   nAttr.setDefault(1);
+   addAttribute(s_type);
+
    s_prefix = tAttr.create("aov_prefix", "arniap", MFnData::kString);
    tAttr.setKeyable(false);
    tAttr.setDefault(sData.create(""));
@@ -49,6 +57,7 @@ MStatus CArnoldAOVNode::initialize()
    cAttr.setKeyable(false);
    cAttr.setArray(true);
    cAttr.addChild(s_name);
+   cAttr.addChild(s_type);
    cAttr.addChild(s_prefix);
    addAttribute(s_aovs);
 
