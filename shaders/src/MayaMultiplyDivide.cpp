@@ -1,4 +1,5 @@
 
+#include <ai_metadata.h>
 #include <ai_nodes.h>
 #include <ai_shaderglobals.h>
 #include <ai_shaders.h>
@@ -32,6 +33,9 @@ node_parameters
    AiParameterRGB("input1", 0, 0, 0);
    AiParameterRGB("input2", 0, 0, 0);
    AiParameterENUM("operation", 0, enum_operation);
+
+   AiMetaDataSetStr(mds, NULL, "maya.counterpart", "multiplyDivide");
+   AiMetaDataSetInt(mds, NULL, "maya.counterpart_id", 0x524d4449);
 }
 
 node_initialize

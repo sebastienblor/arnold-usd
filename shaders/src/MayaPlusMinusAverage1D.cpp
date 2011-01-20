@@ -38,6 +38,8 @@ node_parameters
 {
    AiParameterENUM("operation", OP_PLUS, enum_operation);
    AiParameterARRAY("values", AiArray(1, 1, AI_TYPE_FLOAT, 0.0f));
+
+   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }
 
 node_initialize

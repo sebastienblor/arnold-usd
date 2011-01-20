@@ -1,4 +1,5 @@
 
+#include <ai_metadata.h>
 #include <ai_shaderglobals.h>
 #include <ai_shader_parameval.h>
 #include <ai_shaders.h>
@@ -23,6 +24,9 @@ node_parameters
    AiParameterFLT("blender", 0.5f);
    AiParameterRGB("color1", 1, 0, 0);
    AiParameterRGB("color2", 0, 0, 1);
+
+   AiMetaDataSetStr(mds, NULL, "maya.counterpart", "blendColors");
+   AiMetaDataSetInt(mds, NULL, "maya.counterpart_id", 0x52424c32);
 }
 
 shader_evaluate

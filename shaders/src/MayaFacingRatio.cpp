@@ -1,9 +1,11 @@
+
 #include <ai.h>
 
 AI_SHADER_NODE_EXPORT_METHODS(MayaFacingRatioMtd);
 
 node_parameters
 {
+   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }
 
 node_initialize

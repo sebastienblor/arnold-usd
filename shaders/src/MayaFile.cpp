@@ -68,6 +68,8 @@ node_parameters
    AiParameterBOOL("alphaIsLuminance", false);
    AiParameterBOOL("invert", false);
    AiParameterPNT2("noiseUV", 0.0f, 0.0f);
+
+   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }
 
 node_initialize

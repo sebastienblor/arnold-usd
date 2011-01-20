@@ -40,6 +40,8 @@ node_parameters
    AtArray *vdef = AiArrayAllocate(1, 1, AI_TYPE_RGB);
    AiArraySetRGB(vdef, 0, AI_RGB_BLACK);
    AiParameterARRAY("values", vdef);
+
+   AiMetaDataSetBool(mds, NULL, "maya.ignore", true);
 }
 
 node_initialize

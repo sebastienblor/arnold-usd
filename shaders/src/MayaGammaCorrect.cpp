@@ -23,6 +23,9 @@ node_parameters
    AiParameterRGB("value", 0, 0, 0);
    AiParameterRGB("gamma", 1, 1, 1);
    AiMetaDataSetBool(mds, "gamma", "always_linear", TRUE); // no gamma correction
+
+   AiMetaDataSetStr(mds, NULL, "maya.counterpart", "gammaCorrect");
+   AiMetaDataSetInt(mds, NULL, "maya.counterpart_id", 0x5247414d);
 }
 
 node_initialize

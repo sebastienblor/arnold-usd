@@ -56,6 +56,8 @@ node_parameters
    AiParameterARRAY("bInterpolations", AiArray(2, 1, AI_TYPE_STRING, "linear", "linear"));
    AiParameterFLT("outputMin", 0.0f);
    AiParameterFLT("outputMax", 1.0f);
+
+   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }
 
 node_initialize

@@ -92,6 +92,8 @@ node_parameters
    AiParameterPNT2("uv", 0.0f, 0.0f);
    AiParameterFLT("noise", 0.0f);
    AiParameterFLT("noiseFreq", 0.5f);
+
+   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }
 
 node_initialize

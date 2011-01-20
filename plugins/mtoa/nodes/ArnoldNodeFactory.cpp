@@ -457,7 +457,7 @@ bool CArnoldNodeFactory::LoadExtension(const char* extensionFile)
       return false;
    }
    
-   void* initializer = LibrarySymbol(pluginLib, "_Z16initializePluginR10CExtension");
+   void* initializer = LibrarySymbol(pluginLib, "initializePlugin");
 
    if (initializer == NULL)
    {

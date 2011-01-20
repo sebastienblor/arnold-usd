@@ -41,6 +41,8 @@ node_parameters
    AtArray *vdef = AiArrayAllocate(1, 1, AI_TYPE_POINT2);
    AiArraySetPnt2(vdef, 0, def);
    AiParameterARRAY("values", vdef);
+
+   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }
 
 node_initialize

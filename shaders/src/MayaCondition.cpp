@@ -1,4 +1,5 @@
 
+#include <ai_metadata.h>
 #include <ai_nodes.h>
 #include <ai_shaderglobals.h>
 #include <ai_shaders.h>
@@ -12,10 +13,10 @@ namespace
 enum MayaConditionParams
 {
    p_operation,
-   p_first_term,
-   p_second_term,
-   p_color_if_true,
-   p_color_if_false
+   p_firstTerm,
+   p_secondTerm,
+   p_colorIfTrue,
+   p_colorIfFalse
 };
 
 enum OperationNames
@@ -44,10 +45,13 @@ const char* enum_operation[] =
 node_parameters
 {
    AiParameterENUM("operation", 0, enum_operation);
-   AiParameterFLT("first_term", 0);
-   AiParameterFLT("second_term", 0);
-   AiParameterRGB("color_if_true", 0, 0, 0);
-   AiParameterRGB("color_if_false", 1, 1, 1);
+   AiParameterFLT("firstTerm", 0);
+   AiParameterFLT("secondTerm", 0);
+   AiParameterRGB("colorIfTrue", 0, 0, 0);
+   AiParameterRGB("colorIfFalse", 1, 1, 1);
+
+   AiMetaDataSetStr(mds, NULL, "maya.counterpart", "condition");
+   AiMetaDataSetInt(mds, NULL, "maya.counterpart_id", 0x52434e44);
 }
 
 node_initialize
@@ -65,10 +69,10 @@ node_finish
 shader_evaluate
 {
    int op               = AiShaderEvalParamInt(p_operation);
-   float firstTerm      = AiShaderEvalParamFlt(p_first_term);
-   float secondTerm     = AiShaderEvalParamFlt(p_second_term);
-   AtColor colorIfTrue  = AiShaderEvalParamRGB(p_color_if_true);
-   AtColor colorIfFalse = AiShaderEvalParamRGB(p_color_if_false);
+   float firstTerm      = AiShaderEvalParamFlt(p_firstTerm);
+   float secondTerm     = AiShaderEvalParamFlt(p_secondTerm);
+   AtColor colorIfTrue  = AiShaderEvalParamRGB(p_colorIfTrue);
+   AtColor colorIfFalse = AiShaderEvalParamRGB(p_colorIfFalse);
 
    switch (op)
    {

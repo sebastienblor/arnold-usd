@@ -379,6 +379,8 @@ node_parameters
    AiParameterFLT("cameraNearPlane", 1.0f);
    AiParameterFLT("cameraHorizontalFOV", 0.97738438111682457f); // 56 degrees
    AiParameterFLT("cameraAspectRatio", 1.0f);
+
+   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }
 
 typedef struct 

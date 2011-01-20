@@ -1,4 +1,5 @@
 
+#include <ai_metadata.h>
 #include <ai_nodes.h>
 #include <ai_shaderglobals.h>
 #include <ai_shaders.h>
@@ -23,6 +24,9 @@ node_parameters
    AiParameterRGB("min", 0, 0, 0);
    AiParameterRGB("max", 1, 1, 1);
    AiParameterRGB("input", 0, 0, 0);
+
+   AiMetaDataSetStr(mds, NULL, "maya.counterpart", "clamp");
+   AiMetaDataSetInt(mds, NULL, "maya.counterpart_id", 0x52434c33);
 }
 
 node_initialize

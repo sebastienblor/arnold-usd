@@ -64,6 +64,8 @@ node_parameters
    AiParameterPNT2("offsetUV", 0.0f, 0.0f);
    AiParameterFLT("rotateUV", 0.0f);
    AiParameterPNT2("noiseUV", 0.0f, 0.0f);
+
+   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }
 
 node_initialize
