@@ -289,23 +289,6 @@ if system.os() == 'windows':
    env.Install(env['TARGET_PLUGIN_PATH'], [mtoa_new] + glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*.dll')))
    env.Install(env['TARGET_SHADER_PATH'], MTOA_SHADERS[0])
 else:
-   # FIXME: hack to install a symlink
-   plugin_dir, plugin_name = os.path.split(str(MTOA[0]))
-   lib_name = 'lib' + plugin_name
-   # Rename the link for osx.
-   if system.os() == 'darwin': lib_name=lib_name.replace( 'bundle', 'dynlib' )
-   if 'install' in COMMAND_LINE_TARGETS:
-      link_dir = relpath(env.GetBuildPath(env['TARGET_PLUGIN_PATH']), env.GetBuildPath(env['TARGET_LIB_PATH']))
-      link = os.path.join(env.GetBuildPath(env['TARGET_LIB_PATH']), lib_name)
-      source = os.path.join(link_dir, plugin_name)
-      if not os.path.islink(link):
-         print "making link '%s' pointing to target '%s'" % (link, source)
-         os.symlink(source, link)
-   link = os.path.join(plugin_dir, lib_name)
-   if not os.path.exists(plugin_dir):
-      os.makedirs(plugin_dir)
-   if not os.path.islink(link):
-      os.symlink(plugin_name, link)
    env.Install(env['TARGET_PLUGIN_PATH'], MTOA + glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*.so')))
    env.Install(env['TARGET_SHADER_PATH'], MTOA_SHADERS)
 
@@ -325,7 +308,6 @@ env.Install(env['TARGET_MODULE_PATH'], os.path.join(BUILD_BASE_DIR, 'mtoa.mod'))
 
 ext_env = maya_env.Clone()
 ext_env.Append(CPPPATH = ['plugin', os.path.join(maya_env['ROOT_DIR'], 'plugins', 'mtoa'), env['ARNOLD_API_INCLUDES']])
-ext_env.Append(LIBS = ['mtoa'])
 ext_env.Append(LIBPATH = ['.', env['ARNOLD_API_LIB']])
 #ext_env.Append(LIBPATH = [os.path.join(BUILD_BASE_DIR, 'mtoa')])
 ext_env.Append(LIBPATH = [os.path.join(maya_env['ROOT_DIR'], os.path.split(str(MTOA[0]))[0])])

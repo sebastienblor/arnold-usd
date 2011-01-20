@@ -17,6 +17,7 @@
 #else
    #include <sys/types.h>
    #include <dirent.h>
+   #include <dlfcn.h>
 
    #define PATHSEP ':'
    #define DIRSEP "/"
@@ -382,6 +383,17 @@ bool CArnoldNodeFactory::LoadExtension(const char* extensionFile)
 //
 void CArnoldNodeFactory::LoadExtensions()
 {
+#if defined(_LINUX) || defined(_DARWIN)
+   // re-open mtoa.so so it's symbols are global. When Maya loads the plugin it seems to be loading it with RTLD_LOCAL
+   // TODO: better error checking
+   MStatus status;
+   MString pluginPath = m_plugin.loadPath(&status);
+   CHECK_MSTATUS(status);
+   pluginPath += "/mtoa.so";
+   cout << "mtoa path is " << pluginPath << endl;
+   m_pluginHandle = dlopen(pluginPath.asChar(), RTLD_LAZY | RTLD_GLOBAL );
+#endif
+
    MStringArray plugins;
    FindLibraries("$MTOA_EXTENSIONS_PATH", plugins);
    for (unsigned int i=0; i<plugins.length(); ++i)
@@ -394,6 +406,21 @@ void CArnoldNodeFactory::LoadExtensions()
          CHECK_MSTATUS(MGlobal::executePythonCommand(cmd));
       }
    }
+}
+
+// Unload all mtoa extensions on the extension path
+//
+void CArnoldNodeFactory::UnloadExtensions()
+{
+#if defined(_LINUX) || defined(_DARWIN)
+   if (m_pluginHandle != NULL)
+   {
+      MStatus status;
+      MString pluginPath = m_plugin.loadPath(&status);
+      CHECK_MSTATUS(status);
+      dlclose(m_pluginHandle);
+   }
+#endif
 }
 
 void CArnoldNodeFactory::NodeCreatedCallback(MObject &node, void *clientData)

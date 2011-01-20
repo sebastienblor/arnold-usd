@@ -70,6 +70,7 @@ public:
 
    bool LoadExtension(const char* extensionFile);
    void LoadExtensions();
+   void UnloadExtensions();
 
    int getNumPlugins();
 
@@ -88,12 +89,14 @@ private:
    static ArnoldNodeToMayaNode s_arnoldToMayaNodes;
    static ArnoldPluginData s_arnoldPlugins;
    static DynamicAttrMap s_dynamicAttributes;
+   void *m_pluginHandle;
 };
 
 //-------------------------------------------------------------------------- 
 inline CArnoldNodeFactory::CArnoldNodeFactory(MObject plugin)
    :  m_loadOk(false)
    ,  m_plugin(plugin)
+   ,  m_pluginHandle(NULL)
 {
 }
 

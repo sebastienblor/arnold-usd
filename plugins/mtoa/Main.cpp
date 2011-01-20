@@ -123,6 +123,8 @@ namespace // <anonymous>
 
       arnoldPluginFactory->UnregisterAllNodes();
 
+      arnoldPluginFactory->UnloadExtensions();
+
       delete arnoldPluginFactory;
       return status;
    }
