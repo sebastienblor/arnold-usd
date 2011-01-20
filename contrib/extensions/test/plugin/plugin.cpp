@@ -16,13 +16,13 @@ extern "C"
 #pragma warning(disable:4251)
 #endif // _WIN32
 #endif // _WIN32
-   
-LIBSPEC void initializePlugin(CExtension *plugin)
+
+LIBSPEC void initializePlugin(CExtension &plugin)
 {
-   plugin->RegisterDependTranslator("lambert", 0x524c414d, CTestTranslatorCmd::creator);
+   plugin.RegisterDependTranslator("lambert", 0x524c414d, CTestTranslatorCmd::creator);
 }
 
-LIBSPEC void uninitializePlugin(CExtension *plugin)
+LIBSPEC void uninitializePlugin(CExtension &plugin)
 {
 }
 
