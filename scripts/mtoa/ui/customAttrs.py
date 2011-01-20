@@ -2,6 +2,7 @@ import maya.cmds as cmds
 import mtoa.ui.ae.utils as aeUtils
 from mtoa.ui.callback import *
 
+DEFAULT_ATTR_DATA = {'label':"<Unknown Attribute>", 'default':0, 'min':0, 'max':0, 'sMin':0, 'sMax':0, 'changeCallback':None }
 MESH_ATTRIBUTES ={
 
    # Mesh
@@ -122,15 +123,10 @@ def dicingCameraGetList(*args):
             cmds.menuItem(label=value)
 
 def getCustomAttributeData(attrib):
-    data = {}
-    for j in MESH_ATTRIBUTES.keys():
-        if j == attrib:
-            data = MESH_ATTRIBUTES[j]
-            if MESH_ATTRIBUTES[j]['changeCallback']:
-                MESH_ATTRIBUTES[j]['changeCallback'] = getFunction(MESH_ATTRIBUTES[j]['changeCallback'])
-    if not data:
-        data = {'label':"<Unknown Attribute>", 'default':0, 'min':0, 'max':0, 'sMin':0, 'sMax':0, 'changeCallback':None }
-
+    data = MESH_ATTRIBUTES.get(attrib, DEFAULT_ATTR_DATA)
+    cb = data['changeCallback']
+    if cb and not callable(cb):
+        data['changeCallback'] = getFunction(cb)
     return data
 
 def getFunction(callback):
@@ -145,12 +141,8 @@ def shaderNew(attr):
     nodeName, attribName = attr.split('.')
     nodeType = aeUtils.getNodeType(nodeName)
     attribData = getCustomAttributeData(attribName)
-
     if not aeUtils.attributeExists(attribName, nodeName):
-        cmds.addAttr(nodeName, longName=attribName, usedAsColor=True, attributeType='float3')
-        cmds.addAttr(nodeName, longName='%s.R'%attribName, usedAsColor=True, attributeType='float')
-        cmds.addAttr(nodeName, longName='%s.G'%attribName, usedAsColor=True, attributeType='float')
-        cmds.addAttr(nodeName, longName='%s.B'%attribName, usedAsColor=True, attributeType='float')
+        cmds.addAttr(nodeName, ln=attribName, at='message')
 
     cmds.attrNavigationControlGrp('%s_%s'%(nodeType, attribName), label=attribData['label'], attribute=attr)
 
