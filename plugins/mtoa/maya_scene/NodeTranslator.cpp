@@ -10,6 +10,15 @@
 #include <maya/MFnNumericData.h>
 #include <maya/MFnMatrixData.h>
 #include <maya/MDagPathArray.h>
+#include <maya/MFnAttribute.h>
+#include <maya/MFnTypedAttribute.h>
+#include <maya/MFnNumericData.h>
+#include <maya/MFnStringData.h>
+#include <maya/MFnStringArrayData.h>
+#include <maya/MFnIntArrayData.h>
+#include <maya/MFnDoubleArrayData.h>
+#include <maya/MFnPointArrayData.h>
+#include <maya/MFnVectorArrayData.h>
 
 #include <string>
 
@@ -19,7 +28,10 @@
 AtNode* CNodeTranslator::DoExport(AtUInt step)
 {
    if (step == 0)
+   {
       m_atNode = Export();
+      ExportUserAttribute(m_atNode);
+   }
    else if (RequiresMotionData())
       ExportMotion(m_atNode, step);
    return m_atNode;
@@ -29,11 +41,328 @@ AtNode* CNodeTranslator::DoExport(AtUInt step)
 AtNode* CNodeTranslator::DoUpdate(AtUInt step)
 {
    if (step == 0)
+   {
       Update(m_atNode);
+      ExportUserAttribute(m_atNode);
+   }
    else if (RequiresMotionData())
       UpdateMotion(m_atNode, step);
    return m_atNode;
 }
+
+
+void CNodeTranslator::ExportUserAttribute(AtNode *anode)
+{
+   MFnDependencyNode fnDepNode(m_object);
+   for (unsigned int i=0; i<fnDepNode.attributeCount(); ++i)
+   {
+      MObject oAttr = fnDepNode.attribute(i);
+
+      MFnAttribute fnAttr(oAttr);
+      MPlug pAttr(m_object, oAttr);
+
+      MString name = fnAttr.name();
+      if (name.indexW("mtoa_") == 0)
+      {
+         const char *aname = name.asChar() + 5;
+         if(AiNodeLookUpUserParameter(anode, aname) != NULL)
+         {
+            continue;
+         }
+         if (oAttr.hasFn(MFn::kNumericAttribute))
+         {
+            MFnNumericAttribute nattr(oAttr);
+            switch (nattr.unitType())
+            {
+            case MFnNumericData::kBoolean:
+               if (pAttr.isArray())
+               {
+                  if (AiNodeDeclare(anode, aname, "constant ARRAY BOOL"))
+                  {
+                     AtArray *ary = AiArrayAllocate(pAttr.numElements(), 1, AI_TYPE_BOOLEAN);
+                     for (unsigned int i=0; i<pAttr.numElements(); ++i)
+                     {
+                        AiArraySetBool(ary, i, pAttr[i].asBool());
+                     }
+                     AiNodeSetArray(anode, aname, ary);
+                  }
+               }
+               else
+               {
+                  if (AiNodeDeclare(anode, aname, "constant BOOL"))
+                  {
+                     AiNodeSetBool(anode, aname, pAttr.asBool());
+                  }
+               }
+               break;
+            case MFnNumericData::kByte:
+            case MFnNumericData::kChar:
+               if (pAttr.isArray())
+               {
+                  if (AiNodeDeclare(anode, aname, "constant ARRAY BYTE"))
+                  {
+                     AtArray *ary = AiArrayAllocate(pAttr.numElements(), 1, AI_TYPE_BYTE);
+                     for (unsigned int i=0; i<pAttr.numElements(); ++i)
+                     {
+                        AiArraySetBool(ary, i, pAttr[i].asChar());
+                     }
+                     AiNodeSetArray(anode, aname, ary);
+                  }
+               }
+               else
+               {
+                  if (AiNodeDeclare(anode, aname, "constant BYTE"))
+                  {
+                     AiNodeSetByte(anode, aname, pAttr.asChar());
+                  }
+               }
+               break;
+            case MFnNumericData::kShort:
+            case MFnNumericData::kLong:
+               if (pAttr.isArray())
+               {
+                  if (AiNodeDeclare(anode, aname, "constant ARRAY INT"))
+                  {
+                     AtArray *ary = AiArrayAllocate(pAttr.numElements(), 1, AI_TYPE_INT);
+                     for (unsigned int i=0; i<pAttr.numElements(); ++i)
+                     {
+                        AiArraySetInt(ary, i, pAttr[i].asInt());
+                     }
+                     AiNodeSetArray(anode, aname, ary);
+                  }
+               }
+               else
+               {
+                  if (AiNodeDeclare(anode, aname, "constant INT"))
+                  {
+                     AiNodeSetInt(anode, aname, pAttr.asInt());
+                  }
+               }
+               break;
+            case MFnNumericData::kFloat:
+            case MFnNumericData::kDouble:
+               if (pAttr.isArray())
+               {
+                  if (AiNodeDeclare(anode, aname, "constant ARRAY FLOAT"))
+                  {
+                     AtArray *ary = AiArrayAllocate(pAttr.numElements(), 1, AI_TYPE_FLOAT);
+                     for (unsigned int i=0; i<pAttr.numElements(); ++i)
+                     {
+                        AiArraySetFlt(ary, i, pAttr[i].asFloat());
+                     }
+                     AiNodeSetArray(anode, aname, ary);
+                  }
+               }
+               else
+               {
+                  if (AiNodeDeclare(anode, aname, "constant FLOAT"))
+                  {
+                     AiNodeSetFlt(anode, aname, pAttr.asFloat());
+                  }
+               }
+               break;
+            case MFnNumericData::k2Float:
+            case MFnNumericData::k2Double:
+               if (pAttr.isArray())
+               {
+                  AtPoint2 pnt2;
+                  if (AiNodeDeclare(anode, aname, "constant ARRAY POINT2"))
+                  {
+                     AtArray *ary = AiArrayAllocate(pAttr.numElements(), 1, AI_TYPE_POINT2);
+                     for (unsigned int i=0; i<pAttr.numElements(); ++i)
+                     {
+                        MFnNumericData data(pAttr[i].asMObject());
+                        data.getData2Float(pnt2.x, pnt2.y);
+                        AiArraySetPnt2(ary, i, pnt2);
+                     }
+                     AiNodeSetArray(anode, aname, ary);
+                  }
+               }
+               else
+               {
+                  if (AiNodeDeclare(anode, aname, "constant POINT2"))
+                  {
+                     AtPoint2 pnt2;
+                     MFnNumericData data(pAttr.asMObject());
+                     data.getData2Float(pnt2.x, pnt2.y);
+                     AiNodeSetPnt2(anode, aname, pnt2.x, pnt2.y);
+                  }
+               }
+               break;
+            case MFnNumericData::k3Float:
+            case MFnNumericData::k3Double:
+               // point? vector? rgb?
+               if (pAttr.isArray())
+               {
+                  AtVector vec;
+                  if (AiNodeDeclare(anode, aname, "constant ARRAY VECTOR"))
+                  {
+                     AtArray *ary = AiArrayAllocate(pAttr.numElements(), 1, AI_TYPE_VECTOR);
+                     for (unsigned int i=0; i<pAttr.numElements(); ++i)
+                     {
+                        MFnNumericData data(pAttr[i].asMObject());
+                        data.getData3Float(vec.x, vec.y, vec.z);
+                        AiArraySetVec(ary, i, vec);
+                     }
+                     AiNodeSetArray(anode, aname, ary);
+                  }
+               }
+               else
+               {
+                  if (AiNodeDeclare(anode, aname, "constant VECTOR"))
+                  {
+                     AtVector vec;
+                     MFnNumericData data(pAttr.asMObject());
+                     data.getData3Float(vec.x, vec.y, vec.z);
+                     AiNodeSetVec(anode, aname, vec.x, vec.y, vec.z);
+                  }
+               }
+               break;
+            case MFnNumericData::k4Double:
+               // rgba? homogeneous point?
+               if (pAttr.isArray())
+               {
+                  AtRGBA rgba;
+                  double r, g, b, a;
+                  if (AiNodeDeclare(anode, aname, "constant ARRAY RGBA"))
+                  {
+                     AtArray *ary = AiArrayAllocate(pAttr.numElements(), 1, AI_TYPE_RGBA);
+                     for (unsigned int i=0; i<pAttr.numElements(); ++i)
+                     {
+                        MFnNumericData data(pAttr[i].asMObject());
+                        data.getData4Double(r, g, b, a);
+                        rgba.r = static_cast<AtFloat>(r);
+                        rgba.g = static_cast<AtFloat>(g);
+                        rgba.b = static_cast<AtFloat>(b);
+                        rgba.a = static_cast<AtFloat>(a);
+                        AiArraySetRGBA(ary, i, rgba);
+                     }
+                     AiNodeSetArray(anode, aname, ary);
+                  }
+               }
+               else
+               {
+                  if (AiNodeDeclare(anode, aname, "constant RGBA"))
+                  {
+                     double r, g, b, a;
+                     MFnNumericData data(pAttr.asMObject());
+                     data.getData4Double(r, g, b, a);
+                     AiNodeSetRGBA(anode, aname, static_cast<AtFloat>(r), static_cast<AtFloat>(g), static_cast<AtFloat>(b), static_cast<AtFloat>(a));
+                  }
+               }
+               break;
+            default:
+               // not supported: k2Short, k2Long, k3Short, k3Long, kAddr
+               AiMsgError("[mtoa] unsupported user attribute type %s", pAttr.partialName(true, false, false, false, false, true).asChar() );
+               break;
+            }
+         }
+         else if (oAttr.hasFn(MFn::kTypedAttribute))
+         {
+            MFnTypedAttribute tattr(oAttr);
+            switch (tattr.attrType())
+            {
+            case MFnData::kString:
+               if (pAttr.isArray())
+               {
+                  if (AiNodeDeclare(anode, aname, "constant ARRAY STRING"))
+                  {
+                     AtArray *ary = AiArrayAllocate(pAttr.numElements(), 1, AI_TYPE_STRING);
+                     for (unsigned int i=0; i<pAttr.numElements(); ++i)
+                     {
+                        AiArraySetStr(ary, i, pAttr[i].asString().asChar());
+                     }
+                     AiNodeSetArray(anode, aname, ary);
+                  }
+               }
+               else
+               {
+                  if (AiNodeDeclare(anode, aname, "constant STRING"))
+                  {
+                     AiNodeSetStr(anode, aname, pAttr.asString().asChar());
+                  }
+               }
+               break;
+            case MFnData::kStringArray:
+               if (!pAttr.isArray() && AiNodeDeclare(anode, aname, "constant ARRAY STRING"))
+               {
+                  MFnStringArrayData data(pAttr.asMObject());
+                  AtArray *ary = AiArrayAllocate(data.length(), 1, AI_TYPE_STRING);
+                  for (unsigned int i=0; i<data.length(); ++i)
+                  {
+                     AiArraySetStr(ary, i, data[i].asChar());
+                  }
+                  AiNodeSetArray(anode, aname, ary);
+               }
+               break;
+            case MFnData::kDoubleArray:
+               if (!pAttr.isArray() && AiNodeDeclare(anode, aname, "constant ARRAY FLOAT"))
+               {
+                  MFnDoubleArrayData data(pAttr.asMObject());
+                  AtArray *ary = AiArrayAllocate(data.length(), 1, AI_TYPE_FLOAT);
+                  for (unsigned int i=0; i<data.length(); ++i)
+                  {
+                     AiArraySetFlt(ary, i, static_cast<AtFloat>(data[i]));
+                  }
+                  AiNodeSetArray(anode, aname, ary);
+               }
+               break;
+            case MFnData::kIntArray:
+               if (!pAttr.isArray() && AiNodeDeclare(anode, aname, "constant ARRAY INT"))
+               {
+                  MFnIntArrayData data(pAttr.asMObject());
+                  AtArray *ary = AiArrayAllocate(data.length(), 1, AI_TYPE_INT);
+                  for (unsigned int i=0; i<data.length(); ++i)
+                  {
+                     AiArraySetInt(ary, i, data[i]);
+                  }
+                  AiNodeSetArray(anode, aname, ary);
+               }
+               break;
+            case MFnData::kPointArray:
+               if (!pAttr.isArray() && AiNodeDeclare(anode, aname, "constant ARRAY POINT"))
+               {
+                  AtPoint pnt;
+                  MFnPointArrayData data(pAttr.asMObject());
+                  AtArray *ary = AiArrayAllocate(data.length(), 1, AI_TYPE_POINT);
+                  for (unsigned int i=0; i<data.length(); ++i)
+                  {
+                     pnt.x = static_cast<AtFloat>(data[i].x);
+                     pnt.y = static_cast<AtFloat>(data[i].y);
+                     pnt.z = static_cast<AtFloat>(data[i].z);
+                     AiArraySetPnt(ary, i, pnt);
+                  }
+                  AiNodeSetArray(anode, aname, ary);
+               }
+               break;
+            case MFnData::kVectorArray:
+               if (!pAttr.isArray() && AiNodeDeclare(anode, aname, "constant ARRAY VECTOR"))
+               {
+                  AtVector vec;
+                  MFnVectorArrayData data(pAttr.asMObject());
+                  AtArray *ary = AiArrayAllocate(data.length(), 1, AI_TYPE_VECTOR);
+                  for (unsigned int i=0; i<data.length(); ++i)
+                  {
+                     vec.x = static_cast<AtFloat>(data[i].x);
+                     vec.y = static_cast<AtFloat>(data[i].y);
+                     vec.z = static_cast<AtFloat>(data[i].z);
+                     AiArraySetVec(ary, i, vec);
+                  }
+                  AiNodeSetArray(anode, aname, ary);
+               }
+               break;
+            default:
+               // kMatrix, kNumeric (this one should have be caught be hasFn(MFn::kNumericAttribute))
+               AiMsgError("[mtoa] unsupported user attribute type %s", pAttr.partialName(true, false, false, false, false, true).asChar() );
+               break;
+            }
+         }
+         else
+            AiMsgError("[mtoa] unsupported user attribute type %s", pAttr.partialName(true, false, false, false, false, true).asChar() );
+      }
+   }
+}
+
 
 // populate an arnold matrix with values from a maya matrix
 void CNodeTranslator::ConvertMatrix(AtMatrix& matrix, const MMatrix& mayaMatrix)

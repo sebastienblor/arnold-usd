@@ -3,6 +3,7 @@ import maya.mel as mel
 
 import mtoa.utils as utils
 import mtoa.ui.arnoldExportAss as arnoldExportAss
+import mtoa.ui.arnoldAttributeEditor as arnoldAttributeEditor
 import mtoa.ui.createArnoldRendererCommonGlobalsTab
 from mtoa.ui.createArnoldRendererCommonGlobalsTab import createArnoldRendererCommonGlobalsTab, updateArnoldRendererCommonGlobalsTab
 from mtoa.ui.createArnoldRendererGlobalsTab import createArnoldRendererGlobalsTab, updateArnoldRendererGlobalsTab
@@ -199,6 +200,8 @@ def registerArnoldRenderer():
         cmds.renderer('arnold', edit=True, addGlobalsNode='defaultArnoldRenderOptions')
 
         # Add option in 'Render' menu to export to an .ass file
-        mel.eval('RenRenderMenu mainRenderMenu')
-        cmds.menuItem(parent='mainRenderMenu', divider=True)
-        cmds.menuItem('exportToAssMenuItem', parent='mainRenderMenu', label="Export to Ass...", c=arnoldExportAss.arnoldExportAss)
+        if not cmds.about(b=1):
+           mel.eval('RenRenderMenu mainRenderMenu')
+           cmds.menuItem(parent='mainRenderMenu', divider=True)
+           cmds.menuItem('exportToAssMenuItem', parent='mainRenderMenu', label="Export to Ass...", c=arnoldExportAss.arnoldExportAss)
+           cmds.menuItem('arnoldAttributeEditorItem', parent='mainRenderMenu', label="Arnold Attribute Editor...", c=arnoldAttributeEditor.arnoldAttributeEditor)

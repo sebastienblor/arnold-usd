@@ -49,6 +49,7 @@ protected:
    void ExportDynamicFloatParameter(AtNode* arnoldNode, const char* paramName);
    void ExportDynamicBooleanParameter(AtNode* arnoldNode, const char* paramName);
    void ExportDynamicIntParameter(AtNode* arnoldNode, const char* paramName);
+   void ExportUserAttribute(AtNode *anode);
 
 protected:
    MObject m_object;
