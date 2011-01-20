@@ -1,4 +1,6 @@
+
 #include "MayaScene.h"
+#include "NodeTranslator.h"
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
@@ -19,6 +21,21 @@
 #include <maya/MFnInstancer.h>
 #include <maya/MItInstancer.h>
 #include <maya/MPlugArray.h>
+
+std::map<int, CreatorFunction>  CMayaScene::s_dagTranslators;
+std::map<int, CreatorFunction>  CMayaScene::s_dependTranslators;
+
+CMayaScene::~CMayaScene()
+{
+   delete m_fnCommonRenderOptions;
+   delete m_fnArnoldRenderOptions;
+   // delete translators
+   ObjectToTranslatorMap::iterator it;
+   for(it = m_processedTranslators.begin(); it != m_processedTranslators.end(); it++)
+   {
+      delete it->second;
+   }
+}
 
 MStatus CMayaScene::ExportToArnold(ExportMode exportMode)
 {
@@ -121,6 +138,32 @@ MStatus CMayaScene::ExportSelected()
    return status;
 }
 
+bool CMayaScene::ExportDagPath(MDagPath &dagPath, AtUInt step)
+{
+   MFnDagNode node(dagPath.node());
+   if (step == 0)
+   {
+      std::map<int, CreatorFunction>::iterator translatorIt;
+      translatorIt = s_dagTranslators.find(node.typeId().id());
+      if (translatorIt != s_dagTranslators.end())
+      {
+         CDagTranslator* translator;
+         translator = (CDagTranslator*)translatorIt->second();
+         translator->Init(dagPath, this);
+         translator->DoExport(step);
+         m_processedTranslators[MObjectHandle(dagPath.node())] = translator;
+         return true;
+      }
+   }
+   else
+   {
+      CDagTranslator* translator = (CDagTranslator*)m_processedTranslators[MObjectHandle(dagPath.node())];
+      if (translator != NULL)
+         translator->DoExport(step);
+   }
+   return false;
+}
+
 // Export the maya scene
 //
 // @return              MS::kSuccess / MS::kFailure is returned in case of failure.
@@ -131,6 +174,8 @@ MStatus CMayaScene::ExportScene(AtUInt step)
    MDagPath dagPath;
    MItDag   dagIterCameras(MItDag::kDepthFirst, MFn::kCamera);
 
+   AiMsgDebug("[mtoa] exporting step %d at frame %f", step, static_cast<float>(MAnimControl::currentTime().as(MTime::uiUnit())));
+
    // First we export all cameras
    // We do not reset the iterator to avoid getting kWorld
    for (; (!dagIterCameras.isDone()); dagIterCameras.next())
@@ -140,8 +185,7 @@ MStatus CMayaScene::ExportScene(AtUInt step)
          AiMsgError("[mtoa] ERROR: Could not get path for DAG iterator.");
          return status;
       }
-
-      ExportCamera(dagPath, step);
+      ExportDagPath(dagPath, step);
    }
 
    // And now we export the rest of the DAG
@@ -154,6 +198,9 @@ MStatus CMayaScene::ExportScene(AtUInt step)
          return status;
       }
 
+      if (dagPath.apiType() == MFn::kWorld || dagPath.node().hasFn(MFn::kCamera))
+         continue;
+
       MFnDagNode node(dagPath.node());
 
       if (!IsVisible(node))
@@ -162,52 +209,8 @@ MStatus CMayaScene::ExportScene(AtUInt step)
          continue;
       }
 
-      // Lights
-      else if (dagIterator.item().hasFn(MFn::kLight))
-      {
-         ExportLight(dagPath, step);
-      }
-
-      // Nurbs
-      else if (dagIterator.item().hasFn(MFn::kNurbsSurface))
-      {
-         ExportNurbs(dagPath, step);
-      }
-
-      // Polygons
-      else if (dagIterator.item().hasFn(MFn::kMesh))
-      {
-         ExportPoly(dagPath, step);
-      }
-      else if (dagIterator.item().hasFn(MFn::kHairSystem))
-      {
-         ExportHair(dagPath, step);
-      }
-      else
-      {
-         if (!status)
-         {
-            AiMsgError("[mtoa] ERROR: Unrecognized node found while iterating DAG.");
-
-            return status;
-         }
-      }
+      ExportDagPath(dagPath, step);
    }
-
-   // Once all regular objects are created, check for FX
-
-   // Particle Instancer
-   MItInstancer   instIterator;
-   for (instIterator.reset(); (!instIterator.isDone()); instIterator.nextInstancer())
-   {
-      dagPath = instIterator.instancerPath();
-      MFnDagNode node(dagPath.node());
-
-      if (IsVisible(node))
-         ExportInstancerReplacement(dagPath, step);
-   }
-
-
    return MS::kSuccess;
 }
 

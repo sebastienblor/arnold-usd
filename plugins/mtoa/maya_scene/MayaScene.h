@@ -1,6 +1,8 @@
 #ifndef MAYA_SCENE_H
 #define MAYA_SCENE_H
 
+#include "platform/Platform.h"
+
 #include <ai_nodes.h>
 
 #include <maya/MDagPath.h>
@@ -16,6 +18,8 @@
 #include <vector>
 #include <map>
 #include <string>
+
+class CNodeTranslator;
 
 enum ExportMode
 {
@@ -35,7 +39,21 @@ struct CMotionBlurData
    std::vector<float> frames;
 };
 
-class CMayaScene
+
+struct mobjcompare
+{
+   bool operator()(MObjectHandle h1, MObjectHandle h2) const
+   {
+      return h1.hashCode() < h2.hashCode();
+   }
+};
+
+typedef std::map<MObjectHandle, MDagPath, mobjcompare> ObjectHandleToDagMap;
+typedef std::map<MObjectHandle, CNodeTranslator*, mobjcompare> ObjectToTranslatorMap;
+
+typedef void *   (*CreatorFunction)();
+
+class DLLEXPORT CMayaScene
 {
 
 public:
@@ -47,23 +65,22 @@ public:
    {
    }
 
-   ~CMayaScene()
-   {
-      delete m_fnCommonRenderOptions;
-      delete m_fnArnoldRenderOptions;
-   }
+   ~CMayaScene();
 
    MStatus ExportToArnold(ExportMode exportMode = MTOA_EXPORT_ALL);
    AtNode* ExportShader(MObject mayaShader, const MString &attrName="");
 
    AtFloat GetCurrentFrame() { return m_currentFrame;};
 
-private:
+//private:
    
    void PrepareExport();
    MStatus IterSelection(MSelectionList selected);
    MStatus ExportScene(AtUInt step);
-   MStatus ExportSelected();   
+   MStatus ExportSelected();
+   bool ExportDagPath(MDagPath &dagPath, AtUInt step);
+   static void RegisterDagTranslator(int typeId, CreatorFunction creator){s_dagTranslators[typeId] = creator;}
+   static void RegisterTranslator(int typeId, CreatorFunction creator){s_dependTranslators[typeId] = creator;}
 
    void ExportCamera(const MDagPath& dagPath, AtUInt step);
    void ExportCameraData(AtNode* camera, const MDagPath& dagPath, bool mb);
@@ -85,7 +102,7 @@ private:
    void ExportHair(const MDagPath& dagPath, AtUInt step);
    void ExportInstancerReplacement(const MDagPath& dagPath, AtUInt step);
 
-   void ProcessShaderParameter(MFnDependencyNode shader, const char* param, AtNode* arnoldShader, const char* arnoldAttrib, int arnoldAttribType);
+   void ProcessShaderParameter(MFnDependencyNode shader, const char* param, AtNode* arnoldShader, const char* arnoldAttrib, int arnoldAttribType, int element=-1);
    AtNode* ExportArnoldShader(MObject mayaShader, MString arnoldShader);
    MObject GetNodeShader(MObject dagNode, int instanceNum);
 
@@ -97,7 +114,7 @@ private:
 
    void GetMotionBlurData();
 
-private:
+//private:
 
    struct CShaderData
    {
@@ -108,16 +125,8 @@ private:
 
    std::vector<CShaderData> m_processedShaders;
 
-   struct mobjcompare
-   {
-      bool operator()(MObjectHandle h1, MObjectHandle h2) const
-      {
-         return h1.hashCode() < h2.hashCode();
-      }
-   };
-
-   typedef std::map<MObjectHandle, MDagPath, mobjcompare> ObjectHandleToDagMap;
    ObjectHandleToDagMap m_masterInstances;
+   ObjectToTranslatorMap m_processedTranslators;
 
    MFnDependencyNode* m_fnCommonRenderOptions;
    MFnDependencyNode* m_fnArnoldRenderOptions;
@@ -155,6 +164,8 @@ private:
 
    AtFloat m_currentFrame;
 
+   static std::map<int, CreatorFunction>  s_dagTranslators;
+   static std::map<int, CreatorFunction>  s_dependTranslators;
 };  // class CMayaScene
 
 #endif // MAYA_SCENE_H

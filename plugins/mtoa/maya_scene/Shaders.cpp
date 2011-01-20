@@ -1,5 +1,6 @@
 
 #include "MayaScene.h"
+#include "NodeTranslator.h"
 #include "render/RenderOptions.h"
 #include "render/RenderSession.h"
 
@@ -265,12 +266,13 @@ static void ShuffleArray(AtArray *a, AtUInt *shuffle, int arnoldType)
 // This is a shortcut for Arnold shaders (parameter name is the same in Maya and Arnold)
 #define SHADER_PARAM(name, type) ProcessShaderParameter(mayaShader, name, shader, name, type)
 
-void CMayaScene::ProcessShaderParameter(MFnDependencyNode shader, const char* param, AtNode* arnoldShader, const char* arnoldAttrib, int arnoldAttribType)
+void CMayaScene::ProcessShaderParameter(MFnDependencyNode shader, const char* param, AtNode* arnoldShader, const char* arnoldAttrib, int arnoldAttribType, int element)
 {
    MPlugArray connections;
 
    MPlug plug = shader.findPlug(param);
-
+   if (element >= 0)
+      plug = plug.elementByPhysicalIndex(element);
    plug.connectedTo(connections, true, false);
 
    if (connections.length() == 0)
@@ -441,7 +443,32 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
 
    AiMsgDebug("[mtoa] Exporting shader: %s", node.name().asChar());
 
-   if (node.typeName() == "ArnoldStandardShader")
+   AtInt nodeId = node.typeId().id();
+   std::map<int, CreatorFunction>::iterator dependTransIt = s_dependTranslators.find(nodeId);
+   if (dependTransIt != s_dependTranslators.end())
+   {
+      if (mayaShader.hasFn(MFn::kDagNode))
+      {
+         CDagTranslator* translator;
+         MDagPath dagPath;
+         MDagPath::getAPathTo(mayaShader, dagPath);
+         translator = (CDagTranslator*)dependTransIt->second();
+         translator->Init(dagPath, this, attrName);
+         // FIXME: currently shaders are only exported for step = 0
+         shader = translator->DoExport(0);
+         m_processedTranslators[MObjectHandle(mayaShader)] = translator;
+      }
+      else
+      {
+         CNodeTranslator* translator;
+         translator = (CNodeTranslator*)dependTransIt->second();
+         translator->Init(mayaShader, this, attrName);
+         // FIXME: currently shaders are only exported for step = 0
+         shader = translator->DoExport(0);
+         m_processedTranslators[MObjectHandle(mayaShader)] = translator;
+      }
+   }
+   else if (node.typeName() == "ArnoldStandardShader")
    {
       shader = ExportArnoldShader(mayaShader, "standard");
    }
