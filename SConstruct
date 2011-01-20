@@ -154,7 +154,7 @@ elif env['COMPILER'] == 'icc':
    env.Append(LINKFLAGS = Split('/LARGEADDRESSAWARE'))
 
    if system.target_arch() == 'x86_64':
-   	pass
+      pass
       # Enable this for 64 bit portability warnings
       ##env.Append(CCFLAGS = Split('/Wp64'))  
    else:
@@ -289,6 +289,23 @@ if system.os() == 'windows':
    env.Install(env['TARGET_PLUGIN_PATH'], [mtoa_new] + glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*.dll')))
    env.Install(env['TARGET_SHADER_PATH'], MTOA_SHADERS[0])
 else:
+   # FIXME: hack to install a symlink
+   plugin_dir, plugin_name = os.path.split(str(MTOA[0]))
+   lib_name = 'lib' + plugin_name
+   # Rename the link for osx.
+   if system.os() == 'darwin': lib_name=lib_name.replace( 'bundle', 'dynlib' )
+   if 'install' in COMMAND_LINE_TARGETS:
+      link_dir = relpath(env.GetBuildPath(env['TARGET_PLUGIN_PATH']), env.GetBuildPath(env['TARGET_LIB_PATH']))
+      link = os.path.join(env.GetBuildPath(env['TARGET_LIB_PATH']), lib_name)
+      source = os.path.join(link_dir, plugin_name)
+      if not os.path.islink(link):
+         print "making link '%s' pointing to target '%s'" % (link, source)
+         os.symlink(source, link)
+   link = os.path.join(plugin_dir, lib_name)
+   if not os.path.exists(plugin_dir):
+      os.makedirs(plugin_dir)
+   if not os.path.islink(link):
+      os.symlink(plugin_name, link)
    env.Install(env['TARGET_PLUGIN_PATH'], MTOA + glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*.so')))
    env.Install(env['TARGET_SHADER_PATH'], MTOA_SHADERS)
 
@@ -301,6 +318,53 @@ env.Install(env['TARGET_DESCR_PATH'], glob.glob(os.path.join('scripts', '*.xml')
 
 env.MakeModule(env['TARGET_MODULE_PATH'], os.path.join(BUILD_BASE_DIR, 'mtoa.mod'))
 env.Install(env['TARGET_MODULE_PATH'], os.path.join(BUILD_BASE_DIR, 'mtoa.mod'))
+
+################################
+## extensions
+################################
+
+ext_env = maya_env.Clone()
+ext_env.Append(CPPPATH = ['plugin', os.path.join(maya_env['ROOT_DIR'], 'plugins', 'mtoa'), env['ARNOLD_API_INCLUDES']])
+ext_env.Append(LIBS = ['mtoa'])
+ext_env.Append(LIBPATH = ['.', env['ARNOLD_API_LIB']])
+#ext_env.Append(LIBPATH = [os.path.join(BUILD_BASE_DIR, 'mtoa')])
+ext_env.Append(LIBPATH = [os.path.join(maya_env['ROOT_DIR'], os.path.split(str(MTOA[0]))[0])])
+ext_base_dir = os.path.join('contrib', 'extensions')
+ext_files = []
+ext_shaders = []
+for ext in os.listdir(ext_base_dir):
+    #Only build extensions if they are requested by user
+    if ext not in COMMAND_LINE_TARGETS:
+       continue
+    ext_dir = os.path.join(ext_base_dir, ext)
+    if os.path.isdir(ext_dir):
+        EXT = env.SConscript(os.path.join(ext_dir, 'SConscript'),
+                             build_dir = os.path.join(BUILD_BASE_DIR, ext),
+                             duplicate = 0,
+                             exports   = ['ext_env', 'env'])
+        top_level_alias(env, ext, EXT)
+        # only install if the target has been specified
+        if ext in COMMAND_LINE_TARGETS:
+            # EXT may contain a shader result
+            if len(EXT) > 1:
+                ext_shaders.append(str(EXT[1][0]))
+                plugin = str(EXT[0][0])
+            else:
+                plugin = str(EXT[0])
+            pyfile = os.path.splitext(os.path.basename(plugin))[0] + '.py'
+            pyfile = os.path.join(ext_dir, 'plugin', pyfile)
+            ext_files.append(plugin)
+            if os.path.exists(pyfile):
+                ext_files.append(pyfile)
+
+if ext_files:
+   env.Install(env['TARGET_EXTENSION_PATH'], ext_files)
+if ext_shaders:
+   env.Install(env['TARGET_SHADER_PATH'], ext_shaders)
+        #env.Depends('install', EXT)
+        #env.Depends(EXT, MTOA)
+        #env.Depends(MTOA[0], EXT)
+        #env.Requires(MTOA[0], EXT)
 
 ################################
 ## TARGETS ALIASES AND DEPENDENCIES
@@ -323,6 +387,7 @@ aliases.append(env.Alias('install-lib', env['TARGET_LIB_PATH']))
 aliases.append(env.Alias('install-plugins', env['TARGET_PLUGIN_PATH']))
 aliases.append(env.Alias('install-shaders', env['TARGET_SHADER_PATH']))
 aliases.append(env.Alias('install-module', env['TARGET_MODULE_PATH']))
+aliases.append(env.Alias('install-ext', env['TARGET_EXTENSION_PATH']))
 
 top_level_alias(env, 'mtoa', MTOA)
 top_level_alias(env, 'shaders', MTOA_SHADERS)

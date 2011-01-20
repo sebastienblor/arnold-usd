@@ -10,6 +10,7 @@
 #include "maya_scene/NodeTranslator.h"
 #include "maya_scene/MayaScene.h"
 #include "nodes/ArnoldNodeHelper.h"
+#include "common/DynLibrary.h"
 
 #include <ai_nodes.h>
 
@@ -20,6 +21,7 @@
 #include <string>
 #include <map>
 #include <vector>
+
 
 struct CMayaNodeData
 {
@@ -37,6 +39,18 @@ typedef std::map<std::string, std::vector<std::string> > ArnoldPluginData;
 // key: maya node name
 typedef std::map<std::string, std::vector<CAttrData> > DynamicAttrMap;
 
+
+int FindLibraries(MString searchPath, MStringArray &files);
+
+class DLLEXPORT CExtension
+{
+public:
+   void RegisterTranslator(int typeId, CreatorFunction creator);
+   void RegisterDagTranslator(int typeId, CreatorFunction creator);
+};
+
+typedef void (*pluginInitFunctionType)(CExtension&);
+
 class CArnoldNodeFactory
 {
 public:
@@ -47,11 +61,16 @@ public:
    void UnloadPlugin(const char* pluginFile);
    void LoadPlugins();
    void UnloadPlugins();
+
    void RegisterMayaNode(AtNodeEntry* arnoldNode);
    static void MapToMayaNode(const char* arnoldNodeName, const char* mayaCounterpart, int typeId);
    void UnregisterMayaNode(const char* arnoldNodeName);
    void RegisterAllNodes();
    void UnregisterAllNodes();
+
+   bool LoadExtension(const char* extensionFile);
+   void LoadExtensions();
+
    int getNumPlugins();
 
    static void RegisterTranslator(const char* mayaNode, int typeId, CreatorFunction creator);

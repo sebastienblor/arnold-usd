@@ -45,6 +45,10 @@ CRenderSession* CRenderSession::GetInstance()
    return s_renderSession;
 }
 
+CMayaScene* CRenderSession::GetMayaScene()
+{
+   return m_scene;
+}
 
 void CRenderSession::Init(ExportMode exportMode, bool preMel, bool preLayerMel, bool preFrameMel)
 {

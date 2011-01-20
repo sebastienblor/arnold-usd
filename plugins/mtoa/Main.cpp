@@ -74,6 +74,9 @@ namespace // <anonymous>
 
       arnoldPluginFactory->LoadPlugins();
 
+      // Load extensions last so that they can override default translators
+      arnoldPluginFactory->LoadExtensions();
+
       delete arnoldPluginFactory;
       return status;
    }

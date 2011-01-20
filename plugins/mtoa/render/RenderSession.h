@@ -18,6 +18,7 @@ class CRenderSession
 public:
 
    static CRenderSession* GetInstance();
+   CMayaScene* GetMayaScene();
 
    void Init(ExportMode exportMode=MTOA_EXPORT_ALL, bool preMel=false, bool preLayerMel=false, bool preFrameMel=false);
    void End(bool postMel=false, bool postLayerMel=false, bool postFrameMel=false);

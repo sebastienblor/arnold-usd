@@ -3,13 +3,81 @@
 //-------------------------------------------------------------------------- 
 #include "ArnoldNodeFactory.h"
 #include "nodes/shaders/surface/ArnoldCustomShader.h"
-#include "maya_scene/MayaScene.h"
 
 #include <ai_plugins.h>
 #include <ai_universe.h>
 #include <ai_metadata.h>
+#include <ai_msg.h>
 
-//-------------------------------------------------------------------------- 
+#ifdef _WIN32
+   #include <platform/win32/dirent.h>
+   #define PATHSEP ';'
+   #define DIRSEP "\\"
+   #define LIBEXT MString(".dll")
+#else
+   #include <sys/types.h>
+   #include <dirent.h>
+
+   #define PATHSEP ':'
+   #define DIRSEP "/"
+   #ifdef _LINUX
+     #define LIBEXT MString(".so")
+   #endif
+   #ifdef _DARWIN
+     #define LIBEXT MString(".dylib")
+   #endif
+#endif
+// @param searchPath  a path to search for libraries, optionally containing
+// separators ( : on unix, ; on windows ) and environment variables
+int FindLibraries(MString searchPath, MStringArray &files)
+{
+   MString resolvedPathList = searchPath.expandFilePath();
+   MStringArray pluginPaths;
+   resolvedPathList.split(PATHSEP, pluginPaths);
+
+   for (unsigned int i=0; i<pluginPaths.length(); ++i)
+   {
+      MString dir = pluginPaths[i];
+      DIR *dp;
+      struct dirent *dirp;
+      if((dp  = opendir(dir.asChar())) == NULL)
+      {
+         // TODO: print better error message
+         cout << "Error(" << errno << ") opening " << dir << endl;
+         continue;
+      }
+      while ((dirp = readdir(dp)) != NULL)
+      {
+         MString entry = dirp->d_name;
+         unsigned int nchars = entry.numChars();
+         if (nchars > LIBEXT.numChars())
+         {
+            MString ext = entry.substringW(nchars-LIBEXT.numChars(), nchars);
+            if (entry.substringW(0,0) != "." && ext == LIBEXT)
+            {
+               files.append(dir + DIRSEP + entry);
+            }
+         }
+      }
+      closedir(dp);
+   }
+   return 0;
+}
+
+// CExtension
+
+void CExtension::RegisterTranslator(int typeId, CreatorFunction creator)
+{
+   CMayaScene::RegisterTranslator(typeId, creator);
+}
+
+void CExtension::RegisterDagTranslator(int typeId, CreatorFunction creator)
+{
+   CMayaScene::RegisterDagTranslator(typeId, creator);
+}
+
+// CArnoldNodeFactory
+
 MayaNodeDataMap CArnoldNodeFactory::s_factoryNodes;
 ArnoldNodeToMayaNode CArnoldNodeFactory::s_arnoldToMayaNodes;
 ArnoldPluginData CArnoldNodeFactory::s_arnoldPlugins;
@@ -39,7 +107,7 @@ void CArnoldNodeFactory::LoadPlugin(const char* pluginFile)
    else
    */
    {
-      str = MString("[mtoa]: Generating nodes for shader library: ") + pluginFile + MString(".");
+      str = MString("[mtoa]: Generating nodes for shader library: ") + pluginFile;
       MGlobal::displayInfo(str);
       AtNodeEntryIterator* nodeIter = AiUniverseGetNodeEntryIterator(AI_NODE_SHADER);
       while (!AiNodeEntryIteratorFinished(nodeIter))
@@ -65,7 +133,7 @@ void CArnoldNodeFactory::LoadPlugin(const char* pluginFile)
 void CArnoldNodeFactory::UnloadPlugin(const char* pluginFile)
 {
    MString str;
-   str = MString("[mtoa]: Removing nodes for shader library: ") + pluginFile + MString(".");
+   str = MString("[mtoa]: Removing nodes for shader library: ") + pluginFile;
    MGlobal::displayInfo(str);
    AtNodeEntryIterator* nodeIter = AiUniverseGetNodeEntryIterator(AI_NODE_SHADER);
    while (!AiNodeEntryIteratorFinished(nodeIter))
@@ -88,38 +156,17 @@ void CArnoldNodeFactory::UnloadPlugin(const char* pluginFile)
 //
 void CArnoldNodeFactory::LoadPlugins()
 {
-   MString resolvedPathList = MString("$MTOA_PLUGINS_PATH").expandEnvironmentVariablesAndTilde();
-
-   MStringArray pluginPaths;
-#ifdef _WIN32
-   resolvedPathList.split(';', pluginPaths);
-#else
-   resolvedPathList.split(':', pluginPaths);
-#endif
-
-   for (unsigned int i=0; i<pluginPaths.length(); ++i)
+   //MString resolvedPathList = MString("$MTOA_PLUGINS_PATH").expandEnvironmentVariablesAndTilde();
+   MStringArray plugins;
+   FindLibraries("$MTOA_PLUGINS_PATH", plugins);
+   for (unsigned int i=0; i<plugins.length(); ++i)
    {
-      MString pluginPath = pluginPaths[i];
-      MGlobal::displayInfo(MString("[mtoa]: Adding custom shader path: ") + pluginPath.asChar());
-      if (pluginPath.length() > 0)
+      MString plugin = plugins[i];
+      if (plugin.length() > 0)
       {
-         AiLoadPlugins(pluginPath.asChar());
+         LoadPlugin(plugin.asChar());
       }
    }
-   m_loadOk = true;
-
-   AtNodeEntryIterator* nodeIter = AiUniverseGetNodeEntryIterator(AI_NODE_SHADER);
-   while (!AiNodeEntryIteratorFinished(nodeIter))
-   {
-      AtNodeEntry* nentry = AiNodeEntryIteratorGetNext(nodeIter);
-      const char* nentryFile = AiNodeEntryGetFilename(nentry);
-      if (strlen(nentryFile))
-      {
-         s_arnoldPlugins[std::string(nentryFile)].push_back(std::string(AiNodeEntryGetName(nentry)));
-      }
-   }
-
-   RegisterAllNodes();
 }
 
 
@@ -303,6 +350,50 @@ void CArnoldNodeFactory::UnregisterAllNodes()
       }
    }
    s_arnoldPlugins.clear();
+}
+
+
+bool CArnoldNodeFactory::LoadExtension(const char* extensionFile)
+{
+   AiMsgDebug("loading extension %s", extensionFile);
+   void *pluginLib = LibraryLoad(extensionFile);
+   if (pluginLib == NULL)
+   {
+      MGlobal::displayError(MString("[mtoa] error loading plugin: ") + LibraryLastError());
+      return false;
+   }
+   
+   void* initializer = LibrarySymbol(pluginLib, "_Z16initializePluginR10CExtension");
+
+   if (initializer == NULL)
+   {
+      MGlobal::displayError(MString("[mtoa] error initializing plugin: ") + LibraryLastError());
+      return false;
+   }
+   pluginInitFunctionType * initFunc = (pluginInitFunctionType*)(&initializer);
+   
+   CExtension plugin = CExtension();
+   (*initFunc)(plugin);
+
+   return true;
+}
+
+// Load all mtoa extensions on the extension path
+//
+void CArnoldNodeFactory::LoadExtensions()
+{
+   MStringArray plugins;
+   FindLibraries("$MTOA_EXTENSIONS_PATH", plugins);
+   for (unsigned int i=0; i<plugins.length(); ++i)
+   {
+      MString plugin = plugins[i];
+      if (plugin.length() > 0)
+      {
+         LoadExtension(plugin.asChar());
+         MString cmd = "import mtoa.api.extensions;mtoa.api.extensions.loadExtensionUI('" + plugin + "')";
+         CHECK_MSTATUS(MGlobal::executePythonCommand(cmd));
+      }
+   }
 }
 
 void CArnoldNodeFactory::NodeCreatedCallback(MObject &node, void *clientData)
