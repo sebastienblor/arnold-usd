@@ -79,10 +79,6 @@ void CRenderOptions::UpdateImageFilename()
       {
          nameCamera = sceneFileName + "/" + nameCamera;
       }
-      else
-      {
-         sceneFileName = sceneFileName + "/" + sceneFileName;
-      }
       m_imageFilename = m_defaultRenderGlobalsData.getImageName(m_defaultRenderGlobalsData.kFullPathImage, fileFrameNumber, sceneFileName, nameCamera, m_imageFileExtension, renderLayer, 1);
    }
    else

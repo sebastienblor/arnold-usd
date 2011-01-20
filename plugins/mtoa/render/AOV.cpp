@@ -135,10 +135,6 @@ void CAOV::UpdateImageFilename(const MString &cameraName, const MString &default
       {
          nameCamera = sceneFileName + "/" + nameCamera;
       }
-      else
-      {
-         sceneFileName = sceneFileName + "/" + sceneFileName;         
-      }
 
       if (oldPrefix.length() == 0)
       {
