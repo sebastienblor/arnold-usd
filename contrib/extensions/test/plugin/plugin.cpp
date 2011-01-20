@@ -1,21 +1,29 @@
 #include "test.h"
-//#include "Plugins.h"
 #include "nodes/ArnoldNodeFactory.h"
 
 extern "C"
 {
+
+#ifdef _WIN32
+#if defined(TEST_EXPORTS)
+#define LIBSPEC __declspec(dllexport)
+#elif defined(__cplusplus)
+#define LIBSPEC extern "C" _declspec (dllexport)
+#else
+#define LIBSPEC _declspec (dllimport)
+#endif
+#ifdef _MSC_VER
+#pragma warning(disable:4251)
+#endif // _WIN32
+#endif // _WIN32
    
-void initializePlugin(CExtension& plugin)
+LIBSPEC void initializePlugin(CExtension *plugin)
 {
-   cout << "initializing test extension" << endl;
-   // Maya lambert
-   plugin.RegisterDependTranslator("lambert", 0x524c414d, CTestTranslatorCmd::creator);
+   plugin->RegisterDependTranslator("lambert", 0x524c414d, CTestTranslatorCmd::creator);
 }
 
-void uninitializePlugin(CExtension& plugin)
+LIBSPEC void uninitializePlugin(CExtension *plugin)
 {
-   //status = plugin.deregisterCommand("mtoa_export_camera");
 }
 
 }
-
