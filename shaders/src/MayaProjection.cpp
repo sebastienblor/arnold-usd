@@ -1,4 +1,4 @@
-
+#include <Helpers.h>
 #include <ai_nodes.h>
 #include <ai_shaderglobals.h>
 #include <ai_shaders.h>
@@ -439,6 +439,12 @@ shader_evaluate
    bool mapped = false;
    AtVector P;
 
+
+   AtPoint tmpPts;
+   bool usePref = setRefPts(sg, tmpPts);
+
+
+
    P = ComputePoint(sg, TP_SAMPLE, local, mappingCoordinate, 0);
 
    switch (pt)
@@ -665,5 +671,7 @@ shader_evaluate
       AiRGBtoRGBA(defaultColor, outColor);
    }
 
+   if (usePref) restorePts(sg, tmpPts);
    sg->out.RGBA = outColor;
+
 }

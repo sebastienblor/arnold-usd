@@ -84,6 +84,29 @@ MObject CGeoTranslator::GetNodeShader(MObject dagNode, int instanceNum)
    return connections[0].node();
 }
 
+bool CGeoTranslator::GetVerticesWorld(MObject &dagNode, MFnMesh &fnMesh, std::vector<float> &vertices)
+{
+   if (fnMesh.numVertices() > 0)
+   {
+      vertices.resize(fnMesh.numVertices() * 3);
+
+      // A mesh has no transform, we must trace it back in the DAG
+      MDagPath dp;
+      MDagPath::getAPathTo(dagNode, dp);
+      MFnMesh pointFn(dp);
+      MFloatPointArray pointsArray;
+      pointFn.getPoints(pointsArray, MSpace::kWorld);
+      for (int J = 0; ( J < fnMesh.numVertices() ); ++J)
+      {
+         vertices[J * 3 + 0] = pointsArray[J].x;
+         vertices[J * 3 + 1] = pointsArray[J].y;
+         vertices[J * 3 + 2] = pointsArray[J].z;
+      }
+      return true;
+   }
+   return false;
+}
+
 bool CGeoTranslator::GetVertices(MFnMesh &fnMesh, std::vector<float> &vertices)
 {
    if (fnMesh.numVertices() > 0)
@@ -185,6 +208,48 @@ bool CGeoTranslator::GetTangents(MFnMesh &fnMesh, std::vector<float> &tangents, 
       return true;
    }
    return false;
+}
+
+bool CGeoTranslator::GetRefObj(MFnMesh &fnMesh, std::vector<float> &refVertices, std::vector<float> &refNormals)
+{
+	MStatus stat;
+
+	//Check if there is a referenceObject plug
+	MPlug pReferenceObject = fnMesh.findPlug("referenceObject", false, &stat);
+
+	if (stat != MStatus::kSuccess)
+		return false;
+
+	MPlugArray connectedPlugs;
+	MObject referenceObject;
+
+	//Check if anything is connected to .referenceObject plug
+	pReferenceObject.connectedTo(connectedPlugs, true, true, &stat);
+	if (stat != MStatus::kSuccess || 1 != connectedPlugs.length() ) {
+		return false;
+	}
+	else
+	{
+		//checking if a script is not going rogue : the object must be a mesh !
+		referenceObject = connectedPlugs[0].node();
+		if (referenceObject.hasFn(MFn::kMesh) != 1)	return false;
+	}
+
+	MFnMesh referenceObjectMesh(referenceObject);
+
+	//Check if the numbers of vertices is the same as the current object
+	if (referenceObjectMesh.numVertices() != m_fnMesh.numVertices())
+	{
+	return false;
+	}
+
+	//Get vertices of the reference object in world space
+	GetVerticesWorld(referenceObject ,referenceObjectMesh, refVertices);
+
+	//Get normals of the reference object
+	GetNormals(referenceObjectMesh, refNormals);
+
+	return true;
 }
 
 bool CGeoTranslator::GetUVs(MFnMesh &fnMesh, std::vector<float> &uvs)
@@ -441,9 +506,13 @@ void CGeoTranslator::ExportMeshGeoData(AtNode* polymesh, AtUInt step)
       std::vector<AtUInt> nsides;
       std::vector<AtLong> vidxs, nidxs, uvidxs;
       std::map<std::string, std::vector<float> > vcolors;
+      std::vector<float> refVertices, refNormals;
 
       // Get UVs
       bool exportUVs = GetUVs(m_fnMesh, uvs);
+
+      //Get reference objects
+      bool exportReferenceObjects = GetRefObj(m_fnMesh, refVertices, refNormals);
 
       // Get Component IDs
       GetComponentIDs(m_fnMesh, nsides, vidxs, nidxs, uvidxs, exportNormals, exportUVs);
@@ -456,6 +525,12 @@ void CGeoTranslator::ExportMeshGeoData(AtNode* polymesh, AtUInt step)
       {
          AiNodeDeclare(polymesh, "tangent", "varying VECTOR");
          AiNodeDeclare(polymesh, "bitangent", "varying VECTOR");
+      }
+
+      if (exportReferenceObjects)
+      {
+          AiNodeDeclare(polymesh, "Pref", "varying POINT");
+          AiNodeDeclare(polymesh, "Nref", "varying VECTOR");
       }
 
       // Declare user parameters for color sets
@@ -526,6 +601,13 @@ void CGeoTranslator::ExportMeshGeoData(AtNode* polymesh, AtUInt step)
          for(AtUInt i = 0; (i < nidxs.size()); i++)
             AiArraySetUInt(nidxsTmp, i, nidxs[i]);
          AiNodeSetArray(polymesh, "nidxs", nidxsTmp);
+      }
+
+      if (exportReferenceObjects)
+      {
+       	 AiNodeSetArray(polymesh, "Pref", AiArrayConvert(m_fnMesh.numVertices(), 1, AI_TYPE_POINT, &(refVertices[0]), TRUE));
+         AiNodeSetArray(polymesh, "Nref", AiArrayConvert(m_fnMesh.numNormals(), 1, AI_TYPE_VECTOR, &(refNormals[0]), TRUE));
+
       }
 
       if (exportUVs)
@@ -851,6 +933,7 @@ unsigned int CMeshTranslator::GetNumMeshGroups()
 
 AtNode* CMeshTranslator::Export()
 {
+
    AtNode* anode = NULL;
    if (GetNumMeshGroups() == 0)
    {

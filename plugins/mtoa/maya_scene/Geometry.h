@@ -34,10 +34,13 @@ public:
    virtual void AddCallbacks();
 
 protected:
+
+   bool GetVerticesWorld(MObject &dagNode, MFnMesh &fnMesh, std::vector<float> &vertices);
    bool GetVertices(MFnMesh &fnMesh, std::vector<float> &vertices);
    bool GetNormals(MFnMesh &fnMesh, std::vector<float> &normals);
    bool GetTangents(MFnMesh &fnMesh, std::vector<float> &tangents, std::vector<float> &bitangents);
    bool GetUVs(MFnMesh &fnMesh, std::vector<float> &uvs);
+   bool GetRefObj(MFnMesh &fnMesh, std::vector<float> &refVertices, std::vector<float> &refNormals);
    bool GetVertexColors(MFnMesh &fnMesh, std::map<std::string, std::vector<float> > &vcolors);
    void GetComponentIDs(MFnMesh &fnMesh,
          std::vector<AtUInt> &nsides,
