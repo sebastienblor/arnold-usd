@@ -122,57 +122,6 @@ MStatus CMayaScene::ExportSelected()
    return status;
 }
 
-// Get shading engine associated with a custom shape
-//
-void CMayaScene::GetCustomShapeInstanceShader(const MDagPath &path, MFnDependencyNode &shadingEngineNode)
-{
-   // Get instance shadingEngine
-   shadingEngineNode.setObject(MObject::kNullObj);
-
-   char buffer[64];
-
-   MStringArray connections;
-   MGlobal::executeCommand("listConnections -s 1 -d 0 -c 1 -type shadingEngine "+path.fullPathName(), connections);
-
-   MSelectionList sl;
-
-   if (connections.length() == 2)
-   {
-      sl.add(connections[1]);
-   }
-   else if (connections.length() > 2)
-   {
-      sprintf(buffer, "[%d]", path.instanceNumber());
-      MString iidx = buffer;
-
-      for (unsigned int cidx = 0; cidx < connections.length(); cidx += 2)
-      {
-         MString conn = connections[cidx];
-
-         if (conn.length() < iidx.length())
-         {
-            continue;
-         }
-
-         if (conn.substring(conn.length() - iidx.length(), conn.length() - 1) != iidx)
-         {
-            continue;
-         }
-
-         sl.add(connections[cidx+1]);
-         break;
-      }
-   }
-
-   if (sl.length() == 1)
-   {
-      MObject shadingEngineObj;
-      sl.getDependNode(0, shadingEngineObj);
-
-      shadingEngineNode.setObject(shadingEngineObj);
-   }
-}
-
 // Export the maya scene
 //
 // @return              MS::kSuccess / MS::kFailure is returned in case of failure.
@@ -369,55 +318,6 @@ void CMayaScene::PrepareExport()
    GetCustomShapes();
 
    GetMotionBlurData();
-}
-
-bool CMayaScene::RegisterCustomShape(std::string &shapeType)
-{
-   static const char whitespaces[] = " \t\n\v";
-
-   // strip leading and trailing spaces
-   size_t w0 = shapeType.find_first_not_of(whitespaces);
-
-   if (w0 != std::string::npos)
-   {
-      size_t w1 = shapeType.find_last_not_of(whitespaces);
-
-      shapeType = shapeType.substr(w0, w1-w0+1);
-
-      if (shapeType.length() > 0)
-      {
-         // check if shapeType already registered
-         std::map<std::string, CCustomData>::iterator it = m_customShapes.find(shapeType);
-
-         if (it == m_customShapes.end())
-         {
-            // check if export command can be found
-            std::string scriptName = "mtoa_export_" + shapeType;
-
-            MString rv = MGlobal::executeCommandStringResult("whatIs " + MString(scriptName.c_str()));
-
-            if (rv != "Unknown")
-            {
-               m_customShapes[shapeType].exportCmd = scriptName.c_str();
-               
-               std::string scriptName = "mtoa_cleanup_" + shapeType;
-               
-               rv = MGlobal::executeCommandStringResult("whatIs " + MString(scriptName.c_str()));
-               
-               if (rv == "Unknown")
-               {
-                  scriptName = "";
-               }
-               
-               m_customShapes[shapeType].cleanupCmd = scriptName.c_str();
-               
-               return true;
-            }
-         }
-      }
-   }
-
-   return false;
 }
 
 void CMayaScene::GetMotionBlurData()
