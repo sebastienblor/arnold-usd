@@ -6,25 +6,46 @@
 #include <maya/MFnStringData.h>
 #include <maya/MGlobal.h>
 
+// convert from "arnold_style" to "mayaStyle"
+//
+MString toMayaStyle(MString s)
+{
+   MString name;
+   bool capitalize = false;
+   for (unsigned int i=0; i < s.numChars(); i++)
+   {
+      MString c = s.substringW(i, i);
+      if (c == "_")
+         capitalize = true;
+      else if (capitalize)
+      {
+         name += c.toUpperCase();
+         capitalize = false;
+      }
+      else
+         name += c;
+   }
+   return name;
+}
+
+// uses "maya.name" parameter metadata if set, otherwise, converts from
+// "arnold_style" to "mayaStyle"
 MString CBaseAttrHelper::GetMayaAttrName(const char* paramName)
 {
    const char* attrName;
-   if (!AiMetaDataGetStr(m_nodeEntry, paramName, "maya.name", &attrName))
-      attrName = paramName;
-   return MString(attrName);
+   if (AiMetaDataGetStr(m_nodeEntry, paramName, "maya.name", &attrName))
+      MString(attrName);
+   return toMayaStyle(paramName);
 }
 
+// uses "maya.shortname" parameter metadata if set, otherwise, uses the arnold
+// parameter name
 MString CBaseAttrHelper::GetMayaAttrShortName(const char* paramName)
 {
    const char* attrShortName;
-   // get attribute short name
-   if (!AiMetaDataGetStr(m_nodeEntry, paramName, "maya.shortname", &attrShortName))
-   {
-      char buffer[4];
-      sprintf(buffer, "a%03d", m_attrNum++);
-      attrShortName = buffer;
-   }
-   return MString(attrShortName);
+   if (AiMetaDataGetStr(m_nodeEntry, paramName, "maya.shortname", &attrShortName))
+      return MString(attrShortName);
+   return MString(paramName);
 }
 
 
