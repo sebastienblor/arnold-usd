@@ -30,7 +30,8 @@ enum EDisplayUpdateMessageType
 {
    MSG_BUCKET_PREPARE,
    MSG_BUCKET_UPDATE,
-   MSG_IMAGE_UPDATE
+   MSG_IMAGE_COMPLETE,
+   MSG_RENDER_DONE
 };
 
 // This struct holds the data for a display update message
@@ -39,11 +40,9 @@ struct CDisplayUpdateMessage
    EDisplayUpdateMessageType msgType;
    AtBBox2                   bucketRect;
    RV_PIXEL*                 pixels;
-   bool                      finished;
 };
 
 static CMTBlockingQueue<CDisplayUpdateMessage> s_displayUpdateQueue;
-static CEvent                                  s_displayUpdateFinishedEvent;
 static COutputDriverData                       s_outputDriverData;
 
 node_parameters
@@ -100,7 +99,6 @@ driver_prepare_bucket
    msg.bucketRect.maxx = bucket_xo + bucket_size_x - 1;
    msg.bucketRect.maxy = bucket_yo + bucket_size_y - 1;
    msg.pixels          = NULL;
-   msg.finished        = false;
 
    s_displayUpdateQueue.push(msg);
 }
@@ -139,7 +137,8 @@ driver_write_bucket
                AtUInt out_idx = targetY * bucket_size_x + targetX;
                RV_PIXEL* pixel = &pixels[out_idx];
 
-               AiColorClamp(rgb, rgb, 0, 1);
+               // JS: Commented this out, makes no sense.
+               //AiColorClamp(rgb, rgb, 0, 1);
                AiColorGamma(&rgb, s_outputDriverData.gamma);
 
                pixel->r = rgb.r * 255;
@@ -167,7 +166,8 @@ driver_write_bucket
                AtUInt out_idx = targetY * bucket_size_x + targetX;
                RV_PIXEL* pixel = &pixels[out_idx];
 
-               AiRGBAClamp(rgba, rgba, 0, 1);
+               // JS: Commented this out, makes no sense.
+               //AiRGBAClamp(rgba, rgba, 0, 1);
                AiRGBAGamma(&rgba, s_outputDriverData.gamma);
 
                pixel->r = rgba.r * 255;
@@ -188,7 +188,6 @@ driver_write_bucket
    msg.bucketRect.maxx = maxx;
    msg.bucketRect.maxy = maxy;
    msg.pixels          = pixels;
-   msg.finished        = false;
 
    s_displayUpdateQueue.push( msg );
 }
@@ -196,13 +195,8 @@ driver_write_bucket
 driver_close
 {
    CDisplayUpdateMessage msg;
-
-   msg.finished = true;
-
+   msg.msgType = MSG_IMAGE_COMPLETE;
    s_displayUpdateQueue.push(msg);
-
-   // AJJ: This is a little hack to avoid returning control here, until the display update has finished
-   s_displayUpdateFinishedEvent.wait();
 
    s_outputDriverData.rendering = FALSE;
 }
@@ -228,22 +222,25 @@ void UpdateBucket(const AtBBox2& bucketRect, RV_PIXEL* pixels, const bool refres
 
 void InitializeDisplayUpdateQueue()
 {
-   // This event is used to hold the render thread from releasing buffers after sending the last message.
-   s_displayUpdateFinishedEvent.unset();
-
    // Clears the display update queue, in case we had aborted a previous render.
-   s_displayUpdateQueue.reset();
+   ClearDisplayUpdateQueue();
 }
 
 void FinishedWithDisplayUpdateQueue()
 {
-   // Notify the render thread that we are done with the renderview update
-   s_displayUpdateFinishedEvent.set();
+   ClearDisplayUpdateQueue();
 }
 
 void ClearDisplayUpdateQueue()
 {
    s_displayUpdateQueue.reset();
+}
+
+void DisplayUpdateQueueRenderFinished()
+{
+   CDisplayUpdateMessage msg;
+   msg.msgType = MSG_RENDER_DONE;
+   s_displayUpdateQueue.push(msg);
 }
 
 bool ProcessSomeOfDisplayUpdateQueue(const bool refresh)
@@ -254,24 +251,21 @@ bool ProcessSomeOfDisplayUpdateQueue(const bool refresh)
 
       if (s_displayUpdateQueue.pop(msg))
       {
-         if (!msg.finished)
+         switch (msg.msgType)
          {
-            switch (msg.msgType)
-            {
-            case MSG_BUCKET_PREPARE:
-               // TODO: Implement this...
-               break;
-            case MSG_BUCKET_UPDATE:
-               UpdateBucket(msg.bucketRect, msg.pixels, refresh);
-               break;
-            case MSG_IMAGE_UPDATE:
-               break;
-            }
-         }
-         else
-         {
-            // Received "end-of-render" message.
-            FinishedWithDisplayUpdateQueue();
+         case MSG_BUCKET_PREPARE:
+            // TODO: Implement this...
+            break;
+         case MSG_BUCKET_UPDATE:
+            UpdateBucket(msg.bucketRect, msg.pixels, refresh);
+            break;
+         case MSG_IMAGE_COMPLETE:
+            // Received "end-of-image" message.
+            //AiMsgDebug( "Got end image" );
+            break;
+         case MSG_RENDER_DONE:
+            // Recieved "end-of-rendering" message.
+            //AiMsgDebug( "Got end render message" );
             return false;
          }
       }
@@ -289,14 +283,14 @@ void ProcessDisplayUpdateQueue()
 
 void ProcessDisplayUpdateQueueWithInterupt(MComputation & comp)
 {
-
    while(true)
    {
       if (comp.isInterruptRequested()) break;
-      
+
       // Break out the loop when we've displayed the last complete image.
       // ProcessSomeOfDisplayUpdateQueue returns false on end of render message.
       if (!ProcessSomeOfDisplayUpdateQueue()) break;
    }
+   
 }
 

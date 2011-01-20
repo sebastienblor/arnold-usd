@@ -7,7 +7,7 @@ void InitializeDisplayUpdateQueue();
 void ProcessDisplayUpdateQueue();
 void ProcessDisplayUpdateQueueWithInterupt(MComputation & comp);
 bool ProcessSomeOfDisplayUpdateQueue(const bool refresh=true);
-void FinishedWithDisplayUpdateQueue();
 void ClearDisplayUpdateQueue();
+void DisplayUpdateQueueRenderFinished();
 
 #endif  // OUTPUT_DRIVER_H

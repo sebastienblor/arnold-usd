@@ -95,6 +95,11 @@ public:
       return ((m_maxSize > 0) && (m_queue.size() >= m_maxSize));
    }
 
+   size_t size()
+   {
+      return m_queue.size();
+   }
+   
 protected:
 
    std::queue<T> m_queue;

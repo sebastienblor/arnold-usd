@@ -59,16 +59,15 @@ unsigned int CRenderSession::RenderThread(AtVoid* data)
    // been displayed.
    InitializeDisplayUpdateQueue();
 
-   const time_t start_time = time(0x0);
+   //const time_t start_time = time(0x0);
 
    AtULong ai_status(AI_SUCCESS);
    for (AtUInt i = 0; (i < prog_passes ); ++i)
    {
-
       AtInt sampling = i + init_progressive_samples;
       if (i + 1 == prog_passes)
       {
-        sampling = render_options->NumAASamples();
+         sampling = render_options->NumAASamples();
       }
 
       AiNodeSetInt(AiUniverseGetOptions(), "AA_samples", sampling);
@@ -77,16 +76,16 @@ unsigned int CRenderSession::RenderThread(AtVoid* data)
       if ( ai_status != AI_SUCCESS ) break;
    }
 
-   // Call this as we are done tuning the render. Only call this if
-   // we actually finished, not if we interrupt or abort.
-   if ( AI_SUCCESS == ai_status )
-   {
-      // Is there a nicer way to do this?
-      const time_t elapsed = time(0x0) - start_time;
-      char command_str[256];
-      sprintf( command_str, "arnoldIpr -mode finishedIPR -elapsedTime \"%ld:%02ld\" ;", elapsed / 60, elapsed % 60 );
-      MGlobal::executeCommandOnIdle( command_str, false );
-   }
+   DisplayUpdateQueueRenderFinished();
+
+//   // Update the render view with the render time of the render.
+//   const time_t elapsed = time(0x0) - start_time;
+//   char command_str[256];
+//   sprintf( command_str,
+//            "arnoldIpr -mode finishedIPR -elapsedTime \"%ld:%02ld\" ;",
+//            elapsed / 60,
+//            elapsed % 60 );
+//   MGlobal::executeCommandOnIdle( command_str, false );
 
    return 0;
 }
@@ -157,8 +156,8 @@ void CRenderSession::Finish()
 {
    if (IsActive())
    {
-      InterruptRender();
       AiRenderAbort();
+      InterruptRender();
       AiEnd();
    }
 
@@ -474,7 +473,7 @@ void CRenderSession::DoInteractiveRender()
    ProcessDisplayUpdateQueueWithInterupt( comp );
 
    // Stop and clean up after the render.
-   Finish();
+   InterruptRender();
 
    comp.endComputation();
 }
@@ -623,8 +622,6 @@ void CRenderSession::ClearIdleRenderViewCallback()
 {
    // Get the rest of the rendered image processed.
    ProcessDisplayUpdateQueue();
-   // If we don't do this the render thread will never finish.
-   FinishedWithDisplayUpdateQueue();
 
    if ( m_idle_cb > 0 )
    {
