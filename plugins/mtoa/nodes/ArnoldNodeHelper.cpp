@@ -1,0 +1,823 @@
+#include "ArnoldNodeHelper.h"
+#include "nodes/ShaderUtils.h"
+
+#include <ai_msg.h>
+
+#include <maya/MFnStringData.h>
+#include <maya/MGlobal.h>
+
+MString CBaseAttrHelper::GetMayaAttrName(const char* paramName)
+{
+   const char* attrName;
+   if (!AiMetaDataGetStr(m_nodeEntry, paramName, "maya.name", &attrName))
+      attrName = paramName;
+   return MString(attrName);
+}
+
+MString CBaseAttrHelper::GetMayaAttrShortName(const char* paramName)
+{
+   const char* attrShortName;
+   // get attribute short name
+   if (!AiMetaDataGetStr(m_nodeEntry, paramName, "maya.shortname", &attrShortName))
+   {
+      char buffer[4];
+      sprintf(buffer, "a%03d", m_attrNum++);
+      attrShortName = buffer;
+   }
+   return MString(attrShortName);
+}
+
+
+void CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
+{
+   const AtParamEntry* paramEntry = AiNodeEntryLookUpParameter(m_nodeEntry, paramName);
+   if (paramEntry == NULL)
+      AiMsgError("[mtoa] parameter does not exist: %s", paramName);
+   const AtParamValue* value = AiParamGetDefault(paramEntry);
+   memcpy(&data.defaultValue, value, sizeof(AtParamValue));
+   data.name = GetMayaAttrName(paramName);
+   data.shortName = GetMayaAttrShortName(paramName);
+   data.type = AiParamGetType(paramEntry);
+   data.isArray = false;
+   data.hasMin = false;
+   data.min = false;
+   data.hasMax = false;
+   data.max = false;
+   data.hasSoftMin = false;
+   data.softMin = false;
+   data.hasSoftMax = false;
+   data.softMax = false;
+
+   if (data.type == AI_TYPE_ARRAY)
+   {
+      data.type = data.defaultValue.ARRAY->type;
+      AtBoolean animatable;
+      // if a parameter is marked as animatable, this means that the value can
+      // change over the course of a single render. if this is the case, and the
+      // attribute is an array, then it should be exposed as a non-array within maya;
+      // the array will be populated during translation of motion steps
+      //
+      // Also, by convention, matrix arrays with name "matrix" are animatable
+      // attributes.
+      if ( (AiMetaDataGetBool(m_nodeEntry, paramName, "animatable", &animatable) && animatable) ||
+           (data.type == AI_TYPE_MATRIX && strcmp(paramName, "matrix") == 0) )
+      {
+         data.isArray = false;
+         // since this parameter is not to be treated as an array within maya,
+         // change the default value
+         switch (data.type)
+         {
+            case AI_TYPE_BYTE:
+            {
+               data.defaultValue.BYTE = AiArrayGetByte(data.defaultValue.ARRAY, 0);
+               break;
+            }
+            case AI_TYPE_INT:
+            {
+               data.defaultValue.INT = AiArrayGetInt(data.defaultValue.ARRAY, 0);
+               break;
+            }
+            case AI_TYPE_UINT:
+            {
+               data.defaultValue.UINT = AiArrayGetUInt(data.defaultValue.ARRAY, 0);
+               break;
+            }
+            case AI_TYPE_BOOLEAN:
+            {
+               data.defaultValue.BOOL = AiArrayGetBool(data.defaultValue.ARRAY, 0);
+               break;
+            }
+            case AI_TYPE_FLOAT:
+            {
+               data.defaultValue.FLT = AiArrayGetFlt(data.defaultValue.ARRAY, 0);
+               break;
+            }
+            case AI_TYPE_RGB:
+            {
+               data.defaultValue.RGB = AiArrayGetRGB(data.defaultValue.ARRAY, 0);
+               break;
+            }
+            case AI_TYPE_RGBA:
+            {
+               data.defaultValue.RGBA = AiArrayGetRGBA(data.defaultValue.ARRAY, 0);
+               break;
+            }
+            case AI_TYPE_VECTOR:
+            {
+               data.defaultValue.VEC = AiArrayGetVec(data.defaultValue.ARRAY, 0);
+               break;
+            }
+            case AI_TYPE_POINT:
+            {
+               data.defaultValue.PNT = AiArrayGetPnt(data.defaultValue.ARRAY, 0);
+               break;
+            }
+            case AI_TYPE_POINT2:
+            {
+               data.defaultValue.PNT2 = AiArrayGetPnt2(data.defaultValue.ARRAY, 0);
+               break;
+            }
+            case AI_TYPE_STRING:
+            {
+               data.defaultValue.STR = AiArrayGetStr(data.defaultValue.ARRAY, 0);
+               break;
+            }
+            case AI_TYPE_POINTER:
+            {
+               data.defaultValue.PTR = AiArrayGetPtr(data.defaultValue.ARRAY, 0);
+               break;
+            }
+            case AI_TYPE_MATRIX:
+            {
+               // FIXME: doesn't work
+               // AiArrayGetMtx(data.defaultValue.ARRAY, 0, data.defaultValue.pMTX);
+               break;
+            }
+            case AI_TYPE_ENUM:
+            case AI_TYPE_NONE:
+            case AI_TYPE_NODE:
+            {
+               // not supported by arrays
+               break;
+            }
+            default:
+            {
+               MGlobal::displayError(MString("[mtoa] ") + paramName + ": unknown parameter type");
+               break;
+            }
+         }
+      }
+      else
+         data.isArray = true;
+   }
+
+   switch (data.type)
+   {
+       case AI_TYPE_INT:
+      {
+         AtInt val;
+         if (AiMetaDataGetInt(m_nodeEntry, paramName, "min", &val))
+         {
+            data.min = (AtFloat)val;
+            data.hasMin = true;
+         }
+         if (AiMetaDataGetInt(m_nodeEntry, paramName, "max", &val))
+         {
+            data.max = (AtFloat)val;
+            data.hasMax = true;
+         }
+         if (AiMetaDataGetInt(m_nodeEntry, paramName, "softmin", &val))
+         {
+            data.softMin = (AtFloat)val;
+            data.hasSoftMin = true;
+         }
+         if (AiMetaDataGetInt(m_nodeEntry, paramName, "softmax", &val))
+         {
+            data.softMax = (AtFloat)val;
+            data.hasSoftMax = true;
+         }
+         break;
+      }
+      case AI_TYPE_UINT:
+      {
+         AtInt val;
+         if (AiMetaDataGetInt(m_nodeEntry, paramName, "min", &val))
+         {
+            data.min = (AtFloat)(val < 0 ? 0 : val);
+            data.hasMin = true;
+         }
+         if (AiMetaDataGetInt(m_nodeEntry, paramName, "max", &val))
+         {
+            data.max = (AtFloat)(val < 0 ? 0 : val);
+            data.hasMax = true;
+         }
+         if (AiMetaDataGetInt(m_nodeEntry, paramName, "softmin", &val))
+         {
+            data.softMin = (AtFloat)(val < 0 ? 0 : val);
+            data.hasSoftMin = true;
+         }
+         if (AiMetaDataGetInt(m_nodeEntry, paramName, "softmax", &val))
+         {
+            data.softMax = (AtFloat)(val < 0 ? 0 : val);
+            data.hasSoftMax = true;
+         }
+         break;
+      }
+      case AI_TYPE_FLOAT:
+      {
+         AtFloat val;
+         if (AiMetaDataGetFlt(m_nodeEntry, paramName, "min", &val))
+         {
+            data.min = (AtFloat)val;
+            data.hasMin = true;
+         }
+         if (AiMetaDataGetFlt(m_nodeEntry, paramName, "max", &val))
+         {
+            data.max = (AtFloat)val;
+            data.hasMax = true;
+         }
+         if (AiMetaDataGetFlt(m_nodeEntry, paramName, "softmin", &val))
+         {
+            data.softMin = (AtFloat)val;
+            data.hasSoftMin = true;
+         }
+         if (AiMetaDataGetFlt(m_nodeEntry, paramName, "softmax", &val))
+         {
+            data.softMax = (AtFloat)val;
+            data.hasSoftMax = true;
+         }
+         break;
+      }
+   }
+}
+
+void CBaseAttrHelper::MakeInputInt(MObject& attrib, const char* paramName)
+{
+   CAttrData data;
+   GetAttrData(paramName, data);
+   MakeInputInt(attrib, data);
+}
+
+void CBaseAttrHelper::MakeInputInt(MObject& attrib, CAttrData& data)
+{
+   MFnNumericAttribute nAttr;
+   MStatus status;
+   attrib = nAttr.create(data.name, data.shortName, MFnNumericData::kInt, data.defaultValue.INT, &status);
+   CHECK_MSTATUS(status);
+   if (data.hasMin)
+      nAttr.setMin((AtInt)data.min);
+   if (data.hasMax)
+      nAttr.setMax((AtInt)data.max);
+   if (data.hasSoftMin)
+      nAttr.setSoftMin((AtInt)data.softMin);
+   if (data.hasSoftMax)
+      nAttr.setSoftMax((AtInt)data.softMax);
+   nAttr.setArray(data.isArray);
+   MAKE_INPUT(nAttr, attrib);
+}
+
+void CBaseAttrHelper::MakeInputBoolean(MObject& attrib, const char* paramName)
+{
+   CAttrData data;
+   GetAttrData(paramName, data);
+   MakeInputBoolean(attrib, data);
+}
+
+void CBaseAttrHelper::MakeInputBoolean(MObject& attrib, CAttrData& data)
+{
+   MFnNumericAttribute nAttr;
+   attrib = nAttr.create(data.name, data.shortName, MFnNumericData::kBoolean, data.defaultValue.BOOL);
+   nAttr.setArray(data.isArray);
+   MAKE_INPUT(nAttr, attrib);
+}
+
+void CBaseAttrHelper::MakeInputFloat(MObject& attrib, const char* paramName)
+{
+   CAttrData data;
+   GetAttrData(paramName, data);
+   MakeInputFloat(attrib, data);
+}
+
+void CBaseAttrHelper::MakeInputFloat(MObject& attrib, CAttrData& data)
+{
+   MFnNumericAttribute nAttr;
+
+   attrib = nAttr.create(data.name, data.shortName, MFnNumericData::kFloat, data.defaultValue.FLT);
+   if (data.hasMin)
+      nAttr.setMin((AtFloat)data.min);
+   if (data.hasMax)
+      nAttr.setMax((AtFloat)data.max);
+   if (data.hasSoftMin)
+      nAttr.setSoftMin((AtFloat)data.softMin);
+   if (data.hasSoftMax)
+      nAttr.setSoftMax((AtFloat)data.softMax);
+   nAttr.setArray(data.isArray);
+   MAKE_INPUT(nAttr, attrib);
+}
+
+void CBaseAttrHelper::MakeInputRGB(MObject& attrib, const char* paramName)
+{
+   CAttrData data;
+   GetAttrData(paramName, data);
+   MakeInputRGB(attrib, data);
+}
+
+void CBaseAttrHelper::MakeInputRGB(MObject& attrib, CAttrData& data)
+{
+   MFnNumericAttribute nAttr;
+
+   attrib = nAttr.createColor(data.name, data.shortName);
+   nAttr.setDefault(data.defaultValue.RGB.r, data.defaultValue.RGB.g, data.defaultValue.RGB.b);
+   nAttr.setArray(data.isArray);
+   MAKE_INPUT(nAttr, attrib);
+}
+
+void CBaseAttrHelper::MakeInputRGBA(MObject& attrib, MObject& attribA, const char* paramName)
+{
+   CAttrData data;
+   GetAttrData(paramName, data);
+   MakeInputRGBA(attrib, attribA, data);
+}
+
+void CBaseAttrHelper::MakeInputRGBA(MObject& attrib, MObject& attribA, CAttrData& data)
+{
+   MFnNumericAttribute nAttr;
+
+   attrib = nAttr.createColor(data.name, data.shortName);
+   nAttr.setDefault(data.defaultValue.RGBA.r, data.defaultValue.RGBA.g, data.defaultValue.RGBA.b);
+   nAttr.setArray(data.isArray);
+   MAKE_INPUT(nAttr, attrib);
+
+   attribA = nAttr.create(data.name + "A", data.shortName + "a", MFnNumericData::kFloat, data.defaultValue.RGBA.a);
+   nAttr.setHidden(true);
+   MAKE_INPUT(nAttr, attribA);
+}
+
+void CBaseAttrHelper::MakeInputVector(MObject& attrib, const char* paramName)
+{
+   CAttrData data;
+   GetAttrData(paramName, data);
+   MakeInputVector(attrib, data);
+}
+
+void CBaseAttrHelper::MakeInputVector(MObject& attrib, CAttrData& data)
+{
+   MFnNumericAttribute nAttr;
+
+   attrib = nAttr.createPoint(data.name, data.shortName);
+   nAttr.setDefault(data.defaultValue.VEC.x, data.defaultValue.VEC.y, data.defaultValue.VEC.z);
+   nAttr.setArray(data.isArray);
+   MAKE_INPUT(nAttr, attrib);
+}
+
+void CBaseAttrHelper::MakeInputPoint(MObject& attrib, const char* paramName)
+{
+   CAttrData data;
+   GetAttrData(paramName, data);
+   MakeInputPoint(attrib, data);
+}
+
+void CBaseAttrHelper::MakeInputPoint(MObject& attrib, CAttrData& data)
+{
+   MFnNumericAttribute nAttr;
+
+   attrib = nAttr.createPoint(data.name, data.shortName);
+   nAttr.setDefault(data.defaultValue.PNT.x, data.defaultValue.PNT.y, data.defaultValue.PNT.z);
+   nAttr.setArray(data.isArray);
+   MAKE_INPUT(nAttr, attrib);
+}
+void CBaseAttrHelper::MakeInputPoint2(MObject& attrib, MObject& attribX, MObject& attribY, const char* paramName)
+{
+   CAttrData data;
+   GetAttrData(paramName, data);
+   MakeInputPoint2(attrib, attribX, attribY, data);
+}
+
+void CBaseAttrHelper::MakeInputPoint2(MObject& attrib, MObject& attribX, MObject& attribY, CAttrData& data)
+{
+   MFnNumericAttribute nAttr;
+
+   attribX = nAttr.create(data.name + "X", data.shortName + "x", MFnNumericData::kFloat, data.defaultValue.PNT2.x);
+   attribY = nAttr.create(data.name + "Y", data.shortName + "y", MFnNumericData::kFloat, data.defaultValue.PNT2.y);
+   attrib = nAttr.create(data.name, data.shortName, attribX, attribY);
+   nAttr.setDefault(float(data.defaultValue.PNT2.x), float(data.defaultValue.PNT2.y));
+   nAttr.setArray(data.isArray);
+   MAKE_INPUT(nAttr, attrib);
+}
+
+void CBaseAttrHelper::MakeInputString(MObject& attrib, const char* paramName)
+{
+   CAttrData data;
+   GetAttrData(paramName, data);
+   MakeInputString(attrib, data);
+}
+
+void CBaseAttrHelper::MakeInputString(MObject& attrib, CAttrData& data)
+{
+   MFnTypedAttribute tAttr;
+
+   attrib = tAttr.create(data.name, data.shortName, MFnData::kString);
+   MFnStringData strData;
+   MObject defObj = strData.create(data.defaultValue.STR);
+   tAttr.setDefault(defObj);
+   tAttr.setArray(data.isArray);
+   MAKE_INPUT(tAttr, attrib);
+}
+
+void CBaseAttrHelper::MakeInputMatrix(MObject& attrib, const char* paramName)
+{
+   CAttrData data;
+   GetAttrData(paramName, data);
+   MakeInputMatrix(attrib, data);
+}
+
+void CBaseAttrHelper::MakeInputMatrix(MObject& attrib, CAttrData& data)
+{
+   MFnMatrixAttribute mAttr;
+
+   attrib = mAttr.create(data.name, data.shortName, MFnMatrixAttribute::kFloat);
+   mAttr.setArray(data.isArray);
+   MAKE_INPUT(mAttr, attrib);
+
+//   const AtParamValue* data.defaultValue = AiParamGetDefault(paramEntry);
+//   MFloatMatrix mmat(data.defaultValue.pMTX);
+//   mAttr.setDefault(mmat);
+}
+
+void CBaseAttrHelper::MakeInputEnum(MObject& attrib, const char* paramName)
+{
+   CAttrData data;
+   GetAttrData(paramName, data);
+   MakeInputEnum(attrib, paramName, data);
+}
+
+void CBaseAttrHelper::MakeInputEnum(MObject& attrib, const char*paramName, CAttrData& data)
+{
+   MFnEnumAttribute eAttr;
+   const AtParamEntry* paramEntry = AiNodeEntryLookUpParameter(m_nodeEntry, paramName);
+   attrib = eAttr.create(data.name, data.shortName, data.defaultValue.INT);
+   {
+      for (int ei=0;;ei++)
+      {
+         const char* enum_string = AiEnumGetString(AiParamGetEnum(paramEntry), ei);
+         if (!enum_string)
+            break;
+         eAttr.addField(enum_string, ei);
+      }
+   }
+   addAttribute(attrib);
+   eAttr.setArray(data.isArray);
+}
+
+void CBaseAttrHelper::MakeInputNode(MObject& attrib, const char* paramName)
+{
+   CAttrData data;
+   GetAttrData(paramName, data);
+   MakeInputNode(attrib, data);
+}
+
+void CBaseAttrHelper::MakeInputNode(MObject& attrib, CAttrData& data)
+{
+   MFnMessageAttribute msgAttr;
+
+   attrib = msgAttr.create(data.name, data.shortName);
+   msgAttr.setArray(data.isArray);
+   MAKE_INPUT(msgAttr, attrib);
+}
+
+bool CBaseAttrHelper::MakeInput(const char* paramName)
+{
+   CAttrData attrData;
+   GetAttrData(paramName, attrData);
+   return MakeInput(paramName, attrData);
+}
+
+bool CBaseAttrHelper::MakeInput(const char* paramName, CAttrData& attrData)
+{
+   /*
+   // FIXME: remove these when we migrate to use CAttrData
+   const AtParamEntry* paramEntry = AiNodeEntryLookUpParameter(m_nodeEntry, paramName);
+   const char* attrName = GetMayaAttrName(paramName);
+   const char* attrShortName = GetMayaAttrShortName(paramName);
+   */
+   //cout << "making " << AiNodeEntryGetName(m_nodeEntry) << "." << attrData.name.asChar() << " (" << attrData.shortName.asChar() << "): " << attrData.type << endl;
+   MObject input;
+   switch (attrData.type)
+   {
+      case AI_TYPE_INT:
+      {
+         MakeInputInt(input, attrData);
+         break;
+      }
+
+      case AI_TYPE_UINT:
+      {
+         MakeInputInt(input, attrData);
+         break;
+      }
+      case AI_TYPE_BOOLEAN:
+      {
+         MakeInputBoolean(input, attrData);
+         break;
+      }
+      case AI_TYPE_FLOAT:
+      {
+         MakeInputFloat(input, attrData);
+         break;
+      }
+      case AI_TYPE_RGB:
+      {
+         MakeInputRGB(input, attrData);
+         break;
+      }
+      case AI_TYPE_RGBA:
+      {
+         MObject inputA;
+         MakeInputRGBA(input, inputA, attrData);
+         m_attributes[std::string(paramName) + "A"] = inputA;
+         break;
+      }
+      case AI_TYPE_VECTOR:
+      {
+         MakeInputVector(input, attrData);
+         break;
+      }
+      case AI_TYPE_POINT:
+      {
+         MakeInputPoint(input, attrData);
+         break;
+      }
+      case AI_TYPE_POINT2:
+      {
+         MObject inputX;
+         MObject inputY;
+
+         MakeInputPoint2(input, inputX, inputY, paramName);
+         m_attributes[std::string(paramName) + "X"] = inputX;
+         m_attributes[std::string(paramName) + "Y"] = inputY;
+         break;
+      }
+      case AI_TYPE_STRING:
+      {
+         MakeInputString(input, attrData);
+         break;
+      }
+      case AI_TYPE_NODE:
+      {
+         MakeInputNode(input, attrData);
+         break;
+      }
+      case AI_TYPE_MATRIX:
+      {
+         MakeInputMatrix(input, attrData);
+         break;
+      }
+      case AI_TYPE_ENUM:
+      {
+         MakeInputEnum(input, paramName, attrData);
+         break;
+      }
+      case AI_TYPE_NONE:
+      case AI_TYPE_BYTE:
+      case AI_TYPE_POINTER:
+      {
+         const char* typeName = AiParamGetTypeName(attrData.type);
+         MGlobal::displayWarning(MString("[mtoa] ") + paramName + ": parameters of type " + typeName + " are not supported");
+         return false;
+      }
+      default:
+      {
+         MGlobal::displayError(MString("[mtoa] ") + paramName + ": unknown parameter type");
+         return false;
+      }
+   } // switch
+   m_attributes[paramName] = input;
+   return true;
+}
+
+
+
+void CBaseAttrHelper::MakeOutputInt(MObject& attrib, bool isArray)
+{
+   MFnNumericAttribute nAttr;
+
+   attrib = nAttr.create(OUT_NAME, OUT_SHORTNAME, MFnNumericData::kInt);
+   nAttr.setArray(isArray);
+   MAKE_OUTPUT(nAttr, attrib);
+}
+
+void CBaseAttrHelper::MakeOutputBoolean(MObject& attrib, bool isArray)
+{
+   MFnNumericAttribute nAttr;
+   attrib = nAttr.create(OUT_NAME, OUT_SHORTNAME, MFnNumericData::kBoolean);
+   nAttr.setArray(isArray);
+   MAKE_OUTPUT(nAttr, attrib);
+}
+
+void CBaseAttrHelper::MakeOutputFloat(MObject& attrib, bool isArray)
+{
+   MFnNumericAttribute nAttr;
+
+   attrib = nAttr.create(OUT_NAME, OUT_SHORTNAME, MFnNumericData::kFloat);
+   nAttr.setArray(isArray);
+   MAKE_OUTPUT(nAttr, attrib);
+}
+
+void CBaseAttrHelper::MakeOutputRGB(MObject& attrib, bool isArray)
+{
+   MFnNumericAttribute nAttr;
+
+   attrib = nAttr.createColor(OUT_COLOR_NAME, OUT_SHORTNAME);
+   nAttr.setArray(isArray);
+   MAKE_OUTPUT(nAttr, attrib);
+}
+
+void CBaseAttrHelper::MakeOutputRGBA(MObject& attrib, MObject& attribA, bool isArray)
+{
+   MFnNumericAttribute nAttr;
+
+   attrib = nAttr.createColor(OUT_COLOR_NAME, OUT_SHORTNAME);
+   nAttr.setArray(isArray);
+   MAKE_OUTPUT(nAttr, attrib);
+
+   attribA = nAttr.create(OUT_COLOR_NAME + "A", OUT_SHORTNAME + "a", MFnNumericData::kFloat);
+   nAttr.setHidden(true);
+   MAKE_OUTPUT(nAttr, attribA);
+}
+
+void CBaseAttrHelper::MakeOutputVector(MObject& attrib, bool isArray)
+{
+   MFnNumericAttribute nAttr;
+
+   attrib = nAttr.createPoint(OUT_NAME, OUT_SHORTNAME);
+   nAttr.setArray(isArray);
+   MAKE_OUTPUT(nAttr, attrib);
+}
+
+void CBaseAttrHelper::MakeOutputPoint(MObject& attrib, bool isArray)
+{
+   MFnNumericAttribute nAttr;
+
+   attrib = nAttr.createPoint(OUT_NAME, OUT_SHORTNAME);
+   nAttr.setArray(isArray);
+   MAKE_INPUT(nAttr, attrib);
+}
+
+void CBaseAttrHelper::MakeOutputPoint2(MObject& attrib, MObject& attribX, MObject& attribY, bool isArray)
+{
+   MFnNumericAttribute nAttr;
+
+   attribX = nAttr.create(OUT_NAME + "X", OUT_SHORTNAME + "x", MFnNumericData::kFloat);
+   attribY = nAttr.create(OUT_NAME + "Y", OUT_SHORTNAME + "y", MFnNumericData::kFloat);
+   attrib = nAttr.create(OUT_NAME, OUT_SHORTNAME, attribX, attribY);
+   nAttr.setArray(isArray);
+   MAKE_OUTPUT(nAttr, attrib);
+}
+
+void CBaseAttrHelper::MakeOutputString(MObject& attrib, bool isArray)
+{
+   MFnTypedAttribute tAttr;
+
+   attrib = tAttr.create(OUT_NAME, OUT_SHORTNAME, MFnData::kString);
+   MFnStringData strData;
+   MObject defObj = strData.create();
+   tAttr.setDefault(defObj);
+   tAttr.setArray(isArray);
+   MAKE_OUTPUT(tAttr, attrib);
+}
+
+void CBaseAttrHelper::MakeOutputMatrix(MObject& attrib, bool isArray)
+{
+   MFnMatrixAttribute mAttr;
+
+   attrib = mAttr.create(OUT_NAME, OUT_SHORTNAME, MFnMatrixAttribute::kFloat);
+   mAttr.setArray(isArray);
+   MAKE_OUTPUT(mAttr, attrib);
+
+//   const AtParamValue* data.defaultValue = AiParamGetDefault(paramEntry);
+//   MFloatMatrix mmat(data.defaultValue.pMTX);
+//   mAttr.setDefault(mmat);
+}
+
+void CBaseAttrHelper::MakeOutputNode(MObject& attrib, bool isArray)
+{
+   MFnMessageAttribute msgAttr;
+
+   attrib = msgAttr.create(OUT_NAME, OUT_SHORTNAME);
+   addAttribute(attrib);
+   msgAttr.setArray(isArray);
+   MAKE_OUTPUT(msgAttr, attrib);
+}
+
+bool CBaseAttrHelper::MakeOutput()
+{
+
+   AtInt outputType = AiNodeEntryGetOutputType(m_nodeEntry);
+   /*
+   if (data.type == AI_TYPE_ARRAY)
+   {
+      data.type = data.defaultValue.ARRAY->type;
+      // FIXME: a boolean "animatable" metatada should be added to these
+      // paramaters to explicitly control this behavior.
+      //
+      // by convention, matrix arrays with name "matrix" are animatable
+      // attributes, meaning they are intended to hold values for multiple
+      // motion steps. because they are filled during translation from multiple
+      // time samples, on the maya node they should be created as non-array
+      // attributes.
+      if (!(data.type == AI_TYPE_MATRIX && strcmp(paramName, "matrix") == 0))
+         data.isArray = true;
+   }
+   */
+   // cout << "making " << AiNodeEntryGetName(m_nodeEntry) << "." << attrData.name.asChar() << " (" << attrData.shortName.asChar() << "): " << attrData.type << endl;
+   MObject output;
+   switch (outputType)
+   {
+      case AI_TYPE_INT:
+      {
+         MakeOutputInt(output);
+         break;
+      }
+
+      case AI_TYPE_UINT:
+      {
+         MakeOutputInt(output);
+         break;
+      }
+      case AI_TYPE_BOOLEAN:
+      {
+         MakeOutputBoolean(output);
+         break;
+      }
+      case AI_TYPE_FLOAT:
+      {
+         MakeOutputFloat(output);
+         break;
+      }
+      case AI_TYPE_RGB:
+      {
+         MakeOutputRGB(output);
+         break;
+      }
+      case AI_TYPE_RGBA:
+      {
+         MObject outputA;
+         MakeOutputRGBA(output, outputA);
+         m_attributes["outValueA"] = outputA;
+         break;
+      }
+      case AI_TYPE_VECTOR:
+      {
+         MakeOutputVector(output);
+         break;
+      }
+      case AI_TYPE_POINT:
+      {
+         MakeOutputPoint(output);
+         break;
+      }
+      case AI_TYPE_POINT2:
+      {
+         MObject outputX;
+         MObject outputY;
+
+         MakeOutputPoint2(output, outputX, outputY);
+         m_attributes["outValueX"] = outputX;
+         m_attributes["outValueY"] = outputY;
+         break;
+      }
+      case AI_TYPE_STRING:
+      {
+         MakeOutputString(output);
+         break;
+      }
+      case AI_TYPE_NODE:
+      {
+         MakeOutputNode(output);
+         break;
+      }
+      case AI_TYPE_MATRIX:
+      {
+         MakeOutputMatrix(output);
+         break;
+      }
+      case AI_TYPE_ENUM:
+      case AI_TYPE_NONE:
+      case AI_TYPE_BYTE:
+      case AI_TYPE_POINTER:
+      {
+         const char* typeName = AiParamGetTypeName(outputType);
+         MGlobal::displayWarning(MString("[mtoa] ") + OUT_NAME + ": parameters of type " + typeName + " are not supported");
+         return false;
+      }
+      default:
+      {
+         MGlobal::displayError(MString("[mtoa] ") + OUT_NAME + ": unknown parameter type");
+         return false;
+      }
+   } // switch
+   m_attributes[OUT_NAME.asChar()] = output;
+   return true;
+}
+
+void CBaseAttrHelper::SetNode(const char* arnoldNodeName)
+{
+   m_nodeEntry = AiNodeEntryLookUp(arnoldNodeName);
+};
+
+MStatus CStaticAttrHelper::addAttribute(MObject& attrib)
+{
+   MStatus stat;
+   stat = m_addFunc(attrib);
+   CHECK_MSTATUS(stat);
+   return stat;
+}
+
+MStatus CDynamicAttrHelper::addAttribute(MObject& attrib)
+{
+   MStatus stat;
+   stat = MFnDependencyNode(m_instance).addAttribute(attrib);
+   CHECK_MSTATUS(stat);
+   return stat;
+}
+

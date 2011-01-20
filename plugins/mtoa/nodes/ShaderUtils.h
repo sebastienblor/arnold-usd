@@ -4,68 +4,201 @@
 #include <ai_params.h>
 #include <ai_node_entry.h>
 
-#define MAKE_INPUT(attr, name) \
+#define MAKE_INPUT(attr, attrName) \
    attr.setKeyable(true); \
    attr.setStorable(true);	\
    attr.setReadable(true);	\
    attr.setWritable(true); \
-   addAttribute(name)
+   addAttribute(attrName)
 
-#define MAKE_OUTPUT(attr, name) \
+#define MAKE_OUTPUT(attr, attrName) \
    attr.setKeyable(false); \
    attr.setStorable(false); \
    attr.setReadable(true); \
    attr.setWritable(false); \
-   addAttribute(name)
+   addAttribute(attrName)
 
-#define MAKE_COLOR(attrib, name, shortname, defaultR, defaultG, defaultB) \
-   attrib##R = nAttr.create(MString(name) + "R", MString(shortname) + "r", MFnNumericData::kFloat, defaultR);\
-   attrib##G = nAttr.create(MString(name) + "G", MString(shortname) + "g", MFnNumericData::kFloat, defaultG);\
-   attrib##B = nAttr.create(MString(name) + "B", MString(shortname) + "b", MFnNumericData::kFloat, defaultB);\
-   attrib = nAttr.create(name, shortname, attrib##R, attrib##G, attrib##B);\
+#define MAKE_COLOR(attrib, attrName, attrShortName, defaultR, defaultG, defaultB) \
+   attrib##R = nAttr.create(MString(attrName) + "R", MString(attrShortName) + "r", MFnNumericData::kFloat, defaultR);\
+   attrib##G = nAttr.create(MString(attrName) + "G", MString(attrShortName) + "g", MFnNumericData::kFloat, defaultG);\
+   attrib##B = nAttr.create(MString(attrName) + "B", MString(attrShortName) + "b", MFnNumericData::kFloat, defaultB);\
+   attrib = nAttr.create(attrName, attrShortName, attrib##R, attrib##G, attrib##B);\
    nAttr.setUsedAsColor(true);\
    nAttr.setDefault(float(defaultR), float(defaultG), float(defaultB));\
    addAttribute(attrib##R);\
    addAttribute(attrib##G);\
    addAttribute(attrib##B);
 
-#define MAKE_VECTOR2(attrib, name, shortname, defaultX, defaultY) \
-   attrib##X = nAttr.create(MString(name) + "X", MString(shortname) + "x", MFnNumericData::kFloat, defaultX);\
-   attrib##Y = nAttr.create(MString(name) + "Y", MString(shortname) + "y", MFnNumericData::kFloat, defaultY);\
-   attrib = nAttr.create(name, shortname, attrib##X, attrib##Y);\
+#define MAKE_RGBA(attrib, attrName, attrShortName, defaultR, defaultG, defaultB, defaultA) \
+   attrib##R = nAttr.create(MString(attrName) + "R", MString(attrShortName) + "r", MFnNumericData::kFloat, defaultR);\
+   attrib##G = nAttr.create(MString(attrName) + "G", MString(attrShortName) + "g", MFnNumericData::kFloat, defaultG);\
+   attrib##B = nAttr.create(MString(attrName) + "B", MString(attrShortName) + "b", MFnNumericData::kFloat, defaultB);\
+   attrib = nAttr.create(attrName, attrShortName, attrib##R, attrib##G, attrib##B);\
+   nAttr.setUsedAsColor(true);\
+   nAttr.setDefault(float(defaultR), float(defaultG), float(defaultB));\
+   addAttribute(attrib##R);\
+   addAttribute(attrib##G);\
+   addAttribute(attrib##B);\
+   attrib##A = nAttr.create(MString(attrName) + "A", MString(attrShortName) + "a", MFnNumericData::kFloat, defaultA);\
+   addAttribute(attrib##A);
+
+#define MAKE_VECTOR2(attrib, attrName, attrShortName, defaultX, defaultY) \
+   attrib##X = nAttr.create(MString(attrName) + "X", MString(attrShortName) + "x", MFnNumericData::kFloat, defaultX);\
+   attrib##Y = nAttr.create(MString(attrName) + "Y", MString(attrShortName) + "y", MFnNumericData::kFloat, defaultY);\
+   attrib = nAttr.create(attrName, attrShortName, attrib##X, attrib##Y);\
    nAttr.setDefault(float(defaultX), float(defaultY));\
-   addAttribute(attrib##X);\
-   addAttribute(attrib##Y);
+   addAttribute(attrib);
 
-#define MAKE_POINT2(attrib, name, shortname, defaultX, defaultY) \
-   MAKE_VECTOR2(attrib, name, shortname, defaultX, defaultY)
+#define MAKE_POINT2(attrib, attrName, attrShortName, defaultX, defaultY) \
+   MAKE_VECTOR2(attrib, attrName, attrShortName, defaultX, defaultY)
 
-#define MAKE_VECTOR(attrib, name, shortname, defaultX, defaultY, defaultZ) \
-   attrib##X = nAttr.create(MString(name) + "X", MString(shortname) + "x", MFnNumericData::kFloat, defaultX);\
-   attrib##Y = nAttr.create(MString(name) + "Y", MString(shortname) + "y", MFnNumericData::kFloat, defaultY);\
-   attrib##Z = nAttr.create(MString(name) + "Z", MString(shortname) + "z", MFnNumericData::kFloat, defaultZ);\
-   attrib = nAttr.create(name, shortname, attrib##X, attrib##Y, attrib##Z);\
+#define MAKE_VECTOR(attrib, attrName, attrShortName, defaultX, defaultY, defaultZ) \
+   attrib##X = nAttr.create(MString(attrName) + "X", MString(attrShortName) + "x", MFnNumericData::kFloat, defaultX);\
+   attrib##Y = nAttr.create(MString(attrName) + "Y", MString(attrShortName) + "y", MFnNumericData::kFloat, defaultY);\
+   attrib##Z = nAttr.create(MString(attrName) + "Z", MString(attrShortName) + "z", MFnNumericData::kFloat, defaultZ);\
+   attrib = nAttr.create(attrName, attrShortName, attrib##X, attrib##Y, attrib##Z);\
    nAttr.setDefault(float(defaultX), float(defaultY), float(defaultZ));\
    addAttribute(attrib##X);\
    addAttribute(attrib##Y);\
    addAttribute(attrib##Z);
 
-#define MAKE_POINT(attrib, name, shortname, defaultX, defaultY, defaultZ) \
-   MAKE_VECTOR(attrib, name, shortname, defaultX, defaultY, defaultZ)
+#define MAKE_POINT(attrib, attrName, attrShortName, defaultX, defaultY, defaultZ) \
+   MAKE_VECTOR(attrib, attrName, attrShortName, defaultX, defaultY, defaultZ)
 
-#define MAKE_ENUM(attrib, name, shortname, default_value, arnold_node, arnold_param) \
-   attrib = eAttr.create(name, shortname, default_value); \
+#define MAKE_ENUM(attrib, attrName, attrShortName, default_value, arnold_node, arnold_param) \
+   attrib = eAttr.create(attrName, attrShortName, default_value); \
    { \
       const AtNodeEntry*  nentry = AiNodeEntryLookUp(arnold_node); \
-      const AtParamEntry* pentry = AiNodeEntryLookUpParameter(nentry, arnold_param); \
+      const AtParamEntry* paramEntry = AiNodeEntryLookUpParameter(nentry, arnold_param); \
       for (int i=0;;i++) \
       { \
-         const char* enum_string = AiEnumGetString(AiParamGetEnum(pentry), i); \
+         const char* enum_string = AiEnumGetString(AiParamGetEnum(paramEntry), i); \
          if (!enum_string) \
             break; \
          eAttr.addField(enum_string, i); \
       } \
    } \
    addAttribute(attrib);
+
+
+#define MAKE_INT_INPUT(attrib, nodeEntry, paramEntry, paramName, attrName, attrShortName) \
+   const AtParamValue* default_value = AiParamGetDefault(paramEntry);\
+   attrib = nAttr.create(attrName, attrShortName, MFnNumericData::kInt, default_value->INT);\
+   AtInt val;\
+   if (AiMetaDataGetInt(nodeEntry, paramName, "min", &val))\
+      nAttr.setMin(val);\
+   if (AiMetaDataGetInt(nodeEntry, paramName, "max", &val))\
+      nAttr.setMax(val);\
+   if (AiMetaDataGetInt(nodeEntry, paramName, "softmin", &val))\
+      nAttr.setSoftMin(val);\
+   if (AiMetaDataGetInt(nodeEntry, paramName, "softmax", &val))\
+      nAttr.setSoftMax(val);\
+   MAKE_INPUT(nAttr, attrib);
+
+#define MAKE_UINT_INPUT(attrib, nodeEntry, paramEntry, paramName, attrName, attrShortName) \
+   const AtParamValue* default_value = AiParamGetDefault(paramEntry);\
+   attrib = nAttr.create(attrName, attrShortName, MFnNumericData::kInt, default_value->INT);\
+   AtInt val;\
+   if (AiMetaDataGetInt(nodeEntry, paramName, "min", &val))\
+      nAttr.setMin(val < 0 ? 0 : val);\
+   if (AiMetaDataGetInt(nodeEntry, paramName, "max", &val))\
+      nAttr.setMax(val < 0 ? 0 : val);\
+   if (AiMetaDataGetInt(nodeEntry, paramName, "softmin", &val))\
+      nAttr.setSoftMin(val < 0 ? 0 : val);\
+   if (AiMetaDataGetInt(nodeEntry, paramName, "softmax", &val))\
+      nAttr.setSoftMax(val < 0 ? 0 : val);\
+   MAKE_INPUT(nAttr, attrib);
+
+#define MAKE_BOOLEAN_INPUT(attrib, paramEntry, attrName, attrShortName) \
+   const AtParamValue* defaultValue = AiParamGetDefault(paramEntry);\
+   attrib = nAttr.create(attrName, attrShortName, MFnNumericData::kBoolean, defaultValue->BOOL);\
+   MAKE_INPUT(nAttr, attrib);
+
+#define MAKE_FLOAT_INPUT(attrib, nodeEntry, paramEntry, paramName, attrName, attrShortName) \
+   const AtParamValue* default_value = AiParamGetDefault(paramEntry);\
+   attrib = nAttr.create(attrName, attrShortName, MFnNumericData::kFloat, default_value->FLT);\
+   AtFloat val;\
+   if (AiMetaDataGetFlt(nodeEntry, paramName, "min", &val))\
+      nAttr.setMin(val);\
+   if (AiMetaDataGetFlt(nodeEntry, paramName, "max", &val))\
+      nAttr.setMax(val);\
+   if (AiMetaDataGetFlt(nodeEntry, paramName, "softmin", &val))\
+      nAttr.setSoftMin(val);\
+   if (AiMetaDataGetFlt(nodeEntry, paramName, "softmax", &val))\
+      nAttr.setSoftMax(val);\
+   MAKE_INPUT(nAttr, attrib);\
+
+#define MAKE_RGB_INPUT(attrib, paramEntry, attrName, attrShortName) \
+   const AtParamValue* default_value = AiParamGetDefault(paramEntry);\
+   MAKE_COLOR(attrib, attrName, attrShortName, default_value->RGB.r, default_value->RGB.g, default_value->RGB.b);\
+   MAKE_INPUT(nAttr, attrib);
+
+#define MAKE_RGBA_INPUT(attrib, attribA, paramEntry, attrName, attrShortName) \
+   const AtParamValue* default_value = AiParamGetDefault(paramEntry);\
+   MAKE_COLOR(attrib, attrName, attrShortName, default_value->RGB.r, default_value->RGB.g, default_value->RGB.b);\
+   MAKE_INPUT(nAttr, attrib);\
+   attribA = nAttr.create(MString(attrName) + "A", MString(attrShortName) + "a", MFnNumericData::kFloat, default_value->RGBA.a);\
+   addAttribute(attribA);\
+   MAKE_INPUT(nAttr, attribA);
+
+#define MAKE_VECTOR_INPUT(attrib, paramEntry, attrName, attrShortName) \
+   const AtParamValue* default_value = AiParamGetDefault(paramEntry);\
+   MAKE_VECTOR(attrib, attrName, attrShortName, default_value->VEC.x, default_value->VEC.y, default_value->VEC.z);\
+   MAKE_INPUT(nAttr, attrib);
+
+#define MAKE_POINT_INPUT(attrib, paramEntry, attrName, attrShortName) \
+   const AtParamValue* default_value = AiParamGetDefault(paramEntry);\
+   MAKE_VECTOR(attrib, attrName, attrShortName, default_value->PNT.x, default_value->PNT.y, default_value->PNT.z);\
+   MAKE_INPUT(nAttr, attrib);
+
+#define MAKE_POINT2_INPUT(attrib, paramEntry, attrName, attrShortName) \
+   const AtParamValue* default_value = AiParamGetDefault(paramEntry);\
+   MAKE_POINT2(attrib, attrName, attrShortName, default_value->PNT2.x, default_value->PNT2.y);\
+   MAKE_INPUT(nAttr, attrib);
+
+#define MAKE_STRING_INPUT(attrib, paramEntry, attrName, attrShortName) \
+   const AtParamValue* default_value = AiParamGetDefault(paramEntry);\
+   attrib = tAttr.create(attrName, attrShortName, MFnData::kString);\
+   MFnStringData strData;\
+   MObject defObj = strData.create(default_value->STR);\
+   tAttr.setDefault(defObj);\
+   MAKE_INPUT(tAttr, attrib);
+
+#define MAKE_MATRIX_INPUT(attrib, paramEntry, attrName, attrShortName) \
+   attrib = mAttr.create(attrName, attrShortName, MFnMatrixAttribute::kFloat);\
+   MAKE_INPUT(mAttr, attrib);
+
+//   const AtParamValue* default_value = AiParamGetDefault(paramEntry);
+//   MFloatMatrix mmat(default_value->pMTX);
+//   mAttr.setDefault(mmat);
+
+#define MAKE_ENUM_INPUT(attrib, paramEntry, attrName, attrShortName) \
+   const AtParamValue* default_value = AiParamGetDefault(paramEntry);\
+   attrib = eAttr.create(attrName, attrShortName, default_value->INT); \
+   { \
+      for (int ei=0;;ei++) \
+      { \
+         const char* enum_string = AiEnumGetString(AiParamGetEnum(paramEntry), ei); \
+         if (!enum_string) \
+            break; \
+         eAttr.addField(enum_string, ei); \
+      } \
+   } \
+   addAttribute(attrib);
+
+#define EXPORT_DYN_PARAM_FLOAT(arnold_node, param_name, node) \
+   plug = node.findPlug(param_name);\
+   if (!plug.isNull())\
+      AiNodeSetFlt(arnold_node, param_name, plug.asFloat());
+
+#define EXPORT_DYN_PARAM_BOOL(arnold_node, param_name, node) \
+   plug = node.findPlug(param_name);\
+   if (!plug.isNull())\
+      AiNodeSetBool(arnold_node, param_name, plug.asBool());
+
+#define EXPORT_DYN_PARAM_INT(arnold_node, param_name, node) \
+   plug = node.findPlug(param_name);\
+   if (!plug.isNull())\
+      AiNodeSetInt(arnold_node, param_name, plug.asInt());
 
 #endif // SHADER_UTILS_H
