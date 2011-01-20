@@ -19,6 +19,9 @@
 #include <maya/MFnDoubleArrayData.h>
 #include <maya/MFnPointArrayData.h>
 #include <maya/MFnVectorArrayData.h>
+#include <maya/MMessage.h> // for MCallbackId
+#include <maya/MNodeMessage.h>
+#include <maya/MCallbackIdArray.h>
 
 #include <string>
 
@@ -34,6 +37,13 @@ AtNode* CNodeTranslator::DoExport(AtUInt step)
    }
    else if (RequiresMotionData())
       ExportMotion(m_atNode, step);
+   
+   // If in IPR mode, install callbacks to detect changes.
+   if ( m_scene->GetExportMode() == MTOA_EXPORT_IPR )
+   {
+      AddCallbacks();
+   }
+   
    return m_atNode;
 }
 
@@ -47,7 +57,117 @@ AtNode* CNodeTranslator::DoUpdate(AtUInt step)
    }
    else if (RequiresMotionData())
       UpdateMotion(m_atNode, step);
+
+   // If in IPR mode, install callbacks to detect changes.
+   if ( m_scene->GetExportMode() == MTOA_EXPORT_IPR )
+   {
+      AddCallbacks();
+   }
+
    return m_atNode;
+}
+
+
+// Add callbacks to the node passed in. It's a few simple
+// callbacks by default. Since this method is virtual - you can
+// add whatever callbacks you need to trigger a fresh.
+void CNodeTranslator::AddCallbacks()
+{
+   AiMsgDebug( "[mtoa] Adding callbacks to type: %s", m_object.apiTypeStr());
+
+   MStatus status;
+   MCallbackId id = MNodeMessage::addNodeDirtyCallback(m_object,
+                                                       NodeDirtyCallback,
+                                                       (void*)this,
+                                                       &status );
+
+   // Ask for this callback to be managed. If you don't do this the callbacks won't
+   // be removed after IPR. Maya is likely to crash if the mtoa plugin is unloaded 
+   // and any callbacks are left in place.
+   if ( MS::kSuccess == status ) ManageCallback( id );
+
+   //Adding all parents.
+   MDagPath dag_path;
+   MFnDagNode dag_fn( m_object );
+   status = dag_fn.getPath( dag_path );
+   if ( MS::kSuccess == status )
+   {
+      dag_path.pop(); // Pop off the shape.
+      // Loop through the parents adding callbacks to them.
+      for( ; dag_path.length() > 0; dag_path.pop() )
+      {
+         MObject node = dag_path.node();
+         id = MNodeMessage::addNodeDirtyCallback(node,
+                                                 NodeDirtyCallback,
+                                                 (void*)this,
+                                                 &status );
+         if ( MS::kSuccess == status ) ManageCallback( id );
+      }
+   }
+   
+   
+   id = MNodeMessage::addNameChangedCallback(m_object,
+                                             NameChangedCallback,
+                                             (void*)this,
+                                             &status );
+   if ( MS::kSuccess == status ) ManageCallback( id );
+}
+
+void CNodeTranslator::ManageCallback( const MCallbackId id )
+{
+   m_mayaCallbackIDs.append( id );
+}
+
+void CNodeTranslator::RemoveCallbacks()
+{
+   MNodeMessage::removeCallbacks( m_mayaCallbackIDs );
+   m_mayaCallbackIDs.clear();
+}
+
+
+// This is a simple callback triggered when a node is marked as dirty.
+void CNodeTranslator::NodeDirtyCallback(MObject &node, MPlug &plug, void *clientData)
+{
+   AiMsgDebug( "[mtoa] Node changed, updating Arnold. Plug that fired: %s", plug.name().asChar() );
+   UpdateIPR( node, clientData );
+}
+
+// This is a simple callback triggered when a node is marked as dirty.
+void CNodeTranslator::NameChangedCallback(MObject &node, const MString &str, void *clientData)
+{
+   AiMsgDebug( "[mtoa] Node name changed, updating Arnold" );
+   UpdateIPR( node, clientData );
+}
+
+void CNodeTranslator::UpdateIPR( MObject node, void * clientData )
+{
+   // Remove this node from the callback list.
+   CNodeTranslator * translator = (CNodeTranslator*)(clientData);
+   if ( translator != 0x0 )
+   {
+      translator->RemoveCallbacks();
+   }
+
+   // Update Arnold.
+   MStatus status;
+   MFnDagNode dag_fn( translator->GetMayaNode(), &status );
+   MString command;
+   if ( MStatus::kSuccess == status )
+   {
+      // Some kind of object/shape we need to export.
+      MDagPath dagPath;
+      dag_fn.getPath( dagPath );
+      dagPath.extendToShape();
+      command.format( "arnoldIpr -mode redo -node ^1s;", dagPath.partialPathName() );
+   }
+   else
+   {
+      // Not really sure what this is, let's pretend it's a shader.
+      MFnDependencyNode dep_fn( node );
+      command.format( "arnoldIpr -mode redo -node ^1s;", dep_fn.name() );
+   }
+
+   MGlobal::executeCommandOnIdle( command, false );
 }
 
 

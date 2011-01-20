@@ -27,6 +27,8 @@ std::map<int, CreatorFunction>  CMayaScene::s_dependTranslators;
 
 CMayaScene::~CMayaScene()
 {
+   ClearMayaCallbacks();
+   
    delete m_fnCommonRenderOptions;
    delete m_fnArnoldRenderOptions;
    // delete translators
@@ -263,7 +265,6 @@ void CMayaScene::PrepareExport()
    GetMotionBlurData();
 }
 
-
 void CMayaScene::GetMotionBlurData()
 {
    m_motionBlurData.enabled        = m_fnArnoldRenderOptions->findPlug("motion_blur_enable").asBool();
@@ -286,3 +287,40 @@ void CMayaScene::GetMotionBlurData()
       }
    }
 }
+
+void CMayaScene::RegisterDagTranslator(int typeId, CreatorFunction creator)
+{
+   s_dagTranslators[typeId] = creator;
+}
+
+void CMayaScene::RegisterTranslator(int typeId, CreatorFunction creator)
+{
+   s_dependTranslators[typeId] = creator;
+}
+
+CNodeTranslator * CMayaScene::GetActiveTranslator( const MObject node )
+{
+   MObjectHandle node_handle( node );
+
+   ObjectToTranslatorMap::iterator translatorIt = m_processedTranslators.find( node_handle );
+   if ( translatorIt != m_processedTranslators.end() )
+   {
+      return (CNodeTranslator*)translatorIt->second;
+   }
+
+   return 0x0;
+}
+
+void CMayaScene::ClearMayaCallbacks()
+{
+   AiMsgDebug( "[mtoa] Clearing IPR callbacks" );
+
+   ObjectToTranslatorMap::iterator it;
+   for(it = m_processedTranslators.begin(); it != m_processedTranslators.end(); it++)
+   {
+      it->second->RemoveCallbacks();
+   }
+}
+
+
+

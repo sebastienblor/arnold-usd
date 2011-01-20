@@ -10,6 +10,8 @@
 #include <maya/MFnDagNode.h>
 #include <maya/MPlug.h>
 #include <maya/MGlobal.h>
+#include <maya/MMessage.h> // for MCallbackId
+#include <maya/MCallbackIdArray.h>
 
 class CMayaScene;
 
@@ -23,6 +25,13 @@ public:
    static void ConvertMatrix(AtMatrix& matrix, const MMatrix& mayaMatrix);
    AtNode* DoExport(AtUInt step);
    AtNode* DoUpdate(AtUInt step);
+   
+   // Overide this if you have some special callbacks to install.
+   virtual void AddCallbacks();
+   // Remove callbacks installed. This is virtual incase
+   // a translator needs to do more than remove the managed
+   // callbacks.
+   virtual void RemoveCallbacks();
    virtual void Init(const MObject& object, CMayaScene* scene, MString outputAttr="")
    {
       m_object = object;
@@ -51,12 +60,33 @@ protected:
    void ExportDynamicIntParameter(AtNode* arnoldNode, const char* paramName);
    void ExportUserAttribute(AtNode *anode);
 
+   // Add a callback to the list to manage.
+   void ManageCallback( const MCallbackId id );
+
+   // Some simple callbacks used by many translators.
+   static void NodeDirtyCallback(MObject &node, MPlug &plug, void *clientData);
+   static void NameChangedCallback(MObject &node, const MString &str, void *clientData);
+   
+   MObject GetMayaNode() const
+   {
+      return m_object;
+   }
+
 protected:
    MObject m_object;
    CMayaScene* m_scene;
    MFnDependencyNode m_fnNode;
    MString m_outputAttr;
    AtNode* m_atNode;
+
+   // This stores callback IDs for the callbacks this
+   // translator creates.
+   MCallbackIdArray m_mayaCallbackIDs;
+
+   // This is a help that tells mtoa to re-export/update the node passed in.
+   // Used by the IPR callbacks.
+   static void UpdateIPR( MObject node, void * clientData );
+   
 };
 
 // Abstract base class for Dag node translators

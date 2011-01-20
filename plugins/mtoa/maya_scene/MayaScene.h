@@ -83,8 +83,9 @@ public:
    MStatus ExportForIPR(AtUInt step);
    MStatus ExportSelected();
    bool ExportDagPath(MDagPath &dagPath, AtUInt step);
-   static void RegisterDagTranslator(int typeId, CreatorFunction creator){s_dagTranslators[typeId] = creator;}
-   static void RegisterTranslator(int typeId, CreatorFunction creator){s_dependTranslators[typeId] = creator;}
+   static void RegisterDagTranslator(int typeId, CreatorFunction creator);
+   static void RegisterTranslator(int typeId, CreatorFunction creator);
+   CNodeTranslator * GetActiveTranslator( const MObject node );
 
    void ExportHair(const MDagPath& dagPath, AtUInt step);
    void ExportInstancerReplacement(const MDagPath& dagPath, AtUInt step);
@@ -100,6 +101,8 @@ public:
 
    void GetMotionBlurData();
 
+   void ClearMayaCallbacks();
+         
 //private:
    ExportMode m_exportMode;
    
