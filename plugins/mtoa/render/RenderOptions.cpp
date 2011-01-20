@@ -1,6 +1,7 @@
 
 #include "RenderOptions.h"
 #include "maya_scene/MayaScene.h"
+#include "maya_scene/Options.h"
 
 #include <ai_constants.h>
 #include <ai_msg.h>
@@ -279,88 +280,10 @@ void CRenderOptions::ProcessArnoldRenderOptions()
 
 void CRenderOptions::SetupRenderOptions() const
 {
-   SetupImageOptions();
-   MTime currentTime;
-
-   currentTime = MAnimControl::currentTime();
-
-   AiNodeSetInt(AiUniverseGetOptions(), "threads", m_threads);
-   AiNodeSetInt(AiUniverseGetOptions(), "bucket_scanning", m_bucket_scanning);
-   AiNodeSetInt(AiUniverseGetOptions(), "bucket_size", m_bucket_size);
-   AiNodeSetBool(AiUniverseGetOptions(), "abort_on_error", m_abort_on_error);
-
-   AiNodeSetInt(AiUniverseGetOptions(), "AA_samples", m_AA_samples);
-   AiNodeSetInt(AiUniverseGetOptions(), "GI_diffuse_samples", m_GI_diffuse_samples);
-   AiNodeSetInt(AiUniverseGetOptions(), "GI_glossy_samples", m_GI_glossy_samples);
-   AiNodeSetInt(AiUniverseGetOptions(), "GI_sss_hemi_samples", m_GI_sss_hemi_samples);
-   AiNodeSetFlt(AiUniverseGetOptions(), "AA_sample_clamp", m_AA_sample_clamp);
-
-   if (!m_lock_sampling_noise)
-      AiNodeSetInt(AiUniverseGetOptions(), "AA_seed", (AtInt)currentTime.value());
-
-   AiNodeSetFlt(AiUniverseGetOptions(), "light_gamma", m_light_gamma);
-   AiNodeSetFlt(AiUniverseGetOptions(), "shader_gamma", m_shader_gamma);
-   AiNodeSetFlt(AiUniverseGetOptions(), "texture_gamma", m_texture_gamma);
-
-   AiNodeSetInt(AiUniverseGetOptions(), "GI_diffuse_depth", m_GI_diffuse_depth);
-   AiNodeSetInt(AiUniverseGetOptions(), "GI_glossy_depth", m_GI_glossy_depth);
-   AiNodeSetInt(AiUniverseGetOptions(), "GI_reflection_depth", m_GI_reflection_depth);
-   AiNodeSetInt(AiUniverseGetOptions(), "GI_refraction_depth", m_GI_refraction_depth);
-   AiNodeSetInt(AiUniverseGetOptions(), "GI_total_depth", m_GI_total_depth);
-
-   AiNodeSetInt(AiUniverseGetOptions(), "auto_transparency_depth", m_auto_transparency_depth);
-   AiNodeSetFlt(AiUniverseGetOptions(), "auto_transparency_threshold", m_auto_transparency_threshold);
-   AiNodeSetBool(AiUniverseGetOptions(), "auto_transparency_probabilistic", m_auto_transparency_probabilistic);
-
-   AiNodeSetBool(AiUniverseGetOptions(), "sss_subpixel_cache", m_sss_subpixel_cache);
-   AiNodeSetInt(AiUniverseGetOptions(), "show_samples", m_show_samples);
-
-   AiNodeSetInt(AiUniverseGetOptions(), "max_subdivisions", m_max_subdivisions);
-
-   AiNodeSetBool(AiUniverseGetOptions(), "texture_automip", m_texture_automip);
-   AiNodeSetInt(AiUniverseGetOptions(), "texture_autotile", m_texture_autotile);
-   AiNodeSetFlt(AiUniverseGetOptions(), "texture_max_memory_MB", m_texture_max_memory_MB);
-
-   // If the scene has not been set, avoid crashing by using a NULL pointer
-   if (!m_scene)
-      return;
-
-   MSelectionList list;
-   MObject        node;
-
-   // BACKGROUND SHADER
-   //
-   if (!m_background.isNull())
+   MObject node;
+   if (GetOptionsNode(node) == MS::kSuccess)
    {
-      AiNodeSetPtr(AiUniverseGetOptions(), "background", m_scene->ExportShader(m_background));
-   }
-
-   // ATMOSPHERE SHADER
-   //
-   list.clear();
-
-   switch (m_atmosphere)
-   {
-   case 0:
-      break;
-
-   case 1:  // Fog
-      list.add("defaultFogShader");
-      if (list.length() > 0)
-      {
-         list.getDependNode(0, node);
-         AiNodeSetPtr(AiUniverseGetOptions(), "atmosphere", m_scene->ExportShader(node));
-      }
-      break;
-
-   case 2:  // Volume Scattering
-      list.add("defaultVolumeScatteringShader");
-      if (list.length() > 0)
-      {
-         list.getDependNode(0, node);
-         AiNodeSetPtr(AiUniverseGetOptions(), "atmosphere", m_scene->ExportShader(node));
-      }
-      break;
+      m_scene->ExportShader(node);
    }
 }
 
@@ -376,17 +299,12 @@ void CRenderOptions::SetupLog() const
 
 void CRenderOptions::SetupImageOptions() const
 {
-   if (m_useRenderRegion)
+   MObject        node;
+   if (GetOptionsNode(node) == MS::kSuccess)
    {
-      AiNodeSetInt(AiUniverseGetOptions(), "region_min_x", m_minx);
-      AiNodeSetInt(AiUniverseGetOptions(), "region_min_y", m_height - m_maxy - 1);
-      AiNodeSetInt(AiUniverseGetOptions(), "region_max_x", m_maxx);
-      AiNodeSetInt(AiUniverseGetOptions(), "region_max_y", m_height - m_miny - 1);
+      CRenderOptionsTranslator* translator = (CRenderOptionsTranslator*)m_scene->GetActiveTranslator(node);
+      translator->SetupImageOptions(AiUniverseGetOptions());
    }
-
-   AiNodeSetInt(AiUniverseGetOptions(), "xres", m_width);
-   AiNodeSetInt(AiUniverseGetOptions(), "yres", m_height);
-   AiNodeSetFlt(AiUniverseGetOptions(), "aspect_ratio", m_pixelAspectRatio);
 }
 
 AtInt CRenderOptions::GetFlagsFromVerbosityLevel(AtUInt level) const
@@ -458,3 +376,15 @@ void CRenderOptions::SetupImageOutputs()
    }
 }
 
+MStatus CRenderOptions::GetOptionsNode(MObject& optionsNode) const
+{
+   MSelectionList list;
+   list.add("defaultArnoldRenderOptions");
+
+   if (list.length() > 0)
+   {
+      list.getDependNode(0, optionsNode);
+      return MS::kSuccess;
+   }
+   return MS::kFailure;
+}

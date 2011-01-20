@@ -27,6 +27,7 @@
 #include "maya_scene/Lights.h"
 #include "maya_scene/Geometry.h"
 #include "maya_scene/Cameras.h"
+#include "maya_scene/Options.h"
 
 #include <ai_render.h>
 #include <ai_msg.h>
@@ -82,6 +83,8 @@ namespace // <anonymous>
       arnoldPluginFactory = new CArnoldNodeFactory(object);
 
       arnoldPluginFactory->LoadPlugins();
+
+      arnoldPluginFactory->RegisterDependTranslator("ArnoldRenderOptions", ARNOLD_NODEID_RENDER_OPTIONS, CRenderOptionsTranslator::creator);
 
       arnoldPluginFactory->RegisterDependTranslator("surfaceShader", MAYA_NODEID_SURFACE_SHADER, CSurfaceShaderTranslator::creator);
       arnoldPluginFactory->RegisterDependTranslator("lambert", MAYA_NODEID_LAMBERT, CLambertTranslator::creator);

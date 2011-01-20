@@ -323,6 +323,8 @@ private:
 
    AtInt GetFlagsFromVerbosityLevel(AtUInt level) const;
 
+   MStatus GetOptionsNode(MObject& optionsNode) const;
+
 private:
 
    AtUInt32 m_minx, m_miny, m_maxx, m_maxy;
