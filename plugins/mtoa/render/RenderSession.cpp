@@ -51,7 +51,8 @@ unsigned int CRenderSession::RenderThread(AtVoid* data)
 {
    CRenderOptions * render_options = static_cast< CRenderOptions * >( data );
    // set progressive start point on AA
-   AtInt init_progressive_samples = render_options->isProgressive() ? -3 : render_options->NumAASamples();
+   const AtInt num_aa_samples = AiNodeGetInt(AiUniverseGetOptions(), "AA_samples" );
+   AtInt init_progressive_samples = render_options->isProgressive() ? -3 : num_aa_samples;
    AtUInt prog_passes = render_options->isProgressive() ? ((-init_progressive_samples) + 2) : 1;
 
    // Get rid of any previous renders tiles that have not yet
@@ -62,10 +63,7 @@ unsigned int CRenderSession::RenderThread(AtVoid* data)
    for (AtUInt i = 0; (i < prog_passes ); ++i)
    {
       AtInt sampling = i + init_progressive_samples;
-      if (i + 1 == prog_passes)
-      {
-         sampling = render_options->NumAASamples();
-      }
+      if (i + 1 == prog_passes) sampling = num_aa_samples;
 
       AiNodeSetInt(AiUniverseGetOptions(), "AA_samples", sampling);
       // Begin a render!
@@ -73,6 +71,10 @@ unsigned int CRenderSession::RenderThread(AtVoid* data)
       if ( ai_status != AI_SUCCESS ) break;
    }
 
+   // Put this back after we're done interating through.
+   AiNodeSetInt(AiUniverseGetOptions(), "AA_samples", num_aa_samples);
+   
+   
    DisplayUpdateQueueRenderFinished();
 
    return 0;
