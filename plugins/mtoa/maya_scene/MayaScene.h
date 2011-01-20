@@ -15,6 +15,7 @@
 #include <maya/MFnCamera.h>
 #include <maya/MVectorArray.h>
 #include <maya/MMessage.h>
+#include <maya/MPlug.h>
 
 #include <vector>
 #include <map>
@@ -76,13 +77,65 @@ public:
    AtNode* ExportShader(MObject mayaShader, const MString &attrName="");
    AtNode* ExportShader(MPlug& shaderOutputPlug);
 
-   AtFloat GetCurrentFrame() { return m_currentFrame;}
+   AtFloat GetCurrentFrame()              { return m_currentFrame;}
+   ExportMode GetExportMode()             { return m_exportMode; }
+   void SetExportMode( ExportMode mode )  { m_exportMode = mode; }
 
-   ExportMode GetExportMode() { return m_exportMode; }
-   void SetExportMode( ExportMode mode ) { m_exportMode = mode; }
+   void ProcessShaderParameter(MFnDependencyNode shader,
+                               const char* param,
+                               AtNode* arnoldShader,
+                               const char* arnoldAttrib,
+                               int arnoldAttribType,
+                               int element=-1);
    
+   CNodeTranslator * GetActiveTranslator( const MObject node );
    
-//private:
+   static void UpdateIPR(CNodeTranslator * translator=0x0);
+   static bool IsVisibleDag(MDagPath dagPath);
+   static void RegisterDagTranslator(int typeId, CreatorFunction creator);
+   static void RegisterTranslator(int typeId, CreatorFunction creator);
+
+   bool IsMotionBlurEnabled() const
+   {
+      return m_motionBlurData.enabled;
+   }
+   
+   bool IsCameraMotionBlurEnabled() const
+   {
+      return IsMotionBlurEnabled() && m_fnArnoldRenderOptions->findPlug("mb_camera_enable").asBool();
+   }
+
+   bool IsObjectMotionBlurEnabled() const
+   {
+      return IsMotionBlurEnabled() && m_fnArnoldRenderOptions->findPlug("mb_objects_enable").asBool();
+   }
+
+   bool IsObjectDeformMotionBlurEnabled() const
+   {
+      return IsMotionBlurEnabled() && m_fnArnoldRenderOptions->findPlug("mb_object_deform_enable").asBool();
+   }
+   
+   bool IsLightMotionBlurEnabled() const
+   {
+      return IsMotionBlurEnabled() && m_fnArnoldRenderOptions->findPlug("mb_lights_enable").asBool();
+   }
+   
+   int GetNumMotionSteps() const
+   {
+      return m_motionBlurData.motion_steps;
+   }
+   
+   float GetShutterSize() const
+   {
+      return m_motionBlurData.shutter_size;
+   }
+   
+   int GetShutterType()
+   {
+      return m_motionBlurData.shutter_type;
+   }
+
+private:
    
    void PrepareExport();
    MStatus IterSelection(MSelectionList selected);
@@ -90,19 +143,14 @@ public:
    MStatus ExportForIPR(AtUInt step);
    MStatus ExportSelected();
    bool ExportDagPath(MDagPath &dagPath, AtUInt step);
-   static void RegisterDagTranslator(int typeId, CreatorFunction creator);
-   static void RegisterTranslator(int typeId, CreatorFunction creator);
-   CNodeTranslator * GetActiveTranslator( const MObject node );
 
    void ExportHair(const MDagPath& dagPath, AtUInt step);
    void ExportInstancerReplacement(const MDagPath& dagPath, AtUInt step);
 
-   void ProcessShaderParameter(MFnDependencyNode shader, const char* param, AtNode* arnoldShader, const char* arnoldAttrib, int arnoldAttribType, int element=-1);
    AtNode* ExportArnoldShader(MObject mayaShader, MString arnoldShader);
 
    static bool IsVisible(MFnDagNode node);
    static bool IsTemplated(MFnDagNode node);
-   static bool IsVisibleDag(MDagPath dagPath);
    bool IsMasterInstance(const MDagPath &dagPath, MDagPath &masterDag);
    void GetMatrix(AtMatrix& matrix, const MDagPath& dagPath);
    void ConvertMatrix(AtMatrix& matrix, const MMatrix& mayamatrix);
@@ -112,15 +160,12 @@ public:
    void ClearIPRCallbacks();
    static void IPRNewNodeCallback(MObject & node, void *);
    static void IPRIdleCallback(void *);
-   static void UpdateIPR(CNodeTranslator * translator=0x0);
 
    static std::vector< CNodeTranslator * > s_translatorsToIPRUpdate;
    static MCallbackId s_IPRIdleCallbackId;
    static MCallbackId s_NewNodeCallbackId;
    
-//private:
-   ExportMode m_exportMode;
-   
+private:
    struct CShaderData
    {
       MObject mayaShader;
@@ -128,16 +173,15 @@ public:
       MString attrName;
    };
 
-   std::vector<CShaderData> m_processedShaders;
-
-   ObjectToTranslatorMap m_processedTranslators;
-
+   ExportMode m_exportMode;
    MFnDependencyNode* m_fnCommonRenderOptions;
    MFnDependencyNode* m_fnArnoldRenderOptions;
-
-   MDagPath m_camera;
-
    CMotionBlurData m_motionBlurData;
+   
+   std::vector<CShaderData> m_processedShaders;
+   ObjectToTranslatorMap m_processedTranslators;
+   
+   MDagPath m_camera;
 
    AtFloat m_currentFrame;
 

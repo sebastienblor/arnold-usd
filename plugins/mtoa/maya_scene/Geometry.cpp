@@ -561,24 +561,24 @@ void CGeoTranslator::ExportMeshGeoData(AtNode* polymesh, AtUInt step)
       else
       {
          // Deformation motion blur. We need to create keyable arrays for vlist and nlist
-         AtArray* vlist_array = AiArrayAllocate(m_fnMesh.numVertices(), m_scene->m_motionBlurData.motion_steps, AI_TYPE_POINT);
+         AtArray* vlist_array = AiArrayAllocate(m_fnMesh.numVertices(), m_scene->GetNumMotionSteps(), AI_TYPE_POINT);
          SetKeyData(vlist_array, step, vertices, m_fnMesh.numVertices());
          AiNodeSetArray(polymesh, "vlist", vlist_array);
 
          if (exportNormals)
          {
-            AtArray* nlist_array = AiArrayAllocate(m_fnMesh.numNormals(), m_scene->m_motionBlurData.motion_steps, AI_TYPE_VECTOR);
+            AtArray* nlist_array = AiArrayAllocate(m_fnMesh.numNormals(), m_scene->GetNumMotionSteps(), AI_TYPE_VECTOR);
             SetKeyData(nlist_array, step, normals, m_fnMesh.numNormals());
             AiNodeSetArray(polymesh, "nlist", nlist_array);
          }
 
          if (exportTangents)
          {
-            AtArray* tangent_array = AiArrayAllocate(m_fnMesh.numVertices(), m_scene->m_motionBlurData.motion_steps, AI_TYPE_VECTOR);
+            AtArray* tangent_array = AiArrayAllocate(m_fnMesh.numVertices(), m_scene->GetNumMotionSteps(), AI_TYPE_VECTOR);
             SetKeyData(tangent_array, step, tangents, m_fnMesh.numVertices());
             AiNodeSetArray(polymesh, "tangent", tangent_array);
 
-            AtArray* bitangent_array = AiArrayAllocate(m_fnMesh.numVertices(), m_scene->m_motionBlurData.motion_steps, AI_TYPE_VECTOR);
+            AtArray* bitangent_array = AiArrayAllocate(m_fnMesh.numVertices(), m_scene->GetNumMotionSteps(), AI_TYPE_VECTOR);
             SetKeyData(bitangent_array, step, bitangents, m_fnMesh.numVertices());
             AiNodeSetArray(polymesh, "bitangent", bitangent_array);
          }

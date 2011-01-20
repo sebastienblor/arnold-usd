@@ -127,7 +127,7 @@ void CCameraTranslator::ExportImagePlane(AtUInt step)
                {
                   if (step == 0)
                   {
-                     AtArray* matrices = AiArrayAllocate(1, m_scene->m_motionBlurData.motion_steps, AI_TYPE_MATRIX);
+                     AtArray* matrices = AiArrayAllocate(1, m_scene->GetNumMotionSteps(), AI_TYPE_MATRIX);
                      AiArraySetMtx(matrices, 0, imagePlaneMatrix);
                      AiNodeSetArray(imagePlane, "matrix", matrices);
                   }
@@ -166,19 +166,19 @@ void CCameraTranslator::ExportCameraData(AtNode* camera)
       AiNodeSetFlt(camera, "aperture_blade_curvature", m_fnNode.findPlug("aperture_blade_curvature").asFloat());
    }
    
-   if (m_scene->m_motionBlurData.enabled)
+   if (m_scene->IsMotionBlurEnabled())
    {
-      float halfShutter = m_scene->m_motionBlurData.shutter_size * 0.5f;
+      float halfShutter = m_scene->GetShutterSize() * 0.5f;
       AiNodeSetFlt(camera, "shutter_start", 0.5f - halfShutter);
       AiNodeSetFlt(camera, "shutter_end", 0.5f + halfShutter);
-      AiNodeSetInt(camera, "shutter_type", m_scene->m_fnArnoldRenderOptions->findPlug("shutter_type").asInt());
+      AiNodeSetInt(camera, "shutter_type", m_scene->GetShutterType());
    }
 
    GetMatrix(matrix);
    
    if (m_motion)
    {
-      AtArray* matrices = AiArrayAllocate(1, m_scene->m_motionBlurData.motion_steps, AI_TYPE_MATRIX);
+      AtArray* matrices = AiArrayAllocate(1, m_scene->GetNumMotionSteps(), AI_TYPE_MATRIX);
       AiArraySetMtx(matrices, 0, matrix);
       AiNodeSetArray(camera, "matrix", matrices);
    }
@@ -497,7 +497,7 @@ void CCameraTranslator::ExportPersp(AtNode* camera)
 
    if (m_motion)
    {
-      AtArray* fovs = AiArrayAllocate(1, m_scene->m_motionBlurData.motion_steps, AI_TYPE_FLOAT);
+      AtArray* fovs = AiArrayAllocate(1, m_scene->GetNumMotionSteps(), AI_TYPE_FLOAT);
       AiArraySetFlt(fovs, 0, fov);
       AiNodeSetArray(camera, "fov", fovs);
    }

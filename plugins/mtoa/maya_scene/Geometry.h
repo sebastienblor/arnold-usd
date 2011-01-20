@@ -13,12 +13,8 @@ public:
    void Init(MDagPath& dagPath, CMayaScene* scene, MString outputAttr="")
    {
       CDagTranslator::Init(dagPath, scene, outputAttr);
-      m_motion = m_scene->m_motionBlurData.enabled &&
-                  m_scene->m_fnArnoldRenderOptions->findPlug("mb_objects_enable").asBool() &&
-                  m_fnNode.findPlug("motionBlur").asBool();
-      m_motionDeform = m_scene->m_motionBlurData.enabled &&
-                       m_scene->m_fnArnoldRenderOptions->findPlug("mb_object_deform_enable").asBool() &&
-                       m_fnNode.findPlug("motionBlur").asBool();
+      m_motion = m_scene->IsObjectMotionBlurEnabled() && m_fnNode.findPlug("motionBlur").asBool();
+      m_motionDeform = m_motion && m_scene->IsObjectDeformMotionBlurEnabled();
       m_dagPath = dagPath;
       m_fnNode.setObject(dagPath);
       m_scene = scene;

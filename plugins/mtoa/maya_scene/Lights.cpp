@@ -104,7 +104,7 @@ void CLightTranslator::Update(AtNode* light, bool mayaAttrs)
 
    if (m_motion)
    {
-      AtArray* matrices = AiArrayAllocate(1, m_scene->m_motionBlurData.motion_steps, AI_TYPE_MATRIX);
+      AtArray* matrices = AiArrayAllocate(1, m_scene->GetNumMotionSteps(), AI_TYPE_MATRIX);
       AiArraySetMtx(matrices, 0, matrix);
       AiNodeSetArray(light, "matrix", matrices);
    }

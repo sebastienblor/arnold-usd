@@ -32,8 +32,7 @@ public:
    void Init(MDagPath& dagPath, CMayaScene* scene, MString outputAttr="")
    {
       CDagTranslator::Init(dagPath, scene, outputAttr);
-      m_motion = m_scene->m_motionBlurData.enabled &&
-            m_scene->m_fnArnoldRenderOptions->findPlug("mb_camera_enable").asBool();
+      m_motion = m_scene->IsCameraMotionBlurEnabled();
       m_fnCamera.setObject(dagPath);
       m_dagPath = dagPath;
       m_fnNode.setObject(dagPath);

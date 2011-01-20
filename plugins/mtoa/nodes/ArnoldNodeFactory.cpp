@@ -263,11 +263,11 @@ bool CArnoldNodeFactory::RegisterTranslator(const char* mayaNode, int typeId, Cr
    return true;
 }
 
-bool CArnoldNodeFactory::RegisterDagTranslator(const char* mayaNode, int typeId, CreatorFunction creator, NodeInitFunction nodeInitializer, const char* providedByPlugin)
+bool CArnoldNodeFactory::RegisterDagTranslator(const char* mayaNode,int typeId, CreatorFunction creator, NodeInitFunction nodeInitializer, const char* providedByPlugin)
 {
    if (RegisterTranslator(mayaNode, typeId, creator, nodeInitializer, providedByPlugin))
    {
-      CMayaScene::s_dagTranslators[typeId] = creator;
+      CMayaScene::RegisterDagTranslator(typeId, creator);
       return true;
    }
    return false;
@@ -277,7 +277,7 @@ bool CArnoldNodeFactory::RegisterDependTranslator(const char* mayaNode, int type
 {
    if (RegisterTranslator(mayaNode, typeId, creator, nodeInitializer, providedByPlugin))
    {
-      CMayaScene::s_dependTranslators[typeId] = creator;
+      CMayaScene::RegisterTranslator(typeId, creator);
       return true;
    }
    return false;
@@ -303,7 +303,7 @@ bool CArnoldNodeFactory::RegisterDagTranslator(const char* mayaNode, int typeId,
 {
    if (RegisterTranslator(mayaNode, typeId, creator))
    {
-      CMayaScene::s_dagTranslators[typeId] = creator;
+      CMayaScene::RegisterDagTranslator(typeId, creator);
       return true;
    }
    return false;
@@ -313,7 +313,7 @@ bool CArnoldNodeFactory::RegisterDependTranslator(const char* mayaNode, int type
 {
    if (RegisterTranslator(mayaNode, typeId, creator))
    {
-      CMayaScene::s_dependTranslators[typeId] = creator;
+      CMayaScene::RegisterTranslator(typeId, creator);
       return true;
    }
    return false;
