@@ -83,9 +83,8 @@ void CMayaScene::ExportCamera(const MDagPath& dagPath, AtUInt step)
       if (step == 0)
       {
          ExportCameraData(camera, dagPath, mb);
-         ExportImagePlane(dagPath, mb, step);
-
          GetOrthoFilmback(camera, fnCamera);
+         ExportImagePlane(dagPath, mb, step);
       }
       else if (mb)
       {
@@ -96,7 +95,8 @@ void CMayaScene::ExportCamera(const MDagPath& dagPath, AtUInt step)
    else
    {
       camera = AiNode("persp_camera");
-      float fov = GetPerspFilmback(camera, fnCamera);
+      GetPerspFilmback(camera, fnCamera);
+      float fov = m_cameraData.fov;
 
       if (step == 0)
       {
@@ -158,6 +158,7 @@ double CMayaScene::GetDeviceAspect()
       }
    }
 
+   m_cameraData.deviceAspect = deviceAspect;
    return deviceAspect;
 }
 
@@ -196,11 +197,16 @@ void CMayaScene::GetOrthoFilmback(AtNode* camera, MFnCamera& fnCamera)
    
    MVectorArray filmTransforms = GetFilmTransform(fnCamera, width, false);
    
+   m_cameraData.width = width;
+   m_cameraData.factorX = filmTransforms[0].x;
+   m_cameraData.factorY = filmTransforms[0].y;
+   m_cameraData.focalLength = 35;
+
    AiNodeSetPnt2(camera, "screen_window_min", static_cast<float>(filmTransforms[0].x), static_cast<float>(filmTransforms[0].y));
    AiNodeSetPnt2(camera, "screen_window_max", static_cast<float>(filmTransforms[1].x), static_cast<float>(filmTransforms[1].y));
 }
 
-float CMayaScene::GetPerspFilmback(AtNode* camera, MFnCamera& fnCamera)
+void CMayaScene::GetPerspFilmback(AtNode* camera, MFnCamera& fnCamera)
 {
 
    double deviceAspect = GetDeviceAspect();
@@ -290,7 +296,16 @@ float CMayaScene::GetPerspFilmback(AtNode* camera, MFnCamera& fnCamera)
    AiNodeSetPnt2(camera, "screen_window_min", static_cast<float>(minPoint.x), static_cast<float>(minPoint.y));
    AiNodeSetPnt2(camera, "screen_window_max", static_cast<float>(maxPoint.x), static_cast<float>(maxPoint.y));
    
-   return fov;
+   m_cameraData.apertureX = deviceApertureX;
+   m_cameraData.apertureY = deviceApertureY;
+   m_cameraData.fov = fov;
+   m_cameraData.scale = cameraScale;
+   m_cameraData.focalLength = focalLength;
+   m_cameraData.factorX = factorX;
+   m_cameraData.factorY = factorY;
+   m_cameraData.lensSqueeze = lensSqueeze;
+
+   //return fov;
 }
 
 MVectorArray CMayaScene::GetFilmTransform(MFnCamera& fnCamera, double width, bool persp)

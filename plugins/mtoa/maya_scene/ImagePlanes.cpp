@@ -4,6 +4,7 @@
 #include <maya/MPlugArray.h>
 #include <maya/MObject.h>
 #include <maya/MFnDependencyNode.h>
+#include <maya/MImage.h>
 
 #include <maya/MRenderUtil.h>
 
@@ -32,29 +33,71 @@ void CMayaScene::ExportImagePlane(const MDagPath& dagPath, bool mb, AtUInt step)
             MFnDependencyNode fnRes(resNode);
    
             // check if the image plane should be created
-            int displayMode           = fnRes.findPlug("displayMode", &status).asInt();
+            int displayMode = fnRes.findPlug("displayMode", &status).asInt();
             if ( displayMode > 1 )
             {
    
                MString imagePlaneName(fnDagNode.partialPathName());
                imagePlaneName += "_IP_"; 
-               imagePlaneName += ips; 
+               imagePlaneName += ips;
+               
+               int planeType = fnRes.findPlug("type", &status).asInt();
+               MString imageName;
+               MString frameNumber("0");
+               if(planeType == 0) //If the ImagePlane type is image
+               {   
+                  frameNumber += GetCurrentFrame() + fnRes.findPlug("frameOffset").asInt();
+                  imageName = MRenderUtil::exactImagePlaneFileName(resNode);
+                  imageName = MRenderUtil::exactFileTextureName(imageName, fnRes.findPlug("useFrameExtension").asBool(), frameNumber);
+               }
+               
+               //Find the actual Image size and aspect we are using for the image plane
+               MImage mi = MImage();
+               mi.readFromFile(imageName, MImage::kByte);
+               unsigned int imageWidth, imageHeight;
+               mi.getSize(imageWidth, imageHeight);
+               double imageAspect = (double)imageWidth / imageHeight;
+
                double planeSizeX = fnRes.findPlug("sizeX", &status).asDouble();
                double planeSizeY = fnRes.findPlug("sizeY", &status).asDouble();
+               
+               double coverageX = fnRes.findPlug("coverageX", &status).asDouble();
+               double coverageY = fnRes.findPlug("coverageY", &status).asDouble();
+
+               double planeAspect = planeSizeX / planeSizeY;
                double planeDepth = fnRes.findPlug("depth").asDouble();
-               double camFocal = fnDagNode.findPlug("focalLength").asDouble();
-               double camScale = fnDagNode.findPlug("cameraScale").asDouble();
-               double ipWidth = (planeSizeX * planeDepth) / ((camFocal * 0.0393700787) / camScale);
-               double ipHeight = (planeSizeY * planeDepth) / ((camFocal * 0.0393700787) / camScale);
+               bool lockedToCamera = fnDagNode.findPlug("lockedToCamera").asBool();
+               
+               double ipWidth = (planeSizeX * planeDepth * m_cameraData.lensSqueeze) / ((m_cameraData.focalLength * 0.0393700787) / m_cameraData.scale);
+               double ipHeight = (planeSizeY * planeDepth * m_cameraData.lensSqueeze) / ((m_cameraData.focalLength * 0.0393700787) / m_cameraData.scale);
+               int fit = fnRes.findPlug("fit", &status).asInt();
+               
+               //Check if Best has been selected first because this is the same as 
+               //Horizontal or Vertical depending on the Image Planes Aspect vs the Device Aspect
+               if(fit == 1) //Best
+               {  
+                  ipWidth = (m_cameraData.apertureX * planeDepth * m_cameraData.lensSqueeze) / ((m_cameraData.focalLength * 0.0393700787) / m_cameraData.scale);
+                  ipHeight = (m_cameraData.apertureY * planeDepth * m_cameraData.lensSqueeze) / ((m_cameraData.focalLength * 0.0393700787) / m_cameraData.scale);
+               }
+
+               if(fit == 0) //Fill
+               {
+               }
+               else if(fit == 2) //Horizontal
+               {
+                  ipWidth = (m_cameraData.apertureX * planeDepth * m_cameraData.lensSqueeze) / ((m_cameraData.focalLength * 0.0393700787) / m_cameraData.scale);
+                  ipHeight = (m_cameraData.apertureY * planeDepth * m_cameraData.lensSqueeze) / ((m_cameraData.focalLength * 0.0393700787) / m_cameraData.scale);
+               }
+               else if(fit == 3) //Vertical
+               {
+               }
+               else if(fit == 4) //To Size
+               {
+               }
 
                if ( (!mb) || (step == 0))
                {
                   // get data
-                  MString imageName;
-                  MString frameNumber("0");
-                  frameNumber += GetCurrentFrame() + fnRes.findPlug("frameOffset").asInt();
-                  imageName = MRenderUtil::exactImagePlaneFileName(resNode);
-                  imageName = MRenderUtil::exactFileTextureName(imageName, fnRes.findPlug("useFrameExtension").asBool(), frameNumber);
 
                   // CREATE PLANE
                   AtNode* imagePlane = AiNode("polymesh");
@@ -82,11 +125,16 @@ void CMayaScene::ExportImagePlane(const MDagPath& dagPath, bool mb, AtUInt step)
    
                   // create a flat shader with the needed image
                   AtNode* imagePlaneShader = AiNode("flat");
-                  AtNode* imagePlaneImage = AiNode("image");
-                  AiNodeSetStr(imagePlaneImage, "filename", imageName.asChar());
-                  AiNodeLink(imagePlaneImage, "color", imagePlaneShader);
-                  AiNodeLink(imagePlaneImage, "opacity", imagePlaneShader);
-                  AiNodeSetPtr(imagePlane, "shader", imagePlaneShader);
+
+                  if(planeType == 0)
+                  {
+                     AtNode* imagePlaneImage = AiNode("image");
+                     
+                     AiNodeSetStr(imagePlaneImage, "filename", imageName.asChar());
+                     AiNodeLink(imagePlaneImage, "color", imagePlaneShader);
+                     AiNodeLink(imagePlaneImage, "opacity", imagePlaneShader);
+                     AiNodeSetPtr(imagePlane, "shader", imagePlaneShader);
+                  }
                }
 
                AtNode* imagePlane = AiNodeLookUpByName(imagePlaneName.asChar());
@@ -131,9 +179,6 @@ void CMayaScene::ExportImagePlane(const MDagPath& dagPath, bool mb, AtUInt step)
                {
                   AiNodeSetMatrix(imagePlane, "matrix", imagePlaneMatrix);
                }
-
-
-               
             }
          }
       }
