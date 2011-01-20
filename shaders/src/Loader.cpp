@@ -21,6 +21,7 @@ extern AtNodeMethods* MayaFileMtd;
 extern AtNodeMethods* MayaPlace2dTextureMtd;
 extern AtNodeMethods* MayaRampMtd;
 extern AtNodeMethods* MayaProjectionMtd;
+extern AtNodeMethods* MayaLuminanceMtd;
 extern AtNodeMethods* MeshInfoMtd;
 extern AtNodeMethods* TangentToObjectSpaceMtd;
 
@@ -165,6 +166,13 @@ node_loader
       node->methods     = TangentToObjectSpaceMtd;
       node->output_type = AI_TYPE_VECTOR;
       node->name        = "TangentToObjectSpace";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+
+   case 20:
+      node->methods     = MayaLuminanceMtd;
+      node->output_type = AI_TYPE_FLOAT;
+      node->name        = "MayaLuminance";
       node->node_type   = AI_NODE_SHADER;
       break;
 
