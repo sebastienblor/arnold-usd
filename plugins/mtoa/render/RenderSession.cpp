@@ -280,7 +280,7 @@ void CRenderSession::DoRender()
       AtVoid* handler = AiThreadCreate(RenderThread, NULL, AI_PRIORITY_LOW);
 
       // Process messages sent by the render thread, and exit when rendering is finished or aborted
-      ProcessDisplayUpdateQueue(comp);
+      ProcessDisplayUpdateQueue(&comp);
 
       if (!aborted && comp.isInterruptRequested())
       {

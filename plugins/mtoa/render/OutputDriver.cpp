@@ -209,6 +209,7 @@ node_finish
    AiDriverDestroy(node);
 }
 
+
 void UpdateBucket(const AtBBox2& bucketRect, RV_PIXEL* pixels)
 {
    // Flip vertically
@@ -230,50 +231,65 @@ void InitializeDisplayUpdateQueue()
    s_displayUpdateQueue.reset();
 }
 
-void ProcessDisplayUpdateQueue(MComputation& comp)
+void FinishedWithDisplayUpdateQueue()
+{
+   // Notify the render thread that we are done with the renderview update
+   s_displayUpdateFinishedEvent.set();
+}
+
+void ClearDisplayUpdateQueue()
+{
+   s_displayUpdateQueue.reset();
+}
+
+bool ProcessSomeOfDisplayUpdateQueue()
+{
+   if (s_displayUpdateQueue.waitForNotEmpty(10))
+   {
+      CDisplayUpdateMessage   msg;
+
+      if (s_displayUpdateQueue.pop(msg))
+      {
+         if (!msg.finished)
+         {
+            switch (msg.msgType)
+            {
+            case MSG_BUCKET_PREPARE:
+               // TODO: Implement this...
+               break;
+            case MSG_BUCKET_UPDATE:
+               UpdateBucket(msg.bucketRect, msg.pixels);
+               break;
+            case MSG_IMAGE_UPDATE:
+               break;
+            }
+         }
+         else
+         {
+            // Received "end-of-render" message.
+            FinishedWithDisplayUpdateQueue();
+            return false;
+         }
+      }
+   }
+   return true;
+}
+
+void ProcessDisplayUpdateQueue(MComputation * comp)
 {
 
    bool aborted = false;
 
    while (true)
    {
-      if (!aborted && comp.isInterruptRequested())
+      if (!aborted && comp->isInterruptRequested())
       {
          AiRenderAbort();
          aborted = true;
       }
 
-      if (s_displayUpdateQueue.waitForNotEmpty(10))
-      {
-         CDisplayUpdateMessage   msg;
-
-         if (s_displayUpdateQueue.pop(msg))
-         {
-            if (!msg.finished)
-            {
-               switch (msg.msgType)
-               {
-               case MSG_BUCKET_PREPARE:
-                  // TODO: Implement this...
-                  break;
-               case MSG_BUCKET_UPDATE:
-                  UpdateBucket(msg.bucketRect, msg.pixels);
-                  break;
-               case MSG_IMAGE_UPDATE:
-                  break;
-               }
-            }
-            else
-            {
-               // Received "end-of-render" message, so get out of the loop
-               break;
-            }
-         }
-      }
+      if (!ProcessSomeOfDisplayUpdateQueue()) break;
    }
 
-   // Notify the render thread that we are done with the renderview update
-   s_displayUpdateFinishedEvent.set();
-
-   comp.endComputation();
+   comp->endComputation();
 }
