@@ -1,5 +1,5 @@
-#ifndef ARNOLD_RAY_SWITCH_SHADER_H
-#define ARNOLD_RAY_SWITCH_SHADER_H
+#ifndef ARNOLDRAYSWITCHSHADER_H
+#define ARNOLDRAYSWITCHSHADER_H
 
 #include <maya/MPxNode.h>
 
@@ -59,4 +59,4 @@ public:
 
 };  // class CArnoldRaySwicthShaderNode
 
-#endif // ARNOLD_RAY_SWITCH_SHADER_H
+#endif // ARNOLDRAYSWITCHSHADER_H

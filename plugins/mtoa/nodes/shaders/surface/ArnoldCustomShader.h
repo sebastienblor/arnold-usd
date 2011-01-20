@@ -1,5 +1,5 @@
-#ifndef ARNOLD_CUSTOM_SHADER_H
-#define ARNOLD_CUSTOM_SHADER_H
+#ifndef ARNOLDCUSTOMSHADER_H
+#define ARNOLDCUSTOMSHADER_H
 
 #include "nodes/ArnoldNodeHelper.h"
 #include <maya/MPxHwShaderNode.h>
@@ -33,4 +33,4 @@ public:
 
 };  // class CArnoldCustomShaderNode
 
-#endif // ARNOLD_CUSTOM_SHADER_H
+#endif // ARNOLDCUSTOMSHADER_H

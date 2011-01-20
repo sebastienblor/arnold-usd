@@ -23,11 +23,11 @@
 #include "nodes/shaders/surface/ArnoldWireframeShader.h"
 #include "nodes/shaders/surface/ArnoldHairShader.h"
 #include "nodes/shaders/surface/ArnoldRaySwitchShader.h"
-#include "maya_scene/Shaders.h"
-#include "maya_scene/Lights.h"
-#include "maya_scene/Geometry.h"
-#include "maya_scene/Cameras.h"
-#include "maya_scene/Options.h"
+#include "scene/Shaders.h"
+#include "scene/Lights.h"
+#include "scene/Geometry.h"
+#include "scene/Cameras.h"
+#include "scene/Options.h"
 #include "render/RenderSwatch.h"
 
 #include <ai_render.h>

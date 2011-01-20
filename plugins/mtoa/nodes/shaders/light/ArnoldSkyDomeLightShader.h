@@ -1,5 +1,5 @@
-#ifndef ARNOLD_SKY_DOME_LIGHT_SHADER_H
-#define ARNOLD_SKY_DOME_LIGHT_SHADER_H
+#ifndef ARNOLDSKYDOMELIGHTSHADER_H
+#define ARNOLDSKYDOMELIGHTSHADER_H
 
 #include "nodes/shaders/background/SphereLocator.h"
 #include "nodes/ArnoldNodeHelper.h"
@@ -42,5 +42,4 @@ public:
    static MObject s_OUT_transparency;
 };  // class CArnoldSkyDomeLightShaderNode
 
-#endif // ARNOLD_SKY_DOME_LIGHT_SHADER_H
-
+#endif // ARNOLDSKYDOMELIGHTSHADER_H

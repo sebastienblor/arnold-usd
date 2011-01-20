@@ -1,5 +1,5 @@
-#ifndef LIBRARY_H
-#define LIBRARY_H
+#ifndef DYNLIBRARY_H
+#define DYNLIBRARY_H
 
 #include <ai_types.h>
 
@@ -51,4 +51,4 @@ void *LibrarySymbol(AtVoid *handle, const char *name);
  */
 char *LibraryLastError();
 
-#endif /* LIBRARY_H */
+#endif /* DYNLIBRARY_H */

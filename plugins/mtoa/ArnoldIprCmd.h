@@ -1,5 +1,5 @@
-#ifndef ARNOLD_IPR_CMD_H
-#define ARNOLD_IPR_CMD_H
+#ifndef ARNOLDIPRCMD_H
+#define ARNOLDIPRCMD_H
 
 
 #include <maya/MPxCommand.h>
@@ -24,4 +24,4 @@ public:
 
 }; // class CArnoldIprCmd
 
-#endif // RENDER_CMD_H
+#endif // ARNOLDIPRCMD_H

@@ -1,5 +1,5 @@
-#ifndef ARNOLD_DISPLACEMENT_SHADER_H
-#define ARNOLD_DISPLACEMENT_SHADER_H
+#ifndef ARNOLDDISPLACEMENTSHADER_H
+#define ARNOLDDISPLACEMENTSHADER_H
 
 #include <maya/MPxNode.h>
 
@@ -48,4 +48,4 @@ public:
 
 };  // class CArnoldDisplacementShaderNode
 
-#endif // ARNOLD_DISPLACEMENT_SHADER_H
+#endif // ARNOLDDISPLACEMENTSHADER_H

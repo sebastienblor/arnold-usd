@@ -1,5 +1,5 @@
-#ifndef ARNOLD_BARNDOOR_SHADER_H
-#define ARNOLD_BARNDOOR_SHADER_H
+#ifndef ARNOLDBARNDOORSHADER_H
+#define ARNOLDBARNDOORSHADER_H
 
 #include <maya/MPxNode.h>
 
@@ -47,4 +47,4 @@ public:
 
 };  // class CArnoldBarndoorShaderNode
 
-#endif // ARNOLD_BARNDOOR_SHADER_H
+#endif // ARNOLDBARNDOORSHADER_H

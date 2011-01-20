@@ -1,5 +1,5 @@
-#ifndef ARNOLD_LIGHT_DECAY_SHADER_H
-#define ARNOLD_LIGHT_DECAY_SHADER_H
+#ifndef ARNOLDLIGHTDECAYSHADER_H
+#define ARNOLDLIGHTDECAYSHADER_H
 
 #include <maya/MPxNode.h>
 
@@ -44,4 +44,4 @@ public:
 
 };  // class CArnoldLightDecayShaderNode
 
-#endif // ARNOLD_LIGHT_DECAY_SHADER_H
+#endif // ARNOLDLIGHTDECAYSHADER_H

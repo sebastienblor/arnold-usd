@@ -33,4 +33,4 @@ SHADER_TRANSLATOR(CRemapColorTranslator);
 SHADER_TRANSLATOR(CProjectionTranslator);
 SHADER_TRANSLATOR(CRampTranslator);
 
-#endif
+#endif // SHADERS_H

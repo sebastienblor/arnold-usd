@@ -1,5 +1,5 @@
-#ifndef ARNOLD_RENDER_OPTIONS_H
-#define ARNOLD_RENDER_OPTIONS_H
+#ifndef METADATA_H
+#define METADATA_H
 
 #include <ai_metadata.h>
 
@@ -14,4 +14,4 @@ AtBoolean  MAiMetaDataGetStr (const AtNodeEntry *entry, const char *param, const
 
 AtParamValue MAiParamGetDefault(const AtNodeEntry *entry, const AtParamEntry* paramEntry);
 
-#endif
+#endif // METADATA_H

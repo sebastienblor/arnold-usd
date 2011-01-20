@@ -467,7 +467,7 @@ void CGeoTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
             MPlug pVectorDisp = dispNode.findPlug("vector_displacement", false);
             if (!pVectorDisp.isNull() && pVectorDisp.asBool())
             {
-               AtNode* tangentToObject = AiNode("tangentToObjectSpace");
+               AtNode* tangentToObject = AiNode("TangentToObjectSpace");
                m_scene->ProcessShaderParameter(dispNode, "vector_displacement_scale", tangentToObject, "scale", AI_TYPE_VECTOR);
                AiNodeLink(dispImage, "map", tangentToObject);
 

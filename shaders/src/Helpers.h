@@ -1,4 +1,3 @@
-
 #ifndef HELPERS_H
 #define HELPERS_H
 
@@ -10,4 +9,4 @@ bool setRefNmrs(AtShaderGlobals *sg, AtVector &tmpNmrs);
 void restorePts(AtShaderGlobals *sg, AtPoint tmpPts);
 void restoreNmrs(AtShaderGlobals *sg, AtVector tmpNmrs);
 
-#endif
+#endif // HELPERS_H

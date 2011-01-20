@@ -1,5 +1,5 @@
-#ifndef ARNOLD_GOBO_SHADER_H
-#define ARNOLD_GOBO_SHADER_H
+#ifndef ARNOLDGOBOSHADER_H
+#define ARNOLDGOBOSHADER_H
 
 #include <maya/MPxNode.h>
 
@@ -49,4 +49,4 @@ public:
 
 };  // class CArnoldGoboShaderNode
 
-#endif // ARNOLD_GOBO_SHADER_H
+#endif // ARNOLDGOBOSHADER_H

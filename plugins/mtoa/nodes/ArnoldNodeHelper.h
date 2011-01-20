@@ -1,5 +1,5 @@
-#ifndef ARNOLD_NODE_HELPER_H
-#define ARNOLD_NODE_HELPER_H
+#ifndef ARNOLDNODEHELPER_H
+#define ARNOLDNODEHELPER_H
 
 #include "platform/Platform.h"
 
@@ -185,4 +185,4 @@ protected:
    MStatus addAttribute(MObject& attrib);
 };
 
-#endif
+#endif // ARNOLDNODEHELPER_H

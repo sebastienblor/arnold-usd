@@ -1,5 +1,5 @@
-#ifndef ARNOLD_RENDER_OPTIONS_H
-#define ARNOLD_RENDER_OPTIONS_H
+#ifndef ARNOLDRENDEROPTIONS_H
+#define ARNOLDRENDEROPTIONS_H
 
 #include <maya/MPxNode.h>
 #include <maya/MTypeId.h>
@@ -114,4 +114,4 @@ public:
 
 };  // class CArnoldRenderOptionsNode
 
-#endif // ARNOLD_RENDER_OPTIONS_H
+#endif // ARNOLDRENDEROPTIONS_H

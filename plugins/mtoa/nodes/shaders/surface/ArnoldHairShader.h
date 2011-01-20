@@ -1,5 +1,5 @@
-#ifndef ARNOLD_HAIR_SHADER_H
-#define ARNOLD_HAIR_SHADER_H
+#ifndef ARNOLDHAIRSHADER_H
+#define ARNOLDHAIRSHADER_H
 
 #include <maya/MPxNode.h>
 
@@ -75,4 +75,4 @@ class CArnoldHairShaderNode
 
 };  // class CArnoldHairShaderNode
 
-#endif // ARNOLD_HAIR_SHADER_H
+#endif // ARNOLDHAIRSHADER_H

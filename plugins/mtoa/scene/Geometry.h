@@ -1,4 +1,7 @@
-#include "maya_scene/NodeTranslator.h"
+#ifndef GEOMETRY_H
+#define GEOMETRY_H
+
+#include "scene/NodeTranslator.h"
 #include <maya/MFnMesh.h>
 #include <maya/MNodeMessage.h>
 
@@ -95,3 +98,5 @@ public:
 private:
    MObject m_tesselatedMesh;
 };
+
+#endif // GEOMETRY_H

@@ -1,5 +1,5 @@
-#ifndef OBJECT_TRANSLATOR_H
-#define OBJECT_TRANSLATOR_H
+#ifndef NODETRANSLATOR_H
+#define NODETRANSLATOR_H
 
 #include "platform/Platform.h"
 #include "MayaScene.h"
@@ -146,4 +146,4 @@ private:
    const AtNodeEntry* m_nodeEntry;
 };
 
-#endif
+#endif // NODETRANSLATOR_H

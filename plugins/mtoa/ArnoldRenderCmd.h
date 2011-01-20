@@ -1,5 +1,5 @@
-#ifndef ARNOLD_RENDER_CMD_H
-#define ARNOLD_RENDER_CMD_H
+#ifndef ARNOLDRENDERCMD_H
+#define ARNOLDRENDERCMD_H
 
 #include <maya/MPxCommand.h>
 #include <maya/MSyntax.h>
@@ -21,4 +21,4 @@ public:
 
 }; // class CArnoldRenderCmd
 
-#endif // ARNOLD_RENDER_CMD_H
+#endif // ARNOLDRENDERCMD_H

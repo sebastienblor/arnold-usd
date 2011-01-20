@@ -1,5 +1,5 @@
-#ifndef SHADER_UTILS_H
-#define SHADER_UTILS_H
+#ifndef SHADERUTILS_H
+#define SHADERUTILS_H
 
 #include <ai_params.h>
 #include <ai_node_entry.h>
@@ -201,4 +201,4 @@
    if (!plug.isNull())\
       AiNodeSetInt(arnold_node, param_name, plug.asInt());
 
-#endif // SHADER_UTILS_H
+#endif // SHADERUTILS_H

@@ -1,5 +1,5 @@
-#ifndef ARNOLD_NODE_IDS_H
-#define ARNOLD_NODE_IDS_H
+#ifndef ARNOLDNODEIDS_H
+#define ARNOLDNODEIDS_H
 
 #define ARNOLD_NODEID_RENDER_OPTIONS            0x00071000
 #define ARNOLD_NODEID_SPHERE_LOCATOR            0x00072016
@@ -46,4 +46,4 @@
 
 #define MAYA_NODEID_CAMERA                      0x4443414d
 
-#endif // ARNOLD_NODE_IDS_H
+#endif // ARNOLDNODEIDS_H

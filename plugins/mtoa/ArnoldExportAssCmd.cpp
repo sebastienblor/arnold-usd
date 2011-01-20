@@ -1,7 +1,7 @@
 
 #include "ArnoldExportAssCmd.h"
 #include "render/RenderSession.h"
-#include "maya_scene/MayaScene.h"
+#include "scene/MayaScene.h"
 
 #include <ai_dotass.h>
 #include <ai_msg.h>

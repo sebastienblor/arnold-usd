@@ -1,5 +1,5 @@
-#ifndef RENDER_OPTIONS_H
-#define RENDER_OPTIONS_H
+#ifndef RENDEROPTIONS_H
+#define RENDEROPTIONS_H
 
 #include "AOV.h"
 
@@ -419,4 +419,4 @@ private:
    CMayaScene* m_scene;
 };
 
-#endif // RENDER_OPTIONS_H
+#endif // RENDEROPTIONS_H

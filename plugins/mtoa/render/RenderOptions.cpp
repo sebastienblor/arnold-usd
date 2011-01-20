@@ -1,7 +1,7 @@
 
 #include "RenderOptions.h"
-#include "maya_scene/MayaScene.h"
-#include "maya_scene/Options.h"
+#include "scene/MayaScene.h"
+#include "scene/Options.h"
 
 #include <ai_constants.h>
 #include <ai_msg.h>

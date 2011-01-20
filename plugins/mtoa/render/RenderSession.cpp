@@ -2,8 +2,8 @@
 #include "RenderSession.h"
 #include "RenderOptions.h"
 #include "OutputDriver.h"
-#include "maya_scene/MayaScene.h"
-#include "maya_scene/NodeTranslator.h"
+#include "scene/MayaScene.h"
+#include "scene/NodeTranslator.h"
 
 #include <ai_dotass.h>
 #include <ai_msg.h>

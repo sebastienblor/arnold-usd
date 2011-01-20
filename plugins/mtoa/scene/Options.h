@@ -12,4 +12,4 @@ public:
    void SetupImageOptions(AtNode* options);
 };
 
-#endif
+#endif // OPTIONS_H

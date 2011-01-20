@@ -1,5 +1,5 @@
-#ifndef SPHERE_LOCATOR_H
-#define SPHERE_LOCATOR_H
+#ifndef SPHERELOCATOR_H
+#define SPHERELOCATOR_H
 
 #include "nodes/ArnoldNodeIds.h"
 #include <ai_types.h>
@@ -68,5 +68,4 @@ public:
 
 };  // class CSphereLocator
 
-#endif // SPHERE_LOCATOR_H
-
+#endif // SPHERELOCATOR_H

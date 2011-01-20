@@ -1,5 +1,5 @@
-#ifndef OUTPUT_DRIVER_H
-#define OUTPUT_DRIVER_H
+#ifndef OUTPUTDRIVER_H
+#define OUTPUTDRIVER_H
 
 #include <maya/MComputation.h>
 #include <maya/MImage.h>
@@ -33,4 +33,4 @@ void DisplayUpdateQueueRenderFinished();
 /// \return returns false if the queue doesn't contain a complete image.
 bool DisplayUpdateQueueToMImage( MImage & image );
 
-#endif  // OUTPUT_DRIVER_H
+#endif  // OUTPUTDRIVER_H

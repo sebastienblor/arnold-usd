@@ -1,5 +1,5 @@
-#ifndef MAYA_SCENE_H
-#define MAYA_SCENE_H
+#ifndef MAYASCENE_H
+#define MAYASCENE_H
 
 #include "platform/Platform.h"
 
@@ -189,4 +189,4 @@ private:
    static std::map<int, CreatorFunction>  s_dependTranslators;
 };  // class CMayaScene
 
-#endif // MAYA_SCENE_H
+#endif // MAYASCENE_H

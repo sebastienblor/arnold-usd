@@ -1,5 +1,5 @@
-#ifndef ARNOLD_AOV_H
-#define ARNOLD_AOV_H
+#ifndef ARNOLDAOV_H
+#define ARNOLDAOV_H
 
 #include <maya/MPxNode.h>
 #include <maya/MTypeId.h>
@@ -31,4 +31,4 @@ public:
 
 };  // class CArnoldAOVNode
 
-#endif // ARNOLD_AOV_H
+#endif // ARNOLDAOV_H

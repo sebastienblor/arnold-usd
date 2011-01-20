@@ -1,5 +1,5 @@
-#ifndef ARNOLD_LIGHT_BLOCKER_SHADER_H
-#define ARNOLD_LIGHT_BLOCKER_SHADER_H
+#ifndef ARNOLDLIGHTBLOCKERSHADER_H
+#define ARNOLDLIGHTBLOCKERSHADER_H
 
 #include <maya/MPxNode.h>
 
@@ -43,4 +43,4 @@ public:
 
 };  // class CArnoldLightBlockerShaderNode
 
-#endif // ARNOLD_LIGHT_BLOCKER_SHADER_H
+#endif // ARNOLDLIGHTBLOCKERSHADER_H

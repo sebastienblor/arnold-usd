@@ -1,5 +1,5 @@
-#ifndef MT_BLOCKING_QUEUE_H
-#define MT_BLOCKING_QUEUE_H
+#ifndef MTBLOCKINGQUEUE_H
+#define MTBLOCKINGQUEUE_H
 
 #include "platform/Platform.h"
 #include <ai_critsec.h>
@@ -111,4 +111,4 @@ protected:
 
 }; // class CMTBlockingQueue
 
-#endif // MT_BLOCKING_QUEUE_H
+#endif // MTBLOCKINGQUEUE_H

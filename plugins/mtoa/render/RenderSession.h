@@ -1,8 +1,8 @@
-#ifndef RENDER_SESSION_H
-#define RENDER_SESSION_H
+#ifndef RENDERSESSION_H
+#define RENDERSESSION_H
 
 #include "render/RenderOptions.h"
-#include "maya_scene/MayaScene.h"
+#include "scene/MayaScene.h"
 
 #include <maya/MGlobal.h>
 
@@ -172,4 +172,4 @@ private:
 
 }; // class CRenderSession
 
-#endif // RENDER_SESSION_H
+#endif // RENDERSESSION_H

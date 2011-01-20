@@ -41,4 +41,4 @@ extern RampInterpolationType RampInterpolationNameToType(const char *n);
 extern void Ramp(AtArray *p, AtArray *v, float t, RampInterpolationType rit, float &out);
 extern void Ramp(AtArray *p, AtArray *v, float t, RampInterpolationType rit, AtRGB &out);
 
-#endif
+#endif // MAYAUTILS_H

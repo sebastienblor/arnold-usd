@@ -1,5 +1,5 @@
-#ifndef ARNOLD_WIREFRAME_SHADER_H
-#define ARNOLD_WIREFRAME_SHADER_H
+#ifndef ARNOLDWIREFRAMESHADER_H
+#define ARNOLDWIREFRAMESHADER_H
 
 #include <maya/MPxNode.h>
 
@@ -46,4 +46,4 @@ public:
 
 };  // class CArnoldWireframeShaderNode
 
-#endif // ARNOLD_WIREFRAME_SHADER_H
+#endif // ARNOLDWIREFRAMESHADER_H

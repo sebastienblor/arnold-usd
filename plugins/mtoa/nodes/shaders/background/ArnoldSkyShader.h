@@ -1,5 +1,5 @@
-#ifndef ARNOLD_SKY_SHADER_H
-#define ARNOLD_SKY_SHADER_H
+#ifndef ARNOLDSKYSHADER_H
+#define ARNOLDSKYSHADER_H
 
 #include "SphereLocator.h"
 
@@ -101,5 +101,5 @@ public:
    static MObject s_OUT_transparency;
 };  // class CArnoldSkyShaderNode
 
-#endif // ARNOLD_SKY_SHADER_H
+#endif // ARNOLDSKYSHADER_H
 

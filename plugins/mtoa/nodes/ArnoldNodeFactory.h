@@ -1,14 +1,12 @@
-//-------------------------------------------------------------------------- 
-// ArnoldNodeFactory class definition.
-//-------------------------------------------------------------------------- 
-#ifndef ARNOLD_PLUGIN_FACTORY_H
-#define ARNOLD_PLUGIN_FACTORY_H
+#ifndef ARNOLDNODEFACTORY_H
+#define ARNOLDNODEFACTORY_H
+
 #define MNoVersionString
 #define MNoPluginEntry
 
 #include "nodes/ArnoldNodeIds.h"
-#include "maya_scene/NodeTranslator.h"
-#include "maya_scene/MayaScene.h"
+#include "scene/NodeTranslator.h"
+#include "scene/MayaScene.h"
 #include "nodes/ArnoldNodeHelper.h"
 #include "common/DynLibrary.h"
 
@@ -123,4 +121,4 @@ inline CArnoldNodeFactory::~CArnoldNodeFactory()
 {
 }
 
-#endif  // ARNOLD_PLUGIN_FACTORY_H
+#endif  // ARNOLDNODEFACTORY_H

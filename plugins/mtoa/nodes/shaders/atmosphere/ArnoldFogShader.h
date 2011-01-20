@@ -1,5 +1,5 @@
-#ifndef ARNOLD_FOG_SHADER_H
-#define ARNOLD_FOG_SHADER_H
+#ifndef ARNOLDFOGSHADER_H
+#define ARNOLDFOGSHADER_H
 
 #include <maya/MPxNode.h>
 
@@ -49,4 +49,4 @@ public:
 
 };  // class CArnoldFogShaderNode
 
-#endif // ARNOLD_FOG_SHADER_H
+#endif // ARNOLDFOGSHADER_H

@@ -1,4 +1,7 @@
-#include "maya_scene/NodeTranslator.h"
+#ifndef CAMERAS_H
+#define CAMERAS_H
+
+#include "scene/NodeTranslator.h"
 
 struct CCameraData
 {
@@ -74,3 +77,4 @@ protected:
    MFnCamera m_fnCamera;
 };
 
+#endif // CAMERAS_H

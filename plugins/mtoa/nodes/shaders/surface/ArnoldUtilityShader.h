@@ -1,5 +1,5 @@
-#ifndef ARNOLD_UTILITY_SHADER_H
-#define ARNOLD_UTILITY_SHADER_H
+#ifndef ARNOLDUTILITYSHADER_H
+#define ARNOLDUTILITYSHADER_H
 
 #include <maya/MPxNode.h>
 
@@ -41,4 +41,4 @@ public:
 
 };  // class CArnoldUtilityShaderNode
 
-#endif // ARNOLD_UTILITY_SHADER_H
+#endif // ARNOLDUTILITYSHADER_H

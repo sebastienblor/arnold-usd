@@ -1,5 +1,5 @@
-#ifndef ARNOLD_STANDARD_SHADER_H
-#define ARNOLD_STANDARD_SHADER_H
+#ifndef ARNOLDSTANDARDSHADER_H
+#define ARNOLDSTANDARDSHADER_H
 
 #include <maya/MPxHwShaderNode.h>
 #include <maya/MObjectArray.h>
@@ -129,4 +129,4 @@ public:
 
 };  // class CArnoldStandardShaderNode
 
-#endif // ARNOLD_STANDARD_SHADER_H
+#endif // ARNOLDSTANDARDSHADER_H
