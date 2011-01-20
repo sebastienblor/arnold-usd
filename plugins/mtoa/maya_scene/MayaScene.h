@@ -24,9 +24,11 @@ class CNodeTranslator;
 
 enum ExportMode
 {
+   MTOA_EXPORT_UNDEFINED,
    MTOA_EXPORT_ALL,
    MTOA_EXPORT_SELECTED,
-   MTOA_EXPORT_IPR
+   MTOA_EXPORT_IPR,
+   MTOA_EXPORT_SWATCH
 };
 
 struct CMotionBlurData
@@ -61,7 +63,8 @@ class DLLEXPORT CMayaScene
 public:
 
    CMayaScene()
-      :  m_fnCommonRenderOptions(NULL)
+      :  m_exportMode( MTOA_EXPORT_UNDEFINED )
+      ,  m_fnCommonRenderOptions(NULL)
       ,  m_fnArnoldRenderOptions(NULL)
       ,  m_currentFrame(0)
    {
@@ -71,10 +74,13 @@ public:
 
    MStatus ExportToArnold(ExportMode exportMode = MTOA_EXPORT_ALL);
    AtNode* ExportShader(MObject mayaShader, const MString &attrName="");
+   AtNode* ExportShader(MPlug& shaderOutputPlug);
 
    AtFloat GetCurrentFrame() { return m_currentFrame;}
 
    ExportMode GetExportMode() { return m_exportMode; }
+   void SetExportMode( ExportMode mode ) { m_exportMode = mode; }
+   
    
 //private:
    

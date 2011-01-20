@@ -62,6 +62,9 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
 {
    MStatus status;
    CRenderSession* renderSession = CRenderSession::GetInstance();
+   // Just incase we're rendering with IPR.
+   MGlobal::executeCommand("stopIprRendering renderView;");
+   renderSession->Finish();
 
    MSyntax syntax = newSyntax();
    MArgDatabase argDB(syntax, argList, &status);

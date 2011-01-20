@@ -38,7 +38,6 @@ int FindLibraries(MString searchPath, MStringArray &files)
    MString resolvedPathList = searchPath.expandFilePath();
    MStringArray pluginPaths;
    resolvedPathList.split(PATHSEP, pluginPaths);
-
    for (unsigned int i=0; i<pluginPaths.length(); ++i)
    {
       MString dir = pluginPaths[i];
@@ -373,10 +372,11 @@ bool CArnoldNodeFactory::RegisterMayaNode(AtNodeEntry* arnoldNode)
    MGlobal::displayInfo(MString("[mtoa] INFO: Loading shader: ") + arnoldNodeName);
 
    // classification string
-   MString shaderClass("shader/surface");
+   MString shaderClass = "shader/surface";
    char tmp[256];
    if (MAiMetaDataGetStr(arnoldNode, NULL, "maya.class", tmp))
       shaderClass = tmp;
+   shaderClass += "/:swatch/ArnoldRenderSwatch";
 
    // Create a custom named shader node type
    CArnoldCustomShaderNode::s_shaderName = arnoldNodeName;

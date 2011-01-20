@@ -26,6 +26,7 @@
 #include <maya/MStatus.h>
 #include <maya/MPlug.h>
 #include <maya/MPlugArray.h>
+#include <maya/MImage.h>
 
 #include <maya/M3dView.h>
 #include <maya/MRenderView.h>
@@ -120,6 +121,7 @@ void CRenderSession::LoadPlugins()
 
 void CRenderSession::Init()
 {
+   m_is_active = true;
    m_scene = new CMayaScene;
    m_renderOptions.GetFromMaya(m_scene);
    m_renderOptions.SetupLog();
@@ -144,7 +146,7 @@ void CRenderSession::Translate(ExportMode exportMode)
 
 void CRenderSession::Finish()
 {
-   if (IsActive())
+   if (AiUniverseIsActive())
    {
       AiRenderAbort();
       InterruptRender();
@@ -158,6 +160,8 @@ void CRenderSession::Finish()
       delete m_scene;
       m_scene = 0x0;
    }
+   
+   m_is_active = false;
 }
 
 void CRenderSession::InterruptRender()
@@ -418,6 +422,7 @@ AtNode * CRenderSession::CreateOutputFilter()
    // OUTPUT FILTER (use for all image outputs)
    AtNode* filter = AiNodeLookUpByName( m_renderOptions.filterType().asChar() );
    if (filter == 0x0) filter = AiNode(m_renderOptions.filterType().asChar());
+   AiNodeSetStr( filter, "name", m_renderOptions.filterType().asChar() );
 
    // Only set filter parameters if they exist within that specific node
    if (AiNodeEntryLookUpParameter(filter->base_node, "width"))
@@ -458,13 +463,12 @@ void CRenderSession::DoInteractiveRender()
                                     &m_renderOptions,
                                     AI_PRIORITY_LOW);
 
+   // Not sure I like this call here, but it guarantees the queue
+   // is clear before the process is called.
+   ClearDisplayUpdateQueue();
    // This returns when the render is done or if someone
    // has hit escape.
    ProcessDisplayUpdateQueueWithInterupt( comp );
-
-   // Stop and clean up after the render.
-   InterruptRender();
-
    comp.endComputation();
 }
 
@@ -616,3 +620,52 @@ void CRenderSession::ClearIdleRenderViewCallback()
       m_idle_cb = 0;
    }
 }
+
+AtInt CRenderSession::LoadAss(const MString filename)
+{
+   m_renderOptions.SetupLog();
+   return AiASSLoad(filename.asChar());
+}
+
+void CRenderSession::DoSwatchRender(const AtInt resolution)
+{
+   // Use the render view output driver. It will *not* be displayed
+   // in the render view, we're just using the Arnold Node.
+   // See DisplayUpdateQueueToMImage() for how we get the image.
+   AtNode * const render_view = CreateRenderViewOutput();
+   AtNode * const filter      = CreateOutputFilter();
+   AtNode * const options     = AiUniverseGetOptions();
+
+   // Create the single output line. No AOVs or anything.
+   AtArray* outputs  = AiArrayAllocate(1, 1, AI_TYPE_STRING);
+   AtChar   str[1024];
+   sprintf(str, "RGBA RGBA %s %s", AiNodeGetName(filter), AiNodeGetName(render_view) );
+   AiArraySetStr(outputs, 0, str);
+   AiNodeSetArray(options, "outputs", outputs);
+
+   // Most options should be read from an ass so just need to set the res and
+   // guess a reasonable bucket size.
+   AiNodeSetInt(options, "xres", resolution);
+   AiNodeSetInt(options, "yres", resolution);
+   AiNodeSetInt(options, "bucket_size", resolution/4 );
+
+   // Start the render thread.
+   m_render_thread = AiThreadCreate(CRenderSession::RenderThread,
+                                    &m_renderOptions,
+                                    AI_PRIORITY_LOW);
+}
+
+bool CRenderSession::GetSwatchImage(MImage & image)
+{
+   if ( GetMayaScene() == 0x0 || GetMayaScene()->GetExportMode() != MTOA_EXPORT_SWATCH )
+   {
+      return false;
+   }
+   
+   // Wait for the swatch to finish.
+   AiThreadWait(m_render_thread);
+
+   // Store the image in the passed in MImage reference.
+   return DisplayUpdateQueueToMImage(image);
+}
+

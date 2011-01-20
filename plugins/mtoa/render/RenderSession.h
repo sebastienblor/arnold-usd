@@ -12,6 +12,7 @@
 #include <maya/MMessage.h> // for MCallbackId
 #include <maya/MComputation.h>
 
+class MImage;
 class CMayaScene;
 
 class CRenderSession
@@ -25,6 +26,9 @@ public:
    // Get the render view ready.
    // Optionally installs a callback for IPR.
    MStatus PrepareRenderView(bool addIdleRenderViewUpdate=false);
+
+   void Init();
+   void LoadPlugins();
 
    // Translate the Maya scene to Arnold.
    void Translate(ExportMode exportMode=MTOA_EXPORT_ALL);
@@ -47,6 +51,12 @@ public:
    void UnPauseIPR();
    AtUInt64 GetUsedMemory();
 
+   // Swatch Rendering methods
+   void DoSwatchRender(const AtInt resolution);
+   bool GetSwatchImage(MImage & image);
+
+   AtInt LoadAss(const MString filename);
+
    void SetBatch(bool batch);
    void SetResolution(const int width, const int height);
    void SetCamera(MString cameraNode);
@@ -62,7 +72,7 @@ public:
 
    bool IsActive() const
    {
-      return (AiUniverseIsActive() == TRUE);
+      return m_is_active;
    }
 
    void ExecuteScript(const MString &str, bool echo=false)
@@ -77,13 +87,13 @@ public:
 private:
 
    CRenderSession()
-   :m_scene(0x0), m_paused_ipr( false ), m_idle_cb(0), m_render_thread(0x0)
+   : m_scene(0x0)
+   , m_paused_ipr(false)
+   , m_is_active(false)
+   , m_idle_cb(0)
+   , m_render_thread(0x0)
    {
-   }
-
-   void Init();
-   
-   void LoadPlugins();
+   }   
 
    static unsigned int RenderThread(AtVoid* data);
    
@@ -105,6 +115,7 @@ private:
    CRenderOptions m_renderOptions;
    CMayaScene*    m_scene;
    bool           m_paused_ipr;
+   bool           m_is_active;
 
    // This is a special callback installed to update the render
    // view while Arnold is rendering in IPR.

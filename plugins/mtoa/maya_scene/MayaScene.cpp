@@ -35,9 +35,11 @@ MCallbackId CMayaScene::s_NewNodeCallbackId = 0;
 
 CMayaScene::~CMayaScene()
 {
-   if ( m_exportMode == MTOA_EXPORT_IPR )
+   if ( GetExportMode() == MTOA_EXPORT_IPR )
+   {
       ClearIPRCallbacks();
-   
+   }
+
    if ( m_fnCommonRenderOptions != 0x0 ) delete m_fnCommonRenderOptions;
    if ( m_fnArnoldRenderOptions != 0x0 ) delete m_fnArnoldRenderOptions;
 
@@ -82,7 +84,7 @@ MStatus CMayaScene::ExportToArnold(ExportMode exportMode)
             MGlobal::viewFrame(MTime(m_motionBlurData.frames[J], MTime::uiUnit()));
             status = ExportScene(J);
          }
-         MGlobal::viewFrame(MTime(m_currentFrame, MTime::uiUnit()));
+         MGlobal::viewFrame(MTime(GetCurrentFrame(), MTime::uiUnit()));
       }
    }
    else if ( exportMode == MTOA_EXPORT_IPR )
@@ -99,12 +101,16 @@ MStatus CMayaScene::ExportToArnold(ExportMode exportMode)
             MGlobal::viewFrame(MTime(m_motionBlurData.frames[J], MTime::uiUnit()));
             status = ExportForIPR(J);
          }
-         MGlobal::viewFrame(MTime(m_currentFrame, MTime::uiUnit()));
+         MGlobal::viewFrame(MTime(GetCurrentFrame(), MTime::uiUnit()));
       }
+   }
+   else if ( exportMode == MTOA_EXPORT_SELECTED )
+   {
+      status = ExportSelected();
    }
    else
    {
-      status = ExportSelected();
+      AiMsgDebug( "[mtoa] unsupported export mode: %d", exportMode );
    }
 
    return status;
@@ -293,7 +299,7 @@ void CMayaScene::GetMotionBlurData()
    {
       for (int J = 0; (J < m_motionBlurData.motion_steps); ++J)
       {
-         float frame = m_currentFrame -
+         float frame = GetCurrentFrame() -
                        m_motionBlurData.motion_frames * 0.5f +
                        m_motionBlurData.shutter_offset +
                        m_motionBlurData.motion_frames / (m_motionBlurData.motion_steps - 1) * J;
@@ -328,15 +334,26 @@ CNodeTranslator * CMayaScene::GetActiveTranslator( const MObject node )
 
 void CMayaScene::ClearIPRCallbacks()
 {
-   AiMsgDebug( "[mtoa] Clearing IPR callbacks: %d", m_processedTranslators.size() );
+   // Clear the list of stuff to update.
+   s_translatorsToIPRUpdate.clear();
 
-   if ( s_IPRIdleCallbackId != 0 ) MMessage::removeCallback( s_IPRIdleCallbackId );
-   if ( s_NewNodeCallbackId != 0 ) MMessage::removeCallback( s_NewNodeCallbackId );
+   if ( s_IPRIdleCallbackId != 0 )
+   {
+      MMessage::removeCallback( s_IPRIdleCallbackId );
+      s_IPRIdleCallbackId = 0;
+   }
+
+   if ( s_NewNodeCallbackId != 0 )
+   {
+      MMessage::removeCallback( s_NewNodeCallbackId );
+      s_NewNodeCallbackId = 0;
+   }
+
 
    ObjectToTranslatorMap::iterator it;
    for(it = m_processedTranslators.begin(); it != m_processedTranslators.end(); it++)
    {
-      it->second->RemoveCallbacks();
+      if ( it->second != 0x0 ) it->second->RemoveCallbacks();
    }
 }
 
@@ -389,7 +406,7 @@ void CMayaScene::IPRIdleCallback(void *)
          iter != s_translatorsToIPRUpdate.end(); ++iter)
       {
          CNodeTranslator* translator = (*iter);
-         if ( translator != 0x0 )translator->DoUpdate(0);
+         if ( translator != 0x0 ) translator->DoUpdate(0);
       }
    }
    else
@@ -405,7 +422,7 @@ void CMayaScene::IPRIdleCallback(void *)
             if ( translator != 0x0 )translator->DoUpdate(J);
          }
       }
-      MGlobal::viewFrame(MTime(scene->m_currentFrame, MTime::uiUnit()));
+      MGlobal::viewFrame(MTime(scene->GetCurrentFrame(), MTime::uiUnit()));
    }
 
    // Clear the list.

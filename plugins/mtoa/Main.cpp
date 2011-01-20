@@ -28,10 +28,12 @@
 #include "maya_scene/Geometry.h"
 #include "maya_scene/Cameras.h"
 #include "maya_scene/Options.h"
+#include "render/RenderSwatch.h"
 
 #include <ai_render.h>
 #include <ai_msg.h>
 
+#include <maya/MSwatchRenderRegister.h>
 #include <maya/MFnPlugin.h>
 #include <maya/MGlobal.h>
 
@@ -53,6 +55,10 @@ namespace // <anonymous>
 
       // AOV
       status = plugin.registerNode("ArnoldAOV", CArnoldAOVNode::id, CArnoldAOVNode::creator, CArnoldAOVNode::initialize);
+
+      // Swatch renderer.
+      static MString swatchName("ArnoldRenderSwatch");
+      MSwatchRenderRegister::registerSwatchRender(swatchName, CRenderSwatchGenerator::creator );
 
       // Ray switch shader [could be surface or environment...]
       status = plugin.registerNode("ArnoldRaySwitchShader", CArnoldRaySwitchShaderNode::id, CArnoldRaySwitchShaderNode::creator, CArnoldRaySwitchShaderNode::initialize, MPxNode::kDependNode, &ShaderClass);

@@ -14,6 +14,7 @@
 #include <maya/MComputation.h>
 #include <maya/MRenderView.h>
 #include <maya/MGlobal.h>
+#include <maya/MImage.h>
 
 #include <time.h>
 time_t s_start_time;
@@ -117,7 +118,6 @@ driver_write_bucket
       return;
 
    RV_PIXEL* pixels = new RV_PIXEL[bucket_size_x * bucket_size_y];
-
    AtInt minx = bucket_xo;
    AtInt miny = bucket_yo;
    AtInt maxx = bucket_xo + bucket_size_x - 1;
@@ -212,6 +212,8 @@ node_finish
 }
 
 
+
+
 void UpdateBucket(const AtBBox2& bucketRect, RV_PIXEL* pixels, const bool refresh )
 {
    // Flip vertically
@@ -222,6 +224,75 @@ void UpdateBucket(const AtBBox2& bucketRect, RV_PIXEL* pixels, const bool refres
    if (refresh) MRenderView::refresh(bucketRect.minx, bucketRect.maxx, miny, maxy);
 
    delete[] pixels;
+}
+
+// Please note: this function flips the Y as the resulting
+// image is for use with MImage.
+void CopyBucketToBuffer( float * to_pixels,
+                         const CDisplayUpdateMessage & bucket )
+{
+   const AtInt bucket_size_x = bucket.bucketRect.maxx - bucket.bucketRect.minx + 1;
+   const AtInt bucket_size_y = bucket.bucketRect.maxy - bucket.bucketRect.miny + 1;
+
+   RV_PIXEL * from = bucket.pixels;
+   const char num_channels(4);
+   for(int y(0); y < bucket_size_y; ++y)
+   {
+      // Invert Y.
+      const int oy = (bucket_size_y - y) + bucket.bucketRect.miny - 1;
+      for(int x(0); x < bucket_size_x; ++x)
+      {
+         // Offset into the buffer.
+         const int ox = (x + bucket.bucketRect.minx);
+         const int to_idx = ( oy * s_outputDriverData.imageWidth + ox) * num_channels;
+         to_pixels[to_idx+0]= from->r;
+         to_pixels[to_idx+1]= from->g;
+         to_pixels[to_idx+2]= from->b;
+         to_pixels[to_idx+3]= from->a;
+         ++from;
+      }
+   }
+
+   delete [] bucket.pixels;
+}
+
+// Create an MImage from the buffer/queue rendered from Arnold.
+// The resulting image will be flipped, just how Maya likes it.
+bool DisplayUpdateQueueToMImage( MImage & image )
+{
+   image.create(s_outputDriverData.imageWidth,
+                s_outputDriverData.imageHeight,
+                4,                              // RGBA
+                MImage::kFloat );                // Has to be for swatches it seems.
+
+   CDisplayUpdateMessage msg;
+   // Clear the msg to take care of compile warnings.
+   msg.msgType         = MSG_BUCKET_PREPARE;
+   msg.bucketRect.minx = 0;
+   msg.bucketRect.miny = 0;
+   msg.bucketRect.maxx = 0;
+   msg.bucketRect.maxy = 0;
+   msg.pixels          = 0x0;
+   
+   while( !s_displayUpdateQueue.isEmpty() )
+   {
+      if (s_displayUpdateQueue.pop(msg))
+      {
+         switch (msg.msgType)
+         {
+         case MSG_BUCKET_PREPARE:
+            continue;
+         case MSG_BUCKET_UPDATE:
+            CopyBucketToBuffer(image.floatPixels(), msg);
+            break;
+         case MSG_IMAGE_COMPLETE:
+         case MSG_RENDER_DONE:
+            return true;
+         }
+      }
+   }
+   // If we get here, then we've not got a whole image.
+   return false;
 }
 
 void InitializeDisplayUpdateQueue()
@@ -264,8 +335,7 @@ bool ProcessUpdateMessage(const bool refresh)
 {
    if (s_displayUpdateQueue.waitForNotEmpty(10))
    {
-      CDisplayUpdateMessage   msg;
-
+      CDisplayUpdateMessage msg;
       if (s_displayUpdateQueue.pop(msg))
       {
          switch (msg.msgType)
