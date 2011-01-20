@@ -1,4 +1,4 @@
-#include "MayaScene.h"
+#include "maya_scene/NodeTranslator.h"
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
@@ -9,6 +9,14 @@
 #include <maya/MPlugArray.h>
 #include <maya/MGlobal.h>
 #include <maya/MBoundingBox.h>
+
+struct CCustomData
+{
+   MString exportCmd;
+   MString cleanupCmd;
+};
+
+std::map<std::string, CCustomData> m_customShapes;
 
 static bool StringInList(const MString &str, const MStringArray &ary)
 {
@@ -74,7 +82,7 @@ void CMayaScene::GetCustomShapeInstanceShader(const MDagPath &path, MFnDependenc
    }
 }
 
-bool CMayaScene::RegisterCustomShape(std::string &shapeType)
+bool RegisterCustomShape(std::string &shapeType)
 {
    static const char whitespaces[] = " \t\n\v";
 
@@ -638,7 +646,7 @@ void CMayaScene::ExportCustomShape(const MDagPath &dagPath, AtUInt step, const M
    }
 }
 
-void CMayaScene::GetCustomShapes()
+void GetCustomShapes()
 {
    static const char separators[] = ",:;";
 

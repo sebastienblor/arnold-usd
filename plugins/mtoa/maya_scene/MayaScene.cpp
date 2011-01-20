@@ -144,8 +144,6 @@ MStatus CMayaScene::ExportScene(AtUInt step)
       ExportCamera(dagPath, step);
    }
 
-   std::map<std::string, CCustomData>::iterator customShapeIt;
-
    // And now we export the rest of the DAG
    MItDag   dagIterator(MItDag::kDepthFirst, MFn::kInvalid);
    for (dagIterator.reset(); (!dagIterator.isDone()); dagIterator.next())
@@ -162,14 +160,6 @@ MStatus CMayaScene::ExportScene(AtUInt step)
       {
          dagIterator.prune();
          continue;
-      }
-
-      // Custom shapes [do them first so we can overrides built-in ones]
-      customShapeIt = m_customShapes.find(node.typeName().asChar());
-
-      if (customShapeIt != m_customShapes.end())
-      {
-         ExportCustomShape(dagPath, step, customShapeIt->second.exportCmd, customShapeIt->second.cleanupCmd);
       }
 
       // Lights
@@ -243,8 +233,6 @@ void CMayaScene::PrepareExport()
    }
 
    m_currentFrame = static_cast<float>(MAnimControl::currentTime().as(MTime::uiUnit()));
-
-   GetCustomShapes();
 
    GetMotionBlurData();
 }
