@@ -22,7 +22,7 @@
 #include "nodes/shaders/surface/ArnoldMeshInfoShader.h"
 #include "nodes/shaders/surface/ArnoldWireframeShader.h"
 #include "nodes/shaders/surface/ArnoldHairShader.h"
-#include "nodes/shaders/ArnoldRaySwitchShader.h"
+#include "nodes/shaders/surface/ArnoldRaySwitchShader.h"
 #include "maya_scene/Shaders.h"
 #include "maya_scene/Lights.h"
 #include "maya_scene/Geometry.h"
@@ -131,6 +131,8 @@ namespace // <anonymous>
 
       arnoldPluginFactory->MapToMayaNode("fog", "ArnoldFogShader", CArnoldFogShaderNode::id.id());
       arnoldPluginFactory->MapToMayaNode("volume_scattering", "ArnoldVolumeScatteringShader", CArnoldVolumeScatteringShaderNode::id.id());
+
+      arnoldPluginFactory->MapToMayaNode("ray_switch", "ArnoldRaySwitchShader", CArnoldRaySwitchShaderNode::id.id());
 
       // Load extensions last so that they can override default translators
       arnoldPluginFactory->LoadExtensions();
