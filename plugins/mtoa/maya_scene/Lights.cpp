@@ -1,5 +1,5 @@
-
-#include "MayaScene.h"
+#include "Lights.h"
+#include "nodes/ShaderUtils.h"
 
 #include <ai_constants.h>
 #include <ai_msg.h>
@@ -23,14 +23,13 @@
 #include <vector>
 #include <cstring>
 
-void CMayaScene::ExportLightFilters(AtNode* light, const MObjectArray &filterNodes)
+void CLightTranslator::ExportLightFilters(AtNode* light, const MObjectArray &filterNodes)
 {
    std::vector<AtNode*> filters;
 
    for (unsigned int i=0; i<filterNodes.length(); ++i)
    {
-      AtNode* filter = ExportShader(filterNodes[i]);
-
+      AtNode* filter = m_scene->ExportShader(filterNodes[i]);
       filters.push_back(filter);
    }
 
@@ -38,42 +37,42 @@ void CMayaScene::ExportLightFilters(AtNode* light, const MObjectArray &filterNod
    {
       AiNodeSetArray(light, "filters", AiArrayConvert((AtInt)filters.size(), 1, AI_TYPE_NODE, &filters[0], TRUE));
    }
+   else
+   {
+      // TODO: Change this to: AiNodeSetArray(light, "filters", NULL);
+      // when the arnold bug causing a crash (reported on 16-Jan-2011) is fixed.
+      AiNodeSetArray(light, "filters", AiArrayAllocate(0,0, AI_TYPE_NODE));
+   }
 }
 
-void CMayaScene::ExportLightData(AtNode* light, const MDagPath& dagPath, bool mb, bool custom)
+void CLightTranslator::Update(AtNode* light)
 {
-   MColor color;
+   MPlug plug;
    AtMatrix matrix;
-   MFnDagNode fnDagNode(dagPath);
-   MFnLight fnLight(dagPath);
 
-   AiNodeSetStr(light, "name", fnDagNode.partialPathName().asChar());
+   // FIXME: processing parameters means setting up links if the plug has an incoming connection
+   // this doesn't always make sense in the context of a light.
+   plug = m_fnNode.findPlug("color");
+   ProcessParameter(light, plug, "color", AI_TYPE_RGB);
 
-   color = fnLight.color();
-   AiNodeSetRGB(light, "color", color.r, color.g, color.b);
-   AiNodeSetFlt(light, "intensity", fnLight.intensity());
+   AiNodeSetFlt(light, "intensity", m_fnNode.findPlug("intensity").asFloat());
 
-   AiNodeSetBool(light, "cast_shadows", fnLight.useRayTraceShadows());
-   AiNodeSetInt(light, "samples", fnDagNode.findPlug("shadowRays").asInt());
+   AiNodeSetBool(light, "cast_shadows", m_fnNode.findPlug("useRayTraceShadows").asBool());
+   AiNodeSetInt(light, "samples", m_fnNode.findPlug("shadowRays").asInt());
 
-   AiNodeSetBool(light, "affect_diffuse", fnLight.lightDiffuse());
-   AiNodeSetBool(light, "affect_specular", fnLight.lightSpecular());
+   AiNodeSetBool(light, "affect_diffuse", m_fnNode.findPlug("emitDiffuse").asBool());
+   AiNodeSetBool(light, "affect_specular", m_fnNode.findPlug("emitSpecular").asBool());
 
-   // Check if custom attributes have been created, ignore them otherwise
+   ExportDynamicIntParameter(light, "sss_samples");
+   ExportDynamicIntParameter(light, "bounces");
+   ExportDynamicFloatParameter(light, "bounce_factor");
+
    MStatus status;
-   fnDagNode.findPlug("bounces", &status);
-   bool customAttributes = (status == MS::kSuccess);
-
-   if (customAttributes)
+   MPlug pFilters = m_fnNode.findPlug("light_filters", &status);
+   if(status == MS::kSuccess)
    {
-      AiNodeSetInt(light, "sss_samples", fnDagNode.findPlug("sss_samples").asInt());
-
-      AiNodeSetInt(light, "bounces", fnDagNode.findPlug("bounces").asInt());
-      AiNodeSetFlt(light, "bounce_factor", fnDagNode.findPlug("bounce_factor").asFloat());
-
       MObjectArray filters;
       MPlugArray pSources;
-      MPlug pFilters = fnDagNode.findPlug("light_filters");
 
       for (unsigned int i=0; i<pFilters.numElements(); ++i)
       {
@@ -88,11 +87,11 @@ void CMayaScene::ExportLightData(AtNode* light, const MDagPath& dagPath, bool mb
       ExportLightFilters(light, filters);
    }
 
-   GetMatrix(matrix, dagPath);
+   GetMatrix(matrix);
 
-   if (mb)
+   if (m_motion)
    {
-      AtArray* matrices = AiArrayAllocate(1, m_motionBlurData.motion_steps, AI_TYPE_MATRIX);
+      AtArray* matrices = AiArrayAllocate(1, m_scene->m_motionBlurData.motion_steps, AI_TYPE_MATRIX);
       AiArraySetMtx(matrices, 0, matrix);
       AiNodeSetArray(light, "matrix", matrices);
    }
@@ -102,150 +101,148 @@ void CMayaScene::ExportLightData(AtNode* light, const MDagPath& dagPath, bool mb
    }
 }
 
-void CMayaScene::ExportLightMBData(const MDagPath& dagPath, AtUInt step)
+void CLightTranslator::ExportMotion(AtNode* light, AtUInt step)
 {
    AtMatrix matrix;
-   MFnDagNode fnDagNode(dagPath);
-
-   AtNode* light = AiNodeLookUpByName(fnDagNode.partialPathName().asChar());
-
-   GetMatrix(matrix, dagPath);
+   GetMatrix(matrix);
 
    AtArray* matrices = AiNodeGetArray(light, "matrix");
    AiArraySetMtx(matrices, step, matrix);
 }
 
-void CMayaScene::ExportLight(const MDagPath& dagPath, AtUInt step)
+// AmbientLight
+//
+AtNode* CAmbientLightTranslator::Export()
 {
-   MTransformationMatrix lightWorldMatrix;
-   MFloatVector vector;
-   AtNode* light = NULL;
-   MFnDagNode fnDagNode(dagPath);
+   AtNode* light = AiNode("ambient_light");
+   AiNodeSetStr(light, "name", m_fnNode.partialPathName().asChar());
+   Update(light);
+   return light;
+}
 
-   bool mb = m_motionBlurData.enabled && m_fnArnoldRenderOptions->findPlug("mb_lights_enable").asBool();
+void CAmbientLightTranslator::Update(AtNode* light)
+{
+   CLightTranslator::Update(light);
+}
 
-   // Check if custom attributes have been created, ignore them otherwise
-   MStatus status;
-   fnDagNode.findPlug("bounces", &status);
-   bool customAttributes = (status == MS::kSuccess);
+// DirectionalLight
+//
+AtNode* CDirectionalLightTranslator::Export()
+{
+   AtNode* light = AiNode("distant_light");
+   AiNodeSetStr(light, "name", m_fnNode.partialPathName().asChar());
+   Update(light);
+   return light;
+}
 
-   if (dagPath.hasFn(MFn::kAmbientLight))
-   {
-      if (step == 0)
-      {
-         light = AiNode("ambient_light");
+void CDirectionalLightTranslator::Update(AtNode* light)
+{
+   CLightTranslator::Update(light);
+   MFnDirectionalLight fnLight(m_dagPath);
+   AiNodeSetFlt(light, "angle", fnLight.shadowAngle());
+}
 
-         ExportLightData(light, dagPath, mb, customAttributes);
-      }
-   }
-   else if (dagPath.hasFn(MFn::kDirectionalLight))
-   {
-      if (step == 0)
-      {
-         MFnDirectionalLight fnLight(dagPath);
+// PointLight
+//
+AtNode* CPointLightTranslator::Export()
+{
+   AtNode* light = AiNode("point_light");
+   AiNodeSetStr(light, "name", m_fnNode.partialPathName().asChar());
+   Update(light);
+   return light;
+}
 
-         light = AiNode("distant_light");
+void CPointLightTranslator::Update(AtNode* light)
+{
+   CLightTranslator::Update(light);
 
-         ExportLightData(light, dagPath, mb, customAttributes);
+   MPlug plug;
+   MFnPointLight fnLight(m_dagPath);
 
-         AiNodeSetFlt(light, "angle", fnLight.shadowAngle());
-      }
-      else if (mb)
-      {
-         ExportLightMBData(dagPath, step);
-      }
-   }
-   else if (dagPath.hasFn(MFn::kPointLight))
-   {
-      if (step == 0)
-      {
-         MFnPointLight fnLight(dagPath);
+   AiNodeSetFlt(light, "radius", fnLight.shadowRadius());
 
-         light = AiNode("point_light");
+   ExportDynamicBooleanParameter(light, "affect_volumetrics");
+   ExportDynamicBooleanParameter(light, "cast_volumetric_shadows");
+}
 
-         ExportLightData(light, dagPath, mb, customAttributes);
+// SpotLight
+//
+AtNode* CSpotLightTranslator::Export()
+{
+   AtNode* light = AiNode("spot_light");
+   AiNodeSetStr(light, "name", m_fnNode.partialPathName().asChar());
+   Update(light);
+   return light;
+}
 
-         AiNodeSetFlt(light, "radius", fnLight.shadowRadius());
+void CSpotLightTranslator::Update(AtNode* light)
+{
+   MPlug plug;
+   MFnSpotLight fnLight(m_dagPath);
 
-         if (customAttributes)
-         {
-            AiNodeSetBool(light, "affect_volumetrics", fnDagNode.findPlug("affect_volumetrics").asBool());
-            AiNodeSetBool(light, "cast_volumetric_shadows", fnDagNode.findPlug("cast_volumetric_shadows").asBool());
-         }
-      }
-      else if (mb)
-      {
-         ExportLightMBData(dagPath, step);
-      }
-   }
-   else if (dagPath.hasFn(MFn::kSpotLight))
-   {
-      if (step == 0)
-      {
-         MFnSpotLight fnLight(dagPath);
+   CLightTranslator::Update(light);
 
-         light = AiNode("spot_light");
+   AiNodeSetFlt(light, "radius", fnLight.shadowRadius());
+   AiNodeSetFlt(light, "cone_angle", static_cast<float>((fnLight.coneAngle() + fnLight.penumbraAngle()) * AI_RTOD));
+   AiNodeSetFlt(light, "penumbra_angle", static_cast<float>(fabs(fnLight.penumbraAngle()) * AI_RTOD));
+   AiNodeSetFlt(light, "cosine_power", static_cast<float>(fnLight.dropOff()));
 
-         ExportLightData(light, dagPath, mb, customAttributes);
+   ExportDynamicBooleanParameter(light, "affect_volumetrics");
+   ExportDynamicBooleanParameter(light, "cast_volumetric_shadows");
 
-         AiNodeSetFlt(light, "radius", fnLight.shadowRadius());
-         AiNodeSetFlt(light, "cone_angle", static_cast<float>((fnLight.coneAngle() + fnLight.penumbraAngle()) * AI_RTOD));
-         AiNodeSetFlt(light, "penumbra_angle", static_cast<float>(fabs(fnLight.penumbraAngle()) * AI_RTOD));
-         AiNodeSetFlt(light, "cosine_power", static_cast<float>(fnLight.dropOff()));
+   EXPORT_DYN_PARAM_FLOAT(light, "aspect_ratio", fnLight);
+   EXPORT_DYN_PARAM_FLOAT(light, "lens_radius", fnLight);
+}
 
-         if (customAttributes)
-         {
-            AiNodeSetBool(light, "affect_volumetrics", fnDagNode.findPlug("affect_volumetrics").asBool());
-            AiNodeSetBool(light, "cast_volumetric_shadows", fnDagNode.findPlug("cast_volumetric_shadows").asBool());
+// AreaLight
+//
+AtNode* CAreaLightTranslator::Export()
+{
+   AtNode* light = AiNode("quad_light");
+   AiNodeSetStr(light, "name", m_fnNode.partialPathName().asChar());
+   Update(light);
+   return light;
+}
 
-            AiNodeSetFlt(light, "aspect_ratio", fnDagNode.findPlug("aspect_ratio").asFloat());
-            AiNodeSetFlt(light, "lens_radius", fnDagNode.findPlug("lens_radius").asFloat());
-         }
-      }
-      else if (mb)
-      {
-         ExportLightMBData(dagPath, step);
-      }
-   }
-   else if (dagPath.hasFn(MFn::kAreaLight))
-   {
-      if (step == 0)
-      {
-         MFnAreaLight fnLight(dagPath);
+void CAreaLightTranslator::Update(AtNode* light)
+{
+   CLightTranslator::Update(light);
 
-         light = AiNode("quad_light");
+   AtPoint vertices[4];
 
-         ExportLightData(light, dagPath, mb, customAttributes);
+   AiV3Create(vertices[0], 1, 1, 0);
+   AiV3Create(vertices[1], 1, -1, 0);
+   AiV3Create(vertices[2], -1, -1, 0);
+   AiV3Create(vertices[3], -1, 1, 0);
 
-         AtPoint vertices[4];
-         
-         AiV3Create(vertices[0], 1, 1, 0);
-         AiV3Create(vertices[1], 1, -1, 0);
-         AiV3Create(vertices[2], -1, -1, 0);
-         AiV3Create(vertices[3], -1, 1, 0);
+   AiNodeSetArray(light, "vertices", AiArrayConvert(4, 1, AI_TYPE_POINT, vertices, true));
 
-         AiNodeSetArray(light, "vertices", AiArrayConvert(4, 1, AI_TYPE_POINT, vertices, true));
+   ExportDynamicBooleanParameter(light, "affect_volumetrics");
+   ExportDynamicBooleanParameter(light, "cast_volumetric_shadows");
 
-         if (customAttributes)
-         {
-            AiNodeSetBool(light, "affect_volumetrics", fnDagNode.findPlug("affect_volumetrics").asBool());
-            AiNodeSetBool(light, "cast_volumetric_shadows", fnDagNode.findPlug("cast_volumetric_shadows").asBool());
+   ExportDynamicIntParameter(light, "sidedness");
+   ExportDynamicBooleanParameter(light, "solid_angle");
+}
 
-            AiNodeSetInt(light, "sidedness", fnDagNode.findPlug("sidedness").asInt());
-            AiNodeSetBool(light, "solid_angle", fnDagNode.findPlug("solid_angle").asBool());
-         }
-      }
-      else if (mb)
-      {
-         ExportLightMBData(dagPath, step);
-      }
-   }
-   else
-   {
-      if (step == 0)
-      {
-         MFnLight fnLight(dagPath);
-         AiMsgError("[mtoa] ERROR: Unknown light type (%s).\n", fnLight.typeName().asChar());
-      }
-   }
+// SkyDomeLight
+//
+AtNode* CSkyDomeLightTranslator::Export()
+{
+   AtNode* light = AiNode("skydome_light");
+   AiNodeSetStr(light, "name", m_fnNode.partialPathName().asChar());
+   Update(light);
+   return light;
+}
+
+void CSkyDomeLightTranslator::Update(AtNode* light)
+{
+   CLightTranslator::Update(light);
+
+   AiNodeSetInt(light, "resolution", m_fnNode.findPlug("resolution").asInt());
+   AiNodeSetFlt(light, "exposure", m_fnNode.findPlug("exposure").asFloat());
+   AiNodeSetInt(light, "format", m_fnNode.findPlug("format").asInt());
+   AiNodeSetFlt(light, "shadow_density", m_fnNode.findPlug("shadow_density").asFloat());
+   AiNodeSetRGB(light, "shadow_color", m_fnNode.findPlug("shadow_colorR").asFloat(), m_fnNode.findPlug("shadow_colorG").asFloat(), m_fnNode.findPlug("shadow_colorB").asFloat());
+   AiNodeSetBool(light, "normalize", m_fnNode.findPlug("normalize").asBool());
+   AiNodeSetBool(light, "mis", m_fnNode.findPlug("mis").asBool());
 }

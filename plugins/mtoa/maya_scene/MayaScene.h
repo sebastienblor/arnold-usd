@@ -91,10 +91,6 @@ public:
    void GetPerspFilmback(AtNode* camera, MFnCamera& fnCamera);
    MVectorArray GetFilmTransform(MFnCamera& fnCamera, double width=0, bool persp=true);
    void ExportImagePlane(const MDagPath& dagPath, bool mb, AtUInt step);
-   void ExportLight(const MDagPath& dagPath, AtUInt step);
-   void ExportLightData(AtNode* light, const MDagPath& dagPath, bool mb, bool custom);
-   void ExportLightMBData(const MDagPath& dagPath, AtUInt step);
-   void ExportLightFilters(AtNode* light, const MObjectArray &filters);
    void ExportMesh(MObject mayaMesh, const MDagPath& dagPath, AtUInt step);
    void ExportMeshGeometryData(AtNode* polymesh, MObject mayaMesh, const MDagPath& dagPath, AtUInt step);
    void ExportMeshInstance(const MDagPath& dagPath, const MDagPath& masterInstance, AtUInt step);

@@ -22,6 +22,7 @@
 #include "nodes/shaders/surface/ArnoldHairShader.h"
 #include "nodes/shaders/ArnoldRaySwitchShader.h"
 #include "maya_scene/Shaders.h"
+#include "maya_scene/Lights.h"
 
 #include <ai_render.h>
 #include <ai_msg.h>
@@ -31,7 +32,6 @@
 
 namespace // <anonymous>
 {
-
    MStatus RegisterArnoldNodes(MObject object)
    {
       MStatus status;
@@ -91,6 +91,12 @@ namespace // <anonymous>
       // sky is technically a DAG node, but it behaves like a DG node (i.e. it is only exported when a connection is processed)
       // therefore, it is not registered as a DagTranslator
       arnoldPluginFactory->RegisterDependTranslator("ArnoldSkyShader", CArnoldSkyShaderNode::id.id(), CSkyShaderTranslator::creator);
+
+      arnoldPluginFactory->RegisterDagTranslator("directionalLight", MAYA_NODEID_DIRECTIONAL_LIGHT, CDirectionalLightTranslator::creator);
+      arnoldPluginFactory->RegisterDagTranslator("spotLight", MAYA_NODEID_SPOT_LIGHT, CSpotLightTranslator::creator);
+      arnoldPluginFactory->RegisterDagTranslator("areaLight", MAYA_NODEID_AREA_LIGHT, CAreaLightTranslator::creator);
+      arnoldPluginFactory->RegisterDagTranslator("pointLight", MAYA_NODEID_POINT_LIGHT, CPointLightTranslator::creator);
+      arnoldPluginFactory->RegisterDagTranslator("ambientLight", MAYA_NODEID_AMBIENT_LIGHT, CAmbientLightTranslator::creator);
 
       arnoldPluginFactory->MapToMayaNode("ambient_occlusion", "ArnoldAmbientOcclusionShader", CArnoldAmbientOcclusionShaderNode::id.id());
       arnoldPluginFactory->MapToMayaNode("standard", "ArnoldStandardShader", CArnoldStandardShaderNode::id.id());
@@ -161,6 +167,7 @@ namespace // <anonymous>
       arnoldPluginFactory->UnloadExtensions();
 
       delete arnoldPluginFactory;
+
       return status;
    }
 }
