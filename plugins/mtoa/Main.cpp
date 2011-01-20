@@ -3,6 +3,7 @@
 #include "ArnoldExportAssCmd.h"
 #include "ArnoldRenderCmd.h"
 #include "ArnoldIprCmd.h"
+#include "nodes/ArnoldNodeFactory.h"
 #include "nodes/ArnoldRenderOptions.h"
 #include "nodes/ArnoldAOV.h"
 #include "nodes/shaders/atmosphere/ArnoldFogShader.h"
@@ -22,6 +23,7 @@
 #include "nodes/shaders/ArnoldRaySwitchShader.h"
 
 #include <ai_render.h>
+#include <ai_msg.h>
 
 #include <maya/MFnPlugin.h>
 #include <maya/MGlobal.h>
@@ -29,7 +31,7 @@
 namespace // <anonymous>
 {
 
-   void RegisterArnoldNodes(MObject object)
+   MStatus RegisterArnoldNodes(MObject object)
    {
       MStatus status;
       MFnPlugin plugin(object);
@@ -66,9 +68,17 @@ namespace // <anonymous>
       status = plugin.registerNode("ArnoldFogShader", CArnoldFogShaderNode::id, CArnoldFogShaderNode::creator, CArnoldFogShaderNode::initialize);
       status = plugin.registerNode("ArnoldSkyShader", CArnoldSkyShaderNode::id, CArnoldSkyShaderNode::creator, CArnoldSkyShaderNode::initialize, MPxNode::kLocatorNode, &LightClass);
       status = plugin.registerNode("ArnoldVolumeScatteringShader", CArnoldVolumeScatteringShaderNode::id, CArnoldVolumeScatteringShaderNode::creator, CArnoldVolumeScatteringShaderNode::initialize);
+
+      CArnoldNodeFactory* arnoldPluginFactory;
+      arnoldPluginFactory = new CArnoldNodeFactory(object);
+
+      arnoldPluginFactory->LoadPlugins();
+
+      delete arnoldPluginFactory;
+      return status;
    }
 
-   void UnregisterArnoldNodes(MObject object)
+   MStatus UnregisterArnoldNodes(MObject object)
    {
       MStatus status;
       MFnPlugin plugin(object);
@@ -104,9 +114,17 @@ namespace // <anonymous>
       status = plugin.deregisterNode(CArnoldFogShaderNode::id);
       status = plugin.deregisterNode(CArnoldSkyShaderNode::id);
       status = plugin.deregisterNode(CArnoldVolumeScatteringShaderNode::id);
-   }
 
-}  // namespace <anonymous>
+      CArnoldNodeFactory* arnoldPluginFactory;
+      arnoldPluginFactory = new CArnoldNodeFactory(object);
+
+      arnoldPluginFactory->UnregisterAllNodes();
+
+      delete arnoldPluginFactory;
+      return status;
+   }
+}
+
 
 DLLEXPORT MStatus initializePlugin(MObject object)
 {

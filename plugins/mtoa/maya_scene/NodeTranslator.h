@@ -1,7 +1,6 @@
 #ifndef OBJECT_TRANSLATOR_H
 #define OBJECT_TRANSLATOR_H
 
-#include "MayaScene.h"
 #include "platform/Platform.h"
 #include "MayaScene.h"
 
@@ -11,6 +10,8 @@
 #include <maya/MFnDagNode.h>
 #include <maya/MPlug.h>
 #include <maya/MGlobal.h>
+
+class CMayaScene;
 
 // Abstract base class for all Maya-to-Arnold node translators
 //
@@ -82,6 +83,22 @@ protected:
 protected:
    MDagPath m_dagPath;
    MFnDagNode m_fnNode;
+};
+
+class DLLEXPORT CAutoTranslator : public CNodeTranslator
+{
+public:
+   CAutoTranslator() :
+      CNodeTranslator()
+   {}
+   static void* creator()
+   {
+      return new CAutoTranslator();
+   }
+   AtNode* Export();
+   void Update(AtNode* atNode);
+private:
+   const AtNodeEntry* m_nodeEntry;
 };
 
 #endif
