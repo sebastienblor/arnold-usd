@@ -189,19 +189,19 @@ try:
     # available in python >= 2.6
     relpath = os.path.relpath
 except AttributeError:
-    def relpath(path, start=curdir):
+    def relpath(path, start=os.path.curdir):
         """Return a relative version of a path"""
     
         if not path:
             raise ValueError("no path specified")
     
-        start_list = abspath(start).split(sep)
-        path_list = abspath(path).split(sep)
+        start_list = os.path.abspath(start).split(os.path.sep)
+        path_list = os.path.abspath(path).split(os.path.sep)
     
         # Work out how much of the filepath is shared by start and path.
-        i = len(commonprefix([start_list, path_list]))
+        i = len(os.path.commonprefix([start_list, path_list]))
     
-        rel_list = [pardir] * (len(start_list)-i) + path_list[i:]
+        rel_list = [os.path.pardir] * (len(start_list)-i) + path_list[i:]
         if not rel_list:
-            return curdir
-        return join(*rel_list)
+            return os.path.curdir
+        return os.path.join(*rel_list)

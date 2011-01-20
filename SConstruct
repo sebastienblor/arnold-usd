@@ -15,7 +15,7 @@ def SymLink(target, source, env):
 
 def MakeModule(env, target, source):
    # TODO: get mtoa version from somewhere...
-   if not os.path.exists(os.path.dirname(source[0])):
+   if not os.path.exists(os.path.dirname(source[0])) and os.path.dirname(source[0]):
       os.makedirs(os.path.dirname(source[0]))
    f = open(source[0], 'w' )
    f.write('+ mtoa 0.4 %s\n' % target[0])
@@ -54,7 +54,7 @@ vars.AddVariables(
       PathVariable('TARGET_SCRIPTS_PATH', 'Path used for installation of scripts', '$TARGET_MODULE_PATH/scripts', PathVariable.PathIsDirCreate),
       PathVariable('TARGET_PYTHON_PATH', 'Path used for installation of Python scripts', '$TARGET_SCRIPTS_PATH', PathVariable.PathIsDirCreate),
       PathVariable('TARGET_ICONS_PATH', 'Path used for installation of icons', '$TARGET_MODULE_PATH/icons', PathVariable.PathIsDirCreate),
-      PathVariable('TARGET_DESCR_PATH', 'Path for renderer description file', '.'),
+      PathVariable('TARGET_DESCR_PATH', 'Path for renderer description file', '$TARGET_MODULE_PATH'),
       PathVariable('TARGET_SHADER_PATH', 'Path used for installation of arnold shaders', '$TARGET_MODULE_PATH/shaders', PathVariable.PathIsDirCreate),
       PathVariable('TARGET_EXTENSION_PATH', 'Path used for installation of mtoa translator extensions', '$TARGET_MODULE_PATH/extensions', PathVariable.PathIsDirCreate),
       PathVariable('TARGET_LIB_PATH', 'Path for libraries', '$TARGET_MODULE_PATH/lib', PathVariable.PathIsDirCreate)
@@ -306,6 +306,7 @@ if system.os() == 'windows':
    top_level_alias(env, 'solution', SOLUTION)
 
 aliases = []
+aliases.append(env.Alias('install-module', env['TARGET_MODULE_PATH']))
 aliases.append(env.Alias('install-scripts', env['TARGET_SCRIPTS_PATH']))
 aliases.append(env.Alias('install-python', env['TARGET_PYTHON_PATH']))
 aliases.append(env.Alias('install-icons', env['TARGET_ICONS_PATH']))
