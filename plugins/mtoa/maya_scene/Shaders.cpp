@@ -468,26 +468,6 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
          m_processedTranslators[MObjectHandle(mayaShader)] = translator;
       }
    }
-   else if (node.typeName() == "ArnoldStandardShader")
-   {
-      shader = ExportArnoldShader(mayaShader, "standard");
-   }
-   else if (node.typeName() == "ArnoldRaySwitchShader")
-   {
-      shader = ExportArnoldShader(mayaShader, "ray_switch");
-   }
-   else if (node.typeName() == "ArnoldUtilityShader")
-   {
-      shader = ExportArnoldShader(mayaShader, "utility");
-   }
-   else if (node.typeName() == "ArnoldMeshInfoShader")
-   {
-      shader = ExportArnoldShader(mayaShader, "meshinfo");
-   }
-   else if (node.typeName() == "ArnoldAmbientOcclusionShader")
-   {
-      shader = ExportArnoldShader(mayaShader, "ambient_occlusion");
-   }
    else if (node.typeName() == "ArnoldSkyShader")
    {
       shader = AiNode("sky");
@@ -546,38 +526,6 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
          visibility &= ~AI_RAY_GLOSSY;
 
       AiNodeSetInt(shader, "visibility", visibility);
-   }
-   else if (node.typeName() == "ArnoldHairShader")
-   {
-      shader = ExportArnoldShader(mayaShader, "hair");
-   }
-   else if (node.typeName() == "ArnoldFogShader")
-   {
-      shader = ExportArnoldShader(mayaShader, "fog");
-   }
-   else if (node.typeName() == "ArnoldVolumeScatteringShader")
-   {
-      shader = ExportArnoldShader(mayaShader, "volume_scattering");
-   }
-   else if (node.typeName() == "ArnoldWireframeShader")
-   {
-      shader = ExportArnoldShader(mayaShader, "wireframe");
-   }
-   else if (node.typeName() == "ArnoldBarndoorShader")
-   {
-      shader = ExportArnoldShader(mayaShader, "barndoor");
-   }
-   else if (node.typeName() == "ArnoldGoboShader")
-   {
-      shader = ExportArnoldShader(mayaShader, "gobo");
-   }
-   else if (node.typeName() == "ArnoldLightBlockerShader")
-   {
-      shader = ExportArnoldShader(mayaShader, "light_blocker");
-   }
-   else if (node.typeName() == "ArnoldLightDecayShader")
-   {
-      shader = ExportArnoldShader(mayaShader, "light_decay");
    }
    else if (node.typeName() == "lambert")
    {
