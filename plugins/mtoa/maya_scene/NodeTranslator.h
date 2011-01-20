@@ -90,7 +90,7 @@ protected:
    void GetMatrix(AtMatrix& matrix);
    void ExportMatrix(AtNode* node, AtUInt step);
    AtInt ComputeVisibility(bool mayaStyleAttrs=false);
-
+   static void AddVisibilityAttrs(MObject& node);
 protected:
    MDagPath m_dagPath;
    MFnDagNode m_fnNode;

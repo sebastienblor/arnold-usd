@@ -721,6 +721,70 @@ AtInt CDagTranslator::ComputeVisibility(bool mayaStyleAttrs)
    return visibility;
 }
 
+// create visibility attributes with standardized render flag names
+void CDagTranslator::AddVisibilityAttrs(MObject& node)
+{
+   MFnNumericAttribute nAttr;
+   MFnDependencyNode fnNode = MFnDependencyNode(node);
+   MObject attr;
+
+   attr = nAttr.create("primaryVisibility", "vis", MFnNumericData::kBoolean, 1);
+   nAttr.setKeyable(false);
+   nAttr.setStorable(true);
+   nAttr.setReadable(true);
+   nAttr.setWritable(true);
+   fnNode.addAttribute(attr);
+
+   attr = nAttr.create("receiveShadows", "rsh", MFnNumericData::kBoolean, 1);
+   nAttr.setKeyable(false);
+   nAttr.setStorable(true);
+   nAttr.setReadable(true);
+   nAttr.setWritable(true);
+   fnNode.addAttribute(attr);
+
+   attr = nAttr.create("castsShadows", "csh", MFnNumericData::kBoolean, 1);
+   nAttr.setKeyable(false);
+   nAttr.setStorable(true);
+   nAttr.setReadable(true);
+   nAttr.setWritable(true);
+   fnNode.addAttribute(attr);
+
+   attr = nAttr.create("visibleInReflections", "vir", MFnNumericData::kBoolean, 1);
+   nAttr.setKeyable(false);
+   nAttr.setStorable(true);
+   nAttr.setReadable(true);
+   nAttr.setWritable(true);
+   fnNode.addAttribute(attr);
+
+   attr = nAttr.create("visibleInRefractions", "vif", MFnNumericData::kBoolean, 1);
+   nAttr.setKeyable(false);
+   nAttr.setStorable(true);
+   nAttr.setReadable(true);
+   nAttr.setWritable(true);
+   fnNode.addAttribute(attr);
+
+   attr = nAttr.create("selfShadows", "ssh", MFnNumericData::kBoolean, 1);
+   nAttr.setKeyable(false);
+   nAttr.setStorable(true);
+   nAttr.setReadable(true);
+   nAttr.setWritable(true);
+   fnNode.addAttribute(attr);
+
+   attr = nAttr.create("diffuseVisibility", "dvis", MFnNumericData::kBoolean, 1);
+   nAttr.setKeyable(false);
+   nAttr.setStorable(true);
+   nAttr.setReadable(true);
+   nAttr.setWritable(true);
+   fnNode.addAttribute(attr);
+
+   attr = nAttr.create("glossyVisibility", "gvis", MFnNumericData::kBoolean, 1);
+   nAttr.setKeyable(false);
+   nAttr.setStorable(true);
+   nAttr.setReadable(true);
+   nAttr.setWritable(true);
+   fnNode.addAttribute(attr);
+}
+
 AtNode* CAutoTranslator::Export()
 {
    MString mayaShader = m_fnNode.typeName();
