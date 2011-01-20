@@ -318,7 +318,7 @@ AtInt CDagTranslator::ComputeVisibility(bool mayaStyleAttrs)
 AtNode* CAutoTranslator::Export()
 {
    MString mayaShader = m_fnNode.typeName();
-   std::string arnoldShader = CArnoldNodeFactory::s_factoryNodes[mayaShader.asChar()];
+   std::string arnoldShader = CArnoldNodeFactory::s_factoryNodes[mayaShader.asChar()].arnoldNodeName;
    AtNode* shader = NULL;
    m_nodeEntry = AiNodeEntryLookUp(arnoldShader.c_str());
 

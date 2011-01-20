@@ -9,11 +9,13 @@
 #include "nodes/ArnoldNodeIds.h"
 #include "maya_scene/NodeTranslator.h"
 #include "maya_scene/MayaScene.h"
+#include "nodes/ArnoldNodeHelper.h"
 
 #include <ai_nodes.h>
 
 #include <maya/MGlobal.h>
 #include <maya/MFnPlugin.h>
+#include <maya/MDGMessage.h>
 
 #include <string>
 #include <map>
@@ -21,15 +23,19 @@
 
 struct CMayaNodeData
 {
-   std::string mayaNodeName;
+   std::string arnoldNodeName;
    int nodeId;
+   MCallbackId callbackId;
 };
 
-typedef std::map<std::string, std::string> MayaNodeToArnoldNode;
-typedef std::map<std::string, CMayaNodeData> ArnoldNodeToMayaData;
+// key: maya node name
+typedef std::map<std::string, CMayaNodeData> MayaNodeDataMap;
+// key: arnold node name
+typedef std::map<std::string, std::string> ArnoldNodeToMayaNode;
+// key: arnold plugin file path
 typedef std::map<std::string, std::vector<std::string> > ArnoldPluginData;
-
-
+// key: maya node name
+typedef std::map<std::string, std::vector<CAttrData> > DynamicAttrMap;
 
 class CArnoldNodeFactory
 {
@@ -42,7 +48,7 @@ public:
    void LoadPlugins();
    void UnloadPlugins();
    void RegisterMayaNode(AtNodeEntry* arnoldNode);
-   void MapToMayaNode(const char* arnoldNodeName, const char* mayaCounterpart, int nodeId);
+   static void MapToMayaNode(const char* arnoldNodeName, const char* mayaCounterpart, int typeId);
    void UnregisterMayaNode(const char* arnoldNodeName);
    void RegisterAllNodes();
    void UnregisterAllNodes();
@@ -51,15 +57,18 @@ public:
    static void RegisterTranslator(const char* mayaNode, int typeId, CreatorFunction creator);
    static void RegisterDagTranslator(const char* mayaNode, int typeId, CreatorFunction creator);
 
+   static void NodeCreatedCallback(MObject &node, void *clientData);
+   static void AddDynamicAttr(const char* mayaNode, CAttrData data);
 public:
-   static MayaNodeToArnoldNode s_factoryNodes;
+   static MayaNodeDataMap s_factoryNodes;
 
 private:
    bool  m_loadOk;
    MFnPlugin m_plugin;
    static int s_autoNodeId;
-   static ArnoldNodeToMayaData s_arnoldToMayaNodes;
+   static ArnoldNodeToMayaNode s_arnoldToMayaNodes;
    static ArnoldPluginData s_arnoldPlugins;
+   static DynamicAttrMap s_dynamicAttributes;
 };
 
 //-------------------------------------------------------------------------- 
