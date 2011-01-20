@@ -31,8 +31,7 @@ if system.os() == 'windows':
                                     auto_build_solution = 0,
                                     nokeep = 1)
    local_env.AlwaysBuild(EXT_PRJ)
-
-if system.os() == 'windows':
+   
    Return('EXT EXT_PRJ')
 else:
    Return('EXT')

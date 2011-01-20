@@ -14,12 +14,17 @@ def SymLink(target, source, env):
    os.symlink(os.path.split(str(source[0]))[1], str(target[0]))
 
 def MakeModule(env, target, source):
-   # TODO: get mtoa version from somewhere...
+   # TODO: call get_mtoa_version() (in build_tools.py)
+   # When symbols defined in the plug-in
    if not os.path.exists(os.path.dirname(source[0])) and os.path.dirname(source[0]):
       os.makedirs(os.path.dirname(source[0]))
    f = open(source[0], 'w' )
    f.write('+ mtoa 0.4 %s\n' % target[0])
    f.close()
+
+def CreatePathDir(path):
+   if not os.path.exists(path):
+      os.makedirs(path)
 
 if system.os() == 'darwin':
    ALLOWED_COMPILERS = ('gcc',)   # Do not remove this comma, it's magic
@@ -50,14 +55,14 @@ vars.AddVariables(
       PathVariable('ARNOLD_API_INCLUDES', 'Where to find Arnold API includes', '.'),
       PathVariable('ARNOLD_API_LIB', 'Where to find Arnold API libraries', '.'),
       PathVariable('TARGET_MODULE_PATH', 'Path used for installation of the mtoa plugin', '.', PathVariable.PathIsDirCreate),
-      PathVariable('TARGET_PLUGIN_PATH', 'Path used for installation of the mtoa plugin', '$TARGET_MODULE_PATH/plug-ins', PathVariable.PathIsDirCreate),
-      PathVariable('TARGET_SCRIPTS_PATH', 'Path used for installation of scripts', '$TARGET_MODULE_PATH/scripts', PathVariable.PathIsDirCreate),
-      PathVariable('TARGET_PYTHON_PATH', 'Path used for installation of Python scripts', '$TARGET_SCRIPTS_PATH', PathVariable.PathIsDirCreate),
-      PathVariable('TARGET_ICONS_PATH', 'Path used for installation of icons', '$TARGET_MODULE_PATH/icons', PathVariable.PathIsDirCreate),
-      PathVariable('TARGET_DESCR_PATH', 'Path for renderer description file', '$TARGET_MODULE_PATH'),
-      PathVariable('TARGET_SHADER_PATH', 'Path used for installation of arnold shaders', '$TARGET_MODULE_PATH/shaders', PathVariable.PathIsDirCreate),
-      PathVariable('TARGET_EXTENSION_PATH', 'Path used for installation of mtoa translator extensions', '$TARGET_MODULE_PATH/extensions', PathVariable.PathIsDirCreate),
-      PathVariable('TARGET_LIB_PATH', 'Path for libraries', '$TARGET_MODULE_PATH/lib', PathVariable.PathIsDirCreate)
+      PathVariable('TARGET_PLUGIN_PATH', 'Path used for installation of the mtoa plugin', '.', PathVariable.PathIsDirCreate),
+      PathVariable('TARGET_SCRIPTS_PATH', 'Path used for installation of scripts', '.', PathVariable.PathIsDirCreate),
+      PathVariable('TARGET_PYTHON_PATH', 'Path used for installation of Python scripts', '.', PathVariable.PathIsDirCreate),
+      PathVariable('TARGET_ICONS_PATH', 'Path used for installation of icons', '.', PathVariable.PathIsDirCreate),
+      PathVariable('TARGET_DESCR_PATH', 'Path for renderer description file', '.'),
+      PathVariable('TARGET_SHADER_PATH', 'Path used for installation of arnold shaders', '.', PathVariable.PathIsDirCreate),
+      PathVariable('TARGET_EXTENSION_PATH', 'Path used for installation of mtoa translator extensions', '.', PathVariable.PathIsDirCreate),
+      PathVariable('TARGET_LIB_PATH', 'Path for libraries', '.', PathVariable.PathIsDirCreate)
 )
 
 if system.os() == 'windows':
@@ -71,6 +76,39 @@ if system.os() == 'windows':
    env = tmp_env.Clone(tools=['default'])
 else:
    env = Environment(variables = vars)
+
+# Initialize target paths if necessary
+
+if env['TARGET_MODULE_PATH'] == '.':
+   print "Please define TARGET_MODULE_PATH (Path used for installation of the mtoa plugin)"
+   Exit(1)
+
+if env['TARGET_PLUGIN_PATH'] == '.':
+   env['TARGET_PLUGIN_PATH'] = os.path.join(env['TARGET_MODULE_PATH'], 'plug-ins')
+   CreatePathDir(env['TARGET_PLUGIN_PATH'])
+
+if env['TARGET_SCRIPTS_PATH'] == '.':
+   env['TARGET_SCRIPTS_PATH'] = os.path.join(env['TARGET_MODULE_PATH'], 'scripts')
+   CreatePathDir(env['TARGET_SCRIPTS_PATH'])
+
+if env['TARGET_PYTHON_PATH'] == '.':
+   env['TARGET_PYTHON_PATH'] = env['TARGET_SCRIPTS_PATH']
+
+if env['TARGET_ICONS_PATH'] == '.':
+   env['TARGET_ICONS_PATH'] = os.path.join(env['TARGET_MODULE_PATH'], 'icons')
+   CreatePathDir(env['TARGET_ICONS_PATH'])
+
+if env['TARGET_SHADER_PATH'] == '.':
+   env['TARGET_SHADER_PATH'] = os.path.join(env['TARGET_MODULE_PATH'], 'shaders')
+   CreatePathDir(env['TARGET_SHADER_PATH'])
+
+if env['TARGET_EXTENSION_PATH'] == '.':
+   env['TARGET_EXTENSION_PATH'] = os.path.join(env['TARGET_MODULE_PATH'], 'extensions')
+   CreatePathDir(env['TARGET_EXTENSION_PATH'])
+
+if env['TARGET_LIB_PATH'] == '.':
+   env['TARGET_LIB_PATH'] = os.path.join(env['TARGET_MODULE_PATH'], 'lib')
+   CreatePathDir(env['TARGET_LIB_PATH'])
 
 env.Append(BUILDERS = {'MakeModule' : MakeModule})
 
@@ -303,7 +341,7 @@ env.MakeModule(env['TARGET_MODULE_PATH'], os.path.join(BUILD_BASE_DIR, 'mtoa.mod
 env.Install(env['TARGET_MODULE_PATH'], os.path.join(BUILD_BASE_DIR, 'mtoa.mod'))
 
 ################################
-## extensions
+## EXTENSIONS
 ################################
 
 ext_env = maya_env.Clone()
@@ -321,15 +359,22 @@ for ext in os.listdir(ext_base_dir):
        continue
     ext_dir = os.path.join(ext_base_dir, ext)
     if os.path.isdir(ext_dir):
-        EXT = env.SConscript(os.path.join(ext_dir, 'SConscript'),
-                             build_dir = os.path.join(BUILD_BASE_DIR, ext),
-                             duplicate = 0,
-                             exports   = ['ext_env', 'env'])
+        if system.os() == 'windows':
+           [EXT, EXT_PRJ] = env.SConscript(os.path.join(ext_dir, 'SConscript'),
+                                           build_dir = os.path.join(BUILD_BASE_DIR, ext),
+                                           duplicate = 0,
+                                           exports   = ['ext_env'])
+           env.Depends(SOLUTION, EXT_PRJ)
+        else:
+           EXT = env.SConscript(os.path.join(ext_dir, 'SConscript'),
+                                build_dir = os.path.join(BUILD_BASE_DIR, ext),
+                                duplicate = 0,
+                                exports   = ['ext_env'])
         top_level_alias(env, ext, EXT)
         # only install if the target has been specified
         if ext in COMMAND_LINE_TARGETS:
             # EXT may contain a shader result
-            if len(EXT) > 1:
+            if len(EXT) > 1 and EXT_PRJ is None:
                 ext_shaders.append(str(EXT[1][0]))
                 plugin = str(EXT[0][0])
             else:
@@ -344,10 +389,6 @@ if ext_files:
    env.Install(env['TARGET_EXTENSION_PATH'], ext_files)
 if ext_shaders:
    env.Install(env['TARGET_SHADER_PATH'], ext_shaders)
-        #env.Depends('install', EXT)
-        #env.Depends(EXT, MTOA)
-        #env.Depends(MTOA[0], EXT)
-        #env.Requires(MTOA[0], EXT)
 
 ################################
 ## TARGETS ALIASES AND DEPENDENCIES

@@ -82,9 +82,10 @@ def process_return_code(retcode):
             status = 'FAILED'
    return status      
 
-def get_sitoa_version(path, components = 3):
+def get_mtoa_version(path, components = 3):
+   # TODO: define in the plug-in the symbols necessary to get MtoA version 
    '''
-   Obtains SItoA version by parsing 'Version.cpp'
+   Obtains MtoA version by parsing 'Version.cpp'
    '''
    MAJOR_VERSION=''
    MINOR_VERSION=''
@@ -98,11 +99,11 @@ def get_sitoa_version(path, components = 3):
          break
       if line.startswith('#define'):
          tokens = line.split()
-         if tokens[1] == 'SITOA_MAJOR_VERSION_NUM':
+         if tokens[1] == 'MTOA_MAJOR_VERSION_NUM':
             MAJOR_VERSION = tokens[2]
-         elif tokens[1] == 'SITOA_MINOR_VERSION_NUM':
+         elif tokens[1] == 'MTOA_MINOR_VERSION_NUM':
             MINOR_VERSION = tokens[2]
-         elif tokens[1] == 'SITOA_FIX_VERSION':
+         elif tokens[1] == 'MTOA_FIX_VERSION':
             FIX_VERSION = tokens[2][1:].strip('"')
    f.close()
    
