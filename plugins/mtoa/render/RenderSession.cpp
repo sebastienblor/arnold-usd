@@ -30,7 +30,6 @@
 #include <maya/M3dView.h>
 #include <maya/MRenderView.h>
 
-#include <time.h>
 #include <cstdio>
 
 extern AtNodeMethods* mtoa_driver_mtd;
@@ -59,8 +58,6 @@ unsigned int CRenderSession::RenderThread(AtVoid* data)
    // been displayed.
    InitializeDisplayUpdateQueue();
 
-   //const time_t start_time = time(0x0);
-
    AtULong ai_status(AI_SUCCESS);
    for (AtUInt i = 0; (i < prog_passes ); ++i)
    {
@@ -77,15 +74,6 @@ unsigned int CRenderSession::RenderThread(AtVoid* data)
    }
 
    DisplayUpdateQueueRenderFinished();
-
-//   // Update the render view with the render time of the render.
-//   const time_t elapsed = time(0x0) - start_time;
-//   char command_str[256];
-//   sprintf( command_str,
-//            "arnoldIpr -mode finishedIPR -elapsedTime \"%ld:%02ld\" ;",
-//            elapsed / 60,
-//            elapsed % 60 );
-//   MGlobal::executeCommandOnIdle( command_str, false );
 
    return 0;
 }
@@ -570,9 +558,9 @@ void CRenderSession::DoIPRRender()
       SetProgressive(true);
       SetBatch(false);
       SetupRenderOutput();
-      PrepareRenderView(true); // Install callbacks.
       m_renderOptions.SetupRenderOptions();
-      
+      PrepareRenderView(true); // Install callbacks.
+
       // Start the render thread.
       m_render_thread = AiThreadCreate(CRenderSession::RenderThread,
                                        &m_renderOptions,
@@ -582,9 +570,7 @@ void CRenderSession::DoIPRRender()
 
 void CRenderSession::FinishedIPRTuning()
 {
-   // We not actually interrupting,
-   // but this will clean up.
-   InterruptRender();
+   ClearIdleRenderViewCallback();
 }
 
 void CRenderSession::PauseIPR()
@@ -620,10 +606,8 @@ void CRenderSession::AddIdleRenderViewCallback()
 
 void CRenderSession::ClearIdleRenderViewCallback()
 {
-   // Get the rest of the rendered image processed.
-   ProcessDisplayUpdateQueue();
-
-   if ( m_idle_cb > 0 )
+   // Don't clear the callback if we're in the middle of a render.
+   if ( m_idle_cb != 0 )
    {
       MMessage::removeCallback( m_idle_cb );
       MRenderView::endRender();

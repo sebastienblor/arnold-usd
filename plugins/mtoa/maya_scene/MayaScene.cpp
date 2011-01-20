@@ -368,8 +368,11 @@ void CMayaScene::IPRNewNodeCallback(MObject & node, void *)
 
 void CMayaScene::IPRIdleCallback(void *)
 {
-   MMessage::removeCallback( s_IPRIdleCallbackId );
-   s_IPRIdleCallbackId = 0;
+   if ( s_IPRIdleCallbackId != 0 )
+   {
+      MMessage::removeCallback( s_IPRIdleCallbackId );
+      s_IPRIdleCallbackId = 0;
+   }
 
    CRenderSession* renderSession = CRenderSession::GetInstance();
    renderSession->InterruptRender();

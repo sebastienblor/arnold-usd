@@ -153,6 +153,9 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
 
    else if ( (mode == "finishedIPR") )
    {
+      // We might be rendering again by the time this is called.
+      if (AiRendering()) return status;
+         
       renderSession->FinishedIPRTuning();
 
       // Format a bit of info for the renderview.

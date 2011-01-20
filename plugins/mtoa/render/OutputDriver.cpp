@@ -13,7 +13,10 @@
 
 #include <maya/MComputation.h>
 #include <maya/MRenderView.h>
+#include <maya/MGlobal.h>
 
+#include <time.h>
+time_t s_start_time;
 
 #define _gamma  (params[0].FLT )  /**< accessor for driver's gamma parameter */
 
@@ -44,6 +47,7 @@ struct CDisplayUpdateMessage
 
 static CMTBlockingQueue<CDisplayUpdateMessage> s_displayUpdateQueue;
 static COutputDriverData                       s_outputDriverData;
+static bool                                    s_finishedRendering;
 
 node_parameters
 {
@@ -224,16 +228,28 @@ void InitializeDisplayUpdateQueue()
 {
    // Clears the display update queue, in case we had aborted a previous render.
    ClearDisplayUpdateQueue();
+   s_start_time = time(0x0);
+   s_finishedRendering = false;
 }
 
 void FinishedWithDisplayUpdateQueue()
 {
-   ClearDisplayUpdateQueue();
+   s_finishedRendering = false;
+
+   // Update the render view with the render time of the render.
+   const time_t elapsed = time(0x0) - s_start_time;
+   char command_str[256];
+   sprintf( command_str,
+            "arnoldIpr -mode finishedIPR -elapsedTime \"%ld:%02ld\" ;",
+            elapsed / 60,
+            elapsed % 60 );
+   MGlobal::executeCommandOnIdle( command_str, false );
 }
 
 void ClearDisplayUpdateQueue()
 {
    s_displayUpdateQueue.reset();
+   s_finishedRendering = false;
 }
 
 void DisplayUpdateQueueRenderFinished()
@@ -241,9 +257,10 @@ void DisplayUpdateQueueRenderFinished()
    CDisplayUpdateMessage msg;
    msg.msgType = MSG_RENDER_DONE;
    s_displayUpdateQueue.push(msg);
+   s_finishedRendering = true;
 }
 
-bool ProcessSomeOfDisplayUpdateQueue(const bool refresh)
+bool ProcessUpdateMessage(const bool refresh)
 {
    if (s_displayUpdateQueue.waitForNotEmpty(10))
    {
@@ -265,32 +282,50 @@ bool ProcessSomeOfDisplayUpdateQueue(const bool refresh)
             break;
          case MSG_RENDER_DONE:
             // Recieved "end-of-rendering" message.
+            FinishedWithDisplayUpdateQueue();
             //AiMsgDebug( "Got end render message" );
             return false;
          }
       }
    }
+   
    return true;
 }
+
 
 void ProcessDisplayUpdateQueue()
 {
    while( !s_displayUpdateQueue.isEmpty() )
    {
-      ProcessSomeOfDisplayUpdateQueue(false);
+      ProcessUpdateMessage(false);
+   }
+}
+
+bool ProcessSomeOfDisplayUpdateQueue(const bool refresh)
+{
+   // If we're done, do the whole queue.
+   if (s_finishedRendering)
+   {
+      ProcessDisplayUpdateQueue();
+      return false;
+   }
+   // Otherwise we just to a bit of it.
+   else
+   {
+      return ProcessUpdateMessage( refresh );
    }
 }
 
 void ProcessDisplayUpdateQueueWithInterupt(MComputation & comp)
 {
-   while(true)
+   // Break out the loop when we've displayed the last complete image.
+   // ProcessUpdateMessage returns false on end of render message.
+   // s_finishedRendering = false while rendering, but while rendering
+   // is going on, we want to refresh the render view, hence it's negated.
+   while(ProcessUpdateMessage(!s_finishedRendering))
    {
+      // Break if the user wants out.
       if (comp.isInterruptRequested()) break;
-
-      // Break out the loop when we've displayed the last complete image.
-      // ProcessSomeOfDisplayUpdateQueue returns false on end of render message.
-      if (!ProcessSomeOfDisplayUpdateQueue()) break;
    }
-   
 }
 

@@ -4,6 +4,7 @@
 #include <maya/MComputation.h>
 
 void InitializeDisplayUpdateQueue();
+bool ProcessUpdateMessage(const bool refresh=true);
 void ProcessDisplayUpdateQueue();
 void ProcessDisplayUpdateQueueWithInterupt(MComputation & comp);
 bool ProcessSomeOfDisplayUpdateQueue(const bool refresh=true);
