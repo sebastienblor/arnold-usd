@@ -501,6 +501,7 @@ void CArnoldNodeFactory::LoadExtensions()
       }
    }
    // create callbacks
+   MStatus status;
    s_pluginLoadedCallbackId = MSceneMessage::addStringArrayCallback(MSceneMessage::kAfterPluginLoad, CArnoldNodeFactory::MayaPluginLoadedCallback, NULL, &status);
    CHECK_MSTATUS(status);
 }
