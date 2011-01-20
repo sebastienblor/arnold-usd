@@ -42,4 +42,6 @@
 #define MAYA_NODEID_MESH                        0x444d5348
 #define MAYA_NODEID_NURBS_SURFACE               0x4e535246
 
+#define MAYA_NODEID_CAMERA                      0x4443414d
+
 #endif // ARNOLD_NODE_IDS_H

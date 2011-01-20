@@ -82,14 +82,6 @@ public:
    static void RegisterDagTranslator(int typeId, CreatorFunction creator){s_dagTranslators[typeId] = creator;}
    static void RegisterTranslator(int typeId, CreatorFunction creator){s_dependTranslators[typeId] = creator;}
 
-   void ExportCamera(const MDagPath& dagPath, AtUInt step);
-   void ExportCameraData(AtNode* camera, const MDagPath& dagPath, bool mb);
-   void ExportCameraMBData(const MDagPath& dagPath, AtUInt step);
-   double GetDeviceAspect();
-   void GetOrthoFilmback(AtNode* camera, MFnCamera& fnCamera);
-   void GetPerspFilmback(AtNode* camera, MFnCamera& fnCamera);
-   MVectorArray GetFilmTransform(MFnCamera& fnCamera, double width=0, bool persp=true);
-   void ExportImagePlane(const MDagPath& dagPath, bool mb, AtUInt step);
    void ExportHair(const MDagPath& dagPath, AtUInt step);
    void ExportInstancerReplacement(const MDagPath& dagPath, AtUInt step);
 
@@ -121,33 +113,6 @@ public:
    MFnDependencyNode* m_fnArnoldRenderOptions;
 
    MDagPath m_camera;
-
-   struct CCameraData
-   {
-      float fov;
-      double apertureX;
-      double apertureY;
-      double lensSqueeze;
-      double scale;
-      double focalLength;
-      double factorX;
-      double factorY;
-      double width;
-      double deviceAspect;
-      CCameraData() : fov(0),
-                      apertureX(0),
-                      apertureY(0),
-                      lensSqueeze(0),
-                      scale(0),
-                      focalLength(0),
-                      factorX(0),
-                      factorY(0),
-                      width(0),
-                      deviceAspect(0)
-      {};
-   };
-
-   CCameraData m_cameraData;
 
    CMotionBlurData m_motionBlurData;
 

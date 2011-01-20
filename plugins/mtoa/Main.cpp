@@ -24,6 +24,7 @@
 #include "maya_scene/Shaders.h"
 #include "maya_scene/Lights.h"
 #include "maya_scene/Geometry.h"
+#include "maya_scene/Cameras.h"
 
 #include <ai_render.h>
 #include <ai_msg.h>
@@ -101,6 +102,8 @@ namespace // <anonymous>
 
       arnoldPluginFactory->RegisterDagTranslator("mesh", MAYA_NODEID_MESH, CMeshTranslator::creator);
       arnoldPluginFactory->RegisterDagTranslator("nurbsSurface", MAYA_NODEID_NURBS_SURFACE, CNurbsSurfaceTranslator::creator);
+
+      arnoldPluginFactory->RegisterDagTranslator("camera", MAYA_NODEID_CAMERA, CCameraTranslator::creator);
 
       arnoldPluginFactory->MapToMayaNode("ambient_occlusion", "ArnoldAmbientOcclusionShader", CArnoldAmbientOcclusionShaderNode::id.id());
       arnoldPluginFactory->MapToMayaNode("standard", "ArnoldStandardShader", CArnoldStandardShaderNode::id.id());
