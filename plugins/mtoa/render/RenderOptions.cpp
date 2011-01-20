@@ -54,7 +54,7 @@ void CRenderOptions::UpdateImageFilename()
 
    MString sceneFileName, nameCamera;
    MString cameraFolderName;
-   MObject renderLayer = MFnRenderLayer::defaultRenderLayer();     
+   MObject renderLayer = MFnRenderLayer::currentLayer();
    double  fileFrameNumber;
 
    // get the frame number

@@ -16,18 +16,14 @@ def arnoldBatchRender(option):
             i += 1
             if i >= n:
                 break
-            try:
-                kwargs["width"] = int(options[i])
-            except:
-                pass
+            kwargs["width"] = int(options[i])
+
         elif options[i] in ["-h", "-height"]:
             i += 1
             if i >= n:
                 break
-            try:
-                kwargs["height"] = int(options[i])
-            except:
-                pass
+            kwargs["height"] = int(options[i])
+
         elif options[i] in ["-cam", "-camera"]:
             i += 1
             if i >= n:
