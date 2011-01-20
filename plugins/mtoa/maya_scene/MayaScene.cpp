@@ -346,7 +346,7 @@ void CMayaScene::IPRNewNodeCallback(MObject & node, void *)
    // we can shortcut and just call the update for it's already existing translator.
    CRenderSession* renderSession = CRenderSession::GetInstance();
    // Interupt rendering
-   renderSession->Interrupt();
+   renderSession->InterruptRender();
    CNodeTranslator * translator = renderSession->GetMayaScene()->GetActiveTranslator(node);
    if ( translator != 0x0 )
    {
@@ -372,7 +372,7 @@ void CMayaScene::IPRIdleCallback(void *)
    s_IPRIdleCallbackId = 0;
 
    CRenderSession* renderSession = CRenderSession::GetInstance();
-   renderSession->Interrupt();
+   renderSession->InterruptRender();
    CMayaScene* scene = renderSession->GetMayaScene();
    // Are we motion blurred?
    const bool mb = scene->m_motionBlurData.enabled &&

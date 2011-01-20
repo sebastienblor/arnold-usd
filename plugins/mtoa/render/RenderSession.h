@@ -10,6 +10,7 @@
 #include <ai_universe.h>
 
 #include <maya/MMessage.h> // for MCallbackId
+#include <maya/MComputation.h>
 
 class CMayaScene;
 
@@ -21,19 +22,38 @@ public:
    static CRenderSession* GetInstance();
    CMayaScene* GetMayaScene();
 
-   void Init(ExportMode exportMode=MTOA_EXPORT_ALL, bool preMel=false, bool preLayerMel=false, bool preFrameMel=false);
-   void End(bool postMel=false, bool postLayerMel=false, bool postFrameMel=false);
-   void Interrupt();
+   // Get the render view ready.
+   // Optionally installs a callback for IPR.
+   MStatus PrepareRenderView(bool addIdleRenderViewUpdate=false);
 
-   void Reset(bool postMel=false, bool postLayerMel=false, bool postFrameMel=false, bool preMel=false, bool preLayerMel=false, bool preFrameMel=false);
+   // Translate the Maya scene to Arnold.
+   void Translate(ExportMode exportMode=MTOA_EXPORT_ALL);
+
+   // Render Methods.
+   void DoInteractiveRender();
+   void DoBatchRender();
+   void DoExport(MString customFileName);
+
+   // Stop a render, leaving the data in Arnold.
+   void InterruptRender();
+
+   // Finish/abort a render. This will shutdown Arnold.
+   void Finish();
+
+   // IPR Methods, most have obvious tasks.
+   void DoIPRRender();
+   void PauseIPR();
+   void FinishedIPRTuning();
+   void UnPauseIPR();
+   AtUInt64 GetUsedMemory();
 
    void SetBatch(bool batch);
-   void SetWidth(int width);
-   void SetHeight(int height);
+   void SetResolution(const int width, const int height);
    void SetCamera(MString cameraNode);
    void SetMultiCameraRender(bool multi);
-   void SetRegion( const AtUInt left, const AtUInt right, const AtUInt bottom, const AtUInt top );
    void SetProgressive( bool is_progressive );
+   void SetRegion(const AtUInt left,const AtUInt right,
+                  const AtUInt bottom, const AtUInt top);
 
    const CRenderOptions* RenderOptions() const
    {
@@ -53,24 +73,6 @@ public:
       }
    }
 
-   void DoRender();
-   void DoBatchRender();
-   void DoExport(MString customFileName = "", ExportMode exportMode=MTOA_EXPORT_ALL);
-
-   // IPR Methods.
-   MStatus PrepareIPR();
-   MStatus PrepareRenderView();
-   void DoIPRRender();
-   void StopIPR();
-   void PauseIPR();
-   void FinishedIPRTuning();
-   void UnPauseIPR();
-   AtUInt64 GetUsedMemory();
-   // The idle callback is used to update the
-   // render view when rendering IPR.
-   void AddIdleRenderViewCallback();
-   void ClearIdleRenderViewCallback();
-
 
 private:
 
@@ -79,8 +81,20 @@ private:
    {
    }
 
-   static void updateRenderViewCallback(void *);
+   void Init();
+   
+   void LoadPlugins();
 
+   static unsigned int RenderThread(AtVoid* data);
+   
+   // The idle callback is used to update the
+   // render view when rendering IPR.
+   void AddIdleRenderViewCallback();
+   static void updateRenderViewCallback(void *);
+   void ClearIdleRenderViewCallback();
+
+   // These functions setup the file output
+   // and Render View output driver.
    void SetupRenderOutput();
    AtNode * CreateFileOutput();
    AtNode * CreateRenderViewOutput();
@@ -93,7 +107,7 @@ private:
    bool           m_paused_ipr;
 
    // This is a special callback installed to update the render
-   // view while Arnold is rendering.
+   // view while Arnold is rendering in IPR.
    MCallbackId m_idle_cb;
 
    // This is the render thread that Arnolds AiRender() is

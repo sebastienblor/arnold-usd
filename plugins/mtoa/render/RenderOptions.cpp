@@ -108,16 +108,13 @@ void CRenderOptions::ProcessCommonRenderOptions()
       MFnDependencyNode fnRenderGlobals(node);
 
       m_useRenderRegion = fnRenderGlobals.findPlug("useRenderRegion").asBool();
-      m_extensionPadding = fnRenderGlobals.findPlug("extensionPadding").asInt();
-
-      fnRenderGlobals.findPlug("startFrame").getValue(time);
-      m_startFrame = static_cast<float>(time.as(MTime::uiUnit()));
-      fnRenderGlobals.findPlug("endFrame").getValue(time);
-      m_endFrame = static_cast<float>(time.as(MTime::uiUnit()));
-      m_byFrameStep = fnRenderGlobals.findPlug("byFrameStep").asFloat();
 
       MRenderUtil::getCommonRenderSettings(m_defaultRenderGlobalsData);
       m_isAnimated = m_defaultRenderGlobalsData.isAnimated();
+      m_extensionPadding = m_defaultRenderGlobalsData.framePadding;
+      m_startFrame = static_cast<float>(m_defaultRenderGlobalsData.frameStart.as(MTime::uiUnit()));
+      m_endFrame = static_cast<float>(m_defaultRenderGlobalsData.frameEnd.as(MTime::uiUnit()));
+      m_byFrameStep = m_defaultRenderGlobalsData.frameBy;
 
       if (m_useRenderRegion)
       {

@@ -762,7 +762,7 @@ void CGeoTranslator::ShaderAssignmentCallback( MNodeMessage::AttributeMessage ms
       {
          // Interupt the render.
          CRenderSession* renderSession = CRenderSession::GetInstance();
-         renderSession->Interrupt();
+         renderSession->InterruptRender();
          // Export the new shaders.
          translator->ExportShaders();
          // Update Arnold without passing a translator, this just forces a redraw.

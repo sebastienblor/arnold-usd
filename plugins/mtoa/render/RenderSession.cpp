@@ -22,7 +22,7 @@
 #include <maya/MNodeMessage.h>
 #include <maya/MMessage.h> // for MCallbackId
 #include <maya/MCommonRenderSettingsData.h>
-#include <maya/MRenderUtil.h> 
+#include <maya/MRenderUtil.h>
 #include <maya/MStatus.h>
 #include <maya/MPlug.h>
 #include <maya/MPlugArray.h>
@@ -45,10 +45,10 @@ void CRenderSession::updateRenderViewCallback(void *)
    ProcessSomeOfDisplayUpdateQueue();
 }
 
-
 // This is the code for the render thread. This version is used for IPR
 // to run the AiRender() process outside of the main thread.
-static unsigned int RenderThreadIPR(AtVoid* data)
+// This is *static*.
+unsigned int CRenderSession::RenderThread(AtVoid* data)
 {
    CRenderOptions * render_options = static_cast< CRenderOptions * >( data );
    // set progressive start point on AA
@@ -83,7 +83,7 @@ static unsigned int RenderThreadIPR(AtVoid* data)
    {
       // Is there a nicer way to do this?
       const time_t elapsed = time(0x0) - start_time;
-      char command_str[256]; // Can't image a time taking more than this can store!
+      char command_str[256];
       sprintf( command_str, "arnoldIpr -mode finishedIPR -elapsedTime \"%ld:%02ld\" ;", elapsed / 60, elapsed % 60 );
       MGlobal::executeCommandOnIdle( command_str, false );
    }
@@ -91,13 +91,6 @@ static unsigned int RenderThreadIPR(AtVoid* data)
    return 0;
 }
 
-// This versoin of render thread just wraps AiRender to run it
-// outside of the main thread.
-static unsigned int RenderThread(AtVoid* data)
-{
-   AiRender(AI_RENDER_MODE_CAMERA);
-   return 0;
-}
 
 // Cheap singleton
 CRenderSession* CRenderSession::GetInstance()
@@ -113,7 +106,37 @@ CMayaScene* CRenderSession::GetMayaScene()
    return m_scene;
 }
 
-void CRenderSession::Init(ExportMode exportMode, bool preMel, bool preLayerMel, bool preFrameMel)
+void CRenderSession::LoadPlugins()
+{
+
+   #ifdef _WIN32
+      const char split_char(';');
+   #else
+      const char split_char(':');
+   #endif
+
+   const MString resolvedPathList = m_renderOptions.pluginsPath().expandEnvironmentVariablesAndTilde();
+
+   MStringArray pluginPaths;
+   resolvedPathList.split( split_char, pluginPaths);
+   for (unsigned int i=0; i<pluginPaths.length(); ++i)
+   {
+      const MString pluginPath = pluginPaths[i];
+      if (pluginPath.length() > 0)
+      {
+         AiLoadPlugins(pluginPath.asChar());
+      }
+   }
+}
+
+void CRenderSession::Init()
+{
+   m_scene = new CMayaScene;
+   m_renderOptions.GetFromMaya(m_scene);
+   m_renderOptions.SetupLog();
+}
+
+void CRenderSession::Translate(ExportMode exportMode)
 {
    if (AiUniverseIsActive())
    {
@@ -121,82 +144,36 @@ void CRenderSession::Init(ExportMode exportMode, bool preMel, bool preLayerMel, 
       return;
    }
 
-
-   MCommonRenderSettingsData renderGlobals;
-   MRenderUtil::getCommonRenderSettings(renderGlobals);
-
-   if (preMel)
-   {
-      ExecuteScript(renderGlobals.preMel);
-   }
-   if (preLayerMel)
-   {
-      ExecuteScript(renderGlobals.preRenderLayerMel);
-   }
-   if (preFrameMel)
-   {
-      ExecuteScript(renderGlobals.preRenderMel);
-   }
-
-   m_scene = new CMayaScene;          
-   m_renderOptions.GetFromMaya(m_scene);
-
+   // Begin the Arnold universe.
    AiBegin();
-
-   m_renderOptions.SetupLog();
-
-   MString resolvedPathList = m_renderOptions.pluginsPath().expandEnvironmentVariablesAndTilde();
-
-   MStringArray pluginPaths;
-#ifdef _WIN32
-   resolvedPathList.split(';', pluginPaths);
-#else
-   resolvedPathList.split(':', pluginPaths);
-#endif
-   for (unsigned int i=0; i<pluginPaths.length(); ++i)
-   {
-      MString pluginPath = pluginPaths[i];
-      if (pluginPath.length() > 0)
-      {
-         AiLoadPlugins(pluginPath.asChar());
-      }
-   }
-
+   Init();
+   LoadPlugins();
+   
    m_scene->ExportToArnold(exportMode);
-
 }
 
-void CRenderSession::End(bool postMel, bool postLayerMel, bool postFrameMel)
+
+void CRenderSession::Finish()
 {
-   Interrupt();
-   AiRenderAbort();
-   AiEnd();
-   MCommonRenderSettingsData renderGlobals;
-   MRenderUtil::getCommonRenderSettings(renderGlobals);
-
-   if (postFrameMel)
+   if (IsActive())
    {
-      ExecuteScript(renderGlobals.postRenderMel);
-   }
-   if (postLayerMel)
-   {
-      ExecuteScript(renderGlobals.postRenderLayerMel);
-   }
-   if (postMel)
-   {
-      ExecuteScript(renderGlobals.postMel);
+      InterruptRender();
+      AiRenderAbort();
+      AiEnd();
    }
 
-   delete m_scene;
+   // This will release the scene and therefore any
+   // translators it has held.
+   if ( m_scene != 0x0 )
+   {
+      delete m_scene;
+      m_scene = 0x0;
+   }
 }
 
-void CRenderSession::Interrupt()
+void CRenderSession::InterruptRender()
 {
-
-   if ( AiRendering() )
-   {
-      AiRenderInterrupt();
-   }
+   if ( AiRendering() ) AiRenderInterrupt();
 
    // Stop the Idle update.
    ClearIdleRenderViewCallback();
@@ -209,34 +186,19 @@ void CRenderSession::Interrupt()
    }
 }
 
-void CRenderSession::Reset(bool postMel, bool postLayerMel, bool postFrameMel, bool preMel, bool preLayerMel, bool preFrameMel)
-{
-   if (IsActive())
-   {
-      End(postMel, postLayerMel, postFrameMel);
-   }
-
-   Init(MTOA_EXPORT_ALL, preMel, preLayerMel, preFrameMel);
-}
-
 void CRenderSession::SetBatch(bool batch)
 {
    m_renderOptions.SetBatch(batch);
 }
 
-void CRenderSession::SetWidth(int width)
+void CRenderSession::SetResolution(const int width, const int height)
 {
-   if (width != -1)
-      m_renderOptions.SetWidth(width);
+   if (width != -1) m_renderOptions.SetWidth(width);
+   if (height != -1) m_renderOptions.SetHeight(height);
 }
 
-void CRenderSession::SetHeight(int height)
-{
-   if (height != -1)
-      m_renderOptions.SetHeight(height);
-}
-
-void CRenderSession::SetRegion( const AtUInt left, const AtUInt right, const AtUInt bottom, const AtUInt top )
+void CRenderSession::SetRegion( const AtUInt left, const AtUInt right,
+                                const AtUInt bottom, const AtUInt top )
 {
    m_renderOptions.SetRegion( left, right, bottom, top );
 }
@@ -345,87 +307,6 @@ void CRenderSession::SetMultiCameraRender(bool multi)
    m_renderOptions.SetMultiCameraRender(multi);
 }
 
-void CRenderSession::DoRender()
-{
-   SetupRenderOutput();
-   m_renderOptions.SetupRenderOptions();
-   InitializeDisplayUpdateQueue();
-
-   // set progressive start point on AA
-   AtInt init_progressive_samples = m_renderOptions.isProgressive() ? -3 : m_renderOptions.NumAASamples() ;
-   AtUInt prog_passes = m_renderOptions.isProgressive() ? ((-init_progressive_samples) + 2) : 1;
-
-   MComputation comp;
-   comp.beginComputation();
-   bool aborted = false;
-
-   for (AtUInt i = 0; (i < prog_passes); i++)
-   {
-      AtInt sampling = i + init_progressive_samples;
-      if (i + 1 == prog_passes)
-      {
-        sampling = m_renderOptions.NumAASamples();
-      }
-
-      AiNodeSetInt(AiUniverseGetOptions(), "AA_samples", sampling);
-      AtVoid* handler = AiThreadCreate(RenderThread, NULL, AI_PRIORITY_LOW);
-
-      // Process messages sent by the render thread, and exit when rendering is finished or aborted
-      ProcessDisplayUpdateQueueWithInterupt(&comp);
-
-      if (!aborted && comp.isInterruptRequested())
-      {
-         AiRenderAbort();
-         aborted = true;
-         AiThreadWait(handler);
-         AiThreadClose(handler);
-         break;
-      }
-
-      // Wait for the render thread to release everything and close it
-      AiThreadWait(handler);
-      AiThreadClose(handler);
-   }
-
-   comp.endComputation();
-}
-
-void CRenderSession::DoBatchRender()
-{
-   SetupRenderOutput();
-   m_renderOptions.SetupRenderOptions();
-
-   AiRender(AI_RENDER_MODE_CAMERA);
-}
-
-void CRenderSession::DoExport(MString customFileName, ExportMode exportMode)
-{
-   MString fileName;
-
-   // if no custom fileName is given, use the default one in the environment variable
-   if (customFileName.length() > 0)
-      fileName = m_renderOptions.VerifyFileName(customFileName.asChar(), m_renderOptions.outputAssCompressed());
-   else
-      fileName = m_renderOptions.VerifyFileName(m_renderOptions.outputAssFile().expandEnvironmentVariablesAndTilde(), m_renderOptions.outputAssCompressed());
-
-
-   if (fileName.length() == 0)
-   {
-      AiMsgError("[mtoa] File name must be set before exporting .ass file");
-   }
-   else
-   {
-      AiMsgInfo("[mtoa] Exporting Maya scene to file '%s'", fileName.asChar());
-
-      if (exportMode==MTOA_EXPORT_ALL)
-      {
-         SetupRenderOutput();
-         m_renderOptions.SetupRenderOptions();
-      }   
-      AiASSWrite(fileName.asChar(), m_renderOptions.outputAssMask(), false);
-   }
-}
-
 void CRenderSession::SetupRenderOutput()
 {
 
@@ -477,7 +358,8 @@ AtNode * CRenderSession::CreateFileOutput()
       driver = AiNode(m_renderOptions.RenderDriver().asChar());
       AiNodeSetStr(driver, "filename", m_renderOptions.GetImageFilename().asChar());
 
-      // Set the driver name depending on the camera name to avoid nodes with the same name on renders with multiple cameras
+      // Set the driver name depending on the camera name to avoid nodes with
+      // the same name on renders with multiple cameras
       AiNodeSetStr(driver, "name", driverCamName.asChar());
    }
 
@@ -527,7 +409,12 @@ AtNode * CRenderSession::CreateRenderViewOutput()
    AtNode * driver = AiNodeLookUpByName( "renderview_display" );
    if ( driver == 0x0 )
    {
-      AiNodeInstall(AI_NODE_DRIVER, AI_TYPE_NONE, "renderview_display",  NULL, (AtNodeMethods*) mtoa_driver_mtd, AI_VERSION);
+      AiNodeInstall(AI_NODE_DRIVER,
+                    AI_TYPE_NONE,
+                    "renderview_display",
+                    NULL,
+                    (AtNodeMethods*) mtoa_driver_mtd,
+                    AI_VERSION);
       driver = AiNode("renderview_display");
       AiNodeSetStr(driver, "name", "renderview_display");
    }
@@ -568,41 +455,76 @@ AtNode * CRenderSession::CreateOutputFilter()
    return filter;
 }
 
-MStatus CRenderSession::PrepareIPR()
+void CRenderSession::DoInteractiveRender()
 {
-   MStatus status( MS::kSuccess );
-
-   if (AiUniverseIsActive())
-   {
-      End();
-   }
-   
-   // This will export the scene.
-   Init( MTOA_EXPORT_IPR );
-   status = PrepareRenderView();
-
-   // Set the camera for Arnold.
-   MDagPath cameraPath;
-   M3dView::active3dView().getCamera(cameraPath);
-   MRenderView::setCurrentCamera(cameraPath);
-   MObject camera_mobj( cameraPath.node() );
-   MFnDagNode cameraNode( camera_mobj );
-   SetCamera(cameraNode.name());
-
-   // Use progressive for now. This should be an option.
-   SetProgressive( true );
-   SetBatch(false);
+   MComputation comp;
+   comp.beginComputation();
 
    SetupRenderOutput();
    m_renderOptions.SetupRenderOptions();
+   PrepareRenderView();
 
-   return status;
+   // Start the render thread.
+   m_render_thread = AiThreadCreate(CRenderSession::RenderThread,
+                                    &m_renderOptions,
+                                    AI_PRIORITY_LOW);
+
+   // This returns when the render is done or if someone
+   // has hit escape.
+   ProcessDisplayUpdateQueueWithInterupt( comp );
+
+   // Stop and clean up after the render.
+   Finish();
+
+   comp.endComputation();
 }
 
-MStatus CRenderSession::PrepareRenderView()
+
+void CRenderSession::DoBatchRender()
+{
+   SetupRenderOutput();
+   m_renderOptions.SetupRenderOptions();
+
+   AiRender(AI_RENDER_MODE_CAMERA);
+}
+
+void CRenderSession::DoExport(MString customFileName)
+{
+   MString fileName;
+
+   // if no custom fileName is given, use the default one in the environment variable
+   if (customFileName.length() > 0)
+   {
+      fileName = m_renderOptions.VerifyFileName(customFileName.asChar(),
+                                                m_renderOptions.outputAssCompressed());
+   }
+   else
+   {
+      fileName = m_renderOptions.VerifyFileName(m_renderOptions.outputAssFile().expandEnvironmentVariablesAndTilde(),
+                                                m_renderOptions.outputAssCompressed());
+   }
+
+   if (fileName.length() == 0)
+   {
+      AiMsgError("[mtoa] File name must be set before exporting .ass file");
+   }
+   else
+   {
+      AiMsgInfo("[mtoa] Exporting Maya scene to file '%s'", fileName.asChar());
+
+      if (GetMayaScene()->GetExportMode()==MTOA_EXPORT_ALL)
+      {
+         SetupRenderOutput();
+         m_renderOptions.SetupRenderOptions();
+      }   
+      AiASSWrite(fileName.asChar(), m_renderOptions.outputAssMask(), false);
+   }
+}
+
+MStatus CRenderSession::PrepareRenderView( bool addIdleRenderViewUpdate )
 {
    MStatus status( MS::kSuccess );
-
+   
    // We need to set the current camera in renderView,
    // so the buttons render from the camera you want.
    MSelectionList list;
@@ -633,7 +555,11 @@ MStatus CRenderSession::PrepareRenderView()
    if (MStatus::kSuccess != status)
    {
       MGlobal::displayError("Render view is not able to render.");
+      return status;
    }
+
+   ClearIdleRenderViewCallback();
+   if (addIdleRenderViewUpdate) AddIdleRenderViewCallback();
 
    return status;
 }
@@ -642,48 +568,29 @@ void CRenderSession::DoIPRRender()
 {
    if (!m_paused_ipr)
    {
-      PrepareRenderView();
-      AddIdleRenderViewCallback();
-      m_render_thread = AiThreadCreate(RenderThreadIPR, &m_renderOptions, AI_PRIORITY_LOW);
+      SetProgressive(true);
+      SetBatch(false);
+      SetupRenderOutput();
+      PrepareRenderView(true); // Install callbacks.
+      m_renderOptions.SetupRenderOptions();
+      
+      // Start the render thread.
+      m_render_thread = AiThreadCreate(CRenderSession::RenderThread,
+                                       &m_renderOptions,
+                                       AI_PRIORITY_LOW);
    }
 }
 
-void CRenderSession::StopIPR()
-{
-   if (IsActive())
-   {
-      // Stop Arnold.
-      Interrupt();
-
-      ClearIdleRenderViewCallback();
-
-      // Remove the callbacks on nodes in the Maya scene.
-      // This method is provided in a later patch.
-      // m_scene->ClearMayaCallbacks();
-
-      // End will delete m_scene.
-      End();
-   }
-}
-
-// This just cleans up when all the progressive
-// passes are done for an IPR render.
 void CRenderSession::FinishedIPRTuning()
 {
-   // Clear the render view callback, we're not going to need it.
-   //ClearIdleRenderViewCallback();
-
-   // Transfer the rest of the image tiles.
-   //ClearDisplayUpdateQueue( true );
-
    // We not actually interrupting,
    // but this will clean up.
-   Interrupt();
+   InterruptRender();
 }
 
 void CRenderSession::PauseIPR()
 {
-   Interrupt();
+   InterruptRender();
    ClearIdleRenderViewCallback();
    m_paused_ipr = true;
 }
@@ -705,7 +612,10 @@ void CRenderSession::AddIdleRenderViewCallback()
    if ( 0 == m_idle_cb )
    {
       MStatus status;
-      m_idle_cb = MEventMessage::addEventCallback( "idle", CRenderSession::updateRenderViewCallback, NULL, &status );
+      m_idle_cb = MEventMessage::addEventCallback( "idle",
+                                                   CRenderSession::updateRenderViewCallback,
+                                                   0x0,
+                                                   &status );
    }
 }
 

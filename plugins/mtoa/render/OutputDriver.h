@@ -5,7 +5,7 @@
 
 void InitializeDisplayUpdateQueue();
 void ProcessDisplayUpdateQueue();
-void ProcessDisplayUpdateQueueWithInterupt(MComputation * comp);
+void ProcessDisplayUpdateQueueWithInterupt(MComputation & comp);
 bool ProcessSomeOfDisplayUpdateQueue(const bool refresh=true);
 void FinishedWithDisplayUpdateQueue();
 void ClearDisplayUpdateQueue();

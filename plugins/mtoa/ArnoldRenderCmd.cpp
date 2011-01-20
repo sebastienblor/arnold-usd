@@ -14,6 +14,7 @@
 #include <maya/MFnDagNode.h>
 #include <maya/MGlobal.h>
 #include <maya/MSelectionList.h>
+#include <maya/MRenderUtil.h>
 
 MSyntax CArnoldRenderCmd::newSyntax()
 {
@@ -34,7 +35,11 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
    MArgDatabase args(syntax(), argList);
    MDagPath dagPath;
 
-   bool batch = args.isFlagSet("batch") ? true : false;
+   MCommonRenderSettingsData renderGlobals;
+   MRenderUtil::getCommonRenderSettings(renderGlobals);
+
+   const bool batch = args.isFlagSet("batch") ? true : false;
+   renderSession->SetBatch(batch);
 
    // no camera set on interactive mode, abort
    if (!args.isFlagSet("camera") && !batch)
@@ -44,45 +49,37 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
 
    // Note: Maya seems to internally calls the preRender preLayerRender scripts
    //       as well as the postRender and postLayerRender ones
-   renderSession->SetBatch(batch);
-   const CRenderOptions* renderOptions = renderSession->RenderOptions();
-
+   
    // Check if in batch mode
    if (batch)
    {
-      // Dummy init, we need to get the render options, do not execute any scripts
-      renderSession->Reset(false, false, false, false, false, false);
-
+      // TODO: This really needs to go. We're translating the whole scene for a couple of
+      // render options.
+      
       AtFloat startframe;
       AtFloat endframe;
       AtFloat byframestep;
 
-      if (renderOptions->isAnimated())
+      if (renderGlobals.isAnimated())
       {
-         startframe = renderOptions->startFrame();
-         endframe = renderOptions->endFrame();
-         byframestep = renderOptions->byFrameStep();
+         startframe = static_cast<float>(renderGlobals.frameStart.as(MTime::uiUnit()));
+         endframe = static_cast<float>(renderGlobals.frameEnd.as(MTime::uiUnit()));
+         byframestep = renderGlobals.frameBy;
       }
       else
       {
-         startframe = 0;
-         endframe = 0;
+         startframe  = 0;
+         endframe    = 0;
          byframestep = 1;
       }
 
-      bool firstframe = true;
-
       for (AtFloat framerender = startframe; framerender <= endframe; framerender += byframestep)
       {
+         const CRenderOptions* renderOptions = renderSession->RenderOptions();
+         if (renderOptions->isAnimated()) MGlobal::viewFrame((double)framerender);
+         renderSession->ExecuteScript(renderGlobals.preRenderMel);
 
-         if (renderOptions->isAnimated())
-         {
-            MGlobal::viewFrame((double)framerender);
-         }
-
-         renderSession->SetBatch(batch);
-         renderSession->Reset(false, false, !firstframe, false, false, true);
-         //renderSession->RenderOptions();
+         renderSession->Translate();
 
          MStringArray cameras;
          MItDag  dagIterCameras(MItDag::kDepthFirst, MFn::kCamera);
@@ -115,61 +112,28 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
             renderSession->DoBatchRender();
          }
 
-         // execute postFrame script only
-         renderSession->End(false, false, true);
-
-         firstframe = false;
+         renderSession->Finish();
+         renderSession->ExecuteScript(renderGlobals.postRenderMel);
       }
    }
 
    // or interactive mode
    else
    {
-      renderSession->Reset(false, false, false, false, false, true);
-      
       int width  = args.isFlagSet("width") ? args.flagArgumentInt("width", 0) : -1;
       int height = args.isFlagSet("height") ? args.flagArgumentInt("height", 0) : -1;
       MString camera = args.flagArgumentString("camera", 0);
-      renderSession->SetWidth(width);
-      renderSession->SetHeight(height);
+
+      renderSession->ExecuteScript(renderGlobals.preRenderMel);
+
+      renderSession->Finish();                        // In case we're already rendering (e.g. IPR).
+      renderSession->Translate();                     // Translate the scene from Maya.
       renderSession->SetCamera(camera);
-      
-      // We need to set the current camera in renderView,
-      // so the buttons render from the camera you want.
-      MSelectionList list;
-      MDagPath       cameraDagPath;
-      list.add(camera);
-      list.getDagPath(0, cameraDagPath);
-      MRenderView::setCurrentCamera(cameraDagPath);
+      renderSession->SetResolution(width, height);
+      renderSession->DoInteractiveRender();           // Start the render.
+      renderSession->Finish();                        // Clean up.
 
-      if (renderOptions->useRenderRegion())
-      {
-         status = MRenderView::startRegionRender(renderOptions->width(),
-                                                 renderOptions->height(),
-                                                 renderOptions->minX(),
-                                                 renderOptions->maxX(),
-                                                 renderOptions->minY(),
-                                                 renderOptions->maxY(),
-                                                 !renderOptions->clearBeforeRender(),
-                                                 true);
-      }
-      else
-      {
-         status = MRenderView::startRender(renderOptions->width(),
-                                           renderOptions->height(),
-                                           !renderOptions->clearBeforeRender(),
-                                           true);
-      }
-
-      if (status == MS::kSuccess)
-      {
-         renderSession->DoRender();
-         MRenderView::endRender();
-      }
-
-      // execute post-frame script only
-      renderSession->End(false, false, true);
-
+      renderSession->ExecuteScript(renderGlobals.postRenderMel);
    }
 
 

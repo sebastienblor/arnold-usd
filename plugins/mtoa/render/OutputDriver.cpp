@@ -1,6 +1,9 @@
 
 #include "common/MTBlockingQueue.h"
 
+#include "render/RenderSession.h"
+#include "render/OutputDriver.h"
+
 #include <ai_critsec.h>
 #include <ai_drivers.h>
 #include <ai_filters.h>
@@ -11,7 +14,6 @@
 #include <maya/MComputation.h>
 #include <maya/MRenderView.h>
 
-#include "render/OutputDriver.h"
 
 #define _gamma  (params[0].FLT )  /**< accessor for driver's gamma parameter */
 
@@ -285,22 +287,16 @@ void ProcessDisplayUpdateQueue()
    }
 }
 
-void ProcessDisplayUpdateQueueWithInterupt(MComputation * comp)
+void ProcessDisplayUpdateQueueWithInterupt(MComputation & comp)
 {
 
-   while( true )
+   while(true)
    {
-      if (comp!= 0x0 && comp->isInterruptRequested())
-      {
-         // Kill the render.
-         AiRenderAbort();
-      }
+      if (comp.isInterruptRequested()) break;
       
       // Break out the loop when we've displayed the last complete image.
       // ProcessSomeOfDisplayUpdateQueue returns false on end of render message.
-      if ( !ProcessSomeOfDisplayUpdateQueue() ) break;
+      if (!ProcessSomeOfDisplayUpdateQueue()) break;
    }
-
-   if ( comp != 0x0 ) comp->endComputation();
 }
 

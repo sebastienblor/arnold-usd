@@ -8,6 +8,7 @@
 #include <maya/MArgDatabase.h>
 #include <maya/MFnDagNode.h>
 #include <maya/MRenderView.h>
+#include <maya/MRenderUtil.h>
 
 #include <vector>
 
@@ -34,8 +35,6 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
       return MS::kFailure;
 
    CRenderSession* renderSession = CRenderSession::GetInstance();
-   //renderSession->SetBatch(false);
-
 
    MStatus status;
    MArgDatabase args(syntax(), argList);
@@ -56,20 +55,19 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
    // What mode are we in?
    if (mode == "start")
    {
-      if (!renderSession->IsActive())
-      {
-         MStatus status = renderSession->PrepareIPR();
-         if ( MS::kSuccess != status )
-         {
-            MGlobal::displayError( "Error starting Arnold IPR" );
-            renderSession->StopIPR();
-            return status;
-         }
-      }
+      // Just incase we were rendering already.
+      renderSession->Finish();
 
-      // Set stuff passed in:
-      renderSession->SetWidth(width);
-      renderSession->SetHeight(height);
+      MCommonRenderSettingsData renderGlobals;
+      MRenderUtil::getCommonRenderSettings(renderGlobals);
+      renderSession->ExecuteScript(renderGlobals.preMel);
+      renderSession->ExecuteScript(renderGlobals.preRenderMel);
+
+      // This will export the scene.
+      renderSession->Translate(MTOA_EXPORT_IPR);
+
+      // Set resolution and camera as passed in.
+      renderSession->SetResolution(width, height);
       renderSession->SetCamera(camera);
       // No need to call render as Maya sends us "unpause" next.
 
@@ -77,27 +75,34 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
 
    else if (mode == "stop")
    {
-      renderSession->StopIPR();
+      renderSession->Finish();
+
+      MCommonRenderSettingsData renderGlobals;
+      MRenderUtil::getCommonRenderSettings(renderGlobals);
+      renderSession->ExecuteScript(renderGlobals.postRenderMel);
+      renderSession->ExecuteScript(renderGlobals.postMel);
    }
 
    else if (mode == "refresh" )
    {
-      renderSession->Reset();
-      MStatus status = renderSession->PrepareIPR();
-      if ( MS::kSuccess != status )
-      {
-         renderSession->StopIPR();
-         MGlobal::displayError( "Error refeshing Arnold IPR" );
-         return status;
-      }
-
+      // Close down Arnold, clearing out the old data.
+      renderSession->Finish();
+      // We save and restore the res instead of using the translated one because
+      // the translated value is from the render globals. We may have been
+      // passed in a different value to start with.
+      AtInt width = renderSession->RenderOptions()->width();
+      AtInt height = renderSession->RenderOptions()->height();
+      // Re-translate.
+      renderSession->Translate(MTOA_EXPORT_IPR);
+      // Restore the resolution.
+      renderSession->SetResolution( width, height);
       // Start off the render.
       renderSession->DoIPRRender();
    }
 
    else if ( (mode == "region") || (mode == "render") )
    {
-      renderSession->Interrupt();
+      renderSession->InterruptRender();
 
       if ( !renderSession->IsActive() )
       {
@@ -120,8 +125,7 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
       }
       else
       {
-            renderSession->SetWidth(width);
-            renderSession->SetHeight(height);
+            renderSession->SetResolution(width, height);
       }
 
       // Set the render session camera.
@@ -153,7 +157,7 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
 
       // Format a bit of info for the renderview.
       const AtUInt64 mem_used( renderSession->GetUsedMemory() );
-      MString rvInfo( "renderWindowEditor -edit -pcaption (\"    (Arnold IPR Renderer)\\n" );
+      MString rvInfo( "renderWindowEditor -edit -pcaption (\"    (Arnold Renderer)\\n" );
       rvInfo += "Memory: ";
       rvInfo += (unsigned int)mem_used;
       rvInfo += "Mb";
