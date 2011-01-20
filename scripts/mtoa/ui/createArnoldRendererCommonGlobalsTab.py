@@ -690,8 +690,8 @@ def arnoldCameraShape(dag):
 
     if cmds.objectType(dag, isa="transform"):
         shapes = cmds.listRelatives(dag, shapes=True, path=True, noIntermediate=True, type="camera")
-    if shapes:
-        return shapes[0]
+        if shapes:
+            return shapes[0]
 
     return dag
 
