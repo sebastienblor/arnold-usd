@@ -293,7 +293,7 @@ else:
    env.Install(env['TARGET_SHADER_PATH'], MTOA_SHADERS)
 
 env.Install(env['TARGET_SCRIPTS_PATH'], glob.glob(os.path.join('scripts', '*.mel')))
-pyfiles = find_files_recursive('scripts', ['.py'])
+pyfiles = find_files_recursive('scripts', ['.py']) + find_files_recursive('scripts', ['.yaml'])
 env.InstallAs([os.path.join(env['TARGET_PYTHON_PATH'], x) for x in pyfiles],
               [os.path.join('scripts', x) for x in  pyfiles])
 env.Install(env['TARGET_ICONS_PATH'], glob.glob(os.path.join('icons', '*.xpm')))

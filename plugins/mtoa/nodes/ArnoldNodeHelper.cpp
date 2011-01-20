@@ -1,5 +1,6 @@
 #include "ArnoldNodeHelper.h"
 #include "nodes/ShaderUtils.h"
+#include "Metadata.h"
 
 #include <ai_msg.h>
 
@@ -33,7 +34,7 @@ MString toMayaStyle(MString s)
 MString CBaseAttrHelper::GetMayaAttrName(const char* paramName)
 {
    const char* attrName;
-   if (AiMetaDataGetStr(m_nodeEntry, paramName, "maya.name", &attrName))
+   if (MAiMetaDataGetStr(m_nodeEntry, paramName, "maya.name", &attrName))
       MString(attrName);
    return toMayaStyle(paramName);
 }
@@ -43,7 +44,7 @@ MString CBaseAttrHelper::GetMayaAttrName(const char* paramName)
 MString CBaseAttrHelper::GetMayaAttrShortName(const char* paramName)
 {
    const char* attrShortName;
-   if (AiMetaDataGetStr(m_nodeEntry, paramName, "maya.shortname", &attrShortName))
+   if (MAiMetaDataGetStr(m_nodeEntry, paramName, "maya.shortname", &attrShortName))
       return MString(attrShortName);
    return MString(paramName);
 }
@@ -59,6 +60,7 @@ void CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
    data.name = GetMayaAttrName(paramName);
    data.shortName = GetMayaAttrShortName(paramName);
    data.type = AiParamGetType(paramEntry);
+
    data.isArray = false;
    data.hasMin = false;
    data.min = false;
@@ -68,6 +70,9 @@ void CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
    data.softMin = false;
    data.hasSoftMax = false;
    data.softMax = false;
+   data.keyable = true;
+
+   MAiMetaDataGetBool(m_nodeEntry, paramName, "maya.keyable", &data.keyable);
 
    if (data.type == AI_TYPE_ARRAY)
    {
@@ -80,7 +85,7 @@ void CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
       //
       // Also, by convention, matrix arrays with name "matrix" are animatable
       // attributes.
-      if ( (AiMetaDataGetBool(m_nodeEntry, paramName, "animatable", &animatable) && animatable) ||
+      if ( (MAiMetaDataGetBool(m_nodeEntry, paramName, "animatable", &animatable) && animatable) ||
            (data.type == AI_TYPE_MATRIX && strcmp(paramName, "matrix") == 0) )
       {
          data.isArray = false;
@@ -177,22 +182,22 @@ void CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
        case AI_TYPE_INT:
       {
          AtInt val;
-         if (AiMetaDataGetInt(m_nodeEntry, paramName, "min", &val))
+         if (MAiMetaDataGetInt(m_nodeEntry, paramName, "min", &val))
          {
             data.min = (AtFloat)val;
             data.hasMin = true;
          }
-         if (AiMetaDataGetInt(m_nodeEntry, paramName, "max", &val))
+         if (MAiMetaDataGetInt(m_nodeEntry, paramName, "max", &val))
          {
             data.max = (AtFloat)val;
             data.hasMax = true;
          }
-         if (AiMetaDataGetInt(m_nodeEntry, paramName, "softmin", &val))
+         if (MAiMetaDataGetInt(m_nodeEntry, paramName, "softmin", &val))
          {
             data.softMin = (AtFloat)val;
             data.hasSoftMin = true;
          }
-         if (AiMetaDataGetInt(m_nodeEntry, paramName, "softmax", &val))
+         if (MAiMetaDataGetInt(m_nodeEntry, paramName, "softmax", &val))
          {
             data.softMax = (AtFloat)val;
             data.hasSoftMax = true;
@@ -202,22 +207,22 @@ void CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
       case AI_TYPE_UINT:
       {
          AtInt val;
-         if (AiMetaDataGetInt(m_nodeEntry, paramName, "min", &val))
+         if (MAiMetaDataGetInt(m_nodeEntry, paramName, "min", &val))
          {
             data.min = (AtFloat)(val < 0 ? 0 : val);
             data.hasMin = true;
          }
-         if (AiMetaDataGetInt(m_nodeEntry, paramName, "max", &val))
+         if (MAiMetaDataGetInt(m_nodeEntry, paramName, "max", &val))
          {
             data.max = (AtFloat)(val < 0 ? 0 : val);
             data.hasMax = true;
          }
-         if (AiMetaDataGetInt(m_nodeEntry, paramName, "softmin", &val))
+         if (MAiMetaDataGetInt(m_nodeEntry, paramName, "softmin", &val))
          {
             data.softMin = (AtFloat)(val < 0 ? 0 : val);
             data.hasSoftMin = true;
          }
-         if (AiMetaDataGetInt(m_nodeEntry, paramName, "softmax", &val))
+         if (MAiMetaDataGetInt(m_nodeEntry, paramName, "softmax", &val))
          {
             data.softMax = (AtFloat)(val < 0 ? 0 : val);
             data.hasSoftMax = true;
@@ -227,22 +232,22 @@ void CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
       case AI_TYPE_FLOAT:
       {
          AtFloat val;
-         if (AiMetaDataGetFlt(m_nodeEntry, paramName, "min", &val))
+         if (MAiMetaDataGetFlt(m_nodeEntry, paramName, "min", &val))
          {
             data.min = (AtFloat)val;
             data.hasMin = true;
          }
-         if (AiMetaDataGetFlt(m_nodeEntry, paramName, "max", &val))
+         if (MAiMetaDataGetFlt(m_nodeEntry, paramName, "max", &val))
          {
             data.max = (AtFloat)val;
             data.hasMax = true;
          }
-         if (AiMetaDataGetFlt(m_nodeEntry, paramName, "softmin", &val))
+         if (MAiMetaDataGetFlt(m_nodeEntry, paramName, "softmin", &val))
          {
             data.softMin = (AtFloat)val;
             data.hasSoftMin = true;
          }
-         if (AiMetaDataGetFlt(m_nodeEntry, paramName, "softmax", &val))
+         if (MAiMetaDataGetFlt(m_nodeEntry, paramName, "softmax", &val))
          {
             data.softMax = (AtFloat)val;
             data.hasSoftMax = true;
@@ -274,7 +279,11 @@ void CBaseAttrHelper::MakeInputInt(MObject& attrib, CAttrData& data)
    if (data.hasSoftMax)
       nAttr.setSoftMax((AtInt)data.softMax);
    nAttr.setArray(data.isArray);
-   MAKE_INPUT(nAttr, attrib);
+   nAttr.setKeyable(data.keyable);
+   nAttr.setStorable(true);
+   nAttr.setReadable(true);
+   nAttr.setWritable(true);
+   addAttribute(attrib);
 }
 
 void CBaseAttrHelper::MakeInputBoolean(MObject& attrib, const char* paramName)
@@ -289,7 +298,11 @@ void CBaseAttrHelper::MakeInputBoolean(MObject& attrib, CAttrData& data)
    MFnNumericAttribute nAttr;
    attrib = nAttr.create(data.name, data.shortName, MFnNumericData::kBoolean, data.defaultValue.BOOL);
    nAttr.setArray(data.isArray);
-   MAKE_INPUT(nAttr, attrib);
+   nAttr.setKeyable(data.keyable);
+   nAttr.setStorable(true);
+   nAttr.setReadable(true);
+   nAttr.setWritable(true);
+   addAttribute(attrib);
 }
 
 void CBaseAttrHelper::MakeInputFloat(MObject& attrib, const char* paramName)
@@ -302,7 +315,6 @@ void CBaseAttrHelper::MakeInputFloat(MObject& attrib, const char* paramName)
 void CBaseAttrHelper::MakeInputFloat(MObject& attrib, CAttrData& data)
 {
    MFnNumericAttribute nAttr;
-
    attrib = nAttr.create(data.name, data.shortName, MFnNumericData::kFloat, data.defaultValue.FLT);
    if (data.hasMin)
       nAttr.setMin((AtFloat)data.min);
@@ -313,7 +325,11 @@ void CBaseAttrHelper::MakeInputFloat(MObject& attrib, CAttrData& data)
    if (data.hasSoftMax)
       nAttr.setSoftMax((AtFloat)data.softMax);
    nAttr.setArray(data.isArray);
-   MAKE_INPUT(nAttr, attrib);
+   nAttr.setKeyable(data.keyable);
+   nAttr.setStorable(true);
+   nAttr.setReadable(true);
+   nAttr.setWritable(true);
+   addAttribute(attrib);
 }
 
 void CBaseAttrHelper::MakeInputRGB(MObject& attrib, const char* paramName)
@@ -330,7 +346,11 @@ void CBaseAttrHelper::MakeInputRGB(MObject& attrib, CAttrData& data)
    attrib = nAttr.createColor(data.name, data.shortName);
    nAttr.setDefault(data.defaultValue.RGB.r, data.defaultValue.RGB.g, data.defaultValue.RGB.b);
    nAttr.setArray(data.isArray);
-   MAKE_INPUT(nAttr, attrib);
+   nAttr.setKeyable(data.keyable);
+   nAttr.setStorable(true);
+   nAttr.setReadable(true);
+   nAttr.setWritable(true);
+   addAttribute(attrib);
 }
 
 void CBaseAttrHelper::MakeInputRGBA(MObject& attrib, MObject& attribA, const char* paramName)
@@ -347,11 +367,19 @@ void CBaseAttrHelper::MakeInputRGBA(MObject& attrib, MObject& attribA, CAttrData
    attrib = nAttr.createColor(data.name, data.shortName);
    nAttr.setDefault(data.defaultValue.RGBA.r, data.defaultValue.RGBA.g, data.defaultValue.RGBA.b);
    nAttr.setArray(data.isArray);
-   MAKE_INPUT(nAttr, attrib);
+   nAttr.setKeyable(data.keyable);
+   nAttr.setStorable(true);
+   nAttr.setReadable(true);
+   nAttr.setWritable(true);
+   addAttribute(attrib);
 
    attribA = nAttr.create(data.name + "A", data.shortName + "a", MFnNumericData::kFloat, data.defaultValue.RGBA.a);
    nAttr.setHidden(true);
-   MAKE_INPUT(nAttr, attribA);
+   nAttr.setKeyable(data.keyable);
+   nAttr.setStorable(true);
+   nAttr.setReadable(true);
+   nAttr.setWritable(true);
+   addAttribute(attribA);
 }
 
 void CBaseAttrHelper::MakeInputVector(MObject& attrib, const char* paramName)
@@ -368,7 +396,11 @@ void CBaseAttrHelper::MakeInputVector(MObject& attrib, CAttrData& data)
    attrib = nAttr.createPoint(data.name, data.shortName);
    nAttr.setDefault(data.defaultValue.VEC.x, data.defaultValue.VEC.y, data.defaultValue.VEC.z);
    nAttr.setArray(data.isArray);
-   MAKE_INPUT(nAttr, attrib);
+   nAttr.setKeyable(data.keyable);
+   nAttr.setStorable(true);
+   nAttr.setReadable(true);
+   nAttr.setWritable(true);
+   addAttribute(attrib);
 }
 
 void CBaseAttrHelper::MakeInputPoint(MObject& attrib, const char* paramName)
@@ -385,7 +417,11 @@ void CBaseAttrHelper::MakeInputPoint(MObject& attrib, CAttrData& data)
    attrib = nAttr.createPoint(data.name, data.shortName);
    nAttr.setDefault(data.defaultValue.PNT.x, data.defaultValue.PNT.y, data.defaultValue.PNT.z);
    nAttr.setArray(data.isArray);
-   MAKE_INPUT(nAttr, attrib);
+   nAttr.setKeyable(data.keyable);
+   nAttr.setStorable(true);
+   nAttr.setReadable(true);
+   nAttr.setWritable(true);
+   addAttribute(attrib);
 }
 void CBaseAttrHelper::MakeInputPoint2(MObject& attrib, MObject& attribX, MObject& attribY, const char* paramName)
 {
@@ -403,7 +439,11 @@ void CBaseAttrHelper::MakeInputPoint2(MObject& attrib, MObject& attribX, MObject
    attrib = nAttr.create(data.name, data.shortName, attribX, attribY);
    nAttr.setDefault(float(data.defaultValue.PNT2.x), float(data.defaultValue.PNT2.y));
    nAttr.setArray(data.isArray);
-   MAKE_INPUT(nAttr, attrib);
+   nAttr.setKeyable(data.keyable);
+   nAttr.setStorable(true);
+   nAttr.setReadable(true);
+   nAttr.setWritable(true);
+   addAttribute(attrib);
 }
 
 void CBaseAttrHelper::MakeInputString(MObject& attrib, const char* paramName)
@@ -422,7 +462,11 @@ void CBaseAttrHelper::MakeInputString(MObject& attrib, CAttrData& data)
    MObject defObj = strData.create(data.defaultValue.STR);
    tAttr.setDefault(defObj);
    tAttr.setArray(data.isArray);
-   MAKE_INPUT(tAttr, attrib);
+   tAttr.setKeyable(data.keyable);
+   tAttr.setStorable(true);
+   tAttr.setReadable(true);
+   tAttr.setWritable(true);
+   addAttribute(attrib);
 }
 
 void CBaseAttrHelper::MakeInputMatrix(MObject& attrib, const char* paramName)

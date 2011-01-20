@@ -40,6 +40,7 @@ struct CAttrData
    AtFloat softMin;
    AtBoolean hasSoftMax;
    AtFloat softMax;
+   AtBoolean keyable;
 };
 
 

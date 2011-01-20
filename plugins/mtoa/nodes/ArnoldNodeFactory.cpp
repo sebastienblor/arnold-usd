@@ -3,6 +3,7 @@
 //-------------------------------------------------------------------------- 
 #include "ArnoldNodeFactory.h"
 #include "nodes/shaders/surface/ArnoldCustomShader.h"
+#include "nodes/Metadata.h"
 
 #include <ai_plugins.h>
 #include <ai_universe.h>
@@ -340,13 +341,13 @@ bool CArnoldNodeFactory::RegisterMayaNode(AtNodeEntry* arnoldNode)
 
    // should the node be ignored?
    AtBoolean hide;
-   if (AiMetaDataGetBool(arnoldNode, NULL, "maya.hide", &hide) && hide)
+   if (MAiMetaDataGetBool(arnoldNode, NULL, "maya.hide", &hide) && hide)
       return true;
 
    // map to an existing maya node?
    const char* mayaCounterpart;
    int mayaCounterpartId;
-   if (AiMetaDataGetStr(arnoldNode, NULL, "maya.counterpart", &mayaCounterpart) && AiMetaDataGetInt(arnoldNode, NULL, "maya.counterpart_id", &mayaCounterpartId))
+   if (MAiMetaDataGetStr(arnoldNode, NULL, "maya.counterpart", &mayaCounterpart) && AiMetaDataGetInt(arnoldNode, NULL, "maya.counterpart_id", &mayaCounterpartId))
    {
       if (!MapToMayaNode(arnoldNodeName, mayaCounterpart, mayaCounterpartId))
       {
@@ -357,12 +358,12 @@ bool CArnoldNodeFactory::RegisterMayaNode(AtNodeEntry* arnoldNode)
    }
    // remap node name?
    const char* mayaNodeName;
-   if (!AiMetaDataGetStr(arnoldNode, NULL, "maya.name", &mayaNodeName))
+   if (!MAiMetaDataGetStr(arnoldNode, NULL, "maya.name", &mayaNodeName))
       mayaNodeName = arnoldNodeName;
 
    // get nodeID
    AtInt nodeId;
-   if (!AiMetaDataGetInt(arnoldNode, NULL, "maya.id", &nodeId))
+   if (!MAiMetaDataGetInt(arnoldNode, NULL, "maya.id", &nodeId))
    {
       nodeId = s_autoNodeId;
       // TODO: print hex nodeId
@@ -373,7 +374,7 @@ bool CArnoldNodeFactory::RegisterMayaNode(AtNodeEntry* arnoldNode)
 
    // classification string
    const char* tmp;
-   if (!AiMetaDataGetStr(arnoldNode, NULL, "maya.class", &tmp))
+   if (!MAiMetaDataGetStr(arnoldNode, NULL, "maya.class", &tmp))
       tmp = "shader/surface";
    const MString shaderClass(tmp);
 
