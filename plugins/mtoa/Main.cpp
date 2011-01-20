@@ -1,4 +1,5 @@
 
+#include "platform/Platform.h"
 #include "ArnoldExportAssCmd.h"
 #include "ArnoldRenderCmd.h"
 #include "ArnoldIprCmd.h"
@@ -24,12 +25,6 @@
 
 #include <maya/MFnPlugin.h>
 #include <maya/MGlobal.h>
-
-#ifdef _WIN32
-#define MTOA_DLLEXPORT __declspec(dllexport)
-#else
-#define MTOA_DLLEXPORT __attribute__ ((visibility("default")))
-#endif
 
 namespace // <anonymous>
 {
@@ -113,7 +108,7 @@ namespace // <anonymous>
 
 }  // namespace <anonymous>
 
-MTOA_DLLEXPORT MStatus initializePlugin(MObject object)
+DLLEXPORT MStatus initializePlugin(MObject object)
 {
    MStatus status;
 
@@ -135,7 +130,7 @@ MTOA_DLLEXPORT MStatus initializePlugin(MObject object)
    return MS::kSuccess;
 }
 
-MTOA_DLLEXPORT MStatus uninitializePlugin(MObject object)
+DLLEXPORT MStatus uninitializePlugin(MObject object)
 {
    MStatus status;
    MFnPlugin plugin(object);
