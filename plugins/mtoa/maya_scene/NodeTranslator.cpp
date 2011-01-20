@@ -537,15 +537,21 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, MPlug& plug, const
 AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, MPlug& plug, const char* arnoldAttrib, int arnoldAttribType, int element)
 {
    AtNode* linkedNode = NULL;
-   MPlugArray connections;
+
    if (element >= 0)
       plug = plug.elementByPhysicalIndex(element);
-   plug.connectedTo(connections, true, false);
+
+   MPlugArray connections;
+   bool isShader =  AiNodeEntryGetType(arnoldNode->base_node) & AI_NODE_SHADER;
+   // links only supported on shaders
+   if (isShader)
+      plug.connectedTo(connections, true, false);
 
    if (connections.length() == 0)
    {
-      // Unlink first, since this may be called during an IPR update
-      AiNodeUnlink(arnoldNode, arnoldAttrib);
+      if (isShader)
+         // Unlink first, since this may be called during an IPR update
+         AiNodeUnlink(arnoldNode, arnoldAttrib);
 
       switch(arnoldAttribType)
       {
@@ -626,6 +632,7 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, MPlug& plug, const
    }
    else
    {
+      // process connections
       MString attrName = connections[0].partialName(false, false, false, false, false, true);
 
       linkedNode = m_scene->ExportShader(connections[0].node(), attrName);
