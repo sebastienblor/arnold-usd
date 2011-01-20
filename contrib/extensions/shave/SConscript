@@ -17,6 +17,7 @@ EXT = local_env.SharedLibrary('shave', source_files, LIBPREFIX='mtoa_')
 
 if system.os() == 'windows':
    local_env.Append(LIBS=Split('libShaveAPI.lib'))
+   local_env['MSVSSCONSCRIPT'] = ext_env.File('SConscript')
    EXT_PRJ = local_env.MSVSProject(target = 'shave' + local_env['MSVS']['PROJECTSUFFIX'],
                                     srcs = source_files + include_files,
                                     incs = [],

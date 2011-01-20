@@ -262,7 +262,7 @@ class _DSPGenerator:
             for v in variants:
                 runfile.append(s)
 
-        self.sconscript = env['MSVSSCONSCRIPT']
+        self.sconscript = os.path.split(str(env['MSVSSCONSCRIPT']))[1]
 
         if SCons.Util.is_String(env['cmdargs']):
            cmdargs = env.get('cmdargs', '')

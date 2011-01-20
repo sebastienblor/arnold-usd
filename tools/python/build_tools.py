@@ -171,10 +171,7 @@ def get_latest_revision():
    return (revision, url)
 
 def add_to_path(env, new_path):
-   if system.os() == 'windows':
-      env['ENV']['PATH'] = '%s;%s' % (new_path, env['ENV']['PATH'])
-   else:
-      env['ENV']['PATH'] = '%s:%s' % (new_path, env['ENV']['PATH'])
+	env['ENV']['PATH'] = '%s;%s' % (new_path, env['ENV']['PATH'])
 
 def get_default_path(var, default):
    return os.environ[var] if var in os.environ else default 

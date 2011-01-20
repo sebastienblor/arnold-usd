@@ -27,6 +27,7 @@ else:
 MTOA_SHADERS = local_env.SharedLibrary('mtoa_shaders', source_files)
 
 if system.os() == 'windows':
+   local_env['MSVSSCONSCRIPT'] = local_env.File('SConscript')
    MTOA_SHADERS_PRJ = local_env.MSVSProject(target = 'mtoa_shaders' + env['MSVS']['PROJECTSUFFIX'],
                                             srcs = source_files + include_files,
                                             incs = [],

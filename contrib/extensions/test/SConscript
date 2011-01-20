@@ -8,14 +8,14 @@ Import('ext_env')
 local_env = ext_env.Clone()
 
 # Automatically add all source and include files found in the source path
-#include  = os.path.join(local_env['ROOT_DIR'], 'plugins', 'mtoa')
 src_base_dir  = os.path.join(local_env['ROOT_DIR'], 'contrib', 'extensions', 'test')
 source_files  = find_files_recursive(src_base_dir, ['.c', '.cpp'])
 include_files = find_files_recursive(src_base_dir, ['.h'])
 
-EXT = local_env.SharedLibrary('test', source_files, LIBPREFIX='mtoa_')
+EXT = local_env.SharedLibrary('test', source_files)
 
 if system.os() == 'windows':
+   local_env['MSVSSCONSCRIPT'] = ext_env.File('SConscript')
    EXT_PRJ = local_env.MSVSProject(target = 'test' + local_env['MSVS']['PROJECTSUFFIX'],
                                     srcs = source_files + include_files,
                                     incs = [],

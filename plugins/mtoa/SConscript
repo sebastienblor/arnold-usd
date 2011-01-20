@@ -30,6 +30,7 @@ else:
    MTOA = local_env.LoadableModule('mtoa', source_files, LIBPREFIX='')
 
 if system.os() == 'windows':
+   local_env['MSVSSCONSCRIPT'] = maya_env.File('SConscript')
    MTOA_PRJ = local_env.MSVSProject(target = 'mtoa' + local_env['MSVS']['PROJECTSUFFIX'],
                                     srcs = source_files + include_files,
                                     incs = [],
