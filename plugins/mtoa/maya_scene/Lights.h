@@ -23,7 +23,7 @@ public:
    }
    static void NodeInitializer(MObject& node);
 protected:
-   void Update(AtNode* light);
+   void Update(AtNode* light, bool mayaAttrs=true);
    void ExportMotion(AtNode* light, AtUInt step);
    void ExportLightFilters(AtNode* light, const MObjectArray &filters);
 

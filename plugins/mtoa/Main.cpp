@@ -8,12 +8,14 @@
 #include "nodes/ArnoldAOV.h"
 #include "nodes/shaders/atmosphere/ArnoldFogShader.h"
 #include "nodes/shaders/atmosphere/ArnoldVolumeScatteringShader.h"
+#include "nodes/shaders/background/SphereLocator.h"
 #include "nodes/shaders/background/ArnoldSkyShader.h"
 #include "nodes/shaders/displacement/ArnoldDisplacementShader.h"
 #include "nodes/shaders/light/ArnoldBarndoorShader.h"
 #include "nodes/shaders/light/ArnoldGoboShader.h"
 #include "nodes/shaders/light/ArnoldLightBlockerShader.h"
 #include "nodes/shaders/light/ArnoldLightDecayShader.h"
+#include "nodes/shaders/light/ArnoldSkyDomeLightShader.h"
 #include "nodes/shaders/surface/ArnoldAmbientOcclusionShader.h"
 #include "nodes/shaders/surface/ArnoldStandardShader.h"
 #include "nodes/shaders/surface/ArnoldUtilityShader.h"
@@ -42,6 +44,9 @@ namespace // <anonymous>
       const MString DisplacementClass("shader/displacement");
       const MString LightClass("light");
 
+      // Abstract Classes
+      status = plugin.registerNode("SphereLocator", CSphereLocator::id, CSphereLocator::creator, CSphereLocator::initialize, MPxNode::kLocatorNode);
+
       // RENDER OPTIONS
       status = plugin.registerNode("ArnoldRenderOptions", CArnoldRenderOptionsNode::id, CArnoldRenderOptionsNode::creator, CArnoldRenderOptionsNode::initialize);
 
@@ -66,6 +71,7 @@ namespace // <anonymous>
       status = plugin.registerNode("ArnoldGoboShader", CArnoldGoboShaderNode::id, CArnoldGoboShaderNode::creator, CArnoldGoboShaderNode::initialize);
       status = plugin.registerNode("ArnoldLightBlockerShader", CArnoldLightBlockerShaderNode::id, CArnoldLightBlockerShaderNode::creator, CArnoldLightBlockerShaderNode::initialize);
       status = plugin.registerNode("ArnoldLightDecayShader", CArnoldLightDecayShaderNode::id, CArnoldLightDecayShaderNode::creator, CArnoldLightDecayShaderNode::initialize);
+      status = plugin.registerNode("ArnoldSkyDomeLightShader", CArnoldSkyDomeLightShaderNode::id, CArnoldSkyDomeLightShaderNode::creator, CArnoldSkyDomeLightShaderNode::initialize, MPxNode::kLocatorNode);
 
       // Special shaders (not visible from Maya shaders menu)
       status = plugin.registerNode("ArnoldFogShader", CArnoldFogShaderNode::id, CArnoldFogShaderNode::creator, CArnoldFogShaderNode::initialize);
@@ -99,6 +105,7 @@ namespace // <anonymous>
       arnoldPluginFactory->RegisterDagTranslator("areaLight", MAYA_NODEID_AREA_LIGHT, CAreaLightTranslator::creator, CAreaLightTranslator::NodeInitializer);
       arnoldPluginFactory->RegisterDagTranslator("pointLight", MAYA_NODEID_POINT_LIGHT, CPointLightTranslator::creator, CPointLightTranslator::NodeInitializer);
       arnoldPluginFactory->RegisterDagTranslator("ambientLight", MAYA_NODEID_AMBIENT_LIGHT, CAmbientLightTranslator::creator, CLightTranslator::NodeInitializer);
+      arnoldPluginFactory->RegisterDagTranslator("ArnoldSkyDomeLightShader", CArnoldSkyDomeLightShaderNode::id.id(), CSkyDomeLightTranslator::creator);
 
       arnoldPluginFactory->RegisterDagTranslator("mesh", MAYA_NODEID_MESH, CMeshTranslator::creator);
       arnoldPluginFactory->RegisterDagTranslator("nurbsSurface", MAYA_NODEID_NURBS_SURFACE, CNurbsSurfaceTranslator::creator);

@@ -46,7 +46,7 @@ void CLightTranslator::ExportLightFilters(AtNode* light, const MObjectArray &fil
    }
 }
 
-void CLightTranslator::Update(AtNode* light)
+void CLightTranslator::Update(AtNode* light, bool mayaAttrs)
 {
    MPlug plug;
    AtMatrix matrix;
@@ -58,11 +58,22 @@ void CLightTranslator::Update(AtNode* light)
 
    AiNodeSetFlt(light, "intensity", m_fnNode.findPlug("intensity").asFloat());
 
-   AiNodeSetBool(light, "cast_shadows", m_fnNode.findPlug("useRayTraceShadows").asBool());
-   AiNodeSetInt(light, "samples", m_fnNode.findPlug("shadowRays").asInt());
+   if (mayaAttrs)
+   {
+      AiNodeSetBool(light, "cast_shadows", m_fnNode.findPlug("useRayTraceShadows").asBool());
+      AiNodeSetInt(light, "samples", m_fnNode.findPlug("shadowRays").asInt());
 
-   AiNodeSetBool(light, "affect_diffuse", m_fnNode.findPlug("emitDiffuse").asBool());
-   AiNodeSetBool(light, "affect_specular", m_fnNode.findPlug("emitSpecular").asBool());
+      AiNodeSetBool(light, "affect_diffuse", m_fnNode.findPlug("emitDiffuse").asBool());
+      AiNodeSetBool(light, "affect_specular", m_fnNode.findPlug("emitSpecular").asBool());
+   }
+   else
+   {
+      AiNodeSetBool(light, "cast_shadows", m_fnNode.findPlug("cast_shadows").asBool());
+      AiNodeSetInt(light, "samples", m_fnNode.findPlug("samples").asInt());
+
+      AiNodeSetBool(light, "affect_diffuse", m_fnNode.findPlug("affect_diffuse").asBool());
+      AiNodeSetBool(light, "affect_specular", m_fnNode.findPlug("affect_specular").asBool());
+   }
 
    ExportDynamicIntParameter(light, "sss_samples");
    ExportDynamicIntParameter(light, "bounces");
@@ -294,9 +305,11 @@ AtNode* CSkyDomeLightTranslator::Export()
    return light;
 }
 
+
 void CSkyDomeLightTranslator::Update(AtNode* light)
 {
-   CLightTranslator::Update(light);
+   // Don't use maya-style attrs
+   CLightTranslator::Update(light, false);
 
    AiNodeSetInt(light, "resolution", m_fnNode.findPlug("resolution").asInt());
    AiNodeSetFlt(light, "exposure", m_fnNode.findPlug("exposure").asFloat());
