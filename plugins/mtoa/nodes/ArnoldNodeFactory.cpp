@@ -9,6 +9,8 @@
 #include <ai_metadata.h>
 #include <ai_msg.h>
 
+#include <maya/MSceneMessage.h>
+
 #ifdef _WIN32
    #include <platform/win32/dirent.h>
    #define PATHSEP ';'
@@ -67,14 +69,24 @@ int FindLibraries(MString searchPath, MStringArray &files)
 
 // CExtension
 
-void CExtension::RegisterTranslator(int typeId, CreatorFunction creator)
+void CExtension::RegisterDependTranslator(const char* mayaNode, int typeId, CreatorFunction creator)
 {
-   CMayaScene::RegisterTranslator(typeId, creator);
+   CArnoldNodeFactory::RegisterDependTranslator(mayaNode, typeId, creator);
 }
 
-void CExtension::RegisterDagTranslator(int typeId, CreatorFunction creator)
+void CExtension::RegisterDagTranslator(const char* mayaNode, int typeId, CreatorFunction creator)
 {
-   CMayaScene::RegisterDagTranslator(typeId, creator);
+   CArnoldNodeFactory::RegisterDagTranslator(mayaNode, typeId, creator);
+}
+
+void CExtension::RegisterDependTranslator(const char* mayaNode, int typeId, CreatorFunction creator, NodeInitFunction nodeInitializer, const char* providedByPlugin)
+{
+   CArnoldNodeFactory::RegisterDependTranslator(mayaNode, typeId, creator, nodeInitializer, providedByPlugin);
+}
+
+void CExtension::RegisterDagTranslator(const char* mayaNode, int typeId, CreatorFunction creator, NodeInitFunction nodeInitializer, const char* providedByPlugin)
+{
+   CArnoldNodeFactory::RegisterDagTranslator(mayaNode, typeId, creator, nodeInitializer, providedByPlugin);
 }
 
 // CArnoldNodeFactory
@@ -82,7 +94,8 @@ void CExtension::RegisterDagTranslator(int typeId, CreatorFunction creator)
 MayaNodeDataMap CArnoldNodeFactory::s_factoryNodes;
 ArnoldNodeToMayaNode CArnoldNodeFactory::s_arnoldToMayaNodes;
 ArnoldPluginData CArnoldNodeFactory::s_arnoldPlugins;
-DynamicAttrMap CArnoldNodeFactory::s_dynamicAttributes;
+PluginDataMap CArnoldNodeFactory::s_mayaPluginData;
+MCallbackId CArnoldNodeFactory::s_pluginLoadedCallbackId = 0;
 
 int CArnoldNodeFactory::s_autoNodeId(ARNOLD_NODEID_CUSTOM);
 
@@ -175,59 +188,135 @@ void CArnoldNodeFactory::LoadPlugins()
 // the maya scene to ass format, the arnold node will be used wherever the maya
 // node is encountered.
 //
-void CArnoldNodeFactory::MapToMayaNode(const char* arnoldNodeName, const char* mayaCounterpart, int typeId)
+bool CArnoldNodeFactory::MapToMayaNode(const char* arnoldNodeName, const char* mayaCounterpart, int typeId)
 {
    s_arnoldToMayaNodes[arnoldNodeName] = mayaCounterpart;
-   RegisterTranslator(mayaCounterpart, typeId, CAutoTranslator::creator);
-   s_factoryNodes[mayaCounterpart].arnoldNodeName = arnoldNodeName;
+   if (RegisterDependTranslator(mayaCounterpart, typeId, CAutoTranslator::creator))
+   {
+      s_factoryNodes[mayaCounterpart].arnoldNodeName = arnoldNodeName;
+      return true;
+   }
+   return false;
 }
 
-void CArnoldNodeFactory::RegisterDagTranslator(const char* mayaNode, int typeId, CreatorFunction creator)
+// called when a plugin is loaded to ensure that each translator that requires
+// node initialization gets a callback installed
+void CArnoldNodeFactory::MayaPluginLoadedCallback(const MStringArray &strs, void *clientData)
+{
+   // 0 = pluginPath, 1 = pluginName
+   MString pluginName = strs[1];
+   std::vector<CMayaPluginData> nodes = s_mayaPluginData[pluginName.asChar()];
+   for (unsigned int i=0; i < nodes.size(); i++)
+   {
+      // add a callback for creating arnold attributes
+      MStatus status;
+      AiMsgInfo("[mtoa] adding callback for node %s", nodes[i].mayaNode.c_str());
+      MCallbackId id = MDGMessage::addNodeAddedCallback(
+            CArnoldNodeFactory::NodeCreatedCallback,
+            nodes[i].mayaNode.c_str(),
+            (void *)nodes[i].nodeInitializer,
+            &status);
+      CHECK_MSTATUS(status);
+      s_factoryNodes[nodes[i].mayaNode].callbackId = id;
+   }
+   // callbacks only need to be added once
+   // it appears that they remain in place even after the plugin is unloaded and reloaded
+   s_mayaPluginData[pluginName.asChar()].clear();
+}
+
+// internal use
+bool CArnoldNodeFactory::RegisterTranslator(const char* mayaNode, int typeId, CreatorFunction creator, NodeInitFunction nodeInitializer, const char* providedByPlugin)
+{
+   MStatus status;
+   MCallbackId id = 0;
+
+   if (!MFnPlugin::isNodeRegistered(mayaNode))
+   {
+      if (strlen(providedByPlugin) != 0)
+      {
+         // can't add the callback if the node type is unknown
+         // make the callback when the plugin is loaded
+         CMayaPluginData pluginData;
+         pluginData.mayaNode = mayaNode;
+         pluginData.nodeInitializer = nodeInitializer;
+         s_mayaPluginData[providedByPlugin].push_back(pluginData);
+      }
+      else
+      {
+         MGlobal::displayWarning(MString("[mtoa]: cannot register ") + mayaNode + ". the node type does not exist. If the node is provided by a plugin, specify providedByPlugin when registering its translator");
+         return false;
+      }
+   }
+   else
+   {
+      // add a callback for creating arnold attributes
+      id = MDGMessage::addNodeAddedCallback(CArnoldNodeFactory::NodeCreatedCallback, mayaNode, (void *)nodeInitializer, &status);
+      CHECK_MSTATUS(status);
+   }
+
+   CMayaNodeData   data;
+   data.arnoldNodeName = "";
+   data.nodeId = typeId;
+   data.callbackId = id;
+
+   s_factoryNodes[mayaNode] = data;
+   return true;
+}
+
+bool CArnoldNodeFactory::RegisterDagTranslator(const char* mayaNode, int typeId, CreatorFunction creator, NodeInitFunction nodeInitializer, const char* providedByPlugin)
+{
+   if (RegisterTranslator(mayaNode, typeId, creator, nodeInitializer, providedByPlugin))
+   {
+      CMayaScene::s_dagTranslators[typeId] = creator;
+      return true;
+   }
+   return false;
+}
+
+bool CArnoldNodeFactory::RegisterDependTranslator(const char* mayaNode, int typeId, CreatorFunction creator, NodeInitFunction nodeInitializer, const char* providedByPlugin)
+{
+   if (RegisterTranslator(mayaNode, typeId, creator, nodeInitializer, providedByPlugin))
+   {
+      CMayaScene::s_dependTranslators[typeId] = creator;
+      return true;
+   }
+   return false;
+}
+
+// internal use
+bool CArnoldNodeFactory::RegisterTranslator(const char* mayaNode, int typeId, CreatorFunction creator)
 {
    if (!MFnPlugin::isNodeRegistered(mayaNode))
    {
-      MGlobal::displayWarning(MString("[mtoa]: cannot register ") + mayaNode + ". the node type does not exist");
-      return;
+      MGlobal::displayWarning(MString("[mtoa]: cannot register ") + mayaNode + ". the node type does not exist. If the node is provided by a plugin, specify providedByPlugin when registering its translator");
+      return false;
    }
 
-   // TODO: add attribute compatibility test?
    CMayaNodeData   data;
    data.arnoldNodeName = "";
    data.nodeId = typeId;
    data.callbackId = 0;
-
-   // add a callback for creating arnold attributes
-   MStatus status;
-   MCallbackId id = MDGMessage::addNodeAddedCallback(CArnoldNodeFactory::NodeCreatedCallback, mayaNode, NULL, &status);
-   CHECK_MSTATUS(status);
-   data.callbackId = id;
-
-   s_factoryNodes[mayaNode] = data;
-   CMayaScene::s_dagTranslators[typeId] = creator;
+   return true;
 }
 
-void CArnoldNodeFactory::RegisterTranslator(const char* mayaNode, int typeId, CreatorFunction creator)
+bool CArnoldNodeFactory::RegisterDagTranslator(const char* mayaNode, int typeId, CreatorFunction creator)
 {
-   if (!MFnPlugin::isNodeRegistered(mayaNode))
+   if (RegisterTranslator(mayaNode, typeId, creator))
    {
-      MGlobal::displayWarning(MString("[mtoa]: cannot register ") + mayaNode + ". the node type does not exist");
-      return;
+      CMayaScene::s_dagTranslators[typeId] = creator;
+      return true;
    }
+   return false;
+}
 
-   // TODO: add attribute compatibility test?
-   CMayaNodeData   data;
-   data.arnoldNodeName = "";
-   data.nodeId = typeId;
-   data.callbackId = 0;
-
-   // add a callback for creating arnold attributes
-   MStatus status;
-   MCallbackId id = MDGMessage::addNodeAddedCallback(CArnoldNodeFactory::NodeCreatedCallback, mayaNode, NULL, &status);
-   CHECK_MSTATUS(status);
-   data.callbackId = id;
-
-   s_factoryNodes[mayaNode] = data;
-   CMayaScene::s_dependTranslators[typeId] = creator;
+bool CArnoldNodeFactory::RegisterDependTranslator(const char* mayaNode, int typeId, CreatorFunction creator)
+{
+   if (RegisterTranslator(mayaNode, typeId, creator))
+   {
+      CMayaScene::s_dependTranslators[typeId] = creator;
+      return true;
+   }
+   return false;
 }
 
 // Register a maya node for the given arnold node
@@ -244,7 +333,7 @@ void CArnoldNodeFactory::RegisterTranslator(const char* mayaNode, int typeId, Cr
 //
 // options 4 & 5 will result in no new maya node being created.
 //
-void CArnoldNodeFactory::RegisterMayaNode(AtNodeEntry* arnoldNode)
+bool CArnoldNodeFactory::RegisterMayaNode(AtNodeEntry* arnoldNode)
 {
    MStatus status;
    const char* arnoldNodeName = AiNodeEntryGetName(arnoldNode);
@@ -252,14 +341,20 @@ void CArnoldNodeFactory::RegisterMayaNode(AtNodeEntry* arnoldNode)
    // should the node be ignored?
    AtBoolean hide;
    if (AiMetaDataGetBool(arnoldNode, NULL, "maya.hide", &hide) && hide)
-      return;
+      return true;
 
    // map to an existing maya node?
    const char* mayaCounterpart;
    int mayaCounterpartId;
    if (AiMetaDataGetStr(arnoldNode, NULL, "maya.counterpart", &mayaCounterpart) && AiMetaDataGetInt(arnoldNode, NULL, "maya.counterpart_id", &mayaCounterpartId))
-      return MapToMayaNode(arnoldNodeName, mayaCounterpart, mayaCounterpartId);
-
+   {
+      if (!MapToMayaNode(arnoldNodeName, mayaCounterpart, mayaCounterpartId))
+      {
+         MGlobal::displayError(MString("[mtoa]: Failed to create counter-part node ") + mayaCounterpart);
+         return false;
+      }
+      return true;
+   }
    // remap node name?
    const char* mayaNodeName;
    if (!AiMetaDataGetStr(arnoldNode, NULL, "maya.name", &mayaNodeName))
@@ -289,14 +384,12 @@ void CArnoldNodeFactory::RegisterMayaNode(AtNodeEntry* arnoldNode)
    status = m_plugin.registerNode(mayaNodeName, nodeId, CArnoldCustomShaderNode::creator, CArnoldCustomShaderNode::initialize, MPxNode::kDependNode, &shaderClass);
    CHECK_MSTATUS(status);
 
-   if (status == MStatus::kSuccess)
-   {
-      MapToMayaNode(arnoldNodeName, mayaNodeName,  nodeId);
-   }
-   else
+   if (status != MStatus::kSuccess || !MapToMayaNode(arnoldNodeName, mayaNodeName,  nodeId))
    {
       MGlobal::displayError(MString("[mtoa]: Failed to create node ") + mayaNodeName);
+      return false;
    }
+   return true;
 }
 
 // Unregister the maya node generated by the given arnold node and remove
@@ -406,6 +499,9 @@ void CArnoldNodeFactory::LoadExtensions()
          CHECK_MSTATUS(MGlobal::executePythonCommand(cmd));
       }
    }
+   // create callbacks
+   s_pluginLoadedCallbackId = MSceneMessage::addStringArrayCallback(MSceneMessage::kAfterPluginLoad, CArnoldNodeFactory::MayaPluginLoadedCallback, NULL, &status);
+   CHECK_MSTATUS(status);
 }
 
 // Unload all mtoa extensions on the extension path
@@ -421,22 +517,22 @@ void CArnoldNodeFactory::UnloadExtensions()
       dlclose(m_pluginHandle);
    }
 #endif
+   // delete callbacks
+   if ( s_pluginLoadedCallbackId != 0 )
+      MMessage::removeCallback( s_pluginLoadedCallbackId );
 }
 
 void CArnoldNodeFactory::NodeCreatedCallback(MObject &node, void *clientData)
 {
-   MFnDependencyNode fnNode(node);
-   std::vector<CAttrData> attrs = s_dynamicAttributes[fnNode.typeName().asChar()];
-   CDynamicAttrHelper* helper = new CDynamicAttrHelper(node);
-   for (unsigned int i=0; i < attrs.size(); i++)
+   // CDynamicAttrHelper requires the universe to be initialized so that it can
+   // query information from arnold nodes
+   NodeInitFunction nodeInitializer = (NodeInitFunction)clientData;
+   if (AiUniverseIsActive())
+      nodeInitializer(node);
+   else
    {
-      CAttrData data = attrs[i];
-      helper->MakeInput(data.name.asChar(), data);
+      AiBegin();
+      nodeInitializer(node);
+      AiEnd();
    }
-   delete helper;
-}
-
-void CArnoldNodeFactory::AddDynamicAttr(const char* mayaNode, CAttrData attrData)
-{
-   s_dynamicAttributes[mayaNode].push_back(attrData);
 }

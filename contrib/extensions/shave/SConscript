@@ -1,0 +1,83 @@
+# vim: filetype=python
+
+import system, os
+from build_tools import find_files_recursive
+
+# import build env
+Import('ext_env')
+local_env = ext_env.Clone()
+
+# Automatically add all source and include files found in the source path
+src_base_dir  = os.path.join(local_env['ROOT_DIR'], 'contrib', 'extensions', 'shave', 'plugin')
+
+source_files  = [os.path.join('plugin', x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
+include_files = [os.path.join('plugin', x) for x in find_files_recursive(src_base_dir, ['.h'])]
+
+EXT = local_env.SharedLibrary('shave', source_files, LIBPREFIX='mtoa_')
+
+if system.os() == 'windows':
+   local_env.Append(LIBS=Split('libShaveAPI.lib'))
+   EXT_PRJ = local_env.MSVSProject(target = 'shave' + local_env['MSVS']['PROJECTSUFFIX'],
+                                    srcs = source_files + include_files,
+                                    incs = [],
+                                    buildtarget = 'shave',
+                                    cmdargs = ['-Q -s COMPILER=msvc MODE=debug TARGET_ARCH=x86',
+                                               '-Q -s COMPILER=icc MODE=debug TARGET_ARCH=x86',
+                                               '-Q -s COMPILER=msvc MODE=opt TARGET_ARCH=x86',
+                                               '-Q -s COMPILER=icc MODE=opt TARGET_ARCH=x86'],
+                                    variant = ['Debug_MSVC|Win32',
+                                               'Debug_ICC|Win32',
+                                               'Opt_MSVC|Win32',
+                                               'Opt_ICC|Win32'],
+                                    auto_build_solution = 0,
+                                    nokeep = 1)
+
+   local_env.AlwaysBuild(EXT_PRJ)
+   
+else:
+   local_env.Append(LIBS=['ShaveAPI'])
+
+
+# import build env
+Import('env')
+shader_env = env.Clone()
+
+# Automatically add all source and include files found in the source path
+src_base_dir  = os.path.join(shader_env['ROOT_DIR'], 'contrib', 'extensions', 'shave', 'shaders')
+source_files  = [os.path.join('shaders', x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
+include_files = [os.path.join('shaders', x) for x in find_files_recursive(src_base_dir, ['.h'])]
+
+if system.os() =='windows':
+   shader_env.Append(CPPPATH = ['.'])
+   shader_env.Append(LIBS=Split('ai.lib'))
+else:
+   shader_env.Append(CPPPATH = ['.'])
+   shader_env.Append(LIBS=Split('ai'))
+   shader_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
+
+
+EXT_SHADERS = shader_env.SharedLibrary('shave_shaders', source_files)
+
+if system.os() == 'windows':
+   EXT_SHADERS_PRJ = shader_env.MSVSProject(target = 'shave_shaders' + shader_env['MSVS']['PROJECTSUFFIX'],
+                                            srcs = source_files + include_files,
+                                            incs = [],
+                                            buildtarget = 'shave_shaders',
+                                            cmdargs = ['-Q -s COMPILER=msvc MODE=debug TARGET_ARCH=x86',
+                                                       '-Q -s COMPILER=icc MODE=debug TARGET_ARCH=x86',
+                                                       '-Q -s COMPILER=msvc MODE=opt TARGET_ARCH=x86',
+                                                       '-Q -s COMPILER=icc MODE=opt TARGET_ARCH=x86'],
+                                            variant = ['Debug_MSVC|Win32',
+                                                       'Debug_ICC|Win32',
+                                                       'Opt_MSVC|Win32',
+                                                       'Opt_ICC|Win32'],
+                                            auto_build_solution = 0,
+                                            nokeep = 1)
+   
+   shader_env.AlwaysBuild(EXT_SHADERS_PRJ)
+
+
+if system.os() == 'windows':
+   Return('EXT EXT_SHADERS EXT_PRJ EXT_SHADERS_PRJ')
+else:
+   Return('EXT EXT_SHADERS')

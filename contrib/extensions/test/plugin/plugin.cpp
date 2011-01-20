@@ -9,7 +9,7 @@ void initializePlugin(CExtension& plugin)
 {
    cout << "initializing test extension" << endl;
    // Maya lambert
-   plugin.RegisterTranslator(0x524c414d, CTestTranslatorCmd::creator);
+   plugin.RegisterDependTranslator("lambert", 0x524c414d, CTestTranslatorCmd::creator);
 }
 
 void uninitializePlugin(CExtension& plugin)

@@ -52,6 +52,7 @@ typedef std::map<MObjectHandle, MDagPath, mobjcompare> ObjectHandleToDagMap;
 typedef std::map<MObjectHandle, CNodeTranslator*, mobjcompare> ObjectToTranslatorMap;
 
 typedef void *   (*CreatorFunction)();
+typedef void     (*NodeInitFunction)(MObject&);
 
 class DLLEXPORT CMayaScene
 {
