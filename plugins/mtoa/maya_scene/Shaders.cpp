@@ -274,14 +274,40 @@ void CMayaScene::ProcessShaderParameter(MFnDependencyNode shader, const char* pa
    if (element >= 0)
       plug = plug.elementByPhysicalIndex(element);
    plug.connectedTo(connections, true, false);
-
    if (connections.length() == 0)
    {
       switch(arnoldAttribType)
       {
       case AI_TYPE_RGB:
          {
-            AiNodeSetRGB(arnoldShader, arnoldAttrib, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+            bool compConnected = false;
+            for (unsigned int i=0; i < 3; i++)
+            {
+               plug.child(i).connectedTo(connections, true, false);
+               if (connections.length() > 0)
+               {
+                  compConnected = true;
+                  MString attrName = connections[0].partialName(false, false, false, false, false, true);
+                  MString compAttrName(arnoldAttrib);
+                  switch(i)
+                  {
+                  case 0:
+                     compAttrName += ".r";
+                     break;
+                  case 1:
+                     compAttrName += ".g";
+                     break;
+                  case 2:
+                     compAttrName += ".b";
+                     break;
+                  }
+                  AtNode* node = ExportShader(connections[0].node(), attrName);
+                  if (node != NULL)
+                     AiNodeLink(node, compAttrName.asChar(), arnoldShader);
+               }
+            }
+            if (!compConnected)
+               AiNodeSetRGB(arnoldShader, arnoldAttrib, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
          }
          break;
       case AI_TYPE_RGBA:
@@ -293,8 +319,35 @@ void CMayaScene::ProcessShaderParameter(MFnDependencyNode shader, const char* pa
             }
             else
             {
-               // For RGB source parameter, set alpha value to 1
-               AiNodeSetRGBA(arnoldShader, arnoldAttrib, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat(), 1);
+               bool compConnected = false;
+               for (unsigned int i=0; i < 3; i++)
+               {
+                  plug.child(i).connectedTo(connections, true, false);
+                  if (connections.length() > 0)
+                  {
+                     compConnected = true;
+                     MString attrName = connections[0].partialName(false, false, false, false, false, true);
+                     MString compAttrName(arnoldAttrib);
+                     switch(i)
+                     {
+                     case 0:
+                        compAttrName += ".r";
+                        break;
+                     case 1:
+                        compAttrName += ".g";
+                        break;
+                     case 2:
+                        compAttrName += ".b";
+                        break;
+                     }
+                     AtNode* node = ExportShader(connections[0].node(), attrName);
+                     if (node != NULL)
+                        AiNodeLink(node, compAttrName.asChar(), arnoldShader);
+                  }
+               }
+               if (!compConnected)
+                  // For RGB source parameter, set alpha value to 1
+                  AiNodeSetRGBA(arnoldShader, arnoldAttrib, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat(), 1);
             }
          }
          break;
@@ -344,12 +397,66 @@ void CMayaScene::ProcessShaderParameter(MFnDependencyNode shader, const char* pa
          break;
       case AI_TYPE_VECTOR:
          {
-            AiNodeSetVec(arnoldShader, arnoldAttrib, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+            bool compConnected = false;
+            for (unsigned int i=0; i < 3; i++)
+            {
+               plug.child(i).connectedTo(connections, true, false);
+               if (connections.length() > 0)
+               {
+                  compConnected = true;
+                  MString attrName = connections[0].partialName(false, false, false, false, false, true);
+                  MString compAttrName(arnoldAttrib);
+                  switch(i)
+                  {
+                  case 0:
+                     compAttrName += ".x";
+                     break;
+                  case 1:
+                     compAttrName += ".y";
+                     break;
+                  case 2:
+                     compAttrName += ".z";
+                     break;
+                  }
+                  AtNode* node = ExportShader(connections[0].node(), attrName);
+                  if (node != NULL)
+                     AiNodeLink(node, compAttrName.asChar(), arnoldShader);
+               }
+            }
+            if (!compConnected)
+               AiNodeSetVec(arnoldShader, arnoldAttrib, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
          }
          break;
       case AI_TYPE_POINT:
          {
-            AiNodeSetPnt(arnoldShader, arnoldAttrib, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+            bool compConnected = false;
+            for (unsigned int i=0; i < 3; i++)
+            {
+               plug.child(i).connectedTo(connections, true, false);
+               if (connections.length() > 0)
+               {
+                  compConnected = true;
+                  MString attrName = connections[0].partialName(false, false, false, false, false, true);
+                  MString compAttrName(arnoldAttrib);
+                  switch(i)
+                  {
+                  case 0:
+                     compAttrName += ".x";
+                     break;
+                  case 1:
+                     compAttrName += ".y";
+                     break;
+                  case 2:
+                     compAttrName += ".z";
+                     break;
+                  }
+                  AtNode* node = ExportShader(connections[0].node(), attrName);
+                  if (node != NULL)
+                     AiNodeLink(node, compAttrName.asChar(), arnoldShader);
+               }
+            }
+            if (!compConnected)
+               AiNodeSetPnt(arnoldShader, arnoldAttrib, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
          }
          break;
       }

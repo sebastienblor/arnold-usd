@@ -557,7 +557,34 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, MPlug& plug, const
       {
       case AI_TYPE_RGB:
          {
-            AiNodeSetRGB(arnoldNode, arnoldAttrib, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+            bool compConnected = false;
+            for (unsigned int i=0; i < 3; i++)
+            {
+               plug.child(i).connectedTo(connections, true, false);
+               if (connections.length() > 0)
+               {
+                  compConnected = true;
+                  MString attrName = connections[0].partialName(false, false, false, false, false, true);
+                  MString compAttrName(arnoldAttrib);
+                  switch(i)
+                  {
+                  case 0:
+                     compAttrName += ".r";
+                     break;
+                  case 1:
+                     compAttrName += ".g";
+                     break;
+                  case 2:
+                     compAttrName += ".b";
+                     break;
+                  }
+                  AtNode* node = m_scene->ExportShader(connections[0].node(), attrName);
+                  if (node != NULL)
+                     AiNodeLink(node, compAttrName.asChar(), arnoldNode);
+               }
+            }
+            if (!compConnected)
+               AiNodeSetRGB(arnoldNode, arnoldAttrib, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
          }
          break;
       case AI_TYPE_RGBA:
@@ -569,8 +596,35 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, MPlug& plug, const
             }
             else
             {
-               // For RGB source parameter, set alpha value to 1
-               AiNodeSetRGBA(arnoldNode, arnoldAttrib, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat(), 1);
+               bool compConnected = false;
+               for (unsigned int i=0; i < 3; i++)
+               {
+                  plug.child(i).connectedTo(connections, true, false);
+                  if (connections.length() > 0)
+                  {
+                     compConnected = true;
+                     MString attrName = connections[0].partialName(false, false, false, false, false, true);
+                     MString compAttrName(arnoldAttrib);
+                     switch(i)
+                     {
+                     case 0:
+                        compAttrName += ".r";
+                        break;
+                     case 1:
+                        compAttrName += ".g";
+                        break;
+                     case 2:
+                        compAttrName += ".b";
+                        break;
+                     }
+                     AtNode* node = m_scene->ExportShader(connections[0].node(), attrName);
+                     if (node != NULL)
+                        AiNodeLink(node, compAttrName.asChar(), arnoldNode);
+                  }
+               }
+               if (!compConnected)
+                  // For RGB source parameter, set alpha value to 1
+                  AiNodeSetRGBA(arnoldNode, arnoldAttrib, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat(), 1);
             }
          }
          break;
@@ -620,7 +674,34 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, MPlug& plug, const
          break;
       case AI_TYPE_VECTOR:
          {
-            AiNodeSetVec(arnoldNode, arnoldAttrib, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+            bool compConnected = false;
+            for (unsigned int i=0; i < 3; i++)
+            {
+               plug.child(i).connectedTo(connections, true, false);
+               if (connections.length() > 0)
+               {
+                  compConnected = true;
+                  MString attrName = connections[0].partialName(false, false, false, false, false, true);
+                  MString compAttrName(arnoldAttrib);
+                  switch(i)
+                  {
+                  case 0:
+                     compAttrName += ".x";
+                     break;
+                  case 1:
+                     compAttrName += ".y";
+                     break;
+                  case 2:
+                     compAttrName += ".z";
+                     break;
+                  }
+                  AtNode* node = m_scene->ExportShader(connections[0].node(), attrName);
+                  if (node != NULL)
+                     AiNodeLink(node, compAttrName.asChar(), arnoldNode);
+               }
+            }
+            if (!compConnected)
+               AiNodeSetVec(arnoldNode, arnoldAttrib, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
          }
          break;
       case AI_TYPE_POINT:
@@ -949,14 +1030,14 @@ void CDagTranslator::AddVisibilityAttrs(MObject& node)
 AtNode* CAutoTranslator::Export()
 {
    MString mayaShader = m_fnNode.typeName();
-   std::string arnoldShader = CArnoldNodeFactory::s_factoryNodes[mayaShader.asChar()].arnoldNodeName;
+   std::string arnoldNode = CArnoldNodeFactory::s_factoryNodes[mayaShader.asChar()].arnoldNodeName;
    AtNode* shader = NULL;
-   m_nodeEntry = AiNodeEntryLookUp(arnoldShader.c_str());
+   m_nodeEntry = AiNodeEntryLookUp(arnoldNode.c_str());
 
    // Make sure that the given type of node exists
    if (m_nodeEntry != NULL)
    {
-      shader = AiNode(arnoldShader.c_str());
+      shader = AiNode(arnoldNode.c_str());
 
       AiNodeSetStr(shader, "name", m_fnNode.name().asChar());
       Update(shader);
