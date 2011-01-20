@@ -1,0 +1,46 @@
+point_light:
+    parameter_metadata:
+         bounce_factor:
+            min: 0
+            softmax: 20
+         bounces:
+            min: 0
+            max: 10000
+         sss_samples:
+            min: 0
+            max: 100
+
+spot_light:
+    parameter_metadata:
+         bounce_factor:
+            min: 0
+            softmax: 20
+         bounces:
+            min: 0
+            max: 10000
+         sss_samples:
+            min: 0
+            max: 100
+         aspect_ratio:
+            softmin: 0
+            softmax: 1
+            min: 0
+            max: 100
+         lens_radius:
+            softmin: 0
+            softmax: 1
+            min: 0
+            max: 100
+
+quad_light:
+    parameter_metadata:
+         bounce_factor:
+            min: 0
+            softmax: 20
+         bounces:
+            min: 0
+            max: 10000
+         sss_samples:
+            min: 0
+            max: 100
+

@@ -22,13 +22,13 @@ def customShapeAttributes(nodeName):
         cmds.editorTemplate(endLayout=True)
 
 def commonLightAttributes(nodeName):
-    cmds.editorTemplate(aeCallback(customAttrs.boolNew), aeCallback(customAttrs.boolReplace), "normalize", callCustom=True)
-    cmds.editorTemplate(aeCallback(customAttrs.floatNew), aeCallback(customAttrs.floatReplace), "bounce_factor", callCustom=True)
-    cmds.editorTemplate(aeCallback(customAttrs.intNew), aeCallback(customAttrs.intReplace), "bounces", callCustom=True)
+    cmds.editorTemplate("normalize", addControl=True)
+    cmds.editorTemplate("bounce_factor", addControl=True)
+    cmds.editorTemplate("bounces", addControl=True)
 
     cmds.editorTemplate(addSeparator=True)
 
-    cmds.editorTemplate(aeCallback(customAttrs.intNew), aeCallback(customAttrs.intReplace), "sss_samples", callCustom=True)
+    cmds.editorTemplate("sss_samples", addControl=True)
 
     cmds.editorTemplate(beginLayout="Light Filters")
 
@@ -95,34 +95,34 @@ def builtin_directionalLight(nodeName):
     commonLightAttributes(nodeName);
 
 def builtin_pointLight(nodeName):
-    cmds.editorTemplate(aeCallback(customAttrs.boolNew), aeCallback(customAttrs.boolReplace), "affect_volumetrics", callCustom=True)
-    cmds.editorTemplate(aeCallback(customAttrs.boolNew), aeCallback(customAttrs.boolReplace), "cast_volumetric_shadows", callCustom=True)
+    cmds.editorTemplate("affect_volumetrics", addControl=True)
+    cmds.editorTemplate("cast_volumetric_shadows", addControl=True)
 
     cmds.editorTemplate(addSeparator=True)
 
     commonLightAttributes(nodeName);
 
 def builtin_spotLight(nodeName):
-    cmds.editorTemplate(aeCallback(customAttrs.boolNew), aeCallback(customAttrs.boolReplace), "affect_volumetrics", callCustom=True)
-    cmds.editorTemplate(aeCallback(customAttrs.boolNew), aeCallback(customAttrs.boolReplace), "cast_volumetric_shadows", callCustom=True)
+    cmds.editorTemplate("affect_volumetrics", addControl=True)
+    cmds.editorTemplate("cast_volumetric_shadows", addControl=True)
 
     cmds.editorTemplate(addSeparator=True)
 
-    cmds.editorTemplate(aeCallback(customAttrs.floatNew), aeCallback(customAttrs.floatReplace), "aspect_ratio", callCustom=True)
-    cmds.editorTemplate(aeCallback(customAttrs.floatNew), aeCallback(customAttrs.floatReplace), "lens_radius", callCustom=True)
+    cmds.editorTemplate("aspect_ratio", addControl=True)
+    cmds.editorTemplate( "lens_radius", addControl=True)
 
     cmds.editorTemplate(addSeparator=True)
 
     commonLightAttributes(nodeName);
 
 def builtin_areaLight(nodeName):
-    cmds.editorTemplate(aeCallback(customAttrs.boolNew), aeCallback(customAttrs.boolReplace), "affect_volumetrics", callCustom=True)
-    cmds.editorTemplate(aeCallback(customAttrs.boolNew), aeCallback(customAttrs.boolReplace), "cast_volumetric_shadows", callCustom=True)
+    cmds.editorTemplate("affect_volumetrics", addControl=True)
+    cmds.editorTemplate("cast_volumetric_shadows", addControl=True)
 
     cmds.editorTemplate(addSeparator=True)
 
-    cmds.editorTemplate(aeCallback(customAttrs.enumNew), aeCallback(customAttrs.enumReplace), "sidedness", callCustom=True)
-    cmds.editorTemplate(aeCallback(customAttrs.boolNew), aeCallback(customAttrs.boolReplace), "solid_angle", callCustom=True)
+    cmds.editorTemplate("sidedness", addControl=True)
+    cmds.editorTemplate("solid_angle", addControl=True)
 
     cmds.editorTemplate(addSeparator=True)
 

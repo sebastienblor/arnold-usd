@@ -92,11 +92,11 @@ namespace // <anonymous>
       // therefore, it is not registered as a DagTranslator
       arnoldPluginFactory->RegisterDependTranslator("ArnoldSkyShader", CArnoldSkyShaderNode::id.id(), CSkyShaderTranslator::creator);
 
-      arnoldPluginFactory->RegisterDagTranslator("directionalLight", MAYA_NODEID_DIRECTIONAL_LIGHT, CDirectionalLightTranslator::creator);
-      arnoldPluginFactory->RegisterDagTranslator("spotLight", MAYA_NODEID_SPOT_LIGHT, CSpotLightTranslator::creator);
-      arnoldPluginFactory->RegisterDagTranslator("areaLight", MAYA_NODEID_AREA_LIGHT, CAreaLightTranslator::creator);
-      arnoldPluginFactory->RegisterDagTranslator("pointLight", MAYA_NODEID_POINT_LIGHT, CPointLightTranslator::creator);
-      arnoldPluginFactory->RegisterDagTranslator("ambientLight", MAYA_NODEID_AMBIENT_LIGHT, CAmbientLightTranslator::creator);
+      arnoldPluginFactory->RegisterDagTranslator("directionalLight", MAYA_NODEID_DIRECTIONAL_LIGHT, CDirectionalLightTranslator::creator, CLightTranslator::NodeInitializer);
+      arnoldPluginFactory->RegisterDagTranslator("spotLight", MAYA_NODEID_SPOT_LIGHT, CSpotLightTranslator::creator, CSpotLightTranslator::NodeInitializer);
+      arnoldPluginFactory->RegisterDagTranslator("areaLight", MAYA_NODEID_AREA_LIGHT, CAreaLightTranslator::creator, CAreaLightTranslator::NodeInitializer);
+      arnoldPluginFactory->RegisterDagTranslator("pointLight", MAYA_NODEID_POINT_LIGHT, CPointLightTranslator::creator, CPointLightTranslator::NodeInitializer);
+      arnoldPluginFactory->RegisterDagTranslator("ambientLight", MAYA_NODEID_AMBIENT_LIGHT, CAmbientLightTranslator::creator, CLightTranslator::NodeInitializer);
 
       arnoldPluginFactory->MapToMayaNode("ambient_occlusion", "ArnoldAmbientOcclusionShader", CArnoldAmbientOcclusionShaderNode::id.id());
       arnoldPluginFactory->MapToMayaNode("standard", "ArnoldStandardShader", CArnoldStandardShaderNode::id.id());

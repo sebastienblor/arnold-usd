@@ -1,5 +1,6 @@
 #include "Lights.h"
 #include "nodes/ShaderUtils.h"
+#include "nodes/ArnoldNodeHelper.h"
 
 #include <ai_constants.h>
 #include <ai_msg.h>
@@ -110,6 +111,18 @@ void CLightTranslator::ExportMotion(AtNode* light, AtUInt step)
    AiArraySetMtx(matrices, step, matrix);
 }
 
+void CLightTranslator::NodeInitializer(MObject& node)
+{
+   // use point light as a generic light...
+   CDynamicAttrHelper* helper = new CDynamicAttrHelper(node, "point_light");
+   // common attributes
+   helper->MakeInput("normalize");
+   helper->MakeInput("bounce_factor");
+   helper->MakeInput("bounces");
+   helper->MakeInput("sss_samples");
+   delete helper;
+}
+
 // AmbientLight
 //
 AtNode* CAmbientLightTranslator::Export()
@@ -165,6 +178,20 @@ void CPointLightTranslator::Update(AtNode* light)
    ExportDynamicBooleanParameter(light, "cast_volumetric_shadows");
 }
 
+void CPointLightTranslator::NodeInitializer(MObject& node)
+{
+   CDynamicAttrHelper* helper = new CDynamicAttrHelper(node, "point_light");
+   // common attributes
+   helper->MakeInput("normalize");
+   helper->MakeInput("bounce_factor");
+   helper->MakeInput("bounces");
+   helper->MakeInput("sss_samples");
+   // point light attributes
+   helper->MakeInput("affect_volumetrics");
+   helper->MakeInput("cast_volumetric_shadows");
+   delete helper;
+}
+
 // SpotLight
 //
 AtNode* CSpotLightTranslator::Export()
@@ -192,6 +219,22 @@ void CSpotLightTranslator::Update(AtNode* light)
 
    EXPORT_DYN_PARAM_FLOAT(light, "aspect_ratio", fnLight);
    EXPORT_DYN_PARAM_FLOAT(light, "lens_radius", fnLight);
+}
+
+void CSpotLightTranslator::NodeInitializer(MObject& node)
+{
+   CDynamicAttrHelper* helper = new CDynamicAttrHelper(node, "spot_light");
+   // common attributes
+   helper->MakeInput("normalize");
+   helper->MakeInput("bounce_factor");
+   helper->MakeInput("bounces");
+   helper->MakeInput("sss_samples");
+   // spot light attributes
+   helper->MakeInput("affect_volumetrics");
+   helper->MakeInput("cast_volumetric_shadows");
+   helper->MakeInput("aspect_ratio");
+   helper->MakeInput("lens_radius");
+   delete helper;
 }
 
 // AreaLight
@@ -223,6 +266,23 @@ void CAreaLightTranslator::Update(AtNode* light)
    ExportDynamicIntParameter(light, "sidedness");
    ExportDynamicBooleanParameter(light, "solid_angle");
 }
+
+void CAreaLightTranslator::NodeInitializer(MObject& node)
+{
+   CDynamicAttrHelper* helper = new CDynamicAttrHelper(node, "quad_light");
+   // common attributes
+   helper->MakeInput("normalize");
+   helper->MakeInput("bounce_factor");
+   helper->MakeInput("bounces");
+   helper->MakeInput("sss_samples");
+   // spot light attributes
+   helper->MakeInput("affect_volumetrics");
+   helper->MakeInput("cast_volumetric_shadows");
+   helper->MakeInput("sidedness");
+   helper->MakeInput("solid_angle");
+   delete helper;
+}
+
 
 // SkyDomeLight
 //
