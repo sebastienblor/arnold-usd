@@ -56,6 +56,7 @@ void CLightTranslator::Update(AtNode* light, bool mayaAttrs)
    plug = m_fnNode.findPlug("color");
    ProcessParameter(light, plug, "color", AI_TYPE_RGB);
 
+   AiNodeSetStr(light, "name", m_fnNode.partialPathName().asChar());
    AiNodeSetFlt(light, "intensity", m_fnNode.findPlug("intensity").asFloat());
 
    if (mayaAttrs)
@@ -134,12 +135,18 @@ void CLightTranslator::NodeInitializer(MObject& node)
    delete helper;
 }
 
+void CLightTranslator::Delete()
+{
+   // Arnold doesn't allow use to delete nodes, so this
+   // is as close as we'll get for now.
+   AiNodeSetFlt(m_atNode, "intensity", 0.0f );
+}
+
 // AmbientLight
 //
 AtNode* CAmbientLightTranslator::Export()
 {
    AtNode* light = AiNode("ambient_light");
-   AiNodeSetStr(light, "name", m_fnNode.partialPathName().asChar());
    Update(light);
    return light;
 }
@@ -154,7 +161,6 @@ void CAmbientLightTranslator::Update(AtNode* light)
 AtNode* CDirectionalLightTranslator::Export()
 {
    AtNode* light = AiNode("distant_light");
-   AiNodeSetStr(light, "name", m_fnNode.partialPathName().asChar());
    Update(light);
    return light;
 }
@@ -208,7 +214,6 @@ void CPointLightTranslator::NodeInitializer(MObject& node)
 AtNode* CSpotLightTranslator::Export()
 {
    AtNode* light = AiNode("spot_light");
-   AiNodeSetStr(light, "name", m_fnNode.partialPathName().asChar());
    Update(light);
    return light;
 }
@@ -300,7 +305,6 @@ void CAreaLightTranslator::NodeInitializer(MObject& node)
 AtNode* CSkyDomeLightTranslator::Export()
 {
    AtNode* light = AiNode("skydome_light");
-   AiNodeSetStr(light, "name", m_fnNode.partialPathName().asChar());
    Update(light);
    return light;
 }

@@ -26,6 +26,7 @@ protected:
    void Update(AtNode* light, bool mayaAttrs=true);
    void ExportMotion(AtNode* light, AtUInt step);
    void ExportLightFilters(AtNode* light, const MObjectArray &filters);
+   virtual void Delete();
 
 protected:
    bool m_motion;

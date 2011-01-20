@@ -1,5 +1,6 @@
 #include "maya_scene/NodeTranslator.h"
 #include <maya/MFnMesh.h>
+#include <maya/MNodeMessage.h>
 
 #include <vector>
 #include <map>
@@ -30,7 +31,7 @@ public:
    void Update(AtNode* anode);
    void ExportMotion(AtNode* anode, AtUInt step);
    void UpdateMotion(AtNode* anode, AtUInt step);
-
+   virtual void AddCallbacks();
 
 protected:
    bool GetVertices(MFnMesh &fnMesh, std::vector<float> &vertices);
@@ -50,6 +51,7 @@ protected:
    MObject GetNodeShadingGroup(MObject dagNode, int instanceNum);
    MObject GetNodeShader(MObject dagNode, int instanceNum);
    void ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh);
+   virtual void ExportShaders();
 
    void ExportMeshGeoData(AtNode* polymesh, AtUInt step);
    void ExportMeshParameters(AtNode* polymesh);
@@ -57,6 +59,9 @@ protected:
    void ExportMeshMotion(AtNode* polymesh, AtUInt step);
    AtNode* ExportInstance(AtNode* instance, const MDagPath& masterInstance);
    void ExportInstanceMotion(AtNode* instance, AtUInt step);
+
+   static void ShaderAssignmentCallback( MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void* );
+   void AddShaderAssignmentCallbacks(MObject & dagNode );
 
 protected:
    bool m_isMasterDag;

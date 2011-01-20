@@ -22,6 +22,7 @@
 #include <maya/MMessage.h> // for MCallbackId
 #include <maya/MNodeMessage.h>
 #include <maya/MCallbackIdArray.h>
+#include <maya/MTimerMessage.h>
 
 #include <string>
 
@@ -33,37 +34,46 @@ AtNode* CNodeTranslator::DoExport(AtUInt step)
    if (step == 0)
    {
       m_atNode = Export();
-      ExportUserAttribute(m_atNode);
+      if (m_atNode == NULL)
+         AiMsgWarning("[mtoa] node %s did not return a valid arnold node. Motion blur and IPR will be disabled", m_fnNode.name().asChar());
+      else
+      {
+         ExportUserAttribute(m_atNode);
+         // If in IPR mode, install callbacks to detect changes.
+         if ( m_scene->GetExportMode() == MTOA_EXPORT_IPR )
+         {
+            AddCallbacks();
+         }
+      }
    }
-   else if (RequiresMotionData())
-      ExportMotion(m_atNode, step);
-   
-   // If in IPR mode, install callbacks to detect changes.
-   if ( m_scene->GetExportMode() == MTOA_EXPORT_IPR )
+   else if (m_atNode != NULL)
    {
-      AddCallbacks();
+      if (RequiresMotionData())
+      {
+         ExportMotion(m_atNode, step);
+      }
    }
-   
    return m_atNode;
 }
 
 // internal use only
 AtNode* CNodeTranslator::DoUpdate(AtUInt step)
 {
-   if (step == 0)
+   if (m_atNode != NULL)
    {
-      Update(m_atNode);
-      ExportUserAttribute(m_atNode);
+      if (step == 0)
+      {
+         Update(m_atNode);
+         ExportUserAttribute(m_atNode);
+         // If in IPR mode, install callbacks to detect changes.
+         if ( m_scene->GetExportMode() == MTOA_EXPORT_IPR )
+         {
+            AddCallbacks();
+         }
+      }
+      else if (RequiresMotionData())
+         UpdateMotion(m_atNode, step);
    }
-   else if (RequiresMotionData())
-      UpdateMotion(m_atNode, step);
-
-   // If in IPR mode, install callbacks to detect changes.
-   if ( m_scene->GetExportMode() == MTOA_EXPORT_IPR )
-   {
-      AddCallbacks();
-   }
-
    return m_atNode;
 }
 
@@ -73,42 +83,26 @@ AtNode* CNodeTranslator::DoUpdate(AtUInt step)
 // add whatever callbacks you need to trigger a fresh.
 void CNodeTranslator::AddCallbacks()
 {
-   AiMsgDebug( "[mtoa] Adding callbacks to type: %s", m_object.apiTypeStr());
-
    MStatus status;
-   MCallbackId id = MNodeMessage::addNodeDirtyCallback(m_object,
-                                                       NodeDirtyCallback,
-                                                       (void*)this,
-                                                       &status );
-
-   // Ask for this callback to be managed. If you don't do this the callbacks won't
-   // be removed after IPR. Maya is likely to crash if the mtoa plugin is unloaded 
-   // and any callbacks are left in place.
+   MCallbackId id;
+   // So we update on attribute/input changes.
+   id = MNodeMessage::addNodeDirtyCallback(m_object,
+                                           NodeDirtyCallback,
+                                           this,
+                                           &status );
    if ( MS::kSuccess == status ) ManageCallback( id );
 
-   //Adding all parents.
-   MDagPath dag_path;
-   MFnDagNode dag_fn( m_object );
-   status = dag_fn.getPath( dag_path );
-   if ( MS::kSuccess == status )
-   {
-      dag_path.pop(); // Pop off the shape.
-      // Loop through the parents adding callbacks to them.
-      for( ; dag_path.length() > 0; dag_path.pop() )
-      {
-         MObject node = dag_path.node();
-         id = MNodeMessage::addNodeDirtyCallback(node,
-                                                 NodeDirtyCallback,
-                                                 (void*)this,
-                                                 &status );
-         if ( MS::kSuccess == status ) ManageCallback( id );
-      }
-   }
-   
-   
+   // In case we're deleted!
+   id = MNodeMessage::addNodeAboutToDeleteCallback(m_object,
+                                                   NodeDeletedCallback,
+                                                   this,
+                                                   &status );
+   if ( MS::kSuccess == status ) ManageCallback( id );
+
+   // Just so people don't get confused with debug output.
    id = MNodeMessage::addNameChangedCallback(m_object,
                                              NameChangedCallback,
-                                             (void*)this,
+                                             this,
                                              &status );
    if ( MS::kSuccess == status ) ManageCallback( id );
 }
@@ -120,54 +114,51 @@ void CNodeTranslator::ManageCallback( const MCallbackId id )
 
 void CNodeTranslator::RemoveCallbacks()
 {
-   MNodeMessage::removeCallbacks( m_mayaCallbackIDs );
-   m_mayaCallbackIDs.clear();
+   const MStatus status = MNodeMessage::removeCallbacks( m_mayaCallbackIDs );
+   if ( status == MS::kSuccess ) m_mayaCallbackIDs.clear();
 }
 
 
 // This is a simple callback triggered when a node is marked as dirty.
 void CNodeTranslator::NodeDirtyCallback(MObject &node, MPlug &plug, void *clientData)
 {
-   AiMsgDebug( "[mtoa] Node changed, updating Arnold. Plug that fired: %s", plug.name().asChar() );
-   UpdateIPR( node, clientData );
+   AiMsgDebug( "[mtoa] Node changed, updating Arnold. Plug that fired: %s %p", plug.name().asChar(), clientData );
+   UpdateIPR( clientData );
 }
 
 // This is a simple callback triggered when a node is marked as dirty.
 void CNodeTranslator::NameChangedCallback(MObject &node, const MString &str, void *clientData)
 {
    AiMsgDebug( "[mtoa] Node name changed, updating Arnold" );
-   UpdateIPR( node, clientData );
+   UpdateIPR( clientData );
 }
 
-void CNodeTranslator::UpdateIPR( MObject node, void * clientData )
+// Arnold doesn't really support deleting nodes. But we can make things invisible,
+// disconnect them, turn them off, etc.
+void CNodeTranslator::NodeDeletedCallback(MObject &node, MDGModifier &modifier, void *clientData)
 {
-   // Remove this node from the callback list.
-   CNodeTranslator * translator = (CNodeTranslator*)(clientData);
+   AiMsgDebug( "[mtoa] Node deleted, updating Arnold %p", clientData );
+   CNodeTranslator * translator = static_cast< CNodeTranslator* >(clientData);
    if ( translator != 0x0 )
    {
       translator->RemoveCallbacks();
+      translator->Delete();
    }
 
-   // Update Arnold.
-   MStatus status;
-   MFnDagNode dag_fn( translator->GetMayaNode(), &status );
-   MString command;
-   if ( MStatus::kSuccess == status )
-   {
-      // Some kind of object/shape we need to export.
-      MDagPath dagPath;
-      dag_fn.getPath( dagPath );
-      dagPath.extendToShape();
-      command.format( "arnoldIpr -mode redo -node ^1s;", dagPath.partialPathName() );
-   }
-   else
-   {
-      // Not really sure what this is, let's pretend it's a shader.
-      MFnDependencyNode dep_fn( node );
-      command.format( "arnoldIpr -mode redo -node ^1s;", dep_fn.name() );
-   }
+   // Update Arnold without passing a translator, this just forces a redraw.
+   CMayaScene::UpdateIPR();
+}
 
-   MGlobal::executeCommandOnIdle( command, false );
+
+void CNodeTranslator::UpdateIPR( void * clientData )
+{
+   // Remove this node from the callback list.
+   CNodeTranslator * translator = static_cast< CNodeTranslator* >(clientData);
+   if ( translator != 0x0 )
+   {
+      translator->RemoveCallbacks();
+      CMayaScene::UpdateIPR( translator );
+   }
 }
 
 
@@ -665,6 +656,49 @@ int CDagTranslator::GetMasterInstanceNumber(MObject node)
       return dagPath.instanceNumber();
    }
    return -1;
+}
+
+
+//------------ CDagTranslator ------------//
+
+void CDagTranslator::AddHierarchyCallbacks(const MDagPath & path)
+{
+   AiMsgDebug( "[mtoa] Adding callbacks to parents of: %s", path.partialPathName().asChar() );
+
+   // Loop through the whole dag path adding callbacks to them.
+   MStatus status;
+   MDagPath dag_path( path );
+   dag_path.pop(); // Pop of the shape as that's handled by CNodeTranslator::AddCallbacks.
+   for( ; dag_path.length() > 0; dag_path.pop() )
+   {
+      MObject node = dag_path.node();
+      if ( node != MObject::kNullObj )
+      {
+         // We can use the normal NodeDirtyCallback here.
+         MCallbackId id = MNodeMessage::addNodeDirtyCallback(node,
+                                                             NodeDirtyCallback,
+                                                             this,
+                                                             &status );
+         if ( MS::kSuccess == status ) ManageCallback( id );
+      }
+   }
+}
+
+
+void CDagTranslator::AddCallbacks()
+{
+   AddHierarchyCallbacks( m_dagPath );
+
+   // Call the base class to get the others.
+   CNodeTranslator::AddCallbacks();
+}
+
+void CDagTranslator::Delete()
+{
+   // Arnold doesn't allow us to delete nodes
+   // setting the visibility is as good as it gets
+   // for now.
+   AiNodeSetInt(m_atNode, "visibility",  AI_RAY_UNDEFINED);
 }
 
 // Return whether the dag object in dagPath is the master instance. The master

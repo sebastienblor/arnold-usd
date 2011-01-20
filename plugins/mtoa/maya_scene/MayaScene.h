@@ -14,6 +14,7 @@
 #include <maya/MObjectHandle.h>
 #include <maya/MFnCamera.h>
 #include <maya/MVectorArray.h>
+#include <maya/MMessage.h>
 
 #include <vector>
 #include <map>
@@ -101,8 +102,15 @@ public:
 
    void GetMotionBlurData();
 
-   void ClearMayaCallbacks();
-         
+   void ClearIPRCallbacks();
+   static void IPRNewNodeCallback(MObject & node, void *);
+   static void IPRIdleCallback(void *);
+   static void UpdateIPR(CNodeTranslator * translator=0x0);
+
+   static std::vector< CNodeTranslator * > s_translatorsToIPRUpdate;
+   static MCallbackId s_IPRIdleCallbackId;
+   static MCallbackId s_NewNodeCallbackId;
+   
 //private:
    ExportMode m_exportMode;
    

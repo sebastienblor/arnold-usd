@@ -25,6 +25,7 @@ public:
    static void ConvertMatrix(AtMatrix& matrix, const MMatrix& mayaMatrix);
    AtNode* DoExport(AtUInt step);
    AtNode* DoUpdate(AtUInt step);
+   void DoDelete();
    
    // Overide this if you have some special callbacks to install.
    virtual void AddCallbacks();
@@ -40,12 +41,14 @@ public:
       m_outputAttr = outputAttr;
       m_atNode = NULL;
    }
+
 protected:
    CNodeTranslator() {}
    virtual AtNode* Export() = 0;
-   virtual void ExportMotion(AtNode* atNode, AtUInt step){ExportMotion(atNode, step);};
+   virtual void ExportMotion(AtNode* atNode, AtUInt step){};
    virtual void Update(AtNode* atNode) = 0;
-   virtual void UpdateMotion(AtNode* atNode, AtUInt step){};
+   virtual void Delete() {}
+   virtual void UpdateMotion(AtNode* atNode, AtUInt step){ExportMotion(atNode, step);};
    virtual bool RequiresMotionData()
    {
       return false;
@@ -66,11 +69,7 @@ protected:
    // Some simple callbacks used by many translators.
    static void NodeDirtyCallback(MObject &node, MPlug &plug, void *clientData);
    static void NameChangedCallback(MObject &node, const MString &str, void *clientData);
-   
-   MObject GetMayaNode() const
-   {
-      return m_object;
-   }
+   static void NodeDeletedCallback(MObject &node, MDGModifier &modifier, void *clientData);
 
 protected:
    MObject m_object;
@@ -85,7 +84,7 @@ protected:
 
    // This is a help that tells mtoa to re-export/update the node passed in.
    // Used by the IPR callbacks.
-   static void UpdateIPR( MObject node, void * clientData );
+   static void UpdateIPR( void * clientData );
    
 };
 
@@ -113,6 +112,7 @@ public:
       m_outputAttr = outputAttr;
    }
    static int GetMasterInstanceNumber(MObject node);
+   virtual void AddCallbacks();
 
 protected:
    CDagTranslator() : CNodeTranslator(){}
@@ -121,6 +121,9 @@ protected:
    void ExportMatrix(AtNode* node, AtUInt step);
    AtInt ComputeVisibility(bool mayaStyleAttrs=false);
    static void AddVisibilityAttrs(MObject& node);
+   virtual void Delete();
+
+   void AddHierarchyCallbacks(const MDagPath & path);
 protected:
    MDagPath m_dagPath;
    MFnDagNode m_fnNode;

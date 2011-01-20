@@ -1,6 +1,8 @@
 
 #include "MayaScene.h"
 #include "NodeTranslator.h"
+#include "render/RenderSession.h"
+
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
@@ -21,22 +23,32 @@
 #include <maya/MFnInstancer.h>
 #include <maya/MItInstancer.h>
 #include <maya/MPlugArray.h>
+#include <maya/MMessage.h>
+#include <maya/MEventMessage.h>
+#include <maya/MDGMessage.h>
 
 std::map<int, CreatorFunction>  CMayaScene::s_dagTranslators;
 std::map<int, CreatorFunction>  CMayaScene::s_dependTranslators;
+std::vector< CNodeTranslator * > CMayaScene::s_translatorsToIPRUpdate;
+MCallbackId CMayaScene::s_IPRIdleCallbackId = 0;
+MCallbackId CMayaScene::s_NewNodeCallbackId = 0;
 
 CMayaScene::~CMayaScene()
 {
-   ClearMayaCallbacks();
+   if ( m_exportMode == MTOA_EXPORT_IPR )
+      ClearIPRCallbacks();
    
-   delete m_fnCommonRenderOptions;
-   delete m_fnArnoldRenderOptions;
-   // delete translators
+   if ( m_fnCommonRenderOptions != 0x0 ) delete m_fnCommonRenderOptions;
+   if ( m_fnArnoldRenderOptions != 0x0 ) delete m_fnArnoldRenderOptions;
+
+   // Delete translators
    ObjectToTranslatorMap::iterator it;
    for(it = m_processedTranslators.begin(); it != m_processedTranslators.end(); it++)
    {
       delete it->second;
    }
+
+   m_processedTranslators.clear();
 }
 
 MStatus CMayaScene::ExportToArnold(ExportMode exportMode)
@@ -233,8 +245,11 @@ MStatus CMayaScene::ExportScene(AtUInt step)
 
 MStatus CMayaScene::ExportForIPR(AtUInt step )
 {
-   // Export scene installing message callbacks (the 'true')
-   // so we can pickup changes in the scene.
+   if ( s_NewNodeCallbackId == 0x0 )
+   {
+      s_NewNodeCallbackId = MDGMessage::addNodeAddedCallback( CMayaScene::IPRNewNodeCallback );
+   }
+
    return ExportScene( step );
 }
 
@@ -305,15 +320,18 @@ CNodeTranslator * CMayaScene::GetActiveTranslator( const MObject node )
    ObjectToTranslatorMap::iterator translatorIt = m_processedTranslators.find( node_handle );
    if ( translatorIt != m_processedTranslators.end() )
    {
-      return (CNodeTranslator*)translatorIt->second;
+      return static_cast< CNodeTranslator* >( translatorIt->second );
    }
 
    return 0x0;
 }
 
-void CMayaScene::ClearMayaCallbacks()
+void CMayaScene::ClearIPRCallbacks()
 {
-   AiMsgDebug( "[mtoa] Clearing IPR callbacks" );
+   AiMsgDebug( "[mtoa] Clearing IPR callbacks: %d", m_processedTranslators.size() );
+
+   if ( s_IPRIdleCallbackId != 0 ) MMessage::removeCallback( s_IPRIdleCallbackId );
+   if ( s_NewNodeCallbackId != 0 ) MMessage::removeCallback( s_NewNodeCallbackId );
 
    ObjectToTranslatorMap::iterator it;
    for(it = m_processedTranslators.begin(); it != m_processedTranslators.end(); it++)
@@ -322,5 +340,91 @@ void CMayaScene::ClearMayaCallbacks()
    }
 }
 
+void CMayaScene::IPRNewNodeCallback(MObject & node, void *)
+{
+   // If this is a node we've exported before (e.g. user deletes then undos)
+   // we can shortcut and just call the update for it's already existing translator.
+   CRenderSession* renderSession = CRenderSession::GetInstance();
+   // Interupt rendering
+   renderSession->Interrupt();
+   CNodeTranslator * translator = renderSession->GetMayaScene()->GetActiveTranslator(node);
+   if ( translator != 0x0 )
+   {
+      renderSession->GetMayaScene()->UpdateIPR( translator );
+      return;
+   }
 
+   // Then export this node as it's completely new to us.
+   MFnDagNode dag_node(node);
+   MDagPath path;
+   const MStatus status = dag_node.getPath(path);
+   if (status == MS::kSuccess)
+   {
+      AiMsgDebug( "[mtoa] Exporting new node: %s", path.partialPathName().asChar() );
+      renderSession->GetMayaScene()->ExportDagPath(path, 0);
+      renderSession->GetMayaScene()->UpdateIPR();
+   }
+}
+
+void CMayaScene::IPRIdleCallback(void *)
+{
+   MMessage::removeCallback( s_IPRIdleCallbackId );
+   s_IPRIdleCallbackId = 0;
+
+   CRenderSession* renderSession = CRenderSession::GetInstance();
+   renderSession->Interrupt();
+   CMayaScene* scene = renderSession->GetMayaScene();
+   // Are we motion blurred?
+   const bool mb = scene->m_motionBlurData.enabled &&
+                   ( scene->m_fnArnoldRenderOptions->findPlug("mb_camera_enable").asBool()    ||
+                     scene->m_fnArnoldRenderOptions->findPlug("mb_objects_enable").asBool()   ||
+                     scene->m_fnArnoldRenderOptions->findPlug("mb_lights_enable").asBool()    );
+
+   if (!mb)
+   {
+      for( std::vector<CNodeTranslator*>::iterator iter=s_translatorsToIPRUpdate.begin();
+         iter != s_translatorsToIPRUpdate.end(); ++iter)
+      {
+         CNodeTranslator* translator = (*iter);
+         if ( translator != 0x0 )translator->DoUpdate(0);
+      }
+   }
+   else
+   {
+      // Scene is motion blured, get the data for the steps.
+      for (int J = 0; (J < scene->m_motionBlurData.motion_steps); ++J)
+      {
+         MGlobal::viewFrame(MTime(scene->m_motionBlurData.frames[J], MTime::uiUnit()));
+         for( std::vector<CNodeTranslator*>::iterator iter=s_translatorsToIPRUpdate.begin();
+            iter != s_translatorsToIPRUpdate.end(); ++iter)
+         {
+            CNodeTranslator* translator = (*iter);
+            if ( translator != 0x0 )translator->DoUpdate(J);
+         }
+      }
+      MGlobal::viewFrame(MTime(scene->m_currentFrame, MTime::uiUnit()));
+   }
+
+   // Clear the list.
+   s_translatorsToIPRUpdate.clear();
+
+   renderSession->DoIPRRender();
+}
+
+void CMayaScene::UpdateIPR( CNodeTranslator * translator )
+{
+   if ( translator != 0x0 )
+   {
+      s_translatorsToIPRUpdate.push_back( translator );
+   }
+
+   // Add the IPR update callback, this is called in Maya's
+   // idle time (Arnold may not be idle, that's okay).
+   if ( s_IPRIdleCallbackId == 0 )
+   {
+      MStatus status;
+      MCallbackId id = MEventMessage::addEventCallback( "idle", IPRIdleCallback, NULL, &status );
+      if ( status == MS::kSuccess ) s_IPRIdleCallbackId = id;
+   }
+}
 

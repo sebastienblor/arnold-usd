@@ -1,5 +1,6 @@
 
 #include "Geometry.h"
+#include "render/RenderSession.h"
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
@@ -306,6 +307,11 @@ void CGeoTranslator::GetComponentIDs(MFnMesh &fnMesh,
 
       ++polygonIndex;
    }
+}
+
+void CGeoTranslator::ExportShaders()
+{
+   ExportMeshShaders(m_atNode, m_fnMesh);
 }
 
 void CGeoTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
@@ -731,6 +737,40 @@ void CGeoTranslator::UpdateMotion(AtNode* anode, AtUInt step)
 {
    ExportMatrix(anode, step);
 }
+
+void CGeoTranslator::AddCallbacks()
+{
+   AddShaderAssignmentCallbacks( m_object );
+   CDagTranslator::AddCallbacks();
+}
+
+void CGeoTranslator::AddShaderAssignmentCallbacks(MObject & dagNode )
+{
+   MStatus status;
+   MCallbackId id = MNodeMessage::addAttributeChangedCallback( dagNode, ShaderAssignmentCallback, this, &status );
+   if ( MS::kSuccess == status ) ManageCallback( id );
+}
+
+void CGeoTranslator::ShaderAssignmentCallback( MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void*clientData )
+{
+   // Shading assignments are done with the instObjGroups attr, so we only
+   // need to update when that is the attr that changes.
+   if ( (msg & MNodeMessage::kConnectionMade) && (plug.partialName() == "iog") )
+   {
+      CGeoTranslator * translator = static_cast< CGeoTranslator* >(clientData);
+      if ( translator != 0x0 )
+      {
+         // Interupt the render.
+         CRenderSession* renderSession = CRenderSession::GetInstance();
+         renderSession->Interrupt();
+         // Export the new shaders.
+         translator->ExportShaders();
+         // Update Arnold without passing a translator, this just forces a redraw.
+         CMayaScene::UpdateIPR();
+      }
+   }
+}
+
 
 // CNurbsTranslator
 //

@@ -53,8 +53,6 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
    int height = args.isFlagSet("height") ? args.flagArgumentInt("height", 0) : -1;
    MString camera = args.flagArgumentString("camera", 0);
 
-   AiMsgDebug( "IPR Command mode: %s", mode.asChar() );
-
    // What mode are we in?
    if (mode == "start")
    {
@@ -132,35 +130,6 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
       // Start off the render.
       renderSession->DoIPRRender();
    }
-
-   else if (mode == "redo")
-   {
-      renderSession->Interrupt();
-      // Set the render session camera.
-      renderSession->SetCamera(camera);
-
-      if ( !renderSession->IsActive() )
-      {
-         MGlobal::displayError( "Error starting Arnold IPR" );
-         return MS::kFailure;
-      }
-
-      MStatus status;
-      MString object = args.flagArgumentString("node", 0, &status );
-      if ( MStatus::kSuccess == status )
-      {
-         MSelectionList list;
-         MObject mobj;
-         list.add(object);
-         list.getDependNode(0, mobj);
-         MFnDependencyNode dep_fn( mobj );
-         renderSession->UpdateIPRScene( mobj );
-      }
-
-      // Start off the render.
-      renderSession->DoIPRRender();
-   }
-
    else if ( (mode == "pause") )
    {
       renderSession->PauseIPR();
