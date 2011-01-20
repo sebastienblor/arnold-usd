@@ -10,4 +10,8 @@
 #include "platform/linux/Event.h"
 #endif // _LINUX
 
+#ifdef _DARWIN
+#include "platform/darwin/Event.h"
+#endif // _DARWIN
+
 #endif  // PLATFORM_H

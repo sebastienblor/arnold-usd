@@ -87,7 +87,7 @@ if len(BUILD_TARGETS) > 0:
 ################################
 
 if system.os() == 'darwin':
-   env.Append(CPPDEFINES = Split('_DARWIN'))
+   env.Append(CPPDEFINES = Split('_DARWIN OSMac_'))
 elif system.os() == 'linux':
    env.Append(CPPDEFINES = Split('_LINUX'))
 elif system.os() == 'windows':
@@ -242,10 +242,18 @@ if system.os() == 'windows':
 else:
    maya_env = env.Clone()
    maya_env.Append(CPPPATH = ['.'])
-   maya_env.Append(CPPPATH = [os.path.join(env['MAYA_ROOT'], 'include')])
-   maya_env.Append(CPPDEFINES = Split('LINUX _BOOL REQUIRE_IOSTREAM'))
-   maya_env.Append(LIBPATH = [os.path.join(env['MAYA_ROOT'], 'lib')])
-   maya_env.Append(LIBS=Split('ai GL GLU pthread Foundation OpenMaya OpenMayaRender OpenMayaUI OpenMayaAnim OpenMayaFX'))
+   maya_env.Append(CPPDEFINES = Split('_BOOL REQUIRE_IOSTREAM'))
+   maya_env.Append(LIBS=Split('ai pthread Foundation OpenMaya OpenMayaRender OpenMayaUI OpenMayaAnim OpenMayaFX'))
+
+   if system.os() == 'linux':
+      maya_env.Append(CPPPATH = [os.path.join(env['MAYA_ROOT'], 'include')])
+      maya_env.Append(LIBS=Split('GL GLU'))
+      maya_env.Append(CPPDEFINES = Split('LINUX'))
+      maya_env.Append(LIBPATH = [os.path.join(env['MAYA_ROOT'], 'lib')])
+   elif system.os() == 'darwin':
+      maya_env.Append(CPPPATH = [os.path.join(env['MAYA_ROOT'], 'devkit/include')])
+      maya_env.Append(LIBPATH = [os.path.join(env['MAYA_ROOT'], 'Maya.app/Contents/MacOS')])
+
 
    MTOA = env.SConscript(os.path.join('plugins', 'mtoa', 'SConscript'),
                          build_dir = os.path.join(BUILD_BASE_DIR, 'mtoa'),
