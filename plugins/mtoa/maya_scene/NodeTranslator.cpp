@@ -201,6 +201,83 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, MPlug& plug, const
 
 // populate an arnold AtMatrix with values from this Dag node's transformation.
 // the dag node must have an inclusiveMatrix attribute.
+
+ObjectHandleToDagMap CDagTranslator::s_masterInstances;
+
+// Returns the instance number of the master instance (it's not always 0!)
+// Returns -1 if no master instance has been encountered yet
+int CDagTranslator::GetMasterInstanceNumber(MObject node)
+{
+   MObjectHandle handle = MObjectHandle(node);
+   // if handle is not in the map, a new entry will be made with a default value
+   MDagPath dagPath = s_masterInstances[handle];
+   if (dagPath.isValid())
+   {
+      return dagPath.instanceNumber();
+   }
+   return -1;
+}
+
+// Return whether the dag object in dagPath is the master instance. The master
+// is the first instance that is completely visible (including parent transforms)
+// for which full geometry should be exported
+//
+// always returns true if dagPath is not instanced.
+// if dagPath is instanced, this searches the preceding instances
+// for the first that is visible. if none are found, dagPath is considered the master.
+//
+// note: dagPath is assumed to be visible.
+//
+// @param[out] masterDag    the master MDagPath result, only filled if result is false
+// @return                  whether or not dagPath is a master
+//
+bool CDagTranslator::IsMasterInstance(MDagPath &masterDag)
+{
+   if (m_dagPath.isInstanced())
+   {
+      MObjectHandle handle = MObjectHandle(m_dagPath.node());
+      AtUInt instNum = m_dagPath.instanceNumber();
+      // first instance
+      if (instNum == 0)
+      {
+         // first visible instance is always the master (passed m_dagPath is assumed to be visible)
+         s_masterInstances[handle] = m_dagPath;
+         return true;
+      }
+      else
+      {
+         // if handle is not in the map, a new entry will be made with a default value
+         MDagPath currDag = s_masterInstances[handle];
+         if (currDag.isValid())
+         {
+            // previously found the master
+            masterDag.set(currDag);
+            return false;
+         }
+         // find the master by searching preceding instances
+         MDagPathArray allInstances;
+         MDagPath::getAllPathsTo(m_dagPath.node(), allInstances);
+         AtUInt master_index = 0;
+         for (; (master_index < m_dagPath.instanceNumber()); master_index++)
+         {
+            currDag = allInstances[master_index];
+            if (CMayaScene::IsVisibleDag(currDag))
+            {
+               // found it
+               s_masterInstances[handle] = currDag;
+               masterDag.set(currDag);
+               return false;
+            }
+         }
+         // didn't find a master: m_dagPath is the master
+         s_masterInstances[handle] = m_dagPath;
+         return true;
+      }
+   }
+   // not instanced: m_dagPath is the master
+   return true;
+}
+
 void CDagTranslator::GetMatrix(AtMatrix& matrix)
 {
    MMatrix tm = m_dagPath.inclusiveMatrix();

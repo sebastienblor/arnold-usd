@@ -60,6 +60,7 @@ protected:
 
 // Abstract base class for Dag node translators
 //
+typedef std::map<MObjectHandle, MDagPath, mobjcompare> ObjectHandleToDagMap;
 
 class DLLEXPORT CDagTranslator : public CNodeTranslator
 {
@@ -72,6 +73,15 @@ public:
       m_scene = scene;
       m_outputAttr = outputAttr;
    }
+   virtual void Init(MObject& object, CMayaScene* scene, MString outputAttr="")
+   {
+      CNodeTranslator::Init(object, scene, outputAttr);
+      MDagPath::getAPathTo(object, m_dagPath);
+      m_fnNode.setObject(object);
+      m_scene = scene;
+      m_outputAttr = outputAttr;
+   }
+   static int GetMasterInstanceNumber(MObject node);
 
 protected:
    CDagTranslator() : CNodeTranslator(){}
@@ -83,6 +93,7 @@ protected:
 protected:
    MDagPath m_dagPath;
    MFnDagNode m_fnNode;
+   static ObjectHandleToDagMap s_masterInstances;
 };
 
 class DLLEXPORT CAutoTranslator : public CNodeTranslator

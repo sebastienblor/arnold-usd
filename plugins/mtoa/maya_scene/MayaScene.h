@@ -107,8 +107,8 @@ public:
    AtNode* ExportArnoldShader(MObject mayaShader, MString arnoldShader);
    MObject GetNodeShader(MObject dagNode, int instanceNum);
 
-   bool IsVisible(MFnDagNode node);
-   bool IsVisibleDag(MDagPath dagPath);
+   static bool IsVisible(MFnDagNode node);
+   static bool IsVisibleDag(MDagPath dagPath);
    bool IsMasterInstance(const MDagPath &dagPath, MDagPath &masterDag);
    void GetMatrix(AtMatrix& matrix, const MDagPath& dagPath);
    void ConvertMatrix(AtMatrix& matrix, const MMatrix& mayamatrix);
