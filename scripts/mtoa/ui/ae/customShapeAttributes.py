@@ -128,19 +128,20 @@ def builtin_areaLight(nodeName):
 
     commonLightAttributes(nodeName);
 
+
 def builtin_camera(nodeName):
-    cmds.editorTemplate(aeCallback(customAttrs.boolNew), aeCallback(customAttrs.boolReplace), "enable_dof", callCustom=True)
+    cmds.editorTemplate("enableDOF", addControl=True)
 
     cmds.editorTemplate(addSeparator=True)
 
-    cmds.editorTemplate(aeCallback(customAttrs.floatNew), aeCallback(customAttrs.floatReplace), "focal_distance", callCustom=True)
-    cmds.editorTemplate(aeCallback(customAttrs.floatNew), aeCallback(customAttrs.floatReplace), "aperture_size", callCustom=True)
+    cmds.editorTemplate("focal_distance", addControl=True)
+    cmds.editorTemplate("aperture_size", addControl=True)
 
     cmds.editorTemplate(addSeparator=True)
 
-    cmds.editorTemplate(aeCallback(customAttrs.intNew), aeCallback(customAttrs.intReplace), "aperture_blades", callCustom=True)
-    cmds.editorTemplate(aeCallback(customAttrs.floatNew), aeCallback(customAttrs.floatReplace), "aperture_blade_curvature", callCustom=True)
-    cmds.editorTemplate(aeCallback(customAttrs.floatNew), aeCallback(customAttrs.floatReplace), "aperture_rotation", callCustom=True)
+    cmds.editorTemplate("aperture_blades", addControl=True)
+    cmds.editorTemplate("aperture_blade_curvature", addControl=True)
+    cmds.editorTemplate("aperture_rotation", addControl=True)
 
     cmds.editorTemplate(addSeparator=True)
 

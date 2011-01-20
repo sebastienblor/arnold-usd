@@ -103,7 +103,7 @@ namespace // <anonymous>
       arnoldPluginFactory->RegisterDagTranslator("mesh", MAYA_NODEID_MESH, CMeshTranslator::creator);
       arnoldPluginFactory->RegisterDagTranslator("nurbsSurface", MAYA_NODEID_NURBS_SURFACE, CNurbsSurfaceTranslator::creator);
 
-      arnoldPluginFactory->RegisterDagTranslator("camera", MAYA_NODEID_CAMERA, CCameraTranslator::creator);
+      arnoldPluginFactory->RegisterDagTranslator("camera", MAYA_NODEID_CAMERA, CCameraTranslator::creator, CCameraTranslator::NodeInitializer);
 
       arnoldPluginFactory->MapToMayaNode("ambient_occlusion", "ArnoldAmbientOcclusionShader", CArnoldAmbientOcclusionShaderNode::id.id());
       arnoldPluginFactory->MapToMayaNode("standard", "ArnoldStandardShader", CArnoldStandardShaderNode::id.id());

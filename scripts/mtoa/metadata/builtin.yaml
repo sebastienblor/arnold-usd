@@ -44,3 +44,33 @@ quad_light:
             min: 0
             max: 100
 
+persp_camera:
+    parameter_metadata:
+         focal_distance:
+            min: 0
+            max: 1000000000
+            softmin: 0
+            softmax: 200
+            default: 5
+            animatable: true
+         aperture_size:
+            min: 0
+            max: 20
+            softmin: 0
+            softmax: 0.5
+            default: 0.2
+            animatable: true
+         aperture_blades:
+            min: 3
+            max: 40
+            default: 6
+         aperture_blade_curvature:
+            min: -20
+            max: 20
+            softmin: -5
+            softmax: 5
+         aperture_rotation:
+            min: 0
+            max: 360
+            softmin: 0
+            softmax: 50

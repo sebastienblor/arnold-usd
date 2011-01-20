@@ -101,13 +101,15 @@ def subdivChange(*args):
     cmds.control('mesh_subdiv_dicing_camera', edit=True, enable=flag)
 
 
-def dofChange(*args):
-    flag = cmds.checkBoxGrp('camera_enable_dof', query=True, value1=True)
-    cmds.control('camera_focal_distance', edit=True, enable=flag)
-    cmds.control('camera_aperture_size', edit=True, enable=flag)
-    cmds.control('camera_aperture_blades', edit=True, enable=flag)
-    cmds.control('camera_aperture_blade_curvature', edit=True, enable=flag)
-    cmds.control('camera_aperture_rotation', edit=True, enable=flag)
+def dofChange(nodeName):
+    print "dof change", nodeName
+    dim = not cmds.getAttr(nodeName + ".enableDOF")
+    #(nodeName, control, state)
+    cmds.editorTemplate(dimControl=(nodeName, 'focal_distance', dim))
+    cmds.editorTemplate(dimControl=(nodeName, 'aperture_size', dim))
+    cmds.editorTemplate(dimControl=(nodeName, 'aperture_blades', dim))
+    cmds.editorTemplate(dimControl=(nodeName, 'aperture_blade_curvature', dim))
+    cmds.editorTemplate(dimControl=(nodeName, 'aperture_rotation', dim))
 
 def volumetricsChange(*args):
     flag = cmds.checkBoxGrp('light_affect_volumetrics', query=True, value1=True)
