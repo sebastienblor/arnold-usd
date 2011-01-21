@@ -18,13 +18,7 @@
 
 void *LibraryLoad(const char *filename)
 {
-   // TODO: make it work or make an API! :)
-   // Load the library with the flag DONT_RESOLVE_DLL_REFERENCES but it seems this is not the way to do
-   // The library loads but we cannot do anything with it, when we try to call the initialize function, it crashes
-   // LoadLibrary(filename) fails and says: "The specified module could not be found."
-   // We have to make LoadLibrary() work, possible ?
-
-   void* result;
+   void *result;
    int len = strlen(filename);
    // Remove trailing .so if found (LoadLibrary will automatically add ".dll" to that name)
    if (filename && (len > 3) && !strcmp(filename + len - 3, ".so"))
@@ -32,12 +26,12 @@ void *LibraryLoad(const char *filename)
       char *name = (char*) AiMalloc(len);
       strncpy(name, filename, len - 3);
       name[len - 3] = '\0';
-      result = LoadLibraryEx(filename, NULL, DONT_RESOLVE_DLL_REFERENCES);
+      result = LoadLibrary(filename);
       AiFree(name);
    }
    else
    {
-      result = LoadLibraryEx(filename, NULL, DONT_RESOLVE_DLL_REFERENCES);
+      result = LoadLibrary(filename);
    }
 
    return (void *) result;

@@ -348,7 +348,8 @@ ext_env = maya_env.Clone()
 ext_env.Append(CPPPATH = ['plugin', os.path.join(maya_env['ROOT_DIR'], 'plugins', 'mtoa'), env['ARNOLD_API_INCLUDES']])
 ext_env.Append(LIBPATH = ['.', env['ARNOLD_API_LIB']])
 ext_env.Append(LIBPATH = [os.path.join(maya_env['ROOT_DIR'], os.path.split(str(MTOA[0]))[0])])
-ext_env.Append(LIBS = ['mtoa'])
+if system.os() == 'windows':
+    ext_env.Append(LIBS = ['mtoa'])
 
 ext_base_dir = os.path.join('contrib', 'extensions')
 ext_files = []
