@@ -29,8 +29,8 @@ node_parameters
    AiParameterVEC("oldMin", 0, 0, 0);
    AiParameterVEC("oldMax", 0, 0, 0);
 
-   AiMetaDataSetStr(mds, NULL, "maya::counterpart", "setRange");
-   AiMetaDataSetInt(mds, NULL, "maya::counterpart_id", 0x52524e47);
+   AiMetaDataSetStr(mds, NULL, "maya.counterpart", "setRange");
+   AiMetaDataSetInt(mds, NULL, "maya.counterpart_id", 0x52524e47);
 }
 
 node_initialize

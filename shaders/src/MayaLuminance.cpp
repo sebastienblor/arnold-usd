@@ -21,8 +21,8 @@ node_parameters
 {
    AiParameterRGB("value", 0, 0, 0);
 
-   AiMetaDataSetStr(mds, NULL, "maya::counterpart", "luminance");
-   AiMetaDataSetInt(mds, NULL, "maya::counterpart_id", 0x524c554d);
+   AiMetaDataSetStr(mds, NULL, "maya.counterpart", "luminance");
+   AiMetaDataSetInt(mds, NULL, "maya.counterpart_id", 0x524c554d);
 }
 
 node_initialize
