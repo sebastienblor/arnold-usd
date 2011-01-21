@@ -1,12 +1,7 @@
 #include <Helpers.h>
 
-#include <ai_nodes.h>
-#include <ai_shaderglobals.h>
-#include <ai_shaders.h>
-#include <ai_shader_parameval.h>
 #include <ai.h>
 
-#include <cstdio>
 #include <cstring>
 
 #ifdef _MSC_VER
@@ -432,7 +427,13 @@ shader_evaluate
    bool wrap   = (AiShaderEvalParamBool(p_wrap) == TRUE);
    bool local  = (AiShaderEvalParamBool(p_local) == TRUE);
 
-   AtMatrix* mappingCoordinate = AiShaderEvalParamMtx(p_mapping_coordinate);
+   //AtMatrix* mappingCoordinate = AiShaderEvalParamMtx(p_mapping_coordinate);
+   AtMatrix* space = AiShaderEvalParamMtx(p_mapping_coordinate);
+
+   AtMatrix ispace;
+   AiM4Invert(*space, ispace);
+
+   AtMatrix *mappingCoordinate = &ispace;
 
    AtRGBA outColor;
 

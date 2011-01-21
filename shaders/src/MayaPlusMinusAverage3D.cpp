@@ -1,8 +1,4 @@
-
 #include <ai.h>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 
 AI_SHADER_NODE_EXPORT_METHODS(MayaPlusMinusAverage3DMtd);
 
@@ -41,7 +37,7 @@ node_parameters
    AiArraySetRGB(vdef, 0, AI_RGB_BLACK);
    AiParameterARRAY("values", vdef);
 
-   AiMetaDataSetBool(mds, NULL, "maya.ignore", true);
+   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }
 
 node_initialize

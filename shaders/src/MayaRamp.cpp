@@ -1,22 +1,18 @@
-
-#include "MayaUtils.h"
-#include <ai_nodes.h>
-#include <ai_shaderglobals.h>
-#include <ai_shaders.h>
-#include <ai_shader_parameval.h>
+#include <ai.h>
 
 #ifdef _MSC_VER
 #define _USE_MATH_DEFINES
 #endif
 #include <cmath>
-#include <algorithm>
+
+#include "MayaUtils.h"
 
 AI_SHADER_NODE_EXPORT_METHODS(MayaRampMtd);
 
 namespace
 {
 
-enum RampParameters
+enum MayaRampParams
 {
    p_type = 0,
    p_interp,
@@ -24,16 +20,10 @@ enum RampParameters
    p_colors,
    p_u_wave,
    p_v_wave,
-   p_color_gain,
-   p_color_offset,
-   p_alpha_gain,
-   p_alpha_offset,
-   p_default_color,
-   p_invert,
-   p_override_uv,
-   p_uv,
+   p_uvCoord,
    p_noise,
-   p_noise_freq
+   p_noise_freq,
+   MAYA_COLOR_BALANCE_ENUM
 };
 
 enum RampType
@@ -49,7 +39,7 @@ enum RampType
    RT_TARTAN
 };
 
-const char* ramp_type_enum[] =
+const char* RampTypeNames[] =
 {
    "v",
    "u",
@@ -63,16 +53,11 @@ const char* ramp_type_enum[] =
    NULL
 };
 
-inline float mod(float n, float d)
-{
-   return (n - (floor(n / d) * d));
-}
-
 };
 
 node_parameters
 {
-   AiParameterENUM("type", 1, ramp_type_enum);
+   AiParameterENUM("type", 1, RampTypeNames);
    AiParameterENUM("interpolation", 1, RampInterpolationNames);
    AiParameterARRAY("positions", AiArray(3, 1, AI_TYPE_FLOAT, 0.0f, 0.5f, 1.0f));
    AtArray *cdef = AiArrayAllocate(3, 1, AI_TYPE_RGB);
@@ -82,16 +67,10 @@ node_parameters
    AiParameterARRAY("colors", cdef);
    AiParameterFLT("uWave", 0.0f);
    AiParameterFLT("vWave", 0.0f);
-   AiParameterRGB("colorGain", 1.0f, 1.0f, 1.0f);
-   AiParameterRGB("colorOffset", 0.0f, 0.0f, 0.0f);
-   AiParameterFLT("alphaGain", 1.0f);
-   AiParameterFLT("alphaOffset", 0.0f);
-   AiParameterRGB("defaultColor", 0.5f, 0.5f, 0.5f);
-   AiParameterBOOL("invert", false);
-   AiParameterBOOL("overrideUV", false);
-   AiParameterPNT2("uv", 0.0f, 0.0f);
+   AiParameterPNT2("uvCoord", 0.0f, 0.0f);
    AiParameterFLT("noise", 0.0f);
    AiParameterFLT("noiseFreq", 0.5f);
+   MAYA_COLOR_BALANCE_PARAMS
 
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }
@@ -114,29 +93,28 @@ shader_evaluate
    RampInterpolationType interp = (RampInterpolationType) AiShaderEvalParamInt(p_interp);
    AtArray *positions = AiShaderEvalParamArray(p_positions);
    AtArray *colors = AiShaderEvalParamArray(p_colors);
+   EVAL_MAYA_COLOR_BALANCE_PARAMS
 
    float u = sg->u;
    float v = sg->v;
 
-   if (AiShaderEvalParamBool(p_override_uv))
+   if (AiNodeGetLink(node, "uvCoord") ||
+       AiNodeGetLink(node, "uvCoord.x") ||
+       AiNodeGetLink(node, "uvCoord.y"))
    {
-      AtPoint2 uv = AiShaderEvalParamPnt2(p_uv);
+      AtPoint2 uv = AiShaderEvalParamPnt2(p_uvCoord);
       u = uv.x;
       v = uv.y;
    }
 
-   if (fabs(u) >= 1000000.0f || fabs(v) >= 1000000.0f)
+   if (!IsValidUV(u, v))
    {
-      AtRGB dc = AiShaderEvalParamRGB(p_default_color);
-      sg->out.RGBA.r = dc.r;
-      sg->out.RGBA.g = dc.g;
-      sg->out.RGBA.b = dc.b;
-      sg->out.RGBA.a = 1.0f;
+      MAYA_DEFAULT_COLOR(sg->out.RGBA);
       return;
    }
 
-   u = mod(u, 1.0f);
-   v = mod(v, 1.0f);
+   u = Mod(u, 1.000001f);
+   v = Mod(v, 1.000001f);
 
    AtRGB result;
 
@@ -203,7 +181,7 @@ shader_evaluate
       break;
    case RT_BOX:
       {
-         float t = 2.0f * std::max(fabs(u-0.5f), fabs(v-0.5f));
+         float t = 2.0f * MAX(fabs(u-0.5f), fabs(v-0.5f));
          Ramp(positions, colors, t, interp, result);
       }
       break;
@@ -258,23 +236,8 @@ shader_evaluate
       break;
    }
 
-   // Do color balance
-   AtRGB cg = AiShaderEvalParamRGB(p_color_gain);
-   AtRGB co = AiShaderEvalParamRGB(p_color_offset);
-   float ag = AiShaderEvalParamFlt(p_alpha_gain);
-   float ao = AiShaderEvalParamFlt(p_alpha_offset);
-   bool invert = (AiShaderEvalParamBool(p_invert) == TRUE);
-
-   if (invert)
-   {
-      result.r = 1.0f - result.r;
-      result.g = 1.0f - result.g;
-      result.b = 1.0f - result.b;
-   }
-   float alpha = Luminance(result);
-
-   sg->out.RGBA.r = (result.r * cg.r) + co.r;
-   sg->out.RGBA.g = (result.g * cg.g) + co.g;
-   sg->out.RGBA.b = (result.b * cg.b) + co.b;
-   sg->out.RGBA.a = (alpha * ag) + ao;
+   AiRGBtoRGBA(result, sg->out.RGBA);
+   // Alpha output is always the luminance
+   alphaIsLuminance = true;
+   MAYA_COLOR_BALANCE(sg->out.RGBA);
 }

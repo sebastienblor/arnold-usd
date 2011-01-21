@@ -1,16 +1,7 @@
-
 #include "MayaUtils.h"
-
-#include <ai_types.h>
 
 namespace
 {
-
-// This one is defined for the RampT template function to work properly
-float Luminance(float v)
-{
-   return v;
-}
 
 float _GetArrayFlt(AtArray *a, AtUInt i)
 {
@@ -107,27 +98,33 @@ void RampT(AtArray *p, AtArray *c, float t, RampInterpolationType it, ValType &r
 
 };
 
-float Luminance(const AtRGB &color)
+// This one is defined for the RampT template function to work properly
+inline float Luminance(float v)
+{
+   return v;
+}
+
+inline float Luminance(const AtRGB &color)
 {
    return (0.3f * color.r + 0.59f * color.g + 0.11f * color.b);
 }
 
-float Luminance(const AtRGBA &color)
+inline float Luminance(const AtRGBA &color)
 {
    return (0.3f * color.r + 0.59f * color.g + 0.11f * color.b);
 }
 
-float Mix(float a, float b, float t)
+inline float Mix(float a, float b, float t)
 {
    return (a + t * (b - a));
 }
 
-AtRGB Mix(const AtRGB &c0, const AtRGB &c1, float t)
+inline AtRGB Mix(const AtRGB &c0, const AtRGB &c1, float t)
 {
    return (c0 + t * (c1 - c0));
 }
 
-AtRGBA Mix(const AtRGBA &c0, const AtRGBA &c1, float t)
+inline AtRGBA Mix(const AtRGBA &c0, const AtRGBA &c1, float t)
 {
    AtRGBA rv;
    rv.r = c0.r + t * (c1.r - c0.r);
@@ -135,6 +132,32 @@ AtRGBA Mix(const AtRGBA &c0, const AtRGBA &c1, float t)
    rv.b = c0.b + t * (c1.b - c0.b);
    rv.a = c0.a + t * (c1.a - c0.a);
    return rv;
+}
+
+inline float MapValue(float v, float vmin, float vmax)
+{
+   return ((v - vmin) / (vmax - vmin));
+}
+
+inline float UnmapValue(float v, float vmin, float vmax)
+{
+   return (vmin + (vmax - vmin) * v);
+}
+
+inline bool IsValidUV(float u, float v)
+{
+   // place2dTexture return (-1000000, -1000000) for invalid UVs
+   return (u > -1000000.0f && v > -1000000);
+}
+
+inline float Integral(float t, float nedge)
+{
+   return ((1.0f - nedge) * FLOOR(t) + MAX(0.0f, t - FLOOR(t) - nedge));
+}
+
+inline float Mod(float n, float d)
+{
+   return (n - (floor(n / d) * d));
 }
 
 const char* InterpolationNames[] =
@@ -146,7 +169,7 @@ const char* InterpolationNames[] =
    NULL
 };
 
-InterpolationType InterpolationNameToType(const char *n)
+inline InterpolationType InterpolationNameToType(const char *n)
 {
    return (InterpolationType) AiEnumGetValue(InterpolationNames, n);
 }
@@ -271,7 +294,7 @@ const char* RampInterpolationNames[] =
    NULL
 };
 
-RampInterpolationType RampInterpolationNameToType(const char *n)
+inline RampInterpolationType RampInterpolationNameToType(const char *n)
 {
    return (RampInterpolationType) AiEnumGetValue(RampInterpolationNames, n);
 }
@@ -294,4 +317,508 @@ void Ramp(AtArray *p, AtArray *v, float t, RampInterpolationType it, float &out)
 void Ramp(AtArray *p, AtArray *v, float t, RampInterpolationType it, AtRGB &out)
 {
    RampT(p, v, t, it, out, _GetArrayRGB);
+}
+
+AtVector RGBtoHSV(AtRGB inRgb)
+{
+   AtVector output;
+
+   float min = 0.0f;
+   float max = 0.0f;
+   int rgbMax = 0;
+
+   min = MIN(inRgb.r, inRgb.g);
+   min = MIN(min, inRgb.b);
+
+   max = MAX(inRgb.r, inRgb.g);
+   max = MAX(max, inRgb.b);
+
+   if (fabs(max - inRgb.r) < AI_EPSILON)
+   {
+      rgbMax = 0;
+   }
+   else if (fabs(max - inRgb.g) < AI_EPSILON)
+   {
+      rgbMax = 1;
+   }
+   else
+   {
+      rgbMax = 2;
+   }
+
+   if (max - min < AI_EPSILON)
+   {
+      output.x = 0.0f;
+   }
+   else
+   {
+      if (rgbMax == 0)
+      {
+        output.x = 60.0f * (inRgb.g - inRgb.b) / (max - min);
+      }
+      else if (rgbMax == 1)
+      {
+        output.x = 60.0f * (inRgb.b - inRgb.r) / (max - min) + 120.0f;
+      }
+      else if (rgbMax == 2)
+      {
+        output.x = 60.0f * (inRgb.r - inRgb.g) / (max - min) + 240.0f;
+      }
+
+      while (output.x < 0.0f)
+      {
+         output.x += 360.0f;
+      }
+   }
+
+   if (max < AI_EPSILON)
+   {
+      output.y = 0.0f;
+   }
+   else
+   {
+      output.y = (max - min) / max;
+   }
+
+   output.z = max;
+
+   return output;
+}
+
+AtRGB HSVtoRGB(AtVector inHsv)
+{
+   AtRGB output;
+
+   if (inHsv.y < AI_EPSILON)
+   {
+      output.r = inHsv.z;
+      output.g = inHsv.z;
+      output.b = inHsv.z;
+   }
+   else
+   {
+      float f = inHsv.x / 60.0f;
+
+      int Hi = int(f) % 6;
+
+      f -= Hi;
+
+      float p = inHsv.z * (1 - inHsv.y);
+      float q = inHsv.z * (1 - f * inHsv.y);
+      float t = inHsv.z * (1 - (1 - f) * inHsv.y);
+
+      switch (Hi)
+      {
+      case 0:
+         output.r = inHsv.z;
+         output.g = t;
+         output.b = p;
+         break;
+      case 1:
+         output.r = q;
+         output.g = inHsv.z;
+         output.b = p;
+         break;
+      case 2:
+         output.r = p;
+         output.g = inHsv.z;
+         output.b = t;
+         break;
+      case 3:
+         output.r = p;
+         output.g = q;
+         output.b = inHsv.z;
+         break;
+      case 4:
+         output.r = t;
+         output.g = p;
+         output.b = inHsv.z;
+         break;
+      case 5:
+      default:
+         output.r = inHsv.z;
+         output.g = p;
+         output.b = q;
+         break;
+      }
+   }
+
+   return output;
+}
+
+// Taken from Advanced RenderMan
+float FilteredPulseTrain(float edge, float period, float x, float dx)
+{
+   float invPeriod = 1.0f / period;
+
+   float w = dx * invPeriod;
+   float x0 = x * invPeriod - 0.5f * w;
+   float x1 = x0 + w;
+   float nedge = edge * invPeriod;
+
+   float result;
+
+   if (x0 == x1)
+   {
+     result = (x0 - FLOOR(x0) < nedge) ? 0.0f : 1.0f;
+   }
+   else
+   {
+      result = (Integral(x1, nedge) - Integral(x0, nedge)) / w;
+   }
+
+   return result;
+}
+
+float SmoothStep(float e0, float e1, float x)
+{
+   float t = (x - e0) / (e1 - e0);
+   t = CLAMP(t, 0.0f, 1.0f);
+   return t * t * (3.0f - 2.0f * t);
+}
+
+float Bias(float b, float x)
+{
+   return pow(x, log(b) / float(LOG_05));
+}
+
+float fBm(AtShaderGlobals *sg,
+          const AtPoint &p,
+          float time,
+          float initialAmplitude,
+          int octaves[2],
+          float initialLacunarity,
+          float frequencyRatio,
+          float ratio)
+{
+   float amp = initialAmplitude;
+   AtPoint pp = p;
+   float sum = 0;
+   int i = 0;
+   float lacunarity = initialLacunarity;
+
+   // NOTE: this is wrong, sg->area is "world-space" area
+   float pixelSize = (float) sqrt(sg->area);
+   float nyquist = 2.0f * pixelSize;
+   float pixel = 1.0f;
+
+   while ((i < octaves[1] && pixel > nyquist) || i < octaves[0])
+   {
+      sum += amp * AiPerlin4(pp * lacunarity, time);
+      amp *= ratio;
+      lacunarity *= frequencyRatio;
+      pixel /= frequencyRatio;
+      ++i;
+   }
+
+   if (pixel > pixelSize && i <= octaves[1])
+   {
+      float weight = CLAMP(pixel/pixelSize - 1, 0, 1);
+      sum += weight * amp * AiPerlin4(pp * lacunarity, time);
+   }
+
+   return sum * 0.5f + 0.5f;
+}
+
+float fTurbulence(AtShaderGlobals *sg,
+                  const AtPoint &point,
+                  float time,
+                  float lacunarity,
+                  float frequencyRatio,
+                  int octaves[2],
+                  float ratio,
+                  float ripples[3])
+{
+   int i = 0;
+   float mix = 0.0f;
+   float amp = 1.0f;
+   AtPoint pp;
+   AiV3Create(pp, ripples[0], ripples[1], ripples[2]);
+   pp = point * pp / 2.0f;
+
+   // NOTE: this is wrong, sg->area is "world-space" area
+   float pixelSize = (float) sqrt(sg->area);
+   float niquist = 2.0f * pixelSize;
+   float pixel = 1.0;
+
+   while ((i < octaves[1] && pixel > niquist) || i < octaves[0])
+   {
+      AtPoint2 offset;
+      AiV2Create(offset, lacunarity, lacunarity);
+      mix += amp * fabs(AiPerlin4((pp + AiPerlin2(offset)) * lacunarity, time));
+      lacunarity *= frequencyRatio;
+      amp *= ratio;
+      pixel /= frequencyRatio;
+      ++i;
+   }
+
+   if (pixel > pixelSize && i <= octaves[1])
+   {
+      AtVector2 offset;
+      AiV2Create(offset, lacunarity, lacunarity);
+      float weight = CLAMP((pixel/pixelSize - 1.0f), 0.0f, 1.0f);
+      mix += weight * amp * fabs(AiPerlin4((pp+AiPerlin2(offset)) * lacunarity, time));
+   }
+
+   return mix;
+}
+
+AtPoint AnimatedCellNoise(const AtPoint &p, float tt)
+{
+   float t = AiCellNoise4(p, tt);
+   float tbase = floor(t);
+
+   AtPoint n1 = AiVCellNoise4(p, tbase);
+   float d = t - tbase;
+   AtPoint n2 = AiVCellNoise4(p, tbase + 1.0f);
+   n1 += d * (n2 - n1);
+
+   return n1;
+}
+
+int SuspendedParticles(const AtPoint &Pn,
+                       float time,
+                       float particleRadius,
+                       float jitter,
+                       float octave,
+                       float &f1,
+                       AtPoint &pos1,
+                       float &f2,
+                       AtPoint &pos2,
+                       AtPoint (&particlePos)[27])
+{
+   AtPoint thiscell;
+   AiV3Create(thiscell, floor(Pn.x)+0.5f, floor(Pn.y)+0.5f, floor(Pn.z)+0.5f);
+
+   f1 = f2 = 1e36f;
+   int i, j, k;
+
+   unsigned int curr_particle = 0;
+   for (i=-1; i<=1; ++i)
+   {
+      for (j=-1; j<=1; ++j)
+      {
+         for (k=-1; k<=1; ++k)
+         {
+            AtVector testvec;
+            AiV3Create(testvec, (float)i, (float)j, (float)k);
+            AtPoint testcell = thiscell + testvec;
+
+            if (jitter > 0)
+            {
+               AtVector jit = AnimatedCellNoise(testcell, time+1000.0f*octave) - 0.5f;
+               testcell += jitter * jit;
+            }
+
+            float dist = AiV3Dist(testcell, Pn);
+
+            if (dist < particleRadius)
+            {
+               particlePos[curr_particle] = testcell;
+               ++curr_particle;
+               if (dist < f1)
+               {
+                  f2 = f1;
+                  pos2 = pos1;
+                  f1 = dist;
+                  pos1 = testcell;
+               }
+               else if (dist < f2)
+               {
+                  f2 = dist;
+                  pos2 = testcell;
+               }
+            }
+         }
+      }
+   }
+   return curr_particle;
+}
+
+int SuspendedParticles2d(const AtPoint &Pn,
+                         float time,
+                         float particleRadius,
+                         float jitter,
+                         float octave,
+                         AtPoint (&particlePos)[27])
+{
+   AtPoint thiscell;
+   AiV3Create(thiscell, floor(Pn.x)+0.5f, floor(Pn.y)+0.5f, 0.0f);
+
+   int i, j;
+   unsigned int curr_particle = 0;
+
+   for (i=-1; i<=1; ++i)
+   {
+      for (j=-1; j<=1; ++j)
+      {
+         AtVector testvec;
+         AiV3Create(testvec, (float)i, (float)j, 0.0f);
+         AtPoint testcell = thiscell + testvec;
+         
+         if (jitter > 0.0f)
+         {
+            AtVector vjit = AnimatedCellNoise(testcell, time+1000.0f*octave) - 0.5f;
+            vjit *= jitter;
+            vjit.z = 0.0f;
+            testcell += vjit;
+         }
+
+         float dist = AiV3Dist(testcell, Pn);
+
+         if (dist < particleRadius)
+         {
+            particlePos[curr_particle] = testcell;
+            ++curr_particle;
+         }
+      }
+   }
+   return curr_particle;
+}
+
+float ParticleDensity(int falloff,
+                      const AtPoint &particleCenter,
+                      const AtPoint &P,
+                      float radius)
+{
+   float distanceToCenter = AiV3Dist(particleCenter, P);
+   float fadeout = 0;
+
+   if (falloff == 0) // linear
+   {
+      fadeout = distanceToCenter / radius;
+   }
+   else if (falloff == 1) // smooth
+   {
+      fadeout = SmoothStep(0.0f, radius, distanceToCenter);
+   }
+   else
+   {
+      fadeout = distanceToCenter / radius;
+      fadeout = Bias(0.25f, fadeout);
+
+      if (falloff == 3)
+      {
+         fadeout = CLAMP(1-fadeout, 0, 1);
+         fadeout += 1 - SmoothStep(0.0, 0.1f, fadeout);
+      }
+   }
+   return 1.0f - fadeout;
+}
+
+float BillowNoise(const AtPoint &p,
+                  float time,
+                  int dim,
+                  float radius,
+                  float sizeRand,
+                  float jitter,
+                  int falloff,
+                  float spottyness,
+                  int octaves,
+                  float frequencyRatio,
+                  float ratio,
+                  float amplitude)
+{
+   AtVector v;
+   AiV3Create(v, 0.425f, 0.6f, dim == 3 ? 0.215f : 0.0f);
+   AtPoint pp = p + v;
+
+   int i, j;
+   float lacunarity = 1.0f;
+
+   AtPoint particles[27];
+   float f1, f2;
+   AtPoint /*p1,*/ p2;
+   int numParticles;
+   float sum = 0.0f;
+   float amp = 1.0f;
+   float ampSum = 0.0f;
+
+   for (i=0; i<octaves; ++i)
+   {
+      if (dim == 3)
+      {
+         numParticles = SuspendedParticles(pp * lacunarity, time, radius, jitter, (float)i, f1, p2, f2, p2, particles);
+      }
+      else
+      {
+         numParticles = SuspendedParticles2d(pp * lacunarity, time, radius, jitter, (float)i, particles);
+      }
+
+      if (numParticles > 0)
+      {
+         for (j=0; j<numParticles; ++j)
+         {
+            float radiusScale = 1.0f;
+
+            if (sizeRand != 0.0f)
+            {
+               radiusScale = (0.5f - CLAMP((AiPerlin3(particles[j])+1)*0.5f * 0.75f - 0.25f, 0.0f, 0.5f) * sizeRand) * 2.0f;
+            }
+
+            float density = ParticleDensity(falloff, particles[j], pp*lacunarity, radius*radiusScale);
+
+            if (spottyness > 0)
+            {
+               AtVector v;
+               AiV3Create(v, 1.0f, 7.0f, 1023.0f);
+               float l = spottyness * (AiCellNoise3(particles[j]+v)*2.0f-1.0f);
+               density += density * l;
+               density = CLAMP(density, 0.0f, 1.0f);
+            }
+
+            sum += amp * density;
+         }
+      }
+
+      ampSum += amp;
+      amp *= ratio;
+      lacunarity *= frequencyRatio;
+   }
+   return amplitude * sum / ampSum;
+}
+
+float CosWaves(float posX,
+               float posY,
+               float posTime,
+               int numWaves)
+{
+   float x = posX * 2.0f * (float)AI_PI;
+   float y = posY * 2.0f * (float)AI_PI;
+   float time = posTime * 2.0f * (float)AI_PI;
+
+   float dirX = 0;
+   float dirY = 0;
+   float norm = 0;
+   float noiseValue = 0;
+   int i = 0;
+
+   for (i=1; i<=numWaves; ++i)
+   {
+      float generator = (float)i * (float)AI_PI / (float)numWaves;
+      AtPoint v;
+      AiV3Create(v, generator, 0.0f, 0.0f);
+      dirX = AiPerlin3(v);
+      AiV3Create(v, 0.0f, generator, 0.0f);
+      dirY = AiPerlin3(v);
+      AiV3Create(v, 0.0f, 0.0f, generator);
+      float offset = AiPerlin3(v);
+      generator = 50.0f * dirX * dirY;
+
+      AtPoint2 v2;
+      AiV2Create(v2, generator, generator);
+      float freqNoise = AiPerlin2(v2);
+
+      norm = sqrt(dirX * dirX + dirY * dirY);
+
+      if (norm > AI_EPSILON)
+      {
+         dirX /= norm;
+         dirY /= norm;
+         noiseValue += static_cast<float>(cos((dirX*x + dirY*y) * (AI_PI) / (6.0f * freqNoise) + offset * time));
+      }
+   }
+
+   noiseValue /= (float)numWaves;
+   return noiseValue;
 }

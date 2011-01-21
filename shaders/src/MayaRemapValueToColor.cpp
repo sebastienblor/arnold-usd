@@ -1,16 +1,13 @@
+#include <ai.h>
 
 #include "MayaUtils.h"
-#include <ai.h>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 
 AI_SHADER_NODE_EXPORT_METHODS(MayaRemapValueToColorMtd);
 
 namespace
 {
 
-enum RemapParams
+enum MayaRemapValueToColorParams
 {
    p_input,
    p_input_min,
@@ -21,16 +18,6 @@ enum RemapParams
    p_output_min,
    p_output_max
 };
-
-float map_value(float v, float vmin, float vmax)
-{
-   return ((v - vmin) / (vmax - vmin));
-}
-
-float unmap_value(float v, float vmin, float vmax)
-{
-   return (vmin + (vmax - vmin) * v);
-}
 
 };
 
@@ -77,11 +64,11 @@ shader_evaluate
    AtArray *val = AiShaderEvalParamArray(p_key_val);
    AtArray *interp = AiShaderEvalParamArray(p_key_interp);
 
-   input = map_value(input, imin, imax);
+   input = MapValue(input, imin, imax);
 
    Interpolate(pos, val, interp, input, output);
 
-   sg->out.RGB.r = unmap_value(output.r, omin, omax);
-   sg->out.RGB.g = unmap_value(output.g, omin, omax);
-   sg->out.RGB.b = unmap_value(output.b, omin, omax);
+   sg->out.RGB.r = UnmapValue(output.r, omin, omax);
+   sg->out.RGB.g = UnmapValue(output.g, omin, omax);
+   sg->out.RGB.b = UnmapValue(output.b, omin, omax);
 }

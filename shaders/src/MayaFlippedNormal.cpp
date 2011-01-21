@@ -1,4 +1,3 @@
-
 #include <ai.h>
 
 AI_SHADER_NODE_EXPORT_METHODS(MayaFlippedNormalMtd);

@@ -1,21 +1,18 @@
-
-#include "MayaUtils.h"
 #include <ai.h>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 
 #ifdef _MSC_VER
 #define _USE_MATH_DEFINES
 #endif
 #include <cmath>
 
+#include "MayaUtils.h"
+
 AI_SHADER_NODE_EXPORT_METHODS(MayaFileMtd);
 
 namespace
 {
 
-enum FileParams
+enum MayaFileParams
 {
    p_coverage = 0,
    p_translate_frame,
@@ -29,20 +26,9 @@ enum FileParams
    p_offset,
    p_rotate,
    p_filename,
-   p_color_gain,
-   p_color_offset,
-   p_default_color,
-   p_alpha_gain,
-   p_alpha_offset,
-   p_alpha_is_luminance,
-   p_invert,
-   p_noise
+   p_noise,
+   MAYA_COLOR_BALANCE_ENUM
 };
-
-inline float mod(float n, float d)
-{
-   return (n - (floor(n / d) * d));
-}
 
 };
 
@@ -60,15 +46,9 @@ node_parameters
    AiParameterPNT2("offsetUV", 0.0f, 0.0f);
    AiParameterFLT("rotateUV", 0.0f);
    AiParameterSTR("filename", "");
-   AiParameterRGB("colorGain", 1.0f, 1.0f, 1.0f);
-   AiParameterRGB("colorOffset", 0.0f, 0.0f, 0.0f);
-   AiParameterRGB("defaultColor", 0.5f, 0.5f, 0.5f);
-   AiParameterFLT("alphaGain", 1.0f);
-   AiParameterFLT("alphaOffset", 0.0f);
-   AiParameterBOOL("alphaIsLuminance", false);
-   AiParameterBOOL("invert", false);
    AiParameterPNT2("noiseUV", 0.0f, 0.0f);
-
+   MAYA_COLOR_BALANCE_PARAMS
+   
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }
 
@@ -98,14 +78,8 @@ shader_evaluate
    AtPoint2 repeat = AiShaderEvalParamPnt2(p_repeat);
    AtPoint2 offset = AiShaderEvalParamPnt2(p_offset);
    float rotate = AiShaderEvalParamFlt(p_rotate);
-   AtRGB colorGain = AiShaderEvalParamRGB(p_color_gain);
-   AtRGB colorOffset = AiShaderEvalParamRGB(p_color_offset);
-   AtRGB defaultColor = AiShaderEvalParamRGB(p_default_color);
-   float alphaGain = AiShaderEvalParamFlt(p_alpha_gain);
-   float alphaOffset = AiShaderEvalParamFlt(p_alpha_offset);
-   bool alphaIsLuminance = (AiShaderEvalParamBool(p_alpha_is_luminance) == TRUE);
-   bool invert = (AiShaderEvalParamBool(p_invert) == TRUE);
    AtPoint2 noise = AiShaderEvalParamPnt2(p_noise);
+   EVAL_MAYA_COLOR_BALANCE_PARAMS
 
    float inU = sg->u;
    float inV = sg->v;
@@ -168,15 +142,12 @@ shader_evaluate
    // If coverage.x or coverage.y are <= 1.0f
    //   check of the wrapped u or v coordinades respectively wraps in a valid range
    // If wrap is off, check incoming coordinate is in the range [0, 1]
-   if (mod(outU, 1.0f) > coverage.x ||
-       mod(outV, 1.0f) > coverage.y ||
+   if (Mod(outU, 1.0f) > coverage.x ||
+       Mod(outV, 1.0f) > coverage.y ||
        (!wrapU && (outU < 0 || outU > 1)) ||
        (!wrapV && (outV < 0 || outV > 1)))
    {
-      sg->out.RGBA.r = defaultColor.r;
-      sg->out.RGBA.g = defaultColor.g;
-      sg->out.RGBA.b = defaultColor.b;
-      sg->out.RGBA.a = (alphaIsLuminance ? Luminance(defaultColor) : 1.0f);
+      MAYA_DEFAULT_COLOR(sg->out.RGBA);
    }
    else
    {
@@ -185,12 +156,12 @@ shader_evaluate
 
       if (coverage.x < 1.0f)
       {
-         outU = mod(outU, 1.0f);
+         outU = Mod(outU, 1.0f);
       }
 
       if (coverage.y < 1.0f)
       {
-         outV = mod(outV, 1.0f);
+         outV = Mod(outV, 1.0f);
       }
 
       outU *= icx;
@@ -210,7 +181,7 @@ shader_evaluate
       outDvDy *= icy * repeat.y;
 
       // do mirror, stagger before rotation
-      if (mod(outV, 2.0f) >= 1.0f)
+      if (Mod(outV, 2.0f) >= 1.0f)
       {
          if (stagger)
          {
@@ -227,7 +198,7 @@ shader_evaluate
          }
       }
       
-      if (mirrorU && mod(outU, 2.0f) >= 1.0f)
+      if (mirrorU && Mod(outU, 2.0f) >= 1.0f)
       {
          float center = floor(outU) + 0.5f;
          outU = center - (outU - center);
@@ -272,7 +243,8 @@ shader_evaluate
       AiTextureParamsSetDefaults(&texparams);
       // setup filter?
 
-      AtRGBA result = AiTextureAccess(sg, filename, &texparams);
+      sg->out.RGBA = AiTextureAccess(sg, filename, &texparams);
+      MAYA_COLOR_BALANCE(sg->out.RGBA);
 
       // restore shader globals
       sg->u = inU;
@@ -281,23 +253,5 @@ shader_evaluate
       sg->dudy = inDuDy;
       sg->dvdx = inDvDx;
       sg->dvdy = inDvDy;
-
-      // Do color balance
-      if (invert)
-      {
-         result.r = 1.0f - result.r;
-         result.g = 1.0f - result.g;
-         result.b = 1.0f - result.b;
-         result.a = 1.0f - result.a;
-      }
-      if (alphaIsLuminance)
-      {
-         result.a = Luminance(result);
-      }
-      result.r = (result.r * colorGain.r) + colorOffset.r;
-      result.g = (result.g * colorGain.g) + colorOffset.g;
-      result.b = (result.b * colorGain.b) + colorOffset.b;
-      result.a = (result.a * alphaGain) + alphaOffset;
-      sg->out.RGBA = result;
    }
 }

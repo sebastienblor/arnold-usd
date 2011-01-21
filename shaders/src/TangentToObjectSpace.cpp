@@ -1,9 +1,4 @@
 #include <ai.h>
-#include <ai_nodes.h>
-#include <ai_shaderglobals.h>
-#include <ai_shaders.h>
-#include <ai_shader_parameval.h>
-#include <ai_shader_userdef.h>
 
 namespace
 {
@@ -48,7 +43,7 @@ shader_evaluate
 
    if (!AiUDataGetVec("tangent", &T) || !AiUDataGetVec("bitangent", &B))
    {
-      // cannot convert
+      // Cannot convert
       sg->out.VEC.x = 0.0f;
       sg->out.VEC.y = 0.0f;
       sg->out.VEC.z = 0.0f;

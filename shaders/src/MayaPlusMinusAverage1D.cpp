@@ -1,8 +1,4 @@
-
 #include <ai.h>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 
 AI_SHADER_NODE_EXPORT_METHODS(MayaPlusMinusAverage1DMtd);
 

@@ -1,0 +1,107 @@
+#include <ai.h>
+
+#include "MayaUtils.h"
+
+AI_SHADER_NODE_EXPORT_METHODS(MayaBrownianMtd);
+
+namespace
+{
+
+enum MayaBrownianParams
+{
+   p_lacunarity,
+   p_increment,
+   p_octaves,
+   p_weight3d,
+   p_placementMatrix,
+   p_wrap,
+   p_local,
+   MAYA_COLOR_BALANCE_ENUM
+};
+
+};
+
+node_parameters
+{
+   AtMatrix id;
+   AiM4Identity(id);
+
+   AiParameterFLT("lacunarity", 4.0f);
+   AiParameterFLT("increment", 0.1f);
+   AiParameterFLT("octaves", 3.0f);
+   AiParameterVEC("weight3d", 1.0f, 1.0f, 1.0f);
+   AiParameterMTX("placementMatrix", id);
+   AiParameterBOOL("wrap", true);
+   AiParameterBOOL("local", false);
+   MAYA_COLOR_BALANCE_PARAMS
+
+   AiMetaDataSetStr(mds, NULL, "maya.counterpart", "brownian");
+   AiMetaDataSetInt(mds, NULL, "maya.counterpart_id", 0x5246424d);
+}
+
+node_initialize
+{
+}
+
+node_update
+{
+}
+
+node_finish
+{
+}
+
+shader_evaluate
+{
+   AtFloat lacunarity = AiShaderEvalParamFlt(p_lacunarity);
+   AtFloat increment = AiShaderEvalParamFlt(p_increment);
+   AtFloat octaves = AiShaderEvalParamFlt(p_octaves);
+   AtVector weight3d = AiShaderEvalParamVec(p_weight3d);
+   AtMatrix *placementMatrix = AiShaderEvalParamMtx(p_placementMatrix);
+   AtBoolean wrap = AiShaderEvalParamBool(p_wrap);
+   AtBoolean local = AiShaderEvalParamBool(p_local);
+   EVAL_MAYA_COLOR_BALANCE_PARAMS
+
+   AtPoint P;
+   AtMatrix placement;
+
+   AiM4Invert(*placementMatrix, placement);
+
+   AiM4PointByMatrixMult(&P, placement, (local ? &(sg->Po) : &(sg->P)));
+
+   if (wrap || ((-1.0f <= P.x && P.x <= 1.0f) &&
+                (-1.0f <= P.y && P.y <= 1.0f) &&
+                (-1.0f <= P.z && P.z <= 1.0f)))
+   {
+      int i = 0;
+      float curAmp = 1.0f;
+      float curFreq = 1.0f;
+      float noise = 0.0f;
+
+      int ioctaves = int(floor(octaves));
+      float foctave = octaves - float(ioctaves);
+
+      float ratio = (float) exp(-0.5f * increment);
+
+      P *= weight3d;
+
+      while (i < ioctaves)
+      {
+         noise += curAmp * AiPerlin3(P * curFreq);
+         curFreq *= lacunarity;
+         curAmp *= ratio;
+         ++i;
+      }
+
+      noise += foctave * curAmp * AiPerlin3(P * curFreq);
+
+      noise = noise * 0.5f + 0.5f;
+
+      AiRGBACreate(sg->out.RGBA, noise, noise, noise, 1.0f);
+      MAYA_COLOR_BALANCE(sg->out.RGBA);
+   }
+   else
+   {
+      MAYA_DEFAULT_COLOR(sg->out.RGBA);
+   }
+}

@@ -1,9 +1,6 @@
+#include <ai.h>
 
-#include <ai_metadata.h>
-#include <ai_nodes.h>
-#include <ai_shaderglobals.h>
-#include <ai_shaders.h>
-#include <ai_shader_parameval.h>
+AI_SHADER_NODE_EXPORT_METHODS(MayaReverseMtd);
 
 namespace
 {
@@ -14,8 +11,6 @@ enum MayaReverseParams
 };
 
 };
-
-AI_SHADER_NODE_EXPORT_METHODS(MayaReverseMtd);
 
 node_parameters
 {

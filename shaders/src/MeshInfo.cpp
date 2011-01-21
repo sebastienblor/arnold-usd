@@ -1,10 +1,9 @@
 #include <ai.h>
-#include <cstdio>
 
 namespace
 {
 
-enum MeshInfoParameters
+enum MeshInfoParams
 {
    p_what = 0,
    p_colorSetName
@@ -99,4 +98,3 @@ shader_evaluate
       break;
    }
 }
-

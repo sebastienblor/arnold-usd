@@ -1,16 +1,13 @@
+#include <ai.h>
 
 #include "MayaUtils.h"
-#include <ai.h>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 
 AI_SHADER_NODE_EXPORT_METHODS(MayaRemapColorMtd);
 
 namespace
 {
 
-enum RemapParams
+enum MayaRemapColorParams
 {
    p_input,
    p_input_min,
@@ -27,16 +24,6 @@ enum RemapParams
    p_output_min,
    p_output_max
 };
-
-float map_value(float v, float vmin, float vmax)
-{
-   return ((v - vmin) / (vmax - vmin));
-}
-
-float unmap_value(float v, float vmin, float vmax)
-{
-   return (vmin + (vmax - vmin) * v);
-}
 
 };
 
@@ -82,9 +69,9 @@ shader_evaluate
    float omin = AiShaderEvalParamFlt(p_output_min);
    float omax = AiShaderEvalParamFlt(p_output_max);
 
-   input.r = map_value(input.r, imin, imax);
-   input.g = map_value(input.g, imin, imax);
-   input.b = map_value(input.b, imin, imax);
+   input.r = MapValue(input.r, imin, imax);
+   input.g = MapValue(input.g, imin, imax);
+   input.b = MapValue(input.b, imin, imax);
 
    Interpolate(AiShaderEvalParamArray(p_key_red_pos),
                AiShaderEvalParamArray(p_key_red_val),
@@ -104,7 +91,7 @@ shader_evaluate
                input.b,
                output.b);
 
-   sg->out.RGB.r = unmap_value(output.r, omin, omax);
-   sg->out.RGB.g = unmap_value(output.g, omin, omax);
-   sg->out.RGB.b = unmap_value(output.b, omin, omax);
+   sg->out.RGB.r = UnmapValue(output.r, omin, omax);
+   sg->out.RGB.g = UnmapValue(output.g, omin, omax);
+   sg->out.RGB.b = UnmapValue(output.b, omin, omax);
 }

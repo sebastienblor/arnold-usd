@@ -1,0 +1,107 @@
+#include <ai.h>
+
+#include "MayaUtils.h"
+
+AI_SHADER_NODE_EXPORT_METHODS(MayaGridMtd);
+
+namespace
+{
+
+enum MayaGridParams
+{
+   p_lineColor,
+   p_fillerColor,
+   p_uWidth,
+   p_vWidth,
+   p_contrast,
+   p_uvCoord,
+   p_repeatUV,
+   MAYA_COLOR_BALANCE_ENUM,
+   MAYA_FILTER_ENUM
+};
+
+inline AtRGB Contrast(const AtRGB &c, const AtRGB &d, float f) 
+{
+   return Mix((c + d) / 2.0f, c, f);
+}
+
+};
+
+node_parameters
+{
+   AiParameterRGB("lineColor", 1.0f, 1.0f, 1.0f);
+   AiParameterRGB("fillerColor", 0.0f, 0.0f, 0.0f);
+   AiParameterFLT("uWidth", 0.1f);
+   AiParameterFLT("vWidth", 0.1f);
+   AiParameterFLT("contrast", 1.0);
+   AiParameterPNT2("uvCoord", 0.0f, 0.0f);
+   AiParameterPNT2("repeatUV", 1.0f, 1.0f);
+   MAYA_COLOR_BALANCE_PARAMS
+   MAYA_FILTER_PARAMS
+
+   AiMetaDataSetStr(mds, NULL, "maya.counterpart", "grid");
+   AiMetaDataSetInt(mds, NULL, "maya.counterpart_id", 0x52544744);
+}
+
+node_initialize
+{
+}
+
+node_update
+{
+}
+
+node_finish
+{
+}
+
+shader_evaluate
+{
+   AtPoint2 uv;
+
+   uv.x = sg->u;
+   uv.y = sg->v;
+
+   if (AiNodeGetLink(node, "uvCoord") ||
+       AiNodeGetLink(node, "uvCoord.x") ||
+       AiNodeGetLink(node, "uvCoord.y"))
+   {
+      uv = AiShaderEvalParamPnt2(p_uvCoord);
+   }
+
+   AtPoint2 repeatUV = AiShaderEvalParamPnt2(p_repeatUV);
+   float uWidth = AiShaderEvalParamFlt(p_uWidth);
+   float vWidth = AiShaderEvalParamFlt(p_vWidth);
+   AtRGB lineColor = AiShaderEvalParamRGB(p_lineColor);
+   AtRGB fillerColor = AiShaderEvalParamRGB(p_fillerColor);
+   float cont = AiShaderEvalParamFlt(p_contrast);
+   EVAL_MAYA_COLOR_BALANCE_PARAMS
+   EVAL_MAYA_FILTER_PARAMS
+
+   if (!IsValidUV(uv.x, uv.y))
+   {
+      MAYA_DEFAULT_COLOR(sg->out.RGBA);
+      return;
+   }
+
+   float ss = uv.x;
+   float tt = 1.0f - uv.y;
+   ss = Mod(ss, 1.000001f);
+   tt = Mod(tt, 1.000001f);
+
+   // set fw to zero at the moment
+   float fw = 0.0f;
+
+   float dss = fw * repeatUV.x * filter + filterOffset * 2.0f;
+   float dtt = fw * repeatUV.y * filter + filterOffset * 2.0f;
+
+   float f = FilteredPulseTrain(uWidth, 1.0f, ss + uWidth * 0.5f, dss) * 
+             FilteredPulseTrain(vWidth, 1.0f, tt + vWidth * 0.5f, dtt);
+
+   AtRGB lc = Contrast(lineColor, fillerColor, cont);
+   AtRGB fc = Contrast(fillerColor, lineColor, cont);
+
+   AiRGBtoRGBA(Mix(lc, fc, f), sg->out.RGBA);
+   sg->out.RGBA.a = 1.0f - f;
+   MAYA_COLOR_BALANCE(sg->out.RGBA);
+}

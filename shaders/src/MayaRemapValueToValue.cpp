@@ -1,16 +1,13 @@
+#include <ai.h>
 
 #include "MayaUtils.h"
-#include <ai.h>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 
 AI_SHADER_NODE_EXPORT_METHODS(MayaRemapValueToValueMtd);
 
 namespace
 {
 
-enum RemapParams
+enum MayaRemapValueToValueParams
 {
    p_input,
    p_input_min,
@@ -21,16 +18,6 @@ enum RemapParams
    p_output_min,
    p_output_max
 };
-
-float map_value(float v, float vmin, float vmax)
-{
-   return ((v - vmin) / (vmax - vmin));
-}
-
-float unmap_value(float v, float vmin, float vmax)
-{
-   return (vmin + (vmax - vmin) * v);
-}
 
 };
 
@@ -73,9 +60,9 @@ shader_evaluate
 
    float output = 0.0f;
 
-   input = map_value(input, imin, imax);
+   input = MapValue(input, imin, imax);
 
    Interpolate(pos, val, interp, input, output);
 
-   sg->out.FLT = unmap_value(output, omin, omax);
+   sg->out.FLT = UnmapValue(output, omin, omax);
 }

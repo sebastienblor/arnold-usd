@@ -1,9 +1,4 @@
-
-#include <ai_metadata.h>
-#include <ai_nodes.h>
-#include <ai_shaderglobals.h>
-#include <ai_shaders.h>
-#include <ai_shader_parameval.h>
+#include <ai.h>
 
 AI_SHADER_NODE_EXPORT_METHODS(MayaConditionMtd);
 
