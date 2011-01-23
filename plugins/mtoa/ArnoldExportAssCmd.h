@@ -1,5 +1,5 @@
-#ifndef ARNOLDEXPORTASSCMD_H
-#define ARNOLDEXPORTASSCMD_H
+#ifndef ARNOLD_EXPORT_ASS_CMD_H
+#define ARNOLD_EXPORT_ASS_CMD_H
 
 #include <maya/MPxCommand.h>
 #include <maya/MSyntax.h>
@@ -21,4 +21,4 @@ public:
 
 }; // class CArnoldExportAssCmd
 
-#endif // ARNOLDEXPORTASSCMD_H
+#endif // ARNOLD_EXPORT_ASS_CMD_H

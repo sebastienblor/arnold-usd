@@ -1,7 +1,7 @@
 
 #include "ArnoldExportAssCmd.h"
 #include "render/RenderSession.h"
-#include "scene/MayaScene.h"
+#include "maya_scene/MayaScene.h"
 
 #include <ai_dotass.h>
 #include <ai_msg.h>
@@ -13,7 +13,6 @@
 #include <maya/MFnDagNode.h>
 #include <maya/MGlobal.h>
 #include <maya/MArgDatabase.h>
-#include <maya/MRenderUtil.h>
 
 MSyntax CArnoldExportAssCmd::newSyntax()
 {
@@ -62,12 +61,8 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
 {
    MStatus status;
    CRenderSession* renderSession = CRenderSession::GetInstance();
-   // Just incase we're rendering with IPR.
-   MGlobal::executeCommand("stopIprRendering renderView;");
-   renderSession->Finish();
 
-   MSyntax syntax = newSyntax();
-   MArgDatabase argDB(syntax, argList, &status);
+   MArgDatabase argDB(newSyntax(), argList, &status);
 
    if (AiUniverseIsActive())
    {
@@ -80,9 +75,6 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    MString customFileName = "";
    MString cameraName = "";
 
-   MCommonRenderSettingsData renderGlobals;
-   MRenderUtil::getCommonRenderSettings(renderGlobals);
-   
    // Custom filename
    if (argDB.isFlagSet("filename"))
    {
@@ -96,12 +88,16 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
 
    if (argDB.isFlagSet("selected"))
    {
-      // Translate only selected objects
-      renderSession->ExecuteScript(renderGlobals.preRenderMel);
-      renderSession->Translate(MTOA_EXPORT_SELECTED);
-      renderSession->DoExport(customFileName);
-      renderSession->Finish();
-      renderSession->ExecuteScript(renderGlobals.postRenderMel);
+      // Export only selected objects
+
+      renderSession->Init(MTOA_EXPORT_SELECTED, true, true, true);
+
+      if (MGlobal::mayaState() == MGlobal::kInteractive)
+      {
+         renderSession->DoExport(customFileName, MTOA_EXPORT_SELECTED);
+      }
+
+      renderSession->End(true, true, true);
    }
    else
    {
@@ -143,28 +139,36 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
          for (int curframe = startframe; curframe <= endframe; curframe += framestep)
          {
             MGlobal::viewFrame((double)curframe);
-            renderSession->ExecuteScript(renderGlobals.preRenderMel);
 
             sprintf(frameext, ".%04d.ass", curframe);
+
             curfilename = customFileName;
             curfilename += frameext;
 
-            renderSession->Translate();
-            if (cameraName != "") renderSession->SetCamera(cameraName);
-            renderSession->DoExport(curfilename);
-            renderSession->Finish();
-            renderSession->ExecuteScript(renderGlobals.postRenderMel);
-         }
+            bool firstframe = (curframe == startframe);
+            renderSession->Init(MTOA_EXPORT_ALL, firstframe, firstframe, true);
 
+            if (cameraName != "")
+            {
+               renderSession->SetCamera(cameraName);
+            }
+            renderSession->DoExport(curfilename);
+
+            bool lastframe = (curframe + framestep > endframe);
+            renderSession->End(lastframe, lastframe, true);
+
+            firstframe = false;
+         }
       }
       else
       {
-         renderSession->ExecuteScript(renderGlobals.preRenderMel);
-         renderSession->Translate();
-         if (cameraName != "") renderSession->SetCamera(cameraName);
+         renderSession->Init(MTOA_EXPORT_ALL, true, true, true);
+         if (cameraName != "")
+         {
+            renderSession->SetCamera(cameraName);
+         }
          renderSession->DoExport(customFileName);
-         renderSession->Finish();
-         renderSession->ExecuteScript(renderGlobals.postRenderMel);
+         renderSession->End(true, true, true);
       }
    }
 
