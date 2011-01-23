@@ -18,7 +18,7 @@
 #include "nodes/shaders/surface/ArnoldMeshInfoShader.h"
 #include "nodes/shaders/surface/ArnoldWireframeShader.h"
 #include "nodes/shaders/surface/ArnoldHairShader.h"
-#include "nodes/shaders/ArnoldRaySwitchShader.h"
+#include "nodes/shaders/surface/ArnoldRaySwitchShader.h"
 
 #include <ai_render.h>
 
