@@ -21,7 +21,7 @@
 char * CArnoldAssTranslator::fileType = "ArnoldSceneSource";
 char * CArnoldAssTranslator::fileExtension = "ass";
 char * CArnoldAssTranslator::fileIcon = "arnoldAssFile.xpm";
-char * CArnoldAssTranslator::optionScript = "arnoldSourceSceneOpts";
+char * CArnoldAssTranslator::optionScript = "arnoldAssOpts";
 char * CArnoldAssTranslator::optionDefault = "";
 
 inline bool CArnoldAssTranslator::haveReadMethod () const
@@ -113,7 +113,7 @@ MStatus CArnoldAssTranslator::writer(
 	// syntax.addFlag("sf", "startFrame", MSyntax::kLong);
 	// syntax.addFlag("ef", "endFrame", MSyntax::kLong);
 	// syntax.addFlag("fs", "frameStep", MSyntax::kLong);
-	cmdStr += options;
+	// cmdStr += options;
 
 	return MGlobal::executeCommand(cmdStr);
 

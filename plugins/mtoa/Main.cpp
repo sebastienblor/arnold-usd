@@ -215,16 +215,12 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    status = plugin.registerCommand("arnoldRender", CArnoldRenderCmd::creator, CArnoldRenderCmd::newSyntax);
    status = plugin.registerCommand("arnoldIpr", CArnoldIprCmd::creator, CArnoldIprCmd::newSyntax);
    status = plugin.registerCommand("arnoldExportAss", CArnoldExportAssCmd::creator, CArnoldExportAssCmd::newSyntax);
-	/* status = plugin.registerFileTranslator(	CArnoldAssTranslator::fileType,
-	 CArnoldAssTranslator::fileIcon,
-	 CArnoldAssTranslator::creator,
-	 CArnoldAssTranslator::optionScript,
-	 CArnoldAssTranslator::optionDefault,
-	 false );
-	 */
-	status = plugin.registerFileTranslator(CArnoldAssTranslator::fileType,
-			CArnoldAssTranslator::fileIcon, CArnoldAssTranslator::creator,
-			NULL, NULL, false);
+   status = plugin.registerFileTranslator(	CArnoldAssTranslator::fileType,
+		   	   	   	   	   	   	   	   	   	CArnoldAssTranslator::fileIcon,
+		   	   	   	   	   	   	   	   	   	CArnoldAssTranslator::creator,
+		   	   	   	   	   	   	   	   	   	CArnoldAssTranslator::optionScript,
+		   	   	   	   	   	   	   	   	   	CArnoldAssTranslator::optionDefault,
+		   	   	   	   	   	   	   	   	   	false );
 
    RegisterArnoldNodes(object);
 

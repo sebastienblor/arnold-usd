@@ -3,6 +3,7 @@ import maya.mel as mel
 
 import mtoa.utils as utils
 import mtoa.ui.arnoldExportAss as arnoldExportAss
+import mtoa.ui.arnoldAssOpts as arnoldAssOpts
 import mtoa.ui.arnoldAttributeEditor as arnoldAttributeEditor
 import mtoa.ui.createArnoldRendererCommonGlobalsTab
 from mtoa.ui.createArnoldRendererCommonGlobalsTab import createArnoldRendererCommonGlobalsTab, updateArnoldRendererCommonGlobalsTab
@@ -205,3 +206,5 @@ def registerArnoldRenderer():
            cmds.menuItem(parent='mainRenderMenu', divider=True)
            cmds.menuItem('exportToAssMenuItem', parent='mainRenderMenu', label="Export to Ass...", c=arnoldExportAss.arnoldExportAss)
            cmds.menuItem('arnoldAttributeEditorItem', parent='mainRenderMenu', label="Arnold Attribute Editor...", c=arnoldAttributeEditor.arnoldAttributeEditor)
+           # Add option box for file translator
+           utils.pyToMelProc(arnoldAssOpts.arnoldAssOpts, ('string', 'parent'), ('string', 'action'), ('string', 'initialSettings'), ('string', 'resultCallback'), shortName=True)
