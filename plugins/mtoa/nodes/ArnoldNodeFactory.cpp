@@ -329,7 +329,7 @@ bool CArnoldNodeFactory::RegisterDependTranslator(const char* mayaNode, int type
 //  4. "maya.counterpart" - the name of an existing maya node to
 //     which this one should be mapped (see MapToMayaNode). no new node will
 //     be generated.
-//  5. "maya.ignore" - skip registration altogether
+//  5. "maya.hide" - skip registration altogether
 //
 // options 4 & 5 will result in no new maya node being created.
 //

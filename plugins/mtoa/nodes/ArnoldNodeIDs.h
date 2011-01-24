@@ -34,6 +34,7 @@
 #define MAYA_NODEID_REMAP_COLOR                 0x524d434c
 #define MAYA_NODEID_PROJECTION                  0x5250524a
 #define MAYA_NODEID_RAMP                        0x52545241
+#define MAYA_NODEID_LAYERED_TEXTURE             0x4c595254
 
 #define MAYA_NODEID_DIRECTIONAL_LIGHT           0x4449524c
 #define MAYA_NODEID_SPOT_LIGHT                  0x5350544c

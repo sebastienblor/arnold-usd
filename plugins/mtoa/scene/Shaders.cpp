@@ -19,6 +19,7 @@
 #include <maya/MFnNumericData.h>
 #include <maya/MFnMatrixData.h>
 #include <maya/MFnCamera.h>
+#include <maya/MFnAttribute.h>
 
 #include <maya/MRenderUtil.h>
 
@@ -717,7 +718,7 @@ void CFileTranslator::Update(AtNode* shader)
          m_scene->ProcessShaderParameter(srcNode, "stagger", shader, "stagger", AI_TYPE_BOOLEAN);
          m_scene->ProcessShaderParameter(srcNode, "repeatUV", shader, "repeatUV", AI_TYPE_POINT2);
          m_scene->ProcessShaderParameter(srcNode, "rotateUV", shader, "rotateUV", AI_TYPE_FLOAT);
-         m_scene->ProcessShaderParameter(srcNode, "offset", shader, "offsetUV", AI_TYPE_POINT2);
+         m_scene->ProcessShaderParameter(srcNode, "offset", shader, "offset", AI_TYPE_POINT2);
          m_scene->ProcessShaderParameter(srcNode, "noiseUV", shader, "noiseUV", AI_TYPE_POINT2);
       }
    }
@@ -760,7 +761,7 @@ void CFileTranslator::Update(AtNode* shader)
 
 // Bump2d
 //
-AtNode* CBump2dTranslator::Export()
+AtNode* CBump2DTranslator::Export()
 {
    AtNode* shader = AiNode("bump2d");
    AiNodeSetStr(shader, "name", m_fnNode.name().asChar());
@@ -768,7 +769,7 @@ AtNode* CBump2dTranslator::Export()
    return shader;
 }
 
-void CBump2dTranslator::Update(AtNode* shader)
+void CBump2DTranslator::Update(AtNode* shader)
 {
    ProcessParameter(shader, "bumpValue", "bump_map", AI_TYPE_FLOAT);
    ProcessParameter(shader, "bumpDepth", "bump_height", AI_TYPE_FLOAT);
@@ -776,7 +777,7 @@ void CBump2dTranslator::Update(AtNode* shader)
 
 // Bump3d
 //
-AtNode* CBump3dTranslator::Export()
+AtNode* CBump3DTranslator::Export()
 {
    AtNode* shader = AiNode("bump3d");
    AiNodeSetStr(shader, "name", m_fnNode.name().asChar());
@@ -784,7 +785,7 @@ AtNode* CBump3dTranslator::Export()
    return shader;
 }
 
-void CBump3dTranslator::Update(AtNode* shader)
+void CBump3DTranslator::Update(AtNode* shader)
 {
    ProcessParameter(shader, "bumpValue", "bump_map", AI_TYPE_FLOAT);
    ProcessParameter(shader, "bumpDepth", "bump_height", AI_TYPE_FLOAT);
@@ -1240,7 +1241,7 @@ void CRampTranslator::Update(AtNode* shader)
 
       if (srcNode.typeName() == "place2dTexture")
       {
-         shader = AiNode("MayaPlace2dTexture");
+         shader = AiNode("MayaPlace2DTexture");
 
          AiNodeSetStr(shader, "name", srcNode.name().asChar());
          ProcessParameter("coverage", shader, "coverage", AI_TYPE_POINT2);
@@ -1300,15 +1301,17 @@ void CRampTranslator::Update(AtNode* shader)
    AiNodeSetArray(shader, "colors", colors);
 }
 
-AtNode* CPlace2dTextureTranslator::Export()
+// Place2DTexture
+
+AtNode* CPlace2DTextureTranslator::Export()
 {
-   AtNode* shader = AiNode("MayaPlace2dTexture");
+   AtNode* shader = AiNode("MayaPlace2DTexture");
    AiNodeSetStr(shader, "name", m_fnNode.name().asChar());
    Update(shader);
    return shader;
 }
 
-void CPlace2dTextureTranslator::Update(AtNode* shader)
+void CPlace2DTextureTranslator::Update(AtNode* shader)
 {
    ProcessParameter(shader, "coverage", AI_TYPE_POINT2);
    ProcessParameter(shader, "rotateFrame", AI_TYPE_FLOAT);
@@ -1320,6 +1323,128 @@ void CPlace2dTextureTranslator::Update(AtNode* shader)
    ProcessParameter(shader, "stagger", AI_TYPE_BOOLEAN);
    ProcessParameter(shader, "repeatUV", AI_TYPE_POINT2);
    ProcessParameter(shader, "rotateUV", AI_TYPE_FLOAT);
-   ProcessParameter(shader, "offsetUV", AI_TYPE_POINT2);
+   ProcessParameter(shader, "offset", AI_TYPE_POINT2);
    ProcessParameter(shader, "noiseUV", AI_TYPE_POINT2);
+}
+
+// LayeredTexture
+//
+AtNode* CLayeredTextureTranslator::Export()
+{
+   AtNode* shader = AiNode("MayaLayeredTexture");
+   AiNodeSetStr(shader, "name", m_fnNode.name().asChar());
+   Update(shader);
+   return shader;
+}
+
+void CLayeredTextureTranslator::Update(AtNode* shader)
+{
+   MPlug plug, elem, child;
+
+   plug = m_fnNode.findPlug("inputs");
+
+   std::vector<bool> visibleList;
+   std::vector<int> blendModeList;
+   std::vector<AtNode*> inputColorList;
+   std::vector<float> inputAlphaList;
+   std::vector<bool> colorConnectedToAlphaList;
+
+   MPlug childIsVisible, childBlendMode, childColor, childAlpha;
+
+   unsigned int numElements = plug.numElements();
+   for (unsigned int i = 0; i < numElements; ++i)
+   {
+      elem = plug.elementByPhysicalIndex(i);
+
+      unsigned int numChildren = elem.numChildren();
+      for (unsigned int j = 0; j < numChildren; ++j)
+      {
+         MPlug child = elem.child(j);
+         MFnAttribute attribute(child.attribute());
+
+         if (attribute.name() == "isVisible")
+            childIsVisible = child;
+         else if (attribute.name() == "blendMode")
+            childBlendMode = child;
+         else if (attribute.name() == "color")
+            childColor = child;
+         else if (attribute.name() == "alpha")
+            childAlpha = child;
+      }
+
+      visibleList.push_back(childIsVisible.asBool());
+      blendModeList.push_back(childBlendMode.asInt());
+
+      MPlugArray connections;
+      childColor.connectedTo(connections, true, false);
+
+      if (connections.length() > 0)
+      {
+         MObject inputTexture = connections[0].node();
+
+         AtNode *arnoldInputNode = m_scene->ExportShader(inputTexture);
+         inputColorList.push_back(arnoldInputNode);
+
+         MFnDependencyNode inputTextureNode(inputTexture);
+         MPlug out;
+
+         out = inputTextureNode.findPlug("outAlpha");
+         if (!out.isNull())
+         {
+            MPlugArray outConnections;
+            out.connectedTo(outConnections, false, true);
+
+            if (outConnections.length() > 0)
+            {
+               MPlug destPlug = outConnections[0];
+               MFnAttribute destAttribute(destPlug.attribute());
+
+               if (destAttribute.name() == "alpha")
+                  colorConnectedToAlphaList.push_back(true);
+               else
+                  colorConnectedToAlphaList.push_back(false);
+
+               inputAlphaList.push_back(childAlpha.asFloat());
+            }
+         }
+      }
+      else
+      {
+         AtNode *arnoldInputNode = AiNode("flat");
+
+         MString flatName = m_fnNode.name() + "flat" + (i);
+         AiNodeSetStr(arnoldInputNode, "name", flatName.asChar());
+
+         AiNodeSetRGB(arnoldInputNode, "color", childColor.child(0).asFloat(), childColor.child(1).asFloat(), childColor.child(2).asFloat());
+
+         inputColorList.push_back(arnoldInputNode);
+      }
+
+      if (colorConnectedToAlphaList.size() < inputColorList.size())
+      {
+         colorConnectedToAlphaList.push_back(false);
+         inputAlphaList.push_back(childAlpha.asFloat());
+      }
+   }
+
+   AtArray *visibleArray = AiArrayAllocate(numElements, 1, AI_TYPE_BOOLEAN);
+   AtArray *blendModeArray = AiArrayAllocate(numElements, 1, AI_TYPE_INT);
+   AtArray *inputColorArray = AiArrayAllocate(numElements, 1, AI_TYPE_NODE);
+   AtArray *inputAlphaArray = AiArrayAllocate(numElements, 1, AI_TYPE_FLOAT);
+   AtArray *colorConnectedToAlphaArray = AiArrayAllocate(numElements, 1, AI_TYPE_BOOLEAN);
+
+   for (unsigned int i=0; i<numElements; ++i)
+   {
+      AiArraySetBool(visibleArray, i, visibleList[i]);
+      AiArraySetInt(blendModeArray, i, blendModeList[i]);
+      AiArraySetPtr(inputColorArray, i, inputColorList[i]);
+      AiArraySetFlt(inputAlphaArray, i, inputAlphaList[i]);
+      AiArraySetBool(colorConnectedToAlphaArray, i, colorConnectedToAlphaList[i]);
+   }
+
+   AiNodeSetArray(shader, "visible", visibleArray);
+   AiNodeSetArray(shader, "blendMode", blendModeArray);
+   AiNodeSetArray(shader, "color", inputColorArray);
+   AiNodeSetArray(shader, "alpha", inputAlphaArray);
+   AiNodeSetArray(shader, "colorConnectedToAlpha", colorConnectedToAlphaArray);
 }

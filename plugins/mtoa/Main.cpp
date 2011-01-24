@@ -100,15 +100,16 @@ namespace // <anonymous>
       arnoldPluginFactory->RegisterDependTranslator("surfaceShader", MAYA_NODEID_SURFACE_SHADER, CSurfaceShaderTranslator::creator);
       arnoldPluginFactory->RegisterDependTranslator("lambert", MAYA_NODEID_LAMBERT, CLambertTranslator::creator);
       arnoldPluginFactory->RegisterDependTranslator("file", MAYA_NODEID_FILE, CFileTranslator::creator);
-      arnoldPluginFactory->RegisterDependTranslator("place2dTexture", MAYA_NODEID_PLACE2D_TEXTURE, CPlace2dTextureTranslator::creator);
-      arnoldPluginFactory->RegisterDependTranslator("bump2d", MAYA_NODEID_BUMP2D, CBump2dTranslator::creator);
-      arnoldPluginFactory->RegisterDependTranslator("bump3d", MAYA_NODEID_BUMP3D, CBump3dTranslator::creator);
+      arnoldPluginFactory->RegisterDependTranslator("place2dTexture", MAYA_NODEID_PLACE2D_TEXTURE, CPlace2DTextureTranslator::creator);
+      arnoldPluginFactory->RegisterDependTranslator("bump2d", MAYA_NODEID_BUMP2D, CBump2DTranslator::creator);
+      arnoldPluginFactory->RegisterDependTranslator("bump3d", MAYA_NODEID_BUMP3D, CBump3DTranslator::creator);
       arnoldPluginFactory->RegisterDependTranslator("samplerInfo", MAYA_NODEID_SAMPLER_INFO, CSamplerInfoTranslator::creator);
       arnoldPluginFactory->RegisterDependTranslator("plusMinusAverage", MAYA_NODEID_PLUS_MINUS_AVERAGE, CPlusMinusAverageTranslator::creator);
       arnoldPluginFactory->RegisterDependTranslator("remapValue", MAYA_NODEID_REMAP_VALUE, CRemapValueTranslator::creator);
       arnoldPluginFactory->RegisterDependTranslator("remapColor", MAYA_NODEID_REMAP_COLOR, CRemapColorTranslator::creator);
       arnoldPluginFactory->RegisterDependTranslator("projection", MAYA_NODEID_PROJECTION, CProjectionTranslator::creator);
       arnoldPluginFactory->RegisterDependTranslator("ramp", MAYA_NODEID_RAMP, CRampTranslator::creator);
+      arnoldPluginFactory->RegisterDependTranslator("layeredTexture", MAYA_NODEID_LAYERED_TEXTURE, CLayeredTextureTranslator::creator);
 
       // sky is technically a DAG node, but it behaves like a DG node (i.e. it is only exported when a connection is processed)
       // therefore, it is not registered as a DagTranslator
