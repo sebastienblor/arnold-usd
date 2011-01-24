@@ -176,6 +176,7 @@ void CRenderSession::InterruptRender()
    {
       AiThreadWait(m_render_thread);
       AiThreadClose(m_render_thread);
+	  m_render_thread = 0x0;		// Until this is handled by AiThreadClose? Had issues where it tried to close an already closed thread
    }
 }
 
