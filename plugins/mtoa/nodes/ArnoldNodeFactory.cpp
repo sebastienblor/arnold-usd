@@ -178,6 +178,11 @@ void CArnoldNodeFactory::LoadPlugins()
       MString plugin = plugins[i];
       if (plugin.length() > 0)
       {
+#ifdef _WIN32
+         char buffer[MAX_PATH];
+         GetFullPathName(plugin.asChar(), MAX_PATH, buffer, NULL);
+         plugin = buffer;
+#endif // _WIN32
          LoadPlugin(plugin.asChar());
       }
    }
@@ -494,6 +499,11 @@ void CArnoldNodeFactory::LoadExtensions()
       MString plugin = plugins[i];
       if (plugin.length() > 0)
       {
+#ifdef _WIN32
+         char buffer[MAX_PATH];
+         GetFullPathName(plugin.asChar(), MAX_PATH, buffer, NULL);
+         plugin = buffer;
+#endif // _WIN32
          LoadExtension(plugin.asChar());
          MString cmd = "import mtoa.api.extensions;mtoa.api.extensions.loadExtensionUI('" + plugin + "')";
          CHECK_MSTATUS(MGlobal::executePythonCommand(cmd));
