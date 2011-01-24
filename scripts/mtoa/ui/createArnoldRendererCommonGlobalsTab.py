@@ -1988,7 +1988,7 @@ def changeArnoldAspectLockHeight(*args):
         requestedHeight = 2
 
     cmds.setAttr('defaultResolution.height', requestedHeight)
-    optionMenuGrp('resolutionMenu', edit=True, sl=1)
+    cmds.optionMenuGrp('resolutionMenu', edit=True, sl=1)
     checkArnoldAspectLockHeight('defaultResolution')
 
     # Set the proper field ordering if PAL or NTSC.
