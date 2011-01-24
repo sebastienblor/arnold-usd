@@ -38,25 +38,38 @@ MString CArnoldExportAssCmd::GetCameraName()
       MFnDagNode cameraNode(cameraPath.node());
       cameraName = cameraNode.partialPathName();
    }
-   else
+   if (cameraName == "")
    {
-      MStringArray renderableCameras;
-
-      // Change that to pure C
-      MGlobal::executePythonCommand("import maya");
-      MGlobal::executePythonCommand("import maya.cmds");
-      MGlobal::executePythonCommand("filter(lambda x: maya.cmds.getAttr(x+\".renderable\") == 1, maya.cmds.ls(type=\"camera\"))", renderableCameras);
-
-      if (renderableCameras.length() > 0)
+      MItDag dagIter(MItDag::kDepthFirst, MFn::kCamera);
+      MDagPath cameraPath;
+      // MFnCamera cameraNode;
+      MFnDagNode cameraNode;
+      MPlug renderable;
+      MStatus stat;
+      while (!dagIter.isDone())
       {
-         if (renderableCameras.length() > 1)
+         dagIter.getPath(cameraPath);
+         cameraNode.setObject(cameraPath);
+         renderable = cameraNode.findPlug("renderable", false, &stat);
+         if (stat && renderable.asBool())
          {
-           MGlobal::displayWarning("More than one renderable camera, use first one. (use the -cam/-camera option to override)");
+            if (cameraName == "")
+            {
+               cameraName = cameraNode.partialPathName();
+            }
+            else
+            {
+               MGlobal::displayWarning("More than one renderable camera, using first one. (use the -cam/-camera option to override)");
+               break;
+            }
          }
-         cameraName = renderableCameras[0];
+         dagIter.next();
       }
-    }
-    return cameraName;
+   }
+   if (cameraName == "")
+      MGlobal::displayWarning("Did not find a renderable camera. (use the -cam/-camera option to specify one)");
+
+   return cameraName;
 }
 
 MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
@@ -151,7 +164,9 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
             curfilename += frameext;
 
             renderSession->Translate();
-            if (cameraName != "") renderSession->SetCamera(cameraName);
+            if (cameraName != "")
+               renderSession->SetCamera(cameraName);
+
             renderSession->DoExport(curfilename);
             renderSession->Finish();
             renderSession->ExecuteScript(renderGlobals.postRenderMel);
@@ -162,7 +177,9 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
       {
          renderSession->ExecuteScript(renderGlobals.preRenderMel);
          renderSession->Translate();
-         if (cameraName != "") renderSession->SetCamera(cameraName);
+         if (cameraName != "")
+            renderSession->SetCamera(cameraName);
+
          renderSession->DoExport(customFileName);
          renderSession->Finish();
          renderSession->ExecuteScript(renderGlobals.postRenderMel);
