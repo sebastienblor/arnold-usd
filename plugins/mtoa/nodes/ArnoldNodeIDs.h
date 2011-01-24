@@ -19,7 +19,7 @@
 #define ARNOLD_NODEID_AOV                       0x00072013
 #define ARNOLD_NODEID_RAY_SWITCH                0x00072015
 #define ARNOLD_NODEID_CUSTOM                    0x00073000
-#define ARNOLD_NODEID_MESH_INFO                 0x00072016
+#define ARNOLD_NODEID_MESH_INFO                 0x00072017
 #define ARNOLD_NODEID_SKYDOME_LIGHT             0x00073013
 
 #define MAYA_NODEID_SURFACE_SHADER              0x52535348

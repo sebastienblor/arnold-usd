@@ -32,6 +32,8 @@ node_parameters
 {
    AiParameterENUM("what", 0, WhatNames);
    AiParameterSTR("colorSetName", "");
+
+   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }
 
 node_initialize

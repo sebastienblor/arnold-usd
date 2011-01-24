@@ -17,6 +17,8 @@ node_parameters
 {
    AiParameterRGB("map", 0.0f, 0.0f, 0.0f);
    AiParameterVEC("scale", 1.0f, 1.0f, 1.0f);
+
+   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }
 
 node_initialize
