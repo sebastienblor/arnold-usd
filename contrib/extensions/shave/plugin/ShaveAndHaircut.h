@@ -1,4 +1,4 @@
-#include "maya_scene/NodeTranslator.h"
+#include "scene/NodeTranslator.h"
 #include <maya/shaveAPI.h>
 #include <maya/shaveItHair.h>
 

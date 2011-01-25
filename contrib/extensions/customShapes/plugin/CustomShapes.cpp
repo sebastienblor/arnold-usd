@@ -1,5 +1,5 @@
 #include "CustomShapes.h"
-#include "maya_scene/NodeTranslator.h"
+#include "scene/NodeTranslator.h"
 
 #include <ai_msg.h>
 #include <ai_nodes.h>

@@ -1,4 +1,4 @@
-#include "maya_scene/NodeTranslator.h"
+#include "scene/NodeTranslator.h"
 #include "nodes/ArnoldNodeFactory.h"
 #include <maya/MDagPath.h>
 #include <maya/MPlug.h>
