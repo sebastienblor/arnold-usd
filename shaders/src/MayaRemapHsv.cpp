@@ -35,12 +35,12 @@ node_parameters
    AiParameterARRAY("hPositions", AiArray(2, 1, AI_TYPE_FLOAT, 0.0f, 1.0f));
    AiParameterARRAY("hValues", AiArray(2, 1, AI_TYPE_FLOAT, 0.0f, 1.0f));
    AiParameterARRAY("hInterpolations", AiArray(2, 1, AI_TYPE_STRING, "linear", "linear"));
-   AiParameterARRAY("sPositions", AiArray(3, 1, AI_TYPE_FLOAT, 0.0f, 1.0f));
-   AiParameterARRAY("sValues", AiArray(3, 1, AI_TYPE_FLOAT, 0.0f, 1.0f));
-   AiParameterARRAY("sInterpolations", AiArray(3, 1, AI_TYPE_STRING, "linear", "linear"));
-   AiParameterARRAY("vPositions", AiArray(4, 1, AI_TYPE_FLOAT, 0.0f, 1.0f));
-   AiParameterARRAY("vValues", AiArray(4, 1, AI_TYPE_FLOAT, 0.0f, 1.0f));
-   AiParameterARRAY("vInterpolations", AiArray(4, 1, AI_TYPE_STRING, "linear", "linear"));
+   AiParameterARRAY("sPositions", AiArray(2, 1, AI_TYPE_FLOAT, 0.0f, 1.0f));
+   AiParameterARRAY("sValues", AiArray(2, 1, AI_TYPE_FLOAT, 0.0f, 1.0f));
+   AiParameterARRAY("sInterpolations", AiArray(2, 1, AI_TYPE_STRING, "linear", "linear"));
+   AiParameterARRAY("vPositions", AiArray(2, 1, AI_TYPE_FLOAT, 0.0f, 1.0f));
+   AiParameterARRAY("vValues", AiArray(2, 1, AI_TYPE_FLOAT, 0.0f, 1.0f));
+   AiParameterARRAY("vInterpolations", AiArray(2, 1, AI_TYPE_STRING, "linear", "linear"));
    AiParameterFLT("outputMin", 0.0f);
    AiParameterFLT("outputMax", 1.0f);
 

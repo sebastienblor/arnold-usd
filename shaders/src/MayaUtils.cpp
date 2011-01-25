@@ -99,32 +99,32 @@ void RampT(AtArray *p, AtArray *c, float t, RampInterpolationType it, ValType &r
 };
 
 // This one is defined for the RampT template function to work properly
-inline float Luminance(float v)
+float Luminance(float v)
 {
    return v;
 }
 
-inline float Luminance(const AtRGB &color)
+float Luminance(const AtRGB &color)
 {
    return (0.3f * color.r + 0.59f * color.g + 0.11f * color.b);
 }
 
-inline float Luminance(const AtRGBA &color)
+float Luminance(const AtRGBA &color)
 {
    return (0.3f * color.r + 0.59f * color.g + 0.11f * color.b);
 }
 
-inline float Mix(float a, float b, float t)
+float Mix(float a, float b, float t)
 {
    return (a + t * (b - a));
 }
 
-inline AtRGB Mix(const AtRGB &c0, const AtRGB &c1, float t)
+AtRGB Mix(const AtRGB &c0, const AtRGB &c1, float t)
 {
    return (c0 + t * (c1 - c0));
 }
 
-inline AtRGBA Mix(const AtRGBA &c0, const AtRGBA &c1, float t)
+AtRGBA Mix(const AtRGBA &c0, const AtRGBA &c1, float t)
 {
    AtRGBA rv;
    rv.r = c0.r + t * (c1.r - c0.r);
@@ -134,28 +134,28 @@ inline AtRGBA Mix(const AtRGBA &c0, const AtRGBA &c1, float t)
    return rv;
 }
 
-inline float MapValue(float v, float vmin, float vmax)
+float MapValue(float v, float vmin, float vmax)
 {
    return ((v - vmin) / (vmax - vmin));
 }
 
-inline float UnmapValue(float v, float vmin, float vmax)
+float UnmapValue(float v, float vmin, float vmax)
 {
    return (vmin + (vmax - vmin) * v);
 }
 
-inline bool IsValidUV(float u, float v)
+bool IsValidUV(float u, float v)
 {
    // place2dTexture return (-1000000, -1000000) for invalid UVs
    return (u > -1000000.0f && v > -1000000);
 }
 
-inline float Integral(float t, float nedge)
+float Integral(float t, float nedge)
 {
    return ((1.0f - nedge) * FLOOR(t) + MAX(0.0f, t - FLOOR(t) - nedge));
 }
 
-inline float Mod(float n, float d)
+float Mod(float n, float d)
 {
    return (n - (floor(n / d) * d));
 }
@@ -169,7 +169,7 @@ const char* InterpolationNames[] =
    NULL
 };
 
-inline InterpolationType InterpolationNameToType(const char *n)
+InterpolationType InterpolationNameToType(const char *n)
 {
    return (InterpolationType) AiEnumGetValue(InterpolationNames, n);
 }
@@ -294,7 +294,7 @@ const char* RampInterpolationNames[] =
    NULL
 };
 
-inline RampInterpolationType RampInterpolationNameToType(const char *n)
+RampInterpolationType RampInterpolationNameToType(const char *n)
 {
    return (RampInterpolationType) AiEnumGetValue(RampInterpolationNames, n);
 }

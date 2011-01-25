@@ -69,7 +69,7 @@ shader_evaluate
    AtRGB color1 = AiShaderEvalParamRGB(p_color1);
    AtRGB color2 = AiShaderEvalParamRGB(p_color2);
    EVAL_MAYA_COLOR_BALANCE_PARAMS
-   EVAL_MAYA_FILTER_PARAMS
+   //EVAL_MAYA_FILTER_PARAMS
 
    if (!IsValidUV(uv.x, uv.y))
    {

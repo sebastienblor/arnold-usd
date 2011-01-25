@@ -112,8 +112,8 @@ shader_evaluate
 
    AtPoint P;
    AtMatrix placement;
-   AtFloat time;
-   AtFloat timeRatio;
+   AtFloat time = 0.0f;
+   AtFloat timeRatio = 0.0f;
 
    AiM4Invert(*placementMatrix, placement);
 
@@ -143,14 +143,16 @@ shader_evaluate
 
       while ((i < depth.x) || (i < depth.y && pixel > nyquist))
       {
+         AtPoint sampleP = P * curFreq;
+
          if (animated)
          {
-            tmp = Noise4D(P * curFreq, time * curTimeFreq, inflection);
+            tmp = Noise4D(sampleP, time * curTimeFreq, inflection);
             curTimeFreq *= timeRatio;
          }
          else
          {
-            tmp = Noise3D(P * curFreq, inflection);
+            tmp = Noise3D(sampleP, inflection);
          }
 
          noise += curAmp * tmp;
@@ -163,13 +165,15 @@ shader_evaluate
 
       if (pixel > pixelSize && i <= depth.y)
       {
+         AtPoint sampleP = P * curFreq;
+
          if (animated)
          {
-            tmp = Noise4D(P * curFreq, time * curTimeFreq, inflection);
+            tmp = Noise4D(sampleP, time * curTimeFreq, inflection);
          }
          else
          {
-            tmp = Noise3D(P * curFreq, inflection);
+            tmp = Noise3D(sampleP, inflection);
          }
 
          noise += curAmp * tmp;

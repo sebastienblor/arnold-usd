@@ -174,7 +174,7 @@ shader_evaluate
 
       P *= frequency;
 
-      AtFloat noiseVal;
+      AtFloat noiseVal = 0.0f;
 
       switch (noiseType)
       {

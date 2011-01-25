@@ -44,7 +44,69 @@ const char* gs_RotateOrderNames[] =
    NULL
 };
 
-typedef std::map<AtVoid*, AtMatrix*> ThreadMatrixMap;
+
+class P3DTData
+{
+public:
+
+   typedef std::map<AtByte, AtMatrix*> ThreadMatrixMap;
+
+   P3DTData()
+      : mBeingDestroyed(false)
+   {
+      AiCritSecInitRecursive(&mMutex);
+   }
+
+   ~P3DTData()
+   {
+      AiCritSecEnter(&mMutex);
+
+      mBeingDestroyed = true;
+
+      ThreadMatrixMap::iterator it = mThreadMatrices.begin();
+      while (it != mThreadMatrices.end())
+      {
+         AiFree(it->second);
+         ++it;
+      }
+      mThreadMatrices.clear();
+
+      AiCritSecLeave(&mMutex);
+
+      AiCritSecClose(&mMutex);
+   }
+
+   AtMatrix* getOrCreateMatrix(AtShaderGlobals *sg)
+   {
+      AtMatrix *rv = 0;
+
+      AiCritSecEnter(&mMutex);
+
+      if (!mBeingDestroyed)
+      {
+         ThreadMatrixMap::iterator it = mThreadMatrices.find(sg->tid);
+         if (it != mThreadMatrices.end())
+         {
+            rv = it->second;
+         }
+         else
+         {
+            rv = (AtMatrix*) AiMalloc(sizeof(AtMatrix));
+            mThreadMatrices[sg->tid] = rv;
+         }
+      }
+
+      AiCritSecLeave(&mMutex);
+
+      return rv;
+   }
+
+protected:
+
+  AtCritSec mMutex;
+  ThreadMatrixMap mThreadMatrices;
+  bool mBeingDestroyed;
+};
 
 };
 
@@ -65,53 +127,26 @@ node_parameters
    AiParameterVEC("rotatePivotTranslate", 0.0f, 0.0f, 0.0f);
    AiParameterBOOL("inheritsTransform", true);
    AiParameterMTX("parentMatrix", id);
-
-   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }
-
-#ifdef _WIN32
-#  include <windows.h>
-AtVoid* CurrentThread()
-{
-   // AiThreadSelf() on windows return current thread pseudo handle, which has the same value for all threads
-   // This cannot be used to identify the thread as we intend here
-   return (AtVoid*) GetCurrentThreadId();
-}
-#else
-AtVoid* CurrentThread()
-{
-   // Under linux, this should be fine if Arnold is using pthread
-   return AiThreadSelf();
-}
-#endif
 
 node_initialize
 {
-   // Called once for all threads
-   ThreadMatrixMap *tmm = new ThreadMatrixMap();
-   node->local_data = (AtVoid*) tmm;
+   node->local_data = (AtVoid*) new P3DTData();
 }
 
 node_update
 {
-   // Called once for all threads
 }
 
 node_finish
 {
-   ThreadMatrixMap *tmm = (ThreadMatrixMap*) node->local_data;
-   ThreadMatrixMap::iterator it = tmm->begin();
-   while (it != tmm->end())
-   {
-      AiFree(it->second);
-      ++it;
-   }
-   tmm->clear();
-   delete tmm;
+   delete ((P3DTData*) node->local_data);
 }
 
 shader_evaluate
 {
+   P3DTData *data = (P3DTData*) node->local_data;
+
    AtVector translate = AiShaderEvalParamPnt(p_translate);
    AtVector rotate = AiShaderEvalParamPnt(p_rotate);
    AtVector scale = AiShaderEvalParamPnt(p_scale);
@@ -125,20 +160,11 @@ shader_evaluate
    bool inheritsTransform = (AiShaderEvalParamBool(p_inherits_transform) == TRUE);
    AtMatrix *parentMatrix = AiShaderEvalParamMtx(p_parent_matrix);
 
-   AtMatrix *pM = 0;
-
-   // Allocate one matrix per running thread
-   AtVoid *currentThread = CurrentThread();
-   ThreadMatrixMap *tmm = (ThreadMatrixMap*) node->local_data;
-   ThreadMatrixMap::iterator it = tmm->find(currentThread);
-   if (it != tmm->end())
+   AtMatrix *pM = data->getOrCreateMatrix(sg);
+   if (!pM)
    {
-      pM = it->second;
-   }
-   else
-   {
-      pM = (AtMatrix*) AiMalloc(sizeof(AtMatrix));
-      (*tmm)[currentThread] = pM;
+      AiMsgWarning("[mtoa_shaders] MayaPlace3DTexture: Trying to access node matrix data while node is being destroyed");
+      return;
    }
    
    AtMatrix &M = *pM;
@@ -231,3 +257,4 @@ shader_evaluate
 
    sg->out.pMTX = pM;
 }
+
