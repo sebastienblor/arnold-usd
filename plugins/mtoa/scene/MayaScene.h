@@ -144,7 +144,6 @@ private:
    MStatus IterSelection(MSelectionList selected, AtUInt step);
    bool ExportDagPath(MDagPath &dagPath, AtUInt step);
 
-   void ExportHair(const MDagPath& dagPath, AtUInt step);
    void ExportInstancerReplacement(const MDagPath& dagPath, AtUInt step);
 
    AtNode* ExportArnoldShader(MObject mayaShader, MString arnoldShader);

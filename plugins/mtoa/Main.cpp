@@ -29,6 +29,7 @@
 #include "scene/Geometry.h"
 #include "scene/Cameras.h"
 #include "scene/Options.h"
+#include "scene/Hair.h"
 #include "render/RenderSwatch.h"
 
 #include <ai_render.h>
@@ -127,6 +128,8 @@ namespace // <anonymous>
 
       arnoldPluginFactory->RegisterDagTranslator("camera", MAYA_NODEID_CAMERA, CCameraTranslator::creator, CCameraTranslator::NodeInitializer);
 
+      arnoldPluginFactory->RegisterDagTranslator("hairSystem", MAYA_NODEID_HAIR, CHairTranslator::creator, CHairTranslator::NodeInitializer);
+
       arnoldPluginFactory->MapToMayaNode("ambient_occlusion", "ArnoldAmbientOcclusionShader", CArnoldAmbientOcclusionShaderNode::id.id());
       arnoldPluginFactory->MapToMayaNode("standard", "ArnoldStandardShader", CArnoldStandardShaderNode::id.id());
       arnoldPluginFactory->MapToMayaNode("utility", "ArnoldUtilityShader", CArnoldUtilityShaderNode::id.id());
@@ -134,7 +137,6 @@ namespace // <anonymous>
       arnoldPluginFactory->MapToMayaNode("hair", "ArnoldHairShader", CArnoldHairShaderNode::id.id());
 
       arnoldPluginFactory->MapToMayaNode("MeshInfo", "ArnoldMeshInfoShader", CArnoldMeshInfoShaderNode::id.id());
-      arnoldPluginFactory->MapToMayaNode("TangentToObjectSpace", "ArnoldHairShader", CArnoldUtilityShaderNode::id.id());
 
       arnoldPluginFactory->MapToMayaNode("barndoor", "ArnoldBarndoorShader", CArnoldBarndoorShaderNode::id.id());
       arnoldPluginFactory->MapToMayaNode("gobo", "ArnoldGoboShader", CArnoldGoboShaderNode::id.id());
