@@ -138,10 +138,10 @@ public:
 private:
    
    void PrepareExport();
-   MStatus IterSelection(MSelectionList selected);
    MStatus ExportScene(AtUInt step);
    MStatus ExportForIPR(AtUInt step);
-   MStatus ExportSelected();
+   MStatus ExportSelected(AtUInt step);
+   MStatus IterSelection(MSelectionList selected, AtUInt step);
    bool ExportDagPath(MDagPath &dagPath, AtUInt step);
 
    void ExportHair(const MDagPath& dagPath, AtUInt step);

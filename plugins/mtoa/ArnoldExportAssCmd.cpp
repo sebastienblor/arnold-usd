@@ -24,6 +24,7 @@ MSyntax CArnoldExportAssCmd::newSyntax()
    syntax.addFlag("sf", "startFrame", MSyntax::kLong);
    syntax.addFlag("ef", "endFrame", MSyntax::kLong);
    syntax.addFlag("fs", "frameStep", MSyntax::kLong);
+   syntax.addFlag("o", "options", MSyntax::kString);
    return syntax;
 }
 
@@ -75,115 +76,109 @@ MString CArnoldExportAssCmd::GetCameraName()
 MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
 {
    MStatus status;
-   CRenderSession* renderSession = CRenderSession::GetInstance();
-   // Just incase we're rendering with IPR.
-   MGlobal::executeCommand("stopIprRendering renderView;");
-   renderSession->Finish();
 
+   // Initialize command syntax and get flags
    MSyntax syntax = newSyntax();
    MArgDatabase argDB(syntax, argList, &status);
-
-   if (AiUniverseIsActive())
-   {
-      AiMsgError("[mtoa] ERROR: Cannot export to .ass while rendering.");
-      return MS::kFailure;
-   }
-
-   // We don't need renderview_display so we need to set Batch mode on.
-   renderSession->SetBatch(true);
    MString customFileName = "";
    MString cameraName = "";
-
-   MCommonRenderSettingsData renderGlobals;
-   MRenderUtil::getCommonRenderSettings(renderGlobals);
-
+   MString optionsName = "";
+   int startframe = 1; // TODO: use current frame if not set
+   int endframe = 0;
+   int framestep = 1;
    // Custom filename
    if (argDB.isFlagSet("filename"))
    {
       argDB.getFlagArgument("filename", 0, customFileName);
    }
-   
+   // Custom camera
    if (argDB.isFlagSet("camera"))
    {
       argDB.getFlagArgument("camera", 0, cameraName);
    }
-
-   if (argDB.isFlagSet("selected"))
+   // Custom render options
+   if (argDB.isFlagSet("options"))
    {
-      // Translate only selected objects
-      renderSession->ExecuteScript(renderGlobals.preRenderMel);
-      renderSession->Translate(MTOA_EXPORT_SELECTED);
-      renderSession->DoExport(customFileName);
-      renderSession->Finish();
-      renderSession->ExecuteScript(renderGlobals.postRenderMel);
+      argDB.getFlagArgument("options", 0, optionsName);
    }
-   else
+   if (argDB.isFlagSet("startFrame"))
    {
-      // Export the entire maya scene
+      argDB.getFlagArgument("startFrame", 0, startframe);
+   }
+   if (argDB.isFlagSet("endFrame"))
+   {
+      argDB.getFlagArgument("endFrame", 0, endframe);
+   }
+   if (argDB.isFlagSet("frameStep"))
+   {
+      argDB.getFlagArgument("frameStep", 0, framestep);
+   }
+   // Get Maya scene information
+   // If camera name is not set, default to active view camera in interactive mode
+   // or the first found renderable camera in batch mode
+   if (cameraName == "")
+   {
+      cameraName = GetCameraName();
+   }
+   MCommonRenderSettingsData renderGlobals;
+   MRenderUtil::getCommonRenderSettings(renderGlobals);
 
-      // If camera name is not set, default to active view camera in interactive mode
-      // or the first found renderable camera in batch mode
-      if (cameraName == "")
+   CRenderSession* renderSession = CRenderSession::GetInstance();
+   // Just incase we're rendering with IPR.
+   MGlobal::executeCommand("stopIprRendering renderView;");
+   renderSession->Finish();
+   // Cannot export while a render is active
+   if (AiUniverseIsActive())
+   {
+      AiMsgError("[mtoa] ERROR: Cannot export to .ass while rendering.");
+      return MS::kFailure;
+   }
+   // We don't need renderview_display so we need to set Batch mode on.
+   renderSession->SetBatch(true);
+
+   // Export range of frames or single frame
+   if (startframe <= endframe)
+   {
+      // customFileName is a prefix, need to add frame and extension
+      // -> might want to check if extension or frame is already set
+      MString curfilename;
+      char frameext[64];
+
+      for (int curframe = startframe; curframe <= endframe; curframe += framestep)
       {
-         cameraName = GetCameraName();
-      }
-
-      int startframe = 1;
-      int endframe = 0;
-      int framestep = 1;
-
-      if (argDB.isFlagSet("startFrame"))
-      {
-         argDB.getFlagArgument("startFrame", 0, startframe);
-      }
-
-      if (argDB.isFlagSet("endFrame"))
-      {
-         argDB.getFlagArgument("endFrame", 0, endframe);
-      }
-
-      if (argDB.isFlagSet("frameStep"))
-      {
-         argDB.getFlagArgument("frameStep", 0, framestep);
-      }
-
-      if (startframe <= endframe)
-      {
-         // customFileName is a prefix, need to add frame and extension
-         // -> might want to check if extension or frame is already set
-         MString curfilename;
-         char frameext[64];
-
-         for (int curframe = startframe; curframe <= endframe; curframe += framestep)
-         {
-            MGlobal::viewFrame((double)curframe);
-            renderSession->ExecuteScript(renderGlobals.preRenderMel);
-
-            sprintf(frameext, ".%04d.ass", curframe);
-            curfilename = customFileName;
-            curfilename += frameext;
-
-            renderSession->Translate();
-            if (cameraName != "")
-               renderSession->SetCamera(cameraName);
-
-            renderSession->DoExport(curfilename);
-            renderSession->Finish();
-            renderSession->ExecuteScript(renderGlobals.postRenderMel);
-         }
-
-      }
-      else
-      {
+         MGlobal::viewFrame((double)curframe);
          renderSession->ExecuteScript(renderGlobals.preRenderMel);
-         renderSession->Translate();
+
+         sprintf(frameext, ".%04d.ass", curframe);
+         curfilename = customFileName;
+         curfilename += frameext;
+
+         if (argDB.isFlagSet("selected"))
+            renderSession->Translate(MTOA_EXPORT_SELECTED);
+         else
+            renderSession->Translate();
          if (cameraName != "")
             renderSession->SetCamera(cameraName);
 
-         renderSession->DoExport(customFileName);
+         renderSession->DoExport(curfilename);
          renderSession->Finish();
          renderSession->ExecuteScript(renderGlobals.postRenderMel);
       }
+   }
+   else
+   {
+      renderSession->ExecuteScript(renderGlobals.preRenderMel);
+
+      if (argDB.isFlagSet("selected"))
+         renderSession->Translate(MTOA_EXPORT_SELECTED);
+      else
+         renderSession->Translate();
+      if (cameraName != "")
+         renderSession->SetCamera(cameraName);
+
+      renderSession->DoExport(customFileName);
+      renderSession->Finish();
+      renderSession->ExecuteScript(renderGlobals.postRenderMel);
    }
 
    return status;

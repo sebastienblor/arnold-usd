@@ -3,6 +3,10 @@ import maya.mel as mel
 from mtoa.ui.callback import *
 import os
 
+from mtoa.ui.createArnoldRendererCommonGlobalsTab import createArnoldRendererCommonGlobalsTab
+from mtoa.ui.createArnoldRendererGlobalsTab import createArnoldRendererGlobalsTab
+
+
 def storeMaskValues():
     mask = 0
 
@@ -46,79 +50,63 @@ def readMaskValues():
 
 
 def arnoldAssOpts(parent = '', action = '', initialSettings = '', resultCallback = ''):
+   
+   print 'parent: %(p)s, action: %(a)s, settings: %(s)s, callback: %(c)s\n' % \
+      {"p": parent, "a": action, "s": initialSettings, "c": resultCallback}                            
                             
-    print 'parent: %(p)s, action: %(a)s, settings: %(s)s, callback: %(c)s\n' % \
-        {"p": parent, "a": action, "s": initialSettings, "c": resultCallback}                            
-                            
-    retval = 0
-    currentOptions = ''
+   retval = 0
+   currentOptions = ''
     
-    # Make sure the ArnoldRenderOptions node exists
-    if not cmds.ls('defaultArnoldRenderOptions'):
-        cmds.createNode('ArnoldRenderOptions', skipSelect=True, shared=True, name='defaultArnoldRenderOptions')
+   # Make sure the ArnoldRenderOptions node exists
+   if not cmds.ls('defaultArnoldRenderOptions'):
+      cmds.createNode('ArnoldRenderOptions', skipSelect=True, shared=True, name='defaultArnoldRenderOptions')
     
-    if (action == 'post') :
-        cmds.setParent(parent);
+   if (action == 'post') :
+    
+      # Build the UI   
+      cmds.setParent(parent)
+      
+      form = cmds.formLayout('assExportForm')
+      
+      tabLayoutName = 'assExportTab'
 
-        cmds.columnLayout('assTypeCol', adjustableColumn=True)
-        cmds.radioButtonGrp('lepTypeGrp',
-                            label='Place holder, does nothing',
-                            numberOfRadioButtons=2,
-                            labelArray2=['True', 'False'])
-        cmds.setParent(parent)
-        cmds.columnLayout(  'assExportOptions',
-                            adjustableColumn=True,
-                              columnOffset=("both", 20),
-                              rowSpacing=10)
-    
-        cmds.checkBox('oa_compressed', label='Use Compression')
-        cmds.connectControl('oa_compressed', 'defaultArnoldRenderOptions.output_ass_compressed')
-    
-        cmds.separator(style='none')
-    
-        cmds.text('Export Node Types')
-        cmds.frameLayout(label='')
-        cmds.columnLayout(adjustableColumn=True,
-                columnOffset=('both', 10),
-                rowSpacing=10)
-    
-        cmds.checkBox('oa_export_options', align='left', label='Export Options Node', value=True)
-        cmds.checkBox('oa_export_cameras', align='left', label='Export Cameras', value=True)
-        cmds.checkBox('oa_export_lights', align='left', label='Export Lights', value=True)
-        cmds.checkBox('oa_export_shapes', align='left', label='Export Shapes', value=True)
-        cmds.checkBox('oa_export_shaders', align='left', label='Export Shaders', value=True)
-        cmds.checkBox('oa_export_override', align='left', label='Export Override Nodes', value=True)
-        cmds.checkBox('oa_export_drivers', align='left', label='Export Drivers', value=True)
-        cmds.checkBox('oa_export_filters', align='left', label='Export Filters', value=True)                      
-                    
-        # Now set to current settings.
-        
-        # make this more optionVar compliant
-        readMaskValues()
-        
-        currentOptions = initialSettings;
-        optionList = currentOptions.split(';')
-        for option in optionList :
-            keyName, sep, keyValue = option.partition('=')            
-            if (keyName == 'showPositions') :
-                cmds.radioButtonGrp('lepTypeGrp', edit=True, select=(1 if (keyValue!='0') else 2))
+      # tabLayoutName = cmds.tabLayout(tabLayoutName, tabsVisible=True, width=1)
+      tabs = cmds.tabLayout('assExportTab')
+      cmds.formLayout(form , edit=True, attachForm=((tabs, 'top', 0), (tabs, 'left', 0), (tabs, 'bottom', 0), (tabs, 'right', 0)) )
+      
+      # -preSelectCommand "fillSelectedTabForCurrentRenderer"
 
-        retval = 1;   
-    elif (action == 'query') :
-    
-        # make this more optionVar compliant
-        storeMaskValues()
-    
-        currentOptions += 'showPositions='
-        currentOptions += '1' if (cmds.radioButtonGrp('lepTypeGrp', query=True, select=True) == 1) else '0'
+      cmds.setParent(tabs)
 
-        print ('cmd: '+resultCallback+' "'+currentOptions+'"\n')    
+      commonForm = cmds.formLayout('assExportCommon')
+      createArnoldRendererCommonGlobalsTab()
+      
+      cmds.setParent(tabs)
+       
+      arnoldForm = cmds.formLayout('assExportArnold')
+      createArnoldRendererGlobalsTab()
+      
+      cmds.setParent(tabs)
+      cmds.tabLayout( tabs, edit=True, tabLabel=((commonForm, 'Common'), (arnoldForm, 'Arnold Renderer')) )
 
-        mel.eval(resultCallback+' "'+currentOptions+'"')
-        
-        retval = 1      
-    else :
-        retval = 0
+      retval = 1
+      
+   elif (action == 'query') :
+    
+      # make this more optionVar compliant
+      # storeMaskValues()
+
+      #currentOptions += 'showPositions='
+      #currentOptions += '1' if (cmds.radioButtonGrp('lepTypeGrp', query=True, select=True) == 1) else '0'
+
+      print ('cmd: '+resultCallback+' "'+currentOptions+'"\n')    
+
+      mel.eval(resultCallback+' "'+currentOptions+'"')
+
+      retval = 1 
+      
+   else :
+      retval = 0
     
      
-    return retval
+   return retval

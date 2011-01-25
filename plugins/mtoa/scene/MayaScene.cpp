@@ -14,6 +14,8 @@
 #include <maya/MFnMesh.h>
 #include <maya/MFnMeshData.h>
 #include <maya/MFnNurbsSurface.h>
+#include <maya/MFnSet.h>
+#include <maya/MFnRenderLayer.h>
 #include <maya/MMatrix.h>
 #include <maya/MPlug.h>
 #include <maya/MSelectionList.h>
@@ -106,7 +108,20 @@ MStatus CMayaScene::ExportToArnold(ExportMode exportMode)
    }
    else if ( exportMode == MTOA_EXPORT_SELECTED )
    {
-      status = ExportSelected();
+      if (!mb)
+      {
+         status = ExportSelected(0);
+      }
+      else
+      {
+         // Scene is motion blured, get the data for the steps.
+         for (int J = 0; (J < m_motionBlurData.motion_steps); ++J)
+         {
+            MGlobal::viewFrame(MTime(m_motionBlurData.frames[J], MTime::uiUnit()));
+            status = ExportSelected(J);
+         }
+         MGlobal::viewFrame(MTime(GetCurrentFrame(), MTime::uiUnit()));
+      }
    }
    else
    {
@@ -116,87 +131,53 @@ MStatus CMayaScene::ExportToArnold(ExportMode exportMode)
    return status;
 }
 
-// Loop and export the selection, and all its hirarchy down stream
-//
-// @return              MS::kSuccess / MS::kFailure is returned in case of failure.
-//
-MStatus CMayaScene::IterSelection(MSelectionList selected)
+void CMayaScene::PrepareExport()
 {
-   MStatus status;
-   MItSelectionList it(selected, MFn::kInvalid, &status);
+   MSelectionList list;
+   MObject        node;
 
-   // loop users selection
-   for (it.reset(); !it.isDone(); it.next())
+   list.add("defaultRenderGlobals");
+   if (list.length() > 0)
    {
-      MDagPath path;
-      it.getDagPath(path);
-
-      // iterate Hierarchy
-      if (IsVisible(path.node()) || !IsTemplated(path.node()))
-      {
-         for (AtUInt child = 0; (child < path.childCount()); child++)
-         {
-            MObject ChildObject = path.child(child);
-            path.push(ChildObject);
-
-            selected.clear();
-            selected.add(path.fullPathName());
-
-            MFnDagNode node(path.node());
-            if (!node.isIntermediateObject())
-            {
-               ExportDagPath(path, 0);
-            }
-            path.pop(1);
-            IterSelection(selected);
-         }
-      }
+      list.getDependNode(0, node);
+      m_fnCommonRenderOptions = new MFnDependencyNode(node);
    }
-   return status;
+
+   list.clear();
+
+   list.add("defaultArnoldRenderOptions");
+   if (list.length() > 0)
+   {
+      list.getDependNode(0, node);
+      m_fnArnoldRenderOptions = new MFnDependencyNode(node);
+   }
+
+   m_currentFrame = static_cast<float>(MAnimControl::currentTime().as(MTime::uiUnit()));
+
+   GetMotionBlurData();
 }
 
-// Get the selection from maya and export it with the IterSelection methode
-//
-// @return              MS::kSuccess / MS::kFailure is returned in case of failure.
-//
-MStatus CMayaScene::ExportSelected()
+void CMayaScene::GetMotionBlurData()
 {
-   MStatus status;
+   m_motionBlurData.enabled        = m_fnArnoldRenderOptions->findPlug("motion_blur_enable").asBool();
+   m_motionBlurData.shutter_size   = m_fnArnoldRenderOptions->findPlug("shutter_size").asFloat();
+   m_motionBlurData.shutter_offset = m_fnArnoldRenderOptions->findPlug("shutter_offset").asFloat();
+   m_motionBlurData.shutter_type   = m_fnArnoldRenderOptions->findPlug("shutter_type").asInt();
+   m_motionBlurData.motion_steps   = m_fnArnoldRenderOptions->findPlug("motion_steps").asInt();
+   m_motionBlurData.motion_frames  = m_fnArnoldRenderOptions->findPlug("motion_frames").asFloat();
 
-   MSelectionList selected;
-   MGlobal::getActiveSelectionList(selected);
-
-   IterSelection(selected);
-
-   selected.clear();
-
-   return status;
-}
-
-bool CMayaScene::ExportDagPath(MDagPath &dagPath, AtUInt step)
-{
-   MFnDagNode node(dagPath.node());
-   if (step == 0)
+   if (m_motionBlurData.enabled)
    {
-      std::map<int, CreatorFunction>::iterator translatorIt;
-      translatorIt = s_dagTranslators.find(node.typeId().id());
-      if (translatorIt != s_dagTranslators.end())
+      for (int J = 0; (J < m_motionBlurData.motion_steps); ++J)
       {
-         CDagTranslator* translator;
-         translator = (CDagTranslator*)translatorIt->second();
-         translator->Init(dagPath, this);
-         translator->DoExport(step);
-         m_processedTranslators[MObjectHandle(dagPath.node())] = translator;
-         return true;
+         float frame = GetCurrentFrame() -
+                       m_motionBlurData.motion_frames * 0.5f +
+                       m_motionBlurData.shutter_offset +
+                       m_motionBlurData.motion_frames / (m_motionBlurData.motion_steps - 1) * J;
+
+         m_motionBlurData.frames.push_back(frame);
       }
    }
-   else
-   {
-      CDagTranslator* translator = (CDagTranslator*)m_processedTranslators[MObjectHandle(dagPath.node())];
-      if (translator != NULL)
-         translator->DoExport(step);
-   }
-   return false;
 }
 
 // Export the maya scene
@@ -259,54 +240,140 @@ MStatus CMayaScene::ExportForIPR(AtUInt step )
    return ExportScene( step );
 }
 
-
-void CMayaScene::PrepareExport()
+// Get the selection from maya and export it with the IterSelection methode
+//
+// @return              MS::kSuccess / MS::kFailure is returned in case of failure.
+//
+MStatus CMayaScene::ExportSelected(AtUInt step)
 {
-   MSelectionList list;
-   MObject        node;
+   MStatus status;
 
-   list.add("defaultRenderGlobals");
-   if (list.length() > 0)
-   {
-      list.getDependNode(0, node);
-      m_fnCommonRenderOptions = new MFnDependencyNode(node);
-   }
+   MSelectionList selected;
+   MGlobal::getActiveSelectionList(selected);
 
-   list.clear();
+   status = IterSelection(selected, step);
 
-   list.add("defaultArnoldRenderOptions");
-   if (list.length() > 0)
-   {
-      list.getDependNode(0, node);
-      m_fnArnoldRenderOptions = new MFnDependencyNode(node);
-   }
+   selected.clear();
 
-   m_currentFrame = static_cast<float>(MAnimControl::currentTime().as(MTime::uiUnit()));
-
-   GetMotionBlurData();
+   return status;
 }
 
-void CMayaScene::GetMotionBlurData()
+// Loop and export the selection, and all its hirarchy down stream
+//
+// @return              MS::kSuccess / MS::kFailure is returned in case of failure.
+//
+MStatus CMayaScene::IterSelection(MSelectionList selected, AtUInt step)
 {
-   m_motionBlurData.enabled        = m_fnArnoldRenderOptions->findPlug("motion_blur_enable").asBool();
-   m_motionBlurData.shutter_size   = m_fnArnoldRenderOptions->findPlug("shutter_size").asFloat();
-   m_motionBlurData.shutter_offset = m_fnArnoldRenderOptions->findPlug("shutter_offset").asFloat();
-   m_motionBlurData.shutter_type   = m_fnArnoldRenderOptions->findPlug("shutter_type").asInt();
-   m_motionBlurData.motion_steps   = m_fnArnoldRenderOptions->findPlug("motion_steps").asInt();
-   m_motionBlurData.motion_frames  = m_fnArnoldRenderOptions->findPlug("motion_frames").asFloat();
+   MStatus status = MStatus::kSuccess;
+   MItSelectionList it(selected, MFn::kInvalid, &status);
 
-   if (m_motionBlurData.enabled)
+   MObject node;
+   MObjectArray nodeArray;
+   MDagPath path;
+   MFnDagNode dgNode;
+   MFnSet set;
+   MFnRenderLayer layer;
+   MSelectionList children;
+   // loop users selection
+   for (it.reset(); !it.isDone(); it.next())
    {
-      for (int J = 0; (J < m_motionBlurData.motion_steps); ++J)
+      if (it.getDagPath(path) == MStatus::kSuccess)
       {
-         float frame = GetCurrentFrame() -
-                       m_motionBlurData.motion_frames * 0.5f +
-                       m_motionBlurData.shutter_offset +
-                       m_motionBlurData.motion_frames / (m_motionBlurData.motion_steps - 1) * J;
-
-         m_motionBlurData.frames.push_back(frame);
+         // Got a dag node, iterate Hierarchy
+         if (IsVisible(path.node()) || !IsTemplated(path.node()))
+         {
+            for (AtUInt child = 0; (child < path.childCount()); child++)
+            {
+               MObject ChildObject = path.child(child);
+               path.push(ChildObject);
+               children.clear();
+               children.add(path.fullPathName());
+               dgNode.setObject(path.node());
+               if (!dgNode.isIntermediateObject())
+                  ExportDagPath(path, step);
+               path.pop(1);
+               status = (status && IterSelection(children, step)) ? MStatus::kSuccess : MStatus::kFailure;
+            }
+         }
+      }
+      else if (it.getDependNode(node) == MStatus::kSuccess)
+      {
+         // Got a dependency (not dag) node
+         // What kind of node is it
+         if (node.hasFn(MFn::kSet))
+         {
+            // if it's a set we actually iterate on its content
+            set.setObject(node);
+            children.clear();
+            // get set members, we don't set flatten to true in case we'd want a
+            // test on each set recursively
+            set.getMembers(children, false);
+            status = (status && IterSelection(children, step)) ? MStatus::kSuccess : MStatus::kFailure;
+         }
+         else if (node.hasFn(MFn::kRenderLayer))
+         {
+            // if it's a render layer we need to do this both for
+            // sub layers and objects in render layer
+            layer.setObject(node);
+            // Get sub layers
+            // not using recurse in case we want a test on render layers first
+            nodeArray.clear();
+            layer.layerChildren(nodeArray);
+            children.clear();
+            unsigned int nc = nodeArray.length();
+            for (unsigned int c=0; c<nc; c++)
+               children.add(nodeArray[c]);
+            status = (status && IterSelection(children, step)) ? MStatus::kSuccess : MStatus::kFailure;
+            // Get layer members (objects)
+            nodeArray.clear();
+            layer.listMembers(nodeArray);
+            // Why the heck doesn't it fill a MSelectionList like a set really?
+            children.clear();
+            unsigned int nm = nodeArray.length();
+            for (unsigned int m=0; m<nm; m++)
+               children.add(nodeArray[m]);
+            status = (status && IterSelection(children, step)) ? MStatus::kSuccess : MStatus::kFailure;
+         }
+         else
+         {
+            // TODO: if we got a shape selected export all dag paths (instances) to that shape?
+            // TODO: if it's a node we don't support / export should we set status to failure
+            // or just raise a warning?
+         }
+      }
+      else
+      {
+         status = MStatus::kFailure;
       }
    }
+
+   return status;
+}
+
+bool CMayaScene::ExportDagPath(MDagPath &dagPath, AtUInt step)
+{
+   MFnDagNode node(dagPath.node());
+   if (step == 0)
+   {
+      std::map<int, CreatorFunction>::iterator translatorIt;
+      translatorIt = s_dagTranslators.find(node.typeId().id());
+      if (translatorIt != s_dagTranslators.end())
+      {
+         CDagTranslator* translator;
+         translator = (CDagTranslator*)translatorIt->second();
+         translator->Init(dagPath, this);
+         translator->DoExport(step);
+         m_processedTranslators[MObjectHandle(dagPath.node())] = translator;
+         return true;
+      }
+   }
+   else
+   {
+      CDagTranslator* translator = (CDagTranslator*)m_processedTranslators[MObjectHandle(dagPath.node())];
+      if (translator != NULL)
+         translator->DoExport(step);
+   }
+   return false;
 }
 
 void CMayaScene::RegisterDagTranslator(int typeId, CreatorFunction creator)
