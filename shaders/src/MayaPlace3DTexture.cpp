@@ -140,12 +140,12 @@ node_update
 
 node_finish
 {
-   delete ((P3DTData*) node->local_data);
+   delete (dynamic_cast<P3DTData*> node->local_data);
 }
 
 shader_evaluate
 {
-   P3DTData *data = (P3DTData*) node->local_data;
+   P3DTData *data = dynamic_cast<P3DTData*> node->local_data;
 
    AtVector translate = AiShaderEvalParamPnt(p_translate);
    AtVector rotate = AiShaderEvalParamPnt(p_rotate);
