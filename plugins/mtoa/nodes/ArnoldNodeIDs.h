@@ -46,6 +46,6 @@
 #define MAYA_NODEID_NURBS_SURFACE               0x4e535246
 
 #define MAYA_NODEID_CAMERA                      0x4443414d
-#define MAYA_NODEID_HAIR                        0x5846524d
+#define MAYA_NODEID_HAIR                        0x48535953
 
 #endif // ARNOLDNODEIDS_H

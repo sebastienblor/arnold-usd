@@ -38,7 +38,6 @@ public:
    AtNode* Export();
    void Update(AtNode* camera);
    void ExportMotion(AtNode* camera, AtUInt step);
-   static void NodeInitializer(MObject& node) {}
    static void* creator()
    {
       return new CHairTranslator();
@@ -47,6 +46,8 @@ private:
    std::vector<CHairLine> m_hairLines;
    AtUInt m_numMainLines;
 
+   AtVector2 GetHairRootUVs(const MVectorArray& line, const MDagPathArray& shapes);
+   void GetHairShapeMeshes(const MObject& hair, MDagPathArray& shapes);
    AtUInt GetHairLines(MObject& hair, std::vector<CHairLine>& hairLines);
 };
 

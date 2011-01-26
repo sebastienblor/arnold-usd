@@ -128,7 +128,7 @@ namespace // <anonymous>
 
       arnoldPluginFactory->RegisterDagTranslator("camera", MAYA_NODEID_CAMERA, CCameraTranslator::creator, CCameraTranslator::NodeInitializer);
 
-      arnoldPluginFactory->RegisterDagTranslator("hairSystem", MAYA_NODEID_HAIR, CHairTranslator::creator, CHairTranslator::NodeInitializer);
+      arnoldPluginFactory->RegisterDagTranslator("hairSystem", MAYA_NODEID_HAIR, CHairTranslator::creator);
 
       arnoldPluginFactory->MapToMayaNode("ambient_occlusion", "ArnoldAmbientOcclusionShader", CArnoldAmbientOcclusionShaderNode::id.id());
       arnoldPluginFactory->MapToMayaNode("standard", "ArnoldStandardShader", CArnoldStandardShaderNode::id.id());

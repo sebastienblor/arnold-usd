@@ -29,83 +29,6 @@
 
 #include <vector>
 
-namespace
-{
-   AtVector2 GetHairRootUVs(const MVectorArray& line, const MDagPathArray& shapes)
-   {
-      AtVector2 rootUVs;
-      
-      // Find the closest point from the line[0] to the surface (shapes[index])
-      // We should check for the closest point for all connected shapes
-      // To support a hairsystem that was applied to more than one mesh
-
-      MPoint closestPoint;
-      double distance = 0;
-      float uv[2] = {0.0f, 0.0f};
-      MString currentUVSet;
-
-      for (unsigned int i = 0; i < shapes.length(); i++)
-      {
-         MObject shapeNode = shapes[i].node();
-         MFnMesh mesh(shapeNode);
-         const MMatrix matrix = shapes[i].inclusiveMatrix();
-         MMeshIntersector meshInt;
-         meshInt.create(shapeNode, matrix);
-         MPoint point(line[0].x, line[0].y, line[0].z);
-         MPointOnMesh closest;
-
-         currentUVSet = mesh.currentUVSetName();
-         meshInt.getClosestPoint(point, closest);
-         MPoint closePoint(closest.getPoint());
-         
-         if ((closePoint.distanceTo(point) < distance) || (i == 0))
-         {
-            distance = closePoint.distanceTo(point);
-            closestPoint = closePoint;
-            mesh.getUVAtPoint(closestPoint, uv, MSpace::kObject, &currentUVSet);
-         }
-      }
-      
-      rootUVs.x = uv[0];
-      rootUVs.y = uv[1];
-
-      return rootUVs;
-   }
-
-   void GetHairShapeMeshes(const MObject& hair, MDagPathArray& shapes)
-   {
-      MObjectArray follicles;
-      MIntArray indices;
-
-      // Loop through all follicles to find all connected shapes
-      MHairSystem::getFollicle(hair, follicles, indices);
-      for(AtUInt i = 0; i < follicles.length(); i++)
-      {
-         MFnDependencyNode depNodeFollicle(follicles[i]);
-         MPlugArray meshes;
-         depNodeFollicle.findPlug("inputMesh").connectedTo(meshes, true, false);
-         if (meshes.length() > 0)
-         {
-            MFnDagNode meshDagNode(meshes[0].node());
-            MDagPath dagPath;
-            meshDagNode.getPath(dagPath);
-            // Check if it is already there
-            bool append = true;
-            for(unsigned int j = 0; j<shapes.length(); j++)
-            {
-               if (shapes[j] == dagPath)
-               {
-                  append = false;
-                  break;
-               }
-            }
-            if (append)
-               shapes.append(dagPath);
-         }
-      }
-   }
-}
-
 AtNode *CHairTranslator::Export()
 {
    // Create the curve node
@@ -118,20 +41,9 @@ AtNode *CHairTranslator::Export()
 
 void CHairTranslator::Update(AtNode *curve)
 {
-   MObject child = m_dagPath.child(0);
-   if (!child.hasFn(MFn::kHairSystem))
-      return;
-
-   MDagPath dagPath;
-   MDagPath::getAPathTo(child, dagPath);
-   MObject objectHairShape(dagPath.node());
+   MObject objectHairShape(m_dagPath.node());
    MFnDagNode fnDagNodeHairShape(objectHairShape);
    MFnDependencyNode fnDepNodeHair(objectHairShape);
-
-   AtMatrix matrix;
-   GetMatrix(matrix);
-
-   AtUInt step = 0;
 
    bool motionBlur = m_scene->IsMotionBlurEnabled();
    bool motionBlurDeform = m_scene->IsObjectDeformMotionBlurEnabled();
@@ -181,7 +93,7 @@ void CHairTranslator::Update(AtNode *curve)
       {
          MPlugArray hairShaderPlug;
          fnDepNodeHair.findPlug("hair_shader").connectedTo(hairShaderPlug, true, false);
-         if (hairShaderPlug.length()>0)
+         if (hairShaderPlug.length() > 0)
          {
             shader = m_scene->ExportShader(hairShaderPlug[0].node());
             // Avoid later processing since there is a shader connected
@@ -198,23 +110,7 @@ void CHairTranslator::Update(AtNode *curve)
       minPixelWidth    = fnDagNodeHairShape.findPlug("min_pixel_width").asFloat();
       mode             = fnDagNodeHairShape.findPlug("mode").asInt();
 
-      if (!fnDagNodeHairShape.findPlug("primary_visibility").asBool())
-         visibility &= ~AI_RAY_CAMERA;
-
-      if (!fnDagNodeHairShape.findPlug("castsShadows").asBool())
-         visibility &= ~AI_RAY_SHADOW;
-
-      if (!fnDagNodeHairShape.findPlug("visibleInReflections").asBool())
-         visibility &= ~AI_RAY_REFLECTED;
-
-      if (!fnDagNodeHairShape.findPlug("visibleInRefractions").asBool())
-         visibility &= ~AI_RAY_REFRACTED;
-
-      if (!fnDagNodeHairShape.findPlug("diffuse_visibility").asBool())
-         visibility &= ~AI_RAY_DIFFUSE;
-
-      if (!fnDagNodeHairShape.findPlug("glossy_visibility").asBool())
-         visibility &= ~AI_RAY_GLOSSY;
+      visibility = ComputeVisibility(false);
    }
 
    // No custom shader assigned, try to transform maya hair's definition
@@ -271,8 +167,8 @@ void CHairTranslator::Update(AtNode *curve)
    }
    curveWidths = AiArrayAllocate(numPoints, 1, AI_TYPE_FLOAT);
 
-   // Set curve matrix
-   AiNodeSetMatrix(curve, "matrix", matrix);
+   // Set curve matrix for step 0
+   ExportMatrix(curve, 0);
 
    // Assign shader
    AiNodeSetPtr(curve, "shader", shader);
@@ -313,7 +209,6 @@ void CHairTranslator::Update(AtNode *curve)
    AiNodeSetArray(curve, "next_line_starts_interp", curveNextLineStartsInterp);
    AiNodeSetArray(curve, "next_line_starts", curveNextLineStarts);
 
-   int curveNumPointsPerStep = AiArrayGetInt(curveNextLineStartsInterp, (m_numMainLines-1));
    // Process all hair lines
    for(AtUInt i = 0; i < m_numMainLines; i++)
    {
@@ -337,11 +232,11 @@ void CHairTranslator::Update(AtNode *curve)
             if (j == 0)
             {
                AiV3Create(curvePoint, (AtFloat) line[j].x, (AtFloat) line[j].y, (AtFloat) line[j].z);
-               AiArraySetPnt(curvePoints, (j + interpStartsIdx + (step * curveNumPointsPerStep)), curvePoint);
+               AiArraySetPnt(curvePoints, (j + interpStartsIdx), curvePoint);
             }
 
             AiV3Create(curvePoint, (AtFloat) line[j].x, (AtFloat) line[j].y, (AtFloat) line[j].z);
-            AiArraySetPnt(curvePoints, ((j+1) + interpStartsIdx + (step * curveNumPointsPerStep)), curvePoint);
+            AiArraySetPnt(curvePoints, ((j+1) + interpStartsIdx), curvePoint);
 
             // Animated widths are not supported, so just on step 0
             AiArraySetFlt(curveWidths, (j+lineStartsIndex), float(widths[j]));
@@ -349,7 +244,7 @@ void CHairTranslator::Update(AtNode *curve)
             if (j == (renderLineLength-1))
             {
                AiV3Create(curvePoint, (AtFloat) line[j].x, (AtFloat) line[j].y, (AtFloat) line[j].z);
-               AiArraySetPnt(curvePoints, ((j+2) + interpStartsIdx + (step * curveNumPointsPerStep)), curvePoint);
+               AiArraySetPnt(curvePoints, ((j+2) + interpStartsIdx), curvePoint);
             }
          }
       }
@@ -358,10 +253,14 @@ void CHairTranslator::Update(AtNode *curve)
 
 void CHairTranslator::ExportMotion(AtNode *curve, AtUInt step)
 {
+   // Set curve matrix for current motion step
+   ExportMatrix(curve, step);
+
    AtArray* curvePoints = AiNodeGetArray(curve, "points");
    AtArray* curveNextLineStartsInterp = AiNodeGetArray(curve, "next_line_starts_interp");
 
    int curveNumPointsPerStep = AiArrayGetInt(curveNextLineStartsInterp, (m_numMainLines-1));
+
    // Process all hair lines
    for(AtUInt i = 0; i < m_numMainLines; i++)
    {
@@ -396,6 +295,80 @@ void CHairTranslator::ExportMotion(AtNode *curve, AtUInt step)
                AiArraySetPnt(curvePoints, ((j + 2) + interpStartsIdx + (step * curveNumPointsPerStep)), curvePoint);
             }
          }
+      }
+   }
+}
+
+AtVector2 CHairTranslator::GetHairRootUVs(const MVectorArray& line, const MDagPathArray& shapes)
+{
+   AtVector2 rootUVs;
+   
+   // Find the closest point from the line[0] to the surface (shapes[index])
+   // We should check for the closest point for all connected shapes
+   // To support a hairsystem that was applied to more than one mesh
+
+   MPoint closestPoint;
+   double distance = 0;
+   float uv[2] = {0.0f, 0.0f};
+   MString currentUVSet;
+
+   for (unsigned int i = 0; i < shapes.length(); i++)
+   {
+      MObject shapeNode = shapes[i].node();
+      MFnMesh mesh(shapeNode);
+      const MMatrix matrix = shapes[i].inclusiveMatrix();
+      MMeshIntersector meshInt;
+      meshInt.create(shapeNode, matrix);
+      MPoint point(line[0].x, line[0].y, line[0].z);
+      MPointOnMesh closest;
+
+      currentUVSet = mesh.currentUVSetName();
+      meshInt.getClosestPoint(point, closest);
+      MPoint closePoint(closest.getPoint());
+      
+      if ((closePoint.distanceTo(point) < distance) || (i == 0))
+      {
+         distance = closePoint.distanceTo(point);
+         closestPoint = closePoint;
+         mesh.getUVAtPoint(closestPoint, uv, MSpace::kObject, &currentUVSet);
+      }
+   }
+   
+   rootUVs.x = uv[0];
+   rootUVs.y = uv[1];
+
+   return rootUVs;
+}
+
+void CHairTranslator::GetHairShapeMeshes(const MObject& hair, MDagPathArray& shapes)
+{
+   MObjectArray follicles;
+   MIntArray indices;
+
+   // Loop through all follicles to find all connected shapes
+   MHairSystem::getFollicle(hair, follicles, indices);
+   for(AtUInt i = 0; i < follicles.length(); i++)
+   {
+      MFnDependencyNode depNodeFollicle(follicles[i]);
+      MPlugArray meshes;
+      depNodeFollicle.findPlug("inputMesh").connectedTo(meshes, true, false);
+      if (meshes.length() > 0)
+      {
+         MFnDagNode meshDagNode(meshes[0].node());
+         MDagPath dagPath;
+         meshDagNode.getPath(dagPath);
+         // Check if it is already there
+         bool append = true;
+         for(unsigned int j = 0; j<shapes.length(); j++)
+         {
+            if (shapes[j] == dagPath)
+            {
+               append = false;
+               break;
+            }
+         }
+         if (append)
+            shapes.append(dagPath);
       }
    }
 }
