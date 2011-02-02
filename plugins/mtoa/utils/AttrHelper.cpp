@@ -62,17 +62,6 @@ void CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
    data.shortName = GetMayaAttrShortName(paramName);
    data.type = AiParamGetType(paramEntry);
 
-   data.isArray = false;
-   data.hasMin = false;
-   data.min = false;
-   data.hasMax = false;
-   data.max = false;
-   data.hasSoftMin = false;
-   data.softMin = false;
-   data.hasSoftMax = false;
-   data.softMax = false;
-   data.keyable = true;
-
    MAiMetaDataGetBool(m_nodeEntry, paramName, "maya.keyable", &data.keyable);
 
    if (data.type == AI_TYPE_ARRAY)
@@ -185,22 +174,22 @@ void CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
          AtInt val;
          if (MAiMetaDataGetInt(m_nodeEntry, paramName, "min", &val))
          {
-            data.min = (AtFloat)val;
+            data.min.INT = val;
             data.hasMin = true;
          }
          if (MAiMetaDataGetInt(m_nodeEntry, paramName, "max", &val))
          {
-            data.max = (AtFloat)val;
+            data.max.INT = val;
             data.hasMax = true;
          }
          if (MAiMetaDataGetInt(m_nodeEntry, paramName, "softmin", &val))
          {
-            data.softMin = (AtFloat)val;
+            data.softMin.INT = val;
             data.hasSoftMin = true;
          }
          if (MAiMetaDataGetInt(m_nodeEntry, paramName, "softmax", &val))
          {
-            data.softMax = (AtFloat)val;
+            data.softMax.INT = val;
             data.hasSoftMax = true;
          }
          break;
@@ -210,22 +199,22 @@ void CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
          AtInt val;
          if (MAiMetaDataGetInt(m_nodeEntry, paramName, "min", &val))
          {
-            data.min = (AtFloat)(val < 0 ? 0 : val);
+            data.min.INT = (val < 0 ? 0 : val);
             data.hasMin = true;
          }
          if (MAiMetaDataGetInt(m_nodeEntry, paramName, "max", &val))
          {
-            data.max = (AtFloat)(val < 0 ? 0 : val);
+            data.max.INT = (val < 0 ? 0 : val);
             data.hasMax = true;
          }
          if (MAiMetaDataGetInt(m_nodeEntry, paramName, "softmin", &val))
          {
-            data.softMin = (AtFloat)(val < 0 ? 0 : val);
+            data.softMin.INT = (val < 0 ? 0 : val);
             data.hasSoftMin = true;
          }
          if (MAiMetaDataGetInt(m_nodeEntry, paramName, "softmax", &val))
          {
-            data.softMax = (AtFloat)(val < 0 ? 0 : val);
+            data.softMax.INT = (val < 0 ? 0 : val);
             data.hasSoftMax = true;
          }
          break;
@@ -235,22 +224,22 @@ void CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
          AtFloat val;
          if (MAiMetaDataGetFlt(m_nodeEntry, paramName, "min", &val))
          {
-            data.min = (AtFloat)val;
+            data.min.FLT = val;
             data.hasMin = true;
          }
          if (MAiMetaDataGetFlt(m_nodeEntry, paramName, "max", &val))
          {
-            data.max = (AtFloat)val;
+            data.max.FLT = val;
             data.hasMax = true;
          }
          if (MAiMetaDataGetFlt(m_nodeEntry, paramName, "softmin", &val))
          {
-            data.softMin = (AtFloat)val;
+            data.softMin.FLT = val;
             data.hasSoftMin = true;
          }
          if (MAiMetaDataGetFlt(m_nodeEntry, paramName, "softmax", &val))
          {
-            data.softMax = (AtFloat)val;
+            data.softMax.FLT = val;
             data.hasSoftMax = true;
          }
          break;
@@ -272,13 +261,13 @@ void CBaseAttrHelper::MakeInputInt(MObject& attrib, CAttrData& data)
    attrib = nAttr.create(data.name, data.shortName, MFnNumericData::kInt, data.defaultValue.INT, &status);
    CHECK_MSTATUS(status);
    if (data.hasMin)
-      nAttr.setMin((AtInt)data.min);
+      nAttr.setMin((AtInt)data.min.INT);
    if (data.hasMax)
-      nAttr.setMax((AtInt)data.max);
+      nAttr.setMax((AtInt)data.max.INT);
    if (data.hasSoftMin)
-      nAttr.setSoftMin((AtInt)data.softMin);
+      nAttr.setSoftMin((AtInt)data.softMin.INT);
    if (data.hasSoftMax)
-      nAttr.setSoftMax((AtInt)data.softMax);
+      nAttr.setSoftMax((AtInt)data.softMax.INT);
    nAttr.setArray(AtBooleanToBool(data.isArray));
    nAttr.setKeyable(AtBooleanToBool(data.keyable));
    nAttr.setStorable(true);
@@ -318,13 +307,13 @@ void CBaseAttrHelper::MakeInputFloat(MObject& attrib, CAttrData& data)
    MFnNumericAttribute nAttr;
    attrib = nAttr.create(data.name, data.shortName, MFnNumericData::kFloat, data.defaultValue.FLT);
    if (data.hasMin)
-      nAttr.setMin((AtFloat)data.min);
+      nAttr.setMin((AtFloat)data.min.FLT);
    if (data.hasMax)
-      nAttr.setMax((AtFloat)data.max);
+      nAttr.setMax((AtFloat)data.max.FLT);
    if (data.hasSoftMin)
-      nAttr.setSoftMin((AtFloat)data.softMin);
+      nAttr.setSoftMin((AtFloat)data.softMin.FLT);
    if (data.hasSoftMax)
-      nAttr.setSoftMax((AtFloat)data.softMax);
+      nAttr.setSoftMax((AtFloat)data.softMax.FLT);
    nAttr.setArray(AtBooleanToBool(data.isArray));
    nAttr.setKeyable(AtBooleanToBool(data.keyable));
    nAttr.setStorable(true);
@@ -871,6 +860,7 @@ void CBaseAttrHelper::SetNode(const char* arnoldNodeName)
    m_nodeEntry = AiNodeEntryLookUp(arnoldNodeName);
 };
 
+
 MStatus CStaticAttrHelper::addAttribute(MObject& attrib)
 {
    MStatus stat;
@@ -886,4 +876,5 @@ MStatus CDynamicAttrHelper::addAttribute(MObject& attrib)
    CHECK_MSTATUS(stat);
    return stat;
 }
+
 

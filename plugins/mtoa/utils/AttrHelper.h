@@ -33,14 +33,22 @@ struct CAttrData
    AtBoolean isArray;
    AtInt type;
    AtBoolean hasMin;
-   AtFloat min;
+   AtParamValue min;
    AtBoolean hasMax;
-   AtFloat max;
+   AtParamValue max;
    AtBoolean hasSoftMin;
-   AtFloat softMin;
+   AtParamValue softMin;
    AtBoolean hasSoftMax;
-   AtFloat softMax;
+   AtParamValue softMax;
    AtBoolean keyable;
+   CAttrData() :  name(""),
+                  shortName(""),
+                  isArray(false),
+                  hasMin(false),
+                  hasMax(false),
+                  hasSoftMin(false),
+                  hasSoftMax(false),
+                  keyable(true)   {}
 };
 
 
