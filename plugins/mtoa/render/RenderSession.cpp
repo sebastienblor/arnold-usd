@@ -144,6 +144,25 @@ void CRenderSession::Translate(ExportOptions options)
    m_scene->ExportToArnold();
 }
 
+AtBBox CRenderSession::GetBoundingBox()
+{
+   AtBBox bbox;
+   if (AiUniverseIsActive())
+   {
+      // FIXME: we need to start a render to have it actually initialize the bounding box
+      // (in free mode, does nothing but setting the scene up for future ray requests)
+      AtNode* options = AiUniverseGetOptions();
+      AiNodeSetBool(options, "preserve_scene_data", true);
+      AiRender(AI_RENDER_MODE_FREE);
+      bbox = AiUniverseGetSceneBounds();
+   }
+   else
+   {
+      AiMsgError("[mtoa] ERROR: RenderSession is not active.");
+   }
+
+   return bbox;
+}
 
 void CRenderSession::Finish()
 {
@@ -519,6 +538,8 @@ void CRenderSession::DoExport(MString customFileName)
          SetupRenderOutput();
          m_renderOptions.SetupRenderOptions();
       }   
+      // FIXME : problem this is actually double filtering files
+      // (Once at export to AiUniverse and once at file write from it)
       AiASSWrite(fileName.asChar(), m_renderOptions.outputAssMask(), false);
    }
 }

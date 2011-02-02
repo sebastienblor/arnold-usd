@@ -107,6 +107,14 @@ MStatus CArnoldAssTranslator::writer(
 	cmdStr += " -f \""+file.resolvedFullName()+"\"";
 	if (mode == MPxFileTranslator::kExportActiveAccessMode)
 		cmdStr += " -s";
+	// What a great idea to assemble options in a ; separated string
+   MStringArray optionList;
+   options.split(';', optionList);
+   unsigned int i, nopts = optionList.length();
+   for (i=0; i<nopts; ++i)
+   {
+      cmdStr += " " + optionList[i];
+   }
 
    // Rest of the options on arnoldExportAss are
    // syntax.addFlag("cam", "camera", MSyntax::kString);

@@ -93,7 +93,7 @@ def arnoldAssOpts(parent = '', action = '', initialSettings = '', resultCallback
         storeMaskValues()
         currentOptions = '-bb'
 
-        mel.eval(resultCallback+' "'+currentOptions+'"')
+        mel.eval(resultCallback+'("'+currentOptions+'")')
         retval = 1
 
     else:

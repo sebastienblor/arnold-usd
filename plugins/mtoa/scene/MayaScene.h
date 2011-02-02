@@ -64,8 +64,10 @@ enum DagFiltered
 struct ExportOptions
 {
    ExportMode mode;
+   bool computeBoundingBox;
    ExportFilter filter;
    ExportOptions() : mode(MTOA_EXPORT_UNDEFINED),
+                     computeBoundingBox(false),
                      filter(ExportFilter())  {}
 };
 
@@ -132,8 +134,9 @@ public:
    
    CNodeTranslator * GetActiveTranslator( const MObject node );
    
-   // FIXME kept for compatibility with translators
-   static bool IsVisibleDag(MDagPath dagPath);
+   // Called by translators to get the master instance
+   static bool IsExportedPath(MDagPath dagPath);
+   static bool IsRenderablePath(MDagPath dagPath);
    static void UpdateIPR(CNodeTranslator * translator=NULL);
 
    bool IsMotionBlurEnabled() const
@@ -190,6 +193,7 @@ private:
    void ExportInstancerReplacement(const MDagPath& dagPath, AtUInt step);
 
    static DagFiltered FilteredStatus(ExportFilter filter, MDagPath dagPath);
+   bool IsExportedPath(ExportFilter filter, MDagPath path);
    static bool IsInRenderLayer(MDagPath dagPath);
    static bool IsVisiblePath(MDagPath dagPath);
    static bool IsTemplatedPath(MDagPath dagPath);
@@ -200,6 +204,7 @@ private:
    void ConvertMatrix(AtMatrix& matrix, const MMatrix& mayamatrix);
 
    void GetMotionBlurData();
+   MBoundingBox GetBoundingBox();
 
    void ClearIPRCallbacks();
    static void IPRNewNodeCallback(MObject & node, void *);

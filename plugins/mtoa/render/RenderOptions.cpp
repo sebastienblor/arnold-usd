@@ -230,6 +230,8 @@ void CRenderOptions::ProcessArnoldRenderOptions()
       m_texture_max_memory_MB = fnArnoldRenderOptions.findPlug("texture_max_memory_MB").asFloat();
 
       m_outputAssFile       = fnArnoldRenderOptions.findPlug("output_ass_filename").asString();
+      // FIXME: should we expose that on the defaultArnoldRenderOptions node?
+      // m_outputAssBoundingBox;
       m_outputAssCompressed = fnArnoldRenderOptions.findPlug("output_ass_compressed").asBool();
       m_outputAssMask       = fnArnoldRenderOptions.findPlug("output_ass_mask").asInt();
 

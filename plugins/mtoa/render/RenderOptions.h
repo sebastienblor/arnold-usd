@@ -409,6 +409,8 @@ private:
 
    MString m_outputAssFile;
    bool    m_outputAssCompressed;
+   // FIXME: how can that carry to AiUnivers options, is CRenderOptions even translated ?
+   bool    m_outputAssBoundingBox;
    AtUInt  m_outputAssMask;
 
    MString m_log_filename;

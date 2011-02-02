@@ -189,6 +189,7 @@ void CMayaScene::PrepareExport()
 
    m_currentFrame = static_cast<float>(MAnimControl::currentTime().as(MTime::uiUnit()));
 
+
    GetMotionBlurData();
 }
 
@@ -470,6 +471,7 @@ MStatus CMayaScene::ExportDagPath(MDagPath &dagPath, AtUInt step)
    else
    {
       // this will eventually go away when we do our motion export by looping through processed translators
+      // TODO: I think we can remove it now
       CDagTranslator* translator = (CDagTranslator*)m_processedDagTranslators[handle][instanceNum];
       if (translator != NULL)
       {

@@ -34,6 +34,23 @@ DagFiltered CMayaScene::FilteredStatus(ExportFilter filter, MDagPath path)
    return MTOA_EXPORT_ACCEPTED;
 }
 
+// Check if a DagPath is exported, given the current settings.
+//
+// @param dagPath   DagPath evaluated.
+// @return        True if the object is not templated and visible.
+bool CMayaScene::IsExportedPath(ExportFilter filter, MDagPath path)
+{
+   if (MTOA_EXPORT_ACCEPTED != FilteredStatus(filter, path))
+      return false;
+
+   while (MStatus::kSuccess == path.pop())
+   {
+      if (MTOA_EXPORT_REJECTED_BRANCH == FilteredStatus(filter, path))
+         return false;
+   }
+   return true;
+}
+
 // Check if a DagPath is in the current render layer.
 //
 // @param node   DagPath evaluated.
@@ -141,9 +158,7 @@ bool CMayaScene::IsTemplatedPath(MDagPath dagPath)
 //
 // @param dagPath   DagPath evaluated.
 // @return        True if the object is not templated and visible.
-// FIXME : kept for compatibility with translators, shouldn't we use
-// a layer render test here too?
-bool CMayaScene::IsVisibleDag(MDagPath dagPath)
+bool CMayaScene::IsRenderablePath(MDagPath dagPath)
 {
 
    MStatus stat = MStatus::kSuccess;

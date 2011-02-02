@@ -43,6 +43,8 @@ public:
 
    /// Translate the Maya scene to Arnold.
    void Translate(ExportOptions options = ExportOptions());
+   /// Get the translated scene bounding box.
+   AtBBox GetBoundingBox();
 
    // Render Methods.
    /// Render into the Render View, not IPR.

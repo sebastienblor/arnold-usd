@@ -4,6 +4,8 @@
 #include <maya/MPxCommand.h>
 #include <maya/MSyntax.h>
 
+#include <ai_bbox.h>
+
 class CArnoldExportAssCmd
    :   public MPxCommand
 {
@@ -17,6 +19,7 @@ public:
 
    static MSyntax newSyntax();
    static MString GetCameraName();
+   MStatus WriteAsstoc(const MString& filename, const AtBBox& bBox);
    MStatus doIt(const MArgList& argList);
 
 }; // class CArnoldExportAssCmd

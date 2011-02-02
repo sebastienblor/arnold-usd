@@ -854,7 +854,7 @@ bool CDagTranslator::IsMasterInstance(MDagPath &masterDag)
          for (; (master_index < m_dagPath.instanceNumber()); master_index++)
          {
             currDag = allInstances[master_index];
-            if (CMayaScene::IsVisibleDag(currDag))
+            if (CMayaScene::IsRenderablePath(currDag))
             {
                // found it
                s_masterInstances[handle] = currDag;
@@ -931,6 +931,10 @@ void CDagTranslator::ExportMatrix(AtNode* node, AtUInt step)
 // use standardized render flag names to compute an arnold visibility mask
 AtInt CDagTranslator::ComputeVisibility(bool mayaStyleAttrs)
 {
+   // Usually invisible nodes are not exported at all, just making sure here
+   if (false == CMayaScene::IsRenderablePath(m_dagPath))
+      return AI_RAY_UNDEFINED;
+
    AtInt visibility = AI_RAY_ALL;
    MPlug plug;
    if (mayaStyleAttrs)

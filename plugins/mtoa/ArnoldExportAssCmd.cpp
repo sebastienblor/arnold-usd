@@ -18,6 +18,7 @@ MSyntax CArnoldExportAssCmd::newSyntax()
 {
    MSyntax syntax;
    syntax.addFlag("s", "selected");
+   syntax.addFlag("bb", "boundingBox");
    syntax.addFlag("f", "filename", MSyntax::kString);
    syntax.addFlag("cam", "camera", MSyntax::kString);
    syntax.addFlag("sf", "startFrame", MSyntax::kLong);
@@ -72,6 +73,36 @@ MString CArnoldExportAssCmd::GetCameraName()
    return cameraName;
 }
 
+// FIXME: will probably get removed when we have proper bounding box format support
+MStatus CArnoldExportAssCmd::WriteAsstoc(const MString& filename, const AtBBox& bBox)
+{
+   MString bboxcomment = "bounds ";
+   bboxcomment += bBox.min.x;
+   bboxcomment += " ";
+   bboxcomment += bBox.min.y;
+   bboxcomment += " ";
+   bboxcomment += bBox.min.z;
+   bboxcomment += " ";
+   bboxcomment += bBox.max.x;
+   bboxcomment += " ";
+   bboxcomment += bBox.max.y;
+   bboxcomment += " ";
+   bboxcomment += bBox.max.z;
+
+   FILE * bboxfile;
+   bboxfile = fopen( filename.asChar(), "w" );
+   if (bboxfile != NULL) {
+      fwrite(bboxcomment.asChar() , 1 , bboxcomment.length(), bboxfile );
+      fclose(bboxfile);
+
+      return MStatus::kSuccess;
+   }
+   else
+   {
+      return MStatus::kFailure;
+   }
+}
+
 MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
 {
    MStatus status;
@@ -82,11 +113,11 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    MString customFileName = "";
    MString cameraName = "";
    MString optionsName = "";
+   bool exportSelected = false;
+   bool writeBox = false;
    int startframe = 1; // TODO: use current frame if not set
    int endframe = 0;
    int framestep = 1;
-   ExportOptions exportOptions;
-   exportOptions.mode = MTOA_EXPORT_FILE;
 
    // Custom filename
    if (argDB.isFlagSet("filename"))
@@ -101,7 +132,15 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    // Only selected
    if (argDB.isFlagSet("selected"))
    {
-      exportOptions.filter.unselected = true;
+      exportSelected = true;
+   }
+   if (argDB.isFlagSet("selected"))
+   {
+      exportSelected = true;
+   }
+   if (argDB.isFlagSet("boundingBox"))
+   {
+      writeBox  = true;
    }
    // Custom render options
    if (argDB.isFlagSet("options"))
@@ -130,11 +169,17 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    {
       cameraName = GetCameraName();
    }
+   // Set the necessary options for scene export
+   ExportOptions exportOptions;
+   exportOptions.mode = MTOA_EXPORT_FILE;
+   exportOptions.computeBoundingBox = writeBox;
+   exportOptions.filter.unselected = exportSelected;
    // FIXME use the passed renderGlobals or options intead?
    MCommonRenderSettingsData renderGlobals;
    MRenderUtil::getCommonRenderSettings(renderGlobals);
 
    CRenderSession* renderSession = CRenderSession::GetInstance();
+   AtBBox boundingBox;
    // Just incase we're rendering with IPR.
    MGlobal::executeCommand("stopIprRendering renderView;");
    renderSession->Finish();
@@ -147,11 +192,12 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    // We don't need renderview_display so we need to set Batch mode on.
    renderSession->SetBatch(true);
 
+   MString tocfilename;
    // Export range of frames or single frame
    if (startframe <= endframe)
    {
       // customFileName is a prefix, need to add frame and extension
-      // -> might want to check if extension or frame is already set
+      // TODO: might want to check if extension or frame is already set
       MString curfilename;
       char frameext[64];
 
@@ -163,11 +209,17 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
          sprintf(frameext, ".%04d.ass", curframe);
          curfilename = customFileName;
          curfilename += frameext;
+         tocfilename = curfilename;
+         tocfilename += ".asstoc";
 
          renderSession->Translate(exportOptions);
          if (cameraName != "")
             renderSession->SetCamera(cameraName);
-
+         if (writeBox)
+         {
+            boundingBox = renderSession->GetBoundingBox();
+            WriteAsstoc(tocfilename, renderSession->GetBoundingBox());
+         }
          renderSession->DoExport(curfilename);
          renderSession->Finish();
          renderSession->ExecuteScript(renderGlobals.postRenderMel);
@@ -177,10 +229,17 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    {
       renderSession->ExecuteScript(renderGlobals.preRenderMel);
 
+      tocfilename = customFileName + ".asstoc";
+
       renderSession->Translate(exportOptions);
       if (cameraName != "")
          renderSession->SetCamera(cameraName);
 
+      if (writeBox)
+      {
+         boundingBox = renderSession->GetBoundingBox();
+         WriteAsstoc(tocfilename, renderSession->GetBoundingBox());
+      }
       renderSession->DoExport(customFileName);
       renderSession->Finish();
       renderSession->ExecuteScript(renderGlobals.postRenderMel);
