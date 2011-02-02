@@ -510,20 +510,37 @@ void CNodeTranslator::ExportDynamicIntParameter(AtNode* arnoldNode, const char* 
 
 AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* mayaAttrib, const AtParamEntry* paramEntry, int element)
 {
-
-   MPlug plug = m_fnNode.findPlug(mayaAttrib);
+   MStatus status;
+   MPlug plug = m_fnNode.findPlug(mayaAttrib, &status);
+   if (status != MS::kSuccess)
+   {
+      AiMsgWarning("[mtoa] maya node %s does not have requested attribute %s", m_fnNode.name().asChar(), mayaAttrib);
+      return NULL;
+   }
    return ProcessParameter(arnoldNode, plug, AiParamGetName(paramEntry), AiParamGetType(paramEntry), element);
 }
 
 AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* attrib, int arnoldAttribType, int element)
 {
-   MPlug plug = m_fnNode.findPlug(attrib);
+   MStatus status;
+   MPlug plug = m_fnNode.findPlug(attrib, &status);
+   if (status != MS::kSuccess)
+   {
+      AiMsgWarning("[mtoa] maya node %s does not have requested attribute %s", m_fnNode.name().asChar(), attrib);
+      return NULL;
+   }
    return ProcessParameter(arnoldNode, plug, attrib, arnoldAttribType, element);
 }
 
 AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* mayaAttrib, const char* arnoldAttrib, int arnoldAttribType, int element)
 {
-   MPlug plug = m_fnNode.findPlug(mayaAttrib);
+   MStatus status;
+   MPlug plug = m_fnNode.findPlug(mayaAttrib, &status);
+   if (status != MS::kSuccess)
+   {
+      AiMsgWarning("[mtoa] maya node %s does not have requested attribute %s", m_fnNode.name().asChar(), mayaAttrib);
+      return NULL;
+   }
    return ProcessParameter(arnoldNode, plug, arnoldAttrib, arnoldAttribType, element);
 }
 
