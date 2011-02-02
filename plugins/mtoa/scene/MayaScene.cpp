@@ -188,6 +188,72 @@ void CMayaScene::GetMotionBlurData()
    }
 }
 
+// Export a shader (dependency node)
+//
+AtNode* CMayaScene::ExportShader(MPlug& shaderOutputPlug)
+{
+   return ExportShader(shaderOutputPlug.node(), shaderOutputPlug.partialName(false, false, false, false, false, true));
+}
+
+AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
+{
+   // First check if this shader has already been processed
+   for (std::vector<CShaderData>::const_iterator it = m_processedShaders.begin(); (it != m_processedShaders.end()); ++it)
+   {
+      if (it->mayaShader == mayaShader && it->attrName == attrName)
+      {
+         return it->arnoldShader;
+      }
+   }
+
+   AtNode* shader = NULL;
+
+   MFnDependencyNode node(mayaShader);
+
+   if (attrName != "")
+      AiMsgDebug("[mtoa] Exporting shader: %s.%s", node.name().asChar(), attrName.asChar());
+   else
+      AiMsgDebug("[mtoa] Exporting shader: %s", node.name().asChar());
+
+   AtInt nodeId = node.typeId().id();
+   std::map<int, CreatorFunction>::iterator dependTransIt = s_dependTranslators.find(nodeId);
+   if (dependTransIt != s_dependTranslators.end())
+   {
+      if (mayaShader.hasFn(MFn::kDagNode))
+      {
+         CDagTranslator* translator;
+         MDagPath dagPath;
+         MDagPath::getAPathTo(mayaShader, dagPath);
+         translator = (CDagTranslator*)dependTransIt->second();
+         translator->Init(dagPath, this, attrName);
+         // FIXME: currently shaders are only exported for step = 0
+         shader = translator->DoExport(0);
+         m_processedTranslators[MObjectHandle(mayaShader)] = translator;
+      }
+      else
+      {
+         CNodeTranslator* translator;
+         translator = (CNodeTranslator*)dependTransIt->second();
+         translator->Init(mayaShader, this, attrName);
+         // FIXME: currently shaders are only exported for step = 0
+         shader = translator->DoExport(0);
+         m_processedTranslators[MObjectHandle(mayaShader)] = translator;
+      }
+   }
+   else
+      AiMsgWarning("[mtoa] Shader type not supported: %s", node.typeName().asChar());
+
+   if (shader)
+   {
+      CShaderData   data;
+      data.mayaShader   = mayaShader;
+      data.arnoldShader = shader;
+      data.attrName     = attrName;
+      m_processedShaders.push_back(data);
+   }
+   return shader;
+}
+
 // Export the maya scene
 //
 // @return              MS::kSuccess / MS::kFailure is returned in case of failure.

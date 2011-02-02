@@ -148,8 +148,6 @@ private:
 
    void ExportInstancerReplacement(const MDagPath& dagPath, AtUInt step);
 
-   AtNode* ExportArnoldShader(MObject mayaShader, MString arnoldShader);
-
    static bool IsVisible(MFnDagNode node);
    static bool IsTemplated(MFnDagNode node);
    bool IsMasterInstance(const MDagPath &dagPath, MDagPath &masterDag);
