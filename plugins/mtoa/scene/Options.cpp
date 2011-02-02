@@ -44,6 +44,7 @@ void CRenderOptionsTranslator::Update(AtNode* options)
    ProcessParameter(options, "bucket_scanning", AI_TYPE_ENUM);
    ProcessParameter(options, "bucket_size", AI_TYPE_INT);
    ProcessParameter(options, "abort_on_error", AI_TYPE_BOOLEAN);
+   ProcessParameter(options, "abort_on_license_fail", AI_TYPE_BOOLEAN);
 
    ProcessParameter(options, "AA_samples", AI_TYPE_INT);
    ProcessParameter(options, "GI_diffuse_samples", AI_TYPE_INT);
