@@ -127,8 +127,6 @@ node_parameters
    AiParameterVEC("rotatePivotTranslate", 0.0f, 0.0f, 0.0f);
    AiParameterBOOL("inheritsTransform", true);
    AiParameterMTX("parentMatrix", id);
-
-   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }
 
 node_initialize
