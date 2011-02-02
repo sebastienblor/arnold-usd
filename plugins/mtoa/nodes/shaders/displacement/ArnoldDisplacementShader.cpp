@@ -54,7 +54,7 @@ MStatus CArnoldDisplacementShaderNode::initialize()
    MFnNumericAttribute  nAttr;
 
    s_height = nAttr.create("disp_height", "hgt", MFnNumericData::kFloat, 1);
-   nAttr.setMin(0);
+   nAttr.setMin(-100);
    nAttr.setMax(100);
    MAKE_INPUT(nAttr, s_height);
 
