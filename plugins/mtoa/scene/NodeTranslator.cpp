@@ -536,6 +536,11 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, MPlug& plug, const
 // connections in the dependency graph.
 AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, MPlug& plug, const char* arnoldAttrib, int arnoldAttribType, int element)
 {
+   if (arnoldNode == NULL)
+   {
+      AiMsgError("[mtoa] cannot process %s parameter on null node", arnoldAttrib);
+      return NULL;
+   }
    AtNode* linkedNode = NULL;
 
    if (element >= 0)
