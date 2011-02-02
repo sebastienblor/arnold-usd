@@ -1,8 +1,29 @@
 
 #include "MayaScene.h"
 
+#include <maya/MFnRenderLayer.h>
 #include <maya/MPlug.h>
 
+
+
+// Check if a DagPath is in the current render layer.
+//
+// @param node   DagPath evaluated.
+// @return       True if the object is in the layer.
+//
+bool CMayaScene::IsInRenderLayer(MDagPath dagPath)
+{
+   MObject renderLayerObj = MFnRenderLayer::currentLayer();
+
+   MFnRenderLayer curLayer(renderLayerObj);
+
+   bool isInRenderLayer = curLayer.inCurrentRenderLayer(dagPath);
+
+   if (isInRenderLayer)
+      return true;
+   else
+      return false;
+}
 
 // Check if a DagNode is templated, by attribute or layer.
 //

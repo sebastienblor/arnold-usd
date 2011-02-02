@@ -285,7 +285,7 @@ MStatus CMayaScene::ExportScene(AtUInt step)
 
       MFnDagNode node(dagPath.node());
 
-      if (!IsVisible(node) || IsTemplated(node))
+      if (!IsVisible(node) || IsTemplated(node) || !IsInRenderLayer(dagPath))
       {
          dagIterator.prune();
          continue;
@@ -342,23 +342,27 @@ MStatus CMayaScene::IterSelection(MSelectionList selected, AtUInt step)
    {
       if (it.getDagPath(path) == MStatus::kSuccess)
       {
-         // Got a dag node, iterate Hierarchy
-         if (IsVisible(path.node()) || !IsTemplated(path.node()))
+         if (IsInRenderLayer(path))
          {
-            for (AtUInt child = 0; (child < path.childCount()); child++)
+         // Got a dag node, iterate Hierarchy
+            if (IsVisible(path.node()) || !IsTemplated(path.node()))
             {
-               MObject ChildObject = path.child(child);
-               path.push(ChildObject);
-               children.clear();
-               children.add(path.fullPathName());
-               dgNode.setObject(path.node());
-               if (!dgNode.isIntermediateObject())
-                  ExportDagPath(path, step);
-               path.pop(1);
-               status = (status && IterSelection(children, step)) ? MStatus::kSuccess : MStatus::kFailure;
+               for (AtUInt child = 0; (child < path.childCount()); child++)
+               {
+                  MObject ChildObject = path.child(child);
+                  path.push(ChildObject);
+                  children.clear();
+                  children.add(path.fullPathName());
+                  dgNode.setObject(path.node());
+                  if (!dgNode.isIntermediateObject())
+                     ExportDagPath(path, step);
+                  path.pop(1);
+                  status = (status && IterSelection(children, step)) ? MStatus::kSuccess : MStatus::kFailure;
+               }
             }
          }
       }
+
       else if (it.getDependNode(node) == MStatus::kSuccess)
       {
          // Got a dependency (not dag) node

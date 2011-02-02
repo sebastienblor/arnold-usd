@@ -143,6 +143,7 @@ private:
 
    void ExportInstancerReplacement(const MDagPath& dagPath, AtUInt step);
 
+   static bool IsInRenderLayer(MDagPath dagPath);
    static bool IsVisible(MFnDagNode node);
    static bool IsTemplated(MFnDagNode node);
    bool IsMasterInstance(const MDagPath &dagPath, MDagPath &masterDag);

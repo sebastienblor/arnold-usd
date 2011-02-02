@@ -27,8 +27,8 @@
         "h" the help description.
 -->
 <renderer desc="Arnold renderer">
-	<melheader s='string $opt=""; loadPlugin -quiet mtoa;'/>
-	<meltrailer s='mayaBatchRenderProcedure(0, "", "", "arnold", $opt); '/>
+	<melheader s='string $opt=""; string $rl=""; string $rp=""; float $resize=-1.; loadPlugin -quiet mtoa;'/>
+	<meltrailer s='setMayaSoftwareLayers($rl, $rp); setImageSizePercent($resize);mayaBatchRenderProcedure(0, "", "", "arnold", $opt); '/>
 	<sep/>
 	<!-- ______________________________________________________________ -->
 	<sep desc="General purpose flags:"/>
@@ -41,6 +41,13 @@
 	<mel n="e" p="1" t="float" s="removeRenderLayerAdjustmentAndUnlock defaultRenderGlobals.animation; setAttr defaultRenderGlobals.animation 1; removeRenderLayerAdjustmentAndUnlock defaultRenderGlobals.endFrame; setAttr defaultRenderGlobals.endFrame %1" h="End frame for an animation sequence"/>
 	<attr n="b" s="defaultRenderGlobals.byFrameStep" t="float" h="By frame (or step) for an animation sequence"/>
 	<attr n="pad" s="defaultRenderGlobals.extensionPadding" t="int" h="Number of digits in the output image frame file name\n\t\t    extension"/>
+	<sep/>
+	<!-- ______________________________________________________________ -->
+	<sep desc="Render Layers and Passes"/>
+	<mel n="rl" s='$rl="%1"' p="1" t="boolean|name(s)" h="Render each render layer separately"/>
+	<mel n="rp" s='$rp="%1"' p="1" t="boolean|name(s)" h="Render passes separately. 'all' will render all passes"/>
+	<mel n="sel" p="1" s="select -add %1; removeRenderLayerAdjustmentAndUnlock defaultRenderGlobals.renderAll; setAttr defaultRenderGlobals.renderAll 0" t="boolean|name(s)" h="Selects which objects, groups and/or sets to render"/>
+	<mel n="l" p="1" s="selectLayerMembers %1; removeRenderLayerAdjustmentAndUnlock defaultRenderGlobals.renderAll; setAttr defaultRenderGlobals.renderAll 0" t="boolean|name(s)" h="Selects which display and render layers to render"/>
 	<sep/>
 	<!-- ______________________________________________________________ -->
 	<sep desc="Camera options"/>
