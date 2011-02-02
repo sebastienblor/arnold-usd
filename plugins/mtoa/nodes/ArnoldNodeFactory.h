@@ -122,4 +122,21 @@ inline CArnoldNodeFactory::~CArnoldNodeFactory()
 {
 }
 
+// AutoTranslator
+//
+class DLLEXPORT CAutoTranslator : public CNodeTranslator
+{
+public:
+   CAutoTranslator() :
+      CNodeTranslator()
+   {}
+   static void* creator()
+   {
+      return new CAutoTranslator();
+   }
+   AtNode* Export();
+   void Update(AtNode* atNode);
+private:
+   const AtNodeEntry* m_nodeEntry;
+};
 #endif  // ARNOLDNODEFACTORY_H

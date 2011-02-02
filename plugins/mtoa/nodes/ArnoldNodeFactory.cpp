@@ -4,6 +4,7 @@
 #include "ArnoldNodeFactory.h"
 #include "nodes/shaders/surface/ArnoldCustomShader.h"
 #include "nodes/Metadata.h"
+#include "render/RenderSession.h"
 
 #include <ai_plugins.h>
 #include <ai_universe.h>
@@ -11,6 +12,7 @@
 #include <ai_msg.h>
 
 #include <maya/MSceneMessage.h>
+#include <maya/MPlugArray.h>
 
 #ifdef _WIN32
    #include <platform/win32/dirent.h>
@@ -551,5 +553,81 @@ void CArnoldNodeFactory::NodeCreatedCallback(MObject &node, void *clientData)
       AiBegin();
       nodeInitializer(node);
       AiEnd();
+   }
+}
+
+// AutoTranslator
+//
+AtNode* CAutoTranslator::Export()
+{
+   MString mayaShader = m_fnNode.typeName();
+   std::string arnoldNode = CArnoldNodeFactory::s_factoryNodes[mayaShader.asChar()].arnoldNodeName;
+   AtNode* shader = NULL;
+   m_nodeEntry = AiNodeEntryLookUp(arnoldNode.c_str());
+
+   // Make sure that the given type of node exists
+   if (m_nodeEntry != NULL)
+   {
+      shader = AiNode(arnoldNode.c_str());
+
+      AiNodeSetStr(shader, "name", m_fnNode.name().asChar());
+      Update(shader);
+   }
+   return shader;
+}
+
+void CAutoTranslator::Update(AtNode *shader)
+{
+   MPlug plug;
+   AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(m_nodeEntry);
+   while (!AiParamIteratorFinished(nodeParam))
+   {
+      const AtParamEntry *paramEntry = AiParamIteratorGetNext(nodeParam);
+      const char* paramName = AiParamGetName(paramEntry);
+
+      if (!strncmp(paramName, "aov_", 4))
+      {
+         CRenderSession *renderSession = CRenderSession::GetInstance();
+         const CRenderOptions *renderOptions = renderSession->RenderOptions();
+
+         // do not check type for now
+         std::string aovName(paramName);
+         aovName = aovName.substr(4);
+         if (renderOptions->FindAOV(aovName.c_str()) != size_t(-1))
+         {
+            AiNodeSetStr(shader, paramName, aovName.c_str());
+         }
+         else
+         {
+            AiNodeSetStr(shader, paramName, "");
+         }
+      }
+      else if (strcmp(paramName, "name"))
+      {
+         AtInt paramType = AiParamGetType(paramEntry);
+
+         // attr name name remap
+         const char* attrName;
+         if (!AiMetaDataGetStr(m_nodeEntry, paramName, "maya.name", &attrName))
+            attrName = paramName;
+
+         plug = m_fnNode.findPlug(attrName);
+         ProcessParameter(shader, plug, paramName, paramType);
+      }
+   }
+
+   MPlugArray connections;
+
+   plug = m_fnNode.findPlug("normalCamera");
+
+   plug.connectedTo(connections, true, false);
+   if (connections.length() > 0)
+   {
+      MString attrName = connections[0].partialName(false, false, false, false, false, true);
+
+      AtNode* bump = m_scene->ExportShader(connections[0].node(), attrName);
+
+      if (bump != NULL)
+         AiNodeLink(bump, "@before", shader);
    }
 }
