@@ -119,15 +119,16 @@ void CRenderSession::LoadPlugins()
    }
 }
 
-void CRenderSession::Init()
+void CRenderSession::Init(ExportOptions options)
 {
    m_is_active = true;
    m_scene = new CMayaScene;
+   m_scene->SetExportOptions(options);
    m_renderOptions.GetFromMaya(m_scene);
    m_renderOptions.SetupLog();
 }
 
-void CRenderSession::Translate(ExportMode exportMode)
+void CRenderSession::Translate(ExportOptions options)
 {
    if (AiUniverseIsActive())
    {
@@ -137,10 +138,10 @@ void CRenderSession::Translate(ExportMode exportMode)
 
    // Begin the Arnold universe.
    AiBegin();
-   Init();
+   Init(options);
    LoadPlugins();
    
-   m_scene->ExportToArnold(exportMode);
+   m_scene->ExportToArnold();
 }
 
 
@@ -184,6 +185,13 @@ void CRenderSession::SetBatch(bool batch)
 {
    m_renderOptions.SetBatch(batch);
 }
+
+/*
+void CRenderSession::SetSceneExportOptions(const ExportOptions options)
+{
+   m_scene->SetExportOptions(options);
+}
+*/
 
 void CRenderSession::SetResolution(const int width, const int height)
 {

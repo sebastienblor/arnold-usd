@@ -46,6 +46,9 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
    {
       return MS::kFailure;
    }
+   // TODO: get the "selected" flag here
+   ExportOptions exportOptions;
+   exportOptions.mode = MTOA_EXPORT_ALL;
 
    // Note: Maya seems to internally calls the preRender preLayerRender scripts
    //       as well as the postRender and postLayerRender ones
@@ -79,7 +82,8 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
          if (renderOptions->isAnimated()) MGlobal::viewFrame((double)framerender);
          renderSession->ExecuteScript(renderGlobals.preRenderMel);
 
-         renderSession->Translate();
+         // FIXME: do we really need to reset options each time?
+         renderSession->Translate(exportOptions);
 
          MStringArray cameras;
          MItDag  dagIterCameras(MItDag::kDepthFirst, MFn::kCamera);
@@ -127,7 +131,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       renderSession->ExecuteScript(renderGlobals.preRenderMel);
 
       renderSession->Finish();                        // In case we're already rendering (e.g. IPR).
-      renderSession->Translate();                     // Translate the scene from Maya.
+      renderSession->Translate(exportOptions);        // Translate the scene from Maya.
       renderSession->SetCamera(camera);
       renderSession->SetResolution(width, height);
       renderSession->DoInteractiveRender();           // Start the render.

@@ -37,13 +37,12 @@ public:
    /// \param addIdleRenderViewUpdate Optionally install a callback for IPR.
    MStatus PrepareRenderView(bool addIdleRenderViewUpdate=false);
 
-   void Init();
+   void Init(ExportOptions options = ExportOptions());
    /// Load the external shaders/procedrals into Arnold.
    void LoadPlugins();
 
    /// Translate the Maya scene to Arnold.
-   /// \param exportMode the export mode for the translate.
-   void Translate(ExportMode exportMode=MTOA_EXPORT_ALL);
+   void Translate(ExportOptions options = ExportOptions());
 
    // Render Methods.
    /// Render into the Render View, not IPR.
@@ -89,6 +88,10 @@ public:
 
    /// Set whether we're in batch mode.
    void SetBatch(bool batch);
+   /*
+   /// Set the options to use when exporting/translating the CMayaScene
+   void SetSceneExportOptions(const ExportOptions);
+   */
    /// Set the resolution of the render.
    /// \param width width in pixels.
    /// \param height height in pixels.

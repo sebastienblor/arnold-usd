@@ -1,4 +1,3 @@
-
 #include "ArnoldExportAssCmd.h"
 #include "render/RenderSession.h"
 #include "scene/MayaScene.h"
@@ -86,6 +85,9 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    int startframe = 1; // TODO: use current frame if not set
    int endframe = 0;
    int framestep = 1;
+   ExportOptions exportOptions;
+   exportOptions.mode = MTOA_EXPORT_FILE;
+
    // Custom filename
    if (argDB.isFlagSet("filename"))
    {
@@ -96,10 +98,16 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    {
       argDB.getFlagArgument("camera", 0, cameraName);
    }
+   // Only selected
+   if (argDB.isFlagSet("selected"))
+   {
+      exportOptions.filter.unselected = true;
+   }
    // Custom render options
    if (argDB.isFlagSet("options"))
    {
       argDB.getFlagArgument("options", 0, optionsName);
+      // TODO: Set the arnoldRenderOptions node to use
    }
    if (argDB.isFlagSet("startFrame"))
    {
@@ -116,10 +124,13 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    // Get Maya scene information
    // If camera name is not set, default to active view camera in interactive mode
    // or the first found renderable camera in batch mode
+   // FIXME if you're exporting in selected mode to reuse in a standing
+   // you probably don't want a camera anyway, remove this search and warnings in that case?
    if (cameraName == "")
    {
       cameraName = GetCameraName();
    }
+   // FIXME use the passed renderGlobals or options intead?
    MCommonRenderSettingsData renderGlobals;
    MRenderUtil::getCommonRenderSettings(renderGlobals);
 
@@ -153,10 +164,7 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
          curfilename = customFileName;
          curfilename += frameext;
 
-         if (argDB.isFlagSet("selected"))
-            renderSession->Translate(MTOA_EXPORT_SELECTED);
-         else
-            renderSession->Translate();
+         renderSession->Translate(exportOptions);
          if (cameraName != "")
             renderSession->SetCamera(cameraName);
 
@@ -169,10 +177,7 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    {
       renderSession->ExecuteScript(renderGlobals.preRenderMel);
 
-      if (argDB.isFlagSet("selected"))
-         renderSession->Translate(MTOA_EXPORT_SELECTED);
-      else
-         renderSession->Translate();
+      renderSession->Translate(exportOptions);
       if (cameraName != "")
          renderSession->SetCamera(cameraName);
 

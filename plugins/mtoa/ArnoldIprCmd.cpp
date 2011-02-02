@@ -52,6 +52,9 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
    int width  = args.isFlagSet("width") ? args.flagArgumentInt("width", 0) : -1;
    int height = args.isFlagSet("height") ? args.flagArgumentInt("height", 0) : -1;
    MString camera = args.flagArgumentString("camera", 0);
+   // TODO: get the "selected" flag here
+   ExportOptions exportOptions;
+   exportOptions.mode = MTOA_EXPORT_IPR;
 
    // What mode are we in?
    if (mode == "start")
@@ -65,7 +68,7 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
       renderSession->ExecuteScript(renderGlobals.preRenderMel);
 
       // This will export the scene.
-      renderSession->Translate(MTOA_EXPORT_IPR);
+      renderSession->Translate(exportOptions);
 
       // Set resolution and camera as passed in.
       renderSession->SetResolution(width, height);
@@ -91,12 +94,17 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
       // We save and restore the res instead of using the translated one because
       // the translated value is from the render globals. We may have been
       // passed in a different value to start with.
-      AtInt width = renderSession->RenderOptions()->width();
-      AtInt height = renderSession->RenderOptions()->height();
+      const AtInt width = renderSession->RenderOptions()->width();
+      const AtInt height = renderSession->RenderOptions()->height();
+      // Same deal for the camera.
+      const MString camera = renderSession->RenderOptions()->GetCameraName();
+      // Set the export mode to IPR
+      // FIXME: do we really need to reset options and do a full translation each time?
       // Re-translate.
-      renderSession->Translate(MTOA_EXPORT_IPR);
-      // Restore the resolution.
+      renderSession->Translate(exportOptions);
+      // Restore the resolution and camera.
       renderSession->SetResolution( width, height);
+      renderSession->SetCamera(camera);
       // Start off the render.
       renderSession->DoIPRRender();
    }

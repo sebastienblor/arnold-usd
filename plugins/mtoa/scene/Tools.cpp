@@ -4,25 +4,49 @@
 #include <maya/MFnRenderLayer.h>
 #include <maya/MPlug.h>
 
+// Test a dag path against the ExportFilter
+// set for this CMayaScene
+// Note that the ExportFilter filter.selected flag is treated
+// separatly as it would not be efficient to iterate whole DAG
+// and check a selected status for each node
 
+DagFiltered CMayaScene::FilteredStatus(ExportFilter filter, MDagPath path)
+{
+   // Tests that cause the whole branch to be pruned
+   if (filter.templated == true && IsTemplatedPath(path))
+      return MTOA_EXPORT_REJECTED_BRANCH;
+   if (filter.hidden == true && !IsVisiblePath(path))
+      return MTOA_EXPORT_REJECTED_BRANCH;
+
+   // Tests that cause the node to be ignored
+   if (filter.notinlayer == true && !IsInRenderLayer(path))
+      return MTOA_EXPORT_REJECTED_NODE;
+
+   // Then test against all types passed in the MFN::Types array
+   MObject obj = path.node();
+   MFnDagNode node(obj);
+   MString name = node.name();
+   ExcludeSet::const_iterator sit(filter.excluded.begin()), send(filter.excluded.end());
+   for(; sit!=send;++sit)
+      if (obj.hasFn(*sit))
+         return MTOA_EXPORT_REJECTED_NODE;
+
+   return MTOA_EXPORT_ACCEPTED;
+}
 
 // Check if a DagPath is in the current render layer.
 //
 // @param node   DagPath evaluated.
 // @return       True if the object is in the layer.
 //
+// TODO: use the renderLayer specified in the CMayaScene instead
 bool CMayaScene::IsInRenderLayer(MDagPath dagPath)
 {
    MObject renderLayerObj = MFnRenderLayer::currentLayer();
 
    MFnRenderLayer curLayer(renderLayerObj);
 
-   bool isInRenderLayer = curLayer.inCurrentRenderLayer(dagPath);
-
-   if (isInRenderLayer)
-      return true;
-   else
-      return false;
+   return curLayer.inCurrentRenderLayer(dagPath);
 }
 
 // Check if a DagNode is templated, by attribute or layer.
@@ -76,11 +100,49 @@ bool CMayaScene::IsVisible(MFnDagNode node)
       return false;
 }
 
-// Check if a DagPath is visible and not templated, by attribute or layer.
+// Check if a DagPath is visible.
 //
 // @param dagPath   DagPath evaluated.
 // @return    		True if the object is not templated and visible.
 //
+bool CMayaScene::IsVisiblePath(MDagPath dagPath)
+{
+
+   MStatus stat = MStatus::kSuccess;
+   while (stat == MStatus::kSuccess)
+   {
+      MFnDagNode node(dagPath.node());
+      if (!IsVisible(node))
+         return false;
+      stat = dagPath.pop();
+   }
+   return true;
+}
+
+// Check if a DagPath is templated
+// @param dagPath   DagPath evaluated.
+// @return        True if the object is not templated and visible.
+//
+bool CMayaScene::IsTemplatedPath(MDagPath dagPath)
+{
+
+   MStatus stat = MStatus::kSuccess;
+   while (stat == MStatus::kSuccess)
+   {
+      MFnDagNode node(dagPath.node());
+      if (IsTemplated(node))
+         return true;
+      stat = dagPath.pop();
+   }
+   return false;
+}
+
+// Check if a DagPath is visible and not templated, by attribute or layer.
+//
+// @param dagPath   DagPath evaluated.
+// @return        True if the object is not templated and visible.
+// FIXME : kept for compatibility with translators, shouldn't we use
+// a layer render test here too?
 bool CMayaScene::IsVisibleDag(MDagPath dagPath)
 {
 

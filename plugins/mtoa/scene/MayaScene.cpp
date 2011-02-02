@@ -64,79 +64,108 @@ CMayaScene::~CMayaScene()
    m_processedDagTranslators.clear();
 }
 
-MStatus CMayaScene::ExportToArnold(ExportMode exportMode)
+MStatus CMayaScene::ExportToArnold()
 {
+   MStatus status;
+
    // This export mode is used here, but also in the NodeTranslators.
    // For example, if it's IPR mode, they install callbacks to trigger
    // a refresh of the data sent to Arnold.
-   m_exportMode = exportMode;
+   // ExportMode exportMode   = GetExportMode();
+   // ExportFilter exportFilter = GetExportFilter();
+   // It wouldn't be efficient to test the whole scene against selection state
+   // so selected gets a special treatment
+   ExportMode exportMode = m_exportOptions.mode;
+   bool filterSelected = m_exportOptions.filter.unselected;
    
-   MStatus status;
-
+   // TODO: that's probably where we want to pass custom renderOptions
    PrepareExport();
-   
+
    // Are we motion blurred?
    const bool mb = m_motionBlurData.enabled &&
                    ( m_fnArnoldRenderOptions->findPlug("mb_camera_enable").asBool()    ||
                      m_fnArnoldRenderOptions->findPlug("mb_objects_enable").asBool()   ||
                      m_fnArnoldRenderOptions->findPlug("mb_lights_enable").asBool()    );
 
+   // In case of motion blur we need to position ourselves to first step
+   // TODO : what if specific frame was requested and it's != GetCurrentFrame()
+   if (mb)
+   {
+      // first step is the real export
+      AiMsgDebug("[mtoa] exporting step 0 at frame %f", m_motionBlurData.frames[0]);
+      MGlobal::viewFrame(MTime(m_motionBlurData.frames[0], MTime::uiUnit()));
+   }
+   // First "real" export
    if (exportMode == MTOA_EXPORT_ALL || exportMode == MTOA_EXPORT_IPR)
    {
-      if (mb)
+      // Cameras are always exported currently
+      status = ExportCameras(0);
+      // Then we filter them out to avoid double exporting them
+      m_exportOptions.filter.excluded.insert(MFn::kCamera);
+      if (filterSelected)
       {
-         // first step is the real export
-         AiMsgDebug("[mtoa] exporting step 0 at frame %f", m_motionBlurData.frames[0]);
-         MGlobal::viewFrame(MTime(m_motionBlurData.frames[0], MTime::uiUnit()));
-         status = ExportScene(0);
-         // next, loop through motion steps
-         for (int step = 1; step < m_motionBlurData.motion_steps; ++step)
-         {
-            MGlobal::viewFrame(MTime(m_motionBlurData.frames[step], MTime::uiUnit()));
-            AiMsgDebug("[mtoa] exporting step %d at frame %f", step, m_motionBlurData.frames[step]);
-            // then, loop through the already processed dag translators and export for current step
-            ObjectToDagTranslatorMap::iterator dagIt;
-            for(dagIt = m_processedDagTranslators.begin(); dagIt != m_processedDagTranslators.end(); ++dagIt)
-            {
-               // finally, loop through instances
-               std::map<int, CNodeTranslator*>::iterator instIt;
-               for(instIt = dagIt->second.begin(); instIt != dagIt->second.end(); ++instIt)
-               {
-                  instIt->second->DoExport(step);
-               }
-            }
-         }
-         MGlobal::viewFrame(MTime(GetCurrentFrame(), MTime::uiUnit()));
-      }
-      else
-         status = ExportScene(0);
-
-   }
-   else if ( exportMode == MTOA_EXPORT_SELECTED )
-   {
-      if (!mb)
-      {
+         // And for render selected we need the lights too
+         status = ExportLights(0);
+         m_exportOptions.filter.excluded.insert(MFn::kLight);
          status = ExportSelected(0);
       }
       else
       {
-         // Scene is motion blured, get the data for the steps.
-         for (int J = 0; (J < m_motionBlurData.motion_steps); ++J)
-         {
-            MGlobal::viewFrame(MTime(m_motionBlurData.frames[J], MTime::uiUnit()));
-            status = ExportSelected(J);
-         }
-         MGlobal::viewFrame(MTime(GetCurrentFrame(), MTime::uiUnit()));
+         status = ExportScene(0);
+      }
+   }
+   else if (exportMode == MTOA_EXPORT_FILE)
+   {
+      if (filterSelected)
+      {
+         // If we export selected to a file, not as a full render,
+         // we just export as it is
+         status = ExportSelected(0);
+      }
+      else
+      {
+         // Else if it's a full / renderable scene
+         status = ExportCameras(0);
+         // Then we filter them out to avoid double exporting them
+         m_exportOptions.filter.excluded.insert(MFn::kCamera);
+         status = ExportScene(0);
       }
    }
    else
    {
       AiMsgDebug( "[mtoa] unsupported export mode: %d", exportMode );
+      return MStatus::kFailure;
+   }
+
+   // Then in case of motion blur do the other steps
+   if (mb)
+   {
+      // loop through motion steps
+      // FIXME: should we export cameras / lights and other objects motion data
+      // separatly depending on what motion blur is on?
+      for (int step = 1; step < m_motionBlurData.motion_steps; ++step)
+      {
+         MGlobal::viewFrame(MTime(m_motionBlurData.frames[step], MTime::uiUnit()));
+         AiMsgDebug("[mtoa] exporting step %d at frame %f", step, m_motionBlurData.frames[step]);
+         // then, loop through the already processed dag translators and export for current step
+         ObjectToDagTranslatorMap::iterator dagIt;
+         for(dagIt = m_processedDagTranslators.begin(); dagIt != m_processedDagTranslators.end(); ++dagIt)
+         {
+            // finally, loop through instances
+            std::map<int, CNodeTranslator*>::iterator instIt;
+            for(instIt = dagIt->second.begin(); instIt != dagIt->second.end(); ++instIt)
+            {
+               instIt->second->DoExport(step);
+            }
+         }
+      }
+      MGlobal::viewFrame(MTime(GetCurrentFrame(), MTime::uiUnit()));
    }
 
    return status;
 }
 
+// TODO : allow this to take an argument passed custom ArnoldRenderOptions (and renderGlobals or?)
 void CMayaScene::PrepareExport()
 {
    MSelectionList list;
@@ -186,8 +215,275 @@ void CMayaScene::GetMotionBlurData()
    }
 }
 
+// Export the cameras of the maya scene
+//
+// @return              MS::kSuccess / MS::kFailure is returned in case of failure.
+//
+MStatus CMayaScene::ExportCameras(AtUInt step)
+{
+   MStatus status = MStatus::kSuccess;
+   MDagPath path;
+   MItDag   dagIterCameras(MItDag::kDepthFirst, MFn::kCamera);
+
+   // First we export all cameras
+   // We do not reset the iterator to avoid getting kWorld
+   ExportFilter filter = GetExportFilter();
+   for (; (!dagIterCameras.isDone()); dagIterCameras.next())
+   {
+      if (dagIterCameras.getPath(path))
+      {
+         // Only check for cameras being visible, not templated and in render layer
+         // FIXME: does a camera need to be visible to render actually in Maya?
+         /*
+         MFnDagNode node(path.node());
+         MString name = node.name();
+         if (filter.notinlayer == true && !IsInRenderLayer(path))
+            continue;
+         if (filter.templated == true && IsTemplatedPath(path))
+            continue;
+         if (filter.hidden == true && !IsVisiblePath(path))
+            continue;
+         */
+         if (MStatus::kSuccess != ExportDagPath(path, step))
+            status = MStatus::kFailure;
+      }
+      else
+      {
+         AiMsgError("[mtoa] ERROR: Could not get path for Maya cameras DAG iterator.");
+         status = MS::kFailure;
+      }
+   }
+
+   return status;
+}
+
+// Export the lights of the maya scene
+//
+// @return              MS::kSuccess / MS::kFailure is returned in case of failure.
+//
+MStatus CMayaScene::ExportLights(AtUInt step)
+{
+   MStatus status = MStatus::kSuccess;
+   MDagPath path;
+   MItDag   dagIterLights(MItDag::kDepthFirst, MFn::kLight);
+
+   // First we export all cameras
+   // We do not reset the iterator to avoid getting kWorld
+   ExportFilter filter = GetExportFilter();
+   for (; (!dagIterLights.isDone()); dagIterLights.next())
+   {
+      if (dagIterLights.getPath(path))
+      {
+         // Only check for cameras being visible, not templated and in render layer
+         // FIXME: does a light need to be in layer to render actually in Maya?
+         MFnDagNode node(path.node());
+         MString name = node.name();
+         if (filter.notinlayer == true && !IsInRenderLayer(path))
+            continue;
+         if (filter.templated == true && IsTemplatedPath(path))
+            continue;
+         if (filter.hidden == true && !IsVisiblePath(path))
+            continue;
+         if (MStatus::kSuccess != ExportDagPath(path, step))
+            status = MStatus::kFailure;
+      }
+      else
+      {
+         AiMsgError("[mtoa] ERROR: Could not get path for Maya lights DAG iterator.");
+         status = MS::kFailure;
+      }
+   }
+
+   return status;
+}
+
+// Export the maya scene
+//
+// @return              MS::kSuccess / MS::kFailure is returned in case of failure.
+//
+MStatus CMayaScene::ExportScene(AtUInt step)
+{
+   MStatus status = MStatus::kSuccess;
+   MDagPath path;
+
+   DagFiltered filtered;
+   MItDag   dagIterator(MItDag::kDepthFirst, MFn::kInvalid);
+   for (dagIterator.reset(); (!dagIterator.isDone()); dagIterator.next())
+   {
+      if (dagIterator.getPath(path))
+      {
+         if (path.apiType() == MFn::kWorld)
+            continue;
+         MObject obj = path.node();
+         MFnDagNode node(obj);
+         MString name = node.name();
+         filtered = FilteredStatus(GetExportFilter(), path);
+         if (filtered != MTOA_EXPORT_ACCEPTED)
+         {
+            // Ignore node for MTOA_EXPORT_REJECTED_NODE or whole branch
+            // for MTOA_EXPORT_REJECTED_BRANCH
+            if (filtered == MTOA_EXPORT_REJECTED_BRANCH)
+               dagIterator.prune();
+            continue;
+         }
+         if (MStatus::kSuccess != ExportDagPath(path, step))
+            status = MStatus::kFailure;
+      }
+      else
+      {
+         AiMsgError("[mtoa] ERROR: Could not get path for Maya DAG iterator.");
+         status = MS::kFailure;
+      }
+   }
+   
+   // Add callbacks if we're in IPR mode.
+   if ( GetExportMode() == MTOA_EXPORT_IPR && s_NewNodeCallbackId == 0x0 )
+   {
+      s_NewNodeCallbackId = MDGMessage::addNodeAddedCallback( CMayaScene::IPRNewNodeCallback );
+   }
+   
+   return status;
+}
+
+// Get the selection from maya and export it with the IterSelection methode
+//
+// @return              MS::kSuccess / MS::kFailure is returned in case of failure.
+//
+MStatus CMayaScene::ExportSelected(AtUInt step)
+{
+   MStatus status = MStatus::kSuccess;
+
+   MSelectionList selected;
+   MGlobal::getActiveSelectionList(selected);
+
+   // Get a expanded, flattened, filtered list of every dag
+   // paths we need to export
+   status = IterSelection(selected);
+   MItSelectionList it(selected, MFn::kInvalid, &status);
+   MDagPath path;
+   for (it.reset(); !it.isDone(); it.next())
+   {
+      if (it.getDagPath(path) == MStatus::kSuccess)
+      {
+         if (MStatus::kSuccess != ExportDagPath(path, step))
+            status = MStatus::kFailure;
+      }
+      else
+      {
+         status = MStatus::kFailure;
+      }
+   }
+   selected.clear();
+
+   return status;
+}
+
+// Loop and export the selection, and all its hirarchy down stream
+//
+// @return              MS::kSuccess / MS::kFailure is returned in case of failure.
+//
+MStatus CMayaScene::IterSelection(MSelectionList& selected)
+{
+   MStatus status;
+
+   MObject node;
+   MDagPath path;
+   MFnDagNode dgNode;
+   MFnSet set;
+   MSelectionList children;
+   // loop users selection
+   MItSelectionList it(selected, MFn::kInvalid, &status);
+   selected.clear();
+   for (it.reset(); !it.isDone(); it.next())
+   {
+      if (it.getDagPath(path) == MStatus::kSuccess)
+      {
+         // FIXME: if we selected a shape, and it's an instance,
+         // should we export all its dag paths?
+         if (FilteredStatus(GetExportFilter(), path) == MTOA_EXPORT_ACCEPTED)
+         {
+            for (AtUInt child = 0; (child < path.childCount()); child++)
+            {
+               MObject ChildObject = path.child(child);
+               path.push(ChildObject);
+               children.clear();
+               children.add(path.fullPathName());
+               dgNode.setObject(path.node());
+               if (!dgNode.isIntermediateObject())
+                  selected.add (path, MObject::kNullObj, true);
+               path.pop(1);
+               if (MStatus::kSuccess != IterSelection(children))
+                  status = MStatus::kFailure;
+               selected.merge(children);
+            }
+         }
+      }
+      else if (MStatus::kSuccess == it.getDependNode(node))
+      {
+         // Got a dependency (not dag) node
+         if (node.hasFn(MFn::kSet))
+         {
+            // if it's a set we actually iterate on its content
+            set.setObject(node);
+            children.clear();
+            // get set members, we don't set flatten to true in case we'd want a
+            // test on each set recursively
+            set.getMembers(children, false);
+            if (MStatus::kSuccess != IterSelection(children))
+               status = MStatus::kFailure;
+            selected.merge(children);
+         }
+         else
+         {
+            // TODO: if it's a node we don't support / export should we set status to failure
+            // or just raise a warning?
+         }
+      }
+      else
+      {
+         status = MStatus::kFailure;
+      }
+   }
+
+   return status;
+}
+
+// Export a single dag path (a dag node or an instance of a dag node)
+// Considered to be already filtered and checked
+MStatus CMayaScene::ExportDagPath(MDagPath &dagPath, AtUInt step)
+{
+   MFnDagNode node(dagPath.node());
+   MObjectHandle handle = MObjectHandle(dagPath.node());
+   int instanceNum = dagPath.instanceNumber();
+   if (step == 0)
+   {
+      CDagTranslator* translator = CTranslatorRegistry::GetDagTranslator(node.typeId().id());
+      if (translator != NULL)
+      {
+         translator->Init(dagPath, this);
+         translator->DoExport(step);
+         // save it for later
+         m_processedDagTranslators[handle][instanceNum] = translator;
+         return MStatus::kSuccess;
+      }
+   }
+   else
+   {
+      // this will eventually go away when we do our motion export by looping through processed translators
+      CDagTranslator* translator = (CDagTranslator*)m_processedDagTranslators[handle][instanceNum];
+      if (translator != NULL)
+      {
+         translator->DoExport(step);
+         return MStatus::kSuccess;
+      }
+   }
+
+   return MStatus::kFailure;
+}
+
 // Export a shader (dependency node)
 //
+// TODO: export motion blur for shaders
 AtNode* CMayaScene::ExportShader(MPlug& shaderOutputPlug)
 {
    return ExportShader(shaderOutputPlug.node(), shaderOutputPlug.partialName(false, false, false, false, false, true));
@@ -246,205 +542,6 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
       m_processedShaders.push_back(data);
    }
    return shader;
-}
-
-// Export the maya scene
-//
-// @return              MS::kSuccess / MS::kFailure is returned in case of failure.
-//
-MStatus CMayaScene::ExportScene(AtUInt step)
-{
-   MStatus  status;
-   MDagPath dagPath;
-   MItDag   dagIterCameras(MItDag::kDepthFirst, MFn::kCamera);
-
-   // First we export all cameras
-   // We do not reset the iterator to avoid getting kWorld
-   for (; (!dagIterCameras.isDone()); dagIterCameras.next())
-   {
-      if (!dagIterCameras.getPath(dagPath))
-      {
-         AiMsgError("[mtoa] ERROR: Could not get path for DAG iterator.");
-         return status;
-      }
-      ExportDagPath(dagPath, step);
-   }
-
-   // And now we export the rest of the DAG
-   MItDag   dagIterator(MItDag::kDepthFirst, MFn::kInvalid);
-   for (dagIterator.reset(); (!dagIterator.isDone()); dagIterator.next())
-   {
-      if (!dagIterator.getPath(dagPath))
-      {
-         AiMsgError("[mtoa] ERROR: Could not get path for DAG iterator.");
-         return status;
-      }
-
-      if (dagPath.apiType() == MFn::kWorld || dagPath.node().hasFn(MFn::kCamera))
-         continue;
-
-      MFnDagNode node(dagPath.node());
-
-      if (!IsVisible(node) || IsTemplated(node) || !IsInRenderLayer(dagPath))
-      {
-         dagIterator.prune();
-         continue;
-      }
-
-      ExportDagPath(dagPath, step);
-   }
-   
-   // Add callbacks if we're in IPR mode.
-   if ( GetExportMode() == MTOA_EXPORT_IPR && s_NewNodeCallbackId == 0 )
-   {
-      s_NewNodeCallbackId = MDGMessage::addNodeAddedCallback( CMayaScene::IPRNewNodeCallback );
-   }
-   
-   return MS::kSuccess;
-}
-
-// Get the selection from maya and export it with the IterSelection methode
-//
-// @return              MS::kSuccess / MS::kFailure is returned in case of failure.
-//
-MStatus CMayaScene::ExportSelected(AtUInt step)
-{
-   MStatus status;
-
-   MSelectionList selected;
-   MGlobal::getActiveSelectionList(selected);
-
-   status = IterSelection(selected, step);
-
-   selected.clear();
-
-   return status;
-}
-
-// Loop and export the selection, and all its hirarchy down stream
-//
-// @return              MS::kSuccess / MS::kFailure is returned in case of failure.
-//
-MStatus CMayaScene::IterSelection(MSelectionList selected, AtUInt step)
-{
-   MStatus status = MStatus::kSuccess;
-   MItSelectionList it(selected, MFn::kInvalid, &status);
-
-   MObject node;
-   MObjectArray nodeArray;
-   MDagPath path;
-   MFnDagNode dgNode;
-   MFnSet set;
-   MFnRenderLayer layer;
-   MSelectionList children;
-   // loop users selection
-   for (it.reset(); !it.isDone(); it.next())
-   {
-      if (it.getDagPath(path) == MStatus::kSuccess)
-      {
-         if (IsInRenderLayer(path))
-         {
-         // Got a dag node, iterate Hierarchy
-            if (IsVisible(path.node()) || !IsTemplated(path.node()))
-            {
-               for (AtUInt child = 0; (child < path.childCount()); child++)
-               {
-                  MObject ChildObject = path.child(child);
-                  path.push(ChildObject);
-                  children.clear();
-                  children.add(path.fullPathName());
-                  dgNode.setObject(path.node());
-                  if (!dgNode.isIntermediateObject())
-                     ExportDagPath(path, step);
-                  path.pop(1);
-                  status = (status && IterSelection(children, step)) ? MStatus::kSuccess : MStatus::kFailure;
-               }
-            }
-         }
-      }
-
-      else if (it.getDependNode(node) == MStatus::kSuccess)
-      {
-         // Got a dependency (not dag) node
-         // What kind of node is it
-         if (node.hasFn(MFn::kSet))
-         {
-            // if it's a set we actually iterate on its content
-            set.setObject(node);
-            children.clear();
-            // get set members, we don't set flatten to true in case we'd want a
-            // test on each set recursively
-            set.getMembers(children, false);
-            status = (status && IterSelection(children, step)) ? MStatus::kSuccess : MStatus::kFailure;
-         }
-         else if (node.hasFn(MFn::kRenderLayer))
-         {
-            // if it's a render layer we need to do this both for
-            // sub layers and objects in render layer
-            layer.setObject(node);
-            // Get sub layers
-            // not using recurse in case we want a test on render layers first
-            nodeArray.clear();
-            layer.layerChildren(nodeArray);
-            children.clear();
-            unsigned int nc = nodeArray.length();
-            for (unsigned int c=0; c<nc; c++)
-               children.add(nodeArray[c]);
-            status = (status && IterSelection(children, step)) ? MStatus::kSuccess : MStatus::kFailure;
-            // Get layer members (objects)
-            nodeArray.clear();
-            layer.listMembers(nodeArray);
-            // Why the heck doesn't it fill a MSelectionList like a set really?
-            children.clear();
-            unsigned int nm = nodeArray.length();
-            for (unsigned int m=0; m<nm; m++)
-               children.add(nodeArray[m]);
-            status = (status && IterSelection(children, step)) ? MStatus::kSuccess : MStatus::kFailure;
-         }
-         else
-         {
-            // TODO: if we got a shape selected export all dag paths (instances) to that shape?
-            // TODO: if it's a node we don't support / export should we set status to failure
-            // or just raise a warning?
-         }
-      }
-      else
-      {
-         status = MStatus::kFailure;
-      }
-   }
-
-   return status;
-}
-
-bool CMayaScene::ExportDagPath(MDagPath &dagPath, AtUInt step)
-{
-   MFnDagNode node(dagPath.node());
-   MObjectHandle handle = MObjectHandle(dagPath.node());
-   int instanceNum = dagPath.instanceNumber();
-   if (step == 0)
-   {
-      CDagTranslator* translator = CTranslatorRegistry::GetDagTranslator(node.typeId().id());
-      if (translator != NULL)
-      {
-         translator->Init(dagPath, this);
-         translator->DoExport(step);
-         // save it for later
-         m_processedDagTranslators[handle][instanceNum] = translator;
-         return true;
-      }
-   }
-   else
-   {
-      // this will eventually go away when we do our motion export by looping through processed translators
-      CDagTranslator* translator = (CDagTranslator*)m_processedDagTranslators[handle][instanceNum];
-      if (translator != NULL)
-      {
-         translator->DoExport(step);
-         return true;
-      }
-   }
-   return false;
 }
 
 CNodeTranslator * CMayaScene::GetActiveTranslator( const MObject node )

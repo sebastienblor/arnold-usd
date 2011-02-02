@@ -18,18 +18,55 @@
 #include <maya/MPlug.h>
 
 #include <vector>
+#include <set>
 #include <map>
 #include <string>
 
 class CNodeTranslator;
 
+// The different ExportMode were not really mutually exclusive
+// (you can have IPR render on selected only)
+// So redone as ExportMode and ExportFilter
 enum ExportMode
 {
    MTOA_EXPORT_UNDEFINED,
    MTOA_EXPORT_ALL,
-   MTOA_EXPORT_SELECTED,
    MTOA_EXPORT_IPR,
-   MTOA_EXPORT_SWATCH
+   MTOA_EXPORT_SWATCH,
+   MTOA_EXPORT_FILE
+};
+
+typedef std::set<MFn::Type> ExcludeSet;
+// Any custom filter we might want on exports
+// true means filtered OUT, ie NOT exported
+struct ExportFilter
+{
+   bool unselected;
+   bool templated;
+   bool hidden;
+   bool notinlayer;
+   ExcludeSet excluded;
+   ExportFilter() :  unselected(false),
+                     templated(true),
+                     hidden(true),
+                     notinlayer(true)   {}
+};
+
+// To allow to specify that a dag node gets filtered out,
+// or that it's whole hierarchy does
+enum DagFiltered
+{
+   MTOA_EXPORT_ACCEPTED,
+   MTOA_EXPORT_REJECTED_NODE,
+   MTOA_EXPORT_REJECTED_BRANCH
+};
+
+struct ExportOptions
+{
+   ExportMode mode;
+   ExportFilter filter;
+   ExportOptions() : mode(MTOA_EXPORT_UNDEFINED),
+                     filter(ExportFilter())  {}
 };
 
 struct CMotionBlurData
@@ -64,7 +101,7 @@ class DLLEXPORT CMayaScene
 public:
 
    CMayaScene()
-      :  m_exportMode( MTOA_EXPORT_UNDEFINED )
+      :  m_exportOptions(ExportOptions())
       ,  m_fnCommonRenderOptions(NULL)
       ,  m_fnArnoldRenderOptions(NULL)
       ,  m_currentFrame(0)
@@ -73,13 +110,18 @@ public:
 
    ~CMayaScene();
 
-   MStatus ExportToArnold(ExportMode exportMode = MTOA_EXPORT_ALL);
+   MStatus ExportToArnold();
    AtNode* ExportShader(MObject mayaShader, const MString &attrName="");
    AtNode* ExportShader(MPlug& shaderOutputPlug);
+   MStatus ExportDagPath(MDagPath &dagPath, AtUInt step);
 
-   AtFloat GetCurrentFrame()              { return m_currentFrame;}
-   ExportMode GetExportMode()             { return m_exportMode; }
-   void SetExportMode( ExportMode mode )  { m_exportMode = mode; }
+   inline AtFloat GetCurrentFrame()                    { return m_currentFrame;}
+   inline ExportOptions GetExportOptions()             { return m_exportOptions; }
+   inline void SetExportOptions(ExportOptions options) { m_exportOptions = options; }
+   inline ExportMode GetExportMode()                   { return m_exportOptions.mode; }
+   inline void SetExportMode(ExportMode mode )         { m_exportOptions.mode = mode; }
+   inline ExportFilter GetExportFilter()               { return m_exportOptions.filter; }
+   inline void SetExportFilter(ExportFilter filter)    { m_exportOptions.filter = filter; }
 
    void ProcessShaderParameter(MFnDependencyNode shader,
                                const char* param,
@@ -90,8 +132,9 @@ public:
    
    CNodeTranslator * GetActiveTranslator( const MObject node );
    
-   static void UpdateIPR(CNodeTranslator * translator=NULL);
+   // FIXME kept for compatibility with translators
    static bool IsVisibleDag(MDagPath dagPath);
+   static void UpdateIPR(CNodeTranslator * translator=NULL);
 
    bool IsMotionBlurEnabled() const
    {
@@ -137,13 +180,19 @@ private:
    
    void PrepareExport();
    MStatus ExportScene(AtUInt step);
+   MStatus ExportCameras(AtUInt step);
+   MStatus ExportLights(AtUInt step);
    MStatus ExportSelected(AtUInt step);
    MStatus IterSelection(MSelectionList selected, AtUInt step);
-   bool ExportDagPath(MDagPath &dagPath, AtUInt step);
+
+   MStatus IterSelection(MSelectionList& selected);
 
    void ExportInstancerReplacement(const MDagPath& dagPath, AtUInt step);
 
+   static DagFiltered FilteredStatus(ExportFilter filter, MDagPath dagPath);
    static bool IsInRenderLayer(MDagPath dagPath);
+   static bool IsVisiblePath(MDagPath dagPath);
+   static bool IsTemplatedPath(MDagPath dagPath);
    static bool IsVisible(MFnDagNode node);
    static bool IsTemplated(MFnDagNode node);
    bool IsMasterInstance(const MDagPath &dagPath, MDagPath &masterDag);
@@ -168,7 +217,7 @@ private:
       MString attrName;
    };
 
-   ExportMode m_exportMode;
+   ExportOptions m_exportOptions;
    MFnDependencyNode* m_fnCommonRenderOptions;
    MFnDependencyNode* m_fnArnoldRenderOptions;
    CMotionBlurData m_motionBlurData;
