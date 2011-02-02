@@ -54,6 +54,7 @@ public:
    static MObject s_format;
 
    static MObject s_skyRadius;
+   static MObject s_skyFacing;
    static MObject s_sampling;
    static MObject s_hwtexalpha;
 

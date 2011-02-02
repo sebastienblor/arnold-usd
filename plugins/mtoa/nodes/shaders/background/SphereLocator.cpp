@@ -32,6 +32,7 @@ MObject CSphereLocator::s_color;
 MObject CSphereLocator::s_format;
 
 MObject CSphereLocator::s_skyRadius;
+MObject CSphereLocator::s_skyFacing;
 
 MObject CSphereLocator::s_sampling;
 MObject CSphereLocator::s_hwtexalpha;
@@ -177,7 +178,7 @@ void CSphereLocator::SampleSN(const MPlug &colorPlug)
 
       int numSamplesCol = numSamples*4;
       m_colorData = new char[numSamplesCol];
-
+      int alpha = 255;
       for(AtUInt i = 0; (i < colors.length()); i++)
       {
          MFloatVector fv = colors[i];
@@ -185,7 +186,7 @@ void CSphereLocator::SampleSN(const MPlug &colorPlug)
          m_colorData[(i * 4) + 0] = static_cast<char>(static_cast<int>(fv.x));
          m_colorData[(i * 4) + 1] = static_cast<char>(static_cast<int>(fv.y));
          m_colorData[(i * 4) + 2] = static_cast<char>(static_cast<int>(fv.z));
-         m_colorData[(i * 4) + 3] = static_cast<char>(static_cast<int>(((transps[i].x) * 255)));
+         m_colorData[(i * 4) + 3] = static_cast<char>(static_cast<int>(alpha));
       }
    }
    m_goSample = false;
@@ -227,11 +228,15 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
    MStatus stat;
    const int divisions = 16;
    AtFloat radius;
+   int facing;
 
    MFnDagNode fn(thisMObject());
 
    MPlug radiusPlug  = fn.findPlug("skyRadius");
    radiusPlug.getValue(radius);
+
+   MPlug facingPlug  = fn.findPlug("skyFacing");
+   facingPlug.getValue(facing);
 
    GLUquadricObj *quadratic;
 
@@ -256,7 +261,12 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
       skyColorPlug.connectedTo(conn, true, false);
 
       glEnable(GL_CULL_FACE);
-      glCullFace(GL_FRONT);
+      if (facing == 0 || facing == 2)
+         glCullFace(GL_FRONT);
+      else if (facing == 1)
+         glCullFace(GL_BACK);
+
+
 
       // If there is a connection
       if (conn.length()>0)
@@ -282,7 +292,7 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
          float hwTexAlpha  = fn.findPlug("hwtexalpha").asFloat();
-         glColor4f(0.0f, 0.0f, 0.0f, 1 - hwTexAlpha);
+         glColor4f(0.0f, 0.0f, 0.0f, hwTexAlpha);
          glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);
          glPolygonMode(GL_BACK, GL_FILL);
 
@@ -291,6 +301,14 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
          int format;
          formatPlug.getValue(format);
          DrawUVSphere(radius, divisions*4, divisions*4, format);
+
+         if (facing == 2)
+         {
+            // we want both face, we need to redraw a second inverted sphere :'(
+            glCullFace(GL_BACK);
+            DrawUVSphere(radius, divisions*4, divisions*4, format);
+            glCullFace(GL_FRONT);
+         }
          glDisable(GL_TEXTURE_2D);
       }
       // else, there is a plain colour
@@ -301,10 +319,11 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
          gluSphere(quadratic, radius, divisions, divisions);
       }
 
-      glDisable(GL_CULL_FACE);
+      if (facing != 2)
+         glDisable(GL_CULL_FACE);
 
       // If it's selected, draw also wireframe
-      if (displayStatusInt == 6)
+      if (displayStatusInt == 8)
       {
          glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
          glColor4f(1, 1, 0, 0.2f);
@@ -392,7 +411,7 @@ MStatus CSphereLocator::initialize()
    nAttr.setInternal(true);
    addAttribute(s_color);
 
-   s_format = eAttr.create("format", "for", 1);
+   s_format = eAttr.create("format", "for", 2);
    eAttr.addField("mirrored_ball", 0);
    eAttr.addField("angular", 1);
    eAttr.addField("latlong", 2);
@@ -400,12 +419,19 @@ MStatus CSphereLocator::initialize()
    eAttr.setInternal(true);
    addAttribute(s_format);
 
-   s_skyRadius = nAttr.create("skyRadius", "gskrd", MFnNumericData::kFloat, 10000);
+   s_skyRadius = nAttr.create("skyRadius", "gskrd", MFnNumericData::kFloat, 1000);
    nAttr.setKeyable(true);
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
    addAttribute(s_skyRadius);
+
+   s_skyFacing = eAttr.create("skyFacing", "faci", 0);
+   eAttr.addField("front", 0);
+   eAttr.addField("back", 1);
+   eAttr.addField("both", 2);
+   eAttr.setInternal(true);
+   addAttribute(s_skyFacing);
 
    s_sampling = eAttr.create("sampling", "spl", 2);
    eAttr.addField("Low (64x64)", 0);
@@ -415,7 +441,7 @@ MStatus CSphereLocator::initialize()
    eAttr.setInternal(true);
    addAttribute(s_sampling);
 
-   s_hwtexalpha = nAttr.create("hwtexalpha", "hwta", MFnNumericData::kFloat, 0);
+   s_hwtexalpha = nAttr.create("hwtexalpha", "hwta", MFnNumericData::kFloat, 1);
    nAttr.setMin(0);
    nAttr.setMax(1);
    nAttr.setKeyable(false);

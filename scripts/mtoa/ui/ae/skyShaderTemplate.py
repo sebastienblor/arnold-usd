@@ -36,6 +36,7 @@ def skyShaderTemplate(nodeName):
     cmds.editorTemplate(beginLayout="Viewport", collapse=True)
 
     cmds.editorTemplate("skyRadius", addControl=True,  label="Sky Radius")
+    cmds.editorTemplate("skyFacing", addControl=True,  label="Facing")
 
     cmds.editorTemplate(endLayout=True)
 
