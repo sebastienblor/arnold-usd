@@ -1217,57 +1217,10 @@ void CRampTranslator::Update(AtNode* shader)
    ProcessParameter(shader, "alphaGain", AI_TYPE_FLOAT);
    ProcessParameter(shader, "alphaOffset", AI_TYPE_FLOAT);
    ProcessParameter(shader, "invert", AI_TYPE_BOOLEAN);
+   ProcessParameter(shader, "uvCoord", AI_TYPE_POINT2);
 
    MPlug plug, elem, pos, col;
    MPlugArray connections;
-
-   if (ProcessParameter(shader, "uv", AI_TYPE_POINT2) != NULL)
-   {
-      AiNodeSetBool(shader, "overrideUV", true);
-   }
-   else
-   {
-      AiNodeSetBool(shader, "overrideUV", false);
-   }
-   /*
-    * AtNode *shader = NULL;
-   plug = m_fnNode.findPlug("uvCoord");
-   plug.connectedTo(connections, true, false);
-
-   if (connections.length() != 0)
-   {
-      MObject srcObj = connections[0].node();
-      MFnDependencyNode srcNode(srcObj);
-
-      if (srcNode.typeName() == "place2dTexture")
-      {
-         shader = AiNode("MayaPlace2DTexture");
-
-         AiNodeSetStr(shader, "name", srcNode.name().asChar());
-         ProcessParameter("coverage", shader, "coverage", AI_TYPE_POINT2);
-         ProcessParameter("rotateFrame", shader, "rotateFrame", AI_TYPE_FLOAT);
-         ProcessParameter("translateFrame", shader, "translateFrame", AI_TYPE_POINT2);
-         ProcessParameter("mirrorU", shader, "mirrorU", AI_TYPE_BOOLEAN);
-         ProcessParameter("mirrorV", shader, "mirrorV", AI_TYPE_BOOLEAN);
-         ProcessParameter("wrapU", shader, "wrapU", AI_TYPE_BOOLEAN);
-         ProcessParameter("wrapV", shader, "wrapV", AI_TYPE_BOOLEAN);
-         ProcessParameter("stagger", shader, "stagger", AI_TYPE_BOOLEAN);
-         ProcessParameter("repeatUV", shader, "repeatUV", AI_TYPE_POINT2);
-         ProcessParameter("rotateUV", shader, "rotateUV", AI_TYPE_FLOAT);
-         ProcessParameter("offset", shader, "offsetUV", AI_TYPE_POINT2);
-         ProcessParameter("noiseUV", shader, "noiseUV", AI_TYPE_POINT2);
-      }
-   }
-   if (shader != NULL)
-   {
-      AiNodeSetBool(shader, "overrideUV", true);
-      AiNodeLink(shader, "uv", shader);
-   }
-   else
-   {
-      AiNodeSetBool(shader, "overrideUV", false);
-   }
-   */
 
    MObject opos = m_fnNode.attribute("position");
    MObject ocol = m_fnNode.attribute("color");

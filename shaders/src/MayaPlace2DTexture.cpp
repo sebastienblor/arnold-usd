@@ -54,7 +54,7 @@ node_parameters
    AiParameterBOOL("wrapV", true);
    AiParameterBOOL("stagger", false);
    AiParameterPNT2("repeatUV", 1.0f, 1.0f);
-   AiParameterPNT2("offset", 0.0f, 0.0f);
+   AiParameterPNT2("offsetUV", 0.0f, 0.0f);
    AiParameterFLT("rotateUV", 0.0f);
    AiParameterPNT2("noiseUV", 0.0f, 0.0f);
 
