@@ -43,7 +43,7 @@ node_parameters
    AiParameterFLT("widthSpread", 0.0f);
    AiParameterFLT("brightSpread", 0.0f);
    AiParameterPNT2("uvCoord", 0.0f, 0.0f);
-   MAYA_COLOR_BALANCE_PARAMS
+   AddMayaColorBalanceParams(params);
    
    AiMetaDataSetStr(mds, NULL, "maya.counterpart", "cloth");
    AiMetaDataSetInt(mds, NULL, "maya.counterpart_id", 0x5254434C);
@@ -85,11 +85,9 @@ shader_evaluate
    float ss = uv.x;
    float tt = uv.y;
 
-   EVAL_MAYA_COLOR_BALANCE_PARAMS
-
    if (!IsValidUV(uv.x, uv.y))
    {
-      MAYA_DEFAULT_COLOR(sg->out.RGBA);
+      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
       return;
    }
 
@@ -201,6 +199,7 @@ shader_evaluate
 
    AiRGBtoRGBA(a, sg->out.RGBA);
    // From maya node documentation cloth ignores alphaIsLuminance
-   alphaIsLuminance = false;
-   MAYA_COLOR_BALANCE(sg->out.RGBA);
+   // TODO: js - fix this for the new function.
+   // alphaIsLuminance = false;
+   MayaColorBalance( sg, node, p_defaultColor, sg->out.RGBA );
 }

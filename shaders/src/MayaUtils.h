@@ -53,6 +53,7 @@ extern void Ramp(AtArray *p, AtArray *v, float t, RampInterpolationType rit, AtR
 #  define LOG_05 -0.693147180559945  /* log(0.5) */
 #endif
 
+
 #define MAYA_COLOR_BALANCE_ENUM \
    p_defaultColor,              \
    p_colorGain,                 \
@@ -62,56 +63,17 @@ extern void Ramp(AtArray *p, AtArray *v, float t, RampInterpolationType rit, AtR
    p_alphaIsLuminance,          \
    p_invert
 
-#define MAYA_COLOR_BALANCE_PARAMS                    \
-   AiParameterRGB("defaultColor", 0.5f, 0.5f, 0.5f); \
-   AiParameterRGB("colorGain", 1.0f, 1.0f, 1.0f);    \
-   AiParameterRGB("colorOffset", 0.0f, 0.0f, 0.0f);  \
-   AiParameterFLT("alphaGain", 1.0f);                \
-   AiParameterFLT("alphaOffset", 0.0f);              \
-   AiParameterBOOL("alphaIsLuminance", false);       \
-   AiParameterBOOL("invert", false);
+void AddMayaColorBalanceParams(AtList *params);
+   
+extern void MayaColorBalance(AtShaderGlobals* sg,
+                             AtNode* node,
+                             AtInt p_start,
+                             AtRGBA & result);
 
-#define EVAL_MAYA_COLOR_BALANCE_PARAMS                                     \
-   AtRGB defaultColor = AiShaderEvalParamRGB(p_defaultColor);              \
-   AtRGB colorGain = AiShaderEvalParamRGB(p_colorGain);                    \
-   AtRGB colorOffset = AiShaderEvalParamRGB(p_colorOffset);                \
-   float alphaGain = AiShaderEvalParamFlt(p_alphaGain);                    \
-   float alphaOffset = AiShaderEvalParamFlt(p_alphaOffset);                \
-   AtBoolean alphaIsLuminance = AiShaderEvalParamBool(p_alphaIsLuminance); \
-   AtBoolean invert = AiShaderEvalParamBool(p_invert);
-
-#define MAYA_COLOR_BALANCE(_c)                    \
-   if (invert)                                    \
-   {                                              \
-      (_c).r = 1 - (_c).r;                        \
-      (_c).g = 1 - (_c).g;                        \
-      (_c).b = 1 - (_c).b;                        \
-      (_c).a = 1 - (_c).a;                        \
-   }                                              \
-   if (alphaIsLuminance)                          \
-   {                                              \
-      (_c).a = Luminance((_c));                   \
-   }                                              \
-   (_c).r = (_c).r * colorGain.r + colorOffset.r; \
-   (_c).g = (_c).g * colorGain.g + colorOffset.g; \
-   (_c).b = (_c).b * colorGain.b + colorOffset.b; \
-   (_c).a = (_c).a * alphaGain   + alphaOffset
-
-#define MAYA_DEFAULT_COLOR(_c)      \
-   AiRGBtoRGBA(defaultColor, (_c)); \
-   (_c).a = 0.0f
-
-#define MAYA_FILTER_ENUM \
-   p_filter,             \
-   p_filterOffset
-
-#define MAYA_FILTER_PARAMS               \
-   AiParameterFLT("filter", 1.0f);       \
-   AiParameterFLT("filterOffset", 0.0f);
-
-#define EVAL_MAYA_FILTER_PARAMS                               \
-   float filter = AiShaderEvalParamFlt(p_filter);             \
-   float filterOffset = AiShaderEvalParamFlt(p_filterOffset);
+extern void MayaDefaultColor(AtShaderGlobals* sg,
+                             AtNode* node,
+                             AtInt p_start,
+                             AtRGBA & result);
 
 extern AtVector RGBtoHSV(AtRGB inRgb);
 

@@ -1,6 +1,6 @@
 #include "ArnoldSkyDomeLightShader.h"
 #include "nodes/ShaderUtils.h"
-#include "nodes/ArnoldNodeIds.h"
+#include "nodes/ArnoldNodeIDs.h"
 
 #include <ai_ray.h>
 #include <ai_shader_util.h>

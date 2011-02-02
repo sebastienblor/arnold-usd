@@ -1,7 +1,7 @@
 
 #include "ArnoldMeshInfoShader.h"
 #include "nodes/ShaderUtils.h"
-#include "nodes/ArnoldNodeIds.h"
+#include "nodes/ArnoldNodeIDs.h"
 
 #include <maya/MFnEnumAttribute.h>
 #include <maya/MFnNumericAttribute.h>

@@ -33,7 +33,7 @@ node_parameters
    AiParameterBOOL("wrap", true);
    AiParameterBOOL("local", false);
    AiParameterMTX("placementMatrix", id);
-   MAYA_COLOR_BALANCE_PARAMS
+   AddMayaColorBalanceParams(params);
 
    AiMetaDataSetStr(mds, NULL, "maya.counterpart", "snow");
    AiMetaDataSetInt(mds, NULL, "maya.counterpart_id", 0x5254534e);
@@ -61,7 +61,6 @@ shader_evaluate
    AtMatrix *placementMatrix = AiShaderEvalParamMtx(p_placementMatrix);
    AtBoolean local = AiShaderEvalParamBool(p_local);
    AtBoolean wrap = AiShaderEvalParamBool(p_wrap);
-   EVAL_MAYA_COLOR_BALANCE_PARAMS
 
    AtPoint P;
    AtMatrix placement;
@@ -105,10 +104,10 @@ shader_evaluate
       AtRGB c = Mix(surfaceColor, snowColor, amount);
 
       AiRGBtoRGBA(c, sg->out.RGBA);
-      MAYA_COLOR_BALANCE(sg->out.RGBA);
+      MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA);
    }
    else
    {
-      MAYA_DEFAULT_COLOR(sg->out.RGBA);
+      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
    }
 }

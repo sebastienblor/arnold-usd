@@ -7,11 +7,11 @@
 class CArnoldAssTranslator : public MPxFileTranslator
 {
 public:
-	static char * fileType;
-	static char * fileExtension;
-	static char * fileIcon;
-	static char * optionScript;
-	static char * optionDefault;
+	static char fileType[];
+	static char fileExtension[];
+	static char fileIcon[];
+	static char optionScript[];
+	static char optionDefault[];
 
 	bool		haveReadMethod() const;
 	bool		haveWriteMethod() const;

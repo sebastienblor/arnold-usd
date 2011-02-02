@@ -72,7 +72,7 @@ node_parameters
    AiParameterFLT("timeRatio", 2.0f);
    AiParameterPNT2("uvCoord", 0.0f, 0.0f);
    AiParameterPNT2("repeatUV", 1.0f, 1.0f);
-   MAYA_COLOR_BALANCE_PARAMS
+   AddMayaColorBalanceParams(params);
 
    AiMetaDataSetStr(mds, NULL, "maya.counterpart", "fractal");
    AiMetaDataSetInt(mds, NULL, "maya.counterpart_id", 0x52543246);
@@ -113,11 +113,10 @@ shader_evaluate
    float threshold = AiShaderEvalParamFlt(p_threshold);
    AtBoolean animated = AiShaderEvalParamBool(p_animated);
    AtBoolean inflection = AiShaderEvalParamBool(p_inflection);
-   EVAL_MAYA_COLOR_BALANCE_PARAMS
 
    if (!IsValidUV(uv.x, uv.y))
    {
-      MAYA_DEFAULT_COLOR(sg->out.RGBA);
+      MayaDefaultColor( sg, node, p_defaultColor, sg->out.RGBA);
       return;
    }
 
@@ -192,6 +191,6 @@ shader_evaluate
    float n = noiseval;
    
    AiRGBACreate(sg->out.RGBA, n, n, n, 1.0f);
-   MAYA_COLOR_BALANCE(sg->out.RGBA);\
+   MayaColorBalance( sg, node, p_defaultColor, sg->out.RGBA );
 }
 

@@ -102,7 +102,7 @@ node_parameters
    AiParameterMTX("placementMatrix", id);
    AiParameterBOOL("wrap", true);
    AiParameterBOOL("local", false);
-   MAYA_COLOR_BALANCE_PARAMS
+   AddMayaColorBalanceParams(params);
    
    AiMetaDataSetStr(mds, NULL, "maya.counterpart", "volumeNoise");
    AiMetaDataSetInt(mds, NULL, "maya.counterpart_id", 0x52545633);
@@ -144,7 +144,6 @@ shader_evaluate
    AtMatrix *placementMatrix = AiShaderEvalParamMtx(p_placementMatrix);
    AtBoolean wrap = AiShaderEvalParamBool(p_wrap);
    AtBoolean local = AiShaderEvalParamBool(p_local);
-   EVAL_MAYA_COLOR_BALANCE_PARAMS
 
    AtPoint P;
    AtMatrix placement;
@@ -273,11 +272,11 @@ shader_evaluate
       noiseVal = CLAMP(noiseVal+threshold, 0.0f, 1.0f);
 
       AiRGBACreate(sg->out.RGBA, noiseVal, noiseVal, noiseVal, 1.0f);
-      MAYA_COLOR_BALANCE(sg->out.RGBA);
+      MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA);
    }
    else
    {
-      MAYA_DEFAULT_COLOR(sg->out.RGBA);
+      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
    }
 }
 

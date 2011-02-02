@@ -20,7 +20,8 @@ enum MayaCheckerParams
    p_uvCoord,
    p_repeatUV,
    MAYA_COLOR_BALANCE_ENUM,
-   MAYA_FILTER_ENUM
+   p_filter,
+   p_filterOffset
 };
 
 };
@@ -32,8 +33,9 @@ node_parameters
    AiParameterFLT("contrast", 1.0);
    AiParameterPNT2("uvCoord", 0.0f, 0.0f);
    AiParameterPNT2("repeatUV", 1.0f, 1.0f); // for filtering
-   MAYA_COLOR_BALANCE_PARAMS
-   MAYA_FILTER_PARAMS
+   AddMayaColorBalanceParams(params);
+   AiParameterFLT("filter", 1.0f);
+   AiParameterFLT("filterOffset", 0.0f);
    
    AiMetaDataSetStr(mds, NULL, "maya.counterpart", "checker");
    AiMetaDataSetInt(mds, NULL, "maya.counterpart_id", 0x52544348);
@@ -68,12 +70,10 @@ shader_evaluate
    AtPoint2 repeatUV = AiShaderEvalParamPnt2(p_repeatUV);
    AtRGB color1 = AiShaderEvalParamRGB(p_color1);
    AtRGB color2 = AiShaderEvalParamRGB(p_color2);
-   EVAL_MAYA_COLOR_BALANCE_PARAMS
-   //EVAL_MAYA_FILTER_PARAMS
 
    if (!IsValidUV(uv.x, uv.y))
    {
-      MAYA_DEFAULT_COLOR(sg->out.RGBA);
+      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
       return;
    }
 
@@ -101,5 +101,5 @@ shader_evaluate
    sg->out.RGBA.b = color1.b + (color2.b - color1.b) * f;
    sg->out.RGBA.a = 1.0f - f;
 
-   MAYA_COLOR_BALANCE(sg->out.RGBA);
+   MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA);
 }

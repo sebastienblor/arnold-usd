@@ -22,7 +22,7 @@ node_parameters
    AiParameterFLT("uWidth", 0.1f);
    AiParameterFLT("vWidth", 0.1f);
    AiParameterPNT2("uvCoord", 0.0f, 0.0f);
-   MAYA_COLOR_BALANCE_PARAMS
+   AddMayaColorBalanceParams(params);
 
    AiMetaDataSetStr(mds, NULL, "maya.counterpart", "bulge");
    AiMetaDataSetInt(mds, NULL, "maya.counterpart_id", 0x52544255);
@@ -56,11 +56,10 @@ shader_evaluate
 
    float uWidth = AiShaderEvalParamFlt(p_uWidth);
    float vWidth = AiShaderEvalParamFlt(p_vWidth);
-   EVAL_MAYA_COLOR_BALANCE_PARAMS
 
    if (!IsValidUV(uv.x, uv.y))
    {
-      MAYA_DEFAULT_COLOR(sg->out.RGBA);
+      MayaDefaultColor( sg, node, p_defaultColor, sg->out.RGBA);
       return;
    }
 
@@ -74,5 +73,5 @@ shader_evaluate
    float r = sqrt(fabs(a * b));
 
    AiRGBACreate(sg->out.RGBA, r, r, r, r);
-   MAYA_COLOR_BALANCE(sg->out.RGBA);
+   MayaColorBalance( sg, node, p_defaultColor, sg->out.RGBA );
 }

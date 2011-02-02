@@ -47,7 +47,7 @@ node_parameters
    AiParameterFLT("rotateUV", 0.0f);
    AiParameterSTR("filename", "");
    AiParameterPNT2("noiseUV", 0.0f, 0.0f);
-   MAYA_COLOR_BALANCE_PARAMS
+   AddMayaColorBalanceParams(params);
    
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }
@@ -79,7 +79,6 @@ shader_evaluate
    AtPoint2 offset = AiShaderEvalParamPnt2(p_offset);
    float rotate = AiShaderEvalParamFlt(p_rotate);
    AtPoint2 noise = AiShaderEvalParamPnt2(p_noise);
-   EVAL_MAYA_COLOR_BALANCE_PARAMS
 
    float inU = sg->u;
    float inV = sg->v;
@@ -147,7 +146,7 @@ shader_evaluate
        (!wrapU && (outU < 0 || outU > 1)) ||
        (!wrapV && (outV < 0 || outV > 1)))
    {
-      MAYA_DEFAULT_COLOR(sg->out.RGBA);
+      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
    }
    else
    {
@@ -244,7 +243,7 @@ shader_evaluate
       // setup filter?
 
       sg->out.RGBA = AiTextureAccess(sg, filename, &texparams);
-      MAYA_COLOR_BALANCE(sg->out.RGBA);
+      MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA);
 
       // restore shader globals
       sg->u = inU;

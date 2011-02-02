@@ -93,7 +93,7 @@ node_parameters
    AiParameterENUM("falloff", 2, falloff_type_enum);
    AiParameterINT("numWaves", 6);
    AiParameterPNT2("uvCoord", 0.0f, 0.0f);
-   MAYA_COLOR_BALANCE_PARAMS
+   AddMayaColorBalanceParams(params);
 
    AiMetaDataSetStr(mds, NULL, "maya.counterpart", "noise");
    AiMetaDataSetInt(mds, NULL, "maya.counterpart_id", 0x52544e33);
@@ -142,11 +142,10 @@ shader_evaluate
    float randomness = AiShaderEvalParamFlt(p_randomness);
    int falloff = AiShaderEvalParamInt(p_falloff);
    int numWaves = AiShaderEvalParamInt(p_numWaves);
-   EVAL_MAYA_COLOR_BALANCE_PARAMS
 
    if (!IsValidUV(uv.x, uv.y))
    {
-      MAYA_DEFAULT_COLOR(sg->out.RGBA);
+      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
       return;
    }
 
@@ -247,5 +246,5 @@ shader_evaluate
    noiseVal = CLAMP(noiseVal + threshold, 0, 1);
 
    AiRGBACreate(sg->out.RGBA, noiseVal, noiseVal, noiseVal, noiseVal);
-   MAYA_COLOR_BALANCE(sg->out.RGBA);
+   MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA);
 }

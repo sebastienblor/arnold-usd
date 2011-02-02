@@ -319,6 +319,59 @@ void Ramp(AtArray *p, AtArray *v, float t, RampInterpolationType it, AtRGB &out)
    RampT(p, v, t, it, out, _GetArrayRGB);
 }
 
+
+void AddMayaColorBalanceParams(AtList *params)
+{
+   AiNodeParamRGB (params, -1, "defaultColor", 0.5f, 0.5f, 0.5f);
+   AiNodeParamRGB (params, -1, "colorGain", 1.0f, 1.0f, 1.0f);
+   AiNodeParamRGB (params, -1, "colorOffset", 0.0f, 0.0f, 0.0f);
+   AiNodeParamFLT (params, -1, "alphaGain", 1.0f);
+   AiNodeParamFLT (params, -1, "alphaOffset", 0.0f);
+   AiNodeParamBOOL(params, -1, "alphaIsLuminance", false);
+   AiNodeParamBOOL(params, -1, "invert", false);
+}
+
+void MayaColorBalance(AtShaderGlobals* sg,
+                        AtNode* node,
+                        AtInt p_start,
+                        AtRGBA & result)
+{
+   const AtRGB colorGain      = AiShaderEvalParamFuncRGB( sg, node, p_start + 1);  //p_colorGain);
+   const AtRGB colorOffset    = AiShaderEvalParamFuncRGB( sg, node, p_start + 2);  //p_colorOffset);
+   const float alphaGain      = AiShaderEvalParamFuncFlt( sg, node, p_start + 3);  //p_alphaGain);
+   const float alphaOffset    = AiShaderEvalParamFuncFlt( sg, node, p_start + 4);  //p_alphaOffset);
+   const AtBoolean alphaIsLuminance     = AiShaderEvalParamFuncBool(sg, node, p_start+ 5);  //alphaIsLuminance);
+   const AtBoolean invert = AiShaderEvalParamFuncBool(sg, node, p_start+ 6 ); //p_invert);
+
+   if (invert)
+   {
+      result.r = 1.f - result.r;
+      result.g = 1.f - result.g;
+      result.b = 1.f - result.b;
+      result.a = 1.f - result.a;
+   }
+
+   if (alphaIsLuminance)
+   {
+      result.a = Luminance(result);
+   }
+
+   result.r = result.r * colorGain.r + colorOffset.r;
+   result.g = result.g * colorGain.g + colorOffset.g;
+   result.b = result.b * colorGain.b + colorOffset.b;
+   result.a = result.a * alphaGain   + alphaOffset;
+}
+
+void MayaDefaultColor(AtShaderGlobals* sg,
+                        AtNode* node,
+                        AtInt p_start,
+                        AtRGBA & result)
+{
+   const AtRGB defaultColor   = AiShaderEvalParamFuncRGB( sg, node, p_start + 0);  //p_defaultColor);
+   AiRGBtoRGBA(defaultColor, result);
+   result.a = 0.0f;
+}
+
 AtVector RGBtoHSV(AtRGB inRgb)
 {
    AtVector output;
@@ -822,3 +875,6 @@ float CosWaves(float posX,
    noiseValue /= (float)numWaves;
    return noiseValue;
 }
+
+
+

@@ -1,7 +1,7 @@
 
 #include "ArnoldCustomShader.h"
 #include "nodes/ShaderUtils.h"
-#include "nodes/ArnoldNodeIds.h"
+#include "nodes/ArnoldNodeIDs.h"
 
 #include <maya/MFnNumericAttribute.h>
 #include <maya/MRenderUtil.h>

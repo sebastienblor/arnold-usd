@@ -1,7 +1,7 @@
 #ifndef SPHERELOCATOR_H
 #define SPHERELOCATOR_H
 
-#include "nodes/ArnoldNodeIds.h"
+#include "nodes/ArnoldNodeIDs.h"
 #include <ai_types.h>
 
 #include <maya/MPxLocatorNode.h>

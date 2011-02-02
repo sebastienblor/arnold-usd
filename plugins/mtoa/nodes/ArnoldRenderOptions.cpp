@@ -1,7 +1,7 @@
 
 #include "ArnoldRenderOptions.h"
 #include "nodes/ShaderUtils.h"
-#include "nodes/ArnoldNodeIds.h"
+#include "nodes/ArnoldNodeIDs.h"
 
 #include <ai_universe.h>
 

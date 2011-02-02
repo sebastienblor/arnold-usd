@@ -17,7 +17,8 @@ enum MayaGridParams
    p_uvCoord,
    p_repeatUV,
    MAYA_COLOR_BALANCE_ENUM,
-   MAYA_FILTER_ENUM
+   p_filter,
+   p_filterOffset
 };
 
 inline AtRGB Contrast(const AtRGB &c, const AtRGB &d, float f) 
@@ -36,8 +37,9 @@ node_parameters
    AiParameterFLT("contrast", 1.0);
    AiParameterPNT2("uvCoord", 0.0f, 0.0f);
    AiParameterPNT2("repeatUV", 1.0f, 1.0f);
-   MAYA_COLOR_BALANCE_PARAMS
-   MAYA_FILTER_PARAMS
+   AddMayaColorBalanceParams(params);
+   AiParameterFLT("filter", 1.0f);
+   AiParameterFLT("filterOffset", 0.0f);
 
    AiMetaDataSetStr(mds, NULL, "maya.counterpart", "grid");
    AiMetaDataSetInt(mds, NULL, "maya.counterpart_id", 0x52544744);
@@ -75,12 +77,13 @@ shader_evaluate
    AtRGB lineColor = AiShaderEvalParamRGB(p_lineColor);
    AtRGB fillerColor = AiShaderEvalParamRGB(p_fillerColor);
    float cont = AiShaderEvalParamFlt(p_contrast);
-   EVAL_MAYA_COLOR_BALANCE_PARAMS
-   EVAL_MAYA_FILTER_PARAMS
+
+   float filter = AiShaderEvalParamFlt(p_filter);
+   float filterOffset = AiShaderEvalParamFlt(p_filterOffset);
 
    if (!IsValidUV(uv.x, uv.y))
    {
-      MAYA_DEFAULT_COLOR(sg->out.RGBA);
+      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
       return;
    }
 
@@ -103,5 +106,5 @@ shader_evaluate
 
    AiRGBtoRGBA(Mix(lc, fc, f), sg->out.RGBA);
    sg->out.RGBA.a = 1.0f - f;
-   MAYA_COLOR_BALANCE(sg->out.RGBA);
+   MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA);
 }

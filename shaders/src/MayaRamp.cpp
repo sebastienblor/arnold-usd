@@ -70,7 +70,7 @@ node_parameters
    AiParameterPNT2("uvCoord", 0.0f, 0.0f);
    AiParameterFLT("noise", 0.0f);
    AiParameterFLT("noiseFreq", 0.5f);
-   MAYA_COLOR_BALANCE_PARAMS
+   AddMayaColorBalanceParams(params);
 
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }
@@ -93,7 +93,6 @@ shader_evaluate
    RampInterpolationType interp = (RampInterpolationType) AiShaderEvalParamInt(p_interp);
    AtArray *positions = AiShaderEvalParamArray(p_positions);
    AtArray *colors = AiShaderEvalParamArray(p_colors);
-   EVAL_MAYA_COLOR_BALANCE_PARAMS
 
    float u = sg->u;
    float v = sg->v;
@@ -109,7 +108,7 @@ shader_evaluate
 
    if (!IsValidUV(u, v))
    {
-      MAYA_DEFAULT_COLOR(sg->out.RGBA);
+      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
       return;
    }
 
@@ -238,6 +237,7 @@ shader_evaluate
 
    AiRGBtoRGBA(result, sg->out.RGBA);
    // Alpha output is always the luminance
-   alphaIsLuminance = true;
-   MAYA_COLOR_BALANCE(sg->out.RGBA);
+   // TODO: js - Fix this for the new function.
+   // alphaIsLuminance = true;
+   MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA);
 }

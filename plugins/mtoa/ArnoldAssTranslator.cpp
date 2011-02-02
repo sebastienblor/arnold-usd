@@ -18,11 +18,11 @@
 #include <maya/MStringArray.h>
 
 // Set some fixed values in the translator class
-char * CArnoldAssTranslator::fileType = "ArnoldSceneSource";
-char * CArnoldAssTranslator::fileExtension = "ass";
-char * CArnoldAssTranslator::fileIcon = "arnoldAssFile.xpm";
-char * CArnoldAssTranslator::optionScript = "arnoldAssOpts";
-char * CArnoldAssTranslator::optionDefault = "";
+char CArnoldAssTranslator::fileType[]        = "ArnoldSceneSource";
+char CArnoldAssTranslator::fileExtension[]   = "ass";
+char CArnoldAssTranslator::fileIcon[]        = "arnoldAssFile.xpm";
+char CArnoldAssTranslator::optionScript[]    = "arnoldAssOpts";
+char CArnoldAssTranslator::optionDefault[]   = "";
 
 inline bool CArnoldAssTranslator::haveReadMethod () const
 {

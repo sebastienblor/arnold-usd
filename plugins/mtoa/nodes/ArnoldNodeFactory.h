@@ -4,7 +4,7 @@
 #define MNoVersionString
 #define MNoPluginEntry
 
-#include "nodes/ArnoldNodeIds.h"
+#include "nodes/ArnoldNodeIDs.h"
 #include "scene/NodeTranslator.h"
 #include "scene/MayaScene.h"
 #include "nodes/ArnoldNodeHelper.h"
