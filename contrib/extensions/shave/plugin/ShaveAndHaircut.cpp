@@ -365,9 +365,11 @@ void CShaveTranslator::ProcessHairLines(AtUInt step,
 }
 
 
-void CShaveTranslator::NodeInitializer(MObject& node)
+void CShaveTranslator::NodeInitializer(MString nodeClassName)
 {
-   CDynamicAttrHelper helper = CDynamicAttrHelper(node);
-   CShapeTranslator::MakeMayaVisibilityFlags(helper);
-   CShapeTranslator::MakeArnoldVisibilityFlags(helper);
+   CExtensionAttrHelper helper(nodeClassName, "curves");
+   CShapeTranslator::MakeCommonAttributes(helper);
+   helper.MakeInput("min_pixel_width");
+   helper.MakeInput("mode");
+
 }

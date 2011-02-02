@@ -21,7 +21,7 @@ public:
    {
       return m_motion;
    }
-   static void NodeInitializer(MObject& node);
+   static void NodeInitializer(MString nodeClassName);
 protected:
    void Update(AtNode* light, bool mayaAttrs=true);
    void ExportMotion(AtNode* light, AtUInt step);
@@ -63,7 +63,7 @@ class CPointLightTranslator : public CLightTranslator
 public:
    AtNode* Export();
    void Update(AtNode* light);
-   static void NodeInitializer(MObject& node);
+   static void NodeInitializer(MString nodeClassName);
    static void* creator()
    {
       return new CPointLightTranslator();
@@ -75,7 +75,7 @@ class CSpotLightTranslator : public CLightTranslator
 public:
    AtNode* Export();
    void Update(AtNode* light);
-   static void NodeInitializer(MObject& node);
+   static void NodeInitializer(MString nodeClassName);
    static void* creator()
    {
       return new CSpotLightTranslator();
@@ -87,7 +87,7 @@ class CAreaLightTranslator : public CLightTranslator
 public:
    AtNode* Export();
    void Update(AtNode* light);
-   static void NodeInitializer(MObject& node);
+   static void NodeInitializer(MString nodeClassName);
    static void* creator()
    {
       return new CAreaLightTranslator();

@@ -786,19 +786,18 @@ void CCameraTranslator::ExportMotion(AtNode* camera, AtUInt step)
    }
 }
 
-void CCameraTranslator::NodeInitializer(MObject& node)
+void CCameraTranslator::NodeInitializer(MString nodeClassName)
 {
-   CDynamicAttrHelper helper = CDynamicAttrHelper(node, "persp_camera");
+   CExtensionAttrHelper helper(nodeClassName, "persp_camera");
    helper.MakeInput("focal_distance");
    helper.MakeInput("aperture_size");
    helper.MakeInput("aperture_blades");
    helper.MakeInput("aperture_blade_curvature");
    helper.MakeInput("aperture_rotation");
    
-   MObject attr;
    CAttrData data;
    data.defaultValue.BOOL = false;
    data.name = "enableDOF";
    data.shortName = "edof";
-   helper.MakeInputBoolean(attr, data);
+   helper.MakeInputBoolean(data);
 }

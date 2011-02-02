@@ -875,9 +875,9 @@ void CGeoTranslator::ShaderAssignmentCallback( MNodeMessage::AttributeMessage ms
    }
 }
 
-void CGeoTranslator::NodeInitializer(MObject& node)
+void CGeoTranslator::NodeInitializer(MString nodeClassName)
 {
-  CDynamicAttrHelper helper = CDynamicAttrHelper(node, "polymesh");
+  CExtensionAttrHelper helper(nodeClassName, "polymesh");
 
    // node attributes
    CShapeTranslator::MakeCommonAttributes(helper);
@@ -890,17 +890,16 @@ void CGeoTranslator::NodeInitializer(MObject& node)
    helper.MakeInput("subdiv_uv_smoothing");
 
    CAttrData data;
-   MObject attr;
 
    data.defaultValue.BOOL = false;
    data.name = "exportTangents";
    data.shortName = "exptan";
-   helper.MakeInputBoolean(attr, data);
+   helper.MakeInputBoolean(data);
 
    data.defaultValue.BOOL = false;
    data.name = "exportColors";
    data.shortName = "expcol";
-   helper.MakeInputBoolean(attr, data);
+   helper.MakeInputBoolean(data);
 }
 
 // --------- CNurbsSurfaceTranslator -------------//

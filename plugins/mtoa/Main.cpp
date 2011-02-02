@@ -153,6 +153,10 @@ namespace // <anonymous>
       arnoldPluginFactory->LoadExtensions();
 
       delete arnoldPluginFactory;
+
+#if MAYA_API_VERSION < 201200
+      MNodeClass::InitializeExistingNodes();
+#endif
       return status;
    }
 

@@ -14,7 +14,7 @@ public:
    {
       return new CShaveTranslator();
    }
-   static void NodeInitializer(MObject& node);
+   static void NodeInitializer(MString nodeClassName);
 private:
    void ProcessHairLines(AtUInt step, AtArray* curvePoints, AtArray* curveNextLineStartsInterp, AtArray* curveNextLineStarts, AtArray* curveWidths);
    MStatus SetHairInfo();

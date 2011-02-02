@@ -27,7 +27,7 @@ public:
    void Update(AtNode* anode);
    void ExportMotion(AtNode* anode, AtUInt step);
    void UpdateMotion(AtNode* anode, AtUInt step);
-   static void NodeInitializer(MObject& node);
+   static void NodeInitializer(MString nodeClassName);
    virtual void AddCallbacks();
 
 protected:

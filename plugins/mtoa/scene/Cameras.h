@@ -49,7 +49,7 @@ public:
    AtNode* Export();
    void Update(AtNode* camera);
    void ExportMotion(AtNode* camera, AtUInt step);
-   static void NodeInitializer(MObject& node);
+   static void NodeInitializer(MString nodeClassName);
    static void* creator()
    {
       return new CCameraTranslator();

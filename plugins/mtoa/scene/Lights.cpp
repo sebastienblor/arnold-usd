@@ -123,10 +123,10 @@ void CLightTranslator::ExportMotion(AtNode* light, AtUInt step)
    AiArraySetMtx(matrices, step, matrix);
 }
 
-void CLightTranslator::NodeInitializer(MObject& node)
+void CLightTranslator::NodeInitializer(MString nodeClassName)
 {
    // use point light as a generic light...
-   CDynamicAttrHelper helper = CDynamicAttrHelper(node, "point_light");
+   CExtensionAttrHelper helper(nodeClassName, "point_light");
    // common attributes
    helper.MakeInput("normalize");
    helper.MakeInput("bounce_factor");
@@ -194,9 +194,9 @@ void CPointLightTranslator::Update(AtNode* light)
    ExportDynamicBooleanParameter(light, "cast_volumetric_shadows");
 }
 
-void CPointLightTranslator::NodeInitializer(MObject& node)
+void CPointLightTranslator::NodeInitializer(MString nodeClassName)
 {
-   CDynamicAttrHelper helper = CDynamicAttrHelper(node, "point_light");
+   CExtensionAttrHelper helper = CExtensionAttrHelper(nodeClassName, "point_light");
    // common attributes
    helper.MakeInput("normalize");
    helper.MakeInput("bounce_factor");
@@ -235,9 +235,9 @@ void CSpotLightTranslator::Update(AtNode* light)
    EXPORT_DYN_PARAM_FLOAT(light, "lens_radius", fnLight);
 }
 
-void CSpotLightTranslator::NodeInitializer(MObject& node)
+void CSpotLightTranslator::NodeInitializer(MString nodeClassName)
 {
-   CDynamicAttrHelper helper = CDynamicAttrHelper(node, "spot_light");
+   CExtensionAttrHelper helper = CExtensionAttrHelper(nodeClassName, "spot_light");
    // common attributes
    helper.MakeInput("normalize");
    helper.MakeInput("bounce_factor");
@@ -279,9 +279,9 @@ void CAreaLightTranslator::Update(AtNode* light)
    ExportDynamicBooleanParameter(light, "solid_angle");
 }
 
-void CAreaLightTranslator::NodeInitializer(MObject& node)
+void CAreaLightTranslator::NodeInitializer(MString nodeClassName)
 {
-   CDynamicAttrHelper helper = CDynamicAttrHelper(node, "quad_light");
+   CExtensionAttrHelper helper(nodeClassName, "quad_light");
 
    // common attributes
    helper.MakeInput("normalize");

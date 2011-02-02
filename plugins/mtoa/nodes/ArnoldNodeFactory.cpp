@@ -80,14 +80,14 @@ void CExtension::RegisterDagTranslator(const char* mayaNode, int typeId, Creator
    CTranslatorRegistry::RegisterDagTranslator(mayaNode, typeId, creator);
 }
 
-void CExtension::RegisterDependTranslator(const char* mayaNode, int typeId, CreatorFunction creator, NodeInitFunction nodeInitializer, const char* providedByPlugin)
+void CExtension::RegisterDependTranslator(const char* mayaNode, int typeId, CreatorFunction creator, NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin)
 {
-   CTranslatorRegistry::RegisterDependTranslator(mayaNode, typeId, creator, nodeInitializer, providedByPlugin);
+   CTranslatorRegistry::RegisterDependTranslator(mayaNode, typeId, creator, nodeClassInitializer, providedByPlugin);
 }
 
-void CExtension::RegisterDagTranslator(const char* mayaNode, int typeId, CreatorFunction creator, NodeInitFunction nodeInitializer, const char* providedByPlugin)
+void CExtension::RegisterDagTranslator(const char* mayaNode, int typeId, CreatorFunction creator, NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin)
 {
-   CTranslatorRegistry::RegisterDagTranslator(mayaNode, typeId, creator, nodeInitializer, providedByPlugin);
+   CTranslatorRegistry::RegisterDagTranslator(mayaNode, typeId, creator, nodeClassInitializer, providedByPlugin);
 }
 
 // CArnoldNodeFactory

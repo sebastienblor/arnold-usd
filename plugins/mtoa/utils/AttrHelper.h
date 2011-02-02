@@ -2,7 +2,6 @@
 #define ARNOLDNODEHELPER_H
 
 #include "platform/Platform.h"
-
 #include <ai_node_entry.h>
 #include <ai_params.h>
 #include <ai_metadata.h>
@@ -17,6 +16,13 @@
 #include <maya/MFnMatrixAttribute.h>
 #include <maya/MFnMessageAttribute.h>
 #include <maya/MStringArray.h>
+
+#include <maya/MTypes.h>
+#if MAYA_API_VERSION < 201200
+   #include "utils/MNodeClass.h"
+#else
+   #include <maya/MNodeClass.h>
+#endif
 
 #include <string>
 #include <map>
@@ -90,45 +96,45 @@ public:
    virtual ~CBaseAttrHelper() {};
    bool GetAttrData(const char* paramName, CAttrData& data);
 
-   void MakeInputInt(MObject& attrib, const char* paramName);
-   void MakeInputInt(CAttrData& data);
-   void MakeInputInt(MObject& attrib, CAttrData& data);
-   void MakeInputBoolean(MObject& attrib, const char* paramName);
-   void MakeInputBoolean(CAttrData& data);
-   void MakeInputBoolean(MObject& attrib, CAttrData& data);
-   void MakeInputFloat(MObject& attrib, const char* paramName);
-   void MakeInputFloat(CAttrData& data);
-   void MakeInputFloat(MObject& attrib, CAttrData& data);
-   void MakeInputRGB(MObject& attrib, const char* paramName);
-   void MakeInputRGB(CAttrData& data);
-   void MakeInputRGB(MObject& attrib, CAttrData& data);
-   void MakeInputRGBA(MObject& attrib, MObject& attribA, const char* paramName);
-   void MakeInputRGBA(CAttrData& data);
-   void MakeInputRGBA(MObject& attrib, MObject& attribA, CAttrData& data);
-   void MakeInputVector(MObject& attrib, const char* paramName);
-   void MakeInputVector(CAttrData& data);
-   void MakeInputVector(MObject& attrib,CAttrData& data);
-   void MakeInputPoint(MObject& attrib, const char* paramName);
-   void MakeInputPoint(CAttrData& data);
-   void MakeInputPoint(MObject& attrib, CAttrData& data);
-   void MakeInputPoint2(MObject& attrib, MObject& attribX, MObject& attribY, const char* paramName);
-   void MakeInputPoint2(CAttrData& data);
-   void MakeInputPoint2(MObject& attrib, MObject& attribX, MObject& attribY, CAttrData& data);
-   void MakeInputString(MObject& attrib, const char* paramName);
-   void MakeInputString(CAttrData& data);
-   void MakeInputString(MObject& attrib, CAttrData& data);
-   void MakeInputMatrix(MObject& attrib, const char* paramName);
-   void MakeInputMatrix(CAttrData& data);
-   void MakeInputMatrix(MObject& attrib, CAttrData& data);
-   void MakeInputEnum(MObject& attrib, const char* paramName);
-   void MakeInputEnum(CAttrData& data);
-   void MakeInputEnum(MObject& attrib, CAttrData& data);
-   void MakeInputNode(MObject& attrib, const char* paramName);
-   void MakeInputNode(CAttrData& data);
-   void MakeInputNode(MObject& attrib, CAttrData& data);
+   virtual void MakeInputInt(MObject& attrib, const char* paramName);
+   virtual void MakeInputInt(CAttrData& data);
+   virtual void MakeInputInt(MObject& attrib, CAttrData& data);
+   virtual void MakeInputBoolean(MObject& attrib, const char* paramName);
+   virtual void MakeInputBoolean(CAttrData& data);
+   virtual void MakeInputBoolean(MObject& attrib, CAttrData& data);
+   virtual void MakeInputFloat(MObject& attrib, const char* paramName);
+   virtual void MakeInputFloat(CAttrData& data);
+   virtual void MakeInputFloat(MObject& attrib, CAttrData& data);
+   virtual void MakeInputRGB(MObject& attrib, const char* paramName);
+   virtual void MakeInputRGB(CAttrData& data);
+   virtual void MakeInputRGB(MObject& attrib, CAttrData& data);
+   virtual void MakeInputRGBA(MObject& attrib, MObject& attribA, const char* paramName);
+   virtual void MakeInputRGBA(CAttrData& data);
+   virtual void MakeInputRGBA(MObject& attrib, MObject& attribA, CAttrData& data);
+   virtual void MakeInputVector(MObject& attrib, const char* paramName);
+   virtual void MakeInputVector(CAttrData& data);
+   virtual void MakeInputVector(MObject& attrib,CAttrData& data);
+   virtual void MakeInputPoint(MObject& attrib, const char* paramName);
+   virtual void MakeInputPoint(CAttrData& data);
+   virtual void MakeInputPoint(MObject& attrib, CAttrData& data);
+   virtual void MakeInputPoint2(MObject& attrib, MObject& attribX, MObject& attribY, const char* paramName);
+   virtual void MakeInputPoint2(CAttrData& data);
+   virtual void MakeInputPoint2(MObject& attrib, MObject& attribX, MObject& attribY, CAttrData& data);
+   virtual void MakeInputString(MObject& attrib, const char* paramName);
+   virtual void MakeInputString(CAttrData& data);
+   virtual void MakeInputString(MObject& attrib, CAttrData& data);
+   virtual void MakeInputMatrix(MObject& attrib, const char* paramName);
+   virtual void MakeInputMatrix(CAttrData& data);
+   virtual void MakeInputMatrix(MObject& attrib, CAttrData& data);
+   virtual void MakeInputEnum(MObject& attrib, const char* paramName);
+   virtual void MakeInputEnum(CAttrData& data);
+   virtual void MakeInputEnum(MObject& attrib, CAttrData& data);
+   virtual void MakeInputNode(MObject& attrib, const char* paramName);
+   virtual void MakeInputNode(CAttrData& data);
+   virtual void MakeInputNode(MObject& attrib, CAttrData& data);
 
-   bool MakeInput(const char* paramName);
-   bool MakeInput(CAttrData& attrData);
+   virtual bool MakeInput(const char* paramName);
+   virtual bool MakeInput(CAttrData& attrData);
 
    void MakeOutputInt(MObject& attrib, bool isArray=false);
    void MakeOutputBoolean(MObject& attrib, bool isArray=false);
@@ -205,6 +211,48 @@ protected:
 
 protected:
    virtual MStatus addAttribute(MObject& attrib);
+};
+
+// CExtensionAttrHelper
+//
+// attribute helper for adding extension attributes to maya node classes
+//
+
+class DLLEXPORT CExtensionAttrHelper : public CBaseAttrHelper
+{
+
+public:
+   CExtensionAttrHelper(MString nodeClassName, const AtNodeEntry* nodeEntry=NULL) :
+      CBaseAttrHelper(nodeEntry),
+      m_class(nodeClassName)
+   {}
+   CExtensionAttrHelper(MString nodeClassName, const char* nodeEntryName) :
+      CBaseAttrHelper(nodeEntryName),
+      m_class(nodeClassName)
+   {}
+#if MAYA_API_VERSION < 201200
+   void MakeInputInt(CAttrData& data);
+   void MakeInputBoolean(CAttrData& data);
+   void MakeInputFloat(CAttrData& data);
+   void MakeInputRGB(CAttrData& data);
+   void MakeInputRGBA(CAttrData& data);
+   void MakeInputVector(CAttrData& data);
+   void MakeInputPoint(CAttrData& data);
+   void MakeInputPoint2(CAttrData& data);
+   void MakeInputString(CAttrData& data);
+   void MakeInputMatrix(CAttrData& data);
+   void MakeInputEnum(CAttrData& data);
+   void MakeInputNode(CAttrData& data);
+   bool MakeInput(const char* paramName);
+   bool MakeInput(CAttrData& attrData);
+#endif
+protected:
+   MNodeClass m_class;
+
+protected:
+#if MAYA_API_VERSION > 201200
+   MStatus virtual addAttribute(MObject& attrib);
+#endif
 };
 
 #endif // ARNOLDNODEHELPER_H

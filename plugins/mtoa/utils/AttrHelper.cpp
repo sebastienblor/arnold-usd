@@ -8,6 +8,7 @@
 
 #include <maya/MFnStringData.h>
 #include <maya/MGlobal.h>
+#include <maya/MDGModifier.h>
 
 // convert from "arnold_style" to "mayaStyle"
 //
@@ -57,7 +58,7 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
    const AtParamEntry* paramEntry = AiNodeEntryLookUpParameter(m_nodeEntry, paramName);
    if (paramEntry == NULL)
    {
-      AiMsgError("[mtoa] parameter does not exist: %s", paramName);
+      AiMsgError("[mtoa] Parameter does not exist: %s", paramName);
       return false;
    }
    data.defaultValue = MAiParamGetDefault(m_nodeEntry, paramEntry);
@@ -161,7 +162,7 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
             }
             default:
             {
-               MGlobal::displayError(MString("[mtoa] ") + paramName + ": unknown parameter type");
+               MGlobal::displayError(MString("[mtoa] Unable to get data for parameter \"") + paramName + "\": unknown parameter type");
                break;
             }
          }
@@ -693,12 +694,12 @@ bool CBaseAttrHelper::MakeInput(CAttrData& attrData)
       case AI_TYPE_POINTER:
       {
          const char* typeName = AiParamGetTypeName(attrData.type);
-         MGlobal::displayWarning(MString("[mtoa] ") + attrData.name + ": parameters of type " + typeName + " are not supported");
+         MGlobal::displayWarning(MString("[mtoa] Unable to create attribute \"") + attrData.name + "\": parameters of type " + typeName + " are not supported");
          return false;
       }
       default:
       {
-         MGlobal::displayError(MString("[mtoa] ") + attrData.name + ": unknown parameter type");
+         MGlobal::displayError(MString("[mtoa] Unable to create attribute \"") + attrData.name + "\": unknown parameter type");
          return false;
       }
    } // switch
@@ -918,12 +919,12 @@ bool CBaseAttrHelper::MakeOutput()
       case AI_TYPE_POINTER:
       {
          const char* typeName = AiParamGetTypeName(outputType);
-         MGlobal::displayWarning(MString("[mtoa] ") + OUT_NAME + ": parameters of type " + typeName + " are not supported");
+         MGlobal::displayWarning(MString("[mtoa]  Unable to create attribute \"") + OUT_NAME + "\": parameters of type " + typeName + " are not supported");
          return false;
       }
       default:
       {
-         MGlobal::displayError(MString("[mtoa] ") + OUT_NAME + ": unknown parameter type");
+         MGlobal::displayError(MString("[mtoa] Unable to create attribute \"") + OUT_NAME + "\": unknown parameter type");
          return false;
       }
    } // switch
@@ -936,18 +937,21 @@ void CBaseAttrHelper::SetNode(const char* arnoldNodeName)
    m_nodeEntry = AiNodeEntryLookUp(arnoldNodeName);
 };
 
-
+// CStaticAttrHelper
+//
 MStatus CStaticAttrHelper::addAttribute(MObject& attrib)
 {
    MStatus stat;
    stat = m_addFunc(attrib);
    // FIXME: not reliable to use MFnAttribute to get the name: the MObject could be invalid
    if (stat != MS::kSuccess)
-      MGlobal::displayError(MString("[mtoa] unable to create attribute ") + MFnAttribute(attrib).name());
+      MGlobal::displayError(MString("[mtoa] Unable to create attribute ") + MFnAttribute(attrib).name());
    CHECK_MSTATUS(stat);
    return stat;
 }
 
+// CDynamicAttrHelper
+//
 MStatus CDynamicAttrHelper::addAttribute(MObject& attrib)
 {
    MStatus stat;
@@ -955,9 +959,109 @@ MStatus CDynamicAttrHelper::addAttribute(MObject& attrib)
    stat = fnNode.addAttribute(attrib);
    // FIXME: not reliable to use MFnAttribute to get the name: the MObject could be invalid
    if (stat != MS::kSuccess)
-      MGlobal::displayError(MString("[mtoa] unable to create attribute ") + fnNode.name() + "." + MFnAttribute(attrib).name());
+      MGlobal::displayError(MString("[mtoa] Unable to create attribute ") + fnNode.name() + "." + MFnAttribute(attrib).name());
    CHECK_MSTATUS(stat);
    return stat;
 }
 
+// CExtensionAttrHelper
+//
 
+#if MAYA_API_VERSION < 201200
+
+void CExtensionAttrHelper::MakeInputInt(CAttrData& data)
+{
+   data.type = AI_TYPE_INT;
+   MakeInput(data);
+}
+
+void CExtensionAttrHelper::MakeInputBoolean(CAttrData& data)
+{
+   data.type = AI_TYPE_BOOLEAN;
+   MakeInput(data);
+}
+
+void CExtensionAttrHelper::MakeInputFloat(CAttrData& data)
+{
+   data.type = AI_TYPE_FLOAT;
+   MakeInput(data);
+}
+
+void CExtensionAttrHelper::MakeInputRGB(CAttrData& data)
+{
+   data.type = AI_TYPE_RGB;
+   MakeInput(data);
+}
+
+void CExtensionAttrHelper::MakeInputRGBA(CAttrData& data)
+{
+   data.type = AI_TYPE_RGBA;
+   MakeInput(data);
+}
+
+void CExtensionAttrHelper::MakeInputVector(CAttrData& data)
+{
+   data.type = AI_TYPE_VECTOR;
+   MakeInput(data);
+}
+
+void CExtensionAttrHelper::MakeInputPoint(CAttrData& data)
+{
+   data.type = AI_TYPE_POINT;
+   MakeInput(data);
+}
+
+void CExtensionAttrHelper::MakeInputPoint2(CAttrData& data)
+{
+   data.type = AI_TYPE_POINT2;
+   MakeInput(data);
+}
+
+void CExtensionAttrHelper::MakeInputString(CAttrData& data)
+{
+   data.type = AI_TYPE_STRING;
+   MakeInput(data);
+}
+
+void CExtensionAttrHelper::MakeInputMatrix(CAttrData& data)
+{
+   data.type = AI_TYPE_MATRIX;
+   MakeInput(data);
+}
+
+void CExtensionAttrHelper::MakeInputEnum(CAttrData& data)
+{
+   data.type = AI_TYPE_ENUM;
+   MakeInput(data);
+}
+
+void CExtensionAttrHelper::MakeInputNode(CAttrData& data)
+{
+   data.type = AI_TYPE_NODE;
+   MakeInput(data);
+}
+
+bool CExtensionAttrHelper::MakeInput(const char* paramName)
+{
+   CAttrData attrData;
+   GetAttrData(paramName, attrData);
+   return MakeInput(attrData);
+}
+
+bool CExtensionAttrHelper::MakeInput(CAttrData& attrData)
+{
+   MStatus stat;
+   stat = m_class.addExtensionAttribute(attrData);
+   CHECK_MSTATUS(stat);
+   return stat;
+}
+#else
+MStatus CExtensionAttrHelper::addAttribute(MObject& attrib)
+{
+   MStatus stat;
+   MDGModifier dgMod;
+   stat = dgMod.addExtensionAttribute(m_class, attrib);
+   CHECK_MSTATUS(stat);
+   return stat;
+}
+#endif

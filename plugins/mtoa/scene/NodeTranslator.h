@@ -19,11 +19,12 @@ class CMayaScene;
 
 typedef void *   (*CreatorFunction)();
 typedef void     (*NodeInitFunction)(MObject&);
+typedef void     (*NodeClassInitFunction)(MString);
 
 struct CMayaPluginData
 {
-   std::string mayaNode;
-   NodeInitFunction nodeInitializer;
+   MString mayaNode;
+   NodeClassInitFunction nodeClassInitializer;
 };
 
 // plugin name to list of provided nodes needing callbacks
@@ -162,8 +163,8 @@ public:
 class DLLEXPORT CTranslatorRegistry
 {
 public:
-   static bool RegisterDependTranslator(const char* mayaNode, int typeId, CreatorFunction creator, NodeInitFunction nodeInitializer, const char* providedByPlugin="");
-   static bool RegisterDagTranslator(const char* mayaNode, int typeId, CreatorFunction creator, NodeInitFunction nodeInitializer, const char* providedByPlugin="");
+   static bool RegisterDependTranslator(const char* mayaNode, int typeId, CreatorFunction creator, NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin="");
+   static bool RegisterDagTranslator(const char* mayaNode, int typeId, CreatorFunction creator, NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin="");
    static bool RegisterDependTranslator(const char* mayaNode, int typeId, CreatorFunction creator);
    static bool RegisterDagTranslator(const char* mayaNode, int typeId, CreatorFunction creator);
 
@@ -176,7 +177,7 @@ public:
    static void RemoveCallbacks();
 
 private:
-   static bool RegisterTranslator(const char* mayaNode, int typeId, CreatorFunction creator, NodeInitFunction nodeInitializer, const char* providedByPlugin);
+   static bool RegisterTranslator(const char* mayaNode, int typeId, CreatorFunction creator, NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin);
    static bool RegisterTranslator(const char* mayaNode, int typeId, CreatorFunction creator);
 
 private:

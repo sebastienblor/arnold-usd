@@ -47,8 +47,8 @@ class DLLEXPORT CExtension
 public:
    void RegisterDependTranslator(const char* mayaNode, int typeId, CreatorFunction creator);
    void RegisterDagTranslator(const char* mayaNode, int typeId, CreatorFunction creator);
-   void RegisterDependTranslator(const char* mayaNode, int typeId, CreatorFunction creator, NodeInitFunction nodeInitializer, const char* providedByPlugin="");
-   void RegisterDagTranslator(const char* mayaNode, int typeId, CreatorFunction creator, NodeInitFunction nodeInitializer, const char* providedByPlugin="");
+   void RegisterDependTranslator(const char* mayaNode, int typeId, CreatorFunction creator, NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin="");
+   void RegisterDagTranslator(const char* mayaNode, int typeId, CreatorFunction creator, NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin="");
 };
 
 typedef void (*pluginInitFunctionType)(CExtension&);

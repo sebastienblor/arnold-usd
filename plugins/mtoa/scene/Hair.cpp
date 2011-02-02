@@ -30,9 +30,10 @@
 
 #include <vector>
 
-void CHairTranslator::NodeInitializer(MObject& node)
+void CHairTranslator::NodeInitializer(MString nodeClassName)
 {
-   CDynamicAttrHelper helper = CDynamicAttrHelper(node, "curves");
+   CExtensionAttrHelper helper = CExtensionAttrHelper(nodeClassName, "curves");
+   CShapeTranslator::MakeCommonAttributes(helper);
    helper.MakeInput("min_pixel_width");
    helper.MakeInput("mode");
 
