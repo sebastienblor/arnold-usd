@@ -53,7 +53,10 @@ struct mobjcompare
    }
 };
 
+// depend nodes map from MObject to translator
 typedef std::map<MObjectHandle, CNodeTranslator*, mobjcompare> ObjectToTranslatorMap;
+// dag nodes: have one translator per instance, so they map MObject to a sub-map, from dag instance number to translator
+typedef std::map<MObjectHandle, std::map<int, CNodeTranslator*>, mobjcompare> ObjectToDagTranslatorMap;
 
 typedef void *   (*CreatorFunction)();
 typedef void     (*NodeInitFunction)(MObject&);
@@ -139,7 +142,6 @@ private:
    
    void PrepareExport();
    MStatus ExportScene(AtUInt step);
-   MStatus ExportForIPR(AtUInt step);
    MStatus ExportSelected(AtUInt step);
    MStatus IterSelection(MSelectionList selected, AtUInt step);
    bool ExportDagPath(MDagPath &dagPath, AtUInt step);
@@ -177,8 +179,13 @@ private:
    MFnDependencyNode* m_fnArnoldRenderOptions;
    CMotionBlurData m_motionBlurData;
    
+   // this variable will go away when we get multiple output support
    std::vector<CShaderData> m_processedShaders;
+   // depend nodes, are a map with MObjectHandle as a key
    ObjectToTranslatorMap m_processedTranslators;
+   // dag nodes, are a map in a map.
+   // the first key is an MObjectHandle and the second the instance number
+   ObjectToDagTranslatorMap m_processedDagTranslators;
    
    MDagPath m_camera;
 

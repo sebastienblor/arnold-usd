@@ -51,8 +51,19 @@ CMayaScene::~CMayaScene()
    {
       delete it->second;
    }
-
    m_processedTranslators.clear();
+
+   // Delete Dag Translators
+   ObjectToDagTranslatorMap::iterator dagIt;
+   for(dagIt = m_processedDagTranslators.begin(); dagIt != m_processedDagTranslators.end(); ++dagIt)
+   {
+      std::map<int, CNodeTranslator*>::iterator instIt;
+      for(instIt = dagIt->second.begin(); instIt != dagIt->second.end(); ++instIt)
+      {
+         delete instIt->second;
+      }
+   }
+   m_processedDagTranslators.clear();
 }
 
 MStatus CMayaScene::ExportToArnold(ExportMode exportMode)
@@ -72,39 +83,36 @@ MStatus CMayaScene::ExportToArnold(ExportMode exportMode)
                      m_fnArnoldRenderOptions->findPlug("mb_objects_enable").asBool()   ||
                      m_fnArnoldRenderOptions->findPlug("mb_lights_enable").asBool()    );
 
-   if (exportMode == MTOA_EXPORT_ALL)
+   if (exportMode == MTOA_EXPORT_ALL || exportMode == MTOA_EXPORT_IPR)
    {
-      if (!mb)
+      if (mb)
       {
+         // first step is the real export
+         AiMsgDebug("[mtoa] exporting step 0 at frame %f", m_motionBlurData.frames[0]);
+         MGlobal::viewFrame(MTime(m_motionBlurData.frames[0], MTime::uiUnit()));
          status = ExportScene(0);
-      }
-      else
-      {
-         // Scene is motion blured, get the data for the steps.
-         for (int J = 0; (J < m_motionBlurData.motion_steps); ++J)
+         // next, loop through motion steps
+         for (int step = 1; step < m_motionBlurData.motion_steps; ++step)
          {
-            MGlobal::viewFrame(MTime(m_motionBlurData.frames[J], MTime::uiUnit()));
-            status = ExportScene(J);
+            MGlobal::viewFrame(MTime(m_motionBlurData.frames[step], MTime::uiUnit()));
+            AiMsgDebug("[mtoa] exporting step %d at frame %f", step, m_motionBlurData.frames[step]);
+            // then, loop through the already processed dag translators and export for current step
+            ObjectToDagTranslatorMap::iterator dagIt;
+            for(dagIt = m_processedDagTranslators.begin(); dagIt != m_processedDagTranslators.end(); ++dagIt)
+            {
+               // finally, loop through instances
+               std::map<int, CNodeTranslator*>::iterator instIt;
+               for(instIt = dagIt->second.begin(); instIt != dagIt->second.end(); ++instIt)
+               {
+                  instIt->second->DoExport(step);
+               }
+            }
          }
          MGlobal::viewFrame(MTime(GetCurrentFrame(), MTime::uiUnit()));
       }
-   }
-   else if ( exportMode == MTOA_EXPORT_IPR )
-   {
-      if (!mb)
-      {
-         status = ExportForIPR(0);
-      }
       else
-      {
-         // Scene is motion blured, get the data for the steps.
-         for (int J = 0; (J < m_motionBlurData.motion_steps); ++J)
-         {
-            MGlobal::viewFrame(MTime(m_motionBlurData.frames[J], MTime::uiUnit()));
-            status = ExportForIPR(J);
-         }
-         MGlobal::viewFrame(MTime(GetCurrentFrame(), MTime::uiUnit()));
-      }
+         status = ExportScene(0);
+
    }
    else if ( exportMode == MTOA_EXPORT_SELECTED )
    {
@@ -190,8 +198,6 @@ MStatus CMayaScene::ExportScene(AtUInt step)
    MDagPath dagPath;
    MItDag   dagIterCameras(MItDag::kDepthFirst, MFn::kCamera);
 
-   AiMsgDebug("[mtoa] exporting step %d at frame %f", step, static_cast<float>(MAnimControl::currentTime().as(MTime::uiUnit())));
-
    // First we export all cameras
    // We do not reset the iterator to avoid getting kWorld
    for (; (!dagIterCameras.isDone()); dagIterCameras.next())
@@ -227,17 +233,14 @@ MStatus CMayaScene::ExportScene(AtUInt step)
 
       ExportDagPath(dagPath, step);
    }
-   return MS::kSuccess;
-}
-
-MStatus CMayaScene::ExportForIPR(AtUInt step )
-{
-   if ( s_NewNodeCallbackId == 0x0 )
+   
+   // Add callbacks if we're in IPR mode.
+   if ( GetExportMode() == MTOA_EXPORT_IPR && s_NewNodeCallbackId == 0x0 )
    {
       s_NewNodeCallbackId = MDGMessage::addNodeAddedCallback( CMayaScene::IPRNewNodeCallback );
    }
-
-   return ExportScene( step );
+   
+   return MS::kSuccess;
 }
 
 // Get the selection from maya and export it with the IterSelection methode
@@ -353,6 +356,8 @@ MStatus CMayaScene::IterSelection(MSelectionList selected, AtUInt step)
 bool CMayaScene::ExportDagPath(MDagPath &dagPath, AtUInt step)
 {
    MFnDagNode node(dagPath.node());
+   MObjectHandle handle = MObjectHandle(dagPath.node());
+   int instanceNum = dagPath.instanceNumber();
    if (step == 0)
    {
       std::map<int, CreatorFunction>::iterator translatorIt;
@@ -363,15 +368,20 @@ bool CMayaScene::ExportDagPath(MDagPath &dagPath, AtUInt step)
          translator = (CDagTranslator*)translatorIt->second();
          translator->Init(dagPath, this);
          translator->DoExport(step);
-         m_processedTranslators[MObjectHandle(dagPath.node())] = translator;
+         // save it for later
+         m_processedDagTranslators[handle][instanceNum] = translator;
          return true;
       }
    }
    else
    {
-      CDagTranslator* translator = (CDagTranslator*)m_processedTranslators[MObjectHandle(dagPath.node())];
+      // this will eventually go away when we do our motion export by looping through processed translators
+      CDagTranslator* translator = (CDagTranslator*)m_processedDagTranslators[handle][instanceNum];
       if (translator != NULL)
+      {
          translator->DoExport(step);
+         return true;
+      }
    }
    return false;
 }
@@ -422,6 +432,17 @@ void CMayaScene::ClearIPRCallbacks()
    {
       if ( it->second != 0x0 ) it->second->RemoveCallbacks();
    }
+
+   ObjectToDagTranslatorMap::iterator dagIt;
+   for(dagIt = m_processedDagTranslators.begin(); dagIt != m_processedDagTranslators.end(); ++dagIt)
+   {
+      std::map<int, CNodeTranslator*>::iterator instIt;
+      for(instIt = dagIt->second.begin(); instIt != dagIt->second.end(); ++instIt)
+      {
+         instIt->second->RemoveCallbacks();
+      }
+   }
+   
 }
 
 void CMayaScene::IPRNewNodeCallback(MObject & node, void *)
