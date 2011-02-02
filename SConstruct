@@ -51,18 +51,41 @@ vars.AddVariables(
       ('GCC_OPT_FLAGS', 'Optimization flags for gcc', '-O3 -funroll-loops'),
 
       PathVariable('MAYA_ROOT', 'Directory where Maya is installed', get_default_path('MAYA_ROOT', '.')),
-      PathVariable('EXTERNAL_PATH', 'External dependencies are found here', '.'),
-      PathVariable('ARNOLD_API_INCLUDES', 'Where to find Arnold API includes', '.'),
-      PathVariable('ARNOLD_API_LIB', 'Where to find Arnold API libraries', '.'),
-      PathVariable('TARGET_MODULE_PATH', 'Path used for installation of the mtoa plugin', '.', PathVariable.PathIsDirCreate),
-      PathVariable('TARGET_PLUGIN_PATH', 'Path used for installation of the mtoa plugin', '.', PathVariable.PathIsDirCreate),
-      PathVariable('TARGET_SCRIPTS_PATH', 'Path used for installation of scripts', '.', PathVariable.PathIsDirCreate),
-      PathVariable('TARGET_PYTHON_PATH', 'Path used for installation of Python scripts', '.', PathVariable.PathIsDirCreate),
-      PathVariable('TARGET_ICONS_PATH', 'Path used for installation of icons', '.', PathVariable.PathIsDirCreate),
-      PathVariable('TARGET_DESCR_PATH', 'Path for renderer description file', '.'),
-      PathVariable('TARGET_SHADER_PATH', 'Path used for installation of arnold shaders', '.', PathVariable.PathIsDirCreate),
-      PathVariable('TARGET_EXTENSION_PATH', 'Path used for installation of mtoa translator extensions', '.', PathVariable.PathIsDirCreate),
-      PathVariable('TARGET_LIB_PATH', 'Path for libraries', '.', PathVariable.PathIsDirCreate)
+      PathVariable('EXTERNAL_PATH', 'External dependencies are found here', 
+                   '.', PathVariable.PathIsDir),
+      PathVariable('ARNOLD_API_INCLUDES', 
+                   'Where to find Arnold API includes', 
+                   '.', PathVariable.PathIsDir),
+      PathVariable('ARNOLD_API_LIB', 
+                   'Where to find Arnold API libraries', 
+                   '.', PathVariable.PathIsDir),
+      PathVariable('TARGET_MODULE_PATH', 
+                   'Path used for installation of the mtoa module', 
+                   '.', PathVariable.PathIsDirCreate),
+      PathVariable('TARGET_PLUGIN_PATH', 
+                   'Path used for installation of the mtoa plugin', 
+                   os.path.join('$TARGET_MODULE_PATH', 'plug-ins'), PathVariable.PathIsDirCreate),
+      PathVariable('TARGET_SCRIPTS_PATH', 
+                   'Path used for installation of scripts', 
+                   os.path.join('$TARGET_MODULE_PATH', 'scripts'), PathVariable.PathIsDirCreate),
+      PathVariable('TARGET_PYTHON_PATH', 
+                   'Path used for installation of Python scripts', 
+                   os.path.join('$TARGET_MODULE_PATH', 'scripts'), PathVariable.PathIsDirCreate),
+      PathVariable('TARGET_ICONS_PATH', 
+                   'Path used for installation of icons', 
+                   os.path.join('$TARGET_MODULE_PATH', 'icons'), PathVariable.PathIsDirCreate),
+      PathVariable('TARGET_DESCR_PATH', 
+                   'Path for renderer description file', 
+                   '$TARGET_MODULE_PATH', PathVariable.PathIsDirCreate),
+      PathVariable('TARGET_SHADER_PATH', 
+                   'Path used for installation of arnold shaders', 
+                   os.path.join('$TARGET_MODULE_PATH', 'shaders'), PathVariable.PathIsDirCreate),
+      PathVariable('TARGET_EXTENSION_PATH', 
+                   'Path used for installation of mtoa translator extensions', 
+                   os.path.join('$TARGET_MODULE_PATH', 'extensions'), PathVariable.PathIsDirCreate),
+      PathVariable('TARGET_LIB_PATH', 
+                   'Path for libraries', 
+                   os.path.join('$TARGET_MODULE_PATH', 'lib'), PathVariable.PathIsDirCreate)
 )
 
 if system.os() == 'windows':
@@ -76,39 +99,6 @@ if system.os() == 'windows':
    env = tmp_env.Clone(tools=['default'])
 else:
    env = Environment(variables = vars)
-
-# Initialize target paths if necessary
-
-if env['TARGET_MODULE_PATH'] == '.':
-   print "Please define TARGET_MODULE_PATH (Path used for installation of the mtoa plugin)"
-   Exit(1)
-
-if env['TARGET_PLUGIN_PATH'] == '.':
-   env['TARGET_PLUGIN_PATH'] = os.path.join(env['TARGET_MODULE_PATH'], 'plug-ins')
-   CreatePathDir(env['TARGET_PLUGIN_PATH'])
-
-if env['TARGET_SCRIPTS_PATH'] == '.':
-   env['TARGET_SCRIPTS_PATH'] = os.path.join(env['TARGET_MODULE_PATH'], 'scripts')
-   CreatePathDir(env['TARGET_SCRIPTS_PATH'])
-
-if env['TARGET_PYTHON_PATH'] == '.':
-   env['TARGET_PYTHON_PATH'] = env['TARGET_SCRIPTS_PATH']
-
-if env['TARGET_ICONS_PATH'] == '.':
-   env['TARGET_ICONS_PATH'] = os.path.join(env['TARGET_MODULE_PATH'], 'icons')
-   CreatePathDir(env['TARGET_ICONS_PATH'])
-
-if env['TARGET_SHADER_PATH'] == '.':
-   env['TARGET_SHADER_PATH'] = os.path.join(env['TARGET_MODULE_PATH'], 'shaders')
-   CreatePathDir(env['TARGET_SHADER_PATH'])
-
-if env['TARGET_EXTENSION_PATH'] == '.':
-   env['TARGET_EXTENSION_PATH'] = os.path.join(env['TARGET_MODULE_PATH'], 'extensions')
-   CreatePathDir(env['TARGET_EXTENSION_PATH'])
-
-if env['TARGET_LIB_PATH'] == '.':
-   env['TARGET_LIB_PATH'] = os.path.join(env['TARGET_MODULE_PATH'], 'lib')
-   CreatePathDir(env['TARGET_LIB_PATH'])
 
 env.Append(BUILDERS = {'MakeModule' : MakeModule})
 
@@ -321,13 +311,19 @@ TESTSUITE = env.SConscript(os.path.join('testsuite', 'SConscript'),
 SConscriptChdir(1)
 
 if system.os() == 'windows':
+   libs = glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*.dll'))
+   libs += glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*boost*.dll.*'))
+   env.Install(env['TARGET_LIB_PATH'], libs)
    # Rename plugins as .mll and install them in the target path
    mtoa_new = os.path.splitext(str(MTOA[0]))[0] + '.mll'
    env.Command(mtoa_new, str(MTOA[0]), Copy("$TARGET", "$SOURCE"))
-   env.Install(env['TARGET_PLUGIN_PATH'], [mtoa_new] + glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*.dll')))
+   env.Install(env['TARGET_PLUGIN_PATH'], [mtoa_new])
    env.Install(env['TARGET_SHADER_PATH'], MTOA_SHADERS[0])
 else:
-   env.Install(env['TARGET_PLUGIN_PATH'], MTOA + glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*.so')))
+   libs = glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*.so'))
+   libs += glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*boost*.so.*'))
+   env.Install(env['TARGET_LIB_PATH'], libs)
+   env.Install(env['TARGET_PLUGIN_PATH'], MTOA)
    env.Install(env['TARGET_SHADER_PATH'], MTOA_SHADERS)
 
 env.Install(env['TARGET_SCRIPTS_PATH'], glob.glob(os.path.join('scripts', '*.mel')))
