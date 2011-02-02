@@ -19,6 +19,7 @@
 #include <maya/MFnPointArrayData.h>
 #include <maya/MFnVectorArrayData.h>
 #include <maya/MMessage.h> // for MCallbackId
+#include <maya/MSceneMessage.h>
 #include <maya/MNodeMessage.h>
 #include <maya/MCallbackIdArray.h>
 #include <maya/MTimerMessage.h>
@@ -1029,5 +1030,182 @@ void CDagTranslator::AddVisibilityAttrs(MObject& node)
    nAttr.setReadable(true);
    nAttr.setWritable(true);
    fnNode.addAttribute(attr);
+}
+
+// --------- CTranslatorRegistry -------------//
+
+std::map<int, CreatorFunction>  CTranslatorRegistry::s_dagTranslators;
+std::map<int, CreatorFunction>  CTranslatorRegistry::s_dependTranslators;
+PluginDataMap CTranslatorRegistry::s_mayaPluginData;
+MCallbackId CTranslatorRegistry::s_pluginLoadedCallbackId;
+MCallbackIdArray CTranslatorRegistry::s_mayaCallbackIDs;
+
+// internal use
+bool CTranslatorRegistry::RegisterTranslator(const char* mayaNode, int typeId, CreatorFunction creator, NodeInitFunction nodeInitializer, const char* providedByPlugin)
+{
+   MStatus status;
+   MCallbackId id = 0;
+
+   if (!MFnPlugin::isNodeRegistered(mayaNode))
+   {
+      if (strlen(providedByPlugin) != 0)
+      {
+         // can't add the callback if the node type is unknown
+         // make the callback when the plugin is loaded
+         CMayaPluginData pluginData;
+         pluginData.mayaNode = mayaNode;
+         pluginData.nodeInitializer = nodeInitializer;
+         s_mayaPluginData[providedByPlugin].push_back(pluginData);
+      }
+      else
+      {
+         MGlobal::displayWarning(MString("[mtoa]: cannot register ") + mayaNode + ". the node type does not exist. If the node is provided by a plugin, specify providedByPlugin when registering its translator");
+         return false;
+      }
+   }
+   else
+   {
+      // add a callback for creating arnold attributes
+      id = MDGMessage::addNodeAddedCallback(CTranslatorRegistry::NodeCreatedCallback, mayaNode, (void *)nodeInitializer, &status);
+      CHECK_MSTATUS(status);
+   }
+
+   s_mayaCallbackIDs.append( id );
+
+   return true;
+}
+
+bool CTranslatorRegistry::RegisterDagTranslator(const char* mayaNode,int typeId, CreatorFunction creator, NodeInitFunction nodeInitializer, const char* providedByPlugin)
+{
+   if (RegisterTranslator(mayaNode, typeId, creator, nodeInitializer, providedByPlugin))
+   {
+      s_dagTranslators[typeId] = creator;
+      return true;
+   }
+   return false;
+}
+
+bool CTranslatorRegistry::RegisterDependTranslator(const char* mayaNode, int typeId, CreatorFunction creator, NodeInitFunction nodeInitializer, const char* providedByPlugin)
+{
+   if (RegisterTranslator(mayaNode, typeId, creator, nodeInitializer, providedByPlugin))
+   {
+      s_dependTranslators[typeId] = creator;
+      return true;
+   }
+   return false;
+}
+
+// internal use
+bool CTranslatorRegistry::RegisterTranslator(const char* mayaNode, int typeId, CreatorFunction creator)
+{
+   if (!MFnPlugin::isNodeRegistered(mayaNode))
+   {
+      MGlobal::displayWarning(MString("[mtoa]: cannot register ") + mayaNode + ". the node type does not exist. If the node is provided by a plugin, specify providedByPlugin when registering its translator");
+      return false;
+   }
+   return true;
+}
+
+bool CTranslatorRegistry::RegisterDagTranslator(const char* mayaNode, int typeId, CreatorFunction creator)
+{
+   if (RegisterTranslator(mayaNode, typeId, creator))
+   {
+      s_dagTranslators[typeId] = creator;
+      return true;
+   }
+   return false;
+}
+
+bool CTranslatorRegistry::RegisterDependTranslator(const char* mayaNode, int typeId, CreatorFunction creator)
+{
+   if (RegisterTranslator(mayaNode, typeId, creator))
+   {
+      s_dependTranslators[typeId] = creator;
+      return true;
+   }
+   return false;
+}
+
+CNodeTranslator* CTranslatorRegistry::GetDependTranslator(int typeId)
+{
+   std::map<int, CreatorFunction>::iterator translatorIt;
+   translatorIt = s_dependTranslators.find(typeId);
+   if (translatorIt != s_dependTranslators.end())
+   {
+      return (CNodeTranslator*)translatorIt->second();
+   }
+   return NULL;
+}
+
+CDagTranslator* CTranslatorRegistry::GetDagTranslator(int typeId)
+{
+   std::map<int, CreatorFunction>::iterator translatorIt;
+   translatorIt = s_dagTranslators.find(typeId);
+   if (translatorIt != s_dagTranslators.end())
+   {
+      return (CDagTranslator*)translatorIt->second();
+   }
+   return NULL;
+}
+
+
+// called when a plugin is loaded to ensure that each translator that requires
+// node initialization gets a callback installed
+void CTranslatorRegistry::MayaPluginLoadedCallback(const MStringArray &strs, void *clientData)
+{
+   // 0 = pluginPath, 1 = pluginName
+   MString pluginName = strs[1];
+   std::vector<CMayaPluginData> nodes = s_mayaPluginData[pluginName.asChar()];
+   for (unsigned int i=0; i < nodes.size(); i++)
+   {
+      // add a callback for creating arnold attributes
+      MStatus status;
+      AiMsgInfo("[mtoa] adding callback for node %s", nodes[i].mayaNode.c_str());
+      MCallbackId id = MDGMessage::addNodeAddedCallback(
+            CTranslatorRegistry::NodeCreatedCallback,
+            nodes[i].mayaNode.c_str(),
+            (void *)nodes[i].nodeInitializer,
+            &status);
+      CHECK_MSTATUS(status);
+      s_mayaCallbackIDs.append( id );
+   }
+   // callbacks only need to be added once
+   // it appears that they remain in place even after the plugin is unloaded and reloaded
+   s_mayaPluginData[pluginName.asChar()].clear();
+}
+
+void CTranslatorRegistry::NodeCreatedCallback(MObject &node, void *clientData)
+{
+   // CDynamicAttrHelper requires the universe to be initialized so that it can
+   // query information from arnold nodes
+   NodeInitFunction nodeInitializer = (NodeInitFunction)clientData;
+   if (AiUniverseIsActive())
+      nodeInitializer(node);
+   else
+   {
+      AiBegin();
+      nodeInitializer(node);
+      AiEnd();
+   }
+}
+
+void CTranslatorRegistry::CreateCallbacks()
+{
+   MStatus status;
+   // create callbacks
+   s_pluginLoadedCallbackId = MSceneMessage::addStringArrayCallback(MSceneMessage::kAfterPluginLoad, CTranslatorRegistry::MayaPluginLoadedCallback, NULL, &status);
+   CHECK_MSTATUS(status);
+}
+
+void CTranslatorRegistry::RemoveCallbacks()
+{
+   // delete callbacks
+   if ( s_pluginLoadedCallbackId != 0 )
+      MMessage::removeCallback( s_pluginLoadedCallbackId );
+
+   const MStatus status = MNodeMessage::removeCallbacks( s_mayaCallbackIDs );
+   CHECK_MSTATUS(status);
+   if ( status == MS::kSuccess )
+      s_mayaCallbackIDs.clear();
 }
 

@@ -30,12 +30,6 @@ struct CMayaNodeData
    MCallbackId callbackId;
 };
 
-struct CMayaPluginData
-{
-   std::string mayaNode;
-   NodeInitFunction nodeInitializer;
-};
-
 // key: maya node name
 typedef std::map<std::string, CMayaNodeData> MayaNodeDataMap;
 // key: arnold node name
@@ -44,18 +38,16 @@ typedef std::map<std::string, std::string> ArnoldNodeToMayaNode;
 typedef std::map<std::string, std::vector<std::string> > ArnoldPluginData;
 // key: maya node name
 typedef std::map<std::string, std::vector<CAttrData> > DynamicAttrMap;
-// plugin name to list of provided nodes needing callbacks
-typedef std::map<std::string, std::vector<CMayaPluginData> > PluginDataMap;
 
 int FindLibraries(MString searchPath, MStringArray &files);
 
 class DLLEXPORT CExtension
 {
 public:
-   void RegisterDependTranslator(const char* arnoldNodeName, int typeId, CreatorFunction creator);
-   void RegisterDagTranslator(const char* arnoldNodeName, int typeId, CreatorFunction creator);
-   void RegisterDependTranslator(const char* arnoldNodeName, int typeId, CreatorFunction creator, NodeInitFunction nodeInitializer, const char* providedByPlugin="");
-   void RegisterDagTranslator(const char* arnoldNodeName, int typeId, CreatorFunction creator, NodeInitFunction nodeInitializer, const char* providedByPlugin="");
+   void RegisterDependTranslator(const char* mayaNode, int typeId, CreatorFunction creator);
+   void RegisterDagTranslator(const char* mayaNode, int typeId, CreatorFunction creator);
+   void RegisterDependTranslator(const char* mayaNode, int typeId, CreatorFunction creator, NodeInitFunction nodeInitializer, const char* providedByPlugin="");
+   void RegisterDagTranslator(const char* mayaNode, int typeId, CreatorFunction creator, NodeInitFunction nodeInitializer, const char* providedByPlugin="");
 };
 
 typedef void (*pluginInitFunctionType)(CExtension&);
@@ -84,19 +76,8 @@ public:
 
    int getNumPlugins();
 
-   static bool RegisterDependTranslator(const char* mayaNode, int typeId, CreatorFunction creator, NodeInitFunction nodeInitializer, const char* providedByPlugin="");
-   static bool RegisterDagTranslator(const char* mayaNode, int typeId, CreatorFunction creator, NodeInitFunction nodeInitializer, const char* providedByPlugin="");
-   static bool RegisterDependTranslator(const char* mayaNode, int typeId, CreatorFunction creator);
-   static bool RegisterDagTranslator(const char* mayaNode, int typeId, CreatorFunction creator);
-
-   static void NodeCreatedCallback(MObject &node, void *clientData);
-   static void MayaPluginLoadedCallback(const MStringArray &strs, void *clientData);
 public:
    static MayaNodeDataMap s_factoryNodes;
-
-private:
-   static bool RegisterTranslator(const char* mayaNode, int typeId, CreatorFunction creator, NodeInitFunction nodeInitializer, const char* providedByPlugin);
-   static bool RegisterTranslator(const char* mayaNode, int typeId, CreatorFunction creator);
 
 private:
    bool  m_loadOk;
@@ -104,7 +85,6 @@ private:
    static int s_autoNodeId;
    static ArnoldNodeToMayaNode s_arnoldToMayaNodes;
    static ArnoldPluginData s_arnoldPlugins;
-   static PluginDataMap s_mayaPluginData;
    static MCallbackId s_pluginLoadedCallbackId;
    void *m_pluginHandle;
 };

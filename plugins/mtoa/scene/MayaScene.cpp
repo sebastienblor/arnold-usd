@@ -29,8 +29,6 @@
 #include <maya/MEventMessage.h>
 #include <maya/MDGMessage.h>
 
-std::map<int, CreatorFunction>  CMayaScene::s_dagTranslators;
-std::map<int, CreatorFunction>  CMayaScene::s_dependTranslators;
 std::vector< CNodeTranslator * > CMayaScene::s_translatorsToIPRUpdate;
 MCallbackId CMayaScene::s_IPRIdleCallbackId = 0;
 MCallbackId CMayaScene::s_NewNodeCallbackId = 0;
@@ -215,25 +213,21 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
    else
       AiMsgDebug("[mtoa] Exporting shader: %s", node.name().asChar());
 
-   AtInt nodeId = node.typeId().id();
-   std::map<int, CreatorFunction>::iterator dependTransIt = s_dependTranslators.find(nodeId);
-   if (dependTransIt != s_dependTranslators.end())
+   CNodeTranslator* translator = CTranslatorRegistry::GetDependTranslator(node.typeId().id());
+   if (translator != NULL)
    {
       if (mayaShader.hasFn(MFn::kDagNode))
       {
-         CDagTranslator* translator;
+         CDagTranslator* dagTranslator = (CDagTranslator*)translator;
          MDagPath dagPath;
          MDagPath::getAPathTo(mayaShader, dagPath);
-         translator = (CDagTranslator*)dependTransIt->second();
-         translator->Init(dagPath, this, attrName);
+         dagTranslator->Init(dagPath, this, attrName);
          // FIXME: currently shaders are only exported for step = 0
-         shader = translator->DoExport(0);
-         m_processedTranslators[MObjectHandle(mayaShader)] = translator;
+         shader = dagTranslator->DoExport(0);
+         m_processedTranslators[MObjectHandle(mayaShader)] = dagTranslator;
       }
       else
       {
-         CNodeTranslator* translator;
-         translator = (CNodeTranslator*)dependTransIt->second();
          translator->Init(mayaShader, this, attrName);
          // FIXME: currently shaders are only exported for step = 0
          shader = translator->DoExport(0);
@@ -426,12 +420,9 @@ bool CMayaScene::ExportDagPath(MDagPath &dagPath, AtUInt step)
    int instanceNum = dagPath.instanceNumber();
    if (step == 0)
    {
-      std::map<int, CreatorFunction>::iterator translatorIt;
-      translatorIt = s_dagTranslators.find(node.typeId().id());
-      if (translatorIt != s_dagTranslators.end())
+      CDagTranslator* translator = CTranslatorRegistry::GetDagTranslator(node.typeId().id());
+      if (translator != NULL)
       {
-         CDagTranslator* translator;
-         translator = (CDagTranslator*)translatorIt->second();
          translator->Init(dagPath, this);
          translator->DoExport(step);
          // save it for later
@@ -450,16 +441,6 @@ bool CMayaScene::ExportDagPath(MDagPath &dagPath, AtUInt step)
       }
    }
    return false;
-}
-
-void CMayaScene::RegisterDagTranslator(int typeId, CreatorFunction creator)
-{
-   s_dagTranslators[typeId] = creator;
-}
-
-void CMayaScene::RegisterTranslator(int typeId, CreatorFunction creator)
-{
-   s_dependTranslators[typeId] = creator;
 }
 
 CNodeTranslator * CMayaScene::GetActiveTranslator( const MObject node )

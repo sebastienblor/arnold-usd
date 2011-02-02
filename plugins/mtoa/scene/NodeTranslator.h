@@ -15,6 +15,20 @@
 
 class CMayaScene;
 
+
+typedef void *   (*CreatorFunction)();
+typedef void     (*NodeInitFunction)(MObject&);
+
+struct CMayaPluginData
+{
+   std::string mayaNode;
+   NodeInitFunction nodeInitializer;
+};
+
+// plugin name to list of provided nodes needing callbacks
+typedef std::map<std::string, std::vector<CMayaPluginData> > PluginDataMap;
+
+
 // Abstract base class for all Maya-to-Arnold node translators
 //
 class DLLEXPORT CNodeTranslator
@@ -128,6 +142,37 @@ protected:
    MDagPath m_dagPath;
    MFnDagNode m_fnNode;
    static ObjectHandleToDagMap s_masterInstances;
+};
+
+// Translator Registry
+
+class DLLEXPORT CTranslatorRegistry
+{
+public:
+   static bool RegisterDependTranslator(const char* mayaNode, int typeId, CreatorFunction creator, NodeInitFunction nodeInitializer, const char* providedByPlugin="");
+   static bool RegisterDagTranslator(const char* mayaNode, int typeId, CreatorFunction creator, NodeInitFunction nodeInitializer, const char* providedByPlugin="");
+   static bool RegisterDependTranslator(const char* mayaNode, int typeId, CreatorFunction creator);
+   static bool RegisterDagTranslator(const char* mayaNode, int typeId, CreatorFunction creator);
+
+   static CNodeTranslator* GetDependTranslator(int typeId);
+   static CDagTranslator* GetDagTranslator(int typeId);
+
+   static void NodeCreatedCallback(MObject &node, void *clientData);
+   static void MayaPluginLoadedCallback(const MStringArray &strs, void *clientData);
+   static void CreateCallbacks();
+   static void RemoveCallbacks();
+
+private:
+   static bool RegisterTranslator(const char* mayaNode, int typeId, CreatorFunction creator, NodeInitFunction nodeInitializer, const char* providedByPlugin);
+   static bool RegisterTranslator(const char* mayaNode, int typeId, CreatorFunction creator);
+
+private:
+   static std::map<int, CreatorFunction>  s_dagTranslators;
+   static std::map<int, CreatorFunction>  s_dependTranslators;
+   
+   static PluginDataMap s_mayaPluginData;
+   static MCallbackId s_pluginLoadedCallbackId;
+   static MCallbackIdArray s_mayaCallbackIDs;
 };
 
 #endif // NODETRANSLATOR_H

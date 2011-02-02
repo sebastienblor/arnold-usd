@@ -58,9 +58,6 @@ typedef std::map<MObjectHandle, CNodeTranslator*, mobjcompare> ObjectToTranslato
 // dag nodes: have one translator per instance, so they map MObject to a sub-map, from dag instance number to translator
 typedef std::map<MObjectHandle, std::map<int, CNodeTranslator*>, mobjcompare> ObjectToDagTranslatorMap;
 
-typedef void *   (*CreatorFunction)();
-typedef void     (*NodeInitFunction)(MObject&);
-
 class DLLEXPORT CMayaScene
 {
 
@@ -95,8 +92,6 @@ public:
    
    static void UpdateIPR(CNodeTranslator * translator=0x0);
    static bool IsVisibleDag(MDagPath dagPath);
-   static void RegisterDagTranslator(int typeId, CreatorFunction creator);
-   static void RegisterTranslator(int typeId, CreatorFunction creator);
 
    bool IsMotionBlurEnabled() const
    {
@@ -188,9 +183,6 @@ private:
    MDagPath m_camera;
 
    AtFloat m_currentFrame;
-
-   static std::map<int, CreatorFunction>  s_dagTranslators;
-   static std::map<int, CreatorFunction>  s_dependTranslators;
 };  // class CMayaScene
 
 #endif // MAYASCENE_H
