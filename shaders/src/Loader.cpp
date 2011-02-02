@@ -45,6 +45,7 @@ extern AtNodeMethods* MayaVolumeNoiseMtd;
 extern AtNodeMethods* MayaBrownianMtd;
 extern AtNodeMethods* MayaStuccoMtd;
 extern AtNodeMethods* MayaRemapHsvMtd;
+extern AtNodeMethods* MayaImagePlaneMtd;
 
 node_loader
 {
@@ -341,6 +342,13 @@ node_loader
       node->methods     = MayaSetRangeMtd;
       node->output_type = AI_TYPE_VECTOR;
       node->name        = "MayaSetRange";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+
+   case 42:
+      node->methods     = MayaImagePlaneMtd;
+      node->output_type = AI_TYPE_RGBA;
+      node->name        = "MayaImagePlane";
       node->node_type   = AI_NODE_SHADER;
       break;
 

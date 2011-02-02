@@ -4,6 +4,7 @@
 
 #include <ai_cameras.h>
 #include <ai_constants.h>
+#include <ai_msg.h>
 
 #include <maya/MFnCamera.h>
 #include <maya/MPlug.h>
@@ -12,6 +13,7 @@
 #include <maya/MVectorArray.h>
 #include <maya/MRenderUtil.h>
 #include <maya/MFnNumericAttribute.h>
+#include <maya/MImage.h>
 
 using namespace std;
 
@@ -20,132 +22,360 @@ double MM_TO_INCH = 0.03937;
 
 void CCameraTranslator::ExportImagePlane(AtUInt step)
 {
-   MPlugArray connectedPlugs;
-   MPlug      imagePlanePlug;
-   MPlug      imagePlaneNodePlug;
-   MStatus    status;
+    MPlugArray connectedPlugs;
+    MPlug      imagePlanePlug;
+    MPlug      imagePlaneNodePlug;
+    MStatus    status;
 
-   // first we get the image planes connected to this camera
-   imagePlanePlug = m_fnNode.findPlug("imagePlane");
+    // first we get the image planes connected to this camera
+    imagePlanePlug = m_fnNode.findPlug("imagePlane");
 
-   if (imagePlanePlug.numConnectedElements() > 0)
-   {
-      for(AtUInt ips = 0; (ips < imagePlanePlug.numElements()); ips++)
-      {
-         imagePlaneNodePlug = imagePlanePlug.elementByPhysicalIndex(ips);
-         imagePlaneNodePlug.connectedTo(connectedPlugs, true, false, &status);
-         MObject resNode = connectedPlugs[0].node(&status);
+    if (imagePlanePlug.numConnectedElements() > 0)
+    {
+        for(AtUInt ips = 0; (ips < imagePlanePlug.numElements()); ips++)
+        {
+            imagePlaneNodePlug = imagePlanePlug.elementByPhysicalIndex(ips);
+            imagePlaneNodePlug.connectedTo(connectedPlugs, true, false, &status);
+            MObject resNode = connectedPlugs[0].node(&status);
 
-         if (status)
-         {
-            // get the dependency node of the image plane
-            MFnDependencyNode fnRes(resNode);
-
-            // check if the image plane should be created
-            int displayMode           = fnRes.findPlug("displayMode", &status).asInt();
-            if ( displayMode > 1 )
+            if (status)
             {
+                // get the dependency node of the image plane
+                MFnDependencyNode fnRes(resNode);
 
-               MString imagePlaneName(m_fnNode.partialPathName());
-               imagePlaneName += "_IP_";
-               imagePlaneName += ips;
-               double planeSizeX = fnRes.findPlug("sizeX", &status).asDouble();
-               double planeSizeY = fnRes.findPlug("sizeY", &status).asDouble();
-               double planeDepth = fnRes.findPlug("depth").asDouble();
-               double camFocal = m_fnNode.findPlug("focalLength").asDouble();
-               double camScale = m_fnNode.findPlug("cameraScale").asDouble();
-               double ipWidth = (planeSizeX * planeDepth) / ((camFocal * 0.0393700787) / camScale);
-               double ipHeight = (planeSizeY * planeDepth) / ((camFocal * 0.0393700787) / camScale);
+                // check if the image plane should be created
+                int displayMode = fnRes.findPlug("displayMode", &status).asInt();
+                if ( displayMode > 1 )
+                {
 
-               if ( (!m_motion) || (step == 0))
-               {
-                  // get data
-                  MString imageName;
-                  MString frameNumber("0");
-                  frameNumber += m_scene->GetCurrentFrame() + fnRes.findPlug("frameOffset").asInt();
-                  imageName = MRenderUtil::exactImagePlaneFileName(resNode);
-                  imageName = MRenderUtil::exactFileTextureName(imageName, fnRes.findPlug("useFrameExtension").asBool(), frameNumber);
+                    MString imagePlaneName(m_fnNode.partialPathName());
+                    imagePlaneName += "_IP_";
+                    imagePlaneName += ips;
+                    MString imageName;
+                    MImage mImage;
 
-                  // CREATE PLANE
-                  AtNode* imagePlane = AiNode("polymesh");
-                  AiNodeSetStr(imagePlane, "name", imagePlaneName.asChar());
-                  AiNodeSetArray(imagePlane, "nsides", AiArray(1, 1, AI_TYPE_BYTE, 4));
-                  AiNodeSetArray(imagePlane, "vidxs", AiArray(4, 1, AI_TYPE_UINT, 0, 1, 3, 2));
-                  AiNodeSetArray(imagePlane, "nidxs", AiArray(4, 1, AI_TYPE_UINT, 0, 1, 2, 3));
-                  AiNodeSetArray(imagePlane, "uvidxs", AiArray(4, 1, AI_TYPE_UINT, 0, 1, 3, 2));
-                  AtPoint p1, p2, p3, p4, n1;
-                  AtPoint2 uv1, uv2, uv3, uv4;
-                  AiV3Create(p1, -0.5, -0.5, 0.0);
-                  AiV3Create(p2, 0.5, -0.5, 0.0);
-                  AiV3Create(p3, -0.5, 0.5, 0.0);
-                  AiV3Create(p4, 0.5, 0.5, 0.0);
-                  AiV3Create(n1, 0.0, 0.0, 1.0);
-                  AiV2Create(uv1, 0, 0);
-                  AiV2Create(uv2, 1, 0);
-                  AiV2Create(uv3, 0, 1);
-                  AiV2Create(uv4, 1, 1);
+                    //type: 0 == Image, 1 == Texture, 2 == Movie
+                    int type = fnRes.findPlug("type", &status).asInt();
+                
+                    if(type == 2)//Not supporting type Movie for now....
+                    {
+                        AiMsgWarning("Image Planes of type Movie are unsupported");
+                        return;
+                    }
 
-                  AiNodeSetArray(imagePlane, "vlist", AiArray(4, 1, AI_TYPE_POINT, p1, p2, p3, p4));
-                  AiNodeSetArray(imagePlane, "nlist", AiArray(4, 1, AI_TYPE_VECTOR, n1, n1, n1, n1));
-                  AiNodeSetArray(imagePlane, "uvlist", AiArray(4, 1, AI_TYPE_POINT2, uv1, uv2, uv3, uv4));
-                  AiNodeSetInt(imagePlane, "visibility", 65425);
+                    if(type == 0)//If we have an Image type lets get the image.
+                    {
+                        // get data
+                        if ( (!m_motion) || (step == 0))
+                        {
+                            MString frameNumber("0");
+                            frameNumber += m_scene->GetCurrentFrame() + fnRes.findPlug("frameOffset").asInt();
+                            imageName = MRenderUtil::exactFileTextureName(imageName, fnRes.findPlug("useFrameExtension").asBool(), frameNumber);
+                            imageName = MRenderUtil::exactImagePlaneFileName(resNode);
+                            mImage = MImage();
+                            mImage.readFromFile(imageName);
+                        }
+                    }
+                             
+                    double planeSizeX = fnRes.findPlug("sizeX", &status).asDouble();
+                    double planeSizeY = fnRes.findPlug("sizeY", &status).asDouble();
 
-                  // create a flat shader with the needed image
-                  AtNode* imagePlaneShader = AiNode("flat");
-                  AtNode* imagePlaneImage = AiNode("image");
-                  AiNodeSetStr(imagePlaneImage, "filename", imageName.asChar());
-                  AiNodeLink(imagePlaneImage, "color", imagePlaneShader);
-                  AiNodeLink(imagePlaneImage, "opacity", imagePlaneShader);
-                  AiNodeSetPtr(imagePlane, "shader", imagePlaneShader);
-               }
+                    int lockedToCamera = fnRes.findPlug("lockedToCamera", &status).asInt();
+                    if(!lockedToCamera)
+                    {
+                        planeSizeX = fnRes.findPlug("width", &status).asDouble();
+                        planeSizeY = fnRes.findPlug("height", &status).asDouble();
+                    }
 
-               AtNode* imagePlane = AiNodeLookUpByName(imagePlaneName.asChar());
+                    double planeDepth = fnRes.findPlug("depth").asDouble();
+                    double camFocal = m_fnNode.findPlug("focalLength").asDouble();
+                    double camScale = m_fnNode.findPlug("cameraScale").asDouble();
+                    double lensSqueeze = m_fnNode.findPlug("lensSqueezeRatio").asDouble();
 
-               AtMatrix depthMatrix;
-               AtMatrix scaleMatrix;
-               AtMatrix imagePlaneMatrix;
-               AtVector depthVector;
-               AtVector scaleVector;
+                    float ipCoverageX = 1.0f;
+                    float ipCoverageY = 1.0f;
+                    float ipTranslateX = 0.0f;
+                    float ipTranslateY = 0.0f;
 
-               AiV3Create(depthVector, 0.0f, 0.0f, static_cast<float>(-planeDepth));
-               AiV3Create(scaleVector, static_cast<float>(ipWidth), static_cast<float>(ipHeight), 1.0f);
-               AiM4Translation(depthMatrix, &depthVector);
-               AiM4Scaling(scaleMatrix, &scaleVector);
+                    unsigned int iWidth = 0;
+                    unsigned int iHeight = 0;
+                    if(type == 0)
+                    {
+                        //0:Fill 1:Best 2:Horizontal 3:Vertical 4:ToSize
+                        mImage.getSize(iWidth, iHeight);
 
-               // get cam's matrix
-               AtMatrix translateMatrix;
-               GetMatrix(translateMatrix);
+                        int fit = fnRes.findPlug("fit", &status).asInt();                  
+                        double planeAspect = (planeSizeX * lensSqueeze) / planeSizeY;
+                        double iAspect = double(iWidth) / iHeight;  
 
-               // multiply in order
-               AiM4Identity(imagePlaneMatrix);
-               AiM4Mult(imagePlaneMatrix, imagePlaneMatrix, scaleMatrix);
-               AiM4Mult(imagePlaneMatrix, imagePlaneMatrix, depthMatrix);
-               AiM4Mult(imagePlaneMatrix, imagePlaneMatrix, translateMatrix);
+                        if(fit == 1)//Best fit
+                        {
+                            if(iAspect > 1)
+                                fit = 2;
+                            else
+                                fit = 3;
+                        }
 
-               // image plane should move with the camera to render it with no motion blur
-               if (m_motion)
-               {
-                  if (step == 0)
-                  {
-                     AtArray* matrices = AiArrayAllocate(1, m_scene->GetNumMotionSteps(), AI_TYPE_MATRIX);
-                     AiArraySetMtx(matrices, 0, imagePlaneMatrix);
-                     AiNodeSetArray(imagePlane, "matrix", matrices);
-                  }
-                  else
-                  {
-                     AtArray* matrices = AiNodeGetArray(imagePlane, "matrix");
-                     AiArraySetMtx(matrices, step, imagePlaneMatrix);
-                  }
-               }
-               else
-               {
-                  AiNodeSetMatrix(imagePlane, "matrix", imagePlaneMatrix);
-               }
+                        bool clip = false;
 
+                        if(fit == 0)//Fill: Here the image is cropped to fit if aspect is off
+                        {
+                            if(iAspect != planeAspect)
+                            {
+                                clip = true;
+                            }
+                        }
+                        else if(fit == 2)//Horizontal fit
+                        {
+                            if(iAspect > 1)//Double check here against the image aspect
+                                planeSizeY = (planeSizeX * lensSqueeze) / iAspect;
+
+                            planeAspect = (planeSizeX * lensSqueeze) / planeSizeY;
+                            if(iAspect != planeAspect)
+                            {
+                                clip = true;
+                            }
+                        }
+                        else if(fit == 3)//Vertical fit
+                        {
+                            if(iAspect < 1)
+                                planeSizeX = planeSizeY / iAspect;
+
+                            planeAspect = (planeSizeX * lensSqueeze) / planeSizeY;
+                            if(iAspect != planeAspect)
+                            {
+                                clip = true;
+                            }
+                        }
+                        else if(fit == 5)//To Size: Here the image is squashed or stretched to size if aspect is off
+                        {
+                            double squeezeCorrection = fnRes.findPlug("squeezeCorrection").asDouble();
+                            if(squeezeCorrection < 0.0001f)
+                                squeezeCorrection = 1.0f;
+                            planeSizeX /= squeezeCorrection;
+                        }
+
+                        if(clip)
+                        {
+                            if(planeAspect < iAspect)//We have some horizontal clipping
+                            {
+                                ipCoverageX = static_cast<float>((iAspect / planeAspect));
+                                ipTranslateX = (1 - ipCoverageX) * 0.5f;
+                            }
+                            else//We have vertical clipping
+                            {
+                                ipCoverageY = static_cast<float>((planeAspect / iAspect));
+                                ipTranslateY = (1 - ipCoverageY) * 0.5f;
+                            }
+                        }
+                    }
+
+                    double ipWidth = planeSizeX;
+                    double ipHeight = planeSizeY;
+
+                    if(lockedToCamera)
+                    {
+                        ipWidth = (planeSizeX * planeDepth * lensSqueeze) / ((camFocal * MM_TO_INCH) / camScale);
+                        ipHeight = (planeSizeY * planeDepth) / ((camFocal * MM_TO_INCH) / camScale);
+                    }
+
+                    if ( (!m_motion) || (step == 0))
+                    {
+                      
+                        // CREATE PLANE
+                        AtNode* imagePlane = AiNode("polymesh");
+                        AiNodeSetStr(imagePlane, "name", imagePlaneName.asChar());
+                        AiNodeSetArray(imagePlane, "nsides", AiArray(1, 1, AI_TYPE_BYTE, 4));
+                        AiNodeSetArray(imagePlane, "vidxs", AiArray(4, 1, AI_TYPE_UINT, 0, 1, 3, 2));
+                        AiNodeSetArray(imagePlane, "nidxs", AiArray(4, 1, AI_TYPE_UINT, 0, 1, 2, 3));
+                        AiNodeSetArray(imagePlane, "uvidxs", AiArray(4, 1, AI_TYPE_UINT, 0, 1, 3, 2));
+                        AtPoint p1, p2, p3, p4, n1;
+                        AtPoint2 uv1, uv2, uv3, uv4;
+                        AiV3Create(p1, -0.5, -0.5, 0.0);
+                        AiV3Create(p2, 0.5, -0.5, 0.0);
+                        AiV3Create(p3, -0.5, 0.5, 0.0);
+                        AiV3Create(p4, 0.5, 0.5, 0.0);
+                        AiV3Create(n1, 0.0, 0.0, 1.0);
+                      
+                        //UV Values
+                        //Use the coverage options as well as the coverage origin options here
+                        //to manipulate the UV's of the image plane.
+                        double uMin, vMin = 0;
+                        double uMax, vMax = 1.0f;
+
+                        if(type == 0)
+                        {
+                            double coverageX = fnRes.findPlug("coverageX", &status).asDouble();
+                            double coverageY = fnRes.findPlug("coverageY", &status).asDouble();
+                            double uOffset = 1.0f + (((0.0f - coverageX)/(0.0f - iWidth)) * (0.0f - 1.0f));
+                            double vOffset = 1.0f + (((0.0f - coverageY)/(0.0f - iHeight)) * (0.0f - 1.0f));
+
+                            int coverageOriginX = fnRes.findPlug("coverageOriginX", &status).asInt();
+                            int coverageOriginY = fnRes.findPlug("coverageOriginY", &status).asInt();
+                          
+                            double uOriginOffset = (((coverageOriginX - 0.0f)/(iWidth - 0.0f)) * (1.0f - 0.0f));
+                            double vOriginOffset = (((coverageOriginY - 0.0f)/(iHeight - 0.0f)) * (1.0f - 0.0f)); 
+
+                            uMin = uOriginOffset;
+                            uMax = 1.0f - (uOffset - uOriginOffset);
+                            if(uMax > 1)
+                                uMax = 1.0f;
+                          
+                            vMin = vOriginOffset;
+                            vMax = 1.0f - (vOffset - vOriginOffset);
+                            if(vMax > 1)
+								vMax = 1.0f;
+                        }
+
+                        AiV2Create(uv1, uMin, vMin);
+                        AiV2Create(uv2, uMax, vMin);
+                        AiV2Create(uv3, uMin, vMax);
+                        AiV2Create(uv4, uMax, vMax);
+
+                        AiNodeSetArray(imagePlane, "vlist", AiArray(4, 1, AI_TYPE_POINT, p1, p2, p3, p4));
+                        AiNodeSetArray(imagePlane, "nlist", AiArray(4, 1, AI_TYPE_VECTOR, n1, n1, n1, n1));
+                        AiNodeSetArray(imagePlane, "uvlist", AiArray(4, 1, AI_TYPE_POINT2, uv1, uv2, uv3, uv4));
+                        AiNodeSetInt(imagePlane, "visibility", 65425);
+
+                        // create a flat shader with the needed image
+                        MPlug colorPlug;
+                        MPlugArray conn;
+
+                        AtNode* imagePlaneShader = AiNode("MayaImagePlane");
+                        if(type == 0)
+                        {
+                            AiNodeSetStr(imagePlaneShader, "filename", imageName.asChar());
+                            AiNodeSetInt(imagePlaneShader, "displayMode", displayMode);
+                            AiNodeSetPnt2(imagePlaneShader, "coverage", ipCoverageX, ipCoverageY);
+                            AiNodeSetPnt2(imagePlaneShader, "translate", ipTranslateX, ipTranslateY);
+                        }
+                        else if(type == 1)
+                        {
+                            MPlug colorPlug  = fnRes.findPlug("sourceTexture");
+                            MPlugArray conn;
+                            colorPlug.connectedTo(conn, true, false);
+                            if(conn.length())
+                            {
+                                MPlug outputPlug = conn[0];
+                                AiNodeLink(m_scene->ExportShader(outputPlug), "color", imagePlaneShader);
+                            }
+                        }
+                        
+                        AiNodeSetPtr(imagePlane, "shader", imagePlaneShader);
+                        AiNodeSetBool(imagePlane, "opaque", 0);
+                      
+                        // Check if we have a texture file or a simple color
+                        // in our colorGain and colorOffset
+                        if(type == 0)
+                        {
+                            colorPlug  = fnRes.findPlug("colorGain");
+                            colorPlug.connectedTo(conn, true, false);
+                            if(!conn.length())
+                                AiNodeSetRGB(imagePlaneShader, "colorGain", colorPlug.child(0).asFloat(), colorPlug.child(1).asFloat(), colorPlug.child(2).asFloat());
+                            else
+                            {
+                                MPlug outputPlug = conn[0];
+                                AiNodeLink(m_scene->ExportShader(outputPlug), "colorGain", imagePlaneShader);
+                            }
+
+                            colorPlug  = fnRes.findPlug("colorOffset");
+                            colorPlug.connectedTo(conn, true, false);
+                            if(!conn.length())
+                                AiNodeSetRGB(imagePlaneShader, "colorOffset", colorPlug.child(0).asFloat(), colorPlug.child(1).asFloat(), colorPlug.child(2).asFloat());
+                            else
+                            {
+                                MPlug outputPlug = conn[0];
+                                AiNodeLink(m_scene->ExportShader(outputPlug), "colorOffset", imagePlaneShader);
+                            }
+
+                            float alphaGain = fnRes.findPlug("alphaGain", &status).asFloat();
+                            AiNodeSetFlt(imagePlaneShader, "alphaGain", alphaGain);
+                        }
+                    }
+
+                    AtNode* imagePlane = AiNodeLookUpByName(imagePlaneName.asChar());
+
+                    AtMatrix offsetMatrix;
+                    AtMatrix scaleMatrix;
+                    AtMatrix rotationMatrix;
+                    AtMatrix imagePlaneMatrix;
+                    AtVector offsetVector;
+                    AtVector scaleVector;
+                   
+                    double offsetX = fnRes.findPlug("offsetX", &status).asDouble();
+                    double offsetY = fnRes.findPlug("offsetY", &status).asDouble();
+                    double offsetZ = -planeDepth;
+                   
+                    //if the plane is locked to the camera find and use the offset values
+                    //otherwise it isn't locked so use the center attribute values to offset the plane
+                    if(lockedToCamera)
+                    {
+                        offsetX = (offsetX * planeDepth) / ((camFocal * MM_TO_INCH) / camScale);
+                        offsetY = (offsetY * planeDepth) / ((camFocal * MM_TO_INCH) / camScale);
+                    }
+                    else
+                    {
+                        double centerX = fnRes.findPlug("centerX", &status).asDouble();
+                        double centerY = fnRes.findPlug("centerY", &status).asDouble();
+                        double centerZ = fnRes.findPlug("centerZ", &status).asDouble();
+                        offsetX = centerX;
+                        offsetY = centerY;
+                        offsetZ = centerZ;
+                    }
+                   
+                    AiV3Create(offsetVector, static_cast<float>(offsetX), static_cast<float>(offsetY), static_cast<float>(offsetZ));
+                    AiV3Create(scaleVector, static_cast<float>(ipWidth), static_cast<float>(ipHeight), 1.0f);
+                    AiM4Translation(offsetMatrix, &offsetVector);
+                    AiM4Scaling(scaleMatrix, &scaleVector);
+
+                    if(lockedToCamera)
+                    {
+                        double ipRotate = fnRes.findPlug("rotate", &status).asDouble() * AI_RTOD * -1.0f;
+                        AiM4RotationZ(rotationMatrix, float(ipRotate));
+                    }
+                    else
+                    {
+                        //Get the camera's object space rotation matrix
+                        GetRotationMatrix(rotationMatrix);
+                    }
+
+                    // multiply in order
+                    AiM4Identity(imagePlaneMatrix);
+                    AiM4Mult(imagePlaneMatrix, imagePlaneMatrix, scaleMatrix);
+                    AiM4Mult(imagePlaneMatrix, imagePlaneMatrix, rotationMatrix);
+                    AiM4Mult(imagePlaneMatrix, imagePlaneMatrix, offsetMatrix);
+                    //if the imageplane is locked we use the camera's matrix
+                    if(lockedToCamera)
+                    {
+                        // get cam's matrix
+                        AtMatrix translateMatrix;
+                        GetMatrix(translateMatrix);
+                        AiM4Mult(imagePlaneMatrix, imagePlaneMatrix, translateMatrix);
+                    }
+
+                    // image plane should move with the camera to render it with no motion blur
+                    if (m_motion)
+                    {
+                        if (step == 0)
+                        {
+                            AtArray* matrices = AiArrayAllocate(1, m_scene->GetNumMotionSteps(), AI_TYPE_MATRIX);
+                            AiArraySetMtx(matrices, 0, imagePlaneMatrix);
+                            AiNodeSetArray(imagePlane, "matrix", matrices);
+                        }
+                        else
+                        {
+                            AtArray* matrices = AiNodeGetArray(imagePlane, "matrix");
+                            AiArraySetMtx(matrices, step, imagePlaneMatrix);
+                        }
+                    }
+                    else
+                    {
+                        AiNodeSetMatrix(imagePlane, "matrix", imagePlaneMatrix);
+                    }
+                }
             }
-         }
-      }
-   }
+        }
+    }
 }
 
 void CCameraTranslator::ExportCameraData(AtNode* camera)

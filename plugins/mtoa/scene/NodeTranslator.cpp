@@ -23,7 +23,8 @@
 #include <maya/MNodeMessage.h>
 #include <maya/MCallbackIdArray.h>
 #include <maya/MTimerMessage.h>
-
+#include <maya/MTransformationMatrix.h>
+#include <maya/MFnTransform.h>
 #include <string>
 
 //------------ CNodeTranslator ------------//
@@ -474,7 +475,6 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
    }
 }
 
-
 // populate an arnold matrix with values from a maya matrix
 void CNodeTranslator::ConvertMatrix(AtMatrix& matrix, const MMatrix& mayaMatrix)
 {
@@ -852,6 +852,22 @@ bool CDagTranslator::IsMasterInstance(MDagPath &masterDag)
    }
    // not instanced: m_dagPath is the master
    return true;
+}
+
+void CDagTranslator::GetRotationMatrix(AtMatrix& matrix)
+{
+   MObject transform = m_dagPath.transform();
+   MFnTransform mTransform = MFnTransform(transform);
+   MTransformationMatrix mTransformMatrix = mTransform.transformation();
+
+   MMatrix tm = mTransformMatrix.asRotateMatrix();
+   for (int J = 0; (J < 4); ++J)
+   {
+      for (int I = 0; (I < 4); ++I)
+      {
+         matrix[I][J] = (float) tm[I][J];
+      }
+   }
 }
 
 void CDagTranslator::GetMatrix(AtMatrix& matrix)

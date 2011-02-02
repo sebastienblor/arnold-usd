@@ -131,6 +131,7 @@ public:
 protected:
    CDagTranslator() : CNodeTranslator(){}
    bool IsMasterInstance(MDagPath &masterDag);
+   void GetRotationMatrix(AtMatrix& matrix);
    void GetMatrix(AtMatrix& matrix);
    void ExportMatrix(AtNode* node, AtUInt step);
    AtInt ComputeVisibility(bool mayaStyleAttrs=false);
