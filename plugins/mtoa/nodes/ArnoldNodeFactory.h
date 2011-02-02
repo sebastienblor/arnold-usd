@@ -71,7 +71,8 @@ public:
    void LoadPlugins();
    void UnloadPlugins();
 
-   bool RegisterMayaNode(AtNodeEntry* arnoldNode);
+   bool RegisterMayaNode(const AtNodeEntry* arnoldNode);
+   bool RegisterMayaNode(const char* arnoldNodeName, const char* mayaNodeName, int nodeId, const char* shaderClass="");
    static bool MapToMayaNode(const char* arnoldNodeName, const char* mayaCounterpart, int typeId);
    void UnregisterMayaNode(const char* arnoldNodeName);
    void RegisterAllNodes();

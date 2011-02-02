@@ -338,7 +338,7 @@ bool CArnoldNodeFactory::RegisterDependTranslator(const char* mayaNode, int type
 //
 // options 4 & 5 will result in no new maya node being created.
 //
-bool CArnoldNodeFactory::RegisterMayaNode(AtNodeEntry* arnoldNode)
+bool CArnoldNodeFactory::RegisterMayaNode(const AtNodeEntry* arnoldNode)
 {
    MStatus status;
    const char* arnoldNodeName = AiNodeEntryGetName(arnoldNode);
@@ -377,17 +377,24 @@ bool CArnoldNodeFactory::RegisterMayaNode(AtNodeEntry* arnoldNode)
    MGlobal::displayInfo(MString("[mtoa] INFO: Loading shader: ") + arnoldNodeName);
 
    // classification string
-   MString shaderClass = "shader/surface";
+   MString shaderClass = "";
    char tmp[256];
    if (MAiMetaDataGetStr(arnoldNode, NULL, "maya.class", tmp))
       shaderClass = tmp;
-   shaderClass += "/:swatch/ArnoldRenderSwatch";
+   return RegisterMayaNode(arnoldNodeName, mayaNodeName, nodeId, shaderClass.asChar());
+}
+
+bool CArnoldNodeFactory::RegisterMayaNode(const char* arnoldNodeName, const char* mayaNodeName, int nodeId, const char* shaderClass)
+{
+   MString classification = "shader/surface:swatch/ArnoldRenderSwatch";
+   if (strlen(shaderClass))
+      classification += MString(":") + shaderClass;
 
    // Create a custom named shader node type
    CArnoldCustomShaderNode::s_shaderName = arnoldNodeName;
 
    // Register the node and its parameters
-   status = m_plugin.registerNode(mayaNodeName, nodeId, CArnoldCustomShaderNode::creator, CArnoldCustomShaderNode::initialize, MPxNode::kDependNode, &shaderClass);
+   MStatus status = m_plugin.registerNode(mayaNodeName, nodeId, CArnoldCustomShaderNode::creator, CArnoldCustomShaderNode::initialize, MPxNode::kDependNode, &classification);
    CHECK_MSTATUS(status);
 
    if (status != MStatus::kSuccess || !MapToMayaNode(arnoldNodeName, mayaNodeName,  nodeId))
