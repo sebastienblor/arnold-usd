@@ -1,6 +1,6 @@
-#include "ArnoldNodeHelper.h"
+#include "AttrHelper.h"
 #include "nodes/ShaderUtils.h"
-#include "Metadata.h"
+#include "utils/Metadata.h"
 
 #include "Utils.h"
 

@@ -7,7 +7,7 @@
 #include "nodes/ArnoldNodeIDs.h"
 #include "scene/NodeTranslator.h"
 #include "scene/MayaScene.h"
-#include "nodes/ArnoldNodeHelper.h"
+#include "utils/AttrHelper.h"
 #include "common/DynLibrary.h"
 
 #include <ai_nodes.h>

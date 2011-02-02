@@ -2,7 +2,7 @@
 #define ARNOLDSKYDOMELIGHTSHADER_H
 
 #include "nodes/shaders/background/SphereLocator.h"
-#include "nodes/ArnoldNodeHelper.h"
+#include "utils/AttrHelper.h"
 
 #include <ai_types.h>
 

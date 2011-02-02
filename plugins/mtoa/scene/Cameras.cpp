@@ -1,6 +1,6 @@
 
 #include "Cameras.h"
-#include "nodes/ArnoldNodeHelper.h"
+#include "utils/AttrHelper.h"
 
 #include <ai_cameras.h>
 #include <ai_constants.h>

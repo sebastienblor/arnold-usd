@@ -1,7 +1,7 @@
 #ifndef ARNOLDCUSTOMSHADER_H
 #define ARNOLDCUSTOMSHADER_H
 
-#include "nodes/ArnoldNodeHelper.h"
+#include "utils/AttrHelper.h"
 #include <maya/MPxHwShaderNode.h>
 #include <maya/MObjectArray.h>
 

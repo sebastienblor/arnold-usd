@@ -1,6 +1,6 @@
 #include "Lights.h"
 #include "nodes/ShaderUtils.h"
-#include "nodes/ArnoldNodeHelper.h"
+#include "utils/AttrHelper.h"
 
 #include <ai_constants.h>
 #include <ai_msg.h>

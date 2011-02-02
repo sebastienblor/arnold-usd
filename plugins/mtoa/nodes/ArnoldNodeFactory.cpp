@@ -3,7 +3,7 @@
 //-------------------------------------------------------------------------- 
 #include "ArnoldNodeFactory.h"
 #include "nodes/shaders/surface/ArnoldCustomShader.h"
-#include "nodes/Metadata.h"
+#include "utils/Metadata.h"
 #include "render/RenderSession.h"
 
 #include <ai_plugins.h>
