@@ -161,6 +161,10 @@ def createArnoldRenderSettings():
                    label="Enable Hit Refinement",
                    attribute='defaultArnoldRenderOptions.enable_hit_refinement')
 
+    cmds.attrControlGrp('os_preserve_scene_data',
+                   label='Preserve Scene Data',
+                   attribute='defaultArnoldRenderOptions.preserve_scene_data')
+
     cmds.separator()
 
     cmds.checkBoxGrp('os_threads_autodetect',

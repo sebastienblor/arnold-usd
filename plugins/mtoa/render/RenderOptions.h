@@ -366,7 +366,7 @@ private:
    bool      m_isAnimated;
 
    MCommonRenderSettingsData m_defaultRenderGlobalsData;
-   
+
    bool     m_progressive_rendering;
    AtUInt   m_threads;
    MString  m_plugins_path;

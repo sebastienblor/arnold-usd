@@ -186,6 +186,8 @@ MStatus CArnoldRenderOptionsNode::initialize()
    nAttr.setKeyable(false);
    addAttribute(s_outputAssBoundingBox);
 
+   s_attributes.MakeInput("preserve_scene_data");
+
    s_progressive_rendering = nAttr.create("progressive_rendering", "prog", MFnNumericData::kBoolean, 0);
    nAttr.setKeyable(false);
    addAttribute(s_progressive_rendering);
