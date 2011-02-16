@@ -7,8 +7,9 @@ class CRenderOptionsTranslator : public CNodeTranslator
 {
 public:
    static void* creator(){return new CRenderOptionsTranslator();}
-   AtNode* Export();
-   void Update(AtNode* options);
+   void Export(AtNode* options);
+   const char* GetArnoldNodeType();
+   AtNode* CreateArnoldNode();
    void SetupImageOptions(AtNode* options);
 };
 

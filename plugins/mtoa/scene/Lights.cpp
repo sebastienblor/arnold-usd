@@ -46,7 +46,7 @@ void CLightTranslator::ExportLightFilters(AtNode* light, const MObjectArray &fil
    }
 }
 
-void CLightTranslator::Update(AtNode* light, bool mayaAttrs)
+void CLightTranslator::Export(AtNode* light, bool mayaAttrs)
 {
    MPlug plug;
    AtMatrix matrix;
@@ -56,7 +56,6 @@ void CLightTranslator::Update(AtNode* light, bool mayaAttrs)
    plug = m_fnNode.findPlug("color");
    ProcessParameter(light, plug, "color", AI_TYPE_RGB);
 
-   AiNodeSetStr(light, "name", m_fnNode.partialPathName().asChar());
    AiNodeSetFlt(light, "intensity", m_fnNode.findPlug("intensity").asFloat());
 
    if (mayaAttrs)
@@ -143,47 +142,28 @@ void CLightTranslator::Delete()
 
 // AmbientLight
 //
-AtNode* CAmbientLightTranslator::Export()
-{
-   AtNode* light = AiNode("ambient_light");
-   Update(light);
-   return light;
-}
 
-void CAmbientLightTranslator::Update(AtNode* light)
+void CAmbientLightTranslator::Export(AtNode* light)
 {
-   CLightTranslator::Update(light);
+   CLightTranslator::Export(light);
 }
 
 // DirectionalLight
 //
-AtNode* CDirectionalLightTranslator::Export()
-{
-   AtNode* light = AiNode("distant_light");
-   Update(light);
-   return light;
-}
 
-void CDirectionalLightTranslator::Update(AtNode* light)
+void CDirectionalLightTranslator::Export(AtNode* light)
 {
-   CLightTranslator::Update(light);
+   CLightTranslator::Export(light);
    MFnDirectionalLight fnLight(m_dagPath);
    AiNodeSetFlt(light, "angle", fnLight.shadowAngle());
 }
 
 // PointLight
 //
-AtNode* CPointLightTranslator::Export()
-{
-   AtNode* light = AiNode("point_light");
-   AiNodeSetStr(light, "name", m_fnNode.partialPathName().asChar());
-   Update(light);
-   return light;
-}
 
-void CPointLightTranslator::Update(AtNode* light)
+void CPointLightTranslator::Export(AtNode* light)
 {
-   CLightTranslator::Update(light);
+   CLightTranslator::Export(light);
 
    MPlug plug;
    MFnPointLight fnLight(m_dagPath);
@@ -209,19 +189,13 @@ void CPointLightTranslator::NodeInitializer(MString nodeClassName)
 
 // SpotLight
 //
-AtNode* CSpotLightTranslator::Export()
-{
-   AtNode* light = AiNode("spot_light");
-   Update(light);
-   return light;
-}
 
-void CSpotLightTranslator::Update(AtNode* light)
+void CSpotLightTranslator::Export(AtNode* light)
 {
    MPlug plug;
    MFnSpotLight fnLight(m_dagPath);
 
-   CLightTranslator::Update(light);
+   CLightTranslator::Export(light);
 
    AiNodeSetFlt(light, "radius", fnLight.shadowRadius());
    AiNodeSetFlt(light, "cone_angle", static_cast<float>((fnLight.coneAngle() + fnLight.penumbraAngle()) * AI_RTOD));
@@ -252,17 +226,10 @@ void CSpotLightTranslator::NodeInitializer(MString nodeClassName)
 
 // AreaLight
 //
-AtNode* CAreaLightTranslator::Export()
-{
-   AtNode* light = AiNode("quad_light");
-   AiNodeSetStr(light, "name", m_fnNode.partialPathName().asChar());
-   Update(light);
-   return light;
-}
 
-void CAreaLightTranslator::Update(AtNode* light)
+void CAreaLightTranslator::Export(AtNode* light)
 {
-   CLightTranslator::Update(light);
+   CLightTranslator::Export(light);
 
    AtPoint vertices[4];
 
@@ -298,18 +265,11 @@ void CAreaLightTranslator::NodeInitializer(MString nodeClassName)
 
 // SkyDomeLight
 //
-AtNode* CSkyDomeLightTranslator::Export()
-{
-   AtNode* light = AiNode("skydome_light");
-   Update(light);
-   return light;
-}
 
-
-void CSkyDomeLightTranslator::Update(AtNode* light)
+void CSkyDomeLightTranslator::Export(AtNode* light)
 {
    // Don't use maya-style attrs
-   CLightTranslator::Update(light, false);
+   CLightTranslator::Export(light, false);
 
    AiNodeSetInt(light, "resolution", m_fnNode.findPlug("resolution").asInt());
    AiNodeSetFlt(light, "exposure", m_fnNode.findPlug("exposure").asFloat());

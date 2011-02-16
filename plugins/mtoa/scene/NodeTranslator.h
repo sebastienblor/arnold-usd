@@ -35,6 +35,7 @@ class DLLEXPORT CNodeTranslator
 private:
    AtNode* DoExport(AtUInt step);
    AtNode* DoUpdate(AtUInt step);
+   void DoCreateArnoldNode();
 
 public:
    virtual ~CNodeTranslator()
@@ -45,14 +46,17 @@ public:
       m_fnNode.setObject(object);
       m_scene = scene;
       m_outputAttr = outputAttr;
-      m_atNode = NULL;
+      DoCreateArnoldNode();
    }
+   virtual const char* GetArnoldNodeType() = 0;
 
 protected:
    CNodeTranslator() {}
-   virtual AtNode* Export() = 0;
+   virtual void Export(AtNode* atNode) = 0;
    virtual void ExportMotion(AtNode* atNode, AtUInt step){}
-   virtual void Update(AtNode* atNode) = 0;
+   // Update runs during IPR for step==0 (calls Export by default)
+   virtual void Update(AtNode* atNode){Export(atNode);}
+   // UpdateMotion runs during IPR for step>0 (calls ExportMotion by default)
    virtual void UpdateMotion(AtNode* atNode, AtUInt step){ExportMotion(atNode, step);}
    virtual bool RequiresMotionData()
    {
@@ -72,6 +76,8 @@ protected:
 
    // get the arnold node that this translator is exporting (should only be used after all export steps are complete)
    AtNode* GetArnoldNode();
+   virtual void SetArnoldNodeName(AtNode* arnoldNode);
+   virtual AtNode* CreateArnoldNode();
 
    // Add a callback to the list to manage.
    void ManageCallback( const MCallbackId id );
@@ -90,7 +96,7 @@ protected:
 
    // This is a help that tells mtoa to re-export/update the node passed in.
    // Used by the IPR callbacks.
-   static void UpdateIPR( void * clientData );
+   static void UpdateIPR(void * clientData);
 
 private:
    AtNode* m_atNode;
@@ -116,19 +122,21 @@ class DLLEXPORT CDagTranslator : public CNodeTranslator
 public:
    virtual void Init(MDagPath& dagPath, CMayaScene* scene, MString outputAttr="")
    {
-      CNodeTranslator::Init(dagPath.node(), scene, outputAttr);
       m_dagPath = dagPath;
       m_fnNode.setObject(dagPath);
       m_scene = scene;
       m_outputAttr = outputAttr;
+      // must call this after member initialization to ensure they are available to virtual functions like SetArnoldNodeName
+      CNodeTranslator::Init(dagPath.node(), scene, outputAttr);
    }
    virtual void Init(MObject& object, CMayaScene* scene, MString outputAttr="")
    {
-      CNodeTranslator::Init(object, scene, outputAttr);
       MDagPath::getAPathTo(object, m_dagPath);
       m_fnNode.setObject(object);
       m_scene = scene;
       m_outputAttr = outputAttr;
+      // must call this after member initialization to ensure they are available to virtual functions like SetArnoldNodeName
+      CNodeTranslator::Init(object, scene, outputAttr);
    }
    static int GetMasterInstanceNumber(MObject node);
    virtual void AddCallbacks();
@@ -146,6 +154,7 @@ protected:
    AtInt ComputeVisibility();
    virtual void Delete();
    void AddHierarchyCallbacks(const MDagPath & path);
+   void SetArnoldNodeName(AtNode* arnoldNode);
 
 protected:
    MDagPath m_dagPath;

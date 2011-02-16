@@ -729,8 +729,6 @@ void CGeoTranslator::ExportMeshParameters(AtNode* polymesh)
 
 AtNode* CGeoTranslator::ExportMesh(AtNode* polymesh, bool update)
 {
-   AiNodeSetStr(polymesh, "name", m_dagPath.fullPathName().asChar());
-
    ExportMatrix(polymesh, 0);
    ExportMeshParameters(polymesh);
    ExportMeshShaders(polymesh, m_fnMesh);
@@ -742,12 +740,10 @@ AtNode* CGeoTranslator::ExportMesh(AtNode* polymesh, bool update)
 
 AtNode* CGeoTranslator::ExportInstance(AtNode *instance, const MDagPath& masterInstance)
 {
-   AtNode* masterNode = AiNodeLookUpByName(masterInstance.fullPathName().asChar());
+   AtNode* masterNode = AiNodeLookUpByName(masterInstance.partialPathName().asChar());
 
    // FIXME: we should not be here if we are not instanced, why the call to isInstanced? (chad)
    int instanceNum = m_dagPath.isInstanced() ? m_dagPath.instanceNumber() : 0;
-
-   AiNodeSetStr(instance, "name", m_dagPath.fullPathName().asChar());
 
    ExportMatrix(instance, 0);
 
@@ -1003,24 +999,26 @@ bool CNurbsSurfaceTranslator::Tessellate(MDagPath & dagPath)
    return true;
 }
 
-AtNode* CNurbsSurfaceTranslator::Export()
+const char* CNurbsSurfaceTranslator::GetArnoldNodeType()
 {
-   AtNode* anode = NULL;
    m_isMasterDag = IsMasterInstance(m_masterDag);
    if (m_isMasterDag)
-   {
-      // Early return if we can't tessalate. anode will be NULL.
-      if (!Tessellate(m_dagPath)) return anode;
-
-      anode = AiNode("polymesh");
-      ExportMesh(anode, false);
-      return anode;
-   }
+      return "polymesh";
    else
-   {
-      anode = AiNode("ginstance");
+      return "ginstance";
+}
+
+void CNurbsSurfaceTranslator::Export(AtNode* anode)
+{
+   const char* nodeType = AiNodeEntryGetName (anode->base_node);
+   if (strcmp(nodeType, "ginstance") == 0)
       ExportInstance(anode, m_masterDag);
-      return anode;
+   else if (strcmp(nodeType, "polymesh") == 0)
+   {
+      // Early return if we can't tessalate.
+      if (!Tessellate(m_dagPath))
+         return;
+      ExportMesh(anode, false);
    }
 }
 
@@ -1067,29 +1065,31 @@ unsigned int CMeshTranslator::GetNumMeshGroups()
    }
 }
 
-AtNode* CMeshTranslator::Export()
-{
 
-   AtNode* anode = NULL;
-   if (GetNumMeshGroups() == 0)
-   {
-      AiMsgError("[mtoa] Mesh not exported: It has 0 groups");
-      return anode;
-   }
+const char* CMeshTranslator::GetArnoldNodeType()
+{
    m_isMasterDag = IsMasterInstance(m_masterDag);
    if (m_isMasterDag)
    {
       m_fnMesh.setObject(m_dagPath.node());
-      anode = AiNode("polymesh");
-      ExportMesh(anode, false);
-      return anode;
+      return "polymesh";
    }
    else
-   {
-      anode = AiNode("ginstance");
-      ExportInstance(anode, m_masterDag);
-      return anode;
-   }
+      return "ginstance";
 }
+void CMeshTranslator::Export(AtNode* anode)
+{
+   if (GetNumMeshGroups() == 0)
+   {
+      AiMsgError("[mtoa] ERROR: Mesh not exported. It has 0 groups.");
+      return;
+   }
+   const char* nodeType = AiNodeEntryGetName(anode->base_node);
+   if (strcmp(nodeType, "ginstance") == 0)
+      ExportInstance(anode, m_masterDag);
+   else if (strcmp(nodeType, "polymesh") == 0)
+      ExportMesh(anode, false);
+}
+
 
 

@@ -38,14 +38,14 @@ public:
    {
       return true;
    }
-   AtNode* Export();
-   void Update(AtNode* camera);
+   void Export(AtNode* camera);
    void ExportMotion(AtNode* camera, AtUInt step);
    static void NodeInitializer(MString nodeClassName);
    static void* creator()
    {
       return new CHairTranslator();
    }
+   const char* GetArnoldNodeType();
 private:
    std::vector<CHairLine> m_hairLines;
    AtUInt m_numMainLines;

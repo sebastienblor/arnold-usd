@@ -382,8 +382,6 @@ void CCameraTranslator::ExportCameraData(AtNode* camera)
 {
    AtMatrix matrix;
 
-   AiNodeSetStr(camera, "name", m_fnNode.partialPathName().asChar());
-
    AiNodeSetFlt(camera, "near_clip", m_fnNode.findPlug("nearClipPlane").asFloat());
    AiNodeSetFlt(camera, "far_clip", m_fnNode.findPlug("farClipPlane").asFloat());
    
@@ -746,23 +744,19 @@ void CCameraTranslator::ExportPerspMotion(AtNode* camera, AtInt step)
    AiArraySetFlt(fovs, step, m_cameraData.fov);
 }
 
-AtNode* CCameraTranslator::Export()
+const char* CCameraTranslator::GetArnoldNodeType()
 {
-   AtNode* camera;
    if (m_fnCamera.isOrtho())
    {
-      camera = AiNode("ortho_camera");
-      ExportOrtho(camera);
+      return "ortho_camera";
    }
    else
    {
-      camera = AiNode("persp_camera");
-      ExportPersp(camera);
+      return "persp_camera";
    }
-   return camera;
 }
 
-void CCameraTranslator::Update(AtNode* camera)
+void CCameraTranslator::Export(AtNode* camera)
 {
    if (m_fnCamera.isOrtho())
    {

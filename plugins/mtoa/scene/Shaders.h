@@ -8,16 +8,16 @@
    {\
    public:\
       static void* creator(){return new name();}\
-      AtNode* Export();\
-      void Update(AtNode* shader);\
+      void Export(AtNode* shader);\
+      const char* GetArnoldNodeType();\
    };
 
 class CSkyShaderTranslator : public CDagTranslator
 {
 public:
    static void* creator(){return new CSkyShaderTranslator();}
-   AtNode* Export();
-   void Update(AtNode* shader);
+   void Export(AtNode* shader);
+   const char* GetArnoldNodeType();
 };
 
 SHADER_TRANSLATOR(CSurfaceShaderTranslator);

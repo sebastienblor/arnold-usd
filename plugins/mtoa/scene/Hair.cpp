@@ -49,17 +49,14 @@ void CHairTranslator::NodeInitializer(MString nodeClassName)
    helper.MakeInputNode(data);
 }
 
-AtNode *CHairTranslator::Export()
+const char* CHairTranslator::GetArnoldNodeType()
 {
    // Create the curve node
    //
-   AtNode *curve = AiNode("curves");
-   AiNodeSetStr(curve, "name", m_dagPath.fullPathName().asChar());
-   Update(curve);
-   return curve;
+   return "curves";
 }
 
-void CHairTranslator::Update(AtNode *curve)
+void CHairTranslator::Export(AtNode *curve)
 {
    MObject objectHairShape(m_dagPath.node());
 

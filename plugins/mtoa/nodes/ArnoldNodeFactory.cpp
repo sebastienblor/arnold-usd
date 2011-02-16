@@ -450,29 +450,17 @@ const char* CArnoldNodeFactory::GetArnoldNodeFromMayaNode(const MString& mayaSha
 
 // AutoTranslator
 //
-AtNode* CAutoTranslator::Export()
+const char* CAutoTranslator::GetArnoldNodeType()
 {
    MString mayaShader = m_fnNode.typeName();
-   const char* arnoldNode = CArnoldNodeFactory::GetArnoldNodeFromMayaNode(mayaShader);
-   AtNode* shader = NULL;
-   m_nodeEntry = AiNodeEntryLookUp(arnoldNode);
-
-   // Make sure that the given type of node exists
-   if (m_nodeEntry != NULL)
-   {
-      shader = AiNode(arnoldNode);
-
-      AiNodeSetStr(shader, "name", m_fnNode.name().asChar());
-      Update(shader);
-   }
-   return shader;
+   return CArnoldNodeFactory::GetArnoldNodeFromMayaNode(mayaShader);
 }
 
-void CAutoTranslator::Update(AtNode *shader)
+void CAutoTranslator::Export(AtNode *shader)
 {
    MStatus status;
    MPlug plug;
-   AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(m_nodeEntry);
+   AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(shader->base_node);
    while (!AiParamIteratorFinished(nodeParam))
    {
       const AtParamEntry *paramEntry = AiParamIteratorGetNext(nodeParam);
@@ -501,7 +489,7 @@ void CAutoTranslator::Update(AtNode *shader)
 
          // attr name name remap
          const char* attrName;
-         if (!AiMetaDataGetStr(m_nodeEntry, paramName, "maya.name", &attrName))
+         if (!AiMetaDataGetStr(shader->base_node, paramName, "maya.name", &attrName))
             attrName = paramName;
 
          plug = m_fnNode.findPlug(attrName, &status);

@@ -25,27 +25,18 @@ MStatus CShaveTranslator::SetHairInfo()
    return status;
 }
 
-AtNode* CShaveTranslator::Export()
+const char* CShaveTranslator::GetArnoldNodeType()
 {
-   MStatus status;
-   // The curve node
-   AtNode* curve = NULL;
+   return "curves";
+}
 
-   int debug = 0;
-   AiMsgInfo("state: %d", debug++);
+void CShaveTranslator::Export( AtNode* curve)
+{
    // Only translate the shave node if its marked as a active
-   //
    if (!m_fnNode.findPlug("active").asBool())
-      return curve;
+      return;
 
-   AiMsgInfo("state: %d", debug++);
-
-   // Create the curve node
-   //
-   curve = AiNode("curves");
-   AiNodeSetStr(curve, "name", m_dagPath.fullPathName().asChar());
    Update(curve);
-   return curve;
 }
 
 void CShaveTranslator::Update(AtNode* curve)

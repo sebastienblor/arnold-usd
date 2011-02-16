@@ -25,15 +25,19 @@ void CRenderOptionsTranslator::SetupImageOptions(AtNode* options)
    AiNodeSetFlt(options, "aspect_ratio", renderOptions->pixelAspectRatio());
 }
 
-
-AtNode* CRenderOptionsTranslator::Export()
+// normally this method is used in CNodeTranslator::CreateArnoldNode, but since we've overridden it too
+// we provide this just to fill the pure virtual slot
+const char* CRenderOptionsTranslator::GetArnoldNodeType()
 {
-   AtNode* options = AiUniverseGetOptions();
-   Update(options);
-   return options;
+   return "options";
 }
 
-void CRenderOptionsTranslator::Update(AtNode* options)
+AtNode* CRenderOptionsTranslator::CreateArnoldNode()
+{
+   return AiUniverseGetOptions();
+}
+
+void CRenderOptionsTranslator::Export(AtNode* options)
 {
    SetupImageOptions(options);
    MTime currentTime;

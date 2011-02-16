@@ -80,22 +80,18 @@
 // internal use only
 AtNode* CNodeTranslator::DoExport(AtUInt step)
 {
-   if (step == 0)
+   if (m_atNode != NULL)
    {
-      if (m_outputAttr != "")
-         AiMsgDebug("[mtoa] Exporting: %s.%s", m_fnNode.name().asChar(), m_outputAttr.asChar());
-      else
-         AiMsgDebug("[mtoa] Exporting: %s", m_fnNode.name().asChar());
-
-      m_atNode = Export();
-      if (m_atNode == NULL)
-         AiMsgWarning("[mtoa] Node %s did not return a valid arnold node. Motion blur and IPR will be disabled", m_fnNode.name().asChar());
-      else
+      if (step == 0)
+      {
+         if (m_outputAttr != "")
+            AiMsgDebug("[mtoa] Exporting: %s.%s", m_fnNode.name().asChar(), m_outputAttr.asChar());
+         else
+            AiMsgDebug("[mtoa] Exporting: %s", m_fnNode.name().asChar());
+         Export(m_atNode);
          ExportUserAttribute(m_atNode);
-   }
-   else if (m_atNode != NULL)
-   {
-      if (RequiresMotionData())
+      }
+      else if (RequiresMotionData())
       {
          if (m_outputAttr != "")
             AiMsgDebug("[mtoa] Exporting motion: %s.%s", m_fnNode.name().asChar(), m_outputAttr.asChar());
@@ -104,13 +100,13 @@ AtNode* CNodeTranslator::DoExport(AtUInt step)
 
          ExportMotion(m_atNode, step);
       }
-   }
-   // Add IPR callbacks on last step
-   if (  m_atNode != NULL &&
-         step == (m_scene->GetNumMotionSteps()-1) &&
-         m_scene->GetExportMode() == MTOA_EXPORT_IPR)
-   {
-      AddCallbacks();
+
+      // Add IPR callbacks on last step
+      if (step == (m_scene->GetNumMotionSteps()-1) &&
+          m_scene->GetExportMode() == MTOA_EXPORT_IPR)
+      {
+         AddCallbacks();
+      }
    }
    return m_atNode;
 }
@@ -129,8 +125,8 @@ AtNode* CNodeTranslator::DoUpdate(AtUInt step)
          UpdateMotion(m_atNode, step);
 
       // Add IPR callbacks on last step
-      if (  step == (m_scene->GetNumMotionSteps()-1) &&
-            m_scene->GetExportMode() == MTOA_EXPORT_IPR)
+      if (step == (m_scene->GetNumMotionSteps()-1) &&
+          m_scene->GetExportMode() == MTOA_EXPORT_IPR)
       {
          AddCallbacks();
       }
@@ -143,9 +139,46 @@ AtNode* CNodeTranslator::GetArnoldNode()
    return m_atNode;
 }
 
+// set private variable m_atNode
+void CNodeTranslator::DoCreateArnoldNode()
+{
+   m_atNode = CreateArnoldNode();
+   if (m_atNode == NULL)
+      AiMsgWarning("[mtoa] translator for %s returned an emtpy arnold node", m_fnNode.name().asChar());
+   else
+      SetArnoldNodeName(m_atNode);
+}
+
+AtNode* CNodeTranslator::CreateArnoldNode()
+{
+   const char* type = GetArnoldNodeType();
+   const AtNodeEntry* nodeEntry = AiNodeEntryLookUp(type);
+   // Make sure that the given type of node exists
+   if (nodeEntry != NULL)
+   {
+      return AiNode(type);
+   }
+   else
+   {
+      AiMsgError("[mtoa] arnold node type '%s' does not exist", type);
+      return NULL;
+   }
+}
+
 // Add callbacks to the node passed in. It's a few simple
 // callbacks by default. Since this method is virtual - you can
 // add whatever callbacks you need to trigger a fresh.
+void CNodeTranslator::SetArnoldNodeName(AtNode* arnoldNode)
+{
+   if (m_outputAttr.numChars())
+   {
+      MString name = m_fnNode.name() + "_" + m_outputAttr;
+      AiNodeSetStr(arnoldNode, "name", name.asChar());
+   }
+   else
+      AiNodeSetStr(arnoldNode, "name", m_fnNode.name().asChar());
+}
+
 void CNodeTranslator::AddCallbacks()
 {
    MStatus status;
@@ -191,11 +224,13 @@ void CNodeTranslator::NodeDirtyCallback(MObject &node, MPlug &plug, void *client
    UpdateIPR( clientData );
 }
 
-// This is a simple callback triggered when a node is marked as dirty.
 void CNodeTranslator::NameChangedCallback(MObject &node, const MString &str, void *clientData)
+// This is a simple callback triggered when the name changes.
 {
    AiMsgDebug( "[mtoa] Node name changed, updating Arnold" );
-   UpdateIPR( clientData );
+   CNodeTranslator * translator = static_cast< CNodeTranslator* >(clientData);
+   if (translator != NULL)
+      translator->SetArnoldNodeName(translator->GetArnoldNode());
 }
 
 // Arnold doesn't really support deleting nodes. But we can make things invisible,
@@ -708,8 +743,7 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, MPlug& plug, const
    return NULL;
 }
 
-// CDagTranslator
-//
+//------------ CDagTranslator ------------//
 
 // populate an arnold AtMatrix with values from this Dag node's transformation.
 // the dag node must have an inclusiveMatrix attribute.
@@ -730,8 +764,15 @@ int CDagTranslator::GetMasterInstanceNumber(MObject node)
    return -1;
 }
 
-
-//------------ CDagTranslator ------------//
+void CDagTranslator::SetArnoldNodeName(AtNode* arnoldNode)
+{
+   // TODO: add a global option to control how names are exported
+   if (true)
+      AiNodeSetStr(arnoldNode, "name", m_dagPath.partialPathName().asChar());
+   else
+      // FIXME: when dag names are exported with fullPathName an error is printed such as "Cannot find camera node perspShape."
+      AiNodeSetStr(arnoldNode, "name", m_dagPath.fullPathName().asChar());
+}
 
 void CDagTranslator::AddHierarchyCallbacks(const MDagPath & path)
 {

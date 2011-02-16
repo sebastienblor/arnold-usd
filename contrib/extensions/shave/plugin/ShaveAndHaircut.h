@@ -7,7 +7,7 @@ class CShaveTranslator
 {
 public:
 
-   AtNode* Export();
+   void Export(AtNode* camera);
    void Update(AtNode* curve);
    void UpdateMotion(AtNode* curve, AtUInt step);
    static void* creator()
@@ -15,6 +15,8 @@ public:
       return new CShaveTranslator();
    }
    static void NodeInitializer(MString nodeClassName);
+   const char* GetArnoldNodeType();
+
 private:
    void ProcessHairLines(AtUInt step, AtArray* curvePoints, AtArray* curveNextLineStartsInterp, AtArray* curveNextLineStarts, AtArray* curveWidths);
    MStatus SetHairInfo();

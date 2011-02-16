@@ -77,11 +77,12 @@ protected:
 class CMeshTranslator : public CGeoTranslator
 {
 public:
-   AtNode* Export();
+   void Export(AtNode* anode);
    static void* creator()
    {
       return new CMeshTranslator();
    }
+   const char* GetArnoldNodeType();
 private:
    unsigned int GetNumMeshGroups();
 };
@@ -93,7 +94,7 @@ class MFnNurbsSurface;
 class CNurbsSurfaceTranslator : public CGeoTranslator
 {
 public:
-   virtual AtNode* Export();
+   void Export(AtNode* anode);
    virtual void ExportMotion(AtNode* anode, AtUInt step);
    virtual void IsGeoDeforming();
 
@@ -101,6 +102,7 @@ public:
    {
       return new CNurbsSurfaceTranslator();
    }
+   const char* GetArnoldNodeType();
 private:
    MObject m_data_mobj;
    bool Tessellate(MDagPath & dagPath);

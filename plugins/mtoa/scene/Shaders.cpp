@@ -475,15 +475,12 @@ void CMayaScene::ProcessShaderParameter(MFnDependencyNode shader, const char* pa
 
 // Sky
 //
-AtNode* CSkyShaderTranslator::Export()
+const char* CSkyShaderTranslator::GetArnoldNodeType()
 {
-   AtNode* shader = AiNode("sky");
-   AiNodeSetStr(shader, "name", m_fnNode.name().asChar());
-   Update(shader);
-   return shader;
+   return "sky";
 }
 
-void CSkyShaderTranslator::Update(AtNode* shader)
+void CSkyShaderTranslator::Export(AtNode* shader)
 {
    // Maya's X Y and Z Vectors
    AiNodeSetVec(shader, "X", 1.0f, 0.0f, 0.0f);
@@ -518,15 +515,12 @@ void CSkyShaderTranslator::Update(AtNode* shader)
 
 // Lambert
 //
-AtNode* CLambertTranslator::Export()
+const char* CLambertTranslator::GetArnoldNodeType()
 {
-   AtNode* shader = AiNode("lambert");
-   AiNodeSetStr(shader, "name", m_fnNode.name().asChar());
-   Update(shader);
-   return shader;
+   return "lambert";
 }
 
-void CLambertTranslator::Update(AtNode* shader)
+void CLambertTranslator::Export(AtNode* shader)
 {
    ProcessParameter(shader, "diffuse", "Kd", AI_TYPE_FLOAT);
    ProcessParameter(shader, "color", "Kd_color", AI_TYPE_RGB);
@@ -550,15 +544,12 @@ void CLambertTranslator::Update(AtNode* shader)
 
 // SurfaceShader
 //
-AtNode* CSurfaceShaderTranslator::Export()
+const char* CSurfaceShaderTranslator::GetArnoldNodeType()
 {
-   AtNode* shader = AiNode("flat");
-   AiNodeSetStr(shader, "name", m_fnNode.name().asChar());
-   Update(shader);
-   return shader;
+   return "flat";
 }
 
-void CSurfaceShaderTranslator::Update(AtNode* shader)
+void CSurfaceShaderTranslator::Export(AtNode* shader)
 {
    ProcessParameter(shader, "outColor", "color", AI_TYPE_RGB);
    ProcessParameter(shader, "outMatteOpacity", "opacity", AI_TYPE_RGB);
@@ -566,15 +557,12 @@ void CSurfaceShaderTranslator::Update(AtNode* shader)
 
 // File
 //
-AtNode* CFileTranslator::Export()
+const char* CFileTranslator::GetArnoldNodeType()
 {
-   AtNode* shader = AiNode("MayaFile");
-   AiNodeSetStr(shader, "name", m_fnNode.name().asChar());
-   Update(shader);
-   return shader;
+   return "MayaFile";
 }
 
-void CFileTranslator::Update(AtNode* shader)
+void CFileTranslator::Export(AtNode* shader)
 {
    MPlugArray connections;
 
@@ -644,15 +632,12 @@ void CFileTranslator::Update(AtNode* shader)
 
 // Bump2d
 //
-AtNode* CBump2DTranslator::Export()
+const char* CBump2DTranslator::GetArnoldNodeType()
 {
-   AtNode* shader = AiNode("bump2d");
-   AiNodeSetStr(shader, "name", m_fnNode.name().asChar());
-   Update(shader);
-   return shader;
+   return "bump2d";
 }
 
-void CBump2DTranslator::Update(AtNode* shader)
+void CBump2DTranslator::Export(AtNode* shader)
 {
    ProcessParameter(shader, "bumpValue", "bump_map", AI_TYPE_FLOAT);
    ProcessParameter(shader, "bumpDepth", "bump_height", AI_TYPE_FLOAT);
@@ -660,15 +645,12 @@ void CBump2DTranslator::Update(AtNode* shader)
 
 // Bump3d
 //
-AtNode* CBump3DTranslator::Export()
+const char* CBump3DTranslator::GetArnoldNodeType()
 {
-   AtNode* shader = AiNode("bump3d");
-   AiNodeSetStr(shader, "name", m_fnNode.name().asChar());
-   Update(shader);
-   return shader;
+   return "bump3d";
 }
 
-void CBump3DTranslator::Update(AtNode* shader)
+void CBump3DTranslator::Export(AtNode* shader)
 {
    ProcessParameter(shader, "bumpValue", "bump_map", AI_TYPE_FLOAT);
    ProcessParameter(shader, "bumpDepth", "bump_height", AI_TYPE_FLOAT);
@@ -676,57 +658,44 @@ void CBump3DTranslator::Update(AtNode* shader)
 
 // SamplerInfo
 //
-AtNode* CSamplerInfoTranslator::Export()
+const char* CSamplerInfoTranslator::GetArnoldNodeType()
 {
-   AtNode* shader = NULL;
    if (m_outputAttr == "facingRatio")
    {
-      shader = AiNode("MayaFacingRatio");
+      return "MayaFacingRatio";
    }
    else if (m_outputAttr == "flippedNormal")
    {
-      shader = AiNode("MayaFlippedNormal");
+      return "MayaFlippedNormal";
    }
-   if (shader != NULL)
-   {
-      MString name = m_fnNode.name() + "_" + m_outputAttr;
-      AiNodeSetStr(shader, "name", name.asChar());
-   }
-
-   return shader;
+   else
+      return "";
 }
 
-void CSamplerInfoTranslator::Update(AtNode* shader)
+void CSamplerInfoTranslator::Export(AtNode* shader)
 {}
 
 // PlusMinusAverage
 //
-AtNode* CPlusMinusAverageTranslator::Export()
+const char* CPlusMinusAverageTranslator::GetArnoldNodeType()
 {
-   AtNode* shader = NULL;
    if (m_outputAttr == "output1D")
    {
-      shader = AiNode("MayaPlusMinusAverage1D");
+      return "MayaPlusMinusAverage1D";
    }
    else if (m_outputAttr == "output2D")
    {
-      shader = AiNode("MayaPlusMinusAverage2D");
+      return "MayaPlusMinusAverage2D";
    }
    else if (m_outputAttr == "output3D")
    {
-      shader = AiNode("MayaPlusMinusAverage3D");
+      return "MayaPlusMinusAverage3D";
    }
-   if (shader != NULL)
-   {
-      MString name = m_fnNode.name() + "_" + m_outputAttr;
-      AiNodeSetStr(shader, "name", name.asChar());
-      Update(shader);
-   }
-
-   return shader;
+   else
+      return "";
 }
 
-void CPlusMinusAverageTranslator::Update(AtNode* shader)
+void CPlusMinusAverageTranslator::Export(AtNode* shader)
 {
    if (m_outputAttr == "output1D")
    {
@@ -807,28 +776,21 @@ void CPlusMinusAverageTranslator::Update(AtNode* shader)
 
 // RemapValue
 //
-AtNode* CRemapValueTranslator::Export()
+const char* CRemapValueTranslator::GetArnoldNodeType()
 {
-   AtNode* shader = NULL;
    if (m_outputAttr == "outValue")
    {
-      shader = AiNode("MayaRemapValueToValue");
+      return "MayaRemapValueToValue";
    }
    else if (m_outputAttr == "outColor")
    {
-      shader = AiNode("MayaRemapValueToColor");
+      return "MayaRemapValueToColor";
    }
-   if (shader != NULL)
-   {
-      MString name = m_fnNode.name() + "_" + m_outputAttr;
-      AiNodeSetStr(shader, "name", name.asChar());
-      Update(shader);
-   }
-
-   return shader;
+   else
+      return "";
 }
 
-void CRemapValueTranslator::Update(AtNode* shader)
+void CRemapValueTranslator::Export(AtNode* shader)
 {
    if (m_outputAttr == "outValue")
    {
@@ -928,24 +890,16 @@ void CRemapValueTranslator::Update(AtNode* shader)
 
 // Remap Color
 //
-AtNode* CRemapColorTranslator::Export()
+const char* CRemapColorTranslator::GetArnoldNodeType()
 {
-   AtNode* shader = NULL;
    if (m_outputAttr == "outColor")
    {
       //FIXME: missing AiNode()!
    }
-   if (shader != NULL)
-   {
-      MString name = m_fnNode.name() + "_" + m_outputAttr;
-      AiNodeSetStr(shader, "name", name.asChar());
-      Update(shader);
-   }
-
-   return shader;
+   return "";
 }
 
-void CRemapColorTranslator::Update(AtNode* shader)
+void CRemapColorTranslator::Export(AtNode* shader)
 {
    if (m_outputAttr == "outColor")
    {
@@ -1010,15 +964,12 @@ void CRemapColorTranslator::Update(AtNode* shader)
 
 // Projection
 //
-AtNode* CProjectionTranslator::Export()
+const char* CProjectionTranslator::GetArnoldNodeType()
 {
-   AtNode* shader = AiNode("MayaProjection");
-   AiNodeSetStr(shader, "name", m_fnNode.name().asChar());
-   Update(shader);
-   return shader;
+   return "MayaProjection";
 }
 
-void CProjectionTranslator::Update(AtNode* shader)
+void CProjectionTranslator::Export(AtNode* shader)
 {
    // FIXME: change shader parameter name to match maya
    ProcessParameter(shader, "projType", "type", AI_TYPE_INT);
@@ -1078,15 +1029,12 @@ void CProjectionTranslator::Update(AtNode* shader)
 
 // Ramp
 //
-AtNode* CRampTranslator::Export()
+const char* CRampTranslator::GetArnoldNodeType()
 {
-   AtNode* shader = AiNode("MayaRamp");
-   AiNodeSetStr(shader, "name", m_fnNode.name().asChar());
-   Update(shader);
-   return shader;
+   return "MayaRamp";
 }
 
-void CRampTranslator::Update(AtNode* shader)
+void CRampTranslator::Export(AtNode* shader)
 {
    ProcessParameter(shader, "type", AI_TYPE_INT);
    ProcessParameter(shader, "interpolation", AI_TYPE_INT);
@@ -1139,15 +1087,12 @@ void CRampTranslator::Update(AtNode* shader)
 
 // Place2DTexture
 
-AtNode* CPlace2DTextureTranslator::Export()
+const char* CPlace2DTextureTranslator::GetArnoldNodeType()
 {
-   AtNode* shader = AiNode("MayaPlace2DTexture");
-   AiNodeSetStr(shader, "name", m_fnNode.name().asChar());
-   Update(shader);
-   return shader;
+   return "MayaPlace2DTexture";
 }
 
-void CPlace2DTextureTranslator::Update(AtNode* shader)
+void CPlace2DTextureTranslator::Export(AtNode* shader)
 {
    ProcessParameter(shader, "coverage", AI_TYPE_POINT2);
    ProcessParameter(shader, "rotateFrame", AI_TYPE_FLOAT);
@@ -1165,15 +1110,12 @@ void CPlace2DTextureTranslator::Update(AtNode* shader)
 
 // LayeredTexture
 //
-AtNode* CLayeredTextureTranslator::Export()
+const char* CLayeredTextureTranslator::GetArnoldNodeType()
 {
-   AtNode* shader = AiNode("MayaLayeredTexture");
-   AiNodeSetStr(shader, "name", m_fnNode.name().asChar());
-   Update(shader);
-   return shader;
+   return "MayaLayeredTexture";
 }
 
-void CLayeredTextureTranslator::Update(AtNode* shader)
+void CLayeredTextureTranslator::Export(AtNode* shader)
 {
    MPlug plug, elem, child;
 
