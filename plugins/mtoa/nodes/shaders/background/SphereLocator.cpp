@@ -21,6 +21,7 @@
 #include <maya/MFloatArray.h>
 #include <maya/MMatrix.h>
 #include <maya/MFloatMatrix.h>
+#include <maya/MItDependencyGraph.h>
 #include <maya/MStringArray.h>
 
 MTypeId CSphereLocator::id(ARNOLD_NODEID_SPHERE_LOCATOR);
@@ -140,8 +141,9 @@ void CSphereLocator::DrawUVSphere(float radius, int divisionsX, int divisionsY, 
    glEnd();
 }
 
-void CSphereLocator::SampleSN(const MPlug &colorPlug)
+void CSphereLocator::SampleSN(MPlug &colorPlug)
 {
+   MStatus status;
    MPlugArray conn;
    colorPlug.connectedTo(conn, true, false);
    if (conn.length() > 0)
@@ -154,8 +156,30 @@ void CSphereLocator::SampleSN(const MPlug &colorPlug)
       MFloatArray uCoords, vCoords, filterSizes;
       MFloatVectorArray colors, transps;
       MPlugArray conn;
-      colorPlug.connectedTo(conn, true, false);
-      MFnDependencyNode depNodeSkyColor(conn[0].node());
+      //colorPlug.connectedTo(conn, true, false);
+      //MFnDependencyNode depNodeSkyColor(conn[0].node());
+
+      MItDependencyGraph itDG(colorPlug, MFn::kFileTexture,
+                                                      MItDependencyGraph::kUpstream,
+                                                      MItDependencyGraph::kBreadthFirst,
+                                                      MItDependencyGraph::kNodeLevel,
+                                                      &status);
+
+      // Disable automatic pruning so that we can locate a specific plug
+      itDG.disablePruningOnFilter();
+
+      // If no texture file node was found, pass in an empty string as the texture filename
+      // so that color information is outputted instead
+      //
+      MFnDependencyNode fileTexture;
+
+      if (!itDG.isDone())
+      {
+         MObject textureNode = itDG.thisNode();
+         fileTexture.setObject(textureNode);
+
+      }
+
 
       // Get all the data based on UVs
       MFnDependencyNode fnThisNode(thisMObject());
@@ -176,7 +200,9 @@ void CSphereLocator::SampleSN(const MPlug &colorPlug)
          }
       }
 
-      MString depNodeSkyColorName(depNodeSkyColor.name() + ".outColor");
+      MString depNodeSkyColorName(fileTexture.name() + ".outColor");
+
+
       MStatus status = MRenderUtil::sampleShadingNetwork(depNodeSkyColorName, numSamples, false, false, cameraMat, NULL, &uCoords, &vCoords, NULL, NULL, NULL, NULL, NULL, colors, transps);
 
       int numSamplesCol = numSamples*4;
