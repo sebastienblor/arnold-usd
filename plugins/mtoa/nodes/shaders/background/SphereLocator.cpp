@@ -69,6 +69,7 @@ void CSphereLocator::DrawUVSphere(float radius, int divisionsX, int divisionsY, 
       AtVector dir;
       AtFloat u, v;
       AtFloat x, y, z;
+      x = y = z = 0;
 
       // little fix to get UVS nicely
       //if (theta==90)
@@ -107,6 +108,8 @@ void CSphereLocator::DrawUVSphere(float radius, int divisionsX, int divisionsY, 
                   y = static_cast<float>(cos(theta * DTOR) * sin((phi + dphi) * DTOR));
                   z = static_cast<float>(sin(theta * DTOR));
                   // 4th and last vertex of the quad
+                  break;
+               default:
                   break;
             }
 

@@ -437,7 +437,7 @@ shader_evaluate
 
    AtRGBA outColor;
 
-   AtPoint2 st, stx, sty;
+   AtPoint2 st(AI_P2_ZERO), stx(AI_P2_ZERO), sty(AI_P2_ZERO);
    bool mapped = false;
    AtVector P;
 

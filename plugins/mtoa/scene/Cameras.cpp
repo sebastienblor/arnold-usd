@@ -200,8 +200,8 @@ void CCameraTranslator::ExportImagePlane(AtUInt step)
                         //UV Values
                         //Use the coverage options as well as the coverage origin options here
                         //to manipulate the UV's of the image plane.
-                        double uMin, vMin = 0;
-                        double uMax, vMax = 1.0f;
+                        double uMin(0), vMin(0);
+                        double uMax(1.0f), vMax(1.0f);
 
                         if(type == 0)
                         {
@@ -224,7 +224,7 @@ void CCameraTranslator::ExportImagePlane(AtUInt step)
                             vMin = vOriginOffset;
                             vMax = 1.0f - (vOffset - vOriginOffset);
                             if(vMax > 1)
-								vMax = 1.0f;
+                               vMax = 1.0f;
                         }
 
                         AiV2Create(uv1, uMin, vMin);

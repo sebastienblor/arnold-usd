@@ -351,14 +351,14 @@ bool CArnoldNodeFactory::LoadExtension(const char* extensionFile)
       return false;
    }
    
-   void* initializer = LibrarySymbol(pluginLib, "initializePlugin");
+   pluginInitFunctionType * initFunc = (pluginInitFunctionType*)LibrarySymbol(pluginLib, "initializePlugin");
 
-   if (initializer == NULL)
+   if (initFunc == NULL)
    {
       MGlobal::displayError(MString("[mtoa] error initializing plugin: ") + LibraryLastError());
       return false;
    }
-   pluginInitFunctionType * initFunc = (pluginInitFunctionType*)(&initializer);
+   // pluginInitFunctionType * initFunc = (pluginInitFunctionType*)(&initializer);
    
    CExtension plugin = CExtension();
    (*initFunc)(plugin);

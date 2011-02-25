@@ -49,6 +49,16 @@ struct CDisplayUpdateMessage
    EDisplayUpdateMessageType msgType;
    AtBBox2                   bucketRect;
    RV_PIXEL*                 pixels;      ///< These will be in the range of 0-255, not 0-1.
+   CDisplayUpdateMessage(  EDisplayUpdateMessageType msg = MSG_BUCKET_PREPARE,
+                           AtInt minx = 0, AtInt miny = 0, AtInt maxx = 0, AtInt maxy = 0,
+                           RV_PIXEL* px = NULL )
+   : msgType(msg), pixels(px)
+   {
+      bucketRect.minx = minx;
+      bucketRect.miny = miny;
+      bucketRect.maxx = maxx;
+      bucketRect.maxy = maxy;
+   }
 };
 
 static CMTBlockingQueue<CDisplayUpdateMessage> s_displayUpdateQueue;
@@ -104,14 +114,18 @@ driver_open
 
 driver_prepare_bucket
 {
-   CDisplayUpdateMessage   msg;
+   CDisplayUpdateMessage   msg(MSG_BUCKET_PREPARE,
+                               bucket_xo, bucket_yo,
+                               bucket_xo + bucket_size_x - 1, bucket_yo + bucket_size_y - 1,
+                               NULL
+                               ) ;
 
-   msg.msgType = MSG_BUCKET_PREPARE;
-   msg.bucketRect.minx = bucket_xo;
-   msg.bucketRect.miny = bucket_yo;
-   msg.bucketRect.maxx = bucket_xo + bucket_size_x - 1;
-   msg.bucketRect.maxy = bucket_yo + bucket_size_y - 1;
-   msg.pixels          = NULL;
+   // msg.msgType = MSG_BUCKET_PREPARE;
+   // msg.bucketRect.minx = bucket_xo;
+   // msg.bucketRect.miny = bucket_yo;
+   // msg.bucketRect.maxx = bucket_xo + bucket_size_x - 1;
+   // msg.bucketRect.maxy = bucket_yo + bucket_size_y - 1;
+   // msg.pixels          = NULL;
 
    s_displayUpdateQueue.push(msg);
 }
@@ -195,14 +209,7 @@ driver_write_bucket
       }
    }
 
-   CDisplayUpdateMessage msg;
-
-   msg.msgType         = MSG_BUCKET_UPDATE;
-   msg.bucketRect.minx = minx;
-   msg.bucketRect.miny = miny;
-   msg.bucketRect.maxx = maxx;
-   msg.bucketRect.maxy = maxy;
-   msg.pixels          = pixels;
+   CDisplayUpdateMessage msg(MSG_BUCKET_UPDATE, minx, miny, maxx, maxy, pixels);
 
    s_displayUpdateQueue.push( msg );
 }
@@ -281,13 +288,6 @@ bool DisplayUpdateQueueToMImage( MImage & image )
                 MImage::kFloat );                // Has to be for swatches it seems.
 
    CDisplayUpdateMessage msg;
-   // Clear the msg to take care of compile warnings.
-   msg.msgType         = MSG_BUCKET_PREPARE;
-   msg.bucketRect.minx = 0;
-   msg.bucketRect.miny = 0;
-   msg.bucketRect.maxx = 0;
-   msg.bucketRect.maxy = 0;
-   msg.pixels          = 0x0;
    
    while( !s_displayUpdateQueue.isEmpty() )
    {
@@ -350,8 +350,7 @@ void ClearDisplayUpdateQueue()
 
 void DisplayUpdateQueueRenderFinished()
 {
-   CDisplayUpdateMessage msg;
-   msg.msgType = MSG_RENDER_DONE;
+   CDisplayUpdateMessage msg(MSG_RENDER_DONE);
    s_displayUpdateQueue.push(msg);
    s_finishedRendering = true;
 }
