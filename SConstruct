@@ -231,7 +231,6 @@ if system.os() == 'windows':
    maya_env.Append(CPPPATH = [os.path.join(env['MAYA_ROOT'], 'include')])
    maya_env.Append(CPPDEFINES = Split('NT_PLUGIN REQUIRE_IOSTREAM'))
    maya_env.Append(LIBPATH = [os.path.join(env['MAYA_ROOT'], 'lib')])
-   maya_env.Append(LIBS=Split('ai.lib OpenGl32.lib glu32.lib Foundation.lib OpenMaya.lib OpenMayaRender.lib OpenMayaUI.lib OpenMayaAnim.lib OpenMayaFX.lib'))
 
    [MTOA, MTOA_PRJ] = env.SConscript(os.path.join('plugins', 'mtoa', 'SConscript'),
                                      build_dir = os.path.join(BUILD_BASE_DIR, 'mtoa'),
@@ -271,7 +270,6 @@ else:
    maya_env = env.Clone()
    maya_env.Append(CPPPATH = ['.'])
    maya_env.Append(CPPDEFINES = Split('_BOOL REQUIRE_IOSTREAM'))
-   maya_env.Append(LIBS=Split('ai pthread Foundation OpenMaya OpenMayaRender OpenMayaUI OpenMayaAnim OpenMayaFX'))
 
    if system.os() == 'linux':
       maya_env.Append(CPPPATH = [os.path.join(env['MAYA_ROOT'], 'include')])
