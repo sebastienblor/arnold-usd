@@ -10,3 +10,13 @@ custom.py
 .sconsign.dblite
 *.bak
 Debug
+*.project
+*.settings*
+*.cproject
+*.external*
+*.pydev*
+*.vcproj
+*.sln
+*.pdb
+*.ncb
+*.suo
