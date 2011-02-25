@@ -18,6 +18,7 @@ public:
       CDagTranslator::Init(dagPath, scene, outputAttr);
       m_motion = m_scene->IsObjectMotionBlurEnabled() && m_fnNode.findPlug("motionBlur").asBool();
       m_motionDeform = m_motion && m_scene->IsObjectDeformMotionBlurEnabled();
+      m_displaced = false;
       m_dagPath = dagPath;
       m_fnNode.setObject(dagPath);
       m_scene = scene;
@@ -64,11 +65,13 @@ protected:
 
    static void ShaderAssignmentCallback( MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void* );
    void AddShaderAssignmentCallbacks(MObject & dagNode );
+   void IsGeoDeforming();
 
 protected:
    bool m_isMasterDag;
    bool m_motion;
    bool m_motionDeform;
+   bool m_displaced;
    MFnMesh m_fnMesh;
    MDagPath m_masterDag;
 };

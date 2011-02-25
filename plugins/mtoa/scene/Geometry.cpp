@@ -452,6 +452,7 @@ void CGeoTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
       // are there any connections to displacementShader?
       if (connections.length() > 0)
       {
+         m_displaced = true;
          MFnDependencyNode dispNode(connections[0].node());
 
          // Note that disp_height has no actual influence on the scale of the displacement if it is vector based
@@ -661,6 +662,30 @@ void CGeoTranslator::ExportMeshGeoData(AtNode* polymesh, AtUInt step)
    }
 }
 
+void CGeoTranslator::IsGeoDeforming()
+{
+    bool history = false;
+    bool pnts = false;
+
+    MPlug inMeshPlug = m_fnMesh.findPlug("inMesh");
+    MPlugArray conn;
+    inMeshPlug.connectedTo(conn, true, false);
+    if(conn.length())
+    {
+        history = true;
+    }
+ 
+    inMeshPlug = m_fnMesh.findPlug("pnts");
+    inMeshPlug.connectedTo(conn, true, false);
+    if(conn.length())
+    {
+        pnts = true;
+    }
+
+    if(!history && !pnts && !m_displaced)
+        m_motionDeform = false; 
+}
+
 void CGeoTranslator::ExportMeshParameters(AtNode* polymesh)
 {
    // Check if custom attributes have been created, ignore them otherwise
@@ -719,6 +744,7 @@ AtNode* CGeoTranslator::ExportMesh(AtNode* polymesh, bool update)
    ExportMatrix(polymesh, 0);
    ExportMeshParameters(polymesh);
    ExportMeshShaders(polymesh, m_fnMesh);
+   IsGeoDeforming();
    if (!update)
       ExportMeshGeoData(polymesh, 0);
    return polymesh;
