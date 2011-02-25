@@ -109,14 +109,15 @@ bool CGeoTranslator::GetVerticesWorld(MObject &dagNode, MFnMesh &fnMesh, std::ve
 
 bool CGeoTranslator::GetVertices(MFnMesh &fnMesh, std::vector<float> &vertices)
 {
-   if (fnMesh.numVertices() > 0)
+   int nverts = fnMesh.numVertices();
+   if (nverts > 0)
    {
-      vertices.resize(fnMesh.numVertices() * 3);
+      vertices.resize(nverts * 3);
 
       MFloatPointArray pointsArray;
       fnMesh.getPoints(pointsArray, MSpace::kObject);
 
-      for (int J = 0; ( J < fnMesh.numVertices() ); ++J)
+      for (int J = 0; ( J < nverts ); ++J)
       {
          vertices[J * 3 + 0] = pointsArray[J].x;
          vertices[J * 3 + 1] = pointsArray[J].y;
@@ -129,16 +130,17 @@ bool CGeoTranslator::GetVertices(MFnMesh &fnMesh, std::vector<float> &vertices)
 
 bool CGeoTranslator::GetNormals(MFnMesh &fnMesh, std::vector<float> &normals)
 {
+   int nnorms = fnMesh.numNormals();
    if (m_fnNode.findPlug("smoothShading").asBool() &&
          !m_fnNode.findPlug("subdiv_type").asBool() &&
-         fnMesh.numNormals() > 0)
+         nnorms > 0)
    {
-      normals.resize(fnMesh.numNormals() * 3);
+      normals.resize(nnorms * 3);
 
       MFloatVectorArray normalArray;
       fnMesh.getNormals(normalArray, MSpace::kObject);
 
-      for (int J = 0; (J < fnMesh.numNormals()); ++J)
+      for (int J = 0; (J < nnorms); ++J)
       {
          normals[J * 3 + 0] = normalArray[J].x;
          normals[J * 3 + 1] = normalArray[J].y;
@@ -166,8 +168,10 @@ bool CGeoTranslator::GetTangents(MFnMesh &fnMesh, std::vector<float> &tangents, 
       float scale = 1.0f;
       unsigned int i = 0;
 
-      tangents.resize(fnMesh.numVertices() * 3);
-      bitangents.resize(fnMesh.numVertices() * 3);
+      int nverts = fnMesh.numVertices();
+
+      tangents.resize(nverts * 3);
+      bitangents.resize(nverts * 3);
 
       while (!itVertex.isDone())
       {
@@ -800,6 +804,9 @@ void CGeoTranslator::Update(AtNode *anode)
 
 void CGeoTranslator::ExportMotion(AtNode* anode, AtUInt step)
 {
+   // ran into a strange bug where the object must be reset to
+   // avoid a crash.  even calling .hasObj() was enough to avoid it
+   m_fnMesh.setObject(m_object);
    if (m_isMasterDag)
    {
       ExportMatrix(anode, step);
