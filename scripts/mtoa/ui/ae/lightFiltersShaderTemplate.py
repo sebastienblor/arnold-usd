@@ -253,7 +253,7 @@ def customLightFiltersNew(attr):
     if not aeUtils.attributeExists(attribName, nodeName):
         cmds.addAttr(nodeName, ln=attribName, at="message", multi=True)
 
-    uiName = '%s_%s'%(nodeName, attribName)
+    uiName = '%s_%s'%(nodeType, attribName)
 
     cmds.rowLayout(nc=3, rat=(1, "top", 0), cw=[(1, 30), (2, 330)])
     cmds.text(label="")
@@ -287,7 +287,7 @@ def customLightFiltersReplace(attr):
         cmds.addAttr(nodeName, ln=attribName, at="message", multi=True)
 
 
-    uiName = '%s_%s'%(nodeName, attribName)
+    uiName = '%s_%s'%(nodeType, attribName)
 
     cmds.textScrollList(uiName, edit=True, dcc=Callback(updateCustomLightFiltersNew, uiName))
     cmds.symbolButton('lf_move_up_button', edit=True, c=Callback(moveLightFilterUp, nodeName, uiName))
