@@ -568,7 +568,8 @@ if system.os() == 'darwin' or system.os() == 'windows':
 ## make sure we can find difftiff and any generated programs
 add_to_path(test_env, os.path.abspath(str(DIFFTIFF[0].dir)))
 add_to_path(test_env, os.path.abspath(str(TIFF2JPEG[0].dir)))
-add_to_path(test_env, env['TARGET_PLUGIN_PATH'])
+add_to_path(test_env, env.subst('$TARGET_LIB_PATH'))
+add_to_path(test_env, env.subst('$TARGET_PLUGIN_PATH'))
 
 ## First stage. Process build targets, expanding the groups and patterns into single tests
 index = 0

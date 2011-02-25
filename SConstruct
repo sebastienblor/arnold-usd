@@ -102,6 +102,11 @@ else:
 
 env.Append(BUILDERS = {'MakeModule' : MakeModule})
 
+
+if env['TARGET_MODULE_PATH'] == '.':
+   print "Please define TARGET_MODULE_PATH (Path used for installation of the mtoa plugin)"
+   Exit(1)
+
 system.set_target_arch(env['TARGET_ARCH'])
 
 if len(BUILD_TARGETS) > 0:
