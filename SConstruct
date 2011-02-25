@@ -85,7 +85,10 @@ vars.AddVariables(
                    os.path.join('$TARGET_MODULE_PATH', 'extensions'), PathVariable.PathIsDirCreate),
       PathVariable('TARGET_LIB_PATH', 
                    'Path for libraries', 
-                   os.path.join('$TARGET_MODULE_PATH', 'lib'), PathVariable.PathIsDirCreate)
+                   os.path.join('$TARGET_MODULE_PATH', 'lib'), PathVariable.PathIsDirCreate),
+      PathVariable('SHAVE_API', 
+                   'Where to find Shave API', 
+                   '.', PathVariable.PathIsDir)
 )
 
 if system.os() == 'windows':
@@ -346,7 +349,7 @@ env.Install(env['TARGET_MODULE_PATH'], os.path.join(BUILD_BASE_DIR, 'mtoa.mod'))
 ext_env = maya_env.Clone()
 ext_env.Append(CPPPATH = ['plugin', os.path.join(maya_env['ROOT_DIR'], 'plugins', 'mtoa'), env['ARNOLD_API_INCLUDES']])
 ext_env.Append(LIBPATH = ['.', env['ARNOLD_API_LIB']])
-ext_env.Append(LIBPATH = [os.path.join(maya_env['ROOT_DIR'], os.path.split(str(MTOA[0]))[0])])
+ext_env.Append(LIBPATH = [ os.path.join(maya_env['ROOT_DIR'], os.path.split(str(MTOA[0]))[0]) ])
 if system.os() == 'windows':
     ext_env.Append(LIBS = ['mtoa'])
 
