@@ -64,6 +64,9 @@ shader_evaluate
    AtPoint P;
    AtMatrix placement;
 
+   AtPoint tmpPts;
+   bool usePref = SetRefererencePoints(sg, tmpPts);
+
    AiM4Invert(*placementMatrix, placement);
 
    AiM4PointByMatrixMult(&P, placement, (local ? &(sg->Po) : &(sg->P)));
@@ -101,4 +104,5 @@ shader_evaluate
    {
       MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
    }
+   if (usePref) RestorePoints(sg, tmpPts);
 }

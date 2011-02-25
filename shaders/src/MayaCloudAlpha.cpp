@@ -78,6 +78,10 @@ shader_evaluate
    AtPoint P;
    AtMatrix placement;
 
+   AtPoint tmpPts;
+   bool usePref = SetRefererencePoints(sg, tmpPts);
+
+
    AiM4Invert(*placementMatrix, placement);
 
    AiM4PointByMatrixMult(&P, placement, (local ? &(sg->Po) : &(sg->P)));
@@ -123,5 +127,6 @@ shader_evaluate
       result = 0.0f;
    }
 
-    sg->out.FLT = result;
+   if (usePref) RestorePoints(sg, tmpPts);
+   sg->out.FLT = result;
 }

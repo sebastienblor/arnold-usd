@@ -106,9 +106,9 @@ float BillowNoise(const AtPoint &p, float time, int dim, float radius, float siz
 float CosWaves(float posX, float posY, float posTime, int numWaves);
 
 
-bool setRefPts(AtShaderGlobals *sg, AtPoint &tmpPts);
-bool setRefNmrs(AtShaderGlobals *sg, AtVector &tmpNmrs);
-void restorePts(AtShaderGlobals *sg, AtPoint tmpPts);
-void restoreNmrs(AtShaderGlobals *sg, AtVector tmpNmrs);
+bool SetRefererencePoints(AtShaderGlobals *sg, AtPoint &tmpPts);
+bool SetRefererenceNormals(AtShaderGlobals *sg, AtVector &tmpNmrs);
+void RestorePoints(AtShaderGlobals *sg, AtPoint tmpPts);
+void RestoreNormals(AtShaderGlobals *sg, AtVector tmpNmrs);
 
 #endif // MAYAUTILS_H

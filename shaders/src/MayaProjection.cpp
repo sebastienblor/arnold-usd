@@ -443,7 +443,7 @@ shader_evaluate
 
 
    AtPoint tmpPts;
-   bool usePref = setRefPts(sg, tmpPts);
+   bool usePref = SetRefererencePoints(sg, tmpPts);
 
 
 
@@ -673,7 +673,7 @@ shader_evaluate
       AiRGBtoRGBA(defaultColor, outColor);
    }
 
-   if (usePref) restorePts(sg, tmpPts);
+   if (usePref) RestorePoints(sg, tmpPts);
    sg->out.RGBA = outColor;
 
 }
