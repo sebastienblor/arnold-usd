@@ -3,11 +3,11 @@ import maya.mel as mel
 import mtoa.ui.ae.customShapeAttributes as customShapeAttributes
 
 def skyDomeLightShaderTemplate(nodeName):
-    
+
     cmds.editorTemplate(beginScrollLayout=True)
-    
+
     cmds.editorTemplate(beginLayout="SkyDomeLight Attributes", collapse=False)
-    
+
     cmds.editorTemplate("color", addControl=True, label="Color")
     cmds.editorTemplate("intensity", addControl=True, label="Intensity")
     cmds.editorTemplate(beginNoOptimize=True)
@@ -21,30 +21,30 @@ def skyDomeLightShaderTemplate(nodeName):
     cmds.editorTemplate("mis", addControl=True, label="Multiple Importance Sampling")
     cmds.editorTemplate(addSeparator=True)
     customShapeAttributes.commonLightAttributes(nodeName)
-    
+
     editorTemplate(endLayout=True)
-    
+
     cmds.editorTemplate(beginLayout="Shadows", collapse=True)
-    
+
     cmds.editorTemplate("cast_shadows", addControl=True, label="Cast Shadows")
     cmds.editorTemplate("shadow_density", addControl=True, label="Shadow Density")
     cmds.editorTemplate("shadow_color", addControl=True, label="Shadow Color")
-    
+
     editorTemplate(endLayout=True)
-    
+
     cmds.editorTemplate(beginLayout="Hardware Texturing", collapse=True)
-    
+
     cmds.editorTemplate("sampling", addControl=True, label="Texture Resolution")
     cmds.editorTemplate("hwtexalpha", addControl=True, label="Opacity")
-    
+
     editorTemplate(endLayout=True)
-    
+
     cmds.editorTemplate(beginLayout="Viewport", collapse=True)
-    
+
     cmds.editorTemplate("skyRadius", addControl=True, label="Sky Radius")
-    
+
     editorTemplate(endLayout=True)
-    
+
     # Do not show extra attributes
     extras = ["visibility",
              "intermediateObject",
@@ -83,11 +83,11 @@ def skyDomeLightShaderTemplate(nodeName):
              "compInstObjGroups",
              "localPosition",
              "localScale"]
-    
+
     for extra in extras:
         cmds.editorTemplate(nodeName, suppress=extra)
-    
-    
+
+
     # include/call base class/node attributes
     mel.eval('AEdependNodeTemplate "%s"'%nodeName)
     cmds.editorTemplate(addExtraControls=True)

@@ -15,7 +15,7 @@ def hairShaderTemplate(nodeName):
     cmds.editorTemplate(endLayout=True)
 
     cmds.editorTemplate(beginLayout="Diffuse", collapse=False)
-        
+
     cmds.editorTemplate("diffuse_cache", addControl=True, label="Diffuse Cache")
     cmds.editorTemplate("ambdiff", addControl=True, label="Ambient Diffuse")
     cmds.editorTemplate("kd_ind", addControl=True, label="Indirect Diffuse")

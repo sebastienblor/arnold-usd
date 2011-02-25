@@ -5,12 +5,12 @@ import mtoa.ui.ae.utils as aeUtils
 from mtoa.ui.ae.utils import aeCallback
 
 def checkNearAtten(nodeName):
-   aeUtils.arnoldDimControlIfFalse(nodeName, "near_start", "use_near_atten")
-   aeUtils.arnoldDimControlIfFalse(nodeName, "near_end", "use_near_atten")
+    aeUtils.arnoldDimControlIfFalse(nodeName, "near_start", "use_near_atten")
+    aeUtils.arnoldDimControlIfFalse(nodeName, "near_end", "use_near_atten")
 
 def checkFarAtten(nodeName):
-   aeUtils.arnoldDimControlIfFalse(nodeName, "far_start", "use_far_atten")
-   aeUtils.arnoldDimControlIfFalse(nodeName, "far_end", "use_far_atten")
+    aeUtils.arnoldDimControlIfFalse(nodeName, "far_start", "use_far_atten")
+    aeUtils.arnoldDimControlIfFalse(nodeName, "far_end", "use_far_atten")
 
 def lightDecayShaderTemplate(nodeName):
 

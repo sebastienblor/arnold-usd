@@ -31,11 +31,11 @@ def updateMayaImageFormatControl():
 
 def renderSettingsTabLabel_melToUI(smel):
 
-   # The arguments passed inside this procedure should not
-   # be localized. This procedure uses the first string
-   # argument that is passed with the "-addGlobalsTab"
-   # flag in the "renderer" command.
-   #
+    # The arguments passed inside this procedure should not
+    # be localized. This procedure uses the first string
+    # argument that is passed with the "-addGlobalsTab"
+    # flag in the "renderer" command.
+    #
     result = smel
 
     if smel == 'Common':
@@ -88,11 +88,11 @@ def addOneTabToGlobalsWindow(renderer, tabLabel, createProc):
 
     if not displayAllTabs:
 
-       # If the current renderer the renderer is not this
-       # renderer, then don't add the tab yet.
-       #
-       if utils.currentRenderer() != renderer:
-          return
+        # If the current renderer the renderer is not this
+        # renderer, then don't add the tab yet.
+        #
+        if utils.currentRenderer() != renderer:
+            return
 
 
     cmds.setParent('unifiedRenderGlobalsWindow')
@@ -107,10 +107,10 @@ def addOneTabToGlobalsWindow(renderer, tabLabel, createProc):
     #
     tabLayoutName = ''
     if displayAllTabs:
-       gMasterLayerRendererName = mel.eval('global string $gMasterLayerRendererName; $a_temps = $gMasterLayerRendererName')
-       tabLayoutName = mel.eval('getRendererTabLayout("%s")'%gMasterLayerRendererName)
+        gMasterLayerRendererName = mel.eval('global string $gMasterLayerRendererName; $a_temps = $gMasterLayerRendererName')
+        tabLayoutName = mel.eval('getRendererTabLayout("%s")'%gMasterLayerRendererName)
     else:
-       tabLayoutName = mel.eval('getRendererTabLayout("%s")'%(renderer))
+        tabLayoutName = mel.eval('getRendererTabLayout("%s")'%(renderer))
 
     cmds.setParent(tabLayoutName)
 
@@ -195,16 +195,16 @@ def registerArnoldRenderer():
         utils.pyToMelProc(addOneTabToGlobalsWindow, ('string', 'renderer'), ('string', 'tabLabel'), ('string', 'createProc'), shortName=True)
         utils.pyToMelProc(renderSettingsTabLabel_melToUI, ('string', 'mel'), shortName=True)
         utils.pyToMelProc(updateMayaImageFormatControl, shortName=True)
-        
+
         aeUtils.loadAETemplates()
 
         cmds.renderer('arnold', edit=True, addGlobalsNode='defaultArnoldRenderOptions')
 
         # Add option in 'Render' menu to export to an .ass file
         if not cmds.about(b=1):
-           mel.eval('RenRenderMenu mainRenderMenu')
-           cmds.menuItem(parent='mainRenderMenu', divider=True)
-           cmds.menuItem('exportToAssMenuItem', parent='mainRenderMenu', label="Export to Ass...", c=arnoldExportAss.arnoldExportAss)
-           cmds.menuItem('arnoldAttributeEditorItem', parent='mainRenderMenu', label="Arnold Attribute Editor...", c=arnoldAttributeEditor.arnoldAttributeEditor)
-           # Add option box for file translator
-           utils.pyToMelProc(arnoldAssOpts.arnoldAssOpts, ('string', 'parent'), ('string', 'action'), ('string', 'initialSettings'), ('string', 'resultCallback'), shortName=True)
+            mel.eval('RenRenderMenu mainRenderMenu')
+            cmds.menuItem(parent='mainRenderMenu', divider=True)
+            cmds.menuItem('exportToAssMenuItem', parent='mainRenderMenu', label="Export to Ass...", c=arnoldExportAss.arnoldExportAss)
+            cmds.menuItem('arnoldAttributeEditorItem', parent='mainRenderMenu', label="Arnold Attribute Editor...", c=arnoldAttributeEditor.arnoldAttributeEditor)
+            # Add option box for file translator
+            utils.pyToMelProc(arnoldAssOpts.arnoldAssOpts, ('string', 'parent'), ('string', 'action'), ('string', 'initialSettings'), ('string', 'resultCallback'), shortName=True)

@@ -195,7 +195,7 @@ def intNew(attr):
     attribData = getCustomAttributeData(attribName)
 
     if not aeUtils.attributeExists(attribName, nodeName):
-       cmds.addAttr(nodeName, ln=attribName, at='long', dv=int(attribData['default']), min=int(attribData['min']), max=int(attribData['max']))
+        cmds.addAttr(nodeName, ln=attribName, at='long', dv=int(attribData['default']), min=int(attribData['min']), max=int(attribData['max']))
 
     cmds.intSliderGrp( '%s_%s'%(nodeType, attribName), label=attribData['label'], min=attribData['sMin'], max=attribData['sMax'], fmn=attribData['min'], fmx=attribData['max'])
 
@@ -225,7 +225,7 @@ def floatNew(attr):
     attribData = getCustomAttributeData(attribName)
 
     if not aeUtils.attributeExists(attribName, nodeName):
-      cmds.addAttr(nodeName, ln=attribName, at='float', dv=float(attribData['default']), min=attribData['min'], max=attribData['max'])
+        cmds.addAttr(nodeName, ln=attribName, at='float', dv=float(attribData['default']), min=attribData['min'], max=attribData['max'])
 
     cmds.floatSliderGrp( '%s_%s'%(nodeType, attribName), label=attribData['label'], min=attribData['sMin'], max=attribData['sMax'], fmn=attribData['min'], fmx=attribData['max'])
 
@@ -241,7 +241,7 @@ def floatReplace(attr):
     attribData = getCustomAttributeData(attribName)
 
     if not aeUtils.attributeExists(attribName, nodeName):
-      cmds.addAttr(nodeName, ln=attribName, at='float', dv=attribData['default'], min=attribData['min'], max=attribData['max'])
+        cmds.addAttr(nodeName, ln=attribName, at='float', dv=attribData['default'], min=attribData['min'], max=attribData['max'])
 
     if attribData['changeCallback']:
         cmds.evalDeferred(attribData['changeCallback'])
@@ -266,7 +266,7 @@ def enumNew(attr):
     attribData = getCustomAttributeData(attribName)
 
     if not aeUtils.attributeExists(attribName, nodeName):
-      cmds.addAttr(nodeName, ln=attribName, at='long', dv=int(attribData['default']))
+        cmds.addAttr(nodeName, ln=attribName, at='long', dv=int(attribData['default']))
 
     val = cmds.getAttr(attr) + 1
 
@@ -287,7 +287,7 @@ def enumReplace(attr):
     attribData = getCustomAttributeData(attribName)
 
     if not aeUtils.attributeExists(attribName, nodeName):
-      cmds.addAttr(nodeName, ln=attribName, at='long', dv=int(attribData['default']))
+        cmds.addAttr(nodeName, ln=attribName, at='long', dv=int(attribData['default']))
 
     val = cmds.getAttr(attr) + 1
 

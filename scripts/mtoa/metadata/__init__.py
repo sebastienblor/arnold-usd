@@ -25,7 +25,7 @@ def hasParamData(node, parameter, name):
         return 1
     except KeyError:
         return 0
-    
+
 def getParamData(node, parameter, name):
     global _data
     try:

@@ -6,14 +6,14 @@ from mtoa.ui.callback import *
 def getSourcePlug(plugname, index):
     conns = []
     if index < 0:
-       conns = cmds.listConnections(plugname, p=1, s=1, d=0)
+        conns = cmds.listConnections(plugname, p=1, s=1, d=0)
     else:
-       conns = cmds.listConnections('%s[%s]'%(plugname, index), p=1, s=1, d=0)
+        conns = cmds.listConnections('%s[%s]'%(plugname, index), p=1, s=1, d=0)
     if conns:
         if len(conns) == 1:
-           return conns[0]
+            return conns[0]
         else:
-           return ""
+            return ""
 
 
 def getNodeName(plugname):
@@ -22,7 +22,7 @@ def getNodeName(plugname):
     nodeAttrs = plugname.split('.')
 
     if len(nodeAttrs) >= 1:
-       return nodeAttrs[0]
+        return nodeAttrs[0]
 
     return "";
 

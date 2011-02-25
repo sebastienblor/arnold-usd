@@ -34,7 +34,7 @@ def getBackgroundShader(*args):
     conns = cmds.listConnections('defaultArnoldRenderOptions.background', s=True, d=False, p=True)
     if conns:
        return conns[0].split('.')[0]
-     
+
     return ""
 
 def selectBackground(*args):
@@ -99,7 +99,7 @@ def selectAtmosphere(*args):
     cases = { 1: "cmds.createNode('ArnoldFogShader', shared=True, name='defaultFogShader')",
               2: "cmds.createNode('ArnoldVolumeScatteringShader', shared=True, name='defaultVolumeScatteringShader')"
             }
-   
+
     if bkg in cases.keys():
         eval(cases[bkg])
 
@@ -380,7 +380,7 @@ def createArnoldRayDepthSettings():
     cmds.attrControlGrp('rs_auto_transparency_threshold',
                         label="Auto transp. threshold",
                         attribute='defaultArnoldRenderOptions.auto_transparency_threshold')
-                        
+
     cmds.attrControlGrp('rs_auto_transparency_probabilistic',
                         label="Auto transp. probabilistic",
                         attribute='defaultArnoldRenderOptions.auto_transparency_probabilistic')
@@ -393,7 +393,7 @@ def createArnoldEnvironmentSettings():
 
     cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
     cmds.columnLayout(adjustableColumn=True)
-    
+
     cmds.rowLayout(adjustableColumn=2, numberOfColumns=3)
     cmds.text(label="Background")
     bgfield = cmds.textField(editable=False)

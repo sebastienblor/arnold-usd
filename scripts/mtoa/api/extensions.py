@@ -6,8 +6,8 @@ def loadExtensionUI(sharedLibraryPath):
     '''
     given the path to a c++ shared library, attempt to load a python module
     living in the same directory with the same name
-    
-    it is the responsibility of this module to call 
+
+    it is the responsibility of this module to call
     `mtoa.ui.ae.registerCustomAttrTemplate()` for each maya node translated by the
     extension.
     '''

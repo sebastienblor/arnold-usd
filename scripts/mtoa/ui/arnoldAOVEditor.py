@@ -25,7 +25,7 @@ def arnoldAddAOV(node):
     sel = cmds.textScrollList('%s_availableLst'%UI_NAME, query=True, selectItem=True)
     if sel is None:
         sel = []
-    
+
     for aov in sel:
         n = cmds.getAttr('%s.aovs'%node, size=True)
         i = 0
@@ -51,17 +51,17 @@ def arnoldRemAOV(node):
         for i in range(0, n):
             name = cmds.getAttr('%s.aovs[%d].aov_name'%(node, i))
             if name == aov:
-               
+
                 for j in range(i+1, n):
                     cmds.setAttr('%s.aovs[%d].aov_name'%(node, j-1), cmds.getAttr('%s.aovs[%d].aov_name'%(node, j)), type='string')
                     cmds.setAttr('%s.aovs[%d].aov_prefix'%(node, j-1), cmds.getAttr('%s.aovs[%d].aov_prefix'%(node, j)), type='string')
-          
+
                 cmds.setAttr('%s.aovs[%d].aov_name'%(node, n-1), '', type='string')
                 cmds.setAttr('%s.aovs[%d].aov_prefix'%(node, n-1), '', type='string')
-          
+
                 cmds.textScrollList('%s_availableLst'%UI_NAME, edit=True, append=aov)
                 cmds.textScrollList('%s_activeLst'%UI_NAME, edit=True, removeItem=aov)
-          
+
                 break
 
     cmds.textField('%s_prefixFld'%UI_NAME, edit=True, enable=False)
@@ -71,26 +71,26 @@ def arnoldSetAOVPrefix(node):
     sel = cmds.textScrollList('%s_activeLst'%UI_NAME, query=True, selectItem=True)
     if sel is None:
         sel = []
-    
+
     if len(sel) != 1:
         return
-    
+
     aov = sel[0]
-    
+
     n = cmds.getAttr("%s.aovs"%node, size=True)
     for i in range(0, n):
         name = cmds.getAttr('%s.aovs[%d].aov_name'%(node, i))
         if name == aov:
             cmds.setAttr("%s.aovs[%d].aov_prefix"%(node, i), cmds.textField('%s_prefixFld'%UI_NAME, query=True, text=True), type='string')
             break
-      
+
 
 def arnoldSelectAOV(node):
 
     sel = cmds.textScrollList('%s_activeLst'%UI_NAME, query=True, selectItem=True)
     if sel is None:
         sel = []
-    
+
     if len(sel) != 1:
         cmds.textField('%s_prefixFld'%UI_NAME, edit=True, enable=False)
         return
@@ -110,14 +110,14 @@ def arnoldSelectAOV(node):
 
 def arnoldToggleAOVBatchModeOnly(node):
     cmds.setAttr('%s.aov_batch_mode_only'%node, cmds.checkBox('%s_bmoChk'%UI_NAME, query=True, value=True))
-    
+
 
 
 def arnoldAOVEditor(*args):
-    
+
     if cmds.window(UI_NAME, exists=True):
         cmds.deleteUI(UI_NAME)
-   
+
     win = cmds.window(UI_NAME, title='AOV setup', width=640, height=300)
 
     aovnode = ""
@@ -134,13 +134,13 @@ def arnoldAOVEditor(*args):
         aov = cmds.getAttr('%s.aovs[%d].aov_name'%(aovnode, caov))
         if aov:
             aovList.append(aov)
-      
-   
+
+
 
     form = cmds.formLayout('ArnoldAOVUI_topFrm', numberOfDivisions=100)
 
     cmds.text('%s_bmoLbl'%UI_NAME, align='center', label='Only output AOVs in batch mode', parent=form)
-    cmds.checkBox('%s_bmoChk'%UI_NAME, label='', value=cmds.getAttr('%s.aov_batch_mode_only'%aovnode), parent=form, changeCommand=Callback(arnoldToggleAOVBatchModeOnly, aovnode)) 
+    cmds.checkBox('%s_bmoChk'%UI_NAME, label='', value=cmds.getAttr('%s.aov_batch_mode_only'%aovnode), parent=form, changeCommand=Callback(arnoldToggleAOVBatchModeOnly, aovnode))
     cmds.text('%s_availableLbl'%UI_NAME, align='center', label='Available AOVs', parent=form)
     cmds.text('%s_activeLbl'%UI_NAME, align='center', label='Active AOVs', parent=form)
     cmds.textScrollList('%s_availableLst'%UI_NAME, numberOfRows=10, allowMultiSelection=True, parent=form, doubleClickCommand=Callback(arnoldAddAOV, aovnode))
@@ -155,10 +155,10 @@ def arnoldAOVEditor(*args):
             cmds.textScrollList('%s_availableLst'%UI_NAME, edit=True, append=g_ArnoldStdAOVs[i])
         else:
             cmds.textScrollList('%s_activeLst'%UI_NAME, edit=True, append=g_ArnoldStdAOVs[i])
-    
+
 
     cmds.formLayout(form, edit=True,
-              
+
               attachForm     = [('%s_bmoLbl'%UI_NAME,"top",2),
                                ('%s_bmoLbl'%UI_NAME,"left",2),
                                ('%s_bmoChk'%UI_NAME,"top",2),
@@ -171,7 +171,7 @@ def arnoldAOVEditor(*args):
                                ('%s_prefixLbl'%UI_NAME,"bottom",2),
                                ('%s_prefixFld'%UI_NAME,"right",2),
                                ('%s_prefixFld'%UI_NAME,"bottom",2)],
-              
+
               attachPosition = [('%s_bmoLbl'%UI_NAME,"right",2,50),
                                ('%s_bmoChk'%UI_NAME,"left",2,50),
                                ('%s_availableLbl'%UI_NAME,"right",10,50),
@@ -184,7 +184,7 @@ def arnoldAOVEditor(*args):
                                ('%s_remBtn'%UI_NAME,"right",2,55),
                                ('%s_prefixLbl'%UI_NAME,"right",2,25),
                                ('%s_prefixFld'%UI_NAME,"left",2,25)],
-                               
+
               attachNone     = [('%s_bmoLbl'%UI_NAME,"bottom"),
                                ('%s_availableLbl'%UI_NAME,"bottom"),
                                ('%s_bmoChk'%UI_NAME,"bottom"),
@@ -193,7 +193,7 @@ def arnoldAOVEditor(*args):
                                ('%s_remBtn'%UI_NAME,"bottom"),
                                ('%s_prefixLbl'%UI_NAME,"top"),
                                ('%s_prefixFld'%UI_NAME,"top")],
-              
+
               attachControl  = [('%s_availableLbl'%UI_NAME,"top",2,'%s_bmoLbl'%UI_NAME),
                                ('%s_activeLbl'%UI_NAME,"top",2, '%s_bmoChk'%UI_NAME),
                                ('%s_availableLst'%UI_NAME,"top",2,'%s_availableLbl'%UI_NAME),

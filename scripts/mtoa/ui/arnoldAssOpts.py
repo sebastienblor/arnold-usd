@@ -50,63 +50,58 @@ def readMaskValues():
 
 
 def arnoldAssOpts(parent = '', action = '', initialSettings = '', resultCallback = ''):
-   
-   print 'parent: %(p)s, action: %(a)s, settings: %(s)s, callback: %(c)s\n' % \
-      {"p": parent, "a": action, "s": initialSettings, "c": resultCallback}                            
-                            
-   retval = 0
-   currentOptions = ''
-    
-   # Make sure the ArnoldRenderOptions node exists
-   if not cmds.ls('defaultArnoldRenderOptions'):
-      cmds.createNode('ArnoldRenderOptions', skipSelect=True, shared=True, name='defaultArnoldRenderOptions')
-    
-   if (action == 'post') :
-    
-      # Build the UI   
-      cmds.setParent(parent)
-      
-      form = cmds.formLayout('assExportForm')
-      
-      tabLayoutName = 'assExportTab'
+    print 'parent: %(p)s, action: %(a)s, settings: %(s)s, callback: %(c)s\n' % \
+      {"p": parent, "a": action, "s": initialSettings, "c": resultCallback}
 
-      # tabLayoutName = cmds.tabLayout(tabLayoutName, tabsVisible=True, width=1)
-      tabs = cmds.tabLayout('assExportTab')
-      cmds.formLayout(form , edit=True, attachForm=((tabs, 'top', 0), (tabs, 'left', 0), (tabs, 'bottom', 0), (tabs, 'right', 0)) )
-      
-      # -preSelectCommand "fillSelectedTabForCurrentRenderer"
+    retval = 0
+    currentOptions = ''
 
-      cmds.setParent(tabs)
+    # Make sure the ArnoldRenderOptions node exists
+    if not cmds.ls('defaultArnoldRenderOptions'):
+        cmds.createNode('ArnoldRenderOptions', skipSelect=True, shared=True, name='defaultArnoldRenderOptions')
 
-      commonForm = cmds.formLayout('assExportCommon')
-      createArnoldRendererCommonGlobalsTab()
-      
-      cmds.setParent(tabs)
-       
-      arnoldForm = cmds.formLayout('assExportArnold')
-      createArnoldRendererGlobalsTab()
-      
-      cmds.setParent(tabs)
-      cmds.tabLayout( tabs, edit=True, tabLabel=((commonForm, 'Common'), (arnoldForm, 'Arnold Renderer')) )
+    if action == 'post':
 
-      retval = 1
-      
-   elif (action == 'query') :
-    
-      # make this more optionVar compliant
-      # storeMaskValues()
+        # Build the UI
+        cmds.setParent(parent)
 
-      #currentOptions += 'showPositions='
-      #currentOptions += '1' if (cmds.radioButtonGrp('lepTypeGrp', query=True, select=True) == 1) else '0'
+        form = cmds.formLayout('assExportForm')
 
-      print ('cmd: '+resultCallback+' "'+currentOptions+'"\n')    
+        tabLayoutName = 'assExportTab'
 
-      mel.eval(resultCallback+' "'+currentOptions+'"')
+        # tabLayoutName = cmds.tabLayout(tabLayoutName, tabsVisible=True, width=1)
+        tabs = cmds.tabLayout('assExportTab')
+        cmds.formLayout(form , edit=True, attachForm=((tabs, 'top', 0), (tabs, 'left', 0), (tabs, 'bottom', 0), (tabs, 'right', 0)) )
 
-      retval = 1 
-      
-   else :
-      retval = 0
-    
-     
-   return retval
+        # -preSelectCommand "fillSelectedTabForCurrentRenderer"
+
+        cmds.setParent(tabs)
+
+        commonForm = cmds.formLayout('assExportCommon')
+        createArnoldRendererCommonGlobalsTab()
+
+        cmds.setParent(tabs)
+
+        arnoldForm = cmds.formLayout('assExportArnold')
+        createArnoldRendererGlobalsTab()
+
+        cmds.setParent(tabs)
+        cmds.tabLayout( tabs, edit=True, tabLabel=((commonForm, 'Common'), (arnoldForm, 'Arnold Renderer')) )
+
+        retval = 1
+
+    elif action == 'query':
+
+        # make this more optionVar compliant
+        # storeMaskValues()
+
+        #currentOptions += 'showPositions='
+        #currentOptions += '1' if (cmds.radioButtonGrp('lepTypeGrp', query=True, select=True) == 1) else '0'
+
+        mel.eval(resultCallback+' "'+currentOptions+'"')
+        retval = 1
+
+    else:
+        retval = 0
+
+    return retval
