@@ -141,7 +141,7 @@ protected:
 //
 // attribute helper for creating static attributes during node initialization
 //
-class CStaticAttrHelper : public CBaseAttrHelper
+class DLLEXPORT CStaticAttrHelper : public CBaseAttrHelper
 {
 
 public:
@@ -165,7 +165,7 @@ protected:
 //
 // attribute helper for creating dynamic attributes on existing maya nodes
 //
-class CDynamicAttrHelper : public CBaseAttrHelper
+class DLLEXPORT CDynamicAttrHelper : public CBaseAttrHelper
 {
 
 public:
