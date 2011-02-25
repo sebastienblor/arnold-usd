@@ -20,3 +20,5 @@ Debug
 *.pdb
 *.ncb
 *.suo
+*.user
+*.bat
