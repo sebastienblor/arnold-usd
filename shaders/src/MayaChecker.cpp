@@ -18,7 +18,6 @@ enum MayaCheckerParams
    p_color2,
    p_contrast,
    p_uvCoord,
-   p_repeatUV,
    MAYA_COLOR_BALANCE_ENUM,
    p_filter,
    p_filterOffset
@@ -32,7 +31,6 @@ node_parameters
    AiParameterRGB("color2", 0.0f, 0.0f, 0.0f);
    AiParameterFLT("contrast", 1.0);
    AiParameterPNT2("uvCoord", 0.0f, 0.0f);
-   AiParameterPNT2("repeatUV", 1.0f, 1.0f); // for filtering
    AddMayaColorBalanceParams(params);
    AiParameterFLT("filter", 1.0f);
    AiParameterFLT("filterOffset", 0.0f);
@@ -67,7 +65,6 @@ shader_evaluate
       uv = AiShaderEvalParamPnt2(p_uvCoord);
    }
 
-   AtPoint2 repeatUV = AiShaderEvalParamPnt2(p_repeatUV);
    AtRGB color1 = AiShaderEvalParamRGB(p_color1);
    AtRGB color2 = AiShaderEvalParamRGB(p_color2);
 
@@ -87,8 +84,8 @@ shader_evaluate
    // Set fw to zero at the moment 
    float fw = 0.0f; 
 
-   float dss = fw * repeatUV.x;
-   float dtt = fw * repeatUV.y;
+   float dss = fw;
+   float dtt = fw;
 
    float f = 0.5f - 2.0f *
              (FilteredPulseTrain(0.5, 1, ss, dss) - 0.5f) *

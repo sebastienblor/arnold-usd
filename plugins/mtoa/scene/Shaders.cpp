@@ -601,7 +601,7 @@ void CFileTranslator::Update(AtNode* shader)
          m_scene->ProcessShaderParameter(srcNode, "stagger", shader, "stagger", AI_TYPE_BOOLEAN);
          m_scene->ProcessShaderParameter(srcNode, "repeatUV", shader, "repeatUV", AI_TYPE_POINT2);
          m_scene->ProcessShaderParameter(srcNode, "rotateUV", shader, "rotateUV", AI_TYPE_FLOAT);
-         m_scene->ProcessShaderParameter(srcNode, "offset", shader, "offset", AI_TYPE_POINT2);
+         m_scene->ProcessShaderParameter(srcNode, "offset", shader, "offsetUV", AI_TYPE_POINT2);
          m_scene->ProcessShaderParameter(srcNode, "noiseUV", shader, "noiseUV", AI_TYPE_POINT2);
       }
    }
@@ -1159,7 +1159,7 @@ void CPlace2DTextureTranslator::Update(AtNode* shader)
    ProcessParameter(shader, "stagger", AI_TYPE_BOOLEAN);
    ProcessParameter(shader, "repeatUV", AI_TYPE_POINT2);
    ProcessParameter(shader, "rotateUV", AI_TYPE_FLOAT);
-   ProcessParameter(shader, "offset", AI_TYPE_POINT2);
+   ProcessParameter(shader, "offset", "offsetUV", AI_TYPE_POINT2);
    ProcessParameter(shader, "noiseUV", AI_TYPE_POINT2);
 }
 

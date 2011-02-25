@@ -127,6 +127,9 @@ node_parameters
    AiParameterVEC("rotatePivotTranslate", 0.0f, 0.0f, 0.0f);
    AiParameterBOOL("inheritsTransform", true);
    AiParameterMTX("parentMatrix", id);
+
+   AiMetaDataSetStr(mds, NULL, "maya.counterpart", "place3dTexture");
+   AiMetaDataSetInt(mds, NULL, "maya.counterpart_id", 0x52504c44);
 }
 
 node_initialize

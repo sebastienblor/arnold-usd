@@ -110,6 +110,11 @@ public:
    CAutoTranslator() :
       CNodeTranslator()
    {}
+   virtual void Init(MDagPath& dagPath, CMayaScene* scene, MString outputAttr="")
+   {
+      // downconvert to MObject
+      CNodeTranslator::Init(dagPath.node(), scene, outputAttr);
+   }
    static void* creator()
    {
       return new CAutoTranslator();

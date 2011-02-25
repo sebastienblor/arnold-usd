@@ -26,7 +26,6 @@ enum MayaFractalParams
    p_time,
    p_timeRatio,
    p_uvCoord,
-   p_repeatUV,
    MAYA_COLOR_BALANCE_ENUM
 };
 
@@ -71,7 +70,6 @@ node_parameters
    AiParameterFLT("time", 0.0f);
    AiParameterFLT("timeRatio", 2.0f);
    AiParameterPNT2("uvCoord", 0.0f, 0.0f);
-   AiParameterPNT2("repeatUV", 1.0f, 1.0f);
    AddMayaColorBalanceParams(params);
 
    AiMetaDataSetStr(mds, NULL, "maya.counterpart", "fractal");
@@ -104,7 +102,6 @@ shader_evaluate
       uv = AiShaderEvalParamPnt2(p_uvCoord);
    }
 
-   AtPoint2 repeatUV = AiShaderEvalParamPnt2(p_repeatUV);
    float amplitude = AiShaderEvalParamFlt(p_amplitude);
    float ratio = AiShaderEvalParamFlt(p_ratio);
    float frequencyRatio = AiShaderEvalParamFlt(p_frequencyRatio);

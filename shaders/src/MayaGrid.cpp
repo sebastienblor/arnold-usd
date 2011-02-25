@@ -15,7 +15,6 @@ enum MayaGridParams
    p_vWidth,
    p_contrast,
    p_uvCoord,
-   p_repeatUV,
    MAYA_COLOR_BALANCE_ENUM,
    p_filter,
    p_filterOffset
@@ -36,7 +35,6 @@ node_parameters
    AiParameterFLT("vWidth", 0.1f);
    AiParameterFLT("contrast", 1.0);
    AiParameterPNT2("uvCoord", 0.0f, 0.0f);
-   AiParameterPNT2("repeatUV", 1.0f, 1.0f);
    AddMayaColorBalanceParams(params);
    AiParameterFLT("filter", 1.0f);
    AiParameterFLT("filterOffset", 0.0f);
@@ -71,7 +69,6 @@ shader_evaluate
       uv = AiShaderEvalParamPnt2(p_uvCoord);
    }
 
-   AtPoint2 repeatUV = AiShaderEvalParamPnt2(p_repeatUV);
    float uWidth = AiShaderEvalParamFlt(p_uWidth);
    float vWidth = AiShaderEvalParamFlt(p_vWidth);
    AtRGB lineColor = AiShaderEvalParamRGB(p_lineColor);
@@ -95,8 +92,8 @@ shader_evaluate
    // set fw to zero at the moment
    float fw = 0.0f;
 
-   float dss = fw * repeatUV.x * filter + filterOffset * 2.0f;
-   float dtt = fw * repeatUV.y * filter + filterOffset * 2.0f;
+   float dss = fw * filter + filterOffset * 2.0f;
+   float dtt = fw * filter + filterOffset * 2.0f;
 
    float f = FilteredPulseTrain(uWidth, 1.0f, ss + uWidth * 0.5f, dss) * 
              FilteredPulseTrain(vWidth, 1.0f, tt + vWidth * 0.5f, dtt);

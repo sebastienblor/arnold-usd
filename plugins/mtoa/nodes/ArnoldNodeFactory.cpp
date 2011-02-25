@@ -437,6 +437,7 @@ AtNode* CAutoTranslator::Export()
 
 void CAutoTranslator::Update(AtNode *shader)
 {
+   MStatus status;
    MPlug plug;
    AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(m_nodeEntry);
    while (!AiParamIteratorFinished(nodeParam))
@@ -470,8 +471,11 @@ void CAutoTranslator::Update(AtNode *shader)
          if (!AiMetaDataGetStr(m_nodeEntry, paramName, "maya.name", &attrName))
             attrName = paramName;
 
-         plug = m_fnNode.findPlug(attrName);
-         ProcessParameter(shader, plug, paramName, paramType);
+         plug = m_fnNode.findPlug(attrName, &status);
+         if (status == MS::kSuccess)
+            ProcessParameter(shader, plug, paramName, paramType);
+         else
+            AiMsgWarning("[mtoa] attribute %s.%s requested by translator does not exist", m_fnNode.name().asChar(), attrName);
       }
    }
 
