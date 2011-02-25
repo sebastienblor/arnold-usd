@@ -346,34 +346,34 @@ void CGeoTranslator::GetComponentIDs(MFnMesh &fnMesh,
       bool exportUVs
       )
 {
-   // Traverse all polygons to export vidxs, nidxs, uvindxs y nsides
-   nsides.resize(fnMesh.numPolygons());
-
-   MObject mayaMesh = fnMesh.object();
-   MItMeshPolygon itMeshPolygon(mayaMesh);
-   unsigned int   polygonIndex = 0;
-
-   for (; (!itMeshPolygon.isDone()); itMeshPolygon.next())
+   int uv_id;
+   // Traverse all polygons to export vidxs, uvindxs and nsides
+   nsides.reserve(fnMesh.numPolygons());
+   for (int p(0); p < fnMesh.numPolygons(); ++p)
    {
-      unsigned int vertexCount = itMeshPolygon.polygonVertexCount();
-
-      nsides[polygonIndex] = vertexCount;
-
-      for (unsigned int V = 0; (V < vertexCount); ++V)
+      // Num points/sides to the poly.
+      nsides.push_back( fnMesh.polygonVertexCount(p) );
+      // Vertex indicies.
+      MIntArray p_vidxs;
+      fnMesh.getPolygonVertices( p, p_vidxs);
+      for( uint v(0); v < p_vidxs.length(); ++v)
       {
-         vidxs.push_back(itMeshPolygon.vertexIndex(V));
-         if (exportNormals)
-            nidxs.push_back(itMeshPolygon.normalIndex(V));
-
+         vidxs.push_back(p_vidxs[v]);
+         // UVs
          if (exportUVs)
          {
-            int uvIndex;
-            itMeshPolygon.getUVIndex(V, uvIndex);
-            uvidxs.push_back(uvIndex);
+            m_fnMesh.getPolygonUVid(p, v, uv_id);
+            uvidxs.push_back(uv_id);
          }
       }
+   }
 
-      ++polygonIndex;
+   // Normals.
+   if (exportNormals)
+   {
+      MIntArray vertex_counts, normal_ids;
+      m_fnMesh.getNormalIds(vertex_counts, normal_ids);
+      for( uint n(0); n < normal_ids.length(); ++n ) nidxs.push_back( normal_ids[n] );
    }
 }
 
@@ -492,7 +492,6 @@ void CGeoTranslator::ExportMeshGeoData(AtNode* polymesh, AtUInt step)
    //
    // GEOMETRY
    //
-
    std::vector<float> vertices, normals, tangents, bitangents;
 
    // Get all vertices
@@ -520,7 +519,6 @@ void CGeoTranslator::ExportMeshGeoData(AtNode* polymesh, AtUInt step)
 
       // Get Component IDs
       GetComponentIDs(m_fnMesh, nsides, vidxs, nidxs, uvidxs, exportNormals, exportUVs);
-
       // Get Vertex Colors
       bool exportColors = GetVertexColors(m_fnMesh, vcolors);
 
@@ -683,7 +681,7 @@ void CGeoTranslator::IsGeoDeforming()
     }
 
     if(!history && !pnts && !m_displaced)
-        m_motionDeform = false; 
+        m_motionDeform = false;
 }
 
 void CGeoTranslator::ExportMeshParameters(AtNode* polymesh)
@@ -889,42 +887,114 @@ void CGeoTranslator::ShaderAssignmentCallback( MNodeMessage::AttributeMessage ms
 // CNurbsTranslator
 //
 
+void CNurbsSurfaceTranslator::GetTessellationOptions(MTesselationParams & params,
+                                              MFnNurbsSurface & surface )
+{
+   // Reference for this code is from the devkit:
+   // /devkit/obsolete/games/MDtApi/MDtShape.cpp
+   // It is similar, this is tidier and more condenced.
+
+   // Get the tesselation attributes off the node
+   const int modeU                  = surface.findPlug( "modeU" ).asInt();
+   const int numberU                = surface.findPlug( "numberU" ).asInt();
+   const int modeV                  = surface.findPlug( "modeV" ).asInt();
+   const int numberV                = surface.findPlug( "numberV" ).asInt();
+   const bool smoothEdge            = surface.findPlug( "smoothEdge" ).asBool();
+   const bool useChordHeightRatio   = surface.findPlug( "useChordHeightRatio" ).asBool();
+   const bool edgeSwap              = surface.findPlug( "edgeSwap" ).asBool();
+   const bool useMinScreen          = surface.findPlug( "useMinScreen" ).asBool();
+   const double chordHeightRatio    = surface.findPlug( "chordHeightRatio" ).asDouble();
+   const double minScreen           = surface.findPlug( "minScreen" ).asDouble();
+
+   // I don't actually know why these aren't used. I don't see where they'd be set
+   // on MTesselationParams either.
+   //const bool useChordHeight      = surface.findPlug( "useChordHeight" ).asBool();
+   //const double chordHeight       = surface.findPlug( "chordHeight" ).asDouble();
+
+   switch ( modeU )
+   {
+      case 1:             // Per Surf # of Isoparms in 3D
+         params.setUIsoparmType( MTesselationParams::kSurface3DEquiSpaced);
+         break;
+      case 2:             // Per Surf # of Isoparms
+         params.setUIsoparmType( MTesselationParams::kSurfaceEquiSpaced);
+         break;
+      case 3:             // Per Span # of Isoparms
+         params.setUIsoparmType( MTesselationParams::kSpanEquiSpaced);
+         break;
+      case 4:             // Best Guess Based on Screen Size, there is a comment that 4 uses mode 2 internally
+         params.setUIsoparmType( MTesselationParams::kSurfaceEquiSpaced);
+         break;
+   }
+
+   switch ( modeV )
+   {
+      case 1:             // Per Surf # of Isoparms in 3D
+         params.setVIsoparmType( MTesselationParams::kSurface3DEquiSpaced);
+         break;
+      case 2:             // Per Surf # of Isoparms
+         params.setVIsoparmType( MTesselationParams::kSurfaceEquiSpaced);
+         break;
+      case 3:             // Per Span # of Isoparms
+         params.setVIsoparmType( MTesselationParams::kSpanEquiSpaced);
+         break;
+      case 4:             // Best Guess Based on Screen Size, there is a comment that 4 uses mode 2 internally
+         params.setVIsoparmType( MTesselationParams::kSurfaceEquiSpaced);
+         break;
+   }
+
+   params.setUNumber(numberU);
+   params.setVNumber(numberV);
+   params.setSubdivisionFlag(MTesselationParams::kUseChordHeightRatio, useChordHeightRatio);
+   params.setChordHeightRatio(chordHeightRatio );
+   params.setSubdivisionFlag(MTesselationParams::kUseMinScreenSize,useMinScreen);
+   params.setMinScreenSize(minScreen, minScreen);
+
+   params.setSubdivisionFlag(MTesselationParams::kUseEdgeSmooth, smoothEdge);
+   params.setSubdivisionFlag(MTesselationParams::kUseTriangleEdgeSwapping, edgeSwap);
+}
+
+bool CNurbsSurfaceTranslator::Tessellate(MDagPath & dagPath)
+{
+   MStatus status;
+   MFnNurbsSurface surface(dagPath, &status);
+   if (!status)
+   {
+      AiMsgError("[mtoa] ERROR: Could not attache to NURBS surface for tessallation: %s",
+                 status.errorString().asChar());
+      return false;
+   }
+
+   MFnMeshData meshData;
+   // This is a member variable. We have to keep hold of it or Maya will release it.
+   m_data_mobj = meshData.create();
+
+   MTesselationParams params(MTesselationParams::kGeneralFormat, MTesselationParams::kTriangles);
+   GetTessellationOptions( params, surface );
+   MObject mesh_mobj = surface.tesselate(params,
+                                         m_data_mobj,
+                                         &status);
+   if (!status)
+   {
+      AiMsgError("[mtoa] ERROR: Could not tessallate NURBS surface: %s",
+                 status.errorString().asChar());
+      return false;
+   }
+
+   // set the MFnMesh to the newly created node
+   m_fnMesh.setObject(mesh_mobj);
+   return true;
+}
+
 AtNode* CNurbsSurfaceTranslator::Export()
 {
    AtNode* anode = NULL;
-   MStatus status;
-   MFnNurbsSurface surface(m_dagPath, &status);
-
-   if (!status)
-   {
-      AiMsgError("[mtoa] ERROR: Could not create NURBS surface.");
-      return anode;
-   }
-
    m_isMasterDag = IsMasterInstance(m_masterDag);
    if (m_isMasterDag)
    {
-      MFnMeshData meshData;
-      MObject     meshDataObject = meshData.create();
+      // Early return if we can't tessalate. anode will be NULL.
+      if (!Tessellate(m_dagPath)) return anode;
 
-      MObject tesselatedMesh = surface.tesselate(MTesselationParams::fsDefaultTesselationParams, meshDataObject);
-
-      // FIXME: These dynamic attributes should be auto-created by the nodeAdded callback
-
-      // in order to get displacement, we need a couple of attributes
-      MFnNumericAttribute  nAttr;
-
-      MObject subdiv_type = nAttr.create("subdiv_type", "sdbt", MFnNumericData::kInt, 1);
-      surface.addAttribute(subdiv_type);
-      MObject subdiv_iterations = nAttr.create("subdiv_iterations", "sdbit", MFnNumericData::kInt, 1);
-      surface.addAttribute(subdiv_iterations);
-      MObject subdiv_adaptive_metric = nAttr.create("subdiv_adaptive_metric", "sdbam", MFnNumericData::kInt, 1);
-      surface.addAttribute(subdiv_adaptive_metric);
-      MObject subdiv_pixel_error = nAttr.create("subdiv_pixel_error", "sdbpe", MFnNumericData::kInt, 0);
-      surface.addAttribute(subdiv_pixel_error);
-
-      // set the MFnMesh to the newly created node
-      m_fnMesh.setObject(tesselatedMesh);
       anode = AiNode("polymesh");
       ExportMesh(anode, false);
       return anode;
@@ -937,8 +1007,25 @@ AtNode* CNurbsSurfaceTranslator::Export()
    }
 }
 
-// CPolyTranslator
-//
+void CNurbsSurfaceTranslator::ExportMotion(AtNode* anode, AtUInt step)
+{
+   // Re-tessalate the nurbs surface, but only if it's needed.
+   if (m_motion && m_motionDeform && m_isMasterDag)
+   {
+      // TODO: Figure out how to get the same topology for
+      // each tessellation.
+      if (!Tessellate(m_dagPath)) return;
+   }
+
+   CGeoTranslator::ExportMotion(anode, step);
+}
+
+// TODO: implement this check for nurbs.
+void CNurbsSurfaceTranslator::IsGeoDeforming()
+{
+}
+
+ // --------- CMeshTranslator -------------//
 unsigned int CMeshTranslator::GetNumMeshGroups()
 {
    MObject node = m_dagPath.node();

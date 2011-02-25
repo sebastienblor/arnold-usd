@@ -19,12 +19,8 @@ public:
       m_motion = m_scene->IsObjectMotionBlurEnabled() && m_fnNode.findPlug("motionBlur").asBool();
       m_motionDeform = m_motion && m_scene->IsObjectDeformMotionBlurEnabled();
       m_displaced = false;
-      m_dagPath = dagPath;
-      m_fnNode.setObject(dagPath);
-      m_scene = scene;
-      m_outputAttr = outputAttr;
    }
-   bool RequiresMotionData()
+   virtual bool RequiresMotionData()
    {
       return m_motion;
    }
@@ -65,7 +61,7 @@ protected:
 
    static void ShaderAssignmentCallback( MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void* );
    void AddShaderAssignmentCallbacks(MObject & dagNode );
-   void IsGeoDeforming();
+   virtual void IsGeoDeforming();
 
 protected:
    bool m_isMasterDag;
@@ -89,17 +85,27 @@ private:
    unsigned int GetNumMeshGroups();
 };
 
+class MFnMeshData;
+class MTesselationParams;
+class MFnNurbsSurface;
 
 class CNurbsSurfaceTranslator : public CGeoTranslator
 {
 public:
-   AtNode* Export();
+   virtual AtNode* Export();
+   virtual void ExportMotion(AtNode* anode, AtUInt step);
+   virtual void IsGeoDeforming();
+
    static void* creator()
    {
       return new CNurbsSurfaceTranslator();
    }
 private:
-   MObject m_tesselatedMesh;
+   MObject m_data_mobj;
+   bool Tessellate(MDagPath & dagPath);
+   void GetTessellationOptions(MTesselationParams & params,
+                        MFnNurbsSurface & surface );
+
 };
 
 #endif // GEOMETRY_H

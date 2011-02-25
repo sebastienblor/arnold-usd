@@ -59,10 +59,10 @@ public:
 protected:
    CNodeTranslator() {}
    virtual AtNode* Export() = 0;
-   virtual void ExportMotion(AtNode* atNode, AtUInt step){};
+   virtual void ExportMotion(AtNode* atNode, AtUInt step){}
    virtual void Update(AtNode* atNode) = 0;
    virtual void Delete() {}
-   virtual void UpdateMotion(AtNode* atNode, AtUInt step){ExportMotion(atNode, step);};
+   virtual void UpdateMotion(AtNode* atNode, AtUInt step){ExportMotion(atNode, step);}
    virtual bool RequiresMotionData()
    {
       return false;

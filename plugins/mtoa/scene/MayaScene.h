@@ -95,7 +95,7 @@ public:
 
    bool IsMotionBlurEnabled() const
    {
-      return m_motionBlurData.enabled;
+      return m_fnArnoldRenderOptions->findPlug("motion_blur_enable").asBool();
    }
    
    bool IsCameraMotionBlurEnabled() const
