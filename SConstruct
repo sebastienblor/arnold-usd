@@ -366,13 +366,13 @@ for ext in os.listdir(ext_base_dir):
            [EXT, EXT_PRJ] = env.SConscript(os.path.join(ext_dir, 'SConscript'),
                                            build_dir = os.path.join(BUILD_BASE_DIR, ext),
                                            duplicate = 0,
-                                           exports   = ['ext_env'])
+                                           exports   = ['ext_env', 'env'])
            env.Depends(SOLUTION, EXT_PRJ)
         else:
            EXT = env.SConscript(os.path.join(ext_dir, 'SConscript'),
                                 build_dir = os.path.join(BUILD_BASE_DIR, ext),
                                 duplicate = 0,
-                                exports   = ['ext_env'])
+                                exports   = ['ext_env', 'env'])
         top_level_alias(env, ext, EXT)
         # only install if the target has been specified
         if ext in COMMAND_LINE_TARGETS:

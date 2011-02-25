@@ -47,8 +47,8 @@ else:
 
 
 # import build env
-Import('ext_env')
-shader_env = ext_env.Clone()
+Import('env')
+shader_env = env.Clone()
 
 # Automatically add all source and include files found in the source path
 src_base_dir  = os.path.join(shader_env['ROOT_DIR'], 'contrib', 'extensions', 'shave', 'shaders')
