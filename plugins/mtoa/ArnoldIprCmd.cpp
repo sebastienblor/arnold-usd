@@ -23,6 +23,7 @@ MSyntax CArnoldIprCmd::newSyntax()
    syntax.addFlag("h", "height", MSyntax::kUnsigned);
    syntax.addFlag("m", "mode", MSyntax::kString);
    syntax.addFlag("et", "elapsedTime", MSyntax::kString);
+   syntax.addFlag("si", "samplingInfo", MSyntax::kString);
 
    return syntax;
 }
@@ -159,15 +160,23 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
       renderSession->FinishedIPRTuning();
 
       // Format a bit of info for the renderview.
-      const AtUInt64 mem_used( renderSession->GetUsedMemory() );
-      MString rvInfo( "renderWindowEditor -edit -pcaption (\"    (Arnold Renderer)\\n" );
+      const AtUInt64 mem_used(renderSession->GetUsedMemory());
+
+      MString rvInfo("renderWindowEditor -edit -pcaption (\"    (Arnold Renderer)\\n");
       rvInfo += "Memory: ";
       rvInfo += (unsigned int)mem_used;
       rvInfo += "Mb";
 
-      if ( args.isFlagSet( "elapsedTime" ) )
+      if ( args.isFlagSet("samplingInfo"))
       {
-         const MString elapsedTime(  args.flagArgumentString("elapsedTime", 0) );
+         const MString samplingInfo(args.flagArgumentString("samplingInfo", 0));
+         rvInfo += "    Sampling: ";
+         rvInfo += samplingInfo;
+      }
+
+      if ( args.isFlagSet("elapsedTime" ))
+      {
+         const MString elapsedTime(args.flagArgumentString("elapsedTime", 0));
          rvInfo += "    Render Time: ";
          rvInfo += elapsedTime;
       }

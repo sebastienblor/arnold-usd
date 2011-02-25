@@ -322,13 +322,23 @@ void FinishedWithDisplayUpdateQueue()
 {
    s_finishedRendering = false;
 
-   // Update the render view with the render time of the render.
+   // Get some data from Arnold before it gets deleted with the universe.
+   const AtInt aaSamples(     AiNodeGetInt(AiUniverseGetOptions(), "AA_samples")         );
+   const AtInt diffuseSamples(AiNodeGetInt(AiUniverseGetOptions(), "GI_diffuse_samples") );
+   const AtInt glossySamples( AiNodeGetInt(AiUniverseGetOptions(), "GI_glossy_samples")  );
+   const AtInt sssSamples(    AiNodeGetInt(AiUniverseGetOptions(), "GI_sss_hemi_samples"));
+
+   // Calculate the time taken.
    const time_t elapsed = time(0x0) - s_start_time;
    char command_str[256];
    sprintf( command_str,
-            "arnoldIpr -mode finishedIPR -elapsedTime \"%ld:%02ld\" ;",
+            "arnoldIpr -mode finishedIPR -elapsedTime \"%ld:%02ld\" -samplingInfo \"[%d/%d/%d/%d]\" ;",
             elapsed / 60,
-            elapsed % 60 );
+            elapsed % 60,
+            aaSamples,
+            diffuseSamples,
+            glossySamples,
+            sssSamples);
    MGlobal::executeCommandOnIdle( command_str, false );
 }
 
