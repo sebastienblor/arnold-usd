@@ -36,12 +36,14 @@ if system.os() == 'windows':
    local_env.AlwaysBuild(EXT_PRJ)
    
 else:
+   local_env.Append(CPPPATH = ['.', os.getenv("SHAVE_INCLUDE_PATH") ])
+   local_env.Append(LIBATH = ['.', os.getenv("SHAVE_LIBRARY_PATH") ])
    local_env.Append(LIBS=['ShaveAPI'])
 
 
 # import build env
-Import('env')
-shader_env = env.Clone()
+Import('ext_env')
+shader_env = ext_env.Clone()
 
 # Automatically add all source and include files found in the source path
 src_base_dir  = os.path.join(shader_env['ROOT_DIR'], 'contrib', 'extensions', 'shave', 'shaders')

@@ -374,7 +374,7 @@ for ext in os.listdir(ext_base_dir):
         # only install if the target has been specified
         if ext in COMMAND_LINE_TARGETS:
             # EXT may contain a shader result
-            if len(EXT) > 1 and EXT_PRJ is None:
+            if len(EXT) > 1:
                 ext_shaders.append(str(EXT[1][0]))
                 plugin = str(EXT[0][0])
             else:

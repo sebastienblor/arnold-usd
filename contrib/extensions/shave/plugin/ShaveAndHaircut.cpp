@@ -60,11 +60,8 @@ void CShaveTranslator::Update(AtNode* curve)
 
    // check if motionblur is enabled
    //
-   bool mb = m_scene->m_fnArnoldRenderOptions->findPlug("motion_blur_enable").asBool()  &&
-         m_scene->m_fnArnoldRenderOptions->findPlug("mb_objects_enable").asBool();
-
-   bool mb_deform = m_scene->m_fnArnoldRenderOptions->findPlug("motion_blur_enable").asBool()  &&
-         m_scene->m_fnArnoldRenderOptions->findPlug("mb_object_deform_enable").asBool();
+   const bool mb = m_scene->IsMotionBlurEnabled() && m_scene->IsObjectMotionBlurEnabled();
+   const bool mb_deform = mb && m_scene->IsObjectDeformMotionBlurEnabled();
 
    // Check if custom attributes have been created, ignore them otherwise
    MStatus status;
@@ -124,7 +121,7 @@ void CShaveTranslator::Update(AtNode* curve)
       if (m_fnNode.findPlug("tipFade").asBool())
       {
          ramp = AiNode("MayaRamp");
-         placmentNode = AiNode("MayaPlace2dTexture");
+         placmentNode = AiNode("MayaPlace2DTexture");
          AiNodeSetStr(ramp, "type", "v");
          AiNodeSetArray(ramp, "positions", AiArray(2, 1, AI_TYPE_FLOAT, 0.55f, 1.0f));
          AiNodeSetArray(ramp, "colors", AiArray(2, 1, AI_TYPE_RGB, AI_RGB_WHITE, AI_RGB_BLACK));
@@ -183,7 +180,7 @@ void CShaveTranslator::Update(AtNode* curve)
 
    // alocate memory for all curve points
    if(mb_deform || mb)
-      curvePoints = AiArrayAllocate(numPointsInterpolation, m_scene->m_motionBlurData.motion_steps, AI_TYPE_POINT);
+      curvePoints = AiArrayAllocate(numPointsInterpolation, m_scene->GetNumMotionSteps(), AI_TYPE_POINT);
    else
       curvePoints = AiArrayAllocate(numPointsInterpolation, 1, AI_TYPE_POINT);
 
@@ -250,7 +247,7 @@ void CShaveTranslator::Update(AtNode* curve)
    // set transform matrix
    if (mb)
    {
-      AtArray* matrices = AiArrayAllocate(1, m_scene->m_motionBlurData.motion_steps, AI_TYPE_MATRIX);
+      AtArray* matrices = AiArrayAllocate(1, m_scene->GetNumMotionSteps(), AI_TYPE_MATRIX);
       AiArraySetMtx(matrices, 0, matrix);
       AiNodeSetArray(curve, "matrix", matrices);
    }
@@ -274,11 +271,8 @@ void CShaveTranslator::UpdateMotion(AtNode* curve, AtUInt step)
 
    // check if motionblur is enabled
    //
-   bool mb = m_scene->m_fnArnoldRenderOptions->findPlug("motion_blur_enable").asBool()  &&
-         m_scene->m_fnArnoldRenderOptions->findPlug("mb_objects_enable").asBool();
-
-   bool mb_deform = m_scene->m_fnArnoldRenderOptions->findPlug("motion_blur_enable").asBool()  &&
-         m_scene->m_fnArnoldRenderOptions->findPlug("mb_object_deform_enable").asBool();
+   const bool mb = m_scene->IsMotionBlurEnabled() && m_scene->IsObjectMotionBlurEnabled();
+   const bool mb_deform = mb && m_scene->IsObjectDeformMotionBlurEnabled();
 
    // Get curves cv count
    int renderLineLength = (m_hairInfo.numVertices /  m_hairInfo.numHairs) -1;

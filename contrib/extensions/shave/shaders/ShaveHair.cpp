@@ -109,7 +109,7 @@ shader_evaluate
 
    AiUDataGetFlt(node->params[p_uparam].STR, &(sg->u));
    AiUDataGetFlt(node->params[p_vparam].STR, &(sg->v));
-   AtFloat getGamma   = AiShaderEvalParamFlt(p_gamma);
+   //AtFloat getGamma   = AiShaderEvalParamFlt(p_gamma);
    AtFloat ambdiff    = AiShaderEvalParamFlt(p_ambdiff);
    AtFloat gloss      = AiShaderEvalParamFlt(p_gloss);
    AtFloat spec       = AiShaderEvalParamFlt(p_spec);
