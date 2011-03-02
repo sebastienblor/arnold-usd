@@ -97,7 +97,8 @@ ArnoldNodeToMayaNode CArnoldNodeFactory::s_arnoldToMayaNodes;
 ArnoldPluginData CArnoldNodeFactory::s_arnoldPlugins;
 MCallbackId CArnoldNodeFactory::s_pluginLoadedCallbackId = 0;
 
-int CArnoldNodeFactory::s_autoNodeId(ARNOLD_NODEID_CUSTOM);
+// Don't use ARNOLD_NODEID_CUSTOM as it's an actual node!
+int CArnoldNodeFactory::s_autoNodeId(ARNOLD_NODEID_AUTOGEN);
 
 // Load an arnold plugin.
 
