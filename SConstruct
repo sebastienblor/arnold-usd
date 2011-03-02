@@ -45,7 +45,7 @@ vars.AddVariables(
       EnumVariable('TARGET_ARCH', 'Allows compiling for a different architecture', system.host_arch(), allowed_values=system.get_valid_target_archs()),
       BoolVariable('SHOW_CMDS',   'Display the actual command lines used for building', False),
 
-      EnumVariable('SHOW_TEST_OUTPUT', 'Display the test log as it is being run', 'single', allowed_values=('always', 'never', 'single') ),
+      EnumVariable('SHOW_TEST_OUTPUT', 'Display the test log as it is being run', 'single', allowed_values=('always', 'never', 'single')),
       BoolVariable('UPDATE_REFERENCE', 'Update the reference log/image for the specified targets', False),
       ('TEST_PATTERN' , 'Glob pattern of tests to be run', 'test_*'),
       ('GCC_OPT_FLAGS', 'Optimization flags for gcc', '-O3 -funroll-loops'),

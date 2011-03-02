@@ -82,7 +82,7 @@ protected:
    virtual AtNode* CreateArnoldNode();
 
    // Add a callback to the list to manage.
-   void ManageIPRCallback( const MCallbackId id );
+   void ManageIPRCallback(const MCallbackId id);
 
    // Overide this if you have some special callbacks to install.
    virtual void AddIPRCallbacks();
@@ -111,7 +111,7 @@ protected:
 
    // This is a help that tells mtoa to re-export/update the node passed in.
    // Used by the IPR callbacks.
-   static void UpdateIPR( void * clientData );
+   static void UpdateIPR(void * clientData);
 
    static MPlug FindPlug(MFnDependencyNode& node, const std::string& param);
    static MPlug GetPlugElement(MFnDependencyNode& node, MPlug& plug, const std::string& attr);

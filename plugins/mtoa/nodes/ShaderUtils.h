@@ -18,8 +18,8 @@ const MString ARNOLD_SHADER_TEXTURE("texture:arnold/texture");
 const MString ARNOLD_SHADER_ENVIRONMENT("texture/environment:arnold/texture/environment");
 const MString ARNOLD_SHADER_UTILITY("utility:arnold/utility");
 
-// attrFn.setCached( true );
-// attrFn.setInternal( true );
+// attrFn.setCached(true);
+// attrFn.setInternal(true);
 
 #define MAKE_INPUT(attrFn, attr) \
    attrFn.setKeyable(true); \

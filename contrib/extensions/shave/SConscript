@@ -37,7 +37,7 @@ if system.os() == 'windows':
    
 else:
    # If a shave API path is passed, use that. Otherwise assume it's on the path.
-   if local_env.has_key( "SHAVE_API" ):
+   if local_env.has_key("SHAVE_API"):
       local_env.Append(CPPPATH = [os.path.join(local_env["SHAVE_API"], 'include')])
       local_env.Append(LIBPATH = [os.path.join(local_env["SHAVE_API"], 'lib')])
 

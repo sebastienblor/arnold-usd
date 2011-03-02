@@ -89,7 +89,7 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
       renderSession->ExecuteScript(renderGlobals.postMel);
    }
 
-   else if (mode == "refresh" )
+   else if (mode == "refresh")
    {
       // Close down Arnold, clearing out the old data.
       renderSession->Finish();
@@ -105,33 +105,33 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
       // Re-translate.
       renderSession->Translate(exportOptions);
       // Restore the resolution and camera.
-      renderSession->SetResolution( width, height);
+      renderSession->SetResolution(width, height);
       renderSession->SetCamera(camera);
       // Start off the render.
       renderSession->DoIPRRender();
    }
 
-   else if ( (mode == "region") || (mode == "render") )
+   else if ((mode == "region") || (mode == "render"))
    {
       renderSession->InterruptRender();
 
-      if ( !renderSession->IsActive() )
+      if (!renderSession->IsActive())
       {
-         MGlobal::displayError( "Error rendering Arnold IPR, Arnold is not active." );
+         MGlobal::displayError("Error rendering Arnold IPR, Arnold is not active.");
          return MS::kFailure;
       }
 
-      if ( mode == "region" )
+      if (mode == "region")
       {
          unsigned int left(-1);
          unsigned int right(-1);
          unsigned int bottom(-1);
          unsigned int top(-1);
 
-         status = MRenderView::getRenderRegion( left, right, bottom, top );
-         if ( status == MS::kSuccess)
+         status = MRenderView::getRenderRegion(left, right, bottom, top);
+         if (status == MS::kSuccess)
          {
-               renderSession->SetRegion( left, right, bottom, top );
+               renderSession->SetRegion(left, right, bottom, top);
          }
       }
       else
@@ -145,16 +145,16 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
       // Start off the render.
       renderSession->DoIPRRender();
    }
-   else if ( (mode == "pause") )
+   else if ((mode == "pause"))
    {
       renderSession->PauseIPR();
    }
 
    else if (mode == "unpause")
    {
-      if ( !renderSession->IsActive() )
+      if (!renderSession->IsActive())
       {
-         MGlobal::displayError( "Error starting Arnold IPR" );
+         MGlobal::displayError("Error starting Arnold IPR");
          return MS::kFailure;
       }
 
@@ -162,7 +162,7 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
       renderSession->UnPauseIPR();
    }
 
-   else if ( (mode == "finishedIPR") )
+   else if ((mode == "finishedIPR"))
    {
       // We might be rendering again by the time this is called.
       if (AiRendering()) return status;
@@ -177,14 +177,14 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
       rvInfo += (unsigned int)mem_used;
       rvInfo += "Mb";
 
-      if ( args.isFlagSet("samplingInfo"))
+      if (args.isFlagSet("samplingInfo"))
       {
          const MString samplingInfo(args.flagArgumentString("samplingInfo", 0));
          rvInfo += "    Sampling: ";
          rvInfo += samplingInfo;
       }
 
-      if ( args.isFlagSet("elapsedTime" ))
+      if (args.isFlagSet("elapsedTime"))
       {
          const MString elapsedTime(args.flagArgumentString("elapsedTime", 0));
          rvInfo += "    Render Time: ";
@@ -195,7 +195,7 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
       rvInfo += renderSession->RenderOptions()->GetCameraName();
       rvInfo += "\") renderView;";
 
-      MGlobal::executeCommandOnIdle( rvInfo, false );
+      MGlobal::executeCommandOnIdle(rvInfo, false);
    }
 
    return status;

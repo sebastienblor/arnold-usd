@@ -50,9 +50,9 @@ void CRenderSession::updateRenderViewCallback(void *)
 // This is *static*.
 unsigned int CRenderSession::RenderThread(AtVoid* data)
 {
-   CRenderOptions * render_options = static_cast< CRenderOptions * >( data );
+   CRenderOptions * render_options = static_cast< CRenderOptions * >(data);
    // set progressive start point on AA
-   const AtInt num_aa_samples = AiNodeGetInt(AiUniverseGetOptions(), "AA_samples" );
+   const AtInt num_aa_samples = AiNodeGetInt(AiUniverseGetOptions(), "AA_samples");
    AtInt init_progressive_samples = render_options->isProgressive() ? -3 : num_aa_samples;
    AtUInt prog_passes = render_options->isProgressive() ? ((-init_progressive_samples) + 2) : 1;
 
@@ -61,7 +61,7 @@ unsigned int CRenderSession::RenderThread(AtVoid* data)
    InitializeDisplayUpdateQueue();
 
    AtULong ai_status(AI_SUCCESS);
-   for (AtUInt i = 0; (i < prog_passes ); ++i)
+   for (AtUInt i = 0; (i < prog_passes); ++i)
    {
       AtInt sampling = i + init_progressive_samples;
       if (i + 1 == prog_passes) sampling = num_aa_samples;
@@ -69,7 +69,7 @@ unsigned int CRenderSession::RenderThread(AtVoid* data)
       AiNodeSetInt(AiUniverseGetOptions(), "AA_samples", sampling);
       // Begin a render!
       ai_status = AiRender(AI_RENDER_MODE_CAMERA);
-      if ( ai_status != AI_SUCCESS ) break;
+      if (ai_status != AI_SUCCESS) break;
    }
 
    // Put this back after we're done interating through.
@@ -108,7 +108,7 @@ void CRenderSession::LoadPlugins()
    const MString resolvedPathList = m_renderOptions.pluginsPath().expandEnvironmentVariablesAndTilde();
 
    MStringArray pluginPaths;
-   resolvedPathList.split( split_char, pluginPaths);
+   resolvedPathList.split(split_char, pluginPaths);
    for (unsigned int i=0; i<pluginPaths.length(); ++i)
    {
       const MString pluginPath = pluginPaths[i];
@@ -187,7 +187,7 @@ void CRenderSession::Finish()
 
    // This will release the scene and therefore any
    // translators it has held.
-   if ( m_scene != NULL )
+   if (m_scene != NULL)
    {
       delete m_scene;
       m_scene = NULL;
@@ -198,13 +198,13 @@ void CRenderSession::Finish()
 
 void CRenderSession::InterruptRender()
 {
-   if ( AiRendering() ) AiRenderInterrupt();
+   if (AiRendering()) AiRenderInterrupt();
 
    // Stop the Idle update.
    ClearIdleRenderViewCallback();
 
    // Wait for the thread to clear.
-   if (m_render_thread != NULL )
+   if (m_render_thread != NULL)
    {
       AiThreadWait(m_render_thread);
       AiThreadClose(m_render_thread);
@@ -230,15 +230,15 @@ void CRenderSession::SetResolution(const int width, const int height)
    if (height != -1) m_renderOptions.SetHeight(height);
 }
 
-void CRenderSession::SetRegion( const AtUInt left, const AtUInt right,
-                                const AtUInt bottom, const AtUInt top )
+void CRenderSession::SetRegion(const AtUInt left, const AtUInt right,
+                                const AtUInt bottom, const AtUInt top)
 {
-   m_renderOptions.SetRegion( left, right, bottom, top );
+   m_renderOptions.SetRegion(left, right, bottom, top);
 }
 
-void CRenderSession::SetProgressive( const bool is_progressive )
+void CRenderSession::SetProgressive(const bool is_progressive)
 {
-   m_renderOptions.SetProgressive( is_progressive );
+   m_renderOptions.SetProgressive(is_progressive);
 }
 
 void CRenderSession::SetCamera(MString cameraNode)
@@ -319,11 +319,11 @@ void CRenderSession::SetCamera(MString cameraNode)
                   AtNode* imagePlane = AiNodeLookUpByName(imagePlaneName.asChar());
                   AtInt visibility = 0;
 
-                  if ( (displayOnlyIfCurrent && isRenderingCamera) || (!displayOnlyIfCurrent) )
+                  if ((displayOnlyIfCurrent && isRenderingCamera) || (!displayOnlyIfCurrent))
                   {
                      visibility = AI_RAY_CAMERA;  
                   }
-                  if ( (displayOnlyIfCurrent && !isRenderingCamera) )
+                  if ((displayOnlyIfCurrent && !isRenderingCamera))
                   {
                      visibility = 0;  
                   }
@@ -350,19 +350,19 @@ void CRenderSession::SetupRenderOutput()
    // OUTPUT STRINGS
    AtChar   str[1024];
    int ndrivers = 0;
-   if ( render_view != NULL ) ++ndrivers;
-   if ( file_driver != NULL ) ++ndrivers;
+   if (render_view != NULL) ++ndrivers;
+   if (file_driver != NULL) ++ndrivers;
 
    AtArray* outputs  = AiArrayAllocate(ndrivers+m_renderOptions.NumAOVs(), 1, AI_TYPE_STRING);
 
    int driver_num(0);
    if (render_view != NULL)
    {
-      sprintf(str, "RGBA RGBA %s %s", AiNodeGetName(filter), AiNodeGetName(render_view) );
+      sprintf(str, "RGBA RGBA %s %s", AiNodeGetName(filter), AiNodeGetName(render_view));
       AiArraySetStr(outputs, driver_num++, str);
    }
 
-   if ( file_driver != NULL )
+   if (file_driver != NULL)
    {
       sprintf(str, "RGBA RGBA %s %s", AiNodeGetName(filter), AiNodeGetName(file_driver));
       AiArraySetStr(outputs, driver_num++, str);
@@ -380,13 +380,13 @@ void CRenderSession::SetupRenderOutput()
 AtNode * CRenderSession::CreateFileOutput()
 {
    // Don't install the file driver when in IPR mode.
-   if ( GetMayaScene()->GetExportMode() == MTOA_EXPORT_IPR ) return NULL;
+   if (GetMayaScene()->GetExportMode() == MTOA_EXPORT_IPR) return NULL;
 
    AtNode* driver;
    // set the output driver
    MString driverCamName = m_renderOptions.RenderDriver() + "_" + m_renderOptions.GetCameraName();
-   driver = AiNodeLookUpByName( driverCamName.asChar() );
-   if ( driver == 0x0 )
+   driver = AiNodeLookUpByName(driverCamName.asChar());
+   if (driver == 0x0)
    {
       driver = AiNode(m_renderOptions.RenderDriver().asChar());
       AiNodeSetStr(driver, "filename", m_renderOptions.GetImageFilename().asChar());
@@ -439,8 +439,8 @@ AtNode * CRenderSession::CreateRenderViewOutput()
    // Don't create it if we're in batch mode.
    if (m_renderOptions.BatchMode()) return NULL;
 
-   AtNode * driver = AiNodeLookUpByName( "renderview_display" );
-   if ( driver == NULL )
+   AtNode * driver = AiNodeLookUpByName("renderview_display");
+   if (driver == NULL)
    {
       AiNodeInstall(AI_NODE_DRIVER,
                     AI_TYPE_NONE,
@@ -460,12 +460,12 @@ AtNode * CRenderSession::CreateRenderViewOutput()
 AtNode * CRenderSession::CreateOutputFilter()
 {
    // OUTPUT FILTER (use for all image outputs)
-   AtNode* filter = AiNodeLookUpByName( m_renderOptions.filterType().asChar() );
+   AtNode* filter = AiNodeLookUpByName(m_renderOptions.filterType().asChar());
    if (filter == NULL) filter = AiNode(m_renderOptions.filterType().asChar());
 
    if (filter != NULL)
    {
-      AiNodeSetStr( filter, "name", m_renderOptions.filterType().asChar() );
+      AiNodeSetStr(filter, "name", m_renderOptions.filterType().asChar());
 
       // Only set filter parameters if they exist within that specific node
       if (AiNodeEntryLookUpParameter(filter->base_node, "width"))
@@ -511,7 +511,7 @@ void CRenderSession::DoInteractiveRender()
    ClearDisplayUpdateQueue();
    // This returns when the render is done or if someone
    // has hit escape.
-   ProcessDisplayUpdateQueueWithInterupt( comp );
+   ProcessDisplayUpdateQueueWithInterupt(comp);
    comp.endComputation();
 }
 
@@ -554,21 +554,21 @@ void CRenderSession::DoExport(MString customFileName)
    }
 }
 
-MStatus CRenderSession::PrepareRenderView( bool addIdleRenderViewUpdate )
+MStatus CRenderSession::PrepareRenderView(bool addIdleRenderViewUpdate)
 {
-   MStatus status( MS::kSuccess );
+   MStatus status(MS::kSuccess);
    
    // We need to set the current camera in renderView,
    // so the buttons render from the camera you want.
    MSelectionList list;
    MDagPath       cameraDagPath;
-   list.add( m_renderOptions.GetCameraName() );
+   list.add(m_renderOptions.GetCameraName());
    list.getDagPath(0, cameraDagPath);
    MRenderView::setCurrentCamera(cameraDagPath);
 
    if (m_renderOptions.useRenderRegion())
    {
-      status = MRenderView::startRegionRender(  m_renderOptions.width(),
+      status = MRenderView::startRegionRender(m_renderOptions.width(),
                                                 m_renderOptions.height(),
                                                 m_renderOptions.minX(),
                                                 m_renderOptions.maxX(),
@@ -579,7 +579,7 @@ MStatus CRenderSession::PrepareRenderView( bool addIdleRenderViewUpdate )
    }
    else
    {
-      status = MRenderView::startRender(  m_renderOptions.width(),
+      status = MRenderView::startRender(m_renderOptions.width(),
                                           m_renderOptions.height(),
                                           !m_renderOptions.clearBeforeRender(),
                                           true);
@@ -639,22 +639,22 @@ AtUInt64 CRenderSession::GetUsedMemory()
 
 void CRenderSession::AddIdleRenderViewCallback()
 {
-   if ( 0 == m_idle_cb )
+   if (0 == m_idle_cb)
    {
       MStatus status;
-      m_idle_cb = MEventMessage::addEventCallback( "idle",
+      m_idle_cb = MEventMessage::addEventCallback("idle",
                                                    CRenderSession::updateRenderViewCallback,
                                                    NULL,
-                                                   &status );
+                                                   &status);
    }
 }
 
 void CRenderSession::ClearIdleRenderViewCallback()
 {
    // Don't clear the callback if we're in the middle of a render.
-   if ( m_idle_cb != 0 )
+   if (m_idle_cb != 0)
    {
-      MMessage::removeCallback( m_idle_cb );
+      MMessage::removeCallback(m_idle_cb);
       MRenderView::endRender();
       m_idle_cb = 0;
    }
@@ -678,7 +678,7 @@ void CRenderSession::DoSwatchRender(const AtInt resolution)
    // Create the single output line. No AOVs or anything.
    AtArray* outputs  = AiArrayAllocate(1, 1, AI_TYPE_STRING);
    AtChar   str[1024];
-   sprintf(str, "RGBA RGBA %s %s", AiNodeGetName(filter), AiNodeGetName(render_view) );
+   sprintf(str, "RGBA RGBA %s %s", AiNodeGetName(filter), AiNodeGetName(render_view));
    AiArraySetStr(outputs, 0, str);
    AiNodeSetArray(options, "outputs", outputs);
 
@@ -696,7 +696,7 @@ void CRenderSession::DoSwatchRender(const AtInt resolution)
 
 bool CRenderSession::GetSwatchImage(MImage & image)
 {
-   if ( GetMayaScene() == NULL || GetMayaScene()->GetExportMode() != MTOA_EXPORT_SWATCH )
+   if (GetMayaScene() == NULL || GetMayaScene()->GetExportMode() != MTOA_EXPORT_SWATCH)
    {
       return false;
    }

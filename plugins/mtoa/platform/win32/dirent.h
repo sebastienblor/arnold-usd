@@ -284,9 +284,9 @@ static struct dirent *readdir(DIR *dirp)
    }
 
    /* copy as a multibyte character string */
-   DIRENT_STRNCPY ( dirp->curentry.d_name,
+   DIRENT_STRNCPY (dirp->curentry.d_name,
              dirp->find_data.cFileName,
-             sizeof(dirp->curentry.d_name) );
+             sizeof(dirp->curentry.d_name));
    dirp->curentry.d_name[MAX_PATH] = '\0';
 
    /* compute the length of name */

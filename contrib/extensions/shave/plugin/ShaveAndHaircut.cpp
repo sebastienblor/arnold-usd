@@ -77,7 +77,7 @@ void CShaveTranslator::Update(AtNode* curve)
    }
 
    // Default to the ShaveHair shader if nothing else has been set.
-   if ( shader == NULL)
+   if (shader == NULL)
    {
       shader = AiNode("ShaveHair");
 
@@ -173,7 +173,7 @@ void CShaveTranslator::Update(AtNode* curve)
 
    // TODO: Change this to use RequiresMotionDeformData()
    AtArray* curvePoints = NULL;
-   if ( RequiresMotionData() || m_motionDeform )
+   if (RequiresMotionData() || m_motionDeform)
       curvePoints = AiArrayAllocate(numPointsInterpolation, m_scene->GetNumMotionSteps(), AI_TYPE_POINT);
    else
       curvePoints = AiArrayAllocate(numPointsInterpolation, 1, AI_TYPE_POINT);
@@ -198,7 +198,7 @@ void CShaveTranslator::Update(AtNode* curve)
    AiNodeSetArray(curve, "next_line_starts",       curveNextLineStarts);
    
    // Assign the shader to the curve
-   if ( shader != NULL ) AiNodeSetPtr(curve, "shader", shader);
+   if (shader != NULL) AiNodeSetPtr(curve, "shader", shader);
 
    // Set tesselation method
    AiNodeSetStr(curve, "basis", "catmull-rom");
@@ -212,7 +212,7 @@ void CShaveTranslator::Update(AtNode* curve)
    if (!plug.isNull()) AiNodeSetInt(curve, "mode", plug.asInt());
 
    // Ignore one or less cv curves.
-   if ( numRenderLineCVs > 1)
+   if (numRenderLineCVs > 1)
    {
       ProcessHairLines(0,
                        curvePoints,

@@ -84,26 +84,26 @@ void CArnoldRenderOptionsNode::createdCallback(MObject& node, void* clientData)
 {  
    MSelectionList list;
    
-   list.add( "time1" );
+   list.add("time1");
    MObject timeNode;
-   list.getDependNode( 0, timeNode ); 
-   MFnDependencyNode timeFn( timeNode );
-   MObject timeOutAttr = timeFn.attribute( "outTime" );
+   list.getDependNode(0, timeNode);
+   MFnDependencyNode timeFn(timeNode);
+   MObject timeOutAttr = timeFn.attribute("outTime");
 
    MFnDependencyNode renderOptionsFn(node);
-   MObject aaSeedAttr = renderOptionsFn.attribute( "aa_seed" );
+   MObject aaSeedAttr = renderOptionsFn.attribute("aa_seed");
    
    // Connect to time node
    // 
    MDGModifier modifier;
-   modifier.connect( timeNode, timeOutAttr, node, aaSeedAttr );
+   modifier.connect(timeNode, timeOutAttr, node, aaSeedAttr);
    modifier.doIt();
 }
 
 // Setup the on creation callback
 void CArnoldRenderOptionsNode::postConstructor()
 {
-   CArnoldRenderOptionsNode::sId = MDGMessage::addNodeAddedCallback( CArnoldRenderOptionsNode::createdCallback, "aiOptions" );
+   CArnoldRenderOptionsNode::sId = MDGMessage::addNodeAddedCallback(CArnoldRenderOptionsNode::createdCallback, "aiOptions");
 }
 
 MStatus CArnoldRenderOptionsNode::initialize()
@@ -234,7 +234,7 @@ MStatus CArnoldRenderOptionsNode::initialize()
    nAttr.setKeyable(false);
    addAttribute(s_lock_sampling_noise);
       
-   s_aa_seed = uAttr.create( "aa_seed", "aaseed", MFnUnitAttribute::kTime );
+   s_aa_seed = uAttr.create("aa_seed", "aaseed", MFnUnitAttribute::kTime);
    uAttr.setStorable(false);
    uAttr.setConnectable(true);
    uAttr.setWritable(true);

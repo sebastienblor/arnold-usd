@@ -187,47 +187,47 @@ void CNodeTranslator::AddIPRCallbacks()
    id = MNodeMessage::addNodeDirtyCallback(m_object,
                                            NodeDirtyCallback,
                                            this,
-                                           &status );
-   if ( MS::kSuccess == status ) ManageIPRCallback( id );
+                                           &status);
+   if (MS::kSuccess == status) ManageIPRCallback(id);
 
    // In case we're deleted!
    id = MNodeMessage::addNodeAboutToDeleteCallback(m_object,
                                                    NodeDeletedCallback,
                                                    this,
-                                                   &status );
-   if ( MS::kSuccess == status ) ManageIPRCallback( id );
+                                                   &status);
+   if (MS::kSuccess == status) ManageIPRCallback(id);
 
    // Just so people don't get confused with debug output.
    id = MNodeMessage::addNameChangedCallback(m_object,
                                              NameChangedCallback,
                                              this,
-                                             &status );
-   if ( MS::kSuccess == status ) ManageIPRCallback( id );
+                                             &status);
+   if (MS::kSuccess == status) ManageIPRCallback(id);
 }
 
-void CNodeTranslator::ManageIPRCallback( const MCallbackId id )
+void CNodeTranslator::ManageIPRCallback(const MCallbackId id)
 {
-   m_mayaCallbackIDs.append( id );
+   m_mayaCallbackIDs.append(id);
 }
 
 void CNodeTranslator::RemoveIPRCallbacks()
 {
-   const MStatus status = MNodeMessage::removeCallbacks( m_mayaCallbackIDs );
-   if ( status == MS::kSuccess ) m_mayaCallbackIDs.clear();
+   const MStatus status = MNodeMessage::removeCallbacks(m_mayaCallbackIDs);
+   if (status == MS::kSuccess) m_mayaCallbackIDs.clear();
 }
 
 
 // This is a simple callback triggered when a node is marked as dirty.
 void CNodeTranslator::NodeDirtyCallback(MObject &node, MPlug &plug, void *clientData)
 {
-   AiMsgDebug( "[mtoa] Node changed, updating Arnold. Plug that fired: %s %p", plug.name().asChar(), clientData );
-   UpdateIPR( clientData );
+   AiMsgDebug("[mtoa] Node changed, updating Arnold. Plug that fired: %s %p", plug.name().asChar(), clientData);
+   UpdateIPR(clientData);
 }
 
 void CNodeTranslator::NameChangedCallback(MObject &node, const MString &str, void *clientData)
 // This is a simple callback triggered when the name changes.
 {
-   AiMsgDebug( "[mtoa] Node name changed, updating Arnold" );
+   AiMsgDebug("[mtoa] Node name changed, updating Arnold");
    CNodeTranslator * translator = static_cast< CNodeTranslator* >(clientData);
    if (translator != NULL)
       translator->SetArnoldNodeName(translator->GetArnoldNode());
@@ -237,9 +237,9 @@ void CNodeTranslator::NameChangedCallback(MObject &node, const MString &str, voi
 // disconnect them, turn them off, etc.
 void CNodeTranslator::NodeDeletedCallback(MObject &node, MDGModifier &modifier, void *clientData)
 {
-   AiMsgDebug( "[mtoa] Node deleted, updating Arnold %p", clientData );
+   AiMsgDebug("[mtoa] Node deleted, updating Arnold %p", clientData);
    CNodeTranslator * translator = static_cast< CNodeTranslator* >(clientData);
-   if ( translator != NULL )
+   if (translator != NULL)
    {
       translator->RemoveIPRCallbacks();
       translator->Delete();
@@ -250,14 +250,14 @@ void CNodeTranslator::NodeDeletedCallback(MObject &node, MDGModifier &modifier, 
 }
 
 
-void CNodeTranslator::UpdateIPR( void * clientData )
+void CNodeTranslator::UpdateIPR(void * clientData)
 {
    // Remove this node from the callback list.
    CNodeTranslator * translator = static_cast< CNodeTranslator* >(clientData);
-   if ( translator != NULL )
+   if (translator != NULL)
    {
       translator->RemoveIPRCallbacks();
-      CMayaScene::UpdateIPR( translator );
+      CMayaScene::UpdateIPR(translator);
    }
 }
 
@@ -276,7 +276,7 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
       if (name.indexW("mtoa_") == 0)
       {
          const char *aname = name.asChar() + 5;
-         if(AiNodeLookUpUserParameter(anode, aname) != NULL)
+         if (AiNodeLookUpUserParameter(anode, aname) != NULL)
          {
             continue;
          }
@@ -464,7 +464,7 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
                break;
             default:
                // not supported: k2Short, k2Long, k3Short, k3Long, kAddr
-               AiMsgError("[mtoa] unsupported user attribute type %s", pAttr.partialName(true, false, false, false, false, true).asChar() );
+               AiMsgError("[mtoa] unsupported user attribute type %s", pAttr.partialName(true, false, false, false, false, true).asChar());
                break;
             }
          }
@@ -564,12 +564,12 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
                break;
             default:
                // kMatrix, kNumeric (this one should have be caught be hasFn(MFn::kNumericAttribute))
-               AiMsgError("[mtoa] unsupported user attribute type %s", pAttr.partialName(true, false, false, false, false, true).asChar() );
+               AiMsgError("[mtoa] unsupported user attribute type %s", pAttr.partialName(true, false, false, false, false, true).asChar());
                break;
             }
          }
          else
-            AiMsgError("[mtoa] unsupported user attribute type %s", pAttr.partialName(true, false, false, false, false, true).asChar() );
+            AiMsgError("[mtoa] unsupported user attribute type %s", pAttr.partialName(true, false, false, false, false, true).asChar());
       }
    }
 }
@@ -855,23 +855,23 @@ void CDagTranslator::SetArnoldNodeName(AtNode* arnoldNode)
 
 void CDagTranslator::AddHierarchyCallbacks(const MDagPath & path)
 {
-   AiMsgDebug( "[mtoa] Adding callbacks to parents of: %s", path.partialPathName().asChar() );
+   AiMsgDebug("[mtoa] Adding callbacks to parents of: %s", path.partialPathName().asChar());
 
    // Loop through the whole dag path adding callbacks to them.
    MStatus status;
-   MDagPath dag_path( path );
+   MDagPath dag_path(path);
    dag_path.pop(); // Pop of the shape as that's handled by CNodeTranslator::AddIPRCallbacks.
-   for( ; dag_path.length() > 0; dag_path.pop() )
+   for(; dag_path.length() > 0; dag_path.pop())
    {
       MObject node = dag_path.node();
-      if ( node != MObject::kNullObj )
+      if (node != MObject::kNullObj)
       {
          // We can use the normal NodeDirtyCallback here.
          MCallbackId id = MNodeMessage::addNodeDirtyCallback(node,
                                                              NodeDirtyCallback,
                                                              this,
-                                                             &status );
-         if ( MS::kSuccess == status ) ManageIPRCallback( id );
+                                                             &status);
+         if (MS::kSuccess == status) ManageIPRCallback(id);
       }
    }
 }
@@ -879,7 +879,7 @@ void CDagTranslator::AddHierarchyCallbacks(const MDagPath & path)
 
 void CDagTranslator::AddIPRCallbacks()
 {
-   AddHierarchyCallbacks( m_dagPath );
+   AddHierarchyCallbacks(m_dagPath);
 
    // Call the base class to get the others.
    CNodeTranslator::AddIPRCallbacks();

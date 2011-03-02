@@ -80,8 +80,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
          {
             MString dirProject = MGlobal::executeCommandStringResult("workspace -q -rd "
                   + curProject);
-            MString assDir = MGlobal::executeCommandStringResult(
-                  "workspace -q -fileRuleEntry ArnoldSceneSource");
+            MString assDir = MGlobal::executeCommandStringResult("workspace -q -fileRuleEntry ArnoldSceneSource");
             filename = dirProject + "/" + assDir + "/" + filename + ".ass";
          }
          else

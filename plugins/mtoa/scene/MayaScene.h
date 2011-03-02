@@ -133,7 +133,7 @@ public:
                                int arnoldAttribType,
                                int element=-1);
    
-   CNodeTranslator * GetActiveTranslator( const MObject node );
+   CNodeTranslator * GetActiveTranslator(const MObject node);
    
    // Called by translators to get the master instance
    static bool IsExportedPath(MDagPath dagPath);

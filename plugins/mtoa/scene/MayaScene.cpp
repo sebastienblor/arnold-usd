@@ -35,13 +35,13 @@ MCallbackId CMayaScene::s_NewNodeCallbackId = 0;
 
 CMayaScene::~CMayaScene()
 {
-   if ( GetExportMode() == MTOA_EXPORT_IPR )
+   if (GetExportMode() == MTOA_EXPORT_IPR)
    {
       ClearIPRCallbacks();
    }
 
-   if ( m_fnCommonRenderOptions != NULL ) delete m_fnCommonRenderOptions;
-   if ( m_fnArnoldRenderOptions != NULL ) delete m_fnArnoldRenderOptions;
+   if (m_fnCommonRenderOptions != NULL) delete m_fnCommonRenderOptions;
+   if (m_fnArnoldRenderOptions != NULL) delete m_fnArnoldRenderOptions;
 
    // Delete translators
    ObjectToTranslatorMap::iterator it;
@@ -85,9 +85,9 @@ MStatus CMayaScene::ExportToArnold()
 
    // Are we motion blurred?
    const bool mb = m_motionBlurData.enabled &&
-                   ( m_fnArnoldRenderOptions->findPlug("mb_camera_enable").asBool()    ||
+                   (m_fnArnoldRenderOptions->findPlug("mb_camera_enable").asBool()    ||
                      m_fnArnoldRenderOptions->findPlug("mb_objects_enable").asBool()   ||
-                     m_fnArnoldRenderOptions->findPlug("mb_lights_enable").asBool()    );
+                     m_fnArnoldRenderOptions->findPlug("mb_lights_enable").asBool());
 
    // In case of motion blur we need to position ourselves to first step
    // TODO : what if specific frame was requested and it's != GetCurrentFrame()
@@ -135,7 +135,7 @@ MStatus CMayaScene::ExportToArnold()
    }
    else
    {
-      AiMsgDebug( "[mtoa] Unsupported export mode: %d", exportMode );
+      AiMsgDebug("[mtoa] Unsupported export mode: %d", exportMode);
       return MStatus::kFailure;
    }
 
@@ -340,9 +340,9 @@ MStatus CMayaScene::ExportScene(AtUInt step)
    }
    
    // Add callbacks if we're in IPR mode.
-   if ( GetExportMode() == MTOA_EXPORT_IPR && s_NewNodeCallbackId == 0x0 )
+   if (GetExportMode() == MTOA_EXPORT_IPR && s_NewNodeCallbackId == 0x0)
    {
-      s_NewNodeCallbackId = MDGMessage::addNodeAddedCallback( CMayaScene::IPRNewNodeCallback );
+      s_NewNodeCallbackId = MDGMessage::addNodeAddedCallback(CMayaScene::IPRNewNodeCallback);
    }
    
    return status;
@@ -546,14 +546,14 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
    return shader;
 }
 
-CNodeTranslator * CMayaScene::GetActiveTranslator( const MObject node )
+CNodeTranslator * CMayaScene::GetActiveTranslator(const MObject node)
 {
-   MObjectHandle node_handle( node );
+   MObjectHandle node_handle(node);
 
-   ObjectToTranslatorMap::iterator translatorIt = m_processedTranslators.find( node_handle );
-   if ( translatorIt != m_processedTranslators.end() )
+   ObjectToTranslatorMap::iterator translatorIt = m_processedTranslators.find(node_handle);
+   if (translatorIt != m_processedTranslators.end())
    {
-      return static_cast< CNodeTranslator* >( translatorIt->second );
+      return static_cast< CNodeTranslator* >(translatorIt->second);
    }
 
    return NULL;
@@ -564,15 +564,15 @@ void CMayaScene::ClearIPRCallbacks()
    // Clear the list of stuff to update.
    s_translatorsToIPRUpdate.clear();
 
-   if ( s_IPRIdleCallbackId != 0 )
+   if (s_IPRIdleCallbackId != 0)
    {
-      MMessage::removeCallback( s_IPRIdleCallbackId );
+      MMessage::removeCallback(s_IPRIdleCallbackId);
       s_IPRIdleCallbackId = 0;
    }
 
-   if ( s_NewNodeCallbackId != 0 )
+   if (s_NewNodeCallbackId != 0)
    {
-      MMessage::removeCallback( s_NewNodeCallbackId );
+      MMessage::removeCallback(s_NewNodeCallbackId);
       s_NewNodeCallbackId = 0;
    }
 
@@ -580,7 +580,7 @@ void CMayaScene::ClearIPRCallbacks()
    ObjectToTranslatorMap::iterator it;
    for(it = m_processedTranslators.begin(); it != m_processedTranslators.end(); ++it)
    {
-      if ( it->second != NULL ) it->second->RemoveIPRCallbacks();
+      if (it->second != NULL) it->second->RemoveIPRCallbacks();
    }
 
    ObjectToDagTranslatorMap::iterator dagIt;
@@ -603,9 +603,9 @@ void CMayaScene::IPRNewNodeCallback(MObject & node, void *)
    // Interupt rendering
    renderSession->InterruptRender();
    CNodeTranslator * translator = renderSession->GetMayaScene()->GetActiveTranslator(node);
-   if ( translator != NULL )
+   if (translator != NULL)
    {
-      renderSession->GetMayaScene()->UpdateIPR( translator );
+      renderSession->GetMayaScene()->UpdateIPR(translator);
       return;
    }
 
@@ -615,7 +615,7 @@ void CMayaScene::IPRNewNodeCallback(MObject & node, void *)
    const MStatus status = dag_node.getPath(path);
    if (status == MS::kSuccess)
    {
-      AiMsgDebug( "[mtoa] Exporting new node: %s", path.partialPathName().asChar() );
+      AiMsgDebug("[mtoa] Exporting new node: %s", path.partialPathName().asChar());
       renderSession->GetMayaScene()->ExportDagPath(path, 0);
       renderSession->GetMayaScene()->UpdateIPR();
    }
@@ -623,9 +623,9 @@ void CMayaScene::IPRNewNodeCallback(MObject & node, void *)
 
 void CMayaScene::IPRIdleCallback(void *)
 {
-   if ( s_IPRIdleCallbackId != 0 )
+   if (s_IPRIdleCallbackId != 0)
    {
-      MMessage::removeCallback( s_IPRIdleCallbackId );
+      MMessage::removeCallback(s_IPRIdleCallbackId);
       s_IPRIdleCallbackId = 0;
    }
 
@@ -634,17 +634,17 @@ void CMayaScene::IPRIdleCallback(void *)
    CMayaScene* scene = renderSession->GetMayaScene();
    // Are we motion blurred?
    const bool mb = scene->m_motionBlurData.enabled &&
-                   ( scene->m_fnArnoldRenderOptions->findPlug("mb_camera_enable").asBool()    ||
+                   (scene->m_fnArnoldRenderOptions->findPlug("mb_camera_enable").asBool()    ||
                      scene->m_fnArnoldRenderOptions->findPlug("mb_objects_enable").asBool()   ||
-                     scene->m_fnArnoldRenderOptions->findPlug("mb_lights_enable").asBool()    );
+                     scene->m_fnArnoldRenderOptions->findPlug("mb_lights_enable").asBool());
 
    if (!mb)
    {
-      for( std::vector<CNodeTranslator*>::iterator iter=s_translatorsToIPRUpdate.begin();
+      for(std::vector<CNodeTranslator*>::iterator iter=s_translatorsToIPRUpdate.begin();
          iter != s_translatorsToIPRUpdate.end(); ++iter)
       {
          CNodeTranslator* translator = (*iter);
-         if ( translator != NULL ) translator->DoUpdate(0);
+         if (translator != NULL) translator->DoUpdate(0);
       }
    }
    else
@@ -653,11 +653,11 @@ void CMayaScene::IPRIdleCallback(void *)
       for (AtUInt J = 0; (J < scene->m_motionBlurData.motion_steps); ++J)
       {
          MGlobal::viewFrame(MTime(scene->m_motionBlurData.frames[J], MTime::uiUnit()));
-         for( std::vector<CNodeTranslator*>::iterator iter=s_translatorsToIPRUpdate.begin();
+         for(std::vector<CNodeTranslator*>::iterator iter=s_translatorsToIPRUpdate.begin();
             iter != s_translatorsToIPRUpdate.end(); ++iter)
          {
             CNodeTranslator* translator = (*iter);
-            if ( translator != NULL )translator->DoUpdate(J);
+            if (translator != NULL)translator->DoUpdate(J);
          }
       }
       MGlobal::viewFrame(MTime(scene->GetCurrentFrame(), MTime::uiUnit()));
@@ -669,20 +669,20 @@ void CMayaScene::IPRIdleCallback(void *)
    renderSession->DoIPRRender();
 }
 
-void CMayaScene::UpdateIPR( CNodeTranslator * translator )
+void CMayaScene::UpdateIPR(CNodeTranslator * translator)
 {
-   if ( translator != NULL )
+   if (translator != NULL)
    {
-      s_translatorsToIPRUpdate.push_back( translator );
+      s_translatorsToIPRUpdate.push_back(translator);
    }
 
    // Add the IPR update callback, this is called in Maya's
    // idle time (Arnold may not be idle, that's okay).
-   if ( s_IPRIdleCallbackId == 0 )
+   if (s_IPRIdleCallbackId == 0)
    {
       MStatus status;
-      MCallbackId id = MEventMessage::addEventCallback( "idle", IPRIdleCallback, NULL, &status );
-      if ( status == MS::kSuccess ) s_IPRIdleCallbackId = id;
+      MCallbackId id = MEventMessage::addEventCallback("idle", IPRIdleCallback, NULL, &status);
+      if (status == MS::kSuccess) s_IPRIdleCallbackId = id;
    }
 }
 

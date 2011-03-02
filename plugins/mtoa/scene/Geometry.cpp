@@ -68,7 +68,7 @@ MObject CGeoTranslator::GetNodeShadingGroup(MObject dagNode, int instanceNum)
    for (unsigned int k=0; k<connections.length(); ++k)
    {
       MObject shadingGroup(connections[k].node());
-      if (shadingGroup.apiType() == MFn::kShadingEngine )
+      if (shadingGroup.apiType() == MFn::kShadingEngine)
       {
          return shadingGroup;
       }
@@ -120,7 +120,7 @@ bool CGeoTranslator::GetVertices(MFnMesh &fnMesh, std::vector<float> &vertices)
       MFloatPointArray pointsArray;
       fnMesh.getPoints(pointsArray, MSpace::kObject);
 
-      for (int J = 0; ( J < nverts ); ++J)
+      for (int J = 0; (J < nverts); ++J)
       {
          vertices[J * 3 + 0] = pointsArray[J].x;
          vertices[J * 3 + 1] = pointsArray[J].y;
@@ -372,8 +372,7 @@ void CGeoTranslator::GetComponentIDs(MFnMesh &fnMesh,
       std::vector<AtLong> &nidxs,
       std::vector<AtLong> &uvidxs,
       bool exportNormals,
-      bool exportUVs
-      )
+      bool exportUVs)
 {
    int uv_id = 0;
    // Traverse all polygons to export vidxs, uvindxs and nsides
@@ -381,11 +380,11 @@ void CGeoTranslator::GetComponentIDs(MFnMesh &fnMesh,
    for (int p(0); p < fnMesh.numPolygons(); ++p)
    {
       // Num points/sides to the poly.
-      nsides.push_back( fnMesh.polygonVertexCount(p) );
+      nsides.push_back(fnMesh.polygonVertexCount(p));
       // Vertex indicies.
       MIntArray p_vidxs;
-      fnMesh.getPolygonVertices( p, p_vidxs);
-      for( uint v(0); v < p_vidxs.length(); ++v)
+      fnMesh.getPolygonVertices(p, p_vidxs);
+      for(uint v(0); v < p_vidxs.length(); ++v)
       {
          vidxs.push_back(p_vidxs[v]);
          // UVs
@@ -402,7 +401,7 @@ void CGeoTranslator::GetComponentIDs(MFnMesh &fnMesh,
    {
       MIntArray vertex_counts, normal_ids;
       m_fnMesh.getNormalIds(vertex_counts, normal_ids);
-      for( uint n(0); n < normal_ids.length(); ++n ) nidxs.push_back( normal_ids[n] );
+      for(uint n(0); n < normal_ids.length(); ++n) nidxs.push_back(normal_ids[n]);
    }
 }
 
@@ -739,19 +738,19 @@ void CGeoTranslator::IsGeoDeforming()
     MPlug inMeshPlug = m_fnMesh.findPlug("inMesh");
     MPlugArray conn;
     inMeshPlug.connectedTo(conn, true, false);
-    if(conn.length())
+    if (conn.length())
     {
         history = true;
     }
  
     inMeshPlug = m_fnMesh.findPlug("pnts");
     inMeshPlug.connectedTo(conn, true, false);
-    if(conn.length())
+    if (conn.length())
     {
         pnts = true;
     }
 
-    if(!history && !pnts && !m_displaced)
+    if (!history && !pnts && !m_displaced)
         m_motionDeform = false;
 }
 
@@ -840,7 +839,7 @@ AtNode* CGeoTranslator::ExportInstance(AtNode *instance, const MDagPath& masterI
    // Compare face arrays
    for(AtUInt j=0; (equalShaderArrays && (j < indices.length())); j++)
    {
-      if(indices[j] != indicesMaster[j])
+      if (indices[j] != indicesMaster[j])
       {
          equalShaderArrays = false;
       }
@@ -854,7 +853,7 @@ AtNode* CGeoTranslator::ExportInstance(AtNode *instance, const MDagPath& masterI
       }
    }
 
-   if ( (shaders.length() > 0) && (shadersMaster.length() > 0) )
+   if ((shaders.length() > 0) && (shadersMaster.length() > 0))
    {
       MPlugArray        connections;
       MFnDependencyNode fnDGNode(shaders[0]);
@@ -910,25 +909,25 @@ void CGeoTranslator::UpdateMotion(AtNode* anode, AtUInt step)
 
 void CGeoTranslator::AddIPRCallbacks()
 {
-   AddShaderAssignmentCallbacks( m_object );
+   AddShaderAssignmentCallbacks(m_object);
    CDagTranslator::AddIPRCallbacks();
 }
 
-void CGeoTranslator::AddShaderAssignmentCallbacks(MObject & dagNode )
+void CGeoTranslator::AddShaderAssignmentCallbacks(MObject & dagNode)
 {
    MStatus status;
-   MCallbackId id = MNodeMessage::addAttributeChangedCallback( dagNode, ShaderAssignmentCallback, this, &status );
+   MCallbackId id = MNodeMessage::addAttributeChangedCallback(dagNode, ShaderAssignmentCallback, this, &status);
    if (MS::kSuccess == status) ManageIPRCallback(id);
 }
 
-void CGeoTranslator::ShaderAssignmentCallback( MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void*clientData )
+void CGeoTranslator::ShaderAssignmentCallback(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void*clientData)
 {
    // Shading assignments are done with the instObjGroups attr, so we only
    // need to update when that is the attr that changes.
-   if ( (msg & MNodeMessage::kConnectionMade) && (plug.partialName() == "iog") )
+   if ((msg & MNodeMessage::kConnectionMade) && (plug.partialName() == "iog"))
    {
       CGeoTranslator * translator = static_cast< CGeoTranslator* >(clientData);
-      if ( translator != NULL )
+      if (translator != NULL)
       {
          // Interupt the render.
          CRenderSession* renderSession = CRenderSession::GetInstance();
@@ -971,65 +970,65 @@ void CGeoTranslator::NodeInitializer(MString nodeClassName)
 // --------- CNurbsSurfaceTranslator -------------//
 
 void CNurbsSurfaceTranslator::GetTessellationOptions(MTesselationParams & params,
-                                              MFnNurbsSurface & surface )
+                                              MFnNurbsSurface & surface)
 {
    // Reference for this code is from the devkit:
    // /devkit/obsolete/games/MDtApi/MDtShape.cpp
    // It is similar, this is tidier and more condenced.
 
    // Get the tesselation attributes off the node
-   const int modeU                  = surface.findPlug( "modeU" ).asInt();
-   const int numberU                = surface.findPlug( "numberU" ).asInt();
-   const int modeV                  = surface.findPlug( "modeV" ).asInt();
-   const int numberV                = surface.findPlug( "numberV" ).asInt();
-   const bool smoothEdge            = surface.findPlug( "smoothEdge" ).asBool();
-   const bool useChordHeightRatio   = surface.findPlug( "useChordHeightRatio" ).asBool();
-   const bool edgeSwap              = surface.findPlug( "edgeSwap" ).asBool();
-   const bool useMinScreen          = surface.findPlug( "useMinScreen" ).asBool();
-   const double chordHeightRatio    = surface.findPlug( "chordHeightRatio" ).asDouble();
-   const double minScreen           = surface.findPlug( "minScreen" ).asDouble();
+   const int modeU                  = surface.findPlug("modeU").asInt();
+   const int numberU                = surface.findPlug("numberU").asInt();
+   const int modeV                  = surface.findPlug("modeV").asInt();
+   const int numberV                = surface.findPlug("numberV").asInt();
+   const bool smoothEdge            = surface.findPlug("smoothEdge").asBool();
+   const bool useChordHeightRatio   = surface.findPlug("useChordHeightRatio").asBool();
+   const bool edgeSwap              = surface.findPlug("edgeSwap").asBool();
+   const bool useMinScreen          = surface.findPlug("useMinScreen").asBool();
+   const double chordHeightRatio    = surface.findPlug("chordHeightRatio").asDouble();
+   const double minScreen           = surface.findPlug("minScreen").asDouble();
 
    // I don't actually know why these aren't used. I don't see where they'd be set
    // on MTesselationParams either.
-   //const bool useChordHeight      = surface.findPlug( "useChordHeight" ).asBool();
-   //const double chordHeight       = surface.findPlug( "chordHeight" ).asDouble();
+   //const bool useChordHeight      = surface.findPlug("useChordHeight").asBool();
+   //const double chordHeight       = surface.findPlug("chordHeight").asDouble();
 
-   switch ( modeU )
+   switch (modeU)
    {
       case 1:             // Per Surf # of Isoparms in 3D
-         params.setUIsoparmType( MTesselationParams::kSurface3DEquiSpaced);
+         params.setUIsoparmType(MTesselationParams::kSurface3DEquiSpaced);
          break;
       case 2:             // Per Surf # of Isoparms
-         params.setUIsoparmType( MTesselationParams::kSurfaceEquiSpaced);
+         params.setUIsoparmType(MTesselationParams::kSurfaceEquiSpaced);
          break;
       case 3:             // Per Span # of Isoparms
-         params.setUIsoparmType( MTesselationParams::kSpanEquiSpaced);
+         params.setUIsoparmType(MTesselationParams::kSpanEquiSpaced);
          break;
       case 4:             // Best Guess Based on Screen Size, there is a comment that 4 uses mode 2 internally
-         params.setUIsoparmType( MTesselationParams::kSurfaceEquiSpaced);
+         params.setUIsoparmType(MTesselationParams::kSurfaceEquiSpaced);
          break;
    }
 
-   switch ( modeV )
+   switch (modeV)
    {
       case 1:             // Per Surf # of Isoparms in 3D
-         params.setVIsoparmType( MTesselationParams::kSurface3DEquiSpaced);
+         params.setVIsoparmType(MTesselationParams::kSurface3DEquiSpaced);
          break;
       case 2:             // Per Surf # of Isoparms
-         params.setVIsoparmType( MTesselationParams::kSurfaceEquiSpaced);
+         params.setVIsoparmType(MTesselationParams::kSurfaceEquiSpaced);
          break;
       case 3:             // Per Span # of Isoparms
-         params.setVIsoparmType( MTesselationParams::kSpanEquiSpaced);
+         params.setVIsoparmType(MTesselationParams::kSpanEquiSpaced);
          break;
       case 4:             // Best Guess Based on Screen Size, there is a comment that 4 uses mode 2 internally
-         params.setVIsoparmType( MTesselationParams::kSurfaceEquiSpaced);
+         params.setVIsoparmType(MTesselationParams::kSurfaceEquiSpaced);
          break;
    }
 
    params.setUNumber(numberU);
    params.setVNumber(numberV);
    params.setSubdivisionFlag(MTesselationParams::kUseChordHeightRatio, useChordHeightRatio);
-   params.setChordHeightRatio(chordHeightRatio );
+   params.setChordHeightRatio(chordHeightRatio);
    params.setSubdivisionFlag(MTesselationParams::kUseMinScreenSize,useMinScreen);
    params.setMinScreenSize(minScreen, minScreen);
 
@@ -1053,7 +1052,7 @@ bool CNurbsSurfaceTranslator::Tessellate(MDagPath & dagPath)
    m_data_mobj = meshData.create();
 
    MTesselationParams params(MTesselationParams::kGeneralFormat, MTesselationParams::kTriangles);
-   GetTessellationOptions( params, surface );
+   GetTessellationOptions(params, surface);
    MObject mesh_mobj = surface.tesselate(params,
                                          m_data_mobj,
                                          &status);

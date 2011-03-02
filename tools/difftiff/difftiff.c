@@ -39,10 +39,10 @@ typedef unsigned char Byte;
    Useful macros
 ******************************************************************************/
 
-#define ABS(_a) ( ((_a)<0) ? -(_a) : (_a) )
+#define ABS(_a) (((_a)<0) ? -(_a) : (_a))
 #define MAX(_a, _b) (((_a)>(_b))?(_a):(_b))
-#define MAX3(_a, _b, _c) ( MAX(MAX(_a,_b),_c) )
-#define MAX4(_a, _b, _c, _d) ( MAX(MAX3(_a,_b,_c),_d) )
+#define MAX3(_a, _b, _c) (MAX(MAX(_a,_b),_c))
+#define MAX4(_a, _b, _c, _d) (MAX(MAX3(_a,_b,_c),_d))
 #define PERCTO8BIT(t) (int)(t*2.55f)
 #define DEFAULT_MAX_THR 25.0f
 #define DEFAULT_AVG_THR 0.1f
@@ -119,7 +119,7 @@ Pixel BufferGetPixel(Byte *buffer, int x, int y)
    pix.g = *(ptr++);
    pix.b = *(ptr++);
    if (nchannels == 4)
-      pix.a = *(ptr  );
+      pix.a = *(ptr );
    else
       pix.a = 0;
    return pix;
@@ -332,7 +332,7 @@ int main(int argc, char **argv)
    bpc = TIFFGetBitsPerChannel(file1);
    nchannels = TIFFGetNumChannels(file1);
 
-   if ( (width!=TIFFGetWidth(file2)) || (height!=TIFFGetHeight(file2)) || (bpc!=TIFFGetBitsPerChannel(file2)) )
+   if ((width!=TIFFGetWidth(file2)) || (height!=TIFFGetHeight(file2)) || (bpc!=TIFFGetBitsPerChannel(file2)))
    {
       printf("Both images must have the same resolution/depth");
       printf("\n%s: %dx%d, %d-bit, %d channels", argv[param-1], width, height, bpc, nchannels);
@@ -349,13 +349,13 @@ int main(int argc, char **argv)
    }
 
    /* RGB images not supported yet (todo: RGB, grayscale, and maybe arbitrary channels) */
-   if ( nchannels != TIFFGetNumChannels(file2) )
+   if (nchannels != TIFFGetNumChannels(file2))
    {
       printf("Attempting to compare non-matching image types (you are comparing %d- and %d-channel images)\n",
          nchannels, TIFFGetNumChannels(file2));
       goto finish;
    }
-   else if (  nchannels!=3 &&  nchannels!=4 )
+   else if ( nchannels!=3 &&  nchannels!=4)
    {
       printf("Support for other than RGB and RGBA channels is not implemented (you are trying %d:%d channels)\n", 
          nchannels, TIFFGetNumChannels(file2));

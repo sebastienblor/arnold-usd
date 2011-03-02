@@ -81,7 +81,7 @@ void CLightTranslator::Export(AtNode* light, bool mayaAttrs)
 
    MStatus status;
    MPlug pFilters = m_fnNode.findPlug("light_filters", &status);
-   if(status == MS::kSuccess)
+   if (status == MS::kSuccess)
    {
       MObjectArray filters;
       MPlugArray pSources;

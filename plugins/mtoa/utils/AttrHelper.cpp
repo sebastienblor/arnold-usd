@@ -99,8 +99,8 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
       //
       // Also, by convention, matrix arrays with name "matrix" are animatable
       // attributes.
-      if ( (AiMetaDataGetBool(m_nodeEntry, paramName, "animatable", &animatable) && animatable) ||
-           (data.type == AI_TYPE_MATRIX && strcmp(paramName, "matrix") == 0) )
+      if ((AiMetaDataGetBool(m_nodeEntry, paramName, "animatable", &animatable) && animatable) ||
+           (data.type == AI_TYPE_MATRIX && strcmp(paramName, "matrix") == 0))
       {
          data.isArray = false;
          // since this parameter is not to be treated as an array within maya,

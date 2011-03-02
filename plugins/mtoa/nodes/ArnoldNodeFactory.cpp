@@ -44,7 +44,7 @@ int FindLibraries(MString searchPath, MStringArray &files)
       MString dir = pluginPaths[i];
       DIR *dp;
       struct dirent *dirp;
-      if((dp  = opendir(dir.asChar())) == NULL)
+      if ((dp  = opendir(dir.asChar())) == NULL)
       {
          // TODO: print better error message
          cerr << "Error(" << errno << ") opening " << dir << endl;
@@ -249,7 +249,7 @@ bool CArnoldNodeFactory::RegisterMayaNode(const AtNodeEntry* arnoldNodeEntry)
    if (!AiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.swatch", &swatch))
       swatch = ARNOLD_SWATCH.asChar();
 
-   // AiMsgDebug( "Registering Arnold node %s as Maya node %s of classification %s", arnoldNodeName, mayaNodeName.asChar(), classification.asChar() );
+   // AiMsgDebug("Registering Arnold node %s as Maya node %s of classification %s", arnoldNodeName, mayaNodeName, classification, swatch);
    AiMsgInfo("[mtoa] registering Arnold node %s as Maya node %s of classification %s, using swatch %s", arnoldNodeName, mayaNodeName, classification, swatch);
    MGlobal::displayInfo(MString("[mtoa] INFO: Loading shader: ") + arnoldNodeName + " as " + mayaNodeName);
 
@@ -291,8 +291,8 @@ bool CArnoldNodeFactory::RegisterMayaNode(const char* arnoldNodeName, const char
    CArnoldCustomShaderNode::s_shaderClass = shaderClass;
 
    // Register the node and its parameters
-   // AiMsgDebug( "[mtoa] registering Arnold node %s as Maya node %s of classification %s", arnoldNodeName, mayaNodeName, shaderClass.asChar() );
-   AiMsgInfo( "[mtoa] registering Arnold node %s as Maya node %s of classification %s", arnoldNodeName, mayaNodeName, shaderClass.asChar() );
+   // AiMsgDebug("[mtoa] registering Arnold node %s as Maya node %s of classification %s", arnoldNodeName, mayaNodeName, shaderClass.asChar());
+   AiMsgInfo("[mtoa] registering Arnold node %s as Maya node %s of classification %s", arnoldNodeName, mayaNodeName, shaderClass.asChar());
 
    MStatus status = m_plugin.registerNode(mayaNodeName, nodeId, CArnoldCustomShaderNode::creator,
                                           CArnoldCustomShaderNode::initialize, MPxNode::kDependNode, &shaderClass);

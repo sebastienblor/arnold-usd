@@ -24,7 +24,7 @@ time_t s_start_time;
 /// @{
 
 
-#define _gamma  (params[0].FLT )  /**< accessor for driver's gamma parameter */
+#define _gamma  (params[0].FLT)  /**< accessor for driver's gamma parameter */
 
 AI_DRIVER_NODE_EXPORT_METHODS(mtoa_driver_mtd);
 
@@ -49,9 +49,9 @@ struct CDisplayUpdateMessage
    EDisplayUpdateMessageType msgType;
    AtBBox2                   bucketRect;
    RV_PIXEL*                 pixels;      ///< These will be in the range of 0-255, not 0-1.
-   CDisplayUpdateMessage(  EDisplayUpdateMessageType msg = MSG_BUCKET_PREPARE,
+   CDisplayUpdateMessage(EDisplayUpdateMessageType msg = MSG_BUCKET_PREPARE,
                            AtInt minx = 0, AtInt miny = 0, AtInt maxx = 0, AtInt maxy = 0,
-                           RV_PIXEL* px = NULL )
+                           RV_PIXEL* px = NULL)
    : msgType(msg), pixels(px)
    {
       bucketRect.minx = minx;
@@ -117,8 +117,7 @@ driver_prepare_bucket
    CDisplayUpdateMessage   msg(MSG_BUCKET_PREPARE,
                                bucket_xo, bucket_yo,
                                bucket_xo + bucket_size_x - 1, bucket_yo + bucket_size_y - 1,
-                               NULL
-                               ) ;
+                               NULL) ;
 
    // msg.msgType = MSG_BUCKET_PREPARE;
    // msg.bucketRect.minx = bucket_xo;
@@ -157,7 +156,7 @@ driver_write_bucket
             for (AtInt i = minx; (i <= maxx); ++i)
             {
                AtUInt in_idx = (j-bucket_yo)*bucket_size_x + (i-bucket_xo);
-               AtRGB  rgb = ((AtRGB* )bucket_data)[in_idx]; 
+               AtRGB  rgb = ((AtRGB*)bucket_data)[in_idx]; 
 
                // Flip vertically
                AtInt targetX = i - minx;
@@ -186,7 +185,7 @@ driver_write_bucket
             for (AtInt i = minx; (i <= maxx); ++i)
             {
                AtUInt in_idx = (j-bucket_yo)*bucket_size_x + (i-bucket_xo);
-               AtRGBA  rgba = ((AtRGBA* )bucket_data)[in_idx]; 
+               AtRGBA  rgba = ((AtRGBA*)bucket_data)[in_idx]; 
 
                // Flip vertically
                AtInt targetX = i - minx;
@@ -211,7 +210,7 @@ driver_write_bucket
 
    CDisplayUpdateMessage msg(MSG_BUCKET_UPDATE, minx, miny, maxx, maxy, pixels);
 
-   s_displayUpdateQueue.push( msg );
+   s_displayUpdateQueue.push(msg);
 }
 
 
@@ -236,7 +235,7 @@ node_finish
 /// \name Render View and Queue processing.
 /// \{
 
-void UpdateBucket(const AtBBox2& bucketRect, RV_PIXEL* pixels, const bool refresh )
+void UpdateBucket(const AtBBox2& bucketRect, RV_PIXEL* pixels, const bool refresh)
 {
    // Flip vertically
    AtInt   miny = s_outputDriverData.imageHeight - bucketRect.maxy - 1;
@@ -250,8 +249,8 @@ void UpdateBucket(const AtBBox2& bucketRect, RV_PIXEL* pixels, const bool refres
 
 // Please note: this function flips the Y as the resulting
 // image is for use with MImage.
-void CopyBucketToBuffer( float * to_pixels,
-                         const CDisplayUpdateMessage & bucket )
+void CopyBucketToBuffer(float * to_pixels,
+                         const CDisplayUpdateMessage & bucket)
 {
    const AtInt bucket_size_x = bucket.bucketRect.maxx - bucket.bucketRect.minx + 1;
    const AtInt bucket_size_y = bucket.bucketRect.maxy - bucket.bucketRect.miny + 1;
@@ -266,7 +265,7 @@ void CopyBucketToBuffer( float * to_pixels,
       {
          // Offset into the buffer.
          const int ox = (x + bucket.bucketRect.minx);
-         const int to_idx = ( oy * s_outputDriverData.imageWidth + ox) * num_channels;
+         const int to_idx = (oy * s_outputDriverData.imageWidth + ox) * num_channels;
          to_pixels[to_idx+0]= from->r;
          to_pixels[to_idx+1]= from->g;
          to_pixels[to_idx+2]= from->b;
@@ -280,16 +279,16 @@ void CopyBucketToBuffer( float * to_pixels,
 
 // Create an MImage from the buffer/queue rendered from Arnold.
 // The resulting image will be flipped, just how Maya likes it.
-bool DisplayUpdateQueueToMImage( MImage & image )
+bool DisplayUpdateQueueToMImage(MImage & image)
 {
    image.create(s_outputDriverData.imageWidth,
                 s_outputDriverData.imageHeight,
                 4,                               // RGBA
-                MImage::kFloat );                // Has to be for swatches it seems.
+                MImage::kFloat);                // Has to be for swatches it seems.
 
    CDisplayUpdateMessage msg;
    
-   while( !s_displayUpdateQueue.isEmpty() )
+   while(!s_displayUpdateQueue.isEmpty())
    {
       if (s_displayUpdateQueue.pop(msg))
       {
@@ -323,15 +322,15 @@ void FinishedWithDisplayUpdateQueue()
    s_finishedRendering = false;
 
    // Get some data from Arnold before it gets deleted with the universe.
-   const AtInt aaSamples(     AiNodeGetInt(AiUniverseGetOptions(), "AA_samples")         );
-   const AtInt diffuseSamples(AiNodeGetInt(AiUniverseGetOptions(), "GI_diffuse_samples") );
-   const AtInt glossySamples( AiNodeGetInt(AiUniverseGetOptions(), "GI_glossy_samples")  );
-   const AtInt sssSamples(    AiNodeGetInt(AiUniverseGetOptions(), "GI_sss_hemi_samples"));
+   const AtInt aaSamples(AiNodeGetInt(AiUniverseGetOptions(), "AA_samples"));
+   const AtInt diffuseSamples(AiNodeGetInt(AiUniverseGetOptions(), "GI_diffuse_samples"));
+   const AtInt glossySamples(AiNodeGetInt(AiUniverseGetOptions(), "GI_glossy_samples"));
+   const AtInt sssSamples(AiNodeGetInt(AiUniverseGetOptions(), "GI_sss_hemi_samples"));
 
    // Calculate the time taken.
    const time_t elapsed = time(NULL) - s_start_time;
    char command_str[256];
-   sprintf( command_str,
+   sprintf(command_str,
             "arnoldIpr -mode finishedIPR -elapsedTime \"%ld:%02ld\" -samplingInfo \"[%d/%d/%d/%d]\" ;",
             elapsed / 60,
             elapsed % 60,
@@ -339,7 +338,7 @@ void FinishedWithDisplayUpdateQueue()
             diffuseSamples,
             glossySamples,
             sssSamples);
-   MGlobal::executeCommandOnIdle( command_str, false );
+   MGlobal::executeCommandOnIdle(command_str, false);
 }
 
 void ClearDisplayUpdateQueue()
@@ -372,12 +371,12 @@ bool ProcessUpdateMessage(const bool refresh)
             break;
          case MSG_IMAGE_COMPLETE:
             // Received "end-of-image" message.
-            //AiMsgDebug( "Got end image" );
+            //AiMsgDebug("Got end image");
             break;
          case MSG_RENDER_DONE:
             // Recieved "end-of-rendering" message.
             FinishedWithDisplayUpdateQueue();
-            //AiMsgDebug( "Got end render message" );
+            //AiMsgDebug("Got end render message");
             return false;
          }
       }
@@ -389,7 +388,7 @@ bool ProcessUpdateMessage(const bool refresh)
 
 void ProcessDisplayUpdateQueue()
 {
-   while( !s_displayUpdateQueue.isEmpty() )
+   while(!s_displayUpdateQueue.isEmpty())
    {
       ProcessUpdateMessage(false);
    }
@@ -406,7 +405,7 @@ bool ProcessSomeOfDisplayUpdateQueue(const bool refresh)
    // Otherwise we just to a bit of it.
    else
    {
-      return ProcessUpdateMessage( refresh );
+      return ProcessUpdateMessage(refresh);
    }
 }
 

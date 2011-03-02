@@ -58,7 +58,7 @@ void CSphereLocator::DrawUVSphere(float radius, int divisionsX, int divisionsY, 
    double DTOR = 0.0174532925;
 
    int uv_counter = 0;
-   if(m_goUVSample)
+   if (m_goUVSample)
    {
       int numUVdata = divisionsX * divisionsY * 4;
       m_UData = new float[numUVdata];
@@ -220,15 +220,15 @@ void CSphereLocator::SampleSN(MPlug &colorPlug)
 
 bool CSphereLocator::setInternalValueInContext(const MPlug &plug, const MDataHandle &handle, MDGContext &context)
 {     
-   if( plug == s_color || plug == s_sampling )
+   if (plug == s_color || plug == s_sampling)
    {
       m_goSample = true;
    }
 
-   if( plug == s_format )
+   if (plug == s_format)
       m_goUVSample = true;
    
-   return MPxLocatorNode::setInternalValueInContext( plug, handle, context );
+   return MPxLocatorNode::setInternalValueInContext(plug, handle, context);
 }
 
 
@@ -279,7 +279,7 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
    int displayStatusInt = displayStatus;
 
    // 3 means wireframe
-   if(displayStyle != 3)
+   if (displayStyle != 3)
    {
       // Check if we have a texture file or a simple color
       // in our SkyShaderNode
@@ -299,7 +299,7 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
       if (conn.length()>0)
       {
          // check if we need to resample
-         if(m_goSample == true)
+         if (m_goSample == true)
          {
             MPlug plugColor = fn.findPlug(s_color);
             SampleSN(plugColor);
@@ -330,8 +330,7 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
 
          if (facing == 2)
          {
-            // we want both face, we need to redraw a second inverted sphere :'(
-            glCullFace(GL_BACK);
+            // we want both face, we need to redraw a second inverted sphere :'(glCullFace(GL_BACK);
             DrawUVSphere(radius, divisions*4, divisions*4, format);
             glCullFace(GL_FRONT);
          }

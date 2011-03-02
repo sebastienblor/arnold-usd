@@ -50,8 +50,7 @@ void* CArnoldAssTranslator::creator()
 }
 
 // To identify an ass file, look at the header if possible or just use the extension
-MPxFileTranslator::MFileKind CArnoldAssTranslator::identifyFile(
-      const MFileObject& file, const char* buffer, short bufferLen) const
+MPxFileTranslator::MFileKind CArnoldAssTranslator::identifyFile(const MFileObject& file, const char* buffer, short bufferLen) const
 {
    MString	tagStr = "### from:     Arnold";
    int		tagLen = tagStr.length();
@@ -97,8 +96,7 @@ MPxFileTranslator::MFileKind CArnoldAssTranslator::identifyFile(
 // At the moment just a call to arnoldExportAss cmd but would be cleaner to move
 // the code of arnoldExportAss cmd here and use the file command :
 // 'file -type "arnoldSceneSource"'
-MStatus CArnoldAssTranslator::writer(
-		const MFileObject& file,
+MStatus CArnoldAssTranslator::writer(const MFileObject& file,
 		const MString& options,
 		MPxFileTranslator::FileAccessMode mode)
 {

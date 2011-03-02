@@ -178,7 +178,7 @@ public:
       SetupImageOptions();
    }
 
-   void SetRegion( const AtUInt left, const AtUInt right, const AtUInt bottom, const AtUInt top )
+   void SetRegion(const AtUInt left, const AtUInt right, const AtUInt bottom, const AtUInt top)
    {
       m_useRenderRegion = true;
 
@@ -265,7 +265,7 @@ public:
       return m_progressive_rendering;
    }
 
-   void SetProgressive( const bool is_progressive )
+   void SetProgressive(const bool is_progressive)
    {
       m_progressive_rendering = is_progressive;
    }

@@ -59,7 +59,7 @@ shader_evaluate
 
    if (!IsValidUV(uv.x, uv.y))
    {
-      MayaDefaultColor( sg, node, p_defaultColor, sg->out.RGBA);
+      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
       return;
    }
 
@@ -73,5 +73,5 @@ shader_evaluate
    float r = sqrt(fabs(a * b));
 
    AiRGBACreate(sg->out.RGBA, r, r, r, r);
-   MayaColorBalance( sg, node, p_defaultColor, sg->out.RGBA );
+   MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA);
 }

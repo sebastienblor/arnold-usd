@@ -37,7 +37,7 @@ inline float get2DNoise(float x, float y, float px, float py, AtBoolean inflecti
    p.y = y;
 
    noise = AiPeriodicPerlin2(p, (AtInt)px, (AtInt)py);
-   if(inflection) noise = fabs(noise);
+   if (inflection) noise = fabs(noise);
 
    return noise;
 }
@@ -49,7 +49,7 @@ inline float get3DNoise(float x, float y, float z, float px, float py, float pz,
    AiV3Create(p, x, y, z);
 
    noise = AiPeriodicPerlin3(p, (AtInt)px, (AtInt)py, (AtInt)pz);  
-   if(inflection) noise = fabs(noise);
+   if (inflection) noise = fabs(noise);
 
    return noise;
 }
@@ -113,7 +113,7 @@ shader_evaluate
 
    if (!IsValidUV(uv.x, uv.y))
    {
-      MayaDefaultColor( sg, node, p_defaultColor, sg->out.RGBA);
+      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
       return;
    }
 
@@ -188,6 +188,6 @@ shader_evaluate
    float n = noiseval;
    
    AiRGBACreate(sg->out.RGBA, n, n, n, 1.0f);
-   MayaColorBalance( sg, node, p_defaultColor, sg->out.RGBA );
+   MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA);
 }
 

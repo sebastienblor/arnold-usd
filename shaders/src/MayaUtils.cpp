@@ -336,12 +336,12 @@ void MayaColorBalance(AtShaderGlobals* sg,
                         AtInt p_start,
                         AtRGBA & result)
 {
-   const AtRGB colorGain      = AiShaderEvalParamFuncRGB( sg, node, p_start + 1);  //p_colorGain);
-   const AtRGB colorOffset    = AiShaderEvalParamFuncRGB( sg, node, p_start + 2);  //p_colorOffset);
-   const float alphaGain      = AiShaderEvalParamFuncFlt( sg, node, p_start + 3);  //p_alphaGain);
-   const float alphaOffset    = AiShaderEvalParamFuncFlt( sg, node, p_start + 4);  //p_alphaOffset);
+   const AtRGB colorGain      = AiShaderEvalParamFuncRGB(sg, node, p_start + 1);  //p_colorGain);
+   const AtRGB colorOffset    = AiShaderEvalParamFuncRGB(sg, node, p_start + 2);  //p_colorOffset);
+   const float alphaGain      = AiShaderEvalParamFuncFlt(sg, node, p_start + 3);  //p_alphaGain);
+   const float alphaOffset    = AiShaderEvalParamFuncFlt(sg, node, p_start + 4);  //p_alphaOffset);
    const AtBoolean alphaIsLuminance     = AiShaderEvalParamFuncBool(sg, node, p_start+ 5);  //alphaIsLuminance);
-   const AtBoolean invert = AiShaderEvalParamFuncBool(sg, node, p_start+ 6 ); //p_invert);
+   const AtBoolean invert = AiShaderEvalParamFuncBool(sg, node, p_start+ 6); //p_invert);
 
    if (invert)
    {
@@ -367,7 +367,7 @@ void MayaDefaultColor(AtShaderGlobals* sg,
                         AtInt p_start,
                         AtRGBA & result)
 {
-   const AtRGB defaultColor   = AiShaderEvalParamFuncRGB( sg, node, p_start + 0);  //p_defaultColor);
+   const AtRGB defaultColor   = AiShaderEvalParamFuncRGB(sg, node, p_start + 0);  //p_defaultColor);
    AiRGBtoRGBA(defaultColor, result);
    result.a = 0.0f;
 }

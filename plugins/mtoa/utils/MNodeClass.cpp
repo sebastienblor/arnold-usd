@@ -106,7 +106,7 @@ MStatus MNodeClass::AddNodeCallback(const MString &nodeClassName) const
    MStatus status;
    // add a callback for creating arnold attributes
    MCallbackId id = MDGMessage::addNodeAddedCallback(MNodeClass::NodeCreatedCallback, nodeClassName, NULL, &status);
-   s_callbackIDs.append( id );
+   s_callbackIDs.append(id);
    CHECK_MSTATUS(status);
 
    return status;
@@ -117,8 +117,7 @@ void MNodeClass::CreateCallbacks()
    /*
    MStatus status;
    // create callbacks
-   s_pluginLoadedCallbackId = MSceneMessage::addStringArrayCallback(
-      MSceneMessage::kAfterPluginLoad, 
+   s_pluginLoadedCallbackId = MSceneMessage::addStringArrayCallback(MSceneMessage::kAfterPluginLoad, 
       CTranslatorRegistry::MayaPluginLoadedCallback, 
       NULL, 
       &status);
@@ -129,9 +128,9 @@ void MNodeClass::CreateCallbacks()
 void MNodeClass::RemoveCallbacks()
 {
    // delete callbacks
-   const MStatus status = MMessage::removeCallbacks( s_callbackIDs );
+   const MStatus status = MMessage::removeCallbacks(s_callbackIDs);
    CHECK_MSTATUS(status);
-   if ( status == MS::kSuccess )
+   if (status == MS::kSuccess)
       s_callbackIDs.clear();
 }
 

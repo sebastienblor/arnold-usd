@@ -46,8 +46,7 @@ protected:
          std::vector<AtLong> &nidxs,
          std::vector<AtLong> &uvidxs,
          bool exportNormals,
-         bool exportUVs
-         );
+         bool exportUVs);
 
    MObject GetNodeShadingGroup(MObject dagNode, int instanceNum);
    MObject GetNodeShader(MObject dagNode, int instanceNum);
@@ -61,8 +60,8 @@ protected:
    AtNode* ExportInstance(AtNode* instance, const MDagPath& masterInstance);
    void ExportInstanceMotion(AtNode* instance, AtUInt step);
 
-   static void ShaderAssignmentCallback( MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void* );
-   void AddShaderAssignmentCallbacks(MObject & dagNode );
+   static void ShaderAssignmentCallback(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void*);
+   void AddShaderAssignmentCallbacks(MObject & dagNode);
    virtual void IsGeoDeforming();
 
 protected:
@@ -111,7 +110,7 @@ private:
    MObject m_data_mobj;
    bool Tessellate(MDagPath & dagPath);
    void GetTessellationOptions(MTesselationParams & params,
-                        MFnNurbsSurface & surface );
+                        MFnNurbsSurface & surface);
 
 };
 

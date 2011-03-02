@@ -45,7 +45,7 @@ void CCameraTranslator::ExportImagePlane(AtUInt step)
 
                 // check if the image plane should be created
                 int displayMode = fnRes.findPlug("displayMode", &status).asInt();
-                if ( displayMode > 1 )
+                if (displayMode > 1)
                 {
 
                     MString imagePlaneName(m_fnNode.partialPathName());
@@ -57,16 +57,16 @@ void CCameraTranslator::ExportImagePlane(AtUInt step)
                     //type: 0 == Image, 1 == Texture, 2 == Movie
                     int type = fnRes.findPlug("type", &status).asInt();
                 
-                    if(type == 2)//Not supporting type Movie for now....
+                    if (type == 2)//Not supporting type Movie for now....
                     {
                         AiMsgWarning("Image Planes of type Movie are unsupported");
                         return;
                     }
 
-                    if(type == 0)//If we have an Image type lets get the image.
+                    if (type == 0)//If we have an Image type lets get the image.
                     {
                         // get data
-                        if ( (!m_motion) || (step == 0))
+                        if ((!m_motion) || (step == 0))
                         {
                             MString frameNumber("0");
                             frameNumber += m_scene->GetCurrentFrame() + fnRes.findPlug("frameOffset").asInt();
@@ -81,7 +81,7 @@ void CCameraTranslator::ExportImagePlane(AtUInt step)
                     double planeSizeY = fnRes.findPlug("sizeY", &status).asDouble();
 
                     int lockedToCamera = fnRes.findPlug("lockedToCamera", &status).asInt();
-                    if(!lockedToCamera)
+                    if (!lockedToCamera)
                     {
                         planeSizeX = fnRes.findPlug("width", &status).asDouble();
                         planeSizeY = fnRes.findPlug("height", &status).asDouble();
@@ -99,7 +99,7 @@ void CCameraTranslator::ExportImagePlane(AtUInt step)
 
                     unsigned int iWidth = 0;
                     unsigned int iHeight = 0;
-                    if(type == 0)
+                    if (type == 0)
                     {
                         //0:Fill 1:Best 2:Horizontal 3:Vertical 4:ToSize
                         mImage.getSize(iWidth, iHeight);
@@ -108,9 +108,9 @@ void CCameraTranslator::ExportImagePlane(AtUInt step)
                         double planeAspect = (planeSizeX * lensSqueeze) / planeSizeY;
                         double iAspect = double(iWidth) / iHeight;  
 
-                        if(fit == 1)//Best fit
+                        if (fit == 1)//Best fit
                         {
-                            if(iAspect > 1)
+                            if (iAspect > 1)
                                 fit = 2;
                             else
                                 fit = 3;
@@ -118,46 +118,46 @@ void CCameraTranslator::ExportImagePlane(AtUInt step)
 
                         bool clip = false;
 
-                        if(fit == 0)//Fill: Here the image is cropped to fit if aspect is off
+                        if (fit == 0)//Fill: Here the image is cropped to fit if aspect is off
                         {
-                            if(iAspect != planeAspect)
+                            if (iAspect != planeAspect)
                             {
                                 clip = true;
                             }
                         }
-                        else if(fit == 2)//Horizontal fit
+                        else if (fit == 2)//Horizontal fit
                         {
-                            if(iAspect > 1)//Double check here against the image aspect
+                            if (iAspect > 1)//Double check here against the image aspect
                                 planeSizeY = (planeSizeX * lensSqueeze) / iAspect;
 
                             planeAspect = (planeSizeX * lensSqueeze) / planeSizeY;
-                            if(iAspect != planeAspect)
+                            if (iAspect != planeAspect)
                             {
                                 clip = true;
                             }
                         }
-                        else if(fit == 3)//Vertical fit
+                        else if (fit == 3)//Vertical fit
                         {
-                            if(iAspect < 1)
+                            if (iAspect < 1)
                                 planeSizeX = planeSizeY / iAspect;
 
                             planeAspect = (planeSizeX * lensSqueeze) / planeSizeY;
-                            if(iAspect != planeAspect)
+                            if (iAspect != planeAspect)
                             {
                                 clip = true;
                             }
                         }
-                        else if(fit == 5)//To Size: Here the image is squashed or stretched to size if aspect is off
+                        else if (fit == 5)//To Size: Here the image is squashed or stretched to size if aspect is off
                         {
                             double squeezeCorrection = fnRes.findPlug("squeezeCorrection").asDouble();
-                            if(squeezeCorrection < 0.0001f)
+                            if (squeezeCorrection < 0.0001f)
                                 squeezeCorrection = 1.0f;
                             planeSizeX /= squeezeCorrection;
                         }
 
-                        if(clip)
+                        if (clip)
                         {
-                            if(planeAspect < iAspect)//We have some horizontal clipping
+                            if (planeAspect < iAspect)//We have some horizontal clipping
                             {
                                 ipCoverageX = static_cast<float>((iAspect / planeAspect));
                                 ipTranslateX = (1 - ipCoverageX) * 0.5f;
@@ -173,13 +173,13 @@ void CCameraTranslator::ExportImagePlane(AtUInt step)
                     double ipWidth = planeSizeX;
                     double ipHeight = planeSizeY;
 
-                    if(lockedToCamera)
+                    if (lockedToCamera)
                     {
                         ipWidth = (planeSizeX * planeDepth * lensSqueeze) / ((camFocal * MM_TO_INCH) / camScale);
                         ipHeight = (planeSizeY * planeDepth) / ((camFocal * MM_TO_INCH) / camScale);
                     }
 
-                    if ( (!m_motion) || (step == 0))
+                    if ((!m_motion) || (step == 0))
                     {
                       
                         // CREATE PLANE
@@ -203,7 +203,7 @@ void CCameraTranslator::ExportImagePlane(AtUInt step)
                         double uMin(0), vMin(0);
                         double uMax(1.0f), vMax(1.0f);
 
-                        if(type == 0)
+                        if (type == 0)
                         {
                             double coverageX = fnRes.findPlug("coverageX", &status).asDouble();
                             double coverageY = fnRes.findPlug("coverageY", &status).asDouble();
@@ -218,12 +218,12 @@ void CCameraTranslator::ExportImagePlane(AtUInt step)
 
                             uMin = uOriginOffset;
                             uMax = 1.0f - (uOffset - uOriginOffset);
-                            if(uMax > 1)
+                            if (uMax > 1)
                                 uMax = 1.0f;
                           
                             vMin = vOriginOffset;
                             vMax = 1.0f - (vOffset - vOriginOffset);
-                            if(vMax > 1)
+                            if (vMax > 1)
                                vMax = 1.0f;
                         }
 
@@ -242,19 +242,19 @@ void CCameraTranslator::ExportImagePlane(AtUInt step)
                         MPlugArray conn;
 
                         AtNode* imagePlaneShader = AiNode("MayaImagePlane");
-                        if(type == 0)
+                        if (type == 0)
                         {
                             AiNodeSetStr(imagePlaneShader, "filename", imageName.asChar());
                             AiNodeSetInt(imagePlaneShader, "displayMode", displayMode);
                             AiNodeSetPnt2(imagePlaneShader, "coverage", ipCoverageX, ipCoverageY);
                             AiNodeSetPnt2(imagePlaneShader, "translate", ipTranslateX, ipTranslateY);
                         }
-                        else if(type == 1)
+                        else if (type == 1)
                         {
                             MPlug colorPlug  = fnRes.findPlug("sourceTexture");
                             MPlugArray conn;
                             colorPlug.connectedTo(conn, true, false);
-                            if(conn.length())
+                            if (conn.length())
                             {
                                 MPlug outputPlug = conn[0];
                                 AiNodeLink(m_scene->ExportShader(outputPlug), "color", imagePlaneShader);
@@ -266,11 +266,11 @@ void CCameraTranslator::ExportImagePlane(AtUInt step)
                       
                         // Check if we have a texture file or a simple color
                         // in our colorGain and colorOffset
-                        if(type == 0)
+                        if (type == 0)
                         {
                             colorPlug  = fnRes.findPlug("colorGain");
                             colorPlug.connectedTo(conn, true, false);
-                            if(!conn.length())
+                            if (!conn.length())
                                 AiNodeSetRGB(imagePlaneShader, "colorGain", colorPlug.child(0).asFloat(), colorPlug.child(1).asFloat(), colorPlug.child(2).asFloat());
                             else
                             {
@@ -280,7 +280,7 @@ void CCameraTranslator::ExportImagePlane(AtUInt step)
 
                             colorPlug  = fnRes.findPlug("colorOffset");
                             colorPlug.connectedTo(conn, true, false);
-                            if(!conn.length())
+                            if (!conn.length())
                                 AiNodeSetRGB(imagePlaneShader, "colorOffset", colorPlug.child(0).asFloat(), colorPlug.child(1).asFloat(), colorPlug.child(2).asFloat());
                             else
                             {
@@ -308,7 +308,7 @@ void CCameraTranslator::ExportImagePlane(AtUInt step)
                    
                     //if the plane is locked to the camera find and use the offset values
                     //otherwise it isn't locked so use the center attribute values to offset the plane
-                    if(lockedToCamera)
+                    if (lockedToCamera)
                     {
                         offsetX = (offsetX * planeDepth) / ((camFocal * MM_TO_INCH) / camScale);
                         offsetY = (offsetY * planeDepth) / ((camFocal * MM_TO_INCH) / camScale);
@@ -328,7 +328,7 @@ void CCameraTranslator::ExportImagePlane(AtUInt step)
                     AiM4Translation(offsetMatrix, &offsetVector);
                     AiM4Scaling(scaleMatrix, &scaleVector);
 
-                    if(lockedToCamera)
+                    if (lockedToCamera)
                     {
                         double ipRotate = fnRes.findPlug("rotate", &status).asDouble() * AI_RTOD * -1.0f;
                         AiM4RotationZ(rotationMatrix, float(ipRotate));
@@ -345,7 +345,7 @@ void CCameraTranslator::ExportImagePlane(AtUInt step)
                     AiM4Mult(imagePlaneMatrix, imagePlaneMatrix, rotationMatrix);
                     AiM4Mult(imagePlaneMatrix, imagePlaneMatrix, offsetMatrix);
                     //if the imageplane is locked we use the camera's matrix
-                    if(lockedToCamera)
+                    if (lockedToCamera)
                     {
                         // get cam's matrix
                         AtMatrix translateMatrix;
@@ -385,7 +385,7 @@ void CCameraTranslator::ExportCameraData(AtNode* camera)
    AiNodeSetFlt(camera, "near_clip", m_fnNode.findPlug("nearClipPlane").asFloat());
    AiNodeSetFlt(camera, "far_clip", m_fnNode.findPlug("farClipPlane").asFloat());
    
-   if ( m_fnNode.findPlug("enableDOF").asBool())
+   if (m_fnNode.findPlug("enableDOF").asBool())
    {
       AiNodeSetFlt(camera, "focal_distance", m_fnNode.findPlug("focal_distance").asFloat());
       AiNodeSetFlt(camera, "aperture_size", m_fnNode.findPlug("aperture_size").asFloat());
@@ -469,26 +469,26 @@ void CCameraTranslator::ExportOrthoFilmback(AtNode* camera)
    MFnCamera::FilmFit filmFit = m_fnCamera.filmFit();
    
    //FILL FILM RESOLUTION GATE
-   if(filmFit == MFnCamera::kFillFilmFit){
-      if(deviceAspect >= 1.0)
+   if (filmFit == MFnCamera::kFillFilmFit){
+      if (deviceAspect >= 1.0)
          filmFit = MFnCamera::kHorizontalFilmFit;
       else
          filmFit = MFnCamera::kVerticalFilmFit;
    }
 
    //OVERSCAN FILM RESOLUTION GATE
-   if(filmFit == MFnCamera::kOverscanFilmFit){
-      if(deviceAspect <= 1.0)
+   if (filmFit == MFnCamera::kOverscanFilmFit){
+      if (deviceAspect <= 1.0)
          filmFit = MFnCamera::kHorizontalFilmFit;
       else
          filmFit = MFnCamera::kVerticalFilmFit;
    }
 
-   if(filmFit == MFnCamera::kHorizontalFilmFit)
+   if (filmFit == MFnCamera::kHorizontalFilmFit)
    {
       width = width/2;
    }
-   else if(filmFit == MFnCamera::kVerticalFilmFit)
+   else if (filmFit == MFnCamera::kVerticalFilmFit)
    {
       width = (width/2)*deviceAspect;
    }
@@ -529,25 +529,25 @@ void CCameraTranslator::ExportPerspFilmback(AtNode* camera)
    MFnCamera::FilmFit filmFit = m_fnCamera.filmFit();
    
    //FILL FILM RESOLUTION GATE
-   if(filmFit == MFnCamera::kFillFilmFit){
+   if (filmFit == MFnCamera::kFillFilmFit){
       filmFitOffset = 0;
-      if((cameraAspect * lensSqueeze) < deviceAspect)
+      if ((cameraAspect * lensSqueeze) < deviceAspect)
          filmFit = MFnCamera::kHorizontalFilmFit;
       else
          filmFit = MFnCamera::kVerticalFilmFit;
    }
 
    //OVERSCAN FILM RESOLUTION GATE
-   if(filmFit == MFnCamera::kOverscanFilmFit){
+   if (filmFit == MFnCamera::kOverscanFilmFit){
       filmFitOffset = 0;
-      if((cameraAspect * lensSqueeze) > deviceAspect)
+      if ((cameraAspect * lensSqueeze) > deviceAspect)
          filmFit = MFnCamera::kHorizontalFilmFit;
       else
          filmFit = MFnCamera::kVerticalFilmFit;
    }
 
    //HORIZONTAL FILM RESOLUTION GATE
-   if(filmFit == MFnCamera::kHorizontalFilmFit)
+   if (filmFit == MFnCamera::kHorizontalFilmFit)
    {
       //Find the camera's Field Of View with Lens Squeeze and Camera Scale applied
       fov = static_cast<float>(AI_RTOD * 2 * atan((0.5 * apertureX * lensSqueeze) / ((focalLength / cameraScale) * MM_TO_INCH)));
@@ -555,14 +555,14 @@ void CCameraTranslator::ExportPerspFilmback(AtNode* camera)
       deviceApertureY = apertureX / (deviceAspect / lensSqueeze);
 
       //Apply the film fit offset if the camera's aspect ratio is greater than the render aspect ratio
-      if((cameraAspect * lensSqueeze) > deviceAspect && filmFitOffset != 0.0f)
+      if ((cameraAspect * lensSqueeze) > deviceAspect && filmFitOffset != 0.0f)
       {
          factorY = ((apertureY - deviceApertureY) * filmFitOffset) / deviceApertureY;
       }
    }
 
    //VERTICAL FILM RESOLUTION GATE
-   else if(filmFit == MFnCamera::kVerticalFilmFit)
+   else if (filmFit == MFnCamera::kVerticalFilmFit)
    {
       //Find the camera's Field Of View with the Render Aspect Ratio and Camera Scale applied
       fov = static_cast<float>(AI_RTOD * 2 * atan((0.5 * (deviceAspect * apertureY)) / ((focalLength / cameraScale) * MM_TO_INCH)));
@@ -570,14 +570,14 @@ void CCameraTranslator::ExportPerspFilmback(AtNode* camera)
       deviceApertureX = apertureY * (deviceAspect / lensSqueeze);
       
       //Apply the film fit offset if the camera's aspect ratio is less than the render aspect ratio
-      if((cameraAspect * lensSqueeze) < deviceAspect && filmFitOffset != 0.0f)
+      if ((cameraAspect * lensSqueeze) < deviceAspect && filmFitOffset != 0.0f)
       {
          factorX = ((apertureX - deviceApertureX) * filmFitOffset) / deviceApertureX;
       }
    }
    
    //If we have any filmOffsets we add them here
-   if(filmOffsetX!=0.0f || filmOffsetY!=0.0f)
+   if (filmOffsetX!=0.0f || filmOffsetY!=0.0f)
    {
       factorX += (filmOffsetX/deviceApertureX)*2;
       factorY += (filmOffsetY/deviceApertureY)*2;
@@ -630,7 +630,7 @@ MVectorArray CCameraTranslator::GetFilmTransform(double width, bool persp)
       postScale = 1 / postScale;
 
       filmTranslateX = (filmTranslateX * preScale) / postScale;
-      if(cameraAspect > deviceAspect)
+      if (cameraAspect > deviceAspect)
          filmTranslateY = ((filmTranslateY/cameraAspect) * 2 * preScale) / postScale;
       else
          filmTranslateY = (filmTranslateY * deviceAspect * preScale) / postScale;
@@ -641,7 +641,7 @@ MVectorArray CCameraTranslator::GetFilmTransform(double width, bool persp)
       postScale = 1 / postScale;
       double orthoWidth = m_fnCamera.orthoWidth() / 2;
       
-      if(orthoWidth == width)//We are in Horizontal Mode
+      if (orthoWidth == width)//We are in Horizontal Mode
       {
          filmTranslateX = (filmTranslateX * orthoWidth * preScale) / postScale;
          filmTranslateY = (filmTranslateY * orthoWidth * deviceAspect * preScale) / postScale;
@@ -657,38 +657,38 @@ MVectorArray CCameraTranslator::GetFilmTransform(double width, bool persp)
       maxPoint = MVector(width, width);
    }
    
-   if(preScale != 1.0f)
+   if (preScale != 1.0f)
    {
       minPoint *= preScale;
       maxPoint *= preScale;
    }
 
-   if(filmRollOrder == MFnCamera::kTranslateRotate)
+   if (filmRollOrder == MFnCamera::kTranslateRotate)
    {
-      if(filmTranslateX != 0.0f || filmTranslateY != 0.0f)
+      if (filmTranslateX != 0.0f || filmTranslateY != 0.0f)
       {
          minPoint += MVector(filmTranslateX, filmTranslateY);
          maxPoint += MVector(filmTranslateX, filmTranslateY);
       }
-      if(filmRollValue != 0.0f)
+      if (filmRollValue != 0.0f)
       {
          //ROTATE
       }
    }
    else //Rotate-Translate order
    {
-      if(filmRollValue != 0.0f)
+      if (filmRollValue != 0.0f)
       {
          //ROTATE
       }
-      if(filmTranslateX != 0.0f || filmTranslateY != 0.0f)
+      if (filmTranslateX != 0.0f || filmTranslateY != 0.0f)
       {
          minPoint += MVector(filmTranslateX, filmTranslateY);
          maxPoint += MVector(filmTranslateX, filmTranslateY);
       }
    }
 
-   if(postScale != 1.0f)
+   if (postScale != 1.0f)
    {
       minPoint *= postScale;
       maxPoint *= postScale;

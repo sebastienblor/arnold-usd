@@ -90,9 +90,9 @@ MStatus CArnoldExportAssCmd::WriteAsstoc(const MString& filename, const AtBBox& 
    bboxcomment += bBox.max.z;
 
    FILE * bboxfile;
-   bboxfile = fopen( filename.asChar(), "w" );
+   bboxfile = fopen(filename.asChar(), "w");
    if (bboxfile != NULL) {
-      fwrite(bboxcomment.asChar() , 1 , bboxcomment.length(), bboxfile );
+      fwrite(bboxcomment.asChar() , 1 , bboxcomment.length(), bboxfile);
       fclose(bboxfile);
 
       return MStatus::kSuccess;

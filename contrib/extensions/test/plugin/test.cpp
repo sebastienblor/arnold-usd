@@ -3,7 +3,7 @@
 #include <ai_msg.h>
 #include <ai_nodes.h>
 
-void CTestTranslatorCmd::Export( AtNode* shader)
+void CTestTranslatorCmd::Export(AtNode* shader)
 {
    AiMsgInfo("[test extension] Exporting %s", m_fnNode.name().asChar());
    AiNodeSetStr(shader, "name", m_fnNode.name().asChar());

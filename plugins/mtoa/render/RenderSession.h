@@ -106,7 +106,7 @@ public:
    /// Set the the camera to render.
    void SetCamera(MString cameraNode);
    void SetMultiCameraRender(bool multi);
-   void SetProgressive( bool is_progressive );
+   void SetProgressive(bool is_progressive);
    void SetRegion(const AtUInt left,const AtUInt right,
                   const AtUInt bottom, const AtUInt top);
 

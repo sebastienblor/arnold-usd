@@ -368,7 +368,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    status = plugin.registerCommand("arnoldRender", CArnoldRenderCmd::creator, CArnoldRenderCmd::newSyntax);
    status = plugin.registerCommand("arnoldIpr", CArnoldIprCmd::creator, CArnoldIprCmd::newSyntax);
    status = plugin.registerCommand("arnoldExportAss", CArnoldExportAssCmd::creator, CArnoldExportAssCmd::newSyntax);
-   status = plugin.registerFileTranslator(   CArnoldAssTranslator::fileType,
+   status = plugin.registerFileTranslator(CArnoldAssTranslator::fileType,
                                              CArnoldAssTranslator::fileIcon,
                                              CArnoldAssTranslator::creator,
                                              CArnoldAssTranslator::optionScript,
@@ -386,7 +386,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    }
    RegisterArnoldNodes(object);
 
-   MGlobal::executePythonCommand(MString("import mtoa.cmds.registerArnoldRenderer;mtoa.cmds.registerArnoldRenderer.registerArnoldRenderer()") );
+   MGlobal::executePythonCommand(MString("import mtoa.cmds.registerArnoldRenderer;mtoa.cmds.registerArnoldRenderer.registerArnoldRenderer()"));
 
    AiEnd();
 

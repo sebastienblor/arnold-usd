@@ -201,5 +201,5 @@ shader_evaluate
    // From maya node documentation cloth ignores alphaIsLuminance
    // TODO: js - fix this for the new function.
    // alphaIsLuminance = false;
-   MayaColorBalance( sg, node, p_defaultColor, sg->out.RGBA );
+   MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA);
 }
