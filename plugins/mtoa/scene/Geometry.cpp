@@ -1,6 +1,7 @@
 
 #include "Geometry.h"
 #include "render/RenderSession.h"
+#include "utils/AttrHelper.h"
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
@@ -154,7 +155,7 @@ bool CGeoTranslator::GetNormals(MFnMesh &fnMesh, std::vector<float> &normals)
 bool CGeoTranslator::GetTangents(MFnMesh &fnMesh, std::vector<float> &tangents, std::vector<float> &bitangents)
 {
    MStatus stat;
-   MPlug pExportTangents = fnMesh.findPlug("export_tangents", false, &stat);
+   MPlug pExportTangents = fnMesh.findPlug("exportTangents", false, &stat);
 
    if (stat != MStatus::kSuccess)
       return false;
@@ -282,7 +283,7 @@ bool CGeoTranslator::GetVertexColors(MFnMesh &fnMesh, std::map<std::string, std:
 
    if (fnMesh.numColorSets() > 0)
    {
-      MPlug plug = fnMesh.findPlug("export_colors");
+      MPlug plug = fnMesh.findPlug("exportColors");
       if (!plug.isNull())
       {
          exportColors = plug.asBool();
@@ -703,14 +704,10 @@ void CGeoTranslator::ExportMeshParameters(AtNode* polymesh)
    }
 
    // Visibility options
-   AtInt visibility = ComputeVisibility(true);
-   AiNodeSetInt(polymesh, "visibility", visibility);
+   ProcessRenderFlags(polymesh);
 
    if (customAttributes)
    {
-      AiNodeSetBool(polymesh, "self_shadows", m_fnNode.findPlug("self_shadows").asBool());
-      AiNodeSetBool(polymesh, "opaque", m_fnNode.findPlug("opaque").asBool());
-
       // Subdivision surfaces
       //
       bool subdivision = (m_fnNode.findPlug("subdiv_type").asInt() != 0);
@@ -722,6 +719,7 @@ void CGeoTranslator::ExportMeshParameters(AtNode* polymesh)
          AiNodeSetInt(polymesh, "subdiv_adaptive_metric", m_fnNode.findPlug("subdiv_adaptive_metric").asInt());
          AiNodeSetFlt(polymesh, "subdiv_pixel_error", m_fnNode.findPlug("subdiv_pixel_error").asFloat());
 
+         // FIXME, this should probably be handled by ProcessParameter
          MString cameraName = m_fnNode.findPlug("subdiv_dicing_camera").asString();
          AtNode* camera = ((cameraName != "") && (cameraName != "Default")) ? AiNodeLookUpByName(cameraName.asChar()) : NULL;
          AiNodeSetPtr(polymesh, "subdiv_dicing_camera", camera);
@@ -885,9 +883,35 @@ void CGeoTranslator::ShaderAssignmentCallback( MNodeMessage::AttributeMessage ms
    }
 }
 
+void CGeoTranslator::NodeInitializer(MObject& node)
+{
+  CDynamicAttrHelper helper = CDynamicAttrHelper(node, "polymesh");
 
-// CNurbsTranslator
-//
+   // node attributes
+   CShapeTranslator::MakeCommonAttributes(helper);
+
+   helper.MakeInput("subdiv_type");
+   helper.MakeInput("subdiv_iterations");
+   helper.MakeInput("subdiv_adaptive_metric");
+   helper.MakeInput("subdiv_pixel_error");
+   helper.MakeInput("subdiv_dicing_camera");
+   helper.MakeInput("subdiv_uv_smoothing");
+
+   CAttrData data;
+   MObject attr;
+
+   data.defaultValue.BOOL = false;
+   data.name = "exportTangents";
+   data.shortName = "exptan";
+   helper.MakeInputBoolean(attr, data);
+
+   data.defaultValue.BOOL = false;
+   data.name = "exportColors";
+   data.shortName = "expcol";
+   helper.MakeInputBoolean(attr, data);
+}
+
+// --------- CNurbsSurfaceTranslator -------------//
 
 void CNurbsSurfaceTranslator::GetTessellationOptions(MTesselationParams & params,
                                               MFnNurbsSurface & surface )
@@ -1027,7 +1051,7 @@ void CNurbsSurfaceTranslator::IsGeoDeforming()
 {
 }
 
- // --------- CMeshTranslator -------------//
+// --------- CMeshTranslator -------------//
 unsigned int CMeshTranslator::GetNumMeshGroups()
 {
    MObject node = m_dagPath.node();

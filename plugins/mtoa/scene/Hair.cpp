@@ -30,6 +30,24 @@
 
 #include <vector>
 
+void CHairTranslator::NodeInitializer(MObject& node)
+{
+   CDynamicAttrHelper helper = CDynamicAttrHelper(node, "curves");
+   helper.MakeInput("min_pixel_width");
+   helper.MakeInput("mode");
+
+   CAttrData data;
+
+   data.defaultValue.BOOL = false;
+   data.name = "overrideHair";
+   data.shortName = "override_hair";
+   helper.MakeInputBoolean(data);
+
+   data.name = "hairShader";
+   data.shortName = "hair_shader";
+   helper.MakeInputNode(data);
+}
+
 AtNode *CHairTranslator::Export()
 {
    // Create the curve node
@@ -70,8 +88,6 @@ void CHairTranslator::Update(AtNode *curve)
 
    AtNode* shader = NULL;
 
-   AtInt visibility = AI_RAY_ALL;
-
    AtArray* curvePoints = NULL;     // The curve points array
    AtArray* curveWidths = NULL;     // The curve widths/radius array
    
@@ -102,8 +118,6 @@ void CHairTranslator::Update(AtNode *curve)
             transformHairDefinition = false;
          }
       }
-
-      visibility = ComputeVisibility();
    }
 
    // No custom shader assigned, try to transform maya hair's definition
@@ -197,11 +211,12 @@ void CHairTranslator::Update(AtNode *curve)
 
    AiNodeSetStr(curve, "basis", "catmull-rom");
 
+   ProcessRenderFlags(curve);
+
    // Extra attributes
    if (customAttributes)
    {
-      AiNodeSetBool(curve, "receive_shadows", fnDagNodeHairShape.findPlug("receive_shadows").asBool());
-      AiNodeSetBool(curve, "self_shadows", fnDagNodeHairShape.findPlug("self_shadows").asBool());
+   	AiNodeSetBool(curve, "receive_shadows", fnDagNodeHairShape.findPlug("receive_shadows").asBool());
 
       AiNodeSetBool(curve, "sss_use_gi", fnDagNodeHairShape.findPlug("sss_use_gi").asBool());
       AiNodeSetInt(curve, "sss_max_samples", fnDagNodeHairShape.findPlug("sss_max_samples").asInt());
@@ -209,8 +224,6 @@ void CHairTranslator::Update(AtNode *curve)
       
       AiNodeSetFlt(curve, "min_pixel_width", fnDagNodeHairShape.findPlug("min_pixel_width").asFloat());
       AiNodeSetInt(curve, "mode", fnDagNodeHairShape.findPlug("mode").asInt());
-
-      AiNodeSetInt(curve, "visibility", visibility);
 
       // User-Data attributes
       AiNodeDeclare(curve, "uparamcoord", "uniform FLOAT");

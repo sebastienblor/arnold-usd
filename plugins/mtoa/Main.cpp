@@ -124,12 +124,12 @@ namespace // <anonymous>
       CTranslatorRegistry::RegisterDagTranslator("ambientLight", MAYA_NODEID_AMBIENT_LIGHT, CAmbientLightTranslator::creator, CLightTranslator::NodeInitializer);
       CTranslatorRegistry::RegisterDagTranslator("ArnoldSkyDomeLightShader", CArnoldSkyDomeLightShaderNode::id.id(), CSkyDomeLightTranslator::creator);
 
-      CTranslatorRegistry::RegisterDagTranslator("mesh", MAYA_NODEID_MESH, CMeshTranslator::creator);
-      CTranslatorRegistry::RegisterDagTranslator("nurbsSurface", MAYA_NODEID_NURBS_SURFACE, CNurbsSurfaceTranslator::creator);
+      CTranslatorRegistry::RegisterDagTranslator("mesh", MAYA_NODEID_MESH, CMeshTranslator::creator, CMeshTranslator::NodeInitializer);
+      CTranslatorRegistry::RegisterDagTranslator("nurbsSurface", MAYA_NODEID_NURBS_SURFACE, CNurbsSurfaceTranslator::creator, CNurbsSurfaceTranslator::NodeInitializer);
 
       CTranslatorRegistry::RegisterDagTranslator("camera", MAYA_NODEID_CAMERA, CCameraTranslator::creator, CCameraTranslator::NodeInitializer);
 
-      CTranslatorRegistry::RegisterDagTranslator("hairSystem", MAYA_NODEID_HAIR, CHairTranslator::creator);
+      CTranslatorRegistry::RegisterDagTranslator("hairSystem", MAYA_NODEID_HAIR, CHairTranslator::creator, CHairTranslator::NodeInitializer);
 
       arnoldPluginFactory->MapToMayaNode("ambient_occlusion", "ArnoldAmbientOcclusionShader", CArnoldAmbientOcclusionShaderNode::id.id());
       arnoldPluginFactory->MapToMayaNode("standard", "ArnoldStandardShader", CArnoldStandardShaderNode::id.id());

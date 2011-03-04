@@ -16,12 +16,12 @@ def skyShaderTemplate(nodeName):
     cmds.editorTemplate(beginLayout="Render Stats", collapse=True)
     cmds.editorTemplate(beginNoOptimize=True)
 
-    cmds.editorTemplate("casts_shadows", addControl=True, label="Casts Shadows")
-    cmds.editorTemplate("primary_visibility", addControl=True, label="Primary Visibility")
-    cmds.editorTemplate("diffuse_visibility", addControl=True, label="Visible in Diffuse")
-    cmds.editorTemplate("glossy_visibility", addControl=True, label="Visible in Glossy")
-    cmds.editorTemplate("visible_in_reflections", addControl=True, label="Visible in Reflections")
-    cmds.editorTemplate("visible_in_refractions", addControl=True, label="Visibile in Refractions")
+    cmds.editorTemplate("castsShadows", addControl=True, label="Casts Shadows")
+    cmds.editorTemplate("primaryVisibility", addControl=True, label="Primary Visibility")
+    cmds.editorTemplate("visibleInDiffuse", addControl=True, label="Visible in Diffuse")
+    cmds.editorTemplate("visibleInGlossy", addControl=True, label="Visible in Glossy")
+    cmds.editorTemplate("visibleInReflections", addControl=True, label="Visible in Reflections")
+    cmds.editorTemplate("visibleInRefractions", addControl=True, label="Visible in Refractions")
     cmds.editorTemplate(endNoOptimize=True)
 
     cmds.editorTemplate(endLayout=True)

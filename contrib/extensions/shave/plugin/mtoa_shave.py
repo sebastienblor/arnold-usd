@@ -1,28 +1,30 @@
 import maya.cmds as cmds
-from mtoa.ui.ae.customShapeAttributes import registerCustomAttrTemplate
+from mtoa.ui.ae.customShapeAttributes import registerCustomAttrTemplate, commonShapeAttributes
 from mtoa.ui.customAttrs import MESH_ATTRIBUTES
 import mtoa.ui.customAttrs as customAttrs
 from mtoa.ui.ae.utils import aeCallback
 
 def shaveHairUI(nodeName):
-    cmds.editorTemplate(aeCallback(customAttrs.boolNew), aeCallback(customAttrs.boolReplace), "primaryVisibility", callCustom=True)
-    cmds.editorTemplate(aeCallback(customAttrs.boolNew), aeCallback(customAttrs.boolReplace), "receive_shadows", callCustom=True)
-    cmds.editorTemplate(aeCallback(customAttrs.boolNew), aeCallback(customAttrs.boolReplace), "castsShadows", callCustom=True)
-    cmds.editorTemplate(aeCallback(customAttrs.boolNew), aeCallback(customAttrs.boolReplace), "self_shadows", callCustom=True)
-    cmds.editorTemplate(aeCallback(customAttrs.boolNew), aeCallback(customAttrs.boolReplace), "diffuse_visibility", callCustom=True)
-    cmds.editorTemplate(aeCallback(customAttrs.boolNew), aeCallback(customAttrs.boolReplace), "glossy_visibility", callCustom=True)
-    cmds.editorTemplate(aeCallback(customAttrs.boolNew), aeCallback(customAttrs.boolReplace), "visibleInReflections", callCustom=True)
-    cmds.editorTemplate(aeCallback(customAttrs.boolNew), aeCallback(customAttrs.boolReplace), "visibleInRefractions", callCustom=True)
+    cmds.editorTemplate(beginNoOptimize=True)
+    cmds.editorTemplate("castsShadows", addDynamicControl=True)
+    cmds.editorTemplate("receiveShadows", addDynamicControl=True)
+    # motion blur should be here
+    cmds.editorTemplate("primaryVisibility", addDynamicControl=True)
+
     cmds.editorTemplate(addSeparator=True)
+
+    commonShapeAttributes(nodeName)
+
+    cmds.editorTemplate(endNoOptimize=True)
+
+    cmds.editorTemplate(addSeparator=True)
+
     cmds.editorTemplate(aeCallback(customAttrs.boolNew), aeCallback(customAttrs.boolReplace), "override_shader", callCustom=True)
     cmds.editorTemplate(aeCallback(customAttrs.shaderNew), aeCallback(customAttrs.shaderReplace),"shave_shader", callCustom=True)
     cmds.editorTemplate(addSeparator=True)
-    cmds.editorTemplate(aeCallback(customAttrs.floatNew), aeCallback(customAttrs.floatReplace), "min_pixel_width", callCustom=True)
-    cmds.editorTemplate(aeCallback(customAttrs.enumNew), aeCallback(customAttrs.enumReplace), "mode", callCustom=True)
-    cmds.editorTemplate(addSeparator=True)
-    cmds.editorTemplate(aeCallback(customAttrs.intNew),  aeCallback(customAttrs.intReplace), "sss_max_samples", callCustom=True)
-    cmds.editorTemplate(aeCallback(customAttrs.floatNew), aeCallback(customAttrs.floatReplace), "sss_sample_spacing", callCustom=True)
-    cmds.editorTemplate(aeCallback(customAttrs.boolNew), aeCallback(customAttrs.boolReplace), "sss_use_gi", callCustom=True)
+
+    cmds.editorTemplate("minPixelWidth", addDynamicControl=True)
+    cmds.editorTemplate("mode", addDynamicControl=True)
 
 def OverrideCurveChange(*args):
     flag = cmds.checkBoxGrp('nurbsCurve_override_curve', query=True, value1=True) == True

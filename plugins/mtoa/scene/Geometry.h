@@ -10,12 +10,12 @@
 #include <string>
 
 class CGeoTranslator
-   :   public CDagTranslator
+   :   public CShapeTranslator
 {
 public:
    void Init(MDagPath& dagPath, CMayaScene* scene, MString outputAttr="")
    {
-      CDagTranslator::Init(dagPath, scene, outputAttr);
+      CShapeTranslator::Init(dagPath, scene, outputAttr);
       m_motion = m_scene->IsObjectMotionBlurEnabled() && m_fnNode.findPlug("motionBlur").asBool();
       m_motionDeform = m_motion && m_scene->IsObjectDeformMotionBlurEnabled();
       m_displaced = false;
@@ -27,6 +27,7 @@ public:
    void Update(AtNode* anode);
    void ExportMotion(AtNode* anode, AtUInt step);
    void UpdateMotion(AtNode* anode, AtUInt step);
+   static void NodeInitializer(MObject& node);
    virtual void AddCallbacks();
 
 protected:

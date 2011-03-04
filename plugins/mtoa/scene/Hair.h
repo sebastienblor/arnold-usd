@@ -21,12 +21,12 @@ private:
 };
 
 class CHairTranslator
-   :   public CDagTranslator
+   :   public CShapeTranslator
 {
 public:
    void Init(MDagPath& dagPath, CMayaScene* scene, MString outputAttr="")
    {
-      CDagTranslator::Init(dagPath, scene, outputAttr);
+      CShapeTranslator::Init(dagPath, scene, outputAttr);
       m_dagPath = dagPath;
       m_fnNode.setObject(dagPath);
       m_scene = scene;
@@ -41,6 +41,7 @@ public:
    AtNode* Export();
    void Update(AtNode* camera);
    void ExportMotion(AtNode* camera, AtUInt step);
+   static void NodeInitializer(MObject& node);
    static void* creator()
    {
       return new CHairTranslator();

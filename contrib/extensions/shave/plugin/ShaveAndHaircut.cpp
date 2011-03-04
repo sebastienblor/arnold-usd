@@ -367,6 +367,7 @@ void CShaveTranslator::ProcessHairLines(AtUInt step,
 
 void CShaveTranslator::NodeInitializer(MObject& node)
 {
-   AddVisibilityAttrs(node);
+   CDynamicAttrHelper helper = CDynamicAttrHelper(node);
+   CShapeTranslator::MakeMayaVisibilityFlags(helper);
+   CShapeTranslator::MakeArnoldVisibilityFlags(helper);
 }
-

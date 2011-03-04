@@ -126,13 +126,12 @@ void CLightTranslator::ExportMotion(AtNode* light, AtUInt step)
 void CLightTranslator::NodeInitializer(MObject& node)
 {
    // use point light as a generic light...
-   CDynamicAttrHelper* helper = new CDynamicAttrHelper(node, "point_light");
+   CDynamicAttrHelper helper = CDynamicAttrHelper(node, "point_light");
    // common attributes
-   helper->MakeInput("normalize");
-   helper->MakeInput("bounce_factor");
-   helper->MakeInput("bounces");
-   helper->MakeInput("sss_samples");
-   delete helper;
+   helper.MakeInput("normalize");
+   helper.MakeInput("bounce_factor");
+   helper.MakeInput("bounces");
+   helper.MakeInput("sss_samples");
 }
 
 void CLightTranslator::Delete()
@@ -197,16 +196,15 @@ void CPointLightTranslator::Update(AtNode* light)
 
 void CPointLightTranslator::NodeInitializer(MObject& node)
 {
-   CDynamicAttrHelper* helper = new CDynamicAttrHelper(node, "point_light");
+   CDynamicAttrHelper helper = CDynamicAttrHelper(node, "point_light");
    // common attributes
-   helper->MakeInput("normalize");
-   helper->MakeInput("bounce_factor");
-   helper->MakeInput("bounces");
-   helper->MakeInput("sss_samples");
+   helper.MakeInput("normalize");
+   helper.MakeInput("bounce_factor");
+   helper.MakeInput("bounces");
+   helper.MakeInput("sss_samples");
    // point light attributes
-   helper->MakeInput("affect_volumetrics");
-   helper->MakeInput("cast_volumetric_shadows");
-   delete helper;
+   helper.MakeInput("affect_volumetrics");
+   helper.MakeInput("cast_volumetric_shadows");
 }
 
 // SpotLight
@@ -239,18 +237,17 @@ void CSpotLightTranslator::Update(AtNode* light)
 
 void CSpotLightTranslator::NodeInitializer(MObject& node)
 {
-   CDynamicAttrHelper* helper = new CDynamicAttrHelper(node, "spot_light");
+   CDynamicAttrHelper helper = CDynamicAttrHelper(node, "spot_light");
    // common attributes
-   helper->MakeInput("normalize");
-   helper->MakeInput("bounce_factor");
-   helper->MakeInput("bounces");
-   helper->MakeInput("sss_samples");
+   helper.MakeInput("normalize");
+   helper.MakeInput("bounce_factor");
+   helper.MakeInput("bounces");
+   helper.MakeInput("sss_samples");
    // spot light attributes
-   helper->MakeInput("affect_volumetrics");
-   helper->MakeInput("cast_volumetric_shadows");
-   helper->MakeInput("aspect_ratio");
-   helper->MakeInput("lens_radius");
-   delete helper;
+   helper.MakeInput("affect_volumetrics");
+   helper.MakeInput("cast_volumetric_shadows");
+   helper.MakeInput("aspect_ratio");
+   helper.MakeInput("lens_radius");
 }
 
 // AreaLight
@@ -284,18 +281,18 @@ void CAreaLightTranslator::Update(AtNode* light)
 
 void CAreaLightTranslator::NodeInitializer(MObject& node)
 {
-   CDynamicAttrHelper* helper = new CDynamicAttrHelper(node, "quad_light");
+   CDynamicAttrHelper helper = CDynamicAttrHelper(node, "quad_light");
+
    // common attributes
-   helper->MakeInput("normalize");
-   helper->MakeInput("bounce_factor");
-   helper->MakeInput("bounces");
-   helper->MakeInput("sss_samples");
+   helper.MakeInput("normalize");
+   helper.MakeInput("bounce_factor");
+   helper.MakeInput("bounces");
+   helper.MakeInput("sss_samples");
    // spot light attributes
-   helper->MakeInput("resolution");
-   helper->MakeInput("affect_volumetrics");
-   helper->MakeInput("cast_volumetric_shadows");
-   helper->MakeInput("solid_angle");
-   delete helper;
+   helper.MakeInput("resolution");
+   helper.MakeInput("affect_volumetrics");
+   helper.MakeInput("cast_volumetric_shadows");
+   helper.MakeInput("solid_angle");
 }
 
 

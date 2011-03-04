@@ -1,17 +1,16 @@
 import maya.cmds as cmds
-import mtoa.ui.customAttrs as customAttrs
 import mtoa.ui.ae.lightFiltersShaderTemplate as lightFiltersShaderTemplate
 from mtoa.ui.ae.utils import aeCallback
 from mtoa.ui.ae.shapeTemplate import registerUI
 
 def commonLightAttributes(nodeName):
-    cmds.editorTemplate("normalize", addControl=True)
-    cmds.editorTemplate("bounce_factor", addControl=True)
-    cmds.editorTemplate("bounces", addControl=True)
+    cmds.editorTemplate("normalize", addDynamicControl=True)
+    cmds.editorTemplate("bounceFactor", addDynamicControl=True)
+    cmds.editorTemplate("bounces", addDynamicControl=True)
 
     cmds.editorTemplate(addSeparator=True)
 
-    cmds.editorTemplate("sss_samples", addControl=True)
+    cmds.editorTemplate("sssSamples", addDynamicControl=True)
 
     cmds.editorTemplate(beginLayout="Light Filters")
 
@@ -19,60 +18,48 @@ def commonLightAttributes(nodeName):
 
     cmds.editorTemplate(endLayout=True)
 
+
+def commonShapeAttributes(nodeName):
+    cmds.editorTemplate("selfShadows", addDynamicControl=True)
+    cmds.editorTemplate("opaque", addDynamicControl=True)
+    cmds.editorTemplate("visibleInDiffuse", addDynamicControl=True)
+    cmds.editorTemplate("visibleInGlossy", addDynamicControl=True)    
+
+    cmds.editorTemplate(addSeparator=True)
+
+    cmds.editorTemplate("sssUseGi", addDynamicControl=True)
+    cmds.editorTemplate("sssMaxSamples", addDynamicControl=True)
+    cmds.editorTemplate("sssSampleSpacing", addDynamicControl=True)
+
 @registerUI("mesh")
 def builtin_mesh(nodeName):
-    cmds.editorTemplate(aeCallback(customAttrs.boolNew), aeCallback(customAttrs.boolReplace), "self_shadows", callCustom=True)
-    cmds.editorTemplate(aeCallback(customAttrs.boolNew), aeCallback(customAttrs.boolReplace), "opaque", callCustom=True)
-    cmds.editorTemplate(addSeparator=True)
-    cmds.editorTemplate(aeCallback(customAttrs.boolNew), aeCallback(customAttrs.boolReplace), "diffuse_visibility", callCustom=True)
-    cmds.editorTemplate(aeCallback(customAttrs.boolNew), aeCallback(customAttrs.boolReplace), "glossy_visibility", callCustom=True)
-
+    commonShapeAttributes(nodeName)
     cmds.editorTemplate(addSeparator=True)
 
-    cmds.editorTemplate(aeCallback(customAttrs.boolNew), aeCallback(customAttrs.boolReplace), "subdiv_type", callCustom=True)
-    cmds.editorTemplate(aeCallback(customAttrs.intNew), aeCallback(customAttrs.intReplace), "subdiv_iterations", callCustom=True)
-    cmds.editorTemplate(aeCallback(customAttrs.enumNew), aeCallback(customAttrs.enumReplace), "subdiv_adaptive_metric", callCustom=True)
-    cmds.editorTemplate(aeCallback(customAttrs.floatNew), aeCallback(customAttrs.floatReplace), "subdiv_pixel_error", callCustom=True)
-    cmds.editorTemplate(aeCallback(customAttrs.objectListNew), aeCallback(customAttrs.objectListReplace), "subdiv_dicing_camera", callCustom=True)
-    cmds.editorTemplate(aeCallback(customAttrs.enumNew), aeCallback(customAttrs.enumReplace), "subdiv_uv_smoothing", callCustom=True)
+    cmds.editorTemplate("subdivType", addDynamicControl=True)
+    cmds.editorTemplate("subdivIterations", addDynamicControl=True)
+    cmds.editorTemplate("subdivAdaptiveMetric", addDynamicControl=True)
+    cmds.editorTemplate("subdivPixelError", addDynamicControl=True)
+    cmds.editorTemplate("subdivDicingCamera", addDynamicControl=True)
+    cmds.editorTemplate("subdivUvSmoothing", label="Subdiv UV Smoothing", addDynamicControl=True)
 
     cmds.editorTemplate(addSeparator=True)
 
-    cmds.editorTemplate(aeCallback(customAttrs.boolNew), aeCallback(customAttrs.boolReplace), "sss_use_gi", callCustom=True)
-    cmds.editorTemplate(aeCallback(customAttrs.intNew), aeCallback(customAttrs.intReplace), "sss_max_samples", callCustom=True)
-    cmds.editorTemplate(aeCallback(customAttrs.floatNew), aeCallback(customAttrs.floatReplace), "sss_sample_spacing", callCustom=True)
-    cmds.editorTemplate(addSeparator=True)
-
-    cmds.editorTemplate(aeCallback(customAttrs.boolNew), aeCallback(customAttrs.boolReplace), "export_tangents", callCustom=True)
-    cmds.editorTemplate(aeCallback(customAttrs.boolNew), aeCallback(customAttrs.boolReplace), "export_colors", callCustom=True)
+    cmds.editorTemplate("exportTangents", addDynamicControl=True)
+    cmds.editorTemplate("exportColors", addDynamicControl=True)
 
 @registerUI("hairSystem")
 def builtin_hairSystem(nodeName):
-    cmds.editorTemplate(aeCallback(customAttrs.boolNew), aeCallback(customAttrs.boolReplace), "primary_visibility", callCustom=True)
-    cmds.editorTemplate(aeCallback(customAttrs.boolNew), aeCallback(customAttrs.boolReplace), "receive_shadows", callCustom=True)
-    cmds.editorTemplate(aeCallback(customAttrs.boolNew), aeCallback(customAttrs.boolReplace), "castsShadows", callCustom=True)
-    cmds.editorTemplate(aeCallback(customAttrs.boolNew), aeCallback(customAttrs.boolReplace), "self_shadows", callCustom=True)
-    cmds.editorTemplate(aeCallback(customAttrs.boolNew), aeCallback(customAttrs.boolReplace), "diffuse_visibility", callCustom=True)
-    cmds.editorTemplate(aeCallback(customAttrs.boolNew), aeCallback(customAttrs.boolReplace), "glossy_visibility", callCustom=True)
-    cmds.editorTemplate(aeCallback(customAttrs.boolNew), aeCallback(customAttrs.boolReplace), "visibleInReflections", callCustom=True)
-    cmds.editorTemplate(aeCallback(customAttrs.boolNew), aeCallback(customAttrs.boolReplace), "visibleInRefractions", callCustom=True)
+    commonShapeAttributes(nodeName)
+    cmds.editorTemplate(addSeparator=True)
+
+    cmds.editorTemplate("overrideHair", addDynamicControl=True)
+    cmds.editorTemplate("hairShader", addDynamicControl=True)
 
     cmds.editorTemplate(addSeparator=True)
 
-    cmds.editorTemplate(aeCallback(customAttrs.boolNew), aeCallback(customAttrs.boolReplace), "override_hair", callCustom=True)
-    cmds.editorTemplate(aeCallback(customAttrs.shaderNew), aeCallback(customAttrs.shaderReplace), "hair_shader", callCustom=True)
-
-    cmds.editorTemplate(addSeparator=True)
-
-    cmds.editorTemplate(aeCallback(customAttrs.floatNew), aeCallback(customAttrs.floatReplace), "min_pixel_width", callCustom=True)
-    cmds.editorTemplate(aeCallback(customAttrs.enumNew), aeCallback(customAttrs.enumReplace), "mode", callCustom=True)
-    cmds.editorTemplate(aeCallback(customAttrs.boolNew), aeCallback(customAttrs.boolReplace), "opaque", callCustom=True)
-
-    cmds.editorTemplate(addSeparator=True)
-
-    cmds.editorTemplate(aeCallback(customAttrs.intNew), aeCallback(customAttrs.intReplace), "sss_max_samples", callCustom=True)
-    cmds.editorTemplate(aeCallback(customAttrs.floatNew), aeCallback(customAttrs.floatReplace), "sss_sample_spacing", callCustom=True)
-    cmds.editorTemplate(aeCallback(customAttrs.boolNew), aeCallback(customAttrs.boolReplace), "sss_use_gi", callCustom=True)
+    cmds.editorTemplate("minPixelWidth", addDynamicControl=True)
+    cmds.editorTemplate("mode", addDynamicControl=True)
 
 @registerUI("ambientLight")
 def builtin_ambientLight(nodeName):
@@ -123,18 +110,18 @@ def builtin_areaLight(nodeName):
 
 @registerUI("camera")
 def builtin_camera(nodeName):
-    cmds.editorTemplate("enableDOF", addControl=True)
+    cmds.editorTemplate("enableDOF", addDynamicControl=True)
 
     cmds.editorTemplate(addSeparator=True)
 
-    cmds.editorTemplate("focal_distance", addControl=True)
-    cmds.editorTemplate("aperture_size", addControl=True)
+    cmds.editorTemplate("focalDistance", addDynamicControl=True)
+    cmds.editorTemplate("apertureSize", addDynamicControl=True)
 
     cmds.editorTemplate(addSeparator=True)
 
-    cmds.editorTemplate("aperture_blades", addControl=True)
-    cmds.editorTemplate("aperture_blade_curvature", addControl=True)
-    cmds.editorTemplate("aperture_rotation", addControl=True)
+    cmds.editorTemplate("apertureBlades", addDynamicControl=True)
+    cmds.editorTemplate("apertureBladeCurvature", addDynamicControl=True)
+    cmds.editorTemplate("apertureRotation", addDynamicControl=True)
 
     cmds.editorTemplate(addSeparator=True)
 

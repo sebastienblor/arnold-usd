@@ -86,7 +86,7 @@ public:
       m_attrNum(0)
    {}
    virtual ~CBaseAttrHelper() {};
-   void GetAttrData(const char* paramName, CAttrData& data);
+   bool GetAttrData(const char* paramName, CAttrData& data);
 
    void MakeInputInt(MObject& attrib, const char* paramName);
    void MakeInputInt(MObject& attrib, CAttrData& data);
@@ -166,7 +166,7 @@ protected:
    AddAttributeFunction m_addFunc;
 
 protected:
-   MStatus addAttribute(MObject& attrib);
+   virtual MStatus addAttribute(MObject& attrib);
 };
 
 // CDynamicAttrHelper
@@ -190,7 +190,7 @@ protected:
    MObject m_instance;
 
 protected:
-   MStatus addAttribute(MObject& attrib);
+   virtual MStatus addAttribute(MObject& attrib);
 };
 
 #endif // ARNOLDNODEHELPER_H

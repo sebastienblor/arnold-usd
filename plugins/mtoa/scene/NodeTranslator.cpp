@@ -897,7 +897,7 @@ void CDagTranslator::ExportMatrix(AtNode* node, AtUInt step)
 }
 
 // use standardized render flag names to compute an arnold visibility mask
-AtInt CDagTranslator::ComputeVisibility(bool mayaStyleAttrs)
+AtInt CDagTranslator::ComputeVisibility()
 {
    // Usually invisible nodes are not exported at all, just making sure here
    if (false == CMayaScene::IsRenderablePath(m_dagPath))
@@ -905,66 +905,38 @@ AtInt CDagTranslator::ComputeVisibility(bool mayaStyleAttrs)
 
    AtInt visibility = AI_RAY_ALL;
    MPlug plug;
-   if (mayaStyleAttrs)
+
+   plug = m_fnNode.findPlug("castsShadows");
+   if (!plug.isNull() && !plug.asBool())
    {
-      plug = m_fnNode.findPlug("castsShadows");
-      if (!plug.isNull() && !plug.asBool())
-      {
-         visibility &= ~AI_RAY_SHADOW;
-      }
-
-      plug = m_fnNode.findPlug("primaryVisibility");
-      if (!plug.isNull() && !plug.asBool())
-      {
-         visibility &= ~AI_RAY_CAMERA;
-      }
-
-      plug = m_fnNode.findPlug("visibleInReflections");
-      if (!plug.isNull() && !plug.asBool())
-      {
-         visibility &= ~AI_RAY_REFLECTED;
-      }
-
-      plug = m_fnNode.findPlug("visibleInRefractions");
-      if (!plug.isNull() && !plug.asBool())
-      {
-         visibility &= ~AI_RAY_REFRACTED;
-      }
-   }
-   else
-   {
-      plug = m_fnNode.findPlug("casts_shadows");
-      if (!plug.isNull() && !plug.asBool())
-      {
-         visibility &= ~AI_RAY_SHADOW;
-      }
-
-      plug = m_fnNode.findPlug("primary_visibility");
-      if (!plug.isNull() && !plug.asBool())
-      {
-         visibility &= ~AI_RAY_CAMERA;
-      }
-
-      plug = m_fnNode.findPlug("visible_in_reflections");
-      if (!plug.isNull() && !plug.asBool())
-      {
-         visibility &= ~AI_RAY_REFLECTED;
-      }
-
-      plug = m_fnNode.findPlug("visible_in_refractions");
-      if (!plug.isNull() && !plug.asBool())
-      {
-         visibility &= ~AI_RAY_REFRACTED;
-      }
+      visibility &= ~AI_RAY_SHADOW;
    }
 
-   plug = m_fnNode.findPlug("diffuse_visibility");
+   plug = m_fnNode.findPlug("primaryVisibility");
+   if (!plug.isNull() && !plug.asBool())
+   {
+      visibility &= ~AI_RAY_CAMERA;
+   }
+
+   plug = m_fnNode.findPlug("visibleInReflections");
+   if (!plug.isNull() && !plug.asBool())
+   {
+      visibility &= ~AI_RAY_REFLECTED;
+   }
+
+   plug = m_fnNode.findPlug("visibleInRefractions");
+   if (!plug.isNull() && !plug.asBool())
+   {
+      visibility &= ~AI_RAY_REFRACTED;
+   }
+
+   plug = m_fnNode.findPlug("visibleInDiffuse");
    if (!plug.isNull() && !plug.asBool())
    {
       visibility &= ~AI_RAY_DIFFUSE;
    }
 
-   plug = m_fnNode.findPlug("glossy_visibility");
+   plug = m_fnNode.findPlug("visibleInGlossy");
    if (!plug.isNull() && !plug.asBool())
    {
       visibility &= ~AI_RAY_GLOSSY;
@@ -973,68 +945,90 @@ AtInt CDagTranslator::ComputeVisibility(bool mayaStyleAttrs)
    return visibility;
 }
 
-// create visibility attributes with standardized render flag names
-void CDagTranslator::AddVisibilityAttrs(MObject& node)
+// Create Maya visibility attributes with standardized render flag names
+//
+// These are the attributes that compute the "visibility" parameter. there are other
+// attributes like self_shadow and opaque that are computed separately
+//
+// This is for custom DAG nodes where none of the standard maya visibility attributes
+// are available. typically CDagTranslator::AddArnoldVisibilityAttrs() is the appropriate function. 
+//
+void CDagTranslator::MakeMayaVisibilityFlags(CBaseAttrHelper& helper)
 {
-   MFnNumericAttribute nAttr;
-   MFnDependencyNode fnNode = MFnDependencyNode(node);
+   CAttrData data;
    MObject attr;
 
-   attr = nAttr.create("primaryVisibility", "vis", MFnNumericData::kBoolean, 1);
-   nAttr.setKeyable(false);
-   nAttr.setStorable(true);
-   nAttr.setReadable(true);
-   nAttr.setWritable(true);
-   fnNode.addAttribute(attr);
+   data.defaultValue.BOOL = true;
+   data.name = "primaryVisibility";
+   data.shortName = "vis";
+   helper.MakeInputBoolean(attr, data);
 
-   attr = nAttr.create("receiveShadows", "rsh", MFnNumericData::kBoolean, 1);
-   nAttr.setKeyable(false);
-   nAttr.setStorable(true);
-   nAttr.setReadable(true);
-   nAttr.setWritable(true);
-   fnNode.addAttribute(attr);
+   data.defaultValue.BOOL = true;
+   data.name = "receiveShadows";
+   data.shortName = "rsh";
+   helper.MakeInputBoolean(attr, data);
+   
+   data.defaultValue.BOOL = true;
+   data.name = "castsShadows";
+   data.shortName = "csh";
+   helper.MakeInputBoolean(attr, data);
 
-   attr = nAttr.create("castsShadows", "csh", MFnNumericData::kBoolean, 1);
-   nAttr.setKeyable(false);
-   nAttr.setStorable(true);
-   nAttr.setReadable(true);
-   nAttr.setWritable(true);
-   fnNode.addAttribute(attr);
+   data.defaultValue.BOOL = true;
+   data.name = "visibleInReflections";
+   data.shortName = "vir";
+   helper.MakeInputBoolean(attr, data);
 
-   attr = nAttr.create("visibleInReflections", "vir", MFnNumericData::kBoolean, 1);
-   nAttr.setKeyable(false);
-   nAttr.setStorable(true);
-   nAttr.setReadable(true);
-   nAttr.setWritable(true);
-   fnNode.addAttribute(attr);
+   data.defaultValue.BOOL = true;
+   data.name = "visibleInRefractions";
+   data.shortName = "vif";
+   helper.MakeInputBoolean(attr, data);
+}
 
-   attr = nAttr.create("visibleInRefractions", "vif", MFnNumericData::kBoolean, 1);
-   nAttr.setKeyable(false);
-   nAttr.setStorable(true);
-   nAttr.setReadable(true);
-   nAttr.setWritable(true);
-   fnNode.addAttribute(attr);
+// create arnold visibility attributes with standardized render flag names
+//
+// These are the attributes that help compute the "visibility" parameter. there are other
+// attributes like self_shadow and opaque that are computed separately
+//
+// arnold's visibiltity mask adds several relationships not available by default in Maya.
+// use in conjunction with CDagTranslator::ComputeVisibility() or CShapeTranslator::ProcessRenderFlags().
+//
+void CDagTranslator::MakeArnoldVisibilityFlags(CBaseAttrHelper& helper)
+{
+   CAttrData data;
+   MObject attr;
 
-   attr = nAttr.create("selfShadows", "ssh", MFnNumericData::kBoolean, 1);
-   nAttr.setKeyable(false);
-   nAttr.setStorable(true);
-   nAttr.setReadable(true);
-   nAttr.setWritable(true);
-   fnNode.addAttribute(attr);
+   data.defaultValue.BOOL = true;
+   data.name = "visibleInDiffuse";
+   data.shortName = "vid";
+   helper.MakeInputBoolean(attr, data);
 
-   attr = nAttr.create("diffuseVisibility", "dvis", MFnNumericData::kBoolean, 1);
-   nAttr.setKeyable(false);
-   nAttr.setStorable(true);
-   nAttr.setReadable(true);
-   nAttr.setWritable(true);
-   fnNode.addAttribute(attr);
+   data.defaultValue.BOOL = true;
+   data.name = "visibleInGlossy";
+   data.shortName = "vig";
+   helper.MakeInputBoolean(attr, data);
+}
 
-   attr = nAttr.create("glossyVisibility", "gvis", MFnNumericData::kBoolean, 1);
-   nAttr.setKeyable(false);
-   nAttr.setStorable(true);
-   nAttr.setReadable(true);
-   nAttr.setWritable(true);
-   fnNode.addAttribute(attr);
+// computes and sets the visibility mask as well as other shape attributes related to ray visibility
+// (self_shadows, opaque)
+void CShapeTranslator::ProcessRenderFlags(AtNode* node)
+{
+   AiNodeSetInt(node, "visibility", ComputeVisibility());
+   AiNodeSetBool(node, "self_shadows", m_fnNode.findPlug("selfShadows").asBool());
+   AiNodeSetBool(node, "opaque", m_fnNode.findPlug("opaque").asBool());
+}
+
+// create attributes common to arnold shape nodes
+//
+void CShapeTranslator::MakeCommonAttributes(CBaseAttrHelper& helper)
+{
+   helper.MakeInput("sss_use_gi");
+   helper.MakeInput("sss_max_samples");
+   helper.MakeInput("sss_sample_spacing");
+   
+   helper.MakeInput("self_shadows");
+   helper.MakeInput("opaque");
+   
+   MakeArnoldVisibilityFlags(helper);
 }
 
 // --------- CTranslatorRegistry -------------//

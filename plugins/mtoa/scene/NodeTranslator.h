@@ -3,6 +3,7 @@
 
 #include "platform/Platform.h"
 #include "MayaScene.h"
+#include "utils/AttrHelper.h"
 
 #include <ai_nodes.h>
 
@@ -127,6 +128,10 @@ public:
    }
    static int GetMasterInstanceNumber(MObject node);
    virtual void AddCallbacks();
+   // for initializer callbacks:
+   static void MakeMayaVisibilityFlags(CBaseAttrHelper& helper);
+   // for initializer callbacks:
+   static void MakeArnoldVisibilityFlags(CBaseAttrHelper& helper);
 
 protected:
    CDagTranslator() : CNodeTranslator(){}
@@ -134,15 +139,22 @@ protected:
    void GetRotationMatrix(AtMatrix& matrix);
    void GetMatrix(AtMatrix& matrix);
    void ExportMatrix(AtNode* node, AtUInt step);
-   AtInt ComputeVisibility(bool mayaStyleAttrs=false);
-   static void AddVisibilityAttrs(MObject& node);
+   AtInt ComputeVisibility();
    virtual void Delete();
-
    void AddHierarchyCallbacks(const MDagPath & path);
+
 protected:
    MDagPath m_dagPath;
    MFnDagNode m_fnNode;
    static ObjectHandleToDagMap s_masterInstances;
+};
+
+class DLLEXPORT CShapeTranslator : public CDagTranslator
+{
+public:
+   void ProcessRenderFlags(AtNode* node);
+   // for initializer callbacks:
+   static void MakeCommonAttributes(CBaseAttrHelper& helper);
 };
 
 // Translator Registry

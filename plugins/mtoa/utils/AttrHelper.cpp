@@ -52,11 +52,14 @@ MString CBaseAttrHelper::GetMayaAttrShortName(const char* paramName)
 }
 
 
-void CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
+bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
 {
    const AtParamEntry* paramEntry = AiNodeEntryLookUpParameter(m_nodeEntry, paramName);
    if (paramEntry == NULL)
+   {
       AiMsgError("[mtoa] parameter does not exist: %s", paramName);
+      return false;
+   }
    data.defaultValue = MAiParamGetDefault(m_nodeEntry, paramEntry);
    data.name = GetMayaAttrName(paramName);
    data.shortName = GetMayaAttrShortName(paramName);
@@ -245,6 +248,7 @@ void CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
          break;
       }
    }
+   return true;
 }
 
 void CBaseAttrHelper::MakeInputInt(MObject& attrib, const char* paramName)
@@ -865,6 +869,9 @@ MStatus CStaticAttrHelper::addAttribute(MObject& attrib)
 {
    MStatus stat;
    stat = m_addFunc(attrib);
+   // FIXME: not reliable to use MFnAttribute to get the name: the MObject could be invalid
+   if (stat != MS::kSuccess)
+      MGlobal::displayError(MString("[mtoa] unable to create attribute ") + MFnAttribute(attrib).name());
    CHECK_MSTATUS(stat);
    return stat;
 }
@@ -872,7 +879,11 @@ MStatus CStaticAttrHelper::addAttribute(MObject& attrib)
 MStatus CDynamicAttrHelper::addAttribute(MObject& attrib)
 {
    MStatus stat;
-   stat = MFnDependencyNode(m_instance).addAttribute(attrib);
+   MFnDependencyNode fnNode = MFnDependencyNode(m_instance);
+   stat = fnNode.addAttribute(attrib);
+   // FIXME: not reliable to use MFnAttribute to get the name: the MObject could be invalid
+   if (stat != MS::kSuccess)
+      MGlobal::displayError(MString("[mtoa] unable to create attribute ") + fnNode.name() + "." + MFnAttribute(attrib).name());
    CHECK_MSTATUS(stat);
    return stat;
 }
