@@ -4,6 +4,10 @@
 #include <maya/MPxHwShaderNode.h>
 #include <maya/MObjectArray.h>
 
+#define AI_SPECULARTYPE_STRETCHEDPHONG   0
+#define AI_SPECULARTYPE_WARDDUER         1
+#define AI_SPECULARTYPE_COOKTORRANCE     2
+
 class CArnoldStandardShaderNode
    :  public MPxNode
 {
@@ -46,6 +50,10 @@ public:
    static MObject s_reflection_exit_color;
    static MObject s_Krn;
    static MObject s_Ks;
+   static MObject s_specular_brdf;
+   static MObject s_specular_roughness;
+   static MObject s_specular_anisotropy;
+   static MObject s_specular_rotation;
    static MObject s_Ks_colorR;
    static MObject s_Ks_colorG;
    static MObject s_Ks_colorB;
@@ -61,6 +69,10 @@ public:
    static MObject s_Kt_colorG;
    static MObject s_Kt_colorB;
    static MObject s_Kt_color;
+   static MObject s_transmittanceR;
+   static MObject s_transmittanceG;
+   static MObject s_transmittanceB;
+   static MObject s_transmittance;
    static MObject s_refraction_exit_use_environment;
    static MObject s_refraction_exit_colorR;
    static MObject s_refraction_exit_colorG;
@@ -108,7 +120,7 @@ public:
    static MObject s_OUT_matte_opacityB;
    static MObject s_OUT_matte_opacity;
 
-   // swatch compute attributes
+   // Maya compute attributes
    static MObject s_point_camera;
    static MObject s_normal_camera;
    static MObject s_light_direction;
@@ -126,6 +138,9 @@ public:
    static MObject s_ray_sampler;
    static MObject s_ray_depth;
    static MObject s_triangle_normal_camera;
+
+   // For hardware texture previews
+   static MObject aResolution;
 
 };  // class CArnoldStandardShaderNode
 

@@ -50,6 +50,7 @@ def builtin_mesh(nodeName):
     cmds.editorTemplate(aeCallback(customAttrs.enumNew), aeCallback(customAttrs.enumReplace), "subdiv_adaptive_metric", callCustom=True)
     cmds.editorTemplate(aeCallback(customAttrs.floatNew), aeCallback(customAttrs.floatReplace), "subdiv_pixel_error", callCustom=True)
     cmds.editorTemplate(aeCallback(customAttrs.objectListNew), aeCallback(customAttrs.objectListReplace), "subdiv_dicing_camera", callCustom=True)
+    cmds.editorTemplate(aeCallback(customAttrs.enumNew), aeCallback(customAttrs.enumReplace), "subdiv_uv_smoothing", callCustom=True)
 
     cmds.editorTemplate(addSeparator=True)
 
@@ -116,6 +117,7 @@ def builtin_spotLight(nodeName):
     commonLightAttributes(nodeName);
 
 def builtin_areaLight(nodeName):
+    cmds.editorTemplate("resolution", addControl=True)
     cmds.editorTemplate("affect_volumetrics", addControl=True)
     cmds.editorTemplate("cast_volumetric_shadows", addControl=True)
 

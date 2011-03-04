@@ -276,10 +276,9 @@ void CAreaLightTranslator::Update(AtNode* light)
 
    AiNodeSetArray(light, "vertices", AiArrayConvert(4, 1, AI_TYPE_POINT, vertices, true));
 
+   ExportDynamicIntParameter(light, "resolution");
    ExportDynamicBooleanParameter(light, "affect_volumetrics");
    ExportDynamicBooleanParameter(light, "cast_volumetric_shadows");
-
-   ExportDynamicIntParameter(light, "sidedness");
    ExportDynamicBooleanParameter(light, "solid_angle");
 }
 
@@ -292,9 +291,9 @@ void CAreaLightTranslator::NodeInitializer(MObject& node)
    helper->MakeInput("bounces");
    helper->MakeInput("sss_samples");
    // spot light attributes
+   helper->MakeInput("resolution");
    helper->MakeInput("affect_volumetrics");
    helper->MakeInput("cast_volumetric_shadows");
-   helper->MakeInput("sidedness");
    helper->MakeInput("solid_angle");
    delete helper;
 }

@@ -358,10 +358,12 @@ private:
    MCommonRenderSettingsData m_defaultRenderGlobalsData;
    
    bool     m_progressive_rendering;
+   bool     m_physically_based;
    AtUInt   m_threads;
    AtUInt   m_bucket_scanning;
    AtUInt   m_bucket_size;
    bool     m_abort_on_error;
+   bool     m_skip_license_check;
    MString  m_plugins_path;
 
    AtUInt   m_AA_samples;

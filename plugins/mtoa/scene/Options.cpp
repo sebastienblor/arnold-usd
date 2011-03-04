@@ -40,11 +40,13 @@ void CRenderOptionsTranslator::Update(AtNode* options)
 
    currentTime = MAnimControl::currentTime();
 
+   ProcessParameter(options, "physically_based", AI_TYPE_BOOLEAN);
    AiNodeSetInt(options, "threads", m_fnNode.findPlug("threads_autodetect").asBool() ? 0 : m_fnNode.findPlug("threads").asInt());
    ProcessParameter(options, "bucket_scanning", AI_TYPE_ENUM);
    ProcessParameter(options, "bucket_size", AI_TYPE_INT);
    ProcessParameter(options, "abort_on_error", AI_TYPE_BOOLEAN);
    ProcessParameter(options, "abort_on_license_fail", AI_TYPE_BOOLEAN);
+   ProcessParameter(options, "skip_license_check", AI_TYPE_BOOLEAN);
 
    ProcessParameter(options, "AA_samples", AI_TYPE_INT);
    ProcessParameter(options, "GI_diffuse_samples", AI_TYPE_INT);

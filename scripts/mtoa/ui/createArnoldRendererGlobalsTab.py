@@ -115,6 +115,10 @@ def createArnoldRenderSettings():
 
     cmds.connectControl('os_progressive_rendering', 'defaultArnoldRenderOptions.progressive_rendering', index=2)
 
+    cmds.attrControlGrp('os_physically_based',
+                   label="Physically Based",
+                   attribute='defaultArnoldRenderOptions.physically_based')
+
     '''
     cmds.attrControlGrp('os_progressive_rendering',
                         label="Progressive Rendering",
@@ -160,6 +164,10 @@ def createArnoldRenderSettings():
     cmds.attrControlGrp('os_abort_on_license_fail',
                    label="Abort On License Fail",
                    attribute='defaultArnoldRenderOptions.abort_on_license_fail')
+
+    cmds.attrControlGrp('os_skip_license_check',
+                   label="Skip License Check",
+                   attribute='defaultArnoldRenderOptions.skip_license_check')
 
     cmds.separator()
 

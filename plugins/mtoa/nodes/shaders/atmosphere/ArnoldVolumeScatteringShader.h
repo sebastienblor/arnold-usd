@@ -31,7 +31,6 @@ public:
    static MObject s_importance_sampling;
    static MObject s_mscattering_depth;
    static MObject s_mscattering_samples;
-   static MObject s_phase_function;
    static MObject s_rgb_attenuationR;
    static MObject s_rgb_attenuationG;
    static MObject s_rgb_attenuationB;

@@ -24,6 +24,7 @@ MObject CArnoldAmbientOcclusionShaderNode::s_whiteR;
 MObject CArnoldAmbientOcclusionShaderNode::s_whiteG;
 MObject CArnoldAmbientOcclusionShaderNode::s_whiteB;
 MObject CArnoldAmbientOcclusionShaderNode::s_white;
+MObject CArnoldAmbientOcclusionShaderNode::s_invert_normals;
 
 MObject CArnoldAmbientOcclusionShaderNode::s_OUT_colorR;
 MObject CArnoldAmbientOcclusionShaderNode::s_OUT_colorG;
@@ -81,6 +82,9 @@ MStatus CArnoldAmbientOcclusionShaderNode::initialize()
 
    MAKE_COLOR(s_white, "white", "wt", 1, 1, 1);
    MAKE_INPUT(nAttr, s_white);
+
+   s_invert_normals = nAttr.create("invert_normals", "invn", MFnNumericData::kBoolean, 0);
+   MAKE_INPUT(nAttr, s_invert_normals);
 
    // OUTPUT ATTRIBUTES
 

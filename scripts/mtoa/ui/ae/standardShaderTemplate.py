@@ -44,7 +44,12 @@ def standardShaderTemplate(nodeName):
     cmds.editorTemplate(beginLayout="Specular", collapse=False)
     cmds.editorTemplate("Ks_color", label="Color", addControl=True)
     cmds.editorTemplate("Ks", label="Weight", addControl=True)
-    cmds.editorTemplate("Phong_exponent", label="Glossiness", addControl=True)
+    cmds.editorTemplate("specular_brdf", label="Brdf", addControl=True)
+    cmds.editorTemplate("specular_roughness", label="Roughness", addControl=True)
+    cmds.editorTemplate("specular_anisotropy", label="Anisotropy", addControl=True)
+    cmds.editorTemplate("specular_rotation", label="Rotation", addControl=True)        
+    # depreciated
+    # cmds.editorTemplate("Phong_exponent", label="Glossiness", addControl=True)
     cmds.editorTemplate(addSeparator=True)
     cmds.editorTemplate("specular_Fresnel", aeCallback(checkSpecularFresnel), label="Fresnel", addControl=True)
     cmds.editorTemplate("Ksn", label="Fresnel Coefficient", addControl=True)
@@ -68,6 +73,7 @@ def standardShaderTemplate(nodeName):
 
     cmds.editorTemplate(beginLayout="Refraction", collapse=True)
     cmds.editorTemplate("IOR", label="Index of Refraction", addControl=True)
+    cmds.editorTemplate("transmittance", label="Transmittance", addControl=True)
     cmds.editorTemplate("Kt_color", label="Color", addControl=True)
     cmds.editorTemplate("Kt", label="Transparency", addControl=True)
     cmds.editorTemplate(addSeparator=True)
@@ -105,9 +111,14 @@ def standardShaderTemplate(nodeName):
 
     cmds.editorTemplate(endLayout=True)
 
+    cmds.editorTemplate(beginLayout="Hardware Texturing", collapse=True)
+    # mel.eval('AEhardwareTextureTemplate "%s"' % nodeName + r'("Kd_color Kd Ks_color Ks")')
+    mel.eval('AEhardwareTextureTemplate "%s"' % nodeName + r'("Kd_color Kd Ks_color Ks")')
+    cmds.editorTemplate(endLayout=True)
+
     # include/call base class/node attributes
     mel.eval('AEdependNodeTemplate "%s"'%nodeName)
+    
     cmds.editorTemplate(addExtraControls=True)
-
     cmds.editorTemplate(endScrollLayout=True)
 

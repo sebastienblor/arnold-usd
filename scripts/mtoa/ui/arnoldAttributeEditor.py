@@ -101,6 +101,7 @@ def arnoldAttributeEditor_SelectShape(*args):
     cmds.optionMenuGrp("%s_subdivMetricOpt" % UI_NAME, edit=1,enable=enable)
     cmds.floatSliderGrp("%s_subdivErrorFlt" % UI_NAME, edit=1,enable=enable)
     cmds.optionMenuGrp("%s_subdivDicingOpt" % UI_NAME, edit=1,enable=enable)
+    cmds.optionMenuGrp("%s_subdivUVSmoothingOpt" % UI_NAME, edit=1,enable=enable)
 
     cmds.checkBoxGrp("%s_sssGIChk" % UI_NAME, edit=1,enable=enable)
     cmds.intSliderGrp("%s_sssMaxSampInt" % UI_NAME, edit=1,enable=enable)
@@ -210,6 +211,11 @@ def arnoldAttributeEditor_SelectShape(*args):
     shape = arnoldAttributeEditor_FirstShapeWithAttr(sel, "subdiv_dicing_camera")
     sval = cmds.getAttr(shape+".subdiv_dicing_camera") if shape != None else "Default"
     cmds.optionMenuGrp("%s_subdivDicingOpt" % UI_NAME, edit=1,label=lbl, value=sval)
+    
+    lbl = arnoldAttributeEditor_LabelPrefix(sel, "subdiv_uv_smoothing") + "UV Smoothing"
+    shape = arnoldAttributeEditor_FirstShapeWithAttr(sel, "subdiv_uv_smoothing")
+    ival = cmds.getAttr(shape+".subdiv_uv_smoothing") if shape != None else 0
+    cmds.optionMenuGrp("%s_subdivUVSmoothingOpt" % UI_NAME, edit=1,label=lbl, select=(ival+1))
 
     # SSS attributes
 
@@ -580,6 +586,14 @@ def arnoldAttributeEditor(*args):
     for cam in arnoldAttributeEditor_ListPerspCameras():
         cmds.menuItem(label=cam)
     cmds.optionMenuGrp("%s_subdivDicingOpt" % UI_NAME, edit=1, value="Default")
+    cmds.optionMenuGrp("%s_subdivUVSmoothingOpt" % UI_NAME,
+                        parent=layout,
+                        label="UV Smoothing",
+                        columnAlign2=("left", "center"),
+                        changeCommand=Callback(arnoldAttributeEditor_UpdateIntOptionAttr, "subdiv_uv_smoothing", "%s_subdivUVSmoothingOpt" % UI_NAME))
+    cmds.menuItem(label="Pin Corners")
+    cmds.menuItem(label="Pin Borders")
+    cmds.optionMenuGrp("%s_subdivUVSmoothingOpt" % UI_NAME, edit=1, value="Pin Corners");
 
     # SSS attributes layout
     cmds.frameLayout("%s_sssFrm" % UI_NAME, parent=form, collapsable=True, label="SSS")

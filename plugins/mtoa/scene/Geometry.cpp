@@ -725,6 +725,8 @@ void CGeoTranslator::ExportMeshParameters(AtNode* polymesh)
          MString cameraName = m_fnNode.findPlug("subdiv_dicing_camera").asString();
          AtNode* camera = ((cameraName != "") && (cameraName != "Default")) ? AiNodeLookUpByName(cameraName.asChar()) : NULL;
          AiNodeSetPtr(polymesh, "subdiv_dicing_camera", camera);
+
+         AiNodeSetInt(polymesh, "subdiv_uv_smoothing", m_fnNode.findPlug("subdiv_uv_smoothing").asInt());
       }
 
       // Subsurface Scattering

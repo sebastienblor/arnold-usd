@@ -31,6 +31,7 @@ MObject CArnoldRenderOptionsNode::s_arnoldRenderImageTiled;
 MObject CArnoldRenderOptionsNode::s_arnoldRenderImageUnpremultAlpha;
 MObject CArnoldRenderOptionsNode::s_aovs;
 MObject CArnoldRenderOptionsNode::s_progressive_rendering;
+MObject CArnoldRenderOptionsNode::s_physically_based;
 MObject CArnoldRenderOptionsNode::s_threads;
 MObject CArnoldRenderOptionsNode::s_threads_autodetect;
 MObject CArnoldRenderOptionsNode::s_bucket_scanning;
@@ -38,6 +39,7 @@ MObject CArnoldRenderOptionsNode::s_bucket_size;
 MObject CArnoldRenderOptionsNode::s_clear_before_render;
 MObject CArnoldRenderOptionsNode::s_abort_on_error;
 MObject CArnoldRenderOptionsNode::s_abort_on_license_fail;
+MObject CArnoldRenderOptionsNode::s_skip_license_check;
 MObject CArnoldRenderOptionsNode::s_plugins_path;
 MObject CArnoldRenderOptionsNode::s_AA_samples;
 MObject CArnoldRenderOptionsNode::s_GI_diffuse_samples;
@@ -193,6 +195,10 @@ MStatus CArnoldRenderOptionsNode::initialize()
    nAttr.setKeyable(false);
    addAttribute(s_progressive_rendering);
 
+   s_physically_based = nAttr.create("physically_based", "phy", MFnNumericData::kBoolean, 1);
+   nAttr.setKeyable(false);
+   addAttribute(s_physically_based);
+
    s_threads_autodetect = nAttr.create("threads_autodetect", "thr_auto", MFnNumericData::kBoolean, 1);
    nAttr.setKeyable(false);
    addAttribute(s_threads_autodetect);
@@ -222,6 +228,10 @@ MStatus CArnoldRenderOptionsNode::initialize()
    s_abort_on_license_fail = nAttr.create("abort_on_license_fail", "abortlic", MFnNumericData::kBoolean, 0);
    nAttr.setKeyable(false);
    addAttribute(s_abort_on_license_fail);
+
+   s_skip_license_check = nAttr.create("skip_license_check", "skiplic", MFnNumericData::kBoolean, 0);
+   nAttr.setKeyable(false);
+   addAttribute(s_skip_license_check);
 
    s_plugins_path = tAttr.create("plugins_path", "ppath", MFnData::kString);
    tAttr.setKeyable(false);

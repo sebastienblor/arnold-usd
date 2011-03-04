@@ -18,6 +18,7 @@ def ambientOcclusionShaderTemplate(nodeName):
     cmds.editorTemplate("near_clip",  addControl=True, label="Near Clip")
     cmds.editorTemplate("far_clip", addControl=True, label="Far Clip")
     cmds.editorTemplate("opacity", addControl=True, label="Opacity")
+    cmds.editorTemplate("invert_normals", addControl=True, label="Invert Normals")
 
     cmds.editorTemplate(endLayout=True)
 

@@ -17,7 +17,6 @@ MObject CArnoldVolumeScatteringShaderNode::s_eccentricity;
 MObject CArnoldVolumeScatteringShaderNode::s_importance_sampling;
 MObject CArnoldVolumeScatteringShaderNode::s_mscattering_depth;
 MObject CArnoldVolumeScatteringShaderNode::s_mscattering_samples;
-MObject CArnoldVolumeScatteringShaderNode::s_phase_function;
 MObject CArnoldVolumeScatteringShaderNode::s_rgb_attenuationR;
 MObject CArnoldVolumeScatteringShaderNode::s_rgb_attenuationG;
 MObject CArnoldVolumeScatteringShaderNode::s_rgb_attenuationB;
@@ -78,7 +77,7 @@ MStatus CArnoldVolumeScatteringShaderNode::initialize()
    MAKE_INPUT(nAttr, s_density);
 
    s_eccentricity = nAttr.create("eccentricity", "ecc", MFnNumericData::kFloat, 0);
-   nAttr.setMin(0);
+   nAttr.setMin(-1);
    nAttr.setMax(1);
    MAKE_INPUT(nAttr, s_eccentricity);
 
@@ -94,8 +93,6 @@ MStatus CArnoldVolumeScatteringShaderNode::initialize()
    nAttr.setMin(0);
    nAttr.setMax(10);
    MAKE_INPUT(nAttr, s_mscattering_samples);
-
-   MAKE_ENUM(s_phase_function, "phase_function", "pf", 0, "volume_scattering", "phase_function");
 
    MAKE_COLOR(s_rgb_attenuation, "rgb_attenuation", "rgbatt", 1, 1, 1);
    MAKE_INPUT(nAttr, s_rgb_attenuation);
@@ -129,7 +126,6 @@ MStatus CArnoldVolumeScatteringShaderNode::initialize()
    attributeAffects(s_importance_sampling, s_OUT_color);
    attributeAffects(s_mscattering_depth, s_OUT_color);
    attributeAffects(s_mscattering_samples, s_OUT_color);
-   attributeAffects(s_phase_function, s_OUT_color);
    attributeAffects(s_rgb_attenuation, s_OUT_color);
    attributeAffects(s_rgb_density, s_OUT_color);
    attributeAffects(s_samples, s_OUT_color);

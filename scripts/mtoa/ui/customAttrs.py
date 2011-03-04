@@ -57,6 +57,7 @@ MESH_ATTRIBUTES ={
 #   Attribute                   Label                   Def   Enum values                             Change callback
 
    "subdiv_adaptive_metric":{ 'label':"Adaptive Metric", 'default':0,  'enumValues':"SUBDIV_METRIC_VALUES", 'changeCallback':None },
+   "subdiv_uv_smoothing":{ 'label':"UV Smoothing", 'default':0,  'enumValues':"SUBDIV_UV_SMOOTHING_VALUES", 'changeCallback':None },
    "sidedness":{              'label':"Sidedness",       'default':1,  'enumValues':"SIDEDNESS_VALUES",     'changeCallback':None },
    "mode":{                   'label':"Hair Mode",       'default':0,  'enumValues':"HAIR_MODE_VALUES",     'changeCallback':None },
 
@@ -85,6 +86,7 @@ MESH_ATTRIBUTES ={
 }
 
 SUBDIV_METRIC_VALUES = [ "Automatic", "Edge Length", "Flatness" ]
+SUBDIV_UV_SMOOTHING_VALUES = [ "Pin Corners" ,"Pin Borders" ]
 SIDEDNESS_VALUES = [ "Double", "Single" ]
 HAIR_MODE_VALUES = [ "Ribbon", "Thick" ]
 
@@ -99,6 +101,7 @@ def subdivChange(*args):
     cmds.control('mesh_subdiv_adaptive_metric', edit=True, enable=flag)
     cmds.control('mesh_subdiv_pixel_error', edit=True, enable=flag)
     cmds.control('mesh_subdiv_dicing_camera', edit=True, enable=flag)
+    cmds.control('mesh_subdiv_uv_smoothing', edit=True, enable=flag)
 
 
 def dofChange(nodeName):

@@ -39,6 +39,7 @@ public:
    static MObject s_whiteG;
    static MObject s_whiteB;
    static MObject s_white;
+   static MObject s_invert_normals;
 
    // Output attributes
    static MObject s_OUT_colorR;

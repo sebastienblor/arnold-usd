@@ -4,6 +4,7 @@
 #include "nodes/ArnoldNodeIDs.h"
 
 #include <maya/MFnNumericAttribute.h>
+#include <maya/MFnEnumAttribute.h>
 #include <maya/MFnLightDataAttribute.h>
 #include <maya/MFloatVector.h>
 #include <maya/MRenderUtil.h>
@@ -39,6 +40,10 @@ MObject CArnoldStandardShaderNode::s_reflection_exit_colorB;
 MObject CArnoldStandardShaderNode::s_reflection_exit_color;
 MObject CArnoldStandardShaderNode::s_Krn;
 MObject CArnoldStandardShaderNode::s_Ks;
+MObject CArnoldStandardShaderNode::s_specular_brdf;
+MObject CArnoldStandardShaderNode::s_specular_roughness;
+MObject CArnoldStandardShaderNode::s_specular_anisotropy;
+MObject CArnoldStandardShaderNode::s_specular_rotation;
 MObject CArnoldStandardShaderNode::s_Ks_colorR;
 MObject CArnoldStandardShaderNode::s_Ks_colorG;
 MObject CArnoldStandardShaderNode::s_Ks_colorB;
@@ -53,12 +58,16 @@ MObject CArnoldStandardShaderNode::s_Kt;
 MObject CArnoldStandardShaderNode::s_Kt_colorR;
 MObject CArnoldStandardShaderNode::s_Kt_colorG;
 MObject CArnoldStandardShaderNode::s_Kt_colorB;
+MObject CArnoldStandardShaderNode::s_Kt_color;
+MObject CArnoldStandardShaderNode::s_transmittanceR;
+MObject CArnoldStandardShaderNode::s_transmittanceG;
+MObject CArnoldStandardShaderNode::s_transmittanceB;
+MObject CArnoldStandardShaderNode::s_transmittance;
 MObject CArnoldStandardShaderNode::s_refraction_exit_use_environment;
 MObject CArnoldStandardShaderNode::s_refraction_exit_colorR;
 MObject CArnoldStandardShaderNode::s_refraction_exit_colorG;
 MObject CArnoldStandardShaderNode::s_refraction_exit_colorB;
 MObject CArnoldStandardShaderNode::s_refraction_exit_color;
-MObject CArnoldStandardShaderNode::s_Kt_color;
 MObject CArnoldStandardShaderNode::s_Phong_exponent;
 MObject CArnoldStandardShaderNode::s_bounce_factor;
 MObject CArnoldStandardShaderNode::s_enable_glossy_caustics;
@@ -117,11 +126,13 @@ MObject CArnoldStandardShaderNode::s_ray_sampler;
 MObject CArnoldStandardShaderNode::s_ray_depth;
 MObject CArnoldStandardShaderNode::s_triangle_normal_camera;
 
+MObject CArnoldStandardShaderNode::aResolution;
+
 MObjectArray CArnoldStandardShaderNode::s_PlugsAffecting;
 
 void CArnoldStandardShaderNode::postConstructor()
 {
-   setMPSafe(false);
+   setMPSafe(true);
 }
 
 MStatus CArnoldStandardShaderNode::compute(const MPlug& plug, MDataBlock& data)
@@ -129,29 +140,29 @@ MStatus CArnoldStandardShaderNode::compute(const MPlug& plug, MDataBlock& data)
 
    if ((plug == s_OUT_color) || (plug.parent() == s_OUT_color))
    {
-      MFloatVector resultColor(0.0,0.0,0.0);
+      MFloatVector resultColor(MFloatVector::zero);
 
       // get sample surface shading parameters
-      MFloatVector& surfaceNormal = data.inputValue( s_normal_camera ).asFloatVector();
-      MFloatVector& cameraPosition = data.inputValue( s_point_camera ).asFloatVector();
+      MFloatVector normalCamera = data.inputValue(s_normal_camera).asFloatVector();
+      MFloatVector pointCamera = data.inputValue(s_point_camera).asFloatVector();
+      MFloatVector rayOrigin = data.inputValue(s_ray_origin).asFloatVector();
+      MFloatVector rayDirection = data.inputValue(s_ray_direction).asFloatVector();
 
-      // use for raytracing api enhancement below
-      MFloatVector point = cameraPosition;
-      MFloatVector normal = surfaceNormal;
+      // Diffuse shading attributes
+      MFloatVector diffColor  = data.inputValue( s_Kd_color ).asFloatVector();
+      float diffWeight = data.inputValue( s_Kd ).asFloat();
+      float diffRoughness = data.inputValue( s_diffuse_roughness ).asFloat();
 
-      MFloatVector& surfaceColor  = data.inputValue( s_Kd_color ).asFloatVector();
-      float diffuseReflectivity = data.inputValue( s_Kd ).asFloat();
-      // float translucenceCoeff   = data.inputValue( aTranslucenceCoeff ).asFloat();
-      // User-defined Reflection Color Gain
-      float reflectGain = data.inputValue( s_Kr ).asFloat();
-  
-      // Phong shading attributes
-      float power = data.inputValue( s_Phong_exponent ).asFloat();
-      float spec = data.inputValue( s_Ks ).asFloat();
+      // Specular shading attributes
+      MFloatVector specColor  = data.inputValue( s_Ks_color ).asFloatVector();
+      short specBrdf = data.inputValue( s_specular_brdf ).asShort();
+      float specWeight = data.inputValue( s_Ks ).asFloat();
+      float specRoughness = data.inputValue( s_specular_roughness ).asFloat();
+      // Ignored, depreciated
+      // float specExponent = data.inputValue( s_Phong_exponent ).asFloat();
 
-      float specularR, specularG, specularB;
-      float diffuseR, diffuseG, diffuseB;
-      diffuseR = diffuseG = diffuseB = specularR = specularG = specularB = 0.0;
+      MFloatVector diffuseColor(MFloatVector::zero);
+      MFloatVector specularColor(MFloatVector::zero);
 
       // get light list
       MArrayDataHandle lightData = data.inputArrayValue( s_light_data );
@@ -161,7 +172,7 @@ MStatus CArnoldStandardShaderNode::compute(const MPlug& plug, MDataBlock& data)
       for( int count=1; count <= numLights; count++ )
       {
          MDataHandle currentLight = lightData.inputValue();
-         MFloatVector& lightIntensity = currentLight.child(s_light_intensity).asFloatVector();
+         MFloatVector& lightColor = currentLight.child(s_light_intensity).asFloatVector();
         
          // Find the blind data
          void*& blindData = currentLight.child( s_light_blind_data ).asAddr();
@@ -169,153 +180,94 @@ MStatus CArnoldStandardShaderNode::compute(const MPlug& plug, MDataBlock& data)
          // find ambient component
          if( currentLight.child(s_light_ambient).asBool() )
          {
-            diffuseR += lightIntensity[0];
-            diffuseG += lightIntensity[1];
-            diffuseB += lightIntensity[2];
+            diffuseColor += lightColor;
          }
 
          MFloatVector& lightDirection = currentLight.child(s_light_direction).asFloatVector();
         
-         if ( blindData == NULL )
+         // diffuse component
+         if( (0 != diffWeight) && (true == currentLight.child(s_light_diffuse).asBool()) )
          {
-            // find diffuse and specular component
-            if( currentLight.child(s_light_diffuse).asBool() )
-            {                       
-               float cosln = lightDirection * surfaceNormal;;                              
-               if( cosln > 0.0f )  // calculate only if facing light
-               {
-                  diffuseR += lightIntensity[0] * cosln * diffuseReflectivity ;
-                  diffuseG += lightIntensity[1] * cosln * diffuseReflectivity ;
-                  diffuseB += lightIntensity[2] * cosln * diffuseReflectivity ;
-               }
-
-               cameraPosition.normalize();
-                                                
-               if( cosln > 0.0f ) // calculate only if facing light
-               {                               
-                  float RV = ( ( (2*surfaceNormal) * cosln ) - lightDirection ) * cameraPosition;
-                  if( RV > 0.0 ) 
-                  {
-                     RV = 0.0;
-                  }
-                  if( RV < 0.0 ) 
-                  {
-                     RV = -RV;
-                  }
-   
-                  if ( power < 0 ) 
-                  {
-                     power = -power;
-                  }
-  
-                  float s = spec * powf( RV, power );
-
-                  specularR += lightIntensity[0] * s; 
-                  specularG += lightIntensity[1] * s; 
-                  specularB += lightIntensity[2] * s; 
-               }
-            }    
-         }
-         else
-         {
-            float cosln = MRenderUtil::diffuseReflectance( blindData, lightDirection, point, surfaceNormal, true );
-            if( cosln > 0.0f )  // calculate only if facing light
+            float diffuseBrdf = 0;
+            if ( blindData != NULL )
             {
-               diffuseR += lightIntensity[0] * ( cosln * diffuseReflectivity );
-               diffuseG += lightIntensity[1] * ( cosln * diffuseReflectivity );
-               diffuseB += lightIntensity[2] * ( cosln * diffuseReflectivity );
+               diffuseBrdf = MRenderUtil::diffuseReflectance( blindData, lightDirection, pointCamera, normalCamera, true );
+            }
+            else
+            {
+               diffuseBrdf = lightDirection * normalCamera;
+            }
+            if (diffRoughness != 0)
+            {
+               float sigma2 = diffRoughness * diffRoughness;
+               float A = 1.0f - 0.5f * sigma2 / (sigma2 + 0.33f);
+               float B = 0.45f * sigma2 / (sigma2 + 0.09f);
+               float NdotV = normalCamera * rayDirection;
+               float theta_r = acos(NdotV);
+               MFloatVector V_perp_N = (rayDirection - normalCamera * NdotV).normal();
+               float cos_theta_i = diffuseBrdf;
+               float theta_i = acos(cos_theta_i);
+               float cos_phi_diff = V_perp_N * (lightDirection - normalCamera * cos_theta_i);
+               float alpha = MAX(theta_i, theta_r);
+               float beta = MIN(theta_i, theta_r);
+
+               // Simplified Oren-Nayar
+               diffuseBrdf *= (A + B * MAX(0,cos_phi_diff) * sin(alpha) * tan(beta));
             }
 
-            cameraPosition.normalize();
-                        
-            if ( currentLight.child(s_light_specular).asBool() )
+            if (diffuseBrdf > 0.0f)
             {
-               MFloatVector specLightDirection = lightDirection;
-               MDataHandle directionH = data.inputValue( s_ray_direction );
-               MFloatVector direction = directionH.asFloatVector();
-               float lightAttenuation = 1.0;
-                                                 
-               specLightDirection = MRenderUtil::maximumSpecularReflection( blindData,lightDirection, point, surfaceNormal, direction );
-               lightAttenuation = MRenderUtil::lightAttenuation( blindData, point, surfaceNormal, false );             
-
-               // Are we facing the light
-               if ( specLightDirection * surfaceNormal > 0.0f )
-               {                       
-                  MFloatVector rv = 2 * surfaceNormal * ( surfaceNormal * direction ) - direction;
-                  float s = spec * powf( rv * specLightDirection, power );
-                                                
-                  specularR += lightIntensity[0] * s * lightAttenuation; 
-                  specularG += lightIntensity[1] * s * lightAttenuation; 
-                  specularB += lightIntensity[2] * s * lightAttenuation;
+               diffuseColor[0] = diffColor[0] * lightColor[0];
+               diffuseColor[1] = diffColor[1] * lightColor[1];
+               diffuseColor[2] = diffColor[2] * lightColor[2];
+               diffuseColor *= diffWeight * diffuseBrdf;
+            }
+         }
+         // specular component
+         if( (0 != specWeight) && (true == currentLight.child(s_light_specular).asBool()) )
+         {
+            float specularBrdf = 0;
+            MFloatVector specLightDirection = lightDirection;
+            float lightAttenuation = 1.0;
+            if ( blindData != NULL )
+            {
+               specLightDirection = MRenderUtil::maximumSpecularReflection( blindData, lightDirection, pointCamera, normalCamera, rayDirection );
+               lightAttenuation = MRenderUtil::lightAttenuation( blindData, pointCamera, normalCamera, false );
+            }
+            else
+            {
+            }
+            // Are we facing the light
+            if ( specLightDirection * normalCamera > 0.0f )
+            {
+               switch (specBrdf)
+               {
+                  case AI_SPECULARTYPE_STRETCHEDPHONG :
+                  case AI_SPECULARTYPE_WARDDUER :
+                  case AI_SPECULARTYPE_COOKTORRANCE :
+                  {
+                     MFloatVector R = 2 * (specLightDirection * normalCamera) * normalCamera - specLightDirection;
+                     float power = 0.5f / SQR(specRoughness) - 0.5f;
+                     specularBrdf = powf( - R * rayDirection, power );
+                  }
+                  break;
+                  default :
+                  break;
                }
+            }
+
+            if (specularBrdf > 0.0f)
+            {
+               specularColor[0] = specColor[0] * lightColor[0];
+               specularColor[1] = specColor[1] * lightColor[1];
+               specularColor[2] = specColor[2] * lightColor[2];
+               specularColor *= specWeight * specularBrdf;
             }
          }
          if( !lightData.next() ) break;
       }
 
-      // factor incident light with surface color 
-      resultColor[0] = ( diffuseR * surfaceColor[0] ) + specularR ;
-      resultColor[1] = ( diffuseG * surfaceColor[1] ) + specularG ;
-      resultColor[2] = ( diffuseB * surfaceColor[2] ) + specularB ;
-  
-      // add the reflection color
-      if (reflectGain > 0.0) 
-      {
-         MStatus status;
-         // required attributes for using raytracer
-         // origin, direction, sampler, depth, and object id.
-         //
-         MDataHandle originH = data.inputValue( s_ray_origin, &status);
-         MFloatVector origin = originH.asFloatVector();
- 
-         MDataHandle directionH = data.inputValue( s_ray_direction, &status);
-         MFloatVector direction = directionH.asFloatVector();
-
-         MDataHandle samplerH = data.inputValue( s_ray_sampler, &status);
-         void*& samplerPtr = samplerH.asAddr();
-
-         MDataHandle depthH = data.inputValue( s_ray_depth, &status);
-         short depth = depthH.asShort();
-
-         MDataHandle objH = data.inputValue( s_object_id, &status);
-         void*& objId = objH.asAddr();
-
-         MFloatVector reflectColor;
-         MFloatVector reflectTransparency;
-
-         MFloatVector& triangleNormal = data.inputValue( s_triangle_normal_camera ).asFloatVector();
-
-         // compute reflected ray
-         MFloatVector l = -direction;
-         float dot = l * normal;
-         if( dot < 0.0 ) dot = -dot;
-         MFloatVector refVector = 2 * normal * dot - l;  // reflection ray
-         float dotRef = refVector * triangleNormal;
-         if( dotRef < 0.0 ) 
-         {
-            const float s = 0.01f;
-            MFloatVector mVec = refVector - dotRef * triangleNormal;
-            mVec.normalize();
-            refVector = mVec + s * triangleNormal;
-         }
-         refVector.normalize();
-
-         status = MRenderUtil::raytrace(
-                                point,          //  origin
-                                refVector,  //  direction
-                                objId,          //  object id
-                                samplerPtr, //  sampler info
-                                depth,          //  ray depth
-                                reflectColor,   // output color and transp
-                                reflectTransparency);
-
-         // add in the reflection color
-         resultColor[0] += reflectGain * (reflectColor[0]);
-         resultColor[1] += reflectGain * (reflectColor[1]);
-         resultColor[2] += reflectGain * (reflectColor[2]);
-          
-      }
- 
+      resultColor = diffuseColor + specularColor;
       // set ouput color attribute
       MDataHandle outColorHandle = data.outputValue( s_OUT_color );
       MFloatVector& outColor = outColorHandle.asFloatVector();
@@ -335,8 +287,10 @@ MStatus CArnoldStandardShaderNode::compute(const MPlug& plug, MDataBlock& data)
       data.setClean( plug );
       return MS::kSuccess;
    }
-   else        
+   else
+   {
       return MS::kUnknownParameter;
+   }
 }
 
 void* CArnoldStandardShaderNode::creator()
@@ -347,6 +301,7 @@ void* CArnoldStandardShaderNode::creator()
 MStatus CArnoldStandardShaderNode::initialize()
 {
    MFnNumericAttribute  nAttr;
+   MFnEnumAttribute  eAttr;
    MFnLightDataAttribute lAttr;
 
    s_Fresnel = nAttr.create("Fresnel", "frn", MFnNumericData::kBoolean, 0);
@@ -365,6 +320,7 @@ MStatus CArnoldStandardShaderNode::initialize()
    nAttr.setMax(1);
    MAKE_INPUT(nAttr, s_Kb);
 
+   // s_Kd = nAttr.create("diffuse", "dc", MFnNumericData::kFloat, 0.7f);
    s_Kd = nAttr.create("Kd", "kd", MFnNumericData::kFloat, 0.7f);
    nAttr.setMin(0);
    nAttr.setMax(1);
@@ -377,6 +333,40 @@ MStatus CArnoldStandardShaderNode::initialize()
 
    MAKE_COLOR(s_Kd_color, "Kd_color", "kdc", 1, 1, 1);
    MAKE_INPUT(nAttr, s_Kd_color);
+   // Should use standard names to have viewport feedback
+   // s_Kd_color =  nAttr.createColor( "color", "c");
+   // nAttr.setDefault(1.0f, 1.0f, 1.0f);
+   // MAKE_INPUT(nAttr, s_Kd_color);
+
+   s_Ks = nAttr.create("Ks", "ks", MFnNumericData::kFloat, 0);
+   nAttr.setMin(0);
+   nAttr.setMax(1);
+   MAKE_INPUT(nAttr, s_Ks);
+
+   MAKE_ENUM_INPUT(s_specular_brdf, "specular_brdf", "sbrdf", 0, "standard", "specular_brdf");
+
+   s_specular_roughness = nAttr.create("specular_roughness", "srgh", MFnNumericData::kFloat, 0.467138f);
+   nAttr.setMin(0);
+   nAttr.setMax(1);
+   MAKE_INPUT(nAttr, s_specular_roughness);
+
+   s_specular_anisotropy = nAttr.create("specular_anisotropy", "sani", MFnNumericData::kFloat, 0.5f);
+   nAttr.setMin(0);
+   nAttr.setMax(1);
+   MAKE_INPUT(nAttr, s_specular_anisotropy);
+
+   s_specular_rotation = nAttr.create("specular_rotation", "srot", MFnNumericData::kFloat, 0.0f);
+   nAttr.setMin(0);
+   nAttr.setMax(1);
+   MAKE_INPUT(nAttr, s_specular_rotation);
+
+   MAKE_COLOR(s_Ks_color, "Ks_color", "ksc", 1, 1, 1);
+   MAKE_INPUT(nAttr, s_Ks_color);
+
+   s_Ksn = nAttr.create("Ksn", "ksn", MFnNumericData::kFloat, 0.05f);
+   nAttr.setMin(0);
+   nAttr.setMax(1);
+   MAKE_INPUT(nAttr, s_Ksn);
 
    s_Kr = nAttr.create("Kr", "kr", MFnNumericData::kFloat, 0);
    nAttr.setMin(0);
@@ -397,19 +387,6 @@ MStatus CArnoldStandardShaderNode::initialize()
    MAKE_COLOR(s_reflection_exit_color, "reflection_exit_color", "rfxec", 0.0f, 0.0f, 0.0f);
    MAKE_INPUT(nAttr, s_reflection_exit_color);
 
-   s_Ks = nAttr.create("Ks", "ks", MFnNumericData::kFloat, 0);
-   nAttr.setMin(0);
-   nAttr.setMax(1);
-   MAKE_INPUT(nAttr, s_Ks);
-
-   MAKE_COLOR(s_Ks_color, "Ks_color", "ksc", 1, 1, 1);
-   MAKE_INPUT(nAttr, s_Ks_color);
-
-   s_Ksn = nAttr.create("Ksn", "ksn", MFnNumericData::kFloat, 0.05f);
-   nAttr.setMin(0);
-   nAttr.setMax(1);
-   MAKE_INPUT(nAttr, s_Ksn);
-
    s_Ksss = nAttr.create("Ksss", "ksss", MFnNumericData::kFloat, 0);
    nAttr.setMin(0);
    nAttr.setMax(1);
@@ -425,6 +402,9 @@ MStatus CArnoldStandardShaderNode::initialize()
 
    MAKE_COLOR(s_Kt_color, "Kt_color", "ktc", 1, 1, 1);
    MAKE_INPUT(nAttr, s_Kt_color);
+
+   MAKE_COLOR(s_transmittance, "transmittance", "trs", 1, 1, 1);
+   MAKE_INPUT(nAttr, s_transmittance);
 
    s_refraction_exit_use_environment = nAttr.create("refraction_exit_use_environment", "rfcee", MFnNumericData::kBoolean, 0);
    MAKE_INPUT(nAttr, s_refraction_exit_use_environment);
@@ -544,37 +524,32 @@ MStatus CArnoldStandardShaderNode::initialize()
    nAttr.setWritable(false) ;
    nAttr.setDefault(1.0f, 1.0f, 1.0f) ;
 
-   s_light_ambient = nAttr.create( "lightAmbient", "la",
-                                                                  MFnNumericData::kBoolean);
+   s_light_ambient = nAttr.create( "lightAmbient", "la", MFnNumericData::kBoolean);
    nAttr.setStorable(false) ;
    nAttr.setHidden(true) ;
    nAttr.setReadable(true) ;
    nAttr.setWritable(false) ;
    nAttr.setHidden(true) ;
 
-   s_light_diffuse = nAttr.create( "lightDiffuse", "ldf", 
-                                                                  MFnNumericData::kBoolean);
+   s_light_diffuse = nAttr.create( "lightDiffuse", "ldf", MFnNumericData::kBoolean);
    nAttr.setStorable(false) ;
    nAttr.setHidden(true) ;
    nAttr.setReadable(true) ;
    nAttr.setWritable(false) ;
 
-   s_light_specular = nAttr.create( "lightSpecular", "ls", 
-                                                                  MFnNumericData::kBoolean);
+   s_light_specular = nAttr.create( "lightSpecular", "ls", MFnNumericData::kBoolean);
    nAttr.setStorable(false) ;
    nAttr.setHidden(true) ;
    nAttr.setReadable(true) ;
    nAttr.setWritable(false) ;
 
-   s_light_shadow_fraction = nAttr.create("lightShadowFraction", "lsf",
-                                                                                MFnNumericData::kFloat);
+   s_light_shadow_fraction = nAttr.create("lightShadowFraction", "lsf", MFnNumericData::kFloat);
    nAttr.setStorable(false) ;
    nAttr.setHidden(true) ;
    nAttr.setReadable(true) ;
    nAttr.setWritable(false) ;
 
-   s_light_pre_shadow_intensity = nAttr.create("preShadowIntensity", "psi",
-                                                                           MFnNumericData::kFloat);
+   s_light_pre_shadow_intensity = nAttr.create("preShadowIntensity", "psi", MFnNumericData::kFloat);
    nAttr.setStorable(false) ;
    nAttr.setHidden(true) ;
    nAttr.setReadable(true) ;
@@ -644,16 +619,31 @@ MStatus CArnoldStandardShaderNode::initialize()
    addAttribute(s_ray_sampler) ;
    addAttribute(s_ray_depth) ;
 
-
+   // resolution attribute for maya's hardware renderer
+   aResolution = nAttr.create("resolution", "res",  MFnNumericData::kInt, 32);
+   nAttr.setStorable(false);
+   nAttr.setHidden(true);
+   nAttr.setReadable(true);
+   nAttr.setWritable(true);
+   addAttribute(aResolution);
    // DEPENDENCIES
 
+   // diffuse
    s_PlugsAffecting.append(s_Kd);
+   s_PlugsAffecting.append(s_diffuse_roughness);
    s_PlugsAffecting.append(s_Kd_color);
+   // specular
    s_PlugsAffecting.append(s_Ks);
+   s_PlugsAffecting.append(s_specular_brdf);
+   s_PlugsAffecting.append(s_specular_roughness);
+   s_PlugsAffecting.append(s_specular_anisotropy);
+   s_PlugsAffecting.append(s_specular_rotation);
    s_PlugsAffecting.append(s_Ks_color);
+   s_PlugsAffecting.append(s_Phong_exponent);
+
    s_PlugsAffecting.append(s_Kt);
    s_PlugsAffecting.append(s_Kt_color);
-   s_PlugsAffecting.append(s_Phong_exponent);
+
    s_PlugsAffecting.append(s_bounce_factor);
    s_PlugsAffecting.append(s_emission);
 

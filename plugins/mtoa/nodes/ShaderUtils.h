@@ -4,19 +4,22 @@
 #include <ai_params.h>
 #include <ai_node_entry.h>
 
-#define MAKE_INPUT(attr, attrName) \
-   attr.setKeyable(true); \
-   attr.setStorable(true);	\
-   attr.setReadable(true);	\
-   attr.setWritable(true); \
-   addAttribute(attrName)
+// attrFn.setCached( true );
+// attrFn.setInternal( true );
 
-#define MAKE_OUTPUT(attr, attrName) \
-   attr.setKeyable(false); \
-   attr.setStorable(false); \
-   attr.setReadable(true); \
-   attr.setWritable(false); \
-   addAttribute(attrName)
+#define MAKE_INPUT(attrFn, attr) \
+   attrFn.setKeyable(true); \
+   attrFn.setStorable(true);	\
+   attrFn.setReadable(true);	\
+   attrFn.setWritable(true); \
+   addAttribute(attr)
+
+#define MAKE_OUTPUT(attrFn, attr) \
+   attrFn.setKeyable(false); \
+   attrFn.setStorable(false); \
+   attrFn.setReadable(true); \
+   attrFn.setWritable(false); \
+   addAttribute(attr)
 
 #define MAKE_COLOR(attrib, attrName, attrShortName, defaultR, defaultG, defaultB) \
    attrib##R = nAttr.create(MString(attrName) + "R", MString(attrShortName) + "r", MFnNumericData::kFloat, defaultR);\
@@ -70,6 +73,7 @@
    { \
       const AtNodeEntry*  nentry = AiNodeEntryLookUp(arnold_node); \
       const AtParamEntry* paramEntry = AiNodeEntryLookUpParameter(nentry, arnold_param); \
+      /* const AtParamValue* default_value = AiParamGetDefault(paramEntry); */ \
       for (int i=0;;i++) \
       { \
          const char* enum_string = AiEnumGetString(AiParamGetEnum(paramEntry), i); \
@@ -80,6 +84,21 @@
    } \
    addAttribute(attrib);
 
+#define MAKE_ENUM_INPUT(attrib, attrName, attrShortName, default_value, arnold_node, arnold_param) \
+   attrib = eAttr.create(attrName, attrShortName, default_value); \
+   { \
+      const AtNodeEntry*  nentry = AiNodeEntryLookUp(arnold_node); \
+      const AtParamEntry* paramEntry = AiNodeEntryLookUpParameter(nentry, arnold_param); \
+      /* const AtParamValue* default_value = AiParamGetDefault(paramEntry); */ \
+      for (int i=0;;i++) \
+      { \
+         const char* enum_string = AiEnumGetString(AiParamGetEnum(paramEntry), i); \
+         if (!enum_string) \
+            break; \
+         eAttr.addField(enum_string, i); \
+      } \
+   } \
+   MAKE_INPUT(eAttr, attrib)
 
 #define MAKE_INT_INPUT(attrib, nodeEntry, paramEntry, paramName, attrName, attrShortName) \
    const AtParamValue* default_value = AiParamGetDefault(paramEntry);\
@@ -172,19 +191,7 @@
 //   MFloatMatrix mmat(default_value->pMTX);
 //   mAttr.setDefault(mmat);
 
-#define MAKE_ENUM_INPUT(attrib, paramEntry, attrName, attrShortName) \
-   const AtParamValue* default_value = AiParamGetDefault(paramEntry);\
-   attrib = eAttr.create(attrName, attrShortName, default_value->INT); \
-   { \
-      for (int ei=0;;ei++) \
-      { \
-         const char* enum_string = AiEnumGetString(AiParamGetEnum(paramEntry), ei); \
-         if (!enum_string) \
-            break; \
-         eAttr.addField(enum_string, ei); \
-      } \
-   } \
-   addAttribute(attrib);
+
 
 #define EXPORT_DYN_PARAM_FLOAT(arnold_node, param_name, node) \
    plug = node.findPlug(param_name);\

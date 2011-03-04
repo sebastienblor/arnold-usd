@@ -12,7 +12,6 @@ def volumeScatteringShaderTemplate(nodeName):
     cmds.editorTemplate("rgb_attenuation", label="Attenuation Color", addControl=True)
     cmds.editorTemplate("attenuation", label="Attenuation", addControl=True)
     cmds.editorTemplate(addSeparator=True)
-    cmds.editorTemplate("phase_function", label="Phase Function", addControl=True)
     cmds.editorTemplate("eccentricity", label="Eccentricity", addControl=True)
     cmds.editorTemplate(addSeparator=True)
     cmds.editorTemplate("importance_sampling", label="Importance Sampling", addControl=True)

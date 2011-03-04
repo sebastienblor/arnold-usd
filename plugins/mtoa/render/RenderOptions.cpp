@@ -176,21 +176,22 @@ void CRenderOptions::ProcessArnoldRenderOptions()
       m_arnoldRenderImageTiled          = fnArnoldRenderOptions.findPlug("tiled").asBool();
       m_arnoldRenderImageUnpremultAlpha = fnArnoldRenderOptions.findPlug("unpremult_alpha").asBool();
 
-      m_progressive_rendering           = fnArnoldRenderOptions.findPlug("progressive_rendering").asBool();
+      m_progressive_rendering    = fnArnoldRenderOptions.findPlug("progressive_rendering").asBool();
+      m_physically_based         = fnArnoldRenderOptions.findPlug("physically_based").asBool();
+      m_threads                  = fnArnoldRenderOptions.findPlug("threads_autodetect").asBool() ? 0 : fnArnoldRenderOptions.findPlug("threads").asInt();
+      m_bucket_scanning          = fnArnoldRenderOptions.findPlug("bucket_scanning").asInt();
+      m_bucket_size              = fnArnoldRenderOptions.findPlug("bucket_size").asInt();
+      m_abort_on_error           = fnArnoldRenderOptions.findPlug("abort_on_error").asBool();
+      m_skip_license_check       = fnArnoldRenderOptions.findPlug("skip_license_check").asBool();
+      m_plugins_path             = fnArnoldRenderOptions.findPlug("plugins_path").asString();
 
-      m_threads         = fnArnoldRenderOptions.findPlug("threads_autodetect").asBool() ? 0 : fnArnoldRenderOptions.findPlug("threads").asInt();
-      m_bucket_scanning = fnArnoldRenderOptions.findPlug("bucket_scanning").asInt();
-      m_bucket_size     = fnArnoldRenderOptions.findPlug("bucket_size").asInt();
-      m_abort_on_error  = fnArnoldRenderOptions.findPlug("abort_on_error").asBool();
-      m_plugins_path    = fnArnoldRenderOptions.findPlug("plugins_path").asString();
+      m_AA_samples               = fnArnoldRenderOptions.findPlug("AA_samples").asInt();
+      m_GI_diffuse_samples       = fnArnoldRenderOptions.findPlug("GI_diffuse_samples").asInt();
+      m_GI_glossy_samples        = fnArnoldRenderOptions.findPlug("GI_glossy_samples").asInt();
+      m_GI_sss_hemi_samples      = fnArnoldRenderOptions.findPlug("GI_sss_hemi_samples").asInt();
+      m_AA_sample_clamp          = fnArnoldRenderOptions.findPlug("use_sample_clamp").asBool() ? fnArnoldRenderOptions.findPlug("AA_sample_clamp").asFloat() : (float) AI_INFINITE;
 
-      m_AA_samples          = fnArnoldRenderOptions.findPlug("AA_samples").asInt();
-      m_GI_diffuse_samples  = fnArnoldRenderOptions.findPlug("GI_diffuse_samples").asInt();
-      m_GI_glossy_samples   = fnArnoldRenderOptions.findPlug("GI_glossy_samples").asInt();
-      m_GI_sss_hemi_samples = fnArnoldRenderOptions.findPlug("GI_sss_hemi_samples").asInt();
-      m_AA_sample_clamp     = fnArnoldRenderOptions.findPlug("use_sample_clamp").asBool() ? fnArnoldRenderOptions.findPlug("AA_sample_clamp").asFloat() : (float) AI_INFINITE;
-
-      m_lock_sampling_noise = fnArnoldRenderOptions.findPlug("lock_sampling_noise").asBool();
+      m_lock_sampling_noise      = fnArnoldRenderOptions.findPlug("lock_sampling_noise").asBool();
 
       MFnEnumAttribute enum_filter_type(fnArnoldRenderOptions.findPlug("filter_type").attribute());
       m_filter_type  = enum_filter_type.fieldName(fnArnoldRenderOptions.findPlug("filter_type").asShort());
