@@ -3,15 +3,18 @@
 
 #include "scene/NodeTranslator.h"
 
+#include <maya/MFnMesh.h>
+#include <maya/MMeshIntersector.h>
+
 class CHairLine
 {
 public:
    CHairLine() {}
    ~CHairLine() {}
-   void SetCurvePoints( MVectorArray points ) { curvePoints = points; };
-   void SetCurveWidths( MDoubleArray widths ) { curveWidths = widths; };
-   MVectorArray GetCurvePoints() const { return curvePoints; };
-   MDoubleArray GetCurveWidths() const { return curveWidths; };
+   void SetCurvePoints(MVectorArray &points) { curvePoints = points; };
+   void SetCurveWidths(MDoubleArray &widths) { curveWidths = widths; };
+   void GetCurvePoints(MVectorArray &points) const { points = curvePoints; };
+   void GetCurveWidths(MDoubleArray &widths) const { widths = curveWidths; };
 private:
    MVectorArray curvePoints;
    MDoubleArray curveWidths;
@@ -46,7 +49,7 @@ private:
    std::vector<CHairLine> m_hairLines;
    AtUInt m_numMainLines;
 
-   AtVector2 GetHairRootUVs(const MVectorArray& line, const MDagPathArray& shapes);
+   AtVector2 GetHairRootUVs(const MVector& lineStart, MMeshIntersector& meshInt, MFnMesh& mesh);
    void GetHairShapeMeshes(const MObject& hair, MDagPathArray& shapes);
    AtUInt GetHairLines(MObject& hair, std::vector<CHairLine>& hairLines);
 };
