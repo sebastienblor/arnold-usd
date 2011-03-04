@@ -14,6 +14,7 @@
 #include <maya/MObjectArray.h>
 #include <maya/MIntArray.h>
 #include <maya/MPointArray.h>
+
 #include <maya/MVector.h>
 #include <maya/MPoint.h>
 #include <maya/MRampAttribute.h>
@@ -42,12 +43,20 @@ AtNode *CHairTranslator::Export()
 void CHairTranslator::Update(AtNode *curve)
 {
    MObject objectHairShape(m_dagPath.node());
+
+   // Get connected shapes
+   MDagPathArray connectedShapes;
+   GetHairShapeMeshes(objectHairShape, connectedShapes);
+
+   bool hasConnectedShapes = connectedShapes.length() > 0;
+
    MFnDagNode fnDagNodeHairShape(objectHairShape);
    MFnDependencyNode fnDepNodeHair(objectHairShape);
 
    bool motionBlur = m_scene->IsMotionBlurEnabled();
    bool motionBlurDeform = m_scene->IsObjectDeformMotionBlurEnabled();
 
+   // Get hair lines
    m_numMainLines = GetHairLines(objectHairShape, m_hairLines);
 
    if (!(m_numMainLines > 0))
@@ -60,15 +69,8 @@ void CHairTranslator::Update(AtNode *curve)
    bool transformHairDefinition = true;
 
    AtNode* shader = NULL;
-   bool receiveShadows = true;
-   bool selfShadows = true;
-   bool sssUseGI = true;
-   AtUInt sssMaxSamples = 100000;
-   AtUInt mode = 0;
-   AtInt visibility = AI_RAY_ALL;
 
-   AtFloat sssSampleSpacing = 0.1f;
-   AtFloat minPixelWidth = 0.0f;
+   AtInt visibility = AI_RAY_ALL;
 
    AtArray* curvePoints = NULL;     // The curve points array
    AtArray* curveWidths = NULL;     // The curve widths/radius array
@@ -101,16 +103,7 @@ void CHairTranslator::Update(AtNode *curve)
          }
       }
 
-      // Attributes
-      receiveShadows   = fnDagNodeHairShape.findPlug("receive_shadows").asBool();
-      selfShadows      = fnDagNodeHairShape.findPlug("self_shadows").asBool();
-      sssUseGI         = fnDagNodeHairShape.findPlug("sss_use_gi").asBool();
-      sssMaxSamples    = fnDagNodeHairShape.findPlug("sss_max_samples").asInt();
-      sssSampleSpacing = fnDagNodeHairShape.findPlug("sss_sample_spacing").asFloat();
-      minPixelWidth    = fnDagNodeHairShape.findPlug("min_pixel_width").asFloat();
-      mode             = fnDagNodeHairShape.findPlug("mode").asInt();
-
-      visibility = ComputeVisibility(false);
+      visibility = ComputeVisibility();
    }
 
    // No custom shader assigned, try to transform maya hair's definition
@@ -128,32 +121,57 @@ void CHairTranslator::Update(AtNode *curve)
    // Iterate over all lines to get sizes for AiArrayAllocate
    int numPoints = 0;
    int numPointsInterpolation = 0;
+
+   // Prepare connected shape info and intersection data
+   // Support hairsystem that was applied to only one mesh
+
+   MDagPath shapePath;
+   MMeshIntersector meshInt;
+   MFnMesh mesh;
+
+   if (hasConnectedShapes)
+   {
+      shapePath = connectedShapes[0];
+      MObject shapeNode = shapePath.node();
+      const MMatrix matrix = shapePath.inclusiveMatrix();
+      meshInt.create(shapeNode, matrix);
+
+      mesh.setObject(shapeNode);
+   }
+
    for (AtUInt i = 0; i < m_numMainLines; i++)
    {
       MStatus status;
-      MVectorArray line = m_hairLines[i].GetCurvePoints();
+      MVectorArray line;
+      m_hairLines[i].GetCurvePoints(line);
       int renderLineLength = line.length();
       numPoints += renderLineLength;
 
-      numPointsInterpolation += renderLineLength + 2;
+      int pointsInterpolation = renderLineLength + 2;
+      numPointsInterpolation += pointsInterpolation;
 
       // Set num points
-      AiArraySetInt(curveNumPoints, i, (renderLineLength+2));
+      AiArraySetInt(curveNumPoints, i, pointsInterpolation);
 
       // Get the UV values of the surface point on which the hair is rooted
       if (customAttributes)
       {
-         // Get connected shapes
-         MDagPathArray connectedShapes;
-         GetHairShapeMeshes(objectHairShape, connectedShapes);
-         AtVector2 uvparam = GetHairRootUVs(line, connectedShapes);
+         // We should get the UV from the closest mesh for all connected shapes
+         // To support a hairsystem that was applied to more than one mesh
+
+         AtVector2 uvparam(AI_P2_ZERO);
+         if (hasConnectedShapes)
+            AtVector2 uvparam = GetHairRootUVs(line[0], meshInt, mesh);
+         else
+            uvparam.x = uvparam.y = 0.f;
+
          AiArraySetFlt(curveUParamCoord, i, uvparam.x);
          AiArraySetFlt(curveVParamCoord, i, uvparam.y);
       }
 
       // Store start point for the line on the array
-      AiArraySetInt(curveNextLineStartsInterp, i, (numPointsInterpolation));
-      AiArraySetInt(curveNextLineStarts, i, (numPoints));
+      AiArraySetInt(curveNextLineStartsInterp, i, numPointsInterpolation);
+      AiArraySetInt(curveNextLineStarts, i, numPoints);
    }
 
    // Allocate memory for remaining arrays
@@ -177,21 +195,22 @@ void CHairTranslator::Update(AtNode *curve)
    AiNodeSetStr(shader, "uparam", "uparamcoord");
    AiNodeSetStr(shader, "vparam", "vparamcoord");
 
-   // Visibility
-   AiNodeSetInt(curve, "visibility", visibility);
-
    AiNodeSetStr(curve, "basis", "catmull-rom");
 
    // Extra attributes
    if (customAttributes)
    {
-      AiNodeSetBool(curve, "receive_shadows", receiveShadows);
-      AiNodeSetBool(curve, "self_shadows", selfShadows);
-      AiNodeSetBool(curve, "sss_use_gi", sssUseGI);
-      AiNodeSetInt(curve, "sss_max_samples", sssMaxSamples);
-      AiNodeSetFlt(curve, "sss_sample_spacing", sssSampleSpacing);
-      AiNodeSetFlt(curve, "min_pixel_width", minPixelWidth);
-      AiNodeSetInt(curve, "mode", mode);
+      AiNodeSetBool(curve, "receive_shadows", fnDagNodeHairShape.findPlug("receive_shadows").asBool());
+      AiNodeSetBool(curve, "self_shadows", fnDagNodeHairShape.findPlug("self_shadows").asBool());
+
+      AiNodeSetBool(curve, "sss_use_gi", fnDagNodeHairShape.findPlug("sss_use_gi").asBool());
+      AiNodeSetInt(curve, "sss_max_samples", fnDagNodeHairShape.findPlug("sss_max_samples").asInt());
+      AiNodeSetFlt(curve, "sss_sample_spacing", fnDagNodeHairShape.findPlug("sss_sample_spacing").asFloat());
+      
+      AiNodeSetFlt(curve, "min_pixel_width", fnDagNodeHairShape.findPlug("min_pixel_width").asFloat());
+      AiNodeSetInt(curve, "mode", fnDagNodeHairShape.findPlug("mode").asInt());
+
+      AiNodeSetInt(curve, "visibility", visibility);
 
       // User-Data attributes
       AiNodeDeclare(curve, "uparamcoord", "uniform FLOAT");
@@ -200,32 +219,25 @@ void CHairTranslator::Update(AtNode *curve)
       AiNodeDeclare(curve, "next_line_starts", "constant ARRAY INT");
    }
 
-   // Set all arrays on the curve node
-   AiNodeSetArray(curve, "num_points", curveNumPoints);
-   AiNodeSetArray(curve, "points", curvePoints);
-   AiNodeSetArray(curve, "radius", curveWidths);
-   AiNodeSetArray(curve, "uparamcoord", curveUParamCoord);
-   AiNodeSetArray(curve, "vparamcoord", curveVParamCoord);
-   AiNodeSetArray(curve, "next_line_starts_interp", curveNextLineStartsInterp);
-   AiNodeSetArray(curve, "next_line_starts", curveNextLineStarts);
-
    // Process all hair lines
-   for(AtUInt i = 0; i < m_numMainLines; i++)
+   for (AtUInt i = 0; i < m_numMainLines; i++)
    {
       MStatus status;
-      MVectorArray line = m_hairLines[i].GetCurvePoints();
-      int renderLineLength = line.length();
+      MVectorArray line;
+      m_hairLines[i].GetCurvePoints(line);
+      AtUInt renderLineLength = line.length();
 
       // Ignore one or less cv curves
       if (renderLineLength > 1)
       {
-         MDoubleArray widths = m_hairLines[i].GetCurveWidths();
+         MDoubleArray widths;
+         m_hairLines[i].GetCurveWidths(widths);
          AtPoint curvePoint;
 
          int interpStartsIdx = i ? AiArrayGetInt(curveNextLineStartsInterp, i-1) : 0 ;
          int lineStartsIndex = i ? AiArrayGetInt(curveNextLineStarts, i-1) : 0 ;
 
-         for (int j = 0; j < renderLineLength; j++)
+         for (AtUInt j = 0; j < renderLineLength; j++)
          {
             // We need a couple extra points for interpolation
             // One at the beginning and one at the end (JUST POINTS, NO ATTRS)
@@ -239,7 +251,7 @@ void CHairTranslator::Update(AtNode *curve)
             AiArraySetPnt(curvePoints, ((j+1) + interpStartsIdx), curvePoint);
 
             // Animated widths are not supported, so just on step 0
-            AiArraySetFlt(curveWidths, (j+lineStartsIndex), float(widths[j]));
+            AiArraySetFlt(curveWidths, (j+lineStartsIndex), (AtFloat) widths[j]);
 
             if (j == (renderLineLength-1))
             {
@@ -249,6 +261,15 @@ void CHairTranslator::Update(AtNode *curve)
          }
       }
    }
+
+   // Set all arrays on the curve node
+   AiNodeSetArray(curve, "num_points", curveNumPoints);
+   AiNodeSetArray(curve, "points", curvePoints);
+   AiNodeSetArray(curve, "radius", curveWidths);
+   AiNodeSetArray(curve, "uparamcoord", curveUParamCoord);
+   AiNodeSetArray(curve, "vparamcoord", curveVParamCoord);
+   AiNodeSetArray(curve, "next_line_starts_interp", curveNextLineStartsInterp);
+   AiNodeSetArray(curve, "next_line_starts", curveNextLineStarts);
 }
 
 void CHairTranslator::ExportMotion(AtNode *curve, AtUInt step)
@@ -262,16 +283,18 @@ void CHairTranslator::ExportMotion(AtNode *curve, AtUInt step)
    int curveNumPointsPerStep = AiArrayGetInt(curveNextLineStartsInterp, (m_numMainLines-1));
 
    // Process all hair lines
-   for(AtUInt i = 0; i < m_numMainLines; i++)
+   for (AtUInt i = 0; i < m_numMainLines; i++)
    {
       MStatus status;
-      MVectorArray line = m_hairLines[i].GetCurvePoints();
+      MVectorArray line;
+      m_hairLines[i].GetCurvePoints(line);
       int renderLineLength = line.length();
 
       // Ignore one or less cv curves
       if (renderLineLength > 1)
       {
-         MDoubleArray widths = m_hairLines[i].GetCurveWidths();
+         MDoubleArray widths;
+         m_hairLines[i].GetCurveWidths(widths);
          AtPoint curvePoint;
 
          int interpStartsIdx = i ? AiArrayGetInt(curveNextLineStartsInterp, i-1) : 0 ;
@@ -299,40 +322,21 @@ void CHairTranslator::ExportMotion(AtNode *curve, AtUInt step)
    }
 }
 
-AtVector2 CHairTranslator::GetHairRootUVs(const MVectorArray& line, const MDagPathArray& shapes)
+AtVector2 CHairTranslator::GetHairRootUVs(const MVector& lineStart, MMeshIntersector& meshInt, MFnMesh& mesh)
 {
+   // Find the closest point on mesh from hair lineStart
+   // And returns the UV at this point
+
    AtVector2 rootUVs;
-   
-   // Find the closest point from the line[0] to the surface (shapes[index])
-   // We should check for the closest point for all connected shapes
-   // To support a hairsystem that was applied to more than one mesh
+   float uv[2];
+ 
+   MPoint point(lineStart.x, lineStart.y, lineStart.z);
+   MPointOnMesh closest;
+   meshInt.getClosestPoint(point, closest);
+   MPoint closestPoint(closest.getPoint());
 
-   MPoint closestPoint;
-   double distance = 0;
-   float uv[2] = {0.0f, 0.0f};
-   MString currentUVSet;
-
-   for (unsigned int i = 0; i < shapes.length(); i++)
-   {
-      MObject shapeNode = shapes[i].node();
-      MFnMesh mesh(shapeNode);
-      const MMatrix matrix = shapes[i].inclusiveMatrix();
-      MMeshIntersector meshInt;
-      meshInt.create(shapeNode, matrix);
-      MPoint point(line[0].x, line[0].y, line[0].z);
-      MPointOnMesh closest;
-
-      currentUVSet = mesh.currentUVSetName();
-      meshInt.getClosestPoint(point, closest);
-      MPoint closePoint(closest.getPoint());
-      
-      if ((closePoint.distanceTo(point) < distance) || (i == 0))
-      {
-         distance = closePoint.distanceTo(point);
-         closestPoint = closePoint;
-         mesh.getUVAtPoint(closestPoint, uv, MSpace::kObject, &currentUVSet);
-      }
-   }
+   MString currentUVSet = mesh.currentUVSetName();
+   mesh.getUVAtPoint(closestPoint, uv, MSpace::kObject, &currentUVSet);
    
    rootUVs.x = uv[0];
    rootUVs.y = uv[1];
@@ -347,7 +351,7 @@ void CHairTranslator::GetHairShapeMeshes(const MObject& hair, MDagPathArray& sha
 
    // Loop through all follicles to find all connected shapes
    MHairSystem::getFollicle(hair, follicles, indices);
-   for(AtUInt i = 0; i < follicles.length(); i++)
+   for (AtUInt i = 0; i < follicles.length(); i++)
    {
       MFnDependencyNode depNodeFollicle(follicles[i]);
       MPlugArray meshes;
@@ -359,7 +363,7 @@ void CHairTranslator::GetHairShapeMeshes(const MObject& hair, MDagPathArray& sha
          meshDagNode.getPath(dagPath);
          // Check if it is already there
          bool append = true;
-         for(unsigned int j = 0; j<shapes.length(); j++)
+         for (AtUInt j = 0; j < shapes.length(); j++)
          {
             if (shapes[j] == dagPath)
             {
@@ -408,9 +412,6 @@ AtUInt CHairTranslator::GetHairLines(MObject& hair, std::vector<CHairLine>& hair
          hairLines.push_back(hairLine);
       }
 
-      // Check if motion blur is ON for hairs
-      MFnDagNode fnDagNode(pfxHairPlug[0].node());
-
       // As told in the docs, destructor does not free memory allocated by mainLines, leafLines etc
       mainLines.deleteArray();
       leafLines.deleteArray();
@@ -435,38 +436,44 @@ AtUInt CHairTranslator::GetHairLines(MObject& hair, std::vector<CHairLine>& hair
          MPlugArray follicleHairPlug;
          connection.connectedTo(follicleHairPlug, false, true);
 
-         MPlugArray nurbsHairPlug;
-         MFnDependencyNode depNodeCurveHair(follicleHairPlug[0].node());
-         depNodeCurveHair.findPlug("outCurve").connectedTo(nurbsHairPlug, false, true);
-
-         MFnNurbsCurve follicleCurve(nurbsHairPlug[0].node());
-
-         MPointArray cvs;
-         follicleCurve.getCVs(cvs, MSpace::kWorld);
-         MVectorArray line;
-         MDoubleArray width;
-
-         // Transform from MPointArray to MVectorArray
-         for (unsigned int j = 0; j < cvs.length(); j++)
+         if (follicleHairPlug.length() > 0)
          {
-            MVector vector(cvs[j]);
-            line.append(vector);
-            double rampParam;
-            follicleCurve.getParamAtPoint(cvs[j], rampParam);
+            MPlugArray nurbsHairPlug;
+            MFnDependencyNode depNodeCurveHair(follicleHairPlug[0].node());
+            depNodeCurveHair.findPlug("outCurve").connectedTo(nurbsHairPlug, false, true);
 
-            // Transform the param value to 0 .. 1 range
-            rampParam = rampParam / float(follicleCurve.numSpans());
-            float rampValue;
-            hairWidthScale.getValueAtPosition(float(rampParam), rampValue);
-            width.append(nurbsHairWidth * rampValue);
+            if (nurbsHairPlug.length() > 0)
+            {
+               MFnNurbsCurve follicleCurve(nurbsHairPlug[0].node());
+
+               MPointArray cvs;
+               follicleCurve.getCVs(cvs, MSpace::kWorld);
+               MVectorArray line;
+               MDoubleArray width;
+
+               // Transform from MPointArray to MVectorArray
+               for (unsigned int j = 0; j < cvs.length(); j++)
+               {
+                  MVector vector(cvs[j]);
+                  line.append(vector);
+                  double rampParam;
+                  follicleCurve.getParamAtPoint(cvs[j], rampParam);
+
+                  // Transform the param value to 0 .. 1 range
+                  rampParam = rampParam / float(follicleCurve.numSpans());
+                  float rampValue;
+                  hairWidthScale.getValueAtPosition(float(rampParam), rampValue);
+                  width.append(nurbsHairWidth * rampValue);
+               }
+
+               CHairLine hairLine;
+               hairLine.SetCurvePoints(line);
+               hairLine.SetCurveWidths(width);
+               hairLines.push_back(hairLine);
+            }
          }
-
-         CHairLine hairLine;
-         hairLine.SetCurvePoints(line);
-         hairLine.SetCurveWidths(width);
-         hairLines.push_back(hairLine);
       }
    }
 
-   return numMainLines;
+   return hairLines.size();
 }
