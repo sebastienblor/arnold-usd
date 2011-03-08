@@ -235,7 +235,7 @@ MStatus CArnoldRenderOptionsNode::initialize()
 
    s_plugins_path = tAttr.create("plugins_path", "ppath", MFnData::kString);
    tAttr.setKeyable(false);
-   tAttr.setDefault(sData.create("$MTOA_PLUGINS_PATH"));
+   tAttr.setDefault(sData.create("$ARNOLD_PLUGIN_PATH"));
    addAttribute(s_plugins_path);
 
    s_AA_samples = nAttr.create("AA_samples", "AAsmpls", MFnNumericData::kInt, 3);

@@ -170,9 +170,9 @@ void CArnoldNodeFactory::UnloadPlugin(const char* pluginFile)
 //
 void CArnoldNodeFactory::LoadPlugins()
 {
-   //MString resolvedPathList = MString("$MTOA_PLUGINS_PATH").expandEnvironmentVariablesAndTilde();
+   //MString resolvedPathList = MString("$ARNOLD_PLUGIN_PATH").expandEnvironmentVariablesAndTilde();
    MStringArray plugins;
-   FindLibraries("$MTOA_PLUGINS_PATH", plugins);
+   FindLibraries("$ARNOLD_PLUGIN_PATH", plugins);
    for (unsigned int i=0; i<plugins.length(); ++i)
    {
       MString plugin = plugins[i];
