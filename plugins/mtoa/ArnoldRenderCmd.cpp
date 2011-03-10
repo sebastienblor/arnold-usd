@@ -187,7 +187,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
          {
             if (!dagIterCameras.getPath(dagPath))
             {
-               AiMsgError("[mtoa] ERROR: Could not get path for DAG iterator.");
+               AiMsgError("[mtoa] Could not get path for DAG iterator");
                return status;
             }
 

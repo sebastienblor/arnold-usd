@@ -276,7 +276,7 @@ void CRenderSession::SetCamera(MString cameraNode)
       {
          if (!dagIterCameras.getPath(dagPath))
          {
-            AiMsgError("[mtoa] ERROR: Could not get path for DAG iterator.");
+            AiMsgError("[mtoa] Could not get path for DAG iterator");
             return;
          }
          bool isRenderingCamera = false;
@@ -532,7 +532,7 @@ void CRenderSession::DoExport(MString customFileName)
    }
    else
    {
-      AiMsgInfo("[mtoa] Exporting Maya scene to file '%s'", fileName.asChar());
+      AiMsgInfo("[mtoa] Exporting Maya scene to file \"%s\"", fileName.asChar());
 
       if (GetMayaScene()->GetExportMode()==MTOA_EXPORT_ALL)
       {

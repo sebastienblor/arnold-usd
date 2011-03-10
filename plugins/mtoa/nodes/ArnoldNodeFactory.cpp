@@ -118,12 +118,12 @@ void CArnoldNodeFactory::LoadPlugin(const char* pluginFile)
    err = AiLoadPlugin(pluginFile);
    if (err)
    {
-      str = MString("[mtoa]: Could not load shader library: ") + pluginFile + MString(".");
+      str = MString("[mtoa] Could not load shader library: ") + pluginFile;
       MGlobal::displayError(str);
    else
    */
    {
-      str = MString("[mtoa]: Generating nodes for shader library: ") + pluginFile;
+      str = MString("[mtoa] Generating nodes for shader library: ") + pluginFile;
       MGlobal::displayInfo(str);
       AtNodeEntryIterator* nodeIter = AiUniverseGetNodeEntryIterator(AI_NODE_SHADER);
       while (!AiNodeEntryIteratorFinished(nodeIter))
@@ -149,7 +149,7 @@ void CArnoldNodeFactory::LoadPlugin(const char* pluginFile)
 void CArnoldNodeFactory::UnloadPlugin(const char* pluginFile)
 {
    MString str;
-   str = MString("[mtoa]: Removing nodes for shader library: ") + pluginFile;
+   str = MString("[mtoa] Removing nodes for shader library: ") + pluginFile;
    MGlobal::displayInfo(str);
    AtNodeEntryIterator* nodeIter = AiUniverseGetNodeEntryIterator(AI_NODE_SHADER);
    while (!AiNodeEntryIteratorFinished(nodeIter))
@@ -243,7 +243,7 @@ bool CArnoldNodeFactory::RegisterMayaNode(const AtNodeEntry* arnoldNodeEntry)
    {
       if (!MapToMayaNode(arnoldNodeName, mayaCounterpart, mayaCounterpartId))
       {
-         MGlobal::displayError(MString("[mtoa]: Failed to create counter-part node ") + mayaCounterpart);
+         MGlobal::displayError(MString("[mtoa] Failed to create counter-part node ") + mayaCounterpart);
          return false;
       }
       return true;
@@ -259,7 +259,7 @@ bool CArnoldNodeFactory::RegisterMayaNode(const AtNodeEntry* arnoldNodeEntry)
    {
       nodeId = s_autoNodeId;
       // TODO: print hex nodeId
-      MGlobal::displayWarning(MString("[mtoa]: Assigning temporary node id ") + nodeId + " to " + arnoldNodeName);
+      MGlobal::displayWarning(MString("[mtoa] Assigning temporary node id ") + nodeId + " to " + arnoldNodeName);
       s_autoNodeId++;
    }
    MGlobal::displayInfo(MString("[mtoa] INFO: Loading shader: ") + arnoldNodeName);
@@ -300,7 +300,7 @@ bool CArnoldNodeFactory::RegisterMayaNode(const char* arnoldNodeName, const char
 
    if (status != MStatus::kSuccess || !MapToMayaNode(arnoldNodeName, mayaNodeName,  nodeId))
    {
-      MGlobal::displayError(MString("[mtoa]: Failed to create node ") + mayaNodeName);
+      MGlobal::displayError(MString("[mtoa] Failed to create node ") + mayaNodeName);
       return false;
    }
    return true;
@@ -370,7 +370,7 @@ bool CArnoldNodeFactory::LoadExtension(const char* extensionFile)
    void *pluginLib = LibraryLoad(extensionFile);
    if (pluginLib == NULL)
    {
-      MGlobal::displayError(MString("[mtoa] error loading plugin: ") + LibraryLastError());
+      MGlobal::displayError(MString("[mtoa] Error loading plugin: ") + LibraryLastError());
       return false;
    }
    
@@ -378,7 +378,7 @@ bool CArnoldNodeFactory::LoadExtension(const char* extensionFile)
 
    if (initializer == NULL)
    {
-      MGlobal::displayError(MString("[mtoa] error initializing plugin: ") + LibraryLastError());
+      MGlobal::displayError(MString("[mtoa] Error initializing plugin: ") + LibraryLastError());
       return false;
    }
    pluginInitFunctionType * initFunc = (pluginInitFunctionType*)(&initializer);
@@ -508,7 +508,7 @@ void CAutoTranslator::Update(AtNode *shader)
          if (status == MS::kSuccess)
             ProcessParameter(shader, plug, paramName, paramType);
          else
-            AiMsgWarning("[mtoa] attribute %s.%s requested by translator does not exist", m_fnNode.name().asChar(), attrName);
+            AiMsgWarning("[mtoa] Attribute %s.%s requested by translator does not exist", m_fnNode.name().asChar(), attrName);
       }
    }
 

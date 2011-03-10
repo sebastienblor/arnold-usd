@@ -506,11 +506,6 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
 
    MFnDependencyNode node(mayaShader);
 
-   if (attrName != "")
-      AiMsgDebug("[mtoa] Exporting shader: %s.%s", node.name().asChar(), attrName.asChar());
-   else
-      AiMsgDebug("[mtoa] Exporting shader: %s", node.name().asChar());
-
    CNodeTranslator* translator = CTranslatorRegistry::GetDependTranslator(node.typeId().id());
    if (translator != NULL)
    {

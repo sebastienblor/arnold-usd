@@ -93,7 +93,7 @@ public:
             case EINVAL:
             case EPERM:
             default:
-               AiMsgError("[mtoa] ERROR: pthread_cond_timedwait() error %i (%s:%s)", wret, __FILE__, __LINE__);
+               AiMsgError("[mtoa] pthread_cond_timedwait() error %i (%s:%s)", wret, __FILE__, __LINE__);
                abort();
             }
          }

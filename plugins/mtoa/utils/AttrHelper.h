@@ -5,6 +5,7 @@
 #include <ai_node_entry.h>
 #include <ai_params.h>
 #include <ai_metadata.h>
+#include <ai_msg.h>
 
 #include <maya/MPxNode.h>
 #include <maya/MFnDependencyNode.h>

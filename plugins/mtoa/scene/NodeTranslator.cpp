@@ -82,9 +82,14 @@ AtNode* CNodeTranslator::DoExport(AtUInt step)
 {
    if (step == 0)
    {
+      if (m_outputAttr != "")
+         AiMsgDebug("[mtoa] Exporting: %s.%s", m_fnNode.name().asChar(), m_outputAttr.asChar());
+      else
+         AiMsgDebug("[mtoa] Exporting: %s", m_fnNode.name().asChar());
+
       m_atNode = Export();
       if (m_atNode == NULL)
-         AiMsgWarning("[mtoa] node %s did not return a valid arnold node. Motion blur and IPR will be disabled", m_fnNode.name().asChar());
+         AiMsgWarning("[mtoa] Node %s did not return a valid arnold node. Motion blur and IPR will be disabled", m_fnNode.name().asChar());
       else
       {
          ExportUserAttribute(m_atNode);
@@ -99,6 +104,11 @@ AtNode* CNodeTranslator::DoExport(AtUInt step)
    {
       if (RequiresMotionData())
       {
+         if (m_outputAttr != "")
+            AiMsgDebug("[mtoa] Exporting motion: %s.%s", m_fnNode.name().asChar(), m_outputAttr.asChar());
+         else
+            AiMsgDebug("[mtoa] Exporting motion: %s", m_fnNode.name().asChar());
+
          ExportMotion(m_atNode, step);
       }
    }
@@ -562,7 +572,7 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* mayaAt
    MPlug plug = m_fnNode.findPlug(mayaAttrib, &status);
    if (status != MS::kSuccess)
    {
-      AiMsgWarning("[mtoa] maya node %s does not have requested attribute %s", m_fnNode.name().asChar(), mayaAttrib);
+      AiMsgWarning("[mtoa] Maya node %s does not have requested attribute %s", m_fnNode.name().asChar(), mayaAttrib);
       return NULL;
    }
    return ProcessParameter(arnoldNode, plug, AiParamGetName(paramEntry), AiParamGetType(paramEntry), element);
@@ -574,7 +584,7 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* attrib
    MPlug plug = m_fnNode.findPlug(attrib, &status);
    if (status != MS::kSuccess)
    {
-      AiMsgWarning("[mtoa] maya node %s does not have requested attribute %s", m_fnNode.name().asChar(), attrib);
+      AiMsgWarning("[mtoa] Maya node %s does not have requested attribute %s", m_fnNode.name().asChar(), attrib);
       return NULL;
    }
    return ProcessParameter(arnoldNode, plug, attrib, arnoldAttribType, element);
@@ -586,7 +596,7 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* mayaAt
    MPlug plug = m_fnNode.findPlug(mayaAttrib, &status);
    if (status != MS::kSuccess)
    {
-      AiMsgWarning("[mtoa] maya node %s does not have requested attribute %s", m_fnNode.name().asChar(), mayaAttrib);
+      AiMsgWarning("[mtoa] Maya node %s does not have requested attribute %s", m_fnNode.name().asChar(), mayaAttrib);
       return NULL;
    }
    return ProcessParameter(arnoldNode, plug, arnoldAttrib, arnoldAttribType, element);
@@ -603,7 +613,7 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, MPlug& plug, const
 {
    if (arnoldNode == NULL)
    {
-      AiMsgError("[mtoa] cannot process %s parameter on null node", arnoldAttrib);
+      AiMsgError("[mtoa] Cannot process %s parameter on null node", arnoldAttrib);
       return NULL;
    }
 

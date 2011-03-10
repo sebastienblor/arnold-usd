@@ -295,6 +295,42 @@ namespace // <anonymous>
 
       return status;
    }
+
+   // Setup a default logging level to use when not rendering.
+   // Logging parameters are stored on the render options node and are only put in place when a render
+   // is triggered.
+   void SetupLogging()
+   {
+      // TODO: read this initial value from an environment variable or option variable
+      AtInt defaultLogFlags = AI_LOG_INFO | AI_LOG_WARNINGS | AI_LOG_ERRORS | AI_LOG_TIMESTAMP | AI_LOG_BACKTRACE | AI_LOG_MEMORY;
+      AiMsgSetConsoleFlags(defaultLogFlags);
+   }
+}
+
+AtVoid MtoaLoggingCallback(AtInt logmask, AtInt severity, const char *msg_string, AtInt tabs)
+{
+   char *buf;
+   buf= new char[strlen(msg_string)+7]; // reserve and allocate memory
+   sprintf(buf, "[mtoa] %s", msg_string);
+   switch (severity)
+   {
+   case AI_SEVERITY_INFO:
+      if (logmask & AI_LOG_INFO)
+         MGlobal::displayInfo(buf);
+      break;
+   case AI_SEVERITY_WARNING:
+      if (logmask & AI_LOG_WARNINGS)
+         MGlobal::displayWarning(buf);
+      break;
+   case AI_SEVERITY_ERROR:
+      if (logmask & AI_LOG_ERRORS)
+         MGlobal::displayError(buf);
+      break;
+   default:
+      // call default logging callback
+      break;
+   }
+   if (buf!=NULL) delete[] buf; // clear memory
 }
 
 
@@ -302,9 +338,11 @@ DLLEXPORT MStatus initializePlugin(MObject object)
 {
    MStatus status;
 
-	MFnPlugin plugin(object, MTOA_VENDOR, MTOA_VERSION, MAYA_VERSION);
+   MFnPlugin plugin(object, MTOA_VENDOR, MTOA_VERSION, MAYA_VERSION);
 
    AiBegin();
+
+   SetupLogging();
 
    // TODO: Add proper checking and handling of returned status
    status = plugin.registerCommand("arnoldRender", CArnoldRenderCmd::creator, CArnoldRenderCmd::newSyntax);
