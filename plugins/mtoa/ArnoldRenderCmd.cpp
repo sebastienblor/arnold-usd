@@ -1,4 +1,3 @@
-
 #include "ArnoldRenderCmd.h"
 #include "render/RenderSession.h"
 
@@ -56,7 +55,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
    // and share same proc for ArnoldRenderCmd and ArnoldExportAssCmd
    short renderType = 0;
    MSelectionList list;
-   MObject        node;
+   MObject node;
    list.add("defaultArnoldRenderOptions");
    if (list.length() > 0)
    {
@@ -73,8 +72,10 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
          MString curProject = MGlobal::executeCommandStringResult("workspace -q -o");
          if (curProject != "")
          {
-            MString dirProject = MGlobal::executeCommandStringResult("workspace -q -rd "+curProject);
-            MString assDir = MGlobal::executeCommandStringResult("workspace -q -fileRuleEntry ArnoldSceneSource");
+            MString dirProject = MGlobal::executeCommandStringResult("workspace -q -rd "
+                  + curProject);
+            MString assDir = MGlobal::executeCommandStringResult(
+                  "workspace -q -fileRuleEntry ArnoldSceneSource");
             filename = dirProject + "/" + assDir + "/" + filename + ".ass";
          }
          else
@@ -89,7 +90,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
          filename = MFileIO::currentFile() + ".ass";
       }
       MString cmdStr = "arnoldExportAss";
-      cmdStr += " -f \""+filename+"\"";
+      cmdStr += " -f \"" + filename + "\"";
       if (exportOptions.filter.unselected)
       {
          cmdStr += " -s";
@@ -98,8 +99,8 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       // cmdStr += " -bb";
       if (renderGlobals.isAnimated())
       {
-         AtFloat startframe = static_cast<float>(renderGlobals.frameStart.as(MTime::uiUnit()));
-         AtFloat endframe = static_cast<float>(renderGlobals.frameEnd.as(MTime::uiUnit()));
+         AtFloat startframe = static_cast<float> (renderGlobals.frameStart.as(MTime::uiUnit()));
+         AtFloat endframe = static_cast<float> (renderGlobals.frameEnd.as(MTime::uiUnit()));
          AtFloat byframestep = renderGlobals.frameBy;
          cmdStr += " -sf ";
          cmdStr += startframe;
@@ -111,12 +112,12 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       MString camera = args.flagArgumentString("camera", 0);
       if (camera != "")
       {
-         cmdStr += " -cam "+camera;
+         cmdStr += " -cam " + camera;
       }
       status = MGlobal::executeCommand(cmdStr);
       if (MStatus::kSuccess == status)
       {
-         MGlobal::displayInfo("[mtoa] Exported scene to file "+filename);
+         MGlobal::displayInfo("[mtoa] Exported scene to file " + filename);
          if (renderType == 2)
          {
 #ifdef _WIN32
@@ -127,12 +128,12 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
             int i;
             i = system(cmd.asChar());
 
-            MGlobal::displayInfo("value returned "+i);
+            MGlobal::displayInfo("value returned " + i);
          }
       }
       else
       {
-         MGlobal::displayError("[mtoa] Failed to export scene to file "+filename);
+         MGlobal::displayError("[mtoa] Failed to export scene to file " + filename);
       }
 
       return status;
@@ -140,41 +141,46 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
 
    // Note: Maya seems to internally calls the preRender preLayerRender scripts
    //       as well as the postRender and postLayerRender ones
-   
+
    // Check if in batch mode
    if (batch)
    {
       // TODO: This really needs to go. We're translating the whole scene for a couple of
       // render options.
-      
+
       AtFloat startframe;
       AtFloat endframe;
       AtFloat byframestep;
 
       if (renderGlobals.isAnimated())
       {
-         startframe = static_cast<float>(renderGlobals.frameStart.as(MTime::uiUnit()));
-         endframe = static_cast<float>(renderGlobals.frameEnd.as(MTime::uiUnit()));
+         startframe = static_cast<float> (renderGlobals.frameStart.as(MTime::uiUnit()));
+         endframe = static_cast<float> (renderGlobals.frameEnd.as(MTime::uiUnit()));
          byframestep = renderGlobals.frameBy;
+         // in case startFrame == endFrame, we
       }
       else
       {
-         startframe  = 0;
-         endframe    = 0;
+         startframe = 0;
+         endframe = 0;
          byframestep = 1;
       }
+
+      //FIXME: in command line mode, seems that maya doesn't move to the first frame correctly.
+      MGlobal::viewFrame((double) startframe);
 
       for (AtFloat framerender = startframe; framerender <= endframe; framerender += byframestep)
       {
          const CRenderOptions* renderOptions = renderSession->RenderOptions();
-         if (renderOptions->isAnimated()) MGlobal::viewFrame((double)framerender);
+         if (renderOptions->isAnimated())
+            MGlobal::viewFrame((double) framerender);
          renderSession->ExecuteScript(renderGlobals.preRenderMel);
 
          // FIXME: do we really need to reset options each time?
          renderSession->Translate(exportOptions);
 
          MStringArray cameras;
-         MItDag  dagIterCameras(MItDag::kDepthFirst, MFn::kCamera);
+         MItDag dagIterCameras(MItDag::kDepthFirst, MFn::kCamera);
 
          // get all renderable cameras
          for (dagIterCameras.reset(); (!dagIterCameras.isDone()); dagIterCameras.next())
@@ -186,14 +192,14 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
             }
 
             MFnDependencyNode camDag(dagIterCameras.item());
-            if(camDag.findPlug("renderable").asBool())
+            if (camDag.findPlug("renderable").asBool())
             {
                MFnDagNode cameraNode(dagPath);
                cameras.append(cameraNode.name().asChar());
             }
          }
 
-         if (cameras.length()>1)
+         if (cameras.length() > 1)
          {
             renderSession->SetMultiCameraRender(true);
          }
@@ -212,22 +218,21 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
    // or interactive mode
    else
    {
-      int width  = args.isFlagSet("width") ? args.flagArgumentInt("width", 0) : -1;
+      int width = args.isFlagSet("width") ? args.flagArgumentInt("width", 0) : -1;
       int height = args.isFlagSet("height") ? args.flagArgumentInt("height", 0) : -1;
       MString camera = args.flagArgumentString("camera", 0);
 
       renderSession->ExecuteScript(renderGlobals.preRenderMel);
 
-      renderSession->Finish();                        // In case we're already rendering (e.g. IPR).
-      renderSession->Translate(exportOptions);        // Translate the scene from Maya.
+      renderSession->Finish(); // In case we're already rendering (e.g. IPR).
+      renderSession->Translate(exportOptions); // Translate the scene from Maya.
       renderSession->SetCamera(camera);
       renderSession->SetResolution(width, height);
-      renderSession->DoInteractiveRender();           // Start the render.
-      renderSession->Finish();                        // Clean up.
+      renderSession->DoInteractiveRender(); // Start the render.
+      renderSession->Finish(); // Clean up.
 
       renderSession->ExecuteScript(renderGlobals.postRenderMel);
    }
-
 
    return status;
 }
