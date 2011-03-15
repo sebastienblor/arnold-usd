@@ -58,7 +58,7 @@ def createBackground(type, field):
     bg = getBackgroundShader()
     #if bg:
         #cmds.delete(bg)
-    node = cmds.shadingNode(type, asShader=True)
+    node = cmds.shadingNode(type, asShader=True, name=type+"Shape")
     changeBackground(node, field)
 
 
