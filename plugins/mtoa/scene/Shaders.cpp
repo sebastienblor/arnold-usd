@@ -1297,4 +1297,65 @@ AtNode* CLayeredShaderTranslator::Export()
 
 void CLayeredShaderTranslator::Update(AtNode* shader)
 {
+   MPlug attr, elem, color, transp;
+   MPlugArray conns;
+   MObject colorSrc, transpSrc;
+   bool useTransparency;
+   char mayaAttr[64];
+   char arniAttr[64];
+
+   ProcessParameter(shader, "compositingFlag", AI_TYPE_ENUM);
+
+   attr = m_fnNode.findPlug("inputs");
+   AtUInt numElements = attr.numElements();
+   if (numElements > 8)
+   {
+      MGlobal::displayWarning("[mtoa] layeredShader node has more than 8 inputs, only the first 8 will be handled");
+      numElements = 8;
+   }
+
+   AiNodeSetUInt(shader, "numInputs", numElements);
+
+   MObject colorAttr = m_fnNode.attribute("color");
+   MObject transpAttr = m_fnNode.attribute("transparency");
+
+   for (AtUInt i = 0; i < numElements; ++i)
+   {
+      elem = attr.elementByPhysicalIndex(i);
+
+      color = elem.child(colorAttr);
+      transp = elem.child(transpAttr);
+
+      colorSrc = MObject::kNullObj;
+      transpSrc = MObject::kNullObj;
+
+      conns.clear();
+      color.connectedTo(conns, true, false);
+      if (conns.length() > 0)
+         colorSrc = conns[0].node();
+
+      conns.clear();
+      transp.connectedTo(conns, true, false);
+      if (conns.length() > 0)
+         transpSrc = conns[0].node();
+
+      if (transpSrc.isNull())
+         useTransparency = true;
+      else
+         useTransparency = (colorSrc != transpSrc);
+
+      sprintf(mayaAttr, "inputs[%u].color", elem.logicalIndex());
+      sprintf(arniAttr, "color%u", i);
+      ProcessParameter(shader, mayaAttr, arniAttr, AI_TYPE_RGB);
+
+      sprintf(arniAttr, "useTransparency%u", i);
+      AiNodeSetBool(shader, arniAttr, useTransparency ? TRUE : FALSE);
+
+      if (useTransparency)
+      {
+         sprintf(mayaAttr, "inputs[%u].transparency", elem.logicalIndex());
+         sprintf(arniAttr, "transparency%u", i);
+         ProcessParameter(shader, mayaAttr, arniAttr, AI_TYPE_RGB);
+      }
+   }
 }
