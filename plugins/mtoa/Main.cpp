@@ -40,7 +40,7 @@
 #include <maya/MGlobal.h>
 
 #define MTOA_VENDOR "SolidAngle"
-#define MTOA_VERSION "0.5"
+#define MTOA_VERSION "0.6"
 #define MAYA_VERSION "Any"
 
 namespace // <anonymous>
