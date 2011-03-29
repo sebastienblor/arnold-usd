@@ -90,7 +90,7 @@ public:
    
    CNodeTranslator * GetActiveTranslator( const MObject node );
    
-   static void UpdateIPR(CNodeTranslator * translator=0x0);
+   static void UpdateIPR(CNodeTranslator * translator=NULL);
    static bool IsVisibleDag(MDagPath dagPath);
 
    bool IsMotionBlurEnabled() const

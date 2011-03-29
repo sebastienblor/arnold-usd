@@ -140,7 +140,7 @@ void CNodeTranslator::NodeDeletedCallback(MObject &node, MDGModifier &modifier, 
 {
    AiMsgDebug( "[mtoa] Node deleted, updating Arnold %p", clientData );
    CNodeTranslator * translator = static_cast< CNodeTranslator* >(clientData);
-   if ( translator != 0x0 )
+   if ( translator != NULL )
    {
       translator->RemoveCallbacks();
       translator->Delete();
@@ -155,7 +155,7 @@ void CNodeTranslator::UpdateIPR( void * clientData )
 {
    // Remove this node from the callback list.
    CNodeTranslator * translator = static_cast< CNodeTranslator* >(clientData);
-   if ( translator != 0x0 )
+   if ( translator != NULL )
    {
       translator->RemoveCallbacks();
       CMayaScene::UpdateIPR( translator );

@@ -129,11 +129,11 @@ public:
 private:
 
    CRenderSession()
-   : m_scene(0x0)
+   : m_scene(NULL)
    , m_paused_ipr(false)
    , m_is_active(false)
    , m_idle_cb(0)
-   , m_render_thread(0x0)
+   , m_render_thread(NULL)
    {
    }   
 

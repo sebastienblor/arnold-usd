@@ -155,10 +155,10 @@ void CRenderSession::Finish()
 
    // This will release the scene and therefore any
    // translators it has held.
-   if ( m_scene != 0x0 )
+   if ( m_scene != NULL )
    {
       delete m_scene;
-      m_scene = 0x0;
+      m_scene = NULL;
    }
    
    m_is_active = false;
@@ -172,11 +172,11 @@ void CRenderSession::InterruptRender()
    ClearIdleRenderViewCallback();
 
    // Wait for the thread to clear.
-   if (m_render_thread != 0x0 )
+   if (m_render_thread != NULL )
    {
       AiThreadWait(m_render_thread);
       AiThreadClose(m_render_thread);
-	  m_render_thread = 0x0;		// Until this is handled by AiThreadClose? Had issues where it tried to close an already closed thread
+     m_render_thread = NULL;		// Until this is handled by AiThreadClose? Had issues where it tried to close an already closed thread
    }
 }
 
@@ -311,19 +311,19 @@ void CRenderSession::SetupRenderOutput()
    // OUTPUT STRINGS
    AtChar   str[1024];
    int ndrivers = 0;
-   if ( render_view != 0x0 ) ++ndrivers;
-   if ( file_driver != 0x0 ) ++ndrivers;
+   if ( render_view != NULL ) ++ndrivers;
+   if ( file_driver != NULL ) ++ndrivers;
 
    AtArray* outputs  = AiArrayAllocate(ndrivers+m_renderOptions.NumAOVs(), 1, AI_TYPE_STRING);
 
    int driver_num(0);
-   if (render_view != 0x0)
+   if (render_view != NULL)
    {
       sprintf(str, "RGBA RGBA %s %s", AiNodeGetName(filter), AiNodeGetName(render_view) );
       AiArraySetStr(outputs, driver_num++, str);
    }
 
-   if ( file_driver != 0x0 )
+   if ( file_driver != NULL )
    {
       sprintf(str, "RGBA RGBA %s %s", AiNodeGetName(filter), AiNodeGetName(file_driver));
       AiArraySetStr(outputs, driver_num++, str);
@@ -341,7 +341,7 @@ void CRenderSession::SetupRenderOutput()
 AtNode * CRenderSession::CreateFileOutput()
 {
    // Don't install the file driver when in IPR mode.
-   if ( GetMayaScene()->GetExportMode() == MTOA_EXPORT_IPR ) return 0x0;
+   if ( GetMayaScene()->GetExportMode() == MTOA_EXPORT_IPR ) return NULL;
 
    AtNode* driver;
    // set the output driver
@@ -398,10 +398,10 @@ AtNode * CRenderSession::CreateFileOutput()
 AtNode * CRenderSession::CreateRenderViewOutput()
 {
    // Don't create it if we're in batch mode.
-   if (m_renderOptions.BatchMode()) return 0x0;
+   if (m_renderOptions.BatchMode()) return NULL;
 
    AtNode * driver = AiNodeLookUpByName( "renderview_display" );
-   if ( driver == 0x0 )
+   if ( driver == NULL )
    {
       AiNodeInstall(AI_NODE_DRIVER,
                     AI_TYPE_NONE,
@@ -422,7 +422,7 @@ AtNode * CRenderSession::CreateOutputFilter()
 {
    // OUTPUT FILTER (use for all image outputs)
    AtNode* filter = AiNodeLookUpByName( m_renderOptions.filterType().asChar() );
-   if (filter == 0x0) filter = AiNode(m_renderOptions.filterType().asChar());
+   if (filter == NULL) filter = AiNode(m_renderOptions.filterType().asChar());
    AiNodeSetStr( filter, "name", m_renderOptions.filterType().asChar() );
 
    // Only set filter parameters if they exist within that specific node
@@ -606,7 +606,7 @@ void CRenderSession::AddIdleRenderViewCallback()
       MStatus status;
       m_idle_cb = MEventMessage::addEventCallback( "idle",
                                                    CRenderSession::updateRenderViewCallback,
-                                                   0x0,
+                                                   NULL,
                                                    &status );
    }
 }
@@ -658,7 +658,7 @@ void CRenderSession::DoSwatchRender(const AtInt resolution)
 
 bool CRenderSession::GetSwatchImage(MImage & image)
 {
-   if ( GetMayaScene() == 0x0 || GetMayaScene()->GetExportMode() != MTOA_EXPORT_SWATCH )
+   if ( GetMayaScene() == NULL || GetMayaScene()->GetExportMode() != MTOA_EXPORT_SWATCH )
    {
       return false;
    }

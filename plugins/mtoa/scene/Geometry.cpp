@@ -872,7 +872,7 @@ void CGeoTranslator::ShaderAssignmentCallback( MNodeMessage::AttributeMessage ms
    if ( (msg & MNodeMessage::kConnectionMade) && (plug.partialName() == "iog") )
    {
       CGeoTranslator * translator = static_cast< CGeoTranslator* >(clientData);
-      if ( translator != 0x0 )
+      if ( translator != NULL )
       {
          // Interupt the render.
          CRenderSession* renderSession = CRenderSession::GetInstance();

@@ -314,7 +314,7 @@ void InitializeDisplayUpdateQueue()
 {
    // Clears the display update queue, in case we had aborted a previous render.
    ClearDisplayUpdateQueue();
-   s_start_time = time(0x0);
+   s_start_time = time(NULL);
    s_finishedRendering = false;
 }
 
@@ -329,7 +329,7 @@ void FinishedWithDisplayUpdateQueue()
    const AtInt sssSamples(    AiNodeGetInt(AiUniverseGetOptions(), "GI_sss_hemi_samples"));
 
    // Calculate the time taken.
-   const time_t elapsed = time(0x0) - s_start_time;
+   const time_t elapsed = time(NULL) - s_start_time;
    char command_str[256];
    sprintf( command_str,
             "arnoldIpr -mode finishedIPR -elapsedTime \"%ld:%02ld\" -samplingInfo \"[%d/%d/%d/%d]\" ;",

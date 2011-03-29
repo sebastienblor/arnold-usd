@@ -40,8 +40,8 @@ CMayaScene::~CMayaScene()
       ClearIPRCallbacks();
    }
 
-   if ( m_fnCommonRenderOptions != 0x0 ) delete m_fnCommonRenderOptions;
-   if ( m_fnArnoldRenderOptions != 0x0 ) delete m_fnArnoldRenderOptions;
+   if ( m_fnCommonRenderOptions != NULL ) delete m_fnCommonRenderOptions;
+   if ( m_fnArnoldRenderOptions != NULL ) delete m_fnArnoldRenderOptions;
 
    // Delete translators
    ObjectToTranslatorMap::iterator it;
@@ -295,7 +295,7 @@ MStatus CMayaScene::ExportScene(AtUInt step)
    }
    
    // Add callbacks if we're in IPR mode.
-   if ( GetExportMode() == MTOA_EXPORT_IPR && s_NewNodeCallbackId == 0x0 )
+   if ( GetExportMode() == MTOA_EXPORT_IPR && s_NewNodeCallbackId == 0 )
    {
       s_NewNodeCallbackId = MDGMessage::addNodeAddedCallback( CMayaScene::IPRNewNodeCallback );
    }
@@ -457,7 +457,7 @@ CNodeTranslator * CMayaScene::GetActiveTranslator( const MObject node )
       return static_cast< CNodeTranslator* >( translatorIt->second );
    }
 
-   return 0x0;
+   return NULL;
 }
 
 void CMayaScene::ClearIPRCallbacks()
@@ -481,7 +481,7 @@ void CMayaScene::ClearIPRCallbacks()
    ObjectToTranslatorMap::iterator it;
    for(it = m_processedTranslators.begin(); it != m_processedTranslators.end(); ++it)
    {
-      if ( it->second != 0x0 ) it->second->RemoveCallbacks();
+      if ( it->second != NULL ) it->second->RemoveCallbacks();
    }
 
    ObjectToDagTranslatorMap::iterator dagIt;
@@ -504,7 +504,7 @@ void CMayaScene::IPRNewNodeCallback(MObject & node, void *)
    // Interupt rendering
    renderSession->InterruptRender();
    CNodeTranslator * translator = renderSession->GetMayaScene()->GetActiveTranslator(node);
-   if ( translator != 0x0 )
+   if ( translator != NULL )
    {
       renderSession->GetMayaScene()->UpdateIPR( translator );
       return;
@@ -545,7 +545,7 @@ void CMayaScene::IPRIdleCallback(void *)
          iter != s_translatorsToIPRUpdate.end(); ++iter)
       {
          CNodeTranslator* translator = (*iter);
-         if ( translator != 0x0 ) translator->DoUpdate(0);
+         if ( translator != NULL ) translator->DoUpdate(0);
       }
    }
    else
@@ -558,7 +558,7 @@ void CMayaScene::IPRIdleCallback(void *)
             iter != s_translatorsToIPRUpdate.end(); ++iter)
          {
             CNodeTranslator* translator = (*iter);
-            if ( translator != 0x0 )translator->DoUpdate(J);
+            if ( translator != NULL )translator->DoUpdate(J);
          }
       }
       MGlobal::viewFrame(MTime(scene->GetCurrentFrame(), MTime::uiUnit()));
@@ -572,7 +572,7 @@ void CMayaScene::IPRIdleCallback(void *)
 
 void CMayaScene::UpdateIPR( CNodeTranslator * translator )
 {
-   if ( translator != 0x0 )
+   if ( translator != NULL )
    {
       s_translatorsToIPRUpdate.push_back( translator );
    }
