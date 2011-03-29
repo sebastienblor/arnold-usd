@@ -22,7 +22,7 @@ def skyDomeLightShaderTemplate(nodeName):
     cmds.editorTemplate(addSeparator=True)
     customShapeAttributes.commonLightAttributes(nodeName)
 
-    editorTemplate(endLayout=True)
+    cmds.editorTemplate(endLayout=True)
 
     cmds.editorTemplate(beginLayout="Shadows", collapse=True)
 
@@ -30,20 +30,20 @@ def skyDomeLightShaderTemplate(nodeName):
     cmds.editorTemplate("shadow_density", addControl=True, label="Shadow Density")
     cmds.editorTemplate("shadow_color", addControl=True, label="Shadow Color")
 
-    editorTemplate(endLayout=True)
+    cmds.editorTemplate(endLayout=True)
 
     cmds.editorTemplate(beginLayout="Hardware Texturing", collapse=True)
 
     cmds.editorTemplate("sampling", addControl=True, label="Texture Resolution")
     cmds.editorTemplate("hwtexalpha", addControl=True, label="Opacity")
 
-    editorTemplate(endLayout=True)
+    cmds.editorTemplate(endLayout=True)
 
     cmds.editorTemplate(beginLayout="Viewport", collapse=True)
 
     cmds.editorTemplate("skyRadius", addControl=True, label="Sky Radius")
 
-    editorTemplate(endLayout=True)
+    cmds.editorTemplate(endLayout=True)
 
     # Do not show extra attributes
     extras = ["visibility",
