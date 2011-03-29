@@ -112,6 +112,7 @@ namespace // <anonymous>
       CTranslatorRegistry::RegisterDependTranslator("projection", MAYA_NODEID_PROJECTION, CProjectionTranslator::creator);
       CTranslatorRegistry::RegisterDependTranslator("ramp", MAYA_NODEID_RAMP, CRampTranslator::creator);
       CTranslatorRegistry::RegisterDependTranslator("layeredTexture", MAYA_NODEID_LAYERED_TEXTURE, CLayeredTextureTranslator::creator);
+      CTranslatorRegistry::RegisterDependTranslator("layeredShader", MAYA_NODEID_LAYERED_SHADER, CLayeredShaderTranslator::creator);
 
       // sky is technically a DAG node, but it behaves like a DG node (i.e. it is only exported when a connection is processed)
       // therefore, it is not registered as a DagTranslator

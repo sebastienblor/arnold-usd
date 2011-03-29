@@ -1284,3 +1284,17 @@ void CLayeredTextureTranslator::Update(AtNode* shader)
    AiNodeSetArray(shader, "alpha", inputAlphaArray);
    AiNodeSetArray(shader, "colorConnectedToAlpha", colorConnectedToAlphaArray);
 }
+
+// LayeredShader
+//
+AtNode* CLayeredShaderTranslator::Export()
+{
+   AtNode* shader = AiNode("MayaLayeredShader");
+   AiNodeSetStr(shader, "name", m_fnNode.name().asChar());
+   Update(shader);
+   return shader;
+}
+
+void CLayeredShaderTranslator::Update(AtNode* shader)
+{
+}

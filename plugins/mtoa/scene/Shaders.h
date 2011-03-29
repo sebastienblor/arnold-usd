@@ -33,5 +33,6 @@ SHADER_TRANSLATOR(CRemapColorTranslator);
 SHADER_TRANSLATOR(CProjectionTranslator);
 SHADER_TRANSLATOR(CRampTranslator);
 SHADER_TRANSLATOR(CLayeredTextureTranslator);
+SHADER_TRANSLATOR(CLayeredShaderTranslator);
 
 #endif // SHADERS_H
