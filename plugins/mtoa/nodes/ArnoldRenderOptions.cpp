@@ -102,7 +102,7 @@ void* CArnoldRenderOptionsNode::creator()
 void CArnoldRenderOptionsNode::createdCallback(MObject& node, void* clientData)
 {  
    MSelectionList list;
-	
+   
    list.add( "time1" );
    MObject timeNode;
    list.getDependNode( 0, timeNode ); 

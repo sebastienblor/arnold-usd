@@ -26,70 +26,70 @@ char CArnoldAssTranslator::optionDefault[]   = "";
 
 inline bool CArnoldAssTranslator::haveReadMethod () const
 {
-	return false;
+   return false;
 }
 
 inline bool CArnoldAssTranslator::haveWriteMethod () const
 {
-	return true;
+   return true;
 }
 
 inline bool CArnoldAssTranslator::canBeOpened () const
 {
-	return false;
+   return false;
 }
 
 inline MString CArnoldAssTranslator::defaultExtension() const
 {
-	return MString(fileExtension);
+   return MString(fileExtension);
 }
 
 void* CArnoldAssTranslator::creator()
 {
-	return new CArnoldAssTranslator();
+   return new CArnoldAssTranslator();
 }
 
 // To identify an ass file, look at the header if possible or just use the extension
 MPxFileTranslator::MFileKind CArnoldAssTranslator::identifyFile(
-		const MFileObject& file, const char* buffer, short bufferLen) const
+      const MFileObject& file, const char* buffer, short bufferLen) const
 {
-	MString	tagStr = "### from:     Arnold";
-	int		tagLen = tagStr.length();
+   MString	tagStr = "### from:     Arnold";
+   int		tagLen = tagStr.length();
 
-	// If the buffer contains enough info to positively identify the file,
-	// then use it.  Otherwise we'll base the identification on the file
-	// extension.
-	if (bufferLen >= tagLen)
-	{
-		MString	initialContents(buffer, bufferLen);
-		MStringArray	initialLines;
+   // If the buffer contains enough info to positively identify the file,
+   // then use it.  Otherwise we'll base the identification on the file
+   // extension.
+   if (bufferLen >= tagLen)
+   {
+      MString	initialContents(buffer, bufferLen);
+      MStringArray	initialLines;
 
-		initialContents.split('\n', initialLines);
+      initialContents.split('\n', initialLines);
 
-		if (initialLines.length() > 1)
-		{
-			if (((int)initialLines[1].length() >= tagLen)
-			&&	(initialLines[1].substring(0, tagLen-1) == tagStr))
-			{
-				return kIsMyFileType;
-			}
-		}
-	}
-	else
-	{
-		MString	fileName(file.name());
-		int		fileNameLen = fileName.length();
-		int		startOfExtension = fileName.rindex('.') + 1;
+      if (initialLines.length() > 1)
+      {
+         if (((int)initialLines[1].length() >= tagLen)
+         &&	(initialLines[1].substring(0, tagLen-1) == tagStr))
+         {
+            return kIsMyFileType;
+         }
+      }
+   }
+   else
+   {
+      MString	fileName(file.name());
+      int		fileNameLen = fileName.length();
+      int		startOfExtension = fileName.rindex('.') + 1;
 
-		if ((startOfExtension > 0)
-		&&	(startOfExtension < fileNameLen)
-		&&	(fileName.substring(startOfExtension, fileNameLen) == fileExtension))
-		{
-			return kIsMyFileType;
-		}
-	}
+      if ((startOfExtension > 0)
+      &&	(startOfExtension < fileNameLen)
+      &&	(fileName.substring(startOfExtension, fileNameLen) == fileExtension))
+      {
+         return kIsMyFileType;
+      }
+   }
 
-	return kNotMyFileType;
+   return kNotMyFileType;
 }
 
 
@@ -108,13 +108,13 @@ MStatus CArnoldAssTranslator::writer(
 	if (mode == MPxFileTranslator::kExportActiveAccessMode)
 		cmdStr += " -s";
 
-	// Rest of the options on arnoldExportAss are
-	// syntax.addFlag("cam", "camera", MSyntax::kString);
-	// syntax.addFlag("sf", "startFrame", MSyntax::kLong);
-	// syntax.addFlag("ef", "endFrame", MSyntax::kLong);
-	// syntax.addFlag("fs", "frameStep", MSyntax::kLong);
-	// cmdStr += options;
+   // Rest of the options on arnoldExportAss are
+   // syntax.addFlag("cam", "camera", MSyntax::kString);
+   // syntax.addFlag("sf", "startFrame", MSyntax::kLong);
+   // syntax.addFlag("ef", "endFrame", MSyntax::kLong);
+   // syntax.addFlag("fs", "frameStep", MSyntax::kLong);
+   // cmdStr += options;
 
-	return MGlobal::executeCommand(cmdStr);
+   return MGlobal::executeCommand(cmdStr);
 
 }

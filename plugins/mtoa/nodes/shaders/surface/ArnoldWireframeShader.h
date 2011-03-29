@@ -19,7 +19,7 @@ public:
    static void* creator();
    static MStatus initialize();
 
-	static MTypeId id;
+   static MTypeId id;
 
    // Input attributes
    static MObject s_edge_type;

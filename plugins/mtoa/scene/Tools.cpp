@@ -35,21 +35,21 @@ bool CMayaScene::IsTemplated(MFnDagNode node)
    MStatus status;
 
    if (node.isIntermediateObject())
-	  return false;
+     return false;
 
    MPlug templatePlug = node.findPlug("template", &status);
    MPlug overDispPlug = node.findPlug("overrideDisplayType", &status);
 
    if (status == MStatus::kFailure)
-	   return false;
+      return false;
 
    if (templatePlug.asBool())
-	  return true;
+     return true;
    else
-	   if (overDispPlug.asInt()==1)
-		   return true;
-	   else
-		   return false;
+      if (overDispPlug.asInt()==1)
+         return true;
+      else
+         return false;
 }
 
 // Check if a DagNode is visible, by attribute or layer.

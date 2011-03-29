@@ -169,14 +169,14 @@ public:
 
    void SetRegion( const AtUInt left, const AtUInt right, const AtUInt bottom, const AtUInt top )
    {
-		m_useRenderRegion = true;
+      m_useRenderRegion = true;
 
-		m_minx = left;
-		m_miny = bottom;
-		m_maxx = right;
-		m_maxy = top;
+      m_minx = left;
+      m_miny = bottom;
+      m_maxx = right;
+      m_maxy = top;
 
-		SetupImageOptions();
+      SetupImageOptions();
    }
 
    MString GetCameraName() const

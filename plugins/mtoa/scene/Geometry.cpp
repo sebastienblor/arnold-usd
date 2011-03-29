@@ -216,44 +216,44 @@ bool CGeoTranslator::GetTangents(MFnMesh &fnMesh, std::vector<float> &tangents, 
 
 bool CGeoTranslator::GetRefObj(MFnMesh &fnMesh, std::vector<float> &refVertices, std::vector<float> &refNormals)
 {
-	MStatus stat;
+   MStatus stat;
 
-	//Check if there is a referenceObject plug
-	MPlug pReferenceObject = fnMesh.findPlug("referenceObject", false, &stat);
+   //Check if there is a referenceObject plug
+   MPlug pReferenceObject = fnMesh.findPlug("referenceObject", false, &stat);
 
-	if (stat != MStatus::kSuccess)
-		return false;
+   if (stat != MStatus::kSuccess)
+      return false;
 
-	MPlugArray connectedPlugs;
-	MObject referenceObject;
+   MPlugArray connectedPlugs;
+   MObject referenceObject;
 
-	//Check if anything is connected to .referenceObject plug
-	pReferenceObject.connectedTo(connectedPlugs, true, true, &stat);
-	if (stat != MStatus::kSuccess || 1 != connectedPlugs.length() ) {
-		return false;
-	}
-	else
-	{
-		//checking if a script is not going rogue : the object must be a mesh !
-		referenceObject = connectedPlugs[0].node();
-		if (referenceObject.hasFn(MFn::kMesh) != 1)	return false;
-	}
+   //Check if anything is connected to .referenceObject plug
+   pReferenceObject.connectedTo(connectedPlugs, true, true, &stat);
+   if (stat != MStatus::kSuccess || 1 != connectedPlugs.length() ) {
+      return false;
+   }
+   else
+   {
+      //checking if a script is not going rogue : the object must be a mesh !
+      referenceObject = connectedPlugs[0].node();
+      if (referenceObject.hasFn(MFn::kMesh) != 1)	return false;
+   }
 
-	MFnMesh referenceObjectMesh(referenceObject);
+   MFnMesh referenceObjectMesh(referenceObject);
 
-	//Check if the numbers of vertices is the same as the current object
-	if (referenceObjectMesh.numVertices() != m_fnMesh.numVertices())
-	{
-	return false;
-	}
+   //Check if the numbers of vertices is the same as the current object
+   if (referenceObjectMesh.numVertices() != m_fnMesh.numVertices())
+   {
+   return false;
+   }
 
-	//Get vertices of the reference object in world space
-	GetVerticesWorld(referenceObject ,referenceObjectMesh, refVertices);
+   //Get vertices of the reference object in world space
+   GetVerticesWorld(referenceObject ,referenceObjectMesh, refVertices);
 
-	//Get normals of the reference object
-	GetNormals(referenceObjectMesh, refNormals);
+   //Get normals of the reference object
+   GetNormals(referenceObjectMesh, refNormals);
 
-	return true;
+   return true;
 }
 
 bool CGeoTranslator::GetUVs(MFnMesh &fnMesh, std::vector<float> &uvs)
@@ -607,7 +607,7 @@ void CGeoTranslator::ExportMeshGeoData(AtNode* polymesh, AtUInt step)
 
       if (exportReferenceObjects)
       {
-       	 AiNodeSetArray(polymesh, "Pref", AiArrayConvert(m_fnMesh.numVertices(), 1, AI_TYPE_POINT, &(refVertices[0]), TRUE));
+           AiNodeSetArray(polymesh, "Pref", AiArrayConvert(m_fnMesh.numVertices(), 1, AI_TYPE_POINT, &(refVertices[0]), TRUE));
          AiNodeSetArray(polymesh, "Nref", AiArrayConvert(m_fnMesh.numNormals(), 1, AI_TYPE_VECTOR, &(refNormals[0]), TRUE));
 
       }

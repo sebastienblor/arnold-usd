@@ -39,21 +39,21 @@ CAOV& CAOV::operator=(const CAOV &rhs)
 
 void CAOV::ReturnType(MString &mtype) const
 {
-	switch (mtype.asInt())
-	{
-	case 0:
-		mtype.set("FLOAT");
-		break;
-	case 1:
-		mtype.set("RGB");
-		break;
-	case 2:
-		mtype.set("RGBA");
-		break;
-	case 3:
-		mtype.set("VECTOR");
-		break;
-	}
+   switch (mtype.asInt())
+   {
+   case 0:
+      mtype.set("FLOAT");
+      break;
+   case 1:
+      mtype.set("RGB");
+      break;
+   case 2:
+      mtype.set("RGBA");
+      break;
+   case 3:
+      mtype.set("VECTOR");
+      break;
+   }
 }
 
 void CAOV::NormalizePath(MString &path) const
