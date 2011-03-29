@@ -24,7 +24,7 @@ else:
    local_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
 
 
-MTOA_SHADERS = local_env.SharedLibrary('mtoa_shaders', source_files)
+MTOA_SHADERS = local_env.SharedLibrary('mtoa_shaders', source_files, LIBPREFIX='')
 
 if system.os() == 'windows':
    local_env['MSVSSCONSCRIPT'] = local_env.File('SConscript')

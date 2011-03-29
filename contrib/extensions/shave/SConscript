@@ -64,7 +64,7 @@ else:
    shader_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
 
 
-EXT_SHADERS = shader_env.SharedLibrary('shave_shaders', source_files)
+EXT_SHADERS = shader_env.SharedLibrary('shave_shaders', source_files, LIBPREFIX='')
 
 if system.os() == 'windows':
    EXT_SHADERS_PRJ = shader_env.MSVSProject(target = 'shave_shaders' + shader_env['MSVS']['PROJECTSUFFIX'],
