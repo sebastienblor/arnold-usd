@@ -508,11 +508,90 @@ void CNodeTranslator::ExportDynamicIntParameter(AtNode* arnoldNode, const char* 
       AiNodeSetInt(arnoldNode, paramName, plug.asInt());
 }
 
+MPlug CNodeTranslator::GetPlugElement(MFnDependencyNode& node, MPlug& plug, const std::string &attr)
+{
+   if (attr.length() == 0)
+   {
+      MGlobal::displayError("[mtoa] Invalid plug name: \"" + MString(attr.c_str()) + "\"");
+      return MPlug();
+   }
+
+   int idx = -1;
+   std::string an = attr;
+   size_t p1 = an.length() - 1;
+
+   if (an[p1] == ']')
+   {
+      size_t p0 = an.rfind('[');
+
+      if (p0 == std::string::npos)
+      {
+         MGlobal::displayError("[mtoa] Invalid plug name: \"" + MString(attr.c_str()) + "\"");
+         return MPlug();
+      }
+
+      std::string ai = an.substr(p0+1, p1-p0-1);
+
+      if (sscanf(ai.c_str(), "%d", &idx) != 1)
+      {
+         MGlobal::displayError("[mtoa] Invalid plug name: \"" + MString(attr.c_str()) + "\"");
+         return MPlug();
+      }
+
+      an = an.substr(0, p0);
+   }
+
+   MPlug eplug;
+
+   if (plug.isNull())
+   {
+      eplug = node.findPlug(an.c_str());
+   }
+   else
+   {
+      MObject childAttr = node.attribute(an.c_str());
+      eplug = plug.child(childAttr);
+   }
+
+   if (idx >= 0)
+   {
+      eplug = eplug.elementByLogicalIndex(idx);
+   }
+
+   return eplug;
+}
+
+// This allows for: FindPlug(shader, "input3D[10].input3Dx")
+//                  which MFnDependencyNode::findPlug() does not support
+MPlug CNodeTranslator::FindPlug(MFnDependencyNode& node, const std::string& param)
+{
+   size_t p0, p1;
+   MPlug cplug;
+
+   p0 = 0;
+   p1 = param.find('.', p0);
+
+   while (p1 != std::string::npos)
+   {
+      cplug = GetPlugElement(node, cplug, param.substr(p0, p1-p0));
+
+      if (cplug.isNull())
+      {
+         return cplug;
+      }
+
+      p0 = p1 + 1;
+      p1 = param.find('.', p0);
+   }
+   
+   return GetPlugElement(node, cplug, param.substr(p0));
+}
+
 AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* mayaAttrib, const AtParamEntry* paramEntry, int element)
 {
    MStatus status;
-   MPlug plug = m_fnNode.findPlug(mayaAttrib, &status);
-   if (status != MS::kSuccess)
+   MPlug plug = FindPlug(m_fnNode, mayaAttrib);
+   if (plug.isNull())
    {
       AiMsgWarning("[mtoa] maya node %s does not have requested attribute %s", m_fnNode.name().asChar(), mayaAttrib);
       return NULL;
@@ -523,8 +602,8 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* mayaAt
 AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* attrib, int arnoldAttribType, int element)
 {
    MStatus status;
-   MPlug plug = m_fnNode.findPlug(attrib, &status);
-   if (status != MS::kSuccess)
+   MPlug plug = FindPlug(m_fnNode, attrib);
+   if (plug.isNull())
    {
       AiMsgWarning("[mtoa] maya node %s does not have requested attribute %s", m_fnNode.name().asChar(), attrib);
       return NULL;
@@ -535,8 +614,8 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* attrib
 AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* mayaAttrib, const char* arnoldAttrib, int arnoldAttribType, int element)
 {
    MStatus status;
-   MPlug plug = m_fnNode.findPlug(mayaAttrib, &status);
-   if (status != MS::kSuccess)
+   MPlug plug = FindPlug(m_fnNode, mayaAttrib);
+   if (plug.isNull())
    {
       AiMsgWarning("[mtoa] maya node %s does not have requested attribute %s", m_fnNode.name().asChar(), mayaAttrib);
       return NULL;
