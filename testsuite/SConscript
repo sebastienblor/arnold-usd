@@ -25,7 +25,7 @@ def find_test_group(group):
          if line.startswith('#'):
             # Skip comment lines
             continue
-         (l, s, r) = line.partition(':')
+         (l, s, r) = strpartition(line, ':')
          if s == ':':
             if group == l.rstrip():
                # We found the test group
@@ -579,7 +579,7 @@ while True:
       
    target = BUILD_TARGETS[index]
    
-   (l, s, r) = target.partition(':')
+   (l, s, r) = strpartition(target, ':')
 
    # Target "maketest[:testname]", creates a new test in the testsuite (defaults to the next available name in ascending order)
    if l == 'maketest':

@@ -98,7 +98,10 @@ if system.os() == 'windows':
    # Ugly hack. Create a temporary environment, without loading any tool, so we can set the MSVS_ARCH
    # variable from the contents of the TARGET_ARCH variable. Then we can load tools.
    tmp_env = Environment(variables = vars, tools=[])
-   tmp_env.Append(MSVS_ARCH = ('amd64' if tmp_env['TARGET_ARCH'] == 'x86_64' else 'x86'))
+   if tmp_env['TARGET_ARCH'] == 'x86_64':
+      tmp_env.Append(MSVS_ARCH = 'amd64')
+   else:
+      tmp_env.Append(MSVS_ARCH = 'x86')
    env = tmp_env.Clone(tools=['default'])
 else:
    env = Environment(variables = vars)

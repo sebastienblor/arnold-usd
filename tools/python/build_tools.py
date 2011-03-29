@@ -171,11 +171,21 @@ def get_latest_revision():
 
    return (revision, url)
 
+## Hacky replacement for the string partition method which is only available from Python 2.5
+def strpartition(string, sep):
+   index = string.find(sep)
+   if index == -1:
+      return (string, '', '')
+   return (string[:index], sep, string[index + 1:])
+
 def add_to_path(env, new_path):
 	env['ENV']['PATH'] = '%s;%s' % (new_path, env['ENV']['PATH'])
 
 def get_default_path(var, default):
-   return os.environ[var] if var in os.environ else default 
+   if var in os.environ:
+      return os.environ[var]
+   else:   
+      return default 
 
 def get_escaped_path(path):
    if system.os() == 'windows':
