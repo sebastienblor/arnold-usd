@@ -1176,6 +1176,9 @@ AtNode* CLayeredTextureTranslator::Export()
 void CLayeredTextureTranslator::Update(AtNode* shader)
 {
    MPlug attr, elem, color, alpha, blendMode, isVisible;
+   MPlugArray connections;
+   MObject colorSrc, alphaSrc;
+   bool colorConnectedToAlpha;
    char mayaAttr[64];
    char aiAttr[64];
 
@@ -1205,11 +1208,36 @@ void CLayeredTextureTranslator::Update(AtNode* shader)
 
       sprintf(mayaAttr, "inputs[%u].color", elem.logicalIndex());
       sprintf(aiAttr, "color%u", i);
-      ProcessParameter(shader, mayaAttr, aiAttr, AI_TYPE_RGB);
+      ProcessParameter(shader, mayaAttr, aiAttr, AI_TYPE_RGBA);
 
-      sprintf(mayaAttr, "inputs[%u].alpha", elem.logicalIndex());
+      // Alpha connection is not directly handled
+      // Export alpha value, not its connection
+
       sprintf(aiAttr, "alpha%u", i);
-      ProcessParameter(shader, mayaAttr, aiAttr, AI_TYPE_FLOAT);
+      AiNodeSetFlt(shader, aiAttr, alpha.asFloat());
+
+      // Alpha connection is only handled when 
+      // The input in color and alpha is the same
+
+      colorSrc = MObject::kNullObj;
+      alphaSrc = MObject::kNullObj;
+
+      color.connectedTo(connections, true, false);
+      if (connections.length() > 0)
+         colorSrc = connections[0].node();
+
+      connections.clear();
+      alpha.connectedTo(connections, true, false);
+      if (connections.length() > 0)
+         alphaSrc = connections[0].node();
+
+      if (alphaSrc.isNull())
+         colorConnectedToAlpha = false;
+      else
+         colorConnectedToAlpha = (colorSrc == alphaSrc);
+
+      sprintf(aiAttr, "colorConnectedToAlpha%u", i);
+      AiNodeSetBool(shader, aiAttr, colorConnectedToAlpha ? TRUE : FALSE);
 
       sprintf(mayaAttr, "inputs[%u].blendMode", elem.logicalIndex());
       sprintf(aiAttr, "blendMode%u", i);

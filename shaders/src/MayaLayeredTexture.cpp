@@ -31,6 +31,14 @@ namespace
       p_alpha5,
       p_alpha6,
       p_alpha7,
+      p_colorConnectedToAlpha0,
+      p_colorConnectedToAlpha1,
+      p_colorConnectedToAlpha2,
+      p_colorConnectedToAlpha3,
+      p_colorConnectedToAlpha4,
+      p_colorConnectedToAlpha5,
+      p_colorConnectedToAlpha6,
+      p_colorConnectedToAlpha7,
 	   p_blendMode0,
       p_blendMode1,
       p_blendMode2,
@@ -89,22 +97,30 @@ namespace
 node_parameters
 {
 	AiParameterUINT("numInputs", 0);
-   AiParameterRGB("color0", 0.0f, 0.0f, 0.0f);
-   AiParameterRGB("color1", 0.0f, 0.0f, 0.0f);
-   AiParameterRGB("color2", 0.0f, 0.0f, 0.0f);
-   AiParameterRGB("color3", 0.0f, 0.0f, 0.0f);
-   AiParameterRGB("color4", 0.0f, 0.0f, 0.0f);
-   AiParameterRGB("color5", 0.0f, 0.0f, 0.0f);
-   AiParameterRGB("color6", 0.0f, 0.0f, 0.0f);
-   AiParameterRGB("color7", 0.0f, 0.0f, 0.0f);
-   AiParameterFLT("alpha0", 0.0f);
-   AiParameterFLT("alpha1", 0.0f);
-   AiParameterFLT("alpha2", 0.0f);
-   AiParameterFLT("alpha3", 0.0f);
-   AiParameterFLT("alpha4", 0.0f);
-   AiParameterFLT("alpha5", 0.0f);
-   AiParameterFLT("alpha6", 0.0f);
-   AiParameterFLT("alpha7", 0.0f);
+   AiParameterRGBA("color0", 0.0f, 0.0f, 0.0f, 1.0f);
+   AiParameterRGBA("color1", 0.0f, 0.0f, 0.0f, 1.0f);
+   AiParameterRGBA("color2", 0.0f, 0.0f, 0.0f, 1.0f);
+   AiParameterRGBA("color3", 0.0f, 0.0f, 0.0f, 1.0f);
+   AiParameterRGBA("color4", 0.0f, 0.0f, 0.0f, 1.0f);
+   AiParameterRGBA("color5", 0.0f, 0.0f, 0.0f, 1.0f);
+   AiParameterRGBA("color6", 0.0f, 0.0f, 0.0f, 1.0f);
+   AiParameterRGBA("color7", 0.0f, 0.0f, 0.0f, 1.0f);
+   AiParameterFLT("alpha0", 1.0f);
+   AiParameterFLT("alpha1", 1.0f);
+   AiParameterFLT("alpha2", 1.0f);
+   AiParameterFLT("alpha3", 1.0f); 
+   AiParameterFLT("alpha4", 1.0f);
+   AiParameterFLT("alpha5", 1.0f);
+   AiParameterFLT("alpha6", 1.0f);
+   AiParameterFLT("alpha7", 1.0f);
+   AiParameterBOOL("colorConnectedToAlpha0", FALSE);
+   AiParameterBOOL("colorConnectedToAlpha1", FALSE);
+   AiParameterBOOL("colorConnectedToAlpha2", FALSE);
+   AiParameterBOOL("colorConnectedToAlpha3", FALSE);
+   AiParameterBOOL("colorConnectedToAlpha4", FALSE);
+   AiParameterBOOL("colorConnectedToAlpha5", FALSE);
+   AiParameterBOOL("colorConnectedToAlpha6", FALSE);
+   AiParameterBOOL("colorConnectedToAlpha7", FALSE);
    AiParameterENUM("blendMode0", 0, gs_BlendModeNames);
    AiParameterENUM("blendMode1", 0, gs_BlendModeNames);
    AiParameterENUM("blendMode2", 0, gs_BlendModeNames);
@@ -150,9 +166,17 @@ shader_evaluate
 		   if (AiShaderEvalParamBool(p_visible0+i) == FALSE)   // Disabled, skip
 			   continue;
 
-         AtRGB color = AiShaderEvalParamRGB(p_color0+i);
+         AtRGBA color = AiShaderEvalParamRGBA(p_color0+i);
          AtFloat alpha = AiShaderEvalParamFlt(p_alpha0+i);
          AtInt blendMode = AiShaderEvalParamInt(p_blendMode0+i);
+
+         AtBoolean colorConnectedToAlpha = AiShaderEvalParamBool(p_colorConnectedToAlpha0+i);
+
+         // Multiply input alpha with the color's alpha value to support alpha texturing
+         // Until Arnold has a proper connectable array attribute
+
+         if (colorConnectedToAlpha)
+            alpha *= color.a;
 
          switch (blendMode)
          {
