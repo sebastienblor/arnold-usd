@@ -1266,7 +1266,7 @@ void CLayeredShaderTranslator::Update(AtNode* shader)
    MObject colorSrc, transpSrc;
    bool useTransparency;
    char mayaAttr[64];
-   char arniAttr[64];
+   char aiAttr[64];
 
    ProcessParameter(shader, "compositingFlag", AI_TYPE_ENUM);
 
@@ -1309,17 +1309,17 @@ void CLayeredShaderTranslator::Update(AtNode* shader)
          useTransparency = (colorSrc != transpSrc);
 
       sprintf(mayaAttr, "inputs[%u].color", elem.logicalIndex());
-      sprintf(arniAttr, "color%u", i);
-      ProcessParameter(shader, mayaAttr, arniAttr, AI_TYPE_RGB);
+      sprintf(aiAttr, "color%u", i);
+      ProcessParameter(shader, mayaAttr, aiAttr, AI_TYPE_RGB);
 
-      sprintf(arniAttr, "useTransparency%u", i);
-      AiNodeSetBool(shader, arniAttr, useTransparency ? TRUE : FALSE);
+      sprintf(aiAttr, "useTransparency%u", i);
+      AiNodeSetBool(shader, aiAttr, useTransparency ? TRUE : FALSE);
 
       if (useTransparency)
       {
          sprintf(mayaAttr, "inputs[%u].transparency", elem.logicalIndex());
-         sprintf(arniAttr, "transparency%u", i);
-         ProcessParameter(shader, mayaAttr, arniAttr, AI_TYPE_RGB);
+         sprintf(aiAttr, "transparency%u", i);
+         ProcessParameter(shader, mayaAttr, aiAttr, AI_TYPE_RGB);
       }
    }
 }
