@@ -5,6 +5,7 @@
 #define MNoPluginEntry
 
 #include "nodes/ArnoldNodeIDs.h"
+#include "nodes/MayaNodeIDs.h"
 #include "scene/NodeTranslator.h"
 #include "scene/MayaScene.h"
 #include "utils/AttrHelper.h"
