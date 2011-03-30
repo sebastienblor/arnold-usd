@@ -1210,12 +1210,6 @@ void CLayeredTextureTranslator::Update(AtNode* shader)
       sprintf(aiAttr, "color%u", i);
       ProcessParameter(shader, mayaAttr, aiAttr, AI_TYPE_RGBA);
 
-      // Alpha connection is not directly handled
-      // Export alpha value, not its connection
-
-      sprintf(aiAttr, "alpha%u", i);
-      AiNodeSetFlt(shader, aiAttr, alpha.asFloat());
-
       // Alpha connection is only handled when 
       // The input in color and alpha is the same
 
@@ -1238,6 +1232,14 @@ void CLayeredTextureTranslator::Update(AtNode* shader)
 
       sprintf(aiAttr, "colorConnectedToAlpha%u", i);
       AiNodeSetBool(shader, aiAttr, colorConnectedToAlpha ? TRUE : FALSE);
+
+      if (!colorConnectedToAlpha && alphaSrc.isNull())
+      {
+         // Export alpha value when it's not connected
+
+         sprintf(aiAttr, "alpha%u", i);
+         AiNodeSetFlt(shader, aiAttr, alpha.asFloat());
+      }
 
       sprintf(mayaAttr, "inputs[%u].blendMode", elem.logicalIndex());
       sprintf(aiAttr, "blendMode%u", i);
