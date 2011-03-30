@@ -1262,7 +1262,7 @@ AtNode* CLayeredShaderTranslator::Export()
 void CLayeredShaderTranslator::Update(AtNode* shader)
 {
    MPlug attr, elem, color, transp;
-   MPlugArray conns;
+   MPlugArray connections;
    MObject colorSrc, transpSrc;
    bool useTransparency;
    char mayaAttr[64];
@@ -1293,15 +1293,15 @@ void CLayeredShaderTranslator::Update(AtNode* shader)
       colorSrc = MObject::kNullObj;
       transpSrc = MObject::kNullObj;
 
-      conns.clear();
-      color.connectedTo(conns, true, false);
-      if (conns.length() > 0)
-         colorSrc = conns[0].node();
+      connections.clear();
+      color.connectedTo(connections, true, false);
+      if (connections.length() > 0)
+         colorSrc = connections[0].node();
 
-      conns.clear();
-      transp.connectedTo(conns, true, false);
-      if (conns.length() > 0)
-         transpSrc = conns[0].node();
+      connections.clear();
+      transp.connectedTo(connections, true, false);
+      if (connections.length() > 0)
+         transpSrc = connections[0].node();
 
       if (transpSrc.isNull())
          useTransparency = true;
