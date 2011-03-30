@@ -1175,114 +1175,50 @@ AtNode* CLayeredTextureTranslator::Export()
 
 void CLayeredTextureTranslator::Update(AtNode* shader)
 {
-   MPlug plug, elem, child;
+   MPlug attr, elem, color, alpha, blendMode, isVisible;
+   char mayaAttr[64];
+   char aiAttr[64];
 
-   plug = m_fnNode.findPlug("inputs");
-
-   std::vector<bool> visibleList;
-   std::vector<int> blendModeList;
-   std::vector<AtNode*> inputColorList;
-   std::vector<float> inputAlphaList;
-   std::vector<bool> colorConnectedToAlphaList;
-
-   MPlug childIsVisible, childBlendMode, childColor, childAlpha;
-
-   unsigned int numElements = plug.numElements();
-   for (unsigned int i = 0; i < numElements; ++i)
+   attr = m_fnNode.findPlug("inputs");
+   AtUInt numElements = attr.numElements();
+   if (numElements > 8)
    {
-      elem = plug.elementByPhysicalIndex(i);
-
-      unsigned int numChildren = elem.numChildren();
-      for (unsigned int j = 0; j < numChildren; ++j)
-      {
-         MPlug child = elem.child(j);
-         MFnAttribute attribute(child.attribute());
-
-         if (attribute.name() == "isVisible")
-            childIsVisible = child;
-         else if (attribute.name() == "blendMode")
-            childBlendMode = child;
-         else if (attribute.name() == "color")
-            childColor = child;
-         else if (attribute.name() == "alpha")
-            childAlpha = child;
-      }
-
-      visibleList.push_back(childIsVisible.asBool());
-      blendModeList.push_back(childBlendMode.asInt());
-
-      MPlugArray connections;
-      childColor.connectedTo(connections, true, false);
-
-      if (connections.length() > 0)
-      {
-         MObject inputTexture = connections[0].node();
-
-         AtNode *arnoldInputNode = m_scene->ExportShader(inputTexture);
-         inputColorList.push_back(arnoldInputNode);
-
-         MFnDependencyNode inputTextureNode(inputTexture);
-         MPlug out;
-
-         out = inputTextureNode.findPlug("outAlpha");
-         if (!out.isNull())
-         {
-            MPlugArray outConnections;
-            out.connectedTo(outConnections, false, true);
-
-            if (outConnections.length() > 0)
-            {
-               MPlug destPlug = outConnections[0];
-               MFnAttribute destAttribute(destPlug.attribute());
-
-               if (destAttribute.name() == "alpha")
-                  colorConnectedToAlphaList.push_back(true);
-               else
-                  colorConnectedToAlphaList.push_back(false);
-
-               inputAlphaList.push_back(childAlpha.asFloat());
-            }
-         }
-      }
-      else
-      {
-         AtNode *arnoldInputNode = AiNode("flat");
-
-         MString flatName = m_fnNode.name() + "flat" + (i);
-         AiNodeSetStr(arnoldInputNode, "name", flatName.asChar());
-
-         AiNodeSetRGB(arnoldInputNode, "color", childColor.child(0).asFloat(), childColor.child(1).asFloat(), childColor.child(2).asFloat());
-
-         inputColorList.push_back(arnoldInputNode);
-      }
-
-      if (colorConnectedToAlphaList.size() < inputColorList.size())
-      {
-         colorConnectedToAlphaList.push_back(false);
-         inputAlphaList.push_back(childAlpha.asFloat());
-      }
+      MGlobal::displayWarning("[mtoa] layeredTexture node has more than 8 inputs, only the first 8 will be handled");
+      numElements = 8;
    }
 
-   AtArray *visibleArray = AiArrayAllocate(numElements, 1, AI_TYPE_BOOLEAN);
-   AtArray *blendModeArray = AiArrayAllocate(numElements, 1, AI_TYPE_INT);
-   AtArray *inputColorArray = AiArrayAllocate(numElements, 1, AI_TYPE_NODE);
-   AtArray *inputAlphaArray = AiArrayAllocate(numElements, 1, AI_TYPE_FLOAT);
-   AtArray *colorConnectedToAlphaArray = AiArrayAllocate(numElements, 1, AI_TYPE_BOOLEAN);
+   AiNodeSetUInt(shader, "numInputs", numElements);
 
-   for (unsigned int i=0; i<numElements; ++i)
+   MObject colorAttr = m_fnNode.attribute("color");
+   MObject alphaAttr = m_fnNode.attribute("alpha");
+   MObject blendModeAttr = m_fnNode.attribute("blendMode");
+   MObject isVisibleAttr = m_fnNode.attribute("isVisible");
+
+   for (AtUInt i = 0; i < numElements; ++i)
    {
-      AiArraySetBool(visibleArray, i, visibleList[i]);
-      AiArraySetInt(blendModeArray, i, blendModeList[i]);
-      AiArraySetPtr(inputColorArray, i, inputColorList[i]);
-      AiArraySetFlt(inputAlphaArray, i, inputAlphaList[i]);
-      AiArraySetBool(colorConnectedToAlphaArray, i, colorConnectedToAlphaList[i]);
-   }
+      elem = attr.elementByPhysicalIndex(i);
 
-   AiNodeSetArray(shader, "visible", visibleArray);
-   AiNodeSetArray(shader, "blendMode", blendModeArray);
-   AiNodeSetArray(shader, "color", inputColorArray);
-   AiNodeSetArray(shader, "alpha", inputAlphaArray);
-   AiNodeSetArray(shader, "colorConnectedToAlpha", colorConnectedToAlphaArray);
+      color = elem.child(colorAttr);
+      alpha = elem.child(alphaAttr);
+      blendMode = elem.child(blendModeAttr);
+      isVisible = elem.child(isVisibleAttr);
+
+      sprintf(mayaAttr, "inputs[%u].color", elem.logicalIndex());
+      sprintf(aiAttr, "color%u", i);
+      ProcessParameter(shader, mayaAttr, aiAttr, AI_TYPE_RGB);
+
+      sprintf(mayaAttr, "inputs[%u].alpha", elem.logicalIndex());
+      sprintf(aiAttr, "alpha%u", i);
+      ProcessParameter(shader, mayaAttr, aiAttr, AI_TYPE_FLOAT);
+
+      sprintf(mayaAttr, "inputs[%u].blendMode", elem.logicalIndex());
+      sprintf(aiAttr, "blendMode%u", i);
+      ProcessParameter(shader, mayaAttr, aiAttr, AI_TYPE_ENUM);
+
+      sprintf(mayaAttr, "inputs[%u].isVisible", elem.logicalIndex());
+      sprintf(aiAttr, "visible%u", i);
+      ProcessParameter(shader, mayaAttr, aiAttr, AI_TYPE_BOOLEAN);
+   }
 }
 
 // LayeredShader
