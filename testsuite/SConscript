@@ -434,7 +434,7 @@ testsuite_bld = Builder(action = process_testsuite)
 
 class Test:
    def __init__(self,
-                script = '"%s" -rd testrenderdir -r arnold "%s"' % (
+                script = '"%s" -rd testrenderdir -r arnold -x 160 -y 120 "%s"' % (
                    os.path.join(env['MAYA_ROOT'], 'bin', 'render'),
                    'test.mb'),
                 plugin_sources      = '*.c*',
