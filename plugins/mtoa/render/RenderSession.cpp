@@ -132,7 +132,7 @@ void CRenderSession::Translate(ExportOptions options)
 {
    if (AiUniverseIsActive())
    {
-      AiMsgError("[mtoa] ERROR: There can only be one RenderSession active.");
+      AiMsgError("[mtoa] There can only be one RenderSession active.");
       return;
    }
 
@@ -161,7 +161,7 @@ AtBBox CRenderSession::GetBoundingBox()
    }
    else
    {
-      AiMsgError("[mtoa] ERROR: RenderSession is not active.");
+   	AiMsgError("[mtoa] RenderSession is not active");
    }
 
    return bbox;

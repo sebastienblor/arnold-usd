@@ -78,7 +78,6 @@ MStatus CMayaScene::ExportToArnold()
    ExportMode exportMode = m_exportOptions.mode;
    bool filterSelected = m_exportOptions.filter.unselected;
    
-   // TODO: that's probably where we want to pass custom renderOptions
    PrepareExport();
 
    // Are we motion blurred?
@@ -92,7 +91,7 @@ MStatus CMayaScene::ExportToArnold()
    if (mb)
    {
       // first step is the real export
-      AiMsgDebug("[mtoa] exporting step 0 at frame %f", m_motionBlurData.frames[0]);
+      AiMsgDebug("[mtoa] Exporting step 0 at frame %f", m_motionBlurData.frames[0]);
       MGlobal::viewFrame(MTime(m_motionBlurData.frames[0], MTime::uiUnit()));
    }
    // First "real" export
@@ -133,7 +132,7 @@ MStatus CMayaScene::ExportToArnold()
    }
    else
    {
-      AiMsgDebug( "[mtoa] unsupported export mode: %d", exportMode );
+      AiMsgDebug( "[mtoa] Unsupported export mode: %d", exportMode );
       return MStatus::kFailure;
    }
 
@@ -141,12 +140,10 @@ MStatus CMayaScene::ExportToArnold()
    if (mb)
    {
       // loop through motion steps
-      // FIXME: should we export cameras / lights and other objects motion data
-      // separatly depending on what motion blur is on?
       for (int step = 1; step < m_motionBlurData.motion_steps; ++step)
       {
          MGlobal::viewFrame(MTime(m_motionBlurData.frames[step], MTime::uiUnit()));
-         AiMsgDebug("[mtoa] exporting step %d at frame %f", step, m_motionBlurData.frames[step]);
+         AiMsgDebug("[mtoa] Exporting step %d at frame %f", step, m_motionBlurData.frames[step]);
          // then, loop through the already processed dag translators and export for current step
          ObjectToDagTranslatorMap::iterator dagIt;
          for(dagIt = m_processedDagTranslators.begin(); dagIt != m_processedDagTranslators.end(); ++dagIt)
@@ -250,7 +247,7 @@ MStatus CMayaScene::ExportCameras(AtUInt step)
       }
       else
       {
-         AiMsgError("[mtoa] ERROR: Could not get path for Maya cameras DAG iterator.");
+         AiMsgError("[mtoa] Could not get path for Maya cameras DAG iterator.");
          status = MS::kFailure;
       }
    }
@@ -290,7 +287,7 @@ MStatus CMayaScene::ExportLights(AtUInt step)
       }
       else
       {
-         AiMsgError("[mtoa] ERROR: Could not get path for Maya lights DAG iterator.");
+         AiMsgError("[mtoa] Could not get path for Maya lights DAG iterator.");
          status = MS::kFailure;
       }
    }
@@ -332,7 +329,7 @@ MStatus CMayaScene::ExportScene(AtUInt step)
       }
       else
       {
-         AiMsgError("[mtoa] ERROR: Could not get path for Maya DAG iterator.");
+         AiMsgError("[mtoa] Could not get path for Maya DAG iterator.");
          status = MS::kFailure;
       }
    }
