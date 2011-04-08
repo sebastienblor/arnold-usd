@@ -64,11 +64,9 @@ enum DagFiltered
 struct ExportOptions
 {
    ExportMode mode;
-   bool computeBoundingBox;
    ExportFilter filter;
    ExportOptions() : mode(MTOA_EXPORT_UNDEFINED),
-                     computeBoundingBox(false),
-                     filter(ExportFilter())  {}
+                     filter(ExportFilter()) {}
 };
 
 struct CMotionBlurData
@@ -204,7 +202,6 @@ private:
    void ConvertMatrix(AtMatrix& matrix, const MMatrix& mayamatrix);
 
    void GetMotionBlurData();
-   MBoundingBox GetBoundingBox();
 
    void ClearIPRCallbacks();
    static void IPRNewNodeCallback(MObject & node, void *);

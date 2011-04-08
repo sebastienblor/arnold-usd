@@ -31,6 +31,7 @@ MObject CArnoldRenderOptionsNode::s_arnoldRenderImageTiled;
 MObject CArnoldRenderOptionsNode::s_arnoldRenderImageUnpremultAlpha;
 MObject CArnoldRenderOptionsNode::s_aovs;
 MObject CArnoldRenderOptionsNode::s_renderType;
+MObject CArnoldRenderOptionsNode::s_outputAssBoundingBox;
 MObject CArnoldRenderOptionsNode::s_progressive_rendering;
 MObject CArnoldRenderOptionsNode::s_physically_based;
 MObject CArnoldRenderOptionsNode::s_threads;
@@ -198,6 +199,10 @@ MStatus CArnoldRenderOptionsNode::initialize()
    eAttr.addField("Export Ass", 1);
    eAttr.addField("Export and Render", 2);
    addAttribute(s_renderType);
+
+   s_outputAssBoundingBox = nAttr.create("outputAssBoundingBox", "assbb", MFnNumericData::kBoolean, 0);
+   nAttr.setKeyable(false);
+   addAttribute(s_outputAssBoundingBox);
 
    s_progressive_rendering = nAttr.create("progressive_rendering", "prog", MFnNumericData::kBoolean, 0);
    nAttr.setKeyable(false);

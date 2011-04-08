@@ -54,6 +54,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
    // FIXME: just a fast hack, should rehaul CRenderOptions code
    // and share same proc for ArnoldRenderCmd and ArnoldExportAssCmd
    short renderType = 0;
+   bool outputAssBoundingBox = false;
    MSelectionList list;
    MObject node;
    list.add("defaultArnoldRenderOptions");
@@ -62,7 +63,9 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       list.getDependNode(0, node);
       MFnDependencyNode fnArnoldRenderOptions(node);
       renderType = fnArnoldRenderOptions.findPlug("renderType").asShort();
+      outputAssBoundingBox = fnArnoldRenderOptions.findPlug("outputAssBoundingBox").asBool();
    }
+
    if (renderType != 0)
    {
       MString filename;
@@ -89,14 +92,20 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
          // If all else fails, use the current Maya scene + ass
          filename = MFileIO::currentFile() + ".ass";
       }
+
       MString cmdStr = "arnoldExportAss";
       cmdStr += " -f \"" + filename + "\"";
+
       if (exportOptions.filter.unselected)
       {
          cmdStr += " -s";
       }
-      // TODO : bounding box options
-      // cmdStr += " -bb";
+
+      if (outputAssBoundingBox)
+      {
+         cmdStr += " -bb";
+      }
+
       if (renderGlobals.isAnimated())
       {
          AtFloat startframe = static_cast<float> (renderGlobals.frameStart.as(MTime::uiUnit()));
@@ -109,11 +118,13 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
          cmdStr += " -fs ";
          cmdStr += byframestep;
       }
+
       MString camera = args.flagArgumentString("camera", 0);
       if (camera != "")
       {
          cmdStr += " -cam " + camera;
       }
+
       status = MGlobal::executeCommand(cmdStr);
       if (MStatus::kSuccess == status)
       {
