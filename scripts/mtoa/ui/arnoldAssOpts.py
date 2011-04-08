@@ -50,8 +50,8 @@ def readMaskValues():
 
 
 def arnoldAssOpts(parent = '', action = '', initialSettings = '', resultCallback = ''):
-    print 'parent: %(p)s, action: %(a)s, settings: %(s)s, callback: %(c)s\n' % \
-      {"p": parent, "a": action, "s": initialSettings, "c": resultCallback}
+    #print 'parent: %(p)s, action: %(a)s, settings: %(s)s, callback: %(c)s\n' % \
+    #  {"p": parent, "a": action, "s": initialSettings, "c": resultCallback}
 
     retval = 0
     currentOptions = ''
@@ -67,6 +67,8 @@ def arnoldAssOpts(parent = '', action = '', initialSettings = '', resultCallback
 
         cmds.checkBox('oa_compressed', label='Use Compression')
         cmds.connectControl('oa_compressed', 'defaultArnoldRenderOptions.output_ass_compressed')
+
+        cmds.checkBox('oa_write_bbox', label='Write Bounding Box')
 
         cmds.separator(style='none')
 
@@ -91,8 +93,12 @@ def arnoldAssOpts(parent = '', action = '', initialSettings = '', resultCallback
     elif action == 'query':
         # TODO: make this more optionVar compliant ?
         storeMaskValues()
-        currentOptions = '-bb'
 
+        # If more options are used, the callback expects them to be ";" separated
+        if cmds.checkBox('oa_write_bbox', q=True, value=True):
+            currentOptions = '-bb'
+
+        #print 'callback: %(c)s, options: %(o)s\n' % {"c": resultCallback, "o": currentOptions}
         mel.eval(resultCallback+'("'+currentOptions+'")')
         retval = 1
 

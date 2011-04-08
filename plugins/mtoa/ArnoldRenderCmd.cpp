@@ -67,16 +67,33 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
    if (renderType != 0)
    {
       MString filename;
-      // filename = MFileIO::currentFile();
       filename = renderGlobals.name;
-      MString curProject = MGlobal::executeCommandStringResult("workspace -q -o");
-      MString dirProject = MGlobal::executeCommandStringResult("workspace -q -dir "+curProject);
-      MString assDir = MGlobal::executeCommandStringResult("workspace -q -fileRuleEntry ArnoldSceneSource");
-      filename = dirProject + "/" + assDir + "/" + filename + ".ass";
+      if (filename != "")
+      {
+         MString curProject = MGlobal::executeCommandStringResult("workspace -q -o");
+         if (curProject != "")
+         {
+            MString dirProject = MGlobal::executeCommandStringResult("workspace -q -rd "+curProject);
+            MString assDir = MGlobal::executeCommandStringResult("workspace -q -fileRuleEntry ArnoldSceneSource");
+            filename = dirProject + "/" + assDir + "/" + filename + ".ass";
+         }
+         else
+         {
+            MString curDir = MGlobal::executeCommandStringResult("workspace -q -dir");
+            filename = curDir + "/" + filename + ".ass";
+         }
+      }
+      else
+      {
+         // If all else fails, use the current Maya scene + ass
+         filename = MFileIO::currentFile() + ".ass";
+      }
       MString cmdStr = "arnoldExportAss";
       cmdStr += " -f \""+filename+"\"";
       if (exportOptions.filter.unselected)
+      {
          cmdStr += " -s";
+      }
       // TODO : bounding box options
       // cmdStr += " -bb";
       if (renderGlobals.isAnimated())
@@ -96,7 +113,29 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       {
          cmdStr += " -cam "+camera;
       }
-      return MGlobal::executeCommand(cmdStr);
+      status = MGlobal::executeCommand(cmdStr);
+      if (MStatus::kSuccess == status)
+      {
+         MGlobal::displayInfo("[mtoa] Exported scene to file "+filename);
+         if (renderType == 2)
+         {
+#ifdef _WIN32
+            MString cmd = "shell kick " + filename + " &";
+#else
+            MString cmd = "kick " + filename + " &";
+#endif
+            int i;
+            i = system(cmd.asChar());
+
+            MGlobal::displayInfo("value returned "+i);
+         }
+      }
+      else
+      {
+         MGlobal::displayError("[mtoa] Failed to export scene to file "+filename);
+      }
+
+      return status;
    }
 
    // Note: Maya seems to internally calls the preRender preLayerRender scripts
