@@ -456,6 +456,9 @@ MStatus CMayaScene::ExportDagPath(MDagPath &dagPath, AtUInt step)
    MFnDagNode node(dagPath.node());
    MObjectHandle handle = MObjectHandle(dagPath.node());
    int instanceNum = dagPath.instanceNumber();
+   // early out for nodes that have already been processed
+   if (m_processedDagTranslators[handle].count(instanceNum))
+      return MStatus::kSuccess;
    if (step == 0)
    {
       CDagTranslator* translator = CTranslatorRegistry::GetDagTranslator(node.typeId().id());
