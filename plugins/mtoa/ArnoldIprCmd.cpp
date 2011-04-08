@@ -64,6 +64,8 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
 
       MCommonRenderSettingsData renderGlobals;
       MRenderUtil::getCommonRenderSettings(renderGlobals);
+      exportOptions.filter.unselected = !renderGlobals.renderAll;
+
       renderSession->ExecuteScript(renderGlobals.preMel);
       renderSession->ExecuteScript(renderGlobals.preRenderMel);
 

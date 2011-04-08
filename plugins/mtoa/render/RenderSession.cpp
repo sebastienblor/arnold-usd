@@ -140,6 +140,9 @@ void CRenderSession::Translate(ExportOptions options)
    AiBegin();
    Init(options);
    LoadPlugins();
+
+   // Export options node first.
+   m_renderOptions.SetupRenderOptions();
    
    m_scene->ExportToArnold();
 }
@@ -483,7 +486,6 @@ void CRenderSession::DoInteractiveRender()
    comp.beginComputation();
 
    SetupRenderOutput();
-   m_renderOptions.SetupRenderOptions();
    PrepareRenderView();
 
    // Start the render thread.
@@ -504,7 +506,6 @@ void CRenderSession::DoInteractiveRender()
 void CRenderSession::DoBatchRender()
 {
    SetupRenderOutput();
-   m_renderOptions.SetupRenderOptions();
 
    AiRender(AI_RENDER_MODE_CAMERA);
 }
@@ -594,7 +595,6 @@ void CRenderSession::DoIPRRender()
       SetProgressive(true);
       SetBatch(false);
       SetupRenderOutput();
-      m_renderOptions.SetupRenderOptions();
       PrepareRenderView(true); // Install callbacks.
 
       // Start the render thread.

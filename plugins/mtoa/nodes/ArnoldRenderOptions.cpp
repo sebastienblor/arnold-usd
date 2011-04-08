@@ -30,6 +30,7 @@ MObject CArnoldRenderOptionsNode::s_arnoldRenderImageOutputFormat;
 MObject CArnoldRenderOptionsNode::s_arnoldRenderImageTiled;
 MObject CArnoldRenderOptionsNode::s_arnoldRenderImageUnpremultAlpha;
 MObject CArnoldRenderOptionsNode::s_aovs;
+MObject CArnoldRenderOptionsNode::s_renderType;
 MObject CArnoldRenderOptionsNode::s_progressive_rendering;
 MObject CArnoldRenderOptionsNode::s_physically_based;
 MObject CArnoldRenderOptionsNode::s_threads;
@@ -135,7 +136,7 @@ MStatus CArnoldRenderOptionsNode::initialize()
    MFnUnitAttribute	uAttr;
 
    s_arnoldRenderImageFormat = eAttr.create("arnoldRenderImageFormat", "arnif", 0);
-   nAttr.setKeyable(false);
+   eAttr.setKeyable(false);
    eAttr.addField("OpenEXR", 0);
    eAttr.addField("Tiff", 1);
    eAttr.addField("Jpg", 2);
@@ -143,7 +144,7 @@ MStatus CArnoldRenderOptionsNode::initialize()
    addAttribute(s_arnoldRenderImageFormat);
 
    s_arnoldRenderImageCompression = eAttr.create("compression","arnic",0);
-   nAttr.setKeyable(false);
+   eAttr.setKeyable(false);
    eAttr.addField("none", 0);
    eAttr.addField("rle", 1);
    eAttr.addField("zip", 2);
@@ -190,6 +191,13 @@ MStatus CArnoldRenderOptionsNode::initialize()
    s_aovs = mAttr.create("aovs", "arniaovs");
    mAttr.setKeyable(false);
    addAttribute(s_aovs);
+
+   s_renderType = eAttr.create("renderType", "arnrt", 0);
+   eAttr.setKeyable(false);
+   eAttr.addField("Interactive", 0);
+   eAttr.addField("Export Ass", 1);
+   eAttr.addField("Export and Render", 2);
+   addAttribute(s_renderType);
 
    s_progressive_rendering = nAttr.create("progressive_rendering", "prog", MFnNumericData::kBoolean, 0);
    nAttr.setKeyable(false);

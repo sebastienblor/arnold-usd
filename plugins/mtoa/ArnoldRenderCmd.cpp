@@ -15,6 +15,7 @@
 #include <maya/MGlobal.h>
 #include <maya/MSelectionList.h>
 #include <maya/MRenderUtil.h>
+#include <maya/MFileIO.h>
 
 MSyntax CArnoldRenderCmd::newSyntax()
 {
@@ -49,6 +50,54 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
    // TODO: get the "selected" flag here
    ExportOptions exportOptions;
    exportOptions.mode = MTOA_EXPORT_ALL;
+   exportOptions.filter.unselected = !renderGlobals.renderAll;
+
+   // FIXME: just a fast hack, should rehaul CRenderOptions code
+   // and share same proc for ArnoldRenderCmd and ArnoldExportAssCmd
+   short renderType = 0;
+   MSelectionList list;
+   MObject        node;
+   list.add("defaultArnoldRenderOptions");
+   if (list.length() > 0)
+   {
+      list.getDependNode(0, node);
+      MFnDependencyNode fnArnoldRenderOptions(node);
+      renderType = fnArnoldRenderOptions.findPlug("renderType").asShort();
+   }
+   if (renderType != 0)
+   {
+      MString filename;
+      // filename = MFileIO::currentFile();
+      filename = renderGlobals.name;
+      MString curProject = MGlobal::executeCommandStringResult("workspace -q -o");
+      MString dirProject = MGlobal::executeCommandStringResult("workspace -q -dir "+curProject);
+      MString assDir = MGlobal::executeCommandStringResult("workspace -q -fileRuleEntry ArnoldSceneSource");
+      filename = dirProject + "/" + assDir + "/" + filename + ".ass";
+      MString cmdStr = "arnoldExportAss";
+      cmdStr += " -f \""+filename+"\"";
+      if (exportOptions.filter.unselected)
+         cmdStr += " -s";
+      // TODO : bounding box options
+      // cmdStr += " -bb";
+      if (renderGlobals.isAnimated())
+      {
+         AtFloat startframe = static_cast<float>(renderGlobals.frameStart.as(MTime::uiUnit()));
+         AtFloat endframe = static_cast<float>(renderGlobals.frameEnd.as(MTime::uiUnit()));
+         AtFloat byframestep = renderGlobals.frameBy;
+         cmdStr += " -sf ";
+         cmdStr += startframe;
+         cmdStr += " -ef ";
+         cmdStr += endframe;
+         cmdStr += " -fs ";
+         cmdStr += byframestep;
+      }
+      MString camera = args.flagArgumentString("camera", 0);
+      if (camera != "")
+      {
+         cmdStr += " -cam "+camera;
+      }
+      return MGlobal::executeCommand(cmdStr);
+   }
 
    // Note: Maya seems to internally calls the preRender preLayerRender scripts
    //       as well as the postRender and postLayerRender ones

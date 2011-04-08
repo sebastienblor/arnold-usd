@@ -40,6 +40,7 @@ public:
    static MObject s_arnoldRenderImageUnpremultAlpha;
    static MObject s_aovs;
 
+   static MObject s_renderType;
    static MObject s_progressive_rendering;
    static MObject s_physically_based;
    static MObject s_threads;

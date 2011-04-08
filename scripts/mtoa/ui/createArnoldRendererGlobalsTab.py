@@ -109,6 +109,10 @@ def createArnoldRenderSettings():
     cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
     cmds.columnLayout('arnoldRenderLayout', adjustableColumn=True)
 
+    cmds.attrControlGrp('os_renderType',
+                   label="Render Type",
+                   attribute='defaultArnoldRenderOptions.renderType')    
+
     cmds.checkBoxGrp('os_progressive_rendering',
                      cc=updateRenderSettings,
                      label='Progressive Rendering')
