@@ -1,5 +1,6 @@
 
 #include "ArnoldRenderOptions.h"
+#include "render/RenderOptions.h"
 #include "nodes/ShaderUtils.h"
 #include "nodes/ArnoldNodeIDs.h"
 
@@ -195,9 +196,9 @@ MStatus CArnoldRenderOptionsNode::initialize()
 
    s_renderType = eAttr.create("renderType", "arnrt", 0);
    eAttr.setKeyable(false);
-   eAttr.addField("Interactive", 0);
-   eAttr.addField("Export Ass", 1);
-   eAttr.addField("Export and Render", 2);
+   eAttr.addField("Interactive", MTOA_RENDER_INTERACTIVE);
+   eAttr.addField("Export Ass", MTOA_RENDER_EXPORTASS);
+   eAttr.addField("Export Ass and Kick", MTOA_RENDER_EXPORTASS_AND_KICK);
    addAttribute(s_renderType);
 
    s_outputAssBoundingBox = nAttr.create("outputAssBoundingBox", "assbb", MFnNumericData::kBoolean, 0);

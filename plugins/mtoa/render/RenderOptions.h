@@ -12,6 +12,13 @@
 
 class CMayaScene;
 
+enum RenderType
+{
+   MTOA_RENDER_INTERACTIVE,
+   MTOA_RENDER_EXPORTASS,
+   MTOA_RENDER_EXPORTASS_AND_KICK
+};
+
 class CRenderOptions
 {
 public:

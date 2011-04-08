@@ -1,4 +1,5 @@
 #include "ArnoldRenderCmd.h"
+#include "render/RenderOptions.h"
 #include "render/RenderSession.h"
 
 #include <ai_msg.h>
@@ -66,7 +67,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       outputAssBoundingBox = fnArnoldRenderOptions.findPlug("outputAssBoundingBox").asBool();
    }
 
-   if (renderType != 0)
+   if (renderType != MTOA_RENDER_INTERACTIVE)
    {
       MString filename;
       filename = renderGlobals.name;
@@ -129,17 +130,16 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       if (MStatus::kSuccess == status)
       {
          MGlobal::displayInfo("[mtoa] Exported scene to file " + filename);
-         if (renderType == 2)
+         if (renderType == MTOA_RENDER_EXPORTASS_AND_KICK)
          {
 #ifdef _WIN32
-            MString cmd = "shell kick " + filename + " &";
+            MString cmd = "kick " + filename;
 #else
             MString cmd = "kick " + filename + " &";
 #endif
-            int i;
-            i = system(cmd.asChar());
+            int ret = system(cmd.asChar());
 
-            MGlobal::displayInfo("value returned " + i);
+            MGlobal::displayInfo("[mtoa] Value returned by kick : " + ret);
          }
       }
       else
