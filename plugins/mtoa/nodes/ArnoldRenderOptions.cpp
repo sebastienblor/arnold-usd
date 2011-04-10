@@ -383,6 +383,13 @@ MStatus CArnoldRenderOptionsNode::initialize()
    s_attributes.MakeInput("texture_automip");
    s_attributes.MakeInput("texture_autotile");
    s_attributes.MakeInput("texture_max_memory_MB");
+   s_attributes.MakeInput("texture_max_open_files");
+   s_attributes.MakeInput("texture_accept_untiled");
+   s_attributes.MakeInput("texture_failure_retries");
+   s_attributes.MakeInput("texture_conservative_lookups");
+   s_attributes.MakeInput("texture_glossy_blur");
+   s_attributes.MakeInput("texture_diffuse_blur");
+   s_attributes.MakeInput("texture_per_file_stats");
 
    s_output_ass_filename = tAttr.create("output_ass_filename", "file", MFnData::kString);
    tAttr.setKeyable(false);

@@ -80,6 +80,13 @@ void CRenderOptionsTranslator::Update(AtNode* options)
    ProcessParameter(options, "texture_automip", AI_TYPE_BOOLEAN);
    ProcessParameter(options, "texture_autotile", AI_TYPE_INT);
    ProcessParameter(options, "texture_max_memory_MB", AI_TYPE_FLOAT);
+   ProcessParameter(options, "texture_max_open_files", AI_TYPE_INT);
+   ProcessParameter(options, "texture_accept_untiled", AI_TYPE_BOOLEAN);
+   ProcessParameter(options, "texture_failure_retries", AI_TYPE_INT);
+   ProcessParameter(options, "texture_conservative_lookups", AI_TYPE_BOOLEAN);
+   ProcessParameter(options, "texture_glossy_blur", AI_TYPE_FLOAT);
+   ProcessParameter(options, "texture_diffuse_blur", AI_TYPE_FLOAT);
+   ProcessParameter(options, "texture_per_file_stats", AI_TYPE_BOOLEAN);
 
    MObject background;
    MPlugArray conns;

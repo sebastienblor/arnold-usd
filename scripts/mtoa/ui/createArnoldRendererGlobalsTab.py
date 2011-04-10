@@ -528,6 +528,10 @@ def createArnoldTextureSettings():
                         label="Auto Mipmap",
                         attribute='defaultArnoldRenderOptions.textureAutomip')
 
+    cmds.attrControlGrp('texture_accept_untiled',
+                        label="Accept Untiled",
+                        attribute='defaultArnoldRenderOptions.textureAcceptUntiled')
+
     cmds.attrControlGrp('texture_autotile',
                         label="Auto Tile Size",
                         attribute='defaultArnoldRenderOptions.textureAutotile')
@@ -535,6 +539,35 @@ def createArnoldTextureSettings():
     cmds.attrControlGrp('texture_max_memory_MB',
                         label="Max Cache Size (MB)",
                         attribute='defaultArnoldRenderOptions.textureMaxMemoryMb')
+
+    cmds.attrControlGrp('texture_max_open_files',
+                        label="Max Open Files",
+                        attribute='defaultArnoldRenderOptions.textureMaxOpenFiles')
+
+    cmds.separator()
+
+    cmds.attrControlGrp('texture_failure_retries',
+                        label="Failure Retries",
+                        attribute='defaultArnoldRenderOptions.textureFailureRetries')
+
+    cmds.attrControlGrp('texture_conservative_lookups',
+                        label="Conservative Lookups",
+                        attribute='defaultArnoldRenderOptions.texture_conservative_lookups')
+
+    cmds.attrControlGrp('texture_per_file_stats',
+                        label="Per File Stats",
+                        attribute='defaultArnoldRenderOptions.texturePerFileStats')
+
+    cmds.separator()
+
+    cmds.attrControlGrp('texture_glossy_blur',
+                        label="Glossy Blur",
+                        attribute='defaultArnoldRenderOptions.textureGlossyBlur')
+
+    cmds.attrControlGrp('texture_diffuse_blur',
+                        label="Diffuse Blur",
+                        attribute='defaultArnoldRenderOptions.textureDiffuseBlur')
+
 
     cmds.setParent('..')
 
