@@ -57,8 +57,8 @@ MStatus CArnoldCustomShaderNode::initialize()
    CStaticAttrHelper helper(CArnoldCustomShaderNode::addAttribute, nodeEntry);
 
    // outputs
-   bool outputExists = helper.MakeOutput();
-
+   MObject outputAttr = helper.MakeOutput();
+   bool outputExists = (outputAttr != MObject::kNullObj);
    if (outputExists)
    {
       // TODO: determine when it is appropriate to make outTransparency.
@@ -87,7 +87,11 @@ MStatus CArnoldCustomShaderNode::initialize()
       const char* paramName = AiParamGetName(paramEntry);
       // skip the special "name" parameter
       if (strcmp(paramName, "name") != 0)
-         helper.MakeInput(paramName);
+      {
+         MObject attr = helper.MakeInput(paramName);
+         if (outputExists)
+            attributeAffects(attr, outputAttr);
+      }
    }
    AiParamIteratorDestroy(nodeParam);
 

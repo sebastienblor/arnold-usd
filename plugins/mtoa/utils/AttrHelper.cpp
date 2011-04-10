@@ -604,14 +604,14 @@ void CBaseAttrHelper::MakeInputNode(MObject& attrib, CAttrData& data)
    MAKE_INPUT(msgAttr, attrib);
 }
 
-bool CBaseAttrHelper::MakeInput(const char* paramName)
+MObject CBaseAttrHelper::MakeInput(const char* paramName)
 {
    CAttrData attrData;
    GetAttrData(paramName, attrData);
    return MakeInput(attrData);
 }
 
-bool CBaseAttrHelper::MakeInput(CAttrData& attrData)
+MObject CBaseAttrHelper::MakeInput(CAttrData& attrData)
 {
    MObject input;
    switch (attrData.type)
@@ -695,16 +695,16 @@ bool CBaseAttrHelper::MakeInput(CAttrData& attrData)
       {
          const char* typeName = AiParamGetTypeName(attrData.type);
          MGlobal::displayWarning(MString("[mtoa] Unable to create attribute \"") + attrData.name + "\": parameters of type " + typeName + " are not supported");
-         return false;
+         return MObject::kNullObj;
       }
       default:
       {
          MGlobal::displayError(MString("[mtoa] Unable to create attribute \"") + attrData.name + "\": unknown parameter type");
-         return false;
+         return MObject::kNullObj;
       }
    } // switch
    m_attributes[attrData.name.asChar()] = input;
-   return true;
+   return input;
 }
 
 
@@ -821,7 +821,7 @@ void CBaseAttrHelper::MakeOutputNode(MObject& attrib, bool isArray)
    MAKE_OUTPUT(msgAttr, attrib);
 }
 
-bool CBaseAttrHelper::MakeOutput()
+MObject CBaseAttrHelper::MakeOutput()
 {
 
    AtInt outputType = AiNodeEntryGetOutputType(m_nodeEntry);
@@ -920,22 +920,23 @@ bool CBaseAttrHelper::MakeOutput()
       {
          const char* typeName = AiParamGetTypeName(outputType);
          MGlobal::displayWarning(MString("[mtoa]  Unable to create attribute \"") + OUT_NAME + "\": parameters of type " + typeName + " are not supported");
-         return false;
+         return MObject::kNullObj;
       }
       default:
       {
          MGlobal::displayError(MString("[mtoa] Unable to create attribute \"") + OUT_NAME + "\": unknown parameter type");
-         return false;
+         return MObject::kNullObj;
       }
    } // switch
    m_attributes[OUT_NAME.asChar()] = output;
-   return true;
+   return output;
 }
 
 void CBaseAttrHelper::SetNode(const char* arnoldNodeName)
 {
    m_nodeEntry = AiNodeEntryLookUp(arnoldNodeName);
 };
+
 
 // CStaticAttrHelper
 //
@@ -1041,19 +1042,20 @@ void CExtensionAttrHelper::MakeInputNode(CAttrData& data)
    MakeInput(data);
 }
 
-bool CExtensionAttrHelper::MakeInput(const char* paramName)
+MObject CExtensionAttrHelper::MakeInput(const char* paramName)
 {
    CAttrData attrData;
    GetAttrData(paramName, attrData);
    return MakeInput(attrData);
 }
 
-bool CExtensionAttrHelper::MakeInput(CAttrData& attrData)
+MObject CExtensionAttrHelper::MakeInput(CAttrData& attrData)
 {
    MStatus stat;
    stat = m_class.addExtensionAttribute(attrData);
    CHECK_MSTATUS(stat);
-   return stat;
+   // this is bad form, but we don't have an MObject to return yet
+   return MObject::kNullObj;
 }
 #else
 MStatus CExtensionAttrHelper::addAttribute(MObject& attrib)

@@ -133,8 +133,8 @@ public:
    virtual void MakeInputNode(CAttrData& data);
    virtual void MakeInputNode(MObject& attrib, CAttrData& data);
 
-   virtual bool MakeInput(const char* paramName);
-   virtual bool MakeInput(CAttrData& attrData);
+   virtual MObject MakeInput(const char* paramName);
+   virtual MObject MakeInput(CAttrData& attrData);
 
    void MakeOutputInt(MObject& attrib, bool isArray=false);
    void MakeOutputBoolean(MObject& attrib, bool isArray=false);
@@ -149,9 +149,10 @@ public:
    void MakeOutputEnum(MObject& attrib, bool isArray=false);
    void MakeOutputNode(MObject& attrib, bool isArray=false);
 
-   bool MakeOutput();
+   MObject MakeOutput();
 
    void SetNode(const char* arnoldNodeName);
+   void GetMObject(const char* attrName);
 
 protected:
    const AtNodeEntry* m_nodeEntry;
@@ -243,8 +244,8 @@ public:
    void MakeInputMatrix(CAttrData& data);
    void MakeInputEnum(CAttrData& data);
    void MakeInputNode(CAttrData& data);
-   bool MakeInput(const char* paramName);
-   bool MakeInput(CAttrData& attrData);
+   MObject MakeInput(const char* paramName);
+   MObject MakeInput(CAttrData& attrData);
 #endif
 protected:
    MNodeClass m_class;
