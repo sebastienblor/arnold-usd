@@ -5,6 +5,133 @@ sky:
             softmax: 10
             default: 1
 
+
+options:
+    node_metadata:
+        maya.id: 0x00071000
+    parameter_metadata:
+         AA_samples:
+            maya.keyable: false
+            maya.orig_shortname: AAsmpls
+            softmin: 1
+            softmax: 10
+            min: 1
+            max: 100
+            default: 3
+        bucket_scanning:
+            maya.keyable: false
+            maya.orig_shortname: bktsc
+        bucket_size:
+            maya.keyable: false
+            maya.orig_shortname: bktsz
+            softmin: 1
+            softmax: 256
+            min: 1
+        abort_on_error:
+            maya.keyable: false
+            maya.orig_shortname: abort
+        abort_on_license_fail:
+            maya.keyable: false
+            maya.orig_shortname: abortlic
+        AA_sample_clamp:
+            maya.keyable: false
+            maya.orig_shortname: smpclamp
+            softmin: 0.001
+            softmax: 100
+            default: 10
+        auto_transparency_depth:
+            maya.keyable: false
+            maya.orig_shortname: at_d
+            softmin: 0
+            softmax: 16
+            min: 0
+            max: 10000
+        auto_transparency_threshold:
+            maya.keyable: false
+            maya.orig_shortname: at_t
+            min: 0
+            max: 10
+        auto_transparency_probabilistic:
+            maya.keyable: false
+            maya.orig_shortname: at_p
+        sss_subpixel_cache:
+            maya.keyable: false
+            maya.orig_shortname: sssspc
+        show_samples:
+            maya.keyable: false
+            maya.orig_shortname: sssshs
+        max_subdivisions:
+            maya.keyable: false
+            maya.orig_shortname: maxs
+            min: 0
+            max: 999
+        texture_max_memory_MB:
+            maya.keyable: false
+            maya.orig_shortname: tx_mm
+        texture_automip:
+            maya.keyable: false
+            maya.orig_shortname: tx_am
+        texture_autotile:
+            maya.keyable: false
+            maya.orig_shortname: tx_at
+        GI_diffuse_depth:
+            maya.keyable: false
+            maya.orig_shortname: GI_dd
+            softmin: 0
+            softmax: 16
+            min: 0
+            max: 10000
+            default: 1
+         GI_glossy_depth:
+            maya.keyable: false
+            maya.orig_shortname: GI_gd
+            softmin: 0
+            softmax: 16
+            min: 0
+            max: 10000
+            default: 1
+        GI_reflection_depth:
+            maya.keyable: false
+            maya.orig_shortname: GI_rld
+            softmin: 0
+            softmax: 16
+            min: 0
+            max: 10000
+        GI_refraction_depth:
+            maya.keyable: false
+            maya.orig_shortname: GI_rrd
+            softmin: 0
+            softmax: 16
+            min: 0
+            max: 10000
+        GI_total_depth:
+            maya.keyable: false
+            maya.orig_shortname: GI_td
+            softmin: 0
+            softmax: 16
+            min: 0
+            max: 10000
+        GI_diffuse_samples:
+            maya.keyable: false
+            maya.orig_shortname: GIdiffsmpls
+            softmin: 0
+            softmax: 10
+            min: 0
+            max: 100
+        GI_glossy_samples:
+            maya.keyable: false
+            maya.orig_shortname: GIglossmpls
+            softmin: 0
+            softmax: 10
+            min: 0
+            max: 100
+        GI_sss_hemi_samples:
+            maya.keyable: false
+            maya.orig_shortname: GIssshemismpls
+            softmin: 0
+            softmax: 10
+            min: 0
+            max: 100
 point_light:
     parameter_metadata:
          bounce_factor:

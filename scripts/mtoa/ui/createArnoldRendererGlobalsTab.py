@@ -119,7 +119,7 @@ def createArnoldRenderSettings():
 
     cmds.attrControlGrp('os_physically_based',
                    label="Physically Based",
-                   attribute='defaultArnoldRenderOptions.physically_based')
+                   attribute='defaultArnoldRenderOptions.physicallyBased')
 
     cmds.separator()
 
@@ -138,11 +138,11 @@ def createArnoldRenderSettings():
 
     cmds.attrControlGrp('os_bucket_scanning',
                    label="Bucket Scanning",
-                   attribute='defaultArnoldRenderOptions.bucket_scanning')
+                   attribute='defaultArnoldRenderOptions.bucketScanning')
 
     cmds.attrControlGrp('os_bucket_size',
                    label="Bucket Size",
-                   attribute='defaultArnoldRenderOptions.bucket_size')
+                   attribute='defaultArnoldRenderOptions.bucketSize')
 
     cmds.attrControlGrp('os_clear_before_render',
                    label="Clear Before Render",
@@ -152,11 +152,11 @@ def createArnoldRenderSettings():
 
     cmds.attrControlGrp('os_abort_on_error',
                    label="Abort On Error",
-                   attribute='defaultArnoldRenderOptions.abort_on_error')
+                   attribute='defaultArnoldRenderOptions.abortOnError')
 
     cmds.attrControlGrp('os_abort_on_license_fail',
                    label="Abort On License Fail",
-                   attribute='defaultArnoldRenderOptions.abort_on_license_fail')
+                   attribute='defaultArnoldRenderOptions.abortOnLicenseFail')
 
     cmds.attrControlGrp('os_skip_license_check',
                    label="Skip License Check",
@@ -225,20 +225,20 @@ def createArnoldSamplingSettings():
 
     cmds.attrControlGrp('ss_AA_samples',
                         label="AA Samples",
-                        attribute='defaultArnoldRenderOptions.AA_samples')
+                        attribute='defaultArnoldRenderOptions.aaSamples')
 
 
     cmds.attrControlGrp('ss_hemi_samples',
                         label="Hemi Samples",
-                        attribute='defaultArnoldRenderOptions.GI_diffuse_samples')
+                        attribute='defaultArnoldRenderOptions.giDiffuseSamples')
 
     cmds.attrControlGrp('ss_glossy_samples',
                         label="Glossy Samples",
-                        attribute='defaultArnoldRenderOptions.GI_glossy_samples')
+                        attribute='defaultArnoldRenderOptions.giGlossySamples')
 
     cmds.attrControlGrp('ss_sss_hemi_samples',
                    label="SSS Samples",
-                   attribute='defaultArnoldRenderOptions.GI_sss_hemi_samples')
+                   attribute='defaultArnoldRenderOptions.giSssHemiSamples')
 
     cmds.checkBoxGrp('ss_clamp_sample_values',
                      cc=updateSamplingSettings,
@@ -255,7 +255,7 @@ def createArnoldSamplingSettings():
 
     cmds.attrControlGrp('ss_max_value',
                         label="Max. Value",
-                        attribute='defaultArnoldRenderOptions.AA_sample_clamp')
+                        attribute='defaultArnoldRenderOptions.aaSampleClamp')
 
     cmds.separator()
 
@@ -352,39 +352,39 @@ def createArnoldRayDepthSettings():
 
     cmds.attrControlGrp('rs_total_depth',
                         label="Total depth",
-                        attribute='defaultArnoldRenderOptions.GI_total_depth')
+                        attribute='defaultArnoldRenderOptions.giTotalDepth')
 
     cmds.separator(style="none")
 
     cmds.attrControlGrp('rs_diffuse_depth',
                         label="Diffuse depth",
-                        attribute='defaultArnoldRenderOptions.GI_diffuse_depth')
+                        attribute='defaultArnoldRenderOptions.giDiffuseDepth')
 
     cmds.attrControlGrp('rs_glossy_depth',
                         label="Glossy depth",
-                        attribute='defaultArnoldRenderOptions.GI_glossy_depth')
+                        attribute='defaultArnoldRenderOptions.giGlossyDepth')
 
     cmds.attrControlGrp('rs_reflection_depth',
                         label="Reflection depth",
-                        attribute='defaultArnoldRenderOptions.GI_reflection_depth')
+                        attribute='defaultArnoldRenderOptions.giReflectionDepth')
 
     cmds.attrControlGrp('rs_refraction_depth',
                         label="Refraction depth",
-                        attribute='defaultArnoldRenderOptions.GI_refraction_depth')
+                        attribute='defaultArnoldRenderOptions.giRefractionDepth')
 
     cmds.separator(style="none")
 
     cmds.attrControlGrp('rs_auto_transparency_depth',
                         label="Auto transp. depth",
-                        attribute='defaultArnoldRenderOptions.auto_transparency_depth')
+                        attribute='defaultArnoldRenderOptions.autoTransparencyDepth')
 
     cmds.attrControlGrp('rs_auto_transparency_threshold',
                         label="Auto transp. threshold",
-                        attribute='defaultArnoldRenderOptions.auto_transparency_threshold')
+                        attribute='defaultArnoldRenderOptions.autoTransparencyThreshold')
 
     cmds.attrControlGrp('rs_auto_transparency_probabilistic',
                         label="Auto transp. probabilistic",
-                        attribute='defaultArnoldRenderOptions.auto_transparency_probabilistic')
+                        attribute='defaultArnoldRenderOptions.autoTransparencyProbabilistic')
 
     cmds.setParent('..')
 
@@ -494,11 +494,11 @@ def createArnoldSSSSettings():
 
     cmds.attrControlGrp('mb_sss_subpixel_cache',
                         label="SSS subpixel cache",
-                        attribute='defaultArnoldRenderOptions.sss_subpixel_cache')
+                        attribute='defaultArnoldRenderOptions.sssSubpixelCache')
 
     cmds.attrControlGrp('mb_show_samples',
                         label="Show samples",
-                        attribute='defaultArnoldRenderOptions.show_samples')
+                        attribute='defaultArnoldRenderOptions.showSamples')
 
     cmds.setParent('..')
 
@@ -512,7 +512,7 @@ def createArnoldSubdivSettings():
 
     cmds.attrControlGrp('sub_max_subdivisions',
                         label="Max. Subdivisions",
-                        attribute='defaultArnoldRenderOptions.max_subdivisions')
+                        attribute='defaultArnoldRenderOptions.maxSubdivisions')
 
     cmds.setParent('..')
 
@@ -526,15 +526,15 @@ def createArnoldTextureSettings():
 
     cmds.attrControlGrp('texture_automip',
                         label="Auto Mipmap",
-                        attribute='defaultArnoldRenderOptions.texture_automip')
+                        attribute='defaultArnoldRenderOptions.textureAutomip')
 
     cmds.attrControlGrp('texture_autotile',
                         label="Auto Tile Size",
-                        attribute='defaultArnoldRenderOptions.texture_autotile')
+                        attribute='defaultArnoldRenderOptions.textureAutotile')
 
     cmds.attrControlGrp('texture_max_memory_MB',
                         label="Max Cache Size (MB)",
-                        attribute='defaultArnoldRenderOptions.texture_max_memory_MB')
+                        attribute='defaultArnoldRenderOptions.textureMaxMemoryMb')
 
     cmds.setParent('..')
 

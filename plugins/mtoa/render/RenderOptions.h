@@ -358,12 +358,7 @@ private:
    MCommonRenderSettingsData m_defaultRenderGlobalsData;
    
    bool     m_progressive_rendering;
-   bool     m_physically_based;
    AtUInt   m_threads;
-   AtUInt   m_bucket_scanning;
-   AtUInt   m_bucket_size;
-   bool     m_abort_on_error;
-   bool     m_skip_license_check;
    MString  m_plugins_path;
 
    AtUInt   m_AA_samples;
@@ -384,28 +379,6 @@ private:
    float    m_light_gamma;
    float    m_shader_gamma;
    float    m_texture_gamma;
-
-   AtUInt   m_GI_diffuse_depth;
-   AtUInt   m_GI_glossy_depth;
-   AtUInt   m_GI_reflection_depth;
-   AtUInt   m_GI_refraction_depth;
-   AtUInt   m_GI_total_depth;
-
-   AtInt    m_auto_transparency_depth;
-   AtFloat  m_auto_transparency_threshold;
-   bool     m_auto_transparency_probabilistic;
-
-   bool     m_sss_subpixel_cache;
-   AtUInt   m_show_samples;
-
-   AtUInt   m_max_subdivisions;
-
-   bool     m_texture_automip;
-   AtUInt   m_texture_autotile;
-   float    m_texture_max_memory_MB;
-
-   MObject  m_background;
-   AtUInt   m_atmosphere;
 
    MString m_outputAssFile;
    bool    m_outputAssCompressed;
