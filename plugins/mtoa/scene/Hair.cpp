@@ -216,15 +216,15 @@ void CHairTranslator::Update(AtNode *curve)
    // Extra attributes
    if (customAttributes)
    {
-   	AiNodeSetBool(curve, "receive_shadows", fnDagNodeHairShape.findPlug("receive_shadows").asBool());
+   	// Hair specific Arnold render settings.
+   	MPlug plug;
+   	plug = m_fnNode.findPlug("min_pixel_width");
+   	if (!plug.isNull()) AiNodeSetFlt(curve, "min_pixel_width", plug.asFloat());
 
-      AiNodeSetBool(curve, "sss_use_gi", fnDagNodeHairShape.findPlug("sss_use_gi").asBool());
-      AiNodeSetInt(curve, "sss_max_samples", fnDagNodeHairShape.findPlug("sss_max_samples").asInt());
-      AiNodeSetFlt(curve, "sss_sample_spacing", fnDagNodeHairShape.findPlug("sss_sample_spacing").asFloat());
+      // Mode is an enum, 0 == ribbon, 1 == tubes.
+      plug = m_fnNode.findPlug("mode");
+      if (!plug.isNull()) AiNodeSetInt(curve, "mode", plug.asInt());
       
-      AiNodeSetFlt(curve, "min_pixel_width", fnDagNodeHairShape.findPlug("min_pixel_width").asFloat());
-      AiNodeSetInt(curve, "mode", fnDagNodeHairShape.findPlug("mode").asInt());
-
       // User-Data attributes
       AiNodeDeclare(curve, "uparamcoord", "uniform FLOAT");
       AiNodeDeclare(curve, "vparamcoord", "uniform FLOAT");

@@ -693,7 +693,6 @@ void CGeoTranslator::ExportMeshParameters(AtNode* polymesh)
    bool customAttributes = (status == MS::kSuccess);
 
    AiNodeSetBool(polymesh, "smoothing", m_fnNode.findPlug("smoothShading").asBool());
-   AiNodeSetBool(polymesh, "receive_shadows", m_fnNode.findPlug("receiveShadows").asBool());
 
    if (m_fnNode.findPlug("doubleSided").asBool())
       AiNodeSetInt(polymesh, "sidedness", 65535);
@@ -710,28 +709,21 @@ void CGeoTranslator::ExportMeshParameters(AtNode* polymesh)
    {
       // Subdivision surfaces
       //
-      bool subdivision = (m_fnNode.findPlug("subdiv_type").asInt() != 0);
+      const bool subdivision = (m_fnNode.findPlug("subdiv_type").asInt() != 0);
 
       if (subdivision)
       {
-         AiNodeSetStr(polymesh, "subdiv_type", "catclark");
-         AiNodeSetInt(polymesh, "subdiv_iterations", m_fnNode.findPlug("subdiv_iterations").asInt());
-         AiNodeSetInt(polymesh, "subdiv_adaptive_metric", m_fnNode.findPlug("subdiv_adaptive_metric").asInt());
-         AiNodeSetFlt(polymesh, "subdiv_pixel_error", m_fnNode.findPlug("subdiv_pixel_error").asFloat());
+         AiNodeSetStr(polymesh, "subdiv_type",           "catclark");
+         AiNodeSetInt(polymesh, "subdiv_iterations",     m_fnNode.findPlug("subdiv_iterations").asInt());
+         AiNodeSetInt(polymesh, "subdiv_adaptive_metric",m_fnNode.findPlug("subdiv_adaptive_metric").asInt());
+         AiNodeSetFlt(polymesh, "subdiv_pixel_error",    m_fnNode.findPlug("subdiv_pixel_error").asFloat());
+         AiNodeSetInt(polymesh, "subdiv_uv_smoothing",   m_fnNode.findPlug("subdiv_uv_smoothing").asInt());
 
          // FIXME, this should probably be handled by ProcessParameter
          MString cameraName = m_fnNode.findPlug("subdiv_dicing_camera").asString();
          AtNode* camera = ((cameraName != "") && (cameraName != "Default")) ? AiNodeLookUpByName(cameraName.asChar()) : NULL;
          AiNodeSetPtr(polymesh, "subdiv_dicing_camera", camera);
-
-         AiNodeSetInt(polymesh, "subdiv_uv_smoothing", m_fnNode.findPlug("subdiv_uv_smoothing").asInt());
       }
-
-      // Subsurface Scattering
-      //
-      AiNodeSetInt(polymesh, "sss_max_samples", m_fnNode.findPlug("sss_max_samples").asInt());
-      AiNodeSetFlt(polymesh, "sss_sample_spacing", m_fnNode.findPlug("sss_sample_spacing").asFloat());
-      AiNodeSetBool(polymesh, "sss_use_gi", m_fnNode.findPlug("sss_use_gi").asBool());
    }
 }
 

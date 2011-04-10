@@ -1013,8 +1013,27 @@ void CDagTranslator::MakeArnoldVisibilityFlags(CBaseAttrHelper& helper)
 void CShapeTranslator::ProcessRenderFlags(AtNode* node)
 {
    AiNodeSetInt(node, "visibility", ComputeVisibility());
-   AiNodeSetBool(node, "self_shadows", m_fnNode.findPlug("selfShadows").asBool());
-   AiNodeSetBool(node, "opaque", m_fnNode.findPlug("opaque").asBool());
+
+   MPlug plug;
+   plug = m_fnNode.findPlug("selfShadows");
+   if (!plug.isNull()) AiNodeSetBool(node, "self_shadows", plug.asBool());
+
+   plug = m_fnNode.findPlug("opaque");
+   if (!plug.isNull()) AiNodeSetBool(node, "opaque", plug.asBool());
+
+   plug = m_fnNode.findPlug("receiveShadows");
+   if (!plug.isNull()) AiNodeSetBool(node, "receive_shadows", plug.asBool());
+
+   // Subsurface Scattering
+   plug = m_fnNode.findPlug("sss_use_gi");
+   if (!plug.isNull()) AiNodeSetBool(node, "sss_use_gi", plug.asBool());
+
+   plug = m_fnNode.findPlug("sss_max_samples");
+   if (!plug.isNull()) AiNodeSetInt(node, "sss_max_samples", plug.asInt());
+
+   plug = m_fnNode.findPlug("sss_sample_spacing");
+   if (!plug.isNull()) AiNodeSetFlt(node, "sss_sample_spacing", plug.asFloat());
+   
 }
 
 // create attributes common to arnold shape nodes
