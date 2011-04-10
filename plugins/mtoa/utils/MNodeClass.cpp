@@ -43,6 +43,8 @@ MStatus MNodeClass::addExtensionAttribute(CAttrData &data) const
    return MS::kSuccess;
 }
 
+/// Add attributes to nodes that already exist in the scene
+///
 void MNodeClass::InitializeExistingNodes()
 {
    MFnDependencyNode fnNode;

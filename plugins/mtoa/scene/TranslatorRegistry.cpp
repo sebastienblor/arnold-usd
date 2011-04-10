@@ -115,8 +115,8 @@ CDagTranslator* CTranslatorRegistry::GetDagTranslator(int typeId)
 }
 
 
-// called when a plugin is loaded to ensure that each translator that requires
-// node initialization gets a callback installed
+/// Called when a plugin is loaded to ensure that each translator that requires
+/// node initialization gets a callback installed
 void CTranslatorRegistry::MayaPluginLoadedCallback(const MStringArray &strs, void *clientData)
 {
    // 0 = pluginPath, 1 = pluginName
@@ -141,6 +141,7 @@ void CTranslatorRegistry::MayaPluginLoadedCallback(const MStringArray &strs, voi
    s_mayaPluginData[pluginName.asChar()].clear();
 }
 
+/// Installs the plugin-loaded callback
 void CTranslatorRegistry::CreateCallbacks()
 {
    MStatus status;

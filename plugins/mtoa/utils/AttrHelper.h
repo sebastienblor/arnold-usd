@@ -31,7 +31,7 @@
 #define OUT_COLOR_NAME MString("outColor")
 #define OUT_SHORTNAME MString("out")
 
-// structure for holding attribute properties
+/// Structure for holding attribute properties
 struct CAttrData
 {
    MString name;
@@ -62,25 +62,57 @@ struct CAttrData
 
 typedef MStatus  (*AddAttributeFunction)(const MObject &attr);
 
-// CDynamicAttrHelper
+// CBaseAttrHelper
 //
-// Abstract base class for attribute helpers.
-//
-// these classes simplify the act of creating maya attributes from arnold node
-// parameters, by reading parameter metadata from the passed arnold node type.
-//
-// below is a list of recognized metadata
-//
-// description     in maya, used as the annotation for the attribute in the Attribute Editor
-// min             minimum value allowed
-// max             maximum value allowed
-// softmin         overridable lower limit used in GUI
-// softmax         overridable upper limit used in GUI
-// maya.shortname  attribute short name
-// maya.name       alternate name to use for the attribute
-// maya.hide       don't generate the attribute (default: false)
-// maya.keyable    whether the maya attribute should be keyable (default: true)
-//
+/// Abstract base class for all attribute creation helper classes.
+///
+/// the attribute helper classes simplify the act of creating maya attributes from arnold node parameters,
+/// by examining parameter properties and metadata from the passed arnold node type.
+///
+/// below is a list of recognized metadata
+///
+/// - <B>description</B>:     in maya, used as the annotation for the attribute in the Attribute Editor
+/// - <B>min</B>:             minimum value allowed
+/// - <B>max</B>:             maximum value allowed
+/// - <B>softmin</B>:         overridable lower limit used in GUI
+/// - <B>softmax</B>:         overridable upper limit used in GUI
+/// - <B>maya.shortname</B>:  attribute short name
+/// - <B>maya.name</B>:       alternate name to use for the attribute
+/// - <B>maya.hide</B>:       don't generate the attribute (default: false)
+/// - <B>maya.keyable</B>:    whether the maya attribute should be keyable (default: true)
+///
+/// CStaticAttrHelper is used within the initialize method of a custom MPxNode to generate static attributes.
+///
+/// CDynamicAttrHelper adds dynamic attributes to an existing Maya node.
+///
+/// CExtensionAttrHelper registers dynamic attributes for a node class, such that the attributes are
+/// automatically added to all current and future node instances. Extension attribute helpers are used within a
+/// translator's NodeInitializer function. Their primary use case is writing a translator for a built-in Maya
+/// node type that requires additional Arnold-specific parameters. For example:
+///
+/// @code
+///   CExtensionAttrHelper helper(nodeClassName, "polymesh");
+///   helper.MakeInput("subdiv_type");
+/// @endcode
+///
+/// metadata is used to determine all the qualities of the resulting maya attribute: name, keyability, default, min,
+/// max, softmin, softmax, etc. (note that the node factory uses CStaticAttrHelper internally, so the same metadata
+/// applies for automatically generated custom nodes, and is actually the most common use case). metadata can be
+/// created in the shader's C++ source, or in a plain-text yaml file. values in the plain text file take precedence.
+///
+/// Attributes that do not have an Arnold equivalent can currently only be created from within a NodeInitializer.
+/// For example:
+/// @code
+///   CAttrData data;
+///   data.defaultValue.BOOL = false;
+///   data.name = "exportTangents";
+///   data.shortName = "exptan";
+///   helper.MakeInputBoolean(data);
+/// @endcode
+///
+/// Any call to any CBaseAttrHelper.MakeInput variants that does not explicitly provide a name will convert the Arnold
+/// style "parameter_name" to maya style "parameterName".
+
 class DLLEXPORT CBaseAttrHelper
 {
 
@@ -168,16 +200,20 @@ protected:
 
 // CStaticAttrHelper
 //
-// attribute helper for creating static attributes during node initialization
-//
+/// Attribute helper for creating static attributes during Maya node initialization
+///
 class DLLEXPORT CStaticAttrHelper : public CBaseAttrHelper
 {
 
 public:
+   /// @param addFunc  function to call to add a dynamic attribute: should be YourMPxSubClass::addAttribute
+   /// @param nodeEntry  arnold node entry to use when checking parameter metadata
    CStaticAttrHelper(AddAttributeFunction addFunc, const AtNodeEntry* nodeEntry=NULL) :
       CBaseAttrHelper(nodeEntry),
       m_addFunc(addFunc)
    {}
+   /// @param addFunc  function to call to add a dynamic attribute: should be YourMPxSubClass::addAttribute
+   /// @param nodeEntryName  arnold node entry to use when checking parameter metadata
    CStaticAttrHelper(AddAttributeFunction addFunc, const char* nodeEntryName) :
       CBaseAttrHelper(nodeEntryName),
       m_addFunc(addFunc)
@@ -197,16 +233,20 @@ protected:
 
 // CDynamicAttrHelper
 //
-// attribute helper for creating dynamic attributes on existing maya nodes
-//
+/// Attribute helper for creating dynamic attributes on existing Maya nodes
+///
 class DLLEXPORT CDynamicAttrHelper : public CBaseAttrHelper
 {
 
 public:
+   /// @param obj  maya node to add attributes to
+   /// @param nodeEntry  arnold node entry to use when checking parameter metadata
    CDynamicAttrHelper(MObject& obj, const AtNodeEntry* nodeEntry=NULL) :
       CBaseAttrHelper(nodeEntry),
       m_instance(obj)
    {}
+   /// @param obj  maya node to add attributes to
+   /// @param nodeEntryName  arnold node entry to use when checking parameter metadata
    CDynamicAttrHelper(MObject& obj, const char* nodeEntryName) :
       CBaseAttrHelper(nodeEntryName),
       m_instance(obj)
@@ -227,17 +267,27 @@ protected:
 
 // CExtensionAttrHelper
 //
-// attribute helper for adding extension attributes to maya node classes
-//
+/// Attribute helper for adding extension attributes to Maya node classes
+///
+/// Extension attributes are like a cross between a static and a dynamic attribute. Like static
+/// attributes they are added at the class level, but like a dynamic attribute they can be added after
+/// the node class has been initialized.
+///
+/// Extension attributes are added in Maya 2012 via the new MNodeClass. MtoA provides a rough
+/// equivalent of this class for versions prior to 2012
 
 class DLLEXPORT CExtensionAttrHelper : public CBaseAttrHelper
 {
 
 public:
+   /// @param nodeClassName  name of maya class to add attributes to
+   /// @param nodeEntry  arnold node entry to use when checking parameter metadata
    CExtensionAttrHelper(MString nodeClassName, const AtNodeEntry* nodeEntry=NULL) :
       CBaseAttrHelper(nodeEntry),
       m_class(nodeClassName)
    {}
+   /// @param nodeClassName  name of maya class to add attributes to
+   /// @param nodeEntryName  arnold node entry to use when checking parameter metadata
    CExtensionAttrHelper(MString nodeClassName, const char* nodeEntryName) :
       CBaseAttrHelper(nodeEntryName),
       m_class(nodeClassName)

@@ -20,6 +20,8 @@ typedef std::map<std::string, std::vector<CMayaPluginData> > PluginDataMap;
 
 // Translator Registry
 
+/// Stores registered translators and associates them with Maya nodes
+///
 class DLLEXPORT CTranslatorRegistry
 {
 public:

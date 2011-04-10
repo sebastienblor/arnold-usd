@@ -36,13 +36,13 @@ struct CMayaNodeData
    {}
 };
 
-// key: maya node name
+/// key: maya node name
 typedef std::map<std::string, CMayaNodeData> MayaNodeDataMap;
-// key: arnold node name
+/// key: arnold node name
 typedef std::map<std::string, std::string> ArnoldNodeToMayaNode;
-// key: arnold plugin file path
+/// key: arnold plugin file path
 typedef std::map<std::string, std::vector<std::string> > ArnoldPluginData;
-// key: maya node name
+/// key: maya node name
 typedef std::map<std::string, std::vector<CAttrData> > DynamicAttrMap;
 
 int FindLibraries(MString searchPath, MStringArray &files);
@@ -58,6 +58,14 @@ public:
 
 typedef void (*pluginInitFunctionType)(CExtension&);
 
+//--------------- CArnoldNodeFactory -----------------------------------
+
+/// Responsible for loading Arnold and MtoA plugins and creating new Maya nodes
+
+/// When MtoA is loaded in Maya, the node factory is called to load all Arnold plugins found on ARNOLD_PLUGIN_PATH,
+/// and generate Maya nodes from the Arnold shaders contained within them. Metadata can be added to
+/// the Arnold node and its parameters to control how the Maya node and its attributes are generated, if at all.
+
 class CArnoldNodeFactory
 {
 public:
@@ -69,7 +77,7 @@ public:
    void LoadPlugins();
    void UnloadPlugins();
 
-   bool RegisterMayaNode(const AtNodeEntry* arnoldNode);
+   bool RegisterMayaNode(const AtNodeEntry* arnoldNodeEntry);
    bool RegisterMayaNode(const char* arnoldNodeName, const char* mayaNodeName, int nodeId, const char* shaderClass="");
    static bool MapToMayaNode(const char* arnoldNodeName, const char* mayaCounterpart, int typeId);
    void UnregisterMayaNode(const char* arnoldNodeName);
@@ -102,8 +110,16 @@ inline CArnoldNodeFactory::~CArnoldNodeFactory()
 {
 }
 
-// AutoTranslator
-//
+//--------------- CAutoTranslator ------------------------------------------
+
+/// A Translator class which can automatically export simple Maya nodes.
+
+/// To perform an automatic export, the translator does the following:
+///  -# gets the Arnold node entry that corresponds to the Maya node being export from CArnoldNodeFactory
+///  -# loops through each parameter on the Arnold node entry
+///  -# processes the equivalent attribute on the Maya node
+///
+
 class DLLEXPORT CAutoTranslator : public CNodeTranslator
 {
 public:

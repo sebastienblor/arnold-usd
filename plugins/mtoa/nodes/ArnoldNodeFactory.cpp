@@ -32,8 +32,9 @@
      #define LIBEXT MString(".dylib")
    #endif
 #endif
-// @param searchPath  a path to search for libraries, optionally containing
-// separators ( : on unix, ; on windows ) and environment variables
+
+/// @param searchPath  a path to search for libraries, optionally containing
+/// separators (: on unix, ; on windows) and environment variables
 int FindLibraries(MString searchPath, MStringArray &files)
 {
    MString resolvedPathList = searchPath.expandFilePath();
@@ -100,13 +101,13 @@ MCallbackId CArnoldNodeFactory::s_pluginLoadedCallbackId = 0;
 // Don't use ARNOLD_NODEID_CUSTOM as it's an actual node!
 int CArnoldNodeFactory::s_autoNodeId(ARNOLD_NODEID_AUTOGEN);
 
-// Load an arnold plugin.
+/// Load an Arnold plugin.
 
-// Loads the arnold plugin and registers a maya node for each arnold node
-// contained within it, if applicable.
-//
-// @param pluginFile  the absolute path to an arnold plugin
-//
+/// Loads the Arnold plugin and registers a Maya node for each Arnold node
+/// contained within it, if applicable.
+///
+/// @param pluginFile  the absolute path to an Arnold plugin
+///
 void CArnoldNodeFactory::LoadPlugin(const char* pluginFile)
 {
    MString str;
@@ -138,13 +139,13 @@ void CArnoldNodeFactory::LoadPlugin(const char* pluginFile)
    }
 }
 
-// Unload an arnold plugin.
+/// Unload an Arnold plugin.
 
-// Remove from the arnold universe all nodes created by the specified plugin and
-// unregister any maya nodes generated for them.
-//
-// @param pluginFile  the absolute path to a previously loaded arnold plugin
-//
+/// Remove from the Arnold universe all nodes created by the specified plugin and
+/// unregister any Maya nodes generated for them.
+///
+/// @param pluginFile  the absolute path to a previously loaded Arnold plugin
+///
 void CArnoldNodeFactory::UnloadPlugin(const char* pluginFile)
 {
    MString str;
@@ -167,8 +168,8 @@ void CArnoldNodeFactory::UnloadPlugin(const char* pluginFile)
    }
 }
 
-// Load all plugins on the plugin path
-//
+/// Load all Arnold plugins on the plugin path
+///
 void CArnoldNodeFactory::LoadPlugins()
 {
    //MString resolvedPathList = MString("$ARNOLD_PLUGIN_PATH").expandEnvironmentVariablesAndTilde();
@@ -190,10 +191,10 @@ void CArnoldNodeFactory::LoadPlugins()
 }
 
 
-// Associate an arnold node with an existing maya node.  During translation of
-// the maya scene to ass format, the arnold node will be used wherever the maya
-// node is encountered.
-//
+/// Associate an Arnold node with an existing Maya node.  During translation of
+/// the Maya scene the Arnold node will be used wherever the Maya
+/// node is encountered.
+///
 bool CArnoldNodeFactory::MapToMayaNode(const char* arnoldNodeName, const char* mayaCounterpart, int typeId)
 {
    s_arnoldToMayaNodes[arnoldNodeName] = mayaCounterpart;
@@ -206,34 +207,39 @@ bool CArnoldNodeFactory::MapToMayaNode(const char* arnoldNodeName, const char* m
    return false;
 }
 
-// Register a maya node for the given arnold node
-//
-// Certain optional metadata can be used to control how the
-// node factory processes its registration:
-//  1. "maya.name" - the name that should be used for the generated maya node
-//  2. "maya.id" - the maya node id to use for the generated maya node
-//  3. "maya.class" - classification string (defaults to "shader/surface")
-//  4. "maya.counterpart" - the name of an existing maya node to
-//     which this one should be mapped (see MapToMayaNode). no new node will
-//     be generated.
-//  5. "maya.hide" - skip registration altogether
-//
-// options 4 & 5 will result in no new maya node being created.
-//
-bool CArnoldNodeFactory::RegisterMayaNode(const AtNodeEntry* arnoldNode)
+/// Register a Maya node for the given Arnold node
+///
+/// Certain optional node-level metadata can be used to control how the
+/// node factory processes the node's registration:
+///  -# "maya.name" - the name that should be used for the generated maya node
+///  -# "maya.id" - the maya node id to use for the generated maya node
+///  -# "maya.class" - classification string (defaults to "shader/surface")
+///  -# "maya.counterpart" - the name of an existing maya node to
+///     which this one should be mapped (see CArnoldNodeFactory::MapToMayaNode). no new node will
+///     be generated.
+///  -# "maya.hide" - skip registration altogether
+///
+/// See CBaseAttrHelper for parameter-level metadata for controlling attribute creation
+///
+/// @param arnoldNodeEntry  arnold AtNodeEntry from which to generate the new Maya node
+///
+/// @return true if the node is registered successfully, else false
+///
+bool CArnoldNodeFactory::RegisterMayaNode(const AtNodeEntry* arnoldNodeEntry)
 {
    MStatus status;
-   const char* arnoldNodeName = AiNodeEntryGetName(arnoldNode);
+   const char* arnoldNodeName = AiNodeEntryGetName(arnoldNodeEntry);
 
    // should the node be ignored?
    AtBoolean hide;
-   if (MAiMetaDataGetBool(arnoldNode, NULL, "maya.hide", &hide) && hide)
+   if (MAiMetaDataGetBool(arnoldNodeEntry, NULL, "maya.hide", &hide) && hide)
       return true;
 
    // map to an existing maya node?
    char mayaCounterpart[128];
    int mayaCounterpartId;
-   if (MAiMetaDataGetStr(arnoldNode, NULL, "maya.counterpart", mayaCounterpart) && AiMetaDataGetInt(arnoldNode, NULL, "maya.counterpart_id", &mayaCounterpartId))
+   if (MAiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.counterpart", mayaCounterpart) &&
+         AiMetaDataGetInt(arnoldNodeEntry, NULL, "maya.counterpart_id", &mayaCounterpartId))
    {
       if (!MapToMayaNode(arnoldNodeName, mayaCounterpart, mayaCounterpartId))
       {
@@ -244,12 +250,12 @@ bool CArnoldNodeFactory::RegisterMayaNode(const AtNodeEntry* arnoldNode)
    }
    // remap node name?
    char mayaNodeName[128];
-   if (!MAiMetaDataGetStr(arnoldNode, NULL, "maya.name", mayaNodeName))
+   if (!MAiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.name", mayaNodeName))
       strcpy(mayaNodeName, arnoldNodeName);
 
    // get nodeID
    AtInt nodeId;
-   if (!MAiMetaDataGetInt(arnoldNode, NULL, "maya.id", &nodeId))
+   if (!MAiMetaDataGetInt(arnoldNodeEntry, NULL, "maya.id", &nodeId))
    {
       nodeId = s_autoNodeId;
       // TODO: print hex nodeId
@@ -261,12 +267,24 @@ bool CArnoldNodeFactory::RegisterMayaNode(const AtNodeEntry* arnoldNode)
    // classification string
    MString shaderClass = "";
    char tmp[256];
-   if (MAiMetaDataGetStr(arnoldNode, NULL, "maya.class", tmp))
+   if (MAiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.class", tmp))
       shaderClass = tmp;
    return RegisterMayaNode(arnoldNodeName, mayaNodeName, nodeId, shaderClass.asChar());
 }
 
-bool CArnoldNodeFactory::RegisterMayaNode(const char* arnoldNodeName, const char* mayaNodeName, int nodeId, const char* shaderClass)
+/// Register a Maya node for the given Arnold node
+///
+/// See CBaseAttrHelper for parameter-level metadata for controlling attribute creation
+///
+/// @param arnoldNodeName  arnold node entry name from which to generate the new Maya node
+/// @param mayaNodeName    name to use for the new Maya node
+/// @param nodeId          maya node Id
+/// @param shaderClass     maya shader class string
+///
+/// @return true if the node is registered successfully, else false
+///
+bool CArnoldNodeFactory::RegisterMayaNode(const char* arnoldNodeName, const char* mayaNodeName,
+                                          int nodeId, const char* shaderClass)
 {
    MString classification = "shader/surface:swatch/ArnoldRenderSwatch";
    if (strlen(shaderClass))
@@ -276,7 +294,8 @@ bool CArnoldNodeFactory::RegisterMayaNode(const char* arnoldNodeName, const char
    CArnoldCustomShaderNode::s_shaderName = arnoldNodeName;
 
    // Register the node and its parameters
-   MStatus status = m_plugin.registerNode(mayaNodeName, nodeId, CArnoldCustomShaderNode::creator, CArnoldCustomShaderNode::initialize, MPxNode::kDependNode, &classification);
+   MStatus status = m_plugin.registerNode(mayaNodeName, nodeId, CArnoldCustomShaderNode::creator,
+                                          CArnoldCustomShaderNode::initialize, MPxNode::kDependNode, &classification);
    CHECK_MSTATUS(status);
 
    if (status != MStatus::kSuccess || !MapToMayaNode(arnoldNodeName, mayaNodeName,  nodeId))
@@ -287,9 +306,9 @@ bool CArnoldNodeFactory::RegisterMayaNode(const char* arnoldNodeName, const char
    return true;
 }
 
-// Unregister the maya node generated by the given arnold node and remove
-// all mappings associated with the arnold node.
-//
+/// Unregister the maya node generated by the given arnold node and remove
+/// all mappings associated with the arnold node.
+///
 void CArnoldNodeFactory::UnregisterMayaNode(const char* arnoldNodeName)
 {
    MStatus status;
@@ -341,7 +360,10 @@ void CArnoldNodeFactory::UnregisterAllNodes()
    s_arnoldPlugins.clear();
 }
 
-
+/// Load an MtoA extension.
+///
+/// @return true if the extension is loaded successfully, else false
+///
 bool CArnoldNodeFactory::LoadExtension(const char* extensionFile)
 {
    AiMsgDebug("loading extension %s", extensionFile);
@@ -367,8 +389,8 @@ bool CArnoldNodeFactory::LoadExtension(const char* extensionFile)
    return true;
 }
 
-// Load all mtoa extensions on the extension path
-//
+/// Load all MtoA extensions on the extension path.
+///
 void CArnoldNodeFactory::LoadExtensions()
 {
    MStatus status;
@@ -400,8 +422,8 @@ void CArnoldNodeFactory::LoadExtensions()
    }
 }
 
-// Unload all mtoa extensions on the extension path
-//
+/// Unload all MtoA extensions on the extension path
+///
 void CArnoldNodeFactory::UnloadExtensions()
 {
 #if defined(_LINUX) || defined(_DARWIN)
@@ -415,6 +437,12 @@ void CArnoldNodeFactory::UnloadExtensions()
 #endif
 }
 
+/// Return the name of the Arnold node entry that corresponds to the given Maya node type
+///
+/// @param mayaShader  name of a maya type previously registered with the node factory
+///
+/// @return name of the Arnold node entry
+///
 const char* CArnoldNodeFactory::GetArnoldNodeFromMayaNode(const MString& mayaShader)
 {
    return s_factoryNodes[mayaShader.asChar()].arnoldNodeName.c_str();

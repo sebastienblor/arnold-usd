@@ -16,8 +16,9 @@
 
 // MNodeClass
 //
-// mimics the behavior of MNodeClass introduced in Maya 2012. used here for adding extension
-// attributes on node creation
+/// Mimics the behavior of MNodeClass introduced in Maya 2012.
+
+/// Used here for adding extension attributes on node creation
 
 struct CAttrData;
 typedef std::map<std::string, std::vector<MObject> > ExtensionAttrMap;
