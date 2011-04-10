@@ -10,7 +10,7 @@ options:
     node_metadata:
         maya.id: 0x00071000
     parameter_metadata:
-         AA_samples:
+        AA_samples:
             maya.keyable: false
             maya.orig_shortname: AAsmpls
             softmin: 1
@@ -82,7 +82,7 @@ options:
             min: 0
             max: 10000
             default: 1
-         GI_glossy_depth:
+        GI_glossy_depth:
             maya.keyable: false
             maya.orig_shortname: GI_gd
             softmin: 0
@@ -134,33 +134,33 @@ options:
             max: 100
 point_light:
     parameter_metadata:
-         bounce_factor:
+        bounce_factor:
             min: 0
             softmax: 20
-         bounces:
+        bounces:
             min: 0
             max: 10000
-         sss_samples:
+        sss_samples:
             min: 0
             max: 100
 
 spot_light:
     parameter_metadata:
-         bounce_factor:
+        bounce_factor:
             min: 0
             softmax: 20
-         bounces:
+        bounces:
             min: 0
             max: 10000
-         sss_samples:
+        sss_samples:
             min: 0
             max: 100
-         aspect_ratio:
+        aspect_ratio:
             softmin: 0
             softmax: 1
             min: 0
             max: 100
-         lens_radius:
+        lens_radius:
             softmin: 0
             softmax: 1
             min: 0
@@ -168,76 +168,76 @@ spot_light:
 
 quad_light:
     parameter_metadata:
-         bounce_factor:
+        bounce_factor:
             min: 0
             softmax: 20
-         bounces:
+        bounces:
             min: 0
             max: 10000
-         sss_samples:
+        sss_samples:
             min: 0
             max: 100
 
 persp_camera:
     parameter_metadata:
-         focal_distance:
+        focal_distance:
             min: 0
             max: 1000000000
             softmin: 0
             softmax: 200
             default: 5
             animatable: true
-         aperture_size:
+        aperture_size:
             min: 0
             max: 20
             softmin: 0
             softmax: 0.5
             default: 0.2
             animatable: true
-         aperture_blades:
+        aperture_blades:
             min: 3
             max: 40
             default: 6
-         aperture_blade_curvature:
+        aperture_blade_curvature:
             min: -20
             max: 20
             softmin: -5
             softmax: 5
-         aperture_rotation:
+        aperture_rotation:
             min: 0
             max: 360
             softmin: 0
             softmax: 50
 
 polymesh:
-   parameter_metadata:
-      diffuse_visibility:
-         label: Visible In Diffuse
-      glossy_visibility:
-         label: Visible In Glossy
-      subdiv_iterations:
-         label: Iterations
-         min: 0
-         max: 100
-         softMin: 0
-         softMax: 10
-      subdiv_pixel_error:
-         min: 0
-         max: 50
-         softMin: 0
-         softMax: 10
-      sss_use_gi:
-         label: Use GI with SSS
-      sss_max_samples:
-         label: SSS Max Samples
-         min: 0
-         max: 1000000000
-         softMin: 0
-         softMax: 1000000
-      sss_sample_spacing:
-         label: SSS Sample Spacing
-         min: 0
-         max: 10
-         softMin: 0
-         softMax: 1
+    parameter_metadata:
+        diffuse_visibility:
+            label: Visible In Diffuse
+        glossy_visibility:
+            label: Visible In Glossy
+        subdiv_iterations:
+            label: Iterations
+            min: 0
+            max: 100
+            softMin: 0
+            softMax: 10
+        subdiv_pixel_error:
+            min: 0
+            max: 50
+            softMin: 0
+            softMax: 10
+        sss_use_gi:
+            label: Use GI with SSS
+        sss_max_samples:
+            label: SSS Max Samples
+            min: 0
+            max: 1000000000
+            softMin: 0
+            softMax: 1000000
+        sss_sample_spacing:
+            label: SSS Sample Spacing
+            min: 0
+            max: 10
+            softMin: 0
+            softMax: 1
  
