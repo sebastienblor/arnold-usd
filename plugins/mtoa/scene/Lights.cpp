@@ -76,9 +76,9 @@ void CLightTranslator::Update(AtNode* light, bool mayaAttrs)
       AiNodeSetBool(light, "affect_specular", m_fnNode.findPlug("affect_specular").asBool());
    }
 
-   ExportDynamicIntParameter(light, "sss_samples");
-   ExportDynamicIntParameter(light, "bounces");
-   ExportDynamicFloatParameter(light, "bounce_factor");
+   AiNodeSetInt(light, "sss_samples", m_fnNode.findPlug("sss_samples").asInt());
+   AiNodeSetInt(light, "bounces", m_fnNode.findPlug("bounces").asInt());
+   AiNodeSetFlt(light, "bounce_factor", m_fnNode.findPlug("bounce_factor").asFloat());
 
    MStatus status;
    MPlug pFilters = m_fnNode.findPlug("light_filters", &status);
@@ -138,7 +138,7 @@ void CLightTranslator::Delete()
 {
    // Arnold doesn't allow use to delete nodes, so this
    // is as close as we'll get for now.
-   AiNodeSetFlt(m_atNode, "intensity", 0.0f );
+   AiNodeSetFlt(GetArnoldNode(), "intensity", 0.0f);
 }
 
 // AmbientLight
@@ -190,8 +190,8 @@ void CPointLightTranslator::Update(AtNode* light)
 
    AiNodeSetFlt(light, "radius", fnLight.shadowRadius());
 
-   ExportDynamicBooleanParameter(light, "affect_volumetrics");
-   ExportDynamicBooleanParameter(light, "cast_volumetric_shadows");
+   AiNodeSetBool(light, "affect_volumetrics", m_fnNode.findPlug("affect_volumetrics").asBool());
+   AiNodeSetBool(light, "cast_volumetric_shadows", m_fnNode.findPlug("cast_volumetric_shadows").asBool());
 }
 
 void CPointLightTranslator::NodeInitializer(MString nodeClassName)
@@ -228,11 +228,11 @@ void CSpotLightTranslator::Update(AtNode* light)
    AiNodeSetFlt(light, "penumbra_angle", static_cast<float>(fabs(fnLight.penumbraAngle()) * AI_RTOD));
    AiNodeSetFlt(light, "cosine_power", static_cast<float>(fnLight.dropOff()));
 
-   ExportDynamicBooleanParameter(light, "affect_volumetrics");
-   ExportDynamicBooleanParameter(light, "cast_volumetric_shadows");
+   AiNodeSetBool(light, "affect_volumetrics", m_fnNode.findPlug("affect_volumetrics").asBool());
+   AiNodeSetBool(light, "cast_volumetric_shadows", m_fnNode.findPlug("cast_volumetric_shadows").asBool());
 
-   EXPORT_DYN_PARAM_FLOAT(light, "aspect_ratio", fnLight);
-   EXPORT_DYN_PARAM_FLOAT(light, "lens_radius", fnLight);
+   AiNodeSetFlt(light, "aspect_ratio", m_fnNode.findPlug("aspect_ratio").asFloat());
+   AiNodeSetFlt(light, "lens_radius", m_fnNode.findPlug("lens_radius").asFloat());
 }
 
 void CSpotLightTranslator::NodeInitializer(MString nodeClassName)
@@ -273,10 +273,10 @@ void CAreaLightTranslator::Update(AtNode* light)
 
    AiNodeSetArray(light, "vertices", AiArrayConvert(4, 1, AI_TYPE_POINT, vertices, true));
 
-   ExportDynamicIntParameter(light, "resolution");
-   ExportDynamicBooleanParameter(light, "affect_volumetrics");
-   ExportDynamicBooleanParameter(light, "cast_volumetric_shadows");
-   ExportDynamicBooleanParameter(light, "solid_angle");
+   AiNodeSetInt(light, "resolution", m_fnNode.findPlug("resolution").asInt());
+   AiNodeSetBool(light, "affect_volumetrics", m_fnNode.findPlug("affect_volumetrics").asBool());
+   AiNodeSetBool(light, "cast_volumetric_shadows", m_fnNode.findPlug("cast_volumetric_shadows").asBool());
+   AiNodeSetBool(light, "solid_angle", m_fnNode.findPlug("solid_angle").asBool());
 }
 
 void CAreaLightTranslator::NodeInitializer(MString nodeClassName)

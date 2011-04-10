@@ -380,7 +380,7 @@ void CGeoTranslator::GetComponentIDs(MFnMesh &fnMesh,
 
 void CGeoTranslator::ExportShaders()
 {
-   ExportMeshShaders(m_atNode, m_fnMesh);
+   ExportMeshShaders(GetArnoldNode(), m_fnMesh);
 }
 
 void CGeoTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)

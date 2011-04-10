@@ -74,11 +74,11 @@ struct ExportOptions
 struct CMotionBlurData
 {
    bool enabled;
-   float shutter_size;
-   float shutter_offset;
-   int shutter_type;
-   int motion_steps;
-   float motion_frames;
+   AtFloat shutter_size;
+   AtFloat shutter_offset;
+   AtUInt shutter_type;
+   AtUInt motion_steps;
+   AtFloat motion_frames;
 
    std::vector<float> frames;
 };
@@ -164,17 +164,17 @@ public:
       return IsMotionBlurEnabled() && m_fnArnoldRenderOptions->findPlug("mb_lights_enable").asBool();
    }
    
-   int GetNumMotionSteps() const
+   AtUInt GetNumMotionSteps() const
    {
       return m_motionBlurData.motion_steps;
    }
    
-   float GetShutterSize() const
+   AtFloat GetShutterSize() const
    {
       return m_motionBlurData.shutter_size;
    }
    
-   int GetShutterType()
+   AtUInt GetShutterType()
    {
       return m_motionBlurData.shutter_type;
    }

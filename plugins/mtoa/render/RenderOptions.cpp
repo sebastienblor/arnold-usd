@@ -240,15 +240,6 @@ void CRenderOptions::ProcessArnoldRenderOptions()
    SetupImageOutputs();
 }
 
-void CRenderOptions::SetupRenderOptions() const
-{
-   MObject node;
-   if (GetOptionsNode(node) == MS::kSuccess)
-   {
-      m_scene->ExportShader(node);
-   }
-}
-
 void CRenderOptions::SetupLog() const
 {
    if (m_log_filename != "")

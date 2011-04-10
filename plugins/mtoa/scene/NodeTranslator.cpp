@@ -91,14 +91,7 @@ AtNode* CNodeTranslator::DoExport(AtUInt step)
       if (m_atNode == NULL)
          AiMsgWarning("[mtoa] Node %s did not return a valid arnold node. Motion blur and IPR will be disabled", m_fnNode.name().asChar());
       else
-      {
          ExportUserAttribute(m_atNode);
-         // If in IPR mode, install callbacks to detect changes.
-         if ( m_scene->GetExportMode() == MTOA_EXPORT_IPR )
-         {
-            AddCallbacks();
-         }
-      }
    }
    else if (m_atNode != NULL)
    {
@@ -112,6 +105,13 @@ AtNode* CNodeTranslator::DoExport(AtUInt step)
          ExportMotion(m_atNode, step);
       }
    }
+   // Add IPR callbacks on last step
+   if (  m_atNode != NULL &&
+         step == (m_scene->GetNumMotionSteps()-1) &&
+         m_scene->GetExportMode() == MTOA_EXPORT_IPR)
+   {
+      AddCallbacks();
+   }
    return m_atNode;
 }
 
@@ -124,18 +124,24 @@ AtNode* CNodeTranslator::DoUpdate(AtUInt step)
       {
          Update(m_atNode);
          ExportUserAttribute(m_atNode);
-         // If in IPR mode, install callbacks to detect changes.
-         if ( m_scene->GetExportMode() == MTOA_EXPORT_IPR )
-         {
-            AddCallbacks();
-         }
       }
       else if (RequiresMotionData())
          UpdateMotion(m_atNode, step);
+
+      // Add IPR callbacks on last step
+      if (  step == (m_scene->GetNumMotionSteps()-1) &&
+            m_scene->GetExportMode() == MTOA_EXPORT_IPR)
+      {
+         AddCallbacks();
+      }
    }
    return m_atNode;
 }
 
+AtNode* CNodeTranslator::GetArnoldNode()
+{
+   return m_atNode;
+}
 
 // Add callbacks to the node passed in. It's a few simple
 // callbacks by default. Since this method is virtual - you can
@@ -545,27 +551,6 @@ void CNodeTranslator::ConvertMatrix(AtMatrix& matrix, const MMatrix& mayaMatrix)
    }
 }
 
-void CNodeTranslator::ExportDynamicFloatParameter(AtNode* arnoldNode, const char* paramName)
-{
-   MPlug plug = m_fnNode.findPlug(paramName);
-   if (!plug.isNull())
-      AiNodeSetFlt(arnoldNode, paramName, plug.asFloat());
-}
-
-void CNodeTranslator::ExportDynamicBooleanParameter(AtNode* arnoldNode, const char* paramName)
-{
-   MPlug plug = m_fnNode.findPlug(paramName);
-   if (!plug.isNull())
-      AiNodeSetBool(arnoldNode, paramName, plug.asBool());
-}
-
-void CNodeTranslator::ExportDynamicIntParameter(AtNode* arnoldNode, const char* paramName)
-{
-   MPlug plug = m_fnNode.findPlug(paramName);
-   if (!plug.isNull())
-      AiNodeSetInt(arnoldNode, paramName, plug.asInt());
-}
-
 AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* mayaAttrib, const AtParamEntry* paramEntry, int element)
 {
    MStatus status;
@@ -785,7 +770,7 @@ void CDagTranslator::Delete()
    // Arnold doesn't allow us to delete nodes
    // setting the visibility is as good as it gets
    // for now.
-   AiNodeSetInt(m_atNode, "visibility",  AI_RAY_UNDEFINED);
+   AiNodeSetInt(GetArnoldNode(), "visibility",  AI_RAY_UNDEFINED);
 }
 
 // Return whether the dag object in dagPath is the master instance. The master

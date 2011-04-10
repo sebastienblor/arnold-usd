@@ -28,20 +28,17 @@ class CMayaScene;
 //
 class DLLEXPORT CNodeTranslator
 {
+   // protect this class from its subclasses: make methods that should not be
+   // called by subclasses private
+   friend class CMayaScene;
+
+private:
+   AtNode* DoExport(AtUInt step);
+   AtNode* DoUpdate(AtUInt step);
+
 public:
    virtual ~CNodeTranslator()
    {}
-   static void ConvertMatrix(AtMatrix& matrix, const MMatrix& mayaMatrix);
-   AtNode* DoExport(AtUInt step);
-   AtNode* DoUpdate(AtUInt step);
-   void DoDelete();
-   
-   // Overide this if you have some special callbacks to install.
-   virtual void AddCallbacks();
-   // Remove callbacks installed. This is virtual incase
-   // a translator needs to do more than remove the managed
-   // callbacks.
-   virtual void RemoveCallbacks();
    virtual void Init(const MObject& object, CMayaScene* scene, MString outputAttr="")
    {
       m_object = object;
@@ -56,45 +53,58 @@ protected:
    virtual AtNode* Export() = 0;
    virtual void ExportMotion(AtNode* atNode, AtUInt step){}
    virtual void Update(AtNode* atNode) = 0;
-   virtual void Delete() {}
    virtual void UpdateMotion(AtNode* atNode, AtUInt step){ExportMotion(atNode, step);}
    virtual bool RequiresMotionData()
    {
       return false;
    }
+   virtual void Delete() {}
+   void DoDelete();
+
+   static void ConvertMatrix(AtMatrix& matrix, const MMatrix& mayaMatrix);
+
    AtNode* ProcessParameter(AtNode* arnoldNode, const char* mayaAttrib, const AtParamEntry* paramEntry, int element=-1);
    AtNode* ProcessParameter(AtNode* arnoldNode, const char* attrib, int arnoldAttribType, int element=-1);
    AtNode* ProcessParameter(AtNode* arnoldNode, const char* mayaAttrib, const char* arnoldAttrib, int arnoldAttribType, int element=-1);
    AtNode* ProcessParameter(AtNode* arnoldNode, MPlug& plug, const AtParamEntry* paramEntry, int elemen=-1);
    AtNode* ProcessParameter(AtNode* arnoldNode, MPlug &plug, const char* arnoldAttrib, int arnoldAttribType, int element=-1);
-   void ExportDynamicFloatParameter(AtNode* arnoldNode, const char* paramName);
-   void ExportDynamicBooleanParameter(AtNode* arnoldNode, const char* paramName);
-   void ExportDynamicIntParameter(AtNode* arnoldNode, const char* paramName);
    void ExportUserAttribute(AtNode *anode);
+
+   // get the arnold node that this translator is exporting (should only be used after all export steps are complete)
+   AtNode* GetArnoldNode();
 
    // Add a callback to the list to manage.
    void ManageCallback( const MCallbackId id );
+
+   // Overide this if you have some special callbacks to install.
+   virtual void AddCallbacks();
+   // Remove callbacks installed. This is virtual incase
+   // a translator needs to do more than remove the managed
+   // callbacks.
+   virtual void RemoveCallbacks();
 
    // Some simple callbacks used by many translators.
    static void NodeDirtyCallback(MObject &node, MPlug &plug, void *clientData);
    static void NameChangedCallback(MObject &node, const MString &str, void *clientData);
    static void NodeDeletedCallback(MObject &node, MDGModifier &modifier, void *clientData);
 
+   // This is a help that tells mtoa to re-export/update the node passed in.
+   // Used by the IPR callbacks.
+   static void UpdateIPR( void * clientData );
+
+private:
+   AtNode* m_atNode;
+
 protected:
    MObject m_object;
    CMayaScene* m_scene;
    MFnDependencyNode m_fnNode;
    MString m_outputAttr;
-   AtNode* m_atNode;
 
    // This stores callback IDs for the callbacks this
    // translator creates.
    MCallbackIdArray m_mayaCallbackIDs;
 
-   // This is a help that tells mtoa to re-export/update the node passed in.
-   // Used by the IPR callbacks.
-   static void UpdateIPR( void * clientData );
-   
 };
 
 // Abstract base class for Dag node translators

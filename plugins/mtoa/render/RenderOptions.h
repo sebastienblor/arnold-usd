@@ -307,7 +307,6 @@ public:
    void GetFromMaya(CMayaScene* scene);
 
    void SetupLog() const;
-   void SetupRenderOptions() const;
    
    MString VerifyFileName(MString fileName, bool compressed);
    void    UpdateImageFilename();

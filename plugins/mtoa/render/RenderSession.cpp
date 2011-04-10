@@ -141,9 +141,6 @@ void CRenderSession::Translate(ExportOptions options)
    Init(options);
    LoadPlugins();
 
-   // Export options node first.
-   m_renderOptions.SetupRenderOptions();
-   
    m_scene->ExportToArnold();
 }
 
@@ -537,8 +534,7 @@ void CRenderSession::DoExport(MString customFileName)
       if (GetMayaScene()->GetExportMode()==MTOA_EXPORT_ALL)
       {
          SetupRenderOutput();
-         m_renderOptions.SetupRenderOptions();
-      }   
+      }
       // FIXME : problem this is actually double filtering files
       // (Once at export to AiUniverse and once at file write from it)
       AiASSWrite(fileName.asChar(), m_renderOptions.outputAssMask(), false);
