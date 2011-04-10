@@ -1,0 +1,519 @@
+# atmosphere
+
+[node sky]
+    desc		STRING	"Sky shader."
+    [attr intensity]
+    	desc		STRING	"Intensity of sky illumination."
+    	min			FLOAT	0.0
+        softmax		FLOAT	10.0
+        default		FLOAT 	1.0
+
+[node volume_scattering]
+	desc STRING "Volume scattering shader."
+    [attr affect_camera]
+    	desc STRING "Scattering effect on camera rays."
+    	min			FLOAT	0.0
+    	max			FLOAT	1.0
+    [attr affect_diffuse]
+    	desc STRING "Scattering effect on diffuse rays."
+    	min			FLOAT	0.0
+    	max			FLOAT	1.0
+    [attr affect_reflection]
+    	desc STRING "Scattering effect on reflection rays."
+    	min			FLOAT	0.0
+    	max			FLOAT	1.0
+    [attr attenuation]
+    	desc STRING "Scattering attenuation."
+    	min			FLOAT	0.0
+    	max			FLOAT	1.0    	
+    [attr density]
+    	desc STRING "Scattering density."
+    	min			FLOAT	0.0
+    	max			FLOAT	1.0 
+    [attr eccentricity]
+    	desc STRING "Scattering eccentricity."
+    	min			FLOAT	-1.0
+    	max			FLOAT	1.0       	
+    [attr mscattering_depth]
+    	desc STRING "Scattering depth."
+    	min			FLOAT	0.0
+    	softmax		FLOAT	10.0    
+    [attr mscattering_sample]
+    	desc STRING "Scattering number of samples."
+    	min			INT		0
+    	softmax		INT		64
+
+[node fog]
+    [attr distance]
+    	desc STRING "Fog full opacity distance."
+    	min			FLOAT	0.0
+    	softmax		FLOAT	1000.0  
+	[attr height]
+    	desc STRING "Fog full height."
+    	min			FLOAT	0.0
+    	softmax		FLOAT	1000.0  
+
+# options
+
+[node options]
+	# probably a problem here
+	maya.id			0x00071000
+	# for all attributes unless specified
+	maya.keyable	BOOL	False
+    [attr AA_samples]
+    	min			INT		0
+    	max			INT		100
+    	softmin		INT		1
+        softmax		INT		10
+        default		INT		3   
+		maya.orig_shortname	STRING	AAsmpls
+	[attr bucket_scanning]
+        maya.orig_shortname	STRING	bktsc
+	[attr bucket_size]
+		maya.orig_shortname	STRING	bktsz
+    	min			INT		1
+    	softmin		INT		1
+        softmax		INT		256		
+	[attr abort_on_error]
+		maya.orig_shortname	STRING	abort
+	[attr abort_on_license_fail]
+		maya.orig_shortname	STRING	abortlic
+	[attr AA_sample_clamp]
+    	softmin		FLOAT	0.001
+        softmax		FLOAT	100.0
+        default		FLOAT	10.0	
+		maya.orig_shortname	STRING	smpclamp
+        ignore_textures:
+            maya.keyable: false
+        ignore_shaders:
+            maya.keyable: false
+        ignore_lights:
+            maya.keyable: false
+        ignore_shadows:
+            maya.keyable: false
+        ignore_subdivision:
+            maya.keyable: false
+        ignore_displacement:
+            maya.keyable: false
+        ignore_motion_blur:
+            maya.keyable: false
+        ignore_smoothing:
+            maya.keyable: false
+        ignore_sss:
+            maya.keyable: false
+        auto_transparency_depth:
+            maya.keyable: false
+            maya.orig_shortname: at_d
+            softmin: 0
+            softmax: 16
+            min: 0
+            max: 10000
+        auto_transparency_threshold:
+            maya.keyable: false
+            maya.orig_shortname: at_t
+            min: 0
+            max: 10
+        auto_transparency_probabilistic:
+            maya.keyable: false
+            maya.orig_shortname: at_p
+        sss_subpixel_cache:
+            maya.keyable: false
+            maya.orig_shortname: sssspc
+        show_samples:
+            maya.keyable: false
+            maya.orig_shortname: sssshs
+        max_subdivisions:
+            maya.keyable: false
+            maya.orig_shortname: maxs
+            min: 0
+            max: 999
+        texture_max_memory_MB:
+            maya.keyable: false
+            maya.orig_shortname: tx_mm
+        texture_automip:
+            maya.keyable: false
+            maya.orig_shortname: tx_am
+        texture_autotile:
+            maya.keyable: false
+            maya.orig_shortname: tx_at
+        GI_diffuse_depth:
+            maya.keyable: false
+            maya.orig_shortname: GI_dd
+            softmin: 0
+            softmax: 16
+            min: 0
+            max: 10000
+            default: 1
+        GI_glossy_depth:
+            maya.keyable: false
+            maya.orig_shortname: GI_gd
+            softmin: 0
+            softmax: 16
+            min: 0
+            max: 10000
+            default: 1
+        GI_reflection_depth:
+            maya.keyable: false
+            maya.orig_shortname: GI_rld
+            softmin: 0
+            softmax: 16
+            min: 0
+            max: 10000
+        GI_refraction_depth:
+            maya.keyable: false
+            maya.orig_shortname: GI_rrd
+            softmin: 0
+            softmax: 16
+            min: 0
+            max: 10000
+        GI_total_depth:
+            maya.keyable: false
+            maya.orig_shortname: GI_td
+            softmin: 0
+            softmax: 16
+            min: 0
+            max: 10000
+        GI_diffuse_samples:
+            maya.keyable: false
+            maya.orig_shortname: GIdiffsmpls
+            softmin: 0
+            softmax: 10
+            min: 0
+            max: 100
+        GI_glossy_samples:
+            maya.keyable: false
+            maya.orig_shortname: GIglossmpls
+            softmin: 0
+            softmax: 10
+            min: 0
+            max: 100
+        GI_sss_hemi_samples:
+            maya.keyable: false
+            maya.orig_shortname: GIssshemismpls
+            softmin: 0
+            softmax: 10
+            min: 0
+            max: 100
+
+# lights
+
+[node point_light]
+	[attr bounce_factor]
+    	min			FLOAT	0.0
+        softmax		FLOAT	20.0	
+	[attr bounces]
+        min			INT		0
+        max			INT		10000
+	[attr sss_samples]
+        min			INT		0
+        max			INT		100
+
+[node spot_light]
+	[attr bounce_factor]
+    	min			FLOAT	0.0
+        softmax		FLOAT	20.0
+	[attr bounces]
+        min			INT		0
+        max			INT		10000
+	[attr sss_samples]
+        min			INT		0
+        max			INT		100
+	[attr aspect_ratio]
+		min			FLOAT	0
+        max			FLOAT	100	
+		softmin		FLOAT	0
+		softmax		FLOAT	1
+	[attr lens_radius]
+		min			FLOAT	0
+        max			FLOAT	100	
+		softmin		FLOAT	0
+		softmax		FLOAT	1
+
+quad_light:
+    parameter_metadata:
+        bounce_factor:
+            min: 0
+            softmax: 20
+        bounces:
+            min: 0
+            max: 10000
+        sss_samples:
+            min: 0
+            max: 100
+
+# light filters
+
+barndoor:
+    parameter_metadata:
+        barndoor_bottom_edge:
+            min: 0.0
+            max: 1.0
+        barndoor_bottom_left:
+            min: 0.0
+            max: 1.0
+        barndoor_bottom_right:
+            min: 0.0
+            max: 1.0
+        barndoor_top_edge:
+            min: 0.0
+            max: 1.0
+        barndoor_top_left:
+            min: 0.0
+            max: 1.0
+        barndoor_top_right:
+            min: 0.0
+            max: 1.0
+        barndoor_left_edge:
+            min: 0.0
+            max: 1.0
+        barndoor_left_bottom:
+            min: 0.0
+            max: 1.0
+        barndoor_left_top:
+            min: 0.0
+            max: 1.0
+        barndoor_right_edge:
+            min: 0.0
+            max: 1.0
+        barndoor_right_bottom:
+            min: 0.0
+            max: 1.0
+        barndoor_right_top:
+            min: 0.0
+            max: 1.0
+
+gobo:
+    parameter_metadata:
+        density:
+            min: 0.0
+            softmax: 10.0
+        rotate:
+            min: 0.0
+            max: 360.0
+        scale_s:
+            min: 0.0
+            softmax: 1000.0
+        scale_t:
+            min: 0.0
+            softmax: 1000.0
+
+light_blocker:
+    parameter_metadata:
+        density:
+            min: 0.0
+            softmax: 10.0
+        height_edge:
+            min: 0.0
+            softmax: 1000.0
+        ramp:
+            min: 0.0
+            softmax: 1000.0
+        width_edge:
+            min: 0.0
+            softmax: 1000.0
+        roundness:
+            min: 0.0
+            softmax: 1000.0
+
+light_decay:
+    parameter_metadata:
+        decay_radius:
+            min: 0.0
+            softmax: 10.0
+        far_end:
+            min: 0.0
+            softmax: 1000.0
+        far_start:
+            min: 0.0
+            softmax: 1000.0
+        near_end:
+            min: 0.0
+            softmax: 1000.0
+        near_start:
+            min: 0.0
+            softmax: 1000.0
+
+# cameras
+
+persp_camera:
+    parameter_metadata:
+        focal_distance:
+            min: 0
+            max: 1000000000
+            softmin: 0
+            softmax: 200
+            default: 5
+            animatable: true
+        aperture_size:
+            min: 0
+            max: 20
+            softmin: 0
+            softmax: 0.5
+            default: 0.2
+            animatable: true
+        aperture_blades:
+            min: 3
+            max: 40
+            default: 6
+        aperture_blade_curvature:
+            min: -20
+            max: 20
+            softmin: -5
+            softmax: 5
+        aperture_rotation:
+            min: 0
+            max: 360
+            softmin: 0
+            softmax: 50
+
+# shaders
+
+standard:
+    parameter_metadata:
+        IOR:
+            min: 0.0
+            max: 10
+        Kb:
+            min: 0.0
+            max: 1.0
+        Kd:
+            min: 0.0
+            max: 1.0
+        Kr:
+            min: 0.0
+            max: 1.0
+        Krn:
+            min: 0.0
+            max: 1.0
+        Ks:
+            min: 0.0
+            max: 1.0
+        Ksn:
+            min: 0.0
+            max: 1.0
+        Ksss:
+            min: 0.0
+            max: 1.0
+        Kt:
+            min: 0.0
+            max: 1.0
+        Phong_exponent:
+            min: 0.0
+            max: 5000
+            softmin: 0.0
+            softmax: 2000
+        bounce_factor:
+            min: 0.0
+            max: 4.0
+        diffuse_roughness:
+            min: 0.0
+            max: 1.0
+        direct_diffuse:
+            min: 0.0
+            max: 1.0
+        direct_specular:
+            min: 0.0
+            max: 1.0
+        emission:
+            min: 0.0
+            max: 1.0
+        indirect_diffuse:
+            min: 0.0
+            max: 1.0
+        indirect_specular:
+            min: 0.0
+            max: 1.0
+
+ambient_occlusion:
+    parameter_metadata:
+        falloff:
+            softmax: 100.0
+            min: 0.0
+        far_clip:
+            softmax: 100000.0
+            min: 0.0
+        near_clip:
+            softmax: 100000.0
+            min: 0.0
+        samples:
+            softmax: 100
+            min: 0
+        spread:
+            max: 1.0
+            min: 0.0
+
+[node wireframe]
+    desc		STRING	"This shader can be used to display the edge structure of a geometry."
+	[attr line_width]
+ 		desc		STRING	"Width of edges lines."
+    	min			FLOAT	0.0
+        softmax		FLOAT	10.0
+	[attr fill_color]
+		desc 		STRING	"Color for the faces." 
+	[attr line_color]
+		desc		STRING	"Color for the lines." 
+	[attr raster_space]
+		desc		STRING	"Space used to measure line width." 
+	[attr edge_type]
+		desc		STRING	"Base geometry element used for edge display."     
+
+hair:
+    attributes:
+        ambdiff:
+            label: Ambient Diffuse
+            max: 1.0
+            min: 0.0
+        gloss:
+            default: 10.0
+            label: Glossy
+            min: 0.0
+            max: 5000.0
+            softmin: 0.0
+            softmax: 2000.0
+        kd_ind:
+            label: Indirect Diffuse
+            min: 0.0
+            max: 100.0
+            softmin: 0.0
+            softmax: 10.0
+        rootcolor:
+            label: Root Color
+        spec:
+            label: Specular
+        spec_color:
+            label: Specular Color
+        tipcolor:
+            label: Tip Color
+
+
+polymesh:
+    parameter_metadata:
+        diffuse_visibility:
+            label: Visible In Diffuse
+        glossy_visibility:
+            label: Visible In Glossy
+        subdiv_iterations:
+            label: Iterations
+            min: 0
+            max: 100
+            softMin: 0
+            softMax: 10
+        subdiv_pixel_error:
+            min: 0
+            max: 50
+            softMin: 0
+            softMax: 10
+        sss_use_gi:
+            label: Use GI with SSS
+        sss_max_samples:
+            label: SSS Max Samples
+            min: 0
+            max: 1000000000
+            softMin: 0
+            softMax: 1000000
+        sss_sample_spacing:
+            label: SSS Sample Spacing
+            min: 0
+            max: 10
+            softMin: 0
+            softMax: 1
