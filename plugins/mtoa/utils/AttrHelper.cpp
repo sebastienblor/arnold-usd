@@ -11,6 +11,8 @@
 #include <maya/MDGModifier.h>
 
 // convert from "arnold_style" to "mayaStyle"
+// ignores the capitalization of input strings: letters are only capitalized
+// if they follow an underscore
 //
 MString toMayaStyle(MString s)
 {
@@ -27,7 +29,10 @@ MString toMayaStyle(MString s)
          capitalize = false;
       }
       else
-         name += c;
+         // always go to lower case
+         // this avoids ugly things like GI_diffuse_samples --> GIDiffuseSamples
+         // and instead produces the slightly nicer giDiffuseSamples
+         name += c.toLowerCase();
    }
    return name;
 }
