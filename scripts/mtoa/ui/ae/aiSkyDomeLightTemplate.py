@@ -2,7 +2,7 @@ import maya.cmds as cmds
 import maya.mel as mel
 import mtoa.ui.ae.customShapeAttributes as customShapeAttributes
 
-def skyDomeLightShaderTemplate(nodeName):
+def aiSkyDomeLightTemplate(nodeName):
 
     cmds.editorTemplate(beginScrollLayout=True)
 

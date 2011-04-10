@@ -7,23 +7,10 @@
 #include "nodes/ArnoldNodeFactory.h"
 #include "nodes/ArnoldRenderOptions.h"
 #include "nodes/ArnoldAOV.h"
-#include "nodes/shaders/atmosphere/ArnoldFogShader.h"
-#include "nodes/shaders/atmosphere/ArnoldVolumeScatteringShader.h"
 #include "nodes/shaders/background/SphereLocator.h"
 #include "nodes/shaders/background/ArnoldSkyShader.h"
 #include "nodes/shaders/displacement/ArnoldDisplacementShader.h"
-#include "nodes/shaders/light/ArnoldBarndoorShader.h"
-#include "nodes/shaders/light/ArnoldGoboShader.h"
-#include "nodes/shaders/light/ArnoldLightBlockerShader.h"
-#include "nodes/shaders/light/ArnoldLightDecayShader.h"
 #include "nodes/shaders/light/ArnoldSkyDomeLightShader.h"
-#include "nodes/shaders/surface/ArnoldAmbientOcclusionShader.h"
-#include "nodes/shaders/surface/ArnoldStandardShader.h"
-#include "nodes/shaders/surface/ArnoldUtilityShader.h"
-#include "nodes/shaders/surface/ArnoldMeshInfoShader.h"
-#include "nodes/shaders/surface/ArnoldWireframeShader.h"
-#include "nodes/shaders/surface/ArnoldHairShader.h"
-#include "nodes/shaders/surface/ArnoldRaySwitchShader.h"
 #include "scene/Shaders.h"
 #include "scene/Lights.h"
 #include "scene/Geometry.h"
@@ -33,12 +20,12 @@
 #include "scene/TranslatorRegistry.h"
 #include "render/RenderSwatch.h"
 
-#include <ai_render.h>
 #include <ai_msg.h>
+#include <ai_render.h>
 
-#include <maya/MSwatchRenderRegister.h>
 #include <maya/MFnPlugin.h>
 #include <maya/MGlobal.h>
+#include <maya/MSwatchRenderRegister.h>
 
 #define MTOA_VENDOR "SolidAngle"
 #define MTOA_VERSION "0.6.0.dev"
@@ -53,111 +40,208 @@ namespace // <anonymous>
       const MString ShaderClass("shader/surface");
       const MString DisplacementClass("shader/displacement");
       const MString LightClass("light");
+      const MString swatchName("ArnoldRenderSwatch");
 
       // Abstract Classes
-      status = plugin.registerNode("SphereLocator", CSphereLocator::id, CSphereLocator::creator, CSphereLocator::initialize, MPxNode::kLocatorNode);
+      status = plugin.registerNode("SphereLocator",
+                                    CSphereLocator::id,
+                                    CSphereLocator::creator,
+                                    CSphereLocator::initialize,
+                                    MPxNode::kLocatorNode);
+      CHECK_MSTATUS(status);
 
-      // RENDER OPTIONS
-      status = plugin.registerNode("ArnoldRenderOptions", CArnoldRenderOptionsNode::id, CArnoldRenderOptionsNode::creator, CArnoldRenderOptionsNode::initialize);
+      // Render Options
+      status = plugin.registerNode("aiOptions",
+                                    CArnoldRenderOptionsNode::id,
+                                    CArnoldRenderOptionsNode::creator,
+                                    CArnoldRenderOptionsNode::initialize);
+      CHECK_MSTATUS(status);
 
       // AOV
-      status = plugin.registerNode("ArnoldAOV", CArnoldAOVNode::id, CArnoldAOVNode::creator, CArnoldAOVNode::initialize);
+      status = plugin.registerNode("ArnoldAOV",
+                                   CArnoldAOVNode::id,
+                                   CArnoldAOVNode::creator,
+                                   CArnoldAOVNode::initialize);
+      CHECK_MSTATUS(status);
 
       // Swatch renderer.
-      static MString swatchName("ArnoldRenderSwatch");
-      MSwatchRenderRegister::registerSwatchRender(swatchName, CRenderSwatchGenerator::creator );
-
-      // Ray switch shader [could be surface or environment...]
-      status = plugin.registerNode("ArnoldRaySwitchShader", CArnoldRaySwitchShaderNode::id, CArnoldRaySwitchShaderNode::creator, CArnoldRaySwitchShaderNode::initialize, MPxNode::kDependNode, &ShaderClass);
-      // Surface Shaders
-      status = plugin.registerNode("ArnoldAmbientOcclusionShader", CArnoldAmbientOcclusionShaderNode::id, CArnoldAmbientOcclusionShaderNode::creator, CArnoldAmbientOcclusionShaderNode::initialize, MPxNode::kDependNode, &ShaderClass);
-      status = plugin.registerNode("ArnoldStandardShader", CArnoldStandardShaderNode::id, CArnoldStandardShaderNode::creator, CArnoldStandardShaderNode::initialize, MPxNode::kDependNode, &ShaderClass);
-      status = plugin.registerNode("ArnoldUtilityShader", CArnoldUtilityShaderNode::id, CArnoldUtilityShaderNode::creator, CArnoldUtilityShaderNode::initialize, MPxNode::kDependNode, &ShaderClass);
-      status = plugin.registerNode("ArnoldMeshInfoShader", CArnoldMeshInfoShaderNode::id, CArnoldMeshInfoShaderNode::creator, CArnoldMeshInfoShaderNode::initialize, MPxNode::kDependNode, &ShaderClass);
-      status = plugin.registerNode("ArnoldWireframeShader", CArnoldWireframeShaderNode::id, CArnoldWireframeShaderNode::creator, CArnoldWireframeShaderNode::initialize, MPxNode::kDependNode, &ShaderClass);
-      status = plugin.registerNode("ArnoldHairShader", CArnoldHairShaderNode::id, CArnoldHairShaderNode::creator, CArnoldHairShaderNode::initialize, MPxNode::kDependNode, &ShaderClass);
+      status = MSwatchRenderRegister::registerSwatchRender(swatchName,
+                                                           CRenderSwatchGenerator::creator);
+      CHECK_MSTATUS(status);
 
       // Displacement Shaders
-      status = plugin.registerNode("ArnoldDisplacementShader", CArnoldDisplacementShaderNode::id, CArnoldDisplacementShaderNode::creator, CArnoldDisplacementShaderNode::initialize, MPxNode::kDependNode, &DisplacementClass);
+      status = plugin.registerNode("aiDisplacement",
+                                   CArnoldDisplacementShaderNode::id,
+                                   CArnoldDisplacementShaderNode::creator,
+                                   CArnoldDisplacementShaderNode::initialize,
+                                   MPxNode::kDependNode, &DisplacementClass);
+      CHECK_MSTATUS(status);
 
       // Light Shaders
-      status = plugin.registerNode("ArnoldBarndoorShader", CArnoldBarndoorShaderNode::id, CArnoldBarndoorShaderNode::creator, CArnoldBarndoorShaderNode::initialize);
-      status = plugin.registerNode("ArnoldGoboShader", CArnoldGoboShaderNode::id, CArnoldGoboShaderNode::creator, CArnoldGoboShaderNode::initialize);
-      status = plugin.registerNode("ArnoldLightBlockerShader", CArnoldLightBlockerShaderNode::id, CArnoldLightBlockerShaderNode::creator, CArnoldLightBlockerShaderNode::initialize);
-      status = plugin.registerNode("ArnoldLightDecayShader", CArnoldLightDecayShaderNode::id, CArnoldLightDecayShaderNode::creator, CArnoldLightDecayShaderNode::initialize);
-      status = plugin.registerNode("ArnoldSkyDomeLightShader", CArnoldSkyDomeLightShaderNode::id, CArnoldSkyDomeLightShaderNode::creator, CArnoldSkyDomeLightShaderNode::initialize, MPxNode::kLocatorNode);
+      status = plugin.registerNode("aiSkyDomeLight",
+                                   CArnoldSkyDomeLightShaderNode::id,
+                                   CArnoldSkyDomeLightShaderNode::creator,
+                                   CArnoldSkyDomeLightShaderNode::initialize,
+                                   MPxNode::kLocatorNode);
+      CHECK_MSTATUS(status);
 
       // Special shaders (not visible from Maya shaders menu)
-      status = plugin.registerNode("ArnoldFogShader", CArnoldFogShaderNode::id, CArnoldFogShaderNode::creator, CArnoldFogShaderNode::initialize);
-      status = plugin.registerNode("ArnoldSkyShader", CArnoldSkyShaderNode::id, CArnoldSkyShaderNode::creator, CArnoldSkyShaderNode::initialize, MPxNode::kLocatorNode, &LightClass);
-      status = plugin.registerNode("ArnoldVolumeScatteringShader", CArnoldVolumeScatteringShaderNode::id, CArnoldVolumeScatteringShaderNode::creator, CArnoldVolumeScatteringShaderNode::initialize);
 
-      CArnoldNodeFactory* arnoldPluginFactory;
-      arnoldPluginFactory = new CArnoldNodeFactory(object);
+      status = plugin.registerNode("aiSky",
+                                   CArnoldSkyShaderNode::id,
+                                   CArnoldSkyShaderNode::creator,
+                                   CArnoldSkyShaderNode::initialize,
+                                   MPxNode::kLocatorNode,
+                                   &LightClass);
+      CHECK_MSTATUS(status);
 
-      arnoldPluginFactory->LoadPlugins();
+      // Start up the plugin factory.
+      CArnoldNodeFactory arnoldPluginFactory(object);
+
+      // Light Filters
+      arnoldPluginFactory.RegisterMayaNode("barndoor",
+                                           "aiBarndoor",
+                                           ARNOLD_NODEID_BARNDOOR);
+      arnoldPluginFactory.RegisterMayaNode("gobo",
+                                           "aiGobo",
+                                           ARNOLD_NODEID_GOBO);
+      arnoldPluginFactory.RegisterMayaNode("light_blocker",
+                                           "aiLightBlocker",
+                                           ARNOLD_NODEID_LIGHT_BLOCKER);
+      arnoldPluginFactory.RegisterMayaNode("light_decay",
+                                           "aiLightDecay",
+                                           ARNOLD_NODEID_LIGHT_DECAY);
+
+      // Surface Shaders
+      arnoldPluginFactory.RegisterMayaNode("ray_switch",
+                                           "aiRaySwitch",
+                                           ARNOLD_NODEID_RAY_SWITCH);
+      arnoldPluginFactory.RegisterMayaNode("ambient_occlusion",
+                                           "aiAmbientOcclusion",
+                                           ARNOLD_NODEID_AMBIENT_OCCLUSION);
+      arnoldPluginFactory.RegisterMayaNode("standard",
+                                           "aiStandard",
+                                           ARNOLD_NODEID_STANDARD);
+      arnoldPluginFactory.RegisterMayaNode("utility",
+                                           "aiUtility",
+                                           ARNOLD_NODEID_UTILITY);
+      arnoldPluginFactory.RegisterMayaNode("wireframe",
+                                           "aiWireframe",
+                                           ARNOLD_NODEID_WIREFRAME);
+      arnoldPluginFactory.RegisterMayaNode("hair",
+                                           "aiHair",
+                                           ARNOLD_NODEID_HAIR);
+
+      // Environment/Volume shaders
+      arnoldPluginFactory.RegisterMayaNode("fog",
+                                           "aiFog",
+                                           ARNOLD_NODEID_FOG);
+      arnoldPluginFactory.RegisterMayaNode("volume_scattering",
+                                           "aiVolumeScattering",
+                                           ARNOLD_NODEID_VOLUME_SCATTERING);
+
+      arnoldPluginFactory.LoadPlugins();
 
       CTranslatorRegistry::CreateCallbacks();
-      CTranslatorRegistry::RegisterDependTranslator("ArnoldRenderOptions", ARNOLD_NODEID_RENDER_OPTIONS, CRenderOptionsTranslator::creator);
-
-      CTranslatorRegistry::RegisterDependTranslator("surfaceShader", MAYA_NODEID_SURFACE_SHADER, CSurfaceShaderTranslator::creator);
-      CTranslatorRegistry::RegisterDependTranslator("lambert", MAYA_NODEID_LAMBERT, CLambertTranslator::creator);
-      CTranslatorRegistry::RegisterDependTranslator("file", MAYA_NODEID_FILE, CFileTranslator::creator);
-      CTranslatorRegistry::RegisterDependTranslator("place2dTexture", MAYA_NODEID_PLACE2D_TEXTURE, CPlace2DTextureTranslator::creator);
-      CTranslatorRegistry::RegisterDependTranslator("bump2d", MAYA_NODEID_BUMP2D, CBump2DTranslator::creator);
-      CTranslatorRegistry::RegisterDependTranslator("bump3d", MAYA_NODEID_BUMP3D, CBump3DTranslator::creator);
-      CTranslatorRegistry::RegisterDependTranslator("samplerInfo", MAYA_NODEID_SAMPLER_INFO, CSamplerInfoTranslator::creator);
-      CTranslatorRegistry::RegisterDependTranslator("plusMinusAverage", MAYA_NODEID_PLUS_MINUS_AVERAGE, CPlusMinusAverageTranslator::creator);
-      CTranslatorRegistry::RegisterDependTranslator("remapValue", MAYA_NODEID_REMAP_VALUE, CRemapValueTranslator::creator);
-      CTranslatorRegistry::RegisterDependTranslator("remapColor", MAYA_NODEID_REMAP_COLOR, CRemapColorTranslator::creator);
-      CTranslatorRegistry::RegisterDependTranslator("projection", MAYA_NODEID_PROJECTION, CProjectionTranslator::creator);
-      CTranslatorRegistry::RegisterDependTranslator("ramp", MAYA_NODEID_RAMP, CRampTranslator::creator);
-      CTranslatorRegistry::RegisterDependTranslator("layeredTexture", MAYA_NODEID_LAYERED_TEXTURE, CLayeredTextureTranslator::creator);
+      CTranslatorRegistry::RegisterDependTranslator("aiOptions",
+                                                    ARNOLD_NODEID_RENDER_OPTIONS,
+                                                    CRenderOptionsTranslator::creator);
+      CTranslatorRegistry::RegisterDependTranslator("surfaceShader",
+                                                    MAYA_NODEID_SURFACE_SHADER,
+                                                    CSurfaceShaderTranslator::creator);
+      CTranslatorRegistry::RegisterDependTranslator("lambert",
+                                                    MAYA_NODEID_LAMBERT,
+                                                    CLambertTranslator::creator);
+      CTranslatorRegistry::RegisterDependTranslator("file",
+                                                    MAYA_NODEID_FILE,
+                                                    CFileTranslator::creator);
+      CTranslatorRegistry::RegisterDependTranslator("place2dTexture",
+                                                    MAYA_NODEID_PLACE2D_TEXTURE,
+                                                    CPlace2DTextureTranslator::creator);
+      CTranslatorRegistry::RegisterDependTranslator("bump2d",
+                                                    MAYA_NODEID_BUMP2D,
+                                                    CBump2DTranslator::creator);
+      CTranslatorRegistry::RegisterDependTranslator("bump3d",
+                                                    MAYA_NODEID_BUMP3D,
+                                                    CBump3DTranslator::creator);
+      CTranslatorRegistry::RegisterDependTranslator("samplerInfo",
+                                                    MAYA_NODEID_SAMPLER_INFO,
+                                                    CSamplerInfoTranslator::creator);
+      CTranslatorRegistry::RegisterDependTranslator("plusMinusAverage",
+                                                    MAYA_NODEID_PLUS_MINUS_AVERAGE,
+                                                    CPlusMinusAverageTranslator::creator);
+      CTranslatorRegistry::RegisterDependTranslator("remapValue",
+                                                    MAYA_NODEID_REMAP_VALUE,
+                                                    CRemapValueTranslator::creator);
+      CTranslatorRegistry::RegisterDependTranslator("remapColor",
+                                                    MAYA_NODEID_REMAP_COLOR,
+                                                    CRemapColorTranslator::creator);
+      CTranslatorRegistry::RegisterDependTranslator("projection",
+                                                    MAYA_NODEID_PROJECTION,
+                                                    CProjectionTranslator::creator);
+      CTranslatorRegistry::RegisterDependTranslator("ramp",
+                                                    MAYA_NODEID_RAMP,
+                                                    CRampTranslator::creator);
+      CTranslatorRegistry::RegisterDependTranslator("layeredTexture",
+                                                    MAYA_NODEID_LAYERED_TEXTURE,
+                                                    CLayeredTextureTranslator::creator);
 
       // sky is technically a DAG node, but it behaves like a DG node (i.e. it is only exported when a connection is processed)
       // therefore, it is not registered as a DagTranslator
-      CTranslatorRegistry::RegisterDependTranslator("ArnoldSkyShader", CArnoldSkyShaderNode::id.id(), CSkyShaderTranslator::creator);
+      CTranslatorRegistry::RegisterDependTranslator("aiSky",
+                                                    CArnoldSkyShaderNode::id.id(),
+                                                    CSkyShaderTranslator::creator);
 
-      CTranslatorRegistry::RegisterDagTranslator("directionalLight", MAYA_NODEID_DIRECTIONAL_LIGHT, CDirectionalLightTranslator::creator, CLightTranslator::NodeInitializer);
-      CTranslatorRegistry::RegisterDagTranslator("spotLight", MAYA_NODEID_SPOT_LIGHT, CSpotLightTranslator::creator, CSpotLightTranslator::NodeInitializer);
-      CTranslatorRegistry::RegisterDagTranslator("areaLight", MAYA_NODEID_AREA_LIGHT, CAreaLightTranslator::creator, CAreaLightTranslator::NodeInitializer);
-      CTranslatorRegistry::RegisterDagTranslator("pointLight", MAYA_NODEID_POINT_LIGHT, CPointLightTranslator::creator, CPointLightTranslator::NodeInitializer);
-      CTranslatorRegistry::RegisterDagTranslator("ambientLight", MAYA_NODEID_AMBIENT_LIGHT, CAmbientLightTranslator::creator, CLightTranslator::NodeInitializer);
-      CTranslatorRegistry::RegisterDagTranslator("ArnoldSkyDomeLightShader", CArnoldSkyDomeLightShaderNode::id.id(), CSkyDomeLightTranslator::creator);
+      CTranslatorRegistry::RegisterDagTranslator("directionalLight",
+                                                 MAYA_NODEID_DIRECTIONAL_LIGHT,
+                                                 CDirectionalLightTranslator::creator,
+                                                 CLightTranslator::NodeInitializer);
+      CTranslatorRegistry::RegisterDagTranslator("spotLight",
+                                                 MAYA_NODEID_SPOT_LIGHT,
+                                                 CSpotLightTranslator::creator,
+                                                 CSpotLightTranslator::NodeInitializer);
+      CTranslatorRegistry::RegisterDagTranslator("areaLight",
+                                                 MAYA_NODEID_AREA_LIGHT,
+                                                 CAreaLightTranslator::creator,
+                                                 CAreaLightTranslator::NodeInitializer);
+      CTranslatorRegistry::RegisterDagTranslator("pointLight",
+                                                 MAYA_NODEID_POINT_LIGHT,
+                                                 CPointLightTranslator::creator,
+                                                 CPointLightTranslator::NodeInitializer);
+      CTranslatorRegistry::RegisterDagTranslator("ambientLight",
+                                                 MAYA_NODEID_AMBIENT_LIGHT,
+                                                 CAmbientLightTranslator::creator,
+                                                 CLightTranslator::NodeInitializer);
+      CTranslatorRegistry::RegisterDagTranslator("aiSkyDomeLight",
+                                                 CArnoldSkyDomeLightShaderNode::id.id(),
+                                                 CSkyDomeLightTranslator::creator);
 
-      CTranslatorRegistry::RegisterDagTranslator("mesh", MAYA_NODEID_MESH, CMeshTranslator::creator, CMeshTranslator::NodeInitializer);
-      CTranslatorRegistry::RegisterDagTranslator("nurbsSurface", MAYA_NODEID_NURBS_SURFACE, CNurbsSurfaceTranslator::creator, CNurbsSurfaceTranslator::NodeInitializer);
+      CTranslatorRegistry::RegisterDagTranslator("mesh",
+                                                 MAYA_NODEID_MESH,
+                                                 CMeshTranslator::creator,
+                                                 CMeshTranslator::NodeInitializer);
+      CTranslatorRegistry::RegisterDagTranslator("nurbsSurface",
+                                                 MAYA_NODEID_NURBS_SURFACE,
+                                                 CNurbsSurfaceTranslator::creator,
+                                                 CNurbsSurfaceTranslator::NodeInitializer);
 
-      CTranslatorRegistry::RegisterDagTranslator("camera", MAYA_NODEID_CAMERA, CCameraTranslator::creator, CCameraTranslator::NodeInitializer);
+      CTranslatorRegistry::RegisterDagTranslator("camera",
+                                                 MAYA_NODEID_CAMERA,
+                                                 CCameraTranslator::creator,
+                                                 CCameraTranslator::NodeInitializer);
 
-      CTranslatorRegistry::RegisterDagTranslator("hairSystem", MAYA_NODEID_HAIR, CHairTranslator::creator, CHairTranslator::NodeInitializer);
-
-      arnoldPluginFactory->MapToMayaNode("ambient_occlusion", "ArnoldAmbientOcclusionShader", CArnoldAmbientOcclusionShaderNode::id.id());
-      arnoldPluginFactory->MapToMayaNode("standard", "ArnoldStandardShader", CArnoldStandardShaderNode::id.id());
-      arnoldPluginFactory->MapToMayaNode("utility", "ArnoldUtilityShader", CArnoldUtilityShaderNode::id.id());
-      arnoldPluginFactory->MapToMayaNode("wireframe", "ArnoldWireframeShader", CArnoldWireframeShaderNode::id.id());
-      arnoldPluginFactory->MapToMayaNode("hair", "ArnoldHairShader", CArnoldHairShaderNode::id.id());
-
-      arnoldPluginFactory->MapToMayaNode("MeshInfo", "ArnoldMeshInfoShader", CArnoldMeshInfoShaderNode::id.id());
-
-      arnoldPluginFactory->MapToMayaNode("barndoor", "ArnoldBarndoorShader", CArnoldBarndoorShaderNode::id.id());
-      arnoldPluginFactory->MapToMayaNode("gobo", "ArnoldGoboShader", CArnoldGoboShaderNode::id.id());
-      arnoldPluginFactory->MapToMayaNode("light_blocker", "ArnoldLightBlockerShader", CArnoldLightBlockerShaderNode::id.id());
-      arnoldPluginFactory->MapToMayaNode("light_decay", "ArnoldLightDecayShader", CArnoldLightDecayShaderNode::id.id());
-
-      arnoldPluginFactory->MapToMayaNode("fog", "ArnoldFogShader", CArnoldFogShaderNode::id.id());
-      arnoldPluginFactory->MapToMayaNode("volume_scattering", "ArnoldVolumeScatteringShader", CArnoldVolumeScatteringShaderNode::id.id());
-
-      arnoldPluginFactory->MapToMayaNode("ray_switch", "ArnoldRaySwitchShader", CArnoldRaySwitchShaderNode::id.id());
+      CTranslatorRegistry::RegisterDagTranslator("hairSystem",
+                                                 MAYA_NODEID_HAIR,
+                                                 CHairTranslator::creator,
+                                                 CHairTranslator::NodeInitializer);
 
       // Load extensions last so that they can override default translators
-      arnoldPluginFactory->LoadExtensions();
-
-      delete arnoldPluginFactory;
+      arnoldPluginFactory.LoadExtensions();
 
 #if MAYA_API_VERSION < 201200
       MNodeClass::InitializeExistingNodes();
 #endif
+
       return status;
    }
 
@@ -166,43 +250,46 @@ namespace // <anonymous>
       MStatus status;
       MFnPlugin plugin(object);
 
-      // RENDER OPTIONS
+      // Render Options
       status = plugin.deregisterNode(CArnoldRenderOptionsNode::id);
+      CHECK_MSTATUS(status);
       // Remove creation callback
-      MDGMessage::removeCallback( CArnoldRenderOptionsNode::sId );
+      MDGMessage::removeCallback(CArnoldRenderOptionsNode::sId);
 
       // AOV
       status = plugin.deregisterNode(CArnoldAOVNode::id);
+      CHECK_MSTATUS(status);
 
       // Ray switch shader
-      status = plugin.deregisterNode(CArnoldRaySwitchShaderNode::id);
+      status = plugin.deregisterNode(ARNOLD_NODEID_RAY_SWITCH);
+      CHECK_MSTATUS(status);
 
       // Surface Shaders
-      status = plugin.deregisterNode(CArnoldAmbientOcclusionShaderNode::id);
-      status = plugin.deregisterNode(CArnoldStandardShaderNode::id);
-      status = plugin.deregisterNode(CArnoldUtilityShaderNode::id);
-      status = plugin.deregisterNode(CArnoldMeshInfoShaderNode::id);
-      status = plugin.deregisterNode(CArnoldWireframeShaderNode::id);
-      status = plugin.deregisterNode(CArnoldHairShaderNode::id);
+      status = plugin.deregisterNode(ARNOLD_NODEID_AMBIENT_OCCLUSION);
+      CHECK_MSTATUS(status);
+      status = plugin.deregisterNode(ARNOLD_NODEID_STANDARD);
+      CHECK_MSTATUS(status);
+      status = plugin.deregisterNode(ARNOLD_NODEID_UTILITY);
+      CHECK_MSTATUS(status);
+      status = plugin.deregisterNode(ARNOLD_NODEID_MESH_INFO);
+      CHECK_MSTATUS(status);
+      status = plugin.deregisterNode(ARNOLD_NODEID_WIREFRAME);
+      CHECK_MSTATUS(status);
+      status = plugin.deregisterNode(ARNOLD_NODEID_HAIR);
+      CHECK_MSTATUS(status);
 
       // Displacement Shaders
       status = plugin.deregisterNode(CArnoldDisplacementShaderNode::id);
+      CHECK_MSTATUS(status);
 
-      // Light Shaders
-      status = plugin.deregisterNode(CArnoldBarndoorShaderNode::id);
-      status = plugin.deregisterNode(CArnoldGoboShaderNode::id);
-      status = plugin.deregisterNode(CArnoldLightBlockerShaderNode::id);
-      status = plugin.deregisterNode(CArnoldLightDecayShaderNode::id);
 
-      status = plugin.deregisterNode(CArnoldFogShaderNode::id);
+      // Environment or Volume shaders
       status = plugin.deregisterNode(CArnoldSkyShaderNode::id);
-      status = plugin.deregisterNode(CArnoldVolumeScatteringShaderNode::id);
+      CHECK_MSTATUS(status);
 
-      CArnoldNodeFactory* arnoldPluginFactory;
-      arnoldPluginFactory = new CArnoldNodeFactory(object);
-      arnoldPluginFactory->UnregisterAllNodes();
-      arnoldPluginFactory->UnloadExtensions();
-      delete arnoldPluginFactory;
+      CArnoldNodeFactory arnoldPluginFactory(object);
+      arnoldPluginFactory.UnregisterAllNodes();
+      arnoldPluginFactory.UnloadExtensions();
 
       CTranslatorRegistry::RemoveCallbacks();
 
@@ -228,11 +315,11 @@ DLLEXPORT MStatus initializePlugin(MObject object)
                                              CArnoldAssTranslator::creator,
                                              CArnoldAssTranslator::optionScript,
                                              CArnoldAssTranslator::optionDefault,
-                                             false );
+                                             false);
 
    RegisterArnoldNodes(object);
 
-   MGlobal::executePythonCommand( MString("import mtoa.cmds.registerArnoldRenderer;mtoa.cmds.registerArnoldRenderer.registerArnoldRenderer()") );
+   MGlobal::executePythonCommand(MString("import mtoa.cmds.registerArnoldRenderer;mtoa.cmds.registerArnoldRenderer.registerArnoldRenderer()") );
 
    AiEnd();
 
@@ -244,7 +331,7 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
    MStatus status;
    MFnPlugin plugin(object);
 
-   MGlobal::executePythonCommand( MString("import mtoa.cmds.unregisterArnoldRenderer;mtoa.cmds.unregisterArnoldRenderer.unregisterArnoldRenderer()"));
+   MGlobal::executePythonCommand(MString("import mtoa.cmds.unregisterArnoldRenderer;mtoa.cmds.unregisterArnoldRenderer.unregisterArnoldRenderer()"));
 
    UnregisterArnoldNodes(object);
 

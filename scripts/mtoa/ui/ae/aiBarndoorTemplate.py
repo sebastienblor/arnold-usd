@@ -1,7 +1,7 @@
 import maya.cmds as cmds
 import maya.mel as mel
 
-def barndoorShaderTemplate(nodeName):
+def aiBarndoorTemplate(nodeName):
     cmds.editorTemplate(beginScrollLayout=True)
     cmds.editorTemplate(beginLayout="Barndoor Attributes", collapse=False)
 

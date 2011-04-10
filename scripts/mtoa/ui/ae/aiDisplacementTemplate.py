@@ -1,7 +1,7 @@
 import maya.cmds as cmds
 import maya.mel as mel
 
-def displacementShaderTemplate(nodeName):
+def aiDisplacementTemplate(nodeName):
 
     mel.eval('AEswatchDisplay "%s"'%nodeName)
 

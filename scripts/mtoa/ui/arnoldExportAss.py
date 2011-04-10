@@ -32,9 +32,9 @@ def doExportAssAndClose(window):
 
 def arnoldExportAss(*args):
 
-    # Make sure the ArnoldRenderOptions node exists
+    # Make sure the aiOptions node exists
     if not cmds.ls('defaultArnoldRenderOptions'):
-        cmds.createNode('ArnoldRenderOptions', skipSelect=True, shared=True, name='defaultArnoldRenderOptions')
+        cmds.createNode('aiOptions', skipSelect=True, shared=True, name='defaultArnoldRenderOptions')
 
     window = cmds.window(title='Export to .ass Options', resizeToFitChildren=True)
 

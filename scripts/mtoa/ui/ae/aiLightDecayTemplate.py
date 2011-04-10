@@ -12,7 +12,7 @@ def checkFarAtten(nodeName):
     aeUtils.arnoldDimControlIfFalse(nodeName, "far_start", "use_far_atten")
     aeUtils.arnoldDimControlIfFalse(nodeName, "far_end", "use_far_atten")
 
-def lightDecayShaderTemplate(nodeName):
+def aiLightDecayTemplate(nodeName):
 
     cmds.editorTemplate(beginScrollLayout=True)
 

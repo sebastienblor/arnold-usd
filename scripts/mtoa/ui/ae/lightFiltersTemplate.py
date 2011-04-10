@@ -112,16 +112,16 @@ def addLightFilterCB(lightNode, list):
     new_filter = ""
 
     if filterType == "Barndoor":
-        new_filter = cmds.createNode('ArnoldBarndoorShader', skipSelect=True)
+        new_filter = cmds.createNode('aiBarndoor', skipSelect=True)
 
     elif filterType == "Gobo":
-        new_filter = cmds.createNode('ArnoldGoboShader', skipSelect=True)
+        new_filter = cmds.createNode('aiGobo', skipSelect=True)
 
     elif filterType == "Light Blocker":
-        new_filter = cmds.createNode('ArnoldLightBlockerShader', skipSelect=True)
+        new_filter = cmds.createNode('aiLightBlocker', skipSelect=True)
 
     elif filterType == "Light Decay":
-        new_filter = cmds.createNode('ArnoldLightDecayShader', skipSelect=True)
+        new_filter = cmds.createNode('aiLightDecay', skipSelect=True)
 
 
     if new_filter:

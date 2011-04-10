@@ -2216,8 +2216,8 @@ def createArnoldRendererCommonGlobalsTab():
     # This procedure builds the "General" tab for the Maya Software renderer.
     #
 
-    # Make sure the ArnoldRenderOptions node exists
-    cmds.createNode('ArnoldRenderOptions', skipSelect=True, shared=True, name="defaultArnoldRenderOptions")
+    # Make sure the aiOptions node exists
+    cmds.createNode('aiOptions', skipSelect=True, shared=True, name="defaultArnoldRenderOptions")
 
     parentForm = cmds.setParent(query=True)
 

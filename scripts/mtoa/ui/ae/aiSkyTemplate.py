@@ -1,7 +1,7 @@
 import maya.cmds as cmds
 import maya.mel as mel
 
-def skyShaderTemplate(nodeName):
+def aiSkyTemplate(nodeName):
 
     cmds.editorTemplate(beginScrollLayout=True)
 

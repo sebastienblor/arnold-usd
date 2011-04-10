@@ -1,7 +1,7 @@
 import maya.cmds as cmds
 import maya.mel as mel
 
-def goboShaderTemplate(nodeName):
+def aiGoboTemplate(nodeName):
 
     cmds.editorTemplate(beginScrollLayout=True)
 

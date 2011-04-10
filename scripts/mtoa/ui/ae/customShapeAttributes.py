@@ -1,5 +1,5 @@
 import maya.cmds as cmds
-import mtoa.ui.ae.lightFiltersShaderTemplate as lightFiltersShaderTemplate
+import mtoa.ui.ae.lightFiltersTemplate as lightFiltersTemplate
 from mtoa.ui.ae.utils import aeCallback
 from mtoa.ui.ae.shapeTemplate import registerUI
 
@@ -14,7 +14,7 @@ def commonLightAttributes(nodeName):
 
     cmds.editorTemplate(beginLayout="Light Filters")
 
-    cmds.editorTemplate(aeCallback(lightFiltersShaderTemplate.customLightFiltersNew), aeCallback(lightFiltersShaderTemplate.customLightFiltersReplace), "light_filters", callCustom=True)
+    cmds.editorTemplate(aeCallback(lightFiltersTemplate.customLightFiltersNew), aeCallback(lightFiltersTemplate.customLightFiltersReplace), "light_filters", callCustom=True)
 
     cmds.editorTemplate(endLayout=True)
 

@@ -19,7 +19,7 @@ def checkSpecularFresnel(nodeName):
 def checkReflectionFresnel(nodeName):
     aeUtils.arnoldDimControlIfFalse(nodeName, "Krn", "Fresnel")
 
-def standardShaderTemplate(nodeName):
+def aiStandardTemplate(nodeName):
 
     mel.eval('AEswatchDisplay "%s"'%nodeName)
 

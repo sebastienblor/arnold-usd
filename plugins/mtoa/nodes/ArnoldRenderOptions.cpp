@@ -77,7 +77,7 @@ void* CArnoldRenderOptionsNode::creator()
    return new CArnoldRenderOptionsNode();
 }
 
-// Callback is called whenever a ArnoldRenderOptions node is created
+// Callback is called whenever a aiOptions node is created
 void CArnoldRenderOptionsNode::createdCallback(MObject& node, void* clientData)
 {  
    MSelectionList list;
@@ -101,7 +101,7 @@ void CArnoldRenderOptionsNode::createdCallback(MObject& node, void* clientData)
 // Setup the on creation callback
 void CArnoldRenderOptionsNode::postConstructor()
 {
-   CArnoldRenderOptionsNode::sId = MDGMessage::addNodeAddedCallback( CArnoldRenderOptionsNode::createdCallback, "ArnoldRenderOptions" );
+   CArnoldRenderOptionsNode::sId = MDGMessage::addNodeAddedCallback( CArnoldRenderOptionsNode::createdCallback, "aiOptions" );
 }
 
 MStatus CArnoldRenderOptionsNode::initialize()

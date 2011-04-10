@@ -171,7 +171,7 @@ def arnoldAddGlobalsTabs():
 
 def registerArnoldRenderer():
 
-    cmds.createNode('ArnoldRenderOptions', skipSelect=True, shared=True, name='defaultArnoldRenderOptions')
+    cmds.createNode('aiOptions', skipSelect=True, shared=True, name='defaultArnoldRenderOptions')
 
     alreadyRegistered = cmds.renderer('arnold', exists=True)
     if not alreadyRegistered:

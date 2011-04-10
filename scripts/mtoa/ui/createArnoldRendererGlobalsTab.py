@@ -71,8 +71,8 @@ def deleteBackground(field):
 
 def buildBackgroundMenu(popup, field):
 
-    switches = cmds.ls(type='ArnoldRaySwitchShader')
-    skies = cmds.ls(type='ArnoldSkyShader')
+    switches = cmds.ls(type='aiRaySwitch')
+    skies = cmds.ls(type='aiSky')
 
     cmds.popupMenu(popup, edit=True, deleteAllItems=True)
 
@@ -86,8 +86,8 @@ def buildBackgroundMenu(popup, field):
 
     cmds.menuItem(parent=popup, divider=True)
 
-    cmds.menuItem(parent=popup, label="Create Sky Shader", command=Callback(createBackground, "ArnoldSkyShader", field))
-    cmds.menuItem(parent=popup, label="Create RaySwitch Shader", command=Callback(createBackground, "ArnoldRaySwitchShader", field))
+    cmds.menuItem(parent=popup, label="Create Sky Shader", command=Callback(createBackground, "aiSky", field))
+    cmds.menuItem(parent=popup, label="Create RaySwitch Shader", command=Callback(createBackground, "aiRaySwitch", field))
 
     cmds.menuItem(parent=popup, divider=True)
 
@@ -96,8 +96,8 @@ def buildBackgroundMenu(popup, field):
 def selectAtmosphere(*args):
     bkg = cmds.getAttr('defaultArnoldRenderOptions.atmosphere')
 
-    cases = { 1: "cmds.createNode('ArnoldFogShader', shared=True, name='defaultFogShader')",
-              2: "cmds.createNode('ArnoldVolumeScatteringShader', shared=True, name='defaultVolumeScatteringShader')"
+    cases = { 1: "cmds.createNode('aiFog', shared=True, name='defaultFog')",
+              2: "cmds.createNode('aiVolumeScattering', shared=True, name='defaultVolumeScattering')"
             }
 
     if bkg in cases.keys():
@@ -645,8 +645,8 @@ def createArnoldLogSettings():
 
 def createArnoldRendererGlobalsTab():
 
-    # Make sure the ArnoldRenderOptions node exists
-    cmds.createNode('ArnoldRenderOptions', skipSelect=True, shared=True, name='defaultArnoldRenderOptions')
+    # Make sure the aiOptions node exists
+    cmds.createNode('aiOptions', skipSelect=True, shared=True, name='defaultArnoldRenderOptions')
 
     parentForm = cmds.setParent(query=True)
 

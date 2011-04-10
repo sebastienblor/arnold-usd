@@ -56,9 +56,9 @@ def arnoldAssOpts(parent = '', action = '', initialSettings = '', resultCallback
     retval = 0
     currentOptions = ''
 
-    # Make sure the ArnoldRenderOptions node exists
+    # Make sure the aiOptions node exists
     if not cmds.ls('defaultArnoldRenderOptions'):
-        cmds.createNode('ArnoldRenderOptions', skipSelect=True, shared=True, name='defaultArnoldRenderOptions')
+        cmds.createNode('aiOptions', skipSelect=True, shared=True, name='defaultArnoldRenderOptions')
 
     if action == 'post':
         cmds.setParent(parent)

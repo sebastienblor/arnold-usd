@@ -1,7 +1,7 @@
 import maya.cmds as cmds
 import maya.mel as mel
 
-def fogShaderTemplate(nodeName):
+def aiFogTemplate(nodeName):
 
     cmds.editorTemplate(beginScrollLayout=True)
 

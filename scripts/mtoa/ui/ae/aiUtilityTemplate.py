@@ -1,7 +1,7 @@
 import maya.cmds as cmds
 import maya.mel as mel
 
-def utilityShaderTemplate(nodeName):
+def aiUtilityTemplate(nodeName):
 
     mel.eval('AEswatchDisplay "%s"'%nodeName)
 
