@@ -181,7 +181,12 @@ public:
    CStaticAttrHelper(AddAttributeFunction addFunc, const char* nodeEntryName) :
       CBaseAttrHelper(nodeEntryName),
       m_addFunc(addFunc)
-   {}
+   {
+      if (m_nodeEntry == NULL)
+      {
+         AiMsgWarning("[mtoa] CStaticAttrHelper passed unknown Arnold node type \"%s\"", nodeEntryName);
+      }
+   }
 
 protected:
    AddAttributeFunction m_addFunc;
@@ -205,7 +210,13 @@ public:
    CDynamicAttrHelper(MObject& obj, const char* nodeEntryName) :
       CBaseAttrHelper(nodeEntryName),
       m_instance(obj)
-   {}
+   {
+      if (m_nodeEntry == NULL)
+      {
+         AiMsgWarning("[mtoa] CDynamicAttrHelper passed unknown Arnold node type \"%s\" for Maya node type \"%s\"",
+                      nodeEntryName, MFnDependencyNode(m_instance).typeName().asChar());
+      }
+   }
 
 protected:
    MObject m_instance;
@@ -230,7 +241,13 @@ public:
    CExtensionAttrHelper(MString nodeClassName, const char* nodeEntryName) :
       CBaseAttrHelper(nodeEntryName),
       m_class(nodeClassName)
-   {}
+   {
+      if (m_nodeEntry == NULL)
+      {
+         AiMsgWarning("[mtoa] CExtensionAttrHelper passed unknown Arnold node type \"%s\" for Maya node type \"%s\"",
+                      nodeEntryName, nodeClassName.asChar());
+      }
+   }
 #if MAYA_API_VERSION < 201200
    void MakeInputInt(CAttrData& data);
    void MakeInputBoolean(CAttrData& data);

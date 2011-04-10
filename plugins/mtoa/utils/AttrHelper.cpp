@@ -55,6 +55,12 @@ MString CBaseAttrHelper::GetMayaAttrShortName(const char* paramName)
 
 bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
 {
+   if (m_nodeEntry == NULL)
+   {
+      AiMsgError("[mtoa] Cannot retrieve parameter metadata from a null node entry");
+      return false;
+   }
+
    const AtParamEntry* paramEntry = AiNodeEntryLookUpParameter(m_nodeEntry, paramName);
    if (paramEntry == NULL)
    {
