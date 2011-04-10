@@ -1,6 +1,6 @@
 import maya.cmds as cmds
 from mtoa.ui.callback import *
-import mtoa.ui.arnoldAOVEditor as AOVEditor
+import mtoa.ui.aoveditor as aoveditor
 
 def updateRenderSettings(*args):
     flag = cmds.getAttr('defaultArnoldRenderOptions.threads_autodetect') == False
@@ -13,7 +13,6 @@ def updateSamplingSettings(*args):
 
 
 def updateMotionBlurSettings(*args):
-
     flag = cmds.getAttr('defaultArnoldRenderOptions.motion_blur_enable') == True
     cmds.attrControlGrp('mb_camera_enable', edit=True, enable=flag)
     cmds.attrControlGrp('mb_objects_enable', edit=True, enable=flag)
@@ -33,8 +32,7 @@ def updateLogSettings(*args):
 def getBackgroundShader(*args):
     conns = cmds.listConnections('defaultArnoldRenderOptions.background', s=True, d=False, p=True)
     if conns:
-       return conns[0].split('.')[0]
-
+        return conns[0].split('.')[0]
     return ""
 
 def selectBackground(*args):
@@ -63,11 +61,11 @@ def createBackground(type, field):
 
 
 def deleteBackground(field):
-   node = getBackgroundShader();
-   if node:
-      cmds.disconnectAttr("%s.message"%node, 'defaultArnoldRenderOptions.background')
-      cmds.delete(node)
-      cmds.textField(field, edit=True, text="")
+    node = getBackgroundShader();
+    if node:
+        cmds.disconnectAttr("%s.message"%node, 'defaultArnoldRenderOptions.background')
+        cmds.delete(node)
+        cmds.textField(field, edit=True, text="")
 
 def buildBackgroundMenu(popup, field):
 
@@ -82,7 +80,7 @@ def buildBackgroundMenu(popup, field):
     cmds.menuItem(parent=popup, divider=True)
 
     for item in switches:
-       cmds.menuItem(parent=popup, label=item, command=Callback(changeBackground, item, field))
+        cmds.menuItem(parent=popup, label=item, command=Callback(changeBackground, item, field))
 
     cmds.menuItem(parent=popup, divider=True)
 
@@ -96,12 +94,11 @@ def buildBackgroundMenu(popup, field):
 def selectAtmosphere(*args):
     bkg = cmds.getAttr('defaultArnoldRenderOptions.atmosphere')
 
-    cases = { 1: "cmds.createNode('aiFog', shared=True, name='defaultFog')",
-              2: "cmds.createNode('aiVolumeScattering', shared=True, name='defaultVolumeScattering')"
-            }
+    if bkg == 1:
+        cmds.createNode('aiFog', shared=True, name='defaultFog')
+    elif bkg == 2:
+        cmds.createNode('aiVolumeScattering', shared=True, name='defaultVolumeScattering')
 
-    if bkg in cases.keys():
-        eval(cases[bkg])
 
 
 def createArnoldRenderSettings():
@@ -170,7 +167,7 @@ def createArnoldRenderSettings():
 
     cmds.separator()
 
-    cmds.button(label="Setup AOVs", command=AOVEditor.arnoldAOVEditor)
+    cmds.button(label="Setup AOVs", command=aoveditor.arnoldAOVEditor)
 
     cmds.setParent('..')
 
@@ -178,7 +175,6 @@ def createArnoldRenderSettings():
 
 
 def updateArnoldFilterOptions(*args):
-
     selected_filter_type = cmds.getAttr('defaultArnoldRenderOptions.filter_type', asString=True)
 
     filtersA = ['box_filter',
@@ -405,7 +401,7 @@ def createArnoldEnvironmentSettings():
 
     conns = cmds.listConnections('defaultArnoldRenderOptions.background', s=True, d=False)
     if conns:
-       cmds.textField(bgfield, edit=True, text=conns[0])
+        cmds.textField(bgfield, edit=True, text=conns[0])
 
     cmds.separator(style="none")
 

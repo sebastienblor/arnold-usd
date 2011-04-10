@@ -2,18 +2,15 @@ import maya.cmds as cmds
 import maya.mel as mel
 
 import mtoa.utils as utils
-import mtoa.ui.arnoldExportAss as arnoldExportAss
-import mtoa.ui.arnoldAssOpts as arnoldAssOpts
-import mtoa.ui.arnoldAttributeEditor as arnoldAttributeEditor
-import mtoa.ui.createArnoldRendererCommonGlobalsTab
-from mtoa.ui.createArnoldRendererCommonGlobalsTab import createArnoldRendererCommonGlobalsTab, updateArnoldRendererCommonGlobalsTab
-from mtoa.ui.createArnoldRendererGlobalsTab import createArnoldRendererGlobalsTab, updateArnoldRendererGlobalsTab
+import mtoa.ui.exportass as exportass
+import mtoa.ui.globals.common
+from mtoa.ui.globals.common import createArnoldRendererCommonGlobalsTab, updateArnoldRendererCommonGlobalsTab
+from mtoa.ui.globals.arnold import createArnoldRendererGlobalsTab, updateArnoldRendererGlobalsTab
 import mtoa.ui.ae.utils as aeUtils
 
 import mtoa.cmds.arnoldRender as arnoldRender
 
 
-# ******************************************
 # We need to override this two proc to avoid
 # errors because of the hardcoded code.
 def updateMayaImageFormatControl():
@@ -22,7 +19,7 @@ def updateMayaImageFormatControl():
     if currentRenderer == 'mentalRay':
         mel.eval('updateMentalRayImageFormatControl();')
     elif currentRenderer == 'arnold':
-        mtoa.ui.createArnoldRendererCommonGlobalsTab.updateArnoldImageFormatControl()
+        mtoa.ui.globals.common.updateArnoldImageFormatControl()
     else:
         mel.eval('updateMayaSoftwareImageFormatControl();')
 
@@ -68,11 +65,9 @@ def renderSettingsTabLabel_melToUI(smel):
     else:
         mel.eval('uiToMelMsg( "renderSettingsTabLabel_melToUI", "%s", 0)'%smel)
 
-
     return result
 
 def addOneTabToGlobalsWindow(renderer, tabLabel, createProc):
-
     # Check to see if the unified render globals window existed.
     # If it does not exist, then we don't need to add any tab yet.
     #
@@ -87,13 +82,11 @@ def addOneTabToGlobalsWindow(renderer, tabLabel, createProc):
     displayAllTabs = mel.eval('isDisplayingAllRendererTabs')
 
     if not displayAllTabs:
-
         # If the current renderer the renderer is not this
         # renderer, then don't add the tab yet.
         #
         if utils.currentRenderer() != renderer:
             return
-
 
     cmds.setParent('unifiedRenderGlobalsWindow')
 
@@ -125,7 +118,6 @@ def addOneTabToGlobalsWindow(renderer, tabLabel, createProc):
     # to the tabLayout
     #
     if not cmds.layout(tabName, exists=True):
-
         cmds.setUITemplate('renderGlobalsTemplate', pushTemplate=True)
         cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
 
@@ -170,7 +162,6 @@ def arnoldAddGlobalsTabs():
 
 
 def registerArnoldRenderer():
-
     cmds.createNode('aiOptions', skipSelect=True, shared=True, name='defaultArnoldRenderOptions')
 
     alreadyRegistered = cmds.renderer('arnold', exists=True)
@@ -205,7 +196,6 @@ def registerArnoldRenderer():
         if not cmds.about(b=1):
             mel.eval('RenRenderMenu mainRenderMenu')
             cmds.menuItem(parent='mainRenderMenu', divider=True)
-            cmds.menuItem('exportToAssMenuItem', parent='mainRenderMenu', label="Export to Ass...", c=arnoldExportAss.arnoldExportAss)
-            cmds.menuItem('arnoldAttributeEditorItem', parent='mainRenderMenu', label="Arnold Attribute Editor...", c=arnoldAttributeEditor.arnoldAttributeEditor)
+            cmds.menuItem('exportToAssMenuItem', parent='mainRenderMenu', label="Export to Ass...", c=exportass.arnoldExportAss)
             # Add option box for file translator
-            utils.pyToMelProc(arnoldAssOpts.arnoldAssOpts, ('string', 'parent'), ('string', 'action'), ('string', 'initialSettings'), ('string', 'resultCallback'), shortName=True)
+            utils.pyToMelProc(exportass.arnoldAssOpts, ('string', 'parent'), ('string', 'action'), ('string', 'initialSettings'), ('string', 'resultCallback'), shortName=True)
