@@ -580,7 +580,7 @@ void CMayaScene::ClearIPRCallbacks()
    ObjectToTranslatorMap::iterator it;
    for(it = m_processedTranslators.begin(); it != m_processedTranslators.end(); ++it)
    {
-      if ( it->second != NULL ) it->second->RemoveCallbacks();
+      if ( it->second != NULL ) it->second->RemoveIPRCallbacks();
    }
 
    ObjectToDagTranslatorMap::iterator dagIt;
@@ -589,7 +589,7 @@ void CMayaScene::ClearIPRCallbacks()
       std::map<int, CNodeTranslator*>::iterator instIt;
       for(instIt = dagIt->second.begin(); instIt != dagIt->second.end(); ++instIt)
       {
-         instIt->second->RemoveCallbacks();
+         instIt->second->RemoveIPRCallbacks();
       }
    }
    

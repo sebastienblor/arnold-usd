@@ -105,7 +105,7 @@ AtNode* CNodeTranslator::DoExport(AtUInt step)
       if (step == (m_scene->GetNumMotionSteps()-1) &&
           m_scene->GetExportMode() == MTOA_EXPORT_IPR)
       {
-         AddCallbacks();
+         AddIPRCallbacks();
       }
    }
    return m_atNode;
@@ -128,7 +128,7 @@ AtNode* CNodeTranslator::DoUpdate(AtUInt step)
       if (step == (m_scene->GetNumMotionSteps()-1) &&
           m_scene->GetExportMode() == MTOA_EXPORT_IPR)
       {
-         AddCallbacks();
+         AddIPRCallbacks();
       }
    }
    return m_atNode;
@@ -179,7 +179,7 @@ void CNodeTranslator::SetArnoldNodeName(AtNode* arnoldNode)
       AiNodeSetStr(arnoldNode, "name", m_fnNode.name().asChar());
 }
 
-void CNodeTranslator::AddCallbacks()
+void CNodeTranslator::AddIPRCallbacks()
 {
    MStatus status;
    MCallbackId id;
@@ -188,29 +188,29 @@ void CNodeTranslator::AddCallbacks()
                                            NodeDirtyCallback,
                                            this,
                                            &status );
-   if ( MS::kSuccess == status ) ManageCallback( id );
+   if ( MS::kSuccess == status ) ManageIPRCallback( id );
 
    // In case we're deleted!
    id = MNodeMessage::addNodeAboutToDeleteCallback(m_object,
                                                    NodeDeletedCallback,
                                                    this,
                                                    &status );
-   if ( MS::kSuccess == status ) ManageCallback( id );
+   if ( MS::kSuccess == status ) ManageIPRCallback( id );
 
    // Just so people don't get confused with debug output.
    id = MNodeMessage::addNameChangedCallback(m_object,
                                              NameChangedCallback,
                                              this,
                                              &status );
-   if ( MS::kSuccess == status ) ManageCallback( id );
+   if ( MS::kSuccess == status ) ManageIPRCallback( id );
 }
 
-void CNodeTranslator::ManageCallback( const MCallbackId id )
+void CNodeTranslator::ManageIPRCallback( const MCallbackId id )
 {
    m_mayaCallbackIDs.append( id );
 }
 
-void CNodeTranslator::RemoveCallbacks()
+void CNodeTranslator::RemoveIPRCallbacks()
 {
    const MStatus status = MNodeMessage::removeCallbacks( m_mayaCallbackIDs );
    if ( status == MS::kSuccess ) m_mayaCallbackIDs.clear();
@@ -241,7 +241,7 @@ void CNodeTranslator::NodeDeletedCallback(MObject &node, MDGModifier &modifier, 
    CNodeTranslator * translator = static_cast< CNodeTranslator* >(clientData);
    if ( translator != NULL )
    {
-      translator->RemoveCallbacks();
+      translator->RemoveIPRCallbacks();
       translator->Delete();
    }
 
@@ -256,7 +256,7 @@ void CNodeTranslator::UpdateIPR( void * clientData )
    CNodeTranslator * translator = static_cast< CNodeTranslator* >(clientData);
    if ( translator != NULL )
    {
-      translator->RemoveCallbacks();
+      translator->RemoveIPRCallbacks();
       CMayaScene::UpdateIPR( translator );
    }
 }
@@ -781,7 +781,7 @@ void CDagTranslator::AddHierarchyCallbacks(const MDagPath & path)
    // Loop through the whole dag path adding callbacks to them.
    MStatus status;
    MDagPath dag_path( path );
-   dag_path.pop(); // Pop of the shape as that's handled by CNodeTranslator::AddCallbacks.
+   dag_path.pop(); // Pop of the shape as that's handled by CNodeTranslator::AddIPRCallbacks.
    for( ; dag_path.length() > 0; dag_path.pop() )
    {
       MObject node = dag_path.node();
@@ -792,18 +792,18 @@ void CDagTranslator::AddHierarchyCallbacks(const MDagPath & path)
                                                              NodeDirtyCallback,
                                                              this,
                                                              &status );
-         if ( MS::kSuccess == status ) ManageCallback( id );
+         if ( MS::kSuccess == status ) ManageIPRCallback( id );
       }
    }
 }
 
 
-void CDagTranslator::AddCallbacks()
+void CDagTranslator::AddIPRCallbacks()
 {
    AddHierarchyCallbacks( m_dagPath );
 
    // Call the base class to get the others.
-   CNodeTranslator::AddCallbacks();
+   CNodeTranslator::AddIPRCallbacks();
 }
 
 void CDagTranslator::Delete()

@@ -80,14 +80,14 @@ protected:
    virtual AtNode* CreateArnoldNode();
 
    // Add a callback to the list to manage.
-   void ManageCallback( const MCallbackId id );
+   void ManageIPRCallback( const MCallbackId id );
 
    // Overide this if you have some special callbacks to install.
-   virtual void AddCallbacks();
+   virtual void AddIPRCallbacks();
    // Remove callbacks installed. This is virtual incase
    // a translator needs to do more than remove the managed
    // callbacks.
-   virtual void RemoveCallbacks();
+   virtual void RemoveIPRCallbacks();
 
    // Some simple callbacks used by many translators.
    static void NodeDirtyCallback(MObject &node, MPlug &plug, void *clientData);
@@ -139,7 +139,7 @@ public:
       CNodeTranslator::Init(object, scene, outputAttr);
    }
    static int GetMasterInstanceNumber(MObject node);
-   virtual void AddCallbacks();
+   virtual void AddIPRCallbacks();
    // for initializer callbacks:
    static void MakeMayaVisibilityFlags(CBaseAttrHelper& helper);
    // for initializer callbacks:

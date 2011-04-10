@@ -838,17 +838,17 @@ void CGeoTranslator::UpdateMotion(AtNode* anode, AtUInt step)
    ExportMatrix(anode, step);
 }
 
-void CGeoTranslator::AddCallbacks()
+void CGeoTranslator::AddIPRCallbacks()
 {
    AddShaderAssignmentCallbacks( m_object );
-   CDagTranslator::AddCallbacks();
+   CDagTranslator::AddIPRCallbacks();
 }
 
 void CGeoTranslator::AddShaderAssignmentCallbacks(MObject & dagNode )
 {
    MStatus status;
    MCallbackId id = MNodeMessage::addAttributeChangedCallback( dagNode, ShaderAssignmentCallback, this, &status );
-   if ( MS::kSuccess == status ) ManageCallback( id );
+   if (MS::kSuccess == status) ManageIPRCallback(id);
 }
 
 void CGeoTranslator::ShaderAssignmentCallback( MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void*clientData )
