@@ -88,6 +88,16 @@ void CRenderOptionsTranslator::Update(AtNode* options)
    ProcessParameter(options, "texture_diffuse_blur", AI_TYPE_FLOAT);
    ProcessParameter(options, "texture_per_file_stats", AI_TYPE_BOOLEAN);
 
+   ProcessParameter(options, "ignore_textures", AI_TYPE_BOOLEAN);
+   ProcessParameter(options, "ignore_shaders", AI_TYPE_BOOLEAN);
+   ProcessParameter(options, "ignore_lights", AI_TYPE_BOOLEAN);
+   ProcessParameter(options, "ignore_shadows", AI_TYPE_BOOLEAN);
+   ProcessParameter(options, "ignore_subdivision", AI_TYPE_BOOLEAN);
+   ProcessParameter(options, "ignore_displacement", AI_TYPE_BOOLEAN);
+   ProcessParameter(options, "ignore_motion_blur", AI_TYPE_BOOLEAN);
+   ProcessParameter(options, "ignore_smoothing", AI_TYPE_BOOLEAN);
+   ProcessParameter(options, "ignore_sss", AI_TYPE_BOOLEAN);
+
    MObject background;
    MPlugArray conns;
    MPlug pBG = m_fnNode.findPlug("background");

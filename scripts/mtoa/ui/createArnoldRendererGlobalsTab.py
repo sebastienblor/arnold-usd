@@ -573,6 +573,42 @@ def createArnoldTextureSettings():
 
     cmds.setUITemplate(popTemplate=True)
 
+def createArnoldOverrideSettings():
+
+    cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+    cmds.columnLayout(adjustableColumn=True)
+
+    cmds.attrControlGrp('ignore_textures',
+                        attribute='defaultArnoldRenderOptions.ignore_textures')
+
+    cmds.attrControlGrp('ignore_shaders',
+                        attribute='defaultArnoldRenderOptions.ignore_shaders')
+
+    cmds.attrControlGrp('ignore_atmosphere',
+                        attribute='defaultArnoldRenderOptions.ignore_atmosphere')
+
+    cmds.attrControlGrp('ignore_lights',
+                        attribute='defaultArnoldRenderOptions.ignore_lights')
+
+    cmds.attrControlGrp('ignore_subdivision',
+                        attribute='defaultArnoldRenderOptions.ignore_subdivision')
+
+    cmds.attrControlGrp('ignore_displacement',
+                        attribute='defaultArnoldRenderOptions.ignore_displacement')
+
+    cmds.attrControlGrp('ignore_motion_blur',
+                        attribute='defaultArnoldRenderOptions.ignore_motion_blur')
+
+    cmds.attrControlGrp('ignore_smoothing',
+                        attribute='defaultArnoldRenderOptions.ignore_smoothing')
+
+    cmds.attrControlGrp('ignore_sss',
+                        attribute='defaultArnoldRenderOptions.ignore_sss')
+
+    cmds.setParent('..')
+
+    cmds.setUITemplate(popTemplate=True)
+
 def createArnoldLogSettings():
 
     cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
@@ -670,6 +706,12 @@ def createArnoldRendererGlobalsTab():
     #
     cmds.frameLayout('arnoldTextureSettings', label="Textures", cll=True, cl=1)
     createArnoldTextureSettings()
+    cmds.setParent('..')
+
+    # Overrides
+    #
+    cmds.frameLayout('arnoldOverrideSettings', label="Feature Overrides", cll=True, cl=1)
+    createArnoldOverrideSettings()
     cmds.setParent('..')
 
     # Log

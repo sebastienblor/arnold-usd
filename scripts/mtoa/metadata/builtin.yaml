@@ -39,6 +39,24 @@ options:
             softmin: 0.001
             softmax: 100
             default: 10
+        ignore_textures:
+            maya.keyable: false
+        ignore_shaders:
+            maya.keyable: false
+        ignore_lights:
+            maya.keyable: false
+        ignore_shadows:
+            maya.keyable: false
+        ignore_subdivision:
+            maya.keyable: false
+        ignore_displacement:
+            maya.keyable: false
+        ignore_motion_blur:
+            maya.keyable: false
+        ignore_smoothing:
+            maya.keyable: false
+        ignore_sss:
+            maya.keyable: false
         auto_transparency_depth:
             maya.keyable: false
             maya.orig_shortname: at_d
