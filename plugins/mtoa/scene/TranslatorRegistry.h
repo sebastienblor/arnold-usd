@@ -29,7 +29,13 @@ public:
    static bool RegisterDagTranslator(const char* mayaNode, int typeId, CreatorFunction creator, NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin="");
    static bool RegisterDependTranslator(const char* mayaNode, int typeId, CreatorFunction creator);
    static bool RegisterDagTranslator(const char* mayaNode, int typeId, CreatorFunction creator);
-
+#if MAYA_API_VERSION >= 201200
+   // in 2012 we can determine the node Id from the node name
+   static bool RegisterDagTranslator(const char* mayaNode, CreatorFunction creator, NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin);
+   static bool RegisterDependTranslator(const char* mayaNode, CreatorFunction creator, NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin);
+   static bool RegisterDagTranslator(const char* mayaNode, CreatorFunction creator);
+   static bool RegisterDependTranslator(const char* mayaNode, CreatorFunction creator);
+#endif
    static CNodeTranslator* GetDependTranslator(int typeId);
    static CDagTranslator* GetDagTranslator(int typeId);
 
@@ -41,6 +47,10 @@ public:
 private:
    static bool RegisterTranslator(const char* mayaNode, int typeId, CreatorFunction creator, NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin);
    static bool RegisterTranslator(const char* mayaNode, int typeId, CreatorFunction creator);
+#if MAYA_API_VERSION >= 201200
+   static int RegisterTranslator(const char* mayaNode, CreatorFunction creator, NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin);
+   static int RegisterTranslator(const char* mayaNode, CreatorFunction creator);
+#endif
 
 private:
    static std::map<int, CreatorFunction>  s_dagTranslators;

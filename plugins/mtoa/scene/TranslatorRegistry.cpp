@@ -2,6 +2,13 @@
 
 #include <maya/MSceneMessage.h>
 #include <maya/MNodeMessage.h>
+#include <maya/MTypes.h>
+#if MAYA_API_VERSION < 201200
+   #include "utils/MNodeClass.h"
+#else
+   #include <maya/MNodeClass.h>
+#endif
+
 
 // --------- CTranslatorRegistry -------------//
 
@@ -41,7 +48,7 @@ bool CTranslatorRegistry::RegisterTranslator(const char* mayaNode, int typeId, C
    return true;
 }
 
-bool CTranslatorRegistry::RegisterDagTranslator(const char* mayaNode,int typeId, CreatorFunction creator, NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin)
+bool CTranslatorRegistry::RegisterDagTranslator(const char* mayaNode, int typeId, CreatorFunction creator, NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin)
 {
    if (RegisterTranslator(mayaNode, typeId, creator, nodeClassInitializer, providedByPlugin))
    {
@@ -91,6 +98,93 @@ bool CTranslatorRegistry::RegisterDependTranslator(const char* mayaNode, int typ
    }
    return false;
 }
+
+
+#if MAYA_API_VERSION >= 201200
+// internal use
+int CTranslatorRegistry::RegisterTranslator(const char* mayaNode, CreatorFunction creator, NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin)
+{
+   MStatus status;
+   if (!MFnPlugin::isNodeRegistered(mayaNode))
+   {
+      if (strlen(providedByPlugin) != 0)
+      {
+         // can't add the callback if the node type is unknown
+         // make the callback when the plugin is loaded
+         CMayaPluginData pluginData;
+         pluginData.mayaNode = mayaNode;
+         pluginData.nodeClassInitializer = nodeClassInitializer;
+         s_mayaPluginData[providedByPlugin].push_back(pluginData);
+      }
+      else
+      {
+         MGlobal::displayWarning(MString("[mtoa] Cannot register ") + mayaNode + ". the node type does not exist. If the node is provided by a plugin, specify providedByPlugin when registering its translator");
+         return 0;
+      }
+   }
+   else
+   {
+      // call the node class initializer
+      nodeClassInitializer(mayaNode);
+   }
+   return MayaNodeClass(mayaNode).typeId().id();
+}
+
+bool CTranslatorRegistry::RegisterDagTranslator(const char* mayaNode, CreatorFunction creator, NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin)
+{
+   int typeId = RegisterTranslator(mayaNode, creator, nodeClassInitializer, providedByPlugin);
+   if (typeId)
+   {
+      s_dagTranslators[typeId] = creator;
+      return true;
+   }
+   return false;
+}
+
+bool CTranslatorRegistry::RegisterDependTranslator(const char* mayaNode, CreatorFunction creator, NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin)
+{
+   int typeId = RegisterTranslator(mayaNode, creator, nodeClassInitializer, providedByPlugin);
+   if (typeId)
+   {
+      s_dependTranslators[typeId] = creator;
+      return true;
+   }
+   return false;
+}
+
+// internal use
+int CTranslatorRegistry::RegisterTranslator(const char* mayaNode, CreatorFunction creator)
+{
+   if (!MFnPlugin::isNodeRegistered(mayaNode))
+   {
+      MGlobal::displayWarning(MString("[mtoa] Cannot register ") + mayaNode + ". the node type does not exist. If the node is provided by a plugin, specify providedByPlugin when registering its translator");
+      return 0;
+   }
+   return MayaNodeClass(mayaNode).typeId().id();
+}
+
+bool CTranslatorRegistry::RegisterDagTranslator(const char* mayaNode, CreatorFunction creator)
+{
+   int typeId = RegisterTranslator(mayaNode, typeId, creator);
+   if (typeId)
+   {
+      s_dagTranslators[typeId] = creator;
+      return true;
+   }
+   return false;
+}
+
+bool CTranslatorRegistry::RegisterDependTranslator(const char* mayaNode, CreatorFunction creator)
+{
+   int typeId = RegisterTranslator(mayaNode, typeId, creator);
+   if (typeId)
+   {
+      s_dependTranslators[typeId] = creator;
+      return true;
+   }
+   return false;
+}
+#endif
 
 CNodeTranslator* CTranslatorRegistry::GetDependTranslator(int typeId)
 {
