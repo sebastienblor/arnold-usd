@@ -197,6 +197,7 @@ def registerArnoldRenderer():
         utils.pyToMelProc(updateMayaImageFormatControl, shortName=True)
 
         aeUtils.loadAETemplates()
+        import mtoa.ui.ae.customShapeAttributes
 
         cmds.renderer('arnold', edit=True, addGlobalsNode='defaultArnoldRenderOptions')
 

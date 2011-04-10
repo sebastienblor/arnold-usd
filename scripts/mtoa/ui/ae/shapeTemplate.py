@@ -1,11 +1,30 @@
 import maya.cmds as cmds
 import maya.mel as mel
 
-import mtoa.ui.ae.customShapeAttributes as customShapeAttributes
+global _customAttrTemplates
+_customAttrTemplates = {}
+
+def registerCustomAttrTemplate(nodeType, func):
+    global _customAttrTemplates
+    assert callable(func), "you must pass a callable object"
+    print "registering custom attr template for %s" % nodeType
+    _customAttrTemplates[nodeType] = func
+
+def registerUI(nodeType):
+    "decorator for easily registering a UI function"
+    def registerUIDecorator(func):
+        registerCustomAttrTemplate(nodeType, func)
+        return func
+    return registerUIDecorator
 
 def shapeTemplate(nodeName):
 
-    customShapeAttributes.customShapeAttributes(nodeName)
+    global _customAttrTemplates
+    nodeType = cmds.objectType(nodeName)
+    if nodeType in _customAttrTemplates:
+        cmds.editorTemplate(beginLayout="Arnold")
+        _customAttrTemplates[nodeType](nodeName)
+        cmds.editorTemplate(endLayout=True)
 
     cmds.editorTemplate(beginLayout=mel.eval('uiRes("m_AEshapeTemplate.kObjectDisplay")'))
 
