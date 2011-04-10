@@ -56,7 +56,7 @@ def loadAETemplates():
 
 def loadAEshapesTemplate():
     template = 'shapeTemplate'
-    _makeAEProc(template, template, 'AE%s'%template)
+    _makeAEProc(template, template, 'AE%s' % template)
 
 def aeCallback(classname):
     return utils.pyToMelProc(classname, ('string', 'nodeName'), prepend='AEArnoldCallback')

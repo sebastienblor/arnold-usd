@@ -15,7 +15,7 @@ def fogShaderTemplate(nodeName):
     cmds.editorTemplate("ground_normal", addControl=True, label="Ground Normal")
     cmds.editorTemplate("ground_point", addControl=True, label="Ground Point")
 
-    editorTemplate(endLayout=True)
+    cmds.editorTemplate(endLayout=True)
 
     # include/call base class/node attributes
     mel.eval('AEdependNodeTemplate "%s"'%nodeName)

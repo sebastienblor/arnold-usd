@@ -113,39 +113,28 @@ def createArnoldRenderSettings():
                    label="Render Type",
                    attribute='defaultArnoldRenderOptions.renderType')    
 
-    cmds.checkBoxGrp('os_progressive_rendering',
-                     cc=updateRenderSettings,
-                     label='Progressive Rendering')
-
-    cmds.connectControl('os_progressive_rendering', 'defaultArnoldRenderOptions.progressive_rendering', index=2)
+    cmds.attrControlGrp('os_progressive_rendering',
+                   label='Progressive Rendering',
+                   attribute='defaultArnoldRenderOptions.progressive_rendering')
 
     cmds.attrControlGrp('os_physically_based',
                    label="Physically Based",
                    attribute='defaultArnoldRenderOptions.physically_based')
 
-    '''
-    cmds.attrControlGrp('os_progressive_rendering',
-                        label="Progressive Rendering",
-                        attribute='defaultArnoldRenderOptions.progressive_rendering',
-                        cc=updateRenderSettings)
-    '''
+    cmds.separator()
 
     cmds.checkBoxGrp('os_threads_autodetect',
                      cc=updateRenderSettings,
-                     label='Autodetect Threads')
+                     label='',
+                     label1='Autodetect Threads')
 
     cmds.connectControl('os_threads_autodetect', 'defaultArnoldRenderOptions.threads_autodetect', index=2)
-
-    '''
-    cmds.attrControlGrp('os_threads_autodetect',
-                   label="Autodetect Threads",
-                   attribute='defaultArnoldRenderOptions.threads_autodetect',
-                   cc=updateRenderSettings)
-    '''
 
     cmds.attrControlGrp('os_threads',
                    label="Threads",
                    attribute='defaultArnoldRenderOptions.threads')
+
+    cmds.separator()
 
     cmds.attrControlGrp('os_bucket_scanning',
                    label="Bucket Scanning",
@@ -155,11 +144,11 @@ def createArnoldRenderSettings():
                    label="Bucket Size",
                    attribute='defaultArnoldRenderOptions.bucket_size')
 
-
     cmds.attrControlGrp('os_clear_before_render',
                    label="Clear Before Render",
                    attribute='defaultArnoldRenderOptions.clear_before_render')
 
+    cmds.separator()
 
     cmds.attrControlGrp('os_abort_on_error',
                    label="Abort On Error",
