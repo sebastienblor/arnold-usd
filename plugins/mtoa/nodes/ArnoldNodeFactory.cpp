@@ -415,20 +415,24 @@ void CArnoldNodeFactory::UnloadExtensions()
 #endif
 }
 
+const char* CArnoldNodeFactory::GetArnoldNodeFromMayaNode(const MString& mayaShader)
+{
+   return s_factoryNodes[mayaShader.asChar()].arnoldNodeName.c_str();
+}
 
 // AutoTranslator
 //
 AtNode* CAutoTranslator::Export()
 {
    MString mayaShader = m_fnNode.typeName();
-   std::string arnoldNode = CArnoldNodeFactory::s_factoryNodes[mayaShader.asChar()].arnoldNodeName;
+   const char* arnoldNode = CArnoldNodeFactory::GetArnoldNodeFromMayaNode(mayaShader);
    AtNode* shader = NULL;
-   m_nodeEntry = AiNodeEntryLookUp(arnoldNode.c_str());
+   m_nodeEntry = AiNodeEntryLookUp(arnoldNode);
 
    // Make sure that the given type of node exists
    if (m_nodeEntry != NULL)
    {
-      shader = AiNode(arnoldNode.c_str());
+      shader = AiNode(arnoldNode);
 
       AiNodeSetStr(shader, "name", m_fnNode.name().asChar());
       Update(shader);

@@ -29,6 +29,10 @@ struct CMayaNodeData
    std::string arnoldNodeName;
    int nodeId;
    MCallbackId callbackId;
+   CMayaNodeData() :  arnoldNodeName(""),
+                      nodeId(0),
+                      callbackId(0)
+   {}
 };
 
 // key: maya node name
@@ -75,13 +79,10 @@ public:
    void LoadExtensions();
    void UnloadExtensions();
 
-   int getNumPlugins();
-
-public:
-   static MayaNodeDataMap s_factoryNodes;
+   static const char* GetArnoldNodeFromMayaNode(const MString& mayaShader);
 
 private:
-   bool  m_loadOk;
+   static MayaNodeDataMap s_factoryNodes;
    MFnPlugin m_plugin;
    static int s_autoNodeId;
    static ArnoldNodeToMayaNode s_arnoldToMayaNodes;
@@ -90,15 +91,12 @@ private:
    void *m_pluginHandle;
 };
 
-//-------------------------------------------------------------------------- 
 inline CArnoldNodeFactory::CArnoldNodeFactory(MObject plugin)
-   :  m_loadOk(false)
-   ,  m_plugin(plugin)
+   :  m_plugin(plugin)
    ,  m_pluginHandle(NULL)
 {
 }
 
-//-------------------------------------------------------------------------- 
 inline CArnoldNodeFactory::~CArnoldNodeFactory()
 {
 }
