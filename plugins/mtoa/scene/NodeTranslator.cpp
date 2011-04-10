@@ -951,37 +951,36 @@ AtInt CDagTranslator::ComputeVisibility()
 // attributes like self_shadow and opaque that are computed separately
 //
 // This is for custom DAG nodes where none of the standard maya visibility attributes
-// are available. typically CDagTranslator::AddArnoldVisibilityAttrs() is the appropriate function. 
+// are available. typically CDagTranslator::AddArnoldVisibilityAttrs() is the appropriate function.
 //
 void CDagTranslator::MakeMayaVisibilityFlags(CBaseAttrHelper& helper)
 {
    CAttrData data;
-   MObject attr;
 
    data.defaultValue.BOOL = true;
    data.name = "primaryVisibility";
    data.shortName = "vis";
-   helper.MakeInputBoolean(attr, data);
+   helper.MakeInputBoolean(data);
 
    data.defaultValue.BOOL = true;
    data.name = "receiveShadows";
    data.shortName = "rsh";
-   helper.MakeInputBoolean(attr, data);
-   
+   helper.MakeInputBoolean(data);
+
    data.defaultValue.BOOL = true;
    data.name = "castsShadows";
    data.shortName = "csh";
-   helper.MakeInputBoolean(attr, data);
+   helper.MakeInputBoolean(data);
 
    data.defaultValue.BOOL = true;
    data.name = "visibleInReflections";
    data.shortName = "vir";
-   helper.MakeInputBoolean(attr, data);
+   helper.MakeInputBoolean(data);
 
    data.defaultValue.BOOL = true;
    data.name = "visibleInRefractions";
    data.shortName = "vif";
-   helper.MakeInputBoolean(attr, data);
+   helper.MakeInputBoolean(data);
 }
 
 // create arnold visibility attributes with standardized render flag names
@@ -995,17 +994,16 @@ void CDagTranslator::MakeMayaVisibilityFlags(CBaseAttrHelper& helper)
 void CDagTranslator::MakeArnoldVisibilityFlags(CBaseAttrHelper& helper)
 {
    CAttrData data;
-   MObject attr;
 
    data.defaultValue.BOOL = true;
    data.name = "visibleInDiffuse";
    data.shortName = "vid";
-   helper.MakeInputBoolean(attr, data);
+   helper.MakeInputBoolean(data);
 
    data.defaultValue.BOOL = true;
    data.name = "visibleInGlossy";
    data.shortName = "vig";
-   helper.MakeInputBoolean(attr, data);
+   helper.MakeInputBoolean(data);
 }
 
 // computes and sets the visibility mask as well as other shape attributes related to ray visibility
@@ -1043,10 +1041,10 @@ void CShapeTranslator::MakeCommonAttributes(CBaseAttrHelper& helper)
    helper.MakeInput("sss_use_gi");
    helper.MakeInput("sss_max_samples");
    helper.MakeInput("sss_sample_spacing");
-   
+
    helper.MakeInput("self_shadows");
    helper.MakeInput("opaque");
-   
+
    MakeArnoldVisibilityFlags(helper);
 }
 

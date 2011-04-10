@@ -247,6 +247,17 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
          }
          break;
       }
+      case AI_TYPE_ENUM:
+      {
+         const AtParamEntry* paramEntry = AiNodeEntryLookUpParameter(m_nodeEntry, paramName);
+         for (int ei=0;;ei++)
+         {
+            const char* enumStr = AiEnumGetString(AiParamGetEnum(paramEntry), ei);
+            if (!enumStr)
+               break;
+            data.enums.append(enumStr);
+         }
+      }
    }
    return true;
 }
@@ -256,6 +267,12 @@ void CBaseAttrHelper::MakeInputInt(MObject& attrib, const char* paramName)
    CAttrData data;
    GetAttrData(paramName, data);
    MakeInputInt(attrib, data);
+}
+
+void CBaseAttrHelper::MakeInputInt(CAttrData& data)
+{
+   MObject attrib;
+   return MakeInputInt(attrib, data);
 }
 
 void CBaseAttrHelper::MakeInputInt(MObject& attrib, CAttrData& data)
@@ -287,6 +304,12 @@ void CBaseAttrHelper::MakeInputBoolean(MObject& attrib, const char* paramName)
    MakeInputBoolean(attrib, data);
 }
 
+void CBaseAttrHelper::MakeInputBoolean(CAttrData& data)
+{
+   MObject attrib;
+   return MakeInputBoolean(attrib, data);
+}
+
 void CBaseAttrHelper::MakeInputBoolean(MObject& attrib, CAttrData& data)
 {
    MFnNumericAttribute nAttr;
@@ -304,6 +327,12 @@ void CBaseAttrHelper::MakeInputFloat(MObject& attrib, const char* paramName)
    CAttrData data;
    GetAttrData(paramName, data);
    MakeInputFloat(attrib, data);
+}
+
+void CBaseAttrHelper::MakeInputFloat(CAttrData& data)
+{
+   MObject attrib;
+   return MakeInputFloat(attrib, data);
 }
 
 void CBaseAttrHelper::MakeInputFloat(MObject& attrib, CAttrData& data)
@@ -333,6 +362,12 @@ void CBaseAttrHelper::MakeInputRGB(MObject& attrib, const char* paramName)
    MakeInputRGB(attrib, data);
 }
 
+void CBaseAttrHelper::MakeInputRGB(CAttrData& data)
+{
+   MObject attrib;
+   return MakeInputRGB(attrib, data);
+}
+
 void CBaseAttrHelper::MakeInputRGB(MObject& attrib, CAttrData& data)
 {
    MFnNumericAttribute nAttr;
@@ -352,6 +387,13 @@ void CBaseAttrHelper::MakeInputRGBA(MObject& attrib, MObject& attribA, const cha
    CAttrData data;
    GetAttrData(paramName, data);
    MakeInputRGBA(attrib, attribA, data);
+}
+
+void CBaseAttrHelper::MakeInputRGBA(CAttrData& data)
+{
+   MObject attrib;
+   MObject attribA;
+   return MakeInputRGBA(attrib, attribA, data);
 }
 
 void CBaseAttrHelper::MakeInputRGBA(MObject& attrib, MObject& attribA, CAttrData& data)
@@ -383,6 +425,12 @@ void CBaseAttrHelper::MakeInputVector(MObject& attrib, const char* paramName)
    MakeInputVector(attrib, data);
 }
 
+void CBaseAttrHelper::MakeInputVector(CAttrData& data)
+{
+   MObject attrib;
+   return MakeInputVector(attrib, data);
+}
+
 void CBaseAttrHelper::MakeInputVector(MObject& attrib, CAttrData& data)
 {
    MFnNumericAttribute nAttr;
@@ -404,6 +452,12 @@ void CBaseAttrHelper::MakeInputPoint(MObject& attrib, const char* paramName)
    MakeInputPoint(attrib, data);
 }
 
+void CBaseAttrHelper::MakeInputPoint(CAttrData& data)
+{
+   MObject attrib;
+   return MakeInputPoint(attrib, data);
+}
+
 void CBaseAttrHelper::MakeInputPoint(MObject& attrib, CAttrData& data)
 {
    MFnNumericAttribute nAttr;
@@ -422,6 +476,14 @@ void CBaseAttrHelper::MakeInputPoint2(MObject& attrib, MObject& attribX, MObject
    CAttrData data;
    GetAttrData(paramName, data);
    MakeInputPoint2(attrib, attribX, attribY, data);
+}
+
+void CBaseAttrHelper::MakeInputPoint2(CAttrData& data)
+{
+   MObject attrib;
+   MObject attribX;
+   MObject attribY;
+   return MakeInputPoint2(attrib, attribX, attribY, data);
 }
 
 void CBaseAttrHelper::MakeInputPoint2(MObject& attrib, MObject& attribX, MObject& attribY, CAttrData& data)
@@ -447,6 +509,12 @@ void CBaseAttrHelper::MakeInputString(MObject& attrib, const char* paramName)
    MakeInputString(attrib, data);
 }
 
+void CBaseAttrHelper::MakeInputString(CAttrData& data)
+{
+   MObject attrib;
+   return MakeInputString(attrib, data);
+}
+
 void CBaseAttrHelper::MakeInputString(MObject& attrib, CAttrData& data)
 {
    MFnTypedAttribute tAttr;
@@ -470,6 +538,12 @@ void CBaseAttrHelper::MakeInputMatrix(MObject& attrib, const char* paramName)
    MakeInputMatrix(attrib, data);
 }
 
+void CBaseAttrHelper::MakeInputMatrix(CAttrData& data)
+{
+   MObject attrib;
+   return MakeInputMatrix(attrib, data);
+}
+
 void CBaseAttrHelper::MakeInputMatrix(MObject& attrib, CAttrData& data)
 {
    MFnMatrixAttribute mAttr;
@@ -487,23 +561,22 @@ void CBaseAttrHelper::MakeInputEnum(MObject& attrib, const char* paramName)
 {
    CAttrData data;
    GetAttrData(paramName, data);
-   MakeInputEnum(attrib, paramName, data);
+   MakeInputEnum(attrib, data);
 }
 
-void CBaseAttrHelper::MakeInputEnum(MObject& attrib, const char*paramName, CAttrData& data)
+void CBaseAttrHelper::MakeInputEnum(CAttrData& data)
+{
+   MObject attrib;
+   return MakeInputEnum(attrib, data);
+}
+
+void CBaseAttrHelper::MakeInputEnum(MObject& attrib, CAttrData& data)
 {
    MFnEnumAttribute eAttr;
-   const AtParamEntry* paramEntry = AiNodeEntryLookUpParameter(m_nodeEntry, paramName);
    attrib = eAttr.create(data.name, data.shortName, data.defaultValue.INT);
-   {
-      for (int ei=0;;ei++)
-      {
-         const char* enum_string = AiEnumGetString(AiParamGetEnum(paramEntry), ei);
-         if (!enum_string)
-            break;
-         eAttr.addField(enum_string, ei);
-      }
-   }
+   for (unsigned int ei = 0; ei < data.enums.length(); ++ei)
+      eAttr.addField(data.enums[ei], ei);
+
    addAttribute(attrib);
    eAttr.setArray(AtBooleanToBool(data.isArray));
 }
@@ -513,6 +586,12 @@ void CBaseAttrHelper::MakeInputNode(MObject& attrib, const char* paramName)
    CAttrData data;
    GetAttrData(paramName, data);
    MakeInputNode(attrib, data);
+}
+
+void CBaseAttrHelper::MakeInputNode(CAttrData& data)
+{
+   MObject attrib;
+   return MakeInputNode(attrib, data);
 }
 
 void CBaseAttrHelper::MakeInputNode(MObject& attrib, CAttrData& data)
@@ -528,18 +607,11 @@ bool CBaseAttrHelper::MakeInput(const char* paramName)
 {
    CAttrData attrData;
    GetAttrData(paramName, attrData);
-   return MakeInput(paramName, attrData);
+   return MakeInput(attrData);
 }
 
-bool CBaseAttrHelper::MakeInput(const char* paramName, CAttrData& attrData)
+bool CBaseAttrHelper::MakeInput(CAttrData& attrData)
 {
-   /*
-   // FIXME: remove these when we migrate to use CAttrData
-   const AtParamEntry* paramEntry = AiNodeEntryLookUpParameter(m_nodeEntry, paramName);
-   const char* attrName = GetMayaAttrName(paramName);
-   const char* attrShortName = GetMayaAttrShortName(paramName);
-   */
-   //cout << "making " << AiNodeEntryGetName(m_nodeEntry) << "." << attrData.name.asChar() << " (" << attrData.shortName.asChar() << "): " << attrData.type << endl;
    MObject input;
    switch (attrData.type)
    {
@@ -573,7 +645,7 @@ bool CBaseAttrHelper::MakeInput(const char* paramName, CAttrData& attrData)
       {
          MObject inputA;
          MakeInputRGBA(input, inputA, attrData);
-         m_attributes[std::string(paramName) + "A"] = inputA;
+         m_attributes[std::string(attrData.name.asChar()) + "A"] = inputA;
          break;
       }
       case AI_TYPE_VECTOR:
@@ -591,9 +663,9 @@ bool CBaseAttrHelper::MakeInput(const char* paramName, CAttrData& attrData)
          MObject inputX;
          MObject inputY;
 
-         MakeInputPoint2(input, inputX, inputY, paramName);
-         m_attributes[std::string(paramName) + "X"] = inputX;
-         m_attributes[std::string(paramName) + "Y"] = inputY;
+         MakeInputPoint2(input, inputX, inputY, attrData);
+         m_attributes[std::string(attrData.name.asChar()) + "X"] = inputX;
+         m_attributes[std::string(attrData.name.asChar()) + "Y"] = inputY;
          break;
       }
       case AI_TYPE_STRING:
@@ -613,7 +685,7 @@ bool CBaseAttrHelper::MakeInput(const char* paramName, CAttrData& attrData)
       }
       case AI_TYPE_ENUM:
       {
-         MakeInputEnum(input, paramName, attrData);
+         MakeInputEnum(input, attrData);
          break;
       }
       case AI_TYPE_NONE:
@@ -621,16 +693,16 @@ bool CBaseAttrHelper::MakeInput(const char* paramName, CAttrData& attrData)
       case AI_TYPE_POINTER:
       {
          const char* typeName = AiParamGetTypeName(attrData.type);
-         MGlobal::displayWarning(MString("[mtoa] ") + paramName + ": parameters of type " + typeName + " are not supported");
+         MGlobal::displayWarning(MString("[mtoa] ") + attrData.name + ": parameters of type " + typeName + " are not supported");
          return false;
       }
       default:
       {
-         MGlobal::displayError(MString("[mtoa] ") + paramName + ": unknown parameter type");
+         MGlobal::displayError(MString("[mtoa] ") + attrData.name + ": unknown parameter type");
          return false;
       }
    } // switch
-   m_attributes[paramName] = input;
+   m_attributes[attrData.name.asChar()] = input;
    return true;
 }
 

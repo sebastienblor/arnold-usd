@@ -16,6 +16,7 @@
 #include <maya/MFnTypedAttribute.h>
 #include <maya/MFnMatrixAttribute.h>
 #include <maya/MFnMessageAttribute.h>
+#include <maya/MStringArray.h>
 
 #include <string>
 #include <map>
@@ -41,6 +42,7 @@ struct CAttrData
    AtBoolean hasSoftMax;
    AtParamValue softMax;
    AtBoolean keyable;
+   MStringArray enums;
    CAttrData() :  name(""),
                   shortName(""),
                   isArray(false),
@@ -89,32 +91,44 @@ public:
    bool GetAttrData(const char* paramName, CAttrData& data);
 
    void MakeInputInt(MObject& attrib, const char* paramName);
+   void MakeInputInt(CAttrData& data);
    void MakeInputInt(MObject& attrib, CAttrData& data);
    void MakeInputBoolean(MObject& attrib, const char* paramName);
+   void MakeInputBoolean(CAttrData& data);
    void MakeInputBoolean(MObject& attrib, CAttrData& data);
    void MakeInputFloat(MObject& attrib, const char* paramName);
+   void MakeInputFloat(CAttrData& data);
    void MakeInputFloat(MObject& attrib, CAttrData& data);
    void MakeInputRGB(MObject& attrib, const char* paramName);
+   void MakeInputRGB(CAttrData& data);
    void MakeInputRGB(MObject& attrib, CAttrData& data);
    void MakeInputRGBA(MObject& attrib, MObject& attribA, const char* paramName);
+   void MakeInputRGBA(CAttrData& data);
    void MakeInputRGBA(MObject& attrib, MObject& attribA, CAttrData& data);
    void MakeInputVector(MObject& attrib, const char* paramName);
+   void MakeInputVector(CAttrData& data);
    void MakeInputVector(MObject& attrib,CAttrData& data);
    void MakeInputPoint(MObject& attrib, const char* paramName);
+   void MakeInputPoint(CAttrData& data);
    void MakeInputPoint(MObject& attrib, CAttrData& data);
    void MakeInputPoint2(MObject& attrib, MObject& attribX, MObject& attribY, const char* paramName);
+   void MakeInputPoint2(CAttrData& data);
    void MakeInputPoint2(MObject& attrib, MObject& attribX, MObject& attribY, CAttrData& data);
    void MakeInputString(MObject& attrib, const char* paramName);
+   void MakeInputString(CAttrData& data);
    void MakeInputString(MObject& attrib, CAttrData& data);
    void MakeInputMatrix(MObject& attrib, const char* paramName);
+   void MakeInputMatrix(CAttrData& data);
    void MakeInputMatrix(MObject& attrib, CAttrData& data);
    void MakeInputEnum(MObject& attrib, const char* paramName);
-   void MakeInputEnum(MObject& attrib, const char* paramName, CAttrData& data);
+   void MakeInputEnum(CAttrData& data);
+   void MakeInputEnum(MObject& attrib, CAttrData& data);
    void MakeInputNode(MObject& attrib, const char* paramName);
+   void MakeInputNode(CAttrData& data);
    void MakeInputNode(MObject& attrib, CAttrData& data);
 
    bool MakeInput(const char* paramName);
-   bool MakeInput(const char* paramName, CAttrData& attrData);
+   bool MakeInput(CAttrData& attrData);
 
    void MakeOutputInt(MObject& attrib, bool isArray=false);
    void MakeOutputBoolean(MObject& attrib, bool isArray=false);
