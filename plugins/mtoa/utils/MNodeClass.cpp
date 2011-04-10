@@ -26,7 +26,18 @@ MStatus MNodeClass::addExtensionAttribute(CAttrData &data) const
 {
    // ensure we have a callback for this node
    AddNodeCallback(m_nodeClassName);
-   // save MObjects for later
+   std::vector<CAttrData> attrData = s_attrData[m_nodeClassName.asChar()];
+   for (AtUInt i=0; i < attrData.size(); ++i)
+   {
+      if (data.name == attrData[i].name)
+      {
+         // skip dupes without raising a warning: probably just two translators
+         // that use the same attributes
+         // TODO: compare CAttrData values and raise warning when they differ
+         return MS::kSuccess;
+      }
+   }
+   // save data for later
    s_attrData[m_nodeClassName.asChar()].push_back(data);
    // we don't really know if it succeeded, but since we're trying to be MNodeClass compatible...
    return MS::kSuccess;
