@@ -1,6 +1,6 @@
 
 #include "MayaScene.h"
-#include "NodeTranslator.h"
+#include "TranslatorRegistry.h"
 #include "render/RenderSession.h"
 
 

@@ -30,6 +30,7 @@
 #include "scene/Cameras.h"
 #include "scene/Options.h"
 #include "scene/Hair.h"
+#include "scene/TranslatorRegistry.h"
 #include "render/RenderSwatch.h"
 
 #include <ai_render.h>

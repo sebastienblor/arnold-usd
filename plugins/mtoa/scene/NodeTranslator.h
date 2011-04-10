@@ -14,22 +14,15 @@
 #include <maya/MMessage.h> // for MCallbackId
 #include <maya/MCallbackIdArray.h>
 
-class CMayaScene;
-
+#include <string>
+#include <vector>
+#include <map>
 
 typedef void *   (*CreatorFunction)();
 typedef void     (*NodeInitFunction)(MObject&);
 typedef void     (*NodeClassInitFunction)(MString);
 
-struct CMayaPluginData
-{
-   MString mayaNode;
-   NodeClassInitFunction nodeClassInitializer;
-};
-
-// plugin name to list of provided nodes needing callbacks
-typedef std::map<std::string, std::vector<CMayaPluginData> > PluginDataMap;
-
+class CMayaScene;
 
 // Abstract base class for all Maya-to-Arnold node translators
 //
@@ -156,37 +149,6 @@ public:
    void ProcessRenderFlags(AtNode* node);
    // for initializer callbacks:
    static void MakeCommonAttributes(CBaseAttrHelper& helper);
-};
-
-// Translator Registry
-
-class DLLEXPORT CTranslatorRegistry
-{
-public:
-   static bool RegisterDependTranslator(const char* mayaNode, int typeId, CreatorFunction creator, NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin="");
-   static bool RegisterDagTranslator(const char* mayaNode, int typeId, CreatorFunction creator, NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin="");
-   static bool RegisterDependTranslator(const char* mayaNode, int typeId, CreatorFunction creator);
-   static bool RegisterDagTranslator(const char* mayaNode, int typeId, CreatorFunction creator);
-
-   static CNodeTranslator* GetDependTranslator(int typeId);
-   static CDagTranslator* GetDagTranslator(int typeId);
-
-   static void NodeCreatedCallback(MObject &node, void *clientData);
-   static void MayaPluginLoadedCallback(const MStringArray &strs, void *clientData);
-   static void CreateCallbacks();
-   static void RemoveCallbacks();
-
-private:
-   static bool RegisterTranslator(const char* mayaNode, int typeId, CreatorFunction creator, NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin);
-   static bool RegisterTranslator(const char* mayaNode, int typeId, CreatorFunction creator);
-
-private:
-   static std::map<int, CreatorFunction>  s_dagTranslators;
-   static std::map<int, CreatorFunction>  s_dependTranslators;
-   
-   static PluginDataMap s_mayaPluginData;
-   static MCallbackId s_pluginLoadedCallbackId;
-   static MCallbackIdArray s_mayaCallbackIDs;
 };
 
 #endif // NODETRANSLATOR_H
