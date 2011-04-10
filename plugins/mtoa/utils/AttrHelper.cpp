@@ -914,6 +914,7 @@ MObject CBaseAttrHelper::MakeOutput()
          MakeOutputString(output);
          break;
       }
+      case AI_TYPE_NONE:
       case AI_TYPE_NODE:
       {
          MakeOutputNode(output);
@@ -925,7 +926,6 @@ MObject CBaseAttrHelper::MakeOutput()
          break;
       }
       case AI_TYPE_ENUM:
-      case AI_TYPE_NONE:
       case AI_TYPE_BYTE:
       case AI_TYPE_POINTER:
       {
