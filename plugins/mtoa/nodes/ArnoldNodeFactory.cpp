@@ -3,7 +3,6 @@
 //-------------------------------------------------------------------------- 
 #include "ArnoldNodeFactory.h"
 #include "nodes/shaders/surface/ArnoldCustomShader.h"
-#include "utils/Metadata.h"
 #include "render/RenderSession.h"
 
 #include <ai_plugins.h>
@@ -232,30 +231,31 @@ bool CArnoldNodeFactory::RegisterMayaNode(const AtNodeEntry* arnoldNodeEntry)
 
    // should the node be ignored?
    AtBoolean hide;
-   if (MAiMetaDataGetBool(arnoldNodeEntry, NULL, "maya.hide", &hide) && hide)
+   if (AiMetaDataGetBool(arnoldNodeEntry, NULL, "maya.hide", &hide) && hide)
       return true;
 
    // map to an existing maya node?
-   char mayaCounterpart[128];
+   const char* mayaCounterpart;
    int mayaCounterpartId;
-   if (MAiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.counterpart", mayaCounterpart) &&
+   if (AiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.counterpart", &mayaCounterpart) &&
          AiMetaDataGetInt(arnoldNodeEntry, NULL, "maya.counterpart_id", &mayaCounterpartId))
    {
       if (!MapToMayaNode(arnoldNodeName, mayaCounterpart, mayaCounterpartId))
       {
-         MGlobal::displayError(MString("[mtoa] Failed to create counter-part node ") + mayaCounterpart);
+         MGlobal::displayError(MString("[mtoa] Failed to create counter-part node ") + MString(mayaCounterpart));
          return false;
       }
       return true;
    }
    // remap node name?
-   char mayaNodeName[128];
-   if (!MAiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.name", mayaNodeName))
-      strcpy(mayaNodeName, arnoldNodeName);
+   MString mayaNodeName = MString(arnoldNodeName);
+   const char* metaNodeName;
+   if (AiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.name", &metaNodeName))
+      mayaNodeName = MString(metaNodeName);
 
    // get nodeID
    AtInt nodeId;
-   if (!MAiMetaDataGetInt(arnoldNodeEntry, NULL, "maya.id", &nodeId))
+   if (!AiMetaDataGetInt(arnoldNodeEntry, NULL, "maya.id", &nodeId))
    {
       nodeId = s_autoNodeId;
       // TODO: print hex nodeId
@@ -266,10 +266,10 @@ bool CArnoldNodeFactory::RegisterMayaNode(const AtNodeEntry* arnoldNodeEntry)
 
    // classification string
    MString shaderClass = "";
-   char tmp[256];
-   if (MAiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.class", tmp))
-      shaderClass = tmp;
-   return RegisterMayaNode(arnoldNodeName, mayaNodeName, nodeId, shaderClass.asChar());
+   const char* mayaShaderClass;
+   if (AiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.class", &mayaShaderClass))
+      shaderClass = MString(mayaShaderClass);
+   return RegisterMayaNode(arnoldNodeName, mayaNodeName.asChar(), nodeId, shaderClass.asChar());
 }
 
 /// Register a Maya node for the given Arnold node

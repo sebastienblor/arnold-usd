@@ -355,6 +355,12 @@ DLLEXPORT MStatus initializePlugin(MObject object)
                                              CArnoldAssTranslator::optionDefault,
                                              false);
 
+   // Load metadata for builtin (mtoa.mtd)
+   const char* metafile = "/usr/solidangle/mtoadeploy/2011/plug-ins/mtoa.mtd";
+   AtBoolean readMetaSuccess = AiMetaDataLoadFile(metafile);
+   if (!readMetaSuccess) {
+      AiMsgError("[mtoa] Could not read mtoa built-in metadata file mtoa.mtd");
+   }
    RegisterArnoldNodes(object);
 
    MGlobal::executePythonCommand(MString("import mtoa.cmds.registerArnoldRenderer;mtoa.cmds.registerArnoldRenderer.registerArnoldRenderer()") );
