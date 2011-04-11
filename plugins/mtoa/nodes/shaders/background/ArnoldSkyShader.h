@@ -2,6 +2,7 @@
 #define ARNOLDSKYSHADER_H
 
 #include "SphereLocator.h"
+#include "utils/AttrHelper.h"
 
 #include <ai_types.h>
 
@@ -65,6 +66,8 @@ public:
 
    static MTypeId id;
 
+   static CStaticAttrHelper s_attributes;
+
    // Input attributes
    static MObject s_XX;
    static MObject s_XY;
@@ -81,14 +84,6 @@ public:
    static MObject s_ZZ;
    static MObject s_Z;
    static MObject s_Z_angle;
-   static MObject s_intensity;
-
-   static MObject s_casts_shadows;
-   static MObject s_primary_visibility;
-   static MObject s_visible_in_reflections;
-   static MObject s_visible_in_refractions;
-   static MObject s_diffuse_visibility;
-   static MObject s_glossy_visibility;
 
    // Output attributes
    static MObject s_OUT_colorR;

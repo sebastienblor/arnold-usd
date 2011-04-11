@@ -34,20 +34,10 @@ MObject CArnoldRenderOptionsNode::s_aovs;
 MObject CArnoldRenderOptionsNode::s_renderType;
 MObject CArnoldRenderOptionsNode::s_outputAssBoundingBox;
 MObject CArnoldRenderOptionsNode::s_progressive_rendering;
-MObject CArnoldRenderOptionsNode::s_physically_based;
 MObject CArnoldRenderOptionsNode::s_threads;
 MObject CArnoldRenderOptionsNode::s_threads_autodetect;
-MObject CArnoldRenderOptionsNode::s_bucket_scanning;
-MObject CArnoldRenderOptionsNode::s_bucket_size;
 MObject CArnoldRenderOptionsNode::s_clear_before_render;
-MObject CArnoldRenderOptionsNode::s_abort_on_error;
-MObject CArnoldRenderOptionsNode::s_abort_on_license_fail;
-MObject CArnoldRenderOptionsNode::s_skip_license_check;
 MObject CArnoldRenderOptionsNode::s_plugins_path;
-MObject CArnoldRenderOptionsNode::s_AA_samples;
-MObject CArnoldRenderOptionsNode::s_GI_diffuse_samples;
-MObject CArnoldRenderOptionsNode::s_GI_glossy_samples;
-MObject CArnoldRenderOptionsNode::s_GI_sss_hemi_samples;
 MObject CArnoldRenderOptionsNode::s_use_sample_clamp;
 MObject CArnoldRenderOptionsNode::s_AA_sample_clamp;
 MObject CArnoldRenderOptionsNode::s_lock_sampling_noise;
@@ -62,14 +52,6 @@ MObject CArnoldRenderOptionsNode::s_driver_gamma;
 MObject CArnoldRenderOptionsNode::s_light_gamma;
 MObject CArnoldRenderOptionsNode::s_shader_gamma;
 MObject CArnoldRenderOptionsNode::s_texture_gamma;
-MObject CArnoldRenderOptionsNode::s_GI_diffuse_depth;
-MObject CArnoldRenderOptionsNode::s_GI_glossy_depth;
-MObject CArnoldRenderOptionsNode::s_GI_reflection_depth;
-MObject CArnoldRenderOptionsNode::s_GI_refraction_depth;
-MObject CArnoldRenderOptionsNode::s_GI_total_depth;
-MObject CArnoldRenderOptionsNode::s_auto_transparency_depth;
-MObject CArnoldRenderOptionsNode::s_auto_transparency_threshold;
-MObject CArnoldRenderOptionsNode::s_auto_transparency_probabilistic;
 MObject CArnoldRenderOptionsNode::s_motion_blur_enable;
 MObject CArnoldRenderOptionsNode::s_mb_lights_enable;
 MObject CArnoldRenderOptionsNode::s_mb_camera_enable;
@@ -80,12 +62,6 @@ MObject CArnoldRenderOptionsNode::s_shutter_offset;
 MObject CArnoldRenderOptionsNode::s_shutter_type;
 MObject CArnoldRenderOptionsNode::s_motion_steps;
 MObject CArnoldRenderOptionsNode::s_motion_frames;
-MObject CArnoldRenderOptionsNode::s_sss_subpixel_cache;
-MObject CArnoldRenderOptionsNode::s_show_samples;
-MObject CArnoldRenderOptionsNode::s_max_subdivisions;
-MObject CArnoldRenderOptionsNode::s_texture_automip;
-MObject CArnoldRenderOptionsNode::s_texture_autotile;
-MObject CArnoldRenderOptionsNode::s_texture_max_memory_MB;
 MObject CArnoldRenderOptionsNode::s_output_ass_filename;
 MObject CArnoldRenderOptionsNode::s_output_ass_compressed;
 MObject CArnoldRenderOptionsNode::s_output_ass_mask;
@@ -96,12 +72,14 @@ MObject CArnoldRenderOptionsNode::s_log_file_verbosity;
 MObject CArnoldRenderOptionsNode::s_background;
 MObject CArnoldRenderOptionsNode::s_atmosphere;
 
+CStaticAttrHelper CArnoldRenderOptionsNode::s_attributes(CArnoldRenderOptionsNode::addAttribute);
+
 void* CArnoldRenderOptionsNode::creator()
 {
    return new CArnoldRenderOptionsNode();
 }
 
-// Callback is called whenever a ArnoldRenderOptions node is created
+// Callback is called whenever a aiOptions node is created
 void CArnoldRenderOptionsNode::createdCallback(MObject& node, void* clientData)
 {  
    MSelectionList list;
@@ -125,7 +103,7 @@ void CArnoldRenderOptionsNode::createdCallback(MObject& node, void* clientData)
 // Setup the on creation callback
 void CArnoldRenderOptionsNode::postConstructor()
 {
-   CArnoldRenderOptionsNode::sId = MDGMessage::addNodeAddedCallback( CArnoldRenderOptionsNode::createdCallback, "ArnoldRenderOptions" );
+   CArnoldRenderOptionsNode::sId = MDGMessage::addNodeAddedCallback( CArnoldRenderOptionsNode::createdCallback, "aiOptions" );
 }
 
 MStatus CArnoldRenderOptionsNode::initialize()
@@ -136,6 +114,9 @@ MStatus CArnoldRenderOptionsNode::initialize()
    MFnTypedAttribute tAttr;
    MFnMessageAttribute mAttr;
    MFnUnitAttribute	uAttr;
+
+   // initialize the attribute helper
+   s_attributes.SetNode("options");
 
    s_arnoldRenderImageFormat = eAttr.create("arnoldRenderImageFormat", "arnif", 0);
    eAttr.setKeyable(false);
@@ -209,9 +190,7 @@ MStatus CArnoldRenderOptionsNode::initialize()
    nAttr.setKeyable(false);
    addAttribute(s_progressive_rendering);
 
-   s_physically_based = nAttr.create("physically_based", "phy", MFnNumericData::kBoolean, 1);
-   nAttr.setKeyable(false);
-   addAttribute(s_physically_based);
+   s_attributes.MakeInput("physically_based");
 
    s_threads_autodetect = nAttr.create("threads_autodetect", "thr_auto", MFnNumericData::kBoolean, 1);
    nAttr.setKeyable(false);
@@ -223,76 +202,33 @@ MStatus CArnoldRenderOptionsNode::initialize()
    nAttr.setSoftMax(64);
    addAttribute(s_threads);
 
-   MAKE_ENUM(s_bucket_scanning, "bucket_scanning", "bktsc", 0, "options", "bucket_scanning");
-
-   s_bucket_size = nAttr.create("bucket_size", "bktsz", MFnNumericData::kInt, 64);
-   nAttr.setKeyable(false);
-   nAttr.setSoftMin(1);
-   nAttr.setSoftMax(256);
-   addAttribute(s_bucket_size);
+   s_attributes.MakeInput("bucket_scanning");
+   s_attributes.MakeInput("bucket_size");
 
    s_clear_before_render = nAttr.create("clear_before_render", "clear", MFnNumericData::kBoolean, 1);
    nAttr.setKeyable(false);
    addAttribute(s_clear_before_render);
 
-   s_abort_on_error = nAttr.create("abort_on_error", "abort", MFnNumericData::kBoolean, 1);
-   nAttr.setKeyable(false);
-   addAttribute(s_abort_on_error);
+   s_attributes.MakeInput("abort_on_error");
+   s_attributes.MakeInput("abort_on_license_fail");
 
-   s_abort_on_license_fail = nAttr.create("abort_on_license_fail", "abortlic", MFnNumericData::kBoolean, 0);
-   nAttr.setKeyable(false);
-   addAttribute(s_abort_on_license_fail);
-
-   s_skip_license_check = nAttr.create("skip_license_check", "skiplic", MFnNumericData::kBoolean, 0);
-   nAttr.setKeyable(false);
-   addAttribute(s_skip_license_check);
+   s_attributes.MakeInput("skip_license_check");
 
    s_plugins_path = tAttr.create("plugins_path", "ppath", MFnData::kString);
    tAttr.setKeyable(false);
    tAttr.setDefault(sData.create("$ARNOLD_PLUGIN_PATH"));
    addAttribute(s_plugins_path);
 
-   s_AA_samples = nAttr.create("AA_samples", "AAsmpls", MFnNumericData::kInt, 3);
-   nAttr.setKeyable(false);
-   nAttr.setSoftMin(1);
-   nAttr.setSoftMax(10);
-   nAttr.setMin(1);
-   nAttr.setMax(100);
-   addAttribute(s_AA_samples);
-
-   s_GI_diffuse_samples = nAttr.create("GI_diffuse_samples", "GIdiffsmpls", MFnNumericData::kInt, 2);
-   nAttr.setKeyable(false);
-   nAttr.setSoftMin(0);
-   nAttr.setSoftMax(10);
-   nAttr.setMin(0);
-   nAttr.setMax(100);
-   addAttribute(s_GI_diffuse_samples);
-
-   s_GI_glossy_samples = nAttr.create("GI_glossy_samples", "GIglossmpls", MFnNumericData::kInt, 2);
-   nAttr.setKeyable(false);
-   nAttr.setSoftMin(0);
-   nAttr.setSoftMax(10);
-   nAttr.setMin(0);
-   nAttr.setMax(100);
-   addAttribute(s_GI_glossy_samples);
-
-   s_GI_sss_hemi_samples = nAttr.create("GI_sss_hemi_samples", "GIssshemismpls", MFnNumericData::kInt, 2);
-   nAttr.setKeyable(false);
-   nAttr.setSoftMin(0);
-   nAttr.setSoftMax(10);
-   nAttr.setMin(0);
-   nAttr.setMax(100);
-   addAttribute(s_GI_sss_hemi_samples);
+   s_attributes.MakeInput("AA_samples");
+   s_attributes.MakeInput("GI_diffuse_samples");
+   s_attributes.MakeInput("GI_glossy_samples");
+   s_attributes.MakeInput("GI_sss_hemi_samples");
 
    s_use_sample_clamp = nAttr.create("use_sample_clamp", "usesmpclamp", MFnNumericData::kBoolean, 0);
    nAttr.setKeyable(false);
    addAttribute(s_use_sample_clamp);
 
-   s_AA_sample_clamp = nAttr.create("AA_sample_clamp", "smpclamp", MFnNumericData::kFloat, 10);
-   nAttr.setKeyable(false);
-   nAttr.setSoftMin(0.001);
-   nAttr.setSoftMax(100);
-   addAttribute(s_AA_sample_clamp);
+   s_attributes.MakeInput("AA_sample_clamp");
 
    s_lock_sampling_noise = nAttr.create("lock_sampling_noise", "locksn", MFnNumericData::kBoolean, 0);
    nAttr.setKeyable(false);
@@ -355,6 +291,7 @@ MStatus CArnoldRenderOptionsNode::initialize()
    nAttr.setMax(10);
    addAttribute(s_driver_gamma);
 
+   // mtoa has overridden arnold's gamma default of 1.0
    s_light_gamma = nAttr.create("light_gamma", "lgamma", MFnNumericData::kFloat, 2.2f);
    nAttr.setKeyable(false);
    nAttr.setSoftMin(0);
@@ -363,6 +300,7 @@ MStatus CArnoldRenderOptionsNode::initialize()
    nAttr.setMax(10);
    addAttribute(s_light_gamma);
 
+   // mtoa has overridden arnold's gamma default of 1.0
    s_shader_gamma = nAttr.create("shader_gamma", "sgamma", MFnNumericData::kFloat, 2.2f);
    nAttr.setKeyable(false);
    nAttr.setSoftMin(0);
@@ -371,6 +309,7 @@ MStatus CArnoldRenderOptionsNode::initialize()
    nAttr.setMax(10);
    addAttribute(s_shader_gamma);
 
+   // mtoa has overridden arnold's gamma default of 1.0
    s_texture_gamma = nAttr.create("texture_gamma", "tgamma", MFnNumericData::kFloat, 2.2f);
    nAttr.setKeyable(false);
    nAttr.setSoftMin(0);
@@ -379,63 +318,15 @@ MStatus CArnoldRenderOptionsNode::initialize()
    nAttr.setMax(10);
    addAttribute(s_texture_gamma);
 
-   s_GI_diffuse_depth = nAttr.create("GI_diffuse_depth", "GI_dd", MFnNumericData::kInt, 1);
-   nAttr.setKeyable(false);
-   nAttr.setSoftMin(0);
-   nAttr.setSoftMax(16);
-   nAttr.setMin(0);
-   nAttr.setMax(10000);
-   addAttribute(s_GI_diffuse_depth);
+   s_attributes.MakeInput("GI_diffuse_depth");
+   s_attributes.MakeInput("GI_glossy_depth");
+   s_attributes.MakeInput("GI_reflection_depth");
+   s_attributes.MakeInput("GI_refraction_depth");
+   s_attributes.MakeInput("GI_total_depth");
 
-   s_GI_glossy_depth = nAttr.create("GI_glossy_depth", "GI_gd", MFnNumericData::kInt, 1);
-   nAttr.setKeyable(false);
-   nAttr.setSoftMin(0);
-   nAttr.setSoftMax(16);
-   nAttr.setMin(0);
-   nAttr.setMax(10000);
-   addAttribute(s_GI_glossy_depth);
-
-   s_GI_reflection_depth = nAttr.create("GI_reflection_depth", "GI_rld", MFnNumericData::kInt, 2);
-   nAttr.setKeyable(false);
-   nAttr.setSoftMin(0);
-   nAttr.setSoftMax(16);
-   nAttr.setMin(0);
-   nAttr.setMax(10000);
-   addAttribute(s_GI_reflection_depth);
-
-   s_GI_refraction_depth = nAttr.create("GI_refraction_depth", "GI_rrd", MFnNumericData::kInt, 2);
-   nAttr.setKeyable(false);
-   nAttr.setSoftMin(0);
-   nAttr.setSoftMax(16);
-   nAttr.setMin(0);
-   nAttr.setMax(10000);
-   addAttribute(s_GI_refraction_depth);
-
-   s_GI_total_depth = nAttr.create("GI_total_depth", "GI_td", MFnNumericData::kInt, 10);
-   nAttr.setKeyable(false);
-   nAttr.setSoftMin(0);
-   nAttr.setSoftMax(16);
-   nAttr.setMin(0);
-   nAttr.setMax(10000);
-   addAttribute(s_GI_total_depth);
-
-   s_auto_transparency_depth = nAttr.create("auto_transparency_depth", "at_d", MFnNumericData::kInt, 10);
-   nAttr.setKeyable(false);
-   nAttr.setSoftMin(0);
-   nAttr.setSoftMax(16);
-   nAttr.setMin(0);
-   nAttr.setMax(10000);
-   addAttribute(s_auto_transparency_depth);
-
-   s_auto_transparency_threshold = nAttr.create("auto_transparency_threshold", "at_t", MFnNumericData::kFloat, 0.99);
-   nAttr.setKeyable(false);
-   nAttr.setMin(0);
-   nAttr.setMax(10);
-   addAttribute(s_auto_transparency_threshold);
-
-   s_auto_transparency_probabilistic = nAttr.create("auto_transparency_probabilistic", "at_p", MFnNumericData::kBoolean, 0);
-   nAttr.setKeyable(false);
-   addAttribute(s_auto_transparency_probabilistic);
+   s_attributes.MakeInput("auto_transparency_depth");
+   s_attributes.MakeInput("auto_transparency_threshold");
+   s_attributes.MakeInput("auto_transparency_probabilistic");
 
    s_motion_blur_enable = nAttr.create("motion_blur_enable", "mb_en", MFnNumericData::kBoolean, 0);
    nAttr.setKeyable(false);
@@ -491,29 +382,33 @@ MStatus CArnoldRenderOptionsNode::initialize()
    nAttr.setMax(20);
    addAttribute(s_motion_frames);
 
-   s_sss_subpixel_cache = nAttr.create("sss_subpixel_cache", "sssspc", MFnNumericData::kBoolean, 0);
-   nAttr.setKeyable(false);
-   addAttribute(s_sss_subpixel_cache);
+   s_attributes.MakeInput("sss_subpixel_cache");
+   s_attributes.MakeInput("show_samples");
+   s_attributes.MakeInput("max_subdivisions");
 
-   MAKE_ENUM(s_show_samples, "show_samples", "sssshs", 0, "options", "show_samples");
+   // textures
+   s_attributes.MakeInput("texture_automip");
+   s_attributes.MakeInput("texture_autotile");
+   s_attributes.MakeInput("texture_max_memory_MB");
+   s_attributes.MakeInput("texture_max_open_files");
+   s_attributes.MakeInput("texture_accept_untiled");
+   s_attributes.MakeInput("texture_failure_retries");
+   s_attributes.MakeInput("texture_conservative_lookups");
+   s_attributes.MakeInput("texture_glossy_blur");
+   s_attributes.MakeInput("texture_diffuse_blur");
+   s_attributes.MakeInput("texture_per_file_stats");
 
-   s_max_subdivisions = nAttr.create("max_subdivisions", "maxs", MFnNumericData::kInt, 999);
-   nAttr.setKeyable(false);
-   nAttr.setMin(0);
-   nAttr.setMax(999);
-   addAttribute(s_max_subdivisions);
-
-   s_texture_automip = nAttr.create("texture_automip", "tx_am", MFnNumericData::kBoolean, 1);
-   nAttr.setKeyable(false);
-   addAttribute(s_texture_automip);
-
-   s_texture_autotile = nAttr.create("texture_autotile", "tx_at", MFnNumericData::kInt, 64);
-   nAttr.setKeyable(false);
-   addAttribute(s_texture_autotile);
-
-   s_texture_max_memory_MB = nAttr.create("texture_max_memory_MB", "tx_mm", MFnNumericData::kFloat, 100);
-   nAttr.setKeyable(false);
-   addAttribute(s_texture_max_memory_MB);
+   // feature overrides
+   s_attributes.MakeInput("ignore_textures");
+   s_attributes.MakeInput("ignore_shaders");
+   s_attributes.MakeInput("ignore_atmosphere");
+   s_attributes.MakeInput("ignore_lights");
+   s_attributes.MakeInput("ignore_shadows");
+   s_attributes.MakeInput("ignore_subdivision");
+   s_attributes.MakeInput("ignore_displacement");
+   s_attributes.MakeInput("ignore_motion_blur");
+   s_attributes.MakeInput("ignore_smoothing");
+   s_attributes.MakeInput("ignore_sss");
 
    s_output_ass_filename = tAttr.create("output_ass_filename", "file", MFnData::kString);
    tAttr.setKeyable(false);

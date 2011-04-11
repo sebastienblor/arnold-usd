@@ -382,8 +382,6 @@ void CCameraTranslator::ExportCameraData(AtNode* camera)
 {
    AtMatrix matrix;
 
-   AiNodeSetStr(camera, "name", m_fnNode.partialPathName().asChar());
-
    AiNodeSetFlt(camera, "near_clip", m_fnNode.findPlug("nearClipPlane").asFloat());
    AiNodeSetFlt(camera, "far_clip", m_fnNode.findPlug("farClipPlane").asFloat());
    
@@ -746,23 +744,19 @@ void CCameraTranslator::ExportPerspMotion(AtNode* camera, AtInt step)
    AiArraySetFlt(fovs, step, m_cameraData.fov);
 }
 
-AtNode* CCameraTranslator::Export()
+const char* CCameraTranslator::GetArnoldNodeType()
 {
-   AtNode* camera;
    if (m_fnCamera.isOrtho())
    {
-      camera = AiNode("ortho_camera");
-      ExportOrtho(camera);
+      return "ortho_camera";
    }
    else
    {
-      camera = AiNode("persp_camera");
-      ExportPersp(camera);
+      return "persp_camera";
    }
-   return camera;
 }
 
-void CCameraTranslator::Update(AtNode* camera)
+void CCameraTranslator::Export(AtNode* camera)
 {
    if (m_fnCamera.isOrtho())
    {
@@ -786,22 +780,18 @@ void CCameraTranslator::ExportMotion(AtNode* camera, AtUInt step)
    }
 }
 
-void CCameraTranslator::NodeInitializer(MObject& node)
+void CCameraTranslator::NodeInitializer(MString nodeClassName)
 {
-   MFnNumericAttribute nAttr;
-   MObject attr = nAttr.create("enableDOF", "edof", MFnNumericData::kBoolean, 0);
-   nAttr.setKeyable(false);
-   nAttr.setStorable(true);
-   nAttr.setReadable(true);
-   nAttr.setWritable(true);
-   MFnDependencyNode fnNode = MFnDependencyNode(node);
-   fnNode.addAttribute(attr);
-
-   CDynamicAttrHelper* helper = new CDynamicAttrHelper(node, "persp_camera");
-   helper->MakeInput("focal_distance");
-   helper->MakeInput("aperture_size");
-   helper->MakeInput("aperture_blades");
-   helper->MakeInput("aperture_blade_curvature");
-   helper->MakeInput("aperture_rotation");
-   delete helper;
+   CExtensionAttrHelper helper(nodeClassName, "persp_camera");
+   helper.MakeInput("focal_distance");
+   helper.MakeInput("aperture_size");
+   helper.MakeInput("aperture_blades");
+   helper.MakeInput("aperture_blade_curvature");
+   helper.MakeInput("aperture_rotation");
+   
+   CAttrData data;
+   data.defaultValue.BOOL = false;
+   data.name = "enableDOF";
+   data.shortName = "edof";
+   helper.MakeInputBoolean(data);
 }

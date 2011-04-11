@@ -10,12 +10,12 @@
 #include <string>
 
 class CGeoTranslator
-   :   public CDagTranslator
+   :   public CShapeTranslator
 {
 public:
    void Init(MDagPath& dagPath, CMayaScene* scene, MString outputAttr="")
    {
-      CDagTranslator::Init(dagPath, scene, outputAttr);
+      CShapeTranslator::Init(dagPath, scene, outputAttr);
       m_motion = m_scene->IsObjectMotionBlurEnabled() && m_fnNode.findPlug("motionBlur").asBool();
       m_motionDeform = m_motion && m_scene->IsObjectDeformMotionBlurEnabled();
       m_displaced = false;
@@ -27,7 +27,8 @@ public:
    void Update(AtNode* anode);
    void ExportMotion(AtNode* anode, AtUInt step);
    void UpdateMotion(AtNode* anode, AtUInt step);
-   virtual void AddCallbacks();
+   static void NodeInitializer(MString nodeClassName);
+   virtual void AddIPRCallbacks();
 
 protected:
 
@@ -76,11 +77,12 @@ protected:
 class CMeshTranslator : public CGeoTranslator
 {
 public:
-   AtNode* Export();
+   void Export(AtNode* anode);
    static void* creator()
    {
       return new CMeshTranslator();
    }
+   const char* GetArnoldNodeType();
 private:
    unsigned int GetNumMeshGroups();
 };
@@ -92,7 +94,7 @@ class MFnNurbsSurface;
 class CNurbsSurfaceTranslator : public CGeoTranslator
 {
 public:
-   virtual AtNode* Export();
+   void Export(AtNode* anode);
    virtual void ExportMotion(AtNode* anode, AtUInt step);
    virtual void IsGeoDeforming();
 
@@ -100,6 +102,7 @@ public:
    {
       return new CNurbsSurfaceTranslator();
    }
+   const char* GetArnoldNodeType();
 private:
    MObject m_data_mobj;
    bool Tessellate(MDagPath & dagPath);

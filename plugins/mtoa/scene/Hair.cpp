@@ -30,17 +30,33 @@
 
 #include <vector>
 
-AtNode *CHairTranslator::Export()
+void CHairTranslator::NodeInitializer(MString nodeClassName)
+{
+   CExtensionAttrHelper helper = CExtensionAttrHelper(nodeClassName, "curves");
+   CShapeTranslator::MakeCommonAttributes(helper);
+   helper.MakeInput("min_pixel_width");
+   helper.MakeInput("mode");
+
+   CAttrData data;
+
+   data.defaultValue.BOOL = false;
+   data.name = "overrideHair";
+   data.shortName = "override_hair";
+   helper.MakeInputBoolean(data);
+
+   data.name = "hairShader";
+   data.shortName = "hair_shader";
+   helper.MakeInputNode(data);
+}
+
+const char* CHairTranslator::GetArnoldNodeType()
 {
    // Create the curve node
    //
-   AtNode *curve = AiNode("curves");
-   AiNodeSetStr(curve, "name", m_dagPath.fullPathName().asChar());
-   Update(curve);
-   return curve;
+   return "curves";
 }
 
-void CHairTranslator::Update(AtNode *curve)
+void CHairTranslator::Export(AtNode *curve)
 {
    MObject objectHairShape(m_dagPath.node());
 
@@ -69,8 +85,6 @@ void CHairTranslator::Update(AtNode *curve)
    bool transformHairDefinition = true;
 
    AtNode* shader = NULL;
-
-   AtInt visibility = AI_RAY_ALL;
 
    AtArray* curvePoints = NULL;     // The curve points array
    AtArray* curveWidths = NULL;     // The curve widths/radius array
@@ -102,8 +116,6 @@ void CHairTranslator::Update(AtNode *curve)
             transformHairDefinition = false;
          }
       }
-
-      visibility = ComputeVisibility();
    }
 
    // No custom shader assigned, try to transform maya hair's definition
@@ -197,21 +209,20 @@ void CHairTranslator::Update(AtNode *curve)
 
    AiNodeSetStr(curve, "basis", "catmull-rom");
 
+   ProcessRenderFlags(curve);
+
    // Extra attributes
    if (customAttributes)
    {
-      AiNodeSetBool(curve, "receive_shadows", fnDagNodeHairShape.findPlug("receive_shadows").asBool());
-      AiNodeSetBool(curve, "self_shadows", fnDagNodeHairShape.findPlug("self_shadows").asBool());
+   	// Hair specific Arnold render settings.
+   	MPlug plug;
+   	plug = m_fnNode.findPlug("min_pixel_width");
+   	if (!plug.isNull()) AiNodeSetFlt(curve, "min_pixel_width", plug.asFloat());
 
-      AiNodeSetBool(curve, "sss_use_gi", fnDagNodeHairShape.findPlug("sss_use_gi").asBool());
-      AiNodeSetInt(curve, "sss_max_samples", fnDagNodeHairShape.findPlug("sss_max_samples").asInt());
-      AiNodeSetFlt(curve, "sss_sample_spacing", fnDagNodeHairShape.findPlug("sss_sample_spacing").asFloat());
+      // Mode is an enum, 0 == ribbon, 1 == tubes.
+      plug = m_fnNode.findPlug("mode");
+      if (!plug.isNull()) AiNodeSetInt(curve, "mode", plug.asInt());
       
-      AiNodeSetFlt(curve, "min_pixel_width", fnDagNodeHairShape.findPlug("min_pixel_width").asFloat());
-      AiNodeSetInt(curve, "mode", fnDagNodeHairShape.findPlug("mode").asInt());
-
-      AiNodeSetInt(curve, "visibility", visibility);
-
       // User-Data attributes
       AiNodeDeclare(curve, "uparamcoord", "uniform FLOAT");
       AiNodeDeclare(curve, "vparamcoord", "uniform FLOAT");

@@ -25,15 +25,19 @@ void CRenderOptionsTranslator::SetupImageOptions(AtNode* options)
    AiNodeSetFlt(options, "aspect_ratio", renderOptions->pixelAspectRatio());
 }
 
-
-AtNode* CRenderOptionsTranslator::Export()
+// normally this method is used in CNodeTranslator::CreateArnoldNode, but since we've overridden it too
+// we provide this just to fill the pure virtual slot
+const char* CRenderOptionsTranslator::GetArnoldNodeType()
 {
-   AtNode* options = AiUniverseGetOptions();
-   Update(options);
-   return options;
+   return "options";
 }
 
-void CRenderOptionsTranslator::Update(AtNode* options)
+AtNode* CRenderOptionsTranslator::CreateArnoldNode()
+{
+   return AiUniverseGetOptions();
+}
+
+void CRenderOptionsTranslator::Export(AtNode* options)
 {
    SetupImageOptions(options);
    MTime currentTime;
@@ -80,6 +84,23 @@ void CRenderOptionsTranslator::Update(AtNode* options)
    ProcessParameter(options, "texture_automip", AI_TYPE_BOOLEAN);
    ProcessParameter(options, "texture_autotile", AI_TYPE_INT);
    ProcessParameter(options, "texture_max_memory_MB", AI_TYPE_FLOAT);
+   ProcessParameter(options, "texture_max_open_files", AI_TYPE_INT);
+   ProcessParameter(options, "texture_accept_untiled", AI_TYPE_BOOLEAN);
+   ProcessParameter(options, "texture_failure_retries", AI_TYPE_INT);
+   ProcessParameter(options, "texture_conservative_lookups", AI_TYPE_BOOLEAN);
+   ProcessParameter(options, "texture_glossy_blur", AI_TYPE_FLOAT);
+   ProcessParameter(options, "texture_diffuse_blur", AI_TYPE_FLOAT);
+   ProcessParameter(options, "texture_per_file_stats", AI_TYPE_BOOLEAN);
+
+   ProcessParameter(options, "ignore_textures", AI_TYPE_BOOLEAN);
+   ProcessParameter(options, "ignore_shaders", AI_TYPE_BOOLEAN);
+   ProcessParameter(options, "ignore_lights", AI_TYPE_BOOLEAN);
+   ProcessParameter(options, "ignore_shadows", AI_TYPE_BOOLEAN);
+   ProcessParameter(options, "ignore_subdivision", AI_TYPE_BOOLEAN);
+   ProcessParameter(options, "ignore_displacement", AI_TYPE_BOOLEAN);
+   ProcessParameter(options, "ignore_motion_blur", AI_TYPE_BOOLEAN);
+   ProcessParameter(options, "ignore_smoothing", AI_TYPE_BOOLEAN);
+   ProcessParameter(options, "ignore_sss", AI_TYPE_BOOLEAN);
 
    MObject background;
    MPlugArray conns;

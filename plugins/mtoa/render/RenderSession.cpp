@@ -141,9 +141,6 @@ void CRenderSession::Translate(ExportOptions& options)
    Init(options);
    LoadPlugins();
 
-   // Export options node first.
-   m_renderOptions.SetupRenderOptions();
-   
    m_scene->ExportToArnold();
 }
 
@@ -276,7 +273,7 @@ void CRenderSession::SetCamera(MString cameraNode)
       {
          if (!dagIterCameras.getPath(dagPath))
          {
-            AiMsgError("[mtoa] ERROR: Could not get path for DAG iterator.");
+            AiMsgError("[mtoa] Could not get path for DAG iterator");
             return;
          }
          bool isRenderingCamera = false;
@@ -532,13 +529,12 @@ void CRenderSession::DoExport(MString customFileName)
    }
    else
    {
-      AiMsgInfo("[mtoa] Exporting Maya scene to file '%s'", fileName.asChar());
+      AiMsgInfo("[mtoa] Exporting Maya scene to file \"%s\"", fileName.asChar());
 
       if (GetMayaScene()->GetExportMode()==MTOA_EXPORT_ALL)
       {
          SetupRenderOutput();
-         m_renderOptions.SetupRenderOptions();
-      }   
+      }
       // FIXME : problem this is actually double filtering files
       // (Once at export to AiUniverse and once at file write from it)
       AiASSWrite(fileName.asChar(), m_renderOptions.outputAssMask(), false);

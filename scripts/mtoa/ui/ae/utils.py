@@ -50,13 +50,14 @@ def getAETemplates(package):
 def loadAETemplates():
     templates = getAETemplates(mtoa.ui.ae)
     for template in templates:
-        _makeAEProc(template, template, 'AEArnold%s%s'%(template[0].upper(), template[1:]))
+        node_name = 'AE%s' % template
+        _makeAEProc(template, template, node_name )
 
     loadAEshapesTemplate()
 
 def loadAEshapesTemplate():
     template = 'shapeTemplate'
-    _makeAEProc(template, template, 'AE%s'%template)
+    _makeAEProc(template, template, 'AE%s' % template)
 
 def aeCallback(classname):
     return utils.pyToMelProc(classname, ('string', 'nodeName'), prepend='AEArnoldCallback')

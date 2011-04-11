@@ -1,6 +1,7 @@
 #include "ArnoldSkyShader.h"
 #include "nodes/ShaderUtils.h"
 #include "nodes/ArnoldNodeIDs.h"
+#include "scene/NodeTranslator.h"
 
 #include <ai_ray.h>
 #include <ai_shader_util.h>
@@ -11,6 +12,8 @@
 #include <maya/MStringArray.h>
 
 MTypeId CArnoldSkyShaderNode::id(ARNOLD_NODEID_SKY);
+
+CStaticAttrHelper CArnoldSkyShaderNode::s_attributes(CArnoldSkyShaderNode::addAttribute);
 
 MObject CArnoldSkyShaderNode::s_XX;
 MObject CArnoldSkyShaderNode::s_XY;
@@ -27,14 +30,6 @@ MObject CArnoldSkyShaderNode::s_ZY;
 MObject CArnoldSkyShaderNode::s_ZZ;
 MObject CArnoldSkyShaderNode::s_Z;
 MObject CArnoldSkyShaderNode::s_Z_angle;
-MObject CArnoldSkyShaderNode::s_intensity;
-
-MObject CArnoldSkyShaderNode::s_casts_shadows;
-MObject CArnoldSkyShaderNode::s_primary_visibility;
-MObject CArnoldSkyShaderNode::s_visible_in_reflections;
-MObject CArnoldSkyShaderNode::s_visible_in_refractions;
-MObject CArnoldSkyShaderNode::s_diffuse_visibility;
-MObject CArnoldSkyShaderNode::s_glossy_visibility;
 
 MObject CArnoldSkyShaderNode::s_OUT_colorR;
 MObject CArnoldSkyShaderNode::s_OUT_colorG;
@@ -54,56 +49,12 @@ MStatus CArnoldSkyShaderNode::initialize()
 {
    MPxNode::inheritAttributesFrom("SphereLocator");
 
-   MFnEnumAttribute eAttr;
    MFnNumericAttribute nAttr;
-   MFnTypedAttribute tAttr;
 
-   s_intensity = nAttr.create("intensity", "i", MFnNumericData::kFloat, 1);
-   nAttr.setMin(0);
-   nAttr.setMax(10);
-   MAKE_INPUT(nAttr, s_intensity);
-
-   s_casts_shadows = nAttr.create("casts_shadows", "shd", MFnNumericData::kBoolean, 1);
-   nAttr.setKeyable(false);
-   nAttr.setStorable(true);
-   nAttr.setReadable(true);
-   nAttr.setWritable(true);
-   addAttribute(s_casts_shadows);
-
-   s_primary_visibility = nAttr.create("primary_visibility", "pvis", MFnNumericData::kBoolean, 0);
-   nAttr.setKeyable(false);
-   nAttr.setStorable(true);
-   nAttr.setReadable(true);
-   nAttr.setWritable(true);
-   addAttribute(s_primary_visibility);
-
-   s_visible_in_reflections = nAttr.create("visible_in_reflections", "rfl", MFnNumericData::kBoolean, 1);
-   nAttr.setKeyable(false);
-   nAttr.setStorable(true);
-   nAttr.setReadable(true);
-   nAttr.setWritable(true);
-   addAttribute(s_visible_in_reflections);
-
-   s_visible_in_refractions = nAttr.create("visible_in_refractions", "rfr", MFnNumericData::kBoolean, 1);
-   nAttr.setKeyable(false);
-   nAttr.setStorable(true);
-   nAttr.setReadable(true);
-   nAttr.setWritable(true);
-   addAttribute(s_visible_in_refractions);
-
-   s_diffuse_visibility = nAttr.create("diffuse_visibility", "dvis", MFnNumericData::kBoolean, 1);
-   nAttr.setKeyable(false);
-   nAttr.setStorable(true);
-   nAttr.setReadable(true);
-   nAttr.setWritable(true);
-   addAttribute(s_diffuse_visibility);
-
-   s_glossy_visibility = nAttr.create("glossy_visibility", "gvis", MFnNumericData::kBoolean, 1);
-   nAttr.setKeyable(false);
-   nAttr.setStorable(true);
-   nAttr.setReadable(true);
-   nAttr.setWritable(true);
-   addAttribute(s_glossy_visibility);
+   s_attributes.SetNode("sky");
+   s_attributes.MakeInput("intensity");
+   // FIXME: visibleInReflection, visibleInRefraction seem to be on the locator already but they are false by default
+   CDagTranslator::MakeArnoldVisibilityFlags(s_attributes);
 
    // OUTPUT ATTRIBUTES
 

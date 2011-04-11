@@ -21,9 +21,9 @@ public:
    {
       return m_motion;
    }
-   static void NodeInitializer(MObject& node);
+   static void NodeInitializer(MString nodeClassName);
 protected:
-   void Update(AtNode* light, bool mayaAttrs=true);
+   void Export(AtNode* light, bool mayaAttrs=true);
    void ExportMotion(AtNode* light, AtUInt step);
    void ExportLightFilters(AtNode* light, const MObjectArray &filters);
    virtual void Delete();
@@ -35,8 +35,7 @@ protected:
 class CAmbientLightTranslator : public CLightTranslator
 {
 public:
-   AtNode* Export();
-   void Update(AtNode* light);
+   void Export(AtNode* light);
    static void* creator()
    {
       return new CAmbientLightTranslator();
@@ -45,63 +44,82 @@ public:
    {
       return false;
    }
+   const char* GetArnoldNodeType()
+   {
+      return "ambient_light";
+   }
 };
 
 class CDirectionalLightTranslator : public CLightTranslator
 {
 public:
-   AtNode* Export();
-   void Update(AtNode* light);
+   void Export(AtNode* light);
    static void* creator()
    {
       return new CDirectionalLightTranslator();
+   }
+   const char* GetArnoldNodeType()
+   {
+      return "distant_light";
    }
 };
 
 class CPointLightTranslator : public CLightTranslator
 {
 public:
-   AtNode* Export();
-   void Update(AtNode* light);
-   static void NodeInitializer(MObject& node);
+   void Export(AtNode* light);
+   static void NodeInitializer(MString nodeClassName);
    static void* creator()
    {
       return new CPointLightTranslator();
+   }
+   const char* GetArnoldNodeType()
+   {
+      return "point_light";
    }
 };
 
 class CSpotLightTranslator : public CLightTranslator
 {
 public:
-   AtNode* Export();
-   void Update(AtNode* light);
-   static void NodeInitializer(MObject& node);
+   void Export(AtNode* light);
+   static void NodeInitializer(MString nodeClassName);
    static void* creator()
    {
       return new CSpotLightTranslator();
+   }
+   const char* GetArnoldNodeType()
+   {
+      return "spot_light";
    }
 };
 
 class CAreaLightTranslator : public CLightTranslator
 {
 public:
-   AtNode* Export();
-   void Update(AtNode* light);
-   static void NodeInitializer(MObject& node);
+   void Export(AtNode* light);
+   static void NodeInitializer(MString nodeClassName);
    static void* creator()
    {
       return new CAreaLightTranslator();
+   }
+   const char* GetArnoldNodeType()
+   {
+      return "quad_light";
    }
 };
 
 class CSkyDomeLightTranslator : public CLightTranslator
 {
 public:
-   AtNode* Export();
-   void Update(AtNode* light);
+   void Export(AtNode* light);
    static void* creator()
    {
       return new CSkyDomeLightTranslator();
+   }
+   const char* GetArnoldNodeType()
+   {
+      return "skydome_light";
    }
 };
 #endif // LIGHTS_H

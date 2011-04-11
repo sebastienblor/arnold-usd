@@ -1,6 +1,6 @@
 
 #include "MayaScene.h"
-#include "NodeTranslator.h"
+#include "TranslatorRegistry.h"
 #include "render/RenderSession.h"
 
 
@@ -80,6 +80,9 @@ MStatus CMayaScene::ExportToArnold()
    
    PrepareExport();
 
+   // Export Options - this needs to occur after PrepareExport is called
+   ExportShader(m_fnArnoldRenderOptions->object());
+
    // Are we motion blurred?
    const bool mb = m_motionBlurData.enabled &&
                    ( m_fnArnoldRenderOptions->findPlug("mb_camera_enable").asBool()    ||
@@ -140,7 +143,7 @@ MStatus CMayaScene::ExportToArnold()
    if (mb)
    {
       // loop through motion steps
-      for (int step = 1; step < m_motionBlurData.motion_steps; ++step)
+      for (AtUInt step = 1; step < m_motionBlurData.motion_steps; ++step)
       {
          MGlobal::viewFrame(MTime(m_motionBlurData.frames[step], MTime::uiUnit()));
          AiMsgDebug("[mtoa] Exporting step %d at frame %f", step, m_motionBlurData.frames[step]);
@@ -196,12 +199,12 @@ void CMayaScene::GetMotionBlurData()
    m_motionBlurData.shutter_size   = m_fnArnoldRenderOptions->findPlug("shutter_size").asFloat();
    m_motionBlurData.shutter_offset = m_fnArnoldRenderOptions->findPlug("shutter_offset").asFloat();
    m_motionBlurData.shutter_type   = m_fnArnoldRenderOptions->findPlug("shutter_type").asInt();
-   m_motionBlurData.motion_steps   = m_fnArnoldRenderOptions->findPlug("motion_steps").asInt();
    m_motionBlurData.motion_frames  = m_fnArnoldRenderOptions->findPlug("motion_frames").asFloat();
 
    if (m_motionBlurData.enabled)
    {
-      for (int J = 0; (J < m_motionBlurData.motion_steps); ++J)
+      m_motionBlurData.motion_steps   = m_fnArnoldRenderOptions->findPlug("motion_steps").asInt();
+      for (AtUInt J = 0; (J < m_motionBlurData.motion_steps); ++J)
       {
          float frame = GetCurrentFrame() -
                        m_motionBlurData.motion_frames * 0.5f +
@@ -211,6 +214,8 @@ void CMayaScene::GetMotionBlurData()
          m_motionBlurData.frames.push_back(frame);
       }
    }
+   else
+      m_motionBlurData.motion_steps   = 1;
 }
 
 // Export the cameras of the maya scene
@@ -506,11 +511,6 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
 
    MFnDependencyNode node(mayaShader);
 
-   if (attrName != "")
-      AiMsgDebug("[mtoa] Exporting shader: %s.%s", node.name().asChar(), attrName.asChar());
-   else
-      AiMsgDebug("[mtoa] Exporting shader: %s", node.name().asChar());
-
    CNodeTranslator* translator = CTranslatorRegistry::GetDependTranslator(node.typeId().id());
    if (translator != NULL)
    {
@@ -580,7 +580,7 @@ void CMayaScene::ClearIPRCallbacks()
    ObjectToTranslatorMap::iterator it;
    for(it = m_processedTranslators.begin(); it != m_processedTranslators.end(); ++it)
    {
-      if ( it->second != NULL ) it->second->RemoveCallbacks();
+      if ( it->second != NULL ) it->second->RemoveIPRCallbacks();
    }
 
    ObjectToDagTranslatorMap::iterator dagIt;
@@ -589,7 +589,7 @@ void CMayaScene::ClearIPRCallbacks()
       std::map<int, CNodeTranslator*>::iterator instIt;
       for(instIt = dagIt->second.begin(); instIt != dagIt->second.end(); ++instIt)
       {
-         instIt->second->RemoveCallbacks();
+         instIt->second->RemoveIPRCallbacks();
       }
    }
    
@@ -650,7 +650,7 @@ void CMayaScene::IPRIdleCallback(void *)
    else
    {
       // Scene is motion blured, get the data for the steps.
-      for (int J = 0; (J < scene->m_motionBlurData.motion_steps); ++J)
+      for (AtUInt J = 0; (J < scene->m_motionBlurData.motion_steps); ++J)
       {
          MGlobal::viewFrame(MTime(scene->m_motionBlurData.frames[J], MTime::uiUnit()));
          for( std::vector<CNodeTranslator*>::iterator iter=s_translatorsToIPRUpdate.begin();

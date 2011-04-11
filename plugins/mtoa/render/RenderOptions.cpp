@@ -152,17 +152,10 @@ void CRenderOptions::ProcessCommonRenderOptions()
 
 void CRenderOptions::ProcessArnoldRenderOptions()
 {
-   MSelectionList list;
    MObject        node;
-
-   list.add("defaultArnoldRenderOptions");
-
-   if (list.length() > 0)
+   if (GetOptionsNode(node) == MS::kSuccess)
    {
       MPlugArray conns;
-
-      list.getDependNode(0, node);
-
       MFnDependencyNode fnArnoldRenderOptions(node);
 
       MFnEnumAttribute arnold_render_format(fnArnoldRenderOptions.findPlug("arnoldRenderImageFormat").attribute());
@@ -177,12 +170,7 @@ void CRenderOptions::ProcessArnoldRenderOptions()
       m_arnoldRenderImageUnpremultAlpha = fnArnoldRenderOptions.findPlug("unpremult_alpha").asBool();
 
       m_progressive_rendering    = fnArnoldRenderOptions.findPlug("progressive_rendering").asBool();
-      m_physically_based         = fnArnoldRenderOptions.findPlug("physically_based").asBool();
       m_threads                  = fnArnoldRenderOptions.findPlug("threads_autodetect").asBool() ? 0 : fnArnoldRenderOptions.findPlug("threads").asInt();
-      m_bucket_scanning          = fnArnoldRenderOptions.findPlug("bucket_scanning").asInt();
-      m_bucket_size              = fnArnoldRenderOptions.findPlug("bucket_size").asInt();
-      m_abort_on_error           = fnArnoldRenderOptions.findPlug("abort_on_error").asBool();
-      m_skip_license_check       = fnArnoldRenderOptions.findPlug("skip_license_check").asBool();
       m_plugins_path             = fnArnoldRenderOptions.findPlug("plugins_path").asString();
 
       m_AA_samples               = fnArnoldRenderOptions.findPlug("AA_samples").asInt();
@@ -210,25 +198,6 @@ void CRenderOptions::ProcessArnoldRenderOptions()
 
       m_clearBeforeRender = fnArnoldRenderOptions.findPlug("clear_before_render").asBool();
 
-      m_GI_diffuse_depth    = fnArnoldRenderOptions.findPlug("GI_diffuse_depth").asInt();
-      m_GI_glossy_depth     = fnArnoldRenderOptions.findPlug("GI_glossy_depth").asInt();
-      m_GI_reflection_depth = fnArnoldRenderOptions.findPlug("GI_reflection_depth").asInt();
-      m_GI_refraction_depth = fnArnoldRenderOptions.findPlug("GI_refraction_depth").asInt();
-      m_GI_total_depth      = fnArnoldRenderOptions.findPlug("GI_total_depth").asInt();
-
-      m_auto_transparency_depth = fnArnoldRenderOptions.findPlug("auto_transparency_depth").asInt();
-      m_auto_transparency_threshold = fnArnoldRenderOptions.findPlug("auto_transparency_threshold").asFloat();
-      m_auto_transparency_probabilistic = fnArnoldRenderOptions.findPlug("auto_transparency_probabilistic").asBool();
-
-      m_sss_subpixel_cache  = fnArnoldRenderOptions.findPlug("sss_subpixel_cache").asBool();
-      m_show_samples        = fnArnoldRenderOptions.findPlug("show_samples").asInt();
-
-      m_max_subdivisions = fnArnoldRenderOptions.findPlug("max_subdivisions").asInt();
-
-      m_texture_automip = fnArnoldRenderOptions.findPlug("texture_automip").asBool();
-      m_texture_autotile = fnArnoldRenderOptions.findPlug("texture_autotile").asInt();
-      m_texture_max_memory_MB = fnArnoldRenderOptions.findPlug("texture_max_memory_MB").asFloat();
-
       m_outputAssFile       = fnArnoldRenderOptions.findPlug("output_ass_filename").asString();
       m_outputAssCompressed = fnArnoldRenderOptions.findPlug("output_ass_compressed").asBool();
       m_outputAssMask       = fnArnoldRenderOptions.findPlug("output_ass_mask").asInt();
@@ -237,18 +206,6 @@ void CRenderOptions::ProcessArnoldRenderOptions()
       m_log_max_warnings      = fnArnoldRenderOptions.findPlug("log_max_warnings").asInt();
       m_log_console_verbosity = fnArnoldRenderOptions.findPlug("log_console_verbosity").asInt();
       m_log_file_verbosity    = fnArnoldRenderOptions.findPlug("log_file_verbosity").asInt();
-
-      MPlug pBG = fnArnoldRenderOptions.findPlug("background");
-      pBG.connectedTo(conns, true, false);
-      if (conns.length() == 1)
-      {
-         m_background = conns[0].node();
-      }
-      else
-      {
-         m_background = MObject::kNullObj;
-      }
-      m_atmosphere = fnArnoldRenderOptions.findPlug("atmosphere").asInt();
 
       // AOVs
       ClearAOVs();
@@ -275,17 +232,10 @@ void CRenderOptions::ProcessArnoldRenderOptions()
          }
       }
    }
+   else
+      MGlobal::displayWarning("[mtoa] could not find defaultArnoldRenderOptions");
 
    SetupImageOutputs();
-}
-
-void CRenderOptions::SetupRenderOptions() const
-{
-   MObject node;
-   if (GetOptionsNode(node) == MS::kSuccess)
-   {
-      m_scene->ExportShader(node);
-   }
 }
 
 void CRenderOptions::SetupLog() const
@@ -376,7 +326,6 @@ void CRenderOptions::SetupImageOutputs()
       m_imageFileExtension = "png";
    }
 }
-
 MStatus CRenderOptions::GetOptionsNode(MObject& optionsNode) const
 {
    MSelectionList list;

@@ -1,6 +1,7 @@
 
 #include "Geometry.h"
 #include "render/RenderSession.h"
+#include "utils/AttrHelper.h"
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
@@ -154,7 +155,7 @@ bool CGeoTranslator::GetNormals(MFnMesh &fnMesh, std::vector<float> &normals)
 bool CGeoTranslator::GetTangents(MFnMesh &fnMesh, std::vector<float> &tangents, std::vector<float> &bitangents)
 {
    MStatus stat;
-   MPlug pExportTangents = fnMesh.findPlug("export_tangents", false, &stat);
+   MPlug pExportTangents = fnMesh.findPlug("exportTangents", false, &stat);
 
    if (stat != MStatus::kSuccess)
       return false;
@@ -282,7 +283,7 @@ bool CGeoTranslator::GetVertexColors(MFnMesh &fnMesh, std::map<std::string, std:
 
    if (fnMesh.numColorSets() > 0)
    {
-      MPlug plug = fnMesh.findPlug("export_colors");
+      MPlug plug = fnMesh.findPlug("exportColors");
       if (!plug.isNull())
       {
          exportColors = plug.asBool();
@@ -379,7 +380,7 @@ void CGeoTranslator::GetComponentIDs(MFnMesh &fnMesh,
 
 void CGeoTranslator::ExportShaders()
 {
-   ExportMeshShaders(m_atNode, m_fnMesh);
+   ExportMeshShaders(GetArnoldNode(), m_fnMesh);
 }
 
 void CGeoTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
@@ -404,7 +405,7 @@ void CGeoTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
          meshShaders.push_back(shader);
       }
       else
-         AiMsgWarning("[mtoa] shadingGroup %s has no surfaceShader input.", fnDGNode.name().asChar());
+         AiMsgWarning("[mtoa] ShadingGroup %s has no surfaceShader input", fnDGNode.name().asChar());
    }
    else
    {
@@ -692,7 +693,6 @@ void CGeoTranslator::ExportMeshParameters(AtNode* polymesh)
    bool customAttributes = (status == MS::kSuccess);
 
    AiNodeSetBool(polymesh, "smoothing", m_fnNode.findPlug("smoothShading").asBool());
-   AiNodeSetBool(polymesh, "receive_shadows", m_fnNode.findPlug("receiveShadows").asBool());
 
    if (m_fnNode.findPlug("doubleSided").asBool())
       AiNodeSetInt(polymesh, "sidedness", 65535);
@@ -703,44 +703,32 @@ void CGeoTranslator::ExportMeshParameters(AtNode* polymesh)
    }
 
    // Visibility options
-   AtInt visibility = ComputeVisibility(true);
-   AiNodeSetInt(polymesh, "visibility", visibility);
+   ProcessRenderFlags(polymesh);
 
    if (customAttributes)
    {
-      AiNodeSetBool(polymesh, "self_shadows", m_fnNode.findPlug("self_shadows").asBool());
-      AiNodeSetBool(polymesh, "opaque", m_fnNode.findPlug("opaque").asBool());
-
       // Subdivision surfaces
       //
-      bool subdivision = (m_fnNode.findPlug("subdiv_type").asInt() != 0);
+      const bool subdivision = (m_fnNode.findPlug("subdiv_type").asInt() != 0);
 
       if (subdivision)
       {
-         AiNodeSetStr(polymesh, "subdiv_type", "catclark");
-         AiNodeSetInt(polymesh, "subdiv_iterations", m_fnNode.findPlug("subdiv_iterations").asInt());
-         AiNodeSetInt(polymesh, "subdiv_adaptive_metric", m_fnNode.findPlug("subdiv_adaptive_metric").asInt());
-         AiNodeSetFlt(polymesh, "subdiv_pixel_error", m_fnNode.findPlug("subdiv_pixel_error").asFloat());
+         AiNodeSetStr(polymesh, "subdiv_type",           "catclark");
+         AiNodeSetInt(polymesh, "subdiv_iterations",     m_fnNode.findPlug("subdiv_iterations").asInt());
+         AiNodeSetInt(polymesh, "subdiv_adaptive_metric",m_fnNode.findPlug("subdiv_adaptive_metric").asInt());
+         AiNodeSetFlt(polymesh, "subdiv_pixel_error",    m_fnNode.findPlug("subdiv_pixel_error").asFloat());
+         AiNodeSetInt(polymesh, "subdiv_uv_smoothing",   m_fnNode.findPlug("subdiv_uv_smoothing").asInt());
 
+         // FIXME, this should probably be handled by ProcessParameter
          MString cameraName = m_fnNode.findPlug("subdiv_dicing_camera").asString();
          AtNode* camera = ((cameraName != "") && (cameraName != "Default")) ? AiNodeLookUpByName(cameraName.asChar()) : NULL;
          AiNodeSetPtr(polymesh, "subdiv_dicing_camera", camera);
-
-         AiNodeSetInt(polymesh, "subdiv_uv_smoothing", m_fnNode.findPlug("subdiv_uv_smoothing").asInt());
       }
-
-      // Subsurface Scattering
-      //
-      AiNodeSetInt(polymesh, "sss_max_samples", m_fnNode.findPlug("sss_max_samples").asInt());
-      AiNodeSetFlt(polymesh, "sss_sample_spacing", m_fnNode.findPlug("sss_sample_spacing").asFloat());
-      AiNodeSetBool(polymesh, "sss_use_gi", m_fnNode.findPlug("sss_use_gi").asBool());
    }
 }
 
 AtNode* CGeoTranslator::ExportMesh(AtNode* polymesh, bool update)
 {
-   AiNodeSetStr(polymesh, "name", m_dagPath.fullPathName().asChar());
-
    ExportMatrix(polymesh, 0);
    ExportMeshParameters(polymesh);
    ExportMeshShaders(polymesh, m_fnMesh);
@@ -752,12 +740,10 @@ AtNode* CGeoTranslator::ExportMesh(AtNode* polymesh, bool update)
 
 AtNode* CGeoTranslator::ExportInstance(AtNode *instance, const MDagPath& masterInstance)
 {
-   AtNode* masterNode = AiNodeLookUpByName(masterInstance.fullPathName().asChar());
+   AtNode* masterNode = AiNodeLookUpByName(masterInstance.partialPathName().asChar());
 
    // FIXME: we should not be here if we are not instanced, why the call to isInstanced? (chad)
    int instanceNum = m_dagPath.isInstanced() ? m_dagPath.instanceNumber() : 0;
-
-   AiNodeSetStr(instance, "name", m_dagPath.fullPathName().asChar());
 
    ExportMatrix(instance, 0);
 
@@ -852,17 +838,17 @@ void CGeoTranslator::UpdateMotion(AtNode* anode, AtUInt step)
    ExportMatrix(anode, step);
 }
 
-void CGeoTranslator::AddCallbacks()
+void CGeoTranslator::AddIPRCallbacks()
 {
    AddShaderAssignmentCallbacks( m_object );
-   CDagTranslator::AddCallbacks();
+   CDagTranslator::AddIPRCallbacks();
 }
 
 void CGeoTranslator::AddShaderAssignmentCallbacks(MObject & dagNode )
 {
    MStatus status;
    MCallbackId id = MNodeMessage::addAttributeChangedCallback( dagNode, ShaderAssignmentCallback, this, &status );
-   if ( MS::kSuccess == status ) ManageCallback( id );
+   if (MS::kSuccess == status) ManageIPRCallback(id);
 }
 
 void CGeoTranslator::ShaderAssignmentCallback( MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void*clientData )
@@ -885,9 +871,34 @@ void CGeoTranslator::ShaderAssignmentCallback( MNodeMessage::AttributeMessage ms
    }
 }
 
+void CGeoTranslator::NodeInitializer(MString nodeClassName)
+{
+  CExtensionAttrHelper helper(nodeClassName, "polymesh");
 
-// CNurbsTranslator
-//
+   // node attributes
+   CShapeTranslator::MakeCommonAttributes(helper);
+
+   helper.MakeInput("subdiv_type");
+   helper.MakeInput("subdiv_iterations");
+   helper.MakeInput("subdiv_adaptive_metric");
+   helper.MakeInput("subdiv_pixel_error");
+   helper.MakeInput("subdiv_dicing_camera");
+   helper.MakeInput("subdiv_uv_smoothing");
+
+   CAttrData data;
+
+   data.defaultValue.BOOL = false;
+   data.name = "exportTangents";
+   data.shortName = "exptan";
+   helper.MakeInputBoolean(data);
+
+   data.defaultValue.BOOL = false;
+   data.name = "exportColors";
+   data.shortName = "expcol";
+   helper.MakeInputBoolean(data);
+}
+
+// --------- CNurbsSurfaceTranslator -------------//
 
 void CNurbsSurfaceTranslator::GetTessellationOptions(MTesselationParams & params,
                                               MFnNurbsSurface & surface )
@@ -962,7 +973,7 @@ bool CNurbsSurfaceTranslator::Tessellate(MDagPath & dagPath)
    MFnNurbsSurface surface(dagPath, &status);
    if (!status)
    {
-      AiMsgError("[mtoa] ERROR: Could not attache to NURBS surface for tessallation: %s",
+      AiMsgError("[mtoa] Could not attach to NURBS surface for tessallation: %s",
                  status.errorString().asChar());
       return false;
    }
@@ -978,7 +989,7 @@ bool CNurbsSurfaceTranslator::Tessellate(MDagPath & dagPath)
                                          &status);
    if (!status)
    {
-      AiMsgError("[mtoa] ERROR: Could not tessallate NURBS surface: %s",
+      AiMsgError("[mtoa] Could not tessallate NURBS surface: %s",
                  status.errorString().asChar());
       return false;
    }
@@ -988,24 +999,26 @@ bool CNurbsSurfaceTranslator::Tessellate(MDagPath & dagPath)
    return true;
 }
 
-AtNode* CNurbsSurfaceTranslator::Export()
+const char* CNurbsSurfaceTranslator::GetArnoldNodeType()
 {
-   AtNode* anode = NULL;
    m_isMasterDag = IsMasterInstance(m_masterDag);
    if (m_isMasterDag)
-   {
-      // Early return if we can't tessalate. anode will be NULL.
-      if (!Tessellate(m_dagPath)) return anode;
-
-      anode = AiNode("polymesh");
-      ExportMesh(anode, false);
-      return anode;
-   }
+      return "polymesh";
    else
-   {
-      anode = AiNode("ginstance");
+      return "ginstance";
+}
+
+void CNurbsSurfaceTranslator::Export(AtNode* anode)
+{
+   const char* nodeType = AiNodeEntryGetName (anode->base_node);
+   if (strcmp(nodeType, "ginstance") == 0)
       ExportInstance(anode, m_masterDag);
-      return anode;
+   else if (strcmp(nodeType, "polymesh") == 0)
+   {
+      // Early return if we can't tessalate.
+      if (!Tessellate(m_dagPath))
+         return;
+      ExportMesh(anode, false);
    }
 }
 
@@ -1027,7 +1040,7 @@ void CNurbsSurfaceTranslator::IsGeoDeforming()
 {
 }
 
- // --------- CMeshTranslator -------------//
+// --------- CMeshTranslator -------------//
 unsigned int CMeshTranslator::GetNumMeshGroups()
 {
    MObject node = m_dagPath.node();
@@ -1052,29 +1065,31 @@ unsigned int CMeshTranslator::GetNumMeshGroups()
    }
 }
 
-AtNode* CMeshTranslator::Export()
-{
 
-   AtNode* anode = NULL;
-   if (GetNumMeshGroups() == 0)
-   {
-      AiMsgError("[mtoa] ERROR: Mesh not exported. It has 0 groups.");
-      return anode;
-   }
+const char* CMeshTranslator::GetArnoldNodeType()
+{
    m_isMasterDag = IsMasterInstance(m_masterDag);
    if (m_isMasterDag)
    {
       m_fnMesh.setObject(m_dagPath.node());
-      anode = AiNode("polymesh");
-      ExportMesh(anode, false);
-      return anode;
+      return "polymesh";
    }
    else
-   {
-      anode = AiNode("ginstance");
-      ExportInstance(anode, m_masterDag);
-      return anode;
-   }
+      return "ginstance";
 }
+void CMeshTranslator::Export(AtNode* anode)
+{
+   if (GetNumMeshGroups() == 0)
+   {
+      AiMsgError("[mtoa] ERROR: Mesh not exported. It has 0 groups.");
+      return;
+   }
+   const char* nodeType = AiNodeEntryGetName(anode->base_node);
+   if (strcmp(nodeType, "ginstance") == 0)
+      ExportInstance(anode, m_masterDag);
+   else if (strcmp(nodeType, "polymesh") == 0)
+      ExportMesh(anode, false);
+}
+
 
 

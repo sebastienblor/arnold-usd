@@ -184,7 +184,7 @@ AtParamValue MAiParamGetDefault(const AtNodeEntry *entry, const AtParamEntry* pa
          }
          default:
          {
-            AiMsgError("[mtoa] plain text defaults only supports basic numeric types");
+            AiMsgError("[mtoa] Plain text defaults only supports basic numeric types");
          }
       }
    }
