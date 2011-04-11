@@ -37,12 +37,12 @@ public:
    /// \param addIdleRenderViewUpdate Optionally install a callback for IPR.
    MStatus PrepareRenderView(bool addIdleRenderViewUpdate=false);
 
-   void Init(ExportOptions options = ExportOptions());
+   void Init(ExportOptions& options = ExportOptions());
    /// Load the external shaders/procedrals into Arnold.
    void LoadPlugins();
 
    /// Translate the Maya scene to Arnold.
-   void Translate(ExportOptions options = ExportOptions());
+   void Translate(ExportOptions& options = ExportOptions());
    /// Get the translated scene bounding box.
    AtBBox GetBoundingBox();
 

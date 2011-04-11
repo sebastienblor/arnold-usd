@@ -9,6 +9,9 @@
 #include <maya/MCommonRenderSettingsData.h>
 
 #include <vector>
+#include <set>
+#include <map>
+#include <string>
 
 class CMayaScene;
 

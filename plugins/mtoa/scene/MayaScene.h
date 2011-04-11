@@ -2,6 +2,7 @@
 #define MAYASCENE_H
 
 #include "platform/Platform.h"
+#include "render/RenderOptions.h"
 
 #include <ai_nodes.h>
 
@@ -21,8 +22,6 @@
 #include <set>
 #include <map>
 #include <string>
-
-class CNodeTranslator;
 
 // The different ExportMode were not really mutually exclusive
 // (you can have IPR render on selected only)
@@ -46,10 +45,20 @@ struct ExportFilter
    bool hidden;
    bool notinlayer;
    ExcludeSet excluded;
+
    ExportFilter() :  unselected(false),
                      templated(true),
                      hidden(true),
                      notinlayer(true)   {}
+};
+
+struct ExportOptions
+{
+   ExportMode mode;
+   ExportFilter filter;
+
+   ExportOptions() : mode(MTOA_EXPORT_UNDEFINED),
+                     filter(ExportFilter()) {}
 };
 
 // To allow to specify that a dag node gets filtered out,
@@ -61,13 +70,7 @@ enum DagFiltered
    MTOA_EXPORT_REJECTED_BRANCH
 };
 
-struct ExportOptions
-{
-   ExportMode mode;
-   ExportFilter filter;
-   ExportOptions() : mode(MTOA_EXPORT_UNDEFINED),
-                     filter(ExportFilter()) {}
-};
+class CNodeTranslator;
 
 struct CMotionBlurData
 {
@@ -80,7 +83,6 @@ struct CMotionBlurData
 
    std::vector<float> frames;
 };
-
 
 struct mobjcompare
 {
@@ -115,13 +117,14 @@ public:
    AtNode* ExportShader(MPlug& shaderOutputPlug);
    MStatus ExportDagPath(MDagPath &dagPath, AtUInt step=0);
 
-   inline AtFloat GetCurrentFrame()                    { return m_currentFrame;}
-   inline ExportOptions GetExportOptions()             { return m_exportOptions; }
-   inline void SetExportOptions(ExportOptions options) { m_exportOptions = options; }
-   inline ExportMode GetExportMode()                   { return m_exportOptions.mode; }
-   inline void SetExportMode(ExportMode mode )         { m_exportOptions.mode = mode; }
-   inline ExportFilter GetExportFilter()               { return m_exportOptions.filter; }
-   inline void SetExportFilter(ExportFilter filter)    { m_exportOptions.filter = filter; }
+   inline AtFloat GetCurrentFrame()                      { return m_currentFrame;}
+
+   inline ExportOptions GetExportOptions()               { return m_exportOptions; }
+   inline void SetExportOptions(ExportOptions& options)  { m_exportOptions = options; }
+   inline ExportMode GetExportMode()                     { return m_exportOptions.mode; }
+   inline void SetExportMode(ExportMode mode)            { m_exportOptions.mode = mode; }
+   inline ExportFilter GetExportFilter()                 { return m_exportOptions.filter; }
+   inline void SetExportFilter(ExportFilter& filter)     { m_exportOptions.filter = filter; }
 
    void ProcessShaderParameter(MFnDependencyNode shader,
                                const char* param,

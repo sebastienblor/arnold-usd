@@ -17,6 +17,8 @@
 #include <maya/MRenderUtil.h>
 #include <maya/MFileIO.h>
 
+#include <sstream>
+
 MSyntax CArnoldRenderCmd::newSyntax()
 {
    MSyntax syntax;
@@ -133,13 +135,17 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
          if (renderType == MTOA_RENDER_EXPORTASS_AND_KICK)
          {
 #ifdef _WIN32
-            MString cmd = "kick " + filename;
+            MString kickCmd = "kick \"" + filename + "\"";
 #else
-            MString cmd = "kick " + filename + " &";
+            MString kickCmd = "kick \"" + filename + "\"";
 #endif
-            int ret = system(cmd.asChar());
+            // FIXME: does not work properly, at least on Windows
 
-            MGlobal::displayInfo("[mtoa] Value returned by kick : " + ret);
+            int ret = system(kickCmd.asChar());
+            std::stringstream info;
+            info << "[mtoa] Value returned by kick : " << ret;
+
+            MGlobal::displayInfo(info.str().c_str());
          }
       }
       else
