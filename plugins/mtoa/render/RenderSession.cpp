@@ -450,28 +450,32 @@ AtNode * CRenderSession::CreateOutputFilter()
    // OUTPUT FILTER (use for all image outputs)
    AtNode* filter = AiNodeLookUpByName( m_renderOptions.filterType().asChar() );
    if (filter == NULL) filter = AiNode(m_renderOptions.filterType().asChar());
-   AiNodeSetStr( filter, "name", m_renderOptions.filterType().asChar() );
 
-   // Only set filter parameters if they exist within that specific node
-   if (AiNodeEntryLookUpParameter(filter->base_node, "width"))
+   if (filter != NULL)
    {
-      AiNodeSetFlt(filter, "width", m_renderOptions.filterWidth());
-   }
-   if (AiNodeEntryLookUpParameter(filter->base_node, "domain"))
-   {
-      AiNodeSetStr(filter, "domain", m_renderOptions.filterDomain().asChar());
-   }
-   if (AiNodeEntryLookUpParameter(filter->base_node, "scalar_mode"))
-   {
-      AiNodeSetBool(filter, "scalar_mode", m_renderOptions.filterScalarMode());
-   }
-   if (AiNodeEntryLookUpParameter(filter->base_node, "maximum"))
-   {
-      AiNodeSetFlt(filter, "maximum", m_renderOptions.filterMaximum());
-   }
-   if (AiNodeEntryLookUpParameter(filter->base_node, "minimum"))
-   {
-      AiNodeSetFlt(filter, "minimum", m_renderOptions.filterMinimum());
+      AiNodeSetStr( filter, "name", m_renderOptions.filterType().asChar() );
+
+      // Only set filter parameters if they exist within that specific node
+      if (AiNodeEntryLookUpParameter(filter->base_node, "width"))
+      {
+         AiNodeSetFlt(filter, "width", m_renderOptions.filterWidth());
+      }
+      if (AiNodeEntryLookUpParameter(filter->base_node, "domain"))
+      {
+         AiNodeSetStr(filter, "domain", m_renderOptions.filterDomain().asChar());
+      }
+      if (AiNodeEntryLookUpParameter(filter->base_node, "scalar_mode"))
+      {
+         AiNodeSetBool(filter, "scalar_mode", m_renderOptions.filterScalarMode());
+      }
+      if (AiNodeEntryLookUpParameter(filter->base_node, "maximum"))
+      {
+         AiNodeSetFlt(filter, "maximum", m_renderOptions.filterMaximum());
+      }
+      if (AiNodeEntryLookUpParameter(filter->base_node, "minimum"))
+      {
+         AiNodeSetFlt(filter, "minimum", m_renderOptions.filterMinimum());
+      }
    }
 
    return filter;
@@ -674,6 +678,9 @@ void CRenderSession::DoSwatchRender(const AtInt resolution)
    AiNodeSetInt(options, "xres", resolution);
    AiNodeSetInt(options, "yres", resolution);
    AiNodeSetInt(options, "bucket_size", resolution/4 );
+
+   AtNode* sky = AiNodeLookUpByName( "swatch_sky" );
+   AiNodeSetPtr(options, "background", sky);
 
    // Start the render thread.
    m_render_thread = AiThreadCreate(CRenderSession::RenderThread,

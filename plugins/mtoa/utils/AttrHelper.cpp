@@ -73,6 +73,15 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
       AiMsgError("[mtoa] Parameter does not exist: %s", paramName);
       return false;
    }
+
+   // Cannot use AiMsgDebug for builtins since not render has yet taken place and logger options
+   // are not yet initialized
+#ifdef _DEBUG
+   AiMsgInfo("[METADATA] getting attribute metadata for %s.%s", AiNodeEntryGetName(m_nodeEntry), paramName);
+#else
+   AiMsgDebug("[METADATA] getting attribute metadata for %s.%s", AiNodeEntryGetName(m_nodeEntry), paramName);
+#endif
+
    // data.defaultValue = MAiParamGetDefault(m_nodeEntry, paramEntry);
    data.defaultValue = *AiParamGetDefault(paramEntry);
    data.name = GetMayaAttrName(paramName);
@@ -816,6 +825,7 @@ void CBaseAttrHelper::MakeOutputMatrix(MObject& attrib, bool isArray)
    MFnMatrixAttribute mAttr;
 
    attrib = mAttr.create(OUT_NAME, OUT_SHORTNAME, MFnMatrixAttribute::kFloat);
+   // attrib = msgAttr.create(OUT_MATRIX_NAME, OUT_SHORTNAME);
    mAttr.setArray(isArray);
    MAKE_OUTPUT(mAttr, attrib);
 
@@ -829,7 +839,7 @@ void CBaseAttrHelper::MakeOutputNode(MObject& attrib, bool isArray)
    MFnMessageAttribute msgAttr;
 
    attrib = msgAttr.create(OUT_NAME, OUT_SHORTNAME);
-   addAttribute(attrib);
+   // attrib = msgAttr.create(OUT_NODE_NAME, OUT_SHORTNAME);
    msgAttr.setArray(isArray);
    MAKE_OUTPUT(msgAttr, attrib);
 }
@@ -837,7 +847,11 @@ void CBaseAttrHelper::MakeOutputNode(MObject& attrib, bool isArray)
 MObject CBaseAttrHelper::MakeOutput()
 {
 
-   AtInt outputType = AiNodeEntryGetOutputType(m_nodeEntry);
+   AtInt outputType;
+   if (!AiMetaDataGetInt(m_nodeEntry, NULL, "maya.output", &outputType))
+   {
+      outputType = AiNodeEntryGetOutputType(m_nodeEntry);
+   }
    /*
    if (data.type == AI_TYPE_ARRAY)
    {
@@ -959,7 +973,7 @@ MStatus CStaticAttrHelper::addAttribute(MObject& attrib)
    stat = m_addFunc(attrib);
    // FIXME: not reliable to use MFnAttribute to get the name: the MObject could be invalid
    if (stat != MS::kSuccess)
-      MGlobal::displayError(MString("[mtoa] Unable to create attribute ") + MFnAttribute(attrib).name());
+      MGlobal::displayError(MString("[mtoa] Unable to create attribute ") + AiNodeEntryGetName(m_nodeEntry) + "." + MFnAttribute(attrib).name());
    CHECK_MSTATUS(stat);
    return stat;
 }

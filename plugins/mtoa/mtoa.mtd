@@ -1,16 +1,19 @@
 # options
 
 [node options]
-	# probably a problem here
-	maya.id			0x00071000
+    # later should be UINT
+	maya.id         INT    0x00115C00
 	# for all attributes unless specified
-	maya.keyable	BOOL	False
+	# maya.keyable    BOOL   False
     [attr AA_samples]
-    	min			INT		0
-    	max			INT		100
-    	softmin		INT		1
-        softmax		INT		10
-        default		INT		3   
+        maya.keyable    BOOL   False
+        maya.name STRING  "T"
+        maya.shortname STRING  "t"
+    	min         INT     0
+    	max			INT     100
+    	softmin		INT     1
+        softmax		INT     10
+        default		INT     3   
 		maya.orig_shortname	STRING	"AAsmpls"
 	[attr bucket_scanning]
         maya.orig_shortname	STRING	"bktsc"
@@ -76,46 +79,46 @@
     	softmin		INT		0
         softmax		INT		16
         default		INT		1	
-		maya.orig_shortname	STRING	 "GI_dd"
+		maya.orig_shortname	STRING  "GI_dd"
 	[attr GI_glossy_depth]
 		min			INT		0
     	softmin		INT		0
         softmax		INT		16
-        default		INT		1
-		maya.orig_shortname	STRING	 "GI_gd"
+        default		INT		1      
+		maya.orig_shortname	STRING	"GI_gd"
 	[attr GI_reflection_depth]
 		min			INT		0
     	softmin		INT		0
         softmax		INT		16
-		maya.orig_shortname	STRING	 "GI_rld"
+		maya.orig_shortname	STRING	"GI_rld"
 	[attr GI_refraction_depth]
 		min			INT		0
     	softmin		INT		0
         softmax		INT		16
-		maya.orig_shortname	STRING	 "GI_rrd"
+		maya.orig_shortname	STRING	"GI_rrd"
 	[attr GI_total_depth]
 		min			INT		0
     	softmin		INT		0
         softmax		INT		16
-		maya.orig_shortname	STRING	 "GI_td"
+		maya.orig_shortname	STRING	"GI_td"
 	[attr GI_diffuse_samples]
 		min			INT		0
 		max			INT		100		
     	softmin		INT		0
         softmax		INT		10
-		maya.orig_shortname	STRING	 "GIdiffsmpls"
+		maya.orig_shortname	STRING	"GIdiffsmpls"
 	[attr GI_glossy_samples]
 		min			INT		0
 		max			INT		100		
     	softmin		INT		0
         softmax		INT		10
-		maya.orig_shortname	STRING	 "GIglossmpls"
+		maya.orig_shortname	STRING	"GIglossmpls"
 	[attr GI_sss_hemi_samples]
 		min			INT		0
 		max			INT		100		
     	softmin		INT		0
         softmax		INT		10
-		maya.orig_shortname	STRING	 "GIssshemismpls"
+		maya.orig_shortname	STRING	"GIssshemismpls"
 
 
 # lights
@@ -166,6 +169,9 @@
 # light filters
 
 [node barndoor]
+    # AI_TYPE_RGB                        0x05 
+    maya.class  STRING  "light"    
+    maya.output INT     0x05
 	[attr barndoor_bottom_edge]
 		min			FLOAT	0
         max			FLOAT	1.0
@@ -204,6 +210,9 @@
         max			FLOAT	1.0
 
 [node gobo]
+    # AI_TYPE_RGB                        0x05 
+    maya.class  STRING  "light"
+    maya.output INT     0x05
 	[attr density]
 		min			FLOAT	0.0
         softmax		FLOAT	10.0
@@ -218,6 +227,9 @@
         softmax		FLOAT	1000.0
 
 [node light_blocker]
+    # AI_TYPE_RGB                        0x05 
+    maya.class  STRING  "light"    
+    maya.output INT     0x05
 	[attr density]
 		min			FLOAT	0.0
         softmax		FLOAT	10.0
@@ -235,6 +247,7 @@
         softmax		FLOAT	1000.0
 
 [node light_decay]
+    maya.class  STRING  "light"
 	[attr decay_radius]
 		min			FLOAT	0.0
         softmax		FLOAT	10.0
@@ -426,7 +439,7 @@
 	[attr line_color]
 		desc		STRING	"Color for the lines." 
 	[attr raster_space]
-		desc		STRING	"Space used to measure line width." 
+		desc		STRING	"Use screen space to measure line width." 
 	[attr edge_type]
 		desc		STRING	"Base geometry element used for edge display."     
 

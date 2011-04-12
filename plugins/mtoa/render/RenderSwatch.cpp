@@ -38,16 +38,32 @@ void CRenderSwatchGenerator::BuildAss()
 
    AiBegin();
    m_renderSession->LoadPlugins();
-   LoadSwatchAssForNode( swatchNode() );
+   MObject node = swatchNode();
+   if ( node.isNull() ) ErrorSwatch( "Invalid swatch node.");
+   LoadSwatchAssForNode( node );
 
    // Modify the loaded ass.
-   AtNode* swatch_hook = AiNodeLookUpByName( "swatch_hook" );
-   if ( swatch_hook == 0x0 ) ErrorSwatch( "'swatch_hook' node in Arnold not found.");
+
+   MFnDependencyNode depfn( node );
+   MString classification = MFnDependencyNode::classification(depfn.typeName());
+   classification = classification.substringW(0, classification.indexW(':')-1 );
 
    // Export the shader.
-   AtNode* shader = m_renderSession->GetMayaScene()->ExportShader( swatchNode(), "" );
-   if ( shader == 0x0 ) ErrorSwatch( "Could not export shader.");
-   AiNodeSetPtr(swatch_hook, "shader", shader);
+   AtNode* shader = m_renderSession->GetMayaScene()->ExportShader( node, "" );
+   if ( shader == NULL ) ErrorSwatch( "Could not export shader.");
+
+   if ( classification == "light" )
+   {
+      AtNode* swatch_light = AiNodeLookUpByName( "swatch_light" );
+      if ( swatch_light == NULL ) ErrorSwatch( "'swatch_light' node in Arnold not found.");
+      AiNodeSetPtr(swatch_light, "shader", shader);
+   }
+   else
+   {
+      AtNode* swatch_hook = AiNodeLookUpByName( "swatch_hook" );
+      if ( swatch_hook == NULL ) ErrorSwatch( "'swatch_hook' node in Arnold not found.");
+      AiNodeSetPtr(swatch_hook, "shader", shader);
+   }
 }
 
 void CRenderSwatchGenerator::ClearSwatch()
@@ -126,13 +142,19 @@ void CRenderSwatchGenerator::SimpleSurfaceAss()
    AiNodeSetStr(sph, "name", "swatch_hook");
    AiNodeSetBool( sph, "opaque", false);
 
-   AtNode *light = AiNode("point_light");
+   AtNode* light = AiNode("point_light");
    AiNodeSetStr(light, "name", "swatch_light");
    AiNodeSetPnt(light, "position", -5.f, 5.f, 5.f);
 
-   AtNode *camera = AiNode("persp_camera");
+   AtNode* camera = AiNode("persp_camera");
    AiNodeSetStr(camera, "name", "swatch_camera");
    AiNodeSetPnt(camera, "position", 0.f, 0.f, 1.14f);
+
+   // Add a sky shader to get solid alpha
+   // TODO would be nice to expose the option to use an image for sky
+   AtNode* sky = AiNode("sky");
+   AiNodeSetStr(sky, "name", "swatch_sky");
+   AiNodeSetRGB (sky, "color", 0.0f, 0.0f, 0.0f);
 }
 
 // This will try and find an ass file based on the classification

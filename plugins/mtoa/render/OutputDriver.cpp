@@ -284,7 +284,7 @@ bool DisplayUpdateQueueToMImage( MImage & image )
 {
    image.create(s_outputDriverData.imageWidth,
                 s_outputDriverData.imageHeight,
-                4,                              // RGBA
+                4,                               // RGBA
                 MImage::kFloat );                // Has to be for swatches it seems.
 
    CDisplayUpdateMessage msg;
