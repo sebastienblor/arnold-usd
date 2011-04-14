@@ -14,11 +14,13 @@
 #include <maya/MIntArray.h>
 #include <maya/MItMeshPolygon.h>
 #include <maya/MMatrix.h>
+#include <maya/MMeshSmoothOptions.h>
 #include <maya/MPlug.h>
 #include <maya/MPlugArray.h>
 #include <maya/MItMeshVertex.h>
 #include <maya/MGlobal.h>
 #include <maya/MFnNumericAttribute.h>
+#include <maya/MFnMessageAttribute.h>
 
 #include <vector>
 
@@ -85,7 +87,7 @@ MObject CGeoTranslator::GetNodeShader(MObject dagNode, int instanceNum)
    return connections[0].node();
 }
 
-bool CGeoTranslator::GetVerticesWorld(MObject &dagNode, MFnMesh &fnMesh, std::vector<float> &vertices)
+bool CGeoTranslator::GetVerticesWorld(MFnMesh &fnMesh, std::vector<float> &vertices)
 {
    if (fnMesh.numVertices() > 0)
    {
@@ -93,11 +95,11 @@ bool CGeoTranslator::GetVerticesWorld(MObject &dagNode, MFnMesh &fnMesh, std::ve
 
       // A mesh has no transform, we must trace it back in the DAG
       MDagPath dp;
-      MDagPath::getAPathTo(dagNode, dp);
+      fnMesh.getPath(dp);
       MFnMesh pointFn(dp);
       MFloatPointArray pointsArray;
       pointFn.getPoints(pointsArray, MSpace::kWorld);
-      for (int J = 0; ( J < fnMesh.numVertices() ); ++J)
+      for (int J = 0; (J < fnMesh.numVertices()); ++J)
       {
          vertices[J * 3 + 0] = pointsArray[J].x;
          vertices[J * 3 + 1] = pointsArray[J].y;
@@ -215,46 +217,72 @@ bool CGeoTranslator::GetTangents(MFnMesh &fnMesh, std::vector<float> &tangents, 
    return false;
 }
 
-bool CGeoTranslator::GetRefObj(MFnMesh &fnMesh, std::vector<float> &refVertices, std::vector<float> &refNormals)
+bool CGeoTranslator::GetMeshRefObj(MFnMesh &fnMesh)
 {
-   MStatus stat;
+   if (!m_isRefSmooth)
+   {
+      MStatus stat;
+      MObject referenceObj;
+      // Check if there is a referenceObject plug
+      MPlug pReferenceObject = fnMesh.findPlug("referenceObject", false, &stat);
+      if (stat != MStatus::kSuccess)
+         return false;
+      MPlugArray connectedPlugs;
+      // Check if anything is connected to .referenceObject plug
+      pReferenceObject.connectedTo(connectedPlugs, true, true, &stat);
+      if (stat != MStatus::kSuccess || 1 != connectedPlugs.length())
+      {
+         return false;
+      }
+      else
+      {
+         // Checking if a script is not going rogue : the object must be a mesh !
+         referenceObj = connectedPlugs[0].node();
+         if (referenceObj.hasFn(MFn::kMesh) != 1)
+            return false;
+      }
 
-   //Check if there is a referenceObject plug
-   MPlug pReferenceObject = fnMesh.findPlug("referenceObject", false, &stat);
+      m_fnMeshRef.setObject(referenceObj);
 
-   if (stat != MStatus::kSuccess)
-      return false;
+      // Check if the numbers of vertices is the same as the current object
+      if (m_fnMeshRef.numVertices() != fnMesh.numVertices())
+      {
+         return false;
+      }
 
-   MPlugArray connectedPlugs;
-   MObject referenceObject;
-
-   //Check if anything is connected to .referenceObject plug
-   pReferenceObject.connectedTo(connectedPlugs, true, true, &stat);
-   if (stat != MStatus::kSuccess || 1 != connectedPlugs.length() ) {
-      return false;
+      return true;
    }
    else
    {
-      //checking if a script is not going rogue : the object must be a mesh !
-      referenceObject = connectedPlugs[0].node();
-      if (referenceObject.hasFn(MFn::kMesh) != 1)	return false;
+      return true;
    }
+}
 
-   MFnMesh referenceObjectMesh(referenceObject);
+bool CGeoTranslator::GetRefObj(MFnMesh &fnMesh, std::vector<float> &refVertices, std::vector<float> &refNormals)
+{
+   bool getMesh = GetMeshRefObj(fnMesh);
 
-   //Check if the numbers of vertices is the same as the current object
-   if (referenceObjectMesh.numVertices() != m_fnMesh.numVertices())
+   if (getMesh)
    {
-   return false;
+      // Get vertices of the reference object in world space
+      GetVerticesWorld(m_fnMeshRef, refVertices);
+      // Get normals of the reference object
+      GetNormals(m_fnMeshRef, refNormals);
+
+      // If we are using a smoothed reference object, we need to delete it.
+      //FIXME : This is somehow dirty, but I can't find a way to have a real "virtual" DAG object from generateSmoothMesh.
+      if (m_isRefSmooth)
+      {
+         MDagPath dp;
+         m_fnMeshRef.getPath(dp);
+         MDagPath transform(dp);
+         MObject node = dp.node();
+         MGlobal::deleteNode(node);
+      }
+      return true;
    }
-
-   //Get vertices of the reference object in world space
-   GetVerticesWorld(referenceObject ,referenceObjectMesh, refVertices);
-
-   //Get normals of the reference object
-   GetNormals(referenceObjectMesh, refNormals);
-
-   return true;
+   else
+      return false;
 }
 
 bool CGeoTranslator::GetUVs(MFnMesh &fnMesh, std::vector<float> &uvs)
@@ -410,10 +438,10 @@ void CGeoTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
    else
    {
       MIntArray indices;
-      // per-face assignment
+      // Per-face assignment
       MObjectArray shadingGroups;
 
-      // indices are used later when exporting shidxs
+      // Indices are used later when exporting shidxs
       fnMesh.getConnectedShaders(instanceNum, shadingGroups, indices);
 
       for (int J = 0; (J < (int) shadingGroups.length()); J++)
@@ -431,8 +459,8 @@ void CGeoTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
 
       AiNodeSetArray(polymesh, "shader", AiArrayConvert((AtInt)meshShaders.size(), 1, AI_TYPE_NODE, &meshShaders[0], TRUE));
 
-      // export face to shader indices
-      // first convert from MIntArray to AtUInt vector
+      // Export face to shader indices
+      // First convert from MIntArray to AtUInt vector
       std::vector<AtUInt> shidxs;
       for(AtUInt i = 0; i < indices.length(); i++)
          shidxs.push_back(indices[i]);
@@ -442,7 +470,7 @@ void CGeoTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
    //
    // DISPLACEMENT
    //
-   // currently does not work for per-face assignment
+   // Currently does not work for per-face assignment
    if (!shadingGroup.isNull())
    {
       MPlugArray        connections;
@@ -490,6 +518,46 @@ void CGeoTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
 
 void CGeoTranslator::ExportMeshGeoData(AtNode* polymesh, AtUInt step)
 {
+   m_isRefSmooth = false;
+
+   // Check if the object is smoothed with maya method
+   if (m_fnMesh.findPlug("displaySmoothMesh").asBool())
+   {
+      MMeshSmoothOptions options;
+      MStatus status = m_fnMesh.getSmoothMeshDisplayOptions(options);
+
+      CHECK_MSTATUS(status);
+
+      if(!m_fnMesh.findPlug("useSmoothPreviewForRender", false, &status).asBool())
+         options.setDivisions(m_fnMesh.findPlug("renderSmoothLevel", false, &status).asInt());
+
+      if (options.divisions() > 0)
+      {
+         // Check if mesh got a reference object. If so, we must also smooth it and reconnect it
+         //FIXME : This has to be done in a better way, but how ?
+         bool getMesh = GetMeshRefObj(m_fnMesh);
+
+         if (getMesh)
+         {
+            m_isRefSmooth = true;
+            MDagPath dp;
+            m_fnMeshRef.getPath(dp);
+            MDagPath transform(dp);
+            transform.pop();
+            MObject mesh_mobj_ref = m_fnMeshRef.generateSmoothMesh(transform.node(), &options,
+                  &status);
+            CHECK_MSTATUS(status);
+            m_fnMeshRef.setObject(mesh_mobj_ref);
+         }
+
+         MFnMeshData meshData;
+         // This is a member variable. We have to keep hold of it or Maya will release it.
+         m_data_mobj = meshData.create();
+         MObject mesh_mobj = m_fnMesh.generateSmoothMesh(m_data_mobj, &options, &status);
+         CHECK_MSTATUS(status);
+         m_fnMesh.setObject(mesh_mobj);
+      }
+   }
    //
    // GEOMETRY
    //
@@ -515,7 +583,7 @@ void CGeoTranslator::ExportMeshGeoData(AtNode* polymesh, AtUInt step)
       // Get UVs
       bool exportUVs = GetUVs(m_fnMesh, uvs);
 
-      //Get reference objects
+      // Get reference objects
       bool exportReferenceObjects = GetRefObj(m_fnMesh, refVertices, refNormals);
 
       // Get Component IDs
@@ -638,18 +706,18 @@ void CGeoTranslator::ExportMeshGeoData(AtNode* polymesh, AtUInt step)
    {
       // Export motion blur keys information (for deformation)
 
-      // vertices
+      // Vertices
       AtArray* vlist_array = AiNodeGetArray(polymesh, "vlist");
       SetKeyData(vlist_array, step, vertices, m_fnMesh.numVertices());
 
-      // normals
+      // Normals
       if (exportNormals)
       {
          AtArray* nlist_array = AiNodeGetArray(polymesh, "nlist");
          SetKeyData(nlist_array, step, normals, m_fnMesh.numNormals());
       }
 
-      // tangents
+      // Tangents
       if (exportTangents)
       {
          AtArray* tangent_array = AiNodeGetArray(polymesh, "tangent");
@@ -767,7 +835,7 @@ AtNode* CGeoTranslator::ExportInstance(AtNode *instance, const MDagPath& masterI
    // if it's completely the same
    bool equalShaderArrays = ((shaders.length() == shadersMaster.length()) && (indices.length() == indicesMaster.length()));
 
-   // compare face arrays
+   // Compare face arrays
    for(AtUInt j=0; (equalShaderArrays && (j < indices.length())); j++)
    {
       if(indices[j] != indicesMaster[j])
@@ -775,7 +843,7 @@ AtNode* CGeoTranslator::ExportInstance(AtNode *instance, const MDagPath& masterI
          equalShaderArrays = false;
       }
    }
-   // compare shader (actually SG) arrays
+   // Compare shader (actually SG) arrays
    for(AtUInt i=0; (equalShaderArrays && (i < shaders.length())); i++)
    {
       if (shaders[i] != shadersMaster[i])
@@ -816,7 +884,7 @@ void CGeoTranslator::Update(AtNode *anode)
 
 void CGeoTranslator::ExportMotion(AtNode* anode, AtUInt step)
 {
-   // ran into a strange bug where the object must be reset to
+   // Ran into a strange bug where the object must be reset to
    // avoid a crash.  even calling .hasObj() was enough to avoid it
    m_fnMesh.setObject(m_object);
    if (m_isMasterDag)
@@ -875,7 +943,7 @@ void CGeoTranslator::NodeInitializer(MString nodeClassName)
 {
   CExtensionAttrHelper helper(nodeClassName, "polymesh");
 
-   // node attributes
+   // Node attributes
    CShapeTranslator::MakeCommonAttributes(helper);
 
    helper.MakeInput("subdiv_type");
