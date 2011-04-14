@@ -26,13 +26,6 @@
 #include <string>
 #include <cstring>
 
-static const char *g_remapInterpolationStrings[] =
-{
-   "none",
-   "linear",
-   "smooth",
-   "spline"
-};
 
 static bool SortFloatArray(AtArray *a, AtUInt *shuffle = NULL)
 {
@@ -792,6 +785,14 @@ const char* CRemapValueTranslator::GetArnoldNodeType()
 
 void CRemapValueTranslator::Export(AtNode* shader)
 {
+   static const char *remapInterpolationStrings[] =
+   {
+      "none",
+      "linear",
+      "smooth",
+      "spline"
+   };
+
    if (m_outputAttr == "outValue")
    {
       MPlug attr, elem, pos, val, interp;
@@ -820,7 +821,7 @@ void CRemapValueTranslator::Export(AtNode* shader)
          interp = elem.child(ointerp);
          AiArraySetFlt(positions, i, pos.asFloat());
          AiArraySetFlt(values, i, val.asFloat());
-         AiArraySetStr(interps, i, g_remapInterpolationStrings[interp.asInt()]);
+         AiArraySetStr(interps, i, remapInterpolationStrings[interp.asInt()]);
       }
       // Need to sort the arrays (maya has the excellent idea not to do it)
       if (positions->nelements > 1)
@@ -869,7 +870,7 @@ void CRemapValueTranslator::Export(AtNode* shader)
          value.g = val.child(1).asFloat();
          value.b = val.child(2).asFloat();
          AiArraySetRGB(values, i, value);
-         AiArraySetStr(interps, i, g_remapInterpolationStrings[interp.asInt()]);
+         AiArraySetStr(interps, i, remapInterpolationStrings[interp.asInt()]);
       }
       // Need to sort the arrays (maya has the excellent idea not to do it)
       if (positions->nelements > 1)
@@ -901,6 +902,7 @@ const char* CRemapColorTranslator::GetArnoldNodeType()
 
 void CRemapColorTranslator::Export(AtNode* shader)
 {
+#if NULL // Disable: Arnold node does not exist
    if (m_outputAttr == "outColor")
    {
       MPlug attr, elem, pos, val, interp;
@@ -942,7 +944,7 @@ void CRemapColorTranslator::Export(AtNode* shader)
             interp = elem.child(ointerp);
             AiArraySetFlt(positions, i, pos.asFloat());
             AiArraySetFlt(values, i, val.asFloat());
-            AiArraySetStr(interps, i, g_remapInterpolationStrings[interp.asInt()]);
+            AiArraySetStr(interps, i, remapInterpolationStrings[interp.asInt()]);
          }
          // Need to sort array (maya has the excellent idea not to do it)
          if (positions->nelements > 1)
@@ -960,6 +962,7 @@ void CRemapColorTranslator::Export(AtNode* shader)
          AiNodeSetArray(shader, interpNames[ci*2 + 1], interps);
       }
    }
+#endif // NULL
 }
 
 // Projection
