@@ -119,7 +119,7 @@ void CRenderSession::LoadPlugins()
    }
 }
 
-void CRenderSession::Init(ExportOptions options)
+void CRenderSession::Init(ExportOptions& options)
 {
    m_is_active = true;
    m_scene = new CMayaScene;
@@ -128,7 +128,7 @@ void CRenderSession::Init(ExportOptions options)
    m_renderOptions.SetupLog();
 }
 
-void CRenderSession::Translate(ExportOptions options)
+void CRenderSession::Translate(ExportOptions& options)
 {
    if (AiUniverseIsActive())
    {
@@ -206,7 +206,7 @@ void CRenderSession::SetBatch(bool batch)
 }
 
 /*
-void CRenderSession::SetSceneExportOptions(const ExportOptions options)
+void CRenderSession::SetSceneExportOptions(const ExportOptions& options)
 {
    m_scene->SetExportOptions(options);
 }

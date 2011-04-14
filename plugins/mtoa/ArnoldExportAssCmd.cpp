@@ -172,14 +172,12 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    // Set the necessary options for scene export
    ExportOptions exportOptions;
    exportOptions.mode = MTOA_EXPORT_FILE;
-   exportOptions.computeBoundingBox = writeBox;
    exportOptions.filter.unselected = exportSelected;
    // FIXME use the passed renderGlobals or options intead?
    MCommonRenderSettingsData renderGlobals;
    MRenderUtil::getCommonRenderSettings(renderGlobals);
 
    CRenderSession* renderSession = CRenderSession::GetInstance();
-   AtBBox boundingBox;
    // Just incase we're rendering with IPR.
    MGlobal::executeCommand("stopIprRendering renderView;");
    renderSession->Finish();
@@ -215,11 +213,10 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
          renderSession->Translate(exportOptions);
          if (cameraName != "")
             renderSession->SetCamera(cameraName);
+
          if (writeBox)
-         {
-            boundingBox = renderSession->GetBoundingBox();
             WriteAsstoc(tocfilename, renderSession->GetBoundingBox());
-         }
+
          renderSession->DoExport(curfilename);
          renderSession->Finish();
          renderSession->ExecuteScript(renderGlobals.postRenderMel);
@@ -236,10 +233,8 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
          renderSession->SetCamera(cameraName);
 
       if (writeBox)
-      {
-         boundingBox = renderSession->GetBoundingBox();
          WriteAsstoc(tocfilename, renderSession->GetBoundingBox());
-      }
+
       renderSession->DoExport(customFileName);
       renderSession->Finish();
       renderSession->ExecuteScript(renderGlobals.postRenderMel);

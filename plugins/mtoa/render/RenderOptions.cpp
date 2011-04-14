@@ -199,8 +199,6 @@ void CRenderOptions::ProcessArnoldRenderOptions()
       m_clearBeforeRender = fnArnoldRenderOptions.findPlug("clear_before_render").asBool();
 
       m_outputAssFile       = fnArnoldRenderOptions.findPlug("output_ass_filename").asString();
-      // FIXME: should we expose that on the defaultArnoldRenderOptions node?
-      // m_outputAssBoundingBox;
       m_outputAssCompressed = fnArnoldRenderOptions.findPlug("output_ass_compressed").asBool();
       m_outputAssMask       = fnArnoldRenderOptions.findPlug("output_ass_mask").asInt();
 

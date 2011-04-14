@@ -108,7 +108,11 @@ def createArnoldRenderSettings():
 
     cmds.attrControlGrp('os_renderType',
                    label="Render Type",
-                   attribute='defaultArnoldRenderOptions.renderType')    
+                   attribute='defaultArnoldRenderOptions.renderType')
+
+    cmds.attrControlGrp('os_outputAssBoundingBox',
+                   label="Export BoundingBox",
+                   attribute='defaultArnoldRenderOptions.outputAssBoundingBox')                   
 
     cmds.attrControlGrp('os_progressive_rendering',
                    label='Progressive Rendering',

@@ -1,4 +1,5 @@
 #include "ArnoldRenderCmd.h"
+#include "render/RenderOptions.h"
 #include "render/RenderSession.h"
 
 #include <ai_msg.h>
@@ -15,6 +16,8 @@
 #include <maya/MSelectionList.h>
 #include <maya/MRenderUtil.h>
 #include <maya/MFileIO.h>
+
+#include <sstream>
 
 MSyntax CArnoldRenderCmd::newSyntax()
 {
@@ -54,6 +57,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
    // FIXME: just a fast hack, should rehaul CRenderOptions code
    // and share same proc for ArnoldRenderCmd and ArnoldExportAssCmd
    short renderType = 0;
+   bool outputAssBoundingBox = false;
    MSelectionList list;
    MObject node;
    list.add("defaultArnoldRenderOptions");
@@ -62,8 +66,10 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       list.getDependNode(0, node);
       MFnDependencyNode fnArnoldRenderOptions(node);
       renderType = fnArnoldRenderOptions.findPlug("renderType").asShort();
+      outputAssBoundingBox = fnArnoldRenderOptions.findPlug("outputAssBoundingBox").asBool();
    }
-   if (renderType != 0)
+
+   if (renderType != MTOA_RENDER_INTERACTIVE)
    {
       MString filename;
       filename = renderGlobals.name;
@@ -89,14 +95,20 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
          // If all else fails, use the current Maya scene + ass
          filename = MFileIO::currentFile() + ".ass";
       }
+
       MString cmdStr = "arnoldExportAss";
       cmdStr += " -f \"" + filename + "\"";
+
       if (exportOptions.filter.unselected)
       {
          cmdStr += " -s";
       }
-      // TODO : bounding box options
-      // cmdStr += " -bb";
+
+      if (outputAssBoundingBox)
+      {
+         cmdStr += " -bb";
+      }
+
       if (renderGlobals.isAnimated())
       {
          AtFloat startframe = static_cast<float> (renderGlobals.frameStart.as(MTime::uiUnit()));
@@ -109,26 +121,31 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
          cmdStr += " -fs ";
          cmdStr += byframestep;
       }
+
       MString camera = args.flagArgumentString("camera", 0);
       if (camera != "")
       {
          cmdStr += " -cam " + camera;
       }
+
       status = MGlobal::executeCommand(cmdStr);
       if (MStatus::kSuccess == status)
       {
          MGlobal::displayInfo("[mtoa] Exported scene to file " + filename);
-         if (renderType == 2)
+         if (renderType == MTOA_RENDER_EXPORTASS_AND_KICK)
          {
 #ifdef _WIN32
-            MString cmd = "shell kick " + filename + " &";
+            MString kickCmd = "kick \"" + filename + "\"";
 #else
-            MString cmd = "kick " + filename + " &";
+            MString kickCmd = "kick \"" + filename + "\"";
 #endif
-            int i;
-            i = system(cmd.asChar());
+            // FIXME: does not work properly, at least on Windows
 
-            MGlobal::displayInfo("value returned " + i);
+            int ret = system(kickCmd.asChar());
+            std::stringstream info;
+            info << "[mtoa] Value returned by kick : " << ret;
+
+            MGlobal::displayInfo(info.str().c_str());
          }
       }
       else
