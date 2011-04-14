@@ -131,6 +131,7 @@ namespace // <anonymous>
       arnoldPluginFactory.RegisterMayaNode("hair",
                                            "aiHair",
                                            ARNOLD_NODEID_HAIR);
+      CTranslatorRegistry::RegisterDependTranslator("layeredShader", MAYA_NODEID_LAYERED_SHADER, CLayeredShaderTranslator::creator);
 
       // Environment/Volume shaders
       arnoldPluginFactory.RegisterMayaNode("fog",
