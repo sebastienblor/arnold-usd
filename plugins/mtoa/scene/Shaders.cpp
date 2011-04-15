@@ -725,7 +725,7 @@ void CPlusMinusAverageTranslator::Export(AtNode* shader)
    if (numElements > 8)
    {
       MString warning;
-      warning.format("[mtoa] plusMinusAverage node '%s' has more than 8 inputs, only the first 8 will be handled", m_fnNode.name());
+      warning.format("[mtoa] plusMinusAverage node '^1s' has more than 8 inputs, only the first 8 will be handled", m_fnNode.name());
       MGlobal::displayWarning(warning);
 
       numElements = 8;

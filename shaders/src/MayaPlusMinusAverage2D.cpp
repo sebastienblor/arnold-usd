@@ -5,7 +5,7 @@ AI_SHADER_NODE_EXPORT_METHODS(MayaPlusMinusAverage2DMtd);
 namespace
 {
 
-enum MayaPlusMinusAverageParams
+enum MayaPlusMinusAverage2DParams
 {
    p_operation,
    p_numInputs,
