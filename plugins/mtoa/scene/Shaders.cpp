@@ -690,109 +690,60 @@ const char* CPlusMinusAverageTranslator::GetArnoldNodeType()
 
 void CPlusMinusAverageTranslator::Export(AtNode* shader)
 {
+   MString inputName = m_outputAttr;
+   int attribType = AI_TYPE_NONE;
+
    if (m_outputAttr == "output1D")
    {
-      MPlug attr, elem;
-      MPlugArray connections;
-      char mayaAttr[64];
-      char aiAttr[64];
-
-      attr = m_fnNode.findPlug("operation");
-      AiNodeSetInt(shader, "operation", attr.asInt());
-
-      attr = m_fnNode.findPlug("input1D");
-
-      AtUInt numElements = attr.numElements();
-      if (numElements > 8)
-      {
-         MGlobal::displayWarning("[mtoa] plusMinusAverage node has more than 8 inputs, only the first 8 will be handled");
-         numElements = 8;
-      }
-
-      AiNodeSetUInt(shader, "numInputs", numElements);
-
-      for (unsigned int i=0; i<numElements; ++i)
-      {
-         elem = attr.elementByPhysicalIndex(i);
-
-         connections.clear();
-         elem.connectedTo(connections, true, false);
-         if (connections.length() > 0)
-         {
-            sprintf(mayaAttr, "inputs1D[%u]", elem.logicalIndex());
-            sprintf(aiAttr, "value%u", i);
-            ProcessParameter(shader, mayaAttr, aiAttr, AI_TYPE_FLOAT);
-         }
-      }
+      inputName = "input1D";
+      attribType = AI_TYPE_FLOAT;
    }
-   else if (m_outputAttr == "output2D")
+   if (m_outputAttr == "output2D")
    {
-      MPlug attr, elem;
-      MPlugArray connections;
-      char mayaAttr[64];
-      char aiAttr[64];
-
-      attr = m_fnNode.findPlug("operation");
-      AiNodeSetInt(shader, "operation", attr.asInt());
-
-      attr = m_fnNode.findPlug("input2D");
-
-      AtUInt numElements = attr.numElements();
-      if (numElements > 8)
-      {
-         MGlobal::displayWarning("[mtoa] plusMinusAverage node has more than 8 inputs, only the first 8 will be handled");
-         numElements = 8;
-      }
-
-      AiNodeSetUInt(shader, "numInputs", numElements);
-
-      for (unsigned int i=0; i<numElements; ++i)
-      {
-         elem = attr.elementByPhysicalIndex(i);
-
-         connections.clear();
-         elem.connectedTo(connections, true, false);
-         if (connections.length() > 0)
-         {
-            sprintf(mayaAttr, "inputs2D[%u]", elem.logicalIndex());
-            sprintf(aiAttr, "value%u", i);
-            ProcessParameter(shader, mayaAttr, aiAttr, AI_TYPE_POINT2);
-         }
-      }
+      inputName = "input2D";
+      attribType = AI_TYPE_POINT2;
    }
    else if (m_outputAttr == "output3D")
    {
-      MPlug attr, elem;
-      MPlugArray connections;
-      char mayaAttr[64];
-      char aiAttr[64];
+      inputName = "input3D";
+      attribType = AI_TYPE_POINT;
+   }
 
-      attr = m_fnNode.findPlug("operation");
-      AiNodeSetInt(shader, "operation", attr.asInt());
+   if (AI_TYPE_NONE == attribType) return;
 
-      attr = m_fnNode.findPlug("input3D");
+   MPlug attr, elem;
+   MPlugArray connections;
+   char mayaAttr[64];
+   char aiAttr[64];
 
-      AtUInt numElements = attr.numElements();
-      if (numElements > 8)
+   attr = m_fnNode.findPlug("operation");
+   AiNodeSetInt(shader, "operation", attr.asInt());
+
+   attr = m_fnNode.findPlug(inputName);
+
+   AtUInt numElements = attr.numElements();
+   if (numElements > 8)
+   {
+      MString warning;
+      warning.format("[mtoa] plusMinusAverage node '%s' has more than 8 inputs, only the first 8 will be handled", m_fnNode.name());
+      MGlobal::displayWarning(warning);
+
+      numElements = 8;
+   }
+
+   AiNodeSetUInt(shader, "numInputs", numElements);
+
+   for (unsigned int i=0; i<numElements; ++i)
+   {
+      elem = attr.elementByPhysicalIndex(i);
+
+      connections.clear();
+      elem.connectedTo(connections, true, false);
+      if (connections.length() > 0)
       {
-         MGlobal::displayWarning("[mtoa] plusMinusAverage node has more than 8 inputs, only the first 8 will be handled");
-         numElements = 8;
-      }
-
-      AiNodeSetUInt(shader, "numInputs", numElements);
-
-      for (unsigned int i=0; i<numElements; ++i)
-      {
-         elem = attr.elementByPhysicalIndex(i);
-
-         connections.clear();
-         elem.connectedTo(connections, true, false);
-         if (connections.length() > 0)
-         {
-            sprintf(mayaAttr, "inputs3D[%u]", elem.logicalIndex());
-            sprintf(aiAttr, "value%u", i);
-            ProcessParameter(shader, mayaAttr, aiAttr, AI_TYPE_POINT);
-         }
+         sprintf(mayaAttr, "%s[%u]", inputName.asChar(), elem.logicalIndex());
+         sprintf(aiAttr, "value%u", i);
+         ProcessParameter(shader, mayaAttr, aiAttr, attribType);
       }
    }
 }
