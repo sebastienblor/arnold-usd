@@ -42,14 +42,14 @@ node_parameters
 {
    AiParameterENUM("operation", OP_PLUS, MathOperationNames);
    AiParameterUINT("numInputs", 0);
-   AiParameterRGB("value0", 0.0f, 0.0f, 0.0f);
-   AiParameterRGB("value1", 0.0f, 0.0f, 0.0f);
-   AiParameterRGB("value2", 0.0f, 0.0f, 0.0f);
-   AiParameterRGB("value3", 0.0f, 0.0f, 0.0f);
-   AiParameterRGB("value4", 0.0f, 0.0f, 0.0f);
-   AiParameterRGB("value5", 0.0f, 0.0f, 0.0f);
-   AiParameterRGB("value6", 0.0f, 0.0f, 0.0f);
-   AiParameterRGB("value7", 0.0f, 0.0f, 0.0f);
+   AiParameterPNT("value0", 0.0f, 0.0f, 0.0f);
+   AiParameterPNT("value1", 0.0f, 0.0f, 0.0f);
+   AiParameterPNT("value2", 0.0f, 0.0f, 0.0f);
+   AiParameterPNT("value3", 0.0f, 0.0f, 0.0f);
+   AiParameterPNT("value4", 0.0f, 0.0f, 0.0f);
+   AiParameterPNT("value5", 0.0f, 0.0f, 0.0f);
+   AiParameterPNT("value6", 0.0f, 0.0f, 0.0f);
+   AiParameterPNT("value7", 0.0f, 0.0f, 0.0f);
 
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }
@@ -69,10 +69,9 @@ node_finish
 shader_evaluate
 {
    AtInt operation = AiShaderEvalParamEnum(p_operation);
-
    AtUInt numInputs = AiShaderEvalParamUInt(p_numInputs);
    
-   AtRGB result = {0.0f, 0.0f, 0.0f};
+   AtPoint result = {0.0f, 0.0f, 0.0f};
 
    if (numInputs > 0)
    {
@@ -82,18 +81,18 @@ shader_evaluate
          case OP_AVERAGE:
             for (AtUInt32 i=0; i<numInputs; ++i)
             {
-               result += AiShaderEvalParamRGB(p_value0+i);
+               result += AiShaderEvalParamPnt(p_value0+i);
             }
             break;
          case OP_MINUS:
-            result = AiShaderEvalParamRGB(p_value0);
+            result = AiShaderEvalParamPnt(p_value0);
             for (AtUInt32 i=1; i<numInputs; ++i)
             {
-               result -= AiShaderEvalParamRGB(p_value0+i);
+               result -= AiShaderEvalParamPnt(p_value0+i);
             }
             break;
          default:
-            result = AiShaderEvalParamRGB(p_value0);
+            result = AiShaderEvalParamPnt(p_value0);
             break;
       }
 
@@ -104,5 +103,5 @@ shader_evaluate
       }
    }
 
-   sg->out.RGB = result;
+   sg->out.PNT = result;
 }

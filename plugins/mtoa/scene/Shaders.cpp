@@ -692,55 +692,77 @@ void CPlusMinusAverageTranslator::Export(AtNode* shader)
 {
    if (m_outputAttr == "output1D")
    {
-      MPlug elem, attr;
+      MPlug attr, elem;
+      MPlugArray connections;
+      char mayaAttr[64];
+      char aiAttr[64];
 
       attr = m_fnNode.findPlug("operation");
       AiNodeSetInt(shader, "operation", attr.asInt());
 
       attr = m_fnNode.findPlug("input1D");
-      AtArray *values = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_FLOAT);
-      for (unsigned int i=0; i<attr.numElements(); ++i)
+
+      AtUInt numElements = attr.numElements();
+      if (numElements > 8)
+      {
+         MGlobal::displayWarning("[mtoa] plusMinusAverage node has more than 8 inputs, only the first 8 will be handled");
+         numElements = 8;
+      }
+
+      AiNodeSetUInt(shader, "numInputs", numElements);
+
+      for (unsigned int i=0; i<numElements; ++i)
       {
          elem = attr.elementByPhysicalIndex(i);
-         // This could actually be a connection but Arnold does not support
-         // array element connections for now
-         AiArraySetFlt(values, i, elem.asFloat());
+
+         connections.clear();
+         elem.connectedTo(connections, true, false);
+         if (connections.length() > 0)
+         {
+            sprintf(mayaAttr, "inputs1D[%u]", elem.logicalIndex());
+            sprintf(aiAttr, "value%u", i);
+            ProcessParameter(shader, mayaAttr, aiAttr, AI_TYPE_FLOAT);
+         }
       }
-      AiNodeSetArray(shader, "values", values);
    }
    else if (m_outputAttr == "output2D")
    {
-      MObject oinx = m_fnNode.attribute("input2Dx");
-      MObject oiny = m_fnNode.attribute("input2Dy");
-
-      MPlug attr, elem, inx, iny;
-      AtPoint2 value;
+      MPlug attr, elem;
+      MPlugArray connections;
+      char mayaAttr[64];
+      char aiAttr[64];
 
       attr = m_fnNode.findPlug("operation");
       AiNodeSetInt(shader, "operation", attr.asInt());
 
       attr = m_fnNode.findPlug("input2D");
-      AtArray *values = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_POINT2);
-      for (unsigned int i=0; i<attr.numElements(); ++i)
+
+      AtUInt numElements = attr.numElements();
+      if (numElements > 8)
+      {
+         MGlobal::displayWarning("[mtoa] plusMinusAverage node has more than 8 inputs, only the first 8 will be handled");
+         numElements = 8;
+      }
+
+      AiNodeSetUInt(shader, "numInputs", numElements);
+
+      for (unsigned int i=0; i<numElements; ++i)
       {
          elem = attr.elementByPhysicalIndex(i);
-         // This could actually be a connection but Arnold does not support
-         // array element connections for now
-         inx = elem.child(oinx);
-         iny = elem.child(oiny);
-         value.x = inx.asFloat();
-         value.y = iny.asFloat();
-         AiArraySetPnt2(values, i, value);
+
+         connections.clear();
+         elem.connectedTo(connections, true, false);
+         if (connections.length() > 0)
+         {
+            sprintf(mayaAttr, "inputs2D[%u]", elem.logicalIndex());
+            sprintf(aiAttr, "value%u", i);
+            ProcessParameter(shader, mayaAttr, aiAttr, AI_TYPE_POINT2);
+         }
       }
-      AiNodeSetArray(shader, "values", values);
    }
    else if (m_outputAttr == "output3D")
    {
-      MObject oinx = m_fnNode.attribute("input3Dx");
-      MObject oiny = m_fnNode.attribute("input3Dy");
-      MObject oinz = m_fnNode.attribute("input3Dz");
-
-      MPlug attr, elem, inx, iny, inz;
+      MPlug attr, elem;
       MPlugArray connections;
       char mayaAttr[64];
       char aiAttr[64];
@@ -763,16 +785,13 @@ void CPlusMinusAverageTranslator::Export(AtNode* shader)
       {
          elem = attr.elementByPhysicalIndex(i);
 
-         // This could actually be a connection but Arnold does not support
-         // array element connections for now
-
          connections.clear();
          elem.connectedTo(connections, true, false);
          if (connections.length() > 0)
          {
             sprintf(mayaAttr, "inputs3D[%u]", elem.logicalIndex());
             sprintf(aiAttr, "value%u", i);
-            ProcessParameter(shader, mayaAttr, aiAttr, AI_TYPE_RGB);
+            ProcessParameter(shader, mayaAttr, aiAttr, AI_TYPE_POINT);
          }
       }
    }

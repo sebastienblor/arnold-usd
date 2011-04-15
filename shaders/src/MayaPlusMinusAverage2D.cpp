@@ -5,13 +5,21 @@ AI_SHADER_NODE_EXPORT_METHODS(MayaPlusMinusAverage2DMtd);
 namespace
 {
 
-enum PlusMinusAverageParams
+enum MayaPlusMinusAverageParams
 {
-   p_op,
-   p_values
+   p_operation,
+   p_numInputs,
+   p_value0,
+   p_value1,
+   p_value2,
+   p_value3,
+   p_value4,
+   p_value5,
+   p_value6,
+   p_value7
 };
 
-enum Operations
+enum MathOperation
 {
    OP_NONE = 0,
    OP_PLUS,
@@ -19,7 +27,7 @@ enum Operations
    OP_AVERAGE
 };
 
-const char* enum_operation[] =
+const char* MathOperationNames[] =
 {
    "none",
    "sum",
@@ -32,11 +40,16 @@ const char* enum_operation[] =
 
 node_parameters
 {
-   AiParameterENUM("operation", OP_PLUS, enum_operation);
-   AtPoint2 def = {0.0f, 0.0f};
-   AtArray *vdef = AiArrayAllocate(1, 1, AI_TYPE_POINT2);
-   AiArraySetPnt2(vdef, 0, def);
-   AiParameterARRAY("values", vdef);
+   AiParameterENUM("operation", OP_PLUS, MathOperationNames);
+   AiParameterUINT("numInputs", 0);
+   AiParameterPNT2("value0", 0.0f, 0.0f);
+   AiParameterPNT2("value1", 0.0f, 0.0f);
+   AiParameterPNT2("value2", 0.0f, 0.0f);
+   AiParameterPNT2("value3", 0.0f, 0.0f);
+   AiParameterPNT2("value4", 0.0f, 0.0f);
+   AiParameterPNT2("value5", 0.0f, 0.0f);
+   AiParameterPNT2("value6", 0.0f, 0.0f);
+   AiParameterPNT2("value7", 0.0f, 0.0f);
 
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }
@@ -55,44 +68,41 @@ node_finish
 
 shader_evaluate
 {
-   AtInt op = AiShaderEvalParamEnum(p_op);
-   AtArray *values = AiShaderEvalParamArray(p_values);
+   AtInt operation = AiShaderEvalParamEnum(p_operation);
+   AtUInt numInputs = AiShaderEvalParamUInt(p_numInputs);
    
    AtPoint2 result = {0.0f, 0.0f};
-   AtPoint2 item;
+   AtPoint2 value;
 
-   if (values->nelements > 0)
+   if (numInputs > 0)
    {
-      switch (op)
+      switch (operation)
       {
-      case OP_PLUS:
-      case OP_AVERAGE:
-         for (AtUInt32 i = 0; (i < values->nelements); ++i)
-         {
-            item = AiArrayGetPnt2(values, i);
-            result.x += item.x;
-            result.y += item.y;
-         }
-         break;
-      case OP_MINUS:
-         result = AiArrayGetPnt2(values, 0);
-         for (AtUInt32 i = 1; (i < values->nelements); ++i)
-         {
-            item = AiArrayGetPnt2(values, i);
-            result.x -= item.x;
-            result.y -= item.y;
-         }
-         break;
-      default:
-         result = AiArrayGetPnt2(values, 0);
-         break;
+         case OP_PLUS:
+         case OP_AVERAGE:
+            for (AtUInt32 i=0; i<numInputs; ++i)
+            {
+               value = AiShaderEvalParamPnt2(p_value0+i);
+               AiV2Add(result, result, value);
+            }
+            break;
+         case OP_MINUS:
+            result = AiShaderEvalParamPnt2(p_value0);
+            for (AtUInt32 i=1; i<numInputs; ++i)
+            {
+               value = AiShaderEvalParamPnt2(p_value0+i);
+               AiV2Sub(result, result, value);
+            }
+            break;
+         default:
+            result = AiShaderEvalParamPnt2(p_value0);
+            break;
       }
 
-      if (op == OP_AVERAGE)
+      if (operation == OP_AVERAGE)
       {
-         float divider = 1.0f / float(values->nelements);
-         result.x *= divider;
-         result.y *= divider;
+         float divider = 1.0f / float(numInputs);
+         AiV2Scale(result, result, divider);
       }
    }
 
