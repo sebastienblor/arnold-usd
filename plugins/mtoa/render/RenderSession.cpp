@@ -119,6 +119,11 @@ void CRenderSession::LoadPlugins()
    }
 }
 
+void CRenderSession::Init()
+{
+   Init(ExportOptions());
+}
+
 void CRenderSession::Init(ExportOptions& options)
 {
    m_is_active = true;
@@ -126,6 +131,11 @@ void CRenderSession::Init(ExportOptions& options)
    m_scene->SetExportOptions(options);
    m_renderOptions.GetFromMaya(m_scene);
    m_renderOptions.SetupLog();
+}
+
+void CRenderSession::Translate()
+{
+   Translate(ExportOptions());
 }
 
 void CRenderSession::Translate(ExportOptions& options)
