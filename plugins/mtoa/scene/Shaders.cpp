@@ -690,80 +690,61 @@ const char* CPlusMinusAverageTranslator::GetArnoldNodeType()
 
 void CPlusMinusAverageTranslator::Export(AtNode* shader)
 {
+   MString inputName = m_outputAttr;
+   int attribType = AI_TYPE_NONE;
+
    if (m_outputAttr == "output1D")
    {
-      MPlug elem, attr;
-
-      attr = m_fnNode.findPlug("operation");
-      AiNodeSetInt(shader, "operation", attr.asInt());
-
-      attr = m_fnNode.findPlug("input1D");
-      AtArray *values = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_FLOAT);
-      for (unsigned int i=0; i<attr.numElements(); ++i)
-      {
-         elem = attr.elementByPhysicalIndex(i);
-         // This could actually be a connection but Arnold does not support
-         // array element connections for now
-         AiArraySetFlt(values, i, elem.asFloat());
-      }
-      AiNodeSetArray(shader, "values", values);
-
+      inputName = "input1D";
+      attribType = AI_TYPE_FLOAT;
    }
-   else if (m_outputAttr == "output2D")
+   if (m_outputAttr == "output2D")
    {
-      MObject oinx = m_fnNode.attribute("input2Dx");
-      MObject oiny = m_fnNode.attribute("input2Dy");
-
-      MPlug attr, elem, inx, iny;
-      AtPoint2 value;
-
-      attr = m_fnNode.findPlug("operation");
-      AiNodeSetInt(shader, "operation", attr.asInt());
-
-      attr = m_fnNode.findPlug("input2D");
-      AtArray *values = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_POINT2);
-      for (unsigned int i=0; i<attr.numElements(); ++i)
-      {
-         elem = attr.elementByPhysicalIndex(i);
-         // This could actually be a connection but Arnold does not support
-         // array element connections for now
-         inx = elem.child(oinx);
-         iny = elem.child(oiny);
-         value.x = inx.asFloat();
-         value.y = iny.asFloat();
-         AiArraySetPnt2(values, i, value);
-      }
-      AiNodeSetArray(shader, "values", values);
-
+      inputName = "input2D";
+      attribType = AI_TYPE_POINT2;
    }
    else if (m_outputAttr == "output3D")
    {
-      MObject oinx = m_fnNode.attribute("input3Dx");
-      MObject oiny = m_fnNode.attribute("input3Dy");
-      MObject oinz = m_fnNode.attribute("input3Dz");
+      inputName = "input3D";
+      attribType = AI_TYPE_POINT;
+   }
 
-      MPlug attr, elem, inx, iny, inz;
-      AtRGB value;
+   if (AI_TYPE_NONE == attribType) return;
 
-      attr = m_fnNode.findPlug("operation");
-      AiNodeSetInt(shader, "operation", attr.asInt());
+   MPlug attr, elem;
+   MPlugArray connections;
+   char mayaAttr[64];
+   char aiAttr[64];
 
-      attr = m_fnNode.findPlug("input3D");
-      AtArray *values = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_RGB);
-      for (unsigned int i=0; i<attr.numElements(); ++i)
+   attr = m_fnNode.findPlug("operation");
+   AiNodeSetInt(shader, "operation", attr.asInt());
+
+   attr = m_fnNode.findPlug(inputName);
+
+   AtUInt numElements = attr.numElements();
+   if (numElements > 8)
+   {
+      MString warning;
+      warning.format("[mtoa] plusMinusAverage node '^1s' has more than 8 inputs, only the first 8 will be handled", m_fnNode.name());
+      MGlobal::displayWarning(warning);
+
+      numElements = 8;
+   }
+
+   AiNodeSetUInt(shader, "numInputs", numElements);
+
+   for (unsigned int i=0; i<numElements; ++i)
+   {
+      elem = attr.elementByPhysicalIndex(i);
+
+      connections.clear();
+      elem.connectedTo(connections, true, false);
+      if (connections.length() > 0)
       {
-         elem = attr.elementByPhysicalIndex(i);
-         // This could actually be a connection but Arnold does not support
-         // array element connections for now
-         inx = elem.child(oinx);
-         iny = elem.child(oiny);
-         inz = elem.child(oinz);
-         value.r = inx.asFloat();
-         value.g = iny.asFloat();
-         value.b = inz.asFloat();
-         AiArraySetRGB(values, i, value);
+         sprintf(mayaAttr, "%s[%u]", inputName.asChar(), elem.logicalIndex());
+         sprintf(aiAttr, "value%u", i);
+         ProcessParameter(shader, mayaAttr, aiAttr, attribType);
       }
-      AiNodeSetArray(shader, "values", values);
    }
 }
 
