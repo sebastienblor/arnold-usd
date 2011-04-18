@@ -265,11 +265,19 @@ bool CArnoldNodeFactory::RegisterMayaNode(const AtNodeEntry* arnoldNodeEntry)
    MGlobal::displayInfo(MString("[mtoa] INFO: Loading shader: ") + arnoldNodeName);
 
    // classification string
-   MString shaderClass = "";
-   const char* mayaShaderClass;
-   if (AiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.class", &mayaShaderClass))
-      shaderClass = MString(mayaShaderClass);
-   return RegisterMayaNode(arnoldNodeName, mayaNodeName.asChar(), nodeId, shaderClass.asChar());
+   MString classification = "";
+   const char* classificationMtd;
+   if (AiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.classification", &classificationMtd))
+      classification = MString(classificationMtd);
+   // swatch string, use "ArnoldRenderSwatch" to enable arnold rendered swatches
+   const char* swatchMtd;
+   if (AiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.swatch", &swatchMtd))
+      classification += MString(":swatch/") + MString(swatchMtd);
+
+   // AiMsgDebug( "Registering Arnold node %s as Maya node %s of classification %s", arnoldNodeName, mayaNodeName.asChar(), classification.asChar() );
+   AiMsgInfo( "Registering Arnold node %s as Maya node %s of classification %s", arnoldNodeName, mayaNodeName.asChar(), classification.asChar() );
+
+  return RegisterMayaNode(arnoldNodeName, mayaNodeName.asChar(), nodeId, classification.asChar());
 }
 
 /// Register a Maya node for the given Arnold node
@@ -288,12 +296,17 @@ bool CArnoldNodeFactory::RegisterMayaNode(const char* arnoldNodeName, const char
 {
    MString classification = "shader/surface:swatch/ArnoldRenderSwatch";
    if (strlen(shaderClass))
-      classification += MString(":") + shaderClass;
+      classification = MString(shaderClass);
+      // classification = shaderClass + MString(":swatch/ArnoldRenderSwatch");
 
    // Create a custom named shader node type
    CArnoldCustomShaderNode::s_shaderName = arnoldNodeName;
 
    // Register the node and its parameters
+   // AiMsgDebug( "[mtoa] registering Arnold node %s as Maya node %s of classification %s", arnoldNodeName, mayaNodeName, classification.asChar() );
+   AiMsgInfo( "[mtoa] registering Arnold node %s as Maya node %s of classification %s", arnoldNodeName, mayaNodeName, classification.asChar() );
+
+
    MStatus status = m_plugin.registerNode(mayaNodeName, nodeId, CArnoldCustomShaderNode::creator,
                                           CArnoldCustomShaderNode::initialize, MPxNode::kDependNode, &classification);
    CHECK_MSTATUS(status);
@@ -366,7 +379,7 @@ void CArnoldNodeFactory::UnregisterAllNodes()
 ///
 bool CArnoldNodeFactory::LoadExtension(const char* extensionFile)
 {
-   AiMsgDebug("loading extension %s", extensionFile);
+   AiMsgInfo("loading extension %s", extensionFile);
    void *pluginLib = LibraryLoad(extensionFile);
    if (pluginLib == NULL)
    {

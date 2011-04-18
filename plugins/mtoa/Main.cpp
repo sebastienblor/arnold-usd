@@ -40,6 +40,7 @@ namespace // <anonymous>
       const MString ShaderClass("shader/surface");
       const MString DisplacementClass("shader/displacement");
       const MString LightClass("light");
+      const MString LightFilterClass("light/filter");
       const MString swatchName("ArnoldRenderSwatch");
 
       // Abstract Classes
@@ -101,16 +102,20 @@ namespace // <anonymous>
       // Light Filters
       arnoldPluginFactory.RegisterMayaNode("barndoor",
                                            "aiBarndoor",
-                                           ARNOLD_NODEID_BARNDOOR);
+                                           ARNOLD_NODEID_BARNDOOR,
+                                           LightFilterClass.asChar());
       arnoldPluginFactory.RegisterMayaNode("gobo",
                                            "aiGobo",
-                                           ARNOLD_NODEID_GOBO);
+                                           ARNOLD_NODEID_GOBO,
+                                           LightFilterClass.asChar());
       arnoldPluginFactory.RegisterMayaNode("light_blocker",
                                            "aiLightBlocker",
-                                           ARNOLD_NODEID_LIGHT_BLOCKER);
+                                           ARNOLD_NODEID_LIGHT_BLOCKER,
+                                           LightFilterClass.asChar());
       arnoldPluginFactory.RegisterMayaNode("light_decay",
                                            "aiLightDecay",
-                                           ARNOLD_NODEID_LIGHT_DECAY);
+                                           ARNOLD_NODEID_LIGHT_DECAY,
+                                           LightFilterClass.asChar());
 
       // Surface Shaders
       arnoldPluginFactory.RegisterMayaNode("ray_switch",

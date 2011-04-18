@@ -1,19 +1,17 @@
 # options
 
 [node options]
-    # later should be UINT
+    # actully a UINT
 	maya.id         INT    0x00115C00
 	# for all attributes unless specified
 	# maya.keyable    BOOL   False
     [attr AA_samples]
         maya.keyable    BOOL   False
-        maya.name STRING  "T"
-        maya.shortname STRING  "t"
     	min         INT     0
     	max			INT     100
     	softmin		INT     1
         softmax		INT     10
-        default		INT     3   
+        # default		INT     3   
 		maya.orig_shortname	STRING	"AAsmpls"
 	[attr bucket_scanning]
         maya.orig_shortname	STRING	"bktsc"
@@ -27,9 +25,9 @@
 	[attr abort_on_license_fail]
 		maya.orig_shortname	STRING	"abortlic"
 	[attr AA_sample_clamp]
-    	softmin		FLOAT	0.001
-        softmax		FLOAT	100.0
-        default		FLOAT	10.0	
+    	# softmin		FLOAT	0.001
+        # softmax		FLOAT	100.0
+        # default		FLOAT	10.0	
 		maya.orig_shortname	STRING	"smpclamp"
 	[attr ignore_textures]
 		# maya.keyable	BOOL	False
@@ -78,13 +76,13 @@
 		min			INT		0
     	softmin		INT		0
         softmax		INT		16
-        default		INT		1	
+        # default		INT		1	
 		maya.orig_shortname	STRING  "GI_dd"
 	[attr GI_glossy_depth]
 		min			INT		0
     	softmin		INT		0
         softmax		INT		16
-        default		INT		1      
+        # default		INT		1      
 		maya.orig_shortname	STRING	"GI_gd"
 	[attr GI_reflection_depth]
 		min			INT		0
@@ -170,7 +168,7 @@
 
 [node barndoor]
     # AI_TYPE_RGB                        0x05 
-    maya.class  STRING  "light"    
+    maya.classification  STRING  "light/filter"    
     maya.output INT     0x05
 	[attr barndoor_bottom_edge]
 		min			FLOAT	0
@@ -211,7 +209,7 @@
 
 [node gobo]
     # AI_TYPE_RGB                        0x05 
-    maya.class  STRING  "light"
+    maya.classification  STRING  "light/filter"
     maya.output INT     0x05
 	[attr density]
 		min			FLOAT	0.0
@@ -228,7 +226,7 @@
 
 [node light_blocker]
     # AI_TYPE_RGB                        0x05 
-    maya.class  STRING  "light"    
+    maya.classification  STRING  "light/filter"    
     maya.output INT     0x05
 	[attr density]
 		min			FLOAT	0.0
@@ -247,7 +245,7 @@
         softmax		FLOAT	1000.0
 
 [node light_decay]
-    maya.class  STRING  "light"
+    maya.classification  STRING  "light/filter"
 	[attr decay_radius]
 		min			FLOAT	0.0
         softmax		FLOAT	10.0
@@ -272,19 +270,19 @@
 		max			FLOAT	1000000000.0
 		softmin		FLOAT	0.0
 		softmax		FLOAT	200.0
-		default		FLOAT	5.0
+		# default		FLOAT	5.0
 		animatable	BOOL	True
 	[attr aperture_size]
 		min			FLOAT	0.0	
 		max			FLOAT	20.0
 		softmin		FLOAT	0.0
 		softmax		FLOAT	0.5
-		default		FLOAT	0.2
+		# default		FLOAT	0.2
 		animatable	BOOL	True
 	[attr aperture_blades]
 		min			INT		3
 		max			INT		40
-		default		INT		6
+		# default		INT		6
 	[attr aperture_blade_curvature]
 		min			FLOAT	-20.0
 		max			FLOAT	20.0
@@ -307,7 +305,7 @@
     	desc		STRING	"Intensity of sky illumination."
     	min			FLOAT	0.0
         softmax		FLOAT	10.0
-        default		FLOAT 	1.0
+        # default		FLOAT 	1.0
 
 [node volume_scattering]
 	desc STRING "Volume scattering shader."
