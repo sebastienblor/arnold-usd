@@ -2,10 +2,6 @@ import maya.cmds as cmds
 import maya.mel as mel
 from mtoa.ui.callback import *
 
-# why are we importing these? CHAD
-from mtoa.ui.globals.common import createArnoldRendererCommonGlobalsTab
-from mtoa.ui.globals.arnold import createArnoldRendererGlobalsTab
-
 
 def storeMaskValues():
     mask = 0
