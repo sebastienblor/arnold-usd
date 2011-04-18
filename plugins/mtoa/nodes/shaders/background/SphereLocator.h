@@ -42,7 +42,7 @@ public:
    static void* creator();
    bool isAbstractClass();
    static MStatus initialize();
-   void SampleSN(const MPlug &colorPlug);
+   void SampleSN(MPlug &colorPlug);
    void DrawUVSphere(float radius, int divisionsX, int divisionsY, int format);
    AtUInt NumSampleBase();
 
