@@ -40,6 +40,7 @@ namespace // <anonymous>
       const MString ShaderClass("shader/surface");
       const MString DisplacementClass("shader/displacement");
       const MString LightClass("light");
+      const MString LightFilterClass("light/filter");
       const MString swatchName("ArnoldRenderSwatch");
 
       // Abstract Classes
@@ -101,16 +102,20 @@ namespace // <anonymous>
       // Light Filters
       arnoldPluginFactory.RegisterMayaNode("barndoor",
                                            "aiBarndoor",
-                                           ARNOLD_NODEID_BARNDOOR);
+                                           ARNOLD_NODEID_BARNDOOR,
+                                           LightFilterClass.asChar());
       arnoldPluginFactory.RegisterMayaNode("gobo",
                                            "aiGobo",
-                                           ARNOLD_NODEID_GOBO);
+                                           ARNOLD_NODEID_GOBO,
+                                           LightFilterClass.asChar());
       arnoldPluginFactory.RegisterMayaNode("light_blocker",
                                            "aiLightBlocker",
-                                           ARNOLD_NODEID_LIGHT_BLOCKER);
+                                           ARNOLD_NODEID_LIGHT_BLOCKER,
+                                           LightFilterClass.asChar());
       arnoldPluginFactory.RegisterMayaNode("light_decay",
                                            "aiLightDecay",
-                                           ARNOLD_NODEID_LIGHT_DECAY);
+                                           ARNOLD_NODEID_LIGHT_DECAY,
+                                           LightFilterClass.asChar());
 
       // Surface Shaders
       arnoldPluginFactory.RegisterMayaNode("ray_switch",
@@ -303,7 +308,11 @@ namespace // <anonymous>
    void SetupLogging()
    {
       // TODO: read this initial value from an environment variable or option variable
-      AtInt defaultLogFlags = AI_LOG_INFO | AI_LOG_WARNINGS | AI_LOG_ERRORS | AI_LOG_TIMESTAMP | AI_LOG_BACKTRACE | AI_LOG_MEMORY;
+#ifdef _DEBUG
+      AtInt defaultLogFlags = AI_LOG_ALL;
+#else
+      AtInt defaultLogFlags = AI_LOG_INFO | AI_LOG_WARNINGS | AI_LOG_ERRORS | AI_LOG_TIMESTAMP | AI_LOG_BACKTRACE | AI_LOG_MEMORY | AI_LOG_COLOR;
+#endif
       AiMsgSetConsoleFlags(defaultLogFlags);
    }
 }
@@ -316,7 +325,7 @@ AtVoid MtoaLoggingCallback(AtInt logmask, AtInt severity, const char *msg_string
    switch (severity)
    {
    case AI_SEVERITY_INFO:
-      if (logmask & AI_LOG_INFO)
+      if ((logmask & AI_LOG_INFO) || (logmask & AI_LOG_DEBUG))
          MGlobal::displayInfo(buf);
       break;
    case AI_SEVERITY_WARNING:
@@ -356,6 +365,14 @@ DLLEXPORT MStatus initializePlugin(MObject object)
                                              CArnoldAssTranslator::optionDefault,
                                              false);
 
+   // Load metadata for builtin (mtoa.mtd)
+   // const char* metafile = "/usr/solidangle/mtoadeploy/2011/plug-ins/mtoa.mtd";
+   MString loadpath = plugin.loadPath();
+   MString metafile = loadpath + "/" + "mtoa.mtd";
+   AtBoolean readMetaSuccess = AiMetaDataLoadFile(metafile.asChar());
+   if (!readMetaSuccess) {
+      AiMsgError("[mtoa] Could not read mtoa built-in metadata file mtoa.mtd");
+   }
    RegisterArnoldNodes(object);
 
    MGlobal::executePythonCommand(MString("import mtoa.cmds.registerArnoldRenderer;mtoa.cmds.registerArnoldRenderer.registerArnoldRenderer()") );

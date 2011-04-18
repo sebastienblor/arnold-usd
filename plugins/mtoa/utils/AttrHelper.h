@@ -30,6 +30,8 @@
 
 #define OUT_NAME MString("outValue")
 #define OUT_COLOR_NAME MString("outColor")
+#define OUT_NODE_NAME MString("outNode")
+#define OUT_MATRIX_NAME MString("outMatrix")
 #define OUT_SHORTNAME MString("out")
 
 /// Structure for holding attribute properties
@@ -99,7 +101,7 @@ typedef MStatus  (*AddAttributeFunction)(const MObject &attr);
 /// metadata is used to determine all the qualities of the resulting maya attribute: name, keyability, default, min,
 /// max, softmin, softmax, etc. (note that the node factory uses CStaticAttrHelper internally, so the same metadata
 /// applies for automatically generated custom nodes, and is actually the most common use case). metadata can be
-/// created in the shader's C++ source, or in a plain-text yaml file. values in the plain text file take precedence.
+/// created in the shader's C++ source, or in a plain-text mtd file. values in the plain text file take precedence.
 ///
 /// Attributes that do not have an Arnold equivalent can currently only be created from within a NodeInitializer.
 /// For example:
