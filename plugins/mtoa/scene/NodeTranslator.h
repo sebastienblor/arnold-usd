@@ -94,10 +94,6 @@ protected:
    static void NameChangedCallback(MObject &node, const MString &str, void *clientData);
    static void NodeDeletedCallback(MObject &node, MDGModifier &modifier, void *clientData);
 
-   // This is a help that tells mtoa to re-export/update the node passed in.
-   // Used by the IPR callbacks.
-   static void UpdateIPR(void * clientData);
-
 private:
    AtNode* m_atNode;
 
@@ -111,6 +107,13 @@ protected:
    // translator creates.
    MCallbackIdArray m_mayaCallbackIDs;
 
+   // This is a help that tells mtoa to re-export/update the node passed in.
+   // Used by the IPR callbacks.
+   static void UpdateIPR( void * clientData );
+
+   static MPlug FindPlug(MFnDependencyNode& node, const std::string& param);
+   static MPlug GetPlugElement(MFnDependencyNode& node, MPlug& plug, const std::string& attr);
+   
 };
 
 // Abstract base class for Dag node translators

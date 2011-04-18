@@ -262,7 +262,7 @@ void CHairTranslator::Export(AtNode *curve)
             AiArraySetPnt(curvePoints, ((j+1) + interpStartsIdx), curvePoint);
 
             // Animated widths are not supported, so just on step 0
-            AiArraySetFlt(curveWidths, (j+lineStartsIndex), (AtFloat) widths[j]);
+            AiArraySetFlt(curveWidths, (j+lineStartsIndex), (AtFloat) (widths[j]/2.0));
 
             if (j == (renderLineLength-1))
             {

@@ -1,4 +1,5 @@
 #include "render/RenderSession.h"
+#include "scene/MayaScene.h"
 #include "RenderSwatch.h"
 #include <maya/MImage.h>
 #include <ai_msg.h>

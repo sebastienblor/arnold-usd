@@ -26,13 +26,6 @@
 #include <string>
 #include <cstring>
 
-static const char *g_remapInterpolationStrings[] =
-{
-   "none",
-   "linear",
-   "smooth",
-   "spline"
-};
 
 static bool SortFloatArray(AtArray *a, AtUInt *shuffle = NULL)
 {
@@ -697,80 +690,61 @@ const char* CPlusMinusAverageTranslator::GetArnoldNodeType()
 
 void CPlusMinusAverageTranslator::Export(AtNode* shader)
 {
+   MString inputName = m_outputAttr;
+   int attribType = AI_TYPE_NONE;
+
    if (m_outputAttr == "output1D")
    {
-      MPlug elem, attr;
-
-      attr = m_fnNode.findPlug("operation");
-      AiNodeSetInt(shader, "operation", attr.asInt());
-
-      attr = m_fnNode.findPlug("input1D");
-      AtArray *values = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_FLOAT);
-      for (unsigned int i=0; i<attr.numElements(); ++i)
-      {
-         elem = attr.elementByPhysicalIndex(i);
-         // This could actually be a connection but Arnold does not support
-         // array element connections for now
-         AiArraySetFlt(values, i, elem.asFloat());
-      }
-      AiNodeSetArray(shader, "values", values);
-
+      inputName = "input1D";
+      attribType = AI_TYPE_FLOAT;
    }
-   else if (m_outputAttr == "output2D")
+   if (m_outputAttr == "output2D")
    {
-      MObject oinx = m_fnNode.attribute("input2Dx");
-      MObject oiny = m_fnNode.attribute("input2Dy");
-
-      MPlug attr, elem, inx, iny;
-      AtPoint2 value;
-
-      attr = m_fnNode.findPlug("operation");
-      AiNodeSetInt(shader, "operation", attr.asInt());
-
-      attr = m_fnNode.findPlug("input2D");
-      AtArray *values = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_POINT2);
-      for (unsigned int i=0; i<attr.numElements(); ++i)
-      {
-         elem = attr.elementByPhysicalIndex(i);
-         // This could actually be a connection but Arnold does not support
-         // array element connections for now
-         inx = elem.child(oinx);
-         iny = elem.child(oiny);
-         value.x = inx.asFloat();
-         value.y = iny.asFloat();
-         AiArraySetPnt2(values, i, value);
-      }
-      AiNodeSetArray(shader, "values", values);
-
+      inputName = "input2D";
+      attribType = AI_TYPE_POINT2;
    }
    else if (m_outputAttr == "output3D")
    {
-      MObject oinx = m_fnNode.attribute("input3Dx");
-      MObject oiny = m_fnNode.attribute("input3Dy");
-      MObject oinz = m_fnNode.attribute("input3Dz");
+      inputName = "input3D";
+      attribType = AI_TYPE_POINT;
+   }
 
-      MPlug attr, elem, inx, iny, inz;
-      AtRGB value;
+   if (AI_TYPE_NONE == attribType) return;
 
-      attr = m_fnNode.findPlug("operation");
-      AiNodeSetInt(shader, "operation", attr.asInt());
+   MPlug attr, elem;
+   MPlugArray connections;
+   char mayaAttr[64];
+   char aiAttr[64];
 
-      attr = m_fnNode.findPlug("input3D");
-      AtArray *values = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_RGB);
-      for (unsigned int i=0; i<attr.numElements(); ++i)
+   attr = m_fnNode.findPlug("operation");
+   AiNodeSetInt(shader, "operation", attr.asInt());
+
+   attr = m_fnNode.findPlug(inputName);
+
+   AtUInt numElements = attr.numElements();
+   if (numElements > 8)
+   {
+      MString warning;
+      warning.format("[mtoa] plusMinusAverage node '^1s' has more than 8 inputs, only the first 8 will be handled", m_fnNode.name());
+      MGlobal::displayWarning(warning);
+
+      numElements = 8;
+   }
+
+   AiNodeSetUInt(shader, "numInputs", numElements);
+
+   for (unsigned int i=0; i<numElements; ++i)
+   {
+      elem = attr.elementByPhysicalIndex(i);
+
+      connections.clear();
+      elem.connectedTo(connections, true, false);
+      if (connections.length() > 0)
       {
-         elem = attr.elementByPhysicalIndex(i);
-         // This could actually be a connection but Arnold does not support
-         // array element connections for now
-         inx = elem.child(oinx);
-         iny = elem.child(oiny);
-         inz = elem.child(oinz);
-         value.r = inx.asFloat();
-         value.g = iny.asFloat();
-         value.b = inz.asFloat();
-         AiArraySetRGB(values, i, value);
+         sprintf(mayaAttr, "%s[%u]", inputName.asChar(), elem.logicalIndex());
+         sprintf(aiAttr, "value%u", i);
+         ProcessParameter(shader, mayaAttr, aiAttr, attribType);
       }
-      AiNodeSetArray(shader, "values", values);
    }
 }
 
@@ -792,6 +766,14 @@ const char* CRemapValueTranslator::GetArnoldNodeType()
 
 void CRemapValueTranslator::Export(AtNode* shader)
 {
+   static const char *remapInterpolationStrings[] =
+   {
+      "none",
+      "linear",
+      "smooth",
+      "spline"
+   };
+
    if (m_outputAttr == "outValue")
    {
       MPlug attr, elem, pos, val, interp;
@@ -820,7 +802,7 @@ void CRemapValueTranslator::Export(AtNode* shader)
          interp = elem.child(ointerp);
          AiArraySetFlt(positions, i, pos.asFloat());
          AiArraySetFlt(values, i, val.asFloat());
-         AiArraySetStr(interps, i, g_remapInterpolationStrings[interp.asInt()]);
+         AiArraySetStr(interps, i, remapInterpolationStrings[interp.asInt()]);
       }
       // Need to sort the arrays (maya has the excellent idea not to do it)
       if (positions->nelements > 1)
@@ -869,7 +851,7 @@ void CRemapValueTranslator::Export(AtNode* shader)
          value.g = val.child(1).asFloat();
          value.b = val.child(2).asFloat();
          AiArraySetRGB(values, i, value);
-         AiArraySetStr(interps, i, g_remapInterpolationStrings[interp.asInt()]);
+         AiArraySetStr(interps, i, remapInterpolationStrings[interp.asInt()]);
       }
       // Need to sort the arrays (maya has the excellent idea not to do it)
       if (positions->nelements > 1)
@@ -901,6 +883,7 @@ const char* CRemapColorTranslator::GetArnoldNodeType()
 
 void CRemapColorTranslator::Export(AtNode* shader)
 {
+#if NULL // Disable: Arnold node does not exist
    if (m_outputAttr == "outColor")
    {
       MPlug attr, elem, pos, val, interp;
@@ -942,7 +925,7 @@ void CRemapColorTranslator::Export(AtNode* shader)
             interp = elem.child(ointerp);
             AiArraySetFlt(positions, i, pos.asFloat());
             AiArraySetFlt(values, i, val.asFloat());
-            AiArraySetStr(interps, i, g_remapInterpolationStrings[interp.asInt()]);
+            AiArraySetStr(interps, i, remapInterpolationStrings[interp.asInt()]);
          }
          // Need to sort array (maya has the excellent idea not to do it)
          if (positions->nelements > 1)
@@ -960,6 +943,7 @@ void CRemapColorTranslator::Export(AtNode* shader)
          AiNodeSetArray(shader, interpNames[ci*2 + 1], interps);
       }
    }
+#endif // NULL
 }
 
 // Projection
@@ -1117,112 +1101,150 @@ const char* CLayeredTextureTranslator::GetArnoldNodeType()
 
 void CLayeredTextureTranslator::Export(AtNode* shader)
 {
-   MPlug plug, elem, child;
+   MPlug attr, elem, color, alpha, blendMode, isVisible;
+   MPlugArray connections;
+   MObject colorSrc, alphaSrc;
+   bool colorConnectedToAlpha;
+   char mayaAttr[64];
+   char aiAttr[64];
 
-   plug = m_fnNode.findPlug("inputs");
-
-   std::vector<bool> visibleList;
-   std::vector<int> blendModeList;
-   std::vector<AtNode*> inputColorList;
-   std::vector<float> inputAlphaList;
-   std::vector<bool> colorConnectedToAlphaList;
-
-   MPlug childIsVisible, childBlendMode, childColor, childAlpha;
-
-   unsigned int numElements = plug.numElements();
-   for (unsigned int i = 0; i < numElements; ++i)
+   attr = m_fnNode.findPlug("inputs");
+   AtUInt numElements = attr.numElements();
+   if (numElements > 8)
    {
-      elem = plug.elementByPhysicalIndex(i);
+      MGlobal::displayWarning("[mtoa] layeredTexture node has more than 8 inputs, only the first 8 will be handled");
+      numElements = 8;
+   }
 
-      unsigned int numChildren = elem.numChildren();
-      for (unsigned int j = 0; j < numChildren; ++j)
-      {
-         MPlug child = elem.child(j);
-         MFnAttribute attribute(child.attribute());
+   AiNodeSetUInt(shader, "numInputs", numElements);
 
-         if (attribute.name() == "isVisible")
-            childIsVisible = child;
-         else if (attribute.name() == "blendMode")
-            childBlendMode = child;
-         else if (attribute.name() == "color")
-            childColor = child;
-         else if (attribute.name() == "alpha")
-            childAlpha = child;
-      }
+   MObject colorAttr = m_fnNode.attribute("color");
+   MObject alphaAttr = m_fnNode.attribute("alpha");
+   MObject blendModeAttr = m_fnNode.attribute("blendMode");
+   MObject isVisibleAttr = m_fnNode.attribute("isVisible");
 
-      visibleList.push_back(childIsVisible.asBool());
-      blendModeList.push_back(childBlendMode.asInt());
+   for (AtUInt i = 0; i < numElements; ++i)
+   {
+      elem = attr.elementByPhysicalIndex(i);
 
-      MPlugArray connections;
-      childColor.connectedTo(connections, true, false);
+      color = elem.child(colorAttr);
+      alpha = elem.child(alphaAttr);
+      blendMode = elem.child(blendModeAttr);
+      isVisible = elem.child(isVisibleAttr);
 
+      sprintf(mayaAttr, "inputs[%u].color", elem.logicalIndex());
+      sprintf(aiAttr, "color%u", i);
+      ProcessParameter(shader, mayaAttr, aiAttr, AI_TYPE_RGBA);
+
+      // Alpha connection is only handled when 
+      // The input in color and alpha is the same
+
+      colorSrc = MObject::kNullObj;
+      alphaSrc = MObject::kNullObj;
+
+      color.connectedTo(connections, true, false);
       if (connections.length() > 0)
-      {
-         MObject inputTexture = connections[0].node();
+         colorSrc = connections[0].node();
 
-         AtNode *arnoldInputNode = m_scene->ExportShader(inputTexture);
-         inputColorList.push_back(arnoldInputNode);
+      connections.clear();
+      alpha.connectedTo(connections, true, false);
+      if (connections.length() > 0)
+         alphaSrc = connections[0].node();
 
-         MFnDependencyNode inputTextureNode(inputTexture);
-         MPlug out;
-
-         out = inputTextureNode.findPlug("outAlpha");
-         if (!out.isNull())
-         {
-            MPlugArray outConnections;
-            out.connectedTo(outConnections, false, true);
-
-            if (outConnections.length() > 0)
-            {
-               MPlug destPlug = outConnections[0];
-               MFnAttribute destAttribute(destPlug.attribute());
-
-               if (destAttribute.name() == "alpha")
-                  colorConnectedToAlphaList.push_back(true);
-               else
-                  colorConnectedToAlphaList.push_back(false);
-
-               inputAlphaList.push_back(childAlpha.asFloat());
-            }
-         }
-      }
+      if (alphaSrc.isNull())
+         colorConnectedToAlpha = false;
       else
+         colorConnectedToAlpha = (colorSrc == alphaSrc);
+
+      sprintf(aiAttr, "colorConnectedToAlpha%u", i);
+      AiNodeSetBool(shader, aiAttr, colorConnectedToAlpha ? TRUE : FALSE);
+
+      if (!colorConnectedToAlpha && alphaSrc.isNull())
       {
-         AtNode *arnoldInputNode = AiNode("flat");
+         // Export alpha value when it's not connected
 
-         MString flatName = m_fnNode.name() + "flat" + (i);
-         AiNodeSetStr(arnoldInputNode, "name", flatName.asChar());
-
-         AiNodeSetRGB(arnoldInputNode, "color", childColor.child(0).asFloat(), childColor.child(1).asFloat(), childColor.child(2).asFloat());
-
-         inputColorList.push_back(arnoldInputNode);
+         sprintf(aiAttr, "alpha%u", i);
+         AiNodeSetFlt(shader, aiAttr, alpha.asFloat());
       }
 
-      if (colorConnectedToAlphaList.size() < inputColorList.size())
-      {
-         colorConnectedToAlphaList.push_back(false);
-         inputAlphaList.push_back(childAlpha.asFloat());
-      }
+      sprintf(mayaAttr, "inputs[%u].blendMode", elem.logicalIndex());
+      sprintf(aiAttr, "blendMode%u", i);
+      ProcessParameter(shader, mayaAttr, aiAttr, AI_TYPE_ENUM);
+
+      sprintf(mayaAttr, "inputs[%u].isVisible", elem.logicalIndex());
+      sprintf(aiAttr, "visible%u", i);
+      ProcessParameter(shader, mayaAttr, aiAttr, AI_TYPE_BOOLEAN);
    }
+}
 
-   AtArray *visibleArray = AiArrayAllocate(numElements, 1, AI_TYPE_BOOLEAN);
-   AtArray *blendModeArray = AiArrayAllocate(numElements, 1, AI_TYPE_INT);
-   AtArray *inputColorArray = AiArrayAllocate(numElements, 1, AI_TYPE_NODE);
-   AtArray *inputAlphaArray = AiArrayAllocate(numElements, 1, AI_TYPE_FLOAT);
-   AtArray *colorConnectedToAlphaArray = AiArrayAllocate(numElements, 1, AI_TYPE_BOOLEAN);
+// LayeredShader
+//
+const char* CLayeredShaderTranslator::GetArnoldNodeType()
+{
+   return "MayaLayeredShader";
+}
 
-   for (unsigned int i=0; i<numElements; ++i)
+void CLayeredShaderTranslator::Export(AtNode* shader)
+{
+   MPlug attr, elem, color, transp;
+   MPlugArray connections;
+   MObject colorSrc, transpSrc;
+   bool useTransparency;
+   char mayaAttr[64];
+   char aiAttr[64];
+
+   ProcessParameter(shader, "compositingFlag", AI_TYPE_ENUM);
+
+   attr = m_fnNode.findPlug("inputs");
+   AtUInt numElements = attr.numElements();
+   if (numElements > 8)
    {
-      AiArraySetBool(visibleArray, i, visibleList[i]);
-      AiArraySetInt(blendModeArray, i, blendModeList[i]);
-      AiArraySetPtr(inputColorArray, i, inputColorList[i]);
-      AiArraySetFlt(inputAlphaArray, i, inputAlphaList[i]);
-      AiArraySetBool(colorConnectedToAlphaArray, i, colorConnectedToAlphaList[i]);
+      MGlobal::displayWarning("[mtoa] layeredShader node has more than 8 inputs, only the first 8 will be handled");
+      numElements = 8;
    }
 
-   AiNodeSetArray(shader, "visible", visibleArray);
-   AiNodeSetArray(shader, "blendMode", blendModeArray);
-   AiNodeSetArray(shader, "color", inputColorArray);
-   AiNodeSetArray(shader, "alpha", inputAlphaArray);
-   AiNodeSetArray(shader, "colorConnectedToAlpha", colorConnectedToAlphaArray);
+   AiNodeSetUInt(shader, "numInputs", numElements);
+
+   MObject colorAttr = m_fnNode.attribute("color");
+   MObject transpAttr = m_fnNode.attribute("transparency");
+
+   for (AtUInt i = 0; i < numElements; ++i)
+   {
+      elem = attr.elementByPhysicalIndex(i);
+
+      color = elem.child(colorAttr);
+      transp = elem.child(transpAttr);
+
+      colorSrc = MObject::kNullObj;
+      transpSrc = MObject::kNullObj;
+
+      connections.clear();
+      color.connectedTo(connections, true, false);
+      if (connections.length() > 0)
+         colorSrc = connections[0].node();
+
+      connections.clear();
+      transp.connectedTo(connections, true, false);
+      if (connections.length() > 0)
+         transpSrc = connections[0].node();
+
+      if (transpSrc.isNull())
+         useTransparency = true;
+      else
+         useTransparency = (colorSrc != transpSrc);
+
+      sprintf(mayaAttr, "inputs[%u].color", elem.logicalIndex());
+      sprintf(aiAttr, "color%u", i);
+      ProcessParameter(shader, mayaAttr, aiAttr, AI_TYPE_RGB);
+
+      sprintf(aiAttr, "useTransparency%u", i);
+      AiNodeSetBool(shader, aiAttr, useTransparency ? TRUE : FALSE);
+
+      if (useTransparency)
+      {
+         sprintf(mayaAttr, "inputs[%u].transparency", elem.logicalIndex());
+         sprintf(aiAttr, "transparency%u", i);
+         ProcessParameter(shader, mayaAttr, aiAttr, AI_TYPE_RGB);
+      }
+   }
 }

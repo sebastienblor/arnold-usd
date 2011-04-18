@@ -9,8 +9,18 @@
 #include <maya/MCommonRenderSettingsData.h>
 
 #include <vector>
+#include <set>
+#include <map>
+#include <string>
 
 class CMayaScene;
+
+enum RenderType
+{
+   MTOA_RENDER_INTERACTIVE,
+   MTOA_RENDER_EXPORTASS,
+   MTOA_RENDER_EXPORTASS_AND_KICK
+};
 
 class CRenderOptions
 {
@@ -381,7 +391,7 @@ private:
 
    MString m_outputAssFile;
    bool    m_outputAssCompressed;
-   // FIXME: how can that carry to AiUnivers options, is CRenderOptions even translated ?
+   // FIXME: how can that carry to AiUniverse options, is CRenderOptions even translated ?
    bool    m_outputAssBoundingBox;
    AtUInt  m_outputAssMask;
 
