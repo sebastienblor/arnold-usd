@@ -394,7 +394,7 @@ bool CArnoldNodeFactory::LoadExtension(const char* extensionFile)
       MGlobal::displayError(MString("[mtoa] Error initializing plugin: ") + LibraryLastError());
       return false;
    }
-   pluginInitFunctionType * initFunc = (pluginInitFunctionType*)(&initializer);
+   pluginInitFunctionType * initFunc = (pluginInitFunctionType*) initializer;
    
    CExtension plugin = CExtension();
    (*initFunc)(plugin);

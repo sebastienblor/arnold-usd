@@ -121,7 +121,8 @@ void CRenderSession::LoadPlugins()
 
 void CRenderSession::Init()
 {
-   Init(ExportOptions());
+   ExportOptions defaultOptions;
+   Init(defaultOptions);
 }
 
 void CRenderSession::Init(ExportOptions& options)
@@ -135,7 +136,8 @@ void CRenderSession::Init(ExportOptions& options)
 
 void CRenderSession::Translate()
 {
-   Translate(ExportOptions());
+   ExportOptions defaultOptions;
+   Translate(defaultOptions);
 }
 
 void CRenderSession::Translate(ExportOptions& options)
