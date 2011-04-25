@@ -137,15 +137,20 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
 #ifdef _WIN32
             MString kickCmd = "kick \"" + filename + "\"";
 #else
-            MString kickCmd = "kick \"" + filename + "\"";
+            MString kickCmd = "kick \"" + filename + "\" &";
 #endif
             // FIXME: does not work properly, at least on Windows
+            // NOTE: should be non blocking or what's the point?
 
-            int ret = system(kickCmd.asChar());
-            std::stringstream info;
-            info << "[mtoa] Value returned by kick : " << ret;
+            system(kickCmd.asChar());
 
-            MGlobal::displayInfo(info.str().c_str());
+            // TODO : use pykick and MGlobal::executePythonCommandOnIdle to display feedback
+
+            // int ret = system(kickCmd.asChar());
+            // std::stringstream info;
+            // info << "[mtoa] Value returned by kick : " << ret;
+
+            // MGlobal::displayInfo(info.str().c_str());
          }
       }
       else
