@@ -13,6 +13,7 @@ def aiUtilityTemplate(nodeName):
     cmds.editorTemplate("shade_mode", label="Shade Mode", addControl=True)
     cmds.editorTemplate("color_mode", label="Color Mode", addControl=True)
     cmds.editorTemplate("color", label="Color", addControl=True)
+    cmds.editorTemplate("opacity", label="Opacity", addControl=True)
     cmds.editorTemplate(endLayout=True)
 
     # include/call base class/node attributes
