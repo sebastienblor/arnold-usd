@@ -5,6 +5,8 @@
 #include <maya/MDGMessage.h>
 #include <maya/MItDependencyNodes.h>
 
+#if MAYA_API_VERSION < 201200
+
 // MNodeClass
 
 MCallbackIdArray MNodeClass::s_callbackIDs;
@@ -132,3 +134,5 @@ void MNodeClass::RemoveCallbacks()
    if ( status == MS::kSuccess )
       s_callbackIDs.clear();
 }
+
+#endif

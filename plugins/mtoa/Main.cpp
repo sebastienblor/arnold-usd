@@ -244,6 +244,7 @@ namespace // <anonymous>
       // Load extensions last so that they can override default translators
       arnoldPluginFactory.LoadExtensions();
 
+      // Or use MGlobal::apiVersion()
 #if MAYA_API_VERSION < 201200
       MNodeClass::InitializeExistingNodes();
 #endif
