@@ -547,10 +547,7 @@ void CRenderSession::DoExport(MString customFileName)
    {
       AiMsgInfo("[mtoa] Exporting Maya scene to file \"%s\"", fileName.asChar());
 
-      if (GetMayaScene()->GetExportMode()==MTOA_EXPORT_ALL)
-      {
-         SetupRenderOutput();
-      }
+      SetupRenderOutput();
       // FIXME : problem this is actually double filtering files
       // (Once at export to AiUniverse and once at file write from it)
       AiASSWrite(fileName.asChar(), m_renderOptions.outputAssMask(), false);
