@@ -372,6 +372,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    AtBoolean readMetaSuccess = AiMetaDataLoadFile(metafile.asChar());
    if (!readMetaSuccess) {
       AiMsgError("[mtoa] Could not read mtoa built-in metadata file mtoa.mtd");
+      MGlobal::displayError("[mtoa] Could not read mtoa built-in metadata file mtoa.mtd");
    }
    RegisterArnoldNodes(object);
 

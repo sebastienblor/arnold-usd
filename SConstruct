@@ -19,7 +19,7 @@ def MakeModule(env, target, source):
    if not os.path.exists(os.path.dirname(source[0])) and os.path.dirname(source[0]):
       os.makedirs(os.path.dirname(source[0]))
    f = open(source[0], 'w' )
-   f.write('+ mtoa 0.4 %s\n' % target[0])
+   f.write('+ mtoa 0.6 %s\n' % target[0])
    f.close()
 
 def CreatePathDir(path):
@@ -319,6 +319,7 @@ TESTSUITE = env.SConscript(os.path.join('testsuite', 'SConscript'),
                            exports   = 'env BUILD_BASE_DIR MTOA MTOA_SHADERS DIFFTIFF TIFF2JPEG')
 SConscriptChdir(1)
 
+env.Install(env['TARGET_PLUGIN_PATH'], os.path.join('plugins', 'mtoa', 'mtoa.mtd'))
 if system.os() == 'windows':
    libs = glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*.dll'))
    libs += glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*boost*.dll.*'))
