@@ -14,6 +14,8 @@
 #include <map>
 #include <vector>
 
+#if MAYA_API_VERSION < 201200
+
 // MNodeClass
 //
 /// Mimics the behavior of MNodeClass introduced in Maya 2012.
@@ -47,5 +49,7 @@ private:
    static ExtensionAttrMap s_attrs;
    static ExtensionAttrDataMap s_attrData;
 };
+
+#endif
 
 #endif
