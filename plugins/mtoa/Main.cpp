@@ -244,6 +244,7 @@ namespace // <anonymous>
       // Load extensions last so that they can override default translators
       arnoldPluginFactory.LoadExtensions();
 
+      // Or use MGlobal::apiVersion()
 #if MAYA_API_VERSION < 201200
       MNodeClass::InitializeExistingNodes();
 #endif
@@ -372,6 +373,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    AtBoolean readMetaSuccess = AiMetaDataLoadFile(metafile.asChar());
    if (!readMetaSuccess) {
       AiMsgError("[mtoa] Could not read mtoa built-in metadata file mtoa.mtd");
+      MGlobal::displayError("[mtoa] Could not read mtoa built-in metadata file mtoa.mtd");
    }
    RegisterArnoldNodes(object);
 

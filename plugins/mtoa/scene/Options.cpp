@@ -81,6 +81,8 @@ void CRenderOptionsTranslator::Export(AtNode* options)
 
    ProcessParameter(options, "max_subdivisions", AI_TYPE_INT);
 
+   ProcessParameter(options, "enable_hit_refinement", AI_TYPE_BOOLEAN);
+
    ProcessParameter(options, "texture_automip", AI_TYPE_BOOLEAN);
    ProcessParameter(options, "texture_autotile", AI_TYPE_INT);
    ProcessParameter(options, "texture_max_memory_MB", AI_TYPE_FLOAT);

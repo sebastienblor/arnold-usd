@@ -3,6 +3,7 @@
 #include <maya/MSceneMessage.h>
 #include <maya/MNodeMessage.h>
 #include <maya/MTypes.h>
+#include <maya/MFnPlugin.h>
 #if MAYA_API_VERSION < 201200
    #include "utils/MNodeClass.h"
 #else
@@ -127,7 +128,7 @@ int CTranslatorRegistry::RegisterTranslator(const char* mayaNode, CreatorFunctio
       // call the node class initializer
       nodeClassInitializer(mayaNode);
    }
-   return MayaNodeClass(mayaNode).typeId().id();
+   return MNodeClass(mayaNode).typeId().id();
 }
 
 bool CTranslatorRegistry::RegisterDagTranslator(const char* mayaNode, CreatorFunction creator, NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin)
@@ -160,7 +161,7 @@ int CTranslatorRegistry::RegisterTranslator(const char* mayaNode, CreatorFunctio
       MGlobal::displayWarning(MString("[mtoa] Cannot register ") + mayaNode + ". the node type does not exist. If the node is provided by a plugin, specify providedByPlugin when registering its translator");
       return 0;
    }
-   return MayaNodeClass(mayaNode).typeId().id();
+   return MNodeClass(mayaNode).typeId().id();
 }
 
 bool CTranslatorRegistry::RegisterDagTranslator(const char* mayaNode, CreatorFunction creator)

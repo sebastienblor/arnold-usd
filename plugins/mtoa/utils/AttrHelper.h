@@ -316,14 +316,14 @@ public:
    void MakeInputNode(CAttrData& data);
    MObject MakeInput(const char* paramName);
    MObject MakeInput(CAttrData& attrData);
+#else
+protected:
+   MStatus virtual addAttribute(MObject& attrib);
 #endif
+
 protected:
    MNodeClass m_class;
 
-protected:
-#if MAYA_API_VERSION > 201200
-   MStatus virtual addAttribute(MObject& attrib);
-#endif
 };
 
 #endif // ARNOLDNODEHELPER_H

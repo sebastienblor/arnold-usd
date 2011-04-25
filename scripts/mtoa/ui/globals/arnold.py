@@ -121,6 +121,10 @@ def createArnoldRenderSettings():
     cmds.attrControlGrp('os_physically_based',
                    label="Physically Based",
                    attribute='defaultArnoldRenderOptions.physicallyBased')
+    
+    cmds.attrControlGrp('os_enable_hit_refinement',
+                   label="Enable Hit Refinement",
+                   attribute='defaultArnoldRenderOptions.enable_hit_refinement')
 
     cmds.separator()
 
