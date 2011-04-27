@@ -1,70 +1,70 @@
 # options
 
 [node options]
-    # actully a UINT
-	maya.id         INT    0x00115C00
+	# actully a UINT
+	maya.id					INT		0x00115C00
 	# for all attributes unless specified
-	# maya.keyable    BOOL   False
-    [attr AA_samples]
-        maya.keyable    BOOL   False
-    	min         INT     0
-    	max			INT     100
-    	softmin		INT     1
-        softmax		INT     10
-        # default		INT     3   
+	# maya.keyable			BOOL	False
+	[attr AA_samples]
+		maya.keyable		BOOL	False
+		min					INT		0
+		max					INT		100
+		softmin				INT	 	1
+		softmax				INT		10
+		# default			INT		3
 		maya.orig_shortname	STRING	"AAsmpls"
 	[attr bucket_scanning]
-        maya.orig_shortname	STRING	"bktsc"
+		maya.orig_shortname	STRING	"bktsc"
 	[attr bucket_size]
 		maya.orig_shortname	STRING	"bktsz"
-    	min			INT		1
-    	softmin		INT		1
-        softmax		INT		256		
+		min					INT		1
+		softmin				INT		1
+		softmax				INT		256
 	[attr abort_on_error]
 		maya.orig_shortname	STRING	"abort"
 	[attr abort_on_license_fail]
 		maya.orig_shortname	STRING	"abortlic"
 	[attr AA_sample_clamp]
-    	# softmin		FLOAT	0.001
-        # softmax		FLOAT	100.0
-        # default		FLOAT	10.0	
+		# softmin			FLOAT	0.001
+		# softmax			FLOAT	100.0
+		# default			FLOAT	10.0
 		maya.orig_shortname	STRING	"smpclamp"
 	[attr ignore_textures]
-		# maya.keyable	BOOL	False
+		# maya.keyable		BOOL	False
 	[attr ignore_shaders]
-		# maya.keyable	BOOL	False
+		# maya.keyable		BOOL	False
 	[attr ignore_lights]
-		# maya.keyable	BOOL	False
+		# maya.keyable		BOOL	False
 	[attr ignore_shadows]
-		# maya.keyable	BOOL	False
+		# maya.keyable		BOOL	False
 	[attr ignore_subdivision]
-  		# maya.keyable	BOOL	False
+		# maya.keyable		BOOL	False
 	[attr ignore_displacement]
-		# maya.keyable	BOOL	False
+		# maya.keyable		BOOL	False
 	[attr ignore_motion_blur]
-		# maya.keyable	BOOL	False
+		# maya.keyable		BOOL	False
 	[attr ignore_smoothing]
-		# maya.keyable	BOOL	False
+		# maya.keyable		BOOL	False
 	[attr ignore_sss]
-		# maya.keyable	BOOL	False
+		# maya.keyable		BOOL	False
 	[attr auto_transparency_depth]
-		min			INT		0
-    	softmin		INT		0
-        softmax		INT		16
+		min					INT		0
+		softmin				INT		0
+		softmax				INT		16
 		maya.orig_shortname	STRING	"at_d"
 	[attr auto_transparency_threshold]
-		min			FLOAT	0.0
-		max			FLOAT	10.0
+		min					FLOAT	0.0
+		max					FLOAT	10.0
 		maya.orig_shortname	STRING	"at_t"
 	[attr auto_transparency_probabilistic]
 		maya.orig_shortname	STRING	"at_p"
 	[attr sss_subpixel_cache]
 		maya.orig_shortname	STRING	"sssspc"
 	[attr show_samples]
-  		maya.orig_shortname	STRING	"sssshs"
+		maya.orig_shortname	STRING	"sssshs"
 	[attr max_subdivisions]
-		min			INT		0		
-		min			INT		999	
+		min					INT		0
+		min					INT		999
 		maya.orig_shortname	STRING	"maxs"
 	[attr texture_max_memory_MB]
 		maya.orig_shortname	STRING	"tx_mm"
@@ -73,49 +73,49 @@
 	[attr texture_autotile]
 		maya.orig_shortname	STRING	"tx_at"
 	[attr GI_diffuse_depth]
-		min			INT		0
-    	softmin		INT		0
-        softmax		INT		16
-        # default		INT		1	
+		min					INT		0
+		softmin				INT		0
+		softmax				INT		16
+		# default			INT		1
 		maya.orig_shortname	STRING  "GI_dd"
 	[attr GI_glossy_depth]
-		min			INT		0
-    	softmin		INT		0
-        softmax		INT		16
-        # default		INT		1      
+		min					INT		0
+		softmin				INT		0
+		softmax				INT		16
+		# default			INT		1
 		maya.orig_shortname	STRING	"GI_gd"
 	[attr GI_reflection_depth]
-		min			INT		0
-    	softmin		INT		0
-        softmax		INT		16
+		min					INT		0
+		softmin				INT		0
+		softmax				INT		16
 		maya.orig_shortname	STRING	"GI_rld"
 	[attr GI_refraction_depth]
-		min			INT		0
-    	softmin		INT		0
-        softmax		INT		16
+		min					INT		0
+		softmin				INT		0
+		softmax				INT		16
 		maya.orig_shortname	STRING	"GI_rrd"
 	[attr GI_total_depth]
-		min			INT		0
-    	softmin		INT		0
-        softmax		INT		16
+		min					INT		0
+		softmin				INT		0
+		softmax				INT		16
 		maya.orig_shortname	STRING	"GI_td"
 	[attr GI_diffuse_samples]
-		min			INT		0
-		max			INT		100		
-    	softmin		INT		0
-        softmax		INT		10
+		min					INT		0
+		max					INT		100
+		softmin				INT		0
+		softmax				INT		10
 		maya.orig_shortname	STRING	"GIdiffsmpls"
 	[attr GI_glossy_samples]
-		min			INT		0
-		max			INT		100		
-    	softmin		INT		0
-        softmax		INT		10
+		min					INT		0
+		max					INT		100
+		softmin				INT		0
+		softmax				INT		10
 		maya.orig_shortname	STRING	"GIglossmpls"
 	[attr GI_sss_hemi_samples]
-		min			INT		0
-		max			INT		100		
-    	softmin		INT		0
-        softmax		INT		10
+		min					INT		0
+		max					INT		100
+		softmin				INT		0
+		softmax				INT		10
 		maya.orig_shortname	STRING	"GIssshemismpls"
 
 
@@ -123,379 +123,377 @@
 
 [node point_light]
 	[attr bounce_factor]
-    	min			FLOAT	0.0
-        softmax		FLOAT	20.0	
+		min					FLOAT	0.0
+		softmax				FLOAT	20.0
 	[attr bounces]
-        min			INT		0
-        max			INT		10000
+		min					INT		0
+		max					INT		10000
 	[attr sss_samples]
-        min			INT		0
-        max			INT		100
+		min					INT		0
+		max					INT		100
 
 [node spot_light]
 	[attr bounce_factor]
-    	min			FLOAT	0.0
-        softmax		FLOAT	20.0
+		min					FLOAT	0.0
+		softmax				FLOAT	20.0
 	[attr bounces]
-        min			INT		0
-        max			INT		10000
+		min					INT		0
+		max					INT		10000
 	[attr sss_samples]
-        min			INT		0
-        max			INT		100
+		min					INT		0
+		max					INT		100
 	[attr aspect_ratio]
-		min			FLOAT	0.0
-        max			FLOAT	100.0
-		softmin		FLOAT	0.0
-		softmax		FLOAT	1.0
+		min					FLOAT	0.0
+		max					FLOAT	100.0
+		softmin				FLOAT	0.0
+		softmax				FLOAT	1.0
 	[attr lens_radius]
-		min			FLOAT	0.0
-        max			FLOAT	100.0
-		softmin		FLOAT	0.0
-		softmax		FLOAT	1.0
+		min					FLOAT	0.0
+		max					FLOAT	100.0
+		softmin				FLOAT	0.0
+		softmax				FLOAT	1.0
 
 [node quad_light]
 	[attr bounce_factor]
-    	min			FLOAT	0.0
-        softmax		FLOAT	20.0
+		min					FLOAT	0.0
+		softmax				FLOAT	20.0
 	[attr bounces]
-        min			INT		0
-        max			INT		10000
+		min					INT		0
+		max					INT		10000
 	[attr sss_samples]
-        min			INT		0
-        max			INT		100
+		min					INT		0
+		max					INT		100
 
 # light filters
 
 [node barndoor]
-    # AI_TYPE_RGB                        0x05 
-    maya.classification  STRING  "light/filter"    
-    maya.output INT     0x05
+	# AI_TYPE_RGB						0x05
+	maya.classification  	STRING	"light/filter"
+	maya.output 		INT	 0x05
 	[attr barndoor_bottom_edge]
-		min			FLOAT	0
-        max			FLOAT	1.0
+		min					FLOAT	0
+		max					FLOAT	1.0
 	[attr barndoor_bottom_left]
-		min			FLOAT	0
-        max			FLOAT	1.0
+		min					FLOAT	0
+		max					FLOAT	1.0
 	[attr barndoor_bottom_right]
-		min			FLOAT	0
-        max			FLOAT	1.0
+		min					FLOAT	0
+		max					FLOAT	1.0
 	[attr barndoor_top_edge]
-		min			FLOAT	0
-        max			FLOAT	1.0
+		min					FLOAT	0
+		max					FLOAT	1.0
 	[attr barndoor_top_left]
-		min			FLOAT	0
-        max			FLOAT	1.0
+		min					FLOAT	0
+		max					FLOAT	1.0
 	[attr barndoor_top_right]
-		min			FLOAT	0
-        max			FLOAT	1.0
+		min					FLOAT	0
+		max					FLOAT	1.0
 	[attr barndoor_left_edge]
-		min			FLOAT	0
-        max			FLOAT	1.0
+		min					FLOAT	0
+		max					FLOAT	1.0
 	[attr barndoor_left_bottom]
-		min			FLOAT	0
-        max			FLOAT	1.0
+		min					FLOAT	0
+		max					FLOAT	1.0
 	[attr barndoor_left_top]
-		min			FLOAT	0
-        max			FLOAT	1.0
+		min					FLOAT	0
+		max					FLOAT	1.0
 	[attr barndoor_right_edge]
-		min			FLOAT	0
-        max			FLOAT	1.0
+		min					FLOAT	0
+		max					FLOAT	1.0
 	[attr barndoor_right_bottom]
-		min			FLOAT	0
-        max			FLOAT	1.0
+		min					FLOAT	0
+		max					FLOAT	1.0
 	[attr barndoor_right_top]
-		min			FLOAT	0
-        max			FLOAT	1.0
+		min					FLOAT	0
+		max					FLOAT	1.0
 
 [node gobo]
-    # AI_TYPE_RGB                        0x05 
-    maya.classification  STRING  "light/filter"
-    maya.output INT     0x05
+	# AI_TYPE_RGB						0x05
+	maya.classification  	STRING  "light/filter"
+	maya.output 			INT	 0x05
 	[attr density]
-		min			FLOAT	0.0
-        softmax		FLOAT	10.0
+		min					FLOAT	0.0
+		softmax				FLOAT	10.0
 	[attr rotate]
-		min			FLOAT	0.0
-        max		FLOAT		360.0
+		min					FLOAT	0.0
+		max					FLOAT		360.0
 	[attr scale_s]
-		min			FLOAT	0.0
-        softmax		FLOAT	1000.0
+		min					FLOAT	0.0
+		softmax				FLOAT	1000.0
 	[attr scale_t]
-		min			FLOAT	0.0
-        softmax		FLOAT	1000.0
+		min					FLOAT	0.0
+		softmax				FLOAT	1000.0
 
 [node light_blocker]
-    # AI_TYPE_RGB                        0x05 
-    maya.classification  STRING  "light/filter"    
-    maya.output INT     0x05
+	# AI_TYPE_RGB						0x05
+	maya.classification  	STRING  "light/filter"
+	maya.output 			INT	 0x05
 	[attr density]
-		min			FLOAT	0.0
-        softmax		FLOAT	10.0
+		min					FLOAT	0.0
+		softmax				FLOAT	10.0
 	[attr height_edge]
-		min			FLOAT	0.0
-        softmax		FLOAT	1000.0
+		min					FLOAT	0.0
+		softmax				FLOAT	1000.0
 	[attr ramp]
-		min			FLOAT	0.0
-        softmax		FLOAT	1000.0
+		min					FLOAT	0.0
+		softmax				FLOAT	1000.0
 	[attr width_edge]
-		min			FLOAT	0.0
-        softmax		FLOAT	1000.0
+		min					FLOAT	0.0
+		softmax				FLOAT	1000.0
 	[attr roundness]
-		min			FLOAT	0.0
-        softmax		FLOAT	1000.0
+		min					FLOAT	0.0
+		softmax				FLOAT	1000.0
 
 [node light_decay]
-    maya.classification  STRING  "light/filter"
+	maya.classification  	STRING  "light/filter"
 	[attr decay_radius]
-		min			FLOAT	0.0
-        softmax		FLOAT	10.0
+		min					FLOAT	0.0
+		softmax				FLOAT	10.0
 	[attr far_end]
-		min			FLOAT	0.0
-        softmax		FLOAT	1000.0
+		min					FLOAT	0.0
+		softmax				FLOAT	1000.0
 	[attr far_start]
-		min			FLOAT	0.0
-        softmax		FLOAT	1000.0
+		min					FLOAT	0.0
+		softmax				FLOAT	1000.0
 	[attr near_end]
-		min			FLOAT	0.0
-        softmax		FLOAT	1000.0
+		min					FLOAT	0.0
+		softmax				FLOAT	1000.0
 	[attr near_start]
-		min			FLOAT	0.0
-        softmax		FLOAT	1000.0
+		min					FLOAT	0.0
+		softmax				FLOAT	1000.0
 
 # cameras
 
 [node persp_camera]
 	[attr focal_distance]
-		min			FLOAT	0.0	
-		max			FLOAT	1000000000.0
-		softmin		FLOAT	0.0
-		softmax		FLOAT	200.0
-		# default		FLOAT	5.0
-		animatable	BOOL	True
+		min					FLOAT	0.0
+		max					FLOAT	1000000000.0
+		softmin				FLOAT	0.0
+		softmax				FLOAT	200.0
+		# default			FLOAT	5.0
+		animatable			BOOL	True
 	[attr aperture_size]
-		min			FLOAT	0.0	
-		max			FLOAT	20.0
-		softmin		FLOAT	0.0
-		softmax		FLOAT	0.5
-		# default		FLOAT	0.2
-		animatable	BOOL	True
+		min					FLOAT	0.0
+		max					FLOAT	20.0
+		softmin				FLOAT	0.0
+		softmax				FLOAT	0.5
+		# default			FLOAT	0.2
+		animatable			BOOL	True
 	[attr aperture_blades]
-		min			INT		3
-		max			INT		40
-		# default		INT		6
+		min					INT		3
+		max					INT		40
+		# default			INT		6
 	[attr aperture_blade_curvature]
-		min			FLOAT	-20.0
-		max			FLOAT	20.0
-		softmin		FLOAT	-5.0
-		softmax		FLOAT	5.0
+		min					FLOAT	-20.0
+		max					FLOAT	20.0
+		softmin				FLOAT	-5.0
+		softmax				FLOAT	5.0
 	[attr aperture_rotation]
-        min			FLOAT	0.0
-		max			FLOAT	360.0
-		softmin		FLOAT	0.0
-		softmax		FLOAT	50.0
+		min					FLOAT	0.0
+		max					FLOAT	360.0
+		softmin				FLOAT	0.0
+		softmax				FLOAT	50.0
+
 
 # shaders
-
 
 # atmosphere
 
 [node sky]
-    desc		STRING	"Sky shader."
-    [attr intensity]
-    	desc		STRING	"Intensity of sky illumination."
-    	min			FLOAT	0.0
-        softmax		FLOAT	10.0
-        # default		FLOAT 	1.0
+	desc					STRING	"Sky shader."
+	[attr intensity]
+		desc				STRING	"Intensity of sky illumination."
+		min					FLOAT	0.0
+		softmax				FLOAT	10.0
+		# default			FLOAT 	1.0
 
 [node volume_scattering]
-	desc STRING "Volume scattering shader."
-    [attr affect_camera]
-    	desc STRING "Scattering effect on camera rays."
-    	min			FLOAT	0.0
-    	max			FLOAT	1.0
-    [attr affect_diffuse]
-    	desc STRING "Scattering effect on diffuse rays."
-    	min			FLOAT	0.0
-    	max			FLOAT	1.0
-    [attr affect_reflection]
-    	desc STRING "Scattering effect on reflection rays."
-    	min			FLOAT	0.0
-    	max			FLOAT	1.0
-    [attr attenuation]
-    	desc STRING "Scattering attenuation."
-    	min			FLOAT	0.0
-    	max			FLOAT	1.0    	
-    [attr density]
-    	desc STRING "Scattering density."
-    	min			FLOAT	0.0
-    	max			FLOAT	1.0 
-    [attr eccentricity]
-    	desc STRING "Scattering eccentricity."
-    	min			FLOAT	-1.0
-    	max			FLOAT	1.0       	
-    [attr mscattering_depth]
-    	desc STRING "Scattering depth."
-    	min			FLOAT	0.0
-    	softmax		FLOAT	10.0    
-    [attr mscattering_sample]
-    	desc STRING "Scattering number of samples."
-    	min			INT		0
-    	softmax		INT		64
+	desc 		STRING "Volume scattering shader."
+	[attr affect_camera]
+		desc 		STRING "Scattering effect on camera rays."
+		min					FLOAT	0.0
+		max					FLOAT	1.0
+	[attr affect_diffuse]
+		desc 		STRING "Scattering effect on diffuse rays."
+		min					FLOAT	0.0
+		max					FLOAT	1.0
+	[attr affect_reflection]
+		desc 		STRING "Scattering effect on reflection rays."
+		min					FLOAT	0.0
+		max					FLOAT	1.0
+	[attr attenuation]
+		desc 		STRING "Scattering attenuation."
+		min					FLOAT	0.0
+		max					FLOAT	1.0
+	[attr density]
+		desc 		STRING "Scattering density."
+		min					FLOAT	0.0
+		max					FLOAT	1.0
+	[attr eccentricity]
+		desc 		STRING "Scattering eccentricity."
+		min					FLOAT	-1.0
+		max					FLOAT	1.0
+	[attr mscattering_depth]
+		desc 		STRING "Scattering depth."
+		min					FLOAT	0.0
+		softmax				FLOAT	10.0
+	[attr mscattering_sample]
+		desc 		STRING "Scattering number of samples."
+		min					INT		0
+		softmax				INT		64
 
 [node fog]
-    [attr distance]
-    	desc STRING "Fog full opacity distance."
-    	min			FLOAT	0.0
-    	softmax		FLOAT	1000.0  
+	[attr distance]
+		desc 		STRING "Fog full opacity distance."
+		min					FLOAT	0.0
+		softmax				FLOAT	1000.0
 	[attr height]
-    	desc STRING "Fog full height."
-    	min			FLOAT	0.0
-    	softmax		FLOAT	1000.0  
+		desc 		STRING "Fog full height."
+		min					FLOAT	0.0
+		softmax				FLOAT	1000.0
 
 # surface
 
 [node standard]
-	[attr IOR]
-    	min			FLOAT	0.0
-    	max			FLOAT	10.0 
+	[attr 		IOR]
+		min					FLOAT	0.0
+		max					FLOAT	10.0
 	[attr Kb]
-    	min			FLOAT	0.0
-    	max			FLOAT	1.0 
+		min					FLOAT	0.0
+		max					FLOAT	1.0
 	[attr Kd]
-    	min			FLOAT	0.0
-    	max			FLOAT	1.0 
+		min					FLOAT	0.0
+		max					FLOAT	1.0
 	[attr Kr]
-    	min			FLOAT	0.0
-    	max			FLOAT	1.0 
+		min					FLOAT	0.0
+		max					FLOAT	1.0
 	[attr Krn]
-    	min			FLOAT	0.0
-    	max			FLOAT	1.0 
+		min					FLOAT	0.0
+		max					FLOAT	1.0
 	[attr Ks]
-    	min			FLOAT	0.0
-    	max			FLOAT	1.0 
+		min					FLOAT	0.0
+		max					FLOAT	1.0
 	[attr Ksn]
-    	min			FLOAT	0.0
-    	max			FLOAT	1.0 
+		min					FLOAT	0.0
+		max					FLOAT	1.0
 	[attr Ksss]
-    	min			FLOAT	0.0
-    	max			FLOAT	1.0 
+		min					FLOAT	0.0
+		max					FLOAT	1.0
 	[attr Kt]
-    	min			FLOAT	0.0
-    	max			FLOAT	1.0 
+		min					FLOAT	0.0
+		max					FLOAT	1.0
 	[attr Phong_exponent]
-    	min			FLOAT	0.0
-    	max			FLOAT	5000.0 
-		softmin		FLOAT	0.0
-		softmax		FLOAT	2000.0
+		min					FLOAT	0.0
+		max					FLOAT	5000.0
+		softmin				FLOAT	0.0
+		softmax				FLOAT	2000.0
 	[attr bounce_factor]
-    	min			FLOAT	0.0
-    	softmax		FLOAT	1.0 
+		min					FLOAT	0.0
+		softmax				FLOAT	1.0
 	[attr diffuse_roughness]
-    	min			FLOAT	0.0
-    	max			FLOAT	1.0 
+		min					FLOAT	0.0
+		max					FLOAT	1.0
 	[attr direct_diffuse]
-    	min			FLOAT	0.0
-    	max			FLOAT	1.0 
+		min					FLOAT	0.0
+		max					FLOAT	1.0
 	[attr direct_specular]
-    	min			FLOAT	0.0
-    	max			FLOAT	1.0 
+		min					FLOAT	0.0
+		max					FLOAT	1.0
 	[attr emission]
-    	min			FLOAT	0.0
-    	max			FLOAT	1.0 
+		min					FLOAT	0.0
+		max					FLOAT	1.0
 	[attr indirect_diffuse]
-    	min			FLOAT	0.0
-    	max			FLOAT	1.0 
+		min					FLOAT	0.0
+		max					FLOAT	1.0
 	[attr indirect_specular]
-    	min			FLOAT	0.0
-    	max			FLOAT	1.0 
+		min					FLOAT	0.0
+		max					FLOAT	1.0
 
 [node ambient_occlusion]
 	[attr falloff]
-    	min			FLOAT	0.0
-    	softmax		FLOAT	100.0 
+		min					FLOAT	0.0
+		softmax				FLOAT	100.0
 	[attr far_clip]
-    	min			FLOAT	0.0
-    	softmax		FLOAT	100000.0
+		min					FLOAT	0.0
+		softmax				FLOAT	100000.0
 	[attr near_clip]
-    	min			FLOAT	0.0
-    	softmax		FLOAT	100000.0
+		min					FLOAT	0.0
+		softmax				FLOAT	100000.0
 	[attr samples]
-    	min			INT		0
-    	softmax		INT		100
+		min					INT		0
+		softmax				INT		100
 	[attr spread]
-    	min			FLOAT	0.0
-    	max			FLOAT	1.0 
+		min					FLOAT	0.0
+		max					FLOAT	1.0
 
 [node wireframe]
-    desc		STRING	"This shader can be used to display the edge structure of a geometry."
+	desc					STRING	"This shader can be used to display the edge structure of a geometry."
 	[attr line_width]
- 		desc		STRING	"Width of edges lines."
-    	min			FLOAT	0.0
-        softmax		FLOAT	10.0
+ 		desc				STRING	"Width of edges lines."
+		min					FLOAT	0.0
+		softmax				FLOAT	10.0
 	[attr fill_color]
-		desc 		STRING	"Color for the faces." 
+		desc 				STRING	"Color for the faces."
 	[attr line_color]
-		desc		STRING	"Color for the lines." 
+		desc				STRING	"Color for the lines."
 	[attr raster_space]
-		desc		STRING	"Use screen space to measure line width." 
+		desc				STRING	"Use screen space to measure line width."
 	[attr edge_type]
-		desc		STRING	"Base geometry element used for edge display."     
+		desc				STRING	"Base geometry element used for edge display."
 
 [node hair]
 	[attr ambdiff]
-		desc 		STRING	"Ambient diffuse value."
-		label		STRING	"Ambient Diffuse"
-    	min			FLOAT	0.0
-    	max			FLOAT	1.0 
+		desc 				STRING	"Ambient diffuse value."
+		label				STRING	"Ambient Diffuse"
+		min					FLOAT	0.0
+		max					FLOAT	1.0
 	[attr gloss]
-		desc 		STRING	"Glossiness."
-		label		STRING	"Glossy"
-        min			FLOAT	0.0
-		max			FLOAT	5000.0
-		softmin		FLOAT	0.0
-		softmax		FLOAT	2000.0		
-		default		FLOAT	10.0
+		desc 				STRING	"Glossiness."
+		label				STRING	"Glossy"
+		min					FLOAT	0.0
+		max					FLOAT	5000.0
+		softmin				FLOAT	0.0
+		softmax				FLOAT	2000.0
+		default				FLOAT	10.0
 	[attr kd_ind]
-		desc 		STRING	"Indirect diffuse strength."
-		label 		STRING	"Indirect Diffuse"
-        min			FLOAT	0.0
-		softmax		FLOAT	10.0	
+		desc 				STRING	"Indirect diffuse strength."
+		label 				STRING	"Indirect Diffuse"
+		min					FLOAT	0.0
+		softmax				FLOAT	10.0
 	[attr rootcolor]
-		desc 		STRING	"Color at hair root."
-		label 		STRING	"Root Color"
+		desc 				STRING	"Color at hair root."
+		label 				STRING	"Root Color"
 	[attr spec]
-		desc 		STRING	"Specular value."
-		label 		STRING	"Specular"
+		desc 				STRING	"Specular value."
+		label 				STRING	"Specular"
 	[attr spec_color]
-		desc 		STRING	"Specular color."	
-		label 		STRING	"Specular Color"
+		desc 				STRING	"Specular color."
+		label 				STRING	"Specular Color"
 	[attr tipcolor]
-		desc 		STRING	"Color at hair tip."	
-		label 		STRING	"Tip Color"
-
+		desc 				STRING	"Color at hair tip."
+		label 				STRING	"Tip Color"
 
 [node polymesh]
 	[attr diffuse_visibility]
-		label 		STRING	"Visible In Diffuse"
+		label 				STRING	"Visible In Diffuse"
 	[attr glossy_visibility]
-		label 		STRING	"Visible In Glossy"
+		label 				STRING	"Visible In Glossy"
 	[attr subdiv_iterations]
-		label 		STRING	"Iterations"
-        min			INT		0
-		max			INT		100
-		softmin		INT		0
-		softmax		INT		10		
+		label 				STRING	"Iterations"
+		min					INT		0
+		max					INT		100
+		softmin				INT		0
+		softmax				INT		10
 	[attr subdiv_pixel_error]
-        min			FLOAT	0.0
-		softmax		FLOAT	10.0		
+		min					FLOAT	0.0
+		softmax				FLOAT	10.0
 	[attr sss_use_gi]
-		label 		STRING	"Use GI with SSS"
+		label 				STRING	"Use GI with SSS"
 	[attr sss_max_samples]
-		label 		STRING	"SSS Max Samples"
-        min			INT		0
-		softmax		INT		1000000
+		label 				STRING	"SSS Max Samples"
+		min					INT		0
+		softmax				INT		1000000
 	[attr sss_sample_spacing]
-		label 		STRING	"SSS Sample Spacing"
-        min			FLOAT	0.0
-		softmax		FLOAT	1.0
-
+		label 				STRING	"SSS Sample Spacing"
+		min					FLOAT	0.0
+		softmax				FLOAT	1.0
