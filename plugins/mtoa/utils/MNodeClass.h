@@ -1,6 +1,8 @@
 #ifndef M_NODE_CLASS_H
 #define M_NODE_CLASS_H
 
+#include "platform/Platform.h"
+
 #include <ai_node_entry.h>
 
 #define MNoVersionString
@@ -26,7 +28,7 @@ struct CAttrData;
 typedef std::map<std::string, std::vector<MObject> > ExtensionAttrMap;
 typedef std::map<std::string, std::vector<CAttrData> > ExtensionAttrDataMap;
 
-class MNodeClass
+class DLLEXPORT MNodeClass
 {
 public:
    MNodeClass (const MString &nodeClassName) :

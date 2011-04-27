@@ -19,6 +19,13 @@ for subdir in ['common', 'platform', 'render', 'scene', 'utils', 'api']:
    source_files  += [os.path.join(subdir, x) for x in find_files_recursive(dir, ['.c', '.cpp'])]
    include_files += [os.path.join(subdir, x) for x in find_files_recursive(dir, ['.h'])]
 
+#Add files to be exported by the API from 'nodes' folder
+source_files_add = [os.path.join('nodes', x) for x in ['ArnoldNodeFactory.cpp', os.path.join('shaders', 'surface', 'ArnoldCustomShader.cpp')]]
+include_files_add = [os.path.join('nodes', x) for x in ['ArnoldNodeFactory.h', os.path.join('shaders', 'surface', 'ArnoldCustomShader.h')]]
+
+source_files += source_files_add
+include_files += include_files_add
+
 if system.os() == 'windows':
    local_env.Append(LIBS=Split('ai.lib OpenGl32.lib glu32.lib Foundation.lib OpenMaya.lib OpenMayaRender.lib OpenMayaUI.lib OpenMayaAnim.lib OpenMayaFX.lib'))
 else:
@@ -29,11 +36,11 @@ local_env.Append(CPPPATH = [sysconfig.get_python_inc()])
 MTOA_API = local_env.SharedLibrary('mtoaAPI', source_files)
 
 if system.os() == 'windows':
-   local_env['MSVSSCONSCRIPT'] = maya_env.File('SConscript')
-   MTOA_API_PRJ = local_env.MSVSProject(target = 'mtoa' + local_env['MSVS']['PROJECTSUFFIX'],
+   local_env['MSVSSCONSCRIPT'] = local_env.File('SConscriptAPI')
+   MTOA_API_PRJ = local_env.MSVSProject(target = 'mtoa_api' + local_env['MSVS']['PROJECTSUFFIX'],
                                     srcs = source_files + include_files,
                                     incs = [],
-                                    buildtarget = 'mtoa',
+                                    buildtarget = 'api',
                                     cmdargs = ['-Q -s COMPILER=msvc MODE=debug TARGET_ARCH=x86',
                                                '-Q -s COMPILER=icc MODE=debug TARGET_ARCH=x86',
                                                '-Q -s COMPILER=msvc MODE=opt TARGET_ARCH=x86',

@@ -3,7 +3,7 @@
 
 #include "NodeTranslator.h"
 
-class CLightTranslator
+class DLLEXPORT CLightTranslator
    :   public CDagTranslator
 {
 public:
@@ -32,7 +32,7 @@ protected:
    bool m_motion;
 };
 
-class CAmbientLightTranslator : public CLightTranslator
+class DLLEXPORT CAmbientLightTranslator : public CLightTranslator
 {
 public:
    void Export(AtNode* light);
@@ -50,7 +50,7 @@ public:
    }
 };
 
-class CDirectionalLightTranslator : public CLightTranslator
+class DLLEXPORT CDirectionalLightTranslator : public CLightTranslator
 {
 public:
    void Export(AtNode* light);
@@ -64,7 +64,7 @@ public:
    }
 };
 
-class CPointLightTranslator : public CLightTranslator
+class DLLEXPORT CPointLightTranslator : public CLightTranslator
 {
 public:
    void Export(AtNode* light);
@@ -79,7 +79,7 @@ public:
    }
 };
 
-class CSpotLightTranslator : public CLightTranslator
+class DLLEXPORT CSpotLightTranslator : public CLightTranslator
 {
 public:
    void Export(AtNode* light);
@@ -94,7 +94,7 @@ public:
    }
 };
 
-class CAreaLightTranslator : public CLightTranslator
+class DLLEXPORT CAreaLightTranslator : public CLightTranslator
 {
 public:
    void Export(AtNode* light);
@@ -109,7 +109,7 @@ public:
    }
 };
 
-class CSkyDomeLightTranslator : public CLightTranslator
+class DLLEXPORT CSkyDomeLightTranslator : public CLightTranslator
 {
 public:
    void Export(AtNode* light);

@@ -58,7 +58,7 @@ typedef void (*pluginInitFunctionType)(CExtension&);
 /// and generate Maya nodes from the Arnold shaders contained within them. Metadata can be added to
 /// the Arnold node and its parameters to control how the Maya node and its attributes are generated, if at all.
 
-class CArnoldNodeFactory
+class DLLEXPORT CArnoldNodeFactory
 {
 public:
    CArnoldNodeFactory(MObject plugin);
@@ -112,7 +112,7 @@ inline CArnoldNodeFactory::~CArnoldNodeFactory()
 ///  -# processes the equivalent attribute on the Maya node
 ///
 
-class DLLEXPORT CAutoTranslator : public CNodeTranslator
+class CAutoTranslator : public CNodeTranslator
 {
 public:
    CAutoTranslator() :

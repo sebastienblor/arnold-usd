@@ -1,12 +1,14 @@
 #ifndef AOV_H
 #define AOV_H
 
+#include "platform/Platform.h"
+
 #include <ai.h>
 
 #include <maya/MString.h>
 #include <maya/MPlug.h>
 
-class CAOV
+class DLLEXPORT CAOV
 {
 public:
 //Deprecated ?
