@@ -375,7 +375,7 @@ void CGeoTranslator::GetComponentIDs(MFnMesh &fnMesh,
       bool exportUVs
       )
 {
-   int uv_id;
+   int uv_id = 0;
    // Traverse all polygons to export vidxs, uvindxs and nsides
    nsides.reserve(fnMesh.numPolygons());
    for (int p(0); p < fnMesh.numPolygons(); ++p)
@@ -477,6 +477,8 @@ void CGeoTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
       MFnDependencyNode fnDGNode(shadingGroup);
       MPlug shaderPlug = fnDGNode.findPlug("displacementShader");
       shaderPlug.connectedTo(connections, true, false);
+
+      m_displaced = false;
 
       // are there any connections to displacementShader?
       if (connections.length() > 0)
@@ -941,7 +943,7 @@ void CGeoTranslator::ShaderAssignmentCallback( MNodeMessage::AttributeMessage ms
 
 void CGeoTranslator::NodeInitializer(MString nodeClassName)
 {
-  CExtensionAttrHelper helper(nodeClassName, "polymesh");
+   CExtensionAttrHelper helper(nodeClassName, "polymesh");
 
    // Node attributes
    CShapeTranslator::MakeCommonAttributes(helper);
