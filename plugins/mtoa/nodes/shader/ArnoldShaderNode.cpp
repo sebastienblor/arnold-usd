@@ -101,6 +101,14 @@ MStatus CArnoldShaderNode::initialize()
       nAttr.setReadable(true);
       nAttr.setWritable(true);
       addAttribute(attrib);
+
+      MObject hwColor = nAttr.createColor("hardwareColor", "hwc");
+      nAttr.setKeyable(true);
+      nAttr.setStorable(true);
+      nAttr.setReadable(true);
+      nAttr.setWritable(true);
+      nAttr.setDefault(0.8f, 0.8f, 0.8f);
+      addAttribute(hwColor);
    }
 
    // inputs
