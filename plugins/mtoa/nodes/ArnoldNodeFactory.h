@@ -11,6 +11,7 @@
 #include "scene/MayaScene.h"
 #include "utils/AttrHelper.h"
 #include "common/DynLibrary.h"
+#include "api/Extension.h"
 
 #include <ai_nodes.h>
 #include <ai.h>
@@ -46,15 +47,6 @@ typedef std::map<std::string, std::vector<std::string> > ArnoldPluginData;
 typedef std::map<std::string, std::vector<CAttrData> > DynamicAttrMap;
 
 int FindLibraries(MString searchPath, MStringArray &files);
-
-class DLLEXPORT CExtension
-{
-public:
-   void RegisterDependTranslator(const char* mayaNode, int typeId, CreatorFunction creator);
-   void RegisterDagTranslator(const char* mayaNode, int typeId, CreatorFunction creator);
-   void RegisterDependTranslator(const char* mayaNode, int typeId, CreatorFunction creator, NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin="");
-   void RegisterDagTranslator(const char* mayaNode, int typeId, CreatorFunction creator, NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin="");
-};
 
 typedef void (*pluginInitFunctionType)(CExtension&);
 

@@ -68,28 +68,6 @@ int FindLibraries(MString searchPath, MStringArray &files)
    return 0;
 }
 
-// CExtension
-
-void CExtension::RegisterDependTranslator(const char* mayaNode, int typeId, CreatorFunction creator)
-{
-   CTranslatorRegistry::RegisterDependTranslator(mayaNode, typeId, creator);
-}
-
-void CExtension::RegisterDagTranslator(const char* mayaNode, int typeId, CreatorFunction creator)
-{
-   CTranslatorRegistry::RegisterDagTranslator(mayaNode, typeId, creator);
-}
-
-void CExtension::RegisterDependTranslator(const char* mayaNode, int typeId, CreatorFunction creator, NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin)
-{
-   CTranslatorRegistry::RegisterDependTranslator(mayaNode, typeId, creator, nodeClassInitializer, providedByPlugin);
-}
-
-void CExtension::RegisterDagTranslator(const char* mayaNode, int typeId, CreatorFunction creator, NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin)
-{
-   CTranslatorRegistry::RegisterDagTranslator(mayaNode, typeId, creator, nodeClassInitializer, providedByPlugin);
-}
-
 // CArnoldNodeFactory
 
 MayaNodeDataMap CArnoldNodeFactory::s_factoryNodes;
@@ -398,6 +376,7 @@ bool CArnoldNodeFactory::LoadExtension(const char* extensionFile)
    
    CExtension plugin = CExtension();
    (*initFunc)(plugin);
+   MGlobal::displayInfo(MString("[mtoa] loaded extension: ") + extensionFile);
 
    return true;
 }
@@ -406,16 +385,6 @@ bool CArnoldNodeFactory::LoadExtension(const char* extensionFile)
 ///
 void CArnoldNodeFactory::LoadExtensions()
 {
-   MStatus status;
-#if defined(_LINUX) || defined(_DARWIN)
-   // re-open mtoa.so so it's symbols are global. When Maya loads the plugin it seems to be loading it with RTLD_LOCAL
-   // TODO: better error checking
-   MString pluginPath = m_plugin.loadPath(&status);
-   CHECK_MSTATUS(status);
-   pluginPath += "/mtoa.so";
-   m_pluginHandle = dlopen(pluginPath.asChar(), RTLD_LAZY | RTLD_GLOBAL );
-#endif
-
    MStringArray plugins;
    FindLibraries("$MTOA_EXTENSIONS_PATH", plugins);
    for (unsigned int i=0; i<plugins.length(); ++i)

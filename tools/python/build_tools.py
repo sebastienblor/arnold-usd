@@ -40,6 +40,13 @@ def find_files_recursive(path, valid_extensions):
             list += [file]
    return list
 
+def find_files(path, valid_extensions):
+   '''
+   Returns a list of all files with an extension from the 'valid_extensions' list
+   '''
+   path = os.path.normpath(path)
+   return [f for f in os.listdir(path) if any([f.endswith(ext) for ext in valid_extensions])]
+   
 def copy_dir_recursive(src, dest):
    '''
    Copy directories recursively, ignoring .svn dirs

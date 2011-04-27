@@ -43,7 +43,7 @@ else:
 
    local_env.Append(CPPPATH = ['.'])
    local_env.Append(LIBATH = ['.'])
-   local_env.Append(LIBS=['ShaveAPI'])
+   local_env.Append(LIBS=['ShaveAPI', 'mtoaAPI'])
 
 
 # import build env

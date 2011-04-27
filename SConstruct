@@ -291,6 +291,10 @@ else:
       maya_env.Append(CPPPATH = [os.path.join(env['MAYA_ROOT'], '../../devkit/include')])
       maya_env.Append(LIBPATH = [os.path.join(env['MAYA_ROOT'], 'MacOS')])
 
+   MTOA_API = env.SConscript(os.path.join('plugins', 'mtoa', 'SConscriptAPI'),
+                         build_dir = os.path.join(BUILD_BASE_DIR, 'mtoaAPI'),
+                         duplicate = 0,
+                         exports   = 'maya_env')
 
    MTOA = env.SConscript(os.path.join('plugins', 'mtoa', 'SConscript'),
                          build_dir = os.path.join(BUILD_BASE_DIR, 'mtoa'),
@@ -301,6 +305,8 @@ else:
                                  build_dir = os.path.join(BUILD_BASE_DIR, 'shaders'),
                                  duplicate = 0,
                                  exports   = 'env')
+
+Depends(MTOA, MTOA_API[0])
 
 DIFFTIFF = env.SConscript(os.path.join('tools', 'difftiff', 'SConscript'),
                           build_dir = os.path.join(BUILD_BASE_DIR, 'difftiff'),
@@ -339,6 +345,8 @@ libs = glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*.%s' % libext))
 libs += glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*boost*.%s.*' % libext))
 env.Install(env['TARGET_LIB_PATH'], libs)
 
+env.Install(env['TARGET_LIB_PATH'], MTOA_API)
+
 env.Install(env['TARGET_SCRIPTS_PATH'], glob.glob(os.path.join('scripts', '*.mel')))
 pyfiles = find_files_recursive('scripts', ['.py']) + find_files_recursive('scripts', ['.yaml'])
 env.InstallAs([os.path.join(env['TARGET_PYTHON_PATH'], x) for x in pyfiles],
@@ -356,9 +364,9 @@ env.Install(env['TARGET_MODULE_PATH'], os.path.join(BUILD_BASE_DIR, 'mtoa.mod'))
 ext_env = maya_env.Clone()
 ext_env.Append(CPPPATH = ['plugin', os.path.join(maya_env['ROOT_DIR'], 'plugins', 'mtoa'), env['ARNOLD_API_INCLUDES']])
 ext_env.Append(LIBPATH = ['.', env['ARNOLD_API_LIB']])
-ext_env.Append(LIBPATH = [ os.path.join(maya_env['ROOT_DIR'], os.path.split(str(MTOA[0]))[0]) ])
-if system.os() == 'windows':
-    ext_env.Append(LIBS = ['mtoa'])
+ext_env.Append(LIBPATH = [ os.path.join(maya_env['ROOT_DIR'], os.path.split(str(MTOA[0]))[0]),
+                           os.path.join(maya_env['ROOT_DIR'], os.path.split(str(MTOA_API[0]))[0])])
+ext_env.Append(LIBS = ['mtoaAPI'])
 
 ext_base_dir = os.path.join('contrib', 'extensions')
 ext_files = []
@@ -381,6 +389,7 @@ for ext in os.listdir(ext_base_dir):
                                 duplicate = 0,
                                 exports   = ['ext_env', 'env'])
         top_level_alias(env, ext, EXT)
+        Depends(EXT, MTOA_API[0])
         # only install if the target has been specified
         if ext in COMMAND_LINE_TARGETS:
             # EXT may contain a shader result
