@@ -68,9 +68,9 @@ if OS == 'windows':
    else:
       HOST_ARCH = 'x86'
 elif OS == 'darwin':
-   VALID_ARCHS = ('x86', 'x86_64')
+   VALID_ARCHS = ('i386', 'x86_64')
    
-   HOST_ARCH = 'x86'
+   HOST_ARCH = 'x86_64'
 elif OS == 'linux':
    VALID_ARCHS = ('x86', 'x86_64', 'sparc_64')
    

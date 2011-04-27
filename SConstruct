@@ -288,8 +288,8 @@ else:
       maya_env.Append(CPPDEFINES = Split('LINUX'))
       maya_env.Append(LIBPATH = [os.path.join(env['MAYA_ROOT'], 'lib')])
    elif system.os() == 'darwin':
-      maya_env.Append(CPPPATH = [os.path.join(env['MAYA_ROOT'], 'devkit/include')])
-      maya_env.Append(LIBPATH = [os.path.join(env['MAYA_ROOT'], 'Maya.app/Contents/MacOS')])
+      maya_env.Append(CPPPATH = [os.path.join(env['MAYA_ROOT'], '../../devkit/include')])
+      maya_env.Append(LIBPATH = [os.path.join(env['MAYA_ROOT'], 'MacOS')])
 
 
    MTOA = env.SConscript(os.path.join('plugins', 'mtoa', 'SConscript'),
@@ -321,20 +321,23 @@ SConscriptChdir(1)
 
 env.Install(env['TARGET_PLUGIN_PATH'], os.path.join('plugins', 'mtoa', 'mtoa.mtd'))
 if system.os() == 'windows':
-   libs = glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*.dll'))
-   libs += glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*boost*.dll.*'))
-   env.Install(env['TARGET_LIB_PATH'], libs)
+   libext = 'dll'
    # Rename plugins as .mll and install them in the target path
    mtoa_new = os.path.splitext(str(MTOA[0]))[0] + '.mll'
    env.Command(mtoa_new, str(MTOA[0]), Copy("$TARGET", "$SOURCE"))
    env.Install(env['TARGET_PLUGIN_PATH'], [mtoa_new])
    env.Install(env['TARGET_SHADER_PATH'], MTOA_SHADERS[0])
 else:
-   libs = glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*.so'))
-   libs += glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*boost*.so.*'))
-   env.Install(env['TARGET_LIB_PATH'], libs)
+   if system.os() == 'darwin':
+      libext = 'dylib'
+   else:
+      libext = 'so'
    env.Install(env['TARGET_PLUGIN_PATH'], MTOA)
    env.Install(env['TARGET_SHADER_PATH'], MTOA_SHADERS)
+
+libs = glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*.%s' % libext))
+libs += glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*boost*.%s.*' % libext))
+env.Install(env['TARGET_LIB_PATH'], libs)
 
 env.Install(env['TARGET_SCRIPTS_PATH'], glob.glob(os.path.join('scripts', '*.mel')))
 pyfiles = find_files_recursive('scripts', ['.py']) + find_files_recursive('scripts', ['.yaml'])
