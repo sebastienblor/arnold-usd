@@ -15,7 +15,7 @@
 #ifdef _WIN32
    #include <platform/win32/dirent.h>
    #define PATHSEP ';'
-   #define DIRSEP "\\"
+   #define DIRSEP "/"
    #define LIBEXT MString(".dll")
 #else
    #include <sys/types.h>
@@ -392,11 +392,6 @@ void CArnoldNodeFactory::LoadExtensions()
       MString plugin = plugins[i];
       if (plugin.length() > 0)
       {
-#ifdef _WIN32
-         char buffer[MAX_PATH];
-         GetFullPathName(plugin.asChar(), MAX_PATH, buffer, NULL);
-         plugin = buffer;
-#endif // _WIN32
          cerr << "Loading:" << plugin.asChar() << endl;
          LoadExtension(plugin.asChar());
          MString cmd = "import mtoa.api.extensions;mtoa.api.extensions.loadExtensionUI('" + plugin + "')";

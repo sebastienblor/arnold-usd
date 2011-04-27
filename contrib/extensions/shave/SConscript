@@ -13,11 +13,11 @@ src_base_dir  = os.path.join(local_env['ROOT_DIR'], 'contrib', 'extensions', 'sh
 source_files  = [os.path.join('plugin', x) for x in find_files_recursive(src_base_dir, ['.c', '.cpp'])]
 include_files = [os.path.join('plugin', x) for x in find_files_recursive(src_base_dir, ['.h'])]
 
-EXT = local_env.SharedLibrary('shave', source_files, LIBPREFIX='mtoa_')
+EXT = local_env.SharedLibrary('shave', source_files, LIBPREFIX='')
 
 if system.os() == 'windows':
    local_env.Append(LIBS=Split('libShaveAPI.lib'))
-   local_env['MSVSSCONSCRIPT'] = ext_env.File('SConscript')
+   local_env['MSVSSCONSCRIPT'] = local_env.File('SConscript')
    EXT_PRJ = local_env.MSVSProject(target = 'shave' + local_env['MSVS']['PROJECTSUFFIX'],
                                     srcs = source_files + include_files,
                                     incs = [],
@@ -39,10 +39,10 @@ else:
    # If a shave API path is passed, use that. Otherwise assume it's on the path.
    if local_env.has_key( "SHAVE_API" ):
       local_env.Append(CPPPATH = [os.path.join(local_env["SHAVE_API"], 'include')])
-      local_env.Append(LIBATH = [os.path.join(local_env["SHAVE_API"], 'lib')])
+      local_env.Append(LIBPATH = [os.path.join(local_env["SHAVE_API"], 'lib')])
 
    local_env.Append(CPPPATH = ['.'])
-   local_env.Append(LIBATH = ['.'])
+   local_env.Append(LIBPATH = ['.'])
    local_env.Append(LIBS=['ShaveAPI', 'mtoaAPI'])
 
 
@@ -67,6 +67,7 @@ else:
 EXT_SHADERS = shader_env.SharedLibrary('shave_shaders', source_files, LIBPREFIX='')
 
 if system.os() == 'windows':
+   shader_env['MSVSSCONSCRIPT'] = shader_env.File('SConscript')
    EXT_SHADERS_PRJ = shader_env.MSVSProject(target = 'shave_shaders' + shader_env['MSVS']['PROJECTSUFFIX'],
                                             srcs = source_files + include_files,
                                             incs = [],

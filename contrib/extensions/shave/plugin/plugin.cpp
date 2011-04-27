@@ -4,7 +4,7 @@
 extern "C"
 {
 
-void initializePlugin(CExtension& plugin)
+DLLEXPORT void initializePlugin(CExtension& plugin)
 {
    plugin.RegisterDagTranslator("shaveHair",
                                 0x1029b7,
@@ -13,7 +13,7 @@ void initializePlugin(CExtension& plugin)
                                 "shaveNode");
 }
 
-void uninitializePlugin(CExtension& plugin)
+DLLEXPORT void uninitializePlugin(CExtension& plugin)
 {
 }
 

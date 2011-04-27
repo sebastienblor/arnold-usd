@@ -368,6 +368,15 @@ ext_env.Append(LIBPATH = [ os.path.join(maya_env['ROOT_DIR'], os.path.split(str(
                            os.path.join(maya_env['ROOT_DIR'], os.path.split(str(MTOA_API[0]))[0])])
 ext_env.Append(LIBS = ['mtoaAPI'])
 
+if system.os() == 'windows':
+   ext_env.Append(LIBS=Split('ai.lib OpenGl32.lib glu32.lib Foundation.lib OpenMaya.lib OpenMayaRender.lib OpenMayaUI.lib OpenMayaAnim.lib OpenMayaFX.lib'))
+else:
+   ext_env.Append(LIBS=Split('ai pthread Foundation OpenMaya OpenMayaRender OpenMayaUI OpenMayaAnim OpenMayaFX'))
+   ext_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
+
+if system.os() == 'darwin':
+    ext_env.Append(LDMODULESUFFIX='.bundle')
+
 ext_base_dir = os.path.join('contrib', 'extensions')
 ext_files = []
 ext_shaders = []
@@ -378,10 +387,15 @@ for ext in os.listdir(ext_base_dir):
     ext_dir = os.path.join(ext_base_dir, ext)
     if os.path.isdir(ext_dir):
         if system.os() == 'windows':
-           [EXT, EXT_PRJ] = env.SConscript(os.path.join(ext_dir, 'SConscript'),
-                                           build_dir = os.path.join(BUILD_BASE_DIR, ext),
-                                           duplicate = 0,
-                                           exports   = ['ext_env', 'env'])
+           EXT = env.SConscript(os.path.join(ext_dir, 'SConscript'),
+                                build_dir = os.path.join(BUILD_BASE_DIR, ext),
+                                duplicate = 0,
+                                exports   = ['ext_env', 'env'])
+           if len(EXT) == 4:
+              EXT_PRJ = EXT[2]
+           else:
+              EXT_PRJ = EXT[1]
+           
            env.Depends(SOLUTION, EXT_PRJ)
         else:
            EXT = env.SConscript(os.path.join(ext_dir, 'SConscript'),
