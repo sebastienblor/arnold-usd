@@ -1,24 +1,28 @@
-#include "scene/NodeTranslator.h"
+#include "scene/Geometry.h"
 #include <maya/shaveAPI.h>
 #include <maya/shaveItHair.h>
 
 class CShaveTranslator
-   :   public CDagTranslator
+   :   public CGeoTranslator
 {
 public:
 
-   void Export(AtNode* camera);
-   void Update(AtNode* curve);
-   void UpdateMotion(AtNode* curve, AtUInt step);
+   virtual void Export(AtNode* camera);
+   virtual void Update(AtNode* curve);
+   virtual void ExportMotion(AtNode* curve, AtUInt step);
+   static void NodeInitializer(MString nodeClassName);
+   const char* GetArnoldNodeType();
    static void* creator()
    {
       return new CShaveTranslator();
    }
-   static void NodeInitializer(MString nodeClassName);
-   const char* GetArnoldNodeType();
 
 private:
-   void ProcessHairLines(AtUInt step, AtArray* curvePoints, AtArray* curveNextLineStartsInterp, AtArray* curveNextLineStarts, AtArray* curveWidths);
+   void ProcessHairLines(AtUInt step,
+                         AtArray* curvePoints,
+                         AtArray* curveNextLineStartsInterp,
+                         AtArray* curveNextLineStarts,
+                         AtArray* curveWidths);
    MStatus SetHairInfo();
    shaveAPI::HairInfo m_hairInfo;
 };

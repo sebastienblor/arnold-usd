@@ -47,7 +47,7 @@ int FindLibraries(MString searchPath, MStringArray &files)
       if((dp  = opendir(dir.asChar())) == NULL)
       {
          // TODO: print better error message
-         cout << "Error(" << errno << ") opening " << dir << endl;
+         cerr << "Error(" << errno << ") opening " << dir << endl;
          continue;
       }
       while ((dirp = readdir(dp)) != NULL)
@@ -428,6 +428,7 @@ void CArnoldNodeFactory::LoadExtensions()
          GetFullPathName(plugin.asChar(), MAX_PATH, buffer, NULL);
          plugin = buffer;
 #endif // _WIN32
+         cerr << "Loading:" << plugin.asChar() << endl;
          LoadExtension(plugin.asChar());
          MString cmd = "import mtoa.api.extensions;mtoa.api.extensions.loadExtensionUI('" + plugin + "')";
          CHECK_MSTATUS(MGlobal::executePythonCommand(cmd));

@@ -47,27 +47,20 @@ void CShaveTranslator::Update(AtNode* curve)
    hairNodes.append(m_dagPath.node());
 
    // export shaveAndHaircut info into a variable
-   //
-   if (SetHairInfo() != MS::kSuccess)
-      return;
-
-   // check if motionblur is enabled
-   //
-   const bool mb = m_scene->IsMotionBlurEnabled() && m_scene->IsObjectMotionBlurEnabled();
-   const bool mb_deform = mb && m_scene->IsObjectDeformMotionBlurEnabled();
+   if (SetHairInfo() != MS::kSuccess) return;
 
    // Check if custom attributes have been created, ignore them otherwise
    MStatus status;
    m_fnNode.findPlug("override_shader", &status);
-   bool customAttributes = (status == MS::kSuccess);
+   const bool customAttributes = (status == MS::kSuccess);
 
    // number of curves
-   //
-   int numMainLines = m_hairInfo.numHairs;
+   const int numMainLines = m_hairInfo.numHairs;
    // Get curves cv count
-   int renderLineLength = (m_hairInfo.numVertices / numMainLines) -1;
+   const int renderLineLength = (m_hairInfo.numVertices / numMainLines) -1;
 
    // The shader nodes
+   // TODO: Kill these and export it properly.
    AtNode* shader;
    AtNode* ramp;
    AtNode* placmentNode;
@@ -76,9 +69,8 @@ void CShaveTranslator::Update(AtNode* curve)
    // The curveWidths array
    AtArray* curveWidths = NULL;
 
-   // Get the transforms matrix
-   AtMatrix matrix;
-   GetMatrix(matrix);
+   // Export the transform matrix
+   ExportMatrix(curve, 0);
 
    // The numPoints array (int array the size of numLines, no motionsteps)
    AtArray* curveNumPoints = AiArrayAllocate(numMainLines, 1, AI_TYPE_INT);
@@ -118,9 +110,8 @@ void CShaveTranslator::Update(AtNode* curve)
          AiNodeSetStr(ramp, "type", "v");
          AiNodeSetArray(ramp, "positions", AiArray(2, 1, AI_TYPE_FLOAT, 0.55f, 1.0f));
          AiNodeSetArray(ramp, "colors", AiArray(2, 1, AI_TYPE_RGB, AI_RGB_WHITE, AI_RGB_BLACK));
-         AiNodeSetBool(ramp, "overrideUV", TRUE);
 
-         AiNodeLink (placmentNode, "uv", ramp);
+         AiNodeLink (placmentNode, "uvCoord", ramp);
          AiNodeLink (ramp, "strand_opacity", shader);
       }
    }
@@ -172,7 +163,7 @@ void CShaveTranslator::Update(AtNode* curve)
    }
 
    // alocate memory for all curve points
-   if(mb_deform || mb)
+   if(m_motionDeform || m_motion)
       curvePoints = AiArrayAllocate(numPointsInterpolation, m_scene->GetNumMotionSteps(), AI_TYPE_POINT);
    else
       curvePoints = AiArrayAllocate(numPointsInterpolation, 1, AI_TYPE_POINT);
@@ -200,9 +191,9 @@ void CShaveTranslator::Update(AtNode* curve)
 
       // set opaque
       if (m_fnNode.findPlug("tipFade").asBool())
-         AiNodeSetBool(curve, "opaque", FALSE);
+         AiNodeSetBool(curve, "opaque", false);
       else
-         AiNodeSetBool(curve, "opaque", TRUE);
+         AiNodeSetBool(curve, "opaque", true);
 
       // Subsurface Scattering
       //
@@ -226,28 +217,16 @@ void CShaveTranslator::Update(AtNode* curve)
    AiNodeSetStr(curve, "basis", "catmull-rom");
 
    // Set all arrays on the curve node
-   AiNodeSetArray(curve, "radius", curveWidths);
-   AiNodeSetArray(curve, "uparamcoord", curve_uparamcoord);
-   AiNodeSetArray(curve, "vparamcoord", curve_vparamcoord);
-   AiNodeSetArray(curve, "rootcolorparam", rootColor);
-   AiNodeSetArray(curve, "tipcolorparam", tipColor);
+   AiNodeSetArray(curve, "radius",                    curveWidths);
+   AiNodeSetArray(curve, "uparamcoord",               curve_uparamcoord);
+   AiNodeSetArray(curve, "vparamcoord",               curve_vparamcoord);
+   AiNodeSetArray(curve, "rootcolorparam",            rootColor);
+   AiNodeSetArray(curve, "tipcolorparam",             tipColor);
 
-   AiNodeSetArray(curve, "num_points", curveNumPoints);
-   AiNodeSetArray(curve, "points", curvePoints);
-   AiNodeSetArray(curve, "next_line_starts_interp", curveNextLineStartsInterp);
-   AiNodeSetArray(curve, "next_line_starts", curveNextLineStarts);
-
-   // set transform matrix
-   if (mb)
-   {
-      AtArray* matrices = AiArrayAllocate(1, m_scene->GetNumMotionSteps(), AI_TYPE_MATRIX);
-      AiArraySetMtx(matrices, 0, matrix);
-      AiNodeSetArray(curve, "matrix", matrices);
-   }
-   else
-   {
-      AiNodeSetMatrix(curve, "matrix", matrix);
-   }
+   AiNodeSetArray(curve, "num_points",                curveNumPoints);
+   AiNodeSetArray(curve, "points",                    curvePoints);
+   AiNodeSetArray(curve, "next_line_starts_interp",   curveNextLineStartsInterp);
+   AiNodeSetArray(curve, "next_line_starts",          curveNextLineStarts);
 
    // Ignore one or less cv curves
    if ( renderLineLength > 1)
@@ -257,83 +236,87 @@ void CShaveTranslator::Update(AtNode* curve)
    m_hairInfo.clear();
 }
 
-void CShaveTranslator::UpdateMotion(AtNode* curve, AtUInt step)
+void CShaveTranslator::ExportMotion(AtNode* curve, AtUInt step)
 {
-   if (SetHairInfo() != MS::kSuccess)
-      return;
+   // Bail early if we've trouble getting data from Shave.
+   if (SetHairInfo() != MS::kSuccess) return;
+   // Set transform matrix
+   ExportMatrix(curve, step);
 
-   // check if motionblur is enabled
-   //
-   const bool mb = m_scene->IsMotionBlurEnabled() && m_scene->IsObjectMotionBlurEnabled();
+   // Check if motionblur is enabled
+   const bool mb        = m_scene->IsMotionBlurEnabled() && m_scene->IsObjectMotionBlurEnabled();
    const bool mb_deform = mb && m_scene->IsObjectDeformMotionBlurEnabled();
 
    // Get curves cv count
    int renderLineLength = (m_hairInfo.numVertices /  m_hairInfo.numHairs) -1;
 
-   AtArray* curveWidths = AiNodeGetArray(curve, "radius");
-   AtArray* curvePoints = AiNodeGetArray(curve, "points");
-   AtArray* curveNextLineStartsInterp = AiNodeGetArray(curve, "next_line_starts_interp");
-   AtArray* curveNextLineStarts = AiNodeGetArray(curve, "next_line_starts");
+   AtArray* curveWidths                = AiNodeGetArray(curve, "radius");
+   AtArray* curvePoints                = AiNodeGetArray(curve, "points");
+   AtArray* curveNextLineStartsInterp  = AiNodeGetArray(curve, "next_line_starts_interp");
+   AtArray* curveNextLineStarts        = AiNodeGetArray(curve, "next_line_starts");
 
-   // set transform matrix
-   if (mb)
-   {
-      // Get the transforms matrix
-      AtMatrix matrix;
-      GetMatrix(matrix);
-
-      AtArray* matrices = AiNodeGetArray(curve, "matrix");
-      AiArraySetMtx(matrices, step, matrix);
-   }
    // Ignore one or less cv curves
    if ( (mb_deform || mb ) && renderLineLength > 1)
    {
-      ProcessHairLines(step, curvePoints, curveNextLineStartsInterp, curveNextLineStarts, curveWidths);
+      ProcessHairLines(step,
+                       curvePoints,
+                       curveNextLineStartsInterp,
+                       curveNextLineStarts,
+                       curveWidths);
    }
    m_hairInfo.clear();
 }
 
 
 void CShaveTranslator::ProcessHairLines(AtUInt step,
-                                          AtArray* curvePoints,
-                                          AtArray* curveNextLineStartsInterp,
-                                          AtArray* curveNextLineStarts,
-                                          AtArray* curveWidths)
+                                        AtArray* curvePoints,
+                                        AtArray* curveNextLineStartsInterp,
+                                        AtArray* curveNextLineStarts,
+                                        AtArray* curveWidths)
 {
    // Get curves cv count
-   int renderLineLength = (m_hairInfo.numVertices / m_hairInfo.numHairs) -1;
+   const int renderLineLength = (m_hairInfo.numVertices / m_hairInfo.numHairs) -1;
 
    // Process all hair lines
-   int strand;
-   for(strand = 0; strand < m_hairInfo.numHairs; strand++)
+   for( int strand = 0; strand < m_hairInfo.numHairs; ++strand)
    {
-      int curve_num_points_per_step = AiArrayGetInt(curveNextLineStartsInterp, (m_hairInfo.numHairs-1));
+      const int curve_num_points_per_step = AiArrayGetInt(curveNextLineStartsInterp, (m_hairInfo.numHairs-1));
 
       // tells us where the nextline starts,
       //
-      int curve_line_interp_starts_i = strand ? AiArrayGetInt(curveNextLineStartsInterp, strand-1) : 0 ;
-      int curve_line_starts_i = strand ? AiArrayGetInt(curveNextLineStarts, strand-1) : 0 ;
+      const int curve_line_interp_starts_i = strand ? AiArrayGetInt(curveNextLineStartsInterp, strand-1) : 0 ;
+      const int curve_line_starts_i = strand ? AiArrayGetInt(curveNextLineStarts, strand-1) : 0 ;
 
       AtPoint arnoldCurvePoint;
 
       // curve radius
-      float rootRadius = m_hairInfo.rootRadii[strand];
-      float tipRadius = m_hairInfo.tipRadii[strand];
-      float radiusStepSize = (rootRadius - tipRadius) / (renderLineLength-1);
+      const float rootRadius = m_hairInfo.rootRadii[strand];
+      const float tipRadius = m_hairInfo.tipRadii[strand];
+      const float radiusStepSize = (rootRadius - tipRadius) / (renderLineLength-1);
       float curveSize = rootRadius;
 
       int index = 0;
-      for (int j = m_hairInfo.hairStartIndices[strand]; j < m_hairInfo.hairEndIndices[strand]-1; j++)
+      for (int j = m_hairInfo.hairStartIndices[strand]; j < m_hairInfo.hairEndIndices[strand]-1; ++j, ++index)
       {
 
          if (index == 0)
          {
-            AiV3Create(arnoldCurvePoint, (AtFloat)  m_hairInfo.vertices[j].x, (AtFloat)  m_hairInfo.vertices[j].y, (AtFloat)  m_hairInfo.vertices[j].z);
-            AiArraySetPnt(curvePoints, (index + curve_line_interp_starts_i + (step * curve_num_points_per_step)), arnoldCurvePoint);
+            AiV3Create(arnoldCurvePoint,
+                       (AtFloat)  m_hairInfo.vertices[j].x,
+                       (AtFloat)  m_hairInfo.vertices[j].y,
+                       (AtFloat)  m_hairInfo.vertices[j].z);
+            AiArraySetPnt(curvePoints,
+                          (index + curve_line_interp_starts_i + (step * curve_num_points_per_step)),
+                          arnoldCurvePoint);
          }
 
-         AiV3Create(arnoldCurvePoint, (AtFloat)  m_hairInfo.vertices[j].x, (AtFloat)  m_hairInfo.vertices[j].y, (AtFloat)  m_hairInfo.vertices[j].z);
-         AiArraySetPnt(curvePoints, ((index+1) + curve_line_interp_starts_i + (step * curve_num_points_per_step)), arnoldCurvePoint);
+         AiV3Create(arnoldCurvePoint,
+                    (AtFloat)  m_hairInfo.vertices[j].x,
+                    (AtFloat)  m_hairInfo.vertices[j].y,
+                    (AtFloat)  m_hairInfo.vertices[j].z);
+         AiArraySetPnt(curvePoints,
+                       ((index+1) + curve_line_interp_starts_i + (step * curve_num_points_per_step)),
+                       arnoldCurvePoint);
 
          // Animated widths are not supported, so just on STEP 0
          if (step == 0)
@@ -343,14 +326,17 @@ void CShaveTranslator::ProcessHairLines(AtUInt step,
 
          if (index == (renderLineLength-1))
          {
-            AiV3Create(arnoldCurvePoint, (AtFloat)  m_hairInfo.vertices[j].x, (AtFloat)  m_hairInfo.vertices[j].y, (AtFloat)  m_hairInfo.vertices[j].z);
-            AiArraySetPnt(curvePoints, ((index+2) + curve_line_interp_starts_i + (step * curve_num_points_per_step)), arnoldCurvePoint);
+            AiV3Create(arnoldCurvePoint,
+                       (AtFloat)  m_hairInfo.vertices[j].x,
+                       (AtFloat)  m_hairInfo.vertices[j].y,
+                       (AtFloat)  m_hairInfo.vertices[j].z);
+            AiArraySetPnt(curvePoints,
+                          ((index+2) + curve_line_interp_starts_i + (step * curve_num_points_per_step)),
+                          arnoldCurvePoint);
          }
-         index++;
 
          // guard against minus values
-         if (curveSize > 0)
-            curveSize -= radiusStepSize;
+         if (curveSize > 0) curveSize -= radiusStepSize;
       }
    }
 }
@@ -360,7 +346,7 @@ void CShaveTranslator::NodeInitializer(MString nodeClassName)
 {
    CExtensionAttrHelper helper(nodeClassName, "curves");
    CShapeTranslator::MakeCommonAttributes(helper);
-   helper.MakeInput("min_pixel_width");
-   helper.MakeInput("mode");
+//   helper.MakeInput("min_pixel_width");
+//   helper.MakeInput("mode");
 
 }
