@@ -49,11 +49,6 @@ void CShaveTranslator::Update(AtNode* curve)
    // export shaveAndHaircut info into a variable
    if (SetHairInfo() != MS::kSuccess) return;
 
-   // Check if custom attributes have been created, ignore them otherwise
-   MStatus status;
-   m_fnNode.findPlug("override_shader", &status);
-   const bool customAttributes = (status == MS::kSuccess);
-
    // number of curves
    const int numMainLines = m_hairInfo.numHairs;
    // Get curves cv count
@@ -61,9 +56,9 @@ void CShaveTranslator::Update(AtNode* curve)
 
    // The shader nodes
    // TODO: Kill these and export it properly.
-   AtNode* shader;
-   AtNode* ramp;
-   AtNode* placmentNode;
+   AtNode* shader       = NULL;
+   AtNode* ramp         = NULL;
+   AtNode* placmentNode = NULL;
    // The curvePoints array
    AtArray* curvePoints;
    // The curveWidths array
@@ -88,23 +83,40 @@ void CShaveTranslator::Update(AtNode* curve)
    AtArray* curve_uparamcoord = AiArrayAllocate(numMainLines, 1, AI_TYPE_FLOAT);
    AtArray* curve_vparamcoord = AiArrayAllocate(numMainLines, 1, AI_TYPE_FLOAT);
 
-   // Curves shader,
+   // Get the visibiliy and render flags set.
+   ProcessRenderFlags(curve);
+   
+   // Curves shader
    //
-   if (m_fnNode.findPlug("override_shader").asBool())
+   MPlug plug;
+   plug = m_fnNode.findPlug("override_shader");
+   if (!plug.isNull() && plug.asBool())
    {
       MPlugArray curveShaderPlug;
-      m_fnNode.findPlug("shave_shader").connectedTo(curveShaderPlug, true, false);
-
-      if (curveShaderPlug.length())
-         shader = m_scene->ExportShader(curveShaderPlug[0].node());
+      plug = m_fnNode.findPlug("hair_shader");
+      if (!plug.isNull())
+      {
+         plug.connectedTo(curveShaderPlug, true, false);
+         if (curveShaderPlug.length())
+         {
+            shader = m_scene->ExportShader(curveShaderPlug[0].node());
+         }
+      }
    }
-   else
+
+   // Default to the ShaveHair shader if nothing else has been set.
+   if ( shader == NULL)
    {
       shader = AiNode("ShaveHair");
 
-      // fade hairstrand tip
-      if (m_fnNode.findPlug("tipFade").asBool())
+      // Fade hairstrand tip
+      plug = m_fnNode.findPlug("tipFade");
+      if (plug.asBool())
       {
+         // If tip fade is on then the hairs are not opaque no
+         // matter the attribute setting.
+         AiNodeSetBool(curve, "opaque", false);
+         
          ramp = AiNode("MayaRamp");
          placmentNode = AiNode("MayaPlace2DTexture");
          AiNodeSetStr(ramp, "type", "v");
@@ -114,19 +126,21 @@ void CShaveTranslator::Update(AtNode* curve)
          AiNodeLink (placmentNode, "uvCoord", ramp);
          AiNodeLink (ramp, "strand_opacity", shader);
       }
+
+      // Add shader uparam and vparam names
+      AiNodeSetStr(shader, "uparam", "uparamcoord");
+      AiNodeSetStr(shader, "vparam", "vparamcoord");
+   
+      // Add root and tip color
+      AiNodeSetStr(shader, "rootcolor", "rootcolorparam");
+      AiNodeSetStr(shader, "tipcolor",  "tipcolorparam");
+   
+      // set specular
+      plug = m_fnNode.findPlug("specular");
+      AiNodeSetFlt(shader, "spec", plug.asFloat());
+      plug = m_fnNode.findPlug("gloss");
+      AiNodeSetFlt(shader, "gloss", plug.asFloat() * 2000);
    }
-
-   // Add shader uparam and vparam names
-   AiNodeSetStr(shader, "uparam", "uparamcoord");
-   AiNodeSetStr(shader, "vparam", "vparamcoord");
-
-   // Add root and tip color
-   AiNodeSetStr(shader, "rootcolor", "rootcolorparam");
-   AiNodeSetStr(shader, "tipcolor",  "tipcolorparam");
-
-   // set specular
-   AiNodeSetFlt(shader, "spec", m_fnNode.findPlug("specular").asFloat());
-   AiNodeSetFlt(shader, "gloss", (m_fnNode.findPlug("gloss").asFloat() * 2000));
 
    int numPoints = 0;
    int numPointsInterpolation = 0;
@@ -172,7 +186,7 @@ void CShaveTranslator::Update(AtNode* curve)
 
    // Assign the shader to the curve
    //
-   AiNodeSetPtr(curve, "shader", shader);
+   if ( shader != NULL ) AiNodeSetPtr(curve, "shader", shader);
 
   // Extra attributes
    AiNodeDeclare(curve, "uparamcoord", "uniform FLOAT");
@@ -184,34 +198,13 @@ void CShaveTranslator::Update(AtNode* curve)
    AiNodeDeclare(curve, "next_line_starts_interp", "constant ARRAY INT");
    AiNodeDeclare(curve, "next_line_starts", "constant ARRAY INT");
 
-   if (customAttributes)
-   {
-      AiNodeSetBool(curve, "receive_shadows", m_fnNode.findPlug("receive_shadows").asBool());
-      AiNodeSetBool(curve, "self_shadows", m_fnNode.findPlug("self_shadows").asBool());
+   // Hair specific Arnold render settings.
+   plug = m_fnNode.findPlug("min_pixel_width");
+   if (!plug.isNull()) AiNodeSetFlt(curve, "min_pixel_width", plug.asFloat());
 
-      // set opaque
-      if (m_fnNode.findPlug("tipFade").asBool())
-         AiNodeSetBool(curve, "opaque", false);
-      else
-         AiNodeSetBool(curve, "opaque", true);
-
-      // Subsurface Scattering
-      //
-      AiNodeSetBool(curve, "sss_use_gi", m_fnNode.findPlug("sss_use_gi").asBool());
-      AiNodeSetInt(curve, "sss_max_samples", m_fnNode.findPlug("sss_max_samples").asInt());
-      AiNodeSetFlt(curve, "sss_sample_spacing", m_fnNode.findPlug("sss_sample_spacing").asFloat());
-
-      AiNodeSetFlt(curve, "min_pixel_width", m_fnNode.findPlug("min_pixel_width").asFloat());
-      AiNodeSetInt(curve, "mode", m_fnNode.findPlug("mode").asInt());
-  }
-  else
-  {
-      AiNodeSetBool(curve, "opaque", false);
-  }
-
-   // custom arnold attribute
-   AtInt visibility = ComputeVisibility();
-   AiNodeSetInt(curve, "visibility", visibility);
+   // Mode is an enum, 0 == ribbon, 1 == tubes.
+   plug = m_fnNode.findPlug("mode");
+   if (!plug.isNull()) AiNodeSetInt(curve, "mode", plug.asInt());
 
    // set tesselation method
    AiNodeSetStr(curve, "basis", "catmull-rom");
