@@ -983,7 +983,16 @@ MStatus CStaticAttrHelper::addAttribute(MObject& attrib)
 MStatus CDynamicAttrHelper::addAttribute(MObject& attrib)
 {
    MStatus stat;
+   MStatus statAttr;
    MFnDependencyNode fnNode = MFnDependencyNode(m_instance);
+   MObject mAttr = fnNode.attribute(MFnAttribute(attrib).name(),&statAttr);
+   if (statAttr == MS::kSuccess)
+   {
+      if (MFnAttribute(attrib).type() == MFnAttribute(mAttr).type())
+      {
+         return stat;
+      }
+   }
    stat = fnNode.addAttribute(attrib);
    // FIXME: not reliable to use MFnAttribute to get the name: the MObject could be invalid
    if (stat != MS::kSuccess)
