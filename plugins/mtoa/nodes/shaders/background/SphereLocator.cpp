@@ -186,8 +186,6 @@ void CSphereLocator::SampleSN(MPlug &colorPlug)
       AtUInt numSampleBase = NumSampleBase();
       AtUInt numSamples    = numSampleBase * numSampleBase;
 
-      m_colorDataSize = numSamples * 4;
-
       for (AtUInt i = 0; (i < numSampleBase); i++)
       {
          float valuei = static_cast<float>(i) / numSampleBase;
@@ -205,8 +203,7 @@ void CSphereLocator::SampleSN(MPlug &colorPlug)
 
       MStatus status = MRenderUtil::sampleShadingNetwork(depNodeSkyColorName, numSamples, false, false, cameraMat, NULL, &uCoords, &vCoords, NULL, NULL, NULL, NULL, NULL, colors, transps);
 
-      int numSamplesCol = numSamples*4;
-      m_colorData = new char[numSamplesCol];
+      m_colorData = new char[numSamples * 4];
       int alpha = 255;
       for(AtUInt i = 0; (i < colors.length()); i++)
       {
@@ -268,6 +265,7 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
    facingPlug.getValue(facing);
 
    GLUquadricObj *quadratic;
+   GLuint texture;
 
    // do not write to the z buffer.
    glDepthMask(0);
@@ -310,7 +308,6 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
          // check the number of samples
          int numSampleBase = NumSampleBase();
 
-         GLuint texture;
          glGenTextures(1, &texture);
          glBindTexture(GL_TEXTURE_2D, texture);
          glEnable(GL_TEXTURE_2D);
@@ -370,6 +367,9 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
    // re-enable depth writes
    glDepthMask(1);
    glDisable(GL_BLEND);
+
+   gluDeleteQuadric(quadratic);
+   glDeleteTextures(1, &texture);
 }
 
 MBoundingBox CSphereLocator::boundingBox() const
