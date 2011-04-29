@@ -11,6 +11,41 @@ def updateSamplingSettings(*args):
     flag = cmds.getAttr('defaultArnoldRenderOptions.use_sample_clamp') == True
     cmds.attrControlGrp('ss_max_value', edit=True, enable=flag)
 
+def updateComputeSamples(*args):
+    AASamples = cmds.getAttr('defaultArnoldRenderOptions.aaSamples')
+    GISamples = cmds.getAttr('defaultArnoldRenderOptions.giDiffuseSamples')
+    glossySamples = cmds.getAttr('defaultArnoldRenderOptions.giGlossySamples')
+    
+    diffuseDepth = cmds.getAttr('defaultArnoldRenderOptions.giDiffuseDepth')
+    glossyDepth = cmds.getAttr('defaultArnoldRenderOptions.giGlossyDepth')
+    
+    AASamplesComputed = AASamples * AASamples
+    
+    GISamplesComputed = GISamples * GISamples * AASamplesComputed
+    GISamplesComputedDepth = GISamplesComputed*diffuseDepth
+    
+    glossySamplesComputed = glossySamples * glossySamples * AASamplesComputed
+    glossySamplesComputedDepth = glossySamplesComputed*glossyDepth
+    
+    totalSamples = AASamplesComputed + GISamplesComputed + glossySamplesComputed 
+    totalSamplesDepth = AASamplesComputed + GISamplesComputedDepth + glossySamplesComputedDepth
+
+    cmds.text( "textAASamples",
+               edit=True, 
+               label='AA Samples : %i' % AASamplesComputed)
+
+    cmds.text( "textGISamples",
+               edit=True, 
+               label='Max GI Samples (with Max Depth) : %i (%i)' % (GISamplesComputed, GISamplesComputedDepth))
+    
+    cmds.text( "textGlossySamples",
+               edit=True, 
+               label='Max Glossy Samples (with Max Depth) : %i (%i)' % (glossySamplesComputed, glossySamplesComputedDepth))
+        
+    cmds.text( "textTotalSamples",
+               edit=True, 
+               label='Max Total Samples without lights (with Max Depth) : %i (%i)' % (totalSamples, totalSamplesDepth))
+
 
 def updateMotionBlurSettings(*args):
     flag = cmds.getAttr('defaultArnoldRenderOptions.motion_blur_enable') == True
@@ -222,24 +257,83 @@ def updateArnoldFilterOptions(*args):
     cmds.columnLayout('cl_filter_scalar_mode', e=True, vis=visSwitch[2])
     cmds.columnLayout('cl_filter_minmax', e=True,      vis=visSwitch[3])
 
+
 def createArnoldSamplingSettings():
 
     cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
     cmds.columnLayout(adjustableColumn=True)
 
+    cmds.text( "textAASamples", 
+               font = "smallBoldLabelFont",
+               align='left',
+               )
+    
+    cmds.text( "textGISamples", 
+               font = "smallBoldLabelFont",
+               align='left',
+               )
+    
+    cmds.text( "textGlossySamples", 
+               font = "smallBoldLabelFont",
+               align='left',
+               )
+
+    cmds.text( "textTotalSamples", 
+               font = "smallBoldLabelFont",
+               align='left',
+               )
+
+    cmds.separator()
+
+    cmds.intSliderGrp('ss_AA_samples',
+                        label="AA Samples",
+                        maxValue = 10,
+                        fieldMaxValue=100,
+                        cc='cmds.evalDeferred(mtoa.ui.globals.arnold.updateComputeSamples)'
+                        )
+
+    cmds.connectControl('ss_AA_samples', 'defaultArnoldRenderOptions.aaSamples', index=2)
+    cmds.connectControl('ss_AA_samples', 'defaultArnoldRenderOptions.aaSamples', index=3)
+
+    '''
     cmds.attrControlGrp('ss_AA_samples',
                         label="AA Samples",
-                        attribute='defaultArnoldRenderOptions.aaSamples')
-
-
+                        attribute='defaultArnoldRenderOptions.aaSamples',
+                        cc=updateComputeSamples
+                        
+                        )
+    '''
+    cmds.intSliderGrp('ss_hemi_samples',
+                        label="Hemi Samples",
+                        maxValue = 10,
+                        fieldMaxValue=100,
+                        cc='cmds.evalDeferred(mtoa.ui.globals.arnold.updateComputeSamples)')
+    
+    cmds.connectControl('ss_hemi_samples', 'defaultArnoldRenderOptions.giDiffuseSamples', index=2)
+    cmds.connectControl('ss_hemi_samples', 'defaultArnoldRenderOptions.giDiffuseSamples', index=3)
+    '''
     cmds.attrControlGrp('ss_hemi_samples',
                         label="Hemi Samples",
                         attribute='defaultArnoldRenderOptions.giDiffuseSamples')
+    '''
 
+    
+    cmds.intSliderGrp('ss_glossy_samples',
+                        label="Glossy Samples",
+                        maxValue = 10,
+                        fieldMaxValue=100,
+                        cc='cmds.evalDeferred(mtoa.ui.globals.arnold.updateComputeSamples)')
+    
+    cmds.connectControl('ss_glossy_samples', 'defaultArnoldRenderOptions.giGlossySamples', index=2)
+    cmds.connectControl('ss_glossy_samples', 'defaultArnoldRenderOptions.giGlossySamples', index=3)    
+    
+    
+    '''
     cmds.attrControlGrp('ss_glossy_samples',
                         label="Glossy Samples",
                         attribute='defaultArnoldRenderOptions.giGlossySamples')
-
+    '''
+    
     cmds.attrControlGrp('ss_sss_hemi_samples',
                    label="SSS Samples",
                    attribute='defaultArnoldRenderOptions.giSssHemiSamples')
@@ -360,13 +454,36 @@ def createArnoldRayDepthSettings():
 
     cmds.separator(style="none")
 
+    
+    cmds.intSliderGrp('rs_diffuse_depth',
+                        label="Diffuse depth",
+                        maxValue = 16,
+                        fieldMaxValue=100,
+                        cc='cmds.evalDeferred(mtoa.ui.globals.arnold.updateComputeSamples)')
+    
+    cmds.connectControl('rs_diffuse_depth', 'defaultArnoldRenderOptions.giDiffuseDepth', index=2)
+    cmds.connectControl('rs_diffuse_depth', 'defaultArnoldRenderOptions.giDiffuseDepth', index=3)
+    
+    '''
     cmds.attrControlGrp('rs_diffuse_depth',
                         label="Diffuse depth",
                         attribute='defaultArnoldRenderOptions.giDiffuseDepth')
-
+    '''
+    
+    cmds.intSliderGrp('rs_glossy_depth',
+                        label="Glossy depth",
+                        maxValue = 16,
+                        fieldMaxValue=100,
+                        cc='cmds.evalDeferred(mtoa.ui.globals.arnold.updateComputeSamples)')
+    
+    cmds.connectControl('rs_glossy_depth', 'defaultArnoldRenderOptions.giGlossyDepth', index=2)
+    cmds.connectControl('rs_glossy_depth', 'defaultArnoldRenderOptions.giGlossyDepth', index=3)
+    
+    '''
     cmds.attrControlGrp('rs_glossy_depth',
                         label="Glossy depth",
                         attribute='defaultArnoldRenderOptions.giGlossyDepth')
+    '''
 
     cmds.attrControlGrp('rs_reflection_depth',
                         label="Reflection depth",
@@ -739,6 +856,7 @@ def createArnoldRendererGlobalsTab():
 
 
 def updateArnoldRendererGlobalsTab(*args):
+    updateComputeSamples()
     updateRenderSettings()
     updateSamplingSettings()
     updateMotionBlurSettings()
