@@ -1,0 +1,275 @@
+#include "Standins.h"
+
+#include "render/RenderSession.h"
+#include "utils/AttrHelper.h"
+
+#include <ai_msg.h>
+#include <ai_nodes.h>
+#include <ai_ray.h>
+
+#include <maya/MBoundingBox.h>
+#include <maya/MDagPath.h>
+#include <maya/MFnDependencyNode.h>
+#include <maya/MPlugArray.h>
+#include <maya/MRenderUtil.h>
+
+
+#include <maya/MString.h>
+
+void CArnoldStandInsTranslator::NodeInitializer(MString nodeClassName)
+{
+   CExtensionAttrHelper helper(nodeClassName, "procedural");
+
+}
+
+AtNode* CArnoldStandInsTranslator::CreateArnoldNodes()
+{
+   m_isMasterDag = IsMasterInstance(m_masterDag);
+   if (m_isMasterDag)
+      return  AddArnoldNode("procedural");
+   else
+      return  AddArnoldNode("ginstance");
+}
+
+void CArnoldStandInsTranslator::Export(AtNode* anode)
+{
+   const char* nodeType = AiNodeEntryGetName(anode->base_node);
+   if (strcmp(nodeType, "ginstance") == 0)
+      ExportInstance(anode, m_masterDag);
+   else
+      ExportProcedural(anode, false);
+}
+
+void CArnoldStandInsTranslator::ExportMotion(AtNode* anode, AtUInt step)
+{
+   ExportMatrix(anode, step);
+}
+
+void CArnoldStandInsTranslator::AddIPRCallbacks()
+{
+   AddShaderAssignmentCallbacks(m_object);
+   CDagTranslator::AddIPRCallbacks();
+}
+
+void CArnoldStandInsTranslator::AddShaderAssignmentCallbacks(MObject & dagNode)
+{
+   MStatus status;
+   MCallbackId id = MNodeMessage::addAttributeChangedCallback(dagNode, ShaderAssignmentCallback, this, &status);
+   if (MS::kSuccess == status) ManageIPRCallback(id);
+}
+
+void CArnoldStandInsTranslator::ShaderAssignmentCallback(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void*clientData)
+{
+   // Shading assignments are done with the instObjGroups attr, so we only
+   // need to update when that is the attr that changes.
+   if ((msg & MNodeMessage::kConnectionMade) && (plug.partialName() == "iog"))
+   {
+      CArnoldStandInsTranslator * translator = static_cast< CArnoldStandInsTranslator* >(clientData);
+      if (translator != NULL)
+      {
+         // Interupt the render.
+         CRenderSession* renderSession = CRenderSession::GetInstance();
+         renderSession->InterruptRender();
+         // Export the new shaders.
+         translator->ExportShaders();
+         // Update Arnold without passing a translator, this just forces a redraw.
+         CMayaScene::UpdateIPR();
+      }
+   }
+}
+
+// Deprecated : Arnold support procedural instance, but it's not safe.
+//
+AtNode* CArnoldStandInsTranslator::ExportInstance(AtNode *instance, const MDagPath& masterInstance)
+{
+   AtNode* masterNode = AiNodeLookUpByName(masterInstance.fullPathName().asChar());
+
+   // FIXME: we should not be here if we are not instanced, why the call to isInstanced? (chad)
+   int instanceNum = m_dagPath.isInstanced() ? m_dagPath.instanceNumber() : 0;
+
+   AiNodeSetStr(instance, "name", m_dagPath.partialPathName().asChar());
+
+   ExportMatrix(instance, 0);
+
+   AiNodeSetPtr(instance, "node", masterNode);
+   AiNodeSetBool(instance, "inherit_xform", false);
+
+   //
+   // SHADERS
+   //
+   MFnMesh standInNode(m_dagPath.node());
+   MObjectArray shaders, shadersMaster;
+   MIntArray indices, indicesMaster;
+
+   standInNode.getConnectedShaders(instanceNum, shaders, indices);
+   // FIXME: it is incorrect to assume that instance 0 is the master as it may be hidden (chad)
+   standInNode.getConnectedShaders(0, shadersMaster, indicesMaster);
+
+   return instance;
+}
+
+MObject CArnoldStandInsTranslator::GetNodeShadingGroup(MObject dagNode, int instanceNum)
+{
+   MPlugArray connections;
+   MFnDependencyNode fnDGNode(dagNode);
+
+   MPlug plug(dagNode, fnDGNode.attribute("instObjGroups"));
+
+   plug.elementByLogicalIndex(instanceNum).connectedTo(connections, false, true);
+
+   for (unsigned int k = 0; k < connections.length(); ++k)
+   {
+      MObject shadingGroup(connections[k].node());
+      if (shadingGroup.apiType() == MFn::kShadingEngine)
+      {
+         return shadingGroup;
+      }
+   }
+   return MObject::kNullObj;
+}
+
+void CArnoldStandInsTranslator::ExportShaders()
+{
+   AiMsgWarning( "[mtoa] Shaders untested with new multitranslator and standin code.");
+   /// TODO: Test shaders with standins.
+   ExportStandinsShaders(GetArnoldRootNode());
+}
+
+void CArnoldStandInsTranslator::ExportStandinsShaders(AtNode* procedural)
+{
+   int instanceNum = m_dagPath.isInstanced() ? m_dagPath.instanceNumber() : 0;
+
+   std::vector<AtNode*> meshShaders;
+
+   MObject shadingGroup = GetNodeShadingGroup(m_dagPath.node(), instanceNum);
+   if (!shadingGroup.isNull())
+   {
+      MPlugArray connections;
+      MFnDependencyNode fnDGNode(shadingGroup);
+      MPlug shaderPlug = fnDGNode.findPlug("surfaceShader");
+      shaderPlug.connectedTo(connections, true, false);
+      if (connections.length() > 0)
+      {
+         // shader assigned to node
+         AtNode* shader = m_scene->ExportShader(connections[0].node());
+
+         AiNodeSetPtr(procedural, "shader", shader);
+         meshShaders.push_back(shader);
+      }
+      else
+         AiMsgWarning("[mtoa] ShadingGroup %s has no surfaceShader input.",
+               fnDGNode.name().asChar());
+   }
+   //
+   // DISPLACEMENT
+   //
+   // currently does not work for per-face assignment
+   if (!shadingGroup.isNull())
+   {
+      MPlugArray connections;
+      MFnDependencyNode fnDGNode(shadingGroup);
+      MPlug shaderPlug = fnDGNode.findPlug("displacementShader");
+      shaderPlug.connectedTo(connections, true, false);
+
+      // are there any connections to displacementShader?
+      if (connections.length() > 0)
+      {
+         MFnDependencyNode dispNode(connections[0].node());
+
+         // Note that disp_height has no actual influence on the scale of the displacement if it is vector based
+         // it only influences the computation of the displacement bounds
+         AiNodeSetFlt(procedural, "disp_height", dispNode.findPlug("disp_height").asFloat());
+         AiNodeSetFlt(procedural, "disp_zero_value", dispNode.findPlug("disp_zero_value").asFloat());
+         AiNodeSetBool(procedural, "autobump", dispNode.findPlug("autobump").asBool());
+
+         connections.clear();
+         dispNode.findPlug("disp_map").connectedTo(connections, true, false);
+
+         if (connections.length() > 0)
+         {
+            MString attrName = connections[0].partialName(false, false, false, false, false, true);
+            AtNode* dispImage(m_scene->ExportShader(connections[0].node(), attrName));
+
+            MPlug pVectorDisp = dispNode.findPlug("vector_displacement", false);
+            if (!pVectorDisp.isNull() && pVectorDisp.asBool())
+            {
+               AtNode* tangentToObject = AiNode("tangentToObjectSpace");
+               m_scene->ProcessShaderParameter(dispNode, "vector_displacement_scale",
+                     tangentToObject, "scale", AI_TYPE_VECTOR);
+               AiNodeLink(dispImage, "map", tangentToObject);
+
+               AiNodeSetPtr(procedural, "disp_map", tangentToObject);
+            }
+            else
+            {
+               AiNodeSetPtr(procedural, "disp_map", dispImage);
+            }
+         }
+      }
+   }
+}
+
+void CArnoldStandInsTranslator::ExportBoundingBox(AtNode* procedural)
+{
+   MBoundingBox boundingBox = m_DagNode.boundingBox();
+   MPoint bbMin = boundingBox.min();
+   MPoint bbMax = boundingBox.max();
+
+   float minCoords[4];
+   float maxCoords[4];
+
+   bbMin.get(minCoords);
+   bbMax.get(maxCoords);
+
+   AiNodeSetPnt(procedural, "min", minCoords[0], minCoords[1], minCoords[2]);
+   AiNodeSetPnt(procedural, "max", maxCoords[0], maxCoords[1], maxCoords[2]);
+}
+
+
+AtNode* CArnoldStandInsTranslator::ExportProcedural(AtNode* procedural, bool update)
+{
+   m_DagNode.setObject(m_dagPath.node());
+
+   AiNodeSetStr(procedural, "name", m_dagPath.fullPathName().asChar());
+
+   ExportMatrix(procedural, 0);
+   ProcessRenderFlags(procedural);
+   ExportStandinsShaders(procedural);
+   if (!update)
+   {
+      MString dso = m_DagNode.findPlug("dso").asString().expandEnvironmentVariablesAndTilde();
+      MString filename;
+
+      int frame = m_DagNode.findPlug("frameNumber").asInt();
+      int frameOffset = m_DagNode.findPlug("frameOffset").asInt();
+      bool useFrameExtension = m_DagNode.findPlug("useFrameExtension").asBool();
+
+
+      MString frameNumber = "0";
+
+      frameNumber += frame + frameOffset;
+
+      bool resolved = MRenderUtil::exactFileTextureName(dso, useFrameExtension, frameNumber,
+            filename);
+
+      if (resolved)
+         AiNodeSetStr(procedural, "dso", filename.asChar());
+      else
+         AiNodeSetStr(procedural, "dso", dso.asChar());
+
+      MPlug loadInit = m_DagNode.findPlug("loadAtInit");
+      if (loadInit.asBool())
+         AiNodeSetBool(procedural, "load_at_init", true);
+      else
+         ExportBoundingBox(procedural);
+
+      MPlug data = m_DagNode.findPlug("data");
+      int sizeData = strlen(data.asString().asChar());
+      if (sizeData != 0)
+      {
+         AiNodeSetStr(procedural, "data", data.asString().expandEnvironmentVariablesAndTilde().asChar());
+      }
+
+   }
+   return procedural;
+}

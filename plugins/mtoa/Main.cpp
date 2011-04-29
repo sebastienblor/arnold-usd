@@ -14,6 +14,7 @@
 #include "nodes/shaders/background/ArnoldSkyShader.h"
 #include "nodes/shaders/displacement/ArnoldDisplacementShader.h"
 #include "nodes/shaders/light/ArnoldSkyDomeLightShader.h"
+#include "nodes/ArnoldStandIns.h"
 #include "nodes/ShaderUtils.h"
 #include "scene/Shaders.h"
 #include "scene/Lights.h"
@@ -21,6 +22,7 @@
 #include "scene/Cameras.h"
 #include "scene/Options.h"
 #include "scene/Hair.h"
+#include "scene/Standins.h"
 #include "render/RenderSwatch.h"
 
 #include "extension/ExtensionsManager.h"
@@ -44,6 +46,14 @@ namespace // <anonymous>
    {
       MStatus status;
       MFnPlugin plugin(object);
+
+      // STANDINS
+      status = plugin.registerShape("ArnoldStandIn",
+                                    CArnoldStandInShape::id,
+                                    CArnoldStandInShape::creator,
+                                    CArnoldStandInShape::initialize,
+                                    CArnoldStandInShapeUI::creator);
+      CHECK_MSTATUS(status);
 
       // Swatch renderer.
       status = MSwatchRenderRegister::registerSwatchRender(ARNOLD_SWATCH,
@@ -166,6 +176,10 @@ namespace // <anonymous>
                                    "",
                                    CNurbsSurfaceTranslator::creator,
                                    CNurbsSurfaceTranslator::NodeInitializer);
+       builtin->RegisterTranslator("ArnoldStandIn",
+                                   "builtin",
+                                   CArnoldStandInsTranslator::creator,
+                                   CArnoldStandInsTranslator::NodeInitializer);
        // Multiple camera translators for single Maya camera node
        builtin->RegisterTranslator("camera",
                                    "perspective",

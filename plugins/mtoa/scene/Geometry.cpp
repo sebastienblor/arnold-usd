@@ -7,6 +7,7 @@
 #include <ai_nodes.h>
 #include <ai_ray.h>
 
+#include <maya/MBoundingBox.h>
 #include <maya/MDagPath.h>
 #include <maya/MFloatPointArray.h>
 #include <maya/MFnMeshData.h>
@@ -852,6 +853,37 @@ AtNode* CGeoTranslator::ExportMesh(AtNode* polymesh, bool update)
    return polymesh;
 }
 
+
+//Export bounding box of the current object
+
+void CGeoTranslator::ExportBoundingBox(AtNode* procedural)
+{
+   MBoundingBox boundingBox = m_fnMesh.boundingBox();
+   MPoint       myMin  =   boundingBox.min();
+   MPoint       myMax  =   boundingBox.max();
+   AiNodeSetPnt(procedural, "min", myMin.x, myMin.y, myMin.z);
+   AiNodeSetPnt(procedural, "max", myMax.x, myMax.y, myMax.z);
+
+}
+
+//Export the Procedural node shape
+//
+AtNode* CGeoTranslator::ExportProcedural(AtNode* procedural, bool update)
+{
+   AiNodeSetStr(procedural, "name", m_dagPath.fullPathName().asChar());
+
+   ExportMatrix(procedural, 0);
+   ExportBoundingBox(procedural);
+   ExportMeshShaders(procedural, m_fnMesh);
+   if (!update)
+   {
+      MPlug plug = m_fnMesh.findPlug("dso");
+      AiNodeSetStr(procedural, "dso", plug.asString().asChar());
+   }
+   return procedural;
+}
+
+
 AtNode* CGeoTranslator::ExportInstance(AtNode *instance, const MDagPath& masterInstance)
 {
    AtNode* masterNode = AiNodeLookUpByName(masterInstance.partialPathName().asChar());
@@ -1010,6 +1042,16 @@ void CGeoTranslator::NodeInitializer(MString nodeClassName)
    data.name = "exportColors";
    data.shortName = "expcol";
    helper.MakeInputBoolean(data);
+
+   data.defaultValue.BOOL = false;
+   data.name = "enableProcedural";
+   data.shortName = "enproc";
+   helper.MakeInputBoolean(data);
+
+   data.defaultValue.STR = "";
+   data.name = "dso";
+   data.shortName = "dso";
+   helper.MakeInputString(data);
 }
 
 // --------- CNurbsSurfaceTranslator -------------//
@@ -1179,6 +1221,24 @@ unsigned int CMeshTranslator::GetNumMeshGroups()
    }
 }
 
+// Check if the current mesh must is used as procedural
+//
+bool CMeshTranslator::isProcedural(MFnMesh &fnMesh)
+{
+   MPlug plug;
+   bool useProcedural = false;
+   plug = fnMesh.findPlug("enableProcedural");
+   if (!plug.isNull())
+      useProcedural = plug.asBool();
+
+    if (useProcedural)
+    {
+       plug = fnMesh.findPlug("dso");
+       if (!plug.isNull())
+          return 1;
+    }
+    return 0;
+}
 
 AtNode* CMeshTranslator::CreateArnoldNodes()
 {
@@ -1186,7 +1246,10 @@ AtNode* CMeshTranslator::CreateArnoldNodes()
    if (m_isMasterDag)
    {
       m_fnMesh.setObject(m_dagPath.node());
-      return AddArnoldNode("polymesh");
+      if (isProcedural(m_fnMesh))
+         return AddArnoldNode("procedural");
+      else
+         return AddArnoldNode("polymesh");
    }
    else
       return AddArnoldNode("ginstance");
@@ -1203,6 +1266,8 @@ void CMeshTranslator::Export(AtNode* anode)
       ExportInstance(anode, m_masterDag);
    else if (strcmp(nodeType, "polymesh") == 0)
       ExportMesh(anode, false);
+   else
+      ExportProcedural(anode, false);
 }
 
 

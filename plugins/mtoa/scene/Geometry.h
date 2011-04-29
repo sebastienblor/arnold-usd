@@ -51,6 +51,8 @@ protected:
    void ExportMeshGeoData(AtNode* polymesh, AtUInt step);
    void ExportMeshParameters(AtNode* polymesh);
    AtNode* ExportMesh(AtNode* polymesh, bool update);
+   void ExportBoundingBox(AtNode* procedural);
+   AtNode* ExportProcedural(AtNode* procedural, bool update);
    void ExportMeshMotion(AtNode* polymesh, AtUInt step);
    AtNode* ExportInstance(AtNode* instance, const MDagPath& masterInstance);
    void ExportInstanceMotion(AtNode* instance, AtUInt step);
@@ -87,6 +89,7 @@ public:
    AtNode* CreateArnoldNodes();
 private:
    unsigned int GetNumMeshGroups();
+   bool isProcedural(MFnMesh &fnMesh);
 };
 
 class MFnMeshData;

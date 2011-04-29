@@ -1,0 +1,109 @@
+#ifndef ARNOLDSTANDINS_H_
+#define ARNOLDSTANDINS_H_
+
+#include "utils/AttrHelper.h"
+
+#include <maya/MPxNode.h>
+#include <maya/MString.h>
+#include <maya/MPxSurfaceShape.h>
+#include <maya/MPxSurfaceShapeUI.h>
+
+#include <ai_nodes.h>
+
+#include <vector>
+
+using std::vector;
+
+
+// Geometry class
+class CArnoldStandInGeom
+{
+public:
+   MString dso;
+   MString filename;
+   MString geomLoaded;
+   int mode;
+   int frame;
+   int frameOffset;
+   bool useFrameExtension;
+   bool assTocLoaded;
+   bool IsGeomLoaded;
+   MBoundingBox bbox;
+   MPoint BBmin;
+   MPoint BBmax;
+   vector<vector<vector<AtPoint> > > faceList;
+   int dList;
+   int updateView;
+
+};
+
+// Shape class - defines the non-UI part of a shape node
+class CArnoldStandInShape: public MPxSurfaceShape
+{
+
+public:
+   CArnoldStandInShape();
+   virtual ~CArnoldStandInShape();
+
+   virtual void postConstructor();
+   virtual MStatus compute(const MPlug& plug, MDataBlock& data);
+   virtual bool getInternalValueInContext(const MPlug&, MDataHandle&,
+         MDGContext &context);
+   virtual bool setInternalValueInContext(const MPlug&, const MDataHandle&,
+         MDGContext &context);
+
+   virtual bool isBounded() const;
+   virtual MBoundingBox boundingBox() const;
+
+   MStatus GetPointPlugValue( MPlug plug, float3 & value );
+   void CreateBoundingBox();
+   void LoadBoundingBox();
+   MStatus GetPointsFromAss();
+
+   static void* creator();
+   static MStatus initialize();
+   CArnoldStandInGeom* geometry();
+
+   static MTypeId id;
+
+private:
+   CArnoldStandInGeom* fGeometry;
+   // Attributes
+   static CStaticAttrHelper s_attrHelper;
+   static MObject s_dso;
+   static MObject s_mode;
+   static MObject s_useFrameExtension;
+   static MObject s_frameNumber;
+   static MObject s_frameOffset;
+   static MObject s_data;
+   static MObject s_loadAtInit;
+   static MObject s_boundingBoxMin;
+   static MObject s_boundingBoxMax;
+}; // class CArnoldStandInShape
+
+
+// UI class	- defines the UI part of a shape node
+class CArnoldStandInShapeUI: public MPxSurfaceShapeUI
+{
+public:
+   CArnoldStandInShapeUI();
+   virtual ~CArnoldStandInShapeUI();
+   virtual void getDrawRequests(const MDrawInfo & info,
+         bool objectAndActiveOnly, MDrawRequestQueue & requests);
+   virtual void draw(const MDrawRequest & request, M3dView & view) const;
+   virtual bool select(MSelectInfo &selectInfo, MSelectionList &selectionList,
+         MPointArray &worldSpaceSelectPts) const;
+
+   void getDrawRequestsWireFrame(MDrawRequest&, const MDrawInfo&);
+
+   static void * creator();
+   // Draw Tokens
+   //
+   enum
+   {
+      kDrawBoundingBox, kLastToken
+   };
+
+}; // class CArnoldStandInShapeUI
+
+#endif // ARNOLDSTANDINS_H_

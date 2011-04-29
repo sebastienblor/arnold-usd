@@ -57,6 +57,11 @@ def builtin_mesh(nodeName):
     cmds.editorTemplate("exportTangents", addDynamicControl=True)
     cmds.editorTemplate("exportColors", addDynamicControl=True)
 
+    cmds.editorTemplate(addSeparator=True)
+ 
+    cmds.editorTemplate("enableProcedural", addDynamicControl=True)
+    cmds.editorTemplate("dso", addDynamicControl=True)
+
 @registerUI("hairSystem")
 def builtin_hairSystem(nodeName):
     commonShapeAttributes(nodeName)
