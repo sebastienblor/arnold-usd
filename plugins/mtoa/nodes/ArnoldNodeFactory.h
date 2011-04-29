@@ -54,7 +54,7 @@ class DLLEXPORT CArnoldNodeFactory
 {
 public:
    ~CArnoldNodeFactory();
-   static void SetMayaPlugin(MObject plugin) {s_plugin = plugin;}
+   static void SetMayaPlugin(MObject plugin);
 
    static CArnoldNodeFactory* Init(CExtension* extension, const char* shaderFile);
    void LoadPlugin();

@@ -73,6 +73,12 @@ int CArnoldNodeFactory::s_autoNodeId(ARNOLD_NODEID_AUTOGEN);
 std::vector<CArnoldNodeFactory*> CArnoldNodeFactory::s_shaderLibs;
 MObject CArnoldNodeFactory::s_plugin;
 
+void CArnoldNodeFactory::SetMayaPlugin(MObject plugin)
+{
+	s_plugin = plugin;
+}
+
+
 /// Load an Arnold plugin.
 
 /// Loads the Arnold plugin and registers a Maya node for each Arnold node
@@ -360,7 +366,7 @@ void CLoader::LoadPlugins()
 #ifdef _WIN32
          char buffer[MAX_PATH];
          GetFullPathName(pluginFile.asChar(), MAX_PATH, buffer, NULL);
-         pluginPath = buffer;
+         pluginFile = MString(buffer);
 #endif // _WIN32
          // if the shader library matches the convention [extension]_shaders, associate
          // the shader library with [extension]
@@ -420,7 +426,7 @@ const char* CArnoldNodeFactory::GetArnoldNodeFromMayaNode(const MString& mayaSha
 {
    for (unsigned int i=0; i < s_shaderLibs.size(); i++)
    {
-      MayaNodeDataMap nodes = s_shaderLibs[i]->m_factoryNodes;
+      MayaNodeDataMap& nodes = s_shaderLibs[i]->m_factoryNodes;
       // FIXME: use iterators so we don't do the check twice
       if (nodes.count(mayaShader.asChar()))
          return nodes[mayaShader.asChar()].arnoldNodeName.c_str();

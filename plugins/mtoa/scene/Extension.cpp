@@ -327,11 +327,12 @@ CNodeTranslator* CExtension::GetDependTranslator(MObject &object)
    MFnDependencyNode node(object);
    int typeId = node.typeId().id();
    NodeIdToTranslatorMap::iterator translatorIt = m_dependTranslators.find(typeId);
+   std::map<std::string, CreatorFunction> subTypes;
    std::map<std::string, CreatorFunction>::iterator subIt;
    CNodeTranslator* result = NULL;
    if (translatorIt != m_dependTranslators.end())
    {
-      std::map<std::string, CreatorFunction> subTypes = translatorIt->second;
+      subTypes = translatorIt->second;
       if (subTypes.size())
       {
          MStatus status;
@@ -378,11 +379,12 @@ CDagTranslator* CExtension::GetDagTranslator(MDagPath &dagPath)
    MFnDependencyNode node(dagPath.node());
    int typeId = node.typeId().id();
    NodeIdToTranslatorMap::iterator translatorIt = m_dagTranslators.find(typeId);
+   std::map<std::string, CreatorFunction> subTypes;
    std::map<std::string, CreatorFunction>::iterator subIt;
    CDagTranslator* result = NULL;
    if (translatorIt != m_dagTranslators.end())
    {
-      std::map<std::string, CreatorFunction> subTypes = translatorIt->second;
+      subTypes = translatorIt->second;
       if (subTypes.size())
       {
          MStatus status;
