@@ -175,7 +175,7 @@ void CArnoldNodeFactory::LoadPlugins()
 bool CArnoldNodeFactory::MapToMayaNode(const char* arnoldNodeName, const char* mayaCounterpart, int typeId)
 {
    s_arnoldToMayaNodes[arnoldNodeName] = mayaCounterpart;
-   if (CTranslatorRegistry::RegisterDependTranslator(mayaCounterpart, typeId, CAutoTranslator::creator))
+   if (CTranslatorRegistry::RegisterDependTranslator(mayaCounterpart, typeId, "builtin", CAutoTranslator::creator))
    {
       s_factoryNodes[mayaCounterpart].arnoldNodeName = arnoldNodeName;
       s_factoryNodes[mayaCounterpart].nodeId = typeId;

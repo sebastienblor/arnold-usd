@@ -23,6 +23,10 @@ typedef void *   (*CreatorFunction)();
 typedef void     (*NodeInitFunction)(MObject&);
 typedef void     (*NodeClassInitFunction)(MString);
 
+#include <map>
+#include <vector>
+#include <string>
+
 class CMayaScene;
 
 // Abstract base class for all Maya-to-Arnold node translators

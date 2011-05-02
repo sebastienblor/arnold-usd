@@ -3,22 +3,24 @@
 
 // CExtension
 
-void CExtension::RegisterDependTranslator(const char* mayaNode, int typeId, CreatorFunction creator)
+void CExtension::RegisterDependTranslator(const char* mayaNode, int typeId, const char* translatorName, CreatorFunction creator)
 {
-   CTranslatorRegistry::RegisterDependTranslator(mayaNode, typeId, creator);
+   CTranslatorRegistry::RegisterDependTranslator(mayaNode, typeId, translatorName, creator);
 }
 
-void CExtension::RegisterDagTranslator(const char* mayaNode, int typeId, CreatorFunction creator)
+void CExtension::RegisterDagTranslator(const char* mayaNode, int typeId, const char* translatorName, CreatorFunction creator)
 {
-   CTranslatorRegistry::RegisterDagTranslator(mayaNode, typeId, creator);
+   CTranslatorRegistry::RegisterDagTranslator(mayaNode, typeId, translatorName, creator);
 }
 
-void CExtension::RegisterDependTranslator(const char* mayaNode, int typeId, CreatorFunction creator, NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin)
+void CExtension::RegisterDependTranslator(const char* mayaNode, int typeId, const char* translatorName, CreatorFunction creator,
+                                          NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin)
 {
-   CTranslatorRegistry::RegisterDependTranslator(mayaNode, typeId, creator, nodeClassInitializer, providedByPlugin);
+   CTranslatorRegistry::RegisterDependTranslator(mayaNode, typeId, translatorName, creator, nodeClassInitializer, providedByPlugin);
 }
 
-void CExtension::RegisterDagTranslator(const char* mayaNode, int typeId, CreatorFunction creator, NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin)
+void CExtension::RegisterDagTranslator(const char* mayaNode, int typeId, const char* translatorName, CreatorFunction creator,
+                                       NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin)
 {
-   CTranslatorRegistry::RegisterDagTranslator(mayaNode, typeId, creator, nodeClassInitializer, providedByPlugin);
+   CTranslatorRegistry::RegisterDagTranslator(mayaNode, typeId, translatorName, creator, nodeClassInitializer, providedByPlugin);
 }

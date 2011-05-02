@@ -455,13 +455,12 @@ MStatus CMayaScene::IterSelection(MSelectionList& selected)
 // Considered to be already filtered and checked
 MStatus CMayaScene::ExportDagPath(MDagPath &dagPath)
 {
-   MFnDagNode node(dagPath.node());
    MObjectHandle handle = MObjectHandle(dagPath.node());
    int instanceNum = dagPath.instanceNumber();
    // early out for nodes that have already been processed
    if (m_processedDagTranslators[handle].count(instanceNum))
       return MStatus::kSuccess;
-   CDagTranslator* translator = CTranslatorRegistry::GetDagTranslator(node.typeId().id());
+   CDagTranslator* translator = CTranslatorRegistry::GetDagTranslator(dagPath);
    if (translator != NULL)
    {
       translator->Init(dagPath, this);
@@ -494,9 +493,7 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
 
    AtNode* shader = NULL;
 
-   MFnDependencyNode node(mayaShader);
-
-   CNodeTranslator* translator = CTranslatorRegistry::GetDependTranslator(node.typeId().id());
+   CNodeTranslator* translator = CTranslatorRegistry::GetDependTranslator(mayaShader);
    if (translator != NULL)
    {
       if (mayaShader.hasFn(MFn::kDagNode))
@@ -518,7 +515,7 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
       }
    }
    else
-      AiMsgWarning("[mtoa] Shader type not supported: %s", node.typeName().asChar());
+      AiMsgWarning("[mtoa] Shader type not supported: %s", MFnDependencyNode(mayaShader).typeName().asChar());
 
    if (shader)
    {

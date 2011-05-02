@@ -378,13 +378,8 @@ void CCameraTranslator::ExportImagePlane(AtUInt step)
     }
 }
 
-void CCameraTranslator::ExportCameraData(AtNode* camera)
+void CCameraTranslator::ExportDOF(AtNode* camera)
 {
-   AtMatrix matrix;
-
-   AiNodeSetFlt(camera, "near_clip", m_fnNode.findPlug("nearClipPlane").asFloat());
-   AiNodeSetFlt(camera, "far_clip", m_fnNode.findPlug("farClipPlane").asFloat());
-   
    if (m_fnNode.findPlug("enableDOF").asBool())
    {
       AiNodeSetFlt(camera, "focal_distance", m_fnNode.findPlug("focal_distance").asFloat());
@@ -393,7 +388,15 @@ void CCameraTranslator::ExportCameraData(AtNode* camera)
       AiNodeSetFlt(camera, "aperture_rotation", m_fnNode.findPlug("aperture_rotation").asFloat());
       AiNodeSetFlt(camera, "aperture_blade_curvature", m_fnNode.findPlug("aperture_blade_curvature").asFloat());
    }
-   
+}
+
+void CCameraTranslator::ExportCameraData(AtNode* camera)
+{
+   AtMatrix matrix;
+
+   AiNodeSetFlt(camera, "near_clip", m_fnNode.findPlug("nearClipPlane").asFloat());
+   AiNodeSetFlt(camera, "far_clip", m_fnNode.findPlug("farClipPlane").asFloat());
+
    if (m_scene->IsMotionBlurEnabled())
    {
       float halfShutter = m_scene->GetShutterSize() * 0.5f;
@@ -460,7 +463,123 @@ double CCameraTranslator::GetDeviceAspect()
    return deviceAspect;
 }
 
-void CCameraTranslator::ExportOrthoFilmback(AtNode* camera)
+MVectorArray CCameraTranslator::GetFilmTransform(double width, bool persp)
+{
+   double deviceAspect = GetDeviceAspect();
+   double cameraAspect = m_fnCamera.aspectRatio();
+   double preScale = m_fnCamera.preScale();
+   double filmTranslateX = m_fnCamera.filmTranslateH();
+   double filmTranslateY = m_fnCamera.filmTranslateV();
+   double filmRollValue = m_fnCamera.filmRollValue();
+   //We need a roll attribute from the guys at SolidAngle
+   //double filmRollPivotX = m_fnCamera.verticalRollPivot();
+   //double filmRollPivotY = m_fnCamera.horizontalRollPivot();
+   MFnCamera::RollOrder filmRollOrder = m_fnCamera.filmRollOrder();
+   double postScale = m_fnCamera.postScale();
+
+   //2D Transform default Vectors for Perspective
+   MVector minPoint(-1, -1);
+   MVector maxPoint(1, 1);
+
+   if (persp) // perspective camera
+   {
+      preScale = 1 / preScale;
+      postScale = 1 / postScale;
+
+      filmTranslateX = (filmTranslateX * preScale) / postScale;
+      if (cameraAspect > deviceAspect)
+         filmTranslateY = ((filmTranslateY/cameraAspect) * 2 * preScale) / postScale;
+      else
+         filmTranslateY = (filmTranslateY * deviceAspect * preScale) / postScale;
+   }
+   else //Ortho camera
+   {
+      preScale = 1 / preScale;
+      postScale = 1 / postScale;
+      double orthoWidth = m_fnCamera.orthoWidth() / 2;
+
+      if (orthoWidth == width)//We are in Horizontal Mode
+      {
+         filmTranslateX = (filmTranslateX * orthoWidth * preScale) / postScale;
+         filmTranslateY = (filmTranslateY * orthoWidth * deviceAspect * preScale) / postScale;
+      }
+      else//Vertical mode
+      {
+         filmTranslateX = (filmTranslateX * orthoWidth * deviceAspect * preScale) / postScale;
+         filmTranslateY = (filmTranslateY * orthoWidth * deviceAspect * deviceAspect * preScale) / postScale;
+      }
+
+      //Set the point to the width passed in for Ortho mode.
+      minPoint = MVector(-width, -width);
+      maxPoint = MVector(width, width);
+   }
+
+   if (preScale != 1.0f)
+   {
+      minPoint *= preScale;
+      maxPoint *= preScale;
+   }
+
+   if (filmRollOrder == MFnCamera::kTranslateRotate)
+   {
+      if (filmTranslateX != 0.0f || filmTranslateY != 0.0f)
+      {
+         minPoint += MVector(filmTranslateX, filmTranslateY);
+         maxPoint += MVector(filmTranslateX, filmTranslateY);
+      }
+      if (filmRollValue != 0.0f)
+      {
+         //ROTATE
+      }
+   }
+   else //Rotate-Translate order
+   {
+      if (filmRollValue != 0.0f)
+      {
+         //ROTATE
+      }
+      if (filmTranslateX != 0.0f || filmTranslateY != 0.0f)
+      {
+         minPoint += MVector(filmTranslateX, filmTranslateY);
+         maxPoint += MVector(filmTranslateX, filmTranslateY);
+      }
+   }
+
+   if (postScale != 1.0f)
+   {
+      minPoint *= postScale;
+      maxPoint *= postScale;
+   }
+
+   MVector src[] = {minPoint, maxPoint};
+   return MVectorArray(src, 2);
+}
+
+void CCameraTranslator::MakeDOFAttributes(CExtensionAttrHelper &helper)
+{
+   helper.MakeInput("focal_distance");
+   helper.MakeInput("aperture_size");
+   helper.MakeInput("aperture_blades");
+   helper.MakeInput("aperture_blade_curvature");
+   helper.MakeInput("aperture_rotation");
+
+   CAttrData data;
+   data.defaultValue.BOOL = false;
+   data.name = "enableDOF";
+   data.shortName = "edof";
+   helper.MakeInputBoolean(data);
+}
+
+// Orthographic Camera
+//
+
+const char* COrthoCameraTranslator::GetArnoldNodeType()
+{
+   return "ortho_camera";
+}
+
+
+void COrthoCameraTranslator::ExportFilmback(AtNode* camera)
 {
    double deviceAspect = GetDeviceAspect();
 
@@ -504,7 +623,28 @@ void CCameraTranslator::ExportOrthoFilmback(AtNode* camera)
    AiNodeSetPnt2(camera, "screen_window_max", static_cast<float>(filmTransforms[1].x), static_cast<float>(filmTransforms[1].y));
 }
 
-void CCameraTranslator::ExportPerspFilmback(AtNode* camera)
+void COrthoCameraTranslator::Export(AtNode* camera)
+{
+   ExportCameraData(camera);
+   ExportFilmback(camera);
+   ExportImagePlane(0);
+}
+
+void COrthoCameraTranslator::ExportMotion(AtNode* camera, AtUInt step)
+{
+   ExportCameraMBData(camera, step);
+   ExportImagePlane(step);
+}
+
+// Perspective Camera
+//
+const char* CPerspCameraTranslator::GetArnoldNodeType()
+{
+   return "persp_camera";
+}
+
+
+void CPerspCameraTranslator::ExportFilmback(AtNode* camera)
 {
 
    double deviceAspect = GetDeviceAspect();
@@ -606,122 +746,17 @@ void CCameraTranslator::ExportPerspFilmback(AtNode* camera)
    //return fov;
 }
 
-MVectorArray CCameraTranslator::GetFilmTransform(double width, bool persp)
+void CPerspCameraTranslator::Export(AtNode* camera)
 {
-   double deviceAspect = GetDeviceAspect();
-   double cameraAspect = m_fnCamera.aspectRatio();
-   double preScale = m_fnCamera.preScale();
-   double filmTranslateX = m_fnCamera.filmTranslateH();
-   double filmTranslateY = m_fnCamera.filmTranslateV();
-   double filmRollValue = m_fnCamera.filmRollValue();
-   //We need a roll attribute from the guys at SolidAngle
-   //double filmRollPivotX = m_fnCamera.verticalRollPivot();
-   //double filmRollPivotY = m_fnCamera.horizontalRollPivot();
-   MFnCamera::RollOrder filmRollOrder = m_fnCamera.filmRollOrder();
-   double postScale = m_fnCamera.postScale();
-
-   //2D Transform default Vectors for Perspective
-   MVector minPoint(-1, -1);
-   MVector maxPoint(1, 1);
-
-   if (persp) // perspective camera
-   {
-      preScale = 1 / preScale;
-      postScale = 1 / postScale;
-
-      filmTranslateX = (filmTranslateX * preScale) / postScale;
-      if (cameraAspect > deviceAspect)
-         filmTranslateY = ((filmTranslateY/cameraAspect) * 2 * preScale) / postScale;
-      else
-         filmTranslateY = (filmTranslateY * deviceAspect * preScale) / postScale;
-   }
-   else //Ortho camera
-   {
-      preScale = 1 / preScale;
-      postScale = 1 / postScale;
-      double orthoWidth = m_fnCamera.orthoWidth() / 2;
-      
-      if (orthoWidth == width)//We are in Horizontal Mode
-      {
-         filmTranslateX = (filmTranslateX * orthoWidth * preScale) / postScale;
-         filmTranslateY = (filmTranslateY * orthoWidth * deviceAspect * preScale) / postScale;
-      }
-      else//Vertical mode
-      {
-         filmTranslateX = (filmTranslateX * orthoWidth * deviceAspect * preScale) / postScale;
-         filmTranslateY = (filmTranslateY * orthoWidth * deviceAspect * deviceAspect * preScale) / postScale;
-      }
-
-      //Set the point to the width passed in for Ortho mode.
-      minPoint = MVector(-width, -width);
-      maxPoint = MVector(width, width);
-   }
-   
-   if (preScale != 1.0f)
-   {
-      minPoint *= preScale;
-      maxPoint *= preScale;
-   }
-
-   if (filmRollOrder == MFnCamera::kTranslateRotate)
-   {
-      if (filmTranslateX != 0.0f || filmTranslateY != 0.0f)
-      {
-         minPoint += MVector(filmTranslateX, filmTranslateY);
-         maxPoint += MVector(filmTranslateX, filmTranslateY);
-      }
-      if (filmRollValue != 0.0f)
-      {
-         //ROTATE
-      }
-   }
-   else //Rotate-Translate order
-   {
-      if (filmRollValue != 0.0f)
-      {
-         //ROTATE
-      }
-      if (filmTranslateX != 0.0f || filmTranslateY != 0.0f)
-      {
-         minPoint += MVector(filmTranslateX, filmTranslateY);
-         maxPoint += MVector(filmTranslateX, filmTranslateY);
-      }
-   }
-
-   if (postScale != 1.0f)
-   {
-      minPoint *= postScale;
-      maxPoint *= postScale;
-   }
-
-   MVector src[] = {minPoint, maxPoint};
-   return MVectorArray(src, 2);
-}
-
-// Orthographic Camera
-//
-void CCameraTranslator::ExportOrtho(AtNode* camera)
-{
-   ExportCameraData(camera);
-   ExportOrthoFilmback(camera);
-   ExportImagePlane(0);
-}
-
-void CCameraTranslator::ExportOrthoMotion(AtNode* camera, AtInt step)
-{
-   ExportCameraMBData(camera, step);
-   ExportImagePlane(step);
-}
-
-// Perspective Camera
-//
-void CCameraTranslator::ExportPersp(AtNode* camera)
-{
-   ExportPerspFilmback(camera);
+   ExportFilmback(camera);
    float fov = m_cameraData.fov;
 
    ExportCameraData(camera);
+   ExportDOF(camera);
    ExportImagePlane(0);
+
+   MPlug plug = m_fnNode.findPlug("uv_remap");
+   AiNodeSetRGBA(camera, "uv_remap", plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat(), plug.child(3).asFloat());
 
    if (m_motion)
    {
@@ -735,7 +770,7 @@ void CCameraTranslator::ExportPersp(AtNode* camera)
    }
 }
 
-void CCameraTranslator::ExportPerspMotion(AtNode* camera, AtInt step)
+void CPerspCameraTranslator::ExportMotion(AtNode* camera, AtUInt step)
 {
    ExportCameraMBData(camera, step);
    ExportImagePlane(step);
@@ -744,54 +779,9 @@ void CCameraTranslator::ExportPerspMotion(AtNode* camera, AtInt step)
    AiArraySetFlt(fovs, step, m_cameraData.fov);
 }
 
-const char* CCameraTranslator::GetArnoldNodeType()
-{
-   if (m_fnCamera.isOrtho())
-   {
-      return "ortho_camera";
-   }
-   else
-   {
-      return "persp_camera";
-   }
-}
-
-void CCameraTranslator::Export(AtNode* camera)
-{
-   if (m_fnCamera.isOrtho())
-   {
-      ExportOrtho(camera);
-   }
-   else
-   {
-      ExportPersp(camera);
-   }
-}
-
-void CCameraTranslator::ExportMotion(AtNode* camera, AtUInt step)
-{
-   if (m_fnCamera.isOrtho())
-   {
-      return ExportOrthoMotion(camera, step);
-   }
-   else
-   {
-      return ExportPerspMotion(camera, step);
-   }
-}
-
-void CCameraTranslator::NodeInitializer(MString nodeClassName)
+void CPerspCameraTranslator::NodeInitializer(MString nodeClassName)
 {
    CExtensionAttrHelper helper(nodeClassName, "persp_camera");
-   helper.MakeInput("focal_distance");
-   helper.MakeInput("aperture_size");
-   helper.MakeInput("aperture_blades");
-   helper.MakeInput("aperture_blade_curvature");
-   helper.MakeInput("aperture_rotation");
-   
-   CAttrData data;
-   data.defaultValue.BOOL = false;
-   data.name = "enableDOF";
-   data.shortName = "edof";
-   helper.MakeInputBoolean(data);
+   MakeDOFAttributes(helper);
+   helper.MakeInput("uv_remap");
 }

@@ -4,6 +4,7 @@
 #include "ArnoldExportAssCmd.h"
 #include "ArnoldRenderCmd.h"
 #include "ArnoldIprCmd.h"
+#include "ArnoldPluginCmd.h"
 #include "nodes/ArnoldNodeFactory.h"
 #include "nodes/ArnoldRenderOptions.h"
 #include "nodes/ArnoldAOV.h"
@@ -143,7 +144,6 @@ namespace // <anonymous>
                                            "aiHair",
                                            ARNOLD_NODEID_HAIR,
                                            ARNOLD_SHADER_SURFACE);
-      CTranslatorRegistry::RegisterDependTranslator("layeredShader", MAYA_NODEID_LAYERED_SHADER, CLayeredShaderTranslator::creator);
 
       // Environment/Volume shaders
       arnoldPluginFactory.RegisterMayaNode("fog",
@@ -160,93 +160,127 @@ namespace // <anonymous>
       CTranslatorRegistry::CreateCallbacks();
       CTranslatorRegistry::RegisterDependTranslator("aiOptions",
                                                     ARNOLD_NODEID_RENDER_OPTIONS,
+                                                    "builtin",
                                                     CRenderOptionsTranslator::creator);
       CTranslatorRegistry::RegisterDependTranslator("surfaceShader",
                                                     MAYA_NODEID_SURFACE_SHADER,
+                                                    "builtin",
                                                     CSurfaceShaderTranslator::creator);
       CTranslatorRegistry::RegisterDependTranslator("lambert",
                                                     MAYA_NODEID_LAMBERT,
+                                                    "builtin",
                                                     CLambertTranslator::creator);
       CTranslatorRegistry::RegisterDependTranslator("file",
                                                     MAYA_NODEID_FILE,
+                                                    "builtin",
                                                     CFileTranslator::creator);
       CTranslatorRegistry::RegisterDependTranslator("place2dTexture",
                                                     MAYA_NODEID_PLACE2D_TEXTURE,
+                                                    "builtin",
                                                     CPlace2DTextureTranslator::creator);
       CTranslatorRegistry::RegisterDependTranslator("bump2d",
                                                     MAYA_NODEID_BUMP2D,
+                                                    "builtin",
                                                     CBump2DTranslator::creator);
       CTranslatorRegistry::RegisterDependTranslator("bump3d",
                                                     MAYA_NODEID_BUMP3D,
+                                                    "builtin",
                                                     CBump3DTranslator::creator);
       CTranslatorRegistry::RegisterDependTranslator("samplerInfo",
                                                     MAYA_NODEID_SAMPLER_INFO,
+                                                    "builtin",
                                                     CSamplerInfoTranslator::creator);
       CTranslatorRegistry::RegisterDependTranslator("plusMinusAverage",
                                                     MAYA_NODEID_PLUS_MINUS_AVERAGE,
+                                                    "builtin",
                                                     CPlusMinusAverageTranslator::creator);
       CTranslatorRegistry::RegisterDependTranslator("remapValue",
                                                     MAYA_NODEID_REMAP_VALUE,
+                                                    "builtin",
                                                     CRemapValueTranslator::creator);
       CTranslatorRegistry::RegisterDependTranslator("remapColor",
                                                     MAYA_NODEID_REMAP_COLOR,
+                                                    "builtin",
                                                     CRemapColorTranslator::creator);
       CTranslatorRegistry::RegisterDependTranslator("projection",
                                                     MAYA_NODEID_PROJECTION,
+                                                    "builtin",
                                                     CProjectionTranslator::creator);
       CTranslatorRegistry::RegisterDependTranslator("ramp",
                                                     MAYA_NODEID_RAMP,
+                                                    "builtin",
                                                     CRampTranslator::creator);
       CTranslatorRegistry::RegisterDependTranslator("layeredTexture",
                                                     MAYA_NODEID_LAYERED_TEXTURE,
+                                                    "builtin",
                                                     CLayeredTextureTranslator::creator);
+      CTranslatorRegistry::RegisterDependTranslator("layeredShader",
+                                                    MAYA_NODEID_LAYERED_SHADER,
+                                                    "builtin",
+                                                    CLayeredShaderTranslator::creator);
 
       // sky is technically a DAG node, but it behaves like a DG node (i.e. it is only exported when a connection is processed)
       // therefore, it is not registered as a DagTranslator
       CTranslatorRegistry::RegisterDependTranslator("aiSky",
                                                     CArnoldSkyShaderNode::id.id(),
+                                                    "builtin",
                                                     CSkyShaderTranslator::creator);
 
       CTranslatorRegistry::RegisterDagTranslator("directionalLight",
                                                  MAYA_NODEID_DIRECTIONAL_LIGHT,
+                                                 "builtin",
                                                  CDirectionalLightTranslator::creator,
                                                  CLightTranslator::NodeInitializer);
       CTranslatorRegistry::RegisterDagTranslator("spotLight",
                                                  MAYA_NODEID_SPOT_LIGHT,
+                                                 "builtin",
                                                  CSpotLightTranslator::creator,
                                                  CSpotLightTranslator::NodeInitializer);
       CTranslatorRegistry::RegisterDagTranslator("areaLight",
                                                  MAYA_NODEID_AREA_LIGHT,
+                                                 "builtin",
                                                  CAreaLightTranslator::creator,
                                                  CAreaLightTranslator::NodeInitializer);
       CTranslatorRegistry::RegisterDagTranslator("pointLight",
                                                  MAYA_NODEID_POINT_LIGHT,
+                                                 "builtin",
                                                  CPointLightTranslator::creator,
                                                  CPointLightTranslator::NodeInitializer);
       CTranslatorRegistry::RegisterDagTranslator("ambientLight",
                                                  MAYA_NODEID_AMBIENT_LIGHT,
+                                                 "builtin",
                                                  CAmbientLightTranslator::creator,
                                                  CLightTranslator::NodeInitializer);
       CTranslatorRegistry::RegisterDagTranslator("aiSkyDomeLight",
                                                  CArnoldSkyDomeLightShaderNode::id.id(),
+                                                 "builtin",
                                                  CSkyDomeLightTranslator::creator);
 
       CTranslatorRegistry::RegisterDagTranslator("mesh",
                                                  MAYA_NODEID_MESH,
+                                                 "builtin",
                                                  CMeshTranslator::creator,
                                                  CMeshTranslator::NodeInitializer);
       CTranslatorRegistry::RegisterDagTranslator("nurbsSurface",
                                                  MAYA_NODEID_NURBS_SURFACE,
+                                                 "builtin",
                                                  CNurbsSurfaceTranslator::creator,
                                                  CNurbsSurfaceTranslator::NodeInitializer);
 
       CTranslatorRegistry::RegisterDagTranslator("camera",
                                                  MAYA_NODEID_CAMERA,
-                                                 CCameraTranslator::creator,
-                                                 CCameraTranslator::NodeInitializer);
+                                                 "perspective",
+                                                 CPerspCameraTranslator::creator,
+                                                 CPerspCameraTranslator::NodeInitializer);
+
+      CTranslatorRegistry::RegisterDagTranslator("camera",
+                                                 MAYA_NODEID_CAMERA,
+                                                 "orthographic",
+                                                 COrthoCameraTranslator::creator);
 
       CTranslatorRegistry::RegisterDagTranslator("hairSystem",
                                                  MAYA_NODEID_HAIR,
+                                                 "builtin",
                                                  CHairTranslator::creator,
                                                  CHairTranslator::NodeInitializer);
 
@@ -368,6 +402,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    status = plugin.registerCommand("arnoldRender", CArnoldRenderCmd::creator, CArnoldRenderCmd::newSyntax);
    status = plugin.registerCommand("arnoldIpr", CArnoldIprCmd::creator, CArnoldIprCmd::newSyntax);
    status = plugin.registerCommand("arnoldExportAss", CArnoldExportAssCmd::creator, CArnoldExportAssCmd::newSyntax);
+   status = plugin.registerCommand("arnoldPlugins", CArnoldPluginCmd::creator, CArnoldPluginCmd::newSyntax);
    status = plugin.registerFileTranslator(CArnoldAssTranslator::fileType,
                                              CArnoldAssTranslator::fileIcon,
                                              CArnoldAssTranslator::creator,
@@ -406,6 +441,7 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
    status = plugin.deregisterCommand("arnoldRender");
    status = plugin.deregisterCommand("arnoldIpr");
    status = plugin.deregisterCommand("arnoldExportAss");
+   status = plugin.deregisterCommand("arnoldPlugins");
    status = plugin.deregisterFileTranslator(CArnoldAssTranslator::fileType);
 
    return MS::kSuccess;

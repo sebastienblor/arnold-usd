@@ -13,14 +13,15 @@
 
 // --------- CTranslatorRegistry -------------//
 
-std::map<int, CreatorFunction>  CTranslatorRegistry::s_dagTranslators;
-std::map<int, CreatorFunction>  CTranslatorRegistry::s_dependTranslators;
+NodeIdToTranslatorMap  CTranslatorRegistry::s_dagTranslators;
+NodeIdToTranslatorMap  CTranslatorRegistry::s_dependTranslators;
 PluginDataMap CTranslatorRegistry::s_mayaPluginData;
 MCallbackId CTranslatorRegistry::s_pluginLoadedCallbackId;
 MCallbackIdArray CTranslatorRegistry::s_mayaCallbackIDs;
 
 // internal use
-bool CTranslatorRegistry::RegisterTranslator(const char* mayaNode, int typeId, CreatorFunction creator, NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin)
+bool CTranslatorRegistry::RegisterTranslator(const char* mayaNode, int typeId, const char* translatorName, CreatorFunction creator,
+                                             NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin)
 {
    MStatus status;
 
@@ -32,6 +33,7 @@ bool CTranslatorRegistry::RegisterTranslator(const char* mayaNode, int typeId, C
          // make the callback when the plugin is loaded
          CMayaPluginData pluginData;
          pluginData.mayaNode = mayaNode;
+         pluginData.translatorName = translatorName;
          pluginData.nodeClassInitializer = nodeClassInitializer;
          s_mayaPluginData[providedByPlugin].push_back(pluginData);
       }
@@ -49,21 +51,75 @@ bool CTranslatorRegistry::RegisterTranslator(const char* mayaNode, int typeId, C
    return true;
 }
 
-bool CTranslatorRegistry::RegisterDagTranslator(const char* mayaNode, int typeId, CreatorFunction creator, NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin)
+// internal use
+void CTranslatorRegistry::AddDagCreator(const char* mayaNode, int typeId, const char* translatorName, CreatorFunction creator)
 {
-   if (RegisterTranslator(mayaNode, typeId, creator, nodeClassInitializer, providedByPlugin))
+   std::map<std::string, CreatorFunction> translators = s_dagTranslators[typeId];
+   // if a translator already exists for this node ...
+   if (translators.size())
    {
-      s_dagTranslators[typeId] = creator;
+      if (translators.count(translatorName))
+      {
+         MGlobal::displayWarning(MString("[mtoa] Overriding translator \"") + translatorName + "\" for maya node \"" + mayaNode + "\"");
+         // FIXME: do override
+      }
+      else
+      {
+         // create the "arnoldTranslator" attribute
+         CExtensionAttrHelper helper(mayaNode); 
+         CAttrData data;
+         data.defaultValue.STR = "";
+         data.name = "arnoldTranslator";
+         data.shortName = "arntr";
+         helper.MakeInputString(data);
+      }
+   }
+   s_dagTranslators[typeId][translatorName] = creator;
+}
+
+// internal use
+void CTranslatorRegistry::AddDependCreator(const char* mayaNode, int typeId, const char* translatorName, CreatorFunction creator)
+{
+   std::map<std::string, CreatorFunction> translators = s_dependTranslators[typeId];
+   // if a translator already exists for this node ...
+   if (translators.size())
+   {
+      if (translators.count(translatorName))
+      {
+         MGlobal::displayWarning(MString("[mtoa] Overriding translator \"") + translatorName + "\" for maya node \"" + mayaNode + "\"");
+         // FIXME: do override
+      }
+      else
+      {
+         // create the "arnoldTranslator" attribute
+         CExtensionAttrHelper helper(mayaNode);
+         CAttrData data;
+         data.defaultValue.STR = "";
+         data.name = "arnoldTranslator";
+         data.shortName = "arntr";
+         helper.MakeInputString(data);
+      }
+   }
+   s_dependTranslators[typeId][translatorName] = creator;
+}
+
+bool CTranslatorRegistry::RegisterDagTranslator(const char* mayaNode, int typeId, const char* translatorName, CreatorFunction creator,
+                                                NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin)
+{
+   if (RegisterTranslator(mayaNode, typeId, translatorName, creator, nodeClassInitializer, providedByPlugin))
+   {
+      AddDagCreator(mayaNode, typeId, translatorName, creator);
       return true;
    }
    return false;
 }
 
-bool CTranslatorRegistry::RegisterDependTranslator(const char* mayaNode, int typeId, CreatorFunction creator, NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin)
+bool CTranslatorRegistry::RegisterDependTranslator(const char* mayaNode, int typeId, const char* translatorName, CreatorFunction creator,
+                                                   NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin)
 {
-   if (RegisterTranslator(mayaNode, typeId, creator, nodeClassInitializer, providedByPlugin))
+   if (RegisterTranslator(mayaNode, typeId, translatorName, creator, nodeClassInitializer, providedByPlugin))
    {
-      s_dependTranslators[typeId] = creator;
+      AddDependCreator(mayaNode, typeId, translatorName, creator);
       return true;
    }
    return false;
@@ -80,21 +136,21 @@ bool CTranslatorRegistry::RegisterTranslator(const char* mayaNode, int typeId, C
    return true;
 }
 
-bool CTranslatorRegistry::RegisterDagTranslator(const char* mayaNode, int typeId, CreatorFunction creator)
+bool CTranslatorRegistry::RegisterDagTranslator(const char* mayaNode, int typeId, const char* translatorName, CreatorFunction creator)
 {
    if (RegisterTranslator(mayaNode, typeId, creator))
    {
-      s_dagTranslators[typeId] = creator;
+      AddDagCreator(mayaNode, typeId, translatorName, creator);
       return true;
    }
    return false;
 }
 
-bool CTranslatorRegistry::RegisterDependTranslator(const char* mayaNode, int typeId, CreatorFunction creator)
+bool CTranslatorRegistry::RegisterDependTranslator(const char* mayaNode, int typeId, const char* translatorName, CreatorFunction creator)
 {
    if (RegisterTranslator(mayaNode, typeId, creator))
    {
-      s_dependTranslators[typeId] = creator;
+      AddDependCreator(mayaNode, typeId, translatorName, creator);
       return true;
    }
    return false;
@@ -103,7 +159,8 @@ bool CTranslatorRegistry::RegisterDependTranslator(const char* mayaNode, int typ
 
 #if MAYA_API_VERSION >= 201200
 // internal use
-int CTranslatorRegistry::RegisterTranslator(const char* mayaNode, CreatorFunction creator, NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin)
+int CTranslatorRegistry::RegisterTranslator(const char* mayaNode, const char* translatorName, CreatorFunction creator,
+                                            NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin)
 {
    MStatus status;
    if (!MFnPlugin::isNodeRegistered(mayaNode))
@@ -114,6 +171,7 @@ int CTranslatorRegistry::RegisterTranslator(const char* mayaNode, CreatorFunctio
          // make the callback when the plugin is loaded
          CMayaPluginData pluginData;
          pluginData.mayaNode = mayaNode;
+         pluginData.translatorName = translatorName;
          pluginData.nodeClassInitializer = nodeClassInitializer;
          s_mayaPluginData[providedByPlugin].push_back(pluginData);
       }
@@ -131,23 +189,25 @@ int CTranslatorRegistry::RegisterTranslator(const char* mayaNode, CreatorFunctio
    return MNodeClass(mayaNode).typeId().id();
 }
 
-bool CTranslatorRegistry::RegisterDagTranslator(const char* mayaNode, CreatorFunction creator, NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin)
+bool CTranslatorRegistry::RegisterDagTranslator(const char* mayaNode, const char* translatorName, CreatorFunction creator,
+                                                NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin)
 {
-   int typeId = RegisterTranslator(mayaNode, creator, nodeClassInitializer, providedByPlugin);
+   int typeId = RegisterTranslator(mayaNode, translatorName, creator, nodeClassInitializer, providedByPlugin);
    if (typeId)
    {
-      s_dagTranslators[typeId] = creator;
+      AddDagCreator(mayaNode, typeId, translatorName, creator);
       return true;
    }
    return false;
 }
 
-bool CTranslatorRegistry::RegisterDependTranslator(const char* mayaNode, CreatorFunction creator, NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin)
+bool CTranslatorRegistry::RegisterDependTranslator(const char* mayaNode, const char* translatorName, CreatorFunction creator,
+                                                   NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin)
 {
-   int typeId = RegisterTranslator(mayaNode, creator, nodeClassInitializer, providedByPlugin);
+   int typeId = RegisterTranslator(mayaNode, translatorName, creator, nodeClassInitializer, providedByPlugin);
    if (typeId)
    {
-      s_dependTranslators[typeId] = creator;
+      AddDependCreator(mayaNode, typeId, translatorName, creator);
       return true;
    }
    return false;
@@ -164,51 +224,150 @@ int CTranslatorRegistry::RegisterTranslator(const char* mayaNode, CreatorFunctio
    return MNodeClass(mayaNode).typeId().id();
 }
 
-bool CTranslatorRegistry::RegisterDagTranslator(const char* mayaNode, CreatorFunction creator)
+bool CTranslatorRegistry::RegisterDagTranslator(const char* mayaNode, const char* translatorName, CreatorFunction creator)
 {
    int typeId = RegisterTranslator(mayaNode, typeId, creator);
    if (typeId)
    {
-      s_dagTranslators[typeId] = creator;
+      AddDagCreator(mayaNode, typeId, translatorName, creator);
       return true;
    }
    return false;
 }
 
-bool CTranslatorRegistry::RegisterDependTranslator(const char* mayaNode, CreatorFunction creator)
+bool CTranslatorRegistry::RegisterDependTranslator(const char* mayaNode, const char* translatorName, CreatorFunction creator)
 {
    int typeId = RegisterTranslator(mayaNode, typeId, creator);
    if (typeId)
    {
-      s_dependTranslators[typeId] = creator;
+      AddDependCreator(mayaNode, typeId, translatorName, creator);
       return true;
    }
    return false;
 }
 #endif
 
-CNodeTranslator* CTranslatorRegistry::GetDependTranslator(int typeId)
+/// Create a new CNodeTranslator for the passed Maya node
+CNodeTranslator* CTranslatorRegistry::GetDependTranslator(MObject &object)
 {
-   std::map<int, CreatorFunction>::iterator translatorIt;
-   translatorIt = s_dependTranslators.find(typeId);
+   MFnDependencyNode node(object);
+   int typeId = node.typeId().id();
+   NodeIdToTranslatorMap::iterator translatorIt = s_dependTranslators.find(typeId);
    if (translatorIt != s_dependTranslators.end())
    {
-      return (CNodeTranslator*)translatorIt->second();
+      std::map<std::string, CreatorFunction> subTypes = translatorIt->second;
+      if (subTypes.size())
+      {
+         MStatus status;
+         MPlug plug = node.findPlug("arnoldTranslator", &status);
+         if (status != MS::kSuccess)
+         {
+            // use the last
+            CreatorFunction func = (--subTypes.end())->second;
+            return (CNodeTranslator*)func();
+         }
+         else
+         {
+            // find the translator with the given name
+            MString transName = plug.asString();
+            if (transName == "")
+            {
+               MGlobal::displayWarning(MString("[mtoa] node \"") + node.name() + ".arnoldTranslator\" set to empty string. Using last registered translator.");
+               // use the last
+               CreatorFunction func = (--subTypes.end())->second;
+               return (CNodeTranslator*)func();
+            }
+            else
+            {
+               std::map<std::string, CreatorFunction>::iterator it = subTypes.find(transName.asChar());
+               if (it != subTypes.end())
+               {
+                  CreatorFunction func = it->second;
+                  return (CNodeTranslator*)func();
+               }
+            }
+         }
+      }
    }
    return NULL;
 }
 
-CDagTranslator* CTranslatorRegistry::GetDagTranslator(int typeId)
+/// Create a new CDagTranslator for the passed Maya node
+CDagTranslator* CTranslatorRegistry::GetDagTranslator(MDagPath &dagPath)
 {
-   std::map<int, CreatorFunction>::iterator translatorIt;
-   translatorIt = s_dagTranslators.find(typeId);
+   MFnDependencyNode node(dagPath.node());
+   int typeId = node.typeId().id();
+   NodeIdToTranslatorMap::iterator translatorIt = s_dagTranslators.find(typeId);
    if (translatorIt != s_dagTranslators.end())
    {
-      return (CDagTranslator*)translatorIt->second();
+      std::map<std::string, CreatorFunction> subTypes = translatorIt->second;
+      if (subTypes.size())
+      {
+         MStatus status;
+         MPlug plug = node.findPlug("arnoldTranslator", &status);
+         if (status != MS::kSuccess)
+         {
+            // use the last
+            CreatorFunction func = (--subTypes.end())->second;
+            return (CDagTranslator*)func();
+         }
+         else
+         {
+            // find the translator with the given name
+            MString transName = plug.asString();
+            if (transName == "")
+            {
+               MGlobal::displayWarning(MString("[mtoa] node \"") + node.name() + ".arnoldTranslator\" set to empty string. Using last registered translator.");
+               // use the last
+               CreatorFunction func = (--subTypes.end())->second;
+               return (CDagTranslator*)func();
+            }
+            else
+            {
+               std::map<std::string, CreatorFunction>::iterator it = subTypes.find(transName.asChar());
+               if (it != subTypes.end())
+               {
+                  CreatorFunction func = it->second;
+                  return (CDagTranslator*)func();
+               }
+            }
+         }
+      }
    }
    return NULL;
 }
 
+MStringArray CTranslatorRegistry::GetTranslatorNames(MObject &object)
+{
+   MFnDependencyNode node(object);
+   int typeId = node.typeId().id();
+   NodeIdToTranslatorMap::iterator translatorIt = s_dependTranslators.find(typeId);
+   MStringArray result;
+   if (translatorIt != s_dependTranslators.end())
+   {
+      std::map<std::string, CreatorFunction> subTypes = translatorIt->second;
+      std::map<std::string, CreatorFunction>::iterator it;
+      for (it = subTypes.begin(); it != subTypes.end(); ++it)
+         result.append(it->first.c_str());
+   }
+   return result;
+}
+
+MStringArray CTranslatorRegistry::GetTranslatorNames(MDagPath &dagPath)
+{
+   MFnDependencyNode node(dagPath.node());
+   int typeId = node.typeId().id();
+   NodeIdToTranslatorMap::iterator translatorIt = s_dagTranslators.find(typeId);
+   MStringArray result;
+   if (translatorIt != s_dagTranslators.end())
+   {
+      std::map<std::string, CreatorFunction> subTypes = translatorIt->second;
+      std::map<std::string, CreatorFunction>::iterator it;
+      for (it = subTypes.begin(); it != subTypes.end(); ++it)
+         result.append(it->first.c_str());
+   }
+   return result;
+}
 
 /// Called when a plugin is loaded to ensure that each translator that requires
 /// node initialization gets a callback installed
@@ -234,6 +393,11 @@ void CTranslatorRegistry::MayaPluginLoadedCallback(const MStringArray &strs, voi
 
    // TODO: find out if extension attributes persist even if the plugin has been unloaded and then reloaded
    s_mayaPluginData[pluginName.asChar()].clear();
+}
+
+void CTranslatorRegistry::ManageCallback(const MCallbackId id)
+{
+   s_mayaCallbackIDs.append(id);
 }
 
 /// Installs the plugin-loaded callback

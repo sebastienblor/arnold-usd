@@ -46,30 +46,15 @@ public:
    {
       return m_motion;
    }
-   void Export(AtNode* camera);
-   void ExportMotion(AtNode* camera, AtUInt step);
-   static void NodeInitializer(MString nodeClassName);
-   static void* creator()
-   {
-      return new CCameraTranslator();
-   }
-   const char* GetArnoldNodeType();
 
 protected:
    double GetDeviceAspect();
-   void ExportOrthoFilmback(AtNode* camera);
-   void ExportPerspFilmback(AtNode* camera);
    MVectorArray GetFilmTransform(double width=0, bool persp=true);
    void ExportImagePlane(AtUInt step);
-
-   void ExportOrtho(AtNode* camera);
-   void ExportOrthoMotion(AtNode* camera, AtInt step);
-   void ExportPersp(AtNode* camera);
-   void ExportPerspMotion(AtNode* camera, AtInt step);
-
+   void ExportDOF(AtNode* camera);
    void ExportCameraData(AtNode* camera);
    void ExportCameraMBData(AtNode* camera, AtUInt step);
-
+   static void MakeDOFAttributes(CExtensionAttrHelper &helper);
 
 protected:
    bool m_motion;
@@ -77,4 +62,38 @@ protected:
    MFnCamera m_fnCamera;
 };
 
+
+class DLLEXPORT CPerspCameraTranslator
+      :   public CCameraTranslator
+{
+public:
+   void Export(AtNode* camera);
+   void ExportMotion(AtNode* camera, AtUInt step);
+   static void NodeInitializer(MString nodeClassName);
+   static void* creator()
+   {
+      return new CPerspCameraTranslator();
+   }
+   const char* GetArnoldNodeType();
+
+protected:
+   void ExportFilmback(AtNode* camera);
+};
+
+
+class DLLEXPORT COrthoCameraTranslator
+      :   public CCameraTranslator
+{
+public:
+   void Export(AtNode* camera);
+   void ExportMotion(AtNode* camera, AtUInt step);
+   static void* creator()
+   {
+      return new COrthoCameraTranslator();
+   }
+   const char* GetArnoldNodeType();
+
+protected:
+   void ExportFilmback(AtNode* camera);
+};
 #endif // CAMERAS_H

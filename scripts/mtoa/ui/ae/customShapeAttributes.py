@@ -1,7 +1,8 @@
 import maya.cmds as cmds
 import mtoa.ui.ae.lightFiltersTemplate as lightFiltersTemplate
 from mtoa.ui.ae.utils import aeCallback
-from mtoa.ui.ae.shapeTemplate import registerUI
+from mtoa.ui.ae.shapeTemplate import registerUI, registerDefaultTranslator, ArnoldTranslatorTemplate
+import mtoa.callbacks as callbacks
 
 def commonLightAttributes(nodeName):
     cmds.editorTemplate("normalize", addDynamicControl=True)
@@ -108,20 +109,69 @@ def builtin_areaLight(nodeName):
     commonLightAttributes(nodeName);
 
 
-@registerUI("camera")
-def builtin_camera(nodeName):
-    cmds.editorTemplate("enableDOF", addDynamicControl=True)
+class CameraTemplate(ArnoldTranslatorTemplate):
+    def __init__(self):
+        ArnoldTranslatorTemplate.__init__(self)
+    def addDOFAttributes(self):
+        self.addAttribute("enableDOF")
+        self.addSeparator()
+        self.addAttribute("focalDistance")
+        self.addAttribute("apertureSize")
+        self.addAttribute("apertureBlades")
+        self.addAttribute("apertureBladeCurvature")
+        self.addAttribute("apertureRotation")
 
-    cmds.editorTemplate(addSeparator=True)
+class PerspCameraTemplate(CameraTemplate):
+    def __init__(self):
+        CameraTemplate.__init__(self)
+        self.addDOFAttributes()
+        self.addSeparator()
+        self.addAttribute('uvRemap')
 
-    cmds.editorTemplate("focalDistance", addDynamicControl=True)
-    cmds.editorTemplate("apertureSize", addDynamicControl=True)
+PerspCameraTemplate.register("camera", "perspective")
 
-    cmds.editorTemplate(addSeparator=True)
+class OrthographicTemplate(CameraTemplate):
+    def __init__(self):
+        CameraTemplate.__init__(self)
 
-    cmds.editorTemplate("apertureBlades", addDynamicControl=True)
-    cmds.editorTemplate("apertureBladeCurvature", addDynamicControl=True)
-    cmds.editorTemplate("apertureRotation", addDynamicControl=True)
+OrthographicTemplate.register("camera", "orthographic")
 
-    cmds.editorTemplate(addSeparator=True)
+def cameraOrthographicChanged(attr):
+    "called to sync .arnoldTranslator when .orthographic changes"
+    print "cameraOrthographicChanged", attr
+    cam = attr.split('.')[0]
+    isOrtho = cmds.getAttr(cam + '.orthographic')
+    currTrans = cmds.getAttr(cam + '.arnoldTranslator')
+    newTrans = None
+    if isOrtho and currTrans != 'orthographic':
+        newTrans = 'orthographic'
+    elif not isOrtho and currTrans == 'orthographic':
+        newTrans = 'perspective'
+    if newTrans:
+        if cmds.optionMenuGrp('arnoldTranslatorOMG', exists=True):
+            cmds.optionMenuGrp('arnoldTranslatorOMG', edit=True, value=newTrans)
+        cmds.setAttr(cam + '.arnoldTranslator', newTrans, type='string')
+
+def cameraTranslatorChanged(attr):
+    "called to sync .orthographic when .arnoldTranslator changes"
+    print "cameraTranslatorChanged", attr
+    cam = attr.split('.')[0]
+    trans = cmds.getAttr(cam + '.arnoldTranslator')
+    isOrtho = cmds.getAttr(cam + '.orthographic')
+    if not isOrtho and trans == 'orthographic':
+        cmds.setAttr(cam + '.orthographic', True)
+    elif isOrtho and trans != 'orthographic':
+        cmds.setAttr(cam + '.orthographic', False)
+
+def getCameraDefault(cam):
+    default = 'orthographic' if cmds.getAttr(cam + '.orthographic') else 'perspective'
+    return default
+
+registerDefaultTranslator('camera', getCameraDefault)
+
+callbacks.addAttributeChangedCallbacks('camera', 
+                                       [('arnoldTranslator', cameraTranslatorChanged),
+                                        ('orthographic', cameraOrthographicChanged)])
+
+
 
