@@ -30,7 +30,7 @@ const char* CShaveTranslator::GetArnoldNodeType()
 void CShaveTranslator::Export(AtNode* curve)
 {
    // Only translate the shave node if its marked as a active
-   if (!m_fnNode.findPlug("active").asBool())
+   if (!GetFnNode().findPlug("active").asBool())
       return;
 
    Update(curve);

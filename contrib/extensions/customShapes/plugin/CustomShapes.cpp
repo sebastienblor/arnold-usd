@@ -191,7 +191,7 @@ void CCustomShapeTranslator::ExportMotion(AtNode *shape, AtUInt step)
 AtNode* CCustomShapeTranslator::ExportCustomShape(AtUInt step)
 {
    std::map<std::string, CCustomData>::iterator customShapeIt;
-   customShapeIt = s_customShapes.find(m_fnNode.typeName().asChar());
+   customShapeIt = s_customShapes.find(GetFnNode().typeName().asChar());
    if (customShapeIt == s_customShapes.end())
    {
       // TODO: print warning

@@ -41,20 +41,21 @@ class DLLEXPORT CNodeTranslator
 private:
    AtNode* DoExport(AtUInt step);
    AtNode* DoUpdate(AtUInt step);
-   void DoCreateArnoldNode();
+   AtNode* DoCreateArnoldNode();
 
 public:
    virtual ~CNodeTranslator()
    {}
-   virtual void Init(const MObject& object, CMayaScene* scene, MString outputAttr="")
+   virtual AtNode* Init(const MObject& object, CMayaScene* scene, MString outputAttr="")
    {
       m_object = object;
       m_fnNode.setObject(object);
       m_scene = scene;
       m_outputAttr = outputAttr;
-      DoCreateArnoldNode();
+      return DoCreateArnoldNode();
    }
    virtual const char* GetArnoldNodeType() = 0;
+   virtual MFnDependencyNode GetFnNode() const {return m_fnNode;}
 
 protected:
    CNodeTranslator() {}
@@ -100,10 +101,8 @@ protected:
    static void NameChangedCallback(MObject &node, const MString &str, void *clientData);
    static void NodeDeletedCallback(MObject &node, MDGModifier &modifier, void *clientData);
 
-private:
-   AtNode* m_atNode;
-
 protected:
+   AtNode* m_atNode;
    MObject m_object;
    CMayaScene* m_scene;
    MFnDependencyNode m_fnNode;
@@ -129,24 +128,23 @@ typedef std::map<MObjectHandle, MDagPath, mobjcompare> ObjectHandleToDagMap;
 class DLLEXPORT CDagTranslator : public CNodeTranslator
 {
 public:
-   virtual void Init(MDagPath& dagPath, CMayaScene* scene, MString outputAttr="")
+   virtual AtNode* Init(MDagPath& dagPath, CMayaScene* scene, MString outputAttr="")
    {
       m_dagPath = dagPath;
-      m_fnNode.setObject(dagPath);
-      m_scene = scene;
-      m_outputAttr = outputAttr;
+      m_fnDagNode.setObject(dagPath);
       // must call this after member initialization to ensure they are available to virtual functions like SetArnoldNodeName
-      CNodeTranslator::Init(dagPath.node(), scene, outputAttr);
+      return CNodeTranslator::Init(dagPath.node(), scene, outputAttr);
    }
-   virtual void Init(MObject& object, CMayaScene* scene, MString outputAttr="")
+
+   virtual AtNode* Init(MObject& object, CMayaScene* scene, MString outputAttr="")
    {
-      MDagPath::getAPathTo(object, m_dagPath);
-      m_fnNode.setObject(object);
-      m_scene = scene;
-      m_outputAttr = outputAttr;
-      // must call this after member initialization to ensure they are available to virtual functions like SetArnoldNodeName
-      CNodeTranslator::Init(object, scene, outputAttr);
+      MDagPath dagPath;
+      MDagPath::getAPathTo(object, dagPath);
+      return Init(dagPath, scene, outputAttr);
    }
+
+   virtual MFnDagNode GetFnDagNode() const {return m_fnDagNode;}
+
    static int GetMasterInstanceNumber(MObject node);
    virtual void AddIPRCallbacks();
    // for initializer callbacks:
@@ -167,16 +165,33 @@ protected:
 
 protected:
    MDagPath m_dagPath;
-   MFnDagNode m_fnNode;
+   MFnDagNode m_fnDagNode;
    static ObjectHandleToDagMap s_masterInstances;
 };
 
 class DLLEXPORT CShapeTranslator : public CDagTranslator
 {
 public:
+   virtual AtNode* Init(MDagPath& dagPath, CMayaScene* scene, MString outputAttr="")
+   {
+      m_atNode = CDagTranslator::Init(dagPath, scene, outputAttr);
+      m_motion = m_scene->IsObjectMotionBlurEnabled() && GetFnNode().findPlug("motionBlur").asBool();
+      m_motionDeform = m_motion && m_scene->IsObjectDeformMotionBlurEnabled();
+      return m_atNode;
+   }
+   virtual bool RequiresMotionData()
+   {
+      return m_motion;
+   }
+   
    void ProcessRenderFlags(AtNode* node);
    // for initializer callbacks:
    static void MakeCommonAttributes(CBaseAttrHelper& helper);
+
+protected:
+   bool m_motion;
+   bool m_motionDeform;
+   
 };
 
 #endif // NODETRANSLATOR_H

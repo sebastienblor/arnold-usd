@@ -113,16 +113,13 @@ inline CArnoldNodeFactory::~CArnoldNodeFactory()
 ///  -# processes the equivalent attribute on the Maya node
 ///
 
-class CAutoTranslator : public CNodeTranslator
+class CAutoTranslator
+   :  public CNodeTranslator
 {
 public:
-   CAutoTranslator() :
-      CNodeTranslator()
-   {}
-   virtual void Init(MDagPath& dagPath, CMayaScene* scene, MString outputAttr="")
+   virtual AtNode* Init(MDagPath& dagPath, CMayaScene* scene, MString outputAttr="")
    {
-      // downconvert to MObject
-      CNodeTranslator::Init(dagPath.node(), scene, outputAttr);
+      return CNodeTranslator::Init(dagPath.node(), scene, outputAttr);
    }
    static void* creator()
    {

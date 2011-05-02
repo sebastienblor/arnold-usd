@@ -13,20 +13,15 @@ class DLLEXPORT CGeoTranslator
    :   public CShapeTranslator
 {
 public:
-   void Init(MDagPath& dagPath, CMayaScene* scene, MString outputAttr="")
+   virtual AtNode* Init(MDagPath& dagPath, CMayaScene* scene, MString outputAttr="")
    {
-      CShapeTranslator::Init(dagPath, scene, outputAttr);
-      m_motion = m_scene->IsObjectMotionBlurEnabled() && m_fnNode.findPlug("motionBlur").asBool();
-      m_motionDeform = m_motion && m_scene->IsObjectDeformMotionBlurEnabled();
       m_displaced = false;
+      m_isRefSmooth = false;
+      return CShapeTranslator::Init(dagPath, scene, outputAttr);
    }
-   virtual bool RequiresMotionData()
-   {
-      return m_motion;
-   }
-   void Update(AtNode* anode);
-   void ExportMotion(AtNode* anode, AtUInt step);
-   void UpdateMotion(AtNode* anode, AtUInt step);
+   virtual void Update(AtNode* anode);
+   virtual void ExportMotion(AtNode* anode, AtUInt step);
+   virtual void UpdateMotion(AtNode* anode, AtUInt step);
    static void NodeInitializer(MString nodeClassName);
    virtual void AddIPRCallbacks();
 
@@ -66,8 +61,6 @@ protected:
 
 protected:
    bool m_isMasterDag;
-   bool m_motion;
-   bool m_motionDeform;
    bool m_displaced;
    bool m_isRefSmooth;
    MObject m_data_mobj;
@@ -80,7 +73,13 @@ protected:
 class DLLEXPORT CMeshTranslator : public CGeoTranslator
 {
 public:
-   void Export(AtNode* anode);
+   virtual AtNode* Init(MDagPath& dagPath, CMayaScene* scene, MString outputAttr="")
+   {
+      m_fnMesh.setObject(dagPath);
+      return CGeoTranslator::Init(dagPath, scene, outputAttr);
+   }
+
+   virtual void Export(AtNode* anode);
    static void* creator()
    {
       return new CMeshTranslator();
@@ -97,7 +96,7 @@ class MFnNurbsSurface;
 class DLLEXPORT CNurbsSurfaceTranslator : public CGeoTranslator
 {
 public:
-   void Export(AtNode* anode);
+   virtual void Export(AtNode* anode);
    virtual void ExportMotion(AtNode* anode, AtUInt step);
    virtual void IsGeoDeforming();
 

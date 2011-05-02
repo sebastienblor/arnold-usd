@@ -134,8 +134,8 @@ bool CGeoTranslator::GetVertices(MFnMesh &fnMesh, std::vector<float> &vertices)
 bool CGeoTranslator::GetNormals(MFnMesh &fnMesh, std::vector<float> &normals)
 {
    int nnorms = fnMesh.numNormals();
-   if (m_fnNode.findPlug("smoothShading").asBool() &&
-         !m_fnNode.findPlug("subdiv_type").asBool() &&
+   if (GetFnNode().findPlug("smoothShading").asBool() &&
+         !GetFnNode().findPlug("subdiv_type").asBool() &&
          nnorms > 0)
    {
       normals.resize(nnorms * 3);
@@ -758,16 +758,16 @@ void CGeoTranslator::ExportMeshParameters(AtNode* polymesh)
 {
    // Check if custom attributes have been created, ignore them otherwise
    MStatus status;
-   m_fnNode.findPlug("subdiv_type", &status);
+   GetFnNode().findPlug("subdiv_type", &status);
    bool customAttributes = (status == MS::kSuccess);
 
-   AiNodeSetBool(polymesh, "smoothing", m_fnNode.findPlug("smoothShading").asBool());
+   AiNodeSetBool(polymesh, "smoothing", GetFnNode().findPlug("smoothShading").asBool());
 
-   if (m_fnNode.findPlug("doubleSided").asBool())
+   if (GetFnNode().findPlug("doubleSided").asBool())
       AiNodeSetInt(polymesh, "sidedness", 65535);
    else
    {
-      AiNodeSetBool(polymesh, "invert_normals", m_fnNode.findPlug("opposite").asBool());
+      AiNodeSetBool(polymesh, "invert_normals", GetFnNode().findPlug("opposite").asBool());
       AiNodeSetInt(polymesh, "sidedness", 0);
    }
 
@@ -778,18 +778,18 @@ void CGeoTranslator::ExportMeshParameters(AtNode* polymesh)
    {
       // Subdivision surfaces
       //
-      const bool subdivision = (m_fnNode.findPlug("subdiv_type").asInt() != 0);
+      const bool subdivision = (GetFnNode().findPlug("subdiv_type").asInt() != 0);
 
       if (subdivision)
       {
          AiNodeSetStr(polymesh, "subdiv_type",           "catclark");
-         AiNodeSetInt(polymesh, "subdiv_iterations",     m_fnNode.findPlug("subdiv_iterations").asInt());
-         AiNodeSetInt(polymesh, "subdiv_adaptive_metric",m_fnNode.findPlug("subdiv_adaptive_metric").asInt());
-         AiNodeSetFlt(polymesh, "subdiv_pixel_error",    m_fnNode.findPlug("subdiv_pixel_error").asFloat());
-         AiNodeSetInt(polymesh, "subdiv_uv_smoothing",   m_fnNode.findPlug("subdiv_uv_smoothing").asInt());
+         AiNodeSetInt(polymesh, "subdiv_iterations",     GetFnNode().findPlug("subdiv_iterations").asInt());
+         AiNodeSetInt(polymesh, "subdiv_adaptive_metric",GetFnNode().findPlug("subdiv_adaptive_metric").asInt());
+         AiNodeSetFlt(polymesh, "subdiv_pixel_error",    GetFnNode().findPlug("subdiv_pixel_error").asFloat());
+         AiNodeSetInt(polymesh, "subdiv_uv_smoothing",   GetFnNode().findPlug("subdiv_uv_smoothing").asInt());
 
          // FIXME, this should probably be handled by ProcessParameter
-         MString cameraName = m_fnNode.findPlug("subdiv_dicing_camera").asString();
+         MString cameraName = GetFnNode().findPlug("subdiv_dicing_camera").asString();
          AtNode* camera = ((cameraName != "") && (cameraName != "Default")) ? AiNodeLookUpByName(cameraName.asChar()) : NULL;
          AiNodeSetPtr(polymesh, "subdiv_dicing_camera", camera);
       }

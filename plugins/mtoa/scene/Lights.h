@@ -8,14 +8,11 @@ class DLLEXPORT CLightTranslator
 {
 public:
 
-   void Init(MDagPath& dagPath, CMayaScene* scene, MString outputAttr="")
+   virtual AtNode* Init(MDagPath& dagPath, CMayaScene* scene, MString outputAttr="")
    {
       CDagTranslator::Init(dagPath, scene, outputAttr);
       m_motion = scene->IsLightMotionBlurEnabled();
-      m_dagPath = dagPath;
-      m_fnNode.setObject(dagPath);
-      m_scene = scene;
-      m_outputAttr = outputAttr;
+      return m_atNode;
    }
    bool RequiresMotionData()
    {
@@ -23,9 +20,9 @@ public:
    }
    static void NodeInitializer(MString nodeClassName);
 protected:
-   void Export(AtNode* light, bool mayaAttrs=true);
-   void ExportMotion(AtNode* light, AtUInt step);
-   void ExportLightFilters(AtNode* light, const MObjectArray &filters);
+   virtual void Export(AtNode* light, bool mayaAttrs=true);
+   virtual void ExportMotion(AtNode* light, AtUInt step);
+   virtual void ExportLightFilters(AtNode* light, const MObjectArray &filters);
    virtual void Delete();
 
 protected:
@@ -39,10 +36,6 @@ public:
    static void* creator()
    {
       return new CAmbientLightTranslator();
-   }
-   bool RequiresMotionData()
-   {
-      return false;
    }
    const char* GetArnoldNodeType()
    {

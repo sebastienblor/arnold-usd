@@ -28,7 +28,7 @@ void CCameraTranslator::ExportImagePlane(AtUInt step)
     MStatus    status;
 
     // first we get the image planes connected to this camera
-    imagePlanePlug = m_fnNode.findPlug("imagePlane");
+    imagePlanePlug = GetFnNode().findPlug("imagePlane");
 
     if (imagePlanePlug.numConnectedElements() > 0)
     {
@@ -48,7 +48,7 @@ void CCameraTranslator::ExportImagePlane(AtUInt step)
                 if (displayMode > 1)
                 {
 
-                    MString imagePlaneName(m_fnNode.partialPathName());
+                    MString imagePlaneName(GetFnDagNode().partialPathName());
                     imagePlaneName += "_IP_";
                     imagePlaneName += ips;
                     MString imageName;
@@ -88,9 +88,9 @@ void CCameraTranslator::ExportImagePlane(AtUInt step)
                     }
 
                     double planeDepth = fnRes.findPlug("depth").asDouble();
-                    double camFocal = m_fnNode.findPlug("focalLength").asDouble();
-                    double camScale = m_fnNode.findPlug("cameraScale").asDouble();
-                    double lensSqueeze = m_fnNode.findPlug("lensSqueezeRatio").asDouble();
+                    double camFocal = GetFnNode().findPlug("focalLength").asDouble();
+                    double camScale = GetFnNode().findPlug("cameraScale").asDouble();
+                    double lensSqueeze = GetFnNode().findPlug("lensSqueezeRatio").asDouble();
 
                     float ipCoverageX = 1.0f;
                     float ipCoverageY = 1.0f;
@@ -381,13 +381,13 @@ void CCameraTranslator::ExportImagePlane(AtUInt step)
 void CCameraTranslator::ExportDOF(AtNode* camera)
 {
    // FIXME: focal_distance and aperture_size are animated and should be exported with motion blur
-   if (m_fnNode.findPlug("enableDOF").asBool())
+   if (GetFnNode().findPlug("enableDOF").asBool())
    {
-      AiNodeSetFlt(camera, "focal_distance", m_fnNode.findPlug("focal_distance").asFloat());
-      AiNodeSetFlt(camera, "aperture_size", m_fnNode.findPlug("aperture_size").asFloat());
-      AiNodeSetInt(camera, "aperture_blades", m_fnNode.findPlug("aperture_blades").asInt());
-      AiNodeSetFlt(camera, "aperture_rotation", m_fnNode.findPlug("aperture_rotation").asFloat());
-      AiNodeSetFlt(camera, "aperture_blade_curvature", m_fnNode.findPlug("aperture_blade_curvature").asFloat());
+      AiNodeSetFlt(camera, "focal_distance",          GetFnNode().findPlug("focal_distance").asFloat());
+      AiNodeSetFlt(camera, "aperture_size",           GetFnNode().findPlug("aperture_size").asFloat());
+      AiNodeSetInt(camera, "aperture_blades",         GetFnNode().findPlug("aperture_blades").asInt());
+      AiNodeSetFlt(camera, "aperture_rotation",       GetFnNode().findPlug("aperture_rotation").asFloat());
+      AiNodeSetFlt(camera, "aperture_blade_curvature",GetFnNode().findPlug("aperture_blade_curvature").asFloat());
    }
 }
 
@@ -395,8 +395,8 @@ void CCameraTranslator::ExportCameraData(AtNode* camera)
 {
    AtMatrix matrix;
 
-   AiNodeSetFlt(camera, "near_clip", m_fnNode.findPlug("nearClipPlane").asFloat());
-   AiNodeSetFlt(camera, "far_clip", m_fnNode.findPlug("farClipPlane").asFloat());
+   AiNodeSetFlt(camera, "near_clip", GetFnNode().findPlug("nearClipPlane").asFloat());
+   AiNodeSetFlt(camera, "far_clip",  GetFnNode().findPlug("farClipPlane").asFloat());
 
    if (m_scene->IsMotionBlurEnabled())
    {
@@ -740,7 +740,7 @@ void CPerspCameraTranslator::Export(AtNode* camera)
    ExportDOF(camera);
    ExportImagePlane(0);
 
-   MPlug plug = m_fnNode.findPlug("uv_remap");
+   MPlug plug = GetFnNode().findPlug("uv_remap");
    AiNodeSetRGBA(camera, "uv_remap", plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat(), plug.child(3).asFloat());
 
    if (m_motion)
@@ -788,7 +788,7 @@ float CFishEyeCameraTranslator::ExportFilmback(AtNode* camera)
 {
    // FIXME: export the screen_min and screen_max
    SetFilmTransform(camera);
-   return m_fnNode.findPlug("fov").asFloat();
+   return GetFnNode().findPlug("fov").asFloat();
 }
 
 void CFishEyeCameraTranslator::Export(AtNode* camera)
@@ -799,10 +799,10 @@ void CFishEyeCameraTranslator::Export(AtNode* camera)
    ExportDOF(camera);
    ExportImagePlane(0);
 
-   MPlug plug = m_fnNode.findPlug("autocrop");
+   MPlug plug = GetFnNode().findPlug("autocrop");
    AiNodeSetBool(camera, "autocrop", plug.asBool());
 
-   //plug = m_fnNode.findPlug("filtermap");
+   //plug = GetFnNode().findPlug("filtermap");
    //AiNodeSetRGB(camera, "filtermap", plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
 
    if (m_motion)
@@ -850,8 +850,8 @@ const char* CCylCameraTranslator::GetArnoldNodeType()
 void CCylCameraTranslator::ExportFilmback(AtNode* camera, float fovs[])
 {
    // FIXME: export the screen_min and screen_max
-   fovs[0] = m_fnNode.findPlug("horizontal_fov").asFloat();
-   fovs[1] = m_fnNode.findPlug("vertical_fov").asFloat();
+   fovs[0] = GetFnNode().findPlug("horizontal_fov").asFloat();
+   fovs[1] = GetFnNode().findPlug("vertical_fov").asFloat();
    SetFilmTransform(camera);
 }
 
@@ -864,7 +864,7 @@ void CCylCameraTranslator::Export(AtNode* camera)
    ExportDOF(camera);
    ExportImagePlane(0);
 
-   MPlug plug = m_fnNode.findPlug("projective");
+   MPlug plug = GetFnNode().findPlug("projective");
    AiNodeSetBool(camera, "projective", plug.asBool());
 
    if (m_motion)

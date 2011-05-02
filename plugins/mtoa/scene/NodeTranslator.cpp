@@ -85,18 +85,18 @@ AtNode* CNodeTranslator::DoExport(AtUInt step)
       if (step == 0)
       {
          if (m_outputAttr != "")
-            AiMsgDebug("[mtoa] Exporting: %s.%s", m_fnNode.name().asChar(), m_outputAttr.asChar());
+            AiMsgDebug("[mtoa] Exporting: %s.%s", GetFnNode().name().asChar(), m_outputAttr.asChar());
          else
-            AiMsgDebug("[mtoa] Exporting: %s", m_fnNode.name().asChar());
+            AiMsgDebug("[mtoa] Exporting: %s", GetFnNode().name().asChar());
          Export(m_atNode);
          ExportUserAttribute(m_atNode);
       }
       else if (RequiresMotionData())
       {
          if (m_outputAttr != "")
-            AiMsgDebug("[mtoa] Exporting motion: %s.%s", m_fnNode.name().asChar(), m_outputAttr.asChar());
+            AiMsgDebug("[mtoa] Exporting motion: %s.%s", GetFnNode().name().asChar(), m_outputAttr.asChar());
          else
-            AiMsgDebug("[mtoa] Exporting motion: %s", m_fnNode.name().asChar());
+            AiMsgDebug("[mtoa] Exporting motion: %s", GetFnNode().name().asChar());
 
          ExportMotion(m_atNode, step);
       }
@@ -140,13 +140,15 @@ AtNode* CNodeTranslator::GetArnoldNode()
 }
 
 // set private variable m_atNode
-void CNodeTranslator::DoCreateArnoldNode()
+AtNode* CNodeTranslator::DoCreateArnoldNode()
 {
    m_atNode = CreateArnoldNode();
    if (m_atNode == NULL)
-      AiMsgWarning("[mtoa] translator for %s returned an emtpy arnold node", m_fnNode.name().asChar());
+      AiMsgWarning("[mtoa] translator for %s returned an empty arnold node", GetFnNode().name().asChar());
    else
       SetArnoldNodeName(m_atNode);
+
+   return m_atNode;
 }
 
 AtNode* CNodeTranslator::CreateArnoldNode()
@@ -172,11 +174,11 @@ void CNodeTranslator::SetArnoldNodeName(AtNode* arnoldNode)
 {
    if (m_outputAttr.numChars())
    {
-      MString name = m_fnNode.name() + "_" + m_outputAttr;
+      MString name = GetFnNode().name() + "_" + m_outputAttr;
       AiNodeSetStr(arnoldNode, "name", name.asChar());
    }
    else
-      AiNodeSetStr(arnoldNode, "name", m_fnNode.name().asChar());
+      AiNodeSetStr(arnoldNode, "name", GetFnNode().name().asChar());
 }
 
 void CNodeTranslator::AddIPRCallbacks()
@@ -1020,37 +1022,37 @@ AtInt CDagTranslator::ComputeVisibility()
    AtInt visibility = AI_RAY_ALL;
    MPlug plug;
 
-   plug = m_fnNode.findPlug("castsShadows");
+   plug = GetFnNode().findPlug("castsShadows");
    if (!plug.isNull() && !plug.asBool())
    {
       visibility &= ~AI_RAY_SHADOW;
    }
 
-   plug = m_fnNode.findPlug("primaryVisibility");
+   plug = GetFnNode().findPlug("primaryVisibility");
    if (!plug.isNull() && !plug.asBool())
    {
       visibility &= ~AI_RAY_CAMERA;
    }
 
-   plug = m_fnNode.findPlug("visibleInReflections");
+   plug = GetFnNode().findPlug("visibleInReflections");
    if (!plug.isNull() && !plug.asBool())
    {
       visibility &= ~AI_RAY_REFLECTED;
    }
 
-   plug = m_fnNode.findPlug("visibleInRefractions");
+   plug = GetFnNode().findPlug("visibleInRefractions");
    if (!plug.isNull() && !plug.asBool())
    {
       visibility &= ~AI_RAY_REFRACTED;
    }
 
-   plug = m_fnNode.findPlug("visibleInDiffuse");
+   plug = GetFnNode().findPlug("visibleInDiffuse");
    if (!plug.isNull() && !plug.asBool())
    {
       visibility &= ~AI_RAY_DIFFUSE;
    }
 
-   plug = m_fnNode.findPlug("visibleInGlossy");
+   plug = GetFnNode().findPlug("visibleInGlossy");
    if (!plug.isNull() && !plug.asBool())
    {
       visibility &= ~AI_RAY_GLOSSY;
@@ -1127,23 +1129,23 @@ void CShapeTranslator::ProcessRenderFlags(AtNode* node)
    AiNodeSetInt(node, "visibility", ComputeVisibility());
 
    MPlug plug;
-   plug = m_fnNode.findPlug("selfShadows");
+   plug = GetFnNode().findPlug("selfShadows");
    if (!plug.isNull()) AiNodeSetBool(node, "self_shadows", plug.asBool());
 
-   plug = m_fnNode.findPlug("opaque");
+   plug = GetFnNode().findPlug("opaque");
    if (!plug.isNull()) AiNodeSetBool(node, "opaque", plug.asBool());
 
-   plug = m_fnNode.findPlug("receiveShadows");
+   plug = GetFnNode().findPlug("receiveShadows");
    if (!plug.isNull()) AiNodeSetBool(node, "receive_shadows", plug.asBool());
 
    // Subsurface Scattering
-   plug = m_fnNode.findPlug("sss_use_gi");
+   plug = GetFnNode().findPlug("sss_use_gi");
    if (!plug.isNull()) AiNodeSetBool(node, "sss_use_gi", plug.asBool());
 
-   plug = m_fnNode.findPlug("sss_max_samples");
+   plug = GetFnNode().findPlug("sss_max_samples");
    if (!plug.isNull()) AiNodeSetInt(node, "sss_max_samples", plug.asInt());
 
-   plug = m_fnNode.findPlug("sss_sample_spacing");
+   plug = GetFnNode().findPlug("sss_sample_spacing");
    if (!plug.isNull()) AiNodeSetFlt(node, "sss_sample_spacing", plug.asFloat());
    
 }

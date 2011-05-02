@@ -480,9 +480,7 @@ void CSkyShaderTranslator::Export(AtNode* shader)
    AiNodeSetVec(shader, "Y", 0.0f, 1.0f, 0.0f);
    AiNodeSetVec(shader, "Z", 0.0f, 0.0f, -1.0f);
 
-   MDagPath nodeDagPath;
-   m_fnNode.getPath(nodeDagPath);
-   MFnDependencyNode trNode(nodeDagPath.transform());
+   MFnDependencyNode trNode(m_dagPath.transform());
 
    MPlug plug   = trNode.findPlug("rotateX");
    MAngle angle;
@@ -497,8 +495,8 @@ void CSkyShaderTranslator::Export(AtNode* shader)
    plug.getValue(angle);
    AiNodeSetFlt(shader, "Z_angle", static_cast<float>(-angle.asDegrees()));
 
-   ProcessParameter(shader, "color", AI_TYPE_RGB);
-   ProcessParameter(shader, "format", AI_TYPE_ENUM);
+   ProcessParameter(shader, "color",     AI_TYPE_RGB);
+   ProcessParameter(shader, "format",    AI_TYPE_ENUM);
    ProcessParameter(shader, "intensity", AI_TYPE_FLOAT);
 
    AtInt visibility = ComputeVisibility();
@@ -521,7 +519,7 @@ void CLambertTranslator::Export(AtNode* shader)
 
    MPlugArray connections;
 
-   MPlug plug = m_fnNode.findPlug("normalCamera");
+   MPlug plug = GetFnNode().findPlug("normalCamera");
 
    plug.connectedTo(connections, true, false);
    if (connections.length() > 0)
@@ -559,7 +557,7 @@ void CFileTranslator::Export(AtNode* shader)
 {
    MPlugArray connections;
 
-   MPlug plug = m_fnNode.findPlug("uvCoord");
+   MPlug plug = GetFnNode().findPlug("uvCoord");
 
    plug.connectedTo(connections, true, false);
 
@@ -590,9 +588,9 @@ void CFileTranslator::Export(AtNode* shader)
    MString resolvedFilename;
    MString frameNumber("0");
    MStatus status;
-   frameNumber += m_scene->GetCurrentFrame() + m_fnNode.findPlug("frameOffset").asInt();
+   frameNumber += m_scene->GetCurrentFrame() + GetFnNode().findPlug("frameOffset").asInt();
    MRenderUtil::exactFileTextureName(m_object, filename);
-   resolvedFilename = MRenderUtil::exactFileTextureName(filename, m_fnNode.findPlug("useFrameExtension").asBool(), frameNumber, &status);
+   resolvedFilename = MRenderUtil::exactFileTextureName(filename, GetFnNode().findPlug("useFrameExtension").asBool(), frameNumber, &status);
    if (status == MStatus::kSuccess)
    {
       resolvedFilename = filename;
@@ -610,7 +608,7 @@ void CFileTranslator::Export(AtNode* shader)
    }
    else
    {
-      resolvedFilename = m_fnNode.findPlug("filename").asString();
+      resolvedFilename = GetFnNode().findPlug("filename").asString();
    }
    AiNodeSetStr(shader, "filename", resolvedFilename.asChar());
 
@@ -778,9 +776,9 @@ void CRemapValueTranslator::Export(AtNode* shader)
    {
       MPlug attr, elem, pos, val, interp;
 
-      MObject opos = m_fnNode.attribute("value_Position");
-      MObject oval = m_fnNode.attribute("value_FloatValue");
-      MObject ointerp = m_fnNode.attribute("value_Interp");
+      MObject opos = GetFnNode().attribute("value_Position");
+      MObject oval = GetFnNode().attribute("value_FloatValue");
+      MObject ointerp = GetFnNode().attribute("value_Interp");
 
       // FIXME: make inputValue the name of the parameter on the MayaRemapValue shader
       ProcessParameter(shader, "inputValue", "input", AI_TYPE_FLOAT);
@@ -790,7 +788,7 @@ void CRemapValueTranslator::Export(AtNode* shader)
       ProcessParameter(shader, "outputMax", AI_TYPE_FLOAT);
 
       // Note: this doesn't handle connection coming in individual elements
-      attr = m_fnNode.findPlug("value");
+      attr = GetFnNode().findPlug("value");
       AtArray *positions = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_FLOAT);
       AtArray *values = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_FLOAT);
       AtArray *interps = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_STRING);
@@ -823,9 +821,9 @@ void CRemapValueTranslator::Export(AtNode* shader)
    {
       MPlug attr, elem, pos, val, interp;
 
-      MObject opos = m_fnNode.attribute("color_Position");
-      MObject oval = m_fnNode.attribute("color_Color");
-      MObject ointerp = m_fnNode.attribute("color_Interp");
+      MObject opos = GetFnNode().attribute("color_Position");
+      MObject oval = GetFnNode().attribute("color_Color");
+      MObject ointerp = GetFnNode().attribute("color_Interp");
 
       // FIXME: make inputValue the name of the parameter on the MayaRemapValue shader
       ProcessParameter(shader, "inputValue", "input", AI_TYPE_FLOAT);
@@ -835,7 +833,7 @@ void CRemapValueTranslator::Export(AtNode* shader)
       ProcessParameter(shader, "outputMax", AI_TYPE_FLOAT);
 
       // Note: this doesn't handle connection coming in individual elements
-      attr = m_fnNode.findPlug("color");
+      attr = GetFnNode().findPlug("color");
       AtArray *positions = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_FLOAT);
       AtArray *values = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_RGB);
       AtArray *interps = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_STRING);
@@ -908,12 +906,12 @@ void CRemapColorTranslator::Export(AtNode* shader)
 
       for (int ci=0; ci<3; ++ci)
       {
-         MObject opos = m_fnNode.attribute(posNames[ci*2]);
-         MObject oval = m_fnNode.attribute(valNames[ci*2]);
-         MObject ointerp = m_fnNode.attribute(interpNames[ci*2]);
+         MObject opos = GetFnNode().attribute(posNames[ci*2]);
+         MObject oval = GetFnNode().attribute(valNames[ci*2]);
+         MObject ointerp = GetFnNode().attribute(interpNames[ci*2]);
 
          // Note: this doesn't handle connection coming in individual elements
-         attr = m_fnNode.findPlug(plugNames[ci]);
+         attr = GetFnNode().findPlug(plugNames[ci]);
          AtArray *positions = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_FLOAT);
          AtArray *values = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_FLOAT);
          AtArray *interps = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_STRING);
@@ -972,7 +970,7 @@ void CProjectionTranslator::Export(AtNode* shader)
    // alphaIsLuminance?
 
    // shaderMatrix
-   MPlug plug = m_fnNode.findPlug("shaderMatrix");
+   MPlug plug = GetFnNode().findPlug("shaderMatrix");
    // should follow connections here also
    // temporarily just read the value
    AtMatrix ipm;
@@ -986,8 +984,8 @@ void CProjectionTranslator::Export(AtNode* shader)
    // FIXME: change shader parameter name to match maya
    ProcessParameter(shader, "fitFill", "fillType", AI_TYPE_INT);
 
-   MPlug typePlug = m_fnNode.findPlug("projType");
-   plug = m_fnNode.findPlug("linkedCamera");
+   MPlug typePlug = GetFnNode().findPlug("projType");
+   plug = GetFnNode().findPlug("linkedCamera");
    MPlugArray connections;
    plug.connectedTo(connections, true, false);
    if (connections.length() >= 1 && typePlug.asInt() == 8)
@@ -1037,9 +1035,9 @@ void CRampTranslator::Export(AtNode* shader)
    MPlug plug, elem, pos, col;
    MPlugArray connections;
 
-   MObject opos = m_fnNode.attribute("position");
-   MObject ocol = m_fnNode.attribute("color");
-   plug = m_fnNode.findPlug("colorEntryList");
+   MObject opos = GetFnNode().attribute("position");
+   MObject ocol = GetFnNode().attribute("color");
+   plug = GetFnNode().findPlug("colorEntryList");
    AtArray *positions = AiArrayAllocate(plug.numElements(), 1, AI_TYPE_FLOAT);
    AtArray *colors = AiArrayAllocate(plug.numElements(), 1, AI_TYPE_RGB);
    // Connections on individual array element are not handled

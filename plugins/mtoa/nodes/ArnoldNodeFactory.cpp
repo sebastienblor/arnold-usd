@@ -439,7 +439,7 @@ const char* CArnoldNodeFactory::GetArnoldNodeFromMayaNode(const MString& mayaSha
 //
 const char* CAutoTranslator::GetArnoldNodeType()
 {
-   MString mayaShader = m_fnNode.typeName();
+   MString mayaShader = GetFnNode().typeName();
    return CArnoldNodeFactory::GetArnoldNodeFromMayaNode(mayaShader);
 }
 
@@ -479,17 +479,17 @@ void CAutoTranslator::Export(AtNode *shader)
          if (!AiMetaDataGetStr(shader->base_node, paramName, "maya.name", &attrName))
             attrName = paramName;
 
-         plug = m_fnNode.findPlug(attrName, &status);
+         plug = GetFnNode().findPlug(attrName, &status);
          if (status == MS::kSuccess)
             ProcessParameter(shader, plug, paramName, paramType);
          else
-            AiMsgWarning("[mtoa] Attribute %s.%s requested by translator does not exist", m_fnNode.name().asChar(), attrName);
+            AiMsgWarning("[mtoa] Attribute %s.%s requested by translator does not exist", GetFnNode().name().asChar(), attrName);
       }
    }
 
    MPlugArray connections;
 
-   plug = m_fnNode.findPlug("normalCamera");
+   plug = GetFnNode().findPlug("normalCamera");
 
    plug.connectedTo(connections, true, false);
    if (connections.length() > 0)

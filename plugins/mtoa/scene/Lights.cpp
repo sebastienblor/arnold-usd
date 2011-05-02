@@ -53,34 +53,34 @@ void CLightTranslator::Export(AtNode* light, bool mayaAttrs)
 
    // FIXME: processing parameters means setting up links if the plug has an incoming connection
    // this doesn't always make sense in the context of a light.
-   plug = m_fnNode.findPlug("color");
+   plug = GetFnNode().findPlug("color");
    ProcessParameter(light, plug, "color", AI_TYPE_RGB);
 
-   AiNodeSetFlt(light, "intensity", m_fnNode.findPlug("intensity").asFloat());
+   AiNodeSetFlt(light, "intensity", GetFnNode().findPlug("intensity").asFloat());
 
    if (mayaAttrs)
    {
-      AiNodeSetBool(light, "cast_shadows", m_fnNode.findPlug("useRayTraceShadows").asBool());
-      AiNodeSetInt(light, "samples", m_fnNode.findPlug("shadowRays").asInt());
+      AiNodeSetBool(light, "cast_shadows", GetFnNode().findPlug("useRayTraceShadows").asBool());
+      AiNodeSetInt(light, "samples", GetFnNode().findPlug("shadowRays").asInt());
 
-      AiNodeSetBool(light, "affect_diffuse", m_fnNode.findPlug("emitDiffuse").asBool());
-      AiNodeSetBool(light, "affect_specular", m_fnNode.findPlug("emitSpecular").asBool());
+      AiNodeSetBool(light, "affect_diffuse", GetFnNode().findPlug("emitDiffuse").asBool());
+      AiNodeSetBool(light, "affect_specular", GetFnNode().findPlug("emitSpecular").asBool());
    }
    else
    {
-      AiNodeSetBool(light, "cast_shadows", m_fnNode.findPlug("cast_shadows").asBool());
-      AiNodeSetInt(light, "samples", m_fnNode.findPlug("samples").asInt());
+      AiNodeSetBool(light, "cast_shadows", GetFnNode().findPlug("cast_shadows").asBool());
+      AiNodeSetInt(light, "samples", GetFnNode().findPlug("samples").asInt());
 
-      AiNodeSetBool(light, "affect_diffuse", m_fnNode.findPlug("affect_diffuse").asBool());
-      AiNodeSetBool(light, "affect_specular", m_fnNode.findPlug("affect_specular").asBool());
+      AiNodeSetBool(light, "affect_diffuse", GetFnNode().findPlug("affect_diffuse").asBool());
+      AiNodeSetBool(light, "affect_specular", GetFnNode().findPlug("affect_specular").asBool());
    }
 
-   AiNodeSetInt(light, "sss_samples", m_fnNode.findPlug("sss_samples").asInt());
-   AiNodeSetInt(light, "bounces", m_fnNode.findPlug("bounces").asInt());
-   AiNodeSetFlt(light, "bounce_factor", m_fnNode.findPlug("bounce_factor").asFloat());
+   AiNodeSetInt(light, "sss_samples", GetFnNode().findPlug("sss_samples").asInt());
+   AiNodeSetInt(light, "bounces", GetFnNode().findPlug("bounces").asInt());
+   AiNodeSetFlt(light, "bounce_factor", GetFnNode().findPlug("bounce_factor").asFloat());
 
    MStatus status;
-   MPlug pFilters = m_fnNode.findPlug("light_filters", &status);
+   MPlug pFilters = GetFnNode().findPlug("light_filters", &status);
    if (status == MS::kSuccess)
    {
       MObjectArray filters;
@@ -170,8 +170,8 @@ void CPointLightTranslator::Export(AtNode* light)
 
    AiNodeSetFlt(light, "radius", fnLight.shadowRadius());
 
-   AiNodeSetBool(light, "affect_volumetrics", m_fnNode.findPlug("affect_volumetrics").asBool());
-   AiNodeSetBool(light, "cast_volumetric_shadows", m_fnNode.findPlug("cast_volumetric_shadows").asBool());
+   AiNodeSetBool(light, "affect_volumetrics", GetFnNode().findPlug("affect_volumetrics").asBool());
+   AiNodeSetBool(light, "cast_volumetric_shadows", GetFnNode().findPlug("cast_volumetric_shadows").asBool());
 }
 
 void CPointLightTranslator::NodeInitializer(MString nodeClassName)
@@ -202,11 +202,11 @@ void CSpotLightTranslator::Export(AtNode* light)
    AiNodeSetFlt(light, "penumbra_angle", static_cast<float>(fabs(fnLight.penumbraAngle()) * AI_RTOD));
    AiNodeSetFlt(light, "cosine_power", static_cast<float>(fnLight.dropOff()));
 
-   AiNodeSetBool(light, "affect_volumetrics", m_fnNode.findPlug("affect_volumetrics").asBool());
-   AiNodeSetBool(light, "cast_volumetric_shadows", m_fnNode.findPlug("cast_volumetric_shadows").asBool());
+   AiNodeSetBool(light, "affect_volumetrics", GetFnNode().findPlug("affect_volumetrics").asBool());
+   AiNodeSetBool(light, "cast_volumetric_shadows", GetFnNode().findPlug("cast_volumetric_shadows").asBool());
 
-   AiNodeSetFlt(light, "aspect_ratio", m_fnNode.findPlug("aspect_ratio").asFloat());
-   AiNodeSetFlt(light, "lens_radius", m_fnNode.findPlug("lens_radius").asFloat());
+   AiNodeSetFlt(light, "aspect_ratio", GetFnNode().findPlug("aspect_ratio").asFloat());
+   AiNodeSetFlt(light, "lens_radius", GetFnNode().findPlug("lens_radius").asFloat());
 }
 
 void CSpotLightTranslator::NodeInitializer(MString nodeClassName)
@@ -240,10 +240,10 @@ void CAreaLightTranslator::Export(AtNode* light)
 
    AiNodeSetArray(light, "vertices", AiArrayConvert(4, 1, AI_TYPE_POINT, vertices, true));
 
-   AiNodeSetInt(light, "resolution", m_fnNode.findPlug("resolution").asInt());
-   AiNodeSetBool(light, "affect_volumetrics", m_fnNode.findPlug("affect_volumetrics").asBool());
-   AiNodeSetBool(light, "cast_volumetric_shadows", m_fnNode.findPlug("cast_volumetric_shadows").asBool());
-   AiNodeSetBool(light, "solid_angle", m_fnNode.findPlug("solid_angle").asBool());
+   AiNodeSetInt(light, "resolution", GetFnNode().findPlug("resolution").asInt());
+   AiNodeSetBool(light, "affect_volumetrics", GetFnNode().findPlug("affect_volumetrics").asBool());
+   AiNodeSetBool(light, "cast_volumetric_shadows", GetFnNode().findPlug("cast_volumetric_shadows").asBool());
+   AiNodeSetBool(light, "solid_angle", GetFnNode().findPlug("solid_angle").asBool());
 }
 
 void CAreaLightTranslator::NodeInitializer(MString nodeClassName)
@@ -271,11 +271,11 @@ void CSkyDomeLightTranslator::Export(AtNode* light)
    // Don't use maya-style attrs
    CLightTranslator::Export(light, false);
 
-   AiNodeSetInt(light, "resolution", m_fnNode.findPlug("resolution").asInt());
-   AiNodeSetFlt(light, "exposure", m_fnNode.findPlug("exposure").asFloat());
-   AiNodeSetInt(light, "format", m_fnNode.findPlug("format").asInt());
-   AiNodeSetFlt(light, "shadow_density", m_fnNode.findPlug("shadow_density").asFloat());
-   AiNodeSetRGB(light, "shadow_color", m_fnNode.findPlug("shadow_colorR").asFloat(), m_fnNode.findPlug("shadow_colorG").asFloat(), m_fnNode.findPlug("shadow_colorB").asFloat());
-   AiNodeSetBool(light, "normalize", m_fnNode.findPlug("normalize").asBool());
-   AiNodeSetBool(light, "mis", m_fnNode.findPlug("mis").asBool());
+   AiNodeSetInt(light, "resolution", GetFnNode().findPlug("resolution").asInt());
+   AiNodeSetFlt(light, "exposure", GetFnNode().findPlug("exposure").asFloat());
+   AiNodeSetInt(light, "format", GetFnNode().findPlug("format").asInt());
+   AiNodeSetFlt(light, "shadow_density", GetFnNode().findPlug("shadow_density").asFloat());
+   AiNodeSetRGB(light, "shadow_color", GetFnNode().findPlug("shadow_colorR").asFloat(), GetFnNode().findPlug("shadow_colorG").asFloat(), GetFnNode().findPlug("shadow_colorB").asFloat());
+   AiNodeSetBool(light, "normalize", GetFnNode().findPlug("normalize").asBool());
+   AiNodeSetBool(light, "mis", GetFnNode().findPlug("mis").asBool());
 }

@@ -7,17 +7,16 @@ class DLLEXPORT CCameraTranslator
    :   public CDagTranslator
 {
 public:
-   void Init(MDagPath& dagPath, CMayaScene* scene, MString outputAttr="")
+   virtual AtNode* Init(MDagPath& dagPath, CMayaScene* scene, MString outputAttr="")
    {
-      CDagTranslator::Init(dagPath, scene, outputAttr);
-      m_motion = m_scene->IsCameraMotionBlurEnabled();
+      m_atNode = CDagTranslator::Init(dagPath, scene, outputAttr);
+      m_motion = scene->IsCameraMotionBlurEnabled();
       m_fnCamera.setObject(dagPath);
-      m_dagPath = dagPath;
-      m_fnNode.setObject(dagPath);
-      m_scene = scene;
-      m_outputAttr = outputAttr;
+      return m_atNode;
    }
-   bool RequiresMotionData()
+   
+   // FIXME: this method shouldn't be required.
+   virtual bool RequiresMotionData()
    {
       return m_motion;
    }
@@ -42,8 +41,8 @@ class DLLEXPORT CPerspCameraTranslator
       :   public CCameraTranslator
 {
 public:
-   void Export(AtNode* camera);
-   void ExportMotion(AtNode* camera, AtUInt step);
+   virtual void Export(AtNode* camera);
+   virtual void ExportMotion(AtNode* camera, AtUInt step);
    static void NodeInitializer(MString nodeClassName);
    static void* creator()
    {

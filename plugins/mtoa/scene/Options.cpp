@@ -45,7 +45,7 @@ void CRenderOptionsTranslator::Export(AtNode* options)
    currentTime = MAnimControl::currentTime();
 
    ProcessParameter(options, "physically_based", AI_TYPE_BOOLEAN);
-   AiNodeSetInt(options, "threads", m_fnNode.findPlug("threads_autodetect").asBool() ? 0 : m_fnNode.findPlug("threads").asInt());
+   AiNodeSetInt(options, "threads", GetFnNode().findPlug("threads_autodetect").asBool() ? 0 : GetFnNode().findPlug("threads").asInt());
    ProcessParameter(options, "bucket_scanning", AI_TYPE_ENUM);
    ProcessParameter(options, "bucket_size", AI_TYPE_INT);
    ProcessParameter(options, "abort_on_error", AI_TYPE_BOOLEAN);
@@ -59,7 +59,7 @@ void CRenderOptionsTranslator::Export(AtNode* options)
    ProcessParameter(options, "AA_sample_clamp", AI_TYPE_FLOAT);
 
    // FIXME: this is supposed to use a connection to AA_seed attribute
-   if (!m_fnNode.findPlug("lock_sampling_noise").asBool())
+   if (!GetFnNode().findPlug("lock_sampling_noise").asBool())
       AiNodeSetInt(options, "AA_seed", (AtInt)currentTime.value());
 
    ProcessParameter(options, "light_gamma", AI_TYPE_FLOAT);
@@ -106,7 +106,7 @@ void CRenderOptionsTranslator::Export(AtNode* options)
 
    MObject background;
    MPlugArray conns;
-   MPlug pBG = m_fnNode.findPlug("background");
+   MPlug pBG = GetFnNode().findPlug("background");
    pBG.connectedTo(conns, true, false);
    if (conns.length() == 1)
    {
@@ -132,7 +132,7 @@ void CRenderOptionsTranslator::Export(AtNode* options)
    MSelectionList list;
    MObject        node;
 
-   AtInt atmosphere = m_fnNode.findPlug("atmosphere").asInt();
+   AtInt atmosphere = GetFnNode().findPlug("atmosphere").asInt();
    switch (atmosphere)
    {
    case 0:

@@ -216,11 +216,11 @@ void CHairTranslator::Export(AtNode *curve)
    {
    	// Hair specific Arnold render settings.
    	MPlug plug;
-   	plug = m_fnNode.findPlug("min_pixel_width");
+   	plug = GetFnNode().findPlug("min_pixel_width");
    	if (!plug.isNull()) AiNodeSetFlt(curve, "min_pixel_width", plug.asFloat());
 
       // Mode is an enum, 0 == ribbon, 1 == tubes.
-      plug = m_fnNode.findPlug("mode");
+      plug = GetFnNode().findPlug("mode");
       if (!plug.isNull()) AiNodeSetInt(curve, "mode", plug.asInt());
       
       // User-Data attributes
