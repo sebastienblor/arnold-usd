@@ -29,14 +29,6 @@ source_files  += find_files(src_base_dir, ['.c', '.cpp'])
 include_files += find_files(src_base_dir, ['.h'])
 
 
-
-if system.os() == 'windows':
-   local_env.Append(LIBS=Split('ai.lib OpenGl32.lib glu32.lib Foundation.lib OpenMaya.lib OpenMayaRender.lib OpenMayaUI.lib OpenMayaAnim.lib OpenMayaFX.lib'))
-
-else:
-   local_env.Append(LIBS=Split('ai pthread Foundation OpenMaya OpenMayaRender OpenMayaUI OpenMayaAnim OpenMayaFX'))
-   local_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
-
 if system.os() == 'darwin':
     local_env.Append(LDMODULESUFFIX='.bundle')
 
@@ -51,7 +43,7 @@ local_env.Append(LIBPATH = [os.path.join(Dir('.').abspath, '..', 'api')])
 local_env.Append(LIBS = ['mtoaAPI'])
 
 if system.os() == 'windows':
-   local_env['MSVSSCONSCRIPT'] = maya_env.File('SConscript')
+   local_env['MSVSSCONSCRIPT'] = local_env.File('SConscript')
    MTOA_PRJ = local_env.MSVSProject(target = 'mtoa' + local_env['MSVS']['PROJECTSUFFIX'],
                                     srcs = source_files + include_files,
                                     incs = [],

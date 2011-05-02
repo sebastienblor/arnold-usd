@@ -242,7 +242,9 @@ if system.os() == 'windows':
    maya_env.Append(CPPPATH = [os.path.join(env['MAYA_ROOT'], 'include')])
    maya_env.Append(CPPDEFINES = Split('NT_PLUGIN REQUIRE_IOSTREAM'))
    maya_env.Append(LIBPATH = [os.path.join(env['MAYA_ROOT'], 'lib')])
-
+   
+   maya_env.Append(LIBS=Split('ai.lib OpenGl32.lib glu32.lib Foundation.lib OpenMaya.lib OpenMayaRender.lib OpenMayaUI.lib OpenMayaAnim.lib OpenMayaFX.lib'))
+   
    [MTOA_API, MTOA_API_PRJ] = env.SConscript(os.path.join('plugins', 'mtoa', 'SConscriptAPI'),
                                              build_dir = os.path.join(BUILD_BASE_DIR, 'api'),
                                              duplicate = 0,
@@ -296,6 +298,9 @@ else:
    elif system.os() == 'darwin':
       maya_env.Append(CPPPATH = [os.path.join(env['MAYA_ROOT'], '../../devkit/include')])
       maya_env.Append(LIBPATH = [os.path.join(env['MAYA_ROOT'], 'MacOS')])
+
+   maya_env.Append(LIBS=Split('ai pthread Foundation OpenMaya OpenMayaRender OpenMayaUI OpenMayaAnim OpenMayaFX'))
+   maya_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
 
    MTOA_API = env.SConscript(os.path.join('plugins', 'mtoa', 'SConscriptAPI'),
                          build_dir = os.path.join(BUILD_BASE_DIR, 'api'),
@@ -374,15 +379,6 @@ ext_env.Append(LIBPATH = [ os.path.join(maya_env['ROOT_DIR'], os.path.split(str(
                            os.path.join(maya_env['ROOT_DIR'], os.path.split(str(MTOA_API[0]))[0])])
 ext_env.Append(LIBS = ['mtoaAPI'])
 
-if system.os() == 'windows':
-   ext_env.Append(LIBS=Split('ai.lib OpenGl32.lib glu32.lib Foundation.lib OpenMaya.lib OpenMayaRender.lib OpenMayaUI.lib OpenMayaAnim.lib OpenMayaFX.lib'))
-else:
-   ext_env.Append(LIBS=Split('ai pthread Foundation OpenMaya OpenMayaRender OpenMayaUI OpenMayaAnim OpenMayaFX'))
-   ext_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
-
-if system.os() == 'darwin':
-    ext_env.Append(LDMODULESUFFIX='.bundle')
-
 ext_base_dir = os.path.join('contrib', 'extensions')
 ext_files = []
 ext_shaders = []
@@ -399,10 +395,14 @@ for ext in os.listdir(ext_base_dir):
                                 exports   = ['ext_env', 'env'])
            if len(EXT) == 4:
               EXT_PRJ = EXT[2]
+              EXT_SHADERS_PRJ = EXT[3]
            else:
               EXT_PRJ = EXT[1]
+              EXT_SHADERS_PRJ = None
            
            env.Depends(SOLUTION, EXT_PRJ)
+           if EXT_SHADERS_PRJ != None:
+              env.Depends(SOLUTION, EXT_SHADERS_PRJ)
         else:
            EXT = env.SConscript(os.path.join(ext_dir, 'SConscript'),
                                 build_dir = os.path.join(BUILD_BASE_DIR, ext),
@@ -413,11 +413,16 @@ for ext in os.listdir(ext_base_dir):
         # only install if the target has been specified
         if ext in COMMAND_LINE_TARGETS:
             # EXT may contain a shader result
-            if len(EXT) > 1:
-                ext_shaders.append(str(EXT[1][0]))
-                plugin = str(EXT[0][0])
+            if system.os() == 'windows':
+               if len(EXT) > 2:
+                   ext_shaders.append(str(EXT[1][0]))
+               plugin = str(EXT[0][0])
             else:
-                plugin = str(EXT[0])
+               if len(EXT) > 1:
+                   ext_shaders.append(str(EXT[1][0]))
+                   plugin = str(EXT[0][0])
+               else:
+                   plugin = str(EXT[0])
             pyfile = os.path.splitext(os.path.basename(plugin))[0] + '.py'
             pyfile = os.path.join(ext_dir, 'plugin', pyfile)
             ext_files.append(plugin)

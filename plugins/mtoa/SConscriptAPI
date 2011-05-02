@@ -26,10 +26,6 @@ include_files_add = [os.path.join('nodes', x) for x in ['ArnoldNodeFactory.h', o
 source_files += source_files_add
 include_files += include_files_add
 
-if system.os() == 'windows':
-   local_env.Append(LIBS=Split('ai.lib OpenGl32.lib glu32.lib Foundation.lib OpenMaya.lib OpenMayaRender.lib OpenMayaUI.lib OpenMayaAnim.lib OpenMayaFX.lib'))
-else:
-   maya_env.Append(LIBS=Split('ai pthread Foundation OpenMaya OpenMayaRender OpenMayaUI OpenMayaAnim OpenMayaFX'))
 
 local_env.Append(CPPPATH = [sysconfig.get_python_inc()])
 
