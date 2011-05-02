@@ -11,7 +11,7 @@ public:
    virtual void Update(AtNode* curve);
    virtual void ExportMotion(AtNode* curve, AtUInt step);
    static void NodeInitializer(MString nodeClassName);
-   const char* GetArnoldNodeType();
+   AtNode* CreateArnoldNodes();
    static void* creator()
    {
       return new CShaveTranslator();

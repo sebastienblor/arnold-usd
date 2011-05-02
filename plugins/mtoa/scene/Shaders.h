@@ -9,7 +9,7 @@
    public:\
       static void* creator(){return new name();}\
       virtual void Export(AtNode* shader);\
-      const char* GetArnoldNodeType();\
+      AtNode* CreateArnoldNodes();\
    };
 
 class DLLEXPORT CSkyShaderTranslator
@@ -18,7 +18,7 @@ class DLLEXPORT CSkyShaderTranslator
 public:
    static void* creator(){return new CSkyShaderTranslator();}
    virtual void Export(AtNode* shader);
-   const char* GetArnoldNodeType();
+   AtNode* CreateArnoldNodes();
 };
 
 SHADER_TRANSLATOR(CSurfaceShaderTranslator);

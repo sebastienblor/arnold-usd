@@ -125,7 +125,7 @@ public:
    {
       return new CAutoTranslator();
    }
-   const char* GetArnoldNodeType();
+   AtNode* CreateArnoldNodes();
    void Export(AtNode* atNode);
 };
 #endif  // ARNOLDNODEFACTORY_H

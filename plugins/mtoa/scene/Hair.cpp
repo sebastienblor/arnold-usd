@@ -49,11 +49,9 @@ void CHairTranslator::NodeInitializer(MString nodeClassName)
    helper.MakeInputNode(data);
 }
 
-const char* CHairTranslator::GetArnoldNodeType()
+AtNode* CHairTranslator::CreateArnoldNodes()
 {
-   // Create the curve node
-   //
-   return "curves";
+   return AddArnoldNode("curves");
 }
 
 void CHairTranslator::Export(AtNode *curve)

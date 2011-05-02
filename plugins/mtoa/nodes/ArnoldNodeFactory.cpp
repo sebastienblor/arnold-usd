@@ -437,10 +437,10 @@ const char* CArnoldNodeFactory::GetArnoldNodeFromMayaNode(const MString& mayaSha
 
 // AutoTranslator
 //
-const char* CAutoTranslator::GetArnoldNodeType()
+AtNode* CAutoTranslator::CreateArnoldNodes()
 {
    MString mayaShader = GetFnNode().typeName();
-   return CArnoldNodeFactory::GetArnoldNodeFromMayaNode(mayaShader);
+   return AddArnoldNode(CArnoldNodeFactory::GetArnoldNodeFromMayaNode(mayaShader));
 }
 
 void CAutoTranslator::Export(AtNode *shader)

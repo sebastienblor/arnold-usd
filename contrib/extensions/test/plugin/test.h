@@ -7,7 +7,7 @@ class CTestTranslatorCmd
    :  public CNodeTranslator
 {
 public:
-   const char * GetArnoldNodeType();
+   AtNode* CreateArnoldNodes();
    void Export(AtNode*);
    void Update(AtNode*);
    static void* creator();

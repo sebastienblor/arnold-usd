@@ -407,7 +407,7 @@ void CGeoTranslator::GetComponentIDs(MFnMesh &fnMesh,
 
 void CGeoTranslator::ExportShaders()
 {
-   ExportMeshShaders(GetArnoldNode(), m_fnMesh);
+   ExportMeshShaders(GetArnoldRootNode(), m_fnMesh);
 }
 
 void CGeoTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
@@ -1068,13 +1068,13 @@ bool CNurbsSurfaceTranslator::Tessellate(MDagPath & dagPath)
    return true;
 }
 
-const char* CNurbsSurfaceTranslator::GetArnoldNodeType()
+AtNode* CNurbsSurfaceTranslator::CreateArnoldNodes()
 {
    m_isMasterDag = IsMasterInstance(m_masterDag);
    if (m_isMasterDag)
-      return "polymesh";
+      return AddArnoldNode("polymesh");
    else
-      return "ginstance";
+      return AddArnoldNode("ginstance");
 }
 
 void CNurbsSurfaceTranslator::Export(AtNode* anode)
@@ -1135,16 +1135,16 @@ unsigned int CMeshTranslator::GetNumMeshGroups()
 }
 
 
-const char* CMeshTranslator::GetArnoldNodeType()
+AtNode* CMeshTranslator::CreateArnoldNodes()
 {
    m_isMasterDag = IsMasterInstance(m_masterDag);
    if (m_isMasterDag)
    {
       m_fnMesh.setObject(m_dagPath.node());
-      return "polymesh";
+      return AddArnoldNode("polymesh");
    }
    else
-      return "ginstance";
+      return AddArnoldNode("ginstance");
 }
 void CMeshTranslator::Export(AtNode* anode)
 {

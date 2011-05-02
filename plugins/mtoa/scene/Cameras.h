@@ -48,7 +48,7 @@ public:
    {
       return new CPerspCameraTranslator();
    }
-   const char* GetArnoldNodeType();
+   AtNode* CreateArnoldNodes();
 
 protected:
    // return FOV
@@ -67,7 +67,7 @@ public:
    {
       return new COrthoCameraTranslator();
    }
-   const char* GetArnoldNodeType();
+   AtNode* CreateArnoldNodes();
 
 protected:
    void ExportFilmback(AtNode* camera);
@@ -84,7 +84,7 @@ public:
    {
       return new CFishEyeCameraTranslator();
    }
-   const char* GetArnoldNodeType();
+   AtNode* CreateArnoldNodes();
 
 protected:
    // return FOV
@@ -102,7 +102,7 @@ public:
    {
       return new CCylCameraTranslator();
    }
-   const char* GetArnoldNodeType();
+   AtNode* CreateArnoldNodes();
 
 protected:
    // return FOV

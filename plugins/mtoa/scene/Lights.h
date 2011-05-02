@@ -37,9 +37,9 @@ public:
    {
       return new CAmbientLightTranslator();
    }
-   const char* GetArnoldNodeType()
+   AtNode* CreateArnoldNodes()
    {
-      return "ambient_light";
+      return AddArnoldNode("ambient_light");
    }
 };
 
@@ -51,9 +51,9 @@ public:
    {
       return new CDirectionalLightTranslator();
    }
-   const char* GetArnoldNodeType()
+   AtNode* CreateArnoldNodes()
    {
-      return "distant_light";
+      return AddArnoldNode("distant_light");
    }
 };
 
@@ -66,9 +66,9 @@ public:
    {
       return new CPointLightTranslator();
    }
-   const char* GetArnoldNodeType()
+   AtNode* CreateArnoldNodes()
    {
-      return "point_light";
+      return AddArnoldNode("point_light");
    }
 };
 
@@ -81,9 +81,9 @@ public:
    {
       return new CSpotLightTranslator();
    }
-   const char* GetArnoldNodeType()
+   AtNode* CreateArnoldNodes()
    {
-      return "spot_light";
+      return AddArnoldNode("spot_light");
    }
 };
 
@@ -96,9 +96,9 @@ public:
    {
       return new CAreaLightTranslator();
    }
-   const char* GetArnoldNodeType()
+   AtNode* CreateArnoldNodes()
    {
-      return "quad_light";
+      return AddArnoldNode("quad_light");
    }
 };
 
@@ -110,9 +110,9 @@ public:
    {
       return new CSkyDomeLightTranslator();
    }
-   const char* GetArnoldNodeType()
+   AtNode* CreateArnoldNodes()
    {
-      return "skydome_light";
+      return AddArnoldNode("skydome_light");
    }
 };
 #endif // LIGHTS_H

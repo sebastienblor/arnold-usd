@@ -8,8 +8,7 @@ class DLLEXPORT CRenderOptionsTranslator : public CNodeTranslator
 public:
    static void* creator(){return new CRenderOptionsTranslator();}
    virtual void Export(AtNode* options);
-   const char* GetArnoldNodeType();
-   AtNode* CreateArnoldNode();
+   AtNode* CreateArnoldNodes();
    void SetupImageOptions(AtNode* options);
 };
 

@@ -41,7 +41,7 @@ class DLLEXPORT CNodeTranslator
 private:
    AtNode* DoExport(AtUInt step);
    AtNode* DoUpdate(AtUInt step);
-   AtNode* DoCreateArnoldNode();
+   AtNode* DoCreateArnoldNodes();
 
 public:
    virtual ~CNodeTranslator()
@@ -52,9 +52,8 @@ public:
       m_fnNode.setObject(object);
       m_scene = scene;
       m_outputAttr = outputAttr;
-      return DoCreateArnoldNode();
+      return DoCreateArnoldNodes();
    }
-   virtual const char* GetArnoldNodeType() = 0;
    virtual MFnDependencyNode GetFnNode() const {return m_fnNode;}
 
 protected:
@@ -66,6 +65,7 @@ protected:
    // UpdateMotion runs during IPR for step>0 (calls ExportMotion by default)
    virtual void UpdateMotion(AtNode* atNode, AtUInt step){ExportMotion(atNode, step);}
    virtual bool RequiresMotionData() {return false;}
+   virtual AtNode* CreateArnoldNodes() = 0;
    virtual void Delete() {}
    void DoDelete();
 
@@ -93,9 +93,11 @@ protected:
    AtUInt GetShutterType(){return m_scene->GetShutterType();}
 
    // get the arnold node that this translator is exporting (should only be used after all export steps are complete)
-   AtNode* GetArnoldNode();
-   virtual void SetArnoldNodeName(AtNode* arnoldNode);
-   virtual AtNode* CreateArnoldNode();
+   AtNode* GetArnoldRootNode();
+   AtNode* GetArnoldNode(const char* tag);
+   AtNode* AddArnoldNode(const char* type, const char* tag="");
+   virtual void SetArnoldNodeName(AtNode* arnoldNode, const char* tag="");
+
 
    // Add a callback to the list to manage.
    void ManageIPRCallback(const MCallbackId id);
@@ -114,6 +116,7 @@ protected:
 
 protected:
    AtNode* m_atNode;
+   std::map<std::string, AtNode*> m_atNodes;
    MObject m_object;
    CMayaScene* m_scene;
    MFnDependencyNode m_fnNode;
@@ -172,7 +175,7 @@ protected:
    AtInt ComputeVisibility();
    virtual void Delete();
    void AddHierarchyCallbacks(const MDagPath & path);
-   void SetArnoldNodeName(AtNode* arnoldNode);
+   void SetArnoldNodeName(AtNode* arnoldNode, const char* tag="");
 
 protected:
    MDagPath m_dagPath;

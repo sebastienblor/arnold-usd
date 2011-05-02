@@ -22,9 +22,9 @@ MStatus CShaveTranslator::UpdateHairInfo()
    return status;
 }
 
-const char* CShaveTranslator::GetArnoldNodeType()
+AtNode*  CShaveTranslator::CreateArnoldNodes()
 {
-   return "curves";
+   return AddArnoldNode("curves");
 }
 
 void CShaveTranslator::Export(AtNode* curve)

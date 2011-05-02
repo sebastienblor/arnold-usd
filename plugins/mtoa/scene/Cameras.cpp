@@ -579,9 +579,9 @@ void CCameraTranslator::MakeDOFAttributes(CExtensionAttrHelper &helper)
 // Orthographic Camera
 //
 
-const char* COrthoCameraTranslator::GetArnoldNodeType()
+AtNode*  COrthoCameraTranslator::CreateArnoldNodes()
 {
-   return "ortho_camera";
+   return AddArnoldNode("ortho_camera");
 }
 
 
@@ -642,9 +642,9 @@ void COrthoCameraTranslator::NodeInitializer(MString nodeClassName)
 
 // Perspective Camera
 //
-const char* CPerspCameraTranslator::GetArnoldNodeType()
+AtNode*  CPerspCameraTranslator::CreateArnoldNodes()
 {
-   return "persp_camera";
+   return AddArnoldNode("persp_camera");
 }
 
 
@@ -778,9 +778,9 @@ void CPerspCameraTranslator::NodeInitializer(MString nodeClassName)
 
 // Fish Eye Camera
 //
-const char* CFishEyeCameraTranslator::GetArnoldNodeType()
+AtNode*  CFishEyeCameraTranslator::CreateArnoldNodes()
 {
-   return "fisheye_camera";
+   return AddArnoldNode("fisheye_camera");
 }
 
 // returns FOV
@@ -841,9 +841,9 @@ void CFishEyeCameraTranslator::NodeInitializer(MString nodeClassName)
 
 // Cyl Camera
 //
-const char* CCylCameraTranslator::GetArnoldNodeType()
+AtNode*  CCylCameraTranslator::CreateArnoldNodes()
 {
-   return "cyl_camera";
+   return AddArnoldNode("cyl_camera");
 }
 
 // returns FOV

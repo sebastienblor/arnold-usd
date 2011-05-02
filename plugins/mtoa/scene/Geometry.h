@@ -84,7 +84,7 @@ public:
    {
       return new CMeshTranslator();
    }
-   const char* GetArnoldNodeType();
+   AtNode* CreateArnoldNodes();
 private:
    unsigned int GetNumMeshGroups();
 };
@@ -104,7 +104,7 @@ public:
    {
       return new CNurbsSurfaceTranslator();
    }
-   const char* GetArnoldNodeType();
+   AtNode* CreateArnoldNodes();
 private:
    MObject m_data_mobj;
    bool Tessellate(MDagPath & dagPath);

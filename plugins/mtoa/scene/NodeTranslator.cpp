@@ -134,53 +134,60 @@ AtNode* CNodeTranslator::DoUpdate(AtUInt step)
    return m_atNode;
 }
 
-AtNode* CNodeTranslator::GetArnoldNode()
+AtNode* CNodeTranslator::DoCreateArnoldNodes()
 {
-   return m_atNode;
-}
-
-// set private variable m_atNode
-AtNode* CNodeTranslator::DoCreateArnoldNode()
-{
-   m_atNode = CreateArnoldNode();
+   m_atNode = CreateArnoldNodes();
    if (m_atNode == NULL)
-      AiMsgWarning("[mtoa] translator for %s returned an empty arnold node", GetFnNode().name().asChar());
-   else
-      SetArnoldNodeName(m_atNode);
+      AiMsgWarning("[mtoa] Translator for %s returned an empty Arnold root node", GetFnNode().name().asChar());
 
    return m_atNode;
 }
 
-AtNode* CNodeTranslator::CreateArnoldNode()
+AtNode* CNodeTranslator::GetArnoldRootNode()
 {
-   const char* type = GetArnoldNodeType();
+   return m_atNode;
+}
+
+AtNode* CNodeTranslator::GetArnoldNode(const char* tag)
+{
+   if (m_atNodes.count(tag))
+      return m_atNodes[tag];
+   AiMsgError("[mtoa] Translator has not created an Arnold node with tag \"%s\"", tag);
+   return NULL;
+}
+
+AtNode* CNodeTranslator::AddArnoldNode(const char* type, const char* tag)
+{
    const AtNodeEntry* nodeEntry = AiNodeEntryLookUp(type);
    // Make sure that the given type of node exists
    if (nodeEntry != NULL)
    {
-      return AiNode(type);
+      AtNode* node = AiNode(type);
+      SetArnoldNodeName(node, tag);
+      m_atNodes[tag] = node;
+      return node;
    }
    else
    {
-      AiMsgError("[mtoa] arnold node type '%s' does not exist", type);
+      AiMsgError("[mtoa] Arnold node type \"%s\" does not exist", type);
       return NULL;
    }
+}
+
+void CNodeTranslator::SetArnoldNodeName(AtNode* arnoldNode, const char* tag)
+{
+   MString name = GetFnNode().name();
+   if (m_outputAttr.numChars())
+      name = name + "_" + m_outputAttr;
+   if (strlen(tag))
+      name = name +  "_" + tag;
+
+   AiNodeSetStr(arnoldNode, "name", name.asChar());
 }
 
 // Add callbacks to the node passed in. It's a few simple
 // callbacks by default. Since this method is virtual - you can
 // add whatever callbacks you need to trigger a fresh.
-void CNodeTranslator::SetArnoldNodeName(AtNode* arnoldNode)
-{
-   if (m_outputAttr.numChars())
-   {
-      MString name = GetFnNode().name() + "_" + m_outputAttr;
-      AiNodeSetStr(arnoldNode, "name", name.asChar());
-   }
-   else
-      AiNodeSetStr(arnoldNode, "name", GetFnNode().name().asChar());
-}
-
 void CNodeTranslator::AddIPRCallbacks()
 {
    MStatus status;
@@ -232,7 +239,7 @@ void CNodeTranslator::NameChangedCallback(MObject &node, const MString &str, voi
    AiMsgDebug("[mtoa] Node name changed, updating Arnold");
    CNodeTranslator * translator = static_cast< CNodeTranslator* >(clientData);
    if (translator != NULL)
-      translator->SetArnoldNodeName(translator->GetArnoldNode());
+      translator->SetArnoldNodeName(translator->GetArnoldRootNode());
 }
 
 // Arnold doesn't really support deleting nodes. But we can make things invisible,
@@ -845,14 +852,21 @@ int CDagTranslator::GetMasterInstanceNumber(MObject node)
    return -1;
 }
 
-void CDagTranslator::SetArnoldNodeName(AtNode* arnoldNode)
+void CDagTranslator::SetArnoldNodeName(AtNode* arnoldNode, const char* tag)
 {
+   MString name;
    // TODO: add a global option to control how names are exported
    if (true)
-      AiNodeSetStr(arnoldNode, "name", m_dagPath.partialPathName().asChar());
+      name = m_dagPath.partialPathName();
    else
-      // FIXME: when dag names are exported with fullPathName an error is printed such as "Cannot find camera node perspShape."
-      AiNodeSetStr(arnoldNode, "name", m_dagPath.fullPathName().asChar());
+      name = m_dagPath.fullPathName();
+
+   if (m_outputAttr.numChars())
+      name = name + "_" + m_outputAttr;
+   if (strlen(tag))
+      name = name +  "_" + tag;
+
+   AiNodeSetStr(arnoldNode, "name", name.asChar());
 }
 
 void CDagTranslator::AddHierarchyCallbacks(const MDagPath & path)
@@ -892,7 +906,7 @@ void CDagTranslator::Delete()
    // Arnold doesn't allow us to delete nodes
    // setting the visibility is as good as it gets
    // for now.
-   AiNodeSetInt(GetArnoldNode(), "visibility",  AI_RAY_UNDEFINED);
+   AiNodeSetInt(GetArnoldRootNode(), "visibility",  AI_RAY_UNDEFINED);
 }
 
 // Return whether the dag object in dagPath is the master instance. The master

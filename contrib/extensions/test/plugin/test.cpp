@@ -16,9 +16,9 @@ void CTestTranslatorCmd::Update(AtNode* shader)
    AiNodeSetRGB(shader, "Kd_color", 1.0f, 0.0f, 0.0f);
 }
 
-const char * CTestTranslatorCmd::GetArnoldNodeType()
+AtNode* CTestTranslatorCmd::CreateArnoldNodes()
 {
-   return "standard";
+   return AddArnoldNode("standard");
 }
 
 void* CTestTranslatorCmd::creator()

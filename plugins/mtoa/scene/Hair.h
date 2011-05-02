@@ -32,7 +32,7 @@ public:
    {
       return new CHairTranslator();
    }
-   const char* GetArnoldNodeType();
+   AtNode* CreateArnoldNodes();
 private:
    std::vector<CHairLine> m_hairLines;
    AtUInt m_numMainLines;
