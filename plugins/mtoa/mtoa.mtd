@@ -223,6 +223,12 @@
 		min					INT		0
 		max					INT		100
 
+[node skydome_light]
+	maya.name				STRING	"aiSkyDomeLight"
+	maya.id					INT		0x00115C85
+	maya.classification		STRING	"light"
+	maya.base				STRING	"kLocatorNode"
+	
 # light filters
 
 [node barndoor]
@@ -580,7 +586,8 @@
 [node sky]
 	desc					STRING	"Sky environment texture."
 	maya.name				STRING	"aiSky"
-	maya.id					INT		0x00115C84  
+	maya.id					INT		0x00115C84
+	maya.base				STRING	"kLocatorNode"	
 	maya.classification		STRING	"texture/environment"	
 	[attr intensity]
 		desc				STRING	"Intensity of sky illumination."
