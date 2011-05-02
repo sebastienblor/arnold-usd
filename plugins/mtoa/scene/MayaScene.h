@@ -115,7 +115,7 @@ public:
    MStatus ExportToArnold();
    AtNode* ExportShader(MObject mayaShader, const MString &attrName="");
    AtNode* ExportShader(MPlug& shaderOutputPlug);
-   MStatus ExportDagPath(MDagPath &dagPath, AtUInt step=0);
+   MStatus ExportDagPath(MDagPath &dagPath);
 
    inline AtFloat GetCurrentFrame()                      { return m_currentFrame;}
 
@@ -183,12 +183,10 @@ public:
 private:
    
    void PrepareExport();
-   MStatus ExportScene(AtUInt step);
-   MStatus ExportCameras(AtUInt step);
-   MStatus ExportLights(AtUInt step);
-   MStatus ExportSelected(AtUInt step);
-   MStatus IterSelection(MSelectionList selected, AtUInt step);
-
+   MStatus ExportScene();
+   MStatus ExportCameras();
+   MStatus ExportLights();
+   MStatus ExportSelected();
    MStatus IterSelection(MSelectionList& selected);
 
    void ExportInstancerReplacement(const MDagPath& dagPath, AtUInt step);

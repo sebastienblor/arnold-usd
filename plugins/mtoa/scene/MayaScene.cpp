@@ -101,19 +101,19 @@ MStatus CMayaScene::ExportToArnold()
    if (exportMode == MTOA_EXPORT_ALL || exportMode == MTOA_EXPORT_IPR)
    {
       // Cameras are always exported currently
-      status = ExportCameras(0);
+      status = ExportCameras();
       // Then we filter them out to avoid double exporting them
       m_exportOptions.filter.excluded.insert(MFn::kCamera);
       if (filterSelected)
       {
          // And for render selected we need the lights too
-         status = ExportLights(0);
+         status = ExportLights();
          m_exportOptions.filter.excluded.insert(MFn::kLight);
-         status = ExportSelected(0);
+         status = ExportSelected();
       }
       else
       {
-         status = ExportScene(0);
+         status = ExportScene();
       }
    }
    else if (exportMode == MTOA_EXPORT_FILE)
@@ -122,15 +122,15 @@ MStatus CMayaScene::ExportToArnold()
       {
          // If we export selected to a file, not as a full render,
          // we just export as it is
-         status = ExportSelected(0);
+         status = ExportSelected();
       }
       else
       {
          // Else if it's a full / renderable scene
-         status = ExportCameras(0);
+         status = ExportCameras();
          // Then we filter them out to avoid double exporting them
          m_exportOptions.filter.excluded.insert(MFn::kCamera);
-         status = ExportScene(0);
+         status = ExportScene();
       }
    }
    else
@@ -222,7 +222,7 @@ void CMayaScene::GetMotionBlurData()
 //
 // @return              MS::kSuccess / MS::kFailure is returned in case of failure.
 //
-MStatus CMayaScene::ExportCameras(AtUInt step)
+MStatus CMayaScene::ExportCameras()
 {
    MStatus status = MStatus::kSuccess;
    MDagPath path;
@@ -247,7 +247,7 @@ MStatus CMayaScene::ExportCameras(AtUInt step)
          if (filter.hidden == true && !IsVisiblePath(path))
             continue;
          */
-         if (MStatus::kSuccess != ExportDagPath(path, step))
+         if (MStatus::kSuccess != ExportDagPath(path))
             status = MStatus::kFailure;
       }
       else
@@ -264,7 +264,7 @@ MStatus CMayaScene::ExportCameras(AtUInt step)
 //
 // @return              MS::kSuccess / MS::kFailure is returned in case of failure.
 //
-MStatus CMayaScene::ExportLights(AtUInt step)
+MStatus CMayaScene::ExportLights()
 {
    MStatus status = MStatus::kSuccess;
    MDagPath path;
@@ -287,7 +287,7 @@ MStatus CMayaScene::ExportLights(AtUInt step)
             continue;
          if (filter.hidden == true && !IsVisiblePath(path))
             continue;
-         if (MStatus::kSuccess != ExportDagPath(path, step))
+         if (MStatus::kSuccess != ExportDagPath(path))
             status = MStatus::kFailure;
       }
       else
@@ -304,7 +304,7 @@ MStatus CMayaScene::ExportLights(AtUInt step)
 //
 // @return              MS::kSuccess / MS::kFailure is returned in case of failure.
 //
-MStatus CMayaScene::ExportScene(AtUInt step)
+MStatus CMayaScene::ExportScene()
 {
    MStatus status = MStatus::kSuccess;
    MDagPath path;
@@ -329,7 +329,7 @@ MStatus CMayaScene::ExportScene(AtUInt step)
                dagIterator.prune();
             continue;
          }
-         if (MStatus::kSuccess != ExportDagPath(path, step))
+         if (MStatus::kSuccess != ExportDagPath(path))
             status = MStatus::kFailure;
       }
       else
@@ -352,7 +352,7 @@ MStatus CMayaScene::ExportScene(AtUInt step)
 //
 // @return              MS::kSuccess / MS::kFailure is returned in case of failure.
 //
-MStatus CMayaScene::ExportSelected(AtUInt step)
+MStatus CMayaScene::ExportSelected()
 {
    MStatus status = MStatus::kSuccess;
 
@@ -368,7 +368,7 @@ MStatus CMayaScene::ExportSelected(AtUInt step)
    {
       if (it.getDagPath(path) == MStatus::kSuccess)
       {
-         if (MStatus::kSuccess != ExportDagPath(path, step))
+         if (MStatus::kSuccess != ExportDagPath(path))
             status = MStatus::kFailure;
       }
       else
@@ -453,7 +453,7 @@ MStatus CMayaScene::IterSelection(MSelectionList& selected)
 
 // Export a single dag path (a dag node or an instance of a dag node)
 // Considered to be already filtered and checked
-MStatus CMayaScene::ExportDagPath(MDagPath &dagPath, AtUInt step)
+MStatus CMayaScene::ExportDagPath(MDagPath &dagPath)
 {
    MFnDagNode node(dagPath.node());
    MObjectHandle handle = MObjectHandle(dagPath.node());
@@ -461,30 +461,15 @@ MStatus CMayaScene::ExportDagPath(MDagPath &dagPath, AtUInt step)
    // early out for nodes that have already been processed
    if (m_processedDagTranslators[handle].count(instanceNum))
       return MStatus::kSuccess;
-   if (step == 0)
+   CDagTranslator* translator = CTranslatorRegistry::GetDagTranslator(node.typeId().id());
+   if (translator != NULL)
    {
-      CDagTranslator* translator = CTranslatorRegistry::GetDagTranslator(node.typeId().id());
-      if (translator != NULL)
-      {
-         translator->Init(dagPath, this);
-         translator->DoExport(step);
-         // save it for later
-         m_processedDagTranslators[handle][instanceNum] = translator;
-         return MStatus::kSuccess;
-      }
+      translator->Init(dagPath, this);
+      translator->DoExport(0);
+      // save it for later
+      m_processedDagTranslators[handle][instanceNum] = translator;
+      return MStatus::kSuccess;
    }
-   else
-   {
-      // this will eventually go away when we do our motion export by looping through processed translators
-      // TODO: I think we can remove it now
-      CDagTranslator* translator = (CDagTranslator*)m_processedDagTranslators[handle][instanceNum];
-      if (translator != NULL)
-      {
-         translator->DoExport(step);
-         return MStatus::kSuccess;
-      }
-   }
-
    return MStatus::kFailure;
 }
 
@@ -616,7 +601,7 @@ void CMayaScene::IPRNewNodeCallback(MObject & node, void *)
    if (status == MS::kSuccess)
    {
       AiMsgDebug("[mtoa] Exporting new node: %s", path.partialPathName().asChar());
-      renderSession->GetMayaScene()->ExportDagPath(path, 0);
+      renderSession->GetMayaScene()->ExportDagPath(path);
       renderSession->GetMayaScene()->UpdateIPR();
    }
 }
