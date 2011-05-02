@@ -24,11 +24,9 @@ global _aiCreateCustomNodeProc
 _aiCreateCustomNodeProc = ''
 
 # known categories: used for ordering in the UI
-CATEGORIES = ('surface', 'volume', 'displacement', 'texture', 'light', 'utility')
+CATEGORIES = ('shader', 'texture', 'light', 'utility')
 CATEGORY_TO_RUNTIME_CLASS = {
-                'surface':      'asShader',
-                'volume':       'asShader',
-                'displacement': 'asShader',                
+                'shader':       'asShader',               
                 'texture':      'asTexture',
                 'light':        'asLight',
                 'utility':      'asUtility',
@@ -50,42 +48,48 @@ def processClass(nodeType):
     '''
     classification = cmds.getClassification(nodeType)[0]
     for klass in classification.split(':'):
-        if klass.startswith('arnold/shader'):
+        if klass.startswith('arnold'):
             parts = klass.split('/')
-            if len(parts) < 3:
+            if len(parts) < 2:
                 return (klass, 'asUtility', 'Arnold')
-            # remove "shader"
-            parts.pop(1)
-            #labelName = node.replace('/', '|')
-            return (klass,
-                    CATEGORY_TO_RUNTIME_CLASS.get(parts[1], 'asUtility'),
-                    '/'.join([prettify(x) for x in parts]))
-
+            else :
+                #labelName = node.replace('/', '|')
+                return (klass,
+                        CATEGORY_TO_RUNTIME_CLASS.get(parts[1], 'asUtility'),
+                        '/'.join([prettify(x) for x in parts]))
+    return (None, None, None)
+        
 global _typeInfoMap
-_typeInfoMap = None
+_typeInfoMap = ()
 def getTypeInfo():
     '''
     return a tuple of NodeClassInfo namedtuples containing 
     (staticClassification, runtimeClassifciation, nodePath, nodeTypes)
     '''
     global _typeInfoMap
-    if _typeInfoMap is None:
+    if not _typeInfoMap :
         # use a dictionary to get groupings
         tmpmap = {}
-        nodeTypes = cmds.listNodeTypes('arnold/shader')
+        nodeTypes = []
+        catNodes = []
+        for cat in CATEGORIES:
+            catTypes = cmds.listNodeTypes('arnold/' + cat)
+            if catTypes :
+                nodeTypes.extend(catTypes)
         if nodeTypes:
             for nodeType in nodeTypes:
                 (staticClass, runtimeClass, nodePath) = processClass(nodeType)
-                if staticClass not in tmpmap:
-                    print nodeType, staticClass
-                    tmpmap[staticClass] = [runtimeClass, nodePath, [nodeType]]
-                else:
-                    tmpmap[staticClass][2].append(nodeType)
+                if staticClass is not None :
+                    if staticClass not in tmpmap:
+                        print nodeType, staticClass
+                        tmpmap[staticClass] = [runtimeClass, nodePath, [nodeType]]
+                    else:
+                        tmpmap[staticClass][2].append(nodeType)
         # consistent order is important for UIs. build a reliably ordered list. 
         tmplist = []
         # known types first.
         for cat in CATEGORIES:
-            cat = 'arnold/shader/' + cat
+            cat = 'arnold/' + cat
             if cat in tmpmap:
                 values = tmpmap.pop(cat)
                 tmplist.append(NodeClassInfo(*([cat] + values)))
@@ -109,7 +113,7 @@ def createTreeListerContent(renderNodeTreeLister, postCommand, filterString):
 def aiHyperShadeCreateMenu_BuildMenu():
     """
     Function:   aiHyperShadeCreateMenu_BuildMenu()
-    Purpose:    Builds menu items for creating mental ray nodes, organized
+    Purpose:    Builds menu items for creating arnold nodes, organized
                 into submenus by category.
 
     Notes:  When this function is invoked, it is inside of the Create menu.
@@ -125,7 +129,7 @@ def aiHyperShadeCreateMenu_BuildMenu():
     global _aiCreateCustomNodeProc
     for (staticClass, runtimeClass, nodePath, nodeTypes) in getTypeInfo():
         # skip unclassified
-        if staticClass == 'arnold/shader':
+        if staticClass == 'arnold' or staticClass == 'arnold/shader':
             continue
         cmds.menuItem(label = nodePath.replace('/', ' '), 
                       tearOff = True, subMenu = True)
