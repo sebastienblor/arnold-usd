@@ -1,5 +1,5 @@
 #include "test.h"
-#include "api/Extension.h"
+#include "scene/Extension.h"
 
 extern "C"
 {

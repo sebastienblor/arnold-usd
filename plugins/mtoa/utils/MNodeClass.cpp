@@ -51,18 +51,27 @@ void MNodeClass::InitializeExistingNodes()
 {
    MFnDependencyNode fnNode;
    MItDependencyNodes nodeIt;
+   MStatus status;
    for (; !nodeIt.isDone(); nodeIt.next())
    {
       MObject node = nodeIt.item();
       if (node.isNull())
          continue;
       fnNode.setObject(node);
-      std::vector<CAttrData> attrData = s_attrData[fnNode.typeName().asChar()];
-      CDynamicAttrHelper helper = CDynamicAttrHelper(node);
-      for (AtUInt i=0; i < attrData.size(); ++i)
+      // don't use [] access to map because that creates a new entry
+      ExtensionAttrDataMap::iterator it = s_attrData.find(fnNode.typeName().asChar());
+      if (it != s_attrData.end())
       {
-         CAttrData data = attrData[i];
-         helper.MakeInput(data);
+         std::vector<CAttrData> attrData = it->second;
+         CDynamicAttrHelper helper = CDynamicAttrHelper(node);
+         for (AtUInt i=0; i < attrData.size(); ++i)
+         {
+            CAttrData data = attrData[i];
+            // only add the attribute if it does not yet exist
+            fnNode.findPlug(data.name, false, &status);
+            if (status == MS::kInvalidParameter)
+               helper.MakeInput(data);
+         }
       }
    }
 }
@@ -118,7 +127,7 @@ void MNodeClass::CreateCallbacks()
    MStatus status;
    // create callbacks
    s_pluginLoadedCallbackId = MSceneMessage::addStringArrayCallback(MSceneMessage::kAfterPluginLoad, 
-      CTranslatorRegistry::MayaPluginLoadedCallback, 
+      CExtension::MayaPluginLoadedCallback, 
       NULL, 
       &status);
    CHECK_MSTATUS(status);

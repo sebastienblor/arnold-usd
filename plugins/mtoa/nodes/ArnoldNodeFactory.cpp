@@ -1,6 +1,3 @@
-//-------------------------------------------------------------------------- 
-// ArnoldNodeFactory class implementation.
-//-------------------------------------------------------------------------- 
 #include "ArnoldNodeFactory.h"
 #include "nodes/shaders/surface/ArnoldCustomShader.h"
 #include "render/RenderSession.h"
@@ -10,6 +7,7 @@
 #include <ai_metadata.h>
 #include <ai_msg.h>
 
+#include <maya/MFileObject.h>
 #include <maya/MPlugArray.h>
 
 #ifdef _WIN32
@@ -70,13 +68,10 @@ int FindLibraries(MString searchPath, MStringArray &files)
 
 // CArnoldNodeFactory
 
-MayaNodeDataMap CArnoldNodeFactory::s_factoryNodes;
-ArnoldNodeToMayaNode CArnoldNodeFactory::s_arnoldToMayaNodes;
-ArnoldPluginData CArnoldNodeFactory::s_arnoldPlugins;
-MCallbackId CArnoldNodeFactory::s_pluginLoadedCallbackId = 0;
-
 // Don't use ARNOLD_NODEID_CUSTOM as it's an actual node!
 int CArnoldNodeFactory::s_autoNodeId(ARNOLD_NODEID_AUTOGEN);
+std::vector<CArnoldNodeFactory*> CArnoldNodeFactory::s_shaderLibs;
+MObject CArnoldNodeFactory::s_plugin;
 
 /// Load an Arnold plugin.
 
@@ -85,11 +80,15 @@ int CArnoldNodeFactory::s_autoNodeId(ARNOLD_NODEID_AUTOGEN);
 ///
 /// @param pluginFile  the absolute path to an Arnold plugin
 ///
-void CArnoldNodeFactory::LoadPlugin(const char* pluginFile)
+void CArnoldNodeFactory::LoadPlugin()
 {
-   MString str;
    // TODO: add error handling when solid angle adds a status result
-   AiLoadPlugin(pluginFile);
+   if (m_loaded)
+   {
+      // TODO: print warning
+      return;
+   }
+   AiLoadPlugin(m_shaderFile);
    /*
    bool err;
    err = AiLoadPlugin(pluginFile);
@@ -100,18 +99,41 @@ void CArnoldNodeFactory::LoadPlugin(const char* pluginFile)
    else
    */
    {
-      str = MString("[mtoa] Generating nodes for shader library: ") + pluginFile;
-      MGlobal::displayInfo(str);
-      AtNodeEntryIterator* nodeIter = AiUniverseGetNodeEntryIterator(AI_NODE_SHADER);
-      while (!AiNodeEntryIteratorFinished(nodeIter))
-      {
-         AtNodeEntry* nentry = AiNodeEntryIteratorGetNext(nodeIter);
+      CreateNodes();
+      m_loaded = true;
+      s_shaderLibs.push_back(this);
+   }
+}
 
-         const char* nentryFile = AiNodeEntryGetFilename(nentry);
-         if (strcmp(nentryFile, pluginFile) == 0)
-         {
-            RegisterMayaNode(nentry);
-         }
+/// Create and track a new CExtension for the passed file, but don't call any plugin initialization functions
+CArnoldNodeFactory* CArnoldNodeFactory::Init(CExtension* extension, const char* shaderFile)
+{
+   CArnoldNodeFactory* lib = new CArnoldNodeFactory(extension, shaderFile);
+   s_shaderLibs.insert(s_shaderLibs.begin(), lib);
+   return lib;
+}
+
+/// Register new Maya nodes
+
+/// Loop through shaders in this library and create maya nodes for accepted types
+void CArnoldNodeFactory::CreateNodes()
+{
+   MString str;
+   if (strlen(m_shaderFile))
+      str = MString("[mtoa] Generating nodes for shader library: ") + m_shaderFile;
+   else
+      str = MString("[mtoa] Generating nodes for builtin shader library");
+
+   MGlobal::displayInfo(str);
+   AtNodeEntryIterator* nodeIter = AiUniverseGetNodeEntryIterator(AI_NODE_SHADER);
+   while (!AiNodeEntryIteratorFinished(nodeIter))
+   {
+      AtNodeEntry* nentry = AiNodeEntryIteratorGetNext(nodeIter);
+
+      const char* nentryFile = AiNodeEntryGetFilename(nentry);
+      if (strcmp(nentryFile, m_shaderFile) == 0)
+      {
+         RegisterMayaNode(nentry);
       }
    }
 }
@@ -121,12 +143,10 @@ void CArnoldNodeFactory::LoadPlugin(const char* pluginFile)
 /// Remove from the Arnold universe all nodes created by the specified plugin and
 /// unregister any Maya nodes generated for them.
 ///
-/// @param pluginFile  the absolute path to a previously loaded Arnold plugin
-///
-void CArnoldNodeFactory::UnloadPlugin(const char* pluginFile)
+void CArnoldNodeFactory::UnloadPlugin()
 {
    MString str;
-   str = MString("[mtoa] Removing nodes for shader library: ") + pluginFile;
+   str = MString("[mtoa] Removing nodes for shader library: ") + m_shaderFile;
    MGlobal::displayInfo(str);
    AtNodeEntryIterator* nodeIter = AiUniverseGetNodeEntryIterator(AI_NODE_SHADER);
    while (!AiNodeEntryIteratorFinished(nodeIter))
@@ -134,7 +154,7 @@ void CArnoldNodeFactory::UnloadPlugin(const char* pluginFile)
       AtNodeEntry* nentry = AiNodeEntryIteratorGetNext(nodeIter);
 
       const char* nentryFile = AiNodeEntryGetFilename(nentry);
-      if (strcmp(nentryFile, pluginFile) == 0)
+      if (strcmp(nentryFile, m_shaderFile) == 0)
       {
          const char *arnoldNodeName = AiNodeEntryGetName(nentry);
          // remove from maya
@@ -143,30 +163,27 @@ void CArnoldNodeFactory::UnloadPlugin(const char* pluginFile)
          AiNodeUninstall(arnoldNodeName);
       }
    }
-}
-
-/// Load all Arnold plugins on the plugin path
-///
-void CArnoldNodeFactory::LoadPlugins()
-{
-   //MString resolvedPathList = MString("$ARNOLD_PLUGIN_PATH").expandEnvironmentVariablesAndTilde();
-   MStringArray plugins;
-   FindLibraries("$ARNOLD_PLUGIN_PATH", plugins);
-   for (unsigned int i=0; i<plugins.length(); ++i)
+   for (unsigned int i=0; i < s_shaderLibs.size(); ++i)
    {
-      MString plugin = plugins[i];
-      if (plugin.length() > 0)
+      if (strcmp(s_shaderLibs[i]->GetFilename(), m_shaderFile))
       {
-#ifdef _WIN32
-         char buffer[MAX_PATH];
-         GetFullPathName(plugin.asChar(), MAX_PATH, buffer, NULL);
-         plugin = buffer;
-#endif // _WIN32
-         LoadPlugin(plugin.asChar());
+         delete s_shaderLibs[i];
+         s_shaderLibs.erase(s_shaderLibs.begin() + i);
+         break;
       }
    }
+   m_loaded = false;
 }
 
+/// Unload all Arnold plugins on the plugin path and deregister all Maya nodes
+///
+void CArnoldNodeFactory::UnloadPlugins()
+{
+   for (unsigned int i=0; i < s_shaderLibs.size(); ++i)
+   {
+      s_shaderLibs[i]->UnloadPlugin();
+   }
+}
 
 /// Associate an Arnold node with an existing Maya node.  During translation of
 /// the Maya scene the Arnold node will be used wherever the Maya
@@ -174,11 +191,11 @@ void CArnoldNodeFactory::LoadPlugins()
 ///
 bool CArnoldNodeFactory::MapToMayaNode(const char* arnoldNodeName, const char* mayaCounterpart, int typeId)
 {
-   s_arnoldToMayaNodes[arnoldNodeName] = mayaCounterpart;
-   if (CTranslatorRegistry::RegisterDependTranslator(mayaCounterpart, typeId, "builtin", CAutoTranslator::creator))
+   m_arnoldToMayaNodes[arnoldNodeName] = mayaCounterpart;
+   if (m_extension->RegisterDependTranslator(mayaCounterpart, typeId, "auto", CAutoTranslator::creator))
    {
-      s_factoryNodes[mayaCounterpart].arnoldNodeName = arnoldNodeName;
-      s_factoryNodes[mayaCounterpart].nodeId = typeId;
+      m_factoryNodes[mayaCounterpart].arnoldNodeName = arnoldNodeName;
+      m_factoryNodes[mayaCounterpart].nodeId = typeId;
       return true;
    }
    return false;
@@ -249,8 +266,6 @@ bool CArnoldNodeFactory::RegisterMayaNode(const AtNodeEntry* arnoldNodeEntry)
    if (!AiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.swatch", &swatch))
       swatch = ARNOLD_SWATCH.asChar();
 
-   // AiMsgDebug("Registering Arnold node %s as Maya node %s of classification %s", arnoldNodeName, mayaNodeName, classification, swatch);
-   AiMsgInfo("[mtoa] registering Arnold node %s as Maya node %s of classification %s, using swatch %s", arnoldNodeName, mayaNodeName, classification, swatch);
    MGlobal::displayInfo(MString("[mtoa] INFO: Loading shader: ") + arnoldNodeName + " as " + mayaNodeName);
 
   return RegisterMayaNode(arnoldNodeName, mayaNodeName, nodeId, classification, swatch);
@@ -292,10 +307,12 @@ bool CArnoldNodeFactory::RegisterMayaNode(const char* arnoldNodeName, const char
 
    // Register the node and its parameters
    // AiMsgDebug("[mtoa] registering Arnold node %s as Maya node %s of classification %s", arnoldNodeName, mayaNodeName, shaderClass.asChar());
-   AiMsgInfo("[mtoa] registering Arnold node %s as Maya node %s of classification %s", arnoldNodeName, mayaNodeName, shaderClass.asChar());
+   AiMsgInfo("[mtoa] registering Arnold node %s as Maya node %s of classification %s using swatch %s",
+             arnoldNodeName, mayaNodeName, shaderClass.asChar(), swatchName.asChar());
 
-   MStatus status = m_plugin.registerNode(mayaNodeName, nodeId, CArnoldCustomShaderNode::creator,
-                                          CArnoldCustomShaderNode::initialize, MPxNode::kDependNode, &shaderClass);
+   MStatus status = MFnPlugin(s_plugin).registerNode(mayaNodeName, nodeId, CArnoldCustomShaderNode::creator,
+                                                     CArnoldCustomShaderNode::initialize,
+                                                     MPxNode::kDependNode, &shaderClass);
    CHECK_MSTATUS(status);
 
    if (status != MStatus::kSuccess || !MapToMayaNode(arnoldNodeName, mayaNodeName,  nodeId))
@@ -314,86 +331,63 @@ void CArnoldNodeFactory::UnregisterMayaNode(const char* arnoldNodeName)
    MStatus status;
    MayaNodeDataMap::iterator it;
    // use the arnold node name to look up the maya node data
-   it = s_factoryNodes.find(s_arnoldToMayaNodes[arnoldNodeName]);
-   if (it != s_factoryNodes.end() && it->second.nodeId > 0)
+   it = m_factoryNodes.find(m_arnoldToMayaNodes[arnoldNodeName]);
+   if (it != m_factoryNodes.end() && it->second.nodeId > 0)
    {
-      status = m_plugin.deregisterNode(it->second.nodeId);
+      status = MFnPlugin(s_plugin).deregisterNode(it->second.nodeId);
       CHECK_MSTATUS(status);
-      if (it->second.callbackId)
-      {
-         status = MDGMessage::removeCallback(it->second.callbackId);
-         CHECK_MSTATUS(status);
-      }
-      s_arnoldToMayaNodes.erase(it->second.arnoldNodeName);
-      s_factoryNodes.erase(it->first);
-   }
-}
-
-void CArnoldNodeFactory::RegisterAllNodes()
-{
-   AtNodeEntryIterator* nodeIter = AiUniverseGetNodeEntryIterator(AI_NODE_SHADER);
-   while (!AiNodeEntryIteratorFinished(nodeIter))
-   {
-      AtNodeEntry* nentry = AiNodeEntryIteratorGetNext(nodeIter);
-      const char* nentryFile = AiNodeEntryGetFilename(nentry);
-      if (strlen(nentryFile))
-      {
-         RegisterMayaNode(nentry);
-      }
+      m_arnoldToMayaNodes.erase(it->second.arnoldNodeName);
+      m_factoryNodes.erase(it->first);
    }
 }
 
 
-void CArnoldNodeFactory::UnregisterAllNodes()
-{
-   MStatus status;
-   MString str;
-   ArnoldPluginData::iterator it;
-   for (it = s_arnoldPlugins.begin(); it!=s_arnoldPlugins.end(); ++it)
-   {
-      std::vector<std::string> nodes = it->second;
-      for (unsigned int i=0; i < nodes.size(); i++)
-      {
-         UnregisterMayaNode(nodes[i].c_str());
-      }
-   }
-   s_arnoldPlugins.clear();
-}
+std::vector<CExtension> CLoader::s_extensions;
+std::vector<CArnoldNodeFactory> CLoader::s_shaderLibs;
 
-/// Load an MtoA extension.
+/// Load all Arnold plugins on the plugin path
 ///
-/// @return true if the extension is loaded successfully, else false
-///
-bool CArnoldNodeFactory::LoadExtension(const char* extensionFile)
+void CLoader::LoadPlugins()
 {
-   AiMsgInfo("loading extension %s", extensionFile);
-   void *pluginLib = LibraryLoad(extensionFile);
-   if (pluginLib == NULL)
+   //MString resolvedPathList = MString("$ARNOLD_PLUGIN_PATH").expandEnvironmentVariablesAndTilde();
+   MStringArray plugins;
+   FindLibraries("$ARNOLD_PLUGIN_PATH", plugins);
+   for (unsigned int i=0; i<plugins.length(); ++i)
    {
-      MGlobal::displayError(MString("[mtoa] Error loading plugin: ") + LibraryLastError());
-      return false;
-   }
-   
-   void* initializer = LibrarySymbol(pluginLib, "initializePlugin");
+      MString pluginFile = plugins[i];
+      if (pluginFile.length() > 0)
+      {
+#ifdef _WIN32
+         char buffer[MAX_PATH];
+         GetFullPathName(pluginFile.asChar(), MAX_PATH, buffer, NULL);
+         pluginPath = buffer;
+#endif // _WIN32
+         // if the shader library matches the convention [extension]_shaders, associate
+         // the shader library with [extension]
+         CExtension* extension = NULL;
+         MFileObject file;
+         file.setRawFullName(pluginFile);
+         MString name = file.resolvedName();
+         int pos = name.rindexW('_');
+         if (pos > 1)
+         {
+            MString extname = name.substringW(0, pos-1);
+            extension = CExtension::FindExtension(extname.asChar());
+         }
+         if (extension == NULL)
+            extension = CExtension::Init(pluginFile.asChar());
 
-   if (initializer == NULL)
-   {
-      MGlobal::displayError(MString("[mtoa] Error initializing plugin: ") + LibraryLastError());
-      return false;
+         CArnoldNodeFactory* shaderLib = CArnoldNodeFactory::Init(extension, pluginFile.asChar());
+         shaderLib->LoadPlugin();
+      }
    }
-   pluginInitFunctionType * initFunc = (pluginInitFunctionType*) initializer;
-   
-   CExtension plugin = CExtension();
-   (*initFunc)(plugin);
-   MGlobal::displayInfo(MString("[mtoa] loaded extension: ") + extensionFile);
-
-   return true;
 }
 
 /// Load all MtoA extensions on the extension path.
 ///
-void CArnoldNodeFactory::LoadExtensions()
+void CLoader::LoadExtensions()
 {
+   // TODO: replace this with python code
    MStringArray plugins;
    FindLibraries("$MTOA_EXTENSIONS_PATH", plugins);
    for (unsigned int i=0; i<plugins.length(); ++i)
@@ -402,7 +396,7 @@ void CArnoldNodeFactory::LoadExtensions()
       if (plugin.length() > 0)
       {
          cerr << "Loading:" << plugin.asChar() << endl;
-         LoadExtension(plugin.asChar());
+         CExtension::Load(plugin.asChar());
          MString cmd = "import mtoa.api.extensions;mtoa.api.extensions.loadExtensionUI('" + plugin + "')";
          CHECK_MSTATUS(MGlobal::executePythonCommand(cmd));
       }
@@ -411,17 +405,9 @@ void CArnoldNodeFactory::LoadExtensions()
 
 /// Unload all MtoA extensions on the extension path
 ///
-void CArnoldNodeFactory::UnloadExtensions()
+void CLoader::UnloadExtensions()
 {
-#if defined(_LINUX) || defined(_DARWIN)
-   if (m_pluginHandle != NULL)
-   {
-      MStatus status;
-      MString pluginPath = m_plugin.loadPath(&status);
-      CHECK_MSTATUS(status);
-      dlclose(m_pluginHandle);
-   }
-#endif
+
 }
 
 /// Return the name of the Arnold node entry that corresponds to the given Maya node type
@@ -432,8 +418,17 @@ void CArnoldNodeFactory::UnloadExtensions()
 ///
 const char* CArnoldNodeFactory::GetArnoldNodeFromMayaNode(const MString& mayaShader)
 {
-   return s_factoryNodes[mayaShader.asChar()].arnoldNodeName.c_str();
+   for (unsigned int i=0; i < s_shaderLibs.size(); i++)
+   {
+      MayaNodeDataMap nodes = s_shaderLibs[i]->m_factoryNodes;
+      // FIXME: use iterators so we don't do the check twice
+      if (nodes.count(mayaShader.asChar()))
+         return nodes[mayaShader.asChar()].arnoldNodeName.c_str();
+   }
+   return "";
 }
+
+
 
 // AutoTranslator
 //

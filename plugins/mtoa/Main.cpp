@@ -19,7 +19,7 @@
 #include "scene/Cameras.h"
 #include "scene/Options.h"
 #include "scene/Hair.h"
-#include "scene/TranslatorRegistry.h"
+#include "scene/Extension.h"
 #include "render/RenderSwatch.h"
 
 #include <ai_msg.h>
@@ -98,207 +98,160 @@ namespace // <anonymous>
                                    &environmentWithSwatch);
       CHECK_MSTATUS(status);
 
-      // Start up the plugin factory.
-      CArnoldNodeFactory arnoldPluginFactory(object);
-
-      // Light Filters
-      arnoldPluginFactory.RegisterMayaNode("barndoor",
-                                           "aiBarndoor",
-                                           ARNOLD_NODEID_BARNDOOR,
-                                           ARNOLD_SHADER_LIGHT_FILTER);
-      arnoldPluginFactory.RegisterMayaNode("gobo",
-                                           "aiGobo",
-                                           ARNOLD_NODEID_GOBO,
-                                           ARNOLD_SHADER_LIGHT_FILTER);
-      arnoldPluginFactory.RegisterMayaNode("light_blocker",
-                                           "aiLightBlocker",
-                                           ARNOLD_NODEID_LIGHT_BLOCKER,
-                                           ARNOLD_SHADER_LIGHT_FILTER);
-      arnoldPluginFactory.RegisterMayaNode("light_decay",
-                                           "aiLightDecay",
-                                           ARNOLD_NODEID_LIGHT_DECAY,
-                                           ARNOLD_SHADER_LIGHT_FILTER);
-
-      // Surface Shaders
-      arnoldPluginFactory.RegisterMayaNode("ray_switch",
-                                           "aiRaySwitch",
-                                           ARNOLD_NODEID_RAY_SWITCH,
-                                           ARNOLD_SHADER_UTILITY);
-      arnoldPluginFactory.RegisterMayaNode("ambient_occlusion",
-                                           "aiAmbientOcclusion",
-                                           ARNOLD_NODEID_AMBIENT_OCCLUSION,
-                                           ARNOLD_SHADER_SURFACE);
-      arnoldPluginFactory.RegisterMayaNode("standard",
-                                           "aiStandard",
-                                           ARNOLD_NODEID_STANDARD,
-                                           ARNOLD_SHADER_SURFACE);
-      arnoldPluginFactory.RegisterMayaNode("utility",
-                                           "aiUtility",
-                                           ARNOLD_NODEID_UTILITY,
-                                           ARNOLD_SHADER_SURFACE);
-      arnoldPluginFactory.RegisterMayaNode("wireframe",
-                                           "aiWireframe",
-                                           ARNOLD_NODEID_WIREFRAME,
-                                           ARNOLD_SHADER_SURFACE);
-      arnoldPluginFactory.RegisterMayaNode("hair",
-                                           "aiHair",
-                                           ARNOLD_NODEID_HAIR,
-                                           ARNOLD_SHADER_SURFACE);
-
-      // Environment/Volume shaders
-      arnoldPluginFactory.RegisterMayaNode("fog",
-                                           "aiFog",
-                                           ARNOLD_NODEID_FOG,
-                                           ARNOLD_SHADER_ATMOSPHERE);
-      arnoldPluginFactory.RegisterMayaNode("volume_scattering",
-                                           "aiVolumeScattering",
-                                           ARNOLD_NODEID_VOLUME_SCATTERING,
-                                           ARNOLD_SHADER_ATMOSPHERE);
-
-      arnoldPluginFactory.LoadPlugins();
-
-      CTranslatorRegistry::CreateCallbacks();
-      CTranslatorRegistry::RegisterDependTranslator("aiOptions",
-                                                    ARNOLD_NODEID_RENDER_OPTIONS,
-                                                    "builtin",
-                                                    CRenderOptionsTranslator::creator);
-      CTranslatorRegistry::RegisterDependTranslator("surfaceShader",
-                                                    MAYA_NODEID_SURFACE_SHADER,
-                                                    "builtin",
-                                                    CSurfaceShaderTranslator::creator);
-      CTranslatorRegistry::RegisterDependTranslator("lambert",
-                                                    MAYA_NODEID_LAMBERT,
-                                                    "builtin",
-                                                    CLambertTranslator::creator);
-      CTranslatorRegistry::RegisterDependTranslator("file",
-                                                    MAYA_NODEID_FILE,
-                                                    "builtin",
-                                                    CFileTranslator::creator);
-      CTranslatorRegistry::RegisterDependTranslator("place2dTexture",
-                                                    MAYA_NODEID_PLACE2D_TEXTURE,
-                                                    "builtin",
-                                                    CPlace2DTextureTranslator::creator);
-      CTranslatorRegistry::RegisterDependTranslator("bump2d",
-                                                    MAYA_NODEID_BUMP2D,
-                                                    "builtin",
-                                                    CBump2DTranslator::creator);
-      CTranslatorRegistry::RegisterDependTranslator("bump3d",
-                                                    MAYA_NODEID_BUMP3D,
-                                                    "builtin",
-                                                    CBump3DTranslator::creator);
-      CTranslatorRegistry::RegisterDependTranslator("samplerInfo",
-                                                    MAYA_NODEID_SAMPLER_INFO,
-                                                    "builtin",
-                                                    CSamplerInfoTranslator::creator);
-      CTranslatorRegistry::RegisterDependTranslator("plusMinusAverage",
-                                                    MAYA_NODEID_PLUS_MINUS_AVERAGE,
-                                                    "builtin",
-                                                    CPlusMinusAverageTranslator::creator);
-      CTranslatorRegistry::RegisterDependTranslator("remapValue",
-                                                    MAYA_NODEID_REMAP_VALUE,
-                                                    "builtin",
-                                                    CRemapValueTranslator::creator);
-      CTranslatorRegistry::RegisterDependTranslator("remapColor",
-                                                    MAYA_NODEID_REMAP_COLOR,
-                                                    "builtin",
-                                                    CRemapColorTranslator::creator);
-      CTranslatorRegistry::RegisterDependTranslator("projection",
-                                                    MAYA_NODEID_PROJECTION,
-                                                    "builtin",
-                                                    CProjectionTranslator::creator);
-      CTranslatorRegistry::RegisterDependTranslator("ramp",
-                                                    MAYA_NODEID_RAMP,
-                                                    "builtin",
-                                                    CRampTranslator::creator);
-      CTranslatorRegistry::RegisterDependTranslator("layeredTexture",
-                                                    MAYA_NODEID_LAYERED_TEXTURE,
-                                                    "builtin",
-                                                    CLayeredTextureTranslator::creator);
-      CTranslatorRegistry::RegisterDependTranslator("layeredShader",
-                                                    MAYA_NODEID_LAYERED_SHADER,
-                                                    "builtin",
-                                                    CLayeredShaderTranslator::creator);
-
+      // .ext is included so that the file path parsing logic works properly
+      CExtension* builtinExtension = CExtension::Init("mtoa.ext");
       // sky is technically a DAG node, but it behaves like a DG node (i.e. it is only exported when a connection is processed)
+      builtinExtension->RegisterDependTranslator("aiOptions",
+                                                 ARNOLD_NODEID_RENDER_OPTIONS,
+                                                 "builtin",
+                                                 CRenderOptionsTranslator::creator);
+      builtinExtension->RegisterDependTranslator("surfaceShader",
+                                                 MAYA_NODEID_SURFACE_SHADER,
+                                                 "builtin",
+                                                 CSurfaceShaderTranslator::creator);
+      builtinExtension->RegisterDependTranslator("lambert",
+                                                 MAYA_NODEID_LAMBERT,
+                                                 "builtin",
+                                                 CLambertTranslator::creator);
+      builtinExtension->RegisterDependTranslator("layeredShader",
+                                                 MAYA_NODEID_LAYERED_SHADER,
+                                                 "builtin",
+                                                 CLayeredShaderTranslator::creator);
+      builtinExtension->RegisterDependTranslator("file",
+                                                 MAYA_NODEID_FILE,
+                                                 "builtin",
+                                                 CFileTranslator::creator);
+      builtinExtension->RegisterDependTranslator("place2dTexture",
+                                                 MAYA_NODEID_PLACE2D_TEXTURE,
+                                                 "builtin",
+                                                 CPlace2DTextureTranslator::creator);
+      builtinExtension->RegisterDependTranslator("bump2d",
+                                                 MAYA_NODEID_BUMP2D,
+                                                 "builtin",
+                                                 CBump2DTranslator::creator);
+      builtinExtension->RegisterDependTranslator("bump3d",
+                                                 MAYA_NODEID_BUMP3D,
+                                                 "builtin",
+                                                 CBump3DTranslator::creator);
+      builtinExtension->RegisterDependTranslator("samplerInfo",
+                                                 MAYA_NODEID_SAMPLER_INFO,
+                                                 "builtin",
+                                                 CSamplerInfoTranslator::creator);
+      builtinExtension->RegisterDependTranslator("plusMinusAverage",
+                                                 MAYA_NODEID_PLUS_MINUS_AVERAGE,
+                                                 "builtin",
+                                                 CPlusMinusAverageTranslator::creator);
+      builtinExtension->RegisterDependTranslator("remapValue",
+                                                 MAYA_NODEID_REMAP_VALUE,
+                                                 "builtin",
+                                                 CRemapValueTranslator::creator);
+      builtinExtension->RegisterDependTranslator("remapColor",
+                                                 MAYA_NODEID_REMAP_COLOR,
+                                                 "builtin",
+                                                 CRemapColorTranslator::creator);
+      builtinExtension->RegisterDependTranslator("projection",
+                                                 MAYA_NODEID_PROJECTION,
+                                                 "builtin",
+                                                 CProjectionTranslator::creator);
+      builtinExtension->RegisterDependTranslator("ramp",
+                                                 MAYA_NODEID_RAMP,
+                                                 "builtin",
+                                                 CRampTranslator::creator);
+      builtinExtension->RegisterDependTranslator("layeredTexture",
+                                                 MAYA_NODEID_LAYERED_TEXTURE,
+                                                 "builtin",
+                                                 CLayeredTextureTranslator::creator);
       // therefore, it is not registered as a DagTranslator
-      CTranslatorRegistry::RegisterDependTranslator("aiSky",
-                                                    CArnoldSkyShaderNode::id.id(),
-                                                    "builtin",
-                                                    CSkyShaderTranslator::creator);
 
-      CTranslatorRegistry::RegisterDagTranslator("directionalLight",
-                                                 MAYA_NODEID_DIRECTIONAL_LIGHT,
-                                                 "builtin",
-                                                 CDirectionalLightTranslator::creator,
-                                                 CLightTranslator::NodeInitializer);
-      CTranslatorRegistry::RegisterDagTranslator("spotLight",
-                                                 MAYA_NODEID_SPOT_LIGHT,
-                                                 "builtin",
-                                                 CSpotLightTranslator::creator,
-                                                 CSpotLightTranslator::NodeInitializer);
-      CTranslatorRegistry::RegisterDagTranslator("areaLight",
-                                                 MAYA_NODEID_AREA_LIGHT,
-                                                 "builtin",
-                                                 CAreaLightTranslator::creator,
-                                                 CAreaLightTranslator::NodeInitializer);
-      CTranslatorRegistry::RegisterDagTranslator("pointLight",
-                                                 MAYA_NODEID_POINT_LIGHT,
-                                                 "builtin",
-                                                 CPointLightTranslator::creator,
-                                                 CPointLightTranslator::NodeInitializer);
-      CTranslatorRegistry::RegisterDagTranslator("ambientLight",
-                                                 MAYA_NODEID_AMBIENT_LIGHT,
-                                                 "builtin",
-                                                 CAmbientLightTranslator::creator,
-                                                 CLightTranslator::NodeInitializer);
-      CTranslatorRegistry::RegisterDagTranslator("aiSkyDomeLight",
-                                                 CArnoldSkyDomeLightShaderNode::id.id(),
-                                                 "builtin",
-                                                 CSkyDomeLightTranslator::creator);
 
-      CTranslatorRegistry::RegisterDagTranslator("mesh",
-                                                 MAYA_NODEID_MESH,
+      builtinExtension->RegisterDependTranslator("aiSky",
+                                                 CArnoldSkyShaderNode::id.id(),
                                                  "builtin",
-                                                 CMeshTranslator::creator,
-                                                 CMeshTranslator::NodeInitializer);
-      CTranslatorRegistry::RegisterDagTranslator("nurbsSurface",
-                                                 MAYA_NODEID_NURBS_SURFACE,
-                                                 "builtin",
-                                                 CNurbsSurfaceTranslator::creator,
-                                                 CNurbsSurfaceTranslator::NodeInitializer);
+                                                 CSkyShaderTranslator::creator);
 
-      CTranslatorRegistry::RegisterDagTranslator("camera",
-                                                 MAYA_NODEID_CAMERA,
-                                                 "perspective",
-                                                 CPerspCameraTranslator::creator,
-                                                 CPerspCameraTranslator::NodeInitializer);
+      builtinExtension->RegisterDagTranslator("directionalLight",
+                                              MAYA_NODEID_DIRECTIONAL_LIGHT,
+                                              "builtin",
+                                              CDirectionalLightTranslator::creator,
+                                              CLightTranslator::NodeInitializer);
+      builtinExtension->RegisterDagTranslator("spotLight",
+                                              MAYA_NODEID_SPOT_LIGHT,
+                                              "builtin",
+                                              CSpotLightTranslator::creator,
+                                              CSpotLightTranslator::NodeInitializer);
+      builtinExtension->RegisterDagTranslator("areaLight",
+                                              MAYA_NODEID_AREA_LIGHT,
+                                              "builtin",
+                                              CAreaLightTranslator::creator,
+                                              CAreaLightTranslator::NodeInitializer);
+      builtinExtension->RegisterDagTranslator("pointLight",
+                                              MAYA_NODEID_POINT_LIGHT,
+                                              "builtin",
+                                              CPointLightTranslator::creator,
+                                              CPointLightTranslator::NodeInitializer);
+      builtinExtension->RegisterDagTranslator("ambientLight",
+                                              MAYA_NODEID_AMBIENT_LIGHT,
+                                              "builtin",
+                                              CAmbientLightTranslator::creator,
+                                              CLightTranslator::NodeInitializer);
+      builtinExtension->RegisterDagTranslator("aiSkyDomeLight",
+                                              CArnoldSkyDomeLightShaderNode::id.id(),
+                                              "builtin",
+                                              CSkyDomeLightTranslator::creator);
 
-      CTranslatorRegistry::RegisterDagTranslator("camera",
-                                                 MAYA_NODEID_CAMERA,
-                                                 "orthographic",
-                                                 COrthoCameraTranslator::creator,
-                                                 COrthoCameraTranslator::NodeInitializer);
+      builtinExtension->RegisterDagTranslator("mesh",
+                                              MAYA_NODEID_MESH,
+                                              "builtin",
+                                              CMeshTranslator::creator,
+                                              CMeshTranslator::NodeInitializer);
+      builtinExtension->RegisterDagTranslator("nurbsSurface",
+                                              MAYA_NODEID_NURBS_SURFACE,
+                                              "builtin",
+                                              CNurbsSurfaceTranslator::creator,
+                                              CNurbsSurfaceTranslator::NodeInitializer);
 
-      CTranslatorRegistry::RegisterDagTranslator("camera",
-                                                 MAYA_NODEID_CAMERA,
-                                                 "fisheye",
-                                                 CFishEyeCameraTranslator::creator,
-                                                 CFishEyeCameraTranslator::NodeInitializer);
+      builtinExtension->RegisterDagTranslator("camera",
+                                              MAYA_NODEID_CAMERA,
+                                              "perspective",
+                                              CPerspCameraTranslator::creator,
+                                              CPerspCameraTranslator::NodeInitializer);
 
-      CTranslatorRegistry::RegisterDagTranslator("camera",
-                                                 MAYA_NODEID_CAMERA,
-                                                 "cylindrical",
-                                                 CCylCameraTranslator::creator,
-                                                 CCylCameraTranslator::NodeInitializer);
+      builtinExtension->RegisterDagTranslator("camera",
+                                              MAYA_NODEID_CAMERA,
+                                              "orthographic",
+                                              COrthoCameraTranslator::creator,
+                                              COrthoCameraTranslator::NodeInitializer);
 
-      CTranslatorRegistry::RegisterDagTranslator("hairSystem",
-                                                 MAYA_NODEID_HAIR,
-                                                 "builtin",
-                                                 CHairTranslator::creator,
-                                                 CHairTranslator::NodeInitializer);
+      builtinExtension->RegisterDagTranslator("camera",
+                                              MAYA_NODEID_CAMERA,
+                                              "fisheye",
+                                              CFishEyeCameraTranslator::creator,
+                                              CFishEyeCameraTranslator::NodeInitializer);
 
-      // Load extensions last so that they can override default translators
-      arnoldPluginFactory.LoadExtensions();
+      builtinExtension->RegisterDagTranslator("camera",
+                                              MAYA_NODEID_CAMERA,
+                                              "cylindrical",
+                                              CCylCameraTranslator::creator,
+                                              CCylCameraTranslator::NodeInitializer);
+
+      builtinExtension->RegisterDagTranslator("hairSystem",
+                                              MAYA_NODEID_HAIR,
+                                              "builtin",
+                                              CHairTranslator::creator,
+                                              CHairTranslator::NodeInitializer);
+
+      CLoader::LoadExtensions();
+
+      // Start up the plugin factory.
+      CArnoldNodeFactory::SetMayaPlugin(object);
+
+      // Create nodes for the builtin shaders: empty string is how AiNodeEntryGetFilename identifies builtin shaders
+      // FIXME: node factory should accept pointer
+      CArnoldNodeFactory* builtinShaders = CArnoldNodeFactory::Init(builtinExtension, "");
+      builtinShaders->CreateNodes();
+
+      CLoader::LoadPlugins();
+      CExtension::CreateCallbacks();
 
       // Or use MGlobal::apiVersion()
 #if MAYA_API_VERSION < 201200
@@ -323,24 +276,6 @@ namespace // <anonymous>
       status = plugin.deregisterNode(CArnoldAOVNode::id);
       CHECK_MSTATUS(status);
 
-      // Ray switch shader
-      status = plugin.deregisterNode(ARNOLD_NODEID_RAY_SWITCH);
-      CHECK_MSTATUS(status);
-
-      // Surface Shaders
-      status = plugin.deregisterNode(ARNOLD_NODEID_AMBIENT_OCCLUSION);
-      CHECK_MSTATUS(status);
-      status = plugin.deregisterNode(ARNOLD_NODEID_STANDARD);
-      CHECK_MSTATUS(status);
-      status = plugin.deregisterNode(ARNOLD_NODEID_UTILITY);
-      CHECK_MSTATUS(status);
-      status = plugin.deregisterNode(ARNOLD_NODEID_MESH_INFO);
-      CHECK_MSTATUS(status);
-      status = plugin.deregisterNode(ARNOLD_NODEID_WIREFRAME);
-      CHECK_MSTATUS(status);
-      status = plugin.deregisterNode(ARNOLD_NODEID_HAIR);
-      CHECK_MSTATUS(status);
-
       // Displacement Shaders
       status = plugin.deregisterNode(CArnoldDisplacementShaderNode::id);
       CHECK_MSTATUS(status);
@@ -350,11 +285,11 @@ namespace // <anonymous>
       status = plugin.deregisterNode(CArnoldSkyShaderNode::id);
       CHECK_MSTATUS(status);
 
-      CArnoldNodeFactory arnoldPluginFactory(object);
-      arnoldPluginFactory.UnregisterAllNodes();
-      arnoldPluginFactory.UnloadExtensions();
+      CArnoldNodeFactory::UnloadPlugins();
+      //arnoldPluginFactory.UnregisterAllNodes();
+      //arnoldPluginFactory.UnloadExtensions();
 
-      CTranslatorRegistry::RemoveCallbacks();
+      //CExtension::RemoveCallbacks();
 
       return status;
    }

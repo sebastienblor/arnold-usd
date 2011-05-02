@@ -8,11 +8,10 @@
 #include "nodes/ArnoldNodeIDs.h"
 #include "nodes/MayaNodeIDs.h"
 #include "scene/NodeTranslator.h"
-#include "scene/TranslatorRegistry.h"
+#include "scene/Extension.h"
 #include "scene/MayaScene.h"
 #include "utils/AttrHelper.h"
-#include "common/DynLibrary.h"
-#include "api/Extension.h"
+#include "scene/Extension.h"
 
 #include <ai_nodes.h>
 #include <ai.h>
@@ -31,25 +30,17 @@ struct CMayaNodeData
 {
    std::string arnoldNodeName;
    int nodeId;
-   MCallbackId callbackId;
    CMayaNodeData() :  arnoldNodeName(""),
-                      nodeId(0),
-                      callbackId(0)
+                      nodeId(0)
    {}
 };
 
-/// key: maya node name
+/// key: maya node name. value: arnold node name and maya node id
 typedef std::map<std::string, CMayaNodeData> MayaNodeDataMap;
-/// key: arnold node name
+/// key: arnold node name. value: maya node name
 typedef std::map<std::string, std::string> ArnoldNodeToMayaNode;
-/// key: arnold plugin file path
-typedef std::map<std::string, std::vector<std::string> > ArnoldPluginData;
-/// key: maya node name
-typedef std::map<std::string, std::vector<CAttrData> > DynamicAttrMap;
 
 int FindLibraries(MString searchPath, MStringArray &files);
-
-typedef void (*pluginInitFunctionType)(CExtension&);
 
 //--------------- CArnoldNodeFactory -----------------------------------
 
@@ -62,46 +53,61 @@ typedef void (*pluginInitFunctionType)(CExtension&);
 class DLLEXPORT CArnoldNodeFactory
 {
 public:
-   CArnoldNodeFactory(MObject plugin);
    ~CArnoldNodeFactory();
+   static void SetMayaPlugin(MObject plugin) {s_plugin = plugin;}
 
-   void LoadPlugin(const char* pluginFile);
-   void UnloadPlugin(const char* pluginFile);
-   void LoadPlugins();
-   void UnloadPlugins();
+   static CArnoldNodeFactory* Init(CExtension* extension, const char* shaderFile);
+   void LoadPlugin();
+   void CreateNodes();
+   void UnloadPlugin();
+   static void UnloadPlugins();
 
    bool RegisterMayaNode(const AtNodeEntry* arnoldNodeEntry);
    bool RegisterMayaNode(const char* arnoldNodeName, const char* mayaNodeName, int nodeId, MString classification=ARNOLD_SHADER, MString swatchName=ARNOLD_SWATCH);
-   static bool MapToMayaNode(const char* arnoldNodeName, const char* mayaCounterpart, int typeId);
+   bool MapToMayaNode(const char* arnoldNodeName, const char* mayaCounterpart, int typeId);
    void UnregisterMayaNode(const char* arnoldNodeName);
-   void RegisterAllNodes();
-   void UnregisterAllNodes();
 
-   bool LoadExtension(const char* extensionFile);
-   void LoadExtensions();
-   void UnloadExtensions();
-
+   const char* GetFilename() {return m_shaderFile;}
    static const char* GetArnoldNodeFromMayaNode(const MString& mayaShader);
 
-private:
-   static MayaNodeDataMap s_factoryNodes;
-   MFnPlugin m_plugin;
-   static int s_autoNodeId;
-   static ArnoldNodeToMayaNode s_arnoldToMayaNodes;
-   static ArnoldPluginData s_arnoldPlugins;
-   static MCallbackId s_pluginLoadedCallbackId;
-   void *m_pluginHandle;
-};
+protected:
+   CArnoldNodeFactory(CExtension* extension, const char* shaderFile) :
+      m_shaderFile(shaderFile),
+      m_extension(extension),
+      m_loaded(false)
+   {}
 
-inline CArnoldNodeFactory::CArnoldNodeFactory(MObject plugin)
-   :  m_plugin(plugin)
-   ,  m_pluginHandle(NULL)
-{
-}
+private:
+   const char* m_shaderFile;
+   CExtension* m_extension;
+   bool m_loaded;
+   MayaNodeDataMap m_factoryNodes;
+   ArnoldNodeToMayaNode m_arnoldToMayaNodes;
+
+   static int s_autoNodeId;
+   static MObject s_plugin;
+   static std::vector<CArnoldNodeFactory*> s_shaderLibs;
+};
 
 inline CArnoldNodeFactory::~CArnoldNodeFactory()
 {
 }
+
+
+class DLLEXPORT CLoader
+{
+public:
+   CLoader(){};
+   ~CLoader();
+   static void LoadPlugins();
+   static void UnloadPlugins();
+   static bool LoadExtension(const char* extensionFile);
+   static void LoadExtensions();
+   static void UnloadExtensions();
+private:
+   static std::vector<CExtension> s_extensions;
+   static std::vector<CArnoldNodeFactory> s_shaderLibs;
+};
 
 //--------------- CAutoTranslator ------------------------------------------
 

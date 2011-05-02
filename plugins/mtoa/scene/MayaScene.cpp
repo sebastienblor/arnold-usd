@@ -1,6 +1,6 @@
 
 #include "MayaScene.h"
-#include "TranslatorRegistry.h"
+#include "Extension.h"
 #include "render/RenderSession.h"
 
 
@@ -463,7 +463,7 @@ MStatus CMayaScene::ExportDagPath(MDagPath &dagPath)
    // early out for nodes that have already been processed
    if (m_processedDagTranslators[handle].count(instanceNum))
       return MStatus::kSuccess;
-   CDagTranslator* translator = CTranslatorRegistry::GetDagTranslator(dagPath);
+   CDagTranslator* translator = CExtension::FindDagTranslator(dagPath);
    if (translator != NULL)
    {
       translator->Init(dagPath, this);
@@ -496,7 +496,7 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
 
    AtNode* shader = NULL;
 
-   CNodeTranslator* translator = CTranslatorRegistry::GetDependTranslator(mayaShader);
+   CNodeTranslator* translator = CExtension::FindDependTranslator(mayaShader);
    if (translator != NULL)
    {
       if (mayaShader.hasFn(MFn::kDagNode))
