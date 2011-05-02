@@ -47,6 +47,7 @@ CMayaScene::~CMayaScene()
    ObjectToTranslatorMap::iterator it;
    for(it = m_processedTranslators.begin(); it != m_processedTranslators.end(); ++it)
    {
+      AiMsgDebug("[mtoa] Deleting translator for %s", MFnDependencyNode(it->first.object()).name().asChar());
       delete it->second;
    }
    m_processedTranslators.clear();
@@ -58,6 +59,8 @@ CMayaScene::~CMayaScene()
       std::map<int, CNodeTranslator*>::iterator instIt;
       for(instIt = dagIt->second.begin(); instIt != dagIt->second.end(); ++instIt)
       {
+         MFnDagNode fnDag(dagIt->first.object());
+         AiMsgDebug("[mtoa] Deleting translator for %s [%d]", fnDag.fullPathName().asChar(), instIt->first);
          delete instIt->second;
       }
    }

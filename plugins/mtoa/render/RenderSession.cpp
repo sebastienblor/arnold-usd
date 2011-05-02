@@ -178,13 +178,6 @@ AtBBox CRenderSession::GetBoundingBox()
 
 void CRenderSession::Finish()
 {
-   if (AiUniverseIsActive())
-   {
-      AiRenderAbort();
-      InterruptRender();
-      AiEnd();
-   }
-
    // This will release the scene and therefore any
    // translators it has held.
    if (m_scene != NULL)
@@ -192,7 +185,13 @@ void CRenderSession::Finish()
       delete m_scene;
       m_scene = NULL;
    }
-   
+
+   if (AiUniverseIsActive())
+   {
+      AiRenderAbort();
+      InterruptRender();
+      AiEnd();
+   }
    m_is_active = false;
 }
 
@@ -241,6 +240,8 @@ void CRenderSession::SetProgressive(const bool is_progressive)
    m_renderOptions.SetProgressive(is_progressive);
 }
 
+// FIXME: this function should always be passed a dagNode so that we can handle
+// the formatting of the node within the arnold scene (i.e fullPath vs partialPath)
 void CRenderSession::SetCamera(MString cameraNode)
 {
    if (cameraNode != "")
@@ -276,6 +277,8 @@ void CRenderSession::SetCamera(MString cameraNode)
 
       AiNodeSetPtr(AiUniverseGetOptions(), "camera", camera);
       
+      // FIXME: this would best be handled by a kind of translator post-process hook.
+
       // check visibility for all image planes.
       MDagPath dagPath;
       MItDag   dagIterCameras(MItDag::kDepthFirst, MFn::kCamera);
