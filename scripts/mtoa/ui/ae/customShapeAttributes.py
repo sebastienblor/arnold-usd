@@ -1,4 +1,5 @@
 import maya.cmds as cmds
+import maya.OpenMaya as om
 import mtoa.ui.ae.lightFiltersTemplate as lightFiltersTemplate
 from mtoa.ui.ae.utils import aeCallback
 from mtoa.ui.ae.shapeTemplate import registerUI, registerDefaultTranslator, ArnoldTranslatorTemplate
@@ -155,32 +156,42 @@ class CylCameraTemplate(CameraTemplate):
 
 CylCameraTemplate.register("camera", "cylindrical")
 
-def cameraOrthographicChanged(attr):
+def cameraOrthographicChanged(orthoPlug):
     "called to sync .arnoldTranslator when .orthographic changes"
-    print "cameraOrthographicChanged", attr
-    cam = attr.split('.')[0]
-    isOrtho = cmds.getAttr(cam + '.orthographic')
-    currTrans = cmds.getAttr(cam + '.arnoldTranslator')
+    fnCam = om.MFnCamera(orthoPlug.node())
+    isOrtho = orthoPlug.asBool()
+    transPlug = fnCam.findPlug('arnoldTranslator')
+    currTrans = transPlug.asString()
+    #print "cameraOrthographicChanged", fnCam.name(), currTrans, isOrtho
     newTrans = None
     if isOrtho and currTrans != 'orthographic':
         newTrans = 'orthographic'
     elif not isOrtho and currTrans == 'orthographic':
         newTrans = 'perspective'
+    #print "newTrans", newTrans
     if newTrans:
         if cmds.optionMenuGrp('arnoldTranslatorOMG', exists=True):
             cmds.optionMenuGrp('arnoldTranslatorOMG', edit=True, value=newTrans)
-        cmds.setAttr(cam + '.arnoldTranslator', newTrans, type='string')
+        transPlug.setString(newTrans)
 
-def cameraTranslatorChanged(attr):
+def cameraTranslatorChanged(transPlug):
     "called to sync .orthographic when .arnoldTranslator changes"
-    print "cameraTranslatorChanged", attr
-    cam = attr.split('.')[0]
-    trans = cmds.getAttr(cam + '.arnoldTranslator')
-    isOrtho = cmds.getAttr(cam + '.orthographic')
-    if not isOrtho and trans == 'orthographic':
-        cmds.setAttr(cam + '.orthographic', True)
-    elif isOrtho and trans != 'orthographic':
-        cmds.setAttr(cam + '.orthographic', False)
+    fnCam = om.MFnCamera(transPlug.node())
+    currTrans = transPlug.asString()
+    orthoPlug = fnCam.findPlug('orthographic')
+    isOrtho = orthoPlug.asBool()
+    #print "cameraTranslatorChanged", fnCam.name(), currTrans, isOrtho
+    # when a file is opening, we need to choose one attribute to lead, because
+    # the order that attributes are set is unpredictable. This fixes a case
+    # where translators may have gotten out of sync
+    if om.MFileIO.isOpeningFile():
+        if isOrtho and currTrans != 'orthographic':
+            orthoPlug.setBool(True)
+    else:
+        if not isOrtho and currTrans == 'orthographic':
+            orthoPlug.setBool(True)
+        elif isOrtho and currTrans != 'orthographic':
+            orthoPlug.setBool(False)
 
 def getCameraDefault(cam):
     default = 'orthographic' if cmds.getAttr(cam + '.orthographic') else 'perspective'
@@ -188,6 +199,7 @@ def getCameraDefault(cam):
 
 registerDefaultTranslator('camera', getCameraDefault)
 
+print "Adding attribute changed callback for camera"
 callbacks.addAttributeChangedCallbacks('camera', 
                                        [('arnoldTranslator', cameraTranslatorChanged),
                                         ('orthographic', cameraOrthographicChanged)])

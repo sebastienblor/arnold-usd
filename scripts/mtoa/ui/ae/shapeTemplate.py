@@ -55,10 +55,18 @@ def registerDefaultTranslator(nodeType, stringOrFunc):
     if isinstance(stringOrFunc, basestring):
         # for the sake of consistency, make it a function
         getFunc = lambda nodeType: stringOrFunc
-        setFunc = lambda nodeName: cmds.setAttr(nodeName + ".arnoldTranslator", stringOrFunc, type='string')
+        def setFunc(nodeName):
+            try:
+                cmds.setAttr(nodeName + ".arnoldTranslator", stringOrFunc, type='string')
+            except RuntimeError:
+                cmds.warning("failed to set default translator for %s" % nodeName)
     elif callable(stringOrFunc):
         getFunc = stringOrFunc
-        setFunc = lambda nodeName: cmds.setAttr(nodeName + ".arnoldTranslator", getFunc(nodeName), type='string')
+        def setFunc(nodeName):
+            try:
+                cmds.setAttr(nodeName + ".arnoldTranslator", getFunc(nodeName), type='string')
+            except RuntimeError:
+                cmds.warning("failed to set default translator for %s" % nodeName)
     else:
         cmds.warning("[mtoa] you must pass a string or a function to registerDefaultTranslator")
         return
