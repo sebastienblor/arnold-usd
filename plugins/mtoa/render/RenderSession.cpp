@@ -208,7 +208,7 @@ void CRenderSession::InterruptRender()
    {
       AiThreadWait(m_render_thread);
       AiThreadClose(m_render_thread);
-     m_render_thread = NULL;		// Until this is handled by AiThreadClose? Had issues where it tried to close an already closed thread
+      m_render_thread = NULL;		// Until this is handled by AiThreadClose? Had issues where it tried to close an already closed thread
    }
 }
 
@@ -686,10 +686,7 @@ void CRenderSession::DoSwatchRender(const AtInt resolution)
    // guess a reasonable bucket size.
    AiNodeSetInt(options, "xres", resolution);
    AiNodeSetInt(options, "yres", resolution);
-   AiNodeSetInt(options, "bucket_size", resolution/4 );
-
-   AtNode* sky = AiNodeLookUpByName( "swatch_sky" );
-   AiNodeSetPtr(options, "background", sky);
+   AiNodeSetInt(options, "bucket_size", resolution/4);
 
    // Start the render thread.
    m_render_thread = AiThreadCreate(CRenderSession::RenderThread,

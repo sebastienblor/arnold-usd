@@ -11,6 +11,7 @@
 #include "nodes/shaders/background/ArnoldSkyShader.h"
 #include "nodes/shaders/displacement/ArnoldDisplacementShader.h"
 #include "nodes/shaders/light/ArnoldSkyDomeLightShader.h"
+#include "nodes/ShaderUtils.h"
 #include "scene/Shaders.h"
 #include "scene/Lights.h"
 #include "scene/Geometry.h"
@@ -37,11 +38,6 @@ namespace // <anonymous>
    {
       MStatus status;
       MFnPlugin plugin(object);
-      const MString ShaderClass("shader/surface");
-      const MString DisplacementClass("shader/displacement");
-      const MString LightClass("light");
-      const MString LightFilterClass("light/filter");
-      const MString swatchName("ArnoldRenderSwatch");
 
       // Abstract Classes
       status = plugin.registerNode("SphereLocator",
@@ -66,34 +62,39 @@ namespace // <anonymous>
       CHECK_MSTATUS(status);
 
       // Swatch renderer.
-      status = MSwatchRenderRegister::registerSwatchRender(swatchName,
+      status = MSwatchRenderRegister::registerSwatchRender(ARNOLD_SWATCH,
                                                            CRenderSwatchGenerator::creator);
       CHECK_MSTATUS(status);
 
       // Displacement Shaders
+      MString displacementWithSwatch = ARNOLD_SHADER_DISPLACEMENT + ":swatch/" + ARNOLD_SWATCH;
       status = plugin.registerNode("aiDisplacement",
                                    CArnoldDisplacementShaderNode::id,
                                    CArnoldDisplacementShaderNode::creator,
                                    CArnoldDisplacementShaderNode::initialize,
-                                   MPxNode::kDependNode, &DisplacementClass);
+                                   MPxNode::kDependNode,
+                                   &displacementWithSwatch);
       CHECK_MSTATUS(status);
 
       // Light Shaders
+      MString lightWithSwatch = ARNOLD_SHADER_LIGHT + ":swatch/" + ARNOLD_SWATCH;
       status = plugin.registerNode("aiSkyDomeLight",
                                    CArnoldSkyDomeLightShaderNode::id,
                                    CArnoldSkyDomeLightShaderNode::creator,
                                    CArnoldSkyDomeLightShaderNode::initialize,
-                                   MPxNode::kLocatorNode);
+                                   MPxNode::kLocatorNode,
+                                   // &lightWithSwatch);
+                                   &ARNOLD_SHADER_LIGHT);
       CHECK_MSTATUS(status);
 
       // Special shaders (not visible from Maya shaders menu)
-
+      MString environmentWithSwatch = ARNOLD_SHADER_ENVIRONMENT + ":swatch/" + ARNOLD_SWATCH;
       status = plugin.registerNode("aiSky",
                                    CArnoldSkyShaderNode::id,
                                    CArnoldSkyShaderNode::creator,
                                    CArnoldSkyShaderNode::initialize,
                                    MPxNode::kLocatorNode,
-                                   &LightClass);
+                                   &environmentWithSwatch);
       CHECK_MSTATUS(status);
 
       // Start up the plugin factory.
@@ -103,48 +104,56 @@ namespace // <anonymous>
       arnoldPluginFactory.RegisterMayaNode("barndoor",
                                            "aiBarndoor",
                                            ARNOLD_NODEID_BARNDOOR,
-                                           LightFilterClass.asChar());
+                                           ARNOLD_SHADER_LIGHT_FILTER);
       arnoldPluginFactory.RegisterMayaNode("gobo",
                                            "aiGobo",
                                            ARNOLD_NODEID_GOBO,
-                                           LightFilterClass.asChar());
+                                           ARNOLD_SHADER_LIGHT_FILTER);
       arnoldPluginFactory.RegisterMayaNode("light_blocker",
                                            "aiLightBlocker",
                                            ARNOLD_NODEID_LIGHT_BLOCKER,
-                                           LightFilterClass.asChar());
+                                           ARNOLD_SHADER_LIGHT_FILTER);
       arnoldPluginFactory.RegisterMayaNode("light_decay",
                                            "aiLightDecay",
                                            ARNOLD_NODEID_LIGHT_DECAY,
-                                           LightFilterClass.asChar());
+                                           ARNOLD_SHADER_LIGHT_FILTER);
 
       // Surface Shaders
       arnoldPluginFactory.RegisterMayaNode("ray_switch",
                                            "aiRaySwitch",
-                                           ARNOLD_NODEID_RAY_SWITCH);
+                                           ARNOLD_NODEID_RAY_SWITCH,
+                                           ARNOLD_SHADER_UTILITY);
       arnoldPluginFactory.RegisterMayaNode("ambient_occlusion",
                                            "aiAmbientOcclusion",
-                                           ARNOLD_NODEID_AMBIENT_OCCLUSION);
+                                           ARNOLD_NODEID_AMBIENT_OCCLUSION,
+                                           ARNOLD_SHADER_SURFACE);
       arnoldPluginFactory.RegisterMayaNode("standard",
                                            "aiStandard",
-                                           ARNOLD_NODEID_STANDARD);
+                                           ARNOLD_NODEID_STANDARD,
+                                           ARNOLD_SHADER_SURFACE);
       arnoldPluginFactory.RegisterMayaNode("utility",
                                            "aiUtility",
-                                           ARNOLD_NODEID_UTILITY);
+                                           ARNOLD_NODEID_UTILITY,
+                                           ARNOLD_SHADER_SURFACE);
       arnoldPluginFactory.RegisterMayaNode("wireframe",
                                            "aiWireframe",
-                                           ARNOLD_NODEID_WIREFRAME);
+                                           ARNOLD_NODEID_WIREFRAME,
+                                           ARNOLD_SHADER_SURFACE);
       arnoldPluginFactory.RegisterMayaNode("hair",
                                            "aiHair",
-                                           ARNOLD_NODEID_HAIR);
+                                           ARNOLD_NODEID_HAIR,
+                                           ARNOLD_SHADER_SURFACE);
       CTranslatorRegistry::RegisterDependTranslator("layeredShader", MAYA_NODEID_LAYERED_SHADER, CLayeredShaderTranslator::creator);
 
       // Environment/Volume shaders
       arnoldPluginFactory.RegisterMayaNode("fog",
                                            "aiFog",
-                                           ARNOLD_NODEID_FOG);
+                                           ARNOLD_NODEID_FOG,
+                                           ARNOLD_SHADER_ATMOSPHERE);
       arnoldPluginFactory.RegisterMayaNode("volume_scattering",
                                            "aiVolumeScattering",
-                                           ARNOLD_NODEID_VOLUME_SCATTERING);
+                                           ARNOLD_NODEID_VOLUME_SCATTERING,
+                                           ARNOLD_SHADER_ATMOSPHERE);
 
       arnoldPluginFactory.LoadPlugins();
 

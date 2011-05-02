@@ -4,6 +4,8 @@ import mtoa.ui.ae.customShapeAttributes as customShapeAttributes
 
 def aiSkyDomeLightTemplate(nodeName):
 
+    mel.eval('AEswatchDisplay "%s"'%nodeName)
+
     cmds.editorTemplate(beginScrollLayout=True)
 
     cmds.editorTemplate(beginLayout="SkyDomeLight Attributes", collapse=False)

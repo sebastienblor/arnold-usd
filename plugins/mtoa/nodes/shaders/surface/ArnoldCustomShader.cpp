@@ -18,6 +18,7 @@
 #include <ai_metadata.h>
 
 MString CArnoldCustomShaderNode::s_shaderName;
+MString CArnoldCustomShaderNode::s_shaderClass;
 
 MObjectArray CArnoldCustomShaderNode::s_PlugsAffecting;
 
@@ -74,8 +75,23 @@ MStatus CArnoldCustomShaderNode::initialize()
    }
 
    // bump
-   AtBoolean doBump;
-   if (AiMetaDataGetBool(nodeEntry, NULL, "maya.supports_bump", &doBump) && doBump)
+   bool doBump = false;
+   MStringArray classParts;
+   MStringArray classes;
+   s_shaderClass.split(':', classParts);
+   for (unsigned int i=0; i < classParts.length() && doBump == false; ++i)
+   {
+      classes.clear();
+      classParts[i].split('/', classes);
+      for (unsigned int j=0; j < classes.length() && doBump == false; ++j)
+      {
+         if (classes[j] == "surface")
+         {
+            doBump = true;
+         }
+      }
+   }
+   if (doBump)
    {
       MObject attrib = nAttr.createPoint("normalCamera", "n");
       nAttr.setKeyable(true);

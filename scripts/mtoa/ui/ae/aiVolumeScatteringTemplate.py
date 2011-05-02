@@ -3,6 +3,8 @@ import maya.mel as mel
 
 def aiVolumeScatteringTemplate(nodeName):
 
+    mel.eval('AEswatchDisplay "%s"'%nodeName)
+
     cmds.editorTemplate(beginScrollLayout=True)
 
     cmds.editorTemplate(beginLayout="Volume Attributes", collapse=False)

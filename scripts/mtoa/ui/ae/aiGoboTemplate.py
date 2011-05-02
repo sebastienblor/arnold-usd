@@ -3,6 +3,8 @@ import maya.mel as mel
 
 def aiGoboTemplate(nodeName):
 
+    mel.eval('AEswatchDisplay "%s"'%nodeName)
+
     cmds.editorTemplate(beginScrollLayout=True)
 
     cmds.editorTemplate(beginLayout="Gobo Attributes", collapse=False)

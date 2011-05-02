@@ -226,10 +226,9 @@ bool CArnoldNodeFactory::RegisterMayaNode(const AtNodeEntry* arnoldNodeEntry)
       return true;
    }
    // remap node name?
-   MString mayaNodeName = MString(arnoldNodeName);
-   const char* metaNodeName;
-   if (AiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.name", &metaNodeName))
-      mayaNodeName = MString(metaNodeName);
+   const char* mayaNodeName;
+   if (!AiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.name", &mayaNodeName))
+      mayaNodeName = arnoldNodeName;
 
    // get nodeID
    AtInt nodeId;
@@ -240,22 +239,21 @@ bool CArnoldNodeFactory::RegisterMayaNode(const AtNodeEntry* arnoldNodeEntry)
       MGlobal::displayWarning(MString("[mtoa] Assigning temporary node id ") + nodeId + " to " + arnoldNodeName);
       s_autoNodeId++;
    }
-   MGlobal::displayInfo(MString("[mtoa] INFO: Loading shader: ") + arnoldNodeName);
 
    // classification string
-   MString classification = "";
-   const char* classificationMtd;
-   if (AiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.classification", &classificationMtd))
-      classification = MString(classificationMtd);
+   const char* classification;
+   if (!AiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.classification", &classification))
+      classification = ARNOLD_SHADER.asChar();
    // swatch string, use "ArnoldRenderSwatch" to enable arnold rendered swatches
-   const char* swatchMtd;
-   if (AiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.swatch", &swatchMtd))
-      classification += MString(":swatch/") + MString(swatchMtd);
+   const char* swatch;
+   if (!AiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.swatch", &swatch))
+      swatch = ARNOLD_SWATCH.asChar();
 
    // AiMsgDebug( "Registering Arnold node %s as Maya node %s of classification %s", arnoldNodeName, mayaNodeName.asChar(), classification.asChar() );
-   AiMsgInfo( "Registering Arnold node %s as Maya node %s of classification %s", arnoldNodeName, mayaNodeName.asChar(), classification.asChar() );
+   AiMsgInfo("[mtoa] registering Arnold node %s as Maya node %s of classification %s, using swatch %s", arnoldNodeName, mayaNodeName, classification, swatch);
+   MGlobal::displayInfo(MString("[mtoa] INFO: Loading shader: ") + arnoldNodeName + " as " + mayaNodeName);
 
-  return RegisterMayaNode(arnoldNodeName, mayaNodeName.asChar(), nodeId, classification.asChar());
+  return RegisterMayaNode(arnoldNodeName, mayaNodeName, nodeId, classification, swatch);
 }
 
 /// Register a Maya node for the given Arnold node
@@ -270,23 +268,34 @@ bool CArnoldNodeFactory::RegisterMayaNode(const AtNodeEntry* arnoldNodeEntry)
 /// @return true if the node is registered successfully, else false
 ///
 bool CArnoldNodeFactory::RegisterMayaNode(const char* arnoldNodeName, const char* mayaNodeName,
-                                          int nodeId, const char* shaderClass)
+                                          int nodeId, MString classification, MString swatchName)
 {
-   MString classification = "shader/surface:swatch/ArnoldRenderSwatch";
-   if (strlen(shaderClass))
-      classification = MString(shaderClass);
-      // classification = shaderClass + MString(":swatch/ArnoldRenderSwatch");
+   // classifications are a delicate matter in maya.
+   // without the "shader/surface" classification, swatches won't render (fixable?) and
+   // normalCamera won't be automatically treated as a bump map in the hypershade.
+   MString shaderClass("");
+   if (classification.numChars())
+   {
+      shaderClass = classification;
+      if (swatchName.numChars())
+      {
+         shaderClass += MString(":swatch/") + swatchName;
+      }
+   }
 
-   // Create a custom named shader node type
+      // TODO: handle case where shaderClass holds a colon-separated list of classifications
+      // if (shaderClass == ARNOLD_SHADER_SURFACE)
+      // order here matters: currently, we must add this for swatches to work
+      // shaderClass = "shader/surface:" + shaderClass;
    CArnoldCustomShaderNode::s_shaderName = arnoldNodeName;
+   CArnoldCustomShaderNode::s_shaderClass = shaderClass;
 
    // Register the node and its parameters
-   // AiMsgDebug( "[mtoa] registering Arnold node %s as Maya node %s of classification %s", arnoldNodeName, mayaNodeName, classification.asChar() );
-   AiMsgInfo( "[mtoa] registering Arnold node %s as Maya node %s of classification %s", arnoldNodeName, mayaNodeName, classification.asChar() );
-
+   // AiMsgDebug( "[mtoa] registering Arnold node %s as Maya node %s of classification %s", arnoldNodeName, mayaNodeName, shaderClass.asChar() );
+   AiMsgInfo( "[mtoa] registering Arnold node %s as Maya node %s of classification %s", arnoldNodeName, mayaNodeName, shaderClass.asChar() );
 
    MStatus status = m_plugin.registerNode(mayaNodeName, nodeId, CArnoldCustomShaderNode::creator,
-                                          CArnoldCustomShaderNode::initialize, MPxNode::kDependNode, &classification);
+                                          CArnoldCustomShaderNode::initialize, MPxNode::kDependNode, &shaderClass);
    CHECK_MSTATUS(status);
 
    if (status != MStatus::kSuccess || !MapToMayaNode(arnoldNodeName, mayaNodeName,  nodeId))

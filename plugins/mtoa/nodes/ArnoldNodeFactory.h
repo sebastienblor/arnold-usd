@@ -4,6 +4,7 @@
 #define MNoVersionString
 #define MNoPluginEntry
 
+#include "ShaderUtils.h"
 #include "nodes/ArnoldNodeIDs.h"
 #include "nodes/MayaNodeIDs.h"
 #include "scene/NodeTranslator.h"
@@ -70,7 +71,7 @@ public:
    void UnloadPlugins();
 
    bool RegisterMayaNode(const AtNodeEntry* arnoldNodeEntry);
-   bool RegisterMayaNode(const char* arnoldNodeName, const char* mayaNodeName, int nodeId, const char* shaderClass="");
+   bool RegisterMayaNode(const char* arnoldNodeName, const char* mayaNodeName, int nodeId, MString classification=ARNOLD_SHADER, MString swatchName=ARNOLD_SWATCH);
    static bool MapToMayaNode(const char* arnoldNodeName, const char* mayaCounterpart, int typeId);
    void UnregisterMayaNode(const char* arnoldNodeName);
    void RegisterAllNodes();

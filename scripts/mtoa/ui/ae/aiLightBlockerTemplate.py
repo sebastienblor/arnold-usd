@@ -3,6 +3,8 @@ import maya.mel as mel
 
 def aiLightBlockerTemplate(nodeName):
 
+    mel.eval('AEswatchDisplay "%s"'%nodeName)
+
     cmds.editorTemplate(beginScrollLayout=True)
 
     cmds.editorTemplate(beginLayout="Light Blocker Attributes", collapse=False)

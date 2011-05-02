@@ -14,6 +14,8 @@ def checkFarAtten(nodeName):
 
 def aiLightDecayTemplate(nodeName):
 
+    mel.eval('AEswatchDisplay "%s"'%nodeName)
+
     cmds.editorTemplate(beginScrollLayout=True)
 
     cmds.editorTemplate(beginLayout="Decay Attributes", collapse=False)

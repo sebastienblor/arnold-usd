@@ -25,6 +25,7 @@ public:
    static MStatus initialize();
 
    static MString s_shaderName;
+   static MString s_shaderClass;
 
    // Input attributes
    static MObject SAttr[];

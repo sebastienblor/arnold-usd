@@ -3,6 +3,7 @@
 
 #include "platform/Platform.h"
 #include "MayaScene.h"
+#include "render/RenderSwatch.h"
 #include "utils/AttrHelper.h"
 
 #include <ai_nodes.h>
@@ -31,6 +32,7 @@ class DLLEXPORT CNodeTranslator
    // protect this class from its subclasses: make methods that should not be
    // called by subclasses private
    friend class CMayaScene;
+   friend class CRenderSwatchGenerator;
 
 private:
    AtNode* DoExport(AtUInt step);

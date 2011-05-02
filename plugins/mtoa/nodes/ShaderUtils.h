@@ -3,6 +3,30 @@
 
 #include <ai_params.h>
 #include <ai_node_entry.h>
+#include <maya/MString.h>
+
+// Arnold Classify Constants
+const MString ARNOLD_SWATCH("ArnoldRenderSwatch");
+// const MString ARNOLD_SHADER("arnold/shader");
+// const MString ARNOLD_SHADER_DISPLACEMENT("arnold/shader/displacement");
+// const MString ARNOLD_SHADER_LIGHT("arnold/light");
+// const MString ARNOLD_SHADER_LIGHT_FILTER("arnold/shader/light/filter");
+// const MString ARNOLD_SHADER_TEXTURE("arnold/shader/texture");
+// const MString ARNOLD_SHADER_SURFACE("arnold/shader/surface");
+// const MString ARNOLD_SHADER_VOLUME("arnold/shader/volumetric");
+// const MString ARNOLD_SHADER_UTILITY("arnold/shader/utility");
+
+const MString ARNOLD_SHADER("shader");
+const MString ARNOLD_SHADER_DISPLACEMENT("shader/displacement");
+const MString ARNOLD_SHADER_LIGHT("light");
+const MString ARNOLD_SHADER_LIGHT_FILTER("light/filter");
+const MString ARNOLD_SHADER_TEXTURE("texture/other");
+const MString ARNOLD_SHADER_ENVIRONMENT("texture/environment");
+const MString ARNOLD_SHADER_SURFACE("shader/surface");
+const MString ARNOLD_SHADER_VOLUME("shader/volume");
+const MString ARNOLD_SHADER_ATMOSPHERE("shader/volume/atmosphere");
+const MString ARNOLD_SHADER_UTILITY("utility/arnold");
+
 
 // attrFn.setCached( true );
 // attrFn.setInternal( true );
