@@ -380,6 +380,7 @@ void CCameraTranslator::ExportImagePlane(AtUInt step)
 
 void CCameraTranslator::ExportDOF(AtNode* camera)
 {
+   // FIXME: focal_distance and aperture_size are animated and should be exported with motion blur
    if (m_fnNode.findPlug("enableDOF").asBool())
    {
       AiNodeSetFlt(camera, "focal_distance", m_fnNode.findPlug("focal_distance").asFloat());
@@ -459,11 +460,10 @@ double CCameraTranslator::GetDeviceAspect()
       }
    }
 
-   m_cameraData.deviceAspect = deviceAspect;
    return deviceAspect;
 }
 
-MVectorArray CCameraTranslator::GetFilmTransform(double width, bool persp)
+void CCameraTranslator::SetFilmTransform(AtNode* camera, double factorX, double factorY, double width, bool persp)
 {
    double deviceAspect = GetDeviceAspect();
    double cameraAspect = m_fnCamera.aspectRatio();
@@ -471,9 +471,9 @@ MVectorArray CCameraTranslator::GetFilmTransform(double width, bool persp)
    double filmTranslateX = m_fnCamera.filmTranslateH();
    double filmTranslateY = m_fnCamera.filmTranslateV();
    double filmRollValue = m_fnCamera.filmRollValue();
-   //We need a roll attribute from the guys at SolidAngle
-   //double filmRollPivotX = m_fnCamera.verticalRollPivot();
-   //double filmRollPivotY = m_fnCamera.horizontalRollPivot();
+   //TODO: We need a roll attribute from the guys at SolidAngle
+        //double filmRollPivotX = m_fnCamera.verticalRollPivot();
+        //double filmRollPivotY = m_fnCamera.horizontalRollPivot();
    MFnCamera::RollOrder filmRollOrder = m_fnCamera.filmRollOrder();
    double postScale = m_fnCamera.postScale();
 
@@ -481,11 +481,11 @@ MVectorArray CCameraTranslator::GetFilmTransform(double width, bool persp)
    MVector minPoint(-1, -1);
    MVector maxPoint(1, 1);
 
+   preScale = 1 / preScale;
+   postScale = 1 / postScale;
+   
    if (persp) // perspective camera
    {
-      preScale = 1 / preScale;
-      postScale = 1 / postScale;
-
       filmTranslateX = (filmTranslateX * preScale) / postScale;
       if (cameraAspect > deviceAspect)
          filmTranslateY = ((filmTranslateY/cameraAspect) * 2 * preScale) / postScale;
@@ -494,10 +494,7 @@ MVectorArray CCameraTranslator::GetFilmTransform(double width, bool persp)
    }
    else //Ortho camera
    {
-      preScale = 1 / preScale;
-      postScale = 1 / postScale;
       double orthoWidth = m_fnCamera.orthoWidth() / 2;
-
       if (orthoWidth == width)//We are in Horizontal Mode
       {
          filmTranslateX = (filmTranslateX * orthoWidth * preScale) / postScale;
@@ -551,8 +548,17 @@ MVectorArray CCameraTranslator::GetFilmTransform(double width, bool persp)
       maxPoint *= postScale;
    }
 
-   MVector src[] = {minPoint, maxPoint};
-   return MVectorArray(src, 2);
+   //Add on any offsets from filmOffsetX or Y, or filmFitOffset
+   minPoint += MVector(factorX, factorY);
+   maxPoint += MVector(factorX, factorY);
+
+   AiNodeSetPnt2(camera, "screen_window_min", static_cast<float>(minPoint.x), static_cast<float>(minPoint.y));
+   AiNodeSetPnt2(camera, "screen_window_max", static_cast<float>(maxPoint.x), static_cast<float>(maxPoint.y));
+}
+
+void CCameraTranslator::MakeDefaultAttributes(CExtensionAttrHelper &helper)
+{
+   helper.MakeInput("filtermap");
 }
 
 void CCameraTranslator::MakeDOFAttributes(CExtensionAttrHelper &helper)
@@ -612,15 +618,7 @@ void COrthoCameraTranslator::ExportFilmback(AtNode* camera)
       width = (width/2)*deviceAspect;
    }
    
-   MVectorArray filmTransforms = GetFilmTransform(width, false);
-   
-   m_cameraData.width = width;
-   m_cameraData.factorX = filmTransforms[0].x;
-   m_cameraData.factorY = filmTransforms[0].y;
-   m_cameraData.focalLength = 35;
-
-   AiNodeSetPnt2(camera, "screen_window_min", static_cast<float>(filmTransforms[0].x), static_cast<float>(filmTransforms[0].y));
-   AiNodeSetPnt2(camera, "screen_window_max", static_cast<float>(filmTransforms[1].x), static_cast<float>(filmTransforms[1].y));
+   SetFilmTransform(camera, 0, 0, width, false);
 }
 
 void COrthoCameraTranslator::Export(AtNode* camera)
@@ -636,6 +634,12 @@ void COrthoCameraTranslator::ExportMotion(AtNode* camera, AtUInt step)
    ExportImagePlane(step);
 }
 
+void COrthoCameraTranslator::NodeInitializer(MString nodeClassName)
+{
+   CExtensionAttrHelper helper(nodeClassName, "persp_camera");
+   MakeDefaultAttributes(helper);
+}
+
 // Perspective Camera
 //
 const char* CPerspCameraTranslator::GetArnoldNodeType()
@@ -644,9 +648,8 @@ const char* CPerspCameraTranslator::GetArnoldNodeType()
 }
 
 
-void CPerspCameraTranslator::ExportFilmback(AtNode* camera)
+float CPerspCameraTranslator::ExportFilmback(AtNode* camera)
 {
-
    double deviceAspect = GetDeviceAspect();
    float fov = 1.0f;
    double cameraAspect = m_fnCamera.aspectRatio();
@@ -708,7 +711,7 @@ void CPerspCameraTranslator::ExportFilmback(AtNode* camera)
       fov = static_cast<float>(AI_RTOD * 2 * atan((0.5 * (deviceAspect * apertureY)) / ((focalLength / cameraScale) * MM_TO_INCH)));
       //Find the new horizontal aperture based off of the Render Aspect Ratio
       deviceApertureX = apertureY * (deviceAspect / lensSqueeze);
-      
+
       //Apply the film fit offset if the camera's aspect ratio is less than the render aspect ratio
       if ((cameraAspect * lensSqueeze) < deviceAspect && filmFitOffset != 0.0f)
       {
@@ -723,33 +726,15 @@ void CPerspCameraTranslator::ExportFilmback(AtNode* camera)
       factorY += (filmOffsetY/deviceApertureY)*2;
    }
    
-   MVectorArray filmTransforms = GetFilmTransform();
-   MVector minPoint = filmTransforms[0];
-   MVector maxPoint = filmTransforms[1];
+   SetFilmTransform(camera, factorX, factorY);
 
-   //Add on any offsets from filmOffsetX or Y, or filmFitOffset
-   minPoint += MVector(factorX, factorY);
-   maxPoint += MVector(factorX, factorY);
-
-   AiNodeSetPnt2(camera, "screen_window_min", static_cast<float>(minPoint.x), static_cast<float>(minPoint.y));
-   AiNodeSetPnt2(camera, "screen_window_max", static_cast<float>(maxPoint.x), static_cast<float>(maxPoint.y));
-   
-   m_cameraData.apertureX = deviceApertureX;
-   m_cameraData.apertureY = deviceApertureY;
-   m_cameraData.fov = fov;
-   m_cameraData.scale = cameraScale;
-   m_cameraData.focalLength = focalLength;
-   m_cameraData.factorX = factorX;
-   m_cameraData.factorY = factorY;
-   m_cameraData.lensSqueeze = lensSqueeze;
-
-   //return fov;
+   return fov;
 }
+
 
 void CPerspCameraTranslator::Export(AtNode* camera)
 {
-   ExportFilmback(camera);
-   float fov = m_cameraData.fov;
+   float fov = ExportFilmback(camera);
 
    ExportCameraData(camera);
    ExportDOF(camera);
@@ -772,16 +757,152 @@ void CPerspCameraTranslator::Export(AtNode* camera)
 
 void CPerspCameraTranslator::ExportMotion(AtNode* camera, AtUInt step)
 {
+   // FIXME: fov can be animated, but ExportFilmback currently calculates and sets screen_min and screen_max
+   // which we don't want to do at each step
+   float fov = ExportFilmback(camera);
    ExportCameraMBData(camera, step);
    ExportImagePlane(step);
 
    AtArray* fovs = AiNodeGetArray(camera, "fov");
-   AiArraySetFlt(fovs, step, m_cameraData.fov);
+   AiArraySetFlt(fovs, step, fov);
 }
 
 void CPerspCameraTranslator::NodeInitializer(MString nodeClassName)
 {
    CExtensionAttrHelper helper(nodeClassName, "persp_camera");
+   MakeDefaultAttributes(helper);
    MakeDOFAttributes(helper);
    helper.MakeInput("uv_remap");
+}
+
+
+// Fish Eye Camera
+//
+const char* CFishEyeCameraTranslator::GetArnoldNodeType()
+{
+   return "fisheye_camera";
+}
+
+// returns FOV
+float CFishEyeCameraTranslator::ExportFilmback(AtNode* camera)
+{
+   // FIXME: export the screen_min and screen_max
+   SetFilmTransform(camera);
+   return m_fnNode.findPlug("fov").asFloat();
+}
+
+void CFishEyeCameraTranslator::Export(AtNode* camera)
+{
+   float fov = ExportFilmback(camera);
+
+   ExportCameraData(camera);
+   ExportDOF(camera);
+   ExportImagePlane(0);
+
+   MPlug plug = m_fnNode.findPlug("autocrop");
+   AiNodeSetBool(camera, "autocrop", plug.asBool());
+
+   //plug = m_fnNode.findPlug("filtermap");
+   //AiNodeSetRGB(camera, "filtermap", plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+
+   if (m_motion)
+   {
+      AtArray* fovs = AiArrayAllocate(1, m_scene->GetNumMotionSteps(), AI_TYPE_FLOAT);
+      AiArraySetFlt(fovs, 0, fov);
+      AiNodeSetArray(camera, "fov", fovs);
+   }
+   else
+   {
+      AiNodeSetFlt(camera, "fov", fov);
+   }
+}
+
+void CFishEyeCameraTranslator::ExportMotion(AtNode* camera, AtUInt step)
+{
+   float fov = ExportFilmback(camera);
+
+   ExportCameraMBData(camera, step);
+   ExportImagePlane(step);
+
+   AtArray* fovs = AiNodeGetArray(camera, "fov");
+   AiArraySetFlt(fovs, step, fov);
+}
+
+void CFishEyeCameraTranslator::NodeInitializer(MString nodeClassName)
+{
+   CExtensionAttrHelper helper(nodeClassName, "fisheye_camera");
+   MakeDefaultAttributes(helper);
+   MakeDOFAttributes(helper);
+
+   helper.MakeInput("fov");
+   helper.MakeInput("autocrop");
+   helper.MakeInput("filtermap");
+}
+
+// Cyl Camera
+//
+const char* CCylCameraTranslator::GetArnoldNodeType()
+{
+   return "cyl_camera";
+}
+
+// returns FOV
+void CCylCameraTranslator::ExportFilmback(AtNode* camera, float fovs[])
+{
+   // FIXME: export the screen_min and screen_max
+   fovs[0] = m_fnNode.findPlug("horizontal_fov").asFloat();
+   fovs[1] = m_fnNode.findPlug("vertical_fov").asFloat();
+   SetFilmTransform(camera);
+}
+
+void CCylCameraTranslator::Export(AtNode* camera)
+{
+   float fovs[2];
+   ExportFilmback(camera, fovs);
+
+   ExportCameraData(camera);
+   ExportDOF(camera);
+   ExportImagePlane(0);
+
+   MPlug plug = m_fnNode.findPlug("projective");
+   AiNodeSetBool(camera, "projective", plug.asBool());
+
+   if (m_motion)
+   {
+      AtArray* h_fovs = AiArrayAllocate(1, m_scene->GetNumMotionSteps(), AI_TYPE_FLOAT);
+      AtArray* v_fovs = AiArrayAllocate(1, m_scene->GetNumMotionSteps(), AI_TYPE_FLOAT);
+      AiArraySetFlt(h_fovs, 0, fovs[0]);
+      AiArraySetFlt(v_fovs, 0, fovs[1]);
+      AiNodeSetArray(camera, "horizontal_fov", h_fovs);
+      AiNodeSetArray(camera, "vertical_fov", v_fovs);
+   }
+   else
+   {
+      AiNodeSetFlt(camera, "horizontal_fov", fovs[0]);
+      AiNodeSetFlt(camera, "vertical_fov", fovs[1]);
+   }
+}
+
+void CCylCameraTranslator::ExportMotion(AtNode* camera, AtUInt step)
+{
+   float fovs[2];
+   ExportFilmback(camera, fovs);
+
+   ExportCameraMBData(camera, step);
+   ExportImagePlane(step);
+
+   AtArray* h_fovs = AiNodeGetArray(camera, "horizontal_fov");
+   AiArraySetFlt(h_fovs, step, fovs[0]);
+   
+   AtArray* v_fovs = AiNodeGetArray(camera, "vertical_fov");
+   AiArraySetFlt(v_fovs, step, fovs[1]);
+}
+
+void CCylCameraTranslator::NodeInitializer(MString nodeClassName)
+{
+   CExtensionAttrHelper helper(nodeClassName, "cyl_camera");
+   MakeDefaultAttributes(helper);
+   helper.MakeInput("horizontal_fov");
+   helper.MakeInput("vertical_fov");
+   helper.MakeInput("projective");
 }

@@ -276,7 +276,20 @@ namespace // <anonymous>
       CTranslatorRegistry::RegisterDagTranslator("camera",
                                                  MAYA_NODEID_CAMERA,
                                                  "orthographic",
-                                                 COrthoCameraTranslator::creator);
+                                                 COrthoCameraTranslator::creator,
+                                                 COrthoCameraTranslator::NodeInitializer);
+
+      CTranslatorRegistry::RegisterDagTranslator("camera",
+                                                 MAYA_NODEID_CAMERA,
+                                                 "fisheye",
+                                                 CFishEyeCameraTranslator::creator,
+                                                 CFishEyeCameraTranslator::NodeInitializer);
+
+      CTranslatorRegistry::RegisterDagTranslator("camera",
+                                                 MAYA_NODEID_CAMERA,
+                                                 "cylindrical",
+                                                 CCylCameraTranslator::creator,
+                                                 CCylCameraTranslator::NodeInitializer);
 
       CTranslatorRegistry::RegisterDagTranslator("hairSystem",
                                                  MAYA_NODEID_HAIR,

@@ -294,6 +294,52 @@
 		softmin				FLOAT	0.0
 		softmax				FLOAT	50.0
 
+[node fisheye_camera]
+	[attr fov]
+		min					FLOAT	0.0
+		max					FLOAT	1000000000.0
+		softmax				FLOAT	360.0
+		animatable			BOOL	True
+	[attr focal_distance]
+		min					FLOAT	0.0
+		max					FLOAT	1000000000.0
+		softmin				FLOAT	0.0
+		softmax				FLOAT	200.0
+		# default			FLOAT	5.0
+		animatable			BOOL	True
+	[attr aperture_size]
+		min					FLOAT	0.0
+		max					FLOAT	20.0
+		softmin				FLOAT	0.0
+		softmax				FLOAT	0.5
+		# default			FLOAT	0.2
+		animatable			BOOL	True
+	[attr aperture_blades]
+		min					INT		3
+		max					INT		40
+		# default			INT		6
+	[attr aperture_blade_curvature]
+		min					FLOAT	-20.0
+		max					FLOAT	20.0
+		softmin				FLOAT	-5.0
+		softmax				FLOAT	5.0
+	[attr aperture_rotation]
+		min					FLOAT	0.0
+		max					FLOAT	360.0
+		softmin				FLOAT	0.0
+		softmax				FLOAT	50.0
+
+[node cyl_camera]
+	[attr horizontal_fov]
+		min					FLOAT	0.0
+		max					FLOAT	1000000000.0
+		softmax				FLOAT	360.0
+		animatable			BOOL	True
+	[attr vertical_fov]
+		min					FLOAT	0.0
+		max					FLOAT	1000000000.0
+		softmax				FLOAT	180.0
+		animatable			BOOL	True
 
 # shaders
 

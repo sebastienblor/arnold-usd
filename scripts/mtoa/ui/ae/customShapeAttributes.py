@@ -136,6 +136,25 @@ class OrthographicTemplate(CameraTemplate):
 
 OrthographicTemplate.register("camera", "orthographic")
 
+class FisheyeCameraTemplate(CameraTemplate):
+    def __init__(self):
+        CameraTemplate.__init__(self)
+        self.addDOFAttributes()
+        self.addSeparator()
+        self.addAttribute('fov')
+        self.addAttribute('autocrop')
+
+FisheyeCameraTemplate.register("camera", "fisheye")
+
+class CylCameraTemplate(CameraTemplate):
+    def __init__(self):
+        CameraTemplate.__init__(self)
+        self.addAttribute('horizontalFov')
+        self.addAttribute('verticalFov')
+        self.addAttribute('projective')
+
+CylCameraTemplate.register("camera", "cylindrical")
+
 def cameraOrthographicChanged(attr):
     "called to sync .arnoldTranslator when .orthographic changes"
     print "cameraOrthographicChanged", attr
