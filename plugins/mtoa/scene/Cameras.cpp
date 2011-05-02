@@ -459,6 +459,7 @@ double CCameraTranslator::GetDeviceAspect()
    MObject        node;
    double deviceAspect = 0;
 
+   // TODO: replace with a function on CNodeTranslator to get globals node
    list.add("defaultRenderGlobals");
    list.getDependNode(0, node);
    MFnDependencyNode fnRenderGlobals(node);
@@ -495,44 +496,63 @@ void CCameraTranslator::SetFilmTransform(AtNode* camera, double factorX, double 
    double filmTranslateY = m_fnCamera.filmTranslateV();
    double filmRollValue = m_fnCamera.filmRollValue();
    //TODO: We need a roll attribute from the guys at SolidAngle
-        //double filmRollPivotX = m_fnCamera.verticalRollPivot();
-        //double filmRollPivotY = m_fnCamera.horizontalRollPivot();
+   //double filmRollPivotX = m_fnCamera.verticalRollPivot();
+   //double filmRollPivotY = m_fnCamera.horizontalRollPivot();
    MFnCamera::RollOrder filmRollOrder = m_fnCamera.filmRollOrder();
    double postScale = m_fnCamera.postScale();
 
-   //2D Transform default Vectors for Perspective
+   // 2D Transform default Vectors for Perspective
    MVector minPoint(-1, -1);
    MVector maxPoint(1, 1);
 
    preScale = 1 / preScale;
    postScale = 1 / postScale;
-   
+
+   filmTranslateX *= preScale;
+   filmTranslateY *= preScale;
+
    if (persp) // perspective camera
    {
-      filmTranslateX = (filmTranslateX * preScale) / postScale;
-      if (cameraAspect > deviceAspect)
-         filmTranslateY = ((filmTranslateY/cameraAspect) * 2 * preScale) / postScale;
-      else
-         filmTranslateY = (filmTranslateY * deviceAspect * preScale) / postScale;
+      filmTranslateY *= deviceAspect;
    }
-   else //Ortho camera
+   else // Ortho camera
    {
+      // FIXME: most likely problems exist below
       double orthoWidth = m_fnCamera.orthoWidth() / 2;
-      if (orthoWidth == width)//We are in Horizontal Mode
+      if (orthoWidth == width)// We are in Horizontal Mode
       {
-         filmTranslateX = (filmTranslateX * orthoWidth * preScale) / postScale;
-         filmTranslateY = (filmTranslateY * orthoWidth * deviceAspect * preScale) / postScale;
+         filmTranslateX = (filmTranslateX * orthoWidth);
+         filmTranslateY = (filmTranslateY * orthoWidth * deviceAspect);
       }
-      else//Vertical mode
+      else// Vertical mode
       {
-         filmTranslateX = (filmTranslateX * orthoWidth * deviceAspect * preScale) / postScale;
-         filmTranslateY = (filmTranslateY * orthoWidth * deviceAspect * deviceAspect * preScale) / postScale;
+         filmTranslateX = (filmTranslateX * orthoWidth * deviceAspect);
+         filmTranslateY = (filmTranslateY * orthoWidth * deviceAspect * deviceAspect);
       }
 
-      //Set the point to the width passed in for Ortho mode.
+      // Set the point to the width passed in for Ortho mode.
       minPoint = MVector(-width, -width);
       maxPoint = MVector(width, width);
    }
+
+   if (m_fnCamera.findPlug("renderPanZoom").asBool() && m_fnCamera.findPlug("panZoomEnabled").asBool())
+   {
+      double zoom = m_fnCamera.findPlug("zoom").asDouble();
+      filmTranslateX *= zoom;
+      filmTranslateY *= zoom;
+
+      minPoint *= zoom;
+      maxPoint *= zoom;
+
+      double filmAspect = m_fnCamera.horizontalFilmAperture() / m_fnCamera.verticalFilmAperture();
+      double panX = m_fnCamera.findPlug("horizontalPan").asDouble() / m_fnCamera.horizontalFilmAperture() * 2;
+      double panY = m_fnCamera.findPlug("verticalPan").asDouble() / m_fnCamera.verticalFilmAperture() * 2;
+      filmTranslateX += panX;
+      filmTranslateY += (panY * (deviceAspect / filmAspect));
+   }
+
+   filmTranslateX /= postScale;
+   filmTranslateY /= postScale;
 
    if (preScale != 1.0f)
    {
@@ -549,14 +569,14 @@ void CCameraTranslator::SetFilmTransform(AtNode* camera, double factorX, double 
       }
       if (filmRollValue != 0.0f)
       {
-         //ROTATE
+         // TODO: ROTATE
       }
    }
    else //Rotate-Translate order
    {
       if (filmRollValue != 0.0f)
       {
-         //ROTATE
+         // TODO: ROTATE
       }
       if (filmTranslateX != 0.0f || filmTranslateY != 0.0f)
       {
@@ -564,14 +584,13 @@ void CCameraTranslator::SetFilmTransform(AtNode* camera, double factorX, double 
          maxPoint += MVector(filmTranslateX, filmTranslateY);
       }
    }
-
    if (postScale != 1.0f)
    {
       minPoint *= postScale;
       maxPoint *= postScale;
    }
 
-   //Add on any offsets from filmOffsetX or Y, or filmFitOffset
+   // Add on any offsets from filmOffsetX or Y, or filmFitOffset
    minPoint += MVector(factorX, factorY);
    maxPoint += MVector(factorX, factorY);
 
