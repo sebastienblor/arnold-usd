@@ -83,8 +83,8 @@ namespace // <anonymous>
                                    CArnoldSkyDomeLightShaderNode::creator,
                                    CArnoldSkyDomeLightShaderNode::initialize,
                                    MPxNode::kLocatorNode,
-                                   // &lightWithSwatch);
-                                   &ARNOLD_SHADER_LIGHT);
+                                   &lightWithSwatch);
+                                   // &ARNOLD_SHADER_LIGHT);
       CHECK_MSTATUS(status);
 
       // Special shaders (not visible from Maya shaders menu)
