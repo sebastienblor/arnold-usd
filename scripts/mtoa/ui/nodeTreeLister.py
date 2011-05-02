@@ -14,7 +14,7 @@ options:
 import mtoa.utils as utils
 import maya.mel as mel
 import maya.cmds as cmds
-from mtoa.ui.callback import *
+from mtoa.callbacks import *
 from collections import namedtuple
 import re
 

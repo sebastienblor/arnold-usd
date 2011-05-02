@@ -28,7 +28,7 @@ import maya.cmds as cmds
 import maya.mel as mel
 
 import mtoa.utils as utils
-from mtoa.ui.callback import *
+from mtoa.callbacks import *
 
 
 def buildArnoldImageFormatsMenu():

@@ -1,5 +1,5 @@
 import maya.cmds as cmds
-from mtoa.ui.callback import *
+from mtoa.callbacks import *
 import mtoa.ui.aoveditor as aoveditor
 
 def updateRenderSettings(*args):
