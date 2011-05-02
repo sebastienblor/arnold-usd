@@ -28,10 +28,12 @@ def aiSwatchDisplayNew(plugName) :
         
     cmds.formLayout('swatchDisplayForm')
     cmds.text('swatchLabel', label=aiSwatchLabel(node))
-    cmds.swatchDisplayPort('swatchDisplay', wh=(128, 128), rs=128)
-    # button -e -c ("liquidShaderNodePreview "+$theNode) ("liquidAEswatchRefresh_"+$nodeType);
-    # floatField -e -cc ("liquidShaderSetPreviewGamma "+$theNode) ("liquidAEswatchGamma_"+$nodeType);
-    # floatField -e -v $previewGamma ("liquidAEswatchGamma_"+$nodeType);
+    cmds.swatchDisplayPort('swatchDisplay',
+                           wh=(64, 64), rs=64)
+    cmds.popupMenu('swatchPopup', button=3)
+    cmds.menuItem( 'swatchSmall', label='Small' )
+    cmds.menuItem( 'swatchMedium', label='Medium' )
+    cmds.menuItem( 'swatchLarge', label='Large' )
     cmds.setParent(upLevel=True)
     gTextColumnWidthIndex = mel.eval("$tempVar=$gTextColumnWidthIndex;")
     cmds.formLayout('swatchDisplayForm',
@@ -46,31 +48,6 @@ def aiSwatchDisplayNew(plugName) :
                     ac=[('swatchDisplay', "left", 5, 'swatchLabel')]
                     )
 
-    # formLayout -e
-     #   -af  $swatchLabel           top     0
-     #   -af  $swatchLabel           bottom  0
-     #   -af  $swatchLabel           left    0
-     #   //-aof swatchLabel           right   (-$gTextColumnWidthIndex)
-    
-     #   -ac  $swatchDisplay         left    50   $swatchLabel
-     #  -af  $swatchDisplay         top     0
-     #   -an  $swatchDisplay         right
-    
-      #  -af  $liquidAEswatchRefresh top     -2
-      #  -ac  $liquidAEswatchRefresh left    5   $swatchDisplay
-
-      #  -ac  $liquidAEswatchGammaText top     5 $liquidAEswatchRefresh
-       # -ac  $liquidAEswatchGammaText left    5   $swatchDisplay
-
-       # -ac  $liquidAEswatchGamma top     5 $liquidAEswatchRefresh
-       # -ac  $liquidAEswatchGamma left    5   $liquidAEswatchGammaText
-    
-       # -af  $liquidAEShaderReload  top     102
-       # -ac  $liquidAEShaderReload  left    5   $swatchDisplay
-    
-       # -af  $liquidAEEditLif       top     76
-       # -ac  $liquidAEEditLif       left    5   $swatchDisplay
-
     aiSwatchDisplayReplace(plugName)
 
 def aiSwatchDisplayReplace(plugName) :
@@ -80,9 +57,15 @@ def aiSwatchDisplayReplace(plugName) :
     cmds.swatchDisplayPort('swatchDisplay',
                       edit=True,
                       shadingNode=node,
-                      wh=(128, 128), rs=128,
                       annotation='Refresh Swatch',
                       pressCommand='''import maya.mel as mel;mel.eval('updateFileNodeSwatch(\"%s\")')''' % node) 
+    cmds.popupMenu('swatchPopup', edit=True, button=3)
+    cmds.menuItem( 'swatchSmall', edit=True,
+                   command='''import maya.cmds as cmds; cmds.swatchDisplayPort('swatchDisplay', edit=True, wh=(64, 64), rs=64)''')
+    cmds.menuItem( 'swatchMedium', edit=True,
+                   command='''import maya.cmds as cmds; cmds.swatchDisplayPort('swatchDisplay', edit=True, wh=(96, 96), rs=96)''')
+    cmds.menuItem( 'swatchLarge', edit=True,
+                   command='''import maya.cmds as cmds; cmds.swatchDisplayPort('swatchDisplay', edit=True, wh=(128, 128), rs=128)''')
     cmds.text('swatchLabel', edit=True, label=aiSwatchLabel(node))
 
 
