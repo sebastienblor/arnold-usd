@@ -85,18 +85,22 @@ AtNode* CNodeTranslator::DoExport(AtUInt step)
       if (step == 0)
       {
          if (m_outputAttr != "")
-            AiMsgDebug("[mtoa] Exporting: %s.%s", GetFnNode().name().asChar(), m_outputAttr.asChar());
+            AiMsgDebug("[mtoa] Exporting: %s.%s using translator \"%s\"",
+                       GetFnNode().name().asChar(), m_outputAttr.asChar(), GetTranslatorName());
          else
-            AiMsgDebug("[mtoa] Exporting: %s", GetFnNode().name().asChar());
+            AiMsgDebug("[mtoa] Exporting: %s using translator \"%s\"",
+                       GetFnNode().name().asChar(), GetTranslatorName());
          Export(m_atNode);
          ExportUserAttribute(m_atNode);
       }
       else if (RequiresMotionData())
       {
          if (m_outputAttr != "")
-            AiMsgDebug("[mtoa] Exporting motion: %s.%s", GetFnNode().name().asChar(), m_outputAttr.asChar());
+            AiMsgDebug("[mtoa] Exporting motion: %s.%s using translator \"%s\"",
+                       GetFnNode().name().asChar(), m_outputAttr.asChar(), GetTranslatorName());
          else
-            AiMsgDebug("[mtoa] Exporting motion: %s", GetFnNode().name().asChar());
+            AiMsgDebug("[mtoa] Exporting motion: %s using translator \"%s\"",
+                       GetFnNode().name().asChar(), GetTranslatorName());
 
          ExportMotion(m_atNode, step);
       }

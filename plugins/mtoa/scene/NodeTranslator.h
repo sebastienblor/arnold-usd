@@ -28,6 +28,7 @@ typedef void     (*NodeClassInitFunction)(MString);
 #include <string>
 
 class CMayaScene;
+class CExtension;
 
 // Abstract base class for all Maya-to-Arnold node translators
 //
@@ -36,12 +37,14 @@ class DLLEXPORT CNodeTranslator
    // protect this class from its subclasses: make methods that should not be
    // called by subclasses private
    friend class CMayaScene;
+   friend class CExtension;
    friend class CRenderSwatchGenerator;
 
 private:
    AtNode* DoExport(AtUInt step);
    AtNode* DoUpdate(AtUInt step);
    AtNode* DoCreateArnoldNodes();
+   void SetTranslatorName(const char* name) {m_translatorName = name;}
 
 public:
    virtual ~CNodeTranslator()
@@ -55,9 +58,12 @@ public:
       return DoCreateArnoldNodes();
    }
    virtual MFnDependencyNode GetFnNode() const {return m_fnNode;}
+   const char* GetTranslatorName() {return m_translatorName;}
 
 protected:
-   CNodeTranslator() {}
+   CNodeTranslator()  :
+      m_translatorName("")
+   {}
    virtual void Export(AtNode* atNode) = 0;
    virtual void ExportMotion(AtNode* atNode, AtUInt step){}
    // Update runs during IPR for step==0 (calls Export by default)
@@ -121,6 +127,7 @@ protected:
    CMayaScene* m_scene;
    MFnDependencyNode m_fnNode;
    MString m_outputAttr;
+   const char* m_translatorName;
 
    // This stores callback IDs for the callbacks this
    // translator creates.

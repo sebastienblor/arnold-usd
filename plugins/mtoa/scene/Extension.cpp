@@ -327,6 +327,8 @@ CNodeTranslator* CExtension::GetDependTranslator(MObject &object)
    MFnDependencyNode node(object);
    int typeId = node.typeId().id();
    NodeIdToTranslatorMap::iterator translatorIt = m_dependTranslators.find(typeId);
+   std::map<std::string, CreatorFunction>::iterator subIt;
+   CNodeTranslator* result = NULL;
    if (translatorIt != m_dependTranslators.end())
    {
       std::map<std::string, CreatorFunction> subTypes = translatorIt->second;
@@ -337,9 +339,9 @@ CNodeTranslator* CExtension::GetDependTranslator(MObject &object)
          if (status != MS::kSuccess)
          {
             // use the last
-            CreatorFunction func = (--subTypes.end())->second;
-            AiMsgDebug("[mtoa] Node \"%s\" using default translator \"%s\"", node.name().asChar(), (--subTypes.end())->first.c_str());
-            return (CNodeTranslator*)func();
+            subIt = --subTypes.end();
+            CreatorFunction func = subIt->second;
+            result = (CNodeTranslator*)func();
          }
          else
          {
@@ -349,24 +351,25 @@ CNodeTranslator* CExtension::GetDependTranslator(MObject &object)
             {
                MGlobal::displayWarning(MString("[mtoa] node \"") + node.name() + ".arnoldTranslator\" set to empty string. Using last registered translator.");
                // use the last
-               CreatorFunction func = (--subTypes.end())->second;
-               AiMsgDebug("[mtoa] Node \"%s\" using default translator \"%s\"", node.name().asChar(), (--subTypes.end())->first.c_str());
-               return (CNodeTranslator*)func();
+               subIt = --subTypes.end();
+               CreatorFunction func = subIt->second;
+               result = (CNodeTranslator*)func();
             }
             else
             {
-               std::map<std::string, CreatorFunction>::iterator it = subTypes.find(transName.asChar());
-               if (it != subTypes.end())
+               subIt = subTypes.find(transName.asChar());
+               if (subIt != subTypes.end())
                {
-                  CreatorFunction func = it->second;
-                  AiMsgDebug("[mtoa] Node \"%s\" using selected translator \"%s\"", node.name().asChar(), it->first.c_str());
-                  return (CNodeTranslator*)func();
+                  CreatorFunction func = subIt->second;
+                  result = (CNodeTranslator*)func();
                }
             }
          }
       }
    }
-   return NULL;
+   if (result != NULL)
+      result->SetTranslatorName(subIt->first.c_str());
+   return result;
 }
 
 /// Create a new CDagTranslator for the passed Maya node
@@ -375,6 +378,8 @@ CDagTranslator* CExtension::GetDagTranslator(MDagPath &dagPath)
    MFnDependencyNode node(dagPath.node());
    int typeId = node.typeId().id();
    NodeIdToTranslatorMap::iterator translatorIt = m_dagTranslators.find(typeId);
+   std::map<std::string, CreatorFunction>::iterator subIt;
+   CDagTranslator* result = NULL;
    if (translatorIt != m_dagTranslators.end())
    {
       std::map<std::string, CreatorFunction> subTypes = translatorIt->second;
@@ -385,8 +390,9 @@ CDagTranslator* CExtension::GetDagTranslator(MDagPath &dagPath)
          if (status != MS::kSuccess)
          {
             // use the last
-            CreatorFunction func = (--subTypes.end())->second;
-            return (CDagTranslator*)func();
+            subIt = --subTypes.end();
+            CreatorFunction func = subIt->second;
+            result = (CDagTranslator*)func();
          }
          else
          {
@@ -396,22 +402,25 @@ CDagTranslator* CExtension::GetDagTranslator(MDagPath &dagPath)
             {
                MGlobal::displayWarning(MString("[mtoa] node \"") + node.name() + ".arnoldTranslator\" set to empty string. Using last registered translator.");
                // use the last
-               CreatorFunction func = (--subTypes.end())->second;
-               return (CDagTranslator*)func();
+               subIt = --subTypes.end();
+               CreatorFunction func = subIt->second;
+               result = (CDagTranslator*)func();
             }
             else
             {
-               std::map<std::string, CreatorFunction>::iterator it = subTypes.find(transName.asChar());
-               if (it != subTypes.end())
+               subIt = subTypes.find(transName.asChar());
+               if (subIt != subTypes.end())
                {
-                  CreatorFunction func = it->second;
-                  return (CDagTranslator*)func();
+                  CreatorFunction func = subIt->second;
+                  result = (CDagTranslator*)func();
                }
             }
          }
       }
    }
-   return NULL;
+   if (result != NULL)
+      result->SetTranslatorName(subIt->first.c_str());
+   return result;
 }
 
 /// Search all extensions and create a CNodeTranslator for the passed Maya node
