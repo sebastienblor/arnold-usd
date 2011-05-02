@@ -36,6 +36,8 @@
 
 MString toMayaStyle(MString s);
 
+MString toMayaStyle(MString s);
+
 /// Structure for holding attribute properties
 struct CAttrData
 {
