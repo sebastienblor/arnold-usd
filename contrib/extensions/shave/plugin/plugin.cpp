@@ -7,7 +7,7 @@ extern "C"
 
 DLLEXPORT void initializePlugin(CExtension& plugin)
 {
-   plugin.RegisterDagTranslator("shaveHair",
+   plugin.RegisterTranslator("shaveHair",
                                 0x1029b7,
                                 "default",
                                 CShaveTranslator::creator,

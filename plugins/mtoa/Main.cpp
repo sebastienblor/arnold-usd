@@ -110,140 +110,140 @@ namespace // <anonymous>
       // .ext is included so that the file path parsing logic works properly
       CExtension* builtinExtension = CExtension::Init("mtoa.ext");
       // sky is technically a DAG node, but it behaves like a DG node (i.e. it is only exported when a connection is processed)
-      builtinExtension->RegisterDependTranslator("aiOptions",
+      builtinExtension->RegisterTranslator("aiOptions",
                                                  ARNOLD_NODEID_RENDER_OPTIONS,
                                                  "builtin",
                                                  CRenderOptionsTranslator::creator);
-      builtinExtension->RegisterDependTranslator("surfaceShader",
+      builtinExtension->RegisterTranslator("surfaceShader",
                                                  MAYA_NODEID_SURFACE_SHADER,
                                                  "builtin",
                                                  CSurfaceShaderTranslator::creator);
-      builtinExtension->RegisterDependTranslator("lambert",
+      builtinExtension->RegisterTranslator("lambert",
                                                  MAYA_NODEID_LAMBERT,
                                                  "builtin",
                                                  CLambertTranslator::creator);
-      builtinExtension->RegisterDependTranslator("layeredShader",
+      builtinExtension->RegisterTranslator("layeredShader",
                                                  MAYA_NODEID_LAYERED_SHADER,
                                                  "builtin",
                                                  CLayeredShaderTranslator::creator);
-      builtinExtension->RegisterDependTranslator("file",
+      builtinExtension->RegisterTranslator("file",
                                                  MAYA_NODEID_FILE,
                                                  "builtin",
                                                  CFileTranslator::creator);
-      builtinExtension->RegisterDependTranslator("place2dTexture",
+      builtinExtension->RegisterTranslator("place2dTexture",
                                                  MAYA_NODEID_PLACE2D_TEXTURE,
                                                  "builtin",
                                                  CPlace2DTextureTranslator::creator);
-      builtinExtension->RegisterDependTranslator("bump2d",
+      builtinExtension->RegisterTranslator("bump2d",
                                                  MAYA_NODEID_BUMP2D,
                                                  "builtin",
                                                  CBump2DTranslator::creator);
-      builtinExtension->RegisterDependTranslator("bump3d",
+      builtinExtension->RegisterTranslator("bump3d",
                                                  MAYA_NODEID_BUMP3D,
                                                  "builtin",
                                                  CBump3DTranslator::creator);
-      builtinExtension->RegisterDependTranslator("samplerInfo",
+      builtinExtension->RegisterTranslator("samplerInfo",
                                                  MAYA_NODEID_SAMPLER_INFO,
                                                  "builtin",
                                                  CSamplerInfoTranslator::creator);
-      builtinExtension->RegisterDependTranslator("plusMinusAverage",
+      builtinExtension->RegisterTranslator("plusMinusAverage",
                                                  MAYA_NODEID_PLUS_MINUS_AVERAGE,
                                                  "builtin",
                                                  CPlusMinusAverageTranslator::creator);
-      builtinExtension->RegisterDependTranslator("remapValue",
+      builtinExtension->RegisterTranslator("remapValue",
                                                  MAYA_NODEID_REMAP_VALUE,
                                                  "builtin",
                                                  CRemapValueTranslator::creator);
-      builtinExtension->RegisterDependTranslator("remapColor",
+      builtinExtension->RegisterTranslator("remapColor",
                                                  MAYA_NODEID_REMAP_COLOR,
                                                  "builtin",
                                                  CRemapColorTranslator::creator);
-      builtinExtension->RegisterDependTranslator("projection",
+      builtinExtension->RegisterTranslator("projection",
                                                  MAYA_NODEID_PROJECTION,
                                                  "builtin",
                                                  CProjectionTranslator::creator);
-      builtinExtension->RegisterDependTranslator("ramp",
+      builtinExtension->RegisterTranslator("ramp",
                                                  MAYA_NODEID_RAMP,
                                                  "builtin",
                                                  CRampTranslator::creator);
-      builtinExtension->RegisterDependTranslator("layeredTexture",
+      builtinExtension->RegisterTranslator("layeredTexture",
                                                  MAYA_NODEID_LAYERED_TEXTURE,
                                                  "builtin",
                                                  CLayeredTextureTranslator::creator);
       // therefore, it is not registered as a DagTranslator
 
 
-      builtinExtension->RegisterDependTranslator("aiSky",
+      builtinExtension->RegisterTranslator("aiSky",
                                                  CArnoldSkyShaderNode::id.id(),
                                                  "builtin",
                                                  CSkyShaderTranslator::creator);
 
-      builtinExtension->RegisterDagTranslator("directionalLight",
+      builtinExtension->RegisterTranslator("directionalLight",
                                               MAYA_NODEID_DIRECTIONAL_LIGHT,
                                               "builtin",
                                               CDirectionalLightTranslator::creator,
                                               CLightTranslator::NodeInitializer);
-      builtinExtension->RegisterDagTranslator("spotLight",
+      builtinExtension->RegisterTranslator("spotLight",
                                               MAYA_NODEID_SPOT_LIGHT,
                                               "builtin",
                                               CSpotLightTranslator::creator,
                                               CSpotLightTranslator::NodeInitializer);
-      builtinExtension->RegisterDagTranslator("areaLight",
+      builtinExtension->RegisterTranslator("areaLight",
                                               MAYA_NODEID_AREA_LIGHT,
                                               "builtin",
                                               CAreaLightTranslator::creator,
                                               CAreaLightTranslator::NodeInitializer);
-      builtinExtension->RegisterDagTranslator("pointLight",
+      builtinExtension->RegisterTranslator("pointLight",
                                               MAYA_NODEID_POINT_LIGHT,
                                               "builtin",
                                               CPointLightTranslator::creator,
                                               CPointLightTranslator::NodeInitializer);
-      builtinExtension->RegisterDagTranslator("ambientLight",
+      builtinExtension->RegisterTranslator("ambientLight",
                                               MAYA_NODEID_AMBIENT_LIGHT,
                                               "builtin",
                                               CAmbientLightTranslator::creator,
                                               CLightTranslator::NodeInitializer);
-      builtinExtension->RegisterDagTranslator("aiSkyDomeLight",
+      builtinExtension->RegisterTranslator("aiSkyDomeLight",
                                               CArnoldSkyDomeLightShaderNode::id.id(),
                                               "builtin",
                                               CSkyDomeLightTranslator::creator);
 
-      builtinExtension->RegisterDagTranslator("mesh",
+      builtinExtension->RegisterTranslator("mesh",
                                               MAYA_NODEID_MESH,
                                               "builtin",
                                               CMeshTranslator::creator,
                                               CMeshTranslator::NodeInitializer);
-      builtinExtension->RegisterDagTranslator("nurbsSurface",
+      builtinExtension->RegisterTranslator("nurbsSurface",
                                               MAYA_NODEID_NURBS_SURFACE,
                                               "builtin",
                                               CNurbsSurfaceTranslator::creator,
                                               CNurbsSurfaceTranslator::NodeInitializer);
 
-      builtinExtension->RegisterDagTranslator("camera",
+      builtinExtension->RegisterTranslator("camera",
                                               MAYA_NODEID_CAMERA,
                                               "perspective",
                                               CPerspCameraTranslator::creator,
                                               CPerspCameraTranslator::NodeInitializer);
 
-      builtinExtension->RegisterDagTranslator("camera",
+      builtinExtension->RegisterTranslator("camera",
                                               MAYA_NODEID_CAMERA,
                                               "orthographic",
                                               COrthoCameraTranslator::creator,
                                               COrthoCameraTranslator::NodeInitializer);
 
-      builtinExtension->RegisterDagTranslator("camera",
+      builtinExtension->RegisterTranslator("camera",
                                               MAYA_NODEID_CAMERA,
                                               "fisheye",
                                               CFishEyeCameraTranslator::creator,
                                               CFishEyeCameraTranslator::NodeInitializer);
 
-      builtinExtension->RegisterDagTranslator("camera",
+      builtinExtension->RegisterTranslator("camera",
                                               MAYA_NODEID_CAMERA,
                                               "cylindrical",
                                               CCylCameraTranslator::creator,
                                               CCylCameraTranslator::NodeInitializer);
 
-      builtinExtension->RegisterDagTranslator("hairSystem",
+      builtinExtension->RegisterTranslator("hairSystem",
                                               MAYA_NODEID_HAIR,
                                               "builtin",
                                               CHairTranslator::creator,

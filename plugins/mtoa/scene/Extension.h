@@ -41,30 +41,24 @@ public:
    static CExtension* Load(const char* extensionFile);
    static CExtension* Init(const char* extensionFile);
    static bool Unload(const char* extensionFile);
-   bool RegisterDependTranslator(const char* mayaNode, int typeId, const char* translatorName, CreatorFunction creator,
-                                        NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin="");
-   bool RegisterDagTranslator(const char* mayaNode, int typeId, const char* translatorName, CreatorFunction creator,
-                                     NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin="");
-   bool RegisterDependTranslator(const char* mayaNode, int typeId, const char* translatorName, CreatorFunction creator);
-   bool RegisterDagTranslator(const char* mayaNode, int typeId, const char* translatorName, CreatorFunction creator);
+   bool RegisterTranslator(const char* mayaNode, int typeId, const char* translatorName, CreatorFunction creator,
+                           NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin="");
+   bool RegisterTranslator(const char* mayaNode, int typeId, const char* translatorName, CreatorFunction creator);
 #if MAYA_API_VERSION >= 201200
    // in 2012 we can determine the node Id from the node name
-   bool RegisterDagTranslator(const char* mayaNode, const char* translatorName, CreatorFunction creator,
-                                     NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin);
-   bool RegisterDependTranslator(const char* mayaNode, const char* translatorName, CreatorFunction creator,
-                                        NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin);
-   bool RegisterDagTranslator(const char* mayaNode, const char* translatorName, CreatorFunction creator);
-   bool RegisterDependTranslator(const char* mayaNode, const char* translatorName, CreatorFunction creator);
+   bool RegisterTranslator(const char* mayaNode, const char* translatorName, CreatorFunction creator,
+                           NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin);
+   bool RegisterTranslator(const char* mayaNode, const char* translatorName, CreatorFunction creator);
 #endif
-   CNodeTranslator* GetDependTranslator(MObject &object);
-   CDagTranslator* GetDagTranslator(MDagPath &dagPath);
+   CNodeTranslator* GetTranslator(MObject &object);
+   CDagTranslator* GetTranslator(MDagPath &dagPath);
 
    MStringArray GetTranslatorNames(MObject &object);
    MStringArray GetTranslatorNames(MDagPath &dagPath);
    MStringArray GetTranslatorNames(int typeId);
 
-   static CNodeTranslator* FindDependTranslator(MObject &object);
-   static CDagTranslator* FindDagTranslator(MDagPath &dagPath);
+   static CNodeTranslator* FindTranslator(MObject &object);
+   static CDagTranslator* FindTranslator(MDagPath &dagPath);
    static MStringArray GetAllTranslatorNames(MObject &object);
    static MStringArray GetAllTranslatorNames(MDagPath &dagPath);
    static MStringArray GetAllTranslatorNames(int typeId);
@@ -79,19 +73,11 @@ protected:
    CExtension(const char* extensionFile) :
       m_extensionFile(extensionFile)
    {}
-   void AddDagCreator(const char* mayaNode, int typeId, const char* translatorName, CreatorFunction creator);
-   void AddDependCreator(const char* mayaNode, int typeId, const char* translatorName, CreatorFunction creator);
-   bool RegisterTranslator(const char* mayaNode, int typeId, const char* translatorName, CreatorFunction creator, NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin);
-   bool RegisterTranslator(const char* mayaNode, int typeId, CreatorFunction creator);
-#if MAYA_API_VERSION >= 201200
-   int RegisterTranslator(const char* mayaNode, const char* translatorName, CreatorFunction creator, NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin);
-   int RegisterTranslator(const char* mayaNode, CreatorFunction creator);
-#endif
+   void AddCreator(const char* mayaNode, int typeId, const char* translatorName, CreatorFunction creator);
 
 protected:
    const char* m_extensionFile;
-   NodeIdToTranslatorMap m_dagTranslators;
-   NodeIdToTranslatorMap m_dependTranslators;
+   NodeIdToTranslatorMap m_translators;
 
    PluginDataMap m_mayaPluginData;
    static std::vector<CExtension*> s_extensions;

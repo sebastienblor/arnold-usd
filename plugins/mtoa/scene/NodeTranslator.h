@@ -59,6 +59,7 @@ public:
    }
    virtual MFnDependencyNode GetFnNode() const {return m_fnNode;}
    const char* GetTranslatorName() {return m_translatorName;}
+   virtual bool IsDag() {return false;}
 
 protected:
    CNodeTranslator()  :
@@ -166,6 +167,7 @@ public:
    }
 
    virtual MFnDagNode GetFnDagNode() const {return m_fnDagNode;}
+   virtual bool IsDag() {return true;}
 
    static int GetMasterInstanceNumber(MObject node);
    virtual void AddIPRCallbacks();

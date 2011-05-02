@@ -116,7 +116,7 @@ bool CCustomShapeTranslator::RegisterCustomShape(CExtension& plugin, std::string
                }
 
                s_customShapes[shapeType].cleanupCmd = scriptName.c_str();
-               plugin.RegisterDagTranslator(nodeId, CCustomShapeTranslator::creator);
+               plugin.RegisterTranslator(nodeId, CCustomShapeTranslator::creator);
                return true;
             }
          }

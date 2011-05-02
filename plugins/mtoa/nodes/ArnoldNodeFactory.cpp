@@ -199,7 +199,7 @@ void CArnoldNodeFactory::UnloadPlugins()
 MStatus CArnoldNodeFactory::MapToMayaNode(const char* arnoldNodeName, const char* mayaCounterpart, int typeId)
 {
    m_arnoldToMayaNodes[arnoldNodeName] = mayaCounterpart;
-   if (m_extension->RegisterDependTranslator(mayaCounterpart, typeId, "auto", CAutoTranslator::creator))
+   if (m_extension->RegisterTranslator(mayaCounterpart, typeId, "auto", CAutoTranslator::creator))
    {
       m_factoryNodes[mayaCounterpart].arnoldNodeName = arnoldNodeName;
       m_factoryNodes[mayaCounterpart].nodeId = typeId;

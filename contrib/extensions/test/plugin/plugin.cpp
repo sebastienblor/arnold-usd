@@ -6,7 +6,7 @@ extern "C"
 
 DLLEXPORT void initializePlugin(CExtension &plugin)
 {
-   plugin.RegisterDependTranslator("lambert",
+   plugin.RegisterTranslator("lambert",
                                    0x524c414d,
                                    "test",
                                    CTestTranslatorCmd::creator);

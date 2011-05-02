@@ -278,14 +278,14 @@ MStatus CRenderSwatchGenerator::ExportNode(AtNode* & arnoldNode,
       {
          MDagPath dagPath;
          MDagPath::getAPathTo(mayaNode, dagPath);
-         CDagTranslator* dagTranslator = CExtension::FindDagTranslator(dagPath);
+         CDagTranslator* dagTranslator = CExtension::FindTranslator(dagPath);
          if (NULL != dagTranslator)
          {
             translator = (CNodeTranslator*) dagTranslator;
          }
          else
          {
-            translator = CExtension::FindDependTranslator(mayaNode);
+            translator = CExtension::FindTranslator(mayaNode);
             dagTranslator = (CDagTranslator*) translator;
          }
          if (NULL != dagTranslator)
@@ -294,7 +294,7 @@ MStatus CRenderSwatchGenerator::ExportNode(AtNode* & arnoldNode,
             arnoldNode = dagTranslator->DoExport(0);
          }
       } else {
-         translator = CExtension::FindDependTranslator(mayaNode);
+         translator = CExtension::FindTranslator(mayaNode);
          if (NULL != translator)
          {
             translator->Init(mayaNode, m_mayaScene, "");
