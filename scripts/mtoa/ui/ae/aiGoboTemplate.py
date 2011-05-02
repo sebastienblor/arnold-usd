@@ -3,7 +3,7 @@ import maya.mel as mel
 
 def aiGoboTemplate(nodeName):
 
-    mel.eval('AEswatchDisplay "%s"'%nodeName)
+    aiSwatchDisplay(nodeName)
 
     cmds.editorTemplate(beginScrollLayout=True)
 

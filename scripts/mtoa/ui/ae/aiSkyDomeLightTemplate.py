@@ -6,6 +6,8 @@ def aiSkyDomeLightTemplate(nodeName):
 
     mel.eval('AEswatchDisplay "%s"'%nodeName)
 
+    # aiSwatchDisplay(nodeName)
+
     cmds.editorTemplate(beginScrollLayout=True)
 
     cmds.editorTemplate(beginLayout="SkyDomeLight Attributes", collapse=False)

@@ -4,6 +4,7 @@ import maya.mel as mel
 import mtoa.utils as utils
 import mtoa.ui.ae.utils as aeUtils
 from mtoa.ui.ae.utils import aeCallback
+from mtoa.ui.ae.aiSwatchDisplay import aiSwatchDisplay
 
 def bumpNew(attrName):
     cmds.setUITemplate('attributeEditorTemplate', pst=True)
@@ -21,14 +22,14 @@ def checkReflectionFresnel(nodeName):
 
 def aiStandardTemplate(nodeName):
 
-    mel.eval('AEswatchDisplay "%s"'%nodeName)
+    aiSwatchDisplay(nodeName)
 
     cmds.editorTemplate(beginScrollLayout=True)
 
     cmds.editorTemplate('AEshaderTypeNew', 'AEshaderTypeReplace', "message", callCustom=True)
 
     cmds.editorTemplate(beginLayout="Diffuse", collapse=False)
-    cmds.editorTemplate("Kd_color", label="Color", addControl=True)
+    cmds.editorTemplate("Kd_color", label="Color", annotation="Diffuse Color", addControl=True)
     cmds.editorTemplate("Kd", label="Weight", addControl=True)
     cmds.editorTemplate("diffuse_roughness", label="Roughness", addControl=True)
     cmds.editorTemplate("Kb", label="Backlight", addControl=True)

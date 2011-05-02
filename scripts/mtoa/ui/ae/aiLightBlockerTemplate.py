@@ -3,7 +3,7 @@ import maya.mel as mel
 
 def aiLightBlockerTemplate(nodeName):
 
-    mel.eval('AEswatchDisplay "%s"'%nodeName)
+    aiSwatchDisplay(nodeName)
 
     cmds.editorTemplate(beginScrollLayout=True)
 

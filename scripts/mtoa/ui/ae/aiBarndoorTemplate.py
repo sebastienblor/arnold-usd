@@ -3,7 +3,7 @@ import maya.mel as mel
 
 def aiBarndoorTemplate(nodeName):
 
-    mel.eval('AEswatchDisplay "%s"'%nodeName)
+    aiSwatchDisplay(nodeName)
     
     cmds.editorTemplate(beginScrollLayout=True)
     cmds.editorTemplate(beginLayout="Barndoor Attributes", collapse=False)

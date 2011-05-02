@@ -3,6 +3,7 @@ import maya.mel as mel
 
 import mtoa.ui.ae.utils as aeUtils
 from mtoa.ui.ae.utils import aeCallback
+from mtoa.ui.ae.aiSwatchDisplay import aiSwatchDisplay
 
 def checkNearAtten(nodeName):
     aeUtils.arnoldDimControlIfFalse(nodeName, "near_start", "use_near_atten")
@@ -15,6 +16,8 @@ def checkFarAtten(nodeName):
 def aiLightDecayTemplate(nodeName):
 
     mel.eval('AEswatchDisplay "%s"'%nodeName)
+
+    aiSwatchDisplay(nodeName)
 
     cmds.editorTemplate(beginScrollLayout=True)
 
