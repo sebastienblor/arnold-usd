@@ -1,6 +1,5 @@
 #include "scene/MayaScene.h"
-#include "scene/TranslatorRegistry.h"
-#include "scene/Shaders.h"
+#include "scene/Extension.h"
 #include "render/RenderSession.h"
 #include "RenderSwatch.h"
 
@@ -124,8 +123,11 @@ MStatus CRenderSwatchGenerator::BuildArnoldScene()
    m_renderSession->SetBatch(false);
    m_renderSession->SetProgressive(false);
    m_renderSession->GetMayaScene()->SetExportMode(MTOA_EXPORT_SWATCH);
+   // Problem. Will cause a creash when exporting a dag node (moblur checking)
+   // if left to NULL. But we don't want the scene options and don't want to create
+   // a dummy Maya node just to have default options
+   // m_renderSession->GetMayaScene()->PrepareExport();
 
-   // Use m_renderSession->Init() instead 
    AiBegin();
    m_renderSession->LoadPlugins();
 
@@ -190,7 +192,7 @@ MStatus CRenderSwatchGenerator::BuildArnoldScene()
 // ass files in a path pointed to by $MTOA_SWATCH_ASS_PATH.
 MStatus CRenderSwatchGenerator::LoadAssForNode()
 {
-   const MString ass = MString("$MTOA_SWATCH_ASS_PATH").expandFilePath();
+   const MString ass = MString("$MTOA_SWATCH_ASS_PATH/").expandFilePath();
    std::string c_ass(m_nodeClass.asChar());
    std::replace(c_ass.begin(), c_ass.end(), '/', '_');
    c_ass = ass.asChar() + c_ass + ".ass";
@@ -254,7 +256,7 @@ MStatus CRenderSwatchGenerator::ExportNode(AtNode* & arnoldNode,
    MObject mayaNode = swatchNode();
    CMayaScene * m_mayaScene = m_renderSession->GetMayaScene();
 
-   // Special case for displacement
+   // FIXME: Special case for displacement
    if (m_swatchClass == SWATCH_DISPLACEMENT)
    {
       arnoldNode = NULL;
@@ -272,31 +274,36 @@ MStatus CRenderSwatchGenerator::ExportNode(AtNode* & arnoldNode,
    }
    else
    {
-      // Not calling CMayaScene::ExportShader because I need the translator
-      translator = CTranslatorRegistry::GetDependTranslator(mayaNode);
-      if (NULL != translator)
+      if (mayaNode.hasFn(MFn::kDagNode))
       {
-         if (mayaNode.hasFn(MFn::kDagNode))
+         MDagPath dagPath;
+         MDagPath::getAPathTo(mayaNode, dagPath);
+         CDagTranslator* dagTranslator = CExtension::FindDagTranslator(dagPath);
+         if (NULL != dagTranslator)
          {
-            CDagTranslator* dagTranslator = (CDagTranslator*) translator;
-            MDagPath dagPath;
-            MDagPath::getAPathTo(mayaNode, dagPath);
+            translator = (CNodeTranslator*) dagTranslator;
+         }
+         else
+         {
+            translator = CExtension::FindDependTranslator(mayaNode);
+            dagTranslator = (CDagTranslator*) translator;
+         }
+         if (NULL != dagTranslator)
+         {
             dagTranslator->Init(dagPath, m_mayaScene, "");
             arnoldNode = dagTranslator->DoExport(0);
          }
-         else
+      } else {
+         translator = CExtension::FindDependTranslator(mayaNode);
+         if (NULL != translator)
          {
             translator->Init(mayaNode, m_mayaScene, "");
             arnoldNode = translator->DoExport(0);
          }
-         if (NULL != arnoldNode)
-         {
-            status = MStatus::kSuccess;
-         }
-         else
-         {
-            status = MStatus::kFailure;
-         }
+      }
+      if (NULL != arnoldNode)
+      {
+         status = MStatus::kSuccess;
       }
       else
       {
@@ -322,9 +329,11 @@ MStatus CRenderSwatchGenerator::AssignNode(AtNode* arnoldNode)
    {
       AiNodeSetPtr(geometry, "shader", arnoldNode);
    } else {
-      AtNode* default_shader = AiNode("standard");
-      AiNodeSetStr(default_shader, "name", "default_shader");
-      AiNodeSetPtr(geometry, "shader", default_shader);
+      AtNode* defaultShader = AiNode("standard");
+      AiNodeSetStr(defaultShader, "name", "default");
+      AiNodeSetFlt(defaultShader, "Ks", 0.35f);
+      AiNodeSetBool(defaultShader, "reflection_exit_use_environment", true);
+      AiNodeSetPtr(geometry, "shader", defaultShader);
    }
 
    // Export displacement map if required

@@ -142,7 +142,7 @@ public:
 
    bool IsMotionBlurEnabled() const
    {
-      return m_fnArnoldRenderOptions->findPlug("motion_blur_enable").asBool();
+      return (NULL != m_fnArnoldRenderOptions) && m_fnArnoldRenderOptions->findPlug("motion_blur_enable").asBool();
    }
    
    bool IsCameraMotionBlurEnabled() const
