@@ -1,7 +1,6 @@
 #include "AttrHelper.h"
 #include "nodes/ShaderUtils.h"
-// #include "utils/Metadata.h"
-
+#include "utils/Metadata.h"
 #include "Utils.h"
 
 #include <ai_metadata.h>
@@ -82,8 +81,7 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
    AiMsgDebug("[METADATA] getting attribute metadata for %s.%s", AiNodeEntryGetName(m_nodeEntry), paramName);
 #endif
 
-   // data.defaultValue = MAiParamGetDefault(m_nodeEntry, paramEntry);
-   data.defaultValue = *AiParamGetDefault(paramEntry);
+   data.defaultValue = MAiParamGetDefault(m_nodeEntry, paramEntry);
    data.name = GetMayaAttrName(paramName);
    data.shortName = GetMayaAttrShortName(paramName);
    data.type = AiParamGetType(paramEntry);
