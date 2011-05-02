@@ -273,7 +273,7 @@ MStatus CRenderSwatchGenerator::ExportNode(AtNode* & arnoldNode,
    else
    {
       // Not calling CMayaScene::ExportShader because I need the translator
-      translator = CTranslatorRegistry::GetDependTranslator(MFnDependencyNode(mayaNode).typeId().id());
+      translator = CTranslatorRegistry::GetDependTranslator(mayaNode);
       if (NULL != translator)
       {
          if (mayaNode.hasFn(MFn::kDagNode))
