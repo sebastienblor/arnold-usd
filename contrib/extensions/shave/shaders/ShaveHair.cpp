@@ -1,15 +1,14 @@
-/*
- * Simple hair shader, roughly based on Kay/Kajiya's shading model
- */
+//
+// Simple hair shader, roughly based on Kay/Kajiya's shading model
+//
 
 #include <ai.h>
-#include <cstdio>
-#include <cstdlib>
+
 #include <cstring>
 
 AI_SHADER_NODE_EXPORT_METHODS(ShaveHairMtd);
 
-enum ShaveHairShaderParams
+enum ShaveHairParams
 {
    p_rootcolor,
    p_tipcolor,
@@ -67,7 +66,7 @@ node_update
    ShaderData *data = (ShaderData*)node->local_data;
    AtNode *options = AiUniverseGetOptions();
    data->max_diffuse_depth = AiNodeGetInt(options, "GI_diffuse_depth");
-   data->gamma = 1.0/AiNodeGetFlt(options, "shader_gamma");
+   data->gamma = 1.0f / AiNodeGetFlt(options, "shader_gamma");
 }
 
 node_finish
@@ -217,4 +216,3 @@ node_loader
    strcpy(node->version, AI_VERSION);
    return TRUE;
 }
-

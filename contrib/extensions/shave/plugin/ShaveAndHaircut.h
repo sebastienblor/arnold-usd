@@ -23,7 +23,6 @@ private:
                          AtArray* curveNextLineStartsInterp,
                          AtArray* curveNextLineStarts,
                          AtArray* curveWidths);
-   MStatus SetHairInfo();
+   MStatus UpdateHairInfo();
    shaveAPI::HairInfo m_hairInfo;
 };
-
