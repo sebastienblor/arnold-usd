@@ -426,7 +426,7 @@ void CGeoTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
       if (connections.length() > 0)
       {
          // shader assigned to node
-         AtNode* shader = m_scene->ExportShader(connections[0].node());
+         AtNode* shader = ExportShader(connections[0].node());
 
          AiNodeSetPtr(polymesh, "shader", shader);
          meshShaders.push_back(shader);
@@ -453,7 +453,7 @@ void CGeoTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
          // FIXME: there should be a check if connections.length() > 0
          // this is not a simple fix because it will shift all the indices,
          // but as it is now, it will crash if nothing is connected to "surfaceShader"
-         meshShaders.push_back(m_scene->ExportShader(connections[0].node()));
+         meshShaders.push_back(ExportShader(connections[0].node()));
       }
 
       AiNodeSetArray(polymesh, "shader", AiArrayConvert((AtInt)meshShaders.size(), 1, AI_TYPE_NODE, &meshShaders[0], TRUE));
@@ -497,7 +497,7 @@ void CGeoTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
          if (connections.length() > 0)
          {
             MString attrName = connections[0].partialName(false, false, false, false, false, true);
-            AtNode* dispImage(m_scene->ExportShader(connections[0].node(), attrName));
+            AtNode* dispImage(ExportShader(connections[0].node(), attrName));
 
             MPlug pVectorDisp = dispNode.findPlug("vector_displacement", false);
             if (!pVectorDisp.isNull() && pVectorDisp.asBool())
@@ -633,24 +633,24 @@ void CGeoTranslator::ExportMeshGeoData(AtNode* polymesh, AtUInt step)
       else
       {
          // Deformation motion blur. We need to create keyable arrays for vlist and nlist
-         AtArray* vlist_array = AiArrayAllocate(m_fnMesh.numVertices(), m_scene->GetNumMotionSteps(), AI_TYPE_POINT);
+         AtArray* vlist_array = AiArrayAllocate(m_fnMesh.numVertices(), GetNumMotionSteps(), AI_TYPE_POINT);
          SetKeyData(vlist_array, step, vertices, m_fnMesh.numVertices());
          AiNodeSetArray(polymesh, "vlist", vlist_array);
 
          if (exportNormals)
          {
-            AtArray* nlist_array = AiArrayAllocate(m_fnMesh.numNormals(), m_scene->GetNumMotionSteps(), AI_TYPE_VECTOR);
+            AtArray* nlist_array = AiArrayAllocate(m_fnMesh.numNormals(), GetNumMotionSteps(), AI_TYPE_VECTOR);
             SetKeyData(nlist_array, step, normals, m_fnMesh.numNormals());
             AiNodeSetArray(polymesh, "nlist", nlist_array);
          }
 
          if (exportTangents)
          {
-            AtArray* tangent_array = AiArrayAllocate(m_fnMesh.numVertices(), m_scene->GetNumMotionSteps(), AI_TYPE_VECTOR);
+            AtArray* tangent_array = AiArrayAllocate(m_fnMesh.numVertices(), GetNumMotionSteps(), AI_TYPE_VECTOR);
             SetKeyData(tangent_array, step, tangents, m_fnMesh.numVertices());
             AiNodeSetArray(polymesh, "tangent", tangent_array);
 
-            AtArray* bitangent_array = AiArrayAllocate(m_fnMesh.numVertices(), m_scene->GetNumMotionSteps(), AI_TYPE_VECTOR);
+            AtArray* bitangent_array = AiArrayAllocate(m_fnMesh.numVertices(), GetNumMotionSteps(), AI_TYPE_VECTOR);
             SetKeyData(bitangent_array, step, bitangents, m_fnMesh.numVertices());
             AiNodeSetArray(polymesh, "bitangent", bitangent_array);
          }
@@ -864,7 +864,7 @@ AtNode* CGeoTranslator::ExportInstance(AtNode *instance, const MDagPath& masterI
 
       if ((shaderPlug != shaderPlugMaster) || (!equalShaderArrays))
       {
-         AtNode* shader = m_scene->ExportShader(connections[0].node());
+         AtNode* shader = ExportShader(connections[0].node());
          AiNodeSetPtr(instance, "shader", shader);
       }
    }

@@ -526,7 +526,7 @@ void CLambertTranslator::Export(AtNode* shader)
    {
       MString m_outputAttr = connections[0].partialName(false, false, false, false, false, true);
 
-      AtNode* m_fnNode = m_scene->ExportShader(connections[0].node(), m_outputAttr);
+      AtNode* m_fnNode = ExportShader(connections[0].node(), m_outputAttr);
 
       if (m_fnNode != NULL)
          AiNodeLink(m_fnNode, "@before", shader);
@@ -588,7 +588,7 @@ void CFileTranslator::Export(AtNode* shader)
    MString resolvedFilename;
    MString frameNumber("0");
    MStatus status;
-   frameNumber += m_scene->GetCurrentFrame() + GetFnNode().findPlug("frameOffset").asInt();
+   frameNumber += GetCurrentFrame() + GetFnNode().findPlug("frameOffset").asInt();
    MRenderUtil::exactFileTextureName(m_object, filename);
    resolvedFilename = MRenderUtil::exactFileTextureName(filename, GetFnNode().findPlug("useFrameExtension").asBool(), frameNumber, &status);
    if (status == MStatus::kSuccess)

@@ -30,7 +30,7 @@ void CLightTranslator::ExportLightFilters(AtNode* light, const MObjectArray &fil
 
    for (unsigned int i=0; i<filterNodes.length(); ++i)
    {
-      AtNode* filter = m_scene->ExportShader(filterNodes[i]);
+      AtNode* filter = ExportShader(filterNodes[i]);
       filters.push_back(filter);
    }
 
@@ -103,7 +103,7 @@ void CLightTranslator::Export(AtNode* light, bool mayaAttrs)
 
    if (m_motion)
    {
-      AtArray* matrices = AiArrayAllocate(1, m_scene->GetNumMotionSteps(), AI_TYPE_MATRIX);
+      AtArray* matrices = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_MATRIX);
       AiArraySetMtx(matrices, 0, matrix);
       AiNodeSetArray(light, "matrix", matrices);
    }

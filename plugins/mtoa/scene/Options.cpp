@@ -122,7 +122,7 @@ void CRenderOptionsTranslator::Export(AtNode* options)
    //
    if (!background.isNull())
    {
-      AiNodeSetPtr(options, "background", m_scene->ExportShader(background));
+      AiNodeSetPtr(options, "background", ExportShader(background));
    }
 
 
@@ -143,7 +143,7 @@ void CRenderOptionsTranslator::Export(AtNode* options)
       if (list.length() > 0)
       {
          list.getDependNode(0, node);
-         AiNodeSetPtr(options, "atmosphere", m_scene->ExportShader(node));
+         AiNodeSetPtr(options, "atmosphere", ExportShader(node));
       }
       break;
 
@@ -152,7 +152,7 @@ void CRenderOptionsTranslator::Export(AtNode* options)
       if (list.length() > 0)
       {
          list.getDependNode(0, node);
-         AiNodeSetPtr(options, "atmosphere", m_scene->ExportShader(node));
+         AiNodeSetPtr(options, "atmosphere", ExportShader(node));
       }
       break;
    }

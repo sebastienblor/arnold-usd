@@ -34,7 +34,7 @@
       plug.child(i).connectedTo(conn, true, false);\
       if (conn.length() > 0){\
          MString attrName = conn[0].partialName(false, false, false, false, false, true);\
-         AtNode* node = m_scene->ExportShader(conn[0].node(), attrName);\
+         AtNode* node = ExportShader(conn[0].node(), attrName);\
          if (node != NULL){\
             ++compConnected;\
             MString compAttrName(arnoldAttrib);\
@@ -102,7 +102,7 @@ AtNode* CNodeTranslator::DoExport(AtUInt step)
       }
 
       // Add IPR callbacks on last step
-      if (step == (m_scene->GetNumMotionSteps()-1) &&
+      if (step == (GetNumMotionSteps()-1) &&
           m_scene->GetExportMode() == MTOA_EXPORT_IPR)
       {
          AddIPRCallbacks();
@@ -125,8 +125,8 @@ AtNode* CNodeTranslator::DoUpdate(AtUInt step)
          UpdateMotion(m_atNode, step);
 
       // Add IPR callbacks on last step
-      if (step == (m_scene->GetNumMotionSteps()-1) &&
-          m_scene->GetExportMode() == MTOA_EXPORT_IPR)
+      if (step == (GetNumMotionSteps()-1) &&
+            m_scene->GetExportMode() == MTOA_EXPORT_IPR)
       {
          AddIPRCallbacks();
       }
@@ -266,7 +266,7 @@ void CNodeTranslator::UpdateIPR(void * clientData)
 
 void CNodeTranslator::ExportUserAttribute(AtNode *anode)
 {
-   MFnDependencyNode fnDepNode(m_object);
+   MFnDependencyNode fnDepNode = GetFnNode();
    for (unsigned int i=0; i<fnDepNode.attributeCount(); ++i)
    {
       MObject oAttr = fnDepNode.attribute(i);
@@ -732,7 +732,7 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, MPlug& plug, const
       // process connections
       MString attrName = connections[0].partialName(false, false, false, false, false, true);
 
-      AtNode* linkedNode = m_scene->ExportShader(connections[0].node(), attrName);
+      AtNode* linkedNode = ExportShader(connections[0].node(), attrName);
 
       if (linkedNode != NULL)
       {
@@ -996,7 +996,7 @@ void CDagTranslator::ExportMatrix(AtNode* node, AtUInt step)
    {
       if (RequiresMotionData())
       {
-         AtArray* matrices = AiArrayAllocate(1, m_scene->GetNumMotionSteps(), AI_TYPE_MATRIX);
+         AtArray* matrices = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_MATRIX);
          AiArraySetMtx(matrices, 0, matrix);
          AiNodeSetArray(node, "matrix", matrices);
       }

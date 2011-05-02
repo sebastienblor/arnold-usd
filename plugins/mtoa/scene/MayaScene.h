@@ -155,7 +155,7 @@ public:
       return IsMotionBlurEnabled() && m_fnArnoldRenderOptions->findPlug("mb_objects_enable").asBool();
    }
 
-   bool IsObjectDeformMotionBlurEnabled() const
+   bool IsDeformMotionBlurEnabled() const
    {
       return IsMotionBlurEnabled() && m_fnArnoldRenderOptions->findPlug("mb_object_deform_enable").asBool();
    }

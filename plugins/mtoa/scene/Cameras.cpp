@@ -69,7 +69,7 @@ void CCameraTranslator::ExportImagePlane(AtUInt step)
                         if ((!m_motion) || (step == 0))
                         {
                             MString frameNumber("0");
-                            frameNumber += m_scene->GetCurrentFrame() + fnRes.findPlug("frameOffset").asInt();
+                            frameNumber += GetCurrentFrame() + fnRes.findPlug("frameOffset").asInt();
                             imageName = MRenderUtil::exactFileTextureName(imageName, fnRes.findPlug("useFrameExtension").asBool(), frameNumber);
                             imageName = MRenderUtil::exactImagePlaneFileName(resNode);
                             mImage = MImage();
@@ -257,7 +257,7 @@ void CCameraTranslator::ExportImagePlane(AtUInt step)
                             if (conn.length())
                             {
                                 MPlug outputPlug = conn[0];
-                                AiNodeLink(m_scene->ExportShader(outputPlug), "color", imagePlaneShader);
+                                AiNodeLink(ExportShader(outputPlug), "color", imagePlaneShader);
                             }
                         }
                         
@@ -275,7 +275,7 @@ void CCameraTranslator::ExportImagePlane(AtUInt step)
                             else
                             {
                                 MPlug outputPlug = conn[0];
-                                AiNodeLink(m_scene->ExportShader(outputPlug), "colorGain", imagePlaneShader);
+                                AiNodeLink(ExportShader(outputPlug), "colorGain", imagePlaneShader);
                             }
 
                             colorPlug  = fnRes.findPlug("colorOffset");
@@ -285,7 +285,7 @@ void CCameraTranslator::ExportImagePlane(AtUInt step)
                             else
                             {
                                 MPlug outputPlug = conn[0];
-                                AiNodeLink(m_scene->ExportShader(outputPlug), "colorOffset", imagePlaneShader);
+                                AiNodeLink(ExportShader(outputPlug), "colorOffset", imagePlaneShader);
                             }
 
                             float alphaGain = fnRes.findPlug("alphaGain", &status).asFloat();
@@ -358,7 +358,7 @@ void CCameraTranslator::ExportImagePlane(AtUInt step)
                     {
                         if (step == 0)
                         {
-                            AtArray* matrices = AiArrayAllocate(1, m_scene->GetNumMotionSteps(), AI_TYPE_MATRIX);
+                            AtArray* matrices = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_MATRIX);
                             AiArraySetMtx(matrices, 0, imagePlaneMatrix);
                             AiNodeSetArray(imagePlane, "matrix", matrices);
                         }
@@ -398,19 +398,19 @@ void CCameraTranslator::ExportCameraData(AtNode* camera)
    AiNodeSetFlt(camera, "near_clip", GetFnNode().findPlug("nearClipPlane").asFloat());
    AiNodeSetFlt(camera, "far_clip",  GetFnNode().findPlug("farClipPlane").asFloat());
 
-   if (m_scene->IsMotionBlurEnabled())
+   if (IsMotionBlurEnabled())
    {
-      float halfShutter = m_scene->GetShutterSize() * 0.5f;
+      float halfShutter = GetShutterSize() * 0.5f;
       AiNodeSetFlt(camera, "shutter_start", 0.5f - halfShutter);
       AiNodeSetFlt(camera, "shutter_end", 0.5f + halfShutter);
-      AiNodeSetInt(camera, "shutter_type", m_scene->GetShutterType());
+      AiNodeSetInt(camera, "shutter_type", GetShutterType());
    }
 
    GetMatrix(matrix);
    
    if (m_motion)
    {
-      AtArray* matrices = AiArrayAllocate(1, m_scene->GetNumMotionSteps(), AI_TYPE_MATRIX);
+      AtArray* matrices = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_MATRIX);
       AiArraySetMtx(matrices, 0, matrix);
       AiNodeSetArray(camera, "matrix", matrices);
    }
@@ -745,7 +745,7 @@ void CPerspCameraTranslator::Export(AtNode* camera)
 
    if (m_motion)
    {
-      AtArray* fovs = AiArrayAllocate(1, m_scene->GetNumMotionSteps(), AI_TYPE_FLOAT);
+      AtArray* fovs = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_FLOAT);
       AiArraySetFlt(fovs, 0, fov);
       AiNodeSetArray(camera, "fov", fovs);
    }
@@ -807,7 +807,7 @@ void CFishEyeCameraTranslator::Export(AtNode* camera)
 
    if (m_motion)
    {
-      AtArray* fovs = AiArrayAllocate(1, m_scene->GetNumMotionSteps(), AI_TYPE_FLOAT);
+      AtArray* fovs = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_FLOAT);
       AiArraySetFlt(fovs, 0, fov);
       AiNodeSetArray(camera, "fov", fovs);
    }
@@ -869,8 +869,8 @@ void CCylCameraTranslator::Export(AtNode* camera)
 
    if (m_motion)
    {
-      AtArray* h_fovs = AiArrayAllocate(1, m_scene->GetNumMotionSteps(), AI_TYPE_FLOAT);
-      AtArray* v_fovs = AiArrayAllocate(1, m_scene->GetNumMotionSteps(), AI_TYPE_FLOAT);
+      AtArray* h_fovs = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_FLOAT);
+      AtArray* v_fovs = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_FLOAT);
       AiArraySetFlt(h_fovs, 0, fovs[0]);
       AiArraySetFlt(v_fovs, 0, fovs[1]);
       AiNodeSetArray(camera, "horizontal_fov", h_fovs);

@@ -496,7 +496,7 @@ void CAutoTranslator::Export(AtNode *shader)
    {
       MString attrName = connections[0].partialName(false, false, false, false, false, true);
 
-      AtNode* bump = m_scene->ExportShader(connections[0].node(), attrName);
+      AtNode* bump = ExportShader(connections[0].node(), attrName);
 
       if (bump != NULL)
          AiNodeLink(bump, "@before", shader);

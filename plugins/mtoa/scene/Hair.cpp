@@ -69,8 +69,8 @@ void CHairTranslator::Export(AtNode *curve)
    MFnDagNode fnDagNodeHairShape(objectHairShape);
    MFnDependencyNode fnDepNodeHair(objectHairShape);
 
-   bool motionBlur = m_scene->IsMotionBlurEnabled();
-   bool motionBlurDeform = m_scene->IsObjectDeformMotionBlurEnabled();
+   bool motionBlur = IsMotionBlurEnabled();
+   bool motionBlurDeform = IsDeformMotionBlurEnabled();
 
    // Get hair lines
    m_numMainLines = GetHairLines(objectHairShape, m_hairLines);
@@ -111,7 +111,7 @@ void CHairTranslator::Export(AtNode *curve)
          fnDepNodeHair.findPlug("hair_shader").connectedTo(hairShaderPlug, true, false);
          if (hairShaderPlug.length() > 0)
          {
-            shader = m_scene->ExportShader(hairShaderPlug[0].node());
+            shader = ExportShader(hairShaderPlug[0].node());
             // Avoid later processing since there is a shader connected
             transformHairDefinition = false;
          }
@@ -189,7 +189,7 @@ void CHairTranslator::Export(AtNode *curve)
    // Allocate memory for remaining arrays
    if (motionBlurDeform || motionBlur)
    {
-      curvePoints = AiArrayAllocate(numPointsInterpolation, m_scene->GetNumMotionSteps(), AI_TYPE_POINT);
+      curvePoints = AiArrayAllocate(numPointsInterpolation, GetNumMotionSteps(), AI_TYPE_POINT);
    }
    else
    {

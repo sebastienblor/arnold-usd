@@ -65,10 +65,7 @@ protected:
    virtual void Update(AtNode* atNode){Export(atNode);}
    // UpdateMotion runs during IPR for step>0 (calls ExportMotion by default)
    virtual void UpdateMotion(AtNode* atNode, AtUInt step){ExportMotion(atNode, step);}
-   virtual bool RequiresMotionData()
-   {
-      return false;
-   }
+   virtual bool RequiresMotionData() {return false;}
    virtual void Delete() {}
    void DoDelete();
 
@@ -80,6 +77,20 @@ protected:
    AtNode* ProcessParameter(AtNode* arnoldNode, MPlug& plug, const AtParamEntry* paramEntry, int elemen=-1);
    AtNode* ProcessParameter(AtNode* arnoldNode, MPlug &plug, const char* arnoldAttrib, int arnoldAttribType, int element=-1);
    void ExportUserAttribute(AtNode *anode);
+
+   // scene info
+   AtNode* ExportShader(MObject mayaShader, const MString &attrName="") { return m_scene->ExportShader(mayaShader, attrName);}
+   AtNode* ExportShader(MPlug& shaderOutputPlug) {return m_scene->ExportShader(shaderOutputPlug);}
+   MStatus ExportDagPath(MDagPath &dagPath) {return m_scene->ExportDagPath(dagPath);}
+   AtFloat GetCurrentFrame() {return m_scene->GetCurrentFrame();}
+   bool IsMotionBlurEnabled() const {return m_scene->IsMotionBlurEnabled();}
+   bool IsCameraMotionBlurEnabled() const {return m_scene->IsCameraMotionBlurEnabled();}
+   bool IsObjectMotionBlurEnabled() const {return m_scene->IsObjectMotionBlurEnabled();}
+   bool IsDeformMotionBlurEnabled() const {return m_scene->IsDeformMotionBlurEnabled();}
+   bool IsLightMotionBlurEnabled() const {return m_scene->IsLightMotionBlurEnabled();}
+   AtUInt GetNumMotionSteps() const {return m_scene->GetNumMotionSteps();}
+   AtFloat GetShutterSize() const {return m_scene->GetShutterSize();}
+   AtUInt GetShutterType(){return m_scene->GetShutterType();}
 
    // get the arnold node that this translator is exporting (should only be used after all export steps are complete)
    AtNode* GetArnoldNode();
@@ -175,8 +186,8 @@ public:
    virtual AtNode* Init(MDagPath& dagPath, CMayaScene* scene, MString outputAttr="")
    {
       m_atNode = CDagTranslator::Init(dagPath, scene, outputAttr);
-      m_motion = m_scene->IsObjectMotionBlurEnabled() && GetFnNode().findPlug("motionBlur").asBool();
-      m_motionDeform = m_motion && m_scene->IsObjectDeformMotionBlurEnabled();
+      m_motion = IsObjectMotionBlurEnabled() && GetFnNode().findPlug("motionBlur").asBool();
+      m_motionDeform = m_motion && IsDeformMotionBlurEnabled();
       return m_atNode;
    }
    virtual bool RequiresMotionData()

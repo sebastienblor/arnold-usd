@@ -71,7 +71,7 @@ void CShaveTranslator::Update(AtNode* curve)
          plug.connectedTo(curveShaderPlug, true, false);
          if (curveShaderPlug.length() > 0)
          {
-            shader = m_scene->ExportShader(curveShaderPlug[0].node());
+            shader = ExportShader(curveShaderPlug[0].node());
          }
       }
    }
@@ -174,7 +174,7 @@ void CShaveTranslator::Update(AtNode* curve)
    // TODO: Change this to use RequiresMotionDeformData()
    AtArray* curvePoints = NULL;
    if (RequiresMotionData() || m_motionDeform)
-      curvePoints = AiArrayAllocate(numPointsInterpolation, m_scene->GetNumMotionSteps(), AI_TYPE_POINT);
+      curvePoints = AiArrayAllocate(numPointsInterpolation, GetNumMotionSteps(), AI_TYPE_POINT);
    else
       curvePoints = AiArrayAllocate(numPointsInterpolation, 1, AI_TYPE_POINT);
 
@@ -229,15 +229,13 @@ void CShaveTranslator::Update(AtNode* curve)
 void CShaveTranslator::ExportMotion(AtNode* curve, AtUInt step)
 {
    // Check if motionblur is enabled and early out if it's not.
-   const bool mb = m_scene->IsMotionBlurEnabled();
-   if (!mb) return;
+   if (!IsMotionBlurEnabled()) return;
 
    // Set transform matrix
    ExportMatrix(curve, step);
 
    // Same for object deformation, early out if it's not set.
-   const bool mb_deform = mb && m_scene->IsObjectDeformMotionBlurEnabled();
-   if (!mb_deform) return;
+   if (!IsDeformMotionBlurEnabled()) return;
 
    // Bail early if we've trouble getting data from Shave.
    if (UpdateHairInfo() != MS::kSuccess) return;
