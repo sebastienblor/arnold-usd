@@ -22,7 +22,7 @@ class CMayaScene;
  * rendering.
  */
 
-class CRenderSession
+class DLLEXPORT CRenderSession
 {
 
 public:

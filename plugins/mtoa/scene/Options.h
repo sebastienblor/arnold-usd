@@ -3,7 +3,7 @@
 
 #include "NodeTranslator.h"
 
-class CRenderOptionsTranslator : public CNodeTranslator
+class DLLEXPORT CRenderOptionsTranslator : public CNodeTranslator
 {
 public:
    static void* creator(){return new CRenderOptionsTranslator();}

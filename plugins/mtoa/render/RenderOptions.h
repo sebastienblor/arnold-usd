@@ -1,6 +1,7 @@
 #ifndef RENDEROPTIONS_H
 #define RENDEROPTIONS_H
 
+#include "platform/Platform.h"
 #include "AOV.h"
 
 #include <ai_types.h>
@@ -22,7 +23,7 @@ enum RenderType
    MTOA_RENDER_EXPORTASS_AND_KICK
 };
 
-class CRenderOptions
+class DLLEXPORT CRenderOptions
 {
 public:
 

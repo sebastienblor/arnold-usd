@@ -20,7 +20,7 @@
  * shader too.
  */
  
-class CRenderSwatchGenerator
+class DLLEXPORT CRenderSwatchGenerator
    :  public MSwatchRenderBase
 {
 

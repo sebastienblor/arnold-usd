@@ -11,6 +11,7 @@
 #include "scene/MayaScene.h"
 #include "utils/AttrHelper.h"
 #include "common/DynLibrary.h"
+#include "api/Extension.h"
 
 #include <ai_nodes.h>
 #include <ai.h>
@@ -47,15 +48,6 @@ typedef std::map<std::string, std::vector<CAttrData> > DynamicAttrMap;
 
 int FindLibraries(MString searchPath, MStringArray &files);
 
-class DLLEXPORT CExtension
-{
-public:
-   void RegisterDependTranslator(const char* mayaNode, int typeId, CreatorFunction creator);
-   void RegisterDagTranslator(const char* mayaNode, int typeId, CreatorFunction creator);
-   void RegisterDependTranslator(const char* mayaNode, int typeId, CreatorFunction creator, NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin="");
-   void RegisterDagTranslator(const char* mayaNode, int typeId, CreatorFunction creator, NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin="");
-};
-
 typedef void (*pluginInitFunctionType)(CExtension&);
 
 //--------------- CArnoldNodeFactory -----------------------------------
@@ -66,7 +58,7 @@ typedef void (*pluginInitFunctionType)(CExtension&);
 /// and generate Maya nodes from the Arnold shaders contained within them. Metadata can be added to
 /// the Arnold node and its parameters to control how the Maya node and its attributes are generated, if at all.
 
-class CArnoldNodeFactory
+class DLLEXPORT CArnoldNodeFactory
 {
 public:
    CArnoldNodeFactory(MObject plugin);
@@ -120,7 +112,7 @@ inline CArnoldNodeFactory::~CArnoldNodeFactory()
 ///  -# processes the equivalent attribute on the Maya node
 ///
 
-class DLLEXPORT CAutoTranslator : public CNodeTranslator
+class CAutoTranslator : public CNodeTranslator
 {
 public:
    CAutoTranslator() :

@@ -15,7 +15,7 @@
 #ifdef _WIN32
    #include <platform/win32/dirent.h>
    #define PATHSEP ';'
-   #define DIRSEP "\\"
+   #define DIRSEP "/"
    #define LIBEXT MString(".dll")
 #else
    #include <sys/types.h>
@@ -66,28 +66,6 @@ int FindLibraries(MString searchPath, MStringArray &files)
       closedir(dp);
    }
    return 0;
-}
-
-// CExtension
-
-void CExtension::RegisterDependTranslator(const char* mayaNode, int typeId, CreatorFunction creator)
-{
-   CTranslatorRegistry::RegisterDependTranslator(mayaNode, typeId, creator);
-}
-
-void CExtension::RegisterDagTranslator(const char* mayaNode, int typeId, CreatorFunction creator)
-{
-   CTranslatorRegistry::RegisterDagTranslator(mayaNode, typeId, creator);
-}
-
-void CExtension::RegisterDependTranslator(const char* mayaNode, int typeId, CreatorFunction creator, NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin)
-{
-   CTranslatorRegistry::RegisterDependTranslator(mayaNode, typeId, creator, nodeClassInitializer, providedByPlugin);
-}
-
-void CExtension::RegisterDagTranslator(const char* mayaNode, int typeId, CreatorFunction creator, NodeClassInitFunction nodeClassInitializer, const char* providedByPlugin)
-{
-   CTranslatorRegistry::RegisterDagTranslator(mayaNode, typeId, creator, nodeClassInitializer, providedByPlugin);
 }
 
 // CArnoldNodeFactory
@@ -398,6 +376,7 @@ bool CArnoldNodeFactory::LoadExtension(const char* extensionFile)
    
    CExtension plugin = CExtension();
    (*initFunc)(plugin);
+   MGlobal::displayInfo(MString("[mtoa] loaded extension: ") + extensionFile);
 
    return true;
 }
@@ -406,16 +385,6 @@ bool CArnoldNodeFactory::LoadExtension(const char* extensionFile)
 ///
 void CArnoldNodeFactory::LoadExtensions()
 {
-   MStatus status;
-#if defined(_LINUX) || defined(_DARWIN)
-   // re-open mtoa.so so it's symbols are global. When Maya loads the plugin it seems to be loading it with RTLD_LOCAL
-   // TODO: better error checking
-   MString pluginPath = m_plugin.loadPath(&status);
-   CHECK_MSTATUS(status);
-   pluginPath += "/mtoa.so";
-   m_pluginHandle = dlopen(pluginPath.asChar(), RTLD_LAZY | RTLD_GLOBAL );
-#endif
-
    MStringArray plugins;
    FindLibraries("$MTOA_EXTENSIONS_PATH", plugins);
    for (unsigned int i=0; i<plugins.length(); ++i)
@@ -423,11 +392,6 @@ void CArnoldNodeFactory::LoadExtensions()
       MString plugin = plugins[i];
       if (plugin.length() > 0)
       {
-#ifdef _WIN32
-         char buffer[MAX_PATH];
-         GetFullPathName(plugin.asChar(), MAX_PATH, buffer, NULL);
-         plugin = buffer;
-#endif // _WIN32
          cerr << "Loading:" << plugin.asChar() << endl;
          LoadExtension(plugin.asChar());
          MString cmd = "import mtoa.api.extensions;mtoa.api.extensions.loadExtensionUI('" + plugin + "')";

@@ -1,0 +1,67 @@
+# vim: filetype=python
+
+## load our own python modules
+import system
+import os
+from build_tools import find_files_recursive
+from distutils import sysconfig
+
+# import build env
+Import('maya_env')
+local_env = maya_env.Clone()
+
+# Automatically add all source and include files found in the source path
+src_base_dir  = os.path.join(local_env['ROOT_DIR'], 'plugins', 'mtoa')
+source_files = []
+include_files = []
+for subdir in ['common', 'platform', 'render', 'scene', 'utils', 'api']:
+   dir = os.path.join(src_base_dir, subdir)
+   source_files  += [os.path.join(subdir, x) for x in find_files_recursive(dir, ['.c', '.cpp'])]
+   include_files += [os.path.join(subdir, x) for x in find_files_recursive(dir, ['.h'])]
+
+#Add files to be exported by the API from 'nodes' folder
+source_files_add = [os.path.join('nodes', x) for x in ['ArnoldNodeFactory.cpp', os.path.join('shaders', 'surface', 'ArnoldCustomShader.cpp')]]
+include_files_add = [os.path.join('nodes', x) for x in ['ArnoldNodeFactory.h', os.path.join('shaders', 'surface', 'ArnoldCustomShader.h')]]
+
+source_files += source_files_add
+include_files += include_files_add
+
+if system.os() == 'windows':
+   local_env.Append(LIBS=Split('ai.lib OpenGl32.lib glu32.lib Foundation.lib OpenMaya.lib OpenMayaRender.lib OpenMayaUI.lib OpenMayaAnim.lib OpenMayaFX.lib'))
+else:
+   maya_env.Append(LIBS=Split('ai pthread Foundation OpenMaya OpenMayaRender OpenMayaUI OpenMayaAnim OpenMayaFX'))
+
+local_env.Append(CPPPATH = [sysconfig.get_python_inc()])
+
+MTOA_API = local_env.SharedLibrary('mtoaAPI', source_files)
+
+if system.os() == 'windows':
+   local_env['MSVSSCONSCRIPT'] = local_env.File('SConscriptAPI')
+   MTOA_API_PRJ = local_env.MSVSProject(target = 'mtoa_api' + local_env['MSVS']['PROJECTSUFFIX'],
+                                    srcs = source_files + include_files,
+                                    incs = [],
+                                    buildtarget = 'api',
+                                    cmdargs = ['-Q -s COMPILER=msvc MODE=debug TARGET_ARCH=x86',
+                                               '-Q -s COMPILER=icc MODE=debug TARGET_ARCH=x86',
+                                               '-Q -s COMPILER=msvc MODE=opt TARGET_ARCH=x86',
+                                               '-Q -s COMPILER=icc MODE=opt TARGET_ARCH=x86'],
+                                    variant = ['Debug_MSVC|Win32',
+                                               'Debug_ICC|Win32',
+                                               'Opt_MSVC|Win32',
+                                               'Opt_ICC|Win32'],
+                                    auto_build_solution = 0,
+                                    nokeep = 1)
+
+   local_env.AlwaysBuild(MTOA_API_PRJ)
+   
+   Return('MTOA_API MTOA_API_PRJ')
+      
+else:
+   if system.os() == 'darwin':
+      local_env.Append(CPPDEFINES = Split('DARWIN'))
+      local_env.Append(FRAMEWORKS=Split('OpenGl AGL'))
+      local_env.Append(CPPPATH = '/System/Library/Frameworks/OpenGL.framework/Headers')
+      local_env.Append(CPPPATH = '/System/Library/Frameworks/GLUT.framework/Headers')
+
+
+   Return('MTOA_API')

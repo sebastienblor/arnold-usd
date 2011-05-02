@@ -12,7 +12,7 @@ src_base_dir  = os.path.join(local_env['ROOT_DIR'], 'contrib', 'extensions', 'te
 source_files  = find_files_recursive(src_base_dir, ['.c', '.cpp'])
 include_files = find_files_recursive(src_base_dir, ['.h'])
 
-EXT = local_env.SharedLibrary('test', source_files)
+EXT = local_env.SharedLibrary('test', source_files, LIBPREFIX='')
 
 if system.os() == 'windows':
    local_env['MSVSSCONSCRIPT'] = ext_env.File('SConscript')

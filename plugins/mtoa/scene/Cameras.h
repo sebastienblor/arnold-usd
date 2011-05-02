@@ -28,7 +28,7 @@ struct CCameraData
    {};
 };
 
-class CCameraTranslator
+class DLLEXPORT CCameraTranslator
    :   public CDagTranslator
 {
 public:

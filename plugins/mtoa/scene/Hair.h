@@ -20,7 +20,7 @@ private:
    MDoubleArray curveWidths;
 };
 
-class CHairTranslator
+class DLLEXPORT CHairTranslator
    :   public CShapeTranslator
 {
 public:

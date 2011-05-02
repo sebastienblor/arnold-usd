@@ -4,7 +4,7 @@
 #include "NodeTranslator.h"
 
 #define SHADER_TRANSLATOR(name)\
-   class name : public CNodeTranslator\
+   class DLLEXPORT name : public CNodeTranslator\
    {\
    public:\
       static void* creator(){return new name();}\
@@ -12,7 +12,7 @@
       const char* GetArnoldNodeType();\
    };
 
-class CSkyShaderTranslator : public CDagTranslator
+class DLLEXPORT CSkyShaderTranslator : public CDagTranslator
 {
 public:
    static void* creator(){return new CSkyShaderTranslator();}

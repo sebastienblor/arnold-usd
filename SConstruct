@@ -243,6 +243,11 @@ if system.os() == 'windows':
    maya_env.Append(CPPDEFINES = Split('NT_PLUGIN REQUIRE_IOSTREAM'))
    maya_env.Append(LIBPATH = [os.path.join(env['MAYA_ROOT'], 'lib')])
 
+   [MTOA_API, MTOA_API_PRJ] = env.SConscript(os.path.join('plugins', 'mtoa', 'SConscriptAPI'),
+                                             build_dir = os.path.join(BUILD_BASE_DIR, 'api'),
+                                             duplicate = 0,
+                                             exports   = 'maya_env')
+   
    [MTOA, MTOA_PRJ] = env.SConscript(os.path.join('plugins', 'mtoa', 'SConscript'),
                                      build_dir = os.path.join(BUILD_BASE_DIR, 'mtoa'),
                                      duplicate = 0,
@@ -267,12 +272,13 @@ if system.os() == 'windows':
                                             'Opt_ICC|Win32'],
                                  auto_build_solution = 0,
                                  nokeep = 1)
-
+   
    SOLUTION = env.MSVSSolution(target = 'mtoa' + env['MSVS']['SOLUTIONSUFFIX'],
                                projects = [os.path.join('plugins', 'mtoa', 'mtoa') + env['MSVS']['PROJECTSUFFIX'],
+                                           os.path.join('plugins', 'mtoa', 'mtoa_api') + env['MSVS']['PROJECTSUFFIX'],
                                            os.path.join('shaders', 'src', 'mtoa_shaders') + env['MSVS']['PROJECTSUFFIX'],
                                            'install' + env['MSVS']['PROJECTSUFFIX']],  ## TODO: Find a clean way of getting these project paths
-                               dependencies = [[], [], ['mtoa', 'mtoa_shaders']],
+                               dependencies = [[], [], [], ['mtoa', 'mtoa_api', 'mtoa_shaders']],
                                variant = ['Debug_MSVC|Win32',
                                           'Debug_ICC|Win32',
                                           'Opt_MSVC|Win32',
@@ -291,6 +297,10 @@ else:
       maya_env.Append(CPPPATH = [os.path.join(env['MAYA_ROOT'], '../../devkit/include')])
       maya_env.Append(LIBPATH = [os.path.join(env['MAYA_ROOT'], 'MacOS')])
 
+   MTOA_API = env.SConscript(os.path.join('plugins', 'mtoa', 'SConscriptAPI'),
+                         build_dir = os.path.join(BUILD_BASE_DIR, 'api'),
+                         duplicate = 0,
+                         exports   = 'maya_env')
 
    MTOA = env.SConscript(os.path.join('plugins', 'mtoa', 'SConscript'),
                          build_dir = os.path.join(BUILD_BASE_DIR, 'mtoa'),
@@ -301,6 +311,8 @@ else:
                                  build_dir = os.path.join(BUILD_BASE_DIR, 'shaders'),
                                  duplicate = 0,
                                  exports   = 'env')
+
+Depends(MTOA, MTOA_API[0])
 
 DIFFTIFF = env.SConscript(os.path.join('tools', 'difftiff', 'SConscript'),
                           build_dir = os.path.join(BUILD_BASE_DIR, 'difftiff'),
@@ -339,6 +351,8 @@ libs = glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*.%s' % libext))
 libs += glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*boost*.%s.*' % libext))
 env.Install(env['TARGET_LIB_PATH'], libs)
 
+env.Install(env['TARGET_LIB_PATH'], MTOA_API[0])
+
 env.Install(env['TARGET_SCRIPTS_PATH'], glob.glob(os.path.join('scripts', '*.mel')))
 pyfiles = find_files_recursive('scripts', ['.py']) + find_files_recursive('scripts', ['.yaml'])
 env.InstallAs([os.path.join(env['TARGET_PYTHON_PATH'], x) for x in pyfiles],
@@ -356,9 +370,18 @@ env.Install(env['TARGET_MODULE_PATH'], os.path.join(BUILD_BASE_DIR, 'mtoa.mod'))
 ext_env = maya_env.Clone()
 ext_env.Append(CPPPATH = ['plugin', os.path.join(maya_env['ROOT_DIR'], 'plugins', 'mtoa'), env['ARNOLD_API_INCLUDES']])
 ext_env.Append(LIBPATH = ['.', env['ARNOLD_API_LIB']])
-ext_env.Append(LIBPATH = [ os.path.join(maya_env['ROOT_DIR'], os.path.split(str(MTOA[0]))[0]) ])
+ext_env.Append(LIBPATH = [ os.path.join(maya_env['ROOT_DIR'], os.path.split(str(MTOA[0]))[0]),
+                           os.path.join(maya_env['ROOT_DIR'], os.path.split(str(MTOA_API[0]))[0])])
+ext_env.Append(LIBS = ['mtoaAPI'])
+
 if system.os() == 'windows':
-    ext_env.Append(LIBS = ['mtoa'])
+   ext_env.Append(LIBS=Split('ai.lib OpenGl32.lib glu32.lib Foundation.lib OpenMaya.lib OpenMayaRender.lib OpenMayaUI.lib OpenMayaAnim.lib OpenMayaFX.lib'))
+else:
+   ext_env.Append(LIBS=Split('ai pthread Foundation OpenMaya OpenMayaRender OpenMayaUI OpenMayaAnim OpenMayaFX'))
+   ext_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
+
+if system.os() == 'darwin':
+    ext_env.Append(LDMODULESUFFIX='.bundle')
 
 ext_base_dir = os.path.join('contrib', 'extensions')
 ext_files = []
@@ -370,10 +393,15 @@ for ext in os.listdir(ext_base_dir):
     ext_dir = os.path.join(ext_base_dir, ext)
     if os.path.isdir(ext_dir):
         if system.os() == 'windows':
-           [EXT, EXT_PRJ] = env.SConscript(os.path.join(ext_dir, 'SConscript'),
-                                           build_dir = os.path.join(BUILD_BASE_DIR, ext),
-                                           duplicate = 0,
-                                           exports   = ['ext_env', 'env'])
+           EXT = env.SConscript(os.path.join(ext_dir, 'SConscript'),
+                                build_dir = os.path.join(BUILD_BASE_DIR, ext),
+                                duplicate = 0,
+                                exports   = ['ext_env', 'env'])
+           if len(EXT) == 4:
+              EXT_PRJ = EXT[2]
+           else:
+              EXT_PRJ = EXT[1]
+           
            env.Depends(SOLUTION, EXT_PRJ)
         else:
            EXT = env.SConscript(os.path.join(ext_dir, 'SConscript'),
@@ -381,6 +409,7 @@ for ext in os.listdir(ext_base_dir):
                                 duplicate = 0,
                                 exports   = ['ext_env', 'env'])
         top_level_alias(env, ext, EXT)
+        Depends(EXT, MTOA_API[0])
         # only install if the target has been specified
         if ext in COMMAND_LINE_TARGETS:
             # EXT may contain a shader result
@@ -406,6 +435,7 @@ if ext_shaders:
 
 if system.os() == 'windows':
    env.Depends(SOLUTION, MTOA_PRJ)
+   env.Depends(SOLUTION, MTOA_API_PRJ)
    env.Depends(SOLUTION, MTOA_SHADERS_PRJ)
    env.Depends(SOLUTION, INSTALL_PRJ)
    env.AlwaysBuild(INSTALL_PRJ)

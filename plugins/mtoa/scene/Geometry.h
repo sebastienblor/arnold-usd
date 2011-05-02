@@ -9,7 +9,7 @@
 #include <map>
 #include <string>
 
-class CGeoTranslator
+class DLLEXPORT CGeoTranslator
    :   public CShapeTranslator
 {
 public:
@@ -78,7 +78,7 @@ protected:
 };
 
 
-class CMeshTranslator : public CGeoTranslator
+class DLLEXPORT CMeshTranslator : public CGeoTranslator
 {
 public:
    void Export(AtNode* anode);
@@ -95,7 +95,7 @@ class MFnMeshData;
 class MTesselationParams;
 class MFnNurbsSurface;
 
-class CNurbsSurfaceTranslator : public CGeoTranslator
+class DLLEXPORT CNurbsSurfaceTranslator : public CGeoTranslator
 {
 public:
    void Export(AtNode* anode);
