@@ -107,7 +107,7 @@ AtNode* CNodeTranslator::DoExport(AtUInt step)
 
       // Add IPR callbacks on last step
       if (step == (GetNumMotionSteps()-1) &&
-          m_scene->GetExportMode() == MTOA_EXPORT_IPR)
+          GetExportMode() == MTOA_EXPORT_IPR)
       {
          AddIPRCallbacks();
       }
@@ -130,7 +130,7 @@ AtNode* CNodeTranslator::DoUpdate(AtUInt step)
 
       // Add IPR callbacks on last step
       if (step == (GetNumMotionSteps()-1) &&
-            m_scene->GetExportMode() == MTOA_EXPORT_IPR)
+            GetExportMode() == MTOA_EXPORT_IPR)
       {
          AddIPRCallbacks();
       }

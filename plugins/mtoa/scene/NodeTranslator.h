@@ -97,6 +97,7 @@ protected:
    AtUInt GetNumMotionSteps() const {return m_scene->GetNumMotionSteps();}
    AtFloat GetShutterSize() const {return m_scene->GetShutterSize();}
    AtUInt GetShutterType(){return m_scene->GetShutterType();}
+   ExportMode GetExportMode() {return m_scene->GetExportMode();}
 
    // get the arnold node that this translator is exporting (should only be used after all export steps are complete)
    AtNode* GetArnoldRootNode();
