@@ -24,7 +24,8 @@ public:
 protected:
    double GetDeviceAspect();
    void SetFilmTransform(AtNode* camera, double factorX=0, double factorY=0, double width=0, bool persp=true);
-   void ExportImagePlane(AtUInt step);
+   void ExportImagePlanes(AtUInt step);
+   void ExportImagePlane(AtUInt step, MObject& imgPlane);
    void ExportDOF(AtNode* camera);
    void ExportCameraData(AtNode* camera);
    void ExportCameraMBData(AtNode* camera, AtUInt step);
