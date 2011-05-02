@@ -67,6 +67,7 @@ CMayaScene::~CMayaScene()
    m_processedDagTranslators.clear();
 }
 
+/// Primary entry point for exporting a Maya scene to Arnold
 MStatus CMayaScene::ExportToArnold()
 {
    MStatus status;

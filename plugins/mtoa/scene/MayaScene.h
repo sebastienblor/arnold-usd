@@ -97,6 +97,16 @@ typedef std::map<MObjectHandle, CNodeTranslator*, mobjcompare> ObjectToTranslato
 // dag nodes: have one translator per instance, so they map MObject to a sub-map, from dag instance number to translator
 typedef std::map<MObjectHandle, std::map<int, CNodeTranslator*>, mobjcompare> ObjectToDagTranslatorMap;
 
+/// Translates the current state of all or part of an open Maya scene into the active Arnold universe.
+
+/// In IPR mode, the resulting instance allows the scene to be quickly and incrementally retranslated
+/// as changes occur to previously translated Maya objects.
+///
+/// Once CMayaScene::ExportToArnold() is called, the DAG hierarchy is traversed and CDagTranslators
+/// are found and exported for all relevant Maya nodes.  Those translators in turn call
+/// and CMayaScene::ExportShader() as they require, which triggers dependency graph evaluation and the
+/// generation of CNodeTranslators.
+
 class DLLEXPORT CMayaScene
 {
 
