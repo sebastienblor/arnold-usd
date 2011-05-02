@@ -5,18 +5,23 @@
 #include <ai_node_entry.h>
 #include <maya/MString.h>
 
-// Arnold Classify Constants
+// Arnold Swatch Renderer
 const MString ARNOLD_SWATCH("ArnoldRenderSwatch");
-const MString ARNOLD_SHADER("shader:arnold/shader");
-const MString ARNOLD_SHADER_SURFACE("shader/surface:arnold/shader/surface");
-const MString ARNOLD_SHADER_VOLUME("shader/volume:arnold/shader/volume");
-const MString ARNOLD_SHADER_ATMOSPHERE("shader/volume/atmosphere:arnold/shader/volume/atmosphere");
-const MString ARNOLD_SHADER_DISPLACEMENT("shader/displacement:arnold/shader/displacement");
-const MString ARNOLD_SHADER_LIGHT("light:arnold/light");
-const MString ARNOLD_SHADER_LIGHT_FILTER("light/filter:arnold/light/filter");
-const MString ARNOLD_SHADER_TEXTURE("texture:arnold/texture");
-const MString ARNOLD_SHADER_ENVIRONMENT("texture/environment:arnold/texture/environment");
-const MString ARNOLD_SHADER_UTILITY("utility:arnold/utility");
+
+// Shader classify constants
+const MString CLASSIFY_SHADER("shader");
+const MString CLASSIFY_SHADER_SURFACE("shader/surface");
+const MString CLASSIFY_SHADER_VOLUME("shader/volume");
+const MString CLASSIFY_SHADER_ATMOSPHERE("shader/volume/atmosphere");
+const MString CLASSIFY_SHADER_DISPLACEMENT("shader/displacement");
+const MString CLASSIFY_SHADER_LIGHT("light");
+const MString CLASSIFY_SHADER_LIGHT_FILTER("light/filter");
+const MString CLASSIFY_SHADER_TEXTURE("texture");
+const MString CLASSIFY_SHADER_ENVIRONMENT("texture/environment");
+const MString CLASSIFY_SHADER_UTILITY("utility");
+
+#define ARNOLD_CLASSIFY( classification ) (MString("arnold/") + classification)
+
 
 // attrFn.setCached(true);
 // attrFn.setInternal(true);

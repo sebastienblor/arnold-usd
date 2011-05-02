@@ -1,6 +1,7 @@
 #ifndef RENDERSWATCH_H
 #define RENDERSWATCH_H
 
+#include "platform/Platform.h"
 #include "render/RenderSession.h"
 
 #include <maya/MSwatchRenderBase.h> 
@@ -32,6 +33,8 @@ typedef enum
    SWATCH_LIGHTFILTER
 } CRenderSwatchClass;
 
+
+class CNodeTranslator;
 
 class DLLEXPORT CRenderSwatchGenerator
    :  public MSwatchRenderBase

@@ -68,7 +68,9 @@ namespace // <anonymous>
       CHECK_MSTATUS(status);
 
       // Displacement Shaders
-      MString displacementWithSwatch = ARNOLD_SHADER_DISPLACEMENT + ":swatch/" + ARNOLD_SWATCH;
+      MString displacementWithSwatch = CLASSIFY_SHADER_DISPLACEMENT
+                                     + ":" + ARNOLD_CLASSIFY(CLASSIFY_SHADER_DISPLACEMENT)
+                                     + ":swatch/" + ARNOLD_SWATCH;
       status = plugin.registerNode("aiDisplacement",
                                    CArnoldDisplacementShaderNode::id,
                                    CArnoldDisplacementShaderNode::creator,
@@ -78,18 +80,25 @@ namespace // <anonymous>
       CHECK_MSTATUS(status);
 
       // Light Shaders
-      MString lightWithSwatch = ARNOLD_SHADER_LIGHT + ":swatch/" + ARNOLD_SWATCH;
+      MString lightWithSwatch       = CLASSIFY_SHADER_LIGHT
+                                    + ":" + ARNOLD_CLASSIFY(CLASSIFY_SHADER_LIGHT)
+                                    + ":swatch/" + ARNOLD_SWATCH;
+      MString lightNoSwatch         = CLASSIFY_SHADER_LIGHT
+                                    + ":" + ARNOLD_CLASSIFY(CLASSIFY_SHADER_LIGHT);
       status = plugin.registerNode("aiSkyDomeLight",
                                    CArnoldSkyDomeLightShaderNode::id,
                                    CArnoldSkyDomeLightShaderNode::creator,
                                    CArnoldSkyDomeLightShaderNode::initialize,
                                    MPxNode::kLocatorNode,
                                    &lightWithSwatch);
-                                   // &ARNOLD_SHADER_LIGHT);
+                                   // &lightNoSwatch);
+
       CHECK_MSTATUS(status);
 
       // Special shaders (not visible from Maya shaders menu)
-      MString environmentWithSwatch = ARNOLD_SHADER_ENVIRONMENT + ":swatch/" + ARNOLD_SWATCH;
+      MString environmentWithSwatch = CLASSIFY_SHADER_ENVIRONMENT
+                                    + ":" + ARNOLD_CLASSIFY(CLASSIFY_SHADER_ENVIRONMENT)
+                                    + ":swatch/" + ARNOLD_SWATCH;
       status = plugin.registerNode("aiSky",
                                    CArnoldSkyShaderNode::id,
                                    CArnoldSkyShaderNode::creator,

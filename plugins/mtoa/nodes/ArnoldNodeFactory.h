@@ -62,10 +62,11 @@ public:
    void UnloadPlugin();
    static void UnloadPlugins();
 
-   bool RegisterMayaNode(const AtNodeEntry* arnoldNodeEntry);
-   bool RegisterMayaNode(const char* arnoldNodeName, const char* mayaNodeName, int nodeId, MString classification=ARNOLD_SHADER, MString swatchName=ARNOLD_SWATCH);
-   bool MapToMayaNode(const char* arnoldNodeName, const char* mayaCounterpart, int typeId);
-   void UnregisterMayaNode(const char* arnoldNodeName);
+   MStatus RegisterArnoldNode(const char* arnoldNodeName);
+   MStatus RegisterMayaNode(const AtNodeEntry* arnoldNodeEntry);
+   MStatus RegisterMayaNode(const char* arnoldNodeName, MString mayaNodeName, int nodeId, MString classification=CLASSIFY_SHADER, MString swatchName=ARNOLD_SWATCH);
+   MStatus MapToMayaNode(const char* arnoldNodeName, const char* mayaCounterpart, int typeId);
+   MStatus UnregisterMayaNode(const char* arnoldNodeName);
 
    const char* GetFilename() {return m_shaderFile;}
    static const char* GetArnoldNodeFromMayaNode(const MString& mayaShader);

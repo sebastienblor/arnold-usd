@@ -194,17 +194,37 @@ void CArnoldNodeFactory::UnloadPlugins()
 /// Associate an Arnold node with an existing Maya node.  During translation of
 /// the Maya scene the Arnold node will be used wherever the Maya
 /// node is encountered.
+/// @return MStatus::kSuccess if the node was successfully mapped, else MStatus::kFailure
 ///
-bool CArnoldNodeFactory::MapToMayaNode(const char* arnoldNodeName, const char* mayaCounterpart, int typeId)
+MStatus CArnoldNodeFactory::MapToMayaNode(const char* arnoldNodeName, const char* mayaCounterpart, int typeId)
 {
    m_arnoldToMayaNodes[arnoldNodeName] = mayaCounterpart;
    if (m_extension->RegisterDependTranslator(mayaCounterpart, typeId, "auto", CAutoTranslator::creator))
    {
       m_factoryNodes[mayaCounterpart].arnoldNodeName = arnoldNodeName;
       m_factoryNodes[mayaCounterpart].nodeId = typeId;
-      return true;
+      return MStatus::kSuccess;
    }
-   return false;
+   return MStatus::kFailure;
+}
+
+/// Register a Maya node for the given Arnold node name
+///
+/// @return MStatus::kSuccess if the node is registered successfully, else MStatus::kFailure
+///
+MStatus CArnoldNodeFactory::RegisterArnoldNode(const char* arnoldNodeName)
+{
+   const AtNodeEntry* arnoldNodeEntry = AiNodeEntryLookUp(arnoldNodeName);
+   if (arnoldNodeEntry==NULL)
+   {
+      AiMsgError("[mtoa] Arnold node \"%s\" doesn't seem to exist", arnoldNodeName);
+      MGlobal::displayError(MString("[mtoa] Arnold node \"") + arnoldNodeName + MString("doesn't seem to exist"));
+      return MStatus::kFailure;
+   }
+   else
+   {
+      return RegisterMayaNode(arnoldNodeEntry);
+   }
 }
 
 /// Register a Maya node for the given Arnold node
@@ -223,9 +243,9 @@ bool CArnoldNodeFactory::MapToMayaNode(const char* arnoldNodeName, const char* m
 ///
 /// @param arnoldNodeEntry  arnold AtNodeEntry from which to generate the new Maya node
 ///
-/// @return true if the node is registered successfully, else false
+/// @return MStatus::kSuccess if the node is registered successfully, else MStatus::kFailure
 ///
-bool CArnoldNodeFactory::RegisterMayaNode(const AtNodeEntry* arnoldNodeEntry)
+MStatus CArnoldNodeFactory::RegisterMayaNode(const AtNodeEntry* arnoldNodeEntry)
 {
    MStatus status;
    const char* arnoldNodeName = AiNodeEntryGetName(arnoldNodeEntry);
@@ -233,7 +253,7 @@ bool CArnoldNodeFactory::RegisterMayaNode(const AtNodeEntry* arnoldNodeEntry)
    // should the node be ignored?
    AtBoolean hide;
    if (AiMetaDataGetBool(arnoldNodeEntry, NULL, "maya.hide", &hide) && hide)
-      return true;
+      return MStatus::kSuccess;
 
    // map to an existing maya node?
    const char* mayaCounterpart;
@@ -244,14 +264,21 @@ bool CArnoldNodeFactory::RegisterMayaNode(const AtNodeEntry* arnoldNodeEntry)
       if (!MapToMayaNode(arnoldNodeName, mayaCounterpart, mayaCounterpartId))
       {
          MGlobal::displayError(MString("[mtoa] Failed to create counter-part node ") + MString(mayaCounterpart));
-         return false;
+         return MStatus::kFailure;
       }
-      return true;
+      return MStatus::kSuccess;
    }
    // remap node name?
-   const char* mayaNodeName;
-   if (!AiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.name", &mayaNodeName))
-      mayaNodeName = arnoldNodeName;
+   MString mayaNodeName;
+   const char* mayaNodeNameMtd;
+   if (AiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.name", &mayaNodeNameMtd))
+   {
+      mayaNodeName = MString(mayaNodeNameMtd);
+   }
+   else
+   {
+      mayaNodeName = toMayaStyle(MString("ai_")+MString(arnoldNodeName));
+   }
 
    // get nodeID
    AtInt nodeId;
@@ -266,15 +293,13 @@ bool CArnoldNodeFactory::RegisterMayaNode(const AtNodeEntry* arnoldNodeEntry)
    // classification string
    const char* classification;
    if (!AiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.classification", &classification))
-      classification = ARNOLD_SHADER.asChar();
+      classification = CLASSIFY_SHADER.asChar();
    // swatch string, use "ArnoldRenderSwatch" to enable arnold rendered swatches
    const char* swatch;
    if (!AiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.swatch", &swatch))
       swatch = ARNOLD_SWATCH.asChar();
 
-   MGlobal::displayInfo(MString("[mtoa] INFO: Loading shader: ") + arnoldNodeName + " as " + mayaNodeName);
-
-  return RegisterMayaNode(arnoldNodeName, mayaNodeName, nodeId, classification, swatch);
+   return RegisterMayaNode(arnoldNodeName, mayaNodeName, nodeId, classification, swatch);
 }
 
 /// Register a Maya node for the given Arnold node
@@ -286,21 +311,22 @@ bool CArnoldNodeFactory::RegisterMayaNode(const AtNodeEntry* arnoldNodeEntry)
 /// @param nodeId          maya node Id
 /// @param shaderClass     maya shader class string
 ///
-/// @return true if the node is registered successfully, else false
+/// @return MStatus::kSuccess if the node is registered successfully, else MStatus::kFailure
 ///
-bool CArnoldNodeFactory::RegisterMayaNode(const char* arnoldNodeName, const char* mayaNodeName,
-                                          int nodeId, MString classification, MString swatchName)
+MStatus CArnoldNodeFactory::RegisterMayaNode(const char* arnoldNodeName, MString mayaNodeName,
+                                          int nodeId, MString classification, MString swatchRender)
 {
+   MStatus status;
    // classifications are a delicate matter in maya.
    // without the "shader/surface" classification, swatches won't render (fixable?) and
    // normalCamera won't be automatically treated as a bump map in the hypershade.
    MString shaderClass("");
    if (classification.numChars())
    {
-      shaderClass = classification;
-      if (swatchName.numChars())
+      shaderClass = classification + ":" + ARNOLD_CLASSIFY(classification);
+      if (swatchRender.numChars())
       {
-         shaderClass += MString(":swatch/") + swatchName;
+         shaderClass += MString(":swatch/") + swatchRender;
       }
    }
 
@@ -312,27 +338,28 @@ bool CArnoldNodeFactory::RegisterMayaNode(const char* arnoldNodeName, const char
    CArnoldCustomShaderNode::s_shaderClass = shaderClass;
 
    // Register the node and its parameters
-   // AiMsgDebug("[mtoa] registering Arnold node %s as Maya node %s of classification %s", arnoldNodeName, mayaNodeName, shaderClass.asChar());
-   AiMsgInfo("[mtoa] registering Arnold node %s as Maya node %s of classification %s using swatch %s",
-             arnoldNodeName, mayaNodeName, shaderClass.asChar(), swatchName.asChar());
+   // AiMsgDebug("Registering Arnold node %s as Maya node %s of classification %s", arnoldNodeName, mayaNodeName, classification, swatch);
+   AiMsgInfo("[mtoa] registering Arnold node %s as Maya node %s of classification %s, using swatch %s", arnoldNodeName, mayaNodeName.asChar(), classification.asChar(), swatchRender.asChar());
+   MGlobal::displayInfo(MString("[mtoa] INFO: registering Arnold node ") + arnoldNodeName + " as Maya node " + mayaNodeName + " of classification " + classification);
 
-   MStatus status = MFnPlugin(s_plugin).registerNode(mayaNodeName, nodeId, CArnoldCustomShaderNode::creator,
+   status = MFnPlugin(s_plugin).registerNode(mayaNodeName, nodeId, CArnoldCustomShaderNode::creator,
                                                      CArnoldCustomShaderNode::initialize,
                                                      MPxNode::kDependNode, &shaderClass);
    CHECK_MSTATUS(status);
 
-   if (status != MStatus::kSuccess || !MapToMayaNode(arnoldNodeName, mayaNodeName,  nodeId))
+   if (status != MStatus::kSuccess || !MapToMayaNode(arnoldNodeName, mayaNodeName.asChar(),  nodeId))
    {
+      AiMsgError("[mtoa] Failed to create node %s", mayaNodeName.asChar());
       MGlobal::displayError(MString("[mtoa] Failed to create node ") + mayaNodeName);
-      return false;
+      status = MStatus::kFailure;
    }
-   return true;
+   return status;
 }
 
 /// Unregister the maya node generated by the given arnold node and remove
 /// all mappings associated with the arnold node.
 ///
-void CArnoldNodeFactory::UnregisterMayaNode(const char* arnoldNodeName)
+MStatus CArnoldNodeFactory::UnregisterMayaNode(const char* arnoldNodeName)
 {
    MStatus status;
    MayaNodeDataMap::iterator it;
@@ -345,6 +372,8 @@ void CArnoldNodeFactory::UnregisterMayaNode(const char* arnoldNodeName)
       m_arnoldToMayaNodes.erase(it->second.arnoldNodeName);
       m_factoryNodes.erase(it->first);
    }
+
+   return status;
 }
 
 

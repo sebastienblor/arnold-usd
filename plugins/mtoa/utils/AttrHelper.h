@@ -34,6 +34,8 @@
 #define OUT_MATRIX_NAME MString("outMatrix")
 #define OUT_SHORTNAME MString("out")
 
+MString toMayaStyle(MString s);
+
 /// Structure for holding attribute properties
 struct CAttrData
 {
