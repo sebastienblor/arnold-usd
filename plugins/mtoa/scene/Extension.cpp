@@ -211,12 +211,11 @@ CNodeTranslator* CExtension::GetTranslator(MObject &object)
    MFnDependencyNode node(object);
    int typeId = node.typeId().id();
    NodeIdToTranslatorMap::iterator translatorIt = m_translators.find(typeId);
-   std::map<std::string, CreatorFunction> subTypes;
    std::map<std::string, CreatorFunction>::iterator subIt;
    CNodeTranslator* result = NULL;
    if (translatorIt != m_translators.end())
    {
-      subTypes = translatorIt->second;
+      std::map<std::string, CreatorFunction>& subTypes = translatorIt->second;
       if (subTypes.size())
       {
          MStatus status;
@@ -291,7 +290,7 @@ MStringArray CExtension::GetTranslatorNames(int typeId)
    translatorIt = m_translators.find(typeId);
    if (translatorIt != m_translators.end())
    {
-      std::map<std::string, CreatorFunction> subTypes = translatorIt->second;
+      std::map<std::string, CreatorFunction>& subTypes = translatorIt->second;
       for (it = subTypes.begin(); it != subTypes.end(); ++it)
          result.append(it->first.c_str());
    }
@@ -366,7 +365,7 @@ CExtension* CExtension::FindExtension(const char* baseName)
 void CExtension::InitializePendingTranslators(MString& pluginName)
 {
    // get all the nodes created by this plugin with class initializers
-   std::vector<CMayaPluginData> nodes = m_mayaPluginData[pluginName.asChar()];
+   std::vector<CMayaPluginData>& nodes = m_mayaPluginData[pluginName.asChar()];
    for (unsigned int i=0; i < nodes.size(); i++)
       nodes[i].nodeClassInitializer(nodes[i].mayaNode);
 

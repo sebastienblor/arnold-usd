@@ -28,7 +28,7 @@ MStatus MNodeClass::addExtensionAttribute(CAttrData &data) const
 {
    // ensure we have a callback for this node
    AddNodeCallback(m_nodeClassName);
-   std::vector<CAttrData> attrData = s_attrData[m_nodeClassName.asChar()];
+   std::vector<CAttrData>& attrData = s_attrData[m_nodeClassName.asChar()];
    for (AtUInt i=0; i < attrData.size(); ++i)
    {
       if (data.name == attrData[i].name)
@@ -62,7 +62,7 @@ void MNodeClass::InitializeExistingNodes()
       ExtensionAttrDataMap::iterator it = s_attrData.find(fnNode.typeName().asChar());
       if (it != s_attrData.end())
       {
-         std::vector<CAttrData> attrData = it->second;
+         std::vector<CAttrData>& attrData = it->second;
          CDynamicAttrHelper helper = CDynamicAttrHelper(node);
          for (AtUInt i=0; i < attrData.size(); ++i)
          {
@@ -79,7 +79,7 @@ void MNodeClass::InitializeExistingNodes()
 void MNodeClass::NodeCreatedCallback(MObject &node, void *clientData)
 {
    MFnDependencyNode fnNode(node);
-   std::vector<CAttrData> attrData = s_attrData[fnNode.typeName().asChar()];
+   std::vector<CAttrData>& attrData = s_attrData[fnNode.typeName().asChar()];
    CDynamicAttrHelper helper = CDynamicAttrHelper(node);
    for (AtUInt i=0; i < attrData.size(); ++i)
    {
