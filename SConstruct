@@ -92,7 +92,7 @@ vars.AddVariables(
 )
 
 if system.os() == 'windows':
-   vars.Add(EnumVariable('MSVS_VERSION', 'Version of MS Visual Studio to use', '8.0', allowed_values=('8.0', '8.0Exp', '9.0', '9.0Exp')))
+   vars.Add(EnumVariable('MSVC_VERSION', 'Version of MS Visual Studio to use', '8.0', allowed_values=('8.0', '8.0Exp', '9.0', '9.0Exp')))
 
 if system.os() == 'windows':
    # Ugly hack. Create a temporary environment, without loading any tool, so we can set the MSVS_ARCH
@@ -249,12 +249,12 @@ if system.os() == 'windows':
                                              exports   = 'maya_env')
    
    [MTOA, MTOA_PRJ] = env.SConscript(os.path.join('plugins', 'mtoa', 'SConscript'),
-                                     build_dir = os.path.join(BUILD_BASE_DIR, 'mtoa'),
+                                     variant_dir = os.path.join(BUILD_BASE_DIR, 'mtoa'),
                                      duplicate = 0,
                                      exports   = 'maya_env')
 
    [MTOA_SHADERS, MTOA_SHADERS_PRJ] = env.SConscript(os.path.join('shaders', 'src', 'SConscript'),
-                                                     build_dir = os.path.join(BUILD_BASE_DIR, 'shaders'),
+                                                     variant_dir = os.path.join(BUILD_BASE_DIR, 'shaders'),
                                                      duplicate = 0,
                                                      exports   = 'env')
 
@@ -303,30 +303,30 @@ else:
                          exports   = 'maya_env')
 
    MTOA = env.SConscript(os.path.join('plugins', 'mtoa', 'SConscript'),
-                         build_dir = os.path.join(BUILD_BASE_DIR, 'mtoa'),
+                         variant_dir = os.path.join(BUILD_BASE_DIR, 'mtoa'),
                          duplicate = 0,
                          exports   = 'maya_env')
 
    MTOA_SHADERS = env.SConscript(os.path.join('shaders', 'src', 'SConscript'),
-                                 build_dir = os.path.join(BUILD_BASE_DIR, 'shaders'),
+                                 variant_dir = os.path.join(BUILD_BASE_DIR, 'shaders'),
                                  duplicate = 0,
                                  exports   = 'env')
 
 Depends(MTOA, MTOA_API[0])
 
 DIFFTIFF = env.SConscript(os.path.join('tools', 'difftiff', 'SConscript'),
-                          build_dir = os.path.join(BUILD_BASE_DIR, 'difftiff'),
+                          variant_dir = os.path.join(BUILD_BASE_DIR, 'difftiff'),
                           duplicate = 0,
                           exports   = 'env')
 
 TIFF2JPEG = env.SConscript(os.path.join('tools', 'tiff2jpeg', 'SConscript'),
-                          build_dir = os.path.join(BUILD_BASE_DIR, 'tiff2jpeg'),
+                          variant_dir = os.path.join(BUILD_BASE_DIR, 'tiff2jpeg'),
                           duplicate = 0,
                           exports   = 'env')
 
 SConscriptChdir(0)
 TESTSUITE = env.SConscript(os.path.join('testsuite', 'SConscript'),
-                           build_dir = os.path.join(BUILD_BASE_DIR, 'testsuite'),
+                           variant_dir = os.path.join(BUILD_BASE_DIR, 'testsuite'),
                            duplicate = 0,
                            exports   = 'env BUILD_BASE_DIR MTOA MTOA_SHADERS DIFFTIFF TIFF2JPEG')
 SConscriptChdir(1)
@@ -393,19 +393,14 @@ for ext in os.listdir(ext_base_dir):
     ext_dir = os.path.join(ext_base_dir, ext)
     if os.path.isdir(ext_dir):
         if system.os() == 'windows':
-           EXT = env.SConscript(os.path.join(ext_dir, 'SConscript'),
-                                build_dir = os.path.join(BUILD_BASE_DIR, ext),
-                                duplicate = 0,
-                                exports   = ['ext_env', 'env'])
-           if len(EXT) == 4:
-              EXT_PRJ = EXT[2]
-           else:
-              EXT_PRJ = EXT[1]
-           
+           [EXT, EXT_PRJ] = env.SConscript(os.path.join(ext_dir, 'SConscript'),
+                                           variant_dir = os.path.join(BUILD_BASE_DIR, ext),
+                                           duplicate = 0,
+                                           exports   = ['ext_env', 'env'])
            env.Depends(SOLUTION, EXT_PRJ)
         else:
            EXT = env.SConscript(os.path.join(ext_dir, 'SConscript'),
-                                build_dir = os.path.join(BUILD_BASE_DIR, ext),
+                                variant_dir = os.path.join(BUILD_BASE_DIR, ext),
                                 duplicate = 0,
                                 exports   = ['ext_env', 'env'])
         top_level_alias(env, ext, EXT)
