@@ -246,7 +246,7 @@ if system.os() == 'windows':
    maya_env.Append(LIBS=Split('ai.lib OpenGl32.lib glu32.lib Foundation.lib OpenMaya.lib OpenMayaRender.lib OpenMayaUI.lib OpenMayaAnim.lib OpenMayaFX.lib'))
    
    [MTOA_API, MTOA_API_PRJ] = env.SConscript(os.path.join('plugins', 'mtoa', 'SConscriptAPI'),
-                                             build_dir = os.path.join(BUILD_BASE_DIR, 'api'),
+                                             variant_dir = os.path.join(BUILD_BASE_DIR, 'api'),
                                              duplicate = 0,
                                              exports   = 'maya_env')
    
