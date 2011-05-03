@@ -40,7 +40,7 @@ else:
 
 print "BUILD DIR", Dir('.').path
 local_env.Append(LIBPATH = [os.path.join(Dir('.').abspath, '..', 'api')])
-local_env.Append(LIBS = ['mtoaAPI'])
+local_env.Append(LIBS = ['mtoa_api'])
 
 if system.os() == 'windows':
    local_env['MSVSSCONSCRIPT'] = local_env.File('SConscript')

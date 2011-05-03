@@ -468,7 +468,7 @@ class Test:
       test_data_dir  = os.path.join(test_dir, 'data')
       test_build_dir = os.path.abspath(os.path.join(BUILD_BASE_DIR, 'testsuite', test_name))
 
-      test_env.BuildDir(test_build_dir, test_data_dir)
+      test_env.VariantDir(test_build_dir, test_data_dir)
    
       if test_name in BLACKLIST:
          # print 'skipping test %s -- found in black list' % (test_name)

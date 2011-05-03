@@ -29,7 +29,7 @@ include_files += include_files_add
 
 local_env.Append(CPPPATH = [sysconfig.get_python_inc()])
 
-MTOA_API = local_env.SharedLibrary('mtoaAPI', source_files)
+MTOA_API = local_env.SharedLibrary('mtoa_api', source_files)
 
 if system.os() == 'windows':
    local_env['MSVSSCONSCRIPT'] = local_env.File('SConscriptAPI')

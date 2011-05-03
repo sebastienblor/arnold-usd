@@ -92,7 +92,7 @@ vars.AddVariables(
 )
 
 if system.os() == 'windows':
-   vars.Add(EnumVariable('MSVS_VERSION', 'Version of MS Visual Studio to use', '8.0', allowed_values=('8.0', '8.0Exp', '9.0', '9.0Exp')))
+   vars.Add(EnumVariable('MSVC_VERSION', 'Version of MS Visual Studio to use', '8.0', allowed_values=('8.0', '8.0Exp', '9.0', '9.0Exp')))
 
 if system.os() == 'windows':
    # Ugly hack. Create a temporary environment, without loading any tool, so we can set the MSVS_ARCH
@@ -251,12 +251,12 @@ if system.os() == 'windows':
                                              exports   = 'maya_env')
    
    [MTOA, MTOA_PRJ] = env.SConscript(os.path.join('plugins', 'mtoa', 'SConscript'),
-                                     build_dir = os.path.join(BUILD_BASE_DIR, 'mtoa'),
+                                     variant_dir = os.path.join(BUILD_BASE_DIR, 'mtoa'),
                                      duplicate = 0,
                                      exports   = 'maya_env')
 
    [MTOA_SHADERS, MTOA_SHADERS_PRJ] = env.SConscript(os.path.join('shaders', 'src', 'SConscript'),
-                                                     build_dir = os.path.join(BUILD_BASE_DIR, 'shaders'),
+                                                     variant_dir = os.path.join(BUILD_BASE_DIR, 'shaders'),
                                                      duplicate = 0,
                                                      exports   = 'env')
 
@@ -296,42 +296,42 @@ else:
       maya_env.Append(CPPDEFINES = Split('LINUX'))
       maya_env.Append(LIBPATH = [os.path.join(env['MAYA_ROOT'], 'lib')])
    elif system.os() == 'darwin':
-      maya_env.Append(CPPPATH = [os.path.join(env['MAYA_ROOT'], '../../devkit/include')])
-      maya_env.Append(LIBPATH = [os.path.join(env['MAYA_ROOT'], 'MacOS')])
+      maya_env.Append(CPPPATH = [os.path.join(env['MAYA_ROOT'], 'devkit/include')])
+      maya_env.Append(LIBPATH = [os.path.join(env['MAYA_ROOT'], 'Maya.app/Contents/MacOS')])
 
    maya_env.Append(LIBS=Split('ai pthread Foundation OpenMaya OpenMayaRender OpenMayaUI OpenMayaAnim OpenMayaFX'))
    maya_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
 
    MTOA_API = env.SConscript(os.path.join('plugins', 'mtoa', 'SConscriptAPI'),
-                         build_dir = os.path.join(BUILD_BASE_DIR, 'api'),
+                         variant_dir = os.path.join(BUILD_BASE_DIR, 'api'),
                          duplicate = 0,
                          exports   = 'maya_env')
 
    MTOA = env.SConscript(os.path.join('plugins', 'mtoa', 'SConscript'),
-                         build_dir = os.path.join(BUILD_BASE_DIR, 'mtoa'),
+                         variant_dir = os.path.join(BUILD_BASE_DIR, 'mtoa'),
                          duplicate = 0,
                          exports   = 'maya_env')
 
    MTOA_SHADERS = env.SConscript(os.path.join('shaders', 'src', 'SConscript'),
-                                 build_dir = os.path.join(BUILD_BASE_DIR, 'shaders'),
+                                 variant_dir = os.path.join(BUILD_BASE_DIR, 'shaders'),
                                  duplicate = 0,
                                  exports   = 'env')
 
 Depends(MTOA, MTOA_API[0])
 
 DIFFTIFF = env.SConscript(os.path.join('tools', 'difftiff', 'SConscript'),
-                          build_dir = os.path.join(BUILD_BASE_DIR, 'difftiff'),
+                          variant_dir = os.path.join(BUILD_BASE_DIR, 'difftiff'),
                           duplicate = 0,
                           exports   = 'env')
 
 TIFF2JPEG = env.SConscript(os.path.join('tools', 'tiff2jpeg', 'SConscript'),
-                          build_dir = os.path.join(BUILD_BASE_DIR, 'tiff2jpeg'),
+                          variant_dir = os.path.join(BUILD_BASE_DIR, 'tiff2jpeg'),
                           duplicate = 0,
                           exports   = 'env')
 
 SConscriptChdir(0)
 TESTSUITE = env.SConscript(os.path.join('testsuite', 'SConscript'),
-                           build_dir = os.path.join(BUILD_BASE_DIR, 'testsuite'),
+                           variant_dir = os.path.join(BUILD_BASE_DIR, 'testsuite'),
                            duplicate = 0,
                            exports   = 'env BUILD_BASE_DIR MTOA MTOA_SHADERS DIFFTIFF TIFF2JPEG')
 SConscriptChdir(1)
@@ -377,7 +377,7 @@ ext_env.Append(CPPPATH = ['plugin', os.path.join(maya_env['ROOT_DIR'], 'plugins'
 ext_env.Append(LIBPATH = ['.', env['ARNOLD_API_LIB']])
 ext_env.Append(LIBPATH = [ os.path.join(maya_env['ROOT_DIR'], os.path.split(str(MTOA[0]))[0]),
                            os.path.join(maya_env['ROOT_DIR'], os.path.split(str(MTOA_API[0]))[0])])
-ext_env.Append(LIBS = ['mtoaAPI'])
+ext_env.Append(LIBS = ['mtoa_api'])
 
 ext_base_dir = os.path.join('contrib', 'extensions')
 ext_files = []
@@ -389,23 +389,16 @@ for ext in os.listdir(ext_base_dir):
     ext_dir = os.path.join(ext_base_dir, ext)
     if os.path.isdir(ext_dir):
         if system.os() == 'windows':
-           EXT = env.SConscript(os.path.join(ext_dir, 'SConscript'),
-                                build_dir = os.path.join(BUILD_BASE_DIR, ext),
-                                duplicate = 0,
-                                exports   = ['ext_env', 'env'])
-           if len(EXT) == 4:
-              EXT_PRJ = EXT[2]
-              EXT_SHADERS_PRJ = EXT[3]
-           else:
-              EXT_PRJ = EXT[1]
-              EXT_SHADERS_PRJ = None
-           
+           [EXT, EXT_PRJ] = env.SConscript(os.path.join(ext_dir, 'SConscript'),
+                                           variant_dir = os.path.join(BUILD_BASE_DIR, ext),
+                                           duplicate = 0,
+                                           exports   = ['ext_env', 'env'])
            env.Depends(SOLUTION, EXT_PRJ)
            if EXT_SHADERS_PRJ != None:
               env.Depends(SOLUTION, EXT_SHADERS_PRJ)
         else:
            EXT = env.SConscript(os.path.join(ext_dir, 'SConscript'),
-                                build_dir = os.path.join(BUILD_BASE_DIR, ext),
+                                variant_dir = os.path.join(BUILD_BASE_DIR, ext),
                                 duplicate = 0,
                                 exports   = ['ext_env', 'env'])
         top_level_alias(env, ext, EXT)

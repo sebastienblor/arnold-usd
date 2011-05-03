@@ -39,11 +39,13 @@ def get_arch_label(os, arch):
    elif OS == 'darwin':
       if arch == 'x86':
          return 'darwin32'
+      elif arch == 'x86_64':
+         return 'darwin64'
    elif OS == 'linux':
       if arch == 'x86':
-         return 'linux_x86'
+         return 'linux32'
       elif arch == 'x86_64':
-         return 'linux_x86_64'
+         return 'linux64'
       elif arch == 'sparc64':
          return 'linux_sparc_64'
 
@@ -53,10 +55,22 @@ def get_arch_label(os, arch):
 def set_target_arch(arch):
    global TARGET_ARCH, TARGET_ARCH_LABEL
    if not arch in VALID_ARCHS:
-      print "ERROR: Target architecture is not valid"
+      print "ERROR: Target architecture '%s' is not valid" % arch
    else:
       TARGET_ARCH = arch
       TARGET_ARCH_LABEL = get_arch_label(OS, arch)
+
+# Determine if this is an active terminal or not (there
+# is no interactive shell during 'ssh -n')
+# TODO:  how robust is this?
+def is_terminal_interactive():
+   # for now, always assume windows is in an interactive session
+   if os() == 'windows':
+      return True
+   if environ.has_key('TERM'):
+      return True
+   else:
+      return False
 
 # Obtain information about the system only once, when loaded
 OS = platform.system().lower()
@@ -68,9 +82,11 @@ if OS == 'windows':
    else:
       HOST_ARCH = 'x86'
 elif OS == 'darwin':
-   VALID_ARCHS = ('i386', 'x86_64')
-   
-   HOST_ARCH = 'x86_64'
+   VALID_ARCHS = ('x86', 'x86_64')
+   if platform.architecture()[0] == '64bit':
+      HOST_ARCH = 'x86_64'
+   else:
+      HOST_ARCH = 'x86'
 elif OS == 'linux':
    VALID_ARCHS = ('x86', 'x86_64', 'sparc_64')
    
