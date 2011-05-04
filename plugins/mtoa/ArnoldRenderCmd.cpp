@@ -75,18 +75,21 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       filename = renderGlobals.name;
       if (filename != "")
       {
-         MString curProject = MGlobal::executeCommandStringResult("workspace -q -o");
-         if (curProject != "")
+         if (filename.substringW(0,0) != "/")
          {
-            MString dirProject = MGlobal::executeCommandStringResult("workspace -q -rd "
-                  + curProject);
-            MString assDir = MGlobal::executeCommandStringResult("workspace -q -fileRuleEntry ArnoldSceneSource");
-            filename = dirProject + "/" + assDir + "/" + filename + ".ass";
-         }
-         else
-         {
-            MString curDir = MGlobal::executeCommandStringResult("workspace -q -dir");
-            filename = curDir + "/" + filename + ".ass";
+            MString curProject = MGlobal::executeCommandStringResult("workspace -q -o");
+            if (curProject != "")
+            {
+               MString dirProject = MGlobal::executeCommandStringResult("workspace -q -rd "
+                     + curProject);
+               MString assDir = MGlobal::executeCommandStringResult("workspace -q -fileRuleEntry ArnoldSceneSource");
+               filename = dirProject + "/" + assDir + "/" + filename + ".ass";
+            }
+            else
+            {
+               MString curDir = MGlobal::executeCommandStringResult("workspace -q -dir");
+               filename = curDir + "/" + filename + ".ass";
+            }
          }
       }
       else
