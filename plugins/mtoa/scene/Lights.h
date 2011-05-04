@@ -47,6 +47,7 @@ class DLLEXPORT CDirectionalLightTranslator : public CLightTranslator
 {
 public:
    void Export(AtNode* light);
+   static void NodeInitializer(MString nodeClassName);
    static void* creator()
    {
       return new CDirectionalLightTranslator();

@@ -182,7 +182,7 @@ namespace // <anonymous>
                                               MAYA_NODEID_DIRECTIONAL_LIGHT,
                                               "builtin",
                                               CDirectionalLightTranslator::creator,
-                                              CLightTranslator::NodeInitializer);
+                                              CDirectionalLightTranslator::NodeInitializer);
       builtinExtension->RegisterTranslator("spotLight",
                                               MAYA_NODEID_SPOT_LIGHT,
                                               "builtin",

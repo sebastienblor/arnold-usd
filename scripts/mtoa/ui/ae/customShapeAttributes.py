@@ -69,10 +69,22 @@ def builtin_ambientLight(nodeName):
 
 @registerUI("directionalLight")
 def builtin_directionalLight(nodeName):
+    cmds.editorTemplate("cast_shadows", addDynamicControl=True)
+    cmds.editorTemplate("angle", addDynamicControl=True)
+    cmds.editorTemplate("samples", addDynamicControl=True)
+
+    cmds.editorTemplate(addSeparator=True)
+
     commonLightAttributes(nodeName);
 
 @registerUI("pointLight")
 def builtin_pointLight(nodeName):
+    cmds.editorTemplate("cast_shadows", addDynamicControl=True)
+    cmds.editorTemplate("radius", addDynamicControl=True)
+    cmds.editorTemplate("samples", addDynamicControl=True)
+
+    cmds.editorTemplate(addSeparator=True)
+
     cmds.editorTemplate("affect_volumetrics", addControl=True)
     cmds.editorTemplate("cast_volumetric_shadows", addControl=True)
 
@@ -82,6 +94,12 @@ def builtin_pointLight(nodeName):
 
 @registerUI("spotLight")
 def builtin_spotLight(nodeName):
+    cmds.editorTemplate("cast_shadows", addDynamicControl=True)
+    cmds.editorTemplate("radius", addDynamicControl=True)
+    cmds.editorTemplate("samples", addDynamicControl=True)
+
+    cmds.editorTemplate(addSeparator=True)
+
     cmds.editorTemplate("affect_volumetrics", addControl=True)
     cmds.editorTemplate("cast_volumetric_shadows", addControl=True)
 
@@ -96,6 +114,11 @@ def builtin_spotLight(nodeName):
 
 @registerUI("areaLight")
 def builtin_areaLight(nodeName):
+    cmds.editorTemplate("cast_shadows", addDynamicControl=True)
+    cmds.editorTemplate("samples", addDynamicControl=True)
+
+    cmds.editorTemplate(addSeparator=True)
+
     cmds.editorTemplate("resolution", addControl=True)
     cmds.editorTemplate("affect_volumetrics", addControl=True)
     cmds.editorTemplate("cast_volumetric_shadows", addControl=True)
