@@ -202,6 +202,10 @@ def createArnoldRenderSettings():
                    label="Skip License Check",
                    attribute='defaultArnoldRenderOptions.skip_license_check')
 
+    cmds.attrControlGrp('os_shadow_terminator_fix',
+                   label="Shadow Terminator Fix",
+                   attribute='defaultArnoldRenderOptions.shadowTerminatorFix')
+
     cmds.separator()
 
     cmds.attrControlGrp('os_plugins_path',

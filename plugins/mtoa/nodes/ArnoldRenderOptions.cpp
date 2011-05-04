@@ -386,6 +386,7 @@ MStatus CArnoldRenderOptionsNode::initialize()
    s_attributes.MakeInput("show_samples");
    s_attributes.MakeInput("max_subdivisions");
    s_attributes.MakeInput("enable_hit_refinement");
+   s_attributes.MakeInput("shadow_terminator_fix");
 
    // textures
    s_attributes.MakeInput("texture_automip");

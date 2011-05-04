@@ -149,5 +149,8 @@ void CRenderOptionsTranslator::Export(AtNode* options)
       }
       break;
    }
+
+   // Shadow stuff
+   ProcessParameter(options, "shadow_terminator_fix", AI_TYPE_BOOLEAN);
 }
 
