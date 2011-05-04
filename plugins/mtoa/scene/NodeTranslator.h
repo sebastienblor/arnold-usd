@@ -92,7 +92,14 @@ protected:
    AtFloat GetCurrentFrame() {return m_scene->GetCurrentFrame();}
    bool IsMotionBlurEnabled() const {return m_scene->IsMotionBlurEnabled();}
    bool IsCameraMotionBlurEnabled() const {return m_scene->IsCameraMotionBlurEnabled();}
-   bool IsObjectMotionBlurEnabled() const {return m_scene->IsObjectMotionBlurEnabled();}
+   bool IsObjectMotionBlurEnabled() const
+   {
+      bool local_motion_attr(true);
+      MPlug plug = GetFnNode().findPlug("motionBlur");
+      if (!plug.isNull())
+         local_motion_attr = plug.asBool();
+      return m_scene->IsObjectMotionBlurEnabled() && local_motion_attr;
+   }
    bool IsDeformMotionBlurEnabled() const {return m_scene->IsDeformMotionBlurEnabled();}
    bool IsLightMotionBlurEnabled() const {return m_scene->IsLightMotionBlurEnabled();}
    AtUInt GetNumMotionSteps() const {return m_scene->GetNumMotionSteps();}
@@ -199,8 +206,8 @@ public:
    virtual AtNode* Init(MDagPath& dagPath, CMayaScene* scene, MString outputAttr="")
    {
       m_atNode = CDagTranslator::Init(dagPath, scene, outputAttr);
-      m_motion = IsObjectMotionBlurEnabled() && GetFnNode().findPlug("motionBlur").asBool();
-      m_motionDeform = m_motion && IsDeformMotionBlurEnabled();
+      m_motion       = IsObjectMotionBlurEnabled();
+      m_motionDeform = IsDeformMotionBlurEnabled();
       return m_atNode;
    }
    virtual bool RequiresMotionData()
