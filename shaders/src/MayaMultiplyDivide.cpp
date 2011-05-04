@@ -12,7 +12,15 @@ enum MayaMultiplyDivideParams
    p_operation
 };
 
-const char* enum_operation[] =
+enum MathOperation
+{
+   OP_NOP = 0,
+   OP_MULTIPLY,
+   OP_DIVIDE,
+   OP_POWER
+};
+
+const char* MathOperationNames[] =
 {
    "nop",
    "multiply",
@@ -25,9 +33,9 @@ const char* enum_operation[] =
 
 node_parameters
 {
-   AiParameterRGB("input1", 0, 0, 0);
-   AiParameterRGB("input2", 0, 0, 0);
-   AiParameterENUM("operation", 0, enum_operation);
+   AiParameterPNT("input1", 0.0f, 0.0f, 0.0f);
+   AiParameterPNT("input2", 0.0f, 0.0f, 0.0f);
+   AiParameterENUM("operation", 0, MathOperationNames);
 
    AiMetaDataSetStr(mds, NULL, "maya.counterpart", "multiplyDivide");
    AiMetaDataSetInt(mds, NULL, "maya.counterpart_id", 0x524d4449);
@@ -47,28 +55,28 @@ node_finish
 
 shader_evaluate
 {
-   AtColor input1 = AiShaderEvalParamRGB(p_input1);
-   AtColor input2 = AiShaderEvalParamRGB(p_input2);
+   AtPoint input1 = AiShaderEvalParamPnt(p_input1);
+   AtPoint input2 = AiShaderEvalParamPnt(p_input2);
 
    switch(AiShaderEvalParamInt(p_operation))
    {
-   case 0: // No operation (output = input1)
-      sg->out.RGB = input1;
+   case OP_NOP:      // No operation (output = input1)
+      sg->out.PNT = input1;
       break;
-   case 1: // Multiply (output = input1 * input2)
-      AiColorMult(sg->out.RGB, input1, input2);
+   case OP_MULTIPLY: // Multiply (output = input1 * input2)
+      sg->out.PNT = input1 * input2;
       break;
-   case 2: // Divide (output = input1 / input2)
-      sg->out.RGB.r = (input2.r == 0) ? input1.r : (input1.r / input2.r);
-      sg->out.RGB.g = (input2.g == 0) ? input1.g : (input1.g / input2.g);
-      sg->out.RGB.b = (input2.b == 0) ? input1.b : (input1.b / input2.b);
+   case OP_DIVIDE:   // Divide (output = input1 / input2)
+      sg->out.PNT.x = (input2.x == 0) ? input1.x : (input1.x / input2.x);
+      sg->out.PNT.y = (input2.y == 0) ? input1.y : (input1.y / input2.y);
+      sg->out.PNT.z = (input2.z == 0) ? input1.z : (input1.z / input2.z);
       break;
-   case 3: // Power (output = input1 ^ input2)
-      sg->out.RGB.r = powf(input1.r, input2.r);
-      sg->out.RGB.g = powf(input1.g, input2.g);
-      sg->out.RGB.b = powf(input1.b, input2.b);
+   case OP_POWER:    // Power (output = input1 ^ input2)
+      sg->out.PNT.x = powf(input1.x, input2.x);
+      sg->out.PNT.y = powf(input1.y, input2.y);
+      sg->out.PNT.z = powf(input1.z, input2.z);
       break;
    default:
-      sg->out.RGB = AI_RGB_BLACK;
+      sg->out.PNT = AI_P3_ZERO;
    }
 }
