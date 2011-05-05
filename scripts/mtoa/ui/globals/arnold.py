@@ -293,7 +293,7 @@ def createArnoldSamplingSettings():
                         label="AA Samples",
                         maxValue = 10,
                         fieldMaxValue=100,
-                        cc='cmds.evalDeferred(mtoa.ui.globals.arnold.updateComputeSamples)'
+                        cc='import maya.cmds as cmds;cmds.evalDeferred(mtoa.ui.globals.arnold.updateComputeSamples)'
                         )
 
     cmds.connectControl('ss_AA_samples', 'defaultArnoldRenderOptions.aaSamples', index=2)
@@ -311,7 +311,7 @@ def createArnoldSamplingSettings():
                         label="Hemi Samples",
                         maxValue = 10,
                         fieldMaxValue=100,
-                        cc='cmds.evalDeferred(mtoa.ui.globals.arnold.updateComputeSamples)')
+                        cc='import maya.cmds as cmds;cmds.evalDeferred(mtoa.ui.globals.arnold.updateComputeSamples)')
     
     cmds.connectControl('ss_hemi_samples', 'defaultArnoldRenderOptions.giDiffuseSamples', index=2)
     cmds.connectControl('ss_hemi_samples', 'defaultArnoldRenderOptions.giDiffuseSamples', index=3)
@@ -326,7 +326,7 @@ def createArnoldSamplingSettings():
                         label="Glossy Samples",
                         maxValue = 10,
                         fieldMaxValue=100,
-                        cc='cmds.evalDeferred(mtoa.ui.globals.arnold.updateComputeSamples)')
+                        cc='import maya.cmds as cmds;cmds.evalDeferred(mtoa.ui.globals.arnold.updateComputeSamples)')
     
     cmds.connectControl('ss_glossy_samples', 'defaultArnoldRenderOptions.giGlossySamples', index=2)
     cmds.connectControl('ss_glossy_samples', 'defaultArnoldRenderOptions.giGlossySamples', index=3)    
@@ -463,7 +463,7 @@ def createArnoldRayDepthSettings():
                         label="Diffuse depth",
                         maxValue = 16,
                         fieldMaxValue=100,
-                        cc='cmds.evalDeferred(mtoa.ui.globals.arnold.updateComputeSamples)')
+                        cc='import maya.cmds as cmds;cmds.evalDeferred(mtoa.ui.globals.arnold.updateComputeSamples)')
     
     cmds.connectControl('rs_diffuse_depth', 'defaultArnoldRenderOptions.giDiffuseDepth', index=2)
     cmds.connectControl('rs_diffuse_depth', 'defaultArnoldRenderOptions.giDiffuseDepth', index=3)
@@ -478,7 +478,7 @@ def createArnoldRayDepthSettings():
                         label="Glossy depth",
                         maxValue = 16,
                         fieldMaxValue=100,
-                        cc='cmds.evalDeferred(mtoa.ui.globals.arnold.updateComputeSamples)')
+                        cc='import maya.cmds as cmds;cmds.evalDeferred(mtoa.ui.globals.arnold.updateComputeSamples)')
     
     cmds.connectControl('rs_glossy_depth', 'defaultArnoldRenderOptions.giGlossyDepth', index=2)
     cmds.connectControl('rs_glossy_depth', 'defaultArnoldRenderOptions.giGlossyDepth', index=3)
