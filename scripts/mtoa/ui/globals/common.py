@@ -893,7 +893,7 @@ def updateArnoldCameraControl(*args):
                     numRenderable += 1
                     skipLR = 1
                 else:
-                    nonRenderableCameras.append("+%s")%rig
+                    nonRenderableCameras.append("+%s"%rig)
                     numNonRenderable += 1
                 for camShape in cameras:
                     camParentNodes = cmds.listRelatives(camShape, path=True, parent=True)
