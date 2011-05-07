@@ -184,9 +184,10 @@ def registerArnoldRenderer():
 
         # Add option in 'Render' menu to export to an .ass file
         if not cmds.about(b=1):
-            mel.eval('RenRenderMenu mainRenderMenu')
-            cmds.menuItem(parent='mainRenderMenu', divider=True)
-            cmds.menuItem('exportToAssMenuItem', parent='mainRenderMenu', label="Export to Ass...", c=exportass.arnoldExportAss)
+            # mel.eval('RenRenderMenu mainRenderMenu')
+            # cmds.menuItem(parent='mainRenderMenu', divider=True)
+            # cmds.menuItem('exportToAssMenuItem', parent='mainRenderMenu', label="Export to Ass...", c=exportass.arnoldExportAss)
             # Add option box for file translator
             utils.pyToMelProc(exportass.arnoldAssOpts, ('string', 'parent'), ('string', 'action'), ('string', 'initialSettings'), ('string', 'resultCallback'), shortName=True)
+            # setup hypershade node tree listing
             nodeTreeLister.setup()
