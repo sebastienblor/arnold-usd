@@ -33,6 +33,47 @@
 #define MTOA_VERSION "0.7.0.dev"
 #define MAYA_VERSION "Any"
 
+AtVoid MtoaLogCallback(AtInt logmask, AtInt severity, const char *msg_string, AtInt tabs)
+{
+   char *header = "[mtoa] %s";
+   char *buf;
+   buf = new (std::nothrow) char[strlen(header)+strlen(msg_string)];
+
+   if (NULL == buf)
+   {
+      // Fallback so normal logging still works in case of an allocation failure
+      clog << msg_string << endl;
+   }
+   else
+   {
+      sprintf(buf, header, msg_string);
+      // Regular logging with the header added
+      clog << buf << endl;
+      // Then some feedback will go in Maya script window
+      switch (severity)
+      {
+      case AI_SEVERITY_INFO:
+         if (logmask & AI_LOG_INFO)
+            MGlobal::displayInfo(buf);
+         break;
+      case AI_SEVERITY_WARNING:
+         if (logmask & AI_LOG_WARNINGS)
+            // if (clog != cerr) cerr << buf << endl;
+            MGlobal::displayWarning(buf);
+         break;
+      case AI_SEVERITY_ERROR:
+         if (logmask & AI_LOG_ERRORS)
+            // if (clog != cerr) cerr << buf << endl;
+            MGlobal::displayError(buf);
+         break;
+      default:
+         break;
+      }
+      
+      delete[] buf;
+   }
+}
+
 namespace // <anonymous>
 {
    MStatus RegisterArnoldNodes(MObject object)
@@ -276,10 +317,11 @@ namespace // <anonymous>
       MFnPlugin plugin(object);
 
       // Render Options
-      status = plugin.deregisterNode(CArnoldRenderOptionsNode::id);
-      CHECK_MSTATUS(status);
       // Remove creation callback
       MDGMessage::removeCallback(CArnoldRenderOptionsNode::sId);
+      // Deregister node
+      status = plugin.deregisterNode(CArnoldRenderOptionsNode::id);
+      CHECK_MSTATUS(status);
 
       // AOV
       status = plugin.deregisterNode(CArnoldAOVNode::id);
@@ -288,7 +330,6 @@ namespace // <anonymous>
       // Displacement Shaders
       status = plugin.deregisterNode(CArnoldDisplacementShaderNode::id);
       CHECK_MSTATUS(status);
-
 
       // Environment or Volume shaders
       status = plugin.deregisterNode(CArnoldSkyShaderNode::id);
@@ -315,34 +356,9 @@ namespace // <anonymous>
       AtInt defaultLogFlags = AI_LOG_INFO | AI_LOG_WARNINGS | AI_LOG_ERRORS | AI_LOG_TIMESTAMP | AI_LOG_BACKTRACE | AI_LOG_MEMORY | AI_LOG_COLOR;
 #endif
       AiMsgSetConsoleFlags(defaultLogFlags);
+      AiMsgSetCallback(MtoaLogCallback);
    }
-}
-
-AtVoid MtoaLoggingCallback(AtInt logmask, AtInt severity, const char *msg_string, AtInt tabs)
-{
-   char *buf;
-   buf= new char[strlen(msg_string)+7]; // reserve and allocate memory
-   sprintf(buf, "[mtoa] %s", msg_string);
-   switch (severity)
-   {
-   case AI_SEVERITY_INFO:
-      if ((logmask & AI_LOG_INFO) || (logmask & AI_LOG_DEBUG))
-         MGlobal::displayInfo(buf);
-      break;
-   case AI_SEVERITY_WARNING:
-      if (logmask & AI_LOG_WARNINGS)
-         MGlobal::displayWarning(buf);
-      break;
-   case AI_SEVERITY_ERROR:
-      if (logmask & AI_LOG_ERRORS)
-         MGlobal::displayError(buf);
-      break;
-   default:
-      // call default logging callback
-      break;
-   }
-   if (buf!=NULL) delete[] buf; // clear memory
-}
+} // namespace
 
 
 DLLEXPORT MStatus initializePlugin(MObject object)
@@ -400,6 +416,9 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
    status = plugin.deregisterCommand("arnoldExportAss");
    status = plugin.deregisterCommand("arnoldPlugins");
    status = plugin.deregisterFileTranslator(CArnoldAssTranslator::fileType);
+
+   // To avoid leaving dangling pointer in Msg callbacks
+   AiMsgResetCallback();
 
    return MS::kSuccess;
 }
