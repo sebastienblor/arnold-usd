@@ -176,7 +176,7 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
             }
             default:
             {
-               MGlobal::displayError(MString("[mtoa] Unable to get data for parameter \"") + paramName + "\": unknown parameter type");
+               AiMsgError("Unable to get data for parameter %s: unknown parameter type", paramName);
                break;
             }
          }

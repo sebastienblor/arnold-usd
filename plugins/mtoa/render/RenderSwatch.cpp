@@ -1,7 +1,9 @@
 #include "scene/MayaScene.h"
-#include "scene/Extension.h"
 #include "render/RenderSession.h"
 #include "RenderSwatch.h"
+
+#include "extension/ExtensionsManager.h"
+
 
 #include <maya/MImage.h>
 #include <ai_msg.h>
@@ -278,14 +280,14 @@ MStatus CRenderSwatchGenerator::ExportNode(AtNode* & arnoldNode,
       {
          MDagPath dagPath;
          MDagPath::getAPathTo(mayaNode, dagPath);
-         CDagTranslator* dagTranslator = CExtension::FindTranslator(dagPath);
+         CDagTranslator* dagTranslator = CExtensionsManager::GetTranslator(dagPath);
          if (NULL != dagTranslator)
          {
             translator = (CNodeTranslator*) dagTranslator;
          }
          else
          {
-            translator = CExtension::FindTranslator(mayaNode);
+            translator = CExtensionsManager::GetTranslator(mayaNode);
             dagTranslator = (CDagTranslator*) translator;
          }
          if (NULL != dagTranslator)
@@ -294,7 +296,7 @@ MStatus CRenderSwatchGenerator::ExportNode(AtNode* & arnoldNode,
             arnoldNode = dagTranslator->DoExport(0);
          }
       } else {
-         translator = CExtension::FindTranslator(mayaNode);
+         translator = CExtensionsManager::GetTranslator(mayaNode);
          if (NULL != translator)
          {
             translator->Init(mayaNode, m_mayaScene, "");

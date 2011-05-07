@@ -108,7 +108,8 @@ MStatus MNodeClass::AddNodeCallback(const MString &nodeClassName) const
       }
       else*/
       {
-         MGlobal::displayWarning(MString("[mtoa] Cannot register ") + nodeClassName + ". the node type does not exist. If the node is provided by a plugin, specify providedByPlugin when registering its translator");
+         AiMsgWarning("Cannot register %s: the node type does not exist.", nodeClassName.asChar());
+         AiMsgWarning("If the node is provided by a plugin, specify providedByPlugin when registering its translator");
          return MS::kFailure;
       }
    }

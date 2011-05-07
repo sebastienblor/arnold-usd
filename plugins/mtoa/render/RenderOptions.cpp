@@ -233,8 +233,9 @@ void CRenderOptions::ProcessArnoldRenderOptions()
       }
    }
    else
-      MGlobal::displayWarning("[mtoa] could not find defaultArnoldRenderOptions");
-
+   {
+      AiMsgError("Could not find defaultArnoldRenderOptions");
+   }
    SetupImageOutputs();
 }
 
