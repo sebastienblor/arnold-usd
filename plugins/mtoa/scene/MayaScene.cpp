@@ -47,7 +47,7 @@ CMayaScene::~CMayaScene()
    ObjectToTranslatorMap::iterator it;
    for(it = m_processedTranslators.begin(); it != m_processedTranslators.end(); ++it)
    {
-      AiMsgDebug("[mtoa] Deleting translator for %s", MFnDependencyNode(it->first.object()).name().asChar());
+      AiMsgDebug("Deleting translator for %s", MFnDependencyNode(it->first.object()).name().asChar());
       delete it->second;
    }
    m_processedTranslators.clear();
@@ -60,7 +60,7 @@ CMayaScene::~CMayaScene()
       for(instIt = dagIt->second.begin(); instIt != dagIt->second.end(); ++instIt)
       {
          MFnDagNode fnDag(dagIt->first.object());
-         AiMsgDebug("[mtoa] Deleting translator for %s [%d]", fnDag.fullPathName().asChar(), instIt->first);
+         AiMsgDebug("Deleting translator for %s [%d]", fnDag.fullPathName().asChar(), instIt->first);
          delete instIt->second;
       }
    }
@@ -98,7 +98,7 @@ MStatus CMayaScene::ExportToArnold()
    if (mb)
    {
       // first step is the real export
-      AiMsgDebug("[mtoa] Exporting step 0 at frame %f", m_motionBlurData.frames[0]);
+      AiMsgDebug("Exporting step 0 at frame %f", m_motionBlurData.frames[0]);
       MGlobal::viewFrame(MTime(m_motionBlurData.frames[0], MTime::uiUnit()));
    }
    // First "real" export
@@ -139,7 +139,7 @@ MStatus CMayaScene::ExportToArnold()
    }
    else
    {
-      AiMsgDebug("[mtoa] Unsupported export mode: %d", exportMode);
+      AiMsgError("Unsupported export mode: %d", exportMode);
       return MStatus::kFailure;
    }
 
@@ -150,7 +150,7 @@ MStatus CMayaScene::ExportToArnold()
       for (AtUInt step = 1; step < m_motionBlurData.motion_steps; ++step)
       {
          MGlobal::viewFrame(MTime(m_motionBlurData.frames[step], MTime::uiUnit()));
-         AiMsgDebug("[mtoa] Exporting step %d at frame %f", step, m_motionBlurData.frames[step]);
+         AiMsgDebug("Exporting step %d at frame %f", step, m_motionBlurData.frames[step]);
          // then, loop through the already processed dag translators and export for current step
          ObjectToDagTranslatorMap::iterator dagIt;
          for(dagIt = m_processedDagTranslators.begin(); dagIt != m_processedDagTranslators.end(); ++dagIt)
@@ -256,7 +256,7 @@ MStatus CMayaScene::ExportCameras()
       }
       else
       {
-         AiMsgError("[mtoa] Could not get path for Maya cameras DAG iterator.");
+         AiMsgError("Could not get path for Maya cameras DAG iterator.");
          status = MS::kFailure;
       }
    }
@@ -296,7 +296,7 @@ MStatus CMayaScene::ExportLights()
       }
       else
       {
-         AiMsgError("[mtoa] Could not get path for Maya lights DAG iterator.");
+         AiMsgError("Could not get path for Maya lights DAG iterator.");
          status = MS::kFailure;
       }
    }
@@ -338,7 +338,7 @@ MStatus CMayaScene::ExportScene()
       }
       else
       {
-         AiMsgError("[mtoa] Could not get path for Maya DAG iterator.");
+         AiMsgError("Could not get path for Maya DAG iterator.");
          status = MS::kFailure;
       }
    }
@@ -523,7 +523,9 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
       }
    }
    else
-      AiMsgWarning("[mtoa] Shader type not supported: %s", MFnDependencyNode(mayaShader).typeName().asChar());
+   {
+      AiMsgWarning("Shader type not supported: %s", MFnDependencyNode(mayaShader).typeName().asChar());
+   }
 
    if (shader)
    {
@@ -605,7 +607,7 @@ void CMayaScene::IPRNewNodeCallback(MObject & node, void *)
    const MStatus status = dag_node.getPath(path);
    if (status == MS::kSuccess)
    {
-      AiMsgDebug("[mtoa] Exporting new node: %s", path.partialPathName().asChar());
+      AiMsgDebug("Exporting new node: %s", path.partialPathName().asChar());
       renderSession->GetMayaScene()->ExportDagPath(path);
       renderSession->GetMayaScene()->UpdateIPR();
    }

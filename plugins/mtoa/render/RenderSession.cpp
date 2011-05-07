@@ -144,7 +144,7 @@ void CRenderSession::Translate(ExportOptions& options)
 {
    if (AiUniverseIsActive())
    {
-      AiMsgError("[mtoa] There can only be one RenderSession active.");
+      AiMsgError("There can only be one RenderSession active.");
       return;
    }
 
@@ -170,7 +170,7 @@ AtBBox CRenderSession::GetBoundingBox()
    }
    else
    {
-   	AiMsgError("[mtoa] RenderSession is not active");
+   	AiMsgError("RenderSession is not active.");
    }
 
    return bbox;
@@ -288,7 +288,7 @@ void CRenderSession::SetCamera(MString cameraNode)
       {
          if (!dagIterCameras.getPath(dagPath))
          {
-            AiMsgError("[mtoa] Could not get path for DAG iterator");
+            AiMsgError("Could not get camera dag path.");
             return;
          }
          bool isRenderingCamera = false;
@@ -544,11 +544,11 @@ void CRenderSession::DoExport(MString customFileName)
 
    if (fileName.length() == 0)
    {
-      AiMsgError("[mtoa] File name must be set before exporting .ass file");
+      AiMsgError("File name must be set before exporting .ass file");
    }
    else
    {
-      AiMsgInfo("[mtoa] Exporting Maya scene to file \"%s\"", fileName.asChar());
+      AiMsgInfo("Exporting Maya scene to file \"%s\"", fileName.asChar());
 
       SetupRenderOutput();
       // FIXME : problem this is actually double filtering files

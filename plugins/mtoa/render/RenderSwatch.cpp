@@ -48,7 +48,7 @@ void CRenderSwatchGenerator::SetSwatchClass(const MObject & node)
    MFnDependencyNode depFn(node);
    MString classification = MFnDependencyNode::classification(depFn.typeName());
 
-   AiMsgDebug("[mtoa] generating swatch for %s of classification %s", depFn.name().asChar(), classification.asChar());
+   AiMsgDebug("Generating swatch for %s of classification %s", depFn.name().asChar(), classification.asChar());
 
    // Classification string contains also the swatch render name, and the : separated parts
    // seem to be shuffled (according to alphabetic order?). So swatch render name is not
@@ -161,7 +161,7 @@ MStatus CRenderSwatchGenerator::BuildArnoldScene()
    }
    MString arnoldNodeName(AiNodeGetName(arnoldNode));
    if (NULL != arnoldNode) {
-      AiMsgDebug("[mtoa] swatch exported %s as %s", mayaNodeName.asChar(), arnoldNodeName.asChar());
+      AiMsgDebug("Swatch exported %s as %s", mayaNodeName.asChar(), arnoldNodeName.asChar());
    }
 
    // Assign it in the scene, depending on what it is
@@ -472,8 +472,7 @@ void CRenderSwatchGenerator::ClearSwatch()
 
 void CRenderSwatchGenerator::ErrorSwatch(const MString msg)
 {
-   const MString error_message("[mtoa - swatch render] "+msg);
-   MGlobal::displayError(error_message);
+   const MString error_message("[swatch render] "+msg);
    AiMsgError(error_message.asChar());
    ClearSwatch();
 }

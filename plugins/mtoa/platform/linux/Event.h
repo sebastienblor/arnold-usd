@@ -55,7 +55,7 @@ public:
             
             if (wret != 0)
             {
-               AiMsgError("[mtoa] ERROR: pthread_cond_wait() error %i (%s:%s)", wret, __FILE__, __LINE__);
+               AiMsgError("pthread_cond_wait() error %i (%s:%s)", wret, __FILE__, __LINE__);
                abort();
             }
          }
@@ -93,7 +93,7 @@ public:
             case EINVAL:
             case EPERM:
             default:
-               AiMsgError("[mtoa] pthread_cond_timedwait() error %i (%s:%s)", wret, __FILE__, __LINE__);
+               AiMsgError("pthread_cond_timedwait() error %i (%s:%s)", wret, __FILE__, __LINE__);
                abort();
             }
          }

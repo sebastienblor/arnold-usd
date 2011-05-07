@@ -55,11 +55,7 @@ MStatus CArnoldCustomShaderNode::initialize()
 
    const AtNodeEntry *nodeEntry = AiNodeEntryLookUp(s_shaderName.asChar());
 
-   // Cannot use AiMsgDebug since not render has yet taken place and logger options
-   // are not yet initialized
-#ifdef _DEBUG
-   AiMsgInfo("[mtoa] initializing shader %s", s_shaderName.asChar());
-#endif
+   AiMsgDebug("Initializing shader %s", s_shaderName.asChar());
 
    CStaticAttrHelper helper(CArnoldCustomShaderNode::addAttribute, nodeEntry);
 

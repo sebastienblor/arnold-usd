@@ -85,10 +85,10 @@ AtNode* CNodeTranslator::DoExport(AtUInt step)
       if (step == 0)
       {
          if (m_outputAttr != "")
-            AiMsgDebug("[mtoa] Exporting: %s.%s using translator \"%s\"",
+            AiMsgDebug("Exporting: %s.%s using translator %s",
                        GetFnNode().name().asChar(), m_outputAttr.asChar(), GetTranslatorName());
          else
-            AiMsgDebug("[mtoa] Exporting: %s using translator \"%s\"",
+            AiMsgDebug("[mtoa] Exporting: %s using translator %s",
                        GetFnNode().name().asChar(), GetTranslatorName());
          Export(m_atNode);
          ExportUserAttribute(m_atNode);
@@ -96,10 +96,10 @@ AtNode* CNodeTranslator::DoExport(AtUInt step)
       else if (RequiresMotionData())
       {
          if (m_outputAttr != "")
-            AiMsgDebug("[mtoa] Exporting motion: %s.%s using translator \"%s\"",
+            AiMsgDebug("Exporting motion: %s.%s using translator %s",
                        GetFnNode().name().asChar(), m_outputAttr.asChar(), GetTranslatorName());
          else
-            AiMsgDebug("[mtoa] Exporting motion: %s using translator \"%s\"",
+            AiMsgDebug("Exporting motion: %s using translator %s",
                        GetFnNode().name().asChar(), GetTranslatorName());
 
          ExportMotion(m_atNode, step);
@@ -142,7 +142,7 @@ AtNode* CNodeTranslator::DoCreateArnoldNodes()
 {
    m_atNode = CreateArnoldNodes();
    if (m_atNode == NULL)
-      AiMsgWarning("[mtoa] Translator for %s returned an empty Arnold root node", GetFnNode().name().asChar());
+      AiMsgWarning("Translator for %s returned an empty Arnold root node", GetFnNode().name().asChar());
 
    return m_atNode;
 }
@@ -156,7 +156,7 @@ AtNode* CNodeTranslator::GetArnoldNode(const char* tag)
 {
    if (m_atNodes.count(tag))
       return m_atNodes[tag];
-   AiMsgError("[mtoa] Translator has not created an Arnold node with tag \"%s\"", tag);
+   AiMsgError("Translator has not created an Arnold node with tag \"%s\"", tag);
    return NULL;
 }
 
@@ -173,7 +173,7 @@ AtNode* CNodeTranslator::AddArnoldNode(const char* type, const char* tag)
    }
    else
    {
-      AiMsgError("[mtoa] Arnold node type \"%s\" does not exist", type);
+      AiMsgError("Arnold node type %s does not exist", type);
       return NULL;
    }
 }
@@ -233,14 +233,14 @@ void CNodeTranslator::RemoveIPRCallbacks()
 // This is a simple callback triggered when a node is marked as dirty.
 void CNodeTranslator::NodeDirtyCallback(MObject &node, MPlug &plug, void *clientData)
 {
-   AiMsgDebug("[mtoa] Node changed, updating Arnold. Plug that fired: %s %p", plug.name().asChar(), clientData);
+   AiMsgDebug("Node changed, updating Arnold. Plug that fired: %s %p", plug.name().asChar(), clientData);
    UpdateIPR(clientData);
 }
 
 void CNodeTranslator::NameChangedCallback(MObject &node, const MString &str, void *clientData)
 // This is a simple callback triggered when the name changes.
 {
-   AiMsgDebug("[mtoa] Node name changed, updating Arnold");
+   AiMsgDebug("Node name changed, updating Arnold");
    CNodeTranslator * translator = static_cast< CNodeTranslator* >(clientData);
    if (translator != NULL)
       translator->SetArnoldNodeName(translator->GetArnoldRootNode());
@@ -250,7 +250,7 @@ void CNodeTranslator::NameChangedCallback(MObject &node, const MString &str, voi
 // disconnect them, turn them off, etc.
 void CNodeTranslator::NodeDeletedCallback(MObject &node, MDGModifier &modifier, void *clientData)
 {
-   AiMsgDebug("[mtoa] Node deleted, updating Arnold %p", clientData);
+   AiMsgDebug("Node deleted, updating Arnold %p", clientData);
    CNodeTranslator * translator = static_cast< CNodeTranslator* >(clientData);
    if (translator != NULL)
    {
@@ -477,7 +477,7 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
                break;
             default:
                // not supported: k2Short, k2Long, k3Short, k3Long, kAddr
-               AiMsgError("[mtoa] unsupported user attribute type %s", pAttr.partialName(true, false, false, false, false, true).asChar());
+               AiMsgError("Unsupported user attribute type %s", pAttr.partialName(true, false, false, false, false, true).asChar());
                break;
             }
          }
@@ -577,12 +577,12 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
                break;
             default:
                // kMatrix, kNumeric (this one should have be caught be hasFn(MFn::kNumericAttribute))
-               AiMsgError("[mtoa] unsupported user attribute type %s", pAttr.partialName(true, false, false, false, false, true).asChar());
+               AiMsgError("Unsupported user attribute type %s", pAttr.partialName(true, false, false, false, false, true).asChar());
                break;
             }
          }
          else
-            AiMsgError("[mtoa] unsupported user attribute type %s", pAttr.partialName(true, false, false, false, false, true).asChar());
+            AiMsgError("Unsupported user attribute type %s", pAttr.partialName(true, false, false, false, false, true).asChar());
       }
    }
 }
@@ -684,7 +684,7 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* mayaAt
    MPlug plug = FindPlug(m_fnNode, mayaAttrib);
    if (plug.isNull())
    {
-      AiMsgWarning("[mtoa] Maya node %s does not have requested attribute %s", m_fnNode.name().asChar(), mayaAttrib);
+      AiMsgWarning("Maya node %s does not have requested attribute %s", m_fnNode.name().asChar(), mayaAttrib);
       return NULL;
    }
    return ProcessParameter(arnoldNode, plug, AiParamGetName(paramEntry), AiParamGetType(paramEntry), element);
@@ -696,7 +696,7 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* attrib
    MPlug plug = FindPlug(m_fnNode, attrib);
    if (plug.isNull())
    {
-      AiMsgWarning("[mtoa] Maya node %s does not have requested attribute %s", m_fnNode.name().asChar(), attrib);
+      AiMsgWarning("Maya node %s does not have requested attribute %s", m_fnNode.name().asChar(), attrib);
       return NULL;
    }
    return ProcessParameter(arnoldNode, plug, attrib, arnoldAttribType, element);
@@ -708,7 +708,7 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* mayaAt
    MPlug plug = FindPlug(m_fnNode, mayaAttrib);
    if (plug.isNull())
    {
-      AiMsgWarning("[mtoa] Maya node %s does not have requested attribute %s", m_fnNode.name().asChar(), mayaAttrib);
+      AiMsgWarning("Maya node %s does not have requested attribute %s", m_fnNode.name().asChar(), mayaAttrib);
       return NULL;
    }
    return ProcessParameter(arnoldNode, plug, arnoldAttrib, arnoldAttribType, element);
@@ -725,7 +725,7 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, MPlug& plug, const
 {
    if (arnoldNode == NULL)
    {
-      AiMsgError("[mtoa] Cannot process %s parameter on null node", arnoldAttrib);
+      AiMsgError("Cannot process %s parameter on null node", arnoldAttrib);
       return NULL;
    }
 
@@ -875,7 +875,7 @@ void CDagTranslator::SetArnoldNodeName(AtNode* arnoldNode, const char* tag)
 
 void CDagTranslator::AddHierarchyCallbacks(const MDagPath & path)
 {
-   AiMsgDebug("[mtoa] Adding callbacks to parents of: %s", path.partialPathName().asChar());
+   AiMsgDebug("Adding callbacks to parents of: %s", path.partialPathName().asChar());
 
    // Loop through the whole dag path adding callbacks to them.
    MStatus status;

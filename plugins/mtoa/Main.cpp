@@ -47,9 +47,9 @@ AtVoid MtoaLogCallback(AtInt logmask, AtInt severity, const char *msg_string, At
    else
    {
       sprintf(buf, header, msg_string);
-      // Regular logging with the header added
+      // Standard log output
       clog << buf << endl;
-      // Then some feedback will go in Maya script window
+      // Some feedback will go in Maya script window
       switch (severity)
       {
       case AI_SEVERITY_INFO:
@@ -388,10 +388,8 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    MString loadpath = plugin.loadPath();
    MString metafile = loadpath + "/" + "mtoa.mtd";
    AtBoolean readMetaSuccess = AiMetaDataLoadFile(metafile.asChar());
-   if (!readMetaSuccess) {
-      AiMsgError("[mtoa] Could not read mtoa built-in metadata file mtoa.mtd");
-      MGlobal::displayError("[mtoa] Could not read mtoa built-in metadata file mtoa.mtd");
-   }
+   if (!readMetaSuccess) AiMsgError("Could not read mtoa built-in metadata file mtoa.mtd");
+
    RegisterArnoldNodes(object);
 
    MGlobal::executePythonCommand(MString("import mtoa.cmds.registerArnoldRenderer;mtoa.cmds.registerArnoldRenderer.registerArnoldRenderer()"));

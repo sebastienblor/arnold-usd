@@ -62,24 +62,18 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
 {
    if (m_nodeEntry == NULL)
    {
-      AiMsgError("[mtoa] Cannot retrieve parameter metadata from a null node entry");
+      AiMsgError("Cannot retrieve parameter metadata from a null node entry");
       return false;
    }
 
    const AtParamEntry* paramEntry = AiNodeEntryLookUpParameter(m_nodeEntry, paramName);
    if (paramEntry == NULL)
    {
-      AiMsgError("[mtoa] Parameter does not exist: %s", paramName);
+      AiMsgError("Parameter does not exist: %s", paramName);
       return false;
    }
 
-   // Cannot use AiMsgDebug for builtins since not render has yet taken place and logger options
-   // are not yet initialized
-#ifdef _DEBUG
-   AiMsgInfo("[METADATA] getting attribute metadata for %s.%s", AiNodeEntryGetName(m_nodeEntry), paramName);
-#else
-   AiMsgDebug("[METADATA] getting attribute metadata for %s.%s", AiNodeEntryGetName(m_nodeEntry), paramName);
-#endif
+   AiMsgDebug("Getting attribute metadata for %s.%s", AiNodeEntryGetName(m_nodeEntry), paramName);
 
    data.defaultValue = MAiParamGetDefault(m_nodeEntry, paramEntry);
    data.name = GetMayaAttrName(paramName);

@@ -248,7 +248,7 @@ AtNode* CCustomShapeTranslator::ExportCustomShape(AtUInt step)
    MStatus status = MGlobal::executeCommand(command, attrs);
    if (!status)
    {
-      AiMsgError("[mtoa] Failed to export custom shape \"%s\".", node.name().asChar());
+      AiMsgError("[custom shapes] Failed to export custom shape \"%s\".", node.name().asChar());
       return NULL;
    }
 
@@ -707,7 +707,7 @@ AtNode* CCustomShapeTranslator::ExportCustomShape(AtUInt step)
 
       if (!status)
       {
-         AiMsgError("[mtoa] Failed to cleanup custom shape \"%s\".", node.name().asChar());
+         AiMsgError("[custom shapes] Failed to cleanup custom shape \"%s\".", node.name().asChar());
          return NULL;
       }
    }

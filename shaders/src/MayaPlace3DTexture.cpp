@@ -166,7 +166,7 @@ shader_evaluate
    AtMatrix *pM = data->getOrCreateMatrix(sg);
    if (!pM)
    {
-      AiMsgWarning("[mtoa_shaders] MayaPlace3DTexture: Trying to access node matrix data while node is being destroyed");
+      AiMsgWarning("[mtoa_shaders] [MayaPlace3DTexture] Trying to access node matrix data while node is being destroyed");
       return;
    }
    
