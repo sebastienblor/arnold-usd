@@ -156,7 +156,9 @@ namespace // <anonymous>
       CExtension* builtin = CExtensionsManager::GetBuiltin();
       // Load all plugins path or only shaders?
       // TODO: what should be in builtin or get it's own extension ?
-      builtin->LoadArnoldPlugin("mtoa_shaders");
+      // builtin->LoadArnoldPlugin("mtoa_shaders");
+      // TODO : allow relative plugin path with $ARNOLD_PLUGIN_PATH search?
+      builtin->LoadArnoldPlugin("$ARNOLD_PLUGIN_PATH/mtoa_shaders");
 
       // Add Translators for new nodes
       builtin->RegisterTranslator("options",
