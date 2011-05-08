@@ -2,17 +2,18 @@
 #define EXTENSION_H
 
 // TODO : mode/Translator.h"
+#include "extension/PathUtils.h"
 #include "extension/PxUtils.h"
-
 #include "common/DynLibrary.h"
 #include "scene/NodeTranslator.h"
 
 #include <maya/MTypeId.h>
-#include <maya/MFnPlugin.h>
 #include <maya/MPxNode.h>
 
 #include <ai_nodes.h>
 #include <ai.h>
+
+#define BUILTIN "<built-in>"
 
 
 // class CExtension;
@@ -38,7 +39,7 @@ class DLLEXPORT CExtension
    friend class CExtensionsManager;
 
 public:
-   CExtension(const MString &extensionFile);
+   CExtension(const MString &file);
    virtual ~CExtension() {}
    MString GetName() const {return m_extensionName;}
    MString GetFile() const {return m_extensionFile;}
@@ -46,12 +47,18 @@ public:
    bool IsRegistered() const {return m_registered;}
 
    // Arnold Plugin loading
-   MStatus LoadArnoldPlugin(const MString &path);
+   MString LoadArnoldPlugin(const MString &file,
+                            const MString &path="",
+                            MStatus *returnStatus=NULL);
    MStringArray GetOwnLoadedArnoldPlugins();
 
    // Register Maya nodes for all Arnold nodes declared with
    // the given plugin, using metadata info
-   MStatus RegisterNodes(const MString &path);
+   MStatus RegisterAllNodes(const MString &plugin="");
+   // Register Maya nodes for all Arnold nodes declared with
+   // the given plugin, using Arnold node type and metadata info
+   MStatus RegisterAllTranslators(const MString &plugin="");
+
    // Register the Maya node for a givem Arnold node,
    // using the node metadata
    // Will use ArnoldDefaultNode or ArnoldDefaultDag
@@ -82,39 +89,55 @@ public:
                         const MString *classification=NULL);
    // TODO : deferred MStatus RegisterNode(const MString &typeName, const MTypeId &typeId, const MString &pluginProvider);
 
-   // Old signature for compatibility
+   // Old signature for compatibility, gives no access to metadata
    MStatus RegisterTranslator(const MString &mayaTypeName,
                               const MTypeId &mayaTypeId,
-                              const MString translatorName,
+                              const MString &translatorName,
                               TCreatorFunction creatorFunction,
                               TNodeInitFunction nodeInitFunction=NULL);
-   // Register a translator for a given Arnold node and Maya node type
+   // To register a translator from the metadata associated with the Arnold node name or entry
    MStatus RegisterTranslator(const MString &arnoldNodeName,
-                              const MString &mayaTypeName="",
-                              const MString translatorName="",
+                              const MString &translatorName="",
                               TCreatorFunction creatorFunction=NULL,
                               TNodeInitFunction nodeInitFunction=NULL);
-   // Register a translator for a given Arnold node entry and Maya node type
    MStatus RegisterTranslator(const AtNodeEntry* arnoldNodeEntry,
-                              const MString &mayaTypeName="",
-                              const MString translatorName="",
+                              const MString &translatorName="",
                               TCreatorFunction creatorFunction=NULL,
                               TNodeInitFunction nodeInitFunction=NULL);
+   // To manually register a translator for a given Arnold node and Maya type name,
+   // since it is used to add an addtionnal translator to a Maya node you need to
+   // provide a translator name and a creator method.
+   MStatus RegisterTranslator(const MString &arnoldNodeName,
+                              const MString &mayaTypeName,
+                              const MString &translatorName,
+                              TCreatorFunction creatorFunction,
+                              TNodeInitFunction nodeInitFunction=NULL);
+
 
 protected :
-   MStatus DoRegisterArnoldPlugin(const MString &path);
-   MStatus DoRegisterMayaNode(const CPxMayaNode &mayaNode,
-                              const CPxArnoldNode &arnoldNode=CPxArnoldNode());
-   MStatus DoRegisterTranslator(const CPxTranslator &translator,
-                                const CPxMayaNode &mayaNode);
+   MStatus NewArnoldPlugin(const MString &file);
+   MStatus DeleteArnoldPlugin(const MString &file);
+   MStatus NewMayaNode(CPxMayaNode mayaNode,
+                       const CPxArnoldNode &arnoldNode);
+   MStatus NewMayaNode(CPxMayaNode mayaNode);
+   MStatus MapMayaNode(const CPxMayaNode &mayaNode,
+                       const CPxArnoldNode &arnoldNode);
+   MStatus NewTranslator(const CPxTranslator &translator,
+                         const CPxMayaNode &mayaNode);
 
    const CPxMayaNode* FindRegisteredMayaNode(const CPxMayaNode &mayaNode);
-   const CPxMayaNode* FindAssociatedMayaNode(const CPxArnoldNode &arnoldNode);
    const TranslatorsSet* FindRegisteredTranslators(const CPxMayaNode &mayaNode);
+
+   static MString FindFileInPath(const MString &file,
+                                 const MString &path,
+                                 MStatus *returnStatus=NULL);
+   static MStringArray FindLibraries(const MString &path,
+                                     MStatus *returnStatus=NULL);
 
    static bool IsArnoldPluginLoaded(const MString &path);
    static MStringArray GetAllLoadedArnoldPlugins();
 
+   // TODO : reimplement this?
    void InitializePendingTranslators(MString& pluginName);
    void MayaPluginLoadedCallback(const MStringArray &strs, void *clientData);
    void CreateCallbacks();
@@ -129,6 +152,7 @@ protected:
    // only the new maya nodes registered by this Extension
    MayaNodesSet m_registeredMayaNodes;
    // new maya nodes as well as existing associated to arnold nodes
+   // FIXME can probably remove it
    ArnoldNodeToMayaNodeMap m_arnoldToMayaNodes;
    // translators registered by this extension, indexed by Maya node
    MayaNodeToTranslatorsMap m_registeredTranslators;
@@ -136,7 +160,6 @@ protected:
    LoadedArnoldPluginsSet m_ownLoadedArnoldPlugins;
 
    // PluginDataMap m_mayaPluginData;
-   static MString s_swatchRenderer;
    static unsigned int s_autoNodeId;
    static MCallbackId s_pluginLoadedCallbackId;
 

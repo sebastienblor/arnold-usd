@@ -10,63 +10,7 @@
 #include <maya/MFileObject.h>
 #include <maya/MPlugArray.h>
 
-#define BUILTIN "<built-in>"
 
-#ifdef _WIN32
-#include <platform/win32/dirent.h>
-#define PATHSEP ';'
-#define DIRSEP "/"
-#define LIBEXT MString(".dll")
-#else
-#include <sys/types.h>
-#include <dirent.h>
-#include <dlfcn.h>
-
-#define PATHSEP ':'
-#define DIRSEP "/"
-#ifdef _LINUX
-#define LIBEXT MString(".so")
-#endif
-#ifdef _DARWIN
-#define LIBEXT MString(".dylib")
-#endif
-#endif
-
-/// @param searchPath  a path to search for libraries, optionally containing
-/// separators (: on unix, ; on windows) and environment variables
-int FindLibraries(MString searchPath, MStringArray &files)
-{
-   MString resolvedPathList = searchPath.expandFilePath();
-   MStringArray pluginPaths;
-   resolvedPathList.split(PATHSEP, pluginPaths);
-   for (unsigned int i=0; i<pluginPaths.length(); ++i)
-   {
-      MString dir = pluginPaths[i];
-      DIR *dp;
-      struct dirent *dirp;
-      if ((dp  = opendir(dir.asChar())) == NULL)
-      {
-         // TODO: print better error message
-         cerr << "Error(" << errno << ") opening " << dir << endl;
-         continue;
-      }
-      while ((dirp = readdir(dp)) != NULL)
-      {
-         MString entry = dirp->d_name;
-         unsigned int nchars = entry.numChars();
-         if (nchars > LIBEXT.numChars())
-         {
-            MString ext = entry.substringW(nchars-LIBEXT.numChars(), nchars);
-            if (entry.substringW(0,0) != "." && ext == LIBEXT)
-            {
-               files.append(dir + DIRSEP + entry);
-            }
-         }
-      }
-      closedir(dp);
-   }
-   return 0;
-}
 
 // CExtensionsManager
 
@@ -111,52 +55,53 @@ CExtension* CExtensionsManager::GetBuiltin()
 ///
 /// @param path  the absolute path to an Arnold plugin
 ///
-CExtension* CExtensionsManager::LoadArnoldPlugin(const MString &path)
+CExtension* CExtensionsManager::LoadArnoldPlugin(const MString &file,
+                                                 const MString &path,
+                                                 MStatus *returnStatus)
 {
-#ifdef _WIN32
-   char buffer[MAX_PATH];
-   GetFullPathName(path.asChar(), MAX_PATH, buffer, NULL);
-   MString pluginPath(buffer);
-#else
-   MString pluginPath(path);
-#endif
-   MFileObject pluginFile;
-   pluginFile.setRawFullName(pluginPath);
-   MString resolvedPath = pluginFile.resolvedFullName();
-   CExtension* pluginExtension;
-   // Create a CExtension to generate corresponding Maya nodes
-   pluginExtension = NewExtension(resolvedPath);
-   if (NULL != pluginExtension)
+   MStatus status;
+   MString resolved = CExtension::FindFileInPath(file, path, &status);
+   CExtension* pluginExtension = NULL;
+   if (MStatus::kSuccess == status)
    {
-      // Extension loads the Arnold Plugin and will register new Maya nodes
-      pluginExtension->LoadArnoldPlugin(resolvedPath);
-      // Register new nodes with Maya
-      RegisterExtension(pluginExtension);
+      // Create a CExtension to generate corresponding Maya nodes
+      pluginExtension = NewExtension(resolved);
+      if (NULL != pluginExtension)
+      {
+         // Extension loads the Arnold Plugin and will register new Maya nodes
+         pluginExtension->LoadArnoldPlugin(MString(file), path, &status);
+         if (MStatus::kSuccess == status)
+         {
+            // Register plugin nodes and translators
+            status = pluginExtension->RegisterAllNodes(resolved);
+            status = pluginExtension->RegisterAllTranslators(resolved);
+            // TODO: Do not register new nodes with Maya immediatly to allow modification?
+            status = RegisterExtension(pluginExtension);
+         } else {
+            // Remove empty extension if plugin load failed
+            DeleteExtension(pluginExtension);
+         }
+      }
    }
+
+   if (NULL != returnStatus) *returnStatus = status;
    return pluginExtension;
 }
 
 /// Load all Arnold plugins on the plugin path
 ///
-MStatus CExtensionsManager::LoadArnoldPlugins(const MString &directory)
+MStatus CExtensionsManager::LoadArnoldPlugins(const MString &path)
 {
-   MStatus status = MStatus::kSuccess;
+   MStatus status = MStatus::kNotFound;
 
-   // MString resolvedPathList = MString("$ARNOLD_PLUGIN_PATH").expandEnvironmentVariablesAndTilde();
    MStringArray plugins;
-   FindLibraries(directory, plugins);
+   plugins = CExtension::FindLibraries(path, &status);
    for (unsigned int i=0; i<plugins.length(); ++i)
    {
-      MString path = plugins[i];
-      if (path.numChars() > 0)
+      MString resolved = plugins[i];
+      if (resolved.numChars() > 0)
       {
-         cerr << "Loading plugin:" << path.asChar() << endl;
-         CExtension* pluginExtension;
-         pluginExtension = LoadArnoldPlugin(path);
-         if (NULL == pluginExtension)
-         {
-            status = MStatus::kFailure;
-         }
+         LoadArnoldPlugin(resolved, "", &status);
       }
    }
 
@@ -166,66 +111,67 @@ MStatus CExtensionsManager::LoadArnoldPlugins(const MString &directory)
 
 /// Load an MtoA extension.
 ///
-CExtension* CExtensionsManager::LoadExtension(const MString &path)
+CExtension* CExtensionsManager::LoadExtension(const MString &file,
+                                              const MString &path,
+                                              MStatus *returnStatus)
 {
-#ifdef _WIN32
-   char buffer[MAX_PATH];
-   GetFullPathName(path.asChar(), MAX_PATH, buffer, NULL);
-   MString pluginPath(buffer);
-#else
-   MString pluginPath(path);
-#endif
-   MFileObject pluginFile;
-   pluginFile.setRawFullName(pluginPath);
-   MString resolvedPath = pluginFile.resolvedFullName();
-   CExtension* extension;
-   extension = NewExtension(resolvedPath);
-   if (NULL != extension)
+   MStatus status;
+   MString resolved = CExtension::FindFileInPath(file, path, &status);
+   CExtension* extension = NULL;
+   if (MStatus::kSuccess == status)
    {
-      AiMsgInfo("Loading extension %s from %s", extension->GetName().asChar(), extension->GetFile().asChar());
-
-      void *pluginLib = LibraryLoad(extension->GetFile().asChar());
-      if (pluginLib == NULL)
+      // Create a CExtension to represent loaded extension
+      extension = NewExtension(resolved);
+      while (NULL != extension)
       {
-         AiMsgError("Error loading extension library: %s", LibraryLastError());
-         return NULL;
+         AiMsgInfo("Loading extension %s(%s)...", extension->GetName().asChar(), extension->GetFile().asChar());
+         void *pluginLib = LibraryLoad(extension->GetFile().asChar());
+         if (pluginLib == NULL)
+         {
+            AiMsgError("Error loading extension library: %s.", LibraryLastError());
+            DeleteExtension(extension);
+            status = MStatus::kFailure;
+         }
+         void* initializer = LibrarySymbol(pluginLib, "initializePlugin");
+         if (initializer == NULL)
+         {
+            AiMsgError("Error initializing extension library: %s.", LibraryLastError());
+            DeleteExtension(extension);
+            status = MStatus::kFailure;
+         }
+         ExtensionInitFunction* initFunc = (ExtensionInitFunction*)(&initializer);
+         // Do the init
+         (*initFunc)(*extension);
+         AiMsgInfo("Successfully loaded extension library %s.", extension->GetFile().asChar());
+         // TODO: do not register now to allow to add calls (registerNode, etc) on it before?
+         status = RegisterExtension(extension);
+         // TODO: delete if registration failure?
+         if (MStatus::kSuccess == status)
+         {
+            extension->m_registered = true;
+         }
       }
-
-      void* initializer = LibrarySymbol(pluginLib, "initializePlugin");
-      if (initializer == NULL)
-      {
-         AiMsgError("Error initializing extension library: %s", LibraryLastError());
-         return NULL;
-      }
-      ExtensionInitFunction* initFunc = (ExtensionInitFunction*)(&initializer);
-      // Do the init
-      (*initFunc)(*extension);
-      AiMsgInfo("Loaded extension library %s", extension->GetFile().asChar());
-
-      // Do not register now to allow to add calls (registerNode, etc) on it before?
-      // RegisterExtension(extension);
    }
 
+   if (NULL != returnStatus) *returnStatus = status;
    return extension;
 }
 
 /// Load all MtoA extensions on the extension path.
 ///
-MStatus CExtensionsManager::LoadExtensions(const MString &directory)
+MStatus CExtensionsManager::LoadExtensions(const MString &path)
 {
-   MStatus status = MStatus::kSuccess;
+   MStatus status = MStatus::kNotFound;
 
-   // TODO: replace this with python code
    MStringArray extensions;
-   FindLibraries(directory, extensions);
+   extensions = CExtension::FindLibraries(path, &status);
    for (unsigned int i=0; i<extensions.length(); ++i)
    {
-      MString path = extensions[i];
-      if (path.numChars() > 0)
+      MString resolved = extensions[i];
+      if (resolved.numChars() > 0)
       {
-         cerr << "Loading extension:" << path.asChar() << endl;
-         LoadExtension(path);
-         MString cmd = "import mtoa.api.extensions;mtoa.api.extensions.loadExtensionUI('" + path + "')";
+         LoadExtension(resolved, "", &status);
+         MString cmd = "import mtoa.api.extensions;mtoa.api.extensions.loadExtensionUI('" + resolved + "')";
          CHECK_MSTATUS(MGlobal::executePythonCommand(cmd));
       }
    }
@@ -299,13 +245,14 @@ MStatus CExtensionsManager::RegisterExtension(CExtension* extension)
 
    if (extension->IsRegistered())
    {
-      AiMsgError("Already registered extension %s", extension->GetFile().asChar());
+      AiMsgError("Already registered extension %s.", extension->GetFile().asChar());
       return MStatus::kFailure;
    }
    // We need to update all global maps with this extension's maps
    // and register the new Maya nodes provided by this extension with Maya
 
    // Add all Maya nodes registered by this extension to the global set
+   AiMsgInfo("Extension %s registering new Maya nodes.", extension->GetFile().asChar());
    const CPxMayaNode* mayaNode;
    const CPxMayaNode* existingMayaNode;
    MayaNodesSet::iterator rnodeIt;
@@ -318,7 +265,8 @@ MStatus CExtensionsManager::RegisterExtension(CExtension* extension)
       if (NULL != existingMayaNode)
       {
          // TODO : allow node overriding?
-         AiMsgError("Extension %s trying to override Maya node %s already registered by %s", mayaNode->provider.asChar(), existingMayaNode->name.asChar(), existingMayaNode->provider.asChar());
+         AiMsgError("Extension %s tried to override Maya node %s already registered by %s.)",
+               mayaNode->provider.asChar(), existingMayaNode->name.asChar(), existingMayaNode->provider.asChar());
          status = MStatus::kFailure;
          continue;
       }
@@ -343,6 +291,7 @@ MStatus CExtensionsManager::RegisterExtension(CExtension* extension)
    // TODO currently translators can be overriden, including builting ones
    // do we want that or only allow to add new ones, or only to specialise
    // translators (overriding for subclasses of a node class only)
+   AiMsgInfo("Extension %s registering new translators.", extension->GetFile().asChar());
    MayaNodeToTranslatorsMap::iterator tnodeIt;
    for (tnodeIt = extension->m_registeredTranslators.begin();
          tnodeIt != extension->m_registeredTranslators.end();
@@ -368,16 +317,98 @@ MStatus CExtensionsManager::RegisterExtension(CExtension* extension)
             if (false == ret.second)
             {
                CPxTranslator &oldTranslator = *ret.first;
-               AiMsgInfo("Extension %s overriding tranlator %s previously defined by extension %s", translator.provider.asChar(), oldTranslator.name.asChar(), oldTranslator.provider.asChar());
+               AiMsgInfo("Extension %s is overriding tranlator %s previously defined by extension %s.",
+                     translator.provider.asChar(), oldTranslator.name.asChar(), oldTranslator.provider.asChar());
                oldTranslator = translator;
             }
          }
       }
+      // FIXME reimplement Add nodes dynamic attributes
+      // TODO:  Old stuff, to be reworked
+
+      /*
+
+      /// Initialize all translators that are waiting for a particular plugin to load
+      void CExtension::InitializePendingTranslators(MString& pluginName)
+      {
+         // get all the nodes created by this plugin with class initializers
+         std::vector<CMayaPluginData>& nodes = m_mayaPluginData[pluginName.asChar()];
+         for (unsigned int i=0; i < nodes.size(); i++)
+            nodes[i].nodeClassInitializer(nodes[i].mayaNode);
+
+         // TODO: find out if extension attributes persist even if the plugin has been unloaded and then reloaded
+         m_mayaPluginData[pluginName.asChar()].clear();
+      }
+
+
+      /// Called when a plugin is loaded to ensure that each translator that requires
+      /// node initialization gets a callback installed
+      void CExtension::MayaPluginLoadedCallback(const MStringArray &strs, void *clientData)
+      {
+         // 0 = pluginPath, 1 = pluginName
+         MString pluginName = strs[1];
+
+         // start up the arnold universe so that attribute helpers can query arnold nodes
+         bool active = false;
+         if (AiUniverseIsActive())
+            active = true;
+         else
+            AiBegin();
+
+         for (unsigned int i=0; i < s_extensions.size(); i++)
+            s_extensions[i]->InitializePendingTranslators(pluginName);
+
+         if (!active)
+            AiEnd();
+      }
+
+      /// Installs the plugin-loaded callback
+      void CExtension::CreateCallbacks()
+      {
+         MStatus status;
+         // create callbacks
+         s_pluginLoadedCallbackId = MSceneMessage::addStringArrayCallback(MSceneMessage::kAfterPluginLoad, CExtension::MayaPluginLoadedCallback, NULL, &status);
+         CHECK_MSTATUS(status);
+      }
+
+      void CExtension::RemoveCallbacks()
+      {
+         // delete callbacks
+         if (s_pluginLoadedCallbackId != 0)
+            MMessage::removeCallback(s_pluginLoadedCallbackId);
+
+         // const MStatus status = MNodeMessage::removeCallbacks(s_mayaCallbackIDs);
+         // CHECK_MSTATUS(status);
+         // if (status == MS::kSuccess)
+         //    s_mayaCallbackIDs.clear();
+
+      }
+
+      */
+      // FIXME add this when more than one translator
+      // translator.nodeInitializer(mayaNode);
+      // Caller will do this when collecting registered translators
+      // create the "arnoldTranslator" attribute
+      /*
+      CExtensionAttrHelper helper(mayaNode);
+      CAttrData data;
+      data.defaultValue.STR = "";
+      data.name = "arnoldTranslator";
+      data.shortName = "arntr";
+      helper.MakeInputString(data);
+      */
+
    }
 
    return status;
 }
 
+MStatus CExtensionsManager::RegisterExtensions()
+{
+   MStatus status;
+
+   return status;
+}
 
 MStatus CExtensionsManager::DeregisterExtension(const CExtension* extension)
 {
@@ -420,6 +451,12 @@ MStatus CExtensionsManager::DeregisterExtension(const CExtension* extension)
    return status;
 }
 
+MStatus CExtensionsManager::DeregisterExtensions()
+{
+   MStatus status;
+
+   return status;
+}
 
 /// Get a instancied CDagTranslator translator for the given node (MObject)
 /// using the value of the "arnoldTranslator" attribut
@@ -460,7 +497,7 @@ CNodeTranslator* CExtensionsManager::GetTranslator(const MString &typeName,
    allTranslators = FindRegisteredTranslators(mayaNode);
    if (NULL == allTranslators || allTranslators->empty())
    {
-      AiMsgDebug("There are no registered translators for Maya node %s, it won't be exported", mayaNode.name);
+      AiMsgDebug("[maya %s] No registered translators, it won't be exported.", mayaNode.name);
       return NULL;
    }
    const CPxTranslator* foundTrs = NULL;
@@ -472,14 +509,15 @@ CNodeTranslator* CExtensionsManager::GetTranslator(const MString &typeName,
       {
          searchTrs.name = "";
          foundTrs = FindRegisteredTranslator(mayaNode, searchTrs);
-         AiMsgDebug("Found no translator named %s for Maya node %s, defaulting on translator %s",
-               translatorName.asChar(), mayaNode.name.asChar(), foundTrs->name.asChar());
+         AiMsgDebug("[maya %s] found no translator named %s, defaulting on translator %s, provided by %s.",
+               mayaNode.name.asChar(), translatorName.asChar(), foundTrs->name.asChar(), foundTrs->provider.asChar());
       }
    }
    else
    {
       foundTrs = FindRegisteredTranslator(mayaNode, searchTrs);
-      AiMsgDebug("Using translator %s for Maya node %s", foundTrs->name.asChar(), mayaNode.name.asChar());
+      AiMsgDebug("[maya %s] Using translator %s, provided by %s.",
+         mayaNode.name.asChar(), foundTrs->name.asChar(), foundTrs->provider.asChar());
    }
 
    // Instanciate a new translator using proxy info
@@ -496,7 +534,8 @@ CNodeTranslator* CExtensionsManager::GetTranslator(const MString &typeName,
    }
    else
    {
-      AiMsgError("Translator %s was not correctly registered, no creator method", foundTrs->name.asChar());
+      AiMsgError("[maya %s] Translator %s has no creator method, incorrectly registered by %s.",
+         mayaNode.name.asChar(), foundTrs->name.asChar(), foundTrs->provider.asChar());
    }
 
    return translator;
@@ -546,11 +585,17 @@ CExtension* CExtensionsManager::GetExtension(const MString &extensionFile)
 CExtension* CExtensionsManager::NewExtension(const MString &extensionFile)
 {
    CExtension* result;
-   result = GetExtension(extensionFile);
-   if (NULL == result)
+
+   ExtensionsList::iterator extIt;
+   for (extIt = s_extensions.begin();
+         extIt != s_extensions.end();
+         extIt++)
+   {
+      if (extIt->GetFile() == extensionFile) break;
+   }
+   if (s_extensions.end() == extIt)
    {
       CExtension extension = CExtension(extensionFile);
-      ExtensionsList::iterator extIt;
       extIt = s_extensions.insert(s_extensions.end(), extension);
       if (s_extensions.end() != extIt)
       {
@@ -571,13 +616,40 @@ CExtension* CExtensionsManager::NewExtension(const MString &extensionFile)
    return result;
 }
 
+MStatus CExtensionsManager::DeleteExtension(CExtension* &extension)
+{
+   MStatus status;
+
+   ExtensionsList::iterator extIt;
+   for (extIt = s_extensions.begin();
+         extIt != s_extensions.end();
+         extIt++)
+   {
+      if (extIt->GetFile() == extension->GetFile()) break;
+   }
+   if (s_extensions.end() != extIt)
+   {
+      s_extensions.erase(extIt);
+      extension = NULL;
+      status = MStatus::kSuccess;
+   }
+   else
+   {
+      AiMsgError("Extension not managed: %s", extension->GetFile().asChar());
+      status = MStatus::kFailure;
+   }
+
+   return status;
+}
+
 MStatus CExtensionsManager::RegisterMayaNode(const CPxMayaNode &mayaNode)
 {
    MStatus status;
 
    if (MFnPlugin::isNodeRegistered(mayaNode.name))
    {
-      AiMsgError("Extension %s could not register node %s, already registered in Maya", mayaNode.provider.asChar(), mayaNode.name.asChar());
+      AiMsgError("Cannot register node %s provided by %s, it already exists",
+            mayaNode.name.asChar(), mayaNode.provider.asChar());
       return MStatus::kFailure;
    }
    status = MFnPlugin(s_plugin).registerNode(mayaNode.name, mayaNode.id,
@@ -586,11 +658,13 @@ MStatus CExtensionsManager::RegisterMayaNode(const CPxMayaNode &mayaNode)
    CHECK_MSTATUS(status);
    if (MStatus::kSuccess == status)
    {
-      AiMsgInfo("Extension %s registered node %s", mayaNode.provider.asChar(), mayaNode.name.asChar());
+      AiMsgInfo("Registered node %s provided by %s",
+            mayaNode.name.asChar(), mayaNode.provider.asChar());
    }
    else
    {
-      AiMsgError("Extension %s failed to register node %s", mayaNode.provider.asChar(), mayaNode.name.asChar());
+      AiMsgError("Failed to register node %s provided by %s",
+            mayaNode.name.asChar(), mayaNode.provider.asChar());
    }
 
    return status;
@@ -611,11 +685,13 @@ MStatus CExtensionsManager::DeregisterMayaNode(const CPxMayaNode &mayaNode)
    status = MFnPlugin(s_plugin).deregisterNode(mayaNode.id);
    if (MStatus::kSuccess == status)
    {
-      AiMsgInfo("Successfully deregistered node %s provided by extension %s", mayaNode.name.asChar(), mayaNode.provider.asChar());
+      AiMsgInfo("Successfully deregistered node %s provided by %s",
+            mayaNode.name.asChar(), mayaNode.provider.asChar());
    }
    else
    {
-      AiMsgError("Failed to deregister node %s provided by extension %s", mayaNode.name.asChar(), mayaNode.provider.asChar());
+      AiMsgError("Failed to deregister node %s provided by %s",
+            mayaNode.name.asChar(), mayaNode.provider.asChar());
    }
    return status;
 }

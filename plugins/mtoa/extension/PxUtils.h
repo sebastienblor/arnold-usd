@@ -10,18 +10,17 @@
 #include <set>
 #include <map>
 
-// Existing builtin maya nodes proxys corresponding to Arnold node types
-// (To store default base Maya classes per type of Arnold node)
+// Set of Maya node proxies
 typedef std::set<CPxMayaNode> MayaNodesSet;
-// Arnold node to Maya node map
+// Maya node to Arnold node multimap
 /// key: maya node name. value: arnold node name and maya node id
-typedef std::map<CPxMayaNode, CPxArnoldNode> MayaNodeToArnoldNodeMap;
+typedef std::multimap<CPxMayaNode, CPxArnoldNode> MayaNodeToArnoldNodeMap;
+// Arnold node to Maya node multimap
 /// key: arnold node name. value: maya node name
-typedef std::map<CPxArnoldNode, CPxMayaNode> ArnoldNodeToMayaNodeMap;
-// To store the data for nodes and translators this extension defined,
-// as well as their relation
-// TODO : vector to know load order (last)
+typedef std::multimap<CPxArnoldNode, CPxMayaNode> ArnoldNodeToMayaNodeMap;
+// Set of Translator proxies
 typedef std::set<CPxTranslator> TranslatorsSet;
+// Maya node to Translator map
 typedef std::map<CPxMayaNode, TranslatorsSet> MayaNodeToTranslatorsMap;
 
 #endif // PXUTILS_H

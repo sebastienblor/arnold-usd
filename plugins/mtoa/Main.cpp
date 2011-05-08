@@ -154,31 +154,52 @@ namespace // <anonymous>
       // Get a CExtension for the builtin nodes
       CExtensionsManager::SetMayaPlugin(object);
       CExtension* builtin = CExtensionsManager::GetBuiltin();
+      // Register Maya nodes for all builtin Arnold nodes,
+      // using Arnold node type and metadata info
+      // status = builtin->RegisterAllNodes(BUILTIN);
+      status = builtin->RegisterAllNodes("");
+      CHECK_MSTATUS(status);
+      // Register translators for all builtin Arnold nodes,
+      // using Arnold node type and metadata info
+      // status = builtin->RegisterAllTranslators(BUILTIN);
+      status = builtin->RegisterAllTranslators("");
+      CHECK_MSTATUS(status);
       // Load all plugins path or only shaders?
       // TODO: what should be in builtin or get it's own extension ?
       // builtin->LoadArnoldPlugin("mtoa_shaders");
       // TODO : allow relative plugin path with $ARNOLD_PLUGIN_PATH search?
-      builtin->LoadArnoldPlugin("$ARNOLD_PLUGIN_PATH/mtoa_shaders");
+      MString mtoaShaders("mtoa_shaders"+LIBEXT);
+      mtoaShaders = builtin->LoadArnoldPlugin(mtoaShaders, "$ARNOLD_PLUGIN_PATH", &status);
+      CHECK_MSTATUS(status);
+      // Register Maya nodes for all Arnold nodes declared with
+      // the given plugin, using Arnold node type and metadata info
+      status = builtin->RegisterAllNodes(mtoaShaders);
+      CHECK_MSTATUS(status);
+      // Register translators for all Arnold nodes declared with
+      // the given plugin, using Arnold node type and metadata info
+      status = builtin->RegisterAllTranslators(mtoaShaders);
+      CHECK_MSTATUS(status);
 
-      // Add Translators for new nodes
+      // Override specific node and translators for problematic cases
       builtin->RegisterTranslator("options",
                                   "aiOptions",
-                                  "<built-in>",
+                                  BUILTIN,
                                   CRenderOptionsTranslator::creator);
       builtin->RegisterTranslator("surfaceShader",
                                   "surfaceShader",
-                                  "<built-in>",
+                                  BUILTIN,
                                   CSurfaceShaderTranslator::creator);
       builtin->RegisterTranslator("lambert",
-                                  "lambert", "<built-in>",
+                                  "lambert",
+                                  BUILTIN,
                                   CLambertTranslator::creator);
       builtin->RegisterTranslator("layeredShader",
                                   "layeredShader",
-                                  "<built-in>",
+                                  BUILTIN,
                                   CLayeredShaderTranslator::creator);
       builtin->RegisterTranslator("file",
                                   "file",
-                                  "<built-in>",
+                                  BUILTIN,
                                   CFileTranslator::creator);
       builtin->RegisterTranslator("place2dTexture",
                                                  MAYA_NODEID_PLACE2D_TEXTURE,
@@ -294,8 +315,17 @@ namespace // <anonymous>
                                               CHairTranslator::creator,
                                               CHairTranslator::NodeInitializer);
 
-      CExtensionsManager::LoadArnoldPlugins();
+      // Will load all found plugins and try to register nodes and translators
+      // for the new Arnold node each create. A CExtension is initialized
+      // for each plugin, and will try to register the corresponding and can be referenced by the pluging resolved name
+      // MStringArray extraPlugins;
+      // extraPlugins = CExtensionsManager::LoadArnoldPlugins();
+      status = CExtensionsManager::LoadArnoldPlugins();
 
+
+      // Finally register all nodes from the loaded extensions with Maya
+      // in load order
+      // CExtensionManager::r
       // CExtension::CreateCallbacks();
 
       // Or use MGlobal::apiVersion()

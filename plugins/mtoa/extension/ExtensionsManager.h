@@ -17,14 +17,6 @@
 #include <maya/MMessage.h>
 
 
-
-/// key: maya node name. value: arnold node name and maya node id
-// typedef std::map<CPxMayaNode, CPxArnoldNode> MayaNodeToArnoldNodeMap;
-/// key: arnold node name. value: maya node name
-// typedef std::map<CPxArnoldNode, CPxMayaNode> ArnoldNodeToMayaNodeMap;
-
-int FindLibraries(MString searchPath, MStringArray &files);
-
 //--------------- CExtensionsManager -----------------------------------
 
 typedef std::list<CExtension> ExtensionsList;
@@ -41,10 +33,14 @@ public:
    static void SetMayaPlugin(MObject plugin);
    static CExtension* GetBuiltin();
 
-   static CExtension* LoadArnoldPlugin(const MString &path);
-   static MStatus LoadArnoldPlugins(const MString &directory="$ARNOLD_PLUGIN_PATH");
-   static CExtension* LoadExtension(const MString &path);
-   static MStatus LoadExtensions(const MString &directory="$MTOA_EXTENSIONS_PATH");
+   static CExtension* LoadArnoldPlugin(const MString &file,
+                                       const MString &path="",
+                                       MStatus *returnStatus=NULL);
+   static MStatus LoadArnoldPlugins(const MString &path="$ARNOLD_PLUGIN_PATH");
+   static CExtension* LoadExtension(const MString &file,
+                                    const MString &path="",
+                                    MStatus *returnStatus=NULL);
+   static MStatus LoadExtensions(const MString &path="$MTOA_EXTENSIONS_PATH");
 
    static MStatus UnloadExtension(const CExtension* extension);
    static MStatus UnloadExtensions();
@@ -66,6 +62,7 @@ public:
 
 protected:
    static CExtension* NewExtension(const MString &extensionFile);
+   static MStatus DeleteExtension(CExtension* &extension);
 
    static MStatus RegisterMayaNode(const CPxMayaNode &mayaNode);
    static MStatus DeregisterMayaNode(const CPxMayaNode &mayaNode);

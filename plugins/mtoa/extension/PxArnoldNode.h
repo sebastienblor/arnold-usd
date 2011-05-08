@@ -19,11 +19,13 @@ public:
    inline bool operator!=(const CPxArnoldNode& other) const { return name != other.name; }
    inline bool operator<(const CPxArnoldNode& other) const { return strcmp(name.asChar(), other.name.asChar()) < 0; }
 
-   inline bool isNull() const {return (NULL == entry);}
+   inline bool IsNull() const {return (NULL == entry);}
+   void Set(const CPxArnoldNode& other);
 
-   MString provider;
    MString name;
    const AtNodeEntry* entry;
+   MString provider;
+   MString file;
 };
 
 #endif // PXARNOLDNODE_H
