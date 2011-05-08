@@ -31,7 +31,7 @@ class DLLEXPORT CExtensionsManager
 {
 public:
    static void SetMayaPlugin(MObject plugin);
-   static CExtension* GetBuiltin();
+   static CExtension* GetBuiltin(MStatus *returnStatus=NULL);
 
    static CExtension* LoadArnoldPlugin(const MString &file,
                                        const MString &path="",

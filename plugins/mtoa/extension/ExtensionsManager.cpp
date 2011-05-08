@@ -1,7 +1,6 @@
 
 #include "ExtensionsManager.h"
 
-
 #include <ai_plugins.h>
 #include <ai_universe.h>
 #include <ai_metadata.h>
@@ -35,17 +34,19 @@ void CExtensionsManager::SetMayaPlugin(MObject plugin)
 }
 
 /// Returns a pointer to the extension handling built-in nodes
-CExtension* CExtensionsManager::GetBuiltin()
+CExtension* CExtensionsManager::GetBuiltin(MStatus *returnStatus)
 {
-   CExtension* result;
-   result = GetExtension(BUILTIN);
-   if (NULL == result)
+   MStatus status;
+   CExtension* builtin = NULL;
+   builtin = GetExtension(BUILTIN);
+   if (NULL == builtin)
    {
-      result = NewExtension(BUILTIN);
-      result->m_loaded = true;
+      builtin = NewExtension(BUILTIN);
+      status = builtin->RegisterAllNodes("");
+      status = builtin->RegisterAllTranslators("");
    }
-
-   return result;
+   if (NULL != returnStatus) *returnStatus = status;
+   return builtin;
 }
 /// Load an Arnold plugin.
 
@@ -75,8 +76,8 @@ CExtension* CExtensionsManager::LoadArnoldPlugin(const MString &file,
             // Register plugin nodes and translators
             status = pluginExtension->RegisterAllNodes(resolved);
             status = pluginExtension->RegisterAllTranslators(resolved);
-            // TODO: Do not register new nodes with Maya immediatly to allow modification?
-            status = RegisterExtension(pluginExtension);
+            // Do not register new nodes with Maya immediatly to allow modification
+            // status = RegisterExtension(pluginExtension);
          } else {
             // Remove empty extension if plugin load failed
             DeleteExtension(pluginExtension);
@@ -143,13 +144,8 @@ CExtension* CExtensionsManager::LoadExtension(const MString &file,
          // Do the init
          (*initFunc)(*extension);
          AiMsgInfo("Successfully loaded extension library %s.", extension->GetFile().asChar());
-         // TODO: do not register now to allow to add calls (registerNode, etc) on it before?
-         status = RegisterExtension(extension);
-         // TODO: delete if registration failure?
-         if (MStatus::kSuccess == status)
-         {
-            extension->m_registered = true;
-         }
+         // Do not register now to allow to add calls (registerNode, etc) on it before
+         // status = RegisterExtension(extension);
       }
    }
 
@@ -190,7 +186,10 @@ MStatus CExtensionsManager::UnloadExtension(const CExtension* extension)
 {
    MStatus status;
 
-   DeregisterExtension(extension);
+   if (extension->IsRegistered())
+   {
+      status = DeregisterExtension(extension);
+   }
    /*
    MString str;
    str = MString("[mtoa] Removing nodes for shader library: ") + m_shaderFile;
@@ -210,6 +209,7 @@ MStatus CExtensionsManager::UnloadExtension(const CExtension* extension)
          AiNodeUninstall(arnoldNodeName);
       }
    }
+   AiNodeIteratorDestroy(nodeIter);
    for (unsigned int i=0; i < s_shaderLibs.size(); ++i)
    {
       if (strcmp(s_shaderLibs[i]->GetFilename(), m_shaderFile))
@@ -527,6 +527,7 @@ CNodeTranslator* CExtensionsManager::GetTranslator(const MString &typeName,
       translator = (CNodeTranslator*)creatorFunction();
       // This customize the prototype instance of the translator
       // with the information found in the translator class proxy
+      // TODO : use an abstract
       translator->m_arnoldNodeName = foundTrs->arnold;
       translator->m_mayaNodeName = typeName;
       translator->m_translatorName = foundTrs->name;
@@ -652,9 +653,14 @@ MStatus CExtensionsManager::RegisterMayaNode(const CPxMayaNode &mayaNode)
             mayaNode.name.asChar(), mayaNode.provider.asChar());
       return MStatus::kFailure;
    }
+   // Construct the abstract to store in the class static s_abstract member,
+   // if one was provided in the proxy
+   CAbMayaNode abstract(mayaNode.arnold, mayaNode.classification);
+   if (NULL != mayaNode.abstract) *mayaNode.abstract = abstract;
+   const MString *classificationPtr = (mayaNode.classification == "") ? NULL : &mayaNode.classification;
    status = MFnPlugin(s_plugin).registerNode(mayaNode.name, mayaNode.id,
          mayaNode.creator, mayaNode.initialize,
-         mayaNode.type, mayaNode.classification);
+         mayaNode.type, classificationPtr);
    CHECK_MSTATUS(status);
    if (MStatus::kSuccess == status)
    {

@@ -15,12 +15,14 @@
 // A Maya node class proxy
 CPxMayaNode::CPxMayaNode(const MString &typeName,
                          const MTypeId &typeId,
+                         const MString &arnoldNodeName,
                          const MString &providerName,
                          const MString &providerFile,
                          MCreatorFunction creatorFunction,
                          MInitializeFunction initFunction,
+                         CAbMayaNode *abstractMember,
                          MPxNode::Type typeNode,
-                         const MString* classif)
+                         const MString &classif)
 {
    name = typeName;
 #if MAYA_API_VERSION < 201200
@@ -31,34 +33,56 @@ CPxMayaNode::CPxMayaNode(const MString &typeName,
    else
       id = MNodeClass(typeName).typeId();
 #endif
+   arnold = arnoldNodeName;
    provider = providerName;
    file = providerFile;
    creator = creatorFunction;
    initialize = initFunction;
+   abstract = abstractMember;
    type = typeNode;
-   if (NULL != classif)
+   classification = classif;
+}
+
+CPxMayaNode::CPxMayaNode(const MString &typeName,
+                         const MTypeId &typeId,
+                         const AtNodeEntry* arnoldNodeEntry,
+                         const MString &providerName,
+                         const MString &providerFile,
+                         MCreatorFunction creatorFunction,
+                         MInitializeFunction initFunction,
+                         CAbMayaNode *abstractMember,
+                         MPxNode::Type typeNode,
+                         const MString &classif)
+{
+   name = typeName;
+#if MAYA_API_VERSION < 201200
+   id = typeId;
+#else
+   if (typeId.id() != 0)
+      id = typeId;
+   else
+      id = MNodeClass(typeName).typeId();
+#endif
+   arnold = AiNodeEntryGetName(arnoldNodeEntry);
+   provider = providerName;
+   file = providerFile;
+   creator = creatorFunction;
+   initialize = initFunction;
+   abstract = abstractMember;
+   type = typeNode;
+   classification = classif;
+}
+
+MStatus CPxMayaNode::ReadMetaData()
+{
+   const AtNodeEntry* arnoldNodeEntry = NULL;
+   arnoldNodeEntry = AiNodeEntryLookUp(arnold.asChar());
+   if (NULL == arnoldNodeEntry)
    {
-      m_classification = MString(classif->asChar());
+      AiMsgError("[%s] Arnold node %s does not exist", provider.asChar(), arnold.asChar());
+      return MStatus::kInvalidParameter;
    }
-   classification = m_classification.numChars() ? &m_classification : NULL;
-}
 
-void CPxMayaNode::Set(const CPxMayaNode& other)
-{
-   name = other.name;
-   id = other.id;
-   provider = other.provider;
-   file = other.file;
-   creator = other.creator;
-   initialize = other.initialize;
-   type = other.type;
-   m_classification = other.m_classification;
-   classification = m_classification.numChars() ? &m_classification : NULL;
-}
-
-void CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
-{
-   if (NULL == arnoldNodeEntry) return;
    const char* node = AiNodeEntryGetName(arnoldNodeEntry);
    const char* ext = provider.asChar();
 
@@ -144,6 +168,7 @@ void CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
       {
          creator = CArnoldCustomShaderNode::creator;
          initialize = CArnoldCustomShaderNode::initialize;
+         abstract = &CArnoldCustomShaderNode::s_abstract;
          type = MPxNode::kDependNode;
       }
       else if (strcmp(arnoldNodeTypeName,"shape") == 0)
@@ -155,7 +180,7 @@ void CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
       // No default strategy to create the rest
    }
    // classification string if none is stored
-   if (NULL == classification)
+   if (classification.numChars() == 0)
    {
       // classification metadata
       const char* classificationMtd;
@@ -165,21 +190,14 @@ void CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
       AtBoolean doSwatch;
       if (!AiMetaDataGetBool(arnoldNodeEntry, NULL, "maya.swatch", &doSwatch))
          doSwatch = true;
-      MString classif("");
-      if ("" != classificationMtd)
+      if (strlen(classificationMtd))
       {
-         classif = MString(classificationMtd);
-         classif += MString(":") + ARNOLD_CLASSIFY(classif);
-         if (doSwatch)
-         {
-            classif += MString(":swatch/") + ARNOLD_SWATCH;
-         }
-      }
-      if (classif.numChars())
-      {
-         m_classification = classif;
-         classification = &m_classification;
+         classification = MString(classificationMtd);
+         classification += MString(":") + ARNOLD_CLASSIFY(classification);
+         if (doSwatch) classification += MString(":swatch/") + ARNOLD_SWATCH;
       }
    }
+
+   return MStatus::kSuccess;
 }
 

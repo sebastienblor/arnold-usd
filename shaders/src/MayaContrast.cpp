@@ -26,8 +26,8 @@ node_parameters
    AiParameterVEC("contrast", 2.0f, 2.0f, 2.0f);
    AiParameterVEC("bias", 0.5f, 0.5f, 0.5f);
 
-   AiMetaDataSetStr(mds, NULL, "maya.counterpart", "contrast");
-   AiMetaDataSetInt(mds, NULL, "maya.counterpart_id", 0x52434f4e);
+   AiMetaDataSetStr(mds, NULL, "maya.cname", "contrast");
+   AiMetaDataSetInt(mds, NULL, "maya.id", 0x52434f4e);
 }
 
 node_initialize

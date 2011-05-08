@@ -10,6 +10,7 @@
 #include <set>
 #include <map>
 
+
 // Set of Maya node proxies
 typedef std::set<CPxMayaNode> MayaNodesSet;
 // Maya node to Arnold node multimap

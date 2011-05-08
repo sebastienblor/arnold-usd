@@ -17,8 +17,7 @@
 #include <ai_params.h>
 #include <ai_metadata.h>
 
-MString CArnoldCustomShaderNode::s_shaderName;
-MString CArnoldCustomShaderNode::s_shaderClass;
+CAbMayaNode CArnoldCustomShaderNode::s_abstract;
 
 MObjectArray CArnoldCustomShaderNode::s_PlugsAffecting;
 
@@ -53,10 +52,11 @@ MStatus CArnoldCustomShaderNode::initialize()
    static MObject s_OUT_transparencyB;
    static MObject s_OUT_transparency;
 
-   const AtNodeEntry *nodeEntry = AiNodeEntryLookUp(s_shaderName.asChar());
+   MString arnold = s_abstract.arnold;
+   MString classification = s_abstract.classification;
+   const AtNodeEntry *nodeEntry = AiNodeEntryLookUp(arnold.asChar());
 
-   AiMsgDebug("Initializing shader %s", s_shaderName.asChar());
-
+   AiMsgDebug("Initializing custom shader as Arnold node %s", arnold.asChar());
    CStaticAttrHelper helper(CArnoldCustomShaderNode::addAttribute, nodeEntry);
 
    // outputs
@@ -74,7 +74,7 @@ MStatus CArnoldCustomShaderNode::initialize()
    bool doBump = false;
    MStringArray classParts;
    MStringArray classes;
-   s_shaderClass.split(':', classParts);
+   classification.split(':', classParts);
    for (unsigned int i=0; i < classParts.length() && doBump == false; ++i)
    {
       classes.clear();

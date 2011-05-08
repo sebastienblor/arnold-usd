@@ -72,8 +72,8 @@ node_parameters
    AiParameterPNT2("uvCoord", 0.0f, 0.0f);
    AddMayaColorBalanceParams(params);
 
-   AiMetaDataSetStr(mds, NULL, "maya.counterpart", "fractal");
-   AiMetaDataSetInt(mds, NULL, "maya.counterpart_id", 0x52543246);
+   AiMetaDataSetStr(mds, NULL, "maya.name", "fractal");
+   AiMetaDataSetInt(mds, NULL, "maya.id", 0x52543246);
 }
 
 node_initialize

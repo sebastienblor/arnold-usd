@@ -15,15 +15,15 @@ class CPxTranslator
 {
 public:
    CPxTranslator(const MString &translatorName = "",
+                 const MString &arnoldNodeName = "",
                  const MString &providerName = "",
                  const MString &providerFile = "",
-                 const MString &arnoldNodeName = "",
                  TCreatorFunction creatorFunction = NULL,
                  TNodeInitFunction nodeInitFunction = NULL);
    CPxTranslator(const MString &translatorName,
-                 const MString &providerName,
-                 const MString &providerFile,
                  const AtNodeEntry* arnoldNodeEntry,
+                 const MString &providerName = "",
+                 const MString &providerFile = "",
                  TCreatorFunction creatorFunction = NULL,
                  TNodeInitFunction nodeInitFunction = NULL);
    ~CPxTranslator() {};
@@ -33,8 +33,7 @@ public:
    inline bool operator<(const CPxTranslator& other) const { return strcmp(name.asChar(), other.name.asChar()) < 0; }
 
    inline bool IsNull() const {return (name == "");}
-   void Set(const CPxTranslator& other);
-   void ReadMetaData(const AtNodeEntry* arnoldNodeEntry);
+   MStatus ReadMetaData();
 
    MString name;
    MString provider;

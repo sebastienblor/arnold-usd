@@ -11,51 +11,49 @@
 
 // A Maya node proxy
 CPxTranslator::CPxTranslator(const MString &translatorName,
+                             const MString &arnoldNodeName,
                              const MString &providerName,
                              const MString &providerFile,
-                             const MString &arnoldNodeName,
                              TCreatorFunction creatorFunction,
                              TNodeInitFunction nodeInitFunction)
 {
    name = translatorName;
+   arnold = arnoldNodeName;
    provider = providerName;
    if (name.numChars() == 0) name = provider;
    file = providerFile;
-   arnold = arnoldNodeName;
    creator = creatorFunction;
    initialize = nodeInitFunction;
 }
 CPxTranslator::CPxTranslator(const MString &translatorName,
+                             const AtNodeEntry* arnoldNodeEntry,
                              const MString &providerName,
                              const MString &providerFile,
-                             const AtNodeEntry* arnoldNodeEntry,
                              TCreatorFunction creatorFunction,
                              TNodeInitFunction nodeInitFunction)
 {
    name = translatorName;
+   arnold = AiNodeEntryGetName(arnoldNodeEntry);
    provider = providerName;
    if (name.numChars() == 0) name = provider;
    file = providerFile;
-   arnold = AiNodeEntryGetName(arnoldNodeEntry);
    creator = creatorFunction;
    initialize = nodeInitFunction;
 }
 
-void CPxTranslator::Set(const CPxTranslator& other)
+MStatus CPxTranslator::ReadMetaData()
 {
-   name = other.name;
-   provider = other.provider;
-   file = other.file;
-   arnold = other.arnold;
-   creator = other.creator;
-   initialize = other.initialize;
-}
+   const AtNodeEntry* arnoldNodeEntry = NULL;
+   arnoldNodeEntry = AiNodeEntryLookUp(arnold.asChar());
+   if (NULL == arnoldNodeEntry)
+   {
+      AiMsgError("[%s] Arnold node %s does not exist", provider.asChar(), arnold.asChar());
+      return MStatus::kInvalidParameter;
+   }
 
-void CPxTranslator::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
-{
-   if (NULL == arnoldNodeEntry) return;
-   const char* node = AiNodeEntryGetName(arnoldNodeEntry);
+   const char* node = arnold.asChar();
    const char* ext = provider.asChar();
+
    // If no explicit translator was specified, choose a default one using Arnold node type and metadata
    if (NULL == creator)
    {
@@ -89,4 +87,5 @@ void CPxTranslator::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
       // No default strategy to create the rest
    }
 
+   return MStatus::kSuccess;
 }

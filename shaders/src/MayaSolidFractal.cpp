@@ -78,8 +78,8 @@ node_parameters
    AiParameterBOOL("local", false);
    AddMayaColorBalanceParams(params);
 
-   AiMetaDataSetStr(mds, NULL, "maya.counterpart", "solidFractal");
-   AiMetaDataSetInt(mds, NULL, "maya.counterpart_id", 0x52544633);
+   AiMetaDataSetStr(mds, NULL, "maya.name", "solidFractal");
+   AiMetaDataSetInt(mds, NULL, "maya.id", 0x52544633);
 }
 
 node_initialize

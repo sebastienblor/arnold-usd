@@ -43,7 +43,9 @@ public:
    virtual ~CExtension() {}
    MString GetName() const {return m_extensionName;}
    MString GetFile() const {return m_extensionFile;}
-   bool IsLoaded() const {return m_loaded;}
+   unsigned int NodesCount() const {return m_registeredMayaNodes.size();}
+   unsigned int TranslatedCount() const {return m_registeredTranslators.size();}
+   unsigned int TranslatorCount() const;
    bool IsRegistered() const {return m_registered;}
 
    // Arnold Plugin loading
@@ -69,15 +71,17 @@ public:
                         const MTypeId &mayaTypeId = MTypeId(0),
                         MCreatorFunction creatorFunction=NULL,
                         MInitializeFunction initFunction=NULL,
+                        CAbMayaNode *abstractMember=NULL,
                         MPxNode::Type type=MPxNode::kLast,
-                        const MString *classification=NULL);
+                        const MString &classification="");
    MStatus RegisterNode(const AtNodeEntry* arnoldNodeEntry,
                         const MString &mayaTypeName = "",
                         const MTypeId &mayaTypeId = MTypeId(0),
                         MCreatorFunction creatorFunction=NULL,
                         MInitializeFunction initFunction=NULL,
+                        CAbMayaNode *abstractMember=NULL,
                         MPxNode::Type type=MPxNode::kLast,
-                        const MString *classification=NULL);
+                        const MString &classification="");
    // Can be called directly to register Maya nodes that
    // do not correspond to Arnold nodes
    // TODO : RegisterTransform, RegisterShape ?
@@ -86,7 +90,7 @@ public:
                         MCreatorFunction creatorFunction,
                         MInitializeFunction initFunction,
                         MPxNode::Type type=MPxNode::kDependNode,
-                        const MString *classification=NULL);
+                        const MString &classification="");
    // TODO : deferred MStatus RegisterNode(const MString &typeName, const MTypeId &typeId, const MString &pluginProvider);
 
    // Old signature for compatibility, gives no access to metadata
@@ -117,8 +121,8 @@ public:
 protected :
    MStatus NewArnoldPlugin(const MString &file);
    MStatus DeleteArnoldPlugin(const MString &file);
-   MStatus NewMayaNode(CPxMayaNode mayaNode,
-                       const CPxArnoldNode &arnoldNode);
+   MStatus NewMappedMayaNode(CPxMayaNode mayaNode,
+                             const CPxArnoldNode &arnoldNode);
    MStatus NewMayaNode(CPxMayaNode mayaNode);
    MStatus MapMayaNode(const CPxMayaNode &mayaNode,
                        const CPxArnoldNode &arnoldNode);
@@ -146,7 +150,6 @@ protected :
 protected:
    MString m_extensionFile;
    MString m_extensionName;
-   bool m_loaded;
    bool m_registered;
    // LoadedArnoldPluginsSet m_ownArnoldPlugins;
    // only the new maya nodes registered by this Extension
