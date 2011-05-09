@@ -49,7 +49,8 @@ void CRenderOptionsTranslator::Export(AtNode* options)
    ProcessParameter(options, "GI_diffuse_samples", AI_TYPE_INT);
    ProcessParameter(options, "GI_glossy_samples", AI_TYPE_INT);
    ProcessParameter(options, "GI_sss_hemi_samples", AI_TYPE_INT);
-   ProcessParameter(options, "AA_sample_clamp", AI_TYPE_FLOAT);
+   if (GetFnNode().findPlug("use_sample_clamp").asBool())
+      ProcessParameter(options, "AA_sample_clamp", AI_TYPE_FLOAT);
 
    // FIXME: this is supposed to use a connection to AA_seed attribute
    if (!GetFnNode().findPlug("lock_sampling_noise").asBool())
