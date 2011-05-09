@@ -133,7 +133,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       status = MGlobal::executeCommand(cmdStr);
       if (MStatus::kSuccess == status)
       {
-         AiMsgInfo("Exported scene to file %s", filename);
+         AiMsgInfo("Exported scene to file %s", filename.asChar());
          if (renderType == MTOA_RENDER_EXPORTASS_AND_KICK)
          {
 #ifdef _WIN32
@@ -156,7 +156,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       }
       else
       {
-         AiMsgError("Failed to export scene to file %s", filename);
+         AiMsgError("Failed to export scene to file %s", filename.asChar());
       }
 
       return status;

@@ -307,11 +307,11 @@ MStatus CExtensionsManager::RegisterExtension(CExtension* extension)
          }
          else
          {
-            CPxTranslator &oldTranslator = *ret.first;
             AiMsgInfo("[%s] Replaced translator %s by translator %s on Maya node %s, previously defined by extension %s(%s).",
-                  translator.provider.asChar(), oldTranslator.name.asChar(), translator.name.asChar(),
-                  mayaNode->name.asChar(), oldTranslator.provider.asChar(), oldTranslator.file.asChar());
-            oldTranslator = translator;
+                  translator.provider.asChar(), ret.first->name.asChar(), translator.name.asChar(),
+                  mayaNode->name.asChar(), ret.first->provider.asChar(), ret.first->file.asChar());
+            oldTrans->erase(ret.first);
+            oldTrans->insert(translator);
             // TODO : remove old additionnal attributes before we add new ones ?
          }
          if (NULL != translator.initialize)

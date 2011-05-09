@@ -490,7 +490,7 @@ double CCameraTranslator::GetDeviceAspect()
 void CCameraTranslator::SetFilmTransform(AtNode* camera, double factorX, double factorY, double width, bool persp)
 {
    double deviceAspect = GetDeviceAspect();
-   double cameraAspect = m_fnCamera.aspectRatio();
+   // double cameraAspect = m_fnCamera.aspectRatio();
    double preScale = m_fnCamera.preScale();
    double filmTranslateX = m_fnCamera.filmTranslateH();
    double filmTranslateY = m_fnCamera.filmTranslateV();

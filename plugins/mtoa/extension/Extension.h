@@ -131,7 +131,7 @@ protected :
    MStatus DeleteArnoldPlugin(const MString &file);
    MStatus NewMappedMayaNode(CPxMayaNode mayaNode,
                              const CPxArnoldNode &arnoldNode);
-   MStatus NewMayaNode(CPxMayaNode mayaNode);
+   MStatus NewMayaNode(const CPxMayaNode &mayaNode);
    MStatus MapMayaNode(const CPxMayaNode &mayaNode,
                        const CPxArnoldNode &arnoldNode);
    MStatus NewTranslator(const CPxTranslator &translator,

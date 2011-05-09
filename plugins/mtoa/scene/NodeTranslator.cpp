@@ -99,7 +99,7 @@ AtNode* CNodeTranslator::DoExport(AtUInt step)
                        GetFnNode().name().asChar(), m_outputAttr.asChar(), GetTranslatorName().asChar());
          else
             AiMsgDebug("Exporting motion: %s using translator %s",
-                       GetFnNode().name().asChar(), GetTranslatorName());
+                       GetFnNode().name().asChar(), GetTranslatorName().asChar());
 
          ExportMotion(m_atNode, step);
       }

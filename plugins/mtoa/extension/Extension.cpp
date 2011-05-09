@@ -77,7 +77,7 @@ MString CExtension::LoadArnoldPlugin(const MString &file,
    }
    else
    {
-      AiMsgWarning("[%s] Arnold plugin already loaded: %s.", m_extensionFile, resolved);
+      AiMsgWarning("[%s] Arnold plugin already loaded: %s.", m_extensionFile.asChar(), resolved.asChar());
       status = MStatus::kFailure;
    }
    if (NULL != returnStatus) *returnStatus = status;
@@ -618,7 +618,7 @@ MStatus CExtension::NewMappedMayaNode(CPxMayaNode mayaNode,
 /// Typically helper nodes that don't need to be directly translated.
 ///
 /// Store the information
-MStatus CExtension::NewMayaNode(CPxMayaNode mayaNode)
+MStatus CExtension::NewMayaNode(const CPxMayaNode &mayaNode)
 {
    // Need all necessary creation information
    if ((mayaNode.name == "") || (mayaNode.id.id() == 0) || (NULL == mayaNode.creator))
@@ -640,7 +640,8 @@ MStatus CExtension::NewMayaNode(CPxMayaNode mayaNode)
    {
       AiMsgDebug("[%s] Overriding it's own registration of Maya node %s for creation.",
             mayaNode.provider.asChar(), mayaNode.name.asChar());
-      *ret.first = mayaNode;
+      m_registeredMayaNodes.erase(ret.first);
+      m_registeredMayaNodes.insert(mayaNode);
    }
    else
    {
@@ -732,7 +733,8 @@ MStatus CExtension::NewTranslator(const CPxTranslator &translator,
    else
    {
       // We can only override our own translators (if using the same name),
-      *ret.first = translator;
+      nodeTranslators.erase(ret.first);
+      nodeTranslators.insert(translator);
       AiMsgDebug("[%s] [node %s] Replaced translator %s for associated Maya node %s.",
             translator.provider.asChar(), translator.arnold.asChar(), translator.name.asChar(), mayaNode.name.asChar());
       
@@ -826,8 +828,8 @@ MStringArray CExtension::FindLibraries(const MString &path,
       struct dirent *dirp;
       if ((dp  = opendir(dir.asChar())) == NULL)
       {
-         // TODO: print more explicit error message
-         AiMsgError("Error(%i) opening %s.", errno, dir);
+         // TODO: print more explicit error message than just errno
+         AiMsgError("Error opening %s.", dir.asChar());
          status = MStatus::kFailure;
          continue;
       }
