@@ -51,16 +51,15 @@ unsigned int CExtension::TranslatorCount() const
    return sum;
 }
 
+
 /// Load an Arnold plugin.
 ///
 /// Loads the Arnold plugin and registers a Maya nodes and translators for
-/// the new Arnold nodes it define, if applicable.
-///
+/// the new Arnold nodes it define, if applicable
 ///
 /// @param file   The Arnold plugin file name
 /// @param path   The search path to use
 /// @return       The resolved file name plugin was loaded from
-///
 MString CExtension::LoadArnoldPlugin(const MString &file,
                                      const MString &path,
                                      MStatus *returnStatus)
@@ -85,7 +84,7 @@ MString CExtension::LoadArnoldPlugin(const MString &file,
    return resolved;
 }
 
-/// Get the list of all Arnold plugins this extension has loaded
+/// @brief Get the list of all Arnold plugins this extension has loaded.
 ///
 /// @return The array of resolved file name for each plugin
 ///
@@ -103,12 +102,11 @@ MStringArray CExtension::GetOwnLoadedArnoldPlugins()
    return result;
 }
 
-/// Register corresponding Maya nodes for Arnold nodes provided by the given Arnold plugin.
-///
+/// @brief Register corresponding Maya nodes for Arnold nodes provided by the given Arnold plugin.
+
 /// Will only handle Arnold nodes that are marked as provided by this plugin.
-///
+
 /// @param plugin  the resolved file name of the Arnold plugin
-///
 MStatus CExtension::RegisterAllNodes(const MString &plugin)
 {
    MStatus status(MStatus::kSuccess);
@@ -155,7 +153,7 @@ MStatus CExtension::RegisterAllNodes(const MString &plugin)
    return status;
 }
 
-/// Register translators for Arnold nodes provided by the given Arnold Plugin.
+/// @brief Register translators for Arnold nodes provided by the given Arnold Plugin.
 ///
 /// Will only handle Arnold nodes that are marked as provided by this plugin.
 ///
@@ -207,7 +205,7 @@ MStatus CExtension::RegisterAllTranslators(const MString &plugin)
    return status;
 }
 
-/// Register a Maya node for the given Arnold node
+/// @brief Register a Maya node for the given Arnold node.
 ///
 /// Certain optional node-level metadata can be used to control how the
 /// node factory processes the node's registration:
@@ -249,7 +247,7 @@ MStatus CExtension::RegisterNode(const MString &arnoldNodeName,
    }
 }
 
-/// Register a Maya node for the given Arnold node
+/// @brief Register a Maya node for the given Arnold node.
 ///
 /// Certain optional node-level metadata can be used to control how the
 /// node factory processes the node's registration:
@@ -310,7 +308,7 @@ MStatus CExtension::RegisterNode(const AtNodeEntry* arnoldNodeEntry,
    return status;
 }
 
-/// To register a Maya node not corresponding to any Arnold node.
+/// @brief To register a Maya node not corresponding to any Arnold node.
 ///
 /// See Maya's MFnPlugin.registerNode(...)
 ///
@@ -337,7 +335,7 @@ MStatus CExtension::RegisterNode(const MString &mayaTypeName,
    return NewMayaNode(mayaNode);
 }
 
-/// Register a translator for the given Maya node type.
+/// @brief Register a translator for the given Maya node type.
 ///
 /// When we need a specific translator for a Maya node we have no equivalent
 /// node in Arnold for. Exemple aiDisplacement.
@@ -368,7 +366,7 @@ MStatus CExtension::RegisterTranslator(const MString &mayaTypeName,
    return NewTranslator(translator, mayaNode);
 }
 
-/// Register a translator for the given Arnold node name.
+/// @brief Register a translator for the given Arnold node name.
 ///
 /// Certain optional node-level metadata can be used to control how the
 /// node factory processes the node's registration:
@@ -401,7 +399,7 @@ MStatus CExtension::RegisterTranslator(const MString &arnoldNodeName,
    }
 }
 
-/// Register a translator for the given Arnold node entry.
+/// @brief Register a translator for the given Arnold node entry.
 ///
 /// Certain optional node-level metadata can be used to control how the
 /// node factory processes the node's registration:
@@ -455,7 +453,7 @@ MStatus CExtension::RegisterTranslator(const AtNodeEntry* arnoldNodeEntry,
    return status;
 }
 
-/// To specifiy both arnoldNodeName and mayaTypeName.
+/// @brief To specifiy both arnoldNodeName and mayaTypeName.
 ///
 /// Since it is used to add an addtionnal translator to a Maya node you need to
 /// provide a translator name and a creator method.
@@ -506,7 +504,7 @@ MStatus CExtension::RegisterTranslator(const MString &arnoldNodeName,
 // ------------- protected --------------- //
 
 
-/// Stores the given Arnold plugin file name in the list of plugins loaded by this extension.
+/// @brief Stores the given Arnold plugin file name in the list of plugins loaded by this extension.
 ///
 /// Will fail and return MS::kFailure if that plugin is already stored.
 ///
@@ -532,7 +530,7 @@ MStatus CExtension::NewArnoldPlugin(const MString &file)
    }
 }
 
-/// Removes the given Arnold plugin file name from the list of plugins
+/// @brief Removes the given Arnold plugin file name from the list of plugins
 /// loaded by this extension, and updates global list of loaded Arnold plugins.
 ///
 /// Will fail and return MS::kFailure if that plugin is not already stored.
@@ -558,10 +556,8 @@ MStatus CExtension::DeleteArnoldPlugin(const MString &file)
    }
 }
 
-/// internal use
-/// Register a new Maya node and map it to an Arnold node.
+/// @brief Register a new Maya node and map it to an Arnold node.
 ///
-/// Store the information
 MStatus CExtension::NewMappedMayaNode(CPxMayaNode mayaNode,
                                        const CPxArnoldNode &arnoldNode)
 {
@@ -613,11 +609,10 @@ MStatus CExtension::NewMappedMayaNode(CPxMayaNode mayaNode,
    return status;
 }
 
-// internal use
-/// Register a new Maya node not corresponding to any Arnold node.
+/// @brief Register a new Maya node not corresponding to any Arnold node.
+///
 /// Typically helper nodes that don't need to be directly translated.
 ///
-/// Store the information
 MStatus CExtension::NewMayaNode(const CPxMayaNode &mayaNode)
 {
    // Need all necessary creation information
@@ -652,7 +647,9 @@ MStatus CExtension::NewMayaNode(const CPxMayaNode &mayaNode)
    return MStatus::kSuccess;
 }
 
-// Associate an existing Maya node to an Arnold node, and store the information
+/// Associate an existing Maya node to an Arnold node.
+///
+/// Typically helper nodes that don't need to be directly translated.
 MStatus CExtension::MapMayaNode(const CPxMayaNode &mayaNode,
                                        const CPxArnoldNode &arnoldNode)
 {
@@ -694,7 +691,7 @@ MStatus CExtension::MapMayaNode(const CPxMayaNode &mayaNode,
 	return MStatus::kSuccess;
 }
 
-// internal use
+/// Store a new translator proxy in list.
 MStatus CExtension::NewTranslator(const CPxTranslator &translator,
                                          const CPxMayaNode &mayaNode)
 {
@@ -744,7 +741,7 @@ MStatus CExtension::NewTranslator(const CPxTranslator &translator,
    return status;
 }
    
-/// Find a registering Maya node
+/// Find a registered Maya node by the Maya node type name.
 const CPxMayaNode* CExtension::FindRegisteredMayaNode(const CPxMayaNode &mayaNode)
 {
    MayaNodesSet::iterator nodeIt;
@@ -759,7 +756,7 @@ const CPxMayaNode* CExtension::FindRegisteredMayaNode(const CPxMayaNode &mayaNod
    }
 }
 
-/// Find registered translators for a Maya node
+/// Find a std::set of all registered translators for a Maya node.
 const TranslatorsSet* CExtension::FindRegisteredTranslators(const CPxMayaNode &mayaNode)
 {
    MayaNodeToTranslatorsMap::iterator nodeIt;
@@ -775,8 +772,6 @@ const TranslatorsSet* CExtension::FindRegisteredTranslators(const CPxMayaNode &m
 }
 
 /// Find file in the given search path(s)
-///
-///
 MString CExtension::FindFileInPath(const MString &file,
                                    const MString &path,
                                    MStatus *returnStatus)
@@ -808,10 +803,9 @@ MString CExtension::FindFileInPath(const MString &file,
    return resolved;
 }
 
-/// Find all libraries (dll, so) in the given search path.
+/// @brief Find all libraries (dll, so) in the given search path.
 ///
-/// @param searchPath  a path to search for libraries, optionally containing
-/// separators (: on unix, ; on windows) and environment variables
+/// @param path all paths to search for libraries, ; or : separated
 MStringArray CExtension::FindLibraries(const MString &path,
                                        MStatus *returnStatus)
 {
@@ -854,11 +848,9 @@ MStringArray CExtension::FindLibraries(const MString &path,
    return files;
 }
 
-/// Checks if the given Arnold plugin has been loaded (by any extension).
-///
+/// @brief Checks if the given Arnold plugin has been loaded (by any extension).
 ///
 /// @param path  the absolute path to an Arnold plugin
-///
 bool CExtension::IsArnoldPluginLoaded(const MString &path)
 {
    std::string path_str(path.asChar());
@@ -871,6 +863,7 @@ bool CExtension::IsArnoldPluginLoaded(const MString &path)
    return false;
 }
 
+/// Returns the list of all loaded Arnold plugins
 MStringArray CExtension::GetAllLoadedArnoldPlugins()
 {
    MStringArray result;
