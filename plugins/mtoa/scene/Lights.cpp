@@ -58,6 +58,10 @@ void CLightTranslator::Export(AtNode* light, bool mayaAttrs)
 
    AiNodeSetFlt(light, "intensity", GetFnNode().findPlug("intensity").asFloat());
 
+   AiNodeSetBool(light, "cast_shadows", GetFnNode().findPlug("cast_shadows").asBool());
+   AiNodeSetInt(light, "samples", GetFnNode().findPlug("samples").asInt());
+   AiNodeSetBool(light, "normalize", GetFnNode().findPlug("normalize").asBool());
+
    if (mayaAttrs)
    {
       AiNodeSetBool(light, "affect_diffuse", GetFnNode().findPlug("emitDiffuse").asBool());
@@ -70,11 +74,11 @@ void CLightTranslator::Export(AtNode* light, bool mayaAttrs)
       AiNodeSetBool(light, "affect_specular", GetFnNode().findPlug("affect_specular").asBool());
    }
 
-   AiNodeSetBool(light, "cast_shadows", GetFnNode().findPlug("cast_shadows").asBool());
-   AiNodeSetInt(light, "samples", GetFnNode().findPlug("samples").asInt());
    AiNodeSetInt(light, "sss_samples", GetFnNode().findPlug("sss_samples").asInt());
    AiNodeSetInt(light, "bounces", GetFnNode().findPlug("bounces").asInt());
    AiNodeSetFlt(light, "bounce_factor", GetFnNode().findPlug("bounce_factor").asFloat());
+
+   AiNodeSetBool(light, "mis", GetFnNode().findPlug("mis").asBool());
 
    MStatus status;
    MPlug pFilters = GetFnNode().findPlug("light_filters", &status);
@@ -130,6 +134,7 @@ void CLightTranslator::NodeInitializer(MString nodeClassName)
    helper.MakeInput("bounce_factor");
    helper.MakeInput("bounces");
    helper.MakeInput("sss_samples");
+   helper.MakeInput("mis");
 }
 
 void CLightTranslator::Delete()
@@ -169,6 +174,7 @@ void CDirectionalLightTranslator::NodeInitializer(MString nodeClassName)
    helper.MakeInput("bounce_factor");
    helper.MakeInput("bounces");
    helper.MakeInput("sss_samples");
+   helper.MakeInput("mis");
    // directional light attributes
 }
 // PointLight
@@ -198,6 +204,7 @@ void CPointLightTranslator::NodeInitializer(MString nodeClassName)
    helper.MakeInput("bounce_factor");
    helper.MakeInput("bounces");
    helper.MakeInput("sss_samples");
+   helper.MakeInput("mis");
    // point light attributes
    helper.MakeInput("affect_volumetrics");
    helper.MakeInput("cast_volumetric_shadows");
@@ -237,6 +244,7 @@ void CSpotLightTranslator::NodeInitializer(MString nodeClassName)
    helper.MakeInput("bounce_factor");
    helper.MakeInput("bounces");
    helper.MakeInput("sss_samples");
+   helper.MakeInput("mis");
    // spot light attributes
    helper.MakeInput("affect_volumetrics");
    helper.MakeInput("cast_volumetric_shadows");
@@ -276,6 +284,7 @@ void CAreaLightTranslator::NodeInitializer(MString nodeClassName)
    helper.MakeInput("bounce_factor");
    helper.MakeInput("bounces");
    helper.MakeInput("sss_samples");
+   helper.MakeInput("mis");
    // spot light attributes
    helper.MakeInput("resolution");
    helper.MakeInput("affect_volumetrics");
