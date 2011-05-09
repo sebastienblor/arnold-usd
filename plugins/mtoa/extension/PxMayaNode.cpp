@@ -88,8 +88,7 @@ MStatus CPxMayaNode::ReadMetaData()
 
    // AtInt arnoldNodeType = AiNodeEntryGetType(arnoldNodeEntry);
    const char* arnoldNodeTypeName;
-   if (!AiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.translator", &arnoldNodeTypeName))
-      arnoldNodeTypeName = AiNodeEntryGetTypeName(arnoldNodeEntry);
+   arnoldNodeTypeName = AiNodeEntryGetTypeName(arnoldNodeEntry);
    // If Maya node type name and ids were not specified
    if (name.numChars() == 0)
    {
@@ -101,7 +100,7 @@ MStatus CPxMayaNode::ReadMetaData()
       }
       else if (AiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.counterpart", &mayaNodeNameMtd))
       {
-         AiMsgWarning("[%s] [node %s] The use of the maya.counterpart metadata is depreciated, use maya.name instead.",
+         AiMsgWarning("[%s] [node %s] The use of the maya.counterpart metadata is deprecated, use maya.name instead.",
                ext, node);
          name = MString(mayaNodeNameMtd);
       }
@@ -120,7 +119,7 @@ MStatus CPxMayaNode::ReadMetaData()
       }
       else if (AiMetaDataGetInt(arnoldNodeEntry, NULL, "maya.counterpart_id", &nodeId))
       {
-         AiMsgWarning("[%s] [node %s] The use of the maya.counterpart_id metadata is depreciated, use maya.id instead.",
+         AiMsgWarning("[%s] [node %s] The use of the maya.counterpart_id metadata is deprecated, use maya.id instead.",
                ext, node);
          id = MTypeId(nodeId);
       }

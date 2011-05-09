@@ -38,7 +38,7 @@
 
 AtVoid MtoaLogCallback(AtInt logmask, AtInt severity, const char *msg_string, AtInt tabs)
 {
-   char *header = "[mtoa] %s";
+   const char *header = "[mtoa] %s";
    char *buf;
    buf = new (std::nothrow) char[strlen(header)+strlen(msg_string)];
 
@@ -84,6 +84,11 @@ namespace // <anonymous>
       MStatus status;
       MFnPlugin plugin(object);
 
+      // Swatch renderer.
+      status = MSwatchRenderRegister::registerSwatchRender(ARNOLD_SWATCH,
+                                                           CRenderSwatchGenerator::creator);
+      CHECK_MSTATUS(status);
+
       // Abstract Classes
       status = plugin.registerNode("SphereLocator",
                                     CSphereLocator::id,
@@ -106,10 +111,7 @@ namespace // <anonymous>
                                    CArnoldAOVNode::initialize);
       CHECK_MSTATUS(status);
 
-      // Swatch renderer.
-      status = MSwatchRenderRegister::registerSwatchRender(ARNOLD_SWATCH,
-                                                           CRenderSwatchGenerator::creator);
-      CHECK_MSTATUS(status);
+
 
       // Displacement Shaders
       MString displacementWithSwatch = CLASSIFY_SHADER_DISPLACEMENT
@@ -311,14 +313,14 @@ namespace // <anonymous>
       // Will load all found plugins and try to register nodes and translators
       // for the new Arnold node each create. A CExtension is initialized.
       status = CExtensionsManager::LoadArnoldPlugins();
-
+      CExtensionsManager::LoadExtensions();
       // Finally register all nodes from the loaded extensions with Maya in load order
       CExtensionsManager::RegisterExtensions();
 
       // CExtension::CreateCallbacks();
 
       // Or use MGlobal::apiVersion()
-      // TODO : should be called by ExtensionsManager after new registrations
+      // TODO : should be called by ExtensionsManager after new registrations?
 #if MAYA_API_VERSION < 201200
       MNodeClass::InitializeExistingNodes();
 #endif
@@ -396,7 +398,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
          false);
 
    // Load metadata for builtin (mtoa.mtd)
-         // const char* metafile = "/usr/solidangle/mtoadeploy/2011/plug-ins/mtoa.mtd";
+   // const char* metafile = "/usr/solidangle/mtoadeploy/2011/plug-ins/mtoa.mtd";
    MString loadpath = plugin.loadPath();
    MString metafile = loadpath + "/" + "mtoa.mtd";
    AtBoolean readMetaSuccess = AiMetaDataLoadFile(metafile.asChar());

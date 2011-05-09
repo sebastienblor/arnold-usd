@@ -2,6 +2,9 @@
 
 #include "nodes/ArnoldNodeIDs.h"
 
+#define MNoVersionString
+#define MNoPluginEntry
+
 #include <ai_plugins.h>
 #include <ai_universe.h>
 #include <ai_metadata.h>
@@ -49,13 +52,14 @@ unsigned int CExtension::TranslatorCount() const
 }
 
 /// Load an Arnold plugin.
-
-/// Loads the Arnold plugin and registers a Maya node for each Arnold node
-/// contained within it, if applicable.
+///
+/// Loads the Arnold plugin and registers a Maya nodes and translators for
+/// the new Arnold nodes it define, if applicable.
 ///
 ///
-/// @param file  the Arnold plugin file name
-/// @param path  the search path to use
+/// @param file   The Arnold plugin file name
+/// @param path   The search path to use
+/// @return       The resolved file name plugin was loaded from
 ///
 MString CExtension::LoadArnoldPlugin(const MString &file,
                                      const MString &path,
@@ -82,6 +86,9 @@ MString CExtension::LoadArnoldPlugin(const MString &file,
 }
 
 /// Get the list of all Arnold plugins this extension has loaded
+///
+/// @return The array of resolved file name for each plugin
+///
 MStringArray CExtension::GetOwnLoadedArnoldPlugins()
 {
    MStringArray result;
@@ -96,9 +103,11 @@ MStringArray CExtension::GetOwnLoadedArnoldPlugins()
    return result;
 }
 
-/// Register corresponding Maya nodes for Arnold nodes provided by the given Arnold Plugin.
+/// Register corresponding Maya nodes for Arnold nodes provided by the given Arnold plugin.
 ///
-/// @param plugin  the resolved absolute path to an Arnold plugin
+/// Will only handle Arnold nodes that are marked as provided by this plugin.
+///
+/// @param plugin  the resolved file name of the Arnold plugin
 ///
 MStatus CExtension::RegisterAllNodes(const MString &plugin)
 {
@@ -119,6 +128,13 @@ MStatus CExtension::RegisterAllNodes(const MString &plugin)
       const char* nodeFile = AiNodeEntryGetFilename(nentry);
       if (strcmp(nodeFile, plugin.asChar()) == 0)
       {
+         // If the Arnold node is marked as a node that should be ignored
+         AtBoolean hide;
+         if (AiMetaDataGetBool(nentry, NULL, "maya.hide", &hide) && hide)
+         {
+            AiMsgDebug("[%s] [node %s] Marked as hidden from Maya, ignored.", m_extensionName.asChar(), nodeName);
+            continue;
+         }
          // AiMsgDebug("[%s] Arnold node %s is provided by %s and will be processed for node registration", m_extensionName.asChar(), nodeName, nodeFile);
          MStatus nodeStatus;
          nodeStatus = RegisterNode(nentry);
@@ -140,6 +156,8 @@ MStatus CExtension::RegisterAllNodes(const MString &plugin)
 }
 
 /// Register translators for Arnold nodes provided by the given Arnold Plugin.
+///
+/// Will only handle Arnold nodes that are marked as provided by this plugin.
 ///
 /// @param plugin  the resolved absolute path to an Arnold plugin
 ///
@@ -163,6 +181,13 @@ MStatus CExtension::RegisterAllTranslators(const MString &plugin)
       const char* nodeFile = AiNodeEntryGetFilename(nentry);
       if (strcmp(nodeFile, plugin.asChar()) == 0)
       {
+         // If the Arnold node is marked as a node that should be ignored
+         AtBoolean hide;
+         if (AiMetaDataGetBool(nentry, NULL, "maya.hide", &hide) && hide)
+         {
+            AiMsgDebug("[%s] [node %s] Marked as hidden from Maya, ignored.", m_extensionName.asChar(), nodeName);
+            continue;
+         }
          // AiMsgDebug("[%s] Arnold node %s is provided by %s and will be processed for translator registration", m_extensionName.asChar(), nodeName, nodeFile);
          MStatus nodeStatus;
          nodeStatus = RegisterTranslator(nentry);
@@ -189,11 +214,10 @@ MStatus CExtension::RegisterAllTranslators(const MString &plugin)
 ///  -# "maya.name" - the name for the generated or corresponding maya node
 ///  -# "maya.id" - the maya node id to use for the generated or corresponding maya node
 ///  -# "maya.class" - classification string (defaults to "shader/surface")
-///  -# "maya.hide" - skip registration altogether
 ///
 /// See CBaseAttrHelper for parameter-level metadata for controlling attribute creation
 ///
-/// @param arnoldNodeName arnold AtNodeEntry from which to generate the new Maya node
+/// @param arnoldNodeName Arnold AtNodeEntry from which to generate the new Maya node
 ///
 /// @return MStatus::kSuccess if the node is registered successfully, else MStatus::kFailure
 ///
@@ -232,7 +256,6 @@ MStatus CExtension::RegisterNode(const MString &arnoldNodeName,
 ///  -# "maya.name" - the name for the generated or corresponding maya node
 ///  -# "maya.id" - the maya node id to use for the generated or corresponding maya node
 ///  -# "maya.class" - classification string (defaults to "shader/surface")
-///  -# "maya.hide" - skip registration altogether
 ///
 /// See CBaseAttrHelper for parameter-level metadata for controlling attribute creation
 ///
@@ -261,21 +284,12 @@ MStatus CExtension::RegisterNode(const AtNodeEntry* arnoldNodeEntry,
                         abstractMember,
                         type,
                         classification);
-
-   // If the Arnold node is marked as a node that should be ignored
-   AtBoolean hide;
-   if (AiMetaDataGetBool(arnoldNodeEntry, NULL, "maya.hide", &hide) && hide)
-   {
-      AiMsgDebug("[%s] [node %s] Marked as hidden from Maya, ignored.", m_extensionName.asChar(), arnoldNode.name.asChar());
-      return MStatus::kSuccess;
-   }
    // Read from metadata any information that was not explicitely passed
    status = mayaNode.ReadMetaData();
 
    // We're either creating a new node and mapping it,
    // or mapping an existing one,
    // or ignoring it alltogether if not enough information is present
-
    if (NULL != mayaNode.creator)
    {
       // Then we're creating (and maping), unless node already exists
@@ -298,6 +312,10 @@ MStatus CExtension::RegisterNode(const AtNodeEntry* arnoldNodeEntry,
 
 /// To register a Maya node not corresponding to any Arnold node.
 ///
+/// See Maya's MFnPlugin.registerNode(...)
+///
+/// @return MStatus::kSuccess if the node is registered successfully, else MStatus::kFailure
+///
 MStatus CExtension::RegisterNode(const MString &mayaTypeName,
                                      const MTypeId &mayaTypeId,
                                      MCreatorFunction creatorFunction,
@@ -319,9 +337,16 @@ MStatus CExtension::RegisterNode(const MString &mayaTypeName,
    return NewMayaNode(mayaNode);
 }
 
-/// Register translator
+/// Register a translator for the given Maya node type.
 ///
-/// Keeping old method signature for compatibility, it doesn't allow access to metadata
+/// When we need a specific translator for a Maya node we have no equivalent
+/// node in Arnold for. Exemple aiDisplacement.
+/// Of course since there is no Arnold node, it doesn't allow access to metadata.
+///
+/// @param mayaTypeName The Maya node type this translator should handle
+///
+/// @return MStatus::kSuccess if the node is registered successfully, else MStatus::kFailure
+///
 MStatus CExtension::RegisterTranslator(const MString &mayaTypeName,
                            const MTypeId &mayaTypeId,
                            const MString &translatorName,
@@ -339,11 +364,22 @@ MStatus CExtension::RegisterTranslator(const MString &mayaTypeName,
                             m_extensionFile,
                             creatorFunction,
                             nodeInitFunction);
-   AiMsgWarning("[%s] RegisterTranslator(mayaTypeName, mayaTypeId, ...) depreciated, use RegisterTranslator(arnoldNodeName, ...).", m_extensionName.asChar());
+
    return NewTranslator(translator, mayaNode);
 }
 
-/// Register translator
+/// Register a translator for the given Arnold node name.
+///
+/// Certain optional node-level metadata can be used to control how the
+/// node factory processes the node's registration:
+///  -# "maya.translator" - the name to use for the translator
+/// If no creator function is provided, will use default translator
+/// for each Arnold exported node types (camera, light, shader, shape)
+///
+/// @param arnoldNodeName Arnold node name the translator should produce
+///
+/// @return MStatus::kSuccess if the translator is registered successfully, else MStatus::kFailure
+///
 MStatus CExtension::RegisterTranslator(const MString &arnoldNodeName,
                                        const MString &translatorName,
                                        TCreatorFunction creatorFunction,
@@ -365,7 +401,18 @@ MStatus CExtension::RegisterTranslator(const MString &arnoldNodeName,
    }
 }
 
-/// Register translator
+/// Register a translator for the given Arnold node entry.
+///
+/// Certain optional node-level metadata can be used to control how the
+/// node factory processes the node's registration:
+///  -# "maya.translator" - the name to use for the translator
+/// If no creator function is provided, will use default translator
+/// for each Arnold exported node types (camera, light, shader, shape)
+///
+/// @param arnoldNodeEntry Arnold node name the translator should produce
+///
+/// @return MStatus::kSuccess if the translator is registered successfully, else MStatus::kFailure
+///
 MStatus CExtension::RegisterTranslator(const AtNodeEntry* arnoldNodeEntry,
                                        const MString &translatorName,
                                        TCreatorFunction creatorFunction,
@@ -408,10 +455,16 @@ MStatus CExtension::RegisterTranslator(const AtNodeEntry* arnoldNodeEntry,
    return status;
 }
 
-/// To specifiy either arnoldNodeName or mayaTypeName
+/// To specifiy both arnoldNodeName and mayaTypeName.
 ///
 /// Since it is used to add an addtionnal translator to a Maya node you need to
 /// provide a translator name and a creator method.
+///
+/// @param arnoldNodeEntry Arnold node name the translator should produce
+/// @param mayaTypeName The Maya node type this translator should handle
+///
+/// @return MStatus::kSuccess if the translator is registered successfully, else MStatus::kFailure
+///
 MStatus CExtension::RegisterTranslator(const MString &arnoldNodeName,
                                        const MString &mayaTypeName,
                                        const MString &translatorName,
@@ -453,12 +506,9 @@ MStatus CExtension::RegisterTranslator(const MString &arnoldNodeName,
 // ------------- protected --------------- //
 
 
-/// Stores the given Arnold plugin file name in the list of
-/// plugins loaded by this extension, and updates global
-/// list of loaded Arnold plugins.
+/// Stores the given Arnold plugin file name in the list of plugins loaded by this extension.
 ///
-/// Will fail and return MS::kFailure if that plugin is
-/// already stored.
+/// Will fail and return MS::kFailure if that plugin is already stored.
 ///
 /// @param file  the resolved filename of an Arnold plugin
 ///

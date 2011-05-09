@@ -34,6 +34,13 @@
 // To track loaded Arnold plugins
 typedef std::set<std::string> LoadedArnoldPluginsSet;
 
+
+/// Class to represent and manipulate Arnold extensions.
+///
+/// This class is used in the initializeExtensions and deinitializeExtension functions
+/// of a MtoA extension to respectively register and deregister the extension services
+/// (nodes, translators) with MtoA and Maya.RT CExtension
+///
 class DLLEXPORT CExtension
 {
    friend class CExtensionsManager;

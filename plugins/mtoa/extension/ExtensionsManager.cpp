@@ -48,13 +48,14 @@ CExtension* CExtensionsManager::GetBuiltin(MStatus *returnStatus)
    return builtin;
 }
 /// Load an Arnold plugin.
-
+///
 /// Loads the Arnold plugin and registers a Maya node for each Arnold node
 /// contained within it, if applicable.
+
 ///
-///
-/// @param path  the absolute path to an Arnold plugin
-///
+/// @param path   the absolute path to an Arnold plugin
+/// @param path   the absolute path to an Arnold plugin
+/// @return       A pointer to the extension if loading was successful, else NULL
 CExtension* CExtensionsManager::LoadArnoldPlugin(const MString &file,
                                                  const MString &path,
                                                  MStatus *returnStatus)
@@ -181,7 +182,6 @@ MStatus CExtensionsManager::LoadExtensions(const MString &path)
 /// deregister any Maya nodes generated for them.
 /// Deregister all translators created by this extension
 /// Restore what it may have overriden
-
 MStatus CExtensionsManager::UnloadExtension(CExtension* extension)
 {
    MStatus status = MStatus::kSuccess;
@@ -528,10 +528,9 @@ MStringArray CExtensionsManager::GetTranslatorNames(const MString &typeName,
             trsIt != allTranslators->end();
             trsIt++)
       {
-         const CPxTranslator &translator = *trsIt;
-         if (noTest || provider == translator.provider)
+         if (noTest || provider == trsIt->provider)
          {
-            result.append(translator.name);
+            result.append(trsIt->name);
          }
       }
    }

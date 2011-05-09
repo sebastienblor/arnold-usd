@@ -20,7 +20,7 @@ CPxTranslator::CPxTranslator(const MString &translatorName,
    name = translatorName;
    arnold = arnoldNodeName;
    provider = providerName;
-   if (name.numChars() == 0) name = provider;
+   // if (name.numChars() == 0) name = provider;
    file = providerFile;
    creator = creatorFunction;
    initialize = nodeInitFunction;
@@ -36,7 +36,7 @@ CPxTranslator::CPxTranslator(const MString &translatorName,
    name = translatorName;
    arnold = AiNodeEntryGetName(arnoldNodeEntry);
    provider = providerName;
-   if (name.numChars() == 0) name = provider;
+   // if (name.numChars() == 0) name = provider;
    file = providerFile;
    creator = creatorFunction;
    initialize = nodeInitFunction;
@@ -55,27 +55,39 @@ MStatus CPxTranslator::ReadMetaData()
    const char* node = arnold.asChar();
    const char* ext = provider.asChar();
 
+   // If no name was specified, use metadata, or by default the extension name
+   if (name.numChars() == 0)
+   {
+      const char* translatorName;
+      if (AiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.translator", &translatorName))
+      {
+         name = MString(translatorName);
+      }
+      else
+      {
+         name = provider;
+      }
+   }
    // If no explicit translator was specified, choose a default one using Arnold node type and metadata
    if (NULL == creator)
    {
       const char* arnoldNodeTypeName;
-      if (!AiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.translator", &arnoldNodeTypeName))
-         arnoldNodeTypeName = AiNodeEntryGetTypeName(arnoldNodeEntry);
+      arnoldNodeTypeName = AiNodeEntryGetTypeName(arnoldNodeEntry);
       if (strcmp(arnoldNodeTypeName, "camera") == 0)
       {
-         // TODO : define a non virtual CameraTranslator
+         // TODO : define a non virtual CameraTranslator?
          creator = CPerspCameraTranslator::creator;
          initialize = CPerspCameraTranslator::NodeInitializer;
       }
       else if (strcmp(arnoldNodeTypeName,"light") == 0)
       {
-         // TODO : define a non virtual CLightTranslator
+         // TODO : define a non virtual CLightTranslator?
          creator = CPointLightTranslator::creator;
          initialize = CPointLightTranslator::NodeInitializer;
       }
       else if (strcmp(arnoldNodeTypeName,"shader") == 0)
       {
-         // TODO : define a non virtual CNodeTranslator
+         // TODO : define a non virtual CShaderTranslator
          creator = CAutoTranslator::creator;
          // initialize = CAutoTranslator::NodeInitializer;
       }
