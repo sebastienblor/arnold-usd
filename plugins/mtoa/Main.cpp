@@ -199,7 +199,7 @@ namespace // <anonymous>
                                    "",
                                    CAmbientLightTranslator::creator,
                                    CLightTranslator::NodeInitializer);
-       builtin->RegisterTranslator("skydome_light"
+       builtin->RegisterTranslator("skydome_light",
                                    "aiSkyDomeLight",
                                    "",
                                    CSkyDomeLightTranslator::creator);
@@ -309,24 +309,16 @@ namespace // <anonymous>
 
 
       // Will load all found plugins and try to register nodes and translators
-      // for the new Arnold node each create. A CExtension is initialized
-      // for each plugin, and will try to register the corresponding and can be referenced by the pluging resolved name
-      // MStringArray extraPlugins;
-      // extraPlugins = CExtensionsManager::LoadArnoldPlugins();
-      // status = CExtensionsManager::LoadArnoldPlugins();
+      // for the new Arnold node each create. A CExtension is initialized.
+      status = CExtensionsManager::LoadArnoldPlugins();
 
       // Finally register all nodes from the loaded extensions with Maya in load order
-      // CExtensionsManager::RegisterExtensions();
-
-      AiMsgInfo("REGISTER BUILTIN");
-      CExtensionsManager::RegisterExtension(builtin);
-      AiMsgInfo("REGISTER SHADERS");
-      CExtensionsManager::RegisterExtension(shaders);
+      CExtensionsManager::RegisterExtensions();
 
       // CExtension::CreateCallbacks();
 
       // Or use MGlobal::apiVersion()
-      // TODO : should be called by ExtensionsManager
+      // TODO : should be called by ExtensionsManager after new registrations
 #if MAYA_API_VERSION < 201200
       MNodeClass::InitializeExistingNodes();
 #endif

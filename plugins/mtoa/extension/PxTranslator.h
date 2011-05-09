@@ -13,6 +13,10 @@ typedef void     (*TNodeInitFunction)(MString);
 // A translator proxy
 class CPxTranslator
 {
+   friend class CAbTranslator;
+   friend class CExtension;
+   friend class CExtensionsManager;
+
 public:
    CPxTranslator(const MString &translatorName = "",
                  const MString &arnoldNodeName = "",
@@ -35,6 +39,7 @@ public:
    inline bool IsNull() const {return (name == "");}
    MStatus ReadMetaData();
 
+private:
    MString name;
    MString provider;
    MString file;

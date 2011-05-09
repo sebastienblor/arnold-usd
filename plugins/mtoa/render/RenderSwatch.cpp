@@ -50,7 +50,7 @@ void CRenderSwatchGenerator::SetSwatchClass(const MObject & node)
    MFnDependencyNode depFn(node);
    MString classification = MFnDependencyNode::classification(depFn.typeName());
 
-   AiMsgDebug("Generating swatch for %s of classification %s", depFn.name().asChar(), classification.asChar());
+   AiMsgDebug("[swatch] [maya %s] of classification %s", depFn.name().asChar(), classification.asChar());
 
    // Classification string contains also the swatch render name, and the : separated parts
    // seem to be shuffled (according to alphabetic order?). So swatch render name is not
@@ -163,7 +163,10 @@ MStatus CRenderSwatchGenerator::BuildArnoldScene()
    }
    MString arnoldNodeName(AiNodeGetName(arnoldNode));
    if (NULL != arnoldNode) {
-      AiMsgDebug("Swatch exported %s as %s", mayaNodeName.asChar(), arnoldNodeName.asChar());
+      const AtNodeEntry *nodeEntry = arnoldNode->base_node;
+      AiMsgDebug("[swatch] Exported %s(%s) as %s(%s)",
+            mayaNodeType.asChar(), mayaNodeName.asChar(),
+            AiNodeGetName(arnoldNode), AiNodeEntryGetTypeName(nodeEntry));
    }
 
    // Assign it in the scene, depending on what it is
@@ -474,7 +477,7 @@ void CRenderSwatchGenerator::ClearSwatch()
 
 void CRenderSwatchGenerator::ErrorSwatch(const MString msg)
 {
-   const MString error_message("[swatch render] "+msg);
+   const MString error_message("[swatch] "+msg);
    AiMsgError(error_message.asChar());
    ClearSwatch();
 }
@@ -505,7 +508,7 @@ bool CRenderSwatchGenerator::doIteration()
       status = BuildArnoldScene();
       if (MStatus::kSuccess != status)
       {
-         ErrorSwatch("Swatch render failed: could not complete swatch scene.");
+         ErrorSwatch("Render failed: could not complete swatch scene.");
          m_renderSession->Finish();
          return true;
       }
@@ -515,7 +518,7 @@ bool CRenderSwatchGenerator::doIteration()
    {
       if (!AiUniverseIsActive())
       {
-         ErrorSwatch("Swatch render failed: Arnold universe not active.");
+         ErrorSwatch("Render failed: Arnold universe not active.");
          return true; // Stop iterating/rendering.
       }
       m_renderSession->DoSwatchRender(resolution());

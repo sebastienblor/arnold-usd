@@ -85,10 +85,10 @@ AtNode* CNodeTranslator::DoExport(AtUInt step)
       {
          if (m_outputAttr != "")
             AiMsgDebug("Exporting: %s.%s using translator %s",
-                       GetFnNode().name().asChar(), m_outputAttr.asChar(), GetTranslatorName());
+                       GetFnNode().name().asChar(), m_outputAttr.asChar(), GetTranslatorName().asChar());
          else
             AiMsgDebug("Exporting: %s using translator %s",
-                       GetFnNode().name().asChar(), GetTranslatorName());
+                       GetFnNode().name().asChar(), GetTranslatorName().asChar());
          Export(m_atNode);
          ExportUserAttribute(m_atNode);
       }
@@ -96,7 +96,7 @@ AtNode* CNodeTranslator::DoExport(AtUInt step)
       {
          if (m_outputAttr != "")
             AiMsgDebug("Exporting motion: %s.%s using translator %s",
-                       GetFnNode().name().asChar(), m_outputAttr.asChar(), GetTranslatorName());
+                       GetFnNode().name().asChar(), m_outputAttr.asChar(), GetTranslatorName().asChar());
          else
             AiMsgDebug("Exporting motion: %s using translator %s",
                        GetFnNode().name().asChar(), GetTranslatorName());

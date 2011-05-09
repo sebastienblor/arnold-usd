@@ -25,6 +25,7 @@ CPxTranslator::CPxTranslator(const MString &translatorName,
    creator = creatorFunction;
    initialize = nodeInitFunction;
 }
+
 CPxTranslator::CPxTranslator(const MString &translatorName,
                              const AtNodeEntry* arnoldNodeEntry,
                              const MString &providerName,

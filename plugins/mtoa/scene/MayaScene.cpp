@@ -477,7 +477,7 @@ MStatus CMayaScene::ExportDagPath(MDagPath &dagPath)
    }
    else
    {
-      AiMsgWarning("Dag node %s of type %s not supported", name.asChar(), type.asChar());
+      AiMsgDebug("Dag node %s of type %s ignored", name.asChar(), type.asChar());
    }
    return MStatus::kFailure;
 }
@@ -530,7 +530,7 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
    }
    else
    {
-      AiMsgWarning("Shader type not supported: %s", MFnDependencyNode(mayaShader).typeName().asChar());
+      AiMsgDebug("Shader type not supported: %s", MFnDependencyNode(mayaShader).typeName().asChar());
    }
 
    if (shader)

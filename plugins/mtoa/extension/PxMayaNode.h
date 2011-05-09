@@ -1,7 +1,7 @@
 #ifndef PXMAYANODE_H
 #define PXMAYANODE_H
 
-#include "extension/AbMayaNode.h"
+class CAbMayaNode;
 
 #include <maya/MPxNode.h>
 
@@ -11,6 +11,10 @@
 // A Maya node class proxy
 class CPxMayaNode
 {
+   friend class CAbMayaNode;
+   friend class CExtension;
+   friend class CExtensionsManager;
+
 public:
    // in 2012 we can determine the node Id from the node name
    CPxMayaNode(const MString &typeName = "",
@@ -40,9 +44,9 @@ public:
    inline bool operator<(const CPxMayaNode& other) const { return strcmp(name.asChar(), other.name.asChar()) < 0; }
 
    inline bool IsNull() const {return (name == "");}
-   void Set(const CPxMayaNode& other);
    MStatus ReadMetaData();
 
+private:
    MString name;
    MTypeId id;
    MString provider;
@@ -55,5 +59,7 @@ public:
    MString arnold;
    CAbMayaNode *abstract;
 };
+
+
 
 #endif // PXMAYANODE_H

@@ -1,9 +1,9 @@
 #ifndef ABMAYANODE_H
 #define ABMAYANODE_H
 
-#include "extension/PxMayaNode.h"
+#include "extension/PxTransator.h"
 
-#include <maya/MPxNode.h>
+#include <maya/MString.h>
 
 #include <ai_nodes.h>
 #include <ai.h>
@@ -14,29 +14,25 @@
 
 // Extend as it becomes necessary
 
-class CAbMayaNode
+class CAbTranslator
 {
-   friend class CPxMayaNode;
+   friend class CPxTranslator;
 public:
-   CAbMayaNode(const MString &mayaClassName = "",
+   CAbMayaNode(const MString &translatorName = "",
                const MString &arnoldClassName = "",
-               const MString &classif = "",
                const MString &providerName = "")
-   : name(mayaClassName),
+   : name(translatorName),
      arnold(arnoldClassName),
-     classification(classif),
      provider(providerName)
    {}
-   CAbMayaNode(const CPxMayaNode &mayaClass)
-   : name(mayaClass.name),
-     arnold(mayaClass.arnold),
-     classification(mayaClass.classification),
-     provider(mayaClass.provider)
+   CAbMayaNode(const CPxTranslator &translator)
+   : name(translator.name),
+     arnold(translator.arnold),
+     provider(translator.provider)
    {}
 
    MString name;
    MString arnold;
-   MString classification;
    MString provider;
 };
 

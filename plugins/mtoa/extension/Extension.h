@@ -119,6 +119,7 @@ public:
 
 
 protected :
+
    MStatus NewArnoldPlugin(const MString &file);
    MStatus DeleteArnoldPlugin(const MString &file);
    MStatus NewMappedMayaNode(CPxMayaNode mayaNode,
@@ -142,10 +143,12 @@ protected :
    static MStringArray GetAllLoadedArnoldPlugins();
 
    // TODO : reimplement this?
+   /*
    void InitializePendingTranslators(MString& pluginName);
    void MayaPluginLoadedCallback(const MStringArray &strs, void *clientData);
    void CreateCallbacks();
    void RemoveCallbacks();
+   */
 
 protected:
    MString m_extensionFile;

@@ -319,7 +319,9 @@ MStatus CExtension::RegisterNode(const MString &mayaTypeName,
    return NewMayaNode(mayaNode);
 }
 
-// Keeping old method signature for compatibility, it doesn't allow access to metadatas
+/// Register translator
+///
+/// Keeping old method signature for compatibility, it doesn't allow access to metadata
 MStatus CExtension::RegisterTranslator(const MString &mayaTypeName,
                            const MTypeId &mayaTypeId,
                            const MString &translatorName,
@@ -480,12 +482,10 @@ MStatus CExtension::NewArnoldPlugin(const MString &file)
    }
 }
 
-/// Removes the given Arnold plugin file name from the list of
-/// plugins loaded by this extension, and updates global
-/// list of loaded Arnold plugins.
+/// Removes the given Arnold plugin file name from the list of plugins
+/// loaded by this extension, and updates global list of loaded Arnold plugins.
 ///
-/// Will fail and return MS::kFailure if that plugin is
-/// not already stored.
+/// Will fail and return MS::kFailure if that plugin is not already stored.
 ///
 /// @param file  the resolved filename of an Arnold plugin
 ///
@@ -508,9 +508,10 @@ MStatus CExtension::DeleteArnoldPlugin(const MString &file)
    }
 }
 
-// internal use
-// Register a new Maya node and map it to an Arnold node.
-// Store the information
+/// internal use
+/// Register a new Maya node and map it to an Arnold node.
+///
+/// Store the information
 MStatus CExtension::NewMappedMayaNode(CPxMayaNode mayaNode,
                                        const CPxArnoldNode &arnoldNode)
 {
@@ -526,7 +527,7 @@ MStatus CExtension::NewMappedMayaNode(CPxMayaNode mayaNode,
    if (mayaNode.name == "")
    {
       mayaNode.name = toMayaStyle(MString("ai_")+arnoldNode.name);
-      AiMsgWarning("[%s] [node %s] Using auto generated associated Maya type name %s for Arnold node %s.",
+      AiMsgWarning("[%s] [node %s] Using auto generated associated Maya type name %s.",
             mayaNode.provider.asChar(), arnoldNode.name.asChar(), mayaNode.name.asChar());
    }
    if (!MFnPlugin::isNodeRegistered(mayaNode.name))
@@ -563,9 +564,10 @@ MStatus CExtension::NewMappedMayaNode(CPxMayaNode mayaNode,
 }
 
 // internal use
-// Register a new Maya node not corresponding to any Arnold node.
-// Typically helper nodes that don't need to be directly translated.
-// Store the information
+/// Register a new Maya node not corresponding to any Arnold node.
+/// Typically helper nodes that don't need to be directly translated.
+///
+/// Store the information
 MStatus CExtension::NewMayaNode(CPxMayaNode mayaNode)
 {
    // Need all necessary creation information
@@ -690,7 +692,7 @@ MStatus CExtension::NewTranslator(const CPxTranslator &translator,
    return status;
 }
    
-// Find a registering Maya node
+/// Find a registering Maya node
 const CPxMayaNode* CExtension::FindRegisteredMayaNode(const CPxMayaNode &mayaNode)
 {
    MayaNodesSet::iterator nodeIt;
@@ -705,7 +707,7 @@ const CPxMayaNode* CExtension::FindRegisteredMayaNode(const CPxMayaNode &mayaNod
    }
 }
 
-// Find registered translators for a Maya node
+/// Find registered translators for a Maya node
 const TranslatorsSet* CExtension::FindRegisteredTranslators(const CPxMayaNode &mayaNode)
 {
    MayaNodeToTranslatorsMap::iterator nodeIt;
@@ -721,6 +723,8 @@ const TranslatorsSet* CExtension::FindRegisteredTranslators(const CPxMayaNode &m
 }
 
 /// Find file in the given search path(s)
+///
+///
 MString CExtension::FindFileInPath(const MString &file,
                                    const MString &path,
                                    MStatus *returnStatus)
@@ -752,6 +756,8 @@ MString CExtension::FindFileInPath(const MString &file,
    return resolved;
 }
 
+/// Find all libraries (dll, so) in the given search path.
+///
 /// @param searchPath  a path to search for libraries, optionally containing
 /// separators (: on unix, ; on windows) and environment variables
 MStringArray CExtension::FindLibraries(const MString &path,

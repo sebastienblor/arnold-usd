@@ -26,7 +26,6 @@ typedef std::list<CExtension> ExtensionsList;
 /// When MtoA is loaded in Maya, the node factory is called to load all Arnold plugins found on ARNOLD_PLUGIN_PATH,
 /// and generate Maya nodes from the Arnold shaders contained within them. Metadata can be added to
 /// the Arnold node and its parameters to control how the Maya node and its attributes are generated, if at all.
-
 class DLLEXPORT CExtensionsManager
 {
 public:
@@ -42,12 +41,12 @@ public:
                                     MStatus *returnStatus=NULL);
    static MStatus LoadExtensions(const MString &path="$MTOA_EXTENSIONS_PATH");
 
-   static MStatus UnloadExtension(const CExtension* extension);
+   static MStatus UnloadExtension(CExtension* extension);
    static MStatus UnloadExtensions();
 
    static MStatus RegisterExtension(CExtension* extension);
    static MStatus RegisterExtensions();
-   static MStatus DeregisterExtension(const CExtension* extension);
+   static MStatus DeregisterExtension(CExtension* extension);
    static MStatus DeregisterExtensions();
 
    static CDagTranslator*  GetTranslator(const MDagPath &dagPath);

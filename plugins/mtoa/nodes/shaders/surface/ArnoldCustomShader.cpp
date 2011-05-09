@@ -26,6 +26,9 @@ std::vector<CStaticAttrHelper> CArnoldCustomShaderNode::s_nodeHelpers;
 void CArnoldCustomShaderNode::postConstructor()
 {
    setMPSafe(false);
+   // Copy the abstract so that it can accessed on instances
+   // (and saved before a new register overwrites it)
+   m_abstract = s_abstract;
 }
 
 MStatus CArnoldCustomShaderNode::compute(const MPlug& plug, MDataBlock& data)
@@ -52,11 +55,14 @@ MStatus CArnoldCustomShaderNode::initialize()
    static MObject s_OUT_transparencyB;
    static MObject s_OUT_transparency;
 
+   MString maya = s_abstract.name;
    MString arnold = s_abstract.arnold;
    MString classification = s_abstract.classification;
+   MString provider = s_abstract.provider;
    const AtNodeEntry *nodeEntry = AiNodeEntryLookUp(arnold.asChar());
 
-   AiMsgDebug("Initializing custom shader as Arnold node %s", arnold.asChar());
+   AiMsgDebug("Initializing ArnoldCustomShader as Maya node %s, from Arnold node %s metadata, provided by %s",
+         maya.asChar(), arnold.asChar(), provider.asChar());
    CStaticAttrHelper helper(CArnoldCustomShaderNode::addAttribute, nodeEntry);
 
    // outputs
