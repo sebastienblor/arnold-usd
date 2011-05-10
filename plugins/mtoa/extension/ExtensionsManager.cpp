@@ -122,9 +122,9 @@ CExtension* CExtensionsManager::LoadExtension(const MString &file,
    {
       // Create a CExtension to represent loaded extension
       // TODO : store Library handle for unload
-      extension = NewExtension(resolved);
-      while (NULL != extension)
+      while (NULL == extension)
       {
+         extension = NewExtension(resolved);
          AiMsgInfo("[xma] Loading extension %s(%s)...", extension->GetName().asChar(), extension->GetFile().asChar());
          void *pluginLib = LibraryLoad(extension->GetFile().asChar());
          if (pluginLib == NULL)
@@ -132,6 +132,7 @@ CExtension* CExtensionsManager::LoadExtension(const MString &file,
             AiMsgError("[xma] Error loading extension library: %s.", LibraryLastError());
             DeleteExtension(extension);
             status = MStatus::kFailure;
+            break;
          }
          void* initializer = LibrarySymbol(pluginLib, "initializePlugin");
          if (initializer == NULL)
@@ -139,6 +140,7 @@ CExtension* CExtensionsManager::LoadExtension(const MString &file,
             AiMsgError("[xma] Error initializing extension library: %s.", LibraryLastError());
             DeleteExtension(extension);
             status = MStatus::kFailure;
+            break;
          }
          const ExtensionInitFunction &initFunc = (ExtensionInitFunction)(initializer);
          // ExtensionInitFunction * initFunc = (ExtensionInitFunction*)(&initializer);

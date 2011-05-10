@@ -394,14 +394,15 @@ for ext in os.listdir(ext_base_dir):
                                 duplicate = 0,
                                 exports   = ['ext_env', 'env'])
            
-           EXT_PRJ = EXT[1]
-           
-           env.Depends(SOLUTION, EXT_PRJ)
-           
-           if len(EXT) > 2:
-              EXT_SHADERS = EXT[2]
+           if len(EXT) == 4:
+              EXT_SHADERS = EXT[1]
+              EXT_PRJ = EXT[2]
               EXT_SHADERS_PRJ = EXT[3]
               env.Depends(SOLUTION, EXT_SHADERS_PRJ)
+           else:
+              EXT_PRJ = EXT[1]
+           
+           env.Depends(SOLUTION, EXT_PRJ)
         else:
            EXT = env.SConscript(os.path.join(ext_dir, 'SConscript'),
                                 variant_dir = os.path.join(BUILD_BASE_DIR, ext),
