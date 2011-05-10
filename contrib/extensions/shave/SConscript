@@ -87,6 +87,6 @@ if system.os() == 'windows':
 
 
 if system.os() == 'windows':
-   Return('EXT EXT_SHADERS EXT_PRJ EXT_SHADERS_PRJ')
+   Return('EXT EXT_PRJ EXT_SHADERS EXT_SHADERS_PRJ')
 else:
    Return('EXT EXT_SHADERS')

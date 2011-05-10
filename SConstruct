@@ -389,18 +389,25 @@ for ext in os.listdir(ext_base_dir):
     ext_dir = os.path.join(ext_base_dir, ext)
     if os.path.isdir(ext_dir):
         if system.os() == 'windows':
-           [EXT, EXT_PRJ] = env.SConscript(os.path.join(ext_dir, 'SConscript'),
-                                           variant_dir = os.path.join(BUILD_BASE_DIR, ext),
-                                           duplicate = 0,
-                                           exports   = ['ext_env', 'env'])
+           EXT = env.SConscript(os.path.join(ext_dir, 'SConscript'),
+                                variant_dir = os.path.join(BUILD_BASE_DIR, ext),
+                                duplicate = 0,
+                                exports   = ['ext_env', 'env'])
+           
+           EXT_PRJ = EXT[1]
+           
            env.Depends(SOLUTION, EXT_PRJ)
-           if EXT_SHADERS_PRJ != None:
+           
+           if len(EXT) > 2:
+              EXT_SHADERS = EXT[2]
+              EXT_SHADERS_PRJ = EXT[3]
               env.Depends(SOLUTION, EXT_SHADERS_PRJ)
         else:
            EXT = env.SConscript(os.path.join(ext_dir, 'SConscript'),
                                 variant_dir = os.path.join(BUILD_BASE_DIR, ext),
                                 duplicate = 0,
                                 exports   = ['ext_env', 'env'])
+        
         top_level_alias(env, ext, EXT)
         Depends(EXT, MTOA_API[0])
         # only install if the target has been specified
@@ -408,14 +415,14 @@ for ext in os.listdir(ext_base_dir):
             # EXT may contain a shader result
             if system.os() == 'windows':
                if len(EXT) > 2:
-                   ext_shaders.append(str(EXT[1][0]))
+                  ext_shaders.append(str(EXT[1][0]))
                plugin = str(EXT[0][0])
             else:
                if len(EXT) > 1:
-                   ext_shaders.append(str(EXT[1][0]))
-                   plugin = str(EXT[0][0])
+                  ext_shaders.append(str(EXT[1][0]))
+                  plugin = str(EXT[0][0])
                else:
-                   plugin = str(EXT[0])
+                  plugin = str(EXT[0])
             pyfile = os.path.splitext(os.path.basename(plugin))[0] + '.py'
             pyfile = os.path.join(ext_dir, 'plugin', pyfile)
             ext_files.append(plugin)
