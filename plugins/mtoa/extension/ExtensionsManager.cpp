@@ -134,7 +134,7 @@ CExtension* CExtensionsManager::LoadExtension(const MString &file,
             status = MStatus::kFailure;
             break;
          }
-         void* initializer = LibrarySymbol(pluginLib, "initializePlugin");
+         void* initializer = LibrarySymbol(pluginLib, "initializeExtension");
          if (initializer == NULL)
          {
             AiMsgError("[xma] Error initializing extension library: %s.", LibraryLastError());

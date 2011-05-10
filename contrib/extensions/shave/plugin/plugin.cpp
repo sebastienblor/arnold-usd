@@ -5,7 +5,7 @@
 extern "C"
 {
 
-DLLEXPORT void initializePlugin(CExtension& plugin)
+DLLEXPORT void initializeExtension(CExtension& plugin)
 {
    plugin.RegisterTranslator("shaveHair",
                              0x1029b7,
@@ -14,7 +14,7 @@ DLLEXPORT void initializePlugin(CExtension& plugin)
                              CShaveTranslator::NodeInitializer);
 }
 
-DLLEXPORT void uninitializePlugin(CExtension& plugin)
+DLLEXPORT void deinitializeExtension(CExtension& plugin)
 {
 }
 
