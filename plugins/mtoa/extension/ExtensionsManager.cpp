@@ -20,7 +20,6 @@
 
 typedef void (*ExtensionInitFunction)(CExtension&);
 
-
 MayaNodesSet CExtensionsManager::s_registeredMayaNodes;
 MayaNodeToTranslatorsMap CExtensionsManager::s_registeredTranslators;
 MObject CExtensionsManager::s_plugin;
@@ -141,9 +140,12 @@ CExtension* CExtensionsManager::LoadExtension(const MString &file,
             DeleteExtension(extension);
             status = MStatus::kFailure;
          }
-         ExtensionInitFunction* initFunc = (ExtensionInitFunction*)(&initializer);
+         const ExtensionInitFunction &initFunc = (ExtensionInitFunction)(initializer);
+         // ExtensionInitFunction * initFunc = (ExtensionInitFunction*)(&initializer);
+
          // Do the init
-         (*initFunc)(*extension);
+         (initFunc)(*extension);
+         // (*initFunc)(*extension);
          AiMsgInfo("[xma] Successfully loaded extension library %s.", extension->GetFile().asChar());
          // Do not register now to allow to add calls (registerNode, etc) on it before
          // status = RegisterExtension(extension);

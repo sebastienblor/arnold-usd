@@ -52,9 +52,6 @@ MStatus CPxTranslator::ReadMetaData()
       return MStatus::kInvalidParameter;
    }
 
-   const char* node = arnold.asChar();
-   const char* ext = provider.asChar();
-
    // If no name was specified, use metadata, or by default the extension name
    if (name.numChars() == 0)
    {
