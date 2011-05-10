@@ -264,12 +264,12 @@ void CHairTranslator::ProcessHairLines(AtUInt step,
          const int curveLineStartsIdx       = strand ? AiArrayGetInt(curveNextLineStarts, strand-1)       : 0;
          const int curveLineInterpStartsIdx = strand ? AiArrayGetInt(curveNextLineStartsInterp, strand-1) : 0;
 
-         MVector * lineVertex = &(line[0]);
+         MVector* lineVertex = &(line[0]);
 
          // We need a couple extra points for interpolation
          // One at the beginning and one at the end (JUST POINTS , NO ATTRS)
          AtPoint curvePoint;
-         AiV3Create(curvePoint, lineVertex->x, lineVertex->y, lineVertex->z);
+         AiV3Create(curvePoint, static_cast<float>(lineVertex->x), static_cast<float>(lineVertex->y), static_cast<float>(lineVertex->z));
          AiArraySetPnt(curvePoints,
                        curveLineInterpStartsIdx + (step * numPointsPerStep),
                        curvePoint);
@@ -277,14 +277,14 @@ void CHairTranslator::ProcessHairLines(AtUInt step,
          // Run down the strand adding the points and widths.
          for (int j = 0; j < renderLineLength; ++j, ++lineVertex)
          {
-            AiV3Create(curvePoint, lineVertex->x, lineVertex->y, lineVertex->z);
+            AiV3Create(curvePoint, static_cast<float>(lineVertex->x), static_cast<float>(lineVertex->y), static_cast<float>(lineVertex->z));
             AiArraySetPnt(curvePoints,
                           j+1 + curveLineInterpStartsIdx + (step * numPointsPerStep),
                           curvePoint);
             
             // Animated widths are not supported, so just export on step 0
             if (step == 0)
-               AiArraySetFlt(curveWidths, j+curveLineStartsIdx, (AtFloat)widths[j]);
+               AiArraySetFlt(curveWidths, j+curveLineStartsIdx, static_cast<float>(widths[j]/2.0));
          }
 
          // Last point duplicated.
