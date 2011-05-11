@@ -73,12 +73,14 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
       return false;
    }
 
-   AiMsgDebug("Getting attribute metadata for %s.%s", AiNodeEntryGetName(m_nodeEntry), paramName);
+   const char* nodeName = AiNodeEntryGetName(m_nodeEntry);
+   // AiMsgDebug("[node %s] [attr %s] Reading metadata", nodeName, paramName);
 
    data.defaultValue = MAiParamGetDefault(m_nodeEntry, paramEntry);
    data.name = GetMayaAttrName(paramName);
    data.shortName = GetMayaAttrShortName(paramName);
    data.type = AiParamGetType(paramEntry);
+   const char* typeName = AiParamGetTypeName(data.type);
 
    AiMetaDataGetBool(m_nodeEntry, paramName, "maya.keyable", &data.keyable);
 
@@ -176,7 +178,7 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
             }
             default:
             {
-               AiMsgError("Unable to get data for parameter %s: unknown parameter type", paramName);
+               AiMsgError("[node %s] [attr %s] Unknown parameter type %s", nodeName, paramName, typeName);
                break;
             }
          }

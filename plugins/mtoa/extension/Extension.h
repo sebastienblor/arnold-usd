@@ -57,7 +57,7 @@ public:
 
    // Arnold Plugin loading
    MString LoadArnoldPlugin(const MString &file,
-                            const MString &path="",
+                            const MString &path=PLUGIN_SEARCH,
                             MStatus *returnStatus=NULL);
    MStringArray GetOwnLoadedArnoldPlugins();
 

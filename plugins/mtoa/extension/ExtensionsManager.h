@@ -33,13 +33,13 @@ public:
    static CExtension* GetBuiltin(MStatus *returnStatus=NULL);
 
    static CExtension* LoadArnoldPlugin(const MString &file,
-                                       const MString &path="",
+                                       const MString &path=PLUGIN_SEARCH,
                                        MStatus *returnStatus=NULL);
-   static MStatus LoadArnoldPlugins(const MString &path="$ARNOLD_PLUGIN_PATH");
+   static MStatus LoadArnoldPlugins(const MString &path=PLUGIN_SEARCH);
    static CExtension* LoadExtension(const MString &file,
-                                    const MString &path="",
+                                    const MString &path=EXTENSION_SEARCH,
                                     MStatus *returnStatus=NULL);
-   static MStatus LoadExtensions(const MString &path="$MTOA_EXTENSIONS_PATH");
+   static MStatus LoadExtensions(const MString &path=EXTENSION_SEARCH);
 
    static MStatus UnloadExtension(CExtension* extension);
    static MStatus UnloadExtensions();

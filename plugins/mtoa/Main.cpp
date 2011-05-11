@@ -245,9 +245,8 @@ namespace // <anonymous>
                                    CHairTranslator::NodeInitializer);
 
       // Load all plugins path or only shaders?
-      MString mtoaShaders("mtoa_shaders"+LIBEXT);
       CExtension* shaders;
-      shaders = CExtensionsManager::LoadArnoldPlugin(mtoaShaders, "$ARNOLD_PLUGIN_PATH", &status);
+      shaders = CExtensionsManager::LoadArnoldPlugin("mtoa_shaders", "$ARNOLD_PLUGIN_PATH", &status);
       CHECK_MSTATUS(status);
       // Overrides for mtoa_shaders
       shaders->RegisterTranslator("MayaLayeredShader",
@@ -311,8 +310,8 @@ namespace // <anonymous>
 
       // Will load all found plugins and try to register nodes and translators
       // for the new Arnold node each create. A CExtension is initialized.
-      status = CExtensionsManager::LoadArnoldPlugins();
-      CExtensionsManager::LoadExtensions();
+      status = CExtensionsManager::LoadExtensions();
+      // status = CExtensionsManager::LoadArnoldPlugins();
       // Finally register all nodes from the loaded extensions with Maya in load order
       CExtensionsManager::RegisterExtensions();
 

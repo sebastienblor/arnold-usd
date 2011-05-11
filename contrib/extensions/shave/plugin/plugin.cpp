@@ -7,6 +7,7 @@ extern "C"
 
 DLLEXPORT void initializeExtension(CExtension& plugin)
 {
+   plugin.LoadArnoldPlugin("shave_shaders");
    plugin.RegisterTranslator("shaveHair",
                              0x1029b7,
                              "shave",
@@ -17,6 +18,6 @@ DLLEXPORT void initializeExtension(CExtension& plugin)
 DLLEXPORT void deinitializeExtension(CExtension& plugin)
 {
 }
-
+   // plugin.DeloadArnoldPlugin("shave_shaders");
 }
 

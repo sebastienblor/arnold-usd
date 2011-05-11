@@ -62,11 +62,20 @@ MString CExtension::LoadArnoldPlugin(const MString &file,
                                      MStatus *returnStatus)
 {
    MStatus status;
+
+   unsigned int nchars = file.numChars();
+   MString libext = MString(LIBEXT);
+   unsigned int next = libext.numChars();
+   MString searchFile = file;
+   if (nchars < next || libext != file.substringW(nchars-next, nchars))
+   {
+      searchFile += libext;
+   }
    MString resolved;
-   resolved = FindFileInPath(MString(file), path, &status);
+   resolved = FindFileInPath(searchFile, path, &status);
    if (MStatus::kSuccess == status)
    {
-      AiMsgDebug("File %s found as %s.", file.asChar(), resolved.asChar());
+      AiMsgDebug("Found Arnold plugin file %s as %s.", file.asChar(), resolved.asChar());
       status = NewArnoldPlugin(resolved);
       if (MStatus::kSuccess == status)
       {
@@ -134,7 +143,7 @@ MStatus CExtension::RegisterAllNodes(const MString &plugin)
          AtBoolean hide;
          if (AiMetaDataGetBool(nentry, NULL, "maya.hide", &hide) && hide)
          {
-            AiMsgDebug("[%s] [node %s] Marked as hidden from Maya, ignored.", m_extensionName.asChar(), nodeName);
+            AiMsgDebug("[%s] [node %s] Marked as hidden.", m_extensionName.asChar(), nodeName);
             continue;
          }
          // AiMsgDebug("[%s] Arnold node %s is provided by %s and will be processed for node registration", m_extensionName.asChar(), nodeName, nodeFile);
@@ -184,10 +193,10 @@ MStatus CExtension::RegisterAllTranslators(const MString &plugin)
       if (strcmp(nodeFile, plugin.asChar()) == 0)
       {
          // If the Arnold node is marked as a node that should be ignored
-         AtBoolean hide;
-         if (AiMetaDataGetBool(nentry, NULL, "maya.hide", &hide) && hide)
+         AtBoolean ignore;
+         if (AiMetaDataGetBool(nentry, NULL, "maya.ignore", &ignore) && ignore)
          {
-            AiMsgDebug("[%s] [node %s] Marked as hidden from Maya, ignored.", m_extensionName.asChar(), nodeName);
+            AiMsgDebug("[%s] [node %s] Marked as ignored.", m_extensionName.asChar(), nodeName);
             continue;
          }
          // AiMsgDebug("[%s] Arnold node %s is provided by %s and will be processed for translator registration", m_extensionName.asChar(), nodeName, nodeFile);
@@ -206,7 +215,7 @@ MStatus CExtension::RegisterAllTranslators(const MString &plugin)
    // Info
    unsigned int newNodes = RegisteredNodesCount();
    unsigned int trsNodes = TranslatedNodesCount();
-   AiMsgInfo("[%s] Registered %i translators for %i Maya nodes, %i new and %i existing.",
+   AiMsgInfo("[%s] Registered a total of %i translators for %i Maya nodes (%i new and %i existing).",
          m_extensionName.asChar(), TranslatorCount(), trsNodes, newNodes, trsNodes - newNodes);
 
    return status;
@@ -515,8 +524,21 @@ MStatus CExtension::setFile(const MString &file)
    MFileObject extensionFile;
    extensionFile.overrideResolvedFullName(file);
    m_extensionFile = extensionFile.resolvedFullName();
-   m_extensionName = extensionFile.resolvedName();
+   MString name = extensionFile.resolvedName();
+   // Strip extension if found
+   unsigned int nchars = name.numChars();
+   MString libext = MString(LIBEXT);
+   unsigned int next = libext.numChars();
+   if (nchars > next + 1)
+   {
+      MString ext = name.substringW(nchars-next, nchars);
+      if (ext == libext)
+      {
+         name = name.substringW(0, nchars-next-1);
+      }
+   }
    // TODO some checking ?
+   m_extensionName = name;
    return MStatus::kSuccess;
 }
 
@@ -844,10 +866,12 @@ MStringArray CExtension::FindLibraries(const MString &path,
       {
          MString entry = dirp->d_name;
          unsigned int nchars = entry.numChars();
-         if (nchars > LIBEXT.numChars())
+         MString libext = MString(LIBEXT);
+         unsigned int next = libext.numChars();
+         if (nchars > next)
          {
-            MString ext = entry.substringW(nchars-LIBEXT.numChars(), nchars);
-            if (entry.substringW(0,0) != "." && ext == LIBEXT)
+            MString ext = entry.substringW(nchars-next, nchars);
+            if (entry.substringW(0,0) != "." && ext == libext)
             {
                files.append(dir + DIRSEP + entry);
                if (MStatus::kNotFound == status) status = MStatus::kSuccess;

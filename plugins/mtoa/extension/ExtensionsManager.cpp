@@ -111,7 +111,7 @@ MStatus CExtensionsManager::LoadArnoldPlugins(const MString &path)
          }
          else
          {
-            AiMsgDebug("Arnold plugin %s already loaded, ignored.", resolved);
+            AiMsgDebug("Arnold plugin %s already loaded, ignored.", resolved.asChar());
          }
       }
    }
@@ -127,17 +127,27 @@ CExtension* CExtensionsManager::LoadExtension(const MString &file,
                                               MStatus *returnStatus)
 {
    MStatus status;
-   MString resolved = CExtension::FindFileInPath(file, path, &status);
+   unsigned int nchars = file.numChars();
+   MString libext = MString(LIBEXT);
+   unsigned int next = libext.numChars();
+   MString searchFile = file;
+   if (nchars < next || libext != file.substringW(nchars-next, nchars))
+   {
+      searchFile += libext;
+   }
+   MString resolved = CExtension::FindFileInPath(searchFile, path, &status);
    CExtension* extension = NULL;
+
    if (MStatus::kSuccess == status)
    {
+      AiMsgDebug("Found extension file %s as %s.", file.asChar(), resolved.asChar());
       // Create a CExtension to represent loaded extension
       // TODO : store Library handle for unload
-      extension = NewExtension(resolved);
       while (NULL == extension)
       {
          extension = NewExtension(resolved);
          AiMsgInfo("Loading extension %s(%s).", extension->GetName().asChar(), extension->GetFile().asChar());
+
          void *pluginLib = LibraryLoad(extension->GetFile().asChar());
          if (pluginLib == NULL)
          {
@@ -165,6 +175,13 @@ CExtension* CExtensionsManager::LoadExtension(const MString &file,
          // status = RegisterExtension(extension);
       }
    }
+   else
+   {
+      if (path.numChars())
+         AiMsgError("Could not find %s in search path %s", file.asChar(), path.asChar());
+      else
+         AiMsgError("Could not find %s", file.asChar());
+   }
 
    if (NULL != returnStatus) *returnStatus = status;
    return extension;
@@ -191,7 +208,7 @@ MStatus CExtensionsManager::LoadExtensions(const MString &path)
          }
          else
          {
-            AiMsgDebug("MtoA extension %s already loaded, ignored.", resolved);
+            AiMsgDebug("MtoA extension %s already loaded, ignored.", resolved.asChar());
          }
       }
    }
@@ -374,6 +391,7 @@ MStatus CExtensionsManager::RegisterExtensions()
    MStatus status = MStatus::kSuccess;
 
    // s_extensions is a std::list of extensions (ordered in load order)
+   AiMsgInfo("Registering %i loaded extensions:", s_extensions.size());
    ExtensionsList::iterator extIt;
    for (extIt = s_extensions.begin();
          extIt != s_extensions.end();
