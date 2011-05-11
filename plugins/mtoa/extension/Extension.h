@@ -50,8 +50,8 @@ public:
    virtual ~CExtension() {}
    MString GetName() const {return m_extensionName;}
    MString GetFile() const {return m_extensionFile;}
-   unsigned int NodesCount() const {return m_registeredMayaNodes.size();}
-   unsigned int TranslatedCount() const {return m_registeredTranslators.size();}
+   unsigned int RegisteredNodesCount() const {return m_registeredMayaNodes.size();}
+   unsigned int TranslatedNodesCount() const {return m_registeredTranslators.size();}
    unsigned int TranslatorCount() const;
    bool IsRegistered() const {return m_registered;}
 
@@ -126,6 +126,7 @@ public:
 
 
 protected :
+   MStatus setFile(const MString &file);
 
    MStatus NewArnoldPlugin(const MString &file);
    MStatus DeleteArnoldPlugin(const MString &file);

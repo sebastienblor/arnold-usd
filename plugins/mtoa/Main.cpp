@@ -246,7 +246,6 @@ namespace // <anonymous>
 
       // Load all plugins path or only shaders?
       MString mtoaShaders("mtoa_shaders"+LIBEXT);
-      // mtoaShaders = builtin->LoadArnoldPlugin(mtoaShaders, "$ARNOLD_PLUGIN_PATH", &status);
       CExtension* shaders;
       shaders = CExtensionsManager::LoadArnoldPlugin(mtoaShaders, "$ARNOLD_PLUGIN_PATH", &status);
       CHECK_MSTATUS(status);

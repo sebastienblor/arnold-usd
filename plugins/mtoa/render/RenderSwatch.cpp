@@ -267,7 +267,7 @@ MStatus CRenderSwatchGenerator::ExportNode(AtNode* & arnoldNode,
       arnoldNode = NULL;
       // Get file translator in that case
       // Commented as later translator redesigns will break it
-      // translator = CTranslatorRegistry::GetDependTranslator(0x52544654);
+      translator = CExtensionsManager::GetTranslator("aiStandard");
       if (NULL != translator)
       {
          status = MStatus::kSuccess;

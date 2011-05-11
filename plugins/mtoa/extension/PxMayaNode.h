@@ -1,12 +1,13 @@
 #ifndef PXMAYANODE_H
 #define PXMAYANODE_H
 
-class CAbMayaNode;
-
+#include <cstring>
+#include <maya/MString.h>
 #include <maya/MPxNode.h>
 
 #include <ai_nodes.h>
 #include <ai.h>
+
 
 // A Maya node class proxy
 class CPxMayaNode
