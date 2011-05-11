@@ -20,6 +20,7 @@
 #include <maya/MTransformationMatrix.h>
 #include <maya/MVector.h>
 #include <maya/MPlugArray.h>
+#include <maya/MFnNumericAttribute.h>
 
 #include <vector>
 #include <cstring>
@@ -71,8 +72,14 @@ void CLightTranslator::Export(AtNode* light, bool mayaAttrs)
    }
 
    AiNodeSetBool(light, "cast_shadows", GetFnNode().findPlug("cast_shadows").asBool());
+   AiNodeSetFlt(light, "exposure", GetFnNode().findPlug("exposure").asInt());
    AiNodeSetInt(light, "samples", GetFnNode().findPlug("samples").asInt());
-   AiNodeSetInt(light, "sss_samples", GetFnNode().findPlug("sss_samples").asInt());
+   AiNodeSetBool(light, "mis", GetFnNode().findPlug("mis").asBool());
+   AiNodeSetBool(light, "normalize", GetFnNode().findPlug("normalize").asBool());
+   if (GetFnNode().findPlug("override_sss_samples").asBool())
+   {
+      AiNodeSetInt(light, "sss_samples", GetFnNode().findPlug("sss_samples").asInt());
+   }
    AiNodeSetInt(light, "bounces", GetFnNode().findPlug("bounces").asInt());
    AiNodeSetFlt(light, "bounce_factor", GetFnNode().findPlug("bounce_factor").asFloat());
 
@@ -125,7 +132,9 @@ void CLightTranslator::NodeInitializer(MString nodeClassName)
    CExtensionAttrHelper helper(nodeClassName, "point_light");
    // common attributes
    helper.MakeInput("cast_shadows");
+   helper.MakeInput("exposure");
    helper.MakeInput("samples");
+   helper.MakeInput("mis");
    helper.MakeInput("normalize");
    helper.MakeInput("bounce_factor");
    helper.MakeInput("bounces");
@@ -163,11 +172,18 @@ void CDirectionalLightTranslator::NodeInitializer(MString nodeClassName)
    CExtensionAttrHelper helper = CExtensionAttrHelper(nodeClassName, "distant_light");
    // common attributes
    helper.MakeInput("cast_shadows");
+   helper.MakeInput("exposure");
    helper.MakeInput("angle");
    helper.MakeInput("samples");
+   helper.MakeInput("mis");
    helper.MakeInput("normalize");
    helper.MakeInput("bounce_factor");
    helper.MakeInput("bounces");
+   CAttrData data;
+   data.defaultValue.BOOL = false;
+   data.name = "override_sss_samples";
+   data.shortName = "oss";
+   helper.MakeInputBoolean(data);
    helper.MakeInput("sss_samples");
    // directional light attributes
 }
@@ -192,11 +208,18 @@ void CPointLightTranslator::NodeInitializer(MString nodeClassName)
    CExtensionAttrHelper helper = CExtensionAttrHelper(nodeClassName, "point_light");
    // common attributes
    helper.MakeInput("cast_shadows");
+   helper.MakeInput("exposure");
    helper.MakeInput("radius");
    helper.MakeInput("samples");
+   helper.MakeInput("mis");
    helper.MakeInput("normalize");
    helper.MakeInput("bounce_factor");
    helper.MakeInput("bounces");
+   CAttrData data;
+   data.defaultValue.BOOL = false;
+   data.name = "override_sss_samples";
+   data.shortName = "oss";
+   helper.MakeInputBoolean(data);
    helper.MakeInput("sss_samples");
    // point light attributes
    helper.MakeInput("affect_volumetrics");
@@ -231,11 +254,18 @@ void CSpotLightTranslator::NodeInitializer(MString nodeClassName)
    CExtensionAttrHelper helper = CExtensionAttrHelper(nodeClassName, "spot_light");
    // common attributes
    helper.MakeInput("cast_shadows");
+   helper.MakeInput("exposure");
    helper.MakeInput("radius");
    helper.MakeInput("samples");
+   helper.MakeInput("mis");
    helper.MakeInput("normalize");
    helper.MakeInput("bounce_factor");
    helper.MakeInput("bounces");
+   CAttrData data;
+   data.defaultValue.BOOL = false;
+   data.name = "override_sss_samples";
+   data.shortName = "oss";
+   helper.MakeInputBoolean(data);
    helper.MakeInput("sss_samples");
    // spot light attributes
    helper.MakeInput("affect_volumetrics");
@@ -263,7 +293,6 @@ void CAreaLightTranslator::Export(AtNode* light)
    AiNodeSetInt(light, "resolution", GetFnNode().findPlug("resolution").asInt());
    AiNodeSetBool(light, "affect_volumetrics", GetFnNode().findPlug("affect_volumetrics").asBool());
    AiNodeSetBool(light, "cast_volumetric_shadows", GetFnNode().findPlug("cast_volumetric_shadows").asBool());
-   AiNodeSetBool(light, "solid_angle", GetFnNode().findPlug("solid_angle").asBool());
 }
 
 void CAreaLightTranslator::NodeInitializer(MString nodeClassName)
@@ -271,16 +300,22 @@ void CAreaLightTranslator::NodeInitializer(MString nodeClassName)
    CExtensionAttrHelper helper(nodeClassName, "quad_light");
    // common attributes
    helper.MakeInput("cast_shadows");
+   helper.MakeInput("exposure");
    helper.MakeInput("samples");
+   helper.MakeInput("mis");
    helper.MakeInput("normalize");
    helper.MakeInput("bounce_factor");
    helper.MakeInput("bounces");
+   CAttrData data;
+   data.defaultValue.BOOL = false;
+   data.name = "override_sss_samples";
+   data.shortName = "oss";
+   helper.MakeInputBoolean(data);
    helper.MakeInput("sss_samples");
    // spot light attributes
    helper.MakeInput("resolution");
    helper.MakeInput("affect_volumetrics");
    helper.MakeInput("cast_volumetric_shadows");
-   helper.MakeInput("solid_angle");
 }
 
 

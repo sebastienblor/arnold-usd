@@ -5,6 +5,12 @@ from mtoa.ui.ae.utils import aeCallback
 from mtoa.ui.ae.shapeTemplate import registerUI, registerDefaultTranslator, ArnoldTranslatorTemplate
 import mtoa.callbacks as callbacks
 
+def overrideSssToggle(attrName):
+    if cmds.getAttr(attrName+".override_sss_samples"):
+        cmds.editorTemplate(dimControl=(attrName, "sssSamples", False))
+    else:
+        cmds.editorTemplate(dimControl=(attrName, "sssSamples", True))
+
 def commonLightAttributes(nodeName):
     cmds.editorTemplate("normalize", addDynamicControl=True)
     cmds.editorTemplate("bounceFactor", addDynamicControl=True)
@@ -12,7 +18,8 @@ def commonLightAttributes(nodeName):
 
     cmds.editorTemplate(addSeparator=True)
 
-    cmds.editorTemplate("sssSamples", addDynamicControl=True)
+    cmds.editorTemplate("override_sss_samples", aeCallback(overrideSssToggle), label="Override SSS Sample", addDynamicControl=True)
+    cmds.editorTemplate("sssSamples", label="SSS Sample", addDynamicControl=True)
 
     cmds.editorTemplate(beginLayout="Light Filters")
 
@@ -29,9 +36,9 @@ def commonShapeAttributes(nodeName):
 
     cmds.editorTemplate(addSeparator=True)
 
-    cmds.editorTemplate("sssUseGi", addDynamicControl=True)
-    cmds.editorTemplate("sssMaxSamples", addDynamicControl=True)
-    cmds.editorTemplate("sssSampleSpacing", addDynamicControl=True)
+    cmds.editorTemplate("sssUseGi", label="SSS Use Gi", addDynamicControl=True)
+    cmds.editorTemplate("sssMaxSamples", label="SSS Max Samples", addDynamicControl=True)
+    cmds.editorTemplate("sssSampleSpacing", label="SSS Sample Spacing", addDynamicControl=True)
 
 @registerUI("mesh")
 def builtin_mesh(nodeName):
@@ -69,9 +76,11 @@ def builtin_ambientLight(nodeName):
 
 @registerUI("directionalLight")
 def builtin_directionalLight(nodeName):
-    cmds.editorTemplate("cast_shadows", addDynamicControl=True)
+    cmds.editorTemplate("castShadows", addDynamicControl=True)
+    cmds.editorTemplate("exposure", addDynamicControl=True)
     cmds.editorTemplate("angle", addDynamicControl=True)
     cmds.editorTemplate("samples", addDynamicControl=True)
+    cmds.editorTemplate("mis", addDynamicControl=True)
 
     cmds.editorTemplate(addSeparator=True)
 
@@ -79,9 +88,11 @@ def builtin_directionalLight(nodeName):
 
 @registerUI("pointLight")
 def builtin_pointLight(nodeName):
-    cmds.editorTemplate("cast_shadows", addDynamicControl=True)
+    cmds.editorTemplate("castShadows", addDynamicControl=True)
+    cmds.editorTemplate("exposure", addDynamicControl=True)
     cmds.editorTemplate("radius", addDynamicControl=True)
     cmds.editorTemplate("samples", addDynamicControl=True)
+    cmds.editorTemplate("mis", addDynamicControl=True)
 
     cmds.editorTemplate(addSeparator=True)
 
@@ -94,9 +105,11 @@ def builtin_pointLight(nodeName):
 
 @registerUI("spotLight")
 def builtin_spotLight(nodeName):
-    cmds.editorTemplate("cast_shadows", addDynamicControl=True)
+    cmds.editorTemplate("castShadows", addDynamicControl=True)
+    cmds.editorTemplate("exposure", addDynamicControl=True)
     cmds.editorTemplate("radius", addDynamicControl=True)
     cmds.editorTemplate("samples", addDynamicControl=True)
+    cmds.editorTemplate("mis", addDynamicControl=True)
 
     cmds.editorTemplate(addSeparator=True)
 
@@ -114,19 +127,16 @@ def builtin_spotLight(nodeName):
 
 @registerUI("areaLight")
 def builtin_areaLight(nodeName):
-    cmds.editorTemplate("cast_shadows", addDynamicControl=True)
+    cmds.editorTemplate("castShadows", addDynamicControl=True)
+    cmds.editorTemplate("exposure", addDynamicControl=True)
     cmds.editorTemplate("samples", addDynamicControl=True)
+    cmds.editorTemplate("mis", addDynamicControl=True)
 
     cmds.editorTemplate(addSeparator=True)
 
     cmds.editorTemplate("resolution", addControl=True)
     cmds.editorTemplate("affect_volumetrics", addControl=True)
     cmds.editorTemplate("cast_volumetric_shadows", addControl=True)
-
-    cmds.editorTemplate(addSeparator=True)
-
-    cmds.editorTemplate("sidedness", addControl=True)
-    cmds.editorTemplate("solid_angle", addControl=True)
 
     cmds.editorTemplate(addSeparator=True)
 
