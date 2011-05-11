@@ -234,7 +234,7 @@ MStatus CArnoldRenderOptionsNode::initialize()
    nAttr.setKeyable(false);
    addAttribute(s_lock_sampling_noise);
       
-   s_aa_seed = uAttr.create("aa_seed", "aaseed", MFnUnitAttribute::kTime);
+   s_aa_seed = uAttr.create("AA_seed", "aaseed", MFnUnitAttribute::kTime);
    uAttr.setStorable(false);
    uAttr.setConnectable(true);
    uAttr.setWritable(true);
