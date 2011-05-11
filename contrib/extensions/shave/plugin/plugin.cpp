@@ -9,7 +9,7 @@ DLLEXPORT void initializeExtension(CExtension& plugin)
 {
    plugin.RegisterTranslator("shaveHair",
                              0x1029b7,
-                             "default",
+                             "shave",
                              CShaveTranslator::creator,
                              CShaveTranslator::NodeInitializer);
 }

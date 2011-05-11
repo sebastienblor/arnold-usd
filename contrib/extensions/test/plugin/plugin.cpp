@@ -4,7 +4,7 @@
 extern "C"
 {
 
-DLLEXPORT void initializePlugin(CExtension &plugin)
+DLLEXPORT void initializeExtension(CExtension &plugin)
 {
    plugin.RegisterTranslator("lambert",
                              0x524c414d,
@@ -12,7 +12,7 @@ DLLEXPORT void initializePlugin(CExtension &plugin)
                              CTestTranslatorCmd::creator);
 }
 
-DLLEXPORT void uninitializePlugin(CExtension &plugin)
+DLLEXPORT void deinitializeExtension(CExtension &plugin)
 {
 }
 
