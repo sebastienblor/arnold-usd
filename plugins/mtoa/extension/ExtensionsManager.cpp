@@ -71,9 +71,6 @@ CExtension* CExtensionsManager::LoadArnoldPlugin(const MString &file,
       if (MStatus::kSuccess == status)
       {
          status = pluginExtension->setFile(resolved);
-         // Register plugin nodes and translators
-         status = pluginExtension->RegisterAllNodes(resolved);
-         status = pluginExtension->RegisterAllTranslators(resolved);
          // Do not register new nodes with Maya immediatly to allow modification
          // status = RegisterExtension(pluginExtension);
       } else {
@@ -366,8 +363,10 @@ MStatus CExtensionsManager::RegisterExtension(CExtension* extension)
             translator.initialize(mayaNode->name);
          }
       }
-      // Add arnoldTranslator attribute if more than one translator
-      if (oldTrans->size() > 1) {
+      // FIXME Add arnoldTranslator attribute if more than one translator
+      // or always ?
+      // if (oldTrans->size() > 1) {
+      if (true) {
          CExtensionAttrHelper helper(mayaNode->name);
          CAttrData data;
          data.defaultValue.STR = "";
