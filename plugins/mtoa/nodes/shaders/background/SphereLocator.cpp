@@ -359,7 +359,15 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
    else
    {
       glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-      glColor4f(1, 1, 0, 0.2f);
+      // If it's selected
+      if (displayStatusInt == 8)
+      {
+         glColor4f(1, 1, 0, 0.2f);
+      }
+      else
+      {
+         glColor4f(0.75, 0, 0, 0.2f);
+      }
       gluSphere(quadratic, radius, divisions, divisions);
    }
 
@@ -411,7 +419,7 @@ bool CSphereLocator::isBounded() const
 
 bool CSphereLocator::drawLast() const
 {
-   return true;
+   return false;
 }
 
 bool CSphereLocator::isTransparent() const
