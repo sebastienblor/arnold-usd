@@ -75,7 +75,8 @@
 	[attr max_subdivisions]
 		maya.keyable		BOOL	False
 		min					INT		0
-		min					INT		999
+      max               INT      100000
+		default				INT		999
 		maya.orig_shortname	STRING	"maxs"
 	[attr texture_max_memory_MB]
 		maya.keyable		BOOL	False
