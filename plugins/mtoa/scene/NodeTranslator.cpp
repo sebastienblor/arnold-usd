@@ -736,6 +736,10 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, MPlug& plug, const
    bool isShader = (AiNodeEntryGetType(arnoldNode->base_node) & (AI_NODE_OPTIONS)) ? false : true;
    // links only supported on shaders
    if (isShader)
+      if (plug.isIgnoredWhenRendering())
+      {
+         return NULL;
+      }
       plug.connectedTo(connections, true, false);
 
    if (connections.length() > 0)
