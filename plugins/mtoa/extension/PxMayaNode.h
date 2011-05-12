@@ -8,6 +8,7 @@
 #include <ai_nodes.h>
 #include <ai.h>
 
+class CAbMayaNode;
 
 // A Maya node class proxy
 class CPxMayaNode

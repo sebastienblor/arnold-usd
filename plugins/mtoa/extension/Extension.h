@@ -16,10 +16,10 @@
 #define BUILTIN "<built-in>"
 
 
-// class CExtension;
+class CAbMayaNode;
+
 
 // typedef void (*extensionInitFunction)(CExtension&);
-
 
 // struct CMayaPluginData
 // {
@@ -34,6 +34,8 @@
 // To track loaded Arnold plugins
 typedef std::set<std::string> LoadedArnoldPluginsSet;
 
+
+// class CExtension
 
 /// Class to represent and manipulate Arnold extensions.
 ///
