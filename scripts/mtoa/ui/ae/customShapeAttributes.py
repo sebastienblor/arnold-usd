@@ -18,8 +18,8 @@ def commonLightAttributes(nodeName):
 
     cmds.editorTemplate(addSeparator=True)
 
-    cmds.editorTemplate("override_sss_samples", aeCallback(overrideSssToggle), label="Override SSS Sample", addDynamicControl=True)
-    cmds.editorTemplate("sssSamples", label="SSS Sample", addDynamicControl=True)
+    cmds.editorTemplate("override_sss_samples", aeCallback(overrideSssToggle), label="Override SSS Samples", addDynamicControl=True)
+    cmds.editorTemplate("sssSamples", label="SSS Samples", addDynamicControl=True)
 
     cmds.editorTemplate(beginLayout="Light Filters")
 

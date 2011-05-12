@@ -157,6 +157,7 @@
 	[attr sss_samples]
 		min					INT		0
 		max					INT		100
+      default           INT      1
 
 [node distant_light]
 	maya.counterpart		STRING	"directionalLight"
@@ -171,6 +172,7 @@
 	[attr sss_samples]
 		min					INT		0
 		max					INT		100
+      default           INT      1
 
 [node point_light]
 	maya.counterpart		STRING	"pointLight"
@@ -185,6 +187,7 @@
 	[attr sss_samples]
 		min					INT		0
 		max					INT		100
+      default           INT      1
 
 [node spot_light]
 	maya.counterpart		STRING	"spotLight"
@@ -199,6 +202,7 @@
 	[attr sss_samples]
 		min					INT		0
 		max					INT		100
+      default           INT      1
 	[attr aspect_ratio]
 		min					FLOAT	0.0
 		max					FLOAT	100.0
@@ -223,6 +227,7 @@
 	[attr sss_samples]
 		min					INT		0
 		max					INT		100
+      default           INT      1
 
 [node skydome_light]
 	maya.name				STRING	"aiSkyDomeLight"
