@@ -5,10 +5,10 @@
 extern "C"
 {
 
-DLLEXPORT void initializeExtension(CExtension& plugin)
+DLLEXPORT void initializeExtension(CExtension& extension)
 {
-   plugin.LoadArnoldPlugin("shave_shaders");
-   plugin.RegisterTranslator("shaveHair",
+   extension.LoadArnoldPlugin("shave_shaders");
+   extension.RegisterTranslator("shaveHair",
                              0x1029b7,
                              "shave",
                              CShaveTranslator::creator,
@@ -17,7 +17,8 @@ DLLEXPORT void initializeExtension(CExtension& plugin)
 
 DLLEXPORT void deinitializeExtension(CExtension& plugin)
 {
-}
    // plugin.DeloadArnoldPlugin("shave_shaders");
+}
+
 }
 

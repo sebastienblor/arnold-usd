@@ -100,7 +100,8 @@ public:
                         const MString &classification="");
    // TODO : deferred MStatus RegisterNode(const MString &typeName, const MTypeId &typeId, const MString &pluginProvider);
 
-   // Old signature for compatibility, gives no access to metadata
+   // To register a translator for a given Maya node
+   // gives no access to metadata (all info needs to be set explicitely)
    MStatus RegisterTranslator(const MString &mayaTypeName,
                               const MTypeId &mayaTypeId,
                               const MString &translatorName,
