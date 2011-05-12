@@ -80,7 +80,7 @@ def builtin_directionalLight(nodeName):
     cmds.editorTemplate("exposure", addDynamicControl=True)
     cmds.editorTemplate("angle", addDynamicControl=True)
     cmds.editorTemplate("samples", addDynamicControl=True)
-    cmds.editorTemplate("mis", addDynamicControl=True)
+    cmds.editorTemplate("mis", label="MIS", addDynamicControl=True)
 
     cmds.editorTemplate(addSeparator=True)
 
@@ -92,7 +92,7 @@ def builtin_pointLight(nodeName):
     cmds.editorTemplate("exposure", addDynamicControl=True)
     cmds.editorTemplate("radius", addDynamicControl=True)
     cmds.editorTemplate("samples", addDynamicControl=True)
-    cmds.editorTemplate("mis", addDynamicControl=True)
+    cmds.editorTemplate("mis", label="MIS", addDynamicControl=True)
 
     cmds.editorTemplate(addSeparator=True)
 
@@ -109,7 +109,7 @@ def builtin_spotLight(nodeName):
     cmds.editorTemplate("exposure", addDynamicControl=True)
     cmds.editorTemplate("radius", addDynamicControl=True)
     cmds.editorTemplate("samples", addDynamicControl=True)
-    cmds.editorTemplate("mis", addDynamicControl=True)
+    cmds.editorTemplate("mis", label="MIS", addDynamicControl=True)
 
     cmds.editorTemplate(addSeparator=True)
 
@@ -130,11 +130,11 @@ def builtin_areaLight(nodeName):
     cmds.editorTemplate("castShadows", addDynamicControl=True)
     cmds.editorTemplate("exposure", addDynamicControl=True)
     cmds.editorTemplate("samples", addDynamicControl=True)
-    cmds.editorTemplate("mis", addDynamicControl=True)
+    cmds.editorTemplate("mis", label="MIS", addDynamicControl=True)
 
     cmds.editorTemplate(addSeparator=True)
 
-    cmds.editorTemplate("resolution", addControl=True)
+    cmds.editorTemplate("resolution", label="Importance Map Resolution",addControl=True)
     cmds.editorTemplate("affect_volumetrics", addControl=True)
     cmds.editorTemplate("cast_volumetric_shadows", addControl=True)
 
