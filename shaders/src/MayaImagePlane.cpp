@@ -7,7 +7,7 @@
 
 #include "MayaUtils.h"
 #include <iostream>
-#include <string>
+#include <cstring>
 
 AI_SHADER_NODE_EXPORT_METHODS(MayaImagePlaneMtd);
 

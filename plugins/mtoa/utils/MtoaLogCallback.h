@@ -3,7 +3,7 @@
 
 #include "platform/Platform.h"
 
-#include <string>
+#include <cstring>
 
 #include <ai_msg.h>
 

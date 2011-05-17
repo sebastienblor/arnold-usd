@@ -4,7 +4,7 @@
 
 #include <maya/MGlobal.h>
 
-#include <string>
+#include <cstring>
 
 AtParamValue MAiParamGetDefault(const AtNodeEntry *entry, const AtParamEntry* paramEntry)
 {
