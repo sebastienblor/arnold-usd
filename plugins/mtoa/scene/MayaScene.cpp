@@ -515,25 +515,19 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
    CNodeTranslator* translator = CExtensionsManager::GetTranslator(mayaShader);
    if (translator != NULL)
    {
-      if (mayaShader.hasFn(MFn::kDagNode))
+      CDagTranslator* dagTranslator = dynamic_cast<CDagTranslator*>(translator);
+      if (dagTranslator != NULL)
       {
-         // I'd love for this to be a dynamic_pointer_cast. That seems to be boost only
-         // on none Windows systems. J.
-         CDagTranslator* dagTranslator = (CDagTranslator*)translator;
          MDagPath dagPath;
          MDagPath::getAPathTo(mayaShader, dagPath);
          shader = dagTranslator->Init(dagPath, this, attrName);
          m_processedTranslators[handle] = dagTranslator;
-         // This DoExport() is temporary so this level of the patch queue works.
-         // It's removed in the multi-threaded patch.
          dagTranslator->DoExport(0);
       }
       else
       {
          shader = translator->Init(mayaShader, this, attrName);
          m_processedTranslators[handle] = translator;
-         // This DoExport() is temporary so this level of the patch queue works.
-         // It's removed in the multi-threaded patch.
          translator->DoExport(0);
       }
    }
