@@ -18,24 +18,18 @@ public:
    bool		canBeOpened() const;
    MString		defaultExtension() const;
 
-   MFileKind	identifyFile(
-               const MFileObject& file,
+   MFileKind	identifyFile(const MFileObject& file,
                const char* buffer,
-               short size
-            ) const;
+               short size) const;
    /* So far no reader, but one use could be to create standin object on 
    the import of an ass file
-   MStatus		reader(
-               const MFileObject& file,
+   MStatus		reader(const MFileObject& file,
                const MString& options,
-               FileAccessMode mode
-            );
+               FileAccessMode mode);
    */
-   MStatus		writer(
-               const MFileObject& file,
+   MStatus		writer(const MFileObject& file,
                const MString& options,
-               FileAccessMode mode
-            );
+               FileAccessMode mode);
 
    static void*	creator();
 

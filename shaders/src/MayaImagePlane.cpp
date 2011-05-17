@@ -112,7 +112,7 @@ shader_evaluate
    result.b = color.b;
    result.a = 1.0f;
 
-   if(strlen(filename) != 0 && (coverage.x != 1.0f || coverage.y != 1.0f))
+   if (strlen(filename) != 0 && (coverage.x != 1.0f || coverage.y != 1.0f))
    {
        float inU = sg->u;
        float inV = sg->v;
@@ -167,7 +167,7 @@ shader_evaluate
        sg->u = inU;
        sg->v = inV;
    }
-   else if( strlen(filename) != 0 )
+   else if (strlen(filename) != 0)
    {   
        // do texture lookup
        AtTextureParams texparams;
@@ -175,17 +175,17 @@ shader_evaluate
        // setup filter?
        result = AiTextureAccess(sg, filename, &texparams);
    }
-   if(displayMode == 2)
+   if (displayMode == 2)
    {
        result.a = 1.0f;
    }
-   if(displayMode == 4)
+   if (displayMode == 4)
    {
         result.r = Luminance(result);
         result.g = result.r;
         result.b = result.r;
    }
-   if(displayMode == 5)
+   if (displayMode == 5)
    {
        result.r = result.a;
        result.g = result.a;

@@ -1,9 +1,10 @@
 import maya.cmds as cmds
 import maya.mel as mel
+from mtoa.ui.ae.aiSwatchDisplay import aiSwatchDisplay
 
 def aiUtilityTemplate(nodeName):
 
-    mel.eval('AEswatchDisplay "%s"'%nodeName)
+    aiSwatchDisplay(nodeName)
 
     cmds.editorTemplate(beginScrollLayout=True)
 

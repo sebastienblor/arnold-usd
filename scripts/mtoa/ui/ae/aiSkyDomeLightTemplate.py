@@ -1,8 +1,11 @@
 import maya.cmds as cmds
 import maya.mel as mel
 import mtoa.ui.ae.customShapeAttributes as customShapeAttributes
+from mtoa.ui.ae.aiSwatchDisplay import aiSwatchDisplay
 
 def aiSkyDomeLightTemplate(nodeName):
+
+    aiSwatchDisplay(nodeName)
 
     cmds.editorTemplate(beginScrollLayout=True)
 

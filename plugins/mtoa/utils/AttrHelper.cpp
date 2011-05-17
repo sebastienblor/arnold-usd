@@ -1,7 +1,6 @@
 #include "AttrHelper.h"
 #include "nodes/ShaderUtils.h"
-// #include "utils/Metadata.h"
-
+#include "utils/Metadata.h"
 #include "Utils.h"
 
 #include <ai_metadata.h>
@@ -63,30 +62,25 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
 {
    if (m_nodeEntry == NULL)
    {
-      AiMsgError("[mtoa] Cannot retrieve parameter metadata from a null node entry");
+      AiMsgError("Cannot retrieve parameter metadata from a null node entry");
       return false;
    }
 
    const AtParamEntry* paramEntry = AiNodeEntryLookUpParameter(m_nodeEntry, paramName);
    if (paramEntry == NULL)
    {
-      AiMsgError("[mtoa] Parameter does not exist: %s", paramName);
+      AiMsgError("Parameter does not exist: %s", paramName);
       return false;
    }
 
-   // Cannot use AiMsgDebug for builtins since not render has yet taken place and logger options
-   // are not yet initialized
-#ifdef _DEBUG
-   AiMsgInfo("[METADATA] getting attribute metadata for %s.%s", AiNodeEntryGetName(m_nodeEntry), paramName);
-#else
-   AiMsgDebug("[METADATA] getting attribute metadata for %s.%s", AiNodeEntryGetName(m_nodeEntry), paramName);
-#endif
+   const char* nodeName = AiNodeEntryGetName(m_nodeEntry);
+   // AiMsgDebug("[node %s] [attr %s] Reading metadata", nodeName, paramName);
 
-   // data.defaultValue = MAiParamGetDefault(m_nodeEntry, paramEntry);
-   data.defaultValue = *AiParamGetDefault(paramEntry);
+   data.defaultValue = MAiParamGetDefault(m_nodeEntry, paramEntry);
    data.name = GetMayaAttrName(paramName);
    data.shortName = GetMayaAttrShortName(paramName);
    data.type = AiParamGetType(paramEntry);
+   const char* typeName = AiParamGetTypeName(data.type);
 
    AiMetaDataGetBool(m_nodeEntry, paramName, "maya.keyable", &data.keyable);
 
@@ -101,8 +95,8 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
       //
       // Also, by convention, matrix arrays with name "matrix" are animatable
       // attributes.
-      if ( (AiMetaDataGetBool(m_nodeEntry, paramName, "animatable", &animatable) && animatable) ||
-           (data.type == AI_TYPE_MATRIX && strcmp(paramName, "matrix") == 0) )
+      if ((AiMetaDataGetBool(m_nodeEntry, paramName, "animatable", &animatable) && animatable) ||
+           (data.type == AI_TYPE_MATRIX && strcmp(paramName, "matrix") == 0))
       {
          data.isArray = false;
          // since this parameter is not to be treated as an array within maya,
@@ -184,7 +178,7 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
             }
             default:
             {
-               MGlobal::displayError(MString("[mtoa] Unable to get data for parameter \"") + paramName + "\": unknown parameter type");
+               AiMsgError("[node %s] [attr %s] Unknown parameter type %s", nodeName, paramName, typeName);
                break;
             }
          }
@@ -983,7 +977,16 @@ MStatus CStaticAttrHelper::addAttribute(MObject& attrib)
 MStatus CDynamicAttrHelper::addAttribute(MObject& attrib)
 {
    MStatus stat;
+   MStatus statAttr;
    MFnDependencyNode fnNode = MFnDependencyNode(m_instance);
+   MObject mAttr = fnNode.attribute(MFnAttribute(attrib).name(),&statAttr);
+   if (statAttr == MS::kSuccess)
+   {
+      if (MFnAttribute(attrib).type() == MFnAttribute(mAttr).type())
+      {
+         return stat;
+      }
+   }
    stat = fnNode.addAttribute(attrib);
    // FIXME: not reliable to use MFnAttribute to get the name: the MObject could be invalid
    if (stat != MS::kSuccess)

@@ -97,6 +97,16 @@ typedef std::map<MObjectHandle, CNodeTranslator*, mobjcompare> ObjectToTranslato
 // dag nodes: have one translator per instance, so they map MObject to a sub-map, from dag instance number to translator
 typedef std::map<MObjectHandle, std::map<int, CNodeTranslator*>, mobjcompare> ObjectToDagTranslatorMap;
 
+/// Translates the current state of all or part of an open Maya scene into the active Arnold universe.
+
+/// In IPR mode, the resulting instance allows the scene to be quickly and incrementally retranslated
+/// as changes occur to previously translated Maya objects.
+///
+/// Once CMayaScene::ExportToArnold() is called, the DAG hierarchy is traversed and CDagTranslators
+/// are found and exported for all relevant Maya nodes.  Those translators in turn call
+/// and CMayaScene::ExportShader() as they require, which triggers dependency graph evaluation and the
+/// generation of CNodeTranslators.
+
 class DLLEXPORT CMayaScene
 {
 
@@ -115,7 +125,7 @@ public:
    MStatus ExportToArnold();
    AtNode* ExportShader(MObject mayaShader, const MString &attrName="");
    AtNode* ExportShader(MPlug& shaderOutputPlug);
-   MStatus ExportDagPath(MDagPath &dagPath, AtUInt step=0);
+   AtNode* ExportDagPath(MDagPath &dagPath);
 
    inline AtFloat GetCurrentFrame()                      { return m_currentFrame;}
 
@@ -133,7 +143,7 @@ public:
                                int arnoldAttribType,
                                int element=-1);
    
-   CNodeTranslator * GetActiveTranslator( const MObject node );
+   CNodeTranslator * GetActiveTranslator(const MObject node);
    
    // Called by translators to get the master instance
    static bool IsExportedPath(MDagPath dagPath);
@@ -142,7 +152,7 @@ public:
 
    bool IsMotionBlurEnabled() const
    {
-      return m_fnArnoldRenderOptions->findPlug("motion_blur_enable").asBool();
+      return (NULL != m_fnArnoldRenderOptions) && m_fnArnoldRenderOptions->findPlug("motion_blur_enable").asBool();
    }
    
    bool IsCameraMotionBlurEnabled() const
@@ -155,7 +165,7 @@ public:
       return IsMotionBlurEnabled() && m_fnArnoldRenderOptions->findPlug("mb_objects_enable").asBool();
    }
 
-   bool IsObjectDeformMotionBlurEnabled() const
+   bool IsDeformMotionBlurEnabled() const
    {
       return IsMotionBlurEnabled() && m_fnArnoldRenderOptions->findPlug("mb_object_deform_enable").asBool();
    }
@@ -183,12 +193,10 @@ public:
 private:
    
    void PrepareExport();
-   MStatus ExportScene(AtUInt step);
-   MStatus ExportCameras(AtUInt step);
-   MStatus ExportLights(AtUInt step);
-   MStatus ExportSelected(AtUInt step);
-   MStatus IterSelection(MSelectionList selected, AtUInt step);
-
+   MStatus ExportScene();
+   MStatus ExportCameras();
+   MStatus ExportLights();
+   MStatus ExportSelected();
    MStatus IterSelection(MSelectionList& selected);
 
    void ExportInstancerReplacement(const MDagPath& dagPath, AtUInt step);

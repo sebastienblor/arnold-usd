@@ -35,8 +35,8 @@ node_parameters
    AiParameterBOOL("local", false);
    AddMayaColorBalanceParams(params);
 
-   AiMetaDataSetStr(mds, NULL, "maya.counterpart", "brownian");
-   AiMetaDataSetInt(mds, NULL, "maya.counterpart_id", 0x5246424d);
+   AiMetaDataSetStr(mds, NULL, "maya.name", "brownian");
+   AiMetaDataSetInt(mds, NULL, "maya.id", 0x5246424d);
 }
 
 node_initialize

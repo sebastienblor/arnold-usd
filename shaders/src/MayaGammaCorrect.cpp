@@ -19,8 +19,8 @@ node_parameters
    AiParameterRGB("gamma", 1, 1, 1);
    AiMetaDataSetBool(mds, "gamma", "always_linear", TRUE); // no gamma correction
 
-   AiMetaDataSetStr(mds, NULL, "maya.counterpart", "gammaCorrect");
-   AiMetaDataSetInt(mds, NULL, "maya.counterpart_id", 0x5247414d);
+   AiMetaDataSetStr(mds, NULL, "maya.name", "gammaCorrect");
+   AiMetaDataSetInt(mds, NULL, "maya.id", 0x5247414d);
 }
 
 node_initialize

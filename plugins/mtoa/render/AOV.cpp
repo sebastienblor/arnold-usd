@@ -134,7 +134,7 @@ void CAOV::UpdateImageFilename(const MString &cameraName, const MString &default
    // get the frame number
    MTime cT = MAnimControl::currentTime();
    fileFrameNumber = double(cT.value());
-   MGlobal::executeCommand("basename( (`file -q -sceneName -shortName`),(\".\" + (fileExtension((`file -q -sceneName -shortName`)))))", sceneFileName);
+   MGlobal::executeCommand("basename((`file -q -sceneName -shortName`),(\".\" + (fileExtension((`file -q -sceneName -shortName`)))))", sceneFileName);
 
    if (m_prefix.length() != 0)
    {

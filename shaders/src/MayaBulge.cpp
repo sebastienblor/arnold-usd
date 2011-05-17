@@ -24,8 +24,8 @@ node_parameters
    AiParameterPNT2("uvCoord", 0.0f, 0.0f);
    AddMayaColorBalanceParams(params);
 
-   AiMetaDataSetStr(mds, NULL, "maya.counterpart", "bulge");
-   AiMetaDataSetInt(mds, NULL, "maya.counterpart_id", 0x52544255);
+   AiMetaDataSetStr(mds, NULL, "maya.name", "bulge");
+   AiMetaDataSetInt(mds, NULL, "maya.id", 0x52544255);
 }
 
 node_initialize
@@ -59,7 +59,7 @@ shader_evaluate
 
    if (!IsValidUV(uv.x, uv.y))
    {
-      MayaDefaultColor( sg, node, p_defaultColor, sg->out.RGBA);
+      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
       return;
    }
 
@@ -73,5 +73,5 @@ shader_evaluate
    float r = sqrt(fabs(a * b));
 
    AiRGBACreate(sg->out.RGBA, r, r, r, r);
-   MayaColorBalance( sg, node, p_defaultColor, sg->out.RGBA );
+   MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA);
 }

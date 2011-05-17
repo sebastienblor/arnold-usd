@@ -3,9 +3,28 @@
 
 #include <ai_params.h>
 #include <ai_node_entry.h>
+#include <maya/MString.h>
 
-// attrFn.setCached( true );
-// attrFn.setInternal( true );
+// Arnold Swatch Renderer
+const MString ARNOLD_SWATCH("ArnoldRenderSwatch");
+
+// Shader classify constants
+const MString CLASSIFY_SHADER("shader");
+const MString CLASSIFY_SHADER_SURFACE("shader/surface");
+const MString CLASSIFY_SHADER_VOLUME("shader/volume");
+const MString CLASSIFY_SHADER_ATMOSPHERE("shader/volume/atmosphere");
+const MString CLASSIFY_SHADER_DISPLACEMENT("shader/displacement");
+const MString CLASSIFY_SHADER_LIGHT("light");
+const MString CLASSIFY_SHADER_LIGHT_FILTER("light/filter");
+const MString CLASSIFY_SHADER_TEXTURE("texture");
+const MString CLASSIFY_SHADER_ENVIRONMENT("texture/environment");
+const MString CLASSIFY_SHADER_UTILITY("utility");
+
+#define ARNOLD_CLASSIFY( classification ) (MString("arnold/") + classification)
+
+
+// attrFn.setCached(true);
+// attrFn.setInternal(true);
 
 #define MAKE_INPUT(attrFn, attr) \
    attrFn.setKeyable(true); \

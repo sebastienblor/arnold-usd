@@ -20,9 +20,10 @@
 #include <maya/MTransformationMatrix.h>
 #include <maya/MVector.h>
 #include <maya/MPlugArray.h>
+#include <maya/MFnNumericAttribute.h>
 
 #include <vector>
-#include <cstring>
+#include <string>
 
 void CLightTranslator::ExportLightFilters(AtNode* light, const MObjectArray &filterNodes)
 {
@@ -30,7 +31,7 @@ void CLightTranslator::ExportLightFilters(AtNode* light, const MObjectArray &fil
 
    for (unsigned int i=0; i<filterNodes.length(); ++i)
    {
-      AtNode* filter = m_scene->ExportShader(filterNodes[i]);
+      AtNode* filter = ExportShader(filterNodes[i]);
       filters.push_back(filter);
    }
 
@@ -53,35 +54,38 @@ void CLightTranslator::Export(AtNode* light, bool mayaAttrs)
 
    // FIXME: processing parameters means setting up links if the plug has an incoming connection
    // this doesn't always make sense in the context of a light.
-   plug = m_fnNode.findPlug("color");
+   plug = GetFnNode().findPlug("color");
    ProcessParameter(light, plug, "color", AI_TYPE_RGB);
 
-   AiNodeSetFlt(light, "intensity", m_fnNode.findPlug("intensity").asFloat());
+   AiNodeSetFlt(light, "intensity", GetFnNode().findPlug("intensity").asFloat());
 
    if (mayaAttrs)
    {
-      AiNodeSetBool(light, "cast_shadows", m_fnNode.findPlug("useRayTraceShadows").asBool());
-      AiNodeSetInt(light, "samples", m_fnNode.findPlug("shadowRays").asInt());
-
-      AiNodeSetBool(light, "affect_diffuse", m_fnNode.findPlug("emitDiffuse").asBool());
-      AiNodeSetBool(light, "affect_specular", m_fnNode.findPlug("emitSpecular").asBool());
+      AiNodeSetBool(light, "affect_diffuse", GetFnNode().findPlug("emitDiffuse").asBool());
+      AiNodeSetBool(light, "affect_specular", GetFnNode().findPlug("emitSpecular").asBool());
    }
    else
    {
-      AiNodeSetBool(light, "cast_shadows", m_fnNode.findPlug("cast_shadows").asBool());
-      AiNodeSetInt(light, "samples", m_fnNode.findPlug("samples").asInt());
 
-      AiNodeSetBool(light, "affect_diffuse", m_fnNode.findPlug("affect_diffuse").asBool());
-      AiNodeSetBool(light, "affect_specular", m_fnNode.findPlug("affect_specular").asBool());
+      AiNodeSetBool(light, "affect_diffuse", GetFnNode().findPlug("affect_diffuse").asBool());
+      AiNodeSetBool(light, "affect_specular", GetFnNode().findPlug("affect_specular").asBool());
    }
 
-   AiNodeSetInt(light, "sss_samples", m_fnNode.findPlug("sss_samples").asInt());
-   AiNodeSetInt(light, "bounces", m_fnNode.findPlug("bounces").asInt());
-   AiNodeSetFlt(light, "bounce_factor", m_fnNode.findPlug("bounce_factor").asFloat());
+   AiNodeSetBool(light, "cast_shadows", GetFnNode().findPlug("cast_shadows").asBool());
+   AiNodeSetFlt(light, "exposure", GetFnNode().findPlug("exposure").asFloat());
+   AiNodeSetInt(light, "samples", GetFnNode().findPlug("samples").asInt());
+   AiNodeSetBool(light, "mis", GetFnNode().findPlug("mis").asBool());
+   AiNodeSetBool(light, "normalize", GetFnNode().findPlug("normalize").asBool());
+   if (GetFnNode().findPlug("override_sss_samples").asBool())
+   {
+      AiNodeSetInt(light, "sss_samples", GetFnNode().findPlug("sss_samples").asInt());
+   }
+   AiNodeSetInt(light, "bounces", GetFnNode().findPlug("bounces").asInt());
+   AiNodeSetFlt(light, "bounce_factor", GetFnNode().findPlug("bounce_factor").asFloat());
 
    MStatus status;
-   MPlug pFilters = m_fnNode.findPlug("light_filters", &status);
-   if(status == MS::kSuccess)
+   MPlug pFilters = GetFnNode().findPlug("light_filters", &status);
+   if (status == MS::kSuccess)
    {
       MObjectArray filters;
       MPlugArray pSources;
@@ -103,7 +107,7 @@ void CLightTranslator::Export(AtNode* light, bool mayaAttrs)
 
    if (m_motion)
    {
-      AtArray* matrices = AiArrayAllocate(1, m_scene->GetNumMotionSteps(), AI_TYPE_MATRIX);
+      AtArray* matrices = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_MATRIX);
       AiArraySetMtx(matrices, 0, matrix);
       AiNodeSetArray(light, "matrix", matrices);
    }
@@ -127,6 +131,10 @@ void CLightTranslator::NodeInitializer(MString nodeClassName)
    // use point light as a generic light...
    CExtensionAttrHelper helper(nodeClassName, "point_light");
    // common attributes
+   helper.MakeInput("cast_shadows");
+   helper.MakeInput("exposure");
+   helper.MakeInput("samples");
+   helper.MakeInput("mis");
    helper.MakeInput("normalize");
    helper.MakeInput("bounce_factor");
    helper.MakeInput("bounces");
@@ -137,7 +145,7 @@ void CLightTranslator::Delete()
 {
    // Arnold doesn't allow use to delete nodes, so this
    // is as close as we'll get for now.
-   AiNodeSetFlt(GetArnoldNode(), "intensity", 0.0f);
+   AiNodeSetFlt(GetArnoldRootNode(), "intensity", 0.0f);
 }
 
 // AmbientLight
@@ -154,10 +162,31 @@ void CAmbientLightTranslator::Export(AtNode* light)
 void CDirectionalLightTranslator::Export(AtNode* light)
 {
    CLightTranslator::Export(light);
-   MFnDirectionalLight fnLight(m_dagPath);
-   AiNodeSetFlt(light, "angle", fnLight.shadowAngle());
+
+   AiNodeSetFlt(light, "angle", GetFnNode().findPlug("angle").asFloat());
+
 }
 
+void CDirectionalLightTranslator::NodeInitializer(MString nodeClassName)
+{
+   CExtensionAttrHelper helper = CExtensionAttrHelper(nodeClassName, "distant_light");
+   // common attributes
+   helper.MakeInput("cast_shadows");
+   helper.MakeInput("exposure");
+   helper.MakeInput("angle");
+   helper.MakeInput("samples");
+   helper.MakeInput("mis");
+   helper.MakeInput("normalize");
+   helper.MakeInput("bounce_factor");
+   helper.MakeInput("bounces");
+   CAttrData data;
+   data.defaultValue.BOOL = false;
+   data.name = "override_sss_samples";
+   data.shortName = "oss";
+   helper.MakeInputBoolean(data);
+   helper.MakeInput("sss_samples");
+   // directional light attributes
+}
 // PointLight
 //
 
@@ -168,19 +197,29 @@ void CPointLightTranslator::Export(AtNode* light)
    MPlug plug;
    MFnPointLight fnLight(m_dagPath);
 
-   AiNodeSetFlt(light, "radius", fnLight.shadowRadius());
+   AiNodeSetFlt(light, "radius", GetFnNode().findPlug("radius").asFloat());
 
-   AiNodeSetBool(light, "affect_volumetrics", m_fnNode.findPlug("affect_volumetrics").asBool());
-   AiNodeSetBool(light, "cast_volumetric_shadows", m_fnNode.findPlug("cast_volumetric_shadows").asBool());
+   AiNodeSetBool(light, "affect_volumetrics", GetFnNode().findPlug("affect_volumetrics").asBool());
+   AiNodeSetBool(light, "cast_volumetric_shadows", GetFnNode().findPlug("cast_volumetric_shadows").asBool());
 }
 
 void CPointLightTranslator::NodeInitializer(MString nodeClassName)
 {
    CExtensionAttrHelper helper = CExtensionAttrHelper(nodeClassName, "point_light");
    // common attributes
+   helper.MakeInput("cast_shadows");
+   helper.MakeInput("exposure");
+   helper.MakeInput("radius");
+   helper.MakeInput("samples");
+   helper.MakeInput("mis");
    helper.MakeInput("normalize");
    helper.MakeInput("bounce_factor");
    helper.MakeInput("bounces");
+   CAttrData data;
+   data.defaultValue.BOOL = false;
+   data.name = "override_sss_samples";
+   data.shortName = "oss";
+   helper.MakeInputBoolean(data);
    helper.MakeInput("sss_samples");
    // point light attributes
    helper.MakeInput("affect_volumetrics");
@@ -197,25 +236,36 @@ void CSpotLightTranslator::Export(AtNode* light)
 
    CLightTranslator::Export(light);
 
-   AiNodeSetFlt(light, "radius", fnLight.shadowRadius());
    AiNodeSetFlt(light, "cone_angle", static_cast<float>((fnLight.coneAngle() + fnLight.penumbraAngle()) * AI_RTOD));
    AiNodeSetFlt(light, "penumbra_angle", static_cast<float>(fabs(fnLight.penumbraAngle()) * AI_RTOD));
    AiNodeSetFlt(light, "cosine_power", static_cast<float>(fnLight.dropOff()));
 
-   AiNodeSetBool(light, "affect_volumetrics", m_fnNode.findPlug("affect_volumetrics").asBool());
-   AiNodeSetBool(light, "cast_volumetric_shadows", m_fnNode.findPlug("cast_volumetric_shadows").asBool());
+   AiNodeSetFlt(light, "radius", GetFnNode().findPlug("radius").asFloat());
 
-   AiNodeSetFlt(light, "aspect_ratio", m_fnNode.findPlug("aspect_ratio").asFloat());
-   AiNodeSetFlt(light, "lens_radius", m_fnNode.findPlug("lens_radius").asFloat());
+   AiNodeSetBool(light, "affect_volumetrics", GetFnNode().findPlug("affect_volumetrics").asBool());
+   AiNodeSetBool(light, "cast_volumetric_shadows", GetFnNode().findPlug("cast_volumetric_shadows").asBool());
+
+   AiNodeSetFlt(light, "aspect_ratio", GetFnNode().findPlug("aspect_ratio").asFloat());
+   AiNodeSetFlt(light, "lens_radius", GetFnNode().findPlug("lens_radius").asFloat());
 }
 
 void CSpotLightTranslator::NodeInitializer(MString nodeClassName)
 {
    CExtensionAttrHelper helper = CExtensionAttrHelper(nodeClassName, "spot_light");
    // common attributes
+   helper.MakeInput("cast_shadows");
+   helper.MakeInput("exposure");
+   helper.MakeInput("radius");
+   helper.MakeInput("samples");
+   helper.MakeInput("mis");
    helper.MakeInput("normalize");
    helper.MakeInput("bounce_factor");
    helper.MakeInput("bounces");
+   CAttrData data;
+   data.defaultValue.BOOL = false;
+   data.name = "override_sss_samples";
+   data.shortName = "oss";
+   helper.MakeInputBoolean(data);
    helper.MakeInput("sss_samples");
    // spot light attributes
    helper.MakeInput("affect_volumetrics");
@@ -240,26 +290,32 @@ void CAreaLightTranslator::Export(AtNode* light)
 
    AiNodeSetArray(light, "vertices", AiArrayConvert(4, 1, AI_TYPE_POINT, vertices, true));
 
-   AiNodeSetInt(light, "resolution", m_fnNode.findPlug("resolution").asInt());
-   AiNodeSetBool(light, "affect_volumetrics", m_fnNode.findPlug("affect_volumetrics").asBool());
-   AiNodeSetBool(light, "cast_volumetric_shadows", m_fnNode.findPlug("cast_volumetric_shadows").asBool());
-   AiNodeSetBool(light, "solid_angle", m_fnNode.findPlug("solid_angle").asBool());
+   AiNodeSetInt(light, "resolution", GetFnNode().findPlug("resolution").asInt());
+   AiNodeSetBool(light, "affect_volumetrics", GetFnNode().findPlug("affect_volumetrics").asBool());
+   AiNodeSetBool(light, "cast_volumetric_shadows", GetFnNode().findPlug("cast_volumetric_shadows").asBool());
 }
 
 void CAreaLightTranslator::NodeInitializer(MString nodeClassName)
 {
    CExtensionAttrHelper helper(nodeClassName, "quad_light");
-
    // common attributes
+   helper.MakeInput("cast_shadows");
+   helper.MakeInput("exposure");
+   helper.MakeInput("samples");
+   helper.MakeInput("mis");
    helper.MakeInput("normalize");
    helper.MakeInput("bounce_factor");
    helper.MakeInput("bounces");
+   CAttrData data;
+   data.defaultValue.BOOL = false;
+   data.name = "override_sss_samples";
+   data.shortName = "oss";
+   helper.MakeInputBoolean(data);
    helper.MakeInput("sss_samples");
    // spot light attributes
    helper.MakeInput("resolution");
    helper.MakeInput("affect_volumetrics");
    helper.MakeInput("cast_volumetric_shadows");
-   helper.MakeInput("solid_angle");
 }
 
 
@@ -271,11 +327,11 @@ void CSkyDomeLightTranslator::Export(AtNode* light)
    // Don't use maya-style attrs
    CLightTranslator::Export(light, false);
 
-   AiNodeSetInt(light, "resolution", m_fnNode.findPlug("resolution").asInt());
-   AiNodeSetFlt(light, "exposure", m_fnNode.findPlug("exposure").asFloat());
-   AiNodeSetInt(light, "format", m_fnNode.findPlug("format").asInt());
-   AiNodeSetFlt(light, "shadow_density", m_fnNode.findPlug("shadow_density").asFloat());
-   AiNodeSetRGB(light, "shadow_color", m_fnNode.findPlug("shadow_colorR").asFloat(), m_fnNode.findPlug("shadow_colorG").asFloat(), m_fnNode.findPlug("shadow_colorB").asFloat());
-   AiNodeSetBool(light, "normalize", m_fnNode.findPlug("normalize").asBool());
-   AiNodeSetBool(light, "mis", m_fnNode.findPlug("mis").asBool());
+   AiNodeSetInt(light, "resolution", GetFnNode().findPlug("resolution").asInt());
+   AiNodeSetFlt(light, "exposure", GetFnNode().findPlug("exposure").asFloat());
+   AiNodeSetInt(light, "format", GetFnNode().findPlug("format").asInt());
+   AiNodeSetFlt(light, "shadow_density", GetFnNode().findPlug("shadow_density").asFloat());
+   AiNodeSetRGB(light, "shadow_color", GetFnNode().findPlug("shadow_colorR").asFloat(), GetFnNode().findPlug("shadow_colorG").asFloat(), GetFnNode().findPlug("shadow_colorB").asFloat());
+   AiNodeSetBool(light, "normalize", GetFnNode().findPlug("normalize").asBool());
+   AiNodeSetBool(light, "mis", GetFnNode().findPlug("mis").asBool());
 }

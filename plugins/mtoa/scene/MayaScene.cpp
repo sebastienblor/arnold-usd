@@ -1,8 +1,6 @@
 
 #include "MayaScene.h"
-#include "TranslatorRegistry.h"
-#include "render/RenderSession.h"
-
+#include "extension/ExtensionsManager.h"
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
@@ -35,18 +33,19 @@ MCallbackId CMayaScene::s_NewNodeCallbackId = 0;
 
 CMayaScene::~CMayaScene()
 {
-   if ( GetExportMode() == MTOA_EXPORT_IPR )
+   if (GetExportMode() == MTOA_EXPORT_IPR)
    {
       ClearIPRCallbacks();
    }
 
-   if ( m_fnCommonRenderOptions != NULL ) delete m_fnCommonRenderOptions;
-   if ( m_fnArnoldRenderOptions != NULL ) delete m_fnArnoldRenderOptions;
+   if (m_fnCommonRenderOptions != NULL) delete m_fnCommonRenderOptions;
+   if (m_fnArnoldRenderOptions != NULL) delete m_fnArnoldRenderOptions;
 
    // Delete translators
    ObjectToTranslatorMap::iterator it;
    for(it = m_processedTranslators.begin(); it != m_processedTranslators.end(); ++it)
    {
+      AiMsgDebug("Deleting translator for %s", MFnDependencyNode(it->first.object()).name().asChar());
       delete it->second;
    }
    m_processedTranslators.clear();
@@ -58,12 +57,15 @@ CMayaScene::~CMayaScene()
       std::map<int, CNodeTranslator*>::iterator instIt;
       for(instIt = dagIt->second.begin(); instIt != dagIt->second.end(); ++instIt)
       {
+         MFnDagNode fnDag(dagIt->first.object());
+         AiMsgDebug("Deleting translator for %s [%d]", fnDag.fullPathName().asChar(), instIt->first);
          delete instIt->second;
       }
    }
    m_processedDagTranslators.clear();
 }
 
+/// Primary entry point for exporting a Maya scene to Arnold
 MStatus CMayaScene::ExportToArnold()
 {
    MStatus status;
@@ -85,35 +87,35 @@ MStatus CMayaScene::ExportToArnold()
 
    // Are we motion blurred?
    const bool mb = m_motionBlurData.enabled &&
-                   ( m_fnArnoldRenderOptions->findPlug("mb_camera_enable").asBool()    ||
+                   (m_fnArnoldRenderOptions->findPlug("mb_camera_enable").asBool()    ||
                      m_fnArnoldRenderOptions->findPlug("mb_objects_enable").asBool()   ||
-                     m_fnArnoldRenderOptions->findPlug("mb_lights_enable").asBool()    );
+                     m_fnArnoldRenderOptions->findPlug("mb_lights_enable").asBool());
 
    // In case of motion blur we need to position ourselves to first step
    // TODO : what if specific frame was requested and it's != GetCurrentFrame()
    if (mb)
    {
       // first step is the real export
-      AiMsgDebug("[mtoa] Exporting step 0 at frame %f", m_motionBlurData.frames[0]);
+      AiMsgDebug("Exporting step 0 at frame %f", m_motionBlurData.frames[0]);
       MGlobal::viewFrame(MTime(m_motionBlurData.frames[0], MTime::uiUnit()));
    }
    // First "real" export
    if (exportMode == MTOA_EXPORT_ALL || exportMode == MTOA_EXPORT_IPR)
    {
       // Cameras are always exported currently
-      status = ExportCameras(0);
+      status = ExportCameras();
       // Then we filter them out to avoid double exporting them
       m_exportOptions.filter.excluded.insert(MFn::kCamera);
       if (filterSelected)
       {
          // And for render selected we need the lights too
-         status = ExportLights(0);
+         status = ExportLights();
          m_exportOptions.filter.excluded.insert(MFn::kLight);
-         status = ExportSelected(0);
+         status = ExportSelected();
       }
       else
       {
-         status = ExportScene(0);
+         status = ExportScene();
       }
    }
    else if (exportMode == MTOA_EXPORT_FILE)
@@ -122,20 +124,20 @@ MStatus CMayaScene::ExportToArnold()
       {
          // If we export selected to a file, not as a full render,
          // we just export as it is
-         status = ExportSelected(0);
+         status = ExportSelected();
       }
       else
       {
          // Else if it's a full / renderable scene
-         status = ExportCameras(0);
+         status = ExportCameras();
          // Then we filter them out to avoid double exporting them
          m_exportOptions.filter.excluded.insert(MFn::kCamera);
-         status = ExportScene(0);
+         status = ExportScene();
       }
    }
    else
    {
-      AiMsgDebug( "[mtoa] Unsupported export mode: %d", exportMode );
+      AiMsgError("Unsupported export mode: %d", exportMode);
       return MStatus::kFailure;
    }
 
@@ -146,7 +148,7 @@ MStatus CMayaScene::ExportToArnold()
       for (AtUInt step = 1; step < m_motionBlurData.motion_steps; ++step)
       {
          MGlobal::viewFrame(MTime(m_motionBlurData.frames[step], MTime::uiUnit()));
-         AiMsgDebug("[mtoa] Exporting step %d at frame %f", step, m_motionBlurData.frames[step]);
+         AiMsgDebug("Exporting step %d at frame %f", step, m_motionBlurData.frames[step]);
          // then, loop through the already processed dag translators and export for current step
          ObjectToDagTranslatorMap::iterator dagIt;
          for(dagIt = m_processedDagTranslators.begin(); dagIt != m_processedDagTranslators.end(); ++dagIt)
@@ -222,7 +224,7 @@ void CMayaScene::GetMotionBlurData()
 //
 // @return              MS::kSuccess / MS::kFailure is returned in case of failure.
 //
-MStatus CMayaScene::ExportCameras(AtUInt step)
+MStatus CMayaScene::ExportCameras()
 {
    MStatus status = MStatus::kSuccess;
    MDagPath path;
@@ -247,12 +249,12 @@ MStatus CMayaScene::ExportCameras(AtUInt step)
          if (filter.hidden == true && !IsVisiblePath(path))
             continue;
          */
-         if (MStatus::kSuccess != ExportDagPath(path, step))
+         if (ExportDagPath(path) == NULL)
             status = MStatus::kFailure;
       }
       else
       {
-         AiMsgError("[mtoa] Could not get path for Maya cameras DAG iterator.");
+         AiMsgError("Could not get path for Maya cameras DAG iterator.");
          status = MS::kFailure;
       }
    }
@@ -264,7 +266,7 @@ MStatus CMayaScene::ExportCameras(AtUInt step)
 //
 // @return              MS::kSuccess / MS::kFailure is returned in case of failure.
 //
-MStatus CMayaScene::ExportLights(AtUInt step)
+MStatus CMayaScene::ExportLights()
 {
    MStatus status = MStatus::kSuccess;
    MDagPath path;
@@ -287,12 +289,12 @@ MStatus CMayaScene::ExportLights(AtUInt step)
             continue;
          if (filter.hidden == true && !IsVisiblePath(path))
             continue;
-         if (MStatus::kSuccess != ExportDagPath(path, step))
+         if (ExportDagPath(path) == NULL)
             status = MStatus::kFailure;
       }
       else
       {
-         AiMsgError("[mtoa] Could not get path for Maya lights DAG iterator.");
+         AiMsgError("Could not get path for Maya lights DAG iterator.");
          status = MS::kFailure;
       }
    }
@@ -304,7 +306,7 @@ MStatus CMayaScene::ExportLights(AtUInt step)
 //
 // @return              MS::kSuccess / MS::kFailure is returned in case of failure.
 //
-MStatus CMayaScene::ExportScene(AtUInt step)
+MStatus CMayaScene::ExportScene()
 {
    MStatus status = MStatus::kSuccess;
    MDagPath path;
@@ -329,20 +331,20 @@ MStatus CMayaScene::ExportScene(AtUInt step)
                dagIterator.prune();
             continue;
          }
-         if (MStatus::kSuccess != ExportDagPath(path, step))
+         if (ExportDagPath(path) == NULL)
             status = MStatus::kFailure;
       }
       else
       {
-         AiMsgError("[mtoa] Could not get path for Maya DAG iterator.");
+         AiMsgError("Could not get path for Maya DAG iterator.");
          status = MS::kFailure;
       }
    }
    
    // Add callbacks if we're in IPR mode.
-   if ( GetExportMode() == MTOA_EXPORT_IPR && s_NewNodeCallbackId == 0x0 )
+   if (GetExportMode() == MTOA_EXPORT_IPR && s_NewNodeCallbackId == 0x0)
    {
-      s_NewNodeCallbackId = MDGMessage::addNodeAddedCallback( CMayaScene::IPRNewNodeCallback );
+      s_NewNodeCallbackId = MDGMessage::addNodeAddedCallback(CMayaScene::IPRNewNodeCallback);
    }
    
    return status;
@@ -352,7 +354,7 @@ MStatus CMayaScene::ExportScene(AtUInt step)
 //
 // @return              MS::kSuccess / MS::kFailure is returned in case of failure.
 //
-MStatus CMayaScene::ExportSelected(AtUInt step)
+MStatus CMayaScene::ExportSelected()
 {
    MStatus status = MStatus::kSuccess;
 
@@ -368,7 +370,7 @@ MStatus CMayaScene::ExportSelected(AtUInt step)
    {
       if (it.getDagPath(path) == MStatus::kSuccess)
       {
-         if (MStatus::kSuccess != ExportDagPath(path, step))
+         if (ExportDagPath(path) == NULL)
             status = MStatus::kFailure;
       }
       else
@@ -453,39 +455,31 @@ MStatus CMayaScene::IterSelection(MSelectionList& selected)
 
 // Export a single dag path (a dag node or an instance of a dag node)
 // Considered to be already filtered and checked
-MStatus CMayaScene::ExportDagPath(MDagPath &dagPath, AtUInt step)
+AtNode* CMayaScene::ExportDagPath(MDagPath &dagPath)
 {
-   MFnDagNode node(dagPath.node());
    MObjectHandle handle = MObjectHandle(dagPath.node());
    int instanceNum = dagPath.instanceNumber();
+   MString name = dagPath.partialPathName();
+   MString type = MFnDagNode(dagPath).typeName();
+   AiMsgDebug("Exporting dag node %s of type %s", name.asChar(), type.asChar());
    // early out for nodes that have already been processed
-   if (m_processedDagTranslators[handle].count(instanceNum))
-      return MStatus::kSuccess;
-   if (step == 0)
+   ObjectToDagTranslatorMap::iterator it = m_processedDagTranslators.find(handle);
+   if (it != m_processedDagTranslators.end() && it->second.count(instanceNum))
+      return it->second[instanceNum]->GetArnoldRootNode();
+   CDagTranslator* translator = CExtensionsManager::GetTranslator(dagPath);
+   if (translator != NULL && translator->IsDag())
    {
-      CDagTranslator* translator = CTranslatorRegistry::GetDagTranslator(node.typeId().id());
-      if (translator != NULL)
-      {
-         translator->Init(dagPath, this);
-         translator->DoExport(step);
-         // save it for later
-         m_processedDagTranslators[handle][instanceNum] = translator;
-         return MStatus::kSuccess;
-      }
+      AtNode* result = translator->Init(dagPath, this);
+      translator->DoExport(0);
+      // save it for later
+      m_processedDagTranslators[handle][instanceNum] = translator;
+      return result;
    }
    else
    {
-      // this will eventually go away when we do our motion export by looping through processed translators
-      // TODO: I think we can remove it now
-      CDagTranslator* translator = (CDagTranslator*)m_processedDagTranslators[handle][instanceNum];
-      if (translator != NULL)
-      {
-         translator->DoExport(step);
-         return MStatus::kSuccess;
-      }
+      AiMsgDebug("Dag node %s of type %s ignored", name.asChar(), type.asChar());
    }
-
-   return MStatus::kFailure;
+   return NULL;
 }
 
 // Export a shader (dependency node)
@@ -506,38 +500,45 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
          return it->arnoldShader;
       }
    }
+   MObjectHandle handle = MObjectHandle(mayaShader);
+   // early out for dag nodes that have already been processed
+   ObjectToDagTranslatorMap::iterator it = m_processedDagTranslators.find(handle);
+   if (it != m_processedDagTranslators.end())
+   {
+      // find the first
+      cout << "dag node early out" << endl;;
+      return it->second.begin()->second->GetArnoldRootNode();
+   }
 
    AtNode* shader = NULL;
 
-   MFnDependencyNode node(mayaShader);
-
-   CNodeTranslator* translator = CTranslatorRegistry::GetDependTranslator(node.typeId().id());
+   CNodeTranslator* translator = CExtensionsManager::GetTranslator(mayaShader);
    if (translator != NULL)
    {
-      if (mayaShader.hasFn(MFn::kDagNode))
+      CDagTranslator* dagTranslator = dynamic_cast<CDagTranslator*>(translator);
+      if (dagTranslator != NULL)
       {
-         CDagTranslator* dagTranslator = (CDagTranslator*)translator;
          MDagPath dagPath;
          MDagPath::getAPathTo(mayaShader, dagPath);
-         dagTranslator->Init(dagPath, this, attrName);
-         // FIXME: currently shaders are only exported for step = 0
-         shader = dagTranslator->DoExport(0);
-         m_processedTranslators[MObjectHandle(mayaShader)] = dagTranslator;
+         shader = dagTranslator->Init(dagPath, this, attrName);
+         m_processedTranslators[handle] = dagTranslator;
+         dagTranslator->DoExport(0);
       }
       else
       {
-         translator->Init(mayaShader, this, attrName);
-         // FIXME: currently shaders are only exported for step = 0
-         shader = translator->DoExport(0);
-         m_processedTranslators[MObjectHandle(mayaShader)] = translator;
+         shader = translator->Init(mayaShader, this, attrName);
+         m_processedTranslators[handle] = translator;
+         translator->DoExport(0);
       }
    }
    else
-      AiMsgWarning("[mtoa] Shader type not supported: %s", node.typeName().asChar());
+   {
+      AiMsgDebug("Shader type not supported: %s", MFnDependencyNode(mayaShader).typeName().asChar());
+   }
 
    if (shader)
    {
-      CShaderData   data;
+      CShaderData data;
       data.mayaShader   = mayaShader;
       data.arnoldShader = shader;
       data.attrName     = attrName;
@@ -546,14 +547,14 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
    return shader;
 }
 
-CNodeTranslator * CMayaScene::GetActiveTranslator( const MObject node )
+CNodeTranslator * CMayaScene::GetActiveTranslator(const MObject node)
 {
-   MObjectHandle node_handle( node );
+   MObjectHandle node_handle(node);
 
-   ObjectToTranslatorMap::iterator translatorIt = m_processedTranslators.find( node_handle );
-   if ( translatorIt != m_processedTranslators.end() )
+   ObjectToTranslatorMap::iterator translatorIt = m_processedTranslators.find(node_handle);
+   if (translatorIt != m_processedTranslators.end())
    {
-      return static_cast< CNodeTranslator* >( translatorIt->second );
+      return static_cast< CNodeTranslator* >(translatorIt->second);
    }
 
    return NULL;
@@ -564,15 +565,15 @@ void CMayaScene::ClearIPRCallbacks()
    // Clear the list of stuff to update.
    s_translatorsToIPRUpdate.clear();
 
-   if ( s_IPRIdleCallbackId != 0 )
+   if (s_IPRIdleCallbackId != 0)
    {
-      MMessage::removeCallback( s_IPRIdleCallbackId );
+      MMessage::removeCallback(s_IPRIdleCallbackId);
       s_IPRIdleCallbackId = 0;
    }
 
-   if ( s_NewNodeCallbackId != 0 )
+   if (s_NewNodeCallbackId != 0)
    {
-      MMessage::removeCallback( s_NewNodeCallbackId );
+      MMessage::removeCallback(s_NewNodeCallbackId);
       s_NewNodeCallbackId = 0;
    }
 
@@ -580,7 +581,7 @@ void CMayaScene::ClearIPRCallbacks()
    ObjectToTranslatorMap::iterator it;
    for(it = m_processedTranslators.begin(); it != m_processedTranslators.end(); ++it)
    {
-      if ( it->second != NULL ) it->second->RemoveIPRCallbacks();
+      if (it->second != NULL) it->second->RemoveIPRCallbacks();
    }
 
    ObjectToDagTranslatorMap::iterator dagIt;
@@ -603,9 +604,9 @@ void CMayaScene::IPRNewNodeCallback(MObject & node, void *)
    // Interupt rendering
    renderSession->InterruptRender();
    CNodeTranslator * translator = renderSession->GetMayaScene()->GetActiveTranslator(node);
-   if ( translator != NULL )
+   if (translator != NULL)
    {
-      renderSession->GetMayaScene()->UpdateIPR( translator );
+      renderSession->GetMayaScene()->UpdateIPR(translator);
       return;
    }
 
@@ -615,17 +616,17 @@ void CMayaScene::IPRNewNodeCallback(MObject & node, void *)
    const MStatus status = dag_node.getPath(path);
    if (status == MS::kSuccess)
    {
-      AiMsgDebug( "[mtoa] Exporting new node: %s", path.partialPathName().asChar() );
-      renderSession->GetMayaScene()->ExportDagPath(path, 0);
+      AiMsgDebug("Exporting new node: %s", path.partialPathName().asChar());
+      renderSession->GetMayaScene()->ExportDagPath(path);
       renderSession->GetMayaScene()->UpdateIPR();
    }
 }
 
 void CMayaScene::IPRIdleCallback(void *)
 {
-   if ( s_IPRIdleCallbackId != 0 )
+   if (s_IPRIdleCallbackId != 0)
    {
-      MMessage::removeCallback( s_IPRIdleCallbackId );
+      MMessage::removeCallback(s_IPRIdleCallbackId);
       s_IPRIdleCallbackId = 0;
    }
 
@@ -634,17 +635,17 @@ void CMayaScene::IPRIdleCallback(void *)
    CMayaScene* scene = renderSession->GetMayaScene();
    // Are we motion blurred?
    const bool mb = scene->m_motionBlurData.enabled &&
-                   ( scene->m_fnArnoldRenderOptions->findPlug("mb_camera_enable").asBool()    ||
+                   (scene->m_fnArnoldRenderOptions->findPlug("mb_camera_enable").asBool()    ||
                      scene->m_fnArnoldRenderOptions->findPlug("mb_objects_enable").asBool()   ||
-                     scene->m_fnArnoldRenderOptions->findPlug("mb_lights_enable").asBool()    );
+                     scene->m_fnArnoldRenderOptions->findPlug("mb_lights_enable").asBool());
 
    if (!mb)
    {
-      for( std::vector<CNodeTranslator*>::iterator iter=s_translatorsToIPRUpdate.begin();
+      for(std::vector<CNodeTranslator*>::iterator iter=s_translatorsToIPRUpdate.begin();
          iter != s_translatorsToIPRUpdate.end(); ++iter)
       {
          CNodeTranslator* translator = (*iter);
-         if ( translator != NULL ) translator->DoUpdate(0);
+         if (translator != NULL) translator->DoUpdate(0);
       }
    }
    else
@@ -653,11 +654,11 @@ void CMayaScene::IPRIdleCallback(void *)
       for (AtUInt J = 0; (J < scene->m_motionBlurData.motion_steps); ++J)
       {
          MGlobal::viewFrame(MTime(scene->m_motionBlurData.frames[J], MTime::uiUnit()));
-         for( std::vector<CNodeTranslator*>::iterator iter=s_translatorsToIPRUpdate.begin();
+         for(std::vector<CNodeTranslator*>::iterator iter=s_translatorsToIPRUpdate.begin();
             iter != s_translatorsToIPRUpdate.end(); ++iter)
          {
             CNodeTranslator* translator = (*iter);
-            if ( translator != NULL )translator->DoUpdate(J);
+            if (translator != NULL)translator->DoUpdate(J);
          }
       }
       MGlobal::viewFrame(MTime(scene->GetCurrentFrame(), MTime::uiUnit()));
@@ -669,20 +670,20 @@ void CMayaScene::IPRIdleCallback(void *)
    renderSession->DoIPRRender();
 }
 
-void CMayaScene::UpdateIPR( CNodeTranslator * translator )
+void CMayaScene::UpdateIPR(CNodeTranslator * translator)
 {
-   if ( translator != NULL )
+   if (translator != NULL)
    {
-      s_translatorsToIPRUpdate.push_back( translator );
+      s_translatorsToIPRUpdate.push_back(translator);
    }
 
    // Add the IPR update callback, this is called in Maya's
    // idle time (Arnold may not be idle, that's okay).
-   if ( s_IPRIdleCallbackId == 0 )
+   if (s_IPRIdleCallbackId == 0)
    {
       MStatus status;
-      MCallbackId id = MEventMessage::addEventCallback( "idle", IPRIdleCallback, NULL, &status );
-      if ( status == MS::kSuccess ) s_IPRIdleCallbackId = id;
+      MCallbackId id = MEventMessage::addEventCallback("idle", IPRIdleCallback, NULL, &status);
+      if (status == MS::kSuccess) s_IPRIdleCallbackId = id;
    }
 }
 

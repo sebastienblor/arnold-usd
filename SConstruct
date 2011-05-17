@@ -45,7 +45,7 @@ vars.AddVariables(
       EnumVariable('TARGET_ARCH', 'Allows compiling for a different architecture', system.host_arch(), allowed_values=system.get_valid_target_archs()),
       BoolVariable('SHOW_CMDS',   'Display the actual command lines used for building', False),
 
-      EnumVariable('SHOW_TEST_OUTPUT', 'Display the test log as it is being run', 'single', allowed_values=('always', 'never', 'single') ),
+      EnumVariable('SHOW_TEST_OUTPUT', 'Display the test log as it is being run', 'single', allowed_values=('always', 'never', 'single')),
       BoolVariable('UPDATE_REFERENCE', 'Update the reference log/image for the specified targets', False),
       ('TEST_PATTERN' , 'Glob pattern of tests to be run', 'test_*'),
       ('GCC_OPT_FLAGS', 'Optimization flags for gcc', '-O3 -funroll-loops'),
@@ -242,9 +242,11 @@ if system.os() == 'windows':
    maya_env.Append(CPPPATH = [os.path.join(env['MAYA_ROOT'], 'include')])
    maya_env.Append(CPPDEFINES = Split('NT_PLUGIN REQUIRE_IOSTREAM'))
    maya_env.Append(LIBPATH = [os.path.join(env['MAYA_ROOT'], 'lib')])
-
+   
+   maya_env.Append(LIBS=Split('ai.lib OpenGl32.lib glu32.lib Foundation.lib OpenMaya.lib OpenMayaRender.lib OpenMayaUI.lib OpenMayaAnim.lib OpenMayaFX.lib'))
+   
    [MTOA_API, MTOA_API_PRJ] = env.SConscript(os.path.join('plugins', 'mtoa', 'SConscriptAPI'),
-                                             build_dir = os.path.join(BUILD_BASE_DIR, 'api'),
+                                             variant_dir = os.path.join(BUILD_BASE_DIR, 'api'),
                                              duplicate = 0,
                                              exports   = 'maya_env')
    
@@ -294,11 +296,14 @@ else:
       maya_env.Append(CPPDEFINES = Split('LINUX'))
       maya_env.Append(LIBPATH = [os.path.join(env['MAYA_ROOT'], 'lib')])
    elif system.os() == 'darwin':
-      maya_env.Append(CPPPATH = [os.path.join(env['MAYA_ROOT'], '../../devkit/include')])
-      maya_env.Append(LIBPATH = [os.path.join(env['MAYA_ROOT'], 'MacOS')])
+      maya_env.Append(CPPPATH = [os.path.join(env['MAYA_ROOT'], 'devkit/include')])
+      maya_env.Append(LIBPATH = [os.path.join(env['MAYA_ROOT'], 'Maya.app/Contents/MacOS')])
+
+   maya_env.Append(LIBS=Split('ai pthread Foundation OpenMaya OpenMayaRender OpenMayaUI OpenMayaAnim OpenMayaFX'))
+   maya_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
 
    MTOA_API = env.SConscript(os.path.join('plugins', 'mtoa', 'SConscriptAPI'),
-                         build_dir = os.path.join(BUILD_BASE_DIR, 'api'),
+                         variant_dir = os.path.join(BUILD_BASE_DIR, 'api'),
                          duplicate = 0,
                          exports   = 'maya_env')
 
@@ -372,16 +377,7 @@ ext_env.Append(CPPPATH = ['plugin', os.path.join(maya_env['ROOT_DIR'], 'plugins'
 ext_env.Append(LIBPATH = ['.', env['ARNOLD_API_LIB']])
 ext_env.Append(LIBPATH = [ os.path.join(maya_env['ROOT_DIR'], os.path.split(str(MTOA[0]))[0]),
                            os.path.join(maya_env['ROOT_DIR'], os.path.split(str(MTOA_API[0]))[0])])
-ext_env.Append(LIBS = ['mtoaAPI'])
-
-if system.os() == 'windows':
-   ext_env.Append(LIBS=Split('ai.lib OpenGl32.lib glu32.lib Foundation.lib OpenMaya.lib OpenMayaRender.lib OpenMayaUI.lib OpenMayaAnim.lib OpenMayaFX.lib'))
-else:
-   ext_env.Append(LIBS=Split('ai pthread Foundation OpenMaya OpenMayaRender OpenMayaUI OpenMayaAnim OpenMayaFX'))
-   ext_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
-
-if system.os() == 'darwin':
-    ext_env.Append(LDMODULESUFFIX='.bundle')
+ext_env.Append(LIBS = ['mtoa_api'])
 
 ext_base_dir = os.path.join('contrib', 'extensions')
 ext_files = []
@@ -393,26 +389,41 @@ for ext in os.listdir(ext_base_dir):
     ext_dir = os.path.join(ext_base_dir, ext)
     if os.path.isdir(ext_dir):
         if system.os() == 'windows':
-           [EXT, EXT_PRJ] = env.SConscript(os.path.join(ext_dir, 'SConscript'),
-                                           variant_dir = os.path.join(BUILD_BASE_DIR, ext),
-                                           duplicate = 0,
-                                           exports   = ['ext_env', 'env'])
+           EXT = env.SConscript(os.path.join(ext_dir, 'SConscript'),
+                                variant_dir = os.path.join(BUILD_BASE_DIR, ext),
+                                duplicate = 0,
+                                exports   = ['ext_env', 'env'])
+           
+           if len(EXT) == 4:
+              EXT_SHADERS = EXT[1]
+              EXT_PRJ = EXT[2]
+              EXT_SHADERS_PRJ = EXT[3]
+              env.Depends(SOLUTION, EXT_SHADERS_PRJ)
+           else:
+              EXT_PRJ = EXT[1]
+           
            env.Depends(SOLUTION, EXT_PRJ)
         else:
            EXT = env.SConscript(os.path.join(ext_dir, 'SConscript'),
                                 variant_dir = os.path.join(BUILD_BASE_DIR, ext),
                                 duplicate = 0,
                                 exports   = ['ext_env', 'env'])
+        
         top_level_alias(env, ext, EXT)
         Depends(EXT, MTOA_API[0])
         # only install if the target has been specified
         if ext in COMMAND_LINE_TARGETS:
             # EXT may contain a shader result
-            if len(EXT) > 1:
-                ext_shaders.append(str(EXT[1][0]))
-                plugin = str(EXT[0][0])
+            if system.os() == 'windows':
+               if len(EXT) > 2:
+                  ext_shaders.append(str(EXT[1][0]))
+               plugin = str(EXT[0][0])
             else:
-                plugin = str(EXT[0])
+               if len(EXT) > 1:
+                  ext_shaders.append(str(EXT[1][0]))
+                  plugin = str(EXT[0][0])
+               else:
+                  plugin = str(EXT[0])
             pyfile = os.path.splitext(os.path.basename(plugin))[0] + '.py'
             pyfile = os.path.join(ext_dir, 'plugin', pyfile)
             ext_files.append(plugin)

@@ -34,6 +34,10 @@
 #define OUT_MATRIX_NAME MString("outMatrix")
 #define OUT_SHORTNAME MString("out")
 
+MString toMayaStyle(MString s);
+
+MString toMayaStyle(MString s);
+
 /// Structure for holding attribute properties
 struct CAttrData
 {
@@ -223,7 +227,7 @@ public:
    {
       if (m_nodeEntry == NULL)
       {
-         AiMsgWarning("[mtoa] CStaticAttrHelper passed unknown Arnold node type \"%s\"", nodeEntryName);
+         AiMsgWarning("CStaticAttrHelper passed unknown Arnold node type \"%s\"", nodeEntryName);
       }
    }
 
@@ -256,7 +260,7 @@ public:
    {
       if (m_nodeEntry == NULL)
       {
-         AiMsgWarning("[mtoa] CDynamicAttrHelper passed unknown Arnold node type \"%s\" for Maya node type \"%s\"",
+         AiMsgWarning("CDynamicAttrHelper passed unknown Arnold node type \"%s\" for Maya node type \"%s\"",
                       nodeEntryName, MFnDependencyNode(m_instance).typeName().asChar());
       }
    }
@@ -297,7 +301,7 @@ public:
    {
       if (m_nodeEntry == NULL)
       {
-         AiMsgWarning("[mtoa] CExtensionAttrHelper passed unknown Arnold node type \"%s\" for Maya node type \"%s\"",
+         AiMsgWarning("CExtensionAttrHelper passed unknown Arnold node type \"%s\" for Maya node type \"%s\"",
                       nodeEntryName, nodeClassName.asChar());
       }
    }

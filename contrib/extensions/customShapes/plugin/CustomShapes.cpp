@@ -116,7 +116,7 @@ bool CCustomShapeTranslator::RegisterCustomShape(CExtension& plugin, std::string
                }
 
                s_customShapes[shapeType].cleanupCmd = scriptName.c_str();
-               plugin.RegisterDagTranslator(nodeId, CCustomShapeTranslator::creator);
+               plugin.RegisterTranslator(nodeId, CCustomShapeTranslator::creator);
                return true;
             }
          }
@@ -191,7 +191,7 @@ void CCustomShapeTranslator::ExportMotion(AtNode *shape, AtUInt step)
 AtNode* CCustomShapeTranslator::ExportCustomShape(AtUInt step)
 {
    std::map<std::string, CCustomData>::iterator customShapeIt;
-   customShapeIt = s_customShapes.find(m_fnNode.typeName().asChar());
+   customShapeIt = s_customShapes.find(GetFnNode().typeName().asChar());
    if (customShapeIt == s_customShapes.end())
    {
       // TODO: print warning
@@ -248,7 +248,7 @@ AtNode* CCustomShapeTranslator::ExportCustomShape(AtUInt step)
    MStatus status = MGlobal::executeCommand(command, attrs);
    if (!status)
    {
-      AiMsgError("[mtoa] Failed to export custom shape \"%s\".", node.name().asChar());
+      AiMsgError("[custom shapes] Failed to export custom shape \"%s\".", node.name().asChar());
       return NULL;
    }
 
@@ -707,7 +707,7 @@ AtNode* CCustomShapeTranslator::ExportCustomShape(AtUInt step)
 
       if (!status)
       {
-         AiMsgError("[mtoa] Failed to cleanup custom shape \"%s\".", node.name().asChar());
+         AiMsgError("[custom shapes] Failed to cleanup custom shape \"%s\".", node.name().asChar());
          return NULL;
       }
    }

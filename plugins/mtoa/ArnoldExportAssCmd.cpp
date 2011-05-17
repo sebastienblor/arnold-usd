@@ -90,9 +90,9 @@ MStatus CArnoldExportAssCmd::WriteAsstoc(const MString& filename, const AtBBox& 
    bboxcomment += bBox.max.z;
 
    FILE * bboxfile;
-   bboxfile = fopen( filename.asChar(), "w" );
+   bboxfile = fopen(filename.asChar(), "w");
    if (bboxfile != NULL) {
-      fwrite(bboxcomment.asChar() , 1 , bboxcomment.length(), bboxfile );
+      fwrite(bboxcomment.asChar() , 1 , bboxcomment.length(), bboxfile);
       fclose(bboxfile);
 
       return MStatus::kSuccess;
@@ -184,7 +184,7 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    // Cannot export while a render is active
    if (AiUniverseIsActive())
    {
-      AiMsgError("[mtoa] Cannot export to .ass while rendering");
+      AiMsgError("Cannot export to .ass while rendering");
       return MS::kFailure;
    }
    // We don't need renderview_display so we need to set Batch mode on.

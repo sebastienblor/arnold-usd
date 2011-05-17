@@ -31,6 +31,6 @@ void DisplayUpdateQueueRenderFinished();
 /// Convert the image in the queue to an MImage.
 /// \param image the image from the queue is placed this MImage.
 /// \return returns false if the queue doesn't contain a complete image.
-bool DisplayUpdateQueueToMImage( MImage & image );
+bool DisplayUpdateQueueToMImage(MImage & image);
 
 #endif  // OUTPUTDRIVER_H

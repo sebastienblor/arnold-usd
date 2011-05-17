@@ -1,7 +1,7 @@
 import maya.cmds as cmds
 import maya.mel as mel
 import mtoa.ui.ae.utils as aeUtils
-from mtoa.ui.callback import *
+from mtoa.callbacks import *
 
 def getSourcePlug(plugname, index):
     conns = []

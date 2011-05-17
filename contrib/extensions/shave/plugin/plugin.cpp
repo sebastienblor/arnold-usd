@@ -1,19 +1,23 @@
-#include "nodes/ArnoldNodeFactory.h"
 #include "ShaveAndHaircut.h"
+
+#include "extension/Extension.h"
 
 extern "C"
 {
 
-DLLEXPORT void initializePlugin(CExtension& plugin)
+DLLEXPORT void initializeExtension(CExtension& extension)
 {
-   plugin.RegisterDagTranslator("shaveHair",
-                                0x1029b7,
-                                CShaveTranslator::creator,
-                                CShaveTranslator::NodeInitializer,
-                                "shaveNode");
+   MStatus status;
+
+   extension.Requires("shaveNode");
+   extension.LoadArnoldPlugin("shave_shaders");
+   status = extension.RegisterTranslator("shaveHair",
+         "shave",
+         CShaveTranslator::creator,
+         CShaveTranslator::NodeInitializer);
 }
 
-DLLEXPORT void uninitializePlugin(CExtension& plugin)
+DLLEXPORT void deinitializeExtension(CExtension& extension)
 {
 }
 

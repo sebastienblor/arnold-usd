@@ -35,8 +35,8 @@ node_parameters
    AiParameterFLT("filter", 1.0f);
    AiParameterFLT("filterOffset", 0.0f);
    
-   AiMetaDataSetStr(mds, NULL, "maya.counterpart", "checker");
-   AiMetaDataSetInt(mds, NULL, "maya.counterpart_id", 0x52544348);
+   AiMetaDataSetStr(mds, NULL, "maya.name", "checker");
+   AiMetaDataSetInt(mds, NULL, "maya.id", 0x52544348);
 }
 
 node_initialize

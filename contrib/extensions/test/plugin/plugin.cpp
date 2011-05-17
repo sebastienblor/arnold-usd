@@ -1,17 +1,18 @@
 #include "test.h"
-#include "nodes/ArnoldNodeFactory.h"
+#include "extension/Extension.h"
 
 extern "C"
 {
 
-DLLEXPORT void initializePlugin(CExtension &plugin)
+DLLEXPORT void initializeExtension(CExtension &plugin)
 {
-   plugin.RegisterDependTranslator("lambert",
-                                   0x524c414d,
-                                   CTestTranslatorCmd::creator);
+   plugin.RegisterTranslator("lambert",
+                             0x524c414d,
+                             "test",
+                             CTestTranslatorCmd::creator);
 }
 
-DLLEXPORT void uninitializePlugin(CExtension &plugin)
+DLLEXPORT void deinitializeExtension(CExtension &plugin)
 {
 }
 

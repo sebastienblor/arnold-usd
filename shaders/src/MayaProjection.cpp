@@ -398,7 +398,7 @@ node_update
    data->camera = AiUniverseGetCamera();
    
    const char *cameraName = AiNodeGetStr(node, "cameraName");
-   if(strcmp(cameraName, "") != 0) // Use a custom camera for the perspective projection
+   if (strcmp(cameraName, "") != 0) // Use a custom camera for the perspective projection
       data->camera = AiNodeLookUpByName(cameraName);
 }
 

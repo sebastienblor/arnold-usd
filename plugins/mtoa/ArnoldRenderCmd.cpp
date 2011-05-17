@@ -75,19 +75,21 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       filename = renderGlobals.name;
       if (filename != "")
       {
-         MString curProject = MGlobal::executeCommandStringResult("workspace -q -o");
-         if (curProject != "")
+         if (filename.substringW(0,0) != "/")
          {
-            MString dirProject = MGlobal::executeCommandStringResult("workspace -q -rd "
-                  + curProject);
-            MString assDir = MGlobal::executeCommandStringResult(
-                  "workspace -q -fileRuleEntry ArnoldSceneSource");
-            filename = dirProject + "/" + assDir + "/" + filename + ".ass";
-         }
-         else
-         {
-            MString curDir = MGlobal::executeCommandStringResult("workspace -q -dir");
-            filename = curDir + "/" + filename + ".ass";
+            MString curProject = MGlobal::executeCommandStringResult("workspace -q -o");
+            if (curProject != "")
+            {
+               MString dirProject = MGlobal::executeCommandStringResult("workspace -q -rd "
+                     + curProject);
+               MString assDir = MGlobal::executeCommandStringResult("workspace -q -fileRuleEntry ArnoldSceneSource");
+               filename = dirProject + "/" + assDir + "/" + filename + ".ass";
+            }
+            else
+            {
+               MString curDir = MGlobal::executeCommandStringResult("workspace -q -dir");
+               filename = curDir + "/" + filename + ".ass";
+            }
          }
       }
       else
@@ -131,7 +133,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       status = MGlobal::executeCommand(cmdStr);
       if (MStatus::kSuccess == status)
       {
-         MGlobal::displayInfo("[mtoa] Exported scene to file " + filename);
+         AiMsgInfo("Exported scene to file %s", filename.asChar());
          if (renderType == MTOA_RENDER_EXPORTASS_AND_KICK)
          {
 #ifdef _WIN32
@@ -149,13 +151,12 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
             // int ret = system(kickCmd.asChar());
             // std::stringstream info;
             // info << "[mtoa] Value returned by kick : " << ret;
-
-            // MGlobal::displayInfo(info.str().c_str());
+            // AiMsgInfo(info.str().c_str());
          }
       }
       else
       {
-         MGlobal::displayError("[mtoa] Failed to export scene to file " + filename);
+         AiMsgError("Failed to export scene to file %s", filename.asChar());
       }
 
       return status;
@@ -209,7 +210,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
          {
             if (!dagIterCameras.getPath(dagPath))
             {
-               AiMsgError("[mtoa] Could not get path for DAG iterator");
+               AiMsgError("Could not get path for DAG iterator");
                return status;
             }
 

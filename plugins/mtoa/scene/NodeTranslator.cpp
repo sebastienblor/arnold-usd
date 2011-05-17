@@ -1,6 +1,5 @@
 #include "NodeTranslator.h"
 #include "render/RenderOptions.h"
-#include "nodes/ArnoldNodeFactory.h"
 
 #include <ai_ray.h>
 #include <ai_metadata.h>
@@ -34,7 +33,7 @@
       plug.child(i).connectedTo(conn, true, false);\
       if (conn.length() > 0){\
          MString attrName = conn[0].partialName(false, false, false, false, false, true);\
-         AtNode* node = m_scene->ExportShader(conn[0].node(), attrName);\
+         AtNode* node = ExportShader(conn[0].node(), attrName);\
          if (node != NULL){\
             ++compConnected;\
             MString compAttrName(arnoldAttrib);\
@@ -85,25 +84,29 @@ AtNode* CNodeTranslator::DoExport(AtUInt step)
       if (step == 0)
       {
          if (m_outputAttr != "")
-            AiMsgDebug("[mtoa] Exporting: %s.%s", m_fnNode.name().asChar(), m_outputAttr.asChar());
+            AiMsgDebug("Exporting: %s.%s using translator %s",
+                       GetFnNode().name().asChar(), m_outputAttr.asChar(), GetTranslatorName().asChar());
          else
-            AiMsgDebug("[mtoa] Exporting: %s", m_fnNode.name().asChar());
+            AiMsgDebug("Exporting: %s using translator %s",
+                       GetFnNode().name().asChar(), GetTranslatorName().asChar());
          Export(m_atNode);
          ExportUserAttribute(m_atNode);
       }
       else if (RequiresMotionData())
       {
          if (m_outputAttr != "")
-            AiMsgDebug("[mtoa] Exporting motion: %s.%s", m_fnNode.name().asChar(), m_outputAttr.asChar());
+            AiMsgDebug("Exporting motion: %s.%s using translator %s",
+                       GetFnNode().name().asChar(), m_outputAttr.asChar(), GetTranslatorName().asChar());
          else
-            AiMsgDebug("[mtoa] Exporting motion: %s", m_fnNode.name().asChar());
+            AiMsgDebug("Exporting motion: %s using translator %s",
+                       GetFnNode().name().asChar(), GetTranslatorName().asChar());
 
          ExportMotion(m_atNode, step);
       }
 
       // Add IPR callbacks on last step
-      if (step == (m_scene->GetNumMotionSteps()-1) &&
-          m_scene->GetExportMode() == MTOA_EXPORT_IPR)
+      if (step == (GetNumMotionSteps()-1) &&
+          GetExportMode() == MTOA_EXPORT_IPR)
       {
          AddIPRCallbacks();
       }
@@ -125,8 +128,8 @@ AtNode* CNodeTranslator::DoUpdate(AtUInt step)
          UpdateMotion(m_atNode, step);
 
       // Add IPR callbacks on last step
-      if (step == (m_scene->GetNumMotionSteps()-1) &&
-          m_scene->GetExportMode() == MTOA_EXPORT_IPR)
+      if (step == (GetNumMotionSteps()-1) &&
+            GetExportMode() == MTOA_EXPORT_IPR)
       {
          AddIPRCallbacks();
       }
@@ -134,51 +137,60 @@ AtNode* CNodeTranslator::DoUpdate(AtUInt step)
    return m_atNode;
 }
 
-AtNode* CNodeTranslator::GetArnoldNode()
+AtNode* CNodeTranslator::DoCreateArnoldNodes()
+{
+   m_atNode = CreateArnoldNodes();
+   if (m_atNode == NULL)
+      AiMsgWarning("Translator for %s returned an empty Arnold root node", GetFnNode().name().asChar());
+
+   return m_atNode;
+}
+
+AtNode* CNodeTranslator::GetArnoldRootNode()
 {
    return m_atNode;
 }
 
-// set private variable m_atNode
-void CNodeTranslator::DoCreateArnoldNode()
+AtNode* CNodeTranslator::GetArnoldNode(const char* tag)
 {
-   m_atNode = CreateArnoldNode();
-   if (m_atNode == NULL)
-      AiMsgWarning("[mtoa] translator for %s returned an emtpy arnold node", m_fnNode.name().asChar());
-   else
-      SetArnoldNodeName(m_atNode);
+   if (m_atNodes.count(tag))
+      return m_atNodes[tag];
+   AiMsgError("Translator has not created an Arnold node with tag \"%s\"", tag);
+   return NULL;
 }
 
-AtNode* CNodeTranslator::CreateArnoldNode()
+AtNode* CNodeTranslator::AddArnoldNode(const char* type, const char* tag)
 {
-   const char* type = GetArnoldNodeType();
    const AtNodeEntry* nodeEntry = AiNodeEntryLookUp(type);
    // Make sure that the given type of node exists
    if (nodeEntry != NULL)
    {
-      return AiNode(type);
+      AtNode* node = AiNode(type);
+      SetArnoldNodeName(node, tag);
+      m_atNodes[tag] = node;
+      return node;
    }
    else
    {
-      AiMsgError("[mtoa] arnold node type '%s' does not exist", type);
+      AiMsgError("Arnold node type %s does not exist", type);
       return NULL;
    }
+}
+
+void CNodeTranslator::SetArnoldNodeName(AtNode* arnoldNode, const char* tag)
+{
+   MString name = GetFnNode().name();
+   if (m_outputAttr.numChars())
+      name = name + "_" + m_outputAttr;
+   if (strlen(tag))
+      name = name +  "_" + tag;
+
+   AiNodeSetStr(arnoldNode, "name", name.asChar());
 }
 
 // Add callbacks to the node passed in. It's a few simple
 // callbacks by default. Since this method is virtual - you can
 // add whatever callbacks you need to trigger a fresh.
-void CNodeTranslator::SetArnoldNodeName(AtNode* arnoldNode)
-{
-   if (m_outputAttr.numChars())
-   {
-      MString name = m_fnNode.name() + "_" + m_outputAttr;
-      AiNodeSetStr(arnoldNode, "name", name.asChar());
-   }
-   else
-      AiNodeSetStr(arnoldNode, "name", m_fnNode.name().asChar());
-}
-
 void CNodeTranslator::AddIPRCallbacks()
 {
    MStatus status;
@@ -187,59 +199,59 @@ void CNodeTranslator::AddIPRCallbacks()
    id = MNodeMessage::addNodeDirtyCallback(m_object,
                                            NodeDirtyCallback,
                                            this,
-                                           &status );
-   if ( MS::kSuccess == status ) ManageIPRCallback( id );
+                                           &status);
+   if (MS::kSuccess == status) ManageIPRCallback(id);
 
    // In case we're deleted!
    id = MNodeMessage::addNodeAboutToDeleteCallback(m_object,
                                                    NodeDeletedCallback,
                                                    this,
-                                                   &status );
-   if ( MS::kSuccess == status ) ManageIPRCallback( id );
+                                                   &status);
+   if (MS::kSuccess == status) ManageIPRCallback(id);
 
    // Just so people don't get confused with debug output.
    id = MNodeMessage::addNameChangedCallback(m_object,
                                              NameChangedCallback,
                                              this,
-                                             &status );
-   if ( MS::kSuccess == status ) ManageIPRCallback( id );
+                                             &status);
+   if (MS::kSuccess == status) ManageIPRCallback(id);
 }
 
-void CNodeTranslator::ManageIPRCallback( const MCallbackId id )
+void CNodeTranslator::ManageIPRCallback(const MCallbackId id)
 {
-   m_mayaCallbackIDs.append( id );
+   m_mayaCallbackIDs.append(id);
 }
 
 void CNodeTranslator::RemoveIPRCallbacks()
 {
-   const MStatus status = MNodeMessage::removeCallbacks( m_mayaCallbackIDs );
-   if ( status == MS::kSuccess ) m_mayaCallbackIDs.clear();
+   const MStatus status = MNodeMessage::removeCallbacks(m_mayaCallbackIDs);
+   if (status == MS::kSuccess) m_mayaCallbackIDs.clear();
 }
 
 
 // This is a simple callback triggered when a node is marked as dirty.
 void CNodeTranslator::NodeDirtyCallback(MObject &node, MPlug &plug, void *clientData)
 {
-   AiMsgDebug( "[mtoa] Node changed, updating Arnold. Plug that fired: %s %p", plug.name().asChar(), clientData );
-   UpdateIPR( clientData );
+   AiMsgDebug("Node changed, updating Arnold. Plug that fired: %s %p", plug.name().asChar(), clientData);
+   UpdateIPR(clientData);
 }
 
 void CNodeTranslator::NameChangedCallback(MObject &node, const MString &str, void *clientData)
 // This is a simple callback triggered when the name changes.
 {
-   AiMsgDebug( "[mtoa] Node name changed, updating Arnold" );
+   AiMsgDebug("Node name changed, updating Arnold");
    CNodeTranslator * translator = static_cast< CNodeTranslator* >(clientData);
    if (translator != NULL)
-      translator->SetArnoldNodeName(translator->GetArnoldNode());
+      translator->SetArnoldNodeName(translator->GetArnoldRootNode());
 }
 
 // Arnold doesn't really support deleting nodes. But we can make things invisible,
 // disconnect them, turn them off, etc.
 void CNodeTranslator::NodeDeletedCallback(MObject &node, MDGModifier &modifier, void *clientData)
 {
-   AiMsgDebug( "[mtoa] Node deleted, updating Arnold %p", clientData );
+   AiMsgDebug("Node deleted, updating Arnold %p", clientData);
    CNodeTranslator * translator = static_cast< CNodeTranslator* >(clientData);
-   if ( translator != NULL )
+   if (translator != NULL)
    {
       translator->RemoveIPRCallbacks();
       translator->Delete();
@@ -250,21 +262,21 @@ void CNodeTranslator::NodeDeletedCallback(MObject &node, MDGModifier &modifier, 
 }
 
 
-void CNodeTranslator::UpdateIPR( void * clientData )
+void CNodeTranslator::UpdateIPR(void * clientData)
 {
    // Remove this node from the callback list.
    CNodeTranslator * translator = static_cast< CNodeTranslator* >(clientData);
-   if ( translator != NULL )
+   if (translator != NULL)
    {
       translator->RemoveIPRCallbacks();
-      CMayaScene::UpdateIPR( translator );
+      CMayaScene::UpdateIPR(translator);
    }
 }
 
 
 void CNodeTranslator::ExportUserAttribute(AtNode *anode)
 {
-   MFnDependencyNode fnDepNode(m_object);
+   MFnDependencyNode fnDepNode = GetFnNode();
    for (unsigned int i=0; i<fnDepNode.attributeCount(); ++i)
    {
       MObject oAttr = fnDepNode.attribute(i);
@@ -276,7 +288,7 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
       if (name.indexW("mtoa_") == 0)
       {
          const char *aname = name.asChar() + 5;
-         if(AiNodeLookUpUserParameter(anode, aname) != NULL)
+         if (AiNodeLookUpUserParameter(anode, aname) != NULL)
          {
             continue;
          }
@@ -464,7 +476,7 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
                break;
             default:
                // not supported: k2Short, k2Long, k3Short, k3Long, kAddr
-               AiMsgError("[mtoa] unsupported user attribute type %s", pAttr.partialName(true, false, false, false, false, true).asChar() );
+               AiMsgError("Unsupported user attribute type %s", pAttr.partialName(true, false, false, false, false, true).asChar());
                break;
             }
          }
@@ -564,12 +576,12 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
                break;
             default:
                // kMatrix, kNumeric (this one should have be caught be hasFn(MFn::kNumericAttribute))
-               AiMsgError("[mtoa] unsupported user attribute type %s", pAttr.partialName(true, false, false, false, false, true).asChar() );
+               AiMsgError("Unsupported user attribute type %s", pAttr.partialName(true, false, false, false, false, true).asChar());
                break;
             }
          }
          else
-            AiMsgError("[mtoa] unsupported user attribute type %s", pAttr.partialName(true, false, false, false, false, true).asChar() );
+            AiMsgError("Unsupported user attribute type %s", pAttr.partialName(true, false, false, false, false, true).asChar());
       }
    }
 }
@@ -590,7 +602,7 @@ MPlug CNodeTranslator::GetPlugElement(MFnDependencyNode& node, MPlug& plug, cons
 {
    if (attr.length() == 0)
    {
-      MGlobal::displayError("[mtoa] Invalid plug name: \"" + MString(attr.c_str()) + "\"");
+      AiMsgError("Invalid plug name: \"%s\"", attr.c_str());
       return MPlug();
    }
 
@@ -604,7 +616,7 @@ MPlug CNodeTranslator::GetPlugElement(MFnDependencyNode& node, MPlug& plug, cons
 
       if (p0 == std::string::npos)
       {
-         MGlobal::displayError("[mtoa] Invalid plug name: \"" + MString(attr.c_str()) + "\"");
+         AiMsgError("Invalid plug name: \"%s\"", attr.c_str());
          return MPlug();
       }
 
@@ -612,7 +624,7 @@ MPlug CNodeTranslator::GetPlugElement(MFnDependencyNode& node, MPlug& plug, cons
 
       if (sscanf(ai.c_str(), "%d", &idx) != 1)
       {
-         MGlobal::displayError("[mtoa] Invalid plug name: \"" + MString(attr.c_str()) + "\"");
+         AiMsgError("Invalid plug name: \"%s\"", attr.c_str());
          return MPlug();
       }
 
@@ -671,7 +683,7 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* mayaAt
    MPlug plug = FindPlug(m_fnNode, mayaAttrib);
    if (plug.isNull())
    {
-      AiMsgWarning("[mtoa] Maya node %s does not have requested attribute %s", m_fnNode.name().asChar(), mayaAttrib);
+      AiMsgWarning("Maya node %s does not have requested attribute %s", m_fnNode.name().asChar(), mayaAttrib);
       return NULL;
    }
    return ProcessParameter(arnoldNode, plug, AiParamGetName(paramEntry), AiParamGetType(paramEntry), element);
@@ -683,7 +695,7 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* attrib
    MPlug plug = FindPlug(m_fnNode, attrib);
    if (plug.isNull())
    {
-      AiMsgWarning("[mtoa] Maya node %s does not have requested attribute %s", m_fnNode.name().asChar(), attrib);
+      AiMsgWarning("Maya node %s does not have requested attribute %s", m_fnNode.name().asChar(), attrib);
       return NULL;
    }
    return ProcessParameter(arnoldNode, plug, attrib, arnoldAttribType, element);
@@ -695,7 +707,7 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* mayaAt
    MPlug plug = FindPlug(m_fnNode, mayaAttrib);
    if (plug.isNull())
    {
-      AiMsgWarning("[mtoa] Maya node %s does not have requested attribute %s", m_fnNode.name().asChar(), mayaAttrib);
+      AiMsgWarning("Maya node %s does not have requested attribute %s", m_fnNode.name().asChar(), mayaAttrib);
       return NULL;
    }
    return ProcessParameter(arnoldNode, plug, arnoldAttrib, arnoldAttribType, element);
@@ -712,7 +724,7 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, MPlug& plug, const
 {
    if (arnoldNode == NULL)
    {
-      AiMsgError("[mtoa] Cannot process %s parameter on null node", arnoldAttrib);
+      AiMsgError("Cannot process %s parameter on null node", arnoldAttrib);
       return NULL;
    }
 
@@ -720,9 +732,13 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, MPlug& plug, const
       plug = plug.elementByPhysicalIndex(element);
 
    MPlugArray connections;
-   bool isShader = (AiNodeEntryGetType(arnoldNode->base_node) & AI_NODE_OPTIONS) ? false : true;
+   bool isShader = (AiNodeEntryGetType(arnoldNode->base_node) & (AI_NODE_OPTIONS)) ? false : true;
    // links only supported on shaders
    if (isShader)
+      if (plug.isIgnoredWhenRendering())
+      {
+         return NULL;
+      }
       plug.connectedTo(connections, true, false);
 
    if (connections.length() > 0)
@@ -730,7 +746,7 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, MPlug& plug, const
       // process connections
       MString attrName = connections[0].partialName(false, false, false, false, false, true);
 
-      AtNode* linkedNode = m_scene->ExportShader(connections[0].node(), attrName);
+      AtNode* linkedNode = ExportShader(connections[0].node(), attrName);
 
       if (linkedNode != NULL)
       {
@@ -771,11 +787,41 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, MPlug& plug, const
       break;
    case AI_TYPE_POINT2:
       {
-         float x, y;
-         MObject numObj = plug.asMObject();
-         MFnNumericData numData(numObj);
-         numData.getData2Float(x, y);
-         AiNodeSetPnt2(arnoldNode, arnoldAttrib, x, y);
+         int compConnected = 0;
+         MPlugArray conn;
+         for (unsigned int i=0; i < 2; i++)
+         {
+            plug.child(i).connectedTo(conn, true, false);
+            if (conn.length() > 0)
+            {
+               MString attrName = conn[0].partialName(false, false, false, false, false, true);
+               AtNode* node = ExportShader(conn[0].node(), attrName);
+               if (node != NULL)
+               {
+                  ++compConnected;
+                  MString compAttrName(arnoldAttrib);
+                  switch(i)
+                  {
+                  case 0:
+                     compAttrName += ".x";
+                     break;
+                  case 1:
+                     compAttrName += ".y";
+                     break;
+                  }
+                  AiNodeLink(node, compAttrName.asChar(), arnoldNode);
+               }
+            }
+         }
+
+         if (compConnected != 2)
+         {
+            float x, y;
+            MObject numObj = plug.asMObject();
+            MFnNumericData numData(numObj);
+            numData.getData2Float(x, y);
+            AiNodeSetPnt2(arnoldNode, arnoldAttrib, x, y);
+         }
       }
       break;
    case AI_TYPE_MATRIX:
@@ -843,35 +889,42 @@ int CDagTranslator::GetMasterInstanceNumber(MObject node)
    return -1;
 }
 
-void CDagTranslator::SetArnoldNodeName(AtNode* arnoldNode)
+void CDagTranslator::SetArnoldNodeName(AtNode* arnoldNode, const char* tag)
 {
+   MString name;
    // TODO: add a global option to control how names are exported
    if (true)
-      AiNodeSetStr(arnoldNode, "name", m_dagPath.partialPathName().asChar());
+      name = m_dagPath.partialPathName();
    else
-      // FIXME: when dag names are exported with fullPathName an error is printed such as "Cannot find camera node perspShape."
-      AiNodeSetStr(arnoldNode, "name", m_dagPath.fullPathName().asChar());
+      name = m_dagPath.fullPathName();
+
+   if (m_outputAttr.numChars())
+      name = name + "_" + m_outputAttr;
+   if (strlen(tag))
+      name = name +  "_" + tag;
+
+   AiNodeSetStr(arnoldNode, "name", name.asChar());
 }
 
 void CDagTranslator::AddHierarchyCallbacks(const MDagPath & path)
 {
-   AiMsgDebug( "[mtoa] Adding callbacks to parents of: %s", path.partialPathName().asChar() );
+   AiMsgDebug("Adding callbacks to parents of: %s", path.partialPathName().asChar());
 
    // Loop through the whole dag path adding callbacks to them.
    MStatus status;
-   MDagPath dag_path( path );
+   MDagPath dag_path(path);
    dag_path.pop(); // Pop of the shape as that's handled by CNodeTranslator::AddIPRCallbacks.
-   for( ; dag_path.length() > 0; dag_path.pop() )
+   for(; dag_path.length() > 0; dag_path.pop())
    {
       MObject node = dag_path.node();
-      if ( node != MObject::kNullObj )
+      if (node != MObject::kNullObj)
       {
          // We can use the normal NodeDirtyCallback here.
          MCallbackId id = MNodeMessage::addNodeDirtyCallback(node,
                                                              NodeDirtyCallback,
                                                              this,
-                                                             &status );
-         if ( MS::kSuccess == status ) ManageIPRCallback( id );
+                                                             &status);
+         if (MS::kSuccess == status) ManageIPRCallback(id);
       }
    }
 }
@@ -879,7 +932,7 @@ void CDagTranslator::AddHierarchyCallbacks(const MDagPath & path)
 
 void CDagTranslator::AddIPRCallbacks()
 {
-   AddHierarchyCallbacks( m_dagPath );
+   AddHierarchyCallbacks(m_dagPath);
 
    // Call the base class to get the others.
    CNodeTranslator::AddIPRCallbacks();
@@ -890,7 +943,7 @@ void CDagTranslator::Delete()
    // Arnold doesn't allow us to delete nodes
    // setting the visibility is as good as it gets
    // for now.
-   AiNodeSetInt(GetArnoldNode(), "visibility",  AI_RAY_UNDEFINED);
+   AiNodeSetInt(GetArnoldRootNode(), "visibility",  AI_RAY_UNDEFINED);
 }
 
 // Return whether the dag object in dagPath is the master instance. The master
@@ -994,7 +1047,7 @@ void CDagTranslator::ExportMatrix(AtNode* node, AtUInt step)
    {
       if (RequiresMotionData())
       {
-         AtArray* matrices = AiArrayAllocate(1, m_scene->GetNumMotionSteps(), AI_TYPE_MATRIX);
+         AtArray* matrices = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_MATRIX);
          AiArraySetMtx(matrices, 0, matrix);
          AiNodeSetArray(node, "matrix", matrices);
       }
@@ -1020,37 +1073,37 @@ AtInt CDagTranslator::ComputeVisibility()
    AtInt visibility = AI_RAY_ALL;
    MPlug plug;
 
-   plug = m_fnNode.findPlug("castsShadows");
+   plug = GetFnNode().findPlug("castsShadows");
    if (!plug.isNull() && !plug.asBool())
    {
       visibility &= ~AI_RAY_SHADOW;
    }
 
-   plug = m_fnNode.findPlug("primaryVisibility");
+   plug = GetFnNode().findPlug("primaryVisibility");
    if (!plug.isNull() && !plug.asBool())
    {
       visibility &= ~AI_RAY_CAMERA;
    }
 
-   plug = m_fnNode.findPlug("visibleInReflections");
+   plug = GetFnNode().findPlug("visibleInReflections");
    if (!plug.isNull() && !plug.asBool())
    {
       visibility &= ~AI_RAY_REFLECTED;
    }
 
-   plug = m_fnNode.findPlug("visibleInRefractions");
+   plug = GetFnNode().findPlug("visibleInRefractions");
    if (!plug.isNull() && !plug.asBool())
    {
       visibility &= ~AI_RAY_REFRACTED;
    }
 
-   plug = m_fnNode.findPlug("visibleInDiffuse");
+   plug = GetFnNode().findPlug("visibleInDiffuse");
    if (!plug.isNull() && !plug.asBool())
    {
       visibility &= ~AI_RAY_DIFFUSE;
    }
 
-   plug = m_fnNode.findPlug("visibleInGlossy");
+   plug = GetFnNode().findPlug("visibleInGlossy");
    if (!plug.isNull() && !plug.asBool())
    {
       visibility &= ~AI_RAY_GLOSSY;
@@ -1127,23 +1180,23 @@ void CShapeTranslator::ProcessRenderFlags(AtNode* node)
    AiNodeSetInt(node, "visibility", ComputeVisibility());
 
    MPlug plug;
-   plug = m_fnNode.findPlug("selfShadows");
+   plug = GetFnNode().findPlug("selfShadows");
    if (!plug.isNull()) AiNodeSetBool(node, "self_shadows", plug.asBool());
 
-   plug = m_fnNode.findPlug("opaque");
+   plug = GetFnNode().findPlug("opaque");
    if (!plug.isNull()) AiNodeSetBool(node, "opaque", plug.asBool());
 
-   plug = m_fnNode.findPlug("receiveShadows");
+   plug = GetFnNode().findPlug("receiveShadows");
    if (!plug.isNull()) AiNodeSetBool(node, "receive_shadows", plug.asBool());
 
    // Subsurface Scattering
-   plug = m_fnNode.findPlug("sss_use_gi");
+   plug = GetFnNode().findPlug("sss_use_gi");
    if (!plug.isNull()) AiNodeSetBool(node, "sss_use_gi", plug.asBool());
 
-   plug = m_fnNode.findPlug("sss_max_samples");
+   plug = GetFnNode().findPlug("sss_max_samples");
    if (!plug.isNull()) AiNodeSetInt(node, "sss_max_samples", plug.asInt());
 
-   plug = m_fnNode.findPlug("sss_sample_spacing");
+   plug = GetFnNode().findPlug("sss_sample_spacing");
    if (!plug.isNull()) AiNodeSetFlt(node, "sss_sample_spacing", plug.asFloat());
    
 }
@@ -1160,4 +1213,78 @@ void CShapeTranslator::MakeCommonAttributes(CBaseAttrHelper& helper)
    helper.MakeInput("opaque");
 
    MakeArnoldVisibilityFlags(helper);
+}
+
+// AutoTranslator
+//
+AtNode* CAutoTranslator::Init(MDagPath& dagPath, CMayaScene* scene, MString outputAttr)
+{
+   return CNodeTranslator::Init(dagPath.node(), scene, outputAttr);
+}
+
+AtNode* CAutoTranslator::CreateArnoldNodes()
+{
+   MString mayaShader = GetFnNode().typeName();
+   // return AddArnoldNode(CExtensionsManager::GetArnoldNodeFromMayaNode(mayaShader));
+   return AddArnoldNode(m_abstract.arnold.asChar());
+}
+
+void CAutoTranslator::Export(AtNode *shader)
+{
+   MStatus status;
+   MPlug plug;
+   AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(shader->base_node);
+   while (!AiParamIteratorFinished(nodeParam))
+   {
+      const AtParamEntry *paramEntry = AiParamIteratorGetNext(nodeParam);
+      const char* paramName = AiParamGetName(paramEntry);
+
+      if (!strncmp(paramName, "aov_", 4))
+      {
+         CRenderSession *renderSession = CRenderSession::GetInstance();
+         const CRenderOptions *renderOptions = renderSession->RenderOptions();
+
+         // do not check type for now
+         std::string aovName(paramName);
+         aovName = aovName.substr(4);
+         if (renderOptions->FindAOV(aovName.c_str()) != size_t(-1))
+         {
+            AiNodeSetStr(shader, paramName, aovName.c_str());
+         }
+         else
+         {
+            AiNodeSetStr(shader, paramName, "");
+         }
+      }
+      else if (strcmp(paramName, "name"))
+      {
+         AtInt paramType = AiParamGetType(paramEntry);
+
+         // attr name name remap
+         const char* attrName;
+         if (!AiMetaDataGetStr(shader->base_node, paramName, "maya.name", &attrName))
+            attrName = paramName;
+
+         plug = GetFnNode().findPlug(attrName, &status);
+         if (status == MS::kSuccess)
+            ProcessParameter(shader, plug, paramName, paramType);
+         else
+            AiMsgWarning("Attribute %s.%s requested by translator does not exist", GetFnNode().name().asChar(), attrName);
+      }
+   }
+
+   MPlugArray connections;
+
+   plug = GetFnNode().findPlug("normalCamera");
+
+   plug.connectedTo(connections, true, false);
+   if (connections.length() > 0)
+   {
+      MString attrName = connections[0].partialName(false, false, false, false, false, true);
+
+      AtNode* bump = ExportShader(connections[0].node(), attrName);
+
+      if (bump != NULL)
+         AiNodeLink(bump, "@before", shader);
+   }
 }

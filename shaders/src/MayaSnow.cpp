@@ -35,8 +35,8 @@ node_parameters
    AiParameterMTX("placementMatrix", id);
    AddMayaColorBalanceParams(params);
 
-   AiMetaDataSetStr(mds, NULL, "maya.counterpart", "snow");
-   AiMetaDataSetInt(mds, NULL, "maya.counterpart_id", 0x5254534e);
+   AiMetaDataSetStr(mds, NULL, "maya.name", "snow");
+   AiMetaDataSetInt(mds, NULL, "maya.id", 0x5254534e);
 }
 
 node_initialize

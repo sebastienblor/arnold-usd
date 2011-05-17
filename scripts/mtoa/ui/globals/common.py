@@ -28,7 +28,7 @@ import maya.cmds as cmds
 import maya.mel as mel
 
 import mtoa.utils as utils
-from mtoa.ui.callback import *
+from mtoa.callbacks import *
 
 
 def buildArnoldImageFormatsMenu():
@@ -855,20 +855,21 @@ def updateArnoldCameraControl(*args):
 
     # List all mono perspective cameras first
     nonRenderableCameras = ['-']
-    for camera in allPerspCameras:
-        isMono = 1;
-        if mel.eval('getApplicationVersionAsFloat') >= 2011:
-            isMono = stereoCameraRig.rigRoot(camera) == ''
-        if isMono:
-            # Ensure to use its shape node
-            camShape = arnoldCameraShape(camera)
+    if allPerspCameras:
+        for camera in allPerspCameras:
+            isMono = 1;
+            if mel.eval('getApplicationVersionAsFloat') >= 2011:
+                isMono = stereoCameraRig.rigRoot(camera) == ''
+            if isMono:
+                # Ensure to use its shape node
+                camShape = arnoldCameraShape(camera)
 
-            if cmds.getAttr("%s.renderable"%camShape):
-                renderableCameras.append(camera)
-                numRenderable += 1
-            else:
-                nonRenderableCameras.append(camera)
-                numNonRenderable += 1
+                if cmds.getAttr("%s.renderable"%camShape):
+                    renderableCameras.append(camera)
+                    numRenderable += 1
+                else:
+                    nonRenderableCameras.append(camera)
+                    numNonRenderable += 1
 
     if nonRenderableCameras[-1] == '-':
         nonRenderableCameras.pop()
@@ -892,7 +893,7 @@ def updateArnoldCameraControl(*args):
                     numRenderable += 1
                     skipLR = 1
                 else:
-                    nonRenderableCameras.append("+%s")%rig
+                    nonRenderableCameras.append("+%s"%rig)
                     numNonRenderable += 1
                 for camShape in cameras:
                     camParentNodes = cmds.listRelatives(camShape, path=True, parent=True)
@@ -915,16 +916,17 @@ def updateArnoldCameraControl(*args):
     nonRenderableCameras.append("-")
     numNonRenderable += 1
 
-    for camera in allOrthoCameras:
-        # Ensure to use its shape node
-        camShape = arnoldCameraShape(camera)
+    if allOrthoCameras:
+        for camera in allOrthoCameras:
+            # Ensure to use its shape node
+            camShape = arnoldCameraShape(camera)
 
-        if cmds.getAttr("%s.renderable"%camShape):
-            renderableCameras.append(camera)
-            numRenderable += 1
-        else:
-            nonRenderableCameras.append(camera)
-            numNonRenderable += 1
+            if cmds.getAttr("%s.renderable"%camShape):
+                renderableCameras.append(camera)
+                numRenderable += 1
+            else:
+                nonRenderableCameras.append(camera)
+                numNonRenderable += 1
 
 
     # Remove the separator if nothing was added

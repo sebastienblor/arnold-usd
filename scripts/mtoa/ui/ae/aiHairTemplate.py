@@ -1,11 +1,14 @@
 import maya.cmds as cmds
 import maya.mel as mel
+from mtoa.ui.ae.aiSwatchDisplay import aiSwatchDisplay
 
 def aiHairTemplate(nodeName):
 
-    mel.eval('AEswatchDisplay "%s"'%nodeName)
+    aiSwatchDisplay(nodeName)
 
     cmds.editorTemplate(beginScrollLayout=True)
+    
+    cmds.editorTemplate('AEshaderTypeNew', 'AEshaderTypeReplace', "message", callCustom=True)
 
     cmds.editorTemplate(beginLayout="Color", collapse=False)
 

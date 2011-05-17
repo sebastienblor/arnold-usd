@@ -60,7 +60,7 @@ void CRenderOptions::UpdateImageFilename()
    // get the frame number
    MTime cT = MAnimControl::currentTime();
    fileFrameNumber = double(cT.value());
-   MGlobal::executeCommand("basename( (`file -q -sceneName -shortName`),(\".\" + (fileExtension((`file -q -sceneName -shortName`)))))", sceneFileName);
+   MGlobal::executeCommand("basename((`file -q -sceneName -shortName`),(\".\" + (fileExtension((`file -q -sceneName -shortName`)))))", sceneFileName);
 
 
    if (BatchMode())
@@ -233,8 +233,9 @@ void CRenderOptions::ProcessArnoldRenderOptions()
       }
    }
    else
-      MGlobal::displayWarning("[mtoa] could not find defaultArnoldRenderOptions");
-
+   {
+      AiMsgError("Could not find defaultArnoldRenderOptions");
+   }
    SetupImageOutputs();
 }
 

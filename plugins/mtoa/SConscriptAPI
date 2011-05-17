@@ -14,26 +14,22 @@ local_env = maya_env.Clone()
 src_base_dir  = os.path.join(local_env['ROOT_DIR'], 'plugins', 'mtoa')
 source_files = []
 include_files = []
-for subdir in ['common', 'platform', 'render', 'scene', 'utils', 'api']:
+for subdir in ['common', 'platform', 'render', 'scene', 'utils', 'extension']:
    dir = os.path.join(src_base_dir, subdir)
    source_files  += [os.path.join(subdir, x) for x in find_files_recursive(dir, ['.c', '.cpp'])]
    include_files += [os.path.join(subdir, x) for x in find_files_recursive(dir, ['.h'])]
 
 #Add files to be exported by the API from 'nodes' folder
-source_files_add = [os.path.join('nodes', x) for x in ['ArnoldNodeFactory.cpp', os.path.join('shaders', 'surface', 'ArnoldCustomShader.cpp')]]
-include_files_add = [os.path.join('nodes', x) for x in ['ArnoldNodeFactory.h', os.path.join('shaders', 'surface', 'ArnoldCustomShader.h')]]
+source_files_add = [os.path.join('nodes', x) for x in [os.path.join('shaders', 'surface', 'ArnoldCustomShader.cpp')]]
+include_files_add = [os.path.join('nodes', x) for x in [os.path.join('shaders', 'surface', 'ArnoldCustomShader.h')]]
 
 source_files += source_files_add
 include_files += include_files_add
 
-if system.os() == 'windows':
-   local_env.Append(LIBS=Split('ai.lib OpenGl32.lib glu32.lib Foundation.lib OpenMaya.lib OpenMayaRender.lib OpenMayaUI.lib OpenMayaAnim.lib OpenMayaFX.lib'))
-else:
-   maya_env.Append(LIBS=Split('ai pthread Foundation OpenMaya OpenMayaRender OpenMayaUI OpenMayaAnim OpenMayaFX'))
 
 local_env.Append(CPPPATH = [sysconfig.get_python_inc()])
 
-MTOA_API = local_env.SharedLibrary('mtoaAPI', source_files)
+MTOA_API = local_env.SharedLibrary('mtoa_api', source_files)
 
 if system.os() == 'windows':
    local_env['MSVSSCONSCRIPT'] = local_env.File('SConscriptAPI')

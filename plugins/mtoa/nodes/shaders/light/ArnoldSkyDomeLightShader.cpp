@@ -10,11 +10,26 @@
 #include <maya/MFnEnumAttribute.h>
 #include <maya/MFnNumericAttribute.h>
 #include <maya/MFnTypedAttribute.h>
+#include <maya/MFnLightDataAttribute.h>
+#include <maya/MDataBlock.h>
+#include <maya/MDataHandle.h>
+#include <maya/MFloatVector.h>
 
 MTypeId CArnoldSkyDomeLightShaderNode::id(ARNOLD_NODEID_SKYDOME_LIGHT);
 
 CStaticAttrHelper CArnoldSkyDomeLightShaderNode::s_attributes(CArnoldSkyDomeLightShaderNode::addAttribute);
 
+// Inputs
+MObject CArnoldSkyDomeLightShaderNode::s_intensity;
+MObject CArnoldSkyDomeLightShaderNode::s_exposure;
+MObject CArnoldSkyDomeLightShaderNode::s_castShadows;
+MObject CArnoldSkyDomeLightShaderNode::s_shadowDensity;
+MObject CArnoldSkyDomeLightShaderNode::s_shadowColor;
+MObject CArnoldSkyDomeLightShaderNode::s_samples;
+MObject CArnoldSkyDomeLightShaderNode::s_normalize;
+MObject CArnoldSkyDomeLightShaderNode::s_affectDiffuse;
+MObject CArnoldSkyDomeLightShaderNode::s_affectSpecular;
+// Arnold outputs
 MObject CArnoldSkyDomeLightShaderNode::s_OUT_colorR;
 MObject CArnoldSkyDomeLightShaderNode::s_OUT_colorG;
 MObject CArnoldSkyDomeLightShaderNode::s_OUT_colorB;
@@ -23,6 +38,19 @@ MObject CArnoldSkyDomeLightShaderNode::s_OUT_transparencyR;
 MObject CArnoldSkyDomeLightShaderNode::s_OUT_transparencyG;
 MObject CArnoldSkyDomeLightShaderNode::s_OUT_transparencyB;
 MObject CArnoldSkyDomeLightShaderNode::s_OUT_transparency;
+// Maya specific intputs
+MObject CArnoldSkyDomeLightShaderNode::s_pointCamera;
+MObject CArnoldSkyDomeLightShaderNode::s_normalCamera;
+// Maya specific Outputs
+MObject CArnoldSkyDomeLightShaderNode::aLightDirection;
+MObject CArnoldSkyDomeLightShaderNode::aLightIntensity;
+MObject CArnoldSkyDomeLightShaderNode::aLightAmbient;
+MObject CArnoldSkyDomeLightShaderNode::aLightDiffuse;
+MObject CArnoldSkyDomeLightShaderNode::aLightSpecular;
+MObject CArnoldSkyDomeLightShaderNode::aLightShadowFraction;
+MObject CArnoldSkyDomeLightShaderNode::aPreShadowIntensity;
+MObject CArnoldSkyDomeLightShaderNode::aLightBlindData;
+MObject CArnoldSkyDomeLightShaderNode::aLightData;
 
 void* CArnoldSkyDomeLightShaderNode::creator()
 {
@@ -34,21 +62,23 @@ MStatus CArnoldSkyDomeLightShaderNode::initialize()
    MPxNode::inheritAttributesFrom("SphereLocator");
 
    MFnNumericAttribute nAttr;
+   MFnLightDataAttribute lAttr;
 
    s_attributes.SetNode("skydome_light");
    s_attributes.MakeInput("resolution");
-   s_attributes.MakeInput("intensity");
-   //helper->MakeMatrixInput(s_matrix, "matrix");
-   s_attributes.MakeInput("exposure");
-   s_attributes.MakeInput("cast_shadows");
-   s_attributes.MakeInput("shadow_density");
-   s_attributes.MakeInput("shadow_color");
-   s_attributes.MakeInput("samples");
-   s_attributes.MakeInput("normalize");
-   s_attributes.MakeInput("affect_diffuse");
-   s_attributes.MakeInput("affect_specular");
    s_attributes.MakeInput("bounces");
    s_attributes.MakeInput("bounce_factor");
+   //s_attributes.MakeMatrixInput(s_matrix, "matrix");
+
+   s_intensity = s_attributes.MakeInput("intensity");
+   s_exposure = s_attributes.MakeInput("exposure");
+   s_castShadows = s_attributes.MakeInput("cast_shadows");
+   s_shadowDensity = s_attributes.MakeInput("shadow_density");
+   s_shadowColor = s_attributes.MakeInput("shadow_color");
+   s_samples = s_attributes.MakeInput("samples");
+   s_normalize = s_attributes.MakeInput("normalize");
+   s_affectDiffuse = s_attributes.MakeInput("affect_diffuse");
+   s_affectDiffuse = s_attributes.MakeInput("affect_specular");
 
    // arrays
    // TODO: use metdata to rename this attribute to light_filters
@@ -58,6 +88,21 @@ MStatus CArnoldSkyDomeLightShaderNode::initialize()
    s_attributes.MakeInput("sss_samples");
    s_attributes.MakeInput("mis");
 
+   // MAYA SPECIFIC INPUTS
+   s_pointCamera = nAttr.createPoint("pointCamera", "p");
+   nAttr.setKeyable(true);
+   nAttr.setStorable(true);
+   nAttr.setReadable(true);
+   nAttr.setWritable(true);
+   addAttribute(s_pointCamera);
+
+   s_normalCamera = nAttr.createPoint("normalCamera", "n");
+   nAttr.setKeyable(true);
+   nAttr.setStorable(true);
+   nAttr.setReadable(true);
+   nAttr.setWritable(true);
+   addAttribute(s_normalCamera);
+
    // OUTPUT ATTRIBUTES
 
    MAKE_COLOR(s_OUT_color, "outColor", "ocl", 0, 0, 0);
@@ -66,6 +111,155 @@ MStatus CArnoldSkyDomeLightShaderNode::initialize()
    MAKE_COLOR(s_OUT_transparency, "outTransparency", "ot", 0, 0, 0);
    MAKE_OUTPUT(nAttr, s_OUT_transparency);
 
+   // MAYA SPECIFIC OUTPUTS
+
+   aLightDirection = nAttr.createPoint("lightDirection", "ld");
+   nAttr.setStorable(false);
+   nAttr.setHidden(true);
+   nAttr.setReadable(true);
+   nAttr.setWritable(false);
+   nAttr.setDefault(-1.0f, 0.0f, 0.0f);
+
+   aLightIntensity = nAttr.createColor("lightIntensity", "li");
+   nAttr.setStorable(false);
+   nAttr.setHidden(true);
+   nAttr.setReadable(true);
+   nAttr.setWritable(false);
+   nAttr.setDefault(1.0f, 0.5f, 0.2f);
+
+   aLightAmbient = nAttr.create("lightAmbient", "la", MFnNumericData::kBoolean);
+   nAttr.setStorable(false);
+   nAttr.setHidden(true);
+   nAttr.setReadable(true);
+   nAttr.setWritable(false);
+   nAttr.setDefault(true);
+
+   aLightDiffuse = nAttr.create("lightDiffuse", "ldf", MFnNumericData::kBoolean);
+   nAttr.setStorable(false);
+   nAttr.setHidden(true);
+   nAttr.setReadable(true);
+   nAttr.setWritable(false);
+   nAttr.setDefault(true);
+
+   aLightSpecular = nAttr.create("lightSpecular", "ls", MFnNumericData::kBoolean);
+   nAttr.setStorable(false);
+   nAttr.setHidden(true);
+   nAttr.setReadable(true);
+   nAttr.setWritable(false);
+   nAttr.setDefault(true);
+
+   aLightShadowFraction = nAttr.create("lightShadowFraction", "lsf", MFnNumericData::kFloat);
+   nAttr.setStorable(false);
+   nAttr.setHidden(true);
+   nAttr.setReadable(true);
+   nAttr.setWritable(false);
+   nAttr.setDefault(0.0f);
+
+   aPreShadowIntensity = nAttr.create("preShadowIntensity", "psi", MFnNumericData::kFloat);
+   nAttr.setStorable(false);
+   nAttr.setHidden(true);
+   nAttr.setReadable(true);
+   nAttr.setWritable(false);
+   nAttr.setDefault(0.0f);
+
+   aLightBlindData = nAttr.createAddr("lightBlindData", "lbld");
+   nAttr.setStorable(false);
+   nAttr.setHidden(true);
+   nAttr.setReadable(true);
+   nAttr.setWritable(false);
+
+   aLightData = lAttr.create("lightData", "ltd",
+                              aLightDirection, aLightIntensity,
+                              aLightAmbient, aLightDiffuse, aLightSpecular,
+                              aLightShadowFraction, aPreShadowIntensity,
+                              aLightBlindData);
+   nAttr.setReadable(true);
+   nAttr.setWritable(false);
+   lAttr.setStorable(false);
+   lAttr.setHidden(true);
+   lAttr.setDefault(-1.0f, 0.0f, 0.0f, 1.0f, 0.5f, 0.2f,
+                     true, true, true, 0.0f, 1.0f, NULL);
+
+   addAttribute(aLightData);
+
+   attributeAffects(s_pointCamera, aLightData);
+   attributeAffects(s_normalCamera, aLightData);
+
+   attributeAffects (aLightIntensity, aLightData);
+   attributeAffects (aLightDirection, aLightData);
+   attributeAffects (aLightAmbient, aLightData);
+   attributeAffects (aLightDiffuse, aLightData);
+   attributeAffects (aLightSpecular, aLightData);
+   attributeAffects (aLightShadowFraction, aLightData);
+   attributeAffects (aPreShadowIntensity, aLightData);
+   attributeAffects (aLightBlindData, aLightData);
+   attributeAffects (aLightData, aLightData);
+
+   attributeAffects(s_color, aLightData);
+   attributeAffects(s_intensity, aLightData);
+   attributeAffects(s_exposure, aLightData);
+   attributeAffects(s_format, aLightData);
+   attributeAffects(s_castShadows, aLightData);
+   attributeAffects(s_shadowDensity, aLightData);
+   attributeAffects(s_shadowColor, aLightData);
+   attributeAffects(s_samples, aLightData);
+   attributeAffects(s_samples, aLightData);
+   attributeAffects(s_normalize, aLightData);
+   attributeAffects(s_affectDiffuse, aLightData);
+   attributeAffects(s_affectSpecular, aLightData);
+
    return MS::kSuccess;
 }
 
+MStatus CArnoldSkyDomeLightShaderNode::compute(const MPlug& plug, MDataBlock& block)
+{
+   if ((plug != aLightData) && (plug.parent() != aLightData))
+      return MS::kUnknownParameter;
+
+   MFloatVector resultColor;
+
+   // Real user input
+   MFloatVector& lightColor = block.inputValue(s_color).asFloatVector();
+   float lightIntensity = block.inputValue(s_intensity).asFloat();
+
+   // Components to build LightData
+   // MFloatVector& pointCamera = block.inputValue(s_pointCamera).asFloatVector();
+   MFloatVector& normalCamera = block.inputValue(s_normalCamera).asFloatVector();
+   MFloatVector lightDirection = normalCamera;
+   bool affectAmbient = false;
+   bool affectDiffuse = true; // block.inputValue(s_affectDiffuse).asBool();
+   bool affectSpecular = false; // block.inputValue(s_affectSpecular).asBool();
+
+   // TODO: exposure
+   resultColor = lightColor * lightIntensity;
+
+   // set ouput color attribute
+   MDataHandle outLightDataHandle = block.outputValue(aLightData);
+
+   MFloatVector& outIntensity = outLightDataHandle.child(aLightIntensity).asFloatVector();
+   outIntensity = resultColor;
+
+   MFloatVector& outDirection = outLightDataHandle.child(aLightDirection).asFloatVector();
+   outDirection = lightDirection;
+
+   bool& outAmbient = outLightDataHandle.child(aLightAmbient).asBool();
+   outAmbient = affectAmbient;
+   bool& outDiffuse = outLightDataHandle.child(aLightDiffuse).asBool();
+   outDiffuse = affectDiffuse;
+   bool& outSpecular = outLightDataHandle.child(aLightSpecular).asBool();
+   outSpecular = affectSpecular;
+
+   float& outSFraction = outLightDataHandle.child(aLightShadowFraction).asFloat();
+   outSFraction = 1.0f;
+
+   float& outPSIntensity = outLightDataHandle.child(aPreShadowIntensity).asFloat();
+   outPSIntensity = (resultColor[0] + resultColor[1] + resultColor[2]) / 3.0f;
+
+   void*& outBlindData = outLightDataHandle.child(aLightBlindData).asAddr();
+   outBlindData = NULL;
+
+   outLightDataHandle.setClean();
+
+
+    return MS::kSuccess;
+}

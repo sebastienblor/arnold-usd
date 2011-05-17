@@ -58,7 +58,7 @@ void CSphereLocator::DrawUVSphere(float radius, int divisionsX, int divisionsY, 
    double DTOR = 0.0174532925;
 
    int uv_counter = 0;
-   if(m_goUVSample)
+   if (m_goUVSample)
    {
       int numUVdata = divisionsX * divisionsY * 4;
       m_UData = new float[numUVdata];
@@ -186,8 +186,6 @@ void CSphereLocator::SampleSN(MPlug &colorPlug)
       AtUInt numSampleBase = NumSampleBase();
       AtUInt numSamples    = numSampleBase * numSampleBase;
 
-      m_colorDataSize = numSamples * 4;
-
       for (AtUInt i = 0; (i < numSampleBase); i++)
       {
          float valuei = static_cast<float>(i) / numSampleBase;
@@ -205,8 +203,7 @@ void CSphereLocator::SampleSN(MPlug &colorPlug)
 
       MStatus status = MRenderUtil::sampleShadingNetwork(depNodeSkyColorName, numSamples, false, false, cameraMat, NULL, &uCoords, &vCoords, NULL, NULL, NULL, NULL, NULL, colors, transps);
 
-      int numSamplesCol = numSamples*4;
-      m_colorData = new char[numSamplesCol];
+      m_colorData = new char[numSamples * 4];
       int alpha = 255;
       for(AtUInt i = 0; (i < colors.length()); i++)
       {
@@ -223,15 +220,15 @@ void CSphereLocator::SampleSN(MPlug &colorPlug)
 
 bool CSphereLocator::setInternalValueInContext(const MPlug &plug, const MDataHandle &handle, MDGContext &context)
 {     
-   if( plug == s_color || plug == s_sampling )
+   if (plug == s_color || plug == s_sampling)
    {
       m_goSample = true;
    }
 
-   if( plug == s_format )
+   if (plug == s_format)
       m_goUVSample = true;
    
-   return MPxLocatorNode::setInternalValueInContext( plug, handle, context );
+   return MPxLocatorNode::setInternalValueInContext(plug, handle, context);
 }
 
 
@@ -268,6 +265,7 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
    facingPlug.getValue(facing);
 
    GLUquadricObj *quadratic;
+   GLuint texture;
 
    // do not write to the z buffer.
    glDepthMask(0);
@@ -281,7 +279,7 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
    int displayStatusInt = displayStatus;
 
    // 3 means wireframe
-   if(displayStyle != 3)
+   if (displayStyle != 3)
    {
       // Check if we have a texture file or a simple color
       // in our SkyShaderNode
@@ -301,7 +299,7 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
       if (conn.length()>0)
       {
          // check if we need to resample
-         if(m_goSample == true)
+         if (m_goSample == true)
          {
             MPlug plugColor = fn.findPlug(s_color);
             SampleSN(plugColor);
@@ -310,7 +308,6 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
          // check the number of samples
          int numSampleBase = NumSampleBase();
 
-         GLuint texture;
          glGenTextures(1, &texture);
          glBindTexture(GL_TEXTURE_2D, texture);
          glEnable(GL_TEXTURE_2D);
@@ -333,8 +330,7 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
 
          if (facing == 2)
          {
-            // we want both face, we need to redraw a second inverted sphere :'(
-            glCullFace(GL_BACK);
+            // we want both face, we need to redraw a second inverted sphere :'(glCullFace(GL_BACK);
             DrawUVSphere(radius, divisions*4, divisions*4, format);
             glCullFace(GL_FRONT);
          }
@@ -363,13 +359,24 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
    else
    {
       glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-      glColor4f(1, 1, 0, 0.2f);
+      // If it's selected
+      if (displayStatusInt == 8)
+      {
+         glColor4f(1, 1, 0, 0.2f);
+      }
+      else
+      {
+         glColor4f(0.75, 0, 0, 0.2f);
+      }
       gluSphere(quadratic, radius, divisions, divisions);
    }
 
    // re-enable depth writes
    glDepthMask(1);
    glDisable(GL_BLEND);
+
+   gluDeleteQuadric(quadratic);
+   glDeleteTextures(1, &texture);
 }
 
 MBoundingBox CSphereLocator::boundingBox() const
@@ -412,7 +419,7 @@ bool CSphereLocator::isBounded() const
 
 bool CSphereLocator::drawLast() const
 {
-   return true;
+   return false;
 }
 
 bool CSphereLocator::isTransparent() const

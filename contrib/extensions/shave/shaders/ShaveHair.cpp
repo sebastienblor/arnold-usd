@@ -1,15 +1,14 @@
-/*
- * Simple hair shader, roughly based on Kay/Kajiya's shading model
- */
+//
+// Simple hair shader, roughly based on Kay/Kajiya's shading model
+//
 
 #include <ai.h>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
+
+#include <string>
 
 AI_SHADER_NODE_EXPORT_METHODS(ShaveHairMtd);
 
-enum ShaveHairShaderParams
+enum ShaveHairParams
 {
    p_rootcolor,
    p_tipcolor,
@@ -30,21 +29,21 @@ enum ShaveHairShaderParams
 
 node_parameters
 {
-   AiParameterSTR( "rootcolor"        , NULL             );
-   AiParameterSTR( "tipcolor"         , NULL             );
-   AiParameterFLT( "gamma"            , 0.45f            );
-   AiParameterRGB( "strand_opacity"   , 1.0f, 1.0f, 1.0f );
-   AiParameterFLT( "ambdiff"          , 1.0f             );
-   AiParameterRGB( "ambient"          , 1.0f, 1.0f, 1.0f );
-   AiParameterFLT( "gloss"            , 10.0f            );
-   AiParameterRGB( "spec_color"       , 1.0f, 1.0f, 1.0f );
-   AiParameterFLT( "spec"             , 1.0f             );
-   AiParameterFLT( "kd_ind"           , 1.0f             );
-   AiParameterSTR( "uparam"           , NULL             );
-   AiParameterSTR( "vparam"           , NULL             );
-   AiParameterFLT( "direct_diffuse"   , 1.0f             );
-   AiParameterFLT( "indirect_diffuse" , 1.0f             );
-   AiParameterBOOL("diffuse_cache"    , TRUE             );
+   AiParameterSTR("rootcolor"        , NULL);
+   AiParameterSTR("tipcolor"         , NULL);
+   AiParameterFLT("gamma"            , 0.45f);
+   AiParameterRGB("strand_opacity"   , 1.0f, 1.0f, 1.0f);
+   AiParameterFLT("ambdiff"          , 1.0f);
+   AiParameterRGB("ambient"          , 1.0f, 1.0f, 1.0f);
+   AiParameterFLT("gloss"            , 10.0f);
+   AiParameterRGB("spec_color"       , 1.0f, 1.0f, 1.0f);
+   AiParameterFLT("spec"             , 1.0f);
+   AiParameterFLT("kd_ind"           , 1.0f);
+   AiParameterSTR("uparam"           , NULL);
+   AiParameterSTR("vparam"           , NULL);
+   AiParameterFLT("direct_diffuse"   , 1.0f);
+   AiParameterFLT("indirect_diffuse" , 1.0f);
+   AiParameterBOOL("diffuse_cache"    , TRUE);
 
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }
@@ -67,7 +66,7 @@ node_update
    ShaderData *data = (ShaderData*)node->local_data;
    AtNode *options = AiUniverseGetOptions();
    data->max_diffuse_depth = AiNodeGetInt(options, "GI_diffuse_depth");
-   data->gamma = 1.0/AiNodeGetFlt(options, "shader_gamma");
+   data->gamma = 1.0f / AiNodeGetFlt(options, "shader_gamma");
 }
 
 node_finish
@@ -217,4 +216,3 @@ node_loader
    strcpy(node->version, AI_VERSION);
    return TRUE;
 }
-

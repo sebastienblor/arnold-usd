@@ -83,3 +83,29 @@ def arnoldFixLightFilters():
 # from supportRenderers.mel
 def currentRenderer():
     return cmds.getAttr('defaultRenderGlobals.currentRenderer')
+
+def findMelScript(name):
+    path = mel.eval('whatIs("%s")'%name)
+    path = path.split('in:')[-1][1:]
+    proc = []
+    grab = 0
+    go = False
+    with open(path) as f:
+        for line in f:
+            if name in line and 'proc' in line:
+                proc.append(line)
+                go = True
+            
+            if go and ('{' in line):
+                grab += 1
+              
+            if grab > 0 and go:
+                proc.append(line)
+            
+            if '}' in line and go:
+                grab -= 1
+
+            if grab == 0 and len(proc) != 1 and go:
+                go=False
+                break
+    return proc

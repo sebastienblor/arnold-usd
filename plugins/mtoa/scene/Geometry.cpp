@@ -21,6 +21,7 @@
 #include <maya/MGlobal.h>
 #include <maya/MFnNumericAttribute.h>
 #include <maya/MFnMessageAttribute.h>
+#include <maya/MColorArray.h>
 
 #include <vector>
 
@@ -68,7 +69,7 @@ MObject CGeoTranslator::GetNodeShadingGroup(MObject dagNode, int instanceNum)
    for (unsigned int k=0; k<connections.length(); ++k)
    {
       MObject shadingGroup(connections[k].node());
-      if (shadingGroup.apiType() == MFn::kShadingEngine )
+      if (shadingGroup.apiType() == MFn::kShadingEngine)
       {
          return shadingGroup;
       }
@@ -120,7 +121,7 @@ bool CGeoTranslator::GetVertices(MFnMesh &fnMesh, std::vector<float> &vertices)
       MFloatPointArray pointsArray;
       fnMesh.getPoints(pointsArray, MSpace::kObject);
 
-      for (int J = 0; ( J < nverts ); ++J)
+      for (int J = 0; (J < nverts); ++J)
       {
          vertices[J * 3 + 0] = pointsArray[J].x;
          vertices[J * 3 + 1] = pointsArray[J].y;
@@ -134,8 +135,8 @@ bool CGeoTranslator::GetVertices(MFnMesh &fnMesh, std::vector<float> &vertices)
 bool CGeoTranslator::GetNormals(MFnMesh &fnMesh, std::vector<float> &normals)
 {
    int nnorms = fnMesh.numNormals();
-   if (m_fnNode.findPlug("smoothShading").asBool() &&
-         !m_fnNode.findPlug("subdiv_type").asBool() &&
+   if (GetFnNode().findPlug("smoothShading").asBool() &&
+         !GetFnNode().findPlug("subdiv_type").asBool() &&
          nnorms > 0)
    {
       normals.resize(nnorms * 3);
@@ -372,8 +373,7 @@ void CGeoTranslator::GetComponentIDs(MFnMesh &fnMesh,
       std::vector<AtLong> &nidxs,
       std::vector<AtLong> &uvidxs,
       bool exportNormals,
-      bool exportUVs
-      )
+      bool exportUVs)
 {
    int uv_id = 0;
    // Traverse all polygons to export vidxs, uvindxs and nsides
@@ -381,11 +381,11 @@ void CGeoTranslator::GetComponentIDs(MFnMesh &fnMesh,
    for (int p(0); p < fnMesh.numPolygons(); ++p)
    {
       // Num points/sides to the poly.
-      nsides.push_back( fnMesh.polygonVertexCount(p) );
+      nsides.push_back(fnMesh.polygonVertexCount(p));
       // Vertex indicies.
       MIntArray p_vidxs;
-      fnMesh.getPolygonVertices( p, p_vidxs);
-      for( uint v(0); v < p_vidxs.length(); ++v)
+      fnMesh.getPolygonVertices(p, p_vidxs);
+      for(uint v(0); v < p_vidxs.length(); ++v)
       {
          vidxs.push_back(p_vidxs[v]);
          // UVs
@@ -402,13 +402,13 @@ void CGeoTranslator::GetComponentIDs(MFnMesh &fnMesh,
    {
       MIntArray vertex_counts, normal_ids;
       m_fnMesh.getNormalIds(vertex_counts, normal_ids);
-      for( uint n(0); n < normal_ids.length(); ++n ) nidxs.push_back( normal_ids[n] );
+      for(uint n(0); n < normal_ids.length(); ++n) nidxs.push_back(normal_ids[n]);
    }
 }
 
 void CGeoTranslator::ExportShaders()
 {
-   ExportMeshShaders(GetArnoldNode(), m_fnMesh);
+   ExportMeshShaders(GetArnoldRootNode(), m_fnMesh);
 }
 
 void CGeoTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
@@ -427,13 +427,13 @@ void CGeoTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
       if (connections.length() > 0)
       {
          // shader assigned to node
-         AtNode* shader = m_scene->ExportShader(connections[0].node());
+         AtNode* shader = ExportShader(connections[0].node());
 
          AiNodeSetPtr(polymesh, "shader", shader);
          meshShaders.push_back(shader);
       }
       else
-         AiMsgWarning("[mtoa] ShadingGroup %s has no surfaceShader input", fnDGNode.name().asChar());
+         AiMsgWarning("ShadingGroup %s has no surfaceShader input", fnDGNode.name().asChar());
    }
    else
    {
@@ -454,7 +454,7 @@ void CGeoTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
          // FIXME: there should be a check if connections.length() > 0
          // this is not a simple fix because it will shift all the indices,
          // but as it is now, it will crash if nothing is connected to "surfaceShader"
-         meshShaders.push_back(m_scene->ExportShader(connections[0].node()));
+         meshShaders.push_back(ExportShader(connections[0].node()));
       }
 
       AiNodeSetArray(polymesh, "shader", AiArrayConvert((AtInt)meshShaders.size(), 1, AI_TYPE_NODE, &meshShaders[0], TRUE));
@@ -498,7 +498,7 @@ void CGeoTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
          if (connections.length() > 0)
          {
             MString attrName = connections[0].partialName(false, false, false, false, false, true);
-            AtNode* dispImage(m_scene->ExportShader(connections[0].node(), attrName));
+            AtNode* dispImage(ExportShader(connections[0].node(), attrName));
 
             MPlug pVectorDisp = dispNode.findPlug("vector_displacement", false);
             if (!pVectorDisp.isNull() && pVectorDisp.asBool())
@@ -612,7 +612,14 @@ void CGeoTranslator::ExportMeshGeoData(AtNode* polymesh, AtUInt step)
          std::map<std::string, std::vector<float> >::iterator it = vcolors.begin();
          while (it != vcolors.end())
          {
-            AiNodeDeclare(polymesh, it->first.c_str(), "varying RGBA");
+            if (strcmp(it->first.c_str(), "sss_faceset") != 0)
+            {
+               AiNodeDeclare(polymesh, it->first.c_str(), "varying RGBA");
+            }
+            else
+            {
+               AiNodeDeclare(polymesh, "sss_faceset", "uniform BOOL");
+            }
             ++it;
          }
       }
@@ -634,24 +641,24 @@ void CGeoTranslator::ExportMeshGeoData(AtNode* polymesh, AtUInt step)
       else
       {
          // Deformation motion blur. We need to create keyable arrays for vlist and nlist
-         AtArray* vlist_array = AiArrayAllocate(m_fnMesh.numVertices(), m_scene->GetNumMotionSteps(), AI_TYPE_POINT);
+         AtArray* vlist_array = AiArrayAllocate(m_fnMesh.numVertices(), GetNumMotionSteps(), AI_TYPE_POINT);
          SetKeyData(vlist_array, step, vertices, m_fnMesh.numVertices());
          AiNodeSetArray(polymesh, "vlist", vlist_array);
 
          if (exportNormals)
          {
-            AtArray* nlist_array = AiArrayAllocate(m_fnMesh.numNormals(), m_scene->GetNumMotionSteps(), AI_TYPE_VECTOR);
+            AtArray* nlist_array = AiArrayAllocate(m_fnMesh.numNormals(), GetNumMotionSteps(), AI_TYPE_VECTOR);
             SetKeyData(nlist_array, step, normals, m_fnMesh.numNormals());
             AiNodeSetArray(polymesh, "nlist", nlist_array);
          }
 
          if (exportTangents)
          {
-            AtArray* tangent_array = AiArrayAllocate(m_fnMesh.numVertices(), m_scene->GetNumMotionSteps(), AI_TYPE_VECTOR);
+            AtArray* tangent_array = AiArrayAllocate(m_fnMesh.numVertices(), GetNumMotionSteps(), AI_TYPE_VECTOR);
             SetKeyData(tangent_array, step, tangents, m_fnMesh.numVertices());
             AiNodeSetArray(polymesh, "tangent", tangent_array);
 
-            AtArray* bitangent_array = AiArrayAllocate(m_fnMesh.numVertices(), m_scene->GetNumMotionSteps(), AI_TYPE_VECTOR);
+            AtArray* bitangent_array = AiArrayAllocate(m_fnMesh.numVertices(), GetNumMotionSteps(), AI_TYPE_VECTOR);
             SetKeyData(bitangent_array, step, bitangents, m_fnMesh.numVertices());
             AiNodeSetArray(polymesh, "bitangent", bitangent_array);
          }
@@ -699,7 +706,44 @@ void CGeoTranslator::ExportMeshGeoData(AtNode* polymesh, AtUInt step)
          std::map<std::string, std::vector<float> >::iterator it = vcolors.begin();
          while (it != vcolors.end())
          {
-            AiNodeSetArray(polymesh, it->first.c_str(), AiArrayConvert(m_fnMesh.numVertices(), 1, AI_TYPE_RGBA, &(it->second[0]), TRUE));
+            if (strcmp(it->first.c_str(), "sss_faceset") != 0)
+            {
+               AiNodeSetArray(polymesh, it->first.c_str(), AiArrayConvert(m_fnMesh.numVertices(), 1, AI_TYPE_RGBA, &(it->second[0]), TRUE));
+            }
+            else
+            {
+               int m_colorId;
+               float m_count = 0.0f;
+               MColorArray colors;
+               MString m_colorSetName = "sss_faceset";
+               MColor m_defaultColor  = MColor(0.0f, 0.0f, 0.0f);
+
+               AtArray *m_sss_faceset_bool = AiArray(m_fnMesh.numPolygons(), 1, AI_TYPE_BOOLEAN, NULL);
+
+               m_fnMesh.getFaceVertexColors(colors, &m_colorSetName, &m_defaultColor);
+
+               for (int m_polygonId = 0; (m_polygonId < (int)m_fnMesh.numPolygons()); m_polygonId++)
+               {
+                  MIntArray m_vertexList;
+                  m_fnMesh.getPolygonVertices(m_polygonId, m_vertexList);
+
+                  m_count = 0.0f;
+                  for (int m_vertexId = 0; (m_vertexId < (int)m_vertexList.length()); m_vertexId++)
+                  {
+                     m_fnMesh.getFaceVertexColorIndex(m_polygonId, m_vertexId, m_colorId, &m_colorSetName);
+                     m_count += (colors[m_colorId][0]+colors[m_colorId][1]+colors[m_colorId][2])/3.0f;
+                  }
+                  if (m_count/(float)m_vertexList.length() >= 0.5f)
+                  {
+                     AiArraySetBool(m_sss_faceset_bool, m_polygonId, true);
+                  }
+                  else
+                  {
+                     AiArraySetBool(m_sss_faceset_bool, m_polygonId, false);
+                  }
+               }
+               AiNodeSetArray(polymesh, "sss_faceset", m_sss_faceset_bool);
+            }
             ++it;
          }
       }
@@ -739,19 +783,19 @@ void CGeoTranslator::IsGeoDeforming()
     MPlug inMeshPlug = m_fnMesh.findPlug("inMesh");
     MPlugArray conn;
     inMeshPlug.connectedTo(conn, true, false);
-    if(conn.length())
+    if (conn.length())
     {
         history = true;
     }
  
     inMeshPlug = m_fnMesh.findPlug("pnts");
     inMeshPlug.connectedTo(conn, true, false);
-    if(conn.length())
+    if (conn.length())
     {
         pnts = true;
     }
 
-    if(!history && !pnts && !m_displaced)
+    if (!history && !pnts && !m_displaced)
         m_motionDeform = false;
 }
 
@@ -759,16 +803,16 @@ void CGeoTranslator::ExportMeshParameters(AtNode* polymesh)
 {
    // Check if custom attributes have been created, ignore them otherwise
    MStatus status;
-   m_fnNode.findPlug("subdiv_type", &status);
+   GetFnNode().findPlug("subdiv_type", &status);
    bool customAttributes = (status == MS::kSuccess);
 
-   AiNodeSetBool(polymesh, "smoothing", m_fnNode.findPlug("smoothShading").asBool());
+   AiNodeSetBool(polymesh, "smoothing", GetFnNode().findPlug("smoothShading").asBool());
 
-   if (m_fnNode.findPlug("doubleSided").asBool())
+   if (GetFnNode().findPlug("doubleSided").asBool())
       AiNodeSetInt(polymesh, "sidedness", 65535);
    else
    {
-      AiNodeSetBool(polymesh, "invert_normals", m_fnNode.findPlug("opposite").asBool());
+      AiNodeSetBool(polymesh, "invert_normals", GetFnNode().findPlug("opposite").asBool());
       AiNodeSetInt(polymesh, "sidedness", 0);
    }
 
@@ -779,18 +823,18 @@ void CGeoTranslator::ExportMeshParameters(AtNode* polymesh)
    {
       // Subdivision surfaces
       //
-      const bool subdivision = (m_fnNode.findPlug("subdiv_type").asInt() != 0);
+      const bool subdivision = (GetFnNode().findPlug("subdiv_type").asInt() != 0);
 
       if (subdivision)
       {
          AiNodeSetStr(polymesh, "subdiv_type",           "catclark");
-         AiNodeSetInt(polymesh, "subdiv_iterations",     m_fnNode.findPlug("subdiv_iterations").asInt());
-         AiNodeSetInt(polymesh, "subdiv_adaptive_metric",m_fnNode.findPlug("subdiv_adaptive_metric").asInt());
-         AiNodeSetFlt(polymesh, "subdiv_pixel_error",    m_fnNode.findPlug("subdiv_pixel_error").asFloat());
-         AiNodeSetInt(polymesh, "subdiv_uv_smoothing",   m_fnNode.findPlug("subdiv_uv_smoothing").asInt());
+         AiNodeSetInt(polymesh, "subdiv_iterations",     GetFnNode().findPlug("subdiv_iterations").asInt());
+         AiNodeSetInt(polymesh, "subdiv_adaptive_metric",GetFnNode().findPlug("subdiv_adaptive_metric").asInt());
+         AiNodeSetFlt(polymesh, "subdiv_pixel_error",    GetFnNode().findPlug("subdiv_pixel_error").asFloat());
+         AiNodeSetInt(polymesh, "subdiv_uv_smoothing",   GetFnNode().findPlug("subdiv_uv_smoothing").asInt());
 
          // FIXME, this should probably be handled by ProcessParameter
-         MString cameraName = m_fnNode.findPlug("subdiv_dicing_camera").asString();
+         MString cameraName = GetFnNode().findPlug("subdiv_dicing_camera").asString();
          AtNode* camera = ((cameraName != "") && (cameraName != "Default")) ? AiNodeLookUpByName(cameraName.asChar()) : NULL;
          AiNodeSetPtr(polymesh, "subdiv_dicing_camera", camera);
       }
@@ -840,7 +884,7 @@ AtNode* CGeoTranslator::ExportInstance(AtNode *instance, const MDagPath& masterI
    // Compare face arrays
    for(AtUInt j=0; (equalShaderArrays && (j < indices.length())); j++)
    {
-      if(indices[j] != indicesMaster[j])
+      if (indices[j] != indicesMaster[j])
       {
          equalShaderArrays = false;
       }
@@ -854,7 +898,7 @@ AtNode* CGeoTranslator::ExportInstance(AtNode *instance, const MDagPath& masterI
       }
    }
 
-   if ( (shaders.length() > 0) && (shadersMaster.length() > 0) )
+   if ((shaders.length() > 0) && (shadersMaster.length() > 0))
    {
       MPlugArray        connections;
       MFnDependencyNode fnDGNode(shaders[0]);
@@ -865,7 +909,7 @@ AtNode* CGeoTranslator::ExportInstance(AtNode *instance, const MDagPath& masterI
 
       if ((shaderPlug != shaderPlugMaster) || (!equalShaderArrays))
       {
-         AtNode* shader = m_scene->ExportShader(connections[0].node());
+         AtNode* shader = ExportShader(connections[0].node());
          AiNodeSetPtr(instance, "shader", shader);
       }
    }
@@ -910,25 +954,25 @@ void CGeoTranslator::UpdateMotion(AtNode* anode, AtUInt step)
 
 void CGeoTranslator::AddIPRCallbacks()
 {
-   AddShaderAssignmentCallbacks( m_object );
+   AddShaderAssignmentCallbacks(m_object);
    CDagTranslator::AddIPRCallbacks();
 }
 
-void CGeoTranslator::AddShaderAssignmentCallbacks(MObject & dagNode )
+void CGeoTranslator::AddShaderAssignmentCallbacks(MObject & dagNode)
 {
    MStatus status;
-   MCallbackId id = MNodeMessage::addAttributeChangedCallback( dagNode, ShaderAssignmentCallback, this, &status );
+   MCallbackId id = MNodeMessage::addAttributeChangedCallback(dagNode, ShaderAssignmentCallback, this, &status);
    if (MS::kSuccess == status) ManageIPRCallback(id);
 }
 
-void CGeoTranslator::ShaderAssignmentCallback( MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void*clientData )
+void CGeoTranslator::ShaderAssignmentCallback(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void*clientData)
 {
    // Shading assignments are done with the instObjGroups attr, so we only
    // need to update when that is the attr that changes.
-   if ( (msg & MNodeMessage::kConnectionMade) && (plug.partialName() == "iog") )
+   if ((msg & MNodeMessage::kConnectionMade) && (plug.partialName() == "iog"))
    {
       CGeoTranslator * translator = static_cast< CGeoTranslator* >(clientData);
-      if ( translator != NULL )
+      if (translator != NULL)
       {
          // Interupt the render.
          CRenderSession* renderSession = CRenderSession::GetInstance();
@@ -971,65 +1015,65 @@ void CGeoTranslator::NodeInitializer(MString nodeClassName)
 // --------- CNurbsSurfaceTranslator -------------//
 
 void CNurbsSurfaceTranslator::GetTessellationOptions(MTesselationParams & params,
-                                              MFnNurbsSurface & surface )
+                                              MFnNurbsSurface & surface)
 {
    // Reference for this code is from the devkit:
    // /devkit/obsolete/games/MDtApi/MDtShape.cpp
    // It is similar, this is tidier and more condenced.
 
    // Get the tesselation attributes off the node
-   const int modeU                  = surface.findPlug( "modeU" ).asInt();
-   const int numberU                = surface.findPlug( "numberU" ).asInt();
-   const int modeV                  = surface.findPlug( "modeV" ).asInt();
-   const int numberV                = surface.findPlug( "numberV" ).asInt();
-   const bool smoothEdge            = surface.findPlug( "smoothEdge" ).asBool();
-   const bool useChordHeightRatio   = surface.findPlug( "useChordHeightRatio" ).asBool();
-   const bool edgeSwap              = surface.findPlug( "edgeSwap" ).asBool();
-   const bool useMinScreen          = surface.findPlug( "useMinScreen" ).asBool();
-   const double chordHeightRatio    = surface.findPlug( "chordHeightRatio" ).asDouble();
-   const double minScreen           = surface.findPlug( "minScreen" ).asDouble();
+   const int modeU                  = surface.findPlug("modeU").asInt();
+   const int numberU                = surface.findPlug("numberU").asInt();
+   const int modeV                  = surface.findPlug("modeV").asInt();
+   const int numberV                = surface.findPlug("numberV").asInt();
+   const bool smoothEdge            = surface.findPlug("smoothEdge").asBool();
+   const bool useChordHeightRatio   = surface.findPlug("useChordHeightRatio").asBool();
+   const bool edgeSwap              = surface.findPlug("edgeSwap").asBool();
+   const bool useMinScreen          = surface.findPlug("useMinScreen").asBool();
+   const double chordHeightRatio    = surface.findPlug("chordHeightRatio").asDouble();
+   const double minScreen           = surface.findPlug("minScreen").asDouble();
 
    // I don't actually know why these aren't used. I don't see where they'd be set
    // on MTesselationParams either.
-   //const bool useChordHeight      = surface.findPlug( "useChordHeight" ).asBool();
-   //const double chordHeight       = surface.findPlug( "chordHeight" ).asDouble();
+   //const bool useChordHeight      = surface.findPlug("useChordHeight").asBool();
+   //const double chordHeight       = surface.findPlug("chordHeight").asDouble();
 
-   switch ( modeU )
+   switch (modeU)
    {
       case 1:             // Per Surf # of Isoparms in 3D
-         params.setUIsoparmType( MTesselationParams::kSurface3DEquiSpaced);
+         params.setUIsoparmType(MTesselationParams::kSurface3DEquiSpaced);
          break;
       case 2:             // Per Surf # of Isoparms
-         params.setUIsoparmType( MTesselationParams::kSurfaceEquiSpaced);
+         params.setUIsoparmType(MTesselationParams::kSurfaceEquiSpaced);
          break;
       case 3:             // Per Span # of Isoparms
-         params.setUIsoparmType( MTesselationParams::kSpanEquiSpaced);
+         params.setUIsoparmType(MTesselationParams::kSpanEquiSpaced);
          break;
       case 4:             // Best Guess Based on Screen Size, there is a comment that 4 uses mode 2 internally
-         params.setUIsoparmType( MTesselationParams::kSurfaceEquiSpaced);
+         params.setUIsoparmType(MTesselationParams::kSurfaceEquiSpaced);
          break;
    }
 
-   switch ( modeV )
+   switch (modeV)
    {
       case 1:             // Per Surf # of Isoparms in 3D
-         params.setVIsoparmType( MTesselationParams::kSurface3DEquiSpaced);
+         params.setVIsoparmType(MTesselationParams::kSurface3DEquiSpaced);
          break;
       case 2:             // Per Surf # of Isoparms
-         params.setVIsoparmType( MTesselationParams::kSurfaceEquiSpaced);
+         params.setVIsoparmType(MTesselationParams::kSurfaceEquiSpaced);
          break;
       case 3:             // Per Span # of Isoparms
-         params.setVIsoparmType( MTesselationParams::kSpanEquiSpaced);
+         params.setVIsoparmType(MTesselationParams::kSpanEquiSpaced);
          break;
       case 4:             // Best Guess Based on Screen Size, there is a comment that 4 uses mode 2 internally
-         params.setVIsoparmType( MTesselationParams::kSurfaceEquiSpaced);
+         params.setVIsoparmType(MTesselationParams::kSurfaceEquiSpaced);
          break;
    }
 
    params.setUNumber(numberU);
    params.setVNumber(numberV);
    params.setSubdivisionFlag(MTesselationParams::kUseChordHeightRatio, useChordHeightRatio);
-   params.setChordHeightRatio(chordHeightRatio );
+   params.setChordHeightRatio(chordHeightRatio);
    params.setSubdivisionFlag(MTesselationParams::kUseMinScreenSize,useMinScreen);
    params.setMinScreenSize(minScreen, minScreen);
 
@@ -1043,7 +1087,7 @@ bool CNurbsSurfaceTranslator::Tessellate(MDagPath & dagPath)
    MFnNurbsSurface surface(dagPath, &status);
    if (!status)
    {
-      AiMsgError("[mtoa] Could not attach to NURBS surface for tessallation: %s",
+      AiMsgError("Could not attach to NURBS surface for tessallation: %s",
                  status.errorString().asChar());
       return false;
    }
@@ -1053,13 +1097,13 @@ bool CNurbsSurfaceTranslator::Tessellate(MDagPath & dagPath)
    m_data_mobj = meshData.create();
 
    MTesselationParams params(MTesselationParams::kGeneralFormat, MTesselationParams::kTriangles);
-   GetTessellationOptions( params, surface );
+   GetTessellationOptions(params, surface);
    MObject mesh_mobj = surface.tesselate(params,
                                          m_data_mobj,
                                          &status);
    if (!status)
    {
-      AiMsgError("[mtoa] Could not tessallate NURBS surface: %s",
+      AiMsgError("Could not tessallate NURBS surface: %s",
                  status.errorString().asChar());
       return false;
    }
@@ -1069,13 +1113,13 @@ bool CNurbsSurfaceTranslator::Tessellate(MDagPath & dagPath)
    return true;
 }
 
-const char* CNurbsSurfaceTranslator::GetArnoldNodeType()
+AtNode* CNurbsSurfaceTranslator::CreateArnoldNodes()
 {
    m_isMasterDag = IsMasterInstance(m_masterDag);
    if (m_isMasterDag)
-      return "polymesh";
+      return AddArnoldNode("polymesh");
    else
-      return "ginstance";
+      return AddArnoldNode("ginstance");
 }
 
 void CNurbsSurfaceTranslator::Export(AtNode* anode)
@@ -1136,22 +1180,22 @@ unsigned int CMeshTranslator::GetNumMeshGroups()
 }
 
 
-const char* CMeshTranslator::GetArnoldNodeType()
+AtNode* CMeshTranslator::CreateArnoldNodes()
 {
    m_isMasterDag = IsMasterInstance(m_masterDag);
    if (m_isMasterDag)
    {
       m_fnMesh.setObject(m_dagPath.node());
-      return "polymesh";
+      return AddArnoldNode("polymesh");
    }
    else
-      return "ginstance";
+      return AddArnoldNode("ginstance");
 }
 void CMeshTranslator::Export(AtNode* anode)
 {
    if (GetNumMeshGroups() == 0)
    {
-      AiMsgError("[mtoa] ERROR: Mesh not exported. It has 0 groups.");
+      AiMsgError("Mesh not exported, it has 0 groups.");
       return;
    }
    const char* nodeType = AiNodeEntryGetName(anode->base_node);

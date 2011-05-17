@@ -25,88 +25,74 @@ void CRenderOptionsTranslator::SetupImageOptions(AtNode* options)
    AiNodeSetFlt(options, "aspect_ratio", renderOptions->pixelAspectRatio());
 }
 
-// normally this method is used in CNodeTranslator::CreateArnoldNode, but since we've overridden it too
-// we provide this just to fill the pure virtual slot
-const char* CRenderOptionsTranslator::GetArnoldNodeType()
-{
-   return "options";
-}
-
-AtNode* CRenderOptionsTranslator::CreateArnoldNode()
+AtNode* CRenderOptionsTranslator::CreateArnoldNodes()
 {
    return AiUniverseGetOptions();
 }
 
-void CRenderOptionsTranslator::Export(AtNode* options)
+void CRenderOptionsTranslator::Export(AtNode *options)
 {
    SetupImageOptions(options);
    MTime currentTime;
 
    currentTime = MAnimControl::currentTime();
 
-   ProcessParameter(options, "physically_based", AI_TYPE_BOOLEAN);
-   AiNodeSetInt(options, "threads", m_fnNode.findPlug("threads_autodetect").asBool() ? 0 : m_fnNode.findPlug("threads").asInt());
-   ProcessParameter(options, "bucket_scanning", AI_TYPE_ENUM);
-   ProcessParameter(options, "bucket_size", AI_TYPE_INT);
-   ProcessParameter(options, "abort_on_error", AI_TYPE_BOOLEAN);
-   ProcessParameter(options, "abort_on_license_fail", AI_TYPE_BOOLEAN);
-   ProcessParameter(options, "skip_license_check", AI_TYPE_BOOLEAN);
+   MStatus status;
+   MPlug plug;
+   AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(options->base_node);
+   while (!AiParamIteratorFinished(nodeParam))
+   {
+      const AtParamEntry *paramEntry = AiParamIteratorGetNext(nodeParam);
+      const char* paramName = AiParamGetName(paramEntry);
 
-   ProcessParameter(options, "AA_samples", AI_TYPE_INT);
-   ProcessParameter(options, "GI_diffuse_samples", AI_TYPE_INT);
-   ProcessParameter(options, "GI_glossy_samples", AI_TYPE_INT);
-   ProcessParameter(options, "GI_sss_hemi_samples", AI_TYPE_INT);
-   ProcessParameter(options, "AA_sample_clamp", AI_TYPE_FLOAT);
+      if (strcmp(paramName, "name") != 0)
+      {
+         AtInt paramType = AiParamGetType(paramEntry);
 
-   // FIXME: this is supposed to use a connection to AA_seed attribute
-   if (!m_fnNode.findPlug("lock_sampling_noise").asBool())
-      AiNodeSetInt(options, "AA_seed", (AtInt)currentTime.value());
+         // attr name name remap
+         const char* attrName;
+         if (!AiMetaDataGetStr(options->base_node, paramName, "maya.name", &attrName))
+            attrName = paramName;
 
-   ProcessParameter(options, "light_gamma", AI_TYPE_FLOAT);
-   ProcessParameter(options, "shader_gamma", AI_TYPE_FLOAT);
-   ProcessParameter(options, "texture_gamma", AI_TYPE_FLOAT);
-
-   ProcessParameter(options, "GI_diffuse_depth", AI_TYPE_INT);
-   ProcessParameter(options, "GI_glossy_depth", AI_TYPE_INT);
-   ProcessParameter(options, "GI_reflection_depth", AI_TYPE_INT);
-   ProcessParameter(options, "GI_refraction_depth", AI_TYPE_INT);
-   ProcessParameter(options, "GI_total_depth", AI_TYPE_INT);
-
-   ProcessParameter(options, "auto_transparency_depth", AI_TYPE_INT);
-   ProcessParameter(options, "auto_transparency_threshold", AI_TYPE_FLOAT);
-   ProcessParameter(options, "auto_transparency_probabilistic", AI_TYPE_BOOLEAN);
-
-   ProcessParameter(options, "sss_subpixel_cache", AI_TYPE_BOOLEAN);
-   ProcessParameter(options, "show_samples", AI_TYPE_ENUM);
-
-   ProcessParameter(options, "max_subdivisions", AI_TYPE_INT);
-
-   ProcessParameter(options, "enable_hit_refinement", AI_TYPE_BOOLEAN);
-
-   ProcessParameter(options, "texture_automip", AI_TYPE_BOOLEAN);
-   ProcessParameter(options, "texture_autotile", AI_TYPE_INT);
-   ProcessParameter(options, "texture_max_memory_MB", AI_TYPE_FLOAT);
-   ProcessParameter(options, "texture_max_open_files", AI_TYPE_INT);
-   ProcessParameter(options, "texture_accept_untiled", AI_TYPE_BOOLEAN);
-   ProcessParameter(options, "texture_failure_retries", AI_TYPE_INT);
-   ProcessParameter(options, "texture_conservative_lookups", AI_TYPE_BOOLEAN);
-   ProcessParameter(options, "texture_glossy_blur", AI_TYPE_FLOAT);
-   ProcessParameter(options, "texture_diffuse_blur", AI_TYPE_FLOAT);
-   ProcessParameter(options, "texture_per_file_stats", AI_TYPE_BOOLEAN);
-
-   ProcessParameter(options, "ignore_textures", AI_TYPE_BOOLEAN);
-   ProcessParameter(options, "ignore_shaders", AI_TYPE_BOOLEAN);
-   ProcessParameter(options, "ignore_lights", AI_TYPE_BOOLEAN);
-   ProcessParameter(options, "ignore_shadows", AI_TYPE_BOOLEAN);
-   ProcessParameter(options, "ignore_subdivision", AI_TYPE_BOOLEAN);
-   ProcessParameter(options, "ignore_displacement", AI_TYPE_BOOLEAN);
-   ProcessParameter(options, "ignore_motion_blur", AI_TYPE_BOOLEAN);
-   ProcessParameter(options, "ignore_smoothing", AI_TYPE_BOOLEAN);
-   ProcessParameter(options, "ignore_sss", AI_TYPE_BOOLEAN);
+         plug = GetFnNode().findPlug(attrName, &status);
+         if (status == MS::kSuccess)
+         {
+            // Special cases
+            if (strcmp(paramName, "threads") == 0)
+            {
+               AiNodeSetInt(options, "threads", GetFnNode().findPlug("threads_autodetect").asBool() ? 0 : GetFnNode().findPlug("threads").asInt());
+            }
+            else if (strcmp(paramName, "AA_sample_clamp") == 0)
+            {
+               if (GetFnNode().findPlug("use_sample_clamp").asBool())
+               {
+                  ProcessParameter(options, "AA_sample_clamp", AI_TYPE_FLOAT);
+               }
+            }
+            else if (strcmp(paramName, "AA_seed") == 0)
+            {
+               // FIXME: this is supposed to use a connection to AA_seed attribute
+               if (!GetFnNode().findPlug("lock_sampling_noise").asBool())
+               {
+                  AiNodeSetInt(options, "AA_seed", (AtInt)currentTime.value());
+               }
+            }
+            // Process parameter automatically
+            else
+            {
+               ProcessParameter(options, plug, paramName, paramType);
+            }
+         }
+         else
+         {
+            AiMsgDebug("Attribute %s.%s requested by translator does not exist", GetFnNode().name().asChar(), attrName);
+         }
+      }
+   }
 
    MObject background;
    MPlugArray conns;
-   MPlug pBG = m_fnNode.findPlug("background");
+   MPlug pBG = GetFnNode().findPlug("background");
    pBG.connectedTo(conns, true, false);
    if (conns.length() == 1)
    {
@@ -117,44 +103,41 @@ void CRenderOptionsTranslator::Export(AtNode* options)
       background = MObject::kNullObj;
    }
 
-
    // BACKGROUND SHADER
    //
    if (!background.isNull())
    {
-      AiNodeSetPtr(options, "background", m_scene->ExportShader(background));
+      AiNodeSetPtr(options, "background", ExportShader(background));
    }
-
 
    // ATMOSPHERE SHADER
    //
-
    MSelectionList list;
    MObject        node;
 
-   AtInt atmosphere = m_fnNode.findPlug("atmosphere").asInt();
+   AtInt atmosphere = GetFnNode().findPlug("atmosphere").asInt();
    switch (atmosphere)
    {
    case 0:
       break;
 
    case 1:  // Fog
-      list.add("defaultFogShader");
+      list.add("defaultFog");
       if (list.length() > 0)
       {
          list.getDependNode(0, node);
-         AiNodeSetPtr(options, "atmosphere", m_scene->ExportShader(node));
+         AiNodeSetPtr(options, "atmosphere", ExportShader(node));
       }
       break;
 
    case 2:  // Volume Scattering
-      list.add("defaultVolumeScatteringShader");
+      list.add("defaultVolumeScattering");
       if (list.length() > 0)
       {
          list.getDependNode(0, node);
-         AiNodeSetPtr(options, "atmosphere", m_scene->ExportShader(node));
+         AiNodeSetPtr(options, "atmosphere", ExportShader(node));
       }
       break;
    }
-}
 
+}

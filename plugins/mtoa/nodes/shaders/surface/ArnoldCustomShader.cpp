@@ -17,7 +17,7 @@
 #include <ai_params.h>
 #include <ai_metadata.h>
 
-MString CArnoldCustomShaderNode::s_shaderName;
+CAbMayaNode CArnoldCustomShaderNode::s_abstract;
 
 MObjectArray CArnoldCustomShaderNode::s_PlugsAffecting;
 
@@ -26,6 +26,9 @@ std::vector<CStaticAttrHelper> CArnoldCustomShaderNode::s_nodeHelpers;
 void CArnoldCustomShaderNode::postConstructor()
 {
    setMPSafe(false);
+   // Copy the abstract so that it can accessed on instances
+   // (and saved before a new register overwrites it)
+   m_abstract = s_abstract;
 }
 
 MStatus CArnoldCustomShaderNode::compute(const MPlug& plug, MDataBlock& data)
@@ -52,14 +55,14 @@ MStatus CArnoldCustomShaderNode::initialize()
    static MObject s_OUT_transparencyB;
    static MObject s_OUT_transparency;
 
-   const AtNodeEntry *nodeEntry = AiNodeEntryLookUp(s_shaderName.asChar());
+   MString maya = s_abstract.name;
+   MString arnold = s_abstract.arnold;
+   MString classification = s_abstract.classification;
+   MString provider = s_abstract.provider;
+   const AtNodeEntry *nodeEntry = AiNodeEntryLookUp(arnold.asChar());
 
-   // Cannot use AiMsgDebug since not render has yet taken place and logger options
-   // are not yet initialized
-#ifdef _DEBUG
-   AiMsgInfo("[mtoa] initializing shader %s", s_shaderName.asChar());
-#endif
-
+   AiMsgDebug("Initializing ArnoldCustomShader as Maya node %s, from Arnold node %s metadata, provided by %s",
+         maya.asChar(), arnold.asChar(), provider.asChar());
    CStaticAttrHelper helper(CArnoldCustomShaderNode::addAttribute, nodeEntry);
 
    // outputs
@@ -74,8 +77,23 @@ MStatus CArnoldCustomShaderNode::initialize()
    }
 
    // bump
-   AtBoolean doBump;
-   if (AiMetaDataGetBool(nodeEntry, NULL, "maya.supports_bump", &doBump) && doBump)
+   bool doBump = false;
+   MStringArray classParts;
+   MStringArray classes;
+   classification.split(':', classParts);
+   for (unsigned int i=0; i < classParts.length() && doBump == false; ++i)
+   {
+      classes.clear();
+      classParts[i].split('/', classes);
+      for (unsigned int j=0; j < classes.length() && doBump == false; ++j)
+      {
+         if (classes[j] == "surface")
+         {
+            doBump = true;
+         }
+      }
+   }
+   if (doBump)
    {
       MObject attrib = nAttr.createPoint("normalCamera", "n");
       nAttr.setKeyable(true);

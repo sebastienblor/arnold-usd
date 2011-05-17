@@ -13,20 +13,15 @@ class DLLEXPORT CGeoTranslator
    :   public CShapeTranslator
 {
 public:
-   void Init(MDagPath& dagPath, CMayaScene* scene, MString outputAttr="")
+   virtual AtNode* Init(MDagPath& dagPath, CMayaScene* scene, MString outputAttr="")
    {
-      CShapeTranslator::Init(dagPath, scene, outputAttr);
-      m_motion = m_scene->IsObjectMotionBlurEnabled() && m_fnNode.findPlug("motionBlur").asBool();
-      m_motionDeform = m_motion && m_scene->IsObjectDeformMotionBlurEnabled();
       m_displaced = false;
+      m_isRefSmooth = false;
+      return CShapeTranslator::Init(dagPath, scene, outputAttr);
    }
-   virtual bool RequiresMotionData()
-   {
-      return m_motion;
-   }
-   void Update(AtNode* anode);
-   void ExportMotion(AtNode* anode, AtUInt step);
-   void UpdateMotion(AtNode* anode, AtUInt step);
+   virtual void Update(AtNode* anode);
+   virtual void ExportMotion(AtNode* anode, AtUInt step);
+   virtual void UpdateMotion(AtNode* anode, AtUInt step);
    static void NodeInitializer(MString nodeClassName);
    virtual void AddIPRCallbacks();
 
@@ -46,8 +41,7 @@ protected:
          std::vector<AtLong> &nidxs,
          std::vector<AtLong> &uvidxs,
          bool exportNormals,
-         bool exportUVs
-         );
+         bool exportUVs);
 
    MObject GetNodeShadingGroup(MObject dagNode, int instanceNum);
    MObject GetNodeShader(MObject dagNode, int instanceNum);
@@ -61,14 +55,12 @@ protected:
    AtNode* ExportInstance(AtNode* instance, const MDagPath& masterInstance);
    void ExportInstanceMotion(AtNode* instance, AtUInt step);
 
-   static void ShaderAssignmentCallback( MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void* );
-   void AddShaderAssignmentCallbacks(MObject & dagNode );
+   static void ShaderAssignmentCallback(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void*);
+   void AddShaderAssignmentCallbacks(MObject & dagNode);
    virtual void IsGeoDeforming();
 
 protected:
    bool m_isMasterDag;
-   bool m_motion;
-   bool m_motionDeform;
    bool m_displaced;
    bool m_isRefSmooth;
    MObject m_data_mobj;
@@ -81,12 +73,18 @@ protected:
 class DLLEXPORT CMeshTranslator : public CGeoTranslator
 {
 public:
-   void Export(AtNode* anode);
+   virtual AtNode* Init(MDagPath& dagPath, CMayaScene* scene, MString outputAttr="")
+   {
+      m_fnMesh.setObject(dagPath);
+      return CGeoTranslator::Init(dagPath, scene, outputAttr);
+   }
+
+   virtual void Export(AtNode* anode);
    static void* creator()
    {
       return new CMeshTranslator();
    }
-   const char* GetArnoldNodeType();
+   AtNode* CreateArnoldNodes();
 private:
    unsigned int GetNumMeshGroups();
 };
@@ -98,7 +96,7 @@ class MFnNurbsSurface;
 class DLLEXPORT CNurbsSurfaceTranslator : public CGeoTranslator
 {
 public:
-   void Export(AtNode* anode);
+   virtual void Export(AtNode* anode);
    virtual void ExportMotion(AtNode* anode, AtUInt step);
    virtual void IsGeoDeforming();
 
@@ -106,12 +104,12 @@ public:
    {
       return new CNurbsSurfaceTranslator();
    }
-   const char* GetArnoldNodeType();
+   AtNode* CreateArnoldNodes();
 private:
    MObject m_data_mobj;
    bool Tessellate(MDagPath & dagPath);
    void GetTessellationOptions(MTesselationParams & params,
-                        MFnNurbsSurface & surface );
+                        MFnNurbsSurface & surface);
 
 };
 

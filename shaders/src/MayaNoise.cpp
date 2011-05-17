@@ -95,8 +95,8 @@ node_parameters
    AiParameterPNT2("uvCoord", 0.0f, 0.0f);
    AddMayaColorBalanceParams(params);
 
-   AiMetaDataSetStr(mds, NULL, "maya.counterpart", "noise");
-   AiMetaDataSetInt(mds, NULL, "maya.counterpart_id", 0x52544e33);
+   AiMetaDataSetStr(mds, NULL, "maya.name", "noise");
+   AiMetaDataSetInt(mds, NULL, "maya.id", 0x52544e33);
 }
 
 node_initialize

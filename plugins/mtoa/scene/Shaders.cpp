@@ -24,7 +24,6 @@
 #include <maya/MRenderUtil.h>
 
 #include <string>
-#include <cstring>
 
 
 static bool SortFloatArray(AtArray *a, AtUInt *shuffle = NULL)
@@ -352,11 +351,37 @@ void CMayaScene::ProcessShaderParameter(MFnDependencyNode shader, const char* pa
          break;
       case AI_TYPE_POINT2:
          {
-            float x, y;
-            MObject numObj = plug.asMObject();
-            MFnNumericData numData(numObj);
-            numData.getData2Float(x, y);
-            AiNodeSetPnt2(arnoldShader, arnoldAttrib, x, y);
+            bool compConnected = false;
+            for (unsigned int i=0; i < 2; i++)
+            {
+               plug.child(i).connectedTo(connections, true, false);
+               if (connections.length() > 0)
+               {
+                  compConnected = true;
+                  MString attrName = connections[0].partialName(false, false, false, false, false, true);
+                  MString compAttrName(arnoldAttrib);
+                  switch(i)
+                  {
+                  case 0:
+                     compAttrName += ".x";
+                     break;
+                  case 1:
+                     compAttrName += ".y";
+                     break;
+                  }
+                  AtNode* node = ExportShader(connections[0].node(), attrName);
+                  if (node != NULL)
+                     AiNodeLink(node, compAttrName.asChar(), arnoldShader);
+               }
+            }
+            if (!compConnected)
+            {
+               float x, y;
+               MObject numObj = plug.asMObject();
+               MFnNumericData numData(numObj);
+               numData.getData2Float(x, y);
+               AiNodeSetPnt2(arnoldShader, arnoldAttrib, x, y);
+            }
          }
          break;
       case AI_TYPE_MATRIX:
@@ -468,9 +493,9 @@ void CMayaScene::ProcessShaderParameter(MFnDependencyNode shader, const char* pa
 
 // Sky
 //
-const char* CSkyShaderTranslator::GetArnoldNodeType()
+AtNode*  CSkyShaderTranslator::CreateArnoldNodes()
 {
-   return "sky";
+   return AddArnoldNode("sky");
 }
 
 void CSkyShaderTranslator::Export(AtNode* shader)
@@ -480,9 +505,7 @@ void CSkyShaderTranslator::Export(AtNode* shader)
    AiNodeSetVec(shader, "Y", 0.0f, 1.0f, 0.0f);
    AiNodeSetVec(shader, "Z", 0.0f, 0.0f, -1.0f);
 
-   MDagPath nodeDagPath;
-   m_fnNode.getPath(nodeDagPath);
-   MFnDependencyNode trNode(nodeDagPath.transform());
+   MFnDependencyNode trNode(m_dagPath.transform());
 
    MPlug plug   = trNode.findPlug("rotateX");
    MAngle angle;
@@ -497,8 +520,8 @@ void CSkyShaderTranslator::Export(AtNode* shader)
    plug.getValue(angle);
    AiNodeSetFlt(shader, "Z_angle", static_cast<float>(-angle.asDegrees()));
 
-   ProcessParameter(shader, "color", AI_TYPE_RGB);
-   ProcessParameter(shader, "format", AI_TYPE_ENUM);
+   ProcessParameter(shader, "color",     AI_TYPE_RGB);
+   ProcessParameter(shader, "format",    AI_TYPE_ENUM);
    ProcessParameter(shader, "intensity", AI_TYPE_FLOAT);
 
    AtInt visibility = ComputeVisibility();
@@ -508,9 +531,9 @@ void CSkyShaderTranslator::Export(AtNode* shader)
 
 // Lambert
 //
-const char* CLambertTranslator::GetArnoldNodeType()
+AtNode*  CLambertTranslator::CreateArnoldNodes()
 {
-   return "lambert";
+   return AddArnoldNode("lambert");
 }
 
 void CLambertTranslator::Export(AtNode* shader)
@@ -521,14 +544,14 @@ void CLambertTranslator::Export(AtNode* shader)
 
    MPlugArray connections;
 
-   MPlug plug = m_fnNode.findPlug("normalCamera");
+   MPlug plug = GetFnNode().findPlug("normalCamera");
 
    plug.connectedTo(connections, true, false);
    if (connections.length() > 0)
    {
       MString m_outputAttr = connections[0].partialName(false, false, false, false, false, true);
 
-      AtNode* m_fnNode = m_scene->ExportShader(connections[0].node(), m_outputAttr);
+      AtNode* m_fnNode = ExportShader(connections[0].node(), m_outputAttr);
 
       if (m_fnNode != NULL)
          AiNodeLink(m_fnNode, "@before", shader);
@@ -537,9 +560,9 @@ void CLambertTranslator::Export(AtNode* shader)
 
 // SurfaceShader
 //
-const char* CSurfaceShaderTranslator::GetArnoldNodeType()
+AtNode*  CSurfaceShaderTranslator::CreateArnoldNodes()
 {
-   return "flat";
+   return AddArnoldNode("flat");
 }
 
 void CSurfaceShaderTranslator::Export(AtNode* shader)
@@ -550,16 +573,16 @@ void CSurfaceShaderTranslator::Export(AtNode* shader)
 
 // File
 //
-const char* CFileTranslator::GetArnoldNodeType()
+AtNode*  CFileTranslator::CreateArnoldNodes()
 {
-   return "MayaFile";
+   return AddArnoldNode("MayaFile");
 }
 
 void CFileTranslator::Export(AtNode* shader)
 {
    MPlugArray connections;
 
-   MPlug plug = m_fnNode.findPlug("uvCoord");
+   MPlug plug = GetFnNode().findPlug("uvCoord");
 
    plug.connectedTo(connections, true, false);
 
@@ -590,9 +613,9 @@ void CFileTranslator::Export(AtNode* shader)
    MString resolvedFilename;
    MString frameNumber("0");
    MStatus status;
-   frameNumber += m_scene->GetCurrentFrame() + m_fnNode.findPlug("frameOffset").asInt();
+   frameNumber += GetCurrentFrame() + GetFnNode().findPlug("frameOffset").asInt();
    MRenderUtil::exactFileTextureName(m_object, filename);
-   resolvedFilename = MRenderUtil::exactFileTextureName(filename, m_fnNode.findPlug("useFrameExtension").asBool(), frameNumber, &status);
+   resolvedFilename = MRenderUtil::exactFileTextureName(filename, GetFnNode().findPlug("useFrameExtension").asBool(), frameNumber, &status);
    if (status == MStatus::kSuccess)
    {
       resolvedFilename = filename;
@@ -610,7 +633,7 @@ void CFileTranslator::Export(AtNode* shader)
    }
    else
    {
-      resolvedFilename = m_fnNode.findPlug("filename").asString();
+      resolvedFilename = GetFnNode().findPlug("filename").asString();
    }
    AiNodeSetStr(shader, "filename", resolvedFilename.asChar());
 
@@ -625,9 +648,9 @@ void CFileTranslator::Export(AtNode* shader)
 
 // Bump2d
 //
-const char* CBump2DTranslator::GetArnoldNodeType()
+AtNode*  CBump2DTranslator::CreateArnoldNodes()
 {
-   return "bump2d";
+   return AddArnoldNode("bump2d");
 }
 
 void CBump2DTranslator::Export(AtNode* shader)
@@ -638,9 +661,9 @@ void CBump2DTranslator::Export(AtNode* shader)
 
 // Bump3d
 //
-const char* CBump3DTranslator::GetArnoldNodeType()
+AtNode*  CBump3DTranslator::CreateArnoldNodes()
 {
-   return "bump3d";
+   return AddArnoldNode("bump3d");
 }
 
 void CBump3DTranslator::Export(AtNode* shader)
@@ -651,18 +674,18 @@ void CBump3DTranslator::Export(AtNode* shader)
 
 // SamplerInfo
 //
-const char* CSamplerInfoTranslator::GetArnoldNodeType()
+AtNode* CSamplerInfoTranslator::CreateArnoldNodes()
 {
    if (m_outputAttr == "facingRatio")
    {
-      return "MayaFacingRatio";
+      return AddArnoldNode("MayaFacingRatio");
    }
    else if (m_outputAttr == "flippedNormal")
    {
-      return "MayaFlippedNormal";
+      return AddArnoldNode("MayaFlippedNormal");
    }
    else
-      return "";
+      return NULL;
 }
 
 void CSamplerInfoTranslator::Export(AtNode* shader)
@@ -670,22 +693,22 @@ void CSamplerInfoTranslator::Export(AtNode* shader)
 
 // PlusMinusAverage
 //
-const char* CPlusMinusAverageTranslator::GetArnoldNodeType()
+AtNode* CPlusMinusAverageTranslator::CreateArnoldNodes()
 {
    if (m_outputAttr == "output1D")
    {
-      return "MayaPlusMinusAverage1D";
+      return AddArnoldNode("MayaPlusMinusAverage1D");
    }
    else if (m_outputAttr == "output2D")
    {
-      return "MayaPlusMinusAverage2D";
+      return AddArnoldNode("MayaPlusMinusAverage2D");
    }
    else if (m_outputAttr == "output3D")
    {
-      return "MayaPlusMinusAverage3D";
+      return AddArnoldNode("MayaPlusMinusAverage3D");
    }
    else
-      return "";
+      return NULL;
 }
 
 void CPlusMinusAverageTranslator::Export(AtNode* shader)
@@ -725,7 +748,7 @@ void CPlusMinusAverageTranslator::Export(AtNode* shader)
    if (numElements > 8)
    {
       MString warning;
-      warning.format("[mtoa] plusMinusAverage node '^1s' has more than 8 inputs, only the first 8 will be handled", m_fnNode.name());
+      warning.format("plusMinusAverage node '^1s' has more than 8 inputs, only the first 8 will be handled", m_fnNode.name());
       MGlobal::displayWarning(warning);
 
       numElements = 8;
@@ -750,18 +773,18 @@ void CPlusMinusAverageTranslator::Export(AtNode* shader)
 
 // RemapValue
 //
-const char* CRemapValueTranslator::GetArnoldNodeType()
+AtNode* CRemapValueTranslator::CreateArnoldNodes()
 {
    if (m_outputAttr == "outValue")
    {
-      return "MayaRemapValueToValue";
+      return AddArnoldNode("MayaRemapValueToValue");
    }
    else if (m_outputAttr == "outColor")
    {
-      return "MayaRemapValueToColor";
+      return AddArnoldNode("MayaRemapValueToColor");
    }
    else
-      return "";
+      return NULL;
 }
 
 void CRemapValueTranslator::Export(AtNode* shader)
@@ -778,9 +801,9 @@ void CRemapValueTranslator::Export(AtNode* shader)
    {
       MPlug attr, elem, pos, val, interp;
 
-      MObject opos = m_fnNode.attribute("value_Position");
-      MObject oval = m_fnNode.attribute("value_FloatValue");
-      MObject ointerp = m_fnNode.attribute("value_Interp");
+      MObject opos = GetFnNode().attribute("value_Position");
+      MObject oval = GetFnNode().attribute("value_FloatValue");
+      MObject ointerp = GetFnNode().attribute("value_Interp");
 
       // FIXME: make inputValue the name of the parameter on the MayaRemapValue shader
       ProcessParameter(shader, "inputValue", "input", AI_TYPE_FLOAT);
@@ -790,7 +813,7 @@ void CRemapValueTranslator::Export(AtNode* shader)
       ProcessParameter(shader, "outputMax", AI_TYPE_FLOAT);
 
       // Note: this doesn't handle connection coming in individual elements
-      attr = m_fnNode.findPlug("value");
+      attr = GetFnNode().findPlug("value");
       AtArray *positions = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_FLOAT);
       AtArray *values = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_FLOAT);
       AtArray *interps = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_STRING);
@@ -823,9 +846,9 @@ void CRemapValueTranslator::Export(AtNode* shader)
    {
       MPlug attr, elem, pos, val, interp;
 
-      MObject opos = m_fnNode.attribute("color_Position");
-      MObject oval = m_fnNode.attribute("color_Color");
-      MObject ointerp = m_fnNode.attribute("color_Interp");
+      MObject opos = GetFnNode().attribute("color_Position");
+      MObject oval = GetFnNode().attribute("color_Color");
+      MObject ointerp = GetFnNode().attribute("color_Interp");
 
       // FIXME: make inputValue the name of the parameter on the MayaRemapValue shader
       ProcessParameter(shader, "inputValue", "input", AI_TYPE_FLOAT);
@@ -835,7 +858,7 @@ void CRemapValueTranslator::Export(AtNode* shader)
       ProcessParameter(shader, "outputMax", AI_TYPE_FLOAT);
 
       // Note: this doesn't handle connection coming in individual elements
-      attr = m_fnNode.findPlug("color");
+      attr = GetFnNode().findPlug("color");
       AtArray *positions = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_FLOAT);
       AtArray *values = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_RGB);
       AtArray *interps = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_STRING);
@@ -872,13 +895,13 @@ void CRemapValueTranslator::Export(AtNode* shader)
 
 // Remap Color
 //
-const char* CRemapColorTranslator::GetArnoldNodeType()
+AtNode* CRemapColorTranslator::CreateArnoldNodes()
 {
    if (m_outputAttr == "outColor")
    {
       //FIXME: missing AiNode()!
    }
-   return "";
+   return NULL;
 }
 
 void CRemapColorTranslator::Export(AtNode* shader)
@@ -908,12 +931,12 @@ void CRemapColorTranslator::Export(AtNode* shader)
 
       for (int ci=0; ci<3; ++ci)
       {
-         MObject opos = m_fnNode.attribute(posNames[ci*2]);
-         MObject oval = m_fnNode.attribute(valNames[ci*2]);
-         MObject ointerp = m_fnNode.attribute(interpNames[ci*2]);
+         MObject opos = GetFnNode().attribute(posNames[ci*2]);
+         MObject oval = GetFnNode().attribute(valNames[ci*2]);
+         MObject ointerp = GetFnNode().attribute(interpNames[ci*2]);
 
          // Note: this doesn't handle connection coming in individual elements
-         attr = m_fnNode.findPlug(plugNames[ci]);
+         attr = GetFnNode().findPlug(plugNames[ci]);
          AtArray *positions = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_FLOAT);
          AtArray *values = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_FLOAT);
          AtArray *interps = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_STRING);
@@ -948,9 +971,9 @@ void CRemapColorTranslator::Export(AtNode* shader)
 
 // Projection
 //
-const char* CProjectionTranslator::GetArnoldNodeType()
+AtNode*  CProjectionTranslator::CreateArnoldNodes()
 {
-   return "MayaProjection";
+   return AddArnoldNode("MayaProjection");
 }
 
 void CProjectionTranslator::Export(AtNode* shader)
@@ -972,7 +995,7 @@ void CProjectionTranslator::Export(AtNode* shader)
    // alphaIsLuminance?
 
    // shaderMatrix
-   MPlug plug = m_fnNode.findPlug("shaderMatrix");
+   MPlug plug = GetFnNode().findPlug("shaderMatrix");
    // should follow connections here also
    // temporarily just read the value
    AtMatrix ipm;
@@ -986,8 +1009,8 @@ void CProjectionTranslator::Export(AtNode* shader)
    // FIXME: change shader parameter name to match maya
    ProcessParameter(shader, "fitFill", "fillType", AI_TYPE_INT);
 
-   MPlug typePlug = m_fnNode.findPlug("projType");
-   plug = m_fnNode.findPlug("linkedCamera");
+   MPlug typePlug = GetFnNode().findPlug("projType");
+   plug = GetFnNode().findPlug("linkedCamera");
    MPlugArray connections;
    plug.connectedTo(connections, true, false);
    if (connections.length() >= 1 && typePlug.asInt() == 8)
@@ -1013,9 +1036,9 @@ void CProjectionTranslator::Export(AtNode* shader)
 
 // Ramp
 //
-const char* CRampTranslator::GetArnoldNodeType()
+AtNode*  CRampTranslator::CreateArnoldNodes()
 {
-   return "MayaRamp";
+   return AddArnoldNode("MayaRamp");
 }
 
 void CRampTranslator::Export(AtNode* shader)
@@ -1037,9 +1060,9 @@ void CRampTranslator::Export(AtNode* shader)
    MPlug plug, elem, pos, col;
    MPlugArray connections;
 
-   MObject opos = m_fnNode.attribute("position");
-   MObject ocol = m_fnNode.attribute("color");
-   plug = m_fnNode.findPlug("colorEntryList");
+   MObject opos = GetFnNode().attribute("position");
+   MObject ocol = GetFnNode().attribute("color");
+   plug = GetFnNode().findPlug("colorEntryList");
    AtArray *positions = AiArrayAllocate(plug.numElements(), 1, AI_TYPE_FLOAT);
    AtArray *colors = AiArrayAllocate(plug.numElements(), 1, AI_TYPE_RGB);
    // Connections on individual array element are not handled
@@ -1071,9 +1094,9 @@ void CRampTranslator::Export(AtNode* shader)
 
 // Place2DTexture
 
-const char* CPlace2DTextureTranslator::GetArnoldNodeType()
+AtNode*  CPlace2DTextureTranslator::CreateArnoldNodes()
 {
-   return "MayaPlace2DTexture";
+   return AddArnoldNode("MayaPlace2DTexture");
 }
 
 void CPlace2DTextureTranslator::Export(AtNode* shader)
@@ -1094,9 +1117,9 @@ void CPlace2DTextureTranslator::Export(AtNode* shader)
 
 // LayeredTexture
 //
-const char* CLayeredTextureTranslator::GetArnoldNodeType()
+AtNode*  CLayeredTextureTranslator::CreateArnoldNodes()
 {
-   return "MayaLayeredTexture";
+   return AddArnoldNode("MayaLayeredTexture");
 }
 
 void CLayeredTextureTranslator::Export(AtNode* shader)
@@ -1112,7 +1135,7 @@ void CLayeredTextureTranslator::Export(AtNode* shader)
    AtUInt numElements = attr.numElements();
    if (numElements > 8)
    {
-      MGlobal::displayWarning("[mtoa] layeredTexture node has more than 8 inputs, only the first 8 will be handled");
+      AiMsgWarning("layeredTexture node has more than 8 inputs, only the first 8 will be handled");
       numElements = 8;
    }
 
@@ -1179,9 +1202,9 @@ void CLayeredTextureTranslator::Export(AtNode* shader)
 
 // LayeredShader
 //
-const char* CLayeredShaderTranslator::GetArnoldNodeType()
+AtNode*  CLayeredShaderTranslator::CreateArnoldNodes()
 {
-   return "MayaLayeredShader";
+   return AddArnoldNode("MayaLayeredShader");
 }
 
 void CLayeredShaderTranslator::Export(AtNode* shader)
@@ -1199,7 +1222,7 @@ void CLayeredShaderTranslator::Export(AtNode* shader)
    AtUInt numElements = attr.numElements();
    if (numElements > 8)
    {
-      MGlobal::displayWarning("[mtoa] layeredShader node has more than 8 inputs, only the first 8 will be handled");
+      AiMsgWarning("LayeredShader node has more than 8 inputs, only the first 8 will be handled");
       numElements = 8;
    }
 

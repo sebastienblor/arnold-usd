@@ -20,8 +20,8 @@ node_parameters
    AiParameterRGB("max", 1, 1, 1);
    AiParameterRGB("input", 0, 0, 0);
 
-   AiMetaDataSetStr(mds, NULL, "maya.counterpart", "clamp");
-   AiMetaDataSetInt(mds, NULL, "maya.counterpart_id", 0x52434c33);
+   AiMetaDataSetStr(mds, NULL, "maya.name", "clamp");
+   AiMetaDataSetInt(mds, NULL, "maya.id", 0x52434c33);
 }
 
 node_initialize

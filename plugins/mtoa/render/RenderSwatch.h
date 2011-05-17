@@ -1,10 +1,12 @@
 #ifndef RENDERSWATCH_H
 #define RENDERSWATCH_H
 
+#include "platform/Platform.h"
 #include "render/RenderSession.h"
 
 #include <maya/MSwatchRenderBase.h> 
 #include <maya/MString.h>
+#include <maya/MPlugArray.h>
 
 /** Render Swatches!
  * 
@@ -16,10 +18,24 @@
  * the name of the shader classification. A shader with the
  * classification shader/surface will cause it to look for
  * $MTOA_SWATCH_ASS_PATH/shader_surface.ass. There must be a
- * node called "swatch_hook" in that scene for it to apply the
+ * node called "swatch_geo" in that scene for it to apply the
  * shader too.
  */
- 
+
+typedef enum
+{
+   SWATCH_NONE,
+   SWATCH_SHADER,
+   SWATCH_DISPLACEMENT,
+   SWATCH_ENVIRONMENT,
+   SWATCH_ATMOSPHERE,
+   SWATCH_LIGHT,
+   SWATCH_LIGHTFILTER
+} CRenderSwatchClass;
+
+
+class CNodeTranslator;
+
 class DLLEXPORT CRenderSwatchGenerator
    :  public MSwatchRenderBase
 {
@@ -37,24 +53,47 @@ public:
    virtual bool doIteration();
 
 private:
-   /// Load an ASS file for the swatch.
-   /// \param node the node to load the ass for.
-   void LoadSwatchAssForNode( const MObject & node );
-   /// Creates a simple sphere, light and camera.
-   void SimpleSurfaceAss();
+   /// Extracts the swatch class from the previwed
+   /// node classification
+   void SetSwatchClass(const MObject & swatchNode);
    /// Build the Arnold scene.
-   /// \see LoadSwatchAssForNode
-   /// \see SimpleSurfaceAss
-   void BuildAss();
+   /// \see LoadAssForNode
+   /// \see DefaultArnoldScene
+   /// \see ExportNode
+   /// \see AssignNode
+   /// \see ApplyOverrides
+   MStatus BuildArnoldScene();
+   /// Load an ASS file for the swatch.
+   /// \see BuildArnoldScene
+   MStatus LoadAssForNode();
+   /// Creates a simple Arnold scene (sphere by default)
+   /// \see BuildArnoldScene
+   MStatus DefaultArnoldScene();
+   /// Export previewed node and apply specific overrides
+   /// on the built Arnold Scene.
+   /// \see BuildArnoldScene
+   MStatus ExportNode(AtNode* & arnoldNode, CNodeTranslator* & translator);
+   /// Assign the exported node to the Arnold scene.
+   /// \see BuildArnoldScene
+   /// \see ExportSwatchNode
+   MStatus AssignNode(AtNode* const arnoldNode);
+   /// Apply specified overrides on the Arnold scene.
+   /// \see BuildArnoldScene
+   MStatus ApplyOverrides(CNodeTranslator* const translator);
+
    /// Print an error and clear the swatch.
    /// \param msg the error message.
-   void ErrorSwatch( const MString msg);
+   void ErrorSwatch(const MString msg);
    /// Clear the swatch.
    void ClearSwatch();
+   /// Creates a polygon sphere.
+   AtNode* PolySphere();
 
 private:
    CRenderSession * m_renderSession;
    int m_iteration;
+   MString m_nodeClass;
+   CRenderSwatchClass m_swatchClass;
 
 };
       

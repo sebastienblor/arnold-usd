@@ -16,8 +16,8 @@ node_parameters
 {
    AiParameterRGB("input", 0, 0, 0);
 
-   AiMetaDataSetStr(mds, NULL, "maya.counterpart", "reverse");
-   AiMetaDataSetInt(mds, NULL, "maya.counterpart_id", 0x52525653);
+   AiMetaDataSetStr(mds, NULL, "maya.name", "reverse");
+   AiMetaDataSetInt(mds, NULL, "maya.id", 0x52525653);
 }
 
 node_initialize

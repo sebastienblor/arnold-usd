@@ -1,7 +1,7 @@
 #ifndef HAIR_H
 #define HAIR_H
 
-#include "scene/NodeTranslator.h"
+#include "scene/Geometry.h"
 
 #include <maya/MFnMesh.h>
 #include <maya/MMeshIntersector.h>
@@ -9,50 +9,60 @@
 class CHairLine
 {
 public:
-   CHairLine() {}
-   ~CHairLine() {}
-   void SetCurvePoints(MVectorArray &points) { curvePoints = points; };
-   void SetCurveWidths(MDoubleArray &widths) { curveWidths = widths; };
-   void GetCurvePoints(MVectorArray &points) const { points = curvePoints; };
-   void GetCurveWidths(MDoubleArray &widths) const { widths = curveWidths; };
+   void SetCurvePoints(MVectorArray &points) { curvePoints = points; }
+   void SetCurveWidths(MDoubleArray &widths) { curveWidths = widths; }
+   void GetCurvePoints(MVectorArray &points) const { points = curvePoints; }
+   void GetCurveWidths(MDoubleArray &widths) const { widths = curveWidths; }
+   void clear()
+   {
+      curvePoints.clear();
+      curveWidths.clear();
+   }
+
 private:
    MVectorArray curvePoints;
    MDoubleArray curveWidths;
 };
 
 class DLLEXPORT CHairTranslator
-   :   public CShapeTranslator
+   :   public CGeoTranslator
 {
 public:
-   void Init(MDagPath& dagPath, CMayaScene* scene, MString outputAttr="")
-   {
-      CShapeTranslator::Init(dagPath, scene, outputAttr);
-      m_dagPath = dagPath;
-      m_fnNode.setObject(dagPath);
-      m_scene = scene;
-      m_outputAttr = outputAttr;
-
-      m_numMainLines = 0;
-   }
-   bool RequiresMotionData()
-   {
-      return true;
-   }
-   void Export(AtNode* camera);
-   void ExportMotion(AtNode* camera, AtUInt step);
+   CHairTranslator()
+      :m_numMainLines(0)
+   {}
+   
+   virtual void Export(AtNode* curve);
+   virtual void Update(AtNode* curve);
+   virtual void ExportMotion(AtNode* curve, AtUInt step);
    static void NodeInitializer(MString nodeClassName);
+   AtNode* CreateArnoldNodes();
    static void* creator()
    {
       return new CHairTranslator();
    }
-   const char* GetArnoldNodeType();
+
+   
+private:
+   void ProcessHairLines(AtUInt step,
+                         AtArray* curvePoints,
+                         AtArray* curveNextLineStartsInterp,
+                         AtArray* curveNextLineStarts,
+                         AtArray* curveWidths);
+   AtVector2 GetHairRootUVs(const MVector& lineStart, MMeshIntersector& meshInt, MFnMesh& mesh);
+   void GetHairShapeMeshes(const MObject& hair, MDagPathArray& shapes);
+   AtUInt GetHairLines(MObject& hair, std::vector<CHairLine>& hairLines);
+   void clear()
+   {
+      m_numMainLines = 0;
+      m_hairLines.clear();
+   }
+
 private:
    std::vector<CHairLine> m_hairLines;
    AtUInt m_numMainLines;
 
-   AtVector2 GetHairRootUVs(const MVector& lineStart, MMeshIntersector& meshInt, MFnMesh& mesh);
-   void GetHairShapeMeshes(const MObject& hair, MDagPathArray& shapes);
-   AtUInt GetHairLines(MObject& hair, std::vector<CHairLine>& hairLines);
+   
 };
 
 #endif // HAIR_H

@@ -8,14 +8,11 @@ class DLLEXPORT CLightTranslator
 {
 public:
 
-   void Init(MDagPath& dagPath, CMayaScene* scene, MString outputAttr="")
+   virtual AtNode* Init(MDagPath& dagPath, CMayaScene* scene, MString outputAttr="")
    {
       CDagTranslator::Init(dagPath, scene, outputAttr);
       m_motion = scene->IsLightMotionBlurEnabled();
-      m_dagPath = dagPath;
-      m_fnNode.setObject(dagPath);
-      m_scene = scene;
-      m_outputAttr = outputAttr;
+      return m_atNode;
    }
    bool RequiresMotionData()
    {
@@ -23,9 +20,9 @@ public:
    }
    static void NodeInitializer(MString nodeClassName);
 protected:
-   void Export(AtNode* light, bool mayaAttrs=true);
-   void ExportMotion(AtNode* light, AtUInt step);
-   void ExportLightFilters(AtNode* light, const MObjectArray &filters);
+   virtual void Export(AtNode* light, bool mayaAttrs=true);
+   virtual void ExportMotion(AtNode* light, AtUInt step);
+   virtual void ExportLightFilters(AtNode* light, const MObjectArray &filters);
    virtual void Delete();
 
 protected:
@@ -40,13 +37,9 @@ public:
    {
       return new CAmbientLightTranslator();
    }
-   bool RequiresMotionData()
+   AtNode* CreateArnoldNodes()
    {
-      return false;
-   }
-   const char* GetArnoldNodeType()
-   {
-      return "ambient_light";
+      return AddArnoldNode("ambient_light");
    }
 };
 
@@ -54,13 +47,14 @@ class DLLEXPORT CDirectionalLightTranslator : public CLightTranslator
 {
 public:
    void Export(AtNode* light);
+   static void NodeInitializer(MString nodeClassName);
    static void* creator()
    {
       return new CDirectionalLightTranslator();
    }
-   const char* GetArnoldNodeType()
+   AtNode* CreateArnoldNodes()
    {
-      return "distant_light";
+      return AddArnoldNode("distant_light");
    }
 };
 
@@ -73,9 +67,9 @@ public:
    {
       return new CPointLightTranslator();
    }
-   const char* GetArnoldNodeType()
+   AtNode* CreateArnoldNodes()
    {
-      return "point_light";
+      return AddArnoldNode("point_light");
    }
 };
 
@@ -88,9 +82,9 @@ public:
    {
       return new CSpotLightTranslator();
    }
-   const char* GetArnoldNodeType()
+   AtNode* CreateArnoldNodes()
    {
-      return "spot_light";
+      return AddArnoldNode("spot_light");
    }
 };
 
@@ -103,9 +97,9 @@ public:
    {
       return new CAreaLightTranslator();
    }
-   const char* GetArnoldNodeType()
+   AtNode* CreateArnoldNodes()
    {
-      return "quad_light";
+      return AddArnoldNode("quad_light");
    }
 };
 
@@ -117,9 +111,9 @@ public:
    {
       return new CSkyDomeLightTranslator();
    }
-   const char* GetArnoldNodeType()
+   AtNode* CreateArnoldNodes()
    {
-      return "skydome_light";
+      return AddArnoldNode("skydome_light");
    }
 };
 #endif // LIGHTS_H

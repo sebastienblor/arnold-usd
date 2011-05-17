@@ -3,78 +3,110 @@
 
 #include "scene/NodeTranslator.h"
 
-struct CCameraData
-{
-   float fov;
-   double apertureX;
-   double apertureY;
-   double lensSqueeze;
-   double scale;
-   double focalLength;
-   double factorX;
-   double factorY;
-   double width;
-   double deviceAspect;
-   CCameraData() : fov(0),
-                   apertureX(0),
-                   apertureY(0),
-                   lensSqueeze(0),
-                   scale(0),
-                   focalLength(0),
-                   factorX(0),
-                   factorY(0),
-                   width(0),
-                   deviceAspect(0)
-   {};
-};
-
 class DLLEXPORT CCameraTranslator
    :   public CDagTranslator
 {
 public:
-   void Init(MDagPath& dagPath, CMayaScene* scene, MString outputAttr="")
+   virtual AtNode* Init(MDagPath& dagPath, CMayaScene* scene, MString outputAttr="")
    {
-      CDagTranslator::Init(dagPath, scene, outputAttr);
-      m_motion = m_scene->IsCameraMotionBlurEnabled();
+      m_atNode = CDagTranslator::Init(dagPath, scene, outputAttr);
+      m_motion = scene->IsCameraMotionBlurEnabled();
       m_fnCamera.setObject(dagPath);
-      m_dagPath = dagPath;
-      m_fnNode.setObject(dagPath);
-      m_scene = scene;
-      m_outputAttr = outputAttr;
+      return m_atNode;
    }
-   bool RequiresMotionData()
+   
+   // FIXME: this method shouldn't be required.
+   virtual bool RequiresMotionData()
    {
       return m_motion;
    }
+
+protected:
+   double GetDeviceAspect();
+   void SetFilmTransform(AtNode* camera, double factorX=0, double factorY=0, double width=0, bool persp=true);
+   void ExportImagePlanes(AtUInt step);
+   void ExportImagePlane(AtUInt step, MObject& imgPlane);
+   void ExportDOF(AtNode* camera);
+   void ExportCameraData(AtNode* camera);
+   void ExportCameraMBData(AtNode* camera, AtUInt step);
+   static void MakeDefaultAttributes(CExtensionAttrHelper &helper);
+   static void MakeDOFAttributes(CExtensionAttrHelper &helper);
+
+protected:
+   bool m_motion;
+   MFnCamera m_fnCamera;
+};
+
+
+class DLLEXPORT CPerspCameraTranslator
+      :   public CCameraTranslator
+{
+public:
+   virtual void Export(AtNode* camera);
+   virtual void ExportMotion(AtNode* camera, AtUInt step);
+   static void NodeInitializer(MString nodeClassName);
+   static void* creator()
+   {
+      return new CPerspCameraTranslator();
+   }
+   AtNode* CreateArnoldNodes();
+
+protected:
+   // return FOV
+   float ExportFilmback(AtNode* camera);
+};
+
+
+class DLLEXPORT COrthoCameraTranslator
+      :   public CCameraTranslator
+{
+public:
+   void Export(AtNode* camera);
+   void ExportMotion(AtNode* camera, AtUInt step);
+    static void NodeInitializer(MString nodeClassName);
+   static void* creator()
+   {
+      return new COrthoCameraTranslator();
+   }
+   AtNode* CreateArnoldNodes();
+
+protected:
+   void ExportFilmback(AtNode* camera);
+};
+
+class DLLEXPORT CFishEyeCameraTranslator
+      :   public CCameraTranslator
+{
+public:
    void Export(AtNode* camera);
    void ExportMotion(AtNode* camera, AtUInt step);
    static void NodeInitializer(MString nodeClassName);
    static void* creator()
    {
-      return new CCameraTranslator();
+      return new CFishEyeCameraTranslator();
    }
-   const char* GetArnoldNodeType();
+   AtNode* CreateArnoldNodes();
 
 protected:
-   double GetDeviceAspect();
-   void ExportOrthoFilmback(AtNode* camera);
-   void ExportPerspFilmback(AtNode* camera);
-   MVectorArray GetFilmTransform(double width=0, bool persp=true);
-   void ExportImagePlane(AtUInt step);
-
-   void ExportOrtho(AtNode* camera);
-   void ExportOrthoMotion(AtNode* camera, AtInt step);
-   void ExportPersp(AtNode* camera);
-   void ExportPerspMotion(AtNode* camera, AtInt step);
-
-   void ExportCameraData(AtNode* camera);
-   void ExportCameraMBData(AtNode* camera, AtUInt step);
-
-
-protected:
-   bool m_motion;
-   CCameraData m_cameraData;
-   MFnCamera m_fnCamera;
+   // return FOV
+   float ExportFilmback(AtNode* camera);
 };
 
+class DLLEXPORT CCylCameraTranslator
+      :   public CCameraTranslator
+{
+public:
+   void Export(AtNode* camera);
+   void ExportMotion(AtNode* camera, AtUInt step);
+   static void NodeInitializer(MString nodeClassName);
+   static void* creator()
+   {
+      return new CCylCameraTranslator();
+   }
+   AtNode* CreateArnoldNodes();
+
+protected:
+   // return FOV
+   void ExportFilmback(AtNode* camera, float fovs[]);
+};
 #endif // CAMERAS_H
