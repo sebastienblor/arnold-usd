@@ -122,7 +122,7 @@ void CRenderOptionsTranslator::Export(AtNode *options)
       break;
 
    case 1:  // Fog
-      list.add("defaultFogShader");
+      list.add("defaultFog");
       if (list.length() > 0)
       {
          list.getDependNode(0, node);
@@ -131,7 +131,7 @@ void CRenderOptionsTranslator::Export(AtNode *options)
       break;
 
    case 2:  // Volume Scattering
-      list.add("defaultVolumeScatteringShader");
+      list.add("defaultVolumeScattering");
       if (list.length() > 0)
       {
          list.getDependNode(0, node);
