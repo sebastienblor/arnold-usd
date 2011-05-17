@@ -2,7 +2,7 @@
 
 #include <ai.h>
 
-#include <cstring>
+#include <string>
 
 #ifdef _MSC_VER
 #define _USE_MATH_DEFINES

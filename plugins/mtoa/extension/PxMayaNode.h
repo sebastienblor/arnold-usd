@@ -1,7 +1,7 @@
 #ifndef PXMAYANODE_H
 #define PXMAYANODE_H
 
-#include <cstring>
+#include <string>
 #include <maya/MString.h>
 #include <maya/MPxNode.h>
 

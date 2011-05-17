@@ -24,7 +24,6 @@
 #include <maya/MRenderUtil.h>
 
 #include <string>
-#include <cstring>
 
 
 static bool SortFloatArray(AtArray *a, AtUInt *shuffle = NULL)

@@ -95,7 +95,7 @@ MString CExtension::LoadArnoldPlugin(const MString &file,
    }
    MString resolved;
    resolved = FindFileInPath(searchFile, path, &status);
-   if (MStatus::kSuccess == status)
+   if (MStatus::kSuccess == status && resolved.numChars() > 0)
    {
       AiMsgDebug("[%s] Found Arnold plugin file %s as %s.", m_extensionName.asChar(), file.asChar(), resolved.asChar());
       status = NewArnoldPlugin(resolved);
@@ -769,7 +769,7 @@ MString CExtension::FindFileInPath(const MString &file,
                                    MStatus *returnStatus)
 {
    MStatus status = MStatus::kNotFound;
-   MString resolved;
+   MString resolved = "";
 
    MFileObject fileObject;
    fileObject.setRawName(file);

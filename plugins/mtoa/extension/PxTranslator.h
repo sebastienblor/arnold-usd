@@ -1,7 +1,7 @@
 #ifndef PXTRANSLATOR_H
 #define PXTRANSLATOR_H
 
-#include <cstring>
+#include <string>
 #include <maya/MString.h>
 
 #include <ai_nodes.h>

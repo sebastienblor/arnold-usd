@@ -1,7 +1,7 @@
 #ifndef PXARNOLDNODE_H
 #define PXARNOLDNODE_H
 
-#include <cstring>
+#include <string>
 #include <maya/MString.h>
 
 #include <ai_nodes.h>
