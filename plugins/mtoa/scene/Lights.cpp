@@ -72,7 +72,7 @@ void CLightTranslator::Export(AtNode* light, bool mayaAttrs)
    }
 
    AiNodeSetBool(light, "cast_shadows", GetFnNode().findPlug("cast_shadows").asBool());
-   AiNodeSetFlt(light, "exposure", GetFnNode().findPlug("exposure").asInt());
+   AiNodeSetFlt(light, "exposure", GetFnNode().findPlug("exposure").asFloat());
    AiNodeSetInt(light, "samples", GetFnNode().findPlug("samples").asInt());
    AiNodeSetBool(light, "mis", GetFnNode().findPlug("mis").asBool());
    AiNodeSetBool(light, "normalize", GetFnNode().findPlug("normalize").asBool());

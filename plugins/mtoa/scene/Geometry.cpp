@@ -21,6 +21,7 @@
 #include <maya/MGlobal.h>
 #include <maya/MFnNumericAttribute.h>
 #include <maya/MFnMessageAttribute.h>
+#include <maya/MColorArray.h>
 
 #include <vector>
 
@@ -611,7 +612,14 @@ void CGeoTranslator::ExportMeshGeoData(AtNode* polymesh, AtUInt step)
          std::map<std::string, std::vector<float> >::iterator it = vcolors.begin();
          while (it != vcolors.end())
          {
-            AiNodeDeclare(polymesh, it->first.c_str(), "varying RGBA");
+            if (strcmp(it->first.c_str(), "sss_faceset") != 0)
+            {
+               AiNodeDeclare(polymesh, it->first.c_str(), "varying RGBA");
+            }
+            else
+            {
+               AiNodeDeclare(polymesh, "sss_faceset", "uniform BOOL");
+            }
             ++it;
          }
       }
@@ -698,7 +706,44 @@ void CGeoTranslator::ExportMeshGeoData(AtNode* polymesh, AtUInt step)
          std::map<std::string, std::vector<float> >::iterator it = vcolors.begin();
          while (it != vcolors.end())
          {
-            AiNodeSetArray(polymesh, it->first.c_str(), AiArrayConvert(m_fnMesh.numVertices(), 1, AI_TYPE_RGBA, &(it->second[0]), TRUE));
+            if (strcmp(it->first.c_str(), "sss_faceset") != 0)
+            {
+               AiNodeSetArray(polymesh, it->first.c_str(), AiArrayConvert(m_fnMesh.numVertices(), 1, AI_TYPE_RGBA, &(it->second[0]), TRUE));
+            }
+            else
+            {
+               int m_colorId;
+               float m_count = 0.0f;
+               MColorArray colors;
+               MString m_colorSetName = "sss_faceset";
+               MColor m_defaultColor  = MColor(0.0f, 0.0f, 0.0f);
+
+               AtArray *m_sss_faceset_bool = AiArray(m_fnMesh.numPolygons(), 1, AI_TYPE_BOOLEAN, NULL);
+
+               m_fnMesh.getFaceVertexColors(colors, &m_colorSetName, &m_defaultColor);
+
+               for (int m_polygonId = 0; (m_polygonId < (int)m_fnMesh.numPolygons()); m_polygonId++)
+               {
+                  MIntArray m_vertexList;
+                  m_fnMesh.getPolygonVertices(m_polygonId, m_vertexList);
+
+                  m_count = 0.0f;
+                  for (int m_vertexId = 0; (m_vertexId < (int)m_vertexList.length()); m_vertexId++)
+                  {
+                     m_fnMesh.getFaceVertexColorIndex(m_polygonId, m_vertexId, m_colorId, &m_colorSetName);
+                     m_count += (colors[m_colorId][0]+colors[m_colorId][1]+colors[m_colorId][2])/3.0f;
+                  }
+                  if (m_count/(float)m_vertexList.length() >= 0.5f)
+                  {
+                     AiArraySetBool(m_sss_faceset_bool, m_polygonId, true);
+                  }
+                  else
+                  {
+                     AiArraySetBool(m_sss_faceset_bool, m_polygonId, false);
+                  }
+               }
+               AiNodeSetArray(polymesh, "sss_faceset", m_sss_faceset_bool);
+            }
             ++it;
          }
       }
