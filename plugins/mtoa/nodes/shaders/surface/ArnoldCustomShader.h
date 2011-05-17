@@ -5,6 +5,8 @@
 #include <maya/MPxHwShaderNode.h>
 #include <maya/MObjectArray.h>
 
+#include <extension/AbMayaNode.h>
+
 #include <vector>
 
 class CArnoldCustomShaderNode
@@ -21,11 +23,12 @@ public:
 
    virtual MStatus compute(const MPlug& plug, MDataBlock& data);
 
+   CAbMayaNode m_abstract;
+
    static void* creator();
    static MStatus initialize();
 
-   static MString s_shaderName;
-   static MString s_shaderClass;
+   static CAbMayaNode s_abstract;
 
    // Input attributes
    static MObject SAttr[];

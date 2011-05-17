@@ -1,8 +1,6 @@
 
 #include "MayaScene.h"
-#include "Extension.h"
-#include "render/RenderSession.h"
-
+#include "extension/ExtensionsManager.h"
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
@@ -461,17 +459,25 @@ MStatus CMayaScene::ExportDagPath(MDagPath &dagPath)
 {
    MObjectHandle handle = MObjectHandle(dagPath.node());
    int instanceNum = dagPath.instanceNumber();
+   MString name = dagPath.partialPathName();
+   MString type = MFnDagNode(dagPath).typeName();
+   AiMsgDebug("Exporting dag node %s of type %s", name.asChar(), type.asChar());
+
    // early out for nodes that have already been processed
    if (m_processedDagTranslators[handle].count(instanceNum))
       return MStatus::kSuccess;
-   CDagTranslator* translator = CExtension::FindTranslator(dagPath);
-   if (translator != NULL)
+   CDagTranslator* translator = CExtensionsManager::GetTranslator(dagPath);
+   if (translator != NULL && translator->IsDag())
    {
       translator->Init(dagPath, this);
       translator->DoExport(0);
       // save it for later
       m_processedDagTranslators[handle][instanceNum] = translator;
       return MStatus::kSuccess;
+   }
+   else
+   {
+      AiMsgDebug("Dag node %s of type %s ignored", name.asChar(), type.asChar());
    }
    return MStatus::kFailure;
 }
@@ -497,7 +503,7 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
 
    AtNode* shader = NULL;
 
-   CNodeTranslator* translator = CExtension::FindTranslator(mayaShader);
+   CNodeTranslator* translator = CExtensionsManager::GetTranslator(mayaShader);
    if (translator != NULL)
    {
       if (mayaShader.hasFn(MFn::kDagNode))
@@ -524,7 +530,7 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
    }
    else
    {
-      AiMsgWarning("Shader type not supported: %s", MFnDependencyNode(mayaShader).typeName().asChar());
+      AiMsgDebug("Shader type not supported: %s", MFnDependencyNode(mayaShader).typeName().asChar());
    }
 
    if (shader)

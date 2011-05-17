@@ -12,12 +12,13 @@ local_env = maya_env.Clone()
 
 # Automatically add all source and include files found in the source path
 src_base_dir  = os.path.join(local_env['ROOT_DIR'], 'plugins', 'mtoa')
+
 source_files  = [os.path.join('nodes', x) for x in find_files_recursive(os.path.join(src_base_dir, 'nodes'), ['.c', '.cpp'])]
 include_files = [os.path.join('nodes', x) for x in find_files_recursive(os.path.join(src_base_dir, 'nodes'), ['.h'])]
 
 #Remove files to be exported by the API from 'nodes' folder
-source_files_rem = [os.path.join('nodes', x) for x in ['ArnoldNodeFactory.cpp', os.path.join('shaders', 'surface', 'ArnoldCustomShader.cpp')]]
-include_files_rem = [os.path.join('nodes', x) for x in ['ArnoldNodeFactory.h', os.path.join('shaders', 'surface', 'ArnoldCustomShader.h')]]
+source_files_rem = [os.path.join('nodes', x) for x in [os.path.join('shaders', 'surface', 'ArnoldCustomShader.cpp')]]
+include_files_rem = [os.path.join('nodes', x) for x in [os.path.join('shaders', 'surface', 'ArnoldCustomShader.h')]]
 
 for file_rem in source_files_rem:
    source_files.remove(file_rem)
@@ -27,7 +28,6 @@ for file_rem in include_files_rem:
 
 source_files  += find_files(src_base_dir, ['.c', '.cpp'])
 include_files += find_files(src_base_dir, ['.h'])
-
 
 if system.os() == 'darwin':
     local_env.Append(LDMODULESUFFIX='.bundle')

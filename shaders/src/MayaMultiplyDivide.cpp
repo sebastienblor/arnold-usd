@@ -37,8 +37,8 @@ node_parameters
    AiParameterPNT("input2", 0.0f, 0.0f, 0.0f);
    AiParameterENUM("operation", 0, MathOperationNames);
 
-   AiMetaDataSetStr(mds, NULL, "maya.counterpart", "multiplyDivide");
-   AiMetaDataSetInt(mds, NULL, "maya.counterpart_id", 0x524d4449);
+   AiMetaDataSetStr(mds, NULL, "maya.name", "multiplyDivide");
+   AiMetaDataSetInt(mds, NULL, "maya.id", 0x524d4449);
 }
 
 node_initialize

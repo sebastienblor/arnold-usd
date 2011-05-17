@@ -1,6 +1,5 @@
 #include "NodeTranslator.h"
 #include "render/RenderOptions.h"
-#include "nodes/ArnoldNodeFactory.h"
 
 #include <ai_ray.h>
 #include <ai_metadata.h>
@@ -86,10 +85,10 @@ AtNode* CNodeTranslator::DoExport(AtUInt step)
       {
          if (m_outputAttr != "")
             AiMsgDebug("Exporting: %s.%s using translator %s",
-                       GetFnNode().name().asChar(), m_outputAttr.asChar(), GetTranslatorName());
+                       GetFnNode().name().asChar(), m_outputAttr.asChar(), GetTranslatorName().asChar());
          else
-            AiMsgDebug("[mtoa] Exporting: %s using translator %s",
-                       GetFnNode().name().asChar(), GetTranslatorName());
+            AiMsgDebug("Exporting: %s using translator %s",
+                       GetFnNode().name().asChar(), GetTranslatorName().asChar());
          Export(m_atNode);
          ExportUserAttribute(m_atNode);
       }
@@ -97,10 +96,10 @@ AtNode* CNodeTranslator::DoExport(AtUInt step)
       {
          if (m_outputAttr != "")
             AiMsgDebug("Exporting motion: %s.%s using translator %s",
-                       GetFnNode().name().asChar(), m_outputAttr.asChar(), GetTranslatorName());
+                       GetFnNode().name().asChar(), m_outputAttr.asChar(), GetTranslatorName().asChar());
          else
             AiMsgDebug("Exporting motion: %s using translator %s",
-                       GetFnNode().name().asChar(), GetTranslatorName());
+                       GetFnNode().name().asChar(), GetTranslatorName().asChar());
 
          ExportMotion(m_atNode, step);
       }
@@ -603,7 +602,7 @@ MPlug CNodeTranslator::GetPlugElement(MFnDependencyNode& node, MPlug& plug, cons
 {
    if (attr.length() == 0)
    {
-      MGlobal::displayError("[mtoa] Invalid plug name: \"" + MString(attr.c_str()) + "\"");
+      AiMsgError("Invalid plug name: \"%s\"", attr.c_str());
       return MPlug();
    }
 
@@ -617,7 +616,7 @@ MPlug CNodeTranslator::GetPlugElement(MFnDependencyNode& node, MPlug& plug, cons
 
       if (p0 == std::string::npos)
       {
-         MGlobal::displayError("[mtoa] Invalid plug name: \"" + MString(attr.c_str()) + "\"");
+         AiMsgError("Invalid plug name: \"%s\"", attr.c_str());
          return MPlug();
       }
 
@@ -625,7 +624,7 @@ MPlug CNodeTranslator::GetPlugElement(MFnDependencyNode& node, MPlug& plug, cons
 
       if (sscanf(ai.c_str(), "%d", &idx) != 1)
       {
-         MGlobal::displayError("[mtoa] Invalid plug name: \"" + MString(attr.c_str()) + "\"");
+         AiMsgError("Invalid plug name: \"%s\"", attr.c_str());
          return MPlug();
       }
 
@@ -1184,4 +1183,78 @@ void CShapeTranslator::MakeCommonAttributes(CBaseAttrHelper& helper)
    helper.MakeInput("opaque");
 
    MakeArnoldVisibilityFlags(helper);
+}
+
+// AutoTranslator
+//
+AtNode* CAutoTranslator::Init(MDagPath& dagPath, CMayaScene* scene, MString outputAttr)
+{
+   return CNodeTranslator::Init(dagPath.node(), scene, outputAttr);
+}
+
+AtNode* CAutoTranslator::CreateArnoldNodes()
+{
+   MString mayaShader = GetFnNode().typeName();
+   // return AddArnoldNode(CExtensionsManager::GetArnoldNodeFromMayaNode(mayaShader));
+   return AddArnoldNode(m_abstract.arnold.asChar());
+}
+
+void CAutoTranslator::Export(AtNode *shader)
+{
+   MStatus status;
+   MPlug plug;
+   AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(shader->base_node);
+   while (!AiParamIteratorFinished(nodeParam))
+   {
+      const AtParamEntry *paramEntry = AiParamIteratorGetNext(nodeParam);
+      const char* paramName = AiParamGetName(paramEntry);
+
+      if (!strncmp(paramName, "aov_", 4))
+      {
+         CRenderSession *renderSession = CRenderSession::GetInstance();
+         const CRenderOptions *renderOptions = renderSession->RenderOptions();
+
+         // do not check type for now
+         std::string aovName(paramName);
+         aovName = aovName.substr(4);
+         if (renderOptions->FindAOV(aovName.c_str()) != size_t(-1))
+         {
+            AiNodeSetStr(shader, paramName, aovName.c_str());
+         }
+         else
+         {
+            AiNodeSetStr(shader, paramName, "");
+         }
+      }
+      else if (strcmp(paramName, "name"))
+      {
+         AtInt paramType = AiParamGetType(paramEntry);
+
+         // attr name name remap
+         const char* attrName;
+         if (!AiMetaDataGetStr(shader->base_node, paramName, "maya.name", &attrName))
+            attrName = paramName;
+
+         plug = GetFnNode().findPlug(attrName, &status);
+         if (status == MS::kSuccess)
+            ProcessParameter(shader, plug, paramName, paramType);
+         else
+            AiMsgWarning("Attribute %s.%s requested by translator does not exist", GetFnNode().name().asChar(), attrName);
+      }
+   }
+
+   MPlugArray connections;
+
+   plug = GetFnNode().findPlug("normalCamera");
+
+   plug.connectedTo(connections, true, false);
+   if (connections.length() > 0)
+   {
+      MString attrName = connections[0].partialName(false, false, false, false, false, true);
+
+      AtNode* bump = ExportShader(connections[0].node(), attrName);
+
+      if (bump != NULL)
+         AiNodeLink(bump, "@before", shader);
+   }
 }

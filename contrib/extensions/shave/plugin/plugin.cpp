@@ -1,21 +1,23 @@
 #include "ShaveAndHaircut.h"
 
-#include "scene/Extension.h"
+#include "extension/Extension.h"
 
 extern "C"
 {
 
-DLLEXPORT void initializePlugin(CExtension& plugin)
+DLLEXPORT void initializeExtension(CExtension& extension)
 {
-   plugin.RegisterTranslator("shaveHair",
-                                0x1029b7,
-                                "default",
-                                CShaveTranslator::creator,
-                                CShaveTranslator::NodeInitializer,
-                                "shaveNode");
+   MStatus status;
+
+   extension.Requires("shaveNode");
+   extension.LoadArnoldPlugin("shave_shaders");
+   status = extension.RegisterTranslator("shaveHair",
+         "shave",
+         CShaveTranslator::creator,
+         CShaveTranslator::NodeInitializer);
 }
 
-DLLEXPORT void uninitializePlugin(CExtension& plugin)
+DLLEXPORT void deinitializeExtension(CExtension& extension)
 {
 }
 

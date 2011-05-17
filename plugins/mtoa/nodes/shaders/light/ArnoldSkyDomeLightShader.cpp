@@ -223,7 +223,7 @@ MStatus CArnoldSkyDomeLightShaderNode::compute(const MPlug& plug, MDataBlock& bl
    float lightIntensity = block.inputValue(s_intensity).asFloat();
 
    // Components to build LightData
-   MFloatVector& pointCamera = block.inputValue(s_pointCamera).asFloatVector();
+   // MFloatVector& pointCamera = block.inputValue(s_pointCamera).asFloatVector();
    MFloatVector& normalCamera = block.inputValue(s_normalCamera).asFloatVector();
    MFloatVector lightDirection = normalCamera;
    bool affectAmbient = false;

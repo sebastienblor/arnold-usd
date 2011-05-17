@@ -133,7 +133,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       status = MGlobal::executeCommand(cmdStr);
       if (MStatus::kSuccess == status)
       {
-         MGlobal::displayInfo("[mtoa] Exported scene to file " + filename);
+         AiMsgInfo("Exported scene to file %s", filename.asChar());
          if (renderType == MTOA_RENDER_EXPORTASS_AND_KICK)
          {
 #ifdef _WIN32
@@ -151,13 +151,12 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
             // int ret = system(kickCmd.asChar());
             // std::stringstream info;
             // info << "[mtoa] Value returned by kick : " << ret;
-
-            // MGlobal::displayInfo(info.str().c_str());
+            // AiMsgInfo(info.str().c_str());
          }
       }
       else
       {
-         MGlobal::displayError("[mtoa] Failed to export scene to file " + filename);
+         AiMsgError("Failed to export scene to file %s", filename.asChar());
       }
 
       return status;

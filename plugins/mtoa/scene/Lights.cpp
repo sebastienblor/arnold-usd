@@ -23,7 +23,7 @@
 #include <maya/MFnNumericAttribute.h>
 
 #include <vector>
-#include <cstring>
+#include <string>
 
 void CLightTranslator::ExportLightFilters(AtNode* light, const MObjectArray &filterNodes)
 {

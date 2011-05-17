@@ -1,4 +1,4 @@
-#include "nodes/ArnoldNodeFactory.h"
+#include "extension/Extensions.h"
 #include "CustomShapes.h"
 
 void initializePlugin(CExtension& plugin)

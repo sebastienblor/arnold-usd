@@ -1,5 +1,6 @@
 #include "ArnoldPluginCmd.h"
-#include "scene/Extension.h"
+#include "extension/ExtensionsManager.h"
+#include "extension/Extension.h"
 
 #include <maya/MArgDatabase.h>
 #include <maya/MTypes.h>
@@ -25,37 +26,43 @@ MStatus CArnoldPluginCmd::doIt(const MArgList& argList)
       args.getFlagArgument("listTranslators", 0, sel);
       MStatus status;
       MStringArray result;
+      MObject obj;
       MDagPath dagPath;
       status = sel.getDagPath(0, dagPath);
       if (status == MS::kSuccess)
       {
-         result = CExtension::GetAllTranslatorNames(dagPath);
+         obj = dagPath.node();
       }
       else
       {
-         MObject obj;
          status = sel.getDependNode(0, obj);
-         if (status == MS::kSuccess)
-         {
-            result = CExtension::GetAllTranslatorNames(obj);
-         }
+      }
+      if (!obj.isNull())
+      {
+         MString typeName = MFnDependencyNode(obj).typeName();
+         // Can also request only those from a specific extension
+         // with GetTranslatorNames(typeName, provider)
+         result = CExtensionsManager::GetTranslatorNames(typeName);
       }
       setResult(result);
    }
    else if (args.isFlagSet("loadExtension", 0))
    {
       MString extPath = args.flagArgumentString("loadExtension", 0);
-      CExtension::Load(extPath.asChar());
-#if MAYA_API_VERSION < 201200
-      // versions of maya before extension attributes need to manually have their
-      // dynamic attributes updated
-      MNodeClass::InitializeExistingNodes();
-#endif
+      CExtensionsManager::LoadExtension(extPath);
    }
    else if (args.isFlagSet("unloadExtension", 0))
    {
       MString extPath = args.flagArgumentString("unloadExtension", 0);
-      CExtension::Unload(extPath.asChar());
+      CExtension* extension = CExtensionsManager::GetExtension(extPath);
+      if (NULL != extension)
+      {
+         CExtensionsManager::UnloadExtension(extension);
+      }
+      else
+      {
+         MGlobal::displayError(MString("Could not find extension ")+extPath);
+      }
    }
    return MS::kSuccess;
 }

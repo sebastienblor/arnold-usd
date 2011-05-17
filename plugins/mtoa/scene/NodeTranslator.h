@@ -5,6 +5,7 @@
 #include "MayaScene.h"
 #include "render/RenderSwatch.h"
 #include "utils/AttrHelper.h"
+#include "extension/AbTranslator.h"
 
 #include <ai_nodes.h>
 
@@ -20,8 +21,7 @@
 #include <map>
 
 typedef void *   (*CreatorFunction)();
-typedef void     (*NodeInitFunction)(MObject&);
-typedef void     (*NodeClassInitFunction)(MString);
+typedef void     (*NodeInitFunction)(MString);
 
 #include <map>
 #include <vector>
@@ -37,6 +37,7 @@ class DLLEXPORT CNodeTranslator
    // protect this class from its subclasses: make methods that should not be
    // called by subclasses private
    friend class CMayaScene;
+   friend class CExtensionsManager;
    friend class CExtension;
    friend class CRenderSwatchGenerator;
 
@@ -44,7 +45,7 @@ private:
    AtNode* DoExport(AtUInt step);
    AtNode* DoUpdate(AtUInt step);
    AtNode* DoCreateArnoldNodes();
-   void SetTranslatorName(const char* name) {m_translatorName = name;}
+   void SetTranslatorName(MString name) {m_abstract.name = MString(name);}
 
 public:
    virtual ~CNodeTranslator()
@@ -58,12 +59,12 @@ public:
       return DoCreateArnoldNodes();
    }
    virtual MFnDependencyNode GetFnNode() const {return m_fnNode;}
-   const char* GetTranslatorName() {return m_translatorName;}
+   MString GetTranslatorName() {return m_abstract.name;}
    virtual bool IsDag() {return false;}
 
 protected:
    CNodeTranslator()  :
-      m_translatorName("")
+      m_abstract(CAbTranslator())
    {}
    virtual void Export(AtNode* atNode) = 0;
    virtual void ExportMotion(AtNode* atNode, AtUInt step){}
@@ -130,17 +131,23 @@ protected:
    static void NodeDeletedCallback(MObject &node, MDGModifier &modifier, void *clientData);
 
 protected:
+   CAbTranslator m_abstract;
+
    AtNode* m_atNode;
    std::map<std::string, AtNode*> m_atNodes;
    MObject m_object;
    CMayaScene* m_scene;
    MFnDependencyNode m_fnNode;
    MString m_outputAttr;
-   const char* m_translatorName;
+
 
    // This stores callback IDs for the callbacks this
    // translator creates.
    MCallbackIdArray m_mayaCallbackIDs;
+
+   // Manually defined translators can fill this information
+   // to make debugging more explicit
+   MString s_arnoldNodeName;
 
    // This is a help that tells mtoa to re-export/update the node passed in.
    // Used by the IPR callbacks.
@@ -224,5 +231,29 @@ protected:
    bool m_motionDeform;
    
 };
+
+//--------------- CAutoTranslator ------------------------------------------
+
+/// A Translator class which can automatically export simple Maya nodes.
+
+/// To perform an automatic export, the translator does the following:
+///  -# gets the Arnold node entry that corresponds to the Maya node being export from m_arnoldNodeName
+///  -# loops through each parameter on the Arnold node entry
+///  -# processes the equivalent attribute on the Maya node
+///
+
+class CAutoTranslator
+   :  public CNodeTranslator
+{
+public:
+   AtNode* Init(MDagPath& dagPath, CMayaScene* scene, MString outputAttr="");
+   static void* creator()
+   {
+      return new CAutoTranslator();
+   }
+   AtNode* CreateArnoldNodes();
+   void Export(AtNode* atNode);
+};
+
 
 #endif // NODETRANSLATOR_H
