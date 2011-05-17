@@ -125,7 +125,7 @@ public:
    MStatus ExportToArnold();
    AtNode* ExportShader(MObject mayaShader, const MString &attrName="");
    AtNode* ExportShader(MPlug& shaderOutputPlug);
-   MStatus ExportDagPath(MDagPath &dagPath);
+   AtNode* ExportDagPath(MDagPath &dagPath);
 
    inline AtFloat GetCurrentFrame()                      { return m_currentFrame;}
 

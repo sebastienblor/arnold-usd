@@ -552,7 +552,7 @@ MStatus CExtension::NewMappedMayaNode(CPxMayaNode mayaNode,
       {
          mayaNode.id = MTypeId(s_autoNodeId++);
          AiMsgWarning("[%s] [node %s] Assigning temporary node id %i to associated Maya type name %s.",
-               mayaNode.provider.asChar(), mayaNode.id.id(), arnoldNode.name.asChar(), mayaNode.name.asChar());
+               mayaNode.provider.asChar(), arnoldNode.name.asChar(), mayaNode.id.id(), mayaNode.name.asChar());
       }
       // Use kDependNode as default
       if (MPxNode::kLast == mayaNode.type)

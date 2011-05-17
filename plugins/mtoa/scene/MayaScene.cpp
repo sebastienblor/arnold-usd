@@ -249,7 +249,7 @@ MStatus CMayaScene::ExportCameras()
          if (filter.hidden == true && !IsVisiblePath(path))
             continue;
          */
-         if (MStatus::kSuccess != ExportDagPath(path))
+         if (ExportDagPath(path) == NULL)
             status = MStatus::kFailure;
       }
       else
@@ -289,7 +289,7 @@ MStatus CMayaScene::ExportLights()
             continue;
          if (filter.hidden == true && !IsVisiblePath(path))
             continue;
-         if (MStatus::kSuccess != ExportDagPath(path))
+         if (ExportDagPath(path) == NULL)
             status = MStatus::kFailure;
       }
       else
@@ -331,7 +331,7 @@ MStatus CMayaScene::ExportScene()
                dagIterator.prune();
             continue;
          }
-         if (MStatus::kSuccess != ExportDagPath(path))
+         if (ExportDagPath(path) == NULL)
             status = MStatus::kFailure;
       }
       else
@@ -370,7 +370,7 @@ MStatus CMayaScene::ExportSelected()
    {
       if (it.getDagPath(path) == MStatus::kSuccess)
       {
-         if (MStatus::kSuccess != ExportDagPath(path))
+         if (ExportDagPath(path) == NULL)
             status = MStatus::kFailure;
       }
       else
@@ -455,31 +455,31 @@ MStatus CMayaScene::IterSelection(MSelectionList& selected)
 
 // Export a single dag path (a dag node or an instance of a dag node)
 // Considered to be already filtered and checked
-MStatus CMayaScene::ExportDagPath(MDagPath &dagPath)
+AtNode* CMayaScene::ExportDagPath(MDagPath &dagPath)
 {
    MObjectHandle handle = MObjectHandle(dagPath.node());
    int instanceNum = dagPath.instanceNumber();
    MString name = dagPath.partialPathName();
    MString type = MFnDagNode(dagPath).typeName();
    AiMsgDebug("Exporting dag node %s of type %s", name.asChar(), type.asChar());
-
    // early out for nodes that have already been processed
-   if (m_processedDagTranslators[handle].count(instanceNum))
-      return MStatus::kSuccess;
+   ObjectToDagTranslatorMap::iterator it = m_processedDagTranslators.find(handle);
+   if (it != m_processedDagTranslators.end() && it->second.count(instanceNum))
+      return it->second[instanceNum]->GetArnoldRootNode();
    CDagTranslator* translator = CExtensionsManager::GetTranslator(dagPath);
    if (translator != NULL && translator->IsDag())
    {
-      translator->Init(dagPath, this);
+      AtNode* result = translator->Init(dagPath, this);
       translator->DoExport(0);
       // save it for later
       m_processedDagTranslators[handle][instanceNum] = translator;
-      return MStatus::kSuccess;
+      return result;
    }
    else
    {
       AiMsgDebug("Dag node %s of type %s ignored", name.asChar(), type.asChar());
    }
-   return MStatus::kFailure;
+   return NULL;
 }
 
 // Export a shader (dependency node)
@@ -500,31 +500,34 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
          return it->arnoldShader;
       }
    }
+   MObjectHandle handle = MObjectHandle(mayaShader);
+   // early out for dag nodes that have already been processed
+   ObjectToDagTranslatorMap::iterator it = m_processedDagTranslators.find(handle);
+   if (it != m_processedDagTranslators.end())
+   {
+      // find the first
+      cout << "dag node early out" << endl;;
+      return it->second.begin()->second->GetArnoldRootNode();
+   }
 
    AtNode* shader = NULL;
 
    CNodeTranslator* translator = CExtensionsManager::GetTranslator(mayaShader);
    if (translator != NULL)
    {
-      if (mayaShader.hasFn(MFn::kDagNode))
+      CDagTranslator* dagTranslator = dynamic_cast<CDagTranslator*>(translator);
+      if (dagTranslator != NULL)
       {
-         // I'd love for this to be a dynamic_pointer_cast. That seems to be boost only
-         // on none Windows systems. J.
-         CDagTranslator* dagTranslator = (CDagTranslator*)translator;
          MDagPath dagPath;
          MDagPath::getAPathTo(mayaShader, dagPath);
          shader = dagTranslator->Init(dagPath, this, attrName);
-         m_processedTranslators[MObjectHandle(mayaShader)] = dagTranslator;
-         // This DoExport() is temporary so this level of the patch queue works.
-         // It's removed in the multi-threaded patch.
+         m_processedTranslators[handle] = dagTranslator;
          dagTranslator->DoExport(0);
       }
       else
       {
          shader = translator->Init(mayaShader, this, attrName);
-         m_processedTranslators[MObjectHandle(mayaShader)] = translator;
-         // This DoExport() is temporary so this level of the patch queue works.
-         // It's removed in the multi-threaded patch.
+         m_processedTranslators[handle] = translator;
          translator->DoExport(0);
       }
    }
