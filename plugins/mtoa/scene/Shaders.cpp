@@ -266,7 +266,8 @@ void CMayaScene::ProcessShaderParameter(MFnDependencyNode shader, const char* pa
    MPlug plug = shader.findPlug(param);
    if (element >= 0)
       plug = plug.elementByPhysicalIndex(element);
-   plug.connectedTo(connections, true, false);
+   if (!plug.isIgnoredWhenRendering())
+      plug.connectedTo(connections, true, false);
    if (connections.length() == 0)
    {
       switch(arnoldAttribType)
