@@ -89,7 +89,7 @@ protected:
    // scene info
    AtNode* ExportShader(MObject mayaShader, const MString &attrName="") { return m_scene->ExportShader(mayaShader, attrName);}
    AtNode* ExportShader(MPlug& shaderOutputPlug) {return m_scene->ExportShader(shaderOutputPlug);}
-   MStatus ExportDagPath(MDagPath &dagPath) {return m_scene->ExportDagPath(dagPath);}
+   AtNode* ExportDagPath(MDagPath &dagPath) {return m_scene->ExportDagPath(dagPath);}
    AtFloat GetCurrentFrame() {return m_scene->GetCurrentFrame();}
    bool IsMotionBlurEnabled() const {return m_scene->IsMotionBlurEnabled();}
    bool IsCameraMotionBlurEnabled() const {return m_scene->IsCameraMotionBlurEnabled();}
