@@ -23,8 +23,6 @@
 
 // --------- CExtension -------------//
 
-
-MCallbackId CExtension::s_pluginLoadedCallbackId(0);
 unsigned int CExtension::s_autoNodeId(ARNOLD_NODEID_AUTOGEN);
 LoadedArnoldPluginsSet CExtension::s_allLoadedArnoldPlugins;
 
@@ -32,6 +30,30 @@ CExtension::CExtension(const MString &file)
 {
    this->setFile(file);
    m_registered = false;
+   m_deferred = false;
+   m_library = NULL;
+}
+
+/// Specify that this extenions needs a particular Maya Plugin
+void CExtension::Requires(const MString &plugin)
+{
+   std::string plugin_str(plugin.asChar());
+   m_requiredMayaPlugins.insert(plugin_str);
+}
+
+/// Returns the list of required Maya plugins
+MStringArray CExtension::Required()
+{
+   MStringArray result;
+   RequiredMayaPluginsSet::iterator pluginIt;
+   for (pluginIt = m_requiredMayaPlugins.begin();
+       pluginIt != m_requiredMayaPlugins.end();
+       pluginIt++)
+   {
+      result.append(pluginIt->c_str());
+   }
+
+   return result;
 }
 
 /// Count total number of translators
@@ -75,23 +97,23 @@ MString CExtension::LoadArnoldPlugin(const MString &file,
    resolved = FindFileInPath(searchFile, path, &status);
    if (MStatus::kSuccess == status)
    {
-      AiMsgDebug("Found Arnold plugin file %s as %s.", file.asChar(), resolved.asChar());
+      AiMsgDebug("[%s] Found Arnold plugin file %s as %s.", m_extensionName.asChar(), file.asChar(), resolved.asChar());
       status = NewArnoldPlugin(resolved);
       if (MStatus::kSuccess == status)
       {
          // TODO: add error handling when solid angle adds a status result
          AiLoadPlugin(resolved.asChar());
          // Register plugin nodes and translators
-         status = RegisterAllNodes(resolved);
-         status = RegisterAllTranslators(resolved);
+         status = RegisterPluginNodes(resolved);
+         status = RegisterPluginTranslators(resolved);
       }
    }
    else
    {
       if (path.numChars())
-         AiMsgError("Could not find %s in search path %s", file.asChar(), path.asChar());
+         AiMsgError("[%s] Could not find %s in search path %s", m_extensionName.asChar(), file.asChar(), path.asChar());
       else
-         AiMsgError("Could not find %s", file.asChar());
+         AiMsgError("[%s] Could not find %s", m_extensionName.asChar(), file.asChar());
    }
 
    if (NULL != returnStatus) *returnStatus = status;
@@ -116,13 +138,199 @@ MStringArray CExtension::GetOwnLoadedArnoldPlugins()
    return result;
 }
 
+/// Manually register a new Maya node.
+///
+/// @see Maya's MFnPlugin.registerNode(...)
+///
+/// @return MStatus::kSuccess if the node is registered successfully, else MStatus::kFailure
+///
+MStatus CExtension::RegisterNode(const MString &mayaTypeName,
+                                     const MTypeId &mayaTypeId,
+                                     MCreatorFunction creatorFunction,
+                                     MInitializeFunction initFunction,
+                                     MPxNode::Type type,
+                                     const MString &classification)
+{
+   CPxMayaNode mayaNode(mayaTypeName,
+                         mayaTypeId,
+                         NULL,
+                         m_extensionName,
+                         m_extensionFile,
+                         creatorFunction,
+                         initFunction,
+                         NULL,
+                         type,
+                         classification);
+
+   return NewMayaNode(mayaNode);
+}
+
+/// Manually register a translator for the given Maya node type.
+///
+/// Can be manually called in an extension when we need a specific translator
+/// for a Maya node.
+/// No metadata will be read, everything has to be specified explicitely.
+///
+/// @param mayaTypeName The Maya node type this translator should handle
+///
+/// @return MStatus::kSuccess if the node is registered successfully, else MStatus::kFailure
+///
+MStatus CExtension::RegisterTranslator(const MString &mayaTypeName,
+                           const MString &translatorName,
+                           TCreatorFunction creatorFunction,
+                           TNodeInitFunction nodeInitFunction)
+{
+   CPxMayaNode mayaNode(mayaTypeName,
+                        0,
+                        NULL,
+                        m_extensionName,
+                        m_extensionFile);
+   MString transName;
+   if (translatorName.numChars() != 0)
+      transName = translatorName;
+   else
+      transName = m_extensionName;
+   CPxTranslator translator(transName,
+                            NULL,
+                            m_extensionName,
+                            m_extensionFile,
+                            creatorFunction,
+                            nodeInitFunction);
+
+   return NewTranslator(translator, mayaNode);
+}
+
+// ------------- protected --------------- //
+
+MStatus CExtension::setFile(const MString &file)
+{
+   MFileObject extensionFile;
+   extensionFile.overrideResolvedFullName(file);
+   m_extensionFile = extensionFile.resolvedFullName();
+   MString name = extensionFile.resolvedName();
+   // Strip extension if found
+   unsigned int nchars = name.numChars();
+   MString libext = MString(LIBEXT);
+   unsigned int next = libext.numChars();
+   if (nchars > next + 1)
+   {
+      MString ext = name.substringW(nchars-next, nchars);
+      if (ext == libext)
+      {
+         name = name.substringW(0, nchars-next-1);
+      }
+   }
+   // TODO some checking ?
+   m_extensionName = name;
+   return MStatus::kSuccess;
+}
+
+/// Unload all Arnold plugins this extensions has loaded
+MStatus CExtension::UnloadArnoldPlugins()
+{
+   MStatus status = MStatus::kSuccess;
+
+   LoadedArnoldPluginsSet::iterator pluginIt;
+   pluginIt = m_ownLoadedArnoldPlugins.begin();
+   while (pluginIt != m_ownLoadedArnoldPlugins.end())
+   {
+      MStatus pstatus;
+      LoadedArnoldPluginsSet::iterator plugin = pluginIt++;
+      pstatus = UnloadArnoldPlugin(plugin->c_str());
+      if (MStatus::kSuccess != pstatus) status = pstatus;
+   }
+
+   return status;
+}
+
+/// Unload an Arnold plugin.
+///
+/// Remove from Arnold all node entries created by the specified plugin.
+///
+/// @param resolved  the resolved filename of an Arnold plugin
+/// @return          MStatus::kSuccess or MStatus::kFailure
+///
+MStatus CExtension::UnloadArnoldPlugin(const MString &resolved)
+{
+   AtNodeEntryIterator* nodeIter = AiUniverseGetNodeEntryIterator(AI_NODE_ALL);
+   while (!AiNodeEntryIteratorFinished(nodeIter))
+   {
+      AtNodeEntry* nentry = AiNodeEntryIteratorGetNext(nodeIter);
+      const char* nentryFile = AiNodeEntryGetFilename(nentry);
+      if (strcmp(nentryFile, resolved.asChar()) == 0)
+      {
+         const char *arnoldNodeName = AiNodeEntryGetName(nentry);
+         // remove from arnold
+         AiNodeUninstall(arnoldNodeName);
+         // TODO: unregister as well?
+         // DeregisterNode(arnoldNodeName);
+      }
+   }
+
+   return DeleteArnoldPlugin(resolved);
+}
+
+/// Stores the given Arnold plugin file name in the list of plugins loaded by this extension.
+///
+/// Will fail and return MS::kFailure if that plugin is already stored.
+///
+/// @param file      the resolved filename of an Arnold plugin
+///
+MStatus CExtension::NewArnoldPlugin(const MString &file)
+{
+   std::string file_str(file.asChar());
+   // std::string extensionPath(m_extensionFile.asChar())
+
+   LoadedArnoldPluginsSet::iterator pluginIt;
+   pluginIt = s_allLoadedArnoldPlugins.find(file_str);
+   if (s_allLoadedArnoldPlugins.end() != pluginIt)
+   {
+      // Already loaded (possibly by another extension)
+      AiMsgError("[%s] Arnold plugin already loaded: %s", m_extensionName.asChar(), file.asChar());
+      return MStatus::kFailure;
+   }
+   else
+   {
+      s_allLoadedArnoldPlugins.insert(file_str);
+      m_ownLoadedArnoldPlugins.insert(file_str);
+      return MStatus::kSuccess;
+   }
+}
+
+/// Removes the given Arnold plugin file name from plugins list.
+///
+/// Plugin will be erased from own plugin list and global list
+// of loaded Arnold plugins.
+///
+/// @param file  the resolved filename of an Arnold plugin
+///
+MStatus CExtension::DeleteArnoldPlugin(const MString &file)
+{
+   std::string file_str(file.asChar());
+   // std::string extensionPath(m_extensionFile.asChar())
+
+   LoadedArnoldPluginsSet::iterator pluginIt;
+   pluginIt = s_allLoadedArnoldPlugins.find(file_str);
+   if (s_allLoadedArnoldPlugins.end() == pluginIt)
+   {
+      AiMsgError("[%s] Arnold plugin not loaded: %s", m_extensionName.asChar(), file.asChar());
+      return MStatus::kFailure;
+   }
+   else
+   {
+      s_allLoadedArnoldPlugins.erase(file_str);
+      m_ownLoadedArnoldPlugins.erase(file_str);
+      return MStatus::kSuccess;
+   }
+}
+
 /// Register corresponding Maya nodes for Arnold nodes provided by the given Arnold plugin.
 ///
 /// Will only handle Arnold nodes that are marked as provided by this plugin.
 ///
 /// @param plugin  the resolved file name of the Arnold plugin
 ///
-MStatus CExtension::RegisterAllNodes(const MString &plugin)
+MStatus CExtension::RegisterPluginNodes(const MString &plugin)
 {
    MStatus status(MStatus::kSuccess);
 
@@ -174,7 +382,7 @@ MStatus CExtension::RegisterAllNodes(const MString &plugin)
 ///
 /// @param plugin  the resolved absolute path to an Arnold plugin
 ///
-MStatus CExtension::RegisterAllTranslators(const MString &plugin)
+MStatus CExtension::RegisterPluginTranslators(const MString &plugin)
 {
    MStatus status(MStatus::kSuccess);
 
@@ -233,73 +441,19 @@ MStatus CExtension::RegisterAllTranslators(const MString &plugin)
 ///
 /// See CBaseAttrHelper for parameter-level metadata for controlling attribute creation
 ///
-/// @param arnoldNodeName Arnold AtNodeEntry from which to generate the new Maya node
-///
-/// @return MStatus::kSuccess if the node is registered successfully, else MStatus::kFailure
-///
-MStatus CExtension::RegisterNode(const MString &arnoldNodeName,
-                                     const MString &mayaTypeName,
-                                     const MTypeId &mayaTypeId,
-                                     MCreatorFunction creatorFunction,
-                                     MInitializeFunction initFunction,
-                                     CAbMayaNode *abstractMember,
-                                     MPxNode::Type type,
-                                     const MString &classification)
-{
-   const AtNodeEntry* arnoldNodeEntry = AiNodeEntryLookUp(arnoldNodeName.asChar());
-   if (arnoldNodeEntry==NULL)
-   {
-      AiMsgError("[%s] Arnold node %s does not exist", m_extensionName.asChar(), arnoldNodeName.asChar());
-      return MStatus::kInvalidParameter;
-   }
-   else
-   {
-      return RegisterNode(arnoldNodeEntry,
-                          mayaTypeName,
-                          mayaTypeId,
-                          creatorFunction,
-                          initFunction,
-                          abstractMember,
-                          type,
-                          classification);
-   }
-}
-
-/// Register a Maya node for the given Arnold node.
-///
-/// Certain optional node-level metadata can be used to control how the
-/// node factory processes the node's registration:
-///  -# "maya.name" - the name for the generated or corresponding maya node
-///  -# "maya.id" - the maya node id to use for the generated or corresponding maya node
-///  -# "maya.class" - classification string (defaults to "shader/surface")
-///
-/// See CBaseAttrHelper for parameter-level metadata for controlling attribute creation
-///
 /// @param arnoldNodeEntry  arnold AtNodeEntry from which to generate the new Maya node
 ///
 /// @return MStatus::kSuccess if the node is registered successfully, else MStatus::kFailure
 ///
-MStatus CExtension::RegisterNode(const AtNodeEntry* arnoldNodeEntry,
-                                     const MString &mayaTypeName,
-                                     const MTypeId &mayaTypeId,
-                                     MCreatorFunction creatorFunction,
-                                     MInitializeFunction initFunction,
-                                     CAbMayaNode *abstractMember,
-                                     MPxNode::Type type,
-                                     const MString &classification)
+MStatus CExtension::RegisterNode(const AtNodeEntry* arnoldNodeEntry)
 {
    MStatus status;
    CPxArnoldNode arnoldNode(arnoldNodeEntry);
-   CPxMayaNode mayaNode(mayaTypeName,
-                        mayaTypeId,
+   CPxMayaNode mayaNode("",
+                        0,
                         arnoldNodeEntry,
                         m_extensionName,
-                        m_extensionFile,
-                        creatorFunction,
-                        initFunction,
-                        abstractMember,
-                        type,
-                        classification);
+                        m_extensionFile);
    // Read from metadata any information that was not explicitely passed
    status = mayaNode.ReadMetaData();
 
@@ -320,107 +474,18 @@ MStatus CExtension::RegisterNode(const AtNodeEntry* arnoldNodeEntry,
    {
       // No error or warning message, because there are many Arnold nodes that are not meant to be associated
       status = MStatus::kNotImplemented;
-      AiMsgDebug("[%s] [node %s] Not enough information to associate an existing or new Maya node, ignored.", m_extensionName.asChar(), arnoldNode.name.asChar());
+      AiMsgDebug("[%s] [node %s] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.", m_extensionName.asChar(), arnoldNode.name.asChar());
    }
 
    return status;
-}
-
-/// To register a Maya node not corresponding to any Arnold node.
-///
-/// See Maya's MFnPlugin.registerNode(...)
-///
-/// @return MStatus::kSuccess if the node is registered successfully, else MStatus::kFailure
-///
-MStatus CExtension::RegisterNode(const MString &mayaTypeName,
-                                     const MTypeId &mayaTypeId,
-                                     MCreatorFunction creatorFunction,
-                                     MInitializeFunction initFunction,
-                                     MPxNode::Type type,
-                                     const MString &classification)
-{
-   CPxMayaNode mayaNode(mayaTypeName,
-                         mayaTypeId,
-                         NULL,
-                         m_extensionName,
-                         m_extensionFile,
-                         creatorFunction,
-                         initFunction,
-                         NULL,
-                         type,
-                         classification);
-
-   return NewMayaNode(mayaNode);
-}
-
-/// Register a translator for the given Maya node type.
-///
-/// When we need a specific translator for a Maya node we have no equivalent
-/// node in Arnold for. Exemple aiDisplacement.
-/// Of course since there is no Arnold node, it doesn't allow access to metadata.
-///
-/// @param mayaTypeName The Maya node type this translator should handle
-///
-/// @return MStatus::kSuccess if the node is registered successfully, else MStatus::kFailure
-///
-MStatus CExtension::RegisterTranslator(const MString &mayaTypeName,
-                           const MTypeId &mayaTypeId,
-                           const MString &translatorName,
-                           TCreatorFunction creatorFunction,
-                           TNodeInitFunction nodeInitFunction)
-{
-   CPxMayaNode mayaNode(mayaTypeName,
-                        mayaTypeId,
-                        NULL,                     // No Arnold node name available
-                        m_extensionName,
-                        m_extensionFile);
-   CPxTranslator translator(translatorName,
-                            NULL,                 // No Arnold node name available
-                            m_extensionName,
-                            m_extensionFile,
-                            creatorFunction,
-                            nodeInitFunction);
-
-   return NewTranslator(translator, mayaNode);
-}
-
-/// Register a translator for the given Arnold node name.
-///
-/// Certain optional node-level metadata can be used to control how the
-/// node factory processes the node's registration:
-///  -# "maya.translator" - the name to use for the translator
-/// If no creator function is provided, will use default translator
-/// for each Arnold exported node types (camera, light, shader, shape)
-///
-/// @param arnoldNodeName Arnold node name the translator should produce
-///
-/// @return MStatus::kSuccess if the translator is registered successfully, else MStatus::kFailure
-///
-MStatus CExtension::RegisterTranslator(const MString &arnoldNodeName,
-                                       const MString &translatorName,
-                                       TCreatorFunction creatorFunction,
-                                       TNodeInitFunction nodeInitFunction)
-{
-   const AtNodeEntry* arnoldNodeEntry = AiNodeEntryLookUp(arnoldNodeName.asChar());
-   if (arnoldNodeEntry==NULL)
-   {
-      AiMsgError("[%s] Arnold node %s does not exist, translator needs either a valid Arnold or Maya node",
-         m_extensionName.asChar(), arnoldNodeName.asChar());
-      return MStatus::kInvalidParameter;
-   }
-   else
-   {
-      return RegisterTranslator(arnoldNodeEntry,
-                                translatorName,
-                                creatorFunction,
-                                nodeInitFunction);
-   }
 }
 
 /// Register a translator for the given Arnold node entry.
 ///
 /// Certain optional node-level metadata can be used to control how the
 /// node factory processes the node's registration:
+///  -# "maya.name" - the name for the generated or corresponding maya node
+///  -# "maya.id" - the maya node id to use for the generated or corresponding maya node
 ///  -# "maya.translator" - the name to use for the translator
 /// If no creator function is provided, will use default translator
 /// for each Arnold exported node types (camera, light, shader, shape)
@@ -429,10 +494,7 @@ MStatus CExtension::RegisterTranslator(const MString &arnoldNodeName,
 ///
 /// @return MStatus::kSuccess if the translator is registered successfully, else MStatus::kFailure
 ///
-MStatus CExtension::RegisterTranslator(const AtNodeEntry* arnoldNodeEntry,
-                                       const MString &translatorName,
-                                       TCreatorFunction creatorFunction,
-                                       TNodeInitFunction nodeInitFunction)
+MStatus CExtension::RegisterTranslator(const AtNodeEntry* arnoldNodeEntry)
 {
    MStatus status;
    CPxArnoldNode arnoldNode(arnoldNodeEntry);
@@ -442,160 +504,25 @@ MStatus CExtension::RegisterTranslator(const AtNodeEntry* arnoldNodeEntry,
                         m_extensionName,
                         m_extensionFile);
    mayaNode.ReadMetaData();
-   CPxTranslator translator(translatorName,
+   CPxTranslator translator("",
                             arnoldNodeEntry,
                             m_extensionName,
-                            m_extensionFile,
-                            creatorFunction,
-                            nodeInitFunction);
+                            m_extensionFile);
    translator.ReadMetaData();
 
    if (NULL == translator.creator || mayaNode.IsNull())
    {
       status = MStatus::kNotImplemented;
-      AiMsgDebug("[%s] [node %s] Not enough information to register a translator, ignored.",
+      AiMsgDebug("[%s] [node %s] Not enough metadata information to automatically register a translator, ignored.",
             m_extensionName.asChar(), arnoldNode.name.asChar());
    }
    else
    {
       // Try to add the new translator to the registered lists
       status = NewTranslator(translator, mayaNode);
-      if (MStatus::kSuccess == status)
-         AiMsgDebug("[%s] [node %s] Registered translator %s for Maya node %s.",
-               m_extensionName.asChar(), arnoldNode.name.asChar(), translator.name.asChar(), mayaNode.name.asChar());
-      else
-         AiMsgWarning("[%s] [node %s] Failed to register translator %s for Maya node %s.",
-               m_extensionName.asChar(), arnoldNode.name.asChar(), translator.name.asChar(), mayaNode.name.asChar());
    }
 
    return status;
-}
-
-/// To specifiy both arnoldNodeName and mayaTypeName.
-///
-/// Since it is used to add an addtionnal translator to a Maya node you need to
-/// provide a translator name and a creator method.
-///
-/// @param arnoldNodeEntry Arnold node name the translator should produce
-/// @param mayaTypeName The Maya node type this translator should handle
-///
-/// @return MStatus::kSuccess if the translator is registered successfully, else MStatus::kFailure
-///
-MStatus CExtension::RegisterTranslator(const MString &arnoldNodeName,
-                                       const MString &mayaTypeName,
-                                       const MString &translatorName,
-                                       TCreatorFunction creatorFunction,
-                                       TNodeInitFunction nodeInitFunction)
-{
-   // Can have an empty Arnold node name / NULL aiNodeEntry if we don't plan to read metadatas
-   // as long as we have a valid mayaTypeName instead
-   const AtNodeEntry* arnoldNodeEntry = AiNodeEntryLookUp(arnoldNodeName.asChar());
-   if (NULL == arnoldNodeEntry && mayaTypeName == "")
-   {
-      AiMsgError("[%s] Arnold node '%s' and Maya node '%s' do not exist, translator needs either a valid Arnold or Maya node.",
-      m_extensionName.asChar(), arnoldNodeName.asChar(), mayaTypeName.asChar());
-      return MStatus::kInvalidParameter;
-   }
-   else
-   {
-      const AtNodeEntry* arnoldNodeEntry = AiNodeEntryLookUp(arnoldNodeName.asChar());
-      CPxTranslator translator(translatorName,
-                               arnoldNodeEntry,
-                               m_extensionName,
-                               m_extensionFile,
-                               creatorFunction,
-                               nodeInitFunction);
-      CPxMayaNode mayaNode(mayaTypeName,
-                           0,
-                           arnoldNodeEntry,
-                           m_extensionName,
-                           m_extensionFile);
-      if (NULL != arnoldNodeEntry)
-      {
-         translator.ReadMetaData();
-         mayaNode.ReadMetaData();
-      }
-
-      return NewTranslator(translator, mayaNode);
-   }
-}
-// ------------- protected --------------- //
-
-MStatus CExtension::setFile(const MString &file)
-{
-   MFileObject extensionFile;
-   extensionFile.overrideResolvedFullName(file);
-   m_extensionFile = extensionFile.resolvedFullName();
-   MString name = extensionFile.resolvedName();
-   // Strip extension if found
-   unsigned int nchars = name.numChars();
-   MString libext = MString(LIBEXT);
-   unsigned int next = libext.numChars();
-   if (nchars > next + 1)
-   {
-      MString ext = name.substringW(nchars-next, nchars);
-      if (ext == libext)
-      {
-         name = name.substringW(0, nchars-next-1);
-      }
-   }
-   // TODO some checking ?
-   m_extensionName = name;
-   return MStatus::kSuccess;
-}
-
-/// Stores the given Arnold plugin file name in the list of plugins loaded by this extension.
-///
-/// Will fail and return MS::kFailure if that plugin is already stored.
-///
-/// @param file  the resolved filename of an Arnold plugin
-///
-MStatus CExtension::NewArnoldPlugin(const MString &file)
-{
-   std::string file_str(file.asChar());
-   // std::string extensionPath(m_extensionFile.asChar())
-
-   LoadedArnoldPluginsSet::iterator pluginIt;
-   pluginIt = s_allLoadedArnoldPlugins.find(file_str);
-   if (s_allLoadedArnoldPlugins.end() != pluginIt)
-   {
-      // Already loaded (possibly by another extension)
-      AiMsgError("[%s] Arnold plugin already loaded: %s", m_extensionName.asChar(), file.asChar());
-      return MStatus::kFailure;
-   }
-   else
-   {
-      s_allLoadedArnoldPlugins.insert(file_str);
-      m_ownLoadedArnoldPlugins.insert(file_str);
-      return MStatus::kSuccess;
-   }
-}
-
-/// Removes the given Arnold plugin file name from plugins list.
-///
-/// Plugin will be erased from own plugin list and global list
-// of loaded Arnold plugins.
-///
-/// @param file  the resolved filename of an Arnold plugin
-///
-MStatus CExtension::DeleteArnoldPlugin(const MString &file)
-{
-   std::string file_str(file.asChar());
-   // std::string extensionPath(m_extensionFile.asChar())
-
-   LoadedArnoldPluginsSet::iterator pluginIt;
-   pluginIt = s_allLoadedArnoldPlugins.find(file_str);
-   if (s_allLoadedArnoldPlugins.end() == pluginIt)
-   {
-      AiMsgError("[%s] Arnold plugin not loaded: %s", m_extensionName.asChar(), file.asChar());
-      return MStatus::kFailure;
-   }
-   else
-   {
-      s_allLoadedArnoldPlugins.erase(file_str);
-      m_ownLoadedArnoldPlugins.erase(file_str);
-      return MStatus::kSuccess;
-   }
 }
 
 /// Register a new Maya node and map it to an Arnold node.
@@ -674,15 +601,16 @@ MStatus CExtension::NewMayaNode(const CPxMayaNode &mayaNode)
    ret = m_registeredMayaNodes.insert(mayaNode);
    if (false == ret.second)
    {
-      AiMsgDebug("[%s] Overriding it's own registration of Maya node %s.",
-            mayaNode.provider.asChar(), mayaNode.name.asChar());
+      AiMsgDebug("[%s] [node %s] Overriding it's own registration of Maya node %s.",
+            mayaNode.provider.asChar(), mayaNode.arnold.asChar(), mayaNode.name.asChar());
       m_registeredMayaNodes.erase(ret.first);
       m_registeredMayaNodes.insert(mayaNode);
    }
    else
    {
-      AiMsgDebug("[%s] Registered new Maya node %s.",
-            mayaNode.provider.asChar(), mayaNode.name.asChar());
+      if (mayaNode.arnold != "")
+      AiMsgDebug("[%s] [node %s] Registered new Maya node %s.",
+            mayaNode.provider.asChar(), mayaNode.arnold.asChar(), mayaNode.name.asChar());
    }
 
    return MStatus::kSuccess;
@@ -726,7 +654,7 @@ MStatus CExtension::MapMayaNode(const CPxMayaNode &mayaNode,
       m_registeredTranslators[mayaNode] = TranslatorsSet();
    }
 
-   AiMsgDebug("[%s] [node %s] Associated Maya node %s.", m_extensionName.asChar(), arnoldNode.name.asChar(), mayaNode.name.asChar());
+   AiMsgDebug("[%s] [node %s] Is associated with existing Maya node %s.", m_extensionName.asChar(), arnoldNode.name.asChar(), mayaNode.name.asChar());
 	return MStatus::kSuccess;
 }
 
@@ -741,6 +669,25 @@ MStatus CExtension::NewTranslator(const CPxTranslator &translator,
    }
 
    MStatus status;
+   // Test translator creation and update proxy
+   CPxTranslator trsProxy(translator);
+   CNodeTranslator* trs = NULL;
+   TCreatorFunction creatorFunction = translator.creator;
+   trs = (CNodeTranslator*)creatorFunction();
+   if (NULL != trs)
+   {
+      if (trs->s_arnoldNodeName.numChars() > 0)
+      {
+         trsProxy.arnold = trs->s_arnoldNodeName;
+      }
+      delete trs;
+   }
+   else
+   {
+      AiMsgError("[%s] Cannot create translator %s for Maya node %s, badly declare creator function?",
+            m_extensionName.asChar(), trsProxy.name.asChar(), mayaNode.name.asChar());
+      return MStatus::kFailure;
+   }
    TranslatorsSet nodeTranslators;
    MayaNodeToTranslatorsMap::iterator nodeIt;
    nodeIt = m_registeredTranslators.find(mayaNode);
@@ -750,33 +697,39 @@ MStatus CExtension::NewTranslator(const CPxTranslator &translator,
    }
    // Add to this node's translators
    std::pair<TranslatorsSet::iterator, bool> ret;
-   ret = nodeTranslators.insert(translator);
+   ret = nodeTranslators.insert(trsProxy);
    if (true == ret.second)
    {
       if (nodeTranslators.begin() == ret.first)
       {
          // First translator to be create 
          AiMsgDebug("[%s] [node %s] Registered the translator %s for associated Maya node %s.",
-               translator.provider.asChar(), translator.arnold.asChar(), translator.name.asChar(), mayaNode.name.asChar());
+               trsProxy.provider.asChar(), trsProxy.arnold.asChar(), trsProxy.name.asChar(), mayaNode.name.asChar());
       }
       else
       {
          // There was already at least one
          AiMsgDebug("[%s] [node %s] Registered an alternative translator %s for associated Maya node %s.",
-               translator.provider.asChar(), translator.arnold.asChar(), translator.name.asChar(), mayaNode.name.asChar());
+               trsProxy.provider.asChar(), trsProxy.arnold.asChar(), trsProxy.name.asChar(), mayaNode.name.asChar());
       }
    }
    else
    {
       // We can only override our own translators (if using the same name),
       nodeTranslators.erase(ret.first);
-      nodeTranslators.insert(translator);
+      nodeTranslators.insert(trsProxy);
       AiMsgDebug("[%s] [node %s] Replaced translator %s for associated Maya node %s.",
-            translator.provider.asChar(), translator.arnold.asChar(), translator.name.asChar(), mayaNode.name.asChar());
+            trsProxy.provider.asChar(), trsProxy.arnold.asChar(), trsProxy.name.asChar(), mayaNode.name.asChar());
       
    }
    m_registeredTranslators[mayaNode] = nodeTranslators;
    status = MStatus::kSuccess;
+   // Got no case where it would happen at the moment, but error checking should be done here
+   if (MStatus::kSuccess != status)
+   {
+      AiMsgWarning("[%s] [node %s] Failed to register translator %s for Maya node %s.",
+            m_extensionName.asChar(), trsProxy.arnold.asChar(), trsProxy.name.asChar(), mayaNode.name.asChar());
+   }
    return status;
 }
    

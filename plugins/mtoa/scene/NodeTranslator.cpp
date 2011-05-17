@@ -1192,7 +1192,7 @@ AtNode* CAutoTranslator::CreateArnoldNodes()
 {
    MString mayaShader = GetFnNode().typeName();
    // return AddArnoldNode(CExtensionsManager::GetArnoldNodeFromMayaNode(mayaShader));
-   return AddArnoldNode(m_arnoldNodeName.asChar());
+   return AddArnoldNode(m_abstract.arnold.asChar());
 }
 
 void CAutoTranslator::Export(AtNode *shader)

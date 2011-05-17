@@ -1,3 +1,4 @@
+#include "utils/MtoaLogCallback.h"
 #include "scene/MayaScene.h"
 #include "render/RenderSession.h"
 #include "RenderSwatch.h"
@@ -131,6 +132,7 @@ MStatus CRenderSwatchGenerator::BuildArnoldScene()
    // m_renderSession->GetMayaScene()->PrepareExport();
 
    AiBegin();
+   SetupMtoaLogging();
    m_renderSession->LoadPlugins();
 
    MObject mayaNode = swatchNode();

@@ -7,17 +7,18 @@ extern "C"
 
 DLLEXPORT void initializeExtension(CExtension& extension)
 {
+   MStatus status;
+
+   extension.Requires("shaveNode");
    extension.LoadArnoldPlugin("shave_shaders");
-   extension.RegisterTranslator("shaveHair",
-                             0x1029b7,
-                             "shave",
-                             CShaveTranslator::creator,
-                             CShaveTranslator::NodeInitializer);
+   status = extension.RegisterTranslator("shaveHair",
+         "shave",
+         CShaveTranslator::creator,
+         CShaveTranslator::NodeInitializer);
 }
 
-DLLEXPORT void deinitializeExtension(CExtension& plugin)
+DLLEXPORT void deinitializeExtension(CExtension& extension)
 {
-   // plugin.DeloadArnoldPlugin("shave_shaders");
 }
 
 }

@@ -338,6 +338,9 @@
 # cameras
 
 [node persp_camera]
+	maya.name				STRING	"camera"
+	maya.id					INT		0x4443414d
+	maya.translator			STRING  "perspective"
 	[attr focal_distance]
 		min					FLOAT	0.0
 		max					FLOAT	1000000000.0
@@ -367,7 +370,15 @@
 		softmin				FLOAT	0.0
 		softmax				FLOAT	50.0
 
+[node ortho_camera]
+	maya.name				STRING	"camera"
+	maya.id					INT		0x4443414d
+	maya.translator			STRING  "orthographic"
+
 [node fisheye_camera]
+	maya.name				STRING	"camera"
+	maya.id					INT		0x4443414d
+	maya.translator			STRING  "fisheye"
 	[attr fov]
 		min					FLOAT	0.0
 		max					FLOAT	1000000000.0
@@ -403,6 +414,9 @@
 		softmax				FLOAT	50.0
 
 [node cyl_camera]
+	maya.name				STRING	"camera"
+	maya.id					INT		0x4443414d
+	maya.translator			STRING  "cylindrical"
 	[attr horizontal_fov]
 		min					FLOAT	0.0
 		max					FLOAT	1000000000.0

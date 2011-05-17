@@ -19,6 +19,7 @@
 
 //--------------- CExtensionsManager -----------------------------------
 
+// Loaded extensions, in load order
 typedef std::list<CExtension> ExtensionsList;
 
 /// Responsible for loading Arnold and MtoA plugins and creating new Maya nodes
@@ -59,6 +60,10 @@ public:
 
    static CExtension* GetExtension(const MString &extensionFile);
 
+   static void MayaPluginLoadedCallback(const MStringArray &strs, void *clientData);
+   static MCallbackId CreatePluginLoadedCallback();
+   static MStatus RemovePluginLoadedCallback();
+
 protected:
    static CExtension* NewExtension(const MString &extensionFile);
    static MStatus DeleteExtension(CExtension* &extension);
@@ -72,15 +77,6 @@ protected:
                                                         const CPxTranslator &translator=CPxTranslator());
    static TranslatorsSet* FindRegisteredTranslators(const CPxMayaNode &mayaNode);
 
-
-   /*
-   void InitializePendingTranslators(MString& pluginName);
-
-   static void MayaPluginLoadedCallback(const MStringArray &strs, void *clientData);
-   static void CreateCallbacks();
-   static void RemoveCallbacks();
-   */
-
 private:
    CExtensionsManager() {}
 
@@ -89,6 +85,8 @@ private:
 
    static MObject s_plugin;
    static ExtensionsList s_extensions;
+
+   static MCallbackId s_pluginLoadedCallbackId;
 };
 
 

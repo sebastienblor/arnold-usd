@@ -1,7 +1,7 @@
-#ifndef ABMAYANODE_H
-#define ABMAYANODE_H
+#ifndef ABTRANSLATOR_H
+#define ABTRANSLATOR_H
 
-#include "extension/PxTransator.h"
+#include "extension/PxTranslator.h"
 
 #include <maya/MString.h>
 
@@ -18,14 +18,14 @@ class CAbTranslator
 {
    friend class CPxTranslator;
 public:
-   CAbMayaNode(const MString &translatorName = "",
+   CAbTranslator(const MString &translatorName = "",
                const MString &arnoldClassName = "",
                const MString &providerName = "")
    : name(translatorName),
      arnold(arnoldClassName),
      provider(providerName)
    {}
-   CAbMayaNode(const CPxTranslator &translator)
+   CAbTranslator(const CPxTranslator &translator)
    : name(translator.name),
      arnold(translator.arnold),
      provider(translator.provider)
@@ -37,4 +37,4 @@ public:
 };
 
 
-#endif // ABMAYANODE_H
+#endif // ABTRANSLATOR_H

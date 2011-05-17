@@ -1,5 +1,6 @@
 
 #include "platform/Platform.h"
+#include "utils/MtoaLogCallback.h"
 #include "ArnoldAssTranslator.h"
 #include "ArnoldExportAssCmd.h"
 #include "ArnoldRenderCmd.h"
@@ -36,46 +37,6 @@
 #define MTOA_VERSION "0.7.0.dev"
 #define MAYA_VERSION "Any"
 
-AtVoid MtoaLogCallback(AtInt logmask, AtInt severity, const char *msg_string, AtInt tabs)
-{
-   const char *header = "[mtoa] %s";
-   char *buf;
-   buf = new (std::nothrow) char[strlen(header)+strlen(msg_string)];
-
-   if (NULL == buf)
-   {
-      // Fallback so normal logging still works in case of an allocation failure
-      clog << msg_string << endl;
-   }
-   else
-   {
-      sprintf(buf, header, msg_string);
-      // Standard log output
-      clog << buf << endl;
-      // Some feedback will go in Maya script window
-      switch (severity)
-      {
-      case AI_SEVERITY_INFO:
-         if (logmask & AI_LOG_INFO)
-            MGlobal::displayInfo(buf);
-         break;
-      case AI_SEVERITY_WARNING:
-         if (logmask & AI_LOG_WARNINGS)
-            // if (clog != cerr) cerr << buf << endl;
-            MGlobal::displayWarning(buf);
-         break;
-      case AI_SEVERITY_ERROR:
-         if (logmask & AI_LOG_ERRORS)
-            // if (clog != cerr) cerr << buf << endl;
-            MGlobal::displayError(buf);
-         break;
-      default:
-         break;
-      }
-      
-      delete[] buf;
-   }
-}
 
 namespace // <anonymous>
 {
@@ -155,91 +116,75 @@ namespace // <anonymous>
 
       // Get a CExtension for the builtin nodes
       CExtensionsManager::SetMayaPlugin(object);
+      CExtensionsManager::CreatePluginLoadedCallback();
       CExtension* builtin;
       builtin = CExtensionsManager::GetBuiltin();
       // Override for builtins for specific cases
-      builtin->RegisterTranslator("options",
-                                  "aiOptions",
+      builtin->RegisterTranslator("aiOptions",
                                   "",
                                   CRenderOptionsTranslator::creator);
-      builtin->RegisterTranslator("flat",
-                                  "surfaceShader",
+      builtin->RegisterTranslator("surfaceShader",
                                   "",
                                   CSurfaceShaderTranslator::creator);
       builtin->RegisterTranslator("lambert",
-                                  "lambert",
                                   "",
                                   CLambertTranslator::creator);
       // A Dag node in Maya but a depend node in Arnold
-       builtin->RegisterTranslator("sky",
-                                   "aiSky",
+       builtin->RegisterTranslator("aiSky",
                                    "",
                                    CSkyShaderTranslator::creator);
        // Lights
-       builtin->RegisterTranslator("distant_light",
-                                   "directionalLight",
+       builtin->RegisterTranslator("directionalLight",
                                    "",
                                    CDirectionalLightTranslator::creator,
                                    CDirectionalLightTranslator::NodeInitializer);
-       builtin->RegisterTranslator("spot_light",
-                                   "spotLight",
+       builtin->RegisterTranslator("spotLight",
                                    "",
                                    CSpotLightTranslator::creator,
                                    CSpotLightTranslator::NodeInitializer);
-       builtin->RegisterTranslator("quad_light",
-                                   "areaLight",
+       builtin->RegisterTranslator("areaLight",
                                    "",
                                    CAreaLightTranslator::creator,
                                    CAreaLightTranslator::NodeInitializer);
-       builtin->RegisterTranslator("point_light",
-                                   "pointLight",
+       builtin->RegisterTranslator("pointLight",
                                    "",
                                    CPointLightTranslator::creator,
                                    CPointLightTranslator::NodeInitializer);
-       builtin->RegisterTranslator("ambient_light",
-                                   "ambientLight",
+       builtin->RegisterTranslator("ambientLight",
                                    "",
                                    CAmbientLightTranslator::creator,
                                    CLightTranslator::NodeInitializer);
-       builtin->RegisterTranslator("skydome_light",
-                                   "aiSkyDomeLight",
+       builtin->RegisterTranslator("aiSkyDomeLight",
                                    "",
                                    CSkyDomeLightTranslator::creator);
        // Geometry
-       builtin->RegisterTranslator("polymesh",
-                                   "mesh",
+       builtin->RegisterTranslator("mesh",
                                    "",
                                    CMeshTranslator::creator,
                                    CMeshTranslator::NodeInitializer);
-       builtin->RegisterTranslator("nurbs",
-                                   "nurbsSurface",
+       builtin->RegisterTranslator("nurbsSurface",
                                    "",
                                    CNurbsSurfaceTranslator::creator,
                                    CNurbsSurfaceTranslator::NodeInitializer);
        // Multiple camera translators for single Maya camera node
-       builtin->RegisterTranslator("persp_camera",
-                                   "camera",
+       builtin->RegisterTranslator("camera",
                                    "perspective",
                                    CPerspCameraTranslator::creator,
                                    CPerspCameraTranslator::NodeInitializer);
-       builtin->RegisterTranslator("ortho_camera",
-                                   "camera",
+       builtin->RegisterTranslator("camera",
                                    "orthographic",
                                    COrthoCameraTranslator::creator,
                                    COrthoCameraTranslator::NodeInitializer);
-       builtin->RegisterTranslator("fisheye_camera",
-                                   "camera",
+       builtin->RegisterTranslator("camera",
                                    "fisheye",
                                    CFishEyeCameraTranslator::creator,
                                    CFishEyeCameraTranslator::NodeInitializer);
-       builtin->RegisterTranslator("cyl_camera",
-                                   "camera",
+       builtin->RegisterTranslator("camera",
                                    "cylindrical",
                                    CCylCameraTranslator::creator,
                                    CCylCameraTranslator::NodeInitializer);
        // Hair
-       builtin->RegisterTranslator("curves",
-                                   "hairSystem",
+       builtin->RegisterTranslator("hairSystem",
                                    "",
                                    CHairTranslator::creator,
                                    CHairTranslator::NodeInitializer);
@@ -249,63 +194,42 @@ namespace // <anonymous>
       shaders = CExtensionsManager::LoadArnoldPlugin("mtoa_shaders", "$ARNOLD_PLUGIN_PATH", &status);
       CHECK_MSTATUS(status);
       // Overrides for mtoa_shaders
-      shaders->RegisterTranslator("MayaLayeredShader",
-                                  "layeredShader",
+      shaders->RegisterTranslator("layeredShader",
                                   "",
                                   CLayeredShaderTranslator::creator);
-      shaders->RegisterTranslator("MayaFile",
-                                  "file",
+      shaders->RegisterTranslator("layeredTexture",
+                                  "",
+                                  CLayeredTextureTranslator::creator);
+      shaders->RegisterTranslator("file",
                                   "",
                                   CFileTranslator::creator);
-      shaders->RegisterTranslator("MayaPlace2DTexture",
-                                  "place2dTexture",
+      shaders->RegisterTranslator("place2dTexture",
                                   "",
                                   CPlace2DTextureTranslator::creator);
       shaders->RegisterTranslator("bump2d",
-                                  "bump2d",
                                   "",
                                   CBump2DTranslator::creator);
       shaders->RegisterTranslator("bump3d",
-                                  "bump3d",
                                   "",
                                   CBump3DTranslator::creator);
-      shaders->RegisterTranslator("MayaFacingRatio",
-                                  "samplerInfo",
+      shaders->RegisterTranslator("samplerInfo",
                                   "facingRatio",
                                   CSamplerInfoTranslator::creator);
-      shaders->RegisterTranslator("MayaFlippedNormal",
-                                  "samplerInfo",
-                                  "flippedNormal",
-                                  CSamplerInfoTranslator::creator);
-      // Explicit special case, no metadata can be read
-      shaders->RegisterTranslator("",
-                                  "plusMinusAverage",
+      shaders->RegisterTranslator("plusMinusAverage",
                                   "",
                                   CPlusMinusAverageTranslator::creator);
-      shaders->RegisterTranslator("MayaRemapValueToValue",
-                                  "remapValue",
-                                  "valueToValue",
+      shaders->RegisterTranslator("remapValue",
+                                  "",
                                   CRemapValueTranslator::creator);
-      shaders->RegisterTranslator("MayaRemapValueToColor",
-                                  "remapValue",
-                                  "valueToColor",
-                                  CRemapValueTranslator::creator);
-      shaders->RegisterTranslator("MayaRemapColor",
-                                  "remapColor",
+      shaders->RegisterTranslator("remapColor",
                                   "",
                                   CRemapColorTranslator::creator);
-      shaders->RegisterTranslator("MayaProjection",
-                                  "projection",
+      shaders->RegisterTranslator("projection",
                                   "",
                                   CProjectionTranslator::creator);
-      shaders->RegisterTranslator("MayaRamp",
-                                  "ramp",
+      shaders->RegisterTranslator("ramp",
                                   "",
                                   CRampTranslator::creator);
-      shaders->RegisterTranslator("MayaLayeredTexture",
-                                  "layeredTexture",
-                                  "",
-                                  CLayeredTextureTranslator::creator);
 
 
       // Will load all found plugins and try to register nodes and translators
@@ -331,8 +255,10 @@ namespace // <anonymous>
       MStatus status;
       MFnPlugin plugin(object);
 
-      //CExtension::RemoveCallbacks();
-      CExtensionsManager::UnloadExtensions();
+      status = CExtensionsManager::RemovePluginLoadedCallback();
+      CHECK_MSTATUS(status);
+      status = CExtensionsManager::UnloadExtensions();
+      CHECK_MSTATUS(status);
 
       // Render Options
       // Remove creation callback
@@ -355,21 +281,6 @@ namespace // <anonymous>
 
       return status;
    }
-
-   // Setup a default logging level to use when not rendering.
-   // Logging parameters are stored on the render options node and are only put in place when a render
-   // is triggered.
-   void SetupLogging()
-   {
-      // TODO: read this initial value from an environment variable or option variable
-#ifdef _DEBUG
-      AtInt defaultLogFlags = AI_LOG_ALL;
-#else
-      AtInt defaultLogFlags = AI_LOG_INFO | AI_LOG_WARNINGS | AI_LOG_ERRORS | AI_LOG_TIMESTAMP | AI_LOG_BACKTRACE | AI_LOG_MEMORY | AI_LOG_COLOR;
-#endif
-      AiMsgSetConsoleFlags(defaultLogFlags);
-      AiMsgSetCallback(MtoaLogCallback);
-   }
 } // namespace
 
 
@@ -380,8 +291,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    MFnPlugin plugin(object, MTOA_VENDOR, MTOA_VERSION, MAYA_VERSION);
 
    AiBegin();
-
-   SetupLogging();
+   SetupMtoaLogging();
 
    // TODO: Add proper checking and handling of returned status
    status = plugin.registerCommand("arnoldRender", CArnoldRenderCmd::creator, CArnoldRenderCmd::newSyntax);
@@ -406,6 +316,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
 
    MGlobal::executePythonCommand(MString("import mtoa.cmds.registerArnoldRenderer;mtoa.cmds.registerArnoldRenderer.registerArnoldRenderer()"));
 
+   AiMsgResetCallback();
    AiEnd();
 
    return MS::kSuccess;
@@ -415,6 +326,9 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
 {
    MStatus status;
    MFnPlugin plugin(object);
+
+   AiBegin();
+   SetupMtoaLogging();
 
    MGlobal::executePythonCommand(MString("import mtoa.cmds.unregisterArnoldRenderer;mtoa.cmds.unregisterArnoldRenderer.unregisterArnoldRenderer()"));
 
@@ -427,8 +341,8 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
    status = plugin.deregisterCommand("arnoldPlugins");
    status = plugin.deregisterFileTranslator(CArnoldAssTranslator::fileType);
 
-   // To avoid leaving dangling pointer in Msg callbacks
    AiMsgResetCallback();
+   AiEnd();
 
    return MS::kSuccess;
 }

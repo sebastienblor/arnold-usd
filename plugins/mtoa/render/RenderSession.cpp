@@ -1,4 +1,4 @@
-
+#include "utils/MtoaLogCallback.h"
 #include "RenderSession.h"
 #include "RenderOptions.h"
 #include "OutputDriver.h"
@@ -150,6 +150,7 @@ void CRenderSession::Translate(ExportOptions& options)
 
    // Begin the Arnold universe.
    AiBegin();
+   SetupMtoaLogging();
    Init(options);
    LoadPlugins();
 
@@ -190,6 +191,7 @@ void CRenderSession::Finish()
    {
       AiRenderAbort();
       InterruptRender();
+      AiMsgResetCallback();
       AiEnd();
    }
    m_is_active = false;
