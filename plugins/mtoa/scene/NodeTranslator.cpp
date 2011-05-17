@@ -787,11 +787,41 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, MPlug& plug, const
       break;
    case AI_TYPE_POINT2:
       {
-         float x, y;
-         MObject numObj = plug.asMObject();
-         MFnNumericData numData(numObj);
-         numData.getData2Float(x, y);
-         AiNodeSetPnt2(arnoldNode, arnoldAttrib, x, y);
+         int compConnected = 0;
+         MPlugArray conn;
+         for (unsigned int i=0; i < 2; i++)
+         {
+            plug.child(i).connectedTo(conn, true, false);
+            if (conn.length() > 0)
+            {
+               MString attrName = conn[0].partialName(false, false, false, false, false, true);
+               AtNode* node = ExportShader(conn[0].node(), attrName);
+               if (node != NULL)
+               {
+                  ++compConnected;
+                  MString compAttrName(arnoldAttrib);
+                  switch(i)
+                  {
+                  case 0:
+                     compAttrName += ".x";
+                     break;
+                  case 1:
+                     compAttrName += ".y";
+                     break;
+                  }
+                  AiNodeLink(node, compAttrName.asChar(), arnoldNode);
+               }
+            }
+         }
+
+         if (compConnected != 2)
+         {
+            float x, y;
+            MObject numObj = plug.asMObject();
+            MFnNumericData numData(numObj);
+            numData.getData2Float(x, y);
+            AiNodeSetPnt2(arnoldNode, arnoldAttrib, x, y);
+         }
       }
       break;
    case AI_TYPE_MATRIX:
