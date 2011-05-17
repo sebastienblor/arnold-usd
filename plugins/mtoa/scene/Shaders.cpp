@@ -351,11 +351,37 @@ void CMayaScene::ProcessShaderParameter(MFnDependencyNode shader, const char* pa
          break;
       case AI_TYPE_POINT2:
          {
-            float x, y;
-            MObject numObj = plug.asMObject();
-            MFnNumericData numData(numObj);
-            numData.getData2Float(x, y);
-            AiNodeSetPnt2(arnoldShader, arnoldAttrib, x, y);
+            bool compConnected = false;
+            for (unsigned int i=0; i < 2; i++)
+            {
+               plug.child(i).connectedTo(connections, true, false);
+               if (connections.length() > 0)
+               {
+                  compConnected = true;
+                  MString attrName = connections[0].partialName(false, false, false, false, false, true);
+                  MString compAttrName(arnoldAttrib);
+                  switch(i)
+                  {
+                  case 0:
+                     compAttrName += ".x";
+                     break;
+                  case 1:
+                     compAttrName += ".y";
+                     break;
+                  }
+                  AtNode* node = ExportShader(connections[0].node(), attrName);
+                  if (node != NULL)
+                     AiNodeLink(node, compAttrName.asChar(), arnoldShader);
+               }
+            }
+            if (!compConnected)
+            {
+               float x, y;
+               MObject numObj = plug.asMObject();
+               MFnNumericData numData(numObj);
+               numData.getData2Float(x, y);
+               AiNodeSetPnt2(arnoldShader, arnoldAttrib, x, y);
+            }
          }
          break;
       case AI_TYPE_MATRIX:
