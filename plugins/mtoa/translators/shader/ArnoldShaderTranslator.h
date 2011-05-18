@@ -15,7 +15,7 @@
 ///  -# processes the equivalent attribute on the Maya node
 ///
 
-class CArnoldShaderTranslator
+class DLLEXPORT CArnoldShaderTranslator
    :  public CNodeTranslator
 {
 public:
@@ -29,4 +29,4 @@ public:
 };
 
 
-#endif // NODETRANSLATOR_H
+#endif // ARNOLDSHADERTRANSLATOR_H

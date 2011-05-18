@@ -1,10 +1,10 @@
-#ifndef SHADERS_H
-#define SHADERS_H
+#ifndef SHADERTRANSLATORS_H
+#define SHADERTRANSLATORS_H
 
 #include "translators/NodeTranslator.h"
 
 #define SHADER_TRANSLATOR(name)\
-   class DLLEXPORT name : public CNodeTranslator\
+   class name : public CNodeTranslator\
    {\
    public:\
       static void* creator(){return new name();}\
@@ -12,7 +12,7 @@
       AtNode* CreateArnoldNodes();\
    };
 
-class DLLEXPORT CSkyShaderTranslator
+class CSkyShaderTranslator
    :  public CDagTranslator
 {
 public:
@@ -36,4 +36,4 @@ SHADER_TRANSLATOR(CRampTranslator);
 SHADER_TRANSLATOR(CLayeredTextureTranslator);
 SHADER_TRANSLATOR(CLayeredShaderTranslator);
 
-#endif // SHADERS_H
+#endif // SHADERTRANSLATORS_H

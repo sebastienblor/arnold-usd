@@ -1,5 +1,5 @@
 #include "extension/Extensions.h"
-#include "scene/NodeTranslator.h"
+#include "translators/NodeTranslator.h"
 
 #include <maya/MDagPath.h>
 #include <maya/MPlug.h>

@@ -991,7 +991,7 @@ void CGeoTranslator::NodeInitializer(MString nodeClassName)
    CExtensionAttrHelper helper(nodeClassName, "polymesh");
 
    // Node attributes
-   CShapeTranslator::MakeCommonAttributes(helper);
+   CArnoldShapeTranslator::MakeCommonAttributes(helper);
 
    helper.MakeInput("subdiv_type");
    helper.MakeInput("subdiv_iterations");

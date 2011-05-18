@@ -1,35 +1,9 @@
-#ifndef LIGHTS_H
-#define LIGHTS_H
+#ifndef LIGHTTRANSLATORS_H
+#define LIGHTTRANSLATORS_H
 
-#include "translators/NodeTranslator.h"
+#include "ArnoldLightTranslator.h"
 
-class DLLEXPORT CLightTranslator
-   :   public CDagTranslator
-{
-public:
-
-   virtual AtNode* Init(MDagPath& dagPath, CMayaScene* scene, MString outputAttr="")
-   {
-      CDagTranslator::Init(dagPath, scene, outputAttr);
-      m_motion = scene->IsLightMotionBlurEnabled();
-      return m_atNode;
-   }
-   bool RequiresMotionData()
-   {
-      return m_motion;
-   }
-   static void NodeInitializer(MString nodeClassName);
-protected:
-   virtual void Export(AtNode* light, bool mayaAttrs=true);
-   virtual void ExportMotion(AtNode* light, AtUInt step);
-   virtual void ExportLightFilters(AtNode* light, const MObjectArray &filters);
-   virtual void Delete();
-
-protected:
-   bool m_motion;
-};
-
-class DLLEXPORT CAmbientLightTranslator : public CLightTranslator
+class CAmbientLightTranslator : public CArnoldLightTranslator
 {
 public:
    void Export(AtNode* light);
@@ -43,7 +17,7 @@ public:
    }
 };
 
-class DLLEXPORT CDirectionalLightTranslator : public CLightTranslator
+class CDirectionalLightTranslator : public CArnoldLightTranslator
 {
 public:
    void Export(AtNode* light);
@@ -58,7 +32,7 @@ public:
    }
 };
 
-class DLLEXPORT CPointLightTranslator : public CLightTranslator
+class CPointLightTranslator : public CArnoldLightTranslator
 {
 public:
    void Export(AtNode* light);
@@ -73,7 +47,7 @@ public:
    }
 };
 
-class DLLEXPORT CSpotLightTranslator : public CLightTranslator
+class CSpotLightTranslator : public CArnoldLightTranslator
 {
 public:
    void Export(AtNode* light);
@@ -88,7 +62,7 @@ public:
    }
 };
 
-class DLLEXPORT CAreaLightTranslator : public CLightTranslator
+class CAreaLightTranslator : public CArnoldLightTranslator
 {
 public:
    void Export(AtNode* light);
@@ -103,7 +77,7 @@ public:
    }
 };
 
-class DLLEXPORT CSkyDomeLightTranslator : public CLightTranslator
+class CSkyDomeLightTranslator : public CArnoldLightTranslator
 {
 public:
    void Export(AtNode* light);
@@ -116,4 +90,4 @@ public:
       return AddArnoldNode("skydome_light");
    }
 };
-#endif // LIGHTS_H
+#endif // LIGHTTRANSLATORS_H

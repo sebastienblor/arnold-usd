@@ -1,26 +1,31 @@
 
 #include "platform/Platform.h"
 #include "utils/MtoaLog.h"
+
 #include "commands/ArnoldAssTranslator.h"
 #include "commands/ArnoldExportAssCmd.h"
 #include "commands/ArnoldRenderCmd.h"
 #include "commands/ArnoldIprCmd.h"
 #include "commands/ArnoldPluginCmd.h"
-#include "nodes/ArnoldOptionsNode.h"
+
+#include "nodes/ShaderUtils.h"
 #include "nodes/ArnoldAOVNode.h"
 #include "nodes/MayaNodeIDs.h"
 #include "nodes/ArnoldNodeIDs.h"
 #include "nodes/SphereLocator.h"
+#include "nodes/options/ArnoldOptionsNode.h"
 #include "nodes/shader/ArnoldSkyNode.h"
 #include "nodes/shader/ArnoldDisplacementNode.h"
 #include "nodes/light/ArnoldSkyDomeLightNode.h"
-#include "nodes/ShaderUtils.h"
-#include "translators/shader/Shaders.h"
-#include "translators/light/Lights.h"
+
+#include "translators/shader/ShaderTranslators.h"
+#include "translators/light/LightTranslators.h"
 #include "translators/shape/GeometryTranslators.h"
-#include "translators/camera/Cameras.h"
-#include "translators/ArnoldOptionsTranslator.h"
+#include "translators/camera/CameraTranslators.h"
+
+#include "translators/options/ArnoldOptionsTranslator.h"
 #include "translators/shape/HairTranslator.h"
+
 #include "render/RenderSwatch.h"
 
 #include "extension/ExtensionsManager.h"
@@ -153,7 +158,7 @@ namespace // <anonymous>
        builtin->RegisterTranslator("ambientLight",
                                    "",
                                    CAmbientLightTranslator::creator,
-                                   CLightTranslator::NodeInitializer);
+                                   CArnoldLightTranslator::NodeInitializer);
        builtin->RegisterTranslator("aiSkyDomeLight",
                                    "",
                                    CSkyDomeLightTranslator::creator);

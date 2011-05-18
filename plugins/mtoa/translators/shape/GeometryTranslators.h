@@ -10,14 +10,14 @@
 #include <string>
 
 class DLLEXPORT CGeoTranslator
-   :   public CShapeTranslator
+   :   public CArnoldShapeTranslator
 {
 public:
    virtual AtNode* Init(MDagPath& dagPath, CMayaScene* scene, MString outputAttr="")
    {
       m_displaced = false;
       m_isRefSmooth = false;
-      return CShapeTranslator::Init(dagPath, scene, outputAttr);
+      return CArnoldShapeTranslator::Init(dagPath, scene, outputAttr);
    }
    virtual void Update(AtNode* anode);
    virtual void ExportMotion(AtNode* anode, AtUInt step);

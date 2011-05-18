@@ -1,4 +1,4 @@
-#include "Shaders.h"
+#include "ShaderTranslators.h"
 #include "scene/MayaScene.h"
 #include "render/RenderOptions.h"
 #include "render/RenderSession.h"
@@ -898,7 +898,7 @@ AtNode* CRemapColorTranslator::CreateArnoldNodes()
 {
    if (m_outputAttr == "outColor")
    {
-      //FIXME: missing AiNode()!
+      return AddArnoldNode("MayaRemapColor");
    }
    return NULL;
 }

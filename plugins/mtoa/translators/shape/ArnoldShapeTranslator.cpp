@@ -2,7 +2,7 @@
 
 // computes and sets the visibility mask as well as other shape attributes related to ray visibility
 // (self_shadows, opaque)
-void CShapeTranslator::ProcessRenderFlags(AtNode* node)
+void CArnoldShapeTranslator::ProcessRenderFlags(AtNode* node)
 {
    AiNodeSetInt(node, "visibility", ComputeVisibility());
 
@@ -30,7 +30,7 @@ void CShapeTranslator::ProcessRenderFlags(AtNode* node)
 
 // create attributes common to arnold shape nodes
 //
-void CShapeTranslator::MakeCommonAttributes(CBaseAttrHelper& helper)
+void CArnoldShapeTranslator::MakeCommonAttributes(CBaseAttrHelper& helper)
 {
    helper.MakeInput("sss_use_gi");
    helper.MakeInput("sss_max_samples");

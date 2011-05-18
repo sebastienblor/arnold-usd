@@ -3,7 +3,7 @@
 
 #include "translators/NodeTranslator.h"
 
-class DLLEXPORT CShapeTranslator : public CDagTranslator
+class DLLEXPORT CArnoldShapeTranslator : public CDagTranslator
 {
 public:
    virtual AtNode* Init(MDagPath& dagPath, CMayaScene* scene, MString outputAttr="")

@@ -5,7 +5,7 @@
 #include "nodes/ShaderUtils.h"
 #include "nodes/shader/ArnoldShaderNode.h"
 #include "translators/shader/ArnoldShaderTranslator.h"
-
+#include "translators/shape/ArnoldShapeTranslator.h"
 
 // A Maya node proxy
 CPxTranslator::CPxTranslator(const MString &translatorName,
@@ -63,22 +63,23 @@ MStatus CPxTranslator::ReadMetaData()
          name = provider;
       }
    }
-   // If no explicit translator was specified, choose a default one using Arnold node type and metadata
+   // If no explicit translator was specified, choose a default one using Arnold node type
+   // TODO : use metadata for a finer choice of base translator classes ?
    if (NULL == creator)
    {
       const char* arnoldNodeTypeName;
       arnoldNodeTypeName = AiNodeEntryGetTypeName(arnoldNodeEntry);
       if (strcmp(arnoldNodeTypeName, "camera") == 0)
       {
-         // TODO : define a non virtual CameraTranslator?
-         // creator = CPerspCameraTranslator::creator;
-         // initialize = CPerspCameraTranslator::NodeInitializer;
+         // TODO : define a non virtual CArnoldCameraTranslator
+         // creator = CArnoldCameraTranslator::creator;
+         // initialize = CArnoldCameraTranslator::NodeInitializer;
       }
       else if (strcmp(arnoldNodeTypeName,"light") == 0)
       {
-         // TODO : define a non virtual CLightTranslator?
-         // creator = CPointLightTranslator::creator;
-         // initialize = CPointLightTranslator::NodeInitializer;
+         // TODO : define a non virtual CArnoldLightTranslator
+         // creator = CArnoldLightTranslator::creator;
+         // initialize = CArnoldLightTranslator::NodeInitializer;
       }
       else if (strcmp(arnoldNodeTypeName,"shader") == 0)
       {
@@ -87,9 +88,9 @@ MStatus CPxTranslator::ReadMetaData()
       }
       else if (strcmp(arnoldNodeTypeName,"shape") == 0)
       {
-         // TODO : define a non virtual CShapeTranslator or Geo
-         // creator = CMeshTranslator::creator;
-         // initialize = CMeshTranslator::NodeInitializer;
+         // TODO : define a non virtual CArnoldShapeTranslator or Geo
+         // creator = CArnoldShapeTranslator::creator;
+         // initialize = CArnoldShapeTranslator::NodeInitializer;
       }
       // No default strategy to create the rest
    }

@@ -1,7 +1,7 @@
 #include "utils/MtoaLog.h"
 #include "RenderOptions.h"
 #include "scene/MayaScene.h"
-#include "translators/ArnoldOptionsTranslator.h"
+#include "translators/options/ArnoldOptionsTranslator.h"
 
 #include <ai_constants.h>
 #include <ai_msg.h>

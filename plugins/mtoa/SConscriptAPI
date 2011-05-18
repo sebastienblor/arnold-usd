@@ -19,19 +19,31 @@ for subdir in ['common', 'platform', 'render', 'scene', 'utils', 'extension']:
    source_files  += [os.path.join(subdir, x) for x in find_files_recursive(dir, ['.c', '.cpp'])]
    include_files += [os.path.join(subdir, x) for x in find_files_recursive(dir, ['.h'])]
 
+# Remove ExtensionsManager from extensions
+# source_files_rem = [os.path.join('extension', 'ExtensionsManager.cpp')]
+# include_files_rem = [os.path.join('extension', 'ExtensionsManager.h')]
+
+# for file_rem in source_files_rem:
+#   source_files.remove(file_rem)
+# for file_rem in include_files_rem:
+#   include_files.remove(file_rem)
+
 #Add files to be exported by the API from 'nodes' and 'translators' folder
 source_files_add = [os.path.join('nodes', 'shader', 'ArnoldShaderNode.cpp'),
+                    os.path.join('translators', 'camera', 'ArnoldCameraTranslator.cpp'),
+                    os.path.join('translators', 'light', 'ArnoldLightTranslator.cpp'),
                     os.path.join('translators', 'shader', 'ArnoldShaderTranslator.cpp'),
                     os.path.join('translators', 'shape', 'ArnoldShapeTranslator.cpp'),
                     os.path.join('translators', 'shape', 'GeometryTranslators.cpp'),
                     os.path.join('translators', 'NodeTranslator.cpp')]
 include_files_add = [os.path.join('nodes', 'shader', 'ArnoldShaderNode.h'),
+                     os.path.join('translators', 'camera', 'ArnoldCameraTranslator.h'),
+                     os.path.join('translators', 'light', 'ArnoldLightTranslator.h'),
                      os.path.join('translators', 'shader', 'ArnoldShaderTranslator.h'),
                      os.path.join('translators', 'shape', 'ArnoldShapeTranslator.h'),
                      os.path.join('translators', 'shape', 'GeometryTranslators.h'),
                      os.path.join('translators', 'NodeTranslator.h')]
-
-
+  
 source_files += source_files_add
 include_files += include_files_add
 

@@ -1,5 +1,5 @@
 #include "CustomShapes.h"
-#include "scene/NodeTranslator.h"
+#include "translators/NodeTranslator.h"
 
 #include <ai_msg.h>
 #include <ai_nodes.h>

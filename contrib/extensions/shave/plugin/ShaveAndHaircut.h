@@ -1,4 +1,4 @@
-#include "scene/Geometry.h"
+#include "translators/shape/GeometryTranslators.h"
 #include <maya/shaveAPI.h>
 #include <maya/shaveItHair.h>
 

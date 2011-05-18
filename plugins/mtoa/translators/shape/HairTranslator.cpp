@@ -31,7 +31,7 @@
 void CHairTranslator::NodeInitializer(MString nodeClassName)
 {
    CExtensionAttrHelper helper = CExtensionAttrHelper(nodeClassName, "curves");
-   CShapeTranslator::MakeCommonAttributes(helper);
+   CArnoldShapeTranslator::MakeCommonAttributes(helper);
    helper.MakeInput("min_pixel_width");
    helper.MakeInput("mode");
 

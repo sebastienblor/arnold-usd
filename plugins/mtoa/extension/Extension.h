@@ -1,7 +1,6 @@
 #ifndef EXTENSION_H
 #define EXTENSION_H
 
-// TODO : mode/Translator.h"
 #include "extension/PathUtils.h"
 #include "extension/PxUtils.h"
 #include "common/DynLibrary.h"

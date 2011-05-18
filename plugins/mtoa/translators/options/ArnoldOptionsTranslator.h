@@ -1,7 +1,7 @@
 #ifndef ARNOLDOPTIONSTRANSLATOR_H
 #define ARNOLDOPTIONSTRANSLATOR_H
 
-#include "NodeTranslator.h"
+#include "translators/NodeTranslator.h"
 
 class DLLEXPORT CArnoldOptionsTranslator : public CNodeTranslator
 {

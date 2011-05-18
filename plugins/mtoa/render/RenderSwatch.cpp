@@ -172,7 +172,7 @@ MStatus CRenderSwatchGenerator::BuildArnoldScene()
    if (NULL != arnoldNode) {
       const AtNodeEntry *nodeEntry = arnoldNode->base_node;
       AiMsgDebug("[mtoa] [swatch] Exported %s(%s) as %s(%s)",
-            mayaNodeType.asChar(), mayaNodeName.asChar(),
+            mayaNodeName.asChar(), mayaNodeType.asChar(),
             AiNodeGetName(arnoldNode), AiNodeEntryGetTypeName(nodeEntry));
    }
 
