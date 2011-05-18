@@ -21,7 +21,6 @@ public:
    AtNode* CreateArnoldNodes();
 };
 
-SHADER_TRANSLATOR(CSurfaceShaderTranslator);
 SHADER_TRANSLATOR(CLambertTranslator);
 SHADER_TRANSLATOR(CFileTranslator);
 SHADER_TRANSLATOR(CPlace2DTextureTranslator);

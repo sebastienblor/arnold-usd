@@ -123,9 +123,6 @@ namespace // <anonymous>
       builtin->RegisterTranslator("aiOptions",
                                   "",
                                   CRenderOptionsTranslator::creator);
-      builtin->RegisterTranslator("surfaceShader",
-                                  "",
-                                  CSurfaceShaderTranslator::creator);
       builtin->RegisterTranslator("lambert",
                                   "",
                                   CLambertTranslator::creator);

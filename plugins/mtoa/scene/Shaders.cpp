@@ -559,19 +559,6 @@ void CLambertTranslator::Export(AtNode* shader)
    }
 }
 
-// SurfaceShader
-//
-AtNode*  CSurfaceShaderTranslator::CreateArnoldNodes()
-{
-   return AddArnoldNode("flat");
-}
-
-void CSurfaceShaderTranslator::Export(AtNode* shader)
-{
-   ProcessParameter(shader, "outColor", "color", AI_TYPE_RGB);
-   ProcessParameter(shader, "outMatteOpacity", "opacity", AI_TYPE_RGB);
-}
-
 // File
 //
 AtNode*  CFileTranslator::CreateArnoldNodes()

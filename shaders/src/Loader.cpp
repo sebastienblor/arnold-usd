@@ -46,6 +46,7 @@ extern AtNodeMethods* MayaBrownianMtd;
 extern AtNodeMethods* MayaStuccoMtd;
 extern AtNodeMethods* MayaRemapHsvMtd;
 extern AtNodeMethods* MayaImagePlaneMtd;
+extern AtNodeMethods* MayaSurfaceShaderMtd;
 extern AtNodeMethods* ColorToFloatMtd;
 
 node_loader
@@ -354,6 +355,13 @@ node_loader
       break;
 
    case 43:
+      node->methods     = MayaSurfaceShaderMtd;
+      node->output_type = AI_TYPE_RGBA;
+      node->name        = "MayaSurfaceShader";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+
+   case 44:
       node->methods     = ColorToFloatMtd;
       node->output_type = AI_TYPE_FLOAT;
       node->name        = "colorToFloat";
