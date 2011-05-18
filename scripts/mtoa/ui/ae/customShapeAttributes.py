@@ -149,7 +149,7 @@ class CameraTemplate(ArnoldTranslatorTemplate):
     def addDOFAttributes(self):
         self.addAttribute("enableDOF")
         self.addSeparator()
-        self.addAttribute("focalDistance")
+        self.addAttribute("aiFocusDistance")
         self.addAttribute("apertureSize")
         self.addAttribute("apertureBlades")
         self.addAttribute("apertureBladeCurvature")

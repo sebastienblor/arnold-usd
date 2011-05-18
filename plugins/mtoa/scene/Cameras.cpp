@@ -406,7 +406,7 @@ void CCameraTranslator::ExportDOF(AtNode* camera)
    // FIXME: focal_distance and aperture_size are animated and should be exported with motion blur
    if (GetFnNode().findPlug("enableDOF").asBool())
    {
-      AiNodeSetFlt(camera, "focal_distance",          GetFnNode().findPlug("focal_distance").asFloat());
+      AiNodeSetFlt(camera, "focus_distance",          GetFnNode().findPlug("focus_distance").asFloat());
       AiNodeSetFlt(camera, "aperture_size",           GetFnNode().findPlug("aperture_size").asFloat());
       AiNodeSetInt(camera, "aperture_blades",         GetFnNode().findPlug("aperture_blades").asInt());
       AiNodeSetFlt(camera, "aperture_rotation",       GetFnNode().findPlug("aperture_rotation").asFloat());
@@ -605,7 +605,7 @@ void CCameraTranslator::MakeDefaultAttributes(CExtensionAttrHelper &helper)
 
 void CCameraTranslator::MakeDOFAttributes(CExtensionAttrHelper &helper)
 {
-   helper.MakeInput("focal_distance");
+   helper.MakeInput("focus_distance");
    helper.MakeInput("aperture_size");
    helper.MakeInput("aperture_blades");
    helper.MakeInput("aperture_blade_curvature");
