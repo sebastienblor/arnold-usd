@@ -5,7 +5,7 @@
 #include "extension/PathUtils.h"
 #include "extension/PxUtils.h"
 #include "common/DynLibrary.h"
-#include "scene/NodeTranslator.h"
+#include "translators/NodeTranslator.h"
 
 #include <maya/MTypeId.h>
 #include <maya/MPxNode.h>

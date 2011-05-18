@@ -15,10 +15,12 @@ src_base_dir  = os.path.join(local_env['ROOT_DIR'], 'plugins', 'mtoa')
 
 source_files  = [os.path.join('nodes', x) for x in find_files_recursive(os.path.join(src_base_dir, 'nodes'), ['.c', '.cpp'])]
 include_files = [os.path.join('nodes', x) for x in find_files_recursive(os.path.join(src_base_dir, 'nodes'), ['.h'])]
+source_files  += [os.path.join('translators', x) for x in find_files_recursive(os.path.join(src_base_dir, 'translators'), ['.c', '.cpp'])]
+include_files += [os.path.join('translators', x) for x in find_files_recursive(os.path.join(src_base_dir, 'translators'), ['.h'])]
 
-#Remove files to be exported by the API from 'nodes' folder
-source_files_rem = [os.path.join('nodes', x) for x in [os.path.join('shaders', 'surface', 'ArnoldCustomShader.cpp')]]
-include_files_rem = [os.path.join('nodes', x) for x in [os.path.join('shaders', 'surface', 'ArnoldCustomShader.h')]]
+#Remove files to be exported by the API from 'nodes' and 'translators' folder
+source_files_rem = [os.path.join('nodes', 'shader', 'ArnoldShaderNode.cpp'), os.path.join('translators', 'shader', 'ArnoldShaderTranslator.cpp'), os.path.join('translators', 'NodeTranslator.cpp')]
+include_files_rem = [os.path.join('nodes', 'shader', 'ArnoldShaderNode.h'), os.path.join('translators', 'shader', 'ArnoldShaderTranslator.h'), os.path.join('translators', 'NodeTranslator.h')]
 
 for file_rem in source_files_rem:
    source_files.remove(file_rem)
@@ -28,6 +30,8 @@ for file_rem in include_files_rem:
 
 source_files  += find_files(src_base_dir, ['.c', '.cpp'])
 include_files += find_files(src_base_dir, ['.h'])
+source_files  += [os.path.join('commands', x) for x in find_files_recursive(os.path.join(src_base_dir, 'commands'), ['.c', '.cpp'])]
+include_files += [os.path.join('commands', x) for x in find_files_recursive(os.path.join(src_base_dir, 'commands'), ['.h'])]
 
 if system.os() == 'darwin':
     local_env.Append(LDMODULESUFFIX='.bundle')

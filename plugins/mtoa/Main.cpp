@@ -1,26 +1,26 @@
 
 #include "platform/Platform.h"
 #include "utils/MtoaLogCallback.h"
-#include "ArnoldAssTranslator.h"
-#include "ArnoldExportAssCmd.h"
-#include "ArnoldRenderCmd.h"
-#include "ArnoldIprCmd.h"
-#include "ArnoldPluginCmd.h"
-#include "nodes/ArnoldRenderOptions.h"
-#include "nodes/ArnoldAOV.h"
+#include "commands/ArnoldAssTranslator.h"
+#include "commands/ArnoldExportAssCmd.h"
+#include "commands/ArnoldRenderCmd.h"
+#include "commands/ArnoldIprCmd.h"
+#include "commands/ArnoldPluginCmd.h"
+#include "nodes/ArnoldOptionsNode.h"
+#include "nodes/ArnoldAOVNode.h"
 #include "nodes/MayaNodeIDs.h"
 #include "nodes/ArnoldNodeIDs.h"
-#include "nodes/shaders/background/SphereLocator.h"
-#include "nodes/shaders/background/ArnoldSkyShader.h"
-#include "nodes/shaders/displacement/ArnoldDisplacementShader.h"
-#include "nodes/shaders/light/ArnoldSkyDomeLightShader.h"
+#include "nodes/SphereLocator.h"
+#include "nodes/shader/ArnoldSkyNode.h"
+#include "nodes/shader/ArnoldDisplacementNode.h"
+#include "nodes/light/ArnoldSkyDomeLightNode.h"
 #include "nodes/ShaderUtils.h"
-#include "scene/Shaders.h"
-#include "scene/Lights.h"
-#include "scene/Geometry.h"
-#include "scene/Cameras.h"
-#include "scene/Options.h"
-#include "scene/Hair.h"
+#include "translators/shader/Shaders.h"
+#include "translators/light/Lights.h"
+#include "translators/shape/GeometryTranslators.h"
+#include "translators/camera/Cameras.h"
+#include "translators/ArnoldOptionsTranslator.h"
+#include "translators/shape/HairTranslator.h"
 #include "render/RenderSwatch.h"
 
 #include "extension/ExtensionsManager.h"
@@ -60,9 +60,9 @@ namespace // <anonymous>
 
       // Render Options
       status = plugin.registerNode("aiOptions",
-                                    CArnoldRenderOptionsNode::id,
-                                    CArnoldRenderOptionsNode::creator,
-                                    CArnoldRenderOptionsNode::initialize);
+                                    CArnoldOptionsNode::id,
+                                    CArnoldOptionsNode::creator,
+                                    CArnoldOptionsNode::initialize);
       CHECK_MSTATUS(status);
 
       // AOV
@@ -79,9 +79,9 @@ namespace // <anonymous>
                                      + ":" + ARNOLD_CLASSIFY(CLASSIFY_SHADER_DISPLACEMENT)
                                      + ":swatch/" + ARNOLD_SWATCH;
       status = plugin.registerNode("aiDisplacement",
-                                   CArnoldDisplacementShaderNode::id,
-                                   CArnoldDisplacementShaderNode::creator,
-                                   CArnoldDisplacementShaderNode::initialize,
+                                   CArnoldDisplacementNode::id,
+                                   CArnoldDisplacementNode::creator,
+                                   CArnoldDisplacementNode::initialize,
                                    MPxNode::kDependNode,
                                    &displacementWithSwatch);
       CHECK_MSTATUS(status);
@@ -93,9 +93,9 @@ namespace // <anonymous>
       MString lightNoSwatch         = CLASSIFY_SHADER_LIGHT
                                     + ":" + ARNOLD_CLASSIFY(CLASSIFY_SHADER_LIGHT);
       status = plugin.registerNode("aiSkyDomeLight",
-                                   CArnoldSkyDomeLightShaderNode::id,
-                                   CArnoldSkyDomeLightShaderNode::creator,
-                                   CArnoldSkyDomeLightShaderNode::initialize,
+                                   CArnoldSkyDomeLightNode::id,
+                                   CArnoldSkyDomeLightNode::creator,
+                                   CArnoldSkyDomeLightNode::initialize,
                                    MPxNode::kLocatorNode,
                                    &lightWithSwatch);
                                    // &lightNoSwatch);
@@ -107,9 +107,9 @@ namespace // <anonymous>
                                     + ":" + ARNOLD_CLASSIFY(CLASSIFY_SHADER_ENVIRONMENT)
                                     + ":swatch/" + ARNOLD_SWATCH;
       status = plugin.registerNode("aiSky",
-                                   CArnoldSkyShaderNode::id,
-                                   CArnoldSkyShaderNode::creator,
-                                   CArnoldSkyShaderNode::initialize,
+                                   CArnoldSkyNode::id,
+                                   CArnoldSkyNode::creator,
+                                   CArnoldSkyNode::initialize,
                                    MPxNode::kLocatorNode,
                                    &environmentWithSwatch);
       CHECK_MSTATUS(status);
@@ -122,7 +122,7 @@ namespace // <anonymous>
       // Override for builtins for specific cases
       builtin->RegisterTranslator("aiOptions",
                                   "",
-                                  CRenderOptionsTranslator::creator);
+                                  CArnoldOptionsTranslator::creator);
       builtin->RegisterTranslator("surfaceShader",
                                   "",
                                   CSurfaceShaderTranslator::creator);
@@ -262,9 +262,9 @@ namespace // <anonymous>
 
       // Render Options
       // Remove creation callback
-      MDGMessage::removeCallback(CArnoldRenderOptionsNode::sId);
+      MDGMessage::removeCallback(CArnoldOptionsNode::sId);
       // Deregister node
-      status = plugin.deregisterNode(CArnoldRenderOptionsNode::id);
+      status = plugin.deregisterNode(CArnoldOptionsNode::id);
       CHECK_MSTATUS(status);
 
       // AOV
@@ -272,11 +272,15 @@ namespace // <anonymous>
       CHECK_MSTATUS(status);
 
       // Displacement Shaders
-      status = plugin.deregisterNode(CArnoldDisplacementShaderNode::id);
+      status = plugin.deregisterNode(CArnoldDisplacementNode::id);
+      CHECK_MSTATUS(status);
+
+      // Sky dome light
+      status = plugin.deregisterNode(CArnoldSkyDomeLightNode::id);
       CHECK_MSTATUS(status);
 
       // Environment or Volume shaders
-      status = plugin.deregisterNode(CArnoldSkyShaderNode::id);
+      status = plugin.deregisterNode(CArnoldSkyNode::id);
       CHECK_MSTATUS(status);
 
       return status;

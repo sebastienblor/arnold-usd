@@ -3,7 +3,7 @@
 #include "RenderOptions.h"
 #include "OutputDriver.h"
 #include "scene/MayaScene.h"
-#include "scene/NodeTranslator.h"
+#include "translators/NodeTranslator.h"
 
 #include <ai_dotass.h>
 #include <ai_msg.h>

@@ -19,9 +19,10 @@ for subdir in ['common', 'platform', 'render', 'scene', 'utils', 'extension']:
    source_files  += [os.path.join(subdir, x) for x in find_files_recursive(dir, ['.c', '.cpp'])]
    include_files += [os.path.join(subdir, x) for x in find_files_recursive(dir, ['.h'])]
 
-#Add files to be exported by the API from 'nodes' folder
-source_files_add = [os.path.join('nodes', x) for x in [os.path.join('shaders', 'surface', 'ArnoldCustomShader.cpp')]]
-include_files_add = [os.path.join('nodes', x) for x in [os.path.join('shaders', 'surface', 'ArnoldCustomShader.h')]]
+#Add files to be exported by the API from 'nodes' and 'translators' folder
+source_files_add = [os.path.join('nodes', 'shader', 'ArnoldShaderNode.cpp'), os.path.join('translators', 'shader', 'ArnoldShaderTranslator.cpp'), os.path.join('translators', 'NodeTranslator.cpp')]
+include_files_add = [os.path.join('nodes', 'shader' 'ArnoldShaderNode.h'), os.path.join('translators', 'shader', 'ArnoldShaderTranslator.h'), os.path.join('translators', 'NodeTranslator.h')]
+
 
 source_files += source_files_add
 include_files += include_files_add

@@ -3,11 +3,9 @@
 #include <ai_metadata.h>
 
 #include "nodes/ShaderUtils.h"
-#include "nodes/shaders/surface/ArnoldCustomShader.h"
-#include "nodes/shaders/light/ArnoldSkyDomeLightShader.h"
-#include "scene/Lights.h"
-#include "scene/Geometry.h"
-#include "scene/Cameras.h"
+#include "nodes/shader/ArnoldShaderNode.h"
+#include "translators/shader/ArnoldShaderTranslator.h"
+
 
 // A Maya node proxy
 CPxTranslator::CPxTranslator(const MString &translatorName,
@@ -73,26 +71,25 @@ MStatus CPxTranslator::ReadMetaData()
       if (strcmp(arnoldNodeTypeName, "camera") == 0)
       {
          // TODO : define a non virtual CameraTranslator?
-         creator = CPerspCameraTranslator::creator;
-         initialize = CPerspCameraTranslator::NodeInitializer;
+         // creator = CPerspCameraTranslator::creator;
+         // initialize = CPerspCameraTranslator::NodeInitializer;
       }
       else if (strcmp(arnoldNodeTypeName,"light") == 0)
       {
          // TODO : define a non virtual CLightTranslator?
-         creator = CPointLightTranslator::creator;
-         initialize = CPointLightTranslator::NodeInitializer;
+         // creator = CPointLightTranslator::creator;
+         // initialize = CPointLightTranslator::NodeInitializer;
       }
       else if (strcmp(arnoldNodeTypeName,"shader") == 0)
       {
-         // TODO : define a non virtual CShaderTranslator
-         creator = CAutoTranslator::creator;
-         // initialize = CAutoTranslator::NodeInitializer;
+         creator = CArnoldShaderTranslator::creator;
+         // initialize = CArnoldShaderTranslator::NodeInitializer;
       }
       else if (strcmp(arnoldNodeTypeName,"shape") == 0)
       {
          // TODO : define a non virtual CShapeTranslator or Geo
-         creator = CMeshTranslator::creator;
-         initialize = CMeshTranslator::NodeInitializer;
+         // creator = CMeshTranslator::creator;
+         // initialize = CMeshTranslator::NodeInitializer;
       }
       // No default strategy to create the rest
    }

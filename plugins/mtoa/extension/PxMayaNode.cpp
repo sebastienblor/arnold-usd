@@ -5,10 +5,7 @@
 
 #include "nodes/MayaNodeIDs.h"
 #include "nodes/ShaderUtils.h"
-#include "nodes/shaders/surface/ArnoldCustomShader.h"
-#include "nodes/shaders/light/ArnoldSkyDomeLightShader.h"
-#include "scene/Lights.h"
-#include "scene/Geometry.h"
+#include "nodes/shader/ArnoldShaderNode.h"
 
 #include <ai_metadata.h>
 
@@ -165,9 +162,9 @@ MStatus CPxMayaNode::ReadMetaData()
       }
       else if (strcmp(arnoldNodeTypeName,"shader") == 0)
       {
-         creator = CArnoldCustomShaderNode::creator;
-         initialize = CArnoldCustomShaderNode::initialize;
-         abstract = &CArnoldCustomShaderNode::s_abstract;
+         creator = CArnoldShaderNode::creator;
+         initialize = CArnoldShaderNode::initialize;
+         abstract = &CArnoldShaderNode::s_abstract;
          type = MPxNode::kDependNode;
       }
       else if (strcmp(arnoldNodeTypeName,"shape") == 0)
