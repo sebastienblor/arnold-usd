@@ -77,6 +77,7 @@ def aiStandardTemplate(nodeName):
     cmds.editorTemplate("transmittance", label="Transmittance", addControl=True)
     cmds.editorTemplate("Kt_color", label="Color", addControl=True)
     cmds.editorTemplate("Kt", label="Transparency", addControl=True)
+    cmds.editorTemplate("refraction_roughness", label="Roughness", addControl=True)
     cmds.editorTemplate(addSeparator=True)
     cmds.editorTemplate("refraction_exit_use_environment", label="Refraction Exit Use Environment", addControl=True)
     cmds.editorTemplate("refraction_exit_color", label="Refraction Exit Color", addControl=True)
