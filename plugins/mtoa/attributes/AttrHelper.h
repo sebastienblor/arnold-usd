@@ -20,7 +20,7 @@
 
 #include <maya/MTypes.h>
 #if MAYA_API_VERSION < 201200
-   #include "utils/MNodeClass.h"
+   #include "attributes/MNodeClass.h"
 #else
    #include <maya/MNodeClass.h>
 #endif

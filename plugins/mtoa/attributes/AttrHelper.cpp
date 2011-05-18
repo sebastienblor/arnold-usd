@@ -1,6 +1,6 @@
 #include "AttrHelper.h"
 #include "nodes/ShaderUtils.h"
-#include "utils/Metadata.h"
+#include "attributes/Metadata.h"
 
 #include <ai_metadata.h>
 #include <ai_msg.h>

@@ -1,7 +1,7 @@
 #ifndef ARNOLDSHADERNODE_H
 #define ARNOLDSHADERNODE_H
 
-#include "utils/AttrHelper.h"
+#include "attributes/AttrHelper.h"
 #include <maya/MPxHwShaderNode.h>
 #include <maya/MObjectArray.h>
 

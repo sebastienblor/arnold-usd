@@ -1,7 +1,7 @@
 
 #include "GeometryTranslators.h"
 #include "render/RenderSession.h"
-#include "utils/AttrHelper.h"
+#include "attributes/AttrHelper.h"
 
 #include <ai_msg.h>
 #include <ai_nodes.h>

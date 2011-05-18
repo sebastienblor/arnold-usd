@@ -2,7 +2,7 @@
 #define ARNOLDSKYDOMELIGHTNODE_H
 
 #include "nodes/SphereLocator.h"
-#include "utils/AttrHelper.h"
+#include "attributes/AttrHelper.h"
 
 #include <ai_types.h>
 

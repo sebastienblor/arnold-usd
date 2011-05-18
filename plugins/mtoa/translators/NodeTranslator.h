@@ -4,7 +4,7 @@
 #include "platform/Platform.h"
 #include "scene/MayaScene.h"
 #include "render/RenderSwatch.h"
-#include "utils/AttrHelper.h"
+#include "attributes/AttrHelper.h"
 #include "extension/AbTranslator.h"
 
 #include <ai_nodes.h>

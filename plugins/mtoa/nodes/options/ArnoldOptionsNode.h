@@ -1,7 +1,7 @@
 #ifndef ARNOLDOPTIONSNODE_H
 #define ARNOLDOPTIONSNODE_H
 
-#include "utils/AttrHelper.h"
+#include "attributes/AttrHelper.h"
 
 #include <maya/MPxNode.h>
 #include <maya/MTypeId.h>

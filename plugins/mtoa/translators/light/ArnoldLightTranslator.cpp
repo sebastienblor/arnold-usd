@@ -1,6 +1,6 @@
 #include "ArnoldLightTranslator.h"
 #include "nodes/ShaderUtils.h"
-#include "utils/AttrHelper.h"
+#include "attributes/AttrHelper.h"
 
 #include <ai_constants.h>
 #include <ai_msg.h>

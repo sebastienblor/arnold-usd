@@ -423,10 +423,8 @@ MStatus CExtensionsManager::RegisterExtension(CExtension* extension)
             translator.initialize(mayaNode->name);
          }
       }
-      // FIXME Add arnoldTranslator attribute if more than one translator
-      // or always ?
-      // if (oldTrans->size() > 1) {
-      if (true) {
+      // Add arnoldTranslator if more than one translator
+      if (oldTrans->size() > 1) {
          CExtensionAttrHelper helper(mayaNode->name);
          CAttrData data;
          data.defaultValue.STR = "";
