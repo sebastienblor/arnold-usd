@@ -15,6 +15,7 @@ def updateComputeSamples(*args):
     AASamples = cmds.getAttr('defaultArnoldRenderOptions.aaSamples')
     GISamples = cmds.getAttr('defaultArnoldRenderOptions.giDiffuseSamples')
     glossySamples = cmds.getAttr('defaultArnoldRenderOptions.giGlossySamples')
+    refractionSamples = cmds.getAttr('defaultArnoldRenderOptions.giRefractionSamples')
     
     diffuseDepth = cmds.getAttr('defaultArnoldRenderOptions.giDiffuseDepth')
     glossyDepth = cmds.getAttr('defaultArnoldRenderOptions.giGlossyDepth')
@@ -336,6 +337,14 @@ def createArnoldSamplingSettings():
     cmds.connectControl('ss_glossy_samples', 'defaultArnoldRenderOptions.giGlossySamples', index=3)    
     
     
+    cmds.intSliderGrp('ss_refraction_samples',
+                        label="Refraction Samples",
+                        maxValue = 10,
+                        fieldMaxValue=100,
+                        cc='import maya.cmds as cmds;cmds.evalDeferred(mtoa.ui.globals.arnold.updateComputeSamples)')
+    
+    cmds.connectControl('ss_refraction_samples', 'defaultArnoldRenderOptions.giRefractionSamples', index=2)
+    cmds.connectControl('ss_refraction_samples', 'defaultArnoldRenderOptions.giRefractionSamples', index=3)    
     '''
     cmds.attrControlGrp('ss_glossy_samples',
                         label="Glossy Samples",
