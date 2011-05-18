@@ -169,6 +169,16 @@
 	maya.name				STRING	"directionalLight"
 	maya.id					INT		0x4449524c
 	maya.classification		STRING	"light"
+   [attr exposure]
+      min               FLOAT 0.0
+      softmax           FLOAT 10.0
+   [attr angle]
+      min               FLOAT 0.0
+      softmax           FLOAT 10.0
+   [attr samples]
+      min               INT      0
+      max               INT      100
+      default           INT      1
 	[attr bounce_factor]
 		min					FLOAT	0.0
 		softmax				FLOAT	20.0
@@ -184,6 +194,16 @@
 	maya.name				STRING	"pointLight"
 	maya.id					INT		0x504f4954
 	maya.classification		STRING	"light"
+   [attr exposure]
+      min               FLOAT 0.0
+      softmax           FLOAT 10.0
+   [attr radius]
+      min               FLOAT 0.0
+      softmax           FLOAT 10.0
+   [attr samples]
+      min               INT      0
+      max               INT      100
+      default           INT      1
 	[attr bounce_factor]
 		min					FLOAT	0.0
 		softmax				FLOAT	20.0
@@ -199,6 +219,16 @@
 	maya.name				STRING	"spotLight"
 	maya.id					INT		0x5350544c
 	maya.classification		STRING	"light"
+   [attr exposure]
+      min               FLOAT 0.0
+      softmax           FLOAT 10.0
+   [attr radius]
+      min               FLOAT 0.0
+      softmax           FLOAT 10.0
+   [attr samples]
+      min               INT      0
+      max               INT      100
+      default           INT      1
 	[attr bounce_factor]
 		min					FLOAT	0.0
 		softmax				FLOAT	20.0
@@ -224,6 +254,13 @@
 	maya.name				STRING	"areaLight"
 	maya.id					INT		0x41524c54
 	maya.classification		STRING	"light"
+   [attr exposure]
+      min               FLOAT 0.0
+      softmax           FLOAT 10.0
+   [attr samples]
+      min               INT      0
+      max               INT      100
+      default           INT      1
 	[attr bounce_factor]
 		min					FLOAT	0.0
 		softmax				FLOAT	20.0
@@ -240,6 +277,13 @@
 	maya.id					INT		0x00115C85
 	maya.classification		STRING	"light"
 	maya.type				STRING	"kLocatorNode"
+   [attr exposure]
+      min               FLOAT 0.0
+      softmax           FLOAT 10.0
+   [attr samples]
+      min               INT      0
+      max               INT      100
+      default           INT      1
 	
 # light filters
 
