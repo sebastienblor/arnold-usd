@@ -167,7 +167,13 @@ AtNode* CNodeTranslator::AddArnoldNode(const char* type, const char* tag)
    {
       AtNode* node = AiNode(type);
       SetArnoldNodeName(node, tag);
-      m_atNodes[tag] = node;
+      if (m_atNodes.count(tag))
+      {
+         AiMsgWarning("[mtoa] Translator has already added Arnold node with tag \"%s\"", tag);
+         return node;
+      }
+      else
+         m_atNodes[tag] = node;
       return node;
    }
    else
@@ -1225,12 +1231,26 @@ AtNode* CAutoTranslator::Init(MDagPath& dagPath, CMayaScene* scene, MString outp
 AtNode* CAutoTranslator::CreateArnoldNodes()
 {
    MString mayaShader = GetFnNode().typeName();
-   // return AddArnoldNode(CExtensionsManager::GetArnoldNodeFromMayaNode(mayaShader));
+   if (m_outputAttr == "outAlpha")
+   {
+      AtNode* node = AddArnoldNode(m_abstract.arnold.asChar(), "base");
+      AtNode* alpha = AddArnoldNode("colorToFloat", "alpha");
+      AiNodeLink(node, "color", alpha);
+      // set colorToFloat output to alpha mode:
+      AiNodeSetInt(alpha, "channel", 3);
+      return alpha;
+   }
    return AddArnoldNode(m_abstract.arnold.asChar());
 }
 
 void CAutoTranslator::Export(AtNode *shader)
 {
+   // the arnold node passed in shader is the root: the node whose output is passed to the next node.
+   // if we're in outAlpha mode the root is the alpha conversion node.
+   // we don't want to set our parameters on this node, so get the base shader
+   if (m_outputAttr == "outAlpha")
+      shader = GetArnoldNode("base");
+
    MStatus status;
    MPlug plug;
    AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(shader->base_node);
