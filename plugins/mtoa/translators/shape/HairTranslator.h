@@ -24,7 +24,7 @@ private:
    MDoubleArray curveWidths;
 };
 
-class DLLEXPORT CHairTranslator
+class CHairTranslator
    :   public CGeoTranslator
 {
 public:

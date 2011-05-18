@@ -50,7 +50,7 @@ void CCameraTranslator::ExportImagePlane(AtUInt step, MObject& imgPlane)
 
       if (type == 2)//Not supporting type Movie for now....
       {
-         AiMsgWarning("Image Planes of type Movie are unsupported");
+         AiMsgWarning("[mtoa] [translator %s] Image Planes of type Movie are unsupported", GetName().asChar());
          return;
       }
 

@@ -1,4 +1,4 @@
-
+#include "utils/MtoaLog.h"
 #include "RenderOptions.h"
 #include "scene/MayaScene.h"
 #include "translators/ArnoldOptionsTranslator.h"
@@ -234,7 +234,7 @@ void CRenderOptions::ProcessArnoldRenderOptions()
    }
    else
    {
-      AiMsgError("Could not find defaultArnoldRenderOptions");
+      AiMsgError("[mtoa] Could not find defaultArnoldRenderOptions");
    }
    SetupImageOutputs();
 }
@@ -245,8 +245,13 @@ void CRenderOptions::SetupLog() const
       AiMsgSetLogFileName(m_log_filename.expandEnvironmentVariablesAndTilde().asChar());
 
    AiMsgSetMaxWarnings(m_log_max_warnings);
-   AiMsgSetConsoleFlags(GetFlagsFromVerbosityLevel(m_log_console_verbosity));
+   AiMsgSetConsoleFlags(GetFlagsFromVerbosityLevel(m_log_console_verbosity) | AI_LOG_COLOR);
    AiMsgSetLogFileFlags(GetFlagsFromVerbosityLevel(m_log_file_verbosity));
+
+   // Callback for script editor echo has to be disabled, because not way to know
+   // the log filename and write to it from callback
+   // AiMsgSetCallback(MtoaLogCallback);
+   AiMsgResetCallback();
 }
 
 void CRenderOptions::SetupImageOptions() const

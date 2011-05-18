@@ -1134,7 +1134,7 @@ void CLayeredTextureTranslator::Export(AtNode* shader)
    AtUInt numElements = attr.numElements();
    if (numElements > 8)
    {
-      AiMsgWarning("layeredTexture node has more than 8 inputs, only the first 8 will be handled");
+      AiMsgWarning("[mtoa] [translator %s] layeredTexture node has more than 8 inputs, only the first 8 will be handled", GetName().asChar());
       numElements = 8;
    }
 
@@ -1221,7 +1221,7 @@ void CLayeredShaderTranslator::Export(AtNode* shader)
    AtUInt numElements = attr.numElements();
    if (numElements > 8)
    {
-      AiMsgWarning("LayeredShader node has more than 8 inputs, only the first 8 will be handled");
+      AiMsgWarning("[mtoa] [translator %s] LayeredShader node has more than 8 inputs, only the first 8 will be handled", GetName().asChar());
       numElements = 8;
    }
 

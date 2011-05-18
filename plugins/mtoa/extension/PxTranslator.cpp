@@ -46,7 +46,7 @@ MStatus CPxTranslator::ReadMetaData()
    arnoldNodeEntry = AiNodeEntryLookUp(arnold.asChar());
    if (NULL == arnoldNodeEntry)
    {
-      AiMsgError("[%s] Arnold node %s does not exist", provider.asChar(), arnold.asChar());
+      AiMsgError("[mtoa] [%s] Arnold node %s does not exist", provider.asChar(), arnold.asChar());
       return MStatus::kInvalidParameter;
    }
 

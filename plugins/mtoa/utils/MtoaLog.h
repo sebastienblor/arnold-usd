@@ -1,8 +1,10 @@
-#ifndef MTOALOGCALLBACK_H
-#define MTOALOGCALLBACK_H
+#ifndef MTOALOG_H
+#define MTOALOG_H
 
 #include "platform/Platform.h"
 
+#include <stdio.h>
+#include <stdarg.h>
 #include <cstring>
 
 #include <ai_msg.h>
@@ -11,6 +13,6 @@
 
 DLLEXPORT AtVoid MtoaLogCallback(AtInt logmask, AtInt severity, const char *msg_string, AtInt tabs);
 
-DLLEXPORT void SetupMtoaLogging();
+DLLEXPORT void MtoaSetupLogging();
 
 #endif // MTOALOGCALLBACK_H

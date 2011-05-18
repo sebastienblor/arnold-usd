@@ -108,9 +108,8 @@ MStatus MNodeClass::AddNodeCallback(const MString &nodeClassName) const
       }
       else*/
       {
-         AiMsgWarning("Cannot add a callback on %s: the node type does not exist.", nodeClassName.asChar());
-         AiMsgWarning("If the node is provided by a plugin, load the plugin before the extension that defines a translator for that node");
-         // AiMsgWarning("If the node is provided by a plugin, specify providedByPlugin when registering its translator");
+         AiMsgWarning("[mtoa] Cannot add a callback on %s: the node type does not exist.", nodeClassName.asChar());
+         AiMsgWarning("[mtoa] If the node is provided by a plugin, load the plugin before the extension that defines a translator for that node");
          return MS::kFailure;
       }
    }

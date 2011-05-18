@@ -1,7 +1,6 @@
 #include "AttrHelper.h"
 #include "nodes/ShaderUtils.h"
 #include "utils/Metadata.h"
-#include "Utils.h"
 
 #include <ai_metadata.h>
 #include <ai_msg.h>
@@ -9,6 +8,8 @@
 #include <maya/MFnStringData.h>
 #include <maya/MGlobal.h>
 #include <maya/MDGModifier.h>
+
+#define AtBooleanToBool(x) ((x) ? true : false)
 
 // convert from "arnold_style" to "mayaStyle"
 // ignores the capitalization of input strings: letters are only capitalized
@@ -62,19 +63,19 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
 {
    if (m_nodeEntry == NULL)
    {
-      AiMsgError("Cannot retrieve parameter metadata from a null node entry");
+      AiMsgError("[mtoa] Cannot retrieve parameter metadata from a null node entry");
       return false;
    }
 
    const AtParamEntry* paramEntry = AiNodeEntryLookUpParameter(m_nodeEntry, paramName);
    if (paramEntry == NULL)
    {
-      AiMsgError("Parameter does not exist: %s", paramName);
+      AiMsgError("[mtoa] Parameter does not exist: %s", paramName);
       return false;
    }
 
    const char* nodeName = AiNodeEntryGetName(m_nodeEntry);
-   // AiMsgDebug("[node %s] [attr %s] Reading metadata", nodeName, paramName);
+   // AiMsgDebug("[mtoa] [node %s] [attr %s] Reading metadata", nodeName, paramName);
 
    data.defaultValue = MAiParamGetDefault(m_nodeEntry, paramEntry);
    data.name = GetMayaAttrName(paramName);
@@ -178,7 +179,7 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
             }
             default:
             {
-               AiMsgError("[node %s] [attr %s] Unknown parameter type %s", nodeName, paramName, typeName);
+               AiMsgError("[mtoa] [node %s] [attr %s] Unknown parameter type %s", nodeName, paramName, typeName);
                break;
             }
          }

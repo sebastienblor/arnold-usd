@@ -184,7 +184,7 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    // Cannot export while a render is active
    if (AiUniverseIsActive())
    {
-      AiMsgError("Cannot export to .ass while rendering");
+      AiMsgError("[mtoa] Cannot export to .ass while rendering");
       return MS::kFailure;
    }
    // We don't need renderview_display so we need to set Batch mode on.

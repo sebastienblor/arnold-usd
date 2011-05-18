@@ -84,22 +84,22 @@ AtNode* CNodeTranslator::DoExport(AtUInt step)
       if (step == 0)
       {
          if (m_outputAttr != "")
-            AiMsgDebug("Exporting: %s.%s using translator %s",
-                       GetFnNode().name().asChar(), m_outputAttr.asChar(), GetTranslatorName().asChar());
+            AiMsgDebug("[mtoa] [translator %s] Exporting on plug %s.%s.",
+                  GetName().asChar(), GetFnNode().name().asChar(), m_outputAttr.asChar());
          else
-            AiMsgDebug("Exporting: %s using translator %s",
-                       GetFnNode().name().asChar(), GetTranslatorName().asChar());
+            AiMsgDebug("[mtoa] [translator %s] Exporting on node %s.",
+                  GetName().asChar(), GetFnNode().name().asChar());
          Export(m_atNode);
          ExportUserAttribute(m_atNode);
       }
       else if (RequiresMotionData())
       {
          if (m_outputAttr != "")
-            AiMsgDebug("Exporting motion: %s.%s using translator %s",
-                       GetFnNode().name().asChar(), m_outputAttr.asChar(), GetTranslatorName().asChar());
+            AiMsgDebug("[mtoa] [translator %s] Exporting motion on plug %s.%s.",
+                  GetName().asChar(), GetFnNode().name().asChar(), m_outputAttr.asChar());
          else
-            AiMsgDebug("Exporting motion: %s using translator %s",
-                       GetFnNode().name().asChar(), GetTranslatorName().asChar());
+            AiMsgDebug("[mtoa] [translator %s] Exporting motion on node %s.",
+                  GetName().asChar(), GetFnNode().name().asChar());
 
          ExportMotion(m_atNode, step);
       }
@@ -141,7 +141,8 @@ AtNode* CNodeTranslator::DoCreateArnoldNodes()
 {
    m_atNode = CreateArnoldNodes();
    if (m_atNode == NULL)
-      AiMsgWarning("Translator for %s returned an empty Arnold root node", GetFnNode().name().asChar());
+      AiMsgWarning("[mtoa] [translator %s] Translation on %s returned an empty Arnold root node.",
+            GetName().asChar(), GetFnNode().name().asChar());
 
    return m_atNode;
 }
@@ -155,7 +156,7 @@ AtNode* CNodeTranslator::GetArnoldNode(const char* tag)
 {
    if (m_atNodes.count(tag))
       return m_atNodes[tag];
-   AiMsgError("Translator has not created an Arnold node with tag \"%s\"", tag);
+   AiMsgError("[mtoa] [translator %s] Translation has not created an Arnold node with tag \"%s\".", GetName().asChar(), tag);
    return NULL;
 }
 
@@ -172,7 +173,7 @@ AtNode* CNodeTranslator::AddArnoldNode(const char* type, const char* tag)
    }
    else
    {
-      AiMsgError("Arnold node type %s does not exist", type);
+      AiMsgError("[mtoa] [translator %s] Arnold node type %s does not exist.", GetName().asChar(), type);
       return NULL;
    }
 }
@@ -232,29 +233,42 @@ void CNodeTranslator::RemoveIPRCallbacks()
 // This is a simple callback triggered when a node is marked as dirty.
 void CNodeTranslator::NodeDirtyCallback(MObject &node, MPlug &plug, void *clientData)
 {
-   AiMsgDebug("Node changed, updating Arnold. Plug that fired: %s %p", plug.name().asChar(), clientData);
+   AiMsgDebug("[mtoa] Translator callback for node dirty, plug that fired: %s, client data: %p.",
+         plug.name().asChar(), clientData);
    UpdateIPR(clientData);
 }
 
 void CNodeTranslator::NameChangedCallback(MObject &node, const MString &str, void *clientData)
 // This is a simple callback triggered when the name changes.
 {
-   AiMsgDebug("Node name changed, updating Arnold");
    CNodeTranslator * translator = static_cast< CNodeTranslator* >(clientData);
    if (translator != NULL)
+   {
+      AiMsgDebug("[mtoa] [translator %s] Node name changed, updating Arnold, client data: %p.",
+            translator->GetName().asChar(), clientData);
       translator->SetArnoldNodeName(translator->GetArnoldRootNode());
+   }
+   else
+   {
+      AiMsgWarning("[mtoa] Translator callback for node name changed, no translator in client data: %p.", clientData);
+   }
 }
 
 // Arnold doesn't really support deleting nodes. But we can make things invisible,
 // disconnect them, turn them off, etc.
 void CNodeTranslator::NodeDeletedCallback(MObject &node, MDGModifier &modifier, void *clientData)
 {
-   AiMsgDebug("Node deleted, updating Arnold %p", clientData);
    CNodeTranslator * translator = static_cast< CNodeTranslator* >(clientData);
    if (translator != NULL)
    {
+      AiMsgDebug("[mtoa] [translator %s] Node deleted, deleting processed translator instance, client data: %p.",
+            translator->GetName().asChar(), clientData);
       translator->RemoveIPRCallbacks();
       translator->Delete();
+   }
+   else
+   {
+      AiMsgWarning("[mtoa] Translator callback for node deleted, no translator in client data: %p.", clientData);
    }
 
    // Update Arnold without passing a translator, this just forces a redraw.
@@ -268,11 +282,16 @@ void CNodeTranslator::UpdateIPR(void * clientData)
    CNodeTranslator * translator = static_cast< CNodeTranslator* >(clientData);
    if (translator != NULL)
    {
+      AiMsgDebug("[mtoa] [translator %s] Node dirty, updating Arnold, client data: %p.",
+            translator->GetName().asChar(), clientData);
       translator->RemoveIPRCallbacks();
       CMayaScene::UpdateIPR(translator);
    }
+   else
+   {
+      AiMsgDebug("[mtoa] UpdateIPR called, no translator in client data: %p.", clientData);
+   }
 }
-
 
 void CNodeTranslator::ExportUserAttribute(AtNode *anode)
 {
@@ -476,7 +495,8 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
                break;
             default:
                // not supported: k2Short, k2Long, k3Short, k3Long, kAddr
-               AiMsgError("Unsupported user attribute type %s", pAttr.partialName(true, false, false, false, false, true).asChar());
+               AiMsgError("[mtoa] [translator %s] Unsupported user attribute type for %s",
+                     GetName().asChar(), pAttr.partialName(true, false, false, false, false, true).asChar());
                break;
             }
          }
@@ -576,12 +596,14 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
                break;
             default:
                // kMatrix, kNumeric (this one should have be caught be hasFn(MFn::kNumericAttribute))
-               AiMsgError("Unsupported user attribute type %s", pAttr.partialName(true, false, false, false, false, true).asChar());
+               AiMsgError("[mtoa] [translator %s] Unsupported user attribute type for %s",
+                  GetName().asChar(), pAttr.partialName(true, false, false, false, false, true).asChar());
                break;
             }
          }
          else
-            AiMsgError("Unsupported user attribute type %s", pAttr.partialName(true, false, false, false, false, true).asChar());
+            AiMsgError("[mtoa] [translator %s] Unsupported user attribute type for %s",
+                  GetName().asChar(), pAttr.partialName(true, false, false, false, false, true).asChar());
       }
    }
 }
@@ -602,7 +624,7 @@ MPlug CNodeTranslator::GetPlugElement(MFnDependencyNode& node, MPlug& plug, cons
 {
    if (attr.length() == 0)
    {
-      AiMsgError("Invalid plug name: \"%s\"", attr.c_str());
+      AiMsgError("[mtoa] Invalid plug name: \"%s\"", attr.c_str());
       return MPlug();
    }
 
@@ -616,7 +638,7 @@ MPlug CNodeTranslator::GetPlugElement(MFnDependencyNode& node, MPlug& plug, cons
 
       if (p0 == std::string::npos)
       {
-         AiMsgError("Invalid plug name: \"%s\"", attr.c_str());
+         AiMsgError("[mtoa] Invalid plug name: \"%s\"", attr.c_str());
          return MPlug();
       }
 
@@ -624,7 +646,7 @@ MPlug CNodeTranslator::GetPlugElement(MFnDependencyNode& node, MPlug& plug, cons
 
       if (sscanf(ai.c_str(), "%d", &idx) != 1)
       {
-         AiMsgError("Invalid plug name: \"%s\"", attr.c_str());
+         AiMsgError("[mtoa] Invalid plug name: \"%s\"", attr.c_str());
          return MPlug();
       }
 
@@ -683,7 +705,8 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* mayaAt
    MPlug plug = FindPlug(m_fnNode, mayaAttrib);
    if (plug.isNull())
    {
-      AiMsgWarning("Maya node %s does not have requested attribute %s", m_fnNode.name().asChar(), mayaAttrib);
+      AiMsgWarning("[mtoa] [translator %s] Maya node %s does not have requested attribute %s.", GetName().asChar(),
+            m_fnNode.name().asChar(), mayaAttrib);
       return NULL;
    }
    return ProcessParameter(arnoldNode, plug, AiParamGetName(paramEntry), AiParamGetType(paramEntry), element);
@@ -695,7 +718,8 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* attrib
    MPlug plug = FindPlug(m_fnNode, attrib);
    if (plug.isNull())
    {
-      AiMsgWarning("Maya node %s does not have requested attribute %s", m_fnNode.name().asChar(), attrib);
+      AiMsgWarning("[mtoa] [translator %s] Maya node %s does not have requested attribute %s.",
+            GetName().asChar(), m_fnNode.name().asChar(), attrib);
       return NULL;
    }
    return ProcessParameter(arnoldNode, plug, attrib, arnoldAttribType, element);
@@ -707,7 +731,8 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* mayaAt
    MPlug plug = FindPlug(m_fnNode, mayaAttrib);
    if (plug.isNull())
    {
-      AiMsgWarning("Maya node %s does not have requested attribute %s", m_fnNode.name().asChar(), mayaAttrib);
+      AiMsgWarning("[mtoa] [translator %s] Maya node %s does not have requested attribute %s.",
+            GetName().asChar(), m_fnNode.name().asChar(), mayaAttrib);
       return NULL;
    }
    return ProcessParameter(arnoldNode, plug, arnoldAttrib, arnoldAttribType, element);
@@ -724,7 +749,7 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, MPlug& plug, const
 {
    if (arnoldNode == NULL)
    {
-      AiMsgError("Cannot process %s parameter on null node", arnoldAttrib);
+      AiMsgError("[mtoa] [translator %s] Cannot process %s parameter on null node.", GetName().asChar(), arnoldAttrib);
       return NULL;
    }
 
@@ -908,7 +933,7 @@ void CDagTranslator::SetArnoldNodeName(AtNode* arnoldNode, const char* tag)
 
 void CDagTranslator::AddHierarchyCallbacks(const MDagPath & path)
 {
-   AiMsgDebug("Adding callbacks to parents of: %s", path.partialPathName().asChar());
+   AiMsgDebug("[mtoa] [translator %s] Adding callbacks to parents of %s.", GetName().asChar(), path.partialPathName().asChar());
 
    // Loop through the whole dag path adding callbacks to them.
    MStatus status;

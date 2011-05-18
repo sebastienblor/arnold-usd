@@ -85,7 +85,8 @@ void CArnoldOptionsTranslator::Export(AtNode *options)
          }
          else
          {
-            AiMsgDebug("Attribute %s.%s requested by translator does not exist", GetFnNode().name().asChar(), attrName);
+            AiMsgDebug("[mtoa] [translator %s] Attribute %s.%s requested by translator does not exist",
+                  GetName().asChar(), GetFnNode().name().asChar(), attrName);
          }
       }
    }

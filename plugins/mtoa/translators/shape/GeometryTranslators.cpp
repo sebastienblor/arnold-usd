@@ -433,7 +433,8 @@ void CGeoTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
          meshShaders.push_back(shader);
       }
       else
-         AiMsgWarning("ShadingGroup %s has no surfaceShader input", fnDGNode.name().asChar());
+         AiMsgWarning("[mtoa] [translator %s] ShadingGroup %s has no surfaceShader input",
+               GetName().asChar(), fnDGNode.name().asChar());
    }
    else
    {
@@ -1087,8 +1088,8 @@ bool CNurbsSurfaceTranslator::Tessellate(MDagPath & dagPath)
    MFnNurbsSurface surface(dagPath, &status);
    if (!status)
    {
-      AiMsgError("Could not attach to NURBS surface for tessallation: %s",
-                 status.errorString().asChar());
+      AiMsgError("[mtoa] [translator %s] Could not attach to NURBS surface for tessellation: %s",
+            GetName().asChar(), status.errorString().asChar());
       return false;
    }
 
@@ -1103,8 +1104,8 @@ bool CNurbsSurfaceTranslator::Tessellate(MDagPath & dagPath)
                                          &status);
    if (!status)
    {
-      AiMsgError("Could not tessallate NURBS surface: %s",
-                 status.errorString().asChar());
+      AiMsgError("[mtoa] [translator %s] Could not tessallate NURBS surface: %s",
+            GetName().asChar(), status.errorString().asChar());
       return false;
    }
 
@@ -1195,7 +1196,7 @@ void CMeshTranslator::Export(AtNode* anode)
 {
    if (GetNumMeshGroups() == 0)
    {
-      AiMsgError("Mesh not exported, it has 0 groups.");
+      AiMsgError("[mtoa] [translator %s] Mesh not exported, it has 0 groups.", GetName().asChar());
       return;
    }
    const char* nodeType = AiNodeEntryGetName(anode->base_node);

@@ -55,7 +55,8 @@ void CArnoldShaderTranslator::Export(AtNode *shader)
          if (status == MS::kSuccess)
             ProcessParameter(shader, plug, paramName, paramType);
          else
-            AiMsgWarning("Attribute %s.%s requested by translator does not exist", GetFnNode().name().asChar(), attrName);
+            AiMsgWarning("[mtoa] [translator %s] Attribute %s.%s requested by translator does not exist",
+                  GetName().asChar(), GetFnNode().name().asChar(), attrName);
       }
    }
 

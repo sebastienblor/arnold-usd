@@ -52,7 +52,7 @@ public:
       return DoCreateArnoldNodes();
    }
    virtual MFnDependencyNode GetFnNode() const {return m_fnNode;}
-   MString GetTranslatorName() {return m_abstract.name;}
+   MString GetName() {return m_abstract.name;}
    virtual bool IsDag() {return false;}
 
 protected:

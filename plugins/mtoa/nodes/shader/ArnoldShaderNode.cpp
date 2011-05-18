@@ -61,7 +61,7 @@ MStatus CArnoldShaderNode::initialize()
    MString provider = s_abstract.provider;
    const AtNodeEntry *nodeEntry = AiNodeEntryLookUp(arnold.asChar());
 
-   AiMsgDebug("Initializing ArnoldCustomShader as Maya node %s, from Arnold node %s metadata, provided by %s",
+   AiMsgDebug("[mtoa] Initializing ArnoldCustomShader as Maya node %s, from Arnold node %s metadata, provided by %s",
          maya.asChar(), arnold.asChar(), provider.asChar());
    CStaticAttrHelper helper(CArnoldShaderNode::addAttribute, nodeEntry);
 

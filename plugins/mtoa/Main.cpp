@@ -1,6 +1,6 @@
 
 #include "platform/Platform.h"
-#include "utils/MtoaLogCallback.h"
+#include "utils/MtoaLog.h"
 #include "commands/ArnoldAssTranslator.h"
 #include "commands/ArnoldExportAssCmd.h"
 #include "commands/ArnoldRenderCmd.h"
@@ -295,7 +295,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    MFnPlugin plugin(object, MTOA_VENDOR, MTOA_VERSION, MAYA_VERSION);
 
    AiBegin();
-   SetupMtoaLogging();
+   MtoaSetupLogging();
 
    // TODO: Add proper checking and handling of returned status
    status = plugin.registerCommand("arnoldRender", CArnoldRenderCmd::creator, CArnoldRenderCmd::newSyntax);
@@ -314,13 +314,12 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    MString loadpath = plugin.loadPath();
    MString metafile = loadpath + "/" + "mtoa.mtd";
    AtBoolean readMetaSuccess = AiMetaDataLoadFile(metafile.asChar());
-   if (!readMetaSuccess) AiMsgError("Could not read mtoa built-in metadata file mtoa.mtd");
+   if (!readMetaSuccess) AiMsgError("[mtoa] Could not read mtoa built-in metadata file mtoa.mtd");
 
    RegisterArnoldNodes(object);
 
    MGlobal::executePythonCommand(MString("import mtoa.cmds.registerArnoldRenderer;mtoa.cmds.registerArnoldRenderer.registerArnoldRenderer()"));
 
-   AiMsgResetCallback();
    AiEnd();
 
    return MS::kSuccess;
@@ -332,7 +331,7 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
    MFnPlugin plugin(object);
 
    AiBegin();
-   SetupMtoaLogging();
+   MtoaSetupLogging();
 
    MGlobal::executePythonCommand(MString("import mtoa.cmds.unregisterArnoldRenderer;mtoa.cmds.unregisterArnoldRenderer.unregisterArnoldRenderer()"));
 

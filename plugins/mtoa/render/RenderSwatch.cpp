@@ -1,4 +1,4 @@
-#include "utils/MtoaLogCallback.h"
+#include "utils/MtoaLog.h"
 #include "scene/MayaScene.h"
 #include "render/RenderSession.h"
 #include "RenderSwatch.h"
@@ -51,7 +51,7 @@ void CRenderSwatchGenerator::SetSwatchClass(const MObject & node)
    MFnDependencyNode depFn(node);
    MString classification = MFnDependencyNode::classification(depFn.typeName());
 
-   AiMsgDebug("[swatch] [maya %s] of classification %s", depFn.name().asChar(), classification.asChar());
+   AiMsgDebug("[mtoa] [swatch] [maya %s] of classification %s", depFn.name().asChar(), classification.asChar());
 
    // Classification string contains also the swatch render name, and the : separated parts
    // seem to be shuffled (according to alphabetic order?). So swatch render name is not
@@ -132,7 +132,12 @@ MStatus CRenderSwatchGenerator::BuildArnoldScene()
    // m_renderSession->GetMayaScene()->PrepareExport();
 
    AiBegin();
-   SetupMtoaLogging();
+   // TODO: Should we be using render options for logging, or is it better not to clutter
+   // the log with swatch output?
+   // If we use global render options, m_renderSession->Init() already did
+   // m_renderSession->m_renderOptions.SetupLog();
+   MtoaSetupLogging();
+   // TODO: should use the list of loaded plugins from CExtensionsManager instead
    m_renderSession->LoadPlugins();
 
    MObject mayaNode = swatchNode();
@@ -166,7 +171,7 @@ MStatus CRenderSwatchGenerator::BuildArnoldScene()
    MString arnoldNodeName(AiNodeGetName(arnoldNode));
    if (NULL != arnoldNode) {
       const AtNodeEntry *nodeEntry = arnoldNode->base_node;
-      AiMsgDebug("[swatch] Exported %s(%s) as %s(%s)",
+      AiMsgDebug("[mtoa] [swatch] Exported %s(%s) as %s(%s)",
             mayaNodeType.asChar(), mayaNodeName.asChar(),
             AiNodeGetName(arnoldNode), AiNodeEntryGetTypeName(nodeEntry));
    }
@@ -479,7 +484,7 @@ void CRenderSwatchGenerator::ClearSwatch()
 
 void CRenderSwatchGenerator::ErrorSwatch(const MString msg)
 {
-   const MString error_message("[swatch] "+msg);
+   const MString error_message("[mtoa] [swatch] "+msg);
    AiMsgError(error_message.asChar());
    ClearSwatch();
 }

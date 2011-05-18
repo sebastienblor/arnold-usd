@@ -138,7 +138,7 @@ AtParamValue MAiParamGetDefault(const AtNodeEntry *entry, const AtParamEntry* pa
          break;
       default:
       {
-         AiMsgError("Cannot override default value of type %s", AiParamGetTypeName(type));
+         AiMsgError("[mtoa] Cannot override default value of type %s", AiParamGetTypeName(type));
       }
    }
 

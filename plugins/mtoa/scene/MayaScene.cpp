@@ -45,7 +45,7 @@ CMayaScene::~CMayaScene()
    ObjectToTranslatorMap::iterator it;
    for(it = m_processedTranslators.begin(); it != m_processedTranslators.end(); ++it)
    {
-      AiMsgDebug("Deleting translator for %s", MFnDependencyNode(it->first.object()).name().asChar());
+      AiMsgDebug("[mtoa] Deleting translator for %s", MFnDependencyNode(it->first.object()).name().asChar());
       delete it->second;
    }
    m_processedTranslators.clear();
@@ -58,7 +58,7 @@ CMayaScene::~CMayaScene()
       for(instIt = dagIt->second.begin(); instIt != dagIt->second.end(); ++instIt)
       {
          MFnDagNode fnDag(dagIt->first.object());
-         AiMsgDebug("Deleting translator for %s [%d]", fnDag.fullPathName().asChar(), instIt->first);
+         AiMsgDebug("[mtoa] Deleting translator for %s [%d]", fnDag.fullPathName().asChar(), instIt->first);
          delete instIt->second;
       }
    }
@@ -96,7 +96,7 @@ MStatus CMayaScene::ExportToArnold()
    if (mb)
    {
       // first step is the real export
-      AiMsgDebug("Exporting step 0 at frame %f", m_motionBlurData.frames[0]);
+      AiMsgDebug("[mtoa] Exporting step 0 at frame %f", m_motionBlurData.frames[0]);
       MGlobal::viewFrame(MTime(m_motionBlurData.frames[0], MTime::uiUnit()));
    }
    // First "real" export
@@ -137,7 +137,7 @@ MStatus CMayaScene::ExportToArnold()
    }
    else
    {
-      AiMsgError("Unsupported export mode: %d", exportMode);
+      AiMsgError("[mtoa] Unsupported export mode: %d", exportMode);
       return MStatus::kFailure;
    }
 
@@ -148,7 +148,7 @@ MStatus CMayaScene::ExportToArnold()
       for (AtUInt step = 1; step < m_motionBlurData.motion_steps; ++step)
       {
          MGlobal::viewFrame(MTime(m_motionBlurData.frames[step], MTime::uiUnit()));
-         AiMsgDebug("Exporting step %d at frame %f", step, m_motionBlurData.frames[step]);
+         AiMsgDebug("[mtoa] Exporting step %d at frame %f", step, m_motionBlurData.frames[step]);
          // then, loop through the already processed dag translators and export for current step
          ObjectToDagTranslatorMap::iterator dagIt;
          for(dagIt = m_processedDagTranslators.begin(); dagIt != m_processedDagTranslators.end(); ++dagIt)
@@ -254,7 +254,7 @@ MStatus CMayaScene::ExportCameras()
       }
       else
       {
-         AiMsgError("Could not get path for Maya cameras DAG iterator.");
+         AiMsgError("[mtoa] Could not get path for Maya cameras DAG iterator.");
          status = MS::kFailure;
       }
    }
@@ -294,7 +294,7 @@ MStatus CMayaScene::ExportLights()
       }
       else
       {
-         AiMsgError("Could not get path for Maya lights DAG iterator.");
+         AiMsgError("[mtoa] Could not get path for Maya lights DAG iterator.");
          status = MS::kFailure;
       }
    }
@@ -336,7 +336,7 @@ MStatus CMayaScene::ExportScene()
       }
       else
       {
-         AiMsgError("Could not get path for Maya DAG iterator.");
+         AiMsgError("[mtoa] Could not get path for Maya DAG iterator.");
          status = MS::kFailure;
       }
    }
@@ -461,7 +461,7 @@ AtNode* CMayaScene::ExportDagPath(MDagPath &dagPath)
    int instanceNum = dagPath.instanceNumber();
    MString name = dagPath.partialPathName();
    MString type = MFnDagNode(dagPath).typeName();
-   AiMsgDebug("Exporting dag node %s of type %s", name.asChar(), type.asChar());
+   AiMsgDebug("[mtoa] Exporting dag node %s of type %s", name.asChar(), type.asChar());
    // early out for nodes that have already been processed
    ObjectToDagTranslatorMap::iterator it = m_processedDagTranslators.find(handle);
    if (it != m_processedDagTranslators.end() && it->second.count(instanceNum))
@@ -477,7 +477,7 @@ AtNode* CMayaScene::ExportDagPath(MDagPath &dagPath)
    }
    else
    {
-      AiMsgDebug("Dag node %s of type %s ignored", name.asChar(), type.asChar());
+      AiMsgDebug("[mtoa] Dag node %s of type %s ignored", name.asChar(), type.asChar());
    }
    return NULL;
 }
@@ -533,7 +533,7 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
    }
    else
    {
-      AiMsgDebug("Shader type not supported: %s", MFnDependencyNode(mayaShader).typeName().asChar());
+      AiMsgDebug("[mtoa] Shader type not supported: %s", MFnDependencyNode(mayaShader).typeName().asChar());
    }
 
    if (shader)
@@ -616,7 +616,7 @@ void CMayaScene::IPRNewNodeCallback(MObject & node, void *)
    const MStatus status = dag_node.getPath(path);
    if (status == MS::kSuccess)
    {
-      AiMsgDebug("Exporting new node: %s", path.partialPathName().asChar());
+      AiMsgDebug("[mtoa] Exporting new node: %s", path.partialPathName().asChar());
       renderSession->GetMayaScene()->ExportDagPath(path);
       renderSession->GetMayaScene()->UpdateIPR();
    }

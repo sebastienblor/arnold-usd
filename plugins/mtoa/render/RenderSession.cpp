@@ -1,4 +1,4 @@
-#include "utils/MtoaLogCallback.h"
+#include "utils/MtoaLog.h"
 #include "RenderSession.h"
 #include "RenderOptions.h"
 #include "OutputDriver.h"
@@ -144,14 +144,14 @@ void CRenderSession::Translate(ExportOptions& options)
 {
    if (AiUniverseIsActive())
    {
-      AiMsgError("There can only be one RenderSession active.");
+      AiMsgError("[mtoa] There can only be one RenderSession active.");
       return;
    }
 
    // Begin the Arnold universe.
    AiBegin();
-   SetupMtoaLogging();
    Init(options);
+   // TODO: should use the list of loaded plugins from CExtensionsManager instead
    LoadPlugins();
 
    m_scene->ExportToArnold();
@@ -171,7 +171,7 @@ AtBBox CRenderSession::GetBoundingBox()
    }
    else
    {
-   	AiMsgError("RenderSession is not active.");
+   	AiMsgError("[mtoa] RenderSession is not active.");
    }
 
    return bbox;
@@ -191,7 +191,6 @@ void CRenderSession::Finish()
    {
       AiRenderAbort();
       InterruptRender();
-      AiMsgResetCallback();
       AiEnd();
    }
    m_is_active = false;
@@ -273,7 +272,7 @@ void CRenderSession::SetCamera(MString cameraNode)
 
       if (!camera)
       {
-         AiMsgError("Cannot find camera node %s.", cameraNode.asChar());
+         AiMsgError("[mtoa] Cannot find camera node %s.", cameraNode.asChar());
          return;
       }
 
@@ -290,7 +289,7 @@ void CRenderSession::SetCamera(MString cameraNode)
       {
          if (!dagIterCameras.getPath(dagPath))
          {
-            AiMsgError("Could not get camera dag path.");
+            AiMsgError("[mtoa] Could not get camera dag path.");
             return;
          }
          bool isRenderingCamera = false;
@@ -546,11 +545,11 @@ void CRenderSession::DoExport(MString customFileName)
 
    if (fileName.length() == 0)
    {
-      AiMsgError("File name must be set before exporting .ass file");
+      AiMsgError("[mtoa] File name must be set before exporting .ass file");
    }
    else
    {
-      AiMsgInfo("Exporting Maya scene to file \"%s\"", fileName.asChar());
+      AiMsgInfo("[mtoa] Exporting Maya scene to file \"%s\"", fileName.asChar());
 
       SetupRenderOutput();
       // FIXME : problem this is actually double filtering files
