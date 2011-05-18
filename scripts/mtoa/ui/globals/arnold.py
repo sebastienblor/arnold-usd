@@ -19,6 +19,7 @@ def updateComputeSamples(*args):
     
     diffuseDepth = cmds.getAttr('defaultArnoldRenderOptions.giDiffuseDepth')
     glossyDepth = cmds.getAttr('defaultArnoldRenderOptions.giGlossyDepth')
+    refractionDepth = cmds.getAttr('defaultArnoldRenderOptions.giRefractionDepth')
     
     AASamplesComputed = AASamples * AASamples
     
@@ -28,8 +29,11 @@ def updateComputeSamples(*args):
     glossySamplesComputed = glossySamples * glossySamples * AASamplesComputed
     glossySamplesComputedDepth = glossySamplesComputed*glossyDepth
     
-    totalSamples = AASamplesComputed + GISamplesComputed + glossySamplesComputed 
-    totalSamplesDepth = AASamplesComputed + GISamplesComputedDepth + glossySamplesComputedDepth
+    refractionSamplesComputed = refractionSamples * refractionSamples * AASamplesComputed
+    refractionSamplesComputedDepth = refractionSamplesComputed*refractionDepth
+    
+    totalSamples = AASamplesComputed + GISamplesComputed + glossySamplesComputed + refractionSamplesComputed
+    totalSamplesDepth = AASamplesComputed + GISamplesComputedDepth + glossySamplesComputedDepth + refractionSamplesComputedDepth
 
     cmds.text( "textAASamples",
                edit=True, 
@@ -42,6 +46,10 @@ def updateComputeSamples(*args):
     cmds.text( "textGlossySamples",
                edit=True, 
                label='Max Glossy Samples (with Max Depth) : %i (%i)' % (glossySamplesComputed, glossySamplesComputedDepth))
+        
+    cmds.text( "textRefractionSamples",
+               edit=True, 
+               label='Max Refraction Samples (with Max Depth) : %i (%i)' % (refractionSamplesComputed, refractionSamplesComputedDepth))
         
     cmds.text( "textTotalSamples",
                edit=True, 
@@ -287,6 +295,11 @@ def createArnoldSamplingSettings():
                align='left',
                )
 
+    cmds.text( "textRefractionSamples", 
+               font = "smallBoldLabelFont",
+               align='left',
+               )
+
     cmds.text( "textTotalSamples", 
                font = "smallBoldLabelFont",
                align='left',
@@ -336,9 +349,14 @@ def createArnoldSamplingSettings():
     cmds.connectControl('ss_glossy_samples', 'defaultArnoldRenderOptions.giGlossySamples', index=2)
     cmds.connectControl('ss_glossy_samples', 'defaultArnoldRenderOptions.giGlossySamples', index=3)    
     
-    cmds.attrControlGrp('ss_refraction_samples',
-                   label="Refraction Samples",
-                   attribute='defaultArnoldRenderOptions.giRefractionSamples')
+    cmds.intSliderGrp('ss_refraction_samples',
+                        label="Refraction Samples",
+                        maxValue = 10,
+                        fieldMaxValue=100,
+                        cc='import maya.cmds as cmds;cmds.evalDeferred(mtoa.ui.globals.arnold.updateComputeSamples)')
+    
+    cmds.connectControl('ss_refraction_samples', 'defaultArnoldRenderOptions.giRefractionSamples', index=2)
+    cmds.connectControl('ss_refraction_samples', 'defaultArnoldRenderOptions.giRefractionSamples', index=3)    
 
     '''
     cmds.attrControlGrp('ss_glossy_samples',
@@ -501,10 +519,20 @@ def createArnoldRayDepthSettings():
                         label="Reflection depth",
                         attribute='defaultArnoldRenderOptions.giReflectionDepth')
 
+    cmds.intSliderGrp('rs_refraction_depth',
+                        label="Refraction depth",
+                        maxValue = 16,
+                        fieldMaxValue=100,
+                        cc='import maya.cmds as cmds;cmds.evalDeferred(mtoa.ui.globals.arnold.updateComputeSamples)')
+    
+    cmds.connectControl('rs_refraction_depth', 'defaultArnoldRenderOptions.giRefractionDepth', index=2)
+    cmds.connectControl('rs_refraction_depth', 'defaultArnoldRenderOptions.giRefractionDepth', index=3)
+
+    '''
     cmds.attrControlGrp('rs_refraction_depth',
                         label="Refraction depth",
                         attribute='defaultArnoldRenderOptions.giRefractionDepth')
-
+    '''
     cmds.separator(style="none")
 
     cmds.attrControlGrp('rs_auto_transparency_depth',
