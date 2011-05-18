@@ -144,7 +144,8 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
             // FIXME: does not work properly, at least on Windows
             // NOTE: should be non blocking or what's the point?
 
-            system(kickCmd.asChar());
+            int res;
+            res = system(kickCmd.asChar());
 
             // TODO : use pykick and MGlobal::executePythonCommandOnIdle to display feedback
 
