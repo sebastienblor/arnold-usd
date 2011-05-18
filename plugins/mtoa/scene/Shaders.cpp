@@ -887,16 +887,23 @@ AtNode* CRemapColorTranslator::CreateArnoldNodes()
 {
    if (m_outputAttr == "outColor")
    {
-      //FIXME: missing AiNode()!
+      return AddArnoldNode("MayaRemapColor");
    }
    return NULL;
 }
 
 void CRemapColorTranslator::Export(AtNode* shader)
 {
-#if NULL // Disable: Arnold node does not exist
    if (m_outputAttr == "outColor")
    {
+      static const char *remapInterpolationStrings[] =
+      {
+       "none",
+       "linear",
+       "smooth",
+       "spline"
+      };
+
       MPlug attr, elem, pos, val, interp;
 
       const char *plugNames[3] = {"red", "green", "blue"};
@@ -954,7 +961,6 @@ void CRemapColorTranslator::Export(AtNode* shader)
          AiNodeSetArray(shader, interpNames[ci*2 + 1], interps);
       }
    }
-#endif // NULL
 }
 
 // Projection
