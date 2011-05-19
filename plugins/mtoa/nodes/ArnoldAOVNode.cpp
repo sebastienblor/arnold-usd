@@ -44,7 +44,7 @@ MStatus CArnoldAOVNode::initialize()
    s_type = nAttr.create("aov_type", "arniat", MFnNumericData::kInt);
    nAttr.setKeyable(false);
    nAttr.setMin(0);
-   nAttr.setMax(3);
+   nAttr.setMax(4);
    nAttr.setDefault(1);
    addAttribute(s_type);
 

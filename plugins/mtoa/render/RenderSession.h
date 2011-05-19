@@ -162,6 +162,7 @@ private:
    AtNode * CreateFileOutput();
    AtNode * CreateRenderViewOutput();
    AtNode * CreateOutputFilter();
+   AtNode * CreateAovOutputFilter();
 
 private:
 

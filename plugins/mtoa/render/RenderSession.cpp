@@ -350,6 +350,7 @@ void CRenderSession::SetupRenderOutput()
    AtNode * render_view = CreateRenderViewOutput();
    AtNode * file_driver = CreateFileOutput();
    AtNode * filter = CreateOutputFilter();
+   AtNode * specialAovfilter = CreateAovOutputFilter();
 
    // OUTPUT STRINGS
    AtChar   str[1024];
@@ -373,7 +374,18 @@ void CRenderSession::SetupRenderOutput()
 
       for (size_t i=0; i<m_renderOptions.NumAOVs(); ++i)
       {
-         m_renderOptions.GetAOV(i).SetupOutput(outputs, ndrivers+static_cast<int>(i), file_driver, filter);
+         if      (strcmp(m_renderOptions.GetAOV(i).GetName().asChar(),"Z")==0)
+         {
+            m_renderOptions.GetAOV(i).SetupOutput(outputs, ndrivers+static_cast<int>(i), file_driver, specialAovfilter);
+         }
+         else if (strcmp(m_renderOptions.GetAOV(i).GetName().asChar(),"P")==0)
+         {
+            m_renderOptions.GetAOV(i).SetupOutput(outputs, ndrivers+static_cast<int>(i), file_driver, specialAovfilter);
+         }
+         else
+         {
+            m_renderOptions.GetAOV(i).SetupOutput(outputs, ndrivers+static_cast<int>(i), file_driver, filter);
+         }
       }
    }
 
@@ -497,6 +509,19 @@ AtNode * CRenderSession::CreateOutputFilter()
    return filter;
 }
 
+AtNode * CRenderSession::CreateAovOutputFilter()
+{
+   // OUTPUT FILTER (use for all image outputs)
+   AtNode* filter = AiNodeLookUpByName("closest_filter");
+   if (filter == NULL) filter = AiNode("closest_filter");
+
+   if (filter != NULL)
+   {
+      AiNodeSetStr(filter, "name", "closest_filter");
+   }
+
+   return filter;
+}
 void CRenderSession::DoInteractiveRender()
 {
    MComputation comp;

@@ -53,6 +53,9 @@ void CAOV::ReturnType(MString &mtype) const
    case 3:
       mtype.set("VECTOR");
       break;
+   case 4:
+      mtype.set("POINT");
+      break;
    }
 }
 

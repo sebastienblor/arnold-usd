@@ -4,15 +4,16 @@ from mtoa.callbacks import *
 
 UI_NAME = 'ArnoldAOVUI'
 
-g_ArnoldStdAOVs = ["direct_diffuse",
-                  "direct_specular",
-                  "indirect_diffuse",
-                  "indirect_specular",
-                  "emission",
-                  "reflection",
-                  "refraction",
-                  "sss",
-                  "Z"]
+g_ArnoldStdAOVs = {"direct_diffuse":1,
+                   "direct_specular":1,
+                   "indirect_diffuse":1,
+                   "indirect_specular":1,
+                   "emission":1,
+                   "reflection":1,
+                   "refraction":1,
+                   "sss":1,
+                   "Z":0,
+                   "P":4}
 
 def listIndex(item, list):
     for i in range(0, len(list)):
@@ -36,6 +37,7 @@ def arnoldAddAOV(node):
             i += 1
 
         cmds.setAttr('%s.aovs[%d].aov_name'%(node, i), aov, type="string")
+        cmds.setAttr('%s.aovs[%d].aov_type'%(node, i), g_ArnoldStdAOVs[aov])
         cmds.setAttr('%s.aovs[%d].aov_prefix'%(node, i), '', type="string")
 
         cmds.textScrollList('%s_activeLst'%UI_NAME, edit=True, append=aov)
@@ -150,11 +152,11 @@ def arnoldAOVEditor(*args):
     cmds.text('%s_prefixLbl'%UI_NAME, align='center', label='Prefix', parent=form)
     cmds.textField('%s_prefixFld'%UI_NAME, enable=False, text='', parent=form, changeCommand=Callback(arnoldSetAOVPrefix, aovnode))
 
-    for i in range(0, len(g_ArnoldStdAOVs)):
-        if listIndex(g_ArnoldStdAOVs[i], aovList) == -1:
-            cmds.textScrollList('%s_availableLst'%UI_NAME, edit=True, append=g_ArnoldStdAOVs[i])
+    for i in sorted(g_ArnoldStdAOVs):
+        if i not in aovList:
+            cmds.textScrollList('%s_availableLst'%UI_NAME, edit=True, append=i)
         else:
-            cmds.textScrollList('%s_activeLst'%UI_NAME, edit=True, append=g_ArnoldStdAOVs[i])
+            cmds.textScrollList('%s_activeLst'%UI_NAME, edit=True, append=i)
 
 
     cmds.formLayout(form, edit=True,
