@@ -549,6 +549,15 @@
 	[attr indirect_specular]
 		min					FLOAT	0.0
 		max					FLOAT	1.0
+    [attr specular_roughness]
+		min					FLOAT	0.0
+		max					FLOAT	1.0
+    [attr specular_anisotropy]
+		min					FLOAT	0.0
+		max					FLOAT	1.0
+    [attr specular_rotation]
+		min					FLOAT	0.0
+		max					FLOAT	1.0
 
 [node utility]
 	desc					STRING	"This shader can be used to display various info on a geometry."
