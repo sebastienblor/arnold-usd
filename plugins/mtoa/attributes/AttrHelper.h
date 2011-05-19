@@ -1,5 +1,5 @@
-#ifndef ARNOLDNODEHELPER_H
-#define ARNOLDNODEHELPER_H
+#ifndef ATTRHELPER_H
+#define ATTRHELPER_H
 
 #include "platform/Platform.h"
 #include <ai_node_entry.h>
@@ -198,8 +198,8 @@ protected:
    int m_attrNum;
 
 protected:
-   MString GetMayaAttrName(const char* paramName);
-   MString GetMayaAttrShortName(const char* paramName);
+   virtual MString GetMayaAttrName(const char* paramName);
+   virtual MString GetMayaAttrShortName(const char* paramName);
    std::map<std::string, MObject> m_attributes;
    virtual MStatus addAttribute(MObject& attrib){return MStatus::kFailure;};
 
@@ -235,6 +235,8 @@ protected:
    AddAttributeFunction m_addFunc;
 
 protected:
+   virtual MString GetMayaAttrName(const char* paramName);
+   virtual MString GetMayaAttrShortName(const char* paramName);
    virtual MStatus addAttribute(MObject& attrib);
 };
 
@@ -269,6 +271,8 @@ protected:
    MObject m_instance;
 
 protected:
+   virtual MString GetMayaAttrName(const char* paramName);
+   virtual MString GetMayaAttrShortName(const char* paramName);
    virtual MStatus addAttribute(MObject& attrib);
 };
 
@@ -326,8 +330,10 @@ protected:
 #endif
 
 protected:
+   virtual MString GetMayaAttrName(const char* paramName);
+   virtual MString GetMayaAttrShortName(const char* paramName);
    MNodeClass m_class;
 
 };
 
-#endif // ARNOLDNODEHELPER_H
+#endif // ATTRHELPER_H

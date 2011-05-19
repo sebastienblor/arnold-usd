@@ -20,11 +20,11 @@ void CHairTranslator::NodeInitializer(MString nodeClassName)
    CAttrData data;
 
    data.defaultValue.BOOL = false;
-   data.name = "overrideHair";
+   data.name = "aiOverrideHair";
    data.shortName = "override_hair";
    helper.MakeInputBoolean(data);
 
-   data.name = "hairShader";
+   data.name = "aiHairShader";
    data.shortName = "hair_shader";
    helper.MakeInputNode(data);
 }

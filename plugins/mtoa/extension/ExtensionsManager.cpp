@@ -423,12 +423,12 @@ MStatus CExtensionsManager::RegisterExtension(CExtension* extension)
             translator.initialize(mayaNode->name);
          }
       }
-      // Add arnoldTranslator if more than one translator
+      // Add aiTranslator if more than one translator
       if (oldTrans->size() > 1) {
          CExtensionAttrHelper helper(mayaNode->name);
          CAttrData data;
          data.defaultValue.STR = "";
-         data.name = "arnoldTranslator";
+         data.name = "aiTranslator";
          data.shortName = "arntr";
          helper.MakeInputString(data);
       }
@@ -563,7 +563,7 @@ MStatus CExtensionsManager::DeregisterExtensions()
 }
 
 /// Get a instancied CDagTranslator translator for the given node (MObject)
-/// using the value of the "arnoldTranslator" attribut
+/// using the value of the "aiTranslator" attribut
 /// to provide an optional name to choose between multiple translators
 CDagTranslator* CExtensionsManager::GetTranslator(const MDagPath &dagPath)
 {
@@ -572,7 +572,7 @@ CDagTranslator* CExtensionsManager::GetTranslator(const MDagPath &dagPath)
 }
 
 /// Get a instancied CNodeTranslator translator for the given node (MObject)
-/// using the value of the "arnoldTranslator" attribut
+/// using the value of the "aiTranslator" attribut
 /// to provide an optional name to choose between multiple translators
 CNodeTranslator* CExtensionsManager::GetTranslator(const MObject &object)
 {
@@ -582,7 +582,7 @@ CNodeTranslator* CExtensionsManager::GetTranslator(const MObject &object)
    // MString transName = BUILTIN;
    MString transName = "";
    MStatus status;
-   MPlug plug = depFn.findPlug("arnoldTranslator", &status);
+   MPlug plug = depFn.findPlug("aiTranslator", &status);
    if (MStatus::kSuccess == status) transName = plug.asString();
 
    return (CNodeTranslator*) GetTranslator(typeName, transName);

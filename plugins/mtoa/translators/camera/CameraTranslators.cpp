@@ -214,7 +214,7 @@ float CFishEyeCameraTranslator::ExportFilmback(AtNode* camera)
 {
    // FIXME: export the screen_min and screen_max
    SetFilmTransform(camera);
-   return GetFnNode().findPlug("fov").asFloat();
+   return GetFnNode().findPlug("aiFov").asFloat();
 }
 
 void CFishEyeCameraTranslator::Export(AtNode* camera)
@@ -225,21 +225,21 @@ void CFishEyeCameraTranslator::Export(AtNode* camera)
    ExportDOF(camera);
    ExportImagePlanes(0);
 
-   MPlug plug = GetFnNode().findPlug("autocrop");
+   MPlug plug = GetFnNode().findPlug("aiAutocrop");
    AiNodeSetBool(camera, "autocrop", plug.asBool());
 
-   //plug = GetFnNode().findPlug("filtermap");
-   //AiNodeSetRGB(camera, "filtermap", plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+   //plug = GetFnNode().findPlug("aiFiltermap");
+   //AiNodeSetRGB(camera, "aiFiltermap", plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
 
    if (m_motion)
    {
       AtArray* fovs = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_FLOAT);
       AiArraySetFlt(fovs, 0, fov);
-      AiNodeSetArray(camera, "fov", fovs);
+      AiNodeSetArray(camera, "aiFov", fovs);
    }
    else
    {
-      AiNodeSetFlt(camera, "fov", fov);
+      AiNodeSetFlt(camera, "aiFov", fov);
    }
 }
 
@@ -276,8 +276,8 @@ AtNode*  CCylCameraTranslator::CreateArnoldNodes()
 void CCylCameraTranslator::ExportFilmback(AtNode* camera, float fovs[])
 {
    // FIXME: export the screen_min and screen_max
-   fovs[0] = GetFnNode().findPlug("horizontal_fov").asFloat();
-   fovs[1] = GetFnNode().findPlug("vertical_fov").asFloat();
+   fovs[0] = GetFnNode().findPlug("aiHorizontalFov").asFloat();
+   fovs[1] = GetFnNode().findPlug("aiVerticalFov").asFloat();
    SetFilmTransform(camera);
 }
 
@@ -290,8 +290,8 @@ void CCylCameraTranslator::Export(AtNode* camera)
    ExportDOF(camera);
    ExportImagePlanes(0);
 
-   MPlug plug = GetFnNode().findPlug("projective");
-   AiNodeSetBool(camera, "projective", plug.asBool());
+   MPlug plug = GetFnNode().findPlug("aiProjective");
+   AiNodeSetBool(camera, "aiProjective", plug.asBool());
 
    if (m_motion)
    {

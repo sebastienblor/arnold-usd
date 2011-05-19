@@ -39,7 +39,7 @@ void CDirectionalLightTranslator::NodeInitializer(MString nodeClassName)
    helper.MakeInput("bounces");
    CAttrData data;
    data.defaultValue.BOOL = false;
-   data.name = "override_sss_samples";
+   data.name = "aiOverrideSssSamples";
    data.shortName = "oss";
    helper.MakeInputBoolean(data);
    helper.MakeInput("sss_samples");
@@ -75,7 +75,7 @@ void CPointLightTranslator::NodeInitializer(MString nodeClassName)
    helper.MakeInput("bounces");
    CAttrData data;
    data.defaultValue.BOOL = false;
-   data.name = "override_sss_samples";
+   data.name = "aiOverrideSssSamples";
    data.shortName = "oss";
    helper.MakeInputBoolean(data);
    helper.MakeInput("sss_samples");
@@ -121,7 +121,7 @@ void CSpotLightTranslator::NodeInitializer(MString nodeClassName)
    helper.MakeInput("bounces");
    CAttrData data;
    data.defaultValue.BOOL = false;
-   data.name = "override_sss_samples";
+   data.name = "aiOverrideSssSamples";
    data.shortName = "oss";
    helper.MakeInputBoolean(data);
    helper.MakeInput("sss_samples");
@@ -166,7 +166,7 @@ void CAreaLightTranslator::NodeInitializer(MString nodeClassName)
    helper.MakeInput("bounces");
    CAttrData data;
    data.defaultValue.BOOL = false;
-   data.name = "override_sss_samples";
+   data.name = "aiOverrideSssSamples";
    data.shortName = "oss";
    helper.MakeInputBoolean(data);
    helper.MakeInput("sss_samples");

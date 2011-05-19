@@ -67,24 +67,24 @@ void CLightTranslator::Export(AtNode* light, bool mayaAttrs)
    else
    {
 
-      AiNodeSetBool(light, "affect_diffuse", GetFnNode().findPlug("affect_diffuse").asBool());
-      AiNodeSetBool(light, "affect_specular", GetFnNode().findPlug("affect_specular").asBool());
+      AiNodeSetBool(light, "affect_diffuse", GetFnNode().findPlug("aiAffectDiffuse").asBool());
+      AiNodeSetBool(light, "affect_specular", GetFnNode().findPlug("aiAffectSpecular").asBool());
    }
 
-   AiNodeSetBool(light, "cast_shadows", GetFnNode().findPlug("cast_shadows").asBool());
-   AiNodeSetFlt(light, "exposure", GetFnNode().findPlug("exposure").asFloat());
-   AiNodeSetInt(light, "samples", GetFnNode().findPlug("samples").asInt());
-   AiNodeSetBool(light, "mis", GetFnNode().findPlug("mis").asBool());
-   AiNodeSetBool(light, "normalize", GetFnNode().findPlug("normalize").asBool());
-   if (GetFnNode().findPlug("override_sss_samples").asBool())
+   AiNodeSetBool(light, "cast_shadows", GetFnNode().findPlug("aiCastShadows").asBool());
+   AiNodeSetFlt(light, "exposure", GetFnNode().findPlug("aiExposure").asFloat());
+   AiNodeSetInt(light, "samples", GetFnNode().findPlug("aiSamples").asInt());
+   AiNodeSetBool(light, "mis", GetFnNode().findPlug("aiMis").asBool());
+   AiNodeSetBool(light, "normalize", GetFnNode().findPlug("aiNormalize").asBool());
+   if (GetFnNode().findPlug("aiOverrideSssSamples").asBool())
    {
-      AiNodeSetInt(light, "sss_samples", GetFnNode().findPlug("sss_samples").asInt());
+      AiNodeSetInt(light, "sss_samples", GetFnNode().findPlug("aiSssSamples").asInt());
    }
-   AiNodeSetInt(light, "bounces", GetFnNode().findPlug("bounces").asInt());
-   AiNodeSetFlt(light, "bounce_factor", GetFnNode().findPlug("bounce_factor").asFloat());
+   AiNodeSetInt(light, "bounces", GetFnNode().findPlug("aiBounces").asInt());
+   AiNodeSetFlt(light, "bounce_factor", GetFnNode().findPlug("aiBounceFactor").asFloat());
 
    MStatus status;
-   MPlug pFilters = GetFnNode().findPlug("light_filters", &status);
+   MPlug pFilters = GetFnNode().findPlug("aiLightFilters", &status);
    if (status == MS::kSuccess)
    {
       MObjectArray filters;
@@ -129,6 +129,7 @@ void CLightTranslator::ExportMotion(AtNode* light, AtUInt step)
 void CLightTranslator::NodeInitializer(MString nodeClassName)
 {
    // use point light as a generic light...
+   // TODO : define a generic ArnoldLightNode
    CExtensionAttrHelper helper(nodeClassName, "point_light");
    // common attributes
    helper.MakeInput("cast_shadows");

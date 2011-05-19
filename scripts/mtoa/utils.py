@@ -67,14 +67,14 @@ def arnoldFixLightFilters():
 
     lights = cmds.ls(type='light')
     for light in lights:
-        if cmds.attributeQuery("light_filters", exists=True, node=light):
-                attr = '%s.light_filters'%light
+        if cmds.attributeQuery("aiLightFilters", exists=True, node=light):
+                attr = '%s.aiLightFilters'%light
                 if cmds.getAttr(attr, type=True) == 'string':
                     filters = cmds.getAttr(attr)
                     tmp = filters.split(':')
 
                     cmds.deleteAttr(attr)
-                    cmds.addAttr(ln='light_filters', at='message', multi=light)
+                    cmds.addAttr(ln='aiLightFilters', sn='light_filters', nn='Light Filters', at='message', multi=light)
 
                     for filter in filters:
                         if cmds.objExists(filter):
