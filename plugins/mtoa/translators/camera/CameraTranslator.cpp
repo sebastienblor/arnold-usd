@@ -1,5 +1,5 @@
 
-#include "ArnoldCameraTranslator.h"
+#include "CameraTranslator.h"
 #include "attributes/AttrHelper.h"
 
 #include <ai_cameras.h>
@@ -17,7 +17,7 @@
 
 using namespace std;
 
-void CArnoldCameraTranslator::ExportImagePlane(AtUInt step, MObject& imgPlane)
+void CCameraTranslator::ExportImagePlane(AtUInt step, MObject& imgPlane)
 {
    // get the dependency node of the image plane
    MFnDependencyNode fnRes(imgPlane);
@@ -364,7 +364,7 @@ void CArnoldCameraTranslator::ExportImagePlane(AtUInt step, MObject& imgPlane)
 }
 
 
-void CArnoldCameraTranslator::ExportImagePlanes(AtUInt step)
+void CCameraTranslator::ExportImagePlanes(AtUInt step)
 {
     MPlugArray connectedPlugs;
     MPlug      imagePlanePlug;
@@ -390,7 +390,7 @@ void CArnoldCameraTranslator::ExportImagePlanes(AtUInt step)
    }
 }
 
-void CArnoldCameraTranslator::ExportDOF(AtNode* camera)
+void CCameraTranslator::ExportDOF(AtNode* camera)
 {
    // FIXME: focal_distance and aperture_size are animated and should be exported with motion blur
    if (GetFnNode().findPlug("enableDOF").asBool())
@@ -403,7 +403,7 @@ void CArnoldCameraTranslator::ExportDOF(AtNode* camera)
    }
 }
 
-void CArnoldCameraTranslator::ExportCameraData(AtNode* camera)
+void CCameraTranslator::ExportCameraData(AtNode* camera)
 {
    AtMatrix matrix;
 
@@ -432,7 +432,7 @@ void CArnoldCameraTranslator::ExportCameraData(AtNode* camera)
    }
 }
 
-void CArnoldCameraTranslator::ExportCameraMBData(AtNode *camera, AtUInt step)
+void CCameraTranslator::ExportCameraMBData(AtNode *camera, AtUInt step)
 {
    AtMatrix matrix;
    GetMatrix(matrix);
@@ -441,7 +441,7 @@ void CArnoldCameraTranslator::ExportCameraMBData(AtNode *camera, AtUInt step)
    AiArraySetMtx(matrices, step, matrix);
 }
 
-double CArnoldCameraTranslator::GetDeviceAspect()
+double CCameraTranslator::GetDeviceAspect()
 {
    MStatus        status;
    MSelectionList list;
@@ -476,7 +476,7 @@ double CArnoldCameraTranslator::GetDeviceAspect()
    return deviceAspect;
 }
 
-void CArnoldCameraTranslator::SetFilmTransform(AtNode* camera, double factorX, double factorY, double width, bool persp)
+void CCameraTranslator::SetFilmTransform(AtNode* camera, double factorX, double factorY, double width, bool persp)
 {
    double deviceAspect = GetDeviceAspect();
    // double cameraAspect = m_fnCamera.aspectRatio();
@@ -587,12 +587,12 @@ void CArnoldCameraTranslator::SetFilmTransform(AtNode* camera, double factorX, d
    AiNodeSetPnt2(camera, "screen_window_max", static_cast<float>(maxPoint.x), static_cast<float>(maxPoint.y));
 }
 
-void CArnoldCameraTranslator::MakeDefaultAttributes(CExtensionAttrHelper &helper)
+void CCameraTranslator::MakeDefaultAttributes(CExtensionAttrHelper &helper)
 {
    helper.MakeInput("filtermap");
 }
 
-void CArnoldCameraTranslator::MakeDOFAttributes(CExtensionAttrHelper &helper)
+void CCameraTranslator::MakeDOFAttributes(CExtensionAttrHelper &helper)
 {
    helper.MakeInput("focal_distance");
    helper.MakeInput("aperture_size");

@@ -1,9 +1,9 @@
-#ifndef ARNOLDLIGHTTRANSLATOR_H
-#define ARNOLDLIGHTTRANSLATOR_H
+#ifndef LIGHTTRANSLATOR_H
+#define LIGHTTRANSLATOR_H
 
 #include "translators/NodeTranslator.h"
 
-class DLLEXPORT CArnoldLightTranslator
+class DLLEXPORT CLightTranslator
    :   public CDagTranslator
 {
 public:
@@ -29,4 +29,4 @@ protected:
    bool m_motion;
 };
 
-#endif // ARNOLDLIGHTTRANSLATOR_H
+#endif // LIGHTTRANSLATOR_H

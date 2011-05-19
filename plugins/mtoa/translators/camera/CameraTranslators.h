@@ -1,11 +1,11 @@
 #ifndef CAMERATRANSLATORS_H
 #define CAMERATRANSLATORS_H
 
-#include "ArnoldCameraTranslator.h"
+#include "CameraTranslator.h"
 
 
 class CPerspCameraTranslator
-      :   public CArnoldCameraTranslator
+      :   public CCameraTranslator
 {
 public:
    virtual void Export(AtNode* camera);
@@ -24,7 +24,7 @@ protected:
 
 
 class COrthoCameraTranslator
-      :   public CArnoldCameraTranslator
+      :   public CCameraTranslator
 {
 public:
    void Export(AtNode* camera);
@@ -41,7 +41,7 @@ protected:
 };
 
 class CFishEyeCameraTranslator
-      :   public CArnoldCameraTranslator
+      :   public CCameraTranslator
 {
 public:
    void Export(AtNode* camera);
@@ -59,7 +59,7 @@ protected:
 };
 
 class CCylCameraTranslator
-      :   public CArnoldCameraTranslator
+      :   public CCameraTranslator
 {
 public:
    void Export(AtNode* camera);

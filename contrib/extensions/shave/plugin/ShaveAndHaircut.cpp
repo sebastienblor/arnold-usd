@@ -325,7 +325,7 @@ void CShaveTranslator::ProcessHairLines(AtUInt step,
 void CShaveTranslator::NodeInitializer(MString nodeClassName)
 {
    CExtensionAttrHelper helper(nodeClassName, "curves");
-   CArnoldShapeTranslator::MakeCommonAttributes(helper);
+   CShapeTranslator::MakeCommonAttributes(helper);
    helper.MakeInput("min_pixel_width");
    helper.MakeInput("mode");
 }

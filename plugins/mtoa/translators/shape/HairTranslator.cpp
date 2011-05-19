@@ -1,37 +1,19 @@
 
 #include "HairTranslator.h"
 
-#include <maya/MPlugArray.h>
-#include <maya/MPlug.h>
 #include <maya/MRenderLineArray.h>
-#include <maya/MFloatPointArray.h>
 #include <maya/MRenderLine.h>
-#include <maya/MVectorArray.h>
-#include <maya/MDoubleArray.h>
-#include <maya/MStatus.h>
 #include <maya/MDagPathArray.h>
-#include <maya/MHairSystem.h>
-#include <maya/MObjectArray.h>
-#include <maya/MIntArray.h>
 #include <maya/MPointArray.h>
-
-#include <maya/MVector.h>
-#include <maya/MPoint.h>
-#include <maya/MRampAttribute.h>
-#include <maya/MFn.h>
-
+#include <maya/MHairSystem.h>
 #include <maya/MFnPfxGeometry.h>
-#include <maya/MFnDagNode.h>
+#include <maya/MRampAttribute.h>
 #include <maya/MFnNurbsCurve.h>
-#include <maya/MFnMesh.h>
-#include <maya/MMeshIntersector.h>
-
-#include <ai.h>
 
 void CHairTranslator::NodeInitializer(MString nodeClassName)
 {
    CExtensionAttrHelper helper = CExtensionAttrHelper(nodeClassName, "curves");
-   CArnoldShapeTranslator::MakeCommonAttributes(helper);
+   CShapeTranslator::MakeCommonAttributes(helper);
    helper.MakeInput("min_pixel_width");
    helper.MakeInput("mode");
 

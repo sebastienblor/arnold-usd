@@ -1,4 +1,4 @@
-#include "ArnoldLightTranslator.h"
+#include "LightTranslator.h"
 #include "nodes/ShaderUtils.h"
 #include "attributes/AttrHelper.h"
 
@@ -25,7 +25,7 @@
 #include <vector>
 #include <string>
 
-void CArnoldLightTranslator::ExportLightFilters(AtNode* light, const MObjectArray &filterNodes)
+void CLightTranslator::ExportLightFilters(AtNode* light, const MObjectArray &filterNodes)
 {
    std::vector<AtNode*> filters;
 
@@ -47,7 +47,7 @@ void CArnoldLightTranslator::ExportLightFilters(AtNode* light, const MObjectArra
    }
 }
 
-void CArnoldLightTranslator::Export(AtNode* light, bool mayaAttrs)
+void CLightTranslator::Export(AtNode* light, bool mayaAttrs)
 {
    MPlug plug;
    AtMatrix matrix;
@@ -117,7 +117,7 @@ void CArnoldLightTranslator::Export(AtNode* light, bool mayaAttrs)
    }
 }
 
-void CArnoldLightTranslator::ExportMotion(AtNode* light, AtUInt step)
+void CLightTranslator::ExportMotion(AtNode* light, AtUInt step)
 {
    AtMatrix matrix;
    GetMatrix(matrix);
@@ -126,7 +126,7 @@ void CArnoldLightTranslator::ExportMotion(AtNode* light, AtUInt step)
    AiArraySetMtx(matrices, step, matrix);
 }
 
-void CArnoldLightTranslator::NodeInitializer(MString nodeClassName)
+void CLightTranslator::NodeInitializer(MString nodeClassName)
 {
    // use point light as a generic light...
    CExtensionAttrHelper helper(nodeClassName, "point_light");
@@ -141,7 +141,7 @@ void CArnoldLightTranslator::NodeInitializer(MString nodeClassName)
    helper.MakeInput("sss_samples");
 }
 
-void CArnoldLightTranslator::Delete()
+void CLightTranslator::Delete()
 {
    // Arnold doesn't allow use to delete nodes, so this
    // is as close as we'll get for now.

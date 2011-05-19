@@ -1,23 +1,39 @@
 #ifndef GEOMETRYTRANSLATOR_H
 #define GEOMETRYTRANSLATOR_H
 
-#include "ArnoldShapeTranslator.h"
+#include "ShapeTranslator.h"
+
+#include <ai_msg.h>
+#include <ai_nodes.h>
+#include <ai_ray.h>
+
 #include <maya/MFnMesh.h>
+#include <maya/MDagPath.h>
+#include <maya/MFloatPointArray.h>
+#include <maya/MFnMeshData.h>
+#include <maya/MFnNurbsSurface.h>
+#include <maya/MIntArray.h>
+#include <maya/MItMeshPolygon.h>
+#include <maya/MMatrix.h>
+#include <maya/MMeshSmoothOptions.h>
+#include <maya/MPlug.h>
+#include <maya/MPlugArray.h>
+#include <maya/MItMeshVertex.h>
+#include <maya/MGlobal.h>
+#include <maya/MFnNumericAttribute.h>
+#include <maya/MFnMessageAttribute.h>
+#include <maya/MColorArray.h>
 #include <maya/MNodeMessage.h>
 
-#include <vector>
-#include <map>
-#include <string>
-
-class DLLEXPORT CGeoTranslator
-   :   public CArnoldShapeTranslator
+class DLLEXPORT CGeometryTranslator
+   :   public CShapeTranslator
 {
 public:
    virtual AtNode* Init(MDagPath& dagPath, CMayaScene* scene, MString outputAttr="")
    {
       m_displaced = false;
       m_isRefSmooth = false;
-      return CArnoldShapeTranslator::Init(dagPath, scene, outputAttr);
+      return CShapeTranslator::Init(dagPath, scene, outputAttr);
    }
    virtual void Update(AtNode* anode);
    virtual void ExportMotion(AtNode* anode, AtUInt step);
@@ -69,48 +85,5 @@ protected:
    MDagPath m_masterDag;
 };
 
-
-class DLLEXPORT CMeshTranslator : public CGeoTranslator
-{
-public:
-   virtual AtNode* Init(MDagPath& dagPath, CMayaScene* scene, MString outputAttr="")
-   {
-      m_fnMesh.setObject(dagPath);
-      return CGeoTranslator::Init(dagPath, scene, outputAttr);
-   }
-
-   virtual void Export(AtNode* anode);
-   static void* creator()
-   {
-      return new CMeshTranslator();
-   }
-   AtNode* CreateArnoldNodes();
-private:
-   unsigned int GetNumMeshGroups();
-};
-
-class MFnMeshData;
-class MTesselationParams;
-class MFnNurbsSurface;
-
-class DLLEXPORT CNurbsSurfaceTranslator : public CGeoTranslator
-{
-public:
-   virtual void Export(AtNode* anode);
-   virtual void ExportMotion(AtNode* anode, AtUInt step);
-   virtual void IsGeoDeforming();
-
-   static void* creator()
-   {
-      return new CNurbsSurfaceTranslator();
-   }
-   AtNode* CreateArnoldNodes();
-private:
-   MObject m_data_mobj;
-   bool Tessellate(MDagPath & dagPath);
-   void GetTessellationOptions(MTesselationParams & params,
-                        MFnNurbsSurface & surface);
-
-};
 
 #endif // GEOMETRYTRANSLATOR_H

@@ -18,12 +18,13 @@
 #include "nodes/shader/ArnoldDisplacementNode.h"
 #include "nodes/light/ArnoldSkyDomeLightNode.h"
 
-#include "translators/shader/ShaderTranslators.h"
-#include "translators/light/LightTranslators.h"
-#include "translators/shape/GeometryTranslators.h"
-#include "translators/camera/CameraTranslators.h"
+#include "translators/options/OptionsTranslator.h"
 
-#include "translators/options/ArnoldOptionsTranslator.h"
+#include "translators/camera/CameraTranslators.h"
+#include "translators/light/LightTranslators.h"
+#include "translators/shader/ShaderTranslators.h"
+#include "translators/shape/MeshTranslator.h"
+#include "translators/shape/NurbsSurfaceTranslator.h"
 #include "translators/shape/HairTranslator.h"
 
 #include "render/RenderSwatch.h"
@@ -127,7 +128,7 @@ namespace // <anonymous>
       // Override for builtins for specific cases
       builtin->RegisterTranslator("aiOptions",
                                   "",
-                                  CArnoldOptionsTranslator::creator);
+                                  COptionsTranslator::creator);
       builtin->RegisterTranslator("surfaceShader",
                                   "",
                                   CSurfaceShaderTranslator::creator);
@@ -158,7 +159,7 @@ namespace // <anonymous>
        builtin->RegisterTranslator("ambientLight",
                                    "",
                                    CAmbientLightTranslator::creator,
-                                   CArnoldLightTranslator::NodeInitializer);
+                                   CLightTranslator::NodeInitializer);
        builtin->RegisterTranslator("aiSkyDomeLight",
                                    "",
                                    CSkyDomeLightTranslator::creator);

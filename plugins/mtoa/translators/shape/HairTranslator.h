@@ -1,7 +1,7 @@
 #ifndef HAIRTRANSLATOR_H
 #define HAIRTRANSLATOR_H
 
-#include "GeometryTranslators.h"
+#include "GeometryTranslator.h"
 
 #include <maya/MFnMesh.h>
 #include <maya/MMeshIntersector.h>
@@ -25,7 +25,7 @@ private:
 };
 
 class CHairTranslator
-   :   public CGeoTranslator
+   :   public CGeometryTranslator
 {
 public:
    CHairTranslator()

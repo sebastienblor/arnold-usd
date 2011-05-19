@@ -1,4 +1,4 @@
-#include "ArnoldOptionsTranslator.h"
+#include "OptionsTranslator.h"
 #include "render/RenderSession.h"
 #include "render/RenderOptions.h"
 
@@ -9,7 +9,7 @@
 #include <maya/MAnimControl.h>
 #include <maya/MPlugArray.h>
 
-void CArnoldOptionsTranslator::SetupImageOptions(AtNode* options)
+void COptionsTranslator::SetupImageOptions(AtNode* options)
 {
    const CRenderOptions* renderOptions = CRenderSession::GetInstance()->RenderOptions();
    if (renderOptions->useRenderRegion())
@@ -25,12 +25,12 @@ void CArnoldOptionsTranslator::SetupImageOptions(AtNode* options)
    AiNodeSetFlt(options, "aspect_ratio", renderOptions->pixelAspectRatio());
 }
 
-AtNode* CArnoldOptionsTranslator::CreateArnoldNodes()
+AtNode* COptionsTranslator::CreateArnoldNodes()
 {
    return AiUniverseGetOptions();
 }
 
-void CArnoldOptionsTranslator::Export(AtNode *options)
+void COptionsTranslator::Export(AtNode *options)
 {
    SetupImageOptions(options);
    MTime currentTime;

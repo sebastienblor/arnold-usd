@@ -14,7 +14,7 @@ enum FitType
    FIT_TOSIZE,
 };
 
-class DLLEXPORT CArnoldCameraTranslator
+class DLLEXPORT CCameraTranslator
    :   public CDagTranslator
 {
 public:

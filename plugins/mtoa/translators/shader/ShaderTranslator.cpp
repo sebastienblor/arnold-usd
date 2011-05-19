@@ -1,21 +1,21 @@
-#include "ArnoldShaderTranslator.h"
+#include "ShaderTranslator.h"
 
 
 // Auto shader translator
 //
-AtNode* CArnoldShaderTranslator::Init(MDagPath& dagPath, CMayaScene* scene, MString outputAttr)
+AtNode* CShaderTranslator::Init(MDagPath& dagPath, CMayaScene* scene, MString outputAttr)
 {
    return CNodeTranslator::Init(dagPath.node(), scene, outputAttr);
 }
 
-AtNode* CArnoldShaderTranslator::CreateArnoldNodes()
+AtNode* CShaderTranslator::CreateArnoldNodes()
 {
    MString mayaShader = GetFnNode().typeName();
    // return AddArnoldNode(CExtensionsManager::GetArnoldNodeFromMayaNode(mayaShader));
    return AddArnoldNode(m_abstract.arnold.asChar());
 }
 
-void CArnoldShaderTranslator::Export(AtNode *shader)
+void CShaderTranslator::Export(AtNode *shader)
 {
    MStatus status;
    MPlug plug;

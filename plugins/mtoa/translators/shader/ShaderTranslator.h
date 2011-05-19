@@ -1,11 +1,11 @@
-#ifndef ARNOLDSHADERTRANSLATOR_H
-#define ARNOLDSHADERTRANSLATOR_H
+#ifndef SHADERTRANSLATOR_H
+#define SHADERTRANSLATOR_H
 
 #include "translators/NodeTranslator.h"
 
 
 
-//--------------- CArnoldShaderTranslator ------------------------------------------
+//--------------- ChaderTranslator ------------------------------------------
 
 /// A Translator class which can automatically export simple Maya nodes.
 
@@ -15,18 +15,18 @@
 ///  -# processes the equivalent attribute on the Maya node
 ///
 
-class DLLEXPORT CArnoldShaderTranslator
+class DLLEXPORT CShaderTranslator
    :  public CNodeTranslator
 {
 public:
    AtNode* Init(MDagPath& dagPath, CMayaScene* scene, MString outputAttr="");
    static void* creator()
    {
-      return new CArnoldShaderTranslator();
+      return new CShaderTranslator();
    }
    AtNode* CreateArnoldNodes();
    void Export(AtNode* atNode);
 };
 
 
-#endif // ARNOLDSHADERTRANSLATOR_H
+#endif // SHADERTRANSLATOR_H

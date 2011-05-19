@@ -30,18 +30,18 @@ for subdir in ['attributes', 'common', 'extension', 'platform', 'render', 'scene
 
 #Add files to be exported by the API from 'nodes' and 'translators' folder
 source_files_add = [os.path.join('nodes', 'shader', 'ArnoldShaderNode.cpp'),
-                    os.path.join('translators', 'camera', 'ArnoldCameraTranslator.cpp'),
-                    os.path.join('translators', 'light', 'ArnoldLightTranslator.cpp'),
-                    os.path.join('translators', 'shader', 'ArnoldShaderTranslator.cpp'),
-                    os.path.join('translators', 'shape', 'ArnoldShapeTranslator.cpp'),
-                    os.path.join('translators', 'shape', 'GeometryTranslators.cpp'),
+                    os.path.join('translators', 'camera', 'CameraTranslator.cpp'),
+                    os.path.join('translators', 'light', 'LightTranslator.cpp'),
+                    os.path.join('translators', 'shader', 'ShaderTranslator.cpp'),
+                    os.path.join('translators', 'shape', 'ShapeTranslator.cpp'),
+                    os.path.join('translators', 'shape', 'GeometryTranslator.cpp'),
                     os.path.join('translators', 'NodeTranslator.cpp')]
 include_files_add = [os.path.join('nodes', 'shader', 'ArnoldShaderNode.h'),
-                     os.path.join('translators', 'camera', 'ArnoldCameraTranslator.h'),
-                     os.path.join('translators', 'light', 'ArnoldLightTranslator.h'),
-                     os.path.join('translators', 'shader', 'ArnoldShaderTranslator.h'),
-                     os.path.join('translators', 'shape', 'ArnoldShapeTranslator.h'),
-                     os.path.join('translators', 'shape', 'GeometryTranslators.h'),
+                     os.path.join('translators', 'camera', 'CameraTranslator.h'),
+                     os.path.join('translators', 'light', 'LightTranslator.h'),
+                     os.path.join('translators', 'shader', 'ShaderTranslator.h'),
+                     os.path.join('translators', 'shape', 'ShapeTranslator.h'),
+                     os.path.join('translators', 'shape', 'GeometryTranslator.h'),
                      os.path.join('translators', 'NodeTranslator.h')]
   
 source_files += source_files_add

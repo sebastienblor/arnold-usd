@@ -1,9 +1,11 @@
-#ifndef ARNOLDSHAPETRANSLATOR_H
-#define ARNOLDSHAPETRANSLATOR_H
+#ifndef SHAPETRANSLATOR_H
+#define SHAPETRANSLATOR_H
 
 #include "translators/NodeTranslator.h"
 
-class DLLEXPORT CArnoldShapeTranslator : public CDagTranslator
+
+
+class DLLEXPORT CShapeTranslator : public CDagTranslator
 {
 public:
    virtual AtNode* Init(MDagPath& dagPath, CMayaScene* scene, MString outputAttr="")
@@ -28,4 +30,4 @@ protected:
    
 };
 
-#endif // ARNOLDSHAPETRANSLATOR_H
+#endif // SHAPETRANSLATOR_H

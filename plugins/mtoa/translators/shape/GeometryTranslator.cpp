@@ -1,29 +1,7 @@
 
-#include "GeometryTranslators.h"
-#include "render/RenderSession.h"
-#include "attributes/AttrHelper.h"
+#include "GeometryTranslator.h"
 
-#include <ai_msg.h>
-#include <ai_nodes.h>
-#include <ai_ray.h>
-
-#include <maya/MDagPath.h>
-#include <maya/MFloatPointArray.h>
-#include <maya/MFnMeshData.h>
-#include <maya/MFnNurbsSurface.h>
-#include <maya/MIntArray.h>
-#include <maya/MItMeshPolygon.h>
-#include <maya/MMatrix.h>
-#include <maya/MMeshSmoothOptions.h>
-#include <maya/MPlug.h>
-#include <maya/MPlugArray.h>
-#include <maya/MItMeshVertex.h>
-#include <maya/MGlobal.h>
-#include <maya/MFnNumericAttribute.h>
-#include <maya/MFnMessageAttribute.h>
-#include <maya/MColorArray.h>
-
-#include <vector>
+#include <maya/MNodeMessage.h>
 
 namespace
 {
@@ -57,7 +35,7 @@ namespace
    }
 }
 
-MObject CGeoTranslator::GetNodeShadingGroup(MObject dagNode, int instanceNum)
+MObject CGeometryTranslator::GetNodeShadingGroup(MObject dagNode, int instanceNum)
 {
    MPlugArray        connections;
    MFnDependencyNode fnDGNode(dagNode);
@@ -77,7 +55,7 @@ MObject CGeoTranslator::GetNodeShadingGroup(MObject dagNode, int instanceNum)
    return MObject::kNullObj;
 }
 
-MObject CGeoTranslator::GetNodeShader(MObject dagNode, int instanceNum)
+MObject CGeometryTranslator::GetNodeShader(MObject dagNode, int instanceNum)
 {
    MPlugArray        connections;
    MObject shadingGroup = GetNodeShadingGroup(dagNode, instanceNum);
@@ -88,7 +66,7 @@ MObject CGeoTranslator::GetNodeShader(MObject dagNode, int instanceNum)
    return connections[0].node();
 }
 
-bool CGeoTranslator::GetVerticesWorld(MFnMesh &fnMesh, std::vector<float> &vertices)
+bool CGeometryTranslator::GetVerticesWorld(MFnMesh &fnMesh, std::vector<float> &vertices)
 {
    if (fnMesh.numVertices() > 0)
    {
@@ -111,7 +89,7 @@ bool CGeoTranslator::GetVerticesWorld(MFnMesh &fnMesh, std::vector<float> &verti
    return false;
 }
 
-bool CGeoTranslator::GetVertices(MFnMesh &fnMesh, std::vector<float> &vertices)
+bool CGeometryTranslator::GetVertices(MFnMesh &fnMesh, std::vector<float> &vertices)
 {
    int nverts = fnMesh.numVertices();
    if (nverts > 0)
@@ -132,7 +110,7 @@ bool CGeoTranslator::GetVertices(MFnMesh &fnMesh, std::vector<float> &vertices)
    return false;
 }
 
-bool CGeoTranslator::GetNormals(MFnMesh &fnMesh, std::vector<float> &normals)
+bool CGeometryTranslator::GetNormals(MFnMesh &fnMesh, std::vector<float> &normals)
 {
    int nnorms = fnMesh.numNormals();
    if (GetFnNode().findPlug("smoothShading").asBool() &&
@@ -155,7 +133,7 @@ bool CGeoTranslator::GetNormals(MFnMesh &fnMesh, std::vector<float> &normals)
    return false;
 }
 
-bool CGeoTranslator::GetTangents(MFnMesh &fnMesh, std::vector<float> &tangents, std::vector<float> &bitangents)
+bool CGeometryTranslator::GetTangents(MFnMesh &fnMesh, std::vector<float> &tangents, std::vector<float> &bitangents)
 {
    MStatus stat;
    MPlug pExportTangents = fnMesh.findPlug("exportTangents", false, &stat);
@@ -218,7 +196,7 @@ bool CGeoTranslator::GetTangents(MFnMesh &fnMesh, std::vector<float> &tangents, 
    return false;
 }
 
-bool CGeoTranslator::GetMeshRefObj(MFnMesh &fnMesh)
+bool CGeometryTranslator::GetMeshRefObj(MFnMesh &fnMesh)
 {
    if (!m_isRefSmooth)
    {
@@ -259,7 +237,7 @@ bool CGeoTranslator::GetMeshRefObj(MFnMesh &fnMesh)
    }
 }
 
-bool CGeoTranslator::GetRefObj(MFnMesh &fnMesh, std::vector<float> &refVertices, std::vector<float> &refNormals)
+bool CGeometryTranslator::GetRefObj(MFnMesh &fnMesh, std::vector<float> &refVertices, std::vector<float> &refNormals)
 {
    bool getMesh = GetMeshRefObj(fnMesh);
 
@@ -286,7 +264,7 @@ bool CGeoTranslator::GetRefObj(MFnMesh &fnMesh, std::vector<float> &refVertices,
       return false;
 }
 
-bool CGeoTranslator::GetUVs(MFnMesh &fnMesh, std::vector<float> &uvs)
+bool CGeometryTranslator::GetUVs(MFnMesh &fnMesh, std::vector<float> &uvs)
 {
    // Get all UVs
    if (fnMesh.numUVs() > 0)
@@ -306,7 +284,7 @@ bool CGeoTranslator::GetUVs(MFnMesh &fnMesh, std::vector<float> &uvs)
    return false;
 }
 
-bool CGeoTranslator::GetVertexColors(MFnMesh &fnMesh, std::map<std::string, std::vector<float> > &vcolors)
+bool CGeometryTranslator::GetVertexColors(MFnMesh &fnMesh, std::map<std::string, std::vector<float> > &vcolors)
 {
    bool exportColors = false;
 
@@ -367,7 +345,7 @@ bool CGeoTranslator::GetVertexColors(MFnMesh &fnMesh, std::map<std::string, std:
    return exportColors;
 }
 
-void CGeoTranslator::GetComponentIDs(MFnMesh &fnMesh,
+void CGeometryTranslator::GetComponentIDs(MFnMesh &fnMesh,
       std::vector<AtUInt> &nsides,
       std::vector<AtLong> &vidxs,
       std::vector<AtLong> &nidxs,
@@ -406,12 +384,12 @@ void CGeoTranslator::GetComponentIDs(MFnMesh &fnMesh,
    }
 }
 
-void CGeoTranslator::ExportShaders()
+void CGeometryTranslator::ExportShaders()
 {
    ExportMeshShaders(GetArnoldRootNode(), m_fnMesh);
 }
 
-void CGeoTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
+void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
 {
    int instanceNum = m_dagPath.isInstanced() ? m_dagPath.instanceNumber() : 0;
 
@@ -519,7 +497,7 @@ void CGeoTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
    }
 }
 
-void CGeoTranslator::ExportMeshGeoData(AtNode* polymesh, AtUInt step)
+void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, AtUInt step)
 {
    m_isRefSmooth = false;
 
@@ -776,7 +754,7 @@ void CGeoTranslator::ExportMeshGeoData(AtNode* polymesh, AtUInt step)
    }
 }
 
-void CGeoTranslator::IsGeoDeforming()
+void CGeometryTranslator::IsGeoDeforming()
 {
     bool history = false;
     bool pnts = false;
@@ -800,7 +778,7 @@ void CGeoTranslator::IsGeoDeforming()
         m_motionDeform = false;
 }
 
-void CGeoTranslator::ExportMeshParameters(AtNode* polymesh)
+void CGeometryTranslator::ExportMeshParameters(AtNode* polymesh)
 {
    // Check if custom attributes have been created, ignore them otherwise
    MStatus status;
@@ -842,7 +820,7 @@ void CGeoTranslator::ExportMeshParameters(AtNode* polymesh)
    }
 }
 
-AtNode* CGeoTranslator::ExportMesh(AtNode* polymesh, bool update)
+AtNode* CGeometryTranslator::ExportMesh(AtNode* polymesh, bool update)
 {
    ExportMatrix(polymesh, 0);
    ExportMeshParameters(polymesh);
@@ -853,7 +831,7 @@ AtNode* CGeoTranslator::ExportMesh(AtNode* polymesh, bool update)
    return polymesh;
 }
 
-AtNode* CGeoTranslator::ExportInstance(AtNode *instance, const MDagPath& masterInstance)
+AtNode* CGeometryTranslator::ExportInstance(AtNode *instance, const MDagPath& masterInstance)
 {
    AtNode* masterNode = AiNodeLookUpByName(masterInstance.partialPathName().asChar());
 
@@ -917,7 +895,7 @@ AtNode* CGeoTranslator::ExportInstance(AtNode *instance, const MDagPath& masterI
    return instance;
 }
 
-void CGeoTranslator::Update(AtNode *anode)
+void CGeometryTranslator::Update(AtNode *anode)
 {
    if (m_isMasterDag)
    {
@@ -929,7 +907,7 @@ void CGeoTranslator::Update(AtNode *anode)
    }
 }
 
-void CGeoTranslator::ExportMotion(AtNode* anode, AtUInt step)
+void CGeometryTranslator::ExportMotion(AtNode* anode, AtUInt step)
 {
    // Ran into a strange bug where the object must be reset to
    // avoid a crash.  even calling .hasObj() was enough to avoid it
@@ -948,31 +926,31 @@ void CGeoTranslator::ExportMotion(AtNode* anode, AtUInt step)
    }
 }
 
-void CGeoTranslator::UpdateMotion(AtNode* anode, AtUInt step)
+void CGeometryTranslator::UpdateMotion(AtNode* anode, AtUInt step)
 {
    ExportMatrix(anode, step);
 }
 
-void CGeoTranslator::AddIPRCallbacks()
+void CGeometryTranslator::AddIPRCallbacks()
 {
    AddShaderAssignmentCallbacks(m_object);
    CDagTranslator::AddIPRCallbacks();
 }
 
-void CGeoTranslator::AddShaderAssignmentCallbacks(MObject & dagNode)
+void CGeometryTranslator::AddShaderAssignmentCallbacks(MObject & dagNode)
 {
    MStatus status;
    MCallbackId id = MNodeMessage::addAttributeChangedCallback(dagNode, ShaderAssignmentCallback, this, &status);
    if (MS::kSuccess == status) ManageIPRCallback(id);
 }
 
-void CGeoTranslator::ShaderAssignmentCallback(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void*clientData)
+void CGeometryTranslator::ShaderAssignmentCallback(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void*clientData)
 {
    // Shading assignments are done with the instObjGroups attr, so we only
    // need to update when that is the attr that changes.
    if ((msg & MNodeMessage::kConnectionMade) && (plug.partialName() == "iog"))
    {
-      CGeoTranslator * translator = static_cast< CGeoTranslator* >(clientData);
+      CGeometryTranslator * translator = static_cast< CGeometryTranslator* >(clientData);
       if (translator != NULL)
       {
          // Interupt the render.
@@ -986,12 +964,12 @@ void CGeoTranslator::ShaderAssignmentCallback(MNodeMessage::AttributeMessage msg
    }
 }
 
-void CGeoTranslator::NodeInitializer(MString nodeClassName)
+void CGeometryTranslator::NodeInitializer(MString nodeClassName)
 {
    CExtensionAttrHelper helper(nodeClassName, "polymesh");
 
    // Node attributes
-   CArnoldShapeTranslator::MakeCommonAttributes(helper);
+   CShapeTranslator::MakeCommonAttributes(helper);
 
    helper.MakeInput("subdiv_type");
    helper.MakeInput("subdiv_iterations");
@@ -1012,199 +990,3 @@ void CGeoTranslator::NodeInitializer(MString nodeClassName)
    data.shortName = "expcol";
    helper.MakeInputBoolean(data);
 }
-
-// --------- CNurbsSurfaceTranslator -------------//
-
-void CNurbsSurfaceTranslator::GetTessellationOptions(MTesselationParams & params,
-                                              MFnNurbsSurface & surface)
-{
-   // Reference for this code is from the devkit:
-   // /devkit/obsolete/games/MDtApi/MDtShape.cpp
-   // It is similar, this is tidier and more condenced.
-
-   // Get the tesselation attributes off the node
-   const int modeU                  = surface.findPlug("modeU").asInt();
-   const int numberU                = surface.findPlug("numberU").asInt();
-   const int modeV                  = surface.findPlug("modeV").asInt();
-   const int numberV                = surface.findPlug("numberV").asInt();
-   const bool smoothEdge            = surface.findPlug("smoothEdge").asBool();
-   const bool useChordHeightRatio   = surface.findPlug("useChordHeightRatio").asBool();
-   const bool edgeSwap              = surface.findPlug("edgeSwap").asBool();
-   const bool useMinScreen          = surface.findPlug("useMinScreen").asBool();
-   const double chordHeightRatio    = surface.findPlug("chordHeightRatio").asDouble();
-   const double minScreen           = surface.findPlug("minScreen").asDouble();
-
-   // I don't actually know why these aren't used. I don't see where they'd be set
-   // on MTesselationParams either.
-   //const bool useChordHeight      = surface.findPlug("useChordHeight").asBool();
-   //const double chordHeight       = surface.findPlug("chordHeight").asDouble();
-
-   switch (modeU)
-   {
-      case 1:             // Per Surf # of Isoparms in 3D
-         params.setUIsoparmType(MTesselationParams::kSurface3DEquiSpaced);
-         break;
-      case 2:             // Per Surf # of Isoparms
-         params.setUIsoparmType(MTesselationParams::kSurfaceEquiSpaced);
-         break;
-      case 3:             // Per Span # of Isoparms
-         params.setUIsoparmType(MTesselationParams::kSpanEquiSpaced);
-         break;
-      case 4:             // Best Guess Based on Screen Size, there is a comment that 4 uses mode 2 internally
-         params.setUIsoparmType(MTesselationParams::kSurfaceEquiSpaced);
-         break;
-   }
-
-   switch (modeV)
-   {
-      case 1:             // Per Surf # of Isoparms in 3D
-         params.setVIsoparmType(MTesselationParams::kSurface3DEquiSpaced);
-         break;
-      case 2:             // Per Surf # of Isoparms
-         params.setVIsoparmType(MTesselationParams::kSurfaceEquiSpaced);
-         break;
-      case 3:             // Per Span # of Isoparms
-         params.setVIsoparmType(MTesselationParams::kSpanEquiSpaced);
-         break;
-      case 4:             // Best Guess Based on Screen Size, there is a comment that 4 uses mode 2 internally
-         params.setVIsoparmType(MTesselationParams::kSurfaceEquiSpaced);
-         break;
-   }
-
-   params.setUNumber(numberU);
-   params.setVNumber(numberV);
-   params.setSubdivisionFlag(MTesselationParams::kUseChordHeightRatio, useChordHeightRatio);
-   params.setChordHeightRatio(chordHeightRatio);
-   params.setSubdivisionFlag(MTesselationParams::kUseMinScreenSize,useMinScreen);
-   params.setMinScreenSize(minScreen, minScreen);
-
-   params.setSubdivisionFlag(MTesselationParams::kUseEdgeSmooth, smoothEdge);
-   params.setSubdivisionFlag(MTesselationParams::kUseTriangleEdgeSwapping, edgeSwap);
-}
-
-bool CNurbsSurfaceTranslator::Tessellate(MDagPath & dagPath)
-{
-   MStatus status;
-   MFnNurbsSurface surface(dagPath, &status);
-   if (!status)
-   {
-      AiMsgError("[mtoa] [translator %s] Could not attach to NURBS surface for tessellation: %s",
-            GetName().asChar(), status.errorString().asChar());
-      return false;
-   }
-
-   MFnMeshData meshData;
-   // This is a member variable. We have to keep hold of it or Maya will release it.
-   m_data_mobj = meshData.create();
-
-   MTesselationParams params(MTesselationParams::kGeneralFormat, MTesselationParams::kTriangles);
-   GetTessellationOptions(params, surface);
-   MObject mesh_mobj = surface.tesselate(params,
-                                         m_data_mobj,
-                                         &status);
-   if (!status)
-   {
-      AiMsgError("[mtoa] [translator %s] Could not tessallate NURBS surface: %s",
-            GetName().asChar(), status.errorString().asChar());
-      return false;
-   }
-
-   // set the MFnMesh to the newly created node
-   m_fnMesh.setObject(mesh_mobj);
-   return true;
-}
-
-AtNode* CNurbsSurfaceTranslator::CreateArnoldNodes()
-{
-   m_isMasterDag = IsMasterInstance(m_masterDag);
-   if (m_isMasterDag)
-      return AddArnoldNode("polymesh");
-   else
-      return AddArnoldNode("ginstance");
-}
-
-void CNurbsSurfaceTranslator::Export(AtNode* anode)
-{
-   const char* nodeType = AiNodeEntryGetName (anode->base_node);
-   if (strcmp(nodeType, "ginstance") == 0)
-      ExportInstance(anode, m_masterDag);
-   else if (strcmp(nodeType, "polymesh") == 0)
-   {
-      // Early return if we can't tessalate.
-      if (!Tessellate(m_dagPath))
-         return;
-      ExportMesh(anode, false);
-   }
-}
-
-void CNurbsSurfaceTranslator::ExportMotion(AtNode* anode, AtUInt step)
-{
-   // Re-tessalate the nurbs surface, but only if it's needed.
-   if (m_motion && m_motionDeform && m_isMasterDag)
-   {
-      // TODO: Figure out how to get the same topology for
-      // each tessellation.
-      if (!Tessellate(m_dagPath)) return;
-   }
-
-   CGeoTranslator::ExportMotion(anode, step);
-}
-
-// TODO: implement this check for nurbs.
-void CNurbsSurfaceTranslator::IsGeoDeforming()
-{
-}
-
-// --------- CMeshTranslator -------------//
-unsigned int CMeshTranslator::GetNumMeshGroups()
-{
-   MObject node = m_dagPath.node();
-   MFnDependencyNode fnDGNode(node);
-   int instanceNum = m_dagPath.isInstanced() ? m_dagPath.instanceNumber() : 0;
-
-   MPlug plug = fnDGNode.findPlug("instObjGroups");
-
-   if (plug.elementByLogicalIndex(instanceNum).isConnected())
-   {
-      return 1;
-   }
-   else
-   {
-      MFnMesh      mesh(node);
-      MObjectArray shaders;
-      MIntArray    indices;
-
-      mesh.getConnectedShaders(instanceNum, shaders, indices);
-
-      return shaders.length();
-   }
-}
-
-
-AtNode* CMeshTranslator::CreateArnoldNodes()
-{
-   m_isMasterDag = IsMasterInstance(m_masterDag);
-   if (m_isMasterDag)
-   {
-      m_fnMesh.setObject(m_dagPath.node());
-      return AddArnoldNode("polymesh");
-   }
-   else
-      return AddArnoldNode("ginstance");
-}
-void CMeshTranslator::Export(AtNode* anode)
-{
-   if (GetNumMeshGroups() == 0)
-   {
-      AiMsgError("[mtoa] [translator %s] Mesh not exported, it has 0 groups.", GetName().asChar());
-      return;
-   }
-   const char* nodeType = AiNodeEntryGetName(anode->base_node);
-   if (strcmp(nodeType, "ginstance") == 0)
-      ExportInstance(anode, m_masterDag);
-   else if (strcmp(nodeType, "polymesh") == 0)
-      ExportMesh(anode, false);
-}
-
-
-

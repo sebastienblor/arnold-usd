@@ -4,8 +4,8 @@
 
 #include "nodes/ShaderUtils.h"
 #include "nodes/shader/ArnoldShaderNode.h"
-#include "translators/shader/ArnoldShaderTranslator.h"
-#include "translators/shape/ArnoldShapeTranslator.h"
+#include "translators/shader/ShaderTranslator.h"
+#include "translators/shape/ShapeTranslator.h"
 
 // A Maya node proxy
 CPxTranslator::CPxTranslator(const MString &translatorName,
@@ -71,26 +71,26 @@ MStatus CPxTranslator::ReadMetaData()
       arnoldNodeTypeName = AiNodeEntryGetTypeName(arnoldNodeEntry);
       if (strcmp(arnoldNodeTypeName, "camera") == 0)
       {
-         // TODO : define a non virtual CArnoldCameraTranslator
-         // creator = CArnoldCameraTranslator::creator;
-         // initialize = CArnoldCameraTranslator::NodeInitializer;
+         // TODO : define a non virtual generic CCameraTranslator
+         // creator = CCameraTranslator::creator;
+         // initialize = CCameraTranslator::NodeInitializer;
       }
       else if (strcmp(arnoldNodeTypeName,"light") == 0)
       {
-         // TODO : define a non virtual CArnoldLightTranslator
-         // creator = CArnoldLightTranslator::creator;
-         // initialize = CArnoldLightTranslator::NodeInitializer;
+         // TODO : define a non virtual generic CLightTranslator
+         // creator = CLightTranslator::creator;
+         // initialize = CLightTranslator::NodeInitializer;
       }
       else if (strcmp(arnoldNodeTypeName,"shader") == 0)
       {
-         creator = CArnoldShaderTranslator::creator;
-         // initialize = CArnoldShaderTranslator::NodeInitializer;
+         creator = CShaderTranslator::creator;
+         // initialize = CShaderTranslator::NodeInitializer;
       }
       else if (strcmp(arnoldNodeTypeName,"shape") == 0)
       {
-         // TODO : define a non virtual CArnoldShapeTranslator or Geo
-         // creator = CArnoldShapeTranslator::creator;
-         // initialize = CArnoldShapeTranslator::NodeInitializer;
+         // TODO : define a non virtual generic CShapeTranslator or Geo
+         // creator = CShapeTranslator::creator;
+         // initialize = CShapeTranslator::NodeInitializer;
       }
       // No default strategy to create the rest
    }

@@ -1181,7 +1181,7 @@ void CDagTranslator::MakeMayaVisibilityFlags(CBaseAttrHelper& helper)
 // attributes like self_shadow and opaque that are computed separately
 //
 // arnold's visibiltity mask adds several relationships not available by default in Maya.
-// use in conjunction with CDagTranslator::ComputeVisibility() or CArnoldShapeTranslator::ProcessRenderFlags().
+// use in conjunction with CDagTranslator::ComputeVisibility() or CShapeTranslator::ProcessRenderFlags().
 //
 void CDagTranslator::MakeArnoldVisibilityFlags(CBaseAttrHelper& helper)
 {

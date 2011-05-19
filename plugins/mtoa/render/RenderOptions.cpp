@@ -1,7 +1,7 @@
 #include "utils/MtoaLog.h"
 #include "RenderOptions.h"
 #include "scene/MayaScene.h"
-#include "translators/options/ArnoldOptionsTranslator.h"
+#include "translators/options/OptionsTranslator.h"
 
 #include <ai_constants.h>
 #include <ai_msg.h>
@@ -259,7 +259,7 @@ void CRenderOptions::SetupImageOptions() const
    MObject        node;
    if (GetOptionsNode(node) == MS::kSuccess)
    {
-      CArnoldOptionsTranslator* translator = (CArnoldOptionsTranslator*)m_scene->GetActiveTranslator(node);
+      COptionsTranslator* translator = (COptionsTranslator*)m_scene->GetActiveTranslator(node);
       translator->SetupImageOptions(AiUniverseGetOptions());
    }
 }

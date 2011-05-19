@@ -1,9 +1,9 @@
 #ifndef LIGHTTRANSLATORS_H
 #define LIGHTTRANSLATORS_H
 
-#include "ArnoldLightTranslator.h"
+#include "LightTranslator.h"
 
-class CAmbientLightTranslator : public CArnoldLightTranslator
+class CAmbientLightTranslator : public CLightTranslator
 {
 public:
    void Export(AtNode* light);
@@ -17,7 +17,7 @@ public:
    }
 };
 
-class CDirectionalLightTranslator : public CArnoldLightTranslator
+class CDirectionalLightTranslator : public CLightTranslator
 {
 public:
    void Export(AtNode* light);
@@ -32,7 +32,7 @@ public:
    }
 };
 
-class CPointLightTranslator : public CArnoldLightTranslator
+class CPointLightTranslator : public CLightTranslator
 {
 public:
    void Export(AtNode* light);
@@ -47,7 +47,7 @@ public:
    }
 };
 
-class CSpotLightTranslator : public CArnoldLightTranslator
+class CSpotLightTranslator : public CLightTranslator
 {
 public:
    void Export(AtNode* light);
@@ -62,7 +62,7 @@ public:
    }
 };
 
-class CAreaLightTranslator : public CArnoldLightTranslator
+class CAreaLightTranslator : public CLightTranslator
 {
 public:
    void Export(AtNode* light);
@@ -77,7 +77,7 @@ public:
    }
 };
 
-class CSkyDomeLightTranslator : public CArnoldLightTranslator
+class CSkyDomeLightTranslator : public CLightTranslator
 {
 public:
    void Export(AtNode* light);

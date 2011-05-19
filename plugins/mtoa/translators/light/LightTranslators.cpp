@@ -11,7 +11,7 @@
 
 void CAmbientLightTranslator::Export(AtNode* light)
 {
-   CArnoldLightTranslator::Export(light);
+   CLightTranslator::Export(light);
 }
 
 // DirectionalLight
@@ -19,7 +19,7 @@ void CAmbientLightTranslator::Export(AtNode* light)
 
 void CDirectionalLightTranslator::Export(AtNode* light)
 {
-   CArnoldLightTranslator::Export(light);
+   CLightTranslator::Export(light);
 
    AiNodeSetFlt(light, "angle", GetFnNode().findPlug("angle").asFloat());
 
@@ -50,7 +50,7 @@ void CDirectionalLightTranslator::NodeInitializer(MString nodeClassName)
 
 void CPointLightTranslator::Export(AtNode* light)
 {
-   CArnoldLightTranslator::Export(light);
+   CLightTranslator::Export(light);
 
    MPlug plug;
    MFnPointLight fnLight(m_dagPath);
@@ -92,7 +92,7 @@ void CSpotLightTranslator::Export(AtNode* light)
    MPlug plug;
    MFnSpotLight fnLight(m_dagPath);
 
-   CArnoldLightTranslator::Export(light);
+   CLightTranslator::Export(light);
 
    AiNodeSetFlt(light, "cone_angle", static_cast<float>((fnLight.coneAngle() + fnLight.penumbraAngle()) * AI_RTOD));
    AiNodeSetFlt(light, "penumbra_angle", static_cast<float>(fabs(fnLight.penumbraAngle()) * AI_RTOD));
@@ -137,7 +137,7 @@ void CSpotLightTranslator::NodeInitializer(MString nodeClassName)
 
 void CAreaLightTranslator::Export(AtNode* light)
 {
-   CArnoldLightTranslator::Export(light);
+   CLightTranslator::Export(light);
 
    AtPoint vertices[4];
 
@@ -183,7 +183,7 @@ void CAreaLightTranslator::NodeInitializer(MString nodeClassName)
 void CSkyDomeLightTranslator::Export(AtNode* light)
 {
    // Don't use maya-style attrs
-   CArnoldLightTranslator::Export(light, false);
+   CLightTranslator::Export(light, false);
 
    AiNodeSetInt(light, "resolution", GetFnNode().findPlug("resolution").asInt());
    AiNodeSetFlt(light, "exposure", GetFnNode().findPlug("exposure").asFloat());
