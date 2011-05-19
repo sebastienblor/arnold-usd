@@ -3,11 +3,9 @@
 #include <ai_metadata.h>
 
 #include "nodes/ShaderUtils.h"
-#include "nodes/shaders/surface/ArnoldCustomShader.h"
-#include "nodes/shaders/light/ArnoldSkyDomeLightShader.h"
-#include "scene/Lights.h"
-#include "scene/Geometry.h"
-#include "scene/Cameras.h"
+#include "nodes/shader/ArnoldShaderNode.h"
+#include "translators/shader/ShaderTranslator.h"
+#include "translators/shape/ShapeTranslator.h"
 
 // A Maya node proxy
 CPxTranslator::CPxTranslator(const MString &translatorName,
@@ -48,7 +46,7 @@ MStatus CPxTranslator::ReadMetaData()
    arnoldNodeEntry = AiNodeEntryLookUp(arnold.asChar());
    if (NULL == arnoldNodeEntry)
    {
-      AiMsgError("[%s] Arnold node %s does not exist", provider.asChar(), arnold.asChar());
+      AiMsgError("[mtoa] [%s] Arnold node %s does not exist", provider.asChar(), arnold.asChar());
       return MStatus::kInvalidParameter;
    }
 
@@ -65,34 +63,34 @@ MStatus CPxTranslator::ReadMetaData()
          name = provider;
       }
    }
-   // If no explicit translator was specified, choose a default one using Arnold node type and metadata
+   // If no explicit translator was specified, choose a default one using Arnold node type
+   // TODO : use metadata for a finer choice of base translator classes ?
    if (NULL == creator)
    {
       const char* arnoldNodeTypeName;
       arnoldNodeTypeName = AiNodeEntryGetTypeName(arnoldNodeEntry);
       if (strcmp(arnoldNodeTypeName, "camera") == 0)
       {
-         // TODO : define a non virtual CameraTranslator?
-         creator = CPerspCameraTranslator::creator;
-         initialize = CPerspCameraTranslator::NodeInitializer;
+         // TODO : define a non virtual generic CCameraTranslator
+         // creator = CCameraTranslator::creator;
+         // initialize = CCameraTranslator::NodeInitializer;
       }
       else if (strcmp(arnoldNodeTypeName,"light") == 0)
       {
-         // TODO : define a non virtual CLightTranslator?
-         creator = CPointLightTranslator::creator;
-         initialize = CPointLightTranslator::NodeInitializer;
+         // TODO : define a non virtual generic CLightTranslator
+         // creator = CLightTranslator::creator;
+         // initialize = CLightTranslator::NodeInitializer;
       }
       else if (strcmp(arnoldNodeTypeName,"shader") == 0)
       {
-         // TODO : define a non virtual CShaderTranslator
-         creator = CAutoTranslator::creator;
-         // initialize = CAutoTranslator::NodeInitializer;
+         creator = CShaderTranslator::creator;
+         // initialize = CShaderTranslator::NodeInitializer;
       }
       else if (strcmp(arnoldNodeTypeName,"shape") == 0)
       {
-         // TODO : define a non virtual CShapeTranslator or Geo
-         creator = CMeshTranslator::creator;
-         initialize = CMeshTranslator::NodeInitializer;
+         // TODO : define a non virtual generic CShapeTranslator or Geo
+         // creator = CShapeTranslator::creator;
+         // initialize = CShapeTranslator::NodeInitializer;
       }
       // No default strategy to create the rest
    }

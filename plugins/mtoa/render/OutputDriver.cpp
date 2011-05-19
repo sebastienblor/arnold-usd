@@ -371,12 +371,12 @@ bool ProcessUpdateMessage(const bool refresh)
             break;
          case MSG_IMAGE_COMPLETE:
             // Received "end-of-image" message.
-            //AiMsgDebug("Got end image");
+            //AiMsgDebug("[mtoa] Got end image");
             break;
          case MSG_RENDER_DONE:
             // Recieved "end-of-rendering" message.
             FinishedWithDisplayUpdateQueue();
-            //AiMsgDebug("Got end render message");
+            //AiMsgDebug("[mtoa] Got end render message");
             return false;
          }
       }

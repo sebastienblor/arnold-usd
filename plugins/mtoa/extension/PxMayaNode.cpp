@@ -5,10 +5,7 @@
 
 #include "nodes/MayaNodeIDs.h"
 #include "nodes/ShaderUtils.h"
-#include "nodes/shaders/surface/ArnoldCustomShader.h"
-#include "nodes/shaders/light/ArnoldSkyDomeLightShader.h"
-#include "scene/Lights.h"
-#include "scene/Geometry.h"
+#include "nodes/shader/ArnoldShaderNode.h"
 
 #include <ai_metadata.h>
 
@@ -79,7 +76,7 @@ MStatus CPxMayaNode::ReadMetaData()
    arnoldNodeEntry = AiNodeEntryLookUp(arnold.asChar());
    if (NULL == arnoldNodeEntry)
    {
-      AiMsgError("[%s] Arnold node %s does not exist", provider.asChar(), arnold.asChar());
+      AiMsgError("[mtoa] [%s] Arnold node %s does not exist", provider.asChar(), arnold.asChar());
       return MStatus::kInvalidParameter;
    }
 
@@ -100,7 +97,7 @@ MStatus CPxMayaNode::ReadMetaData()
       }
       else if (AiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.counterpart", &mayaNodeNameMtd))
       {
-         AiMsgWarning("[%s] [node %s] The use of the maya.counterpart metadata is deprecated, use maya.name instead.",
+         AiMsgWarning("[mtoa] [%s] [node %s] The use of the maya.counterpart metadata is deprecated, use maya.name instead.",
                ext, node);
          name = MString(mayaNodeNameMtd);
       }
@@ -119,7 +116,7 @@ MStatus CPxMayaNode::ReadMetaData()
       }
       else if (AiMetaDataGetInt(arnoldNodeEntry, NULL, "maya.counterpart_id", &nodeId))
       {
-         AiMsgWarning("[%s] [node %s] The use of the maya.counterpart_id metadata is deprecated, use maya.id instead.",
+         AiMsgWarning("[mtoa] [%s] [node %s] The use of the maya.counterpart_id metadata is deprecated, use maya.id instead.",
                ext, node);
          id = MTypeId(nodeId);
       }
@@ -144,7 +141,7 @@ MStatus CPxMayaNode::ReadMetaData()
          }
          else
          {
-            AiMsgWarning("[%s] [node %s] Unknown Maya type %s in maya.type metadata.",
+            AiMsgWarning("[mtoa] [%s] [node %s] Unknown Maya type %s in maya.type metadata.",
                   ext, node, nodeTypeMtd);
          }
       }
@@ -165,9 +162,9 @@ MStatus CPxMayaNode::ReadMetaData()
       }
       else if (strcmp(arnoldNodeTypeName,"shader") == 0)
       {
-         creator = CArnoldCustomShaderNode::creator;
-         initialize = CArnoldCustomShaderNode::initialize;
-         abstract = &CArnoldCustomShaderNode::s_abstract;
+         creator = CArnoldShaderNode::creator;
+         initialize = CArnoldShaderNode::initialize;
+         abstract = &CArnoldShaderNode::s_abstract;
          type = MPxNode::kDependNode;
       }
       else if (strcmp(arnoldNodeTypeName,"shape") == 0)
