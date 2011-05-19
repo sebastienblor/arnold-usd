@@ -1194,12 +1194,12 @@ void CDagTranslator::MakeArnoldVisibilityFlags(CBaseAttrHelper& helper)
    CAttrData data;
 
    data.defaultValue.BOOL = true;
-   data.name = "visibleInDiffuse";
+   data.name = "aiVisibleInDiffuse";
    data.shortName = "vid";
    helper.MakeInputBoolean(data);
 
    data.defaultValue.BOOL = true;
-   data.name = "visibleInGlossy";
+   data.name = "aiVisibleInGlossy";
    data.shortName = "vig";
    helper.MakeInputBoolean(data);
 }

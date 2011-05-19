@@ -981,12 +981,12 @@ void CGeometryTranslator::NodeInitializer(MString nodeClassName)
    CAttrData data;
 
    data.defaultValue.BOOL = false;
-   data.name = "exportTangents";
+   data.name = "aiExportTangents";
    data.shortName = "exptan";
    helper.MakeInputBoolean(data);
 
    data.defaultValue.BOOL = false;
-   data.name = "exportColors";
+   data.name = "aiExportColors";
    data.shortName = "expcol";
    helper.MakeInputBoolean(data);
 }

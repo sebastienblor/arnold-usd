@@ -39,7 +39,7 @@ void CDirectionalLightTranslator::NodeInitializer(MString nodeClassName)
    helper.MakeInput("bounces");
    CAttrData data;
    data.defaultValue.BOOL = false;
-   data.name = "override_sss_samples";
+   data.name = "aiOverrideSssSamples";
    data.shortName = "oss";
    helper.MakeInputBoolean(data);
    helper.MakeInput("sss_samples");
@@ -75,7 +75,7 @@ void CPointLightTranslator::NodeInitializer(MString nodeClassName)
    helper.MakeInput("bounces");
    CAttrData data;
    data.defaultValue.BOOL = false;
-   data.name = "override_sss_samples";
+   data.name = "aiOverrideSssSamples";
    data.shortName = "oss";
    helper.MakeInputBoolean(data);
    helper.MakeInput("sss_samples");
@@ -121,7 +121,7 @@ void CSpotLightTranslator::NodeInitializer(MString nodeClassName)
    helper.MakeInput("bounces");
    CAttrData data;
    data.defaultValue.BOOL = false;
-   data.name = "override_sss_samples";
+   data.name = "aiOverrideSssSamples";
    data.shortName = "oss";
    helper.MakeInputBoolean(data);
    helper.MakeInput("sss_samples");
@@ -166,7 +166,7 @@ void CAreaLightTranslator::NodeInitializer(MString nodeClassName)
    helper.MakeInput("bounces");
    CAttrData data;
    data.defaultValue.BOOL = false;
-   data.name = "override_sss_samples";
+   data.name = "aiOverrideSssSamples";
    data.shortName = "oss";
    helper.MakeInputBoolean(data);
    helper.MakeInput("sss_samples");
@@ -194,18 +194,19 @@ void CSkyDomeLightTranslator::Export(AtNode* light)
 void CSkyDomeLightTranslator::NodeInitializer(MString nodeClassName)
 {
    CExtensionAttrHelper helper(nodeClassName, "skydome_light");
-   // common attributes
-   helper.MakeInput("cast_shadows");
-   helper.MakeInput("exposure");
-   helper.MakeInput("samples");
-   helper.MakeInput("mis");
-   helper.MakeInput("normalize");
-   helper.MakeInput("bounce_factor");
-   helper.MakeInput("bounces");
+   // Do not create common attributes, they're already created by the Node class!
+   // TODO: or remove them from Node Class
+   // helper.MakeInput("cast_shadows");
+   // helper.MakeInput("exposure");
+   // helper.MakeInput("samples");
+   // helper.MakeInput("mis");
+   // helper.MakeInput("normalize");
+   // helper.MakeInput("bounce_factor");
+   // helper.MakeInput("bounces");
    CAttrData data;
    data.defaultValue.BOOL = false;
-   data.name = "override_sss_samples";
+   data.name = "aiOverrideSssSamples";
    data.shortName = "oss";
    helper.MakeInputBoolean(data);
-   helper.MakeInput("sss_samples");
+   // helper.MakeInput("sss_samples");
 }

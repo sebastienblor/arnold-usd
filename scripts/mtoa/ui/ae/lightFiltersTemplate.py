@@ -61,7 +61,7 @@ def swapConnections(plugname, i_zero, i_one):
 
 def moveLightFilterUp(node, list):
 
-    attr = "%s.light_filters"%node
+    attr = "%s.aiLightFilters"%node
     items = cmds.textScrollList(list, q=True, sii=True)
     if not items:
         return 0
@@ -75,7 +75,7 @@ def moveLightFilterUp(node, list):
 
 def moveLightFilterDown(node, list):
 
-    attr = "%s.light_filters"%node
+    attr = "%s.aiLightFilters"%node
     items = cmds.textScrollList(list, q=True, sii=True)
     if not items:
         return 0
@@ -102,7 +102,7 @@ def lightFilterListChanged(list):
 
 def addLightFilterCB(lightNode, list):
 
-    attr =  "%s.light_filters"%lightNode
+    attr =  "%s.aiLightFilters"%lightNode
     filterTypes = cmds.textScrollList(list, q=True, si=True)
     filterType = ''
 
@@ -173,7 +173,7 @@ def addLightFilter(lightNode, list):
 
 def removeLightFilter(lightNode, list):
 
-    attr = "%s.light_filters"%lightNode
+    attr = "%s.aiLightFilters"%lightNode
 
     selection = cmds.textScrollList(list, q=True, si=True)
     selected = ''
@@ -200,7 +200,7 @@ def removeLightFilter(lightNode, list):
 
 def lightFiltersGetList(node, list):
 
-    nfilters = getConnectedCount("%s.light_filters"%node)
+    nfilters = getConnectedCount("%s.aiLightFilters"%node)
 
     selection = cmds.textScrollList(list, q=True, si=True)
     selected = ''
@@ -209,7 +209,7 @@ def lightFiltersGetList(node, list):
 
     cmds.textScrollList(list, edit=True, removeAll=True)
     for j in range(0, nfilters):
-        filter = getNodeName(getSourcePlug("%s.light_filters"%node, j))
+        filter = getNodeName(getSourcePlug("%s.aiLightFilters"%node, j))
         if filter == "":
             continue
 

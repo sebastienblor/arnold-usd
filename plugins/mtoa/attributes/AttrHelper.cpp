@@ -19,45 +19,55 @@ MString toMayaStyle(MString s)
 {
    MString name;
    bool capitalize = false;
+   MString c;
    for (unsigned int i=0; i < s.numChars(); i++)
    {
-      MString c = s.substringW(i, i);
+      c = s.substringW(i, i);
       if (c == "_")
+      {
          capitalize = true;
+      }
       else if (capitalize)
       {
          name += c.toUpperCase();
          capitalize = false;
       }
       else
+      {
          // always go to lower case
          // this avoids ugly things like GI_diffuse_samples --> GIDiffuseSamples
          // and instead produces the slightly nicer giDiffuseSamples
-         name += c.toLowerCase();
+         // TODO : but then ai_remapColor will yield aiRemapcolor
+         // name += c.toLowerCase();
+         name += c;
+      }
    }
    return name;
 }
 
 // uses "maya.name" parameter metadata if set, otherwise, converts from
 // "arnold_style" to "mayaStyle"
+// Not adding ai prefix to static attributes since they're on Arnold nodes
+// so there is no risk of clashing with existing Maya attributes
 MString CBaseAttrHelper::GetMayaAttrName(const char* paramName)
 {
    const char* attrName;
    if (AiMetaDataGetStr(m_nodeEntry, paramName, "maya.name", &attrName))
-	   return MString(attrName);
-   return toMayaStyle(paramName);
+      return MString(attrName);
+   else
+      return toMayaStyle(paramName);
 }
 
 // uses "maya.shortname" parameter metadata if set, otherwise, uses the arnold
 // parameter name
 MString CBaseAttrHelper::GetMayaAttrShortName(const char* paramName)
 {
-	const char* attrShortName;
+   const char* attrShortName;
    if (AiMetaDataGetStr(m_nodeEntry, paramName, "maya.shortname", &attrShortName))
       return MString(attrShortName);
-   return MString(paramName);
+   else
+      return MString(paramName);
 }
-
 
 bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
 {
@@ -962,6 +972,30 @@ void CBaseAttrHelper::SetNode(const char* arnoldNodeName)
 
 // CStaticAttrHelper
 //
+// uses "maya.name" parameter metadata if set, otherwise, converts from
+// "arnold_style" to "mayaStyle"
+// Not adding ai prefix to static attributes since they're on Arnold nodes
+// so there is no risk of clashing with existing Maya attributes
+MString CStaticAttrHelper::GetMayaAttrName(const char* paramName)
+{
+   const char* attrName;
+   if (AiMetaDataGetStr(m_nodeEntry, paramName, "maya.name", &attrName))
+      return MString(attrName);
+   else
+      return toMayaStyle(paramName);
+}
+
+// uses "maya.shortname" parameter metadata if set, otherwise, uses the arnold
+// parameter name
+MString CStaticAttrHelper::GetMayaAttrShortName(const char* paramName)
+{
+   const char* attrShortName;
+   if (AiMetaDataGetStr(m_nodeEntry, paramName, "maya.shortname", &attrShortName))
+      return MString(attrShortName);
+   else
+      return MString(paramName);
+}
+
 MStatus CStaticAttrHelper::addAttribute(MObject& attrib)
 {
    MStatus stat;
@@ -975,6 +1009,32 @@ MStatus CStaticAttrHelper::addAttribute(MObject& attrib)
 
 // CDynamicAttrHelper
 //
+
+// uses "maya.name" parameter metadata if set, otherwise, converts from
+// "arnold_style" to "mayaStyle"
+// Add ai prefix to avoid clashes
+MString CDynamicAttrHelper::GetMayaAttrName(const char* paramName)
+{
+   const char* attrName;
+   if (AiMetaDataGetStr(m_nodeEntry, paramName, "maya.name", &attrName))
+      return MString(attrName);
+   else
+      return toMayaStyle(MString("ai_") + paramName);
+}
+
+// uses "maya.shortname" parameter metadata if set, otherwise, uses the arnold
+// parameter name
+MString CDynamicAttrHelper::GetMayaAttrShortName(const char* paramName)
+{
+   const char* attrShortName;
+   if (AiMetaDataGetStr(m_nodeEntry, paramName, "maya.shortname", &attrShortName))
+      return MString(attrShortName);
+   else
+      return MString(paramName);
+   // do it next tagged changeset, to be able ot recover old scenes
+   // return MString(MString("ai_") + paramName);
+}
+
 MStatus CDynamicAttrHelper::addAttribute(MObject& attrib)
 {
    MStatus stat;
@@ -998,6 +1058,31 @@ MStatus CDynamicAttrHelper::addAttribute(MObject& attrib)
 
 // CExtensionAttrHelper
 //
+
+// uses "maya.name" parameter metadata if set, otherwise, converts from
+// "arnold_style" to "mayaStyle"
+// Add ai prefix to avoid clashes
+MString CExtensionAttrHelper::GetMayaAttrName(const char* paramName)
+{
+   const char* attrName;
+   if (AiMetaDataGetStr(m_nodeEntry, paramName, "maya.name", &attrName))
+      return MString(attrName);
+   else
+      return toMayaStyle(MString("ai_") + paramName);
+}
+
+// uses "maya.shortname" parameter metadata if set, otherwise, uses the arnold
+// parameter name
+MString CExtensionAttrHelper::GetMayaAttrShortName(const char* paramName)
+{
+   const char* attrShortName;
+   if (AiMetaDataGetStr(m_nodeEntry, paramName, "maya.shortname", &attrShortName))
+      return MString(attrShortName);
+   else
+      return MString(paramName);
+   // do it next tagged changeset, to be able ot recover old scenes
+   // return MString(MString("ai_") + paramName);
+}
 
 #if MAYA_API_VERSION < 201200
 
