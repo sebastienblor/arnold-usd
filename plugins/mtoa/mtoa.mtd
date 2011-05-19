@@ -277,6 +277,10 @@
     maya.id                 INT     0x00115C85
     maya.classification     STRING  "light"
     maya.type               STRING  "kLocatorNode"
+   [attr affect_diffuse]
+      maya.name             STRING  "emitDiffuse"
+   [attr affect_specular]
+      maya.name             STRING  "emitSpecular"  
    [attr intensity]
       min               FLOAT 0.0
       softmax           FLOAT 10.0
