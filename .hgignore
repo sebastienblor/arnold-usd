@@ -23,3 +23,8 @@ Debug
 *.user
 *.bat
 docs
+
+syntax: regexp
+\.launch$
+syntax: regexp
+^UpgradeLog\.XML$
