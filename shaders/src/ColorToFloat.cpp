@@ -38,6 +38,8 @@ node_parameters
 {
    AiParameterRGBA("color", 0, 0, 0, 1);
    AiParameterENUM("channel", CH_LUMINANCE, enum_channel);
+
+   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }
 
 node_initialize
