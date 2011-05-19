@@ -186,10 +186,26 @@ void CSkyDomeLightTranslator::Export(AtNode* light)
    CLightTranslator::Export(light, false);
 
    AiNodeSetInt(light, "resolution", GetFnNode().findPlug("resolution").asInt());
-   AiNodeSetFlt(light, "exposure", GetFnNode().findPlug("exposure").asFloat());
    AiNodeSetInt(light, "format", GetFnNode().findPlug("format").asInt());
    AiNodeSetFlt(light, "shadow_density", GetFnNode().findPlug("shadow_density").asFloat());
    AiNodeSetRGB(light, "shadow_color", GetFnNode().findPlug("shadow_colorR").asFloat(), GetFnNode().findPlug("shadow_colorG").asFloat(), GetFnNode().findPlug("shadow_colorB").asFloat());
-   AiNodeSetBool(light, "normalize", GetFnNode().findPlug("normalize").asBool());
-   AiNodeSetBool(light, "mis", GetFnNode().findPlug("mis").asBool());
+}
+
+void CSkyDomeLightTranslator::NodeInitializer(MString nodeClassName)
+{
+   CExtensionAttrHelper helper(nodeClassName, "skydome_light");
+   // common attributes
+   helper.MakeInput("cast_shadows");
+   helper.MakeInput("exposure");
+   helper.MakeInput("samples");
+   helper.MakeInput("mis");
+   helper.MakeInput("normalize");
+   helper.MakeInput("bounce_factor");
+   helper.MakeInput("bounces");
+   CAttrData data;
+   data.defaultValue.BOOL = false;
+   data.name = "override_sss_samples";
+   data.shortName = "oss";
+   helper.MakeInputBoolean(data);
+   helper.MakeInput("sss_samples");
 }

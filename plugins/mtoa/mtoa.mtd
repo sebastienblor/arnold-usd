@@ -277,6 +277,9 @@
     maya.id                 INT     0x00115C85
     maya.classification     STRING  "light"
     maya.type               STRING  "kLocatorNode"
+   [attr intensity]
+      min               FLOAT 0.0
+      softmax           FLOAT 10.0
    [attr exposure]
       min               FLOAT 0.0
       softmax           FLOAT 10.0
@@ -284,7 +287,11 @@
       min               INT      0
       max               INT      100
       default           INT      1
-    
+   [attr sss_samples]
+      min                 INT     0
+      max                 INT     100
+      default             INT     1
+
 # light filters
 
 [node barndoor]

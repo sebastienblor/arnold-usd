@@ -138,6 +138,11 @@ void CLightTranslator::NodeInitializer(MString nodeClassName)
    helper.MakeInput("normalize");
    helper.MakeInput("bounce_factor");
    helper.MakeInput("bounces");
+   CAttrData data;
+   data.defaultValue.BOOL = false;
+   data.name = "override_sss_samples";
+   data.shortName = "oss";
+   helper.MakeInputBoolean(data);
    helper.MakeInput("sss_samples");
 }
 

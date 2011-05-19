@@ -56,9 +56,11 @@ def arnoldRemAOV(node):
 
                 for j in range(i+1, n):
                     cmds.setAttr('%s.aovs[%d].aov_name'%(node, j-1), cmds.getAttr('%s.aovs[%d].aov_name'%(node, j)), type='string')
+                    cmds.setAttr('%s.aovs[%d].aov_type'%(node, j-1), cmds.getAttr('%s.aovs[%d].aov_type'%(node, j)))
                     cmds.setAttr('%s.aovs[%d].aov_prefix'%(node, j-1), cmds.getAttr('%s.aovs[%d].aov_prefix'%(node, j)), type='string')
 
                 cmds.setAttr('%s.aovs[%d].aov_name'%(node, n-1), '', type='string')
+                cmds.setAttr('%s.aovs[%d].aov_type'%(node, n-1), 1)
                 cmds.setAttr('%s.aovs[%d].aov_prefix'%(node, n-1), '', type='string')
 
                 cmds.textScrollList('%s_availableLst'%UI_NAME, edit=True, append=aov)

@@ -159,7 +159,8 @@ namespace // <anonymous>
                                    CLightTranslator::NodeInitializer);
        builtin->RegisterTranslator("aiSkyDomeLight",
                                    "",
-                                   CSkyDomeLightTranslator::creator);
+                                   CSkyDomeLightTranslator::creator,
+                                   CSkyDomeLightTranslator::NodeInitializer);
        // Geometry
        builtin->RegisterTranslator("mesh",
                                    "",
