@@ -802,11 +802,13 @@ void CGeometryTranslator::ExportMeshParameters(AtNode* polymesh)
    {
       // Subdivision surfaces
       //
-      const bool subdivision = (GetFnNode().findPlug("aiSubdivType").asInt() != 0);
-
-      if (subdivision)
+      const int subdivision = GetFnNode().findPlug("aiSubdivType").asInt();
+      if (subdivision!=0)
       {
-         AiNodeSetStr(polymesh, "subdiv_type",           "catclark");
+         if (subdivision==1)
+            AiNodeSetStr(polymesh, "subdiv_type",           "catclark");
+         else
+            AiNodeSetStr(polymesh, "subdiv_type",           "linear");
          AiNodeSetInt(polymesh, "subdiv_iterations",     GetFnNode().findPlug("aiSubdivIterations").asInt());
          AiNodeSetInt(polymesh, "subdiv_adaptive_metric",GetFnNode().findPlug("aiSubdivAdaptiveMetric").asInt());
          AiNodeSetFlt(polymesh, "subdiv_pixel_error",    GetFnNode().findPlug("aiSubdivPixelError").asFloat());
