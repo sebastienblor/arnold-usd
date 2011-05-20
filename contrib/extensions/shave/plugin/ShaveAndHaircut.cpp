@@ -61,11 +61,11 @@ void CShaveTranslator::Update(AtNode* curve)
 
    // Curves shader
    MPlug plug;
-   plug = m_fnNode.findPlug("override_shader");
+   plug = m_fnNode.findPlug("aiOverrideHair");
    if (!plug.isNull() && plug.asBool())
    {
       MPlugArray curveShaderPlug;
-      plug = m_fnNode.findPlug("hair_shader");
+      plug = m_fnNode.findPlug("aiHairShader");
       if (!plug.isNull())
       {
          plug.connectedTo(curveShaderPlug, true, false);
@@ -328,4 +328,15 @@ void CShaveTranslator::NodeInitializer(MString nodeClassName)
    CShapeTranslator::MakeCommonAttributes(helper);
    helper.MakeInput("min_pixel_width");
    helper.MakeInput("mode");
+
+   CAttrData data;
+
+   data.defaultValue.BOOL = false;
+   data.name = "aiOverrideHair";
+   data.shortName = "ai_override_hair";
+   helper.MakeInputBoolean(data);
+
+   data.name = "aiHairShader";
+   data.shortName = "ai_hair_shader";
+   helper.MakeInputNode(data);
 }
