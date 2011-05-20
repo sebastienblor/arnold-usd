@@ -14,24 +14,25 @@ def aiSkyDomeLightTemplate(nodeName):
     cmds.editorTemplate("color", addControl=True, label="Color")
     cmds.editorTemplate("intensity", addControl=True, label="Intensity")
     cmds.editorTemplate(beginNoOptimize=True)
-    cmds.editorTemplate("affect_diffuse", addControl=True, label="Emit Diffuse")
-    cmds.editorTemplate("affect_specular",addControl=True, label="Emit Specular")
+    cmds.editorTemplate("emitDiffuse", addControl=True, label="Emit Diffuse")
+    cmds.editorTemplate("emitSpecular",addControl=True, label="Emit Specular")
     cmds.editorTemplate(endNoOptimize=True)
     cmds.editorTemplate(addSeparator=True)
     cmds.editorTemplate("format", addControl=True, label="Format")
-    cmds.editorTemplate("exposure", addControl=True, label="Exposure")
-    cmds.editorTemplate("samples", addControl=True, label="Samples")
-    cmds.editorTemplate("mis", addControl=True, label="Multiple Importance Sampling")
+    cmds.editorTemplate("aiExposure", addControl=True, label="Exposure")
+    cmds.editorTemplate("aiSamples", addControl=True, label="Samples")
+    cmds.editorTemplate("aiMis", addControl=True, label="Multiple Importance Sampling")
     cmds.editorTemplate(addSeparator=True)
+    
     customShapeAttributes.commonLightAttributes(nodeName)
 
     cmds.editorTemplate(endLayout=True)
 
     cmds.editorTemplate(beginLayout="Shadows", collapse=True)
 
-    cmds.editorTemplate("cast_shadows", addControl=True, label="Cast Shadows")
-    cmds.editorTemplate("shadow_density", addControl=True, label="Shadow Density")
-    cmds.editorTemplate("shadow_color", addControl=True, label="Shadow Color")
+    cmds.editorTemplate("aiCastShadows", addControl=True, label="Cast Shadows")
+    cmds.editorTemplate("shadowDensity", addControl=True, label="Shadow Density")
+    cmds.editorTemplate("shadowColor", addControl=True, label="Shadow Color")
 
     cmds.editorTemplate(endLayout=True)
 

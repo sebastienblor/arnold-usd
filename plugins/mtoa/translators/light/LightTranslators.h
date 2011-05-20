@@ -7,6 +7,7 @@ class CAmbientLightTranslator : public CLightTranslator
 {
 public:
    void Export(AtNode* light);
+   static void NodeInitializer(MString nodeClassName);
    static void* creator()
    {
       return new CAmbientLightTranslator();
@@ -81,6 +82,7 @@ class CSkyDomeLightTranslator : public CLightTranslator
 {
 public:
    void Export(AtNode* light);
+   static void NodeInitializer(MString nodeClassName);
    static void* creator()
    {
       return new CSkyDomeLightTranslator();

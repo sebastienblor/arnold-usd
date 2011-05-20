@@ -603,7 +603,7 @@ void CCameraTranslator::MakeDOFAttributes(CExtensionAttrHelper &helper)
    CAttrData data;
    data.defaultValue.BOOL = false;
    data.name = "aiEnableDOF";
-   data.shortName = "edof";
+   data.shortName = "ai_edof";
    helper.MakeInputBoolean(data);
 }
 

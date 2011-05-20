@@ -21,12 +21,12 @@ CStaticAttrHelper CArnoldSkyDomeLightNode::s_attributes(CArnoldSkyDomeLightNode:
 
 // Inputs
 MObject CArnoldSkyDomeLightNode::s_intensity;
-MObject CArnoldSkyDomeLightNode::s_exposure;
-MObject CArnoldSkyDomeLightNode::s_castShadows;
+// MObject CArnoldSkyDomeLightNode::s_exposure;
+// MObject CArnoldSkyDomeLightNode::s_castShadows;
 MObject CArnoldSkyDomeLightNode::s_shadowDensity;
 MObject CArnoldSkyDomeLightNode::s_shadowColor;
-MObject CArnoldSkyDomeLightNode::s_samples;
-MObject CArnoldSkyDomeLightNode::s_normalize;
+// MObject CArnoldSkyDomeLightNode::s_samples;
+// MObject CArnoldSkyDomeLightNode::s_normalize;
 MObject CArnoldSkyDomeLightNode::s_affectDiffuse;
 MObject CArnoldSkyDomeLightNode::s_affectSpecular;
 // Arnold outputs
@@ -66,27 +66,34 @@ MStatus CArnoldSkyDomeLightNode::initialize()
 
    s_attributes.SetNode("skydome_light");
    s_attributes.MakeInput("resolution");
-   s_attributes.MakeInput("bounces");
-   s_attributes.MakeInput("bounce_factor");
+
    //s_attributes.MakeMatrixInput(s_matrix, "matrix");
 
    s_intensity = s_attributes.MakeInput("intensity");
-   s_exposure = s_attributes.MakeInput("exposure");
-   s_castShadows = s_attributes.MakeInput("cast_shadows");
+
    s_shadowDensity = s_attributes.MakeInput("shadow_density");
    s_shadowColor = s_attributes.MakeInput("shadow_color");
-   s_samples = s_attributes.MakeInput("samples");
-   s_normalize = s_attributes.MakeInput("normalize");
+
+   // Metadata must be present to get it as Maya attributes emitDiffuse and emitSpecular
    s_affectDiffuse = s_attributes.MakeInput("affect_diffuse");
    s_affectDiffuse = s_attributes.MakeInput("affect_specular");
+
+   // Removed so they are added as dynamic and have same ai prefix as other lights will
+   // s_castShadows = s_attributes.MakeInput("cast_shadows");
+   // s_exposure = s_attributes.MakeInput("exposure");
+   // s_samples = s_attributes.MakeInput("samples");
+   // s_attributes.MakeInput("mis");
+   // s_normalize = s_attributes.MakeInput("normalize");
+   // s_attributes.MakeInput("bounce_factor");
+   // s_attributes.MakeInput("bounces");
+   // s_attributes.MakeInput("sss_samples");
 
    // arrays
    // TODO: use metdata to rename this attribute to light_filters
    s_attributes.MakeInput("filters");
    s_attributes.MakeInput("time_samples");
 
-   s_attributes.MakeInput("sss_samples");
-   s_attributes.MakeInput("mis");
+
 
    // MAYA SPECIFIC INPUTS
    s_pointCamera = nAttr.createPoint("pointCamera", "p");
@@ -197,14 +204,13 @@ MStatus CArnoldSkyDomeLightNode::initialize()
 
    attributeAffects(s_color, aLightData);
    attributeAffects(s_intensity, aLightData);
-   attributeAffects(s_exposure, aLightData);
+   // attributeAffects(s_exposure, aLightData);
    attributeAffects(s_format, aLightData);
-   attributeAffects(s_castShadows, aLightData);
+   // attributeAffects(s_castShadows, aLightData);
    attributeAffects(s_shadowDensity, aLightData);
    attributeAffects(s_shadowColor, aLightData);
-   attributeAffects(s_samples, aLightData);
-   attributeAffects(s_samples, aLightData);
-   attributeAffects(s_normalize, aLightData);
+   // attributeAffects(s_samples, aLightData);
+   // attributeAffects(s_normalize, aLightData);
    attributeAffects(s_affectDiffuse, aLightData);
    attributeAffects(s_affectSpecular, aLightData);
 

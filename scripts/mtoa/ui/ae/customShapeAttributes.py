@@ -80,7 +80,7 @@ def builtin_directionalLight(nodeName):
     cmds.editorTemplate("aiExposure", label="Exposure", addDynamicControl=True)
     cmds.editorTemplate("aiAngle", label="Angle", addDynamicControl=True)
     cmds.editorTemplate("aiSamples", label="Samples", addDynamicControl=True)
-    cmds.editorTemplate("aiMis", label="MIS", addDynamicControl=True)
+    cmds.editorTemplate("aiMis", label="Multiple Importance Sampling", addDynamicControl=True)
 
     cmds.editorTemplate(addSeparator=True)
 
@@ -92,7 +92,7 @@ def builtin_pointLight(nodeName):
     cmds.editorTemplate("aiExposure", label="Exposure", addDynamicControl=True)
     cmds.editorTemplate("aiRadius", label="Radius", addDynamicControl=True)
     cmds.editorTemplate("aiSamples", label="Samples", addDynamicControl=True)
-    cmds.editorTemplate("aiMis", label="MIS", addDynamicControl=True)
+    cmds.editorTemplate("aiMis", label="Multiple Importance Sampling", addDynamicControl=True)
 
     cmds.editorTemplate(addSeparator=True)
 
@@ -109,7 +109,7 @@ def builtin_spotLight(nodeName):
     cmds.editorTemplate("aiExposure", label="Exposure", addDynamicControl=True)
     cmds.editorTemplate("aiRadius", label="Radius", addDynamicControl=True)
     cmds.editorTemplate("aiSamples", label="Samples", addDynamicControl=True)
-    cmds.editorTemplate("aiMis", label="MIS", addDynamicControl=True)
+    cmds.editorTemplate("aiMis", label="Multiple Importance Sampling", addDynamicControl=True)
 
     cmds.editorTemplate(addSeparator=True)
 
@@ -130,7 +130,7 @@ def builtin_areaLight(nodeName):
     cmds.editorTemplate("aiCastShadows", label="Cast Shadows", addDynamicControl=True)
     cmds.editorTemplate("aiExposure", label="Exposure", addDynamicControl=True)
     cmds.editorTemplate("aiSamples", label="Samples", addDynamicControl=True)
-    cmds.editorTemplate("aiMis", label="MIS", addDynamicControl=True)
+    cmds.editorTemplate("aiMis", label="Multiple Importance Sampling", addDynamicControl=True)
 
     cmds.editorTemplate(addSeparator=True)
 

@@ -7,23 +7,23 @@ void CShapeTranslator::ProcessRenderFlags(AtNode* node)
    AiNodeSetInt(node, "visibility", ComputeVisibility());
 
    MPlug plug;
-   plug = GetFnNode().findPlug("selfShadows");
+   plug = GetFnNode().findPlug("aiSelfShadows");
    if (!plug.isNull()) AiNodeSetBool(node, "self_shadows", plug.asBool());
 
-   plug = GetFnNode().findPlug("opaque");
+   plug = GetFnNode().findPlug("aiOpaque");
    if (!plug.isNull()) AiNodeSetBool(node, "opaque", plug.asBool());
 
    plug = GetFnNode().findPlug("receiveShadows");
    if (!plug.isNull()) AiNodeSetBool(node, "receive_shadows", plug.asBool());
 
    // Subsurface Scattering
-   plug = GetFnNode().findPlug("sss_use_gi");
+   plug = GetFnNode().findPlug("aiSssUseGi");
    if (!plug.isNull()) AiNodeSetBool(node, "sss_use_gi", plug.asBool());
 
-   plug = GetFnNode().findPlug("sss_max_samples");
+   plug = GetFnNode().findPlug("aiSssMaxSamples");
    if (!plug.isNull()) AiNodeSetInt(node, "sss_max_samples", plug.asInt());
 
-   plug = GetFnNode().findPlug("sss_sample_spacing");
+   plug = GetFnNode().findPlug("aiSssSampleSpacing");
    if (!plug.isNull()) AiNodeSetFlt(node, "sss_sample_spacing", plug.asFloat());
 
 }

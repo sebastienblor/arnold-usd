@@ -20,7 +20,7 @@ public:
    }
    static void NodeInitializer(MString nodeClassName);
 protected:
-   virtual void Export(AtNode* light, bool mayaAttrs=true);
+   virtual void Export(AtNode* light);
    virtual void ExportMotion(AtNode* light, AtUInt step);
    virtual void ExportLightFilters(AtNode* light, const MObjectArray &filters);
    virtual void Delete();

@@ -21,11 +21,11 @@ void CHairTranslator::NodeInitializer(MString nodeClassName)
 
    data.defaultValue.BOOL = false;
    data.name = "aiOverrideHair";
-   data.shortName = "override_hair";
+   data.shortName = "ai_override_hair";
    helper.MakeInputBoolean(data);
 
    data.name = "aiHairShader";
-   data.shortName = "hair_shader";
+   data.shortName = "ai_hair_shader";
    helper.MakeInputNode(data);
 }
 
@@ -75,11 +75,11 @@ void CHairTranslator::Update( AtNode *curve )
    MPlug plug;
    // Check if we using a custom hair shader.
    AtNode* shader = NULL;
-   plug = m_fnNode.findPlug("override_shader");
+   plug = m_fnNode.findPlug("aiOverrideHair");
    if (!plug.isNull() && plug.asBool())
    {
       MPlugArray hairShaderPlugs;
-      plug = fnDepNodeHair.findPlug("hair_shader");
+      plug = fnDepNodeHair.findPlug("aiHairShader");
       if (!plug.isNull())
       {
          plug.connectedTo(hairShaderPlugs, true, false);
@@ -178,11 +178,11 @@ void CHairTranslator::Update( AtNode *curve )
 
 
    // Hair specific Arnold render settings.
-   plug = GetFnNode().findPlug("min_pixel_width");
+   plug = GetFnNode().findPlug("aiMinPixelWidth");
    if (!plug.isNull()) AiNodeSetFlt(curve, "min_pixel_width", plug.asFloat());
 
    // Mode is an enum, 0 == ribbon, 1 == tubes.
-   plug = GetFnNode().findPlug("mode");
+   plug = GetFnNode().findPlug("aiMode");
    if (!plug.isNull()) AiNodeSetInt(curve, "mode", plug.asInt());
 
    AiNodeSetStr(curve, "basis", "catmull-rom");

@@ -47,7 +47,7 @@ void CLightTranslator::ExportLightFilters(AtNode* light, const MObjectArray &fil
    }
 }
 
-void CLightTranslator::Export(AtNode* light, bool mayaAttrs)
+void CLightTranslator::Export(AtNode* light)
 {
    MPlug plug;
    AtMatrix matrix;
@@ -57,19 +57,12 @@ void CLightTranslator::Export(AtNode* light, bool mayaAttrs)
    plug = GetFnNode().findPlug("color");
    ProcessParameter(light, plug, "color", AI_TYPE_RGB);
 
-   AiNodeSetFlt(light, "intensity", GetFnNode().findPlug("intensity").asFloat());
+   // AiNodeSetFlt(light, "intensity", GetFnNode().findPlug("intensity").asFloat());
+   plug = GetFnNode().findPlug("intensity");
+   ProcessParameter(light, plug, "intensity", AI_TYPE_FLOAT);
 
-   if (mayaAttrs)
-   {
-      AiNodeSetBool(light, "affect_diffuse", GetFnNode().findPlug("emitDiffuse").asBool());
-      AiNodeSetBool(light, "affect_specular", GetFnNode().findPlug("emitSpecular").asBool());
-   }
-   else
-   {
-
-      AiNodeSetBool(light, "affect_diffuse", GetFnNode().findPlug("aiAffectDiffuse").asBool());
-      AiNodeSetBool(light, "affect_specular", GetFnNode().findPlug("aiAffectSpecular").asBool());
-   }
+   AiNodeSetBool(light, "affect_diffuse", GetFnNode().findPlug("emitDiffuse").asBool());
+   AiNodeSetBool(light, "affect_specular", GetFnNode().findPlug("emitSpecular").asBool());
 
    AiNodeSetBool(light, "cast_shadows", GetFnNode().findPlug("aiCastShadows").asBool());
    AiNodeSetFlt(light, "exposure", GetFnNode().findPlug("aiExposure").asFloat());
@@ -139,6 +132,11 @@ void CLightTranslator::NodeInitializer(MString nodeClassName)
    helper.MakeInput("normalize");
    helper.MakeInput("bounce_factor");
    helper.MakeInput("bounces");
+   CAttrData data;
+   data.defaultValue.BOOL = false;
+   data.name = "aiOverrideSssSamples";
+   data.shortName = "ai_oss";
+   helper.MakeInputBoolean(data);
    helper.MakeInput("sss_samples");
 }
 
