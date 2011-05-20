@@ -97,7 +97,10 @@ def getCurrentTranslator(nodeName):
     """
     get the current translator for this node, querying and setting the default if not yet set
     """
-    transName = cmds.getAttr(nodeName + ".aiTranslator")
+    try :
+        transName = cmds.getAttr(nodeName + ".aiTranslator")
+    except :
+        transName = None
     if not transName:
         # set default
         transName = getDefaultTranslator(nodeName)
