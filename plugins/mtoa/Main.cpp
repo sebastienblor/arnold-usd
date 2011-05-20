@@ -239,7 +239,7 @@ namespace // <anonymous>
       // Will load all found plugins and try to register nodes and translators
       // for the new Arnold node each create. A CExtension is initialized.
       status = CExtensionsManager::LoadExtensions();
-      // status = CExtensionsManager::LoadArnoldPlugins();
+      status = CExtensionsManager::LoadArnoldPlugins();
       // Finally register all nodes from the loaded extensions with Maya in load order
       CExtensionsManager::RegisterExtensions();
 
