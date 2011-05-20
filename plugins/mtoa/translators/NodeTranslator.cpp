@@ -1128,13 +1128,13 @@ AtInt CDagTranslator::ComputeVisibility()
       visibility &= ~AI_RAY_REFRACTED;
    }
 
-   plug = GetFnNode().findPlug("visibleInDiffuse");
+   plug = GetFnNode().findPlug("aiVisibleInDiffuse");
    if (!plug.isNull() && !plug.asBool())
    {
       visibility &= ~AI_RAY_DIFFUSE;
    }
 
-   plug = GetFnNode().findPlug("visibleInGlossy");
+   plug = GetFnNode().findPlug("aiVisibleInGlossy");
    if (!plug.isNull() && !plug.asBool())
    {
       visibility &= ~AI_RAY_GLOSSY;
@@ -1195,11 +1195,11 @@ void CDagTranslator::MakeArnoldVisibilityFlags(CBaseAttrHelper& helper)
 
    data.defaultValue.BOOL = true;
    data.name = "aiVisibleInDiffuse";
-   data.shortName = "vid";
+   data.shortName = "ai_vid";
    helper.MakeInputBoolean(data);
 
    data.defaultValue.BOOL = true;
    data.name = "aiVisibleInGlossy";
-   data.shortName = "vig";
+   data.shortName = "ai_vig";
    helper.MakeInputBoolean(data);
 }

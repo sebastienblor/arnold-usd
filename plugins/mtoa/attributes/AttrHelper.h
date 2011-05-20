@@ -112,8 +112,8 @@ typedef MStatus  (*AddAttributeFunction)(const MObject &attr);
 /// @code
 ///   CAttrData data;
 ///   data.defaultValue.BOOL = false;
-///   data.name = "exportTangents";
-///   data.shortName = "exptan";
+///   data.name = "aiExportTangents";
+///   data.shortName = "ai_exptan";
 ///   helper.MakeInputBoolean(data);
 /// @endcode
 ///

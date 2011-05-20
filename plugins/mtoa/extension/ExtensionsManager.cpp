@@ -429,7 +429,7 @@ MStatus CExtensionsManager::RegisterExtension(CExtension* extension)
          CAttrData data;
          data.defaultValue.STR = "";
          data.name = "aiTranslator";
-         data.shortName = "arntr";
+         data.shortName = "ai_translator";
          helper.MakeInputString(data);
       }
    }

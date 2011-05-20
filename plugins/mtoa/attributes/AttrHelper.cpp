@@ -73,19 +73,21 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
 {
    if (m_nodeEntry == NULL)
    {
-      AiMsgError("[mtoa] Cannot retrieve parameter metadata from a null node entry");
-      return false;
-   }
-
-   const AtParamEntry* paramEntry = AiNodeEntryLookUpParameter(m_nodeEntry, paramName);
-   if (paramEntry == NULL)
-   {
-      AiMsgError("[mtoa] Parameter does not exist: %s", paramName);
+      AiMsgError("[mtoa] Cannot retrieve parameter metadata from a null node entry.");
       return false;
    }
 
    const char* nodeName = AiNodeEntryGetName(m_nodeEntry);
    // AiMsgDebug("[mtoa] [node %s] [attr %s] Reading metadata", nodeName, paramName);
+
+   const AtParamEntry* paramEntry = AiNodeEntryLookUpParameter(m_nodeEntry, paramName);
+   if (paramEntry == NULL)
+   {
+      AiMsgError("[mtoa] [node %s] [attr %s] Attribute does not exist.", nodeName, paramName);
+      return false;
+   }
+
+
 
    data.defaultValue = MAiParamGetDefault(m_nodeEntry, paramEntry);
    data.name = GetMayaAttrName(paramName);
@@ -1030,9 +1032,7 @@ MString CDynamicAttrHelper::GetMayaAttrShortName(const char* paramName)
    if (AiMetaDataGetStr(m_nodeEntry, paramName, "maya.shortname", &attrShortName))
       return MString(attrShortName);
    else
-      return MString(paramName);
-   // do it next tagged changeset, to be able ot recover old scenes
-   // return MString(MString("ai_") + paramName);
+      return MString("ai_") + paramName;
 }
 
 MStatus CDynamicAttrHelper::addAttribute(MObject& attrib)
@@ -1079,9 +1079,7 @@ MString CExtensionAttrHelper::GetMayaAttrShortName(const char* paramName)
    if (AiMetaDataGetStr(m_nodeEntry, paramName, "maya.shortname", &attrShortName))
       return MString(attrShortName);
    else
-      return MString(paramName);
-   // do it next tagged changeset, to be able ot recover old scenes
-   // return MString(MString("ai_") + paramName);
+      return MString("ai_") + paramName;
 }
 
 #if MAYA_API_VERSION < 201200

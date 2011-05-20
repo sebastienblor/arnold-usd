@@ -204,11 +204,11 @@ void CShaveTranslator::Update(AtNode* curve)
    AiNodeSetStr(curve, "basis", "catmull-rom");
 
    // Hair specific Arnold render settings.
-   plug = m_fnNode.findPlug("min_pixel_width");
+   plug = m_fnNode.findPlug("aiMinPixelWidth");
    if (!plug.isNull()) AiNodeSetFlt(curve, "min_pixel_width", plug.asFloat());
 
    // Mode is an enum, 0 == ribbon, 1 == tubes.
-   plug = m_fnNode.findPlug("mode");
+   plug = m_fnNode.findPlug("aiMode");
    if (!plug.isNull()) AiNodeSetInt(curve, "mode", plug.asInt());
 
    // Ignore one or less cv curves.

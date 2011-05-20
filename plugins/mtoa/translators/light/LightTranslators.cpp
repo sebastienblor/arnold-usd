@@ -21,7 +21,7 @@ void CDirectionalLightTranslator::Export(AtNode* light)
 {
    CLightTranslator::Export(light);
 
-   AiNodeSetFlt(light, "angle", GetFnNode().findPlug("angle").asFloat());
+   AiNodeSetFlt(light, "angle", GetFnNode().findPlug("aiAngle").asFloat());
 
 }
 
@@ -40,7 +40,7 @@ void CDirectionalLightTranslator::NodeInitializer(MString nodeClassName)
    CAttrData data;
    data.defaultValue.BOOL = false;
    data.name = "aiOverrideSssSamples";
-   data.shortName = "oss";
+   data.shortName = "ai_oss";
    helper.MakeInputBoolean(data);
    helper.MakeInput("sss_samples");
    // directional light attributes
@@ -55,10 +55,10 @@ void CPointLightTranslator::Export(AtNode* light)
    MPlug plug;
    MFnPointLight fnLight(m_dagPath);
 
-   AiNodeSetFlt(light, "radius", GetFnNode().findPlug("radius").asFloat());
+   AiNodeSetFlt(light, "radius", GetFnNode().findPlug("aiRadius").asFloat());
 
-   AiNodeSetBool(light, "affect_volumetrics", GetFnNode().findPlug("affect_volumetrics").asBool());
-   AiNodeSetBool(light, "cast_volumetric_shadows", GetFnNode().findPlug("cast_volumetric_shadows").asBool());
+   AiNodeSetBool(light, "affect_volumetrics", GetFnNode().findPlug("aiAffectVolumetrics").asBool());
+   AiNodeSetBool(light, "cast_volumetric_shadows", GetFnNode().findPlug("aiCastVolumetricShadows").asBool());
 }
 
 void CPointLightTranslator::NodeInitializer(MString nodeClassName)
@@ -76,7 +76,7 @@ void CPointLightTranslator::NodeInitializer(MString nodeClassName)
    CAttrData data;
    data.defaultValue.BOOL = false;
    data.name = "aiOverrideSssSamples";
-   data.shortName = "oss";
+   data.shortName = "ai_oss";
    helper.MakeInputBoolean(data);
    helper.MakeInput("sss_samples");
    // point light attributes
@@ -98,13 +98,13 @@ void CSpotLightTranslator::Export(AtNode* light)
    AiNodeSetFlt(light, "penumbra_angle", static_cast<float>(fabs(fnLight.penumbraAngle()) * AI_RTOD));
    AiNodeSetFlt(light, "cosine_power", static_cast<float>(fnLight.dropOff()));
 
-   AiNodeSetFlt(light, "radius", GetFnNode().findPlug("radius").asFloat());
+   AiNodeSetFlt(light, "radius", GetFnNode().findPlug("aiRadius").asFloat());
 
-   AiNodeSetBool(light, "affect_volumetrics", GetFnNode().findPlug("affect_volumetrics").asBool());
-   AiNodeSetBool(light, "cast_volumetric_shadows", GetFnNode().findPlug("cast_volumetric_shadows").asBool());
+   AiNodeSetBool(light, "affect_volumetrics", GetFnNode().findPlug("aiAffectVolumetrics").asBool());
+   AiNodeSetBool(light, "cast_volumetric_shadows", GetFnNode().findPlug("aiCastVolumetricShadows").asBool());
 
-   AiNodeSetFlt(light, "aspect_ratio", GetFnNode().findPlug("aspect_ratio").asFloat());
-   AiNodeSetFlt(light, "lens_radius", GetFnNode().findPlug("lens_radius").asFloat());
+   AiNodeSetFlt(light, "aspect_ratio", GetFnNode().findPlug("aiAspectRatio").asFloat());
+   AiNodeSetFlt(light, "lens_radius", GetFnNode().findPlug("aiLensRadius").asFloat());
 }
 
 void CSpotLightTranslator::NodeInitializer(MString nodeClassName)
@@ -122,7 +122,7 @@ void CSpotLightTranslator::NodeInitializer(MString nodeClassName)
    CAttrData data;
    data.defaultValue.BOOL = false;
    data.name = "aiOverrideSssSamples";
-   data.shortName = "oss";
+   data.shortName = "ai_oss";
    helper.MakeInputBoolean(data);
    helper.MakeInput("sss_samples");
    // spot light attributes
@@ -148,9 +148,9 @@ void CAreaLightTranslator::Export(AtNode* light)
 
    AiNodeSetArray(light, "vertices", AiArrayConvert(4, 1, AI_TYPE_POINT, vertices, true));
 
-   AiNodeSetInt(light, "resolution", GetFnNode().findPlug("resolution").asInt());
-   AiNodeSetBool(light, "affect_volumetrics", GetFnNode().findPlug("affect_volumetrics").asBool());
-   AiNodeSetBool(light, "cast_volumetric_shadows", GetFnNode().findPlug("cast_volumetric_shadows").asBool());
+   AiNodeSetInt(light, "resolution", GetFnNode().findPlug("aiResolution").asInt());
+   AiNodeSetBool(light, "affect_volumetrics", GetFnNode().findPlug("aiAffectVolumetrics").asBool());
+   AiNodeSetBool(light, "cast_volumetric_shadows", GetFnNode().findPlug("aiCastVolumetricShadows").asBool());
 }
 
 void CAreaLightTranslator::NodeInitializer(MString nodeClassName)
@@ -167,7 +167,7 @@ void CAreaLightTranslator::NodeInitializer(MString nodeClassName)
    CAttrData data;
    data.defaultValue.BOOL = false;
    data.name = "aiOverrideSssSamples";
-   data.shortName = "oss";
+   data.shortName = "ai_oss";
    helper.MakeInputBoolean(data);
    helper.MakeInput("sss_samples");
    // spot light attributes
@@ -204,7 +204,7 @@ void CSkyDomeLightTranslator::NodeInitializer(MString nodeClassName)
    CAttrData data;
    data.defaultValue.BOOL = false;
    data.name = "aiOverrideSssSamples";
-   data.shortName = "oss";
+   data.shortName = "ai_oss";
    helper.MakeInputBoolean(data);
    helper.MakeInput("sss_samples");
 }

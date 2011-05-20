@@ -114,7 +114,7 @@ bool CGeometryTranslator::GetNormals(MFnMesh &fnMesh, std::vector<float> &normal
 {
    int nnorms = fnMesh.numNormals();
    if (GetFnNode().findPlug("smoothShading").asBool() &&
-         !GetFnNode().findPlug("subdiv_type").asBool() &&
+         !GetFnNode().findPlug("aiSubdivType").asBool() &&
          nnorms > 0)
    {
       normals.resize(nnorms * 3);
@@ -136,7 +136,7 @@ bool CGeometryTranslator::GetNormals(MFnMesh &fnMesh, std::vector<float> &normal
 bool CGeometryTranslator::GetTangents(MFnMesh &fnMesh, std::vector<float> &tangents, std::vector<float> &bitangents)
 {
    MStatus stat;
-   MPlug pExportTangents = fnMesh.findPlug("exportTangents", false, &stat);
+   MPlug pExportTangents = fnMesh.findPlug("aiExportTangents", false, &stat);
 
    if (stat != MStatus::kSuccess)
       return false;
@@ -290,7 +290,7 @@ bool CGeometryTranslator::GetVertexColors(MFnMesh &fnMesh, std::map<std::string,
 
    if (fnMesh.numColorSets() > 0)
    {
-      MPlug plug = fnMesh.findPlug("exportColors");
+      MPlug plug = fnMesh.findPlug("aiExportColors");
       if (!plug.isNull())
       {
          exportColors = plug.asBool();
@@ -782,7 +782,7 @@ void CGeometryTranslator::ExportMeshParameters(AtNode* polymesh)
 {
    // Check if custom attributes have been created, ignore them otherwise
    MStatus status;
-   GetFnNode().findPlug("subdiv_type", &status);
+   GetFnNode().findPlug("aiSubdivType", &status);
    bool customAttributes = (status == MS::kSuccess);
 
    AiNodeSetBool(polymesh, "smoothing", GetFnNode().findPlug("smoothShading").asBool());
@@ -802,18 +802,18 @@ void CGeometryTranslator::ExportMeshParameters(AtNode* polymesh)
    {
       // Subdivision surfaces
       //
-      const bool subdivision = (GetFnNode().findPlug("subdiv_type").asInt() != 0);
+      const bool subdivision = (GetFnNode().findPlug("aiSubdivType").asInt() != 0);
 
       if (subdivision)
       {
          AiNodeSetStr(polymesh, "subdiv_type",           "catclark");
-         AiNodeSetInt(polymesh, "subdiv_iterations",     GetFnNode().findPlug("subdiv_iterations").asInt());
-         AiNodeSetInt(polymesh, "subdiv_adaptive_metric",GetFnNode().findPlug("subdiv_adaptive_metric").asInt());
-         AiNodeSetFlt(polymesh, "subdiv_pixel_error",    GetFnNode().findPlug("subdiv_pixel_error").asFloat());
-         AiNodeSetInt(polymesh, "subdiv_uv_smoothing",   GetFnNode().findPlug("subdiv_uv_smoothing").asInt());
+         AiNodeSetInt(polymesh, "subdiv_iterations",     GetFnNode().findPlug("aiSubdivIterations").asInt());
+         AiNodeSetInt(polymesh, "subdiv_adaptive_metric",GetFnNode().findPlug("aiSubdivAdaptiveMetric").asInt());
+         AiNodeSetFlt(polymesh, "subdiv_pixel_error",    GetFnNode().findPlug("aiSubdivPixelError").asFloat());
+         AiNodeSetInt(polymesh, "subdiv_uv_smoothing",   GetFnNode().findPlug("aiSubdivUvSmoothing").asInt());
 
          // FIXME, this should probably be handled by ProcessParameter
-         MString cameraName = GetFnNode().findPlug("subdiv_dicing_camera").asString();
+         MString cameraName = GetFnNode().findPlug("aiSubdivDicingCamera").asString();
          AtNode* camera = ((cameraName != "") && (cameraName != "Default")) ? AiNodeLookUpByName(cameraName.asChar()) : NULL;
          AiNodeSetPtr(polymesh, "subdiv_dicing_camera", camera);
       }
@@ -982,11 +982,11 @@ void CGeometryTranslator::NodeInitializer(MString nodeClassName)
 
    data.defaultValue.BOOL = false;
    data.name = "aiExportTangents";
-   data.shortName = "exptan";
+   data.shortName = "ai_exptan";
    helper.MakeInputBoolean(data);
 
    data.defaultValue.BOOL = false;
    data.name = "aiExportColors";
-   data.shortName = "expcol";
+   data.shortName = "ai_expcol";
    helper.MakeInputBoolean(data);
 }
