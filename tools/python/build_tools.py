@@ -69,6 +69,19 @@ def saferemove(path):
    if os.path.exists(path):
       os.remove(path)
 
+def copy_file_or_link(src, target):
+   '''
+   Copies a file or a symbolic link (creating a new link in the target dir)
+   '''
+   if os.path.isdir(target):
+      target = os.path.join(target, os.path.basename(src))
+
+   if os.path.islink(src):
+      linked_path = os.readlink(src)
+      os.symlink(linked_path, target)
+   else:
+      shutil.copy(src, target)
+
 def process_return_code(retcode):
    '''
    translates a process return code (as obtained by os.system or subprocess) into a status string
@@ -88,30 +101,30 @@ def process_return_code(retcode):
             status = 'FAILED'
    return status      
 
-def get_mtoa_version(path, components = 3):
-   # TODO: define in the plug-in the symbols necessary to get MtoA version 
+def get_mtoa_version(components = 3):
    '''
    Obtains MtoA version by parsing 'Version.cpp'
    '''
-   MAJOR_VERSION=''
-   MINOR_VERSION=''
-   FIX_VERSION=''
+   MAJOR_VERSION='0'
+   MINOR_VERSION='7'
+   FIX_VERSION='0'
 
-   f = open(path, 'r')
-   while True:
-      line = f.readline().lstrip(' \t')
-      if line == "":
-         # We have reached the end of file.
-         break
-      if line.startswith('#define'):
-         tokens = line.split()
-         if tokens[1] == 'MTOA_MAJOR_VERSION_NUM':
-            MAJOR_VERSION = tokens[2]
-         elif tokens[1] == 'MTOA_MINOR_VERSION_NUM':
-            MINOR_VERSION = tokens[2]
-         elif tokens[1] == 'MTOA_FIX_VERSION':
-            FIX_VERSION = tokens[2][1:].strip('"')
-   f.close()
+   # TODO: define in the plug-in the symbols necessary to get MtoA version 
+#   f = open(os.path.join('plugin', 'mtoa', 'version.cpp'), 'r')
+#   while True:
+#      line = f.readline().lstrip(' \t')
+#      if line == "":
+#         # We have reached the end of file.
+#         break
+#      if line.startswith('#define'):
+#         tokens = line.split()
+#         if tokens[1] == 'MTOA_MAJOR_VERSION_NUM':
+#            MAJOR_VERSION = tokens[2]
+#         elif tokens[1] == 'MTOA_MINOR_VERSION_NUM':
+#            MINOR_VERSION = tokens[2]
+#         elif tokens[1] == 'MTOA_FIX_VERSION':
+#            FIX_VERSION = tokens[2][1:].strip('"')
+#   f.close()
    
    version = ''
    if (components > 0):

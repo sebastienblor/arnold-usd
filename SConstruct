@@ -12,8 +12,7 @@ from colorama import init
 init()
 from colorama import Fore, Back, Style
 
-# TODO: call get_mtoa_version() (in build_tools.py)
-MTOA_VERSION = "0.7.0"
+MTOA_VERSION = get_mtoa_version(3)
 
 ################################################################################
 #   Operating System detection
@@ -205,16 +204,19 @@ elif env['COMPILER'] == 'msvc':
       MSVC_FLAGS += " /WX"  # treats warnings as errors
 
    if export_symbols:
-      MSVC_FLAGS += " /Zi"      # generates complete debug information
+      MSVC_FLAGS += " /Zi"  # generates complete debug information
 
    LINK_FLAGS  = " /LARGEADDRESSAWARE"
 
    if env['MODE'] in ['opt', 'profile']:
       MSVC_FLAGS += " /Ob2"    # enables inlining of ANY function (compiler discretion)
       MSVC_FLAGS += " /GL"     # enables whole program optimization
-      MSVC_FLAGS += " /MD"        # uses multithreaded DLL runtime library
-      MSVC_FLAGS += " /Ox"        # selects maximum optimization
-      MSVC_FLAGS += " /arch:SSE2" # enables use of SSE2 instructions
+      MSVC_FLAGS += " /MD"     # uses multithreaded DLL runtime library
+      MSVC_FLAGS += " /Ox"     # selects maximum optimization
+      
+      if system.target_arch() == 'x86':
+         MSVC_FLAGS += " /arch:SSE2" # enables use of SSE2 instructions
+      
       LINK_FLAGS += " /LTCG"   # enables link time code generation (needed by /GL)
    else:  ## Debug mode
       MSVC_FLAGS += " /Od"   # disables all optimizations
