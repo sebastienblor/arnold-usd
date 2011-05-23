@@ -436,10 +436,13 @@ MStatus CExtensionsManager::RegisterExtension(CExtension* extension)
 
    if (MStatus::kSuccess == status)
    {
-   	  // TODO : add count of registered nodes and translators
+   	// TODO : add count of registered nodes and translators
       AiMsgInfo("[mtoa] Registered extension %s(%s).", extension->GetName().asChar(), extension->GetFile().asChar());
       extension->m_registered = true;
       extension->m_deferred = false;
+      // Load associated scripts
+      MString cmd = "import mtoa.api.extensions;mtoa.api.extensions.loadExtensionUI('" + extension->GetFile() + "')";
+      CHECK_MSTATUS(MGlobal::executePythonCommand(cmd));
    }
    return status;
 }

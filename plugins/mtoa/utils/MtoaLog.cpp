@@ -30,31 +30,43 @@ DLLEXPORT AtVoid MtoaLogCallback(AtInt logmask, AtInt severity, const char *msg_
          // MGlobal::displayInfo(msg_string);
          // black color
          // if (logmask & AI_LOG_COLOR) clog << "\033[22;30m";
+#ifndef _WIN32
          clog << "\033[22;30m";
+#endif
       break;
    case AI_SEVERITY_WARNING:
       if (logmask & AI_LOG_WARNINGS)
          MGlobal::displayWarning(msg_string);
          // yellow color
          // if (logmask & AI_LOG_COLOR) clog << "\033[22;33m";
+#ifndef _WIN32
          clog << "\033[22;33m";
+#endif
       break;
    case AI_SEVERITY_ERROR:
       if (logmask & AI_LOG_ERRORS)
          MGlobal::displayError(msg_string);
          // red color
          // if (logmask & AI_LOG_COLOR) clog << "\033[22;31m";
+#ifndef _WIN32
          clog << "\033[22;31m";
+#endif
       break;
    default:
       // black color
       // if (logmask & AI_LOG_COLOR) clog << "\033[22;30m";
+#ifndef _WIN32
       clog << "\033[22;30m";
+#endif
       break;
    }
 
    // Standard log output
+#ifndef _WIN32
    clog << msg_string << "\033[22;30m" << endl;
+#else
+   clog << msg_string << endl;
+#endif
    // How do we know to write both in cerr and clog, or write in logFile even ?
    // cerr << msg_string << endl;
 }
