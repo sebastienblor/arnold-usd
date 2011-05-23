@@ -433,6 +433,11 @@ TESTSUITE = env.SConscript(os.path.join('testsuite', 'SConscript'),
                            variant_dir = os.path.join(BUILD_BASE_DIR, 'testsuite'),
                            duplicate = 0,
                            exports   = 'env BUILD_BASE_DIR MTOA MTOA_SHADERS DIFFTIFF TIFF2JPEG')
+
+MTOA_API_DOCS = env.SConscript('docs/doxygen_api/SConscript',
+                     variant_dir = os.path.join(BUILD_BASE_DIR, 'docs', 'api'),
+                     duplicate   = 0,
+                     exports     = 'env BUILD_BASE_DIR')
 SConscriptChdir(1)
 
 env.Install(env['TARGET_PLUGIN_PATH'], os.path.join('plugins', 'mtoa', 'mtoa.mtd'))
@@ -542,7 +547,7 @@ if system.os() == 'windows':
 else:
    package_name += ".tgz"
 
-PACKAGE = env.MakePackage(package_name, MTOA + MTOA_API + MTOA_SHADERS)
+PACKAGE = env.MakePackage(package_name, MTOA + MTOA_API + MTOA_SHADERS + MTOA_API_DOCS)
 
 ## Specifies the files that will be included in the release package.
 ## List items have 2 or 3 elements, with 3 possible formats:
@@ -561,7 +566,7 @@ PACKAGE_FILES = [
 [os.path.join(env['ARNOLD_API_LIB'], 'maketx%s' % get_executable_extension()), 'bin'],
 [os.path.join('plugins', 'mtoa', 'mtoa.mtd'), 'plug-ins'],
 [MTOA_SHADERS[0], 'shaders'],
-[os.path.join(BUILD_BASE_DIR, 'api', 'html'), os.path.join('doc', 'api')],
+[os.path.join(BUILD_BASE_DIR, 'docs', 'api', 'html'), os.path.join('doc', 'api')],
 ]
 
 if system.os() == 'windows':
@@ -598,6 +603,7 @@ aliases.append(env.Alias('install-shaders', env['TARGET_SHADER_PATH']))
 aliases.append(env.Alias('install-ext',     env['TARGET_EXTENSION_PATH']))
 
 top_level_alias(env, 'mtoa', MTOA)
+top_level_alias(env, 'docs', MTOA_API_DOCS)
 top_level_alias(env, 'shaders', MTOA_SHADERS)
 top_level_alias(env, 'testsuite', TESTSUITE)
 top_level_alias(env, 'install', aliases)
