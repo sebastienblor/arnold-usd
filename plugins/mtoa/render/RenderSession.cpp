@@ -1,9 +1,9 @@
-#include "utils/MtoaLogCallback.h"
+#include "utils/MtoaLog.h"
 #include "RenderSession.h"
 #include "RenderOptions.h"
 #include "OutputDriver.h"
 #include "scene/MayaScene.h"
-#include "scene/NodeTranslator.h"
+#include "translators/NodeTranslator.h"
 
 #include <ai_dotass.h>
 #include <ai_msg.h>
@@ -144,14 +144,14 @@ void CRenderSession::Translate(ExportOptions& options)
 {
    if (AiUniverseIsActive())
    {
-      AiMsgError("There can only be one RenderSession active.");
+      AiMsgError("[mtoa] There can only be one RenderSession active.");
       return;
    }
 
    // Begin the Arnold universe.
    AiBegin();
-   SetupMtoaLogging();
    Init(options);
+   // TODO: should use the list of loaded plugins from CExtensionsManager instead
    LoadPlugins();
 
    m_scene->ExportToArnold();
@@ -171,7 +171,7 @@ AtBBox CRenderSession::GetBoundingBox()
    }
    else
    {
-   	AiMsgError("RenderSession is not active.");
+   	AiMsgError("[mtoa] RenderSession is not active.");
    }
 
    return bbox;
@@ -191,7 +191,6 @@ void CRenderSession::Finish()
    {
       AiRenderAbort();
       InterruptRender();
-      AiMsgResetCallback();
       AiEnd();
    }
    m_is_active = false;
@@ -273,7 +272,7 @@ void CRenderSession::SetCamera(MString cameraNode)
 
       if (!camera)
       {
-         AiMsgError("Cannot find camera node %s.", cameraNode.asChar());
+         AiMsgError("[mtoa] Cannot find camera node %s.", cameraNode.asChar());
          return;
       }
 
@@ -290,7 +289,7 @@ void CRenderSession::SetCamera(MString cameraNode)
       {
          if (!dagIterCameras.getPath(dagPath))
          {
-            AiMsgError("Could not get camera dag path.");
+            AiMsgError("[mtoa] Could not get camera dag path.");
             return;
          }
          bool isRenderingCamera = false;
@@ -351,6 +350,7 @@ void CRenderSession::SetupRenderOutput()
    AtNode * render_view = CreateRenderViewOutput();
    AtNode * file_driver = CreateFileOutput();
    AtNode * filter = CreateOutputFilter();
+   AtNode * specialAovfilter = CreateAovOutputFilter();
 
    // OUTPUT STRINGS
    AtChar   str[1024];
@@ -374,7 +374,18 @@ void CRenderSession::SetupRenderOutput()
 
       for (size_t i=0; i<m_renderOptions.NumAOVs(); ++i)
       {
-         m_renderOptions.GetAOV(i).SetupOutput(outputs, ndrivers+static_cast<int>(i), file_driver, filter);
+         if      (strcmp(m_renderOptions.GetAOV(i).GetName().asChar(),"Z")==0)
+         {
+            m_renderOptions.GetAOV(i).SetupOutput(outputs, ndrivers+static_cast<int>(i), file_driver, specialAovfilter);
+         }
+         else if (strcmp(m_renderOptions.GetAOV(i).GetName().asChar(),"P")==0)
+         {
+            m_renderOptions.GetAOV(i).SetupOutput(outputs, ndrivers+static_cast<int>(i), file_driver, specialAovfilter);
+         }
+         else
+         {
+            m_renderOptions.GetAOV(i).SetupOutput(outputs, ndrivers+static_cast<int>(i), file_driver, filter);
+         }
       }
    }
 
@@ -498,6 +509,19 @@ AtNode * CRenderSession::CreateOutputFilter()
    return filter;
 }
 
+AtNode * CRenderSession::CreateAovOutputFilter()
+{
+   // OUTPUT FILTER (use for all image outputs)
+   AtNode* filter = AiNodeLookUpByName("closest_filter");
+   if (filter == NULL) filter = AiNode("closest_filter");
+
+   if (filter != NULL)
+   {
+      AiNodeSetStr(filter, "name", "closest_filter");
+   }
+
+   return filter;
+}
 void CRenderSession::DoInteractiveRender()
 {
    MComputation comp;
@@ -546,11 +570,11 @@ void CRenderSession::DoExport(MString customFileName)
 
    if (fileName.length() == 0)
    {
-      AiMsgError("File name must be set before exporting .ass file");
+      AiMsgError("[mtoa] File name must be set before exporting .ass file");
    }
    else
    {
-      AiMsgInfo("Exporting Maya scene to file \"%s\"", fileName.asChar());
+      AiMsgInfo("[mtoa] Exporting Maya scene to file \"%s\"", fileName.asChar());
 
       SetupRenderOutput();
       // FIXME : problem this is actually double filtering files

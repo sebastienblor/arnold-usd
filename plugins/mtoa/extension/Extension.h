@@ -1,11 +1,10 @@
 #ifndef EXTENSION_H
 #define EXTENSION_H
 
-// TODO : mode/Translator.h"
 #include "extension/PathUtils.h"
 #include "extension/PxUtils.h"
 #include "common/DynLibrary.h"
-#include "scene/NodeTranslator.h"
+#include "translators/NodeTranslator.h"
 
 #include <maya/MTypeId.h>
 #include <maya/MPxNode.h>

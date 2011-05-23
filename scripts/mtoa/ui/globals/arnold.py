@@ -12,12 +12,14 @@ def updateSamplingSettings(*args):
     cmds.attrControlGrp('ss_max_value', edit=True, enable=flag)
 
 def updateComputeSamples(*args):
-    AASamples = cmds.getAttr('defaultArnoldRenderOptions.aaSamples')
-    GISamples = cmds.getAttr('defaultArnoldRenderOptions.giDiffuseSamples')
-    glossySamples = cmds.getAttr('defaultArnoldRenderOptions.giGlossySamples')
+    AASamples = cmds.getAttr('defaultArnoldRenderOptions.AASamples')
+    GISamples = cmds.getAttr('defaultArnoldRenderOptions.GIDiffuseSamples')
+    glossySamples = cmds.getAttr('defaultArnoldRenderOptions.GIGlossySamples')
+    refractionSamples = cmds.getAttr('defaultArnoldRenderOptions.GIRefractionSamples')
     
-    diffuseDepth = cmds.getAttr('defaultArnoldRenderOptions.giDiffuseDepth')
-    glossyDepth = cmds.getAttr('defaultArnoldRenderOptions.giGlossyDepth')
+    diffuseDepth = cmds.getAttr('defaultArnoldRenderOptions.GIDiffuseDepth')
+    glossyDepth = cmds.getAttr('defaultArnoldRenderOptions.GIGlossyDepth')
+    refractionDepth = cmds.getAttr('defaultArnoldRenderOptions.GIRefractionDepth')
     
     AASamplesComputed = AASamples * AASamples
     
@@ -27,8 +29,11 @@ def updateComputeSamples(*args):
     glossySamplesComputed = glossySamples * glossySamples * AASamplesComputed
     glossySamplesComputedDepth = glossySamplesComputed*glossyDepth
     
-    totalSamples = AASamplesComputed + GISamplesComputed + glossySamplesComputed 
-    totalSamplesDepth = AASamplesComputed + GISamplesComputedDepth + glossySamplesComputedDepth
+    refractionSamplesComputed = refractionSamples * refractionSamples * AASamplesComputed
+    refractionSamplesComputedDepth = refractionSamplesComputed*refractionDepth
+    
+    totalSamples = AASamplesComputed + GISamplesComputed + glossySamplesComputed + refractionSamplesComputed
+    totalSamplesDepth = AASamplesComputed + GISamplesComputedDepth + glossySamplesComputedDepth + refractionSamplesComputedDepth
 
     cmds.text( "textAASamples",
                edit=True, 
@@ -41,6 +46,10 @@ def updateComputeSamples(*args):
     cmds.text( "textGlossySamples",
                edit=True, 
                label='Max Glossy Samples (with Max Depth) : %i (%i)' % (glossySamplesComputed, glossySamplesComputedDepth))
+        
+    cmds.text( "textRefractionSamples",
+               edit=True, 
+               label='Max Refraction Samples (with Max Depth) : %i (%i)' % (refractionSamplesComputed, refractionSamplesComputedDepth))
         
     cmds.text( "textTotalSamples",
                edit=True, 
@@ -163,7 +172,7 @@ def createArnoldRenderSettings():
 
     cmds.attrControlGrp('os_preserve_scene_data',
                    label='Preserve Scene Data',
-                   attribute='defaultArnoldRenderOptions.preserve_scene_data')
+                   attribute='defaultArnoldRenderOptions.preserveSceneData')
 
     cmds.separator()
 
@@ -286,6 +295,11 @@ def createArnoldSamplingSettings():
                align='left',
                )
 
+    cmds.text( "textRefractionSamples", 
+               font = "smallBoldLabelFont",
+               align='left',
+               )
+
     cmds.text( "textTotalSamples", 
                font = "smallBoldLabelFont",
                align='left',
@@ -300,13 +314,13 @@ def createArnoldSamplingSettings():
                         cc='import maya.cmds as cmds;cmds.evalDeferred(mtoa.ui.globals.arnold.updateComputeSamples)'
                         )
 
-    cmds.connectControl('ss_AA_samples', 'defaultArnoldRenderOptions.aaSamples', index=2)
-    cmds.connectControl('ss_AA_samples', 'defaultArnoldRenderOptions.aaSamples', index=3)
+    cmds.connectControl('ss_AA_samples', 'defaultArnoldRenderOptions.AASamples', index=2)
+    cmds.connectControl('ss_AA_samples', 'defaultArnoldRenderOptions.AASamples', index=3)
 
     '''
     cmds.attrControlGrp('ss_AA_samples',
                         label="AA Samples",
-                        attribute='defaultArnoldRenderOptions.aaSamples',
+                        attribute='defaultArnoldRenderOptions.AASamples',
                         cc=updateComputeSamples
                         
                         )
@@ -317,12 +331,12 @@ def createArnoldSamplingSettings():
                         fieldMaxValue=100,
                         cc='import maya.cmds as cmds;cmds.evalDeferred(mtoa.ui.globals.arnold.updateComputeSamples)')
     
-    cmds.connectControl('ss_hemi_samples', 'defaultArnoldRenderOptions.giDiffuseSamples', index=2)
-    cmds.connectControl('ss_hemi_samples', 'defaultArnoldRenderOptions.giDiffuseSamples', index=3)
+    cmds.connectControl('ss_hemi_samples', 'defaultArnoldRenderOptions.GIDiffuseSamples', index=2)
+    cmds.connectControl('ss_hemi_samples', 'defaultArnoldRenderOptions.GIDiffuseSamples', index=3)
     '''
     cmds.attrControlGrp('ss_hemi_samples',
                         label="Hemi Samples",
-                        attribute='defaultArnoldRenderOptions.giDiffuseSamples')
+                        attribute='defaultArnoldRenderOptions.GIDiffuseSamples')
     '''
 
     
@@ -332,10 +346,18 @@ def createArnoldSamplingSettings():
                         fieldMaxValue=100,
                         cc='import maya.cmds as cmds;cmds.evalDeferred(mtoa.ui.globals.arnold.updateComputeSamples)')
     
-    cmds.connectControl('ss_glossy_samples', 'defaultArnoldRenderOptions.giGlossySamples', index=2)
-    cmds.connectControl('ss_glossy_samples', 'defaultArnoldRenderOptions.giGlossySamples', index=3)    
+    cmds.connectControl('ss_glossy_samples', 'defaultArnoldRenderOptions.GIGlossySamples', index=2)
+    cmds.connectControl('ss_glossy_samples', 'defaultArnoldRenderOptions.GIGlossySamples', index=3)    
     
+    cmds.intSliderGrp('ss_refraction_samples',
+                        label="Refraction Samples",
+                        maxValue = 10,
+                        fieldMaxValue=100,
+                        cc='import maya.cmds as cmds;cmds.evalDeferred(mtoa.ui.globals.arnold.updateComputeSamples)')
     
+    cmds.connectControl('ss_refraction_samples', 'defaultArnoldRenderOptions.GIRefractionSamples', index=2)
+    cmds.connectControl('ss_refraction_samples', 'defaultArnoldRenderOptions.GIRefractionSamples', index=3)    
+
     '''
     cmds.attrControlGrp('ss_glossy_samples',
                         label="Glossy Samples",
@@ -344,7 +366,7 @@ def createArnoldSamplingSettings():
     
     cmds.attrControlGrp('ss_sss_hemi_samples',
                    label="SSS Samples",
-                   attribute='defaultArnoldRenderOptions.giSssHemiSamples')
+                   attribute='defaultArnoldRenderOptions.GISssHemiSamples')
 
     cmds.checkBoxGrp('ss_clamp_sample_values',
                      cc=updateSamplingSettings,
@@ -361,7 +383,7 @@ def createArnoldSamplingSettings():
 
     cmds.attrControlGrp('ss_max_value',
                         label="Max. Value",
-                        attribute='defaultArnoldRenderOptions.aaSampleClamp')
+                        attribute='defaultArnoldRenderOptions.AASampleClamp')
 
     cmds.separator()
 
@@ -458,7 +480,7 @@ def createArnoldRayDepthSettings():
 
     cmds.attrControlGrp('rs_total_depth',
                         label="Total depth",
-                        attribute='defaultArnoldRenderOptions.giTotalDepth')
+                        attribute='defaultArnoldRenderOptions.GITotalDepth')
 
     cmds.separator(style="none")
 
@@ -469,13 +491,13 @@ def createArnoldRayDepthSettings():
                         fieldMaxValue=100,
                         cc='import maya.cmds as cmds;cmds.evalDeferred(mtoa.ui.globals.arnold.updateComputeSamples)')
     
-    cmds.connectControl('rs_diffuse_depth', 'defaultArnoldRenderOptions.giDiffuseDepth', index=2)
-    cmds.connectControl('rs_diffuse_depth', 'defaultArnoldRenderOptions.giDiffuseDepth', index=3)
+    cmds.connectControl('rs_diffuse_depth', 'defaultArnoldRenderOptions.GIDiffuseDepth', index=2)
+    cmds.connectControl('rs_diffuse_depth', 'defaultArnoldRenderOptions.GIDiffuseDepth', index=3)
     
     '''
     cmds.attrControlGrp('rs_diffuse_depth',
                         label="Diffuse depth",
-                        attribute='defaultArnoldRenderOptions.giDiffuseDepth')
+                        attribute='defaultArnoldRenderOptions.GIDiffuseDepth')
     '''
     
     cmds.intSliderGrp('rs_glossy_depth',
@@ -484,23 +506,33 @@ def createArnoldRayDepthSettings():
                         fieldMaxValue=100,
                         cc='import maya.cmds as cmds;cmds.evalDeferred(mtoa.ui.globals.arnold.updateComputeSamples)')
     
-    cmds.connectControl('rs_glossy_depth', 'defaultArnoldRenderOptions.giGlossyDepth', index=2)
-    cmds.connectControl('rs_glossy_depth', 'defaultArnoldRenderOptions.giGlossyDepth', index=3)
+    cmds.connectControl('rs_glossy_depth', 'defaultArnoldRenderOptions.GIGlossyDepth', index=2)
+    cmds.connectControl('rs_glossy_depth', 'defaultArnoldRenderOptions.GIGlossyDepth', index=3)
     
     '''
     cmds.attrControlGrp('rs_glossy_depth',
                         label="Glossy depth",
-                        attribute='defaultArnoldRenderOptions.giGlossyDepth')
+                        attribute='defaultArnoldRenderOptions.GIGlossyDepth')
     '''
 
     cmds.attrControlGrp('rs_reflection_depth',
                         label="Reflection depth",
-                        attribute='defaultArnoldRenderOptions.giReflectionDepth')
+                        attribute='defaultArnoldRenderOptions.GIReflectionDepth')
 
+    cmds.intSliderGrp('rs_refraction_depth',
+                        label="Refraction depth",
+                        maxValue = 16,
+                        fieldMaxValue=100,
+                        cc='import maya.cmds as cmds;cmds.evalDeferred(mtoa.ui.globals.arnold.updateComputeSamples)')
+    
+    cmds.connectControl('rs_refraction_depth', 'defaultArnoldRenderOptions.GIRefractionDepth', index=2)
+    cmds.connectControl('rs_refraction_depth', 'defaultArnoldRenderOptions.GIRefractionDepth', index=3)
+
+    '''
     cmds.attrControlGrp('rs_refraction_depth',
                         label="Refraction depth",
-                        attribute='defaultArnoldRenderOptions.giRefractionDepth')
-
+                        attribute='defaultArnoldRenderOptions.GIRefractionDepth')
+    '''
     cmds.separator(style="none")
 
     cmds.attrControlGrp('rs_auto_transparency_depth',
@@ -667,7 +699,7 @@ def createArnoldTextureSettings():
 
     cmds.attrControlGrp('texture_max_memory_MB',
                         label="Max Cache Size (MB)",
-                        attribute='defaultArnoldRenderOptions.textureMaxMemoryMb')
+                        attribute='defaultArnoldRenderOptions.textureMaxMemoryMB')
 
     cmds.attrControlGrp('texture_max_open_files',
                         label="Max Open Files",

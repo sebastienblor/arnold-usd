@@ -1,27 +1,33 @@
 
 #include "platform/Platform.h"
-#include "utils/MtoaLogCallback.h"
-#include "ArnoldAssTranslator.h"
-#include "ArnoldExportAssCmd.h"
-#include "ArnoldRenderCmd.h"
-#include "ArnoldIprCmd.h"
-#include "ArnoldPluginCmd.h"
-#include "nodes/ArnoldRenderOptions.h"
-#include "nodes/ArnoldAOV.h"
+#include "utils/MtoaLog.h"
+
+#include "commands/ArnoldAssTranslator.h"
+#include "commands/ArnoldExportAssCmd.h"
+#include "commands/ArnoldRenderCmd.h"
+#include "commands/ArnoldIprCmd.h"
+#include "commands/ArnoldPluginCmd.h"
+
+#include "nodes/ShaderUtils.h"
+#include "nodes/ArnoldAOVNode.h"
 #include "nodes/MayaNodeIDs.h"
 #include "nodes/ArnoldNodeIDs.h"
-#include "nodes/shaders/background/SphereLocator.h"
-#include "nodes/shaders/background/ArnoldSkyShader.h"
-#include "nodes/shaders/displacement/ArnoldDisplacementShader.h"
-#include "nodes/shaders/light/ArnoldSkyDomeLightShader.h"
+#include "nodes/SphereLocator.h"
+#include "nodes/options/ArnoldOptionsNode.h"
+#include "nodes/shader/ArnoldSkyNode.h"
+#include "nodes/shader/ArnoldDisplacementNode.h"
+#include "nodes/light/ArnoldSkyDomeLightNode.h"
 #include "nodes/ArnoldStandIns.h"
-#include "nodes/ShaderUtils.h"
-#include "scene/Shaders.h"
-#include "scene/Lights.h"
-#include "scene/Geometry.h"
-#include "scene/Cameras.h"
-#include "scene/Options.h"
-#include "scene/Hair.h"
+
+#include "translators/options/OptionsTranslator.h"
+
+#include "translators/camera/CameraTranslators.h"
+#include "translators/light/LightTranslators.h"
+#include "translators/shader/ShaderTranslators.h"
+#include "translators/shape/MeshTranslator.h"
+#include "translators/shape/NurbsSurfaceTranslator.h"
+#include "translators/shape/HairTranslator.h"
+
 #include "scene/Standins.h"
 #include "render/RenderSwatch.h"
 
@@ -36,7 +42,7 @@
 #include <maya/MSwatchRenderRegister.h>
 
 #define MTOA_VENDOR "SolidAngle"
-#define MTOA_VERSION "0.7.0.dev"
+#define MTOA_VERSION "0.7.0"
 #define MAYA_VERSION "Any"
 
 
@@ -70,9 +76,9 @@ namespace // <anonymous>
 
       // Render Options
       status = plugin.registerNode("aiOptions",
-                                    CArnoldRenderOptionsNode::id,
-                                    CArnoldRenderOptionsNode::creator,
-                                    CArnoldRenderOptionsNode::initialize);
+                                    CArnoldOptionsNode::id,
+                                    CArnoldOptionsNode::creator,
+                                    CArnoldOptionsNode::initialize);
       CHECK_MSTATUS(status);
 
       // AOV
@@ -89,9 +95,9 @@ namespace // <anonymous>
                                      + ":" + ARNOLD_CLASSIFY(CLASSIFY_SHADER_DISPLACEMENT)
                                      + ":swatch/" + ARNOLD_SWATCH;
       status = plugin.registerNode("aiDisplacement",
-                                   CArnoldDisplacementShaderNode::id,
-                                   CArnoldDisplacementShaderNode::creator,
-                                   CArnoldDisplacementShaderNode::initialize,
+                                   CArnoldDisplacementNode::id,
+                                   CArnoldDisplacementNode::creator,
+                                   CArnoldDisplacementNode::initialize,
                                    MPxNode::kDependNode,
                                    &displacementWithSwatch);
       CHECK_MSTATUS(status);
@@ -103,9 +109,9 @@ namespace // <anonymous>
       MString lightNoSwatch         = CLASSIFY_SHADER_LIGHT
                                     + ":" + ARNOLD_CLASSIFY(CLASSIFY_SHADER_LIGHT);
       status = plugin.registerNode("aiSkyDomeLight",
-                                   CArnoldSkyDomeLightShaderNode::id,
-                                   CArnoldSkyDomeLightShaderNode::creator,
-                                   CArnoldSkyDomeLightShaderNode::initialize,
+                                   CArnoldSkyDomeLightNode::id,
+                                   CArnoldSkyDomeLightNode::creator,
+                                   CArnoldSkyDomeLightNode::initialize,
                                    MPxNode::kLocatorNode,
                                    &lightWithSwatch);
                                    // &lightNoSwatch);
@@ -117,9 +123,9 @@ namespace // <anonymous>
                                     + ":" + ARNOLD_CLASSIFY(CLASSIFY_SHADER_ENVIRONMENT)
                                     + ":swatch/" + ARNOLD_SWATCH;
       status = plugin.registerNode("aiSky",
-                                   CArnoldSkyShaderNode::id,
-                                   CArnoldSkyShaderNode::creator,
-                                   CArnoldSkyShaderNode::initialize,
+                                   CArnoldSkyNode::id,
+                                   CArnoldSkyNode::creator,
+                                   CArnoldSkyNode::initialize,
                                    MPxNode::kLocatorNode,
                                    &environmentWithSwatch);
       CHECK_MSTATUS(status);
@@ -132,10 +138,7 @@ namespace // <anonymous>
       // Override for builtins for specific cases
       builtin->RegisterTranslator("aiOptions",
                                   "",
-                                  CRenderOptionsTranslator::creator);
-      builtin->RegisterTranslator("surfaceShader",
-                                  "",
-                                  CSurfaceShaderTranslator::creator);
+                                  COptionsTranslator::creator);
       builtin->RegisterTranslator("lambert",
                                   "",
                                   CLambertTranslator::creator);
@@ -166,7 +169,8 @@ namespace // <anonymous>
                                    CLightTranslator::NodeInitializer);
        builtin->RegisterTranslator("aiSkyDomeLight",
                                    "",
-                                   CSkyDomeLightTranslator::creator);
+                                   CSkyDomeLightTranslator::creator,
+                                   CSkyDomeLightTranslator::NodeInitializer);
        // Geometry
        builtin->RegisterTranslator("mesh",
                                    "",
@@ -249,7 +253,7 @@ namespace // <anonymous>
       // Will load all found plugins and try to register nodes and translators
       // for the new Arnold node each create. A CExtension is initialized.
       status = CExtensionsManager::LoadExtensions();
-      // status = CExtensionsManager::LoadArnoldPlugins();
+      status = CExtensionsManager::LoadArnoldPlugins();
       // Finally register all nodes from the loaded extensions with Maya in load order
       CExtensionsManager::RegisterExtensions();
 
@@ -276,9 +280,9 @@ namespace // <anonymous>
 
       // Render Options
       // Remove creation callback
-      MDGMessage::removeCallback(CArnoldRenderOptionsNode::sId);
+      MDGMessage::removeCallback(CArnoldOptionsNode::sId);
       // Deregister node
-      status = plugin.deregisterNode(CArnoldRenderOptionsNode::id);
+      status = plugin.deregisterNode(CArnoldOptionsNode::id);
       CHECK_MSTATUS(status);
 
       // AOV
@@ -286,11 +290,15 @@ namespace // <anonymous>
       CHECK_MSTATUS(status);
 
       // Displacement Shaders
-      status = plugin.deregisterNode(CArnoldDisplacementShaderNode::id);
+      status = plugin.deregisterNode(CArnoldDisplacementNode::id);
+      CHECK_MSTATUS(status);
+
+      // Sky dome light
+      status = plugin.deregisterNode(CArnoldSkyDomeLightNode::id);
       CHECK_MSTATUS(status);
 
       // Environment or Volume shaders
-      status = plugin.deregisterNode(CArnoldSkyShaderNode::id);
+      status = plugin.deregisterNode(CArnoldSkyNode::id);
       CHECK_MSTATUS(status);
 
       return status;
@@ -305,7 +313,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    MFnPlugin plugin(object, MTOA_VENDOR, MTOA_VERSION, MAYA_VERSION);
 
    AiBegin();
-   SetupMtoaLogging();
+   MtoaSetupLogging();
 
    // TODO: Add proper checking and handling of returned status
    status = plugin.registerCommand("arnoldRender", CArnoldRenderCmd::creator, CArnoldRenderCmd::newSyntax);
@@ -324,13 +332,12 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    MString loadpath = plugin.loadPath();
    MString metafile = loadpath + "/" + "mtoa.mtd";
    AtBoolean readMetaSuccess = AiMetaDataLoadFile(metafile.asChar());
-   if (!readMetaSuccess) AiMsgError("Could not read mtoa built-in metadata file mtoa.mtd");
+   if (!readMetaSuccess) AiMsgError("[mtoa] Could not read mtoa built-in metadata file mtoa.mtd");
 
    RegisterArnoldNodes(object);
 
    MGlobal::executePythonCommand(MString("import mtoa.cmds.registerArnoldRenderer;mtoa.cmds.registerArnoldRenderer.registerArnoldRenderer()"));
 
-   AiMsgResetCallback();
    AiEnd();
 
    return MS::kSuccess;
@@ -342,7 +349,7 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
    MFnPlugin plugin(object);
 
    AiBegin();
-   SetupMtoaLogging();
+   MtoaSetupLogging();
 
    MGlobal::executePythonCommand(MString("import mtoa.cmds.unregisterArnoldRenderer;mtoa.cmds.unregisterArnoldRenderer.unregisterArnoldRenderer()"));
 

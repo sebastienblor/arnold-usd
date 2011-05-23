@@ -23,7 +23,7 @@ _translatorDefaults = {}
 def registerCustomAttrTemplate(nodeType, func):
     global _customAttrTemplates
     assert callable(func), "you must pass a callable object"
-    print "registering custom attr template for %s" % nodeType
+    print "[mtoa] registering custom attr template for %s" % nodeType
     _customAttrTemplates[nodeType] = func
 
 def getCustomAttrTemplate(nodeType):
@@ -57,14 +57,14 @@ def registerDefaultTranslator(nodeType, stringOrFunc):
         getFunc = lambda nodeType: stringOrFunc
         def setFunc(nodeName):
             try:
-                cmds.setAttr(nodeName + ".arnoldTranslator", stringOrFunc, type='string')
+                cmds.setAttr(nodeName + ".aiTranslator", stringOrFunc, type='string')
             except RuntimeError:
                 cmds.warning("failed to set default translator for %s" % nodeName)
     elif callable(stringOrFunc):
         getFunc = stringOrFunc
         def setFunc(nodeName):
             try:
-                cmds.setAttr(nodeName + ".arnoldTranslator", getFunc(nodeName), type='string')
+                cmds.setAttr(nodeName + ".aiTranslator", getFunc(nodeName), type='string')
             except RuntimeError:
                 cmds.warning("failed to set default translator for %s" % nodeName)
     else:
@@ -74,7 +74,7 @@ def registerDefaultTranslator(nodeType, stringOrFunc):
  
     # set defaults for existing nodes
     for node in cmds.ls(type=nodeType):
-        # this will set arnoldTranslator if it is not set
+        # this will set aiTranslator if it is not set
         getCurrentTranslator(node)
 
     callbacks.addNodeAddedCallback(setFunc, nodeType)
@@ -97,7 +97,10 @@ def getCurrentTranslator(nodeName):
     """
     get the current translator for this node, querying and setting the default if not yet set
     """
-    transName = cmds.getAttr(nodeName + ".arnoldTranslator")
+    try :
+        transName = cmds.getAttr(nodeName + ".aiTranslator")
+    except :
+        transName = None
     if not transName:
         # set default
         transName = getDefaultTranslator(nodeName)
@@ -107,7 +110,10 @@ def getCurrentTranslator(nodeName):
                 cmds.warning("cannot find default translator for %s" % nodeName)
                 return
             transName = translators[0]
-        cmds.setAttr(nodeName + ".arnoldTranslator", transName, type='string')
+        try :
+            cmds.setAttr(nodeName + ".aiTranslator", transName, type='string')
+        except :
+            pass
     return transName
 
 #-------------------------------------------------
@@ -248,19 +254,19 @@ def updateTranslatorUICallback(attr):
     to set things up.
     """
     nodeName = attr.split('.')[0]
-    updateTranslatorUI(attr, cmds.getAttr(nodeName + '.arnoldTranslator'))
+    updateTranslatorUI(attr, cmds.getAttr(nodeName + '.aiTranslator'))
 
 def updateTranslatorUI(attr, currentTranslator):
     """
     update the translator UI, which consists of an optionMenuGrp and a frameLayout per translator,
     so that only the frameLayout corresponding to the currently selected translator is visible
     """
-    if not cmds.layout('arnoldTranslatorOMG', exists=True):
+    if not cmds.layout('aiTranslatorOMG', exists=True):
         # not built yet
         return
     nodeName = attr.split('.')[0]
     nodeType = cmds.objectType(nodeName)
-    fullpath = cmds.layout('arnoldTranslatorOMG', query=True, fullPathName=True)
+    fullpath = cmds.layout('aiTranslatorOMG', query=True, fullPathName=True)
     # get the grand-parent
     gparent = fullpath.rsplit('|', 2)[0]
     children = cmds.layout(gparent, query=True, childArray=True)
@@ -282,7 +288,7 @@ def updateTranslatorUI(attr, currentTranslator):
 
 def translatorListCB(attr, currentTranslator):
     """
-    called with the translator optionMenuGrp (arnoldTranslatorOMG) changes
+    called with the translator optionMenuGrp (aiTranslatorOMG) changes
     """
     cmds.setAttr(attr, currentTranslator, type='string')
     updateTranslatorUI(attr, currentTranslator)
@@ -292,7 +298,7 @@ def translatorListNew(attr):
     called to create an optionMenuGrp for choosing between multiple translator options for a given node
     """
     nodeName = attr.split('.')[0]
-    cmds.optionMenuGrp('arnoldTranslatorOMG', label='Arnold Translator', cc=lambda *args: translatorListCB(attr, args[0]))
+    cmds.optionMenuGrp('aiTranslatorOMG', label='Arnold Translator', cc=lambda *args: translatorListCB(attr, args[0]))
     # create menu items
     translators = cmds.arnoldPlugins(listTranslators=nodeName)
     for tran in translators:
@@ -300,7 +306,7 @@ def translatorListNew(attr):
     cmds.setParent(menu=True)
 
     transName = getCurrentTranslator(nodeName)
-    cmds.optionMenuGrp('arnoldTranslatorOMG', edit=True, value=transName)
+    cmds.optionMenuGrp('aiTranslatorOMG', edit=True, value=transName)
 
 def translatorListReplace(attr):
     """
@@ -308,18 +314,18 @@ def translatorListReplace(attr):
     """
     nodeName = attr.split('.')[0]
     # delete current options
-    translators = cmds.optionMenuGrp('arnoldTranslatorOMG', q=True, itemListLong=True)
+    translators = cmds.optionMenuGrp('aiTranslatorOMG', q=True, itemListLong=True)
     for tran in translators:
         cmds.deleteUI(tran, menuItem=True)
 
     # populate with a fresh list
-    parent = cmds.setParent('arnoldTranslatorOMG')
+    parent = cmds.setParent('aiTranslatorOMG')
     translators = cmds.arnoldPlugins(listTranslators=nodeName)
     for tran in translators:
         cmds.menuItem(label=tran, parent=parent + '|OptionMenu')
 
     transName = getCurrentTranslator(nodeName)
-    cmds.optionMenuGrp('arnoldTranslatorOMG', edit=True, value=transName, cc=lambda *args: translatorListCB(attr, args[0]))
+    cmds.optionMenuGrp('aiTranslatorOMG', edit=True, value=transName, cc=lambda *args: translatorListCB(attr, args[0]))
     updateTranslatorUI(attr, transName)
 
 def _makeBuildCallback(nodeType, translatorName):
@@ -356,7 +362,7 @@ def shapeTemplate(nodeName):
         cmds.editorTemplate(beginLayout="Arnold")
         if len(allTranslators) > 1:
             # if there is more than one translator, we group each in its own layout
-            cmds.editorTemplate(aeCallback(translatorListNew), aeCallback(translatorListReplace), "arnoldTranslator", callCustom=True)
+            cmds.editorTemplate(aeCallback(translatorListNew), aeCallback(translatorListReplace), "aiTranslator", callCustom=True)
             for translator in allTranslators:
                 # we always create a layout, even if it's empty
                 cmds.editorTemplate(beginLayout=translator, collapse=False)
@@ -364,7 +370,7 @@ def shapeTemplate(nodeName):
                     builder = translatorTemplates[translator]
                     cmds.editorTemplate(_makeBuildCallback(nodeType, translator), 
                                         _makeUpdateCallback(nodeType, translator),
-                                        "arnoldTranslator",
+                                        "aiTranslator",
                                         callCustom=True)
                     for attr in builder.getAttributes():
                         cmds.editorTemplate(suppress=attr)
@@ -374,7 +380,7 @@ def shapeTemplate(nodeName):
             # to ensure we get a callback after the AE ui elements have been built: normal controls can get
             # an update callback, but we don't have any normal controls around, so we'll have to make one and
             # hide it
-            cmds.editorTemplate("arnoldTranslator", aeCallback(updateTranslatorUICallback), addDynamicControl=True, label='hide_me')
+            cmds.editorTemplate("aiTranslator", aeCallback(updateTranslatorUICallback), addDynamicControl=True, label='hide_me')
         else:
             translator = allTranslators[0]
             if basicTemplate:

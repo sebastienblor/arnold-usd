@@ -26,6 +26,7 @@
 #include <maya/MMessage.h>
 #include <maya/MEventMessage.h>
 #include <maya/MDGMessage.h>
+#include <maya/MFnMatrixData.h>
 
 std::vector< CNodeTranslator * > CMayaScene::s_translatorsToIPRUpdate;
 MCallbackId CMayaScene::s_IPRIdleCallbackId = 0;
@@ -45,7 +46,7 @@ CMayaScene::~CMayaScene()
    ObjectToTranslatorMap::iterator it;
    for(it = m_processedTranslators.begin(); it != m_processedTranslators.end(); ++it)
    {
-      AiMsgDebug("Deleting translator for %s", MFnDependencyNode(it->first.object()).name().asChar());
+      AiMsgDebug("[mtoa] Deleting translator for %s", MFnDependencyNode(it->first.object()).name().asChar());
       delete it->second;
    }
    m_processedTranslators.clear();
@@ -58,7 +59,7 @@ CMayaScene::~CMayaScene()
       for(instIt = dagIt->second.begin(); instIt != dagIt->second.end(); ++instIt)
       {
          MFnDagNode fnDag(dagIt->first.object());
-         AiMsgDebug("Deleting translator for %s [%d]", fnDag.fullPathName().asChar(), instIt->first);
+         AiMsgDebug("[mtoa] Deleting translator for %s [%d]", fnDag.fullPathName().asChar(), instIt->first);
          delete instIt->second;
       }
    }
@@ -96,7 +97,7 @@ MStatus CMayaScene::ExportToArnold()
    if (mb)
    {
       // first step is the real export
-      AiMsgDebug("Exporting step 0 at frame %f", m_motionBlurData.frames[0]);
+      AiMsgDebug("[mtoa] Exporting step 0 at frame %f", m_motionBlurData.frames[0]);
       MGlobal::viewFrame(MTime(m_motionBlurData.frames[0], MTime::uiUnit()));
    }
    // First "real" export
@@ -137,7 +138,7 @@ MStatus CMayaScene::ExportToArnold()
    }
    else
    {
-      AiMsgError("Unsupported export mode: %d", exportMode);
+      AiMsgError("[mtoa] Unsupported export mode: %d", exportMode);
       return MStatus::kFailure;
    }
 
@@ -148,7 +149,7 @@ MStatus CMayaScene::ExportToArnold()
       for (AtUInt step = 1; step < m_motionBlurData.motion_steps; ++step)
       {
          MGlobal::viewFrame(MTime(m_motionBlurData.frames[step], MTime::uiUnit()));
-         AiMsgDebug("Exporting step %d at frame %f", step, m_motionBlurData.frames[step]);
+         AiMsgDebug("[mtoa] Exporting step %d at frame %f", step, m_motionBlurData.frames[step]);
          // then, loop through the already processed dag translators and export for current step
          ObjectToDagTranslatorMap::iterator dagIt;
          for(dagIt = m_processedDagTranslators.begin(); dagIt != m_processedDagTranslators.end(); ++dagIt)
@@ -254,7 +255,7 @@ MStatus CMayaScene::ExportCameras()
       }
       else
       {
-         AiMsgError("Could not get path for Maya cameras DAG iterator.");
+         AiMsgError("[mtoa] Could not get path for Maya cameras DAG iterator.");
          status = MS::kFailure;
       }
    }
@@ -294,7 +295,7 @@ MStatus CMayaScene::ExportLights()
       }
       else
       {
-         AiMsgError("Could not get path for Maya lights DAG iterator.");
+         AiMsgError("[mtoa] Could not get path for Maya lights DAG iterator.");
          status = MS::kFailure;
       }
    }
@@ -336,7 +337,7 @@ MStatus CMayaScene::ExportScene()
       }
       else
       {
-         AiMsgError("Could not get path for Maya DAG iterator.");
+         AiMsgError("[mtoa] Could not get path for Maya DAG iterator.");
          status = MS::kFailure;
       }
    }
@@ -461,7 +462,7 @@ AtNode* CMayaScene::ExportDagPath(MDagPath &dagPath)
    int instanceNum = dagPath.instanceNumber();
    MString name = dagPath.partialPathName();
    MString type = MFnDagNode(dagPath).typeName();
-   AiMsgDebug("Exporting dag node %s of type %s", name.asChar(), type.asChar());
+   AiMsgDebug("[mtoa] Exporting dag node %s of type %s", name.asChar(), type.asChar());
    // early out for nodes that have already been processed
    ObjectToDagTranslatorMap::iterator it = m_processedDagTranslators.find(handle);
    if (it != m_processedDagTranslators.end() && it->second.count(instanceNum))
@@ -477,7 +478,7 @@ AtNode* CMayaScene::ExportDagPath(MDagPath &dagPath)
    }
    else
    {
-      AiMsgDebug("Dag node %s of type %s ignored", name.asChar(), type.asChar());
+      AiMsgDebug("[mtoa] Dag node %s of type %s ignored", name.asChar(), type.asChar());
    }
    return NULL;
 }
@@ -533,7 +534,7 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
    }
    else
    {
-      AiMsgDebug("Shader type not supported: %s", MFnDependencyNode(mayaShader).typeName().asChar());
+      AiMsgDebug("[mtoa] Shader type not supported: %s", MFnDependencyNode(mayaShader).typeName().asChar());
    }
 
    if (shader)
@@ -545,6 +546,242 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
       m_processedShaders.push_back(data);
    }
    return shader;
+}
+
+// This is a shortcut for Arnold shaders (parameter name is the same in Maya and Arnold)
+#define SHADER_PARAM(name, type) ProcessShaderParameter(mayaShader, name, shader, name, type)
+
+void CMayaScene::ProcessShaderParameter(MFnDependencyNode shader, const char* param, AtNode* arnoldShader, const char* arnoldAttrib, int arnoldAttribType, int element)
+{
+   MPlugArray connections;
+
+   MPlug plug = shader.findPlug(param);
+   if (element >= 0)
+      plug = plug.elementByPhysicalIndex(element);
+   if (!plug.isIgnoredWhenRendering())
+      plug.connectedTo(connections, true, false);
+   if (connections.length() == 0)
+   {
+      switch(arnoldAttribType)
+      {
+      case AI_TYPE_RGB:
+         {
+            bool compConnected = false;
+            for (unsigned int i=0; i < 3; i++)
+            {
+               plug.child(i).connectedTo(connections, true, false);
+               if (connections.length() > 0)
+               {
+                  compConnected = true;
+                  MString attrName = connections[0].partialName(false, false, false, false, false, true);
+                  MString compAttrName(arnoldAttrib);
+                  switch(i)
+                  {
+                  case 0:
+                     compAttrName += ".r";
+                     break;
+                  case 1:
+                     compAttrName += ".g";
+                     break;
+                  case 2:
+                     compAttrName += ".b";
+                     break;
+                  }
+                  AtNode* node = ExportShader(connections[0].node(), attrName);
+                  if (node != NULL)
+                     AiNodeLink(node, compAttrName.asChar(), arnoldShader);
+               }
+            }
+            if (!compConnected)
+               AiNodeSetRGB(arnoldShader, arnoldAttrib, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+         }
+         break;
+      case AI_TYPE_RGBA:
+         {
+            // Is the source parameter RGB or RGBA?
+            if (plug.numChildren() == 4)
+            {
+               AiNodeSetRGBA(arnoldShader, arnoldAttrib, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat(), plug.child(3).asFloat());
+            }
+            else
+            {
+               bool compConnected = false;
+               for (unsigned int i=0; i < 3; i++)
+               {
+                  plug.child(i).connectedTo(connections, true, false);
+                  if (connections.length() > 0)
+                  {
+                     compConnected = true;
+                     MString attrName = connections[0].partialName(false, false, false, false, false, true);
+                     MString compAttrName(arnoldAttrib);
+                     switch(i)
+                     {
+                     case 0:
+                        compAttrName += ".r";
+                        break;
+                     case 1:
+                        compAttrName += ".g";
+                        break;
+                     case 2:
+                        compAttrName += ".b";
+                        break;
+                     }
+                     AtNode* node = ExportShader(connections[0].node(), attrName);
+                     if (node != NULL)
+                        AiNodeLink(node, compAttrName.asChar(), arnoldShader);
+                  }
+               }
+               if (!compConnected)
+                  // For RGB source parameter, set alpha value to 1
+                  AiNodeSetRGBA(arnoldShader, arnoldAttrib, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat(), 1);
+            }
+         }
+         break;
+      case AI_TYPE_FLOAT:
+         {
+            AiNodeSetFlt(arnoldShader, arnoldAttrib, plug.asFloat());
+         }
+         break;
+      case AI_TYPE_POINT2:
+         {
+            bool compConnected = false;
+            for (unsigned int i=0; i < 2; i++)
+            {
+               plug.child(i).connectedTo(connections, true, false);
+               if (connections.length() > 0)
+               {
+                  compConnected = true;
+                  MString attrName = connections[0].partialName(false, false, false, false, false, true);
+                  MString compAttrName(arnoldAttrib);
+                  switch(i)
+                  {
+                  case 0:
+                     compAttrName += ".x";
+                     break;
+                  case 1:
+                     compAttrName += ".y";
+                     break;
+                  }
+                  AtNode* node = ExportShader(connections[0].node(), attrName);
+                  if (node != NULL)
+                     AiNodeLink(node, compAttrName.asChar(), arnoldShader);
+               }
+            }
+            if (!compConnected)
+            {
+               float x, y;
+               MObject numObj = plug.asMObject();
+               MFnNumericData numData(numObj);
+               numData.getData2Float(x, y);
+               AiNodeSetPnt2(arnoldShader, arnoldAttrib, x, y);
+            }
+         }
+         break;
+      case AI_TYPE_MATRIX:
+         {
+            AtMatrix am;
+            MObject matObj = plug.asMObject();
+            MFnMatrixData matData(matObj);
+            MMatrix mm = matData.matrix();
+            ConvertMatrix(am, mm);
+            AiNodeSetMatrix(arnoldShader, arnoldAttrib, am);
+         }
+         break;
+      case AI_TYPE_BOOLEAN:
+         {
+            AiNodeSetBool(arnoldShader, arnoldAttrib, plug.asBool());
+         }
+         break;
+      case AI_TYPE_ENUM:
+         {
+            AiNodeSetInt(arnoldShader, arnoldAttrib, plug.asInt());
+         }
+         break;
+      case AI_TYPE_INT:
+         {
+            AiNodeSetInt(arnoldShader, arnoldAttrib, plug.asInt());
+         }
+         break;
+      case AI_TYPE_STRING:
+         {
+            AiNodeSetStr(arnoldShader, arnoldAttrib, plug.asString().asChar());
+         }
+         break;
+      case AI_TYPE_VECTOR:
+         {
+            bool compConnected = false;
+            for (unsigned int i=0; i < 3; i++)
+            {
+               plug.child(i).connectedTo(connections, true, false);
+               if (connections.length() > 0)
+               {
+                  compConnected = true;
+                  MString attrName = connections[0].partialName(false, false, false, false, false, true);
+                  MString compAttrName(arnoldAttrib);
+                  switch(i)
+                  {
+                  case 0:
+                     compAttrName += ".x";
+                     break;
+                  case 1:
+                     compAttrName += ".y";
+                     break;
+                  case 2:
+                     compAttrName += ".z";
+                     break;
+                  }
+                  AtNode* node = ExportShader(connections[0].node(), attrName);
+                  if (node != NULL)
+                     AiNodeLink(node, compAttrName.asChar(), arnoldShader);
+               }
+            }
+            if (!compConnected)
+               AiNodeSetVec(arnoldShader, arnoldAttrib, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+         }
+         break;
+      case AI_TYPE_POINT:
+         {
+            bool compConnected = false;
+            for (unsigned int i=0; i < 3; i++)
+            {
+               plug.child(i).connectedTo(connections, true, false);
+               if (connections.length() > 0)
+               {
+                  compConnected = true;
+                  MString attrName = connections[0].partialName(false, false, false, false, false, true);
+                  MString compAttrName(arnoldAttrib);
+                  switch(i)
+                  {
+                  case 0:
+                     compAttrName += ".x";
+                     break;
+                  case 1:
+                     compAttrName += ".y";
+                     break;
+                  case 2:
+                     compAttrName += ".z";
+                     break;
+                  }
+                  AtNode* node = ExportShader(connections[0].node(), attrName);
+                  if (node != NULL)
+                     AiNodeLink(node, compAttrName.asChar(), arnoldShader);
+               }
+            }
+            if (!compConnected)
+               AiNodeSetPnt(arnoldShader, arnoldAttrib, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+         }
+         break;
+      }
+   }
+   else
+   {
+      MString attrName = connections[0].partialName(false, false, false, false, false, true);
+
+      AtNode* node = ExportShader(connections[0].node(), attrName);
+
+      if (node != NULL)
+         AiNodeLink(node, arnoldAttrib, arnoldShader);
+   }
 }
 
 CNodeTranslator * CMayaScene::GetActiveTranslator(const MObject node)
@@ -616,7 +853,7 @@ void CMayaScene::IPRNewNodeCallback(MObject & node, void *)
    const MStatus status = dag_node.getPath(path);
    if (status == MS::kSuccess)
    {
-      AiMsgDebug("Exporting new node: %s", path.partialPathName().asChar());
+      AiMsgDebug("[mtoa] Exporting new node: %s", path.partialPathName().asChar());
       renderSession->GetMayaScene()->ExportDagPath(path);
       renderSession->GetMayaScene()->UpdateIPR();
    }

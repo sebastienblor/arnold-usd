@@ -6,56 +6,56 @@ from mtoa.ui.ae.shapeTemplate import registerUI, registerDefaultTranslator, Arno
 import mtoa.callbacks as callbacks
 
 def overrideSssToggle(attrName):
-    if cmds.getAttr(attrName+".override_sss_samples"):
-        cmds.editorTemplate(dimControl=(attrName, "sssSamples", False))
+    if cmds.getAttr(attrName+".aiOverrideSssSamples"):
+        cmds.editorTemplate(dimControl=(attrName, "aiSssSamples", False))
     else:
-        cmds.editorTemplate(dimControl=(attrName, "sssSamples", True))
+        cmds.editorTemplate(dimControl=(attrName, "aiSssSamples", True))
 
 def commonLightAttributes(nodeName):
-    cmds.editorTemplate("normalize", addDynamicControl=True)
-    cmds.editorTemplate("bounceFactor", addDynamicControl=True)
-    cmds.editorTemplate("bounces", addDynamicControl=True)
+    cmds.editorTemplate("aiNormalize", label="Normalize", addDynamicControl=True)
+    cmds.editorTemplate("aiBounceFactor", label="Bounce Factor", addDynamicControl=True)
+    cmds.editorTemplate("aiBounces", label="Bounces", addDynamicControl=True)
 
     cmds.editorTemplate(addSeparator=True)
 
-    cmds.editorTemplate("override_sss_samples", aeCallback(overrideSssToggle), label="Override SSS Samples", addDynamicControl=True)
-    cmds.editorTemplate("sssSamples", label="SSS Samples", addDynamicControl=True)
+    cmds.editorTemplate("aiOverrideSssSamples", aeCallback(overrideSssToggle), label="Override SSS Samples", addDynamicControl=True)
+    cmds.editorTemplate("aiSssSamples", label="SSS Samples", addDynamicControl=True)
 
     cmds.editorTemplate(beginLayout="Light Filters")
 
-    cmds.editorTemplate(aeCallback(lightFiltersTemplate.customLightFiltersNew), aeCallback(lightFiltersTemplate.customLightFiltersReplace), "light_filters", callCustom=True)
+    cmds.editorTemplate(aeCallback(lightFiltersTemplate.customLightFiltersNew), aeCallback(lightFiltersTemplate.customLightFiltersReplace), "aiLightFilters", callCustom=True)
 
     cmds.editorTemplate(endLayout=True)
 
 
 def commonShapeAttributes(nodeName):
-    cmds.editorTemplate("selfShadows", addDynamicControl=True)
-    cmds.editorTemplate("opaque", addDynamicControl=True)
-    cmds.editorTemplate("visibleInDiffuse", addDynamicControl=True)
-    cmds.editorTemplate("visibleInGlossy", addDynamicControl=True)    
+    cmds.editorTemplate("aiSelfShadows", label="Self Shadows", addDynamicControl=True)
+    cmds.editorTemplate("aiOpaque", label="Opaque", addDynamicControl=True)
+    cmds.editorTemplate("aiVisibleInDiffuse", label="Visible In Diffuse", addDynamicControl=True)
+    cmds.editorTemplate("aiVisibleInGlossy", label="Visible In Glossy", addDynamicControl=True)    
 
     cmds.editorTemplate(addSeparator=True)
 
-    cmds.editorTemplate("sssUseGi", label="SSS Use Gi", addDynamicControl=True)
-    cmds.editorTemplate("sssMaxSamples", label="SSS Max Samples", addDynamicControl=True)
-    cmds.editorTemplate("sssSampleSpacing", label="SSS Sample Spacing", addDynamicControl=True)
+    cmds.editorTemplate("aiSssUseGi", label="SSS Use Gi", addDynamicControl=True)
+    cmds.editorTemplate("aiSssMaxSamples", label="SSS Max Samples", addDynamicControl=True)
+    cmds.editorTemplate("aiSssSampleSpacing", label="SSS Sample Spacing", addDynamicControl=True)
 
 @registerUI("mesh")
 def builtin_mesh(nodeName):
     commonShapeAttributes(nodeName)
     cmds.editorTemplate(addSeparator=True)
 
-    cmds.editorTemplate("subdivType", addDynamicControl=True)
-    cmds.editorTemplate("subdivIterations", addDynamicControl=True)
-    cmds.editorTemplate("subdivAdaptiveMetric", addDynamicControl=True)
-    cmds.editorTemplate("subdivPixelError", addDynamicControl=True)
-    cmds.editorTemplate("subdivDicingCamera", addDynamicControl=True)
-    cmds.editorTemplate("subdivUvSmoothing", label="Subdiv UV Smoothing", addDynamicControl=True)
+    cmds.editorTemplate("aiSubdivType", label="Subdivision Type", addDynamicControl=True)
+    cmds.editorTemplate("aiSubdivIterations", label="Subdivision Iterations", addDynamicControl=True)
+    cmds.editorTemplate("aiSubdivAdaptiveMetric", label="Subdivision Adaptive Metric", addDynamicControl=True)
+    cmds.editorTemplate("aiSubdivPixelError", label="Subdivision Pixel Error", addDynamicControl=True)
+    cmds.editorTemplate("aiSubdivDicingCamera", label="Subdivision Dicing Camera", addDynamicControl=True)
+    cmds.editorTemplate("aiSubdivUvSmoothing", label="Subdivision UVs Smoothing", addDynamicControl=True)
 
     cmds.editorTemplate(addSeparator=True)
 
-    cmds.editorTemplate("exportTangents", addDynamicControl=True)
-    cmds.editorTemplate("exportColors", addDynamicControl=True)
+    cmds.editorTemplate("aiExportTangents", label="Export Tangents", addDynamicControl=True)
+    cmds.editorTemplate("aiExportColors", label="Export Colors", addDynamicControl=True)
 
     cmds.editorTemplate(addSeparator=True)
  
@@ -67,13 +67,13 @@ def builtin_hairSystem(nodeName):
     commonShapeAttributes(nodeName)
     cmds.editorTemplate(addSeparator=True)
 
-    cmds.editorTemplate("overrideHair", addDynamicControl=True)
-    cmds.editorTemplate("hairShader", addDynamicControl=True)
+    cmds.editorTemplate("aiOverrideHair", label="Override Hair", addDynamicControl=True)
+    cmds.editorTemplate("aiHairShader", label="Hair Shader", addDynamicControl=True)
 
     cmds.editorTemplate(addSeparator=True)
 
-    cmds.editorTemplate("minPixelWidth", addDynamicControl=True)
-    cmds.editorTemplate("mode", addDynamicControl=True)
+    cmds.editorTemplate("aiMinPixelWidth", label="Min Pixel Width", addDynamicControl=True)
+    cmds.editorTemplate("aiMode", label="Mode", addDynamicControl=True)
 
 @registerUI("ambientLight")
 def builtin_ambientLight(nodeName):
@@ -81,11 +81,11 @@ def builtin_ambientLight(nodeName):
 
 @registerUI("directionalLight")
 def builtin_directionalLight(nodeName):
-    cmds.editorTemplate("castShadows", addDynamicControl=True)
-    cmds.editorTemplate("exposure", addDynamicControl=True)
-    cmds.editorTemplate("angle", addDynamicControl=True)
-    cmds.editorTemplate("samples", addDynamicControl=True)
-    cmds.editorTemplate("mis", label="MIS", addDynamicControl=True)
+    cmds.editorTemplate("aiCastShadows", label="Cast Shadows", addDynamicControl=True)
+    cmds.editorTemplate("aiExposure", label="Exposure", addDynamicControl=True)
+    cmds.editorTemplate("aiAngle", label="Angle", addDynamicControl=True)
+    cmds.editorTemplate("aiSamples", label="Samples", addDynamicControl=True)
+    cmds.editorTemplate("aiMis", label="Multiple Importance Sampling", addDynamicControl=True)
 
     cmds.editorTemplate(addSeparator=True)
 
@@ -93,16 +93,16 @@ def builtin_directionalLight(nodeName):
 
 @registerUI("pointLight")
 def builtin_pointLight(nodeName):
-    cmds.editorTemplate("castShadows", addDynamicControl=True)
-    cmds.editorTemplate("exposure", addDynamicControl=True)
-    cmds.editorTemplate("radius", addDynamicControl=True)
-    cmds.editorTemplate("samples", addDynamicControl=True)
-    cmds.editorTemplate("mis", label="MIS", addDynamicControl=True)
+    cmds.editorTemplate("aiCastShadows", label="Cast Shadows", addDynamicControl=True)
+    cmds.editorTemplate("aiExposure", label="Exposure", addDynamicControl=True)
+    cmds.editorTemplate("aiRadius", label="Radius", addDynamicControl=True)
+    cmds.editorTemplate("aiSamples", label="Samples", addDynamicControl=True)
+    cmds.editorTemplate("aiMis", label="Multiple Importance Sampling", addDynamicControl=True)
 
     cmds.editorTemplate(addSeparator=True)
 
-    cmds.editorTemplate("affect_volumetrics", addControl=True)
-    cmds.editorTemplate("cast_volumetric_shadows", addControl=True)
+    cmds.editorTemplate("aiAffectVolumetrics", label="Affect Volumetrics", addControl=True)
+    cmds.editorTemplate("aiCastVolumetricShadows", label="Cast Volumetric Shadows", addControl=True)
 
     cmds.editorTemplate(addSeparator=True)
 
@@ -110,21 +110,21 @@ def builtin_pointLight(nodeName):
 
 @registerUI("spotLight")
 def builtin_spotLight(nodeName):
-    cmds.editorTemplate("castShadows", addDynamicControl=True)
-    cmds.editorTemplate("exposure", addDynamicControl=True)
-    cmds.editorTemplate("radius", addDynamicControl=True)
-    cmds.editorTemplate("samples", addDynamicControl=True)
-    cmds.editorTemplate("mis", label="MIS", addDynamicControl=True)
+    cmds.editorTemplate("aiCastShadows", label="Cast Shadows", addDynamicControl=True)
+    cmds.editorTemplate("aiExposure", label="Exposure", addDynamicControl=True)
+    cmds.editorTemplate("aiRadius", label="Radius", addDynamicControl=True)
+    cmds.editorTemplate("aiSamples", label="Samples", addDynamicControl=True)
+    cmds.editorTemplate("aiMis", label="Multiple Importance Sampling", addDynamicControl=True)
 
     cmds.editorTemplate(addSeparator=True)
 
-    cmds.editorTemplate("affect_volumetrics", addControl=True)
-    cmds.editorTemplate("cast_volumetric_shadows", addControl=True)
+    cmds.editorTemplate("aiAffectVolumetrics", label="Affect Volumetrics", addControl=True)
+    cmds.editorTemplate("aiCastVolumetricShadows", label="Cast Volumetric Shadows", addControl=True)
 
     cmds.editorTemplate(addSeparator=True)
 
-    cmds.editorTemplate("aspect_ratio", addControl=True)
-    cmds.editorTemplate( "lens_radius", addControl=True)
+    cmds.editorTemplate("aiAspectRatio", label="Aspect Ratio", addControl=True)
+    cmds.editorTemplate("aiLensRadius", label="Lens Radius", addControl=True)
 
     cmds.editorTemplate(addSeparator=True)
 
@@ -132,16 +132,16 @@ def builtin_spotLight(nodeName):
 
 @registerUI("areaLight")
 def builtin_areaLight(nodeName):
-    cmds.editorTemplate("castShadows", addDynamicControl=True)
-    cmds.editorTemplate("exposure", addDynamicControl=True)
-    cmds.editorTemplate("samples", addDynamicControl=True)
-    cmds.editorTemplate("mis", label="MIS", addDynamicControl=True)
+    cmds.editorTemplate("aiCastShadows", label="Cast Shadows", addDynamicControl=True)
+    cmds.editorTemplate("aiExposure", label="Exposure", addDynamicControl=True)
+    cmds.editorTemplate("aiSamples", label="Samples", addDynamicControl=True)
+    cmds.editorTemplate("aiMis", label="Multiple Importance Sampling", addDynamicControl=True)
 
     cmds.editorTemplate(addSeparator=True)
 
-    cmds.editorTemplate("resolution", label="Importance Map Resolution",addControl=True)
-    cmds.editorTemplate("affect_volumetrics", addControl=True)
-    cmds.editorTemplate("cast_volumetric_shadows", addControl=True)
+    cmds.editorTemplate("aiResolution", label="Importance Map Resolution",addControl=True)
+    cmds.editorTemplate("aiAffectVolumetrics", label="Affect Volumetrics", addControl=True)
+    cmds.editorTemplate("aiCastVolumetricShadows", label="Cast Volumetric Shadows", addControl=True)
 
     cmds.editorTemplate(addSeparator=True)
 
@@ -152,20 +152,20 @@ class CameraTemplate(ArnoldTranslatorTemplate):
     def __init__(self):
         ArnoldTranslatorTemplate.__init__(self)
     def addDOFAttributes(self):
-        self.addAttribute("enableDOF")
+        self.addAttribute("aiEnableDOF")
         self.addSeparator()
-        self.addAttribute("focalDistance")
-        self.addAttribute("apertureSize")
-        self.addAttribute("apertureBlades")
-        self.addAttribute("apertureBladeCurvature")
-        self.addAttribute("apertureRotation")
+        self.addAttribute("aiFocusDistance")
+        self.addAttribute("aiApertureSize")
+        self.addAttribute("aiApertureBlades")
+        self.addAttribute("aiApertureBladeCurvature")
+        self.addAttribute("aiApertureRotation")
 
 class PerspCameraTemplate(CameraTemplate):
     def __init__(self):
         CameraTemplate.__init__(self)
         self.addDOFAttributes()
         self.addSeparator()
-        self.addAttribute('uvRemap')
+        self.addAttribute('aiUvRemap')
 
 PerspCameraTemplate.register("camera", "perspective")
 
@@ -180,25 +180,25 @@ class FisheyeCameraTemplate(CameraTemplate):
         CameraTemplate.__init__(self)
         self.addDOFAttributes()
         self.addSeparator()
-        self.addAttribute('fov')
-        self.addAttribute('autocrop')
+        self.addAttribute('aiFov')
+        self.addAttribute('aiAutocrop')
 
 FisheyeCameraTemplate.register("camera", "fisheye")
 
 class CylCameraTemplate(CameraTemplate):
     def __init__(self):
         CameraTemplate.__init__(self)
-        self.addAttribute('horizontalFov')
-        self.addAttribute('verticalFov')
-        self.addAttribute('projective')
+        self.addAttribute('aiHorizontalFov')
+        self.addAttribute('aiVerticalFov')
+        self.addAttribute('aiProjective')
 
 CylCameraTemplate.register("camera", "cylindrical")
 
 def cameraOrthographicChanged(orthoPlug):
-    "called to sync .arnoldTranslator when .orthographic changes"
+    "called to sync .aiTranslator when .orthographic changes"
     fnCam = om.MFnCamera(orthoPlug.node())
     isOrtho = orthoPlug.asBool()
-    transPlug = fnCam.findPlug('arnoldTranslator')
+    transPlug = fnCam.findPlug('aiTranslator')
     currTrans = transPlug.asString()
     #print "cameraOrthographicChanged", fnCam.name(), currTrans, isOrtho
     newTrans = None
@@ -208,12 +208,12 @@ def cameraOrthographicChanged(orthoPlug):
         newTrans = 'perspective'
     #print "newTrans", newTrans
     if newTrans:
-        if cmds.optionMenuGrp('arnoldTranslatorOMG', exists=True):
-            cmds.optionMenuGrp('arnoldTranslatorOMG', edit=True, value=newTrans)
+        if cmds.optionMenuGrp('aiTranslatorOMG', exists=True):
+            cmds.optionMenuGrp('aiTranslatorOMG', edit=True, value=newTrans)
         transPlug.setString(newTrans)
 
 def cameraTranslatorChanged(transPlug):
-    "called to sync .orthographic when .arnoldTranslator changes"
+    "called to sync .orthographic when .aiTranslator changes"
     fnCam = om.MFnCamera(transPlug.node())
     currTrans = transPlug.asString()
     orthoPlug = fnCam.findPlug('orthographic')
@@ -239,7 +239,7 @@ registerDefaultTranslator('camera', getCameraDefault)
 
 print "Adding attribute changed callback for camera"
 callbacks.addAttributeChangedCallbacks('camera', 
-                                       [('arnoldTranslator', cameraTranslatorChanged),
+                                       [('aiTranslator', cameraTranslatorChanged),
                                         ('orthographic', cameraOrthographicChanged)])
 
 
