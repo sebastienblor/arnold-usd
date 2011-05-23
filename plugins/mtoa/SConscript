@@ -59,7 +59,6 @@ if system.os() == 'windows':
 else:
    MTOA = local_env.LoadableModule('mtoa', source_files, LIBPREFIX='')
 
-print "BUILD DIR", Dir('.').path
 local_env.Append(LIBPATH = [os.path.join(Dir('.').abspath, '..', 'api')])
 local_env.Append(LIBS = ['mtoa_api'])
 
@@ -90,6 +89,5 @@ else:
       local_env.Append(FRAMEWORKS=Split('OpenGl AGL'))
       local_env.Append(CPPPATH = '/System/Library/Frameworks/OpenGL.framework/Headers')
       local_env.Append(CPPPATH = '/System/Library/Frameworks/GLUT.framework/Headers')
-
 
    Return('MTOA')
