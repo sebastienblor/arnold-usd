@@ -4,27 +4,20 @@
 import sys, os
 sys.path = ["tools/python"] + sys.path
 
-import system
+import system, glob
 from build_tools import *
+from solidangle_tools import *
 
-import glob, shutil
+from colorama import init
+init()
+from colorama import Fore, Back, Style
 
-def SymLink(target, source, env):
-   print "making link %s pointing to target %s" % (target[0], source[0])
-   os.symlink(os.path.split(str(source[0]))[1], str(target[0]))
+# TODO: call get_mtoa_version() (in build_tools.py)
+MTOA_VERSION = "0.7.0"
 
-def MakeModule(env, target, source):
-   # TODO: call get_mtoa_version() (in build_tools.py)
-   # When symbols defined in the plug-in
-   if not os.path.exists(os.path.dirname(source[0])) and os.path.dirname(source[0]):
-      os.makedirs(os.path.dirname(source[0]))
-   f = open(source[0], 'w' )
-   f.write('+ mtoa 0.6 %s\n' % target[0])
-   f.close()
-
-def CreatePathDir(path):
-   if not os.path.exists(path):
-      os.makedirs(path)
+################################################################################
+#   Operating System detection
+################################################################################
 
 if system.os() == 'darwin':
    ALLOWED_COMPILERS = ('gcc',)   # Do not remove this comma, it's magic
@@ -36,15 +29,20 @@ else:
    print "Unknown operating system: %s" % system.os()
    Exit(1)
 
+################################################################################
+#   Build system options
+################################################################################
+
 vars = Variables('custom.py')
 vars.AddVariables(
       ## basic options
-      EnumVariable('MODE',        'Set compiler configuration', 'debug', allowed_values=('opt', 'debug', 'profile')),
-      EnumVariable('WARN_LEVEL',  'Set warning level',          'strict', allowed_values=('strict', 'warn-only', 'none')),
-      EnumVariable('COMPILER',    'Set compiler to use',        ALLOWED_COMPILERS[0], allowed_values=ALLOWED_COMPILERS),
+      EnumVariable('MODE'       , 'Set compiler configuration', 'debug'             , allowed_values=('opt', 'debug', 'profile')),
+      EnumVariable('WARN_LEVEL' , 'Set warning level'         , 'strict'            , allowed_values=('strict', 'warn-only', 'none')),
+      EnumVariable('COMPILER'   , 'Set compiler to use'       , ALLOWED_COMPILERS[0], allowed_values=ALLOWED_COMPILERS),
       EnumVariable('TARGET_ARCH', 'Allows compiling for a different architecture', system.host_arch(), allowed_values=system.get_valid_target_archs()),
-      BoolVariable('SHOW_CMDS',   'Display the actual command lines used for building', False),
+      BoolVariable('SHOW_CMDS'  , 'Display the actual command lines used for building', False),
 
+      BoolVariable('COLOR_CMDS' , 'Display colored output messages when building', False),
       EnumVariable('SHOW_TEST_OUTPUT', 'Display the test log as it is being run', 'single', allowed_values=('always', 'never', 'single')),
       BoolVariable('UPDATE_REFERENCE', 'Update the reference log/image for the specified targets', False),
       ('TEST_PATTERN' , 'Glob pattern of tests to be run', 'test_*'),
@@ -92,22 +90,21 @@ vars.AddVariables(
 )
 
 if system.os() == 'windows':
-   vars.Add(EnumVariable('MSVC_VERSION', 'Version of MS Visual Studio to use', '8.0', allowed_values=('8.0', '8.0Exp', '9.0', '9.0Exp')))
+   vars.Add(EnumVariable('MSVC_VERSION', 'Version of MS Visual Studio to use', '9.0', allowed_values=('8.0', '8.0Exp', '9.0', '9.0Exp')))
 
 if system.os() == 'windows':
    # Ugly hack. Create a temporary environment, without loading any tool, so we can set the MSVS_ARCH
    # variable from the contents of the TARGET_ARCH variable. Then we can load tools.
    tmp_env = Environment(variables = vars, tools=[])
    if tmp_env['TARGET_ARCH'] == 'x86_64':
-      tmp_env.Append(MSVS_ARCH = 'amd64')
+      tmp_env.Append(MSVC_ARCH = 'amd64')
    else:
-      tmp_env.Append(MSVS_ARCH = 'x86')
+      tmp_env.Append(MSVC_ARCH = 'x86')
    env = tmp_env.Clone(tools=['default'])
 else:
    env = Environment(variables = vars)
 
-env.Append(BUILDERS = {'MakeModule' : MakeModule})
-
+env.Append(BUILDERS = {'MakeModule' : make_module})
 
 if env['TARGET_MODULE_PATH'] == '.':
    print "Please define TARGET_MODULE_PATH (Path used for installation of the mtoa plugin)"
@@ -115,29 +112,56 @@ if env['TARGET_MODULE_PATH'] == '.':
 
 system.set_target_arch(env['TARGET_ARCH'])
 
-if len(BUILD_TARGETS) > 0:
-   ## This message is not too clear. We should make it easier to read.
-   print "Building mtoa version '%s'. Mode = '%s'" % ('<not available>', env['MODE'])
-   print "Host OS: '%s', host architecture: '%s', target architecture: '%s'" % (system.os(), system.host_arch(), system.target_arch())
-   print "Arnold version '%s'" % get_arnold_version(os.path.join(env['ARNOLD_API_INCLUDES'], 'ai_version.h'))
+# Configure colored output
+color_green   = ''
+color_red     = ''
+color_bright  = ''
+color_bgreen  = ''
+color_bred    = ''
+color_reset   = ''
+if env['COLOR_CMDS']:
+   color_green   = Fore.GREEN
+   color_red     = Fore.RED
+   color_bright  = Style.BRIGHT
+   color_bgreen  = color_green + color_bright
+   color_bred    = color_red   + color_bright
+   color_reset   = Fore.RESET + Back.RESET + Style.RESET_ALL
+
+print ''
+print 'Building       : ' + 'MtoA %s' % (MTOA_VERSION)
+print 'Arnold version : ' + get_arnold_version(os.path.join(env['ARNOLD_API_INCLUDES'], 'ai_version.h'))
+print 'Mode           : %s' % (env['MODE'])
+print 'Host OS        : %s' % (system.os())
+print 'Host arch.     : %s' % (system.host_arch())
+print 'Target arch.   : %s' % (system.target_arch())
+print ''
 
 ################################
 ## COMPILER OPTIONS
 ################################
 
-if system.os() == 'darwin':
-   env.Append(CPPDEFINES = Split('_DARWIN OSMac_'))
-elif system.os() == 'linux':
-   env.Append(CPPDEFINES = Split('_LINUX'))
-elif system.os() == 'windows':
+## Generic Windows stuff
+if system.os() == 'windows':
    # Embed manifest in executables and dynamic libraries
    env['LINKCOM'] = [env['LINKCOM'], 'mt.exe -nologo -manifest ${TARGET}.manifest -outputresource:$TARGET;1']
    env['SHLINKCOM'] = [env['SHLINKCOM'], 'mt.exe -nologo -manifest ${TARGET}.manifest -outputresource:$TARGET;2']
-   env.Append(CPPDEFINES = Split('_WINDOWS _WIN32 WIN32'))
-   if system.target_arch() == 'x86_64':
-      env.Append(CPPDEFINES = Split('_WIN64'))
+
+export_symbols = env['MODE'] in ['debug', 'profile']
 
 if env['COMPILER'] == 'gcc':
+   env.Append(CXXFLAGS = Split('-fno-rtti'))
+
+   ## Hide all internal symbols (the ones without AI_API decoration)
+   if env['MODE'] == 'opt':
+      env.Append(CCFLAGS = Split('-fvisibility=hidden'))
+      env.Append(CXXFLAGS = Split('-fvisibility=hidden'))
+      env.Append(LINKFLAGS = Split('-fvisibility=hidden'))
+
+   ## Hardcode '.' directory in RPATH in linux
+   if system.os() == 'linux':
+      env.Append(LINKFLAGS = Split('-z origin') )
+      env.Append(RPATH = env.Literal(os.path.join('\\$$ORIGIN', '..', 'lib')))
+
    ## warning level
    if env['WARN_LEVEL'] == 'none':
       env.Append(CCFLAGS = Split('-w'))
@@ -171,48 +195,121 @@ if env['COMPILER'] == 'gcc':
          env.Append(LINKFLAGS = Split('-arch i386'))
 
 elif env['COMPILER'] == 'msvc':
-   env.Append(CCFLAGS = Split('/W3 -D_CRT_SECURE_NO_WARNINGS /EHsc /Gd /fp:precise'))
-   env.Append(LINKFLAGS = Split('/LARGEADDRESSAWARE'))
+   MSVC_FLAGS  = " /W3"         # Warning level : 3
+   MSVC_FLAGS += " /EHsc"       # enable synchronous C++ exception handling model & 
+                                # assume extern "C" functions do not throw exceptions
+   MSVC_FLAGS += " /Gd"         # makes __cdecl the default calling convention 
+   MSVC_FLAGS += " /fp:precise" # precise floating point model: results are predictable
+
+   if env['WARN_LEVEL'] == 'strict':
+      MSVC_FLAGS += " /WX"  # treats warnings as errors
+
+   if export_symbols:
+      MSVC_FLAGS += " /Zi"      # generates complete debug information
+
+   LINK_FLAGS  = " /LARGEADDRESSAWARE"
+
+   if env['MODE'] in ['opt', 'profile']:
+      MSVC_FLAGS += " /Ob2"    # enables inlining of ANY function (compiler discretion)
+      MSVC_FLAGS += " /GL"     # enables whole program optimization
+      MSVC_FLAGS += " /MD"        # uses multithreaded DLL runtime library
+      MSVC_FLAGS += " /Ox"        # selects maximum optimization
+      MSVC_FLAGS += " /arch:SSE2" # enables use of SSE2 instructions
+      LINK_FLAGS += " /LTCG"   # enables link time code generation (needed by /GL)
+   else:  ## Debug mode
+      MSVC_FLAGS += " /Od"   # disables all optimizations
+      MSVC_FLAGS += " /MD"   # uses *NON-DEBUG* multithreaded DLL runtime library
+
+      LINK_FLAGS += " /DEBUG"
+
+   env.Append(CCFLAGS = Split(MSVC_FLAGS))
+   env.Append(LINKFLAGS = Split(LINK_FLAGS))
    
    if env['MODE'] == 'opt':
-      env.Append(CCFLAGS = Split('/Ob2 /MD'))
       env.Append(CPPDEFINES = Split('NDEBUG'))
-   elif env['MODE'] == 'profile':
-      env.Append(CCFLAGS = Split('/Ob2 /MD /Zi'))
-   else:  ## Debug mode
-      env.Append(CCFLAGS = Split('/Od /Zi /MDd'))
-      env.Append(LINKFLAGS = Split('/DEBUG'))
-      env.Append(CPPDEFINES = Split('_DEBUG'))
+# We cannot enable this define, as it will try to use symbols from the debug runtime library  
+#   if env['MODE'] == 'debug':
+#      env.Append(CPPDEFINES = Split('_DEBUG'))
+
+      env.Append(CPPDEFINES = Split('_CRT_SECURE_NO_WARNINGS'))
 elif env['COMPILER'] == 'icc':
    if system.target_arch() == 'x86_64':
       env.Tool('intelc', abi = 'intel64')
    else:
       env.Tool('intelc', abi = 'x86')
    
-   env.Append(CCFLAGS = Split('/W3 /Qstd=c99 /EHsc /GS /GR /Qprec /Qvec-report0 /Qwd1478 /Qwd1786 /Qwd537 /Qwd1572 /Qwd991 /Qwd424'))
-   env.Append(LINKFLAGS = Split('/LARGEADDRESSAWARE'))
+   ICC_FLAGS  = " /W3"            # displays remarks, warnings, and errors
+   ICC_FLAGS += " /Qstd:c99"      # conforms to The ISO/IEC 9899:1999 International Standard
+   ICC_FLAGS += " /EHsc"          # enable synchronous C++ exception handling model & 
+                                  # assume extern "C" functions do not throw exceptions
+   ICC_FLAGS += " /GS"            # generates code that detects some buffer overruns 
+   ICC_FLAGS += " /Qprec"         # improves floating-point precision and consistency 
+   ICC_FLAGS += " /Qvec-report0"  # disables diagnostic information reported by the vectorizer 
 
-   if system.target_arch() == 'x86_64':
-      pass
-      # Enable this for 64 bit portability warnings
-      ##env.Append(CCFLAGS = Split('/Wp64'))  
+   if system.target_arch() != 'x86_64':
+      ICC_FLAGS += " /Gd"  # makes __cdecl the default calling convention 
+
+   if env['WARN_LEVEL'] == 'strict':
+      ICC_FLAGS += " /WX"  # treats warnings as errors
+
+   # Disables the following warnings:
+   #
+   #  424 : 
+   #  537 : 
+   #  991 : 
+   # 1478 : 
+   # 1572 : 
+   # 1786 : 
+   ICC_FLAGS += " /Qdiag-disable:424,537,991,1478,1572,1786" 
+
+   XILINK_FLAGS  = " /LARGEADDRESSAWARE"
+
+   if export_symbols:
+      ICC_FLAGS    += " /debug:full"  # generates complete debug information
+      ICC_FLAGS    += " /Zi"          # 
+      XILINK_FLAGS += " /DEBUG"
+
+   if env['MODE'] in ['opt', 'profile']:
+      ICC_FLAGS += " /Ob2"    # enables inlining of ANY function (compiler discretion)
+      ICC_FLAGS += " -Qipo"   # enables interprocedural optimization between files
+      ICC_FLAGS += " /G7"     # optimize for latest Intel processors (deprecated)
+      ICC_FLAGS += " /QaxW"   # optimize for Intel processors with SSE2 (deprecated)
+      ICC_FLAGS += " /MD"     # uses multithreaded DLL runtime library
+      ICC_FLAGS += " -O3"     # max optimization level
+
+      if env['MODE'] == 'profile':
+         ICC_FLAGS += " /FR"     # Enable browse information
+
+         XILINK_FLAGS += " /FIXED:NO"
+
+      XILINK_FLAGS += " /INCREMENTAL:NO"
    else:
-      env.Append(CCFLAGS = Split('/Gd'))
+      ICC_FLAGS += " /Od"   # disables all optimizations
+      ICC_FLAGS += " /MD"   # uses *NON-DEBUG* multithreaded DLL runtime library
+
+      XILINK_FLAGS += " /INCREMENTAL"
+
+   env.Append(CCFLAGS = Split(ICC_FLAGS))
+   env.Append(LINKFLAGS = Split(XILINK_FLAGS))
    
    if env['MODE'] == 'opt':
-      env.Append(CCFLAGS = Split('/Ob2 /MD -G7 -O3 -QaxW -Qipo'))
-      env.Append(LINKFLAGS = Split('/INCREMENTAL:NO'))
       env.Append(CPPDEFINES = Split('NDEBUG'))
-   elif env['MODE'] == 'profile':
-      env.Append(CCFLAGS = Split('/Ob2 /MD -G7 -O3 -QaxW -Qipo /Zi /FR /debug:all'))
-      env.Append(LINKFLAGS = Split('/FIXED:no /DEBUG /INCREMENTAL:NO'))
-   else:  ## Debug mode
-      env.Append(CCFLAGS = Split('/Od /Zi /MDd'))
-      env.Append(LINKFLAGS = Split('/DEBUG /INCREMENTAL'))
-      env.Append(CPPDEFINES = Split('_DEBUG'))
-else:
-   print "Compiler %s is not supported yet" % (env['COMPILER'])
-   Exit(1)
+# We cannot enable this define, as it will try to use symbols from the debug runtime library  
+#   if env['MODE'] == 'debug':
+#      env.Append(CPPDEFINES = Split('_DEBUG'))
+
+if env['MODE'] == 'debug':
+   env.Append(CPPDEFINES = Split('ARNOLD_DEBUG'))
+
+## platform related defines
+if system.os() == 'windows':
+   env.Append(CPPDEFINES = Split('_WINDOWS _WIN32 WIN32'))
+   if system.target_arch() == 'x86_64':
+      env.Append(CPPDEFINES = Split('_WIN64'))
+elif system.os() == 'darwin':
+   env.Append(CPPDEFINES = Split('_DARWIN OSMac_'))
+elif system.os() == 'linux':
+   env.Append(CPPDEFINES = Split('_LINUX'))
 
 ## Add path to Arnold API by default
 env.Append(CPPPATH = [env['ARNOLD_API_INCLUDES']])
@@ -223,17 +320,18 @@ BUILD_BASE_DIR = os.path.join('build', '%s_%s' % (system.os(), system.target_arc
 
 if not env['SHOW_CMDS']:
    ## hide long compile lines from the user
-   env['CCCOMSTR']     = 'Compiling $SOURCE ...'
-   env['SHCCCOMSTR']   = 'Compiling $SOURCE ...'
-   env['CXXCOMSTR']    = 'Compiling $SOURCE ...'
-   env['SHCXXCOMSTR']  = 'Compiling $SOURCE ...'
-   env['LINKCOMSTR']   = 'Linking $TARGET ...'
-   env['SHLINKCOMSTR'] = 'Linking $TARGET ...'
+   env['CCCOMSTR']     = color_bgreen + 'Compiling $SOURCE ...' + color_reset
+   env['SHCCCOMSTR']   = color_bgreen + 'Compiling $SOURCE ...' + color_reset
+   env['CXXCOMSTR']    = color_bgreen + 'Compiling $SOURCE ...' + color_reset
+   env['SHCXXCOMSTR']  = color_bgreen + 'Compiling $SOURCE ...' + color_reset
+   env['LINKCOMSTR']   = color_bred   + 'Linking $TARGET ...'   + color_reset
+   env['SHLINKCOMSTR'] = color_bred   + 'Linking $TARGET ...'   + color_reset
 
 ################################
 ## BUILD TARGETS
 ################################
 
+env['BUILDERS']['MakePackage'] = Builder(action = Action(make_package, "Preparing release package: '$TARGET'"))
 env['ROOT_DIR'] = os.getcwd()
 
 if system.os() == 'windows':
@@ -300,7 +398,6 @@ else:
       maya_env.Append(LIBPATH = [os.path.join(env['MAYA_ROOT'], 'Maya.app/Contents/MacOS')])
 
    maya_env.Append(LIBS=Split('ai pthread Foundation OpenMaya OpenMayaRender OpenMayaUI OpenMayaAnim OpenMayaFX'))
-   maya_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
 
    MTOA_API = env.SConscript(os.path.join('plugins', 'mtoa', 'SConscriptAPI'),
                          variant_dir = os.path.join(BUILD_BASE_DIR, 'api'),
@@ -435,6 +532,37 @@ if ext_files:
 if ext_shaders:
    env.Install(env['TARGET_SHADER_PATH'], ext_shaders)
 
+## Sets release package name based on MtoA version, architecture and compiler used.
+##
+package_name = "MtoA-" + MTOA_VERSION + "-" + system.get_arch_label(system.os(), system.target_arch())
+
+if env['MODE'] in ['debug', 'profile']:
+   package_name += '-' + env['MODE']
+
+package_name_inst = package_name
+
+if system.os() == 'windows':
+   package_name += ".rar"
+else:
+   package_name += ".tgz"
+
+PACKAGE = env.MakePackage(package_name, MTOA + MTOA_API + MTOA_SHADERS)
+
+## Specifies the files that will be included in the release package.
+## List items have 2 or 3 elements, with 3 possible formats:
+##
+## (source_file, destination_path [, new_file_name])    Copies file to destination path, optionally renaming it
+## (source_dir, destination_dir)                        Recursively copies the source directory as destination_dir
+## (file_spec, destination_path)                        Copies a group of files specified by a glob expression
+##
+PACKAGE_FILES = [
+[os.path.join(BUILD_BASE_DIR, 'mtoa.mod'), '.'],
+['Changes.html', '.'],
+[os.path.join('icons', '*.xpm'), 'icons']
+]
+
+env['PACKAGE_FILES'] = PACKAGE_FILES
+
 ################################
 ## TARGETS ALIASES AND DEPENDENCIES
 ################################
@@ -463,6 +591,9 @@ top_level_alias(env, 'mtoa', MTOA)
 top_level_alias(env, 'shaders', MTOA_SHADERS)
 top_level_alias(env, 'testsuite', TESTSUITE)
 top_level_alias(env, 'install', aliases)
+top_level_alias(env, 'pack', PACKAGE)
+
+env.AlwaysBuild(PACKAGE)
 
 #env.AlwaysBuild('install')
 Default('mtoa')

@@ -15,7 +15,6 @@ def top_level_alias(env, name, targets):
 def get_all_aliases():
    return ALIASES
    
-
 def find_in_path(file):
    '''
    Searches for file in the system path. Returns a list of directories containing file
@@ -199,6 +198,14 @@ def get_escaped_path(path):
       return path.replace("\\", "\\\\")
    else:
       return path
+
+def make_module(env, target, source):
+   # When symbols defined in the plug-in
+   if not os.path.exists(os.path.dirname(source[0])) and os.path.dirname(source[0]):
+      os.makedirs(os.path.dirname(source[0]))
+   f = open(source[0], 'w' )
+   f.write('+ mtoa 0.6 %s\n' % target[0])
+   f.close()
 
 try:
     # available in python >= 2.6
