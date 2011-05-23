@@ -217,9 +217,25 @@ def make_module(env, target, source):
    if not os.path.exists(os.path.dirname(source[0])) and os.path.dirname(source[0]):
       os.makedirs(os.path.dirname(source[0]))
    f = open(source[0], 'w' )
-   f.write('+ mtoa 0.6 %s\n' % target[0])
+   f.write('+ mtoa %s %s\n' % (get_mtoa_version(3), target[0]))
    f.close()
 
+def get_library_extension():
+   if system.os() == 'windows':
+      return ".dll"
+   elif system.os() == 'linux':
+      return ".so"
+   elif system.os() == 'darwin':
+      return ".dylib"
+   else:
+      return ""
+      
+def get_executable_extension():
+   if system.os() == 'windows':
+      return ".exe"
+   else:
+      return ""
+      
 try:
     # available in python >= 2.6
     relpath = os.path.relpath

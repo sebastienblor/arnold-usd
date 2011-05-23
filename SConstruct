@@ -437,28 +437,22 @@ SConscriptChdir(1)
 
 env.Install(env['TARGET_PLUGIN_PATH'], os.path.join('plugins', 'mtoa', 'mtoa.mtd'))
 if system.os() == 'windows':
-   libext = 'dll'
    # Rename plugins as .mll and install them in the target path
    mtoa_new = os.path.splitext(str(MTOA[0]))[0] + '.mll'
    env.Command(mtoa_new, str(MTOA[0]), Copy("$TARGET", "$SOURCE"))
    env.Install(env['TARGET_PLUGIN_PATH'], [mtoa_new])
    env.Install(env['TARGET_SHADER_PATH'], MTOA_SHADERS[0])
 else:
-   if system.os() == 'darwin':
-      libext = 'dylib'
-   else:
-      libext = 'so'
    env.Install(env['TARGET_PLUGIN_PATH'], MTOA)
    env.Install(env['TARGET_SHADER_PATH'], MTOA_SHADERS)
 
-libs = glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*.%s' % libext))
-libs += glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*boost*.%s.*' % libext))
+libs = glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*.%s' % get_library_extension))
+libs += glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*boost*.%s.*' % get_library_extension))
 env.Install(env['TARGET_LIB_PATH'], libs)
 
 env.Install(env['TARGET_LIB_PATH'], MTOA_API[0])
 
-env.Install(env['TARGET_SCRIPTS_PATH'], glob.glob(os.path.join('scripts', '*.mel')))
-pyfiles = find_files_recursive('scripts', ['.py']) + find_files_recursive('scripts', ['.yaml'])
+pyfiles = find_files_recursive('scripts', ['.py'])
 env.InstallAs([os.path.join(env['TARGET_PYTHON_PATH'], x) for x in pyfiles],
               [os.path.join('scripts', x) for x in  pyfiles])
 env.Install(env['TARGET_ICONS_PATH'], glob.glob(os.path.join('icons', '*.xpm')))
@@ -559,9 +553,25 @@ PACKAGE = env.MakePackage(package_name, MTOA + MTOA_API + MTOA_SHADERS)
 ##
 PACKAGE_FILES = [
 [os.path.join(BUILD_BASE_DIR, 'mtoa.mod'), '.'],
-['Changes.html', '.'],
-[os.path.join('icons', '*.xpm'), 'icons']
+[os.path.join('icons', '*.xpm'), 'icons'],
+[os.path.join('scripts', '*.xml'), '.'],
+[os.path.join(env['ARNOLD_API_LIB'], '*%s' % get_library_extension()), 'lib'],
+[MTOA_API[0], 'lib'],
+[os.path.join(env['ARNOLD_API_LIB'], 'kick%s' % get_executable_extension()), 'bin'],
+[os.path.join(env['ARNOLD_API_LIB'], 'maketx%s' % get_executable_extension()), 'bin'],
+[os.path.join('plugins', 'mtoa', 'mtoa.mtd'), 'plug-ins'],
+[MTOA_SHADERS[0], 'shaders'],
+[os.path.join(BUILD_BASE_DIR, 'api', 'html'), os.path.join('doc', 'api')],
 ]
+
+if system.os() == 'windows':
+   PACKAGE_FILES += [
+      [MTOA[0], os.path.join('plug-ins', 'mtoa.mll')]
+   ]
+else:
+   PACKAGE_FILES += [
+      [MTOA[0], 'plug-ins']
+   ]
 
 env['PACKAGE_FILES'] = PACKAGE_FILES
 
@@ -578,16 +588,14 @@ if system.os() == 'windows':
    top_level_alias(env, 'solution', SOLUTION)
 
 aliases = []
-aliases.append(env.Alias('install-module', env['TARGET_MODULE_PATH']))
-aliases.append(env.Alias('install-scripts', env['TARGET_SCRIPTS_PATH']))
-aliases.append(env.Alias('install-python', env['TARGET_PYTHON_PATH']))
-aliases.append(env.Alias('install-icons', env['TARGET_ICONS_PATH']))
-aliases.append(env.Alias('install-descr', env['TARGET_DESCR_PATH']))
-aliases.append(env.Alias('install-lib', env['TARGET_LIB_PATH']))
+aliases.append(env.Alias('install-module',  env['TARGET_MODULE_PATH']))
+aliases.append(env.Alias('install-python',  env['TARGET_PYTHON_PATH']))
+aliases.append(env.Alias('install-icons',   env['TARGET_ICONS_PATH']))
+aliases.append(env.Alias('install-descr',   env['TARGET_DESCR_PATH']))
+aliases.append(env.Alias('install-lib',     env['TARGET_LIB_PATH']))
 aliases.append(env.Alias('install-plugins', env['TARGET_PLUGIN_PATH']))
 aliases.append(env.Alias('install-shaders', env['TARGET_SHADER_PATH']))
-aliases.append(env.Alias('install-module', env['TARGET_MODULE_PATH']))
-aliases.append(env.Alias('install-ext', env['TARGET_EXTENSION_PATH']))
+aliases.append(env.Alias('install-ext',     env['TARGET_EXTENSION_PATH']))
 
 top_level_alias(env, 'mtoa', MTOA)
 top_level_alias(env, 'shaders', MTOA_SHADERS)
