@@ -535,7 +535,7 @@ if ext_shaders:
 
 ## Sets release package name based on MtoA version, architecture and compiler used.
 ##
-package_name = "MtoA-" + MTOA_VERSION + "-" + system.get_arch_label(system.os(), system.target_arch())
+package_name = "MtoA-" + MTOA_VERSION + "-" + system.get_arch_label(system.os(), system.target_arch()) + "-" + get_maya_version(os.path.join(env['MAYA_ROOT'], 'include', 'maya', 'MTypes.h'))
 
 if env['MODE'] in ['debug', 'profile']:
    package_name += '-' + env['MODE']

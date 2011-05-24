@@ -172,6 +172,19 @@ def get_arnold_version(path, components = 4):
       version += '.' + FIX_VERSION
    return version      
 
+def get_maya_version(path):
+   f = open(path, 'r')
+   while True:
+      line = f.readline().lstrip(' \t')
+      if line == "":
+         # We have reached the end of file.
+         break
+      if line.startswith('#define'):
+         tokens = line.split()
+         if tokens[1] == 'MAYA_API_VERSION':
+            return tokens[2][:-2]
+   f.close()
+
 def get_latest_revision():
    '''
    This function will give us the information we need about the latest snv revision of the root arnold directory
