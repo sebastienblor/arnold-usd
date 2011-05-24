@@ -570,6 +570,12 @@ PACKAGE_FILES = [
 [os.path.join(env['ARNOLD_API_LIB'], '*%s' % get_library_extension()), 'bin'],
 ]
 
+for p in pyfiles:
+   (d, f) = os.path.split(p)
+   PACKAGE_FILES += [
+      [os.path.join('scripts', p), os.path.join('scripts', d)]
+   ]
+
 if system.os() == 'windows':
    PACKAGE_FILES += [
       [MTOA[0], 'plug-ins', 'mtoa.mll'],
