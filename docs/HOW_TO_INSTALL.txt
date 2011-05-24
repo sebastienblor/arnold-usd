@@ -9,6 +9,9 @@ You need to complete a few manual steps in order to be able to use MtoA plugin:
 
  - Create an environment variable called MAYA_MODULE_PATH, and set it to the
    path where the "mtoa.mod" file is located.
+   
+ - On Windows: Add MTOAINSTALLDIR\bin to the PATH environment variable.
+ 
+   On Linux: Add MTOAINSTALLDIR\bin to the LD_LIBRARY_PATH environment variable.
 
-New you should be able to open Maya and render with MtoA.
-
+Now you should be able to open Maya and render with MtoA.
