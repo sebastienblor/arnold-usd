@@ -1,0 +1,14 @@
+
+You need to complete a few manual steps in order to be able to use MtoA plugin:
+
+ - Copy the 'arnoldRenderer.xml" file in this directory to the "bin/rendererDesc"
+   directory inside your Maya installation root directory.
+   
+ - Edit the 'mtoa.mod' file in this directory, and replace the path with the
+   directory where you installed MtoA.
+
+ - Create an environment variable called MAYA_MODULE_PATH, and set it to the
+   path where the "mtoa.mod" file is located.
+
+New you should be able to open Maya and render with MtoA.
+
