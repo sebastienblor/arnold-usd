@@ -567,12 +567,12 @@ PACKAGE_FILES = [
 [os.path.join('plugins', 'mtoa', 'mtoa.mtd'), 'plug-ins'],
 [MTOA_SHADERS[0], 'shaders'],
 [os.path.join(BUILD_BASE_DIR, 'docs', 'api', 'html'), os.path.join('doc', 'api')],
+[os.path.join(env['ARNOLD_API_LIB'], '*%s' % get_library_extension()), 'bin'],
 ]
 
 if system.os() == 'windows':
    PACKAGE_FILES += [
       [MTOA[0], 'plug-ins', 'mtoa.mll'],
-      [os.path.join(env['ARNOLD_API_LIB'], '*%s' % get_library_extension()), 'bin'],
    ]
 elif system.os() == 'linux':
    PACKAGE_FILES += [
@@ -582,7 +582,6 @@ elif system.os() == 'linux':
 elif system.os() == 'darwin':
    PACKAGE_FILES += [
       [MTOA[0], 'plug-ins'],
-      [os.path.join(env['ARNOLD_API_LIB'], '*%s' % get_library_extension()), 'bin'],
    ]
 
 env['PACKAGE_FILES'] = PACKAGE_FILES
