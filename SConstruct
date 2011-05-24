@@ -233,7 +233,7 @@ elif env['COMPILER'] == 'msvc':
 #   if env['MODE'] == 'debug':
 #      env.Append(CPPDEFINES = Split('_DEBUG'))
 
-      env.Append(CPPDEFINES = Split('_CRT_SECURE_NO_WARNINGS'))
+   env.Append(CPPDEFINES = Split('_CRT_SECURE_NO_WARNINGS'))
 elif env['COMPILER'] == 'icc':
    if system.target_arch() == 'x86_64':
       env.Tool('intelc', abi = 'intel64')
@@ -560,8 +560,7 @@ PACKAGE_FILES = [
 [os.path.join(BUILD_BASE_DIR, 'mtoa.mod'), '.'],
 [os.path.join('icons', '*.xpm'), 'icons'],
 [os.path.join('scripts', '*.xml'), '.'],
-[os.path.join(env['ARNOLD_API_LIB'], '*%s' % get_library_extension()), 'lib'],
-[MTOA_API[0], 'lib'],
+[MTOA_API[0], 'bin'],
 [os.path.join(env['ARNOLD_API_LIB'], 'kick%s' % get_executable_extension()), 'bin'],
 [os.path.join(env['ARNOLD_API_LIB'], 'maketx%s' % get_executable_extension()), 'bin'],
 [os.path.join('plugins', 'mtoa', 'mtoa.mtd'), 'plug-ins'],
@@ -571,11 +570,18 @@ PACKAGE_FILES = [
 
 if system.os() == 'windows':
    PACKAGE_FILES += [
-      [MTOA[0], os.path.join('plug-ins', 'mtoa.mll')]
+      [MTOA[0], 'plug-ins', 'mtoa.mll'],
+      [os.path.join(env['ARNOLD_API_LIB'], '*%s' % get_library_extension()), 'bin'],
    ]
-else:
+elif system.os() == 'linux':
    PACKAGE_FILES += [
-      [MTOA[0], 'plug-ins']
+      [MTOA[0], 'plug-ins'],
+      [os.path.join(env['ARNOLD_API_LIB'], '*%s.*' % get_library_extension()), 'bin'],
+   ]
+elif system.os() == 'darwin':
+   PACKAGE_FILES += [
+      [MTOA[0], 'plug-ins'],
+      [os.path.join(env['ARNOLD_API_LIB'], '*%s' % get_library_extension()), 'bin'],
    ]
 
 env['PACKAGE_FILES'] = PACKAGE_FILES
