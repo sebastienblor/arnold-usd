@@ -783,7 +783,6 @@ void CGeometryTranslator::ExportMeshParameters(AtNode* polymesh)
    // Check if custom attributes have been created, ignore them otherwise
    MStatus status;
    GetFnNode().findPlug("aiSubdivType", &status);
-   bool customAttributes = (status == MS::kSuccess);
 
    AiNodeSetBool(polymesh, "smoothing", GetFnNode().findPlug("smoothShading").asBool());
 
@@ -798,27 +797,24 @@ void CGeometryTranslator::ExportMeshParameters(AtNode* polymesh)
    // Visibility options
    ProcessRenderFlags(polymesh);
 
-   if (customAttributes)
+   // Subdivision surfaces
+   //
+   const int subdivision = GetFnNode().findPlug("aiSubdivType").asInt();
+   if (subdivision!=0)
    {
-      // Subdivision surfaces
-      //
-      const int subdivision = GetFnNode().findPlug("aiSubdivType").asInt();
-      if (subdivision!=0)
-      {
-         if (subdivision==1)
-            AiNodeSetStr(polymesh, "subdiv_type",           "catclark");
-         else
-            AiNodeSetStr(polymesh, "subdiv_type",           "linear");
-         AiNodeSetInt(polymesh, "subdiv_iterations",     GetFnNode().findPlug("aiSubdivIterations").asInt());
-         AiNodeSetInt(polymesh, "subdiv_adaptive_metric",GetFnNode().findPlug("aiSubdivAdaptiveMetric").asInt());
-         AiNodeSetFlt(polymesh, "subdiv_pixel_error",    GetFnNode().findPlug("aiSubdivPixelError").asFloat());
-         AiNodeSetInt(polymesh, "subdiv_uv_smoothing",   GetFnNode().findPlug("aiSubdivUvSmoothing").asInt());
+      if (subdivision==1)
+         AiNodeSetStr(polymesh, "subdiv_type",           "catclark");
+      else
+         AiNodeSetStr(polymesh, "subdiv_type",           "linear");
+      AiNodeSetInt(polymesh, "subdiv_iterations",     GetFnNode().findPlug("aiSubdivIterations").asInt());
+      AiNodeSetInt(polymesh, "subdiv_adaptive_metric",GetFnNode().findPlug("aiSubdivAdaptiveMetric").asInt());
+      AiNodeSetFlt(polymesh, "subdiv_pixel_error",    GetFnNode().findPlug("aiSubdivPixelError").asFloat());
+      AiNodeSetInt(polymesh, "subdiv_uv_smoothing",   GetFnNode().findPlug("aiSubdivUvSmoothing").asInt());
 
-         // FIXME, this should probably be handled by ProcessParameter
-         MString cameraName = GetFnNode().findPlug("aiSubdivDicingCamera").asString();
-         AtNode* camera = ((cameraName != "") && (cameraName != "Default")) ? AiNodeLookUpByName(cameraName.asChar()) : NULL;
-         AiNodeSetPtr(polymesh, "subdiv_dicing_camera", camera);
-      }
+      // FIXME, this should probably be handled by ProcessParameter
+      MString cameraName = GetFnNode().findPlug("aiSubdivDicingCamera").asString();
+      AtNode* camera = ((cameraName != "") && (cameraName != "Default")) ? AiNodeLookUpByName(cameraName.asChar()) : NULL;
+      AiNodeSetPtr(polymesh, "subdiv_dicing_camera", camera);
    }
 }
 
