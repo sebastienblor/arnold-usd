@@ -82,7 +82,7 @@ vars.AddVariables(
                    os.path.join('$TARGET_MODULE_PATH', 'extensions'), PathVariable.PathIsDirCreate),
       PathVariable('TARGET_LIB_PATH', 
                    'Path for libraries', 
-                   os.path.join('$TARGET_MODULE_PATH', 'lib'), PathVariable.PathIsDirCreate),
+                   os.path.join('$TARGET_MODULE_PATH', 'bin'), PathVariable.PathIsDirCreate),
       PathVariable('SHAVE_API', 
                    'Where to find Shave API', 
                    '.', PathVariable.PathIsDir)
@@ -159,7 +159,7 @@ if env['COMPILER'] == 'gcc':
    ## Hardcode '.' directory in RPATH in linux
    if system.os() == 'linux':
       env.Append(LINKFLAGS = Split('-z origin') )
-      env.Append(RPATH = env.Literal(os.path.join('\\$$ORIGIN', '..', 'lib')))
+      env.Append(RPATH = env.Literal(os.path.join('\\$$ORIGIN', '..', 'bin')))
 
    ## warning level
    if env['WARN_LEVEL'] == 'none':
@@ -451,8 +451,8 @@ else:
    env.Install(env['TARGET_PLUGIN_PATH'], MTOA)
    env.Install(env['TARGET_SHADER_PATH'], MTOA_SHADERS)
 
-libs = glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*.%s' % get_library_extension))
-libs += glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*boost*.%s.*' % get_library_extension))
+libs = glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*%s' % get_library_extension))
+libs += glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*boost*%s.*' % get_library_extension))
 env.Install(env['TARGET_LIB_PATH'], libs)
 
 env.Install(env['TARGET_LIB_PATH'], MTOA_API[0])
@@ -568,6 +568,7 @@ PACKAGE_FILES = [
 [MTOA_SHADERS[0], 'shaders'],
 [os.path.join(BUILD_BASE_DIR, 'docs', 'api', 'html'), os.path.join('doc', 'api')],
 [os.path.join(env['ARNOLD_API_LIB'], '*%s' % get_library_extension()), 'bin'],
+#[os.path.splitext(str(MTOA_API[0]))[0] + '.lib', 'lib'],
 ]
 
 for p in pyfiles:
@@ -575,6 +576,16 @@ for p in pyfiles:
    PACKAGE_FILES += [
       [os.path.join('scripts', p), os.path.join('scripts', d)]
    ]
+
+#for e in ext_files:
+#   PACKAGE_FILES += [
+#      [e, 'extensions']
+#   ]
+
+#for e in ext_shaders:
+#   PACKAGE_FILES += [
+#      [e, 'shaders']
+#   ]
 
 if system.os() == 'windows':
    PACKAGE_FILES += [
