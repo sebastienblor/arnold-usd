@@ -9,6 +9,9 @@ You need to complete a few manual steps in order to be able to use MtoA plugin:
 
  - Create an environment variable called MAYA_MODULE_PATH, and set it to the
    path where the "mtoa.mod" file is located.
+
+ - Create an environment variable called ARNOLD_PLUGIN_PATH, and set it to
+   the MTOAINSTALLDIR\shaders path.
    
  - On Windows: Add MTOAINSTALLDIR\bin to the PATH environment variable.
  
