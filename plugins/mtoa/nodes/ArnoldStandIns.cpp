@@ -1,6 +1,6 @@
 #include "ArnoldStandIns.h"
 #include "nodes/ArnoldNodeIDs.h"
-#include "scene/NodeTranslator.h"
+#include "translators/NodeTranslator.h"
 
 #include <ai_render.h>
 #include <ai_dotass.h>

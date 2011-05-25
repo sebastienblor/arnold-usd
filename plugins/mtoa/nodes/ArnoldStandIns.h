@@ -1,7 +1,7 @@
 #ifndef ARNOLDSTANDINS_H_
 #define ARNOLDSTANDINS_H_
 
-#include "utils/AttrHelper.h"
+#include "attributes/AttrHelper.h"
 
 #include <maya/MPxNode.h>
 #include <maya/MString.h>

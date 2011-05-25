@@ -1,7 +1,7 @@
-#include "Standins.h"
+#include "StandinsTranslator.h"
 
 #include "render/RenderSession.h"
-#include "utils/AttrHelper.h"
+#include "attributes/AttrHelper.h"
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
@@ -24,7 +24,7 @@ void CArnoldStandInsTranslator::NodeInitializer(MString nodeClassName)
 
 AtNode* CArnoldStandInsTranslator::CreateArnoldNodes()
 {
-   m_isMasterDag = IsMasterInstance(m_masterDag);
+   bool m_isMasterDag = IsMasterInstance(m_dagPath);
    if (m_isMasterDag)
       return  AddArnoldNode("procedural");
    else
@@ -35,7 +35,7 @@ void CArnoldStandInsTranslator::Export(AtNode* anode)
 {
    const char* nodeType = AiNodeEntryGetName(anode->base_node);
    if (strcmp(nodeType, "ginstance") == 0)
-      ExportInstance(anode, m_masterDag);
+      ExportInstance(anode, m_dagPath);
    else
       ExportProcedural(anode, false);
 }
@@ -233,7 +233,7 @@ AtNode* CArnoldStandInsTranslator::ExportProcedural(AtNode* procedural, bool upd
    AiNodeSetStr(procedural, "name", m_dagPath.fullPathName().asChar());
 
    ExportMatrix(procedural, 0);
-   ProcessRenderFlags(procedural);
+   //ProcessRenderFlags(procedural);
    ExportStandinsShaders(procedural);
    if (!update)
    {

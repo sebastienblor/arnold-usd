@@ -1,4 +1,3 @@
-
 #include "platform/Platform.h"
 #include "utils/MtoaLog.h"
 
@@ -13,22 +12,21 @@
 #include "nodes/MayaNodeIDs.h"
 #include "nodes/ArnoldNodeIDs.h"
 #include "nodes/SphereLocator.h"
+#include "nodes/ArnoldStandIns.h"
 #include "nodes/options/ArnoldOptionsNode.h"
 #include "nodes/shader/ArnoldSkyNode.h"
 #include "nodes/shader/ArnoldDisplacementNode.h"
 #include "nodes/light/ArnoldSkyDomeLightNode.h"
-#include "nodes/ArnoldStandIns.h"
 
 #include "translators/options/OptionsTranslator.h"
-
 #include "translators/camera/CameraTranslators.h"
 #include "translators/light/LightTranslators.h"
 #include "translators/shader/ShaderTranslators.h"
 #include "translators/shape/MeshTranslator.h"
 #include "translators/shape/NurbsSurfaceTranslator.h"
 #include "translators/shape/HairTranslator.h"
+#include "translators/shape/StandinsTranslator.h"
 
-#include "scene/Standins.h"
 #include "render/RenderSwatch.h"
 
 #include "extension/ExtensionsManager.h"

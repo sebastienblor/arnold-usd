@@ -1,16 +1,15 @@
+#ifndef STANDINSTRANSLATOR_H
+#define STANDINSTRANSLATOR_H
 
-#ifndef STANDINS_H
-#define STANDINS_H
+#include "translators/NodeTranslator.h"
 
-#include "scene/Geometry.h"
 #include <maya/MFnMesh.h>
 #include <maya/MNodeMessage.h>
 #include <maya/MPxLocatorNode.h>
 
 #include <maya/MString.h>
 
-class DLLEXPORT CArnoldStandInsTranslator
-   :   public CGeoTranslator
+class DLLEXPORT CArnoldStandInsTranslator : public CDagTranslator
 {
 public:
    static void* creator()
@@ -41,4 +40,4 @@ protected:
    MFnDagNode m_DagNode;
 };
 
-#endif /* STANDINS_H_ */
+#endif // STANDINSTRANSLATOR_H
