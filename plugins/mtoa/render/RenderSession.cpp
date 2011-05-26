@@ -350,7 +350,7 @@ void CRenderSession::SetupRenderOutput()
    AtNode * render_view = CreateRenderViewOutput();
    AtNode * file_driver = CreateFileOutput();
    AtNode * filter = CreateOutputFilter();
-   AtNode * specialAovfilter = CreateAovOutputFilter();
+   AtNode * specialAovfilter;
 
    // OUTPUT STRINGS
    AtChar   str[1024];
@@ -376,10 +376,12 @@ void CRenderSession::SetupRenderOutput()
       {
          if      (strcmp(m_renderOptions.GetAOV(i).GetName().asChar(),"Z")==0)
          {
+            specialAovfilter = CreateAovOutputFilter();
             m_renderOptions.GetAOV(i).SetupOutput(outputs, ndrivers+static_cast<int>(i), file_driver, specialAovfilter);
          }
          else if (strcmp(m_renderOptions.GetAOV(i).GetName().asChar(),"P")==0)
          {
+            specialAovfilter = CreateAovOutputFilter();
             m_renderOptions.GetAOV(i).SetupOutput(outputs, ndrivers+static_cast<int>(i), file_driver, specialAovfilter);
          }
          else
