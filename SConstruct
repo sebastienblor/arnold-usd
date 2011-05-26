@@ -466,6 +466,22 @@ env.Install(env['TARGET_DESCR_PATH'], glob.glob(os.path.join('scripts', '*.xml')
 env.MakeModule(env['TARGET_MODULE_PATH'], os.path.join(BUILD_BASE_DIR, 'mtoa.mod'))
 env.Install(env['TARGET_MODULE_PATH'], os.path.join(BUILD_BASE_DIR, 'mtoa.mod'))
 
+## Sets release package name based on MtoA version, architecture and compiler used.
+##
+package_name = "MtoA-" + MTOA_VERSION + "-" + system.get_arch_label(system.os(), system.target_arch()) + "-" + get_maya_version(os.path.join(env['MAYA_ROOT'], 'include', 'maya', 'MTypes.h'))
+
+if env['MODE'] in ['debug', 'profile']:
+   package_name += '-' + env['MODE']
+
+package_name_inst = package_name
+
+if system.os() == 'windows':
+   package_name += ".rar"
+else:
+   package_name += ".tgz"
+
+PACKAGE = env.MakePackage(package_name, MTOA + MTOA_API + MTOA_SHADERS + MTOA_API_DOCS)
+
 ################################
 ## EXTENSIONS
 ################################
@@ -509,6 +525,7 @@ for ext in os.listdir(ext_base_dir):
         
         top_level_alias(env, ext, EXT)
         Depends(EXT, MTOA_API[0])
+        Depends(PACKAGE, EXT)
         # only install if the target has been specified
         if ext in COMMAND_LINE_TARGETS:
             # EXT may contain a shader result
@@ -533,22 +550,6 @@ if ext_files:
 if ext_shaders:
    env.Install(env['TARGET_SHADER_PATH'], ext_shaders)
 
-## Sets release package name based on MtoA version, architecture and compiler used.
-##
-package_name = "MtoA-" + MTOA_VERSION + "-" + system.get_arch_label(system.os(), system.target_arch()) + "-" + get_maya_version(os.path.join(env['MAYA_ROOT'], 'include', 'maya', 'MTypes.h'))
-
-if env['MODE'] in ['debug', 'profile']:
-   package_name += '-' + env['MODE']
-
-package_name_inst = package_name
-
-if system.os() == 'windows':
-   package_name += ".rar"
-else:
-   package_name += ".tgz"
-
-PACKAGE = env.MakePackage(package_name, MTOA + MTOA_API + MTOA_SHADERS + MTOA_API_DOCS)
-
 ## Specifies the files that will be included in the release package.
 ## List items have 2 or 3 elements, with 3 possible formats:
 ##
@@ -566,8 +567,8 @@ PACKAGE_FILES = [
 [os.path.join(env['ARNOLD_API_LIB'], 'maketx%s' % get_executable_extension()), 'bin'],
 [os.path.join('plugins', 'mtoa', 'mtoa.mtd'), 'plug-ins'],
 [MTOA_SHADERS[0], 'shaders'],
-[os.path.join(BUILD_BASE_DIR, 'docs', 'api', 'html'), os.path.join('doc', 'api')],
 [os.path.join(env['ARNOLD_API_LIB'], '*%s' % get_library_extension()), 'bin'],
+#[os.path.join(BUILD_BASE_DIR, 'docs', 'api', 'html'), os.path.join('doc', 'api')],
 #[os.path.splitext(str(MTOA_API[0]))[0] + '.lib', 'lib'],
 ]
 
@@ -577,15 +578,15 @@ for p in pyfiles:
       [os.path.join('scripts', p), os.path.join('scripts', d)]
    ]
 
-#for e in ext_files:
-#   PACKAGE_FILES += [
-#      [e, 'extensions']
-#   ]
+for e in ext_files:
+   PACKAGE_FILES += [
+      [e, 'extensions']
+   ]
 
-#for e in ext_shaders:
-#   PACKAGE_FILES += [
-#      [e, 'shaders']
-#   ]
+for e in ext_shaders:
+   PACKAGE_FILES += [
+      [e, 'shaders']
+   ]
 
 if system.os() == 'windows':
    PACKAGE_FILES += [
