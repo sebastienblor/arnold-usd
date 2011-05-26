@@ -451,8 +451,8 @@ else:
    env.Install(env['TARGET_PLUGIN_PATH'], MTOA)
    env.Install(env['TARGET_SHADER_PATH'], MTOA_SHADERS)
 
-libs = glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*%s' % get_library_extension))
-libs += glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*boost*%s.*' % get_library_extension))
+libs = glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*%s' % get_library_extension()))
+libs += glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*boost*%s.*' % get_library_extension()))
 env.Install(env['TARGET_LIB_PATH'], libs)
 
 env.Install(env['TARGET_LIB_PATH'], MTOA_API[0])
