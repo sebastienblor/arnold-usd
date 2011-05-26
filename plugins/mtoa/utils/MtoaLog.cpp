@@ -28,10 +28,10 @@ DLLEXPORT AtVoid MtoaLogCallback(AtInt logmask, AtInt severity, const char *msg_
    case AI_SEVERITY_INFO:
       if (logmask & AI_LOG_INFO)
          // MGlobal::displayInfo(msg_string);
-         // black color
-         // if (logmask & AI_LOG_COLOR) clog << "\033[22;30m";
+         // default color
+         // if (logmask & AI_LOG_COLOR) clog << "\033[0m";
 #ifndef _WIN32
-         clog << "\033[22;30m";
+         clog << "\033[0m";
 #endif
       break;
    case AI_SEVERITY_WARNING:
@@ -53,17 +53,17 @@ DLLEXPORT AtVoid MtoaLogCallback(AtInt logmask, AtInt severity, const char *msg_
 #endif
       break;
    default:
-      // black color
-      // if (logmask & AI_LOG_COLOR) clog << "\033[22;30m";
+      // default color
+      // if (logmask & AI_LOG_COLOR) clog << "\033[0m";
 #ifndef _WIN32
-      clog << "\033[22;30m";
+      clog << "\033[0m";
 #endif
       break;
    }
 
    // Standard log output
 #ifndef _WIN32
-   clog << msg_string << "\033[22;30m" << endl;
+   clog << msg_string << "\033[0m" << endl;
 #else
    clog << msg_string << endl;
 #endif
