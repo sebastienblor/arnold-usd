@@ -470,11 +470,14 @@ AtNode* CMayaScene::ExportDagPath(MDagPath &dagPath)
    CDagTranslator* translator = CExtensionsManager::GetTranslator(dagPath);
    if (translator != NULL && translator->IsDag())
    {
-      AtNode* result = translator->Init(dagPath, this);
-      translator->DoExport(0);
-      // save it for later
-      m_processedDagTranslators[handle][instanceNum] = translator;
-      return result;
+      if (translator->IsRenderable())
+      {
+         AtNode* result = translator->Init(dagPath, this);
+         translator->DoExport(0);
+         // save it for later
+         m_processedDagTranslators[handle][instanceNum] = translator;
+         return result;
+      }
    }
    else
    {

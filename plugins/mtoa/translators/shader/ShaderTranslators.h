@@ -19,6 +19,7 @@ public:
    static void* creator(){return new CSkyShaderTranslator();}
    virtual void Export(AtNode* shader);
    AtNode* CreateArnoldNodes();
+   bool IsRenderable(){return false;};
 };
 
 SHADER_TRANSLATOR(CLambertTranslator);
