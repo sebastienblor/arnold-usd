@@ -1,4 +1,3 @@
-
 #include "platform/Platform.h"
 #include "utils/MtoaLog.h"
 
