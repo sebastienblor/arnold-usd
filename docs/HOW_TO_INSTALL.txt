@@ -1,0 +1,20 @@
+
+You need to complete a few manual steps in order to be able to use MtoA plugin:
+
+ - Create an environment variable called MAYA_RENDER_DESC_PATH, and set it to
+   the path where 'arnoldRenderer.xml" file is located.
+   
+ - Edit the 'mtoa.mod' file in this directory, and replace the path with the
+   directory where you installed MtoA.
+
+ - Create an environment variable called MAYA_MODULE_PATH, and set it to the
+   path where the "mtoa.mod" file is located.
+
+ - Create an environment variable called ARNOLD_PLUGIN_PATH, and set it to
+   the MTOAINSTALLDIR\shaders path.
+   
+ - On Windows: Add MTOAINSTALLDIR\bin to the PATH environment variable.
+ 
+   On Linux: Add MTOAINSTALLDIR/bin to the LD_LIBRARY_PATH environment variable.
+
+Now you should be able to open Maya and render with MtoA.

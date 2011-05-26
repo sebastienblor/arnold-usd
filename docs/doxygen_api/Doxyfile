@@ -31,14 +31,14 @@ PROJECT_NAME           = "MtoA Extensions API"
 # This could be handy for archiving the generated documentation or
 # if some version control system is used.
 
-PROJECT_NUMBER         = 0.7.0
+PROJECT_NUMBER         = $(MTOA_VERSION)
 
 # The OUTPUT_DIRECTORY tag is used to specify the (relative or absolute)
 # base path where the generated documentation will be put.
 # If a relative path is entered, it will be relative to the location
 # where doxygen was started. If left blank the current directory will be used.
 
-OUTPUT_DIRECTORY       = ./docs
+OUTPUT_DIRECTORY       = $(DOCS_DESTDIR)
 
 # If the CREATE_SUBDIRS tag is set to YES, then doxygen will create
 # 4096 sub-directories (in 2 levels) under the output directory of each output
@@ -186,7 +186,7 @@ ALIASES                =
 # For instance, some of the names that are used will be different. The list
 # of all members will be omitted, etc.
 
-OPTIMIZE_OUTPUT_FOR_C  = NO
+OPTIMIZE_OUTPUT_FOR_C  = YES
 
 # Set the OPTIMIZE_OUTPUT_JAVA tag to YES if your project consists of Java
 # sources only. Doxygen will then generate output that is more tailored for
@@ -569,7 +569,10 @@ WARN_LOGFILE           =
 # with spaces.
 
 # API only
-INPUT                  = plugins/mtoa/extension/Extension.cpp plugins/mtoa/extension/Extension.h plugins/mtoa/translators/nodeTranslator.cpp plugins/mtoa/translators/nodeTranslator.h
+INPUT                  = plugins/mtoa/extension/Extension.cpp
+INPUT                 += plugins/mtoa/extension/Extension.h
+INPUT                 += plugins/mtoa/translators/nodeTranslator.cpp
+INPUT                 += plugins/mtoa/translators/nodeTranslator.h
 # all
 #INPUT                  = plugins/mtoa
 
