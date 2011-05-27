@@ -496,6 +496,10 @@ AtNode* CMayaScene::ExportShader(MPlug& shaderOutputPlug)
 
 AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
 {
+   MDagPath dagPath;
+   if (MDagPath::getAPathTo(mayaShader, dagPath) == MS::kSuccess)
+      return ExportDagPath(dagPath);
+
    // First check if this shader has already been processed
    MObjectHandle handle = MObjectHandle(mayaShader);
    // early out for depend nodes that have already been processed
@@ -503,33 +507,14 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
    if (it != m_processedTranslators.end() && it->second->m_outputAttr == attrName)
       return it->second->GetArnoldRootNode();
 
-   // early out for dag nodes that have already been processed
-   ObjectToDagTranslatorMap::iterator dagIt = m_processedDagTranslators.find(handle);
-   if (dagIt != m_processedDagTranslators.end())
-      // find the first
-      return dagIt->second.begin()->second->GetArnoldRootNode();
-
    AtNode* shader = NULL;
 
    CNodeTranslator* translator = CExtensionsManager::GetTranslator(mayaShader);
    if (translator != NULL)
    {
-      // CDagTranslator* dagTranslator = static_cast<CDagTranslator*>(translator);
-      CDagTranslator* dagTranslator = dynamic_cast<CDagTranslator*>(translator);
-      if (dagTranslator != NULL)
-      {
-         MDagPath dagPath;
-         MDagPath::getAPathTo(mayaShader, dagPath);
-         shader = dagTranslator->Init(dagPath, this, attrName);
-         m_processedDagTranslators[handle][0] = dagTranslator;
-         dagTranslator->DoExport(0);
-      }
-      else
-      {
-         shader = translator->Init(mayaShader, this, attrName);
-         m_processedTranslators[handle] = translator;
-         translator->DoExport(0);
-      }
+      shader = translator->Init(mayaShader, this, attrName);
+      m_processedTranslators[handle] = translator;
+      translator->DoExport(0);
    }
    else
    {
