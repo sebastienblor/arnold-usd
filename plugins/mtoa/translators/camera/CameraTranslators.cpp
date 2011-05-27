@@ -63,7 +63,7 @@ void COrthoCameraTranslator::ExportMotion(AtNode* camera, AtUInt step)
 
 void COrthoCameraTranslator::NodeInitializer(MString nodeClassName)
 {
-   CExtensionAttrHelper helper(nodeClassName, "persp_camera");
+   CExtensionAttrHelper helper(nodeClassName, "ortho_camera");
    MakeDefaultAttributes(helper);
 }
 

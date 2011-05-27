@@ -1,0 +1,80 @@
+# vim: filetype=python
+
+## load our own python modules
+import system
+from build_tools import *
+
+import os, subprocess, shutil
+
+# Generates the SDK documentation using doxygen
+def build_api_docs(target, source, env):
+   global DOCS_TARGET_PATH
+   
+   # Prepare environment variables for doxygen
+   os.environ['DOCS_DESTDIR'] = os.path.abspath(DOCS_TARGET_PATH)
+   os.environ['MTOA_VERSION'] = get_mtoa_version(3)
+
+   # Path to doxygen related files
+   DOXYFILES = os.path.join('docs', 'doxygen_api')
+   os.environ['DOXYFILES'] = DOXYFILES
+
+   previous_path = os.environ['PATH']
+   
+   if system.os() == 'darwin' and os.path.exists('/Applications/Doxygen.app/Contents/Resources/doxygen'):
+      ## put this in the path for people who forgot it :)
+      os.environ['PATH'] = '/Applications/Doxygen.app/Contents/Resources/:%s' % os.environ['PATH']
+   
+   if system.os() == 'windows':
+      DOXYGEN = 'doxygen.exe'
+   else:
+      DOXYGEN = 'doxygen'
+   
+   if find_in_path(DOXYGEN) == []:
+      print "ERROR: Could not find '%s' on system path." % DOXYGEN
+      return 1
+
+   # Remove and recreate target directory before we start
+   shutil.rmtree(DOCS_TARGET_PATH)
+   os.mkdir(DOCS_TARGET_PATH)
+   
+   doxygen_defines = '' 
+
+   # Run doxygen with stdin as input source
+   command_string = DOXYGEN + " -"
+   p = subprocess.Popen(command_string, shell=True, stdin = subprocess.PIPE)
+
+   # Write to the process stdin all the lines in the config file, plus an additional config line
+   f = open(os.path.join(DOXYFILES, 'Doxyfile'))
+   for l in f.readlines():
+      p.stdin.write(l)
+   f.close()
+   p.stdin.write("PREDEFINED = " + doxygen_defines )
+   p.stdin.close()
+   
+   retcode = p.wait()
+
+   # If successful, copy last few files and touch the target dummy file
+   if retcode == 0:
+      open(str(target[0]), "a").close()  # Touch target file
+
+   # cleanup
+   del os.environ['DOCS_DESTDIR']
+   del os.environ['MTOA_VERSION']
+   del os.environ['DOXYFILES']
+
+   os.environ['PATH'] = previous_path
+
+   return retcode
+
+Import('env BUILD_BASE_DIR')
+
+DOCS_TARGET_PATH = os.path.abspath(os.path.join(BUILD_BASE_DIR, 'docs', 'api'))
+
+MTOA_API_DOCS = env.Command(os.path.join(DOCS_TARGET_PATH, 'sdk.done'),   ## target
+                            None,                             ## sources
+                            Action(build_api_docs, "Building documentation for MtoA " + get_mtoa_version())
+                           )
+
+env.AlwaysBuild(MTOA_API_DOCS) ## always generate this (don't bother figuring out how to get clean dependencies)
+
+Return ('MTOA_API_DOCS')

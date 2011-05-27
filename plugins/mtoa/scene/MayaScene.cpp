@@ -516,6 +516,7 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
    CNodeTranslator* translator = CExtensionsManager::GetTranslator(mayaShader);
    if (translator != NULL)
    {
+      // CDagTranslator* dagTranslator = static_cast<CDagTranslator*>(translator);
       CDagTranslator* dagTranslator = dynamic_cast<CDagTranslator*>(translator);
       if (dagTranslator != NULL)
       {

@@ -15,7 +15,6 @@ def top_level_alias(env, name, targets):
 def get_all_aliases():
    return ALIASES
    
-
 def find_in_path(file):
    '''
    Searches for file in the system path. Returns a list of directories containing file
@@ -70,6 +69,19 @@ def saferemove(path):
    if os.path.exists(path):
       os.remove(path)
 
+def copy_file_or_link(src, target):
+   '''
+   Copies a file or a symbolic link (creating a new link in the target dir)
+   '''
+   if os.path.isdir(target):
+      target = os.path.join(target, os.path.basename(src))
+
+   if os.path.islink(src):
+      linked_path = os.readlink(src)
+      os.symlink(linked_path, target)
+   else:
+      shutil.copy(src, target)
+
 def process_return_code(retcode):
    '''
    translates a process return code (as obtained by os.system or subprocess) into a status string
@@ -89,30 +101,30 @@ def process_return_code(retcode):
             status = 'FAILED'
    return status      
 
-def get_mtoa_version(path, components = 3):
-   # TODO: define in the plug-in the symbols necessary to get MtoA version 
+def get_mtoa_version(components = 3):
    '''
    Obtains MtoA version by parsing 'Version.cpp'
    '''
-   MAJOR_VERSION=''
-   MINOR_VERSION=''
-   FIX_VERSION=''
+   MAJOR_VERSION='0'
+   MINOR_VERSION='7'
+   FIX_VERSION='0'
 
-   f = open(path, 'r')
-   while True:
-      line = f.readline().lstrip(' \t')
-      if line == "":
-         # We have reached the end of file.
-         break
-      if line.startswith('#define'):
-         tokens = line.split()
-         if tokens[1] == 'MTOA_MAJOR_VERSION_NUM':
-            MAJOR_VERSION = tokens[2]
-         elif tokens[1] == 'MTOA_MINOR_VERSION_NUM':
-            MINOR_VERSION = tokens[2]
-         elif tokens[1] == 'MTOA_FIX_VERSION':
-            FIX_VERSION = tokens[2][1:].strip('"')
-   f.close()
+   # TODO: define in the plug-in the symbols necessary to get MtoA version 
+#   f = open(os.path.join('plugin', 'mtoa', 'version.cpp'), 'r')
+#   while True:
+#      line = f.readline().lstrip(' \t')
+#      if line == "":
+#         # We have reached the end of file.
+#         break
+#      if line.startswith('#define'):
+#         tokens = line.split()
+#         if tokens[1] == 'MTOA_MAJOR_VERSION_NUM':
+#            MAJOR_VERSION = tokens[2]
+#         elif tokens[1] == 'MTOA_MINOR_VERSION_NUM':
+#            MINOR_VERSION = tokens[2]
+#         elif tokens[1] == 'MTOA_FIX_VERSION':
+#            FIX_VERSION = tokens[2][1:].strip('"')
+#   f.close()
    
    version = ''
    if (components > 0):
@@ -160,6 +172,19 @@ def get_arnold_version(path, components = 4):
       version += '.' + FIX_VERSION
    return version      
 
+def get_maya_version(path):
+   f = open(path, 'r')
+   while True:
+      line = f.readline().lstrip(' \t')
+      if line == "":
+         # We have reached the end of file.
+         break
+      if line.startswith('#define'):
+         tokens = line.split()
+         if tokens[1] == 'MAYA_API_VERSION':
+            return tokens[2][:-2]
+   f.close()
+
 def get_latest_revision():
    '''
    This function will give us the information we need about the latest snv revision of the root arnold directory
@@ -200,6 +225,30 @@ def get_escaped_path(path):
    else:
       return path
 
+def make_module(env, target, source):
+   # When symbols defined in the plug-in
+   if not os.path.exists(os.path.dirname(source[0])) and os.path.dirname(source[0]):
+      os.makedirs(os.path.dirname(source[0]))
+   f = open(source[0], 'w' )
+   f.write('+ mtoa %s %s\n' % (get_mtoa_version(3), target[0]))
+   f.close()
+
+def get_library_extension():
+   if system.os() == 'windows':
+      return ".dll"
+   elif system.os() == 'linux':
+      return ".so"
+   elif system.os() == 'darwin':
+      return ".dylib"
+   else:
+      return ""
+      
+def get_executable_extension():
+   if system.os() == 'windows':
+      return ".exe"
+   else:
+      return ""
+      
 try:
     # available in python >= 2.6
     relpath = os.path.relpath
