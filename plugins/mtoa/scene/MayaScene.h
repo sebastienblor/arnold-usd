@@ -223,20 +223,12 @@ private:
    static MCallbackId s_NewNodeCallbackId;
    
 private:
-   struct CShaderData
-   {
-      MObject mayaShader;
-      AtNode* arnoldShader;
-      MString attrName;
-   };
 
    ExportOptions m_exportOptions;
    MFnDependencyNode* m_fnCommonRenderOptions;
    MFnDependencyNode* m_fnArnoldRenderOptions;
    CMotionBlurData m_motionBlurData;
-   
-   // this variable will go away when we get multiple output support
-   std::vector<CShaderData> m_processedShaders;
+
    // depend nodes, are a map with MObjectHandle as a key
    ObjectToTranslatorMap m_processedTranslators;
    // dag nodes, are a map in a map.
