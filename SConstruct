@@ -148,7 +148,7 @@ if system.os() == 'windows':
 export_symbols = env['MODE'] in ['debug', 'profile']
 
 if env['COMPILER'] == 'gcc':
-   env.Append(CXXFLAGS = Split('-fno-rtti'))
+   # env.Append(CXXFLAGS = Split('-fno-rtti'))
 
    ## Hide all internal symbols (the ones without AI_API decoration)
    if env['MODE'] == 'opt':
