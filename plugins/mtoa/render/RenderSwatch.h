@@ -86,8 +86,6 @@ private:
    void ErrorSwatch(const MString msg);
    /// Clear the swatch.
    void ClearSwatch();
-   /// Creates a polygon sphere.
-   AtNode* PolySphere();
 
 private:
    CRenderSession * m_renderSession;
