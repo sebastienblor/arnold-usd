@@ -393,7 +393,7 @@ void CCameraTranslator::ExportImagePlanes(AtUInt step)
 void CCameraTranslator::ExportDOF(AtNode* camera)
 {
    // FIXME: focus_distance and aperture_size are animated and should be exported with motion blur
-   if (GetFnNode().findPlug("enableDOF").asBool())
+   if (GetFnNode().findPlug("aiEnableDOF").asBool())
    {
       AiNodeSetFlt(camera, "focus_distance",          GetFnNode().findPlug("aiFocusDistance").asFloat());
       AiNodeSetFlt(camera, "aperture_size",           GetFnNode().findPlug("aiApertureSize").asFloat());
