@@ -235,11 +235,11 @@ void CFishEyeCameraTranslator::Export(AtNode* camera)
    {
       AtArray* fovs = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_FLOAT);
       AiArraySetFlt(fovs, 0, fov);
-      AiNodeSetArray(camera, "aiFov", fovs);
+      AiNodeSetArray(camera, "fov", fovs);
    }
    else
    {
-      AiNodeSetFlt(camera, "aiFov", fov);
+      AiNodeSetFlt(camera, "fov", fov);
    }
 }
 
