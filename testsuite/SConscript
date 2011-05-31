@@ -436,7 +436,7 @@ class Test:
    def __init__(self,
                 script = '"%s" -rd testrenderdir -r arnold -x 160 -y 120 "%s"' % (
                    os.path.join(env['MAYA_ROOT'], 'bin', 'render'),
-                   'test.mb'),
+                   'test.ma'),
                 plugin_sources      = '*.c*',
                 program_sources     = '',
                 program_name        = 'prog',
