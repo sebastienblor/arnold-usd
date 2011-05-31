@@ -463,6 +463,7 @@ AtNode* CMayaScene::ExportDagPath(MDagPath &dagPath)
    MString name = dagPath.partialPathName();
    MString type = MFnDagNode(dagPath).typeName();
    AiMsgDebug("[mtoa] Exporting dag node %s of type %s", name.asChar(), type.asChar());
+   std::cout << "-----:" << instanceNum << "::"<< name << "::"<< type << std::endl;
    // early out for nodes that have already been processed
    ObjectToDagTranslatorMap::iterator it = m_processedDagTranslators.find(handle);
    if (it != m_processedDagTranslators.end() && it->second.count(instanceNum))
@@ -470,7 +471,9 @@ AtNode* CMayaScene::ExportDagPath(MDagPath &dagPath)
    CDagTranslator* translator = CExtensionsManager::GetTranslator(dagPath);
    if (translator != NULL && translator->IsDag())
    {
+      std::cout << "+++++:" << dagPath.partialPathName() << std::endl;
       AtNode* result = translator->Init(dagPath, this);
+      std::cout << "*****:" << translator->m_dagPath.partialPathName() << std::endl;
       translator->DoExport(0);
       // save it for later
       m_processedDagTranslators[handle][instanceNum] = translator;

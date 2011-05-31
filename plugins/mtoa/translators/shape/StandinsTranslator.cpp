@@ -35,7 +35,10 @@ void CArnoldStandInsTranslator::Export(AtNode* anode)
 {
    const char* nodeType = AiNodeEntryGetName(anode->base_node);
    if (strcmp(nodeType, "ginstance") == 0)
+   {
+      std::cout << "!!!!!!!!!§§§§§§§§§§§!!!!!!!!" << m_dagPath.partialPathName() << std::endl;
       ExportInstance(anode, m_dagPath);
+   }
    else
       ExportProcedural(anode, false);
 }
@@ -83,11 +86,12 @@ void CArnoldStandInsTranslator::ShaderAssignmentCallback(MNodeMessage::Attribute
 AtNode* CArnoldStandInsTranslator::ExportInstance(AtNode *instance, const MDagPath& masterInstance)
 {
    AtNode* masterNode = AiNodeLookUpByName(masterInstance.fullPathName().asChar());
-
+   std::cout << "isInstanced : " << m_dagPath.isInstanced() << std::endl;
    // FIXME: we should not be here if we are not instanced, why the call to isInstanced? (chad)
-   int instanceNum = m_dagPath.isInstanced() ? m_dagPath.instanceNumber() : 0;
+   int instanceNum = m_dagPath.instanceNumber();
+   std::cout << "instanceNum : " << instanceNum << std::endl;
 
-   AiNodeSetStr(instance, "name", m_dagPath.partialPathName().asChar());
+   AiNodeSetStr(instance, "name", m_dagPath.fullPathName().asChar());
 
    ExportMatrix(instance, 0);
 

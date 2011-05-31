@@ -1,17 +1,15 @@
 #ifndef STANDINSTRANSLATOR_H
 #define STANDINSTRANSLATOR_H
 
-#include "translators/NodeTranslator.h"
+#include "GeometryTranslator.h"
 
-#include <maya/MFnMesh.h>
-#include <maya/MNodeMessage.h>
-#include <maya/MPxLocatorNode.h>
-
-#include <maya/MString.h>
-
-class DLLEXPORT CArnoldStandInsTranslator : public CDagTranslator
+class CArnoldStandInsTranslator : public CGeometryTranslator
 {
 public:
+   virtual AtNode* Init(MDagPath& dagPath, CMayaScene* scene, MString outputAttr="")
+   {
+      return CGeometryTranslator::Init(dagPath, scene, outputAttr);
+   }
    static void* creator()
    {
       return new CArnoldStandInsTranslator();

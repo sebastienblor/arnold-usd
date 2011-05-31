@@ -157,12 +157,15 @@ typedef std::map<MObjectHandle, MDagPath, mobjcompare> ObjectHandleToDagMap;
 
 class DLLEXPORT CDagTranslator : public CNodeTranslator
 {
+   friend class CMayaScene;
+
 public:
    virtual AtNode* Init(MDagPath& dagPath, CMayaScene* scene, MString outputAttr="")
    {
       m_dagPath = dagPath;
       m_fnDagNode.setObject(dagPath);
       // must call this after member initialization to ensure they are available to virtual functions like SetArnoldNodeName
+      std::cout << "$$$$$:" << m_dagPath.partialPathName() << std::endl;
       return CNodeTranslator::Init(dagPath.node(), scene, outputAttr);
    }
 
