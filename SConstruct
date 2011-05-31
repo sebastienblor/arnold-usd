@@ -480,7 +480,8 @@ if system.os() == 'windows':
 else:
    package_name += ".tgz"
 
-PACKAGE = env.MakePackage(package_name, MTOA + MTOA_API + MTOA_SHADERS + MTOA_API_DOCS)
+#PACKAGE = env.MakePackage(package_name, MTOA + MTOA_API + MTOA_SHADERS + MTOA_API_DOCS)
+PACKAGE = env.MakePackage(package_name, MTOA + MTOA_API + MTOA_SHADERS)
 
 ################################
 ## EXTENSIONS
