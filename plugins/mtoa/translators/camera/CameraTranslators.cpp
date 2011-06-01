@@ -167,7 +167,7 @@ void CPerspCameraTranslator::Export(AtNode* camera)
    ExportDOF(camera);
    ExportImagePlanes(0);
 
-   ProcessParameter(camera, "uv_remap", AI_TYPE_RGBA);
+   ProcessParameter(camera, "aiUvRemap", "uv_remap", AI_TYPE_RGBA);
 
    if (m_motion)
    {
