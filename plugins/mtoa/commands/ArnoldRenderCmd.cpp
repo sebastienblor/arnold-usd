@@ -16,6 +16,7 @@
 #include <maya/MSelectionList.h>
 #include <maya/MRenderUtil.h>
 #include <maya/MFileIO.h>
+#include <maya/MFileObject.h>
 
 #include <sstream>
 
@@ -56,6 +57,8 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
 
    // FIXME: just a fast hack, should rehaul CRenderOptions code
    // and share same proc for ArnoldRenderCmd and ArnoldExportAssCmd
+   // TODO : use MString CRenderOptions::VerifyFileName(MString fileName, bool compressed)
+   // code to support compressed output filename too
    short renderType = 0;
    bool outputAssBoundingBox = false;
    MSelectionList list;
@@ -71,35 +74,73 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
 
    if (renderType != MTOA_RENDER_INTERACTIVE)
    {
-      MString filename;
-      filename = renderGlobals.name;
-      if (filename != "")
+      // Current Maya project
+      MString curProject = MGlobal::executeCommandStringResult("workspace -q -o");
+      // Current Maya file and directory
+      MFileObject sceneFile;
+      sceneFile.overrideResolvedFullName(MFileIO::currentFile());
+      MString sceneDir = sceneFile.resolvedPath();
+      MString sceneFileName = sceneFile.resolvedName();
+      // filename specified in render settings
+      MString assFileName = renderGlobals.name;
+      // Use specified file name, default to Maya scene name
+      if (assFileName.numChars() == 0)
       {
-         if (filename.substringW(0,0) != "/")
+         assFileName = sceneFileName;
+         // Strip the .mb or .ma extension if present
+         unsigned int nchars = assFileName.numChars();
+         if (nchars > 3)
          {
-            MString curProject = MGlobal::executeCommandStringResult("workspace -q -o");
-            if (curProject != "")
+            MString ext = assFileName.substringW(nchars-3, nchars);
+            if (ext == ".ma" || ext == ".mb")
             {
-               MString dirProject = MGlobal::executeCommandStringResult("workspace -q -rd "
-                     + curProject);
-               MString assDir = MGlobal::executeCommandStringResult("workspace -q -fileRuleEntry ArnoldSceneSource");
-               filename = dirProject + "/" + assDir + "/" + filename + ".ass";
-            }
-            else
-            {
-               MString curDir = MGlobal::executeCommandStringResult("workspace -q -dir");
-               filename = curDir + "/" + filename + ".ass";
+               assFileName = assFileName.substringW(0, nchars-4);
             }
          }
       }
-      else
+      // Double checking
+      if (assFileName.numChars() == 0) assFileName = "default";
+      // Add .ass extension if not present
+      unsigned int nchars = assFileName.numChars();
+      if (nchars <= 4 || assFileName.substringW(nchars-4, nchars) != ".ass")
       {
-         // If all else fails, use the current Maya scene + ass
-         filename = MFileIO::currentFile() + ".ass";
+         assFileName += ".ass";
+      }
+      // If we didn't have an absolute path specified for the file name, then
+      // if we got an active, non default project, use the subdirectory registered for ass files
+      // else use same directory as Maya file name
+      MFileObject assFile;
+      status = assFile.setRawFullName(assFileName);
+      // If a relative path was specified, use project settings
+      if (MStatus::kSuccess == status && assFile.expandedPath().numChars() == 0)
+      {
+         // Relative file name, check if we got an active project
+         MString curProject = MGlobal::executeCommandStringResult("workspace -q -o");
+         MString dirProject = "";
+         MString assDir = "";
+         if (curProject.numChars())
+         {
+            // If we got an active project, query the subdirectory registered for ass files
+            dirProject = MGlobal::executeCommandStringResult("workspace -q -rd \"" + curProject + "\"");
+            assDir = MGlobal::executeCommandStringResult("workspace -q -fileRuleEntry ArnoldSceneSource");
+         }
+         // Use current project ass files subdir, or if none found, use current maya scene dir
+         if (dirProject.numChars() && assDir.numChars())
+         {
+            assFile.setRawPath(dirProject + "/" + assDir);
+         }
+         else
+         {
+            assFile.setRawPath(sceneDir);
+         }
       }
 
+      // Get expanded full name
+      assFileName = assFile.resolvedFullName();
+
+      // FIXME: actual export code should be shared so we don't have to do this dirty call
       MString cmdStr = "arnoldExportAss";
-      cmdStr += " -f \"" + filename + "\"";
+      cmdStr += " -f \"" + assFileName + "\"";
 
       if (exportOptions.filter.unselected)
       {
@@ -130,20 +171,22 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
          cmdStr += " -cam " + camera;
       }
 
+      AiMsgInfo("[mtoa] Executing Maya command %s", cmdStr.asChar());
       status = MGlobal::executeCommand(cmdStr);
+
       if (MStatus::kSuccess == status)
       {
-         AiMsgInfo("[mtoa] Exported scene to file %s", filename.asChar());
+         AiMsgInfo("[mtoa] Exported scene to file %s", assFileName.asChar());
          if (renderType == MTOA_RENDER_EXPORTASS_AND_KICK)
          {
 #ifdef _WIN32
-            MString kickCmd = "kick \"" + filename + "\"";
+            MString kickCmd = "Start kick \"" + assFileName + "\"";
 #else
-            MString kickCmd = "kick \"" + filename + "\" &";
+            MString kickCmd = "kick \"" + assFileName + "\" &";
 #endif
-            // FIXME: does not work properly, at least on Windows
-            // NOTE: should be non blocking or what's the point?
+            // NOTE: must be non blocking!
 
+            AiMsgInfo("[mtoa] Calling external command %s", kickCmd.asChar());
             system(kickCmd.asChar());
 
             // TODO : use pykick and MGlobal::executePythonCommandOnIdle to display feedback
@@ -156,7 +199,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       }
       else
       {
-         AiMsgError("[mtoa] Failed to export scene to file %s", filename.asChar());
+         AiMsgError("[mtoa] Failed to export scene to file %s", assFileName.asChar());
       }
 
       return status;
