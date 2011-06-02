@@ -3,6 +3,7 @@
 //Last modified: Tue, May 31, 2011 07:38:58 PM
 //Codeset: 1252
 requires maya "2011";
+requires "mtoa" "0.7.0";
 currentUnit -linear centimeter -angle degree -time film;
 fileInfo "application" "maya";
 fileInfo "product" "Maya 2011";

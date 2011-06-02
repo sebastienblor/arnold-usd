@@ -17,6 +17,8 @@
 #include <maya/MRenderUtil.h>
 #include <maya/MFileIO.h>
 #include <maya/MFileObject.h>
+#include <maya/MFnRenderLayer.h>
+#include <maya/MAnimControl.h>
 
 #include <sstream>
 
@@ -45,10 +47,16 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
    const bool batch = args.isFlagSet("batch") ? true : false;
    renderSession->SetBatch(batch);
 
-   // no camera set on interactive mode, abort
-   if (!args.isFlagSet("camera") && !batch)
+   // Rendered camera
+   MString camera = "";
+   if (!args.isFlagSet("camera"))
    {
-      return MS::kFailure;
+      // no camera set on interactive mode, abort
+      if (!batch) return MS::kFailure;
+   }
+   else
+   {
+      camera = args.flagArgumentString("camera", 0);
    }
    // TODO: get the "selected" flag here
    ExportOptions exportOptions;
@@ -74,84 +82,20 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
 
    if (renderType != MTOA_RENDER_INTERACTIVE)
    {
-      // Current Maya project
-      MString curProject = MGlobal::executeCommandStringResult("workspace -q -o");
-      // Current Maya file and directory
-      MFileObject sceneFile;
-      sceneFile.overrideResolvedFullName(MFileIO::currentFile());
-      MString sceneDir = sceneFile.resolvedPath();
-      MString sceneFileName = sceneFile.resolvedName();
-      // filename specified in render settings
-      MString assFileName = renderGlobals.name;
-      // Use specified file name, default to Maya scene name
-      if (assFileName.numChars() == 0)
-      {
-         assFileName = sceneFileName;
-         // Strip the .mb or .ma extension if present
-         unsigned int nchars = assFileName.numChars();
-         if (nchars > 3)
-         {
-            MString ext = assFileName.substringW(nchars-3, nchars);
-            if (ext == ".ma" || ext == ".mb")
-            {
-               assFileName = assFileName.substringW(0, nchars-4);
-            }
-         }
-      }
-      // Double checking
-      if (assFileName.numChars() == 0) assFileName = "default";
-      // Add .ass extension if not present
-      unsigned int nchars = assFileName.numChars();
-      if (nchars <= 4 || assFileName.substringW(nchars-4, nchars) != ".ass")
-      {
-         assFileName += ".ass";
-      }
-      // If we didn't have an absolute path specified for the file name, then
-      // if we got an active, non default project, use the subdirectory registered for ass files
-      // else use same directory as Maya file name
-      MFileObject assFile;
-      status = assFile.setRawFullName(assFileName);
-      // If a relative path was specified, use project settings
-      if (MStatus::kSuccess == status && assFile.expandedPath().numChars() == 0)
-      {
-         // Relative file name, check if we got an active project
-         MString curProject = MGlobal::executeCommandStringResult("workspace -q -o");
-         MString dirProject = "";
-         MString assDir = "";
-         if (curProject.numChars())
-         {
-            // If we got an active project, query the subdirectory registered for ass files
-            dirProject = MGlobal::executeCommandStringResult("workspace -q -rd \"" + curProject + "\"");
-            assDir = MGlobal::executeCommandStringResult("workspace -q -fileRuleEntry ArnoldSceneSource");
-         }
-         // Use current project ass files subdir, or if none found, use current maya scene dir
-         if (dirProject.numChars() && assDir.numChars())
-         {
-            assFile.setRawPath(dirProject + "/" + assDir);
-         }
-         else
-         {
-            assFile.setRawPath(sceneDir);
-         }
-      }
-
-      // Get expanded full name
-      assFileName = assFile.resolvedFullName();
-
       // FIXME: actual export code should be shared so we don't have to do this dirty call
       MString cmdStr = "arnoldExportAss";
-      cmdStr += " -f \"" + assFileName + "\"";
-
+      if (batch)
+      {
+         cmdStr += " -b";
+      }
       if (exportOptions.filter.unselected)
       {
          cmdStr += " -s";
       }
-
       if (outputAssBoundingBox)
       {
          cmdStr += " -bb";
       }
-
       if (renderGlobals.isAnimated())
       {
          AtFloat startframe = static_cast<float> (renderGlobals.frameStart.as(MTime::uiUnit()));
@@ -164,32 +108,35 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
          cmdStr += " -fs ";
          cmdStr += byframestep;
       }
-
-      MString camera = args.flagArgumentString("camera", 0);
       if (camera != "")
       {
          cmdStr += " -cam " + camera;
       }
 
-      AiMsgInfo("[mtoa] Executing Maya command %s", cmdStr.asChar());
-      status = MGlobal::executeCommand(cmdStr);
+      MGlobal::displayInfo("[mtoa] Executing Maya command " + cmdStr);
+      MStringArray assFileNames;
+      status = MGlobal::executeCommand(cmdStr, assFileNames);
+      unsigned int nfiles = assFileNames.length();
 
-      if (MStatus::kSuccess == status)
+      if (MStatus::kSuccess == status && nfiles)
       {
-         AiMsgInfo("[mtoa] Exported scene to file %s", assFileName.asChar());
+         MGlobal::displayInfo("[mtoa] Exported scene to file " + assFileNames[0]);
          if (renderType == MTOA_RENDER_EXPORTASS_AND_KICK)
          {
+            // TODO: will only works for single frame, batch render should be used for multiple
+            // TODO: might want to remove this as it's a testing implementation and call kick from
+            // post render scripts
 #ifdef _WIN32
-            MString kickCmd = "Start kick \"" + assFileName + "\"";
+            MString kickCmd = "Start kick \"" + assFileNames[0] + "\"";
 #else
-            MString kickCmd = "kick \"" + assFileName + "\" &";
+            MString kickCmd = "kick \"" + assFileNames[0] + "\" &";
 #endif
             // NOTE: must be non blocking!
 
-            AiMsgInfo("[mtoa] Calling external command %s", kickCmd.asChar());
+            MGlobal::displayInfo("[mtoa] Calling external command " + kickCmd);
             system(kickCmd.asChar());
 
-            // TODO : use pykick and MGlobal::executePythonCommandOnIdle to display feedback
+            // TODO : use pykick and MGlobal::executePythonCommandOnIdle to display feedback?
 
             // int ret = system(kickCmd.asChar());
             // std::stringstream info;
@@ -199,7 +146,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       }
       else
       {
-         AiMsgError("[mtoa] Failed to export scene to file %s", assFileName.asChar());
+         MGlobal::displayError("[mtoa] Failed to export scene to ass");
       }
 
       return status;
