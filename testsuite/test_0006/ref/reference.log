@@ -1,0 +1,256 @@
+
+Starting "C:\Program Files\Autodesk\Maya2011\bin\mayabatch.exe"
+log started Thu Jun 02 22:40:52 2011
+Arnold 3.3.6.1 windows 64-bit icc110 oiio808 sse (build date: May 27 2011 20:01:46)
+running on furnace, 24 x 3333 mhz GenuineIntel with 24567 mb
+
+[METADATA] Loading metadata file: C:/solidAngle/mtoadeploy/2011/plug-ins/mtoa.mtd
+[mtoa] [<built-in>] Registered 12 new Maya nodes.
+[mtoa] [<built-in>] Registered a total of 13 translators for 21 Maya nodes (12 new and 9 existing).
+loading plugin: C:/solidAngle/mtoadeploy/2011/shaders/mtoa_shaders.dll ...
+mtoa_shaders.dll: MayaMultiplyDivide uses Arnold 3.3.6.1
+mtoa_shaders.dll: MayaClamp uses Arnold 3.3.6.1
+mtoa_shaders.dll: MayaGammaCorrect uses Arnold 3.3.6.1
+mtoa_shaders.dll: MayaCondition uses Arnold 3.3.6.1
+mtoa_shaders.dll: MayaReverse uses Arnold 3.3.6.1
+mtoa_shaders.dll: MayaBlendColors uses Arnold 3.3.6.1
+mtoa_shaders.dll: MayaFacingRatio uses Arnold 3.3.6.1
+mtoa_shaders.dll: MayaFlippedNormal uses Arnold 3.3.6.1
+mtoa_shaders.dll: MayaPlusMinusAverage1D uses Arnold 3.3.6.1
+mtoa_shaders.dll: MayaPlusMinusAverage2D uses Arnold 3.3.6.1
+mtoa_shaders.dll: MayaPlusMinusAverage3D uses Arnold 3.3.6.1
+mtoa_shaders.dll: MayaRemapValueToValue uses Arnold 3.3.6.1
+mtoa_shaders.dll: MayaRemapValueToColor uses Arnold 3.3.6.1
+mtoa_shaders.dll: MayaRemapColor uses Arnold 3.3.6.1
+mtoa_shaders.dll: MayaFile uses Arnold 3.3.6.1
+mtoa_shaders.dll: MayaPlace2DTexture uses Arnold 3.3.6.1
+mtoa_shaders.dll: MayaRamp uses Arnold 3.3.6.1
+mtoa_shaders.dll: MayaProjection uses Arnold 3.3.6.1
+mtoa_shaders.dll: MeshInfo uses Arnold 3.3.6.1
+mtoa_shaders.dll: TangentToObjectSpace uses Arnold 3.3.6.1
+mtoa_shaders.dll: MayaChecker uses Arnold 3.3.6.1
+mtoa_shaders.dll: MayaBulge uses Arnold 3.3.6.1
+mtoa_shaders.dll: MayaCloth uses Arnold 3.3.6.1
+mtoa_shaders.dll: MayaGrid uses Arnold 3.3.6.1
+mtoa_shaders.dll: MayaFractal uses Arnold 3.3.6.1
+mtoa_shaders.dll: MayaNoise uses Arnold 3.3.6.1
+mtoa_shaders.dll: MayaPlace3DTexture uses Arnold 3.3.6.1
+mtoa_shaders.dll: MayaRgbToHsv uses Arnold 3.3.6.1
+mtoa_shaders.dll: MayaHsvToRgb uses Arnold 3.3.6.1
+mtoa_shaders.dll: MayaLuminance uses Arnold 3.3.6.1
+mtoa_shaders.dll: MayaCloud uses Arnold 3.3.6.1
+mtoa_shaders.dll: MayaCloudAlpha uses Arnold 3.3.6.1
+mtoa_shaders.dll: MayaSnow uses Arnold 3.3.6.1
+mtoa_shaders.dll: MayaContrast uses Arnold 3.3.6.1
+mtoa_shaders.dll: MayaLayeredTexture uses Arnold 3.3.6.1
+mtoa_shaders.dll: MayaLayeredShader uses Arnold 3.3.6.1
+mtoa_shaders.dll: MayaSolidFractal uses Arnold 3.3.6.1
+mtoa_shaders.dll: MayaVolumeNoise uses Arnold 3.3.6.1
+mtoa_shaders.dll: MayaBrownian uses Arnold 3.3.6.1
+mtoa_shaders.dll: MayaStucco uses Arnold 3.3.6.1
+mtoa_shaders.dll: MayaRemapHsv uses Arnold 3.3.6.1
+mtoa_shaders.dll: MayaSetRange uses Arnold 3.3.6.1
+mtoa_shaders.dll: MayaImagePlane uses Arnold 3.3.6.1
+mtoa_shaders.dll: MayaSurfaceShader uses Arnold 3.3.6.1
+mtoa_shaders.dll: colorToFloat uses Arnold 3.3.6.1
+loaded 45 plugins in 0:00.09
+[mtoa] [mtoa_shaders] Registered 0 new Maya nodes.
+[mtoa] [mtoa_shaders] Registered a total of 24 translators for 24 Maya nodes (0 new and 24 existing).
+[mtoa] Loading extension shave(C:/solidAngle/mtoadeploy/2011/extensions/shave.dll).
+loading plugin: C:/solidAngle/mtoadeploy/2011/shaders/shave_shaders.dll ...
+shave_shaders.dll: ShaveHair uses Arnold 3.3.6.0
+loaded 1 plugins in 0:00.00
+[mtoa] [shave] Registered 0 new Maya nodes.
+[mtoa] [shave] Registered a total of 0 translators for 0 Maya nodes (0 new and 0 existing).
+[mtoa] Successfully loaded extension library shave(C:/solidAngle/mtoadeploy/2011/extensions/shave.dll).
+[mtoa] Registering 3 loaded extensions:
+[mtoa] Registered extension <built-in>(<built-in>).
+[mtoa] Registered extension mtoa_shaders(C:/solidAngle/mtoadeploy/2011/shaders/mtoa_shaders.dll).
+[mtoa] Extension shave requires Maya plugin shaveNode, registering will be deferred until plugin is loaded.
+[mtoa] registering custom attr template for mesh
+[mtoa] registering custom attr template for hairSystem
+[mtoa] registering custom attr template for ambientLight
+[mtoa] registering custom attr template for directionalLight
+[mtoa] registering custom attr template for pointLight
+[mtoa] registering custom attr template for spotLight
+[mtoa] registering custom attr template for areaLight
+registering translator template for perspective on camera
+registering translator template for orthographic on camera
+registering translator template for fisheye on camera
+registering translator template for cylindrical on camera
+Adding attribute changed callback for camera
+
+releasing resources
+Arnold shutdown
+log started Thu Jun 02 22:40:52 2011
+Arnold 3.3.6.1 windows 64-bit icc110 oiio808 sse (build date: May 27 2011 20:01:46)
+running on furnace, 24 x 3333 mhz GenuineIntel with 24567 mb
+
+
+releasing resources
+Arnold shutdown
+File read in 0 seconds.
+Result: D:/orenouard/Eclipse/Arnold/mtoa/build/windows_x86_64/msvc_opt/testsuite/test_0006/test.ma
+log started Thu Jun 02 22:40:53 2011
+Arnold 3.3.6.1 windows 64-bit icc110 oiio808 sse (build date: May 27 2011 20:01:46)
+running on furnace, 24 x 3333 mhz GenuineIntel with 24567 mb
+
+
+releasing resources
+Arnold shutdown
+[mtoa] Executing Maya command arnoldExportAss -b
+00:00:00  136mb         | log started Thu Jun 02 22:40:53 2011
+00:00:00  136mb         | Arnold 3.3.6.1 windows 64-bit icc110 oiio808 sse (build date: May 27 2011 20:01:46)
+00:00:00  136mb         | running on furnace, 24 x 3333 mhz GenuineIntel with 24567 mb
+00:00:00  136mb         | 
+00:00:00  136mb         | loading plugins from C:/solidAngle/mtoadeploy/2011/shaders ...
+00:00:00  136mb         |  mtoa_shaders.dll: MayaMultiplyDivide uses Arnold 3.3.6.1
+00:00:00  136mb         |  mtoa_shaders.dll: MayaClamp uses Arnold 3.3.6.1
+00:00:00  136mb         |  mtoa_shaders.dll: MayaGammaCorrect uses Arnold 3.3.6.1
+00:00:00  136mb         |  mtoa_shaders.dll: MayaCondition uses Arnold 3.3.6.1
+00:00:00  136mb         |  mtoa_shaders.dll: MayaReverse uses Arnold 3.3.6.1
+00:00:00  136mb         |  mtoa_shaders.dll: MayaBlendColors uses Arnold 3.3.6.1
+00:00:00  136mb         |  mtoa_shaders.dll: MayaFacingRatio uses Arnold 3.3.6.1
+00:00:00  136mb         |  mtoa_shaders.dll: MayaFlippedNormal uses Arnold 3.3.6.1
+00:00:00  136mb         |  mtoa_shaders.dll: MayaPlusMinusAverage1D uses Arnold 3.3.6.1
+00:00:00  136mb         |  mtoa_shaders.dll: MayaPlusMinusAverage2D uses Arnold 3.3.6.1
+00:00:00  136mb         |  mtoa_shaders.dll: MayaPlusMinusAverage3D uses Arnold 3.3.6.1
+00:00:00  136mb         |  mtoa_shaders.dll: MayaRemapValueToValue uses Arnold 3.3.6.1
+00:00:00  136mb         |  mtoa_shaders.dll: MayaRemapValueToColor uses Arnold 3.3.6.1
+00:00:00  136mb         |  mtoa_shaders.dll: MayaRemapColor uses Arnold 3.3.6.1
+00:00:00  136mb         |  mtoa_shaders.dll: MayaFile uses Arnold 3.3.6.1
+00:00:00  136mb         |  mtoa_shaders.dll: MayaPlace2DTexture uses Arnold 3.3.6.1
+00:00:00  136mb         |  mtoa_shaders.dll: MayaRamp uses Arnold 3.3.6.1
+00:00:00  136mb         |  mtoa_shaders.dll: MayaProjection uses Arnold 3.3.6.1
+00:00:00  136mb         |  mtoa_shaders.dll: MeshInfo uses Arnold 3.3.6.1
+00:00:00  136mb         |  mtoa_shaders.dll: TangentToObjectSpace uses Arnold 3.3.6.1
+00:00:00  136mb         |  mtoa_shaders.dll: MayaChecker uses Arnold 3.3.6.1
+00:00:00  136mb         |  mtoa_shaders.dll: MayaBulge uses Arnold 3.3.6.1
+00:00:00  136mb         |  mtoa_shaders.dll: MayaCloth uses Arnold 3.3.6.1
+00:00:00  136mb         |  mtoa_shaders.dll: MayaGrid uses Arnold 3.3.6.1
+00:00:00  136mb         |  mtoa_shaders.dll: MayaFractal uses Arnold 3.3.6.1
+00:00:00  136mb         |  mtoa_shaders.dll: MayaNoise uses Arnold 3.3.6.1
+00:00:00  136mb         |  mtoa_shaders.dll: MayaPlace3DTexture uses Arnold 3.3.6.1
+00:00:00  136mb         |  mtoa_shaders.dll: MayaRgbToHsv uses Arnold 3.3.6.1
+00:00:00  136mb         |  mtoa_shaders.dll: MayaHsvToRgb uses Arnold 3.3.6.1
+00:00:00  136mb         |  mtoa_shaders.dll: MayaLuminance uses Arnold 3.3.6.1
+00:00:00  136mb         |  mtoa_shaders.dll: MayaCloud uses Arnold 3.3.6.1
+00:00:00  136mb         |  mtoa_shaders.dll: MayaCloudAlpha uses Arnold 3.3.6.1
+00:00:00  136mb         |  mtoa_shaders.dll: MayaSnow uses Arnold 3.3.6.1
+00:00:00  136mb         |  mtoa_shaders.dll: MayaContrast uses Arnold 3.3.6.1
+00:00:00  136mb         |  mtoa_shaders.dll: MayaLayeredTexture uses Arnold 3.3.6.1
+00:00:00  136mb         |  mtoa_shaders.dll: MayaLayeredShader uses Arnold 3.3.6.1
+00:00:00  136mb         |  mtoa_shaders.dll: MayaSolidFractal uses Arnold 3.3.6.1
+00:00:00  136mb         |  mtoa_shaders.dll: MayaVolumeNoise uses Arnold 3.3.6.1
+00:00:00  136mb         |  mtoa_shaders.dll: MayaBrownian uses Arnold 3.3.6.1
+00:00:00  136mb         |  mtoa_shaders.dll: MayaStucco uses Arnold 3.3.6.1
+00:00:00  136mb         |  mtoa_shaders.dll: MayaRemapHsv uses Arnold 3.3.6.1
+00:00:00  136mb         |  mtoa_shaders.dll: MayaSetRange uses Arnold 3.3.6.1
+00:00:00  136mb         |  mtoa_shaders.dll: MayaImagePlane uses Arnold 3.3.6.1
+00:00:00  136mb         |  mtoa_shaders.dll: MayaSurfaceShader uses Arnold 3.3.6.1
+00:00:00  136mb         |  mtoa_shaders.dll: colorToFloat uses Arnold 3.3.6.1
+00:00:00  136mb         |  shave_shaders.dll: ShaveHair uses Arnold 3.3.6.0
+00:00:00  136mb         | loaded 46 plugins from 2 libs in 0:00.16
+00:00:00  136mb         | [mtoa] [maya aiOptions] Using translator <built-in>, provided by <built-in>(<built-in>).
+00:00:00  136mb         | [mtoa] [translator <built-in>] Exporting on node defaultArnoldRenderOptions.
+00:00:00  136mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.AA_pattern requested by translator does not exist
+00:00:00  136mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.AA_motionblur_pattern requested by translator does not exist
+00:00:00  136mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.AA_sample_clamp_affects_aovs requested by translator does not exist
+00:00:00  136mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.AA_sampling_dither requested by translator does not exist
+00:00:00  136mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.thread_priority requested by translator does not exist
+00:00:00  136mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.flush_buckets_on_halt requested by translator does not exist
+00:00:00  136mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.error_color_bad_texture requested by translator does not exist
+00:00:00  136mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.error_color_bad_mesh requested by translator does not exist
+00:00:00  136mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.error_color_bad_pixel requested by translator does not exist
+00:00:00  136mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.error_color_bad_shader requested by translator does not exist
+00:00:00  136mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.outputs requested by translator does not exist
+00:00:00  136mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.xres requested by translator does not exist
+00:00:00  136mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.yres requested by translator does not exist
+00:00:00  136mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.region_min_x requested by translator does not exist
+00:00:00  136mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.region_min_y requested by translator does not exist
+00:00:00  136mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.region_max_x requested by translator does not exist
+00:00:00  136mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.region_max_y requested by translator does not exist
+00:00:00  136mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.aspect_ratio requested by translator does not exist
+00:00:00  136mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.buckets requested by translator does not exist
+00:00:00  136mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.ignore_list requested by translator does not exist
+00:00:00  136mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.auto_transparency_mode requested by translator does not exist
+00:00:00  136mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.trace_opaque_first requested by translator does not exist
+00:00:00  136mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.texture_searchpath requested by translator does not exist
+00:00:00  136mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.camera requested by translator does not exist
+00:00:00  136mb         | [mtoa] [maya aiSky] Using translator <built-in>, provided by <built-in>(<built-in>).
+00:00:00  136mb         | [mtoa] [translator <built-in>] Exporting on plug aiSkyShape.message.
+00:00:00  136mb WARNING | options.background: linking an options node is not supported
+00:00:00  136mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.background_visibility requested by translator does not exist
+00:00:00  136mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.bump_multiplier requested by translator does not exist
+00:00:00  136mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.luminaire_bias requested by translator does not exist
+00:00:00  136mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.shadow_bias requested by translator does not exist
+00:00:00  136mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.low_light_threshold requested by translator does not exist
+00:00:00  136mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.shadows_obey_light_linking requested by translator does not exist
+00:00:00  136mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.skip_background_atmosphere requested by translator does not exist
+00:00:00  136mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.max_shader_messages requested by translator does not exist
+00:00:00  136mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.mindist_ulp_count requested by translator does not exist
+00:00:00  136mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.CCW_points requested by translator does not exist
+00:00:00  136mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.mesh_sanity requested by translator does not exist
+00:00:00  136mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.shader_nan_checks requested by translator does not exist
+00:00:00  136mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.bad_bounds_slack requested by translator does not exist
+00:00:00  136mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.strict_procedural_compatibility requested by translator does not exist
+00:00:00  136mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.procedural_searchpath requested by translator does not exist
+00:00:00  136mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.shader_searchpath requested by translator does not exist
+00:00:00  136mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.unload_plugins requested by translator does not exist
+00:00:00  136mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.GI_hemi_pattern requested by translator does not exist
+00:00:00  136mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.GI_Cranley_Patterson requested by translator does not exist
+00:00:00  136mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.GI_direct_lighting requested by translator does not exist
+00:00:00  136mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.GI_falloff_start_dist requested by translator does not exist
+00:00:00  136mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.GI_falloff_stop_dist requested by translator does not exist
+00:00:00  136mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.packet_tracing requested by translator does not exist
+00:00:00  136mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.packet_shader requested by translator does not exist
+00:00:00  136mb         | [mtoa] [maya aiSky] Using translator <built-in>, provided by <built-in>(<built-in>).
+00:00:00  136mb         | [mtoa] [translator <built-in>] Exporting on node aiSkyShape.
+00:00:00  136mb         | [mtoa] Exporting dag node perspShape of type camera
+00:00:00  136mb         | [mtoa] [translator perspective] Exporting on node perspShape.
+00:00:00  136mb         | [mtoa] Exporting dag node topShape of type camera
+00:00:00  136mb         | [mtoa] [translator orthographic] Exporting on node topShape.
+00:00:00  136mb         | [mtoa] Exporting dag node frontShape of type camera
+00:00:00  136mb         | [mtoa] [translator orthographic] Exporting on node frontShape.
+00:00:00  136mb         | [mtoa] Exporting dag node sideShape of type camera
+00:00:00  136mb         | [mtoa] [translator orthographic] Exporting on node sideShape.
+00:00:00  136mb         | [mtoa] Exporting dag node groundPlane_transform of type transform
+00:00:00  136mb         | [mtoa] Dag node groundPlane_transform of type transform ignored
+00:00:00  136mb         | [mtoa] Exporting dag node groundPlane of type groundPlane
+00:00:00  136mb         | [mtoa] Dag node groundPlane of type groundPlane ignored
+00:00:00  136mb         | [mtoa] Exporting dag node pSphere1 of type transform
+00:00:00  136mb         | [mtoa] Dag node pSphere1 of type transform ignored
+00:00:00  136mb         | [mtoa] Exporting dag node pSphereShape1 of type mesh
+00:00:00  136mb         | [mtoa] [maya mesh] Using translator <built-in>, provided by <built-in>(<built-in>).
+00:00:00  136mb         | [mtoa] [translator <built-in>] Exporting on node pSphereShape1.
+00:00:00  136mb         | [mtoa] [maya aiStandard] Using translator <built-in>, provided by <built-in>(<built-in>).
+00:00:00  136mb         | [mtoa] [translator <built-in>] Exporting on node aiStandard1.
+00:00:00  137mb         | [mtoa] Exporting dag node aiSky of type transform
+00:00:00  137mb         | [mtoa] Dag node aiSky of type transform ignored
+00:00:00  137mb         | [mtoa] Exporting dag node aiSkyShape of type aiSky
+00:00:00  137mb         | [mtoa] [maya aiSky] Using translator <built-in>, provided by <built-in>(<built-in>).
+00:00:00  137mb WARNING | can't rename node "sky_521657F637C04F99B800000003" to "aiSkyShape": name already in use
+00:00:00  137mb         | [mtoa] [translator <built-in>] Exporting on node aiSkyShape.
+00:00:00  137mb         | [mtoa] Using camera perspShape to output image D:/orenouard/Eclipse/Arnold/mtoa/build/windows_x86_64/msvc_opt/testsuite/test_0006/testrender.tif.
+00:00:00  137mb         | [mtoa] Exporting Maya scene to file "D:/orenouard/Eclipse/Arnold/mtoa/build/windows_x86_64/msvc_opt/testsuite/test_0006/testrender.ass"
+00:00:00  137mb         | writing D:/orenouard/Eclipse/Arnold/mtoa/build/windows_x86_64/msvc_opt/testsuite/test_0006/testrender.ass (mask=0xFFFF) ...
+00:00:00  137mb         | wrote 12 nodes in 4146 lines in 0:00.04
+00:00:00  137mb         | [mtoa] Deleting translator for aiSkyShape
+00:00:00  137mb         | [mtoa] Deleting translator for defaultArnoldRenderOptions
+00:00:00  137mb         | [mtoa] Deleting translator for aiStandard1
+00:00:00  137mb         | [mtoa] Deleting translator for |side|sideShape [0]
+00:00:00  137mb         | [mtoa] Deleting translator for |front|frontShape [0]
+00:00:00  137mb         | [mtoa] Deleting translator for |top|topShape [0]
+00:00:00  137mb         | [mtoa] Deleting translator for |persp|perspShape [0]
+00:00:00  137mb         | [mtoa] Deleting translator for |aiSky|aiSkyShape [0]
+00:00:00  137mb         | [mtoa] Deleting translator for |pSphere1|pSphereShape1 [0]
+00:00:00  137mb         | 
+00:00:00  137mb         | releasing resources
+00:00:00  137mb         |  unloading 2 plugins
+00:00:00  137mb         |   closing mtoa_shaders.dll ...
+00:00:00  137mb         |   closing shave_shaders.dll ...
+00:00:00  137mb         |  unloading plugins done
+00:00:00  137mb         | Arnold shutdown
+[mtoa] Exported scene to file D:/orenouard/Eclipse/Arnold/mtoa/build/windows_x86_64/msvc_opt/testsuite/test_0006/testrender.ass
+[mtoa] Calling external command Start kick "D:/orenouard/Eclipse/Arnold/mtoa/build/windows_x86_64/msvc_opt/testsuite/test_0006/testrender.ass"
+Scene test.ma completed.

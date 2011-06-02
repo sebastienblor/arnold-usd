@@ -126,12 +126,20 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
             // TODO: will only works for single frame, batch render should be used for multiple
             // TODO: might want to remove this as it's a testing implementation and call kick from
             // post render scripts
+            MString kickCmd;
+            if (batch)
+            {
+               kickCmd = "kick -dw -dp \"" + assFileNames[0] + "\"";
+            }
+            else
+            {
 #ifdef _WIN32
-            MString kickCmd = "Start kick \"" + assFileNames[0] + "\"";
+               kickCmd = "Start kick \"" + assFileNames[0] + "\"";
 #else
-            MString kickCmd = "kick \"" + assFileNames[0] + "\" &";
+               kickCmd = "kick \"" + assFileNames[0] + "\" &";
 #endif
-            // NOTE: must be non blocking!
+            }
+            // NOTE: must be blocking when in batch mode, non blocking when in interractive mode
 
             MGlobal::displayInfo("[mtoa] Calling external command " + kickCmd);
             system(kickCmd.asChar());
