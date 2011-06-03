@@ -92,7 +92,7 @@ if system.os() == 'windows':
    vars.Add(EnumVariable('MSVC_VERSION', 'Version of MS Visual Studio to use', '9.0', allowed_values=('8.0', '8.0Exp', '9.0', '9.0Exp')))
 
 if system.os() == 'windows':
-   # Ugly hack. Create a temporary environment, without loading any tool, so we can set the MSVS_ARCH
+   # Ugly hack. Create a temporary environment, without loading any tool, so we can set the MSVC_ARCH
    # variable from the contents of the TARGET_ARCH variable. Then we can load tools.
    tmp_env = Environment(variables = vars, tools=[])
    if tmp_env['TARGET_ARCH'] == 'x86_64':
@@ -100,6 +100,8 @@ if system.os() == 'windows':
    else:
       tmp_env.Append(MSVC_ARCH = 'x86')
    env = tmp_env.Clone(tools=['default'])
+   # restore as the Clone overrides it
+   env['TARGET_ARCH'] = tmp_env['TARGET_ARCH']
 else:
    env = Environment(variables = vars)
 

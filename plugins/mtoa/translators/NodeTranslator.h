@@ -175,6 +175,7 @@ public:
 
    virtual MFnDagNode GetFnDagNode() const {return m_fnDagNode;}
    virtual bool IsDag() {return true;}
+   virtual bool IsRenderable() {return true;}
 
    static int GetMasterInstanceNumber(MObject node);
    virtual void AddIPRCallbacks();

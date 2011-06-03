@@ -13,10 +13,15 @@
 #include <maya/MGlobal.h>
 #include <maya/MArgDatabase.h>
 #include <maya/MRenderUtil.h>
+#include <maya/MFileIO.h>
+#include <maya/MFileObject.h>
+#include <maya/MFnRenderLayer.h>
+#include <maya/MAnimControl.h>
 
 MSyntax CArnoldExportAssCmd::newSyntax()
 {
    MSyntax syntax;
+   syntax.addFlag("b", "batch", MSyntax::kNoArg);
    syntax.addFlag("s", "selected");
    syntax.addFlag("bb", "boundingBox");
    syntax.addFlag("f", "filename", MSyntax::kString);
@@ -73,6 +78,114 @@ MString CArnoldExportAssCmd::GetCameraName()
    return cameraName;
 }
 
+MString CArnoldExportAssCmd::GetAssName(const MString& customName,
+                                        const MCommonRenderSettingsData& renderGlobals,
+                                        double frameNumber,
+                                        const MString &sceneName,
+                                        const MString &cameraName,
+                                        const MString &fileFormat,
+                                        const MObject layer,
+                                        const bool createDirectory,
+                                        MStatus *ReturnStatus) const
+{
+   MStatus status;
+   MString assFileName = customName;
+   // Current Maya file and directory
+   MFileObject sceneFile;
+   sceneFile.overrideResolvedFullName(sceneName);
+   MString sceneDir = sceneFile.resolvedPath();
+   MString sceneFileName = sceneFile.resolvedName();
+   // Strip Maya scene extension if present
+   unsigned int nscn = sceneFileName.numChars();
+   if (nscn > 3)
+   {
+      MString ext = sceneFileName.substringW(nscn-3, nscn);
+      if (ext == ".ma" || ext == ".mb")
+      {
+         sceneFileName = sceneFileName.substringW(0, nscn-4);
+      }
+   }
+   // TODO: since .ass is a registered Maya file extension (through the translator),
+   // we can output ass files in their own registered project subdir.
+   // It's the default Maya behavior a relative path / filename is specified.
+   // Problem is it won't be affected by Render command argument redirecting the output file.
+   // Thus in bath mode we usually want to use the absolute path.
+   // Current behavior is use the custom file name if one is explicitely passed
+   // (ie direct call to arnoldExportAss command)
+   // If no name is passed (ie call by render command) then :
+   // Use render globals file name, but output in projects' ass subdirectory if not in batch mode
+   // Use render globals file name and absolute path if in batch mode
+   if (customName.numChars())
+   {
+      // TODO: some of maya tools support fractionnal frame numbers
+      char frameExt[64];
+      sprintf(frameExt, ".%04d", (int) frameNumber);
+
+      assFileName = customName + frameExt;
+   }
+   else
+   {
+      MCommonRenderSettingsData::MpathType pathType;
+      if (IsBatch())
+      {
+         pathType = MCommonRenderSettingsData::kFullPathImage;
+      }
+      else
+      {
+         pathType = MCommonRenderSettingsData::kRelativePath;
+      }
+      assFileName = renderGlobals.getImageName(pathType,
+                                               frameNumber,
+                                               sceneFileName,
+                                               cameraName,
+                                               fileFormat,
+                                               layer,
+                                               createDirectory,
+                                               &status);
+   }
+   // Add desired extension if not present
+   MString ext = MString(".") + fileFormat;
+   unsigned int next = ext.length();
+   unsigned int nchars = assFileName.numChars();
+   if (nchars <= next || assFileName.substringW(nchars-next, nchars) != ext)
+   {
+      assFileName += ext;
+   }
+   // If we didn't have an absolute path specified for the file name, then
+   // if we got an active, non default project, use the subdirectory registered for ass files
+   // else use same directory as Maya file name
+   MFileObject assFile;
+   status = assFile.setRawFullName(assFileName);
+   // If a relative path was specified, use project settings
+   if (MStatus::kSuccess == status && assFile.expandedPath().numChars() == 0)
+   {
+      // Relative file name, check if we got an active project
+      MString curProject = MGlobal::executeCommandStringResult("workspace -q -o");
+      MString dirProject = "";
+      MString assDir = "";
+      if (curProject.numChars())
+      {
+         // If we got an active project, query the subdirectory registered for ass files
+         dirProject = MGlobal::executeCommandStringResult("workspace -q -rd \"" + curProject + "\"");
+         assDir = MGlobal::executeCommandStringResult("workspace -q -fileRuleEntry ArnoldSceneSource");
+      }
+      // Use current project ass files subdir, or if none found, use current maya scene dir
+      if (dirProject.numChars() && assDir.numChars())
+      {
+         assFile.setRawPath(dirProject + "/" + assDir);
+      }
+      else
+      {
+         assFile.setRawPath(sceneDir);
+      }
+   }
+   // Get expanded full name
+   assFileName = assFile.resolvedFullName();
+
+   if (NULL != ReturnStatus) *ReturnStatus = status;
+   return assFileName;
+}
+
 // FIXME: will probably get removed when we have proper bounding box format support
 MStatus CArnoldExportAssCmd::WriteAsstoc(const MString& filename, const AtBBox& bBox)
 {
@@ -119,11 +232,24 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    int endframe = 0;
    int framestep = 1;
 
+   // Batch mode
+   const bool batch = argDB.isFlagSet("batch") ? true : false;
+   SetBatch(batch);
    // Custom filename
    if (argDB.isFlagSet("filename"))
    {
+      // if custom file name is provided
       argDB.getFlagArgument("filename", 0, customFileName);
+      // Strip the .ass extension if present
+      unsigned int nchars = customFileName.numChars();
+      if (nchars > 4 && customFileName.substringW(nchars-4, nchars) == ".ass")
+      {
+         customFileName = customFileName.substringW(0, nchars-5);
+      }
    }
+   // Rendered render layer
+   // TODO: add this to flags
+   MObject renderLayer = MFnRenderLayer::currentLayer();
    // Custom camera
    if (argDB.isFlagSet("camera"))
    {
@@ -134,10 +260,7 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    {
       exportSelected = true;
    }
-   if (argDB.isFlagSet("selected"))
-   {
-      exportSelected = true;
-   }
+   // Output bounding box
    if (argDB.isFlagSet("boundingBox"))
    {
       writeBox  = true;
@@ -161,6 +284,7 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
       argDB.getFlagArgument("frameStep", 0, framestep);
    }
    // Get Maya scene information
+   MString sceneName = MFileIO::currentFile();
    // If camera name is not set, default to active view camera in interactive mode
    // or the first found renderable camera in batch mode
    // FIXME if you're exporting in selected mode to reuse in a standing
@@ -190,25 +314,34 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    // We don't need renderview_display so we need to set Batch mode on.
    renderSession->SetBatch(true);
 
+   MString curfilename;
    MString tocfilename;
    // Export range of frames or single frame
    if (startframe <= endframe)
    {
       // customFileName is a prefix, need to add frame and extension
       // TODO: might want to check if extension or frame is already set
-      MString curfilename;
-      char frameext[64];
-
-      for (int curframe = startframe; curframe <= endframe; curframe += framestep)
+      for (double curframe = startframe; curframe <= endframe; curframe += framestep)
       {
          MGlobal::viewFrame((double)curframe);
          renderSession->ExecuteScript(renderGlobals.preRenderMel);
 
-         sprintf(frameext, ".%04d.ass", curframe);
-         curfilename = customFileName;
-         curfilename += frameext;
-         tocfilename = curfilename;
-         tocfilename += ".asstoc";
+         curfilename = GetAssName(customFileName,
+                                  renderGlobals,
+                                  curframe,
+                                  sceneName,
+                                  cameraName,
+                                  "ass",
+                                  renderLayer,
+                                  1, &status);
+         tocfilename = GetAssName(customFileName,
+                                  renderGlobals,
+                                  curframe,
+                                  sceneName,
+                                  cameraName,
+                                  "asstoc",
+                                  renderLayer,
+                                  1, &status);
 
          renderSession->Translate(exportOptions);
          if (cameraName != "")
@@ -220,13 +353,35 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
          renderSession->DoExport(curfilename);
          renderSession->Finish();
          renderSession->ExecuteScript(renderGlobals.postRenderMel);
+
+         appendToResult(curfilename);
       }
    }
    else
    {
+      // Get current frame info
+      double fileFrameNumber = 0;
+      MTime cT = MAnimControl::currentTime();
+      fileFrameNumber = double(cT.value());
+
       renderSession->ExecuteScript(renderGlobals.preRenderMel);
 
-      tocfilename = customFileName + ".asstoc";
+      curfilename = GetAssName(customFileName,
+                               renderGlobals,
+                               fileFrameNumber,
+                               sceneName,
+                               cameraName,
+                               "ass",
+                               renderLayer,
+                               1, &status);
+      tocfilename = GetAssName(customFileName,
+                               renderGlobals,
+                               fileFrameNumber,
+                               sceneName,
+                               cameraName,
+                               "asstoc",
+                               renderLayer,
+                               1, &status);
 
       renderSession->Translate(exportOptions);
       if (cameraName != "")
@@ -235,9 +390,11 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
       if (writeBox)
          WriteAsstoc(tocfilename, renderSession->GetBoundingBox());
 
-      renderSession->DoExport(customFileName);
+      renderSession->DoExport(curfilename);
       renderSession->Finish();
       renderSession->ExecuteScript(renderGlobals.postRenderMel);
+
+      appendToResult(curfilename);
    }
 
    return status;

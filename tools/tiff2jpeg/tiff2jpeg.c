@@ -58,7 +58,8 @@ int main(int argc, char **argv)
    if(tiffin)
    {
       uint32 w, h;
-      size_t npixels;
+      // size_t npixels;
+      tsize_t npixels;
       uint32* raster;
       TIFFGetField(tiffin, TIFFTAG_IMAGEWIDTH, &w);
       TIFFGetField(tiffin, TIFFTAG_IMAGELENGTH, &h);

@@ -470,11 +470,14 @@ AtNode* CMayaScene::ExportDagPath(MDagPath &dagPath)
    CDagTranslator* translator = CExtensionsManager::GetTranslator(dagPath);
    if (translator != NULL && translator->IsDag())
    {
-      AtNode* result = translator->Init(dagPath, this);
-      translator->DoExport(0);
-      // save it for later
-      m_processedDagTranslators[handle][instanceNum] = translator;
-      return result;
+      if (translator->IsRenderable())
+      {
+         AtNode* result = translator->Init(dagPath, this);
+         translator->DoExport(0);
+         // save it for later
+         m_processedDagTranslators[handle][instanceNum] = translator;
+         return result;
+      }
    }
    else
    {
@@ -493,59 +496,31 @@ AtNode* CMayaScene::ExportShader(MPlug& shaderOutputPlug)
 
 AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
 {
+   MDagPath dagPath;
+   if (MDagPath::getAPathTo(mayaShader, dagPath) == MS::kSuccess)
+      return ExportDagPath(dagPath);
+
    // First check if this shader has already been processed
-   for (std::vector<CShaderData>::const_iterator it = m_processedShaders.begin(); (it != m_processedShaders.end()); ++it)
-   {
-      if (it->mayaShader == mayaShader && it->attrName == attrName)
-      {
-         return it->arnoldShader;
-      }
-   }
    MObjectHandle handle = MObjectHandle(mayaShader);
-   // early out for dag nodes that have already been processed
-   ObjectToDagTranslatorMap::iterator it = m_processedDagTranslators.find(handle);
-   if (it != m_processedDagTranslators.end())
-   {
-      // find the first
-      cout << "dag node early out" << endl;;
-      return it->second.begin()->second->GetArnoldRootNode();
-   }
+   // early out for depend nodes that have already been processed
+   ObjectToTranslatorMap::iterator it = m_processedTranslators.find(handle);
+   if (it != m_processedTranslators.end() && it->second->m_outputAttr == attrName)
+      return it->second->GetArnoldRootNode();
 
    AtNode* shader = NULL;
 
    CNodeTranslator* translator = CExtensionsManager::GetTranslator(mayaShader);
    if (translator != NULL)
    {
-      // CDagTranslator* dagTranslator = static_cast<CDagTranslator*>(translator);
-      CDagTranslator* dagTranslator = dynamic_cast<CDagTranslator*>(translator);
-      if (dagTranslator != NULL)
-      {
-         MDagPath dagPath;
-         MDagPath::getAPathTo(mayaShader, dagPath);
-         shader = dagTranslator->Init(dagPath, this, attrName);
-         m_processedTranslators[handle] = dagTranslator;
-         dagTranslator->DoExport(0);
-      }
-      else
-      {
-         shader = translator->Init(mayaShader, this, attrName);
-         m_processedTranslators[handle] = translator;
-         translator->DoExport(0);
-      }
+      shader = translator->Init(mayaShader, this, attrName);
+      m_processedTranslators[handle] = translator;
+      translator->DoExport(0);
    }
    else
    {
       AiMsgDebug("[mtoa] Shader type not supported: %s", MFnDependencyNode(mayaShader).typeName().asChar());
    }
 
-   if (shader)
-   {
-      CShaderData data;
-      data.mayaShader   = mayaShader;
-      data.arnoldShader = shader;
-      data.attrName     = attrName;
-      m_processedShaders.push_back(data);
-   }
    return shader;
 }
 
