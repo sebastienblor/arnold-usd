@@ -140,3 +140,7 @@ void CLightTranslator::NodeInitializer(MString nodeClassName)
    helper.MakeInput("sss_samples");
 }
 
+void CLightTranslator::Delete()
+{
+   AiNodeDestroy(GetArnoldRootNode());
+}

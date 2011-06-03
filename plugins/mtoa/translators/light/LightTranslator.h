@@ -23,6 +23,7 @@ protected:
    virtual void Export(AtNode* light);
    virtual void ExportMotion(AtNode* light, AtUInt step);
    virtual void ExportLightFilters(AtNode* light, const MObjectArray &filters);
+   virtual void Delete();
 
 protected:
    bool m_motion;
