@@ -971,10 +971,7 @@ void CDagTranslator::AddIPRCallbacks()
 
 void CDagTranslator::Delete()
 {
-   // Arnold doesn't allow us to delete nodes
-   // setting the visibility is as good as it gets
-   // for now.
-   AiNodeSetInt(GetArnoldRootNode(), "visibility",  AI_RAY_UNDEFINED);
+   AiNodeDestroy(GetArnoldRootNode());
 }
 
 // Return whether the dag object in dagPath is the master instance. The master
