@@ -211,7 +211,10 @@ def strpartition(string, sep):
    return (string[:index], sep, string[index + 1:])
 
 def add_to_path(env, new_path):
-	env['ENV']['PATH'] = '%s;%s' % (new_path, env['ENV']['PATH'])
+    if system.os() == 'windows':
+	   env.AppendENVPath('PATH', new_path, envname='ENV', sep=';', delete_existing=1) 
+    else :
+       env.AppendENVPath('PATH', new_path, envname='ENV', sep=':', delete_existing=1)
 
 def get_default_path(var, default):
    if var in os.environ:
