@@ -165,8 +165,8 @@ public:
       m_dagPath = dagPath;
       m_fnDagNode.setObject(dagPath);
       // must call this after member initialization to ensure they are available to virtual functions like SetArnoldNodeName
-      std::cout << "$$$$$:" << m_dagPath.partialPathName() << std::endl;
-      return CNodeTranslator::Init(dagPath.node(), scene, outputAttr);
+      AtNode * tmpRet = CNodeTranslator::Init(dagPath.node(), scene, outputAttr);
+      return tmpRet;
    }
 
    virtual AtNode* Init(MObject& object, CMayaScene* scene, MString outputAttr="")

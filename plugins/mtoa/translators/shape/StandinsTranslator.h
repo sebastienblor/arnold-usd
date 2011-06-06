@@ -8,6 +8,7 @@ class CArnoldStandInsTranslator : public CGeometryTranslator
 public:
    virtual AtNode* Init(MDagPath& dagPath, CMayaScene* scene, MString outputAttr="")
    {
+      m_fnMesh.setObject(dagPath);
       return CGeometryTranslator::Init(dagPath, scene, outputAttr);
    }
    static void* creator()

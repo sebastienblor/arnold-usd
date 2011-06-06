@@ -24,23 +24,31 @@ void CArnoldStandInsTranslator::NodeInitializer(MString nodeClassName)
 
 AtNode* CArnoldStandInsTranslator::CreateArnoldNodes()
 {
-   bool m_isMasterDag = IsMasterInstance(m_dagPath);
+   m_isMasterDag = IsMasterInstance(m_masterDag);
    if (m_isMasterDag)
-      return  AddArnoldNode("procedural");
+   {
+      AtNode * tmpRes = AddArnoldNode("procedural");
+      return  tmpRes;
+   }
    else
-      return  AddArnoldNode("ginstance");
+   {
+      AtNode * tmpRes = AddArnoldNode("ginstance");
+      return  tmpRes;
+   }
 }
+
 
 void CArnoldStandInsTranslator::Export(AtNode* anode)
 {
    const char* nodeType = AiNodeEntryGetName(anode->base_node);
    if (strcmp(nodeType, "ginstance") == 0)
    {
-      std::cout << "!!!!!!!!!§§§§§§§§§§§!!!!!!!!" << m_dagPath.partialPathName() << std::endl;
-      ExportInstance(anode, m_dagPath);
+      ExportInstance(anode, m_masterDag);
    }
    else
+   {
       ExportProcedural(anode, false);
+   }
 }
 
 void CArnoldStandInsTranslator::ExportMotion(AtNode* anode, AtUInt step)
@@ -86,10 +94,7 @@ void CArnoldStandInsTranslator::ShaderAssignmentCallback(MNodeMessage::Attribute
 AtNode* CArnoldStandInsTranslator::ExportInstance(AtNode *instance, const MDagPath& masterInstance)
 {
    AtNode* masterNode = AiNodeLookUpByName(masterInstance.fullPathName().asChar());
-   std::cout << "isInstanced : " << m_dagPath.isInstanced() << std::endl;
-   // FIXME: we should not be here if we are not instanced, why the call to isInstanced? (chad)
    int instanceNum = m_dagPath.instanceNumber();
-   std::cout << "instanceNum : " << instanceNum << std::endl;
 
    AiNodeSetStr(instance, "name", m_dagPath.fullPathName().asChar());
 
