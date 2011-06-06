@@ -971,10 +971,12 @@ void CDagTranslator::AddIPRCallbacks()
 
 void CDagTranslator::Delete()
 {
-   // Arnold doesn't allow us to delete nodes
-   // setting the visibility is as good as it gets
-   // for now.
+   //AiNodeDestroy(GetArnoldRootNode());
+
+   // Arnold doesn't allow us to create nodes in between to calls to AiRender
+   // for the moment. For IPR we still need to rely on setting the visibility for now.
    AiNodeSetInt(GetArnoldRootNode(), "visibility",  AI_RAY_UNDEFINED);
+
 }
 
 // Return whether the dag object in dagPath is the master instance. The master

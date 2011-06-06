@@ -117,15 +117,23 @@ def run_test(target, source, env):
    global TOTAL_RUNNING_TIME
    status = 'OK'
    TEST_NAME = env['TEST_NAME']
-
-   test_env = env.Clone()
    
-   # add libai to library search path
+   test_env = env.Clone()
+       
+   # add libai to library search path, and Arnold bin dir to path
    if system.os() == 'darwin':
+      test_env.AppendENVPath('DYLD_LIBRARY_PATH', test_env['EXTERNAL_PATH'], envname='ENV', sep=':', delete_existing=1)  
+      test_env.AppendENVPath('DYLD_LIBRARY_PATH', test_env['ARNOLD_API_LIB'], envname='ENV', sep=':', delete_existing=1)
+      test_env.AppendENVPath('PATH', test_env['ARNOLD_API_LIB'], envname='ENV', sep=':', delete_existing=1)   
       os.environ['DYLD_LIBRARY_PATH'] = test_env['ENV']['DYLD_LIBRARY_PATH']
    elif system.os() == 'linux':
+      test_env.AppendENVPath('LD_LIBRARY_PATH', test_env['EXTERNAL_PATH'], envname='ENV', sep=':', delete_existing=1)  
+      test_env.AppendENVPath('LD_LIBRARY_PATH', test_env['ARNOLD_API_LIB'], envname='ENV', sep=':', delete_existing=1) 
+      test_env.AppendENVPath('PATH', test_env['ARNOLD_API_LIB'], envname='ENV', sep=':', delete_existing=1)           
       os.environ['LD_LIBRARY_PATH']   = test_env['ENV']['LD_LIBRARY_PATH']
-
+   else:
+      test_env.AppendENVPath('PATH', test_env['ARNOLD_API_LIB'], envname='ENV', sep=';', delete_existing=1) 
+      
    ## setup program path   
    previous_path = os.environ['PATH']
    os.environ['PATH'] = test_env['ENV']['PATH']
@@ -436,7 +444,7 @@ class Test:
    def __init__(self,
                 script = '"%s" -rd testrenderdir -r arnold -x 160 -y 120 "%s"' % (
                    os.path.join(env['MAYA_ROOT'], 'bin', 'render'),
-                   'test.mb'),
+                   'test.ma'),
                 plugin_sources      = '*.c*',
                 program_sources     = '',
                 program_name        = 'prog',

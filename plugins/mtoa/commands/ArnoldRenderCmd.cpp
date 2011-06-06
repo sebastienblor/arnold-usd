@@ -16,6 +16,9 @@
 #include <maya/MSelectionList.h>
 #include <maya/MRenderUtil.h>
 #include <maya/MFileIO.h>
+#include <maya/MFileObject.h>
+#include <maya/MFnRenderLayer.h>
+#include <maya/MAnimControl.h>
 
 #include <sstream>
 
@@ -44,10 +47,16 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
    const bool batch = args.isFlagSet("batch") ? true : false;
    renderSession->SetBatch(batch);
 
-   // no camera set on interactive mode, abort
-   if (!args.isFlagSet("camera") && !batch)
+   // Rendered camera
+   MString camera = "";
+   if (!args.isFlagSet("camera"))
    {
-      return MS::kFailure;
+      // no camera set on interactive mode, abort
+      if (!batch) return MS::kFailure;
+   }
+   else
+   {
+      camera = args.flagArgumentString("camera", 0);
    }
    // TODO: get the "selected" flag here
    ExportOptions exportOptions;
@@ -56,6 +65,8 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
 
    // FIXME: just a fast hack, should rehaul CRenderOptions code
    // and share same proc for ArnoldRenderCmd and ArnoldExportAssCmd
+   // TODO : use MString CRenderOptions::VerifyFileName(MString fileName, bool compressed)
+   // code to support compressed output filename too
    short renderType = 0;
    bool outputAssBoundingBox = false;
    MSelectionList list;
@@ -71,46 +82,20 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
 
    if (renderType != MTOA_RENDER_INTERACTIVE)
    {
-      MString filename;
-      filename = renderGlobals.name;
-      if (filename != "")
-      {
-         if (filename.substringW(0,0) != "/")
-         {
-            MString curProject = MGlobal::executeCommandStringResult("workspace -q -o");
-            if (curProject != "")
-            {
-               MString dirProject = MGlobal::executeCommandStringResult("workspace -q -rd "
-                     + curProject);
-               MString assDir = MGlobal::executeCommandStringResult("workspace -q -fileRuleEntry ArnoldSceneSource");
-               filename = dirProject + "/" + assDir + "/" + filename + ".ass";
-            }
-            else
-            {
-               MString curDir = MGlobal::executeCommandStringResult("workspace -q -dir");
-               filename = curDir + "/" + filename + ".ass";
-            }
-         }
-      }
-      else
-      {
-         // If all else fails, use the current Maya scene + ass
-         filename = MFileIO::currentFile() + ".ass";
-      }
-
+      // FIXME: actual export code should be shared so we don't have to do this dirty call
       MString cmdStr = "arnoldExportAss";
-      cmdStr += " -f \"" + filename + "\"";
-
+      if (batch)
+      {
+         cmdStr += " -b";
+      }
       if (exportOptions.filter.unselected)
       {
          cmdStr += " -s";
       }
-
       if (outputAssBoundingBox)
       {
          cmdStr += " -bb";
       }
-
       if (renderGlobals.isAnimated())
       {
          AtFloat startframe = static_cast<float> (renderGlobals.frameStart.as(MTime::uiUnit()));
@@ -123,30 +108,43 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
          cmdStr += " -fs ";
          cmdStr += byframestep;
       }
-
-      MString camera = args.flagArgumentString("camera", 0);
       if (camera != "")
       {
          cmdStr += " -cam " + camera;
       }
 
-      status = MGlobal::executeCommand(cmdStr);
-      if (MStatus::kSuccess == status)
+      MGlobal::displayInfo("[mtoa] Executing Maya command " + cmdStr);
+      MStringArray assFileNames;
+      status = MGlobal::executeCommand(cmdStr, assFileNames);
+      unsigned int nfiles = assFileNames.length();
+
+      if (MStatus::kSuccess == status && nfiles)
       {
-         AiMsgInfo("[mtoa] Exported scene to file %s", filename.asChar());
+         MGlobal::displayInfo("[mtoa] Exported scene to file " + assFileNames[0]);
          if (renderType == MTOA_RENDER_EXPORTASS_AND_KICK)
          {
+            // TODO: will only works for single frame, batch render should be used for multiple
+            // TODO: might want to remove this as it's a testing implementation and call kick from
+            // post render scripts
+            MString kickCmd;
+            if (batch)
+            {
+               kickCmd = "kick -dw -dp \"" + assFileNames[0] + "\"";
+            }
+            else
+            {
 #ifdef _WIN32
-            MString kickCmd = "kick \"" + filename + "\"";
+               kickCmd = "Start kick \"" + assFileNames[0] + "\"";
 #else
-            MString kickCmd = "kick \"" + filename + "\" &";
+               kickCmd = "kick \"" + assFileNames[0] + "\" &";
 #endif
-            // FIXME: does not work properly, at least on Windows
-            // NOTE: should be non blocking or what's the point?
+            }
+            // NOTE: must be blocking when in batch mode, non blocking when in interractive mode
 
+            MGlobal::displayInfo("[mtoa] Calling external command " + kickCmd);
             system(kickCmd.asChar());
 
-            // TODO : use pykick and MGlobal::executePythonCommandOnIdle to display feedback
+            // TODO : use pykick and MGlobal::executePythonCommandOnIdle to display feedback?
 
             // int ret = system(kickCmd.asChar());
             // std::stringstream info;
@@ -156,7 +154,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       }
       else
       {
-         AiMsgError("[mtoa] Failed to export scene to file %s", filename.asChar());
+         MGlobal::displayError("[mtoa] Failed to export scene to ass");
       }
 
       return status;

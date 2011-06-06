@@ -167,7 +167,7 @@ void CPerspCameraTranslator::Export(AtNode* camera)
    ExportDOF(camera);
    ExportImagePlanes(0);
 
-   ProcessParameter(camera, "uv_remap", AI_TYPE_RGBA);
+   ProcessParameter(camera, "aiUvRemap", "uv_remap", AI_TYPE_RGBA);
 
    if (m_motion)
    {
@@ -235,11 +235,11 @@ void CFishEyeCameraTranslator::Export(AtNode* camera)
    {
       AtArray* fovs = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_FLOAT);
       AiArraySetFlt(fovs, 0, fov);
-      AiNodeSetArray(camera, "aiFov", fovs);
+      AiNodeSetArray(camera, "fov", fovs);
    }
    else
    {
-      AiNodeSetFlt(camera, "aiFov", fov);
+      AiNodeSetFlt(camera, "fov", fov);
    }
 }
 

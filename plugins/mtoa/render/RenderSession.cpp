@@ -277,6 +277,7 @@ void CRenderSession::SetCamera(MString cameraNode)
       }
 
       AiNodeSetPtr(AiUniverseGetOptions(), "camera", camera);
+      AiMsgDebug("[mtoa] Using camera %s to output image %s.", cameraNode.asChar(), m_renderOptions.GetImageFilename().asChar());
       
       // FIXME: this would best be handled by a kind of translator post-process hook.
 

@@ -142,7 +142,5 @@ void CLightTranslator::NodeInitializer(MString nodeClassName)
 
 void CLightTranslator::Delete()
 {
-   // Arnold doesn't allow use to delete nodes, so this
-   // is as close as we'll get for now.
-   AiNodeSetFlt(GetArnoldRootNode(), "intensity", 0.0f);
+   AiNodeDestroy(GetArnoldRootNode());
 }

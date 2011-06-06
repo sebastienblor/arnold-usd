@@ -945,6 +945,13 @@ void CLayeredTextureTranslator::Export(AtNode* shader)
          sprintf(aiAttr, "alpha%u", i);
          AiNodeSetFlt(shader, aiAttr, alpha.asFloat());
       }
+      else
+      {
+         sprintf(mayaAttr, "inputs[%u].alpha", elem.logicalIndex());
+         sprintf(aiAttr, "alpha%u", i);
+         ProcessParameter(shader, mayaAttr, aiAttr, AI_TYPE_FLOAT);
+
+      }
 
       sprintf(mayaAttr, "inputs[%u].blendMode", elem.logicalIndex());
       sprintf(aiAttr, "blendMode%u", i);
