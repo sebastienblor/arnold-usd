@@ -1,48 +1,58 @@
 import maya.cmds as cmds
 import maya.mel as mel
 
+def LoadStandInButtonPush(*args):
+    basicFilter = "Arnold Source Scene (*.ass);;Arnold Procedural (*.so)"
+    ret = cmds.fileDialog2(fileFilter=basicFilter, dialogStyle=2,cap="Load StandIn",okc="Load",fm=4)[0]
+    m_tmpSelected = cmds.ls(sl=1)[0]
+    if cmds.listRelatives(m_tmpSelected) != None:
+        cmds.setAttr(cmds.listRelatives(m_tmpSelected)[0]+'.dso',ret,type="string")
+    else:
+        cmds.setAttr(m_tmpSelected+'.dso',ret,type="string")
+
 def ArnoldStandInTemplate(nodeName):
 
     cmds.editorTemplate(beginScrollLayout=True)
 
-    cmds.editorTemplate(beginLayout="Standin Attributes", collapse=False)
-
-    cmds.editorTemplate("dso", addControl=True)
-    cmds.editorTemplate("data", addControl=True)
-
-    cmds.editorTemplate(endLayout=True)
+    cmds.editorTemplate(beginLayout="File/Frame", collapse=False)
+    cmds.columnLayout( "dsoRow",columnAttach=('both', 5), rowSpacing=10 )
+    cmds.editorTemplate("dso", label="Path", addControl=True)
     
-    cmds.editorTemplate(beginLayout="Ass Reader Attributes", collapse=False)
-    
+    cmds.button( label='...', command=LoadStandInButtonPush ,p="dsoRow")
+    cmds.setParent('..')
+
     cmds.editorTemplate("useFrameExtension", addControl=True)
-    cmds.editorTemplate("frameNumber", addControl=True)
+    cmds.editorTemplate("frameNumber", label="Frame", addControl=True)
     cmds.editorTemplate("frameOffset", addControl=True)
     cmds.editorTemplate("mode", addControl=True)
-    cmds.editorTemplate(endLayout=True)
-    
-    cmds.editorTemplate(beginLayout="Visibility", collapse=False)
-    cmds.editorTemplate("opaque", addControl=True)
-    cmds.editorTemplate("primaryVisibility", addControl=True)
+    cmds.editorTemplate(addSeparator=True)
+    cmds.editorTemplate("data", addControl=True)
+    cmds.editorTemplate(addSeparator=True)
+    cmds.editorTemplate("loadAtInit", label="Deferred Loading", addControl=True)
+#    cmds.editorTemplate("MinBoundingBox", addControl=True)
+#    cmds.editorTemplate("MaxBoundingBox", addControl=True)
+    cmds.editorTemplate(endLayout=True) 
+        
+    cmds.editorTemplate(beginLayout="Render Stats", collapse=True)
     cmds.editorTemplate("castsShadows", addControl=True)
     cmds.editorTemplate("receiveShadows", addControl=True)
-    cmds.editorTemplate("selfShadows", addControl=True)
+    cmds.editorTemplate("motionBlur", addControl=True)
+    cmds.editorTemplate("primaryVisibility", addControl=True)
     cmds.editorTemplate("visibleInReflections", addControl=True)
     cmds.editorTemplate("visibleInRefractions", addControl=True)
-    cmds.editorTemplate("visibleInDiffuse", addControl=True)
-    cmds.editorTemplate("visibleInGlossy", addControl=True)
-    cmds.editorTemplate("motionBlur", addControl=True)
     cmds.editorTemplate("doubleSided", addControl=True)
     cmds.editorTemplate("opposite", addControl=True)
     cmds.editorTemplate(endLayout=True)
 
-
+    cmds.editorTemplate(beginLayout="Arnold", collapse=True)
+    cmds.editorTemplate("selfShadows", addControl=True)
+    cmds.editorTemplate("opaque", addControl=True)
+    cmds.editorTemplate("aiVisibleInDiffuse", addControl=True)
+    cmds.editorTemplate("aiVisibleInGlossy", addControl=True)
     cmds.editorTemplate(endLayout=True)
 
-    cmds.editorTemplate(beginLayout="Standin Bounding Box", collapse=False)
-    cmds.editorTemplate("loadAtInit", addControl=True)
-    cmds.editorTemplate("MinBoundingBox", addControl=True)
-    cmds.editorTemplate("MaxBoundingBox", addControl=True)
-    cmds.editorTemplate(endLayout=True) 
+
+    cmds.editorTemplate(endLayout=True)
 
     cmds.editorTemplate(beginLayout="Object Display", collapse=True)
     cmds.editorTemplate("visibility", addControl=True)
@@ -50,7 +60,7 @@ def ArnoldStandInTemplate(nodeName):
     cmds.editorTemplate("ghosting", addControl=True)
     cmds.editorTemplate("intermediateObject", addControl=True)
     cmds.editorTemplate(endLayout=True)
-
+    
     cmds.editorTemplate(beginLayout="Draw Override", collapse=True)
     cmds.editorTemplate("overrideDisplayType", addControl=True)
     cmds.editorTemplate("overrideLevelOfDetail", addControl=True)
@@ -61,7 +71,6 @@ def ArnoldStandInTemplate(nodeName):
     cmds.editorTemplate("useObjectColor", addControl=True)
     cmds.editorTemplate("objectColor", addControl=True)
     cmds.editorTemplate(endLayout=True)    
-
 
     # include/call base class/node attributes
     mel.eval('AEdependNodeTemplate "%s"' % nodeName)
