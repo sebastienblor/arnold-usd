@@ -447,9 +447,7 @@ testsuite_bld = Builder(action = process_testsuite)
 
 class Test:
    def __init__(self,
-                script = '"%s" -rd testrenderdir -r arnold -x 160 -y 120 "%s"' % (
-                   os.path.join(env['MAYA_ROOT'], 'bin', 'Render'),
-                   'test.ma'),
+                script = 'Render -rd "testrenderdir" -r arnold -x 160 -y 120 "test.ma"',
                 plugin_sources      = '*.c*',
                 program_sources     = '',
                 program_name        = 'prog',
@@ -586,9 +584,9 @@ add_to_path(test_env, os.path.abspath(str(TIFF2JPEG[0].dir)))
 add_to_path(test_env, env.subst('$TARGET_LIB_PATH'))
 add_to_path(test_env, env.subst('$TARGET_PLUGIN_PATH'))
 ## as well as Arnold executables
-add_to_path(test_env, test_env['ARNOLD_API_LIB'])  
-
-test_env.AppendENVPath('PATH', os.path.abspath(str(DIFFTIFF[0].dir)), envname='ENV', sep=':', delete_existing=1) 
+add_to_path(test_env, test_env['ARNOLD_API_LIB'])
+## and Maya's
+add_to_path(test_env, os.path.join(test_env['MAYA_ROOT'], 'bin'))
 
 ## First stage. Process build targets, expanding the groups and patterns into single tests
 index = 0
