@@ -707,10 +707,6 @@ def createArnoldTextureSettings():
 
     cmds.separator()
 
-    cmds.attrControlGrp('texture_conservative_lookups',
-                        label="Conservative Lookups",
-                        attribute='defaultArnoldRenderOptions.texture_conservative_lookups')
-
     cmds.attrControlGrp('texture_per_file_stats',
                         label="Per File Stats",
                         attribute='defaultArnoldRenderOptions.texturePerFileStats')
