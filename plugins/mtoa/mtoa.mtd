@@ -69,6 +69,7 @@
     [attr sss_subpixel_cache]
         maya.keyable        BOOL    False
         maya.orig_shortname STRING  "sssspc"
+        default             BOOL    True
     [attr show_samples]
         maya.keyable        BOOL    False   
         maya.orig_shortname STRING  "sssshs"

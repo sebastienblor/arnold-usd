@@ -647,16 +647,6 @@ def createArnoldSSSSettings():
     cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
     cmds.columnLayout(adjustableColumn=True)
 
-    '''
-    cmds.attrControlGrp('mb_sss_lazy_evaluation',
-                        label="SSS lazy evaluation",
-                        attribute='defaultArnoldRenderOptions.sss_lazy_evaluation')
-    '''
-
-    cmds.attrControlGrp('mb_sss_subpixel_cache',
-                        label="SSS subpixel cache",
-                        attribute='defaultArnoldRenderOptions.sssSubpixelCache')
-
     cmds.attrControlGrp('mb_show_samples',
                         label="Show samples",
                         attribute='defaultArnoldRenderOptions.showSamples')
