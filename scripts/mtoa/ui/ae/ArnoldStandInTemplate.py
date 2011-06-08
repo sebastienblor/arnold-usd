@@ -3,38 +3,55 @@ import maya.mel as mel
 from mtoa.ui.ae.utils import aeCallback
 import mtoa.callbacks as callbacks
 
-def LoadStandInButtonPush(*args):
+def LoadStandInButtonPush(*arg):
     basicFilter = "Arnold Source Scene (*.ass);;Arnold Procedural (*.so)"
-    ret = cmds.fileDialog2(fileFilter=basicFilter, dialogStyle=2,cap="Load StandIn",okc="Load",fm=4)[0]
-    m_tmpSelected = cmds.ls(sl=1)[0]
-    if cmds.listRelatives(m_tmpSelected) != None:
-        cmds.setAttr(cmds.listRelatives(m_tmpSelected)[0]+'.dso',ret,type="string")
-    else:
-        cmds.setAttr(m_tmpSelected+'.dso',ret,type="string")
+    ret = cmds.fileDialog2(fileFilter=basicFilter, dialogStyle=2,cap="Load StandIn",okc="Load",fm=4)
+    if len(ret):
+        m_tmpSelected = cmds.ls(sl=1)[0]
+        if cmds.listRelatives(m_tmpSelected) != None:
+            nodeName = cmds.listRelatives(m_tmpSelected)[0]
+        else:
+            nodeName = m_tmpSelected
+        cmds.setAttr(nodeName+".dso",ret[0],type="string")
+        if ".so" in ret[0]:
+            cmds.text("standInDataLabel", edit=True, enable=True)
+            cmds.textField("standInData", edit=True, enable=True)
+        else:
+            cmds.text("standInDataLabel", edit=True, enable=False)
+            cmds.textField("standInData", edit=True, enable=False)
+        cmds.textField("standInDsoPath", edit=True, text=ret[0])
 
-def DsoNew(*args):
-    cmds.rowLayout( "dsoRowA", columnAttach2=('both', "both") )
-    cmds.text(label="Path")
-    cmds.button( label='...', command=LoadStandInButtonPush)
+def ArnoldStandInTemplateDsoNew(nodeName) :
+    cmds.rowColumnLayout( numberOfColumns=3, columnAlign=(1, "right"), columnAttach=[(1, "left", 0), (2, "both", 0), (3, "right", 0)], columnWidth=[(1,145),(3,30)] )
+    cmds.text(label="Path ")
+    path = cmds.textField("standInDsoPath")
+    cmds.textField( path, edit=True, text=cmds.getAttr(nodeName) )
+    cmds.button( label="...", command=LoadStandInButtonPush)
+    
+def ArnoldStandInTemplateDataNew(nodeName) :
+    cmds.rowColumnLayout( numberOfColumns=2, columnAlign=(1, "right"), columnAttach=[(1, "left", 0), (2, "right", 0)], columnWidth=(1,145) )
+    cmds.text("standInDataLabel", label="Data ", enable=False)
+    path = cmds.textField("standInData")
+    cmds.textField( path, edit=True, text=cmds.getAttr(nodeName), enable=False)
 
-def DsoReplace(*args):
-    cmds.rowLayout( "dsoRowB", columnAttach2=('both', "both") )
-    cmds.text(label="Path")
-    cmds.button( label='...', command=LoadStandInButtonPush)
+def ArnoldStandInTemplateDsoReplace(plugName) :
+    cmds.textField( "standInDsoPath", edit=True, text=cmds.getAttr(plugName) )
+
+def ArnoldStandInTemplateDataReplace(plugName) :
+    cmds.textField( "standInData", edit=True, text=cmds.getAttr(plugName) )
 
 def ArnoldStandInTemplate(nodeName):
 
     cmds.editorTemplate(beginScrollLayout=True)
 
     cmds.editorTemplate(beginLayout="File/Frame", collapse=False)
-    #cmds.editorTemplate(aeCallback(DsoNew), aeCallback(DsoReplace), "dso", callCustom=True)
-    cmds.editorTemplate("dso", label="Path", addControl=True)
+    cmds.editorTemplate(aeCallback(ArnoldStandInTemplateDsoNew), aeCallback(ArnoldStandInTemplateDsoReplace), "dso", callCustom=True)
+    cmds.editorTemplate(aeCallback(ArnoldStandInTemplateDataNew), aeCallback(ArnoldStandInTemplateDataReplace), "data", callCustom=True)
+    cmds.editorTemplate("mode", addControl=True)
+    cmds.editorTemplate(addSeparator=True)
     cmds.editorTemplate("useFrameExtension", addControl=True)
     cmds.editorTemplate("frameNumber", label="Frame", addControl=True)
     cmds.editorTemplate("frameOffset", addControl=True)
-    cmds.editorTemplate("mode", addControl=True)
-    cmds.editorTemplate(addSeparator=True)
-    cmds.editorTemplate("data", addControl=True)
     cmds.editorTemplate(addSeparator=True)
     cmds.editorTemplate("loadAtInit", label="Deferred Loading", addControl=True)
     cmds.editorTemplate("MinBoundingBox", addControl=True)

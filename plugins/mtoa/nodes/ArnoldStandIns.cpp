@@ -109,6 +109,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          geom->geomLoaded = geom->filename;
          //clear current geo
          geom->faceList.clear();
+         geom->bbox.clear();
 
          vector<AtPoint> vertices;
          vector<AtLong> vidxs;
@@ -130,37 +131,9 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
             if (node)
             {
                AtArray* myArray;
-               bool computeBBox = false;
                if (AiNodeIs(node, "polymesh"))
                {
-
                   // We can load a exact BBox, or compute it if not available
-                  //const char *aname = name.asChar() + 5;res = AiNodeLookUpUserParameter(node, "bboxMin");
-                  MPoint min, max;
-
-                  if (AiNodeLookUpUserParameter(node, "bboxMin") != NULL)
-                  {
-                     myArray = AiNodeGetArray(node, "bboxMin");
-                     AtPoint pnt = AiArrayGetPnt(myArray, 0);
-                     min = MVector(pnt.x, pnt.y, pnt.z);
-                     if (obj != 0)
-                        geom->bbox.expand(min);
-                  }
-                  else
-                     computeBBox = true;
-
-                  if (AiNodeLookUpUserParameter(node, "bboxMax") != NULL && computeBBox == false)
-                  {
-                     myArray = AiNodeGetArray(node, "bboxMax");
-                     AtPoint pnt = AiArrayGetPnt(myArray, 0);
-                     max = MVector(pnt.x, pnt.y, pnt.z);
-                     if (obj != 0)
-                        geom->bbox.expand(max);
-                     else
-                        geom->bbox = MBoundingBox(min, max);
-
-                  }
-
                   vertices.clear();
                   vidxs.clear();
                   nsides.clear();
@@ -177,9 +150,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
                         AtPoint localTmpPnt = AiArrayGetPnt(myArray, i);
                         AiM4PointByMatrixMult(&localTmpPnt, current_matrix, &localTmpPnt);
                         vertices.push_back(localTmpPnt);
-                        if (computeBBox)
-                           geom->bbox.expand(MPoint(MVector(localTmpPnt.x, localTmpPnt.y,
-                                 localTmpPnt.z)));
+                        geom->bbox.expand(MPoint(MVector(localTmpPnt.x, localTmpPnt.y, localTmpPnt.z)));
                      }
                   }
                   myArray = AiNodeGetArray(node, "vidxs");
