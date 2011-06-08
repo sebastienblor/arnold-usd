@@ -707,10 +707,6 @@ def createArnoldTextureSettings():
 
     cmds.separator()
 
-    cmds.attrControlGrp('texture_failure_retries',
-                        label="Failure Retries",
-                        attribute='defaultArnoldRenderOptions.textureFailureRetries')
-
     cmds.attrControlGrp('texture_conservative_lookups',
                         label="Conservative Lookups",
                         attribute='defaultArnoldRenderOptions.texture_conservative_lookups')
