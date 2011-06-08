@@ -267,7 +267,7 @@ AtNode* CArnoldStandInsTranslator::ExportProcedural(AtNode* procedural, bool upd
          AiNodeSetStr(procedural, "dso", dso.asChar());
 
       MPlug loadInit = m_DagNode.findPlug("loadAtInit");
-      if (loadInit.asBool())
+      if (!loadInit.asBool())
          AiNodeSetBool(procedural, "load_at_init", true);
       else
          ExportBoundingBox(procedural);

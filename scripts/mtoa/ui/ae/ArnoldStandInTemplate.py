@@ -1,5 +1,7 @@
 import maya.cmds as cmds
 import maya.mel as mel
+from mtoa.ui.ae.utils import aeCallback
+import mtoa.callbacks as callbacks
 
 def LoadStandInButtonPush(*args):
     basicFilter = "Arnold Source Scene (*.ass);;Arnold Procedural (*.so)"
@@ -10,17 +12,23 @@ def LoadStandInButtonPush(*args):
     else:
         cmds.setAttr(m_tmpSelected+'.dso',ret,type="string")
 
+def DsoNew(*args):
+    cmds.rowLayout( "dsoRowA", columnAttach2=('both', "both") )
+    cmds.text(label="Path")
+    cmds.button( label='...', command=LoadStandInButtonPush)
+
+def DsoReplace(*args):
+    cmds.rowLayout( "dsoRowB", columnAttach2=('both', "both") )
+    cmds.text(label="Path")
+    cmds.button( label='...', command=LoadStandInButtonPush)
+
 def ArnoldStandInTemplate(nodeName):
 
     cmds.editorTemplate(beginScrollLayout=True)
 
     cmds.editorTemplate(beginLayout="File/Frame", collapse=False)
-    cmds.columnLayout( "dsoRow",columnAttach=('both', 5), rowSpacing=10 )
+    #cmds.editorTemplate(aeCallback(DsoNew), aeCallback(DsoReplace), "dso", callCustom=True)
     cmds.editorTemplate("dso", label="Path", addControl=True)
-    
-    cmds.button( label='...', command=LoadStandInButtonPush ,p="dsoRow")
-    cmds.setParent('..')
-
     cmds.editorTemplate("useFrameExtension", addControl=True)
     cmds.editorTemplate("frameNumber", label="Frame", addControl=True)
     cmds.editorTemplate("frameOffset", addControl=True)
@@ -29,8 +37,8 @@ def ArnoldStandInTemplate(nodeName):
     cmds.editorTemplate("data", addControl=True)
     cmds.editorTemplate(addSeparator=True)
     cmds.editorTemplate("loadAtInit", label="Deferred Loading", addControl=True)
-#    cmds.editorTemplate("MinBoundingBox", addControl=True)
-#    cmds.editorTemplate("MaxBoundingBox", addControl=True)
+    cmds.editorTemplate("MinBoundingBox", addControl=True)
+    cmds.editorTemplate("MaxBoundingBox", addControl=True)
     cmds.editorTemplate(endLayout=True) 
         
     cmds.editorTemplate(beginLayout="Render Stats", collapse=True)
