@@ -719,17 +719,6 @@ def createArnoldTextureSettings():
                         label="Per File Stats",
                         attribute='defaultArnoldRenderOptions.texturePerFileStats')
 
-    cmds.separator()
-
-    cmds.attrControlGrp('texture_glossy_blur',
-                        label="Glossy Blur",
-                        attribute='defaultArnoldRenderOptions.textureGlossyBlur')
-
-    cmds.attrControlGrp('texture_diffuse_blur',
-                        label="Diffuse Blur",
-                        attribute='defaultArnoldRenderOptions.textureDiffuseBlur')
-
-
     cmds.setParent('..')
 
     cmds.setUITemplate(popTemplate=True)
