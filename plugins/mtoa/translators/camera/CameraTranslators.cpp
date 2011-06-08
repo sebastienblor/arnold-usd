@@ -93,6 +93,9 @@ float CPerspCameraTranslator::ExportFilmback(AtNode* camera)
    double filmFitOffset = m_fnCamera.filmFitOffset();
    double filmOffsetX = m_fnCamera.horizontalFilmOffset();
    double filmOffsetY = m_fnCamera.verticalFilmOffset();
+   bool   shakeEnabled = m_fnCamera.shakeEnabled();
+   double shakeX = m_fnCamera.horizontalShake();
+   double shakeY = m_fnCamera.verticalShake();
    double factorX = 0.0;
    double factorY = 0.0;
 
@@ -146,6 +149,13 @@ float CPerspCameraTranslator::ExportFilmback(AtNode* camera)
       }
    }
    
+   //If we have camera shake we add it here
+   if (shakeEnabled)
+   {
+      filmOffsetX += shakeX;
+      filmOffsetY += shakeY;
+   }
+
    //If we have any filmOffsets we add them here
    if (filmOffsetX!=0.0f || filmOffsetY!=0.0f)
    {
