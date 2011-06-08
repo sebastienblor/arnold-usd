@@ -191,7 +191,7 @@ protected:
    CDagTranslator() : CNodeTranslator(){}
    bool IsMasterInstance(MDagPath &masterDag);
    void GetRotationMatrix(AtMatrix& matrix);
-   void GetMatrix(AtMatrix& matrix);
+   virtual void GetMatrix(AtMatrix& matrix);
    void ExportMatrix(AtNode* node, AtUInt step);
    AtInt ComputeVisibility();
    virtual void Delete();

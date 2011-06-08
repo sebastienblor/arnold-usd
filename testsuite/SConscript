@@ -124,15 +124,11 @@ def run_test(target, source, env):
    if system.os() == 'darwin':
       test_env.AppendENVPath('DYLD_LIBRARY_PATH', test_env['EXTERNAL_PATH'], envname='ENV', sep=':', delete_existing=1)  
       test_env.AppendENVPath('DYLD_LIBRARY_PATH', test_env['ARNOLD_API_LIB'], envname='ENV', sep=':', delete_existing=1)
-      test_env.AppendENVPath('PATH', test_env['ARNOLD_API_LIB'], envname='ENV', sep=':', delete_existing=1)   
       os.environ['DYLD_LIBRARY_PATH'] = test_env['ENV']['DYLD_LIBRARY_PATH']
    elif system.os() == 'linux':
       test_env.AppendENVPath('LD_LIBRARY_PATH', test_env['EXTERNAL_PATH'], envname='ENV', sep=':', delete_existing=1)  
-      test_env.AppendENVPath('LD_LIBRARY_PATH', test_env['ARNOLD_API_LIB'], envname='ENV', sep=':', delete_existing=1) 
-      test_env.AppendENVPath('PATH', test_env['ARNOLD_API_LIB'], envname='ENV', sep=':', delete_existing=1)           
-      os.environ['LD_LIBRARY_PATH']   = test_env['ENV']['LD_LIBRARY_PATH']
-   else:
-      test_env.AppendENVPath('PATH', test_env['ARNOLD_API_LIB'], envname='ENV', sep=';', delete_existing=1) 
+      test_env.AppendENVPath('LD_LIBRARY_PATH', test_env['ARNOLD_API_LIB'], envname='ENV', sep=':', delete_existing=1)         
+      os.environ['LD_LIBRARY_PATH'] = test_env['ENV']['LD_LIBRARY_PATH'] 
       
    ## setup program path   
    previous_path = os.environ['PATH']
@@ -155,16 +151,22 @@ def run_test(target, source, env):
       # replace test render dir with this test dir
       # image filename "testrender" and format "Tiff" are set in the test scene render settings
       cmd = string.replace(cmd, "testrenderdir", os.path.abspath(os.path.dirname(test_env['OUTPUT_IMAGE'])))
+      cmd = string.replace(cmd, "test.ma", os.path.join(os.path.abspath(os.path.dirname(test_env['OUTPUT_IMAGE'])), 'test.ma'))
+      
+      print "%s command: %s" % (TEST_NAME, cmd)
       
       ## redirect test output
       if output_to_file:
-         file = open("%s.log" % TEST_NAME, 'w')
-         p = subprocess.Popen(cmd, stdout = file, stderr = subprocess.STDOUT)
-         retcode = p.wait()
+         file = open("%s.log" % (TEST_NAME), 'w')
+         # p = subprocess.Popen(cmd, stdout = file, stderr = subprocess.STDOUT)
+         # retcode = p.wait()
+         retcode = os.system(cmd)
          file.close()
       else:
-         p = subprocess.Popen(cmd)
-         retcode = p.wait()
+         # p = subprocess.Popen(cmd)
+         # retcode = p.wait()
+         retcode = os.system(cmd)
+
       running_time = time.time() - before_time
       TOTAL_RUNNING_TIME += running_time
       status = process_return_code(retcode)
@@ -180,7 +182,8 @@ def run_test(target, source, env):
          elif status == 'OK':
             status = 'FAILED'
       if status != 'OK':
-         break
+         break  
+         
    output_image = test_env['OUTPUT_IMAGE']
    reference_image = test_env['REFERENCE_IMAGE']
    has_diff = False
@@ -225,6 +228,7 @@ def run_test(target, source, env):
    if test_env['FORCE_RESULT'] == 'OK' and reference_image != '' and os.path.exists(reference_image):
       os.system('tiff2jpeg %s ref.jpg' % (reference_image))
 
+
    ## progress text (scream if the test didn't pass)
    if status == 'OK':
       print TEST_NAME
@@ -233,6 +237,7 @@ def run_test(target, source, env):
       summary = f.readline().strip('\n')
       f.close
       print '%s %s: %s' % (TEST_NAME, status, summary)
+
 
    ## get README so that we can stick it inside the html file
    f = open('README', 'r')
@@ -442,9 +447,7 @@ testsuite_bld = Builder(action = process_testsuite)
 
 class Test:
    def __init__(self,
-                script = '"%s" -rd testrenderdir -r arnold -x 160 -y 120 "%s"' % (
-                   os.path.join(env['MAYA_ROOT'], 'bin', 'render'),
-                   'test.ma'),
+                script = 'Render -rd "testrenderdir" -r arnold -x 160 -y 120 "test.ma"',
                 plugin_sources      = '*.c*',
                 program_sources     = '',
                 program_name        = 'prog',
@@ -479,12 +482,13 @@ class Test:
       test_env.VariantDir(test_build_dir, test_data_dir)
    
       if test_name in BLACKLIST:
-         # print 'skipping test %s -- found in black list' % (test_name)
+         print 'skipping test %s -- found in black list' % (test_name)
          return False
       if not (os.path.exists(os.path.join(test_dir, 'README'))):
          print 'skipping test %s -- missing README' % (test_name)
          return False
-         
+        
+      # print 'test %s in %s will be built in %s' % (test_name, test_dir, test_build_dir)
       ## process the current test directory
       ## Step 1: build any shaders/procedurals that might exist
       SHADERS = []
@@ -519,10 +523,11 @@ class Test:
                continue
             d = root
             d = d.replace(test_data_dir, test_build_dir)
-            FILES += test_env.Install(d, os.path.join(root, f))
+            FILES += test_env.Install(d, os.path.join(root, f))  
             
       ## generate the build action that will run the test and produce the html output
-      test_output = test_env.RunTest(os.path.join(test_build_dir, test_name + '.html'), MTOA + MTOA_SHADERS + DIFFTIFF + TIFF2JPEG + FILES + SHADERS,
+      test_output = test_env.RunTest(os.path.join(test_build_dir, test_name + '.html'),
+         MTOA + MTOA_SHADERS + DIFFTIFF + TIFF2JPEG + FILES + SHADERS,
          TEST_SCRIPT = self.script,
          REFERENCE_IMAGE = self.reference_image != '' and os.path.join(test_dir, self.reference_image) or '',
          OUTPUT_IMAGE = self.output_image,
@@ -578,6 +583,10 @@ add_to_path(test_env, os.path.abspath(str(DIFFTIFF[0].dir)))
 add_to_path(test_env, os.path.abspath(str(TIFF2JPEG[0].dir)))
 add_to_path(test_env, env.subst('$TARGET_LIB_PATH'))
 add_to_path(test_env, env.subst('$TARGET_PLUGIN_PATH'))
+## as well as Arnold executables
+add_to_path(test_env, test_env['ARNOLD_API_LIB'])
+## and Maya's
+add_to_path(test_env, os.path.join(test_env['MAYA_ROOT'], 'bin'))
 
 ## First stage. Process build targets, expanding the groups and patterns into single tests
 index = 0
@@ -701,7 +710,8 @@ while True:
 ## create top-level makeweb html
 if len(TESTS) > 1:
    BUILD_TARGETS += ["testsuite"]
-   TESTSUITE = test_env.Testsuite(os.path.abspath(os.path.join(BUILD_BASE_DIR, 'testsuite', 'index.html')), TESTS,
+   TESTSUITE = test_env.Testsuite(os.path.abspath(os.path.join(BUILD_BASE_DIR, 'testsuite', 'index.html')),
+                                  TESTS,
                                   PRINT_CMD_LINE_FUNC = lambda a, b, c, d : None, ## silence the builder
                                   chdir = 0
                                   )

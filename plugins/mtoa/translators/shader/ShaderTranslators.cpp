@@ -7,7 +7,6 @@
 #include <ai_nodes.h>
 #include <ai_ray.h>
 
-#include <maya/MColor.h>
 #include <maya/MFnBlinnShader.h>
 #include <maya/MFnLambertShader.h>
 #include <maya/MFnPhongShader.h>
@@ -19,6 +18,11 @@
 #include <maya/MFnMatrixData.h>
 #include <maya/MFnCamera.h>
 #include <maya/MFnAttribute.h>
+
+#include <maya/MColor.h>
+#include <maya/MTransformationMatrix.h>
+#include <maya/MEulerRotation.h>
+#include <maya/MAngle.h>
 
 #include <maya/MRenderUtil.h>
 
@@ -263,25 +267,23 @@ AtNode*  CSkyShaderTranslator::CreateArnoldNodes()
 
 void CSkyShaderTranslator::Export(AtNode* shader)
 {
-   // Maya's X Y and Z Vectors
-   AiNodeSetVec(shader, "X", 1.0f, 0.0f, 0.0f);
-   AiNodeSetVec(shader, "Y", 0.0f, 1.0f, 0.0f);
-   AiNodeSetVec(shader, "Z", 0.0f, 0.0f, -1.0f);
+
 
    MFnDependencyNode trNode(m_dagPath.transform());
 
-   MPlug plug   = trNode.findPlug("rotateX");
-   MAngle angle;
-   plug.getValue(angle);
-   AiNodeSetFlt(shader, "X_angle", static_cast<float>(-angle.asDegrees()));
+   MTransformationMatrix tmatrix(m_dagPath.inclusiveMatrix());
+   MEulerRotation erotate = tmatrix.eulerRotation();
+   AiNodeSetFlt(shader, "X_angle", static_cast<float>(-MAngle(erotate[0]).asDegrees()));
+   AiNodeSetFlt(shader, "Y_angle", static_cast<float>(MAngle(erotate[1]).asDegrees()));
+   AiNodeSetFlt(shader, "Z_angle", static_cast<float>(-MAngle(erotate[2]).asDegrees()));
 
-   plug = trNode.findPlug("rotateY");
-   plug.getValue(angle);
-   AiNodeSetFlt(shader, "Y_angle", static_cast<float>(angle.asDegrees()));
-
-   plug = trNode.findPlug("rotateZ");
-   plug.getValue(angle);
-   AiNodeSetFlt(shader, "Z_angle", static_cast<float>(-angle.asDegrees()));
+   double scale[3];
+   tmatrix.getScale(scale, MSpace::kTransform);
+   AiMsgDebug("Sky scale %f %f %f", scale[0], scale[1], scale[2]);
+   // Invert in Z to account for the env sphere being viewed from inside
+   AiNodeSetVec(shader, "X", 1.0f/static_cast<float>(scale[0]), 0.0f, 0.0f);
+   AiNodeSetVec(shader, "Y", 0.0f, 1.0f/static_cast<float>(scale[1]), 0.0f);
+   AiNodeSetVec(shader, "Z", 0.0f, 0.0f, -1.0f/static_cast<float>(scale[2]));
 
    ProcessParameter(shader, "color",     AI_TYPE_RGB);
    ProcessParameter(shader, "format",    AI_TYPE_ENUM);
