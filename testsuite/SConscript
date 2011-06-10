@@ -133,7 +133,9 @@ def run_test(target, source, env):
       test_env.AppendENVPath('LD_LIBRARY_PATH', os.path.join(env['MAYA_ROOT'], 'lib'), sep=':', delete_existing=1)
       previous_lib_path = os.environ.get('LD_LIBRARY_PATH')     
       os.environ['LD_LIBRARY_PATH'] = test_env['ENV']['LD_LIBRARY_PATH'] 
-      
+   else :
+       previous_lib_path = None
+       
    ## setup program path   
    previous_path = os.environ.get('PATH')
    os.environ['PATH'] = test_env['ENV']['PATH']
