@@ -56,6 +56,7 @@ MObject CArnoldStandInShape::s_frameNumber;
 MObject CArnoldStandInShape::s_frameOffset;
 MObject CArnoldStandInShape::s_data;
 MObject CArnoldStandInShape::s_loadAtInit;
+MObject CArnoldStandInShape::s_scale;
 MObject CArnoldStandInShape::s_boundingBoxMin;
 MObject CArnoldStandInShape::s_boundingBoxMax;
 
@@ -66,9 +67,10 @@ CArnoldStandInShape::CArnoldStandInShape()
    fGeometry->geomLoaded = "";
    fGeometry->dso = "";
    fGeometry->assTocLoaded = false;
+   fGeometry->bbox = MBoundingBox(fGeometry->BBmin, fGeometry->BBmax);
+   fGeometry->scale = 1.0f;
    fGeometry->BBmin = MPoint(-1.0f, -1.0f, -1.0f);
    fGeometry->BBmax = MPoint(1.0f, 1.0f, 1.0f);
-   fGeometry->bbox = MBoundingBox(fGeometry->BBmin, fGeometry->BBmax);
    fGeometry->IsGeomLoaded = false;
    fGeometry->dList = 0;
    fGeometry->updateView = true;
@@ -241,6 +243,11 @@ bool CArnoldStandInShape::getInternalValueInContext(const MPlug& plug, MDataHand
       datahandle.set(fGeometry->frameOffset);
       isOk = true;
    }
+   else if (plug == s_scale)
+   {
+      datahandle.set(fGeometry->scale);
+      isOk = true;
+   }
    else if (plug == s_boundingBoxMin)
    {
       float3 value;
@@ -284,6 +291,10 @@ bool CArnoldStandInShape::setInternalValueInContext(const MPlug& plug,
       isOk = true;
    }
    else if (plug == s_frameOffset)
+   {
+      isOk = true;
+   }
+   else if (plug == s_scale)
    {
       isOk = true;
    }
@@ -353,8 +364,8 @@ void CArnoldStandInShape::LoadBoundingBox()
       double zmax = atof(strtok(NULL, " "));
 
       file.close();
-      MPoint min(xmin, ymin, zmin);
-      MPoint max(xmax, ymax, zmax);
+      MPoint min(xmin*geom->scale, ymin*geom->scale, zmin*geom->scale);
+      MPoint max(xmax*geom->scale, ymax*geom->scale, zmax*geom->scale);
       geom->bbox = MBoundingBox(min, max);
       geom->assTocLoaded = true;
       fGeometry->updateView = true;
@@ -431,6 +442,11 @@ MStatus CArnoldStandInShape::initialize()
 //   s_attrHelper("min", data);
 //   data.name = "minBoundingBox";
 //   s_attrHelper(data);
+   s_scale = nAttr.create("Scale", "scale", MFnNumericData::kFloat, 1.0);
+   nAttr.setHidden(false);
+   nAttr.setKeyable(true);
+   nAttr.setStorable(true);
+   addAttribute(s_scale);
 
    s_boundingBoxMin = nAttr.create("MinBoundingBox", "min", MFnNumericData::k3Float, -1.0);
    nAttr.setHidden(false);
@@ -470,15 +486,21 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
    MObject this_object = thisMObject();
    MPlug plug(this_object, s_dso);
    plug.getValue(fGeometry->dso);
+
    plug.setAttribute(s_mode);
    plug.getValue(fGeometry->mode);
 
    plug.setAttribute(s_useFrameExtension);
    plug.getValue(fGeometry->useFrameExtension);
+
    plug.setAttribute(s_frameNumber);
    plug.getValue(fGeometry->frame);
+
    plug.setAttribute(s_frameOffset);
    plug.getValue(fGeometry->frameOffset);
+
+   plug.setAttribute(s_scale);
+   plug.getValue(fGeometry->scale);
 
    MString frameNumber = "0";
 
@@ -525,22 +547,27 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
 
 
    }
-
+   // assToc is not loaded
    if (fGeometry->assTocLoaded == false)
    {
-      float3 value;
-      plug.setAttribute(s_boundingBoxMin);
-      GetPointPlugValue(plug, value);
+      // we get the scale factor of the bbox
+      float m_scale;
+      plug.setAttribute(s_scale);
+      plug.getValue(m_scale);
 
-      fGeometry->BBmin = MPoint(value[0], value[1], value[2]);
+      float3 m_value;
+      plug.setAttribute(s_boundingBoxMin);
+      GetPointPlugValue(plug, m_value);
+      fGeometry->BBmin = MPoint(m_value[0]*m_scale, m_value[1]*m_scale, m_value[2]*m_scale);
+
       plug.setAttribute(s_boundingBoxMax);
-      GetPointPlugValue(plug, value);
-      fGeometry->BBmax = MPoint(value[0], value[1], value[2]);
+      GetPointPlugValue(plug, m_value);
+      fGeometry->BBmax = MPoint(m_value[0]*m_scale, m_value[1]*m_scale, m_value[2]*m_scale);
+
       fGeometry->bbox = MBoundingBox(fGeometry->BBmin, fGeometry->BBmax);
       fGeometry->updateView = true;
    }
 
-   //boundingBox();
    return fGeometry;
 }
 

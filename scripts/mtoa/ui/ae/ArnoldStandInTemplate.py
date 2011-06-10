@@ -54,8 +54,8 @@ def ArnoldStandInTemplate(nodeName):
     cmds.editorTemplate("frameOffset", addControl=True)
     cmds.editorTemplate(addSeparator=True)
     cmds.editorTemplate("loadAtInit", label="Deferred Loading", addControl=True)
-    cmds.editorTemplate("MinBoundingBox", addControl=True)
-    cmds.editorTemplate("MaxBoundingBox", addControl=True)
+    cmds.editorTemplate("scale", addControl=True)
+    #cmds.editorTemplate("MaxBoundingBox", addControl=True)
     cmds.editorTemplate(endLayout=True) 
         
     cmds.editorTemplate(beginLayout="Render Stats", collapse=True)

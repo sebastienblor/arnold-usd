@@ -29,6 +29,7 @@ public:
    bool assTocLoaded;
    bool IsGeomLoaded;
    MBoundingBox bbox;
+   float scale;
    MPoint BBmin;
    MPoint BBmax;
    vector<vector<vector<AtPoint> > > faceList;
@@ -77,6 +78,7 @@ private:
    static MObject s_frameOffset;
    static MObject s_data;
    static MObject s_loadAtInit;
+   static MObject s_scale;
    static MObject s_boundingBoxMin;
    static MObject s_boundingBoxMax;
 }; // class CArnoldStandInShape
