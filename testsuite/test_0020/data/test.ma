@@ -1,6 +1,6 @@
 //Maya ASCII 2011 scene
 //Name: test.ma
-//Last modified: Fri, Jun 10, 2011 10:08:28 PM
+//Last modified: Fri, Jun 10, 2011 09:59:39 PM
 //Codeset: 1252
 requires maya "2011";
 requires "mtoa" "0.7.0";
@@ -12,8 +12,8 @@ fileInfo "cutIdentifier" "201009060330-781623";
 fileInfo "osv" "Microsoft Windows 7 Business Edition, 64-bit Windows 7  (Build 7600)\n";
 createNode transform -shared -name "persp";
 	setAttr ".visibility" no;
-	setAttr ".translate" -type "double3" 32.364702040154384 21.773633774227896 31.81567579885289 ;
-	setAttr ".rotate" -type "double3" -27.938352729602403 44.200000000000038 0 ;
+	setAttr ".translate" -type "double3" 13.798112782989111 8.100807298106405 14.010413414521599 ;
+	setAttr ".rotate" -type "double3" -28.538352729602373 44.600000000000009 -2.2334538879380644e-015 ;
 createNode camera -shared -name "perspShape" -parent "persp";
 	addAttr -cachedInternally true -keyable true -shortName "ai_filtermap" -longName "aiFiltermap" 
 		-attributeType "message";
@@ -56,7 +56,7 @@ createNode camera -shared -name "perspShape" -parent "persp";
 	setAttr -keyable off ".visibility" no;
 	setAttr ".overscan" 1.3;
 	setAttr ".focalLength" 34.999999999999986;
-	setAttr ".centerOfInterest" 50.303220597829224;
+	setAttr ".centerOfInterest" 21.144978120320665;
 	setAttr ".imageName" -type "string" "persp";
 	setAttr ".depthName" -type "string" "persp_depth";
 	setAttr ".maskName" -type "string" "persp_mask";
@@ -227,11 +227,12 @@ createNode ArnoldStandIn -name "ArnoldStandInShape" -parent "ArnoldStandIn";
 	setAttr -keyable off ".visibility";
 	setAttr ".collisionOffsetVelocityMultiplier[0]"  0 1 1;
 	setAttr ".collisionDepthVelocityMultiplier[0]"  0 1 1;
-	setAttr ".dso" -type "string" "soccer.dll";
-	setAttr ".MinBoundingBox" -type "float3" -12 -12 -12 ;
-	setAttr ".MaxBoundingBox" -type "float3" 12 12 12 ;
+	setAttr ".dso" -type "string" "sitoa_curves_proc.dll";
+	setAttr ".data" -type "string" "hair.bin";
+	setAttr ".MinBoundingBox" -type "float3" -10 -10 -10 ;
+	setAttr ".MaxBoundingBox" -type "float3" 10 10 10 ;
 createNode transform -name "pointLight1";
-	setAttr ".translate" -type "double3" 24.793086314131887 19.626588310430417 28.776564590043222 ;
+	setAttr ".translate" -type "double3" 6.3031027928792644 12.31289426580245 16.924616628982402 ;
 createNode pointLight -name "pointLightShape1" -parent "pointLight1";
 	addAttr -cachedInternally true -keyable true -shortName "ai_cast_shadows" -longName "aiCastShadows" 
 		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
@@ -258,47 +259,18 @@ createNode pointLight -name "pointLightShape1" -parent "pointLight1";
 	addAttr -cachedInternally true -keyable true -shortName "ai_cast_volumetric_shadows" 
 		-longName "aiCastVolumetricShadows" -defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
 	setAttr -keyable off ".visibility";
-	setAttr ".useOnlySingleDmap" no;
-createNode transform -name "pointLight2";
-	setAttr ".translate" -type "double3" 31.066538685512125 19.626588310430417 27.063197844091434 ;
-createNode pointLight -name "pointLightShape2" -parent "pointLight2";
-	addAttr -cachedInternally true -keyable true -shortName "ai_cast_shadows" -longName "aiCastShadows" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_exposure" -longName "aiExposure" 
-		-minValue 0 -softMaxValue 10 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_radius" -longName "aiRadius" 
-		-minValue 0 -softMaxValue 10 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_samples" -longName "aiSamples" 
-		-defaultValue 1 -minValue 0 -maxValue 100 -attributeType "long";
-	addAttr -cachedInternally true -keyable true -shortName "ai_mis" -longName "aiMis" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_normalize" -longName "aiNormalize" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_bounce_factor" -longName "aiBounceFactor" 
-		-defaultValue 1 -minValue 0 -softMaxValue 20 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_bounces" -longName "aiBounces" 
-		-defaultValue 999 -minValue 0 -maxValue 10000 -attributeType "long";
-	addAttr -cachedInternally true -keyable true -shortName "ai_oss" -longName "aiOverrideSssSamples" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_sss_samples" -longName "aiSssSamples" 
-		-defaultValue 1 -minValue 0 -maxValue 100 -attributeType "long";
-	addAttr -cachedInternally true -keyable true -shortName "ai_affect_volumetrics" 
-		-longName "aiAffectVolumetrics" -defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_cast_volumetric_shadows" 
-		-longName "aiCastVolumetricShadows" -defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	setAttr -keyable off ".visibility";
-	setAttr ".useOnlySingleDmap" no;
+createNode aiOptions -shared -name "defaultArnoldRenderOptions";
+	setAttr ".arnoldRenderImageFormat" 1;
+	setAttr ".output_ass_mask" 255;
 createNode lightLinker -shared -name "lightLinker1";
-	setAttr -size 5 ".link";
-	setAttr -size 5 ".shadowLink";
+	setAttr -size 4 ".link";
+	setAttr -size 4 ".shadowLink";
 createNode displayLayerManager -name "layerManager";
 createNode displayLayer -name "defaultLayer";
 createNode renderLayerManager -name "renderLayerManager";
 createNode renderLayer -name "defaultRenderLayer";
 	setAttr ".global" yes;
-createNode aiOptions -shared -name "defaultArnoldRenderOptions";
-	setAttr ".arnoldRenderImageFormat" 1;
-	setAttr ".output_ass_mask" 255;
+createNode aiStandard -name "aiStandard1";
 createNode shadingEngine -name "aiStandard1SG";
 	setAttr ".isHistoricallyInteresting" 0;
 	setAttr ".renderableOnlySet" yes;
@@ -310,35 +282,24 @@ createNode materialInfo -name "materialInfo2";
 createNode script -name "sceneConfigurationScriptNode";
 	setAttr ".before" -type "string" "playbackOptions -min 1 -max 24 -ast 1 -aet 48 ";
 	setAttr ".scriptType" 6;
-createNode aiStandard -name "aiStandard3";
-createNode shadingEngine -name "aiStandard3SG";
-	setAttr ".isHistoricallyInteresting" 0;
-	setAttr ".renderableOnlySet" yes;
-createNode materialInfo -name "materialInfo3";
-createNode file -name "file1";
-	setAttr ".fileTextureName" -type "string" "ball.tif";
-createNode place2dTexture -name "place2dTexture1";
+createNode aiHair -name "aiHair1";
 select -noExpand :time1;
 	setAttr ".outTime" 3;
 	setAttr ".unwarpedTime" 3;
 select -noExpand :renderPartition;
-	setAttr -size 5 ".sets";
+	setAttr -size 4 ".sets";
 select -noExpand :initialShadingGroup;
 	setAttr ".renderableOnlySet" yes;
 select -noExpand :initialParticleSE;
 	setAttr ".renderableOnlySet" yes;
 select -noExpand :defaultShaderList1;
-	setAttr -size 3 ".shaders";
-select -noExpand :defaultTextureList1;
+	setAttr -size 4 ".shaders";
 select -noExpand :lightList1;
-	setAttr -size 2 ".lights";
 select -noExpand :postProcessList1;
 	setAttr -size 2 ".postProcesses";
-select -noExpand :defaultRenderUtilityList1;
 select -noExpand :renderGlobalsList1;
 select -noExpand :defaultRenderGlobals;
 	setAttr ".currentRenderer" -type "string" "arnold";
-	setAttr ".imageFormat" 0;
 	setAttr ".imageFilePrefix" -type "string" "testrender";
 select -noExpand :defaultResolution;
 	setAttr ".width" 160;
@@ -346,7 +307,6 @@ select -noExpand :defaultResolution;
 	setAttr ".pixelAspect" 1;
 	setAttr ".deviceAspectRatio" 1.3333333730697632;
 select -noExpand :defaultLightSet;
-	setAttr -size 2 ".dagSetMembers";
 select -noExpand :hardwareRenderGlobals;
 	setAttr ".colorTextureResolution" 256;
 	setAttr ".bumpTextureResolution" 512;
@@ -357,53 +317,28 @@ relationship "link" ":lightLinker1" ":initialShadingGroup.message" ":defaultLigh
 relationship "link" ":lightLinker1" ":initialParticleSE.message" ":defaultLightSet.message";
 relationship "link" ":lightLinker1" "aiStandard1SG.message" ":defaultLightSet.message";
 relationship "link" ":lightLinker1" "aiStandard2SG.message" ":defaultLightSet.message";
-relationship "link" ":lightLinker1" "aiStandard3SG.message" ":defaultLightSet.message";
 relationship "shadowLink" ":lightLinker1" ":initialShadingGroup.message" ":defaultLightSet.message";
 relationship "shadowLink" ":lightLinker1" ":initialParticleSE.message" ":defaultLightSet.message";
 relationship "shadowLink" ":lightLinker1" "aiStandard1SG.message" ":defaultLightSet.message";
 relationship "shadowLink" ":lightLinker1" "aiStandard2SG.message" ":defaultLightSet.message";
-relationship "shadowLink" ":lightLinker1" "aiStandard3SG.message" ":defaultLightSet.message";
 connectAttr "layerManager.displayLayerId[0]" "defaultLayer.identification";
 connectAttr "renderLayerManager.renderLayerId[0]" "defaultRenderLayer.identification"
 		;
+connectAttr "aiStandard1.outColor" "aiStandard1SG.surfaceShader";
 connectAttr "aiStandard1SG.message" "materialInfo1.shadingGroup";
-connectAttr "aiStandard2SG.message" "materialInfo2.shadingGroup";
-connectAttr "file1.outColor" "aiStandard3.KdColor";
-connectAttr "aiStandard3.outColor" "aiStandard3SG.surfaceShader";
-connectAttr "ArnoldStandInShape.instObjGroups" "aiStandard3SG.dagSetMembers" -nextAvailable
+connectAttr "aiStandard1.message" "materialInfo1.material";
+connectAttr "aiStandard1.message" "materialInfo1.texture" -nextAvailable;
+connectAttr "aiHair1.outColor" "aiStandard2SG.surfaceShader";
+connectAttr "ArnoldStandInShape.instObjGroups" "aiStandard2SG.dagSetMembers" -nextAvailable
 		;
-connectAttr "aiStandard3SG.message" "materialInfo3.shadingGroup";
-connectAttr "aiStandard3.message" "materialInfo3.material";
-connectAttr "aiStandard3.message" "materialInfo3.texture" -nextAvailable;
-connectAttr "place2dTexture1.coverage" "file1.coverage";
-connectAttr "place2dTexture1.translateFrame" "file1.translateFrame";
-connectAttr "place2dTexture1.rotateFrame" "file1.rotateFrame";
-connectAttr "place2dTexture1.mirrorU" "file1.mirrorU";
-connectAttr "place2dTexture1.mirrorV" "file1.mirrorV";
-connectAttr "place2dTexture1.stagger" "file1.stagger";
-connectAttr "place2dTexture1.wrapU" "file1.wrapU";
-connectAttr "place2dTexture1.wrapV" "file1.wrapV";
-connectAttr "place2dTexture1.repeatUV" "file1.repeatUV";
-connectAttr "place2dTexture1.offset" "file1.offset";
-connectAttr "place2dTexture1.rotateUV" "file1.rotateUV";
-connectAttr "place2dTexture1.noiseUV" "file1.noiseUV";
-connectAttr "place2dTexture1.vertexUvOne" "file1.vertexUvOne";
-connectAttr "place2dTexture1.vertexUvTwo" "file1.vertexUvTwo";
-connectAttr "place2dTexture1.vertexUvThree" "file1.vertexUvThree";
-connectAttr "place2dTexture1.vertexCameraOne" "file1.vertexCameraOne";
-connectAttr "place2dTexture1.outUV" "file1.uvCoord";
-connectAttr "place2dTexture1.outUvFilterSize" "file1.uvFilterSize";
+connectAttr "aiStandard2SG.message" "materialInfo2.shadingGroup";
+connectAttr "aiHair1.message" "materialInfo2.material";
+connectAttr "aiHair1.message" "materialInfo2.texture" -nextAvailable;
 connectAttr "aiStandard1SG.partition" ":renderPartition.sets" -nextAvailable;
 connectAttr "aiStandard2SG.partition" ":renderPartition.sets" -nextAvailable;
-connectAttr "aiStandard3SG.partition" ":renderPartition.sets" -nextAvailable;
-connectAttr "aiStandard3.message" ":defaultShaderList1.shaders" -nextAvailable;
-connectAttr "file1.message" ":defaultTextureList1.textures" -nextAvailable;
+connectAttr "aiStandard1.message" ":defaultShaderList1.shaders" -nextAvailable;
+connectAttr "aiHair1.message" ":defaultShaderList1.shaders" -nextAvailable;
 connectAttr "pointLightShape1.lightData" ":lightList1.lights" -nextAvailable;
-connectAttr "pointLightShape2.lightData" ":lightList1.lights" -nextAvailable;
-connectAttr "place2dTexture1.message" ":defaultRenderUtilityList1.utilities" -nextAvailable
-		;
 connectAttr "pointLight1.instObjGroups" ":defaultLightSet.dagSetMembers" -nextAvailable
-		;
-connectAttr "pointLight2.instObjGroups" ":defaultLightSet.dagSetMembers" -nextAvailable
 		;
 // End of test.ma
