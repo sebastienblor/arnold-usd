@@ -167,3 +167,101 @@ def ArnoldStandInTemplate(nodeName):
     
     cmds.editorTemplate(addExtraControls=True)
     cmds.editorTemplate(endScrollLayout=True)
+
+from pymel.all import *
+
+def LoadStandInButtonPush(*arg):
+    basicFilter = "Arnold Source Scene (*.ass)"
+    ret = cmds.fileDialog2(fileFilter=basicFilter, dialogStyle=2,cap="Save StandIn",okc="Save",fm=0)
+    if len(ret):
+        cmds.textField("aiExportFilename", edit=True, text=ret[0].replace(".ass",""))
+
+def SequenceToggleOn(*arg):
+   ToggleSequenceLine(True)
+   
+def SequenceToggleOff(*arg):
+   ToggleSequenceLine(False)
+
+def ToggleSequenceLine(flag):
+   cmds.text("aiExportStartLabel",edit=True,enable=flag)
+   cmds.intField("aiExportStart",edit=True,enable=flag)
+   cmds.text("aiExportEndLabel",edit=True,enable=flag)
+   cmds.intField("aiExportEnd",edit=True,enable=flag)
+   cmds.text("aiExportStepLabel",edit=True,enable=flag)
+   cmds.intField("aiExportStep",edit=True,enable=flag)
+
+def DoExportStandInArchive(*arg):
+   name = cmds.textField("aiExportFilename", query=True, text=True)
+   if len(cmds.ls(sl=True)):
+      if (name != None) and (name != ""):
+         # Output mask for shape and shader only
+         if not cmds.ls('defaultArnoldRenderOptions'):
+            cmds.createNode('aiOptions', skipSelect=True, shared=True, name='defaultArnoldRenderOptions')
+         oldOutputMask = cmds.getAttr("defaultArnoldRenderOptions.output_ass_mask")
+         cmds.setAttr("defaultArnoldRenderOptions.output_ass_mask", 24)
+
+         if cmds.checkBox("aiExportSequence", query=True, value=True):
+            start = cmds.intField("aiExportStart", query=True, value=True)
+            end   = cmds.intField("aiExportEnd", query=True, value=True)
+            step  = cmds.intField("aiExportStep", query=True, value=True)
+            for i in range(start,end+1,step):
+               cmds.currentTime(i)
+               print "[mtoa] exporting archive :", cmds.arnoldExportAss(f=name, s=True, bb=True)[0]
+         else:
+            print "[mtoa] exporting archive :", cmds.arnoldExportAss(f=name, s=True, bb=True)[0]
+         # Restore old output mask
+         cmds.setAttr("defaultArnoldRenderOptions.output_ass_mask", oldOutputMask)
+         cmds.deleteUI("arnold_export_render_object_win")
+      else:
+         cmds.confirmDialog( title="Error", message="Enter a name", button="Ok", dismissString="Ok", icon="warning" )
+         cmds.warning("Enter a name")
+   else:
+      cmds.confirmDialog( title="Error", message="Select an object", button="Ok", dismissString="Ok", icon="warning" )
+      cmds.warning("Select an object")
+  
+def ArnoldExportRenderObjectWindow(*arg):
+   win = "arnold_export_render_object_win"
+   if cmds.window(win, exists=True):
+      cmds.deleteUI(win)
+    
+   cmds.window(win, title="Export StandIn Archive", resizeToFitChildren=True)
+    
+   cmds.frameLayout( label="File", borderStyle='out' )
+    
+   cmds.rowColumnLayout( numberOfColumns=3, columnAlign=(1, "right"), columnAttach=[(1, "left", 0), (2, "both", 0), (3, "right", 0)], columnWidth=[(1,145),(3,30)] )
+   cmds.text(label="Filename ")
+   cmds.textField("aiExportFilename")
+   cmds.button( label="...", command=LoadStandInButtonPush)
+   cmds.setParent( '..' )
+    
+   cmds.setParent( '..' )
+    
+   cmds.frameLayout( label="Sequence", borderStyle='out' )
+    
+   cmds.rowColumnLayout( numberOfColumns=2, columnAlign=(1, "right"), columnAttach=[(1, "left", 0), (2, "right", 0)] )
+   cmds.text(label="Sequence ")
+   cmds.checkBox("aiExportSequence",label="",onCommand=SequenceToggleOn,offCommand=SequenceToggleOff)
+   cmds.setParent( '..' )
+    
+   cmds.rowColumnLayout( numberOfColumns=6,  columnAttach=[(1, "left", 0), (2, "both", 0), (3, "both", 0),(4, "both", 0), (5, "both", 0), (6, "right", 0)])
+   cmds.text("aiExportStartLabel",label="Start ")
+   cmds.intField("aiExportStart")
+   cmds.intField("aiExportStart", edit=True, value=cmds.playbackOptions(query=True, animationStartTime=True), enable=False)
+   cmds.text("aiExportEndLabel",label="End   ")
+   cmds.intField("aiExportEnd")
+   cmds.intField("aiExportEnd", edit=True, value=cmds.playbackOptions(query=True, animationEndTime=True), enable=False)
+   cmds.text("aiExportStepLabel",label="Step  ")
+   cmds.intField("aiExportStep")
+   cmds.intField("aiExportStep", edit=True, value=1, enable=False)
+   cmds.setParent( '..' )
+    
+   cmds.setParent( '..' )
+    
+   cmds.rowColumnLayout(numberOfColumns=2, columnAlign=(1, "right"), columnAttach=[(1, "left", 0), (2, "right", 0)])
+   cmds.button(label='Ok', command=DoExportStandInArchive)
+   cmds.button(label='Cancel', command=('import maya.cmds as cmds;cmds.deleteUI(\"' + win + '\", window=True)'))
+   cmds.setParent('..')
+    
+   cmds.showWindow(win)
+
+#ArnoldExportRenderObjectWindow()

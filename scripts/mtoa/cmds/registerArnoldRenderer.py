@@ -8,6 +8,7 @@ import mtoa.ui.globals.common
 from mtoa.ui.globals.common import createArnoldRendererCommonGlobalsTab, updateArnoldRendererCommonGlobalsTab
 from mtoa.ui.globals.arnold import createArnoldRendererGlobalsTab, updateArnoldRendererGlobalsTab
 import mtoa.ui.ae.utils as aeUtils
+from mtoa.ui.ae.aiStandInTemplate import ArnoldExportRenderObjectWindow
 
 import mtoa.cmds.arnoldRender as arnoldRender
 
@@ -188,7 +189,7 @@ def registerArnoldRenderer():
             cmds.menuItem('ArnoldStandIn', label='StandIn', parent='ArnoldMenu', subMenu=True)
             cmds.menuItem('ArnoldCreateStandIn', parent='ArnoldStandIn', label="Create",
                         c=lambda *args: cmds.createNode('ArnoldStandIn', n='ArnoldStandInShape'))
-            #cmds.menuItem('ArnoldExportStandIn', parent='ArnoldStandIn', label='Export') #, c=exportass.arnoldExportAss)
+            cmds.menuItem('ArnoldExportStandIn', parent='ArnoldStandIn', label='Export', c=ArnoldExportRenderObjectWindow)
 
             #cmds.menuItem(parent='ArnoldMenu', divider=True)
             # Add option box for file translator
