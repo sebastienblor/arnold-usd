@@ -364,8 +364,8 @@ void CArnoldStandInShape::LoadBoundingBox()
       double zmax = atof(strtok(NULL, " "));
 
       file.close();
-      MPoint min(xmin*geom->scale, ymin*geom->scale, zmin*geom->scale);
-      MPoint max(xmax*geom->scale, ymax*geom->scale, zmax*geom->scale);
+      MPoint min(xmin, ymin, zmin);
+      MPoint max(xmax, ymax, zmax);
       geom->bbox = MBoundingBox(min, max);
       geom->assTocLoaded = true;
       fGeometry->updateView = true;
@@ -381,7 +381,24 @@ MBoundingBox CArnoldStandInShape::boundingBox() const
    // Returns the bounding box for the shape.
    CArnoldStandInShape* nonConstThis = const_cast<CArnoldStandInShape*> (this);
    CArnoldStandInGeom* geom = nonConstThis->geometry();
-   return geom->bbox;
+   MPoint bbMin = geom->bbox.min();
+   MPoint bbMax = geom->bbox.max();
+
+   float minCoords[4];
+   float maxCoords[4];
+
+   bbMin.get(minCoords);
+   bbMax.get(maxCoords);
+
+   minCoords[0] *= geom->scale;
+   minCoords[1] *= geom->scale;
+   minCoords[2] *= geom->scale;
+
+   maxCoords[0] *= geom->scale;
+   maxCoords[1] *= geom->scale;
+   maxCoords[2] *= geom->scale;
+
+   return MBoundingBox (minCoords, maxCoords);
 
 }
 
@@ -550,19 +567,14 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
    // assToc is not loaded
    if (fGeometry->assTocLoaded == false)
    {
-      // we get the scale factor of the bbox
-      float m_scale;
-      plug.setAttribute(s_scale);
-      plug.getValue(m_scale);
-
       float3 m_value;
       plug.setAttribute(s_boundingBoxMin);
       GetPointPlugValue(plug, m_value);
-      fGeometry->BBmin = MPoint(m_value[0]*m_scale, m_value[1]*m_scale, m_value[2]*m_scale);
+      fGeometry->BBmin = MPoint(m_value[0], m_value[1], m_value[2]);
 
       plug.setAttribute(s_boundingBoxMax);
       GetPointPlugValue(plug, m_value);
-      fGeometry->BBmax = MPoint(m_value[0]*m_scale, m_value[1]*m_scale, m_value[2]*m_scale);
+      fGeometry->BBmax = MPoint(m_value[0], m_value[1], m_value[2]);
 
       fGeometry->bbox = MBoundingBox(fGeometry->BBmin, fGeometry->BBmax);
       fGeometry->updateView = true;
