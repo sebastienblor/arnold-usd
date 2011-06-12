@@ -2,9 +2,10 @@ import maya.cmds as cmds
 import maya.mel as mel
 from mtoa.ui.ae.utils import aeCallback
 import mtoa.callbacks as callbacks
+from customShapeAttributes import commonShapeAttributes
 
 def LoadStandInButtonPush(*arg):
-    basicFilter = "Arnold Source Scene (*.ass);;Arnold Procedural (*.so)"
+    basicFilter = "Arnold Source Scene (*.ass);;Arnold Procedural (*.so *.dll)"
     ret = cmds.fileDialog2(fileFilter=basicFilter, dialogStyle=2,cap="Load StandIn",okc="Load",fm=4)
     if len(ret):
         m_tmpSelected = cmds.ls(sl=1)[0]
@@ -40,7 +41,7 @@ def ArnoldStandInTemplateDsoReplace(plugName) :
 def ArnoldStandInTemplateDataReplace(plugName) :
     cmds.textField( "standInData", edit=True, text=cmds.getAttr(plugName) )
 
-def ArnoldStandInTemplate(nodeName):
+def aiStandInTemplate(nodeName):
 
     cmds.editorTemplate(beginScrollLayout=True)
 
@@ -54,7 +55,7 @@ def ArnoldStandInTemplate(nodeName):
     cmds.editorTemplate("frameOffset", addControl=True)
     cmds.editorTemplate(addSeparator=True)
     cmds.editorTemplate("loadAtInit", label="Deferred Loading", addControl=True)
-    cmds.editorTemplate("scale", addControl=True)
+    cmds.editorTemplate("bboxScale", addControl=True)
     #cmds.editorTemplate("MaxBoundingBox", addControl=True)
     cmds.editorTemplate(endLayout=True) 
         
@@ -70,10 +71,7 @@ def ArnoldStandInTemplate(nodeName):
     cmds.editorTemplate(endLayout=True)
 
     cmds.editorTemplate(beginLayout="Arnold", collapse=True)
-    cmds.editorTemplate("selfShadows", addControl=True)
-    cmds.editorTemplate("opaque", addControl=True)
-    cmds.editorTemplate("aiVisibleInDiffuse", addControl=True)
-    cmds.editorTemplate("aiVisibleInGlossy", addControl=True)
+    commonShapeAttributes(nodeName)
     cmds.editorTemplate(endLayout=True)
 
 
@@ -170,7 +168,7 @@ def ArnoldStandInTemplate(nodeName):
 
 from pymel.all import *
 
-def LoadStandInButtonPush(*arg):
+def SaveStandInButtonPush(*arg):
     basicFilter = "Arnold Source Scene (*.ass)"
     ret = cmds.fileDialog2(fileFilter=basicFilter, dialogStyle=2,cap="Save StandIn",okc="Save",fm=0)
     if len(ret):
@@ -231,7 +229,7 @@ def ArnoldExportRenderObjectWindow(*arg):
    cmds.rowColumnLayout( numberOfColumns=3, columnAlign=(1, "right"), columnAttach=[(1, "left", 0), (2, "both", 0), (3, "right", 0)], columnWidth=[(1,145),(3,30)] )
    cmds.text(label="Filename ")
    cmds.textField("aiExportFilename")
-   cmds.button( label="...", command=LoadStandInButtonPush)
+   cmds.button( label="...", command=SaveStandInButtonPush)
    cmds.setParent( '..' )
     
    cmds.setParent( '..' )

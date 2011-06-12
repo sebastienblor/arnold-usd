@@ -143,7 +143,7 @@ MStatus CArnoldAssTranslator::reader(const MFileObject& file,
       else
       {
          MDagModifier m_dagModifier;
-         MObject m_standin = m_dagModifier.createNode("ArnoldStandIn");
+         MObject m_standin = m_dagModifier.createNode("aiStandIn");
          MFnDagNode m_fnDagNode;
          m_fnDagNode.setObject(m_standin);
          std::cout << "fullPathName : " << m_fnDagNode.fullPathName() << std::endl;

@@ -12,10 +12,10 @@
 #include "nodes/MayaNodeIDs.h"
 #include "nodes/ArnoldNodeIDs.h"
 #include "nodes/SphereLocator.h"
-#include "nodes/ArnoldStandIns.h"
 #include "nodes/options/ArnoldOptionsNode.h"
 #include "nodes/shader/ArnoldSkyNode.h"
 #include "nodes/shader/ArnoldDisplacementNode.h"
+#include "nodes/shape/ArnoldStandIns.h"
 #include "nodes/light/ArnoldSkyDomeLightNode.h"
 
 #include "translators/options/OptionsTranslator.h"
@@ -52,7 +52,7 @@ namespace // <anonymous>
       MFnPlugin plugin(object);
 
       // STANDINS
-      status = plugin.registerShape("ArnoldStandIn",
+      status = plugin.registerShape("aiStandIn",
                                     CArnoldStandInShape::id,
                                     CArnoldStandInShape::creator,
                                     CArnoldStandInShape::initialize,
@@ -178,7 +178,7 @@ namespace // <anonymous>
                                    "",
                                    CNurbsSurfaceTranslator::creator,
                                    CNurbsSurfaceTranslator::NodeInitializer);
-       builtin->RegisterTranslator("ArnoldStandIn",
+       builtin->RegisterTranslator("aiStandIn",
                                    "builtin",
                                    CArnoldStandInsTranslator::creator,
                                    CArnoldStandInsTranslator::NodeInitializer);

@@ -459,7 +459,7 @@ MStatus CArnoldStandInShape::initialize()
 //   s_attrHelper("min", data);
 //   data.name = "minBoundingBox";
 //   s_attrHelper(data);
-   s_scale = nAttr.create("Scale", "scale", MFnNumericData::kFloat, 1.0);
+   s_scale = nAttr.create("BoundingBoxScale", "bboxScale", MFnNumericData::kFloat, 1.0);
    nAttr.setHidden(false);
    nAttr.setKeyable(true);
    nAttr.setStorable(true);

@@ -188,7 +188,7 @@ def registerArnoldRenderer():
             cmds.menu('ArnoldMenu', label='Arnold', parent='MayaWindow', tearOff=True )
             cmds.menuItem('ArnoldStandIn', label='StandIn', parent='ArnoldMenu', subMenu=True)
             cmds.menuItem('ArnoldCreateStandIn', parent='ArnoldStandIn', label="Create",
-                        c=lambda *args: cmds.createNode('ArnoldStandIn', n='ArnoldStandInShape'))
+                        c=lambda *args: cmds.createNode('aiStandIn', n='ArnoldStandInShape'))
             cmds.menuItem('ArnoldExportStandIn', parent='ArnoldStandIn', label='Export', c=ArnoldExportRenderObjectWindow)
 
             #cmds.menuItem(parent='ArnoldMenu', divider=True)
