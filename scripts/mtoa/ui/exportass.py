@@ -65,6 +65,8 @@ def arnoldAssOpts(parent = '', action = '', initialSettings = '', resultCallback
         cmds.connectControl('oa_compressed', 'defaultArnoldRenderOptions.output_ass_compressed')
 
         cmds.checkBox('oa_write_bbox', label='Write Bounding Box')
+        if '-bb' in initialSettings:
+            cmds.checkBox('oa_write_bbox', edit=True, value=True)
 
         cmds.separator(style='none')
 
