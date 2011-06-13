@@ -124,14 +124,20 @@ def run_test(target, source, env):
    if system.os() == 'darwin':
       test_env.AppendENVPath('DYLD_LIBRARY_PATH', test_env['EXTERNAL_PATH'], envname='ENV', sep=':', delete_existing=1)  
       test_env.AppendENVPath('DYLD_LIBRARY_PATH', test_env['ARNOLD_API_LIB'], envname='ENV', sep=':', delete_existing=1)
+      test_env.AppendENVPath('DYLD_LIBRARY_PATH', os.path.join(env['MAYA_ROOT'], 'lib'), sep=':', delete_existing=1)
+      previous_lib_path = os.environ.get('DYLD_LIBRARY_PATH')
       os.environ['DYLD_LIBRARY_PATH'] = test_env['ENV']['DYLD_LIBRARY_PATH']
    elif system.os() == 'linux':
       test_env.AppendENVPath('LD_LIBRARY_PATH', test_env['EXTERNAL_PATH'], envname='ENV', sep=':', delete_existing=1)  
-      test_env.AppendENVPath('LD_LIBRARY_PATH', test_env['ARNOLD_API_LIB'], envname='ENV', sep=':', delete_existing=1)         
+      test_env.AppendENVPath('LD_LIBRARY_PATH', test_env['ARNOLD_API_LIB'], envname='ENV', sep=':', delete_existing=1)
+      test_env.AppendENVPath('LD_LIBRARY_PATH', os.path.join(env['MAYA_ROOT'], 'lib'), sep=':', delete_existing=1)
+      previous_lib_path = os.environ.get('LD_LIBRARY_PATH')     
       os.environ['LD_LIBRARY_PATH'] = test_env['ENV']['LD_LIBRARY_PATH'] 
-      
+   else :
+       previous_lib_path = None
+       
    ## setup program path   
-   previous_path = os.environ['PATH']
+   previous_path = os.environ.get('PATH')
    os.environ['PATH'] = test_env['ENV']['PATH']
 
    ## remove any leftovers
@@ -327,11 +333,13 @@ Arnold testsuite - %s
               ))
    f.close()
    ## restore environment
-   os.environ['PATH'] = previous_path
-   if system.os() == 'darwin':
-      del os.environ['DYLD_LIBRARY_PATH']
-   elif system.os() == 'linux':
-      del os.environ['LD_LIBRARY_PATH']
+   if previous_path :
+       os.environ['PATH'] = previous_path
+   if previous_lib_path :
+       if system.os() == 'darwin':
+          os.environ['DYLD_LIBRARY_PATH'] = previous_lib_path
+       elif system.os() == 'linux':
+          os.environ['LD_LIBRARY_PATH'] = previous_lib_path
    ## always succeeds (unless some of the functions above throw an error)
    return None
 
@@ -579,14 +587,14 @@ if system.os() == 'darwin' or system.os() == 'windows':
    test_env.Append(LIBS = Split('ai'))
 
 ## make sure we can find difftiff and any generated programs
-add_to_path(test_env, os.path.abspath(str(DIFFTIFF[0].dir)))
-add_to_path(test_env, os.path.abspath(str(TIFF2JPEG[0].dir)))
-add_to_path(test_env, env.subst('$TARGET_LIB_PATH'))
-add_to_path(test_env, env.subst('$TARGET_PLUGIN_PATH'))
+append_to_path(test_env, os.path.abspath(str(DIFFTIFF[0].dir)))
+append_to_path(test_env, os.path.abspath(str(TIFF2JPEG[0].dir)))
+prepend_to_path(test_env, env.subst('$TARGET_LIB_PATH'))
+prepend_to_path(test_env, env.subst('$TARGET_PLUGIN_PATH'))
 ## as well as Arnold executables
-add_to_path(test_env, test_env['ARNOLD_API_LIB'])
+prepend_to_path(test_env, test_env['ARNOLD_API_LIB'])
 ## and Maya's
-add_to_path(test_env, os.path.join(test_env['MAYA_ROOT'], 'bin'))
+prepend_to_path(test_env, os.path.join(test_env['MAYA_ROOT'], 'bin'))
 
 ## First stage. Process build targets, expanding the groups and patterns into single tests
 index = 0
