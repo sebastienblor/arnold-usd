@@ -202,11 +202,9 @@ def DoExportStandInArchive(*arg):
             start = cmds.intField("aiExportStart", query=True, value=True)
             end   = cmds.intField("aiExportEnd", query=True, value=True)
             step  = cmds.intField("aiExportStep", query=True, value=True)
-            for i in range(start,end+1,step):
-               cmds.currentTime(i)
-               print "[mtoa] exporting archive :", cmds.arnoldExportAss(f=name, s=True, bb=True)[0]
+            cmds.arnoldExportAss(f=name, s=True, bb=True, sf=start, ef=end, fs=step)
          else:
-            print "[mtoa] exporting archive :", cmds.arnoldExportAss(f=name, s=True, bb=True)[0]
+            cmds.arnoldExportAss(f=name, s=True, bb=True)
          # Restore old output mask
          cmds.setAttr("defaultArnoldRenderOptions.output_ass_mask", oldOutputMask)
          cmds.deleteUI("arnold_export_render_object_win")

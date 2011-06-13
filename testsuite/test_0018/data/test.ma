@@ -223,7 +223,7 @@ createNode camera -shared -name "sideShape" -parent "side";
 	setAttr ".orthographic" yes;
 	setAttr -keyable on ".aiTranslator" -type "string" "orthographic";
 createNode transform -name "ArnoldStandIn";
-createNode ArnoldStandIn -name "ArnoldStandInShape" -parent "ArnoldStandIn";
+createNode aiStandIn -name "ArnoldStandInShape" -parent "ArnoldStandIn";
 	setAttr -keyable off ".visibility";
 	setAttr ".collisionOffsetVelocityMultiplier[0]"  0 1 1;
 	setAttr ".collisionDepthVelocityMultiplier[0]"  0 1 1;

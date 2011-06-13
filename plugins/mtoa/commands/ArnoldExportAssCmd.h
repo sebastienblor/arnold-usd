@@ -30,6 +30,7 @@ public:
                       const MString &fileFormat,
                       const MObject layer,
                       const bool createDirectory=true,
+                      const bool isSequence=false,
                       MStatus *ReturnStatus=NULL) const;
    MStatus WriteAsstoc(const MString& filename, const AtBBox& bBox);
    MStatus doIt(const MArgList& argList);

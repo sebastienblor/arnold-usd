@@ -104,12 +104,10 @@ MStatus CArnoldAssTranslator::reader(const MFileObject& file,
 
    if (mode == MPxFileTranslator::kOpenAccessMode)
    {
-      std::cout << "kOpenAccessMode" << std::endl;
       status = MStatus::kFailure;
    }
    else if (mode == MPxFileTranslator::kImportAccessMode || mode == MPxFileTranslator::kReferenceAccessMode)
    {
-      std::cout << "kImportAccessMode" << std::endl;
       // If we've got Standins selected, update the dso attribute
       MSelectionList selected;
       MGlobal::getActiveSelectionList(selected);
@@ -124,12 +122,10 @@ MStatus CArnoldAssTranslator::reader(const MFileObject& file,
          {
             if (it.getDagPath(path) == MStatus::kSuccess)
             {
-               std::cout << "path " << path.fullPathName() <<std::endl;
                MFnDagNode fnDagNode(path);
                MPlug m_dso = fnDagNode.findPlug("dso");
                if (!m_dso.isNull())
                {
-                  std::cout << "file.resolvedFullName" << file.resolvedFullName() << std::endl;
                   m_dso.setValue(file.resolvedFullName());
                }
             }
@@ -146,7 +142,6 @@ MStatus CArnoldAssTranslator::reader(const MFileObject& file,
          MObject m_standin = m_dagModifier.createNode("aiStandIn");
          MFnDagNode m_fnDagNode;
          m_fnDagNode.setObject(m_standin);
-         std::cout << "fullPathName : " << m_fnDagNode.fullPathName() << std::endl;
          for (uint i=0;i<m_fnDagNode.childCount();i++)
          {
             m_standin = m_fnDagNode.child(i);
@@ -154,19 +149,10 @@ MStatus CArnoldAssTranslator::reader(const MFileObject& file,
             MPlug m_dso = m_fnDagNode.findPlug("dso");
             if (!m_dso.isNull())
             {
-               std::cout << "file.resolvedFullName" << file.resolvedFullName() << std::endl;
                m_dso.setValue(file.resolvedFullName());
             }
          }
       }
-   }
-   //else if (mode == MPxFileTranslator::kReferenceAccessMode)
-   //{
-   //   std::cout << "kReferenceAccessMode" << std::endl;
-   //}
-   else
-   {
-
    }
    return status;
 }
