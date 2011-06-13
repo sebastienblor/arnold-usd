@@ -56,11 +56,17 @@ MStatus CArnoldDisplacementNode::initialize()
    s_height = nAttr.create("disp_height", "hgt", MFnNumericData::kFloat, 1);
    nAttr.setMin(-100);
    nAttr.setMax(100);
+   nAttr.setSoftMin(0);
+   nAttr.setSoftMax(10);
+   nAttr.setConnectable(false);
    MAKE_INPUT(nAttr, s_height);
 
    s_zero_value = nAttr.create("disp_zero_value", "zerov", MFnNumericData::kFloat, 0);
    nAttr.setMin(-100);
    nAttr.setMax(100);
+   nAttr.setSoftMin(0);
+   nAttr.setSoftMax(1);
+   nAttr.setConnectable(false);
    MAKE_INPUT(nAttr, s_zero_value);
 
    MAKE_COLOR(s_map, "disp_map", "map", 1, 1, 1);
