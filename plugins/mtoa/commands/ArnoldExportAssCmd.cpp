@@ -297,6 +297,10 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    ExportOptions exportOptions;
    exportOptions.mode = MTOA_EXPORT_FILE;
    exportOptions.filter.unselected = exportSelected;
+   if (exportOptions.filter.unselected)
+   {
+      exportOptions.filter.notinlayer = false;
+   }
    // FIXME use the passed renderGlobals or options intead?
    MCommonRenderSettingsData renderGlobals;
    MRenderUtil::getCommonRenderSettings(renderGlobals);
