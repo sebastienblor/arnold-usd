@@ -28,7 +28,7 @@ enum MayaProjectionParams
    p_invert,
    p_wrap,
    p_local,
-   p_mapping_coordinate,
+   p_placement_matrix,
    p_fit_type,
    p_fill_type,
    p_camera_name,
@@ -368,7 +368,7 @@ node_parameters
    AiParameterBOOL("invert", false);
    AiParameterBOOL("wrap", true);
    AiParameterBOOL("local", false);
-   AiParameterMTX("mappingCoordinate", AI_M4_IDENTITY);
+   AiParameterMTX("placementMatrix", AI_M4_IDENTITY);
    AiParameterENUM("fitType", 1, gs_FitTypeNames);
    AiParameterENUM("fillType", 0, gs_FillTypeNames);
    AiParameterSTR("cameraName", "");
@@ -427,13 +427,14 @@ shader_evaluate
    bool wrap   = (AiShaderEvalParamBool(p_wrap) == TRUE);
    bool local  = (AiShaderEvalParamBool(p_local) == TRUE);
 
-   //AtMatrix* mappingCoordinate = AiShaderEvalParamMtx(p_mapping_coordinate);
-   AtMatrix* space = AiShaderEvalParamMtx(p_mapping_coordinate);
+   //AtMatrix* mappingCoordinate = AiShaderEvalParamMtx(p_placement_matrix);
+   AtMatrix* space = AiShaderEvalParamMtx(p_placement_matrix);
 
-   AtMatrix ispace;
-   AiM4Invert(*space, ispace);
+   // AtMatrix ispace;
+   // AiM4Invert(*space, ispace);
+   // AtMatrix *mappingCoordinate = &ispace;
 
-   AtMatrix *mappingCoordinate = &ispace;
+   AtMatrix *mappingCoordinate = space;
 
    AtRGBA outColor;
 
@@ -441,11 +442,8 @@ shader_evaluate
    bool mapped = false;
    AtVector P;
 
-
    AtPoint tmpPts;
    bool usePref = SetRefererencePoints(sg, tmpPts);
-
-
 
    P = ComputePoint(sg, TP_SAMPLE, local, mappingCoordinate, 0);
 

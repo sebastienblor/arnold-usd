@@ -736,6 +736,8 @@ AtNode*  CProjectionTranslator::CreateArnoldNodes()
 
 void CProjectionTranslator::Export(AtNode* shader)
 {
+   MStatus status;
+
    // FIXME: change shader parameter name to match maya
    ProcessParameter(shader, "projType", "type", AI_TYPE_INT);
    ProcessParameter(shader, "uAngle", AI_TYPE_FLOAT);
@@ -749,28 +751,18 @@ void CProjectionTranslator::Export(AtNode* shader)
    ProcessParameter(shader, "alphaGain", AI_TYPE_FLOAT);
    ProcessParameter(shader, "alphaOffset", AI_TYPE_FLOAT);
    ProcessParameter(shader, "image", AI_TYPE_RGBA);
+   ProcessParameter(shader, "placementMatrix", AI_TYPE_MATRIX);
 
    // alphaIsLuminance?
-
-   // shaderMatrix
-   MPlug plug = GetFnNode().findPlug("shaderMatrix");
-   // should follow connections here also
-   // temporarily just read the value
-   AtMatrix ipm;
-   MObject matObj = plug.asMObject();
-   MFnMatrixData matData(matObj);
-   MMatrix mm = matData.matrix();
-   ConvertMatrix(ipm, mm);
-   AiNodeSetMatrix(shader, "mappingCoordinate", ipm);
 
    ProcessParameter(shader, "fitType", AI_TYPE_INT);
    // FIXME: change shader parameter name to match maya
    ProcessParameter(shader, "fitFill", "fillType", AI_TYPE_INT);
 
    MPlug typePlug = GetFnNode().findPlug("projType");
-   plug = GetFnNode().findPlug("linkedCamera");
+   MPlug camPlug = GetFnNode().findPlug("linkedCamera");
    MPlugArray connections;
-   plug.connectedTo(connections, true, false);
+   camPlug.connectedTo(connections, true, false);
    if (connections.length() >= 1 && typePlug.asInt() == 8)
    {
       MObject camObj = connections[0].node();
