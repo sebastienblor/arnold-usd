@@ -70,7 +70,7 @@ public:
 private:
    CArnoldStandInGeom* fGeometry;
    // Attributes
-   static CStaticAttrHelper s_attrHelper;
+   static CStaticAttrHelper s_attributes;
    static MObject s_dso;
    static MObject s_mode;
    static MObject s_useFrameExtension;

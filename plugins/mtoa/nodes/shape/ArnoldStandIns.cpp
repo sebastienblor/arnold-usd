@@ -47,7 +47,7 @@ static MGLFunctionTable *gGLFT = NULL;
 #define HILITE_COLOR			17	// pale blue
 MTypeId CArnoldStandInShape::id(ARNOLD_NODEID_STAND_INS);
 
-CStaticAttrHelper CArnoldStandInShape::s_attrHelper(CArnoldStandInShape::addAttribute);
+CStaticAttrHelper CArnoldStandInShape::s_attributes(CArnoldStandInShape::addAttribute);
 
 MObject CArnoldStandInShape::s_dso;
 MObject CArnoldStandInShape::s_mode;
@@ -413,11 +413,11 @@ MStatus CArnoldStandInShape::initialize()
    MFnNumericAttribute nAttr;
    MFnEnumAttribute eAttr;
 
-   s_attrHelper.SetNode("procedural");
-   s_attrHelper.MakeInput("self_shadows");
-   s_attrHelper.MakeInput("opaque");
+   s_attributes.SetNode("procedural");
+   s_attributes.MakeInput("self_shadows");
+   s_attributes.MakeInput("opaque");
 
-   CDagTranslator::MakeArnoldVisibilityFlags(s_attrHelper);
+   CDagTranslator::MakeArnoldVisibilityFlags(s_attributes);
 
    s_dso = tAttr.create("dso", "dso", MFnData::kString);
    tAttr.setHidden(false);
@@ -453,7 +453,7 @@ MStatus CArnoldStandInShape::initialize()
    nAttr.setStorable(true);
    addAttribute(s_data);
 
-   s_loadAtInit = s_attrHelper.MakeInput("load_at_init");
+   s_loadAtInit = s_attributes.MakeInput("load_at_init");
 
 //   CAttrData data;
 //   s_attrHelper("min", data);
@@ -481,6 +481,12 @@ MStatus CArnoldStandInShape::initialize()
    nAttr.setKeyable(true);
    //nAttr.setStorable(true);
    addAttribute(s_boundingBoxMax);
+
+   s_attributes.MakeInput("opaque");
+   s_attributes.MakeInput("self_shadows");
+   s_attributes.MakeInput("sss_use_gi");
+   s_attributes.MakeInput("sss_max_samples");
+   s_attributes.MakeInput("sss_sample_spacing");
 
    return MStatus::kSuccess;
 }
