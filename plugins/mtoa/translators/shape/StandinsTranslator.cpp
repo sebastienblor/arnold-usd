@@ -56,39 +56,6 @@ void CArnoldStandInsTranslator::ExportMotion(AtNode* anode, AtUInt step)
    ExportMatrix(anode, step);
 }
 
-void CArnoldStandInsTranslator::AddIPRCallbacks()
-{
-   AddShaderAssignmentCallbacks(m_object);
-   CDagTranslator::AddIPRCallbacks();
-}
-
-void CArnoldStandInsTranslator::AddShaderAssignmentCallbacks(MObject & dagNode)
-{
-   MStatus status;
-   MCallbackId id = MNodeMessage::addAttributeChangedCallback(dagNode, ShaderAssignmentCallback, this, &status);
-   if (MS::kSuccess == status) ManageIPRCallback(id);
-}
-
-void CArnoldStandInsTranslator::ShaderAssignmentCallback(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void*clientData)
-{
-   // Shading assignments are done with the instObjGroups attr, so we only
-   // need to update when that is the attr that changes.
-   if ((msg & MNodeMessage::kConnectionMade) && (plug.partialName() == "iog"))
-   {
-      CArnoldStandInsTranslator * translator = static_cast< CArnoldStandInsTranslator* >(clientData);
-      if (translator != NULL)
-      {
-         // Interupt the render.
-         CRenderSession* renderSession = CRenderSession::GetInstance();
-         renderSession->InterruptRender();
-         // Export the new shaders.
-         translator->ExportShaders();
-         // Update Arnold without passing a translator, this just forces a redraw.
-         CMayaScene::UpdateIPR();
-      }
-   }
-}
-
 // Deprecated : Arnold support procedural instance, but it's not safe.
 //
 AtNode* CArnoldStandInsTranslator::ExportInstance(AtNode *instance, const MDagPath& masterInstance)
@@ -115,26 +82,6 @@ AtNode* CArnoldStandInsTranslator::ExportInstance(AtNode *instance, const MDagPa
    standInNode.getConnectedShaders(0, shadersMaster, indicesMaster);
 
    return instance;
-}
-
-MObject CArnoldStandInsTranslator::GetNodeShadingGroup(MObject dagNode, int instanceNum)
-{
-   MPlugArray connections;
-   MFnDependencyNode fnDGNode(dagNode);
-
-   MPlug plug(dagNode, fnDGNode.attribute("instObjGroups"));
-
-   plug.elementByLogicalIndex(instanceNum).connectedTo(connections, false, true);
-
-   for (unsigned int k = 0; k < connections.length(); ++k)
-   {
-      MObject shadingGroup(connections[k].node());
-      if (shadingGroup.apiType() == MFn::kShadingEngine)
-      {
-         return shadingGroup;
-      }
-   }
-   return MObject::kNullObj;
 }
 
 void CArnoldStandInsTranslator::ExportShaders()
@@ -242,7 +189,7 @@ AtNode* CArnoldStandInsTranslator::ExportProcedural(AtNode* procedural, bool upd
    AiNodeSetStr(procedural, "name", m_dagPath.fullPathName().asChar());
 
    ExportMatrix(procedural, 0);
-   //ProcessRenderFlags(procedural);
+   ProcessRenderFlags(procedural);
    ExportStandinsShaders(procedural);
    if (!update)
    {

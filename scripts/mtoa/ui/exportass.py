@@ -46,8 +46,8 @@ def readMaskValues():
 
 
 def arnoldAssOpts(parent = '', action = '', initialSettings = '', resultCallback = ''):
-    #print 'parent: %(p)s, action: %(a)s, settings: %(s)s, callback: %(c)s\n' % \
-    #  {"p": parent, "a": action, "s": initialSettings, "c": resultCallback}
+    print 'parent: %(p)s, action: %(a)s, settings: %(s)s, callback: %(c)s\n' % \
+      {"p": parent, "a": action, "s": initialSettings, "c": resultCallback}
 
     retval = 0
     currentOptions = ''
@@ -94,7 +94,7 @@ def arnoldAssOpts(parent = '', action = '', initialSettings = '', resultCallback
         if cmds.checkBox('oa_write_bbox', q=True, value=True):
             currentOptions = '-bb'
 
-        #print 'callback: %(c)s, options: %(o)s\n' % {"c": resultCallback, "o": currentOptions}
+        print 'callback: %(c)s, options: %(o)s\n' % {"c": resultCallback, "o": currentOptions}
         mel.eval(resultCallback+'("'+currentOptions+'")')
         retval = 1
 
