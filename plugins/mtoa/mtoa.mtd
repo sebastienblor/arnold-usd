@@ -768,3 +768,31 @@
         label               STRING  "SSS Sample Spacing"
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
+        
+[node procedural]
+    [attr opaque]
+        maya.name           STRING  "aiOpaque"
+        label               STRING  "Opaque"
+    [attr self_shadows]
+        maya.name           STRING  "aiSelfShadows"
+        label               STRING  "Self Shadow"
+    [attr diffuse_visibility]
+        maya.name           STRING  "aiDiffuseVisibility"
+        label               STRING  "Visible In Diffuse"
+    [attr glossy_visibility]
+        maya.name           STRING  "aiGlossyVisibility"
+        label               STRING  "Visible In Glossy"
+    [attr sss_use_gi]
+        maya.name           STRING  "aiSssUseGi"
+        label               STRING  "Use GI with SSS"
+    [attr sss_max_samples]
+        maya.name           STRING  "aiSssMaxSamples"
+        label               STRING  "SSS Max Samples"
+        min                 INT     0
+        softmax             INT     1000000
+    [attr sss_sample_spacing]
+        maya.name           STRING  "aiSssSampleSpacing"
+        label               STRING  "SSS Sample Spacing"
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+        

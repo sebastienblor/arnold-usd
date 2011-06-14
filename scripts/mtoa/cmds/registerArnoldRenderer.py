@@ -8,6 +8,7 @@ import mtoa.ui.globals.common
 from mtoa.ui.globals.common import createArnoldRendererCommonGlobalsTab, updateArnoldRendererCommonGlobalsTab
 from mtoa.ui.globals.arnold import createArnoldRendererGlobalsTab, updateArnoldRendererGlobalsTab
 import mtoa.ui.ae.utils as aeUtils
+from mtoa.ui.ae.aiStandInTemplate import ArnoldExportRenderObjectWindow
 
 import mtoa.cmds.arnoldRender as arnoldRender
 
@@ -182,11 +183,15 @@ def registerArnoldRenderer():
 
         cmds.renderer('arnold', edit=True, addGlobalsNode='defaultArnoldRenderOptions')
 
-        # Add option in 'Render' menu to export to an .ass file
+        # Add an Arnold menu in Maya main window
         if not cmds.about(b=1):
-            # mel.eval('RenRenderMenu mainRenderMenu')
-            # cmds.menuItem(parent='mainRenderMenu', divider=True)
-            # cmds.menuItem('exportToAssMenuItem', parent='mainRenderMenu', label="Export to Ass...", c=exportass.arnoldExportAss)
+            cmds.menu('ArnoldMenu', label='Arnold', parent='MayaWindow', tearOff=True )
+            cmds.menuItem('ArnoldStandIn', label='StandIn', parent='ArnoldMenu', subMenu=True)
+            cmds.menuItem('ArnoldCreateStandIn', parent='ArnoldStandIn', label="Create",
+                        c=lambda *args: cmds.createNode('aiStandIn', n='ArnoldStandInShape'))
+            cmds.menuItem('ArnoldExportStandIn', parent='ArnoldStandIn', label='Export', c=ArnoldExportRenderObjectWindow)
+
+            #cmds.menuItem(parent='ArnoldMenu', divider=True)
             # Add option box for file translator
             utils.pyToMelProc(exportass.arnoldAssOpts, ('string', 'parent'), ('string', 'action'), ('string', 'initialSettings'), ('string', 'resultCallback'), shortName=True)
             # setup hypershade node tree listing

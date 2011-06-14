@@ -833,8 +833,7 @@ AtNode* CGeometryTranslator::ExportInstance(AtNode *instance, const MDagPath& ma
 {
    AtNode* masterNode = AiNodeLookUpByName(masterInstance.partialPathName().asChar());
 
-   // FIXME: we should not be here if we are not instanced, why the call to isInstanced? (chad)
-   int instanceNum = m_dagPath.isInstanced() ? m_dagPath.instanceNumber() : 0;
+   int instanceNum = m_dagPath.instanceNumber();
 
    ExportMatrix(instance, 0);
 

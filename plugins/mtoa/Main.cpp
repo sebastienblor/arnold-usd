@@ -15,16 +15,17 @@
 #include "nodes/options/ArnoldOptionsNode.h"
 #include "nodes/shader/ArnoldSkyNode.h"
 #include "nodes/shader/ArnoldDisplacementNode.h"
+#include "nodes/shape/ArnoldStandIns.h"
 #include "nodes/light/ArnoldSkyDomeLightNode.h"
 
 #include "translators/options/OptionsTranslator.h"
-
 #include "translators/camera/CameraTranslators.h"
 #include "translators/light/LightTranslators.h"
 #include "translators/shader/ShaderTranslators.h"
 #include "translators/shape/MeshTranslator.h"
 #include "translators/shape/NurbsSurfaceTranslator.h"
 #include "translators/shape/HairTranslator.h"
+#include "translators/shape/StandinsTranslator.h"
 
 #include "render/RenderSwatch.h"
 
@@ -49,6 +50,14 @@ namespace // <anonymous>
    {
       MStatus status;
       MFnPlugin plugin(object);
+
+      // STANDINS
+      status = plugin.registerShape("aiStandIn",
+                                    CArnoldStandInShape::id,
+                                    CArnoldStandInShape::creator,
+                                    CArnoldStandInShape::initialize,
+                                    CArnoldStandInShapeUI::creator);
+      CHECK_MSTATUS(status);
 
       // Swatch renderer.
       status = MSwatchRenderRegister::registerSwatchRender(ARNOLD_SWATCH,
@@ -169,6 +178,10 @@ namespace // <anonymous>
                                    "",
                                    CNurbsSurfaceTranslator::creator,
                                    CNurbsSurfaceTranslator::NodeInitializer);
+       builtin->RegisterTranslator("aiStandIn",
+                                   "builtin",
+                                   CArnoldStandInsTranslator::creator,
+                                   CArnoldStandInsTranslator::NodeInitializer);
        // Multiple camera translators for single Maya camera node
        builtin->RegisterTranslator("camera",
                                    "perspective",
