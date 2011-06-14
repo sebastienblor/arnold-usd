@@ -117,12 +117,12 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          vector<AtLong> vidxs;
          vector<AtUInt> nsides;
 
-         int num_vertices;
-         int num_vidxs;
-         int num_nsides;
+         int num_vertices(0);
+         int num_vidxs(0);
+         int num_nsides(0);
 
-         int i;
-         int obj = 0;
+         int i(0);
+         int obj(0);
 
          AtNodeIterator *iter = AiUniverseGetNodeIterator(AI_NODE_SHAPE);
          //iterate all shape in file
