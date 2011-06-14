@@ -39,7 +39,7 @@
 #include <maya/MSwatchRenderRegister.h>
 
 #define MTOA_VENDOR "SolidAngle"
-#define MTOA_VERSION "0.7.0"
+#define MTOA_VERSION "0.8.0.dev"
 #define MAYA_VERSION "Any"
 
 
