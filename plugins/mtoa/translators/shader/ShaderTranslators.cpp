@@ -487,7 +487,6 @@ void CPlusMinusAverageTranslator::Export(AtNode* shader)
    if (AI_TYPE_NONE == attribType) return;
 
    MPlug attr, elem;
-   MPlugArray connections;
    char mayaAttr[64];
    char aiAttr[64];
 
@@ -512,14 +511,9 @@ void CPlusMinusAverageTranslator::Export(AtNode* shader)
    {
       elem = attr.elementByPhysicalIndex(i);
 
-      connections.clear();
-      elem.connectedTo(connections, true, false);
-      if (connections.length() > 0)
-      {
-         sprintf(mayaAttr, "%s[%u]", inputName.asChar(), elem.logicalIndex());
-         sprintf(aiAttr, "value%u", i);
-         ProcessParameter(shader, mayaAttr, aiAttr, attribType);
-      }
+      sprintf(mayaAttr, "%s[%u]", inputName.asChar(), elem.logicalIndex());
+      sprintf(aiAttr, "value%u", i);
+      ProcessParameter(shader, mayaAttr, aiAttr, attribType);
    }
 }
 
