@@ -105,26 +105,26 @@ def get_mtoa_version(components = 3):
    '''
    Obtains MtoA version by parsing 'Version.cpp'
    '''
-   MAJOR_VERSION='0'
-   MINOR_VERSION='7'
-   FIX_VERSION='0'
+   MAJOR_VERSION =''
+   MINOR_VERSION =''
+   FIX_VERSION =''
 
    # TODO: define in the plug-in the symbols necessary to get MtoA version 
-#   f = open(os.path.join('plugin', 'mtoa', 'version.cpp'), 'r')
-#   while True:
-#      line = f.readline().lstrip(' \t')
-#      if line == "":
-#         # We have reached the end of file.
-#         break
-#      if line.startswith('#define'):
-#         tokens = line.split()
-#         if tokens[1] == 'MTOA_MAJOR_VERSION_NUM':
-#            MAJOR_VERSION = tokens[2]
-#         elif tokens[1] == 'MTOA_MINOR_VERSION_NUM':
-#            MINOR_VERSION = tokens[2]
-#         elif tokens[1] == 'MTOA_FIX_VERSION':
-#            FIX_VERSION = tokens[2][1:].strip('"')
-#   f.close()
+   f = open(os.path.join('plugins', 'mtoa', 'Main.cpp'), 'r')
+   while True:
+      line = f.readline().lstrip(' \t')
+      if line == "":
+         # We have reached the end of file.
+         break
+      if line.startswith('#define'):
+         tokens = line.split()
+         if tokens[1] == 'MTOA_MAJOR_VERSION_NUM':
+            MAJOR_VERSION = tokens[2]
+         elif tokens[1] == 'MTOA_MINOR_VERSION_NUM':
+            MINOR_VERSION = tokens[2]
+         elif tokens[1] == 'MTOA_FIX_VERSION':
+            FIX_VERSION = tokens[2][1:].strip('"')
+   f.close()
    
    version = ''
    if (components > 0):
