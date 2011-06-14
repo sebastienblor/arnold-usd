@@ -414,8 +414,6 @@ MStatus CArnoldStandInShape::initialize()
    MFnEnumAttribute eAttr;
 
    s_attributes.SetNode("procedural");
-   s_attributes.MakeInput("self_shadows");
-   s_attributes.MakeInput("opaque");
 
    CDagTranslator::MakeArnoldVisibilityFlags(s_attributes);
 
