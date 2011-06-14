@@ -647,16 +647,6 @@ def createArnoldSSSSettings():
     cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
     cmds.columnLayout(adjustableColumn=True)
 
-    '''
-    cmds.attrControlGrp('mb_sss_lazy_evaluation',
-                        label="SSS lazy evaluation",
-                        attribute='defaultArnoldRenderOptions.sss_lazy_evaluation')
-    '''
-
-    cmds.attrControlGrp('mb_sss_subpixel_cache',
-                        label="SSS subpixel cache",
-                        attribute='defaultArnoldRenderOptions.sssSubpixelCache')
-
     cmds.attrControlGrp('mb_show_samples',
                         label="Show samples",
                         attribute='defaultArnoldRenderOptions.showSamples')
@@ -707,28 +697,9 @@ def createArnoldTextureSettings():
 
     cmds.separator()
 
-    cmds.attrControlGrp('texture_failure_retries',
-                        label="Failure Retries",
-                        attribute='defaultArnoldRenderOptions.textureFailureRetries')
-
-    cmds.attrControlGrp('texture_conservative_lookups',
-                        label="Conservative Lookups",
-                        attribute='defaultArnoldRenderOptions.texture_conservative_lookups')
-
     cmds.attrControlGrp('texture_per_file_stats',
                         label="Per File Stats",
                         attribute='defaultArnoldRenderOptions.texturePerFileStats')
-
-    cmds.separator()
-
-    cmds.attrControlGrp('texture_glossy_blur',
-                        label="Glossy Blur",
-                        attribute='defaultArnoldRenderOptions.textureGlossyBlur')
-
-    cmds.attrControlGrp('texture_diffuse_blur',
-                        label="Diffuse Blur",
-                        attribute='defaultArnoldRenderOptions.textureDiffuseBlur')
-
 
     cmds.setParent('..')
 
