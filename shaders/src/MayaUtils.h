@@ -2,6 +2,7 @@
 #define MAYAUTILS_H
 
 #include <ai.h>
+#include <string>
 
 float Luminance(float v);
 float Luminance(const AtRGB &color);

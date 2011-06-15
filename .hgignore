@@ -28,3 +28,5 @@ syntax: regexp
 \.launch$
 syntax: regexp
 ^UpgradeLog\.XML$
+syntax: regexp
+\.rar$
