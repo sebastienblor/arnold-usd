@@ -1,6 +1,6 @@
 //Maya ASCII 2011 scene
 //Name: test.ma
-//Last modified: Wed, Jun 15, 2011 06:10:37 PM
+//Last modified: Wed, Jun 15, 2011 06:14:20 PM
 //Codeset: 1252
 requires maya "2011";
 requires "mtoa" "0.7.0";
@@ -323,14 +323,6 @@ createNode polyPlane -name "polyPlane1";
 	setAttr ".subdivisionsWidth" 1;
 	setAttr ".subdivisionsHeight" 1;
 	setAttr ".createUVs" 2;
-createNode layeredTexture -name "layeredTexture1";
-	setAttr -size 2 ".inputs";
-	setAttr ".inputs[6].blendMode" 1;
-	setAttr ".inputs[6].isVisible" yes;
-	setAttr ".inputs[7].color" -type "float3" 1 0 0 ;
-	setAttr ".inputs[7].alpha" 1;
-	setAttr ".inputs[7].blendMode" 0;
-	setAttr ".inputs[7].isVisible" yes;
 createNode place2dTexture -name "place2dTexture1";
 createNode script -name "sceneConfigurationScriptNode";
 	setAttr ".before" -type "string" "playbackOptions -min 1 -max 24 -ast 1 -aet 48 ";
@@ -344,10 +336,9 @@ createNode shadingEngine -name "surfaceShader1SG";
 	setAttr ".isHistoricallyInteresting" 0;
 	setAttr ".renderableOnlySet" yes;
 createNode materialInfo -name "materialInfo2";
-createNode checker -name "checker1";
-	setAttr ".alphaIsLuminance" yes;
-createNode place2dTexture -name "place2dTexture3";
-	setAttr ".repeatUV" -type "float2" 4 4 ;
+createNode file -name "file1";
+	setAttr ".fileTextureName" -type "string" "texture_with_alpha.png";
+createNode place2dTexture -name "place2dTexture2";
 select -noExpand :time1;
 	setAttr ".outTime" 1;
 	setAttr ".unwarpedTime" 1;
@@ -360,7 +351,6 @@ select -noExpand :initialParticleSE;
 select -noExpand :defaultShaderList1;
 	setAttr -size 3 ".shaders";
 select -noExpand :defaultTextureList1;
-	setAttr -size 2 ".textures";
 select -noExpand :postProcessList1;
 	setAttr -size 2 ".postProcesses";
 select -noExpand :defaultRenderUtilityList1;
@@ -394,28 +384,40 @@ relationship "shadowLink" ":lightLinker1" "surfaceShader1SG.message" ":defaultLi
 connectAttr "layerManager.displayLayerId[0]" "defaultLayer.identification";
 connectAttr "renderLayerManager.renderLayerId[0]" "defaultRenderLayer.identification"
 		;
-connectAttr "checker1.outColor" "layeredTexture1.inputs[6].color";
-connectAttr "checker1.outAlpha" "layeredTexture1.inputs[6].alpha";
 connectAttr "ArnoldStandardShader1SG.message" "materialInfo1.shadingGroup";
-connectAttr "layeredTexture1.outColor" "surfaceShader1.outColor";
+connectAttr "file1.outColor" "surfaceShader1.outColor";
 connectAttr "surfaceShader1.outColor" "surfaceShader1SG.surfaceShader";
 connectAttr "pPlaneShape1.instObjGroups" "surfaceShader1SG.dagSetMembers" -nextAvailable
 		;
 connectAttr "surfaceShader1SG.message" "materialInfo2.shadingGroup";
 connectAttr "surfaceShader1.message" "materialInfo2.material";
 connectAttr "surfaceShader1.message" "materialInfo2.texture" -nextAvailable;
-connectAttr "place2dTexture3.outUV" "checker1.uvCoord";
-connectAttr "place2dTexture3.outUvFilterSize" "checker1.uvFilterSize";
+connectAttr "place2dTexture2.coverage" "file1.coverage";
+connectAttr "place2dTexture2.translateFrame" "file1.translateFrame";
+connectAttr "place2dTexture2.rotateFrame" "file1.rotateFrame";
+connectAttr "place2dTexture2.mirrorU" "file1.mirrorU";
+connectAttr "place2dTexture2.mirrorV" "file1.mirrorV";
+connectAttr "place2dTexture2.stagger" "file1.stagger";
+connectAttr "place2dTexture2.wrapU" "file1.wrapU";
+connectAttr "place2dTexture2.wrapV" "file1.wrapV";
+connectAttr "place2dTexture2.repeatUV" "file1.repeatUV";
+connectAttr "place2dTexture2.offset" "file1.offset";
+connectAttr "place2dTexture2.rotateUV" "file1.rotateUV";
+connectAttr "place2dTexture2.noiseUV" "file1.noiseUV";
+connectAttr "place2dTexture2.vertexUvOne" "file1.vertexUvOne";
+connectAttr "place2dTexture2.vertexUvTwo" "file1.vertexUvTwo";
+connectAttr "place2dTexture2.vertexUvThree" "file1.vertexUvThree";
+connectAttr "place2dTexture2.vertexCameraOne" "file1.vertexCameraOne";
+connectAttr "place2dTexture2.outUV" "file1.uvCoord";
+connectAttr "place2dTexture2.outUvFilterSize" "file1.uvFilterSize";
 connectAttr "ArnoldStandardShader1SG.partition" ":renderPartition.sets" -nextAvailable
 		;
 connectAttr "surfaceShader1SG.partition" ":renderPartition.sets" -nextAvailable;
 connectAttr "surfaceShader1.message" ":defaultShaderList1.shaders" -nextAvailable
 		;
-connectAttr "layeredTexture1.message" ":defaultTextureList1.textures" -nextAvailable
-		;
-connectAttr "checker1.message" ":defaultTextureList1.textures" -nextAvailable;
+connectAttr "file1.message" ":defaultTextureList1.textures" -nextAvailable;
 connectAttr "place2dTexture1.message" ":defaultRenderUtilityList1.utilities" -nextAvailable
 		;
-connectAttr "place2dTexture3.message" ":defaultRenderUtilityList1.utilities" -nextAvailable
+connectAttr "place2dTexture2.message" ":defaultRenderUtilityList1.utilities" -nextAvailable
 		;
 // End of test.ma

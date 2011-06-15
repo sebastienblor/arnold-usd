@@ -874,7 +874,6 @@ void CLayeredTextureTranslator::Export(AtNode* shader)
    MPlugArray connections;
    MObject colorSrc, alphaSrc;
    bool colorConnectedToAlpha;
-   char mayaAttr[64];
    char aiAttr[64];
 
    attr = m_fnNode.findPlug("inputs");
@@ -901,9 +900,8 @@ void CLayeredTextureTranslator::Export(AtNode* shader)
       blendMode = elem.child(blendModeAttr);
       isVisible = elem.child(isVisibleAttr);
 
-      sprintf(mayaAttr, "inputs[%u].color", elem.logicalIndex());
       sprintf(aiAttr, "color%u", i);
-      ProcessParameter(shader, mayaAttr, aiAttr, AI_TYPE_RGBA);
+      ProcessParameter(shader, color, aiAttr, AI_TYPE_RGBA);
 
       // Alpha connection is only handled when 
       // The input in color and alpha is the same
@@ -937,19 +935,15 @@ void CLayeredTextureTranslator::Export(AtNode* shader)
       }
       else
       {
-         sprintf(mayaAttr, "inputs[%u].alpha", elem.logicalIndex());
          sprintf(aiAttr, "alpha%u", i);
-         ProcessParameter(shader, mayaAttr, aiAttr, AI_TYPE_FLOAT);
-
+         ProcessParameter(shader, alpha, aiAttr, AI_TYPE_FLOAT);
       }
 
-      sprintf(mayaAttr, "inputs[%u].blendMode", elem.logicalIndex());
       sprintf(aiAttr, "blendMode%u", i);
-      ProcessParameter(shader, mayaAttr, aiAttr, AI_TYPE_ENUM);
+      ProcessParameter(shader, blendMode, aiAttr, AI_TYPE_ENUM);
 
-      sprintf(mayaAttr, "inputs[%u].isVisible", elem.logicalIndex());
       sprintf(aiAttr, "visible%u", i);
-      ProcessParameter(shader, mayaAttr, aiAttr, AI_TYPE_BOOLEAN);
+      ProcessParameter(shader, isVisible, aiAttr, AI_TYPE_BOOLEAN);
    }
 }
 

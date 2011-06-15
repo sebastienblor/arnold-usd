@@ -60,9 +60,8 @@
          AiNodeSetRGB(arnoldNode, arnoldAttrib, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
 
 #define COMP_CONNECTIONS_RGBA(plug, arnoldNode, arnoldAttrib) \
-      COMP_CONNECTIONS(plug, arnoldNode, arnoldAttrib, ".r", ".g", ".b")\
-      if (compConnected != 3)\
-         AiNodeSetRGBA(arnoldNode, arnoldAttrib, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat(), 1.0f);
+		AiNodeSetRGBA(arnoldNode, arnoldAttrib, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat(), 1.0f); \
+      COMP_CONNECTIONS(plug, arnoldNode, arnoldAttrib, ".r", ".g", ".b") \
 
 #define COMP_CONNECTIONS_VEC(plug, arnoldNode, arnoldAttrib) \
       COMP_CONNECTIONS(plug, arnoldNode, arnoldAttrib, ".x", ".y", ".z")\
