@@ -160,6 +160,236 @@ float Mod(float n, float d)
    return (n - (floor(n / d) * d));
 }
 
+bool SortFloatArray(AtArray *a, AtUInt *shuffle)
+{
+   bool modified = false;
+
+   if (a && a->nelements > 0)
+   {
+      float p0, p1;
+      int tmp;
+
+      bool swapped = true;
+      AtUInt32 n = a->nelements;
+
+      if (shuffle)
+      {
+         for (AtUInt32 i = 0; (i < n); ++i)
+         {
+            shuffle[i] = i;
+         }
+      }
+
+      while (swapped)
+      {
+         swapped = false;
+         n -= 1;
+         for (AtUInt32 i = 0; (i < n); ++i)
+         {
+            p0 = AiArrayGetFlt(a, i);
+            p1 = AiArrayGetFlt(a, i + 1);
+            if (p0 > p1)
+            {
+               swapped = true;
+               modified = true;
+
+               AiArraySetFlt(a, i, p1);
+               AiArraySetFlt(a, i + 1, p0);
+
+               if (shuffle)
+               {
+                  tmp = shuffle[i];
+                  shuffle[i] = shuffle[i + 1];
+                  shuffle[i + 1] = tmp;
+               }
+            }
+         }
+      }
+   }
+
+   return modified;
+}
+
+void ShuffleArray(AtArray *a, AtUInt *shuffle, int arnoldType)
+{
+   if (!a || !shuffle)
+   {
+      return;
+   }
+
+   if (arnoldType == AI_TYPE_FLOAT)
+   {
+      float tmp;
+      for (AtUInt32 i = 0; (i < a->nelements); ++i)
+      {
+         if (shuffle[i] < i)
+            continue;
+         tmp = AiArrayGetFlt(a, i);
+         AiArraySetFlt(a, i, AiArrayGetFlt(a, shuffle[i]));
+         AiArraySetFlt(a, shuffle[i], tmp);
+      }
+   }
+   else if (arnoldType == AI_TYPE_RGB)
+   {
+      AtRGB tmp;
+      for (AtUInt32 i = 0; (i < a->nelements); ++i)
+      {
+         if (shuffle[i] < i)
+            continue;
+         tmp = AiArrayGetRGB(a, i);
+         AiArraySetRGB(a, i, AiArrayGetRGB(a, shuffle[i]));
+         AiArraySetRGB(a, shuffle[i], tmp);
+      }
+   }
+   else if (arnoldType == AI_TYPE_RGBA)
+   {
+      AtRGBA tmp;
+      for (AtUInt32 i = 0; (i < a->nelements); ++i)
+      {
+         if (shuffle[i] < i)
+            continue;
+         tmp = AiArrayGetRGBA(a, i);
+         AiArraySetRGBA(a, i, AiArrayGetRGBA(a, shuffle[i]));
+         AiArraySetRGBA(a, shuffle[i], tmp);
+      }
+   }
+   else if (arnoldType == AI_TYPE_STRING)
+   {
+      std::string tmp0, tmp1;
+      for (AtUInt32 i = 0; (i < a->nelements); ++i)
+      {
+         if (shuffle[i] < i)
+            continue;
+         tmp0 = AiArrayGetStr(a, i);
+         tmp1 = AiArrayGetStr(a, shuffle[i]);
+         AiArraySetStr(a, i, tmp1.c_str());
+         AiArraySetStr(a, shuffle[i], tmp0.c_str());
+      }
+   }
+   else if (arnoldType == AI_TYPE_BYTE)
+   {
+      AtByte tmp;
+      for (AtUInt32 i = 0; (i < a->nelements); ++i)
+      {
+         if (shuffle[i] < i)
+            continue;
+         tmp = AiArrayGetByte(a, i);
+         AiArraySetByte(a, i, AiArrayGetByte(a, shuffle[i]));
+         AiArraySetByte(a, shuffle[i], tmp);
+      }
+   }
+   else if (arnoldType == AI_TYPE_INT)
+   {
+      AtInt tmp;
+      for (AtUInt32 i = 0; (i < a->nelements); ++i)
+      {
+         if (shuffle[i] < i)
+            continue;
+         tmp = AiArrayGetByte(a, i);
+         AiArraySetByte(a, i, AiArrayGetByte(a, shuffle[i]));
+         AiArraySetByte(a, shuffle[i], tmp);
+      }
+   }
+   else if (arnoldType == AI_TYPE_UINT)
+   {
+      AtUInt tmp;
+      for (AtUInt32 i = 0; (i < a->nelements); ++i)
+      {
+         if (shuffle[i] < i)
+            continue;
+         tmp = AiArrayGetByte(a, i);
+         AiArraySetByte(a, i, AiArrayGetByte(a, shuffle[i]));
+         AiArraySetByte(a, shuffle[i], tmp);
+      }
+   }
+   else if (arnoldType == AI_TYPE_BOOLEAN)
+   {
+      bool tmp;
+      for (AtUInt32 i = 0; (i < a->nelements); ++i)
+      {
+         if (shuffle[i] < i)
+            continue;
+         tmp = (AiArrayGetBool(a, i) == TRUE);
+         AiArraySetBool(a, i, AiArrayGetBool(a, shuffle[i]));
+         AiArraySetBool(a, shuffle[i], tmp);
+      }
+   }
+   else if (arnoldType == AI_TYPE_VECTOR)
+   {
+      AtVector tmp;
+      for (AtUInt32 i = 0; (i < a->nelements); ++i)
+      {
+         if (shuffle[i] < i)
+            continue;
+         tmp = AiArrayGetVec(a, i);
+         AiArraySetVec(a, i, AiArrayGetVec(a, shuffle[i]));
+         AiArraySetVec(a, shuffle[i], tmp);
+      }
+   }
+   else if (arnoldType == AI_TYPE_POINT)
+   {
+      AtPoint tmp;
+      for (AtUInt32 i = 0; (i < a->nelements); ++i)
+      {
+         if (shuffle[i] < i)
+            continue;
+         tmp = AiArrayGetPnt(a, i);
+         AiArraySetPnt(a, i, AiArrayGetPnt(a, shuffle[i]));
+         AiArraySetPnt(a, shuffle[i], tmp);
+      }
+   }
+   else if (arnoldType == AI_TYPE_POINT2)
+   {
+      AtPoint2 tmp;
+      for (AtUInt32 i = 0; (i < a->nelements); ++i)
+      {
+         if (shuffle[i] < i)
+            continue;
+         tmp = AiArrayGetPnt2(a, i);
+         AiArraySetPnt2(a, i, AiArrayGetPnt2(a, shuffle[i]));
+         AiArraySetPnt2(a, shuffle[i], tmp);
+      }
+   }
+   else if (arnoldType == AI_TYPE_POINTER)
+   {
+      void *tmp;
+      for (AtUInt32 i = 0; (i < a->nelements); ++i)
+      {
+         if (shuffle[i] < i)
+            continue;
+         tmp = AiArrayGetPtr(a, i);
+         AiArraySetPtr(a, i, AiArrayGetPtr(a, shuffle[i]));
+         AiArraySetPtr(a, shuffle[i], tmp);
+      }
+   }
+   else if (arnoldType == AI_TYPE_MATRIX)
+   {
+      AtMatrix tmp0;
+      AtMatrix tmp1;
+      for (AtUInt32 i = 0; (i < a->nelements); ++i)
+      {
+         if (shuffle[i] < i)
+            continue;
+         AiArrayGetMtx(a, i, tmp0);
+         AiArrayGetMtx(a, shuffle[i], tmp1);
+         AiArraySetMtx(a, i, tmp1);
+         AiArraySetMtx(a, shuffle[i], tmp0);
+      }
+   }
+   else if (arnoldType == AI_TYPE_ENUM)
+   {
+      AtInt tmp;
+      for (AtUInt32 i = 0; (i < a->nelements); ++i)
+      {
+         if (shuffle[i] < i)
+            continue;
+         tmp = AiArrayGetInt(a, i);
+         AiArraySetInt(a, i, AiArrayGetInt(a, shuffle[i]));
+         AiArraySetInt(a, shuffle[i], tmp);
+      }
+   }
+}
+
 const char* InterpolationNames[] =
 {
    "none",

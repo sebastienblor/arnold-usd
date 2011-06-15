@@ -18,6 +18,9 @@ bool IsValidUV(float u, float v);
 float Integral(float t, float nedge);
 float Mod(float n, float d);
 
+bool SortFloatArray(AtArray *a, AtUInt *shuffle = NULL);
+void ShuffleArray(AtArray *a, AtUInt *shuffle, int arnoldType);
+
 enum InterpolationType
 {
    IT_NONE = 0,

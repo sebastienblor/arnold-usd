@@ -28,7 +28,7 @@
 
 #include <string>
 
-static bool SortFloatArray(AtArray *a, AtUInt *shuffle = NULL)
+static bool SortFloatArray(AtArray *a, AtUInt *shuffle=NULL)
 {
    bool modified = false;
 
@@ -798,6 +798,7 @@ void CRampTranslator::Export(AtNode* shader)
    ProcessParameter(shader, "defaultColor", AI_TYPE_RGB);
    ProcessParameter(shader, "alphaGain", AI_TYPE_FLOAT);
    ProcessParameter(shader, "alphaOffset", AI_TYPE_FLOAT);
+   AiNodeSetBool(shader, "alphaIsLuminance", AtBoolean(true));
    ProcessParameter(shader, "invert", AI_TYPE_BOOLEAN);
    ProcessParameter(shader, "uvCoord", AI_TYPE_POINT2);
 
@@ -807,33 +808,34 @@ void CRampTranslator::Export(AtNode* shader)
    MObject opos = GetFnNode().attribute("position");
    MObject ocol = GetFnNode().attribute("color");
    plug = GetFnNode().findPlug("colorEntryList");
-   AtArray *positions = AiArrayAllocate(plug.numElements(), 1, AI_TYPE_FLOAT);
-   AtArray *colors = AiArrayAllocate(plug.numElements(), 1, AI_TYPE_RGB);
-   // Connections on individual array element are not handled
-   for (unsigned int i=0; i<plug.numElements(); ++i)
+   AtUInt numElements = plug.numElements();
+   // Limited to 8 connections
+   if (numElements > 8)
+   {
+      MString warning;
+      warning.format("ramp node '^1s' has more than 8 inputs, only the first 8 will be handled", m_fnNode.name());
+      MGlobal::displayWarning(warning);
+      numElements = 8;
+   }
+   AiNodeSetUInt(shader, "numEntries", numElements);
+
+   // Loop on color entries (position, color)
+   char mayaAttr[64];
+   char aiAttr[64];
+   for (unsigned int i=0; i<numElements; ++i)
    {
       elem = plug.elementByPhysicalIndex(i);
       pos = elem.child(opos);
       col = elem.child(ocol);
-      AtRGB v;
-      v.r = col.child(0).asFloat();
-      v.g = col.child(1).asFloat();
-      v.b = col.child(2).asFloat();
-      AiArraySetFlt(positions, i, pos.asFloat());
-      AiArraySetRGB(colors, i, v);
+
+      sprintf(mayaAttr, "colorEntryList[%u].position", elem.logicalIndex());
+      sprintf(aiAttr, "position%u", i);
+      ProcessParameter(shader, mayaAttr, aiAttr, AI_TYPE_FLOAT);
+
+      sprintf(mayaAttr, "colorEntryList[%u].color", elem.logicalIndex());
+      sprintf(aiAttr, "color%u", i);
+      ProcessParameter(shader, mayaAttr, aiAttr, AI_TYPE_RGB);
    }
-   // Sort position array
-   if (positions->nelements > 1)
-   {
-      AtUInt* shuffle = new AtUInt[positions->nelements];
-      if (SortFloatArray(positions, shuffle))
-      {
-         ShuffleArray(colors, shuffle, AI_TYPE_RGB);
-      }
-      delete[] shuffle;
-   }
-   AiNodeSetArray(shader, "positions", positions);
-   AiNodeSetArray(shader, "colors", colors);
 }
 
 // Place2DTexture
