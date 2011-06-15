@@ -64,7 +64,7 @@ void RampT(AtArray *p, AtArray *c, float t, RampInterpolationType it, ValType &r
       {
          float lcur = Luminance(ccur);
          float lnext = Luminance(cnext);
-         if (lcur > lnext)
+         if (lcur < lnext)
          {
             u = sin(u * static_cast<float>(AI_PI) / 2.0f);
          }
@@ -78,7 +78,7 @@ void RampT(AtArray *p, AtArray *c, float t, RampInterpolationType it, ValType &r
       {
          float lcur = Luminance(ccur);
          float lnext = Luminance(cnext);
-         if (lcur < lnext)
+         if (lcur > lnext)
          {
             u = sin(u * static_cast<float>(AI_PI) / 2.0f);
          }
