@@ -286,10 +286,15 @@ shader_evaluate
             break;
          }
       }
+
+      AiArrayDestroy(positions);
+      AiArrayDestroy(colors);
    }
 
    AiRGBtoRGBA(result, sg->out.RGBA);
    // Alpha output is always the luminance
    // so translator should always set alphaIsLuminance = true;
    MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA);
+
+
 }
