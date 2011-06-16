@@ -769,7 +769,7 @@
         label               STRING  "SSS Sample Spacing"
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        
+
 [node procedural]
     [attr opaque]
         maya.name           STRING  "aiOpaque"
@@ -796,4 +796,3 @@
         label               STRING  "SSS Sample Spacing"
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
-        
