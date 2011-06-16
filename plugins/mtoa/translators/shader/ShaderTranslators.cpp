@@ -803,13 +803,12 @@ void CRampTranslator::Export(AtNode* shader)
    ProcessParameter(shader, "uvCoord", AI_TYPE_POINT2);
 
    MPlug plug, elem, pos, col;
-   MPlugArray connections;
 
    MObject opos = GetFnNode().attribute("position");
    MObject ocol = GetFnNode().attribute("color");
    plug = GetFnNode().findPlug("colorEntryList");
    AtUInt numElements = plug.numElements();
-   // Limited to 8 connections
+   // Limited to 16 connections
    if (numElements > 16)
    {
       MString warning;

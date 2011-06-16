@@ -92,8 +92,12 @@ void CShaveTranslator::Update(AtNode* curve)
          ramp = AiNode("MayaRamp");
          placementNode = AiNode("MayaPlace2DTexture");
          AiNodeSetStr(ramp, "type", "v");
-         AiNodeSetArray(ramp, "positions", AiArray(2, 1, AI_TYPE_FLOAT, 0.55f, 1.0f));
-         AiNodeSetArray(ramp, "colors", AiArray(2, 1, AI_TYPE_RGB, AI_RGB_WHITE, AI_RGB_BLACK));
+
+         AiNodeSetUInt(ramp, "numEntries", 2);
+         AiNodeSetFlt(ramp, "position0", 0.55f);
+         AiNodeSetRGB(ramp, "color0", 1.0f, 1.0f, 1.0f);
+         AiNodeSetFlt(ramp, "position1", 1.0f);
+         AiNodeSetRGB(ramp, "color1", 0.0f, 0.0f, 0.0f);
 
          AiNodeLink (placementNode, "uvCoord", ramp);
          AiNodeLink (ramp, "strand_opacity", shader);
