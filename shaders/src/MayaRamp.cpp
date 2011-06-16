@@ -143,6 +143,15 @@ node_initialize
 
 node_update
 {
+   // Unconnected render attributes (uvCoords, normalCamera, etc)
+   // should use globals as following Maya's behavior
+   if (!AiNodeGetLink(node, "uvCoord"))
+   {
+      AtPoint2 uv = AI_P2_ZERO;
+      if (!AiNodeGetLink(node, "uvCoord.x")) uv.x = UV_GLOBALS;
+      if (!AiNodeGetLink(node, "uvCoord.y")) uv.y = UV_GLOBALS;
+      AiNodeSetPnt2(node, "uvCoord", uv.x, uv.y);
+   }
 }
 
 node_finish
@@ -179,20 +188,17 @@ shader_evaluate
          delete[] shuffle;
 
          AtPoint2 uv;
-         uv.x = sg->u;
-         uv.y = sg->v;
-         if (AiNodeGetLink(node, "uvCoord") ||
-             AiNodeGetLink(node, "uvCoord.x") ||
-             AiNodeGetLink(node, "uvCoord.y"))
-         {
-            uv = AiShaderEvalParamPnt2(p_uvCoord);
-         }
+         uv = AiShaderEvalParamPnt2(p_uvCoord);
+         // Will be set to GLOBALS by update if unconnected
+         if (uv.x == UV_GLOBALS) uv.x = sg->u;
+         if (uv.y == UV_GLOBALS) uv.y = sg->v;
 
          if (!IsValidUV(uv.x, uv.y))
          {
             MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
             return;
          }
+
          float u = uv.x;
          float v = uv.y;
 

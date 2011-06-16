@@ -3,9 +3,6 @@
 
 #include "translators/NodeTranslator.h"
 
-#define UV_INVALID -1000000.0f
-#define UV_DEFAULT -2000000.0f
-
 //--------------- ChaderTranslator ------------------------------------------
 
 /// A Translator class which can automatically export simple Maya nodes.

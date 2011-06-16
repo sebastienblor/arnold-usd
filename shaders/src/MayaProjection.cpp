@@ -327,31 +327,6 @@ AtVector ComputePoint(AtShaderGlobals *sg, TargetPoint which, bool local, AtMatr
    return AtVector(p);
 }
 
-float GetImageAspectRatio(AtNode *node)
-{
-   AtNode *n = AiNodeGetLink(node, "image");
-   float imgAR = 1.0f;
-   if (n != 0)
-   {
-      const AtParamEntry *pe = AiNodeEntryLookUpParameter(n->base_node, "filename");
-      if (pe != 0 && AiParamGetType(pe) == AI_TYPE_STRING)
-      {
-         AtUInt tw, th;
-         AiTextureGetResolution(AiNodeGetStr(n, "filename"), &tw, &th);
-         imgAR = float(tw) / float(th);
-      }
-   }
-   return imgAR;
-}
-
-float GetRenderAspectRatio()
-{
-   AtNode *univ = AiUniverseGetOptions();
-   int xres = AiNodeGetInt(univ, "xres");
-   int yres = AiNodeGetInt(univ, "yres");
-   return (float(xres) / float(yres));
-}
-
 };
 
 node_parameters
@@ -381,6 +356,8 @@ node_parameters
 
 typedef struct 
 {
+   float    render_aspect;
+   float    image_aspect;
    AtNode*  camera;
 } ShaderData;
 
@@ -400,6 +377,28 @@ node_update
    const char *cameraName = AiNodeGetStr(node, "cameraName");
    if (strcmp(cameraName, "") != 0) // Use a custom camera for the perspective projection
       data->camera = AiNodeLookUpByName(cameraName);
+
+   data->image_aspect = 1.0f;
+   AtNode *n = AiNodeGetLink(node, "image");
+   if (n != NULL)
+   {
+      const AtParamEntry *pe = AiNodeEntryLookUpParameter(n->base_node, "filename");
+      if (pe != 0 && AiParamGetType(pe) == AI_TYPE_STRING)
+      {
+         AtUInt tw, th;
+         if (AiTextureGetResolution(AiNodeGetStr(n, "filename"), &tw, &th))
+         {
+            data->image_aspect = float(tw) / float(th);
+         }
+      }
+   }
+
+   data->render_aspect = 1.0f;
+   AtNode *univ = AiUniverseGetOptions();
+   int xres = AiNodeGetInt(univ, "xres");
+   int yres = AiNodeGetInt(univ, "yres");
+   data->render_aspect = (float(xres) / float(yres));
+
 }
 
 node_finish
@@ -545,8 +544,8 @@ shader_evaluate
 
                if (Pc.z < 0.0f)
                {
-                  float resAR = GetRenderAspectRatio();   
-                  float imgAR = GetImageAspectRatio(node);
+                  float resAR = data->render_aspect;
+                  float imgAR = data->image_aspect;
                   float camAR = AiShaderEvalParamFlt(p_camera_aspect);
 
                   float hfov  = AiShaderEvalParamFlt(p_camera_hfov);
