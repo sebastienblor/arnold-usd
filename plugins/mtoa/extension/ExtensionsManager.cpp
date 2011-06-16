@@ -436,7 +436,7 @@ MStatus CExtensionsManager::RegisterExtension(CExtension* extension)
 
    if (MStatus::kSuccess == status)
    {
-   	// TODO : add count of registered nodes and translators
+      // TODO : add count of registered nodes and translators
       AiMsgInfo("[mtoa] Registered extension %s(%s).", extension->GetName().asChar(), extension->GetFile().asChar());
       extension->m_registered = true;
       extension->m_deferred = false;
@@ -791,7 +791,7 @@ MStatus CExtensionsManager::DeleteExtension(CExtension* &extension)
    else
    {
       AiMsgError("[mtoa] Extension not managed: %s(%s)",
-      	extension->GetName().asChar(),extension->GetFile().asChar());
+         extension->GetName().asChar(),extension->GetFile().asChar());
       status = MStatus::kFailure;
    }
 

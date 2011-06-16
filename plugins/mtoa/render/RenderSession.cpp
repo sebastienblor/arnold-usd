@@ -171,7 +171,7 @@ AtBBox CRenderSession::GetBoundingBox()
    }
    else
    {
-   	AiMsgError("[mtoa] RenderSession is not active.");
+      AiMsgError("[mtoa] RenderSession is not active.");
    }
 
    return bbox;

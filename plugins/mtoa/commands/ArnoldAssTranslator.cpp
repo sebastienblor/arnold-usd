@@ -162,15 +162,15 @@ MStatus CArnoldAssTranslator::reader(const MFileObject& file,
 // the code of arnoldExportAss cmd here and use the file command :
 // 'file -type "arnoldSceneSource"'
 MStatus CArnoldAssTranslator::writer(const MFileObject& file,
-		const MString& options,
-		MPxFileTranslator::FileAccessMode mode)
+                                     const MString& options,
+                                     MPxFileTranslator::FileAccessMode mode)
 {
 
-	MString cmdStr = "arnoldExportAss";
-	cmdStr += " -f \""+file.resolvedFullName()+"\"";
-	if (mode == MPxFileTranslator::kExportActiveAccessMode)
-		cmdStr += " -s";
-	// What a great idea to assemble options in a ; separated string
+   MString cmdStr = "arnoldExportAss";
+   cmdStr += " -f \""+file.resolvedFullName()+"\"";
+   if (mode == MPxFileTranslator::kExportActiveAccessMode)
+      cmdStr += " -s";
+   // What a great idea to assemble options in a ; separated string
    MStringArray optionList;
    options.split(';', optionList);
    unsigned int i, nopts = optionList.length();

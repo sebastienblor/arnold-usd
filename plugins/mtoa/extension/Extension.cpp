@@ -531,13 +531,13 @@ MStatus CExtension::NewMappedMayaNode(CPxMayaNode mayaNode,
 {
    MStatus status;
 
-	if ((NULL == mayaNode.creator) || arnoldNode.IsNull())
+   if ((NULL == mayaNode.creator) || arnoldNode.IsNull())
    {
       AiMsgError("[mtoa] [%s] Not enough information to register a new Maya node for an existing Arnold node.", m_extensionName.asChar());
       return MStatus::kFailure;
    }
    // If we are going to create a node, check that we can,
-	// it doesnt' exist and we have all required information or use defaults
+   // it doesnt' exist and we have all required information or use defaults
    if (mayaNode.name == "")
    {
       mayaNode.name = toMayaStyle(MString("ai_")+arnoldNode.name);
@@ -622,31 +622,31 @@ MStatus CExtension::MapMayaNode(const CPxMayaNode &mayaNode,
 {
    MStatus status;
 
-	if (mayaNode.IsNull() || arnoldNode.IsNull())
+   if (mayaNode.IsNull() || arnoldNode.IsNull())
    {
       AiMsgError("[mtoa] [%s] Not enough information to map an existing Maya node to an Arnold node.", m_extensionName.asChar());
       return MStatus::kFailure;
    }
 
-	ArnoldNodeToMayaNodeMap::iterator it;
-	std::pair<ArnoldNodeToMayaNodeMap::iterator, ArnoldNodeToMayaNodeMap::iterator> range;
-	range = m_arnoldToMayaNodes.equal_range(arnoldNode);
-	for (it = range.first; it != range.second; it++)
-	{
-	   if ((*it).second == mayaNode)
-	   {
-	      AiMsgDebug("[mtoa] [%s] [node %s] Overriding it's own association of Maya node %s.",
+   ArnoldNodeToMayaNodeMap::iterator it;
+   std::pair<ArnoldNodeToMayaNodeMap::iterator, ArnoldNodeToMayaNodeMap::iterator> range;
+   range = m_arnoldToMayaNodes.equal_range(arnoldNode);
+   for (it = range.first; it != range.second; it++)
+   {
+      if ((*it).second == mayaNode)
+      {
+         AiMsgDebug("[mtoa] [%s] [node %s] Overriding it's own association of Maya node %s.",
             mayaNode.provider.asChar(), arnoldNode.name.asChar(), mayaNode.name.asChar());
-	      (*it).second = mayaNode;
-	      // TODO: clean translators if we did a override?
-	      // AiMsgWarning("[mtoa] [%s] [node %s] Failed to associate existing Maya node %s.", m_extensionName.asChar(), arnoldNode.name.asChar(), mayaNode.name.asChar());
+         (*it).second = mayaNode;
+         // TODO: clean translators if we did a override?
+         // AiMsgWarning("[mtoa] [%s] [node %s] Failed to associate existing Maya node %s.", m_extensionName.asChar(), arnoldNode.name.asChar(), mayaNode.name.asChar());
 
-	      return MStatus::kSuccess;
-	   }
-	}
-	// Not found, add it
-	it = m_arnoldToMayaNodes.insert(range.first, std::make_pair(arnoldNode, mayaNode));
-	// Add an empty translator set for that node
+         return MStatus::kSuccess;
+      }
+   }
+   // Not found, add it
+   it = m_arnoldToMayaNodes.insert(range.first, std::make_pair(arnoldNode, mayaNode));
+   // Add an empty translator set for that node
    MayaNodeToTranslatorsMap::iterator nodeIt;
    nodeIt = m_registeredTranslators.find(mayaNode);
    if (nodeIt == m_registeredTranslators.end())
@@ -655,7 +655,7 @@ MStatus CExtension::MapMayaNode(const CPxMayaNode &mayaNode,
    }
 
    AiMsgDebug("[mtoa] [%s] [node %s] Is associated with existing Maya node %s.", m_extensionName.asChar(), arnoldNode.name.asChar(), mayaNode.name.asChar());
-	return MStatus::kSuccess;
+   return MStatus::kSuccess;
 }
 
 /// Store a new translator proxy in list.
