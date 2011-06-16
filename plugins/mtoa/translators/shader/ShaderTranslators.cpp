@@ -810,31 +810,26 @@ void CRampTranslator::Export(AtNode* shader)
    plug = GetFnNode().findPlug("colorEntryList");
    AtUInt numElements = plug.numElements();
    // Limited to 8 connections
-   if (numElements > 8)
+   if (numElements > 16)
    {
       MString warning;
       warning.format("ramp node '^1s' has more than 8 inputs, only the first 8 will be handled", m_fnNode.name());
       MGlobal::displayWarning(warning);
-      numElements = 8;
+      numElements = 16;
    }
    AiNodeSetUInt(shader, "numEntries", numElements);
 
    // Loop on color entries (position, color)
-   char mayaAttr[64];
    char aiAttr[64];
    for (unsigned int i=0; i<numElements; ++i)
    {
       elem = plug.elementByPhysicalIndex(i);
       pos = elem.child(opos);
       col = elem.child(ocol);
-
-      sprintf(mayaAttr, "colorEntryList[%u].position", elem.logicalIndex());
       sprintf(aiAttr, "position%u", i);
-      ProcessParameter(shader, mayaAttr, aiAttr, AI_TYPE_FLOAT);
-
-      sprintf(mayaAttr, "colorEntryList[%u].color", elem.logicalIndex());
+      ProcessParameter(shader, pos, aiAttr, AI_TYPE_FLOAT);
       sprintf(aiAttr, "color%u", i);
-      ProcessParameter(shader, mayaAttr, aiAttr, AI_TYPE_RGB);
+      ProcessParameter(shader, col, aiAttr, AI_TYPE_RGB);
    }
 }
 

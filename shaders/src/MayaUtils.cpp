@@ -62,8 +62,8 @@ void RampT(AtArray *p, AtArray *c, float t, RampInterpolationType it, ValType &r
       break;
    case RIT_BUMP:
       {
-         float lcur = Luminance(ccur);
-         float lnext = Luminance(cnext);
+         float lcur = Luminosity(ccur);
+         float lnext = Luminosity(cnext);
          if (lcur < lnext)
          {
             u = sin(u * static_cast<float>(AI_PI) / 2.0f);
@@ -76,8 +76,8 @@ void RampT(AtArray *p, AtArray *c, float t, RampInterpolationType it, ValType &r
       break;
    case RIT_SPIKE:
       {
-         float lcur = Luminance(ccur);
-         float lnext = Luminance(cnext);
+         float lcur = Luminosity(ccur);
+         float lnext = Luminosity(cnext);
          if (lcur > lnext)
          {
             u = sin(u * static_cast<float>(AI_PI) / 2.0f);
@@ -97,6 +97,22 @@ void RampT(AtArray *p, AtArray *c, float t, RampInterpolationType it, ValType &r
 }
 
 };
+
+// This one is defined for the RampT template function to work properly
+float Luminosity(float v)
+{
+   return v;
+}
+
+float Luminosity(const AtRGB &color)
+{
+   return RGBtoHSL(color).z;
+}
+
+float Luminosity(const AtRGBA &color)
+{
+   return RGBtoHSL(AiRGBAtoRGB(color)).z;
+}
 
 // This one is defined for the RampT template function to work properly
 float Luminance(float v)
@@ -146,8 +162,8 @@ float UnmapValue(float v, float vmin, float vmax)
 
 bool IsValidUV(float u, float v)
 {
-   // place2dTexture return (-1000000, -1000000) for invalid UVs
-   return (u > -1000000.0f && v > -1000000);
+   // place2dTexture return (UV_INVALID, UV_INVALID) for invalid UVs
+   return (u > UV_INVALID && v > UV_INVALID);
 }
 
 float Integral(float t, float nedge)
@@ -664,6 +680,65 @@ AtVector RGBtoHSV(AtRGB inRgb)
    }
 
    output.z = max;
+
+   return output;
+}
+
+AtVector RGBtoHSL(AtRGB inRgb)
+{
+   AtVector output(AI_V3_ZERO);
+
+   float min = 0.0f;
+   float max = 0.0f;
+   int rgbMax = 0;
+
+   min = MIN(inRgb.r, inRgb.g);
+   min = MIN(min, inRgb.b);
+
+   max = MAX(inRgb.r, inRgb.g);
+   max = MAX(max, inRgb.b);
+
+   if (fabs(max - inRgb.r) < AI_EPSILON)
+   {
+      rgbMax = 0;
+   }
+   else if (fabs(max - inRgb.g) < AI_EPSILON)
+   {
+      rgbMax = 1;
+   }
+   else
+   {
+      rgbMax = 2;
+   }
+
+   // L
+   output.z = 0.5f * (min + max);
+
+   // S
+   float d = max - min;
+
+   if (d >= AI_EPSILON)
+   {
+      output.y = d / (output.z <= 0.5f ? (max + min) : (2.0f - max - min));
+
+      d = 1.0f / d;
+
+      // H
+      if (rgbMax == 0)
+      {
+         output.x = d * (inRgb.g - inRgb.b);
+      }
+      else if (rgbMax == 1)
+      {
+         output.x = 2.0f + d * (inRgb.b - inRgb.r);
+      }
+      else
+      {
+         output.x = 4.0f + d * (inRgb.r - inRgb.g);
+      }
+
+      output.x /= 6.0f;
+   }
 
    return output;
 }

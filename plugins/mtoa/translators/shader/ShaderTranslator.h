@@ -3,7 +3,8 @@
 
 #include "translators/NodeTranslator.h"
 
-
+#define UV_INVALID -1000000.0f
+#define UV_DEFAULT -2000000.0f
 
 //--------------- ChaderTranslator ------------------------------------------
 

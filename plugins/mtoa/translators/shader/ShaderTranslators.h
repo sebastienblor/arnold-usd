@@ -1,7 +1,7 @@
 #ifndef SHADERTRANSLATORS_H
 #define SHADERTRANSLATORS_H
 
-#include "translators/NodeTranslator.h"
+#include "ShaderTranslator.h"
 
 #define SHADER_TRANSLATOR(name)\
    class name : public CNodeTranslator\

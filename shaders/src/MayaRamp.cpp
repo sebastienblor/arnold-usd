@@ -6,6 +6,7 @@
 #include <cmath>
 
 #include "MayaUtils.h"
+#include <string>
 
 AI_SHADER_NODE_EXPORT_METHODS(MayaRampMtd);
 
@@ -30,6 +31,14 @@ enum MayaRampParams
    p_position5,
    p_position6,
    p_position7,
+   p_position8,
+   p_position9,
+   p_position10,
+   p_position11,
+   p_position12,
+   p_position13,
+   p_position14,
+   p_position15,
    p_color0,
    p_color1,
    p_color2,
@@ -38,6 +47,14 @@ enum MayaRampParams
    p_color5,
    p_color6,
    p_color7,
+   p_color8,
+   p_color9,
+   p_color10,
+   p_color11,
+   p_color12,
+   p_color13,
+   p_color14,
+   p_color15,
    MAYA_COLOR_BALANCE_ENUM
 };
 
@@ -89,6 +106,14 @@ node_parameters
    AiParameterFLT("position5", 0.0f);
    AiParameterFLT("position6", 0.0f);
    AiParameterFLT("position7", 0.0f);
+   AiParameterFLT("position8", 0.0f);
+   AiParameterFLT("position9", 0.0f);
+   AiParameterFLT("position10", 0.0f);
+   AiParameterFLT("position11", 0.0f);
+   AiParameterFLT("position12", 0.0f);
+   AiParameterFLT("position13", 0.0f);
+   AiParameterFLT("position14", 0.0f);
+   AiParameterFLT("position15", 0.0f);
 
    AiParameterRGB("color0", 0.0f, 0.0f, 0.0f);
    AiParameterRGB("color1", 0.0f, 0.0f, 0.0f);
@@ -98,6 +123,14 @@ node_parameters
    AiParameterRGB("color5", 0.0f, 0.0f, 0.0f);
    AiParameterRGB("color6", 0.0f, 0.0f, 0.0f);
    AiParameterRGB("color7", 0.0f, 0.0f, 0.0f);
+   AiParameterRGB("color8", 0.0f, 0.0f, 0.0f);
+   AiParameterRGB("color9", 0.0f, 0.0f, 0.0f);
+   AiParameterRGB("color10", 0.0f, 0.0f, 0.0f);
+   AiParameterRGB("color11", 0.0f, 0.0f, 0.0f);
+   AiParameterRGB("color12", 0.0f, 0.0f, 0.0f);
+   AiParameterRGB("color13", 0.0f, 0.0f, 0.0f);
+   AiParameterRGB("color14", 0.0f, 0.0f, 0.0f);
+   AiParameterRGB("color15", 0.0f, 0.0f, 0.0f);
 
    AddMayaColorBalanceParams(params);
 
@@ -124,6 +157,7 @@ shader_evaluate
    AtUInt numEntries = AiShaderEvalParamUInt(p_numEntries);
    if (numEntries > 0)
    {
+      if (numEntries > 16) numEntries = 16;
       AtArray *positions = AiArrayAllocate(numEntries, 1, AI_TYPE_FLOAT);
       AtArray *colors = AiArrayAllocate(numEntries, 1, AI_TYPE_RGB);
       for (AtUInt32 i=0; i<numEntries; ++i)
@@ -144,24 +178,23 @@ shader_evaluate
          }
          delete[] shuffle;
 
-         float u = sg->u;
-         float v = sg->v;
-
+         AtPoint2 uv;
+         uv.x = sg->u;
+         uv.y = sg->v;
          if (AiNodeGetLink(node, "uvCoord") ||
              AiNodeGetLink(node, "uvCoord.x") ||
              AiNodeGetLink(node, "uvCoord.y"))
          {
-            AtPoint2 uv = AiShaderEvalParamPnt2(p_uvCoord);
-            if (AiNodeGetLink(node, "uvCoord") || AiNodeGetLink(node, "uvCoord.x")) u = uv.x;
-            if (AiNodeGetLink(node, "uvCoord") || AiNodeGetLink(node, "uvCoord.y")) v = uv.y;
+            uv = AiShaderEvalParamPnt2(p_uvCoord);
          }
 
-         if (!IsValidUV(u, v))
+         if (!IsValidUV(uv.x, uv.y))
          {
-            // AiRGBtoRGBA(result, sg->out.RGBA);
             MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
             return;
          }
+         float u = uv.x;
+         float v = uv.y;
 
          u = Mod(u, 1.000001f);
          v = Mod(v, 1.000001f);
@@ -173,10 +206,10 @@ shader_evaluate
 
          if (noiseAmp > 0.0f)
          {
-            AtPoint2 uv;
-            uv.x = u * 16 * noiseFreq;
-            uv.y = v * 16 * noiseFreq;
-            float n = noiseAmp * AiPerlin2(uv);
+            AtPoint2 puv;
+            puv.x = u * 16 * noiseFreq;
+            puv.y = v * 16 * noiseFreq;
+            float n = noiseAmp * AiPerlin2(puv);
             u += n;
             v += n;
          }
