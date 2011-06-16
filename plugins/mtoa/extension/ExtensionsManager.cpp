@@ -452,7 +452,7 @@ MStatus CExtensionsManager::RegisterExtensions()
    MStatus status = MStatus::kSuccess;
 
    // s_extensions is a std::list of extensions (ordered in load order)
-   AiMsgInfo("[mtoa] Registering %i loaded extensions:", s_extensions.size());
+   AiMsgInfo("[mtoa] Registering %i loaded extensions:", (int)s_extensions.size());
    ExtensionsList::iterator extIt;
    for (extIt = s_extensions.begin();
          extIt != s_extensions.end();

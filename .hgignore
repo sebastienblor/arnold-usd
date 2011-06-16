@@ -30,3 +30,5 @@ syntax: regexp
 ^UpgradeLog\.XML$
 syntax: regexp
 \.rar$
+syntax: regexp
+\.tgz$
