@@ -324,8 +324,6 @@ elif system.os() == 'linux':
 ## Add path to Arnold API by default
 env.Append(CPPPATH = [env['ARNOLD_API_INCLUDES']])
 env.Append(LIBPATH = [env['ARNOLD_API_LIB'], env['ARNOLD_BINARIES']])
-# env.AppendPath('LIBPATH', env['ARNOLD_BINARIES'], sep=':', delete_existing=1)  
-
    
 ## configure base directory for temp files
 BUILD_BASE_DIR = os.path.join('build', '%s_%s' % (system.os(), system.target_arch()), '%s_%s' % (env['COMPILER'], env['MODE']))
