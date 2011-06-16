@@ -54,8 +54,11 @@ vars.AddVariables(
                    'Where to find Arnold API includes', 
                    '.', PathVariable.PathIsDir),
       PathVariable('ARNOLD_API_LIB', 
-                   'Where to find Arnold API libraries', 
+                   'Where to find Arnold API static libraries', 
                    '.', PathVariable.PathIsDir),
+      PathVariable('ARNOLD_BINARIES', 
+                   'Where to find Arnold API dynamic libraries and executables', 
+                   '.', PathVariable.PathIsDir),                  
       PathVariable('TARGET_MODULE_PATH', 
                    'Path used for installation of the mtoa module', 
                    '.', PathVariable.PathIsDirCreate),
@@ -81,6 +84,9 @@ vars.AddVariables(
                    'Path used for installation of mtoa translator extensions', 
                    os.path.join('$TARGET_MODULE_PATH', 'extensions'), PathVariable.PathIsDirCreate),
       PathVariable('TARGET_LIB_PATH', 
+                   'Path for libraries', 
+                   os.path.join('$TARGET_MODULE_PATH', 'lib'), PathVariable.PathIsDirCreate),
+      PathVariable('TARGET_BINARIES', 
                    'Path for libraries', 
                    os.path.join('$TARGET_MODULE_PATH', 'bin'), PathVariable.PathIsDirCreate),
       PathVariable('SHAVE_API', 
@@ -317,7 +323,9 @@ elif system.os() == 'linux':
 
 ## Add path to Arnold API by default
 env.Append(CPPPATH = [env['ARNOLD_API_INCLUDES']])
-env.Append(LIBPATH = [env['ARNOLD_API_LIB']])
+env.Append(LIBPATH = [env['ARNOLD_API_LIB'], env['ARNOLD_BINARIES']])
+# env.AppendPath('LIBPATH', env['ARNOLD_BINARIES'], sep=':', delete_existing=1)  
+
    
 ## configure base directory for temp files
 BUILD_BASE_DIR = os.path.join('build', '%s_%s' % (system.os(), system.target_arch()), '%s_%s' % (env['COMPILER'], env['MODE']))
@@ -453,11 +461,15 @@ else:
    env.Install(env['TARGET_PLUGIN_PATH'], MTOA)
    env.Install(env['TARGET_SHADER_PATH'], MTOA_SHADERS)
 
-libs = glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*%s' % get_library_extension()))
-libs += glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*boost*%s.*' % get_library_extension()))
+libs = glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*.lib'))
 env.Install(env['TARGET_LIB_PATH'], libs)
 
-env.Install(env['TARGET_LIB_PATH'], MTOA_API[0])
+dylibs = glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*%s' % get_library_extension()))
+dylibs += glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*boost*%s.*' % get_library_extension()))
+env.Install(env['TARGET_BINARIES'], dylibs)
+
+env.Install(env['TARGET_BINARIES'], MTOA_API[0])
+
 
 pyfiles = find_files_recursive('scripts', ['.py'])
 env.InstallAs([os.path.join(env['TARGET_PYTHON_PATH'], x) for x in pyfiles],
@@ -496,7 +508,7 @@ PACKAGE = env.MakePackage(package_name, MTOA + MTOA_API + MTOA_SHADERS)
 
 ext_env = maya_env.Clone()
 ext_env.Append(CPPPATH = ['plugin', os.path.join(maya_env['ROOT_DIR'], 'plugins', 'mtoa'), env['ARNOLD_API_INCLUDES']])
-ext_env.Append(LIBPATH = ['.', env['ARNOLD_API_LIB']])
+ext_env.Append(LIBPATH = ['.', env['ARNOLD_API_LIB'], env['ARNOLD_BINARIES']])
 ext_env.Append(LIBPATH = [ os.path.join(maya_env['ROOT_DIR'], os.path.split(str(MTOA[0]))[0]),
                            os.path.join(maya_env['ROOT_DIR'], os.path.split(str(MTOA_API[0]))[0])])
 ext_env.Append(LIBS = ['mtoa_api'])
@@ -571,11 +583,12 @@ PACKAGE_FILES = [
 [os.path.join('icons', '*.xpm'), 'icons'],
 [os.path.join('scripts', '*.xml'), '.'],
 [MTOA_API[0], 'bin'],
-[os.path.join(env['ARNOLD_API_LIB'], 'kick%s' % get_executable_extension()), 'bin'],
-[os.path.join(env['ARNOLD_API_LIB'], 'maketx%s' % get_executable_extension()), 'bin'],
+[os.path.join(env['ARNOLD_API_LIB'], '*.lib'), 'lib'],
+[os.path.join(env['ARNOLD_BINARIES'], 'kick%s' % get_executable_extension()), 'bin'],
+[os.path.join(env['ARNOLD_BINARIES'], 'maketx%s' % get_executable_extension()), 'bin'],
+[os.path.join(env['ARNOLD_BINARIES'], '*%s' % get_library_extension()), 'bin'],
 [os.path.join('plugins', 'mtoa', 'mtoa.mtd'), 'plug-ins'],
-[MTOA_SHADERS[0], 'shaders'],
-[os.path.join(env['ARNOLD_API_LIB'], '*%s' % get_library_extension()), 'bin'],
+[MTOA_SHADERS[0], 'shaders']
 #[os.path.join(BUILD_BASE_DIR, 'docs', 'api', 'html'), os.path.join('doc', 'api')],
 #[os.path.splitext(str(MTOA_API[0]))[0] + '.lib', 'lib'],
 ]
@@ -603,7 +616,7 @@ if system.os() == 'windows':
 elif system.os() == 'linux':
    PACKAGE_FILES += [
       [MTOA[0], 'plug-ins'],
-      [os.path.join(env['ARNOLD_API_LIB'], '*%s.*' % get_library_extension()), 'bin'],
+      [os.path.join(env['ARNOLD_BINARIES'], '*%s.*' % get_library_extension()), 'bin'],
    ]
 elif system.os() == 'darwin':
    PACKAGE_FILES += [
@@ -630,6 +643,7 @@ aliases.append(env.Alias('install-python',  env['TARGET_PYTHON_PATH']))
 aliases.append(env.Alias('install-icons',   env['TARGET_ICONS_PATH']))
 aliases.append(env.Alias('install-descr',   env['TARGET_DESCR_PATH']))
 aliases.append(env.Alias('install-lib',     env['TARGET_LIB_PATH']))
+aliases.append(env.Alias('install-bin',     env['TARGET_BINARIES']))
 aliases.append(env.Alias('install-plugins', env['TARGET_PLUGIN_PATH']))
 aliases.append(env.Alias('install-shaders', env['TARGET_SHADER_PATH']))
 aliases.append(env.Alias('install-ext',     env['TARGET_EXTENSION_PATH']))

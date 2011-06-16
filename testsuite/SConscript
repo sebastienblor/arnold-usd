@@ -123,13 +123,13 @@ def run_test(target, source, env):
    # add libai to library search path, and Arnold bin dir to path
    if system.os() == 'darwin':
       test_env.AppendENVPath('DYLD_LIBRARY_PATH', test_env['EXTERNAL_PATH'], envname='ENV', sep=':', delete_existing=1)  
-      test_env.AppendENVPath('DYLD_LIBRARY_PATH', test_env['ARNOLD_API_LIB'], envname='ENV', sep=':', delete_existing=1)
+      test_env.AppendENVPath('DYLD_LIBRARY_PATH', test_env['ARNOLD_BINARIES'], envname='ENV', sep=':', delete_existing=1)
       test_env.AppendENVPath('DYLD_LIBRARY_PATH', os.path.join(env['MAYA_ROOT'], 'lib'), sep=':', delete_existing=1)
       previous_lib_path = os.environ.get('DYLD_LIBRARY_PATH')
       os.environ['DYLD_LIBRARY_PATH'] = test_env['ENV']['DYLD_LIBRARY_PATH']
    elif system.os() == 'linux':
       test_env.AppendENVPath('LD_LIBRARY_PATH', test_env['EXTERNAL_PATH'], envname='ENV', sep=':', delete_existing=1)  
-      test_env.AppendENVPath('LD_LIBRARY_PATH', test_env['ARNOLD_API_LIB'], envname='ENV', sep=':', delete_existing=1)
+      test_env.AppendENVPath('LD_LIBRARY_PATH', test_env['ARNOLD_BINARIES'], envname='ENV', sep=':', delete_existing=1)
       test_env.AppendENVPath('LD_LIBRARY_PATH', os.path.join(env['MAYA_ROOT'], 'lib'), sep=':', delete_existing=1)
       previous_lib_path = os.environ.get('LD_LIBRARY_PATH')     
       os.environ['LD_LIBRARY_PATH'] = test_env['ENV']['LD_LIBRARY_PATH'] 
@@ -592,7 +592,7 @@ append_to_path(test_env, os.path.abspath(str(TIFF2JPEG[0].dir)))
 prepend_to_path(test_env, env.subst('$TARGET_LIB_PATH'))
 prepend_to_path(test_env, env.subst('$TARGET_PLUGIN_PATH'))
 ## as well as Arnold executables
-prepend_to_path(test_env, test_env['ARNOLD_API_LIB'])
+prepend_to_path(test_env, test_env['ARNOLD_BINARIES'])
 ## and Maya's
 prepend_to_path(test_env, os.path.join(test_env['MAYA_ROOT'], 'bin'))
 
