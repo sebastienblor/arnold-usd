@@ -565,15 +565,9 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
 
    bool resolved = MRenderUtil::exactFileTextureName(fGeometry->dso, fGeometry->useFrameExtension,
          frameNumber, fGeometry->filename);
-   std::cout << "!!!!!!!" << resolved  << std::endl;
-   std::cout << "!!!!!!!" << fGeometry->dso  << std::endl;
-   std::cout << "!!!!!!!" << fGeometry->useFrameExtension  << std::endl;
-   std::cout << "!!!!!!!" << frameNumber  << std::endl;
-   std::cout << "!!!!!!!" << fGeometry->filename  << std::endl;
 
    if (!resolved)
    {
-      std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
       fGeometry->filename = fGeometry->dso;
    }
 

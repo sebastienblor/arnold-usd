@@ -220,9 +220,6 @@ AtNode* CArnoldStandInsTranslator::ExportProcedural(AtNode* procedural, bool upd
       frameNumber = frameExt;
 
       bool resolved = MRenderUtil::exactFileTextureName(dso, useFrameExtension, frameExt, filename);
-      std::cout << "//////" << dso << std::endl;
-      std::cout << "//////" << useFrameExtension << std::endl;
-      std::cout << "//////" << filename << std::endl;
 
       if (resolved)
          AiNodeSetStr(procedural, "dso", filename.asChar());
