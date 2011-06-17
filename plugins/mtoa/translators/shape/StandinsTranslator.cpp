@@ -196,17 +196,33 @@ AtNode* CArnoldStandInsTranslator::ExportProcedural(AtNode* procedural, bool upd
       MString dso = m_DagNode.findPlug("dso").asString().expandEnvironmentVariablesAndTilde();
       MString filename;
 
-      int frame = m_DagNode.findPlug("frameNumber").asInt();
-      int frameOffset = m_DagNode.findPlug("frameOffset").asInt();
+      float frame = m_DagNode.findPlug("frameNumber").asFloat();
+      float frameOffset = m_DagNode.findPlug("frameOffset").asFloat();
       bool useFrameExtension = m_DagNode.findPlug("useFrameExtension").asBool();
 
 
       MString frameNumber = "0";
 
-      frameNumber += frame + frameOffset;
+      float framestep = frame + frameOffset;
 
-      bool resolved = MRenderUtil::exactFileTextureName(dso, useFrameExtension, frameNumber,
-            filename);
+      bool subFrames = ((framestep - floor(framestep)) >= 0.001);
+      char frameExt[64];
+      if (subFrames)
+      {
+         int fullFrame = (int) floor(framestep);
+         int subFrame = (int) floor((framestep - fullFrame) * 1000);
+         sprintf(frameExt, ".%04d.%03d", fullFrame, subFrame);
+      }
+      else
+      {
+         sprintf(frameExt, ".%04d", (int) framestep);
+      }
+      frameNumber = frameExt;
+
+      bool resolved = MRenderUtil::exactFileTextureName(dso, useFrameExtension, frameExt, filename);
+      std::cout << "//////" << dso << std::endl;
+      std::cout << "//////" << useFrameExtension << std::endl;
+      std::cout << "//////" << filename << std::endl;
 
       if (resolved)
          AiNodeSetStr(procedural, "dso", filename.asChar());

@@ -31,6 +31,7 @@ public:
                       const MObject layer,
                       const bool createDirectory=true,
                       const bool isSequence=false,
+                      const bool subFrames=false,
                       MStatus *ReturnStatus=NULL) const;
    MStatus WriteAsstoc(const MString& filename, const AtBBox& bBox);
    MStatus doIt(const MArgList& argList);
