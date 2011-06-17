@@ -198,7 +198,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
                }
             }
          }
-
+         AiEnd();
          geom->IsGeomLoaded = true;
          geom->updateView = true;
          geom->assTocLoaded = true;
@@ -206,6 +206,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
       }
       else
       {
+         AiEnd();
          geom->IsGeomLoaded = false;
          return MS::kFailure;
       }
