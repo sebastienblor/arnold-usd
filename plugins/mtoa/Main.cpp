@@ -39,16 +39,16 @@
 #include <maya/MGlobal.h>
 #include <maya/MSwatchRenderRegister.h>
 
-#define VAL(str) #str
-#define TOSTRING(str) VAL(str)
+#define MTOA_VAL(str) #str
+#define MTOA_TOSTRING(str) MTOA_VAL(str)
 
 #define MTOA_VENDOR "SolidAngle"
 #define MTOA_MAJOR_VERSION_NUM 0
 #define MTOA_MINOR_VERSION_NUM 8
-#define MTOA_FIX_VERSION "0.dev"
+#define MTOA_FIX_VERSION "0"
 
-#define MTOA_MAJOR_VERSION         TOSTRING(MTOA_MAJOR_VERSION_NUM)
-#define MTOA_MINOR_VERSION         TOSTRING(MTOA_MINOR_VERSION_NUM)
+#define MTOA_MAJOR_VERSION         MTOA_TOSTRING(MTOA_MAJOR_VERSION_NUM)
+#define MTOA_MINOR_VERSION         MTOA_TOSTRING(MTOA_MINOR_VERSION_NUM)
 
 #define MTOA_VERSION MTOA_MAJOR_VERSION "." MTOA_MINOR_VERSION "." MTOA_FIX_VERSION
 
