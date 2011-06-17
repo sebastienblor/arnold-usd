@@ -1,3 +1,4 @@
+import re
 import maya.cmds as cmds
 import maya.mel as mel
 from mtoa.ui.ae.utils import aeCallback
@@ -5,27 +6,46 @@ import mtoa.callbacks as callbacks
 from customShapeAttributes import commonShapeAttributes
 
 def LoadStandInButtonPush(*arg):
-    basicFilter = "Arnold Source Scene (*.ass);;Arnold Procedural (*.so *.dll)"
-    ret = cmds.fileDialog2(fileFilter=basicFilter, dialogStyle=2,cap="Load StandIn",okc="Load",fm=4)
+    basicFilter = 'Arnold Source Scene (*.ass);;Arnold Procedural (*.so *.dll)'
+    ret = cmds.fileDialog2(fileFilter=basicFilter, dialogStyle=2,cap='Load StandIn',okc='Load',fm=4)
     if len(ret):
-        m_tmpSelected = cmds.ls(sl=1)[0]
-        if cmds.listRelatives(m_tmpSelected) != None:
-            nodeName = cmds.listRelatives(m_tmpSelected)[0]
+        ArnoldStandInDsoEdit(ret[0])
+        
+def ArnoldStandInDsoEdit(mPath) :
+    mArchivePath = ''
+    # Select StandIn shape
+    m_tmpSelected = cmds.ls(sl=1)[0]
+    if cmds.listRelatives(m_tmpSelected) != None:
+        nodeName = cmds.listRelatives(m_tmpSelected)[0]
+    else:
+        nodeName = m_tmpSelected
+    # Single .ass
+    if   re.search(r'([a-zA-Z]+)(\.ass)',mPath) != None:
+        mArchivePath = mPath
+        cmds.setAttr(nodeName+".useFrameExtension",False)
+    # Sequence of .ass
+    elif re.search(r'([-_/a-zA-Z.]+)([0-9.]+)(.ass)',mPath) != None:
+        m_groups = re.search(r'([-_/a-zA-Z.]+)([0-9.]+)(.ass)',mPath).groups()
+        mArchivePath = m_groups[0]+'#'+m_groups[2]
+        if '.' in m_groups[1]:
+            cmds.setAttr(nodeName+".useSubFrame",True)
         else:
-            nodeName = m_tmpSelected
-        cmds.setAttr(nodeName+".dso",ret[0],type="string")
-        if ".so" in ret[0]:
-            cmds.text("standInDataLabel", edit=True, enable=True)
-            cmds.textField("standInData", edit=True, enable=True)
-        else:
-            cmds.text("standInDataLabel", edit=True, enable=False)
-            cmds.textField("standInData", edit=True, enable=False)
-        cmds.textField("standInDsoPath", edit=True, text=ret[0])
-
+            cmds.setAttr(nodeName+".useSubFrame",False)
+        cmds.setAttr(nodeName+".useFrameExtension",True)
+    
+    cmds.setAttr(nodeName+".dso",mArchivePath,type="string")
+    if ".so" in mPath:
+        cmds.text("standInDataLabel", edit=True, enable=True)
+        cmds.textField("standInData", edit=True, enable=True)
+    else:
+        cmds.text("standInDataLabel", edit=True, enable=False)
+        cmds.textField("standInData", edit=True, enable=False)
+    cmds.textField("standInDsoPath", edit=True, text=mArchivePath)
+   
 def ArnoldStandInTemplateDsoNew(nodeName) :
     cmds.rowColumnLayout( numberOfColumns=3, columnAlign=(1, "right"), columnAttach=[(1, "left", 0), (2, "both", 0), (3, "right", 0)], columnWidth=[(1,145),(3,30)] )
     cmds.text(label="Path ")
-    path = cmds.textField("standInDsoPath")
+    path = cmds.textField("standInDsoPath",changeCommand=ArnoldStandInDsoEdit)
     cmds.textField( path, edit=True, text=cmds.getAttr(nodeName) )
     cmds.button( label="...", command=LoadStandInButtonPush)
     
@@ -182,11 +202,11 @@ def SequenceToggleOff(*arg):
 
 def ToggleSequenceLine(flag):
    cmds.text("aiExportStartLabel",edit=True,enable=flag)
-   cmds.intField("aiExportStart",edit=True,enable=flag)
+   cmds.floatField("aiExportStart",edit=True,enable=flag)
    cmds.text("aiExportEndLabel",edit=True,enable=flag)
-   cmds.intField("aiExportEnd",edit=True,enable=flag)
+   cmds.floatField("aiExportEnd",edit=True,enable=flag)
    cmds.text("aiExportStepLabel",edit=True,enable=flag)
-   cmds.intField("aiExportStep",edit=True,enable=flag)
+   cmds.floatField("aiExportStep",edit=True,enable=flag)
 
 def DoExportStandInArchive(*arg):
    name = cmds.textField("aiExportFilename", query=True, text=True)
@@ -199,9 +219,9 @@ def DoExportStandInArchive(*arg):
          cmds.setAttr("defaultArnoldRenderOptions.output_ass_mask", 24)
 
          if cmds.checkBox("aiExportSequence", query=True, value=True):
-            start = cmds.intField("aiExportStart", query=True, value=True)
-            end   = cmds.intField("aiExportEnd", query=True, value=True)
-            step  = cmds.intField("aiExportStep", query=True, value=True)
+            start = cmds.floatField("aiExportStart", query=True, value=True)
+            end   = cmds.floatField("aiExportEnd", query=True, value=True)
+            step  = cmds.floatField("aiExportStep", query=True, value=True)
             cmds.arnoldExportAss(f=name, s=True, bb=True, sf=start, ef=end, fs=step)
          else:
             cmds.arnoldExportAss(f=name, s=True, bb=True)
@@ -241,14 +261,14 @@ def ArnoldExportRenderObjectWindow(*arg):
     
    cmds.rowColumnLayout( numberOfColumns=6,  columnAttach=[(1, "left", 0), (2, "both", 0), (3, "both", 0),(4, "both", 0), (5, "both", 0), (6, "right", 0)])
    cmds.text("aiExportStartLabel",label="Start ")
-   cmds.intField("aiExportStart")
-   cmds.intField("aiExportStart", edit=True, value=cmds.playbackOptions(query=True, animationStartTime=True), enable=False)
+   cmds.floatField("aiExportStart")
+   cmds.floatField("aiExportStart", edit=True, value=cmds.playbackOptions(query=True, animationStartTime=True), enable=False)
    cmds.text("aiExportEndLabel",label="End   ")
-   cmds.intField("aiExportEnd")
-   cmds.intField("aiExportEnd", edit=True, value=cmds.playbackOptions(query=True, animationEndTime=True), enable=False)
+   cmds.floatField("aiExportEnd")
+   cmds.floatField("aiExportEnd", edit=True, value=cmds.playbackOptions(query=True, animationEndTime=True), enable=False)
    cmds.text("aiExportStepLabel",label="Step  ")
-   cmds.intField("aiExportStep")
-   cmds.intField("aiExportStep", edit=True, value=1, enable=False)
+   cmds.floatField("aiExportStep")
+   cmds.floatField("aiExportStep", edit=True, value=1, enable=False)
    cmds.setParent( '..' )
     
    cmds.setParent( '..' )

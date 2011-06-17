@@ -53,6 +53,7 @@ MObject CArnoldStandInShape::s_dso;
 MObject CArnoldStandInShape::s_mode;
 MObject CArnoldStandInShape::s_useFrameExtension;
 MObject CArnoldStandInShape::s_frameNumber;
+MObject CArnoldStandInShape::s_useSubFrame;
 MObject CArnoldStandInShape::s_frameOffset;
 MObject CArnoldStandInShape::s_data;
 MObject CArnoldStandInShape::s_loadAtInit;
@@ -74,6 +75,8 @@ CArnoldStandInShape::CArnoldStandInShape()
    fGeometry->IsGeomLoaded = false;
    fGeometry->dList = 0;
    fGeometry->updateView = true;
+   fGeometry->useSubFrame = false;
+   fGeometry->useFrameExtension = false;
 
 }
 
@@ -238,6 +241,11 @@ bool CArnoldStandInShape::getInternalValueInContext(const MPlug& plug, MDataHand
       datahandle.set(fGeometry->frame);
       isOk = true;
    }
+   else if (plug == s_useSubFrame)
+   {
+      datahandle.set(fGeometry->useSubFrame);
+      isOk = true;
+   }
    else if (plug == s_frameOffset)
    {
       datahandle.set(fGeometry->frameOffset);
@@ -287,6 +295,10 @@ bool CArnoldStandInShape::setInternalValueInContext(const MPlug& plug,
       isOk = true;
    }
    else if (plug == s_frameNumber)
+   {
+      isOk = true;
+   }
+   else if (plug == s_useSubFrame)
    {
       isOk = true;
    }
@@ -436,12 +448,18 @@ MStatus CArnoldStandInShape::initialize()
    nAttr.setKeyable(true);
    addAttribute(s_useFrameExtension);
 
-   s_frameNumber = nAttr.create("frameNumber", "frameNumber", MFnNumericData::kInt, 0);
+   s_frameNumber = nAttr.create("frameNumber", "frameNumber", MFnNumericData::kFloat, 0);
    nAttr.setStorable(true);
    nAttr.setKeyable(true);
    addAttribute(s_frameNumber);
 
-   s_frameOffset = nAttr.create("frameOffset", "frameOffset", MFnNumericData::kInt, 0);
+   s_useSubFrame = nAttr.create("useSubFrame", "useSubFrame",
+         MFnNumericData::kBoolean, 0);
+   nAttr.setHidden(false);
+   nAttr.setKeyable(true);
+   addAttribute(s_useSubFrame);
+
+   s_frameOffset = nAttr.create("frameOffset", "frameOffset", MFnNumericData::kFloat, 0);
    nAttr.setStorable(true);
    nAttr.setKeyable(true);
    addAttribute(s_frameOffset);
@@ -517,6 +535,9 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
    plug.setAttribute(s_frameNumber);
    plug.getValue(fGeometry->frame);
 
+   plug.setAttribute(s_useSubFrame);
+   plug.getValue(fGeometry->useSubFrame);
+
    plug.setAttribute(s_frameOffset);
    plug.getValue(fGeometry->frameOffset);
 
@@ -525,12 +546,33 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
 
    MString frameNumber = "0";
 
-   frameNumber += fGeometry->frame + fGeometry->frameOffset;
+   float framestep = fGeometry->frame + fGeometry->frameOffset;
+
+   bool subFrames = ((framestep - floor(framestep)) >= 0.001);
+   char frameExt[64];
+   if (subFrames || fGeometry->useSubFrame)
+   {
+      int fullFrame = (int) floor(framestep);
+      int subFrame = (int) floor((framestep - fullFrame) * 1000);
+      sprintf(frameExt, ".%04d.%03d", fullFrame, subFrame);
+   }
+   else
+   {
+      sprintf(frameExt, ".%04d", (int) framestep);
+   }
+   frameNumber = frameExt;
+
    bool resolved = MRenderUtil::exactFileTextureName(fGeometry->dso, fGeometry->useFrameExtension,
          frameNumber, fGeometry->filename);
+   std::cout << "!!!!!!!" << resolved  << std::endl;
+   std::cout << "!!!!!!!" << fGeometry->dso  << std::endl;
+   std::cout << "!!!!!!!" << fGeometry->useFrameExtension  << std::endl;
+   std::cout << "!!!!!!!" << frameNumber  << std::endl;
+   std::cout << "!!!!!!!" << fGeometry->filename  << std::endl;
 
    if (!resolved)
    {
+      std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
       fGeometry->filename = fGeometry->dso;
    }
 

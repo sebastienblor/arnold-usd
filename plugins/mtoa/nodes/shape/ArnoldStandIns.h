@@ -23,9 +23,10 @@ public:
    MString filename;
    MString geomLoaded;
    int mode;
-   int frame;
-   int frameOffset;
+   float frame;
+   float frameOffset;
    bool useFrameExtension;
+   bool useSubFrame;
    bool assTocLoaded;
    bool IsGeomLoaded;
    MBoundingBox bbox;
@@ -75,6 +76,7 @@ private:
    static MObject s_mode;
    static MObject s_useFrameExtension;
    static MObject s_frameNumber;
+   static MObject s_useSubFrame;
    static MObject s_frameOffset;
    static MObject s_data;
    static MObject s_loadAtInit;

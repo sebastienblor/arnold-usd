@@ -26,9 +26,9 @@ MSyntax CArnoldExportAssCmd::newSyntax()
    syntax.addFlag("bb", "boundingBox");
    syntax.addFlag("f", "filename", MSyntax::kString);
    syntax.addFlag("cam", "camera", MSyntax::kString);
-   syntax.addFlag("sf", "startFrame", MSyntax::kLong);
-   syntax.addFlag("ef", "endFrame", MSyntax::kLong);
-   syntax.addFlag("fs", "frameStep", MSyntax::kLong);
+   syntax.addFlag("sf", "startFrame", MSyntax::kDouble);
+   syntax.addFlag("ef", "endFrame", MSyntax::kDouble);
+   syntax.addFlag("fs", "frameStep", MSyntax::kDouble);
    syntax.addFlag("o", "options", MSyntax::kString);
    return syntax;
 }
@@ -87,6 +87,7 @@ MString CArnoldExportAssCmd::GetAssName(const MString& customName,
                                         const MObject layer,
                                         const bool createDirectory,
                                         const bool isSequence,
+                                        const bool subFrames,
                                         MStatus *ReturnStatus) const
 {
    MStatus status;
@@ -122,7 +123,16 @@ MString CArnoldExportAssCmd::GetAssName(const MString& customName,
       {
          // TODO: some of maya tools support fractionnal frame numbers
          char frameExt[64];
-         sprintf(frameExt, ".%04d", (int) frameNumber);
+         if (subFrames)
+         {
+            int fullFrame = (int) floor(frameNumber);
+            int subFrame = (int) floor((frameNumber - fullFrame) * 1000);
+            sprintf(frameExt, ".%04d.%03d", fullFrame, subFrame);
+         }
+         else
+         {
+            sprintf(frameExt, ".%04d", (int) frameNumber);
+         }
 
          assFileName = customName + frameExt;
       }
@@ -234,9 +244,9 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    MString optionsName = "";
    bool exportSelected = false;
    bool writeBox = false;
-   int startframe = 1; // TODO: use current frame if not set
-   int endframe = 0;
-   int framestep = 1;
+   double startframe = 1; // TODO: use current frame if not set
+   double endframe = 0;
+   double framestep = 1;
 
    // Batch mode
    const bool batch = argDB.isFlagSet("batch") ? true : false;
@@ -327,13 +337,14 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    MString curfilename;
    MString tocfilename;
    // Export range of frames or single frame
-   if (startframe <= endframe)
+   if (startframe <= endframe && framestep > 0)
    {
+      bool subFrames = ((framestep - floor(framestep)) >= 0.001);
       // customFileName is a prefix, need to add frame and extension
       // TODO: might want to check if extension or frame is already set
       for (double curframe = startframe; curframe <= endframe; curframe += framestep)
       {
-         MGlobal::viewFrame((double)curframe);
+         MGlobal::viewFrame(curframe);
          renderSession->ExecuteScript(renderGlobals.preRenderMel);
 
          curfilename = GetAssName(customFileName,
@@ -344,7 +355,8 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
                                   "ass",
                                   renderLayer,
                                   1,
-                                  1, &status);
+                                  1,
+                                  subFrames, &status);
          tocfilename = GetAssName(customFileName,
                                   renderGlobals,
                                   curframe,
@@ -353,7 +365,8 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
                                   "asstoc",
                                   renderLayer,
                                   1,
-                                  1, &status);
+                                  1,
+                                  subFrames, &status);
 
          renderSession->Translate(exportOptions);
          if (cameraName != "")
@@ -386,6 +399,7 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
                                "ass",
                                renderLayer,
                                1,
+                               0,
                                0, &status);
       tocfilename = GetAssName(customFileName,
                                renderGlobals,
@@ -395,6 +409,7 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
                                "asstoc",
                                renderLayer,
                                1,
+                               0,
                                0, &status);
 
       renderSession->Translate(exportOptions);
