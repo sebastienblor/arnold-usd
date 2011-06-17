@@ -90,7 +90,10 @@ shader_evaluate
    AtFloat geo_opacity;
    if (AiUDataGetFlt("geo_opacity", &geo_opacity))
       sg->out_opacity *= geo_opacity;
-
+      
+   if (AiShaderGlobalsApplyOpacity(sg, opacity))
+      return;
+      
    // early out for shadow rays and totally transparent objects
    if ((sg->Rt & AI_RAY_SHADOW) || AiColorIsZero(sg->out_opacity))
       return;
