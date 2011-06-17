@@ -706,21 +706,21 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
       MBoundingBox m_bbox = geom->bbox;
       MPoint minPt = m_bbox.min();
       MPoint maxPt = m_bbox.max();
-      double bottomLeftFront[3] =
+      float bottomLeftFront[3] =
       { minPt.x, minPt.y, minPt.z };
-      double topLeftFront[3] =
+      float topLeftFront[3] =
       { minPt.x, maxPt.y, minPt.z };
-      double bottomRightFront[3] =
+      float bottomRightFront[3] =
       { maxPt.x, minPt.y, minPt.z };
-      double topRightFront[3] =
+      float topRightFront[3] =
       { maxPt.x, maxPt.y, minPt.z };
-      double bottomLeftBack[3] =
+      float bottomLeftBack[3] =
       { minPt.x, minPt.y, maxPt.z };
-      double topLeftBack[3] =
+      float topLeftBack[3] =
       { minPt.x, maxPt.y, maxPt.z };
-      double bottomRightBack[3] =
+      float bottomRightBack[3] =
       { maxPt.x, minPt.y, maxPt.z };
-      double topRightBack[3] =
+      float topRightBack[3] =
       { maxPt.x, maxPt.y, maxPt.z };
 
       switch (geom->mode)
@@ -729,27 +729,27 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
          gGLFT->glNewList(geom->dList, MGL_COMPILE);
          gGLFT->glBegin(MGL_LINE_STRIP);
 
-         gGLFT->glVertex3dv(bottomLeftFront);
-         gGLFT->glVertex3dv(bottomLeftBack);
-         gGLFT->glVertex3dv(topLeftBack);
-         gGLFT->glVertex3dv(topLeftFront);
-         gGLFT->glVertex3dv(bottomLeftFront);
-         gGLFT->glVertex3dv(bottomRightFront);
-         gGLFT->glVertex3dv(bottomRightBack);
-         gGLFT->glVertex3dv(topRightBack);
-         gGLFT->glVertex3dv(topRightFront);
-         gGLFT->glVertex3dv(bottomRightFront);
+         gGLFT->glVertex3fv(bottomLeftFront);
+         gGLFT->glVertex3fv(bottomLeftBack);
+         gGLFT->glVertex3fv(topLeftBack);
+         gGLFT->glVertex3fv(topLeftFront);
+         gGLFT->glVertex3fv(bottomLeftFront);
+         gGLFT->glVertex3fv(bottomRightFront);
+         gGLFT->glVertex3fv(bottomRightBack);
+         gGLFT->glVertex3fv(topRightBack);
+         gGLFT->glVertex3fv(topRightFront);
+         gGLFT->glVertex3fv(bottomRightFront);
          gGLFT->glEnd();
 
          gGLFT->glBegin(MGL_LINES);
-         gGLFT->glVertex3dv(bottomLeftBack);
-         gGLFT->glVertex3dv(bottomRightBack);
+         gGLFT->glVertex3fv(bottomLeftBack);
+         gGLFT->glVertex3fv(bottomRightBack);
 
-         gGLFT->glVertex3dv(topLeftBack);
-         gGLFT->glVertex3dv(topRightBack);
+         gGLFT->glVertex3fv(topLeftBack);
+         gGLFT->glVertex3fv(topRightBack);
 
-         gGLFT->glVertex3dv(topLeftFront);
-         gGLFT->glVertex3dv(topRightFront);
+         gGLFT->glVertex3fv(topLeftFront);
+         gGLFT->glVertex3fv(topRightFront);
          gGLFT->glEnd();
          gGLFT->glEndList();
          break;
