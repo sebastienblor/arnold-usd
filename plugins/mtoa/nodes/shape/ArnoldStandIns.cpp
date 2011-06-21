@@ -699,24 +699,26 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
          geom->dList = gGLFT->glGenLists(1);
 
       MBoundingBox m_bbox = geom->bbox;
-      MPoint minPt = m_bbox.min();
-      MPoint maxPt = m_bbox.max();
+      float minPt[4];
+      float maxPt[4];
+      m_bbox.min().get(minPt);
+      m_bbox.max().get(maxPt);
       float bottomLeftFront[3] =
-      { minPt.x, minPt.y, minPt.z };
+      { minPt[0], minPt[1], minPt[2] };
       float topLeftFront[3] =
-      { minPt.x, maxPt.y, minPt.z };
+      { minPt[0], maxPt[1], minPt[2] };
       float bottomRightFront[3] =
-      { maxPt.x, minPt.y, minPt.z };
+      { maxPt[0], minPt[1], minPt[2] };
       float topRightFront[3] =
-      { maxPt.x, maxPt.y, minPt.z };
+      { maxPt[0], maxPt[1], minPt[2] };
       float bottomLeftBack[3] =
-      { minPt.x, minPt.y, maxPt.z };
+      { minPt[0], minPt[1], maxPt[2] };
       float topLeftBack[3] =
-      { minPt.x, maxPt.y, maxPt.z };
+      { minPt[0], maxPt[1], maxPt[2] };
       float bottomRightBack[3] =
-      { maxPt.x, minPt.y, maxPt.z };
+      { maxPt[0], minPt[1], maxPt[2] };
       float topRightBack[3] =
-      { maxPt.x, maxPt.y, maxPt.z };
+      { maxPt[0], maxPt[1], maxPt[2] };
 
       switch (geom->mode)
       {
