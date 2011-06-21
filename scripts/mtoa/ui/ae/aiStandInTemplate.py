@@ -6,7 +6,7 @@ import mtoa.callbacks as callbacks
 from customShapeAttributes import commonShapeAttributes
 
 def LoadStandInButtonPush(*arg):
-    basicFilter = 'Arnold Source Scene (*.ass);;Arnold Procedural (*.so *.dll)'
+    basicFilter = 'Arnold Archive (*.ass *.obj);;Arnold Procedural (*.so *.dll)'
     ret = cmds.fileDialog2(fileFilter=basicFilter, dialogStyle=2,cap='Load StandIn',okc='Load',fm=4)
     if len(ret):
         ArnoldStandInDsoEdit(ret[0])
@@ -20,18 +20,21 @@ def ArnoldStandInDsoEdit(mPath) :
     else:
         nodeName = m_tmpSelected
     # Single .ass
-    if   re.search(r'([a-zA-Z]+)(\.ass)',mPath) != None:
+    if   re.search(r'([-_/a-zA-Z0-9.]+)(\.ass)',mPath) != None:
         mArchivePath = mPath
         cmds.setAttr(nodeName+".useFrameExtension",False)
     # Sequence of .ass
-    elif re.search(r'([-_/a-zA-Z.]+)([0-9.]+)(.ass)',mPath) != None:
-        m_groups = re.search(r'([-_/a-zA-Z.]+)([0-9.]+)(.ass)',mPath).groups()
+    elif re.search(r'([-_/a-zA-Z0-9.]+)([0-9.]+)(.ass)',mPath) != None:
+        m_groups = re.search(r'([-_/a-zA-Z0-9.]+)([0-9.]+)(.ass)',mPath).groups()
         mArchivePath = m_groups[0]+'#'+m_groups[2]
         if '.' in m_groups[1]:
             cmds.setAttr(nodeName+".useSubFrame",True)
         else:
             cmds.setAttr(nodeName+".useSubFrame",False)
         cmds.setAttr(nodeName+".useFrameExtension",True)
+    # Single .obj
+    elif re.search(r'([-_/a-zA-Z0-9.]+)(\.obj)',mPath) != None:
+        mArchivePath = mPath
     
     cmds.setAttr(nodeName+".dso",mArchivePath,type="string")
     if ".so" in mPath:

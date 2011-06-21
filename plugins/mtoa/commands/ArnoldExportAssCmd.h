@@ -22,18 +22,6 @@ public:
    static MString GetCameraName();
    void SetBatch(bool batch) {m_batch = batch;}
    bool IsBatch() const {return m_batch;}
-   MString GetAssName(const MString& customName,
-                      const MCommonRenderSettingsData& renderGlobals,
-                      double frameNumber,
-                      const MString &sceneName,
-                      const MString &cameraName,
-                      const MString &fileFormat,
-                      const MObject layer,
-                      const bool createDirectory=true,
-                      const bool isSequence=false,
-                      const bool subFrames=false,
-                      MStatus *ReturnStatus=NULL) const;
-   MStatus WriteAsstoc(const MString& filename, const AtBBox& bBox);
    MStatus doIt(const MArgList& argList);
 
 private:

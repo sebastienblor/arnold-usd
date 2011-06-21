@@ -190,6 +190,21 @@ public:
       return m_motionBlurData.shutter_type;
    }
 
+   MString GetAssName(const MString& customName,
+                      const MCommonRenderSettingsData& renderGlobals,
+                      double frameNumber,
+                      const MString &sceneName,
+                      const MString &cameraName,
+                      const MString &fileFormat,
+                      const MObject layer,
+                      const bool createDirectory=true,
+                      const bool isSequence=false,
+                      const bool subFrames=false,
+                      const bool isBatch=false,
+                      MStatus *ReturnStatus=NULL) const;
+
+   MStatus WriteAsstoc(const MString& filename, const AtBBox& bBox);
+
 private:
    
    void PrepareExport();
