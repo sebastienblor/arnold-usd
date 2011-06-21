@@ -484,8 +484,7 @@ void CRenderSwatchGenerator::ClearSwatch()
 
 void CRenderSwatchGenerator::ErrorSwatch(const MString msg)
 {
-   const MString error_message("[mtoa] [swatch] "+msg);
-   AiMsgError(error_message.asChar());
+   AiMsgError("[mtoa] [swatch] %s", msg.asChar());
    ClearSwatch();
 }
 
