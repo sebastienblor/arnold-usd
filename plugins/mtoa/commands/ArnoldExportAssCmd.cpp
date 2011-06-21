@@ -220,11 +220,13 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
          if (cameraName != "")
             renderSession->SetCamera(cameraName);
 
-         if (writeBox)
-            renderSession->GetMayaScene()->WriteAsstoc(tocfilename, renderSession->GetBoundingBox());
-
          renderSession->DoExport(curfilename);
          renderSession->Finish();
+
+         if (writeBox)
+            renderSession->GetMayaScene()->WriteAsstoc(tocfilename, renderSession->GetBoundingBox());
+            renderSession->Finish();
+
          renderSession->ExecuteScript(renderGlobals.postRenderMel);
 
          appendToResult(curfilename);
@@ -266,11 +268,13 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
       if (cameraName != "")
          renderSession->SetCamera(cameraName);
 
-      if (writeBox)
-         renderSession->GetMayaScene()->WriteAsstoc(tocfilename, renderSession->GetBoundingBox());
-
       renderSession->DoExport(curfilename);
       renderSession->Finish();
+
+      if (writeBox)
+         renderSession->GetMayaScene()->WriteAsstoc(tocfilename, renderSession->GetBoundingBox());
+         renderSession->Finish();
+
       renderSession->ExecuteScript(renderGlobals.postRenderMel);
 
       appendToResult(curfilename);
