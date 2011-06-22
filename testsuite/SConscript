@@ -122,24 +122,24 @@ def run_test(target, source, env):
        
    # add libai to library search path, and Arnold bin dir to path
    if system.os() == 'darwin':
-      test_env.AppendENVPath('DYLD_LIBRARY_PATH', test_env['EXTERNAL_PATH'], envname='ENV', sep=':', delete_existing=1)  
+      #test_env.AppendENVPath('DYLD_LIBRARY_PATH', test_env['EXTERNAL_PATH'], envname='ENV', sep=':', delete_existing=1)  
       test_env.AppendENVPath('DYLD_LIBRARY_PATH', test_env['ARNOLD_BINARIES'], envname='ENV', sep=':', delete_existing=1)
       test_env.AppendENVPath('DYLD_LIBRARY_PATH', os.path.join(env['MAYA_ROOT'], 'lib'), sep=':', delete_existing=1)
       previous_lib_path = os.environ.get('DYLD_LIBRARY_PATH')
       os.environ['DYLD_LIBRARY_PATH'] = test_env['ENV']['DYLD_LIBRARY_PATH']
    elif system.os() == 'linux':
-      test_env.AppendENVPath('LD_LIBRARY_PATH', test_env['EXTERNAL_PATH'], envname='ENV', sep=':', delete_existing=1)  
+      #test_env.AppendENVPath('LD_LIBRARY_PATH', test_env['EXTERNAL_PATH'], envname='ENV', sep=':', delete_existing=1)  
       test_env.AppendENVPath('LD_LIBRARY_PATH', test_env['ARNOLD_BINARIES'], envname='ENV', sep=':', delete_existing=1)
       test_env.AppendENVPath('LD_LIBRARY_PATH', os.path.join(env['MAYA_ROOT'], 'lib'), sep=':', delete_existing=1)
       previous_lib_path = os.environ.get('LD_LIBRARY_PATH')     
       os.environ['LD_LIBRARY_PATH'] = test_env['ENV']['LD_LIBRARY_PATH'] 
    else :
-       previous_lib_path = None
+      previous_lib_path = None
        
    ## setup program path   
    previous_path = os.environ.get('PATH')
    os.environ['PATH'] = test_env['ENV']['PATH']
-
+   
    ## remove any leftovers
    saferemove(test_env['OUTPUT_IMAGE'])
    saferemove('new.jpg')
@@ -156,25 +156,37 @@ def run_test(target, source, env):
       
       # replace test render dir with this test dir
       # image filename "testrender" and format "Tiff" are set in the test scene render settings
-      cmd = string.replace(cmd, "test.log", os.path.join(os.path.abspath(os.path.dirname(test_env['OUTPUT_IMAGE'])), (test_env['TEST_NAME']+'.log')))
-      cmd = string.replace(cmd, "testrenderdir", os.path.abspath(os.path.dirname(test_env['OUTPUT_IMAGE'])))
-      cmd = string.replace(cmd, "test.ma", os.path.join(os.path.abspath(os.path.dirname(test_env['OUTPUT_IMAGE'])), 'test.ma'))
+      # cmd = string.replace(cmd, "test.log", os.path.join(os.path.abspath(os.path.dirname(test_env['OUTPUT_IMAGE'])), (test_env['TEST_NAME']+'.log')))
+      cmd = string.replace(cmd, "%dir%", os.path.abspath(os.path.dirname(test_env['OUTPUT_IMAGE'])))
+      cmd = string.replace(cmd, "%file%", os.path.join(os.path.abspath(os.path.dirname(test_env['OUTPUT_IMAGE'])), 'test.ma'))
       
-      print "%s command: %s" % (TEST_NAME, cmd)
-      
-      ## redirect test output
-      if output_to_file:
-         file = open("%s.log" % (TEST_NAME), 'w')
+      # verbose and log options for Render cmd : -verb -log "test.log" 
+      if show_test_output:
+         cmd = string.replace(cmd, "%options%", '')
+         print cmd
+      else:
+         logfile = "%s.log" % (TEST_NAME)
+         logfile = os.path.join(os.path.abspath(os.path.dirname(test_env['OUTPUT_IMAGE'])), logfile)
+         cmd = string.replace(cmd, "%options%", '-log %s' % (logfile,))
+         if system.os() == 'windows':
+            cmd = '%s  1> "%s" 2>&1' % (cmd, logfile)
+         else:
+            cmd = '%s  > "%s" 2>> "%s"' % (cmd, logfile, logfile)
+         
+      retcode = os.system(cmd)        
+                       
+      ## redirect test output (if not using os.system
+      # if output_to_file:
+         # file = open("%s.log" % (TEST_NAME), 'w')
          # p = subprocess.Popen(cmd, stdout = file, stderr = subprocess.STDOUT)
          # retcode = p.wait()
-         retcode = os.system(cmd)
-         file.close()
-      else:
+         # file.close()
+      # else:
          # p = subprocess.Popen(cmd)
          # retcode = p.wait()
-         retcode = os.system(cmd)
 
       running_time = time.time() - before_time
+      print '%s time: %s' % (TEST_NAME, running_time)
       TOTAL_RUNNING_TIME += running_time
       status = process_return_code(retcode)
       if test_env['FORCE_RESULT'] == 'FAILED':
@@ -238,7 +250,7 @@ def run_test(target, source, env):
 
    ## progress text (scream if the test didn't pass)
    if status == 'OK':
-      print TEST_NAME
+      print '%s %s' % (TEST_NAME, status)
    else:
       f = open('README', 'r')
       summary = f.readline().strip('\n')
@@ -456,7 +468,7 @@ testsuite_bld = Builder(action = process_testsuite)
 
 class Test:
    def __init__(self,
-                script = 'Render -verb -log "test.log" -rd "testrenderdir" -r arnold -x 160 -y 120 "test.ma"',
+                script = 'Render -rd "%dir%" -r arnold -x 160 -y 120 %options% "%file%"',
                 plugin_sources      = '*.c*',
                 program_sources     = '',
                 program_name        = 'prog',
@@ -582,10 +594,8 @@ test_env.Append(BUILDERS = {'MakeTest' : maketest_bld})
 test_env.Append(BUILDERS = {'RunTest': runtest_bld})
 test_env.Append(BUILDERS = {'Testsuite' : testsuite_bld})
 
-if system.os() == 'darwin' or system.os() == 'windows':
-   ## on OS X we need to link against libai for some reason?
-   ## AJJ: Same on windows...
-   test_env.Append(LIBS = Split('ai'))
+# we need to link against libai for some reason?
+test_env.Append(LIBS = Split('ai'))
 
 ## make sure we can find difftiff and any generated programs
 append_to_path(test_env, os.path.abspath(str(DIFFTIFF[0].dir)))

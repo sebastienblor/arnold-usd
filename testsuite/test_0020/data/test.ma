@@ -227,7 +227,7 @@ createNode aiStandIn -name "ArnoldStandInShape" -parent "ArnoldStandIn";
 	setAttr -keyable off ".visibility";
 	setAttr ".collisionOffsetVelocityMultiplier[0]"  0 1 1;
 	setAttr ".collisionDepthVelocityMultiplier[0]"  0 1 1;
-	setAttr ".dso" -type "string" "sitoa_curves_proc.dll";
+	setAttr ".dso" -type "string" "sitoa_curves_proc.so";
 	setAttr ".data" -type "string" "hair.bin";
 	setAttr ".MinBoundingBox" -type "float3" -10 -10 -10 ;
 	setAttr ".MaxBoundingBox" -type "float3" 10 10 10 ;

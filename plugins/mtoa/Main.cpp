@@ -220,44 +220,46 @@ namespace // <anonymous>
       CExtension* shaders;
       shaders = CExtensionsManager::LoadArnoldPlugin("mtoa_shaders", "$ARNOLD_PLUGIN_PATH", &status);
       CHECK_MSTATUS(status);
-      // Overrides for mtoa_shaders
-      shaders->RegisterTranslator("layeredShader",
-                                  "",
-                                  CLayeredShaderTranslator::creator);
-      shaders->RegisterTranslator("layeredTexture",
-                                  "",
-                                  CLayeredTextureTranslator::creator);
-      shaders->RegisterTranslator("file",
-                                  "",
-                                  CFileTranslator::creator);
-      shaders->RegisterTranslator("place2dTexture",
-                                  "",
-                                  CPlace2DTextureTranslator::creator);
-      shaders->RegisterTranslator("bump2d",
-                                  "",
-                                  CBump2DTranslator::creator);
-      shaders->RegisterTranslator("bump3d",
-                                  "",
-                                  CBump3DTranslator::creator);
-      shaders->RegisterTranslator("samplerInfo",
-                                  "facingRatio",
-                                  CSamplerInfoTranslator::creator);
-      shaders->RegisterTranslator("plusMinusAverage",
-                                  "",
-                                  CPlusMinusAverageTranslator::creator);
-      shaders->RegisterTranslator("remapValue",
-                                  "",
-                                  CRemapValueTranslator::creator);
-      shaders->RegisterTranslator("remapColor",
-                                  "",
-                                  CRemapColorTranslator::creator);
-      shaders->RegisterTranslator("projection",
-                                  "",
-                                  CProjectionTranslator::creator);
-      shaders->RegisterTranslator("ramp",
-                                  "",
-                                  CRampTranslator::creator);
-
+      // Overrides for mtoa_shaders if load was successful
+      if (MStatus::kSuccess == status)
+      {
+         shaders->RegisterTranslator("layeredShader",
+                                     "",
+                                     CLayeredShaderTranslator::creator);
+         shaders->RegisterTranslator("layeredTexture",
+                                     "",
+                                     CLayeredTextureTranslator::creator);
+         shaders->RegisterTranslator("file",
+                                     "",
+                                     CFileTranslator::creator);
+         shaders->RegisterTranslator("place2dTexture",
+                                     "",
+                                     CPlace2DTextureTranslator::creator);
+         shaders->RegisterTranslator("bump2d",
+                                     "",
+                                     CBump2DTranslator::creator);
+         shaders->RegisterTranslator("bump3d",
+                                     "",
+                                     CBump3DTranslator::creator);
+         shaders->RegisterTranslator("samplerInfo",
+                                     "facingRatio",
+                                     CSamplerInfoTranslator::creator);
+         shaders->RegisterTranslator("plusMinusAverage",
+                                     "",
+                                     CPlusMinusAverageTranslator::creator);
+         shaders->RegisterTranslator("remapValue",
+                                     "",
+                                     CRemapValueTranslator::creator);
+         shaders->RegisterTranslator("remapColor",
+                                     "",
+                                     CRemapColorTranslator::creator);
+         shaders->RegisterTranslator("projection",
+                                     "",
+                                     CProjectionTranslator::creator);
+         shaders->RegisterTranslator("ramp",
+                                     "",
+                                     CRampTranslator::creator);
+      }
 
       // Will load all found plugins and try to register nodes and translators
       // for the new Arnold node each create. A CExtension is initialized.
