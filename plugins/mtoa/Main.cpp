@@ -345,11 +345,20 @@ DLLEXPORT MStatus initializePlugin(MObject object)
 
    RegisterArnoldNodes(object);
 
-   MGlobal::executePythonCommand(MString("import mtoa.cmds.registerArnoldRenderer;mtoa.cmds.registerArnoldRenderer.registerArnoldRenderer()"));
+   status = MGlobal::executePythonCommand(MString("import mtoa.cmds.registerArnoldRenderer;mtoa.cmds.registerArnoldRenderer.registerArnoldRenderer()"), true, false);
+   CHECK_MSTATUS(status);
+   if (MStatus::kSuccess == status)
+   {
+      AiMsgInfo("Successfully registered renderer 'arnold'");
+   }
+   else
+   {
+      AiMsgError("Failed to register renderer 'arnold'");
+   }
 
    AiEnd();
 
-   return MS::kSuccess;
+   return status;
 }
 
 DLLEXPORT MStatus uninitializePlugin(MObject object)
@@ -360,9 +369,10 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
    AiBegin();
    MtoaSetupLogging();
 
-   MGlobal::executePythonCommand(MString("import mtoa.cmds.unregisterArnoldRenderer;mtoa.cmds.unregisterArnoldRenderer.unregisterArnoldRenderer()"));
+   status = MGlobal::executePythonCommand(MString("import mtoa.cmds.unregisterArnoldRenderer;mtoa.cmds.unregisterArnoldRenderer.unregisterArnoldRenderer()"), true, false);
+   CHECK_MSTATUS(status);
 
-   UnregisterArnoldNodes(object);
+   status = UnregisterArnoldNodes(object);
 
    // TODO: Add proper checking and handling of returned status
    status = plugin.deregisterCommand("arnoldRender");
@@ -374,5 +384,5 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
    AiMsgResetCallback();
    AiEnd();
 
-   return MS::kSuccess;
+   return status;
 }

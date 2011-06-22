@@ -156,6 +156,7 @@ def run_test(target, source, env):
       
       # replace test render dir with this test dir
       # image filename "testrender" and format "Tiff" are set in the test scene render settings
+      cmd = string.replace(cmd, "test.log", os.path.join(os.path.abspath(os.path.dirname(test_env['OUTPUT_IMAGE'])), (test_env['TEST_NAME']+'.log')))
       cmd = string.replace(cmd, "testrenderdir", os.path.abspath(os.path.dirname(test_env['OUTPUT_IMAGE'])))
       cmd = string.replace(cmd, "test.ma", os.path.join(os.path.abspath(os.path.dirname(test_env['OUTPUT_IMAGE'])), 'test.ma'))
       
@@ -455,7 +456,7 @@ testsuite_bld = Builder(action = process_testsuite)
 
 class Test:
    def __init__(self,
-                script = 'Render -rd "testrenderdir" -r arnold -x 160 -y 120 "test.ma"',
+                script = 'Render -verb -log "test.log" -rd "testrenderdir" -r arnold -x 160 -y 120 "test.ma"',
                 plugin_sources      = '*.c*',
                 program_sources     = '',
                 program_name        = 'prog',
