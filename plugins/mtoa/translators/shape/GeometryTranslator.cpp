@@ -811,10 +811,26 @@ void CGeometryTranslator::ExportMeshParameters(AtNode* polymesh)
       AiNodeSetFlt(polymesh, "subdiv_pixel_error",    GetFnNode().findPlug("aiSubdivPixelError").asFloat());
       AiNodeSetInt(polymesh, "subdiv_uv_smoothing",   GetFnNode().findPlug("aiSubdivUvSmoothing").asInt());
 
-      // FIXME, this should probably be handled by ProcessParameter
-      MString cameraName = GetFnNode().findPlug("aiSubdivDicingCamera").asString();
+      const AtNodeEntry *polymeshEntry = polymesh->base_node;
+      const AtParamEntry *camParamEntry = AiNodeEntryLookUpParameter (polymeshEntry, "subdiv_dicing_camera");
+      MPlug camPlug = GetFnNode().findPlug("aiSubdivDicingCamera");
+      ProcessParameter(polymesh, camPlug, camParamEntry);
+      // AtNode* camera = ProcessParameter(polymesh, camPlug, camParamEntry);
+      // Above is better as it will cause the camera to be exported if it hasn't already
+      /*
+      MString cameraName("");
+      MPlug camPlug = GetFnNode().findPlug("aiSubdivDicingCamera");
+      MPlugArray connections;
+      camPlug.connectedTo(connections, true, false);
+      if (connections.length())
+      {
+         MObject camObj = connections[0].node();
+         MFnCamera fnCam(camObj, &status);
+         if (MStatus::kSuccess == status) cameraName = fnCam.partialPathName();
+      }
       AtNode* camera = ((cameraName != "") && (cameraName != "Default")) ? AiNodeLookUpByName(cameraName.asChar()) : NULL;
       AiNodeSetPtr(polymesh, "subdiv_dicing_camera", camera);
+      */
    }
 }
 
