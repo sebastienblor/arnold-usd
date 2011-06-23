@@ -319,27 +319,27 @@ def createArnoldInsertKeywordMenu(parent):
     cmds.menuItem(label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kFileNameKeywords")'), enable=0)
     cmds.menuItem(divider=True)
     cmds.menuItem(label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kKeywordScene")'),
-                  command=Callback(ArnoldKeywordMenuCallback, "<Scene>"))
+                  command=Callback(insertArnoldKeywordMenuCallback, "<Scene>"))
     cmds.menuItem(label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kKeywordLayer")'),
-                  command=Callback(ArnoldKeywordMenuCallback, "<RenderLayer>"))
+                  command=Callback(insertArnoldKeywordMenuCallback, "<RenderLayer>"))
     cmds.menuItem(label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kKeywordCamera")'),
-                  command=Callback(ArnoldKeywordMenuCallback, "<Camera>"))
+                  command=Callback(insertArnoldKeywordMenuCallback, "<Camera>"))
     cmds.menuItem(label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kKeywordRPFG")'),
-                  command=Callback(ArnoldKeywordMenuCallback, "<RenderPassFileGroup>"))
+                  command=Callback(insertArnoldKeywordMenuCallback, "<RenderPassFileGroup>"))
     cmds.menuItem(label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kKeywordRenderPass")'),
-                  command=Callback(ArnoldKeywordMenuCallback, "<RenderPass>"))
+                  command=Callback(insertArnoldKeywordMenuCallback, "<RenderPass>"))
     cmds.menuItem(label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kKeywordRenderPassType")'),
-                  command=Callback(ArnoldKeywordMenuCallback, "<RenderPassType>"))
+                  command=Callback(insertArnoldKeywordMenuCallback, "<RenderPassType>"))
     cmds.menuItem(label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kKeywordExtension")'),
-                  command=Callback(ArnoldKeywordMenuCallback, "<Extension>"))
+                  command=Callback(insertArnoldKeywordMenuCallback, "<Extension>"))
     cmds.menuItem(label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kKeywordVersion")'),
-                  command=Callback(ArnoldKeywordMenuCallback, "<Version>"))
+                  command=Callback(insertArnoldKeywordMenuCallback, "<Version>"))
     date = cmds.date(format="YY_MM_DD")
     cmds.menuItem(label=(mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kKeywordDate")') + date),
-                  command=Callback(InsertArnoldKeywordMenuCallback,  date))
+                  command=Callback(insertArnoldKeywordMenuCallback,  date))
     time = cmds.date(format="hh-mm-ss")
     cmds.menuItem(label=(mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kKeywordTime")') + time),
-                  command=Callback(InsertArnoldKeywordMenuCallback, time))
+                  command=Callback(insertArnoldKeywordMenuCallback, time))
 
 # ----------------------------------------------------------------------------
 # Code to create and update the Image File Output frame
@@ -358,7 +358,7 @@ def createArnoldFileNamePrefixControl():
         popup = cmds.popupMenu(parent='mayaSoftwareFileName|field')
     else:
         popup = cmds.popupMenu(parent='mayaSoftwareFileName')
-    cmds.popupMenu(popup, edit=True, postMenuCommand='createInsertKeywordMenu %s'%popup)
+    cmds.popupMenu(popup, edit=True, postMenuCommand=Callback(createArnoldInsertKeywordMenu, popup))
 
     # connect the label, so we can change its color
     cmds.connectControl('mayaSoftwareFileName', 'defaultRenderGlobals.imageFilePrefix', index=1)
