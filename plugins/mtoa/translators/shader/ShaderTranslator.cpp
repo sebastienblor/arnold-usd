@@ -1,5 +1,6 @@
 #include "ShaderTranslator.h"
 
+#include <maya/MPlugArray.h>
 
 // Auto shader translator
 //

@@ -6,7 +6,6 @@
 #include <ai_constants.h>
 #include <ai_msg.h>
 
-#include <maya/MFnCamera.h>
 #include <maya/MPlug.h>
 #include <maya/MPlugArray.h>
 #include <maya/MVector.h>

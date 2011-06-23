@@ -1,7 +1,9 @@
 #ifndef MAYASCENE_H
 #define MAYASCENE_H
 
+#include "common/MObjectCompare.h"
 #include "platform/Platform.h"
+#include "ExportOptions.h"
 #include "render/RenderOptions.h"
 
 #include <ai_nodes.h>
@@ -12,7 +14,6 @@
 #include <maya/MMatrix.h>
 #include <maya/MObjectArray.h>
 #include <maya/MSelectionList.h>
-#include <maya/MObjectHandle.h>
 #include <maya/MFnCamera.h>
 #include <maya/MVectorArray.h>
 #include <maya/MMessage.h>
@@ -22,44 +23,6 @@
 #include <set>
 #include <map>
 #include <string>
-
-// The different ExportMode were not really mutually exclusive
-// (you can have IPR render on selected only)
-// So redone as ExportMode and ExportFilter
-enum ExportMode
-{
-   MTOA_EXPORT_UNDEFINED,
-   MTOA_EXPORT_ALL,
-   MTOA_EXPORT_IPR,
-   MTOA_EXPORT_SWATCH,
-   MTOA_EXPORT_FILE
-};
-
-typedef std::set<MFn::Type> ExcludeSet;
-// Any custom filter we might want on exports
-// true means filtered OUT, ie NOT exported
-struct ExportFilter
-{
-   bool unselected;
-   bool templated;
-   bool hidden;
-   bool notinlayer;
-   ExcludeSet excluded;
-
-   ExportFilter() :  unselected(false),
-                     templated(true),
-                     hidden(true),
-                     notinlayer(true)   {}
-};
-
-struct ExportOptions
-{
-   ExportMode mode;
-   ExportFilter filter;
-
-   ExportOptions() : mode(MTOA_EXPORT_UNDEFINED),
-                     filter(ExportFilter()) {}
-};
 
 // To allow to specify that a dag node gets filtered out,
 // or that it's whole hierarchy does
@@ -72,30 +35,15 @@ enum DagFiltered
 
 class CNodeTranslator;
 
-struct CMotionBlurData
-{
-   bool enabled;
-   AtFloat shutter_size;
-   AtFloat shutter_offset;
-   AtUInt shutter_type;
-   AtUInt motion_steps;
-   AtFloat motion_frames;
 
-   std::vector<float> frames;
-};
 
-struct mobjcompare
-{
-   bool operator()(MObjectHandle h1, MObjectHandle h2) const
-   {
-      return h1.hashCode() < h2.hashCode();
-   }
-};
-
+// TODO : translator per output attribute / arnold node for Maya node that can alternatively
+// generate different Arnold nodes (multiple outputs), possibly in the same Arnold universe
+// when the maya node is shared (Trac #351)
 // depend nodes map from MObject to translator
-typedef std::map<MObjectHandle, CNodeTranslator*, mobjcompare> ObjectToTranslatorMap;
+typedef std::map<MObjectHandle, CNodeTranslator*, MObjectCompare> ObjectToTranslatorMap;
 // dag nodes: have one translator per instance, so they map MObject to a sub-map, from dag instance number to translator
-typedef std::map<MObjectHandle, std::map<int, CNodeTranslator*>, mobjcompare> ObjectToDagTranslatorMap;
+typedef std::map<MObjectHandle, std::map<int, CNodeTranslator*>, MObjectCompare> ObjectToDagTranslatorMap;
 
 /// Translates the current state of all or part of an open Maya scene into the active Arnold universe.
 
@@ -113,7 +61,7 @@ class DLLEXPORT CMayaScene
 public:
 
    CMayaScene()
-      :  m_exportOptions(ExportOptions())
+      :  m_exportOptions(CExportOptions())
       ,  m_fnCommonRenderOptions(NULL)
       ,  m_fnArnoldRenderOptions(NULL)
       ,  m_currentFrame(0)
@@ -129,12 +77,14 @@ public:
 
    inline AtFloat GetCurrentFrame()                      { return m_currentFrame;}
 
-   inline ExportOptions GetExportOptions()               { return m_exportOptions; }
-   inline void SetExportOptions(ExportOptions& options)  { m_exportOptions = options; }
-   inline ExportMode GetExportMode()                     { return m_exportOptions.mode; }
-   inline void SetExportMode(ExportMode mode)            { m_exportOptions.mode = mode; }
-   inline ExportFilter GetExportFilter()                 { return m_exportOptions.filter; }
-   inline void SetExportFilter(ExportFilter& filter)     { m_exportOptions.filter = filter; }
+   inline CExportOptions GetExportOptions()               { return m_exportOptions; }
+   inline void SetExportOptions(CExportOptions& options)  { m_exportOptions = options; }
+
+   inline CExportMode GetExportMode()                     { return m_exportOptions.GetExportMode(); }
+   inline void SetExportMode(CExportMode mode)            { m_exportOptions.SetExportMode(mode); }
+
+   inline CExportFilter GetExportFilter()                 { return m_exportOptions.GetExportFilter(); }
+   inline void SetExportFilter(CExportFilter& filter)     { m_exportOptions.SetExportFilter(filter); }
 
    void ProcessShaderParameter(MFnDependencyNode shader,
                                const char* param,
@@ -150,45 +100,10 @@ public:
    static bool IsRenderablePath(MDagPath dagPath);
    static void UpdateIPR(CNodeTranslator * translator=NULL);
 
-   bool IsMotionBlurEnabled() const
-   {
-      return (NULL != m_fnArnoldRenderOptions) && m_fnArnoldRenderOptions->findPlug("motion_blur_enable").asBool();
-   }
-   
-   bool IsCameraMotionBlurEnabled() const
-   {
-      return IsMotionBlurEnabled() && m_fnArnoldRenderOptions->findPlug("mb_camera_enable").asBool();
-   }
-
-   bool IsObjectMotionBlurEnabled() const
-   {
-      return IsMotionBlurEnabled() && m_fnArnoldRenderOptions->findPlug("mb_objects_enable").asBool();
-   }
-
-   bool IsDeformMotionBlurEnabled() const
-   {
-      return IsMotionBlurEnabled() && m_fnArnoldRenderOptions->findPlug("mb_object_deform_enable").asBool();
-   }
-   
-   bool IsLightMotionBlurEnabled() const
-   {
-      return IsMotionBlurEnabled() && m_fnArnoldRenderOptions->findPlug("mb_lights_enable").asBool();
-   }
-   
-   AtUInt GetNumMotionSteps() const
-   {
-      return m_motionBlurData.motion_steps;
-   }
-   
-   AtFloat GetShutterSize() const
-   {
-      return m_motionBlurData.shutter_size;
-   }
-   
-   AtUInt GetShutterType()
-   {
-      return m_motionBlurData.shutter_type;
-   }
+   inline bool IsMotionBlurEnabled(int type = MTOA_MBLUR_ALL) const { return m_exportOptions.IsMotionBlurEnabled(type); }
+   inline AtUInt GetNumMotionSteps() const { return m_exportOptions.GetNumMotionSteps(); }
+   inline AtFloat GetShutterSize() const { return m_exportOptions.GetShutterSize(); }
+   inline AtUInt GetShutterType() const { return m_exportOptions.GetShutterType(); }
 
    MString GetAssName(const MString& customName,
                       const MCommonRenderSettingsData& renderGlobals,
@@ -239,20 +154,20 @@ private:
    
 private:
 
-   ExportOptions m_exportOptions;
+   CExportOptions m_exportOptions;
    MFnDependencyNode* m_fnCommonRenderOptions;
    MFnDependencyNode* m_fnArnoldRenderOptions;
-   CMotionBlurData m_motionBlurData;
+   MDagPath m_camera;
+
+   AtFloat m_currentFrame;
+   std::vector<float> m_motion_frames;
 
    // depend nodes, are a map with MObjectHandle as a key
    ObjectToTranslatorMap m_processedTranslators;
    // dag nodes, are a map in a map.
    // the first key is an MObjectHandle and the second the instance number
    ObjectToDagTranslatorMap m_processedDagTranslators;
-   
-   MDagPath m_camera;
 
-   AtFloat m_currentFrame;
 };  // class CMayaScene
 
 #endif // MAYASCENE_H

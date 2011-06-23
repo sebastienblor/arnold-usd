@@ -3,6 +3,8 @@
 
 #include "translators/NodeTranslator.h"
 
+#include <maya/MFnCamera.h>
+
 const double MM_TO_INCH = 0.03937;
 
 enum FitType

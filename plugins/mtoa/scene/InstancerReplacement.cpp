@@ -17,9 +17,8 @@ void CMayaScene::ExportInstancerReplacement(const MDagPath& dagPath, AtUInt step
    // Find the particleShape attached to this instancer
    MPlugArray conn;
 
-   // Instancer replacement nodes do not have a motion blur enable/disable attribute. Always on.
-   bool mb = m_motionBlurData.enabled &&
-             m_fnArnoldRenderOptions->findPlug("mb_objects_enable").asBool();
+   // Instancer replacement nodes do not have a motion blur enable/disable attribute. Use object .
+   bool mb = IsMotionBlurEnabled(MTOA_MBLUR_OBJECT)
 
    // the particleShape attached
    MFnDependencyNode depNodeInstancer(dagPath.node());
@@ -63,7 +62,7 @@ void CMayaScene::ExportInstancerReplacement(const MDagPath& dagPath, AtUInt step
 
                if (mb)
                {
-                  AtArray* matrices = AiArrayAllocate(1, m_motionBlurData.motion_steps, AI_TYPE_MATRIX);
+                  AtArray* matrices = AiArrayAllocate(1, GetNumMotionSteps, AI_TYPE_MATRIX);
                   AiArraySetMtx(matrices, step, matrix);
                   AiNodeSetArray(instanceNode, "matrix", matrices);
                }

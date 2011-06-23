@@ -87,19 +87,16 @@ MStatus CMayaScene::ExportToArnold()
    // Export Options - this needs to occur after PrepareExport is called
    ExportShader(m_fnArnoldRenderOptions->object());
 
-   // Are we motion blurred?
-   const bool mb = m_motionBlurData.enabled &&
-                   (m_fnArnoldRenderOptions->findPlug("mb_camera_enable").asBool()    ||
-                     m_fnArnoldRenderOptions->findPlug("mb_objects_enable").asBool()   ||
-                     m_fnArnoldRenderOptions->findPlug("mb_lights_enable").asBool());
+   // Are we motion blurred (any type)?
+   const bool mb = IsMotionBlurEnabled();
 
    // In case of motion blur we need to position ourselves to first step
    // TODO : what if specific frame was requested and it's != GetCurrentFrame()
    if (mb)
    {
       // first step is the real export
-      AiMsgDebug("[mtoa] Exporting step 0 at frame %f", m_motionBlurData.frames[0]);
-      MGlobal::viewFrame(MTime(m_motionBlurData.frames[0], MTime::uiUnit()));
+      AiMsgDebug("[mtoa] Exporting step 0 at frame %f", m_motion_frames[0]);
+      MGlobal::viewFrame(MTime(m_motion_frames[0], MTime::uiUnit()));
    }
    // First "real" export
    if (exportMode == MTOA_EXPORT_ALL || exportMode == MTOA_EXPORT_IPR)
@@ -147,10 +144,10 @@ MStatus CMayaScene::ExportToArnold()
    if (mb)
    {
       // loop through motion steps
-      for (AtUInt step = 1; step < m_motionBlurData.motion_steps; ++step)
+      for (AtUInt step = 1; step < GetNumMotionSteps(); ++step)
       {
-         MGlobal::viewFrame(MTime(m_motionBlurData.frames[step], MTime::uiUnit()));
-         AiMsgDebug("[mtoa] Exporting step %d at frame %f", step, m_motionBlurData.frames[step]);
+         MGlobal::viewFrame(MTime(m_motion_frames[step], MTime::uiUnit()));
+         AiMsgDebug("[mtoa] Exporting step %d at frame %f", step, m_motion_frames[step]);
          // then, loop through the already processed dag translators and export for current step
          ObjectToDagTranslatorMap::iterator dagIt;
          for(dagIt = m_processedDagTranslators.begin(); dagIt != m_processedDagTranslators.end(); ++dagIt)
@@ -191,35 +188,53 @@ void CMayaScene::PrepareExport()
       m_fnArnoldRenderOptions = new MFnDependencyNode(node);
    }
 
-   m_currentFrame = static_cast<float>(MAnimControl::currentTime().as(MTime::uiUnit()));
-
+   m_exportOptions.frame = static_cast<float>(MAnimControl::currentTime().as(MTime::uiUnit()));
 
    GetMotionBlurData();
 }
 
 void CMayaScene::GetMotionBlurData()
 {
-   m_motionBlurData.enabled        = m_fnArnoldRenderOptions->findPlug("motion_blur_enable").asBool();
-   m_motionBlurData.shutter_size   = m_fnArnoldRenderOptions->findPlug("shutter_size").asFloat();
-   m_motionBlurData.shutter_offset = m_fnArnoldRenderOptions->findPlug("shutter_offset").asFloat();
-   m_motionBlurData.shutter_type   = m_fnArnoldRenderOptions->findPlug("shutter_type").asInt();
-   m_motionBlurData.motion_frames  = m_fnArnoldRenderOptions->findPlug("motion_frames").asFloat();
-
-   if (m_motionBlurData.enabled)
+   if (m_fnArnoldRenderOptions->findPlug("mb_en").asBool())
    {
-      m_motionBlurData.motion_steps   = m_fnArnoldRenderOptions->findPlug("motion_steps").asInt();
-      for (AtUInt J = 0; (J < m_motionBlurData.motion_steps); ++J)
+      m_exportOptions.motion.enable_mask     = m_fnArnoldRenderOptions->findPlug("mb_len").asBool() * MTOA_MBLUR_LIGHT
+                                             + m_fnArnoldRenderOptions->findPlug("mb_cen").asBool() * MTOA_MBLUR_CAMERA
+                                             + m_fnArnoldRenderOptions->findPlug("mb_oen").asBool() * MTOA_MBLUR_OBJECT
+                                             + m_fnArnoldRenderOptions->findPlug("mb_den").asBool() * MTOA_MBLUR_DEFORM
+                                             + m_fnArnoldRenderOptions->findPlug("mb_sen").asBool() * MTOA_MBLUR_SHADER;
+   }
+   else
+   {
+      m_exportOptions.motion.enable_mask     = MTOA_MBLUR_DISABLE;
+   }
+   if (m_exportOptions.motion.enable_mask)
+   {
+      m_exportOptions.motion.shutter_size    = m_fnArnoldRenderOptions->findPlug("shutter_size").asFloat();
+      m_exportOptions.motion.shutter_offset  = m_fnArnoldRenderOptions->findPlug("shutter_offset").asFloat();
+      m_exportOptions.motion.shutter_type    = m_fnArnoldRenderOptions->findPlug("shutter_type").asInt();
+      m_exportOptions.motion.by_frame        = m_fnArnoldRenderOptions->findPlug("motion_frames").asFloat();
+      m_exportOptions.motion.steps           = m_fnArnoldRenderOptions->findPlug("motion_steps").asInt();
+
+      m_motion_frames.clear();
+      m_motion_frames.reserve(m_exportOptions.motion.steps);
+      for (AtUInt J=0; (J < m_exportOptions.motion.steps); ++J)
       {
          float frame = GetCurrentFrame() -
-                       m_motionBlurData.motion_frames * 0.5f +
-                       m_motionBlurData.shutter_offset +
-                       m_motionBlurData.motion_frames / (m_motionBlurData.motion_steps - 1) * J;
+                       m_exportOptions.motion.by_frame * 0.5f +
+                       m_exportOptions.motion.shutter_offset +
+                       m_exportOptions.motion.by_frame / (m_exportOptions.motion.steps - 1) * J;
 
-         m_motionBlurData.frames.push_back(frame);
+         m_motion_frames.push_back(frame);
       }
    }
    else
-      m_motionBlurData.motion_steps   = 1;
+   {
+      m_exportOptions.motion.by_frame        = 0;
+      m_exportOptions.motion.steps           = 1;
+
+      m_motion_frames.clear();
+      m_motion_frames.push_back(GetCurrentFrame());
+   }
 }
 
 // Export the cameras of the maya scene
@@ -848,11 +863,7 @@ void CMayaScene::IPRIdleCallback(void *)
    renderSession->InterruptRender();
    CMayaScene* scene = renderSession->GetMayaScene();
    // Are we motion blurred?
-   const bool mb = scene->m_motionBlurData.enabled &&
-                   (scene->m_fnArnoldRenderOptions->findPlug("mb_camera_enable").asBool()    ||
-                     scene->m_fnArnoldRenderOptions->findPlug("mb_objects_enable").asBool()   ||
-                     scene->m_fnArnoldRenderOptions->findPlug("mb_lights_enable").asBool());
-
+   const bool mb = scene->IsMotionBlurEnabled();
    if (!mb)
    {
       for(std::vector<CNodeTranslator*>::iterator iter=s_translatorsToIPRUpdate.begin();
@@ -865,9 +876,9 @@ void CMayaScene::IPRIdleCallback(void *)
    else
    {
       // Scene is motion blured, get the data for the steps.
-      for (AtUInt J = 0; (J < scene->m_motionBlurData.motion_steps); ++J)
+      for (AtUInt J = 0; (J < scene->GetNumMotionSteps()); ++J)
       {
-         MGlobal::viewFrame(MTime(scene->m_motionBlurData.frames[J], MTime::uiUnit()));
+         MGlobal::viewFrame(MTime(scene->m_motion_frames[J], MTime::uiUnit()));
          for(std::vector<CNodeTranslator*>::iterator iter=s_translatorsToIPRUpdate.begin();
             iter != s_translatorsToIPRUpdate.end(); ++iter)
          {

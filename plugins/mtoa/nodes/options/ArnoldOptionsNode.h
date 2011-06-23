@@ -73,6 +73,7 @@ public:
    static MObject s_mb_objects_enable;
    static MObject s_mb_object_deform_enable;
    static MObject s_mb_lights_enable;
+   static MObject s_mb_shader_enable;
    static MObject s_shutter_size;
    static MObject s_shutter_offset;
    static MObject s_shutter_type;
