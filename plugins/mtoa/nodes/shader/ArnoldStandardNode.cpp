@@ -121,6 +121,8 @@ MObjectArray CArnoldStandardNode::s_PlugsAffecting;
 
 void CArnoldStandardNode::postConstructor()
 {
+   setExistWithoutInConnections(true);
+   setExistWithoutOutConnections(true);
    setMPSafe(false);
 }
 

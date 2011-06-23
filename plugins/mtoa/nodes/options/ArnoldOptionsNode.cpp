@@ -103,6 +103,8 @@ void CArnoldOptionsNode::createdCallback(MObject& node, void* clientData)
 // Setup the on creation callback
 void CArnoldOptionsNode::postConstructor()
 {
+   setExistWithoutInConnections(true);
+   setExistWithoutOutConnections(true);
    CArnoldOptionsNode::sId = MDGMessage::addNodeAddedCallback(CArnoldOptionsNode::createdCallback, "aiOptions");
 }
 
