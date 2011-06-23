@@ -15,7 +15,7 @@ enum ExportMode
    MTOA_EXPORT_FILE
 };
 
-typedef std::set<MFn::Type> CExcludeSet;
+typedef std::set<MFn::Type> ExcludeSet;
 // Any custom filter we might want on exports
 // true means filtered OUT, ie NOT exported
 struct CExportFilter
@@ -24,7 +24,7 @@ struct CExportFilter
    bool templated;
    bool hidden;
    bool notinlayer;
-   CExcludeSet excluded;
+   ExcludeSet excluded;
 
    CExportFilter() :  unselected(false),
                       templated(true),
@@ -63,11 +63,11 @@ struct CExportOptions
 
    CExportOptions() : m_frame(0.0f),
                       m_mode(MTOA_EXPORT_UNDEFINED),
-                      m_filter(ExportFilter()),
-                      m_motion(ExportMotion()) {}
+                      m_filter(CExportFilter()),
+                      m_motion(CExportMotion()) {}
 
    inline ExportMode GetExportMode() const {return m_mode;}
-   inline void SetExportMode(CExportMode mode) { m_mode = mode; }
+   inline void SetExportMode(ExportMode mode) { m_mode = mode; }
    inline CExportFilter GetExportFilter()const { return m_filter; }
    inline void SetExportFilter(CExportFilter& filter) { m_filter = filter; }
 
@@ -80,7 +80,7 @@ struct CExportOptions
 private:
 
    AtFloat         m_frame;
-   CExportMode     m_mode;
+   ExportMode      m_mode;
    CExportFilter   m_filter;
    CExportMotion   m_motion;
 

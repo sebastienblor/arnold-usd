@@ -266,7 +266,8 @@ MStatus CRenderSwatchGenerator::ExportNode(AtNode* & arnoldNode,
 {
    MStatus status;
    MObject mayaNode = swatchNode();
-   CMayaScene * m_mayaScene = m_renderSession->GetMayaScene();
+   CMayaScene* mayaScene = m_renderSession->GetMayaScene();
+   CExportOptions* exportOptions = mayaScene->GetExportOptions();
 
    // FIXME: Special case for displacement
    if (m_swatchClass == SWATCH_DISPLACEMENT)
@@ -302,14 +303,14 @@ MStatus CRenderSwatchGenerator::ExportNode(AtNode* & arnoldNode,
          }
          if (NULL != dagTranslator)
          {
-            dagTranslator->Init(dagPath, m_mayaScene, "");
+            dagTranslator->Init(exportOptions, dagPath, "");
             arnoldNode = dagTranslator->DoExport(0);
          }
       } else {
          translator = CExtensionsManager::GetTranslator(mayaNode);
          if (NULL != translator)
          {
-            translator->Init(mayaNode, m_mayaScene, "");
+            translator->Init(exportOptions, mayaNode, "");
             arnoldNode = translator->DoExport(0);
          }
       }
@@ -330,7 +331,7 @@ MStatus CRenderSwatchGenerator::AssignNode(AtNode* arnoldNode)
 {
    MStatus status;
    MFnDependencyNode depFn(swatchNode());
-   CMayaScene * m_mayaScene = m_renderSession->GetMayaScene();
+   CMayaScene * mayaScene = m_renderSession->GetMayaScene();
 
    // Assign what needs to be on geometry
 
@@ -361,14 +362,14 @@ MStatus CRenderSwatchGenerator::AssignNode(AtNode* arnoldNode)
       if (connections.length() > 0)
       {
          MString attrName = connections[0].partialName(false, false, false, false, false, true);
-         AtNode* dispImage(m_mayaScene->ExportShader(connections[0].node(), attrName));
+         AtNode* dispImage(mayaScene->ExportShader(connections[0].node(), attrName));
          if (dispImage != NULL)
          {
             MPlug pVectorDisp = depFn.findPlug("vector_displacement", false);
             if (!pVectorDisp.isNull() && pVectorDisp.asBool())
             {
                AtNode* tangentToObject = AiNode("TangentToObjectSpace");
-               m_mayaScene->ProcessShaderParameter(depFn, "vector_displacement_scale", tangentToObject, "scale", AI_TYPE_VECTOR);
+               mayaScene->ProcessShaderParameter(depFn, "vector_displacement_scale", tangentToObject, "scale", AI_TYPE_VECTOR);
                AiNodeLink(dispImage, "map", tangentToObject);
                AiNodeSetPtr(geometry, "disp_map", tangentToObject);
             }

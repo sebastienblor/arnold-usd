@@ -168,7 +168,7 @@ public:
       return tmpRet;
    }
 
-   virtual AtNode* Init(CExportOptions* exportOptions, MObject& object, String outputAttr="")
+   virtual AtNode* Init(CExportOptions* exportOptions, MObject& object, MString outputAttr="")
    {
       MDagPath dagPath;
       MDagPath::getAPathTo(object, dagPath);

@@ -18,7 +18,7 @@ void CMayaScene::ExportInstancerReplacement(const MDagPath& dagPath, AtUInt step
    MPlugArray conn;
 
    // Instancer replacement nodes do not have a motion blur enable/disable attribute. Use object .
-   bool mb = IsMotionBlurEnabled(MTOA_MBLUR_OBJECT)
+   bool mb = IsMotionBlurEnabled(MTOA_MBLUR_OBJECT);
 
    // the particleShape attached
    MFnDependencyNode depNodeInstancer(dagPath.node());
@@ -62,7 +62,7 @@ void CMayaScene::ExportInstancerReplacement(const MDagPath& dagPath, AtUInt step
 
                if (mb)
                {
-                  AtArray* matrices = AiArrayAllocate(1, GetNumMotionSteps, AI_TYPE_MATRIX);
+                  AtArray* matrices = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_MATRIX);
                   AiArraySetMtx(matrices, step, matrix);
                   AiNodeSetArray(instanceNode, "matrix", matrices);
                }

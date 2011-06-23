@@ -10,7 +10,7 @@
 // separatly as it would not be efficient to iterate whole DAG
 // and check a selected status for each node
 
-DagFiltered CMayaScene::FilteredStatus(ExportFilter filter, MDagPath path)
+DagFiltered CMayaScene::FilteredStatus(CExportFilter filter, MDagPath path)
 {
    // Tests that cause the whole branch to be pruned
    if (filter.templated == true && IsTemplatedPath(path))
@@ -38,7 +38,7 @@ DagFiltered CMayaScene::FilteredStatus(ExportFilter filter, MDagPath path)
 //
 // @param dagPath   DagPath evaluated.
 // @return        True if the object is not templated and visible.
-bool CMayaScene::IsExportedPath(ExportFilter filter, MDagPath path)
+bool CMayaScene::IsExportedPath(CExportFilter filter, MDagPath path)
 {
    if (MTOA_EXPORT_ACCEPTED != FilteredStatus(filter, path))
       return false;

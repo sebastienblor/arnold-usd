@@ -1,6 +1,7 @@
 
 #include "MayaScene.h"
 #include "extension/ExtensionsManager.h"
+#include "render/RenderSession.h"
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
@@ -79,8 +80,8 @@ MStatus CMayaScene::ExportToArnold()
    // ExportFilter exportFilter = GetExportFilter();
    // It wouldn't be efficient to test the whole scene against selection state
    // so selected gets a special treatment
-   ExportMode exportMode = m_exportOptions.mode;
-   bool filterSelected = m_exportOptions.filter.unselected;
+   ExportMode exportMode = m_exportOptions.m_mode;
+   bool filterSelected = m_exportOptions.m_filter.unselected;
    
    PrepareExport();
 
@@ -104,12 +105,12 @@ MStatus CMayaScene::ExportToArnold()
       // Cameras are always exported currently
       status = ExportCameras();
       // Then we filter them out to avoid double exporting them
-      m_exportOptions.filter.excluded.insert(MFn::kCamera);
+      m_exportOptions.m_filter.excluded.insert(MFn::kCamera);
       if (filterSelected)
       {
          // And for render selected we need the lights too
          status = ExportLights();
-         m_exportOptions.filter.excluded.insert(MFn::kLight);
+         m_exportOptions.m_filter.excluded.insert(MFn::kLight);
          status = ExportSelected();
       }
       else
@@ -130,7 +131,7 @@ MStatus CMayaScene::ExportToArnold()
          // Else if it's a full / renderable scene
          status = ExportCameras();
          // Then we filter them out to avoid double exporting them
-         m_exportOptions.filter.excluded.insert(MFn::kCamera);
+         m_exportOptions.m_filter.excluded.insert(MFn::kCamera);
          status = ExportScene();
       }
    }
@@ -188,7 +189,7 @@ void CMayaScene::PrepareExport()
       m_fnArnoldRenderOptions = new MFnDependencyNode(node);
    }
 
-   m_exportOptions.frame = static_cast<float>(MAnimControl::currentTime().as(MTime::uiUnit()));
+   m_exportOptions.m_frame = static_cast<float>(MAnimControl::currentTime().as(MTime::uiUnit()));
 
    GetMotionBlurData();
 }
@@ -197,7 +198,7 @@ void CMayaScene::GetMotionBlurData()
 {
    if (m_fnArnoldRenderOptions->findPlug("mb_en").asBool())
    {
-      m_exportOptions.motion.enable_mask     = m_fnArnoldRenderOptions->findPlug("mb_len").asBool() * MTOA_MBLUR_LIGHT
+      m_exportOptions.m_motion.enable_mask   = m_fnArnoldRenderOptions->findPlug("mb_len").asBool() * MTOA_MBLUR_LIGHT
                                              + m_fnArnoldRenderOptions->findPlug("mb_cen").asBool() * MTOA_MBLUR_CAMERA
                                              + m_fnArnoldRenderOptions->findPlug("mb_oen").asBool() * MTOA_MBLUR_OBJECT
                                              + m_fnArnoldRenderOptions->findPlug("mb_den").asBool() * MTOA_MBLUR_DEFORM
@@ -205,32 +206,32 @@ void CMayaScene::GetMotionBlurData()
    }
    else
    {
-      m_exportOptions.motion.enable_mask     = MTOA_MBLUR_DISABLE;
+      m_exportOptions.m_motion.enable_mask     = MTOA_MBLUR_DISABLE;
    }
-   if (m_exportOptions.motion.enable_mask)
+   if (m_exportOptions.m_motion.enable_mask)
    {
-      m_exportOptions.motion.shutter_size    = m_fnArnoldRenderOptions->findPlug("shutter_size").asFloat();
-      m_exportOptions.motion.shutter_offset  = m_fnArnoldRenderOptions->findPlug("shutter_offset").asFloat();
-      m_exportOptions.motion.shutter_type    = m_fnArnoldRenderOptions->findPlug("shutter_type").asInt();
-      m_exportOptions.motion.by_frame        = m_fnArnoldRenderOptions->findPlug("motion_frames").asFloat();
-      m_exportOptions.motion.steps           = m_fnArnoldRenderOptions->findPlug("motion_steps").asInt();
+      m_exportOptions.m_motion.shutter_size    = m_fnArnoldRenderOptions->findPlug("shutter_size").asFloat();
+      m_exportOptions.m_motion.shutter_offset  = m_fnArnoldRenderOptions->findPlug("shutter_offset").asFloat();
+      m_exportOptions.m_motion.shutter_type    = m_fnArnoldRenderOptions->findPlug("shutter_type").asInt();
+      m_exportOptions.m_motion.by_frame        = m_fnArnoldRenderOptions->findPlug("motion_frames").asFloat();
+      m_exportOptions.m_motion.steps           = m_fnArnoldRenderOptions->findPlug("motion_steps").asInt();
 
       m_motion_frames.clear();
-      m_motion_frames.reserve(m_exportOptions.motion.steps);
-      for (AtUInt J=0; (J < m_exportOptions.motion.steps); ++J)
+      m_motion_frames.reserve(m_exportOptions.m_motion.steps);
+      for (AtUInt J=0; (J < m_exportOptions.m_motion.steps); ++J)
       {
          float frame = GetCurrentFrame() -
-                       m_exportOptions.motion.by_frame * 0.5f +
-                       m_exportOptions.motion.shutter_offset +
-                       m_exportOptions.motion.by_frame / (m_exportOptions.motion.steps - 1) * J;
+                       m_exportOptions.m_motion.by_frame * 0.5f +
+                       m_exportOptions.m_motion.shutter_offset +
+                       m_exportOptions.m_motion.by_frame / (m_exportOptions.m_motion.steps - 1) * J;
 
          m_motion_frames.push_back(frame);
       }
    }
    else
    {
-      m_exportOptions.motion.by_frame        = 0;
-      m_exportOptions.motion.steps           = 1;
+      m_exportOptions.m_motion.by_frame        = 0;
+      m_exportOptions.m_motion.steps           = 1;
 
       m_motion_frames.clear();
       m_motion_frames.push_back(GetCurrentFrame());
@@ -249,7 +250,7 @@ MStatus CMayaScene::ExportCameras()
 
    // First we export all cameras
    // We do not reset the iterator to avoid getting kWorld
-   ExportFilter filter = GetExportFilter();
+   CExportFilter filter = GetExportFilter();
    for (; (!dagIterCameras.isDone()); dagIterCameras.next())
    {
       if (dagIterCameras.getPath(path))
@@ -291,7 +292,7 @@ MStatus CMayaScene::ExportLights()
 
    // First we export all cameras
    // We do not reset the iterator to avoid getting kWorld
-   ExportFilter filter = GetExportFilter();
+   CExportFilter filter = GetExportFilter();
    for (; (!dagIterLights.isDone()); dagIterLights.next())
    {
       if (dagIterLights.getPath(path))
@@ -488,7 +489,7 @@ AtNode* CMayaScene::ExportDagPath(MDagPath &dagPath)
    {
       if (translator->IsRenderable())
       {
-         AtNode* result = translator->Init(dagPath, this);
+         AtNode* result = translator->Init(&m_exportOptions, dagPath);
          translator->DoExport(0);
          // save it for later
          m_processedDagTranslators[handle][instanceNum] = translator;
@@ -528,7 +529,7 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
    CNodeTranslator* translator = CExtensionsManager::GetTranslator(mayaShader);
    if (translator != NULL)
    {
-      shader = translator->Init(mayaShader, this, attrName);
+      shader = translator->Init(&m_exportOptions, mayaShader, attrName);
       m_processedTranslators[handle] = translator;
       translator->DoExport(0);
    }

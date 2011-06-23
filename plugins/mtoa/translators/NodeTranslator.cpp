@@ -4,6 +4,8 @@
 #include <ai_ray.h>
 #include <ai_metadata.h>
 
+#include <maya/MPoint.h>
+#include <maya/MMatrix.h>
 #include <maya/MPlugArray.h>
 #include <maya/MFnNumericData.h>
 #include <maya/MFnMatrixData.h>

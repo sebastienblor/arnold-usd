@@ -75,13 +75,13 @@ public:
    AtNode* ExportShader(MPlug& shaderOutputPlug);
    AtNode* ExportDagPath(MDagPath &dagPath);
 
-   inline AtFloat GetCurrentFrame()                      { return m_currentFrame;}
+   inline AtFloat GetCurrentFrame()                       { return m_currentFrame;}
 
-   inline CExportOptions GetExportOptions()               { return m_exportOptions; }
+   inline CExportOptions* GetExportOptions()              { return &m_exportOptions; }
    inline void SetExportOptions(CExportOptions& options)  { m_exportOptions = options; }
 
-   inline CExportMode GetExportMode()                     { return m_exportOptions.GetExportMode(); }
-   inline void SetExportMode(CExportMode mode)            { m_exportOptions.SetExportMode(mode); }
+   inline ExportMode GetExportMode()                      { return m_exportOptions.GetExportMode(); }
+   inline void SetExportMode(ExportMode mode)             { m_exportOptions.SetExportMode(mode); }
 
    inline CExportFilter GetExportFilter()                 { return m_exportOptions.GetExportFilter(); }
    inline void SetExportFilter(CExportFilter& filter)     { m_exportOptions.SetExportFilter(filter); }
@@ -131,8 +131,8 @@ private:
 
    void ExportInstancerReplacement(const MDagPath& dagPath, AtUInt step);
 
-   static DagFiltered FilteredStatus(ExportFilter filter, MDagPath dagPath);
-   bool IsExportedPath(ExportFilter filter, MDagPath path);
+   static DagFiltered FilteredStatus(CExportFilter filter, MDagPath dagPath);
+   bool IsExportedPath(CExportFilter filter, MDagPath path);
    static bool IsInRenderLayer(MDagPath dagPath);
    static bool IsVisiblePath(MDagPath dagPath);
    static bool IsTemplatedPath(MDagPath dagPath);

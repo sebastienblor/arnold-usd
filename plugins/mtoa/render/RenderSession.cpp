@@ -122,11 +122,11 @@ void CRenderSession::LoadPlugins()
 
 void CRenderSession::Init()
 {
-   ExportOptions defaultOptions;
+   CExportOptions defaultOptions;
    Init(defaultOptions);
 }
 
-void CRenderSession::Init(ExportOptions& options)
+void CRenderSession::Init(CExportOptions& options)
 {
    m_is_active = true;
    m_scene = new CMayaScene;
@@ -137,11 +137,11 @@ void CRenderSession::Init(ExportOptions& options)
 
 void CRenderSession::Translate()
 {
-   ExportOptions defaultOptions;
+   CExportOptions defaultOptions;
    Translate(defaultOptions);
 }
 
-void CRenderSession::Translate(ExportOptions& options)
+void CRenderSession::Translate(CExportOptions& options)
 {
    if (AiUniverseIsActive())
    {
