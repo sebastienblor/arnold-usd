@@ -35,9 +35,22 @@ def ArnoldStandInDsoEdit(mPath) :
     # Single .obj
     elif re.search(r'([-_/a-zA-Z0-9.]+)(\.obj)',mPath) != None:
         mArchivePath = mPath
-    
+        cmds.setAttr(nodeName+".useFrameExtension",False)
+    # Sequence of .obj
+    elif re.search(r'([-_/a-zA-Z0-9.]+)([0-9.]+)(.obj)',mPath) != None:
+        m_groups = re.search(r'([-_/a-zA-Z0-9.]+)([0-9.]+)(.obj)',mPath).groups()
+        mArchivePath = m_groups[0]+'#'+m_groups[2]
+        if '.' in m_groups[1]:
+            cmds.setAttr(nodeName+".useSubFrame",True)
+        else:
+            cmds.setAttr(nodeName+".useSubFrame",False)
+        cmds.setAttr(nodeName+".useFrameExtension",True)
+    # Other
+    else:
+        mArchivePath = mPath
+        
     cmds.setAttr(nodeName+".dso",mArchivePath,type="string")
-    if ".so" in mPath:
+    if ".so" in mPath or ".dll" in mPath or ".dylib" in mPath:
         cmds.text("standInDataLabel", edit=True, enable=True)
         cmds.textField("standInData", edit=True, enable=True)
     else:

@@ -110,9 +110,39 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
    {
       AiBegin();
       bool processRead = false;
+      bool isSo = false;
       unsigned int nscn = assfile.numChars();
-      MString ext = assfile.substringW(nscn-4, nscn);
-      if (ext == ".obj")
+      MString ext = assfile.substringW(nscn-3, nscn);
+      if (ext == ".so")
+      {
+         isSo = true;
+      }
+      unsigned int nchars = assfile.numChars();
+      if (nchars > 4 && assfile.substringW(nchars-3, nchars) == ".so")
+      {
+         assfile = assfile.substringW(0, nchars-4)+LIBEXT;
+         isSo = true;
+      }
+      else if (nchars > 4 && assfile.substringW(nchars-4, nchars) == ".dll")
+      {
+         assfile = assfile.substringW(0, nchars-5)+LIBEXT;
+         isSo = true;
+      }
+      else if (nchars > 4 && assfile.substringW(nchars-6, nchars) == ".dylib")
+      {
+         assfile = assfile.substringW(0, nchars-7)+LIBEXT;
+         isSo = true;
+      }
+
+      ext = assfile.substringW(nscn-4, nscn);
+      if (ext == ".ass")
+      {
+         if (AiASSLoad(assfile.asChar()) == 0)
+         {
+            processRead = true;
+         }
+      }
+      else if (ext == ".obj")
       {
          AtNode *options = AiUniverseGetOptions();
          AiNodeSetBool(options, "preserve_scene_data", true);
@@ -124,12 +154,17 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          else
             processRead = false;
       }
-      else if (ext == ".ass")
+      else if (isSo)
       {
-         if (AiASSLoad(assfile.asChar()) == 0)
-         {
+         AtNode *options = AiUniverseGetOptions();
+         AiNodeSetBool(options, "preserve_scene_data", true);
+         AtNode * procedural = AiNode("procedural");
+         AiNodeSetStr(procedural, "dso", assfile.asChar());
+         AiNodeSetBool(procedural, "load_at_init", true);
+         if (AiRender(AI_RENDER_MODE_FREE) == AI_SUCCESS)
             processRead = true;
-         }
+         else
+            processRead = false;
       }
       if (processRead)
       {
@@ -172,11 +207,12 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
                   if (myArray->type == 8)
                   {
                      num_vertices = myArray->nelements * myArray->nkeys;
+                     vertices.resize(num_vertices);
                      for (i = 0; i < num_vertices; i++)
                      {
                         AtPoint localTmpPnt = AiArrayGetPnt(myArray, i);
                         AiM4PointByMatrixMult(&localTmpPnt, current_matrix, &localTmpPnt);
-                        vertices.push_back(localTmpPnt);
+                        vertices[i] = localTmpPnt;
                         geom->bbox.expand(MPoint(MVector(localTmpPnt.x, localTmpPnt.y, localTmpPnt.z)));
                      }
                   }
@@ -185,10 +221,11 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
                   if (myArray->type == 2)
                   {
                      num_vidxs = myArray->nelements * myArray->nkeys;
+                     vidxs.resize(num_vidxs);
                      for (i = 0; i < num_vidxs; i++)
                      {
                         AtUInt localTmpPnt = AiArrayGetUInt(myArray, i);
-                        vidxs.push_back(localTmpPnt);
+                        vidxs[i] = localTmpPnt;
 
                      }
                   }
@@ -197,10 +234,11 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
                   if (myArray->type == 2)
                   {
                      num_nsides = myArray->nelements * myArray->nkeys;
+                     nsides.resize(num_nsides);
                      for (i = 0; i < num_nsides; i++)
                      {
                         AtUInt localTmpPnt = AiArrayGetUInt(myArray, i);
-                        nsides.push_back(localTmpPnt);
+                        nsides[i] = localTmpPnt;
                      }
                   }
                   // Now we treat the datas for drawing purpose.
@@ -492,10 +530,6 @@ MStatus CArnoldStandInShape::initialize()
 
    s_loadAtInit = s_attributes.MakeInput("load_at_init");
 
-//   CAttrData data;
-//   s_attrHelper("min", data);
-//   data.name = "minBoundingBox";
-//   s_attrHelper(data);
    s_scale = nAttr.create("BoundingBoxScale", "bboxScale", MFnNumericData::kFloat, 1.0);
    nAttr.setHidden(false);
    nAttr.setKeyable(true);
@@ -505,18 +539,13 @@ MStatus CArnoldStandInShape::initialize()
    s_boundingBoxMin = nAttr.create("MinBoundingBox", "min", MFnNumericData::k3Float, -1.0);
    nAttr.setHidden(false);
    nAttr.setKeyable(true);
-   // nAttr.setStorable(true);
+   nAttr.setStorable(true);
    addAttribute(s_boundingBoxMin);
-
-//   CAttrData data;
-//   s_attrHelper("max", data);
-//   data.name = "maxBoundingBox";
-//   s_attrHelper(data);
 
    s_boundingBoxMax = nAttr.create("MaxBoundingBox", "max", MFnNumericData::k3Float, 1.0);
    nAttr.setHidden(false);
    nAttr.setKeyable(true);
-   //nAttr.setStorable(true);
+   nAttr.setStorable(true);
    addAttribute(s_boundingBoxMax);
 
    s_attributes.MakeInput("opaque");
@@ -764,8 +793,7 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
                for (AtUInt k = 0; k < geom->faceList[i][j].size(); ++k)
                {
                   gGLFT->glColor4f(0.5, 0.5, 0.5, 1);
-                  gGLFT->glVertex3f(geom->faceList[i][j][k].x, geom->faceList[i][j][k].y,
-                        geom->faceList[i][j][k].z);
+                  gGLFT->glVertex3f(geom->faceList[i][j][k].x, geom->faceList[i][j][k].y, geom->faceList[i][j][k].z);
                }
                gGLFT->glEnd();
             }
@@ -779,8 +807,7 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
                gGLFT->glBegin(MGL_LINE_STRIP);
                for (AtUInt k = 0; k < geom->faceList[i][j].size(); ++k)
                {
-                  gGLFT->glVertex3f(geom->faceList[i][j][k].x, geom->faceList[i][j][k].y,
-                        geom->faceList[i][j][k].z);
+                  gGLFT->glVertex3f(geom->faceList[i][j][k].x, geom->faceList[i][j][k].y, geom->faceList[i][j][k].z);
                }
                gGLFT->glEnd();
             }
@@ -797,8 +824,7 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
                gGLFT->glBegin(MGL_LINE_STRIP);
                for (AtUInt k = 0; k < geom->faceList[i][j].size(); ++k)
                {
-                  gGLFT->glVertex3f(geom->faceList[i][j][k].x, geom->faceList[i][j][k].y,
-                        geom->faceList[i][j][k].z);
+                  gGLFT->glVertex3f(geom->faceList[i][j][k].x, geom->faceList[i][j][k].y, geom->faceList[i][j][k].z);
                }
                gGLFT->glEnd();
             }
@@ -823,9 +849,7 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
             {
                for (AtUInt k = 0; k < geom->faceList[i][j].size(); ++k)
                {
-                  gGLFT->glColor4f(0.5f, 0.5f, 0.5f, 1.0f);
-                  gGLFT->glVertex3f(geom->faceList[i][j][k].x, geom->faceList[i][j][k].y,
-                        geom->faceList[i][j][k].z);
+                  gGLFT->glVertex3f(geom->faceList[i][j][k].x, geom->faceList[i][j][k].y, geom->faceList[i][j][k].z);
                }
             }
          }
@@ -835,8 +859,8 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
          gGLFT->glPopAttrib();
          break;
       }
-      geom->updateView = false;
       geom->faceList.clear();
+      geom->updateView = false;
    }
    gGLFT->glCallList(geom->dList);
    view.endGL();

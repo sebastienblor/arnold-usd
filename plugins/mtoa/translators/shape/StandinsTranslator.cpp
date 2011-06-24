@@ -200,7 +200,6 @@ AtNode* CArnoldStandInsTranslator::ExportProcedural(AtNode* procedural, bool upd
       float frameOffset = m_DagNode.findPlug("frameOffset").asFloat();
       bool useFrameExtension = m_DagNode.findPlug("useFrameExtension").asBool();
 
-
       MString frameNumber = "0";
 
       float framestep = frame + frameOffset;
@@ -221,10 +220,27 @@ AtNode* CArnoldStandInsTranslator::ExportProcedural(AtNode* procedural, bool upd
 
       bool resolved = MRenderUtil::exactFileTextureName(dso, useFrameExtension, frameExt, filename);
 
+      MString resolvedName;
       if (resolved)
-         AiNodeSetStr(procedural, "dso", filename.asChar());
+         resolvedName = filename.asChar();
       else
-         AiNodeSetStr(procedural, "dso", dso.asChar());
+         resolvedName = dso.asChar();
+
+      unsigned int nchars = resolvedName.numChars();
+      if (nchars > 4 && resolvedName.substringW(nchars-3, nchars) == ".so")
+      {
+         resolvedName = resolvedName.substringW(0, nchars-4)+LIBEXT;
+      }
+      else if (nchars > 4 && resolvedName.substringW(nchars-4, nchars) == ".dll")
+      {
+         resolvedName = resolvedName.substringW(0, nchars-5)+LIBEXT;
+      }
+      else if (nchars > 4 && resolvedName.substringW(nchars-6, nchars) == ".dylib")
+      {
+         resolvedName = resolvedName.substringW(0, nchars-7)+LIBEXT;
+      }
+
+      AiNodeSetStr(procedural, "dso", resolvedName.asChar());
 
       MPlug loadInit = m_DagNode.findPlug("loadAtInit");
       if (!loadInit.asBool())
