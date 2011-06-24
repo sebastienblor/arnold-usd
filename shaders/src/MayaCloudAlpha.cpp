@@ -76,15 +76,11 @@ shader_evaluate
 
    AtFloat result;
    AtPoint P;
-   AtMatrix placement;
 
    AtPoint tmpPts;
    bool usePref = SetRefererencePoints(sg, tmpPts);
 
-
-   AiM4Invert(*placementMatrix, placement);
-
-   AiM4PointByMatrixMult(&P, placement, (local ? &(sg->Po) : &(sg->P)));
+   AiM4PointByMatrixMult(&P, *placementMatrix, (local ? &(sg->Po) : &(sg->P)));
 
    if (wrap || ((-1.0f <= P.x && P.x <= 1.0f) &&
                 (-1.0f <= P.y && P.y <= 1.0f) &&
