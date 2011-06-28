@@ -142,9 +142,9 @@
       softmax           INT      10
     [attr GI_sss_hemi_samples]
         maya.keyable        BOOL    False
-        min                 INT     0
+        min                 INT     -1
         max                 INT     100
-        softmin             INT     0
+        softmin             INT     -1
         softmax             INT     10
         maya.orig_shortname STRING  "GIssshemismpls"
 
