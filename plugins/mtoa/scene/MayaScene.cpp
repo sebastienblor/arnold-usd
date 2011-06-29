@@ -152,6 +152,10 @@ MStatus CMayaScene::ExportToArnold()
          MGlobal::viewFrame(MTime(m_motionBlurData.frames[step], MTime::uiUnit()));
          AiMsgDebug("[mtoa] Exporting step %d at frame %f", step, m_motionBlurData.frames[step]);
          // then, loop through the already processed dag translators and export for current step
+         // NOTE: these exports are subject to the normal pre-processed checks which prevent redundant exports.
+         // Since all nodes *should* be exported at this point, the following calls to DoExport do not
+         // traverse the DG even if the translators call ExportShader or ExportDagPath. This makes it safe
+         // to re-export all objects from a flattened list
          ObjectToDagTranslatorMap::iterator dagIt;
          for(dagIt = m_processedDagTranslators.begin(); dagIt != m_processedDagTranslators.end(); ++dagIt)
          {
@@ -161,6 +165,12 @@ MStatus CMayaScene::ExportToArnold()
             {
                instIt->second->DoExport(step);
             }
+         }
+         // finally, loop through the already processed depend translators and export for current step
+         ObjectToTranslatorMap::iterator dependIt;
+         for(dependIt = m_processedTranslators.begin(); dependIt != m_processedTranslators.end(); ++dependIt)
+         {
+            dependIt->second->DoExport(step);
          }
       }
       MGlobal::viewFrame(MTime(GetCurrentFrame(), MTime::uiUnit()));

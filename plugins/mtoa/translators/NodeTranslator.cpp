@@ -199,6 +199,7 @@ void CNodeTranslator::SetArnoldNodeName(AtNode* arnoldNode, const char* tag)
 // add whatever callbacks you need to trigger a fresh.
 void CNodeTranslator::AddIPRCallbacks()
 {
+   AiMsgDebug("[mtoa] [%s] Add IPR callbacks", GetFnNode().name().asChar());
    MStatus status;
    MCallbackId id;
    // So we update on attribute/input changes.
