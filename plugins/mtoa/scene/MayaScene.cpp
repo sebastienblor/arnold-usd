@@ -150,6 +150,10 @@ MStatus CMayaScene::ExportToArnold()
          MGlobal::viewFrame(MTime(m_motion_frames[step], MTime::uiUnit()));
          AiMsgDebug("[mtoa] Exporting step %d at frame %f", step, m_motion_frames[step]);
          // then, loop through the already processed dag translators and export for current step
+         // NOTE: these exports are subject to the normal pre-processed checks which prevent redundant exports.
+         // Since all nodes *should* be exported at this point, the following calls to DoExport do not
+         // traverse the DG even if the translators call ExportShader or ExportDagPath. This makes it safe
+         // to re-export all objects from a flattened list
          ObjectToDagTranslatorMap::iterator dagIt;
          for(dagIt = m_processedDagTranslators.begin(); dagIt != m_processedDagTranslators.end(); ++dagIt)
          {
@@ -159,6 +163,12 @@ MStatus CMayaScene::ExportToArnold()
             {
                instIt->second->DoExport(step);
             }
+         }
+         // finally, loop through the already processed depend translators and export for current step
+         ObjectToTranslatorMap::iterator dependIt;
+         for(dependIt = m_processedTranslators.begin(); dependIt != m_processedTranslators.end(); ++dependIt)
+         {
+            dependIt->second->DoExport(step);
          }
       }
       MGlobal::viewFrame(MTime(GetCurrentFrame(), MTime::uiUnit()));
@@ -358,7 +368,7 @@ MStatus CMayaScene::ExportScene()
          status = MS::kFailure;
       }
    }
-   
+
    // Add callbacks if we're in IPR mode.
    if (GetExportMode() == MTOA_EXPORT_IPR && s_NewNodeCallbackId == 0x0)
    {
@@ -787,6 +797,14 @@ CNodeTranslator * CMayaScene::GetActiveTranslator(const MObject node)
       return static_cast< CNodeTranslator* >(translatorIt->second);
    }
 
+   ObjectToDagTranslatorMap::iterator dagIt = m_processedDagTranslators.find(node_handle);
+   if (dagIt != m_processedDagTranslators.end())
+   {
+      // TODO: Figure out some magic to get the correct instance.
+      const int instanceNum = 0;
+      return static_cast< CNodeTranslator* >(dagIt->second[instanceNum]);
+   }
+
    return NULL;
 }
 
@@ -806,7 +824,6 @@ void CMayaScene::ClearIPRCallbacks()
       MMessage::removeCallback(s_NewNodeCallbackId);
       s_NewNodeCallbackId = 0;
    }
-
 
    ObjectToTranslatorMap::iterator it;
    for(it = m_processedTranslators.begin(); it != m_processedTranslators.end(); ++it)

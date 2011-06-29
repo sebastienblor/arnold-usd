@@ -462,8 +462,8 @@ else:
 libs = glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*.lib'))
 env.Install(env['TARGET_LIB_PATH'], libs)
 
-dylibs = glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*%s' % get_library_extension()))
-dylibs += glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*boost*%s.*' % get_library_extension()))
+dylibs = glob.glob(os.path.join(env['ARNOLD_BINARIES'], '*%s' % get_library_extension()))
+dylibs += glob.glob(os.path.join(env['ARNOLD_BINARIES'], '*%s.*' % get_library_extension()))
 env.Install(env['TARGET_BINARIES'], dylibs)
 
 env.Install(env['TARGET_BINARIES'], MTOA_API[0])

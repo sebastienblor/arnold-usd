@@ -201,6 +201,7 @@ void CNodeTranslator::SetArnoldNodeName(AtNode* arnoldNode, const char* tag)
 // add whatever callbacks you need to trigger a fresh.
 void CNodeTranslator::AddIPRCallbacks()
 {
+   AiMsgDebug("[mtoa] [%s] Add IPR callbacks", GetFnNode().name().asChar());
    MStatus status;
    MCallbackId id;
    // So we update on attribute/input changes.
@@ -764,32 +765,36 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, MPlug& plug, const
       plug = plug.elementByPhysicalIndex(element);
 
    MPlugArray connections;
-   bool isShader = (AiNodeEntryGetType(arnoldNode->base_node) & (AI_NODE_OPTIONS)) ? false : true;
-   // links only supported on shaders
-   if (isShader)
-      if (plug.isIgnoredWhenRendering())
-      {
-         return NULL;
-      }
-      plug.connectedTo(connections, true, false);
+   bool acceptLinks = ((AiNodeEntryGetType(arnoldNode->base_node) & (AI_NODE_SHADER | AI_NODE_LIGHT)) != 0) ? true : false;
+
+   // ignoreWhenRendering flag
+   if (acceptLinks && plug.isIgnoredWhenRendering()) return NULL;
+
+   plug.connectedTo(connections, true, false);
+   MString connectedMayaAttr("");
+   MObject connectedMayaNode;
+   AtNode* connectedArnoldNode = NULL;
 
    if (connections.length() > 0)
    {
       // process connections
-      MString attrName = connections[0].partialName(false, false, false, false, false, true);
-
-      AtNode* linkedNode = ExportShader(connections[0].node(), attrName);
-
-      if (linkedNode != NULL)
-      {
-         AiNodeLink(linkedNode, arnoldAttrib, arnoldNode);
-         return linkedNode;
-      }
+      connectedMayaAttr = connections[0].partialName(false, false, false, false, false, true);
+      connectedMayaNode = connections[0].node();
+      connectedArnoldNode = ExportShader(connectedMayaNode, connectedMayaAttr);
    }
 
-   if (isShader)
+   if (acceptLinks)
+   {
       // Unlink first, since this may be called during an IPR update
       AiNodeUnlink(arnoldNode, arnoldAttrib);
+      // If we have a connected node and it's a shader we use AiNodeLink
+      // links are only supported on shaders and lights
+      if (connectedArnoldNode != NULL)
+      {
+         AiNodeLink(connectedArnoldNode, arnoldAttrib, arnoldNode);
+         return connectedArnoldNode;
+      }
+   }
 
    switch(arnoldAttribType)
    {
@@ -894,6 +899,11 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, MPlug& plug, const
    case AI_TYPE_POINT:
       {
          COMP_CONNECTIONS_PNT(plug, arnoldNode, arnoldAttrib);
+      }
+      break;
+   case AI_TYPE_NODE:
+      {
+         AiNodeSetPtr(arnoldNode, arnoldAttrib, connectedArnoldNode);
       }
       break;
    }

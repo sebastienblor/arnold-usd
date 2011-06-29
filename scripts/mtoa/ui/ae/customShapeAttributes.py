@@ -40,6 +40,19 @@ def commonShapeAttributes(nodeName):
     cmds.editorTemplate("aiSssMaxSamples", label="SSS Max Samples", addDynamicControl=True)
     cmds.editorTemplate("aiSssSampleSpacing", label="SSS Sample Spacing", addDynamicControl=True)
 
+
+def subdivDicingCameraNew(attrName):
+    cmds.setUITemplate('attributeEditorTemplate', pst=True)
+    cmds.attrNavigationControlGrp( 'aiSubdivDicingCameraCtrl',
+                                    at=attrName,
+                                    label="Subdivision Dicing Camera" )
+    cmds.setUITemplate(ppt=True)
+
+def subdivDicingCameraReplace(attrName):
+    cmds.attrNavigationControlGrp(  'aiSubdivDicingCameraCtrl', edit=True,
+                                    at=attrName )
+
+
 @registerUI("mesh")
 def builtin_mesh(nodeName):
     commonShapeAttributes(nodeName)
@@ -49,7 +62,10 @@ def builtin_mesh(nodeName):
     cmds.editorTemplate("aiSubdivIterations", label="Subdivision Iterations", addDynamicControl=True)
     cmds.editorTemplate("aiSubdivAdaptiveMetric", label="Subdivision Adaptive Metric", addDynamicControl=True)
     cmds.editorTemplate("aiSubdivPixelError", label="Subdivision Pixel Error", addDynamicControl=True)
-    cmds.editorTemplate("aiSubdivDicingCamera", label="Subdivision Dicing Camera", addDynamicControl=True)
+    
+    # cmds.editorTemplate("aiSubdivDicingCamera", label="Subdivision Dicing Camera", addDynamicControl=True)
+    cmds.editorTemplate(aeCallback(subdivDicingCameraNew), aeCallback(subdivDicingCameraReplace), "aiSubdivDicingCamera", callCustom=True)
+    
     cmds.editorTemplate("aiSubdivUvSmoothing", label="Subdivision UVs Smoothing", addDynamicControl=True)
 
     cmds.editorTemplate(addSeparator=True)

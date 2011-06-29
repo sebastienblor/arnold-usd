@@ -19,6 +19,7 @@ using std::vector;
 class CArnoldStandInGeom
 {
 public:
+   CArnoldStandInGeom();
    MString dso;
    MString filename;
    MString geomLoaded;
@@ -27,7 +28,6 @@ public:
    float frameOffset;
    bool useFrameExtension;
    bool useSubFrame;
-   bool assTocLoaded;
    bool IsGeomLoaded;
    MBoundingBox bbox;
    float scale;
@@ -59,7 +59,7 @@ public:
 
    MStatus GetPointPlugValue( MPlug plug, float3 & value );
    void CreateBoundingBox();
-   void LoadBoundingBox();
+   bool LoadBoundingBox();
    MStatus GetPointsFromAss();
 
    static void* creator();
@@ -69,7 +69,7 @@ public:
    static MTypeId id;
 
 private:
-   CArnoldStandInGeom* fGeometry;
+   CArnoldStandInGeom fGeometry;
    // Attributes
    static CStaticAttrHelper s_attributes;
    static MObject s_dso;

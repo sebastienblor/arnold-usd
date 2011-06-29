@@ -61,28 +61,28 @@ MObject CArnoldStandInShape::s_scale;
 MObject CArnoldStandInShape::s_boundingBoxMin;
 MObject CArnoldStandInShape::s_boundingBoxMax;
 
+CArnoldStandInGeom::CArnoldStandInGeom()
+{
+   mode = 0;
+   geomLoaded = "";
+   dso = "";
+   scale = 1.0f;
+   BBmin = MPoint(-1.0f, -1.0f, -1.0f);
+   BBmax = MPoint(1.0f, 1.0f, 1.0f);
+   bbox = MBoundingBox(BBmin, BBmax);
+   IsGeomLoaded = false;
+   updateView = true;
+   useSubFrame = false;
+   useFrameExtension = false;
+   dList = 0;
+}
+
 CArnoldStandInShape::CArnoldStandInShape()
 {
-   fGeometry = new CArnoldStandInGeom;
-   fGeometry->mode = 0;
-   fGeometry->geomLoaded = "";
-   fGeometry->dso = "";
-   fGeometry->assTocLoaded = false;
-   fGeometry->bbox = MBoundingBox(fGeometry->BBmin, fGeometry->BBmax);
-   fGeometry->scale = 1.0f;
-   fGeometry->BBmin = MPoint(-1.0f, -1.0f, -1.0f);
-   fGeometry->BBmax = MPoint(1.0f, 1.0f, 1.0f);
-   fGeometry->IsGeomLoaded = false;
-   fGeometry->dList = 0;
-   fGeometry->updateView = true;
-   fGeometry->useSubFrame = false;
-   fGeometry->useFrameExtension = false;
-
 }
 
 CArnoldStandInShape::~CArnoldStandInShape()
 {
-   delete fGeometry;
 }
 
 /* override */
@@ -109,7 +109,64 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
    if (assfile != "")
    {
       AiBegin();
-      if (AiASSLoad(assfile.asChar()) == 0)
+      bool processRead = false;
+      bool isSo = false;
+      unsigned int nscn = assfile.numChars();
+      MString ext = assfile.substringW(nscn-3, nscn);
+      if (ext == ".so")
+      {
+         isSo = true;
+      }
+      unsigned int nchars = assfile.numChars();
+      if (nchars > 4 && assfile.substringW(nchars-3, nchars) == ".so")
+      {
+         assfile = assfile.substringW(0, nchars-4)+LIBEXT;
+         isSo = true;
+      }
+      else if (nchars > 4 && assfile.substringW(nchars-4, nchars) == ".dll")
+      {
+         assfile = assfile.substringW(0, nchars-5)+LIBEXT;
+         isSo = true;
+      }
+      else if (nchars > 4 && assfile.substringW(nchars-6, nchars) == ".dylib")
+      {
+         assfile = assfile.substringW(0, nchars-7)+LIBEXT;
+         isSo = true;
+      }
+
+      ext = assfile.substringW(nscn-4, nscn);
+      if (ext == ".ass")
+      {
+         if (AiASSLoad(assfile.asChar()) == 0)
+         {
+            processRead = true;
+         }
+      }
+      else if (ext == ".obj")
+      {
+         AtNode *options = AiUniverseGetOptions();
+         AiNodeSetBool(options, "preserve_scene_data", true);
+         AtNode * procedural = AiNode("procedural");
+         AiNodeSetStr(procedural, "dso", assfile.asChar());
+         AiNodeSetBool(procedural, "load_at_init", true);
+         if (AiRender(AI_RENDER_MODE_FREE) == AI_SUCCESS)
+            processRead = true;
+         else
+            processRead = false;
+      }
+      else if (isSo)
+      {
+         AtNode *options = AiUniverseGetOptions();
+         AiNodeSetBool(options, "preserve_scene_data", true);
+         AtNode * procedural = AiNode("procedural");
+         AiNodeSetStr(procedural, "dso", assfile.asChar());
+         AiNodeSetBool(procedural, "load_at_init", true);
+         if (AiRender(AI_RENDER_MODE_FREE) == AI_SUCCESS)
+            processRead = true;
+         else
+            processRead = false;
+      }
+      if (processRead)
       {
          geom->geomLoaded = geom->filename;
          //clear current geo
@@ -150,11 +207,12 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
                   if (myArray->type == 8)
                   {
                      num_vertices = myArray->nelements * myArray->nkeys;
+                     vertices.resize(num_vertices);
                      for (i = 0; i < num_vertices; i++)
                      {
                         AtPoint localTmpPnt = AiArrayGetPnt(myArray, i);
                         AiM4PointByMatrixMult(&localTmpPnt, current_matrix, &localTmpPnt);
-                        vertices.push_back(localTmpPnt);
+                        vertices[i] = localTmpPnt;
                         geom->bbox.expand(MPoint(MVector(localTmpPnt.x, localTmpPnt.y, localTmpPnt.z)));
                      }
                   }
@@ -163,10 +221,11 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
                   if (myArray->type == 2)
                   {
                      num_vidxs = myArray->nelements * myArray->nkeys;
+                     vidxs.resize(num_vidxs);
                      for (i = 0; i < num_vidxs; i++)
                      {
                         AtUInt localTmpPnt = AiArrayGetUInt(myArray, i);
-                        vidxs.push_back(localTmpPnt);
+                        vidxs[i] = localTmpPnt;
 
                      }
                   }
@@ -175,10 +234,11 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
                   if (myArray->type == 2)
                   {
                      num_nsides = myArray->nelements * myArray->nkeys;
+                     nsides.resize(num_nsides);
                      for (i = 0; i < num_nsides; i++)
                      {
                         AtUInt localTmpPnt = AiArrayGetUInt(myArray, i);
-                        nsides.push_back(localTmpPnt);
+                        nsides[i] = localTmpPnt;
                      }
                   }
                   // Now we treat the datas for drawing purpose.
@@ -204,7 +264,6 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          AiEnd();
          geom->IsGeomLoaded = true;
          geom->updateView = true;
-         geom->assTocLoaded = true;
          return MS::kSuccess;
       }
       else
@@ -213,7 +272,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          geom->IsGeomLoaded = false;
          return MS::kFailure;
       }
-
+      AiEnd();
    }
    return MS::kFailure;
 }
@@ -224,51 +283,51 @@ bool CArnoldStandInShape::getInternalValueInContext(const MPlug& plug, MDataHand
    bool isOk = true;
    if (plug == s_dso)
    {
-      datahandle.set(fGeometry->dso);
+      datahandle.set(fGeometry.dso);
       isOk = true;
    }
    else if (plug == s_mode)
    {
-      datahandle.set(fGeometry->mode);
+      datahandle.set(fGeometry.mode);
       isOk = true;
    }
    else if (plug == s_useFrameExtension)
    {
-      datahandle.set(fGeometry->useFrameExtension);
+      datahandle.set(fGeometry.useFrameExtension);
       isOk = true;
    }
    else if (plug == s_frameNumber)
    {
-      datahandle.set(fGeometry->frame);
+      datahandle.set(fGeometry.frame);
       isOk = true;
    }
    else if (plug == s_useSubFrame)
    {
-      datahandle.set(fGeometry->useSubFrame);
+      datahandle.set(fGeometry.useSubFrame);
       isOk = true;
    }
    else if (plug == s_frameOffset)
    {
-      datahandle.set(fGeometry->frameOffset);
+      datahandle.set(fGeometry.frameOffset);
       isOk = true;
    }
    else if (plug == s_scale)
    {
-      datahandle.set(fGeometry->scale);
+      datahandle.set(fGeometry.scale);
       isOk = true;
    }
    else if (plug == s_boundingBoxMin)
    {
       float3 value;
       GetPointPlugValue(plug, value);
-      fGeometry->BBmin = MPoint(value[0], value[1], value[2]);
+      fGeometry.BBmin = MPoint(value[0], value[1], value[2]);
       isOk = true;
    }
    else if (plug == s_boundingBoxMax)
    {
       float3 value;
       GetPointPlugValue(plug, value);
-      fGeometry->BBmax = MPoint(value[0], value[1], value[2]);
+      fGeometry.BBmax = MPoint(value[0], value[1], value[2]);
       isOk = true;
    }
    else
@@ -348,7 +407,7 @@ MStatus CArnoldStandInShape::GetPointPlugValue(MPlug plug, float3 & value)
    return MS::kSuccess;
 }
 
-void CArnoldStandInShape::LoadBoundingBox()
+bool CArnoldStandInShape::LoadBoundingBox()
 {
    CArnoldStandInShape* nonConstThis = const_cast<CArnoldStandInShape*> (this);
    CArnoldStandInGeom* geom = nonConstThis->geometry();
@@ -380,12 +439,11 @@ void CArnoldStandInShape::LoadBoundingBox()
       MPoint min(xmin, ymin, zmin);
       MPoint max(xmax, ymax, zmax);
       geom->bbox = MBoundingBox(min, max);
-      geom->assTocLoaded = true;
-      fGeometry->updateView = true;
+      return true;
    }
    else
    {
-      geom->assTocLoaded = false;
+      return false;
    }
 }
 
@@ -472,10 +530,6 @@ MStatus CArnoldStandInShape::initialize()
 
    s_loadAtInit = s_attributes.MakeInput("load_at_init");
 
-//   CAttrData data;
-//   s_attrHelper("min", data);
-//   data.name = "minBoundingBox";
-//   s_attrHelper(data);
    s_scale = nAttr.create("BoundingBoxScale", "bboxScale", MFnNumericData::kFloat, 1.0);
    nAttr.setHidden(false);
    nAttr.setKeyable(true);
@@ -485,18 +539,13 @@ MStatus CArnoldStandInShape::initialize()
    s_boundingBoxMin = nAttr.create("MinBoundingBox", "min", MFnNumericData::k3Float, -1.0);
    nAttr.setHidden(false);
    nAttr.setKeyable(true);
-   // nAttr.setStorable(true);
+   nAttr.setStorable(true);
    addAttribute(s_boundingBoxMin);
-
-//   CAttrData data;
-//   s_attrHelper("max", data);
-//   data.name = "maxBoundingBox";
-//   s_attrHelper(data);
 
    s_boundingBoxMax = nAttr.create("MaxBoundingBox", "max", MFnNumericData::k3Float, 1.0);
    nAttr.setHidden(false);
    nAttr.setKeyable(true);
-   //nAttr.setStorable(true);
+   nAttr.setStorable(true);
    addAttribute(s_boundingBoxMax);
 
    s_attributes.MakeInput("opaque");
@@ -516,42 +565,40 @@ MStatus CArnoldStandInShape::initialize()
 CArnoldStandInGeom* CArnoldStandInShape::geometry()
 
 {
+   int tmpMode = fGeometry.mode;
 
-   //fGeometry->updateView = false;
-   int tmpMode = fGeometry->mode;
-
-   MString tmpFilename = fGeometry->filename;
-   MString tmpDso = fGeometry->dso;
+   MString tmpFilename = fGeometry.filename;
+   MString tmpDso = fGeometry.dso;
 
    MObject this_object = thisMObject();
    MPlug plug(this_object, s_dso);
-   plug.getValue(fGeometry->dso);
+   plug.getValue(fGeometry.dso);
 
    plug.setAttribute(s_mode);
-   plug.getValue(fGeometry->mode);
+   plug.getValue(fGeometry.mode);
 
    plug.setAttribute(s_useFrameExtension);
-   plug.getValue(fGeometry->useFrameExtension);
+   plug.getValue(fGeometry.useFrameExtension);
 
    plug.setAttribute(s_frameNumber);
-   plug.getValue(fGeometry->frame);
+   plug.getValue(fGeometry.frame);
 
    plug.setAttribute(s_useSubFrame);
-   plug.getValue(fGeometry->useSubFrame);
+   plug.getValue(fGeometry.useSubFrame);
 
    plug.setAttribute(s_frameOffset);
-   plug.getValue(fGeometry->frameOffset);
+   plug.getValue(fGeometry.frameOffset);
 
    plug.setAttribute(s_scale);
-   plug.getValue(fGeometry->scale);
+   plug.getValue(fGeometry.scale);
 
    MString frameNumber = "0";
 
-   float framestep = fGeometry->frame + fGeometry->frameOffset;
+   float framestep = fGeometry.frame + fGeometry.frameOffset;
 
    bool subFrames = ((framestep - floor(framestep)) >= 0.001);
    char frameExt[64];
-   if (subFrames || fGeometry->useSubFrame)
+   if (subFrames || fGeometry.useSubFrame)
    {
       int fullFrame = (int) floor(framestep);
       int subFrame = (int) floor((framestep - fullFrame) * 1000);
@@ -563,65 +610,47 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
    }
    frameNumber = frameExt;
 
-   bool resolved = MRenderUtil::exactFileTextureName(fGeometry->dso, fGeometry->useFrameExtension,
-         frameNumber, fGeometry->filename);
+   bool resolved = MRenderUtil::exactFileTextureName(fGeometry.dso, fGeometry.useFrameExtension,
+         frameNumber, fGeometry.filename);
 
    if (!resolved)
    {
-      fGeometry->filename = fGeometry->dso;
+      fGeometry.filename = fGeometry.dso;
    }
 
-   if (fGeometry->filename != tmpFilename)
+   if (fGeometry.filename != tmpFilename)
    {
-
       //refresh bounding box
-      LoadBoundingBox();
-      if (fGeometry->mode != 0 && fGeometry->filename != fGeometry->geomLoaded)
+      if (!LoadBoundingBox())
       {
-         MStatus load = GetPointsFromAss();
+         float3 m_value;
+         plug.setAttribute(s_boundingBoxMin);
+         GetPointPlugValue(plug, m_value);
+         fGeometry.BBmin = MPoint(m_value[0], m_value[1], m_value[2]);
 
-         //if we cant load the geom, we force bounding box
-         if (load != MS::kSuccess)
-            fGeometry->mode = 0;
-         fGeometry->updateView = true;
+         plug.setAttribute(s_boundingBoxMax);
+         GetPointPlugValue(plug, m_value);
+         fGeometry.BBmax = MPoint(m_value[0], m_value[1], m_value[2]);
 
+         fGeometry.bbox = MBoundingBox(fGeometry.BBmin, fGeometry.BBmax);
       }
-
+      fGeometry.updateView = true;
    }
 
-   if (fGeometry->mode != tmpMode)
+   if (fGeometry.mode == 0 && fGeometry.mode != tmpMode)
    {
-      fGeometry->updateView = true;
-      // mode not the same
-      // if the mode was 0, we switched to a mode that need geometry
-      if (tmpMode == 0 && fGeometry->filename != fGeometry->geomLoaded)
-      {
-         MStatus load = GetPointsFromAss();
-         if (load != MS::kSuccess)
-            fGeometry->mode = 0;
-         fGeometry->updateView = true;
-      }
-      // if the geom was not loaded, force mode bounding box
-
-
+      fGeometry.updateView = true;
    }
-   // assToc is not loaded
-   if (fGeometry->assTocLoaded == false)
+   else if (fGeometry.mode != 0 && fGeometry.mode != tmpMode)
    {
-      float3 m_value;
-      plug.setAttribute(s_boundingBoxMin);
-      GetPointPlugValue(plug, m_value);
-      fGeometry->BBmin = MPoint(m_value[0], m_value[1], m_value[2]);
-
-      plug.setAttribute(s_boundingBoxMax);
-      GetPointPlugValue(plug, m_value);
-      fGeometry->BBmax = MPoint(m_value[0], m_value[1], m_value[2]);
-
-      fGeometry->bbox = MBoundingBox(fGeometry->BBmin, fGeometry->BBmax);
-      fGeometry->updateView = true;
+      MStatus load = GetPointsFromAss();
+      //if we cant load the geom, we force bounding box
+      if (load != MS::kSuccess)
+         fGeometry.mode = 0;
+      fGeometry.updateView = true;
    }
 
-   return fGeometry;
+   return &fGeometry;
 }
 
 // UI IMPLEMENTATION
@@ -764,8 +793,7 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
                for (AtUInt k = 0; k < geom->faceList[i][j].size(); ++k)
                {
                   gGLFT->glColor4f(0.5, 0.5, 0.5, 1);
-                  gGLFT->glVertex3f(geom->faceList[i][j][k].x, geom->faceList[i][j][k].y,
-                        geom->faceList[i][j][k].z);
+                  gGLFT->glVertex3f(geom->faceList[i][j][k].x, geom->faceList[i][j][k].y, geom->faceList[i][j][k].z);
                }
                gGLFT->glEnd();
             }
@@ -779,8 +807,7 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
                gGLFT->glBegin(MGL_LINE_STRIP);
                for (AtUInt k = 0; k < geom->faceList[i][j].size(); ++k)
                {
-                  gGLFT->glVertex3f(geom->faceList[i][j][k].x, geom->faceList[i][j][k].y,
-                        geom->faceList[i][j][k].z);
+                  gGLFT->glVertex3f(geom->faceList[i][j][k].x, geom->faceList[i][j][k].y, geom->faceList[i][j][k].z);
                }
                gGLFT->glEnd();
             }
@@ -797,8 +824,7 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
                gGLFT->glBegin(MGL_LINE_STRIP);
                for (AtUInt k = 0; k < geom->faceList[i][j].size(); ++k)
                {
-                  gGLFT->glVertex3f(geom->faceList[i][j][k].x, geom->faceList[i][j][k].y,
-                        geom->faceList[i][j][k].z);
+                  gGLFT->glVertex3f(geom->faceList[i][j][k].x, geom->faceList[i][j][k].y, geom->faceList[i][j][k].z);
                }
                gGLFT->glEnd();
             }
@@ -823,9 +849,7 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
             {
                for (AtUInt k = 0; k < geom->faceList[i][j].size(); ++k)
                {
-                  gGLFT->glColor4f(0.5f, 0.5f, 0.5f, 1.0f);
-                  gGLFT->glVertex3f(geom->faceList[i][j][k].x, geom->faceList[i][j][k].y,
-                        geom->faceList[i][j][k].z);
+                  gGLFT->glVertex3f(geom->faceList[i][j][k].x, geom->faceList[i][j][k].y, geom->faceList[i][j][k].z);
                }
             }
          }
@@ -835,6 +859,7 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
          gGLFT->glPopAttrib();
          break;
       }
+      geom->faceList.clear();
       geom->updateView = false;
    }
    gGLFT->glCallList(geom->dList);

@@ -16,7 +16,7 @@ import mtoa.cmds.arnoldRender as arnoldRender
 # We need to override this two proc to avoid
 # errors because of the hardcoded code.
 def updateMayaImageFormatControl():
-    mel.eval('source "createMayaSoftwareCommonGlobalsTab.mel";')
+    # mel.eval('source "createMayaSoftwareCommonGlobalsTab.mel";')
     currentRenderer = utils.currentRenderer()
     if currentRenderer == 'mentalRay':
         mel.eval('updateMentalRayImageFormatControl();')
