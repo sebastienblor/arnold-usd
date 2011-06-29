@@ -36,7 +36,7 @@ typedef enum
 
 class CNodeTranslator;
 
-class DLLEXPORT CRenderSwatchGenerator
+class CRenderSwatchGenerator
    :  public MSwatchRenderBase
 {
 
