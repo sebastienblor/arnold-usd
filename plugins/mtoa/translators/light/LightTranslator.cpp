@@ -52,30 +52,34 @@ void CLightTranslator::Export(AtNode* light)
    MPlug plug;
    AtMatrix matrix;
 
+   // Early out, light isn't visible so no point exporting anything else.
+   if (false == CMayaScene::IsRenderablePath(m_dagPath))
+   {
+      // Light can't be hidden.
+      AiNodeSetFlt(GetArnoldRootNode(), "intensity",  0.0f);
+      return;
+   }
+   
    // FIXME: processing parameters means setting up links if the plug has an incoming connection
    // this doesn't always make sense in the context of a light.
-   plug = GetFnNode().findPlug("color");
-   ProcessParameter(light, plug, "color", AI_TYPE_RGB);
+   ProcessParameter(light, "color", AI_TYPE_RGB);
+   ProcessParameter(light, "intensity", AI_TYPE_FLOAT);
 
-   // AiNodeSetFlt(light, "intensity", GetFnNode().findPlug("intensity").asFloat());
-   plug = GetFnNode().findPlug("intensity");
-   ProcessParameter(light, plug, "intensity", AI_TYPE_FLOAT);
-
-   AiNodeSetBool(light, "affect_diffuse", GetFnNode().findPlug("emitDiffuse").asBool());
+   AiNodeSetBool(light, "affect_diffuse",  GetFnNode().findPlug("emitDiffuse").asBool());
    AiNodeSetBool(light, "affect_specular", GetFnNode().findPlug("emitSpecular").asBool());
+   AiNodeSetBool(light, "cast_shadows",    GetFnNode().findPlug("aiCastShadows").asBool());
+   AiNodeSetFlt(light,  "exposure",        GetFnNode().findPlug("aiExposure").asFloat());
+   AiNodeSetInt(light,  "samples",         GetFnNode().findPlug("aiSamples").asInt());
+   AiNodeSetBool(light, "mis",             GetFnNode().findPlug("aiMis").asBool());
+   AiNodeSetBool(light, "normalize",       GetFnNode().findPlug("aiNormalize").asBool());
+   AiNodeSetInt(light,  "bounces",         GetFnNode().findPlug("aiBounces").asInt());
+   AiNodeSetFlt(light,  "bounce_factor",   GetFnNode().findPlug("aiBounceFactor").asFloat());
 
-   AiNodeSetBool(light, "cast_shadows", GetFnNode().findPlug("aiCastShadows").asBool());
-   AiNodeSetFlt(light, "exposure", GetFnNode().findPlug("aiExposure").asFloat());
-   AiNodeSetInt(light, "samples", GetFnNode().findPlug("aiSamples").asInt());
-   AiNodeSetBool(light, "mis", GetFnNode().findPlug("aiMis").asBool());
-   AiNodeSetBool(light, "normalize", GetFnNode().findPlug("aiNormalize").asBool());
    if (GetFnNode().findPlug("aiOverrideSssSamples").asBool())
    {
       AiNodeSetInt(light, "sss_samples", GetFnNode().findPlug("aiSssSamples").asInt());
    }
-   AiNodeSetInt(light, "bounces", GetFnNode().findPlug("aiBounces").asInt());
-   AiNodeSetFlt(light, "bounce_factor", GetFnNode().findPlug("aiBounceFactor").asFloat());
-
+   
    MStatus status;
    MPlug pFilters = GetFnNode().findPlug("aiLightFilters", &status);
    if (status == MS::kSuccess)
@@ -142,5 +146,8 @@ void CLightTranslator::NodeInitializer(MString nodeClassName)
 
 void CLightTranslator::Delete()
 {
-   AiNodeDestroy(GetArnoldRootNode());
+   //AiNodeDestroy(GetArnoldRootNode());
+   // Arnold doesn't allow us to create nodes in between to calls to AiRender
+   // for the moment. For IPR we still need to rely on setting the intensity to 0.0.
+   AiNodeSetFlt(GetArnoldRootNode(), "intensity",  0.0f);
 }

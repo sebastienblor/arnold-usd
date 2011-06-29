@@ -35,6 +35,7 @@ MCallbackId CMayaScene::s_NewNodeCallbackId = 0;
 
 CMayaScene::~CMayaScene()
 {
+   
    if (GetExportMode() == MTOA_EXPORT_IPR)
    {
       ClearIPRCallbacks();
@@ -352,7 +353,7 @@ MStatus CMayaScene::ExportScene()
          status = MS::kFailure;
       }
    }
-   
+
    // Add callbacks if we're in IPR mode.
    if (GetExportMode() == MTOA_EXPORT_IPR && s_NewNodeCallbackId == 0x0)
    {
@@ -781,6 +782,14 @@ CNodeTranslator * CMayaScene::GetActiveTranslator(const MObject node)
       return static_cast< CNodeTranslator* >(translatorIt->second);
    }
 
+   ObjectToDagTranslatorMap::iterator dagIt = m_processedDagTranslators.find(node_handle);
+   if (dagIt != m_processedDagTranslators.end())
+   {
+      // TODO: Figure out some magic to get the correct instance.
+      const int instanceNum = 0;
+      return static_cast< CNodeTranslator* >(dagIt->second[instanceNum]);
+   }
+
    return NULL;
 }
 
@@ -800,7 +809,6 @@ void CMayaScene::ClearIPRCallbacks()
       MMessage::removeCallback(s_NewNodeCallbackId);
       s_NewNodeCallbackId = 0;
    }
-
 
    ObjectToTranslatorMap::iterator it;
    for(it = m_processedTranslators.begin(); it != m_processedTranslators.end(); ++it)
@@ -875,7 +883,7 @@ void CMayaScene::IPRIdleCallback(void *)
    else
    {
       // Scene is motion blured, get the data for the steps.
-      for (AtUInt J = 0; (J < scene->m_motionBlurData.motion_steps); ++J)
+      for (AtUInt J = 0; J < scene->m_motionBlurData.motion_steps; ++J)
       {
          MGlobal::viewFrame(MTime(scene->m_motionBlurData.frames[J], MTime::uiUnit()));
          for(std::vector<CNodeTranslator*>::iterator iter=s_translatorsToIPRUpdate.begin();
