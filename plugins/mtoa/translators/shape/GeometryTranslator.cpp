@@ -1,7 +1,6 @@
 
 #include "GeometryTranslator.h"
 #include "GeometryTranslator.h"
-#include "render/RenderSession.h"
 
 #include <maya/MNodeMessage.h>
 
@@ -968,10 +967,8 @@ void CGeometryTranslator::ShaderAssignmentCallback(MNodeMessage::AttributeMessag
       CGeometryTranslator * translator = static_cast< CGeometryTranslator* >(clientData);
       if (translator != NULL)
       {
-         // Interupt the render.
-         // FXIME: do that in MScene, no reference to CRenderSession in translators
-         CRenderSession* renderSession = CRenderSession::GetInstance();
-         renderSession->InterruptRender();
+         // FIXME: this is not working. Interrupting render wasn't working either in 0.8
+         // so removed it.
          // Export the new shaders.
          translator->ExportShaders();
          // Update Arnold without passing a translator, this just forces a redraw.
