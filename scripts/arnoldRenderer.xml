@@ -34,6 +34,7 @@
     <sep desc="General purpose flags:"/>
     <mel n="rd" p="1" s='workspace -rt "images" "%1";workspace -rt "depth" "%1";' t="path" h="Directory in which to store image files"/>
     <attrString n="im" s="defaultRenderGlobals.imageFilePrefix" t="filename" h="Image file output name"/>
+    <mel n="lic" p="1" s="setAttr defaultArnoldRenderOptions.skipLicenseCheck (!(int(%1)))" t="boolean" h="Turn licensing on or off"/>
     <sep/>
     <!-- ______________________________________________________________ -->
     <sep desc="Frame numbering options"/>
