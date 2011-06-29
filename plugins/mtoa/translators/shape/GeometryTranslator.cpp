@@ -1,5 +1,7 @@
 
 #include "GeometryTranslator.h"
+#include "GeometryTranslator.h"
+#include "render/RenderSession.h"
 
 #include <maya/MNodeMessage.h>
 
@@ -967,6 +969,7 @@ void CGeometryTranslator::ShaderAssignmentCallback(MNodeMessage::AttributeMessag
       if (translator != NULL)
       {
          // Interupt the render.
+         // FXIME: do that in MScene, no reference to CRenderSession in translators
          CRenderSession* renderSession = CRenderSession::GetInstance();
          renderSession->InterruptRender();
          // Export the new shaders.

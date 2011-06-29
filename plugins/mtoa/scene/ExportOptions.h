@@ -42,19 +42,19 @@ struct CExportFilter
 
 struct CExportMotion
 {
-   AtUInt enable_mask;
-   AtFloat shutter_size;
-   AtFloat shutter_offset;
-   AtUInt shutter_type;
-   AtUInt steps;
-   AtFloat by_frame;
+   unsigned int   enable_mask;
+   float          shutter_size;
+   float          shutter_offset;
+   unsigned int   shutter_type;
+   unsigned int   steps;
+   double         by_frame;
 
    CExportMotion() :  enable_mask(MTOA_MBLUR_DISABLE),
                      shutter_size(0.0f),
                      shutter_offset(0.0f),
                      shutter_type(0),
                      steps(1),
-                     by_frame(0.0f) {}
+                     by_frame(0.0) {}
 };
 
 struct CExportOptions
@@ -68,18 +68,19 @@ struct CExportOptions
 
    inline ExportMode GetExportMode() const {return m_mode;}
    inline void SetExportMode(ExportMode mode) { m_mode = mode; }
-   inline CExportFilter GetExportFilter()const { return m_filter; }
+   inline CExportFilter* GetExportFilter() { return &m_filter; }
    inline void SetExportFilter(CExportFilter& filter) { m_filter = filter; }
 
    inline bool IsMotionBlurEnabled(int type = MTOA_MBLUR_ALL) const { return m_motion.enable_mask && type; }
-   inline AtUInt GetNumMotionSteps() const { return m_motion.steps; }
-   inline AtFloat GetShutterSize() const { return m_motion.shutter_size; }
-   inline AtUInt GetShutterType() const { return m_motion.shutter_type; }
-   inline AtFloat GetCurrentFrame() const { return m_frame; }
+   inline unsigned int GetNumMotionSteps() const { return m_motion.steps; }
+   inline float GetShutterSize() const { return m_motion.shutter_size; }
+   inline unsigned int GetShutterType() const { return m_motion.shutter_type; }
+   inline float GetExportFrame() const { return m_frame; }
+   inline void SetExportFrame(double frame) { m_frame = frame; }
    
 private:
 
-   AtFloat         m_frame;
+   double          m_frame;
    ExportMode      m_mode;
    CExportFilter   m_filter;
    CExportMotion   m_motion;

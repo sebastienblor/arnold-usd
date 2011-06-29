@@ -8,11 +8,11 @@
 class DLLEXPORT CShapeTranslator : public CDagTranslator
 {
 public:
-   virtual AtNode* Init(MDagPath& dagPath, CMayaScene* scene, MString outputAttr="")
+   virtual AtNode* Init(CMayaScene* scene, MDagPath& dagPath, MString outputAttr="")
    {
-      m_atNode = CDagTranslator::Init(dagPath, scene, outputAttr);
-      m_motion       = IsObjectMotionBlurEnabled();
-      m_motionDeform = IsDeformMotionBlurEnabled();
+      m_atNode       = CDagTranslator::Init(scene, dagPath, outputAttr);
+      m_motion       = IsMotionBlurEnabled(MTOA_MBLUR_OBJECT);
+      m_motionDeform = IsMotionBlurEnabled(MTOA_MBLUR_DEFORM);
       return m_atNode;
    }
    virtual bool RequiresMotionData()

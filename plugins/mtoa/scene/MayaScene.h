@@ -4,10 +4,10 @@
 #include "common/MObjectCompare.h"
 #include "platform/Platform.h"
 #include "ExportOptions.h"
-#include "render/RenderOptions.h"
 
 #include <ai_nodes.h>
 
+#include <maya/MStatus.h>
 #include <maya/MDagPath.h>
 #include <maya/MFnDagNode.h>
 #include <maya/MItDag.h>
@@ -18,6 +18,8 @@
 #include <maya/MVectorArray.h>
 #include <maya/MMessage.h>
 #include <maya/MPlug.h>
+#include <maya/MCommonRenderSettingsData.h>
+
 
 #include <vector>
 #include <set>
@@ -34,8 +36,6 @@ enum DagFiltered
 };
 
 class CNodeTranslator;
-
-
 
 // TODO : translator per output attribute / arnold node for Maya node that can alternatively
 // generate different Arnold nodes (multiple outputs), possibly in the same Arnold universe
@@ -75,16 +75,13 @@ public:
    AtNode* ExportShader(MPlug& shaderOutputPlug);
    AtNode* ExportDagPath(MDagPath &dagPath);
 
-   inline AtFloat GetCurrentFrame()                       { return m_currentFrame;}
+   inline double GetCurrentFrame()                        { return m_currentFrame;}
 
    inline CExportOptions* GetExportOptions()              { return &m_exportOptions; }
    inline void SetExportOptions(CExportOptions& options)  { m_exportOptions = options; }
 
    inline ExportMode GetExportMode()                      { return m_exportOptions.GetExportMode(); }
    inline void SetExportMode(ExportMode mode)             { m_exportOptions.SetExportMode(mode); }
-
-   inline CExportFilter GetExportFilter()                 { return m_exportOptions.GetExportFilter(); }
-   inline void SetExportFilter(CExportFilter& filter)     { m_exportOptions.SetExportFilter(filter); }
 
    void ProcessShaderParameter(MFnDependencyNode shader,
                                const char* param,
@@ -101,24 +98,9 @@ public:
    static void UpdateIPR(CNodeTranslator * translator=NULL);
 
    inline bool IsMotionBlurEnabled(int type = MTOA_MBLUR_ALL) const { return m_exportOptions.IsMotionBlurEnabled(type); }
-   inline AtUInt GetNumMotionSteps() const { return m_exportOptions.GetNumMotionSteps(); }
-   inline AtFloat GetShutterSize() const { return m_exportOptions.GetShutterSize(); }
-   inline AtUInt GetShutterType() const { return m_exportOptions.GetShutterType(); }
-
-   MString GetAssName(const MString& customName,
-                      const MCommonRenderSettingsData& renderGlobals,
-                      double frameNumber,
-                      const MString &sceneName,
-                      const MString &cameraName,
-                      const MString &fileFormat,
-                      const MObject layer,
-                      const bool createDirectory=true,
-                      const bool isSequence=false,
-                      const bool subFrames=false,
-                      const bool isBatch=false,
-                      MStatus *ReturnStatus=NULL) const;
-
-   MStatus WriteAsstoc(const MString& filename, const AtBBox& bBox);
+   inline unsigned int GetNumMotionSteps() const { return m_exportOptions.GetNumMotionSteps(); }
+   inline float GetShutterSize() const { return m_exportOptions.GetShutterSize(); }
+   inline unsigned int GetShutterType() const { return m_exportOptions.GetShutterType(); }
 
 private:
    
@@ -159,8 +141,8 @@ private:
    MFnDependencyNode* m_fnArnoldRenderOptions;
    MDagPath m_camera;
 
-   AtFloat m_currentFrame;
-   std::vector<float> m_motion_frames;
+   double m_currentFrame;
+   std::vector<double> m_motion_frames;
 
    // depend nodes, are a map with MObjectHandle as a key
    ObjectToTranslatorMap m_processedTranslators;

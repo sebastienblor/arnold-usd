@@ -8,6 +8,7 @@
 
 #include <ai_nodes.h>
 #include <ai_universe.h>
+#include <ai_bbox.h>
 
 #include <maya/MMessage.h> // for MCallbackId
 #include <maya/MComputation.h>
@@ -50,6 +51,7 @@ public:
 
    /// Get the translated scene bounding box.
    AtBBox GetBoundingBox();
+   MStatus WriteAsstoc(const MString& filename, const AtBBox& bBox);
 
    // Render Methods.
    /// Render into the Render View, not IPR.
@@ -58,6 +60,18 @@ public:
    void DoBatchRender();
    /// Export and ass file.
    /// \param customFileName file to export too.
+   MString GetAssName(const MString& customName,
+                      const MCommonRenderSettingsData& renderGlobals,
+                      double frameNumber,
+                      const MString &sceneName,
+                      const MString &cameraName,
+                      const MString &fileFormat,
+                      const MObject layer,
+                      const bool createDirectory=true,
+                      const bool isSequence=false,
+                      const bool subFrames=false,
+                      const bool isBatch=false,
+                      MStatus *ReturnStatus=NULL) const;
    void DoExport(MString customFileName);
 
    /// Stop a render, leaving Arnold univierse active.

@@ -59,9 +59,9 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       camera = args.flagArgumentString("camera", 0);
    }
    // TODO: get the "selected" flag here
-   ExportOptions exportOptions;
-   exportOptions.mode = MTOA_EXPORT_ALL;
-   exportOptions.filter.unselected = !renderGlobals.renderAll;
+   CExportOptions exportOptions;
+   exportOptions.SetExportMode(MTOA_EXPORT_ALL);
+   exportOptions.GetExportFilter()->unselected = !renderGlobals.renderAll;
 
    // FIXME: just a fast hack, should rehaul CRenderOptions code
    // and share same proc for ArnoldRenderCmd and ArnoldExportAssCmd
@@ -88,7 +88,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       {
          cmdStr += " -b";
       }
-      if (exportOptions.filter.unselected)
+      if (exportOptions.GetExportFilter()->unselected)
       {
          cmdStr += " -s";
       }
@@ -198,6 +198,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
          renderSession->ExecuteScript(renderGlobals.preRenderMel);
 
          // FIXME: do we really need to reset options each time?
+         exportOptions.SetExportFrame(framerender);
          renderSession->Translate(exportOptions);
 
          MStringArray cameras;

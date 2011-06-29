@@ -267,7 +267,6 @@ MStatus CRenderSwatchGenerator::ExportNode(AtNode* & arnoldNode,
    MStatus status;
    MObject mayaNode = swatchNode();
    CMayaScene* mayaScene = m_renderSession->GetMayaScene();
-   CExportOptions* exportOptions = mayaScene->GetExportOptions();
 
    // FIXME: Special case for displacement
    if (m_swatchClass == SWATCH_DISPLACEMENT)
@@ -303,14 +302,14 @@ MStatus CRenderSwatchGenerator::ExportNode(AtNode* & arnoldNode,
          }
          if (NULL != dagTranslator)
          {
-            dagTranslator->Init(exportOptions, dagPath, "");
+            dagTranslator->Init(mayaScene, dagPath, "");
             arnoldNode = dagTranslator->DoExport(0);
          }
       } else {
          translator = CExtensionsManager::GetTranslator(mayaNode);
          if (NULL != translator)
          {
-            translator->Init(exportOptions, mayaNode, "");
+            translator->Init(mayaScene, mayaNode, "");
             arnoldNode = translator->DoExport(0);
          }
       }

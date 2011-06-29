@@ -207,7 +207,7 @@ void CHairTranslator::ExportMotion(AtNode *curve, AtUInt step)
    ExportMatrix(curve, step);
 
    // Same for object deformation, early out if it's not set.
-   if (!IsDeformMotionBlurEnabled()) return;
+   if (!IsMotionBlurEnabled(MTOA_MBLUR_DEFORM)) return;
 
    // Get hair lines
    MObject objectHairShape(m_dagPath.node());

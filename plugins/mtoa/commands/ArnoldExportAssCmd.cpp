@@ -1,11 +1,11 @@
 #include "ArnoldExportAssCmd.h"
 #include "render/RenderSession.h"
-#include "scene/MayaScene.h"
 
 #include <ai_dotass.h>
 #include <ai_msg.h>
 #include <ai_render.h>
 #include <ai_universe.h>
+#include <ai_bbox.h>
 
 #include <maya/M3dView.h>
 #include <maya/MDagPath.h>
@@ -156,13 +156,20 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
       cameraName = GetCameraName();
    }
    // Set the necessary options for scene export
-   ExportOptions exportOptions;
-   exportOptions.mode = MTOA_EXPORT_FILE;
-   exportOptions.filter.unselected = exportSelected;
-   if (exportOptions.filter.unselected)
-   {
-      exportOptions.filter.notinlayer = false;
-   }
+   // Filtering
+   CExportFilter exportFilter;
+   exportFilter.unselected = exportSelected;
+   if (exportSelected) exportFilter.notinlayer = false;
+   // Current frame
+   double fileFrameNumber = 0;
+   MTime cT = MAnimControl::currentTime();
+   fileFrameNumber = double(cT.value());
+   // Build Export options in MTOA_EXPORT_FILE mode
+   CExportOptions exportOptions;
+   exportOptions.SetExportFrame(fileFrameNumber);
+   exportOptions.SetExportMode(MTOA_EXPORT_FILE);
+   exportOptions.SetExportFilter(exportFilter);
+
    // FIXME use the passed renderGlobals or options intead?
    MCommonRenderSettingsData renderGlobals;
    MRenderUtil::getCommonRenderSettings(renderGlobals);
@@ -193,29 +200,30 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
          MGlobal::viewFrame(curframe);
          renderSession->ExecuteScript(renderGlobals.preRenderMel);
 
-         curfilename = renderSession->GetMayaScene()->GetAssName(customFileName,
-                                                                renderGlobals,
-                                                                curframe,
-                                                                sceneName,
-                                                                cameraName,
-                                                                "ass",
-                                                                renderLayer,
-                                                                1,
-                                                                1,
-                                                                subFrames,
-                                                                IsBatch(), &status);
-         tocfilename = renderSession->GetMayaScene()->GetAssName(customFileName,
-                                                                renderGlobals,
-                                                                curframe,
-                                                                sceneName,
-                                                                cameraName,
-                                                                "asstoc",
-                                                                renderLayer,
-                                                                1,
-                                                                1,
-                                                                subFrames,
-                                                                IsBatch(), &status);
+         curfilename = renderSession->GetAssName(customFileName,
+                                                 renderGlobals,
+                                                 curframe,
+                                                 sceneName,
+                                                 cameraName,
+                                                 "ass",
+                                                 renderLayer,
+                                                 1,
+                                                 1,
+                                                 subFrames,
+                                                 IsBatch(), &status);
+         tocfilename = renderSession->GetAssName(customFileName,
+                                                 renderGlobals,
+                                                 curframe,
+                                                 sceneName,
+                                                 cameraName,
+                                                 "asstoc",
+                                                 renderLayer,
+                                                 1,
+                                                 1,
+                                                 subFrames,
+                                                 IsBatch(), &status);
 
+         exportOptions.SetExportFrame(curframe);
          renderSession->Translate(exportOptions);
          if (cameraName != "")
             renderSession->SetCamera(cameraName);
@@ -224,7 +232,7 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
          renderSession->Finish();
 
          if (writeBox)
-            renderSession->GetMayaScene()->WriteAsstoc(tocfilename, renderSession->GetBoundingBox());
+            renderSession->WriteAsstoc(tocfilename, renderSession->GetBoundingBox());
             renderSession->Finish();
 
          renderSession->ExecuteScript(renderGlobals.postRenderMel);
@@ -234,35 +242,30 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    }
    else
    {
-      // Get current frame info
-      double fileFrameNumber = 0;
-      MTime cT = MAnimControl::currentTime();
-      fileFrameNumber = double(cT.value());
-
       renderSession->ExecuteScript(renderGlobals.preRenderMel);
 
-      curfilename = renderSession->GetMayaScene()->GetAssName(customFileName,
-                                                             renderGlobals,
-                                                             fileFrameNumber,
-                                                             sceneName,
-                                                             cameraName,
-                                                             "ass",
-                                                             renderLayer,
-                                                             1,
-                                                             0,
-                                                             0,
-                                                             IsBatch(), &status);
-      tocfilename = renderSession->GetMayaScene()->GetAssName(customFileName,
-                                                             renderGlobals,
-                                                             fileFrameNumber,
-                                                             sceneName,
-                                                             cameraName,
-                                                             "asstoc",
-                                                             renderLayer,
-                                                             1,
-                                                             0,
-                                                             0,
-                                                             IsBatch(), &status);
+      curfilename = renderSession->GetAssName(customFileName,
+                                              renderGlobals,
+                                              fileFrameNumber,
+                                              sceneName,
+                                              cameraName,
+                                              "ass",
+                                              renderLayer,
+                                              1,
+                                              0,
+                                              0,
+                                              IsBatch(), &status);
+      tocfilename = renderSession->GetAssName(customFileName,
+                                              renderGlobals,
+                                              fileFrameNumber,
+                                              sceneName,
+                                              cameraName,
+                                              "asstoc",
+                                              renderLayer,
+                                              1,
+                                              0,
+                                              0,
+                                              IsBatch(), &status);
 
       renderSession->Translate(exportOptions);
       if (cameraName != "")
@@ -272,7 +275,7 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
       renderSession->Finish();
 
       if (writeBox)
-         renderSession->GetMayaScene()->WriteAsstoc(tocfilename, renderSession->GetBoundingBox());
+         renderSession->WriteAsstoc(tocfilename, renderSession->GetBoundingBox());
          renderSession->Finish();
 
       renderSession->ExecuteScript(renderGlobals.postRenderMel);

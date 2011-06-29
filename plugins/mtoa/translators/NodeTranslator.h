@@ -4,7 +4,7 @@
 #include "common/MObjectCompare.h"
 #include "platform/Platform.h"
 #include "attributes/AttrHelper.h"
-#include "scene/ExportOptions.h"
+#include "scene/MayaScene.h"
 #include "extension/AbTranslator.h"
 
 #include <ai_nodes.h>
@@ -44,9 +44,9 @@ private:
 public:
    virtual ~CNodeTranslator()
    {}
-   virtual AtNode* Init(CExportOptions* exportOptions, const MObject& object, MString outputAttr="")
+   virtual AtNode* Init(CMayaScene* scene, const MObject& object, MString outputAttr="")
    {
-      m_exportOptions = exportOptions;
+      m_scene = scene;
       m_object = object;
       m_fnNode.setObject(object);
       m_outputAttr = outputAttr;
@@ -81,13 +81,12 @@ protected:
    void ExportUserAttribute(AtNode *anode);
 
    // scene info
-   /*
    AtNode* ExportShader(MObject mayaShader, const MString &attrName="") { return m_scene->ExportShader(mayaShader, attrName);}
    AtNode* ExportShader(MPlug& shaderOutputPlug) {return m_scene->ExportShader(shaderOutputPlug);}
    AtNode* ExportDagPath(MDagPath &dagPath) {return m_scene->ExportDagPath(dagPath);}
-   */
-   inline AtFloat GetCurrentFrame() const {return m_exportOptions->GetCurrentFrame();}
-   inline bool IsMotionBlurEnabled() const {return m_exportOptions->IsMotionBlurEnabled();}
+
+   inline AtFloat GetCurrentFrame() const {return m_scene->GetCurrentFrame();}
+   inline bool IsMotionBlurEnabled(int type = MTOA_MBLUR_ALL) const { return m_scene->IsMotionBlurEnabled(type); }
    bool IsLocalMotionBlurEnabled() const
    {
       bool local_motion_attr(true);
@@ -96,10 +95,10 @@ protected:
          local_motion_attr = plug.asBool();
       return local_motion_attr;
    }
-   inline AtUInt GetNumMotionSteps() const {return m_exportOptions->GetNumMotionSteps();}
-   inline AtFloat GetShutterSize() const {return m_exportOptions->GetShutterSize();}
-   inline AtUInt GetShutterType() const {return m_exportOptions->GetShutterType();}
-   inline ExportMode GetExportMode()  const {return m_exportOptions->GetExportMode();}
+   inline AtUInt GetNumMotionSteps() const {return m_scene->GetNumMotionSteps();}
+   inline AtFloat GetShutterSize() const {return m_scene->GetShutterSize();}
+   inline AtUInt GetShutterType() const {return m_scene->GetShutterType();}
+   inline ExportMode GetExportMode()  const {return m_scene->GetExportMode();}
 
    // get the arnold node that this translator is exporting (should only be used after all export steps are complete)
    AtNode* GetArnoldRootNode();
@@ -125,7 +124,7 @@ protected:
 protected:
    CAbTranslator m_abstract;
 
-   CExportOptions* m_exportOptions;
+   CMayaScene* m_scene;
 
    AtNode* m_atNode;
    std::map<std::string, AtNode*> m_atNodes;
@@ -158,21 +157,21 @@ class DLLEXPORT CDagTranslator : public CNodeTranslator
 {
 
 public:
-   virtual AtNode* Init(CExportOptions* exportOptions, MDagPath& dagPath, MString outputAttr="")
+   virtual AtNode* Init(CMayaScene* scene, MDagPath& dagPath, MString outputAttr="")
    {
-      m_exportOptions = exportOptions;
+      m_scene = scene;
       m_dagPath = dagPath;
       m_fnDagNode.setObject(dagPath);
       // must call this after member initialization to ensure they are available to virtual functions like SetArnoldNodeName
-      AtNode * tmpRet = CNodeTranslator::Init(exportOptions, dagPath.node(), outputAttr);
+      AtNode * tmpRet = CNodeTranslator::Init(scene, dagPath.node(), outputAttr);
       return tmpRet;
    }
 
-   virtual AtNode* Init(CExportOptions* exportOptions, MObject& object, MString outputAttr="")
+   virtual AtNode* Init(CMayaScene* scene, MObject& object, MString outputAttr="")
    {
       MDagPath dagPath;
       MDagPath::getAPathTo(object, dagPath);
-      return Init(exportOptions, dagPath, outputAttr);
+      return Init(scene, dagPath, outputAttr);
    }
 
    virtual MFnDagNode GetFnDagNode() const {return m_fnDagNode;}

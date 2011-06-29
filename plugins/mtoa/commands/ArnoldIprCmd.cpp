@@ -53,8 +53,8 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
    int height = args.isFlagSet("height") ? args.flagArgumentInt("height", 0) : -1;
    MString camera = args.flagArgumentString("camera", 0);
    // TODO: get the "selected" flag here
-   ExportOptions exportOptions;
-   exportOptions.mode = MTOA_EXPORT_IPR;
+   CExportOptions exportOptions;
+   exportOptions.SetExportMode(MTOA_EXPORT_IPR);
 
    // What mode are we in?
    if (mode == "start")
@@ -64,7 +64,7 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
 
       MCommonRenderSettingsData renderGlobals;
       MRenderUtil::getCommonRenderSettings(renderGlobals);
-      exportOptions.filter.unselected = !renderGlobals.renderAll;
+      exportOptions.GetExportFilter()->unselected = !renderGlobals.renderAll;
 
       renderSession->ExecuteScript(renderGlobals.preMel);
       renderSession->ExecuteScript(renderGlobals.preRenderMel);

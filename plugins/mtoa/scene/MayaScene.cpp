@@ -145,7 +145,7 @@ MStatus CMayaScene::ExportToArnold()
    if (mb)
    {
       // loop through motion steps
-      for (AtUInt step = 1; step < GetNumMotionSteps(); ++step)
+      for (unsigned int step = 1; step < GetNumMotionSteps(); ++step)
       {
          MGlobal::viewFrame(MTime(m_motion_frames[step], MTime::uiUnit()));
          AiMsgDebug("[mtoa] Exporting step %d at frame %f", step, m_motion_frames[step]);
@@ -260,7 +260,6 @@ MStatus CMayaScene::ExportCameras()
 
    // First we export all cameras
    // We do not reset the iterator to avoid getting kWorld
-   CExportFilter filter = GetExportFilter();
    for (; (!dagIterCameras.isDone()); dagIterCameras.next())
    {
       if (dagIterCameras.getPath(path))
@@ -270,11 +269,11 @@ MStatus CMayaScene::ExportCameras()
          /*
          MFnDagNode node(path.node());
          MString name = node.name();
-         if (filter.notinlayer == true && !IsInRenderLayer(path))
+         if (m_exportOptions.m_filter.notinlayer == true && !IsInRenderLayer(path))
             continue;
-         if (filter.templated == true && IsTemplatedPath(path))
+         if (m_exportOptions.m_filter.templated == true && IsTemplatedPath(path))
             continue;
-         if (filter.hidden == true && !IsVisiblePath(path))
+         if (m_exportOptions.m_filter.hidden == true && !IsVisiblePath(path))
             continue;
          */
          if (ExportDagPath(path) == NULL)
@@ -302,7 +301,6 @@ MStatus CMayaScene::ExportLights()
 
    // First we export all cameras
    // We do not reset the iterator to avoid getting kWorld
-   CExportFilter filter = GetExportFilter();
    for (; (!dagIterLights.isDone()); dagIterLights.next())
    {
       if (dagIterLights.getPath(path))
@@ -311,11 +309,11 @@ MStatus CMayaScene::ExportLights()
          // FIXME: does a light need to be in layer to render actually in Maya?
          MFnDagNode node(path.node());
          MString name = node.name();
-         if (filter.notinlayer == true && !IsInRenderLayer(path))
+         if (m_exportOptions.m_filter.notinlayer == true && !IsInRenderLayer(path))
             continue;
-         if (filter.templated == true && IsTemplatedPath(path))
+         if (m_exportOptions.m_filter.templated == true && IsTemplatedPath(path))
             continue;
-         if (filter.hidden == true && !IsVisiblePath(path))
+         if (m_exportOptions.m_filter.hidden == true && !IsVisiblePath(path))
             continue;
          if (ExportDagPath(path) == NULL)
             status = MStatus::kFailure;
@@ -350,7 +348,7 @@ MStatus CMayaScene::ExportScene()
          MObject obj = path.node();
          MFnDagNode node(obj);
          MString name = node.name();
-         filtered = FilteredStatus(GetExportFilter(), path);
+         filtered = FilteredStatus(m_exportOptions.m_filter, path);
          if (filtered != MTOA_EXPORT_ACCEPTED)
          {
             // Ignore node for MTOA_EXPORT_REJECTED_NODE or whole branch
@@ -433,7 +431,7 @@ MStatus CMayaScene::IterSelection(MSelectionList& selected)
       {
          // FIXME: if we selected a shape, and it's an instance,
          // should we export all its dag paths?
-         if (FilteredStatus(GetExportFilter(), path) == MTOA_EXPORT_ACCEPTED)
+         if (FilteredStatus(m_exportOptions.m_filter, path) == MTOA_EXPORT_ACCEPTED)
          {
             for (AtUInt child = 0; (child < path.childCount()); child++)
             {
@@ -499,7 +497,7 @@ AtNode* CMayaScene::ExportDagPath(MDagPath &dagPath)
    {
       if (translator->IsRenderable())
       {
-         AtNode* result = translator->Init(&m_exportOptions, dagPath);
+         AtNode* result = translator->Init(this, dagPath);
          translator->DoExport(0);
          // save it for later
          m_processedDagTranslators[handle][instanceNum] = translator;
@@ -539,7 +537,7 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
    CNodeTranslator* translator = CExtensionsManager::GetTranslator(mayaShader);
    if (translator != NULL)
    {
-      shader = translator->Init(&m_exportOptions, mayaShader, attrName);
+      shader = translator->Init(this, mayaShader, attrName);
       m_processedTranslators[handle] = translator;
       translator->DoExport(0);
    }
@@ -894,7 +892,7 @@ void CMayaScene::IPRIdleCallback(void *)
    else
    {
       // Scene is motion blured, get the data for the steps.
-      for (AtUInt J = 0; (J < scene->GetNumMotionSteps()); ++J)
+      for (unsigned int J = 0; (J < scene->GetNumMotionSteps()); ++J)
       {
          MGlobal::viewFrame(MTime(scene->m_motion_frames[J], MTime::uiUnit()));
          for(std::vector<CNodeTranslator*>::iterator iter=s_translatorsToIPRUpdate.begin();
@@ -930,157 +928,6 @@ void CMayaScene::UpdateIPR(CNodeTranslator * translator)
    }
 }
 
-// FIXME: will probably get removed when we have proper bounding box format support
-MStatus CMayaScene::WriteAsstoc(const MString& filename, const AtBBox& bBox)
-{
-   MString bboxcomment = "bounds ";
-   bboxcomment += bBox.min.x;
-   bboxcomment += " ";
-   bboxcomment += bBox.min.y;
-   bboxcomment += " ";
-   bboxcomment += bBox.min.z;
-   bboxcomment += " ";
-   bboxcomment += bBox.max.x;
-   bboxcomment += " ";
-   bboxcomment += bBox.max.y;
-   bboxcomment += " ";
-   bboxcomment += bBox.max.z;
 
-   FILE * bboxfile;
-   bboxfile = fopen(filename.asChar(), "w");
-   if (bboxfile != NULL) {
-      fwrite(bboxcomment.asChar() , 1 , bboxcomment.length(), bboxfile);
-      fclose(bboxfile);
 
-      return MStatus::kSuccess;
-   }
-   else
-   {
-      return MStatus::kFailure;
-   }
-}
 
-MString CMayaScene::GetAssName(const MString& customName,
-                                        const MCommonRenderSettingsData& renderGlobals,
-                                        double frameNumber,
-                                        const MString &sceneName,
-                                        const MString &cameraName,
-                                        const MString &fileFormat,
-                                        const MObject layer,
-                                        const bool createDirectory,
-                                        const bool isSequence,
-                                        const bool subFrames,
-                                        const bool isBatch,
-                                        MStatus *ReturnStatus) const
-{
-   MStatus status;
-   MString assFileName = customName;
-   // Current Maya file and directory
-   MFileObject sceneFile;
-   sceneFile.overrideResolvedFullName(sceneName);
-   MString sceneDir = sceneFile.resolvedPath();
-   MString sceneFileName = sceneFile.resolvedName();
-   // Strip Maya scene extension if present
-   unsigned int nscn = sceneFileName.numChars();
-   if (nscn > 3)
-   {
-      MString ext = sceneFileName.substringW(nscn-3, nscn);
-      if (ext == ".ma" || ext == ".mb")
-      {
-         sceneFileName = sceneFileName.substringW(0, nscn-4);
-      }
-   }
-   // TODO: since .ass is a registered Maya file extension (through the translator),
-   // we can output ass files in their own registered project subdir.
-   // It's the default Maya behavior a relative path / filename is specified.
-   // Problem is it won't be affected by Render command argument redirecting the output file.
-   // Thus in bath mode we usually want to use the absolute path.
-   // Current behavior is use the custom file name if one is explicitely passed
-   // (ie direct call to arnoldExportAss command)
-   // If no name is passed (ie call by render command) then :
-   // Use render globals file name, but output in projects' ass subdirectory if not in batch mode
-   // Use render globals file name and absolute path if in batch mode
-   if (customName.numChars())
-   {
-      if (isSequence)
-      {
-         // TODO: some of maya tools support fractionnal frame numbers
-         char frameExt[64];
-         if (subFrames)
-         {
-            int fullFrame = (int) floor(frameNumber);
-            int subFrame = (int) floor((frameNumber - fullFrame) * 1000);
-            sprintf(frameExt, ".%04d.%03d", fullFrame, subFrame);
-         }
-         else
-         {
-            sprintf(frameExt, ".%04d", (int) frameNumber);
-         }
-
-         assFileName = customName + frameExt;
-      }
-      else
-         assFileName = customName;
-   }
-   else
-   {
-      MCommonRenderSettingsData::MpathType pathType;
-      if (isBatch)
-      {
-         pathType = MCommonRenderSettingsData::kFullPathImage;
-      }
-      else
-      {
-         pathType = MCommonRenderSettingsData::kRelativePath;
-      }
-      assFileName = renderGlobals.getImageName(pathType,
-                                               frameNumber,
-                                               sceneFileName,
-                                               cameraName,
-                                               fileFormat,
-                                               layer,
-                                               createDirectory,
-                                               &status);
-   }
-   // Add desired extension if not present
-   MString ext = MString(".") + fileFormat;
-   unsigned int next = ext.length();
-   unsigned int nchars = assFileName.numChars();
-   if (nchars <= next || assFileName.substringW(nchars-next, nchars) != ext)
-   {
-      assFileName += ext;
-   }
-   // If we didn't have an absolute path specified for the file name, then
-   // if we got an active, non default project, use the subdirectory registered for ass files
-   // else use same directory as Maya file name
-   MFileObject assFile;
-   status = assFile.setRawFullName(assFileName);
-   // If a relative path was specified, use project settings
-   if (MStatus::kSuccess == status && assFile.expandedPath().numChars() == 0)
-   {
-      // Relative file name, check if we got an active project
-      MString curProject = MGlobal::executeCommandStringResult("workspace -q -o");
-      MString dirProject = "";
-      MString assDir = "";
-      if (curProject.numChars())
-      {
-         // If we got an active project, query the subdirectory registered for ass files
-         dirProject = MGlobal::executeCommandStringResult("workspace -q -rd \"" + curProject + "\"");
-         assDir = MGlobal::executeCommandStringResult("workspace -q -fileRuleEntry ArnoldSceneSource");
-      }
-      // Use current project ass files subdir, or if none found, use current maya scene dir
-      if (dirProject.numChars() && assDir.numChars())
-      {
-         assFile.setRawPath(dirProject + "/" + assDir);
-      }
-      else
-      {
-         assFile.setRawPath(sceneDir);
-      }
-   }
-   // Get expanded full name
-   assFileName = assFile.resolvedFullName();
-
-   if (NULL != ReturnStatus) *ReturnStatus = status;
-   return assFileName;
-}

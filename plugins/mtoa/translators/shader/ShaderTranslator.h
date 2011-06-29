@@ -3,7 +3,7 @@
 
 #include "translators/NodeTranslator.h"
 
-//--------------- ChaderTranslator ------------------------------------------
+//--------------- CShaderTranslator ------------------------------------------
 
 /// A Translator class which can automatically export simple Maya nodes.
 
@@ -17,13 +17,16 @@ class DLLEXPORT CShaderTranslator
    :  public CNodeTranslator
 {
 public:
-   AtNode* Init(MDagPath& dagPath, CMayaScene* scene, MString outputAttr="");
+   AtNode* Init(CMayaScene* scene, MDagPath& dagPath, MString outputAttr="");
    static void* creator()
    {
       return new CShaderTranslator();
    }
    AtNode* CreateArnoldNodes();
    void Export(AtNode* atNode);
+
+protected:
+   bool m_motion;
 };
 
 
