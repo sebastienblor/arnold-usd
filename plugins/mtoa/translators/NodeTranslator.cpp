@@ -916,7 +916,7 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, MPlug& plug, const
       break;
    case AI_TYPE_ARRAY:
       {
-         if (not plug.isArray())
+         if (!plug.isArray())
          {
             MGlobal::displayError("[mtoa] Arnold parameter is of type array, but corresponding Maya attribute is not");
             return NULL;
