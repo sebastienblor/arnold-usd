@@ -133,7 +133,7 @@ void CHairTranslator::Update( AtNode *curve )
       export_curve_id = plug.asBool();
    }
 
-   AtArray * curveID;
+   AtArray * curveID = NULL;
    if (export_curve_id)
    {
       curveID = AiArrayAllocate(m_numMainLines, 1, AI_TYPE_UINT);

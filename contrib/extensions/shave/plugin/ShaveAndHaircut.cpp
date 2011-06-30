@@ -137,8 +137,8 @@ void CShaveTranslator::Update(AtNode* curve)
    AtArray* curveNumPoints             = AiArrayAllocate(numMainLines, 1, AI_TYPE_INT);
 
    // The root and tip color array
-   AtArray* rootColor;
-   AtArray* tipColor;
+   AtArray* rootColor = NULL;
+   AtArray* tipColor = NULL;
    if(export_curve_color)
    {
       rootColor = AiArrayAllocate(numMainLines, 1, AI_TYPE_RGB);
@@ -152,7 +152,7 @@ void CShaveTranslator::Update(AtNode* curve)
       export_curve_id = plug.asBool();
    }
 
-   AtArray * curveID;
+   AtArray * curveID = NULL;
    if (export_curve_id)
    {
       curveID = AiArrayAllocate(numMainLines, 1, AI_TYPE_UINT);
