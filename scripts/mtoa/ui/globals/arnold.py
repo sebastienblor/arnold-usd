@@ -311,7 +311,7 @@ def createArnoldSamplingSettings():
                         label="AA Samples",
                         maxValue = 10,
                         fieldMaxValue=100,
-                        cc='import maya.cmds as cmds;cmds.evalDeferred(mtoa.ui.globals.arnold.updateComputeSamples)'
+                        cc=lambda *args: cmds.evalDeferred(updateComputeSamples)
                         )
 
     cmds.connectControl('ss_AA_samples', 'defaultArnoldRenderOptions.AASamples', index=2)
@@ -329,7 +329,7 @@ def createArnoldSamplingSettings():
                         label="Hemi Samples",
                         maxValue = 10,
                         fieldMaxValue=100,
-                        cc='import maya.cmds as cmds;cmds.evalDeferred(mtoa.ui.globals.arnold.updateComputeSamples)')
+                        cc=lambda *args: cmds.evalDeferred(updateComputeSamples))
     
     cmds.connectControl('ss_hemi_samples', 'defaultArnoldRenderOptions.GIDiffuseSamples', index=2)
     cmds.connectControl('ss_hemi_samples', 'defaultArnoldRenderOptions.GIDiffuseSamples', index=3)
@@ -344,7 +344,7 @@ def createArnoldSamplingSettings():
                         label="Glossy Samples",
                         maxValue = 10,
                         fieldMaxValue=100,
-                        cc='import maya.cmds as cmds;cmds.evalDeferred(mtoa.ui.globals.arnold.updateComputeSamples)')
+                        cc=lambda *args: cmds.evalDeferred(updateComputeSamples))
     
     cmds.connectControl('ss_glossy_samples', 'defaultArnoldRenderOptions.GIGlossySamples', index=2)
     cmds.connectControl('ss_glossy_samples', 'defaultArnoldRenderOptions.GIGlossySamples', index=3)    
@@ -353,7 +353,7 @@ def createArnoldSamplingSettings():
                         label="Refraction Samples",
                         maxValue = 10,
                         fieldMaxValue=100,
-                        cc='import maya.cmds as cmds;cmds.evalDeferred(mtoa.ui.globals.arnold.updateComputeSamples)')
+                        cc=lambda *args: cmds.evalDeferred(updateComputeSamples))
     
     cmds.connectControl('ss_refraction_samples', 'defaultArnoldRenderOptions.GIRefractionSamples', index=2)
     cmds.connectControl('ss_refraction_samples', 'defaultArnoldRenderOptions.GIRefractionSamples', index=3)    
@@ -489,7 +489,7 @@ def createArnoldRayDepthSettings():
                         label="Diffuse depth",
                         maxValue = 16,
                         fieldMaxValue=100,
-                        cc='import maya.cmds as cmds;cmds.evalDeferred(mtoa.ui.globals.arnold.updateComputeSamples)')
+                        cc=lambda *args: cmds.evalDeferred(updateComputeSamples))
     
     cmds.connectControl('rs_diffuse_depth', 'defaultArnoldRenderOptions.GIDiffuseDepth', index=2)
     cmds.connectControl('rs_diffuse_depth', 'defaultArnoldRenderOptions.GIDiffuseDepth', index=3)
@@ -504,7 +504,7 @@ def createArnoldRayDepthSettings():
                         label="Glossy depth",
                         maxValue = 16,
                         fieldMaxValue=100,
-                        cc='import maya.cmds as cmds;cmds.evalDeferred(mtoa.ui.globals.arnold.updateComputeSamples)')
+                        cc=lambda *args: cmds.evalDeferred(updateComputeSamples))
     
     cmds.connectControl('rs_glossy_depth', 'defaultArnoldRenderOptions.GIGlossyDepth', index=2)
     cmds.connectControl('rs_glossy_depth', 'defaultArnoldRenderOptions.GIGlossyDepth', index=3)
@@ -523,7 +523,7 @@ def createArnoldRayDepthSettings():
                         label="Refraction depth",
                         maxValue = 16,
                         fieldMaxValue=100,
-                        cc='import maya.cmds as cmds;cmds.evalDeferred(mtoa.ui.globals.arnold.updateComputeSamples)')
+                        cc=lambda *args: cmds.evalDeferred(updateComputeSamples))
     
     cmds.connectControl('rs_refraction_depth', 'defaultArnoldRenderOptions.GIRefractionDepth', index=2)
     cmds.connectControl('rs_refraction_depth', 'defaultArnoldRenderOptions.GIRefractionDepth', index=3)
