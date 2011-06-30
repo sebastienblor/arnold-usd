@@ -32,6 +32,7 @@
 std::vector< CNodeTranslator * > CMayaScene::s_translatorsToIPRUpdate;
 MCallbackId CMayaScene::s_IPRIdleCallbackId = 0;
 MCallbackId CMayaScene::s_NewNodeCallbackId = 0;
+bool CMayaScene::m_isExportingMotion = false;
 
 CMayaScene::~CMayaScene()
 {
@@ -147,6 +148,7 @@ MStatus CMayaScene::ExportToArnold()
    // Then in case of motion blur do the other steps
    if (mb)
    {
+      m_isExportingMotion = true;
       // loop through motion steps
       for (AtUInt step = 1; step < m_motionBlurData.motion_steps; ++step)
       {
@@ -175,6 +177,7 @@ MStatus CMayaScene::ExportToArnold()
          }
       }
       MGlobal::viewFrame(MTime(GetCurrentFrame(), MTime::uiUnit()));
+      m_isExportingMotion = false;
    }
 
    return status;
@@ -203,7 +206,7 @@ void CMayaScene::PrepareExport()
    }
 
    m_currentFrame = static_cast<float>(MAnimControl::currentTime().as(MTime::uiUnit()));
-
+   m_isExportingMotion = false;
 
    GetMotionBlurData();
 }
@@ -882,6 +885,7 @@ void CMayaScene::IPRIdleCallback(void *)
    }
    else
    {
+      m_isExportingMotion = true;
       // Scene is motion blured, get the data for the steps.
       for (AtUInt J = 0; J < scene->m_motionBlurData.motion_steps; ++J)
       {
@@ -894,6 +898,7 @@ void CMayaScene::IPRIdleCallback(void *)
          }
       }
       MGlobal::viewFrame(MTime(scene->GetCurrentFrame(), MTime::uiUnit()));
+      m_isExportingMotion = false;
    }
 
    // Clear the list.
@@ -911,7 +916,7 @@ void CMayaScene::UpdateIPR(CNodeTranslator * translator)
 
    // Add the IPR update callback, this is called in Maya's
    // idle time (Arnold may not be idle, that's okay).
-   if (s_IPRIdleCallbackId == 0)
+   if ( s_IPRIdleCallbackId == 0 && !IsExportingMotion() )
    {
       MStatus status;
       MCallbackId id = MEventMessage::addEventCallback("idle", IPRIdleCallback, NULL, &status);

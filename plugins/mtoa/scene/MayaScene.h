@@ -127,6 +127,7 @@ public:
    AtNode* ExportShader(MPlug& shaderOutputPlug);
    AtNode* ExportDagPath(MDagPath &dagPath);
 
+   inline static bool IsExportingMotion()                { return m_isExportingMotion;}
    inline AtFloat GetCurrentFrame()                      { return m_currentFrame;}
 
    inline ExportOptions GetExportOptions()               { return m_exportOptions; }
@@ -236,6 +237,8 @@ private:
    static std::vector< CNodeTranslator * > s_translatorsToIPRUpdate;
    static MCallbackId s_IPRIdleCallbackId;
    static MCallbackId s_NewNodeCallbackId;
+
+   static bool m_isExportingMotion;
    
 private:
 
@@ -253,6 +256,7 @@ private:
    MDagPath m_camera;
 
    AtFloat m_currentFrame;
+
 };  // class CMayaScene
 
 #endif // MAYASCENE_H
