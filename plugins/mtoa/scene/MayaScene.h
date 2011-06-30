@@ -127,8 +127,6 @@ public:
    AtNode* ExportShader(MPlug& shaderOutputPlug);
    AtNode* ExportDagPath(MDagPath &dagPath);
 
-   static bool IsExportingMotion()                       { return m_isExportingMotion;}
-
    inline AtFloat GetCurrentFrame()                      { return m_currentFrame;}
 
    inline ExportOptions GetExportOptions()               { return m_exportOptions; }
@@ -238,8 +236,7 @@ private:
    static std::vector< CNodeTranslator * > s_translatorsToIPRUpdate;
    static MCallbackId s_IPRIdleCallbackId;
    static MCallbackId s_NewNodeCallbackId;
-
-   static bool m_isExportingMotion;
+   static bool s_isExportingMotion;
    
 private:
 
