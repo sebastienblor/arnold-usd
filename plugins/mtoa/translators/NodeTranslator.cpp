@@ -278,7 +278,7 @@ void CNodeTranslator::NodeDeletedCallback(MObject &node, MDGModifier &modifier, 
    }
 
    // Update Arnold without passing a translator, this just forces a redraw.
-   CMayaScene::UpdateIPR();
+   UpdateIPR();
 }
 
 
@@ -296,6 +296,7 @@ void CNodeTranslator::UpdateIPR(void * clientData)
    else
    {
       AiMsgDebug("[mtoa] UpdateIPR called, no translator in client data: %p.", clientData);
+      CMayaScene::UpdateIPR();
    }
 }
 
