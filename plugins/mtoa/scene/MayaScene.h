@@ -127,7 +127,8 @@ public:
    AtNode* ExportShader(MPlug& shaderOutputPlug);
    AtNode* ExportDagPath(MDagPath &dagPath);
 
-   inline static bool IsExportingMotion()                { return m_isExportingMotion;}
+   static bool IsExportingMotion()                       { return m_isExportingMotion;}
+
    inline AtFloat GetCurrentFrame()                      { return m_currentFrame;}
 
    inline ExportOptions GetExportOptions()               { return m_exportOptions; }
