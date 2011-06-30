@@ -790,7 +790,16 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, MPlug& plug, const
       // links are only supported on shaders and lights
       if (connectedArnoldNode != NULL)
       {
-         AiNodeLink(connectedArnoldNode, arnoldAttrib, arnoldNode);
+         // An AI_TYPE_NODE param becomes a message attribute, whose value is always provided through a connection.
+         // AiNodeLink is used to delay evaluation of a parameter until render, but in the case of a NODE
+         // connection, we should just set the value.
+         // Unlike a color, for example, we have no other way of assigning the value other than via a connection
+         // but unlike other connections we should not use AiNodeLink.
+         if (arnoldAttribType == AI_TYPE_NODE)
+            AiNodeSetPtr(arnoldNode, arnoldAttrib, connectedArnoldNode);
+         else
+            AiNodeLink(connectedArnoldNode, arnoldAttrib, arnoldNode);
+
          return connectedArnoldNode;
       }
    }
@@ -903,6 +912,154 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, MPlug& plug, const
    case AI_TYPE_NODE:
       {
          AiNodeSetPtr(arnoldNode, arnoldAttrib, connectedArnoldNode);
+      }
+      break;
+   case AI_TYPE_ARRAY:
+      {
+         if (not plug.isArray())
+         {
+            MGlobal::displayError("[mtoa] Arnold parameter is of type array, but corresponding Maya attribute is not");
+            return NULL;
+         }
+         const AtParamEntry* paramEntry = AiNodeEntryLookUpParameter(arnoldNode->base_node, arnoldAttrib);
+         const AtParamValue* defaultValue = AiParamGetDefault(paramEntry);
+         AtUInt type = defaultValue->ARRAY->type;
+         // index matters tells us whether to condense a sparse array or try to export everything
+//         int indexMatters = MFnAttribute(plug.attribute()).indexMatters();
+//         MIntArray indices;
+//         if (indexMattrs)
+//         {
+//            // do a little prep work so that we can have a unified processing loop below
+//            for (AtUInt i = 0; i < plug.numElements(); ++i)
+//               indices.append(i);
+//         }
+//         else
+//            plug.getExistingArrayAttributeIndices(indices);
+
+         // for now do all elements
+         AtUInt size = plug.numElements();
+         AtArray* array = AiArrayAllocate(size, 1, type);
+         MPlug arrayPlug = plug;
+         cout << "size " << size << endl;
+         for (AtUInt i = 0; i < size; ++i)
+         {
+            cout << plug.partialName(true, false, false, false, false, true) << " index " << i << endl;
+            // FIXME: follow connections when arnold 3.4 is release
+            //plug.selectAncestorLogicalIndex(i, plug.attribute());
+            plug = arrayPlug[i];//
+            switch(type)
+            {
+            case AI_TYPE_RGB:
+               {
+                  // FIXME: exporting all zeros!!!
+                  AtRGB color;
+                  color.r = plug.child(0).asFloat();
+                  color.g = plug.child(1).asFloat();
+                  color.b = plug.child(2).asFloat();
+                  cout << "value is " << color.r << ", " << color.g << ", " << color.b << endl;
+                  AiArraySetRGB(array, i, color);
+               }
+               break;
+            case AI_TYPE_RGBA:
+               {
+                  AtRGBA color;
+                  color.r = plug.child(0).asFloat();
+                  color.g = plug.child(1).asFloat();
+                  color.b = plug.child(2).asFloat();
+                  // Is the source parameter RGB or RGBA?
+                  if (plug.numChildren() == 4)
+                  {
+                     color.a = plug.child(3).asFloat();
+                     AiArraySetRGBA(array, i, color);
+                  }
+                  else
+                  {
+                     color.a = 1.0f;
+                     // FIXME: handle alphas!
+                     AiArraySetRGBA(array, i, color);
+                  }
+               }
+               break;
+            case AI_TYPE_FLOAT:
+               {
+                  cout << "value is " << plug.asFloat() << endl;
+                  AiArraySetFlt(array, i, plug.asFloat());
+               }
+               break;
+            case AI_TYPE_POINT2:
+               {
+                  float x, y;
+                  MObject numObj = plug.asMObject();
+                  MFnNumericData numData(numObj);
+                  numData.getData2Float(x, y);
+                  AtPoint2 vec2;
+                  AiV2Create(vec2, x, y);
+                  AiArraySetPnt2(array, i, vec2);
+               }
+               break;
+            case AI_TYPE_MATRIX:
+               {
+                  AtMatrix am;
+                  MObject matObj = plug.asMObject();
+                  MFnMatrixData matData(matObj);
+                  MMatrix mm = matData.matrix();
+                  ConvertMatrix(am, mm);
+                  AiArraySetMtx(array, i, am);
+               }
+               break;
+            case AI_TYPE_BOOLEAN:
+               {
+                  AiArraySetBool(array, i, plug.asBool());
+               }
+               break;
+            case AI_TYPE_ENUM:
+               {
+                  AiArraySetInt(array, i, plug.asInt());
+               }
+               break;
+            case AI_TYPE_INT:
+               {
+                  AiArraySetInt(array, i, plug.asInt());
+               }
+               break;
+            case AI_TYPE_STRING:
+               {
+                  AiArraySetStr(array, i, plug.asString().asChar());
+               }
+               break;
+            case AI_TYPE_VECTOR:
+               {
+                  // FIXME: follow component connections when arnold 3.4 is release
+                  AtVector vec3;
+                  AiV3Create(vec3, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+                  AiArraySetVec(array, i, vec3);
+               }
+               break;
+            case AI_TYPE_POINT:
+               {
+                  // FIXME: follow component connections when arnold 3.4 is release
+                  AtVector vec3;
+                  AiV3Create(vec3, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+                  AiArraySetPnt(array, i, vec3);
+               }
+               break;
+            case AI_TYPE_NODE:
+               {
+                  plug.connectedTo(connections, true, false);
+                  AtNode* linkedNode = NULL;
+                  if (connections.length() > 0)
+                  {
+                     MString attrName = connections[0].partialName(false, false, false, false, false, true);
+                     linkedNode = ExportShader(connections[0].node(), attrName);
+                  }
+                  else
+                     cout << "not connected!" << endl;
+                  AiArraySetPtr(array, i, linkedNode);
+               }
+               break;
+            } // switch
+         } // for loop
+         AiNodeSetArray(arnoldNode, arnoldAttrib, array);
       }
       break;
    }
