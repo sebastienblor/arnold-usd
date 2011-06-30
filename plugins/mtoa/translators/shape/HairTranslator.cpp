@@ -19,6 +19,11 @@ void CHairTranslator::NodeInitializer(MString nodeClassName)
 
    CAttrData data;
 
+   data.defaultValue.BOOL = true;
+   data.name = "aiExportHairIDs";
+   data.shortName = "ai_export_hair_ids";
+   helper.MakeInputBoolean(data);
+   
    data.defaultValue.BOOL = false;
    data.name = "aiOverrideHair";
    data.shortName = "ai_override_hair";
@@ -121,6 +126,19 @@ void CHairTranslator::Update( AtNode *curve )
       mesh.setObject(shapeNode);
    }
 
+   plug = m_fnNode.findPlug("aiExportHairIDs");
+   bool export_curve_id = true;
+   if (!plug.isNull())
+   {
+      export_curve_id = plug.asBool();
+   }
+
+   AtArray * curveID;
+   if (export_curve_id)
+   {
+      curveID = AiArrayAllocate(m_numMainLines, 1, AI_TYPE_UINT);
+   }
+
    // Iterate over all lines to get sizes for AiArrayAllocate
    int numPoints = 0;
    int numPointsInterpolation = 0;
@@ -147,6 +165,11 @@ void CHairTranslator::Update( AtNode *curve )
       // Set UVs
       AiArraySetFlt(curveUParamCoord, i, uvparam.x);
       AiArraySetFlt(curveVParamCoord, i, uvparam.y);
+
+      if (export_curve_id)
+      {
+         AiArraySetUInt(curveID, i, i);
+      }
 
       // Store start point for the line on the array
       AiArraySetInt(curveNextLineStarts, i, numPoints);
@@ -189,13 +212,19 @@ void CHairTranslator::Update( AtNode *curve )
 
    // Set all arrays on the curve node
    AiNodeSetArray(curve, "radius",                    curveWidths);
-   AiNodeSetArray(curve, "uparamcoord",               curveUParamCoord);
-   AiNodeSetArray(curve, "vparamcoord",               curveVParamCoord);
-
    AiNodeSetArray(curve, "num_points",                curveNumPoints);
    AiNodeSetArray(curve, "points",                    curvePoints);
    AiNodeSetArray(curve, "next_line_starts_interp",   curveNextLineStartsInterp);
    AiNodeSetArray(curve, "next_line_starts",          curveNextLineStarts);
+
+   AiNodeSetArray(curve, "uparamcoord",               curveUParamCoord);
+   AiNodeSetArray(curve, "vparamcoord",               curveVParamCoord);
+
+   if(export_curve_id)
+   {
+      AiNodeDeclare(curve, "curve_id",        "uniform UINT");
+      AiNodeSetArray(curve, "curve_id",       curveID);
+   }
 }
 
 void CHairTranslator::ExportMotion(AtNode *curve, AtUInt step)

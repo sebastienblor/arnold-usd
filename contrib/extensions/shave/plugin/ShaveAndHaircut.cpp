@@ -118,13 +118,45 @@ void CShaveTranslator::Update(AtNode* curve)
       plug = m_fnNode.findPlug("gloss");
       AiNodeSetFlt(shader, "gloss", plug.asFloat() * 2000.0f);
    }
+   
+   if (shader != NULL)
+   {
+      AiNodeSetPtr(curve, "shader", shader);
+   }
 
+   // Should we export the hair root and tip colour? Default to true.
+   // Turning it off gives us a slimmer ass.
+   plug = m_fnNode.findPlug("aiExportHairColors");
+   bool export_curve_color = true;
+   if (!plug.isNull())
+   {
+      export_curve_color = plug.asBool();
+   }
+   
    // The numPoints array (int array the size of numLines, no motionsteps)
    AtArray* curveNumPoints             = AiArrayAllocate(numMainLines, 1, AI_TYPE_INT);
 
    // The root and tip color array
-   AtArray* rootColor                  = AiArrayAllocate(numMainLines, 1, AI_TYPE_RGB);
-   AtArray* tipColor                   = AiArrayAllocate(numMainLines, 1, AI_TYPE_RGB);
+   AtArray* rootColor;
+   AtArray* tipColor;
+   if(export_curve_color)
+   {
+      rootColor = AiArrayAllocate(numMainLines, 1, AI_TYPE_RGB);
+      tipColor  = AiArrayAllocate(numMainLines, 1, AI_TYPE_RGB);
+   }
+
+   plug = m_fnNode.findPlug("aiExportHairIDs");
+   bool export_curve_id = true;
+   if (!plug.isNull())
+   {
+      export_curve_id = plug.asBool();
+   }
+
+   AtArray * curveID;
+   if (export_curve_id)
+   {
+      curveID = AiArrayAllocate(numMainLines, 1, AI_TYPE_UINT);
+   }
    
    // A couple of arrays to keep track of where each hairline begins in the
    // points array (step 0)
@@ -154,18 +186,26 @@ void CShaveTranslator::Update(AtNode* curve)
 
       // Root and tip colours for the ShaveHair shader.
       // TODO: Make exporting all the info for the ShaveHair shader an option.
-      AtColor shaveRootColors;
-      shaveRootColors.r = m_hairInfo.rootColors[i].r;
-      shaveRootColors.g = m_hairInfo.rootColors[i].g;
-      shaveRootColors.b = m_hairInfo.rootColors[i].b;
+      if(export_curve_color)
+      {
+         AtColor shaveRootColors;
+         shaveRootColors.r = m_hairInfo.rootColors[i].r;
+         shaveRootColors.g = m_hairInfo.rootColors[i].g;
+         shaveRootColors.b = m_hairInfo.rootColors[i].b;
+   
+         AtColor shaveTipColors;
+         shaveTipColors.r = m_hairInfo.tipColors[i].r;
+         shaveTipColors.g = m_hairInfo.tipColors[i].g;
+         shaveTipColors.b = m_hairInfo.tipColors[i].b;
 
-      AtColor shaveTipColors;
-      shaveTipColors.r = m_hairInfo.tipColors[i].r;
-      shaveTipColors.g = m_hairInfo.tipColors[i].g;
-      shaveTipColors.b = m_hairInfo.tipColors[i].b;
+         AiArraySetRGB(rootColor, i, shaveRootColors);
+         AiArraySetRGB(tipColor,  i, shaveTipColors);
+      }
 
-      AiArraySetRGB(rootColor, i, shaveRootColors);
-      AiArraySetRGB(tipColor,  i, shaveTipColors);
+      if (export_curve_id)
+      {
+         AiArraySetUInt(curveID, i, (i));
+      }
 
       // Store start point for the line on the array
       AiArraySetInt(curveNextLineStarts, i, (numPoints));
@@ -182,38 +222,54 @@ void CShaveTranslator::Update(AtNode* curve)
    else
       curvePoints = AiArrayAllocate(numPointsInterpolation, 1, AI_TYPE_POINT);
 
-   // Add our extra attributes
-   AiNodeDeclare(curve, "uparamcoord",             "uniform FLOAT");
-   AiNodeDeclare(curve, "vparamcoord",             "uniform FLOAT");
-   AiNodeDeclare(curve, "rootcolorparam",          "uniform RGB");
-   AiNodeDeclare(curve, "tipcolorparam",           "uniform RGB");
-   AiNodeDeclare(curve, "next_line_starts_interp", "constant ARRAY INT");
-   AiNodeDeclare(curve, "next_line_starts",        "constant ARRAY INT");
-
-   // Set all arrays on the curve node
+   // Set the required arrays
    AiNodeSetArray(curve, "num_points",             curveNumPoints);
    AiNodeSetArray(curve, "points",                 curvePoints);
    AiNodeSetArray(curve, "radius",                 curveWidths);
+
+   // Add our extra attributes
+   AiNodeDeclare(curve, "uparamcoord",             "uniform FLOAT");
+   AiNodeDeclare(curve, "vparamcoord",             "uniform FLOAT");
+   AiNodeDeclare(curve, "next_line_starts_interp", "constant ARRAY INT");
+   AiNodeDeclare(curve, "next_line_starts",        "constant ARRAY INT");
+
+   // Set all extra data arrays
    AiNodeSetArray(curve, "uparamcoord",            curveUParamCoord);
    AiNodeSetArray(curve, "vparamcoord",            curveVParamCoord);
-   AiNodeSetArray(curve, "rootcolorparam",         rootColor);
-   AiNodeSetArray(curve, "tipcolorparam",          tipColor);
    AiNodeSetArray(curve, "next_line_starts_interp",curveNextLineStartsInterp);
    AiNodeSetArray(curve, "next_line_starts",       curveNextLineStarts);
    
-   // Assign the shader to the curve
-   if (shader != NULL) AiNodeSetPtr(curve, "shader", shader);
+   // Finally add and set the hair color arrays as needed.
+   if(export_curve_color)
+   {
+      AiNodeDeclare(curve, "rootcolorparam",       "uniform RGB");
+      AiNodeDeclare(curve, "tipcolorparam",        "uniform RGB");
+      AiNodeSetArray(curve, "rootcolorparam",      rootColor);
+      AiNodeSetArray(curve, "tipcolorparam",       tipColor);
+   }
 
+   if(export_curve_id)
+   {
+      AiNodeDeclare(curve, "curve_id",        "uniform UINT");
+      AiNodeSetArray(curve, "curve_id",       curveID);
+   }
+   
    // Set tesselation method
    AiNodeSetStr(curve, "basis", "catmull-rom");
 
    // Hair specific Arnold render settings.
    plug = m_fnNode.findPlug("aiMinPixelWidth");
-   if (!plug.isNull()) AiNodeSetFlt(curve, "min_pixel_width", plug.asFloat());
+   if (!plug.isNull())
+   {
+      AiNodeSetFlt(curve, "min_pixel_width", plug.asFloat());
+   }
 
    // Mode is an enum, 0 == ribbon, 1 == tubes.
    plug = m_fnNode.findPlug("aiMode");
-   if (!plug.isNull()) AiNodeSetInt(curve, "mode", plug.asInt());
+   if (!plug.isNull())
+   {
+      AiNodeSetInt(curve, "mode", plug.asInt());
+   }
 
    // Ignore one or less cv curves.
    if (numRenderLineCVs > 1)
@@ -334,6 +390,16 @@ void CShaveTranslator::NodeInitializer(MString nodeClassName)
    helper.MakeInput("mode");
 
    CAttrData data;
+
+   data.defaultValue.BOOL = true;
+   data.name = "aiExportHairColors";
+   data.shortName = "ai_export_hair_colours";
+   helper.MakeInputBoolean(data);
+
+   data.defaultValue.BOOL = true;
+   data.name = "aiExportHairIDs";
+   data.shortName = "ai_export_hair_ids";
+   helper.MakeInputBoolean(data);
 
    data.defaultValue.BOOL = false;
    data.name = "aiOverrideHair";
