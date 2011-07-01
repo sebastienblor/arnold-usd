@@ -4,6 +4,7 @@
 //Codeset: 1252
 requires maya "2011";
 requires "mtoa" "0.8.0";
+requires "shaveNode" "1.0";
 currentUnit -linear centimeter -angle degree -time film;
 fileInfo "application" "maya";
 fileInfo "product" "Maya 2011";
