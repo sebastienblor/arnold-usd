@@ -331,8 +331,6 @@ private:
    void SetupImageFilter() const;
    void SetupImageOutputs();
 
-   AtInt GetFlagsFromVerbosityLevel(AtUInt level) const;
-
    MStatus GetOptionsNode(MObject& optionsNode) const;
 
 private:

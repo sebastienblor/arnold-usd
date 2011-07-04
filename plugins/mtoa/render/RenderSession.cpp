@@ -693,12 +693,6 @@ void CRenderSession::ClearIdleRenderViewCallback()
    }
 }
 
-AtInt CRenderSession::LoadAss(const MString filename)
-{
-   m_renderOptions.SetupLog();
-   return AiASSLoad(filename.asChar());
-}
-
 void CRenderSession::DoSwatchRender(const AtInt resolution)
 {
    // Use the render view output driver. It will *not* be displayed

@@ -1,5 +1,22 @@
 #include "MtoaLog.h"
 
+AtInt GetFlagsFromVerbosityLevel(AtUInt level)
+{
+   AtInt flags = 0;
+
+   switch(level)
+   {
+   case 6:  flags = AI_LOG_ALL; break;
+   case 5:  flags = AI_LOG_ALL & ~AI_LOG_DEBUG; break;
+   case 4:  flags |= AI_LOG_PLUGINS;
+   case 3:  flags |= AI_LOG_STATS;
+   case 2:  flags |= AI_LOG_PROGRESS;
+   case 1:  flags |= AI_LOG_INFO | AI_LOG_WARNINGS | AI_LOG_ERRORS | AI_LOG_TIMESTAMP | AI_LOG_BACKTRACE | AI_LOG_MEMORY; break;
+   case 0:  flags = 0; break;
+   }
+
+   return flags;
+}
 
 DLLEXPORT AtVoid MtoaLogCallback(AtInt logmask, AtInt severity, const char *msg_string, AtInt tabs)
 {
@@ -76,14 +93,38 @@ DLLEXPORT AtVoid MtoaLogCallback(AtInt logmask, AtInt severity, const char *msg_
 // is triggered.
 DLLEXPORT void MtoaSetupLogging()
 {
-   // TODO: read initial values from an environment variable or option variable?
    AiMsgSetLogFileName(MString("$MTOA_LOG_PATH/arnold.log").expandEnvironmentVariablesAndTilde().asChar());
 #ifdef _DEBUG
    AtInt defaultLogFlags = AI_LOG_ALL;
 #else
    AtInt defaultLogFlags = (AI_LOG_ALL & ~AI_LOG_DEBUG);
+   MString loglevelStr = MString("$MTOA_LOG_VERBOSITY").expandEnvironmentVariablesAndTilde();
+   if (loglevelStr.isShort())
+      defaultLogFlags = GetFlagsFromVerbosityLevel(loglevelStr.asShort());
+
 #endif
    AiMsgSetConsoleFlags(defaultLogFlags | AI_LOG_COLOR);
    AiMsgSetLogFileFlags(defaultLogFlags);
    AiMsgSetCallback(MtoaLogCallback);
+}
+
+void MtoaSetupSwatchLogging()
+{
+   AiMsgSetLogFileName(MString("$MTOA_LOG_PATH/arnold.log").expandEnvironmentVariablesAndTilde().asChar());
+#ifdef _DEBUG
+   AtInt defaultLogFlags = AI_LOG_ALL;
+#else
+   AtInt defaultLogFlags = AI_LOG_WARNINGS | AI_LOG_ERRORS | AI_LOG_TIMESTAMP | AI_LOG_BACKTRACE;
+   MString loglevelStr = MString("$MTOA_SWATCH_LOG_VERBOSITY").expandEnvironmentVariablesAndTilde();
+   if (loglevelStr.isShort())
+      defaultLogFlags = GetFlagsFromVerbosityLevel(loglevelStr.asShort());
+
+#endif
+   // TODO: Should we be using render options for logging, or is it better not to clutter
+   // the log with swatch output?
+   // If we use global render options, m_renderSession->Init() already did
+   // m_renderSession->m_renderOptions.SetupLog();
+   // TODO: read these from an environment variable
+   AiMsgSetConsoleFlags(defaultLogFlags | AI_LOG_COLOR);
+   AiMsgSetLogFileFlags(defaultLogFlags);
 }

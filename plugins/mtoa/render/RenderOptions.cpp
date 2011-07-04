@@ -264,24 +264,6 @@ void CRenderOptions::SetupImageOptions() const
    }
 }
 
-AtInt CRenderOptions::GetFlagsFromVerbosityLevel(AtUInt level) const
-{
-   AtInt flags = 0;
-
-   switch(level)
-   {
-   case 6:  flags = AI_LOG_ALL; break;
-   case 5:  flags = AI_LOG_ALL & ~AI_LOG_DEBUG; break;
-   case 4:  flags |= AI_LOG_PLUGINS;
-   case 3:  flags |= AI_LOG_STATS;
-   case 2:  flags |= AI_LOG_PROGRESS;
-   case 1:  flags |= AI_LOG_INFO | AI_LOG_WARNINGS | AI_LOG_ERRORS | AI_LOG_TIMESTAMP | AI_LOG_BACKTRACE | AI_LOG_MEMORY; break;
-   case 0:  flags = 0; break;
-   }
-
-   return flags;
-}
-
 MString CRenderOptions::VerifyFileName(MString fileName, bool compressed)
 {
    unsigned int len = fileName.length();

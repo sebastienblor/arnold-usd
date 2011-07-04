@@ -88,11 +88,6 @@ public:
    /// \return returns false if there was no complete image.
    bool GetSwatchImage(MImage & image);
 
-   /// Load an Ass file into the Universe.
-   /// \param filename file to load.
-   /// \return returns 0 on success.
-   AtInt LoadAss(const MString filename);
-
    /// Set whether we're in batch mode.
    void SetBatch(bool batch);
    /*

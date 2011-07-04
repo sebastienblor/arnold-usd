@@ -11,8 +11,12 @@
 
 #include <maya/MGlobal.h>
 
+DLLEXPORT AtInt GetFlagsFromVerbosityLevel(AtUInt level);
+
 DLLEXPORT AtVoid MtoaLogCallback(AtInt logmask, AtInt severity, const char *msg_string, AtInt tabs);
 
 DLLEXPORT void MtoaSetupLogging();
+
+void MtoaSetupSwatchLogging();
 
 #endif // MTOALOGCALLBACK_H
