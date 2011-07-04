@@ -49,7 +49,9 @@ def addNodeAddedCallback(func, nodeType, apiArgs=False):
     func : function
         should take a single string arg for the node that was created
     nodeType : string
-        type of node to install attribute changed callbacks for 
+        type of node to install callbacks for
+    apiArgs : boolean
+        if True, api objects (MObjects, MPlugs, etc) are left as is. If False, they're converted to string names 
     """
     if nodeType not in _nodeAddedCallbacks:
         manageCallback(om.MDGMessage.addNodeAddedCallback(_makeNodeAddedCB(nodeType), nodeType))

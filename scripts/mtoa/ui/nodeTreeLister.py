@@ -10,57 +10,29 @@ options:
   - override the functions that call buildRenderNodeTreeListerContent: best option
 
 """
-
+from mtoa.core import _processClass, createArnoldNode
 import mtoa.utils as utils
-import maya.mel as mel
 import maya.cmds as cmds
+import maya.mel as mel
 from mtoa.callbacks import *
 from collections import namedtuple
-import re
 
 NodeClassInfo = namedtuple('NodeClassInfo', ['staticClassification', 'runtimeClassification', 'nodePath', 'nodeTypes'])
 
-global _aiCreateCustomNodeProc
-_aiCreateCustomNodeProc = ''
+# holds the name of the mel procedure to use with the creation menu 
+global _createNodeCallbackProc
+_createNodeCallbackProc = ''
 
 # known categories: used for ordering in the UI
 CATEGORIES = ('shader', 'texture', 'light', 'utility')
-CATEGORY_TO_RUNTIME_CLASS = {
-                'shader':       'asShader',               
-                'texture':      'asTexture',
-                'light':        'asLight',
-                'utility':      'asUtility',
-                }
 
-def capitalize(s):
-    return s[0].upper() + s[1:] if s else s
+def isClassified(node, klass):
+    nodeType = cmds.nodeType(node)
+    return klass in cmds.getClassification(nodeType)
 
-def prettify(s):
-    "convert from '_fooBar_Spangle22poop1' to 'Foo Bar Spangle22 Poop1'"
-    return ' '.join([capitalize(x) for x in re.findall('[a-zA-Z][a-z]*[0-9]*',s)])
-
-def processClass(nodeType):
-    '''
-    convert the passed node type's classification string to a tuple containing a formatted path string compatible with
-    the node lister and the runtime classification.
-    
-    e.g. from 'aiStandard' to 'arnold/shader/surface' to ('Arnold/Surface', 'asShader')
-    '''
-    classification = cmds.getClassification(nodeType)[0]
-    for klass in classification.split(':'):
-        if klass.startswith('arnold'):
-            parts = klass.split('/')
-            if len(parts) < 2:
-                return (klass, 'asUtility', 'Arnold')
-            else :
-                #labelName = node.replace('/', '|')
-                return (klass,
-                        CATEGORY_TO_RUNTIME_CLASS.get(parts[1], 'asUtility'),
-                        '/'.join([prettify(x) for x in parts]))
-    return (None, None, None)
-        
 global _typeInfoMap
 _typeInfoMap = ()
+
 def getTypeInfo():
     '''
     return a tuple of NodeClassInfo namedtuples containing 
@@ -71,17 +43,15 @@ def getTypeInfo():
         # use a dictionary to get groupings
         tmpmap = {}
         nodeTypes = []
-        catNodes = []
         for cat in CATEGORIES:
             catTypes = cmds.listNodeTypes('arnold/' + cat)
             if catTypes :
                 nodeTypes.extend(catTypes)
         if nodeTypes:
             for nodeType in nodeTypes:
-                (staticClass, runtimeClass, nodePath) = processClass(nodeType)
+                (staticClass, runtimeClass, nodePath) = _processClass(nodeType)
                 if staticClass is not None :
                     if staticClass not in tmpmap:
-                        print nodeType, staticClass
                         tmpmap[staticClass] = [runtimeClass, nodePath, [nodeType]]
                     else:
                         tmpmap[staticClass][2].append(nodeType)
@@ -102,9 +72,8 @@ def getTypeInfo():
 def createTreeListerContent(renderNodeTreeLister, postCommand, filterString):
     if not filterString:
         for (staticClass, runtimeClass, nodePath, nodeTypes) in getTypeInfo():
-            print nodePath, runtimeClass
             for nodeType in nodeTypes:
-                command = Callback(aiCreateCustomNode, runtimeClass, postCommand, nodeType)
+                command = Callback(createNodeCallback, runtimeClass, postCommand, nodeType)
                 cmds.nodeTreeLister(renderNodeTreeLister, e=True, add=[nodePath + '/' + nodeType, "render_%s.png" % nodeType, command])
     else:
         #TODO: setup filtering ??I think this is unnecessary with the new QT UI.
@@ -126,7 +95,7 @@ def aiHyperShadeCreateMenu_BuildMenu():
 
     # build a submenu for each node category
     #
-    global _aiCreateCustomNodeProc
+    global _createNodeCallbackProc
     for (staticClass, runtimeClass, nodePath, nodeTypes) in getTypeInfo():
         # skip unclassified
         if staticClass == 'arnold' or staticClass == 'arnold/shader':
@@ -140,28 +109,17 @@ def aiHyperShadeCreateMenu_BuildMenu():
         # node type, thereby completing the correct argument list for the 
         # creation routine.
         #
-        mel.eval('''buildCreateSubMenu("%s", "%s %s \\"\\"");''' % (staticClass,
-                                                                    _aiCreateCustomNodeProc,
-                                                                    runtimeClass))
+        mel.eval('buildCreateSubMenu("%s", "%s %s \\"\\"");' % (staticClass,
+                                                                _createNodeCallbackProc,
+                                                                runtimeClass))
         cmds.setParent('..', menu=True)
 
-def aiCreateCustomNode(runtimeClassification, postCommand , nodeType):
-    flag = {runtimeClassification:True}
-    node = cmds.shadingNode(nodeType, **flag)
-    return node
-
-def isClassified(node, eval):
-    nodeType = cmds.nodeType(node)
-    classification = cmds.getClassification(nodeType)
-    for c in classification:
-        if eval in c:
-            return True
-    return False
+def createNodeCallback(runtimeClassification, postCommand, nodeType):
+    return createArnoldNode(nodeType, runtimeClassification=runtimeClassification)
 
 def setup():
-    
-    global _aiCreateCustomNodeProc
-    _aiCreateCustomNodeProc = utils.pyToMelProc(aiCreateCustomNode, 
+    global _createNodeCallbackProc
+    _createNodeCallbackProc = utils.pyToMelProc(createNodeCallback, 
                                                 [('string', 'runtimeClassification'),
                                                  ('string', 'postCommand'),
                                                  ('string', 'nodeType')],

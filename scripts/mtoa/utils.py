@@ -9,6 +9,13 @@ def even(num):
 def odd(num):
     return not bool(num % 2)
 
+def capitalize(s):
+    return s[0].upper() + s[1:] if s else s
+
+def prettify(s):
+    "convert from '_fooBar_Spangle22poop1' to 'Foo Bar Spangle22 Poop1'"
+    return ' '.join([capitalize(x) for x in re.findall('[a-zA-Z][a-z]*[0-9]*',s)])
+
 _objectStore = {}
 
 def pyToMelProc(pyobj, args=(), returnType=None, procName=None, useName=False, procPrefix='pyToMel_'):
