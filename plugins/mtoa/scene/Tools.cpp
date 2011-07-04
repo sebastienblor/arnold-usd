@@ -4,9 +4,9 @@
 #include <maya/MFnRenderLayer.h>
 #include <maya/MPlug.h>
 
-// Test a dag path against the ExportFilter
+// Test a dag path against the CExportFilter
 // set for this CMayaScene
-// Note that the ExportFilter filter.selected flag is treated
+// Note that the CExportFilter filter.selected flag is treated
 // separatly as it would not be efficient to iterate whole DAG
 // and check a selected status for each node
 

@@ -1,4 +1,3 @@
-# NOTE: unlike other files in mtoa, this one uses 4-space tabs instead of space tabs to keep the columns easy.
 
 # options
 
@@ -18,7 +17,7 @@
         maya.orig_shortname STRING  "bktsc"
     [attr bucket_size]
         maya.keyable        BOOL    False
-        min             INT     1
+        min                 INT     1
         softmin             INT     1
         softmax             INT     256
         maya.orig_shortname STRING  "bktsz"
@@ -54,14 +53,14 @@
         maya.keyable        BOOL    False
     [attr auto_transparency_depth]
         maya.keyable        BOOL    False
-        min         INT 0
-        softmin         INT 0
-        softmax         INT 16
+        min                 INT     0
+        softmin             INT     0
+        softmax             INT     16
         maya.orig_shortname STRING  "at_d"
     [attr auto_transparency_threshold]
         maya.keyable        BOOL    False
-        min         FLOAT   0.0
-        max         FLOAT   10.0
+        min                 FLOAT   0.0
+        max                 FLOAT   10.0
         maya.orig_shortname STRING  "at_t"
     [attr auto_transparency_probabilistic]
         maya.keyable        BOOL    False
@@ -134,12 +133,12 @@
         softmin             INT     0
         softmax             INT     10
         maya.orig_shortname STRING  "GIglossmpls"
-   [attr GI_refraction_samples]
-      maya.keyable      BOOL  False
-      min               INT      0
-      max               INT      100
-      softmin           INT      0
-      softmax           INT      10
+    [attr GI_refraction_samples]
+        maya.keyable        BOOL    False
+        min                 INT     0
+        max                 INT     100
+        softmin             INT     0
+        softmax             INT     10
     [attr GI_sss_hemi_samples]
         maya.keyable        BOOL    False
         min                 INT     -1
@@ -170,16 +169,16 @@
     maya.name               STRING  "directionalLight"
     maya.id                 INT     0x4449524c
     maya.classification     STRING  "light"
-   [attr exposure]
-      min               FLOAT 0.0
-      softmax           FLOAT 10.0
-   [attr angle]
-      min               FLOAT 0.0
-      softmax           FLOAT 10.0
-   [attr samples]
-      min               INT      0
-      max               INT      100
-      default           INT      1
+    [attr exposure]
+        min                 FLOAT   0.0
+        softmax             FLOAT   10.0
+    [attr angle]
+        min                 FLOAT   0.0
+        softmax             FLOAT   10.0
+    [attr samples]
+        min                 INT     0
+        max                 INT     100
+        default             INT     1
     [attr bounce_factor]
         min                 FLOAT   0.0
         softmax             FLOAT   20.0
@@ -195,16 +194,16 @@
     maya.name               STRING  "pointLight"
     maya.id                 INT     0x504f4954
     maya.classification     STRING  "light"
-   [attr exposure]
-      min               FLOAT 0.0
-      softmax           FLOAT 10.0
-   [attr radius]
-      min               FLOAT 0.0
-      softmax           FLOAT 10.0
-   [attr samples]
-      min               INT      0
-      max               INT      100
-      default           INT      1
+    [attr exposure]
+        min                 FLOAT   0.0
+        softmax             FLOAT   10.0
+    [attr radius]
+        min                 FLOAT   0.0
+        softmax             FLOAT   10.0
+    [attr samples]
+        min                 INT     0
+        max                 INT     100
+        default             INT     1
     [attr bounce_factor]
         min                 FLOAT   0.0
         softmax             FLOAT   20.0
@@ -220,16 +219,16 @@
     maya.name               STRING  "spotLight"
     maya.id                 INT     0x5350544c
     maya.classification     STRING  "light"
-   [attr exposure]
-      min               FLOAT 0.0
-      softmax           FLOAT 10.0
-   [attr radius]
-      min               FLOAT 0.0
-      softmax           FLOAT 10.0
-   [attr samples]
-      min               INT      0
-      max               INT      100
-      default           INT      1
+    [attr exposure]
+        min                 FLOAT   0.0
+        softmax             FLOAT   10.0
+    [attr radius]
+        min                 FLOAT   0.0
+        softmax             FLOAT   10.0
+    [attr samples]
+        min                 INT     0
+        max                 INT     100
+        default             INT     1
     [attr bounce_factor]
         min                 FLOAT   0.0
         softmax             FLOAT   20.0
@@ -255,13 +254,13 @@
     maya.name               STRING  "areaLight"
     maya.id                 INT     0x41524c54
     maya.classification     STRING  "light"
-   [attr exposure]
-      min               FLOAT 0.0
-      softmax           FLOAT 10.0
-   [attr samples]
-      min               INT      0
-      max               INT      100
-      default           INT      1
+    [attr exposure]
+        min                 FLOAT   0.0
+        softmax             FLOAT   10.0
+    [attr samples]
+        min                 INT     0
+        max                 INT     100
+        default             INT     1
     [attr bounce_factor]
         min                 FLOAT   0.0
         softmax             FLOAT   20.0
@@ -279,23 +278,23 @@
     maya.classification     STRING  "light"
     maya.type               STRING  "kLocatorNode"
    [attr affect_diffuse]
-      maya.name             STRING  "emitDiffuse"
+       maya.name            STRING  "emitDiffuse"
    [attr affect_specular]
-      maya.name             STRING  "emitSpecular"  
+       maya.name            STRING  "emitSpecular"
    [attr intensity]
-      min               FLOAT 0.0
-      softmax           FLOAT 10.0
+       min                  FLOAT   0.0
+       softmax              FLOAT   10.0
    [attr exposure]
-      min               FLOAT 0.0
-      softmax           FLOAT 10.0
+       min                  FLOAT   0.0
+       softmax              FLOAT   10.0
    [attr samples]
-      min               INT      0
-      max               INT      100
-      default           INT      1
+       min                  INT     0
+       max                  INT     100
+       default              INT     1
    [attr sss_samples]
-      min                 INT     0
-      max                 INT     100
-      default             INT     1
+       min                  INT     0
+       max                  INT     100
+       default              INT     1
 
 # light filters
 
@@ -387,6 +386,8 @@
     maya.name               STRING  "aiLightDecay"
     maya.id                 INT     0x00115C83
     maya.classification     STRING  "light/filter"
+    [attr decay_type]
+        default             INT     2 # quadratic
     [attr decay_radius]
         min                 FLOAT   0.0
         softmax             FLOAT   10.0
@@ -410,8 +411,8 @@
     maya.id                 INT     0x4443414d
     maya.translator         STRING  "perspective"
     [attr focus_distance]
-      maya.name         STRING   "aiFocusDistance"
-      maya.label        STRING   "Focus Distance"
+        maya.name           STRING  "aiFocusDistance"
+        maya.label          STRING  "Focus Distance"
         min                 FLOAT   0.0
         max                 FLOAT   1000000000.0
         softmin             FLOAT   0.0

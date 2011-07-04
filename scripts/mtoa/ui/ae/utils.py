@@ -39,19 +39,14 @@ def getNodeType(name):
 def attributeExists(attribute, nodeName):
     return cmds.attributeQuery(attribute, node=nodeName, exists=True)
 
-def getAETemplates(package):
-    templates = []
-    for importer, modname, ispkg in pkgutil.iter_modules(package.__path__):
-        if 'Template' in modname and modname not in templates:
-            templates.append(modname)
-
-    return templates
 
 def loadAETemplates():
-    templates = getAETemplates(mtoa.ui.ae)
-    for template in templates:
-        node_name = 'AE%s' % template
-        _makeAEProc(template, template, node_name )
+    templates = []
+    for importer, modname, ispkg in pkgutil.iter_modules(mtoa.ui.ae.__path__):
+        if modname.endswith('Template') and modname not in templates:
+            templates.append(modname)
+            procName = 'AE%s' % modname
+            _makeAEProc(modname, modname, procName)
 
     loadAEshapesTemplate()
 
@@ -59,8 +54,8 @@ def loadAEshapesTemplate():
     template = 'shapeTemplate'
     _makeAEProc(template, template, 'AE%s' % template)
 
-def aeCallback(classname):
-    return utils.pyToMelProc(classname, ('string', 'nodeName'), prepend='AEArnoldCallback')
+def aeCallback(func):
+    return utils.pyToMelProc(func, [('string', 'nodeName')], procPrefix='AEArnoldCallback')
 
 def _makeAEProc(modname, classname, procname):
     contents = '''global proc %(procname)s( string $nodeName ){
@@ -84,8 +79,15 @@ def interToUI(label):
     label = re.sub('(\s[a-z])|(^[a-z])', lambda m: m.group().upper(), label)
     return label
 
+def attrType(attr):
+    type = cmds.getAttr(attr, type=True)
+    if type == 'float3':
+        if cmds.addAttr(attr, q=True, usedAsColor=True):
+            type = 'color'
+    return type
+
 class AttrControlGrp(object):
-    AttrUITypes = {
+    UI_TYPES = {
         'float':cmds.attrFieldSliderGrp,
         'float2':cmds.attrFieldGrp,
         'float3':cmds.attrFieldGrp,
@@ -104,29 +106,18 @@ class AttrControlGrp(object):
         'string':cmds.attrFieldGrp,
         'message':cmds.attrNavigationControlGrp
     }
-    def __init__(self, *args, **kwargs):
+    def __init__(self, attribute, *args, **kwargs):
+        self.attribute = attribute
         self.type = kwargs.pop('type', kwargs.pop('typ', None))
-        self.attribute = kwargs.pop('attribute', kwargs.pop('a', None))
-        
-        if self.attribute:
-            kwargs['attribute'] = self.attribute
-        else:
-            return None
-        
-        label = kwargs.pop('label', kwargs.pop('l', None))
-        if label:
-            kwargs['label'] = interToUI(label)
-        
-        self.control = self.AttrUITypes[self.type](*args, **kwargs)
+        if not self.type:
+            self.type = attrType(self.attribute)
+        kwargs['attribute'] = self.attribute
+        self.control = self.UI_TYPES[self.type](*args, **kwargs)
 
-    def edit(self, *args, **kwargs):
-        type = kwargs.pop('type', kwargs.pop('typ', None))
-        if not args:
-            args=[self.control]
-        if type:
-            self.type = type
+    def edit(self, **kwargs):
         kwargs['edit'] = True
-        self.AttrUITypes[self.type](*args, **kwargs)
+        self.UI_TYPES[self.type](self.control, **kwargs)
 
-    def updateAttribute(self, *args, **kwargs):
-        self.edit(attribute=self.attribute)
+    def setAttribute(self, attribute):
+        self.attribute = attribute
+        self.UI_TYPES[self.type](self.control, edit=True, attribute=self.attribute)

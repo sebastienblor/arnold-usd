@@ -33,6 +33,7 @@
 std::vector< CNodeTranslator * > CMayaScene::s_translatorsToIPRUpdate;
 MCallbackId CMayaScene::s_IPRIdleCallbackId = 0;
 MCallbackId CMayaScene::s_NewNodeCallbackId = 0;
+bool CMayaScene::s_isExportingMotion = false;
 
 CMayaScene::~CMayaScene()
 {
@@ -77,7 +78,7 @@ MStatus CMayaScene::ExportToArnold()
    // For example, if it's IPR mode, they install callbacks to trigger
    // a refresh of the data sent to Arnold.
    // ExportMode exportMode   = GetExportMode();
-   // ExportFilter exportFilter = GetExportFilter();
+   // CExportFilter* exportFilter = GetExportFilter();
    // It wouldn't be efficient to test the whole scene against selection state
    // so selected gets a special treatment
    ExportMode exportMode = m_exportOptions.m_mode;
@@ -102,9 +103,15 @@ MStatus CMayaScene::ExportToArnold()
    // First "real" export
    if (exportMode == MTOA_EXPORT_ALL || exportMode == MTOA_EXPORT_IPR)
    {
-      // Cameras are always exported currently
-      status = ExportCameras();
-      // Then we filter them out to avoid double exporting them
+      if (m_exportOptions.m_camera.isValid())
+      {
+         m_exportOptions.m_camera.extendToShape();
+         ExportDagPath(m_exportOptions.m_camera);
+      }
+      else
+      {
+         status = ExportCameras();
+      }
       m_exportOptions.m_filter.excluded.insert(MFn::kCamera);
       if (filterSelected)
       {
@@ -144,6 +151,7 @@ MStatus CMayaScene::ExportToArnold()
    // Then in case of motion blur do the other steps
    if (mb)
    {
+      s_isExportingMotion = true;
       // loop through motion steps
       for (unsigned int step = 1; step < GetNumMotionSteps(); ++step)
       {
@@ -172,6 +180,7 @@ MStatus CMayaScene::ExportToArnold()
          }
       }
       MGlobal::viewFrame(MTime(GetCurrentFrame(), MTime::uiUnit()));
+      s_isExportingMotion = false;
    }
 
    return status;
@@ -891,6 +900,7 @@ void CMayaScene::IPRIdleCallback(void *)
    }
    else
    {
+      s_isExportingMotion = true;
       // Scene is motion blured, get the data for the steps.
       for (unsigned int J = 0; (J < scene->GetNumMotionSteps()); ++J)
       {
@@ -903,6 +913,7 @@ void CMayaScene::IPRIdleCallback(void *)
          }
       }
       MGlobal::viewFrame(MTime(scene->GetCurrentFrame(), MTime::uiUnit()));
+      s_isExportingMotion = false;
    }
 
    // Clear the list.
@@ -920,7 +931,7 @@ void CMayaScene::UpdateIPR(CNodeTranslator * translator)
 
    // Add the IPR update callback, this is called in Maya's
    // idle time (Arnold may not be idle, that's okay).
-   if (s_IPRIdleCallbackId == 0)
+   if ( s_IPRIdleCallbackId == 0 && !s_isExportingMotion )
    {
       MStatus status;
       MCallbackId id = MEventMessage::addEventCallback("idle", IPRIdleCallback, NULL, &status);

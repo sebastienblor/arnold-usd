@@ -124,14 +124,20 @@ class DLLEXPORT CBaseAttrHelper
 {
 
 public:
-   CBaseAttrHelper(const AtNodeEntry* nodeEntry=NULL) :
+   CBaseAttrHelper(const AtNodeEntry* nodeEntry=NULL, const MString& prefix="") :
       m_nodeEntry(nodeEntry),
-      m_attrNum(0)
-   {}
-   CBaseAttrHelper(const char* nodeEntryName) :
+      m_attrNum(0),
+      m_prefix(prefix)
+   {
+      ReadPrefixMetadata();
+   }
+   CBaseAttrHelper(const char* nodeEntryName, const MString& prefix="") :
       m_nodeEntry(AiNodeEntryLookUp(nodeEntryName)),
-      m_attrNum(0)
-   {}
+      m_attrNum(0),
+      m_prefix(prefix)
+   {
+      ReadPrefixMetadata();
+   }
    virtual ~CBaseAttrHelper() {};
    bool GetAttrData(const char* paramName, CAttrData& data);
 
@@ -193,13 +199,17 @@ public:
    void SetNode(const char* arnoldNodeName);
    void GetMObject(const char* attrName);
 
-protected:
-   const AtNodeEntry* m_nodeEntry;
-   int m_attrNum;
-
-protected:
+   // helpers
+   bool IsHidden(const char* paramName);
    virtual MString GetMayaAttrName(const char* paramName);
    virtual MString GetMayaAttrShortName(const char* paramName);
+
+protected:
+   void ReadPrefixMetadata();
+
+   const AtNodeEntry* m_nodeEntry;
+   int m_attrNum;
+   MString m_prefix;
    std::map<std::string, MObject> m_attributes;
    virtual MStatus addAttribute(MObject& attrib){return MStatus::kFailure;};
 
@@ -215,14 +225,14 @@ class DLLEXPORT CStaticAttrHelper : public CBaseAttrHelper
 public:
    /// @param addFunc  function to call to add a dynamic attribute: should be YourMPxSubClass::addAttribute
    /// @param nodeEntry  arnold node entry to use when checking parameter metadata
-   CStaticAttrHelper(AddAttributeFunction addFunc, const AtNodeEntry* nodeEntry=NULL) :
-      CBaseAttrHelper(nodeEntry),
+   CStaticAttrHelper(AddAttributeFunction addFunc, const AtNodeEntry* nodeEntry=NULL, const MString& prefix="") :
+      CBaseAttrHelper(nodeEntry, prefix),
       m_addFunc(addFunc)
    {}
    /// @param addFunc  function to call to add a dynamic attribute: should be YourMPxSubClass::addAttribute
    /// @param nodeEntryName  arnold node entry to use when checking parameter metadata
-   CStaticAttrHelper(AddAttributeFunction addFunc, const char* nodeEntryName) :
-      CBaseAttrHelper(nodeEntryName),
+   CStaticAttrHelper(AddAttributeFunction addFunc, const char* nodeEntryName, const MString& prefix="") :
+      CBaseAttrHelper(nodeEntryName, prefix),
       m_addFunc(addFunc)
    {
       if (m_nodeEntry == NULL)
@@ -235,8 +245,6 @@ protected:
    AddAttributeFunction m_addFunc;
 
 protected:
-   virtual MString GetMayaAttrName(const char* paramName);
-   virtual MString GetMayaAttrShortName(const char* paramName);
    virtual MStatus addAttribute(MObject& attrib);
 };
 
@@ -250,14 +258,14 @@ class DLLEXPORT CDynamicAttrHelper : public CBaseAttrHelper
 public:
    /// @param obj  maya node to add attributes to
    /// @param nodeEntry  arnold node entry to use when checking parameter metadata
-   CDynamicAttrHelper(MObject& obj, const AtNodeEntry* nodeEntry=NULL) :
-      CBaseAttrHelper(nodeEntry),
+   CDynamicAttrHelper(MObject& obj, const AtNodeEntry* nodeEntry=NULL, const MString& prefix="ai_") :
+      CBaseAttrHelper(nodeEntry, prefix),
       m_instance(obj)
    {}
    /// @param obj  maya node to add attributes to
    /// @param nodeEntryName  arnold node entry to use when checking parameter metadata
-   CDynamicAttrHelper(MObject& obj, const char* nodeEntryName) :
-      CBaseAttrHelper(nodeEntryName),
+   CDynamicAttrHelper(MObject& obj, const char* nodeEntryName, const MString& prefix="ai_") :
+      CBaseAttrHelper(nodeEntryName, prefix),
       m_instance(obj)
    {
       if (m_nodeEntry == NULL)
@@ -271,8 +279,6 @@ protected:
    MObject m_instance;
 
 protected:
-   virtual MString GetMayaAttrName(const char* paramName);
-   virtual MString GetMayaAttrShortName(const char* paramName);
    virtual MStatus addAttribute(MObject& attrib);
 };
 
@@ -293,14 +299,14 @@ class DLLEXPORT CExtensionAttrHelper : public CBaseAttrHelper
 public:
    /// @param nodeClassName  name of maya class to add attributes to
    /// @param nodeEntry  arnold node entry to use when checking parameter metadata
-   CExtensionAttrHelper(MString nodeClassName, const AtNodeEntry* nodeEntry=NULL) :
-      CBaseAttrHelper(nodeEntry),
+   CExtensionAttrHelper(MString nodeClassName, const AtNodeEntry* nodeEntry=NULL, const MString& prefix="ai_") :
+      CBaseAttrHelper(nodeEntry, prefix),
       m_class(nodeClassName)
    {}
    /// @param nodeClassName  name of maya class to add attributes to
    /// @param nodeEntryName  arnold node entry to use when checking parameter metadata
-   CExtensionAttrHelper(MString nodeClassName, const char* nodeEntryName) :
-      CBaseAttrHelper(nodeEntryName),
+   CExtensionAttrHelper(MString nodeClassName, const char* nodeEntryName, const MString& prefix="ai_") :
+      CBaseAttrHelper(nodeEntryName, prefix),
       m_class(nodeClassName)
    {
       if (m_nodeEntry == NULL)
@@ -330,8 +336,6 @@ protected:
 #endif
 
 protected:
-   virtual MString GetMayaAttrName(const char* paramName);
-   virtual MString GetMayaAttrShortName(const char* paramName);
    MNodeClass m_class;
 
 };

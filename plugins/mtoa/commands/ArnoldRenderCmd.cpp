@@ -19,6 +19,7 @@
 #include <maya/MFileObject.h>
 #include <maya/MFnRenderLayer.h>
 #include <maya/MAnimControl.h>
+#include <maya/MDagPathArray.h>
 
 #include <sstream>
 
@@ -27,7 +28,7 @@ MSyntax CArnoldRenderCmd::newSyntax()
    MSyntax syntax;
 
    syntax.addFlag("b", "batch", MSyntax::kNoArg);
-   syntax.addFlag("cam", "camera", MSyntax::kString);
+   syntax.addFlag("cam", "camera", MSyntax::kSelectionItem);
    syntax.addFlag("w", "width", MSyntax::kUnsigned);
    syntax.addFlag("h", "height", MSyntax::kUnsigned);
 
@@ -200,8 +201,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
          // FIXME: do we really need to reset options each time?
          exportOptions.SetExportFrame(framerender);
          renderSession->Translate(exportOptions);
-
-         MStringArray cameras;
+         MDagPathArray cameras;
          MItDag dagIterCameras(MItDag::kDepthFirst, MFn::kCamera);
 
          // get all renderable cameras
@@ -216,8 +216,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
             MFnDependencyNode camDag(dagIterCameras.item());
             if (camDag.findPlug("renderable").asBool())
             {
-               MFnDagNode cameraNode(dagPath);
-               cameras.append(cameraNode.name().asChar());
+               cameras.append(dagPath);
             }
          }
 
@@ -228,10 +227,17 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
 
          for (unsigned int arrayIter = 0; (arrayIter < cameras.length()); arrayIter++)
          {
+            // It is ok to set the camera here, because if exportOptions.camera is unset
+            // all the cameras are exported during Translate (above)
             renderSession->SetCamera(cameras[arrayIter]);
-            renderSession->DoBatchRender();
-         }
 
+            if (renderSession->DoBatchRender() != AI_SUCCESS)
+            {
+               renderSession->Finish();
+               MGlobal::displayError("[mtoa] Failed batch render");
+               return MS::kFailure;
+            }
+         }
          renderSession->Finish();
          renderSession->ExecuteScript(renderGlobals.postRenderMel);
       }
@@ -242,13 +248,16 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
    {
       int width = args.isFlagSet("width") ? args.flagArgumentInt("width", 0) : -1;
       int height = args.isFlagSet("height") ? args.flagArgumentInt("height", 0) : -1;
-      MString camera = args.flagArgumentString("camera", 0);
+
+      MSelectionList sel;
+      args.getFlagArgument("camera", 0, sel);
+      MDagPath camera;
+      if (MStatus::kSuccess == sel.getDagPath(0, camera)) exportOptions.SetExportCamera(camera);
 
       renderSession->ExecuteScript(renderGlobals.preRenderMel);
 
       renderSession->Finish(); // In case we're already rendering (e.g. IPR).
       renderSession->Translate(exportOptions); // Translate the scene from Maya.
-      renderSession->SetCamera(camera);
       renderSession->SetResolution(width, height);
       renderSession->DoInteractiveRender(); // Start the render.
       renderSession->Finish(); // Clean up.

@@ -23,7 +23,7 @@ class CMayaScene;
  * rendering.
  */
 
-class CRenderSession
+class DLLEXPORT CRenderSession
 {
 
 public:
@@ -57,7 +57,7 @@ public:
    /// Render into the Render View, not IPR.
    void DoInteractiveRender();
    /// Render in the background of Maya.
-   void DoBatchRender();
+   AtULong DoBatchRender();
    /// Export and ass file.
    /// \param customFileName file to export too.
    MString GetAssName(const MString& customName,
@@ -102,23 +102,18 @@ public:
    /// \return returns false if there was no complete image.
    bool GetSwatchImage(MImage & image);
 
-   /// Load an Ass file into the Universe.
-   /// \param filename file to load.
-   /// \return returns 0 on success.
-   AtInt LoadAss(const MString filename);
-
    /// Set whether we're in batch mode.
    void SetBatch(bool batch);
    /*
    /// Set the options to use when exporting/translating the CMayaScene
-   void SetSceneExportOptions(const ExportOptions);
+   void SetSceneExportOptions(const CExportOptions);
    */
    /// Set the resolution of the render.
    /// \param width width in pixels.
    /// \param height height in pixels.
    void SetResolution(const int width, const int height);
    /// Set the the camera to render.
-   void SetCamera(MString cameraNode);
+   void SetCamera(MDagPath cameraNode);
    void SetMultiCameraRender(bool multi);
    void SetProgressive(bool is_progressive);
    void SetRegion(const AtUInt left,const AtUInt right,

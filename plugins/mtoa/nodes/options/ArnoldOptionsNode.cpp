@@ -359,13 +359,13 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setKeyable(false);
    addAttribute(s_mb_shader_enable);
 
-   s_shutter_size = nAttr.create("shutter_size", "shuts", MFnNumericData::kFloat, 0.5f);
+   s_shutter_size = nAttr.create("shutter_size", "shuts", MFnNumericData::kFloat, 1.0f);
    nAttr.setKeyable(false);
    nAttr.setMin(0);
    nAttr.setMax(1);
    addAttribute(s_shutter_size);
 
-   s_shutter_offset = nAttr.create("shutter_offset", "shuto", MFnNumericData::kFloat, 0);
+   s_shutter_offset = nAttr.create("shutter_offset", "shuto", MFnNumericData::kFloat, 0.0f);
    nAttr.setKeyable(false);
    nAttr.setSoftMin(-0.5f);
    nAttr.setSoftMax(0.5f);
@@ -385,10 +385,10 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setMax(30);
    addAttribute(s_motion_steps);
 
-   s_motion_frames = nAttr.create("motion_frames", "motf", MFnNumericData::kFloat, 1);
+   s_motion_frames = nAttr.create("motion_frames", "motf", MFnNumericData::kFloat, 0.5f);
    nAttr.setKeyable(false);
    nAttr.setSoftMin(0);
-   nAttr.setSoftMax(2);
+   nAttr.setSoftMax(1);
    nAttr.setMin(0);
    nAttr.setMax(20);
    addAttribute(s_motion_frames);

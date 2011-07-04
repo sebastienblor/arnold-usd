@@ -12,7 +12,7 @@ DLLEXPORT void initializeExtension(CExtension& extension)
    extension.Requires("shaveNode");
    extension.LoadArnoldPlugin("shave_shaders");
    status = extension.RegisterTranslator("shaveHair",
-         "shave",
+         "",
          CShaveTranslator::creator,
          CShaveTranslator::NodeInitializer);
 }

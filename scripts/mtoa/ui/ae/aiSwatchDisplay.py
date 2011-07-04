@@ -58,14 +58,14 @@ def aiSwatchDisplayReplace(plugName) :
                       edit=True,
                       shadingNode=node,
                       annotation='Refresh Swatch',
-                      pressCommand='''import maya.mel as mel;mel.eval('updateFileNodeSwatch(\"%s\")')''' % node) 
+                      pressCommand='updateFileNodeSwatch("%s")' % node) 
     cmds.popupMenu('swatchPopup', edit=True, button=3)
     cmds.menuItem( 'swatchSmall', edit=True,
-                   command='''import maya.cmds as cmds; cmds.swatchDisplayPort('swatchDisplay', edit=True, wh=(64, 64), rs=64)''')
+                   command=lambda *args: cmds.swatchDisplayPort('swatchDisplay', edit=True, wh=(64, 64), rs=64))
     cmds.menuItem( 'swatchMedium', edit=True,
-                   command='''import maya.cmds as cmds; cmds.swatchDisplayPort('swatchDisplay', edit=True, wh=(96, 96), rs=96)''')
+                   command=lambda *args: cmds.swatchDisplayPort('swatchDisplay', edit=True, wh=(96, 96), rs=96))
     cmds.menuItem( 'swatchLarge', edit=True,
-                   command='''import maya.cmds as cmds; cmds.swatchDisplayPort('swatchDisplay', edit=True, wh=(128, 128), rs=128)''')
+                   command=lambda *args: cmds.swatchDisplayPort('swatchDisplay', edit=True, wh=(128, 128), rs=128))
     cmds.text('swatchLabel', edit=True, label=aiSwatchLabel(node))
 
 

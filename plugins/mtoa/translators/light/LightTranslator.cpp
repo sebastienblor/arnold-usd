@@ -81,7 +81,7 @@ void CLightTranslator::Export(AtNode* light)
    }
    
    MStatus status;
-   MPlug pFilters = GetFnNode().findPlug("aiLightFilters", &status);
+   MPlug pFilters = GetFnNode().findPlug("aiFilters", &status);
    if (status == MS::kSuccess)
    {
       MObjectArray filters;
@@ -123,12 +123,8 @@ void CLightTranslator::ExportMotion(AtNode* light, AtUInt step)
    AiArraySetMtx(matrices, step, matrix);
 }
 
-void CLightTranslator::NodeInitializer(MString nodeClassName)
+void CLightTranslator::MakeCommonAttributes(CBaseAttrHelper& helper)
 {
-   // use point light as a generic light...
-   // TODO : define a generic ArnoldLightNode
-   CExtensionAttrHelper helper(nodeClassName, "point_light");
-   // common attributes
    helper.MakeInput("cast_shadows");
    helper.MakeInput("exposure");
    helper.MakeInput("samples");
@@ -136,6 +132,7 @@ void CLightTranslator::NodeInitializer(MString nodeClassName)
    helper.MakeInput("normalize");
    helper.MakeInput("bounce_factor");
    helper.MakeInput("bounces");
+   helper.MakeInput("filters");
    CAttrData data;
    data.defaultValue.BOOL = false;
    data.name = "aiOverrideSssSamples";

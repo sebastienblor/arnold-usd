@@ -25,7 +25,7 @@ MSyntax CArnoldExportAssCmd::newSyntax()
    syntax.addFlag("s", "selected");
    syntax.addFlag("bb", "boundingBox");
    syntax.addFlag("f", "filename", MSyntax::kString);
-   syntax.addFlag("cam", "camera", MSyntax::kString);
+   syntax.addFlag("cam", "camera", MSyntax::kSelectionItem);
    syntax.addFlag("sf", "startFrame", MSyntax::kDouble);
    syntax.addFlag("ef", "endFrame", MSyntax::kDouble);
    syntax.addFlag("fs", "frameStep", MSyntax::kDouble);
@@ -33,18 +33,13 @@ MSyntax CArnoldExportAssCmd::newSyntax()
    return syntax;
 }
 
-MString CArnoldExportAssCmd::GetCameraName()
+MDagPath CArnoldExportAssCmd::GetCamera()
 {
-   MString cameraName("");
+   MDagPath camera;
    if (MGlobal::mayaState() == MGlobal::kInteractive)
-   {
-      MDagPath cameraPath;
-      M3dView::active3dView().getCamera(cameraPath);
+      M3dView::active3dView().getCamera(camera);
 
-      MFnDagNode cameraNode(cameraPath.node());
-      cameraName = cameraNode.partialPathName();
-   }
-   if (cameraName == "")
+   if (!camera.isValid())
    {
       MItDag dagIter(MItDag::kDepthFirst, MFn::kCamera);
       MDagPath cameraPath;
@@ -59,9 +54,9 @@ MString CArnoldExportAssCmd::GetCameraName()
          renderable = cameraNode.findPlug("renderable", false, &stat);
          if (stat && renderable.asBool())
          {
-            if (cameraName == "")
+            if (!camera.isValid())
             {
-               cameraName = cameraNode.partialPathName();
+               camera = cameraPath;
             }
             else
             {
@@ -72,10 +67,10 @@ MString CArnoldExportAssCmd::GetCameraName()
          dagIter.next();
       }
    }
-   if (cameraName == "")
+   if (!camera.isValid())
       MGlobal::displayWarning("Did not find a renderable camera. (use the -cam/-camera option to specify one)");
 
-   return cameraName;
+   return camera;
 }
 
 MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
@@ -86,6 +81,7 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    MSyntax syntax = newSyntax();
    MArgDatabase argDB(syntax, argList, &status);
    MString customFileName = "";
+   MDagPath camera;
    MString cameraName = "";
    MString optionsName = "";
    bool exportSelected = false;
@@ -115,7 +111,10 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    // Custom camera
    if (argDB.isFlagSet("camera"))
    {
-      argDB.getFlagArgument("camera", 0, cameraName);
+      MSelectionList sel;
+      argDB.getFlagArgument("camera", 0, sel);
+      MStatus status;
+      status = sel.getDagPath(0, camera);
    }
    // Only selected
    if (argDB.isFlagSet("selected"))
@@ -151,10 +150,8 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    // or the first found renderable camera in batch mode
    // FIXME if you're exporting in selected mode to reuse in a standing
    // you probably don't want a camera anyway, remove this search and warnings in that case?
-   if (cameraName == "")
-   {
-      cameraName = GetCameraName();
-   }
+   if (!camera.isValid()) camera = GetCamera();
+   cameraName = camera.partialPathName();
    // Set the necessary options for scene export
    // Filtering
    CExportFilter exportFilter;
@@ -166,6 +163,7 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    fileFrameNumber = double(cT.value());
    // Build Export options in MTOA_EXPORT_FILE mode
    CExportOptions exportOptions;
+   exportOptions.SetExportCamera(camera);
    exportOptions.SetExportFrame(fileFrameNumber);
    exportOptions.SetExportMode(MTOA_EXPORT_FILE);
    exportOptions.SetExportFilter(exportFilter);
@@ -225,8 +223,6 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
 
          exportOptions.SetExportFrame(curframe);
          renderSession->Translate(exportOptions);
-         if (cameraName != "")
-            renderSession->SetCamera(cameraName);
 
          renderSession->DoExport(curfilename);
          renderSession->Finish();
@@ -268,9 +264,6 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
                                               IsBatch(), &status);
 
       renderSession->Translate(exportOptions);
-      if (cameraName != "")
-         renderSession->SetCamera(cameraName);
-
       renderSession->DoExport(curfilename);
       renderSession->Finish();
 

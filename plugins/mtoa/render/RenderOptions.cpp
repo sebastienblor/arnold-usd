@@ -8,7 +8,6 @@
 #include <ai_nodes.h>
 #include <ai_universe.h>
 
-#include <maya/MFnDependencyNode.h>
 #include <maya/MFnEnumAttribute.h>
 #include <maya/MPlug.h>
 #include <maya/MPlugArray.h>
@@ -67,13 +66,9 @@ void CRenderOptions::UpdateImageFilename()
    {
 
       // get camera transform node for folder name
-      MSelectionList list;
-      MObject        node,parentNode;
-      list.add(GetCameraName());
-      list.getDependNode(0, node);
-      MFnDagNode camDag(node);
-      parentNode = camDag.parent(0);
-      MFnDagNode camDagParent(parentNode);
+      MFnDagNode camDag(GetCamera());
+      MFnDagNode camDagParent(camDag.parent(0));
+      // FIXME: could result in pipes being placed in the file name: path|to|camera
       nameCamera = camDagParent.name();
 
       if (MultiCameraRender())
@@ -262,24 +257,6 @@ void CRenderOptions::SetupImageOptions() const
       COptionsTranslator* translator = (COptionsTranslator*)m_scene->GetActiveTranslator(node);
       translator->SetupImageOptions(AiUniverseGetOptions());
    }
-}
-
-AtInt CRenderOptions::GetFlagsFromVerbosityLevel(AtUInt level) const
-{
-   AtInt flags = 0;
-
-   switch(level)
-   {
-   case 6:  flags = AI_LOG_ALL; break;
-   case 5:  flags = AI_LOG_ALL & ~AI_LOG_DEBUG; break;
-   case 4:  flags |= AI_LOG_PLUGINS;
-   case 3:  flags |= AI_LOG_STATS;
-   case 2:  flags |= AI_LOG_PROGRESS;
-   case 1:  flags |= AI_LOG_INFO | AI_LOG_WARNINGS | AI_LOG_ERRORS | AI_LOG_TIMESTAMP | AI_LOG_BACKTRACE | AI_LOG_MEMORY; break;
-   case 0:  flags = 0; break;
-   }
-
-   return flags;
 }
 
 MString CRenderOptions::VerifyFileName(MString fileName, bool compressed)

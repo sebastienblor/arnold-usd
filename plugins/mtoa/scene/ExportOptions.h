@@ -3,6 +3,8 @@
 
 #include <set>
 
+#include "maya/MDagPath.h"
+
 // The different ExportMode were not really mutually exclusive
 // (you can have IPR render on selected only)
 // So redone as ExportMode and ExportFilter
@@ -61,12 +63,15 @@ struct CExportOptions
 {
    friend class CMayaScene;
 
-   CExportOptions() : m_frame(0.0f),
+   CExportOptions() : m_camera(MDagPath()),
+                      m_frame(0.0f),
                       m_mode(MTOA_EXPORT_UNDEFINED),
                       m_filter(CExportFilter()),
                       m_motion(CExportMotion()) {}
 
-   inline ExportMode GetExportMode() const {return m_mode;}
+   inline const MDagPath& GetExportCamera() const { return m_camera; }
+   inline void SetExportCamera(MDagPath camera) { camera.extendToShape();m_camera = camera; }
+   inline const ExportMode& GetExportMode() const {return m_mode;}
    inline void SetExportMode(ExportMode mode) { m_mode = mode; }
    inline CExportFilter* GetExportFilter() { return &m_filter; }
    inline void SetExportFilter(CExportFilter& filter) { m_filter = filter; }
@@ -80,6 +85,7 @@ struct CExportOptions
    
 private:
 
+   MDagPath        m_camera;
    double          m_frame;
    ExportMode      m_mode;
    CExportFilter   m_filter;

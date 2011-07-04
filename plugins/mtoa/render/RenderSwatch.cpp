@@ -132,11 +132,7 @@ MStatus CRenderSwatchGenerator::BuildArnoldScene()
    // m_renderSession->GetMayaScene()->PrepareExport();
 
    AiBegin();
-   // TODO: Should we be using render options for logging, or is it better not to clutter
-   // the log with swatch output?
-   // If we use global render options, m_renderSession->Init() already did
-   // m_renderSession->m_renderOptions.SetupLog();
-   MtoaSetupLogging();
+   MtoaSetupSwatchLogging();
    // TODO: should use the list of loaded plugins from CExtensionsManager instead
    m_renderSession->LoadPlugins();
 
@@ -209,7 +205,7 @@ MStatus CRenderSwatchGenerator::LoadAssForNode()
    std::replace(c_ass.begin(), c_ass.end(), '/', '_');
    c_ass = ass.asChar() + c_ass + ".ass";
 
-   if (m_renderSession->LoadAss(c_ass.c_str()) == AI_SUCCESS)
+   if (AiASSLoad(c_ass.c_str()) == AI_SUCCESS)
    {
       if (NULL != AiNodeLookUpByName("geometry"))
          return MStatus::kSuccess;

@@ -1,5 +1,4 @@
-
-#include "utils/MtoaLog.h"
+#include "utils/Universe.h"
 #include "RenderSession.h"
 #include "RenderOptions.h"
 #include "OutputDriver.h"
@@ -152,11 +151,16 @@ void CRenderSession::Translate(CExportOptions& options)
 
    // Begin the Arnold universe.
    AiBegin();
+   ReadMetafile();
    Init(options);
    // TODO: should use the list of loaded plugins from CExtensionsManager instead
    LoadPlugins();
 
    m_scene->ExportToArnold();
+
+   if (options.GetExportCamera().isValid())
+      SetCamera(options.GetExportCamera());
+
 }
 
 AtBBox CRenderSession::GetBoundingBox()
@@ -250,7 +254,7 @@ void CRenderSession::SetBatch(bool batch)
 }
 
 /*
-void CRenderSession::SetSceneExportOptions(const ExportOptions& options)
+void CRenderSession::SetSceneExportOptions(const CExportOptions& options)
 {
    m_scene->SetExportOptions(options);
 }
@@ -273,99 +277,74 @@ void CRenderSession::SetProgressive(const bool is_progressive)
    m_renderOptions.SetProgressive(is_progressive);
 }
 
-// FIXME: this function should always be passed a dagNode so that we can handle
-// the formatting of the node within the arnold scene (i.e fullPath vs partialPath)
-void CRenderSession::SetCamera(MString cameraNode)
+/// Export the passed camera node and set options.camera
+void CRenderSession::SetCamera(MDagPath cameraNode)
 {
-   if (cameraNode != "")
+   cameraNode.extendToShape();
+   m_renderOptions.SetCamera(cameraNode);
+   // FIXME: do this more explicitly: at this point the node should be exported, this is just retrieving the arnold node
+   AtNode* camera = m_scene->ExportDagPath(cameraNode);
+   if (camera == NULL)
    {
-      m_renderOptions.SetCameraName(cameraNode);
-      m_renderOptions.UpdateImageFilename();
-      AtNode* camera = AiNodeLookUpByName(cameraNode.asChar());
+      AiMsgError("[mtoa] Setting camera %s failed", cameraNode.partialPathName().asChar());
+      return;
+   }
+   AiNodeSetPtr(AiUniverseGetOptions(), "camera", camera);
+   m_renderOptions.UpdateImageFilename();
 
-      if (!camera)
+   // FIXME: this would best be handled by a kind of translator post-process hook.
+
+   // check visibility for all image planes.
+   MDagPath dagPath;
+   MItDag   dagIterCameras(MItDag::kDepthFirst, MFn::kCamera);
+
+   // for all cameras
+   for (dagIterCameras.reset(); (!dagIterCameras.isDone()); dagIterCameras.next())
+   {
+      if (!dagIterCameras.getPath(dagPath))
       {
-         MSelectionList list;
-         MObject        node;
-         MFnDagNode     dagNode;
-         
-         list.add(cameraNode);
-         list.getDependNode(0, node);
-         
-         for (AtUInt J = 0; (J < MFnDagNode(node).childCount()); ++J)
-         if (MFnDagNode(MFnDagNode(node).child(J)).typeName() == "camera")
-         {
-            cameraNode = MFnDagNode(MFnDagNode(node).child(0)).partialPathName();
-            break;
-         }
-
-         camera = AiNodeLookUpByName(cameraNode.asChar());
-      }
-
-      if (!camera)
-      {
-         AiMsgError("[mtoa] Cannot find camera node %s.", cameraNode.asChar());
+         AiMsgError("[mtoa] Could not get path for DAG iterator");
          return;
       }
+      bool isRenderingCamera = false;
+      if (dagPath == cameraNode)
+         isRenderingCamera = true;
 
-      AiNodeSetPtr(AiUniverseGetOptions(), "camera", camera);
-      AiMsgDebug("[mtoa] Using camera %s to output image %s.", cameraNode.asChar(), m_renderOptions.GetImageFilename().asChar());
-      
-      // FIXME: this would best be handled by a kind of translator post-process hook.
-
-      // check visibility for all image planes.
-      MDagPath dagPath;
-      MItDag   dagIterCameras(MItDag::kDepthFirst, MFn::kCamera);
-
-      // for all cameras
-      for (dagIterCameras.reset(); (!dagIterCameras.isDone()); dagIterCameras.next())
+      // check all of it's imageplanes
+      MPlugArray connectedPlugs;
+      MPlug      imagePlanePlug;
+      MPlug      imagePlaneNodePlug;
+      MFnDagNode fnDagNode(dagPath);
+      imagePlanePlug = fnDagNode.findPlug("imagePlane");
+      if (imagePlanePlug.numConnectedElements() > 0)
       {
-         if (!dagIterCameras.getPath(dagPath))
+         for(AtUInt ips = 0; (ips < imagePlanePlug.numElements()); ips++)
          {
-            AiMsgError("[mtoa] Could not get camera dag path.");
-            return;
-         }
-         bool isRenderingCamera = false;
-         MFnDagNode fnDagNode(dagPath);
-         if (fnDagNode.name() == cameraNode)
-         {
-            isRenderingCamera = true;
-         }
-
-         // check all of it's imageplanes
-         MPlugArray connectedPlugs;
-         MPlug      imagePlanePlug;
-         MPlug      imagePlaneNodePlug;
-         imagePlanePlug = fnDagNode.findPlug("imagePlane");
-         if (imagePlanePlug.numConnectedElements() > 0)
-         {
-            for(AtUInt ips = 0; (ips < imagePlanePlug.numElements()); ips++)
+            MStatus status;
+            imagePlaneNodePlug = imagePlanePlug.elementByPhysicalIndex(ips);
+            imagePlaneNodePlug.connectedTo(connectedPlugs, true, false, &status);
+            MObject resNode = connectedPlugs[0].node(&status);
+            if (status)
             {
-               MStatus status;
-               imagePlaneNodePlug = imagePlanePlug.elementByPhysicalIndex(ips);
-               imagePlaneNodePlug.connectedTo(connectedPlugs, true, false, &status);
-               MObject resNode = connectedPlugs[0].node(&status);
-               if (status)
-               {
-                  // get the dependency node of the image plane 
-                  MFnDependencyNode fnRes(resNode);
-                  MString imagePlaneName(fnDagNode.partialPathName());
-                  imagePlaneName += "_IP_"; 
-                  imagePlaneName += ips; 
-                  bool displayOnlyIfCurrent = fnRes.findPlug("displayOnlyIfCurrent", &status).asBool();
-                  AtNode* imagePlane = AiNodeLookUpByName(imagePlaneName.asChar());
-                  AtInt visibility = 0;
+               // get the dependency node of the image plane
+               MFnDependencyNode fnRes(resNode);
+               MString imagePlaneName(fnDagNode.partialPathName());
+               imagePlaneName += "_IP_";
+               imagePlaneName += ips;
+               bool displayOnlyIfCurrent = fnRes.findPlug("displayOnlyIfCurrent", &status).asBool();
+               AtNode* imagePlane = AiNodeLookUpByName(imagePlaneName.asChar());
+               AtInt visibility = 0;
+               AiMsgDebug("[mtoa] Using camera %s to output image %s.", cameraNode.partialPathName().asChar(), m_renderOptions.GetImageFilename().asChar());
 
-                  if ((displayOnlyIfCurrent && isRenderingCamera) || (!displayOnlyIfCurrent))
-                  {
-                     visibility = AI_RAY_CAMERA;  
-                  }
-                  if ((displayOnlyIfCurrent && !isRenderingCamera))
-                  {
-                     visibility = 0;  
-                  }
-                  AiNodeSetInt(imagePlane, "visibility", visibility);
+               if ((displayOnlyIfCurrent && isRenderingCamera) || (!displayOnlyIfCurrent))
+               {
+                  visibility = AI_RAY_CAMERA;
                }
+               if ((displayOnlyIfCurrent && !isRenderingCamera))
+               {
+                  visibility = 0;
+               }
+               AiNodeSetInt(imagePlane, "visibility", visibility);
             }
          }
       }
@@ -580,11 +559,11 @@ void CRenderSession::DoInteractiveRender()
 }
 
 
-void CRenderSession::DoBatchRender()
+AtULong CRenderSession::DoBatchRender()
 {
    SetupRenderOutput();
 
-   AiRender(AI_RENDER_MODE_CAMERA);
+   return AiRender(AI_RENDER_MODE_CAMERA);
 }
 
 MString CRenderSession::GetAssName(const MString& customName,
@@ -847,12 +826,6 @@ void CRenderSession::ClearIdleRenderViewCallback()
       MRenderView::endRender();
       m_idle_cb = 0;
    }
-}
-
-AtInt CRenderSession::LoadAss(const MString filename)
-{
-   m_renderOptions.SetupLog();
-   return AiASSLoad(filename.asChar());
 }
 
 void CRenderSession::DoSwatchRender(const AtInt resolution)

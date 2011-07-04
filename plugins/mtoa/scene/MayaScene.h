@@ -133,6 +133,7 @@ private:
    static std::vector< CNodeTranslator * > s_translatorsToIPRUpdate;
    static MCallbackId s_IPRIdleCallbackId;
    static MCallbackId s_NewNodeCallbackId;
+   static bool s_isExportingMotion;
    
 private:
 
@@ -149,6 +150,7 @@ private:
    // dag nodes, are a map in a map.
    // the first key is an MObjectHandle and the second the instance number
    ObjectToDagTranslatorMap m_processedDagTranslators;
+
 
 };  // class CMayaScene
 

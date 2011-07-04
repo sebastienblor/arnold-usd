@@ -1,8 +1,8 @@
 import maya.cmds as cmds
 import maya.OpenMaya as om
-import mtoa.ui.ae.lightFiltersTemplate as lightFiltersTemplate
+import mtoa.ui.ae.lightTemplate as lightTemplate
 from mtoa.ui.ae.utils import aeCallback
-from mtoa.ui.ae.shapeTemplate import registerUI, registerDefaultTranslator, ArnoldTranslatorTemplate
+from mtoa.ui.ae.shapeTemplate import registerUI, registerDefaultTranslator, ArnoldTranslatorTemplate, registerTranslatorUI
 import mtoa.callbacks as callbacks
 
 def overrideSssToggle(attrName):
@@ -11,34 +11,34 @@ def overrideSssToggle(attrName):
     else:
         cmds.editorTemplate(dimControl=(attrName, "aiSssSamples", True))
 
-def commonLightAttributes(nodeName):
-    cmds.editorTemplate("aiNormalize", label="Normalize", addDynamicControl=True)
-    cmds.editorTemplate("aiBounceFactor", label="Bounce Factor", addDynamicControl=True)
-    cmds.editorTemplate("aiBounces", label="Bounces", addDynamicControl=True)
+def commonLightAttributes(ui):
+    ui.addAttribute("aiNormalize")
+    ui.addAttribute("aiBounceFactor")
+    ui.addAttribute("aiBounces")
+    ui.addSeparator()
+#    ui.addAttribute("aiOverrideSssSamples", aeCallback(overrideSssToggle), label="Override SSS Samples", addDynamicControl=True)
+    ui.addAttribute("aiSssSamples", label="SSS Samples")
+    ui.addSeparator()
+    ui.addAttribute("aiSssUseGi", label="SSS Use Gi")
+    ui.addAttribute("aiSssMaxSamples", label="SSS Max Samples")
+    ui.addAttribute("aiSssSampleSpacing", label="SSS Sample Spacing")
+#    cmds.editorTemplate(beginLayout="Light Filters")
+#
+#    cmds.editorTemplate(aeCallback(lightFiltersTemplate.customLightFiltersNew), aeCallback(lightFiltersTemplate.customLightFiltersReplace), "aiLightFilters", callCustom=True)
+#
+#    cmds.editorTemplate(endLayout=True)
 
-    cmds.editorTemplate(addSeparator=True)
+def renderStatsAttributes(ui):
+    ui.addAttribute("castsShadows")
+    ui.addAttribute("primaryVisibility")
+    ui.addAttribute("visibleInReflections")
+    ui.addAttribute("visibleInRefractions")
 
-    cmds.editorTemplate("aiOverrideSssSamples", aeCallback(overrideSssToggle), label="Override SSS Samples", addDynamicControl=True)
-    cmds.editorTemplate("aiSssSamples", label="SSS Samples", addDynamicControl=True)
-
-    cmds.editorTemplate(beginLayout="Light Filters")
-
-    cmds.editorTemplate(aeCallback(lightFiltersTemplate.customLightFiltersNew), aeCallback(lightFiltersTemplate.customLightFiltersReplace), "aiLightFilters", callCustom=True)
-
-    cmds.editorTemplate(endLayout=True)
-
-
-def commonShapeAttributes(nodeName):
-    cmds.editorTemplate("aiSelfShadows", label="Self Shadows", addDynamicControl=True)
-    cmds.editorTemplate("aiOpaque", label="Opaque", addDynamicControl=True)
-    cmds.editorTemplate("aiVisibleInDiffuse", label="Visible In Diffuse", addDynamicControl=True)
-    cmds.editorTemplate("aiVisibleInGlossy", label="Visible In Glossy", addDynamicControl=True)    
-
-    cmds.editorTemplate(addSeparator=True)
-
-    cmds.editorTemplate("aiSssUseGi", label="SSS Use Gi", addDynamicControl=True)
-    cmds.editorTemplate("aiSssMaxSamples", label="SSS Max Samples", addDynamicControl=True)
-    cmds.editorTemplate("aiSssSampleSpacing", label="SSS Sample Spacing", addDynamicControl=True)
+def commonShapeAttributes(ui):
+    ui.addAttribute("aiSelfShadows")
+    ui.addAttribute("aiOpaque")
+    ui.addAttribute("aiVisibleInDiffuse")
+    ui.addAttribute("aiVisibleInGlossy")
 
 
 def subdivDicingCameraNew(attrName):
@@ -51,122 +51,108 @@ def subdivDicingCameraNew(attrName):
 def subdivDicingCameraReplace(attrName):
     cmds.attrNavigationControlGrp(  'aiSubdivDicingCameraCtrl', edit=True,
                                     at=attrName )
-
-
-@registerUI("mesh")
-def builtin_mesh(nodeName):
-    commonShapeAttributes(nodeName)
-    cmds.editorTemplate(addSeparator=True)
-
-    cmds.editorTemplate("aiSubdivType", label="Subdivision Type", addDynamicControl=True)
-    cmds.editorTemplate("aiSubdivIterations", label="Subdivision Iterations", addDynamicControl=True)
-    cmds.editorTemplate("aiSubdivAdaptiveMetric", label="Subdivision Adaptive Metric", addDynamicControl=True)
-    cmds.editorTemplate("aiSubdivPixelError", label="Subdivision Pixel Error", addDynamicControl=True)
-    
     # cmds.editorTemplate("aiSubdivDicingCamera", label="Subdivision Dicing Camera", addDynamicControl=True)
     cmds.editorTemplate(aeCallback(subdivDicingCameraNew), aeCallback(subdivDicingCameraReplace), "aiSubdivDicingCamera", callCustom=True)
-    
-    cmds.editorTemplate("aiSubdivUvSmoothing", label="Subdivision UVs Smoothing", addDynamicControl=True)
 
-    cmds.editorTemplate(addSeparator=True)
 
-    cmds.editorTemplate("aiExportTangents", label="Export Tangents", addDynamicControl=True)
-    cmds.editorTemplate("aiExportColors", label="Export Colors", addDynamicControl=True)
+@registerUI("mesh", "<built-in>")
+def builtin_mesh(ui):
+    commonShapeAttributes(ui)
+    ui.addSeparator()
+    ui.addAttribute("aiSubdivType", label="Subdivision Type")
+    ui.addAttribute("aiSubdivIterations", label="Subdivision Iterations")
+    ui.addAttribute("aiSubdivAdaptiveMetric", label="Subdivision Adaptive Metric")
+    ui.addAttribute("aiSubdivPixelError", label="Subdivision Pixel Error")
+    # TODO: add dicing camera UI
+    ui.addAttribute("aiSubdivDicingCamera", label="Subdivision Dicing Camera")
+    ui.addAttribute("aiSubdivUvSmoothing", label="Subdivision UVs Smoothing")
+    ui.addSeparator()
+    ui.addAttribute("aiExportTangents")
+    ui.addAttribute("aiExportColors")
+    #cmds.editorTemplate("aiExportHairIDs", label="Export Hair IDs", addDynamicControl=True)
+    # FIXME: these are not on the shape node!
+#    ui.addSeparator()
+#
+#    ui.addAttribute("enableProcedural")
+#    ui.addAttribute("dso")
 
-    cmds.editorTemplate(addSeparator=True)
- 
-    cmds.editorTemplate("enableProcedural", addDynamicControl=True)
-    cmds.editorTemplate("dso", addDynamicControl=True)
+@registerUI("hairSystem", "<built-in>")
+def builtin_hairSystem(ui):
+    commonShapeAttributes(ui)
+    ui.addSeparator()
+    ui.addAttribute("aiOverrideHair")
+    ui.addAttribute("aiHairShader")
+    ui.addSeparator()
+    ui.addAttribute("aiMinPixelWidth")
+    ui.addAttribute("aiMode")
 
-@registerUI("hairSystem")
-def builtin_hairSystem(nodeName):
-    commonShapeAttributes(nodeName)
-    cmds.editorTemplate(addSeparator=True)
+class AmbientLightTemplate(lightTemplate.LightTemplate):
+    # TODO: handle filter association via metadata
+    def validFilters(self):
+        return ['aiLightBlocker', 'aiLightDecay']
 
-    cmds.editorTemplate("aiOverrideHair", label="Override Hair", addDynamicControl=True)
-    cmds.editorTemplate("aiHairShader", label="Hair Shader", addDynamicControl=True)
+    def setup(self):
+        self.commonLightAttributes()
+registerTranslatorUI(AmbientLightTemplate, "ambientLight")
 
-    cmds.editorTemplate(addSeparator=True)
+class DirectionalLightTemplate(lightTemplate.LightTemplate):
+    # TODO: handle filter association via metadata
+    def validFilters(self):
+        return ['aiLightBlocker']
+    def setup(self):
+        self.addAttribute("aiCastShadows")
+        self.addAttribute("aiExposure")
+        self.addAttribute("aiAngle")
+        self.addAttribute("aiSamples")
+        self.addAttribute("aiMis", label="Multiple Importance Sampling")
+        self.addSeparator()
+        self.commonLightAttributes()
+registerTranslatorUI(DirectionalLightTemplate, "directionalLight")
 
-    cmds.editorTemplate("aiMinPixelWidth", label="Min Pixel Width", addDynamicControl=True)
-    cmds.editorTemplate("aiMode", label="Mode", addDynamicControl=True)
+class PointLightTemplate(lightTemplate.LightTemplate):
+    # TODO: handle filter association via metadata
+    def validFilters(self):
+        return ['aiLightBlocker', 'aiLightDecay']
+    def setup(self):
+        self.addAttribute("aiCastShadows")
+        self.addAttribute("aiExposure")
+        self.addAttribute("aiRadius")
+        self.addAttribute("aiSamples")
+        self.addAttribute("aiMis", label="Multiple Importance Sampling")
+        self.addSeparator()
+        self.addAttribute("aiAffectVolumetrics")
+        self.addAttribute("aiCastVolumetricShadows")
+        self.addSeparator()
+        self.commonLightAttributes()
+registerTranslatorUI(PointLightTemplate, "pointLight")
 
-@registerUI("ambientLight")
-def builtin_ambientLight(nodeName):
-    commonLightAttributes(nodeName);
+class SpotLightTemplate(lightTemplate.LightTemplate):
+    # TODO: handle filter association via metadata
+    def validFilters(self):
+        return ['aiLightBlocker', 'aiLightDecay', 'aiBarndoor', 'aiGobo']
+    def setup(self):
+        self.addAttribute("aiCastShadows")
+        self.addAttribute("aiExposure")
+        self.addAttribute("aiRadius")
+        self.addAttribute("aiSamples")
+        self.addAttribute("aiMis", label="Multiple Importance Sampling")
 
-@registerUI("directionalLight")
-def builtin_directionalLight(nodeName):
-    cmds.editorTemplate("aiCastShadows", label="Cast Shadows", addDynamicControl=True)
-    cmds.editorTemplate("aiExposure", label="Exposure", addDynamicControl=True)
-    cmds.editorTemplate("aiAngle", label="Angle", addDynamicControl=True)
-    cmds.editorTemplate("aiSamples", label="Samples", addDynamicControl=True)
-    cmds.editorTemplate("aiMis", label="Multiple Importance Sampling", addDynamicControl=True)
+        self.addSeparator()
 
-    cmds.editorTemplate(addSeparator=True)
+        self.addAttribute("aiAffectVolumetrics")
+        self.addAttribute("aiCastVolumetricShadows")
 
-    commonLightAttributes(nodeName);
+        self.addSeparator()
 
-@registerUI("pointLight")
-def builtin_pointLight(nodeName):
-    cmds.editorTemplate("aiCastShadows", label="Cast Shadows", addDynamicControl=True)
-    cmds.editorTemplate("aiExposure", label="Exposure", addDynamicControl=True)
-    cmds.editorTemplate("aiRadius", label="Radius", addDynamicControl=True)
-    cmds.editorTemplate("aiSamples", label="Samples", addDynamicControl=True)
-    cmds.editorTemplate("aiMis", label="Multiple Importance Sampling", addDynamicControl=True)
+        self.addAttribute("aiAspectRatio")
+        self.addAttribute("aiLensRadius")
 
-    cmds.editorTemplate(addSeparator=True)
+        self.addSeparator()
 
-    cmds.editorTemplate("aiAffectVolumetrics", label="Affect Volumetrics", addControl=True)
-    cmds.editorTemplate("aiCastVolumetricShadows", label="Cast Volumetric Shadows", addControl=True)
-
-    cmds.editorTemplate(addSeparator=True)
-
-    commonLightAttributes(nodeName);
-
-@registerUI("spotLight")
-def builtin_spotLight(nodeName):
-    cmds.editorTemplate("aiCastShadows", label="Cast Shadows", addDynamicControl=True)
-    cmds.editorTemplate("aiExposure", label="Exposure", addDynamicControl=True)
-    cmds.editorTemplate("aiRadius", label="Radius", addDynamicControl=True)
-    cmds.editorTemplate("aiSamples", label="Samples", addDynamicControl=True)
-    cmds.editorTemplate("aiMis", label="Multiple Importance Sampling", addDynamicControl=True)
-
-    cmds.editorTemplate(addSeparator=True)
-
-    cmds.editorTemplate("aiAffectVolumetrics", label="Affect Volumetrics", addControl=True)
-    cmds.editorTemplate("aiCastVolumetricShadows", label="Cast Volumetric Shadows", addControl=True)
-
-    cmds.editorTemplate(addSeparator=True)
-
-    cmds.editorTemplate("aiAspectRatio", label="Aspect Ratio", addControl=True)
-    cmds.editorTemplate("aiLensRadius", label="Lens Radius", addControl=True)
-
-    cmds.editorTemplate(addSeparator=True)
-
-    commonLightAttributes(nodeName);
-
-@registerUI("areaLight")
-def builtin_areaLight(nodeName):
-    cmds.editorTemplate("aiCastShadows", label="Cast Shadows", addDynamicControl=True)
-    cmds.editorTemplate("aiExposure", label="Exposure", addDynamicControl=True)
-    cmds.editorTemplate("aiSamples", label="Samples", addDynamicControl=True)
-    cmds.editorTemplate("aiMis", label="Multiple Importance Sampling", addDynamicControl=True)
-
-    cmds.editorTemplate(addSeparator=True)
-
-    cmds.editorTemplate("aiResolution", label="Importance Map Resolution",addControl=True)
-    cmds.editorTemplate("aiAffectVolumetrics", label="Affect Volumetrics", addControl=True)
-    cmds.editorTemplate("aiCastVolumetricShadows", label="Cast Volumetric Shadows", addControl=True)
-
-    cmds.editorTemplate(addSeparator=True)
-
-    commonLightAttributes(nodeName);
-
+        self.commonLightAttributes()
+registerTranslatorUI(SpotLightTemplate, "spotLight")
 
 class CameraTemplate(ArnoldTranslatorTemplate):
-    def __init__(self):
-        ArnoldTranslatorTemplate.__init__(self)
     def addDOFAttributes(self):
         self.addAttribute("aiEnableDOF")
         self.addSeparator()
@@ -177,38 +163,58 @@ class CameraTemplate(ArnoldTranslatorTemplate):
         self.addAttribute("aiApertureRotation")
 
 class PerspCameraTemplate(CameraTemplate):
-    def __init__(self):
-        CameraTemplate.__init__(self)
+    def setup(self):
         self.addDOFAttributes()
         self.addSeparator()
         self.addAttribute('aiUvRemap')
 
-PerspCameraTemplate.register("camera", "perspective")
+registerTranslatorUI(SpotLightTemplate, "spotLight")
+
+class AreaLightTemplate(lightTemplate.LightTemplate):
+    # TODO: handle filter association via metadata
+    def validFilters(self):
+        return ['aiLightBlocker', 'aiLightDecay']
+
+    def setup(self):
+        self.addAttribute("aiCastShadows")
+        self.addAttribute("aiExposure")
+        self.addAttribute("aiSamples")
+        self.addAttribute("aiMis", label="Multiple Importance Sampling")
+
+        self.addSeparator()
+
+        self.addAttribute("aiResolution")
+        self.addAttribute("aiAffectVolumetrics")
+        self.addAttribute("aiCastVolumetricShadows")
+
+        self.addSeparator()
+
+        self.commonLightAttributes()
+
+registerTranslatorUI(AreaLightTemplate, "areaLight")
 
 class OrthographicTemplate(CameraTemplate):
-    def __init__(self):
-        CameraTemplate.__init__(self)
+    def setup(self):
+        pass
 
-OrthographicTemplate.register("camera", "orthographic")
+registerTranslatorUI(OrthographicTemplate, "camera", "orthographic")
 
 class FisheyeCameraTemplate(CameraTemplate):
-    def __init__(self):
-        CameraTemplate.__init__(self)
+    def setup(self):
         self.addDOFAttributes()
         self.addSeparator()
         self.addAttribute('aiFov')
         self.addAttribute('aiAutocrop')
 
-FisheyeCameraTemplate.register("camera", "fisheye")
+registerTranslatorUI(FisheyeCameraTemplate, "camera", "fisheye")
 
 class CylCameraTemplate(CameraTemplate):
-    def __init__(self):
-        CameraTemplate.__init__(self)
+    def setup(self):
         self.addAttribute('aiHorizontalFov')
         self.addAttribute('aiVerticalFov')
         self.addAttribute('aiProjective')
 
-CylCameraTemplate.register("camera", "cylindrical")
+registerTranslatorUI(CylCameraTemplate, "camera", "cylindrical")
 
 def cameraOrthographicChanged(orthoPlug):
     "called to sync .aiTranslator when .orthographic changes"
@@ -254,7 +260,7 @@ def getCameraDefault(cam):
 registerDefaultTranslator('camera', getCameraDefault)
 
 print "Adding attribute changed callback for camera"
-callbacks.addAttributeChangedCallbacks('camera', 
+callbacks.addAttributeChangedCallbacks('camera',
                                        [('aiTranslator', cameraTranslatorChanged),
                                         ('orthographic', cameraOrthographicChanged)])
 

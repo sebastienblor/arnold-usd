@@ -17,8 +17,8 @@ source_files  = [os.path.join('nodes', x) for x in find_files_recursive(os.path.
 include_files = [os.path.join('nodes', x) for x in find_files_recursive(os.path.join(src_base_dir, 'nodes'), ['.h'])]
 source_files  += [os.path.join('translators', x) for x in find_files_recursive(os.path.join(src_base_dir, 'translators'), ['.c', '.cpp'])]
 include_files += [os.path.join('translators', x) for x in find_files_recursive(os.path.join(src_base_dir, 'translators'), ['.h'])]
-source_files  += [os.path.join('render', x) for x in find_files_recursive(os.path.join(src_base_dir, 'render'), ['.c', '.cpp'])]
-include_files += [os.path.join('render', x) for x in find_files_recursive(os.path.join(src_base_dir, 'render'), ['.h'])]
+# source_files  += [os.path.join('render', x) for x in find_files_recursive(os.path.join(src_base_dir, 'render'), ['.c', '.cpp'])]
+# include_files += [os.path.join('render', x) for x in find_files_recursive(os.path.join(src_base_dir, 'render'), ['.h'])]
 
 # Add ExtensionsManager from extension
 # source_files += [os.path.join('extension', 'ExtensionsManager.cpp')]

@@ -18,12 +18,12 @@ public:
    {
       return m_motion;
    }
-   static void NodeInitializer(MString nodeClassName);
 protected:
    virtual void Export(AtNode* light);
    virtual void ExportMotion(AtNode* light, AtUInt step);
    virtual void ExportLightFilters(AtNode* light, const MObjectArray &filters);
    virtual void Delete();
+   static void MakeCommonAttributes(CBaseAttrHelper& helper);
 
 protected:
    bool m_motion;
