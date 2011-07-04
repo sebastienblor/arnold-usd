@@ -162,15 +162,15 @@ def setup():
     
     global _aiCreateCustomNodeProc
     _aiCreateCustomNodeProc = utils.pyToMelProc(aiCreateCustomNode, 
-                                                ('string', 'runtimeClassification'),
-                                                ('string', 'postCommand'),
-                                                ('string', 'nodeType'),
-                                                ('return', 'string'))
+                                                [('string', 'runtimeClassification'),
+                                                 ('string', 'postCommand'),
+                                                 ('string', 'nodeType')],
+                                                 returnType='string')
     
     treeListerMelProc = utils.pyToMelProc(createTreeListerContent,
-                                          ('string', 'renderNodeTreeLister'),
-                                          ('string', 'postCommand'),
-                                          ('string', 'filterString'), shortName=True)
+                                          [('string', 'renderNodeTreeLister'),
+                                           ('string', 'postCommand'),
+                                           ('string', 'filterString')], procName='createArnoldNodesTreeLister_Content')
     overrides = """
     global proc string createRenderNodeTreeLister(string $postCommand, string $filterString)
     //

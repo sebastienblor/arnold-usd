@@ -145,11 +145,11 @@ def addOneTabToGlobalsWindow(renderer, tabLabel, createProc):
 
 def arnoldAddGlobalsTabs():
     cmds.renderer('arnold', edit=True, addGlobalsTab=('Common',
-                                                      utils.pyToMelProc(createArnoldRendererCommonGlobalsTab, shortName=True),
-                                                      utils.pyToMelProc(updateArnoldRendererCommonGlobalsTab, shortName=True)))
+                                                      utils.pyToMelProc(createArnoldRendererCommonGlobalsTab, useName=True),
+                                                      utils.pyToMelProc(updateArnoldRendererCommonGlobalsTab, useName=True)))
     cmds.renderer('arnold', edit=True, addGlobalsTab=('Arnold Renderer',
-                                                      utils.pyToMelProc(createArnoldRendererGlobalsTab, shortName=True),
-                                                      utils.pyToMelProc(updateArnoldRendererGlobalsTab, shortName=True)))
+                                                      utils.pyToMelProc(createArnoldRendererGlobalsTab, useName=True),
+                                                      utils.pyToMelProc(updateArnoldRendererGlobalsTab, useName=True)))
 
 
 def registerArnoldRenderer():
@@ -159,24 +159,41 @@ def registerArnoldRenderer():
     if not alreadyRegistered:
         cmds.renderer('arnold',
                       rendererUIName='Arnold Renderer',
-                      renderProcedure=utils.pyToMelProc(arnoldRender.arnoldRender,('int', 'width'), ('int', 'height'), ('int', 'doShadows'), ('int', 'doGlowPass'), ('string', 'camera'), ('string', 'options')),
-                      renderRegionProcedure='mayaRenderRegion',
-                      commandRenderProcedure=utils.pyToMelProc(arnoldRender.arnoldBatchRender, ('string', 'option')),
-                      batchRenderProcedure=utils.pyToMelProc(arnoldRender.arnoldBatchRender, ('string', 'option')),
-                      iprRenderProcedure=utils.pyToMelProc(arnoldRender.arnoldIprRender,('int', 'width'), ('int', 'height'), ('int', 'doShadows'), ('int', 'doGlowPass'), ('string', 'camera')),
-                      isRunningIprProcedure=utils.pyToMelProc(arnoldRender.arnoldIprIsRunning, ('return', 'int')),
-                      startIprRenderProcedure=utils.pyToMelProc(arnoldRender.arnoldIprStart, ('string', 'editor'), ('int', 'resolutionX'), ('int', 'resolutionY'), ('string', 'camera')),
-                      stopIprRenderProcedure=utils.pyToMelProc(arnoldRender.arnoldIprStop),
-                      refreshIprRenderProcedure=utils.pyToMelProc(arnoldRender.arnoldIprRefresh),
-                      pauseIprRenderProcedure=utils.pyToMelProc(arnoldRender.arnoldIprPause, ('string', 'editor'), ('int', 'pause')),
-                      changeIprRegionProcedure=utils.pyToMelProc(arnoldRender.arnoldIprChangeRegion, ('string', 'renderPanel')))
+                      renderProcedure = utils.pyToMelProc(arnoldRender.arnoldRender,
+                                                          [('int', 'width'), ('int', 'height'),
+                                                           ('int', 'doShadows'), ('int', 'doGlowPass'),
+                                                           ('string', 'camera'), ('string', 'options')]),
+                      renderRegionProcedure = 'mayaRenderRegion',
+                      commandRenderProcedure    = utils.pyToMelProc(arnoldRender.arnoldBatchRender,
+                                                                    [('string', 'option')]),
+                      batchRenderProcedure      = utils.pyToMelProc(arnoldRender.arnoldBatchRender,
+                                                                    [('string', 'option')]),
+                      iprRenderProcedure        = utils.pyToMelProc(arnoldRender.arnoldIprRender, 
+                                                                    [('int', 'width'), ('int', 'height'),
+                                                                     ('int', 'doShadows'), ('int', 'doGlowPass'),
+                                                                     ('string', 'camera')]),
+                      isRunningIprProcedure     = utils.pyToMelProc(arnoldRender.arnoldIprIsRunning, returnType='int'),
+                      startIprRenderProcedure   = utils.pyToMelProc(arnoldRender.arnoldIprStart,
+                                                                    [('string', 'editor'), ('int', 'resolutionX'),
+                                                                     ('int', 'resolutionY'), ('string', 'camera')]),
+                      stopIprRenderProcedure    = utils.pyToMelProc(arnoldRender.arnoldIprStop),
+                      refreshIprRenderProcedure = utils.pyToMelProc(arnoldRender.arnoldIprRefresh),
+                      pauseIprRenderProcedure   = utils.pyToMelProc(arnoldRender.arnoldIprPause,
+                                                                    [('string', 'editor'), ('int', 'pause')]),
+                      changeIprRegionProcedure  = utils.pyToMelProc(arnoldRender.arnoldIprChangeRegion,
+                                                                    [('string', 'renderPanel')]))
 
 
         cmds.evalDeferred(arnoldAddGlobalsTabs)
 
-        utils.pyToMelProc(addOneTabToGlobalsWindow, ('string', 'renderer'), ('string', 'tabLabel'), ('string', 'createProc'), shortName=True)
-        utils.pyToMelProc(renderSettingsTabLabel_melToUI, ('string', 'mel'), shortName=True)
-        utils.pyToMelProc(updateMayaImageFormatControl, shortName=True)
+        utils.pyToMelProc(addOneTabToGlobalsWindow,
+                          [('string', 'renderer'), ('string', 'tabLabel'), ('string', 'createProc')],
+                          useName=True)
+        utils.pyToMelProc(renderSettingsTabLabel_melToUI,
+                          [('string', 'mel')],
+                          useName=True)
+        utils.pyToMelProc(updateMayaImageFormatControl,
+                          useName=True)
 
         aeUtils.loadAETemplates()
         import mtoa.ui.ae.customShapeAttributes
@@ -193,6 +210,9 @@ def registerArnoldRenderer():
 
             #cmds.menuItem(parent='ArnoldMenu', divider=True)
             # Add option box for file translator
-            utils.pyToMelProc(exportass.arnoldAssOpts, ('string', 'parent'), ('string', 'action'), ('string', 'initialSettings'), ('string', 'resultCallback'), shortName=True)
+            utils.pyToMelProc(exportass.arnoldAssOpts,
+                              [('string', 'parent'), ('string', 'action'),
+                               ('string', 'initialSettings'), ('string', 'resultCallback')],
+                               useName=True)
             # setup hypershade node tree listing
             nodeTreeLister.setup()

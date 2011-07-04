@@ -1,66 +1,76 @@
 import maya.cmds as cmds
 import maya.mel as mel
 import inspect
+import re
 
-#hacked together to wrap a python function inside a mel function.
-def pyToMelProc(classname, *args, **kwargs):
-    #build the arguements
-    melParams = ''
-    pyParams = ''
-    melReturn = ''
+def even(num):
+    return bool(num % 2)
 
-    if args:
-        for arg in args:
-            #if user has a tuple arguement with return then the mel proc has a return type
-            if arg[0] == 'return':
-                melReturn = arg[1]
-                continue
-            melParams += '%s $%s,'%(arg[0], arg[1])
-            #if the arguement is a string we add \\" before and after
-            if arg[0] == 'string':
-                pyParams += '\\"\"+$%s+\"\\",'%arg[1]
-            else:
-                pyParams += '\"+$%s+\",'%arg[1]
+def odd(num):
+    return not bool(num % 2)
 
-    #strip the last , off the end
-    melParams = melParams[:-1]
-    pyParams = pyParams[:-1]
+_objectStore = {}
 
+def pyToMelProc(pyobj, args=(), returnType=None, procName=None, useName=False, procPrefix='pyToMel_'):
+    '''
+    create a MEL procedure from a python callable
+    
+    :pyobj:
+        any python callable
+
+    :args: 
+        a list of (type, name) pairs defining the arguments of the MEL procedure to create. should be
+        compatible with the arguments of the passed python object. 
+
+    :procName:
+        name to use for the MEL procedure, if None, useName and procPrefix are used to control the name
+
+    :useName:
+        use the name of the python object as the MEL procedure
+
+    :procPrefix:
+        if neither procName or useName are provided, the id() function is used to generate an unique
+        integer for the python object to use as the MEL procedure name. the procPrefix is prepended to this name. 
+    '''
+    melParams = []
+    pyParams = []
+    melReturn = returnType if returnType else '' 
+
+    for type, name in args:
+        melParams.append('%s $%s' % (type, name))
+        #if the arguement is a string we add \\" before and after
+        if type == 'string':
+            pyParams.append(r"""'"+$%s+"'""" % name)
+        else:
+            pyParams.append(r'"+$%s+"' % name)
+
+    # get a unique id for this object
+    objId = id(pyobj)
+
+    # fill out a dictionary for formatting the procedure definition
     d = {}
-    #if the function was imported into the calling module then we use __module__
-    #to find where it's from.  Otherwise we can inspect the stack to see what
-    #module is calling this procedure.
-    if '__module__' in dir(classname):
-        d['modname'] = classname.__module__
+
+    if procName:
+        d['procname'] = procName
+    elif useName:
+        d['procname'] = pyobj.__name__
     else:
-        frm = inspect.stack()[1]
-        mod = inspect.getmodule(frm[0])
-        d['modname'] = mod.__name__
+        d['procname'] = '%s%s' % (procPrefix, objId)
 
-    #If user specified shortName=True then we won't append the module in front
-    #to avoid clashing.  Should not specify unless overriding maya procs.
-    if 'shortName' in kwargs.keys() and kwargs['shortName']:
-        d['procname'] = classname.__name__
-    else:
-        d['procname'] = '%s_%s'%(d['modname'].replace('.', '_'), classname.__name__)
-
-    #if user specified a string to prepend to the proc name we do it here
-    if 'prepend' in kwargs.keys():
-        d['procname']= '%s_%s'%(kwargs['prepend'], d['procname'])
-
-    d['classname'] = classname.__name__
-    d['melParams'] = melParams
-    d['pyParams'] = pyParams
+    d['melParams'] = ', '.join(melParams)
+    d['pyParams'] = ', '.join(pyParams)
     d['melReturn'] = melReturn
+    d['thisModule'] = __name__
+    d['id'] = objId
 
     contents = '''global proc %(melReturn)s %(procname)s(%(melParams)s){'''
-
     if melReturn:
-        contents += '''return '''
-
-    contents += '''python("import %(modname)s;%(modname)s.%(classname)s(%(pyParams)s)");}'''
+        contents += 'return '
+    contents += '''python("import %(thisModule)s;%(thisModule)s._objectStore[%(id)s](%(pyParams)s)");}'''
 
     mel.eval(contents % d)
+    # TODO: check for error and don't add the python object if we failed
+    _objectStore[objId] = pyobj
     return d['procname']
 
 def arnoldFixLightFilters():

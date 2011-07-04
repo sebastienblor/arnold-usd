@@ -39,19 +39,14 @@ def getNodeType(name):
 def attributeExists(attribute, nodeName):
     return cmds.attributeQuery(attribute, node=nodeName, exists=True)
 
-def getAETemplates(package):
-    templates = []
-    for importer, modname, ispkg in pkgutil.iter_modules(package.__path__):
-        if 'Template' in modname and modname not in templates:
-            templates.append(modname)
-
-    return templates
 
 def loadAETemplates():
-    templates = getAETemplates(mtoa.ui.ae)
-    for template in templates:
-        node_name = 'AE%s' % template
-        _makeAEProc(template, template, node_name )
+    templates = []
+    for importer, modname, ispkg in pkgutil.iter_modules(mtoa.ui.ae.__path__):
+        if modname.endswith('Template') and modname not in templates:
+            templates.append(modname)
+            procName = 'AE%s' % modname
+            _makeAEProc(modname, modname, procName)
 
     loadAEshapesTemplate()
 
@@ -59,8 +54,8 @@ def loadAEshapesTemplate():
     template = 'shapeTemplate'
     _makeAEProc(template, template, 'AE%s' % template)
 
-def aeCallback(classname):
-    return utils.pyToMelProc(classname, ('string', 'nodeName'), prepend='AEArnoldCallback')
+def aeCallback(func):
+    return utils.pyToMelProc(func, [('string', 'nodeName')], procPrefix='AEArnoldCallback')
 
 def _makeAEProc(modname, classname, procname):
     contents = '''global proc %(procname)s( string $nodeName ){
