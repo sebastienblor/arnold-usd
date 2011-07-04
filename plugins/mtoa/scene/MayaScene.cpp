@@ -33,40 +33,39 @@
 std::vector< CNodeTranslator * > CMayaScene::s_translatorsToIPRUpdate;
 MCallbackId CMayaScene::s_IPRIdleCallbackId = 0;
 MCallbackId CMayaScene::s_NewNodeCallbackId = 0;
+CRenderSession* CMayaScene::s_renderSession = NULL;
+CExportSession* CMayaScene::s_exportSession = NULL;
 bool CMayaScene::s_isExportingMotion = false;
 
-CMayaScene::~CMayaScene()
+
+// Cheap singleton
+CRenderSession* CMayaScene::GetRenderSession()
 {
-   if (GetExportMode() == MTOA_EXPORT_IPR)
-   {
-      ClearIPRCallbacks();
-   }
+   if (!s_renderSession)
+      s_renderSession = new CRenderSession();
 
-   if (m_fnCommonRenderOptions != NULL) delete m_fnCommonRenderOptions;
-   if (m_fnArnoldRenderOptions != NULL) delete m_fnArnoldRenderOptions;
+   return s_renderSession;
+}
 
-   // Delete translators
-   ObjectToTranslatorMap::iterator it;
-   for(it = m_processedTranslators.begin(); it != m_processedTranslators.end(); ++it)
-   {
-      AiMsgDebug("[mtoa] Deleting translator for %s", MFnDependencyNode(it->first.object()).name().asChar());
-      delete it->second;
-   }
-   m_processedTranslators.clear();
+CExportSession* CMayaScene::GetExportSession()
+{
+   if (!s_exportSession)
+      s_exportSession = new CExportSession();
 
-   // Delete Dag Translators
-   ObjectToDagTranslatorMap::iterator dagIt;
-   for(dagIt = m_processedDagTranslators.begin(); dagIt != m_processedDagTranslators.end(); ++dagIt)
+   return s_exportSession;
+}
+
+bool IsExportingMotion()
+{
+   CExportSession* exportSession = GetExportSession();
+   if (NULL != exportSession)
    {
-      std::map<int, CNodeTranslator*>::iterator instIt;
-      for(instIt = dagIt->second.begin(); instIt != dagIt->second.end(); ++instIt)
-      {
-         MFnDagNode fnDag(dagIt->first.object());
-         AiMsgDebug("[mtoa] Deleting translator for %s [%d]", fnDag.fullPathName().asChar(), instIt->first);
-         delete instIt->second;
-      }
+      return exportSession->IsExportingMotion();
    }
-   m_processedDagTranslators.clear();
+   else
+   {
+      return false;
+   }
 }
 
 /// Primary entry point for exporting a Maya scene to Arnold
@@ -87,7 +86,8 @@ MStatus CMayaScene::ExportToArnold()
    PrepareExport();
 
    // Export Options - this needs to occur after PrepareExport is called
-   ExportShader(m_fnArnoldRenderOptions->object());
+   AtNode* options = ExportNode(m_fnArnoldRenderOptions->object());
+   SetupImageOptions(AtNode* options)
 
    // Are we motion blurred (any type)?
    const bool mb = IsMotionBlurEnabled();
@@ -186,6 +186,22 @@ MStatus CMayaScene::ExportToArnold()
    return status;
 }
 
+void CMayaScene::SetupImageOptions(AtNode* options)
+{
+   const CRenderOptions* renderOptions = GetRenderSession()->RenderOptions();
+   if (renderOptions->useRenderRegion())
+   {
+      AiNodeSetInt(options, "region_min_x", renderOptions->minX());
+      AiNodeSetInt(options, "region_min_y", renderOptions->height() - renderOptions->maxY() - 1);
+      AiNodeSetInt(options, "region_max_x", renderOptions->maxX());
+      AiNodeSetInt(options, "region_max_y", renderOptions->height() - renderOptions->minY() - 1);
+   }
+
+   AiNodeSetInt(options, "xres", renderOptions->width());
+   AiNodeSetInt(options, "yres", renderOptions->height());
+   AiNodeSetFlt(options, "aspect_ratio", renderOptions->pixelAspectRatio());
+}
+
 // TODO : allow this to take an argument passed custom ArnoldRenderOptions (and renderGlobals or?)
 void CMayaScene::PrepareExport()
 {
@@ -213,613 +229,11 @@ void CMayaScene::PrepareExport()
    GetMotionBlurData();
 }
 
-void CMayaScene::GetMotionBlurData()
-{
-   if (m_fnArnoldRenderOptions->findPlug("mb_en").asBool())
-   {
-      m_exportOptions.m_motion.enable_mask   = m_fnArnoldRenderOptions->findPlug("mb_len").asBool() * MTOA_MBLUR_LIGHT
-                                             + m_fnArnoldRenderOptions->findPlug("mb_cen").asBool() * MTOA_MBLUR_CAMERA
-                                             + m_fnArnoldRenderOptions->findPlug("mb_oen").asBool() * MTOA_MBLUR_OBJECT
-                                             + m_fnArnoldRenderOptions->findPlug("mb_den").asBool() * MTOA_MBLUR_DEFORM
-                                             + m_fnArnoldRenderOptions->findPlug("mb_sen").asBool() * MTOA_MBLUR_SHADER;
-   }
-   else
-   {
-      m_exportOptions.m_motion.enable_mask     = MTOA_MBLUR_DISABLE;
-   }
-   if (m_exportOptions.m_motion.enable_mask)
-   {
-      m_exportOptions.m_motion.shutter_size    = m_fnArnoldRenderOptions->findPlug("shutter_size").asFloat();
-      m_exportOptions.m_motion.shutter_offset  = m_fnArnoldRenderOptions->findPlug("shutter_offset").asFloat();
-      m_exportOptions.m_motion.shutter_type    = m_fnArnoldRenderOptions->findPlug("shutter_type").asInt();
-      m_exportOptions.m_motion.by_frame        = m_fnArnoldRenderOptions->findPlug("motion_frames").asFloat();
-      m_exportOptions.m_motion.steps           = m_fnArnoldRenderOptions->findPlug("motion_steps").asInt();
 
-      m_motion_frames.clear();
-      m_motion_frames.reserve(m_exportOptions.m_motion.steps);
-      for (AtUInt J=0; (J < m_exportOptions.m_motion.steps); ++J)
-      {
-         float frame = GetCurrentFrame() -
-                       m_exportOptions.m_motion.by_frame * 0.5f +
-                       m_exportOptions.m_motion.shutter_offset +
-                       m_exportOptions.m_motion.by_frame / (m_exportOptions.m_motion.steps - 1) * J;
-
-         m_motion_frames.push_back(frame);
-      }
-   }
-   else
-   {
-      m_exportOptions.m_motion.by_frame        = 0;
-      m_exportOptions.m_motion.steps           = 1;
-
-      m_motion_frames.clear();
-      m_motion_frames.push_back(GetCurrentFrame());
-   }
-}
-
-// Export the cameras of the maya scene
-//
-// @return              MS::kSuccess / MS::kFailure is returned in case of failure.
-//
-MStatus CMayaScene::ExportCameras()
-{
-   MStatus status = MStatus::kSuccess;
-   MDagPath path;
-   MItDag   dagIterCameras(MItDag::kDepthFirst, MFn::kCamera);
-
-   // First we export all cameras
-   // We do not reset the iterator to avoid getting kWorld
-   for (; (!dagIterCameras.isDone()); dagIterCameras.next())
-   {
-      if (dagIterCameras.getPath(path))
-      {
-         // Only check for cameras being visible, not templated and in render layer
-         // FIXME: does a camera need to be visible to render actually in Maya?
-         /*
-         MFnDagNode node(path.node());
-         MString name = node.name();
-         if (m_exportOptions.m_filter.notinlayer == true && !IsInRenderLayer(path))
-            continue;
-         if (m_exportOptions.m_filter.templated == true && IsTemplatedPath(path))
-            continue;
-         if (m_exportOptions.m_filter.hidden == true && !IsVisiblePath(path))
-            continue;
-         */
-         if (ExportDagPath(path) == NULL)
-            status = MStatus::kFailure;
-      }
-      else
-      {
-         AiMsgError("[mtoa] Could not get path for Maya cameras DAG iterator.");
-         status = MS::kFailure;
-      }
-   }
-
-   return status;
-}
-
-// Export the lights of the maya scene
-//
-// @return              MS::kSuccess / MS::kFailure is returned in case of failure.
-//
-MStatus CMayaScene::ExportLights()
-{
-   MStatus status = MStatus::kSuccess;
-   MDagPath path;
-   MItDag   dagIterLights(MItDag::kDepthFirst, MFn::kLight);
-
-   // First we export all cameras
-   // We do not reset the iterator to avoid getting kWorld
-   for (; (!dagIterLights.isDone()); dagIterLights.next())
-   {
-      if (dagIterLights.getPath(path))
-      {
-         // Only check for cameras being visible, not templated and in render layer
-         // FIXME: does a light need to be in layer to render actually in Maya?
-         MFnDagNode node(path.node());
-         MString name = node.name();
-         if (m_exportOptions.m_filter.notinlayer == true && !IsInRenderLayer(path))
-            continue;
-         if (m_exportOptions.m_filter.templated == true && IsTemplatedPath(path))
-            continue;
-         if (m_exportOptions.m_filter.hidden == true && !IsVisiblePath(path))
-            continue;
-         if (ExportDagPath(path) == NULL)
-            status = MStatus::kFailure;
-      }
-      else
-      {
-         AiMsgError("[mtoa] Could not get path for Maya lights DAG iterator.");
-         status = MS::kFailure;
-      }
-   }
-
-   return status;
-}
-
-// Export the maya scene
-//
-// @return              MS::kSuccess / MS::kFailure is returned in case of failure.
-//
-MStatus CMayaScene::ExportScene()
-{
-   MStatus status = MStatus::kSuccess;
-   MDagPath path;
-
-   DagFiltered filtered;
-   MItDag   dagIterator(MItDag::kDepthFirst, MFn::kInvalid);
-   for (dagIterator.reset(); (!dagIterator.isDone()); dagIterator.next())
-   {
-      if (dagIterator.getPath(path))
-      {
-         if (path.apiType() == MFn::kWorld)
-            continue;
-         MObject obj = path.node();
-         MFnDagNode node(obj);
-         MString name = node.name();
-         filtered = FilteredStatus(m_exportOptions.m_filter, path);
-         if (filtered != MTOA_EXPORT_ACCEPTED)
-         {
-            // Ignore node for MTOA_EXPORT_REJECTED_NODE or whole branch
-            // for MTOA_EXPORT_REJECTED_BRANCH
-            if (filtered == MTOA_EXPORT_REJECTED_BRANCH)
-               dagIterator.prune();
-            continue;
-         }
-         if (ExportDagPath(path) == NULL)
-            status = MStatus::kFailure;
-      }
-      else
-      {
-         AiMsgError("[mtoa] Could not get path for Maya DAG iterator.");
-         status = MS::kFailure;
-      }
-   }
-
-   // Add callbacks if we're in IPR mode.
-   if (GetExportMode() == MTOA_EXPORT_IPR && s_NewNodeCallbackId == 0x0)
-   {
-      s_NewNodeCallbackId = MDGMessage::addNodeAddedCallback(CMayaScene::IPRNewNodeCallback);
-   }
-   
-   return status;
-}
-
-// Get the selection from maya and export it with the IterSelection methode
-//
-// @return              MS::kSuccess / MS::kFailure is returned in case of failure.
-//
-MStatus CMayaScene::ExportSelected()
-{
-   MStatus status = MStatus::kSuccess;
-
-   MSelectionList selected;
-   MGlobal::getActiveSelectionList(selected);
-
-   // Get a expanded, flattened, filtered list of every dag
-   // paths we need to export
-   status = IterSelection(selected);
-   MItSelectionList it(selected, MFn::kInvalid, &status);
-   MDagPath path;
-   for (it.reset(); !it.isDone(); it.next())
-   {
-      if (it.getDagPath(path) == MStatus::kSuccess)
-      {
-         if (ExportDagPath(path) == NULL)
-            status = MStatus::kFailure;
-      }
-      else
-      {
-         status = MStatus::kFailure;
-      }
-   }
-   selected.clear();
-
-   return status;
-}
-
-// Loop and export the selection, and all its hirarchy down stream
-//
-// @return              MS::kSuccess / MS::kFailure is returned in case of failure.
-//
-MStatus CMayaScene::IterSelection(MSelectionList& selected)
-{
-   MStatus status;
-
-   MObject node;
-   MDagPath path;
-   MFnDagNode dgNode;
-   MFnSet set;
-   MSelectionList children;
-   // loop users selection
-   MItSelectionList it(selected, MFn::kInvalid, &status);
-   selected.clear();
-   for (it.reset(); !it.isDone(); it.next())
-   {
-      if (it.getDagPath(path) == MStatus::kSuccess)
-      {
-         // FIXME: if we selected a shape, and it's an instance,
-         // should we export all its dag paths?
-         if (FilteredStatus(m_exportOptions.m_filter, path) == MTOA_EXPORT_ACCEPTED)
-         {
-            for (AtUInt child = 0; (child < path.childCount()); child++)
-            {
-               MObject ChildObject = path.child(child);
-               path.push(ChildObject);
-               children.clear();
-               children.add(path.fullPathName());
-               dgNode.setObject(path.node());
-               if (!dgNode.isIntermediateObject())
-                  selected.add (path, MObject::kNullObj, true);
-               path.pop(1);
-               if (MStatus::kSuccess != IterSelection(children))
-                  status = MStatus::kFailure;
-               selected.merge(children);
-            }
-         }
-      }
-      else if (MStatus::kSuccess == it.getDependNode(node))
-      {
-         // Got a dependency (not dag) node
-         if (node.hasFn(MFn::kSet))
-         {
-            // if it's a set we actually iterate on its content
-            set.setObject(node);
-            children.clear();
-            // get set members, we don't set flatten to true in case we'd want a
-            // test on each set recursively
-            set.getMembers(children, false);
-            if (MStatus::kSuccess != IterSelection(children))
-               status = MStatus::kFailure;
-            selected.merge(children);
-         }
-         else
-         {
-            // TODO: if it's a node we don't support / export should we set status to failure
-            // or just raise a warning?
-         }
-      }
-      else
-      {
-         status = MStatus::kFailure;
-      }
-   }
-
-   return status;
-}
-
-// Export a single dag path (a dag node or an instance of a dag node)
-// Considered to be already filtered and checked
-AtNode* CMayaScene::ExportDagPath(MDagPath &dagPath)
-{
-   MObjectHandle handle = MObjectHandle(dagPath.node());
-   int instanceNum = dagPath.instanceNumber();
-   MString name = dagPath.partialPathName();
-   MString type = MFnDagNode(dagPath).typeName();
-   AiMsgDebug("[mtoa] Exporting dag node %s of type %s", name.asChar(), type.asChar());
-   // early out for nodes that have already been processed
-   ObjectToDagTranslatorMap::iterator it = m_processedDagTranslators.find(handle);
-   if (it != m_processedDagTranslators.end() && it->second.count(instanceNum))
-      return it->second[instanceNum]->GetArnoldRootNode();
-   CDagTranslator* translator = CExtensionsManager::GetTranslator(dagPath);
-   if (translator != NULL && translator->IsDag())
-   {
-      if (translator->IsRenderable())
-      {
-         AtNode* result = translator->Init(this, dagPath);
-         translator->DoExport(0);
-         // save it for later
-         m_processedDagTranslators[handle][instanceNum] = translator;
-         return result;
-      }
-   }
-   else
-   {
-      AiMsgDebug("[mtoa] Dag node %s of type %s ignored", name.asChar(), type.asChar());
-   }
-   return NULL;
-}
-
-// Export a shader (dependency node)
-//
-// TODO: export motion blur for shaders
-AtNode* CMayaScene::ExportShader(MPlug& shaderOutputPlug)
-{
-   return ExportShader(shaderOutputPlug.node(), shaderOutputPlug.partialName(false, false, false, false, false, true));
-}
-
-AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
-{
-   MDagPath dagPath;
-   if (MDagPath::getAPathTo(mayaShader, dagPath) == MS::kSuccess)
-      return ExportDagPath(dagPath);
-
-   // First check if this shader has already been processed
-   MObjectHandle handle = MObjectHandle(mayaShader);
-   // early out for depend nodes that have already been processed
-   ObjectToTranslatorMap::iterator it = m_processedTranslators.find(handle);
-   if (it != m_processedTranslators.end() && it->second->m_outputAttr == attrName)
-      return it->second->GetArnoldRootNode();
-
-   AtNode* shader = NULL;
-
-   CNodeTranslator* translator = CExtensionsManager::GetTranslator(mayaShader);
-   if (translator != NULL)
-   {
-      shader = translator->Init(this, mayaShader, attrName);
-      m_processedTranslators[handle] = translator;
-      translator->DoExport(0);
-   }
-   else
-   {
-      AiMsgDebug("[mtoa] Shader type not supported: %s", MFnDependencyNode(mayaShader).typeName().asChar());
-   }
-
-   return shader;
-}
-
-// This is a shortcut for Arnold shaders (parameter name is the same in Maya and Arnold)
-#define SHADER_PARAM(name, type) ProcessShaderParameter(mayaShader, name, shader, name, type)
-
-void CMayaScene::ProcessShaderParameter(MFnDependencyNode shader, const char* param, AtNode* arnoldShader, const char* arnoldAttrib, int arnoldAttribType, int element)
-{
-   MPlugArray connections;
-
-   MPlug plug = shader.findPlug(param);
-   if (element >= 0)
-      plug = plug.elementByPhysicalIndex(element);
-   if (!plug.isIgnoredWhenRendering())
-      plug.connectedTo(connections, true, false);
-   if (connections.length() == 0)
-   {
-      switch(arnoldAttribType)
-      {
-      case AI_TYPE_RGB:
-         {
-            bool compConnected = false;
-            for (unsigned int i=0; i < 3; i++)
-            {
-               plug.child(i).connectedTo(connections, true, false);
-               if (connections.length() > 0)
-               {
-                  compConnected = true;
-                  MString attrName = connections[0].partialName(false, false, false, false, false, true);
-                  MString compAttrName(arnoldAttrib);
-                  switch(i)
-                  {
-                  case 0:
-                     compAttrName += ".r";
-                     break;
-                  case 1:
-                     compAttrName += ".g";
-                     break;
-                  case 2:
-                     compAttrName += ".b";
-                     break;
-                  }
-                  AtNode* node = ExportShader(connections[0].node(), attrName);
-                  if (node != NULL)
-                     AiNodeLink(node, compAttrName.asChar(), arnoldShader);
-               }
-            }
-            if (!compConnected)
-               AiNodeSetRGB(arnoldShader, arnoldAttrib, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
-         }
-         break;
-      case AI_TYPE_RGBA:
-         {
-            // Is the source parameter RGB or RGBA?
-            if (plug.numChildren() == 4)
-            {
-               AiNodeSetRGBA(arnoldShader, arnoldAttrib, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat(), plug.child(3).asFloat());
-            }
-            else
-            {
-               bool compConnected = false;
-               for (unsigned int i=0; i < 3; i++)
-               {
-                  plug.child(i).connectedTo(connections, true, false);
-                  if (connections.length() > 0)
-                  {
-                     compConnected = true;
-                     MString attrName = connections[0].partialName(false, false, false, false, false, true);
-                     MString compAttrName(arnoldAttrib);
-                     switch(i)
-                     {
-                     case 0:
-                        compAttrName += ".r";
-                        break;
-                     case 1:
-                        compAttrName += ".g";
-                        break;
-                     case 2:
-                        compAttrName += ".b";
-                        break;
-                     }
-                     AtNode* node = ExportShader(connections[0].node(), attrName);
-                     if (node != NULL)
-                        AiNodeLink(node, compAttrName.asChar(), arnoldShader);
-                  }
-               }
-               if (!compConnected)
-                  // For RGB source parameter, set alpha value to 1
-                  AiNodeSetRGBA(arnoldShader, arnoldAttrib, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat(), 1);
-            }
-         }
-         break;
-      case AI_TYPE_FLOAT:
-         {
-            AiNodeSetFlt(arnoldShader, arnoldAttrib, plug.asFloat());
-         }
-         break;
-      case AI_TYPE_POINT2:
-         {
-            bool compConnected = false;
-            for (unsigned int i=0; i < 2; i++)
-            {
-               plug.child(i).connectedTo(connections, true, false);
-               if (connections.length() > 0)
-               {
-                  compConnected = true;
-                  MString attrName = connections[0].partialName(false, false, false, false, false, true);
-                  MString compAttrName(arnoldAttrib);
-                  switch(i)
-                  {
-                  case 0:
-                     compAttrName += ".x";
-                     break;
-                  case 1:
-                     compAttrName += ".y";
-                     break;
-                  }
-                  AtNode* node = ExportShader(connections[0].node(), attrName);
-                  if (node != NULL)
-                     AiNodeLink(node, compAttrName.asChar(), arnoldShader);
-               }
-            }
-            if (!compConnected)
-            {
-               float x, y;
-               MObject numObj = plug.asMObject();
-               MFnNumericData numData(numObj);
-               numData.getData2Float(x, y);
-               AiNodeSetPnt2(arnoldShader, arnoldAttrib, x, y);
-            }
-         }
-         break;
-      case AI_TYPE_MATRIX:
-         {
-            AtMatrix am;
-            MObject matObj = plug.asMObject();
-            MFnMatrixData matData(matObj);
-            MMatrix mm = matData.matrix();
-            ConvertMatrix(am, mm);
-            AiNodeSetMatrix(arnoldShader, arnoldAttrib, am);
-         }
-         break;
-      case AI_TYPE_BOOLEAN:
-         {
-            AiNodeSetBool(arnoldShader, arnoldAttrib, plug.asBool());
-         }
-         break;
-      case AI_TYPE_ENUM:
-         {
-            AiNodeSetInt(arnoldShader, arnoldAttrib, plug.asInt());
-         }
-         break;
-      case AI_TYPE_INT:
-         {
-            AiNodeSetInt(arnoldShader, arnoldAttrib, plug.asInt());
-         }
-         break;
-      case AI_TYPE_STRING:
-         {
-            AiNodeSetStr(arnoldShader, arnoldAttrib, plug.asString().asChar());
-         }
-         break;
-      case AI_TYPE_VECTOR:
-         {
-            bool compConnected = false;
-            for (unsigned int i=0; i < 3; i++)
-            {
-               plug.child(i).connectedTo(connections, true, false);
-               if (connections.length() > 0)
-               {
-                  compConnected = true;
-                  MString attrName = connections[0].partialName(false, false, false, false, false, true);
-                  MString compAttrName(arnoldAttrib);
-                  switch(i)
-                  {
-                  case 0:
-                     compAttrName += ".x";
-                     break;
-                  case 1:
-                     compAttrName += ".y";
-                     break;
-                  case 2:
-                     compAttrName += ".z";
-                     break;
-                  }
-                  AtNode* node = ExportShader(connections[0].node(), attrName);
-                  if (node != NULL)
-                     AiNodeLink(node, compAttrName.asChar(), arnoldShader);
-               }
-            }
-            if (!compConnected)
-               AiNodeSetVec(arnoldShader, arnoldAttrib, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
-         }
-         break;
-      case AI_TYPE_POINT:
-         {
-            bool compConnected = false;
-            for (unsigned int i=0; i < 3; i++)
-            {
-               plug.child(i).connectedTo(connections, true, false);
-               if (connections.length() > 0)
-               {
-                  compConnected = true;
-                  MString attrName = connections[0].partialName(false, false, false, false, false, true);
-                  MString compAttrName(arnoldAttrib);
-                  switch(i)
-                  {
-                  case 0:
-                     compAttrName += ".x";
-                     break;
-                  case 1:
-                     compAttrName += ".y";
-                     break;
-                  case 2:
-                     compAttrName += ".z";
-                     break;
-                  }
-                  AtNode* node = ExportShader(connections[0].node(), attrName);
-                  if (node != NULL)
-                     AiNodeLink(node, compAttrName.asChar(), arnoldShader);
-               }
-            }
-            if (!compConnected)
-               AiNodeSetPnt(arnoldShader, arnoldAttrib, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
-         }
-         break;
-      }
-   }
-   else
-   {
-      MString attrName = connections[0].partialName(false, false, false, false, false, true);
-
-      AtNode* node = ExportShader(connections[0].node(), attrName);
-
-      if (node != NULL)
-         AiNodeLink(node, arnoldAttrib, arnoldShader);
-   }
-}
-
-CNodeTranslator * CMayaScene::GetActiveTranslator(const MObject node)
-{
-   MObjectHandle node_handle(node);
-
-   ObjectToTranslatorMap::iterator translatorIt = m_processedTranslators.find(node_handle);
-   if (translatorIt != m_processedTranslators.end())
-   {
-      return static_cast< CNodeTranslator* >(translatorIt->second);
-   }
-
-   ObjectToDagTranslatorMap::iterator dagIt = m_processedDagTranslators.find(node_handle);
-   if (dagIt != m_processedDagTranslators.end())
-   {
-      // TODO: Figure out some magic to get the correct instance.
-      const int instanceNum = 0;
-      return static_cast< CNodeTranslator* >(dagIt->second[instanceNum]);
-   }
-
-   return NULL;
-}
 
 void CMayaScene::ClearIPRCallbacks()
 {
-   // Clear the list of stuff to update.
-   s_translatorsToIPRUpdate.clear();
-
+   // Clear the global IPR callbacks
    if (s_IPRIdleCallbackId != 0)
    {
       MMessage::removeCallback(s_IPRIdleCallbackId);
@@ -832,21 +246,8 @@ void CMayaScene::ClearIPRCallbacks()
       s_NewNodeCallbackId = 0;
    }
 
-   ObjectToTranslatorMap::iterator it;
-   for(it = m_processedTranslators.begin(); it != m_processedTranslators.end(); ++it)
-   {
-      if (it->second != NULL) it->second->RemoveIPRCallbacks();
-   }
-
-   ObjectToDagTranslatorMap::iterator dagIt;
-   for(dagIt = m_processedDagTranslators.begin(); dagIt != m_processedDagTranslators.end(); ++dagIt)
-   {
-      std::map<int, CNodeTranslator*>::iterator instIt;
-      for(instIt = dagIt->second.begin(); instIt != dagIt->second.end(); ++instIt)
-      {
-         instIt->second->RemoveIPRCallbacks();
-      }
-   }
+   // Clear the callbacks on the translators of the current export session
+   s_exportSession->ClearUpdateCallbacks();
    
 }
 
@@ -854,25 +255,39 @@ void CMayaScene::IPRNewNodeCallback(MObject & node, void *)
 {
    // If this is a node we've exported before (e.g. user deletes then undos)
    // we can shortcut and just call the update for it's already existing translator.
-   CRenderSession* renderSession = CRenderSession::GetInstance();
    // Interupt rendering
+   CRenderSession* renderSession = GetRenderSession();
+   CExportSession* exportSession = GetExportSession();
    renderSession->InterruptRender();
-   CNodeTranslator * translator = renderSession->GetMayaScene()->GetActiveTranslator(node);
+   CNodeTranslator * translator = exportSession->GetActiveTranslator(node);
    if (translator != NULL)
    {
-      renderSession->GetMayaScene()->UpdateIPR(translator);
-      return;
+      exportSession->QueueForUpdate(translator);
    }
-
-   // Then export this node as it's completely new to us.
-   MFnDagNode dag_node(node);
-   MDagPath path;
-   const MStatus status = dag_node.getPath(path);
-   if (status == MS::kSuccess)
+   else
    {
-      AiMsgDebug("[mtoa] Exporting new node: %s", path.partialPathName().asChar());
-      renderSession->GetMayaScene()->ExportDagPath(path);
-      renderSession->GetMayaScene()->UpdateIPR();
+      // Else export this node as it's completely new to us.
+      MFnDagNode dag_node(node);
+      MDagPath path;
+      const MStatus status = dag_node.getPath(path);
+      if (status == MS::kSuccess)
+      {
+         AiMsgDebug("[mtoa] Exporting new node: %s", path.partialPathName().asChar());
+         exportSession->Export(path);
+         // exportSession->QueueForUpdate(); // add it?
+      }
+   }
+   UpdateIPR();
+}
+
+void CMayaScene::UpdateIPR()
+{
+   // Add the IPR update callback, this is called in Maya's idle time (Arnold may not be idle, that's okay).
+   if ( s_IPRIdleCallbackId == 0 && !IsExportingMotion() )
+   {
+      MStatus status;
+      MCallbackId id = MEventMessage::addEventCallback("idle", IPRIdleCallback, NULL, &status);
+      if (status == MS::kSuccess) s_IPRIdleCallbackId = id;
    }
 }
 
@@ -884,60 +299,15 @@ void CMayaScene::IPRIdleCallback(void *)
       s_IPRIdleCallbackId = 0;
    }
 
-   CRenderSession* renderSession = CRenderSession::GetInstance();
+   CRenderSession* renderSession = GetRenderSession();
+   CExportSession* exportSession = GetExportSession();
+
    renderSession->InterruptRender();
-   CMayaScene* scene = renderSession->GetMayaScene();
-   // Are we motion blurred?
-   const bool mb = scene->IsMotionBlurEnabled();
-   if (!mb)
-   {
-      for(std::vector<CNodeTranslator*>::iterator iter=s_translatorsToIPRUpdate.begin();
-         iter != s_translatorsToIPRUpdate.end(); ++iter)
-      {
-         CNodeTranslator* translator = (*iter);
-         if (translator != NULL) translator->DoUpdate(0);
-      }
-   }
-   else
-   {
-      s_isExportingMotion = true;
-      // Scene is motion blured, get the data for the steps.
-      for (unsigned int J = 0; (J < scene->GetNumMotionSteps()); ++J)
-      {
-         MGlobal::viewFrame(MTime(scene->m_motion_frames[J], MTime::uiUnit()));
-         for(std::vector<CNodeTranslator*>::iterator iter=s_translatorsToIPRUpdate.begin();
-            iter != s_translatorsToIPRUpdate.end(); ++iter)
-         {
-            CNodeTranslator* translator = (*iter);
-            if (translator != NULL)translator->DoUpdate(J);
-         }
-      }
-      MGlobal::viewFrame(MTime(scene->GetCurrentFrame(), MTime::uiUnit()));
-      s_isExportingMotion = false;
-   }
-
-   // Clear the list.
-   s_translatorsToIPRUpdate.clear();
-
+   exportSession->DoUpdate();
    renderSession->DoIPRRender();
 }
 
-void CMayaScene::UpdateIPR(CNodeTranslator * translator)
-{
-   if (translator != NULL)
-   {
-      s_translatorsToIPRUpdate.push_back(translator);
-   }
 
-   // Add the IPR update callback, this is called in Maya's
-   // idle time (Arnold may not be idle, that's okay).
-   if ( s_IPRIdleCallbackId == 0 && !s_isExportingMotion )
-   {
-      MStatus status;
-      MCallbackId id = MEventMessage::addEventCallback("idle", IPRIdleCallback, NULL, &status);
-      if (status == MS::kSuccess) s_IPRIdleCallbackId = id;
-   }
-}
 
 
 

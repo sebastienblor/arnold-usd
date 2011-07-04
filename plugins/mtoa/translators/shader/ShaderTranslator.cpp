@@ -4,11 +4,11 @@
 
 // Auto shader translator
 //
-AtNode* CShaderTranslator::Init(CMayaScene* scene, MDagPath& dagPath, MString outputAttr)
+AtNode* CShaderTranslator::Init(CExportSession* session, MDagPath& dagPath, MString outputAttr)
 {
-   m_motion = scene->IsMotionBlurEnabled(MTOA_MBLUR_SHADER);
+   m_motion = session->IsMotionBlurEnabled(MTOA_MBLUR_SHADER);
 
-   return CNodeTranslator::Init(scene, dagPath.node(), outputAttr);
+   return CNodeTranslator::Init(session, dagPath.node(), outputAttr);
 }
 
 AtNode* CShaderTranslator::CreateArnoldNodes()
@@ -69,7 +69,7 @@ void CShaderTranslator::Export(AtNode *shader)
    {
       MString attrName = connections[0].partialName(false, false, false, false, false, true);
 
-      AtNode* bump = ExportShader(connections[0].node(), attrName);
+      AtNode* bump = ExportNode(connections[0].node(), attrName);
 
       if (bump != NULL)
          AiNodeLink(bump, "@before", shader);

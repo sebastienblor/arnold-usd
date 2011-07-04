@@ -8,10 +8,10 @@ class DLLEXPORT CLightTranslator
 {
 public:
 
-   virtual AtNode* Init(CMayaScene* scene, MDagPath& dagPath, MString outputAttr="")
+   virtual AtNode* Init(CExportSession* session, MDagPath& dagPath, MString outputAttr="")
    {
-      CDagTranslator::Init(scene, dagPath, outputAttr);
-      m_motion = scene->IsMotionBlurEnabled(MTOA_MBLUR_LIGHT);
+      CDagTranslator::Init(session, dagPath, outputAttr);
+      m_motion = session->IsMotionBlurEnabled(MTOA_MBLUR_LIGHT);
       return m_atNode;
    }
    bool RequiresMotionData()

@@ -17,7 +17,7 @@ class DLLEXPORT CShaderTranslator
    :  public CNodeTranslator
 {
 public:
-   AtNode* Init(CMayaScene* scene, MDagPath& dagPath, MString outputAttr="");
+   AtNode* Init(CExportSession* session, MDagPath& dagPath, MString outputAttr="");
    static void* creator()
    {
       return new CShaderTranslator();

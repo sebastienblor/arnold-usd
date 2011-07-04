@@ -36,8 +36,6 @@
 
 extern AtNodeMethods* mtoa_driver_mtd;
 
-static CRenderSession* s_renderSession = NULL;
-
 // This will update the render view if needed.
 // It's called from a maya idle event callback.
 // This means it's called a *lot*.
@@ -82,21 +80,6 @@ unsigned int CRenderSession::RenderThread(AtVoid* data)
    return 0;
 }
 
-
-// Cheap singleton
-CRenderSession* CRenderSession::GetInstance()
-{
-   if (!s_renderSession)
-      s_renderSession = new CRenderSession();
-
-   return s_renderSession;
-}
-
-CMayaScene* CRenderSession::GetMayaScene()
-{
-   return m_scene;
-}
-
 void CRenderSession::LoadPlugins()
 {
 
@@ -122,26 +105,13 @@ void CRenderSession::LoadPlugins()
 
 void CRenderSession::Init()
 {
-   CExportOptions defaultOptions;
-   Init(defaultOptions);
-}
-
-void CRenderSession::Init(CExportOptions& options)
-{
    m_is_active = true;
-   m_scene = new CMayaScene;
-   m_scene->SetExportOptions(options);
-   m_renderOptions.GetFromMaya(m_scene);
+
+   m_renderOptions.GetFromMaya();
    m_renderOptions.SetupLog();
 }
 
 void CRenderSession::Translate()
-{
-   CExportOptions defaultOptions;
-   Translate(defaultOptions);
-}
-
-void CRenderSession::Translate(CExportOptions& options)
 {
    if (AiUniverseIsActive())
    {
@@ -152,11 +122,11 @@ void CRenderSession::Translate(CExportOptions& options)
    // Begin the Arnold universe.
    AiBegin();
    ReadMetafile();
-   Init(options);
+   Init();
    // TODO: should use the list of loaded plugins from CExtensionsManager instead
    LoadPlugins();
 
-   m_scene->ExportToArnold();
+   CMayaScene::ExportToArnold();
 
    if (options.GetExportCamera().isValid())
       SetCamera(options.GetExportCamera());
@@ -215,13 +185,8 @@ MStatus CRenderSession::WriteAsstoc(const MString& filename, const AtBBox& bBox)
 
 void CRenderSession::Finish()
 {
-   // This will release the scene and therefore any
-   // translators it has held.
-   if (m_scene != NULL)
-   {
-      delete m_scene;
-      m_scene = NULL;
-   }
+   // FIXME: Instruct CMayaScene to finish the exportSession as well
+   CMayaScene::Finish();
 
    if (AiUniverseIsActive())
    {
@@ -253,13 +218,6 @@ void CRenderSession::SetBatch(bool batch)
    m_renderOptions.SetBatch(batch);
 }
 
-/*
-void CRenderSession::SetSceneExportOptions(const CExportOptions& options)
-{
-   m_scene->SetExportOptions(options);
-}
-*/
-
 void CRenderSession::SetResolution(const int width, const int height)
 {
    if (width != -1) m_renderOptions.SetWidth(width);
@@ -283,7 +241,7 @@ void CRenderSession::SetCamera(MDagPath cameraNode)
    cameraNode.extendToShape();
    m_renderOptions.SetCamera(cameraNode);
    // FIXME: do this more explicitly: at this point the node should be exported, this is just retrieving the arnold node
-   AtNode* camera = m_scene->ExportDagPath(cameraNode);
+   AtNode* camera = CMayaScene::ExportDagPath(cameraNode);
    if (camera == NULL)
    {
       AiMsgError("[mtoa] Setting camera %s failed", cameraNode.partialPathName().asChar());
@@ -691,7 +649,7 @@ MString CRenderSession::GetAssName(const MString& customName,
    return assFileName;
 }
 
-void CRenderSession::DoExport(MString customFileName)
+void CRenderSession::DoAssWrite(MString customFileName)
 {
    MString fileName;
 

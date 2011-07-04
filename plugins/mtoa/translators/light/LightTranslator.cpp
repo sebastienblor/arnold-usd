@@ -31,7 +31,7 @@ void CLightTranslator::ExportLightFilters(AtNode* light, const MObjectArray &fil
 
    for (unsigned int i=0; i<filterNodes.length(); ++i)
    {
-      AtNode* filter = ExportShader(filterNodes[i]);
+      AtNode* filter = ExportNode(filterNodes[i]);
       filters.push_back(filter);
    }
 
@@ -53,7 +53,7 @@ void CLightTranslator::Export(AtNode* light)
    AtMatrix matrix;
 
    // Early out, light isn't visible so no point exporting anything else.
-   if (false == CMayaScene::IsRenderablePath(m_dagPath))
+   if (false == CExportSession::IsRenderablePath(m_dagPath))
    {
       // Light can't be hidden.
       AiNodeSetFlt(GetArnoldRootNode(), "intensity",  0.0f);

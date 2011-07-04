@@ -20,10 +20,10 @@ class DLLEXPORT CCameraTranslator
    :   public CDagTranslator
 {
 public:
-   virtual AtNode* Init(CMayaScene* scene, MDagPath& dagPath, MString outputAttr="")
+   virtual AtNode* Init(CExportSession* session, MDagPath& dagPath, MString outputAttr="")
    {
-      m_atNode = CDagTranslator::Init(scene, dagPath, outputAttr);
-      m_motion = scene->IsMotionBlurEnabled(MTOA_MBLUR_CAMERA);
+      m_atNode = CDagTranslator::Init(session, dagPath, outputAttr);
+      m_motion = session->IsMotionBlurEnabled(MTOA_MBLUR_CAMERA);
       m_fnCamera.setObject(dagPath);
       return m_atNode;
    }

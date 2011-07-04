@@ -35,7 +35,7 @@
       plug.child(i).connectedTo(conn, true, false);\
       if (conn.length() > 0){\
          MString attrName = conn[0].partialName(false, false, false, false, false, true);\
-         AtNode* node = ExportShader(conn[0].node(), attrName);\
+         AtNode* node = ExportNode(conn[0].node(), attrName);\
          if (node != NULL){\
             ++compConnected;\
             MString compAttrName(arnoldAttrib);\
@@ -105,11 +105,11 @@ AtNode* CNodeTranslator::DoExport(AtUInt step)
          ExportMotion(m_atNode, step);
       }
 
-      // Add IPR callbacks on last step
+      // Add Update callbacks on last step
       if (step == (GetNumMotionSteps()-1) &&
           GetExportMode() == MTOA_EXPORT_IPR)
       {
-         AddIPRCallbacks();
+         AddUpdateCallbacks();
       }
    }
    return m_atNode;
@@ -128,11 +128,11 @@ AtNode* CNodeTranslator::DoUpdate(AtUInt step)
       else if (RequiresMotionData())
          UpdateMotion(m_atNode, step);
 
-      // Add IPR callbacks on last step
+      // Add Update callbacks on last step
       if (step == (GetNumMotionSteps()-1) &&
             GetExportMode() == MTOA_EXPORT_IPR)
       {
-         AddIPRCallbacks();
+         AddUpdateCallbacks();
       }
    }
    return m_atNode;
@@ -199,9 +199,9 @@ void CNodeTranslator::SetArnoldNodeName(AtNode* arnoldNode, const char* tag)
 // Add callbacks to the node passed in. It's a few simple
 // callbacks by default. Since this method is virtual - you can
 // add whatever callbacks you need to trigger a fresh.
-void CNodeTranslator::AddIPRCallbacks()
+void CNodeTranslator::AddUpdateCallbacks()
 {
-   AiMsgDebug("[mtoa] [%s] Add IPR callbacks", GetFnNode().name().asChar());
+   AiMsgDebug("[mtoa] [%s] Add Update callbacks", GetFnNode().name().asChar());
    MStatus status;
    MCallbackId id;
    // So we update on attribute/input changes.
@@ -209,29 +209,29 @@ void CNodeTranslator::AddIPRCallbacks()
                                            NodeDirtyCallback,
                                            this,
                                            &status);
-   if (MS::kSuccess == status) ManageIPRCallback(id);
+   if (MS::kSuccess == status) ManageUpdateCallback(id);
 
    // In case we're deleted!
    id = MNodeMessage::addNodeAboutToDeleteCallback(m_object,
                                                    NodeDeletedCallback,
                                                    this,
                                                    &status);
-   if (MS::kSuccess == status) ManageIPRCallback(id);
+   if (MS::kSuccess == status) ManageUpdateCallback(id);
 
    // Just so people don't get confused with debug output.
    id = MNodeMessage::addNameChangedCallback(m_object,
                                              NameChangedCallback,
                                              this,
                                              &status);
-   if (MS::kSuccess == status) ManageIPRCallback(id);
+   if (MS::kSuccess == status) ManageUpdateCallback(id);
 }
 
-void CNodeTranslator::ManageIPRCallback(const MCallbackId id)
+void CNodeTranslator::ManageUpdateCallback(const MCallbackId id)
 {
    m_mayaCallbackIDs.append(id);
 }
 
-void CNodeTranslator::RemoveIPRCallbacks()
+void CNodeTranslator::RemoveUpdateCallbacks()
 {
    const MStatus status = MNodeMessage::removeCallbacks(m_mayaCallbackIDs);
    if (status == MS::kSuccess) m_mayaCallbackIDs.clear();
@@ -243,7 +243,18 @@ void CNodeTranslator::NodeDirtyCallback(MObject &node, MPlug &plug, void *client
 {
    AiMsgDebug("[mtoa] Translator callback for node dirty, plug that fired: %s, client data: %p.",
          plug.name().asChar(), clientData);
-   UpdateIPR(clientData);
+
+   CNodeTranslator * translator = static_cast< CNodeTranslator* >(clientData);
+   if (translator != NULL)
+   {
+      AiMsgDebug("[mtoa] [translator %s] Node dirty, updating Arnold, client data: %p.",
+            translator->GetName().asChar(), clientData);
+      translator->RequestUpdate(clientData);
+   }
+   else
+   {
+      AiMsgWarning("[mtoa] NodeDirtyCallback called, no translator in client data: %p.", clientData);
+   }
 }
 
 void CNodeTranslator::NameChangedCallback(MObject &node, const MString &str, void *clientData)
@@ -271,20 +282,18 @@ void CNodeTranslator::NodeDeletedCallback(MObject &node, MDGModifier &modifier, 
    {
       AiMsgDebug("[mtoa] [translator %s] Node deleted, deleting processed translator instance, client data: %p.",
             translator->GetName().asChar(), clientData);
-      translator->RemoveIPRCallbacks();
+      translator->RequestUpdate();
+      translator->RemoveUpdateCallbacks();
       translator->Delete();
    }
    else
    {
       AiMsgWarning("[mtoa] Translator callback for node deleted, no translator in client data: %p.", clientData);
    }
-
-   // Update Arnold without passing a translator, this just forces a redraw.
-   UpdateIPR();
 }
 
 
-void CNodeTranslator::UpdateIPR(void * clientData)
+void CNodeTranslator::RequestUpdate(void *clientData)
 {
    // Remove this node from the callback list.
    CNodeTranslator * translator = static_cast< CNodeTranslator* >(clientData);
@@ -292,14 +301,17 @@ void CNodeTranslator::UpdateIPR(void * clientData)
    {
       AiMsgDebug("[mtoa] [translator %s] Node dirty, updating Arnold, client data: %p.",
             translator->GetName().asChar(), clientData);
-      translator->RemoveIPRCallbacks();
-      CMayaScene::UpdateIPR(translator);
+      translator->RemoveUpdateCallbacks();
+      // Add translator to the list of translators to update
+      m_session->QueueForUpdate(translator);
    }
    else
    {
-      AiMsgDebug("[mtoa] UpdateIPR called, no translator in client data: %p.", clientData);
-      CMayaScene::UpdateIPR();
+      AiMsgDebug("[mtoa] translator RequestUpdate called, no translator in client data: %p.", clientData);
    }
+
+   // Pass the update request to the export session
+   m_session->RequestUpdate();
 }
 
 void CNodeTranslator::ExportUserAttribute(AtNode *anode)
@@ -781,7 +793,7 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, MPlug& plug, const
       // process connections
       connectedMayaAttr = connections[0].partialName(false, false, false, false, false, true);
       connectedMayaNode = connections[0].node();
-      connectedArnoldNode = ExportShader(connectedMayaNode, connectedMayaAttr);
+      connectedArnoldNode = ExportNode(connectedMayaNode, connectedMayaAttr);
    }
 
    if (acceptLinks)
@@ -842,7 +854,7 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, MPlug& plug, const
             if (conn.length() > 0)
             {
                MString attrName = conn[0].partialName(false, false, false, false, false, true);
-               AtNode* node = ExportShader(conn[0].node(), attrName);
+               AtNode* node = ExportNode(conn[0].node(), attrName);
                if (node != NULL)
                {
                   ++compConnected;
@@ -1052,7 +1064,7 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, MPlug& plug, const
                   if (connections.length() > 0)
                   {
                      MString attrName = connections[0].partialName(false, false, false, false, false, true);
-                     linkedNode = ExportShader(connections[0].node(), attrName);
+                     linkedNode = ExportNode(connections[0].node(), attrName);
                   }
                   else
                      cout << "not connected!" << endl;
@@ -1113,7 +1125,7 @@ void CDagTranslator::AddHierarchyCallbacks(const MDagPath & path)
    // Loop through the whole dag path adding callbacks to them.
    MStatus status;
    MDagPath dag_path(path);
-   dag_path.pop(); // Pop of the shape as that's handled by CNodeTranslator::AddIPRCallbacks.
+   dag_path.pop(); // Pop of the shape as that's handled by CNodeTranslator::AddUpdateCallbacks.
    for(; dag_path.length() > 0; dag_path.pop())
    {
       MObject node = dag_path.node();
@@ -1124,18 +1136,18 @@ void CDagTranslator::AddHierarchyCallbacks(const MDagPath & path)
                                                              NodeDirtyCallback,
                                                              this,
                                                              &status);
-         if (MS::kSuccess == status) ManageIPRCallback(id);
+         if (MS::kSuccess == status) ManageUpdateCallback(id);
       }
    }
 }
 
 
-void CDagTranslator::AddIPRCallbacks()
+void CDagTranslator::AddUpdateCallbacks()
 {
    AddHierarchyCallbacks(m_dagPath);
 
    // Call the base class to get the others.
-   CNodeTranslator::AddIPRCallbacks();
+   CNodeTranslator::AddUpdateCallbacks();
 }
 
 void CDagTranslator::Delete()
@@ -1191,7 +1203,7 @@ bool CDagTranslator::IsMasterInstance(MDagPath &masterDag)
          for (; (master_index < m_dagPath.instanceNumber()); master_index++)
          {
             currDag = allInstances[master_index];
-            if (CMayaScene::IsRenderablePath(currDag))
+            if (CExportSession::IsRenderablePath(currDag))
             {
                // found it
                s_masterInstances[handle] = currDag;
@@ -1269,7 +1281,7 @@ void CDagTranslator::ExportMatrix(AtNode* node, AtUInt step)
 AtInt CDagTranslator::ComputeVisibility()
 {
    // Usually invisible nodes are not exported at all, just making sure here
-   if (false == CMayaScene::IsRenderablePath(m_dagPath))
+   if (false == CExportSession::IsRenderablePath(m_dagPath))
       return AI_RAY_UNDEFINED;
 
    AtInt visibility = AI_RAY_ALL;

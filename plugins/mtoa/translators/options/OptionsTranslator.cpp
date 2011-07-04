@@ -9,22 +9,6 @@
 #include <maya/MAnimControl.h>
 #include <maya/MPlugArray.h>
 
-void COptionsTranslator::SetupImageOptions(AtNode* options)
-{
-   const CRenderOptions* renderOptions = CRenderSession::GetInstance()->RenderOptions();
-   if (renderOptions->useRenderRegion())
-   {
-      AiNodeSetInt(options, "region_min_x", renderOptions->minX());
-      AiNodeSetInt(options, "region_min_y", renderOptions->height() - renderOptions->maxY() - 1);
-      AiNodeSetInt(options, "region_max_x", renderOptions->maxX());
-      AiNodeSetInt(options, "region_max_y", renderOptions->height() - renderOptions->minY() - 1);
-   }
-
-   AiNodeSetInt(options, "xres", renderOptions->width());
-   AiNodeSetInt(options, "yres", renderOptions->height());
-   AiNodeSetFlt(options, "aspect_ratio", renderOptions->pixelAspectRatio());
-}
-
 AtNode* COptionsTranslator::CreateArnoldNodes()
 {
    return AiUniverseGetOptions();
@@ -32,7 +16,6 @@ AtNode* COptionsTranslator::CreateArnoldNodes()
 
 void COptionsTranslator::Export(AtNode *options)
 {
-   SetupImageOptions(options);
    MTime currentTime;
 
    currentTime = MAnimControl::currentTime();
@@ -108,7 +91,7 @@ void COptionsTranslator::Export(AtNode *options)
    //
    if (!background.isNull())
    {
-      AiNodeSetPtr(options, "background", ExportShader(background));
+      AiNodeSetPtr(options, "background", ExportNode(background));
    }
 
    // ATMOSPHERE SHADER
@@ -127,7 +110,7 @@ void COptionsTranslator::Export(AtNode *options)
       if (list.length() > 0)
       {
          list.getDependNode(0, node);
-         AiNodeSetPtr(options, "atmosphere", ExportShader(node));
+         AiNodeSetPtr(options, "atmosphere", ExportNode(node));
       }
       break;
 
@@ -136,7 +119,7 @@ void COptionsTranslator::Export(AtNode *options)
       if (list.length() > 0)
       {
          list.getDependNode(0, node);
-         AiNodeSetPtr(options, "atmosphere", ExportShader(node));
+         AiNodeSetPtr(options, "atmosphere", ExportNode(node));
       }
       break;
    }

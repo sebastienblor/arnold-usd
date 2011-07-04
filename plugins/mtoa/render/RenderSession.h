@@ -23,16 +23,11 @@ class CMayaScene;
  * rendering.
  */
 
-class DLLEXPORT CRenderSession
+class CRenderSession
 {
+   friend class CMayaScene;
 
 public:
-
-   /// Return the instance of the render session.
-   static CRenderSession* GetInstance();
-   /// Return the Maya Scene class, this is not a Maya API.
-   /// \see CMayaScene
-   CMayaScene* GetMayaScene();
 
    /// Get the render view ready.
    /// \param addIdleRenderViewUpdate Optionally install a callback for IPR.
@@ -40,14 +35,12 @@ public:
 
    /// Initialize translation of Maya scene to Arnold
    void Init();
-   void Init(CExportOptions& options);
 
    /// Load the external shaders/procedrals into Arnold.
    void LoadPlugins();
 
    /// Translate the Maya scene to Arnold.
    void Translate();
-   void Translate(CExportOptions& options);
 
    /// Get the translated scene bounding box.
    AtBBox GetBoundingBox();
@@ -72,7 +65,7 @@ public:
                       const bool subFrames=false,
                       const bool isBatch=false,
                       MStatus *ReturnStatus=NULL) const;
-   void DoExport(MString customFileName);
+   void DoAssWrite(MString customFileName);
 
    /// Stop a render, leaving Arnold univierse active.
    void InterruptRender();
@@ -148,13 +141,14 @@ public:
 private:
 
    CRenderSession()
-   : m_scene(NULL)
-   , m_paused_ipr(false)
-   , m_is_active(false)
-   , m_idle_cb(0)
-   , m_render_thread(NULL)
+      : m_paused_ipr(false)
+      , m_is_active(false)
+      , m_idle_cb(0)
+      , m_render_thread(NULL)
    {
-   }   
+   }
+
+   ~CRenderSession();
 
    /// This is the static method which is the thread that calls AiRender().
    static unsigned int RenderThread(AtVoid* data);
@@ -176,7 +170,6 @@ private:
 private:
 
    CRenderOptions m_renderOptions;
-   CMayaScene*    m_scene;
    bool           m_paused_ipr;  ///< True when IPR is paused.
    bool           m_is_active;   ///< True when after a Init() and before a Finish().
 
@@ -184,10 +177,10 @@ private:
    /// \see AddIdleRenderViewCallback
    /// \see updateRenderViewCallback
    /// \see ClearIdleRenderViewCallback
-   MCallbackId m_idle_cb;
+   MCallbackId    m_idle_cb;
 
    /// This is a pointer to the thread which is running RenderThread.
-   AtVoid* m_render_thread;
+   AtVoid*        m_render_thread;
 
 
 }; // class CRenderSession

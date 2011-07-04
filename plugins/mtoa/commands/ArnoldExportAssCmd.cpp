@@ -172,7 +172,7 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    MCommonRenderSettingsData renderGlobals;
    MRenderUtil::getCommonRenderSettings(renderGlobals);
 
-   CRenderSession* renderSession = CRenderSession::GetInstance();
+   CRenderSession* renderSession = CMayaScene::GetRenderSession();
    // Just incase we're rendering with IPR.
    MGlobal::executeCommand("stopIprRendering renderView;");
    renderSession->Finish();
@@ -224,7 +224,7 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
          exportOptions.SetExportFrame(curframe);
          renderSession->Translate(exportOptions);
 
-         renderSession->DoExport(curfilename);
+         renderSession->DoAssWrite(curfilename);
          renderSession->Finish();
 
          if (writeBox)
@@ -264,7 +264,7 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
                                               IsBatch(), &status);
 
       renderSession->Translate(exportOptions);
-      renderSession->DoExport(curfilename);
+      renderSession->DoAssWrite(curfilename);
       renderSession->Finish();
 
       if (writeBox)

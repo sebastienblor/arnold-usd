@@ -40,10 +40,8 @@ CRenderOptions::CRenderOptions()
 ,  m_scene(NULL)
 {}
 
-void CRenderOptions::GetFromMaya(CMayaScene* scene)
+void CRenderOptions::GetFromMaya()
 {
-   m_scene = scene;
-
    ProcessCommonRenderOptions();
    ProcessArnoldRenderOptions();
 }
@@ -254,8 +252,7 @@ void CRenderOptions::SetupImageOptions() const
    MObject        node;
    if (GetOptionsNode(node) == MS::kSuccess)
    {
-      COptionsTranslator* translator = (COptionsTranslator*)m_scene->GetActiveTranslator(node);
-      translator->SetupImageOptions(AiUniverseGetOptions());
+      CMayaScene::SetupImageOptions(AiUniverseGetOptions());
    }
 }
 

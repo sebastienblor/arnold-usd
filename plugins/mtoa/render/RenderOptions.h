@@ -25,7 +25,7 @@ enum RenderType
    MTOA_RENDER_EXPORTASS_AND_KICK
 };
 
-class DLLEXPORT CRenderOptions
+class CRenderOptions
 {
 public:
 

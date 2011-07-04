@@ -406,7 +406,7 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
       if (connections.length() > 0)
       {
          // shader assigned to node
-         AtNode* shader = ExportShader(connections[0].node());
+         AtNode* shader = ExportNode(connections[0].node());
 
          AiNodeSetPtr(polymesh, "shader", shader);
          meshShaders.push_back(shader);
@@ -434,7 +434,7 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
          // FIXME: there should be a check if connections.length() > 0
          // this is not a simple fix because it will shift all the indices,
          // but as it is now, it will crash if nothing is connected to "surfaceShader"
-         meshShaders.push_back(ExportShader(connections[0].node()));
+         meshShaders.push_back(ExportNode(connections[0].node()));
       }
 
       AiNodeSetArray(polymesh, "shader", AiArrayConvert((AtInt)meshShaders.size(), 1, AI_TYPE_NODE, &meshShaders[0], TRUE));
@@ -478,7 +478,7 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
          if (connections.length() > 0)
          {
             MString attrName = connections[0].partialName(false, false, false, false, false, true);
-            AtNode* dispImage(ExportShader(connections[0].node(), attrName));
+            AtNode* dispImage(ExportNode(connections[0].node(), attrName));
 
             MPlug pVectorDisp = dispNode.findPlug("vector_displacement", false);
             if (!pVectorDisp.isNull() && pVectorDisp.asBool())
@@ -604,7 +604,7 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, AtUInt step)
          }
       }
 
-      if (!m_motionDeform)
+      if (!m_motionDeform || !IsLocalMotionBlurEnabled())
       {
          // No deformation motion blur, so we create normal arrays
          AiNodeSetArray(polymesh, "vlist", AiArrayConvert(m_fnMesh.numVertices() * 3, 1, AI_TYPE_FLOAT, &(vertices[0]), TRUE));
@@ -816,22 +816,6 @@ void CGeometryTranslator::ExportMeshParameters(AtNode* polymesh)
       const AtParamEntry *camParamEntry = AiNodeEntryLookUpParameter (polymeshEntry, "subdiv_dicing_camera");
       MPlug camPlug = GetFnNode().findPlug("aiSubdivDicingCamera");
       ProcessParameter(polymesh, camPlug, camParamEntry);
-      // AtNode* camera = ProcessParameter(polymesh, camPlug, camParamEntry);
-      // Above is better as it will cause the camera to be exported if it hasn't already
-      /*
-      MString cameraName("");
-      MPlug camPlug = GetFnNode().findPlug("aiSubdivDicingCamera");
-      MPlugArray connections;
-      camPlug.connectedTo(connections, true, false);
-      if (connections.length())
-      {
-         MObject camObj = connections[0].node();
-         MFnCamera fnCam(camObj, &status);
-         if (MStatus::kSuccess == status) cameraName = fnCam.partialPathName();
-      }
-      AtNode* camera = ((cameraName != "") && (cameraName != "Default")) ? AiNodeLookUpByName(cameraName.asChar()) : NULL;
-      AiNodeSetPtr(polymesh, "subdiv_dicing_camera", camera);
-      */
    }
 }
 
@@ -902,7 +886,7 @@ AtNode* CGeometryTranslator::ExportInstance(AtNode *instance, const MDagPath& ma
 
       if ((shaderPlug != shaderPlugMaster) || (!equalShaderArrays))
       {
-         AtNode* shader = ExportShader(connections[0].node());
+         AtNode* shader = ExportNode(connections[0].node());
          AiNodeSetPtr(instance, "shader", shader);
       }
    }
@@ -945,17 +929,17 @@ void CGeometryTranslator::UpdateMotion(AtNode* anode, AtUInt step)
    ExportMatrix(anode, step);
 }
 
-void CGeometryTranslator::AddIPRCallbacks()
+void CGeometryTranslator::AddUpdateCallbacks()
 {
    AddShaderAssignmentCallbacks(m_object);
-   CDagTranslator::AddIPRCallbacks();
+   CDagTranslator::AddUpdateCallbacks();
 }
 
 void CGeometryTranslator::AddShaderAssignmentCallbacks(MObject & dagNode)
 {
    MStatus status;
    MCallbackId id = MNodeMessage::addAttributeChangedCallback(dagNode, ShaderAssignmentCallback, this, &status);
-   if (MS::kSuccess == status) ManageIPRCallback(id);
+   if (MS::kSuccess == status) ManageUpdateCallback(id);
 }
 
 void CGeometryTranslator::ShaderAssignmentCallback(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void*clientData)
@@ -972,7 +956,7 @@ void CGeometryTranslator::ShaderAssignmentCallback(MNodeMessage::AttributeMessag
          // Export the new shaders.
          translator->ExportShaders();
          // Update Arnold without passing a translator, this just forces a redraw.
-         CMayaScene::UpdateIPR();
+         translator->RequestUpdate();
       }
    }
 }

@@ -82,7 +82,7 @@ void CCameraTranslator::ExportImagePlane(AtUInt step, MObject& imgPlane)
          if ((!m_motion) || (step == 0)) // why not simply check the step? won't step always be 0 if motion is off?
          {
             MString frameNumber("0");
-            frameNumber += GetCurrentFrame() + fnRes.findPlug("frameOffset").asInt();
+            frameNumber += GetExportFrame() + fnRes.findPlug("frameOffset").asInt();
             imageName = MRenderUtil::exactFileTextureName(imageName, fnRes.findPlug("useFrameExtension").asBool(), frameNumber);
             imageName = MRenderUtil::exactImagePlaneFileName(imgPlane);
             mImage = MImage();
@@ -273,7 +273,7 @@ void CCameraTranslator::ExportImagePlane(AtUInt step, MObject& imgPlane)
             if (conn.length())
             {
                MPlug outputPlug = conn[0];
-               AiNodeLink(ExportShader(outputPlug), "color", imagePlaneShader);
+               AiNodeLink(ExportNode(outputPlug), "color", imagePlaneShader);
             }
          }
 

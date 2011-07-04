@@ -61,7 +61,7 @@ struct CExportMotion
 
 struct CExportOptions
 {
-   friend class CMayaScene;
+   friend class CExportSession;
 
    CExportOptions() : m_camera(MDagPath()),
                       m_frame(0.0f),
