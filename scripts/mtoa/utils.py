@@ -2,6 +2,11 @@ import maya.cmds as cmds
 import maya.mel as mel
 import inspect
 import re
+import os
+
+def mtoaPackageRoot():
+    '''return the path to the mtoa python package directory'''
+    return os.path.dirname(inspect.getfile(inspect.currentframe()))
 
 def even(num):
     return bool(num % 2)

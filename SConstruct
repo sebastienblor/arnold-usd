@@ -474,7 +474,7 @@ env.Install(env['TARGET_BINARIES'], dylibs)
 env.Install(env['TARGET_BINARIES'], MTOA_API[0])
 
 
-pyfiles = find_files_recursive('scripts', ['.py'])
+pyfiles = find_files_recursive('scripts', ['.py', '.mel'])
 env.InstallAs([os.path.join(env['TARGET_PYTHON_PATH'], x) for x in pyfiles],
               [os.path.join('scripts', x) for x in  pyfiles])
 env.Install(env['TARGET_ICONS_PATH'], glob.glob(os.path.join('icons', '*.xpm')))

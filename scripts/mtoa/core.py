@@ -1,3 +1,7 @@
+'''
+functions for dealing with mtoa node types and classifications
+'''
+
 import maya.cmds as cmds
 import mtoa.utils as utils
 
@@ -36,6 +40,18 @@ def _processClass(nodeType):
                         break
                 return (klass, cat, label)
     return (None, None, None)
+
+def isSubClassification(testClass, otherClass):
+    '''
+    returns True if the first classification is contained within the second
+    
+    for example 'arnold/shader/displacement' is a sub-filter of 'arnold/shader'
+    '''
+    otherParts = otherClass.split('/')
+    testParts = testClass.split('/')
+    if len(testParts) < len(otherParts):
+        return False
+    return testParts[:len(otherParts)] == otherParts
 
 def getRuntimeClass(nodeType):
     '''

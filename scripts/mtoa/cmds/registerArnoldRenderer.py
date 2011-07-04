@@ -11,7 +11,14 @@ import mtoa.ui.ae.utils as aeUtils
 from mtoa.ui.ae.aiStandInTemplate import ArnoldExportRenderObjectWindow
 
 import mtoa.cmds.arnoldRender as arnoldRender
+import glob
+import os
 
+def _overrideMelScripts():
+    root = utils.mtoaPackageRoot()
+    mayaVersion = str(mel.eval('getApplicationVersionAsFloat'))
+    for f in glob.glob(os.path.join(root, 'mel', mayaVersion, '*.mel')):
+        mel.eval('source "%s"' % f)
 
 # We need to override this two proc to avoid
 # errors because of the hardcoded code.
@@ -197,6 +204,8 @@ def registerArnoldRenderer():
 
         aeUtils.loadAETemplates()
         import mtoa.ui.ae.customShapeAttributes
+        _overrideMelScripts()
+
 
         cmds.renderer('arnold', edit=True, addGlobalsNode='defaultArnoldRenderOptions')
 
@@ -214,5 +223,3 @@ def registerArnoldRenderer():
                               [('string', 'parent'), ('string', 'action'),
                                ('string', 'initialSettings'), ('string', 'resultCallback')],
                                useName=True)
-            # setup hypershade node tree listing
-            nodeTreeLister.setup()
