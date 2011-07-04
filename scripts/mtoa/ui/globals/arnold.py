@@ -581,6 +581,10 @@ def createArnoldEnvironmentSettings():
 
     pm.setUITemplate(popTemplate=True)
 
+def updateShutterAngle():
+    angle = 360.0 * pm.getAttr('defaultArnoldRenderOptions.shutter_size') * pm.getAttr('defaultArnoldRenderOptions.motion_frames')
+    pm.floatFieldGrp('mb_shutter_angle', edit=True, value1=angle)
+
 def createArnoldMotionBlurSettings():
 
     pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
@@ -617,9 +621,25 @@ def createArnoldMotionBlurSettings():
 
     pm.separator()
 
-    pm.attrControlGrp('mb_shutter_size',
-                        label="Shutter Size",
-                        attribute='defaultArnoldRenderOptions.shutter_size')
+    pm.floatFieldGrp('mb_shutter_angle',
+                     label="Shutter Angle",
+                     enable=False)
+
+    pm.floatSliderGrp('mb_shutter_size',
+                      label="Shutter Size",
+                      cc=lambda *args: pm.evalDeferred(updateShutterAngle)
+                      )
+    pm.connectControl('mb_shutter_size', 'defaultArnoldRenderOptions.shutter_size', index=2)
+    pm.connectControl('mb_shutter_size', 'defaultArnoldRenderOptions.shutter_size', index=3)
+
+    pm.floatSliderGrp('mb_motion_frames',
+                      label="Sample Range (Frames)",
+                      cc=lambda *args: pm.evalDeferred(updateShutterAngle)
+                      )
+    pm.connectControl('mb_motion_frames', 'defaultArnoldRenderOptions.motion_frames', index=2)
+    pm.connectControl('mb_motion_frames', 'defaultArnoldRenderOptions.motion_frames', index=3)
+
+    pm.separator(style='none')
 
     pm.attrControlGrp('mb_shutter_offset',
                         label="Shutter Offset",
@@ -632,10 +652,6 @@ def createArnoldMotionBlurSettings():
     pm.attrControlGrp('mb_motion_steps',
                         label="Motion Steps",
                         attribute='defaultArnoldRenderOptions.motion_steps')
-
-    pm.attrControlGrp('mb_motion_frames',
-                        label="Blur By (Frames)",
-                        attribute='defaultArnoldRenderOptions.motion_frames')
 
     pm.setParent('..')
 
@@ -872,4 +888,4 @@ def updateArnoldRendererGlobalsTab(*args):
     updateSamplingSettings()
     updateMotionBlurSettings()
     updateLogSettings()
-
+    updateShutterAngle()
