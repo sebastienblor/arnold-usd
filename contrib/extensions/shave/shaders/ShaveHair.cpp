@@ -4,6 +4,7 @@
 
 #include <ai.h>
 
+#include <cstring>
 #include <string>
 
 AI_SHADER_NODE_EXPORT_METHODS(ShaveHairMtd);
