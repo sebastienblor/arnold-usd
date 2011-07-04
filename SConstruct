@@ -47,7 +47,8 @@ vars.AddVariables(
       ('TEST_PATTERN' , 'Glob pattern of tests to be run', 'test_*'),
       ('GCC_OPT_FLAGS', 'Optimization flags for gcc', '-O3 -funroll-loops'),
 
-      PathVariable('MAYA_ROOT', 'Directory where Maya is installed', get_default_path('MAYA_ROOT', '.')),
+      PathVariable('MAYA_ROOT', 'Directory where Maya is installed (defaults to $MAYA_LOCATION)', 
+                   get_default_path('MAYA_LOCATION', '.')),
       PathVariable('EXTERNAL_PATH', 'External dependencies are found here', 
                    '.', PathVariable.PathIsDir),
       PathVariable('ARNOLD_API_INCLUDES', 
@@ -147,7 +148,7 @@ print ''
 ## COMPILER OPTIONS
 ################################
 
-## Generic Windows stuff
+## Generic Windows stuff476
 if system.os() == 'windows':
    # Embed manifest in executables and dynamic libraries
    env['LINKCOM'] = [env['LINKCOM'], 'mt.exe -nologo -manifest ${TARGET}.manifest -outputresource:$TARGET;1']
@@ -345,9 +346,10 @@ env['BUILDERS']['MakePackage'] = Builder(action = Action(make_package, "Preparin
 env['ROOT_DIR'] = os.getcwd()
 
 if system.os() == 'windows':
+   maya_include_dir = os.path.join(env['MAYA_ROOT'], 'include')
    maya_env = env.Clone()
    maya_env.Append(CPPPATH = ['.'])
-   maya_env.Append(CPPPATH = [os.path.join(env['MAYA_ROOT'], 'include')])
+   maya_env.Append(CPPPATH = [maya_include_dir])
    maya_env.Append(CPPDEFINES = Split('NT_PLUGIN REQUIRE_IOSTREAM'))
    maya_env.Append(LIBPATH = [os.path.join(env['MAYA_ROOT'], 'lib')])
    
@@ -399,13 +401,16 @@ else:
    maya_env.Append(CPPDEFINES = Split('_BOOL REQUIRE_IOSTREAM'))
 
    if system.os() == 'linux':
-      maya_env.Append(CPPPATH = [os.path.join(env['MAYA_ROOT'], 'include')])
+      maya_include_dir = os.path.join(env['MAYA_ROOT'], 'include')
+      maya_env.Append(CPPPATH = [maya_include_dir])
       maya_env.Append(LIBS=Split('GL GLU'))
       maya_env.Append(CPPDEFINES = Split('LINUX'))
       maya_env.Append(LIBPATH = [os.path.join(env['MAYA_ROOT'], 'lib')])
    elif system.os() == 'darwin':
-      maya_env.Append(CPPPATH = [os.path.join(env['MAYA_ROOT'], 'devkit/include')])
-      maya_env.Append(LIBPATH = [os.path.join(env['MAYA_ROOT'], 'Maya.app/Contents/MacOS')])
+      # MAYA_LOCATION on osx includes Maya.app/Contents
+      maya_include_dir = os.path.join(env['MAYA_ROOT'], '../../devkit/include')
+      maya_env.Append(CPPPATH = [maya_include_dir])
+      maya_env.Append(LIBPATH = [os.path.join(env['MAYA_ROOT'], 'MacOS')])
 
    maya_env.Append(LIBS=Split('ai pthread Foundation OpenMaya OpenMayaRender OpenMayaUI OpenMayaAnim OpenMayaFX'))
 
@@ -480,12 +485,7 @@ env.Install(env['TARGET_MODULE_PATH'], os.path.join(BUILD_BASE_DIR, 'mtoa.mod'))
 
 ## Sets release package name based on MtoA version, architecture and compiler used.
 ##
-if system.os() == 'darwin':
-   mtypes_path = os.path.join(env['MAYA_ROOT'], 'devkit', 'include', 'maya', 'MTypes.h')
-else:
-   mtypes_path = os.path.join(env['MAYA_ROOT'], 'include', 'maya', 'MTypes.h')
-
-package_name = "MtoA-" + MTOA_VERSION + "-" + system.get_arch_label(system.os(), system.target_arch()) + "-" + get_maya_version(mtypes_path)
+package_name = "MtoA-" + MTOA_VERSION + "-" + system.get_arch_label(system.os(), system.target_arch()) + "-" + get_maya_version(os.path.join(maya_include_dir, 'maya', 'MTypes.h'))
 
 if env['MODE'] in ['debug', 'profile']:
    package_name += '-' + env['MODE']
