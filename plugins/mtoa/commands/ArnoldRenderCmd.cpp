@@ -60,7 +60,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       camera = args.flagArgumentString("camera", 0);
    }
    // TODO: get the "selected" flag here
-   ExportOptions exportOptions;
+   CExportOptions exportOptions;
    exportOptions.mode = MTOA_EXPORT_ALL;
    exportOptions.filter.unselected = !renderGlobals.renderAll;
 

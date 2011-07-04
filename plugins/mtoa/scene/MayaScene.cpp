@@ -78,7 +78,7 @@ MStatus CMayaScene::ExportToArnold()
    // For example, if it's IPR mode, they install callbacks to trigger
    // a refresh of the data sent to Arnold.
    // ExportMode exportMode   = GetExportMode();
-   // ExportFilter exportFilter = GetExportFilter();
+   // CExportFilter exportFilter = GetExportFilter();
    // It wouldn't be efficient to test the whole scene against selection state
    // so selected gets a special treatment
    ExportMode exportMode = m_exportOptions.mode;
@@ -254,7 +254,7 @@ MStatus CMayaScene::ExportCameras()
 
    // First we export all cameras
    // We do not reset the iterator to avoid getting kWorld
-   ExportFilter filter = GetExportFilter();
+   CExportFilter filter = GetExportFilter();
    for (; (!dagIterCameras.isDone()); dagIterCameras.next())
    {
       if (dagIterCameras.getPath(path))
@@ -296,7 +296,7 @@ MStatus CMayaScene::ExportLights()
 
    // First we export all cameras
    // We do not reset the iterator to avoid getting kWorld
-   ExportFilter filter = GetExportFilter();
+   CExportFilter filter = GetExportFilter();
    for (; (!dagIterLights.isDone()); dagIterLights.next())
    {
       if (dagIterLights.getPath(path))

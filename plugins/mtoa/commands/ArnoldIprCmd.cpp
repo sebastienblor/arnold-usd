@@ -53,7 +53,7 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
    int height = args.isFlagSet("height") ? args.flagArgumentInt("height", 0) : -1;
 
    // TODO: get the "selected" flag here
-   ExportOptions exportOptions;
+   CExportOptions exportOptions;
    exportOptions.mode = MTOA_EXPORT_IPR;
 
    // What mode are we in?

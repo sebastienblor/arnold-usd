@@ -25,7 +25,7 @@
 
 // The different ExportMode were not really mutually exclusive
 // (you can have IPR render on selected only)
-// So redone as ExportMode and ExportFilter
+// So redone as ExportMode and CExportFilter
 enum ExportMode
 {
    MTOA_EXPORT_UNDEFINED,
@@ -38,7 +38,7 @@ enum ExportMode
 typedef std::set<MFn::Type> ExcludeSet;
 // Any custom filter we might want on exports
 // true means filtered OUT, ie NOT exported
-struct ExportFilter
+struct CExportFilter
 {
    bool unselected;
    bool templated;
@@ -46,20 +46,20 @@ struct ExportFilter
    bool notinlayer;
    ExcludeSet excluded;
 
-   ExportFilter() :  unselected(false),
+   CExportFilter() :  unselected(false),
                      templated(true),
                      hidden(true),
                      notinlayer(true)   {}
 };
 
-struct ExportOptions
+struct CExportOptions
 {
    ExportMode mode;
-   ExportFilter filter;
+   CExportFilter filter;
    MDagPath camera;
 
-   ExportOptions() : mode(MTOA_EXPORT_UNDEFINED),
-                     filter(ExportFilter()),
+   CExportOptions() : mode(MTOA_EXPORT_UNDEFINED),
+                     filter(CExportFilter()),
                      camera() {}
 };
 
@@ -115,7 +115,7 @@ class DLLEXPORT CMayaScene
 public:
 
    CMayaScene()
-      :  m_exportOptions(ExportOptions())
+      :  m_exportOptions(CExportOptions())
       ,  m_fnCommonRenderOptions(NULL)
       ,  m_fnArnoldRenderOptions(NULL)
       ,  m_currentFrame(0)
@@ -131,12 +131,12 @@ public:
 
    inline AtFloat GetCurrentFrame()                      { return m_currentFrame;}
 
-   inline ExportOptions GetExportOptions()               { return m_exportOptions; }
-   inline void SetExportOptions(ExportOptions& options)  { m_exportOptions = options; }
+   inline CExportOptions GetExportOptions()               { return m_exportOptions; }
+   inline void SetExportOptions(CExportOptions& options)  { m_exportOptions = options; }
    inline ExportMode GetExportMode()                     { return m_exportOptions.mode; }
    inline void SetExportMode(ExportMode mode)            { m_exportOptions.mode = mode; }
-   inline ExportFilter GetExportFilter()                 { return m_exportOptions.filter; }
-   inline void SetExportFilter(ExportFilter& filter)     { m_exportOptions.filter = filter; }
+   inline CExportFilter GetExportFilter()                 { return m_exportOptions.filter; }
+   inline void SetExportFilter(CExportFilter& filter)     { m_exportOptions.filter = filter; }
    inline MDagPath GetExportCamera()                     { return m_exportOptions.camera; }
    inline void SetExportCamera(MDagPath camera)   { camera.extendToShape();m_exportOptions.camera = camera; }
 
@@ -220,8 +220,8 @@ private:
 
    void ExportInstancerReplacement(const MDagPath& dagPath, AtUInt step);
 
-   static DagFiltered FilteredStatus(ExportFilter filter, MDagPath dagPath);
-   bool IsExportedPath(ExportFilter filter, MDagPath path);
+   static DagFiltered FilteredStatus(CExportFilter filter, MDagPath dagPath);
+   bool IsExportedPath(CExportFilter filter, MDagPath path);
    static bool IsInRenderLayer(MDagPath dagPath);
    static bool IsVisiblePath(MDagPath dagPath);
    static bool IsTemplatedPath(MDagPath dagPath);
@@ -244,7 +244,7 @@ private:
    
 private:
 
-   ExportOptions m_exportOptions;
+   CExportOptions m_exportOptions;
    MFnDependencyNode* m_fnCommonRenderOptions;
    MFnDependencyNode* m_fnArnoldRenderOptions;
    CMotionBlurData m_motionBlurData;

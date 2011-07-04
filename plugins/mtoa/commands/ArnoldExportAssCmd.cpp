@@ -81,7 +81,7 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    MSyntax syntax = newSyntax();
    MArgDatabase argDB(syntax, argList, &status);
    MString customFileName = "";
-   ExportOptions exportOptions;
+   CExportOptions exportOptions;
    MString optionsName = "";
    bool exportSelected = false;
    bool writeBox = false;
