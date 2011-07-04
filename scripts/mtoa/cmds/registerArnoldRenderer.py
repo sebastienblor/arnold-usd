@@ -17,7 +17,7 @@ def _overrideMelScripts():
     root = utils.mtoaPackageRoot()
     mayaVersion = versions.shortName()
     for f in glob.glob(os.path.join(root, 'mel', mayaVersion, '*.mel')):
-        pm.mel.source(f)
+        pm.mel.source(pm.mel.encodeString(f))
 
 # We need to override this two proc to avoid
 # errors because of the hardcoded code.
