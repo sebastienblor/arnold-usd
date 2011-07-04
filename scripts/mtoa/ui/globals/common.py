@@ -24,55 +24,18 @@
 import os
 import math
 
-import maya.cmds as cmds
-import maya.mel as mel
+import pymel.core as pm
 
 import mtoa.utils as utils
 from mtoa.callbacks import *
 
+if pm.mel.getApplicationVersionAsFloat() >= 2011:
+    from maya.app.stereo import stereoCameraRig
 
-def buildArnoldImageFormatsMenu():
-    cmds.menuItem(label="OpenEXR", data=0)
-    cmds.menuItem(label="Tiff", data=1)
-    cmds.menuItem(label="Jpg", data=2)
-    cmds.menuItem(label="Png", data=3)
+MENU_SEPARATOR = ('-', None)
 
-
-def getArnoldImageFormatExt():
-
-    ext = ''
-    imageFormat = cmds.getAttr('defaultArnoldRenderOptions.arnoldRenderImageFormat', asString=True)
-
-    formats = {'OpenEXR':'exr',
-                'Tiff':'tif',
-                'Jpg':'jpg',
-                'Png':'png'}
-
-    if imageFormat in formats:
-        ext = formats[imageFormat]
-
-    return ext
-
-def getArnoldImageOldFormatExt(image):
-
-    formatLast = [2, 3, 6, 7]
-    formatSecond = [4]
-    formatNone = [1, 5]
-
-    if cmds.optionMenuGrp('extMenu', q=True, exists=True):
-        opt = cmds.optionMenuGrp('extMenu', q=True, sl=True)
-    else:
-        opt = 2
-
-    if opt in formatLast:
-        return image.split('.')[-1]
-    elif opt in formatSecond:
-        return image.split('.')[-2]
-    else:
-        return ''
-
-    return ''
-
+PLE_MAX_Y =  768
+PLE_MAX_X = 1024
 
 # Use global variables because MEL do not have a concept of enum or
 # constants. These values are used to define the action to take in
@@ -82,55 +45,114 @@ CAM_MENU_STEREOPAIR = 2
 CAM_MENU_ADD        = 3
 CAM_MENU_IGNORE     = 4
 
+
+
+
+if pm.mel.getApplicationVersionAsFloat() >= 2011:
+    def _listStereoRigs():
+        return [pm.nt.DagNode(x) for x in stereoCameraRig.listRigs(True) or []]
+    def _isMono(camera):
+        return not stereoCameraRig.rigRoot(camera.name())
+
+else:
+    def _listStereoRigs():
+        return []
+    def _isMono(camera):
+        return False
+
+def getMultiCameraChildren(camera):
+    cameras = []
+    if pm.pluginInfo("stereoCamera", query=True, loaded=True):
+        import maya.app.stereo.stereoCameraRig as stereoCameraRig
+        if stereoCameraRig.isRigRoot(str(camera)):
+            result = camera.leftCam.get()
+            if result:
+                cameras.append(result)
+                result = camera.rightCam.get()
+                if result:
+                    cameras.append(result)
+    return cameras
+
+def buildArnoldImageFormatsMenu():
+    pm.menuItem(label="OpenEXR", data=0)
+    pm.menuItem(label="Tiff", data=1)
+    pm.menuItem(label="Jpg", data=2)
+    pm.menuItem(label="Png", data=3)
+
+
+def getArnoldImageFormatExt():
+    imageFormat = pm.getAttr('defaultArnoldRenderOptions.arnoldRenderImageFormat', asString=True)
+
+    formats = {'OpenEXR':'exr',
+                'Tiff':'tif',
+                'Jpg':'jpg',
+                'Png':'png'}
+    return formats.get(imageFormat, '')
+
+def getArnoldImageOldFormatExt(image):
+
+    formatLast = [2, 3, 6, 7]
+    formatSecond = [4]
+    formatNone = [1, 5]
+
+    if pm.optionMenuGrp('extMenu', q=True, exists=True):
+        opt = pm.optionMenuGrp('extMenu', q=True, sl=True)
+    else:
+        opt = 2
+
+    if opt in formatLast:
+        return image.split('.')[-1]
+    elif opt in formatSecond:
+        return image.split('.')[-2]
+
+    return ''
+
 # ----------------------------------------------------------------------------
 # Utility procedures used by other procedures in this file.
 # Must be used to account for multiple instances of the same tab.
 #
 def setParentToArnoldCommonTab():
-
     # First set the parent to the correct tab layout.
     # Account for the special "all renderers" master layer layout
     # when we are using render layers
-    gMasterLayerRendererName = mel.eval('global string {0};$a_temps={0}'.format('$gMasterLayerRendererName'))
-    renderer = ''
-    if mel.eval('isDisplayingAllRendererTabs'):
-        renderer = gMasterLayerRendererName
+    if pm.mel.isDisplayingAllRendererTabs():
+        renderer = pm.melGlobals.get('gMasterLayerRendererName', 'string')
     else:
         renderer = utils.currentRenderer()
 
-    tabLayout = mel.eval('rendererTabLayoutName("%s")'%renderer)
-    cmds.setParent(tabLayout)
+    tabLayout = pm.mel.rendererTabLayoutName(renderer)
+    pm.setParent(tabLayout)
 
     # Now set the parent to the correct column layout
-    cmds.setParent('commonTabColumn')
+    pm.setParent('commonTabColumn')
 
 def createArnoldTargetFilePreview():
 
-    oldParent = cmds.setParent(query=True)
+    oldParent = pm.setParent(query=True)
 
-    cmds.columnLayout('targetFilePreview', adjustableColumn=True)
+    pm.columnLayout('targetFilePreview', adjustableColumn=True)
 
-    cmds.text('exampleText0',
+    pm.text('exampleText0',
               align="left",
               font="smallBoldLabelFont",
-              label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kPath")'))
+              label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kPath"))
 
-    cmds.text('exampleArnoldText1',
+    pm.text('exampleArnoldText1',
               align="left",
               font="smallBoldLabelFont",
-              label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kFileName")'))
+              label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kFileName"))
 
-    cmds.text('exampleArnoldText2',
+    pm.text('exampleArnoldText2',
               align="left",
               font="smallBoldLabelFont",
-              label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kTo")'))
+              label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kTo"))
 
-    cmds.text('exampleText3',
+    pm.text('exampleText3',
               align="left",
               font="smallBoldLabelFont",
-              label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kImageSize")'))
+              label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kImageSize"))
 
-    cmds.setParent(oldParent)
+    pm.setParent(oldParent)
 
     # This target file preview is affected by a number of attributes.
     # If any of those attributes change, this preview needs to be updated.
@@ -138,8 +160,6 @@ def createArnoldTargetFilePreview():
     # Here we fill an array with the names of all of the current renderer's
     # attributes which affect the naming of the target file.
     #
-    attrArray = []
-
     attrArray = ["defaultRenderGlobals.imageFilePrefix",
                  "defaultRenderGlobals.outFormatControl",
                  "defaultArnoldRenderOptions.arnoldRenderImageFormat",
@@ -168,43 +188,38 @@ def createArnoldTargetFilePreview():
 
     # Now we establish scriptJobs to invoke the procedure which updates the
     # target file preview when any of the above attributes change.
-    #
 
     for attr in attrArray:
-        cmds.scriptJob(attributeChange = (attr,updateArnoldTargetFilePreview),
+        pm.scriptJob(attributeChange = (attr,updateArnoldTargetFilePreview),
                         parent='targetFilePreview')
 
 
-    cmds.scriptJob(event = ('workspaceChanged',
+    pm.scriptJob(event = ('workspaceChanged',
                             updateArnoldTargetFilePreview),
                             parent='targetFilePreview')
 
     updateArnoldTargetFilePreview()
 
 def updateArnoldTargetFilePreview(*args):
+    '''
+    Description:
+    This procedure is called any time an attribute change occurs which
+       would affect the name(s) of the file(s) that would be created when the
+       user performs a render.
+    This procedure updates the lines of text in the General tab that allow
+    the user to see what files are going to be created when they render.
+    '''
 
-    #
-    # Description:
-    # This procedure is called any time an attribute change occurs which
-    #    would affect the name(s) of the file(s) that would be created when the
-    #    user performs a render.
-    # This procedure updates the lines of text in the General tab that allow
-    # the user to see what files are going to be created when they render.
-    #
+    oldParent = pm.setParent(query=True)
 
-    oldParent = cmds.setParent(query=True)
-
-    gMasterLayerRendererName = mel.eval('global string {0};$a_temps={0}'.format('$gMasterLayerRendererName'))
-
-    renderer = ''
-    if mel.eval('isDisplayingAllRendererTabs'):
-        renderer = gMasterLayerRendererName
+    if pm.mel.eval('isDisplayingAllRendererTabs'):
+        renderer = pm.melGlobals.get('gMasterLayerRendererName', 'string')
     else:
         renderer = utils.currentRenderer()
 
-    tabLayout = mel.eval('rendererTabLayoutName("%s")'%renderer)
-    if cmds.tabLayout(tabLayout, exists=True):
-        cmds.setParent(tabLayout)
+    tabLayout = pm.mel.rendererTabLayoutName(renderer)
+    if pm.tabLayout(tabLayout, exists=True):
+        pm.setParent(tabLayout)
 
     #
     # Update the Path portion of the preview.
@@ -212,24 +227,23 @@ def updateArnoldTargetFilePreview(*args):
 
     # get the project's image directory
     #
-    imgDir = cmds.workspace("images", q=True, fileRuleEntry=True)
-    fullPath = cmds.workspace(expandName=imgDir)
-    pathLabel = mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kNewPath")')
-    path = cmds.format(pathLabel, s=fullPath)
-    cmds.text('exampleText0', edit=True, label=path)
+    imgDir = pm.workspace("images", q=True, fileRuleEntry=True)
+    fullPath = pm.workspace(expandName=imgDir)
+    pathLabel = pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kNewPath")
+    path = pm.format(pathLabel, s=fullPath)
+    pm.text('exampleText0', edit=True, label=path)
 
     #
     # Update the File Name portion of the preview.
     #
 
-    title1 = mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kNewFileName")')
-    title2 = mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kNewTo")')
+    title1 = pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kNewFileName")
+    title2 = pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kNewTo")
     # TODO: DEFINE FIELDS FOR SW RENDER
-    images = []
-    if mel.eval('getApplicationVersionAsFloat') >= 2011:
-        images = cmds.renderSettings(fin=True, lin=True, lut=True)
+    if pm.mel.getApplicationVersionAsFloat() >= 2011:
+        images = pm.renderSettings(fin=True, lin=True, lut=True)
     else:
-        images = cmds.renderSettings(fin=True, lin=True)
+        images = pm.renderSettings(fin=True, lin=True)
 
     #oldExt = os.path.splitext(images[0])[-1]
     #oldExt = images[0].split('.')[-1]
@@ -238,13 +252,13 @@ def updateArnoldTargetFilePreview(*args):
 
     if oldExt:
         images[0] = images[0].replace(oldExt, newExt)
-    cmds.text('exampleArnoldText1', edit=True, label=cmds.format(title1, s=images[0]))
+    pm.text('exampleArnoldText1', edit=True, label=pm.format(title1, s=images[0]))
     if images[1]:
         if oldExt:
             images[1] = images[1].replace(oldExt, newExt)
-        cmds.text('exampleArnoldText2', edit=True, label=cmds.format(title2, s=images[1]))
+        pm.text('exampleArnoldText2', edit=True, label=pm.format(title2, s=images[1]))
     else:
-        cmds.text('exampleArnoldText2', edit=True, label="")
+        pm.text('exampleArnoldText2', edit=True, label="")
 
     #
     # Update the Image Size portion of the preview.
@@ -252,50 +266,50 @@ def updateArnoldTargetFilePreview(*args):
 
     # Get attributes
     #
-    width = cmds.getAttr('defaultResolution.width')
-    height = cmds.getAttr('defaultResolution.height')
-    dpi = cmds.getAttr('defaultResolution.dotsPerInch')
-    sizeUnits = cmds.getAttr('defaultResolution.imageSizeUnits')
-    resUnits = cmds.getAttr('defaultResolution.pixelDensityUnits')
+    width = pm.getAttr('defaultResolution.width')
+    height = pm.getAttr('defaultResolution.height')
+    dpi = pm.getAttr('defaultResolution.dotsPerInch')
+    sizeUnits = pm.getAttr('defaultResolution.imageSizeUnits')
+    resUnits = pm.getAttr('defaultResolution.pixelDensityUnits')
 
     # Default measurement units to inches if pixels selected
     if sizeUnits == 0:
         sizeUnits = 1
 
 
-    gMeasurementUnitsNames = mel.eval('global string {0}[];string $a_tempsa[]={0}'.format('$gMeasurementUnitsNames'))
-    gResolutionUnitsNames = mel.eval('global string {0}[];string $a_tempsa[]={0}'.format('$gResolutionUnitsNames'))
+    gMeasurementUnitsNames = pm.melGlobals.get('gMeasurementUnitsNames', 'string[]')
+    gResolutionUnitsNames = pm.melGlobals.get('gResolutionUnitsNames', 'string[]')
 
     if not gResolutionUnitsNames:
-        mel.eval("source resolutionFormats.mel")
-        gMeasurementUnitsNames = mel.eval('global string {0}[];string $a_tempsa[]={0}'.format('$gMeasurementUnitsNames'))
-        gResolutionUnitsNames = mel.eval('global string {0}[];string $a_tempsa[]={0}'.format('$gResolutionUnitsNames'))
+        pm.mel.source("resolutionFormats.mel")
+        gMeasurementUnitsNames = pm.melGlobals['gMeasurementUnitsNames']
+        gResolutionUnitsNames = pm.melGlobals['gResolutionUnitsNames']
 
     # Convert from pixels to the correct measurement units
-    docWidth = mel.eval('convertMeasurement(convertPixelsToInches( %s, %s), "inches", "%s")'%(width, dpi, gMeasurementUnitsNames[sizeUnits]))
+    docWidth = pm.mel.convertMeasurement(pm.mel.convertPixelsToInches(width, dpi), "inches", gMeasurementUnitsNames[sizeUnits])
 
-    docHeight = mel.eval('convertMeasurement(convertPixelsToInches( %s, %s), "inches", "%s")'%(height, dpi, gMeasurementUnitsNames[sizeUnits]))
+    docHeight = pm.mel.convertMeasurement(pm.mel.convertPixelsToInches(height, dpi), "inches", gMeasurementUnitsNames[sizeUnits])
 
     # Convert from DPI to the correct resolution units
-    res = mel.eval('convertResolutionMeasurement(%s, "pixels/inch", "%s")'%(dpi, gResolutionUnitsNames[resUnits]))
+    res = pm.mel.convertResolutionMeasurement(dpi, "pixels/inch", gResolutionUnitsNames[resUnits])
 
     # Convert to strings, rounding applicable floats to 1 decimal place
     imW = width
     imH = height
 
-    docW = mel.eval('setDecimalPrecision( %s, 1.0)'%docWidth)
-    docH = mel.eval('setDecimalPrecision( %s, 1.0)'%docHeight)
-    units = mel.eval('resolutionFormats_melToUI("%s")'%gMeasurementUnitsNames[sizeUnits])
-    resVal = mel.eval('setDecimalPrecision(%s, 1.0)'%res)
+    docW = pm.mel.setDecimalPrecision(docWidth, 1.0)
+    docH = pm.mel.setDecimalPrecision(docHeight, 1.0)
+    units = pm.mel.resolutionFormats_melToUI(gMeasurementUnitsNames[sizeUnits])
+    resVal = pm.mel.setDecimalPrecision(res, 1.0)
 
-    resUnitsStr = mel.eval('resolutionFormats_melToUI("%s")'%gResolutionUnitsNames[resUnits])
+    resUnitsStr = pm.mel.resolutionFormats_melToUI(gResolutionUnitsNames[resUnits])
 
-    imageLabel = mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kNewImageSize")')
-    imageSizeString = cmds.format(imageLabel, s=(imW, imH, docW, docH, units, resVal, resUnitsStr))
+    imageLabel = pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kNewImageSize")
+    imageSizeString = pm.format(imageLabel, s=(imW, imH, docW, docH, units, resVal, resUnitsStr))
 
-    cmds.text('exampleText3', edit=True, label=imageSizeString)
+    pm.text('exampleText3', edit=True, label=imageSizeString)
 
-    cmds.setParent(oldParent)
+    pm.setParent(oldParent)
 
 
 def insertArnoldKeywordMenuCallback(token):
@@ -303,43 +317,44 @@ def insertArnoldKeywordMenuCallback(token):
     setParentToArnoldCommonTab()
 
     # if not yet set, then replace name with token
-    prefix = cmds.textFieldGrp('mayaSoftwareFileName', query=True, text=True)
+    prefix = pm.textFieldGrp('mayaSoftwareFileName', query=True, text=True)
     if prefix == mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kNotSetUsingFilename")'):
-        cmds.textFieldGrp('mayaSoftwareFileName', e=True, text=token, forceChangeCommand=True)
+        pm.textFieldGrp('mayaSoftwareFileName', e=True, text=token, forceChangeCommand=True)
     else:
-        cmds.textFieldGrp('mayaSoftwareFileName', e=True, insertText=token, forceChangeCommand=True)
+        pm.textFieldGrp('mayaSoftwareFileName', e=True, insertText=token, forceChangeCommand=True)
 
 
 def createArnoldInsertKeywordMenu(parent):
 
-    cmds.popupMenu(parent, edit=True, deleteAllItems=True)
+    # FIXME: ArnoldKeywordMenuCallback does not exist!
+    pm.popupMenu(parent, edit=True, deleteAllItems=True)
 
-    cmds.setParent(parent, menu=True)
+    pm.setParent(parent, menu=True)
 
-    cmds.menuItem(label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kFileNameKeywords")'), enable=0)
-    cmds.menuItem(divider=True)
-    cmds.menuItem(label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kKeywordScene")'),
-                  command=Callback(insertArnoldKeywordMenuCallback, "<Scene>"))
-    cmds.menuItem(label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kKeywordLayer")'),
-                  command=Callback(insertArnoldKeywordMenuCallback, "<RenderLayer>"))
-    cmds.menuItem(label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kKeywordCamera")'),
-                  command=Callback(insertArnoldKeywordMenuCallback, "<Camera>"))
-    cmds.menuItem(label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kKeywordRPFG")'),
-                  command=Callback(insertArnoldKeywordMenuCallback, "<RenderPassFileGroup>"))
-    cmds.menuItem(label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kKeywordRenderPass")'),
-                  command=Callback(insertArnoldKeywordMenuCallback, "<RenderPass>"))
-    cmds.menuItem(label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kKeywordRenderPassType")'),
-                  command=Callback(insertArnoldKeywordMenuCallback, "<RenderPassType>"))
-    cmds.menuItem(label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kKeywordExtension")'),
-                  command=Callback(insertArnoldKeywordMenuCallback, "<Extension>"))
-    cmds.menuItem(label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kKeywordVersion")'),
-                  command=Callback(insertArnoldKeywordMenuCallback, "<Version>"))
-    date = cmds.date(format="YY_MM_DD")
-    cmds.menuItem(label=(mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kKeywordDate")') + date),
-                  command=Callback(insertArnoldKeywordMenuCallback,  date))
-    time = cmds.date(format="hh-mm-ss")
-    cmds.menuItem(label=(mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kKeywordTime")') + time),
-                  command=Callback(insertArnoldKeywordMenuCallback, time))
+    pm.menuItem(label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kFileNameKeywords"), enable=0)
+    pm.menuItem(divider=True)
+    pm.menuItem(label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kKeywordScene"),
+                  command=pm.Callback(ArnoldKeywordMenuCallback, "<Scene>"))
+    pm.menuItem(label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kKeywordLayer"),
+                  command=pm.Callback(ArnoldKeywordMenuCallback, "<RenderLayer>"))
+    pm.menuItem(label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kKeywordCamera"),
+                  command=pm.Callback(ArnoldKeywordMenuCallback, "<Camera>"))
+    pm.menuItem(label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kKeywordRPFG"),
+                  command=pm.Callback(ArnoldKeywordMenuCallback, "<RenderPassFileGroup>"))
+    pm.menuItem(label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kKeywordRenderPass"),
+                  command=pm.Callback(ArnoldKeywordMenuCallback, "<RenderPass>"))
+    pm.menuItem(label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kKeywordRenderPassType"),
+                  command=pm.Callback(ArnoldKeywordMenuCallback, "<RenderPassType>"))
+    pm.menuItem(label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kKeywordExtension"),
+                  command=pm.Callback(ArnoldKeywordMenuCallback, "<Extension>"))
+    pm.menuItem(label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kKeywordVersion"),
+                  command=pm.Callback(ArnoldKeywordMenuCallback, "<Version>"))
+    date = pm.date(format="YY_MM_DD")
+    pm.menuItem(label=(pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kKeywordDate") + date),
+                  command=pm.Callback(InsertArnoldKeywordMenuCallback,  date))
+    time = pm.date(format="hh-mm-ss")
+    pm.menuItem(label=(pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kKeywordTime") + time),
+                  command=pm.Callback(InsertArnoldKeywordMenuCallback, time))
 
 # ----------------------------------------------------------------------------
 # Code to create and update the Image File Output frame
@@ -348,48 +363,46 @@ def createArnoldFileNamePrefixControl():
 
     # Create the control
     #
-    cmds.textFieldGrp('mayaSoftwareFileName',
-                     label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kFileNamePrefix")'),
-                     changeCommand=changeArnoldFileNamePrefix,
-                     annotation=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kFileNamePrefixAnn")'))
+    pm.textFieldGrp('mayaSoftwareFileName',
+                     label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kFileNamePrefix"),
+                     annotation=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kFileNamePrefixAnn"))
 
-    popup=''
-    if mel.eval('getApplicationVersionAsFloat') >= 2011:
-        popup = cmds.popupMenu(parent='mayaSoftwareFileName|field')
+    if pm.mel.getApplicationVersionAsFloat() >= 2011:
+        popup = pm.popupMenu(parent='mayaSoftwareFileName|field')
     else:
-        popup = cmds.popupMenu(parent='mayaSoftwareFileName')
-    cmds.popupMenu(popup, edit=True, postMenuCommand=Callback(createArnoldInsertKeywordMenu, popup))
+        popup = pm.popupMenu(parent='mayaSoftwareFileName')
+    pm.popupMenu(popup, edit=True, postMenuCommand='createInsertKeywordMenu %s' % popup)
 
     # connect the label, so we can change its color
-    cmds.connectControl('mayaSoftwareFileName', 'defaultRenderGlobals.imageFilePrefix', index=1)
+    pm.connectControl('mayaSoftwareFileName', 'defaultRenderGlobals.imageFilePrefix', index=1)
 
     # Create a scriptJob which will update the control when the value of the
     # attribute it represents is changed.
     #
-    cmds.scriptJob(parent='mayaSoftwareFileName',
-                  attributeChange=("defaultRenderGlobals.imageFilePrefix", updateArnoldFileNamePrefixControl))
+    pm.scriptJob(parent='mayaSoftwareFileName',
+                 attributeChange=("defaultRenderGlobals.imageFilePrefix", updateArnoldFileNamePrefixControl))
 
 
 def changeArnoldFileNamePrefix(*args):
 
-    oldParent = cmds.setParent(query=True)
+    oldParent = pm.setParent(query=True)
     setParentToArnoldCommonTab()
 
-    prefix = cmds.textFieldGrp('mayaSoftwareFileName', query=True, text=True)
+    prefix = pm.textFieldGrp('mayaSoftwareFileName', query=True, text=True)
     prefixAttr = "defaultRenderGlobals.imageFilePrefix"
 
-    if prefix != mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kNotSetUsingFilename")') and mel.eval('isValidFileNamePrefix("%s")'%prefix):
+    if prefix != pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kNotSetUsingFilename") and pm.mel.isValidFileNamePrefix(prefix):
         # The user has set the prefix to something, and it is a valid name, so
         # we will set the value of the corresponding attribute.
         #
-        cmds.setAttr(prefixAttr, prefix, type="string")
+        pm.setAttr(prefixAttr, prefix, type="string")
     else:
         # The user has set the prefix to an invalid value. We will refresh the
         # UI to show the current value, which has not been changed.
         #
         updateArnoldFileNamePrefixControl()
 
-    cmds.setParent(oldParent)
+    pm.setParent(oldParent)
 
 def updateArnoldFileNamePrefixControl(*args):
     #
@@ -402,42 +415,39 @@ def updateArnoldFileNamePrefixControl(*args):
     #    and then updates the example to show the changes.
     #
 
-    oldParent = cmds.setParent(query=True)
-
+    oldParent = pm.setParent(query=True)
     setParentToArnoldCommonTab()
 
-    prefix = cmds.getAttr("defaultRenderGlobals.imageFilePrefix")
+    prefix = pm.getAttr("defaultRenderGlobals.imageFilePrefix")
 
     if prefix:
-        cmds.textFieldGrp('mayaSoftwareFileName', edit=True, text=prefix)
+        pm.textFieldGrp('mayaSoftwareFileName', edit=True, text=prefix)
     else:
-        cmds.textFieldGrp('mayaSoftwareFileName',
+        pm.textFieldGrp('mayaSoftwareFileName',
                     edit=True,
-                    text=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kNotSetUsingFilename")'))
+                    text=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kNotSetUsingFilename"))
 
-
-    cmds.setParent(oldParent)
+    pm.setParent(oldParent)
 
 
 def createArnoldFileNameFormatControl():
 
-    cmds.optionMenuGrp('extMenu',
-                    label= mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kFrameAnimationExt")'),
+    pm.optionMenuGrp('extMenu',
+                    label= pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kFrameAnimationExt"),
                     changeCommand=changeArnoldFileNameFormat)
 
 
-    cmds.menuItem(label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kExt1")'))
-    cmds.menuItem(label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kExt2")'))
-    cmds.menuItem('mayaSoftwareNameDotFrameDotExtension', label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kExt3")'))
-    cmds.menuItem('mayaSoftwareNameDotExtensionDotFrame', label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kExt4")'))
-    cmds.menuItem('mayaSoftwareNameDotFrame', label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kExt5")'))
-    cmds.menuItem('mayaSoftwareFrameDotExtension', label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kExt6")'))
-    cmds.menuItem('mayaSoftwareNameUnderFrameDotExtension', label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kExt7")'))
-    cmds.menuItem('mayaSoftwareMultiFrame', label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kExt8")'))
-    cmds.menuItem('mayaSoftwareMultiFrameDotExtension', label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kExt9")'))
+    pm.menuItem(label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kExt1"))
+    pm.menuItem(label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kExt2"))
+    pm.menuItem('mayaSoftwareNameDotFrameDotExtension', label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kExt3"))
+    pm.menuItem('mayaSoftwareNameDotExtensionDotFrame', label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kExt4"))
+    pm.menuItem('mayaSoftwareNameDotFrame', label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kExt5"))
+    pm.menuItem('mayaSoftwareFrameDotExtension', label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kExt6"))
+    pm.menuItem('mayaSoftwareNameUnderFrameDotExtension', label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kExt7"))
+    pm.menuItem('mayaSoftwareMultiFrame', label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kExt8"))
+    pm.menuItem('mayaSoftwareMultiFrameDotExtension', label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kExt9"))
 
     attrArray=[]
-
     attrArray.append("defaultRenderGlobals.outFormatControl")
     attrArray.append("defaultRenderGlobals.animation")
     attrArray.append("defaultRenderGlobals.periodInExt")
@@ -449,68 +459,68 @@ def createArnoldFileNameFormatControl():
     # file name format control when any of the above attributes change.
     #
     for attr in attrArray:
-        cmds.scriptJob(attributeChange=(attr, updateArnoldFileNameFormatControl),
-                                  parent='extMenu')
+        pm.scriptJob(attributeChange=(attr, updateArnoldFileNameFormatControl),
+                     parent='extMenu')
 
 
 def changeArnoldFileNameFormat(*args):
-    #
-    #  Procedure Name:
-    #      changeExtension
-    #
-    #  Description:
-    #    This procedure is called when the user changes the format
-    #    of the file extension.  It sets the internal representation
-    #    and then updates the example to show the changes.
-    #
-    # Note:
-    #    Although the user sees only one control to change the
-    #    extension, it actually affects more than one value.
-    #
-    oldParent = cmds.setParent(query=True)
+    '''
+    Procedure Name:
+        changeExtension
+    
+    Description:
+      This procedure is called when the user changes the format
+      of the file extension.  It sets the internal representation
+      and then updates the example to show the changes.
+    
+    Note:
+      Although the user sees only one control to change the
+      extension, it actually affects more than one value.
+    '''
+    oldParent = pm.setParent(query=True)
     setParentToArnoldCommonTab()
 
-    item = cmds.optionMenuGrp('extMenu', q=True, sl=True)
+    item = pm.optionMenuGrp('extMenu', q=True, sl=True)
 
-    mel.eval('setMayaSoftwareFrameExt("%s", 0)'%item)
+    pm.mel.setMayaSoftwareFrameExt(item, 0)
 
     # Update the batch render window if it exists
     #
-    if mel.eval("exists updateBatchRenderWindowTitle"):
-        mel.eval("updateBatchRenderWindowTitle()")
+    if pm.mel.exists("updateBatchRenderWindowTitle"):
+        pm.mel.updateBatchRenderWindowTitle()
 
-    cmds.setParent(oldParent)
+    pm.setParent(oldParent)
 
 def updateArnoldFileNameFormatControl(*args):
 
-    oldParent = cmds.setParent(query=True)
+    oldParent = pm.setParent(query=True)
 
     setParentToArnoldCommonTab()
 
-    frameBeforeExt  = cmds.getAttr("defaultRenderGlobals.putFrameBeforeExt")
-    useAnim      = cmds.getAttr("defaultRenderGlobals.animation")
-    imageUse     = cmds.getAttr("defaultRenderGlobals.outFormatControl")
-    period        = cmds.getAttr("defaultRenderGlobals.periodInExt")
+    frameBeforeExt  = pm.getAttr("defaultRenderGlobals.putFrameBeforeExt")
+    useAnim         = pm.getAttr("defaultRenderGlobals.animation")
+    imageUse        = pm.getAttr("defaultRenderGlobals.outFormatControl")
+    period          = pm.getAttr("defaultRenderGlobals.periodInExt")
 
-    multiframe = mel.eval("multiframeFormat(getImfImageType())")
-    psdFormat = 0
-    if cmds.getAttr('defaultRenderGlobals.imageFormat') == 31: # Check if PSD format
+    if pm.getAttr('defaultRenderGlobals.imageFormat') == 31: # Check if PSD format
         multiframe = 0
         psdFormat = 1
-
+    else:
+        multiframe = pm.mel.multiframeFormat(pm.mel.getImfImageType())
+        psdFormat = 0
     activeMenuItem = 0
 
     # Update Frame/Animation Ext menuItems and enable only the relevant ones.
     #
     notMultiFrameOrPsd = not multiframe or psdFormat
 
-    cmds.menuItem('mayaSoftwareNameDotFrameDotExtension', edit=True, enable=notMultiFrameOrPsd)
-    cmds.menuItem('mayaSoftwareNameDotExtensionDotFrame', edit=True, enable=notMultiFrameOrPsd)
-    cmds.menuItem('mayaSoftwareNameDotFrame', edit=True, enable=notMultiFrameOrPsd)
-    cmds.menuItem('mayaSoftwareFrameDotExtension', edit=True, enable=notMultiFrameOrPsd)
-    cmds.menuItem('mayaSoftwareNameUnderFrameDotExtension', edit=True, enable=notMultiFrameOrPsd)
-    cmds.menuItem('mayaSoftwareMultiFrame',edit=True, enable=multiframe)
-    cmds.menuItem('mayaSoftwareMultiFrameDotExtension',edit=True, enable=multiframe)
+    pm.menuItem('mayaSoftwareNameDotFrameDotExtension', edit=True, enable=notMultiFrameOrPsd)
+    pm.menuItem('mayaSoftwareNameDotExtensionDotFrame', edit=True, enable=notMultiFrameOrPsd)
+    pm.menuItem('mayaSoftwareNameDotFrame', edit=True, enable=notMultiFrameOrPsd)
+    pm.menuItem('mayaSoftwareFrameDotExtension', edit=True, enable=notMultiFrameOrPsd)
+    pm.menuItem('mayaSoftwareNameUnderFrameDotExtension', edit=True, enable=notMultiFrameOrPsd)
+    pm.menuItem('mayaSoftwareMultiFrame',edit=True, enable=multiframe)
+    pm.menuItem('mayaSoftwareMultiFrameDotExtension',edit=True, enable=multiframe)
 
     if multiframe:
         if useAnim:
@@ -543,19 +553,19 @@ def updateArnoldFileNameFormatControl(*args):
             else:
                 activeMenuItem = 2
 
-    cmds.optionMenuGrp('extMenu', edit=True, sl=activeMenuItem)
+    pm.optionMenuGrp('extMenu', edit=True, sl=activeMenuItem)
 
     # Also update the frame number controls to enable/disable them according
     # to whether or not they are being used.
     #
     updateArnoldFrameNumberControls()
 
-    cmds.setParent(oldParent)
+    pm.setParent(oldParent)
 
 
 def changeArnoldImageFormat(*args):
 
-    selected_output_type = cmds.getAttr('defaultArnoldRenderOptions.arnoldRenderImageFormat', asString=True)
+    selected_output_type = pm.getAttr('defaultArnoldRenderOptions.arnoldRenderImageFormat', asString=True)
 
     switch = {'OpenEXR' : (1,0,0,0),
               'Tiff' : (0,1,0,0),
@@ -564,112 +574,112 @@ def changeArnoldImageFormat(*args):
 
     vis = switch[selected_output_type]
 
-    cmds.columnLayout('cl_output_exr', e=True, vis=vis[0])
-    cmds.columnLayout('cl_output_tiff', e=True, vis=vis[1])
-    cmds.columnLayout('cl_output_jpg', e=True, vis=vis[2])
-    cmds.columnLayout('cl_output_png', e=True, vis=vis[3])
+    pm.columnLayout('cl_output_exr', e=True, vis=vis[0])
+    pm.columnLayout('cl_output_tiff', e=True, vis=vis[1])
+    pm.columnLayout('cl_output_jpg', e=True, vis=vis[2])
+    pm.columnLayout('cl_output_png', e=True, vis=vis[3])
 
 
 def createArnoldImageFormatControl():
 
     cRenderer = utils.currentRenderer()
     if cRenderer == "mentalRay":
-        return maya.mel('createMRImageFormatControl()')
+        return pm.mel.createMRImageFormatControl()
     if cRenderer == "mayaSoftware":
-        return maya.mel('createMayaImageFormatControl()')
+        return pm.mel.createMayaImageFormatControl()
 
-    parent = cmds.setParent(query=True)
+    parent = pm.setParent(query=True)
 
     # Delete the control if it already exists
     #
-    fullPath = "%s|imageMenuMayaSW"%parent
-    if cmds.layout(fullPath, exists=True):
-        cmds.deleteUI(fullPath)
+    fullPath = "%s|imageMenuMayaSW" % parent
+    if pm.layout(fullPath, exists=True):
+        pm.deleteUI(fullPath)
 
-    cmds.optionMenuGrp('imageMenuMayaSW',
-                  label = mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kImageFormatMenu")'),
+    pm.optionMenuGrp('imageMenuMayaSW',
+                  label = pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kImageFormatMenu"),
                   changeCommand=changeArnoldImageFormat)
 
 
     buildArnoldImageFormatsMenu()
 
     # connect the label, so we can change its color
-    cmds.connectControl('imageMenuMayaSW','defaultArnoldRenderOptions.arnoldRenderImageFormat',index=1)
+    pm.connectControl('imageMenuMayaSW','defaultArnoldRenderOptions.arnoldRenderImageFormat',index=1)
     # connect the menu, so it will always match the attribute
-    cmds.connectControl('imageMenuMayaSW','defaultArnoldRenderOptions.arnoldRenderImageFormat',index=2)
+    pm.connectControl('imageMenuMayaSW','defaultArnoldRenderOptions.arnoldRenderImageFormat',index=2)
 
     # We need to create controls that we don't need to avoid
     # Maya errors because of the harcoded code.
-    cmds.columnLayout('cl_output_compression', vis=0, rowSpacing=0)
-    cmds.button('renderGlobalsCompression', label="", enable=False)
-    cmds.attrEnumOptionMenuGrp('multiCamNamingMenu', label="")
-    cmds.textFieldGrp('multiCamCustomToken', label="")
-    cmds.setParent('..')
+    pm.columnLayout('cl_output_compression', vis=0, rowSpacing=0)
+    pm.button('renderGlobalsCompression', label="", enable=False)
+    pm.attrEnumOptionMenuGrp('multiCamNamingMenu', label="")
+    pm.textFieldGrp('multiCamCustomToken', label="")
+    pm.setParent('..')
 
-    cmds.columnLayout('cl_output_exr', vis=0, rowSpacing=0)
-    cmds.attrControlGrp('os_output_compression',
+    pm.columnLayout('cl_output_exr', vis=0, rowSpacing=0)
+    pm.attrControlGrp('os_output_compression',
                         label="Image Compression",
                         attribute='defaultArnoldRenderOptions.compression')
 
-    cmds.attrControlGrp('os_output_half_precision',
+    pm.attrControlGrp('os_output_half_precision',
                         label="Half Precision",
                         attribute='defaultArnoldRenderOptions.half_precision')
 
-    cmds.setParent('..')
+    pm.setParent('..')
 
-    cmds.columnLayout('cl_output_tiff', vis=0, rowSpacing=0)
-    cmds.attrControlGrp('os_output_compression',
+    pm.columnLayout('cl_output_tiff', vis=0, rowSpacing=0)
+    pm.attrControlGrp('os_output_compression',
                         label="Image Compression",
                         attribute='defaultArnoldRenderOptions.compression')
 
-    cmds.attrControlGrp('os_output_format',
+    pm.attrControlGrp('os_output_format',
                         label="Format",
                         attribute='defaultArnoldRenderOptions.format')
 
-    cmds.attrControlGrp('os_output_tiled',
+    pm.attrControlGrp('os_output_tiled',
                         label="Tiled",
                         attribute='defaultArnoldRenderOptions.tiled')
 
-    cmds.attrControlGrp('os_output_unpremult_alpha',
+    pm.attrControlGrp('os_output_unpremult_alpha',
                         label="Unpremultiplied Alpha",
                         attribute='defaultArnoldRenderOptions.unpremult_alpha')
 
-    cmds.attrControlGrp('os_output_padded',
+    pm.attrControlGrp('os_output_padded',
                         label="Output Padded",
                         attribute='defaultArnoldRenderOptions.output_padded')
 
-    cmds.attrControlGrp('os_output_gamma',
+    pm.attrControlGrp('os_output_gamma',
                         label="Gamma",
                         attribute='defaultArnoldRenderOptions.gamma')
 
-    cmds.setParent('..')
+    pm.setParent('..')
 
-    cmds.columnLayout('cl_output_jpg', vis=0, rowSpacing=0)
-    cmds.attrControlGrp('os_output_padded',
+    pm.columnLayout('cl_output_jpg', vis=0, rowSpacing=0)
+    pm.attrControlGrp('os_output_padded',
                         label="Output Padded",
                         attribute='defaultArnoldRenderOptions.output_padded')
 
-    cmds.attrControlGrp('os_output_gamma',
+    pm.attrControlGrp('os_output_gamma',
                         label="Gamma",
                         attribute='defaultArnoldRenderOptions.gamma')
 
-    cmds.attrControlGrp('os_output_quality',
+    pm.attrControlGrp('os_output_quality',
                         label="Quality",
                         attribute='defaultArnoldRenderOptions.quality')
 
-    cmds.setParent('..')
+    pm.setParent('..')
 
-    cmds.columnLayout('cl_output_png', vis=0, rowSpacing=0)
-    cmds.attrControlGrp('os_output_padded',
+    pm.columnLayout('cl_output_png', vis=0, rowSpacing=0)
+    pm.attrControlGrp('os_output_padded',
                         label="Output Padded",
                         attribute='defaultArnoldRenderOptions.output_padded')
 
-    cmds.attrControlGrp('os_output_gamma',
+    pm.attrControlGrp('os_output_gamma',
                         label="Gamma",
                         attribute='defaultArnoldRenderOptions.gamma')
-    cmds.setParent('..')
+    pm.setParent('..')
 
-    cmds.separator()
+    pm.separator()
 
     ''' scriptJob
         -parent $parent
@@ -685,432 +695,376 @@ def updateArnoldImageFormatControl(*args):
     pass
 
 
-# Return the camera shape from this dag object
-def arnoldCameraShape(dag):
+def extendToShape(dag):
+    'Return the camera shape from this dag object'
+    try:
+        return dag.getShape()
+    except AttributeError:
+        return dag
 
-    if cmds.objectType(dag, isa="transform"):
-        shapes = cmds.listRelatives(dag, shapes=True, path=True, noIntermediate=True, type="camera")
-        if shapes:
-            return shapes[0]
-
-    return dag
+def getCameras():
+    '''
+    Return a tuple of (ortho, mono, stereo) camera lists, converting camera
+    shapes to transforms
+    '''
+    ortho = [pm.PyNode(x) for x in pm.listCameras(orthographic=True)] or []
+    mono = []
+    stereo = []
+    # List all mono perspective cameras first
+    for camera in pm.listCameras(perspective=True) or []:
+        camera = pm.PyNode(camera)
+        if _isMono(camera):
+            # Ensure to use its shape node
+            mono.append(camera)
+        else:
+            stereo.append(camera)
+    return ortho, mono, stereo
 
 def arnoldCameraMaskChange(ui, camera, mask_name):
-    from maya.app.stereo import stereoCameraRig
-    isMono = stereoCameraRig.rigRoot(camera) == ''
-    val = cmds.checkBoxGrp(ui, q=True, value1=True)
-    if isMono:
-        camShape = arnoldCameraShape(camera)
-        cmds.setAttr('%s.%s'%(camShape, mask_name), val)
+    val = pm.checkBoxGrp(ui, q=True, value1=True)
+    if _isMono(camera):
+        camera.attr(mask_name).set(val)
     else:
-        lCam = stereoCameraRig.leftCam(camera)
-        rCam = stereoCameraRig.rightCam(camera)
-        cmds.setAttr ('%s.%s'%(lCam, mask_name), val)
-        cmds.setAttr ('%s.%s'%(rCam, mask_name), val)
+        lCam = camera.leftCam.get()
+        rCam = camera.rightCam.get()
+        lCam.attr(mask_name).set(val)
+        rCam.attr(mask_name).set(val)
 
-# Callback used when the user chnaged a renderable camera.
-# camera is the previous camera
-# cameraMode was its type
-# menu is the menu item used for this change
 def arnoldChangedCamera(camera, cameraMode, menu):
+    '''
+    callback used when the user changed a renderable camera.
+    camera is the previous camera
+    cameraMode was its type
+    menu is the menu item used for this change
+    '''
 
     data = CAM_MENU_CAMERA
 
     if menu:
-        sel = cmds.optionMenuGrp(menu, q=True, select=True) - 1
-        items = cmds.optionMenuGrp(menu, q=True, itemListShort=True)
-        data = cmds.menuItem(items[sel], query=True, data=True)
+        sel = pm.optionMenuGrp(menu, q=True, select=True) - 1
+        items = pm.optionMenuGrp(menu, q=True, itemListShort=True)
+        data = pm.menuItem(items[sel], query=True, data=True)
 
 
     if data == CAM_MENU_IGNORE:
-        # Make sure to reselect the first entry, in case use clicked
+        # Make sure to reselect the first entry, in case user clicked
         # on the separator.
-        cmds.optionMenuGrp(menu, edit=True, select=1)
+        pm.optionMenuGrp(menu, edit=True, select=1)
         return
 
-    newCamNeedLayerAdj = 0
-    currentLayer = cmds.editRenderLayerGlobals(q=True, currentRenderLayer=True)
-    isBaseLayer = 0
-    if not cmds.getAttr('%s.identification'%currentLayer):
-        isBaseLayer = 1
+    newCamNeedLayerAdj = False
+    currentLayer = pm.editRenderLayerGlobals(q=True, currentRenderLayer=True)
+    isBaseLayer = not pm.getAttr(currentLayer + '.identification')
 
     # If replacing a camera, start by making the selected camera
     # non-renderable.
-    if data == CAM_MENU_CAMERA or data == CAM_MENU_STEREOPAIR:
+    if data in [CAM_MENU_CAMERA, CAM_MENU_STEREOPAIR]:
         if cameraMode == CAM_MENU_IGNORE:
             # There was no previous renderable camera,
             # always create adjustments if not on the master layer.
             if not isBaseLayer:
-                newCamNeedLayerAdj = 1
+                newCamNeedLayerAdj = True
         else:
-            cameras = []
             if cameraMode == CAM_MENU_CAMERA:
-                cameras.append(camera)
+                cameras = [camera]
             else:
-                cameras = mel.eval('getMultiCameraChildren("%s")'%camera)
+                cameras = getMultiCameraChildren(camera)
 
             for cam in cameras:
-                camShape = arnoldCameraShape(cam)
+                camShape = extendToShape(cam)
 
                 # Create adjustments if we are not on the master layer
-                if not isBaseLayer:
+                if not isBaseLayer and not newCamNeedLayerAdj:
                     # If the source had an adjustment, create one on the
                     # new camera as well.
-                    nodes = cmds.listConnections("%s.renderable"%camShape, s=True)
-                    for node in nodes:
-                        newCamNeedLayerAdj = 1;
-                        break
-
-                cmds.setAttr("%s.renderable"%camShape, 0)
+                    if camShape.renderable.inputs():
+                        newCamNeedLayerAdj = True;
+                camShape.renderable.set(False)
 
     elif data == CAM_MENU_ADD:
         # Create adjustments if not on the master layer.
         if not isBaseLayer:
-            newCamNeedLayerAdj = 1
+            newCamNeedLayerAdj = True
 
     # Now process the new value
     if menu != "":
-        new = cmds.optionMenuGrp(menu, query=True, value=True)
+        new = pm.optionMenuGrp(menu, query=True, value=True)
         cameras = []
         if data == CAM_MENU_CAMERA:
-            cameras.append(new)
+            cameras.append(pm.PyNode(new))
         elif data == CAM_MENU_STEREOPAIR:
-            pairStr = mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kStereoPair")')
-            stereoCam = new[0:len(new) - len(pairStr)]
-            cameras = mel.eval('getMultiCameraChildren("%s")'%stereoCam)
+            pairStr = pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kStereoPair")
+            stereoCam = new[:-len(pairStr)]
+            cameras = getMultiCameraChildren(pm.nt.DagNode(stereoCam))
         elif data == CAM_MENU_ADD:
             # Mark renderable the first non renderable camera we can find
-            allCameraShapes = cmds.ls(cameras=True)
+            allCameraShapes = pm.ls(cameras=True)
             for cameraShape in allCameraShapes:
-                if not cmds.getAttr('%s.renderable'%cameraShape):
+                if not cameraShape.renderable.get():
                     cameras.append(cameraShape)
                     break
 
-
         # Now make the new cameras renderable
         for cam in cameras:
-            camShape = arnoldCameraShape(cam)
             if newCamNeedLayerAdj:
-                cmds.editRenderLayerAdjustment("%s.renderable"%cam)
-            cmds.setAttr( "%s.renderable"%cam, 1)
-
+                pm.editRenderLayerAdjustment(cam.renderable.get())
+            cam.renderable.set(True)
 
     # Finally force recomputing the UI
-    cmds.evalDeferred(updateArnoldCameraControl)
-
-
-# Store name of renderable camera list to allow customizations
-gRenderableCameraListMenu = mel.eval('global string {0};$a_temps={0};'.format('$gRenderableCameraListMenu'))
-
+    pm.evalDeferred(updateArnoldCameraControl)
 
 def setArnoldCheckboxFromAttr(camera, chkbox, attr):
-    isMono = 1
-    if mel.eval('getApplicationVersionAsFloat') >= 2011:
-        from maya.app.stereo import stereoCameraRig
-        if stereoCameraRig.rigRoot(camera):
-            isMono = 0
-        else:
-            isMono = 1
-
-    if isMono:
-        camShape = arnoldCameraShape(camera)
-        val = cmds.getAttr('%s.%s'%(camShape, attr))
-        cmds.checkBoxGrp(chkbox, e=True, value1=val)
-    else:
-        lCam = arnoldCameraShape(stereoCameraRig.leftCam(camera))
-        val = cmds.getAttr('%s.%s'%(lCam,attr))
-        cmds.checkBoxGrp(chkbox, e=True, value1=val)
+    if pm.hasAttr(camera, 'stereoRigType'):
+        camera = camera.leftCam.get()
+    val = camera.attr(attr).get()
+    pm.checkBoxGrp(chkbox, e=True, value1=val)
 
 
 def updateArnoldCameraControl(*args):
 
-    if mel.eval('getApplicationVersionAsFloat') >= 2011:
-        from maya.app.stereo import stereoCameraRig
+    pm.melGlobals.initVar('string', 'gRenderableCameraListMenu')
 
-    gRenderableCameraListMenu = mel.eval('global string {0};$a_temps={0};'.format('$gRenderableCameraListMenu'))
-
-    oldParent = cmds.setParent(query=True)
+    oldParent = pm.setParent(query=True)
 
     setParentToArnoldCommonTab()
-    cameraLayout = cmds.setParent('mayaSoftwareCameraLayout')
+    cameraLayout = pm.setParent('mayaSoftwareCameraLayout')
 
     # Unmanage the layout while we edit it, it will update faster
-    cmds.columnLayout(cameraLayout, edit=True, visible=0)
-    cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+    pm.columnLayout(cameraLayout, edit=True, visible=0)
+    pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
 
     # Empty the layout first
-    children = cmds.columnLayout(cameraLayout, query=True, childArray=True)
-    if children:
-        for child in children:
-            cmds.deleteUI(child)
+    for child in pm.columnLayout(cameraLayout, query=True, childArray=True) or []:
+        pm.deleteUI(child)
 
     # Populate all stereo cameras and mono camera
-    allPerspCameras = cmds.listCameras(perspective=True)
-    allOrthoCameras = cmds.listCameras(orthographic=True)
+    orthoCams, monoCams, stereoCams = getCameras()
 
-    renderableCameras=[]
-    nonRenderableCameras=[]
-    numRenderable = 0
-    numNonRenderable = 0
+    renderableCameras = []
+    nonRenderableCameras = [MENU_SEPARATOR]
 
     # List all mono perspective cameras first
-    nonRenderableCameras = ['-']
-    if allPerspCameras:
-        for camera in allPerspCameras:
-            isMono = 1;
-            if mel.eval('getApplicationVersionAsFloat') >= 2011:
-                isMono = stereoCameraRig.rigRoot(camera) == ''
-            if isMono:
-                # Ensure to use its shape node
-                camShape = arnoldCameraShape(camera)
+    for camera in monoCams:
+        if camera.renderable.get():
+            renderableCameras.append((camera, False))
+        else:
+            nonRenderableCameras.append((camera, False))
 
-                if cmds.getAttr("%s.renderable"%camShape):
-                    renderableCameras.append(camera)
-                    numRenderable += 1
-                else:
-                    nonRenderableCameras.append(camera)
-                    numNonRenderable += 1
-
-    if nonRenderableCameras[-1] == '-':
+    # Remove the separator if nothing was added.
+    if nonRenderableCameras and nonRenderableCameras[-1] == MENU_SEPARATOR:
         nonRenderableCameras.pop()
-        numNonRenderable -= 1
 
     # list all stereo cameras rigs, and the mono cameras in the rig.
-    if mel.eval('getApplicationVersionAsFloat') >= 2011:
-        rigs = stereoCameraRig.listRigs(True)
-        if rigs:
-            for rig in rigs:
-                nonRenderableCameras.append("-")
-                lCam = arnoldCameraShape(stereoCameraRig.leftCam(rig))
-                rCam = arnoldCameraShape(stereoCameraRig.rightCam(rig))
-                cameras = cmds.listRelatives(rig, type="camera", allDescendents=True, path=True)
-                # Add an entry for the rig pair if at least one cam is not
-                # renderable. Use the + character to mark it.
+    rigs = _listStereoRigs()
+    if rigs:
+        for rig in rigs:
+            nonRenderableCameras.append(MENU_SEPARATOR)
+            lCam = rig.leftCam.get().getShape()
+            rCam = rig.rightCam.get().getShape()
+            cameras = rig.listRelatives(type="camera", allDescendents=True)
+            # Add an entry for the rig pair if at least one cam is not
+            # renderable. Use the + character to mark it.
+            skipLR = False
+            if lCam.renderable.get() and rCam.renderable.get():
+                renderableCameras.append((rig, True))
+                skipLR = True
+            else:
+                nonRenderableCameras.append((rig, True))
 
-                skipLR = 0
-                if cmds.getAttr("%s.renderable"%lCam) and cmds.getAttr("%s.renderable"%rCam):
-                    renderableCameras.append("+%s"%rig)
-                    numRenderable += 1
-                    skipLR = 1
-                else:
-                    nonRenderableCameras.append("+%s"%rig)
-                    numNonRenderable += 1
-                for camShape in cameras:
-                    camParentNodes = cmds.listRelatives(camShape, path=True, parent=True)
-                    camera = camParentNodes[0]
-                    if cmds.getAttr("%s.renderable"%camShape):
-                        if not skipLR and (camShape == lCam or camShape == rCam):
-                            renderableCameras.append(camera)
-                            numRenderable += 1
+            for camShape in cameras:
+                camera = camShape.getParent()
+                if camShape.renderable.get():
+                    if (camShape == lCam or camShape == rCam):
+                        if not skipLR:
+                            renderableCameras.append((camera, False))
                         else:
-                            nonRenderableCameras.append(camera)
-                            numNonRenderable += 1
-
-
-            # Remove the separator if nothing was added.
-            if nonRenderableCameras[-1] == "-":
-                nonRenderableCameras.pop()
-                numNonRenderable -= 1
+                            nonRenderableCameras.append((camera, False))
+                    else:
+                        renderableCameras.append((camera, False))
+                else:
+                    nonRenderableCameras.append((camera, False))
+        # Remove the separator if nothing was added.
+        if nonRenderableCameras and nonRenderableCameras[-1] == MENU_SEPARATOR:
+            nonRenderableCameras.pop()
 
     # List all the ortho cameras
-    nonRenderableCameras.append("-")
-    numNonRenderable += 1
+    nonRenderableCameras.append(MENU_SEPARATOR)
 
-    if allOrthoCameras:
-        for camera in allOrthoCameras:
-            # Ensure to use its shape node
-            camShape = arnoldCameraShape(camera)
-
-            if cmds.getAttr("%s.renderable"%camShape):
-                renderableCameras.append(camera)
-                numRenderable += 1
-            else:
-                nonRenderableCameras.append(camera)
-                numNonRenderable += 1
-
+    for camera in orthoCams:
+        # Ensure to use its shape node
+        if camera.renderable.get():
+            renderableCameras.append((camera, False))
+        else:
+            nonRenderableCameras.append((camera, False))
 
     # Remove the separator if nothing was added
-    if nonRenderableCameras[-1] == "-":
+    if nonRenderableCameras and nonRenderableCameras[-1] == MENU_SEPARATOR:
         nonRenderableCameras.pop()
-        numNonRenderable -= 1
 
     # If there is no renderable camera on this layer, add a fake
     # entry so that users can switch to an existing one.
-    isFakeCam = 0
-    if numRenderable == 0:
-        isFakeCam = 1
-        renderableCameras.append(mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kNoRenderableCamSelect")'))
-        numRenderable += 1
+    if not renderableCameras:
+        isFakeCam = True
+        renderableCameras.append((pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kNoRenderableCamSelect"), False))
+    else:
+        isFakeCam = False
 
-    camera = ''
-    cmds.columnLayout()
-    for s in range(0, numRenderable):
+    pm.columnLayout()
+    for s, (camera, isStereo) in enumerate(renderableCameras):
+        if s % 10 == 9:
+            pm.setParent('..')
+            pm.columnLayout()
 
-        if s%10 == 9:
-            cmds.setParent('..')
-            cmds.columnLayout()
-
-        cmds.columnLayout()
+        pm.columnLayout()
 
         if s > 0:
-            cmds.separator()
+            pm.separator()
 
-        camera = renderableCameras[s]
-        cameraMode = CAM_MENU_CAMERA
         if isFakeCam:
             cameraMode = CAM_MENU_IGNORE
-        elif camera[0] == "+":
-            camera = camera[1:-1]
+        elif isStereo:
             cameraMode = CAM_MENU_STEREOPAIR
+        else:
+            cameraMode = CAM_MENU_CAMERA
 
-        cmds.rowLayout(nc=2, cw2=(340, 30), cl2=("left", "right"))
-        optMenu = cmds.optionMenuGrp(cw=(1, 141), label="Renderable Camera")
-        cmds.optionMenuGrp(optMenu,
-                            edit=True,
-                            changeCommand=Callback(arnoldChangedCamera, camera, cameraMode, optMenu))
+        pm.rowLayout(nc=2, cw2=(340, 30), cl2=("left", "right"))
+        optMenu = pm.optionMenuGrp(cw=(1, 141), label="Renderable Camera")
 
+        pm.optionMenuGrp(optMenu,
+                         edit=True,
+                         changeCommand=pm.Callback(arnoldChangedCamera, camera, cameraMode, optMenu))
 
         # The first item is the current renderable camera
-        thisCamLabel = camera
-        if mel.eval('getApplicationVersionAsFloat') >= 2011:
-          if cameraMode == CAM_MENU_STEREOPAIR:
-             thisCamLabel = '%s%s'%(thisCamLabel, ARUtil.uiRes("m_createMayaSoftwareCommonGlobalsTab.kStereoPair"))
+        if pm.mel.getApplicationVersionAsFloat() >= 2011 and cameraMode == CAM_MENU_STEREOPAIR:
+            thisCamLabel = '%s%s'%(camera, pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kStereoPair"))
+        else:
+            thisCamLabel = camera
 
-        cmds.menuItem(label=thisCamLabel, data=CAM_MENU_IGNORE)
-
+        pm.menuItem(label=thisCamLabel, data=CAM_MENU_IGNORE)
         # Save this as a global variable for others to access
-        gRenderableCameraListMenu = mel.eval('{0}="{1}";$a_temps={0};'.format('$gRenderableCameraListMenu', optMenu))
+        pm.melGlobals['gRenderableCameraListMenu'] = str(optMenu)
 
         # Insert cameras
-        for nonRenderableCamera in nonRenderableCameras:
-            if nonRenderableCamera == "-":
-                cmds.menuItem(divider=1, data=CAM_MENU_IGNORE)
-            elif nonRenderableCamera[0] == '+':
+        for nonRenderableCamera, isStereo2 in nonRenderableCameras:
+            if (nonRenderableCamera, isStereo2) == MENU_SEPARATOR:
+                pm.menuItem(divider=1, data=CAM_MENU_IGNORE)
+            elif isStereo2:
                 # Stereo rig
-                if mel.eval('getApplicationVersionAsFloat') >= 2011:
-                    rig = nonRenderableCamera
-                    rig = rig[1:-1]
-                    label = '%s%s'%(rig, mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kStereoPair")'))
-                    cmds.menuItem(label=label, data=CAM_MENU_STEREOPAIR)
+                if pm.mel.getApplicationVersionAsFloat() >= 2011:
+                    label = '%s%s'%(nonRenderableCamera, pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kStereoPair"))
+                    pm.menuItem(label=label, data=CAM_MENU_STEREOPAIR)
             else:
                 # Mono camera.
-                cmds.menuItem(label=nonRenderableCamera, data=CAM_MENU_CAMERA)
-
+                pm.menuItem(label=nonRenderableCamera, data=CAM_MENU_CAMERA)
 
         # Insert add menuItem
-        if not isFakeCam and numNonRenderable > 0:
-            cmds.menuItem(divider=1, data=CAM_MENU_IGNORE)
-            cmds.menuItem(label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kAddRenderCam")'), data=CAM_MENU_ADD)
+        if not isFakeCam and nonRenderableCamera:
+            pm.menuItem(divider=1, data=CAM_MENU_IGNORE)
+            pm.menuItem(label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kAddRenderCam"), data=CAM_MENU_ADD)
 
-        camShape = ''
         if not isFakeCam:
             # connect the label, so we can change its color
-            camShape = arnoldCameraShape(camera)
-            cmds.connectControl(optMenu, "%s.renderable"%camShape, index=1)
+            camShape = extendToShape(camera)
+            pm.connectControl(optMenu, "%s.renderable"%camShape, index=1)
 
             if len(renderableCameras) > 1:
-                cmds.iconTextButton(style="iconOnly",
+                pm.iconTextButton(style="iconOnly",
                                     image="removeRenderable.png",
-                                    annotation=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kNonRendCam")'),
+                                    annotation=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kNonRendCam"),
                                     width=20,
                                     height=20,
-                                    command=Callback(arnoldChangedCamera, camera, cameraMode, ''))
+                                    command=pm.Callback(arnoldChangedCamera, camera, cameraMode, ''))
 
-        cmds.setParent('..')
+        pm.setParent('..')
 
         if not isFakeCam:
-            cmds.columnLayout()
-            chkbox = cmds.checkBoxGrp(numberOfCheckBoxes=1,
-                                      label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kAlphaChannel")'))
-            cmds.checkBoxGrp(chkbox, e=True, cc=Callback(arnoldCameraMaskChange, chkbox, camera, 'mask'))
+            pm.columnLayout()
+            chkbox = pm.checkBoxGrp(numberOfCheckBoxes=1,
+                                    label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kAlphaChannel"))
+            pm.checkBoxGrp(chkbox, e=True, cc=pm.Callback(arnoldCameraMaskChange, chkbox, camera, 'mask'))
+            setArnoldCheckboxFromAttr(camera, chkbox, "mask")
+            chkbox = pm.checkBoxGrp(numberOfCheckBoxes=1,
+                                    label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kDepthChannel"))
+            pm.checkBoxGrp(chkbox, e=True, cc=pm.Callback(arnoldCameraMaskChange, chkbox, camera, 'depth'))
+            setArnoldCheckboxFromAttr(camera, chkbox, "depth")
 
-            setArnoldCheckboxFromAttr( camera, chkbox, "mask" )
-
-            chkbox = cmds.checkBoxGrp(numberOfCheckBoxes=1,
-                                      label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kDepthChannel")'))
-            cmds.checkBoxGrp(chkbox, e=True, cc=Callback(arnoldCameraMaskChange, chkbox, camera, 'depth'))
-            setArnoldCheckboxFromAttr( camera, chkbox, "depth" )
-
-            cmds.setParent('..')
-
-        cmds.setParent('..')
-
-
-    cmds.setParent('..')
+            pm.setParent('..')
+        pm.setParent('..')
+    pm.setParent('..')
 
     #
     #  Invoke any user supplied code. This callback is published and
     #  needs to remain consistent in future versions of Maya.
     #
-    if mel.eval('exists ("renderableCameraListUserCallback")'):
+    if pm.mel.exists("renderableCameraListUserCallback"):
         # Use catchQuiet in case no callback is supplied, we don't
         # want that to show an error.
-        mel.eval('catchQuiet( eval("source \"renderableCameraListUserCallback\"")')
+        pm.mel.eval('catchQuiet( eval("source \"renderableCameraListUserCallback\"")')
 
-    cmds.setParent('..')
+    pm.setParent('..')
 
-    cmds.setUITemplate('attributeEditorTemplate', popTemplate=True)
-    cmds.columnLayout(cameraLayout, edit=True, visible=1)
+    pm.setUITemplate('attributeEditorTemplate', popTemplate=True)
+    pm.columnLayout(cameraLayout, edit=True, visible=1)
 
-    cmds.setParent(oldParent)
+    pm.setParent(oldParent)
 
 
 def updateArnoldFrameNumberControls(*args):
 
-    oldParent = cmds.setParent(query=True)
+    oldParent = pm.setParent(query=True)
     setParentToArnoldCommonTab()
 
-    useAnim      = cmds.getAttr("defaultRenderGlobals.animation")
-    useCustomExt = cmds.getAttr("defaultRenderGlobals.modifyExtension")
-    multiframe = mel.eval('multiframeFormat(getImfImageType())')
+    useAnim      = pm.getAttr("defaultRenderGlobals.animation")
+    useCustomExt = pm.getAttr("defaultRenderGlobals.modifyExtension")
+    multiframe = pm.mel.multiframeFormat(pm.mel.getImfImageType())
 
-    cmds.attrControlGrp('startFrameCtrl',
+    pm.attrControlGrp('startFrameCtrl',
                         edit=True,
                         enable=useAnim)
-    cmds.attrControlGrp('endFrameCtrl',
+    pm.attrControlGrp('endFrameCtrl',
                         edit=True,
                         enable=useAnim)
-    cmds.attrControlGrp('byFrameStepCtrl',
+    pm.attrControlGrp('byFrameStepCtrl',
                         edit=True,
                         enable=useAnim)
-    cmds.attrControlGrp('extensionPaddingCtrl',
+    pm.attrControlGrp('extensionPaddingCtrl',
                         edit=True,
                         enable=(useAnim and not multiframe))
-    cmds.attrControlGrp('modifyExtensionCtrl',
+    pm.attrControlGrp('modifyExtensionCtrl',
                         edit=True,
                         enable=(useAnim and not multiframe))
-    cmds.attrControlGrp('startExtensionCtrl',
+    pm.attrControlGrp('startExtensionCtrl',
                         edit=True,
                         enable=(useAnim and useCustomExt and not multiframe))
-    cmds.attrControlGrp('byExtensionCtrl',
+    pm.attrControlGrp('byExtensionCtrl',
                         edit=True,
                         enable=(useAnim and useCustomExt and not multiframe))
 
-    cmds.setParent(oldParent)
+    pm.setParent(oldParent)
 
 def createArnoldCommonImageFile():
-    #
-    #  Procedure Name:
-    #      createArnoldCommonImageFile
-    #
-    #  Description:
-    #      Creates the UI in the "Image File Output" expand/collapse section.
-    #    This section is always created so is treated differently
-    #    then the sections created when the tab is expanded.
-    #
+    '''
+    Procedure Name:
+        createArnoldCommonImageFile
+    
+    Description:
+        Creates the UI in the "Image File Output" expand/collapse section.
+      This section is always created so is treated differently
+      then the sections created when the tab is expanded.
+    '''
 
-    parent = cmds.setParent(query=True)
+    parent = pm.setParent(query=True)
 
     # Delete the control if it already exists
     #
     fullPath = "%s|imageFileOutputSW"%parent
-    if cmds.layout(fullPath, exists=True):
-        cmds.deleteUI(fullPath)
+    if pm.layout(fullPath, exists=True):
+        pm.deleteUI(fullPath)
 
 
-    cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+    pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
 
-    cmds.columnLayout('imageFileOutputSW', adjustableColumn=True)
+    pm.columnLayout('imageFileOutputSW', adjustableColumn=True)
 
     createArnoldFileNamePrefixControl()
 
@@ -1118,14 +1072,14 @@ def createArnoldCommonImageFile():
 
     createArnoldFileNameFormatControl()
 
-    cmds.attrControlGrp('extensionPaddingCtrl',
+    pm.attrControlGrp('extensionPaddingCtrl',
                         attribute='defaultRenderGlobals.extensionPadding',
-                        label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kFramePadding")'),
+                        label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kFramePadding"),
                         hideMapButton=True)
 
 
-    cmds.setParent(parent)
-    cmds.setUITemplate(popTemplate=True)
+    pm.setParent(parent)
+    pm.setUITemplate(popTemplate=True)
 
     # Perform an initial update of the UI created above, so that controls
     # which are not directly connected to attributes are properly initialized.
@@ -1135,73 +1089,73 @@ def createArnoldCommonImageFile():
 
 
 def createArnoldCommonFrameRange():
-    #
-    #  Procedure Name:
-    #      createArnoldCommonFrameRange
-    #
-    #  Description:
-    #      Creates the UI in the "Frame Range" expand/collapse section.
-    #    This section is always created so is treated differently
-    #    then the sections created when the tab is expanded.
-    #
+    '''
+      Procedure Name:
+          createArnoldCommonFrameRange
+    
+      Description:
+          Creates the UI in the "Frame Range" expand/collapse section.
+        This section is always created so is treated differently
+        then the sections created when the tab is expanded.
+    '''
 
-    parent = cmds.setParent(query=True)
+    parent = pm.setParent(query=True)
 
     # Delete the control if it already exists
     #
     fullPath = "%s|frameRangeSW"%parent
-    if cmds.layout(fullPath, exists=True):
-        cmds.deleteUI(fullPath)
+    if pm.layout(fullPath, exists=True):
+        pm.deleteUI(fullPath)
 
-    cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+    pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
 
-    cmds.columnLayout('frameRangeSW', adjustableColumn=True)
+    pm.columnLayout('frameRangeSW', adjustableColumn=True)
 
-    cmds.attrControlGrp('startFrameCtrl',
+    pm.attrControlGrp('startFrameCtrl',
                         attribute='defaultRenderGlobals.startFrame',
-                        label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kStartFrame")'),
+                        label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kStartFrame"),
                         hideMapButton=True)
 
-    cmds.attrControlGrp('endFrameCtrl',
+    pm.attrControlGrp('endFrameCtrl',
                         attribute='defaultRenderGlobals.endFrame',
-                        label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kEndFrame")'),
+                        label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kEndFrame"),
                         hideMapButton=True)
 
-    cmds.attrControlGrp('byFrameStepCtrl',
+    pm.attrControlGrp('byFrameStepCtrl',
                         attribute='defaultRenderGlobals.byFrameStep',
-                        label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kByFrame")'),
+                        label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kByFrame"),
                         hideMapButton=True)
 
-    cmds.separator()
+    pm.separator()
 
-    cmds.checkBoxGrp('modifyExtensionCtrl',
+    pm.checkBoxGrp('modifyExtensionCtrl',
                      cc=updateArnoldFrameNumberControls,
-                     label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kRenumberFramesUsing")'))
+                     label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kRenumberFramesUsing"))
 
-    cmds.connectControl('modifyExtensionCtrl', 'defaultRenderGlobals.modifyExtension', index=2)
+    pm.connectControl('modifyExtensionCtrl', 'defaultRenderGlobals.modifyExtension', index=2)
 
     '''
-    cmds.attrControlGrp('modifyExtensionCtrl',
+    pm.attrControlGrp('modifyExtensionCtrl',
                         attribute='defaultRenderGlobals.modifyExtension',
-                        changeCommand=Callback(updateArnoldFrameNumberControls),
-                        label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kRenumberFramesUsing")'))
+                        changeCommand=pm.Callback(updateArnoldFrameNumberControls),
+                        label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kRenumberFramesUsing"))
     '''
 
 
-    cmds.attrControlGrp('startExtensionCtrl',
+    pm.attrControlGrp('startExtensionCtrl',
                         attribute='defaultRenderGlobals.startExtension',
-                        enable=cmds.getAttr('defaultRenderGlobals.modifyExtension'),
+                        enable=pm.getAttr('defaultRenderGlobals.modifyExtension'),
                         hideMapButton=True,
-                        label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kStartNumber")'))
+                        label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kStartNumber"))
 
-    cmds.attrControlGrp('byExtensionCtrl',
+    pm.attrControlGrp('byExtensionCtrl',
                         attribute='defaultRenderGlobals.byExtension',
-                        enable=cmds.getAttr('defaultRenderGlobals.modifyExtension'),
+                        enable=pm.getAttr('defaultRenderGlobals.modifyExtension'),
                         hideMapButton=True,
-                        label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kRenumberByFrame")'))
+                        label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kRenumberByFrame"))
 
-    cmds.setParent(parent)
-    cmds.setUITemplate(popTemplate=True)
+    pm.setParent(parent)
+    pm.setUITemplate(popTemplate=True)
 
     # Perform an initial update of the UI created above, so that controls
     # which are not directly connected to attributes are properly initialized.
@@ -1210,36 +1164,36 @@ def createArnoldCommonFrameRange():
 
 
 def createArnoldCommonRenderCameras():
-    #
-    #  Procedure Name:
-    #      createArnoldCommonRenderCameras
-    #
-    #  Description:
-    #      Creates the UI in the "Renderable Cameras" expand/collapse section.
-    #    This section is always created so is treated differently
-    #    then the sections created when the tab is expanded.
-    #
+    '''
+    Procedure Name:
+        createArnoldCommonRenderCameras
+    
+    Description:
+        Creates the UI in the "Renderable Cameras" expand/collapse section.
+      This section is always created so is treated differently
+      then the sections created when the tab is expanded.
+    '''
 
-    parent = cmds.setParent(query=True)
+    parent = pm.setParent(query=True)
 
     # Delete the control if it already exists
     #
     fullPath = "%s|renderableCamerasSW"%parent
-    if cmds.layout(fullPath, exists=True):
-        cmds.deleteUI(fullPath)
+    if pm.layout(fullPath, exists=True):
+        pm.deleteUI(fullPath)
 
 
-    cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+    pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
 
-    cmds.columnLayout('renderableCamerasSW', adjustableColumn=True)
+    pm.columnLayout('renderableCamerasSW', adjustableColumn=True)
 
     # Cameras ------------------------------------------------
-    cmds.columnLayout('mayaSoftwareCameraLayout')
+    pm.columnLayout('mayaSoftwareCameraLayout')
     updateArnoldCameraControl()
-    cmds.setParent('..')
+    pm.setParent('..')
 
-    cmds.setParent(parent)
-    cmds.setUITemplate(popTemplate=True)
+    pm.setParent(parent)
+    pm.setUITemplate(popTemplate=True)
 
 
 # ----------------------------------------------------------------------------
@@ -1247,74 +1201,70 @@ def createArnoldCommonRenderCameras():
 #
 
 def createArnoldCommonResolution():
-    #
-    #  Procedure Name:
-    #      createArnoldCommonResolution
-    #
-    #  Description:
-    #      Creates the UI in the "Resolution" expand/collapse section.
-    #
+    '''
+    Procedure Name:
+        createArnoldCommonResolution
+    
+    Description:
+        Creates the UI in the "Resolution" expand/collapse section.
+    '''
 
     #
     # Make sure the list of predefined resolutions has been read in.
     #
-    gImageFormatData = mel.eval('global string {0}[];$a_tempsa={0};'.format('$gImageFormatData'))
-    gUserImageFormatData = mel.eval('global string {0}[];$a_tempsa={0};'.format('$gUserImageFormatData'))
+    gImageFormatData = pm.melGlobals.get('gImageFormatData', 'string[]')
+    gUserImageFormatData = pm.melGlobals.get('gUserImageFormatData', 'string[]')
 
-    if len(gImageFormatData) == 0:
-        mel.eval('source imageFormats.mel')
-        gImageFormatData = mel.eval('global string {0}[];$a_tempsa={0};'.format('$gImageFormatData'))
-
-
-    if not mel.eval('exists imageFormats_melToUI'):
-        mel.eval('source imageFormats.mel')
-        gUserImageFormatData = mel.eval('global string {0}[];$a_tempsa={0};'.format('$gUserImageFormatData'))
+    if not gImageFormatData:
+        pm.mel.source('imageFormats.mel')
+        gImageFormatData = pm.melGlobals['gImageFormatData']
 
 
-    gResolutionUnitsNames = mel.eval('global string {0}[];$a_tempsa={0};'.format('$gResolutionUnitsNames'))
-    gMeasurementUnitsNames = mel.eval('global string {0}[];$a_tempsa={0};'.format('$gMeasurementUnitsNames'))
+    if not pm.mel.eval('exists imageFormats_melToUI'):
+        pm.mel.source('imageFormats.mel')
+        gUserImageFormatData = pm.melGlobals['gUserImageFormatData']
 
-    if len(gResolutionUnitsNames) == 0:
-        mel.eval('source resolutionFormats.mel')
-        gResolutionUnitsNames = mel.eval('global string {0}[];$a_tempsa={0};'.format('$gResolutionUnitsNames'))
 
-    isMayaEvalVersion = cmds.about(ev=True)
+    gResolutionUnitsNames = pm.melGlobals.get('gResolutionUnitsNames', 'string[]')
+    gMeasurementUnitsNames = pm.melGlobals.get('gMeasurementUnitsNames', 'string[]')
+
+    if not gResolutionUnitsNames:
+        pm.mel.source('resolutionFormats.mel')
+        gResolutionUnitsNames = pm.melGlobals['gResolutionUnitsNames']
+
+    isMayaEvalVersion = pm.about(ev=True)
     gPLEImageFormatData = []
     if isMayaEvalVersion:
         gImageFormatData = gPLEImageFormatData
 
-    if mel.eval('exists("userImageFormats.mel")') and len(gUserImageFormatData) == 0:
+    if pm.mel.exists("userImageFormats.mel") and len(gUserImageFormatData) == 0:
         # Yes, we need the eval here, to avoid doing the source
         # until we know whether the file actually exists
-        mel.eval('catchQuiet( eval("userImageFormats.mel"))')
+        pm.mel.eval('catchQuiet( eval("userImageFormats.mel"))')
 
-    cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+    pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
 
-    parent = cmds.setParent(q=True)
+    parent = pm.setParent(q=True)
     # If the UI is created already then just update the attribute values.
-    if cmds.columnLayout("%s|rgResolutionLayout"%parent, exists=True):
+    if pm.columnLayout("%s|rgResolutionLayout"%parent, exists=True):
         updateArnoldResolution()
         return
 
-    cmds.columnLayout('rgResolutionLayout', adjustableColumn=True)
+    pm.columnLayout('rgResolutionLayout', adjustableColumn=True)
     resItem = 1
     numResolutionPresets = len(gImageFormatData)
-    numUserResolutionPresets = len(gUserImageFormatData)
-    allResNodes = cmds.ls(type='resolution')
+    allResNodes = pm.ls(type='resolution')
     numResolutionNodePresets = len(allResNodes) - 1
-    numTokens = 1
-    tokens = []
-    niceName = ''
-    gImageFormatDividerPosition = mel.eval('global int {0};$a_tempi={0};'.format('$gImageFormatDividerPosition'))
-    cmds.optionMenuGrp('resolutionMenu',
-                        label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kPresets")'),
-                        changeCommand=changeArnoldResolution)
+    gImageFormatDividerPosition = pm.melGlobals.get('gImageFormatDividerPosition', 'int')
+    pm.optionMenuGrp('resolutionMenu',
+                     label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kPresets"),
+                     changeCommand=changeArnoldResolution)
 
-    cmds.menuItem(label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kCustom")'))
+    pm.menuItem(label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kCustom"))
     for resItem in range(0, numResolutionPresets):
 
         if resItem == gImageFormatDividerPosition:
-            cmds.menuItem(label="---------------------", enable=False)
+            pm.menuItem(label="---------------------", enable=False)
         else:
             item = gImageFormatData[resItem]
             tokens = item.split(' ')
@@ -1325,129 +1275,125 @@ def createArnoldCommonResolution():
             # so we do this twice.
             #
             niceName = tokens[0].replace(' ', '_').replace('"', '\\"')
-            uiName = mel.eval('imageFormats_melToUI("%s")'%niceName)
-            cmds.menuItem(label=uiName)
+            uiName = pm.mel.imageFormats_melToUI(niceName)
+            pm.menuItem(label=uiName)
 
-    for resItem in range(0, numUserResolutionPresets):
-        item = gUserImageFormatData[resItem]
+    for item in gUserImageFormatData:
         tokens = item.split(' ')
-        numTokens = len(tokens)
 
         # Change any underscore into a space;
         # some names may have up to 2 underscores in them,
         # so we do this twice.
         #
         niceName = tokens[0].replace(' ', '_').replace('"', '\"')
-        cmds.menuItem(label=niceName)
+        pm.menuItem(label=niceName)
 
     for resItem in range(0, numResolutionNodePresets):
-        cmds.menuItem(label=allResNodes[resItem + 1])
+        pm.menuItem(label=allResNodes[resItem + 1])
 
-    cmds.separator()
+    pm.separator()
 
-    cmds.checkBoxGrp('aspectLockCheck',
+    pm.checkBoxGrp('aspectLockCheck',
                      numberOfCheckBoxes=1,
                      label="",
-                     label1=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kMaintainWidthHeightRatio")'))
+                     label1=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kMaintainWidthHeightRatio"))
 
-    cmds.connectControl('aspectLockCheck', 'defaultResolution.aspectLock', index=2)
+    pm.connectControl('aspectLockCheck', 'defaultResolution.aspectLock', index=2)
 
-    if mel.eval('getApplicationVersionAsFloat') >= 2011:
-        cmds.radioButtonGrp('ratioLockRadio',
+    if pm.mel.getApplicationVersionAsFloat() >= 2011:
+        pm.radioButtonGrp('ratioLockRadio',
                             numberOfRadioButtons=2,
                             vertical=True,
-                            label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kMaintainRatio")'),
-                            label1=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kPixelAspect")'),
-                            label2=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kDeviceAspect")'),
-                            on1=Callback(cmds.setAttr, "defaultResolution.lockDeviceAspectRatio", 0),
-                            on2=Callback(cmds.setAttr, "defaultResolution.lockDeviceAspectRatio", 1),
+                            label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kMaintainRatio"),
+                            label1=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kPixelAspect"),
+                            label2=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kDeviceAspect"),
+                            on1=pm.Callback(pm.setAttr, "defaultResolution.lockDeviceAspectRatio", 0),
+                            on2=pm.Callback(pm.setAttr, "defaultResolution.lockDeviceAspectRatio", 1),
                             data1=0,
                             data2=1)
 
     else:
-        cmds.radioButtonGrp('ratioLockRadio',
+        pm.radioButtonGrp('ratioLockRadio',
                             numberOfRadioButtons=2,
-                            label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kMaintainRatio")'),
-                            label1=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kPixelAspect")'),
-                            label2=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kDeviceAspect")'),
-                            on1=Callback(cmds.setAttr, "defaultResolution.lockDeviceAspectRatio", 0),
-                            on2 =Callback(cmds.setAttr, "defaultResolution.lockDeviceAspectRatio", 1),
+                            label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kMaintainRatio"),
+                            label1=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kPixelAspect"),
+                            label2=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kDeviceAspect"),
+                            on1=pm.Callback(pm.setAttr, "defaultResolution.lockDeviceAspectRatio", 0),
+                            on2 =pm.Callback(pm.setAttr, "defaultResolution.lockDeviceAspectRatio", 1),
                             data1=0,
                             data2=1)
 
 
 
-    cmds.connectControl('ratioLockRadio', 'defaultResolution.lockDeviceAspectRatio', index=1)
+    pm.connectControl('ratioLockRadio', 'defaultResolution.lockDeviceAspectRatio', index=1)
 
-    cmds.floatFieldGrp('mayaSoftwareResWidth',
-                        label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kWidth")'),
+    pm.floatFieldGrp('mayaSoftwareResWidth',
+                        label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kWidth"),
                         changeCommand=changeArnoldAspectLockWidth)
 
-    cmds.connectControl('mayaSoftwareResWidth', 'defaultResolution.width', index=1)
+    pm.connectControl('mayaSoftwareResWidth', 'defaultResolution.width', index=1)
 
-    cmds.floatFieldGrp('mayaSoftwareResHeight', label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kHeight")'),
+    pm.floatFieldGrp('mayaSoftwareResHeight', label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kHeight"),
                         changeCommand=changeArnoldAspectLockHeight)
 
-    cmds.connectControl('mayaSoftwareResHeight', 'defaultResolution.height', index=1)
+    pm.connectControl('mayaSoftwareResHeight', 'defaultResolution.height', index=1)
 
-    cmds.optionMenuGrp('sizeUnitsMenu',
-                        label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kSizeUnits")'),
+    pm.optionMenuGrp('sizeUnitsMenu',
+                        label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kSizeUnits"),
                         changeCommand=updateArnoldResolution)
 
     # Construct all menu items
-    for sizeUnit in range(0, len(gMeasurementUnitsNames)):
-        melUnit = gMeasurementUnitsNames[sizeUnit]
-        cmds.menuItem(label=mel.eval('resolutionFormats_melToUI("%s")'%melUnit), data=sizeUnit)
+    for i, melUnit in enumerate(gMeasurementUnitsNames):
+        pm.menuItem(label=pm.mel.resolutionFormats_melToUI(melUnit), data=i)
 
     # connect the label, so we can change its color
-    cmds.connectControl('sizeUnitsMenu', 'defaultResolution.imageSizeUnits', index=1)
+    pm.connectControl('sizeUnitsMenu', 'defaultResolution.imageSizeUnits', index=1)
     # connect the menu, so it will always match the attribute
-    cmds.connectControl('sizeUnitsMenu', 'defaultResolution.imageSizeUnits', index=2)
+    pm.connectControl('sizeUnitsMenu', 'defaultResolution.imageSizeUnits', index=2)
 
-    cmds.separator(style='none', h=5)
+    pm.separator(style='none', h=5)
 
-    cmds.floatFieldGrp('mayaSoftwareRes',
-                        label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kResolution")'),
+    pm.floatFieldGrp('mayaSoftwareRes',
+                        label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kResolution"),
                         changeCommand=changeArnoldRes)
 
-    cmds.connectControl('mayaSoftwareRes', 'defaultResolution.dotsPerInch', index=1)
+    pm.connectControl('mayaSoftwareRes', 'defaultResolution.dotsPerInch', index=1)
 
-    cmds.optionMenuGrp('resUnitsMenu',
-                        label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kResolutionUnits")'),
+    pm.optionMenuGrp('resUnitsMenu',
+                        label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kResolutionUnits"),
                         changeCommand=updateArnoldResolution)
 
     # Construct all menu items
-    for resUnit in range(0, len(gResolutionUnitsNames)):
-        melUnit = gResolutionUnitsNames[resUnit]
-        cmds.menuItem(label=mel.eval('resolutionFormats_melToUI("%s")'%melUnit), data=resUnit)
+    for i, melUnit in enumerate(gResolutionUnitsNames):
+        pm.menuItem(label=pm.mel.resolutionFormats_melToUI(melUnit), data=i)
 
     # connect the label, so we can change its color
-    cmds.connectControl('resUnitsMenu', 'defaultResolution.pixelDensityUnits', index=1)
+    pm.connectControl('resUnitsMenu', 'defaultResolution.pixelDensityUnits', index=1)
     # connect the menu, so it will always match the attribute
-    cmds.connectControl('resUnitsMenu', 'defaultResolution.pixelDensityUnits', index=2)
+    pm.connectControl('resUnitsMenu', 'defaultResolution.pixelDensityUnits', index=2)
 
-    cmds.separator()
+    pm.separator()
 
-    cmds.floatFieldGrp('resRatio',
-                        label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kDeviceAspectRatio")'),
+    pm.floatFieldGrp('resRatio',
+                        label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kDeviceAspectRatio"),
                         changeCommand=updateArnoldDeviceAspectRatio)
 
     # connect the label, so we can change its color
-    cmds.connectControl('resRatio', 'defaultResolution.deviceAspectRatio', index=1)
+    pm.connectControl('resRatio', 'defaultResolution.deviceAspectRatio', index=1)
     # connect the menu, so it will always match the attribute
-    cmds.connectControl('resRatio', 'defaultResolution.deviceAspectRatio', index=2)
+    pm.connectControl('resRatio', 'defaultResolution.deviceAspectRatio', index=2)
 
-    cmds.floatFieldGrp('pixRatio',
-                        label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kPixelAspectRatio")'),
+    pm.floatFieldGrp('pixRatio',
+                        label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kPixelAspectRatio"),
                         changeCommand=updateArnoldPixelAspectRatio)
 
     # connect the label, so we can change its color
-    cmds.connectControl('pixRatio', 'defaultResolution.pixelAspect', index=1)
+    pm.connectControl('pixRatio', 'defaultResolution.pixelAspect', index=1)
     # connect the menu, so it will always match the attribute
-    cmds.connectControl('pixRatio', 'defaultResolution.pixelAspect', index=2)
+    pm.connectControl('pixRatio', 'defaultResolution.pixelAspect', index=2)
 
-    cmds.setParent('..')
-    cmds.setUITemplate(popTemplate=True)
+    pm.setParent('..')
+    pm.setUITemplate(popTemplate=True)
 
     # Make sure the values are right
     updateArnoldResolution()
@@ -1464,71 +1410,71 @@ def createArnoldCommonResolution():
     attrArray.append("defaultResolution.pixelDensityUnits")
 
     for attr in attrArray:
-        cmds.scriptJob(attributeChange=(attr, updateArnoldResolution),
-                        parent=cmds.setParent(query=True))
+        pm.scriptJob(attributeChange=(attr, updateArnoldResolution),
+                        parent=pm.setParent(query=True))
 
 
 
 def changeArnoldRes(*args):
-    #
-    # Description:
-    #    Called when the resolution field is changed.
-    #    Updates the corresponding attribute, converting to DPI.
-    #
+    '''
+     Description:
+        Called when the resolution field is changed.
+        Updates the corresponding attribute, converting to DPI.
+    '''
 
-    oldParent = cmds.setParent(query=True)
+    oldParent = pm.setParent(query=True)
     setParentToArnoldCommonTab()
 
-    gResolutionUnitsNames = mel.eval('global string {0}[];$a_tempsa={0};'.format('$gResolutionUnitsNames'))
-    oldDPI = cmds.getAttr('defaultResolution.dotsPerInch')
-    value = cmds.floatFieldGrp('mayaSoftwareRes', q=True, v1=True)
+    gResolutionUnitsNames = pm.melGlobals.get('gResolutionUnitsNames', 'string[]')
+    oldDPI = pm.getAttr('defaultResolution.dotsPerInch')
+    value = pm.floatFieldGrp('mayaSoftwareRes', q=True, v1=True)
 
     # Convert from the current resolution units to DPI
-    resUnits = cmds.getAttr('defaultResolution.pixelDensityUnits')
-    newDPI = mel.eval('convertResolutionMeasurement(%s, "%s", "pixels/inch")'%(value, gResolutionUnitsNames[resUnits]))
+    resUnits = pm.getAttr('defaultResolution.pixelDensityUnits')
+    newDPI = pm.mel.convertResolutionMeasurement(value, gResolutionUnitsNames[resUnits], "pixels/inch")
 
     # Check that value is within value range
     if newDPI < 1.0:
-        cmds.warning(mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kResolutionDPIWarn")'))
+        pm.warning(pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kResolutionDPIWarn"))
         newDPI = 1.0
 
-    oldWidth = cmds.getAttr('defaultResolution.width')
+    oldWidth = pm.getAttr('defaultResolution.width')
     newWidth = oldWidth
-    oldHeight = cmds.getAttr('defaultResolution.height')
+    oldHeight = pm.getAttr('defaultResolution.height')
     newHeight = oldHeight
 
     # Change pixel width/height only if the image size units are not
     # currently set as pixels
     #
-    sizeUnits = cmds.getAttr('defaultResolution.imageSizeUnits')
+    sizeUnits = pm.getAttr('defaultResolution.imageSizeUnits')
     if sizeUnits != 0: # 0 corresponds to pixels
         newWidth = math.floor( oldWidth * newDPI/oldDPI + 0.5 )
         newHeight = math.floor( oldHeight * newDPI/oldDPI + 0.5 )
 
     # Account for version restrictions and bounds
     #
-    isMayaEvalVersion = cmds.about(ev=True)
-    kPLEMaxX = 1024
-    kPLEMaxY =  768
+    isMayaEvalVersion = pm.about(ev=True)
+    PLE_MAX_X = 1024
+    PLE_MAX_Y =  768
 
     if isMayaEvalVersion:
-        warnMsg = mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kDPICannotBeAchieved")')
+        warnMsg = pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kDPICannotBeAchieved")
         warnDisp = ''
         # Check width
-        if newWidth > kPLEMaxX:
-            warnDisp = cmds.format(warnMsg, s=(kPLEMaxX, kPLEMaxY))
-            cmds.warning(warnDisp)
-            newWidth = kPLEMaxX
+        if newWidth > PLE_MAX_X:
+            warnDisp = pm.format(warnMsg, s=(PLE_MAX_X, PLE_MAX_Y))
+            pm.warning(warnDisp)
+            newWidth = PLE_MAX_X
             # Adjust DPI to maintain constant document size
             newDPI = oldDPI * newWidth/oldWidth
             # Adjust height to maintain correct ratio
             newHeight = oldHeight * newWidth/oldWidth
 
         # Check height
-        if newHeight > kPLEMaxY:
-            warnDisp = cmds.format(warnMsg, s=(kPLEMaxX, kPLEMaxY))
-            cmds.warning(warnDisp)
-            newHeight = kPLEMaxY
+        if newHeight > PLE_MAX_Y:
+            warnDisp = pm.format(warnMsg, s=(PLE_MAX_X, PLE_MAX_Y))
+            pm.warning(warnDisp)
+            newHeight = PLE_MAX_Y
             # Adjust DPI to maintain constant document size
             newDPI = oldDPI * newHeight/oldHeight
             # Adjust width to maintain correct ratio
@@ -1536,50 +1482,50 @@ def changeArnoldRes(*args):
 
 
     if newWidth < 2:
-        cmds.warning(mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kWidthWarning")'))
+        pm.warning(pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kWidthWarning"))
         newWidth = 2
 
     if newHeight < 2:
-        cmds.warning(mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kHeightWarning")'))
+        pm.warning(pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kHeightWarning"))
         newHeight = 2
 
 
     # All attributes should now be correct
-    cmds.setAttr('defaultResolution.dotsPerInch', newDPI)
-    cmds.setAttr('defaultResolution.width', newWidth)
-    cmds.setAttr('defaultResolution.height', newHeight)
+    pm.setAttr('defaultResolution.dotsPerInch', newDPI)
+    pm.setAttr('defaultResolution.width', newWidth)
+    pm.setAttr('defaultResolution.height', newHeight)
 
     # Update the values, will correct any invalid entries
     updateArnoldResolution()
 
-    cmds.setParent(oldParent)
+    pm.setParent(oldParent)
 
 
 def updateArnoldResolution(*args):
-#
-#  Procedure Name:
-#      updateArnoldResolution
-#
-#  Description:
-#      Gets the real values from the nodes and sets the UI based
-#    on these values.  This procedure updates all of the resolution
-#    values.
-#
+    '''
+    Procedure Name:
+        updateArnoldResolution
+    
+    Description:
+        Gets the real values from the nodes and sets the UI based
+      on these values.  This procedure updates all of the resolution
+      values.
+    '''
 
-    oldParent = cmds.setParent(query=True)
+    oldParent = pm.setParent(query=True)
     setParentToArnoldCommonTab()
 
-    width = cmds.getAttr('defaultResolution.width')
-    height = cmds.getAttr('defaultResolution.height')
-    aspect = cmds.getAttr('defaultResolution.deviceAspectRatio')
-    dpi = cmds.getAttr('defaultResolution.dotsPerInch')
+    width = pm.getAttr('defaultResolution.width')
+    height = pm.getAttr('defaultResolution.height')
+    aspect = pm.getAttr('defaultResolution.deviceAspectRatio')
+    dpi = pm.getAttr('defaultResolution.dotsPerInch')
     resItem = 0
     whichRes = 1 # use "Custom" if no match is found
-    allResNodes = cmds.ls(type='resolution')
+    allResNodes = pm.ls(type='resolution')
 
-    gImageFormatData = mel.eval('global string {0}[];$a_tempsa={0};'.format('$gImageFormatData'))
-    gUserImageFormatData = mel.eval('global string {0}[];$a_tempsa={0};'.format('$gUserImageFormatData'))
-    gDefaultDpi = mel.eval('global float {0};$a_tempfl={0};'.format('$gDefaultDpi'))
+    gImageFormatData = pm.melGlobals.get('gImageFormatData', 'string[]')
+    gUserImageFormatData = pm.melGlobals.get('gUserImageFormatData', 'string[]')
+    gDefaultDpi = pm.melGlobals.get('gDefaultDpi', 'float')
 
     numResolutionPresets = len(gImageFormatData)
     numUserResolutionPresets = len(gUserImageFormatData)
@@ -1588,7 +1534,6 @@ def updateArnoldResolution(*args):
     resHeight = 0
     resAspect = 0
     resDpi = 0
-    numTokens = 0
 
     for resItem in range(0, numResolutionPresets):
 
@@ -1616,9 +1561,9 @@ def updateArnoldResolution(*args):
                 whichRes = resItem + 2
                 break
         else:
-            invalidImageFormat = mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kInvalidImageFormat")')
-            warnMsg = cmds.format(invalidImageFormat, s=item)
-            cmds.warning(warnMsg)
+            invalidImageFormat = pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kInvalidImageFormat")
+            warnMsg = pm.format(invalidImageFormat, s=item)
+            pm.warning(warnMsg)
 
     # If no match was found in the built-in resolutions,
     # check out the user-defined ones
@@ -1648,9 +1593,9 @@ def updateArnoldResolution(*args):
                     whichRes = numResolutionPresets + resItem + 2
                     break
             else:
-                invalidImageFormat = mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kInvalidUserImageFormat")')
-                warnMsg = cmds.format(invalidImageFormat, s=item)
-                cmds.warning(warnMsg)
+                invalidImageFormat = pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kInvalidUserImageFormat")
+                warnMsg = pm.format(invalidImageFormat, s=item)
+                pm.warning(warnMsg)
 
     # If no match was found in the user-defined resolutions,
     # see if there are any 'extra' resolution nodes in the scene.
@@ -1663,9 +1608,9 @@ def updateArnoldResolution(*args):
             #
             resNodeName = allResNodes[resItem + 1]
 
-            resWidth = cmds.getAttr(resNodeName + ".width")
-            resHeight = cmds.getAttr(resNodeName + ".height")
-            resAspect = cmds.getAttr(resNodeName + ".deviceAspectRatio")
+            resWidth = pm.getAttr(resNodeName + ".width")
+            resHeight = pm.getAttr(resNodeName + ".height")
+            resAspect = pm.getAttr(resNodeName + ".deviceAspectRatio")
 
             if width == resWidth and height == resHeight \
                   and math.abs(aspect - resAspect) < 0.001:
@@ -1678,23 +1623,24 @@ def updateArnoldResolution(*args):
                 whichRes = numResolutionPresets + numUserResolutionPresets + resItem + 2
                 break
 
-    cmds.optionMenuGrp('resolutionMenu', edit=True, sl=whichRes)
+    pm.optionMenuGrp('resolutionMenu', edit=True, sl=whichRes)
 
-    cmds.checkBoxGrp('aspectLockCheck', edit=True, v1=cmds.getAttr('defaultResolution.aspectLock'))
-    cmds.floatFieldGrp('resRatio', edit=True, v1=aspect)
-    adjustArnoldPixelAspect('defaultResolution')
-    cmds.setAttr('defaultResolution.pixelAspect', cmds.floatFieldGrp('pixRatio', q=True, v1=True))
-    cmds.radioButtonGrp('ratioLockRadio',
+    pm.checkBoxGrp('aspectLockCheck', edit=True, v1=pm.getAttr('defaultResolution.aspectLock'))
+    resNode = pm.nt.DependNode('defaultResolution')
+    pm.floatFieldGrp('resRatio', edit=True, v1=aspect)
+    adjustArnoldPixelAspect(resNode)
+    resNode.pixelAspect.set(pm.floatFieldGrp('pixRatio', q=True, v1=True))
+    pm.radioButtonGrp('ratioLockRadio',
                         edit=True,
-                        select=cmds.getAttr('defaultResolution.lockDeviceAspectRatio')+1)
+                        select=resNode.lockDeviceAspectRatio.get()+1)
     #
     # Update the UI controls for image size and resolution
     #
-    gMeasurementUnitsNames = mel.eval('global string {0}[];$a_tempsa={0};'.format('$gMeasurementUnitsNames'))
-    gResolutionUnitsNames = mel.eval('global string {0}[];$a_tempsa={0};'.format('$gResolutionUnitsNames'))
+    gMeasurementUnitsNames = pm.melGlobals['gMeasurementUnitsNames']
+    gResolutionUnitsNames = pm.melGlobals['gResolutionUnitsNames']
 
-    sizeUnits = cmds.getAttr('defaultResolution.imageSizeUnits')
-    resUnits = cmds.getAttr('defaultResolution.pixelDensityUnits')
+    sizeUnits = resNode.imageSizeUnits.get()
+    resUnits = resNode.pixelDensityUnits.get()
 
     # Update width and height fields
     docWidth = float(width)
@@ -1703,54 +1649,54 @@ def updateArnoldResolution(*args):
     precision = 0 # To ensure pixel values are displayed without decimals
     if sizeUnits != 0:
         # Convert from pixels to the correct measurement units
-        docWidth = mel.eval('convertMeasurement(convertPixelsToInches( %s, %s ), "inches", "%s")'%(width, dpi, gMeasurementUnitsNames[sizeUnits]))
-        docHeight = mel.eval('convertMeasurement(convertPixelsToInches( %s, %s ), "inches", "%s")'%(height, dpi, gMeasurementUnitsNames[sizeUnits]))
+        docWidth = pm.mel.convertMeasurement(pm.mel.convertPixelsToInches( width, dpi ), "inches", gMeasurementUnitsNames[sizeUnits])
+        docHeight = pm.mel.convertMeasurement(pm.mel.convertPixelsToInches( height, dpi ), "inches", gMeasurementUnitsNames[sizeUnits])
         precision = 3
 
-    cmds.floatFieldGrp('mayaSoftwareResWidth', edit=True, precision=precision, v1=docWidth)
-    cmds.floatFieldGrp('mayaSoftwareResHeight', edit=True, precision=precision, v1=docHeight)
+    pm.floatFieldGrp('mayaSoftwareResWidth', edit=True, precision=precision, v1=docWidth)
+    pm.floatFieldGrp('mayaSoftwareResHeight', edit=True, precision=precision, v1=docHeight)
 
     # Update resolution field
     # Convert from DPI to the correct resolution units
-    res = mel.eval('convertResolutionMeasurement(%s, "pixels/inch", "%s")'%(dpi, gResolutionUnitsNames[resUnits]))
-    cmds.floatFieldGrp('mayaSoftwareRes', edit=True, precision=3, v1=res)
+    res = pm.mel.convertResolutionMeasurement(dpi, "pixels/inch", gResolutionUnitsNames[resUnits])
+    pm.floatFieldGrp('mayaSoftwareRes', edit=True, precision=3, v1=res)
 
     # "Size Units" and "Resolution Units" fields automatically update
     # because they are attached to a harness
 
-    cmds.setParent(oldParent)
+    pm.setParent(oldParent)
 
 
 def changeArnoldResolution(*args):
-#
-#  Procedure Name:
-#      changeResolution
-#
-#  Description:
-#    This procedure is called when the user selects a different
-#    resolution.  It sets the internal representation
-#    and then updates the example to show the changes.
-#
+    '''
+    Procedure Name:
+        changeResolution
+    
+    Description:
+      This procedure is called when the user selects a different
+      resolution.  It sets the internal representation
+      and then updates the example to show the changes.
+    '''
 
-    oldParent = cmds.setParent(query=True)
+    oldParent = pm.setParent(query=True)
     setParentToArnoldCommonTab()
 
-    gImageFormatData = mel.eval('global string {0}[];$a_tempsa={0};'.format('$gImageFormatData'))
-    gUserImageFormatData = mel.eval('global string {0}[];$a_tempsa={0};'.format('$gUserImageFormatData'))
-    gDefaultDpi = mel.eval('global float {0};$a_tempfl={0};'.format('$gDefaultDpi'))
+    gImageFormatData = pm.melGlobals['gImageFormatData']
+    gUserImageFormatData = pm.melGlobals['gUserImageFormatData']
+    gDefaultDpi = pm.melGlobals['gDefaultDpi']
 
     # We are suppose to get proper image formats for PLE.
-    isMayaEvalVersion = cmds.about(ev=True)
+    isMayaEvalVersion = pm.about(ev=True)
     if isMayaEvalVersion:
-        gPLEImageFormatData = mel.eval('global string {0}[];$a_tempsa={0};'.format('$gPLEImageFormatData'))
+        gPLEImageFormatData = pm.melGlobals['gPLEImageFormatData']
         gImageFormatData = gPLEImageFormatData
 
     numResolutionPresets = len(gImageFormatData)
     numUserResolutionPresets = len(gUserImageFormatData)
-    allResNodes = cmds.ls(type='resolution')
+    allResNodes = pm.ls(type='resolution')
     numResolutionNodePresets = len(allResNodes) - 1
     tokens = []
-    resItem = cmds.optionMenuGrp('resolutionMenu', q=True, sl=True)
+    resItem = pm.optionMenuGrp('resolutionMenu', q=True, sl=True)
     resWidth = 0
     resHeight = 0
     resAspect = 0
@@ -1767,19 +1713,18 @@ def changeArnoldResolution(*args):
         if resItem > (numResolutionPresets + 1):
             if resItem > (numResolutionPresets + numUserResolutionPresets + 1):
                 # It's one of the user-defined resolution nodes' presets
-                resNodeName = allResNodes[resItem - numResolutionPresets - numUserResolutionPresets - 1]
-                resWidth = cmds.getAttr("%s.width"%resNodeName)
-                resHeight = cmds.getAttr("%s.height"%resNodeName)
-                resAspect = cmds.getAttr("%s.deviceAspectRatio"%resNodeName)
+                resNode = allResNodes[resItem - numResolutionPresets - numUserResolutionPresets - 1]
+                resWidth = resNode.width.get()
+                resHeight = resNode.height.get()
+                resAspect = resNode.deviceAspectRatio.get()
             else:
                 # It's one of the user-defined resolution presets
                 item = gUserImageFormatData[resItem - numResolutionPresets - 2]
                 tokens = item.split()
-                numTokens = len(tokens)
                 resWidth = float(tokens[1])
                 resHeight = float(tokens[2])
                 resAspect = float(tokens[3])
-                if numTokens == 5:  # user has included the dpi field
+                if len(tokens) == 5:  # user has included the dpi field
                     resDpi = float(tokens[4])
                 else:
                     resDpi = gDefaultDpi # default dpi
@@ -1793,309 +1738,286 @@ def changeArnoldResolution(*args):
             resAspect = float(tokens[3])
             resDpi = float(tokens[4])
 
-        cmds.setAttr("defaultResolution.width", resWidth)
-        cmds.setAttr("defaultResolution.height", resHeight)
-        cmds.setAttr("defaultResolution.deviceAspectRatio", resAspect)
-        cmds.setAttr("defaultResolution.lockDeviceAspectRatio", 0)
+        pm.setAttr("defaultResolution.width", resWidth)
+        pm.setAttr("defaultResolution.height", resHeight)
+        pm.setAttr("defaultResolution.deviceAspectRatio", resAspect)
+        pm.setAttr("defaultResolution.lockDeviceAspectRatio", 0)
         pixelAspect = float(resHeight)/float(resWidth)*resAspect
-        cmds.setAttr("defaultResolution.pixelAspect", pixelAspect)
+        pm.setAttr("defaultResolution.pixelAspect", pixelAspect)
 
         # Set the dpi if it's non-zero
         if resDpi != 0:
-            cmds.setAttr("defaultResolution.dotsPerInch", resDpi)
+            pm.setAttr("defaultResolution.dotsPerInch", resDpi)
 
 
         # Set the proper field ordering if PAL or NTSC.
-        if cmds.getAttr('defaultResolution.height') == 576: # PAL
-            cmds.setAttr("defaultResolution.oddFieldFirst", 0)
-            if cmds.columnLayout('rgFieldLayout', exists=True):
-                if mel.eval('exists updateFieldOptions'):
-                    mel.eval('updateFieldOptions()')
-        elif cmds.getAttr('defaultResolution.height') == 486: # NTSC
-            cmds.setAttr("defaultResolution.oddFieldFirst", 1)
-            if cmds.columnLayout('rgFieldLayout', exists=True):
-                if mel.eval('exists updateFieldOptions'):
-                    mel.eval('updateFieldOptions()')
+        if pm.getAttr('defaultResolution.height') == 576: # PAL
+            pm.setAttr("defaultResolution.oddFieldFirst", 0)
+            if pm.columnLayout('rgFieldLayout', exists=True) and pm.mel.exists('updateFieldOptions'):
+                pm.mel.updateFieldOptions()
+        elif pm.getAttr('defaultResolution.height') == 486: # NTSC
+            pm.setAttr("defaultResolution.oddFieldFirst", 1)
+            if pm.columnLayout('rgFieldLayout', exists=True) and pm.mel.exists('updateFieldOptions'):
+                pm.mel.updateFieldOptions()
 
     updateArnoldResolution()
 
-    cmds.setParent(oldParent)
+    pm.setParent(oldParent)
 
 
-# This is called when the resolution changes. Update the pixel or the
-# device aspect ration as necessary.
-def updateArnoldPixelDeviceRatios(nodeName):
 
-    aspect = float(cmds.getAttr("%s.width"%nodeName)) / float(cmds.getAttr("%s.height"%nodeName))
+def updateArnoldPixelDeviceRatios(node):
+    '''
+    This is called when the resolution changes. Update the pixel or the
+    device aspect ration as necessary.
+    '''
+    aspect = float(node.width.get()) / float(node.height.get())
 
-    if cmds.getAttr("%s.lockDeviceAspectRatio"%nodeName) == 0:
-        aspect = aspect * cmds.getAttr("%s.pixelAspect"%nodeName)
-        cmds.setAttr("%s.deviceAspectRatio"%nodeName, aspect)
+    if node.lockDeviceAspectRatio.get() == 0:
+        aspect = aspect * node.pixelAspect.get()
+        node.deviceAspectRatio.set(aspect)
     else:
-        aspect = cmds.getAttr("%s.deviceAspectRatio"%nodeName) / aspect
-        cmds.setAttr("%s.pixelAspect"%nodeName, aspect)
+        aspect = node.deviceAspectRatio.get() / aspect
+        node.pixelAspect.set(aspect)
 
-
-def checkArnoldAspectLockWidth(nodeName):
-
-    deviceAspect = 0
-
-    if cmds.getAttr("%s.aspectLock"%nodeName):
-
-        value = cmds.getAttr("%s.width"%nodeName)
-        aspect = cmds.getAttr("%s.pixelAspect"%nodeName)
-        aspect /= cmds.getAttr("%s.deviceAspectRatio"%nodeName)
+def checkArnoldAspectLockWidth(node):
+    if node.aspectLock.get():
+        value = node.width.get()
+        aspect = node.pixelAspect.get()
+        aspect /= node.deviceAspectRatio.get()
 
         #fix for bug#269698, plus 0.5 to give round value
         rez = (aspect * value) + 0.5
 
-        isMayaEvalVersion = cmds.about(ev=True)
-        if (isMayaEvalVersion):
-            kPLEMaxY =  768
-            kPLEMaxX = 1024
-            if rez > kPLEMaxY:
-                warnMsg = mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kImageResolutionLimited")')
-                dispMsg = cmds.format(warnMsg, s=(kPLEMaxX,kPLEMaxY))
-                cmds.warning(dispMsg)
-                rez = kPLEMaxY
+        if pm.about(ev=True):
+            if rez > PLE_MAX_Y:
+                warnMsg = pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kImageResolutionLimited")
+                dispMsg = pm.format(warnMsg, s=(PLE_MAX_X,PLE_MAX_Y))
+                pm.warning(dispMsg)
+                rez = PLE_MAX_Y
 
-        cmds.setAttr("%s.height"%nodeName, rez)
+        node.height.set(rez)
 
-    updateArnoldPixelDeviceRatios(nodeName)
+    updateArnoldPixelDeviceRatios(node)
 
-def checkArnoldAspectLockHeight(nodeName):
-
-    deviceAspect = 0
-
-    if cmds.getAttr("%s.aspectLock"%nodeName):
-        value = cmds.getAttr("%s.height"%nodeName)
-        aspect = cmds.getAttr("%s.pixelAspect"%nodeName)
-        aspect /= cmds.getAttr("%s.deviceAspectRatio"%nodeName)
+def checkArnoldAspectLockHeight(node):
+    if node.aspectLock.get():
+        value = node.height.get()
+        aspect = node.pixelAspect.get()
+        aspect /= node.deviceAspectRatio.get()
 
         #fix for bug#269698, plus 0.5 to give round value
         rez = (value/aspect) + 0.5
 
-        isMayaEvalVersion = cmds.about(ev=True)
-        if isMayaEvalVersion:
-            kPLEMaxY =  768
-            kPLEMaxX = 1024
-            if rez > kPLEMaxX:
-                warnMsg = mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kImageResolutionLimited")')
-                dispMsg = cmds.format(warnMsg, s=(kPLEMaxX, kPLEMaxY))
-                cmds.warning(dispMsg)
-                rez = kPLEMaxX
+        if pm.about(ev=True):
+            if rez > PLE_MAX_X:
+                warnMsg = pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kImageResolutionLimited")
+                dispMsg = pm.format(warnMsg, s=(PLE_MAX_X, PLE_MAX_Y))
+                pm.warning(dispMsg)
+                rez = PLE_MAX_X
 
+        node.width.set(rez)
 
-
-        cmds.setAttr("%s.width"%nodeName, rez)
-
-
-    updateArnoldPixelDeviceRatios(nodeName)
+    updateArnoldPixelDeviceRatios(node)
 
 
 def changeArnoldAspectLockWidth(*args):
-#
-#  Procedure Name:
-#      changeArnoldAspectLockWidth
-#
-#  Description:
-#    This procedure is called when the user changes the
-#    resolution width.  It sets the internal representation
-#    then looks at the ratio lock etc and changes any other
-#    values that rely on it.
-#
+    '''
+    Procedure Name:
+        changeArnoldAspectLockWidth
+    
+    Description:
+      This procedure is called when the user changes the
+      resolution width.  It sets the internal representation
+      then looks at the ratio lock etc and changes any other
+      values that rely on it.
+    '''
 
-    oldParent = cmds.setParent(query=True)
+    oldParent = pm.setParent(query=True)
     setParentToArnoldCommonTab()
 
-    widthValue = cmds.floatFieldGrp('mayaSoftwareResWidth', q=True, v1=True)
-    requestedWidth = 0
+    widthValue = pm.floatFieldGrp('mayaSoftwareResWidth', q=True, v1=True)
 
-    gMeasurementUnitsNames = mel.eval('global string {0}[];$a_tempsa={0};'.format('$gMeasurementUnitsNames'))
+    gMeasurementUnitsNames = pm.melGlobals['gMeasurementUnitsNames']
 
-    dpi = cmds.getAttr('defaultResolution.dotsPerInch')
-    sizeUnits = cmds.getAttr('defaultResolution.imageSizeUnits')
+    resNode = pm.nt.DependNode('defaultResolution')
+    dpi = resNode.dotsPerInch.get()
+    sizeUnits = resNode.imageSizeUnits.get()
 
     if sizeUnits != 0:
         # Convert the obtained value to inches, then to pixels
-        requestedWidth = mel.eval('convertInchesToPixels(`convertMeasurement(%s, "%s", "inches")`, %s)'%(widthValue, gMeasurementUnitsNames[sizeUnits], dpi))
+        requestedWidth = pm.mel.convertInchesToPixels(pm.mel.convertMeasurement(widthValue, gMeasurementUnitsNames[sizeUnits], "inches"), dpi)
     else: # the width value is in pixels, so no need to convert
         requestedWidth = widthValue
 
-    isMayaEvalVersion = cmds.about(ev=True)
-    if isMayaEvalVersion:
-        kPLEMaxX = 1024
-        kPLEMaxY =  768
-        if requestedWidth > kPLEMaxX:
-            warnMsg = mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kImageResolutionLimited")')
-            dispMsg = cmds.format(warnMsg, s=(kPLEMaxX, kPLEMaxY))
-            cmds.warning(dispMsg)
-            requestedWidth = kPLEMaxX
+    if pm.about(ev=True):
+        if requestedWidth > PLE_MAX_X:
+            warnMsg = pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kImageResolutionLimited")
+            dispMsg = pm.format(warnMsg, s=(PLE_MAX_X, PLE_MAX_Y))
+            pm.warning(dispMsg)
+            requestedWidth = PLE_MAX_X
 
     if requestedWidth < 2:
-        cmds.warning(mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kWidthWarning")'))
+        pm.warning(pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kWidthWarning"))
         requestedWidth = 2
 
-    cmds.setAttr('defaultResolution.width', requestedWidth)
-    cmds.optionMenuGrp('resolutionMenu', edit=True, sl=1)
-    checkArnoldAspectLockWidth("defaultResolution")
+    resNode.width.set(requestedWidth)
+    pm.optionMenuGrp('resolutionMenu', edit=True, sl=1)
+    checkArnoldAspectLockWidth(resNode)
 
     # Update the values
     updateArnoldResolution()
 
-    cmds.setParent(oldParent)
+    pm.setParent(oldParent)
 
 
 def changeArnoldAspectLockHeight(*args):
-#
-#  Procedure Name:
-#      changeArnoldAspectLockHeight
-#
-#  Description:
-#    This procedure is called when the user changes the
-#    resolution width.  It sets the internal representation
-#    then looks at the ratio lock etc and changes any other
-#    values that rely on it.
-#
-
-    oldParent = cmds.setParent(query=True)
+    '''
+    Procedure Name:
+        changeArnoldAspectLockHeight
+    
+    Description:
+      This procedure is called when the user changes the
+      resolution width.  It sets the internal representation
+      then looks at the ratio lock etc and changes any other
+      values that rely on it.
+    '''
+    oldParent = pm.setParent(query=True)
     setParentToArnoldCommonTab()
 
-    heightValue = cmds.floatFieldGrp('mayaSoftwareResHeight', q=True, v1=True)
-    requestedHeight = 0
+    heightValue = pm.floatFieldGrp('mayaSoftwareResHeight', q=True, v1=True)
 
-    gMeasurementUnitsNames = mel.eval('global string {0}[];$a_tempsa={0};'.format('$gMeasurementUnitsNames'))
-    dpi = cmds.getAttr('defaultResolution.dotsPerInch')
-    sizeUnits = cmds.getAttr('defaultResolution.imageSizeUnits')
+    gMeasurementUnitsNames = pm.melGlobals['gMeasurementUnitsNames']
+
+    resNode = pm.nt.DependNode('defaultResolution')
+    dpi = resNode.dotsPerInch.get()
+    sizeUnits = resNode.imageSizeUnits.get()
 
     if sizeUnits != 0:
         # Convert the obtained value to inches, then to pixels
-        requestedHeight = mel.eval('convertInchesToPixels(`convertMeasurement(%s, "%s", "inches")`, %s)'%(heightValue, gMeasurementUnitsNames[sizeUnits], dpi))
+        requestedHeight = pm.mel.convertInchesToPixels(pm.mel.convertMeasurement(heightValue, gMeasurementUnitsNames[sizeUnits], "inches"),dpi)
     else:
         # the width value is in pixels, so no need to convert
         requestedHeight = heightValue
 
-    isMayaEvalVersion = cmds.about(ev=True)
-    if isMayaEvalVersion:
-        kPLEMaxX = 1024
-        kPLEMaxY =  768
-        if requestedHeight > kPLEMaxY:
-            warnMsg = mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kImageResolutionLimited")')
-            dispMsg = cmds.format(warnMsg, s=(kPLEMaxX, kPLEMaxY))
-            cmds.warning(dispMsg)
-            requestedHeight = kPLEMaxY
+    if pm.about(ev=True):
+        if requestedHeight > PLE_MAX_Y:
+            warnMsg = pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kImageResolutionLimited")
+            dispMsg = pm.format(warnMsg, s=(PLE_MAX_X, PLE_MAX_Y))
+            pm.warning(dispMsg)
+            requestedHeight = PLE_MAX_Y
 
     if requestedHeight < 2:
-        cmds.warning(mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kHeightWarning")'))
+        pm.warning(pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kHeightWarning"))
         requestedHeight = 2
 
-    cmds.setAttr('defaultResolution.height', requestedHeight)
-    cmds.optionMenuGrp('resolutionMenu', edit=True, sl=1)
-    checkArnoldAspectLockHeight('defaultResolution')
+    resNode.height.set(requestedHeight)
+    pm.optionMenuGrp('resolutionMenu', edit=True, sl=1)
+    checkArnoldAspectLockHeight(resNode)
 
     # Set the proper field ordering if PAL or NTSC.
-    if cmds.getAttr('defaultResolution.height') == 576: # PAL
-        cmds.setAttr('defaultResolution.oddFieldFirst', 0)
-        if cmds.columnLayout('rgFieldLayout', exists=True):
-            if mel.eval('exists updateFieldOptions'):
-                mel.eval('updateFieldOptions()')
+    if requestedHeight == 576: # PAL
+        resNode.oddFieldFirst.set(0)
+        if pm.columnLayout('rgFieldLayout', exists=True):
+            if pm.mel.exists('updateFieldOptions'):
+                pm.mel.updateFieldOptions()
 
 
-    elif cmds.getAttr('defaultResolution.height') == 486: # NTSC
-        cmds.setAttr("defaultResolution.oddFieldFirst", 1)
-        if cmds.columnLayout('rgFieldLayout', exists=True):
-            if mel.eval('exists updateFieldOptions'):
-                mel.eval('updateFieldOptions()')
+    elif requestedHeight == 486: # NTSC
+        resNode.oddFieldFirst.set(1)
+        if pm.columnLayout('rgFieldLayout', exists=True):
+            if pm.mel.exists('updateFieldOptions'):
+                pm.mel.updateFieldOptions()
 
     # Update the values
     updateArnoldResolution()
 
-    cmds.setParent(oldParent)
+    pm.setParent(oldParent)
 
 
-def adjustArnoldPixelAspect(nodeName):
+def adjustArnoldPixelAspect(node):
 
-    oldParent = cmds.setParent(query=True)
+    oldParent = pm.setParent(query=True)
     setParentToArnoldCommonTab()
 
-    aspectAttr = "%s.deviceAspectRatio"%nodeName
-    widthAttr = "%s.width"%nodeName
-    heightAttr = "%s.height"%nodeName
-    pixelAspect = float(cmds.getAttr(widthAttr)) / float(cmds.getAttr(heightAttr))
-    pixelAspect = cmds.getAttr(aspectAttr) / pixelAspect
-    cmds.floatFieldGrp('pixRatio', e=True, v1=pixelAspect)
+    aspect = node.deviceAspectRatio.get()
+    width = node.width.get()
+    height = node.height.get()
+    pixelAspect = float(width) / float(height)
+    pixelAspect = aspect / pixelAspect
+    pm.floatFieldGrp('pixRatio', e=True, v1=pixelAspect)
 
-    cmds.setParent(oldParent)
+    pm.setParent(oldParent)
 
 
-def adjustArnoldDeviceAspect(nodeName):
+def adjustArnoldDeviceAspect(node):
 
-    oldParent = cmds.setParent(query=True)
+    oldParent = pm.setParent(query=True)
     setParentToArnoldCommonTab()
 
-    devAspectAttr = "%s.deviceAspectRatio"%nodeName
-    widthAttr = "%s.width"%nodeName
-    heightAttr = "%s.height"%nodeName
+    devAspect = node.deviceAspectRatio.get()
+    width = node.width.get()
+    height = node.height.get()
 
-    pixelAspect = cmds.floatFieldGrp('pixRatio', q=True, v1=True)
-    aspect = float(cmds.getAttr(widthAttr)) / float(cmds.getAttr(heightAttr))
+    pixelAspect = pm.floatFieldGrp('pixRatio', q=True, v1=True)
+    aspect = float(width) / float(height)
     aspect = pixelAspect * aspect
-    cmds.setAttr(devAspectAttr, aspect)
-    cmds.floatFieldGrp('resRatio', edit=True, v1=aspect)
+    pm.setAttr(devAspect, aspect)
+    pm.floatFieldGrp('resRatio', edit=True, v1=aspect)
 
-    cmds.setParent(oldParent)
+    pm.setParent(oldParent)
 
 
 def updateArnoldPixelAspectRatio(*args):
 
-    oldParent = cmds.setParent(query=True)
+    oldParent = pm.setParent(query=True)
     setParentToArnoldCommonTab()
-
-    cmds.setAttr('defaultResolution.pixelAspect', cmds.floatFieldGrp('pixRatio', q=True, v1=True))
-    adjustArnoldDeviceAspect('defaultResolution')
+    resNode = pm.nt.DependNode('defaultResolution')
+    resNode.pixelAspect.set(pm.floatFieldGrp('pixRatio', q=True, v1=True))
+    adjustArnoldDeviceAspect(resNode)
     updateArnoldResolution()
 
-    cmds.setParent(oldParent)
+    pm.setParent(oldParent)
 
 
 def updateArnoldDeviceAspectRatio(*args):
 
-    oldParent = cmds.setParent(query=True)
+    oldParent = pm.setParent(query=True)
     setParentToArnoldCommonTab()
 
-    cmds.setAttr('defaultResolution.deviceAspectRatio', cmds.floatFieldGrp('resRatio', q=True, v1=True))
+    pm.setAttr('defaultResolution.deviceAspectRatio', pm.floatFieldGrp('resRatio', q=True, v1=True))
     adjustArnoldPixelAspect('defaultResolution')
     updateArnoldResolution()
 
-    cmds.setParent(oldParent)
+    pm.setParent(oldParent)
 
 
 # ----------------------------------------------------------------------------
-# Code to update pre/post layer/frame mel callbacks
+# Code to update pre/post layer/frame pm.mel callbacks
 #
 
 def changeArnoldMelCallbacks(control, attr):
 
-    oldParent = cmds.setParent(query=True)
+    oldParent = pm.setParent(query=True)
     setParentToArnoldCommonTab()
 
-    val = cmds.textFieldGrp(control, query=True, text=True)
-    cmds.setAttr(attr, val, type="string")
+    val = pm.textFieldGrp(control, query=True, text=True)
+    pm.setAttr(attr, val, type="string")
 
-    cmds.setParent(oldParent)
+    pm.setParent(oldParent)
 
 
 def updateArnoldMelCallbacks(*args):
 
-    oldParent = cmds.setParent(query=True)
+    oldParent = pm.setParent(query=True)
     setParentToArnoldCommonTab()
 
-    cmds.textFieldGrp('preRenderLayerMelSwGrp', edit=True, text=cmds.getAttr('defaultRenderGlobals.preRenderLayerMel'))
-    cmds.textFieldGrp('postRenderLayerMelSwGrp', edit=True, text=cmds.getAttr('defaultRenderGlobals.postRenderLayerMel'))
-    cmds.textFieldGrp('preRenderMelSwGrp', edit=True, text=cmds.getAttr('defaultRenderGlobals.preRenderMel'))
-    cmds.textFieldGrp('postRenderMelSwGrp', edit=True, text=cmds.getAttr('defaultRenderGlobals.postRenderMel'))
+    pm.textFieldGrp('preRenderLayerMelSwGrp', edit=True, text=pm.getAttr('defaultRenderGlobals.preRenderLayerMel'))
+    pm.textFieldGrp('postRenderLayerMelSwGrp', edit=True, text=pm.getAttr('defaultRenderGlobals.postRenderLayerMel'))
+    pm.textFieldGrp('preRenderMelSwGrp', edit=True, text=pm.getAttr('defaultRenderGlobals.preRenderMel'))
+    pm.textFieldGrp('postRenderMelSwGrp', edit=True, text=pm.getAttr('defaultRenderGlobals.postRenderMel'))
 
-    cmds.setParent(oldParent)
+    pm.setParent(oldParent)
 
 
 # ----------------------------------------------------------------------------
@@ -2104,70 +2026,64 @@ def updateArnoldMelCallbacks(*args):
 
 def createArnoldCommonRenderOptions():
 
-    parent = cmds.setParent(query=True)
+    parent = pm.setParent(query=True)
 
-    cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+    pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
 
 
-    cmds.columnLayout(adjustableColumn=True)
+    pm.columnLayout(adjustableColumn=True)
 
-    cmds.attrControlGrp(attribute="defaultRenderGlobals.enableDefaultLight")
-    cmds.attrControlGrp('preMelSwGrp',
+    pm.attrControlGrp(attribute="defaultRenderGlobals.enableDefaultLight")
+    pm.attrControlGrp('preMelSwGrp',
                         attribute='defaultRenderGlobals.preMel',
-                        label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kPreRenderMEL")'),
+                        label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kPreRenderMEL"),
                         preventOverride=True)
 
-    cmds.attrControlGrp('postMelSwGrp',
+    pm.attrControlGrp('postMelSwGrp',
                         attribute='defaultRenderGlobals.postMel',
-                        label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kPostRenderMEL")'),
+                        label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kPostRenderMEL"),
                         preventOverride=True)
 
-    cmds.textFieldGrp('preRenderLayerMelSwGrp',
-                      label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kPreRenderLayerMEL")'),
-                      changeCommand=Callback(changeArnoldMelCallbacks, "preRenderLayerMelSwGrp", "defaultRenderGlobals.preRenderLayerMel"))
+    pm.textFieldGrp('preRenderLayerMelSwGrp',
+                      label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kPreRenderLayerMEL"),
+                      changeCommand=pm.Callback(changeArnoldMelCallbacks, "preRenderLayerMelSwGrp", "defaultRenderGlobals.preRenderLayerMel"))
 
-    cmds.textFieldGrp('postRenderLayerMelSwGrp',
-                      label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kPostRenderLayerMEL")'),
-                      changeCommand=Callback(changeArnoldMelCallbacks, "postRenderLayerMelSwGrp", "defaultRenderGlobals.postRenderLayerMel"))
+    pm.textFieldGrp('postRenderLayerMelSwGrp',
+                      label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kPostRenderLayerMEL"),
+                      changeCommand=pm.Callback(changeArnoldMelCallbacks, "postRenderLayerMelSwGrp", "defaultRenderGlobals.postRenderLayerMel"))
 
-    cmds.textFieldGrp('preRenderMelSwGrp',
-                      label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kPreRenderFrameMEL")'),
-                      changeCommand=Callback(changeArnoldMelCallbacks, "preRenderMelSwGrp", "defaultRenderGlobals.preRenderMel"))
+    pm.textFieldGrp('preRenderMelSwGrp',
+                      label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kPreRenderFrameMEL"),
+                      changeCommand=pm.Callback(changeArnoldMelCallbacks, "preRenderMelSwGrp", "defaultRenderGlobals.preRenderMel"))
 
-    cmds.textFieldGrp('postRenderMelSwGrp',
-                      label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kPostRenderFrameMEL")'),
-                      changeCommand=Callback(changeArnoldMelCallbacks, "postRenderMelSwGrp", "defaultRenderGlobals.postRenderMel"))
+    pm.textFieldGrp('postRenderMelSwGrp',
+                      label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kPostRenderFrameMEL"),
+                      changeCommand=pm.Callback(changeArnoldMelCallbacks, "postRenderMelSwGrp", "defaultRenderGlobals.postRenderMel"))
 
-    cmds.connectControl('preRenderLayerMelSwGrp', 'defaultRenderGlobals.preRenderLayerMel', index=1)
-    cmds.connectControl('postRenderLayerMelSwGrp', 'defaultRenderGlobals.postRenderLayerMel', index=1)
-    cmds.connectControl('preRenderMelSwGrp', 'defaultRenderGlobals.preRenderMel', index=1)
-    cmds.connectControl('postRenderMelSwGrp', 'defaultRenderGlobals.postRenderMel', index=1)
+    pm.connectControl('preRenderLayerMelSwGrp', 'defaultRenderGlobals.preRenderLayerMel', index=1)
+    pm.connectControl('postRenderLayerMelSwGrp', 'defaultRenderGlobals.postRenderLayerMel', index=1)
+    pm.connectControl('preRenderMelSwGrp', 'defaultRenderGlobals.preRenderMel', index=1)
+    pm.connectControl('postRenderMelSwGrp', 'defaultRenderGlobals.postRenderMel', index=1)
 
-    if cmds.about(evalVersion=True):
-        cmds.attrControlGrp('preMelSwGrp', e=True, enable=False)
-        cmds.attrControlGrp('postMelSwGr', e=True, enable=False)
-        cmds.textFieldGrp('preRenderLayerMelSwGrp', e=True, enable=False)
-        cmds.textFieldGrp('postRenderLayerMelSwGrp', e=True, enable=False)
-        cmds.textFieldGrp('preRenderMelSwGrp', e=True, enable=False)
-        cmds.textFieldGrp('postRenderMelSwGrp', e=True, enable=False)
+    if pm.about(evalVersion=True):
+        pm.attrControlGrp('preMelSwGrp', e=True, enable=False)
+        pm.attrControlGrp('postMelSwGr', e=True, enable=False)
+        pm.textFieldGrp('preRenderLayerMelSwGrp', e=True, enable=False)
+        pm.textFieldGrp('postRenderLayerMelSwGrp', e=True, enable=False)
+        pm.textFieldGrp('preRenderMelSwGrp', e=True, enable=False)
+        pm.textFieldGrp('postRenderMelSwGrp', e=True, enable=False)
 
     updateArnoldMelCallbacks()
 
     # Set up script jobs for those attributes which require updating of
     # multiple controls.
     # This is especially important when a user changes render layers.
-    #
-    attrArray = []
-    attrArray.append("defaultRenderGlobals.preRenderLayerMel")
-    attrArray.append("defaultRenderGlobals.preRenderLayerMel")
-    attrArray.append("defaultRenderGlobals.preRenderMel")
-    attrArray.append("defaultRenderGlobals.postRenderMel")
+    for attr in ['preRenderLayerMel', 'preRenderLayerMel', 'preRenderMel', 'postRenderMel']:
+        plug = 'defaultRenderGlobals.' + attr
+        pm.scriptJob(parent = pm.setParent(query=True), attributeChange=(plug, updateArnoldMelCallbacks))
 
-    for attr in attrArray:
-        cmds.scriptJob(parent = cmds.setParent(query=True), attributeChange=(attr, updateArnoldMelCallbacks))
-
-    cmds.setParent(parent)
-    cmds.setUITemplate(popTemplate=True)
+    pm.setParent(parent)
+    pm.setUITemplate(popTemplate=True)
 
 
 
@@ -2177,14 +2093,14 @@ def createArnoldCommonRenderOptions():
 
 def updateArnoldRendererCommonGlobalsTab(*args):
 
-    #
-    # Description:
-    # This procedure is called when the current renderer changes to be the
-    # Maya Software Renderer.
-    # This procedure updates controls in the Common tab of the Maya Software
-    # renderer to reflect values which may have been copied from the previous
-    # current renderer.
-    #
+    '''
+     Description:
+     This procedure is called when the current renderer changes to be the
+     Maya Software Renderer.
+     This procedure updates controls in the Common tab of the Maya Software
+     renderer to reflect values which may have been copied from the previous
+     current renderer.
+    '''
     updateArnoldFileNamePrefixControl()
     updateArnoldFileNameFormatControl()
 
@@ -2210,87 +2126,86 @@ def updateArnoldRendererCommonGlobalsTab(*args):
 
 
 def createArnoldRendererCommonGlobalsTab():
-
-    #
-    # Description:
-    # This procedure is called when building the render globals tabs for the
-    # Maya Software renderer.
-    # This procedure builds the "General" tab for the Maya Software renderer.
-    #
+    '''
+     Description:
+     This procedure is called when building the render globals tabs for the
+     Maya Software renderer.
+     This procedure builds the "General" tab for the Maya Software renderer.
+    '''
 
     # Make sure the aiOptions node exists
-    cmds.createNode('aiOptions', skipSelect=True, shared=True, name="defaultArnoldRenderOptions")
+    pm.createNode('aiOptions', skipSelect=True, shared=True, name="defaultArnoldRenderOptions")
 
-    parentForm = cmds.setParent(query=True)
+    parentForm = pm.setParent(query=True)
 
     createArnoldTargetFilePreview()
 
-    cmds.setParent(parentForm)
+    pm.setParent(parentForm)
 
-    cmds.scrollLayout('scrollLayout',horizontalScrollBarThickness=0)
+    pm.scrollLayout('scrollLayout',horizontalScrollBarThickness=0)
 
-    commonTabColumn = cmds.columnLayout('commonTabColumn', adjustableColumn=True)
+    commonTabColumn = pm.columnLayout('commonTabColumn', adjustableColumn=True)
 
     # Image File Name
     #
-    cmds.frameLayout('rgImageFileFrame',
-                     label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kImageFileOutput")'),
+    pm.frameLayout('rgImageFileFrame',
+                     label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kImageFileOutput"),
                      collapsable=True,
                      collapse=False)
 
     createArnoldCommonImageFile()
 
-    cmds.setParent(commonTabColumn)
+    pm.setParent(commonTabColumn)
 
     # Frame Range Output
     #
-    cmds.frameLayout('rgFrameRangeFrame',
+    pm.frameLayout('rgFrameRangeFrame',
                      label="Frame Range",
                      collapsable=True,
                      collapse=False)
 
     createArnoldCommonFrameRange()
 
-    cmds.setParent(commonTabColumn)
+    pm.setParent(commonTabColumn)
 
     # Renderable Cameras
     #
-    cmds.frameLayout('rgRenderableCamerasFrame',
-                     label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kRenderableCameras")'),
+    pm.frameLayout('rgRenderableCamerasFrame',
+                     label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kRenderableCameras"),
                      collapsable=True,
                      collapse=False)
 
 
     createArnoldCommonRenderCameras()
 
-    cmds.setParent(commonTabColumn)
+    pm.setParent(commonTabColumn)
 
     # Resolution ("Image Size") Section
     #
-    cmds.frameLayout('rgResolutionFrame',
-                     label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kLayoutImageSize")'),
+    pm.frameLayout('rgResolutionFrame',
+                     label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kLayoutImageSize"),
                      collapsable=True,
                      collapse=False)
 
 
     createArnoldCommonResolution()
 
-    cmds.setParent(commonTabColumn)
+    pm.setParent(commonTabColumn)
 
     # Render Options
     #
-    cmds.frameLayout('mayaSoftwareOptionFrame',
-                     label=mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kRenderOptions")'),
+    pm.frameLayout('mayaSoftwareOptionFrame',
+                     label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kRenderOptions"),
                      collapsable=True,
                      collapse=True)
 
     createArnoldCommonRenderOptions()
 
-    cmds.setParent(commonTabColumn)
+    pm.setParent(commonTabColumn)
 
-    cmds.setParent(parentForm)
+    pm.setParent(parentForm)
 
-    cmds.formLayout(parentForm,
+    pm.formLayout(parentForm,
                     edit=True,
                     af=[('targetFilePreview',"top", 5),
                         ('targetFilePreview', "left", 0),

@@ -1,6 +1,5 @@
-import maya.cmds as cmds
-import maya.mel as mel
-
+import pymel.core as pm
+import pymel.versions as versions
 import mtoa.utils as utils
 import mtoa.ui.exportass as exportass
 import mtoa.ui.nodeTreeLister as nodeTreeLister
@@ -16,24 +15,24 @@ import os
 
 def _overrideMelScripts():
     root = utils.mtoaPackageRoot()
-    mayaVersion = str(mel.eval('getApplicationVersionAsFloat'))
+    mayaVersion = versions.shortName()
     for f in glob.glob(os.path.join(root, 'mel', mayaVersion, '*.mel')):
-        mel.eval('source "%s"' % f)
+        pm.mel.source(f)
 
 # We need to override this two proc to avoid
 # errors because of the hardcoded code.
 def updateMayaImageFormatControl():
-    # mel.eval('source "createMayaSoftwareCommonGlobalsTab.mel";')
+    #pm.mel.source("createMayaSoftwareCommonGlobalsTab.mel")
     currentRenderer = utils.currentRenderer()
     if currentRenderer == 'mentalRay':
-        mel.eval('updateMentalRayImageFormatControl();')
+        pm.mel.updateMentalRayImageFormatControl()
     elif currentRenderer == 'arnold':
         mtoa.ui.globals.common.updateArnoldImageFormatControl()
     else:
-        mel.eval('updateMayaSoftwareImageFormatControl();')
+        pm.mel.updateMayaSoftwareImageFormatControl();
 
-    if currentRenderer != 'arnold' and mel.eval('getApplicationVersionAsFloat') >= 2009:
-        mel.eval('updateMultiCameraBufferNamingMenu();')
+    if currentRenderer != 'arnold' and pm.mel.getApplicationVersionAsFloat() >= 2009:
+        pm.mel.updateMultiCameraBufferNamingMenu();
 
 def renderSettingsTabLabel_melToUI(smel):
 
@@ -44,85 +43,83 @@ def renderSettingsTabLabel_melToUI(smel):
     result = smel
 
     if smel == 'Common':
-        result = mel.eval('uiRes("m_unifiedRenderGlobalsWindow.kCommon")')
+        result = pm.mel.uiRes("m_unifiedRenderGlobalsWindow.kCommon")
 
     elif smel == 'Passes':
-        result = mel.eval('uiRes("m_unifiedRenderGlobalsWindow.kPassesTab")')
+        result = pm.mel.uiRes("m_unifiedRenderGlobalsWindow.kPassesTab")
 
     elif smel == 'Maya Software':
-        result = mel.eval('uiRes("m_unifiedRenderGlobalsWindow.kMayaSoftware")')
+        result = pm.mel.uiRes("m_unifiedRenderGlobalsWindow.kMayaSoftware")
 
     elif smel == 'Maya Hardware':
-        result = mel.eval('uiRes("m_unifiedRenderGlobalsWindow.kMayaHardware")')
+        result = pm.mel.uiRes("m_unifiedRenderGlobalsWindow.kMayaHardware")
 
     elif smel == 'Maya Vector':
-        result = mel.eval('uiRes("m_unifiedRenderGlobalsWindow.kMayaVector")')
+        result = pm.mel.uiRes("m_unifiedRenderGlobalsWindow.kMayaVector")
 
     elif smel == 'Features':
-        result = mel.eval('uiRes("m_unifiedRenderGlobalsWindow.kFeatures")')
+        result = pm.mel.uiRes("m_unifiedRenderGlobalsWindow.kFeatures")
 
     elif smel == 'Quality':
-        result = mel.eval('uiRes("m_unifiedRenderGlobalsWindow.kQuality")')
+        result = pm.mel.uiRes("m_unifiedRenderGlobalsWindow.kQuality")
 
     elif smel == 'Indirect Lighting':
-        result = mel.eval('uiRes("m_unifiedRenderGlobalsWindow.kIndirectLighting")')
+        result = pm.mel.uiRes("m_unifiedRenderGlobalsWindow.kIndirectLighting")
 
     elif smel == 'Options':
-        result = mel.eval('uiRes("m_unifiedRenderGlobalsWindow.kOptions")')
+        result = pm.mel.uiRes("m_unifiedRenderGlobalsWindow.kOptions")
 
     else:
-        mel.eval('uiToMelMsg( "renderSettingsTabLabel_melToUI", "%s", 0)'%smel)
+        pm.mel.uiToMelMsg("renderSettingsTabLabel_melToUI", smel, 0)
 
     return result
 
 def addOneTabToGlobalsWindow(renderer, tabLabel, createProc):
     # Check to see if the unified render globals window existed.
     # If it does not exist, then we don't need to add any tab yet.
-    if not cmds.window('unifiedRenderGlobalsWindow', exists=True):
+    if not pm.window('unifiedRenderGlobalsWindow', exists=True):
         try:
-            cmds.error(mel.eval('uiRes("m_unifiedRenderGlobalsWindow.kCannotAddTabs")'))
+            pm.error(pm.mel.uiRes("m_unifiedRenderGlobalsWindow.kCannotAddTabs"))
         except:
             pass
         return
 
-    displayAllTabs = mel.eval('isDisplayingAllRendererTabs')
+    displayAllTabs = pm.mel.isDisplayingAllRendererTabs()
 
     # If the current renderer the renderer is not this
     # renderer, then don't add the tab yet.
     if not displayAllTabs and utils.currentRenderer() != renderer:
         return
 
-    cmds.setParent('unifiedRenderGlobalsWindow')
+    pm.setParent('unifiedRenderGlobalsWindow')
 
     # Hide the tabForm while updating.
-    tabFormManagedStatus = cmds.formLayout('tabForm', q=True, manage=True)
-    cmds.formLayout('tabForm', edit=True, manage=False)
-    cmds.setParent('tabForm')
+    tabFormManagedStatus = pm.formLayout('tabForm', q=True, manage=True)
+    pm.formLayout('tabForm', edit=True, manage=False)
+    pm.setParent('tabForm')
 
     # Set the correct tabLayout parent.
-    tabLayoutName = ''
     if displayAllTabs:
-        gMasterLayerRendererName = mel.eval('global string $gMasterLayerRendererName; $a_temps = $gMasterLayerRendererName')
-        tabLayoutName = mel.eval('getRendererTabLayout("%s")'%gMasterLayerRendererName)
+        tabLayoutName = pm.mel.getRendererTabLayout(pm.melGlobals['gMasterLayerRendererName'])
     else:
-        tabLayoutName = mel.eval('getRendererTabLayout("%s")'%(renderer))
+        tabLayoutName = pm.mel.getRendererTabLayout(renderer)
 
-    cmds.setParent(tabLayoutName)
+    pm.setParent(tabLayoutName)
 
     # The tabName is the tabLabel with the white space removed
     # and the word "Tab" added to the end.
     # "masterLayer" will act as the renderer name if the tab
     # is in the master layer.
-    tabName = mel.eval('rendererTabName("%s", "%s")'%(renderer, tabLabel))
+    tabName = pm.mel.rendererTabName(renderer, tabLabel)
 
     # if the tab-control does not exist, define it and add it
     # to the tabLayout
-    if not cmds.layout(tabName, exists=True):
-        cmds.setUITemplate('renderGlobalsTemplate', pushTemplate=True)
-        cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+    if not pm.layout(tabName, exists=True):
+        pm.setUITemplate('renderGlobalsTemplate', pushTemplate=True)
+        pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
 
         # Define the tab
-        cmds.formLayout(tabName)
+        pm.formLayout(tabName)
 
         # get the content of the tab from the createTabProc
 
@@ -134,37 +131,37 @@ def addOneTabToGlobalsWindow(renderer, tabLabel, createProc):
                           'createArnoldRendererGlobalsTab']
 
         if createProc in createProcs:
-            mel.eval(createProc)
+            pm.mel.eval(createProc)
 
         # These end off the layouts of the information in the Tab
-        cmds.setParent('..')
+        pm.setParent('..')
 
-        cmds.setUITemplate(popTemplate=True)
-        cmds.setUITemplate(popTemplate=True)
+        pm.setUITemplate(popTemplate=True)
+        pm.setUITemplate(popTemplate=True)
 
         # Add the tab to the tabLayout
-        cmds.tabLayout(tabLayoutName,
+        pm.tabLayout(tabLayoutName,
                        edit=True,
                        tabLabel=(tabName, renderSettingsTabLabel_melToUI(tabLabel)))
 
     # Restore the old manage status for the tabForm.
-    cmds.formLayout('tabForm', edit=True, manage=tabFormManagedStatus)
+    pm.formLayout('tabForm', edit=True, manage=tabFormManagedStatus)
 
 def arnoldAddGlobalsTabs():
-    cmds.renderer('arnold', edit=True, addGlobalsTab=('Common',
+    pm.renderer('arnold', edit=True, addGlobalsTab=('Common',
                                                       utils.pyToMelProc(createArnoldRendererCommonGlobalsTab, useName=True),
                                                       utils.pyToMelProc(updateArnoldRendererCommonGlobalsTab, useName=True)))
-    cmds.renderer('arnold', edit=True, addGlobalsTab=('Arnold Renderer',
+    pm.renderer('arnold', edit=True, addGlobalsTab=('Arnold Renderer',
                                                       utils.pyToMelProc(createArnoldRendererGlobalsTab, useName=True),
                                                       utils.pyToMelProc(updateArnoldRendererGlobalsTab, useName=True)))
 
 
 def registerArnoldRenderer():
-    cmds.createNode('aiOptions', skipSelect=True, shared=True, name='defaultArnoldRenderOptions')
+    pm.createNode('aiOptions', skipSelect=True, shared=True, name='defaultArnoldRenderOptions')
 
-    alreadyRegistered = cmds.renderer('arnold', exists=True)
+    alreadyRegistered = pm.renderer('arnold', exists=True)
     if not alreadyRegistered:
-        cmds.renderer('arnold',
+        pm.renderer('arnold',
                       rendererUIName='Arnold Renderer',
                       renderProcedure = utils.pyToMelProc(arnoldRender.arnoldRender,
                                                           [('int', 'width'), ('int', 'height'),
@@ -175,7 +172,7 @@ def registerArnoldRenderer():
                                                                     [('string', 'option')]),
                       batchRenderProcedure      = utils.pyToMelProc(arnoldRender.arnoldBatchRender,
                                                                     [('string', 'option')]),
-                      iprRenderProcedure        = utils.pyToMelProc(arnoldRender.arnoldIprRender, 
+                      iprRenderProcedure        = utils.pyToMelProc(arnoldRender.arnoldIprRender,
                                                                     [('int', 'width'), ('int', 'height'),
                                                                      ('int', 'doShadows'), ('int', 'doGlowPass'),
                                                                      ('string', 'camera')]),
@@ -191,7 +188,7 @@ def registerArnoldRenderer():
                                                                     [('string', 'renderPanel')]))
 
 
-        cmds.evalDeferred(arnoldAddGlobalsTabs)
+        pm.evalDeferred(arnoldAddGlobalsTabs)
 
         utils.pyToMelProc(addOneTabToGlobalsWindow,
                           [('string', 'renderer'), ('string', 'tabLabel'), ('string', 'createProc')],
@@ -207,15 +204,15 @@ def registerArnoldRenderer():
         _overrideMelScripts()
 
 
-        cmds.renderer('arnold', edit=True, addGlobalsNode='defaultArnoldRenderOptions')
+        pm.renderer('arnold', edit=True, addGlobalsNode='defaultArnoldRenderOptions')
 
         # Add an Arnold menu in Maya main window
-        if not cmds.about(b=1):
-            cmds.menu('ArnoldMenu', label='Arnold', parent='MayaWindow', tearOff=True )
-            cmds.menuItem('ArnoldStandIn', label='StandIn', parent='ArnoldMenu', subMenu=True)
-            cmds.menuItem('ArnoldCreateStandIn', parent='ArnoldStandIn', label="Create",
-                        c=lambda *args: cmds.createNode('aiStandIn', n='ArnoldStandInShape'))
-            cmds.menuItem('ArnoldExportStandIn', parent='ArnoldStandIn', label='Export', c=ArnoldExportRenderObjectWindow)
+        if not pm.about(b=1):
+            pm.menu('ArnoldMenu', label='Arnold', parent='MayaWindow', tearOff=True )
+            pm.menuItem('ArnoldStandIn', label='StandIn', parent='ArnoldMenu', subMenu=True)
+            pm.menuItem('ArnoldCreateStandIn', parent='ArnoldStandIn', label="Create",
+                        c=lambda *args: pm.createNode('aiStandIn', n='ArnoldStandInShape'))
+            pm.menuItem('ArnoldExportStandIn', parent='ArnoldStandIn', label='Export', c=ArnoldExportRenderObjectWindow)
 
             #cmds.menuItem(parent='ArnoldMenu', divider=True)
             # Add option box for file translator

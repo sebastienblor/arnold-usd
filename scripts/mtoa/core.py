@@ -2,7 +2,7 @@
 functions for dealing with mtoa node types and classifications
 '''
 
-import maya.cmds as cmds
+import pymel.core as pm
 import mtoa.utils as utils
 
 CATEGORY_TO_RUNTIME_CLASS = {
@@ -20,7 +20,7 @@ def _processClass(nodeType):
     
     e.g. from 'aiStandard' to ('arnold/shader/surface', 'asShader', 'Arnold/Shader/Surface')
     '''
-    for klass in cmds.getClassification(nodeType)[0].split(':'):
+    for klass in pm.getClassification(nodeType):
         if klass.startswith('arnold'):
             parts = klass.split('/')
             if len(parts) < 2:
@@ -71,8 +71,8 @@ def createArnoldNode(nodeType, name=None, skipSelect=False, runtimeClassificatio
         runtimeClassification = getRuntimeClass(nodeType)
     if runtimeClassification:
         kwargs[runtimeClassification] = True
-        node = cmds.shadingNode(nodeType, **kwargs)
+        node = pm.shadingNode(nodeType, **kwargs)
     else:
-        cmds.warning("[mtoa] Could not determine runtime classification of %s: set maya.classification metadata" % nodeType)
-        node = cmds.createNode(nodeType, **kwargs)
+        pm.warning("[mtoa] Could not determine runtime classification of %s: set maya.classification metadata" % nodeType)
+        node = pm.createNode(nodeType, **kwargs)
     return node

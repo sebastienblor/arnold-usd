@@ -11,8 +11,7 @@ options:
 
 """
 import mtoa.utils as utils
-import maya.cmds as cmds
-import maya.mel as mel
+import pymel.core as pm
 from mtoa.core import _processClass, createArnoldNode, isSubClassification
 from mtoa.callbacks import *
 from collections import namedtuple
@@ -27,12 +26,12 @@ NodeClassInfo = namedtuple('NodeClassInfo',
                             'nodeTypes'])
 CATEGORIES = ('shader', 'texture', 'light', 'utility')
 
-def isClassified(node, klass):
-    nodeType = cmds.nodeType(node)
-    return klass in cmds.getClassification(nodeType)
-
 global _typeInfoMap
 _typeInfoMap = ()
+
+def isClassified(node, klass):
+    nodeType = pm.nodeType(node)
+    return klass in pm.getClassification(nodeType)
 
 def getTypeInfo():
     '''
@@ -45,7 +44,7 @@ def getTypeInfo():
         tmpmap = {}
         nodeTypes = []
         for cat in CATEGORIES:
-            catTypes = cmds.listNodeTypes('arnold/' + cat)
+            catTypes = pm.listNodeTypes('arnold/' + cat)
             if catTypes :
                 nodeTypes.extend(catTypes)
         if nodeTypes:
@@ -76,7 +75,7 @@ def createArnoldNodesTreeLister_Content(renderNodeTreeLister, postCommand, filte
         if not filters or any([isSubClassification(staticClass, filter) for filter in filters]):
             for nodeType in nodeTypes:
                 command = Callback(createNodeCallback, runtimeClass, postCommand, nodeType)
-                cmds.nodeTreeLister(renderNodeTreeLister, e=True, add=[nodePath + '/' + nodeType, "render_%s.png" % nodeType, command])
+                pm.nodeTreeLister(renderNodeTreeLister, e=True, add=[nodePath + '/' + nodeType, "render_%s.png" % nodeType, command])
 
 
 def aiHyperShadeCreateMenu_BuildMenu():
@@ -99,7 +98,7 @@ def aiHyperShadeCreateMenu_BuildMenu():
         # skip unclassified
         if staticClass == 'arnold' or staticClass == 'arnold/shader':
             continue
-        cmds.menuItem(label = nodePath.replace('/', ' '), 
+        pm.menuItem(label = nodePath.replace('/', ' '), 
                       tearOff = True, subMenu = True)
         
         # call buildCreateSubMenu() to create the menu entries.  The specified 
@@ -108,17 +107,16 @@ def aiHyperShadeCreateMenu_BuildMenu():
         # node type, thereby completing the correct argument list for the 
         # creation routine.
         #
-        mel.eval('buildCreateSubMenu("%s", "%s %s \\"\\"");' % (staticClass,
-                                                                _createNodeCallbackProc,
-                                                                runtimeClass))
-        cmds.setParent('..', menu=True)
+        pm.mel.buildCreateSubMenu(staticClass, '%s %s ""' % (_createNodeCallbackProc,
+                                                             runtimeClass) )
+        pm.setParent('..', menu=True)
 
 def createNodeCallback(runtimeClassification, postCommand, nodeType):
 
     node = unicode(createArnoldNode(nodeType, runtimeClassification=runtimeClassification))
     if postCommand:
         postCommand = postCommand.replace('%node', node).replace('%type', nodeType)
-        mel.eval(postCommand)
+        pm.mel.eval(postCommand)
     return node
 
 _createNodeCallbackProc = utils.pyToMelProc(createNodeCallback, 
