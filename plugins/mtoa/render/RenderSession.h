@@ -55,7 +55,7 @@ public:
    /// Render into the Render View, not IPR.
    void DoInteractiveRender();
    /// Render in the background of Maya.
-   void DoBatchRender();
+   AtULong DoBatchRender();
    /// Export and ass file.
    /// \param customFileName file to export too.
    void DoExport(MString customFileName);

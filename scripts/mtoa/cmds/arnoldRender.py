@@ -30,7 +30,10 @@ def arnoldBatchRender(option):
                 break
             kwargs["camera"] = options[i]
         i += 1
-    cmds.arnoldRender(batch=True, **kwargs)
+    try:
+        cmds.arnoldRender(batch=True, **kwargs)
+    except RuntimeError, err:
+        print err
 
 def arnoldIprStart(editor, resolutionX, resolutionY, camera):
     # Make sure the aiOptions node exists

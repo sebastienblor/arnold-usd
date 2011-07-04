@@ -528,11 +528,11 @@ void CRenderSession::DoInteractiveRender()
 }
 
 
-void CRenderSession::DoBatchRender()
+AtULong CRenderSession::DoBatchRender()
 {
    SetupRenderOutput();
 
-   AiRender(AI_RENDER_MODE_CAMERA);
+   return AiRender(AI_RENDER_MODE_CAMERA);
 }
 
 void CRenderSession::DoExport(MString customFileName)

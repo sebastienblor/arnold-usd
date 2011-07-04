@@ -229,7 +229,13 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
             // It is ok to set the camera here, because if exportOptions.camera is unset
             // all the cameras are exported during Translate (above)
             renderSession->SetCamera(cameras[arrayIter]);
-            renderSession->DoBatchRender();
+
+            if (renderSession->DoBatchRender() != AI_SUCCESS)
+            {
+               renderSession->Finish();
+               MGlobal::displayError("[mtoa] Failed batch render");
+               return MS::kFailure;
+            }
          }
          renderSession->Finish();
          renderSession->ExecuteScript(renderGlobals.postRenderMel);
