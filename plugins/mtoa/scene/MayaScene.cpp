@@ -106,9 +106,15 @@ MStatus CMayaScene::ExportToArnold()
    // First "real" export
    if (exportMode == MTOA_EXPORT_ALL || exportMode == MTOA_EXPORT_IPR)
    {
-      // Cameras are always exported currently
-      status = ExportCameras();
-      // Then we filter them out to avoid double exporting them
+      if (m_exportOptions.camera.isValid())
+      {
+         m_exportOptions.camera.extendToShape();
+         ExportDagPath(m_exportOptions.camera);
+      }
+      else
+      {
+         status = ExportCameras();
+      }
       m_exportOptions.filter.excluded.insert(MFn::kCamera);
       if (filterSelected)
       {

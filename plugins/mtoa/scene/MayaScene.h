@@ -56,9 +56,11 @@ struct ExportOptions
 {
    ExportMode mode;
    ExportFilter filter;
+   MDagPath camera;
 
    ExportOptions() : mode(MTOA_EXPORT_UNDEFINED),
-                     filter(ExportFilter()) {}
+                     filter(ExportFilter()),
+                     camera() {}
 };
 
 // To allow to specify that a dag node gets filtered out,
@@ -135,6 +137,8 @@ public:
    inline void SetExportMode(ExportMode mode)            { m_exportOptions.mode = mode; }
    inline ExportFilter GetExportFilter()                 { return m_exportOptions.filter; }
    inline void SetExportFilter(ExportFilter& filter)     { m_exportOptions.filter = filter; }
+   inline MDagPath GetExportCamera()                     { return m_exportOptions.camera; }
+   inline void SetExportCamera(MDagPath camera)   { camera.extendToShape();m_exportOptions.camera = camera; }
 
    void ProcessShaderParameter(MFnDependencyNode shader,
                                const char* param,

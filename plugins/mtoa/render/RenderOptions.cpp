@@ -8,7 +8,6 @@
 #include <ai_nodes.h>
 #include <ai_universe.h>
 
-#include <maya/MFnDependencyNode.h>
 #include <maya/MFnEnumAttribute.h>
 #include <maya/MPlug.h>
 #include <maya/MPlugArray.h>
@@ -67,13 +66,9 @@ void CRenderOptions::UpdateImageFilename()
    {
 
       // get camera transform node for folder name
-      MSelectionList list;
-      MObject        node,parentNode;
-      list.add(GetCameraName());
-      list.getDependNode(0, node);
-      MFnDagNode camDag(node);
-      parentNode = camDag.parent(0);
-      MFnDagNode camDagParent(parentNode);
+      MFnDagNode camDag(GetCamera());
+      MFnDagNode camDagParent(camDag.parent(0));
+      // FIXME: could result in pipes being placed in the file name: path|to|camera
       nameCamera = camDagParent.name();
 
       if (MultiCameraRender())

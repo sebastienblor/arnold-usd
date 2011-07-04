@@ -8,6 +8,8 @@
 
 #include <maya/MString.h>
 #include <maya/MCommonRenderSettingsData.h>
+#include <maya/MFnDagNode.h>
+#include <maya/MDagPath.h>
 
 #include <vector>
 #include <set>
@@ -149,9 +151,9 @@ public:
       return m_imageFilename;
    }
 
-   void SetCameraName(MString name)
+   void SetCamera(MDagPath& camera)
    {
-      m_cameraName = name;
+      m_camera = camera;
    }
 
    void SetMultiCameraRender(bool multicam)
@@ -190,9 +192,14 @@ public:
       SetupImageOptions();
    }
 
+   MDagPath GetCamera() const
+   {
+      return m_camera;
+   }
+
    MString GetCameraName() const
    {
-      return m_cameraName;
+      return MFnDagNode(m_camera).name();
    }
 
    bool MultiCameraRender() const
@@ -346,7 +353,7 @@ private:
    AtFloat  m_byFrameStep;
    bool     m_batchMode;
    bool     m_multiCameraRender;
-   MString  m_cameraName;
+   MDagPath m_camera;
    MString  m_renderDriver;
    MString  m_imageFileExtension;
    MString  m_imageFilename;

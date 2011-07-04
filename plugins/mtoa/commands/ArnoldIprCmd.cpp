@@ -18,7 +18,7 @@ MSyntax CArnoldIprCmd::newSyntax()
    MSyntax syntax;
 
    syntax.addFlag("n", "node", MSyntax::kString);
-   syntax.addFlag("cam", "camera", MSyntax::kString);
+   syntax.addFlag("cam", "camera", MSyntax::kSelectionItem);
    syntax.addFlag("w", "width", MSyntax::kUnsigned);
    syntax.addFlag("h", "height", MSyntax::kUnsigned);
    syntax.addFlag("m", "mode", MSyntax::kString);
@@ -51,7 +51,7 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
    MString mode = args.flagArgumentString("mode", 0);
    int width  = args.isFlagSet("width") ? args.flagArgumentInt("width", 0) : -1;
    int height = args.isFlagSet("height") ? args.flagArgumentInt("height", 0) : -1;
-   MString camera = args.flagArgumentString("camera", 0);
+
    // TODO: get the "selected" flag here
    ExportOptions exportOptions;
    exportOptions.mode = MTOA_EXPORT_IPR;
@@ -59,6 +59,10 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
    // What mode are we in?
    if (mode == "start")
    {
+      MSelectionList sel;
+      args.getFlagArgument("camera", 0, sel);
+      status = sel.getDagPath(0, exportOptions.camera);
+
       // Just incase we were rendering already.
       renderSession->Finish();
 
@@ -74,7 +78,7 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
 
       // Set resolution and camera as passed in.
       renderSession->SetResolution(width, height);
-      renderSession->SetCamera(camera);
+
       // No need to call render as Maya sends us "unpause" next.
 
    }
@@ -99,14 +103,14 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
       const AtInt width = renderSession->RenderOptions()->width();
       const AtInt height = renderSession->RenderOptions()->height();
       // Same deal for the camera.
-      const MString camera = renderSession->RenderOptions()->GetCameraName();
+      exportOptions.camera = renderSession->RenderOptions()->GetCamera();
       // Set the export mode to IPR
       // FIXME: do we really need to reset options and do a full translation each time?
       // Re-translate.
       renderSession->Translate(exportOptions);
       // Restore the resolution and camera.
       renderSession->SetResolution(width, height);
-      renderSession->SetCamera(camera);
+
       // Start off the render.
       renderSession->DoIPRRender();
    }
@@ -138,7 +142,10 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
       {
             renderSession->SetResolution(width, height);
       }
-
+      MSelectionList sel;
+      args.getFlagArgument("camera", 0, sel);
+      MDagPath camera;
+      status = sel.getDagPath(0, camera);
       // Set the render session camera.
       renderSession->SetCamera(camera);
 

@@ -99,7 +99,7 @@ public:
    /// \param height height in pixels.
    void SetResolution(const int width, const int height);
    /// Set the the camera to render.
-   void SetCamera(MString cameraNode);
+   void SetCamera(MDagPath& cameraNode);
    void SetMultiCameraRender(bool multi);
    void SetProgressive(bool is_progressive);
    void SetRegion(const AtUInt left,const AtUInt right,

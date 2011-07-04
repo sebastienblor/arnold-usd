@@ -4,6 +4,7 @@
 #include <maya/MPxCommand.h>
 #include <maya/MSyntax.h>
 #include <maya/MCommonRenderSettingsData.h>
+#include <maya/MDagPath.h>
 
 #include <ai_bbox.h>
 
@@ -19,7 +20,7 @@ public:
    }
 
    static MSyntax newSyntax();
-   static MString GetCameraName();
+   static MDagPath GetCamera();
    void SetBatch(bool batch) {m_batch = batch;}
    bool IsBatch() const {return m_batch;}
    MStatus doIt(const MArgList& argList);
