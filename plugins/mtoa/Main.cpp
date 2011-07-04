@@ -1,5 +1,5 @@
 #include "platform/Platform.h"
-#include "utils/MtoaLog.h"
+#include "utils/Universe.h"
 
 #include "commands/ArnoldAssTranslator.h"
 #include "commands/ArnoldExportAssCmd.h"
@@ -323,8 +323,12 @@ DLLEXPORT MStatus initializePlugin(MObject object)
 
    MFnPlugin plugin(object, MTOA_VENDOR, MTOA_VERSION, MAYA_VERSION);
 
-   AiBegin();
-   MtoaSetupLogging();
+   // Load metadata for builtin (mtoa.mtd)
+   MString loadpath = plugin.loadPath();
+   MString metafile = loadpath + "/" + "mtoa.mtd";
+   SetMetafile(metafile);
+
+   const bool callEnd = InitArnoldUniverse();
 
    // TODO: Add proper checking and handling of returned status
    status = plugin.registerCommand("arnoldRender", CArnoldRenderCmd::creator, CArnoldRenderCmd::newSyntax);
@@ -337,13 +341,6 @@ DLLEXPORT MStatus initializePlugin(MObject object)
          CArnoldAssTranslator::optionScript,
          CArnoldAssTranslator::optionDefault,
          false);
-
-   // Load metadata for builtin (mtoa.mtd)
-   // const char* metafile = "/usr/solidangle/mtoadeploy/2011/plug-ins/mtoa.mtd";
-   MString loadpath = plugin.loadPath();
-   MString metafile = loadpath + "/" + "mtoa.mtd";
-   AtBoolean readMetaSuccess = AiMetaDataLoadFile(metafile.asChar());
-   if (!readMetaSuccess) AiMsgError("[mtoa] Could not read mtoa built-in metadata file mtoa.mtd");
 
    RegisterArnoldNodes(object);
 
@@ -358,7 +355,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
       AiMsgError("Failed to register renderer 'arnold'");
    }
 
-   AiEnd();
+   if (callEnd) AiEnd();
 
    return status;
 }
@@ -368,8 +365,7 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
    MStatus status;
    MFnPlugin plugin(object);
 
-   AiBegin();
-   MtoaSetupLogging();
+   const bool callEnd = InitArnoldUniverse();
 
    status = MGlobal::executePythonCommand(MString("import mtoa.cmds.unregisterArnoldRenderer;mtoa.cmds.unregisterArnoldRenderer.unregisterArnoldRenderer()"), true, false);
    CHECK_MSTATUS(status);
@@ -384,7 +380,7 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
    status = plugin.deregisterFileTranslator(CArnoldAssTranslator::fileType);
 
    AiMsgResetCallback();
-   AiEnd();
+   if (callEnd) AiEnd();
 
    return status;
 }

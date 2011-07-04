@@ -1,4 +1,4 @@
-#include "utils/MtoaLog.h"
+#include "utils/Universe.h"
 #include "RenderSession.h"
 #include "RenderOptions.h"
 #include "OutputDriver.h"
@@ -150,6 +150,7 @@ void CRenderSession::Translate(ExportOptions& options)
 
    // Begin the Arnold universe.
    AiBegin();
+   ReadMetafile();
    Init(options);
    // TODO: should use the list of loaded plugins from CExtensionsManager instead
    LoadPlugins();

@@ -2,7 +2,7 @@
 #include "ExtensionsManager.h"
 #include "AbMayaNode.h"
 
-#include "utils/MtoaLog.h"
+#include "utils/Universe.h"
 
 #include <ai_plugins.h>
 #include <ai_universe.h>
@@ -693,16 +693,7 @@ void CExtensionsManager::MayaPluginLoadedCallback(const MStringArray &strs, void
    MString pluginName = strs[1];
    std::string plugin_str(pluginName.asChar());
    // start up the arnold universe so that attribute helpers can query arnold nodes
-   bool active = false;
-   if (AiUniverseIsActive())
-   {
-      active = true;
-   }
-   else
-   {
-      AiBegin();
-      MtoaSetupLogging();
-   }
+   bool callEnd = InitArnoldUniverse();
    ExtensionsList::iterator extIt;
    for (extIt = s_extensions.begin();
          extIt != s_extensions.end();
@@ -715,10 +706,7 @@ void CExtensionsManager::MayaPluginLoadedCallback(const MStringArray &strs, void
          RegisterExtension(&(*extIt));
       }
    }
-   if (!active)
-   {
-      AiEnd();
-   }
+   if (callEnd) AiEnd();
 }
 
 /// Installs the plugin-loaded callback
