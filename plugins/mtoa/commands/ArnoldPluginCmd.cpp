@@ -13,7 +13,7 @@
 MSyntax CArnoldPluginCmd::newSyntax()
 {
    MSyntax syntax;
-   syntax.addFlag("lst", "listTranslators", MSyntax::kSelectionItem);
+   syntax.addFlag("lst", "listTranslators", MSyntax::kString);
    syntax.addFlag("le", "loadExtension", MSyntax::kString);
    syntax.addFlag("ule", "unloadExtension", MSyntax::kString);
    syntax.addFlag("gad", "getAttrData", MSyntax::kString);
@@ -25,29 +25,10 @@ MStatus CArnoldPluginCmd::doIt(const MArgList& argList)
    MArgDatabase args(syntax(), argList);
    if (args.isFlagSet("listTranslators"))
    {
-      MSelectionList sel;
-      args.getFlagArgument("listTranslators", 0, sel);
-      MStatus status;
-      MStringArray result;
-      MObject obj;
-      MDagPath dagPath;
-      status = sel.getDagPath(0, dagPath);
-      if (status == MS::kSuccess)
-      {
-         obj = dagPath.node();
-      }
-      else
-      {
-         status = sel.getDependNode(0, obj);
-      }
-      if (!obj.isNull())
-      {
-         MString typeName = MFnDependencyNode(obj).typeName();
-         // Can also request only those from a specific extension
-         // with GetTranslatorNames(typeName, provider)
-         result = CExtensionsManager::GetTranslatorNames(typeName);
-      }
-      setResult(result);
+      MString typeName = args.flagArgumentString("listTranslators", 0);
+      // Can also request only those from a specific extension
+      // with GetTranslatorNames(typeName, provider)
+      setResult(CExtensionsManager::GetTranslatorNames(typeName));
    }
    else if (args.isFlagSet("loadExtension", 0))
    {

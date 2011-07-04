@@ -1,18 +1,19 @@
 import maya.cmds as cmds
-from mtoa.ui.ae.customShapeAttributes import commonShapeAttributes
+from mtoa.ui.ae.customShapeAttributes import commonShapeAttributes, renderStatsAttributes
 from mtoa.ui.ae.shapeTemplate import registerUI
 
 @registerUI("shaveHair")
-def builtin_hairSystem(nodeName):
-    commonShapeAttributes(nodeName)
-    cmds.editorTemplate(addSeparator=True)
+def builtin_hairSystem(ui):
+    renderStatsAttributes(ui)
+    commonShapeAttributes(ui)
+    ui.addSeparator()
 
-    cmds.editorTemplate("aiExportHairColors", label="Export Hair Colors", addDynamicControl=True)
-    cmds.editorTemplate("aiExportHairIDs", label="Export Hair IDs", addDynamicControl=True)
-    cmds.editorTemplate("aiOverrideHair", label="Override Hair", addDynamicControl=True)
-    cmds.editorTemplate("aiHairShader", label="Hair Shader", addDynamicControl=True)
+    ui.addAttribute("aiOverrideHair")
+    ui.addAttribute("aiHairShader")
 
-    cmds.editorTemplate(addSeparator=True)
+    ui.addSeparator()
 
+    ui.addAttribute("aiMinPixelWidth")
+    ui.addAttribute("aiMode")
     cmds.editorTemplate("aiMinPixelWidth", label="Min Pixel Width", addDynamicControl=True)
     cmds.editorTemplate("aiMode", label="Mode", addDynamicControl=True)
