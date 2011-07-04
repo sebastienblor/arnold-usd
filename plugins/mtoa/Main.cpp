@@ -175,7 +175,7 @@ namespace // <anonymous>
        builtin->RegisterTranslator("ambientLight",
                                    "",
                                    CAmbientLightTranslator::creator,
-                                   CLightTranslator::NodeInitializer);
+                                   CAmbientLightTranslator::NodeInitializer);
        builtin->RegisterTranslator("aiSkyDomeLight",
                                    "",
                                    CSkyDomeLightTranslator::creator,

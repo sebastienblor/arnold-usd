@@ -1,6 +1,6 @@
 import maya.cmds as cmds
 import maya.OpenMaya as om
-import mtoa.ui.ae.lightFiltersTemplate as lightFiltersTemplate
+import mtoa.ui.ae.lightTemplate as lightTemplate
 from mtoa.ui.ae.utils import aeCallback
 from mtoa.ui.ae.shapeTemplate import registerUI, registerDefaultTranslator, ArnoldTranslatorTemplate, registerTranslatorUI
 import mtoa.callbacks as callbacks
@@ -86,61 +86,71 @@ def builtin_hairSystem(ui):
     ui.addAttribute("aiMinPixelWidth")
     ui.addAttribute("aiMode")
 
-@registerUI("ambientLight")
-def builtin_ambientLight(ui):
-    commonLightAttributes(ui)
+class AmbientLightTemplate(lightTemplate.LightTemplate):
+    # TODO: handle filter association via metadata
+    def validFilters(self):
+        return ['aiLightBlocker', 'aiLightDecay']
 
-@registerUI("directionalLight")
-def builtin_directionalLight(ui):
-    ui.addAttribute("aiCastShadows")
-    ui.addAttribute("aiExposure")
-    ui.addAttribute("aiAngle")
-    ui.addAttribute("aiSamples")
-    ui.addAttribute("aiMis", label="Multiple Importance Sampling")
-    ui.addSeparator()
-    commonLightAttributes(ui);
+    def setup(self):
+        self.commonLightAttributes()
+registerTranslatorUI(AmbientLightTemplate, "ambientLight")
 
-@registerUI("pointLight")
-def builtin_pointLight(ui):
-    ui.addAttribute("aiCastShadows")
-    ui.addAttribute("aiExposure")
-    ui.addAttribute("aiRadius")
-    ui.addAttribute("aiSamples")
-    ui.addAttribute("aiMis", label="Multiple Importance Sampling")
-    ui.addSeparator()
-    ui.addAttribute("aiAffectVolumetrics")
-    ui.addAttribute("aiCastVolumetricShadows")
-    ui.addSeparator()
-    commonLightAttributes(ui);
+class DirectionalLightTemplate(lightTemplate.LightTemplate):
+    # TODO: handle filter association via metadata
+    def validFilters(self):
+        return ['aiLightBlocker']
+    def setup(self):
+        self.addAttribute("aiCastShadows")
+        self.addAttribute("aiExposure")
+        self.addAttribute("aiAngle")
+        self.addAttribute("aiSamples")
+        self.addAttribute("aiMis", label="Multiple Importance Sampling")
+        self.addSeparator()
+        self.commonLightAttributes()
+registerTranslatorUI(DirectionalLightTemplate, "directionalLight")
 
-@registerUI("spotLight")
-def builtin_spotLight(ui):
-    ui.addAttribute("aiCastShadows")
-    ui.addAttribute("aiExposure")
-    ui.addAttribute("aiRadius")
-    ui.addAttribute("aiSamples")
-    ui.addAttribute("aiMis", label="Multiple Importance Sampling")
-    ui.addSeparator()
-    ui.addAttribute("aiAffectVolumetrics")
-    ui.addAttribute("aiCastVolumetricShadows")
-    ui.addSeparator()
-    ui.addAttribute("aiAspectRatio")
-    ui.addAttribute("aiLensRadius")
-    ui.addSeparator()
-    commonLightAttributes(ui);
+class PointLightTemplate(lightTemplate.LightTemplate):
+    # TODO: handle filter association via metadata
+    def validFilters(self):
+        return ['aiLightBlocker', 'aiLightDecay']
+    def setup(self):
+        self.addAttribute("aiCastShadows")
+        self.addAttribute("aiExposure")
+        self.addAttribute("aiRadius")
+        self.addAttribute("aiSamples")
+        self.addAttribute("aiMis", label="Multiple Importance Sampling")
+        self.addSeparator()
+        self.addAttribute("aiAffectVolumetrics")
+        self.addAttribute("aiCastVolumetricShadows")
+        self.addSeparator()
+        self.commonLightAttributes()
+registerTranslatorUI(PointLightTemplate, "pointLight")
 
-@registerUI("areaLight")
-def builtin_areaLight(ui):
-    ui.addAttribute("aiCastShadows")
-    ui.addAttribute("aiExposure")
-    ui.addAttribute("aiSamples")
-    ui.addAttribute("aiMis", label="Multiple Importance Sampling")
-    ui.addSeparator()
-    ui.addAttribute("aiResolution")
-    ui.addAttribute("aiAffectVolumetrics")
-    ui.addAttribute("aiCastVolumetricShadows")
-    ui.addSeparator()
-    commonLightAttributes(ui)
+class SpotLightTemplate(lightTemplate.LightTemplate):
+    # TODO: handle filter association via metadata
+    def validFilters(self):
+        return ['aiLightBlocker', 'aiLightDecay', 'aiBarndoor', 'aiGobo']
+    def setup(self):
+        self.addAttribute("aiCastShadows")
+        self.addAttribute("aiExposure")
+        self.addAttribute("aiRadius")
+        self.addAttribute("aiSamples")
+        self.addAttribute("aiMis", label="Multiple Importance Sampling")
+
+        self.addSeparator()
+
+        self.addAttribute("aiAffectVolumetrics")
+        self.addAttribute("aiCastVolumetricShadows")
+
+        self.addSeparator()
+
+        self.addAttribute("aiAspectRatio")
+        self.addAttribute("aiLensRadius")
+
+        self.addSeparator()
+
+        self.commonLightAttributes()
+registerTranslatorUI(SpotLightTemplate, "spotLight")
 
 class CameraTemplate(ArnoldTranslatorTemplate):
     def addDOFAttributes(self):
@@ -158,7 +168,30 @@ class PerspCameraTemplate(CameraTemplate):
         self.addSeparator()
         self.addAttribute('aiUvRemap')
 
-registerTranslatorUI(PerspCameraTemplate, "camera", "perspective")
+registerTranslatorUI(SpotLightTemplate, "spotLight")
+
+class AreaLightTemplate(lightTemplate.LightTemplate):
+    # TODO: handle filter association via metadata
+    def validFilters(self):
+        return ['aiLightBlocker', 'aiLightDecay']
+
+    def setup(self):
+        self.addAttribute("aiCastShadows")
+        self.addAttribute("aiExposure")
+        self.addAttribute("aiSamples")
+        self.addAttribute("aiMis", label="Multiple Importance Sampling")
+
+        self.addSeparator()
+
+        self.addAttribute("aiResolution")
+        self.addAttribute("aiAffectVolumetrics")
+        self.addAttribute("aiCastVolumetricShadows")
+
+        self.addSeparator()
+
+        self.commonLightAttributes()
+
+registerTranslatorUI(AreaLightTemplate, "areaLight")
 
 class OrthographicTemplate(CameraTemplate):
     def setup(self):

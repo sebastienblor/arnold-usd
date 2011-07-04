@@ -103,7 +103,7 @@ def _updateExistingNodes(nodeType, func):
         if nodeIt.isDone():
             break
 
-def addAttributeChangedCallback(func, nodeType, attribute):
+def addAttributeChangedCallback(func, nodeType, attribute, applyToExisting=True):
     """
     add an attribute changed callback for all current and future nodes of the given type
 
@@ -115,6 +115,8 @@ def addAttributeChangedCallback(func, nodeType, attribute):
         type of node to install attribute changed callbacks for 
     attribute : string
         name of attribute without leading period ('.')
+    applyToExisting : boolean
+        whether to apply the function to existing nodes
     """
     global _attrChangedCallbacks
     nodeAddedCallback = _makeAttributeChangedCallback(nodeType)
@@ -125,7 +127,7 @@ def addAttributeChangedCallback(func, nodeType, attribute):
     _attrChangedCallbacks[nodeType][attribute] = func
 
     # setup callback for existing nodes
-    if not om.MFileIO.isOpeningFile():
+    if applyToExisting and not om.MFileIO.isOpeningFile():
         _updateExistingNodes(nodeType, nodeAddedCallback)
 
 def addAttributeChangedCallbacks(nodeType, attrFuncs):

@@ -2,10 +2,11 @@ import maya.cmds as cmds
 import mtoa.utils as utils
 
 CATEGORY_TO_RUNTIME_CLASS = {
-                'shader':       'asShader',
-                'texture':      'asTexture',
-                'light':        'asLight',
-                'utility':      'asUtility',
+                ('shader',):            'asShader',
+                ('texture',):           'asTexture',
+                ('light',):             'asLight',
+                ('light', 'filter'):    'asUtility',
+                ('utility',):           'asUtility',
                 }
 
 def _processClass(nodeType):
@@ -21,10 +22,19 @@ def _processClass(nodeType):
             if len(parts) < 2:
                 return (klass, 'asUtility', 'Arnold')
             else :
-                #labelName = node.replace('/', '|')
-                return (klass,
-                        CATEGORY_TO_RUNTIME_CLASS.get(parts[1], 'asUtility'),
-                        '/'.join([utils.prettify(x) for x in parts]))
+                label = '/'.join([utils.prettify(x) for x in parts])
+                cat = 'asUtility'
+                # find a runtime classification. try matching from most specific to most generic
+                # first token is always 'arnold':
+                parts.pop(0)
+                while parts:
+                    try:
+                        cat = CATEGORY_TO_RUNTIME_CLASS[tuple(parts)]
+                    except KeyError:
+                        parts.pop(-1)
+                    else:
+                        break
+                return (klass, cat, label)
     return (None, None, None)
 
 def getRuntimeClass(nodeType):

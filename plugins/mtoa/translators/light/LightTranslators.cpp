@@ -14,6 +14,12 @@ void CAmbientLightTranslator::Export(AtNode* light)
    CLightTranslator::Export(light);
 }
 
+void CAmbientLightTranslator::NodeInitializer(MString nodeClassName)
+{
+   CExtensionAttrHelper helper = CExtensionAttrHelper(nodeClassName, "ambient_light");
+   MakeCommonAttributes(helper);
+}
+
 // DirectionalLight
 //
 
@@ -29,21 +35,9 @@ void CDirectionalLightTranslator::NodeInitializer(MString nodeClassName)
 {
    CExtensionAttrHelper helper = CExtensionAttrHelper(nodeClassName, "distant_light");
    // common attributes
-   helper.MakeInput("cast_shadows");
-   helper.MakeInput("exposure");
-   helper.MakeInput("angle");
-   helper.MakeInput("samples");
-   helper.MakeInput("mis");
-   helper.MakeInput("normalize");
-   helper.MakeInput("bounce_factor");
-   helper.MakeInput("bounces");
-   CAttrData data;
-   data.defaultValue.BOOL = false;
-   data.name = "aiOverrideSssSamples";
-   data.shortName = "ai_oss";
-   helper.MakeInputBoolean(data);
-   helper.MakeInput("sss_samples");
+   MakeCommonAttributes(helper);
    // directional light attributes
+   helper.MakeInput("angle");
 }
 // PointLight
 //
@@ -65,23 +59,11 @@ void CPointLightTranslator::NodeInitializer(MString nodeClassName)
 {
    CExtensionAttrHelper helper = CExtensionAttrHelper(nodeClassName, "point_light");
    // common attributes
-   helper.MakeInput("cast_shadows");
-   helper.MakeInput("exposure");
-   helper.MakeInput("radius");
-   helper.MakeInput("samples");
-   helper.MakeInput("mis");
-   helper.MakeInput("normalize");
-   helper.MakeInput("bounce_factor");
-   helper.MakeInput("bounces");
-   CAttrData data;
-   data.defaultValue.BOOL = false;
-   data.name = "aiOverrideSssSamples";
-   data.shortName = "ai_oss";
-   helper.MakeInputBoolean(data);
-   helper.MakeInput("sss_samples");
+   MakeCommonAttributes(helper);
    // point light attributes
    helper.MakeInput("affect_volumetrics");
    helper.MakeInput("cast_volumetric_shadows");
+   helper.MakeInput("radius");
 }
 
 // SpotLight
@@ -111,24 +93,12 @@ void CSpotLightTranslator::NodeInitializer(MString nodeClassName)
 {
    CExtensionAttrHelper helper = CExtensionAttrHelper(nodeClassName, "spot_light");
    // common attributes
-   helper.MakeInput("cast_shadows");
-   helper.MakeInput("exposure");
-   helper.MakeInput("radius");
-   helper.MakeInput("samples");
-   helper.MakeInput("mis");
-   helper.MakeInput("normalize");
-   helper.MakeInput("bounce_factor");
-   helper.MakeInput("bounces");
-   CAttrData data;
-   data.defaultValue.BOOL = false;
-   data.name = "aiOverrideSssSamples";
-   data.shortName = "ai_oss";
-   helper.MakeInputBoolean(data);
-   helper.MakeInput("sss_samples");
+   MakeCommonAttributes(helper);
    // spot light attributes
    helper.MakeInput("affect_volumetrics");
    helper.MakeInput("cast_volumetric_shadows");
    helper.MakeInput("aspect_ratio");
+   helper.MakeInput("radius");
    helper.MakeInput("lens_radius");
 }
 
@@ -157,19 +127,7 @@ void CAreaLightTranslator::NodeInitializer(MString nodeClassName)
 {
    CExtensionAttrHelper helper(nodeClassName, "quad_light");
    // common attributes
-   helper.MakeInput("cast_shadows");
-   helper.MakeInput("exposure");
-   helper.MakeInput("samples");
-   helper.MakeInput("mis");
-   helper.MakeInput("normalize");
-   helper.MakeInput("bounce_factor");
-   helper.MakeInput("bounces");
-   CAttrData data;
-   data.defaultValue.BOOL = false;
-   data.name = "aiOverrideSssSamples";
-   data.shortName = "ai_oss";
-   helper.MakeInputBoolean(data);
-   helper.MakeInput("sss_samples");
+   MakeCommonAttributes(helper);
    // spot light attributes
    helper.MakeInput("resolution");
    helper.MakeInput("affect_volumetrics");
@@ -210,17 +168,5 @@ void CSkyDomeLightTranslator::NodeInitializer(MString nodeClassName)
 {
    CExtensionAttrHelper helper(nodeClassName, "skydome_light");
    // Cannot be created both on Node and here
-   helper.MakeInput("cast_shadows");
-   helper.MakeInput("exposure");
-   helper.MakeInput("samples");
-   helper.MakeInput("mis");
-   helper.MakeInput("normalize");
-   helper.MakeInput("bounce_factor");
-   helper.MakeInput("bounces");
-   CAttrData data;
-   data.defaultValue.BOOL = false;
-   data.name = "aiOverrideSssSamples";
-   data.shortName = "ai_oss";
-   helper.MakeInputBoolean(data);
-   helper.MakeInput("sss_samples");
+   MakeCommonAttributes(helper);
 }

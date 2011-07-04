@@ -23,6 +23,7 @@ AtParamValue MAiParamGetDefault(const AtNodeEntry *entry, const AtParamEntry* pa
    }
    switch (type)
    {
+      case AI_TYPE_ENUM:
       case AI_TYPE_INT:
       {
          AtInt result;
@@ -132,7 +133,6 @@ AtParamValue MAiParamGetDefault(const AtNodeEntry *entry, const AtParamEntry* pa
          }
          break;
       }
-      case AI_TYPE_ENUM:
       case AI_TYPE_NODE:
       case AI_TYPE_MATRIX:
          break;
