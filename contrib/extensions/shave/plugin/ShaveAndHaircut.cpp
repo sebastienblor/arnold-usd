@@ -239,7 +239,7 @@ void CShaveTranslator::ExportMotion(AtNode* curve, AtUInt step)
    ExportMatrix(curve, step);
 
    // Same for object deformation, early out if it's not set.
-   if (!IsDeformMotionBlurEnabled()) return;
+   if (!IsMotionBlurEnabled(MTOA_MBLUR_DEFORM)) return;
 
    // Bail early if we've trouble getting data from Shave.
    if (UpdateHairInfo() != MS::kSuccess) return;
