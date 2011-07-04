@@ -760,13 +760,8 @@ void CProjectionTranslator::Export(AtNode* shader)
    if (connections.length() >= 1 && typePlug.asInt() == 8)
    {
       MObject camObj = connections[0].node();
-
       MFnCamera cam(camObj);
-
-      MDagPath camPath;
-      cam.getPath(camPath);
-
-      AiNodeSetStr(shader, "cameraName", cam.name().asChar());
+      ProcessParameter(shader, "linkedCamera", AI_TYPE_NODE);
       AiNodeSetFlt(shader, "cameraNearPlane", static_cast<float>(cam.nearClippingPlane()));
       AiNodeSetFlt(shader, "cameraHorizontalFOV", static_cast<float>(cam.horizontalFieldOfView()));
       AiNodeSetFlt(shader, "cameraAspectRatio", static_cast<float>(cam.aspectRatio()));

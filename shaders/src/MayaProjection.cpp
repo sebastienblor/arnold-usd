@@ -31,7 +31,7 @@ enum MayaProjectionParams
    p_placement_matrix,
    p_fit_type,
    p_fill_type,
-   p_camera_name,
+   p_linked_camera,
    p_camera_near,
    p_camera_hfov,
    p_camera_aspect
@@ -346,7 +346,7 @@ node_parameters
    AiParameterMTX("placementMatrix", AI_M4_IDENTITY);
    AiParameterENUM("fitType", 1, gs_FitTypeNames);
    AiParameterENUM("fillType", 0, gs_FillTypeNames);
-   AiParameterSTR("cameraName", "");
+   AiParameterNODE("linkedCamera", NULL);
    AiParameterFLT("cameraNearPlane", 1.0f);
    AiParameterFLT("cameraHorizontalFOV", 0.97738438111682457f); // 56 degrees
    AiParameterFLT("cameraAspectRatio", 1.0f);
@@ -374,9 +374,9 @@ node_update
 
    data->camera = AiUniverseGetCamera();
    
-   const char *cameraName = AiNodeGetStr(node, "cameraName");
-   if (strcmp(cameraName, "") != 0) // Use a custom camera for the perspective projection
-      data->camera = AiNodeLookUpByName(cameraName);
+   AtNode *camera = (AtNode*)AiNodeGetPtr(node, "cameraName");
+   if (camera != NULL) // Use a custom camera for the perspective projection
+      data->camera = camera;
 
    data->image_aspect = 1.0f;
    AtNode *n = AiNodeGetLink(node, "image");
