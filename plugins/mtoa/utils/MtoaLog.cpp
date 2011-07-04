@@ -8,10 +8,10 @@ AtInt GetFlagsFromVerbosityLevel(AtUInt level)
    {
    case 6:  flags = AI_LOG_ALL; break;
    case 5:  flags = AI_LOG_ALL & ~AI_LOG_DEBUG; break;
-   case 4:  flags |= AI_LOG_PLUGINS;
-   case 3:  flags |= AI_LOG_STATS;
-   case 2:  flags |= AI_LOG_PROGRESS;
-   case 1:  flags |= AI_LOG_INFO | AI_LOG_WARNINGS | AI_LOG_ERRORS | AI_LOG_TIMESTAMP | AI_LOG_BACKTRACE | AI_LOG_MEMORY; break;
+   case 4:  flags |= AI_LOG_PROGRESS | AI_LOG_PLUGINS | AI_LOG_STATS;
+   case 3:  flags |= AI_LOG_INFO;
+   case 2:  flags |= AI_LOG_WARNINGS;
+   case 1:  flags |= AI_LOG_ERRORS | AI_LOG_TIMESTAMP | AI_LOG_BACKTRACE | AI_LOG_MEMORY; break;
    case 0:  flags = 0; break;
    }
 
