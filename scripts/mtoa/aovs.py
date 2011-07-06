@@ -146,7 +146,7 @@ class AOVNode(object):
 def getActiveAOVs():
     return getAOVNode().getActiveAOVs()
 
-def getActiveAOVNodes(names=False):
+def getActiveAOVNodes(self, names=False):
     return getAOVNode().getActiveAOVNodes(names)
 
 def getAOVMap():

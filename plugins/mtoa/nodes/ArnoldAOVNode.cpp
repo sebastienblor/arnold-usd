@@ -63,10 +63,12 @@ MStatus CArnoldAOVNode::initialize()
 
    s_imageFormat = tAttr.create("imageFormat", "img", MFnData::kString);
    tAttr.setKeyable(false);
+   tAttr.setDefault(sData.create(""));
    addAttribute(s_imageFormat);
 
    s_filterType = tAttr.create("filterType", "fltr", MFnData::kString);
    tAttr.setKeyable(false);
+   tAttr.setDefault(sData.create(""));
    addAttribute(s_filterType);
    return MStatus::kSuccess;
 }

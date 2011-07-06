@@ -121,9 +121,9 @@ void CAOV::SetupOutput(AtArray *outputs, int i, CMayaScene *scene, AtNode *defau
 
    // Filter
    AtNode* filter;
-   MString filterType = fnNode.findPlug("filterType").asString();
+   MString filterType = fnNode.findPlug("filterType", true).asString();
    MString filterName;
-   if (filterType == "<Use Globals>")
+   if (filterType == "<Use Globals>" || filterType == "")
    {
       // use default filter
       filter = defaultFilter;
@@ -131,7 +131,7 @@ void CAOV::SetupOutput(AtArray *outputs, int i, CMayaScene *scene, AtNode *defau
    }
    else
    {
-      filter = scene->ExportFilter(m_object, filterType);
+      AtNode* filter = scene->ExportFilter(m_object, filterType);
       MString nodeTypeName = AiNodeEntryGetName(filter->base_node);
       filterName = nodeTypeName + "_" + m_name;
       AiNodeSetStr(filter, "name", filterName.asChar());
@@ -139,8 +139,8 @@ void CAOV::SetupOutput(AtArray *outputs, int i, CMayaScene *scene, AtNode *defau
 
    // Driver
    AtNode *driver;
-   MString driverType = fnNode.findPlug("imageFormat").asString();
-   if (driverType == "<Use Globals>")
+   MString driverType = fnNode.findPlug("imageFormat", true).asString();
+   if (driverType == "<Use Globals>" || driverType == "")
       // create a copy of the default driver for this AOV (this is a deep copy)
       driver = AiNodeClone(defaultDriver);
    else

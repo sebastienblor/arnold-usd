@@ -27,6 +27,8 @@
 #include <direct.h>
 #endif // _WIN32
 
+extern AtNodeMethods* mtoa_driver_mtd;
+
 CRenderOptions::CRenderOptions()
 :  m_minx(0), m_miny(0), m_maxx(0), m_maxy(0)
 ,  m_width(0), m_height(0)
@@ -109,16 +111,21 @@ void CRenderOptions::UpdateImageFilename()
       // (see mtoa.utils.expandFileTokens for the beginning of one)
       sceneFileName += ".<RenderPass>";
    }
-
-   for (AtUInt i=0; i<NumAOVs(); ++i)
+   // because sets are ordered, their contents are const. we must make a new set
+   // and overwrite it.
+   AOVSet newAOVs;
+   for (AOVSet::iterator it=m_aovs.begin(); it!=m_aovs.end(); ++it)
    {
-      MString tokens = MString("RenderPass=") + m_aovs[i].GetName();
-      m_aovs[i].SetImageFilename(m_defaultRenderGlobalsData.getImageName(pathType, fileFrameNumber,
-                                                                         sceneFileName, nameCamera,
-                                                                         m_imageFileExtension, renderLayer,
-                                                                         tokens, 1));
-
+      CAOV aov = (*it);
+      MString tokens = MString("RenderPass=") + aov.GetName();
+      MString filename = m_defaultRenderGlobalsData.getImageName(pathType, fileFrameNumber,
+                                                                 sceneFileName, nameCamera,
+                                                                 m_imageFileExtension, renderLayer,
+                                                                 tokens, 1);
+      aov.SetImageFilename(filename);
+      newAOVs.insert(aov);
    }
+   m_aovs = newAOVs;
 }
 
 void CRenderOptions::ProcessCommonRenderOptions()
@@ -286,6 +293,66 @@ AtNode * CRenderOptions::CreateOutputFilter()
       AiMsgError("[mtoa] filter is NULL");
 
    return filter;
+}
+
+AtNode * CRenderOptions::CreateRenderViewOutput()
+{
+   // Don't create it if we're in batch mode.
+   if (BatchMode()) return NULL;
+
+   AtNode * driver = AiNodeLookUpByName("renderview_display");
+   if (driver == NULL)
+   {
+      AiNodeInstall(AI_NODE_DRIVER,
+                    AI_TYPE_NONE,
+                    "renderview_display",
+                    NULL,
+                    (AtNodeMethods*) mtoa_driver_mtd,
+                    AI_VERSION);
+      driver = AiNode("renderview_display");
+      AiNodeSetStr(driver, "name", "renderview_display");
+   }
+
+   AiNodeSetFlt(driver, "gamma", outputGamma());
+
+   return driver;
+}
+
+void CRenderOptions::SetupRenderOutput()
+{
+
+   AtNode * render_view = CreateRenderViewOutput();
+   AtNode * file_driver = CreateFileOutput();
+   AtNode * filter = CreateOutputFilter();
+
+   // OUTPUT STRINGS
+   AtChar   str[1024];
+   int ndrivers = 0;
+   if (render_view != NULL) ++ndrivers;
+   if (file_driver != NULL) ++ndrivers;
+
+   AtArray* outputs  = AiArrayAllocate(ndrivers+NumAOVs(), 1, AI_TYPE_STRING);
+
+   int driver_num(0);
+   if (render_view != NULL)
+   {
+      sprintf(str, "RGBA RGBA %s %s", AiNodeGetName(filter), AiNodeGetName(render_view));
+      AiArraySetStr(outputs, driver_num++, str);
+   }
+
+   if (file_driver != NULL)
+   {
+      sprintf(str, "RGBA RGBA %s %s", AiNodeGetName(filter), AiNodeGetName(file_driver));
+      AiArraySetStr(outputs, driver_num++, str);
+
+      unsigned int i = 0;
+      for (AOVSet::iterator it=m_aovs.begin(); it!=m_aovs.end(); ++it)
+      {
+         it->SetupOutput(outputs, ndrivers+static_cast<int>(i), m_scene, file_driver, filter);
+         ++i;
+      }
+   }
+   AiNodeSetArray(AiUniverseGetOptions(), "outputs", outputs);
 }
 
 void CRenderOptions::SetupLog() const

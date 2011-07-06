@@ -33,8 +33,6 @@
 
 #include <cstdio>
 
-extern AtNodeMethods* mtoa_driver_mtd;
-
 static CRenderSession* s_renderSession = NULL;
 
 // This will update the render view if needed.
@@ -325,70 +323,12 @@ void CRenderSession::SetMultiCameraRender(bool multi)
    m_renderOptions.SetMultiCameraRender(multi);
 }
 
-void CRenderSession::SetupRenderOutput()
-{
-
-   AtNode * render_view = CreateRenderViewOutput();
-   AtNode * file_driver = m_renderOptions.CreateFileOutput();
-   AtNode * filter = m_renderOptions.CreateOutputFilter();
-
-   // OUTPUT STRINGS
-   AtChar   str[1024];
-   int ndrivers = 0;
-   if (render_view != NULL) ++ndrivers;
-   if (file_driver != NULL) ++ndrivers;
-
-   AtArray* outputs  = AiArrayAllocate(ndrivers+m_renderOptions.NumAOVs(), 1, AI_TYPE_STRING);
-
-   int driver_num(0);
-   if (render_view != NULL)
-   {
-      sprintf(str, "RGBA RGBA %s %s", AiNodeGetName(filter), AiNodeGetName(render_view));
-      AiArraySetStr(outputs, driver_num++, str);
-   }
-
-   if (file_driver != NULL)
-   {
-      sprintf(str, "RGBA RGBA %s %s", AiNodeGetName(filter), AiNodeGetName(file_driver));
-      AiArraySetStr(outputs, driver_num++, str);
-
-      for (size_t i=0; i<m_renderOptions.NumAOVs(); ++i)
-      {
-         m_renderOptions.GetAOV(i).SetupOutput(outputs, ndrivers+static_cast<int>(i), m_scene, file_driver, filter);
-      }
-   }
-   AiNodeSetArray(AiUniverseGetOptions(), "outputs", outputs);
-}
-
-AtNode * CRenderSession::CreateRenderViewOutput()
-{
-   // Don't create it if we're in batch mode.
-   if (m_renderOptions.BatchMode()) return NULL;
-
-   AtNode * driver = AiNodeLookUpByName("renderview_display");
-   if (driver == NULL)
-   {
-      AiNodeInstall(AI_NODE_DRIVER,
-                    AI_TYPE_NONE,
-                    "renderview_display",
-                    NULL,
-                    (AtNodeMethods*) mtoa_driver_mtd,
-                    AI_VERSION);
-      driver = AiNode("renderview_display");
-      AiNodeSetStr(driver, "name", "renderview_display");
-   }
-
-   AiNodeSetFlt(driver, "gamma", m_renderOptions.outputGamma());
-
-   return driver;
-}
-
 void CRenderSession::DoInteractiveRender()
 {
    MComputation comp;
    comp.beginComputation();
 
-   SetupRenderOutput();
+   m_renderOptions.SetupRenderOutput();
    PrepareRenderView();
 
    // Start the render thread.
@@ -408,7 +348,7 @@ void CRenderSession::DoInteractiveRender()
 
 AtULong CRenderSession::DoBatchRender()
 {
-   SetupRenderOutput();
+   m_renderOptions.SetupRenderOutput();
 
    return AiRender(AI_RENDER_MODE_CAMERA);
 }
@@ -437,7 +377,7 @@ void CRenderSession::DoExport(MString customFileName)
    {
       AiMsgInfo("[mtoa] Exporting Maya scene to file \"%s\"", fileName.asChar());
 
-      SetupRenderOutput();
+      m_renderOptions.SetupRenderOutput();
       // FIXME : problem this is actually double filtering files
       // (Once at export to AiUniverse and once at file write from it)
       AiASSWrite(fileName.asChar(), m_renderOptions.outputAssMask(), false);
@@ -493,7 +433,7 @@ void CRenderSession::DoIPRRender()
    {
       SetProgressive(true);
       SetBatch(false);
-      SetupRenderOutput();
+      m_renderOptions.SetupRenderOutput();
       PrepareRenderView(true); // Install callbacks.
 
       // Start the render thread.
@@ -555,7 +495,7 @@ void CRenderSession::DoSwatchRender(const AtInt resolution)
    // Use the render view output driver. It will *not* be displayed
    // in the render view, we're just using the Arnold Node.
    // See DisplayUpdateQueueToMImage() for how we get the image.
-   AtNode * const render_view = CreateRenderViewOutput();
+   AtNode * const render_view = m_renderOptions.CreateRenderViewOutput();
    AtNode * const filter      = m_renderOptions.CreateOutputFilter();
    AtNode * const options     = AiUniverseGetOptions();
 

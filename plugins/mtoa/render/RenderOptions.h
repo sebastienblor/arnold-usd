@@ -212,7 +212,8 @@ public:
       return static_cast<AtUInt>(m_aovs.size());
    }
 
-   size_t FindAOV(const MString &name) const
+   /*
+      size_t FindAOV(const MString &name) const
    {
       for (size_t i=0; i<m_aovs.size(); ++i)
       {
@@ -223,25 +224,26 @@ public:
       }
       return size_t(-1);
    }
-
-   const CAOV& GetAOV(size_t idx) const
-   {
-      return m_aovs[idx];
-   }
+   */
 
    void AddAOV(const CAOV &aov)
    {
-      size_t idx = FindAOV(aov.GetName());
-      if (idx != size_t(-1))
-      {
-         m_aovs[idx] = aov;
-      }
-      else
-      {
-         m_aovs.push_back(aov);
-      }
+      m_aovs.insert(aov);
    }
-   
+
+   bool IsActiveAOV(CAOV &aov) const
+   {
+      if (m_aovs.count(aov))
+         return true;
+      else
+         return false;
+   }
+
+   AOVSet GetAOVs() const
+   {
+      return m_aovs;
+   }
+
    void ClearAOVs()
    {
       m_aovs.clear();
@@ -255,6 +257,10 @@ public:
    void    UpdateImageFilename();
    AtNode * CreateFileOutput();
    AtNode * CreateOutputFilter();
+   // These functions setup the file output
+   // and Render View output driver.
+   void SetupRenderOutput();
+   AtNode * CreateRenderViewOutput();
 
 private:
 
@@ -320,7 +326,7 @@ private:
    AtUInt  m_log_console_verbosity;
    AtUInt  m_log_file_verbosity;
 
-   std::vector<CAOV> m_aovs;
+   AOVSet m_aovs;
 
    CMayaScene* m_scene;
    MFnDependencyNode m_fnRenderGlobals;
