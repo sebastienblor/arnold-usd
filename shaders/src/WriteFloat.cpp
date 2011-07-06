@@ -1,0 +1,47 @@
+#include <ai.h>
+
+namespace
+{
+
+enum WriteFloatParams
+{
+   p_beauty,
+   p_input,
+   p_name
+};
+
+};
+
+AI_SHADER_NODE_EXPORT_METHODS(WriteFloatMtd);
+
+node_parameters
+{
+   // Node metadata
+   AiMetaDataSetStr(mds, NULL, "maya.name", "aiWriteFloat");
+   AiMetaDataSetInt(mds, NULL, "maya.id", 0x00115D11);
+   AiMetaDataSetStr(mds, NULL, "maya.classification", "shader/surface");
+
+   AiParameterRGBA("beauty", 0, 0, 0, 0);
+   AiParameterRGBA("input", 0, 0, 0, 0);
+   AiParameterSTR("aov_name", "customFloat");
+   AiMetaDataSetInt(mds, "aov_name", "aov.type", AI_TYPE_FLOAT);
+}
+
+shader_evaluate
+{
+   sg->out.RGBA = AiShaderEvalParamRGBA(p_beauty);
+
+   AiAOVSetFlt(sg, AiShaderEvalParamStr(p_name), AiShaderEvalParamFlt(p_input));
+}
+
+node_initialize
+{
+}
+
+node_update
+{
+}
+
+node_finish
+{
+}

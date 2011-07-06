@@ -39,24 +39,7 @@ void CShaderTranslator::Export(AtNode *shader)
       const AtParamEntry *paramEntry = AiParamIteratorGetNext(nodeParam);
       const char* paramName = AiParamGetName(paramEntry);
 
-      if (!strncmp(paramName, "aov_", 4))
-      {
-         CRenderSession *renderSession = CRenderSession::GetInstance();
-         const CRenderOptions *renderOptions = renderSession->RenderOptions();
-
-         // do not check type for now
-         std::string aovName(paramName);
-         aovName = aovName.substr(4);
-         if (renderOptions->FindAOV(aovName.c_str()) != size_t(-1))
-         {
-            AiNodeSetStr(shader, paramName, aovName.c_str());
-         }
-         else
-         {
-            AiNodeSetStr(shader, paramName, "");
-         }
-      }
-      else if (strcmp(paramName, "name"))
+      if (strcmp(paramName, "name"))
       {
          AtInt paramType = AiParamGetType(paramEntry);
 

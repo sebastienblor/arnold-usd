@@ -1,6 +1,8 @@
 #ifndef PXMAYANODE_H
 #define PXMAYANODE_H
 
+#include "render/AOV.h"
+
 #include <string>
 #include <maya/MString.h>
 #include <maya/MPxNode.h>
@@ -9,6 +11,8 @@
 #include <ai.h>
 
 class CAbMayaNode;
+
+#include <vector>
 
 // A Maya node class proxy
 class CPxMayaNode
@@ -36,6 +40,10 @@ public:
    inline bool IsNull() const {return (name == "");}
    MStatus ReadMetaData(const AtNodeEntry* arnoldNodeEntry);
 
+   void RegisterAOV(const MString &aovName,
+                    AtInt dataType,
+                    const MString &aovAttr);
+
 private:
    MString name;
    MTypeId id;
@@ -48,6 +56,7 @@ private:
    MString classification;
    MString arnold;
    CAbMayaNode *abstract;
+   std::vector<CAOVData> m_aovs;
 };
 
 

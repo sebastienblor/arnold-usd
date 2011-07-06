@@ -134,9 +134,9 @@ void CRenderOptions::ProcessCommonRenderOptions()
    {
       list.getDependNode(0, node);
 
-      MFnDependencyNode fnRenderGlobals(node);
+      m_fnRenderGlobals.setObject(node);
 
-      m_useRenderRegion = fnRenderGlobals.findPlug("useRenderRegion").asBool();
+      m_useRenderRegion = m_fnRenderGlobals.findPlug("useRenderRegion").asBool();
 
       MRenderUtil::getCommonRenderSettings(m_defaultRenderGlobalsData);
       m_isAnimated = m_defaultRenderGlobalsData.isAnimated();
@@ -147,14 +147,14 @@ void CRenderOptions::ProcessCommonRenderOptions()
 
       if (m_useRenderRegion)
       {
-         m_minx = fnRenderGlobals.findPlug("left").asInt();
-         m_miny = fnRenderGlobals.findPlug("bot").asInt();
-         m_maxx = fnRenderGlobals.findPlug("rght").asInt();
-         m_maxy = fnRenderGlobals.findPlug("top").asInt();
+         m_minx = m_fnRenderGlobals.findPlug("left").asInt();
+         m_miny = m_fnRenderGlobals.findPlug("bot").asInt();
+         m_maxx = m_fnRenderGlobals.findPlug("rght").asInt();
+         m_maxy = m_fnRenderGlobals.findPlug("top").asInt();
       }
 
       MPlugArray connectedPlugs;
-      MPlug      resPlug = fnRenderGlobals.findPlug("resolution");
+      MPlug      resPlug = m_fnRenderGlobals.findPlug("resolution");
 
       resPlug.connectedTo(connectedPlugs,
          true,  // asDestination
@@ -184,65 +184,64 @@ void CRenderOptions::ProcessArnoldRenderOptions()
    if (GetOptionsNode(node) == MS::kSuccess)
    {
       MPlugArray conns;
-      MFnDependencyNode fnArnoldRenderOptions(node);
+      m_fnArnoldRenderOptions.setObject(node);
 
-      MFnEnumAttribute arnold_render_format(fnArnoldRenderOptions.findPlug("arnoldRenderImageFormat").attribute());
-      m_arnoldRenderImageFormat         = arnold_render_format.fieldName(fnArnoldRenderOptions.findPlug("arnoldRenderImageFormat").asShort());
+      MFnEnumAttribute arnold_render_format(m_fnArnoldRenderOptions.findPlug("arnoldRenderImageFormat").attribute());
+      m_arnoldRenderImageFormat         = arnold_render_format.fieldName(m_fnArnoldRenderOptions.findPlug("arnoldRenderImageFormat").asShort());
 
-      m_progressive_rendering    = fnArnoldRenderOptions.findPlug("progressive_rendering").asBool();
-      m_threads                  = fnArnoldRenderOptions.findPlug("threads_autodetect").asBool() ? 0 : fnArnoldRenderOptions.findPlug("threads").asInt();
-      m_plugins_path             = fnArnoldRenderOptions.findPlug("plugins_path").asString();
+      m_progressive_rendering    = m_fnArnoldRenderOptions.findPlug("progressive_rendering").asBool();
+      m_threads                  = m_fnArnoldRenderOptions.findPlug("threads_autodetect").asBool() ? 0 : m_fnArnoldRenderOptions.findPlug("threads").asInt();
+      m_plugins_path             = m_fnArnoldRenderOptions.findPlug("plugins_path").asString();
 
-      m_AA_samples               = fnArnoldRenderOptions.findPlug("AA_samples").asInt();
-      m_GI_diffuse_samples       = fnArnoldRenderOptions.findPlug("GI_diffuse_samples").asInt();
-      m_GI_glossy_samples        = fnArnoldRenderOptions.findPlug("GI_glossy_samples").asInt();
-      m_GI_sss_hemi_samples      = fnArnoldRenderOptions.findPlug("GI_sss_hemi_samples").asInt();
-      m_AA_sample_clamp          = fnArnoldRenderOptions.findPlug("use_sample_clamp").asBool() ? fnArnoldRenderOptions.findPlug("AA_sample_clamp").asFloat() : (float) AI_INFINITE;
+      m_AA_samples               = m_fnArnoldRenderOptions.findPlug("AA_samples").asInt();
+      m_GI_diffuse_samples       = m_fnArnoldRenderOptions.findPlug("GI_diffuse_samples").asInt();
+      m_GI_glossy_samples        = m_fnArnoldRenderOptions.findPlug("GI_glossy_samples").asInt();
+      m_GI_sss_hemi_samples      = m_fnArnoldRenderOptions.findPlug("GI_sss_hemi_samples").asInt();
+      m_AA_sample_clamp          = m_fnArnoldRenderOptions.findPlug("use_sample_clamp").asBool() ? m_fnArnoldRenderOptions.findPlug("AA_sample_clamp").asFloat() : (float) AI_INFINITE;
 
-      m_lock_sampling_noise      = fnArnoldRenderOptions.findPlug("lock_sampling_noise").asBool();
+      m_lock_sampling_noise      = m_fnArnoldRenderOptions.findPlug("lock_sampling_noise").asBool();
 
-      MFnEnumAttribute enum_filter_type(fnArnoldRenderOptions.findPlug("filter_type").attribute());
-      m_filter_type  = enum_filter_type.fieldName(fnArnoldRenderOptions.findPlug("filter_type").asShort());
+      MFnEnumAttribute enum_filter_type(m_fnArnoldRenderOptions.findPlug("filter_type").attribute());
+      m_filter_type  = enum_filter_type.fieldName(m_fnArnoldRenderOptions.findPlug("filter_type").asShort());
 
-      m_display_gamma  = fnArnoldRenderOptions.findPlug("display_gamma").asFloat();
-      m_light_gamma   = fnArnoldRenderOptions.findPlug("light_gamma").asFloat();
-      m_shader_gamma  = fnArnoldRenderOptions.findPlug("shader_gamma").asFloat();
-      m_texture_gamma = fnArnoldRenderOptions.findPlug("texture_gamma").asFloat();
+      m_light_gamma   = m_fnArnoldRenderOptions.findPlug("light_gamma").asFloat();
+      m_shader_gamma  = m_fnArnoldRenderOptions.findPlug("shader_gamma").asFloat();
+      m_texture_gamma = m_fnArnoldRenderOptions.findPlug("texture_gamma").asFloat();
+      m_display_gamma  = m_fnArnoldRenderOptions.findPlug("display_gamma").asFloat();
 
-      m_clearBeforeRender = fnArnoldRenderOptions.findPlug("clear_before_render").asBool();
+      m_clearBeforeRender = m_fnArnoldRenderOptions.findPlug("clear_before_render").asBool();
 
-      m_outputAssFile       = fnArnoldRenderOptions.findPlug("output_ass_filename").asString();
-      m_outputAssCompressed = fnArnoldRenderOptions.findPlug("output_ass_compressed").asBool();
-      m_outputAssMask       = fnArnoldRenderOptions.findPlug("output_ass_mask").asInt();
+      m_outputAssFile       = m_fnArnoldRenderOptions.findPlug("output_ass_filename").asString();
+      m_outputAssCompressed = m_fnArnoldRenderOptions.findPlug("output_ass_compressed").asBool();
+      m_outputAssMask       = m_fnArnoldRenderOptions.findPlug("output_ass_mask").asInt();
 
-      m_log_filename          = fnArnoldRenderOptions.findPlug("log_filename").asString();
-      m_log_max_warnings      = fnArnoldRenderOptions.findPlug("log_max_warnings").asInt();
-      m_log_console_verbosity = fnArnoldRenderOptions.findPlug("log_console_verbosity").asInt();
-      m_log_file_verbosity    = fnArnoldRenderOptions.findPlug("log_file_verbosity").asInt();
+      m_log_filename          = m_fnArnoldRenderOptions.findPlug("log_filename").asString();
+      m_log_max_warnings      = m_fnArnoldRenderOptions.findPlug("log_max_warnings").asInt();
+      m_log_console_verbosity = m_fnArnoldRenderOptions.findPlug("log_console_verbosity").asInt();
+      m_log_file_verbosity    = m_fnArnoldRenderOptions.findPlug("log_file_verbosity").asInt();
 
       // AOVs
       ClearAOVs();
-      MPlug pAOV = fnArnoldRenderOptions.findPlug("aovs");
-      pAOV.connectedTo(conns, true, false);
-      if (conns.length() == 1)
+      AOVMode aovMode = AOVMode(m_fnArnoldRenderOptions.findPlug("aovMode").asInt());
+      if (aovMode == AOV_MODE_ENABLED ||
+            (BatchMode() && aovMode == AOV_MODE_BATCH_ONLY))
       {
-         MObject oAOV = conns[0].node();
-         MFnDependencyNode fnAOVNode(oAOV);
-
-         if (BatchMode() || !fnAOVNode.findPlug("aov_batch_mode_only").asBool())
+         MPlug pAOVs = m_fnArnoldRenderOptions.findPlug("aovs");
+         for (unsigned int i = 0; i < pAOVs.evaluateNumElements(); ++i)
          {
-            MPlug pAOVs = fnAOVNode.findPlug("aovs");
-            for (unsigned int i=0; i<pAOVs.numElements(); ++i)
+            if (pAOVs[i].connectedTo(conns, true, false))
             {
                CAOV aov;
-               MPlug ipAOVs = pAOVs[i];
-               if (aov.FromMaya(ipAOVs))
+               MObject oAOV = conns[0].node();
+               if (aov.FromMaya(oAOV)  && aov.IsEnabled())
                   AddAOV(aov);
                else
-                  MGlobal::displayWarning("[mtoa] Could not setup AOV attribute " + ipAOVs.partialName(true, false, false, false, false, true));
+                  MGlobal::displayWarning("[mtoa] Could not setup AOV attribute " + MFnDependencyNode(oAOV).name());
             }
          }
       }
+      else
+         AiMsgDebug("[mtoa] [aovs] disabled");
    }
    else
    {
@@ -257,10 +256,10 @@ AtNode * CRenderOptions::CreateFileOutput()
 
    MObject node;
    GetOptionsNode(node);
-   MFnDependencyNode fnArnoldRenderOptions(node);
+   MFnDependencyNode m_fnArnoldRenderOptions(node);
 
    // set the output driver
-   MString driverType = fnArnoldRenderOptions.findPlug("imageFormat").asString();
+   MString driverType = m_fnArnoldRenderOptions.findPlug("imageFormat").asString();
    AtNode* driver = m_scene->ExportDriver(node, driverType);
    if (driver != NULL)
    {
@@ -274,14 +273,10 @@ AtNode * CRenderOptions::CreateFileOutput()
 
 AtNode * CRenderOptions::CreateOutputFilter()
 {
-   MObject node;
-   GetOptionsNode(node);
-   MFnDependencyNode fnArnoldRenderOptions(node);
-
    // set the output driver
-   MString filterType = fnArnoldRenderOptions.findPlug("filterType").asString();
+   MString filterType = m_fnArnoldRenderOptions.findPlug("filterType").asString();
    AiMsgInfo("exporting filter \"%s\"", filterType.asChar());
-   AtNode* filter = m_scene->ExportFilter(node, filterType);
+   AtNode* filter = m_scene->ExportFilter(m_fnArnoldRenderOptions.object(), filterType);
    if (filter == NULL)
       AiMsgError("[mtoa] filter is NULL");
 

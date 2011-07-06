@@ -3,6 +3,8 @@
    #include <maya/MNodeClass.h>
 #endif
 
+#include "attributes/AttrHelper.h"
+#include "attributes/Metadata.h"
 #include "nodes/MayaNodeIDs.h"
 #include "nodes/ShaderUtils.h"
 #include "nodes/shader/ArnoldShaderNode.h"
@@ -119,6 +121,43 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
          }
       }
    }
+
+   // AOVs
+   CBaseAttrHelper helper(arnoldNodeEntry);
+   AtParamIterator* paramIt = AiNodeEntryGetParamIterator(arnoldNodeEntry);
+   while (!AiParamIteratorFinished(paramIt))
+   {
+      const AtParamEntry *paramEntry = AiParamIteratorGetNext(paramIt);
+      const char* paramName = AiParamGetName(paramEntry);
+      // skip the special "name" parameter
+      if (strcmp(paramName, "name") != 0)
+      {
+         AtBoolean hide = false;
+         if (!AiMetaDataGetBool(arnoldNodeEntry, paramName, "maya.hide", &hide) || !hide)
+         {
+            CAttrData attrData;
+            helper.GetAttrData(paramName, attrData);
+
+            // AOVs
+            AtInt aovType;
+            if (AiMetaDataGetInt(arnoldNodeEntry, paramName, "aov.type", &aovType))
+            {
+               // assert that we're a string parameter
+               if (AiParamGetType(paramEntry) != AI_TYPE_STRING)
+               {
+                  AiMsgError("[%s] [node %s] %s: AOV parameters must be of type string",
+                             ext, node, paramName);
+                  continue;
+               }
+               // it's an aov parameter
+               AtParamValue defaultValue = MAiParamGetDefault(arnoldNodeEntry, paramEntry);
+               RegisterAOV(defaultValue.STR, aovType, attrData.name);
+            }
+         }
+      }
+   }
+   AiParamIteratorDestroy(paramIt);
+
    // Class methods to use to create the Maya node, if none were specified
    // TODO : use some map to make less hardcoded (BuiltinMayaNodes or BuiltinMayaTranslators)
    // we could also let type to MPxNode::kLast et let manager
@@ -170,4 +209,17 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
    return MStatus::kSuccess;
 }
 
-
+void CPxMayaNode::RegisterAOV(const MString &aovName,
+                             AtInt dataType,
+                             const MString &aovAttr)
+{
+   // there can only be one type per AOV
+   // TODO: assert that this aov has not already been set with a different type
+   CAOVData data;
+   data.attribute = aovAttr;
+   data.name = aovName;
+   data.type = dataType;
+   AiMsgDebug("[%s] Registered aov %s",
+              provider.asChar(), aovName.asChar());
+   m_aovs.push_back(data);
+}

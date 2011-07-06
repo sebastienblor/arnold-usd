@@ -14,7 +14,6 @@
 
 #define BUILTIN "<built-in>"
 
-
 class CAbMayaNode;
 
 // To track loaded Arnold plugins
@@ -68,6 +67,11 @@ public:
                               const MString &translatorName,
                               TCreatorFunction creatorFunction,
                               TNodeInitFunction nodeInitFunction=NULL);
+
+   MStatus RegisterAOV(const MString &nodeType,
+                       const MString &aovName,
+                       AtInt dataType,
+                       const MString &aovAttr);
 
 protected :
    MStatus setFile(const MString &file);
@@ -128,6 +132,11 @@ protected:
    LoadedArnoldPluginsSet m_ownLoadedArnoldPlugins;
    // Maya plugins required by this extension
    RequiredMayaPluginsSet m_requiredMayaPlugins;
+
+   // map from aov name to data type
+   std::map<std::string, AtInt> m_aovTypes;
+   // map from node type to a vector of aov data
+   std::map<std::string, std::vector<CAOVData> > m_aovAttrs;
 
    // Static info for all extensions
    static unsigned int s_autoNodeId;

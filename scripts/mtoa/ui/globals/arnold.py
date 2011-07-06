@@ -1,7 +1,6 @@
 import pymel.core as pm
 from mtoa.ui.ae.shapeTemplate import createTranslatorUI
 from mtoa.callbacks import *
-import mtoa.ui.aoveditor as aoveditor
 
 def updateRenderSettings(*args):
     flag = pm.getAttr('defaultArnoldRenderOptions.threads_autodetect') == False
@@ -225,10 +224,6 @@ def createArnoldRenderSettings():
     pm.attrControlGrp('os_plugins_path',
                    label="Plug-ins Path",
                    attribute='defaultArnoldRenderOptions.plugins_path')
-
-    pm.separator()
-
-    pm.button(label="Setup AOVs", command=aoveditor.arnoldAOVEditor)
 
     pm.setParent('..')
 

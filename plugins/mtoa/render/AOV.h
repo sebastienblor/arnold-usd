@@ -8,24 +8,37 @@
 #include <maya/MString.h>
 #include <maya/MPlug.h>
 
+#include <string>
+#include <map>
+#include <vector>
+
+struct CAOVData
+{
+   MString attribute;
+   MString name;
+   AtInt type;
+};
+
+/// child indices of compound plug ArnoldAOV.aovs
+enum AOVComponents
+{
+   AOV_ENABLED,
+   AOV_NAME,
+   AOV_TYPE,
+   AOV_PREFIX
+};
+
+enum AOVMode
+{
+   AOV_MODE_DISABLED,
+   AOV_MODE_ENABLED,
+   AOV_MODE_BATCH_ONLY
+};
+
+/// Represents a single AOV
 class DLLEXPORT CAOV
 {
 public:
-//Deprecated ?
-//   enum Type
-//   {
-//      AOV_BOOL = 0,
-//      AOV_INT,
-//      AOV_FLT,
-//      AOV_RGB,
-//      AOV_RGBA,
-//      AOV_VEC,
-//      AOV_PNT,
-//      AOV_PNT2,
-//      AOV_PTR,
-//      AOV_UNKNOWN
-//   };
-
    CAOV();
    CAOV(const CAOV &rhs);
    ~CAOV();
@@ -42,9 +55,11 @@ public:
       return m_prefix;
    }
 
+   bool IsEnabled()
+   {
+      return m_enabled;
+   }
    bool FromMaya(MPlug &p);
-
-   void UpdateImageFilename(const MString &cameraName, const MString &defaultExt, bool multiCam, bool batchMode);
 
    void SetImageFilename(const MString &filename)
    {
@@ -62,7 +77,9 @@ protected:
 protected:
 
    MString   m_name;
-   MString   m_type;
+   // enumerator that corresponds to arnold's data type enum
+   AtInt     m_type;
+   bool      m_enabled;
    MString   m_prefix;
    MString   m_filename;
 };

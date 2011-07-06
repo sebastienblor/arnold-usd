@@ -48,6 +48,8 @@ extern AtNodeMethods* MayaRemapHsvMtd;
 extern AtNodeMethods* MayaImagePlaneMtd;
 extern AtNodeMethods* MayaSurfaceShaderMtd;
 extern AtNodeMethods* ColorToFloatMtd;
+extern AtNodeMethods* WriteColorMtd;
+extern AtNodeMethods* WriteFloatMtd;
 
 node_loader
 {
@@ -365,6 +367,20 @@ node_loader
       node->methods     = ColorToFloatMtd;
       node->output_type = AI_TYPE_FLOAT;
       node->name        = "colorToFloat";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+
+   case 46:
+      node->methods     = WriteColorMtd;
+      node->output_type = AI_TYPE_RGBA;
+      node->name        = "writeColor";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+
+   case 47:
+      node->methods     = WriteFloatMtd;
+      node->output_type = AI_TYPE_FLOAT;
+      node->name        = "writeFloat";
       node->node_type   = AI_NODE_SHADER;
       break;
 

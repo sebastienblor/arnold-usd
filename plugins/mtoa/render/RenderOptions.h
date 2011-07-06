@@ -227,7 +227,7 @@ public:
    const CAOV& GetAOV(size_t idx) const
    {
       return m_aovs[idx];
-   }   
+   }
 
    void AddAOV(const CAOV &aov)
    {
@@ -323,6 +323,8 @@ private:
    std::vector<CAOV> m_aovs;
 
    CMayaScene* m_scene;
+   MFnDependencyNode m_fnRenderGlobals;
+   MFnDependencyNode m_fnArnoldRenderOptions;
 };
 
 #endif // RENDEROPTIONS_H

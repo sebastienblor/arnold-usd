@@ -1,6 +1,5 @@
 #include "ArnoldPluginCmd.h"
 #include "extension/ExtensionsManager.h"
-#include "extension/Extension.h"
 #include "attributes/AttrHelper.h"
 #include "utils/Universe.h"
 
@@ -17,12 +16,19 @@ MSyntax CArnoldPluginCmd::newSyntax()
    syntax.addFlag("le", "loadExtension", MSyntax::kString);
    syntax.addFlag("ule", "unloadExtension", MSyntax::kString);
    syntax.addFlag("gad", "getAttrData", MSyntax::kString);
+
+   syntax.addFlag("aov", "listAOVs", MSyntax::kNoArg);
+   syntax.addFlag("nt", "nodeType", MSyntax::kString);
+   syntax.addFlag("lnt", "listAOVNodeTypes", MSyntax::kNoArg);
    return syntax;
 }
 
 MStatus CArnoldPluginCmd::doIt(const MArgList& argList)
 {
-   MArgDatabase args(syntax(), argList);
+   MStatus status;
+   MArgDatabase args(syntax(), argList, &status);
+   if (!status)
+      return status;
    if (args.isFlagSet("listTranslators"))
    {
       MString typeName = args.flagArgumentString("listTranslators", 0);
@@ -71,6 +77,25 @@ MStatus CArnoldPluginCmd::doIt(const MArgList& argList)
             result.append(desc);
          }
       }
+      setResult(result);
+   }
+   else if (args.isFlagSet("listAOVs"))
+   {
+      MStringArray result;
+      if (args.isFlagSet("nodeType"))
+      {
+         MString nodeType;
+         args.getFlagArgument("nodeType", 0, nodeType);
+         CExtensionsManager::GetNodeAOVs(nodeType, result);
+      }
+      else
+         CExtensionsManager::GetAOVs(result);
+      setResult(result);
+   }
+   else if (args.isFlagSet("listAOVNodeTypes"))
+   {
+      MStringArray result;
+      CExtensionsManager::GetNodeTypesWithAOVs(result);
       setResult(result);
    }
    // FIXME: error on unknown flag

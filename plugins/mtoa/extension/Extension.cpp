@@ -195,6 +195,36 @@ MStatus CExtension::RegisterTranslator(const MString &mayaTypeName,
    return NewTranslator(translator, mayaNode);
 }
 
+MStatus CExtension::RegisterAOV(const MString &mayaTypeName, const MString &aovName, AtInt dataType, const MString &aovAttr)
+{
+   // there can only be one type per AOV
+   // TODO: assert that this aov has not already been set with a different type
+   m_aovTypes[aovName.asChar()] = dataType;
+   CAOVData data;
+   data.attribute = aovAttr;
+   data.name = aovName;
+   data.type = dataType;
+   m_aovAttrs[mayaTypeName.asChar()].push_back(data);
+   return MS::kSuccess;
+}
+
+/*
+MStatus CExtension::RegisterAOV(const MString &mayaTypeName, const MString &aovName, AtInt dataType, const MString &aovAttr)
+{
+   CPxMayaNode mayaNode(mayaTypeName);
+   MayaNodeToTranslatorsMap::iterator nodeIt;
+   nodeIt = m_registeredTranslators.find(mayaNode);
+   if (nodeIt != m_registeredTranslators.end())
+   {
+      mayaNode = nodeIt->first;
+      mayaNode.RegisterAOV(aovName, dataType, aovAttr);
+      return MS::kSuccess;
+   }
+   return MS::kFailure;
+}
+*/
+
+
 // ------------- protected --------------- //
 
 MStatus CExtension::setFile(const MString &file)
@@ -737,7 +767,7 @@ MStatus CExtension::NewTranslator(const CPxTranslator &translator,
    }
    return status;
 }
-   
+
 /// Find a registered Maya node by the Maya node type name.
 const CPxMayaNode* CExtension::FindRegisteredMayaNode(const CPxMayaNode &mayaNode)
 {

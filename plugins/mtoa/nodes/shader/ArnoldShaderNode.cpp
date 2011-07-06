@@ -2,13 +2,13 @@
 #include "ArnoldShaderNode.h"
 #include "nodes/ShaderUtils.h"
 #include "nodes/ArnoldNodeIDs.h"
+#include "attributes/Metadata.h"
+#include "render/AOV.h"
 
 #include <maya/MFnNumericAttribute.h>
 #include <maya/MRenderUtil.h>
-
 #include <maya/MGlobal.h>
 #include <maya/MPlugArray.h>
-
 #include <maya/MFnDependencyNode.h>
 #include <maya/MDGModifier.h>
 #include <maya/MStatus.h>
@@ -112,9 +112,39 @@ MStatus CArnoldShaderNode::initialize()
       // skip the special "name" parameter
       if (strcmp(paramName, "name") != 0)
       {
-         MObject attr = helper.MakeInput(paramName);
-         if (outputExists)
-            attributeAffects(attr, outputAttr);
+         AtBoolean hide = false;
+         if (!AiMetaDataGetBool(nodeEntry, paramName, "maya.hide", &hide) || !hide)
+         {
+            CAttrData attrData;
+            helper.GetAttrData(paramName, attrData);
+            MObject attr = helper.MakeInput(attrData);
+            if (outputExists)
+               attributeAffects(attr, outputAttr);
+            /*
+            // AOVs
+            AtInt aovType;
+            if (AiMetaDataGetInt(nodeEntry, paramName, "aov.type", &aovType))
+            {
+               // assert that we're a string parameter
+               if (AiParamGetType(paramEntry) != AI_TYPE_STRING)
+               {
+                  AiMsgError("[mtoa] AOV parameters must be of type string");
+                  continue;
+               }
+               AtBoolean hide = false;
+               if (!AiMetaDataGetBool(nodeEntry, paramName, "aov.hide", &hide) || !hide)
+               {
+                  // it's an aov parameter
+
+                  //char aovName[128];
+                  //if (!MAiMetaDataGetStr(nodeEntry, paramName, "aov.label", aovName))
+                  //   strcpy(aovName, paramName);
+                  AtParamValue defaultValue = MAiParamGetDefault(nodeEntry, paramEntry);
+                  CExtensionsManager::GetExtension(provider)->RegisterAOV(maya, defaultValue.STR, aovType, attrData.name);
+                  hasAOVs = true;
+               }
+            }*/
+         }
       }
    }
    AiParamIteratorDestroy(nodeParam);
