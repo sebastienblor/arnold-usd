@@ -353,9 +353,10 @@ void CRenderSession::SetupRenderOutput()
       AiArraySetStr(outputs, driver_num++, str);
 
       for (size_t i=0; i<m_renderOptions.NumAOVs(); ++i)
-         m_renderOptions.GetAOV(i).SetupOutput(outputs, ndrivers+static_cast<int>(i), file_driver, filter);
+      {
+         m_renderOptions.GetAOV(i).SetupOutput(outputs, ndrivers+static_cast<int>(i), m_scene, file_driver, filter);
+      }
    }
-
    AiNodeSetArray(AiUniverseGetOptions(), "outputs", outputs);
 }
 

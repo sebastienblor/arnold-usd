@@ -23,6 +23,7 @@ MCallbackId CArnoldOptionsNode::sId;
 
 MObject CArnoldOptionsNode::s_imageFormat;
 MObject CArnoldOptionsNode::s_aovs;
+MObject CArnoldOptionsNode::s_aovMode;
 MObject CArnoldOptionsNode::s_renderType;
 MObject CArnoldOptionsNode::s_outputAssBoundingBox;
 MObject CArnoldOptionsNode::s_progressive_rendering;
@@ -111,9 +112,20 @@ MStatus CArnoldOptionsNode::initialize()
    tAttr.setKeyable(false);
    addAttribute(s_imageFormat);
 
-   s_aovs = mAttr.create("aovs", "arniaovs");
+   s_aovs = mAttr.create("aovList", "aovs");
    mAttr.setKeyable(false);
+   mAttr.setArray(true);
+   mAttr.setReadable(false);
+   mAttr.setIndexMatters(false);
    addAttribute(s_aovs);
+
+   s_aovMode = eAttr.create("aovMode", "aovm");
+   eAttr.setKeyable(false);
+   eAttr.setDefault(true);
+   eAttr.addField("disabled", 0);
+   eAttr.addField("enabled", 1);
+   eAttr.addField("batch_only", 2);
+   addAttribute(s_aovMode);
 
    s_renderType = eAttr.create("renderType", "arnrt", 0);
    eAttr.setKeyable(false);

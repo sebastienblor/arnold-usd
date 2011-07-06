@@ -24,7 +24,6 @@ void CDriverTranslator::Export(AtNode *shader)
 
          // attr name name remap
          MString attrName = helper.GetMayaAttrName(paramName);
-
          plug = GetFnNode().findPlug(attrName, &status);
          if (status == MS::kSuccess)
             ProcessParameter(shader, plug, paramName, paramType);
@@ -47,7 +46,7 @@ void CDriverTranslator::NodeInitializer(MString nodeClassName, CNodeInitContext 
               arnold.asChar(), provider.asChar());
    // FIXME: remove this hard-wire
    CExtensionAttrHelper helper("aiOptions", nodeEntry);
-
+   CExtensionAttrHelper helper2("aixAOV", nodeEntry);
    // inputs
    AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(nodeEntry);
    while (!AiParamIteratorFinished(nodeParam))
@@ -55,7 +54,10 @@ void CDriverTranslator::NodeInitializer(MString nodeClassName, CNodeInitContext 
       const AtParamEntry *paramEntry = AiParamIteratorGetNext(nodeParam);
       const char* paramName = AiParamGetName(paramEntry);
       if (!helper.IsHidden(paramName))
-         MObject attr = helper.MakeInput(paramName);
+      {
+         helper.MakeInput(paramName);
+         helper2.MakeInput(paramName);
+      }
    }
    AiParamIteratorDestroy(nodeParam);
 

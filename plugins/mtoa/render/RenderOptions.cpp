@@ -263,6 +263,7 @@ AtNode * CRenderOptions::CreateFileOutput()
    AtNode* driver = m_scene->ExportDriver(node, driverType);
    if (driver != NULL)
    {
+      AiNodeSetStr(driver, "name", AiNodeEntryGetName(driver->base_node));
       AiNodeSetStr(driver, "filename", GetImageFilename().asChar());
   }
    else
@@ -277,7 +278,11 @@ AtNode * CRenderOptions::CreateOutputFilter()
    MString filterType = m_fnArnoldRenderOptions.findPlug("filterType").asString();
    AiMsgInfo("exporting filter \"%s\"", filterType.asChar());
    AtNode* filter = m_scene->ExportFilter(m_fnArnoldRenderOptions.object(), filterType);
-   if (filter == NULL)
+   if (filter != NULL)
+   {
+      AiNodeSetStr(filter, "name", AiNodeEntryGetName(filter->base_node));
+   }
+   else
       AiMsgError("[mtoa] filter is NULL");
 
    return filter;

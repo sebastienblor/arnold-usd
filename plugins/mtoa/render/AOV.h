@@ -7,25 +7,19 @@
 
 #include <maya/MString.h>
 #include <maya/MPlug.h>
+#include <maya/MFnDependencyNode.h>
 
 #include <string>
 #include <map>
 #include <vector>
+
+class CMayaScene;
 
 struct CAOVData
 {
    MString attribute;
    MString name;
    AtInt type;
-};
-
-/// child indices of compound plug ArnoldAOV.aovs
-enum AOVComponents
-{
-   AOV_ENABLED,
-   AOV_NAME,
-   AOV_TYPE,
-   AOV_PREFIX
 };
 
 enum AOVMode
@@ -59,14 +53,14 @@ public:
    {
       return m_enabled;
    }
-   bool FromMaya(MPlug &p);
+   bool FromMaya(MObject &o);
 
    void SetImageFilename(const MString &filename)
    {
       m_filename = filename;
    }
 
-   void SetupOutput(AtArray *outputs, int i, AtNode *defaultDriver, AtNode *defaultFilter) const;
+   void SetupOutput(AtArray *outputs, int i, CMayaScene *scene, AtNode *defaultDriver, AtNode *defaultFilter) const;
 
 protected:
 
@@ -82,6 +76,8 @@ protected:
    bool      m_enabled;
    MString   m_prefix;
    MString   m_filename;
+   MObject   m_object;
+   MFnDependencyNode m_fnNode;
 };
 
 

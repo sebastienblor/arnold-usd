@@ -82,7 +82,7 @@ def _makeAttributeChangedCallback(nodeType):
                 except KeyError:
                     pass
                 else:
-                    func(plug)
+                    func(plug, otherPlug, *args)
 
 #        _attrChangedCallbacks[_getHandle(node)]
         om.MNodeMessage.addAttributeChangedCallback(obj, attrChanged)

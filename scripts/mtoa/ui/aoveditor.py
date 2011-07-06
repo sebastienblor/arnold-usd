@@ -1,6 +1,9 @@
 import pymel.core as pm
 from mtoa.callbacks import *
 import mtoa.aovs as aovs
+import mtoa.ui.ae.shaderTemplate as shaderTemplate
+from collections import defaultdict
+import sys
 
 UI_NAME = 'ArnoldAOVUI'
 AOV_ATTRS = ('name', 'type', 'prefix')
@@ -18,11 +21,17 @@ TYPES = ("int",
 def _uiName(tag):
     return '%s_%s' % (UI_NAME, tag)
 
-class AOVBrowser(object):
-    def __init__(self, aovNode=None):
-        self.aovNode = aovs.getAOVNode() if aovNode is None else aovNode
+global _updating
+_updating = False
 
-        opts = {'columnWidth3' : [132]*3, 'columnAttach3' : ['both']*3, 'columnOffset3' : [0, 0, 6]}
+class AOVBrowser(object):
+    '''
+    A UI for browsing node types and their registered AOVs
+    '''
+    def __init__(self, renderOptions=None):
+        self.renderOptions = aovs.getAOVNode() if renderOptions is None else renderOptions
+
+        opts = {'columnWidth3' : [112, 142, 142], 'columnAttach3' : ['both']*3, 'columnOffset3' : [0, 0, 6]}
 
         pm.columnLayout()
 
@@ -34,12 +43,11 @@ class AOVBrowser(object):
 
         pm.rowLayout(nc=3, **opts)
         self.groupLst = pm.textScrollList(_uiName('groupLst'), numberOfRows=10, allowMultiSelection=True,
-                          selectCommand=self.groupFilterChanged)
+                          selectCommand=self.updateActiveAOVs)
         self.availableLst = pm.textScrollList(_uiName('availableLst'), numberOfRows=10, allowMultiSelection=True,
                           doubleClickCommand=self.addAOVs)
         self.activeLst = pm.textScrollList(_uiName('activeLst'), numberOfRows=10, allowMultiSelection=True,
                           doubleClickCommand=self.removeAOVs)
-                            #,selectCommand=self.selectAOVs)
         pm.setParent('..') # row
 
         pm.rowLayout(nc=3, **opts)
@@ -47,69 +55,117 @@ class AOVBrowser(object):
         pm.button(_uiName('addBtn'), label='>>', command=self.addAOVs)
         pm.button(_uiName('remBtn'), label='<<', command=self.removeAOVs)
         pm.setParent('..') # row
-    
+
         pm.setParent('..') # column
 
-    def update(self):
-        for nodeType in aovs.getAOVGroups() + aovs.getNodesWithAOVs():
+    def populate(self):
+        '''
+        update the contents of all scroll lists
+        '''
+        for nodeType in aovs.getAOVGroups():
             pm.textScrollList(self.groupLst, edit=True, append=nodeType, selectItem=nodeType)
+        for nodeType in aovs.getNodesWithAOVs():
+            # make sure we have at least one named aov
+            if any([x for x in aovs.getNodeAOVs(nodeType) if x]):
+                pm.textScrollList(self.groupLst, edit=True, append=nodeType, selectItem=nodeType)
         # populate available and active based on aovs provided by groups and nodes
-        self.groupFilterChanged()
+        self.updateActiveAOVs()
 
     def addAOVs(self, *args):
+        '''
+        create the selected AOVs, and connect the new AOV nodes to their corresponding
+        AOV attributes for any nodes in the scene.
+        '''
+        map = defaultdict(list)
+        for nodeType in aovs.getNodesWithAOVs():
+            for aovName, attr in aovs.getNodeAOVAttrs(nodeType):
+                map[aovName].append((nodeType, attr))
+
         sel = pm.textScrollList(self.availableLst, query=True, selectItem=True)
-        for aov in sel:
-            index = self.aovNode.addAOV(aov)
-            pm.textScrollList(self.activeLst, edit=True, append=aov)
-            pm.textScrollList(self.availableLst, edit=True, removeItem=aov)
-            # handled by attrAdded callback
-            #self.addControlRow(self.aovListPlug[index], aov, lockName=True)
+        if sel:
+            global _updating
+            _updating = True
+            try:
+                for aov in sel:
+                    aovNode = self.renderOptions.addAOV(aov)
+                    aovNameAttr = aovNode.attr('name')
+                    # connect this aov node to all existing aov attributes
+                    for nodeType, aovAttr in map[aov]:
+                        for node in pm.ls(type=nodeType):
+                            try:
+                                # do not force, in case it already has an incoming connection
+                                aovNameAttr.connect(node.attr(aovAttr))
+                            except:
+                                pass
+            finally:
+                _updating = False
+            self.updateActiveAOVs()
 
     def removeAOVs(self, *args):
+        '''
+        delete the selected AOVs
+        '''
         sel = pm.textScrollList(self.activeLst, query=True, selectItem=True)
-        for aov in sel:
-            self.removeAOV(aov)
+        if sel:
+            global _updating
+            _updating = True
+            try:
+                for aov in sel:
+                    if self.renderOptions.removeAOV(aov) is not None:
+                        pm.textScrollList(self.availableLst, edit=True, append=aov)
+                        pm.textScrollList(self.activeLst, edit=True, removeItem=aov)
+            finally:
+                _updating = False
+            self.updateActiveAOVs()
 
-    def groupFilterChanged(self):
-        sel = pm.textScrollList(self.groupLst, query=True, selectItem=True)
+    def updateActiveAOVs(self):
+        '''
+        fill the active and inactive columns based on the nodeType/group selected
+        '''
+        if _updating:
+            return
+        groups = pm.textScrollList(self.groupLst, query=True, selectItem=True)
+
+        # first, find out what's selected, so we can reselect any persistent items
+        sel = pm.textScrollList(self.availableLst, query=True, selectItem=True)
 
         # update the available list
         pm.textScrollList(self.availableLst, edit=True, removeAll=True)
         pm.textScrollList(self.activeLst, edit=True, removeAll=True)
-        activeAOVs = self.aovNode.getAOVs()
-
-        for group in sel:
+        activeAOVs = self.renderOptions.getActiveAOVs()
+        for group in groups:
             if group.startswith('<'):
                 # it's an AOV group
                 aovList = aovs.getGroupAOVs(group)
             else:
-                aovList = aovs.getNodeAOVs(group)
+                aovList = [x for x in aovs.getNodeAOVs(group) if x]
             for aovName in aovList:
                 if aovName not in activeAOVs:
                     pm.textScrollList(self.availableLst, edit=True, append=aovName)
+                    if aovName in sel:
+                        pm.textScrollList(self.availableLst, edit=True, selectItem=aovName)
                 else:
                     pm.textScrollList(self.activeLst, edit=True, append=aovName)
 
 class ArnoldAOVEditor(object):
 
     def __init__(self, aovNode=None):
-        self.aovControls = []
-        self.aovNode = aovs.getAOVNode() if aovNode is None else aovNode
-
-        self.aovListPlug = self.aovNode.node.aovs
+        self.waitingToRefresh = False
+        self.aovControls = {}
+        self.renderOptions = aovs.getAOVNode() if aovNode is None else aovNode
 
         pm.columnLayout()
 
         pm.frameLayout(label='AOV Browser', width=WIDTH, collapsable=True, collapse=False)
 
-        self.browser = AOVBrowser(self.aovNode)
+        self.browser = AOVBrowser(self.renderOptions)
         pm.setParent('..') # frame
 
         pm.frameLayout(label='Primary AOVs', width=WIDTH, collapsable=True, collapse=False)
         self.aovCol = pm.columnLayout()
         pm.rowLayout(nc=2, columnWidth2=[150, 150], columnAttach2=['right', 'both'])
         pm.text(label='')
-        pm.button(label='Add Custom AOV', c=lambda *args: self.aovNode.addAOV('custom'))
+        pm.button(label='Add Custom AOV', c=lambda *args: self.renderOptions.addAOV('custom'))
         pm.setParent('..') # rowLayout
 
         pm.separator()
@@ -117,163 +173,86 @@ class ArnoldAOVEditor(object):
     #    pm.text(_uiName('prefixLbl'), align='center', label='Prefix', parent=form)
     #    pm.textField(_uiName('prefixFld'), enable=False, text='', parent=form, changeCommand=Callback(setAOVPrefix, aovnode))
 
-        self.aovNode.makeContiguous()
+        self.browser.populate()
 
-        self.browser.update()
+        # add all control rows
+        for aovNode in self.renderOptions.getActiveAOVNodes():
+            self.addControlRow(aovNode)
 
-        # add all control rows 
-        for index, aovName in self.aovNode.getAOVs(indices=True):
-            self.addControlRow(self.aovListPlug[index], index)
-
-        self.id = pm.api.MNodeMessage.addAttributeChangedCallback(self.aovNode.node.__apimobject__(), self.attrAddedCallback)
+        self.id = pm.api.MNodeMessage.addAttributeChangedCallback(self.renderOptions.node.__apimobject__(), self.attrAddedCallback)
         pm.scriptJob(uiDeleted=[str(self.aovCol), lambda *args: pm.api.MNodeMessage.removeCallback(self.id)])
 
-    #    pm.formLayout(form, edit=True,
-    #
-    #              attachForm     = [(_uiName('bmoLbl'),"top",2),
-    #                               (_uiName('bmoLbl'),"left",2),
-    #                               (_uiName('bmoChk'),"top",2),
-    #                               (_uiName('bmoChk'),"right",2),
-    #                               (_uiName('availableLbl'),"left",2),
-    #                               (_uiName('activeLbl'),"right",2),
-    #                               (self.availableLst,"left",2),
-    #                               (self.activeLst,"right",2),
-    #                               (_uiName('prefixLbl'),"left",2),
-    #                               (_uiName('prefixLbl'),"bottom",2),
-    #                               (_uiName('prefixFld'),"right",2),
-    #                               (_uiName('prefixFld'),"bottom",2)],
-    #
-    #              attachPosition = [(_uiName('bmoLbl'),"right",2,50),
-    #                               (_uiName('bmoChk'),"left",2,50),
-    #                               (_uiName('availableLbl'),"right",10,50),
-    #                               (_uiName('activeLbl'),"left",10,50),
-    #                               (_uiName('addBtn'),"bottom",2,50),
-    #                               (_uiName('addBtn'),"left",2,45),
-    #                               (_uiName('addBtn'),"right",2,55),
-    #                               (_uiName('remBtn'),"top",2,50),
-    #                               (_uiName('remBtn'),"left",2,45),
-    #                               (_uiName('remBtn'),"right",2,55),
-    #                               (_uiName('prefixLbl'),"right",2,25),
-    #                               (_uiName('prefixFld'),"left",2,25)],
-    #
-    #              attachNone     = [(_uiName('bmoLbl'),"bottom"),
-    #                               (_uiName('availableLbl'),"bottom"),
-    #                               (_uiName('bmoChk'),"bottom"),
-    #                               (_uiName('activeLbl'),"bottom"),
-    #                               (_uiName('addBtn'),"top"),
-    #                               (_uiName('remBtn'),"bottom"),
-    #                               (_uiName('prefixLbl'),"top"),
-    #                               (_uiName('prefixFld'),"top")],
-    #
-    #              attachControl  = [(_uiName('availableLbl'),"top",2,_uiName('bmoLbl')),
-    #                               (_uiName('activeLbl'),"top",2, _uiName('bmoChk')),
-    #                               (self.availableLst,"top",2,_uiName('availableLbl')),
-    #                               (self.availableLst,"right",2,_uiName('addBtn')),
-    #                               (self.availableLst,"bottom",2,_uiName('prefixFld')),
-    #                               (self.activeLst,"top",2,_uiName('activeLbl')),
-    #                               (self.activeLst,"left",2,_uiName('addBtn')),
-    #                               (self.activeLst,"bottom",2,_uiName('prefixFld'))])
-    
-
-    def attrAddedCallback(self, msg, plug, *args):
-        #print "attr changed", msg, pm.Attribute(plug)
-        if msg & pm.api.MNodeMessage.kAttributeArrayAdded:
-            attr = pm.Attribute(plug)
-            #print "array plug added", attr
-            index = attr.index()
-            #print "index", index, "numControls", len(self.aovControls)
-            if index == len(self.aovControls):
-                #print "adding row"
-                self.addControlRow(attr, index)
-        elif msg & pm.api.MNodeMessage.kAttributeArrayRemoved:
-            attr = pm.Attribute(plug)
-            #print "array plug removed", attr
-            index = attr.index()
-            #print "index", index, "numControls", len(self.aovControls)
-            if index < len(self.aovControls):
-                #print "removing row"
-                self.removeControlRow()
-
-    def addControlRow(self, plug, index=None, lockName=False):
+    def refresh(self):
+        '''
+        rebuild the control rows
+        '''
+        self.waitingToRefresh = False
         pm.setParent(self.aovCol)
-        if index is None:
-            index = plug.index()
-        #print "add control", plug, index
-        row = pm.rowLayout(numberOfColumns=4,
-                                columnWidth4=[150, 150, 70, 20],
-                                columnAttach4=['right', 'both', 'both', 'both'])
+        for ctrl in self.aovControls.values():
+            ctrl.delete()
+        self.aovControls = {}
+        # add all control rows
+        for aovNode in self.renderOptions.getActiveAOVNodes():
+            self.addControlRow(aovNode)
+        self.browser.updateActiveAOVs()
+        shaderTemplate.AOVOptionMenuGrp.globalAOVListChanged()
+
+    def attrAddedCallback(self, msg, plug, otherPlug, *args):
+        #print "attr changed", msg, pm.Attribute(plug)
+        #if msg & pm.api.MNodeMessage.kAttributeArrayAdded:
+        if msg & pm.api.MNodeMessage.kConnectionMade or msg & pm.api.MNodeMessage.kConnectionBroken:
+#            attr = pm.Attribute(plug)
+#            otherAttr = pm.Attribute(otherPlug)
+#            print "plug connected", attr, otherAttr
+            self.waitingToRefresh = True
+            pm.evalDeferred(self.refresh)
+
+#            index = attr.index()
+#            #print "index", index, "numControls", len(self.aovControls)
+#            if index == len(self.aovControls):
+#                #print "adding row"
+#                self.addControlRow(attr, index)
+#        elif msg & pm.api.MNodeMessage.kAttributeArrayRemoved:
+#            attr = pm.Attribute(plug)
+#            print "array plug removed", attr
+#            index = attr.index()
+#            #print "index", index, "numControls", len(self.aovControls)
+#            if index < len(self.aovControls):
+#                #print "removing row"
+#                self.removeControlRow()
+
+    def addControlRow(self, aovNode, lockName=False):
+        row = pm.rowLayout(numberOfColumns=5,
+                                columnWidth5=[130, 150, 70, 20, 20],
+                                columnAttach5=['right', 'both', 'both', 'both', 'both'])
 
         enabledCtrl = pm.checkBox(label='')
-        pm.connectControl(enabledCtrl, plug.attr('enabled'))
+        pm.connectControl(enabledCtrl, aovNode.attr('enabled'))
 
-        nameCtrl = pm.textField(editable=not lockName)
-        pm.connectControl(nameCtrl, plug.attr('name'))
+        # use evalDeferred to ensure that the update happens after the aov node attribute is set
+        nameCtrl = pm.textField(editable=not lockName,
+                                changeCommand=lambda *args: pm.evalDeferred(self.refresh))
+        pm.connectControl(nameCtrl, aovNode.attr('name'))
         # must set editability after connecting control
         nameCtrl.setEditable(not lockName)
 
         # attrEnumOptionMenu does not work with multi-attrs and optionMenu does not work with connectControl,
         # so, unfortunately, our best option is attrEnumOptionMenuGrp
-        pm.attrEnumOptionMenuGrp(attribute=str(plug.attr('type')), columnWidth2=[1, 60])
+        pm.attrEnumOptionMenuGrp(attribute=str(aovNode.attr('type')), columnWidth2=[1, 60])
+        pm.symbolButton(image="navButtonConnected.png",
+                        command=lambda *args: pm.select(aovNode))
         # we need a reliable way to get the plug name
         pm.symbolButton(image="smallTrash.png",
-                        command=lambda *args: self.removeAOV(index))
+                        command=lambda *args: self.removeAOV(aovNode))
         cmds.setParent('..')
-        self.aovControls.append(row)
+        self.aovControls[aovNode] = row
         return row
 
-    def removeControlRow(self):
-        self.aovControls.pop(-1).delete()
+    def removeControlRow(self, aovName):
+        self.aovControls.pop(aovName).delete()
 
-    def removeAOV(self, aov):
-        #print "removeAOV", `aov`
-        if isinstance(aov, int):
-            index = aov
-            aov = self.aovNode.removeAOV(aov)
-        else:
-            index = self.aovNode.removeAOV(aov)
-        if index is not None:
-            pm.textScrollList(self.availableLst, edit=True, append=aov)
-            pm.textScrollList(self.activeLst, edit=True, removeItem=aov)
-
-#        pm.textField(_uiName('prefixFld'), edit=True, enable=False)
-
-#    def setAOVPrefix(self):
-#        sel = pm.textScrollList(self.activeLst, query=True, selectItem=True)
-#        if sel is None:
-#            sel = []
-#    
-#        if len(sel) != 1:
-#            return
-#    
-#        aov = sel[0]
-#    
-#        n = pm.getAttr("%s.aovs"%node, size=True)
-#        for i in range(0, n):
-#            name = pm.getAttr('%s.aovs[%d].name'%(node, i))
-#            if name == aov:
-#                pm.setAttr("%s.aovs[%d].prefix"%(node, i), pm.textField(_uiName('prefixFld'), query=True, text=True), type='string')
-#                break
-
-    def selectAOVs(self):
-        sel = pm.textScrollList(self.activeLst, query=True, selectItem=True)
-        if not sel:
-            return
-
-        if len(sel) != 1:
-            pm.textField(_uiName('prefixFld'), edit=True, enable=False)
-            return
-        else:
-            pm.textField(_uiName('prefixFld'), edit=True, enable=True)
-    
-        aov = sel[0]
-    
-        n = pm.getAttr('%s.aovs' % self.aovNode.node, size=True,)
-        for i in range(0, n):
-            name = pm.getAttr('%s.aovs[%d].name'%(self.aovNode.node, i))
-            if name == aov:
-                prefix = pm.getAttr('%s.aovs[%d].prefix'%(self.aovNode.node, i))
-                pm.textField(_uiName('prefixFld'), edit=True, text=prefix)
-                break
+    def removeAOV(self, aovNode):
+        self.renderOptions.removeAOVNode(aovNode)
 
 def arnoldAOVEditor(*args):
     if pm.window(UI_NAME, exists=True):
@@ -281,16 +260,17 @@ def arnoldAOVEditor(*args):
     win = pm.window(UI_NAME, title='AOV setup', width=640, height=300)
     import time
     s = time.time()
-    ArnoldAOVEditor()
+    ed = ArnoldAOVEditor()
     print time.time() - s
     pm.showWindow(win)
+    return ed
 
 def createArnoldAOVTab():
     parentForm = cmds.setParent(query=True)
 
     aovNode = aovs.getAOVNode()
     pm.columnLayout('enableAOVs', adjustableColumn=True)
-    pm.attrControlGrp(attribute=aovNode.node.mode, label='AOV Mode')
+    pm.attrControlGrp(attribute=aovNode.node.aovMode, label='AOV Mode')
     pm.setParent(parentForm)
 
     #cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
@@ -299,7 +279,7 @@ def createArnoldAOVTab():
     cmds.columnLayout('arnoldTabColumn', adjustableColumn=True)
 
     ArnoldAOVEditor(aovNode)
-    
+
     cmds.formLayout(parentForm,
                edit=True,
                     af=[('enableAOVs',"top", 5),

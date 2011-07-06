@@ -29,6 +29,7 @@ MStatus CArnoldPluginCmd::doIt(const MArgList& argList)
    MArgDatabase args(syntax(), argList, &status);
    if (!status)
       return status;
+
    if (args.isFlagSet("listTranslators"))
    {
       MString typeName = args.flagArgumentString("listTranslators", 0);
@@ -57,8 +58,16 @@ MStatus CArnoldPluginCmd::doIt(const MArgList& argList)
    else if (args.isFlagSet("getAttrData", 0))
    {
       MString nodeName = args.flagArgumentString("getAttrData", 0);
+      bool callEnd = InitArnoldUniverse();
       MStringArray result;
       const AtNodeEntry* nodeEntry = AiNodeEntryLookUp(nodeName.asChar());
+      if (nodeEntry == NULL)
+      {
+         MString err = "Unknown arnold node \"";
+         err += nodeName + "\"";
+         MGlobal::displayError( err );
+         return MS::kInvalidParameter;
+      }
       CBaseAttrHelper helper(nodeEntry);
       AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(nodeEntry);
       while (!AiParamIteratorFinished(nodeParam))
@@ -78,6 +87,7 @@ MStatus CArnoldPluginCmd::doIt(const MArgList& argList)
          }
       }
       setResult(result);
+      if (callEnd) AiEnd();
    }
    else if (args.isFlagSet("listAOVs"))
    {
@@ -98,6 +108,7 @@ MStatus CArnoldPluginCmd::doIt(const MArgList& argList)
       CExtensionsManager::GetNodeTypesWithAOVs(result);
       setResult(result);
    }
+
    // FIXME: error on unknown flag
    return MS::kSuccess;
 }

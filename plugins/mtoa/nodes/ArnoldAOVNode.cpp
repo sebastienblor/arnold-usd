@@ -13,12 +13,12 @@
 
 MTypeId CArnoldAOVNode::id(ARNOLD_NODEID_AOV);
 
-MObject CArnoldAOVNode::s_aovs;
 MObject CArnoldAOVNode::s_name;
 MObject CArnoldAOVNode::s_enabled;
 MObject CArnoldAOVNode::s_type;
 MObject CArnoldAOVNode::s_prefix;
-MObject CArnoldAOVNode::s_mode;
+MObject CArnoldAOVNode::s_imageFormat;
+MObject CArnoldAOVNode::s_filterType;
 
 void* CArnoldAOVNode::creator()
 {
@@ -32,14 +32,6 @@ MStatus CArnoldAOVNode::initialize()
    MFnCompoundAttribute cAttr;
    MFnNumericAttribute nAttr;
    MFnStringData sData;
-
-   s_mode = eAttr.create("mode", "m");
-   eAttr.setKeyable(false);
-   eAttr.setDefault(true);
-   eAttr.addField("disabled", 0);
-   eAttr.addField("enabled", 1);
-   eAttr.addField("batch_only", 2);
-   addAttribute(s_mode);
 
    s_enabled = nAttr.create("enabled", "aoven", MFnNumericData::kBoolean, 1);
    nAttr.setKeyable(false);
@@ -69,14 +61,12 @@ MStatus CArnoldAOVNode::initialize()
    tAttr.setDefault(sData.create(""));
    addAttribute(s_prefix);
 
-   s_aovs = cAttr.create("aovs", "aovs");
-   cAttr.setKeyable(false);
-   cAttr.setArray(true);
-   cAttr.addChild(s_enabled);
-   cAttr.addChild(s_name);
-   cAttr.addChild(s_type);
-   cAttr.addChild(s_prefix);
-   addAttribute(s_aovs);
+   s_imageFormat = tAttr.create("imageFormat", "img", MFnData::kString);
+   tAttr.setKeyable(false);
+   addAttribute(s_imageFormat);
 
+   s_filterType = tAttr.create("filterType", "fltr", MFnData::kString);
+   tAttr.setKeyable(false);
+   addAttribute(s_filterType);
    return MStatus::kSuccess;
 }

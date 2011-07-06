@@ -119,7 +119,7 @@ def aiStandardTemplate(nodeName):
     mel.eval('AEhardwareTextureTemplate "%s"' % nodeName + r'("Kd_color Kd Ks_color Ks")')
     cmds.editorTemplate(endLayout=True)
 
-    aovLayout(nodeName)
+    aovLayout('aiStandard')
 
     # include/call base class/node attributes
     mel.eval('AEdependNodeTemplate "%s"'%nodeName)
