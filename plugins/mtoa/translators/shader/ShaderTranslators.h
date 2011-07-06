@@ -1,5 +1,5 @@
-#ifndef SHADERTRANSLATORS_H
-#define SHADERTRANSLATORS_H
+#ifndef SHADER_TRANSLATORS_H
+#define SHADER_TRANSLATORS_H
 
 #include "ShaderTranslator.h"
 
@@ -35,4 +35,4 @@ SHADER_TRANSLATOR(CRampTranslator);
 SHADER_TRANSLATOR(CLayeredTextureTranslator);
 SHADER_TRANSLATOR(CLayeredShaderTranslator);
 
-#endif // SHADERTRANSLATORS_H
+#endif // SHADER_TRANSLATORS_H

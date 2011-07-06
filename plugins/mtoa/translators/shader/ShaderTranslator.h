@@ -1,9 +1,9 @@
-#ifndef SHADERTRANSLATOR_H
-#define SHADERTRANSLATOR_H
+#ifndef SHADER_TRANSLATOR_H
+#define SHADER_TRANSLATOR_H
 
 #include "translators/NodeTranslator.h"
 
-//--------------- ChaderTranslator ------------------------------------------
+//--------------- ShaderTranslator ------------------------------------------
 
 /// A Translator class which can automatically export simple Maya nodes.
 
@@ -27,4 +27,4 @@ public:
 };
 
 
-#endif // SHADERTRANSLATOR_H
+#endif // SHADER_TRANSLATOR_H

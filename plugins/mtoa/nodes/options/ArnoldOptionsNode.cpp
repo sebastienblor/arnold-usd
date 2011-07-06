@@ -21,15 +21,7 @@ MTypeId CArnoldOptionsNode::id(ARNOLD_NODEID_RENDER_OPTIONS);
 
 MCallbackId CArnoldOptionsNode::sId;
 
-MObject CArnoldOptionsNode::s_arnoldRenderImageFormat;
-MObject CArnoldOptionsNode::s_arnoldRenderImageCompression;
-MObject CArnoldOptionsNode::s_arnoldRenderImageHalfPrecision;
-MObject CArnoldOptionsNode::s_arnoldRenderImageGamma;
-MObject CArnoldOptionsNode::s_arnoldRenderImageOutputPadded;
-MObject CArnoldOptionsNode::s_arnoldRenderImageQuality;
-MObject CArnoldOptionsNode::s_arnoldRenderImageOutputFormat;
-MObject CArnoldOptionsNode::s_arnoldRenderImageTiled;
-MObject CArnoldOptionsNode::s_arnoldRenderImageUnpremultAlpha;
+MObject CArnoldOptionsNode::s_imageFormat;
 MObject CArnoldOptionsNode::s_aovs;
 MObject CArnoldOptionsNode::s_renderType;
 MObject CArnoldOptionsNode::s_outputAssBoundingBox;
@@ -42,12 +34,7 @@ MObject CArnoldOptionsNode::s_use_sample_clamp;
 MObject CArnoldOptionsNode::s_AA_sample_clamp;
 MObject CArnoldOptionsNode::s_lock_sampling_noise;
 MObject CArnoldOptionsNode::s_aa_seed;
-MObject CArnoldOptionsNode::s_filter_type;
-MObject CArnoldOptionsNode::s_filter_width;
-MObject CArnoldOptionsNode::s_filter_domain;
-MObject CArnoldOptionsNode::s_filter_scalar_mode;
-MObject CArnoldOptionsNode::s_filter_maximum;
-MObject CArnoldOptionsNode::s_filter_minimum;
+MObject CArnoldOptionsNode::s_filterType;
 MObject CArnoldOptionsNode::s_driver_gamma;
 MObject CArnoldOptionsNode::s_light_gamma;
 MObject CArnoldOptionsNode::s_shader_gamma;
@@ -120,58 +107,9 @@ MStatus CArnoldOptionsNode::initialize()
    // initialize the attribute helper
    s_attributes.SetNode("options");
 
-   s_arnoldRenderImageFormat = eAttr.create("arnoldRenderImageFormat", "arnif", 0);
-   eAttr.setKeyable(false);
-   eAttr.addField("OpenEXR", 0);
-   eAttr.addField("Tiff", 1);
-   eAttr.addField("Jpg", 2);
-   eAttr.addField("Png", 3);
-   addAttribute(s_arnoldRenderImageFormat);
-
-   s_arnoldRenderImageCompression = eAttr.create("compression","arnic",0);
-   eAttr.setKeyable(false);
-   eAttr.addField("none", 0);
-   eAttr.addField("rle", 1);
-   eAttr.addField("zip", 2);
-   eAttr.addField("piz", 3);
-   eAttr.addField("pxr24", 4);
-   addAttribute(s_arnoldRenderImageCompression);
-
-   s_arnoldRenderImageHalfPrecision = nAttr.create("half_precision", "arnihp", MFnNumericData::kBoolean, 0);
-   nAttr.setKeyable(false);
-   addAttribute(s_arnoldRenderImageHalfPrecision);
-
-   s_arnoldRenderImageGamma = nAttr.create("gamma", "arnig", MFnNumericData::kFloat, 2.2f);
-   nAttr.setKeyable(false);
-   nAttr.setSoftMin(0.001);
-   nAttr.setSoftMax(5);
-   addAttribute(s_arnoldRenderImageGamma);
-
-   s_arnoldRenderImageOutputPadded = nAttr.create("output_padded", "arniop", MFnNumericData::kBoolean, 0);
-   nAttr.setKeyable(false);
-   addAttribute(s_arnoldRenderImageOutputPadded);
-
-   s_arnoldRenderImageQuality = nAttr.create("quality", "arniq", MFnNumericData::kInt, 100);
-   nAttr.setKeyable(false);
-   nAttr.setMin(0);
-   nAttr.setMax(100);
-   addAttribute(s_arnoldRenderImageQuality);
-
-   s_arnoldRenderImageOutputFormat = eAttr.create("format","arniof",0);
-   nAttr.setKeyable(false);
-   eAttr.addField("int8", 0);
-   eAttr.addField("int16", 1);
-   eAttr.addField("int32", 2);
-   eAttr.addField("float32", 3);
-   addAttribute(s_arnoldRenderImageOutputFormat);
-
-   s_arnoldRenderImageTiled = nAttr.create("tiled", "arnitld", MFnNumericData::kBoolean, 0);
-   nAttr.setKeyable(false);
-   addAttribute(s_arnoldRenderImageTiled);
-
-   s_arnoldRenderImageUnpremultAlpha = nAttr.create("unpremult_alpha", "arniua", MFnNumericData::kBoolean, 0);
-   nAttr.setKeyable(false);
-   addAttribute(s_arnoldRenderImageUnpremultAlpha);
+   s_imageFormat = tAttr.create("imageFormat", "img", MFnData::kString);
+   tAttr.setKeyable(false);
+   addAttribute(s_imageFormat);
 
    s_aovs = mAttr.create("aovs", "arniaovs");
    mAttr.setKeyable(false);
@@ -246,50 +184,12 @@ MStatus CArnoldOptionsNode::initialize()
    uAttr.setWritable(true);
    uAttr.setKeyable(false);
    addAttribute(s_aa_seed);
-   
-   {
-      s_filter_type = eAttr.create("filter_type", "flttyp", 0);
-      AtNodeEntryIterator* it = AiUniverseGetNodeEntryIterator(AI_NODE_FILTER);
-      int i = 0;
-      while (!AiNodeEntryIteratorFinished(it))
-      {
-         AtNodeEntry* nentry = AiNodeEntryIteratorGetNext(it);
 
-         eAttr.addField(AiNodeEntryGetName(nentry), i++);
-      }
-      eAttr.setDefault("gaussian_filter");
-      addAttribute(s_filter_type);
-   }
+   s_filterType = tAttr.create("filterType", "fltr", MFnData::kString);
+   tAttr.setKeyable(false);
+   addAttribute(s_filterType);
 
-   s_filter_width = nAttr.create("filter_width", "fltwdth", MFnNumericData::kFloat, 2.0f);
-   nAttr.setKeyable(false);
-   nAttr.setSoftMin(0);
-   nAttr.setSoftMax(4);
-   addAttribute(s_filter_width);
-
-   s_filter_domain = eAttr.create("filter_domain", "fltdomn", 0);
-   nAttr.setKeyable(false);
-   eAttr.addField("first_hit",0);
-   eAttr.addField("all_hits",1);
-   addAttribute(s_filter_domain);
-
-   s_filter_scalar_mode = nAttr.create("filter_scalar_mode", "fltscmd", MFnNumericData::kBoolean, 0);
-   nAttr.setKeyable(false);
-   addAttribute(s_filter_scalar_mode);
-
-   s_filter_maximum = nAttr.create("filter_maximum", "fltmax", MFnNumericData::kFloat, 1.0f);
-   nAttr.setKeyable(false);
-   nAttr.setSoftMin(0);
-   nAttr.setSoftMax(10);
-   addAttribute(s_filter_maximum);
-
-   s_filter_minimum = nAttr.create("filter_minimum", "fltmin", MFnNumericData::kFloat, 0.0f);
-   nAttr.setKeyable(false);
-   nAttr.setSoftMin(0);
-   nAttr.setSoftMax(10);
-   addAttribute(s_filter_minimum);
-
-   s_driver_gamma = nAttr.create("driver_gamma", "dgamma", MFnNumericData::kFloat, 2.2f);
+   s_driver_gamma = nAttr.create("display_gamma", "dgamma", MFnNumericData::kFloat, 2.2f);
    nAttr.setKeyable(false);
    nAttr.setSoftMin(0);
    nAttr.setSoftMax(3);

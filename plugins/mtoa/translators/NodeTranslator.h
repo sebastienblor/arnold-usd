@@ -20,9 +20,6 @@
 #include <vector>
 #include <map>
 
-typedef void *   (*CreatorFunction)();
-typedef void     (*NodeInitFunction)(MString);
-
 // Abstract base class for all Maya-to-Arnold node translators
 //
 class DLLEXPORT CNodeTranslator

@@ -1,5 +1,5 @@
-#ifndef LIGHTTRANSLATOR_H
-#define LIGHTTRANSLATOR_H
+#ifndef LIGHT_TRANSLATOR_H
+#define LIGHT_TRANSLATOR_H
 
 #include "translators/NodeTranslator.h"
 
@@ -29,4 +29,4 @@ protected:
    bool m_motion;
 };
 
-#endif // LIGHTTRANSLATOR_H
+#endif // LIGHT_TRANSLATOR_H

@@ -83,37 +83,12 @@ public:
 
    float outputGamma() const
    {
-      return m_output_gamma;
+      return m_display_gamma;
    }
 
    MString filterType() const
    {
       return m_filter_type;
-   }
-
-   float filterWidth() const
-   {
-      return m_filter_width;
-   }
-
-   MString filterDomain() const
-   {
-      return m_filter_domain;
-   }
-
-   bool filterScalarMode() const
-   {
-      return m_filter_scalar_mode;
-   }
-
-   float filterMaximum() const
-   {
-      return m_filter_maximum;
-   }
-
-   float filterMinimum() const
-   {
-      return m_filter_minimum;
    }
 
    bool useRenderRegion() const
@@ -212,56 +187,6 @@ public:
       return m_batchMode;
    }
 
-   MString RenderDriver() const
-   {
-      return m_renderDriver;
-   }
-
-   MString arnoldRenderImageFormat() const
-   {
-      return m_arnoldRenderImageFormat;
-   }
-
-   AtUInt32 arnoldRenderImageCompression() const
-   {
-      return m_arnoldRenderImageCompression;
-   }
-
-   bool arnoldRenderImageHalfPrecision() const
-   {
-      return m_arnoldRenderImageHalfPrecision;
-   }
-
-   bool arnoldRenderImageOutputPadded() const
-   {
-      return m_arnoldRenderImageOutputPadded;
-   }
-
-   float arnoldRenderImageGamma() const
-   {
-      return m_arnoldRenderImageGamma;
-   }
-
-   AtUInt32 arnoldRenderImageQuality() const
-   {
-      return m_arnoldRenderImageQuality;
-   }
-
-   AtUInt32 arnoldRenderImageOutputFormat() const
-   {
-      return m_arnoldRenderImageOutputFormat;
-   }
-
-   bool arnoldRenderImageTiled() const
-   {
-      return m_arnoldRenderImageTiled;
-   }
-
-   bool arnoldRenderImageUnpremultAlpha() const
-   {
-      return m_arnoldRenderImageUnpremultAlpha;
-   }
-
    bool isAnimated() const
    {
       return m_isAnimated;
@@ -328,6 +253,8 @@ public:
    
    MString VerifyFileName(MString fileName, bool compressed);
    void    UpdateImageFilename();
+   AtNode * CreateFileOutput();
+   AtNode * CreateOutputFilter();
 
 private:
 
@@ -360,14 +287,6 @@ private:
    AtUInt32 m_extensionPadding;
 
    MString   m_arnoldRenderImageFormat;
-   AtUInt32  m_arnoldRenderImageCompression;
-   bool      m_arnoldRenderImageHalfPrecision;
-   bool      m_arnoldRenderImageOutputPadded;
-   float     m_arnoldRenderImageGamma;
-   AtUInt32  m_arnoldRenderImageQuality;
-   AtUInt32  m_arnoldRenderImageOutputFormat;
-   bool      m_arnoldRenderImageTiled;
-   bool      m_arnoldRenderImageUnpremultAlpha;
    bool      m_isAnimated;
 
    MCommonRenderSettingsData m_defaultRenderGlobalsData;
@@ -384,13 +303,8 @@ private:
    bool     m_lock_sampling_noise;
 
    MString  m_filter_type;
-   float    m_filter_width;
-   MString  m_filter_domain;
-   bool     m_filter_scalar_mode;
-   float    m_filter_maximum;
-   float    m_filter_minimum;
 
-   float    m_output_gamma;
+   float    m_display_gamma;
    float    m_light_gamma;
    float    m_shader_gamma;
    float    m_texture_gamma;

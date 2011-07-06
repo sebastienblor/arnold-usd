@@ -49,10 +49,6 @@ MStatus CArnoldShaderNode::initialize()
 {
    MFnAttribute fnAttr;
    MFnNumericAttribute nAttr;
-   MFnEnumAttribute eAttr;
-   MFnTypedAttribute tAttr;
-   MFnMatrixAttribute mAttr;
-   MFnMessageAttribute msgAttr;
 
    static MObject s_OUT_transparencyR;
    static MObject s_OUT_transparencyG;

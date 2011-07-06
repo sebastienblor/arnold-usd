@@ -66,6 +66,14 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
       {
          name = "camera";
       }
+      else if (arnoldNodeTypeName == "driver")
+      {
+         name = "<driver>";
+      }
+      else if (arnoldNodeTypeName == "filter")
+      {
+         name = "<filter>";
+      }
       else
       {
          name = toMayaStyle(MString("ai_") + node);

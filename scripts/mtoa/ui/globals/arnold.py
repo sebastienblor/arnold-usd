@@ -1,4 +1,5 @@
 import pymel.core as pm
+from mtoa.ui.ae.shapeTemplate import createTranslatorUI
 from mtoa.callbacks import *
 import mtoa.ui.aoveditor as aoveditor
 
@@ -235,44 +236,7 @@ def createArnoldRenderSettings():
 
 
 def updateArnoldFilterOptions(*args):
-    selected_filter_type = pm.getAttr('defaultArnoldRenderOptions.filter_type', asString=True)
-
-    filtersA = ['box_filter',
-                'catrom2d_filter',
-                'catrom_filter',
-                'closest_filter',
-                'cubic_filter',
-                'mitnet_filter',
-                'video_filter']
-
-    filtersB = ['cone_filter',
-                'cook_filter',
-                'disk_filter',
-                'gaussian_filter',
-                'sinc_filter',
-                'triangle_filter']
-
-    filtersC = ['farthest_filter']
-    filtersD = ['heatmap_filter']
-    filtersE = ['variance_filter']
-
-    visSwitch = (0, 0, 0, 0)
-
-    if selected_filter_type in filtersA:
-        pass
-    elif selected_filter_type in filtersB:
-        visSwitch = (1, 0, 0, 0)
-    elif selected_filter_type in filtersC:
-        visSwitch = (0, 1, 0, 0)
-    elif selected_filter_type in filtersD:
-        visSwitch = (0, 0, 0, 1)
-    elif selected_filter_type in filtersE:
-        visSwitch = (1, 0, 1, 0)
-
-    pm.columnLayout('cl_filter_width', e=True,       vis=visSwitch[0])
-    pm.columnLayout('cl_filter_domain', e=True,      vis=visSwitch[1])
-    pm.columnLayout('cl_filter_scalar_mode', e=True, vis=visSwitch[2])
-    pm.columnLayout('cl_filter_minmax', e=True,      vis=visSwitch[3])
+    pass
 
 
 def createArnoldSamplingSettings():
@@ -393,53 +357,59 @@ def createArnoldSamplingSettings():
 
     pm.separator()
 
-    pm.rowLayout(numberOfColumns=2, columnWidth=(1, 80))
-    pm.separator(style='none')
-    pm.attrEnumOptionMenu('os_filter_type',
-                               cc=updateArnoldFilterOptions,
-                               attribute='defaultArnoldRenderOptions.filter_type',
-                               label='Filter Type')
-    pm.setParent('..')
-    '''
-    pm.attrControlGrp('os_filter_type',
-                        label="Filter Type",
-                        attribute='defaultArnoldRenderOptions.filter_type',
-                        cc=updateArnoldFilterOptions)
-    '''
+#    pm.rowLayout(numberOfColumns=2, columnWidth=(1, 80))
+#    pm.separator(style='none')
 
-    pm.columnLayout('cl_filter_width', vis=0)
-    pm.attrControlGrp('os_filter_width',
-                        label="Filter Width",
-                        attribute='defaultArnoldRenderOptions.filter_width')
+    createTranslatorUI('defaultArnoldRenderOptions.filterType',
+                       label='Filter Type',
+                       nodeType='<filter>',
+                       default='gaussian')
 
-    pm.setParent('..')
+#    pm.attrEnumOptionMenu('os_filter_type',
+#                               cc=updateArnoldFilterOptions,
+#                               attribute='defaultArnoldRenderOptions.filter_type',
+#                               label='Filter Type')
+#    pm.setParent('..')
+#    '''
+#    pm.attrControlGrp('os_filter_type',
+#                        label="Filter Type",
+#                        attribute='defaultArnoldRenderOptions.filter_type',
+#                        cc=updateArnoldFilterOptions)
+#    '''
+#
+#    pm.columnLayout('cl_filter_width', vis=0)
+#    pm.attrControlGrp('os_filter_width',
+#                        label="Filter Width",
+#                        attribute='defaultArnoldRenderOptions.filter_width')
+#
+#    pm.setParent('..')
+#
+#    pm.columnLayout('cl_filter_domain', vis=0)
+#    pm.attrControlGrp('os_filter_domain',
+#                         label="Filter Domain",
+#                         attribute='defaultArnoldRenderOptions.filter_domain')
+#
+#    pm.setParent('..')
+#
+#    pm.columnLayout('cl_filter_scalar_mode', vis=0)
+#    pm.attrControlGrp('os_filter_scalar_mode',
+#                        label="Filter Scalar Mode",
+#                        attribute='defaultArnoldRenderOptions.filter_scalar_mode')
+#
+#    pm.setParent('..')
+#
+#    pm.columnLayout('cl_filter_minmax', vis=0)
+#    pm.attrControlGrp('os_filter_minimum',
+#                        label="Filter Minimum",
+#                        attribute='defaultArnoldRenderOptions.filter_minimum')
+#
+#    pm.attrControlGrp('os_filter_maximum',
+#                        label="Filter Maximum",
+#                        attribute='defaultArnoldRenderOptions.filter_maximum')
+#
+#    pm.setParent('..')
 
-    pm.columnLayout('cl_filter_domain', vis=0)
-    pm.attrControlGrp('os_filter_domain',
-                         label="Filter Domain",
-                         attribute='defaultArnoldRenderOptions.filter_domain')
-
-    pm.setParent('..')
-
-    pm.columnLayout('cl_filter_scalar_mode', vis=0)
-    pm.attrControlGrp('os_filter_scalar_mode',
-                        label="Filter Scalar Mode",
-                        attribute='defaultArnoldRenderOptions.filter_scalar_mode')
-
-    pm.setParent('..')
-
-    pm.columnLayout('cl_filter_minmax', vis=0)
-    pm.attrControlGrp('os_filter_minimum',
-                        label="Filter Minimum",
-                        attribute='defaultArnoldRenderOptions.filter_minimum')
-
-    pm.attrControlGrp('os_filter_maximum',
-                        label="Filter Maximum",
-                        attribute='defaultArnoldRenderOptions.filter_maximum')
-
-    pm.setParent('..')
-
-    pm.setParent('..')
+    pm.setParent('..') # column layout
 
     pm.setUITemplate(popTemplate=True)
     updateArnoldFilterOptions()
@@ -452,7 +422,7 @@ def createArnoldGammaSettings():
 
     pm.attrControlGrp('ss_driver_gamma',
                         label="Display Driver gamma",
-                        attribute='defaultArnoldRenderOptions.driver_gamma')
+                        attribute='defaultArnoldRenderOptions.display_gamma')
 
     pm.separator()
 

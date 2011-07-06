@@ -14,7 +14,7 @@ void CAmbientLightTranslator::Export(AtNode* light)
    CLightTranslator::Export(light);
 }
 
-void CAmbientLightTranslator::NodeInitializer(MString nodeClassName)
+void CAmbientLightTranslator::NodeInitializer(MString nodeClassName, CNodeInitContext context)
 {
    CExtensionAttrHelper helper = CExtensionAttrHelper(nodeClassName, "ambient_light");
    MakeCommonAttributes(helper);
@@ -31,7 +31,7 @@ void CDirectionalLightTranslator::Export(AtNode* light)
 
 }
 
-void CDirectionalLightTranslator::NodeInitializer(MString nodeClassName)
+void CDirectionalLightTranslator::NodeInitializer(MString nodeClassName, CNodeInitContext context)
 {
    CExtensionAttrHelper helper = CExtensionAttrHelper(nodeClassName, "distant_light");
    // common attributes
@@ -55,7 +55,7 @@ void CPointLightTranslator::Export(AtNode* light)
    AiNodeSetBool(light, "cast_volumetric_shadows", GetFnNode().findPlug("aiCastVolumetricShadows").asBool());
 }
 
-void CPointLightTranslator::NodeInitializer(MString nodeClassName)
+void CPointLightTranslator::NodeInitializer(MString nodeClassName, CNodeInitContext context)
 {
    CExtensionAttrHelper helper = CExtensionAttrHelper(nodeClassName, "point_light");
    // common attributes
@@ -89,7 +89,7 @@ void CSpotLightTranslator::Export(AtNode* light)
    AiNodeSetFlt(light, "lens_radius", GetFnNode().findPlug("aiLensRadius").asFloat());
 }
 
-void CSpotLightTranslator::NodeInitializer(MString nodeClassName)
+void CSpotLightTranslator::NodeInitializer(MString nodeClassName, CNodeInitContext context)
 {
    CExtensionAttrHelper helper = CExtensionAttrHelper(nodeClassName, "spot_light");
    // common attributes
@@ -123,7 +123,7 @@ void CAreaLightTranslator::Export(AtNode* light)
    AiNodeSetBool(light, "cast_volumetric_shadows", GetFnNode().findPlug("aiCastVolumetricShadows").asBool());
 }
 
-void CAreaLightTranslator::NodeInitializer(MString nodeClassName)
+void CAreaLightTranslator::NodeInitializer(MString nodeClassName, CNodeInitContext context)
 {
    CExtensionAttrHelper helper(nodeClassName, "quad_light");
    // common attributes
@@ -164,7 +164,7 @@ void CSkyDomeLightTranslator::Export(AtNode* light)
    AiNodeSetRGB(light, "shadow_color", GetFnNode().findPlug("shadow_colorR").asFloat(), GetFnNode().findPlug("shadow_colorG").asFloat(), GetFnNode().findPlug("shadow_colorB").asFloat());
 }
 
-void CSkyDomeLightTranslator::NodeInitializer(MString nodeClassName)
+void CSkyDomeLightTranslator::NodeInitializer(MString nodeClassName, CNodeInitContext context)
 {
    CExtensionAttrHelper helper(nodeClassName, "skydome_light");
    // Cannot be created both on Node and here

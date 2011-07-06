@@ -10,7 +10,7 @@ public:
    virtual void Export(AtNode* camera);
    virtual void Update(AtNode* curve);
    virtual void ExportMotion(AtNode* curve, AtUInt step);
-   static void NodeInitializer(MString nodeClassName);
+   static void NodeInitializer(MString nodeClassName, CNodeInitContext context);
    AtNode* CreateArnoldNodes();
    static void* creator()
    {

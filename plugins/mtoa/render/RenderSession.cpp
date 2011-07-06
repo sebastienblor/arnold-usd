@@ -329,9 +329,8 @@ void CRenderSession::SetupRenderOutput()
 {
 
    AtNode * render_view = CreateRenderViewOutput();
-   AtNode * file_driver = CreateFileOutput();
-   AtNode * filter = CreateOutputFilter();
-   AtNode * specialAovfilter;
+   AtNode * file_driver = m_renderOptions.CreateFileOutput();
+   AtNode * filter = m_renderOptions.CreateOutputFilter();
 
    // OUTPUT STRINGS
    AtChar   str[1024];
@@ -354,83 +353,10 @@ void CRenderSession::SetupRenderOutput()
       AiArraySetStr(outputs, driver_num++, str);
 
       for (size_t i=0; i<m_renderOptions.NumAOVs(); ++i)
-      {
-         if      (strcmp(m_renderOptions.GetAOV(i).GetName().asChar(),"Z")==0)
-         {
-            specialAovfilter = CreateAovOutputFilter();
-            m_renderOptions.GetAOV(i).SetupOutput(outputs, ndrivers+static_cast<int>(i), file_driver, specialAovfilter);
-         }
-         else if (strcmp(m_renderOptions.GetAOV(i).GetName().asChar(),"P")==0)
-         {
-            specialAovfilter = CreateAovOutputFilter();
-            m_renderOptions.GetAOV(i).SetupOutput(outputs, ndrivers+static_cast<int>(i), file_driver, specialAovfilter);
-         }
-         else
-         {
-            m_renderOptions.GetAOV(i).SetupOutput(outputs, ndrivers+static_cast<int>(i), file_driver, filter);
-         }
-      }
+         m_renderOptions.GetAOV(i).SetupOutput(outputs, ndrivers+static_cast<int>(i), file_driver, filter);
    }
 
    AiNodeSetArray(AiUniverseGetOptions(), "outputs", outputs);
-
-}
-
-AtNode * CRenderSession::CreateFileOutput()
-{
-   // Don't install the file driver when in IPR mode.
-   if (GetMayaScene()->GetExportMode() == MTOA_EXPORT_IPR) return NULL;
-
-   AtNode* driver;
-   // set the output driver
-   MString driverCamName = m_renderOptions.RenderDriver() + "_" + m_renderOptions.GetCameraName();
-   driver = AiNodeLookUpByName(driverCamName.asChar());
-   if (driver == 0x0)
-   {
-      driver = AiNode(m_renderOptions.RenderDriver().asChar());
-      AiNodeSetStr(driver, "filename", m_renderOptions.GetImageFilename().asChar());
-
-      // Set the driver name depending on the camera name to avoid nodes with
-      // the same name on renders with multiple cameras
-      AiNodeSetStr(driver, "name", driverCamName.asChar());
-   }
-
-   // set output driver parameters
-   // Only set output parameters if they exist within that specific node
-   if (AiNodeEntryLookUpParameter(driver->base_node, "compression"))
-   {
-      AiNodeSetInt(driver, "compression", m_renderOptions.arnoldRenderImageCompression());
-   }
-   if (AiNodeEntryLookUpParameter(driver->base_node, "half_precision"))
-   {
-      AiNodeSetBool(driver, "half_precision", m_renderOptions.arnoldRenderImageHalfPrecision());
-   }
-   if (AiNodeEntryLookUpParameter(driver->base_node, "output_padded"))
-   {
-      AiNodeSetBool(driver, "output_padded", m_renderOptions.arnoldRenderImageOutputPadded());
-   }
-   if (AiNodeEntryLookUpParameter(driver->base_node, "gamma"))
-   {
-      AiNodeSetFlt(driver, "gamma", m_renderOptions.arnoldRenderImageGamma());
-   }
-   if (AiNodeEntryLookUpParameter(driver->base_node, "quality"))
-   {
-      AiNodeSetInt(driver, "quality", m_renderOptions.arnoldRenderImageQuality());
-   }
-   if (AiNodeEntryLookUpParameter(driver->base_node, "format"))
-   {
-      AiNodeSetInt(driver, "format", m_renderOptions.arnoldRenderImageOutputFormat());
-   }
-   if (AiNodeEntryLookUpParameter(driver->base_node, "tiled"))
-   {
-      AiNodeSetBool(driver, "tiled", m_renderOptions.arnoldRenderImageTiled());
-   }
-   if (AiNodeEntryLookUpParameter(driver->base_node, "unpremult_alpha"))
-   {
-      AiNodeSetBool(driver, "unpremult_alpha", m_renderOptions.arnoldRenderImageUnpremultAlpha());
-   }
-
-   return driver;
 }
 
 AtNode * CRenderSession::CreateRenderViewOutput()
@@ -456,55 +382,6 @@ AtNode * CRenderSession::CreateRenderViewOutput()
    return driver;
 }
 
-AtNode * CRenderSession::CreateOutputFilter()
-{
-   // OUTPUT FILTER (use for all image outputs)
-   AtNode* filter = AiNodeLookUpByName(m_renderOptions.filterType().asChar());
-   if (filter == NULL) filter = AiNode(m_renderOptions.filterType().asChar());
-
-   if (filter != NULL)
-   {
-      AiNodeSetStr(filter, "name", m_renderOptions.filterType().asChar());
-
-      // Only set filter parameters if they exist within that specific node
-      if (AiNodeEntryLookUpParameter(filter->base_node, "width"))
-      {
-         AiNodeSetFlt(filter, "width", m_renderOptions.filterWidth());
-      }
-      if (AiNodeEntryLookUpParameter(filter->base_node, "domain"))
-      {
-         AiNodeSetStr(filter, "domain", m_renderOptions.filterDomain().asChar());
-      }
-      if (AiNodeEntryLookUpParameter(filter->base_node, "scalar_mode"))
-      {
-         AiNodeSetBool(filter, "scalar_mode", m_renderOptions.filterScalarMode());
-      }
-      if (AiNodeEntryLookUpParameter(filter->base_node, "maximum"))
-      {
-         AiNodeSetFlt(filter, "maximum", m_renderOptions.filterMaximum());
-      }
-      if (AiNodeEntryLookUpParameter(filter->base_node, "minimum"))
-      {
-         AiNodeSetFlt(filter, "minimum", m_renderOptions.filterMinimum());
-      }
-   }
-
-   return filter;
-}
-
-AtNode * CRenderSession::CreateAovOutputFilter()
-{
-   // OUTPUT FILTER (use for all image outputs)
-   AtNode* filter = AiNodeLookUpByName("closest_filter");
-   if (filter == NULL) filter = AiNode("closest_filter");
-
-   if (filter != NULL)
-   {
-      AiNodeSetStr(filter, "name", "closest_filter");
-   }
-
-   return filter;
-}
 void CRenderSession::DoInteractiveRender()
 {
    MComputation comp;
@@ -678,7 +555,7 @@ void CRenderSession::DoSwatchRender(const AtInt resolution)
    // in the render view, we're just using the Arnold Node.
    // See DisplayUpdateQueueToMImage() for how we get the image.
    AtNode * const render_view = CreateRenderViewOutput();
-   AtNode * const filter      = CreateOutputFilter();
+   AtNode * const filter      = m_renderOptions.CreateOutputFilter();
    AtNode * const options     = AiUniverseGetOptions();
 
    // Create the single output line. No AOVs or anything.

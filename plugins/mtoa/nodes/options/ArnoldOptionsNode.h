@@ -32,15 +32,7 @@ public:
    // Attributes
    static CStaticAttrHelper s_attributes;
 
-   static MObject s_arnoldRenderImageFormat;
-   static MObject s_arnoldRenderImageCompression;
-   static MObject s_arnoldRenderImageHalfPrecision;
-   static MObject s_arnoldRenderImageOutputPadded;
-   static MObject s_arnoldRenderImageGamma;
-   static MObject s_arnoldRenderImageQuality;
-   static MObject s_arnoldRenderImageOutputFormat;
-   static MObject s_arnoldRenderImageTiled;
-   static MObject s_arnoldRenderImageUnpremultAlpha;
+   static MObject s_imageFormat;
    static MObject s_aovs;
 
    static MObject s_renderType;
@@ -56,12 +48,7 @@ public:
    static MObject s_AA_sample_clamp;
    static MObject s_lock_sampling_noise;
    static MObject s_aa_seed;
-   static MObject s_filter_type;
-   static MObject s_filter_width;
-   static MObject s_filter_domain;
-   static MObject s_filter_scalar_mode;
-   static MObject s_filter_maximum;
-   static MObject s_filter_minimum;
+   static MObject s_filterType;
 
    static MObject s_driver_gamma;
    static MObject s_light_gamma;

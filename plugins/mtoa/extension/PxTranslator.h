@@ -7,9 +7,17 @@
 #include <ai_nodes.h>
 #include <ai.h>
 
+struct CNodeInitContext
+{
+   MString mayaNodeName;
+   MString arnoldNodeName;
+   MString translatorName;
+   MString provider;
+};
+
 typedef void *   (*TCreatorFunction)();
 // typedef void     (*TNodeInitFunction)(MObject&);
-typedef void     (*TNodeInitFunction)(MString);
+typedef void     (*TNodeInitFunction)(MString, CNodeInitContext);
 
 // A translator proxy
 class CPxTranslator

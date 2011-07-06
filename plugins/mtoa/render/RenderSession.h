@@ -154,10 +154,7 @@ private:
    // These functions setup the file output
    // and Render View output driver.
    void SetupRenderOutput();
-   AtNode * CreateFileOutput();
    AtNode * CreateRenderViewOutput();
-   AtNode * CreateOutputFilter();
-   AtNode * CreateAovOutputFilter();
 
 private:
 

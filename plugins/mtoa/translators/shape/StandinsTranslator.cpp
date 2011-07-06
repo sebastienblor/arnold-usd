@@ -16,7 +16,7 @@
 
 #include <maya/MString.h>
 
-void CArnoldStandInsTranslator::NodeInitializer(MString nodeClassName)
+void CArnoldStandInsTranslator::NodeInitializer(MString nodeClassName, CNodeInitContext context)
 {
    CExtensionAttrHelper helper(nodeClassName, "procedural");
 

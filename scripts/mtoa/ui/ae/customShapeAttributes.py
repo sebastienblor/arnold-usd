@@ -2,7 +2,7 @@ import maya.cmds as cmds
 import maya.OpenMaya as om
 import mtoa.ui.ae.lightTemplate as lightTemplate
 from mtoa.ui.ae.utils import aeCallback
-from mtoa.ui.ae.shapeTemplate import registerUI, registerDefaultTranslator, ArnoldTranslatorTemplate, registerTranslatorUI
+from mtoa.ui.ae.shapeTemplate import registerUI, registerDefaultTranslator, ArnoldTranslatorTemplate, AutoTranslatorTemplate, registerTranslatorUI
 import mtoa.callbacks as callbacks
 
 def overrideSssToggle(attrName):
@@ -264,5 +264,27 @@ callbacks.addAttributeChangedCallbacks('camera',
                                        [('aiTranslator', cameraTranslatorChanged),
                                         ('orthographic', cameraOrthographicChanged)])
 
+def registerDriverTemplates():
+    # register driver templates
+    for transName in cmds.arnoldPlugins(listTranslators="<driver>"):
+        transName = str(transName) # doesn't like unicode
+        # FIXME: create a real relationship between the arnold node and the translator name
+        arnoldNode = 'driver_%s' % transName
+        cls = type('Driver_%sTemplate' % transName, (AutoTranslatorTemplate,), dict(_arnoldNodeType=arnoldNode))
+        registerTranslatorUI(cls, "<driver>", transName)
+    
+    #registerDefaultTranslator('<driver>', 'exr')
 
+def registerFilterTemplates():
+    # register driver templates
+    for transName in cmds.arnoldPlugins(listTranslators="<filter>"):
+        transName = str(transName) # doesn't like unicode
+        # FIXME: create a real relationship between the arnold node and the translator name
+        arnoldNode = '%s_filter' % transName
+        cls = type('Filter_%sTemplate' % transName, (AutoTranslatorTemplate,), dict(_arnoldNodeType=arnoldNode))
+        registerTranslatorUI(cls, "<filter>", transName)
 
+    #registerDefaultTranslator('<filter>', 'gaussian')
+
+registerDriverTemplates()
+registerFilterTemplates()

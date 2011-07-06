@@ -61,7 +61,7 @@ void COrthoCameraTranslator::ExportMotion(AtNode* camera, AtUInt step)
    ExportImagePlanes(step);
 }
 
-void COrthoCameraTranslator::NodeInitializer(MString nodeClassName)
+void COrthoCameraTranslator::NodeInitializer(MString nodeClassName, CNodeInitContext context)
 {
    CExtensionAttrHelper helper(nodeClassName, "ortho_camera");
    MakeDefaultAttributes(helper);
@@ -203,7 +203,7 @@ void CPerspCameraTranslator::ExportMotion(AtNode* camera, AtUInt step)
    AiArraySetFlt(fovs, step, fov);
 }
 
-void CPerspCameraTranslator::NodeInitializer(MString nodeClassName)
+void CPerspCameraTranslator::NodeInitializer(MString nodeClassName, CNodeInitContext context)
 {
    CExtensionAttrHelper helper(nodeClassName, "persp_camera");
    MakeDefaultAttributes(helper);
@@ -264,7 +264,7 @@ void CFishEyeCameraTranslator::ExportMotion(AtNode* camera, AtUInt step)
    AiArraySetFlt(fovs, step, fov);
 }
 
-void CFishEyeCameraTranslator::NodeInitializer(MString nodeClassName)
+void CFishEyeCameraTranslator::NodeInitializer(MString nodeClassName, CNodeInitContext context)
 {
    CExtensionAttrHelper helper(nodeClassName, "fisheye_camera");
    MakeDefaultAttributes(helper);
@@ -334,7 +334,7 @@ void CCylCameraTranslator::ExportMotion(AtNode* camera, AtUInt step)
    AiArraySetFlt(v_fovs, step, fovs[1]);
 }
 
-void CCylCameraTranslator::NodeInitializer(MString nodeClassName)
+void CCylCameraTranslator::NodeInitializer(MString nodeClassName, CNodeInitContext context)
 {
    CExtensionAttrHelper helper(nodeClassName, "cyl_camera");
    MakeDefaultAttributes(helper);

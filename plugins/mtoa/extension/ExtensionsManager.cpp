@@ -419,7 +419,12 @@ MStatus CExtensionsManager::RegisterExtension(CExtension* extension)
          if (NULL != translator.initialize)
          {
             // TODO : reimplement the plugin deferred mechanism
-            translator.initialize(mayaNode->name);
+            CNodeInitContext context;
+            context.mayaNodeName = mayaNode->name;
+            context.arnoldNodeName = translator.arnold;
+            context.translatorName = translator.name;
+            context.provider = translator.provider;
+            translator.initialize(mayaNode->name, context);
          }
       }
       // Add aiTranslator if more than one translator

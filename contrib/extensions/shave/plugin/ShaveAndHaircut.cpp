@@ -382,7 +382,7 @@ void CShaveTranslator::ProcessHairLines(AtUInt step,
 }
 
 
-void CShaveTranslator::NodeInitializer(MString nodeClassName)
+void CShaveTranslator::NodeInitializer(MString nodeClassName, CNodeInitContext context)
 {
    CExtensionAttrHelper helper(nodeClassName, "curves");
    CShapeTranslator::MakeCommonAttributes(helper);

@@ -10,7 +10,7 @@
 #include <maya/MRampAttribute.h>
 #include <maya/MFnNurbsCurve.h>
 
-void CHairTranslator::NodeInitializer(MString nodeClassName)
+void CHairTranslator::NodeInitializer(MString nodeClassName, CNodeInitContext context)
 {
    CExtensionAttrHelper helper = CExtensionAttrHelper(nodeClassName, "curves");
    CShapeTranslator::MakeCommonAttributes(helper);

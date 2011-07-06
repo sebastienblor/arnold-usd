@@ -977,7 +977,7 @@ void CGeometryTranslator::ShaderAssignmentCallback(MNodeMessage::AttributeMessag
    }
 }
 
-void CGeometryTranslator::NodeInitializer(MString nodeClassName)
+void CGeometryTranslator::NodeInitializer(MString nodeClassName, CNodeInitContext context)
 {
    CExtensionAttrHelper helper(nodeClassName, "polymesh");
 

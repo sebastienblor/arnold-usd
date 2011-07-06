@@ -545,6 +545,33 @@ AtNode* CMayaScene::ExportShader(MObject mayaShader, const MString &attrName)
    return shader;
 }
 
+AtNode* CMayaScene::ExportWithTranslator(MObject mayaShader, const MString &mayaNodeClass, const MString &translatorName)
+{
+   AtNode* shader = NULL;
+
+   CNodeTranslator* translator = CExtensionsManager::GetTranslator(mayaNodeClass, translatorName);
+   if (translator != NULL)
+   {
+      shader = translator->Init(mayaShader, this);
+      translator->DoExport(0);
+   }
+   else
+   {
+      AiMsgDebug("[mtoa] %s translator type not supported: %s", mayaNodeClass.asChar(), translatorName.asChar());
+   }
+   return shader;
+}
+
+AtNode* CMayaScene::ExportDriver(MObject mayaShader, const MString &translatorName)
+{
+   return ExportWithTranslator(mayaShader, "<driver>", translatorName);
+}
+
+AtNode* CMayaScene::ExportFilter(MObject mayaShader, const MString &translatorName)
+{
+   return ExportWithTranslator(mayaShader, "<filter>", translatorName);
+}
+
 // This is a shortcut for Arnold shaders (parameter name is the same in Maya and Arnold)
 #define SHADER_PARAM(name, type) ProcessShaderParameter(mayaShader, name, shader, name, type)
 
