@@ -45,8 +45,7 @@ CExtension* CExtensionsManager::GetBuiltin(MStatus *returnStatus)
    if (NULL == builtin)
    {
       builtin = NewExtension(BUILTIN);
-      status = builtin->RegisterPluginNodes("");
-      status = builtin->RegisterPluginTranslators("");
+      status = builtin->RegisterPluginNodesAndTranslators("");
    }
    if (NULL != returnStatus) *returnStatus = status;
    return builtin;
@@ -797,7 +796,7 @@ MStatus CExtensionsManager::RegisterMayaNode(const CPxMayaNode &mayaNode)
             mayaNode.provider.asChar(), mayaNode.file.asChar());
       return MStatus::kFailure;
    }
-   // Construct the abstract to store in the class static s_abstract member,
+   // Construct the abstract to store in the MPx class's static s_abstract member,
    // if a pointer to one was provided in the proxy for that Maya node class.
    CAbMayaNode abstract(mayaNode);
    if (NULL != mayaNode.abstract) *mayaNode.abstract = abstract;

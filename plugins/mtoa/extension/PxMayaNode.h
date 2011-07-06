@@ -21,22 +21,10 @@ public:
    // in 2012 we can determine the node Id from the node name
    CPxMayaNode(const MString &typeName = "",
                const MTypeId &typeId = MTypeId(0),
-               const MString &arnoldNodeName = "",
                const MString &providerName = "",
                const MString &providerFile = "",
                MCreatorFunction creatorFunction = NULL,
                MInitializeFunction initFunction = NULL,
-               CAbMayaNode *abstractMember = NULL,
-               MPxNode::Type typeNode = MPxNode::kDependNode,
-               const MString &classif = "");
-   CPxMayaNode(const MString &typeName,
-               const MTypeId &typeId,
-               const AtNodeEntry* arnoldNodeEntry,
-               const MString &providerName = "",
-               const MString &providerFile = "",
-               MCreatorFunction creatorFunction = NULL,
-               MInitializeFunction initFunction = NULL,
-               CAbMayaNode *abstractMember = NULL,
                MPxNode::Type typeNode = MPxNode::kDependNode,
                const MString &classif = "");
    ~CPxMayaNode() {};
@@ -46,7 +34,7 @@ public:
    inline bool operator<(const CPxMayaNode& other) const { return strcmp(name.asChar(), other.name.asChar()) < 0; }
 
    inline bool IsNull() const {return (name == "");}
-   MStatus ReadMetaData();
+   MStatus ReadMetaData(const AtNodeEntry* arnoldNodeEntry);
 
 private:
    MString name;

@@ -138,10 +138,6 @@ protected:
    // translator creates.
    MCallbackIdArray m_mayaCallbackIDs;
 
-   // Manually defined translators can fill this information
-   // to make debugging more explicit
-   MString s_arnoldNodeName;
-
    // This is a help that tells mtoa to re-export/update the node passed in.
    // Used by the IPR callbacks.
    static void UpdateIPR(void * clientData = NULL);
