@@ -79,6 +79,8 @@ public:
    static MObject s_background;
    static MObject s_atmosphere;
 
+   static MObject s_displayAOV;
+
 };  // class CArnoldOptionsNode
 
 #endif // ARNOLDOPTIONSNODE_H

@@ -336,7 +336,10 @@ void CRenderOptions::SetupRenderOutput()
    int driver_num(0);
    if (render_view != NULL)
    {
-      sprintf(str, "RGBA RGBA %s %s", AiNodeGetName(filter), AiNodeGetName(render_view));
+      AiMsgWarning("display AOV: %s", m_fnArnoldRenderOptions.findPlug("displayAOV").asString().asChar());
+      sprintf(str, "%s RGBA %s %s", m_fnArnoldRenderOptions.findPlug("displayAOV").asString().asChar(),
+              AiNodeGetName(filter), AiNodeGetName(render_view));
+      //sprintf(str, "RGBA RGBA %s %s", AiNodeGetName(filter), AiNodeGetName(render_view));
       AiArraySetStr(outputs, driver_num++, str);
    }
 

@@ -59,6 +59,7 @@ MObject CArnoldOptionsNode::s_log_console_verbosity;
 MObject CArnoldOptionsNode::s_log_file_verbosity;
 MObject CArnoldOptionsNode::s_background;
 MObject CArnoldOptionsNode::s_atmosphere;
+MObject CArnoldOptionsNode::s_displayAOV;
 
 CStaticAttrHelper CArnoldOptionsNode::s_attributes(CArnoldOptionsNode::addAttribute);
 
@@ -375,6 +376,11 @@ MStatus CArnoldOptionsNode::initialize()
    eAttr.addField("Fog", 1);
    eAttr.addField("Volume Scattering", 2);
    addAttribute(s_atmosphere);
+
+   s_displayAOV = tAttr.create("displayAOV", "daov", MFnData::kString);
+   tAttr.setKeyable(false);
+   tAttr.setDefault(sData.create("RGBA"));
+   addAttribute(s_displayAOV);
 
    return MS::kSuccess;
 }
