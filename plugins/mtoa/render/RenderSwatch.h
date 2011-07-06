@@ -90,7 +90,6 @@ private:
    AtNode* PolySphere();
 
 private:
-   CRenderSession * m_renderSession;
    int m_iteration;
    MString m_nodeClass;
    CRenderSwatchClass m_swatchClass;

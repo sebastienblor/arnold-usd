@@ -484,7 +484,8 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
             if (!pVectorDisp.isNull() && pVectorDisp.asBool())
             {
                AtNode* tangentToObject = AiNode("TangentToObjectSpace");
-               m_scene->ProcessShaderParameter(dispNode, "vector_displacement_scale", tangentToObject, "scale", AI_TYPE_VECTOR);
+               // FIXME : do this using a translator instead
+               // m_scene->ProcessShaderParameter(dispNode, "vector_displacement_scale", tangentToObject, "scale", AI_TYPE_VECTOR);
                AiNodeLink(dispImage, "map", tangentToObject);
 
                AiNodeSetPtr(polymesh, "disp_map", tangentToObject);

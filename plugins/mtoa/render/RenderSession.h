@@ -2,7 +2,6 @@
 #define RENDERSESSION_H
 
 #include "render/RenderOptions.h"
-#include "scene/MayaScene.h"
 
 #include <maya/MGlobal.h>
 
@@ -14,7 +13,6 @@
 #include <maya/MComputation.h>
 
 class MImage;
-class CMayaScene;
 
 /** CRenderSession handles the management of Arnold and rendering.
  * 
@@ -29,22 +27,17 @@ class CRenderSession
 
 public:
 
+   /// Initialize the Arnold universe, it will be ready for translation and render
+   MStatus Begin(CRenderOptions* options);
+   /// Terminate a render. This will shutdown the Arnold universe.
+   MStatus End();
+
+   /// Load the external shaders/procedrals into Arnold.
+   MStatus LoadPlugins();
+
    /// Get the render view ready.
    /// \param addIdleRenderViewUpdate Optionally install a callback for IPR.
    MStatus PrepareRenderView(bool addIdleRenderViewUpdate=false);
-
-   /// Initialize translation of Maya scene to Arnold
-   void Init();
-
-   /// Load the external shaders/procedrals into Arnold.
-   void LoadPlugins();
-
-   /// Translate the Maya scene to Arnold.
-   void Translate();
-
-   /// Get the translated scene bounding box.
-   AtBBox GetBoundingBox();
-   MStatus WriteAsstoc(const MString& filename, const AtBBox& bBox);
 
    // Render Methods.
    /// Render into the Render View, not IPR.
@@ -66,12 +59,12 @@ public:
                       const bool isBatch=false,
                       MStatus *ReturnStatus=NULL) const;
    void DoAssWrite(MString customFileName);
+   /// Get the translated scene bounding box.
+   AtBBox GetBoundingBox();
+   MStatus WriteAsstoc(const MString& filename, const AtBBox& bBox);
 
    /// Stop a render, leaving Arnold univierse active.
    void InterruptRender();
-
-   /// Finish/abort a render. This will shutdown the Arnold universe.
-   void Finish();
 
    /// Start and IPR render.
    void DoIPRRender();
@@ -127,14 +120,6 @@ public:
    bool IsActive() const
    {
       return m_is_active;
-   }
-
-   void ExecuteScript(const MString &str, bool echo=false)
-   {
-      if (str.length() > 0)
-      {
-         MGlobal::executeCommand(str, echo);
-      }
    }
 
 

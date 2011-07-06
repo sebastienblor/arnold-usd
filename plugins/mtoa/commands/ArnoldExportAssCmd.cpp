@@ -1,5 +1,5 @@
 #include "ArnoldExportAssCmd.h"
-#include "render/RenderSession.h"
+#include "scene/MayaScene.h"
 
 #include <ai_dotass.h>
 #include <ai_msg.h>
@@ -152,15 +152,30 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    // you probably don't want a camera anyway, remove this search and warnings in that case?
    if (!camera.isValid()) camera = GetCamera();
    cameraName = camera.partialPathName();
-   // Set the necessary options for scene export
+
+
+   // FIXME use the passed renderGlobals or options intead?
+   MCommonRenderSettingsData renderGlobals;
+   MRenderUtil::getCommonRenderSettings(renderGlobals);
+
+   // Just incase we're rendering with IPR.
+   MGlobal::executeCommand("stopIprRendering renderView;");
+   CMayaScene::End();
+   // Cannot export while a render is active
+   if (AiUniverseIsActive())
+   {
+      AiMsgError("[mtoa] Cannot export to .ass while rendering");
+      return MS::kFailure;
+   }
+
+   // Setup CMayaScene for MTOA_EXPORT_FILE mode
+   CMayaScene::Begin(MTOA_EXPORT_FILE);
    // Filtering
    CExportFilter exportFilter;
-   exportFilter.unselected = exportSelected;
+   // exportFilter.unselected = exportSelected;
    if (exportSelected) exportFilter.notinlayer = false;
    // Current frame
-   double fileFrameNumber = 0;
-   MTime cT = MAnimControl::currentTime();
-   fileFrameNumber = double(cT.value());
+   double fileFrameNumber = MAnimControl::currentTime().as(MTime::uiUnit());
    // Build Export options in MTOA_EXPORT_FILE mode
    CExportOptions exportOptions;
    exportOptions.SetExportCamera(camera);
@@ -168,20 +183,10 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    exportOptions.SetExportMode(MTOA_EXPORT_FILE);
    exportOptions.SetExportFilter(exportFilter);
 
-   // FIXME use the passed renderGlobals or options intead?
-   MCommonRenderSettingsData renderGlobals;
-   MRenderUtil::getCommonRenderSettings(renderGlobals);
-
+   CExportSession* exportSession = CMayaScene::GetExportSession();
    CRenderSession* renderSession = CMayaScene::GetRenderSession();
-   // Just incase we're rendering with IPR.
-   MGlobal::executeCommand("stopIprRendering renderView;");
-   renderSession->Finish();
-   // Cannot export while a render is active
-   if (AiUniverseIsActive())
-   {
-      AiMsgError("[mtoa] Cannot export to .ass while rendering");
-      return MS::kFailure;
-   }
+
+   exportSession->SetExportOptions(exportOptions);
    // We don't need renderview_display so we need to set Batch mode on.
    renderSession->SetBatch(true);
 
@@ -196,7 +201,7 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
       for (double curframe = startframe; curframe <= endframe; curframe += framestep)
       {
          MGlobal::viewFrame(curframe);
-         renderSession->ExecuteScript(renderGlobals.preRenderMel);
+         CMayaScene::ExecuteScript(renderGlobals.preRenderMel);
 
          curfilename = renderSession->GetAssName(customFileName,
                                                  renderGlobals,
@@ -221,24 +226,23 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
                                                  subFrames,
                                                  IsBatch(), &status);
 
-         exportOptions.SetExportFrame(curframe);
-         renderSession->Translate(exportOptions);
+         exportSession->SetExportFrame(curframe);
+         CMayaScene::Export();
 
          renderSession->DoAssWrite(curfilename);
-         renderSession->Finish();
-
          if (writeBox)
             renderSession->WriteAsstoc(tocfilename, renderSession->GetBoundingBox());
-            renderSession->Finish();
 
-         renderSession->ExecuteScript(renderGlobals.postRenderMel);
+         renderSession->End();
+
+         CMayaScene::ExecuteScript(renderGlobals.postRenderMel);
 
          appendToResult(curfilename);
       }
    }
    else
    {
-      renderSession->ExecuteScript(renderGlobals.preRenderMel);
+      CMayaScene::ExecuteScript(renderGlobals.preRenderMel);
 
       curfilename = renderSession->GetAssName(customFileName,
                                               renderGlobals,
@@ -263,15 +267,14 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
                                               0,
                                               IsBatch(), &status);
 
-      renderSession->Translate(exportOptions);
+      CMayaScene::Export();
       renderSession->DoAssWrite(curfilename);
-      renderSession->Finish();
-
       if (writeBox)
          renderSession->WriteAsstoc(tocfilename, renderSession->GetBoundingBox());
-         renderSession->Finish();
 
-      renderSession->ExecuteScript(renderGlobals.postRenderMel);
+      renderSession->End();
+
+      CMayaScene::ExecuteScript(renderGlobals.postRenderMel);
 
       appendToResult(curfilename);
    }

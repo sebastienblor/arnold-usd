@@ -316,7 +316,7 @@ void CLambertTranslator::Export(AtNode* shader)
    {
       MString m_outputAttr = connections[0].partialName(false, false, false, false, false, true);
 
-      AtNode* m_fnNode = ExportShader(connections[0].node(), m_outputAttr);
+      AtNode* m_fnNode = ExportNode(connections[0].node(), m_outputAttr);
 
       if (m_fnNode != NULL)
          AiNodeLink(m_fnNode, "@before", shader);
@@ -347,6 +347,8 @@ void CFileTranslator::Export(AtNode* shader)
       {
          // until multiple outputs are supporte, place2d outputs are added to
          // inputs on the file node itself
+         // FIXME do this with a translator
+         /*
          m_scene->ProcessShaderParameter(srcNode, "coverage", shader, "coverage", AI_TYPE_POINT2);
          m_scene->ProcessShaderParameter(srcNode, "rotateFrame", shader, "rotateFrame", AI_TYPE_FLOAT);
          m_scene->ProcessShaderParameter(srcNode, "translateFrame", shader, "translateFrame", AI_TYPE_POINT2);
@@ -359,13 +361,14 @@ void CFileTranslator::Export(AtNode* shader)
          m_scene->ProcessShaderParameter(srcNode, "rotateUV", shader, "rotateUV", AI_TYPE_FLOAT);
          m_scene->ProcessShaderParameter(srcNode, "offset", shader, "offsetUV", AI_TYPE_POINT2);
          m_scene->ProcessShaderParameter(srcNode, "noiseUV", shader, "noiseUV", AI_TYPE_POINT2);
+         */
       }
    }
    MString filename;
    MString resolvedFilename;
    MString frameNumber("0");
    MStatus status;
-   frameNumber += GetCurrentFrame() + GetFnNode().findPlug("frameOffset").asInt();
+   frameNumber += GetExportFrame() + GetFnNode().findPlug("frameOffset").asInt();
    MRenderUtil::exactFileTextureName(m_object, filename);
    resolvedFilename = MRenderUtil::exactFileTextureName(filename, GetFnNode().findPlug("useFrameExtension").asBool(), frameNumber, &status);
    if (status == MStatus::kSuccess)

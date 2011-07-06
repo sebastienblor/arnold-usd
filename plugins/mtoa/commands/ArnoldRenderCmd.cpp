@@ -1,6 +1,5 @@
 #include "ArnoldRenderCmd.h"
-#include "render/RenderOptions.h"
-#include "render/RenderSession.h"
+#include "scene/MayaScene.h"
 
 #include <ai_msg.h>
 #include <ai_universe.h>
@@ -38,7 +37,6 @@ MSyntax CArnoldRenderCmd::newSyntax()
 MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
 {
    MStatus status;
-   CRenderSession* renderSession = CRenderSession::GetInstance();
    MArgDatabase args(syntax(), argList);
    MDagPath dagPath;
 
@@ -46,7 +44,6 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
    MRenderUtil::getCommonRenderSettings(renderGlobals);
 
    const bool batch = args.isFlagSet("batch") ? true : false;
-   renderSession->SetBatch(batch);
 
    // Rendered camera
    MString camera = "";
@@ -60,9 +57,14 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       camera = args.flagArgumentString("camera", 0);
    }
    // TODO: get the "selected" flag here
-   CExportOptions exportOptions;
-   exportOptions.SetExportMode(MTOA_EXPORT_ALL);
-   exportOptions.GetExportFilter()->unselected = !renderGlobals.renderAll;
+   bool exportSelected = !renderGlobals.renderAll;
+   MSelectionList selected;
+   MSelectionList* selectedPtr = NULL;
+   if (exportSelected)
+   {
+      MGlobal::getActiveSelectionList(selected);
+      selectedPtr = &selected;
+   }
 
    // FIXME: just a fast hack, should rehaul CRenderOptions code
    // and share same proc for ArnoldRenderCmd and ArnoldExportAssCmd
@@ -89,7 +91,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       {
          cmdStr += " -b";
       }
-      if (exportOptions.GetExportFilter()->unselected)
+      if (exportSelected)
       {
          cmdStr += " -s";
       }
@@ -188,6 +190,13 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
          byframestep = 1;
       }
 
+      CMayaScene::End(); // In case we're already rendering (e.g. IPR).
+      CMayaScene::Begin(MTOA_EXPORT_RENDER);
+
+      CExportSession* exportSession = CMayaScene::GetExportSession();
+      CRenderSession* renderSession = CMayaScene::GetRenderSession();
+      renderSession->SetBatch(batch);
+
       //FIXME: in command line mode, seems that maya doesn't move to the first frame correctly.
       MGlobal::viewFrame((double) startframe);
 
@@ -196,11 +205,11 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
          const CRenderOptions* renderOptions = renderSession->RenderOptions();
          if (renderOptions->isAnimated())
             MGlobal::viewFrame((double) framerender);
-         renderSession->ExecuteScript(renderGlobals.preRenderMel);
+         CMayaScene::ExecuteScript(renderGlobals.preRenderMel);
 
          // FIXME: do we really need to reset options each time?
-         exportOptions.SetExportFrame(framerender);
-         renderSession->Translate(exportOptions);
+         exportSession->SetExportFrame(framerender);
+         CMayaScene::Export(selectedPtr);
          MDagPathArray cameras;
          MItDag dagIterCameras(MItDag::kDepthFirst, MFn::kCamera);
 
@@ -233,36 +242,46 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
 
             if (renderSession->DoBatchRender() != AI_SUCCESS)
             {
-               renderSession->Finish();
+               CMayaScene::End();
                MGlobal::displayError("[mtoa] Failed batch render");
                return MS::kFailure;
             }
          }
-         renderSession->Finish();
-         renderSession->ExecuteScript(renderGlobals.postRenderMel);
+         renderSession->End();
+         CMayaScene::ExecuteScript(renderGlobals.postRenderMel);
       }
    }
 
    // or interactive mode
    else
    {
+      CMayaScene::End(); // In case we're already rendering (e.g. IPR).
+
       int width = args.isFlagSet("width") ? args.flagArgumentInt("width", 0) : -1;
       int height = args.isFlagSet("height") ? args.flagArgumentInt("height", 0) : -1;
 
       MSelectionList sel;
       args.getFlagArgument("camera", 0, sel);
       MDagPath camera;
-      if (MStatus::kSuccess == sel.getDagPath(0, camera)) exportOptions.SetExportCamera(camera);
 
-      renderSession->ExecuteScript(renderGlobals.preRenderMel);
+      CMayaScene::ExecuteScript(renderGlobals.preRenderMel);
 
-      renderSession->Finish(); // In case we're already rendering (e.g. IPR).
-      renderSession->Translate(exportOptions); // Translate the scene from Maya.
+      // CMayaScene::ExportAndRenderFrame(MTOA_EXPORT_RENDER, selected);
+
+      CMayaScene::Begin(MTOA_EXPORT_RENDER);
+
+      CExportSession* exportSession = CMayaScene::GetExportSession();
+      CRenderSession* renderSession = CMayaScene::GetRenderSession();
+
+      if (MStatus::kSuccess == sel.getDagPath(0, camera)) exportSession->SetExportCamera(camera);
+      CMayaScene::Export(selectedPtr);
+
       renderSession->SetResolution(width, height);
       renderSession->DoInteractiveRender(); // Start the render.
-      renderSession->Finish(); // Clean up.
 
-      renderSession->ExecuteScript(renderGlobals.postRenderMel);
+      CMayaScene::End(); // Clean up.
+
+      CMayaScene::ExecuteScript(renderGlobals.postRenderMel);
    }
 
    return status;

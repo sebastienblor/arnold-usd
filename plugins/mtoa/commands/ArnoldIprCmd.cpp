@@ -1,6 +1,6 @@
 
 #include "ArnoldIprCmd.h"
-#include "render/RenderSession.h"
+#include "scene/MayaScene.h"
 
 #include <ai_universe.h>
 
@@ -35,15 +35,13 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
    if (!MRenderView::doesRenderEditorExist())
       return MS::kFailure;
 
-   CRenderSession* renderSession = CRenderSession::GetInstance();
-
    MStatus status;
    MArgDatabase args(syntax(), argList);
 
    // "-mode" flag is not set, so we simply return a bool with the rendering status
    if (!args.isFlagSet("mode"))
    {
-      setResult(renderSession->IsActive());
+      setResult(CMayaScene::GetRenderSession()->IsActive());
       return MS::kSuccess;
    }
 
@@ -52,34 +50,39 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
    int width  = args.isFlagSet("width") ? args.flagArgumentInt("width", 0) : -1;
    int height = args.isFlagSet("height") ? args.flagArgumentInt("height", 0) : -1;
 
-   // TODO: get the "selected" flag here
-   CExportOptions exportOptions;
-   exportOptions.SetExportMode(MTOA_EXPORT_IPR);
+   MSelectionList selected;
+   MCommonRenderSettingsData renderGlobals;
+   MRenderUtil::getCommonRenderSettings(renderGlobals);
 
    // What mode are we in?
    if (mode == "start")
    {
+      // Just incase we were rendering already.
+      CMayaScene::End();
+
+      CMayaScene::ExecuteScript(renderGlobals.preMel);
+      CMayaScene::ExecuteScript(renderGlobals.preRenderMel);
+
+      // This will export the scene.
+      CMayaScene::Begin(MTOA_EXPORT_IPR);
       MSelectionList sel;
       args.getFlagArgument("camera", 0, sel);
       MDagPath camera;
       status = sel.getDagPath(0, camera);
-      exportOptions.SetExportCamera(camera);
+      CMayaScene::GetExportSession()->SetExportCamera(camera);
 
-      // Just incase we were rendering already.
-      renderSession->Finish();
-
-      MCommonRenderSettingsData renderGlobals;
-      MRenderUtil::getCommonRenderSettings(renderGlobals);
-      exportOptions.GetExportFilter()->unselected = !renderGlobals.renderAll;
-
-      renderSession->ExecuteScript(renderGlobals.preMel);
-      renderSession->ExecuteScript(renderGlobals.preRenderMel);
-
-      // This will export the scene.
-      renderSession->Translate(exportOptions);
+      if (!renderGlobals.renderAll)
+      {
+         MGlobal::getActiveSelectionList(selected);
+         CMayaScene::Export(&selected);
+      }
+      else
+      {
+         CMayaScene::Export();
+      }
 
       // Set resolution and camera as passed in.
-      renderSession->SetResolution(width, height);
+      CMayaScene::GetRenderSession()->SetResolution(width, height);
 
       // No need to call render as Maya sends us "unpause" next.
 
@@ -87,29 +90,37 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
 
    else if (mode == "stop")
    {
-      renderSession->Finish();
+      CMayaScene::End();
 
-      MCommonRenderSettingsData renderGlobals;
-      MRenderUtil::getCommonRenderSettings(renderGlobals);
-      renderSession->ExecuteScript(renderGlobals.postRenderMel);
-      renderSession->ExecuteScript(renderGlobals.postMel);
+      CMayaScene::ExecuteScript(renderGlobals.postRenderMel);
+      CMayaScene::ExecuteScript(renderGlobals.postMel);
    }
 
    else if (mode == "refresh")
    {
       // Close down Arnold, clearing out the old data.
-      renderSession->Finish();
+      CExportSession* exportSession = CMayaScene::GetExportSession();
+      CRenderSession* renderSession = CMayaScene::GetRenderSession();
+      renderSession->End();
       // We save and restore the res instead of using the translated one because
       // the translated value is from the render globals. We may have been
       // passed in a different value to start with.
       const AtInt width = renderSession->RenderOptions()->width();
       const AtInt height = renderSession->RenderOptions()->height();
       // Same deal for the camera.
-      exportOptions.SetExportCamera(renderSession->RenderOptions()->GetCamera());
+      exportSession->SetExportCamera(renderSession->RenderOptions()->GetCamera());
       // Set the export mode to IPR
       // FIXME: do we really need to reset options and do a full translation each time?
       // Re-translate.
-      renderSession->Translate(exportOptions);
+      if (!renderGlobals.renderAll)
+      {
+         MGlobal::getActiveSelectionList(selected);
+         CMayaScene::Export(&selected);
+      }
+      else
+      {
+         CMayaScene::Export();
+      }
       // Restore the resolution and camera.
       renderSession->SetResolution(width, height);
 
@@ -119,6 +130,7 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
 
    else if ((mode == "region") || (mode == "render"))
    {
+      CRenderSession* renderSession = CMayaScene::GetRenderSession();
       renderSession->InterruptRender();
 
       if (!renderSession->IsActive())
@@ -156,19 +168,19 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
    }
    else if ((mode == "pause"))
    {
-      renderSession->PauseIPR();
+      CMayaScene::GetRenderSession()->PauseIPR();
    }
 
    else if (mode == "unpause")
    {
-      if (!renderSession->IsActive())
+      if (!CMayaScene::GetRenderSession()->IsActive())
       {
          MGlobal::displayError("Error starting Arnold IPR");
          return MS::kFailure;
       }
 
       // Start off the render.
-      renderSession->UnPauseIPR();
+      CMayaScene::GetRenderSession()->UnPauseIPR();
    }
 
    else if ((mode == "finishedIPR"))
@@ -176,10 +188,10 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
       // We might be rendering again by the time this is called.
       if (AiRendering()) return status;
          
-      renderSession->FinishedIPRTuning();
+      CMayaScene::GetRenderSession()->FinishedIPRTuning();
 
       // Format a bit of info for the renderview.
-      const AtUInt64 mem_used(renderSession->GetUsedMemory());
+      const AtUInt64 mem_used(CMayaScene::GetRenderSession()->GetUsedMemory());
 
       MString rvInfo("renderWindowEditor -edit -pcaption (\"    (Arnold Renderer)\\n");
       rvInfo += "Memory: ";
@@ -201,7 +213,7 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
       }
 
       rvInfo += "    Camera: ";
-      rvInfo += renderSession->RenderOptions()->GetCameraName();
+      rvInfo += CMayaScene::GetRenderSession()->RenderOptions()->GetCameraName();
       rvInfo += "\") renderView;";
 
       MGlobal::executeCommandOnIdle(rvInfo, false);

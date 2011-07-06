@@ -61,82 +61,86 @@ class DLLEXPORT CExportSession
 
 public:
 
-   MStatus ExportToArnold();
-   AtNode* ExportNode(MObject node, const MString &attrName="");
-   AtNode* ExportNode(MPlug& shaderOutputPlug);
+   // Called by translators
    AtNode* ExportDagPath(MDagPath &dagPath);
+   AtNode* ExportNode(MPlug& shaderOutputPlug);
+   AtNode* ExportNode(MObject node, const MString &attrName="");
 
-   // Export options
-   inline CExportOptions* GetExportOptions()              { return &m_exportOptions; }
-   inline void SetExportOptions(CExportOptions& options)  { m_exportOptions = options; }
-
-   inline ExportMode GetExportMode()                      { return m_exportOptions.GetExportMode(); }
-   inline void SetExportMode(ExportMode mode)             { m_exportOptions.SetExportMode(mode); }
-
-   inline double GetExportFrame()                         { return m_exportOptions.GetExportFrame();}
-   
    CNodeTranslator * GetActiveTranslator(const MObject node);
-   
-   // Called by translators to get the master instance
-   static bool IsExportedPath(MDagPath dagPath);
    static bool IsRenderablePath(MDagPath dagPath);
 
-   inline bool IsExportingMotion() const {return m_isExportingMotion; }
+   // Export options
+   inline const CExportOptions& GetExportOptions() const  { return m_exportOptions; }
+   inline CExportOptions* ExportOptions()                 { return &m_exportOptions; }
+   inline void SetExportOptions(CExportOptions& options)  { m_exportOptions = options; }
+
+   inline const ExportMode& GetExportMode() const         { return m_exportOptions.GetExportMode(); }
+   inline void SetExportMode(ExportMode mode)             { m_exportOptions.SetExportMode(mode); }
+
+   inline double GetExportFrame() const                   { return m_exportOptions.GetExportFrame(); }
+   inline void SetExportFrame(double frame)               { m_exportOptions.SetExportFrame(frame); }
+
+   inline const MDagPath& GetExportCamera() const         { return m_exportOptions.GetExportCamera(); }
+   inline void SetExportCamera(MDagPath camera)           { m_exportOptions.SetExportCamera(camera); }
+
+   inline const MObject& GetArnoldRenderOptions() const   { return m_exportOptions.GetArnoldRenderOptions(); }
+   
+   inline const CExportFilter& GetExportFilter() const    { return m_exportOptions.GetExportFilter(); }
+   inline CExportFilter* ExportFilter()                   { return m_exportOptions.ExportFilter(); }
+   inline void SetExportFilter(CExportFilter& filter)     { m_exportOptions.SetExportFilter(filter); }
+   
    inline bool IsMotionBlurEnabled(int type = MTOA_MBLUR_ALL) const { return m_exportOptions.IsMotionBlurEnabled(type); }
    inline unsigned int GetNumMotionSteps() const { return m_exportOptions.GetNumMotionSteps(); }
    inline float GetShutterSize() const { return m_exportOptions.GetShutterSize(); }
    inline unsigned int GetShutterType() const { return m_exportOptions.GetShutterType(); }
 
+   // Flag to avoid IPR loops
+   inline bool IsExportingMotion() const {return m_isExportingMotion; }
+
+   // Updates
    inline void QueueForUpdate(CNodeTranslator * translator) { if (translator != NULL) m_translatorsToUpdate.push_back(translator); }
    inline void RequestUpdate() { m_requestUpdate = true; }
 
 private:
    CExportSession()
       :  m_exportOptions(CExportOptions())
-      ,  m_fnCommonRenderOptions(NULL)
-      ,  m_fnArnoldRenderOptions(NULL)
       ,  m_isExportingMotion(false)
       ,  m_requestUpdate(false)
    {
    }
 
-   ~CExportSession();
+   ~CExportSession() { End(); }
+
+   /// Initialize with passed CExportOptions, ready for translating to the Arnold universe
+   MStatus Begin(CExportOptions* options);
+   /// Terminate an export session
+   MStatus End();
+
+   MStatus UpdateMotionBlurData();
    
-   void PrepareExport();
+   MStatus Export(MSelectionList* selected = NULL);
+
    MStatus ExportScene();
    MStatus ExportCameras();
    MStatus ExportLights();
    MStatus ExportSelection(MSelectionList& selected);
    MStatus IterSelection(MSelectionList& selected);
 
-   static DagFiltered FilteredStatus(CExportFilter filter, MDagPath dagPath);
-   bool IsExportedPath(CExportFilter filter, MDagPath path);
-   static bool IsInRenderLayer(MDagPath dagPath);
-   static bool IsVisiblePath(MDagPath dagPath);
-   static bool IsTemplatedPath(MDagPath dagPath);
-   static bool IsVisible(MFnDagNode node);
-   static bool IsTemplated(MFnDagNode node);
-   bool IsMasterInstance(const MDagPath &dagPath, MDagPath &masterDag);
-   void GetMatrix(AtMatrix& matrix, const MDagPath& dagPath);
-   void ConvertMatrix(AtMatrix& matrix, const MMatrix& mayamatrix);
+   DagFiltered FilteredStatus(MDagPath dagPath);
 
-   void GetMotionBlurData();
+   inline bool NeedsUpdate() { return m_requestUpdate; }
 
+   void DoUpdate();
+   void ClearUpdateCallbacks();
    
 private:
 
    CExportOptions m_exportOptions;
-   MFnDependencyNode* m_fnCommonRenderOptions;
-   MFnDependencyNode* m_fnArnoldRenderOptions;
-   MDagPath m_camera;
 
    bool m_isExportingMotion;
    std::vector<double> m_motion_frames;
 
    bool m_requestUpdate;
-
-   void DoUpdate();
-   void ClearUpdateCallbacks();
    std::vector< CNodeTranslator * > m_translatorsToUpdate;
 
    // depend nodes, are a map with MObjectHandle as a key
@@ -144,7 +148,6 @@ private:
    // dag nodes, are a map in a map.
    // the first key is an MObjectHandle and the second the instance number
    ObjectToDagTranslatorMap m_processedDagTranslators;
-
 
 };  // class CExportSession
 

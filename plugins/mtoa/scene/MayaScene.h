@@ -53,31 +53,33 @@ public:
 
    /// Return the instance of the export session.
    static CExportSession* GetExportSession();
-
    /// Return the instance of the render session.
    static CRenderSession* GetRenderSession();
 
-   static bool IsExportingMotion();
+   inline static const ExportMode& GetExportMode() { return GetExportSession()->GetExportMode(); }
+   inline static bool IsExportingMotion() { return GetExportSession()->IsExportingMotion(); }
 
-   MStatus ExportToArnold();
-   static void SetupImageOptions(AtNode* options);
-   void PrepareExport();
+   static MStatus Begin(ExportMode mode);
+   static MStatus End();
+   /// Must be called between Begin and End
+   static MStatus Export(MSelectionList* selected = NULL);
+   /// Must be called between Begin and End, after Export
+   static MStatus Render();
+
+   /// Do an export and render in the given mode
+   static MStatus ExportAndRenderFrame(ExportMode mode, MSelectionList* selected = NULL);
+   static MStatus ExportAndRenderSequence(ExportMode mode, MSelectionList* selected = NULL);
+
+   static MStatus ExecuteScript(const MString &str, bool echo=false);
 
 private:
 
-   void ExportInstancerReplacement(const MDagPath& dagPath, AtUInt step);
-
-   static DagFiltered FilteredStatus(CExportFilter filter, MDagPath dagPath);
-   bool IsExportedPath(CExportFilter filter, MDagPath path);
-   static bool IsInRenderLayer(MDagPath dagPath);
-   static bool IsVisiblePath(MDagPath dagPath);
-   static bool IsTemplatedPath(MDagPath dagPath);
-   static bool IsVisible(MFnDagNode node);
-   static bool IsTemplated(MFnDagNode node);
+   static MStatus SetupIPRCallbacks();
+   static void ClearIPRCallbacks();
 
    static void IPRNewNodeCallback(MObject & node, void *);
    static void IPRIdleCallback(void *);
-   static void UpdateIPR();
+
 
    static std::vector< CNodeTranslator * > s_translatorsToIPRUpdate;
    static MCallbackId s_IPRIdleCallbackId;

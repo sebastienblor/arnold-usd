@@ -7,9 +7,9 @@
 
 DLLEXPORT void SetMetafile(MString metafile);
 
-DLLEXPORT bool ReadMetafile();
+DLLEXPORT MStatus ReadMetafile();
 
 // return if the universe had to be initialized (and thus should be uninitialized), false if it was already active
-DLLEXPORT bool InitArnoldUniverse();
+DLLEXPORT MStatus InitArnoldUniverse();
 
 #endif // UNIVERSE_H_

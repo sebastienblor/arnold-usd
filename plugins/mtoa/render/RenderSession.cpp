@@ -1,4 +1,5 @@
 #include "utils/Universe.h"
+#include "utils/MtoaLog.h"
 #include "RenderSession.h"
 #include "RenderOptions.h"
 #include "OutputDriver.h"
@@ -80,8 +81,10 @@ unsigned int CRenderSession::RenderThread(AtVoid* data)
    return 0;
 }
 
-void CRenderSession::LoadPlugins()
+// FIXME: should use the list of loaded plugins from CExtensionsManager instead
+MStatus CRenderSession::LoadPlugins()
 {
+   MStatus status = MStatus::kSuccess;
 
    #ifdef _WIN32
       const char split_char(';');
@@ -101,36 +104,48 @@ void CRenderSession::LoadPlugins()
          AiLoadPlugins(pluginPath.asChar());
       }
    }
+
+   return status;
 }
 
-void CRenderSession::Init()
+MStatus CRenderSession::Begin(CRenderOptions* options)
 {
+   MStatus status = MStatus::kSuccess;
+
    m_is_active = true;
-
-   m_renderOptions.GetFromMaya();
-   m_renderOptions.SetupLog();
-}
-
-void CRenderSession::Translate()
-{
    if (AiUniverseIsActive())
    {
-      AiMsgError("[mtoa] There can only be one RenderSession active.");
-      return;
+      AiMsgWarning("[mtoa] There can only be one RenderSession active.");
+      AiRenderAbort();
+      InterruptRender();
+      AiEnd();
    }
 
-   // Begin the Arnold universe.
+   // Begin the Arnold universe, read metadata file and load plugins
    AiBegin();
-   ReadMetafile();
-   Init();
-   // TODO: should use the list of loaded plugins from CExtensionsManager instead
-   LoadPlugins();
+   status = ReadMetafile();
+   status = LoadPlugins();
 
-   CMayaScene::ExportToArnold();
+   m_renderOptions = *options;
 
-   if (options.GetExportCamera().isValid())
-      SetCamera(options.GetExportCamera());
+   return status;
+}
 
+MStatus CRenderSession::End()
+{
+   MStatus status = MStatus::kSuccess;
+
+   if (AiUniverseIsActive())
+   {
+      AiRenderAbort();
+      InterruptRender();
+      AiEnd();
+   }
+   m_is_active = false;
+   // Restore "out of rendering" logging
+   MtoaSetupLogging();
+
+   return status;
 }
 
 AtBBox CRenderSession::GetBoundingBox()
@@ -183,20 +198,6 @@ MStatus CRenderSession::WriteAsstoc(const MString& filename, const AtBBox& bBox)
    }
 }
 
-void CRenderSession::Finish()
-{
-   // FIXME: Instruct CMayaScene to finish the exportSession as well
-   CMayaScene::Finish();
-
-   if (AiUniverseIsActive())
-   {
-      AiRenderAbort();
-      InterruptRender();
-      AiEnd();
-   }
-   m_is_active = false;
-}
-
 void CRenderSession::InterruptRender()
 {
    if (AiRendering()) AiRenderInterrupt();
@@ -241,7 +242,7 @@ void CRenderSession::SetCamera(MDagPath cameraNode)
    cameraNode.extendToShape();
    m_renderOptions.SetCamera(cameraNode);
    // FIXME: do this more explicitly: at this point the node should be exported, this is just retrieving the arnold node
-   AtNode* camera = CMayaScene::ExportDagPath(cameraNode);
+   AtNode* camera = CMayaScene::GetExportSession()->ExportDagPath(cameraNode);
    if (camera == NULL)
    {
       AiMsgError("[mtoa] Setting camera %s failed", cameraNode.partialPathName().asChar());
@@ -368,7 +369,7 @@ void CRenderSession::SetupRenderOutput()
 AtNode * CRenderSession::CreateFileOutput()
 {
    // Don't install the file driver when in IPR mode.
-   if (GetMayaScene()->GetExportMode() == MTOA_EXPORT_IPR) return NULL;
+   if (CMayaScene::GetExportMode() == MTOA_EXPORT_IPR) return NULL;
 
    AtNode* driver;
    // set the output driver
@@ -816,7 +817,7 @@ void CRenderSession::DoSwatchRender(const AtInt resolution)
 
 bool CRenderSession::GetSwatchImage(MImage & image)
 {
-   if (GetMayaScene() == NULL || GetMayaScene()->GetExportMode() != MTOA_EXPORT_SWATCH)
+   if (CMayaScene::GetExportMode() != MTOA_EXPORT_SWATCH)
    {
       return false;
    }

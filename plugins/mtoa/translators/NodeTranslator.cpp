@@ -28,6 +28,8 @@
 
 #include <string>
 
+namespace // <anonymous>
+{
 #define COMP_CONNECTIONS(plug, arnoldNode, arnoldAttrib, comp1, comp2, comp3) \
    int compConnected = 0;\
    MPlugArray conn;\
@@ -74,6 +76,22 @@
       COMP_CONNECTIONS(plug, arnoldNode, arnoldAttrib, ".x", ".y", ".z")\
       if (compConnected != 3)\
          AiNodeSetPnt(arnoldNode, arnoldAttrib, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+
+
+   void ConvertMatrix(AtMatrix& matrix, const MMatrix& mayaMatrix)
+   {
+      for (int J = 0; (J < 4); ++J)
+      {
+         for (int I = 0; (I < 4); ++I)
+         {
+            matrix[I][J] = (float) mayaMatrix[I][J];
+         }
+      }
+   }
+
+
+} // namespace
+
 
 //------------ CNodeTranslator ------------//
 
@@ -625,18 +643,6 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
          else
             AiMsgError("[mtoa] [translator %s] Unsupported user attribute type for %s",
                   GetName().asChar(), pAttr.partialName(true, false, false, false, false, true).asChar());
-      }
-   }
-}
-
-// populate an arnold matrix with values from a maya matrix
-void CNodeTranslator::ConvertMatrix(AtMatrix& matrix, const MMatrix& mayaMatrix)
-{
-   for (int J = 0; (J < 4); ++J)
-   {
-      for (int I = 0; (I < 4); ++I)
-      {
-         matrix[I][J] = (float) mayaMatrix[I][J];
       }
    }
 }

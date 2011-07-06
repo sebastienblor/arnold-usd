@@ -37,7 +37,6 @@ CRenderOptions::CRenderOptions()
 ,  m_log_max_warnings(100)
 ,  m_log_console_verbosity(5)
 ,  m_log_file_verbosity(5)
-,  m_scene(NULL)
 {}
 
 void CRenderOptions::GetFromMaya()
@@ -252,7 +251,18 @@ void CRenderOptions::SetupImageOptions() const
    MObject        node;
    if (GetOptionsNode(node) == MS::kSuccess)
    {
-      CMayaScene::SetupImageOptions(AiUniverseGetOptions());
+      AtNode* options = AiUniverseGetOptions();
+      if (useRenderRegion())
+      {
+         AiNodeSetInt(options, "region_min_x", minX());
+         AiNodeSetInt(options, "region_min_y", height() - maxY() - 1);
+         AiNodeSetInt(options, "region_max_x", maxX());
+         AiNodeSetInt(options, "region_max_y", height() - minY() - 1);
+      }
+
+      AiNodeSetInt(options, "xres", width());
+      AiNodeSetInt(options, "yres", height());
+      AiNodeSetFlt(options, "aspect_ratio", pixelAspectRatio());
    }
 }
 

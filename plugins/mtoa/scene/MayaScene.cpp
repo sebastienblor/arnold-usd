@@ -1,7 +1,7 @@
 
 #include "MayaScene.h"
 #include "extension/ExtensionsManager.h"
-#include "render/RenderSession.h"
+#include "utils/MtoaLog.h"
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
@@ -35,8 +35,6 @@ MCallbackId CMayaScene::s_IPRIdleCallbackId = 0;
 MCallbackId CMayaScene::s_NewNodeCallbackId = 0;
 CRenderSession* CMayaScene::s_renderSession = NULL;
 CExportSession* CMayaScene::s_exportSession = NULL;
-bool CMayaScene::s_isExportingMotion = false;
-
 
 // Cheap singleton
 CRenderSession* CMayaScene::GetRenderSession()
@@ -55,181 +53,183 @@ CExportSession* CMayaScene::GetExportSession()
    return s_exportSession;
 }
 
-bool IsExportingMotion()
+MStatus CMayaScene::Begin(ExportMode mode)
 {
+   MStatus status = MStatus::kSuccess;
+
+   CRenderSession* renderSession = GetRenderSession();
    CExportSession* exportSession = GetExportSession();
-   if (NULL != exportSession)
+
+   MSelectionList    list;
+   MObject           defaultRenderGlobalsNode;
+   MObject           ArnoldRenderOptionsNode;
+   MFnDependencyNode fnCommonRenderOptions;
+   MFnDependencyNode fnArnoldRenderOptions;
+   
+   list.add("defaultRenderGlobals");
+   if (list.length() > 0)
    {
-      return exportSession->IsExportingMotion();
+      list.getDependNode(0, defaultRenderGlobalsNode);
+      fnCommonRenderOptions.setObject(defaultRenderGlobalsNode);
+   }
+
+   list.clear();
+   // FIXME : allow to pass a specific options node
+   list.add("defaultArnoldRenderOptions");
+   if (list.length() > 0)
+   {
+      list.getDependNode(0, ArnoldRenderOptionsNode);
+      fnArnoldRenderOptions.setObject(ArnoldRenderOptionsNode);
+   }
+
+   CExportOptions exportOptions;
+   exportOptions.SetExportMode(mode);
+   exportOptions.SetExportFrame(MAnimControl::currentTime().as(MTime::uiUnit()));
+   exportOptions.SetArnoldRenderOptions(ArnoldRenderOptionsNode);
+
+   CRenderOptions renderOptions;
+   if (mode == MTOA_EXPORT_SWATCH)
+   {
+      // FIXME: default or use swatch defaults
+      renderOptions = CRenderOptions();
+      renderOptions.SetBatch(false);
+      renderOptions.SetProgressive(false);
+      //FIXME: fill renderOptions instead
+      MtoaSetupSwatchLogging();
    }
    else
    {
-      return false;
+      // FIXME : allow to pass a specific options node
+      renderOptions.GetFromMaya();
+      renderOptions.SetupLog();
    }
+
+   // Init both render and export sessions
+   status = renderSession->Begin(&renderOptions);
+   status = exportSession->Begin(&exportOptions);
+
+   return status;
 }
 
-/// Primary entry point for exporting a Maya scene to Arnold
-MStatus CMayaScene::ExportToArnold()
+MStatus CMayaScene::End()
+{
+   MStatus status = MStatus::kSuccess;
+
+   if (NULL != s_renderSession) status = s_renderSession->End();
+   if (NULL != s_exportSession) status = s_exportSession->End();
+
+   return status;
+}
+
+MStatus CMayaScene::Export(MSelectionList* selected)
 {
    MStatus status;
 
-   // This export mode is used here, but also in the NodeTranslators.
-   // For example, if it's IPR mode, they install callbacks to trigger
-   // a refresh of the data sent to Arnold.
-   // ExportMode exportMode   = GetExportMode();
-   // CExportFilter* exportFilter = GetExportFilter();
-   // It wouldn't be efficient to test the whole scene against selection state
-   // so selected gets a special treatment
-   ExportMode exportMode = m_exportOptions.m_mode;
-   bool filterSelected = m_exportOptions.m_filter.unselected;
-   
-   PrepareExport();
-
-   // Export Options - this needs to occur after PrepareExport is called
-   AtNode* options = ExportNode(m_fnArnoldRenderOptions->object());
-   SetupImageOptions(AtNode* options)
-
-   // Are we motion blurred (any type)?
-   const bool mb = IsMotionBlurEnabled();
-
-   // In case of motion blur we need to position ourselves to first step
-   // TODO : what if specific frame was requested and it's != GetCurrentFrame()
-   if (mb)
+   if (NULL != s_exportSession)
    {
-      // first step is the real export
-      AiMsgDebug("[mtoa] Exporting step 0 at frame %f", m_motion_frames[0]);
-      MGlobal::viewFrame(MTime(m_motion_frames[0], MTime::uiUnit()));
-   }
-   // First "real" export
-   if (exportMode == MTOA_EXPORT_ALL || exportMode == MTOA_EXPORT_IPR)
-   {
-      if (m_exportOptions.m_camera.isValid())
-      {
-         m_exportOptions.m_camera.extendToShape();
-         ExportDagPath(m_exportOptions.m_camera);
-      }
-      else
-      {
-         status = ExportCameras();
-      }
-      m_exportOptions.m_filter.excluded.insert(MFn::kCamera);
-      if (filterSelected)
-      {
-         // And for render selected we need the lights too
-         status = ExportLights();
-         m_exportOptions.m_filter.excluded.insert(MFn::kLight);
-         status = ExportSelected();
-      }
-      else
-      {
-         status = ExportScene();
-      }
-   }
-   else if (exportMode == MTOA_EXPORT_FILE)
-   {
-      if (filterSelected)
-      {
-         // If we export selected to a file, not as a full render,
-         // we just export as it is
-         status = ExportSelected();
-      }
-      else
-      {
-         // Else if it's a full / renderable scene
-         status = ExportCameras();
-         // Then we filter them out to avoid double exporting them
-         m_exportOptions.m_filter.excluded.insert(MFn::kCamera);
-         status = ExportScene();
-      }
+      status = s_exportSession->Export(selected);
    }
    else
    {
-      AiMsgError("[mtoa] Unsupported export mode: %d", exportMode);
-      return MStatus::kFailure;
-   }
-
-   // Then in case of motion blur do the other steps
-   if (mb)
-   {
-      s_isExportingMotion = true;
-      // loop through motion steps
-      for (unsigned int step = 1; step < GetNumMotionSteps(); ++step)
-      {
-         MGlobal::viewFrame(MTime(m_motion_frames[step], MTime::uiUnit()));
-         AiMsgDebug("[mtoa] Exporting step %d at frame %f", step, m_motion_frames[step]);
-         // then, loop through the already processed dag translators and export for current step
-         // NOTE: these exports are subject to the normal pre-processed checks which prevent redundant exports.
-         // Since all nodes *should* be exported at this point, the following calls to DoExport do not
-         // traverse the DG even if the translators call ExportShader or ExportDagPath. This makes it safe
-         // to re-export all objects from a flattened list
-         ObjectToDagTranslatorMap::iterator dagIt;
-         for(dagIt = m_processedDagTranslators.begin(); dagIt != m_processedDagTranslators.end(); ++dagIt)
-         {
-            // finally, loop through instances
-            std::map<int, CNodeTranslator*>::iterator instIt;
-            for(instIt = dagIt->second.begin(); instIt != dagIt->second.end(); ++instIt)
-            {
-               instIt->second->DoExport(step);
-            }
-         }
-         // finally, loop through the already processed depend translators and export for current step
-         ObjectToTranslatorMap::iterator dependIt;
-         for(dependIt = m_processedTranslators.begin(); dependIt != m_processedTranslators.end(); ++dependIt)
-         {
-            dependIt->second->DoExport(step);
-         }
-      }
-      MGlobal::viewFrame(MTime(GetCurrentFrame(), MTime::uiUnit()));
-      s_isExportingMotion = false;
+      status = MStatus::kFailure;
    }
 
    return status;
 }
 
-void CMayaScene::SetupImageOptions(AtNode* options)
+MStatus CMayaScene::Render()
 {
-   const CRenderOptions* renderOptions = GetRenderSession()->RenderOptions();
-   if (renderOptions->useRenderRegion())
+   MStatus status;
+
+   if (NULL != s_exportSession && NULL!= s_renderSession)
    {
-      AiNodeSetInt(options, "region_min_x", renderOptions->minX());
-      AiNodeSetInt(options, "region_min_y", renderOptions->height() - renderOptions->maxY() - 1);
-      AiNodeSetInt(options, "region_max_x", renderOptions->maxX());
-      AiNodeSetInt(options, "region_max_y", renderOptions->height() - renderOptions->minY() - 1);
+      // Save current frame
+      // double currentFrame = MAnimControl::currentTime().as(MTime::uiUnit());
+
+      bool isIpr = (s_exportSession->GetExportMode() == MTOA_EXPORT_IPR) ? true : false;
+      if (isIpr) status = SetupIPRCallbacks();
+
+      // FIXME: a generic renderSessio->Render() method that chooses render from the ExportMode ?
+      if (isIpr)
+      {
+         s_renderSession->DoIPRRender();
+      }
+      else
+      {
+         s_renderSession->DoInteractiveRender();
+      }
+
+      if (isIpr) ClearIPRCallbacks();
+
+      // Restorecurrent frame
+      // MGlobal::viewFrame(MTime(currentFrame, MTime::uiUnit()));
+   }
+   else
+   {
+      status = MStatus::kFailure;
    }
 
-   AiNodeSetInt(options, "xres", renderOptions->width());
-   AiNodeSetInt(options, "yres", renderOptions->height());
-   AiNodeSetFlt(options, "aspect_ratio", renderOptions->pixelAspectRatio());
+   return status;
 }
 
-// TODO : allow this to take an argument passed custom ArnoldRenderOptions (and renderGlobals or?)
-void CMayaScene::PrepareExport()
+MStatus CMayaScene::ExportAndRenderFrame( ExportMode mode,
+                                          MSelectionList* selected)
 {
-   MSelectionList list;
-   MObject        node;
 
-   list.add("defaultRenderGlobals");
-   if (list.length() > 0)
-   {
-      list.getDependNode(0, node);
-      m_fnCommonRenderOptions = new MFnDependencyNode(node);
-   }
+   if (MStatus::kSuccess != Begin(mode)) return MStatus::kFailure;
+   if (MStatus::kSuccess != Export(selected)) return MStatus::kFailure;
+   if (MStatus::kSuccess != Render()) return MStatus::kFailure;
+   if (MStatus::kSuccess != End()) return MStatus::kFailure;
 
-   list.clear();
-
-   list.add("defaultArnoldRenderOptions");
-   if (list.length() > 0)
-   {
-      list.getDependNode(0, node);
-      m_fnArnoldRenderOptions = new MFnDependencyNode(node);
-   }
-
-   m_exportOptions.m_frame = static_cast<float>(MAnimControl::currentTime().as(MTime::uiUnit()));
-
-   GetMotionBlurData();
+   return MStatus::kSuccess;
 }
 
+// TODO : implement that
+MStatus CMayaScene::ExportAndRenderSequence( ExportMode mode,
+                                             MSelectionList* selected)
+{
 
+   if (MStatus::kSuccess != Begin(mode)) return MStatus::kFailure;
+   if (MStatus::kSuccess != Export(selected)) return MStatus::kFailure;
+   if (MStatus::kSuccess != Render()) return MStatus::kFailure;
+   if (MStatus::kSuccess != End()) return MStatus::kFailure;
+
+   return MStatus::kSuccess;
+}
+
+MStatus CMayaScene::ExecuteScript(const MString &str, bool echo)
+{
+   MStatus status = MStatus::kSuccess;
+
+   if (str.length() > 0)
+   {
+      status = MGlobal::executeCommand(str, echo);
+   }
+
+   return status;
+}
+
+// Private Methods
+
+MStatus CMayaScene::SetupIPRCallbacks()
+{
+   MStatus status;
+   MCallbackId id;
+   // Add the node added callback
+   if (s_NewNodeCallbackId == 0x0)
+   {
+      id = MDGMessage::addNodeAddedCallback(IPRNewNodeCallback, "dependNode", NULL, &status);
+      if (status == MS::kSuccess) s_NewNodeCallbackId = id;
+   }
+   // Add the IPR update callback, this is called in Maya's idle time (Arnold may not be idle, that's okay).
+   if (s_IPRIdleCallbackId == 0)
+   {
+      id = MEventMessage::addEventCallback("idle", IPRIdleCallback, NULL, &status);
+      if (status == MS::kSuccess) s_IPRIdleCallbackId = id;
+   }
+
+   return status;
+}
 
 void CMayaScene::ClearIPRCallbacks()
 {
@@ -248,8 +248,9 @@ void CMayaScene::ClearIPRCallbacks()
 
    // Clear the callbacks on the translators of the current export session
    s_exportSession->ClearUpdateCallbacks();
-   
 }
+
+// Actuall callback functions
 
 void CMayaScene::IPRNewNodeCallback(MObject & node, void *)
 {
@@ -273,38 +274,22 @@ void CMayaScene::IPRNewNodeCallback(MObject & node, void *)
       if (status == MS::kSuccess)
       {
          AiMsgDebug("[mtoa] Exporting new node: %s", path.partialPathName().asChar());
-         exportSession->Export(path);
+         exportSession->ExportDagPath(path);
          // exportSession->QueueForUpdate(); // add it?
       }
    }
-   UpdateIPR();
+   exportSession->RequestUpdate();
 }
 
-void CMayaScene::UpdateIPR()
-{
-   // Add the IPR update callback, this is called in Maya's idle time (Arnold may not be idle, that's okay).
-   if ( s_IPRIdleCallbackId == 0 && !IsExportingMotion() )
-   {
-      MStatus status;
-      MCallbackId id = MEventMessage::addEventCallback("idle", IPRIdleCallback, NULL, &status);
-      if (status == MS::kSuccess) s_IPRIdleCallbackId = id;
-   }
-}
 
 void CMayaScene::IPRIdleCallback(void *)
 {
-   if (s_IPRIdleCallbackId != 0)
+   if (s_exportSession->NeedsUpdate())
    {
-      MMessage::removeCallback(s_IPRIdleCallbackId);
-      s_IPRIdleCallbackId = 0;
+      s_renderSession->InterruptRender();
+      s_exportSession->DoUpdate();
+      s_renderSession->DoIPRRender();
    }
-
-   CRenderSession* renderSession = GetRenderSession();
-   CExportSession* exportSession = GetExportSession();
-
-   renderSession->InterruptRender();
-   exportSession->DoUpdate();
-   renderSession->DoIPRRender();
 }
 
 

@@ -322,7 +322,7 @@ public:
       m_aovs.clear();
    }
 
-   void GetFromMaya(CMayaScene* scene);
+   void GetFromMaya();
 
    void SetupLog() const;
    
@@ -408,7 +408,6 @@ private:
 
    std::vector<CAOV> m_aovs;
 
-   CMayaScene* m_scene;
 };
 
 #endif // RENDEROPTIONS_H
