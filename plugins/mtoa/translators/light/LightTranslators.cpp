@@ -27,7 +27,7 @@ void CDirectionalLightTranslator::Export(AtNode* light)
 {
    CLightTranslator::Export(light);
 
-   AiNodeSetFlt(light, "angle", GetFnNode().findPlug("aiAngle").asFloat());
+   AiNodeSetFlt(light, "angle", FindMayaObjectPlug("aiAngle").asFloat());
 
 }
 
@@ -49,10 +49,10 @@ void CPointLightTranslator::Export(AtNode* light)
    MPlug plug;
    MFnPointLight fnLight(m_dagPath);
 
-   AiNodeSetFlt(light, "radius", GetFnNode().findPlug("aiRadius").asFloat());
+   AiNodeSetFlt(light, "radius", FindMayaObjectPlug("aiRadius").asFloat());
 
-   AiNodeSetBool(light, "affect_volumetrics", GetFnNode().findPlug("aiAffectVolumetrics").asBool());
-   AiNodeSetBool(light, "cast_volumetric_shadows", GetFnNode().findPlug("aiCastVolumetricShadows").asBool());
+   AiNodeSetBool(light, "affect_volumetrics", FindMayaObjectPlug("aiAffectVolumetrics").asBool());
+   AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaObjectPlug("aiCastVolumetricShadows").asBool());
 }
 
 void CPointLightTranslator::NodeInitializer(MString nodeClassName)
@@ -80,13 +80,13 @@ void CSpotLightTranslator::Export(AtNode* light)
    AiNodeSetFlt(light, "penumbra_angle", static_cast<float>(fabs(fnLight.penumbraAngle()) * AI_RTOD));
    AiNodeSetFlt(light, "cosine_power", static_cast<float>(fnLight.dropOff()));
 
-   AiNodeSetFlt(light, "radius", GetFnNode().findPlug("aiRadius").asFloat());
+   AiNodeSetFlt(light, "radius", FindMayaObjectPlug("aiRadius").asFloat());
 
-   AiNodeSetBool(light, "affect_volumetrics", GetFnNode().findPlug("aiAffectVolumetrics").asBool());
-   AiNodeSetBool(light, "cast_volumetric_shadows", GetFnNode().findPlug("aiCastVolumetricShadows").asBool());
+   AiNodeSetBool(light, "affect_volumetrics", FindMayaObjectPlug("aiAffectVolumetrics").asBool());
+   AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaObjectPlug("aiCastVolumetricShadows").asBool());
 
-   AiNodeSetFlt(light, "aspect_ratio", GetFnNode().findPlug("aiAspectRatio").asFloat());
-   AiNodeSetFlt(light, "lens_radius", GetFnNode().findPlug("aiLensRadius").asFloat());
+   AiNodeSetFlt(light, "aspect_ratio", FindMayaObjectPlug("aiAspectRatio").asFloat());
+   AiNodeSetFlt(light, "lens_radius", FindMayaObjectPlug("aiLensRadius").asFloat());
 }
 
 void CSpotLightTranslator::NodeInitializer(MString nodeClassName)
@@ -118,9 +118,9 @@ void CAreaLightTranslator::Export(AtNode* light)
 
    AiNodeSetArray(light, "vertices", AiArrayConvert(4, 1, AI_TYPE_POINT, vertices, true));
 
-   AiNodeSetInt(light, "resolution", GetFnNode().findPlug("aiResolution").asInt());
-   AiNodeSetBool(light, "affect_volumetrics", GetFnNode().findPlug("aiAffectVolumetrics").asBool());
-   AiNodeSetBool(light, "cast_volumetric_shadows", GetFnNode().findPlug("aiCastVolumetricShadows").asBool());
+   AiNodeSetInt(light, "resolution", FindMayaObjectPlug("aiResolution").asInt());
+   AiNodeSetBool(light, "affect_volumetrics", FindMayaObjectPlug("aiAffectVolumetrics").asBool());
+   AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaObjectPlug("aiCastVolumetricShadows").asBool());
 }
 
 void CAreaLightTranslator::NodeInitializer(MString nodeClassName)
@@ -158,10 +158,10 @@ void CSkyDomeLightTranslator::Export(AtNode* light)
 {
    CLightTranslator::Export(light);
 
-   AiNodeSetInt(light, "resolution", GetFnNode().findPlug("resolution").asInt());
-   AiNodeSetInt(light, "format", GetFnNode().findPlug("format").asInt());
-   AiNodeSetFlt(light, "shadow_density", GetFnNode().findPlug("shadow_density").asFloat());
-   AiNodeSetRGB(light, "shadow_color", GetFnNode().findPlug("shadow_colorR").asFloat(), GetFnNode().findPlug("shadow_colorG").asFloat(), GetFnNode().findPlug("shadow_colorB").asFloat());
+   AiNodeSetInt(light, "resolution", FindMayaObjectPlug("resolution").asInt());
+   AiNodeSetInt(light, "format", FindMayaObjectPlug("format").asInt());
+   AiNodeSetFlt(light, "shadow_density", FindMayaObjectPlug("shadow_density").asFloat());
+   AiNodeSetRGB(light, "shadow_color", FindMayaObjectPlug("shadow_colorR").asFloat(), FindMayaObjectPlug("shadow_colorG").asFloat(), FindMayaObjectPlug("shadow_colorB").asFloat());
 }
 
 void CSkyDomeLightTranslator::NodeInitializer(MString nodeClassName)

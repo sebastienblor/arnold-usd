@@ -7,23 +7,23 @@ void CShapeTranslator::ProcessRenderFlags(AtNode* node)
    AiNodeSetInt(node, "visibility", ComputeVisibility());
 
    MPlug plug;
-   plug = GetFnNode().findPlug("aiSelfShadows");
+   plug = FindMayaObjectPlug("aiSelfShadows");
    if (!plug.isNull()) AiNodeSetBool(node, "self_shadows", plug.asBool());
 
-   plug = GetFnNode().findPlug("aiOpaque");
+   plug = FindMayaObjectPlug("aiOpaque");
    if (!plug.isNull()) AiNodeSetBool(node, "opaque", plug.asBool());
 
-   plug = GetFnNode().findPlug("receiveShadows");
+   plug = FindMayaObjectPlug("receiveShadows");
    if (!plug.isNull()) AiNodeSetBool(node, "receive_shadows", plug.asBool());
 
    // Subsurface Scattering
-   plug = GetFnNode().findPlug("aiSssUseGi");
+   plug = FindMayaObjectPlug("aiSssUseGi");
    if (!plug.isNull()) AiNodeSetBool(node, "sss_use_gi", plug.asBool());
 
-   plug = GetFnNode().findPlug("aiSssMaxSamples");
+   plug = FindMayaObjectPlug("aiSssMaxSamples");
    if (!plug.isNull()) AiNodeSetInt(node, "sss_max_samples", plug.asInt());
 
-   plug = GetFnNode().findPlug("aiSssSampleSpacing");
+   plug = FindMayaObjectPlug("aiSssSampleSpacing");
    if (!plug.isNull()) AiNodeSetFlt(node, "sss_sample_spacing", plug.asFloat());
 
 }

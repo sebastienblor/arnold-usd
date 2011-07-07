@@ -114,8 +114,8 @@ bool CGeometryTranslator::GetVertices(MFnMesh &fnMesh, std::vector<float> &verti
 bool CGeometryTranslator::GetNormals(MFnMesh &fnMesh, std::vector<float> &normals)
 {
    int nnorms = fnMesh.numNormals();
-   if (GetFnNode().findPlug("smoothShading").asBool() &&
-         !GetFnNode().findPlug("aiSubdivType").asBool() &&
+   if (FindMayaObjectPlug("smoothShading").asBool() &&
+         !FindMayaObjectPlug("aiSubdivType").asBool() &&
          nnorms > 0)
    {
       normals.resize(nnorms * 3);
@@ -413,7 +413,7 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
       }
       else
          AiMsgWarning("[mtoa] [translator %s] ShadingGroup %s has no surfaceShader input",
-               GetName().asChar(), fnDGNode.name().asChar());
+               GetTranslatorName().asChar(), fnDGNode.name().asChar());
    }
    else
    {
@@ -783,16 +783,15 @@ void CGeometryTranslator::IsGeoDeforming()
 void CGeometryTranslator::ExportMeshParameters(AtNode* polymesh)
 {
    // Check if custom attributes have been created, ignore them otherwise
-   MStatus status;
-   GetFnNode().findPlug("aiSubdivType", &status);
+   if (FindMayaObjectPlug("aiSubdivType").isNull()) return;
 
-   AiNodeSetBool(polymesh, "smoothing", GetFnNode().findPlug("smoothShading").asBool());
+   AiNodeSetBool(polymesh, "smoothing", FindMayaObjectPlug("smoothShading").asBool());
 
-   if (GetFnNode().findPlug("doubleSided").asBool())
+   if (FindMayaObjectPlug("doubleSided").asBool())
       AiNodeSetInt(polymesh, "sidedness", 65535);
    else
    {
-      AiNodeSetBool(polymesh, "invert_normals", GetFnNode().findPlug("opposite").asBool());
+      AiNodeSetBool(polymesh, "invert_normals", FindMayaObjectPlug("opposite").asBool());
       AiNodeSetInt(polymesh, "sidedness", 0);
    }
 
@@ -801,22 +800,20 @@ void CGeometryTranslator::ExportMeshParameters(AtNode* polymesh)
 
    // Subdivision surfaces
    //
-   const int subdivision = GetFnNode().findPlug("aiSubdivType").asInt();
+   const int subdivision = FindMayaObjectPlug("aiSubdivType").asInt();
    if (subdivision!=0)
    {
       if (subdivision==1)
          AiNodeSetStr(polymesh, "subdiv_type",           "catclark");
       else
          AiNodeSetStr(polymesh, "subdiv_type",           "linear");
-      AiNodeSetInt(polymesh, "subdiv_iterations",     GetFnNode().findPlug("aiSubdivIterations").asInt());
-      AiNodeSetInt(polymesh, "subdiv_adaptive_metric",GetFnNode().findPlug("aiSubdivAdaptiveMetric").asInt());
-      AiNodeSetFlt(polymesh, "subdiv_pixel_error",    GetFnNode().findPlug("aiSubdivPixelError").asFloat());
-      AiNodeSetInt(polymesh, "subdiv_uv_smoothing",   GetFnNode().findPlug("aiSubdivUvSmoothing").asInt());
+      AiNodeSetInt(polymesh, "subdiv_iterations",     FindMayaObjectPlug("aiSubdivIterations").asInt());
+      AiNodeSetInt(polymesh, "subdiv_adaptive_metric",FindMayaObjectPlug("aiSubdivAdaptiveMetric").asInt());
+      AiNodeSetFlt(polymesh, "subdiv_pixel_error",    FindMayaObjectPlug("aiSubdivPixelError").asFloat());
+      AiNodeSetInt(polymesh, "subdiv_uv_smoothing",   FindMayaObjectPlug("aiSubdivUvSmoothing").asInt());
 
-      const AtNodeEntry *polymeshEntry = polymesh->base_node;
-      const AtParamEntry *camParamEntry = AiNodeEntryLookUpParameter (polymeshEntry, "subdiv_dicing_camera");
-      MPlug camPlug = GetFnNode().findPlug("aiSubdivDicingCamera");
-      ProcessParameter(polymesh, camPlug, camParamEntry);
+      ProcessParameter(polymesh, "subdiv_dicing_camera", AI_TYPE_NODE, FindMayaObjectPlug("aiSubdivDicingCamera"));
+
    }
 }
 

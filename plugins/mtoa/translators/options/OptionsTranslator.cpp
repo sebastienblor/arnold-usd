@@ -16,10 +16,6 @@ AtNode* COptionsTranslator::CreateArnoldNodes()
 
 void COptionsTranslator::Export(AtNode *options)
 {
-   MTime currentTime;
-
-   currentTime = MAnimControl::currentTime();
-
    MStatus status;
    MPlug plug;
    AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(options->base_node);
@@ -30,53 +26,37 @@ void COptionsTranslator::Export(AtNode *options)
 
       if (strcmp(paramName, "name") != 0)
       {
-         AtInt paramType = AiParamGetType(paramEntry);
-
-         // attr name name remap
-         const char* attrName;
-         if (!AiMetaDataGetStr(options->base_node, paramName, "maya.name", &attrName))
-            attrName = paramName;
-
-         plug = GetFnNode().findPlug(attrName, &status);
-         if (status == MS::kSuccess)
+         // Special cases
+         if (strcmp(paramName, "threads") == 0)
          {
-            // Special cases
-            if (strcmp(paramName, "threads") == 0)
+            AiNodeSetInt(options, "threads", FindMayaObjectPlug("threads_autodetect").asBool() ? 0 : FindMayaObjectPlug("threads").asInt());
+         }
+         else if (strcmp(paramName, "AA_sample_clamp") == 0)
+         {
+            if (FindMayaObjectPlug("use_sample_clamp").asBool())
             {
-               AiNodeSetInt(options, "threads", GetFnNode().findPlug("threads_autodetect").asBool() ? 0 : GetFnNode().findPlug("threads").asInt());
+               ProcessParameter(options, "AA_sample_clamp", AI_TYPE_FLOAT);
             }
-            else if (strcmp(paramName, "AA_sample_clamp") == 0)
+         }
+         else if (strcmp(paramName, "AA_seed") == 0)
+         {
+            // FIXME: this is supposed to use a connection to AA_seed attribute
+            if (!FindMayaObjectPlug("lock_sampling_noise").asBool())
             {
-               if (GetFnNode().findPlug("use_sample_clamp").asBool())
-               {
-                  ProcessParameter(options, "AA_sample_clamp", AI_TYPE_FLOAT);
-               }
-            }
-            else if (strcmp(paramName, "AA_seed") == 0)
-            {
-               // FIXME: this is supposed to use a connection to AA_seed attribute
-               if (!GetFnNode().findPlug("lock_sampling_noise").asBool())
-               {
-                  AiNodeSetInt(options, "AA_seed", (AtInt)currentTime.value());
-               }
-            }
-            // Process parameter automatically
-            else
-            {
-               ProcessParameter(options, plug, paramName, paramType);
+               AiNodeSetInt(options, "AA_seed", (AtInt)GetExportFrame());
             }
          }
          else
          {
-            AiMsgDebug("[mtoa] [translator %s] Attribute %s.%s requested by translator does not exist",
-                  GetName().asChar(), GetFnNode().name().asChar(), attrName);
+            // Process parameter automatically
+            ProcessParameter(options, paramName, AiParamGetType(paramEntry));
          }
       }
    }
 
    MObject background;
    MPlugArray conns;
-   MPlug pBG = GetFnNode().findPlug("background");
+   MPlug pBG = FindMayaObjectPlug("background");
    pBG.connectedTo(conns, true, false);
    if (conns.length() == 1)
    {
@@ -99,7 +79,7 @@ void COptionsTranslator::Export(AtNode *options)
    MSelectionList list;
    MObject        node;
 
-   AtInt atmosphere = GetFnNode().findPlug("atmosphere").asInt();
+   AtInt atmosphere = FindMayaObjectPlug("atmosphere").asInt();
    switch (atmosphere)
    {
    case 0:

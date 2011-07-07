@@ -30,7 +30,7 @@ AtNode*  CShaveTranslator::CreateArnoldNodes()
 void CShaveTranslator::Export(AtNode* curve)
 {
    // Only translate the shave node if its marked as a active
-   if (!GetFnNode().findPlug("active").asBool())
+   if (!FindMayaObjectPlug("active").asBool())
       return;
 
    Update(curve);

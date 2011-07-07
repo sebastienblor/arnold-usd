@@ -177,7 +177,8 @@ void CPerspCameraTranslator::Export(AtNode* camera)
    ExportDOF(camera);
    ExportImagePlanes(0);
 
-   ProcessParameter(camera, "aiUvRemap", "uv_remap", AI_TYPE_RGBA);
+   // FIXME: this should be set by metadata
+   ProcessParameter(camera, "uv_remap", AI_TYPE_RGBA, FindMayaObjectPlug("aiUvRemap"));
 
    if (m_motion)
    {
@@ -224,7 +225,7 @@ float CFishEyeCameraTranslator::ExportFilmback(AtNode* camera)
 {
    // FIXME: export the screen_min and screen_max
    SetFilmTransform(camera);
-   return GetFnNode().findPlug("aiFov").asFloat();
+   return FindMayaObjectPlug("aiFov").asFloat();
 }
 
 void CFishEyeCameraTranslator::Export(AtNode* camera)
@@ -235,10 +236,10 @@ void CFishEyeCameraTranslator::Export(AtNode* camera)
    ExportDOF(camera);
    ExportImagePlanes(0);
 
-   MPlug plug = GetFnNode().findPlug("aiAutocrop");
+   MPlug plug = FindMayaObjectPlug("aiAutocrop");
    AiNodeSetBool(camera, "autocrop", plug.asBool());
 
-   //plug = GetFnNode().findPlug("aiFiltermap");
+   //plug = FindMayaObjectPlug("aiFiltermap");
    //AiNodeSetRGB(camera, "aiFiltermap", plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
 
    if (m_motion)
@@ -286,8 +287,8 @@ AtNode*  CCylCameraTranslator::CreateArnoldNodes()
 void CCylCameraTranslator::ExportFilmback(AtNode* camera, float fovs[])
 {
    // FIXME: export the screen_min and screen_max
-   fovs[0] = GetFnNode().findPlug("aiHorizontalFov").asFloat();
-   fovs[1] = GetFnNode().findPlug("aiVerticalFov").asFloat();
+   fovs[0] = FindMayaObjectPlug("aiHorizontalFov").asFloat();
+   fovs[1] = FindMayaObjectPlug("aiVerticalFov").asFloat();
    SetFilmTransform(camera);
 }
 
@@ -300,7 +301,7 @@ void CCylCameraTranslator::Export(AtNode* camera)
    ExportDOF(camera);
    ExportImagePlanes(0);
 
-   MPlug plug = GetFnNode().findPlug("aiProjective");
+   MPlug plug = FindMayaObjectPlug("aiProjective");
    AiNodeSetBool(camera, "aiProjective", plug.asBool());
 
    if (m_motion)

@@ -246,7 +246,7 @@ void CRenderOptions::SetupLog() const
    AiMsgResetCallback();
 }
 
-void CRenderOptions::SetupImageOptions() const
+void CRenderOptions::UpdateImageOptions()
 {
    MObject        node;
    if (GetOptionsNode(node) == MS::kSuccess)

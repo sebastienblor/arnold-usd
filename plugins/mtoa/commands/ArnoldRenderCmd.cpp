@@ -66,6 +66,9 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       selectedPtr = &selected;
    }
 
+   int width = args.isFlagSet("width") ? args.flagArgumentInt("width", 0) : -1;
+   int height = args.isFlagSet("height") ? args.flagArgumentInt("height", 0) : -1;
+
    // FIXME: just a fast hack, should rehaul CRenderOptions code
    // and share same proc for ArnoldRenderCmd and ArnoldExportAssCmd
    // TODO : use MString CRenderOptions::VerifyFileName(MString fileName, bool compressed)
@@ -166,73 +169,67 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
    // Note: Maya seems to internally calls the preRender preLayerRender scripts
    //       as well as the postRender and postLayerRender ones
 
+   CMayaScene::End(); // In case we're already rendering (e.g. IPR).
+
    // Check if in batch mode
    if (batch)
    {
       // TODO: This really needs to go. We're translating the whole scene for a couple of
       // render options.
 
-      AtFloat startframe;
-      AtFloat endframe;
-      AtFloat byframestep;
+      double startframe;
+      double endframe;
+      double byframestep;
 
       if (renderGlobals.isAnimated())
       {
-         startframe = static_cast<float> (renderGlobals.frameStart.as(MTime::uiUnit()));
-         endframe = static_cast<float> (renderGlobals.frameEnd.as(MTime::uiUnit()));
+         startframe = renderGlobals.frameStart.as(MTime::uiUnit());
+         endframe = renderGlobals.frameEnd.as(MTime::uiUnit());
          byframestep = renderGlobals.frameBy;
-         // in case startFrame == endFrame, we
+
+         MGlobal::viewFrame(startframe);
       }
       else
       {
-         startframe = 0;
-         endframe = 0;
+         startframe = MAnimControl::currentTime().as(MTime::uiUnit());
+         endframe = startframe;
          byframestep = 1;
       }
 
-      CMayaScene::End(); // In case we're already rendering (e.g. IPR).
-      CMayaScene::Begin(MTOA_EXPORT_RENDER);
+      MDagPathArray cameras;
+      MItDag dagIterCameras(MItDag::kDepthFirst, MFn::kCamera);
+      // get all renderable cameras
+      for (dagIterCameras.reset(); (!dagIterCameras.isDone()); dagIterCameras.next())
+      {
+         if (!dagIterCameras.getPath(dagPath))
+         {
+            AiMsgError("[mtoa] Could not get path for DAG iterator");
+            return status;
+         }
 
-      CExportSession* exportSession = CMayaScene::GetExportSession();
-      CRenderSession* renderSession = CMayaScene::GetRenderSession();
-      renderSession->SetBatch(batch);
-
-      //FIXME: in command line mode, seems that maya doesn't move to the first frame correctly.
-      MGlobal::viewFrame((double) startframe);
+         MFnDependencyNode camDag(dagIterCameras.item());
+         if (camDag.findPlug("renderable").asBool())
+         {
+            cameras.append(dagPath);
+         }
+      }
 
       for (AtFloat framerender = startframe; framerender <= endframe; framerender += byframestep)
       {
-         const CRenderOptions* renderOptions = renderSession->RenderOptions();
-         if (renderOptions->isAnimated())
-            MGlobal::viewFrame((double) framerender);
+         MGlobal::viewFrame((double) framerender);
          CMayaScene::ExecuteScript(renderGlobals.preRenderMel);
 
-         // FIXME: do we really need to reset options each time?
+         // FIXME: do we really need to reset everyhting each time?
+         CMayaScene::Begin(MTOA_EXPORT_RENDER);
+         CExportSession* exportSession = CMayaScene::GetExportSession();
+         CRenderSession* renderSession = CMayaScene::GetRenderSession();
          exportSession->SetExportFrame(framerender);
+         renderSession->SetBatch(batch);
+
          CMayaScene::Export(selectedPtr);
-         MDagPathArray cameras;
-         MItDag dagIterCameras(MItDag::kDepthFirst, MFn::kCamera);
-
-         // get all renderable cameras
-         for (dagIterCameras.reset(); (!dagIterCameras.isDone()); dagIterCameras.next())
-         {
-            if (!dagIterCameras.getPath(dagPath))
-            {
-               AiMsgError("[mtoa] Could not get path for DAG iterator");
-               return status;
-            }
-
-            MFnDependencyNode camDag(dagIterCameras.item());
-            if (camDag.findPlug("renderable").asBool())
-            {
-               cameras.append(dagPath);
-            }
-         }
-
-         if (cameras.length() > 1)
-         {
-            renderSession->SetMultiCameraRender(true);
-         }
+         // Reset resolution and output since it's a new export, new options node
+         renderSession->SetResolution(width, height);
+         if (cameras.length() > 1) renderSession->SetMultiCameraRender(true);
 
          for (unsigned int arrayIter = 0; (arrayIter < cameras.length()); arrayIter++)
          {
@@ -247,7 +244,8 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
                return MS::kFailure;
             }
          }
-         renderSession->End();
+
+         CMayaScene::End();
          CMayaScene::ExecuteScript(renderGlobals.postRenderMel);
       }
    }
@@ -255,11 +253,6 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
    // or interactive mode
    else
    {
-      CMayaScene::End(); // In case we're already rendering (e.g. IPR).
-
-      int width = args.isFlagSet("width") ? args.flagArgumentInt("width", 0) : -1;
-      int height = args.isFlagSet("height") ? args.flagArgumentInt("height", 0) : -1;
-
       MSelectionList sel;
       args.getFlagArgument("camera", 0, sel);
       MDagPath camera;
@@ -273,9 +266,9 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       CExportSession* exportSession = CMayaScene::GetExportSession();
       CRenderSession* renderSession = CMayaScene::GetRenderSession();
 
+      exportSession->SetExportFrame(renderGlobals.frameStart.as(MTime::uiUnit()));
       if (MStatus::kSuccess == sel.getDagPath(0, camera)) exportSession->SetExportCamera(camera);
       CMayaScene::Export(selectedPtr);
-
       renderSession->SetResolution(width, height);
       renderSession->DoInteractiveRender(); // Start the render.
 

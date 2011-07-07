@@ -134,9 +134,9 @@ AtNode* CExportSession::ExportDagPath(MDagPath &dagPath)
       return it->second[instanceNum]->GetArnoldRootNode();
    // else get a new translator for that node
    CDagTranslator* translator = CExtensionsManager::GetTranslator(dagPath);
-   if (translator != NULL && translator->IsDag())
+   if (translator != NULL && translator->IsMayaTypeDag())
    {
-      if (translator->IsRenderable())
+      if (translator->IsMayaTypeRenderable())
       {
          AtNode* result = translator->Init(this, dagPath);
          translator->DoExport(0);

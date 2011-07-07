@@ -47,7 +47,7 @@ void CMeshTranslator::Export(AtNode* anode)
 {
    if (GetNumMeshGroups() == 0)
    {
-      AiMsgError("[mtoa] [translator %s] Mesh not exported, it has 0 groups.", GetName().asChar());
+      AiMsgError("[mtoa] [translator %s] Mesh not exported, it has 0 groups.", GetTranslatorName().asChar());
       return;
    }
    const char* nodeType = AiNodeEntryGetName(anode->base_node);

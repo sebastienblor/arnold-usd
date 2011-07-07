@@ -98,11 +98,12 @@ DLLEXPORT void MtoaSetupLogging()
    AtInt defaultLogFlags = AI_LOG_ALL;
 #else
    AtInt defaultLogFlags = (AI_LOG_ALL & ~AI_LOG_DEBUG);
-   MString loglevelStr = MString("$MTOA_LOG_VERBOSITY").expandEnvironmentVariablesAndTilde();
-   if (loglevelStr.isShort())
-      defaultLogFlags = GetFlagsFromVerbosityLevel(loglevelStr.asShort());
-
 #endif
+
+   // MString loglevelStr = MString("$MTOA_LOG_VERBOSITY").expandEnvironmentVariablesAndTilde();
+   // if (loglevelStr.isShort())
+   //    defaultLogFlags = GetFlagsFromVerbosityLevel(loglevelStr.asShort());
+
    AiMsgSetConsoleFlags(defaultLogFlags | AI_LOG_COLOR);
    AiMsgSetLogFileFlags(defaultLogFlags);
    AiMsgSetCallback(MtoaLogCallback);
@@ -115,16 +116,19 @@ void MtoaSetupSwatchLogging()
    AtInt defaultLogFlags = AI_LOG_ALL;
 #else
    AtInt defaultLogFlags = AI_LOG_WARNINGS | AI_LOG_ERRORS | AI_LOG_TIMESTAMP | AI_LOG_BACKTRACE;
-   MString loglevelStr = MString("$MTOA_SWATCH_LOG_VERBOSITY").expandEnvironmentVariablesAndTilde();
-   if (loglevelStr.isShort())
-      defaultLogFlags = GetFlagsFromVerbosityLevel(loglevelStr.asShort());
-
 #endif
+   // MString loglevelStr = MString("$MTOA_SWATCH_LOG_VERBOSITY").expandEnvironmentVariablesAndTilde();
+   // if (loglevelStr.isShort())
+   //    defaultLogFlags = GetFlagsFromVerbosityLevel(loglevelStr.asShort());
+
+
    // TODO: Should we be using render options for logging, or is it better not to clutter
    // the log with swatch output?
    // If we use global render options, m_renderSession->Init() already did
    // m_renderSession->m_renderOptions.SetupLog();
    // TODO: read these from an environment variable
+
    AiMsgSetConsoleFlags(defaultLogFlags | AI_LOG_COLOR);
    AiMsgSetLogFileFlags(defaultLogFlags);
+   AiMsgSetCallback(MtoaLogCallback);
 }

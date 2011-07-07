@@ -13,7 +13,7 @@ AtNode* CShaderTranslator::Init(CExportSession* session, MDagPath& dagPath, MStr
 
 AtNode* CShaderTranslator::CreateArnoldNodes()
 {
-   MString mayaShader = GetFnNode().typeName();
+   MString mayaShader = GetMayaNodeTypeName();
    if (m_outputAttr == "outAlpha")
    {
       AtNode* node = AddArnoldNode(m_abstract.arnold.asChar(), "base");
@@ -35,34 +35,18 @@ void CShaderTranslator::Export(AtNode *shader)
       shader = GetArnoldNode("base");
 
    MStatus status;
-   MPlug plug;
    AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(shader->base_node);
    while (!AiParamIteratorFinished(nodeParam))
    {
       const AtParamEntry *paramEntry = AiParamIteratorGetNext(nodeParam);
       const char* paramName = AiParamGetName(paramEntry);
 
-      if (strcmp(paramName, "name"))
-      {
-         AtInt paramType = AiParamGetType(paramEntry);
-
-         // attr name name remap
-         const char* attrName;
-         if (!AiMetaDataGetStr(shader->base_node, paramName, "maya.name", &attrName))
-            attrName = paramName;
-
-         plug = GetFnNode().findPlug(attrName, &status);
-         if (status == MS::kSuccess)
-            ProcessParameter(shader, plug, paramName, paramType);
-         else
-            AiMsgWarning("[mtoa] [translator %s] Attribute %s.%s requested by translator does not exist",
-                  GetName().asChar(), GetFnNode().name().asChar(), attrName);
-      }
+      if (strcmp(paramName, "name") != 0) ProcessParameter(shader, paramName, AiParamGetType(paramEntry));
    }
 
    MPlugArray connections;
 
-   plug = GetFnNode().findPlug("normalCamera");
+   MPlug plug = FindMayaObjectPlug("normalCamera");
 
    plug.connectedTo(connections, true, false);
    if (connections.length() > 0)

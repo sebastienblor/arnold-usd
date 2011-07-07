@@ -39,8 +39,8 @@ public:
    virtual ~CExtension() {}
    void Requires(const MString &plugin);
    MStringArray Required();
-   MString GetName() const {return m_extensionName;}
-   MString GetFile() const {return m_extensionFile;}
+   MString GetExtensionName() const {return m_extensionName;}
+   MString GetExtensionFile() const {return m_extensionFile;}
    unsigned int RegisteredNodesCount() const {return m_registeredMayaNodes.size();}
    unsigned int TranslatedNodesCount() const {return m_registeredTranslators.size();}
    unsigned int TranslatorCount() const;

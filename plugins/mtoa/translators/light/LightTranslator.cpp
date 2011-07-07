@@ -65,24 +65,24 @@ void CLightTranslator::Export(AtNode* light)
    ProcessParameter(light, "color", AI_TYPE_RGB);
    ProcessParameter(light, "intensity", AI_TYPE_FLOAT);
 
-   AiNodeSetBool(light, "affect_diffuse",  GetFnNode().findPlug("emitDiffuse").asBool());
-   AiNodeSetBool(light, "affect_specular", GetFnNode().findPlug("emitSpecular").asBool());
-   AiNodeSetBool(light, "cast_shadows",    GetFnNode().findPlug("aiCastShadows").asBool());
-   AiNodeSetFlt(light,  "exposure",        GetFnNode().findPlug("aiExposure").asFloat());
-   AiNodeSetInt(light,  "samples",         GetFnNode().findPlug("aiSamples").asInt());
-   AiNodeSetBool(light, "mis",             GetFnNode().findPlug("aiMis").asBool());
-   AiNodeSetBool(light, "normalize",       GetFnNode().findPlug("aiNormalize").asBool());
-   AiNodeSetInt(light,  "bounces",         GetFnNode().findPlug("aiBounces").asInt());
-   AiNodeSetFlt(light,  "bounce_factor",   GetFnNode().findPlug("aiBounceFactor").asFloat());
+   AiNodeSetBool(light, "affect_diffuse",  FindMayaObjectPlug("emitDiffuse").asBool());
+   AiNodeSetBool(light, "affect_specular", FindMayaObjectPlug("emitSpecular").asBool());
+   AiNodeSetBool(light, "cast_shadows",    FindMayaObjectPlug("aiCastShadows").asBool());
+   AiNodeSetFlt(light,  "exposure",        FindMayaObjectPlug("aiExposure").asFloat());
+   AiNodeSetInt(light,  "samples",         FindMayaObjectPlug("aiSamples").asInt());
+   AiNodeSetBool(light, "mis",             FindMayaObjectPlug("aiMis").asBool());
+   AiNodeSetBool(light, "normalize",       FindMayaObjectPlug("aiNormalize").asBool());
+   AiNodeSetInt(light,  "bounces",         FindMayaObjectPlug("aiBounces").asInt());
+   AiNodeSetFlt(light,  "bounce_factor",   FindMayaObjectPlug("aiBounceFactor").asFloat());
 
-   if (GetFnNode().findPlug("aiOverrideSssSamples").asBool())
+   if (FindMayaObjectPlug("aiOverrideSssSamples").asBool())
    {
-      AiNodeSetInt(light, "sss_samples", GetFnNode().findPlug("aiSssSamples").asInt());
+      AiNodeSetInt(light, "sss_samples", FindMayaObjectPlug("aiSssSamples").asInt());
    }
    
    MStatus status;
-   MPlug pFilters = GetFnNode().findPlug("aiFilters", &status);
-   if (status == MS::kSuccess)
+   MPlug pFilters = FindMayaObjectPlug("aiFilters");
+   if (!pFilters.isNull())
    {
       MObjectArray filters;
       MPlugArray pSources;

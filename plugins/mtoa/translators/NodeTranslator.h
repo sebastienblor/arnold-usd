@@ -41,6 +41,8 @@ private:
    void SetTranslatorName(MString name) {m_abstract.name = MString(name);}
 
 public:
+   MString GetTranslatorName() {return m_abstract.name;}
+
    virtual ~CNodeTranslator()
    {}
    virtual AtNode* Init(CExportSession* session, const MObject& object, MString outputAttr="")
@@ -51,9 +53,14 @@ public:
       m_outputAttr = outputAttr;
       return DoCreateArnoldNodes();
    }
-   virtual MFnDependencyNode GetFnNode() const {return m_fnNode;}
-   MString GetName() {return m_abstract.name;}
-   virtual bool IsDag() {return false;}
+   virtual MObject GetMayaObject() const { return m_object; }
+   virtual MString GetMayaNodeName() const { return m_fnNode.name(); }
+   virtual MString GetMayaNodeTypeName() const { return m_fnNode.typeName(); }
+   virtual MObject GetMayaObjectAttribute(MString attributeName) const { return m_fnNode.attribute(attributeName); }
+   virtual MPlug FindMayaObjectPlug(MString attributeName) const { return m_fnNode.findPlug(attributeName); }
+
+   virtual bool IsMayaTypeDag() {return false;}
+   virtual bool IsMayaTypeRenderable() {return false;}
 
 protected:
    CNodeTranslator()  :
@@ -70,11 +77,11 @@ protected:
    virtual void Delete() {}
    void DoDelete();
 
-   AtNode* ProcessParameter(AtNode* arnoldNode, const char* mayaAttrib, const AtParamEntry* paramEntry, int element=-1);
-   AtNode* ProcessParameter(AtNode* arnoldNode, const char* attrib, int arnoldAttribType, int element=-1);
-   AtNode* ProcessParameter(AtNode* arnoldNode, const char* mayaAttrib, const char* arnoldAttrib, int arnoldAttribType, int element=-1);
-   AtNode* ProcessParameter(AtNode* arnoldNode, MPlug& plug, const AtParamEntry* paramEntry, int elemen=-1);
-   AtNode* ProcessParameter(AtNode* arnoldNode, MPlug& plug, const char* arnoldAttrib, int arnoldAttribType, int element=-1);
+   // Using the translator's MObject m_object and corresponding attrbuteName (default behavior)
+   virtual AtNode* ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, int element=-1);
+   // For a specific Maya plug
+   virtual AtNode* ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, const MPlug& plug);
+
    void ExportUserAttribute(AtNode *anode);
 
    // session info
@@ -83,7 +90,7 @@ protected:
    bool IsLocalMotionBlurEnabled() const
    {
       bool local_motion_attr(true);
-      MPlug plug = GetFnNode().findPlug("motionBlur");
+      MPlug plug = FindMayaObjectPlug("motionBlur");
       if (!plug.isNull())
          local_motion_attr = plug.asBool();
       return local_motion_attr;
@@ -140,9 +147,6 @@ protected:
    // Manually defined translators can fill this information
    // to make debugging more explicit
    MString s_arnoldNodeName;
-
-   static MPlug FindPlug(MFnDependencyNode& node, const std::string& param);
-   static MPlug GetPlugElement(MFnDependencyNode& node, MPlug& plug, const std::string& attr);
    
 };
 
@@ -171,9 +175,10 @@ public:
       return Init(session, dagPath, outputAttr);
    }
 
-   virtual MFnDagNode GetFnDagNode() const {return m_fnDagNode;}
-   virtual bool IsDag() {return true;}
-   virtual bool IsRenderable() {return true;}
+   virtual MDagPath GetMayaDagPath() const { return m_dagPath; }
+   virtual MString GetMayaPartialPathName() const { return m_fnDagNode.partialPathName(); }
+   virtual bool IsMayaTypeDag() {return true;}
+   virtual bool IsMayaTypeRenderable() {return true;}
 
    static int GetMasterInstanceNumber(MObject node);
    virtual void AddUpdateCallbacks();

@@ -30,7 +30,7 @@
 
 namespace // <anonymous>
 {
-#define COMP_CONNECTIONS(plug, arnoldNode, arnoldAttrib, comp1, comp2, comp3) \
+#define COMP_CONNECTIONS(plug, arnoldNode, arnoldParam, comp1, comp2, comp3) \
    int compConnected = 0;\
    MPlugArray conn;\
    for (unsigned int i=0; i < 3; i++){\
@@ -40,7 +40,7 @@ namespace // <anonymous>
          AtNode* node = ExportNode(conn[0].node(), attrName);\
          if (node != NULL){\
             ++compConnected;\
-            MString compAttrName(arnoldAttrib);\
+            MString compAttrName(arnoldParam);\
             switch(i)\
             {\
             case 0:\
@@ -58,24 +58,24 @@ namespace // <anonymous>
       }\
    }
 
-#define COMP_CONNECTIONS_RGB(plug, arnoldNode, arnoldAttrib) \
-      COMP_CONNECTIONS(plug, arnoldNode, arnoldAttrib, ".r", ".g", ".b")\
+#define COMP_CONNECTIONS_RGB(plug, arnoldNode, arnoldParam) \
+      COMP_CONNECTIONS(plug, arnoldNode, arnoldParam, ".r", ".g", ".b")\
       if (compConnected != 3)\
-         AiNodeSetRGB(arnoldNode, arnoldAttrib, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+         AiNodeSetRGB(arnoldNode, arnoldParam, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
 
-#define COMP_CONNECTIONS_RGBA(plug, arnoldNode, arnoldAttrib) \
-		AiNodeSetRGBA(arnoldNode, arnoldAttrib, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat(), 1.0f); \
-      COMP_CONNECTIONS(plug, arnoldNode, arnoldAttrib, ".r", ".g", ".b") \
+#define COMP_CONNECTIONS_RGBA(plug, arnoldNode, arnoldParam) \
+		AiNodeSetRGBA(arnoldNode, arnoldParam, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat(), 1.0f); \
+      COMP_CONNECTIONS(plug, arnoldNode, arnoldParam, ".r", ".g", ".b") \
 
-#define COMP_CONNECTIONS_VEC(plug, arnoldNode, arnoldAttrib) \
-      COMP_CONNECTIONS(plug, arnoldNode, arnoldAttrib, ".x", ".y", ".z")\
+#define COMP_CONNECTIONS_VEC(plug, arnoldNode, arnoldParam) \
+      COMP_CONNECTIONS(plug, arnoldNode, arnoldParam, ".x", ".y", ".z")\
       if (compConnected != 3)\
-         AiNodeSetVec(arnoldNode, arnoldAttrib, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+         AiNodeSetVec(arnoldNode, arnoldParam, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
 
-#define COMP_CONNECTIONS_PNT(plug, arnoldNode, arnoldAttrib) \
-      COMP_CONNECTIONS(plug, arnoldNode, arnoldAttrib, ".x", ".y", ".z")\
+#define COMP_CONNECTIONS_PNT(plug, arnoldNode, arnoldParam) \
+      COMP_CONNECTIONS(plug, arnoldNode, arnoldParam, ".x", ".y", ".z")\
       if (compConnected != 3)\
-         AiNodeSetPnt(arnoldNode, arnoldAttrib, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+         AiNodeSetPnt(arnoldNode, arnoldParam, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
 
 
    void ConvertMatrix(AtMatrix& matrix, const MMatrix& mayaMatrix)
@@ -104,10 +104,10 @@ AtNode* CNodeTranslator::DoExport(AtUInt step)
       {
          if (m_outputAttr != "")
             AiMsgDebug("[mtoa] [translator %s] Exporting on plug %s.%s.",
-                  GetName().asChar(), GetFnNode().name().asChar(), m_outputAttr.asChar());
+                  GetTranslatorName().asChar(), GetMayaNodeName().asChar(), m_outputAttr.asChar());
          else
             AiMsgDebug("[mtoa] [translator %s] Exporting on node %s.",
-                  GetName().asChar(), GetFnNode().name().asChar());
+                  GetTranslatorName().asChar(), GetMayaNodeName().asChar());
          Export(m_atNode);
          ExportUserAttribute(m_atNode);
       }
@@ -115,10 +115,10 @@ AtNode* CNodeTranslator::DoExport(AtUInt step)
       {
          if (m_outputAttr != "")
             AiMsgDebug("[mtoa] [translator %s] Exporting motion on plug %s.%s.",
-                  GetName().asChar(), GetFnNode().name().asChar(), m_outputAttr.asChar());
+                  GetTranslatorName().asChar(), GetMayaNodeName().asChar(), m_outputAttr.asChar());
          else
             AiMsgDebug("[mtoa] [translator %s] Exporting motion on node %s.",
-                  GetName().asChar(), GetFnNode().name().asChar());
+                  GetTranslatorName().asChar(), GetMayaNodeName().asChar());
 
          ExportMotion(m_atNode, step);
       }
@@ -161,7 +161,7 @@ AtNode* CNodeTranslator::DoCreateArnoldNodes()
    m_atNode = CreateArnoldNodes();
    if (m_atNode == NULL)
       AiMsgWarning("[mtoa] [translator %s] Translation on %s returned an empty Arnold root node.",
-            GetName().asChar(), GetFnNode().name().asChar());
+            GetTranslatorName().asChar(), GetMayaNodeName().asChar());
 
    return m_atNode;
 }
@@ -175,7 +175,7 @@ AtNode* CNodeTranslator::GetArnoldNode(const char* tag)
 {
    if (m_atNodes.count(tag))
       return m_atNodes[tag];
-   AiMsgError("[mtoa] [translator %s] Translation has not created an Arnold node with tag \"%s\".", GetName().asChar(), tag);
+   AiMsgError("[mtoa] [translator %s] Translation has not created an Arnold node with tag \"%s\".", GetTranslatorName().asChar(), tag);
    return NULL;
 }
 
@@ -198,14 +198,14 @@ AtNode* CNodeTranslator::AddArnoldNode(const char* type, const char* tag)
    }
    else
    {
-      AiMsgError("[mtoa] [translator %s] Arnold node type %s does not exist.", GetName().asChar(), type);
+      AiMsgError("[mtoa] [translator %s] Arnold node type %s does not exist.", GetTranslatorName().asChar(), type);
       return NULL;
    }
 }
 
 void CNodeTranslator::SetArnoldNodeName(AtNode* arnoldNode, const char* tag)
 {
-   MString name = GetFnNode().name();
+   MString name = GetMayaNodeName();
    if (m_outputAttr.numChars())
       name = name + "_" + m_outputAttr;
    if (strlen(tag))
@@ -219,7 +219,7 @@ void CNodeTranslator::SetArnoldNodeName(AtNode* arnoldNode, const char* tag)
 // add whatever callbacks you need to trigger a fresh.
 void CNodeTranslator::AddUpdateCallbacks()
 {
-   AiMsgDebug("[mtoa] [%s] Add Update callbacks", GetFnNode().name().asChar());
+   AiMsgDebug("[mtoa] [%s] Add Update callbacks", GetMayaNodeName().asChar());
    MStatus status;
    MCallbackId id;
    // So we update on attribute/input changes.
@@ -266,7 +266,7 @@ void CNodeTranslator::NodeDirtyCallback(MObject &node, MPlug &plug, void *client
    if (translator != NULL)
    {
       AiMsgDebug("[mtoa] [translator %s] Node dirty, updating Arnold, client data: %p.",
-            translator->GetName().asChar(), clientData);
+            translator->GetTranslatorName().asChar(), clientData);
       translator->RequestUpdate(clientData);
    }
    else
@@ -282,7 +282,7 @@ void CNodeTranslator::NameChangedCallback(MObject &node, const MString &str, voi
    if (translator != NULL)
    {
       AiMsgDebug("[mtoa] [translator %s] Node name changed, updating Arnold, client data: %p.",
-            translator->GetName().asChar(), clientData);
+            translator->GetTranslatorName().asChar(), clientData);
       translator->SetArnoldNodeName(translator->GetArnoldRootNode());
    }
    else
@@ -299,7 +299,7 @@ void CNodeTranslator::NodeDeletedCallback(MObject &node, MDGModifier &modifier, 
    if (translator != NULL)
    {
       AiMsgDebug("[mtoa] [translator %s] Node deleted, deleting processed translator instance, client data: %p.",
-            translator->GetName().asChar(), clientData);
+            translator->GetTranslatorName().asChar(), clientData);
       translator->RequestUpdate();
       translator->RemoveUpdateCallbacks();
       translator->Delete();
@@ -318,7 +318,7 @@ void CNodeTranslator::RequestUpdate(void *clientData)
    if (translator != NULL)
    {
       AiMsgDebug("[mtoa] [translator %s] Node dirty, updating Arnold, client data: %p.",
-            translator->GetName().asChar(), clientData);
+            translator->GetTranslatorName().asChar(), clientData);
       translator->RemoveUpdateCallbacks();
       // Add translator to the list of translators to update
       m_session->QueueForUpdate(translator);
@@ -334,7 +334,8 @@ void CNodeTranslator::RequestUpdate(void *clientData)
 
 void CNodeTranslator::ExportUserAttribute(AtNode *anode)
 {
-   MFnDependencyNode fnDepNode = GetFnNode();
+   MFnDependencyNode fnDepNode(GetMayaObject());
+
    for (unsigned int i=0; i<fnDepNode.attributeCount(); ++i)
    {
       MObject oAttr = fnDepNode.attribute(i);
@@ -535,7 +536,7 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
             default:
                // not supported: k2Short, k2Long, k3Short, k3Long, kAddr
                AiMsgError("[mtoa] [translator %s] Unsupported user attribute type for %s",
-                     GetName().asChar(), pAttr.partialName(true, false, false, false, false, true).asChar());
+                     GetTranslatorName().asChar(), pAttr.partialName(true, false, false, false, false, true).asChar());
                break;
             }
          }
@@ -636,152 +637,69 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
             default:
                // kMatrix, kNumeric (this one should have be caught be hasFn(MFn::kNumericAttribute))
                AiMsgError("[mtoa] [translator %s] Unsupported user attribute type for %s",
-                  GetName().asChar(), pAttr.partialName(true, false, false, false, false, true).asChar());
+                  GetTranslatorName().asChar(), pAttr.partialName(true, false, false, false, false, true).asChar());
                break;
             }
          }
          else
             AiMsgError("[mtoa] [translator %s] Unsupported user attribute type for %s",
-                  GetName().asChar(), pAttr.partialName(true, false, false, false, false, true).asChar());
+                  GetTranslatorName().asChar(), pAttr.partialName(true, false, false, false, false, true).asChar());
       }
    }
 }
 
-MPlug CNodeTranslator::GetPlugElement(MFnDependencyNode& node, MPlug& plug, const std::string &attr)
+
+// Using the translator's MObject m_object and corresponding attrbuteName (default behavior)
+AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, int element)
 {
-   if (attr.length() == 0)
+   MStatus status;
+
+   // attr name name remap
+   CBaseAttrHelper helper(arnoldNode->base_node);
+   MString mayaAttribName = helper.GetMayaAttrName(arnoldParamName);
+   MPlug plug = m_fnNode.findPlug(mayaAttribName, true, &status);
+
+   if (MStatus::kSuccess == status && !plug.isNull())
    {
-      AiMsgError("[mtoa] Invalid plug name: \"%s\"", attr.c_str());
-      return MPlug();
-   }
-
-   int idx = -1;
-   std::string an = attr;
-   size_t p1 = an.length() - 1;
-
-   if (an[p1] == ']')
-   {
-      size_t p0 = an.rfind('[');
-
-      if (p0 == std::string::npos)
+      if (element >= 0)
       {
-         AiMsgError("[mtoa] Invalid plug name: \"%s\"", attr.c_str());
-         return MPlug();
+         // FIXME: I'd expect elementByLogicalIndex for a user passed parameter
+         // but I've never seen element used in the code anyway
+         if (plug.isArray())
+         {
+            plug = plug.elementByPhysicalIndex(element);
+         }
+         else
+         {
+            AiMsgWarning("[mtoa] [translator %s] Plug %s does not represent a multi attribute, can't get element %i.",
+                  GetTranslatorName().asChar(), m_fnNode.name().asChar(), element);
+         }
       }
 
-      std::string ai = an.substr(p0+1, p1-p0-1);
-
-      if (sscanf(ai.c_str(), "%d", &idx) != 1)
-      {
-         AiMsgError("[mtoa] Invalid plug name: \"%s\"", attr.c_str());
-         return MPlug();
-      }
-
-      an = an.substr(0, p0);
-   }
-
-   MPlug eplug;
-
-   if (plug.isNull())
-   {
-      eplug = node.findPlug(an.c_str());
+      return ProcessParameter(arnoldNode, arnoldParamName, arnoldParamType, plug);
    }
    else
    {
-      MObject childAttr = node.attribute(an.c_str());
-      eplug = plug.child(childAttr);
-   }
-
-   if (idx >= 0)
-   {
-      eplug = eplug.elementByLogicalIndex(idx);
-   }
-
-   return eplug;
-}
-
-// This allows for: FindPlug(shader, "input3D[10].input3Dx")
-//                  which MFnDependencyNode::findPlug() does not support
-MPlug CNodeTranslator::FindPlug(MFnDependencyNode& node, const std::string& param)
-{
-   size_t p0, p1;
-   MPlug cplug;
-
-   p0 = 0;
-   p1 = param.find('.', p0);
-
-   while (p1 != std::string::npos)
-   {
-      cplug = GetPlugElement(node, cplug, param.substr(p0, p1-p0));
-
-      if (cplug.isNull())
-      {
-         return cplug;
-      }
-
-      p0 = p1 + 1;
-      p1 = param.find('.', p0);
-   }
-   
-   return GetPlugElement(node, cplug, param.substr(p0));
-}
-
-AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* mayaAttrib, const AtParamEntry* paramEntry, int element)
-{
-   MStatus status;
-   MPlug plug = FindPlug(m_fnNode, mayaAttrib);
-   if (plug.isNull())
-   {
-      AiMsgWarning("[mtoa] [translator %s] Maya node %s does not have requested attribute %s.", GetName().asChar(),
-            m_fnNode.name().asChar(), mayaAttrib);
-      return NULL;
-   }
-   return ProcessParameter(arnoldNode, plug, AiParamGetName(paramEntry), AiParamGetType(paramEntry), element);
-}
-
-AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* attrib, int arnoldAttribType, int element)
-{
-   MStatus status;
-   MPlug plug = FindPlug(m_fnNode, attrib);
-   if (plug.isNull())
-   {
       AiMsgWarning("[mtoa] [translator %s] Maya node %s does not have requested attribute %s.",
-            GetName().asChar(), m_fnNode.name().asChar(), attrib);
+            GetTranslatorName().asChar(), m_fnNode.name().asChar(), mayaAttribName.asChar());
       return NULL;
    }
-   return ProcessParameter(arnoldNode, plug, attrib, arnoldAttribType, element);
 }
 
-AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* mayaAttrib, const char* arnoldAttrib, int arnoldAttribType, int element)
-{
-   MStatus status;
-   MPlug plug = FindPlug(m_fnNode, mayaAttrib);
-   if (plug.isNull())
-   {
-      AiMsgWarning("[mtoa] [translator %s] Maya node %s does not have requested attribute %s.",
-            GetName().asChar(), m_fnNode.name().asChar(), mayaAttrib);
-      return NULL;
-   }
-   return ProcessParameter(arnoldNode, plug, arnoldAttrib, arnoldAttribType, element);
-}
-
-AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, MPlug& plug, const AtParamEntry* paramEntry, int element)
-{
-   return ProcessParameter(arnoldNode, plug, AiParamGetName(paramEntry), AiParamGetType(paramEntry), element);
-}
-
-// export values from a maya plug to an arnold parameter, recursively following
-// connections in the dependency graph.
-AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, MPlug& plug, const char* arnoldAttrib, int arnoldAttribType, int element)
+// export values to an arnold parameter from a maya plug, recursively following connections in the dependency graph.
+AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, const MPlug& plug)
 {
    if (arnoldNode == NULL)
    {
-      AiMsgError("[mtoa] [translator %s] Cannot process %s parameter on null node.", GetName().asChar(), arnoldAttrib);
+      AiMsgError("[mtoa] [translator %s] Cannot process parameter %s on null node.", GetTranslatorName().asChar(), arnoldParamName);
+      return NULL;
+   }
+   if (plug.isNull())
+   {
+      AiMsgError("[mtoa] [translator %s] Invalid plug passed as source for parameter %s.", GetTranslatorName().asChar(), arnoldParamName);
       return NULL;
    }
 
-   if (element >= 0)
-      plug = plug.elementByPhysicalIndex(element);
 
    MPlugArray connections;
    bool acceptLinks = ((AiNodeEntryGetType(arnoldNode->base_node) & (AI_NODE_SHADER | AI_NODE_LIGHT)) != 0) ? true : false;
@@ -805,7 +723,7 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, MPlug& plug, const
    if (acceptLinks)
    {
       // Unlink first, since this may be called during an IPR update
-      AiNodeUnlink(arnoldNode, arnoldAttrib);
+      AiNodeUnlink(arnoldNode, arnoldParamName);
       // If we have a connected node and it's a shader we use AiNodeLink
       // links are only supported on shaders and lights
       if (connectedArnoldNode != NULL)
@@ -815,20 +733,20 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, MPlug& plug, const
          // connection, we should just set the value.
          // Unlike a color, for example, we have no other way of assigning the value other than via a connection
          // but unlike other connections we should not use AiNodeLink.
-         if (arnoldAttribType == AI_TYPE_NODE)
-            AiNodeSetPtr(arnoldNode, arnoldAttrib, connectedArnoldNode);
+         if (arnoldParamType == AI_TYPE_NODE)
+            AiNodeSetPtr(arnoldNode, arnoldParamName, connectedArnoldNode);
          else
-            AiNodeLink(connectedArnoldNode, arnoldAttrib, arnoldNode);
+            AiNodeLink(connectedArnoldNode, arnoldParamName, arnoldNode);
 
          return connectedArnoldNode;
       }
    }
 
-   switch(arnoldAttribType)
+   switch(arnoldParamType)
    {
    case AI_TYPE_RGB:
       {
-         COMP_CONNECTIONS_RGB(plug, arnoldNode, arnoldAttrib);
+         COMP_CONNECTIONS_RGB(plug, arnoldNode, arnoldParamName);
       }
       break;
    case AI_TYPE_RGBA:
@@ -836,18 +754,18 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, MPlug& plug, const
          // Is the source parameter RGB or RGBA?
          if (plug.numChildren() == 4)
          {
-            AiNodeSetRGBA(arnoldNode, arnoldAttrib, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat(), plug.child(3).asFloat());
+            AiNodeSetRGBA(arnoldNode, arnoldParamName, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat(), plug.child(3).asFloat());
          }
          else
          {
             // FIXME: handle alphas!
-            COMP_CONNECTIONS_RGBA(plug, arnoldNode, arnoldAttrib);
+            COMP_CONNECTIONS_RGBA(plug, arnoldNode, arnoldParamName);
          }
       }
       break;
    case AI_TYPE_FLOAT:
       {
-         AiNodeSetFlt(arnoldNode, arnoldAttrib, plug.asFloat());
+         AiNodeSetFlt(arnoldNode, arnoldParamName, plug.asFloat());
       }
       break;
    case AI_TYPE_POINT2:
@@ -864,7 +782,7 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, MPlug& plug, const
                if (node != NULL)
                {
                   ++compConnected;
-                  MString compAttrName(arnoldAttrib);
+                  MString compAttrName(arnoldParamName);
                   switch(i)
                   {
                   case 0:
@@ -885,7 +803,7 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, MPlug& plug, const
             MObject numObj = plug.asMObject();
             MFnNumericData numData(numObj);
             numData.getData2Float(x, y);
-            AiNodeSetPnt2(arnoldNode, arnoldAttrib, x, y);
+            AiNodeSetPnt2(arnoldNode, arnoldParamName, x, y);
          }
       }
       break;
@@ -896,42 +814,42 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, MPlug& plug, const
          MFnMatrixData matData(matObj);
          MMatrix mm = matData.matrix();
          ConvertMatrix(am, mm);
-         AiNodeSetMatrix(arnoldNode, arnoldAttrib, am);
+         AiNodeSetMatrix(arnoldNode, arnoldParamName, am);
       }
       break;
    case AI_TYPE_BOOLEAN:
       {
-         AiNodeSetBool(arnoldNode, arnoldAttrib, plug.asBool());
+         AiNodeSetBool(arnoldNode, arnoldParamName, plug.asBool());
       }
       break;
    case AI_TYPE_ENUM:
       {
-         AiNodeSetInt(arnoldNode, arnoldAttrib, plug.asInt());
+         AiNodeSetInt(arnoldNode, arnoldParamName, plug.asInt());
       }
       break;
    case AI_TYPE_INT:
       {
-         AiNodeSetInt(arnoldNode, arnoldAttrib, plug.asInt());
+         AiNodeSetInt(arnoldNode, arnoldParamName, plug.asInt());
       }
       break;
    case AI_TYPE_STRING:
       {
-         AiNodeSetStr(arnoldNode, arnoldAttrib, plug.asString().asChar());
+         AiNodeSetStr(arnoldNode, arnoldParamName, plug.asString().asChar());
       }
       break;
    case AI_TYPE_VECTOR:
       {
-         COMP_CONNECTIONS_VEC(plug, arnoldNode, arnoldAttrib);
+         COMP_CONNECTIONS_VEC(plug, arnoldNode, arnoldParamName);
       }
       break;
    case AI_TYPE_POINT:
       {
-         COMP_CONNECTIONS_PNT(plug, arnoldNode, arnoldAttrib);
+         COMP_CONNECTIONS_PNT(plug, arnoldNode, arnoldParamName);
       }
       break;
    case AI_TYPE_NODE:
       {
-         AiNodeSetPtr(arnoldNode, arnoldAttrib, connectedArnoldNode);
+         AiNodeSetPtr(arnoldNode, arnoldParamName, connectedArnoldNode);
       }
       break;
    case AI_TYPE_ARRAY:
@@ -941,7 +859,7 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, MPlug& plug, const
             MGlobal::displayError("[mtoa] Arnold parameter is of type array, but corresponding Maya attribute is not");
             return NULL;
          }
-         const AtParamEntry* paramEntry = AiNodeEntryLookUpParameter(arnoldNode->base_node, arnoldAttrib);
+         const AtParamEntry* paramEntry = AiNodeEntryLookUpParameter(arnoldNode->base_node, arnoldParamName);
          const AtParamValue* defaultValue = AiParamGetDefault(paramEntry);
          AtUInt type = defaultValue->ARRAY->type;
          // index matters tells us whether to condense a sparse array or try to export everything
@@ -959,23 +877,23 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, MPlug& plug, const
          // for now do all elements
          AtUInt size = plug.numElements();
          AtArray* array = AiArrayAllocate(size, 1, type);
-         MPlug arrayPlug = plug;
+         MPlug elem;
          // cout << "size " << size << endl;
          for (AtUInt i = 0; i < size; ++i)
          {
             // cout << plug.partialName(true, false, false, false, false, true) << " index " << i << endl;
             // FIXME: follow connections when arnold 3.4 is release
             //plug.selectAncestorLogicalIndex(i, plug.attribute());
-            plug = arrayPlug[i];//
+            elem = plug[i];//
             switch(type)
             {
             case AI_TYPE_RGB:
                {
                   // FIXME: exporting all zeros!!!
                   AtRGB color;
-                  color.r = plug.child(0).asFloat();
-                  color.g = plug.child(1).asFloat();
-                  color.b = plug.child(2).asFloat();
+                  color.r = elem.child(0).asFloat();
+                  color.g = elem.child(1).asFloat();
+                  color.b = elem.child(2).asFloat();
                   cout << "value is " << color.r << ", " << color.g << ", " << color.b << endl;
                   AiArraySetRGB(array, i, color);
                }
@@ -983,13 +901,13 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, MPlug& plug, const
             case AI_TYPE_RGBA:
                {
                   AtRGBA color;
-                  color.r = plug.child(0).asFloat();
-                  color.g = plug.child(1).asFloat();
-                  color.b = plug.child(2).asFloat();
+                  color.r = elem.child(0).asFloat();
+                  color.g = elem.child(1).asFloat();
+                  color.b = elem.child(2).asFloat();
                   // Is the source parameter RGB or RGBA?
-                  if (plug.numChildren() == 4)
+                  if (elem.numChildren() == 4)
                   {
-                     color.a = plug.child(3).asFloat();
+                     color.a = elem.child(3).asFloat();
                      AiArraySetRGBA(array, i, color);
                   }
                   else
@@ -1002,14 +920,14 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, MPlug& plug, const
                break;
             case AI_TYPE_FLOAT:
                {
-                  cout << "value is " << plug.asFloat() << endl;
-                  AiArraySetFlt(array, i, plug.asFloat());
+                  cout << "value is " << elem.asFloat() << endl;
+                  AiArraySetFlt(array, i, elem.asFloat());
                }
                break;
             case AI_TYPE_POINT2:
                {
                   float x, y;
-                  MObject numObj = plug.asMObject();
+                  MObject numObj = elem.asMObject();
                   MFnNumericData numData(numObj);
                   numData.getData2Float(x, y);
                   AtPoint2 vec2;
@@ -1020,7 +938,7 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, MPlug& plug, const
             case AI_TYPE_MATRIX:
                {
                   AtMatrix am;
-                  MObject matObj = plug.asMObject();
+                  MObject matObj = elem.asMObject();
                   MFnMatrixData matData(matObj);
                   MMatrix mm = matData.matrix();
                   ConvertMatrix(am, mm);
@@ -1029,29 +947,29 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, MPlug& plug, const
                break;
             case AI_TYPE_BOOLEAN:
                {
-                  AiArraySetBool(array, i, plug.asBool());
+                  AiArraySetBool(array, i, elem.asBool());
                }
                break;
             case AI_TYPE_ENUM:
                {
-                  AiArraySetInt(array, i, plug.asInt());
+                  AiArraySetInt(array, i, elem.asInt());
                }
                break;
             case AI_TYPE_INT:
                {
-                  AiArraySetInt(array, i, plug.asInt());
+                  AiArraySetInt(array, i, elem.asInt());
                }
                break;
             case AI_TYPE_STRING:
                {
-                  AiArraySetStr(array, i, plug.asString().asChar());
+                  AiArraySetStr(array, i, elem.asString().asChar());
                }
                break;
             case AI_TYPE_VECTOR:
                {
                   // FIXME: follow component connections when arnold 3.4 is release
                   AtVector vec3;
-                  AiV3Create(vec3, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+                  AiV3Create(vec3, elem.child(0).asFloat(), elem.child(1).asFloat(), elem.child(2).asFloat());
                   AiArraySetVec(array, i, vec3);
                }
                break;
@@ -1059,13 +977,13 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, MPlug& plug, const
                {
                   // FIXME: follow component connections when arnold 3.4 is release
                   AtVector vec3;
-                  AiV3Create(vec3, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
+                  AiV3Create(vec3, elem.child(0).asFloat(), elem.child(1).asFloat(), elem.child(2).asFloat());
                   AiArraySetPnt(array, i, vec3);
                }
                break;
             case AI_TYPE_NODE:
                {
-                  plug.connectedTo(connections, true, false);
+                  elem.connectedTo(connections, true, false);
                   AtNode* linkedNode = NULL;
                   if (connections.length() > 0)
                   {
@@ -1079,7 +997,7 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, MPlug& plug, const
                break;
             } // switch
          } // for loop
-         if (size) AiNodeSetArray(arnoldNode, arnoldAttrib, array);
+         if (size) AiNodeSetArray(arnoldNode, arnoldParamName, array);
       }
       break;
    }
@@ -1126,7 +1044,7 @@ void CDagTranslator::SetArnoldNodeName(AtNode* arnoldNode, const char* tag)
 
 void CDagTranslator::AddHierarchyCallbacks(const MDagPath & path)
 {
-   AiMsgDebug("[mtoa] [translator %s] Adding callbacks to parents of %s.", GetName().asChar(), path.partialPathName().asChar());
+   AiMsgDebug("[mtoa] [translator %s] Adding callbacks to parents of %s.", GetTranslatorName().asChar(), path.partialPathName().asChar());
 
    // Loop through the whole dag path adding callbacks to them.
    MStatus status;
@@ -1293,37 +1211,37 @@ AtInt CDagTranslator::ComputeVisibility()
    AtInt visibility = AI_RAY_ALL;
    MPlug plug;
 
-   plug = GetFnNode().findPlug("castsShadows");
+   plug = FindMayaObjectPlug("castsShadows");
    if (!plug.isNull() && !plug.asBool())
    {
       visibility &= ~AI_RAY_SHADOW;
    }
 
-   plug = GetFnNode().findPlug("primaryVisibility");
+   plug = FindMayaObjectPlug("primaryVisibility");
    if (!plug.isNull() && !plug.asBool())
    {
       visibility &= ~AI_RAY_CAMERA;
    }
 
-   plug = GetFnNode().findPlug("visibleInReflections");
+   plug = FindMayaObjectPlug("visibleInReflections");
    if (!plug.isNull() && !plug.asBool())
    {
       visibility &= ~AI_RAY_REFLECTED;
    }
 
-   plug = GetFnNode().findPlug("visibleInRefractions");
+   plug = FindMayaObjectPlug("visibleInRefractions");
    if (!plug.isNull() && !plug.asBool())
    {
       visibility &= ~AI_RAY_REFRACTED;
    }
 
-   plug = GetFnNode().findPlug("aiVisibleInDiffuse");
+   plug = FindMayaObjectPlug("aiVisibleInDiffuse");
    if (!plug.isNull() && !plug.asBool())
    {
       visibility &= ~AI_RAY_DIFFUSE;
    }
 
-   plug = GetFnNode().findPlug("aiVisibleInGlossy");
+   plug = FindMayaObjectPlug("aiVisibleInGlossy");
    if (!plug.isNull() && !plug.asBool())
    {
       visibility &= ~AI_RAY_GLOSSY;

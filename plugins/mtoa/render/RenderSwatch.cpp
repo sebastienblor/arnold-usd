@@ -163,7 +163,7 @@ MStatus CRenderSwatchGenerator::BuildArnoldScene()
    }
 
    // Assign it in the scene, depending on what it is
-   status = AssignNode(arnoldNode);
+   status = AssignNode(arnoldNode, translator);
    if (MStatus::kSuccess != status)
    {
       ErrorSwatch("Could not assign \"" + mayaNodeName + "\" exported as \"" + arnoldNodeName + "\"");
@@ -312,7 +312,7 @@ MStatus CRenderSwatchGenerator::ExportNode(AtNode* & arnoldNode,
    return status;
 }
 
-MStatus CRenderSwatchGenerator::AssignNode(AtNode* arnoldNode)
+MStatus CRenderSwatchGenerator::AssignNode(AtNode* arnoldNode, CNodeTranslator* translator)
 {
    MStatus status;
    MFnDependencyNode depFn(swatchNode());
@@ -350,11 +350,13 @@ MStatus CRenderSwatchGenerator::AssignNode(AtNode* arnoldNode)
          AtNode* dispImage(exportSession->ExportNode(connections[0].node(), attrName));
          if (dispImage != NULL)
          {
-            MPlug pVectorDisp = depFn.findPlug("vector_displacement", false);
+            // FIXME : why request a non networked plug?
+            MPlug pVectorDisp = depFn.findPlug("vector_displacement",false );
             if (!pVectorDisp.isNull() && pVectorDisp.asBool())
             {
+               MPlug pVectorDispScale = depFn.findPlug("vector_displacement_scale", false);
                AtNode* tangentToObject = AiNode("TangentToObjectSpace");
-               // mayaScene->ProcessShaderParameter(depFn, "vector_displacement_scale", tangentToObject, "scale", AI_TYPE_VECTOR);
+               translator->ProcessParameter(tangentToObject, "scale", AI_TYPE_VECTOR, pVectorDispScale);
                AiNodeLink(dispImage, "map", tangentToObject);
                AiNodeSetPtr(geometry, "disp_map", tangentToObject);
             }
@@ -447,7 +449,7 @@ MStatus CRenderSwatchGenerator::ApplyOverrides(CNodeTranslator* translator)
                MPlug attrOverPlug = nodeOverPlug.child(a);
                MString attrOverName = attrOverPlug.partialName();
                const AtParamEntry* paramEntry = AiNodeEntryLookUpParameter(nodeOverEntry, attrOverName.asChar());
-               translator->ProcessParameter(nodeOver, attrOverPlug, paramEntry, -1);
+               if (NULL != paramEntry) translator->ProcessParameter(nodeOver, AiParamGetName(paramEntry), AiParamGetType(paramEntry), attrOverPlug);
             }
          }
          else

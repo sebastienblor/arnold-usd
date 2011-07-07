@@ -317,6 +317,7 @@ void CRenderSession::SetMultiCameraRender(bool multi)
 
 void CRenderSession::SetupRenderOutput()
 {
+   m_renderOptions.UpdateImageOptions();
 
    AtNode * render_view = CreateRenderViewOutput();
    AtNode * file_driver = CreateFileOutput();
@@ -383,10 +384,16 @@ AtNode * CRenderSession::CreateFileOutput()
          driver = AiNode(driverName.asChar());
          if (NULL != driver)
          {
-            AiNodeSetStr(driver, "filename", m_renderOptions.GetImageFilename().asChar());
+            AiMsgDebug("Created output driver %s", driverName.asChar());
+            MString imageName = m_renderOptions.GetImageFilename();
+            AiNodeSetStr(driver, "filename", imageName.asChar());
             // Set the driver name depending on the camera name to avoid nodes with
             // the same name on renders with multiple cameras
             AiNodeSetStr(driver, "name", driverName.asChar());
+         }
+         else
+         {
+            AiMsgError("Failed to create output driver %s", driverName.asChar());
          }
       }
    }

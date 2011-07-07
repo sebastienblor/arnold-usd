@@ -27,6 +27,7 @@ enum RenderType
 
 class DLLEXPORT CRenderOptions
 {
+
 public:
 
    CRenderOptions();
@@ -170,14 +171,14 @@ public:
    {
       m_width = width;
 
-      SetupImageOptions();
+      UpdateImageOptions();
    }
 
    void SetHeight(AtUInt height)
    {
       m_height = height;
 
-      SetupImageOptions();
+      UpdateImageOptions();
    }
 
    void SetRegion(const AtUInt left, const AtUInt right, const AtUInt bottom, const AtUInt top)
@@ -189,7 +190,7 @@ public:
       m_maxx = right;
       m_maxy = top;
 
-      SetupImageOptions();
+      UpdateImageOptions();
    }
 
    MDagPath GetCamera() const
@@ -327,16 +328,16 @@ public:
    void SetupLog() const;
    
    MString VerifyFileName(MString fileName, bool compressed);
-   void    UpdateImageFilename();
+   void  UpdateImageFilename();
+   void UpdateImageOptions();
 
 private:
 
    void ProcessCommonRenderOptions();
    void ProcessArnoldRenderOptions();
    
-   void SetupImageOptions() const;
-   void SetupImageFilter() const;
    void SetupImageOutputs();
+
 
    MStatus GetOptionsNode(MObject& optionsNode) const;
 

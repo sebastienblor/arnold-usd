@@ -201,11 +201,11 @@ void CHairTranslator::Update( AtNode *curve )
 
 
    // Hair specific Arnold render settings.
-   plug = GetFnNode().findPlug("aiMinPixelWidth");
+   plug = FindMayaObjectPlug("aiMinPixelWidth");
    if (!plug.isNull()) AiNodeSetFlt(curve, "min_pixel_width", plug.asFloat());
 
    // Mode is an enum, 0 == ribbon, 1 == tubes.
-   plug = GetFnNode().findPlug("aiMode");
+   plug = FindMayaObjectPlug("aiMode");
    if (!plug.isNull()) AiNodeSetInt(curve, "mode", plug.asInt());
 
    AiNodeSetStr(curve, "basis", "catmull-rom");
