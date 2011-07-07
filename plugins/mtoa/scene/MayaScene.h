@@ -39,7 +39,7 @@
 /// and CMayaScene::ExportShader() as they require, which triggers dependency graph evaluation and the
 /// generation of CNodeTranslators.
 
-class CMayaScene
+class DLLEXPORT CMayaScene
 {
 
 public:
@@ -72,6 +72,8 @@ public:
 
    static MStatus ExecuteScript(const MString &str, bool echo=false);
 
+   static MStatus UpdateIPR();
+
 private:
 
    static MStatus SetupIPRCallbacks();
@@ -79,7 +81,6 @@ private:
 
    static void IPRNewNodeCallback(MObject & node, void *);
    static void IPRIdleCallback(void *);
-
 
    static std::vector< CNodeTranslator * > s_translatorsToIPRUpdate;
    static MCallbackId s_IPRIdleCallbackId;

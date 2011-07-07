@@ -78,7 +78,14 @@ public:
    inline void SetExportMode(ExportMode mode)             { m_exportOptions.SetExportMode(mode); }
 
    inline double GetExportFrame() const                   { return m_exportOptions.GetExportFrame(); }
-   inline void SetExportFrame(double frame)               { m_exportOptions.SetExportFrame(frame); }
+   void SetExportFrame(double frame)
+   {
+      if (frame != m_exportOptions.GetExportFrame())
+      {
+         m_exportOptions.SetExportFrame(frame);
+         UpdateMotionFrames();
+      }
+   }
 
    inline const MDagPath& GetExportCamera() const         { return m_exportOptions.GetExportCamera(); }
    inline void SetExportCamera(MDagPath camera)           { m_exportOptions.SetExportCamera(camera); }
@@ -98,10 +105,11 @@ public:
    inline bool IsExportingMotion() const {return m_isExportingMotion; }
 
    // Updates
-   inline void QueueForUpdate(CNodeTranslator * translator) { if (translator != NULL) m_translatorsToUpdate.push_back(translator); }
-   inline void RequestUpdate() { m_requestUpdate = true; }
+   void QueueForUpdate(CNodeTranslator * translator);
+   void RequestUpdate();
 
 private:
+
    CExportSession()
       :  m_exportOptions(CExportOptions())
       ,  m_isExportingMotion(false)
@@ -117,6 +125,7 @@ private:
    MStatus End();
 
    MStatus UpdateMotionBlurData();
+   MStatus UpdateMotionFrames();
    
    MStatus Export(MSelectionList* selected = NULL);
 

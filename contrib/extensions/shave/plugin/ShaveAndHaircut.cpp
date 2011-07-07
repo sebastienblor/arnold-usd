@@ -71,7 +71,7 @@ void CShaveTranslator::Update(AtNode* curve)
          plug.connectedTo(curveShaderPlug, true, false);
          if (curveShaderPlug.length() > 0)
          {
-            shader = ExportShader(curveShaderPlug[0].node());
+            shader = ExportNode(curveShaderPlug[0].node());
          }
       }
    }

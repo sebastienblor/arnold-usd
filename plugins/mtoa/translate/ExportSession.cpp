@@ -1,6 +1,7 @@
 
 #include "ExportSession.h"
 #include "extension/ExtensionsManager.h"
+#include "scene/MayaScene.h"
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
@@ -279,25 +280,36 @@ MStatus CExportSession::UpdateMotionBlurData()
    MStatus status = MStatus::kSuccess;
 
    m_exportOptions.UpdateMotionBlurData();
+   status = UpdateMotionFrames();
 
+   return status;
+}
+
+MStatus CExportSession::UpdateMotionFrames()
+{
+   MStatus status = MStatus::kSuccess;
+
+   double exportFrame         = m_exportOptions.m_frame;
    if (m_exportOptions.m_motion.enable_mask)
    {
-      m_motion_frames.clear();
-      m_motion_frames.reserve(m_exportOptions.m_motion.steps);
-      for (AtUInt step=0; (step < m_exportOptions.m_motion.steps); ++step)
-      {
-         float frame = m_exportOptions.m_frame -
-                       m_exportOptions.m_motion.by_frame * 0.5f +
-                       m_exportOptions.m_motion.shutter_offset +
-                       m_exportOptions.m_motion.by_frame / (m_exportOptions.m_motion.steps - 1) * step;
+      double byFrame             = m_exportOptions.m_motion.by_frame;
+      double shutterOffset       = m_exportOptions.m_motion.shutter_offset;
+      unsigned int motionSteps   = m_exportOptions.m_motion.steps;
+      double stepSize            = byFrame / double(motionSteps - 1);
+      if (m_motion_frames.size() != motionSteps) m_motion_frames.clear();
+      if (m_motion_frames.capacity() != motionSteps) m_motion_frames.reserve(motionSteps);
 
+      double frame = exportFrame - byFrame * 0.5 + shutterOffset;
+      for (unsigned int step=0; (step < motionSteps); ++step)
+      {
+         frame += double(step) * stepSize;
          m_motion_frames.push_back(frame);
       }
    }
    else
    {
       m_motion_frames.clear();
-      m_motion_frames.push_back(m_exportOptions.m_frame);
+      m_motion_frames.push_back(exportFrame);
    }
 
    return status;
@@ -675,6 +687,17 @@ DagFiltered CExportSession::FilteredStatus(MDagPath path)
 }
 
 // updates
+
+void CExportSession::QueueForUpdate(CNodeTranslator * translator)
+{
+   if (translator != NULL) m_translatorsToUpdate.push_back(translator);
+}
+
+void CExportSession::RequestUpdate()
+{
+   m_requestUpdate = true;
+   CMayaScene::UpdateIPR();
+}
 
 void CExportSession::DoUpdate()
 {

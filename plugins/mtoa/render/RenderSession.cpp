@@ -373,51 +373,64 @@ AtNode * CRenderSession::CreateFileOutput()
 
    AtNode* driver;
    // set the output driver
-   MString driverCamName = m_renderOptions.RenderDriver() + "_" + m_renderOptions.GetCameraName();
-   driver = AiNodeLookUpByName(driverCamName.asChar());
-   if (driver == 0x0)
+   MString driverName = m_renderOptions.RenderDriver() + "_" + m_renderOptions.GetCameraName();
+   driver = AiNodeLookUpByName(driverName.asChar());
+   if (NULL == driver)
    {
-      driver = AiNode(m_renderOptions.RenderDriver().asChar());
-      AiNodeSetStr(driver, "filename", m_renderOptions.GetImageFilename().asChar());
-
-      // Set the driver name depending on the camera name to avoid nodes with
-      // the same name on renders with multiple cameras
-      AiNodeSetStr(driver, "name", driverCamName.asChar());
+      driverName = m_renderOptions.RenderDriver();
+      if (driverName.numChars())
+      {
+         driver = AiNode(driverName.asChar());
+         if (NULL != driver)
+         {
+            AiNodeSetStr(driver, "filename", m_renderOptions.GetImageFilename().asChar());
+            // Set the driver name depending on the camera name to avoid nodes with
+            // the same name on renders with multiple cameras
+            AiNodeSetStr(driver, "name", driverName.asChar());
+         }
+      }
    }
 
-   // set output driver parameters
-   // Only set output parameters if they exist within that specific node
-   if (AiNodeEntryLookUpParameter(driver->base_node, "compression"))
+   if (NULL != driver)
    {
-      AiNodeSetInt(driver, "compression", m_renderOptions.arnoldRenderImageCompression());
+      // set output driver parameters
+      // Only set output parameters if they exist within that specific node
+      if (AiNodeEntryLookUpParameter(driver->base_node, "compression"))
+      {
+         AiNodeSetInt(driver, "compression", m_renderOptions.arnoldRenderImageCompression());
+      }
+      if (AiNodeEntryLookUpParameter(driver->base_node, "half_precision"))
+      {
+         AiNodeSetBool(driver, "half_precision", m_renderOptions.arnoldRenderImageHalfPrecision());
+      }
+      if (AiNodeEntryLookUpParameter(driver->base_node, "output_padded"))
+      {
+         AiNodeSetBool(driver, "output_padded", m_renderOptions.arnoldRenderImageOutputPadded());
+      }
+      if (AiNodeEntryLookUpParameter(driver->base_node, "gamma"))
+      {
+         AiNodeSetFlt(driver, "gamma", m_renderOptions.arnoldRenderImageGamma());
+      }
+      if (AiNodeEntryLookUpParameter(driver->base_node, "quality"))
+      {
+         AiNodeSetInt(driver, "quality", m_renderOptions.arnoldRenderImageQuality());
+      }
+      if (AiNodeEntryLookUpParameter(driver->base_node, "format"))
+      {
+         AiNodeSetInt(driver, "format", m_renderOptions.arnoldRenderImageOutputFormat());
+      }
+      if (AiNodeEntryLookUpParameter(driver->base_node, "tiled"))
+      {
+         AiNodeSetBool(driver, "tiled", m_renderOptions.arnoldRenderImageTiled());
+      }
+      if (AiNodeEntryLookUpParameter(driver->base_node, "unpremult_alpha"))
+      {
+         AiNodeSetBool(driver, "unpremult_alpha", m_renderOptions.arnoldRenderImageUnpremultAlpha());
+      }
    }
-   if (AiNodeEntryLookUpParameter(driver->base_node, "half_precision"))
+   else
    {
-      AiNodeSetBool(driver, "half_precision", m_renderOptions.arnoldRenderImageHalfPrecision());
-   }
-   if (AiNodeEntryLookUpParameter(driver->base_node, "output_padded"))
-   {
-      AiNodeSetBool(driver, "output_padded", m_renderOptions.arnoldRenderImageOutputPadded());
-   }
-   if (AiNodeEntryLookUpParameter(driver->base_node, "gamma"))
-   {
-      AiNodeSetFlt(driver, "gamma", m_renderOptions.arnoldRenderImageGamma());
-   }
-   if (AiNodeEntryLookUpParameter(driver->base_node, "quality"))
-   {
-      AiNodeSetInt(driver, "quality", m_renderOptions.arnoldRenderImageQuality());
-   }
-   if (AiNodeEntryLookUpParameter(driver->base_node, "format"))
-   {
-      AiNodeSetInt(driver, "format", m_renderOptions.arnoldRenderImageOutputFormat());
-   }
-   if (AiNodeEntryLookUpParameter(driver->base_node, "tiled"))
-   {
-      AiNodeSetBool(driver, "tiled", m_renderOptions.arnoldRenderImageTiled());
-   }
-   if (AiNodeEntryLookUpParameter(driver->base_node, "unpremult_alpha"))
-   {
-      AiNodeSetBool(driver, "unpremult_alpha", m_renderOptions.arnoldRenderImageUnpremultAlpha());
+      AiMsgError("Could not create file output of name '%s'", driverName.asChar());
    }
 
    return driver;
@@ -500,6 +513,7 @@ void CRenderSession::DoInteractiveRender()
    MComputation comp;
    comp.beginComputation();
 
+   SetBatch(false);
    SetupRenderOutput();
    PrepareRenderView();
 
@@ -520,6 +534,7 @@ void CRenderSession::DoInteractiveRender()
 
 AtULong CRenderSession::DoBatchRender()
 {
+   SetBatch(true);
    SetupRenderOutput();
 
    return AiRender(AI_RENDER_MODE_CAMERA);
@@ -817,7 +832,8 @@ void CRenderSession::DoSwatchRender(const AtInt resolution)
 
 bool CRenderSession::GetSwatchImage(MImage & image)
 {
-   if (CMayaScene::GetExportMode() != MTOA_EXPORT_SWATCH)
+   if (CMayaScene::GetExportMode() != MTOA_EXPORT_SWATCH
+         || NULL == m_render_thread)
    {
       return false;
    }

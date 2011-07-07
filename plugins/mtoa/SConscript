@@ -14,7 +14,7 @@ local_env = maya_env.Clone()
 src_base_dir  = os.path.join(local_env['ROOT_DIR'], 'plugins', 'mtoa')
 source_files = []
 include_files = []
-for subdir in ['render', 'scene', 'commands', 'nodes', 'translators'] :
+for subdir in ['commands', 'nodes', 'translators'] :
    dir = os.path.join(src_base_dir, subdir)
    source_files  += [os.path.join(subdir, x) for x in find_files_recursive(dir, ['.c', '.cpp'])]
    include_files += [os.path.join(subdir, x) for x in find_files_recursive(dir, ['.h'])]

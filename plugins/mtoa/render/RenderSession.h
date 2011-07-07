@@ -21,7 +21,7 @@ class MImage;
  * rendering.
  */
 
-class CRenderSession
+class DLLEXPORT CRenderSession
 {
    friend class CMayaScene;
 

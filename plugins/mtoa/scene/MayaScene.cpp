@@ -91,7 +91,8 @@ MStatus CMayaScene::Begin(ExportMode mode)
    if (mode == MTOA_EXPORT_SWATCH)
    {
       // FIXME: default or use swatch defaults
-      renderOptions = CRenderOptions();
+      // renderOptions = CRenderOptions();
+      renderOptions.GetFromMaya();
       renderOptions.SetBatch(false);
       renderOptions.SetProgressive(false);
       //FIXME: fill renderOptions instead
@@ -108,6 +109,9 @@ MStatus CMayaScene::Begin(ExportMode mode)
    status = renderSession->Begin(&renderOptions);
    status = exportSession->Begin(&exportOptions);
 
+   bool isIpr = (s_exportSession->GetExportMode() == MTOA_EXPORT_IPR) ? true : false;
+   if (isIpr) status = SetupIPRCallbacks();
+
    return status;
 }
 
@@ -115,8 +119,18 @@ MStatus CMayaScene::End()
 {
    MStatus status = MStatus::kSuccess;
 
-   if (NULL != s_renderSession) status = s_renderSession->End();
-   if (NULL != s_exportSession) status = s_exportSession->End();
+   if (NULL != s_renderSession)
+   {
+      status = s_renderSession->End();
+   }
+   if (NULL != s_exportSession)
+   {
+      if (s_exportSession->GetExportMode() == MTOA_EXPORT_IPR)
+      {
+         ClearIPRCallbacks();
+      }
+      status = s_exportSession->End();
+   }
 
    return status;
 }
@@ -147,7 +161,7 @@ MStatus CMayaScene::Render()
       // double currentFrame = MAnimControl::currentTime().as(MTime::uiUnit());
 
       bool isIpr = (s_exportSession->GetExportMode() == MTOA_EXPORT_IPR) ? true : false;
-      if (isIpr) status = SetupIPRCallbacks();
+      // if (isIpr) status = SetupIPRCallbacks();
 
       // FIXME: a generic renderSessio->Render() method that chooses render from the ExportMode ?
       if (isIpr)
@@ -159,7 +173,7 @@ MStatus CMayaScene::Render()
          s_renderSession->DoInteractiveRender();
       }
 
-      if (isIpr) ClearIPRCallbacks();
+      // if (isIpr) ClearIPRCallbacks();
 
       // Restorecurrent frame
       // MGlobal::viewFrame(MTime(currentFrame, MTime::uiUnit()));
@@ -209,6 +223,21 @@ MStatus CMayaScene::ExecuteScript(const MString &str, bool echo)
    return status;
 }
 
+MStatus CMayaScene::UpdateIPR()
+{
+   MStatus status;
+   MCallbackId id;
+
+   // Add the IPR update callback, this is called in Maya's idle time
+   if ( s_IPRIdleCallbackId == 0 )
+   {
+      id = MEventMessage::addEventCallback("idle", IPRIdleCallback, NULL, &status);
+      if (status == MS::kSuccess) s_IPRIdleCallbackId = id;
+   }
+
+   return status;
+}
+
 // Private Methods
 
 MStatus CMayaScene::SetupIPRCallbacks()
@@ -216,16 +245,10 @@ MStatus CMayaScene::SetupIPRCallbacks()
    MStatus status;
    MCallbackId id;
    // Add the node added callback
-   if (s_NewNodeCallbackId == 0x0)
+   if (s_NewNodeCallbackId == 0)
    {
       id = MDGMessage::addNodeAddedCallback(IPRNewNodeCallback, "dependNode", NULL, &status);
       if (status == MS::kSuccess) s_NewNodeCallbackId = id;
-   }
-   // Add the IPR update callback, this is called in Maya's idle time (Arnold may not be idle, that's okay).
-   if (s_IPRIdleCallbackId == 0)
-   {
-      id = MEventMessage::addEventCallback("idle", IPRIdleCallback, NULL, &status);
-      if (status == MS::kSuccess) s_IPRIdleCallbackId = id;
    }
 
    return status;
@@ -247,7 +270,10 @@ void CMayaScene::ClearIPRCallbacks()
    }
 
    // Clear the callbacks on the translators of the current export session
-   s_exportSession->ClearUpdateCallbacks();
+   if (NULL != s_exportSession)
+   {
+      s_exportSession->ClearUpdateCallbacks();
+   }
 }
 
 // Actuall callback functions
@@ -278,15 +304,24 @@ void CMayaScene::IPRNewNodeCallback(MObject & node, void *)
          // exportSession->QueueForUpdate(); // add it?
       }
    }
-   exportSession->RequestUpdate();
+   UpdateIPR();
 }
 
 
 void CMayaScene::IPRIdleCallback(void *)
 {
-   if (s_exportSession->NeedsUpdate())
+   // Desactivate the callback (it's supposed to fire only once)
+   if (s_IPRIdleCallbackId != 0)
+   {
+      MMessage::removeCallback(s_IPRIdleCallbackId);
+      s_IPRIdleCallbackId = 0;
+   }
+
+   // Check that an update is really needed.
+   if (s_exportSession->NeedsUpdate() && !s_renderSession->m_paused_ipr)
    {
       s_renderSession->InterruptRender();
+      s_exportSession->SetExportFrame(MAnimControl::currentTime().as(MTime::uiUnit()));
       s_exportSession->DoUpdate();
       s_renderSession->DoIPRRender();
    }

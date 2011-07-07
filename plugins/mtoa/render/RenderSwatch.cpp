@@ -513,6 +513,8 @@ bool CRenderSwatchGenerator::doIteration()
          ErrorSwatch("Render failed: Arnold universe not active.");
          return true; // Stop iterating/rendering.
       }
+      // Uncomment this to get a debug ass for swatches, but then set preserve_scene_data or disable actual render
+      // CMayaScene::GetRenderSession()->DoAssWrite("/mnt/data/orenouard/maya/projects/Arnold/ASS/swatch.ass");
       CMayaScene::GetRenderSession()->DoSwatchRender(resolution());
    }
    // We must be done rendering.
@@ -528,6 +530,7 @@ bool CRenderSwatchGenerator::doIteration()
       else
       {
          // Start again as we were interupted.
+         CMayaScene::End();
          m_iteration = 0;
          return false;
       }

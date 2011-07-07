@@ -960,10 +960,10 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, MPlug& plug, const
          AtUInt size = plug.numElements();
          AtArray* array = AiArrayAllocate(size, 1, type);
          MPlug arrayPlug = plug;
-         cout << "size " << size << endl;
+         // cout << "size " << size << endl;
          for (AtUInt i = 0; i < size; ++i)
          {
-            cout << plug.partialName(true, false, false, false, false, true) << " index " << i << endl;
+            // cout << plug.partialName(true, false, false, false, false, true) << " index " << i << endl;
             // FIXME: follow connections when arnold 3.4 is release
             //plug.selectAncestorLogicalIndex(i, plug.attribute());
             plug = arrayPlug[i];//
@@ -1079,7 +1079,7 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, MPlug& plug, const
                break;
             } // switch
          } // for loop
-         AiNodeSetArray(arnoldNode, arnoldAttrib, array);
+         if (size) AiNodeSetArray(arnoldNode, arnoldAttrib, array);
       }
       break;
    }
