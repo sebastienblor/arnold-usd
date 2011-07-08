@@ -326,7 +326,6 @@ def insertArnoldKeywordMenuCallback(token):
 
 def createArnoldInsertKeywordMenu(parent):
 
-    # FIXME: ArnoldKeywordMenuCallback does not exist!
     pm.popupMenu(parent, edit=True, deleteAllItems=True)
 
     pm.setParent(parent, menu=True)
@@ -334,27 +333,27 @@ def createArnoldInsertKeywordMenu(parent):
     pm.menuItem(label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kFileNameKeywords"), enable=0)
     pm.menuItem(divider=True)
     pm.menuItem(label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kKeywordScene"),
-                  command=pm.Callback(ArnoldKeywordMenuCallback, "<Scene>"))
+                  command=pm.Callback(insertArnoldKeywordMenuCallback, "<Scene>"))
     pm.menuItem(label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kKeywordLayer"),
-                  command=pm.Callback(ArnoldKeywordMenuCallback, "<RenderLayer>"))
+                  command=pm.Callback(insertArnoldKeywordMenuCallback, "<RenderLayer>"))
     pm.menuItem(label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kKeywordCamera"),
-                  command=pm.Callback(ArnoldKeywordMenuCallback, "<Camera>"))
+                  command=pm.Callback(insertArnoldKeywordMenuCallback, "<Camera>"))
     pm.menuItem(label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kKeywordRPFG"),
-                  command=pm.Callback(ArnoldKeywordMenuCallback, "<RenderPassFileGroup>"))
+                  command=pm.Callback(insertArnoldKeywordMenuCallback, "<RenderPassFileGroup>"))
     pm.menuItem(label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kKeywordRenderPass"),
-                  command=pm.Callback(ArnoldKeywordMenuCallback, "<RenderPass>"))
+                  command=pm.Callback(insertArnoldKeywordMenuCallback, "<RenderPass>"))
     pm.menuItem(label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kKeywordRenderPassType"),
-                  command=pm.Callback(ArnoldKeywordMenuCallback, "<RenderPassType>"))
+                  command=pm.Callback(insertArnoldKeywordMenuCallback, "<RenderPassType>"))
     pm.menuItem(label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kKeywordExtension"),
-                  command=pm.Callback(ArnoldKeywordMenuCallback, "<Extension>"))
+                  command=pm.Callback(insertArnoldKeywordMenuCallback, "<Extension>"))
     pm.menuItem(label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kKeywordVersion"),
-                  command=pm.Callback(ArnoldKeywordMenuCallback, "<Version>"))
+                  command=pm.Callback(insertArnoldKeywordMenuCallback, "<Version>"))
     date = pm.date(format="YY_MM_DD")
     pm.menuItem(label=(pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kKeywordDate") + date),
-                  command=pm.Callback(InsertArnoldKeywordMenuCallback,  date))
+                  command=pm.Callback(insertArnoldKeywordMenuCallback,  date))
     time = pm.date(format="hh-mm-ss")
     pm.menuItem(label=(pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kKeywordTime") + time),
-                  command=pm.Callback(InsertArnoldKeywordMenuCallback, time))
+                  command=pm.Callback(insertArnoldKeywordMenuCallback, time))
 
 # ----------------------------------------------------------------------------
 # Code to create and update the Image File Output frame
@@ -371,7 +370,7 @@ def createArnoldFileNamePrefixControl():
         popup = pm.popupMenu(parent='mayaSoftwareFileName|field')
     else:
         popup = pm.popupMenu(parent='mayaSoftwareFileName')
-    pm.popupMenu(popup, edit=True, postMenuCommand='createInsertKeywordMenu %s' % popup)
+    pm.popupMenu(popup, edit=True, postMenuCommand='createArnoldInsertKeywordMenu %s' % popup)
 
     # connect the label, so we can change its color
     pm.connectControl('mayaSoftwareFileName', 'defaultRenderGlobals.imageFilePrefix', index=1)
