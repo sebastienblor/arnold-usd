@@ -145,8 +145,6 @@ AtBBox CRenderSession::GetBoundingBox()
    {
       // FIXME: we need to start a render to have it actually initialize the bounding box
       // (in free mode, does nothing but setting the scene up for future ray requests)
-      AtNode* options = AiUniverseGetOptions();
-      AiNodeSetBool(options, "preserve_scene_data", true);
       AiRender(AI_RENDER_MODE_FREE);
       bbox = AiUniverseGetSceneBounds();
    }

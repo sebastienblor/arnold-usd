@@ -75,6 +75,7 @@ MDagPath CArnoldExportAssCmd::GetCamera()
    return camera;
 }
 
+// FIXME: that should be a method on CMayaScene so we can share it between commands
 MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
 {
    MStatus status;
@@ -243,6 +244,8 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
                                               IsBatch(), &status);
 
       CMayaScene::Export();
+      // TODO: package all of this in a method
+      if (writeBox) AiNodeSetBool(AiUniverseGetOptions(), "preserve_scene_data", true);
       renderSession->DoAssWrite(curfilename);
       if (writeBox) renderSession->WriteAsstoc(tocfilename, renderSession->GetBoundingBox());
 
