@@ -214,12 +214,12 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
          }
       }
 
-      for (AtFloat framerender = startframe; framerender <= endframe; framerender += byframestep)
+      for (double framerender = startframe; framerender <= endframe; framerender += byframestep)
       {
-         MGlobal::viewFrame((double) framerender);
+         MGlobal::viewFrame(framerender);
          CMayaScene::ExecuteScript(renderGlobals.preRenderMel);
 
-         // FIXME: do we really need to reset everyhting each time?
+         // FIXME: do we really need to reset everything each time?
          CMayaScene::Begin(MTOA_EXPORT_RENDER);
          CExportSession* exportSession = CMayaScene::GetExportSession();
          CRenderSession* renderSession = CMayaScene::GetRenderSession();

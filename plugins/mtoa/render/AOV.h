@@ -8,7 +8,7 @@
 #include <maya/MString.h>
 #include <maya/MPlug.h>
 
-class CAOV
+class DLLEXPORT CAOV
 {
 public:
 //Deprecated ?

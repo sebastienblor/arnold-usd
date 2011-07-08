@@ -43,6 +43,8 @@ void CRenderOptions::GetFromMaya()
 {
    ProcessCommonRenderOptions();
    ProcessArnoldRenderOptions();
+   SetupImageOutputs();
+   UpdateImageFilename();
 }
 
 void CRenderOptions::UpdateImageFilename() 
@@ -139,6 +141,7 @@ void CRenderOptions::ProcessCommonRenderOptions()
             m_pixelAspectRatio = 1.0f / (((float)m_height / m_width) * fnRes.findPlug("deviceAspectRatio").asFloat());
          }
       }
+
    }
 }
 
@@ -228,7 +231,6 @@ void CRenderOptions::ProcessArnoldRenderOptions()
    {
       AiMsgError("[mtoa] Could not find defaultArnoldRenderOptions");
    }
-   SetupImageOutputs();
 }
 
 void CRenderOptions::SetupLog() const

@@ -149,12 +149,12 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
          status = MRenderView::getRenderRegion(left, right, bottom, top);
          if (status == MS::kSuccess)
          {
-               renderSession->SetRegion(left, right, bottom, top);
+            renderSession->SetRegion(left, right, bottom, top);
          }
       }
       else
       {
-            renderSession->SetResolution(width, height);
+         renderSession->SetResolution(width, height);
       }
       MSelectionList sel;
       args.getFlagArgument("camera", 0, sel);

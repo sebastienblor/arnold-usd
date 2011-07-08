@@ -512,7 +512,7 @@ void CRenderSession::DoInteractiveRender()
 
    SetBatch(false);
    SetupRenderOutput();
-   PrepareRenderView();
+   PrepareRenderView(false);
 
    // Start the render thread.
    m_render_thread = AiThreadCreate(CRenderSession::RenderThread,

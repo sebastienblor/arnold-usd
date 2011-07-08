@@ -88,20 +88,31 @@ MStatus CMayaScene::Begin(ExportMode mode)
    exportOptions.SetArnoldRenderOptions(ArnoldRenderOptionsNode);
 
    CRenderOptions renderOptions;
+   // FIXME : allow to pass a specific maya ArnoldRenderOptions node
+   renderOptions.GetFromMaya();
    if (mode == MTOA_EXPORT_SWATCH)
    {
       // FIXME: default or use swatch defaults
       // renderOptions = CRenderOptions();
-      renderOptions.GetFromMaya();
       renderOptions.SetBatch(false);
       renderOptions.SetProgressive(false);
       //FIXME: fill renderOptions instead
       MtoaSetupSwatchLogging();
    }
+   else if (mode == MTOA_EXPORT_FILE)
+   {
+      renderOptions.SetBatch(true);
+      renderOptions.SetupLog();
+   }
+   else if (mode == MTOA_EXPORT_IPR)
+   {
+      renderOptions.SetBatch(false);
+      renderOptions.SetProgressive(true);
+      renderOptions.SetupLog();
+      status = SetupIPRCallbacks();
+   }
    else
    {
-      // FIXME : allow to pass a specific options node
-      renderOptions.GetFromMaya();
       renderOptions.SetupLog();
    }
 
@@ -109,10 +120,8 @@ MStatus CMayaScene::Begin(ExportMode mode)
    status = renderSession->Begin(&renderOptions);
    status = exportSession->Begin(&exportOptions);
 
-   renderSession->RenderOptions()->SetupLog();
+   // renderSession->RenderOptions()->SetupLog();
 
-   bool isIpr = (s_exportSession->GetExportMode() == MTOA_EXPORT_IPR) ? true : false;
-   if (isIpr) status = SetupIPRCallbacks();
 
    return status;
 }
