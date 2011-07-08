@@ -69,6 +69,9 @@ public:
                               TCreatorFunction creatorFunction,
                               TNodeInitFunction nodeInitFunction=NULL);
 
+   static bool IsArnoldPluginLoaded(const MString &path);
+   static MStringArray GetAllLoadedArnoldPlugins();
+
 protected :
    MStatus setFile(const MString &file);
 
@@ -106,8 +109,6 @@ protected :
    static MStringArray FindLibraries(const MString &path,
                                      MStatus *returnStatus=NULL);
 
-   static bool IsArnoldPluginLoaded(const MString &path);
-   static MStringArray GetAllLoadedArnoldPlugins();
 
 protected:
    MString m_extensionFile;

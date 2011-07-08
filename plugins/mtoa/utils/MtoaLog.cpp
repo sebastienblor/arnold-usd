@@ -106,7 +106,7 @@ DLLEXPORT void MtoaSetupLogging()
 
    AiMsgSetConsoleFlags(defaultLogFlags | AI_LOG_COLOR);
    AiMsgSetLogFileFlags(defaultLogFlags);
-   AiMsgSetCallback(MtoaLogCallback);
+   // AiMsgSetCallback(MtoaLogCallback);
 }
 
 void MtoaSetupSwatchLogging()
@@ -130,5 +130,5 @@ void MtoaSetupSwatchLogging()
 
    AiMsgSetConsoleFlags(defaultLogFlags | AI_LOG_COLOR);
    AiMsgSetLogFileFlags(defaultLogFlags);
-   AiMsgSetCallback(MtoaLogCallback);
+   // AiMsgSetCallback(MtoaLogCallback);
 }

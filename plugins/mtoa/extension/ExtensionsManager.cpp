@@ -693,7 +693,7 @@ void CExtensionsManager::MayaPluginLoadedCallback(const MStringArray &strs, void
    MString pluginName = strs[1];
    std::string plugin_str(pluginName.asChar());
    // start up the arnold universe so that attribute helpers can query arnold nodes
-   bool callEnd = InitArnoldUniverse();
+   MStatus status = ArnoldUniverseBegin();
    ExtensionsList::iterator extIt;
    for (extIt = s_extensions.begin();
          extIt != s_extensions.end();
@@ -706,7 +706,7 @@ void CExtensionsManager::MayaPluginLoadedCallback(const MStringArray &strs, void
          RegisterExtension(&(*extIt));
       }
    }
-   if (callEnd) AiEnd();
+   ArnoldUniverseEnd();
 }
 
 /// Installs the plugin-loaded callback

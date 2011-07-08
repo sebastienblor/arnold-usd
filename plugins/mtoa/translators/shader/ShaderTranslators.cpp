@@ -491,7 +491,7 @@ void CPlusMinusAverageTranslator::Export(AtNode* shader)
    if (AI_TYPE_NONE == attribType) return;
 
    MPlug plug, elemPlug;
-   char mayaAttr[64];
+   // char mayaAttr[64];
    char aiAttr[64];
 
    plug = m_fnNode.findPlug("operation");

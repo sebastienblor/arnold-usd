@@ -13,18 +13,30 @@ MStatus ReadMetafile()
    if (!readMetaSuccess)
    {
       AiMsgError("[mtoa] Could not read mtoa built-in metadata file mtoa.mtd");
-      return MStatus::kSuccess;
+      return MStatus::kFailure;
    }
-   return MStatus::kFailure;
+   return MStatus::kSuccess;
 }
 
-MStatus InitArnoldUniverse()
+MStatus ArnoldUniverseBegin()
 {
    if (!AiUniverseIsActive())
    {
       AiBegin();
       MtoaSetupLogging();
       return ReadMetafile();
+   }
+   return MStatus::kFailure;
+}
+
+MStatus ArnoldUniverseEnd()
+{
+   if (AiUniverseIsActive())
+   {
+      AiEnd();
+      // MtoaSetupLogging();
+      // AiMsgResetCallback();
+      return MStatus::kSuccess;
    }
    return MStatus::kFailure;
 }

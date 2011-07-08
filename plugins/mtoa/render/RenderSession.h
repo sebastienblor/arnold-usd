@@ -107,10 +107,7 @@ public:
 
    /// Return the render options.
    /// \see CRenderOptions
-   const CRenderOptions* RenderOptions() const
-   {
-      return &m_renderOptions;
-   }
+   inline CRenderOptions* RenderOptions() { return &m_renderOptions; }
 
    /// Returns the state of rendering.
    /// This is different from if Arnold is active. After tuning in IPR

@@ -243,7 +243,7 @@ void CRenderOptions::SetupLog() const
    // Callback for script editor echo has to be disabled, because not way to know
    // the log filename and write to it from callback
    // AiMsgSetCallback(MtoaLogCallback);
-   AiMsgResetCallback();
+   // AiMsgResetCallback();
 }
 
 void CRenderOptions::UpdateImageOptions()

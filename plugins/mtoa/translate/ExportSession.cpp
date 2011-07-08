@@ -121,71 +121,93 @@ namespace // <anonymous>
 
 // Export a single dag path (a dag node or an instance of a dag node)
 // Considered to be already filtered and checked
-AtNode* CExportSession::ExportDagPath(MDagPath &dagPath)
+AtNode* CExportSession::ExportDagPath(MDagPath &dagPath, MStatus* stat)
 {
+   MStatus status = MStatus::kSuccess;
+   AtNode* arnoldNode = NULL;
+
    MObjectHandle handle = MObjectHandle(dagPath.node());
    int instanceNum = dagPath.instanceNumber();
    MString name = dagPath.partialPathName();
    MString type = MFnDagNode(dagPath).typeName();
    AiMsgDebug("[mtoa] Exporting dag node %s of type %s", name.asChar(), type.asChar());
-   // early out for nodes that have already been processed
+   // Check if node has already been processed
    ObjectToDagTranslatorMap::iterator it = m_processedDagTranslators.find(handle);
    if (it != m_processedDagTranslators.end() && it->second.count(instanceNum))
-      return it->second[instanceNum]->GetArnoldRootNode();
-   // else get a new translator for that node
-   CDagTranslator* translator = CExtensionsManager::GetTranslator(dagPath);
-   if (translator != NULL && translator->IsMayaTypeDag())
    {
-      if (translator->IsMayaTypeRenderable())
-      {
-         AtNode* result = translator->Init(this, dagPath);
-         translator->DoExport(0);
-         // save it for later
-         m_processedDagTranslators[handle][instanceNum] = translator;
-         return result;
-      }
+      status = MStatus::kSuccess;
+      arnoldNode = it->second[instanceNum]->GetArnoldRootNode();
    }
    else
    {
-      AiMsgDebug("[mtoa] Dag node %s of type %s ignored", name.asChar(), type.asChar());
+      // else get a new translator for that node
+      CDagTranslator* translator = CExtensionsManager::GetTranslator(dagPath);
+      if (translator != NULL && translator->IsMayaTypeDag())
+      {
+         status = MStatus::kSuccess;
+         if (translator->IsMayaTypeRenderable())
+         {
+            arnoldNode = translator->Init(this, dagPath);
+            translator->DoExport(0);
+            // save it for later
+            m_processedDagTranslators[handle][instanceNum] = translator;
+         }
+      }
+      else
+      {
+         status = MStatus::kNotImplemented;
+         AiMsgDebug("[mtoa] Dag node %s of type %s ignored", name.asChar(), type.asChar());
+      }
    }
-   return NULL;
+
+   if (NULL != stat) *stat = status;
+   return arnoldNode;
 }
 
 // Export a plug (dependency node output attribute)
 //
-AtNode* CExportSession::ExportNode(MPlug& shaderOutputPlug)
+AtNode* CExportSession::ExportNode(MPlug& shaderOutputPlug, MStatus *stat)
 {
-   return ExportNode(shaderOutputPlug.node(), shaderOutputPlug.partialName(false, false, false, false, false, true));
+   return ExportNode(shaderOutputPlug.node(), shaderOutputPlug.partialName(false, false, false, false, false, true), stat);
 }
 
-AtNode* CExportSession::ExportNode(MObject mayaNode, const MString &attrName)
+AtNode* CExportSession::ExportNode(MObject mayaNode, const MString &attrName, MStatus *stat)
 {
+   MStatus status = MStatus::kSuccess;
+   AtNode* arnoldNode = NULL;
+
    MDagPath dagPath;
    if (MDagPath::getAPathTo(mayaNode, dagPath) == MS::kSuccess)
-      return ExportDagPath(dagPath);
+      return ExportDagPath(dagPath, stat);
 
    // First check if this node has already been processed
    MObjectHandle handle = MObjectHandle(mayaNode);
-   // early out for depend nodes that have already been processed
+   // Check if node has already been processed
    ObjectToTranslatorMap::iterator it = m_processedTranslators.find(handle);
    if (it != m_processedTranslators.end() && it->second->m_outputAttr == attrName)
-      return it->second->GetArnoldRootNode();
-
-   AtNode* arnoldNode = NULL;
-   // else get a new translator for that node
-   CNodeTranslator* translator = CExtensionsManager::GetTranslator(mayaNode);
-   if (translator != NULL)
    {
-      arnoldNode = translator->Init(this, mayaNode, attrName);
-      m_processedTranslators[handle] = translator;
-      translator->DoExport(0);
+      status = MStatus::kSuccess;
+      arnoldNode = it->second->GetArnoldRootNode();
    }
    else
    {
-      AiMsgDebug("[mtoa] Maya node type not supported: %s", MFnDependencyNode(mayaNode).typeName().asChar());
+      // else get a new translator for that node
+      CNodeTranslator* translator = CExtensionsManager::GetTranslator(mayaNode);
+      if (translator != NULL)
+      {
+         status = MStatus::kSuccess;
+         arnoldNode = translator->Init(this, mayaNode, attrName);
+         m_processedTranslators[handle] = translator;
+         translator->DoExport(0);
+      }
+      else
+      {
+         status = MStatus::kNotImplemented;
+         AiMsgDebug("[mtoa] Maya node type not supported: %s", MFnDependencyNode(mayaNode).typeName().asChar());
+      }
    }
 
+   if (NULL != stat) *stat = status;
    return arnoldNode;
 }
 
@@ -549,13 +571,12 @@ MStatus CExportSession::ExportScene()
                dagIterator.prune();
             continue;
          }
-         if (ExportDagPath(path) == NULL)
-            status = MStatus::kFailure;
+         ExportDagPath(path, &status);
       }
       else
       {
          AiMsgError("[mtoa] Could not get path for Maya DAG iterator.");
-         status = MS::kFailure;
+         status = MStatus::kInvalidParameter;
       }
    }
    

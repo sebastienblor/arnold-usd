@@ -5,6 +5,7 @@
 #include "OutputDriver.h"
 #include "scene/MayaScene.h"
 #include "translators/NodeTranslator.h"
+#include "extension/Extension.h"
 
 #include <ai_dotass.h>
 #include <ai_msg.h>
@@ -81,28 +82,16 @@ unsigned int CRenderSession::RenderThread(AtVoid* data)
    return 0;
 }
 
-// FIXME: should use the list of loaded plugins from CExtensionsManager instead
+// Reload the Arnold plugins that were registered by the extensions manager for this session
 MStatus CRenderSession::LoadPlugins()
 {
    MStatus status = MStatus::kSuccess;
 
-   #ifdef _WIN32
-      const char split_char(';');
-   #else
-      const char split_char(':');
-   #endif
-
-   const MString resolvedPathList = m_renderOptions.pluginsPath().expandEnvironmentVariablesAndTilde();
-
-   MStringArray pluginPaths;
-   resolvedPathList.split(split_char, pluginPaths);
-   for (unsigned int i=0; i<pluginPaths.length(); ++i)
+   MStringArray plugins = CExtension::GetAllLoadedArnoldPlugins();
+   for (unsigned int i=0; i<plugins.length(); ++i)
    {
-      const MString pluginPath = pluginPaths[i];
-      if (pluginPath.length() > 0)
-      {
-         AiLoadPlugins(pluginPath.asChar());
-      }
+      const MString pluginFile = plugins[i];
+      AiLoadPlugin(pluginFile.asChar());
    }
 
    return status;
@@ -127,6 +116,7 @@ MStatus CRenderSession::Begin(CRenderOptions* options)
    status = LoadPlugins();
 
    m_renderOptions = *options;
+   m_renderOptions.SetupLog();
 
    return status;
 }

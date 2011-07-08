@@ -109,6 +109,8 @@ MStatus CMayaScene::Begin(ExportMode mode)
    status = renderSession->Begin(&renderOptions);
    status = exportSession->Begin(&exportOptions);
 
+   renderSession->RenderOptions()->SetupLog();
+
    bool isIpr = (s_exportSession->GetExportMode() == MTOA_EXPORT_IPR) ? true : false;
    if (isIpr) status = SetupIPRCallbacks();
 

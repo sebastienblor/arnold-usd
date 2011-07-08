@@ -62,9 +62,9 @@ class DLLEXPORT CExportSession
 public:
 
    // Called by translators
-   AtNode* ExportDagPath(MDagPath &dagPath);
-   AtNode* ExportNode(MPlug& shaderOutputPlug);
-   AtNode* ExportNode(MObject node, const MString &attrName="");
+   AtNode* ExportDagPath(MDagPath &dagPath, MStatus* stat=NULL);
+   AtNode* ExportNode(MPlug& shaderOutputPlug, MStatus* stat=NULL);
+   AtNode* ExportNode(MObject node, const MString &attrName="", MStatus* stat=NULL);
 
    CNodeTranslator * GetActiveTranslator(const MObject node);
    static bool IsRenderablePath(MDagPath dagPath);
