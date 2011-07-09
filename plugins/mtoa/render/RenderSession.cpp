@@ -372,8 +372,8 @@ AtNode * CRenderSession::CreateFileOutput()
          driver = AiNode(driverName.asChar());
          if (NULL != driver)
          {
-            AiMsgDebug("Created output driver %s", driverName.asChar());
             MString imageName = m_renderOptions.GetImageFilename();
+            AiMsgDebug("Created output driver %s writing to file %s", driverName.asChar(), imageName.asChar());
             AiNodeSetStr(driver, "filename", imageName.asChar());
             // Set the driver name depending on the camera name to avoid nodes with
             // the same name on renders with multiple cameras

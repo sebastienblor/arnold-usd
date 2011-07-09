@@ -318,6 +318,7 @@ void CRenderOptions::SetupImageOutputs()
       m_imageFileExtension = "png";
    }
 }
+
 MStatus CRenderOptions::GetOptionsNode(MObject& optionsNode) const
 {
    MSelectionList list;

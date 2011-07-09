@@ -277,8 +277,12 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       if (MStatus::kSuccess == sel.getDagPath(0, camera)) exportSession->SetExportCamera(camera);
       CMayaScene::Export(selectedPtr);
       renderSession->SetResolution(width, height);
+      // Set the render session camera.
+      // FIXME: define a MTOA_EXPORT_BATCH and MTOA_EXPORT_INTERACTIVE
+      renderSession->SetBatch(false);
+      // Set the render session camera.
+      renderSession->SetCamera(camera);
       renderSession->DoInteractiveRender(); // Start the render.
-
       CMayaScene::End(); // Clean up.
 
       CMayaScene::ExecuteScript(renderGlobals.postRenderMel);
