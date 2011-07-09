@@ -191,6 +191,8 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       }
       else
       {
+         // FIXME which one should it be?
+         // startframe = renderGlobals.frameStart.as(MTime::uiUnit());
          startframe = MAnimControl::currentTime().as(MTime::uiUnit());
          endframe = startframe;
          byframestep = 1;
@@ -256,6 +258,11 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       MSelectionList sel;
       args.getFlagArgument("camera", 0, sel);
       MDagPath camera;
+      double currentFrame = MAnimControl::currentTime().as(MTime::uiUnit());
+      // FIXME: at scene open the animation bar in Maya maybe be off sync,
+      // ie it shows 0 but currentTime -q returns 1. Render is correct as it's indeed
+      // done for frame 1
+      // MGlobal::viewFrame(currentFrame);
 
       CMayaScene::ExecuteScript(renderGlobals.preRenderMel);
 
@@ -266,7 +273,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       CExportSession* exportSession = CMayaScene::GetExportSession();
       CRenderSession* renderSession = CMayaScene::GetRenderSession();
 
-      exportSession->SetExportFrame(renderGlobals.frameStart.as(MTime::uiUnit()));
+      exportSession->SetExportFrame(currentFrame);
       if (MStatus::kSuccess == sel.getDagPath(0, camera)) exportSession->SetExportCamera(camera);
       CMayaScene::Export(selectedPtr);
       renderSession->SetResolution(width, height);

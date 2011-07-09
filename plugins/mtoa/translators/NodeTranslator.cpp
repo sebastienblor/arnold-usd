@@ -103,10 +103,10 @@ AtNode* CNodeTranslator::DoExport(AtUInt step)
       if (step == 0)
       {
          if (m_outputAttr != "")
-            AiMsgDebug("[mtoa] [translator %s] Exporting on plug %s.%s.",
+            AiMsgDebug("[mtoa] [translator %s] Exporting on plug %s.%s and upstream.",
                   GetTranslatorName().asChar(), GetMayaNodeName().asChar(), m_outputAttr.asChar());
          else
-            AiMsgDebug("[mtoa] [translator %s] Exporting on node %s.",
+            AiMsgDebug("[mtoa] [translator %s] Exporting on node %s and upstream.",
                   GetTranslatorName().asChar(), GetMayaNodeName().asChar());
          Export(m_atNode);
          ExportUserAttribute(m_atNode);
@@ -114,10 +114,10 @@ AtNode* CNodeTranslator::DoExport(AtUInt step)
       else if (RequiresMotionData())
       {
          if (m_outputAttr != "")
-            AiMsgDebug("[mtoa] [translator %s] Exporting motion on plug %s.%s.",
+            AiMsgDebug("[mtoa] [translator %s] Exporting motion on plug %s.%s and upstream..",
                   GetTranslatorName().asChar(), GetMayaNodeName().asChar(), m_outputAttr.asChar());
          else
-            AiMsgDebug("[mtoa] [translator %s] Exporting motion on node %s.",
+            AiMsgDebug("[mtoa] [translator %s] Exporting motion on node %s and upstream.",
                   GetTranslatorName().asChar(), GetMayaNodeName().asChar());
 
          ExportMotion(m_atNode, step);
@@ -655,7 +655,8 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnold
    MStatus status;
 
    // attr name name remap
-   CBaseAttrHelper helper(arnoldNode->base_node);
+   const AtNodeEntry* arnoldNodeEntry = arnoldNode->base_node;
+   CBaseAttrHelper helper(arnoldNodeEntry);
    MString mayaAttribName = helper.GetMayaAttrName(arnoldParamName);
    MPlug plug = m_fnNode.findPlug(mayaAttribName, true, &status);
 
@@ -680,8 +681,11 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnold
    }
    else
    {
-      AiMsgWarning("[mtoa] [translator %s] Maya node %s does not have requested attribute %s.",
-            GetTranslatorName().asChar(), m_fnNode.name().asChar(), mayaAttribName.asChar());
+      AiMsgWarning("[mtoa] [translator %s] Maya node %s(%s) does not have attribute %s to match parameter %s on Arnold node %s(%s).",
+            GetTranslatorName().asChar(),
+            GetMayaNodeName().asChar(), GetMayaNodeTypeName().asChar(),
+            mayaAttribName.asChar(), arnoldParamName,
+            AiNodeGetName(arnoldNode), AiNodeEntryGetName(arnoldNodeEntry));
       return NULL;
    }
 }
@@ -691,15 +695,22 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnold
 {
    if (arnoldNode == NULL)
    {
-      AiMsgError("[mtoa] [translator %s] Cannot process parameter %s on null node.", GetTranslatorName().asChar(), arnoldParamName);
+      AiMsgError("[mtoa] [translator %s] Cannot process parameter %s on null node.",
+            GetTranslatorName().asChar(), arnoldParamName);
       return NULL;
    }
    if (plug.isNull())
    {
-      AiMsgError("[mtoa] [translator %s] Invalid plug passed as source for parameter %s.", GetTranslatorName().asChar(), arnoldParamName);
+      AiMsgError("[mtoa] [translator %s] Null Maya plug was passed as source for parameter %s on Arnold node %s(%s)",
+            GetTranslatorName().asChar(), arnoldParamName,
+            AiNodeGetName(arnoldNode), AiNodeEntryGetName(arnoldNode->base_node));
       return NULL;
    }
-
+   // Uncomment only when necessary, will be very verbose
+   // AiMsgDebug("[mtoa] [translator %s] Processing Maya %s(%s) for Arnold %s.%s(%s).",
+   //      GetTranslatorName().asChar(),
+   //      plug.name().asChar(), MFnDependencyNode(plug.node()).typeName().asChar(),
+   //      AiNodeGetName(arnoldNode), arnoldParamName, AiNodeEntryGetName(arnoldNode->base_node));
 
    MPlugArray connections;
    bool acceptLinks = ((AiNodeEntryGetType(arnoldNode->base_node) & (AI_NODE_SHADER | AI_NODE_LIGHT)) != 0) ? true : false;
@@ -717,6 +728,9 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnold
       // process connections
       connectedMayaAttr = connections[0].partialName(false, false, false, false, false, true);
       connectedMayaNode = connections[0].node();
+      // Uncomment only when necessary, will be very verbose
+      // AiMsgDebug("[mtoa] [translator %s] ProcessParameter found incoming connection %s on %s.",
+      //      GetTranslatorName().asChar(), connections[0].name().asChar(), plug.name().asChar());
       connectedArnoldNode = ExportNode(connectedMayaNode, connectedMayaAttr);
    }
 

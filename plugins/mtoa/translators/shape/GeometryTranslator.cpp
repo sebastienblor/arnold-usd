@@ -480,12 +480,14 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
             MString attrName = connections[0].partialName(false, false, false, false, false, true);
             AtNode* dispImage(ExportNode(connections[0].node(), attrName));
 
+            // FIXME : why request a non networked plug?
             MPlug pVectorDisp = dispNode.findPlug("vector_displacement", false);
             if (!pVectorDisp.isNull() && pVectorDisp.asBool())
             {
                AtNode* tangentToObject = AiNode("TangentToObjectSpace");
+               MPlug pVectorDispScale = dispNode.findPlug("vector_displacement_scale", false);
                // FIXME : do this using a translator instead
-               // m_scene->ProcessShaderParameter(dispNode, "vector_displacement_scale", tangentToObject, "scale", AI_TYPE_VECTOR);
+               ProcessParameter(tangentToObject, "scale", AI_TYPE_VECTOR, pVectorDispScale);
                AiNodeLink(dispImage, "map", tangentToObject);
 
                AiNodeSetPtr(polymesh, "disp_map", tangentToObject);

@@ -150,8 +150,9 @@ void CArnoldStandInsTranslator::ExportStandinsShaders(AtNode* procedural)
             if (!pVectorDisp.isNull() && pVectorDisp.asBool())
             {
                AtNode* tangentToObject = AiNode("tangentToObjectSpace");
-               // FIXME: do this with a translator
-               // m_scene->ProcessShaderParameter(dispNode, "vector_displacement_scale", tangentToObject, "scale", AI_TYPE_VECTOR);
+               MPlug pVectorDispScale = dispNode.findPlug("vector_displacement_scale", false);
+               // FIXME : do this using a translator instead
+               ProcessParameter(tangentToObject, "scale", AI_TYPE_VECTOR, pVectorDispScale);
                AiNodeLink(dispImage, "map", tangentToObject);
 
                AiNodeSetPtr(procedural, "disp_map", tangentToObject);

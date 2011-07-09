@@ -17,7 +17,8 @@ AtNode* COptionsTranslator::CreateArnoldNodes()
 void COptionsTranslator::Export(AtNode *options)
 {
    MStatus status;
-   MPlug plug;
+
+   const AtNodeEntry* optionsEntry = options->base_node;
    AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(options->base_node);
    while (!AiParamIteratorFinished(nodeParam))
    {
@@ -49,7 +50,30 @@ void COptionsTranslator::Export(AtNode *options)
          else
          {
             // Process parameter automatically
-            ProcessParameter(options, paramName, AiParamGetType(paramEntry));
+            // FIXME: we can't use the default method since the options names don't
+            // follow the standard "toMayaStyle" behavior when no metadata is present
+            // (see CBaseAttrHelper::GetMayaAttrName that is used by CNodeTranslator)
+            const char* attrName;
+            MPlug plug;
+            if (AiMetaDataGetStr(optionsEntry, paramName, "maya.name", &attrName))
+            {
+               plug = FindMayaObjectPlug(attrName);
+            }
+            else
+            {
+               plug = FindMayaObjectPlug(paramName);
+            }
+            // Don't print warnings, just debug for missing options attributes are there are a lot
+            // that are not exposed in Maya
+            if (!plug.isNull())
+            {
+               ProcessParameter(options, paramName, AiParamGetType(paramEntry), plug);
+            }
+            else
+            {
+               AiMsgDebug("[mtoa] [translator %s] Arnold options parameter %s is not exposed on Maya %s(%s)",
+                     GetTranslatorName().asChar(), paramName, GetMayaNodeName().asChar(), GetMayaNodeTypeName().asChar());
+            }
          }
       }
    }
