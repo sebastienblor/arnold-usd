@@ -344,16 +344,28 @@ DLLEXPORT MStatus initializePlugin(MObject object)
 
    RegisterArnoldNodes(object);
 
+   // Since executePythonCommand eats error output, trying to see if we can access every required module
+   status = MGlobal::executePythonCommand(MString("import arnold"), true, false);
+   CHECK_MSTATUS(status);
+   if (MStatus::kSuccess == status)
+      AiMsgInfo("Successfully imported python module 'arnold'");
+   else
+      AiMsgError("Failed to import python module 'arnold'");
+   status = MGlobal::executePythonCommand(MString("import mtoa"), true, false);
+   CHECK_MSTATUS(status);
+   if (MStatus::kSuccess == status)
+      AiMsgInfo("Successfully imported python module 'mtoa'");
+   else
+      AiMsgError("Failed to import python module 'mtoa'");
+
+   // Register the Arnold renderer
    status = MGlobal::executePythonCommand(MString("import mtoa.cmds.registerArnoldRenderer;mtoa.cmds.registerArnoldRenderer.registerArnoldRenderer()"), true, false);
    CHECK_MSTATUS(status);
    if (MStatus::kSuccess == status)
-   {
       AiMsgInfo("Successfully registered renderer 'arnold'");
-   }
    else
-   {
       AiMsgError("Failed to register renderer 'arnold'");
-   }
+
 
    if (callEnd) AiEnd();
 
