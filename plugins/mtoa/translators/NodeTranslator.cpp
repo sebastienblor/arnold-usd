@@ -125,7 +125,7 @@ AtNode* CNodeTranslator::DoExport(AtUInt step)
 
       // Add Update callbacks on last step
       if (step == (GetNumMotionSteps()-1) &&
-          GetExportMode() == MTOA_EXPORT_IPR)
+          GetSessionMode() == MTOA_SESSION_IPR)
       {
          AddUpdateCallbacks();
       }
@@ -148,7 +148,7 @@ AtNode* CNodeTranslator::DoUpdate(AtUInt step)
 
       // Add Update callbacks on last step
       if (step == (GetNumMotionSteps()-1) &&
-            GetExportMode() == MTOA_EXPORT_IPR)
+            GetSessionMode() == MTOA_SESSION_IPR)
       {
          AddUpdateCallbacks();
       }
@@ -1141,7 +1141,7 @@ bool CDagTranslator::IsMasterInstance(MDagPath &masterDag)
          for (; (master_index < m_dagPath.instanceNumber()); master_index++)
          {
             currDag = allInstances[master_index];
-            if (CExportSession::IsRenderablePath(currDag))
+            if (CArnoldSession::IsRenderablePath(currDag))
             {
                // found it
                s_masterInstances[handle] = currDag;
@@ -1219,7 +1219,7 @@ void CDagTranslator::ExportMatrix(AtNode* node, AtUInt step)
 AtInt CDagTranslator::ComputeVisibility()
 {
    // Usually invisible nodes are not exported at all, just making sure here
-   if (false == CExportSession::IsRenderablePath(m_dagPath))
+   if (false == CArnoldSession::IsRenderablePath(m_dagPath))
       return AI_RAY_UNDEFINED;
 
    AtInt visibility = AI_RAY_ALL;

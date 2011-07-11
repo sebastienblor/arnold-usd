@@ -1,12 +1,12 @@
 #ifndef PXMAYANODE_H
 #define PXMAYANODE_H
 
+#include <ai_node_entry.h>
+
 #include <string>
+
 #include <maya/MString.h>
 #include <maya/MPxNode.h>
-
-#include <ai_nodes.h>
-#include <ai.h>
 
 class CAbMayaNode;
 

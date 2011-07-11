@@ -1,5 +1,7 @@
 #include "MtoaLog.h"
 
+#include <maya/MGlobal.h>
+
 AtInt GetFlagsFromVerbosityLevel(AtUInt level)
 {
    AtInt flags = 0;

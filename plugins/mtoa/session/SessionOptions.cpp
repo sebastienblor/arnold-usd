@@ -1,9 +1,9 @@
-#include "ExportOptions.h"
+#include "SessionOptions.h"
 
 #include "maya/MFnDependencyNode.h"
 #include "maya/MPlug.h"
 
-void CExportOptions::UpdateMotionBlurData()
+void CSessionOptions::UpdateMotionBlurData()
 {
    MFnDependencyNode fnArnoldRenderOptions(m_options);
    

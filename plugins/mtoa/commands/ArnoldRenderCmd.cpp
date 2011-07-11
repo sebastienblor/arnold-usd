@@ -222,10 +222,10 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
          CMayaScene::ExecuteScript(renderGlobals.preRenderMel);
 
          // FIXME: do we really need to reset everything each time?
-         CMayaScene::Begin(MTOA_EXPORT_RENDER);
-         CExportSession* exportSession = CMayaScene::GetExportSession();
+         CMayaScene::Begin(MTOA_SESSION_RENDER);
+         CArnoldSession* arnoldSession = CMayaScene::GetExportSession();
          CRenderSession* renderSession = CMayaScene::GetRenderSession();
-         exportSession->SetExportFrame(framerender);
+         arnoldSession->SetExportFrame(framerender);
          renderSession->SetBatch(batch);
 
          CMayaScene::Export(selectedPtr);
@@ -235,8 +235,8 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
 
          for (unsigned int arrayIter = 0; (arrayIter < cameras.length()); arrayIter++)
          {
-            // It is ok to set the camera here, because if exportOptions.camera is unset
-            // all the cameras are exported during Translate (above)
+            // It is ok to set the camera here, because if camera is no set at export time,
+            // all the cameras are exported during the export.
             renderSession->SetCamera(cameras[arrayIter]);
 
             if (renderSession->DoBatchRender() != AI_SUCCESS)
@@ -266,15 +266,15 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
 
       CMayaScene::ExecuteScript(renderGlobals.preRenderMel);
 
-      // CMayaScene::ExportAndRenderFrame(MTOA_EXPORT_RENDER, selected);
+      // CMayaScene::ExportAndRenderFrame(MTOA_SESSION_RENDER, selected);
 
-      CMayaScene::Begin(MTOA_EXPORT_RENDER);
+      CMayaScene::Begin(MTOA_SESSION_RENDER);
 
-      CExportSession* exportSession = CMayaScene::GetExportSession();
+      CArnoldSession* arnoldSession = CMayaScene::GetExportSession();
       CRenderSession* renderSession = CMayaScene::GetRenderSession();
 
-      exportSession->SetExportFrame(currentFrame);
-      if (MStatus::kSuccess == sel.getDagPath(0, camera)) exportSession->SetExportCamera(camera);
+      arnoldSession->SetExportFrame(currentFrame);
+      if (MStatus::kSuccess == sel.getDagPath(0, camera)) arnoldSession->SetExportCamera(camera);
       CMayaScene::Export(selectedPtr);
       renderSession->SetResolution(width, height);
       // Set the render session camera.

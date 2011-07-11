@@ -1,5 +1,5 @@
 
-#include "ExportSession.h"
+#include "ArnoldSession.h"
 #include "extension/ExtensionsManager.h"
 #include "scene/MayaScene.h"
 
@@ -31,7 +31,7 @@
 #include <maya/MFileObject.h>
 
 // When we're sure these utilities stay, we can expose them
-// as static method on CExportSession or a separate helper class
+// as static method on CArnoldSession or a separate helper class
 
 
 namespace // <anonymous>
@@ -121,7 +121,7 @@ namespace // <anonymous>
 
 // Export a single dag path (a dag node or an instance of a dag node)
 // Considered to be already filtered and checked
-AtNode* CExportSession::ExportDagPath(MDagPath &dagPath, MStatus* stat)
+AtNode* CArnoldSession::ExportDagPath(MDagPath &dagPath, MStatus* stat)
 {
    MStatus status = MStatus::kSuccess;
    AtNode* arnoldNode = NULL;
@@ -166,12 +166,12 @@ AtNode* CExportSession::ExportDagPath(MDagPath &dagPath, MStatus* stat)
 
 // Export a plug (dependency node output attribute)
 //
-AtNode* CExportSession::ExportNode(MPlug& shaderOutputPlug, MStatus *stat)
+AtNode* CArnoldSession::ExportNode(MPlug& shaderOutputPlug, MStatus *stat)
 {
    return ExportNode(shaderOutputPlug.node(), shaderOutputPlug.partialName(false, false, false, false, false, true), stat);
 }
 
-AtNode* CExportSession::ExportNode(MObject mayaNode, const MString &attrName, MStatus *stat)
+AtNode* CArnoldSession::ExportNode(MObject mayaNode, const MString &attrName, MStatus *stat)
 {
    MStatus status = MStatus::kSuccess;
    AtNode* arnoldNode = NULL;
@@ -212,7 +212,7 @@ AtNode* CExportSession::ExportNode(MObject mayaNode, const MString &attrName, MS
 }
 
 
-CNodeTranslator * CExportSession::GetActiveTranslator(const MObject node)
+CNodeTranslator * CArnoldSession::GetActiveTranslator(const MObject node)
 {
    MObjectHandle node_handle(node);
 
@@ -233,7 +233,7 @@ CNodeTranslator * CExportSession::GetActiveTranslator(const MObject node)
    return NULL;
 }
 
-bool CExportSession::IsRenderablePath(MDagPath dagPath)
+bool CArnoldSession::IsRenderablePath(MDagPath dagPath)
 {
 
    MStatus stat = MStatus::kSuccess;
@@ -249,21 +249,21 @@ bool CExportSession::IsRenderablePath(MDagPath dagPath)
 
 // Private Methods
 
-MStatus CExportSession::Begin(CExportOptions* options)
+MStatus CArnoldSession::Begin(CSessionOptions* options)
 {
    MStatus status = MStatus::kSuccess;
 
-   m_exportOptions = *options;
+   m_sessionOptions = *options;
    UpdateMotionBlurData();
 
    return status;
 }
 
-MStatus CExportSession::End()
+MStatus CArnoldSession::End()
 {
    MStatus status = MStatus::kSuccess;
 
-   if (GetExportMode() == MTOA_EXPORT_IPR)
+   if (GetSessionMode() == MTOA_SESSION_IPR)
    {
       ClearUpdateCallbacks();
    }
@@ -297,26 +297,26 @@ MStatus CExportSession::End()
    return status;
 }
 
-MStatus CExportSession::UpdateMotionBlurData()
+MStatus CArnoldSession::UpdateMotionBlurData()
 {
    MStatus status = MStatus::kSuccess;
 
-   m_exportOptions.UpdateMotionBlurData();
+   m_sessionOptions.UpdateMotionBlurData();
    status = UpdateMotionFrames();
 
    return status;
 }
 
-MStatus CExportSession::UpdateMotionFrames()
+MStatus CArnoldSession::UpdateMotionFrames()
 {
    MStatus status = MStatus::kSuccess;
 
-   double exportFrame         = m_exportOptions.m_frame;
-   if (m_exportOptions.m_motion.enable_mask)
+   double exportFrame         = m_sessionOptions.m_frame;
+   if (m_sessionOptions.m_motion.enable_mask)
    {
-      double byFrame             = m_exportOptions.m_motion.by_frame;
-      double shutterOffset       = m_exportOptions.m_motion.shutter_offset;
-      unsigned int motionSteps   = m_exportOptions.m_motion.steps;
+      double byFrame             = m_sessionOptions.m_motion.by_frame;
+      double shutterOffset       = m_sessionOptions.m_motion.shutter_offset;
+      unsigned int motionSteps   = m_sessionOptions.m_motion.steps;
       double stepSize            = byFrame / double(motionSteps - 1);
       if (m_motion_frames.size() != motionSteps) m_motion_frames.clear();
       if (m_motion_frames.capacity() != motionSteps) m_motion_frames.reserve(motionSteps);
@@ -339,7 +339,7 @@ MStatus CExportSession::UpdateMotionFrames()
 
 
 /// Primary entry point for exporting a Maya scene to Arnold
-MStatus CExportSession::Export(MSelectionList* selected)
+MStatus CArnoldSession::Export(MSelectionList* selected)
 {
    MStatus status;
 
@@ -348,9 +348,9 @@ MStatus CExportSession::Export(MSelectionList* selected)
    bool exportSelected = (NULL != selected) ? true : false;
 
    // Set up export options
-   ExportMode exportMode = m_exportOptions.m_mode;
+   ArnoldSessionMode exportMode = m_sessionOptions.m_mode;
    // Export the Arnold Render Options node
-   ExportNode(m_exportOptions.m_options);
+   ExportNode(m_sessionOptions.m_options);
    // Are we motion blurred (any type)?
    const bool mb = IsMotionBlurEnabled();
 
@@ -372,26 +372,26 @@ MStatus CExportSession::Export(MSelectionList* selected)
    MGlobal::viewFrame(MTime(m_motion_frames[0], MTime::uiUnit()));
 
    // First "real" export
-   if (exportMode == MTOA_EXPORT_RENDER || exportMode == MTOA_EXPORT_IPR)
+   if (exportMode == MTOA_SESSION_RENDER || exportMode == MTOA_SESSION_IPR)
    {
       // Either for a specific camera or export all cameras
       // Note : in "render selected" mode Maya exports all lights and cameras
-      if (m_exportOptions.m_camera.isValid())
+      if (m_sessionOptions.m_camera.isValid())
       {
-         m_exportOptions.m_camera.extendToShape();
-         ExportDagPath(m_exportOptions.m_camera);
+         m_sessionOptions.m_camera.extendToShape();
+         ExportDagPath(m_sessionOptions.m_camera);
       }
       else
       {
          status = ExportCameras();
       }
       // Then we filter them out to avoid double exporting cameras
-      // m_exportOptions.m_filter.excluded.insert(MFn::kCamera);
+      // m_sessionOptions.m_filter.excluded.insert(MFn::kCamera);
       if (exportSelected)
       {
          // And for render selected we need the lights too
          status = ExportLights();
-         // m_exportOptions.m_filter.excluded.insert(MFn::kLight);
+         // m_sessionOptions.m_filter.excluded.insert(MFn::kLight);
          status = ExportSelection(*selected);
       }
       else
@@ -399,7 +399,7 @@ MStatus CExportSession::Export(MSelectionList* selected)
          status = ExportScene();
       }
    }
-   else if (exportMode == MTOA_EXPORT_FILE)
+   else if (exportMode == MTOA_SESSION_ASS)
    {
       if (exportSelected)
       {
@@ -412,7 +412,7 @@ MStatus CExportSession::Export(MSelectionList* selected)
          // Else if it's a full / renderable scene
          status = ExportCameras();
          // Then we filter them out to avoid double exporting cameras
-         // m_exportOptions.m_filter.excluded.insert(MFn::kCamera);
+         // m_sessionOptions.m_filter.excluded.insert(MFn::kCamera);
          status = ExportScene();
       }
    }
@@ -466,7 +466,7 @@ MStatus CExportSession::Export(MSelectionList* selected)
 //
 // @return              MS::kSuccess / MS::kFailure is returned in case of failure.
 //
-MStatus CExportSession::ExportCameras()
+MStatus CArnoldSession::ExportCameras()
 {
    MStatus status = MStatus::kSuccess;
    MDagPath path;
@@ -483,11 +483,11 @@ MStatus CExportSession::ExportCameras()
          /*
          MFnDagNode node(path.node());
          MString name = node.name();
-         if (m_exportOptions.m_filter.notinlayer == true && !IsInRenderLayer(path))
+         if (m_sessionOptions.m_filter.notinlayer == true && !IsInRenderLayer(path))
             continue;
-         if (m_exportOptions.m_filter.templated == true && IsTemplatedPath(path))
+         if (m_sessionOptions.m_filter.templated == true && IsTemplatedPath(path))
             continue;
-         if (m_exportOptions.m_filter.hidden == true && !IsVisiblePath(path))
+         if (m_sessionOptions.m_filter.hidden == true && !IsVisiblePath(path))
             continue;
          */
          if (ExportDagPath(path) == NULL)
@@ -507,7 +507,7 @@ MStatus CExportSession::ExportCameras()
 //
 // @return              MS::kSuccess / MS::kFailure is returned in case of failure.
 //
-MStatus CExportSession::ExportLights()
+MStatus CArnoldSession::ExportLights()
 {
    MStatus status = MStatus::kSuccess;
    MDagPath path;
@@ -515,6 +515,7 @@ MStatus CExportSession::ExportLights()
 
    // First we export all cameras
    // We do not reset the iterator to avoid getting kWorld
+   unsigned int mask = GetExportFilter();
    for (; (!dagIterLights.isDone()); dagIterLights.next())
    {
       if (dagIterLights.getPath(path))
@@ -523,11 +524,11 @@ MStatus CExportSession::ExportLights()
          // FIXME: does a light need to be in layer to render actually in Maya?
          MFnDagNode node(path.node());
          MString name = node.name();
-         if (m_exportOptions.m_filter.notinlayer == true && !IsInRenderLayer(path))
+         if ((mask & MTOA_FILTER_LAYER) && !IsInRenderLayer(path))
             continue;
-         if (m_exportOptions.m_filter.templated == true && IsTemplatedPath(path))
+         if ((mask & MTOA_FILTER_TEMPLATED) && IsTemplatedPath(path))
             continue;
-         if (m_exportOptions.m_filter.hidden == true && !IsVisiblePath(path))
+         if ((mask & MTOA_FILTER_HIDDEN) && !IsVisiblePath(path))
             continue;
          if (ExportDagPath(path) == NULL)
             status = MStatus::kFailure;
@@ -546,7 +547,7 @@ MStatus CExportSession::ExportLights()
 //
 // @return              MS::kSuccess / MS::kFailure is returned in case of failure.
 //
-MStatus CExportSession::ExportScene()
+MStatus CArnoldSession::ExportScene()
 {
    MStatus status = MStatus::kSuccess;
    MDagPath path;
@@ -587,7 +588,7 @@ MStatus CExportSession::ExportScene()
 //
 // @return              MS::kSuccess / MS::kFailure is returned in case of failure.
 //
-MStatus CExportSession::ExportSelection(MSelectionList& selected)
+MStatus CArnoldSession::ExportSelection(MSelectionList& selected)
 {
    MStatus status = MStatus::kSuccess;
 
@@ -617,7 +618,7 @@ MStatus CExportSession::ExportSelection(MSelectionList& selected)
 //
 // @return              MS::kSuccess / MS::kFailure is returned in case of failure.
 //
-MStatus CExportSession::IterSelection(MSelectionList& selected)
+MStatus CArnoldSession::IterSelection(MSelectionList& selected)
 {
    MStatus status;
 
@@ -683,23 +684,23 @@ MStatus CExportSession::IterSelection(MSelectionList& selected)
    return status;
 }
 
-DagFiltered CExportSession::FilteredStatus(MDagPath path)
+DagFiltered CArnoldSession::FilteredStatus(MDagPath path)
 {
    // Tests that cause the whole branch to be pruned
-   if (m_exportOptions.m_filter.templated == true && IsTemplatedPath(path))
+   unsigned int mask = GetExportFilter();
+   if ((mask & MTOA_FILTER_TEMPLATED) && IsTemplatedPath(path))
       return MTOA_EXPORT_REJECTED_BRANCH;
-   if (m_exportOptions.m_filter.hidden == true && !IsVisiblePath(path))
+   if ((mask & MTOA_FILTER_HIDDEN) && !IsVisiblePath(path))
       return MTOA_EXPORT_REJECTED_BRANCH;
-
    // Tests that cause the node to be ignored
-   if (m_exportOptions.m_filter.notinlayer == true && !IsInRenderLayer(path))
+   if ((mask & MTOA_FILTER_LAYER) && !IsInRenderLayer(path))
       return MTOA_EXPORT_REJECTED_NODE;
 
    // Then test against all types passed in the MFN::Types array
    MObject obj = path.node();
    MFnDagNode node(obj);
    MString name = node.name();
-   ExcludeSet::const_iterator sit(m_exportOptions.m_filter.excluded.begin()), send(m_exportOptions.m_filter.excluded.end());
+   MFnTypeSet::const_iterator sit(m_sessionOptions.m_filter.excluded.begin()), send(m_sessionOptions.m_filter.excluded.end());
    for(; sit!=send;++sit)
       if (obj.hasFn(*sit))
          return MTOA_EXPORT_REJECTED_NODE;
@@ -709,18 +710,18 @@ DagFiltered CExportSession::FilteredStatus(MDagPath path)
 
 // updates
 
-void CExportSession::QueueForUpdate(CNodeTranslator * translator)
+void CArnoldSession::QueueForUpdate(CNodeTranslator * translator)
 {
    if (translator != NULL) m_translatorsToUpdate.push_back(translator);
 }
 
-void CExportSession::RequestUpdate()
+void CArnoldSession::RequestUpdate()
 {
    m_requestUpdate = true;
    CMayaScene::UpdateIPR();
 }
 
-void CExportSession::DoUpdate()
+void CArnoldSession::DoUpdate()
 {
    // Are we motion blurred?
    const bool mb = IsMotionBlurEnabled();
@@ -756,7 +757,7 @@ void CExportSession::DoUpdate()
    m_requestUpdate = false;
 }
 
-void CExportSession::ClearUpdateCallbacks()
+void CArnoldSession::ClearUpdateCallbacks()
 {
    // Clear the list of translators to update.
    m_translatorsToUpdate.clear();

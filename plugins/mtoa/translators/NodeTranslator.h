@@ -4,7 +4,7 @@
 #include "common/MObjectCompare.h"
 #include "platform/Platform.h"
 #include "attributes/AttrHelper.h"
-#include "translate/ExportSession.h"
+#include "session/ArnoldSession.h"
 #include "extension/AbTranslator.h"
 
 #include <ai_nodes.h>
@@ -29,7 +29,7 @@ class DLLEXPORT CNodeTranslator
 {
    // protect this class from its subclasses: make methods that should not be
    // called by subclasses private
-   friend class CExportSession;
+   friend class CArnoldSession;
    friend class CExtensionsManager;
    friend class CExtension;
    friend class CRenderSwatchGenerator;
@@ -45,7 +45,7 @@ public:
 
    virtual ~CNodeTranslator()
    {}
-   virtual AtNode* Init(CExportSession* session, const MObject& object, MString outputAttr="")
+   virtual AtNode* Init(CArnoldSession* session, const MObject& object, MString outputAttr="")
    {
       m_session = session;
       m_object = object;
@@ -98,7 +98,7 @@ protected:
    inline unsigned int GetNumMotionSteps() const {return m_session->GetNumMotionSteps();}
    inline float GetShutterSize() const {return m_session->GetShutterSize();}
    inline unsigned int GetShutterType() const {return m_session->GetShutterType();}
-   inline ExportMode GetExportMode() const {return m_session->GetExportMode();}
+   inline ArnoldSessionMode GetSessionMode() const {return m_session->GetSessionMode();}
 
    // session action
    AtNode* ExportNode(MObject node, const MString &attrName="") { return m_session->ExportNode(node, attrName);}
@@ -132,7 +132,7 @@ protected:
 protected:
    CAbTranslator m_abstract;
 
-   CExportSession* m_session;
+   CArnoldSession* m_session;
 
    AtNode* m_atNode;
    std::map<std::string, AtNode*> m_atNodes;
@@ -158,7 +158,7 @@ class DLLEXPORT CDagTranslator : public CNodeTranslator
 {
 
 public:
-   virtual AtNode* Init(CExportSession* session, MDagPath& dagPath, MString outputAttr="")
+   virtual AtNode* Init(CArnoldSession* session, MDagPath& dagPath, MString outputAttr="")
    {
       m_session = session;
       m_dagPath = dagPath;
@@ -168,7 +168,7 @@ public:
       return tmpRet;
    }
 
-   virtual AtNode* Init(CExportSession* session, MObject& object, MString outputAttr="")
+   virtual AtNode* Init(CArnoldSession* session, MObject& object, MString outputAttr="")
    {
       MDagPath dagPath;
       MDagPath::getAPathTo(object, dagPath);

@@ -4,7 +4,7 @@
 
 // Auto shader translator
 //
-AtNode* CShaderTranslator::Init(CExportSession* session, MDagPath& dagPath, MString outputAttr)
+AtNode* CShaderTranslator::Init(CArnoldSession* session, MDagPath& dagPath, MString outputAttr)
 {
    m_motion = session->IsMotionBlurEnabled(MTOA_MBLUR_SHADER);
 

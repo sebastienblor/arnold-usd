@@ -3,7 +3,8 @@
 
 #include "MtoaLog.h"
 
-#include "ai.h"
+#include <maya/MString.h>
+#include <maya/MStatus.h>
 
 DLLEXPORT void SetMetafile(MString metafile);
 

@@ -1,5 +1,9 @@
 #include "Universe.h"
 
+#include <ai_universe.h>
+#include <ai_metadata.h>
+#include <ai_render.h>
+
 MString g_metafile = "";
 
 void SetMetafile(MString metafile)

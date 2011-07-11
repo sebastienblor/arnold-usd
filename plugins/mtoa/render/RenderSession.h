@@ -92,7 +92,7 @@ public:
    void SetBatch(bool batch);
    /*
    /// Set the options to use when exporting/translating the CMayaScene
-   void SetSceneExportOptions(const CExportOptions);
+   void SetSceneExportOptions(const CSessionOptions);
    */
    /// Set the resolution of the render.
    /// \param width width in pixels.
@@ -105,7 +105,7 @@ public:
    void SetRegion(const AtUInt left,const AtUInt right,
                   const AtUInt bottom, const AtUInt top);
 
-   /// Return the render options.
+   /// Return a pointer to the render options.
    /// \see CRenderOptions
    inline CRenderOptions* RenderOptions() { return &m_renderOptions; }
 

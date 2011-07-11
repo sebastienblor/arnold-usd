@@ -1,6 +1,8 @@
 
 #include "ExtensionsManager.h"
+#include "common/DynLibrary.h"
 #include "AbMayaNode.h"
+#include "AbTranslator.h"
 
 #include "utils/Universe.h"
 
@@ -636,7 +638,7 @@ CNodeTranslator* CExtensionsManager::GetTranslator(const MString &typeName,
       translator = (CNodeTranslator*)creatorFunction();
       // This customize the prototype instance of the translator
       // with the information found in the translator class proxy
-      translator->m_abstract = CAbTranslator(*foundTrs);
+      translator->m_abstract = CAbTranslator(foundTrs->name, foundTrs->arnold, foundTrs->provider);
    }
    else
    {
@@ -799,7 +801,8 @@ MStatus CExtensionsManager::RegisterMayaNode(const CPxMayaNode &mayaNode)
    }
    // Construct the abstract to store in the class static s_abstract member,
    // if a pointer to one was provided in the proxy for that Maya node class.
-   CAbMayaNode abstract(mayaNode);
+   CAbMayaNode abstract(mayaNode.name, mayaNode.arnold, mayaNode.classification, mayaNode.provider);
+
    if (NULL != mayaNode.abstract) *mayaNode.abstract = abstract;
    const MString *classificationPtr = (mayaNode.classification == "") ? NULL : &mayaNode.classification;
    status = MFnPlugin(s_plugin).registerNode(

@@ -64,7 +64,7 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
       CMayaScene::ExecuteScript(renderGlobals.preRenderMel);
 
       // This will export the scene.
-      CMayaScene::Begin(MTOA_EXPORT_IPR);
+      CMayaScene::Begin(MTOA_SESSION_IPR);
       MSelectionList sel;
       args.getFlagArgument("camera", 0, sel);
       MDagPath camera;
@@ -99,7 +99,7 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
    else if (mode == "refresh")
    {
       // Close down Arnold, clearing out the old data.
-      CExportSession* exportSession = CMayaScene::GetExportSession();
+      CArnoldSession* arnoldSession = CMayaScene::GetExportSession();
       CRenderSession* renderSession = CMayaScene::GetRenderSession();
       renderSession->End();
       // We save and restore the res instead of using the translated one because
@@ -108,7 +108,7 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
       const AtInt width = renderSession->RenderOptions()->width();
       const AtInt height = renderSession->RenderOptions()->height();
       // Same deal for the camera.
-      exportSession->SetExportCamera(renderSession->RenderOptions()->GetCamera());
+      arnoldSession->SetExportCamera(renderSession->RenderOptions()->GetCamera());
       // Set the export mode to IPR
       // FIXME: do we really need to reset options and do a full translation each time?
       // Re-translate.

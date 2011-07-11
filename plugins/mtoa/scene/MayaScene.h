@@ -4,7 +4,7 @@
 #include "common/MObjectCompare.h"
 #include "platform/Platform.h"
 #include "render/RenderSession.h"
-#include "translate/ExportSession.h"
+#include "session/ArnoldSession.h"
 
 #include <ai_nodes.h>
 
@@ -52,14 +52,14 @@ public:
    // but when it changes, CMayaScene will manage them
 
    /// Return the instance of the export session.
-   static CExportSession* GetExportSession();
+   static CArnoldSession* GetExportSession();
    /// Return the instance of the render session.
    static CRenderSession* GetRenderSession();
 
-   inline static const ExportMode& GetExportMode() { return GetExportSession()->GetExportMode(); }
+   inline static const ArnoldSessionMode& GetSessionMode() { return GetExportSession()->GetSessionMode(); }
    inline static bool IsExportingMotion() { return GetExportSession()->IsExportingMotion(); }
 
-   static MStatus Begin(ExportMode mode);
+   static MStatus Begin(ArnoldSessionMode mode);
    static MStatus End();
    /// Must be called between Begin and End
    static MStatus Export(MSelectionList* selected = NULL);
@@ -67,8 +67,8 @@ public:
    static MStatus Render();
 
    /// Do an export and render in the given mode
-   static MStatus ExportAndRenderFrame(ExportMode mode, MSelectionList* selected = NULL);
-   static MStatus ExportAndRenderSequence(ExportMode mode, MSelectionList* selected = NULL);
+   static MStatus ExportAndRenderFrame(ArnoldSessionMode mode, MSelectionList* selected = NULL);
+   static MStatus ExportAndRenderSequence(ArnoldSessionMode mode, MSelectionList* selected = NULL);
 
    static MStatus ExecuteScript(const MString &str, bool echo=false);
 
@@ -89,7 +89,7 @@ private:
    // Currently there can be only one export and render session
    // but when it changes, CMayaScene will manage them
    static CRenderSession* s_renderSession;
-   static CExportSession* s_exportSession;
+   static CArnoldSession* s_exportSession;
 
    static double s_currentFrame;
 

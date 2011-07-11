@@ -34,7 +34,7 @@ std::vector< CNodeTranslator * > CMayaScene::s_translatorsToIPRUpdate;
 MCallbackId CMayaScene::s_IPRIdleCallbackId = 0;
 MCallbackId CMayaScene::s_NewNodeCallbackId = 0;
 CRenderSession* CMayaScene::s_renderSession = NULL;
-CExportSession* CMayaScene::s_exportSession = NULL;
+CArnoldSession* CMayaScene::s_exportSession = NULL;
 
 // Cheap singleton
 CRenderSession* CMayaScene::GetRenderSession()
@@ -45,20 +45,20 @@ CRenderSession* CMayaScene::GetRenderSession()
    return s_renderSession;
 }
 
-CExportSession* CMayaScene::GetExportSession()
+CArnoldSession* CMayaScene::GetExportSession()
 {
    if (!s_exportSession)
-      s_exportSession = new CExportSession();
+      s_exportSession = new CArnoldSession();
 
    return s_exportSession;
 }
 
-MStatus CMayaScene::Begin(ExportMode mode)
+MStatus CMayaScene::Begin(ArnoldSessionMode mode)
 {
    MStatus status = MStatus::kSuccess;
 
    CRenderSession* renderSession = GetRenderSession();
-   CExportSession* exportSession = GetExportSession();
+   CArnoldSession* arnoldSession = GetExportSession();
 
    MSelectionList    list;
    MObject           defaultRenderGlobalsNode;
@@ -82,15 +82,15 @@ MStatus CMayaScene::Begin(ExportMode mode)
       fnArnoldRenderOptions.setObject(ArnoldRenderOptionsNode);
    }
 
-   CExportOptions exportOptions;
-   exportOptions.SetExportMode(mode);
-   exportOptions.SetExportFrame(MAnimControl::currentTime().as(MTime::uiUnit()));
-   exportOptions.SetArnoldRenderOptions(ArnoldRenderOptionsNode);
+   CSessionOptions sessionOptions;
+   sessionOptions.SetSessionMode(mode);
+   sessionOptions.SetExportFrame(MAnimControl::currentTime().as(MTime::uiUnit()));
+   sessionOptions.SetArnoldRenderOptions(ArnoldRenderOptionsNode);
 
    CRenderOptions renderOptions;
    // FIXME : allow to pass a specific maya ArnoldRenderOptions node
    renderOptions.GetFromMaya();
-   if (mode == MTOA_EXPORT_SWATCH)
+   if (mode == MTOA_SESSION_SWATCH)
    {
       // FIXME: default or use swatch defaults
       // renderOptions = CRenderOptions();
@@ -99,12 +99,12 @@ MStatus CMayaScene::Begin(ExportMode mode)
       //FIXME: fill renderOptions instead
       MtoaSetupSwatchLogging();
    }
-   else if (mode == MTOA_EXPORT_FILE)
+   else if (mode == MTOA_SESSION_ASS)
    {
       renderOptions.SetBatch(true);
       renderOptions.SetupLog();
    }
-   else if (mode == MTOA_EXPORT_IPR)
+   else if (mode == MTOA_SESSION_IPR)
    {
       renderOptions.SetBatch(false);
       renderOptions.SetProgressive(true);
@@ -118,7 +118,7 @@ MStatus CMayaScene::Begin(ExportMode mode)
 
    // Init both render and export sessions
    status = renderSession->Begin(&renderOptions);
-   status = exportSession->Begin(&exportOptions);
+   status = arnoldSession->Begin(&sessionOptions);
 
    // renderSession->RenderOptions()->SetupLog();
 
@@ -136,7 +136,7 @@ MStatus CMayaScene::End()
    }
    if (NULL != s_exportSession)
    {
-      if (s_exportSession->GetExportMode() == MTOA_EXPORT_IPR)
+      if (s_exportSession->GetSessionMode() == MTOA_SESSION_IPR)
       {
          ClearIPRCallbacks();
       }
@@ -171,10 +171,10 @@ MStatus CMayaScene::Render()
       // Save current frame
       // double currentFrame = MAnimControl::currentTime().as(MTime::uiUnit());
 
-      bool isIpr = (s_exportSession->GetExportMode() == MTOA_EXPORT_IPR) ? true : false;
+      bool isIpr = (s_exportSession->GetSessionMode() == MTOA_SESSION_IPR) ? true : false;
       // if (isIpr) status = SetupIPRCallbacks();
 
-      // FIXME: a generic renderSessio->Render() method that chooses render from the ExportMode ?
+      // FIXME: a generic renderSessio->Render() method that chooses render from the ArnoldSessionMode ?
       if (isIpr)
       {
          s_renderSession->DoIPRRender();
@@ -197,7 +197,7 @@ MStatus CMayaScene::Render()
    return status;
 }
 
-MStatus CMayaScene::ExportAndRenderFrame( ExportMode mode,
+MStatus CMayaScene::ExportAndRenderFrame( ArnoldSessionMode mode,
                                           MSelectionList* selected)
 {
 
@@ -210,7 +210,7 @@ MStatus CMayaScene::ExportAndRenderFrame( ExportMode mode,
 }
 
 // TODO : implement that
-MStatus CMayaScene::ExportAndRenderSequence( ExportMode mode,
+MStatus CMayaScene::ExportAndRenderSequence( ArnoldSessionMode mode,
                                              MSelectionList* selected)
 {
 
@@ -295,12 +295,12 @@ void CMayaScene::IPRNewNodeCallback(MObject & node, void *)
    // we can shortcut and just call the update for it's already existing translator.
    // Interupt rendering
    CRenderSession* renderSession = GetRenderSession();
-   CExportSession* exportSession = GetExportSession();
+   CArnoldSession* arnoldSession = GetExportSession();
    renderSession->InterruptRender();
-   CNodeTranslator * translator = exportSession->GetActiveTranslator(node);
+   CNodeTranslator * translator = arnoldSession->GetActiveTranslator(node);
    if (translator != NULL)
    {
-      exportSession->QueueForUpdate(translator);
+      arnoldSession->QueueForUpdate(translator);
    }
    else
    {
@@ -311,8 +311,8 @@ void CMayaScene::IPRNewNodeCallback(MObject & node, void *)
       if (status == MS::kSuccess)
       {
          AiMsgDebug("[mtoa] Exporting new node: %s", path.partialPathName().asChar());
-         exportSession->ExportDagPath(path);
-         // exportSession->QueueForUpdate(); // add it?
+         arnoldSession->ExportDagPath(path);
+         // arnoldSession->QueueForUpdate(); // add it?
       }
    }
    UpdateIPR();

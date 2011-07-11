@@ -1,9 +1,9 @@
-#ifndef EXPORTSESSION_H
-#define EXPORTSESSION_H
+#ifndef ARNOLDSESSION_H
+#define ARNOLDSESSION_H
 
 #include "common/MObjectCompare.h"
 #include "platform/Platform.h"
-#include "ExportOptions.h"
+#include "SessionOptions.h"
 
 #include <ai_nodes.h>
 
@@ -50,12 +50,12 @@ typedef std::map<MObjectHandle, std::map<int, CNodeTranslator*>, MObjectCompare>
 /// In IPR mode, the resulting instance allows the scene to be quickly and incrementally retranslated
 /// as changes occur to previously translated Maya objects.
 ///
-/// Once CExportSession::ExportToArnold() is called, the DAG hierarchy is traversed and CDagTranslators
+/// Once CArnoldSession::ExportToArnold() is called, the DAG hierarchy is traversed and CDagTranslators
 /// are found and exported for all relevant Maya nodes.  Those translators in turn call
-/// and CExportSession::ExportShader() as they require, which triggers dependency graph evaluation and the
+/// and CArnoldSession::ExportShader() as they require, which triggers dependency graph evaluation and the
 /// generation of CNodeTranslators.
 
-class DLLEXPORT CExportSession
+class DLLEXPORT CArnoldSession
 {
    friend class CMayaScene;
 
@@ -69,37 +69,31 @@ public:
    CNodeTranslator * GetActiveTranslator(const MObject node);
    static bool IsRenderablePath(MDagPath dagPath);
 
-   // Export options
-   inline const CExportOptions& GetExportOptions() const  { return m_exportOptions; }
-   inline CExportOptions* ExportOptions()                 { return &m_exportOptions; }
-   inline void SetExportOptions(CExportOptions& options)  { m_exportOptions = options; }
+   inline const ArnoldSessionMode& GetSessionMode() const         { return m_sessionOptions.GetSessionMode(); }
+   inline void SetSessionMode(ArnoldSessionMode mode)             { m_sessionOptions.SetSessionMode(mode); }
 
-   inline const ExportMode& GetExportMode() const         { return m_exportOptions.GetExportMode(); }
-   inline void SetExportMode(ExportMode mode)             { m_exportOptions.SetExportMode(mode); }
-
-   inline double GetExportFrame() const                   { return m_exportOptions.GetExportFrame(); }
+   inline double GetExportFrame() const                   { return m_sessionOptions.GetExportFrame(); }
    void SetExportFrame(double frame)
    {
-      if (frame != m_exportOptions.GetExportFrame())
+      if (frame != m_sessionOptions.GetExportFrame())
       {
-         m_exportOptions.SetExportFrame(frame);
+         m_sessionOptions.SetExportFrame(frame);
          UpdateMotionFrames();
       }
    }
 
-   inline const MDagPath& GetExportCamera() const         { return m_exportOptions.GetExportCamera(); }
-   inline void SetExportCamera(MDagPath camera)           { m_exportOptions.SetExportCamera(camera); }
+   inline const MDagPath& GetExportCamera() const         { return m_sessionOptions.GetExportCamera(); }
+   inline void SetExportCamera(MDagPath camera)           { m_sessionOptions.SetExportCamera(camera); }
 
-   inline const MObject& GetArnoldRenderOptions() const   { return m_exportOptions.GetArnoldRenderOptions(); }
+   inline unsigned int GetExportFilter() const { return m_sessionOptions.GetExportFilter(); }
+   inline void SetExportFilter(unsigned int mask) { m_sessionOptions.SetExportFilter(mask); }
+
+   inline const MObject& GetArnoldRenderOptions() const   { return m_sessionOptions.GetArnoldRenderOptions(); }
    
-   inline const CExportFilter& GetExportFilter() const    { return m_exportOptions.GetExportFilter(); }
-   inline CExportFilter* ExportFilter()                   { return m_exportOptions.ExportFilter(); }
-   inline void SetExportFilter(CExportFilter& filter)     { m_exportOptions.SetExportFilter(filter); }
-   
-   inline bool IsMotionBlurEnabled(int type = MTOA_MBLUR_ALL) const { return m_exportOptions.IsMotionBlurEnabled(type); }
-   inline unsigned int GetNumMotionSteps() const { return m_exportOptions.GetNumMotionSteps(); }
-   inline float GetShutterSize() const { return m_exportOptions.GetShutterSize(); }
-   inline unsigned int GetShutterType() const { return m_exportOptions.GetShutterType(); }
+   inline bool IsMotionBlurEnabled(int type = MTOA_MBLUR_ALL) const { return m_sessionOptions.IsMotionBlurEnabled(type); }
+   inline unsigned int GetNumMotionSteps() const { return m_sessionOptions.GetNumMotionSteps(); }
+   inline float GetShutterSize() const { return m_sessionOptions.GetShutterSize(); }
+   inline unsigned int GetShutterType() const { return m_sessionOptions.GetShutterType(); }
 
    // Flag to avoid IPR loops
    inline bool IsExportingMotion() const {return m_isExportingMotion; }
@@ -110,17 +104,22 @@ public:
 
 private:
 
-   CExportSession()
-      :  m_exportOptions(CExportOptions())
+   CArnoldSession()
+      :  m_sessionOptions(CSessionOptions())
       ,  m_isExportingMotion(false)
       ,  m_requestUpdate(false)
    {
    }
 
-   ~CExportSession() { End(); }
+   ~CArnoldSession() { End(); }
 
-   /// Initialize with passed CExportOptions, ready for translating to the Arnold universe
-   MStatus Begin(CExportOptions* options);
+   // Export options
+   inline const CSessionOptions& GetSessionOptions() const  { return m_sessionOptions; }
+   inline CSessionOptions* SessionOptions()                 { return &m_sessionOptions; }
+   inline void SetSessionOptions(CSessionOptions& options)  { m_sessionOptions = options; }
+
+   /// Initialize with passed CSessionOptions, ready for translating to the Arnold universe
+   MStatus Begin(CSessionOptions* options);
    /// Terminate an export session
    MStatus End();
 
@@ -144,7 +143,7 @@ private:
    
 private:
 
-   CExportOptions m_exportOptions;
+   CSessionOptions m_sessionOptions;
 
    bool m_isExportingMotion;
    std::vector<double> m_motion_frames;
@@ -158,6 +157,6 @@ private:
    // the first key is an MObjectHandle and the second the instance number
    ObjectToDagTranslatorMap m_processedDagTranslators;
 
-};  // class CExportSession
+};  // class CArnoldSession
 
-#endif // EXPORTSESSION_H
+#endif // ARNOLDSESSION_H

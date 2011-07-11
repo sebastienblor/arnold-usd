@@ -358,7 +358,7 @@ void CRenderSession::SetupRenderOutput()
 AtNode * CRenderSession::CreateFileOutput()
 {
    // Don't install the file driver when in IPR mode.
-   if (CMayaScene::GetExportMode() == MTOA_EXPORT_IPR) return NULL;
+   if (CMayaScene::GetSessionMode() == MTOA_SESSION_IPR) return NULL;
 
    AtNode* driver;
    // set the output driver
@@ -827,7 +827,7 @@ void CRenderSession::DoSwatchRender(const AtInt resolution)
 
 bool CRenderSession::GetSwatchImage(MImage & image)
 {
-   if (CMayaScene::GetExportMode() != MTOA_EXPORT_SWATCH
+   if (CMayaScene::GetSessionMode() != MTOA_SESSION_SWATCH
          || NULL == m_render_thread)
    {
       return false;

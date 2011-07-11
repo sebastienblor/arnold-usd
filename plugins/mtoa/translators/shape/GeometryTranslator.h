@@ -25,11 +25,11 @@
 #include <maya/MColorArray.h>
 #include <maya/MNodeMessage.h>
 
-class DLLEXPORT CGeometryTranslator
+class CGeometryTranslator
    :   public CShapeTranslator
 {
 public:
-   virtual AtNode* Init(CExportSession* session, MDagPath& dagPath, MString outputAttr="")
+   virtual AtNode* Init(CArnoldSession* session, MDagPath& dagPath, MString outputAttr="")
    {
       m_displaced = false;
       m_isRefSmooth = false;

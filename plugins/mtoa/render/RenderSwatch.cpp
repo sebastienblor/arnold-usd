@@ -120,7 +120,7 @@ MStatus CRenderSwatchGenerator::BuildArnoldScene()
 {
    MStatus status;
 
-   if (MStatus::kSuccess != CMayaScene::Begin(MTOA_EXPORT_SWATCH))
+   if (MStatus::kSuccess != CMayaScene::Begin(MTOA_SESSION_SWATCH))
    {
       ErrorSwatch("Could not create Arnold swatch render session");
       return MStatus::kFailure;
@@ -252,7 +252,7 @@ MStatus CRenderSwatchGenerator::ExportNode(AtNode* & arnoldNode,
 {
    MStatus status;
    MObject mayaNode = swatchNode();
-   CExportSession* exportSession = CMayaScene::GetExportSession();
+   CArnoldSession* exportSession = CMayaScene::GetExportSession();
 
    // FIXME: Special case for displacement
    if (m_swatchClass == SWATCH_DISPLACEMENT)
@@ -316,7 +316,7 @@ MStatus CRenderSwatchGenerator::AssignNode(AtNode* arnoldNode, CNodeTranslator* 
 {
    MStatus status;
    MFnDependencyNode depFn(swatchNode());
-   CExportSession* exportSession = CMayaScene::GetExportSession();
+   CArnoldSession* exportSession = CMayaScene::GetExportSession();
 
    // Assign what needs to be on geometry
 

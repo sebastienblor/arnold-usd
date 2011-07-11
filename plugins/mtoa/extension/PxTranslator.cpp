@@ -1,11 +1,8 @@
 #include "PxTranslator.h"
 
-#include <ai_metadata.h>
-
 #include "nodes/ShaderUtils.h"
 #include "nodes/shader/ArnoldShaderNode.h"
 #include "translators/shader/ShaderTranslator.h"
-#include "translators/shape/ShapeTranslator.h"
 
 // A Maya node proxy
 CPxTranslator::CPxTranslator(const MString &translatorName,

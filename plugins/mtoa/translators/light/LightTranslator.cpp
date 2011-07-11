@@ -53,7 +53,7 @@ void CLightTranslator::Export(AtNode* light)
    AtMatrix matrix;
 
    // Early out, light isn't visible so no point exporting anything else.
-   if (false == CExportSession::IsRenderablePath(m_dagPath))
+   if (false == CArnoldSession::IsRenderablePath(m_dagPath))
    {
       // Light can't be hidden.
       AiNodeSetFlt(GetArnoldRootNode(), "intensity",  0.0f);

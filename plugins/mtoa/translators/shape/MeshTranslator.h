@@ -6,7 +6,7 @@
 class CMeshTranslator : public CGeometryTranslator
 {
 public:
-   virtual AtNode* Init(CExportSession* session, MDagPath& dagPath, MString outputAttr="")
+   virtual AtNode* Init(CArnoldSession* session, MDagPath& dagPath, MString outputAttr="")
    {
       m_fnMesh.setObject(dagPath);
       return CGeometryTranslator::Init(session, dagPath, outputAttr);

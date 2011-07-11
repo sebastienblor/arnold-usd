@@ -1,19 +1,14 @@
 #ifndef EXTENSION_H
 #define EXTENSION_H
 
-#include "extension/PathUtils.h"
 #include "extension/PxUtils.h"
-#include "common/DynLibrary.h"
+#include "extension/PathUtils.h"
 #include "translators/NodeTranslator.h"
 
 #include <maya/MTypeId.h>
 #include <maya/MPxNode.h>
 
-#include <ai_nodes.h>
-#include <ai.h>
-
 #define BUILTIN "<built-in>"
-
 
 class CAbMayaNode;
 

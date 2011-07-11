@@ -1,5 +1,5 @@
-#ifndef EXPORTOPTIONS_H
-#define EXPORTOPTIONS_H
+#ifndef SESSIONOPTIONS_H
+#define SESSIONOPTIONS_H
 
 #include <set>
 
@@ -8,28 +8,29 @@
 #include "maya/MAnimControl.h"
 
 // Export
-enum ExportMode
+enum ArnoldSessionMode
 {
-   MTOA_EXPORT_UNDEFINED,
-   MTOA_EXPORT_RENDER,
-   MTOA_EXPORT_IPR,
-   MTOA_EXPORT_SWATCH,
-   MTOA_EXPORT_FILE
+   MTOA_SESSION_UNDEFINED,
+   MTOA_SESSION_RENDER,
+   MTOA_SESSION_IPR,
+   MTOA_SESSION_SWATCH,
+   MTOA_SESSION_ASS
 };
 
-typedef std::set<MFn::Type> ExcludeSet;
-// Any custom filter we might want on exports
-// true means filtered OUT, ie NOT exported
-struct CExportFilter
-{
-   bool templated;
-   bool hidden;
-   bool notinlayer;
-   ExcludeSet excluded;
+#define MTOA_FILTER_DISABLE   0x0000
+#define MTOA_FILTER_HIDDEN    0x0001
+#define MTOA_FILTER_TEMPLATED 0x0002
+#define MTOA_FILTER_LAYER     0x0004
+#define MTOA_FILTER_ALL       0xFFFF
 
-   CExportFilter() :  templated(true),
-                      hidden(true),
-                      notinlayer(true) {}
+typedef std::set<MFn::Type> MFnTypeSet;
+
+struct CMayaExportFilter
+{
+   unsigned int state_mask;
+   MFnTypeSet excluded;
+
+   CMayaExportFilter() :  state_mask(MTOA_FILTER_ALL) {}
 };
 
 #define MTOA_MBLUR_DISABLE 0x0000
@@ -40,7 +41,7 @@ struct CExportFilter
 #define MTOA_MBLUR_SHADER  0x0010
 #define MTOA_MBLUR_ALL     0xFFFF
 
-struct CExportMotion
+struct CMotionBlurOptions
 {
    unsigned int   enable_mask;
    float          shutter_size;
@@ -49,7 +50,7 @@ struct CExportMotion
    unsigned int   steps;
    double         by_frame;
 
-   CExportMotion() : enable_mask(MTOA_MBLUR_DISABLE),
+   CMotionBlurOptions() : enable_mask(MTOA_MBLUR_DISABLE),
                      shutter_size(0.0f),
                      shutter_offset(0.0f),
                      shutter_type(0),
@@ -57,52 +58,56 @@ struct CExportMotion
                      by_frame(0.0) {}
 };
 
-struct CExportOptions
+struct CSessionOptions
 {
-   friend class CExportSession;
+   friend class CArnoldSession;
+   friend class CMayaScene;
 
-   CExportOptions() : m_mode(MTOA_EXPORT_UNDEFINED),
+private:
+
+   CSessionOptions() : m_mode(MTOA_SESSION_UNDEFINED),
                       m_frame(0.0f),
                       m_options(MObject()),
                       m_camera(MDagPath()),
-                      m_filter(CExportFilter()),
-                      m_motion(CExportMotion())
+                      m_filter(CMayaExportFilter()),
+                      m_motion(CMotionBlurOptions())
    {
       m_frame = MAnimControl::currentTime().as(MTime::uiUnit());
    }
 
+   inline const ArnoldSessionMode& GetSessionMode() const {return m_mode;}
+   inline void SetSessionMode(ArnoldSessionMode mode) { m_mode = mode; }
+
    inline const MDagPath& GetExportCamera() const { return m_camera; }
    inline void SetExportCamera(MDagPath camera) { camera.extendToShape();m_camera = camera; }
-   inline const ExportMode& GetExportMode() const {return m_mode;}
-   inline void SetExportMode(ExportMode mode) { m_mode = mode; }
-   inline const CExportFilter& GetExportFilter() const { return m_filter; }
-   inline CExportFilter* ExportFilter() { return &m_filter; }
-   inline void SetExportFilter(CExportFilter& filter) { m_filter = filter; }
-   inline const MObject& GetArnoldRenderOptions() const { return m_options; }
-   inline void SetArnoldRenderOptions(const MObject& options) { m_options = options; }
+
+   inline unsigned int GetExportFilter() const { return m_filter.state_mask; }
+   inline void SetExportFilter(unsigned int mask) { m_filter.state_mask = mask; }
 
    inline bool IsMotionBlurEnabled(int type = MTOA_MBLUR_ALL) const { return m_motion.enable_mask && type; }
    inline unsigned int GetNumMotionSteps() const { return m_motion.steps; }
    inline float GetShutterSize() const { return m_motion.shutter_size; }
    inline unsigned int GetShutterType() const { return m_motion.shutter_type; }
    inline double GetExportFrame() const { return m_frame; }
+
+   inline const MObject& GetArnoldRenderOptions() const { return m_options; }
+   inline void SetArnoldRenderOptions(const MObject& options) { m_options = options; }
+
    inline void SetExportFrame(double frame) { m_frame = frame; }
-   
-private:
 
    void UpdateMotionBlurData();
 
 private:
 
-   ExportMode      m_mode;
-   double          m_frame;
+   ArnoldSessionMode    m_mode;
+   double               m_frame;
 
-   MObject         m_options;
-   MDagPath        m_camera;
+   MObject              m_options;
+   MDagPath             m_camera;
 
-   CExportFilter   m_filter;
-   CExportMotion   m_motion;
+   CMayaExportFilter    m_filter;
+   CMotionBlurOptions   m_motion;
 
 };
 
-#endif // EXPORTOPTIONS_H
+#endif // SESSIONOPTIONS_H

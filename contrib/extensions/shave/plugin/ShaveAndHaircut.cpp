@@ -6,7 +6,7 @@
 #include <maya/MPlugArray.h>
 #include <maya/MPlug.h>
 
-#include <ai.h>
+#include <ai_nodes.h>
 
 MStatus CShaveTranslator::UpdateHairInfo()
 {

@@ -5,7 +5,6 @@
 #include <maya/MString.h>
 
 #include <ai_nodes.h>
-#include <ai.h>
 
 typedef void *   (*TCreatorFunction)();
 // typedef void     (*TNodeInitFunction)(MObject&);
