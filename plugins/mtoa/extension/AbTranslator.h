@@ -1,12 +1,7 @@
 #ifndef ABTRANSLATOR_H
 #define ABTRANSLATOR_H
 
-#include "extension/PxTranslator.h"
-
 #include <maya/MString.h>
-
-#include <ai_nodes.h>
-#include <ai.h>
 
 // A Maya node class abstract
 // Hold the information necessary to customize base Maya node classes
@@ -24,11 +19,6 @@ public:
    : name(translatorName),
      arnold(arnoldClassName),
      provider(providerName)
-   {}
-   CAbTranslator(const CPxTranslator &translator)
-   : name(translator.name),
-     arnold(translator.arnold),
-     provider(translator.provider)
    {}
 
    MString name;

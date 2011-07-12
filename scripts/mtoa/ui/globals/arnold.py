@@ -619,6 +619,10 @@ def createArnoldMotionBlurSettings():
                         label="Object deformation",
                         attribute='defaultArnoldRenderOptions.mb_object_deform_enable')
 
+    pm.attrControlGrp('mb_shader_enable',
+                        label="Shaders",
+                        attribute='defaultArnoldRenderOptions.mb_shader_enable')
+
     pm.separator()
 
     pm.floatFieldGrp('mb_shutter_angle',

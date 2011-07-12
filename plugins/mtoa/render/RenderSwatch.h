@@ -76,7 +76,7 @@ private:
    /// Assign the exported node to the Arnold scene.
    /// \see BuildArnoldScene
    /// \see ExportSwatchNode
-   MStatus AssignNode(AtNode* const arnoldNode);
+   MStatus AssignNode(AtNode* const arnoldNode, CNodeTranslator* const translator);
    /// Apply specified overrides on the Arnold scene.
    /// \see BuildArnoldScene
    MStatus ApplyOverrides(CNodeTranslator* const translator);
@@ -90,7 +90,6 @@ private:
    AtNode* PolySphere();
 
 private:
-   CRenderSession * m_renderSession;
    int m_iteration;
    MString m_nodeClass;
    CRenderSwatchClass m_swatchClass;

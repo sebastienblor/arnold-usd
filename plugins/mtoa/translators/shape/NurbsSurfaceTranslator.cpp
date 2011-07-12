@@ -75,7 +75,7 @@ bool CNurbsSurfaceTranslator::Tessellate(MDagPath & dagPath)
    if (!status)
    {
       AiMsgError("[mtoa] [translator %s] Could not attach to NURBS surface for tessellation: %s",
-            GetName().asChar(), status.errorString().asChar());
+            GetTranslatorName().asChar(), status.errorString().asChar());
       return false;
    }
 
@@ -91,7 +91,7 @@ bool CNurbsSurfaceTranslator::Tessellate(MDagPath & dagPath)
    if (!status)
    {
       AiMsgError("[mtoa] [translator %s] Could not tessallate NURBS surface: %s",
-            GetName().asChar(), status.errorString().asChar());
+            GetTranslatorName().asChar(), status.errorString().asChar());
       return false;
    }
 

@@ -1,5 +1,6 @@
 
 #include "GeometryTranslator.h"
+#include "GeometryTranslator.h"
 
 #include <maya/MNodeMessage.h>
 
@@ -113,8 +114,8 @@ bool CGeometryTranslator::GetVertices(MFnMesh &fnMesh, std::vector<float> &verti
 bool CGeometryTranslator::GetNormals(MFnMesh &fnMesh, std::vector<float> &normals)
 {
    int nnorms = fnMesh.numNormals();
-   if (GetFnNode().findPlug("smoothShading").asBool() &&
-         !GetFnNode().findPlug("aiSubdivType").asBool() &&
+   if (FindMayaObjectPlug("smoothShading").asBool() &&
+         !FindMayaObjectPlug("aiSubdivType").asBool() &&
          nnorms > 0)
    {
       normals.resize(nnorms * 3);
@@ -405,14 +406,14 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
       if (connections.length() > 0)
       {
          // shader assigned to node
-         AtNode* shader = ExportShader(connections[0].node());
+         AtNode* shader = ExportNode(connections[0].node());
 
          AiNodeSetPtr(polymesh, "shader", shader);
          meshShaders.push_back(shader);
       }
       else
          AiMsgWarning("[mtoa] [translator %s] ShadingGroup %s has no surfaceShader input",
-               GetName().asChar(), fnDGNode.name().asChar());
+               GetTranslatorName().asChar(), fnDGNode.name().asChar());
    }
    else
    {
@@ -433,7 +434,7 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
          // FIXME: there should be a check if connections.length() > 0
          // this is not a simple fix because it will shift all the indices,
          // but as it is now, it will crash if nothing is connected to "surfaceShader"
-         meshShaders.push_back(ExportShader(connections[0].node()));
+         meshShaders.push_back(ExportNode(connections[0].node()));
       }
 
       AiNodeSetArray(polymesh, "shader", AiArrayConvert((AtInt)meshShaders.size(), 1, AI_TYPE_NODE, &meshShaders[0], TRUE));
@@ -477,13 +478,16 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
          if (connections.length() > 0)
          {
             MString attrName = connections[0].partialName(false, false, false, false, false, true);
-            AtNode* dispImage(ExportShader(connections[0].node(), attrName));
+            AtNode* dispImage(ExportNode(connections[0].node(), attrName));
 
+            // FIXME : why request a non networked plug?
             MPlug pVectorDisp = dispNode.findPlug("vector_displacement", false);
             if (!pVectorDisp.isNull() && pVectorDisp.asBool())
             {
                AtNode* tangentToObject = AiNode("TangentToObjectSpace");
-               m_scene->ProcessShaderParameter(dispNode, "vector_displacement_scale", tangentToObject, "scale", AI_TYPE_VECTOR);
+               MPlug pVectorDispScale = dispNode.findPlug("vector_displacement_scale", false);
+               // FIXME : do this using a translator instead
+               ProcessParameter(tangentToObject, "scale", AI_TYPE_VECTOR, pVectorDispScale);
                AiNodeLink(dispImage, "map", tangentToObject);
 
                AiNodeSetPtr(polymesh, "disp_map", tangentToObject);
@@ -603,7 +607,7 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, AtUInt step)
          }
       }
 
-      if (!m_motionDeform)
+      if (!m_motionDeform || !IsLocalMotionBlurEnabled())
       {
          // No deformation motion blur, so we create normal arrays
          AiNodeSetArray(polymesh, "vlist", AiArrayConvert(m_fnMesh.numVertices() * 3, 1, AI_TYPE_FLOAT, &(vertices[0]), TRUE));
@@ -781,16 +785,15 @@ void CGeometryTranslator::IsGeoDeforming()
 void CGeometryTranslator::ExportMeshParameters(AtNode* polymesh)
 {
    // Check if custom attributes have been created, ignore them otherwise
-   MStatus status;
-   GetFnNode().findPlug("aiSubdivType", &status);
+   if (FindMayaObjectPlug("aiSubdivType").isNull()) return;
 
-   AiNodeSetBool(polymesh, "smoothing", GetFnNode().findPlug("smoothShading").asBool());
+   AiNodeSetBool(polymesh, "smoothing", FindMayaObjectPlug("smoothShading").asBool());
 
-   if (GetFnNode().findPlug("doubleSided").asBool())
+   if (FindMayaObjectPlug("doubleSided").asBool())
       AiNodeSetInt(polymesh, "sidedness", 65535);
    else
    {
-      AiNodeSetBool(polymesh, "invert_normals", GetFnNode().findPlug("opposite").asBool());
+      AiNodeSetBool(polymesh, "invert_normals", FindMayaObjectPlug("opposite").asBool());
       AiNodeSetInt(polymesh, "sidedness", 0);
    }
 
@@ -799,38 +802,20 @@ void CGeometryTranslator::ExportMeshParameters(AtNode* polymesh)
 
    // Subdivision surfaces
    //
-   const int subdivision = GetFnNode().findPlug("aiSubdivType").asInt();
+   const int subdivision = FindMayaObjectPlug("aiSubdivType").asInt();
    if (subdivision!=0)
    {
       if (subdivision==1)
          AiNodeSetStr(polymesh, "subdiv_type",           "catclark");
       else
          AiNodeSetStr(polymesh, "subdiv_type",           "linear");
-      AiNodeSetInt(polymesh, "subdiv_iterations",     GetFnNode().findPlug("aiSubdivIterations").asInt());
-      AiNodeSetInt(polymesh, "subdiv_adaptive_metric",GetFnNode().findPlug("aiSubdivAdaptiveMetric").asInt());
-      AiNodeSetFlt(polymesh, "subdiv_pixel_error",    GetFnNode().findPlug("aiSubdivPixelError").asFloat());
-      AiNodeSetInt(polymesh, "subdiv_uv_smoothing",   GetFnNode().findPlug("aiSubdivUvSmoothing").asInt());
+      AiNodeSetInt(polymesh, "subdiv_iterations",     FindMayaObjectPlug("aiSubdivIterations").asInt());
+      AiNodeSetInt(polymesh, "subdiv_adaptive_metric",FindMayaObjectPlug("aiSubdivAdaptiveMetric").asInt());
+      AiNodeSetFlt(polymesh, "subdiv_pixel_error",    FindMayaObjectPlug("aiSubdivPixelError").asFloat());
+      AiNodeSetInt(polymesh, "subdiv_uv_smoothing",   FindMayaObjectPlug("aiSubdivUvSmoothing").asInt());
 
-      const AtNodeEntry *polymeshEntry = polymesh->base_node;
-      const AtParamEntry *camParamEntry = AiNodeEntryLookUpParameter (polymeshEntry, "subdiv_dicing_camera");
-      MPlug camPlug = GetFnNode().findPlug("aiSubdivDicingCamera");
-      ProcessParameter(polymesh, camPlug, camParamEntry);
-      // AtNode* camera = ProcessParameter(polymesh, camPlug, camParamEntry);
-      // Above is better as it will cause the camera to be exported if it hasn't already
-      /*
-      MString cameraName("");
-      MPlug camPlug = GetFnNode().findPlug("aiSubdivDicingCamera");
-      MPlugArray connections;
-      camPlug.connectedTo(connections, true, false);
-      if (connections.length())
-      {
-         MObject camObj = connections[0].node();
-         MFnCamera fnCam(camObj, &status);
-         if (MStatus::kSuccess == status) cameraName = fnCam.partialPathName();
-      }
-      AtNode* camera = ((cameraName != "") && (cameraName != "Default")) ? AiNodeLookUpByName(cameraName.asChar()) : NULL;
-      AiNodeSetPtr(polymesh, "subdiv_dicing_camera", camera);
-      */
+      ProcessParameter(polymesh, "subdiv_dicing_camera", AI_TYPE_NODE, FindMayaObjectPlug("aiSubdivDicingCamera"));
+
    }
 }
 
@@ -901,7 +886,7 @@ AtNode* CGeometryTranslator::ExportInstance(AtNode *instance, const MDagPath& ma
 
       if ((shaderPlug != shaderPlugMaster) || (!equalShaderArrays))
       {
-         AtNode* shader = ExportShader(connections[0].node());
+         AtNode* shader = ExportNode(connections[0].node());
          AiNodeSetPtr(instance, "shader", shader);
       }
    }
@@ -944,17 +929,17 @@ void CGeometryTranslator::UpdateMotion(AtNode* anode, AtUInt step)
    ExportMatrix(anode, step);
 }
 
-void CGeometryTranslator::AddIPRCallbacks()
+void CGeometryTranslator::AddUpdateCallbacks()
 {
    AddShaderAssignmentCallbacks(m_object);
-   CDagTranslator::AddIPRCallbacks();
+   CDagTranslator::AddUpdateCallbacks();
 }
 
 void CGeometryTranslator::AddShaderAssignmentCallbacks(MObject & dagNode)
 {
    MStatus status;
    MCallbackId id = MNodeMessage::addAttributeChangedCallback(dagNode, ShaderAssignmentCallback, this, &status);
-   if (MS::kSuccess == status) ManageIPRCallback(id);
+   if (MS::kSuccess == status) ManageUpdateCallback(id);
 }
 
 void CGeometryTranslator::ShaderAssignmentCallback(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void*clientData)
@@ -966,13 +951,12 @@ void CGeometryTranslator::ShaderAssignmentCallback(MNodeMessage::AttributeMessag
       CGeometryTranslator * translator = static_cast< CGeometryTranslator* >(clientData);
       if (translator != NULL)
       {
-         // Interupt the render.
-         CRenderSession* renderSession = CRenderSession::GetInstance();
-         renderSession->InterruptRender();
+         // FIXME: this is not working. Interrupting render wasn't working either in 0.8
+         // so removed it.
          // Export the new shaders.
          translator->ExportShaders();
          // Update Arnold without passing a translator, this just forces a redraw.
-         CMayaScene::UpdateIPR();
+         translator->RequestUpdate();
       }
    }
 }

@@ -9,7 +9,6 @@ public:
    static void* creator(){return new COptionsTranslator();}
    virtual void Export(AtNode* options);
    AtNode* CreateArnoldNodes();
-   void SetupImageOptions(AtNode* options);
 };
 
 #endif // OPTIONSTRANSLATOR_H

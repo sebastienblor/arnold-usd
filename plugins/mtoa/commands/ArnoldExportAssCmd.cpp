@@ -1,11 +1,11 @@
 #include "ArnoldExportAssCmd.h"
-#include "render/RenderSession.h"
 #include "scene/MayaScene.h"
 
 #include <ai_dotass.h>
 #include <ai_msg.h>
 #include <ai_render.h>
 #include <ai_universe.h>
+#include <ai_bbox.h>
 
 #include <maya/M3dView.h>
 #include <maya/MDagPath.h>
@@ -17,6 +17,8 @@
 #include <maya/MFileObject.h>
 #include <maya/MFnRenderLayer.h>
 #include <maya/MAnimControl.h>
+
+#include <math.h>
 
 MSyntax CArnoldExportAssCmd::newSyntax()
 {
@@ -73,6 +75,7 @@ MDagPath CArnoldExportAssCmd::GetCamera()
    return camera;
 }
 
+// FIXME: that should be a method on CMayaScene so we can share it between commands
 MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
 {
    MStatus status;
@@ -81,13 +84,12 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    MSyntax syntax = newSyntax();
    MArgDatabase argDB(syntax, argList, &status);
    MString customFileName = "";
-   CExportOptions exportOptions;
+   MDagPath camera;
+   MString cameraName = "";
    MString optionsName = "";
    bool exportSelected = false;
    bool writeBox = false;
-   double startframe = 1; // TODO: use current frame if not set
-   double endframe = 0;
-   double framestep = 1;
+   bool createDirectory = true;
 
    // Batch mode
    const bool batch = argDB.isFlagSet("batch") ? true : false;
@@ -113,7 +115,7 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
       MSelectionList sel;
       argDB.getFlagArgument("camera", 0, sel);
       MStatus status;
-      status = sel.getDagPath(0, exportOptions.camera);
+      status = sel.getDagPath(0, camera);
    }
    // Only selected
    if (argDB.isFlagSet("selected"))
@@ -131,146 +133,129 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
       argDB.getFlagArgument("options", 0, optionsName);
       // TODO: Set the arnoldRenderOptions node to use
    }
+
+   double startframe, endframe, framestep;
+   bool isSequence = false;
+   bool subFrames = false;
+
    if (argDB.isFlagSet("startFrame"))
    {
+      // isSequence = true;
       argDB.getFlagArgument("startFrame", 0, startframe);
+   }
+   else
+   {
+      startframe = MAnimControl::currentTime().as(MTime::uiUnit());
    }
    if (argDB.isFlagSet("endFrame"))
    {
+      isSequence = true;
       argDB.getFlagArgument("endFrame", 0, endframe);
+   }
+   else
+   {
+      isSequence = false;
    }
    if (argDB.isFlagSet("frameStep"))
    {
       argDB.getFlagArgument("frameStep", 0, framestep);
    }
+   else
+   {
+      framestep = 1;
+   }
+
+   if (isSequence)
+   {
+      subFrames = (fabs(framestep - floor(framestep)) >= AI_EPSILON || fabs(startframe - floor(startframe)) >= AI_EPSILON);
+      // To avoid endless loops in corner cases
+      if (fabs(framestep) < AI_EPSILON) framestep = 1;
+      if ((endframe - startframe) * framestep < 0) framestep = -framestep;
+   }
+   else
+   {
+      endframe = startframe;
+      framestep = 1;
+   }
+
    // Get Maya scene information
    MString sceneName = MFileIO::currentFile();
    // If camera name is not set, default to active view camera in interactive mode
    // or the first found renderable camera in batch mode
    // FIXME if you're exporting in selected mode to reuse in a standing
    // you probably don't want a camera anyway, remove this search and warnings in that case?
-   if (!exportOptions.camera.isValid())
-   {
-      exportOptions.camera = GetCamera();
-   }
-   // Set the necessary options for scene export
-   exportOptions.mode = MTOA_EXPORT_FILE;
-   exportOptions.filter.unselected = exportSelected;
-   if (exportOptions.filter.unselected)
-   {
-      exportOptions.filter.notinlayer = false;
-   }
+   if (!camera.isValid()) camera = GetCamera();
+   cameraName = camera.partialPathName();
+
    // FIXME use the passed renderGlobals or options intead?
    MCommonRenderSettingsData renderGlobals;
    MRenderUtil::getCommonRenderSettings(renderGlobals);
 
-   CRenderSession* renderSession = CRenderSession::GetInstance();
    // Just incase we're rendering with IPR.
    MGlobal::executeCommand("stopIprRendering renderView;");
-   renderSession->Finish();
+   CMayaScene::End();
    // Cannot export while a render is active
    if (AiUniverseIsActive())
    {
       AiMsgError("[mtoa] Cannot export to .ass while rendering");
       return MS::kFailure;
    }
-   // We don't need renderview_display so we need to set Batch mode on.
-   renderSession->SetBatch(true);
 
    MString curfilename;
    MString tocfilename;
-   // Export range of frames or single frame
-   if (startframe <= endframe && framestep > 0)
+
+   // customFileName is a prefix, need to add frame and extension
+   for (double curframe = startframe; curframe <= endframe; curframe += framestep)
    {
-      bool subFrames = ((framestep - floor(framestep)) >= 0.001);
-      // customFileName is a prefix, need to add frame and extension
-      // TODO: might want to check if extension or frame is already set
-      for (double curframe = startframe; curframe <= endframe; curframe += framestep)
-      {
-         MGlobal::viewFrame(curframe);
-         renderSession->ExecuteScript(renderGlobals.preRenderMel);
+      MGlobal::viewFrame(curframe);
+      CMayaScene::ExecuteScript(renderGlobals.preRenderMel);
 
-         curfilename = renderSession->GetMayaScene()->GetAssName(customFileName,
-                                                                renderGlobals,
-                                                                curframe,
-                                                                sceneName,
-                                                                exportOptions.camera.partialPathName(),
-                                                                "ass",
-                                                                renderLayer,
-                                                                1,
-                                                                1,
-                                                                subFrames,
-                                                                IsBatch(), &status);
-         tocfilename = renderSession->GetMayaScene()->GetAssName(customFileName,
-                                                                renderGlobals,
-                                                                curframe,
-                                                                sceneName,
-                                                                exportOptions.camera.partialPathName(),
-                                                                "asstoc",
-                                                                renderLayer,
-                                                                1,
-                                                                1,
-                                                                subFrames,
-                                                                IsBatch(), &status);
+      // Setup CMayaScene for MTOA_SESSION_ASS mode
+      // FIXME : do we really have to reset everything?
+      CMayaScene::Begin(MTOA_SESSION_ASS);
+      CArnoldSession* exportSession = CMayaScene::GetExportSession();
+      CRenderSession* renderSession = CMayaScene::GetRenderSession();
+      // Not filtering out of render layer
+      exportSession->SetExportFilter(exportSession->GetExportFilter() & ~MTOA_FILTER_LAYER);
+      exportSession->SetExportCamera(camera);
+      exportSession->SetExportFrame(curframe);
 
-         renderSession->Translate(exportOptions);
+      curfilename = renderSession->GetAssName(customFileName,
+                                              renderGlobals,
+                                              curframe,
+                                              sceneName,
+                                              cameraName,
+                                              "ass",
+                                              renderLayer,
+                                              createDirectory,
+                                              isSequence,
+                                              subFrames,
+                                              IsBatch(), &status);
+      tocfilename = renderSession->GetAssName(customFileName,
+                                              renderGlobals,
+                                              curframe,
+                                              sceneName,
+                                              cameraName,
+                                              "asstoc",
+                                              renderLayer,
+                                              createDirectory,
+                                              isSequence,
+                                              subFrames,
+                                              IsBatch(), &status);
 
-         renderSession->DoExport(curfilename);
-         renderSession->Finish();
+      CMayaScene::Export();
+      // TODO: package all of this in a method
+      if (writeBox) AiNodeSetBool(AiUniverseGetOptions(), "preserve_scene_data", true);
+      renderSession->DoAssWrite(curfilename);
+      if (writeBox) renderSession->WriteAsstoc(tocfilename, renderSession->GetBoundingBox());
 
-         if (writeBox)
-            renderSession->GetMayaScene()->WriteAsstoc(tocfilename, renderSession->GetBoundingBox());
-            renderSession->Finish();
+      CMayaScene::End();
 
-         renderSession->ExecuteScript(renderGlobals.postRenderMel);
-
-         appendToResult(curfilename);
-      }
-   }
-   else
-   {
-      // Get current frame info
-      double fileFrameNumber = 0;
-      MTime cT = MAnimControl::currentTime();
-      fileFrameNumber = double(cT.value());
-
-      renderSession->ExecuteScript(renderGlobals.preRenderMel);
-
-      curfilename = renderSession->GetMayaScene()->GetAssName(customFileName,
-                                                             renderGlobals,
-                                                             fileFrameNumber,
-                                                             sceneName,
-                                                             exportOptions.camera.partialPathName(),
-                                                             "ass",
-                                                             renderLayer,
-                                                             1,
-                                                             0,
-                                                             0,
-                                                             IsBatch(), &status);
-      tocfilename = renderSession->GetMayaScene()->GetAssName(customFileName,
-                                                             renderGlobals,
-                                                             fileFrameNumber,
-                                                             sceneName,
-                                                             exportOptions.camera.partialPathName(),
-                                                             "asstoc",
-                                                             renderLayer,
-                                                             1,
-                                                             0,
-                                                             0,
-                                                             IsBatch(), &status);
-
-      renderSession->Translate(exportOptions);
-      renderSession->DoExport(curfilename);
-      renderSession->Finish();
-
-      if (writeBox)
-         renderSession->GetMayaScene()->WriteAsstoc(tocfilename, renderSession->GetBoundingBox());
-         renderSession->Finish();
-
-      renderSession->ExecuteScript(renderGlobals.postRenderMel);
+      CMayaScene::ExecuteScript(renderGlobals.postRenderMel);
 
       appendToResult(curfilename);
    }
+
 
    return status;
 }

@@ -1,5 +1,9 @@
 #include "Universe.h"
 
+#include <ai_universe.h>
+#include <ai_metadata.h>
+#include <ai_render.h>
+
 MString g_metafile = "";
 
 void SetMetafile(MString metafile)
@@ -7,25 +11,36 @@ void SetMetafile(MString metafile)
    g_metafile = metafile;
 }
 
-bool ReadMetafile()
+MStatus ReadMetafile()
 {
    AtBoolean readMetaSuccess = AiMetaDataLoadFile(g_metafile.asChar());
    if (!readMetaSuccess)
    {
       AiMsgError("[mtoa] Could not read mtoa built-in metadata file mtoa.mtd");
-      return false;
+      return MStatus::kFailure;
    }
-   return true;
+   return MStatus::kSuccess;
 }
 
-bool InitArnoldUniverse()
+MStatus ArnoldUniverseBegin()
 {
    if (!AiUniverseIsActive())
    {
       AiBegin();
       MtoaSetupLogging();
-      ReadMetafile();
-      return true;
+      return ReadMetafile();
    }
-   return false;
+   return MStatus::kFailure;
+}
+
+MStatus ArnoldUniverseEnd()
+{
+   if (AiUniverseIsActive())
+   {
+      AiEnd();
+      // MtoaSetupLogging();
+      // AiMsgResetCallback();
+      return MStatus::kSuccess;
+   }
+   return MStatus::kFailure;
 }

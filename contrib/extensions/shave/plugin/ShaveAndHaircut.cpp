@@ -6,7 +6,7 @@
 #include <maya/MPlugArray.h>
 #include <maya/MPlug.h>
 
-#include <ai.h>
+#include <ai_nodes.h>
 
 MStatus CShaveTranslator::UpdateHairInfo()
 {
@@ -30,7 +30,7 @@ AtNode*  CShaveTranslator::CreateArnoldNodes()
 void CShaveTranslator::Export(AtNode* curve)
 {
    // Only translate the shave node if its marked as a active
-   if (!GetFnNode().findPlug("active").asBool())
+   if (!FindMayaObjectPlug("active").asBool())
       return;
 
    Update(curve);
@@ -71,7 +71,7 @@ void CShaveTranslator::Update(AtNode* curve)
          plug.connectedTo(curveShaderPlug, true, false);
          if (curveShaderPlug.length() > 0)
          {
-            shader = ExportShader(curveShaderPlug[0].node());
+            shader = ExportNode(curveShaderPlug[0].node());
          }
       }
    }
@@ -295,7 +295,7 @@ void CShaveTranslator::ExportMotion(AtNode* curve, AtUInt step)
    ExportMatrix(curve, step);
 
    // Same for object deformation, early out if it's not set.
-   if (!IsDeformMotionBlurEnabled()) return;
+   if (!IsMotionBlurEnabled(MTOA_MBLUR_DEFORM)) return;
 
    // Bail early if we've trouble getting data from Shave.
    if (UpdateHairInfo() != MS::kSuccess) return;

@@ -29,7 +29,6 @@ CRenderSwatchGenerator::CRenderSwatchGenerator(MObject dependNode,
                                                                     renderNode,
                                                                     imageResolution)
 {
-   m_renderSession = NULL;
    m_iteration = 0;
    SetSwatchClass(dependNode);
 }
@@ -121,20 +120,11 @@ MStatus CRenderSwatchGenerator::BuildArnoldScene()
 {
    MStatus status;
 
-   m_renderSession = CRenderSession::GetInstance();
-   m_renderSession->Init();
-   m_renderSession->SetBatch(false);
-   m_renderSession->SetProgressive(false);
-   m_renderSession->GetMayaScene()->SetExportMode(MTOA_EXPORT_SWATCH);
-   // Problem. Will cause a creash when exporting a dag node (moblur checking)
-   // if left to NULL. But we don't want the scene options and don't want to create
-   // a dummy Maya node just to have default options
-   // m_renderSession->GetMayaScene()->PrepareExport();
-
-   AiBegin();
-   MtoaSetupSwatchLogging();
-   // TODO: should use the list of loaded plugins from CExtensionsManager instead
-   m_renderSession->LoadPlugins();
+   if (MStatus::kSuccess != CMayaScene::Begin(MTOA_SESSION_SWATCH))
+   {
+      ErrorSwatch("Could not create Arnold swatch render session");
+      return MStatus::kFailure;
+   }
 
    MObject mayaNode = swatchNode();
    
@@ -173,7 +163,7 @@ MStatus CRenderSwatchGenerator::BuildArnoldScene()
    }
 
    // Assign it in the scene, depending on what it is
-   status = AssignNode(arnoldNode);
+   status = AssignNode(arnoldNode, translator);
    if (MStatus::kSuccess != status)
    {
       ErrorSwatch("Could not assign \"" + mayaNodeName + "\" exported as \"" + arnoldNodeName + "\"");
@@ -262,7 +252,7 @@ MStatus CRenderSwatchGenerator::ExportNode(AtNode* & arnoldNode,
 {
    MStatus status;
    MObject mayaNode = swatchNode();
-   CMayaScene * m_mayaScene = m_renderSession->GetMayaScene();
+   CArnoldSession* exportSession = CMayaScene::GetExportSession();
 
    // FIXME: Special case for displacement
    if (m_swatchClass == SWATCH_DISPLACEMENT)
@@ -298,14 +288,14 @@ MStatus CRenderSwatchGenerator::ExportNode(AtNode* & arnoldNode,
          }
          if (NULL != dagTranslator)
          {
-            dagTranslator->Init(dagPath, m_mayaScene, "");
+            dagTranslator->Init(exportSession, dagPath, "");
             arnoldNode = dagTranslator->DoExport(0);
          }
       } else {
          translator = CExtensionsManager::GetTranslator(mayaNode);
          if (NULL != translator)
          {
-            translator->Init(mayaNode, m_mayaScene, "");
+            translator->Init(exportSession, mayaNode, "");
             arnoldNode = translator->DoExport(0);
          }
       }
@@ -322,11 +312,11 @@ MStatus CRenderSwatchGenerator::ExportNode(AtNode* & arnoldNode,
    return status;
 }
 
-MStatus CRenderSwatchGenerator::AssignNode(AtNode* arnoldNode)
+MStatus CRenderSwatchGenerator::AssignNode(AtNode* arnoldNode, CNodeTranslator* translator)
 {
    MStatus status;
    MFnDependencyNode depFn(swatchNode());
-   CMayaScene * m_mayaScene = m_renderSession->GetMayaScene();
+   CArnoldSession* exportSession = CMayaScene::GetExportSession();
 
    // Assign what needs to be on geometry
 
@@ -357,14 +347,16 @@ MStatus CRenderSwatchGenerator::AssignNode(AtNode* arnoldNode)
       if (connections.length() > 0)
       {
          MString attrName = connections[0].partialName(false, false, false, false, false, true);
-         AtNode* dispImage(m_mayaScene->ExportShader(connections[0].node(), attrName));
+         AtNode* dispImage(exportSession->ExportNode(connections[0].node(), attrName));
          if (dispImage != NULL)
          {
-            MPlug pVectorDisp = depFn.findPlug("vector_displacement", false);
+            // FIXME : why request a non networked plug?
+            MPlug pVectorDisp = depFn.findPlug("vector_displacement",false );
             if (!pVectorDisp.isNull() && pVectorDisp.asBool())
             {
+               MPlug pVectorDispScale = depFn.findPlug("vector_displacement_scale", false);
                AtNode* tangentToObject = AiNode("TangentToObjectSpace");
-               m_mayaScene->ProcessShaderParameter(depFn, "vector_displacement_scale", tangentToObject, "scale", AI_TYPE_VECTOR);
+               translator->ProcessParameter(tangentToObject, "scale", AI_TYPE_VECTOR, pVectorDispScale);
                AiNodeLink(dispImage, "map", tangentToObject);
                AiNodeSetPtr(geometry, "disp_map", tangentToObject);
             }
@@ -457,7 +449,7 @@ MStatus CRenderSwatchGenerator::ApplyOverrides(CNodeTranslator* translator)
                MPlug attrOverPlug = nodeOverPlug.child(a);
                MString attrOverName = attrOverPlug.partialName();
                const AtParamEntry* paramEntry = AiNodeEntryLookUpParameter(nodeOverEntry, attrOverName.asChar());
-               translator->ProcessParameter(nodeOver, attrOverPlug, paramEntry, -1);
+               if (NULL != paramEntry) translator->ProcessParameter(nodeOver, AiParamGetName(paramEntry), AiParamGetType(paramEntry), attrOverPlug);
             }
          }
          else
@@ -502,7 +494,7 @@ bool CRenderSwatchGenerator::doIteration()
       // Arnold can only render one thing at a time.
       // It may be an option to block/wait here, but only
       // if it's another swatch render taking place.
-      if (CRenderSession::GetInstance()->IsActive())
+      if (CMayaScene::GetRenderSession()->IsActive())
       {
          return false;
       }
@@ -511,7 +503,7 @@ bool CRenderSwatchGenerator::doIteration()
       if (MStatus::kSuccess != status)
       {
          ErrorSwatch("Render failed: could not complete swatch scene.");
-         m_renderSession->Finish();
+         CMayaScene::End();
          return true;
       }
    }
@@ -523,21 +515,24 @@ bool CRenderSwatchGenerator::doIteration()
          ErrorSwatch("Render failed: Arnold universe not active.");
          return true; // Stop iterating/rendering.
       }
-      m_renderSession->DoSwatchRender(resolution());
+      // Uncomment this to get a debug ass for swatches, but then set preserve_scene_data or disable actual render
+      // CMayaScene::GetRenderSession()->DoAssWrite("/mnt/data/orenouard/maya/projects/Arnold/ASS/swatch.ass");
+      CMayaScene::GetRenderSession()->DoSwatchRender(resolution());
    }
    // We must be done rendering.
    else
    {
-      if (m_renderSession->GetSwatchImage(image()))
+      if (CMayaScene::GetRenderSession()->GetSwatchImage(image()))
       {
          image().convertPixelFormat(MImage::kByte, 1.0f/255);
-         m_renderSession->Finish();
+         CMayaScene::End();
          // Stop being called/iterated.
          return true;
       }
       else
       {
          // Start again as we were interupted.
+         CMayaScene::End();
          m_iteration = 0;
          return false;
       }

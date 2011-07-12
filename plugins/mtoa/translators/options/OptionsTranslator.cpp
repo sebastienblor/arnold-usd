@@ -9,22 +9,6 @@
 #include <maya/MAnimControl.h>
 #include <maya/MPlugArray.h>
 
-void COptionsTranslator::SetupImageOptions(AtNode* options)
-{
-   const CRenderOptions* renderOptions = CRenderSession::GetInstance()->RenderOptions();
-   if (renderOptions->useRenderRegion())
-   {
-      AiNodeSetInt(options, "region_min_x", renderOptions->minX());
-      AiNodeSetInt(options, "region_min_y", renderOptions->height() - renderOptions->maxY() - 1);
-      AiNodeSetInt(options, "region_max_x", renderOptions->maxX());
-      AiNodeSetInt(options, "region_max_y", renderOptions->height() - renderOptions->minY() - 1);
-   }
-
-   AiNodeSetInt(options, "xres", renderOptions->width());
-   AiNodeSetInt(options, "yres", renderOptions->height());
-   AiNodeSetFlt(options, "aspect_ratio", renderOptions->pixelAspectRatio());
-}
-
 AtNode* COptionsTranslator::CreateArnoldNodes()
 {
    return AiUniverseGetOptions();
@@ -32,13 +16,9 @@ AtNode* COptionsTranslator::CreateArnoldNodes()
 
 void COptionsTranslator::Export(AtNode *options)
 {
-   SetupImageOptions(options);
-   MTime currentTime;
-
-   currentTime = MAnimControl::currentTime();
-
    MStatus status;
-   MPlug plug;
+
+   const AtNodeEntry* optionsEntry = options->base_node;
    AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(options->base_node);
    while (!AiParamIteratorFinished(nodeParam))
    {
@@ -47,53 +27,60 @@ void COptionsTranslator::Export(AtNode *options)
 
       if (strcmp(paramName, "name") != 0)
       {
-         AtInt paramType = AiParamGetType(paramEntry);
-
-         // attr name name remap
-         const char* attrName;
-         if (!AiMetaDataGetStr(options->base_node, paramName, "maya.name", &attrName))
-            attrName = paramName;
-
-         plug = GetFnNode().findPlug(attrName, &status);
-         if (status == MS::kSuccess)
+         // Special cases
+         if (strcmp(paramName, "threads") == 0)
          {
-            // Special cases
-            if (strcmp(paramName, "threads") == 0)
+            AiNodeSetInt(options, "threads", FindMayaObjectPlug("threads_autodetect").asBool() ? 0 : FindMayaObjectPlug("threads").asInt());
+         }
+         else if (strcmp(paramName, "AA_sample_clamp") == 0)
+         {
+            if (FindMayaObjectPlug("use_sample_clamp").asBool())
             {
-               AiNodeSetInt(options, "threads", GetFnNode().findPlug("threads_autodetect").asBool() ? 0 : GetFnNode().findPlug("threads").asInt());
+               ProcessParameter(options, "AA_sample_clamp", AI_TYPE_FLOAT);
             }
-            else if (strcmp(paramName, "AA_sample_clamp") == 0)
+         }
+         else if (strcmp(paramName, "AA_seed") == 0)
+         {
+            // FIXME: this is supposed to use a connection to AA_seed attribute
+            if (!FindMayaObjectPlug("lock_sampling_noise").asBool())
             {
-               if (GetFnNode().findPlug("use_sample_clamp").asBool())
-               {
-                  ProcessParameter(options, "AA_sample_clamp", AI_TYPE_FLOAT);
-               }
-            }
-            else if (strcmp(paramName, "AA_seed") == 0)
-            {
-               // FIXME: this is supposed to use a connection to AA_seed attribute
-               if (!GetFnNode().findPlug("lock_sampling_noise").asBool())
-               {
-                  AiNodeSetInt(options, "AA_seed", (AtInt)currentTime.value());
-               }
-            }
-            // Process parameter automatically
-            else
-            {
-               ProcessParameter(options, plug, paramName, paramType);
+               AiNodeSetInt(options, "AA_seed", (AtInt)GetExportFrame());
             }
          }
          else
          {
-            AiMsgDebug("[mtoa] [translator %s] Attribute %s.%s requested by translator does not exist",
-                  GetName().asChar(), GetFnNode().name().asChar(), attrName);
+            // Process parameter automatically
+            // FIXME: we can't use the default method since the options names don't
+            // follow the standard "toMayaStyle" behavior when no metadata is present
+            // (see CBaseAttrHelper::GetMayaAttrName that is used by CNodeTranslator)
+            const char* attrName;
+            MPlug plug;
+            if (AiMetaDataGetStr(optionsEntry, paramName, "maya.name", &attrName))
+            {
+               plug = FindMayaObjectPlug(attrName);
+            }
+            else
+            {
+               plug = FindMayaObjectPlug(paramName);
+            }
+            // Don't print warnings, just debug for missing options attributes are there are a lot
+            // that are not exposed in Maya
+            if (!plug.isNull())
+            {
+               ProcessParameter(options, paramName, AiParamGetType(paramEntry), plug);
+            }
+            else
+            {
+               AiMsgDebug("[mtoa] [translator %s] Arnold options parameter %s is not exposed on Maya %s(%s)",
+                     GetTranslatorName().asChar(), paramName, GetMayaNodeName().asChar(), GetMayaNodeTypeName().asChar());
+            }
          }
       }
    }
 
    MObject background;
    MPlugArray conns;
-   MPlug pBG = GetFnNode().findPlug("background");
+   MPlug pBG = FindMayaObjectPlug("background");
    pBG.connectedTo(conns, true, false);
    if (conns.length() == 1)
    {
@@ -108,7 +95,7 @@ void COptionsTranslator::Export(AtNode *options)
    //
    if (!background.isNull())
    {
-      AiNodeSetPtr(options, "background", ExportShader(background));
+      AiNodeSetPtr(options, "background", ExportNode(background));
    }
 
    // ATMOSPHERE SHADER
@@ -116,7 +103,7 @@ void COptionsTranslator::Export(AtNode *options)
    MSelectionList list;
    MObject        node;
 
-   AtInt atmosphere = GetFnNode().findPlug("atmosphere").asInt();
+   AtInt atmosphere = FindMayaObjectPlug("atmosphere").asInt();
    switch (atmosphere)
    {
    case 0:
@@ -127,7 +114,7 @@ void COptionsTranslator::Export(AtNode *options)
       if (list.length() > 0)
       {
          list.getDependNode(0, node);
-         AiNodeSetPtr(options, "atmosphere", ExportShader(node));
+         AiNodeSetPtr(options, "atmosphere", ExportNode(node));
       }
       break;
 
@@ -136,7 +123,7 @@ void COptionsTranslator::Export(AtNode *options)
       if (list.length() > 0)
       {
          list.getDependNode(0, node);
-         AiNodeSetPtr(options, "atmosphere", ExportShader(node));
+         AiNodeSetPtr(options, "atmosphere", ExportNode(node));
       }
       break;
    }

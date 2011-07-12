@@ -3,13 +3,15 @@
 
 #include "MtoaLog.h"
 
-#include "ai.h"
+#include <maya/MString.h>
+#include <maya/MStatus.h>
 
 DLLEXPORT void SetMetafile(MString metafile);
 
-DLLEXPORT bool ReadMetafile();
+DLLEXPORT MStatus ReadMetafile();
 
 // return if the universe had to be initialized (and thus should be uninitialized), false if it was already active
-DLLEXPORT bool InitArnoldUniverse();
+DLLEXPORT MStatus ArnoldUniverseBegin();
+DLLEXPORT MStatus ArnoldUniverseEnd();
 
 #endif // UNIVERSE_H_

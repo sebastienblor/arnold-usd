@@ -1,11 +1,11 @@
 #ifndef PXARNOLDNODE_H
 #define PXARNOLDNODE_H
 
-#include <cstring>
-#include <maya/MString.h>
+#include <ai_node_entry.h>
 
-#include <ai_nodes.h>
-#include <ai.h>
+#include <cstring>
+
+#include <maya/MString.h>
 
 // An Arnold node entry proxy
 class CPxArnoldNode

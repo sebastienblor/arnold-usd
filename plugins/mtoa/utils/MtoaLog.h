@@ -9,7 +9,6 @@
 
 #include <ai_msg.h>
 
-#include <maya/MGlobal.h>
 
 DLLEXPORT AtInt GetFlagsFromVerbosityLevel(AtUInt level);
 

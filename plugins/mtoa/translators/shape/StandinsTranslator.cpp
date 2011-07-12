@@ -107,7 +107,7 @@ void CArnoldStandInsTranslator::ExportStandinsShaders(AtNode* procedural)
       if (connections.length() > 0)
       {
          // shader assigned to node
-         AtNode* shader = m_scene->ExportShader(connections[0].node());
+         AtNode* shader = m_session->ExportNode(connections[0].node());
 
          AiNodeSetPtr(procedural, "shader", shader);
          meshShaders.push_back(shader);
@@ -144,14 +144,15 @@ void CArnoldStandInsTranslator::ExportStandinsShaders(AtNode* procedural)
          if (connections.length() > 0)
          {
             MString attrName = connections[0].partialName(false, false, false, false, false, true);
-            AtNode* dispImage(m_scene->ExportShader(connections[0].node(), attrName));
+            AtNode* dispImage(m_session->ExportNode(connections[0].node(), attrName));
 
             MPlug pVectorDisp = dispNode.findPlug("vector_displacement", false);
             if (!pVectorDisp.isNull() && pVectorDisp.asBool())
             {
                AtNode* tangentToObject = AiNode("tangentToObjectSpace");
-               m_scene->ProcessShaderParameter(dispNode, "vector_displacement_scale",
-                     tangentToObject, "scale", AI_TYPE_VECTOR);
+               MPlug pVectorDispScale = dispNode.findPlug("vector_displacement_scale", false);
+               // FIXME : do this using a translator instead
+               ProcessParameter(tangentToObject, "scale", AI_TYPE_VECTOR, pVectorDispScale);
                AiNodeLink(dispImage, "map", tangentToObject);
 
                AiNodeSetPtr(procedural, "disp_map", tangentToObject);

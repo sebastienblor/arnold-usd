@@ -14,19 +14,10 @@ local_env = maya_env.Clone()
 src_base_dir  = os.path.join(local_env['ROOT_DIR'], 'plugins', 'mtoa')
 source_files = []
 include_files = []
-for subdir in ['attributes', 'common', 'extension', 'platform', 'render', 'scene', 'utils'] :
+for subdir in ['attributes', 'common', 'extension', 'platform', 'utils', 'session', 'render', 'scene' ] :
    dir = os.path.join(src_base_dir, subdir)
    source_files  += [os.path.join(subdir, x) for x in find_files_recursive(dir, ['.c', '.cpp'])]
    include_files += [os.path.join(subdir, x) for x in find_files_recursive(dir, ['.h'])]
-
-# Remove ExtensionsManager from extensions
-# source_files_rem = [os.path.join('extension', 'ExtensionsManager.cpp')]
-# include_files_rem = [os.path.join('extension', 'ExtensionsManager.h')]
-
-# for file_rem in source_files_rem:
-#   source_files.remove(file_rem)
-# for file_rem in include_files_rem:
-#   include_files.remove(file_rem)
 
 #Add files to be exported by the API from 'nodes' and 'translators' folder
 source_files_add = [os.path.join('nodes', 'shader', 'ArnoldShaderNode.cpp'),
@@ -35,7 +26,6 @@ source_files_add = [os.path.join('nodes', 'shader', 'ArnoldShaderNode.cpp'),
                     os.path.join('translators', 'options', 'OptionsTranslator.cpp'),
                     os.path.join('translators', 'shader', 'ShaderTranslator.cpp'),
                     os.path.join('translators', 'shape', 'ShapeTranslator.cpp'),
-                    os.path.join('translators', 'shape', 'GeometryTranslator.cpp'),
                     os.path.join('translators', 'NodeTranslator.cpp')]
 include_files_add = [os.path.join('nodes', 'shader', 'ArnoldShaderNode.h'),
                      os.path.join('translators', 'camera', 'CameraTranslator.h'),
@@ -43,7 +33,6 @@ include_files_add = [os.path.join('nodes', 'shader', 'ArnoldShaderNode.h'),
                      os.path.join('translators', 'options', 'OptionsTranslator.h'),
                      os.path.join('translators', 'shader', 'ShaderTranslator.h'),
                      os.path.join('translators', 'shape', 'ShapeTranslator.h'),
-                     os.path.join('translators', 'shape', 'GeometryTranslator.h'),
                      os.path.join('translators', 'NodeTranslator.h')]
   
 source_files += source_files_add

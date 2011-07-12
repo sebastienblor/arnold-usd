@@ -1,19 +1,14 @@
 #ifndef EXTENSION_H
 #define EXTENSION_H
 
-#include "extension/PathUtils.h"
 #include "extension/PxUtils.h"
-#include "common/DynLibrary.h"
+#include "extension/PathUtils.h"
 #include "translators/NodeTranslator.h"
 
 #include <maya/MTypeId.h>
 #include <maya/MPxNode.h>
 
-#include <ai_nodes.h>
-#include <ai.h>
-
 #define BUILTIN "<built-in>"
-
 
 class CAbMayaNode;
 
@@ -39,8 +34,8 @@ public:
    virtual ~CExtension() {}
    void Requires(const MString &plugin);
    MStringArray Required();
-   MString GetName() const {return m_extensionName;}
-   MString GetFile() const {return m_extensionFile;}
+   MString GetExtensionName() const {return m_extensionName;}
+   MString GetExtensionFile() const {return m_extensionFile;}
    unsigned int RegisteredNodesCount() const {return m_registeredMayaNodes.size();}
    unsigned int TranslatedNodesCount() const {return m_registeredTranslators.size();}
    unsigned int TranslatorCount() const;
@@ -68,6 +63,9 @@ public:
                               const MString &translatorName,
                               TCreatorFunction creatorFunction,
                               TNodeInitFunction nodeInitFunction=NULL);
+
+   static bool IsArnoldPluginLoaded(const MString &path);
+   static MStringArray GetAllLoadedArnoldPlugins();
 
 protected :
    MStatus setFile(const MString &file);
@@ -106,8 +104,6 @@ protected :
    static MStringArray FindLibraries(const MString &path,
                                      MStatus *returnStatus=NULL);
 
-   static bool IsArnoldPluginLoaded(const MString &path);
-   static MStringArray GetAllLoadedArnoldPlugins();
 
 protected:
    MString m_extensionFile;

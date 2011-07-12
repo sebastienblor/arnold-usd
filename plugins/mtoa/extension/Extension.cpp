@@ -1,5 +1,6 @@
 #include "Extension.h"
 
+#include "common/DynLibrary.h"
 #include "nodes/ArnoldNodeIDs.h"
 
 #define MNoVersionString
@@ -9,6 +10,8 @@
 #include <ai_universe.h>
 #include <ai_metadata.h>
 #include <ai_msg.h>
+#include <ai_nodes.h>
+#include "ai_node_entry.h"
 
 #include <maya/MSceneMessage.h>
 #include <maya/MNodeMessage.h>

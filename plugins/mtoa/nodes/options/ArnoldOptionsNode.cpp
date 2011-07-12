@@ -57,6 +57,7 @@ MObject CArnoldOptionsNode::s_mb_lights_enable;
 MObject CArnoldOptionsNode::s_mb_camera_enable;
 MObject CArnoldOptionsNode::s_mb_objects_enable;
 MObject CArnoldOptionsNode::s_mb_object_deform_enable;
+MObject CArnoldOptionsNode::s_mb_shader_enable;
 MObject CArnoldOptionsNode::s_shutter_size;
 MObject CArnoldOptionsNode::s_shutter_offset;
 MObject CArnoldOptionsNode::s_shutter_type;
@@ -353,6 +354,10 @@ MStatus CArnoldOptionsNode::initialize()
    s_mb_object_deform_enable = nAttr.create("mb_object_deform_enable", "mb_den", MFnNumericData::kBoolean, 1);
    nAttr.setKeyable(false);
    addAttribute(s_mb_object_deform_enable);
+
+   s_mb_shader_enable = nAttr.create("mb_shader_enable", "mb_sen", MFnNumericData::kBoolean, 1);
+   nAttr.setKeyable(false);
+   addAttribute(s_mb_shader_enable);
 
    s_shutter_size = nAttr.create("shutter_size", "shuts", MFnNumericData::kFloat, 1.0f);
    nAttr.setKeyable(false);

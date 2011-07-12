@@ -6,7 +6,6 @@
 #include <maya/MCommonRenderSettingsData.h>
 #include <maya/MDagPath.h>
 
-#include <ai_bbox.h>
 
 class CArnoldExportAssCmd
    :   public MPxCommand

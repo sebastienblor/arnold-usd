@@ -90,7 +90,7 @@ void CHairTranslator::Update( AtNode *curve )
          plug.connectedTo(hairShaderPlugs, true, false);
          if (hairShaderPlugs.length() > 0)
          {
-            shader = ExportShader(hairShaderPlugs[0].node());
+            shader = ExportNode(hairShaderPlugs[0].node());
          }
       }
    }
@@ -201,11 +201,11 @@ void CHairTranslator::Update( AtNode *curve )
 
 
    // Hair specific Arnold render settings.
-   plug = GetFnNode().findPlug("aiMinPixelWidth");
+   plug = FindMayaObjectPlug("aiMinPixelWidth");
    if (!plug.isNull()) AiNodeSetFlt(curve, "min_pixel_width", plug.asFloat());
 
    // Mode is an enum, 0 == ribbon, 1 == tubes.
-   plug = GetFnNode().findPlug("aiMode");
+   plug = FindMayaObjectPlug("aiMode");
    if (!plug.isNull()) AiNodeSetInt(curve, "mode", plug.asInt());
 
    AiNodeSetStr(curve, "basis", "catmull-rom");
@@ -236,7 +236,7 @@ void CHairTranslator::ExportMotion(AtNode *curve, AtUInt step)
    ExportMatrix(curve, step);
 
    // Same for object deformation, early out if it's not set.
-   if (!IsDeformMotionBlurEnabled()) return;
+   if (!IsMotionBlurEnabled(MTOA_MBLUR_DEFORM)) return;
 
    // Get hair lines
    MObject objectHairShape(m_dagPath.node());

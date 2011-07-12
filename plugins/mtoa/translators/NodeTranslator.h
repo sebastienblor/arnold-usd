@@ -1,10 +1,10 @@
 #ifndef NODETRANSLATOR_H
 #define NODETRANSLATOR_H
 
+#include "common/MObjectCompare.h"
 #include "platform/Platform.h"
-#include "scene/MayaScene.h"
-#include "render/RenderSwatch.h"
 #include "attributes/AttrHelper.h"
+#include "session/ArnoldSession.h"
 #include "extension/AbTranslator.h"
 
 #include <ai_nodes.h>
@@ -29,7 +29,7 @@ class DLLEXPORT CNodeTranslator
 {
    // protect this class from its subclasses: make methods that should not be
    // called by subclasses private
-   friend class CMayaScene;
+   friend class CArnoldSession;
    friend class CExtensionsManager;
    friend class CExtension;
    friend class CRenderSwatchGenerator;
@@ -41,19 +41,26 @@ private:
    void SetTranslatorName(MString name) {m_abstract.name = MString(name);}
 
 public:
+   MString GetTranslatorName() {return m_abstract.name;}
+
    virtual ~CNodeTranslator()
    {}
-   virtual AtNode* Init(const MObject& object, CMayaScene* scene, MString outputAttr="")
+   virtual AtNode* Init(CArnoldSession* session, const MObject& object, MString outputAttr="")
    {
+      m_session = session;
       m_object = object;
       m_fnNode.setObject(object);
-      m_scene = scene;
       m_outputAttr = outputAttr;
       return DoCreateArnoldNodes();
    }
-   virtual MFnDependencyNode GetFnNode() const {return m_fnNode;}
-   MString GetName() {return m_abstract.name;}
-   virtual bool IsDag() {return false;}
+   virtual MObject GetMayaObject() const { return m_object; }
+   virtual MString GetMayaNodeName() const { return m_fnNode.name(); }
+   virtual MString GetMayaNodeTypeName() const { return m_fnNode.typeName(); }
+   virtual MObject GetMayaObjectAttribute(MString attributeName) const { return m_fnNode.attribute(attributeName); }
+   virtual MPlug FindMayaObjectPlug(MString attributeName) const { return m_fnNode.findPlug(attributeName); }
+
+   virtual bool IsMayaTypeDag() {return false;}
+   virtual bool IsMayaTypeRenderable() {return false;}
 
 protected:
    CNodeTranslator()  :
@@ -70,36 +77,33 @@ protected:
    virtual void Delete() {}
    void DoDelete();
 
-   static void ConvertMatrix(AtMatrix& matrix, const MMatrix& mayaMatrix);
+   // Using the translator's MObject m_object and corresponding attrbuteName (default behavior)
+   virtual AtNode* ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, int element=-1);
+   // For a specific Maya plug
+   virtual AtNode* ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, const MPlug& plug);
 
-   AtNode* ProcessParameter(AtNode* arnoldNode, const char* mayaAttrib, const AtParamEntry* paramEntry, int element=-1);
-   AtNode* ProcessParameter(AtNode* arnoldNode, const char* attrib, int arnoldAttribType, int element=-1);
-   AtNode* ProcessParameter(AtNode* arnoldNode, const char* mayaAttrib, const char* arnoldAttrib, int arnoldAttribType, int element=-1);
-   AtNode* ProcessParameter(AtNode* arnoldNode, MPlug& plug, const AtParamEntry* paramEntry, int elemen=-1);
-   AtNode* ProcessParameter(AtNode* arnoldNode, MPlug &plug, const char* arnoldAttrib, int arnoldAttribType, int element=-1);
    void ExportUserAttribute(AtNode *anode);
 
-   // scene info
-   AtNode* ExportShader(MObject mayaShader, const MString &attrName="") { return m_scene->ExportShader(mayaShader, attrName);}
-   AtNode* ExportShader(MPlug& shaderOutputPlug) {return m_scene->ExportShader(shaderOutputPlug);}
-   AtNode* ExportDagPath(MDagPath &dagPath) {return m_scene->ExportDagPath(dagPath);}
-   AtFloat GetCurrentFrame() {return m_scene->GetCurrentFrame();}
-   bool IsMotionBlurEnabled() const {return m_scene->IsMotionBlurEnabled();}
-   bool IsCameraMotionBlurEnabled() const {return m_scene->IsCameraMotionBlurEnabled();}
-   bool IsObjectMotionBlurEnabled() const
+   // session info
+   inline double GetExportFrame() const {return m_session->GetExportFrame();}
+   inline bool IsMotionBlurEnabled(int type = MTOA_MBLUR_ALL) const { return m_session->IsMotionBlurEnabled(type); }
+   bool IsLocalMotionBlurEnabled() const
    {
       bool local_motion_attr(true);
-      MPlug plug = GetFnNode().findPlug("motionBlur");
+      MPlug plug = FindMayaObjectPlug("motionBlur");
       if (!plug.isNull())
          local_motion_attr = plug.asBool();
-      return m_scene->IsObjectMotionBlurEnabled() && local_motion_attr;
+      return local_motion_attr;
    }
-   bool IsDeformMotionBlurEnabled() const {return m_scene->IsDeformMotionBlurEnabled();}
-   bool IsLightMotionBlurEnabled() const {return m_scene->IsLightMotionBlurEnabled();}
-   AtUInt GetNumMotionSteps() const {return m_scene->GetNumMotionSteps();}
-   AtFloat GetShutterSize() const {return m_scene->GetShutterSize();}
-   AtUInt GetShutterType(){return m_scene->GetShutterType();}
-   ExportMode GetExportMode() {return m_scene->GetExportMode();}
+   inline unsigned int GetNumMotionSteps() const {return m_session->GetNumMotionSteps();}
+   inline float GetShutterSize() const {return m_session->GetShutterSize();}
+   inline unsigned int GetShutterType() const {return m_session->GetShutterType();}
+   inline ArnoldSessionMode GetSessionMode() const {return m_session->GetSessionMode();}
+
+   // session action
+   AtNode* ExportNode(MObject node, const MString &attrName="") { return m_session->ExportNode(node, attrName);}
+   AtNode* ExportNode(MPlug& outputPlug) {return m_session->ExportNode(outputPlug);}
+   AtNode* ExportDagPath(MDagPath &dagPath) {return m_session->ExportDagPath(dagPath);}
 
    // get the arnold node that this translator is exporting (should only be used after all export steps are complete)
    AtNode* GetArnoldRootNode();
@@ -107,16 +111,18 @@ protected:
    AtNode* AddArnoldNode(const char* type, const char* tag="");
    virtual void SetArnoldNodeName(AtNode* arnoldNode, const char* tag="");
 
-
    // Add a callback to the list to manage.
-   void ManageIPRCallback(const MCallbackId id);
+   void ManageUpdateCallback(const MCallbackId id);
 
    // Overide this if you have some special callbacks to install.
-   virtual void AddIPRCallbacks();
+   virtual void AddUpdateCallbacks();
    // Remove callbacks installed. This is virtual incase
    // a translator needs to do more than remove the managed
    // callbacks.
-   virtual void RemoveIPRCallbacks();
+   virtual void RemoveUpdateCallbacks();
+   // This is a help that tells mtoa to re-export/update the node passed in.
+   // Used by the Update callbacks.
+   void RequestUpdate(void * clientData = NULL);
 
    // Some simple callbacks used by many translators.
    static void NodeDirtyCallback(MObject &node, MPlug &plug, void *clientData);
@@ -126,13 +132,13 @@ protected:
 protected:
    CAbTranslator m_abstract;
 
+   CArnoldSession* m_session;
+
    AtNode* m_atNode;
    std::map<std::string, AtNode*> m_atNodes;
    MObject m_object;
-   CMayaScene* m_scene;
    MFnDependencyNode m_fnNode;
    MString m_outputAttr;
-
 
    // This stores callback IDs for the callbacks this
    // translator creates.
@@ -141,47 +147,41 @@ protected:
    // Manually defined translators can fill this information
    // to make debugging more explicit
    MString s_arnoldNodeName;
-
-   // This is a help that tells mtoa to re-export/update the node passed in.
-   // Used by the IPR callbacks.
-   static void UpdateIPR(void * clientData = NULL);
-
-   static MPlug FindPlug(MFnDependencyNode& node, const std::string& param);
-   static MPlug GetPlugElement(MFnDependencyNode& node, MPlug& plug, const std::string& attr);
    
 };
 
 // Abstract base class for Dag node translators
 //
-typedef std::map<MObjectHandle, MDagPath, mobjcompare> ObjectHandleToDagMap;
+typedef std::map<MObjectHandle, MDagPath, MObjectCompare> ObjectHandleToDagMap;
 
 class DLLEXPORT CDagTranslator : public CNodeTranslator
 {
-   friend class CMayaScene;
 
 public:
-   virtual AtNode* Init(MDagPath& dagPath, CMayaScene* scene, MString outputAttr="")
+   virtual AtNode* Init(CArnoldSession* session, MDagPath& dagPath, MString outputAttr="")
    {
+      m_session = session;
       m_dagPath = dagPath;
       m_fnDagNode.setObject(dagPath);
       // must call this after member initialization to ensure they are available to virtual functions like SetArnoldNodeName
-      AtNode * tmpRet = CNodeTranslator::Init(dagPath.node(), scene, outputAttr);
+      AtNode * tmpRet = CNodeTranslator::Init(session, dagPath.node(), outputAttr);
       return tmpRet;
    }
 
-   virtual AtNode* Init(MObject& object, CMayaScene* scene, MString outputAttr="")
+   virtual AtNode* Init(CArnoldSession* session, MObject& object, MString outputAttr="")
    {
       MDagPath dagPath;
       MDagPath::getAPathTo(object, dagPath);
-      return Init(dagPath, scene, outputAttr);
+      return Init(session, dagPath, outputAttr);
    }
 
-   virtual MFnDagNode GetFnDagNode() const {return m_fnDagNode;}
-   virtual bool IsDag() {return true;}
-   virtual bool IsRenderable() {return true;}
+   virtual MDagPath GetMayaDagPath() const { return m_dagPath; }
+   virtual MString GetMayaPartialPathName() const { return m_fnDagNode.partialPathName(); }
+   virtual bool IsMayaTypeDag() {return true;}
+   virtual bool IsMayaTypeRenderable() {return true;}
 
    static int GetMasterInstanceNumber(MObject node);
-   virtual void AddIPRCallbacks();
+   virtual void AddUpdateCallbacks();
    // for initializer callbacks:
    static void MakeMayaVisibilityFlags(CBaseAttrHelper& helper);
    // for initializer callbacks:

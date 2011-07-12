@@ -1,9 +1,11 @@
 #include "utils/Universe.h"
+#include "utils/MtoaLog.h"
 #include "RenderSession.h"
 #include "RenderOptions.h"
 #include "OutputDriver.h"
 #include "scene/MayaScene.h"
 #include "translators/NodeTranslator.h"
+#include "extension/Extension.h"
 
 #include <ai_dotass.h>
 #include <ai_msg.h>
@@ -27,6 +29,7 @@
 #include <maya/MPlug.h>
 #include <maya/MPlugArray.h>
 #include <maya/MImage.h>
+#include <maya/MFileObject.h>
 
 #include <maya/M3dView.h>
 #include <maya/MRenderView.h>
@@ -34,8 +37,6 @@
 #include <cstdio>
 
 extern AtNodeMethods* mtoa_driver_mtd;
-
-static CRenderSession* s_renderSession = NULL;
 
 // This will update the render view if needed.
 // It's called from a maya idle event callback.
@@ -81,85 +82,60 @@ unsigned int CRenderSession::RenderThread(AtVoid* data)
    return 0;
 }
 
-
-// Cheap singleton
-CRenderSession* CRenderSession::GetInstance()
+// Reload the Arnold plugins that were registered by the extensions manager for this session
+MStatus CRenderSession::LoadPlugins()
 {
-   if (!s_renderSession)
-      s_renderSession = new CRenderSession();
+   MStatus status = MStatus::kSuccess;
 
-   return s_renderSession;
-}
-
-CMayaScene* CRenderSession::GetMayaScene()
-{
-   return m_scene;
-}
-
-void CRenderSession::LoadPlugins()
-{
-
-   #ifdef _WIN32
-      const char split_char(';');
-   #else
-      const char split_char(':');
-   #endif
-
-   const MString resolvedPathList = m_renderOptions.pluginsPath().expandEnvironmentVariablesAndTilde();
-
-   MStringArray pluginPaths;
-   resolvedPathList.split(split_char, pluginPaths);
-   for (unsigned int i=0; i<pluginPaths.length(); ++i)
+   MStringArray plugins = CExtension::GetAllLoadedArnoldPlugins();
+   for (unsigned int i=0; i<plugins.length(); ++i)
    {
-      const MString pluginPath = pluginPaths[i];
-      if (pluginPath.length() > 0)
-      {
-         AiLoadPlugins(pluginPath.asChar());
-      }
+      const MString pluginFile = plugins[i];
+      AiLoadPlugin(pluginFile.asChar());
    }
+
+   return status;
 }
 
-void CRenderSession::Init()
+MStatus CRenderSession::Begin(CRenderOptions* options)
 {
-   CExportOptions defaultOptions;
-   Init(defaultOptions);
-}
+   MStatus status = MStatus::kSuccess;
 
-void CRenderSession::Init(CExportOptions& options)
-{
    m_is_active = true;
-   m_scene = new CMayaScene;
-   m_scene->SetExportOptions(options);
-   m_renderOptions.GetFromMaya(m_scene);
-   m_renderOptions.SetupLog();
-}
-
-void CRenderSession::Translate()
-{
-   CExportOptions defaultOptions;
-   Translate(defaultOptions);
-}
-
-void CRenderSession::Translate(CExportOptions& options)
-{
    if (AiUniverseIsActive())
    {
-      AiMsgError("[mtoa] There can only be one RenderSession active.");
-      return;
+      AiMsgWarning("[mtoa] There can only be one RenderSession active.");
+      AiRenderAbort();
+      InterruptRender();
+      AiEnd();
    }
 
-   // Begin the Arnold universe.
+   // Begin the Arnold universe, read metadata file and load plugins
    AiBegin();
-   ReadMetafile();
-   Init(options);
-   // TODO: should use the list of loaded plugins from CExtensionsManager instead
-   LoadPlugins();
+   status = ReadMetafile();
+   status = LoadPlugins();
 
-   m_scene->ExportToArnold();
+   m_renderOptions = *options;
+   m_renderOptions.SetupLog();
 
-   if (options.camera.isValid())
-      SetCamera(options.camera);
+   return status;
+}
 
+MStatus CRenderSession::End()
+{
+   MStatus status = MStatus::kSuccess;
+
+   if (AiUniverseIsActive())
+   {
+      AiRenderAbort();
+      InterruptRender();
+      AiEnd();
+   }
+   m_is_active = false;
+   // Restore "out of rendering" logging
+   MtoaSetupLogging();
+
+   return status;
 }
 
 AtBBox CRenderSession::GetBoundingBox()
@@ -169,8 +145,6 @@ AtBBox CRenderSession::GetBoundingBox()
    {
       // FIXME: we need to start a render to have it actually initialize the bounding box
       // (in free mode, does nothing but setting the scene up for future ray requests)
-      AtNode* options = AiUniverseGetOptions();
-      AiNodeSetBool(options, "preserve_scene_data", true);
       AiRender(AI_RENDER_MODE_FREE);
       bbox = AiUniverseGetSceneBounds();
    }
@@ -182,23 +156,34 @@ AtBBox CRenderSession::GetBoundingBox()
    return bbox;
 }
 
-void CRenderSession::Finish()
+// FIXME: will probably get removed when we have proper bounding box format support
+MStatus CRenderSession::WriteAsstoc(const MString& filename, const AtBBox& bBox)
 {
-   // This will release the scene and therefore any
-   // translators it has held.
-   if (m_scene != NULL)
-   {
-      delete m_scene;
-      m_scene = NULL;
-   }
+   MString bboxcomment = "bounds ";
+   bboxcomment += bBox.min.x;
+   bboxcomment += " ";
+   bboxcomment += bBox.min.y;
+   bboxcomment += " ";
+   bboxcomment += bBox.min.z;
+   bboxcomment += " ";
+   bboxcomment += bBox.max.x;
+   bboxcomment += " ";
+   bboxcomment += bBox.max.y;
+   bboxcomment += " ";
+   bboxcomment += bBox.max.z;
 
-   if (AiUniverseIsActive())
-   {
-      AiRenderAbort();
-      InterruptRender();
-      AiEnd();
+   FILE * bboxfile;
+   bboxfile = fopen(filename.asChar(), "w");
+   if (bboxfile != NULL) {
+      fwrite(bboxcomment.asChar() , 1 , bboxcomment.length(), bboxfile);
+      fclose(bboxfile);
+
+      return MStatus::kSuccess;
    }
-   m_is_active = false;
+   else
+   {
+      return MStatus::kFailure;
+   }
 }
 
 void CRenderSession::InterruptRender()
@@ -222,13 +207,6 @@ void CRenderSession::SetBatch(bool batch)
    m_renderOptions.SetBatch(batch);
 }
 
-/*
-void CRenderSession::SetSceneExportOptions(const CExportOptions& options)
-{
-   m_scene->SetExportOptions(options);
-}
-*/
-
 void CRenderSession::SetResolution(const int width, const int height)
 {
    if (width != -1) m_renderOptions.SetWidth(width);
@@ -247,12 +225,12 @@ void CRenderSession::SetProgressive(const bool is_progressive)
 }
 
 /// Export the passed camera node and set options.camera
-void CRenderSession::SetCamera(MDagPath& cameraNode)
+void CRenderSession::SetCamera(MDagPath cameraNode)
 {
    cameraNode.extendToShape();
    m_renderOptions.SetCamera(cameraNode);
    // FIXME: do this more explicitly: at this point the node should be exported, this is just retrieving the arnold node
-   AtNode* camera = m_scene->ExportDagPath(cameraNode);
+   AtNode* camera = CMayaScene::GetExportSession()->ExportDagPath(cameraNode);
    if (camera == NULL)
    {
       AiMsgError("[mtoa] Setting camera %s failed", cameraNode.partialPathName().asChar());
@@ -327,6 +305,7 @@ void CRenderSession::SetMultiCameraRender(bool multi)
 
 void CRenderSession::SetupRenderOutput()
 {
+   m_renderOptions.UpdateImageOptions();
 
    AtNode * render_view = CreateRenderViewOutput();
    AtNode * file_driver = CreateFileOutput();
@@ -379,55 +358,74 @@ void CRenderSession::SetupRenderOutput()
 AtNode * CRenderSession::CreateFileOutput()
 {
    // Don't install the file driver when in IPR mode.
-   if (GetMayaScene()->GetExportMode() == MTOA_EXPORT_IPR) return NULL;
+   if (CMayaScene::GetSessionMode() == MTOA_SESSION_IPR) return NULL;
 
    AtNode* driver;
    // set the output driver
-   MString driverCamName = m_renderOptions.RenderDriver() + "_" + m_renderOptions.GetCameraName();
-   driver = AiNodeLookUpByName(driverCamName.asChar());
-   if (driver == 0x0)
+   MString driverName = m_renderOptions.RenderDriver() + "_" + m_renderOptions.GetCameraName();
+   driver = AiNodeLookUpByName(driverName.asChar());
+   if (NULL == driver)
    {
-      driver = AiNode(m_renderOptions.RenderDriver().asChar());
-      AiNodeSetStr(driver, "filename", m_renderOptions.GetImageFilename().asChar());
-
-      // Set the driver name depending on the camera name to avoid nodes with
-      // the same name on renders with multiple cameras
-      AiNodeSetStr(driver, "name", driverCamName.asChar());
+      driverName = m_renderOptions.RenderDriver();
+      if (driverName.numChars())
+      {
+         driver = AiNode(driverName.asChar());
+         if (NULL != driver)
+         {
+            MString imageName = m_renderOptions.GetImageFilename();
+            AiMsgDebug("Created output driver %s writing to file %s", driverName.asChar(), imageName.asChar());
+            AiNodeSetStr(driver, "filename", imageName.asChar());
+            // Set the driver name depending on the camera name to avoid nodes with
+            // the same name on renders with multiple cameras
+            AiNodeSetStr(driver, "name", driverName.asChar());
+         }
+         else
+         {
+            AiMsgError("Failed to create output driver %s", driverName.asChar());
+         }
+      }
    }
 
-   // set output driver parameters
-   // Only set output parameters if they exist within that specific node
-   if (AiNodeEntryLookUpParameter(driver->base_node, "compression"))
+   if (NULL != driver)
    {
-      AiNodeSetInt(driver, "compression", m_renderOptions.arnoldRenderImageCompression());
+      // set output driver parameters
+      // Only set output parameters if they exist within that specific node
+      if (AiNodeEntryLookUpParameter(driver->base_node, "compression"))
+      {
+         AiNodeSetInt(driver, "compression", m_renderOptions.arnoldRenderImageCompression());
+      }
+      if (AiNodeEntryLookUpParameter(driver->base_node, "half_precision"))
+      {
+         AiNodeSetBool(driver, "half_precision", m_renderOptions.arnoldRenderImageHalfPrecision());
+      }
+      if (AiNodeEntryLookUpParameter(driver->base_node, "output_padded"))
+      {
+         AiNodeSetBool(driver, "output_padded", m_renderOptions.arnoldRenderImageOutputPadded());
+      }
+      if (AiNodeEntryLookUpParameter(driver->base_node, "gamma"))
+      {
+         AiNodeSetFlt(driver, "gamma", m_renderOptions.arnoldRenderImageGamma());
+      }
+      if (AiNodeEntryLookUpParameter(driver->base_node, "quality"))
+      {
+         AiNodeSetInt(driver, "quality", m_renderOptions.arnoldRenderImageQuality());
+      }
+      if (AiNodeEntryLookUpParameter(driver->base_node, "format"))
+      {
+         AiNodeSetInt(driver, "format", m_renderOptions.arnoldRenderImageOutputFormat());
+      }
+      if (AiNodeEntryLookUpParameter(driver->base_node, "tiled"))
+      {
+         AiNodeSetBool(driver, "tiled", m_renderOptions.arnoldRenderImageTiled());
+      }
+      if (AiNodeEntryLookUpParameter(driver->base_node, "unpremult_alpha"))
+      {
+         AiNodeSetBool(driver, "unpremult_alpha", m_renderOptions.arnoldRenderImageUnpremultAlpha());
+      }
    }
-   if (AiNodeEntryLookUpParameter(driver->base_node, "half_precision"))
+   else
    {
-      AiNodeSetBool(driver, "half_precision", m_renderOptions.arnoldRenderImageHalfPrecision());
-   }
-   if (AiNodeEntryLookUpParameter(driver->base_node, "output_padded"))
-   {
-      AiNodeSetBool(driver, "output_padded", m_renderOptions.arnoldRenderImageOutputPadded());
-   }
-   if (AiNodeEntryLookUpParameter(driver->base_node, "gamma"))
-   {
-      AiNodeSetFlt(driver, "gamma", m_renderOptions.arnoldRenderImageGamma());
-   }
-   if (AiNodeEntryLookUpParameter(driver->base_node, "quality"))
-   {
-      AiNodeSetInt(driver, "quality", m_renderOptions.arnoldRenderImageQuality());
-   }
-   if (AiNodeEntryLookUpParameter(driver->base_node, "format"))
-   {
-      AiNodeSetInt(driver, "format", m_renderOptions.arnoldRenderImageOutputFormat());
-   }
-   if (AiNodeEntryLookUpParameter(driver->base_node, "tiled"))
-   {
-      AiNodeSetBool(driver, "tiled", m_renderOptions.arnoldRenderImageTiled());
-   }
-   if (AiNodeEntryLookUpParameter(driver->base_node, "unpremult_alpha"))
-   {
-      AiNodeSetBool(driver, "unpremult_alpha", m_renderOptions.arnoldRenderImageUnpremultAlpha());
+      AiMsgError("Could not create file output of name '%s'", driverName.asChar());
    }
 
    return driver;
@@ -510,8 +508,9 @@ void CRenderSession::DoInteractiveRender()
    MComputation comp;
    comp.beginComputation();
 
+   SetBatch(false);
    SetupRenderOutput();
-   PrepareRenderView();
+   PrepareRenderView(false);
 
    // Start the render thread.
    m_render_thread = AiThreadCreate(CRenderSession::RenderThread,
@@ -530,12 +529,138 @@ void CRenderSession::DoInteractiveRender()
 
 AtULong CRenderSession::DoBatchRender()
 {
+   SetBatch(true);
    SetupRenderOutput();
 
    return AiRender(AI_RENDER_MODE_CAMERA);
 }
 
-void CRenderSession::DoExport(MString customFileName)
+MString CRenderSession::GetAssName(const MString& customName,
+                                        const MCommonRenderSettingsData& renderGlobals,
+                                        double frameNumber,
+                                        const MString &sceneName,
+                                        const MString &cameraName,
+                                        const MString &fileFormat,
+                                        const MObject layer,
+                                        const bool createDirectory,
+                                        const bool isSequence,
+                                        const bool subFrames,
+                                        const bool isBatch,
+                                        MStatus *ReturnStatus) const
+{
+   MStatus status;
+   MString assFileName = customName;
+   // Current Maya file and directory
+   MFileObject sceneFile;
+   sceneFile.overrideResolvedFullName(sceneName);
+   MString sceneDir = sceneFile.resolvedPath();
+   MString sceneFileName = sceneFile.resolvedName();
+   // Strip Maya scene extension if present
+   unsigned int nscn = sceneFileName.numChars();
+   if (nscn > 3)
+   {
+      MString ext = sceneFileName.substringW(nscn-3, nscn);
+      if (ext == ".ma" || ext == ".mb")
+      {
+         sceneFileName = sceneFileName.substringW(0, nscn-4);
+      }
+   }
+   // TODO: since .ass is a registered Maya file extension (through the translator),
+   // we can output ass files in their own registered project subdir.
+   // It's the default Maya behavior a relative path / filename is specified.
+   // Problem is it won't be affected by Render command argument redirecting the output file.
+   // Thus in bath mode we usually want to use the absolute path.
+   // Current behavior is use the custom file name if one is explicitely passed
+   // (ie direct call to arnoldExportAss command)
+   // If no name is passed (ie call by render command) then :
+   // Use render globals file name, but output in projects' ass subdirectory if not in batch mode
+   // Use render globals file name and absolute path if in batch mode
+   if (customName.numChars())
+   {
+      if (isSequence)
+      {
+         // TODO: some of maya tools support fractionnal frame numbers
+         char frameExt[64];
+         if (subFrames)
+         {
+            int fullFrame = (int) floor(frameNumber);
+            int subFrame = (int) floor((frameNumber - fullFrame) * 1000);
+            sprintf(frameExt, ".%04d.%03d", fullFrame, subFrame);
+         }
+         else
+         {
+            sprintf(frameExt, ".%04d", (int) frameNumber);
+         }
+
+         assFileName = customName + frameExt;
+      }
+      else
+         assFileName = customName;
+   }
+   else
+   {
+      MCommonRenderSettingsData::MpathType pathType;
+      if (isBatch)
+      {
+         pathType = MCommonRenderSettingsData::kFullPathImage;
+      }
+      else
+      {
+         pathType = MCommonRenderSettingsData::kRelativePath;
+      }
+      assFileName = renderGlobals.getImageName(pathType,
+                                               frameNumber,
+                                               sceneFileName,
+                                               cameraName,
+                                               fileFormat,
+                                               layer,
+                                               createDirectory,
+                                               &status);
+   }
+   // Add desired extension if not present
+   MString ext = MString(".") + fileFormat;
+   unsigned int next = ext.length();
+   unsigned int nchars = assFileName.numChars();
+   if (nchars <= next || assFileName.substringW(nchars-next, nchars) != ext)
+   {
+      assFileName += ext;
+   }
+   // If we didn't have an absolute path specified for the file name, then
+   // if we got an active, non default project, use the subdirectory registered for ass files
+   // else use same directory as Maya file name
+   MFileObject assFile;
+   status = assFile.setRawFullName(assFileName);
+   // If a relative path was specified, use project settings
+   if (MStatus::kSuccess == status && assFile.expandedPath().numChars() == 0)
+   {
+      // Relative file name, check if we got an active project
+      MString curProject = MGlobal::executeCommandStringResult("workspace -q -o");
+      MString dirProject = "";
+      MString assDir = "";
+      if (curProject.numChars())
+      {
+         // If we got an active project, query the subdirectory registered for ass files
+         dirProject = MGlobal::executeCommandStringResult("workspace -q -rd \"" + curProject + "\"");
+         assDir = MGlobal::executeCommandStringResult("workspace -q -fileRuleEntry ArnoldSceneSource");
+      }
+      // Use current project ass files subdir, or if none found, use current maya scene dir
+      if (dirProject.numChars() && assDir.numChars())
+      {
+         assFile.setRawPath(dirProject + "/" + assDir);
+      }
+      else
+      {
+         assFile.setRawPath(sceneDir);
+      }
+   }
+   // Get expanded full name
+   assFileName = assFile.resolvedFullName();
+
+   if (NULL != ReturnStatus) *ReturnStatus = status;
+   return assFileName;
+}
+
+void CRenderSession::DoAssWrite(MString customFileName)
 {
    MString fileName;
 
@@ -702,7 +827,8 @@ void CRenderSession::DoSwatchRender(const AtInt resolution)
 
 bool CRenderSession::GetSwatchImage(MImage & image)
 {
-   if (GetMayaScene() == NULL || GetMayaScene()->GetExportMode() != MTOA_EXPORT_SWATCH)
+   if (CMayaScene::GetSessionMode() != MTOA_SESSION_SWATCH
+         || NULL == m_render_thread)
    {
       return false;
    }

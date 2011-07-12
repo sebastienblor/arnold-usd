@@ -37,15 +37,14 @@ CRenderOptions::CRenderOptions()
 ,  m_log_max_warnings(100)
 ,  m_log_console_verbosity(5)
 ,  m_log_file_verbosity(5)
-,  m_scene(NULL)
 {}
 
-void CRenderOptions::GetFromMaya(CMayaScene* scene)
+void CRenderOptions::GetFromMaya()
 {
-   m_scene = scene;
-
    ProcessCommonRenderOptions();
    ProcessArnoldRenderOptions();
+   SetupImageOutputs();
+   UpdateImageFilename();
 }
 
 void CRenderOptions::UpdateImageFilename() 
@@ -142,6 +141,7 @@ void CRenderOptions::ProcessCommonRenderOptions()
             m_pixelAspectRatio = 1.0f / (((float)m_height / m_width) * fnRes.findPlug("deviceAspectRatio").asFloat());
          }
       }
+
    }
 }
 
@@ -231,7 +231,6 @@ void CRenderOptions::ProcessArnoldRenderOptions()
    {
       AiMsgError("[mtoa] Could not find defaultArnoldRenderOptions");
    }
-   SetupImageOutputs();
 }
 
 void CRenderOptions::SetupLog() const
@@ -246,16 +245,26 @@ void CRenderOptions::SetupLog() const
    // Callback for script editor echo has to be disabled, because not way to know
    // the log filename and write to it from callback
    // AiMsgSetCallback(MtoaLogCallback);
-   AiMsgResetCallback();
+   // AiMsgResetCallback();
 }
 
-void CRenderOptions::SetupImageOptions() const
+void CRenderOptions::UpdateImageOptions()
 {
    MObject        node;
    if (GetOptionsNode(node) == MS::kSuccess)
    {
-      COptionsTranslator* translator = (COptionsTranslator*)m_scene->GetActiveTranslator(node);
-      translator->SetupImageOptions(AiUniverseGetOptions());
+      AtNode* options = AiUniverseGetOptions();
+      if (useRenderRegion())
+      {
+         AiNodeSetInt(options, "region_min_x", minX());
+         AiNodeSetInt(options, "region_min_y", height() - maxY() - 1);
+         AiNodeSetInt(options, "region_max_x", maxX());
+         AiNodeSetInt(options, "region_max_y", height() - minY() - 1);
+      }
+
+      AiNodeSetInt(options, "xres", width());
+      AiNodeSetInt(options, "yres", height());
+      AiNodeSetFlt(options, "aspect_ratio", pixelAspectRatio());
    }
 }
 
@@ -309,6 +318,7 @@ void CRenderOptions::SetupImageOutputs()
       m_imageFileExtension = "png";
    }
 }
+
 MStatus CRenderOptions::GetOptionsNode(MObject& optionsNode) const
 {
    MSelectionList list;

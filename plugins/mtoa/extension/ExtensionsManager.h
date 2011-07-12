@@ -7,9 +7,6 @@
 #include "extension/Extension.h"
 #include "extension/PxUtils.h"
 
-#include <ai_nodes.h>
-#include <ai.h>
-
 #include <maya/MGlobal.h>
 #include <maya/MObject.h>
 #include <maya/MFnPlugin.h>

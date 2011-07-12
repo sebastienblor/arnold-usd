@@ -1,9 +1,9 @@
-#include "translators/shape/GeometryTranslator.h"
+#include "translators/shape/ShapeTranslator.h"
 #include <maya/shaveAPI.h>
 #include <maya/shaveItHair.h>
 
 class CShaveTranslator
-   :   public CGeometryTranslator
+   :   public CShapeTranslator
 {
 public:
 
