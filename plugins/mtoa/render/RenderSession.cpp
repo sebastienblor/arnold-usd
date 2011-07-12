@@ -765,6 +765,7 @@ void CRenderSession::PauseIPR()
 void CRenderSession::UnPauseIPR()
 {
    m_paused_ipr = false;
+   CMayaScene::UpdateIPR();
    DoIPRRender();
 }
 

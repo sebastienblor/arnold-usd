@@ -709,7 +709,6 @@ DagFiltered CArnoldSession::FilteredStatus(MDagPath path)
 }
 
 // updates
-
 void CArnoldSession::QueueForUpdate(CNodeTranslator * translator)
 {
    if (translator != NULL) m_translatorsToUpdate.push_back(translator);

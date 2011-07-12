@@ -240,7 +240,7 @@ MStatus CMayaScene::UpdateIPR()
    MCallbackId id;
 
    // Add the IPR update callback, this is called in Maya's idle time
-   if ( s_IPRIdleCallbackId == 0 )
+   if ( s_IPRIdleCallbackId == 0 && !s_renderSession->m_paused_ipr )
    {
       id = MEventMessage::addEventCallback("idle", IPRIdleCallback, NULL, &status);
       if (status == MS::kSuccess) s_IPRIdleCallbackId = id;
@@ -329,7 +329,7 @@ void CMayaScene::IPRIdleCallback(void *)
    }
 
    // Check that an update is really needed.
-   if (s_exportSession->NeedsUpdate() && !s_renderSession->m_paused_ipr)
+   if (s_exportSession->NeedsUpdate())
    {
       s_renderSession->InterruptRender();
       s_exportSession->SetExportFrame(MAnimControl::currentTime().as(MTime::uiUnit()));

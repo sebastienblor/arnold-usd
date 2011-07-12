@@ -155,13 +155,14 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
       else
       {
          renderSession->SetResolution(width, height);
+         MSelectionList sel;
+         args.getFlagArgument("camera", 0, sel);
+         MDagPath camera;
+         status = sel.getDagPath(0, camera);
+         // Set the render session camera.
+         renderSession->SetCamera(camera);
       }
-      MSelectionList sel;
-      args.getFlagArgument("camera", 0, sel);
-      MDagPath camera;
-      status = sel.getDagPath(0, camera);
-      // Set the render session camera.
-      renderSession->SetCamera(camera);
+
 
       // Start off the render.
       renderSession->DoIPRRender();
