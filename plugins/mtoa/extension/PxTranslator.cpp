@@ -6,14 +6,13 @@
 
 // A Maya node proxy
 CPxTranslator::CPxTranslator(const MString &translatorName,
-                             const MString &arnoldNodeName,
                              const MString &providerName,
                              const MString &providerFile,
                              TCreatorFunction creatorFunction,
                              TNodeInitFunction nodeInitFunction)
 {
    name = translatorName;
-   arnold = arnoldNodeName;
+   arnold = "";
    provider = providerName;
    // if (name.numChars() == 0) name = provider;
    file = providerFile;
@@ -21,32 +20,9 @@ CPxTranslator::CPxTranslator(const MString &translatorName,
    initialize = nodeInitFunction;
 }
 
-CPxTranslator::CPxTranslator(const MString &translatorName,
-                             const AtNodeEntry* arnoldNodeEntry,
-                             const MString &providerName,
-                             const MString &providerFile,
-                             TCreatorFunction creatorFunction,
-                             TNodeInitFunction nodeInitFunction)
+MStatus CPxTranslator::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
 {
-   name = translatorName;
    arnold = AiNodeEntryGetName(arnoldNodeEntry);
-   provider = providerName;
-   // if (name.numChars() == 0) name = provider;
-   file = providerFile;
-   creator = creatorFunction;
-   initialize = nodeInitFunction;
-}
-
-MStatus CPxTranslator::ReadMetaData()
-{
-   const AtNodeEntry* arnoldNodeEntry = NULL;
-   arnoldNodeEntry = AiNodeEntryLookUp(arnold.asChar());
-   if (NULL == arnoldNodeEntry)
-   {
-      AiMsgError("[mtoa] [%s] Arnold node %s does not exist", provider.asChar(), arnold.asChar());
-      return MStatus::kInvalidParameter;
-   }
-
    // If no name was specified, use metadata, or by default the extension name
    if (name.numChars() == 0)
    {
@@ -64,26 +40,25 @@ MStatus CPxTranslator::ReadMetaData()
    // TODO : use metadata for a finer choice of base translator classes ?
    if (NULL == creator)
    {
-      const char* arnoldNodeTypeName;
-      arnoldNodeTypeName = AiNodeEntryGetTypeName(arnoldNodeEntry);
-      if (strcmp(arnoldNodeTypeName, "camera") == 0)
+      MString arnoldNodeTypeName = AiNodeEntryGetTypeName(arnoldNodeEntry);
+      if (arnoldNodeTypeName ==  "camera")
       {
          // TODO : define a non virtual generic CCameraTranslator
          // creator = CCameraTranslator::creator;
          // initialize = CCameraTranslator::NodeInitializer;
       }
-      else if (strcmp(arnoldNodeTypeName,"light") == 0)
+      else if (arnoldNodeTypeName == "light")
       {
          // TODO : define a non virtual generic CLightTranslator
          // creator = CLightTranslator::creator;
          // initialize = CLightTranslator::NodeInitializer;
       }
-      else if (strcmp(arnoldNodeTypeName,"shader") == 0)
+      else if (arnoldNodeTypeName == "shader")
       {
          creator = CShaderTranslator::creator;
          // initialize = CShaderTranslator::NodeInitializer;
       }
-      else if (strcmp(arnoldNodeTypeName,"shape") == 0)
+      else if (arnoldNodeTypeName == "shape")
       {
          // TODO : define a non virtual generic CShapeTranslator or Geo
          // creator = CShapeTranslator::creator;

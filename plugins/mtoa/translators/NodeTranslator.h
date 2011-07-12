@@ -144,9 +144,6 @@ protected:
    // translator creates.
    MCallbackIdArray m_mayaCallbackIDs;
 
-   // Manually defined translators can fill this information
-   // to make debugging more explicit
-   MString s_arnoldNodeName;
    
 };
 

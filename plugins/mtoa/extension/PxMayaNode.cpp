@@ -12,12 +12,10 @@
 // A Maya node class proxy
 CPxMayaNode::CPxMayaNode(const MString &typeName,
                          const MTypeId &typeId,
-                         const MString &arnoldNodeName,
                          const MString &providerName,
                          const MString &providerFile,
                          MCreatorFunction creatorFunction,
                          MInitializeFunction initFunction,
-                         CAbMayaNode *abstractMember,
                          MPxNode::Type typeNode,
                          const MString &classif)
 {
@@ -30,62 +28,25 @@ CPxMayaNode::CPxMayaNode(const MString &typeName,
    else
       id = MNodeClass(typeName).typeId();
 #endif
-   arnold = arnoldNodeName;
+   arnold = "";
    provider = providerName;
    file = providerFile;
    creator = creatorFunction;
    initialize = initFunction;
-   abstract = abstractMember;
+   abstract = NULL;
    type = typeNode;
    classification = classif;
 }
 
-CPxMayaNode::CPxMayaNode(const MString &typeName,
-                         const MTypeId &typeId,
-                         const AtNodeEntry* arnoldNodeEntry,
-                         const MString &providerName,
-                         const MString &providerFile,
-                         MCreatorFunction creatorFunction,
-                         MInitializeFunction initFunction,
-                         CAbMayaNode *abstractMember,
-                         MPxNode::Type typeNode,
-                         const MString &classif)
+/// Read metadata for this Maya node from an arnold node
+MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
 {
-   name = typeName;
-#if MAYA_API_VERSION < 201200
-   id = typeId;
-#else
-   if (typeId.id() != 0)
-      id = typeId;
-   else
-      id = MNodeClass(typeName).typeId();
-#endif
-   arnold = AiNodeEntryGetName(arnoldNodeEntry);
-   provider = providerName;
-   file = providerFile;
-   creator = creatorFunction;
-   initialize = initFunction;
-   abstract = abstractMember;
-   type = typeNode;
-   classification = classif;
-}
-
-MStatus CPxMayaNode::ReadMetaData()
-{
-   const AtNodeEntry* arnoldNodeEntry = NULL;
-   arnoldNodeEntry = AiNodeEntryLookUp(arnold.asChar());
-   if (NULL == arnoldNodeEntry)
-   {
-      AiMsgError("[mtoa] [%s] Arnold node %s does not exist", provider.asChar(), arnold.asChar());
-      return MStatus::kInvalidParameter;
-   }
-
    const char* node = AiNodeEntryGetName(arnoldNodeEntry);
+   arnold = node;
    const char* ext = provider.asChar();
 
    // AtInt arnoldNodeType = AiNodeEntryGetType(arnoldNodeEntry);
-   const char* arnoldNodeTypeName;
-   arnoldNodeTypeName = AiNodeEntryGetTypeName(arnoldNodeEntry);
+   MString arnoldNodeTypeName = AiNodeEntryGetTypeName(arnoldNodeEntry);
    // If Maya node type name and ids were not specified
    if (name.numChars() == 0)
    {
@@ -101,9 +62,13 @@ MStatus CPxMayaNode::ReadMetaData()
                ext, node);
          name = MString(mayaNodeNameMtd);
       }
-      else if (strcmp(arnoldNodeTypeName,"camera") == 0)
+      else if (arnoldNodeTypeName == "camera")
       {
          name = "camera";
+      }
+      else
+      {
+         name = toMayaStyle(MString("ai_") + node);
       }
    }
    if (id.id() == 0)
@@ -120,7 +85,7 @@ MStatus CPxMayaNode::ReadMetaData()
                ext, node);
          id = MTypeId(nodeId);
       }
-      else if (strcmp(arnoldNodeTypeName,"camera") == 0)
+      else if (arnoldNodeTypeName == "camera")
       {
          id = MTypeId(MAYA_NODEID_CAMERA);
       }
@@ -153,21 +118,21 @@ MStatus CPxMayaNode::ReadMetaData()
    // might be useful to extensions anyway.
    if (NULL == creator)
    {
-      if (strcmp(arnoldNodeTypeName,"light") == 0)
+      if (arnoldNodeTypeName == "light")
       {
          // TODO : define a base light class
          // creator = CArnoldSkyDomeLightShaderNode::creator;
          // initialize = CArnoldSkyDomeLightShaderNode::initialize;
          type = MPxNode::kLocatorNode;
       }
-      else if (strcmp(arnoldNodeTypeName,"shader") == 0)
+      else if (arnoldNodeTypeName == "shader")
       {
          creator = CArnoldShaderNode::creator;
          initialize = CArnoldShaderNode::initialize;
          abstract = &CArnoldShaderNode::s_abstract;
          type = MPxNode::kDependNode;
       }
-      else if (strcmp(arnoldNodeTypeName,"shape") == 0)
+      else if (arnoldNodeTypeName == "shape")
       {
          // TODO : can be expanded to allow base custom shape too
          // can easily add this to CPxMayaNode

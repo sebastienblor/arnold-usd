@@ -77,15 +77,16 @@ protected :
 
    // Register Maya nodes for all Arnold nodes declared with
    // the given plugin, using metadata info
-   MStatus RegisterPluginNodes(const MString &plugin="");
-   // Register Maya nodes for all Arnold nodes declared with
-   // the given plugin, using Arnold node type and metadata info
-   MStatus RegisterPluginTranslators(const MString &plugin="");
+   MStatus RegisterPluginNodesAndTranslators(const MString &plugin="");
 
    // Register the Maya node for a givem Arnold node, using the node metadata
-   MStatus RegisterNode(const AtNodeEntry* arnoldNodeEntry);
+   MStatus RegisterNode(CPxMayaNode &mayaNode,
+                        const CPxArnoldNode &arnoldNode);
+
    // Register a translator from the metadata associated with the Arnold node name or entry
-   MStatus RegisterTranslator(const AtNodeEntry* arnoldNodeEntry);
+   MStatus RegisterTranslator(const CPxTranslator &translator,
+                              CPxMayaNode &mayaNode,
+                              const CPxArnoldNode &arnoldNode);
 
    MStatus NewMappedMayaNode(CPxMayaNode mayaNode,
                              const CPxArnoldNode &arnoldNode);
