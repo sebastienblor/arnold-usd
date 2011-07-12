@@ -107,6 +107,15 @@ MStatus MNodeClass::AddNodeCallback(const MString &nodeClassName) const
          s_mayaPluginData[providedByPlugin].push_back(pluginData);
       }
       else*/
+      if (strcmp(nodeClassName.asChar(), "<driver>" ) != 0)
+      {
+         return MS::kFailure;
+      }
+      else if (strcmp(nodeClassName.asChar(), "<filter>") != 0)
+      {
+         return MS::kFailure;
+      }
+      else
       {
          AiMsgWarning("[mtoa] Cannot add a callback on %s: the node type does not exist.", nodeClassName.asChar());
          AiMsgWarning("[mtoa] If the node is provided by a plugin, load the plugin before the extension that defines a translator for that node");

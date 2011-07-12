@@ -566,7 +566,7 @@ def updateArnoldImageFormatControl(*args):
     curr = pm.getAttr('defaultArnoldRenderOptions.imageFormat')
     print "updateArnoldImageFormatControl", args, curr
     pm.setAttr('defaultRenderGlobals.imageFormat', 51)
-    pm.setAttr('defaultRenderGlobals.imfkey', curr)
+    pm.setAttr('defaultRenderGlobals.imfkey', str(curr))
 
 def extendToShape(dag):
     'Return the camera shape from this dag object'

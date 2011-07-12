@@ -202,8 +202,6 @@ def aiStandInTemplate(nodeName):
     cmds.editorTemplate(addExtraControls=True)
     cmds.editorTemplate(endScrollLayout=True)
 
-from pymel.all import *
-
 def SaveStandInButtonPush(*arg):
     basicFilter = "Arnold Source Scene (*.ass)"
     ret = cmds.fileDialog2(fileFilter=basicFilter, dialogStyle=2,cap="Save StandIn",okc="Save",fm=0)
