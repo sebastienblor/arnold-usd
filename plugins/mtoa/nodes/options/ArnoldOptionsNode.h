@@ -34,6 +34,7 @@ public:
 
    static MObject s_imageFormat;
    static MObject s_aovs;
+   static MObject s_aovMode;
 
    static MObject s_renderType;
    static MObject s_outputAssBoundingBox;
@@ -78,6 +79,8 @@ public:
 
    static MObject s_background;
    static MObject s_atmosphere;
+
+   static MObject s_displayAOV;
 
 };  // class CArnoldOptionsNode
 

@@ -45,7 +45,7 @@ CRenderSession* CMayaScene::GetRenderSession()
    return s_renderSession;
 }
 
-CArnoldSession* CMayaScene::GetExportSession()
+CArnoldSession* CMayaScene::GetArnoldSession()
 {
    if (!s_exportSession)
       s_exportSession = new CArnoldSession();
@@ -58,7 +58,7 @@ MStatus CMayaScene::Begin(ArnoldSessionMode mode)
    MStatus status = MStatus::kSuccess;
 
    CRenderSession* renderSession = GetRenderSession();
-   CArnoldSession* arnoldSession = GetExportSession();
+   CArnoldSession* arnoldSession = GetArnoldSession();
 
    MSelectionList    list;
    MObject           defaultRenderGlobalsNode;
@@ -295,7 +295,7 @@ void CMayaScene::IPRNewNodeCallback(MObject & node, void *)
    // we can shortcut and just call the update for it's already existing translator.
    // Interupt rendering
    CRenderSession* renderSession = GetRenderSession();
-   CArnoldSession* arnoldSession = GetExportSession();
+   CArnoldSession* arnoldSession = GetArnoldSession();
    renderSession->InterruptRender();
    CNodeTranslator * translator = arnoldSession->GetActiveTranslator(node);
    if (translator != NULL)

@@ -23,6 +23,7 @@ MCallbackId CArnoldOptionsNode::sId;
 
 MObject CArnoldOptionsNode::s_imageFormat;
 MObject CArnoldOptionsNode::s_aovs;
+MObject CArnoldOptionsNode::s_aovMode;
 MObject CArnoldOptionsNode::s_renderType;
 MObject CArnoldOptionsNode::s_outputAssBoundingBox;
 MObject CArnoldOptionsNode::s_progressive_rendering;
@@ -59,6 +60,7 @@ MObject CArnoldOptionsNode::s_log_console_verbosity;
 MObject CArnoldOptionsNode::s_log_file_verbosity;
 MObject CArnoldOptionsNode::s_background;
 MObject CArnoldOptionsNode::s_atmosphere;
+MObject CArnoldOptionsNode::s_displayAOV;
 
 CStaticAttrHelper CArnoldOptionsNode::s_attributes(CArnoldOptionsNode::addAttribute);
 
@@ -112,9 +114,20 @@ MStatus CArnoldOptionsNode::initialize()
    tAttr.setKeyable(false);
    addAttribute(s_imageFormat);
 
-   s_aovs = mAttr.create("aovs", "arniaovs");
+   s_aovs = mAttr.create("aovList", "aovs");
    mAttr.setKeyable(false);
+   mAttr.setArray(true);
+   mAttr.setReadable(false);
+   mAttr.setIndexMatters(false);
    addAttribute(s_aovs);
+
+   s_aovMode = eAttr.create("aovMode", "aovm");
+   eAttr.setKeyable(false);
+   eAttr.setDefault(true);
+   eAttr.addField("disabled", 0);
+   eAttr.addField("enabled", 1);
+   eAttr.addField("batch_only", 2);
+   addAttribute(s_aovMode);
 
    s_renderType = eAttr.create("renderType", "arnrt", 0);
    eAttr.setKeyable(false);
@@ -368,6 +381,11 @@ MStatus CArnoldOptionsNode::initialize()
    eAttr.addField("Fog", 1);
    eAttr.addField("Volume Scattering", 2);
    addAttribute(s_atmosphere);
+
+   s_displayAOV = tAttr.create("displayAOV", "daov", MFnData::kString);
+   tAttr.setKeyable(false);
+   tAttr.setDefault(sData.create("RGBA"));
+   addAttribute(s_displayAOV);
 
    return MS::kSuccess;
 }

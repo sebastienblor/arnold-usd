@@ -27,6 +27,8 @@
 #include <direct.h>
 #endif // _WIN32
 
+extern AtNodeMethods* mtoa_driver_mtd;
+
 CRenderOptions::CRenderOptions()
 :  m_minx(0), m_miny(0), m_maxx(0), m_maxy(0)
 ,  m_width(0), m_height(0)
@@ -47,7 +49,7 @@ void CRenderOptions::GetFromMaya()
    ProcessCommonRenderOptions();
    ProcessArnoldRenderOptions();
    // SetupImageOutputs();
-   UpdateImageFilename();
+   // UpdateImageFilename();
 }
 
 // sets the m_imageFilename member
@@ -108,16 +110,21 @@ void CRenderOptions::UpdateImageFilename()
       // (see mtoa.utils.expandFileTokens for the beginning of one)
       sceneFileName += ".<RenderPass>";
    }
-
-   for (AtUInt i=0; i<NumAOVs(); ++i)
+   // because sets are ordered, their contents are const. we must make a new set
+   // and overwrite it.
+   AOVSet newAOVs;
+   for (AOVSet::iterator it=m_aovs.begin(); it!=m_aovs.end(); ++it)
    {
-      MString tokens = MString("RenderPass=") + m_aovs[i].GetName();
-      m_aovs[i].SetImageFilename(m_defaultRenderGlobalsData.getImageName(pathType, fileFrameNumber,
-                                                                         sceneFileName, nameCamera,
-                                                                         m_imageFileExtension, renderLayer,
-                                                                         tokens, 1));
-
+      CAOV aov = (*it);
+      MString tokens = MString("RenderPass=") + aov.GetName();
+      MString filename = m_defaultRenderGlobalsData.getImageName(pathType, fileFrameNumber,
+                                                                 sceneFileName, nameCamera,
+                                                                 m_imageFileExtension, renderLayer,
+                                                                 tokens, 1);
+      aov.SetImageFilename(filename);
+      newAOVs.insert(aov);
    }
+   m_aovs = newAOVs;
 }
 
 void CRenderOptions::ProcessCommonRenderOptions()
@@ -204,10 +211,10 @@ void CRenderOptions::ProcessArnoldRenderOptions()
       MFnEnumAttribute enum_filter_type(fnArnoldRenderOptions.findPlug("filter_type").attribute());
       m_filter_type  = enum_filter_type.fieldName(fnArnoldRenderOptions.findPlug("filter_type").asShort());
 
-      m_display_gamma  = fnArnoldRenderOptions.findPlug("display_gamma").asFloat();
       m_light_gamma   = fnArnoldRenderOptions.findPlug("light_gamma").asFloat();
       m_shader_gamma  = fnArnoldRenderOptions.findPlug("shader_gamma").asFloat();
       m_texture_gamma = fnArnoldRenderOptions.findPlug("texture_gamma").asFloat();
+      m_display_gamma  = fnArnoldRenderOptions.findPlug("display_gamma").asFloat();
 
       m_clearBeforeRender = fnArnoldRenderOptions.findPlug("clear_before_render").asBool();
 
@@ -232,7 +239,7 @@ void CRenderOptions::ProcessArnoldRenderOptions()
             if (pAOVs[i].connectedTo(conns, true, false))
             {
                CAOV aov;
-               MPlug oAOV = conns[0];
+               MObject oAOV = conns[0].node();
                if (aov.FromMaya(oAOV)  && aov.IsEnabled())
                   AddAOV(aov);
                else
@@ -309,34 +316,6 @@ MString CRenderOptions::VerifyFileName(MString fileName, bool compressed)
 
    return fileName;
 }
-
-/*
-void CRenderOptions::SetupImageOutputs()
-{
-   MString imageRenderFormat = arnoldRenderImageFormat();
-
-   if (imageRenderFormat == "OpenEXR")
-   {
-      m_renderDriver       = "driver_exr";
-      m_imageFileExtension = "exr";
-   }
-   if (imageRenderFormat == "Tiff")
-   {
-      m_renderDriver       = "driver_tiff";
-      m_imageFileExtension = "tif";
-   }
-   if (imageRenderFormat == "Jpg")
-   {
-      m_renderDriver       = "driver_jpeg";
-      m_imageFileExtension = "jpg";
-   }
-   if (imageRenderFormat == "Png")
-   {
-      m_renderDriver       = "driver_png";
-      m_imageFileExtension = "png";
-   }
-}
-*/
 
 MStatus CRenderOptions::GetOptionsNode(MObject& optionsNode) const
 {

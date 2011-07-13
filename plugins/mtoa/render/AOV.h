@@ -7,25 +7,24 @@
 
 #include <maya/MString.h>
 #include <maya/MPlug.h>
+#include <maya/MFnDependencyNode.h>
 
+#include <cstring>
 #include <string>
 #include <map>
 #include <vector>
+#include <set>
+
+class CMayaScene;
+
+class CAOV;
+typedef std::set<CAOV> AOVSet;
 
 struct CAOVData
 {
    MString attribute;
    MString name;
    AtInt type;
-};
-
-/// child indices of compound plug ArnoldAOV.aovs
-enum AOVComponents
-{
-   AOV_ENABLED,
-   AOV_NAME,
-   AOV_TYPE,
-   AOV_PREFIX
 };
 
 enum AOVMode
@@ -45,26 +44,21 @@ public:
 
    CAOV& operator=(const CAOV &rhs);
 
-   inline const MString& GetName() const
-   {
-      return m_name;
-   }
+   inline bool operator==(const CAOV& other) const { return m_name == other.GetName(); }
+   inline bool operator!=(const CAOV& other) const { return m_name != other.GetName(); }
+   inline bool operator<(const CAOV& other) const { return strcmp(m_name.asChar(), other.GetName().asChar()) < 0; }
 
-   inline const MString& GetPrefix() const
-   {
-      return m_prefix;
-   }
+   inline const MString& GetName() const { return m_name; }
+   inline void SetName(const MString &name) { m_name = name; }
 
-   bool IsEnabled()
-   {
-      return m_enabled;
-   }
-   bool FromMaya(MPlug &p);
+   inline MObject GetNode() { return m_object; }
 
-   void SetImageFilename(const MString &filename)
-   {
-      m_filename = filename;
-   }
+   inline const MString& GetPrefix() const { return m_prefix; }
+
+   bool IsEnabled() { return m_enabled; }
+   bool FromMaya(MObject &o);
+
+   void SetImageFilename(const MString &filename){ m_filename = filename; }
 
    void SetupOutput(AtArray *outputs, int i, AtNode *defaultDriver, AtNode *defaultFilter) const;
 
@@ -82,6 +76,8 @@ protected:
    bool      m_enabled;
    MString   m_prefix;
    MString   m_filename;
+   MObject   m_object;
+   MFnDependencyNode m_fnNode;
 };
 
 

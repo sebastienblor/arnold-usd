@@ -23,7 +23,7 @@ node_parameters
 
    AiParameterRGBA("beauty", 0, 0, 0, 0);
    AiParameterRGBA("input", 0, 0, 0, 0);
-   AiParameterSTR("aov_name", "customColor");
+   AiParameterSTR("aov_name", "");
 
    AiMetaDataSetInt(mds, "aov_name", "aov.type", AI_TYPE_RGBA);
 }

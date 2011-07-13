@@ -214,36 +214,24 @@ public:
       return static_cast<AtUInt>(m_aovs.size());
    }
 
-   size_t FindAOV(const MString &name) const
-   {
-      for (size_t i=0; i<m_aovs.size(); ++i)
-      {
-         if (m_aovs[i].GetName() == name)
-         {
-            return i;
-         }
-      }
-      return size_t(-1);
-   }
-
-   const CAOV& GetAOV(size_t idx) const
-   {
-      return m_aovs[idx];
-   }
-
    void AddAOV(const CAOV &aov)
    {
-      size_t idx = FindAOV(aov.GetName());
-      if (idx != size_t(-1))
-      {
-         m_aovs[idx] = aov;
-      }
-      else
-      {
-         m_aovs.push_back(aov);
-      }
+      m_aovs.insert(aov);
    }
-   
+
+   bool IsActiveAOV(CAOV &aov) const
+   {
+      if (m_aovs.count(aov))
+         return true;
+      else
+         return false;
+   }
+
+   AOVSet GetAOVs() const
+   {
+      return m_aovs;
+   }
+
    void ClearAOVs()
    {
       m_aovs.clear();
@@ -264,7 +252,6 @@ private:
    
    void SetupImageOptions() const;
    void SetupImageFilter() const;
-   // void SetupImageOutputs();
 
 
    MStatus GetOptionsNode(MObject& optionsNode) const;
@@ -288,8 +275,8 @@ private:
    MString  m_imageFilename;
    AtUInt32 m_extensionPadding;
 
-   MString   m_arnoldRenderImageFormat;
-   bool      m_isAnimated;
+   MString  m_arnoldRenderImageFormat;
+   bool     m_isAnimated;
 
    MCommonRenderSettingsData m_defaultRenderGlobalsData;
 
@@ -311,18 +298,18 @@ private:
    float    m_shader_gamma;
    float    m_texture_gamma;
 
-   MString m_outputAssFile;
-   bool    m_outputAssCompressed;
-   // FIXME: how can that carry to AiUniverse options, is CRenderOptions even translated ?
-   bool    m_outputAssBoundingBox;
-   AtUInt  m_outputAssMask;
+   MString  m_outputAssFile;
+   bool     m_outputAssCompressed;
 
-   MString m_log_filename;
-   AtUInt  m_log_max_warnings;
-   AtUInt  m_log_console_verbosity;
-   AtUInt  m_log_file_verbosity;
+   bool     m_outputAssBoundingBox;
+   AtUInt   m_outputAssMask;
 
-   std::vector<CAOV> m_aovs;
+   MString  m_log_filename;
+   AtUInt   m_log_max_warnings;
+   AtUInt   m_log_console_verbosity;
+   AtUInt   m_log_file_verbosity;
+
+   AOVSet   m_aovs;
 
 };
 

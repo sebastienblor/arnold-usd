@@ -4,6 +4,7 @@ functions for dealing with mtoa node types and classifications
 
 import pymel.core as pm
 import mtoa.utils as utils
+import mtoa.aovs as aovs
 
 CATEGORY_TO_RUNTIME_CLASS = {
                 ('shader',):            'asShader',
@@ -75,6 +76,18 @@ def createArnoldNode(nodeType, name=None, skipSelect=False, runtimeClassificatio
     else:
         pm.warning("[mtoa] Could not determine runtime classification of %s: set maya.classification metadata" % nodeType)
         node = pm.createNode(nodeType, **kwargs)
+
+    # connect any shader aovs to global aov nodes
+    activeAOVMap = aovs.getAOVMap()
+    if activeAOVMap:
+        for (aovName, aovAttr) in aovs.getNodeAOVAttrs(nodeType):
+            aovNodeAttr = node.attr(aovAttr)
+            try:
+                aovNode = activeAOVMap[aovNodeAttr.get()]
+            except KeyError:
+                pass
+            else:
+                aovNode.attr('name').connect(aovNodeAttr)
     return node
 
 def getAttributeData(nodeType):

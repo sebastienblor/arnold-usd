@@ -58,29 +58,101 @@ def registerDefaultTranslator(nodeType, stringOrFunc):
 
 def getTranslatorTemplates(nodeType):
     """
-    return a dictionary of {translatorName : [templateInstance]} for the given nodeType
+    return a dictionary of {translatorName : [template class]} for the given nodeType
     """
     # return a copy so it doesn't get messed with
     global _translatorTemplates
     return dict(_translatorTemplates[nodeType])
 
+def getTranslatorTemplate(nodeType, translatorName):
+    """
+    return a setup template *instance* for the given nodeType, or None if one has not been registered
+    """
+    try:
+        cls = getTranslatorTemplates(nodeType)[translatorName]
+        template = cls(nodeType)
+        template.setup()
+        return template
+    except KeyError:
+        pass
+
 def registerTranslatorUI(cls, nodeType, translatorName='<built-in>'):
     """
     a translator UI is a specialize custom attr template based on the
-    ArnoldTranslatorTemplate class. 
+    ArnoldTranslatorTemplate class.
     """
     global _customAttrTemplates
     assert inspect.isclass(cls) and issubclass(cls, ArnoldTranslatorTemplate), "you must pass a subclass of ArnoldTranslatorTemplate"
     print "registering translator template for %s on %s" % (translatorName, nodeType)
-    inst = cls(nodeType)
-    inst.setup()
-    _translatorTemplates[nodeType][translatorName] = inst
+    _translatorTemplates[nodeType][translatorName] = cls
 
-class AttributeTemplate(object):
+class BaseTemplate(object):
     """
     This class provides a framework for managing AE-like templates. Once instantiated,
     the UI can be registered as an AE tempalte via AttributeTemplate.attachToAE(),
-    or simply built as a normal UI via AttributeTemplate.attachToUI() 
+    or simply built as a normal UI via AttributeTemplate.attachToUI()
+    """
+    def __init__(self, nodeType=None):
+        self._nodeType = nodeType
+        self._nodeName = None
+
+    def __repr__(self):
+        return '%s(%r)' % (self.__class__.__name__, self.nodeType())
+
+    def _doBuild(self, node, *args):
+        '''
+        build the UI from the list of added attributes
+        '''
+        self._setActiveNode(node)
+        self.build()
+
+    def _doUpdate(self, node, *args):
+        self._setActiveNode(node)
+        self.update()
+
+    def _setActiveNode(self, nodeName):
+        "set the active node"
+        assert nodeName, "%r: trying to set nodeName to None" % self
+        self._nodeName = nodeName
+
+    # queries
+    def nodeName(self):
+        "get the active node"
+        assert self._nodeName, "%r: nodeName should be set by now" % self
+        return self._nodeName
+
+    def nodeType(self):
+        if self._nodeType is None:
+            self._nodeType = cmds.objectType(self.nodeName())
+        return self._nodeType
+
+    def nodeAttr(self, attr):
+        return self.nodeName() + '.' + attr
+
+    def nodeAttrExists(self, attr):
+        return cmds.addAttr(self.nodeAttr(attr), q=True, ex=True)
+
+    # creation
+    def attachToUI(self, nodeName, parent=None):
+        "add the appropriate callbacks to the current UI"
+        currParent = cmds.setParent()
+        if parent is not None:
+            cmds.setParent(parent)
+        self._doBuild(nodeName)
+        cmds.setParent(currParent)
+
+    def attachToAE(self, controlAttr='aiTranslator'):
+        "add the appropriate callbacks to the editor template"
+        cmds.editorTemplate(aeCallback(lambda attr: self._doBuild(attr.split('.')[0])),
+                            aeCallback(lambda attr: self._doUpdate(attr.split('.')[0])),
+                            controlAttr,
+                            callCustom=True)
+
+class AttributeTemplate(BaseTemplate):
+    """
+    This class provides a framework for managing AE-like templates. Once instantiated,
+    the UI can be registered as an AE tempalte via AttributeTemplate.attachToAE(),
+    or simply built as a normal UI via AttributeTemplate.attachToUI()
     """
     SEPARATOR = '-'
     ATTRIBUTE = 'attr'
@@ -88,16 +160,15 @@ class AttributeTemplate(object):
     BEGIN_LAYOUT = 'beginLayout'
     END_LAYOUT = 'endLayout'
     def __init__(self, nodeType=None):
-        self._nodeType = nodeType
-        self._nodeName = None
+        super(AttributeTemplate, self).__init__(nodeType)
         self._controls = []
         self._attributes = []
         self._layoutStack = []
-    def _doBuild(self, node, *args):
+
+    def build(self):
         '''
         build the UI from the list of added attributes
         '''
-        self._setActiveNode(node)
         self._layoutStack.append(cmds.setParent(query=True))
         for mode, data in self._attributes:
             if mode == self.SEPARATOR:
@@ -127,30 +198,10 @@ class AttributeTemplate(object):
             elif mode == self.END_LAYOUT:
                 self._layoutStack.pop()
                 cmds.setParent(self._layoutStack[-1])
-    def _doUpdate(self, node, *args):
-        self._setActiveNode(node)
+
+    def update(self):
         for attr, updateFunc in self._controls:
             updateFunc(self.nodeAttr(attr))
-
-    def _setActiveNode(self, nodeName):
-        "set the active node"
-        self._nodeName = nodeName
-
-    # queries
-    def nodeName(self):
-        "get the active node"
-        return self._nodeName
-
-    def nodeType(self):
-        if self._nodeType:
-            return self._nodeType
-        return cmds.objectType(self._nodeName)
-        
-    def nodeAttr(self, attr):
-        return self.nodeName() + '.' + attr
-
-    def nodeAttrExists(self, attr):
-        return cmds.addAttr(self.nodeAttr(attr), q=True, ex=True)
 
     # building
     def addAttribute(self, attr, label=None, annotation=None):
@@ -182,21 +233,9 @@ class AttributeTemplate(object):
         "return attributes controlled by this template"
         return [x[0] for x in self._attributes if x[0] != self.SEPARATOR]
 
-    # creation
-    def attachToUI(self, nodeName, parent=None):
-        "add the appropriate callbacks to the current UI"
-        currParent = cmds.setParent()
-        if parent is not None:
-            cmds.setParent(parent)
-        self._doBuild(nodeName)
-        cmds.setParent(currParent)
-
     def attachToAE(self, controlAttr='aiTranslator'):
         "add the appropriate callbacks to the editor template"
-        cmds.editorTemplate(aeCallback(lambda attr: self._doBuild(attr.split('.')[0])), 
-                            aeCallback(lambda attr: self._doUpdate(attr.split('.')[0])),
-                            controlAttr,
-                            callCustom=True)
+        super(AttributeTemplate, self).attachToAE(controlAttr)
         for attr in self.getAttributes():
             cmds.editorTemplate(suppress=attr)
 
@@ -269,12 +308,13 @@ def registerUI(nodeType, translatorName=None, baseClass=ArnoldTranslatorTemplate
         return func
     return registerUIDecorator
 
-class TranslatorControl(object):
+class TranslatorControl(BaseTemplate):
     '''
     Allows multiple AttributeTemplates, each representing an arnold translator, to be controlled via
     one optionMenu, such that only the active template is visible.
     '''
     def __init__(self, nodeType, label='Arnold Translator', controlAttr='aiTranslator', default=None, optionMenuName=None):
+        super(TranslatorControl, self).__init__(nodeType)
         self._attr = controlAttr
         self._optionMenu = optionMenuName if optionMenuName is not None else controlAttr + "OMG"
         self._translators = None
@@ -282,23 +322,6 @@ class TranslatorControl(object):
         self._nodeType = nodeType
         self._label = label
         self._default = default
-
-    def _setActiveNode(self, nodeName):
-        "set the active node"
-        self._nodeName = nodeName
-
-    def activeNode(self):
-        "get the active node"
-        return self._nodeName
-
-    def nodeType(self):
-        return self._nodeType
-        
-    def nodeAttr(self, attr):
-        return self.activeNode() + '.' + attr
-
-    def nodeAttrExists(self, attr):
-        return cmds.addAttr(self.nodeAttr(attr), q=True, ex=True)
 
     #---- translator methods
 
@@ -361,9 +384,9 @@ class TranslatorControl(object):
             if objType == 'frameLayout':
                 label = cmds.frameLayout(child, query=True, label=True)
                 # turn collapsable and label off
-                cmds.frameLayout(child, edit=True, collapsable=False, labelVisible=False, 
+                cmds.frameLayout(child, edit=True, collapsable=False, labelVisible=False,
                                  visible=(label == currentTranslator))
-        # FIXME: this needs a check for read-only nodes from referenced files. also, not sure 
+        # FIXME: this needs a check for read-only nodes from referenced files. also, not sure
         # changing attribute properties is the best approach
         #ArnoldTranslatorTemplate.syncChannelBox(nodeName, nodeType, currentTranslator)
         # last child is the 'hide_me' control that always needs to be hidden
@@ -375,7 +398,7 @@ class TranslatorControl(object):
         """
         cmds.setAttr(nodeName + "." + self._attr, currentTranslator, type='string')
         self.updateChildren(nodeName, currentTranslator)
-    
+
     def createMenu(self, nodeName):
         """
         called to create an optionMenuGrp for choosing between multiple translator options for a given node
@@ -398,12 +421,12 @@ class TranslatorControl(object):
         translators = cmds.optionMenuGrp(self._optionMenu, q=True, itemListLong=True)
         for tran in translators:
             cmds.deleteUI(tran, menuItem=True)
-    
+
         # populate with a fresh list
         parent = cmds.setParent(self._optionMenu)
         for tran in self._translators:
             cmds.menuItem(label=tran, parent=parent + '|OptionMenu')
-    
+
         transName = self.getCurrentTranslator(nodeName)
         cmds.optionMenuGrp(self._optionMenu, edit=True, value=transName,
                            cc=lambda *args: self.menuChanged(nodeName, args[0]))
@@ -414,34 +437,37 @@ class TranslatorControl(object):
             self._translators = cmds.arnoldPlugins(listTranslators=self.nodeType()) or []
         return self._translators
 
+    def getTranslatorTemplates(self):
+        return filter(lambda x: bool(x[1]),
+                      [(translator, getTranslatorTemplate(self.nodeType(), translator)) \
+                        for translator in self.getTranslators()])
+
+
     def attachToUI(self, nodeName, parent=None):
         currParent = cmds.setParent()
         if parent is not None:
             cmds.setParent(parent)
 
-        translatorTemplates = getTranslatorTemplates(self.nodeType())
-        
-        translators = self.getTranslators()
-        if translatorTemplates or len(translators) > 1:
+        translatorTemplates = self.getTranslatorTemplates()
+        if translatorTemplates:
             mainCol = cmds.columnLayout(
                                         adjustableColumn=True
                                         )
-            if len(translators) > 1:
+            if len(translatorTemplates) > 1:
                 # if there is more than one translator, we group each in its own layout
                 # FIXME: reduce this to one call:
                 cmds.columnLayout()
                 self.createMenu(nodeName)
                 cmds.setParent(mainCol)
-                for translator in translators:
-                    
+                for translator, template in translatorTemplates:
+
                     # we always create a layout, even if it's empty
                     cmds.frameLayout(label=translator, collapse=False)
                     cmds.columnLayout(
                                       adjustableColumn=True,
                                       #columnAttach=("both", 0)
                                       )
-                    if translator in translatorTemplates:
-                        translatorTemplates[translator].attachToUI(nodeName)
+                    template.attachToUI(nodeName)
                     cmds.setParent(mainCol)
                 # for compatibility with AE templates
                 cmds.columnLayout()
@@ -449,27 +475,24 @@ class TranslatorControl(object):
                 cmds.setParent('..')
                 self.updateMenu(nodeName)
             else:
-                translator = translators[0]
-                if translator in translatorTemplates:
-                    translatorTemplates[translator].attachToUI(nodeName)
+                translator, template = translatorTemplates[0]
+                template.attachToUI(nodeName)
             cmds.setParent(mainCol)
             cmds.setParent('..')
 
     def attachToAE(self, layoutName='Arnold', collapse=True):
-        translatorTemplates = getTranslatorTemplates(self._nodeType)
-        allTranslators = self.getTranslators()
-        if translatorTemplates or len(allTranslators) > 1:
+        translatorTemplates = self.getTranslatorTemplates()
+        if translatorTemplates:
             cmds.editorTemplate(beginLayout=layoutName, collapse=collapse)
-            if len(allTranslators) > 1:
+            if len(translatorTemplates) > 1:
                 # if there is more than one translator, we group each in its own layout
                 cmds.editorTemplate(aeCallback(lambda attr: self.createMenu(attr.split('.')[0])),
                                     aeCallback(lambda attr: self.updateMenu(attr.split('.')[0])),
                                     self._attr, callCustom=True)
-                for translator in allTranslators:
+                for translator, template in translatorTemplates:
                     # we always create a layout, even if it's empty
                     cmds.editorTemplate(beginLayout=translator, collapse=False)
-                    if translator in translatorTemplates:
-                        translatorTemplates[translator].attachToAE(self._attr)
+                    template.attachToAE(self._attr)
                     cmds.editorTemplate(endLayout=True)
                 # timing on AE's is difficult: the frameLayouts are not created at this point even though
                 # the `editorTemplate -beginLayout` calls have been made. this is a little hack
@@ -480,9 +503,8 @@ class TranslatorControl(object):
                                     aeCallback(self.updateChildrenCallback),
                                     addDynamicControl=True, label='hide_me')
             else:
-                translator = allTranslators[0]
-                if translator in translatorTemplates:
-                    translatorTemplates[translator].attachToAE(translator)
+                translator, template = translatorTemplates[0]
+                template.attachToAE(translator)
             cmds.editorTemplate(endLayout=True)
 
 #class DriverTranslatorControl(TranslatorControl):

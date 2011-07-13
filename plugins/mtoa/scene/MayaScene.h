@@ -52,12 +52,12 @@ public:
    // but when it changes, CMayaScene will manage them
 
    /// Return the instance of the export session.
-   static CArnoldSession* GetExportSession();
+   static CArnoldSession* GetArnoldSession();
    /// Return the instance of the render session.
    static CRenderSession* GetRenderSession();
 
-   inline static const ArnoldSessionMode& GetSessionMode() { return GetExportSession()->GetSessionMode(); }
-   inline static bool IsExportingMotion() { return GetExportSession()->IsExportingMotion(); }
+   inline static const ArnoldSessionMode& GetSessionMode() { return GetArnoldSession()->GetSessionMode(); }
+   inline static bool IsExportingMotion() { return GetArnoldSession()->IsExportingMotion(); }
 
    static MStatus Begin(ArnoldSessionMode mode);
    static MStatus End();

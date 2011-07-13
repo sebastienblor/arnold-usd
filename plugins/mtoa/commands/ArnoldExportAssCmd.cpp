@@ -213,12 +213,12 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
       // Setup CMayaScene for MTOA_SESSION_ASS mode
       // FIXME : do we really have to reset everything?
       CMayaScene::Begin(MTOA_SESSION_ASS);
-      CArnoldSession* exportSession = CMayaScene::GetExportSession();
+      CArnoldSession* arnoldSession = CMayaScene::GetArnoldSession();
       CRenderSession* renderSession = CMayaScene::GetRenderSession();
       // Not filtering out of render layer
-      exportSession->SetExportFilter(exportSession->GetExportFilter() & ~MTOA_FILTER_LAYER);
-      exportSession->SetExportCamera(camera);
-      exportSession->SetExportFrame(curframe);
+      arnoldSession->SetExportFilter(arnoldSession->GetExportFilter() & ~MTOA_FILTER_LAYER);
+      arnoldSession->SetExportCamera(camera);
+      arnoldSession->SetExportFrame(curframe);
 
       curfilename = renderSession->GetAssName(customFileName,
                                               renderGlobals,

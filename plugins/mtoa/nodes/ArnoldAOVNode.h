@@ -21,17 +21,14 @@ public:
    static MTypeId id;
 
    // Attributes
-   // compound array
-   static MObject s_aovs;
-   // chlidren:
    static MObject s_name;
    static MObject s_enabled;
    // enumerator that corresponds to arnold's data type enum
    static MObject s_type;
    static MObject s_prefix;
 
-   // other attributes:
-   static MObject s_mode;
+   static MObject s_imageFormat;
+   static MObject s_filterType;
 };  // class CArnoldAOVNode
 
 #endif // ARNOLDAOVNODE_H

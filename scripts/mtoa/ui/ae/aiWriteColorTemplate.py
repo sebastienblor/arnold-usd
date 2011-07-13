@@ -3,7 +3,6 @@ import maya.mel as mel
 
 import mtoa.utils as utils
 import mtoa.ui.ae.utils as aeUtils
-from mtoa.ui.ae.utils import aeCallback
 import mtoa.ui.ae.shaderTemplate as shaderTemplate
 
 def aiWriteColorTemplate(nodeName):
@@ -15,9 +14,7 @@ def aiWriteColorTemplate(nodeName):
 
     cmds.editorTemplate("beauty", addControl=True)
     cmds.editorTemplate("input", addControl=True)
-    aovSelect = shaderTemplate.AOVOptionMenuGrp('aiWriteColor', 'aovName')
-    cmds.editorTemplate(aeCallback(aovSelect.new),
-                        aeCallback(aovSelect.replace), "aovName", callCustom=True)
+    shaderTemplate.addAOVControl('aiWriteColor', 'aovName')
 
     cmds.editorTemplate(endLayout=True)
 

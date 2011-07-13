@@ -40,7 +40,7 @@ void CDriverTranslator::NodeInitializer(CAbTranslator context)
               arnold.asChar(), provider.asChar());
    // FIXME: remove this hard-wire
    CExtensionAttrHelper helper("aiOptions", nodeEntry);
-
+   CExtensionAttrHelper helper2("aixAOV", nodeEntry);
    // inputs
    AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(nodeEntry);
    while (!AiParamIteratorFinished(nodeParam))
@@ -48,7 +48,10 @@ void CDriverTranslator::NodeInitializer(CAbTranslator context)
       const AtParamEntry *paramEntry = AiParamIteratorGetNext(nodeParam);
       const char* paramName = AiParamGetName(paramEntry);
       if (!helper.IsHidden(paramName))
-         MObject attr = helper.MakeInput(paramName);
+      {
+         helper.MakeInput(paramName);
+         helper2.MakeInput(paramName);
+      }
    }
    AiParamIteratorDestroy(nodeParam);
 

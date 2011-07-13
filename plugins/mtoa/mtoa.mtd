@@ -842,6 +842,8 @@
 [node driver_exr]
     maya.attr_prefix        STRING  "driver_"
     maya.translator         STRING  "exr"
+    [attr filename]
+        maya.hide           BOOL    true
     [attr compression]
         maya.name           STRING  "driverExrCompression"
         maya.shortname      STRING  "driver_exr_compression"
@@ -849,6 +851,8 @@
 [node driver_jpeg]
     maya.attr_prefix        STRING  "driver_"
     maya.translator         STRING  "jpeg"
+    [attr filename]
+        maya.hide           BOOL    true
     [attr gamma]
         default             FLOAT   2.2
         min                 FLOAT   0.0001
@@ -860,6 +864,8 @@
 [node driver_png]
     maya.attr_prefix        STRING  "driver_"
     maya.translator         STRING  "png"
+    [attr filename]
+        maya.hide           BOOL    true
     [attr gamma]
         default             FLOAT   2.2
         min                 FLOAT   0.0001
@@ -871,6 +877,8 @@
 [node driver_tiff]
     maya.attr_prefix        STRING  "driver_"
     maya.translator         STRING  "tiff"
+    [attr filename]
+        maya.hide           BOOL    true
     [attr gamma]
         default             FLOAT   2.2
         min                 FLOAT   0.0001

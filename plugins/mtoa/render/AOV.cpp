@@ -1,4 +1,6 @@
 #include "AOV.h"
+#include "scene/MayaScene.h"
+
 #include <maya/MPlug.h>
 #include <maya/MTime.h>
 #include <maya/MAnimControl.h>
@@ -8,15 +10,27 @@
 #include <maya/MRenderUtil.h>
 #include <maya/MSelectionList.h>
 #include <maya/MFnDagNode.h>
+#include <maya/MFnDependencyNode.h>
+
 #include <string>
 
 CAOV::CAOV()
-   : m_name(""), m_type(0), m_enabled(true), m_prefix(""), m_filename("")
+   : m_name(""),
+     m_type(0),
+     m_enabled(true),
+     m_prefix(""),
+     m_filename(""),
+     m_object(MObject::kNullObj)
 {
 }
 
 CAOV::CAOV(const CAOV &rhs)
-   : m_name(rhs.m_name), m_type(rhs.m_type), m_enabled(rhs.m_enabled), m_prefix(rhs.m_prefix), m_filename(rhs.m_filename)
+   : m_name(rhs.m_name),
+     m_type(rhs.m_type),
+     m_enabled(rhs.m_enabled),
+     m_prefix(rhs.m_prefix),
+     m_filename(rhs.m_filename),
+     m_object(rhs.m_object)
 {
 }
 
@@ -71,14 +85,15 @@ void CAOV::Strip(MString &mstr) const
    }
 }
 
-bool CAOV::FromMaya(MPlug &pAOV)
+bool CAOV::FromMaya(MObject &AOVNode)
 {
-   if (pAOV.isNull())
+   if (AOVNode.isNull())
    {
       return false;
    }
-
-   m_name = pAOV.child(AOV_NAME).asString();
+   m_object = AOVNode;
+   MFnDependencyNode fnNode = MFnDependencyNode(AOVNode);
+   m_name = fnNode.findPlug("name").asString();
    Strip(m_name);
 
    if (m_name.length() == 0)
@@ -86,9 +101,9 @@ bool CAOV::FromMaya(MPlug &pAOV)
       return false;
    }
 
-   m_type = pAOV.child(AOV_TYPE).asInt();
-   m_enabled = pAOV.child(AOV_ENABLED).asBool();
-   m_prefix = pAOV.child(AOV_PREFIX).asString();
+   m_type = fnNode.findPlug("type").asInt();
+   m_enabled = fnNode.findPlug("enabled").asBool();
+   m_prefix = fnNode.findPlug("prefix").asString();
    Strip(m_prefix);
    NormalizePath(m_prefix);
 
@@ -100,11 +115,40 @@ bool CAOV::FromMaya(MPlug &pAOV)
 
 void CAOV::SetupOutput(AtArray *outputs, int i, AtNode *defaultDriver, AtNode *defaultFilter) const
 {
-   // create a copy of the current driver for this AOV (this is a deep copy)
-   AtNode *driver = AiNodeClone(defaultDriver);
+   AiMsgDebug("[mtoa] [aovs] setting up aov %s", m_name.asChar());
 
-   MString driverName = AiNodeGetStr(defaultDriver, "name");
-   driverName += "_" + m_name;
+   MFnDependencyNode fnNode = MFnDependencyNode(m_object);
+
+   // Filter
+   AtNode* filter;
+   MString filterType = fnNode.findPlug("filterType", true).asString();
+   MString filterName;
+   if (filterType == "<Use Globals>" || filterType == "")
+   {
+      // use default filter
+      filter = defaultFilter;
+      filterName = AiNodeGetStr(defaultFilter, "name");
+   }
+   else
+   {
+      AtNode* filter = CMayaScene::GetArnoldSession()->ExportFilter(m_object, filterType);
+      MString nodeTypeName = AiNodeEntryGetName(filter->base_node);
+      filterName = nodeTypeName + "_" + m_name;
+      AiNodeSetStr(filter, "name", filterName.asChar());
+   }
+
+   // Driver
+   AtNode *driver;
+   MString driverType = fnNode.findPlug("imageFormat", true).asString();
+   if (driverType == "<Use Globals>" || driverType == "")
+      // create a copy of the default driver for this AOV (this is a deep copy)
+      driver = AiNodeClone(defaultDriver);
+   else
+      driver = CMayaScene::GetArnoldSession()->ExportDriver(m_object, driverType);
+
+   MString nodeTypeName = AiNodeEntryGetName(driver->base_node);
+   MString driverName = nodeTypeName + "_" + m_name;
+
    AiNodeSetStr(driver, "name", driverName.asChar());
    AiNodeSetStr(driver, "filename", m_filename.asChar());
 
@@ -121,10 +165,9 @@ void CAOV::SetupOutput(AtArray *outputs, int i, AtNode *defaultDriver, AtNode *d
          MGlobal::executeCommand("sysFile -makeDir \"" + MString(outDir.c_str()) + "\"", result);
       }
    }
-   // for now, filter is default one
-   char str[1024];
-   sprintf(str, "%s %s %s %s", m_name.asChar(), AiParamGetTypeName(m_type), AiNodeGetName(defaultFilter), driverName.asChar());
 
+   char str[1024];
+   sprintf(str, "%s %s %s %s", m_name.asChar(), AiParamGetTypeName(m_type), filterName.asChar(), driverName.asChar());
    AiArraySetStr(outputs, i, str);
 }
 

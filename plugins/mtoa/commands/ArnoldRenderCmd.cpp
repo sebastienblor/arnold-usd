@@ -223,7 +223,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
 
          // FIXME: do we really need to reset everything each time?
          CMayaScene::Begin(MTOA_SESSION_RENDER);
-         CArnoldSession* arnoldSession = CMayaScene::GetExportSession();
+         CArnoldSession* arnoldSession = CMayaScene::GetArnoldSession();
          CRenderSession* renderSession = CMayaScene::GetRenderSession();
          arnoldSession->SetExportFrame(framerender);
          renderSession->SetBatch(batch);
@@ -270,7 +270,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
 
       CMayaScene::Begin(MTOA_SESSION_RENDER);
 
-      CArnoldSession* arnoldSession = CMayaScene::GetExportSession();
+      CArnoldSession* arnoldSession = CMayaScene::GetArnoldSession();
       CRenderSession* renderSession = CMayaScene::GetRenderSession();
 
       arnoldSession->SetExportFrame(currentFrame);

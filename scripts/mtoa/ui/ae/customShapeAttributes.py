@@ -216,7 +216,7 @@ class CylCameraTemplate(CameraTemplate):
 
 registerTranslatorUI(CylCameraTemplate, "camera", "cylindrical")
 
-def cameraOrthographicChanged(orthoPlug):
+def cameraOrthographicChanged(orthoPlug, *args):
     "called to sync .aiTranslator when .orthographic changes"
     fnCam = om.MFnCamera(orthoPlug.node())
     isOrtho = orthoPlug.asBool()
@@ -234,7 +234,7 @@ def cameraOrthographicChanged(orthoPlug):
             cmds.optionMenuGrp('aiTranslatorOMG', edit=True, value=newTrans)
         transPlug.setString(newTrans)
 
-def cameraTranslatorChanged(transPlug):
+def cameraTranslatorChanged(transPlug, *args):
     "called to sync .orthographic when .aiTranslator changes"
     fnCam = om.MFnCamera(transPlug.node())
     currTrans = transPlug.asString()

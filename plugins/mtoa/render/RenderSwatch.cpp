@@ -252,7 +252,7 @@ MStatus CRenderSwatchGenerator::ExportNode(AtNode* & arnoldNode,
 {
    MStatus status;
    MObject mayaNode = swatchNode();
-   CArnoldSession* exportSession = CMayaScene::GetExportSession();
+   CArnoldSession* exportSession = CMayaScene::GetArnoldSession();
 
    // FIXME: Special case for displacement
    if (m_swatchClass == SWATCH_DISPLACEMENT)
@@ -316,7 +316,7 @@ MStatus CRenderSwatchGenerator::AssignNode(AtNode* arnoldNode, CNodeTranslator* 
 {
    MStatus status;
    MFnDependencyNode depFn(swatchNode());
-   CArnoldSession* exportSession = CMayaScene::GetExportSession();
+   CArnoldSession* exportSession = CMayaScene::GetArnoldSession();
 
    // Assign what needs to be on geometry
 

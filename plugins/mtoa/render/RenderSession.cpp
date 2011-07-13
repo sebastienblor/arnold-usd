@@ -230,7 +230,7 @@ void CRenderSession::SetCamera(MDagPath cameraNode)
    cameraNode.extendToShape();
    m_renderOptions.SetCamera(cameraNode);
    // FIXME: do this more explicitly: at this point the node should be exported, this is just retrieving the arnold node
-   AtNode* camera = CMayaScene::GetExportSession()->ExportDagPath(cameraNode);
+   AtNode* camera = CMayaScene::GetArnoldSession()->ExportDagPath(cameraNode);
    if (camera == NULL)
    {
       AiMsgError("[mtoa] Setting camera %s failed", cameraNode.partialPathName().asChar());
@@ -322,7 +322,14 @@ void CRenderSession::SetupRenderOutput()
    int driver_num(0);
    if (render_view != NULL)
    {
-      sprintf(str, "RGBA RGBA %s %s", AiNodeGetName(filter), AiNodeGetName(render_view));
+      MObject node;
+      m_renderOptions.GetOptionsNode(node);
+      MFnDependencyNode fnArnoldRenderOptions(node);
+
+      AiMsgWarning("display AOV: %s", fnArnoldRenderOptions.findPlug("displayAOV").asString().asChar());
+      sprintf(str, "%s RGBA %s %s", fnArnoldRenderOptions.findPlug("displayAOV").asString().asChar(),
+              AiNodeGetName(filter), AiNodeGetName(render_view));
+      //sprintf(str, "RGBA RGBA %s %s", AiNodeGetName(filter), AiNodeGetName(render_view));
       AiArraySetStr(outputs, driver_num++, str);
    }
 
@@ -331,10 +338,13 @@ void CRenderSession::SetupRenderOutput()
       sprintf(str, "RGBA RGBA %s %s", AiNodeGetName(filter), AiNodeGetName(file_driver));
       AiArraySetStr(outputs, driver_num++, str);
 
-      for (size_t i=0; i<m_renderOptions.NumAOVs(); ++i)
-         m_renderOptions.GetAOV(i).SetupOutput(outputs, ndrivers+static_cast<int>(i), file_driver, filter);
+      unsigned int i = 0;
+      for (AOVSet::iterator it=m_renderOptions.m_aovs.begin(); it!=m_renderOptions.m_aovs.end(); ++it)
+      {
+         it->SetupOutput(outputs, ndrivers+static_cast<int>(i), file_driver, filter);
+         ++i;
+      }
    }
-
    AiNodeSetArray(AiUniverseGetOptions(), "outputs", outputs);
 }
 
@@ -349,15 +359,14 @@ AtNode * CRenderSession::CreateFileOutput()
 
    // set the output driver
    MString driverType = fnArnoldRenderOptions.findPlug("imageFormat").asString();
-   AtNode* driver = CMayaScene::GetExportSession()->ExportDriver(node, driverType);
+   AtNode* driver = CMayaScene::GetArnoldSession()->ExportDriver(node, driverType);
    if (driver != NULL)
    {
+      AiNodeSetStr(driver, "name", AiNodeEntryGetName(driver->base_node));
       AiNodeSetStr(driver, "filename", m_renderOptions.GetImageFilename().asChar());
-   }
+  }
    else
-   {
       AiMsgError("[mtoa] image driver is NULL");
-   }
 
    return driver;
 }
@@ -371,7 +380,7 @@ AtNode * CRenderSession::CreateOutputFilter()
    // set the output driver
    MString filterType = fnArnoldRenderOptions.findPlug("filterType").asString();
    AiMsgInfo("exporting filter \"%s\"", filterType.asChar());
-   AtNode* filter = CMayaScene::GetExportSession()->ExportFilter(fnArnoldRenderOptions.object(), filterType);
+   AtNode* filter = CMayaScene::GetArnoldSession()->ExportFilter(node, filterType);
    if (filter == NULL)
       AiMsgError("[mtoa] filter is NULL");
 
@@ -402,20 +411,6 @@ AtNode * CRenderSession::CreateRenderViewOutput()
 }
 
 
-
-AtNode * CRenderSession::CreateAovOutputFilter()
-{
-   // OUTPUT FILTER (use for all image outputs)
-   AtNode* filter = AiNodeLookUpByName("closest_filter");
-   if (filter == NULL) filter = AiNode("closest_filter");
-
-   if (filter != NULL)
-   {
-      AiNodeSetStr(filter, "name", "closest_filter");
-   }
-
-   return filter;
-}
 void CRenderSession::DoInteractiveRender()
 {
    MComputation comp;

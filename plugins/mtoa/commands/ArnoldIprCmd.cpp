@@ -69,7 +69,7 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
       args.getFlagArgument("camera", 0, sel);
       MDagPath camera;
       status = sel.getDagPath(0, camera);
-      CMayaScene::GetExportSession()->SetExportCamera(camera);
+      CMayaScene::GetArnoldSession()->SetExportCamera(camera);
 
       if (!renderGlobals.renderAll)
       {
@@ -99,7 +99,7 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
    else if (mode == "refresh")
    {
       // Close down Arnold, clearing out the old data.
-      CArnoldSession* arnoldSession = CMayaScene::GetExportSession();
+      CArnoldSession* arnoldSession = CMayaScene::GetArnoldSession();
       CRenderSession* renderSession = CMayaScene::GetRenderSession();
       renderSession->End();
       // We save and restore the res instead of using the translated one because
