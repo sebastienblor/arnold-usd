@@ -371,7 +371,7 @@ AtNode * CRenderSession::CreateOutputFilter()
    // set the output driver
    MString filterType = fnArnoldRenderOptions.findPlug("filterType").asString();
    AiMsgInfo("exporting filter \"%s\"", filterType.asChar());
-   AtNode* filter = CMayaScene::GetExportSession()->ExportFilter(node, filterType);
+   AtNode* filter = CMayaScene::GetExportSession()->ExportFilter(fnArnoldRenderOptions.object(), filterType);
    if (filter == NULL)
       AiMsgError("[mtoa] filter is NULL");
 

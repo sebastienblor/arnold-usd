@@ -131,3 +131,60 @@ def findMelScript(name):
                 go=False
                 break
     return proc
+
+def _substitute(parts, tokens, allOrNothing=False):
+    result = []
+    for i, tok in enumerate(parts):
+        if even(i):
+            try:
+                result.append(tokens[tok])
+            except KeyError:
+                if allOrNothing:
+                    return ''
+                else:
+                    result.append('')
+        else:
+            result.append(tok)
+    return ''.join(result)
+
+def expandFileTokens(path, tokens, customOnly=False):
+    """
+    path : unexpanded path, containing tokens of the form <MyToken>
+    tokens: dictionary of the form {'MyToken' : value} or space separated string of form 'MyToken=value'
+    customOnly: if True, standard tokens filled by Maya are left unexpanded so that
+    the result can be passed to MCommonRenderSettingsData.getFileName()
+
+    This is a more advanced token expansion system based on Maya's.
+    In addition to standard tokens of the form <MyToken>, it also supports
+    conditional groups using brackets, which will only be expanded if all the
+    tokens within it exist
+
+    for example, in the following case, the group's contents (the underscore) are
+    included because the RenderPass token is filled:
+    
+        >>> expandFileTokens('filename[_<RenderPass>].jpg', {'RenderPass' : 'Diffuse'})
+        'filename_Diffuse.jpg'
+
+    but in this case the contents enclosed in brackets is dropped:
+
+        >>> expandFileTokens('filename[_<RenderPass>].jpg', {})
+        'filename.jpg'
+    """
+    if isinstance(tokens, basestring):
+        tokens = dict([pair.split('=') for pair in tokens.split()])
+    if customOnly:
+        newTokens = tokens.copy()
+        for tok in ['Scene', 'RenderLayer', 'Camera', 'Extension', 'Version']:
+            newTokens[tok] = '<%s>' % tok
+        tokens = newTokens
+    grp_reg = re.compile('\[([^\]]+)\]')
+    tok_reg = re.compile('<([a-zA-Z]+)>')
+    result = []
+    for i, grp in enumerate(grp_reg.split(path)):
+        parts = tok_reg.split(grp)
+        if even(i):
+            result.append(_substitute(parts, tokens, allOrNothing=True))
+        else:
+            result.append(_substitute(parts, tokens, allOrNothing=False))
+    return ''.join(result)
+

@@ -229,7 +229,7 @@ public:
    const CAOV& GetAOV(size_t idx) const
    {
       return m_aovs[idx];
-   }   
+   }
 
    void AddAOV(const CAOV &aov)
    {

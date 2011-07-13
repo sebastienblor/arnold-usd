@@ -222,27 +222,26 @@ void CRenderOptions::ProcessArnoldRenderOptions()
 
       // AOVs
       ClearAOVs();
-      MPlug pAOV = fnArnoldRenderOptions.findPlug("aovs");
-      pAOV.connectedTo(conns, true, false);
-      if (conns.length() == 1)
+      AOVMode aovMode = AOVMode(fnArnoldRenderOptions.findPlug("aovMode").asInt());
+      if (aovMode == AOV_MODE_ENABLED ||
+            (BatchMode() && aovMode == AOV_MODE_BATCH_ONLY))
       {
-         MObject oAOV = conns[0].node();
-         MFnDependencyNode fnAOVNode(oAOV);
-
-         if (BatchMode() || !fnAOVNode.findPlug("aov_batch_mode_only").asBool())
+         MPlug pAOVs = fnArnoldRenderOptions.findPlug("aovs");
+         for (unsigned int i = 0; i < pAOVs.evaluateNumElements(); ++i)
          {
-            MPlug pAOVs = fnAOVNode.findPlug("aovs");
-            for (unsigned int i=0; i<pAOVs.numElements(); ++i)
+            if (pAOVs[i].connectedTo(conns, true, false))
             {
                CAOV aov;
-               MPlug ipAOVs = pAOVs[i];
-               if (aov.FromMaya(ipAOVs))
+               MPlug oAOV = conns[0];
+               if (aov.FromMaya(oAOV)  && aov.IsEnabled())
                   AddAOV(aov);
                else
-                  MGlobal::displayWarning("[mtoa] Could not setup AOV attribute " + ipAOVs.partialName(true, false, false, false, false, true));
+                  MGlobal::displayWarning("[mtoa] Could not setup AOV attribute " + MFnDependencyNode(oAOV).name());
             }
          }
       }
+      else
+         AiMsgDebug("[mtoa] [aovs] disabled");
    }
    else
    {

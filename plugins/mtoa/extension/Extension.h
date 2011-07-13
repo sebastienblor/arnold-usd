@@ -64,6 +64,11 @@ public:
                               TCreatorFunction creatorFunction,
                               TNodeInitFunction nodeInitFunction=NULL);
 
+   MStatus RegisterAOV(const MString &nodeType,
+                       const MString &aovName,
+                       AtInt dataType,
+                       const MString &aovAttr);
+
    static bool IsArnoldPluginLoaded(const MString &path);
    static MStringArray GetAllLoadedArnoldPlugins();
 

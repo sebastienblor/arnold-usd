@@ -6,6 +6,7 @@ import mtoa.ui.nodeTreeLister as nodeTreeLister
 import mtoa.ui.globals.common
 from mtoa.ui.globals.common import createArnoldRendererCommonGlobalsTab, updateArnoldRendererCommonGlobalsTab
 from mtoa.ui.globals.arnold import createArnoldRendererGlobalsTab, updateArnoldRendererGlobalsTab
+from mtoa.ui.aoveditor import createArnoldAOVTab, updateArnoldAOVTab
 import mtoa.ui.ae.utils as aeUtils
 from mtoa.ui.ae.aiStandInTemplate import ArnoldExportRenderObjectWindow
 
@@ -154,6 +155,9 @@ def arnoldAddGlobalsTabs():
     pm.renderer('arnold', edit=True, addGlobalsTab=('Arnold Renderer',
                                                       utils.pyToMelProc(createArnoldRendererGlobalsTab, useName=True),
                                                       utils.pyToMelProc(updateArnoldRendererGlobalsTab, useName=True)))
+    pm.renderer('arnold', edit=True, addGlobalsTab=('AOVs', 
+                                                      utils.pyToMelProc(createArnoldAOVTab, useName=True), 
+                                                      utils.pyToMelProc(updateArnoldAOVTab, useName=True)))
 
 
 def registerArnoldRenderer():

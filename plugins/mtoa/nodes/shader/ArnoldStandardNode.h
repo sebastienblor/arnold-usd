@@ -1,6 +1,7 @@
 #ifndef ARNOLDSTANDARDNODE_H
 #define ARNOLDSTANDARDNODE_H
 
+#include "extension/ExtensionsManager.h"
 #include <maya/MPxHwShaderNode.h>
 #include <maya/MObjectArray.h>
 

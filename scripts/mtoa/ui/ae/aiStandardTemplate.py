@@ -5,6 +5,7 @@ import mtoa.utils as utils
 import mtoa.ui.ae.utils as aeUtils
 from mtoa.ui.ae.utils import aeCallback
 from mtoa.ui.ae.aiSwatchDisplay import aiSwatchDisplay
+from mtoa.ui.ae.shaderTemplate import aovLayout
 
 def bumpNew(attrName):
     cmds.setUITemplate('attributeEditorTemplate', pst=True)
@@ -117,6 +118,8 @@ def aiStandardTemplate(nodeName):
     # mel.eval('AEhardwareTextureTemplate "%s"' % nodeName + r'("Kd_color Kd Ks_color Ks")')
     mel.eval('AEhardwareTextureTemplate "%s"' % nodeName + r'("Kd_color Kd Ks_color Ks")')
     cmds.editorTemplate(endLayout=True)
+
+    aovLayout(nodeName)
 
     # include/call base class/node attributes
     mel.eval('AEdependNodeTemplate "%s"'%nodeName)

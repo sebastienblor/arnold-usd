@@ -672,6 +672,98 @@ MStringArray CExtensionsManager::GetTranslatorNames(const MString &typeName,
    }
    return result;
 }
+/*
+void CExtensionsManager::GetAOVs(MStringArray& result)
+{
+   // s_extensions is a std::list of extensions (ordered in load order)
+   ExtensionsList::iterator extIt;
+   for (extIt = s_extensions.begin();
+         extIt != s_extensions.end();
+         extIt++)
+   {
+      std::map<std::string, AtInt>::iterator it;
+      for (it = extIt->m_aovTypes.begin(); it != extIt->m_aovTypes.end(); ++it)
+      {
+         result.append(it->first.c_str());
+      }
+   }
+}
+
+void CExtensionsManager::GetNodeAOVs(const MString &mayaType, MStringArray& result)
+{
+   // s_extensions is a std::list of extensions (ordered in load order)
+   ExtensionsList::iterator extIt;
+   for (extIt = s_extensions.begin();
+         extIt != s_extensions.end();
+         extIt++)
+   {
+      std::vector<CAOVData> dataList = extIt->m_aovAttrs[mayaType.asChar()];
+      std::vector<CAOVData>::iterator it;
+      for (it = dataList.begin(); it != dataList.end(); ++it)
+      {
+         result.append(it->name);
+         result.append(it->attribute);
+      }
+   }
+}
+
+void CExtensionsManager::GetNodeTypesWithAOVs(MStringArray& result)
+{
+   // s_extensions is a std::list of extensions (ordered in load order)
+   ExtensionsList::iterator extIt;
+   for (extIt = s_extensions.begin();
+         extIt != s_extensions.end();
+         extIt++)
+   {
+      std::map<std::string, std::vector<CAOVData> >::iterator it;
+      for (it = extIt->m_aovAttrs.begin(); it!=extIt->m_aovAttrs.end(); ++it)
+      {
+         result.append(it->first.c_str());
+      }
+   }
+}
+*/
+
+void CExtensionsManager::GetAOVs(MStringArray& result)
+{
+   MayaNodeToTranslatorsMap::iterator transIt;
+   for (transIt = s_registeredTranslators.begin();
+         transIt != s_registeredTranslators.end();
+         transIt++)
+   {
+      for (unsigned int i = 0; i < transIt->first.m_aovs.size(); ++i)
+      {
+         result.append(transIt->first.m_aovs[i].name);
+      }
+   }
+}
+
+void CExtensionsManager::GetNodeAOVs(const MString &mayaTypeName, MStringArray& result)
+{
+   CPxMayaNode mayaType(mayaTypeName);
+   MayaNodeToTranslatorsMap::iterator transIt = s_registeredTranslators.find(mayaType);
+   mayaType = transIt->first;
+
+   for (unsigned int i = 0; i < mayaType.m_aovs.size(); ++i)
+   {
+      result.append(mayaType.m_aovs[i].name);
+      result.append(mayaType.m_aovs[i].attribute);
+   }
+}
+
+void CExtensionsManager::GetNodeTypesWithAOVs(MStringArray& result)
+{
+   MayaNodeToTranslatorsMap::iterator transIt;
+   for (transIt = s_registeredTranslators.begin();
+         transIt != s_registeredTranslators.end();
+         transIt++)
+   {
+      if (transIt->first.m_aovs.size())
+      {
+         result.append(transIt->first.name);
+      }
+   }
+}
 
 CExtension* CExtensionsManager::GetExtension(const MString &extensionFile)
 {

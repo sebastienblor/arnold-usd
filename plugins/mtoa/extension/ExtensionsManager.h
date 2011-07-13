@@ -55,6 +55,10 @@ public:
    static MStringArray GetTranslatorNames(const MString &typeName,
                                           const MString &provider="");
 
+   static void GetAOVs(MStringArray& result);
+   static void GetNodeAOVs(const MString &mayaType, MStringArray& result);
+   static void GetNodeTypesWithAOVs(MStringArray& result);
+
    static CExtension* GetExtension(const MString &extensionFile);
 
    static void MayaPluginLoadedCallback(const MStringArray &strs, void *clientData);

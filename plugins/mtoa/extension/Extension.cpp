@@ -198,6 +198,21 @@ MStatus CExtension::RegisterTranslator(const MString &mayaTypeName,
    return NewTranslator(translator, mayaNode);
 }
 
+
+MStatus CExtension::RegisterAOV(const MString &mayaTypeName, const MString &aovName, AtInt dataType, const MString &aovAttr)
+{
+   CPxMayaNode mayaNode(mayaTypeName);
+   MayaNodeToTranslatorsMap::iterator nodeIt;
+   nodeIt = m_registeredTranslators.find(mayaNode);
+   if (nodeIt != m_registeredTranslators.end())
+   {
+      mayaNode = nodeIt->first;
+      mayaNode.RegisterAOV(aovName, dataType, aovAttr);
+      return MS::kSuccess;
+   }
+   return MS::kFailure;
+}
+
 // ------------- protected --------------- //
 
 MStatus CExtension::setFile(const MString &file)
@@ -748,7 +763,7 @@ MStatus CExtension::NewTranslator(const CPxTranslator &translator,
    }
    return status;
 }
-   
+
 /// Find a registered Maya node by the Maya node type name.
 const CPxMayaNode* CExtension::FindRegisteredMayaNode(const CPxMayaNode &mayaNode)
 {
