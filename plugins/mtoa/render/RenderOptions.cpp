@@ -2,6 +2,7 @@
 #include "RenderOptions.h"
 #include "scene/MayaScene.h"
 #include "translators/options/OptionsTranslator.h"
+#include "extension/ExtensionsManager.h"
 
 #include <ai_constants.h>
 #include <ai_msg.h>
@@ -19,6 +20,8 @@
 #include <maya/MRenderUtil.h> 
 #include <maya/MFnRenderLayer.h>
 #include <maya/MObject.h>
+#include <maya/MFileIO.h>
+#include <maya/MFileObject.h>
 
 #ifdef _WIN32
 #include <direct.h>
@@ -31,7 +34,7 @@ CRenderOptions::CRenderOptions()
 ,  m_useRenderRegion(false)
 ,  m_clearBeforeRender(false)
 ,  m_multiCameraRender(false)
-,  m_output_gamma(1.0f)
+,  m_display_gamma(1.0f)
 ,  m_outputAssMask(AI_NODE_ALL)
 ,  m_log_filename("")
 ,  m_log_max_warnings(100)
@@ -43,47 +46,77 @@ void CRenderOptions::GetFromMaya()
 {
    ProcessCommonRenderOptions();
    ProcessArnoldRenderOptions();
-   SetupImageOutputs();
+   // SetupImageOutputs();
    UpdateImageFilename();
 }
 
+// sets the m_imageFilename member
 void CRenderOptions::UpdateImageFilename() 
 {
 
-   MString sceneFileName, nameCamera;
+   MString nameCamera;
    MString cameraFolderName;
    MObject renderLayer = MFnRenderLayer::currentLayer();
-   double  fileFrameNumber;
+   double fileFrameNumber = MAnimControl::currentTime().value();
 
-   // get the frame number
-   MTime cT = MAnimControl::currentTime();
-   fileFrameNumber = double(cT.value());
-   MGlobal::executeCommand("basename((`file -q -sceneName -shortName`),(\".\" + (fileExtension((`file -q -sceneName -shortName`)))))", sceneFileName);
+   // file name
+   MFileObject fileObj;
+   fileObj.setRawFullName(MFileIO::currentFile());
+   MString sceneFileName = fileObj.resolvedName();
+   sceneFileName = sceneFileName.substringW(0, sceneFileName.rindexW('.')-1);
+   // get camera transform node for folder name
+   MFnDagNode camDag(GetCamera());
+   MFnDagNode camDagParent(camDag.parent(0));
+   nameCamera = camDagParent.name();
 
 
+   // Notes on MCommonRenderSettingsData::getImageName:
+   //   - sceneFileName is only used if defaultRenderGlobals.imageFilePrefix is not set
+   //   - a "<RenderPass>/" token is added before the file name if any pass nodes are
+   //     connected to a render layer AND <RenderPass> does not appear in defaultRenderGlobals.imageFilePrefix
+   // because getImageName ignores the sceneFileName arg when defaultRenderGlobals.imageFilePrefix is non-empty,
+   // we can only achieve the proper addition of the <RenderPass> token by creating a dummy render pass node.
+   // TODO: write a complete replacement for MCommonRenderSettingsData::getImageName
+   MCommonRenderSettingsData::MpathType pathType;
    if (BatchMode())
    {
+      // TODO: check that this is appropriate behavior (seems questionable)
+      if (MultiCameraRender())
+         nameCamera = sceneFileName + "/" + nameCamera;
 
-      // get camera transform node for folder name
+      pathType = m_defaultRenderGlobalsData.kFullPathImage;
+      m_imageFilename = m_defaultRenderGlobalsData.getImageName(pathType, fileFrameNumber,
+                                                                sceneFileName, nameCamera,
+                                                                m_imageFileExtension, renderLayer, 1);
       MFnDagNode camDag(GetCamera());
       MFnDagNode camDagParent(camDag.parent(0));
-      // FIXME: could result in pipes being placed in the file name: path|to|camera
-      nameCamera = camDagParent.name();
-
-      if (MultiCameraRender())
-      {
-         nameCamera = sceneFileName + "/" + nameCamera;
-      }
-      m_imageFilename = m_defaultRenderGlobalsData.getImageName(m_defaultRenderGlobalsData.kFullPathImage, fileFrameNumber, sceneFileName, nameCamera, m_imageFileExtension, renderLayer, 1);
    }
    else
    {
-      m_imageFilename = m_defaultRenderGlobalsData.getImageName(m_defaultRenderGlobalsData.kFullPathTmp, fileFrameNumber, sceneFileName, nameCamera, m_imageFileExtension, renderLayer, 1);
+      pathType = m_defaultRenderGlobalsData.kFullPathTmp;
+      m_imageFilename = m_defaultRenderGlobalsData.getImageName(pathType, fileFrameNumber,
+                                                                sceneFileName, nameCamera,
+                                                                m_imageFileExtension, renderLayer, 1);
+   }
+
+   if (m_defaultRenderGlobalsData.name == "")
+   {
+      // setup the default RenderPass token
+      sceneFileName = "<RenderPass>/" + sceneFileName;
+      // FIXME: hard-wiring convention here:
+      // need a a complete replacement for MCommonRenderSettingsData::getImageName to avoid this
+      // (see mtoa.utils.expandFileTokens for the beginning of one)
+      sceneFileName += ".<RenderPass>";
    }
 
    for (AtUInt i=0; i<NumAOVs(); ++i)
    {
-      m_aovs[i].UpdateImageFilename(GetCameraName(), m_imageFileExtension, MultiCameraRender(), BatchMode());
+      MString tokens = MString("RenderPass=") + m_aovs[i].GetName();
+      m_aovs[i].SetImageFilename(m_defaultRenderGlobalsData.getImageName(pathType, fileFrameNumber,
+                                                                         sceneFileName, nameCamera,
+                                                                         m_imageFileExtension, renderLayer,
+                                                                         tokens, 1));
+
    }
 }
 
@@ -155,14 +188,6 @@ void CRenderOptions::ProcessArnoldRenderOptions()
 
       MFnEnumAttribute arnold_render_format(fnArnoldRenderOptions.findPlug("arnoldRenderImageFormat").attribute());
       m_arnoldRenderImageFormat         = arnold_render_format.fieldName(fnArnoldRenderOptions.findPlug("arnoldRenderImageFormat").asShort());
-      m_arnoldRenderImageCompression    = fnArnoldRenderOptions.findPlug("compression").asInt();
-      m_arnoldRenderImageHalfPrecision  = fnArnoldRenderOptions.findPlug("half_precision").asBool();
-      m_arnoldRenderImageOutputPadded   = fnArnoldRenderOptions.findPlug("output_padded").asBool();
-      m_arnoldRenderImageGamma          = fnArnoldRenderOptions.findPlug("gamma").asFloat();
-      m_arnoldRenderImageQuality        = fnArnoldRenderOptions.findPlug("quality").asInt();
-      m_arnoldRenderImageOutputFormat   = fnArnoldRenderOptions.findPlug("format").asInt();
-      m_arnoldRenderImageTiled          = fnArnoldRenderOptions.findPlug("tiled").asBool();
-      m_arnoldRenderImageUnpremultAlpha = fnArnoldRenderOptions.findPlug("unpremult_alpha").asBool();
 
       m_progressive_rendering    = fnArnoldRenderOptions.findPlug("progressive_rendering").asBool();
       m_threads                  = fnArnoldRenderOptions.findPlug("threads_autodetect").asBool() ? 0 : fnArnoldRenderOptions.findPlug("threads").asInt();
@@ -178,15 +203,8 @@ void CRenderOptions::ProcessArnoldRenderOptions()
 
       MFnEnumAttribute enum_filter_type(fnArnoldRenderOptions.findPlug("filter_type").attribute());
       m_filter_type  = enum_filter_type.fieldName(fnArnoldRenderOptions.findPlug("filter_type").asShort());
-      m_filter_width = fnArnoldRenderOptions.findPlug("filter_width").asFloat();
 
-      MFnEnumAttribute enum_filter_domain(fnArnoldRenderOptions.findPlug("filter_domain").attribute());
-      m_filter_domain      = enum_filter_domain.fieldName(fnArnoldRenderOptions.findPlug("filter_domain").asShort());
-      m_filter_scalar_mode = fnArnoldRenderOptions.findPlug("filter_scalar_mode").asBool();
-      m_filter_maximum     = fnArnoldRenderOptions.findPlug("filter_maximum").asFloat();
-      m_filter_minimum     = fnArnoldRenderOptions.findPlug("filter_minimum").asFloat();
-
-      m_output_gamma  = fnArnoldRenderOptions.findPlug("driver_gamma").asFloat();
+      m_display_gamma  = fnArnoldRenderOptions.findPlug("display_gamma").asFloat();
       m_light_gamma   = fnArnoldRenderOptions.findPlug("light_gamma").asFloat();
       m_shader_gamma  = fnArnoldRenderOptions.findPlug("shader_gamma").asFloat();
       m_texture_gamma = fnArnoldRenderOptions.findPlug("texture_gamma").asFloat();
@@ -209,20 +227,19 @@ void CRenderOptions::ProcessArnoldRenderOptions()
       if (conns.length() == 1)
       {
          MObject oAOV = conns[0].node();
-         MFnDependencyNode nAOV(oAOV);
+         MFnDependencyNode fnAOVNode(oAOV);
 
-         MPlug pBMO = nAOV.findPlug("aov_batch_mode_only");
-         if (BatchMode() || (!pBMO.isNull() && !pBMO.asBool()))
+         if (BatchMode() || !fnAOVNode.findPlug("aov_batch_mode_only").asBool())
          {
-            MPlug pAOVs = nAOV.findPlug("aovs");
+            MPlug pAOVs = fnAOVNode.findPlug("aovs");
             for (unsigned int i=0; i<pAOVs.numElements(); ++i)
             {
                CAOV aov;
                MPlug ipAOVs = pAOVs[i];
                if (aov.FromMaya(ipAOVs))
-               {
                   AddAOV(aov);
-               }
+               else
+                  MGlobal::displayWarning("[mtoa] Could not setup AOV attribute " + ipAOVs.partialName(true, false, false, false, false, true));
             }
          }
       }
@@ -232,6 +249,7 @@ void CRenderOptions::ProcessArnoldRenderOptions()
       AiMsgError("[mtoa] Could not find defaultArnoldRenderOptions");
    }
 }
+
 
 void CRenderOptions::SetupLog() const
 {
@@ -293,6 +311,7 @@ MString CRenderOptions::VerifyFileName(MString fileName, bool compressed)
    return fileName;
 }
 
+/*
 void CRenderOptions::SetupImageOutputs()
 {
    MString imageRenderFormat = arnoldRenderImageFormat();
@@ -318,6 +337,7 @@ void CRenderOptions::SetupImageOutputs()
       m_imageFileExtension = "png";
    }
 }
+*/
 
 MStatus CRenderOptions::GetOptionsNode(MObject& optionsNode) const
 {

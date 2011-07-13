@@ -1,5 +1,5 @@
-#ifndef ARNOLDCAMERATRANSLATOR_H
-#define ARNOLDCAMERATRANSLATOR_H
+#ifndef CAMERA_TRANSLATOR_H
+#define CAMERA_TRANSLATOR_H
 
 #include "translators/NodeTranslator.h"
 
@@ -50,4 +50,4 @@ protected:
    MFnCamera m_fnCamera;
 };
 
-#endif // ARNOLDCAMERATRANSLATOR_H
+#endif // CAMERA_TRANSLATOR_H

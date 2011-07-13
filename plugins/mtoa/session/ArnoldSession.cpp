@@ -211,6 +211,32 @@ AtNode* CArnoldSession::ExportNode(MObject mayaNode, const MString &attrName, MS
    return arnoldNode;
 }
 
+AtNode* CArnoldSession::ExportWithTranslator(MObject mayaNode, const MString &mayaNodeClass, const MString &translatorName)
+{
+   AtNode* shader = NULL;
+
+   CNodeTranslator* translator = CExtensionsManager::GetTranslator(mayaNodeClass, translatorName);
+   if (translator != NULL)
+   {
+      shader = translator->Init(this, mayaNode);
+      translator->DoExport(0);
+   }
+   else
+   {
+      AiMsgDebug("[mtoa] %s translator type not supported: %s", mayaNodeClass.asChar(), translatorName.asChar());
+   }
+   return shader;
+}
+
+AtNode* CArnoldSession::ExportDriver(MObject mayaNode, const MString &translatorName)
+{
+   return ExportWithTranslator(mayaNode, "<driver>", translatorName);
+}
+
+AtNode* CArnoldSession::ExportFilter(MObject mayaNode, const MString &translatorName)
+{
+   return ExportWithTranslator(mayaNode, "<filter>", translatorName);
+}
 
 CNodeTranslator * CArnoldSession::GetActiveTranslator(const MObject node)
 {

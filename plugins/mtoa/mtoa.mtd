@@ -1,4 +1,20 @@
 
+# options                     0x00115C00
+# barndoor                    0x00115C80
+# gobo                        0x00115C81
+# light_blocker               0x00115C82
+# light_decay                 0x00115C83
+# sky                         0x00115C84
+# skydome_light               0x00115C85
+# standard                    0x00115D01
+# utility                     0x00115D03
+# ray_switch                  0x00115D04
+# ambient_occlusion           0x00115D07
+# wireframe                   0x00115D08
+# fog                         0x00115D0A
+# volume_scattering           0x00115D0B
+
+
 # options
 
 [node options]
@@ -797,3 +813,126 @@
         label               STRING  "SSS Sample Spacing"
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
+
+# drivers
+
+[node driver_null]
+    maya.hide               BOOL    true
+
+[node driver_display]
+    maya.hide               BOOL    true
+
+[node driver_exr]
+    maya.attr_prefix        STRING  "driver_"
+    maya.translator         STRING  "exr"
+    [attr compression]
+        maya.name           STRING  "driverExrCompression"
+        maya.shortname      STRING  "driver_exr_compression"
+
+[node driver_jpeg]
+    maya.attr_prefix        STRING  "driver_"
+    maya.translator         STRING  "jpeg"
+    [attr gamma]
+        default             FLOAT   2.2
+        min                 FLOAT   0.0001
+        softmax             FLOAT   5.0
+    [attr quality]
+        min                 INT     0
+        max                 INT     100
+
+[node driver_png]
+    maya.attr_prefix        STRING  "driver_"
+    maya.translator         STRING  "png"
+    [attr gamma]
+        default             FLOAT   2.2
+        min                 FLOAT   0.0001
+        softmax             FLOAT   5.0
+    [attr format]
+        maya.name           STRING  "driverPngFormat"
+        maya.shortname      STRING  "driver_png_format"
+
+[node driver_tiff]
+    maya.attr_prefix        STRING  "driver_"
+    maya.translator         STRING  "tiff"
+    [attr gamma]
+        default             FLOAT   2.2
+        min                 FLOAT   0.0001
+        softmax             FLOAT   5.0
+    [attr compression]
+        maya.name           STRING  "driverTiffCompression"
+        maya.shortname      STRING  "driver_tiff_compression"
+    [attr format]
+        maya.name           STRING  "driverTiffFormat"
+        maya.shortname      STRING  "driver_tiff_format"
+
+# filters
+
+[node blackman_harris_filter]
+    maya.attr_prefix        STRING  "filter_"
+    maya.translator         STRING  "blackman_harris"
+
+[node box_filter]
+    maya.attr_prefix        STRING  "filter_"
+    maya.translator         STRING  "box"
+
+[node catrom2d_filter]
+    maya.attr_prefix        STRING  "filter_"
+    maya.translator         STRING  "catrom2d"
+
+[node catrom_filter]
+    maya.attr_prefix        STRING  "filter_"
+    maya.translator         STRING  "catrom"
+
+[node closest_filter]
+    maya.attr_prefix        STRING  "filter_"
+    maya.translator         STRING  "closest"
+
+[node cone_filter]
+    maya.attr_prefix        STRING  "filter_"
+    maya.translator         STRING  "cone"
+
+[node cook_filter]
+    maya.attr_prefix        STRING  "filter_"
+    maya.translator         STRING  "cook"
+
+[node cubic_filter]
+    maya.attr_prefix        STRING  "filter_"
+    maya.translator         STRING  "cubic"
+
+[node disk_filter]
+    maya.attr_prefix        STRING  "filter_"
+    maya.translator         STRING  "disk"
+
+[node farthest_filter]
+    maya.attr_prefix        STRING  "filter_"
+    maya.translator         STRING  "farthest"
+
+[node gaussian_filter]
+    maya.attr_prefix        STRING  "filter_"
+    maya.translator         STRING  "gaussian"
+
+[node heatmap_filter]
+
+    maya.attr_prefix        STRING  "filter_"
+    maya.translator         STRING  "heatmap"
+
+[node mitnet_filter]
+    maya.attr_prefix        STRING  "filter_"
+    maya.translator         STRING  "mitnet"
+
+[node sinc_filter]
+    maya.attr_prefix        STRING  "filter_"
+    maya.translator         STRING  "sinc"
+
+[node triangle_filter]
+    maya.attr_prefix        STRING  "filter_"
+    maya.translator         STRING  "triangle"
+
+[node variance_filter]
+    maya.attr_prefix        STRING  "filter_"
+    maya.translator         STRING  "variance"
+
+[node video_filter]
+    maya.attr_prefix        STRING  "filter_"
+    maya.translator         STRING  "video"
+

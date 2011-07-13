@@ -27,6 +27,7 @@ import math
 import pymel.core as pm
 
 import mtoa.utils as utils
+from mtoa.ui.ae.shapeTemplate import createTranslatorUI
 from mtoa.callbacks import *
 
 if pm.mel.getApplicationVersionAsFloat() >= 2011:
@@ -72,40 +73,6 @@ def getMultiCameraChildren(camera):
                 if result:
                     cameras.append(result)
     return cameras
-
-def buildArnoldImageFormatsMenu():
-    pm.menuItem(label="OpenEXR", data=0)
-    pm.menuItem(label="Tiff", data=1)
-    pm.menuItem(label="Jpg", data=2)
-    pm.menuItem(label="Png", data=3)
-
-
-def getArnoldImageFormatExt():
-    imageFormat = pm.getAttr('defaultArnoldRenderOptions.arnoldRenderImageFormat', asString=True)
-
-    formats = {'OpenEXR':'exr',
-                'Tiff':'tif',
-                'Jpg':'jpg',
-                'Png':'png'}
-    return formats.get(imageFormat, '')
-
-def getArnoldImageOldFormatExt(image):
-
-    formatLast = [2, 3, 6, 7]
-    formatSecond = [4]
-    formatNone = [1, 5]
-
-    if pm.optionMenuGrp('extMenu', q=True, exists=True):
-        opt = pm.optionMenuGrp('extMenu', q=True, sl=True)
-    else:
-        opt = 2
-
-    if opt in formatLast:
-        return image.split('.')[-1]
-    elif opt in formatSecond:
-        return image.split('.')[-2]
-
-    return ''
 
 # ----------------------------------------------------------------------------
 # Utility procedures used by other procedures in this file.
@@ -162,7 +129,6 @@ def createArnoldTargetFilePreview():
     #
     attrArray = ["defaultRenderGlobals.imageFilePrefix",
                  "defaultRenderGlobals.outFormatControl",
-                 "defaultArnoldRenderOptions.arnoldRenderImageFormat",
                  "defaultRenderGlobals.imfPluginKey",
                  "defaultRenderGlobals.outFormatExt",
                  "defaultRenderGlobals.animation",
@@ -241,22 +207,16 @@ def updateArnoldTargetFilePreview(*args):
     title2 = pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kNewTo")
     # TODO: DEFINE FIELDS FOR SW RENDER
     if pm.mel.getApplicationVersionAsFloat() >= 2011:
-        images = pm.renderSettings(fin=True, lin=True, lut=True)
+        first, last = pm.renderSettings(firstImageName=True,
+                                        lastImageName=True,
+                                        leaveUnmatchedTokens=True)
     else:
-        images = pm.renderSettings(fin=True, lin=True)
+        first, last = pm.renderSettings(firstImageName=True,
+                                        lastImageName=True)
 
-    #oldExt = os.path.splitext(images[0])[-1]
-    #oldExt = images[0].split('.')[-1]
-    oldExt = getArnoldImageOldFormatExt(images[0])
-    newExt = getArnoldImageFormatExt()
-
-    if oldExt:
-        images[0] = images[0].replace(oldExt, newExt)
-    pm.text('exampleArnoldText1', edit=True, label=pm.format(title1, s=images[0]))
-    if images[1]:
-        if oldExt:
-            images[1] = images[1].replace(oldExt, newExt)
-        pm.text('exampleArnoldText2', edit=True, label=pm.format(title2, s=images[1]))
+    pm.text('exampleArnoldText1', edit=True, label=pm.format(title1, s=first))
+    if last:
+        pm.text('exampleArnoldText2', edit=True, label=pm.format(title2, s=last))
     else:
         pm.text('exampleArnoldText2', edit=True, label="")
 
@@ -562,26 +522,10 @@ def updateArnoldFileNameFormatControl(*args):
     pm.setParent(oldParent)
 
 
-def changeArnoldImageFormat(*args):
-
-    selected_output_type = pm.getAttr('defaultArnoldRenderOptions.arnoldRenderImageFormat', asString=True)
-
-    switch = {'OpenEXR' : (1,0,0,0),
-              'Tiff' : (0,1,0,0),
-              'Jpg' : (0,0,1,0),
-              'Png' : (0,0,0,1)}
-
-    vis = switch[selected_output_type]
-
-    pm.columnLayout('cl_output_exr', e=True, vis=vis[0])
-    pm.columnLayout('cl_output_tiff', e=True, vis=vis[1])
-    pm.columnLayout('cl_output_jpg', e=True, vis=vis[2])
-    pm.columnLayout('cl_output_png', e=True, vis=vis[3])
-
-
 def createArnoldImageFormatControl():
 
     cRenderer = utils.currentRenderer()
+    print "createArnoldImageFormatControl", cRenderer
     if cRenderer == "mentalRay":
         return pm.mel.createMRImageFormatControl()
     if cRenderer == "mayaSoftware":
@@ -595,104 +539,34 @@ def createArnoldImageFormatControl():
     if pm.layout(fullPath, exists=True):
         pm.deleteUI(fullPath)
 
-    pm.optionMenuGrp('imageMenuMayaSW',
-                  label = pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kImageFormatMenu"),
-                  changeCommand=changeArnoldImageFormat)
-
-
-    buildArnoldImageFormatsMenu()
-
-    # connect the label, so we can change its color
-    pm.connectControl('imageMenuMayaSW','defaultArnoldRenderOptions.arnoldRenderImageFormat',index=1)
-    # connect the menu, so it will always match the attribute
-    pm.connectControl('imageMenuMayaSW','defaultArnoldRenderOptions.arnoldRenderImageFormat',index=2)
+    createTranslatorUI('defaultArnoldRenderOptions.imageFormat', 
+                       label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kImageFormatMenu"),
+                       nodeType='<driver>',
+                       default='exr',
+                       optionMenuName='imageMenuMayaSW')
 
     # We need to create controls that we don't need to avoid
-    # Maya errors because of the harcoded code.
+    # Maya errors because of the harcoded code. keep them hidden
     pm.columnLayout('cl_output_compression', vis=0, rowSpacing=0)
     pm.button('renderGlobalsCompression', label="", enable=False)
     pm.attrEnumOptionMenuGrp('multiCamNamingMenu', label="")
     pm.textFieldGrp('multiCamCustomToken', label="")
     pm.setParent('..')
 
-    pm.columnLayout('cl_output_exr', vis=0, rowSpacing=0)
-    pm.attrControlGrp('os_output_compression',
-                        label="Image Compression",
-                        attribute='defaultArnoldRenderOptions.compression')
+    pm.scriptJob(
+        parent=parent,
+        attributeChange=("defaultArnoldRenderOptions.imageFormat",
+                         updateArnoldImageFormatControl))
 
-    pm.attrControlGrp('os_output_half_precision',
-                        label="Half Precision",
-                        attribute='defaultArnoldRenderOptions.half_precision')
-
-    pm.setParent('..')
-
-    pm.columnLayout('cl_output_tiff', vis=0, rowSpacing=0)
-    pm.attrControlGrp('os_output_compression',
-                        label="Image Compression",
-                        attribute='defaultArnoldRenderOptions.compression')
-
-    pm.attrControlGrp('os_output_format',
-                        label="Format",
-                        attribute='defaultArnoldRenderOptions.format')
-
-    pm.attrControlGrp('os_output_tiled',
-                        label="Tiled",
-                        attribute='defaultArnoldRenderOptions.tiled')
-
-    pm.attrControlGrp('os_output_unpremult_alpha',
-                        label="Unpremultiplied Alpha",
-                        attribute='defaultArnoldRenderOptions.unpremult_alpha')
-
-    pm.attrControlGrp('os_output_padded',
-                        label="Output Padded",
-                        attribute='defaultArnoldRenderOptions.output_padded')
-
-    pm.attrControlGrp('os_output_gamma',
-                        label="Gamma",
-                        attribute='defaultArnoldRenderOptions.gamma')
-
-    pm.setParent('..')
-
-    pm.columnLayout('cl_output_jpg', vis=0, rowSpacing=0)
-    pm.attrControlGrp('os_output_padded',
-                        label="Output Padded",
-                        attribute='defaultArnoldRenderOptions.output_padded')
-
-    pm.attrControlGrp('os_output_gamma',
-                        label="Gamma",
-                        attribute='defaultArnoldRenderOptions.gamma')
-
-    pm.attrControlGrp('os_output_quality',
-                        label="Quality",
-                        attribute='defaultArnoldRenderOptions.quality')
-
-    pm.setParent('..')
-
-    pm.columnLayout('cl_output_png', vis=0, rowSpacing=0)
-    pm.attrControlGrp('os_output_padded',
-                        label="Output Padded",
-                        attribute='defaultArnoldRenderOptions.output_padded')
-
-    pm.attrControlGrp('os_output_gamma',
-                        label="Gamma",
-                        attribute='defaultArnoldRenderOptions.gamma')
-    pm.setParent('..')
-
-    pm.separator()
-
-    ''' scriptJob
-        -parent $parent
-        -attributeChange
-          "defaultRenderGlobals.imageFormat"
-          "updateArnoldImageFormatControl";
-    '''
-    changeArnoldImageFormat()
+#    changeArnoldImageFormat()
     return "imageMenuMayaSW"
 
 
 def updateArnoldImageFormatControl(*args):
-    pass
-
+    curr = pm.getAttr('defaultArnoldRenderOptions.imageFormat')
+    print "updateArnoldImageFormatControl", args, curr
+    pm.setAttr('defaultRenderGlobals.imageFormat', 51)
+    pm.setAttr('defaultRenderGlobals.imfkey', curr)
 
 def extendToShape(dag):
     'Return the camera shape from this dag object'
@@ -2095,11 +1969,12 @@ def updateArnoldRendererCommonGlobalsTab(*args):
     '''
      Description:
      This procedure is called when the current renderer changes to be the
-     Maya Software Renderer.
+     Arnold Renderer.
      This procedure updates controls in the Common tab of the Maya Software
      renderer to reflect values which may have been copied from the previous
      current renderer.
     '''
+    print 'updateArnoldRendererCommonGlobalsTab'
     updateArnoldFileNamePrefixControl()
     updateArnoldFileNameFormatControl()
 

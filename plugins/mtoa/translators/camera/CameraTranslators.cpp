@@ -61,9 +61,9 @@ void COrthoCameraTranslator::ExportMotion(AtNode* camera, AtUInt step)
    ExportImagePlanes(step);
 }
 
-void COrthoCameraTranslator::NodeInitializer(MString nodeClassName)
+void COrthoCameraTranslator::NodeInitializer(CAbTranslator context)
 {
-   CExtensionAttrHelper helper(nodeClassName, "ortho_camera");
+   CExtensionAttrHelper helper(context.maya, "ortho_camera");
    MakeDefaultAttributes(helper);
 }
 
@@ -204,9 +204,9 @@ void CPerspCameraTranslator::ExportMotion(AtNode* camera, AtUInt step)
    AiArraySetFlt(fovs, step, fov);
 }
 
-void CPerspCameraTranslator::NodeInitializer(MString nodeClassName)
+void CPerspCameraTranslator::NodeInitializer(CAbTranslator context)
 {
-   CExtensionAttrHelper helper(nodeClassName, "persp_camera");
+   CExtensionAttrHelper helper(context.maya, "persp_camera");
    MakeDefaultAttributes(helper);
    MakeDOFAttributes(helper);
    helper.MakeInput("uv_remap");
@@ -265,9 +265,9 @@ void CFishEyeCameraTranslator::ExportMotion(AtNode* camera, AtUInt step)
    AiArraySetFlt(fovs, step, fov);
 }
 
-void CFishEyeCameraTranslator::NodeInitializer(MString nodeClassName)
+void CFishEyeCameraTranslator::NodeInitializer(CAbTranslator context)
 {
-   CExtensionAttrHelper helper(nodeClassName, "fisheye_camera");
+   CExtensionAttrHelper helper(context.maya, "fisheye_camera");
    MakeDefaultAttributes(helper);
    MakeDOFAttributes(helper);
 
@@ -335,9 +335,9 @@ void CCylCameraTranslator::ExportMotion(AtNode* camera, AtUInt step)
    AiArraySetFlt(v_fovs, step, fovs[1]);
 }
 
-void CCylCameraTranslator::NodeInitializer(MString nodeClassName)
+void CCylCameraTranslator::NodeInitializer(CAbTranslator context)
 {
-   CExtensionAttrHelper helper(nodeClassName, "cyl_camera");
+   CExtensionAttrHelper helper(context.maya, "cyl_camera");
    MakeDefaultAttributes(helper);
    helper.MakeInput("horizontal_fov");
    helper.MakeInput("vertical_fov");

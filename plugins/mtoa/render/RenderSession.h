@@ -90,10 +90,6 @@ public:
 
    /// Set whether we're in batch mode.
    void SetBatch(bool batch);
-   /*
-   /// Set the options to use when exporting/translating the CMayaScene
-   void SetSceneExportOptions(const CSessionOptions);
-   */
    /// Set the resolution of the render.
    /// \param width width in pixels.
    /// \param height height in pixels.

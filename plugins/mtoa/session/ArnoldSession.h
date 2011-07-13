@@ -66,6 +66,11 @@ public:
    AtNode* ExportNode(MPlug& shaderOutputPlug, MStatus* stat=NULL);
    AtNode* ExportNode(MObject node, const MString &attrName="", MStatus* stat=NULL);
 
+   // FIXME : shouldn't probably be public
+   AtNode* ExportWithTranslator(MObject node, const MString &mayaNodeClass, const MString &translatorName);
+   AtNode* ExportDriver(MObject node, const MString &translatorName);
+   AtNode* ExportFilter(MObject node, const MString &translatorName);
+
    CNodeTranslator * GetActiveTranslator(const MObject node);
    static bool IsRenderablePath(MDagPath dagPath);
 

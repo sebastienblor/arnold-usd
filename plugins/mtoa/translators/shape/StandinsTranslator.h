@@ -12,7 +12,7 @@ public:
    }
    virtual AtNode* CreateArnoldNodes();
 
-   static void NodeInitializer(MString nodeClassName);
+   static void NodeInitializer(CAbTranslator context);
    void Export(AtNode* anode);
    void ExportMotion(AtNode* anode, AtUInt step);
 

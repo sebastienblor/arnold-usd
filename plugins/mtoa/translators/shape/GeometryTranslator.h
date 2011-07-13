@@ -38,7 +38,7 @@ public:
    virtual void Update(AtNode* anode);
    virtual void ExportMotion(AtNode* anode, AtUInt step);
    virtual void UpdateMotion(AtNode* anode, AtUInt step);
-   static void NodeInitializer(MString nodeClassName);
+   static void NodeInitializer(CAbTranslator context);
    virtual void AddUpdateCallbacks();
 
 protected:

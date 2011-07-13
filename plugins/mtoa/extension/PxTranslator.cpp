@@ -3,6 +3,7 @@
 #include "nodes/ShaderUtils.h"
 #include "nodes/shader/ArnoldShaderNode.h"
 #include "translators/shader/ShaderTranslator.h"
+#include "translators/driver/DriverTranslator.h"
 
 // A Maya node proxy
 CPxTranslator::CPxTranslator(const MString &translatorName,
@@ -63,6 +64,16 @@ MStatus CPxTranslator::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
          // TODO : define a non virtual generic CShapeTranslator or Geo
          // creator = CShapeTranslator::creator;
          // initialize = CShapeTranslator::NodeInitializer;
+      }
+      else if (arnoldNodeTypeName == "driver")
+      {
+         creator = CDriverTranslator::creator;
+         initialize = CDriverTranslator::NodeInitializer;
+      }
+      else if (arnoldNodeTypeName == "filter")
+      {
+         creator = CDriverTranslator::creator;
+         initialize = CDriverTranslator::NodeInitializer;
       }
       // No default strategy to create the rest
    }

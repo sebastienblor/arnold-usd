@@ -6,6 +6,7 @@ import mtoa.ui.ae
 import os
 import pkgutil
 import re
+import sys
 
 def arnoldGetDimValue(node, attr):
 
@@ -103,7 +104,7 @@ class AttrControlGrp(object):
         'double':cmds.attrFieldSliderGrp,
         'double2':cmds.attrFieldGrp,
         'double3':cmds.attrFieldGrp,
-        'string':cmds.attrFieldGrp,
+        'string':cmds.attrControlGrp,
         'message':cmds.attrNavigationControlGrp
     }
     def __init__(self, attribute, *args, **kwargs):

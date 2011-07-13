@@ -1,5 +1,5 @@
-#ifndef SHADERTRANSLATOR_H
-#define SHADERTRANSLATOR_H
+#ifndef SHADER_TRANSLATOR_H
+#define SHADER_TRANSLATOR_H
 
 #include "translators/NodeTranslator.h"
 
@@ -30,4 +30,4 @@ protected:
 };
 
 
-#endif // SHADERTRANSLATOR_H
+#endif // SHADER_TRANSLATOR_H

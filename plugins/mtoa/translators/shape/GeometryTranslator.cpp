@@ -1,6 +1,5 @@
 
 #include "GeometryTranslator.h"
-#include "GeometryTranslator.h"
 
 #include <maya/MNodeMessage.h>
 
@@ -961,9 +960,9 @@ void CGeometryTranslator::ShaderAssignmentCallback(MNodeMessage::AttributeMessag
    }
 }
 
-void CGeometryTranslator::NodeInitializer(MString nodeClassName)
+void CGeometryTranslator::NodeInitializer(CAbTranslator context)
 {
-   CExtensionAttrHelper helper(nodeClassName, "polymesh");
+   CExtensionAttrHelper helper(context.maya, "polymesh");
 
    // Node attributes
    CShapeTranslator::MakeCommonAttributes(helper);

@@ -420,8 +420,7 @@ MStatus CExtensionsManager::RegisterExtension(CExtension* extension)
          }
          if (NULL != translator.initialize)
          {
-            // TODO : reimplement the plugin deferred mechanism
-            translator.initialize(mayaNode->name);
+            translator.initialize(CAbTranslator(translator.name, translator.arnold, mayaNode->name, translator.provider));
          }
       }
       // Add aiTranslator if more than one translator
@@ -637,7 +636,7 @@ CNodeTranslator* CExtensionsManager::GetTranslator(const MString &typeName,
       translator = (CNodeTranslator*)creatorFunction();
       // This customize the prototype instance of the translator
       // with the information found in the translator class proxy
-      translator->m_abstract = CAbTranslator(foundTrs->name, foundTrs->arnold, foundTrs->provider);
+      translator->m_abstract = CAbTranslator(foundTrs->name, foundTrs->arnold, mayaNode.name, foundTrs->provider);
    }
    else
    {

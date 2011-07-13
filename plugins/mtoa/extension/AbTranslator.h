@@ -15,14 +15,17 @@ class CAbTranslator
 public:
    CAbTranslator(const MString &translatorName = "",
                const MString &arnoldClassName = "",
+               const MString &mayaClassName = "",
                const MString &providerName = "")
    : name(translatorName),
      arnold(arnoldClassName),
+     maya(mayaClassName),
      provider(providerName)
    {}
 
    MString name;
    MString arnold;
+   MString maya;
    MString provider;
 };
 

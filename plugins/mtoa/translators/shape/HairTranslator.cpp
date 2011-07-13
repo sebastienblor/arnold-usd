@@ -10,9 +10,9 @@
 #include <maya/MRampAttribute.h>
 #include <maya/MFnNurbsCurve.h>
 
-void CHairTranslator::NodeInitializer(MString nodeClassName)
+void CHairTranslator::NodeInitializer(CAbTranslator context)
 {
-   CExtensionAttrHelper helper = CExtensionAttrHelper(nodeClassName, "curves");
+   CExtensionAttrHelper helper = CExtensionAttrHelper(context.maya, "curves");
    CShapeTranslator::MakeCommonAttributes(helper);
    helper.MakeInput("min_pixel_width");
    helper.MakeInput("mode");

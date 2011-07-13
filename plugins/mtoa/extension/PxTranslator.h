@@ -6,9 +6,11 @@
 
 #include <ai_nodes.h>
 
+class CAbTranslator;
+
 typedef void *   (*TCreatorFunction)();
 // typedef void     (*TNodeInitFunction)(MObject&);
-typedef void     (*TNodeInitFunction)(MString);
+typedef void     (*TNodeInitFunction)(CAbTranslator);
 
 // A translator proxy
 class CPxTranslator

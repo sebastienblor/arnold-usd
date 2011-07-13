@@ -1,5 +1,5 @@
-#ifndef CAMERATRANSLATORS_H
-#define CAMERATRANSLATORS_H
+#ifndef CAMERA_TRANSLATORS_H
+#define CAMERA_TRANSLATORS_H
 
 #include "CameraTranslator.h"
 
@@ -10,7 +10,7 @@ class CPerspCameraTranslator
 public:
    virtual void Export(AtNode* camera);
    virtual void ExportMotion(AtNode* camera, AtUInt step);
-   static void NodeInitializer(MString nodeClassName);
+   static void NodeInitializer(CAbTranslator context);
    static void* creator()
    {
       return new CPerspCameraTranslator();
@@ -29,7 +29,7 @@ class COrthoCameraTranslator
 public:
    void Export(AtNode* camera);
    void ExportMotion(AtNode* camera, AtUInt step);
-    static void NodeInitializer(MString nodeClassName);
+   static void NodeInitializer(CAbTranslator context);
    static void* creator()
    {
       return new COrthoCameraTranslator();
@@ -46,7 +46,7 @@ class CFishEyeCameraTranslator
 public:
    void Export(AtNode* camera);
    void ExportMotion(AtNode* camera, AtUInt step);
-   static void NodeInitializer(MString nodeClassName);
+   static void NodeInitializer(CAbTranslator context);
    static void* creator()
    {
       return new CFishEyeCameraTranslator();
@@ -64,7 +64,7 @@ class CCylCameraTranslator
 public:
    void Export(AtNode* camera);
    void ExportMotion(AtNode* camera, AtUInt step);
-   static void NodeInitializer(MString nodeClassName);
+   static void NodeInitializer(CAbTranslator context);
    static void* creator()
    {
       return new CCylCameraTranslator();
@@ -75,4 +75,4 @@ protected:
    // return FOV
    void ExportFilmback(AtNode* camera, float fovs[]);
 };
-#endif // CAMERATRANSLATORS_H
+#endif // CAMERA_TRANSLATORS_H

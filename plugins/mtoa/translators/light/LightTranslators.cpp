@@ -14,9 +14,9 @@ void CAmbientLightTranslator::Export(AtNode* light)
    CLightTranslator::Export(light);
 }
 
-void CAmbientLightTranslator::NodeInitializer(MString nodeClassName)
+void CAmbientLightTranslator::NodeInitializer(CAbTranslator context)
 {
-   CExtensionAttrHelper helper = CExtensionAttrHelper(nodeClassName, "ambient_light");
+   CExtensionAttrHelper helper = CExtensionAttrHelper(context.maya, "ambient_light");
    MakeCommonAttributes(helper);
 }
 
@@ -31,9 +31,9 @@ void CDirectionalLightTranslator::Export(AtNode* light)
 
 }
 
-void CDirectionalLightTranslator::NodeInitializer(MString nodeClassName)
+void CDirectionalLightTranslator::NodeInitializer(CAbTranslator context)
 {
-   CExtensionAttrHelper helper = CExtensionAttrHelper(nodeClassName, "distant_light");
+   CExtensionAttrHelper helper = CExtensionAttrHelper(context.maya, "distant_light");
    // common attributes
    MakeCommonAttributes(helper);
    // directional light attributes
@@ -55,9 +55,9 @@ void CPointLightTranslator::Export(AtNode* light)
    AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaObjectPlug("aiCastVolumetricShadows").asBool());
 }
 
-void CPointLightTranslator::NodeInitializer(MString nodeClassName)
+void CPointLightTranslator::NodeInitializer(CAbTranslator context)
 {
-   CExtensionAttrHelper helper = CExtensionAttrHelper(nodeClassName, "point_light");
+   CExtensionAttrHelper helper = CExtensionAttrHelper(context.maya, "point_light");
    // common attributes
    MakeCommonAttributes(helper);
    // point light attributes
@@ -89,9 +89,9 @@ void CSpotLightTranslator::Export(AtNode* light)
    AiNodeSetFlt(light, "lens_radius", FindMayaObjectPlug("aiLensRadius").asFloat());
 }
 
-void CSpotLightTranslator::NodeInitializer(MString nodeClassName)
+void CSpotLightTranslator::NodeInitializer(CAbTranslator context)
 {
-   CExtensionAttrHelper helper = CExtensionAttrHelper(nodeClassName, "spot_light");
+   CExtensionAttrHelper helper = CExtensionAttrHelper(context.maya, "spot_light");
    // common attributes
    MakeCommonAttributes(helper);
    // spot light attributes
@@ -123,9 +123,9 @@ void CAreaLightTranslator::Export(AtNode* light)
    AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaObjectPlug("aiCastVolumetricShadows").asBool());
 }
 
-void CAreaLightTranslator::NodeInitializer(MString nodeClassName)
+void CAreaLightTranslator::NodeInitializer(CAbTranslator context)
 {
-   CExtensionAttrHelper helper(nodeClassName, "quad_light");
+   CExtensionAttrHelper helper(context.maya, "quad_light");
    // common attributes
    MakeCommonAttributes(helper);
    // spot light attributes
@@ -164,9 +164,9 @@ void CSkyDomeLightTranslator::Export(AtNode* light)
    AiNodeSetRGB(light, "shadow_color", FindMayaObjectPlug("shadow_colorR").asFloat(), FindMayaObjectPlug("shadow_colorG").asFloat(), FindMayaObjectPlug("shadow_colorB").asFloat());
 }
 
-void CSkyDomeLightTranslator::NodeInitializer(MString nodeClassName)
+void CSkyDomeLightTranslator::NodeInitializer(CAbTranslator context)
 {
-   CExtensionAttrHelper helper(nodeClassName, "skydome_light");
+   CExtensionAttrHelper helper(context.maya, "skydome_light");
    // Cannot be created both on Node and here
    MakeCommonAttributes(helper);
 }

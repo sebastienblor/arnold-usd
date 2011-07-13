@@ -20,9 +20,6 @@
 #include <vector>
 #include <map>
 
-typedef void *   (*CreatorFunction)();
-typedef void     (*NodeInitFunction)(MString);
-
 // Abstract base class for all Maya-to-Arnold node translators
 //
 class DLLEXPORT CNodeTranslator
@@ -130,6 +127,7 @@ protected:
    static void NodeDeletedCallback(MObject &node, MDGModifier &modifier, void *clientData);
 
 protected:
+
    CAbTranslator m_abstract;
 
    CArnoldSession* m_session;

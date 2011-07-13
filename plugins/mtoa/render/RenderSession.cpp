@@ -310,7 +310,6 @@ void CRenderSession::SetupRenderOutput()
    AtNode * render_view = CreateRenderViewOutput();
    AtNode * file_driver = CreateFileOutput();
    AtNode * filter = CreateOutputFilter();
-   AtNode * specialAovfilter;
 
    // OUTPUT STRINGS
    AtChar   str[1024];
@@ -333,26 +332,10 @@ void CRenderSession::SetupRenderOutput()
       AiArraySetStr(outputs, driver_num++, str);
 
       for (size_t i=0; i<m_renderOptions.NumAOVs(); ++i)
-      {
-         if      (strcmp(m_renderOptions.GetAOV(i).GetName().asChar(),"Z")==0)
-         {
-            specialAovfilter = CreateAovOutputFilter();
-            m_renderOptions.GetAOV(i).SetupOutput(outputs, ndrivers+static_cast<int>(i), file_driver, specialAovfilter);
-         }
-         else if (strcmp(m_renderOptions.GetAOV(i).GetName().asChar(),"P")==0)
-         {
-            specialAovfilter = CreateAovOutputFilter();
-            m_renderOptions.GetAOV(i).SetupOutput(outputs, ndrivers+static_cast<int>(i), file_driver, specialAovfilter);
-         }
-         else
-         {
-            m_renderOptions.GetAOV(i).SetupOutput(outputs, ndrivers+static_cast<int>(i), file_driver, filter);
-         }
-      }
+         m_renderOptions.GetAOV(i).SetupOutput(outputs, ndrivers+static_cast<int>(i), file_driver, filter);
    }
 
    AiNodeSetArray(AiUniverseGetOptions(), "outputs", outputs);
-
 }
 
 AtNode * CRenderSession::CreateFileOutput()
@@ -360,75 +343,39 @@ AtNode * CRenderSession::CreateFileOutput()
    // Don't install the file driver when in IPR mode.
    if (CMayaScene::GetSessionMode() == MTOA_SESSION_IPR) return NULL;
 
-   AtNode* driver;
-   // set the output driver
-   MString driverName = m_renderOptions.RenderDriver() + "_" + m_renderOptions.GetCameraName();
-   driver = AiNodeLookUpByName(driverName.asChar());
-   if (NULL == driver)
-   {
-      driverName = m_renderOptions.RenderDriver();
-      if (driverName.numChars())
-      {
-         driver = AiNode(driverName.asChar());
-         if (NULL != driver)
-         {
-            MString imageName = m_renderOptions.GetImageFilename();
-            AiMsgDebug("Created output driver %s writing to file %s", driverName.asChar(), imageName.asChar());
-            AiNodeSetStr(driver, "filename", imageName.asChar());
-            // Set the driver name depending on the camera name to avoid nodes with
-            // the same name on renders with multiple cameras
-            AiNodeSetStr(driver, "name", driverName.asChar());
-         }
-         else
-         {
-            AiMsgError("Failed to create output driver %s", driverName.asChar());
-         }
-      }
-   }
+   MObject node;
+   m_renderOptions.GetOptionsNode(node);
+   MFnDependencyNode fnArnoldRenderOptions(node);
 
-   if (NULL != driver)
+   // set the output driver
+   MString driverType = fnArnoldRenderOptions.findPlug("imageFormat").asString();
+   AtNode* driver = CMayaScene::GetExportSession()->ExportDriver(node, driverType);
+   if (driver != NULL)
    {
-      // set output driver parameters
-      // Only set output parameters if they exist within that specific node
-      if (AiNodeEntryLookUpParameter(driver->base_node, "compression"))
-      {
-         AiNodeSetInt(driver, "compression", m_renderOptions.arnoldRenderImageCompression());
-      }
-      if (AiNodeEntryLookUpParameter(driver->base_node, "half_precision"))
-      {
-         AiNodeSetBool(driver, "half_precision", m_renderOptions.arnoldRenderImageHalfPrecision());
-      }
-      if (AiNodeEntryLookUpParameter(driver->base_node, "output_padded"))
-      {
-         AiNodeSetBool(driver, "output_padded", m_renderOptions.arnoldRenderImageOutputPadded());
-      }
-      if (AiNodeEntryLookUpParameter(driver->base_node, "gamma"))
-      {
-         AiNodeSetFlt(driver, "gamma", m_renderOptions.arnoldRenderImageGamma());
-      }
-      if (AiNodeEntryLookUpParameter(driver->base_node, "quality"))
-      {
-         AiNodeSetInt(driver, "quality", m_renderOptions.arnoldRenderImageQuality());
-      }
-      if (AiNodeEntryLookUpParameter(driver->base_node, "format"))
-      {
-         AiNodeSetInt(driver, "format", m_renderOptions.arnoldRenderImageOutputFormat());
-      }
-      if (AiNodeEntryLookUpParameter(driver->base_node, "tiled"))
-      {
-         AiNodeSetBool(driver, "tiled", m_renderOptions.arnoldRenderImageTiled());
-      }
-      if (AiNodeEntryLookUpParameter(driver->base_node, "unpremult_alpha"))
-      {
-         AiNodeSetBool(driver, "unpremult_alpha", m_renderOptions.arnoldRenderImageUnpremultAlpha());
-      }
+      AiNodeSetStr(driver, "filename", m_renderOptions.GetImageFilename().asChar());
    }
    else
    {
-      AiMsgError("Could not create file output of name '%s'", driverName.asChar());
+      AiMsgError("[mtoa] image driver is NULL");
    }
 
    return driver;
+}
+
+AtNode * CRenderSession::CreateOutputFilter()
+{
+   MObject node;
+   m_renderOptions.GetOptionsNode(node);
+   MFnDependencyNode fnArnoldRenderOptions(node);
+
+   // set the output driver
+   MString filterType = fnArnoldRenderOptions.findPlug("filterType").asString();
+   AiMsgInfo("exporting filter \"%s\"", filterType.asChar());
+   AtNode* filter = CMayaScene::GetExportSession()->ExportFilter(node, filterType);
+   if (filter == NULL)
+      AiMsgError("[mtoa] filter is NULL");
+
+   return filter;
 }
 
 AtNode * CRenderSession::CreateRenderViewOutput()
@@ -454,41 +401,7 @@ AtNode * CRenderSession::CreateRenderViewOutput()
    return driver;
 }
 
-AtNode * CRenderSession::CreateOutputFilter()
-{
-   // OUTPUT FILTER (use for all image outputs)
-   AtNode* filter = AiNodeLookUpByName(m_renderOptions.filterType().asChar());
-   if (filter == NULL) filter = AiNode(m_renderOptions.filterType().asChar());
 
-   if (filter != NULL)
-   {
-      AiNodeSetStr(filter, "name", m_renderOptions.filterType().asChar());
-
-      // Only set filter parameters if they exist within that specific node
-      if (AiNodeEntryLookUpParameter(filter->base_node, "width"))
-      {
-         AiNodeSetFlt(filter, "width", m_renderOptions.filterWidth());
-      }
-      if (AiNodeEntryLookUpParameter(filter->base_node, "domain"))
-      {
-         AiNodeSetStr(filter, "domain", m_renderOptions.filterDomain().asChar());
-      }
-      if (AiNodeEntryLookUpParameter(filter->base_node, "scalar_mode"))
-      {
-         AiNodeSetBool(filter, "scalar_mode", m_renderOptions.filterScalarMode());
-      }
-      if (AiNodeEntryLookUpParameter(filter->base_node, "maximum"))
-      {
-         AiNodeSetFlt(filter, "maximum", m_renderOptions.filterMaximum());
-      }
-      if (AiNodeEntryLookUpParameter(filter->base_node, "minimum"))
-      {
-         AiNodeSetFlt(filter, "minimum", m_renderOptions.filterMinimum());
-      }
-   }
-
-   return filter;
-}
 
 AtNode * CRenderSession::CreateAovOutputFilter()
 {

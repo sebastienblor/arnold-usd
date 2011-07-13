@@ -381,10 +381,9 @@ void CShaveTranslator::ProcessHairLines(AtUInt step,
    }
 }
 
-
-void CShaveTranslator::NodeInitializer(MString nodeClassName)
+void CShaveTranslator::NodeInitializer(CAbTranslator context)
 {
-   CExtensionAttrHelper helper(nodeClassName, "curves");
+   CExtensionAttrHelper helper(context.maya, "curves");
    CShapeTranslator::MakeCommonAttributes(helper);
    helper.MakeInput("min_pixel_width");
    helper.MakeInput("mode");

@@ -76,3 +76,13 @@ def createArnoldNode(nodeType, name=None, skipSelect=False, runtimeClassificatio
         pm.warning("[mtoa] Could not determine runtime classification of %s: set maya.classification metadata" % nodeType)
         node = pm.createNode(nodeType, **kwargs)
     return node
+
+def getAttributeData(nodeType):
+    import maya.cmds as cmds
+    data = cmds.arnoldPlugins(getAttrData=nodeType) or []
+    # convert empty strings to None
+    data = [x or None for x in data]
+    result = []
+    for i in range(0, len(data), 4):
+        result.append(tuple(data[i:i+4]))
+    return result
