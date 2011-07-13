@@ -85,7 +85,7 @@ class AOVNode(object):
         returns the created AOV node
         '''
         if aovName not in self.getActiveAOVs():
-            aovNode = pm.createNode('aixAOV', name='aixAOV_' + aovName, skipSelect=True)
+            aovNode = pm.createNode('aiAOV', name='aiAOV_' + aovName, skipSelect=True)
             aovNode.attr('name').set(aovName)
             aovNode.message.connect(self._aovAttr, nextAvailable=True)
             return aovNode

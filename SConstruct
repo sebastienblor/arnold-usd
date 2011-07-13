@@ -59,7 +59,10 @@ vars.AddVariables(
                    '.', PathVariable.PathIsDir),
       PathVariable('ARNOLD_BINARIES', 
                    'Where to find Arnold API dynamic libraries and executables', 
-                   '.', PathVariable.PathIsDir),                  
+                   '.', PathVariable.PathIsDir),   
+      PathVariable('ARNOLD_PYTHON', 
+                   'Where to find Arnold python bindings', 
+                   '.', PathVariable.PathIsDir),                                  
       PathVariable('TARGET_MODULE_PATH', 
                    'Path used for installation of the mtoa module', 
                    '.', PathVariable.PathIsDirCreate),
@@ -473,10 +476,14 @@ env.Install(env['TARGET_BINARIES'], dylibs)
 
 env.Install(env['TARGET_BINARIES'], MTOA_API[0])
 
-
+# install mtoa scritps
 pyfiles = find_files_recursive('scripts', ['.py', '.mel'])
 env.InstallAs([os.path.join(env['TARGET_PYTHON_PATH'], x) for x in pyfiles],
               [os.path.join('scripts', x) for x in  pyfiles])
+# install Arnold python bindings
+arpybds = find_files_recursive(os.path.join(env['ARNOLD_PYTHON']), ['.py'])
+env.InstallAs([os.path.join(env['TARGET_PYTHON_PATH'], x) for x in arpybds],
+              [os.path.join(env['ARNOLD_PYTHON'], x) for x in  arpybds])
 env.Install(env['TARGET_ICONS_PATH'], glob.glob(os.path.join('icons', '*.xpm')))
 env.Install(env['TARGET_DESCR_PATH'], glob.glob(os.path.join('scripts', '*.xml')))
 
@@ -497,8 +504,8 @@ if system.os() == 'windows':
 else:
    package_name += ".tgz"
 
-#PACKAGE = env.MakePackage(package_name, MTOA + MTOA_API + MTOA_SHADERS + MTOA_API_DOCS)
-PACKAGE = env.MakePackage(package_name, MTOA + MTOA_API + MTOA_SHADERS)
+PACKAGE = env.MakePackage(package_name, MTOA + MTOA_API + MTOA_SHADERS + MTOA_API_DOCS)
+#PACKAGE = env.MakePackage(package_name, MTOA + MTOA_API + MTOA_SHADERS)
 
 ################################
 ## EXTENSIONS
@@ -586,15 +593,21 @@ PACKAGE_FILES = [
 [os.path.join(env['ARNOLD_BINARIES'], 'maketx%s' % get_executable_extension()), 'bin'],
 [os.path.join(env['ARNOLD_BINARIES'], '*%s' % get_library_extension()), 'bin'],
 [os.path.join('plugins', 'mtoa', 'mtoa.mtd'), 'plug-ins'],
-[MTOA_SHADERS[0], 'shaders']
-#[os.path.join(BUILD_BASE_DIR, 'docs', 'api', 'html'), os.path.join('doc', 'api')],
-#[os.path.splitext(str(MTOA_API[0]))[0] + '.lib', 'lib'],
+[MTOA_SHADERS[0], 'shaders'],
+[os.path.join(BUILD_BASE_DIR, 'docs', 'api', 'html'), os.path.join('doc', 'api')],
+[os.path.splitext(str(MTOA_API[0]))[0] + '.lib', 'lib'],
 ]
 
 for p in pyfiles:
    (d, f) = os.path.split(p)
    PACKAGE_FILES += [
       [os.path.join('scripts', p), os.path.join('scripts', d)]
+   ]
+
+for p in arpybds:
+   (d, f) = os.path.split(p)
+   PACKAGE_FILES += [
+      [os.path.join(env['ARNOLD_PYTHON'], p), os.path.join('scripts', d)]
    ]
 
 for e in ext_files:

@@ -40,7 +40,7 @@ void CDriverTranslator::NodeInitializer(CAbTranslator context)
               arnold.asChar(), provider.asChar());
    // FIXME: remove this hard-wire
    CExtensionAttrHelper helper("aiOptions", nodeEntry);
-   CExtensionAttrHelper helper2("aixAOV", nodeEntry);
+   CExtensionAttrHelper helper2("aiAOV", nodeEntry);
    // inputs
    AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(nodeEntry);
    while (!AiParamIteratorFinished(nodeParam))

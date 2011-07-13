@@ -15,7 +15,7 @@ class AOVTranslatorControl(TranslatorControl):
     def getDefaultTranslator(self, nodeName):
         return self.USE_GLOBALS
 
-def aixAOVTemplate(nodeName):
+def aiAOVTemplate(nodeName):
 
     #mel.eval('AEswatchDisplay "%s"' % nodeName)
 

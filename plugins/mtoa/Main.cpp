@@ -91,7 +91,7 @@ namespace // <anonymous>
       CHECK_MSTATUS(status);
 
       // AOV
-      status = plugin.registerNode("aixAOV",
+      status = plugin.registerNode("aiAOV",
                                    CArnoldAOVNode::id,
                                    CArnoldAOVNode::creator,
                                    CArnoldAOVNode::initialize);

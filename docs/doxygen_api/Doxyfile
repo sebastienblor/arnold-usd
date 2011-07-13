@@ -571,8 +571,12 @@ WARN_LOGFILE           =
 # API only
 INPUT                  = plugins/mtoa/extension/Extension.cpp
 INPUT                 += plugins/mtoa/extension/Extension.h
-INPUT                 += plugins/mtoa/translators/nodeTranslator.cpp
-INPUT                 += plugins/mtoa/translators/nodeTranslator.h
+INPUT                 += plugins/mtoa/session/ArnoldSession.cpp
+INPUT                 += plugins/mtoa/session/ArnoldSession.h
+INPUT                 += plugins/mtoa/session/SessionOptions.cpp
+INPUT                 += plugins/mtoa/session/SessionOptions.h
+INPUT                 += plugins/mtoa/translators/NodeTranslator.cpp
+INPUT                 += plugins/mtoa/translators/NodeTranslator.h
 # all
 #INPUT                  = plugins/mtoa
 

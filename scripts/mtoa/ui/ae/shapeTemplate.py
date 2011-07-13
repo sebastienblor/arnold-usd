@@ -118,7 +118,7 @@ class BaseTemplate(object):
     # queries
     def nodeName(self):
         "get the active node"
-        assert self._nodeName, "%r: nodeName should be set by now" % self
+        # assert self._nodeName, "%r: nodeName should be set by now" % self
         return self._nodeName
 
     def nodeType(self):
