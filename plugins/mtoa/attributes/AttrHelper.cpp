@@ -52,8 +52,8 @@ bool CBaseAttrHelper::IsHidden(const char* paramName)
    if (strcmp(paramName, "name") == 0) // 0 is match
       return true;
 
-   AtBoolean hidden;
-   if (AiMetaDataGetBool(m_nodeEntry, paramName, "maya.hidden", &hidden) && hidden)
+   AtBoolean hide;
+   if (AiMetaDataGetBool(m_nodeEntry, paramName, "maya.hide", &hide) && hide)
       return true;
    else
       return false;
