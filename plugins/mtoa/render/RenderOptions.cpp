@@ -49,7 +49,7 @@ void CRenderOptions::GetFromMaya()
    ProcessCommonRenderOptions();
    ProcessArnoldRenderOptions();
    // SetupImageOutputs();
-   // UpdateImageFilename();
+   UpdateImageFilename();
 }
 
 // sets the m_imageFilename member

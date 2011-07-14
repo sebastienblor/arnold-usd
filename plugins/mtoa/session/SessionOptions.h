@@ -58,6 +58,7 @@ struct CMotionBlurOptions
                      by_frame(0.0) {}
 };
 
+/// Structure to hold options relative to a CArnoldSession
 struct CSessionOptions
 {
    friend class CArnoldSession;
