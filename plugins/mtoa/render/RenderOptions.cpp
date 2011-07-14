@@ -122,9 +122,12 @@ void CRenderOptions::UpdateImageFilename()
          sceneFileName=m_prefix;
       }
       MString tokens = MString("RenderPass=") + aov.GetName();
+      MObject mAOVObject = aov.GetNode();
+      MFnDependencyNode fnNode = MFnDependencyNode(mAOVObject);
+      MString driverType = fnNode.findPlug("imageFormat", true).asString();
       MString filename = m_defaultRenderGlobalsData.getImageName(pathType, fileFrameNumber,
                                                                  sceneFileName, nameCamera,
-                                                                 m_imageFileExtension, renderLayer,
+                                                                 driverType, renderLayer,
                                                                  tokens, 1);
       std::cout << "+++" << sceneFileName << " " << filename << std::endl;
       aov.SetImageFilename(filename);
