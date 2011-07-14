@@ -369,6 +369,12 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
 {
    MStatus status;
 
+   if (!AiUniverseIsActive())
+   {
+      AiMsgError("[mtoa] Need an active Arnold universe to export to.");
+      return MStatus::kFailure;
+   }
+
    // It wouldn't be efficient to test the whole scene against selection state
    // so selected gets a special treatment
    bool exportSelected = (NULL != selected) ? true : false;
