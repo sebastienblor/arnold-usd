@@ -44,8 +44,7 @@ public:
    void DoInteractiveRender();
    /// Render in the background of Maya.
    AtULong DoBatchRender();
-   /// Export and ass file.
-   /// \param customFileName file to export too.
+   /// Get a valid ass name
    MString GetAssName(const MString& customName,
                       const MCommonRenderSettingsData& renderGlobals,
                       double frameNumber,
@@ -58,6 +57,8 @@ public:
                       const bool subFrames=false,
                       const bool isBatch=false,
                       MStatus *ReturnStatus=NULL) const;
+   /// Export and ass file.
+   /// \param customFileName file to export too.
    void DoAssWrite(MString customFileName);
    /// Get the translated scene bounding box.
    AtBBox GetBoundingBox();

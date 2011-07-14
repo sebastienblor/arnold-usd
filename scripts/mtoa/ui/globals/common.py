@@ -278,7 +278,7 @@ def insertArnoldKeywordMenuCallback(token):
 
     # if not yet set, then replace name with token
     prefix = pm.textFieldGrp('mayaSoftwareFileName', query=True, text=True)
-    if prefix == mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kNotSetUsingFilename")'):
+    if prefix == pm.mel.eval('uiRes("m_createMayaSoftwareCommonGlobalsTab.kNotSetUsingFilename")'):
         pm.textFieldGrp('mayaSoftwareFileName', e=True, text=token, forceChangeCommand=True)
     else:
         pm.textFieldGrp('mayaSoftwareFileName', e=True, insertText=token, forceChangeCommand=True)
@@ -330,7 +330,7 @@ def createArnoldFileNamePrefixControl():
         popup = pm.popupMenu(parent='mayaSoftwareFileName|field')
     else:
         popup = pm.popupMenu(parent='mayaSoftwareFileName')
-    pm.popupMenu(popup, edit=True, postMenuCommand='createArnoldInsertKeywordMenu %s' % popup)
+    pm.popupMenu(popup, edit=True, postMenuCommand=Callback(createArnoldInsertKeywordMenu, popup))
 
     # connect the label, so we can change its color
     pm.connectControl('mayaSoftwareFileName', 'defaultRenderGlobals.imageFilePrefix', index=1)
@@ -373,7 +373,7 @@ def updateArnoldFileNamePrefixControl(*args):
     #    prefix.  It sets the internal representation of the prefix
     #    and then updates the example to show the changes.
     #
-
+    print "************updateArnoldFileNamePrefixControl********In"
     oldParent = pm.setParent(query=True)
     setParentToArnoldCommonTab()
 
@@ -387,6 +387,7 @@ def updateArnoldFileNamePrefixControl(*args):
                     text=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kNotSetUsingFilename"))
 
     pm.setParent(oldParent)
+    print "************updateArnoldFileNamePrefixControl********End"
 
 
 def createArnoldFileNameFormatControl():

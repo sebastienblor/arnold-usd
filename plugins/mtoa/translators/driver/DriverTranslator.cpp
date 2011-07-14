@@ -27,6 +27,21 @@ void CDriverTranslator::Export(AtNode *shader)
          ProcessParameter(shader, paramName, paramType, FindMayaObjectPlug(attrName));
       }
    }
+
+   /*MString m_prefix = "blaahblahblah";
+   if (strcmp(GetMayaNodeName().asChar(), "defaultArnoldRenderOptions") == 0)
+   {
+      AiMsgDebug("[mtoa] [driver] general driver");
+      //ProcessParameter(shader, "filename", AI_STRING, srcNodeFn.findPlug("coverage"));
+      m_prefix = "ririroro";
+   }
+   else
+   {
+      AiMsgDebug("[mtoa] [driver] AOV driver");
+      m_prefix = FindMayaObjectPlug("prefix").asString().expandEnvironmentVariablesAndTilde();
+      AiMsgError("[mtoa] [driver] %s",m_prefix.asChar());
+   }
+   AiNodeSetStr(shader, "filename", m_prefix.asChar());*/
 }
 
 void CDriverTranslator::NodeInitializer(CAbTranslator context)

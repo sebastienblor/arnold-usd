@@ -244,6 +244,8 @@ public:
    MString VerifyFileName(MString fileName, bool compressed);
    void UpdateImageFilename();
    void UpdateImageOptions();
+   MString GetImageFilename();
+   MString GetAOVImageFilename(MString fileName);
 
 private:
 
