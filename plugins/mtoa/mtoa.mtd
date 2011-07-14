@@ -795,10 +795,6 @@
         softmax             FLOAT   10.0
     [attr sss_use_gi]
         label               STRING  "Use GI with SSS"
-    [attr sss_max_samples]
-        label               STRING  "SSS Max Samples"
-        min                 INT     0
-        softmax             INT     1000000
     [attr sss_sample_spacing]
         label               STRING  "SSS Sample Spacing"
         min                 FLOAT   0.0
@@ -820,11 +816,6 @@
     [attr sss_use_gi]
         maya.name           STRING  "aiSssUseGi"
         label               STRING  "Use GI with SSS"
-    [attr sss_max_samples]
-        maya.name           STRING  "aiSssMaxSamples"
-        label               STRING  "SSS Max Samples"
-        min                 INT     0
-        softmax             INT     1000000
     [attr sss_sample_spacing]
         maya.name           STRING  "aiSssSampleSpacing"
         label               STRING  "SSS Sample Spacing"

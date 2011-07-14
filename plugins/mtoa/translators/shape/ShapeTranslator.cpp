@@ -20,9 +20,6 @@ void CShapeTranslator::ProcessRenderFlags(AtNode* node)
    plug = FindMayaObjectPlug("aiSssUseGi");
    if (!plug.isNull()) AiNodeSetBool(node, "sss_use_gi", plug.asBool());
 
-   plug = FindMayaObjectPlug("aiSssMaxSamples");
-   if (!plug.isNull()) AiNodeSetInt(node, "sss_max_samples", plug.asInt());
-
    plug = FindMayaObjectPlug("aiSssSampleSpacing");
    if (!plug.isNull()) AiNodeSetFlt(node, "sss_sample_spacing", plug.asFloat());
 
@@ -33,7 +30,7 @@ void CShapeTranslator::ProcessRenderFlags(AtNode* node)
 void CShapeTranslator::MakeCommonAttributes(CBaseAttrHelper& helper)
 {
    helper.MakeInput("sss_use_gi");
-   helper.MakeInput("sss_max_samples");
+   helper.MakeInput("sss_sample_distribution");
    helper.MakeInput("sss_sample_spacing");
 
    helper.MakeInput("self_shadows");

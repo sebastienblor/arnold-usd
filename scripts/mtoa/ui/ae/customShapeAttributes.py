@@ -20,7 +20,7 @@ def commonLightAttributes(ui):
     ui.addAttribute("aiSssSamples", label="SSS Samples")
     ui.addSeparator()
     ui.addAttribute("aiSssUseGi", label="SSS Use Gi")
-    ui.addAttribute("aiSssMaxSamples", label="SSS Max Samples")
+    ui.addAttribute("aiSssSampleDistribution", label="SSS Samples Distribution")
     ui.addAttribute("aiSssSampleSpacing", label="SSS Sample Spacing")
 #    cmds.editorTemplate(beginLayout="Light Filters")
 #
@@ -66,6 +66,11 @@ def builtin_mesh(ui):
     # TODO: add dicing camera UI
     ui.addAttribute("aiSubdivDicingCamera", label="Subdivision Dicing Camera")
     ui.addAttribute("aiSubdivUvSmoothing", label="Subdivision UVs Smoothing")
+    ui.addSeparator()
+#    ui.addAttribute("aiOverrideSssSamples", aeCallback(overrideSssToggle), label="Override SSS Samples", addDynamicControl=True)
+    ui.addAttribute("aiSssUseGi", label="SSS Use Gi")
+    ui.addAttribute("aiSssSampleDistribution", label="SSS Samples Distribution")
+    ui.addAttribute("aiSssSampleSpacing", label="SSS Sample Spacing")
     ui.addSeparator()
     ui.addAttribute("aiExportTangents")
     ui.addAttribute("aiExportColors")
