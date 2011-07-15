@@ -45,16 +45,19 @@ typedef std::map<MObjectHandle, CNodeTranslator*, MObjectCompare> ObjectToTransl
 // dag nodes: have one translator per instance, so they map MObject to a sub-map, from dag instance number to translator
 typedef std::map<MObjectHandle, std::map<int, CNodeTranslator*>, MObjectCompare> ObjectToDagTranslatorMap;
 
-/// Translates the current state of all or part of an open Maya scene into the active Arnold universe.
+/// Opens an Arnold session, in which you can make changes to the Arnold universe: create or edit Arnold nodes.
 
-/// In IPR mode, the resulting instance allows the scene to be quickly and incrementally retranslated
-/// as changes occur to previously translated Maya objects.
+/// This class handles exporting all or part of the Maya scene to Arnold, for rendering, exporting as an ass
+/// file or any other use. It has methods to export individual objects or whole scenes, and tracks the list
+/// of translators created for each Maya node export.
 ///
-/// Once CArnoldSession::ExportToArnold() is called, the DAG hierarchy is traversed and CDagTranslators
+/// Once CArnoldSession::Export() is called, the DAG hierarchy is traversed and CDagTranslators
 /// are found and exported for all relevant Maya nodes.  Those translators in turn call
 /// and CArnoldSession::ExportShader() as they require, which triggers dependency graph evaluation and the
 /// generation of CNodeTranslators.
-
+///
+/// In IPR mode, the racked translators allows the scene to be quickly and incrementally retranslated
+/// as changes occur to previously translated Maya objects.
 class DLLEXPORT CArnoldSession
 {
    friend class CMayaScene;

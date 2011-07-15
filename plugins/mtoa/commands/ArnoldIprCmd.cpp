@@ -83,6 +83,7 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
 
       // Set resolution and camera as passed in.
       CMayaScene::GetRenderSession()->SetResolution(width, height);
+      CMayaScene::GetRenderSession()->SetCamera(camera);
 
       // No need to call render as Maya sends us "unpause" next.
 
@@ -101,17 +102,20 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
       // Close down Arnold, clearing out the old data.
       CArnoldSession* arnoldSession = CMayaScene::GetArnoldSession();
       CRenderSession* renderSession = CMayaScene::GetRenderSession();
-      renderSession->End();
       // We save and restore the res instead of using the translated one because
       // the translated value is from the render globals. We may have been
       // passed in a different value to start with.
       const AtInt width = renderSession->RenderOptions()->width();
       const AtInt height = renderSession->RenderOptions()->height();
       // Same deal for the camera.
-      arnoldSession->SetExportCamera(renderSession->RenderOptions()->GetCamera());
-      // Set the export mode to IPR
-      // FIXME: do we really need to reset options and do a full translation each time?
-      // Re-translate.
+      MDagPath camera = renderSession->GetCamera();
+      AiMsgDebug ("[mtoa] IPR refresh using last rendered camera '%s'", camera.partialPathName().asChar());
+
+      // End and restart a new render session re-using saved resolution and camera
+      CMayaScene::End();
+      CMayaScene::Begin(MTOA_SESSION_IPR);
+
+      arnoldSession->SetExportCamera(camera);
       if (!renderGlobals.renderAll)
       {
          MGlobal::getActiveSelectionList(selected);
@@ -121,8 +125,10 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
       {
          CMayaScene::Export();
       }
-      // Restore the resolution and camera.
-      renderSession->SetResolution(width, height);
+
+      // Set resolution and camera as passed in.
+      CMayaScene::GetRenderSession()->SetResolution(width, height);
+      CMayaScene::GetRenderSession()->SetCamera(camera);
 
       // Start off the render.
       renderSession->DoIPRRender();

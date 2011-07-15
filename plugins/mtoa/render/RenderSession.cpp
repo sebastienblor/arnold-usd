@@ -224,6 +224,11 @@ void CRenderSession::SetProgressive(const bool is_progressive)
    m_renderOptions.SetProgressive(is_progressive);
 }
 
+MDagPath CRenderSession::GetCamera() const
+{
+   return m_renderOptions.GetCamera();
+}
+
 /// Export the passed camera node and set options.camera
 void CRenderSession::SetCamera(MDagPath cameraNode)
 {
@@ -605,11 +610,8 @@ MStatus CRenderSession::PrepareRenderView(bool addIdleRenderViewUpdate)
    
    // We need to set the current camera in renderView,
    // so the buttons render from the camera you want.
-   MSelectionList list;
-   MDagPath       cameraDagPath;
-   list.add(m_renderOptions.GetCameraName());
-   list.getDagPath(0, cameraDagPath);
-   MRenderView::setCurrentCamera(cameraDagPath);
+   MDagPath camera = GetCamera();
+   MRenderView::setCurrentCamera(camera);
 
    if (m_renderOptions.useRenderRegion())
    {

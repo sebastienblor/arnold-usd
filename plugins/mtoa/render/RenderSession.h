@@ -95,7 +95,9 @@ public:
    /// \param width width in pixels.
    /// \param height height in pixels.
    void SetResolution(const int width, const int height);
-   /// Set the the camera to render.
+   /// Get the camera used to render
+   MDagPath GetCamera() const;
+   /// Set the camera to use for render.
    void SetCamera(MDagPath cameraNode);
    void SetMultiCameraRender(bool multi);
    void SetProgressive(bool is_progressive);
