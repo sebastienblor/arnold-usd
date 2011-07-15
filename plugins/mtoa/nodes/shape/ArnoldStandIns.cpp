@@ -1,6 +1,7 @@
 #include "ArnoldStandIns.h"
 #include "nodes/ArnoldNodeIDs.h"
 #include "translators/NodeTranslator.h"
+#include "utils/Universe.h"
 
 #include <ai_render.h>
 #include <ai_dotass.h>
@@ -101,14 +102,17 @@ MStatus CArnoldStandInShape::compute(const MPlug& plug, MDataBlock& data)
 //
 MStatus CArnoldStandInShape::GetPointsFromAss()
 {
+   MStatus status;
 
    CArnoldStandInShape* nonConstThis = const_cast<CArnoldStandInShape*> (this);
    CArnoldStandInGeom* geom = nonConstThis->geometry();
 
    MString assfile = geom->filename;
+   bool AiUniverseCreated = false;
    if (assfile != "")
    {
-      AiBegin();
+      AiUniverseCreated = ArnoldUniverseBegin();
+
       bool processRead = false;
       bool isSo = false;
       unsigned int nscn = assfile.numChars();
@@ -261,20 +265,26 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
                }
             }
          }
-         AiEnd();
          geom->IsGeomLoaded = true;
          geom->updateView = true;
-         return MS::kSuccess;
+         status = MS::kSuccess;
       }
       else
       {
-         AiEnd();
          geom->IsGeomLoaded = false;
-         return MS::kFailure;
+         status = MS::kFailure;
       }
-      AiEnd();
+
+      if (AiUniverseCreated) ArnoldUniverseEnd();
+
    }
-   return MS::kFailure;
+   else
+   {
+      status = MS::kFailure;
+   }
+
+
+   return status;
 }
 
 bool CArnoldStandInShape::getInternalValueInContext(const MPlug& plug, MDataHandle& datahandle,

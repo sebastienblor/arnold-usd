@@ -30,6 +30,8 @@
 #include <maya/MFnMatrixData.h>
 #include <maya/MFileObject.h>
 
+#include <assert.h>
+
 // When we're sure these utilities stay, we can expose them
 // as static method on CArnoldSession or a separate helper class
 
@@ -213,6 +215,8 @@ AtNode* CArnoldSession::ExportNode(MObject mayaNode, const MString &attrName, MS
 
 AtNode* CArnoldSession::ExportWithTranslator(MObject mayaNode, const MString &mayaNodeClass, const MString &translatorName)
 {
+   assert(AiUniverseIsActive());
+
    AtNode* shader = NULL;
 
    CNodeTranslator* translator = CExtensionsManager::GetTranslator(mayaNodeClass, translatorName);
@@ -754,6 +758,7 @@ void CArnoldSession::RequestUpdate()
 
 void CArnoldSession::DoUpdate()
 {
+   assert(AiUniverseIsActive());
    // Are we motion blurred?
    const bool mb = IsMotionBlurEnabled();
    if (!mb)

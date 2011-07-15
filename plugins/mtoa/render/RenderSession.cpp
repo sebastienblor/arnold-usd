@@ -101,35 +101,58 @@ MStatus CRenderSession::Begin(CRenderOptions* options)
 {
    MStatus status = MStatus::kSuccess;
 
+
    m_is_active = true;
    if (AiUniverseIsActive())
    {
       AiMsgWarning("[mtoa] There can only be one RenderSession active.");
       AiRenderAbort();
       InterruptRender();
-      AiEnd();
+      ArnoldUniverseEnd();
    }
 
    // Begin the Arnold universe, read metadata file and load plugins
-   AiBegin();
-   status = ReadMetafile();
-   status = LoadPlugins();
+   m_is_active = ArnoldUniverseBegin();
+   if (m_is_active)
+   {
+      status = LoadPlugins();
 
-   m_renderOptions = *options;
-   m_renderOptions.SetupLog();
+      m_renderOptions = *options;
+      m_renderOptions.SetupLog();
 
-   return status;
+      // renderview display
+      if (!m_renderOptions.BatchMode())
+      {
+         AiNodeInstall(AI_NODE_DRIVER,
+                       AI_TYPE_NONE,
+                       "renderview_display",
+                       NULL,
+                       (AtNodeMethods*) mtoa_driver_mtd,
+                       AI_VERSION);
+         AiMsgInfo("[mtoa] Created renderview_display driver node entry");
+      }
+
+      return status;
+   }
+   else
+   {
+      return MStatus::kFailure;
+   }
 }
 
 MStatus CRenderSession::End()
 {
    MStatus status = MStatus::kSuccess;
 
-   if (AiUniverseIsActive())
+   if (!AiUniverseIsActive())
+   {
+      AiMsgWarning("[mtoa] No active Arnold Universe present.");
+   }
+   else
    {
       AiRenderAbort();
       InterruptRender();
-      AiEnd();
+      ArnoldUniverseEnd();
    }
    m_is_active = false;
    // Restore "out of rendering" logging
@@ -384,7 +407,7 @@ AtNode * CRenderSession::CreateOutputFilter()
 
    // set the output driver
    MString filterType = fnArnoldRenderOptions.findPlug("filterType").asString();
-   AiMsgInfo("exporting filter \"%s\"", filterType.asChar());
+   AiMsgInfo("[mtoa] exporting filter \"%s\"", filterType.asChar());
    AtNode* filter = CMayaScene::GetArnoldSession()->ExportFilter(node, filterType);
    if (filter == NULL)
       AiMsgError("[mtoa] filter is NULL");
@@ -397,20 +420,26 @@ AtNode * CRenderSession::CreateRenderViewOutput()
    // Don't create it if we're in batch mode.
    if (m_renderOptions.BatchMode()) return NULL;
 
-   AtNode * driver = AiNodeLookUpByName("renderview_display");
-   if (driver == NULL)
-   {
-      AiNodeInstall(AI_NODE_DRIVER,
-                    AI_TYPE_NONE,
-                    "renderview_display",
-                    NULL,
-                    (AtNodeMethods*) mtoa_driver_mtd,
-                    AI_VERSION);
-      driver = AiNode("renderview_display");
-      AiNodeSetStr(driver, "name", "renderview_display");
-   }
+   AtNode * driver = NULL;
 
-   AiNodeSetFlt(driver, "gamma", m_renderOptions.outputGamma());
+   const AtNodeEntry* driverEntry = AiNodeEntryLookUp("renderview_display");
+   if (driverEntry == NULL)
+   {
+      AiMsgError("[mtoa] the renderview display driver is not available");
+   }
+   else
+   {
+      // FIXME : we should query the translator list in case it has already been exported
+      // or create one with CMayaScene::GetArnoldSession()->ExportFilter(node, filterType);
+      driver = AiNodeLookUpByName("renderview_display");
+      if (driver == NULL)
+      {
+         AiMsgError("[mtoa] no existing renderview_display driver, creating one");
+         driver = AiNode("renderview_display");
+         AiNodeSetStr(driver, "name", "renderview_display");
+      }
+      AiNodeSetFlt(driver, "gamma", m_renderOptions.outputGamma());
+   }
 
    return driver;
 }

@@ -58,7 +58,7 @@ MStatus CArnoldPluginCmd::doIt(const MArgList& argList)
    else if (args.isFlagSet("getAttrData", 0))
    {
       MString nodeName = args.flagArgumentString("getAttrData", 0);
-      status = ArnoldUniverseBegin();
+      bool AiUniverseCreated = ArnoldUniverseBegin();
       MStringArray result;
       const AtNodeEntry* nodeEntry = AiNodeEntryLookUp(nodeName.asChar());
       if (nodeEntry == NULL)
@@ -87,7 +87,7 @@ MStatus CArnoldPluginCmd::doIt(const MArgList& argList)
          }
       }
       setResult(result);
-      ArnoldUniverseEnd();
+      if (AiUniverseCreated) ArnoldUniverseEnd();
    }
    else if (args.isFlagSet("listAOVs"))
    {

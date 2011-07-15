@@ -328,7 +328,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    MString metafile = loadpath + "/" + "mtoa.mtd";
    SetMetafile(metafile);
 
-   status = ArnoldUniverseBegin();
+   ArnoldUniverseBegin();
 
    // TODO: Add proper checking and handling of returned status
    status = plugin.registerCommand("arnoldRender", CArnoldRenderCmd::creator, CArnoldRenderCmd::newSyntax);
@@ -367,7 +367,7 @@ DLLEXPORT MStatus initializePlugin(MObject object)
       AiMsgError("Failed to register renderer 'arnold'");
 
 
-   status = ArnoldUniverseEnd();
+   ArnoldUniverseEnd();
 
    return status;
 }
@@ -377,7 +377,7 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
    MStatus status;
    MFnPlugin plugin(object);
 
-   status = ArnoldUniverseBegin();
+   ArnoldUniverseBegin();
 
    status = MGlobal::executePythonCommand(MString("import mtoa.cmds.unregisterArnoldRenderer;mtoa.cmds.unregisterArnoldRenderer.unregisterArnoldRenderer()"), true, false);
    CHECK_MSTATUS(status);
@@ -391,7 +391,7 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
    status = plugin.deregisterCommand("arnoldPlugins");
    status = plugin.deregisterFileTranslator(CArnoldAssTranslator::fileType);
 
-   status = ArnoldUniverseEnd();
+   ArnoldUniverseEnd();
 
    return status;
 }

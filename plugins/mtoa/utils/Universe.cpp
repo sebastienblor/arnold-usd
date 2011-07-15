@@ -22,25 +22,25 @@ MStatus ReadMetafile()
    return MStatus::kSuccess;
 }
 
-MStatus ArnoldUniverseBegin()
+bool ArnoldUniverseBegin()
 {
    if (!AiUniverseIsActive())
    {
       AiBegin();
       MtoaSetupLogging();
-      return ReadMetafile();
+      ReadMetafile();
+      return true;
    }
-   return MStatus::kFailure;
+   return false;
 }
 
-MStatus ArnoldUniverseEnd()
+void ArnoldUniverseEnd()
 {
    if (AiUniverseIsActive())
    {
+      AiRenderAbort();
       AiEnd();
       // MtoaSetupLogging();
       // AiMsgResetCallback();
-      return MStatus::kSuccess;
    }
-   return MStatus::kFailure;
 }

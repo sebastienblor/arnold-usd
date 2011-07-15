@@ -1,9 +1,16 @@
 #include "DriverTranslator.h"
+#include "utils/Universe.h"
 
 AtNode* CDriverTranslator::CreateArnoldNodes()
 {
    MString mayaShader = GetMayaNodeTypeName();
-   return AddArnoldNode(m_abstract.arnold.asChar(), m_abstract.arnold.asChar());
+   AtNode* created = AddArnoldNode(m_abstract.arnold.asChar(), m_abstract.arnold.asChar());
+   const AtNodeEntry* nodeEntry = created->base_node;
+
+   AiMsgDebug("CDriverTranslator.export created arnold node %s(%s)", AiNodeGetName(created), AiNodeEntryGetName(nodeEntry));
+   AiMsgDebug("CDriverTranslator.export maya node %s", GetMayaNodeName().asChar());
+
+   return created;
 }
 
 void CDriverTranslator::Export(AtNode *shader)
@@ -11,12 +18,17 @@ void CDriverTranslator::Export(AtNode *shader)
    MStatus status;
    MPlug plug;
 
-   CBaseAttrHelper helper(shader->base_node);
-   AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(shader->base_node);
+   const AtNodeEntry* nodeEntry = shader->base_node;
+   AiMsgDebug("CDriverTranslator.export on Arnold node %s(%s)", AiNodeGetName(shader), AiNodeEntryGetName(nodeEntry));
+   AiMsgDebug("CDriverTranslator.export maya node %s", GetMayaNodeName().asChar());
+
+   CBaseAttrHelper helper(nodeEntry);
+   AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(nodeEntry);
    while (!AiParamIteratorFinished(nodeParam))
    {
       const AtParamEntry *paramEntry = AiParamIteratorGetNext(nodeParam);
       const char* paramName = AiParamGetName(paramEntry);
+      AiMsgDebug("CDriverTranslator.export on parameter %s", paramName);
 
       if (!helper.IsHidden(paramName))
       {
