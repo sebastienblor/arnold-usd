@@ -333,7 +333,7 @@ def createArnoldFileNamePrefixControl():
     pm.popupMenu(popup, edit=True, postMenuCommand=Callback(createArnoldInsertKeywordMenu, popup))
 
     # connect the label, so we can change its color
-    pm.connectControl('mayaSoftwareFileName', 'defaultRenderGlobals.imageFilePrefix', index=1)
+    pm.connectControl('mayaSoftwareFileName', 'defaultRenderGlobals.imageFilePrefix', index=2)
 
     # Create a scriptJob which will update the control when the value of the
     # attribute it represents is changed.
@@ -373,7 +373,6 @@ def updateArnoldFileNamePrefixControl(*args):
     #    prefix.  It sets the internal representation of the prefix
     #    and then updates the example to show the changes.
     #
-    print "************updateArnoldFileNamePrefixControl********In"
     oldParent = pm.setParent(query=True)
     setParentToArnoldCommonTab()
 
@@ -387,7 +386,6 @@ def updateArnoldFileNamePrefixControl(*args):
                     text=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kNotSetUsingFilename"))
 
     pm.setParent(oldParent)
-    print "************updateArnoldFileNamePrefixControl********End"
 
 
 def createArnoldFileNameFormatControl():
@@ -526,7 +524,6 @@ def updateArnoldFileNameFormatControl(*args):
 def createArnoldImageFormatControl():
 
     cRenderer = utils.currentRenderer()
-    print "createArnoldImageFormatControl", cRenderer
     if cRenderer == "mentalRay":
         return pm.mel.createMRImageFormatControl()
     if cRenderer == "mayaSoftware":
@@ -565,7 +562,6 @@ def createArnoldImageFormatControl():
 
 def updateArnoldImageFormatControl(*args):
     curr = pm.getAttr('defaultArnoldRenderOptions.imageFormat')
-    print "updateArnoldImageFormatControl", args, curr
     pm.setAttr('defaultRenderGlobals.imageFormat', 51)
     pm.setAttr('defaultRenderGlobals.imfkey', str(curr))
 
@@ -1975,7 +1971,6 @@ def updateArnoldRendererCommonGlobalsTab(*args):
      renderer to reflect values which may have been copied from the previous
      current renderer.
     '''
-    print 'updateArnoldRendererCommonGlobalsTab'
     updateArnoldFileNamePrefixControl()
     updateArnoldFileNameFormatControl()
 
