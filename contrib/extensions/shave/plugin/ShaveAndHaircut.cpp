@@ -1,12 +1,13 @@
 #include "ShaveAndHaircut.h"
 
-#include "attributes/AttrHelper.h"
+// #include "attributes/AttrHelper.h"
 
-//#include <maya/MGlobal.h>
 #include <maya/MPlugArray.h>
 #include <maya/MPlug.h>
 
 #include <ai_nodes.h>
+
+class CExtensionAttrHelper
 
 MStatus CShaveTranslator::UpdateHairInfo()
 {

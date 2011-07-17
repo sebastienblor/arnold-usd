@@ -12,7 +12,11 @@
 #include <maya/MFnDagNode.h>
 #include <maya/MFnDependencyNode.h>
 
+#include <ai_universe.h>
+
+#include <assert.h>
 #include <string>
+
 
 CAOV::CAOV()
    : m_name(""),
@@ -113,9 +117,11 @@ bool CAOV::FromMaya(MObject &AOVNode)
 }
 
 
-void CAOV::SetupOutput(AtArray *outputs, int i, AtNode *defaultDriver, AtNode *defaultFilter) const
+MString CAOV::SetupOutput(AtNode *defaultDriver, AtNode *defaultFilter) const
 {
-   AiMsgDebug("[mtoa] [aovs] setting up aov %s", m_name.asChar());
+   assert(AiUniverseIsActive());
+
+   AiMsgDebug("[mtoa] [aov %s] Setting AOV output: filter and driver.", m_name.asChar());
 
    MFnDependencyNode fnNode = MFnDependencyNode(m_object);
 
@@ -123,11 +129,14 @@ void CAOV::SetupOutput(AtArray *outputs, int i, AtNode *defaultDriver, AtNode *d
    AtNode* filter;
    MString filterType = fnNode.findPlug("filterType", true).asString();
    MString filterName;
+
+   // FIXME: AiNodeDestroy previous node in IPR mode or track these translators
    if (filterType == "<Use Globals>" || filterType == "")
    {
       // use default filter
       filter = defaultFilter;
-      filterName = AiNodeGetStr(defaultFilter, "name");
+      AiMsgDebug("[mtoa] [aov %s] Uses default filter %s(%s).",
+         m_name.asChar(), AiNodeGetName(filter), AiNodeEntryGetName(filter->base_node));
    }
    else
    {
@@ -135,22 +144,34 @@ void CAOV::SetupOutput(AtArray *outputs, int i, AtNode *defaultDriver, AtNode *d
       MString nodeTypeName = AiNodeEntryGetName(filter->base_node);
       filterName = nodeTypeName + "_" + m_name;
       AiNodeSetStr(filter, "name", filterName.asChar());
+      AiMsgDebug("[mtoa] [aov %s] Created new filter %s(%s).",
+            m_name.asChar(), AiNodeGetName(filter), AiNodeEntryGetName(filter->base_node));
    }
 
    // Driver
    AtNode *driver;
    MString driverType = fnNode.findPlug("imageFormat", true).asString();
+
+   // FIXME: AiNodeDestroy previous node in IPR mode or track these translators
    if (driverType == "<Use Globals>" || driverType == "")
+   {
       // create a copy of the default driver for this AOV (this is a deep copy)
       driver = AiNodeClone(defaultDriver);
+   }
    else
+   {
       driver = CMayaScene::GetArnoldSession()->ExportDriver(m_object, driverType);
+   }
 
    MString nodeTypeName = AiNodeEntryGetName(driver->base_node);
    MString driverName = nodeTypeName + "_" + m_name;
 
    AiNodeSetStr(driver, "name", driverName.asChar());
    AiNodeSetStr(driver, "filename", m_filename.asChar());
+
+   AiMsgDebug("[mtoa] [aov %s] Created driver %s(%s) with output filename '%s'.",
+         m_name.asChar(), AiNodeGetName(driver), AiNodeEntryGetName(driver->base_node), AiNodeGetStr(driver, "filename"));
+
 
    if (m_filename != "")
    {
@@ -168,6 +189,7 @@ void CAOV::SetupOutput(AtArray *outputs, int i, AtNode *defaultDriver, AtNode *d
 
    char str[1024];
    sprintf(str, "%s %s %s %s", m_name.asChar(), AiParamGetTypeName(m_type), filterName.asChar(), driverName.asChar());
-   AiArraySetStr(outputs, i, str);
+
+   return MString(str);
 }
 

@@ -485,19 +485,16 @@ bool CRenderSwatchGenerator::doIteration()
    // swatches "at the same time".
    MStatus status;
 
-   if (AiRendering()) {
-      return false;
-   }
+   if (AiRendering()) return false;
 
    if (m_iteration == 0)
    {
       // Arnold can only render one thing at a time.
       // It may be an option to block/wait here, but only
       // if it's another swatch render taking place.
-      if (CMayaScene::GetRenderSession()->IsActive())
-      {
-         return false;
-      }
+      // if (CMayaScene::GetRenderSession()->IsActive()) return false;
+      if (AiUniverseIsActive()) return false;
+
       // Build the swatch scene
       status = BuildArnoldScene();
       if (MStatus::kSuccess != status)

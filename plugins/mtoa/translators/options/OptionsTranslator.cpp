@@ -9,13 +9,30 @@
 #include <maya/MAnimControl.h>
 #include <maya/MPlugArray.h>
 
+#include <assert.h>
+
 AtNode* COptionsTranslator::CreateArnoldNodes()
 {
-   return AiUniverseGetOptions();
+   assert(AiUniverseIsActive());
+
+   AtNode* options = AiUniverseGetOptions();
+   AiMsgDebug("COptionsTranslator %s: CreateArnoldNodes on Maya node %s(%s) created arnold node %p: %s(%s).",
+         GetTranslatorName().asChar(),
+         GetMayaNodeName().asChar(), GetMayaNodeTypeName().asChar(),
+         options, AiNodeGetName(options), AiNodeEntryGetName(options->base_node));
+
+   return options;
 }
 
 void COptionsTranslator::Export(AtNode *options)
 {
+   assert(AiUniverseIsActive());
+
+   AiMsgDebug("COptionsTranslator %s: Export on Maya node %s(%s), Arnold node %p: %s(%s).",
+         GetTranslatorName().asChar(),
+         GetMayaNodeName().asChar(), GetMayaNodeTypeName().asChar(),
+         options, AiNodeGetName(options), AiNodeEntryGetName(options->base_node));
+
    MStatus status;
 
    const AtNodeEntry* optionsEntry = options->base_node;
@@ -71,8 +88,8 @@ void COptionsTranslator::Export(AtNode *options)
             }
             else
             {
-               AiMsgDebug("[mtoa] [translator %s] Arnold options parameter %s is not exposed on Maya %s(%s)",
-                     GetTranslatorName().asChar(), paramName, GetMayaNodeName().asChar(), GetMayaNodeTypeName().asChar());
+               // AiMsgDebug("[mtoa] [translator %s] Arnold options parameter %s is not exposed on Maya %s(%s)",
+               //      GetTranslatorName().asChar(), paramName, GetMayaNodeName().asChar(), GetMayaNodeTypeName().asChar());
             }
          }
       }

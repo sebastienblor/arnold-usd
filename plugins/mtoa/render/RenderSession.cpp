@@ -76,7 +76,6 @@ unsigned int CRenderSession::RenderThread(AtVoid* data)
    // Put this back after we're done interating through.
    AiNodeSetInt(AiUniverseGetOptions(), "AA_samples", num_aa_samples);
    
-   
    DisplayUpdateQueueRenderFinished();
 
    return 0;
@@ -129,7 +128,7 @@ MStatus CRenderSession::Begin(CRenderOptions* options)
                        NULL,
                        (AtNodeMethods*) mtoa_driver_mtd,
                        AI_VERSION);
-         AiMsgInfo("[mtoa] Created renderview_display driver node entry");
+         AiMsgInfo("[mtoa] Installed renderview_display driver node entry");
       }
 
       return status;
@@ -211,6 +210,8 @@ MStatus CRenderSession::WriteAsstoc(const MString& filename, const AtBBox& bBox)
 
 void CRenderSession::InterruptRender()
 {
+   assert(AiUniverseIsActive());
+
    if (AiRendering()) AiRenderInterrupt();
 
    // Stop the Idle update.
@@ -255,6 +256,8 @@ MDagPath CRenderSession::GetCamera() const
 /// Export the passed camera node and set options.camera
 void CRenderSession::SetCamera(MDagPath cameraNode)
 {
+   assert(AiUniverseIsActive());
+
    cameraNode.extendToShape();
    m_renderOptions.SetCamera(cameraNode);
    // FIXME: do this more explicitly: at this point the node should be exported, this is just retrieving the arnold node
@@ -333,6 +336,8 @@ void CRenderSession::SetMultiCameraRender(bool multi)
 
 void CRenderSession::SetupRenderOutput()
 {
+   assert(AiUniverseIsActive());
+
    m_renderOptions.UpdateImageOptions();
 
    AtNode * render_view = CreateRenderViewOutput();
@@ -341,7 +346,8 @@ void CRenderSession::SetupRenderOutput()
 
    // OUTPUT STRINGS
    AtChar   str[1024];
-   int ndrivers = 0;
+   MString  outString;
+   unsigned int ndrivers = 0;
    if (render_view != NULL) ++ndrivers;
    if (file_driver != NULL) ++ndrivers;
 
@@ -369,8 +375,9 @@ void CRenderSession::SetupRenderOutput()
       unsigned int i = 0;
       for (AOVSet::iterator it=m_renderOptions.m_aovs.begin(); it!=m_renderOptions.m_aovs.end(); ++it)
       {
-         it->SetupOutput(outputs, ndrivers+static_cast<int>(i), file_driver, filter);
-         ++i;
+         outString = it->SetupOutput(file_driver, filter);
+         AiArraySetStr(outputs, ndrivers + i++, outString.asChar());
+         AiMsgDebug("[mtoa] [aov %s] Added output: %s", it->GetName().asChar(), outString.asChar());
       }
    }
    AiNodeSetArray(AiUniverseGetOptions(), "outputs", outputs);
@@ -378,6 +385,8 @@ void CRenderSession::SetupRenderOutput()
 
 AtNode * CRenderSession::CreateFileOutput()
 {
+   assert(AiUniverseIsActive());
+
    // Don't install the file driver when in IPR mode.
    if (CMayaScene::GetSessionMode() == MTOA_SESSION_IPR) return NULL;
 
@@ -401,6 +410,8 @@ AtNode * CRenderSession::CreateFileOutput()
 
 AtNode * CRenderSession::CreateOutputFilter()
 {
+   assert(AiUniverseIsActive());
+
    MObject node;
    m_renderOptions.GetOptionsNode(node);
    MFnDependencyNode fnArnoldRenderOptions(node);
@@ -417,6 +428,8 @@ AtNode * CRenderSession::CreateOutputFilter()
 
 AtNode * CRenderSession::CreateRenderViewOutput()
 {
+   assert(AiUniverseIsActive());
+
    // Don't create it if we're in batch mode.
    if (m_renderOptions.BatchMode()) return NULL;
 
@@ -434,7 +447,7 @@ AtNode * CRenderSession::CreateRenderViewOutput()
       driver = AiNodeLookUpByName("renderview_display");
       if (driver == NULL)
       {
-         AiMsgError("[mtoa] no existing renderview_display driver, creating one");
+         AiMsgWarning("[mtoa] no existing renderview_display driver, creating one");
          driver = AiNode("renderview_display");
          AiNodeSetStr(driver, "name", "renderview_display");
       }
@@ -447,6 +460,8 @@ AtNode * CRenderSession::CreateRenderViewOutput()
 
 void CRenderSession::DoInteractiveRender()
 {
+   assert(AiUniverseIsActive());
+
    MComputation comp;
    comp.beginComputation();
 
@@ -604,6 +619,8 @@ MString CRenderSession::GetAssName(const MString& customName,
 
 void CRenderSession::DoAssWrite(MString customFileName)
 {
+   assert(AiUniverseIsActive());
+
    MString fileName;
 
    // if no custom fileName is given, use the default one in the environment variable
@@ -675,6 +692,8 @@ MStatus CRenderSession::PrepareRenderView(bool addIdleRenderViewUpdate)
 
 void CRenderSession::DoIPRRender()
 {
+   assert(AiUniverseIsActive());
+
    if (!m_paused_ipr)
    {
       SetProgressive(true);
@@ -696,6 +715,8 @@ void CRenderSession::FinishedIPRTuning()
 
 void CRenderSession::PauseIPR()
 {
+   assert(AiUniverseIsActive());
+
    InterruptRender();
    ClearIdleRenderViewCallback();
    m_paused_ipr = true;
@@ -703,6 +724,8 @@ void CRenderSession::PauseIPR()
 
 void CRenderSession::UnPauseIPR()
 {
+   assert(AiUniverseIsActive());
+
    m_paused_ipr = false;
    CMayaScene::UpdateIPR();
    DoIPRRender();
@@ -739,6 +762,8 @@ void CRenderSession::ClearIdleRenderViewCallback()
 
 void CRenderSession::DoSwatchRender(const AtInt resolution)
 {
+   assert(AiUniverseIsActive());
+
    // Use the render view output driver. It will *not* be displayed
    // in the render view, we're just using the Arnold Node.
    // See DisplayUpdateQueueToMImage() for how we get the image.
@@ -767,6 +792,8 @@ void CRenderSession::DoSwatchRender(const AtInt resolution)
 
 bool CRenderSession::GetSwatchImage(MImage & image)
 {
+   assert(AiUniverseIsActive());
+
    if (CMayaScene::GetSessionMode() != MTOA_SESSION_SWATCH
          || NULL == m_render_thread)
    {

@@ -60,7 +60,7 @@ public:
 
    void SetImageFilename(const MString &filename){ m_filename = filename; }
 
-   void SetupOutput(AtArray *outputs, int i, AtNode *defaultDriver, AtNode *defaultFilter) const;
+   MString SetupOutput(AtNode *defaultDriver, AtNode *defaultFilter) const;
 
 protected:
 

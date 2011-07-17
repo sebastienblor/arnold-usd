@@ -20,6 +20,7 @@
 #include <vector>
 #include <map>
 
+
 // Abstract base class for all Maya-to-Arnold node translators
 //
 class DLLEXPORT CNodeTranslator
@@ -104,9 +105,11 @@ protected:
 
    // get the arnold node that this translator is exporting (should only be used after all export steps are complete)
    AtNode* GetArnoldRootNode();
-   AtNode* GetArnoldNode(const char* tag);
+   AtNode* GetArnoldNode(const char* tag="");
    AtNode* AddArnoldNode(const char* type, const char* tag="");
    virtual void SetArnoldNodeName(AtNode* arnoldNode, const char* tag="");
+   virtual const char* GetArnoldNodeName(const char* tag="");
+   virtual const char* GetArnoldTypeName(const char* tag="");
 
    // Add a callback to the list to manage.
    void ManageUpdateCallback(const MCallbackId id);

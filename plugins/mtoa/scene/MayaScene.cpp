@@ -34,7 +34,7 @@ std::vector< CNodeTranslator * > CMayaScene::s_translatorsToIPRUpdate;
 MCallbackId CMayaScene::s_IPRIdleCallbackId = 0;
 MCallbackId CMayaScene::s_NewNodeCallbackId = 0;
 CRenderSession* CMayaScene::s_renderSession = NULL;
-CArnoldSession* CMayaScene::s_exportSession = NULL;
+CArnoldSession* CMayaScene::s_arnoldSession = NULL;
 
 // Cheap singleton
 CRenderSession* CMayaScene::GetRenderSession()
@@ -47,10 +47,10 @@ CRenderSession* CMayaScene::GetRenderSession()
 
 CArnoldSession* CMayaScene::GetArnoldSession()
 {
-   if (!s_exportSession)
-      s_exportSession = new CArnoldSession();
+   if (!s_arnoldSession)
+      s_arnoldSession = new CArnoldSession();
 
-   return s_exportSession;
+   return s_arnoldSession;
 }
 
 MStatus CMayaScene::Begin(ArnoldSessionMode mode)
@@ -134,13 +134,13 @@ MStatus CMayaScene::End()
    {
       status = s_renderSession->End();
    }
-   if (NULL != s_exportSession)
+   if (NULL != s_arnoldSession)
    {
-      if (s_exportSession->GetSessionMode() == MTOA_SESSION_IPR)
+      if (s_arnoldSession->GetSessionMode() == MTOA_SESSION_IPR)
       {
          ClearIPRCallbacks();
       }
-      status = s_exportSession->End();
+      status = s_arnoldSession->End();
    }
 
    return status;
@@ -150,9 +150,9 @@ MStatus CMayaScene::Export(MSelectionList* selected)
 {
    MStatus status;
 
-   if (NULL != s_exportSession)
+   if (NULL != s_arnoldSession)
    {
-      status = s_exportSession->Export(selected);
+      status = s_arnoldSession->Export(selected);
    }
    else
    {
@@ -166,12 +166,12 @@ MStatus CMayaScene::Render()
 {
    MStatus status;
 
-   if (NULL != s_exportSession && NULL!= s_renderSession)
+   if (NULL != s_arnoldSession && NULL!= s_renderSession)
    {
       // Save current frame
       // double currentFrame = MAnimControl::currentTime().as(MTime::uiUnit());
 
-      bool isIpr = (s_exportSession->GetSessionMode() == MTOA_SESSION_IPR) ? true : false;
+      bool isIpr = (s_arnoldSession->GetSessionMode() == MTOA_SESSION_IPR) ? true : false;
       // if (isIpr) status = SetupIPRCallbacks();
 
       // FIXME: a generic renderSessio->Render() method that chooses render from the ArnoldSessionMode ?
@@ -281,9 +281,9 @@ void CMayaScene::ClearIPRCallbacks()
    }
 
    // Clear the callbacks on the translators of the current export session
-   if (NULL != s_exportSession)
+   if (NULL != s_arnoldSession)
    {
-      s_exportSession->ClearUpdateCallbacks();
+      s_arnoldSession->ClearUpdateCallbacks();
    }
 }
 
@@ -329,11 +329,11 @@ void CMayaScene::IPRIdleCallback(void *)
    }
 
    // Check that an update is really needed.
-   if (s_exportSession->NeedsUpdate())
+   if (s_arnoldSession->NeedsUpdate())
    {
       s_renderSession->InterruptRender();
-      s_exportSession->SetExportFrame(MAnimControl::currentTime().as(MTime::uiUnit()));
-      s_exportSession->DoUpdate();
+      s_arnoldSession->SetExportFrame(MAnimControl::currentTime().as(MTime::uiUnit()));
+      s_arnoldSession->DoUpdate();
       s_renderSession->DoIPRRender();
    }
 }

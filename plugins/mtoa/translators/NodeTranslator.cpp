@@ -28,6 +28,10 @@
 
 #include <string>
 
+#include <ai_universe.h>
+#include <assert.h>
+
+
 namespace // <anonymous>
 {
 #define COMP_CONNECTIONS(plug, arnoldNode, arnoldParam, comp1, comp2, comp3) \
@@ -136,8 +140,16 @@ AtNode* CNodeTranslator::DoExport(AtUInt step)
 // internal use only
 AtNode* CNodeTranslator::DoUpdate(AtUInt step)
 {
+   assert(AiUniverseIsActive());
+   AiMsgDebug("[mtoa] [translator %s] CNodeTranslator::DoUpdate step %i, m_atNode %p",
+         GetTranslatorName().asChar(), step, m_atNode);
+
    if (m_atNode != NULL)
    {
+      AiMsgDebug("[mtoa] [translator %s] Updating Arnold %s(%s) translated from Maya %s(%s): %p",
+         GetTranslatorName().asChar(),
+         AiNodeGetName(m_atNode), AiNodeEntryGetName(m_atNode->base_node),
+         GetMayaNodeName().asChar(), GetMayaNodeTypeName().asChar(), m_atNode);
       if (step == 0)
       {
          Update(m_atNode);
@@ -153,6 +165,12 @@ AtNode* CNodeTranslator::DoUpdate(AtUInt step)
          AddUpdateCallbacks();
       }
    }
+   else
+   {
+      AiMsgWarning("[mtoa] [translator %s] Update requested but no Arnold node was created by this translator for Maya %s(%s)",
+         GetTranslatorName().asChar(), GetMayaNodeName().asChar(), GetMayaNodeTypeName().asChar());
+   }
+
    return m_atNode;
 }
 
@@ -173,10 +191,19 @@ AtNode* CNodeTranslator::GetArnoldRootNode()
 
 AtNode* CNodeTranslator::GetArnoldNode(const char* tag)
 {
-   if (m_atNodes.count(tag))
+   if (strcmp(tag, "") == 0)
+   {
+      return m_atNode;
+   }
+   else if (m_atNodes.count(tag))
+   {
       return m_atNodes[tag];
-   AiMsgError("[mtoa] [translator %s] Translation has not created an Arnold node with tag \"%s\".", GetTranslatorName().asChar(), tag);
-   return NULL;
+   }
+   else
+   {
+      AiMsgError("[mtoa] [translator %s] Translation has not created an Arnold node with tag \"%s\".", GetTranslatorName().asChar(), tag);
+      return NULL;
+   }
 }
 
 AtNode* CNodeTranslator::AddArnoldNode(const char* type, const char* tag)
@@ -212,6 +239,24 @@ void CNodeTranslator::SetArnoldNodeName(AtNode* arnoldNode, const char* tag)
       name = name +  "_" + tag;
 
    AiNodeSetStr(arnoldNode, "name", name.asChar());
+}
+
+const char* CNodeTranslator::GetArnoldNodeName(const char* tag)
+{
+   return AiNodeGetName(GetArnoldNode(tag));
+}
+
+const char* CNodeTranslator::GetArnoldTypeName(const char* tag)
+{
+   AtNode* node = GetArnoldNode(tag);
+   if (NULL == node)
+   {
+      return NULL;
+   }
+   else
+   {
+      return AiNodeEntryGetName(node->base_node);
+   }
 }
 
 // Add callbacks to the node passed in. It's a few simple
@@ -259,19 +304,21 @@ void CNodeTranslator::RemoveUpdateCallbacks()
 // This is a simple callback triggered when a node is marked as dirty.
 void CNodeTranslator::NodeDirtyCallback(MObject &node, MPlug &plug, void *clientData)
 {
-   AiMsgDebug("[mtoa] Translator callback for node dirty, plug that fired: %s, client data: %p.",
-         plug.name().asChar(), clientData);
+   AiMsgDebug("[mtoa] [translator] NodeDirtyCallback on node %s, plug that fired: %s, client data: %p.",
+         MFnDependencyNode(node).name().asChar(), plug.name().asChar(), clientData);
 
    CNodeTranslator * translator = static_cast< CNodeTranslator* >(clientData);
    if (translator != NULL)
    {
-      AiMsgDebug("[mtoa] [translator %s] Node dirty, updating Arnold, client data: %p.",
-            translator->GetTranslatorName().asChar(), clientData);
+      AiMsgDebug("[mtoa] [translator] NodeDirtyCallback: client data is translator %s on Maya node %s(%s), providing Arnold %s(%s): %p",
+            translator->GetTranslatorName().asChar(),
+            translator->GetMayaNodeName().asChar(), translator->GetMayaNodeTypeName().asChar(),
+            translator->GetArnoldNodeName(), translator->GetArnoldTypeName(), translator->GetArnoldNode());
       translator->RequestUpdate(clientData);
    }
    else
    {
-      AiMsgWarning("[mtoa] NodeDirtyCallback called, no translator in client data: %p.", clientData);
+      AiMsgWarning("[mtoa] [translator] NodeDirtyCallback: no translator in client data: %p.", clientData);
    }
 }
 
@@ -284,10 +331,14 @@ void CNodeTranslator::NameChangedCallback(MObject &node, const MString &str, voi
       AiMsgDebug("[mtoa] [translator %s] Node name changed, updating Arnold, client data: %p.",
             translator->GetTranslatorName().asChar(), clientData);
       translator->SetArnoldNodeName(translator->GetArnoldRootNode());
+      AiMsgDebug("[mtoa] [translator] NameChangedCallback: client data is translator %s on Maya node %s(%s), providing Arnold %s(%s): %p",
+            translator->GetTranslatorName().asChar(),
+            translator->GetMayaNodeName().asChar(), translator->GetMayaNodeTypeName().asChar(),
+            translator->GetArnoldNodeName(), translator->GetArnoldTypeName(), translator->GetArnoldNode());
    }
    else
    {
-      AiMsgWarning("[mtoa] Translator callback for node name changed, no translator in client data: %p.", clientData);
+      AiMsgWarning("[mtoa] [translator] NameChangedCallback: no translator in client data: %p.", clientData);
    }
 }
 
@@ -317,15 +368,17 @@ void CNodeTranslator::RequestUpdate(void *clientData)
    CNodeTranslator * translator = static_cast< CNodeTranslator* >(clientData);
    if (translator != NULL)
    {
-      AiMsgDebug("[mtoa] [translator %s] Node dirty, updating Arnold, client data: %p.",
-            translator->GetTranslatorName().asChar(), clientData);
+      AiMsgDebug("[mtoa] [translator %s] RequestUpdate on Maya node %s(%s) for Arnold node %s(%s): %p.",
+            translator->GetTranslatorName().asChar(),
+            translator->GetMayaNodeName().asChar(), translator->GetMayaNodeTypeName().asChar(),
+            translator->GetArnoldNodeName(), translator->GetArnoldTypeName(), translator->GetArnoldNode());
       translator->RemoveUpdateCallbacks();
       // Add translator to the list of translators to update
       m_session->QueueForUpdate(translator);
    }
    else
    {
-      AiMsgDebug("[mtoa] translator RequestUpdate called, no translator in client data: %p.", clientData);
+      AiMsgDebug("[mtoa] [translator] RequestUpdate: no translator in client data: %p.", clientData);
    }
 
    // Pass the update request to the export session
@@ -657,37 +710,41 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnold
    // attr name name remap
    const AtNodeEntry* arnoldNodeEntry = arnoldNode->base_node;
    CBaseAttrHelper helper(arnoldNodeEntry);
-   MString mayaAttribName = helper.GetMayaAttrName(arnoldParamName);
-   MPlug plug = m_fnNode.findPlug(mayaAttribName, true, &status);
-
-   if (MStatus::kSuccess == status && !plug.isNull())
+   if (!helper.IsHidden(arnoldParamName))
    {
-      if (element >= 0)
+      MString mayaAttribName = helper.GetMayaAttrName(arnoldParamName);
+      MPlug plug = m_fnNode.findPlug(mayaAttribName, true, &status);
+
+      if (MStatus::kSuccess == status && !plug.isNull())
       {
-         // FIXME: I'd expect elementByLogicalIndex for a user passed parameter
-         // but I've never seen element used in the code anyway
-         if (plug.isArray())
+         if (element >= 0)
          {
-            plug = plug.elementByPhysicalIndex(element);
+            // FIXME: I'd expect elementByLogicalIndex for a user passed parameter
+            // but I've never seen element used in the code anyway
+            if (plug.isArray())
+            {
+               plug = plug.elementByPhysicalIndex(element);
+            }
+            else
+            {
+               AiMsgWarning("[mtoa] [translator %s] Plug %s does not represent a multi attribute, can't get element %i.",
+                     GetTranslatorName().asChar(), m_fnNode.name().asChar(), element);
+            }
          }
-         else
-         {
-            AiMsgWarning("[mtoa] [translator %s] Plug %s does not represent a multi attribute, can't get element %i.",
-                  GetTranslatorName().asChar(), m_fnNode.name().asChar(), element);
-         }
-      }
 
-      return ProcessParameter(arnoldNode, arnoldParamName, arnoldParamType, plug);
+         return ProcessParameter(arnoldNode, arnoldParamName, arnoldParamType, plug);
+      }
+      else
+      {
+         AiMsgWarning("[mtoa] [translator %s] Maya node %s(%s) does not have attribute %s to match parameter %s on Arnold node %s(%s).",
+               GetTranslatorName().asChar(),
+               GetMayaNodeName().asChar(), GetMayaNodeTypeName().asChar(),
+               mayaAttribName.asChar(), arnoldParamName,
+               AiNodeGetName(arnoldNode), AiNodeEntryGetName(arnoldNodeEntry));
+      }
    }
-   else
-   {
-      AiMsgWarning("[mtoa] [translator %s] Maya node %s(%s) does not have attribute %s to match parameter %s on Arnold node %s(%s).",
-            GetTranslatorName().asChar(),
-            GetMayaNodeName().asChar(), GetMayaNodeTypeName().asChar(),
-            mayaAttribName.asChar(), arnoldParamName,
-            AiNodeGetName(arnoldNode), AiNodeEntryGetName(arnoldNodeEntry));
-      return NULL;
-   }
+
+   return NULL;
 }
 
 // export values to an arnold parameter from a maya plug, recursively following connections in the dependency graph.
@@ -706,6 +763,7 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnold
             AiNodeGetName(arnoldNode), AiNodeEntryGetName(arnoldNode->base_node));
       return NULL;
    }
+
    // Uncomment only when necessary, will be very verbose
    // AiMsgDebug("[mtoa] [translator %s] Processing Maya %s(%s) for Arnold %s.%s(%s).",
    //      GetTranslatorName().asChar(),
@@ -728,9 +786,11 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnold
       // process connections
       connectedMayaAttr = connections[0].partialName(false, false, false, false, false, true);
       connectedMayaNode = connections[0].node();
+
       // Uncomment only when necessary, will be very verbose
       // AiMsgDebug("[mtoa] [translator %s] ProcessParameter found incoming connection %s on %s.",
       //      GetTranslatorName().asChar(), connections[0].name().asChar(), plug.name().asChar());
+
       connectedArnoldNode = ExportNode(connectedMayaNode, connectedMayaAttr);
    }
 

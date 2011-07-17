@@ -1,7 +1,6 @@
 #ifndef MAYASCENE_H
 #define MAYASCENE_H
 
-#include "common/MObjectCompare.h"
 #include "platform/Platform.h"
 #include "render/RenderSession.h"
 #include "session/ArnoldSession.h"
@@ -89,7 +88,7 @@ private:
    // Currently there can be only one export and render session
    // but when it changes, CMayaScene will manage them
    static CRenderSession* s_renderSession;
-   static CArnoldSession* s_exportSession;
+   static CArnoldSession* s_arnoldSession;
 
    static double s_currentFrame;
 

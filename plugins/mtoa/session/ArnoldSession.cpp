@@ -213,6 +213,7 @@ AtNode* CArnoldSession::ExportNode(MObject mayaNode, const MString &attrName, MS
    return arnoldNode;
 }
 
+// FIXME: it's a very bad idea to export without registering the translator, leads to multiple exports in IPR
 AtNode* CArnoldSession::ExportWithTranslator(MObject mayaNode, const MString &mayaNodeClass, const MString &translatorName)
 {
    assert(AiUniverseIsActive());
@@ -223,11 +224,17 @@ AtNode* CArnoldSession::ExportWithTranslator(MObject mayaNode, const MString &ma
    if (translator != NULL)
    {
       shader = translator->Init(this, mayaNode);
+      AiMsgDebug("[mtoa] Forcing export of %s(%s) as Arnold node %s(%s) using translator: %s.",
+            MFnDependencyNode(mayaNode).name().asChar(), mayaNodeClass.asChar(),
+            AiNodeGetName(shader), AiNodeEntryGetName(shader->base_node),
+            translatorName.asChar());
       translator->DoExport(0);
    }
    else
    {
-      AiMsgDebug("[mtoa] %s translator type not supported: %s", mayaNodeClass.asChar(), translatorName.asChar());
+      AiMsgDebug("[mtoa] Forcing export of %s(%s), translator type not supported: %s.",
+            MFnDependencyNode(mayaNode).name().asChar(), mayaNodeClass.asChar(),
+            translatorName.asChar());
    }
    return shader;
 }
