@@ -1,7 +1,5 @@
 #include "ShaveAndHaircut.h"
 
-// #include "attributes/AttrHelper.h"
-
 #include <maya/MPlugArray.h>
 #include <maya/MPlug.h>
 

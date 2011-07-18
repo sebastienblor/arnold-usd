@@ -75,6 +75,9 @@ vars.AddVariables(
       PathVariable('TARGET_PYTHON_PATH', 
                    'Path used for installation of Python scripts', 
                    os.path.join('$TARGET_MODULE_PATH', 'scripts'), PathVariable.PathIsDirCreate),
+      PathVariable('TARGET_INCLUDE_PATH', 
+                   'Path used for installation of API headers', 
+                   os.path.join('$TARGET_MODULE_PATH', 'include'), PathVariable.PathIsDirCreate),                   
       PathVariable('TARGET_ICONS_PATH', 
                    'Path used for installation of icons', 
                    os.path.join('$TARGET_MODULE_PATH', 'icons'), PathVariable.PathIsDirCreate),
@@ -479,12 +482,21 @@ env.Install(env['TARGET_BINARIES'], MTOA_API[0])
 # install mtoa scritps
 pyfiles = find_files_recursive('scripts', ['.py', '.mel'])
 env.InstallAs([os.path.join(env['TARGET_PYTHON_PATH'], x) for x in pyfiles],
-              [os.path.join('scripts', x) for x in  pyfiles])
+              [os.path.join('scripts', x) for x in pyfiles])
 # install Arnold python bindings
 arpybds = find_files_recursive(os.path.join(env['ARNOLD_PYTHON']), ['.py'])
 env.InstallAs([os.path.join(env['TARGET_PYTHON_PATH'], x) for x in arpybds],
-              [os.path.join(env['ARNOLD_PYTHON'], x) for x in  arpybds])
+              [os.path.join(env['ARNOLD_PYTHON'], x) for x in arpybds])
+# install include files
+apiheaders = [os.path.join('plugins', 'mtoa', 'extension', 'Extension.h'),
+              os.path.join('plugins', 'mtoa', 'session', 'ArnoldSession.h'),
+              os.path.join('plugins', 'mtoa', 'session', 'SessionOptions.h'),
+              os.path.join('plugins', 'mtoa', 'translators', 'NodeTranslator.h')]
+env.InstallAs([os.path.join(env['TARGET_INCLUDE_PATH'], os.path.basename(x)) for x in apiheaders],
+              apiheaders)
+# install icons
 env.Install(env['TARGET_ICONS_PATH'], glob.glob(os.path.join('icons', '*.xpm')))
+# install renderer description
 env.Install(env['TARGET_DESCR_PATH'], glob.glob(os.path.join('scripts', '*.xml')))
 
 env.MakeModule(env['TARGET_MODULE_PATH'], os.path.join(BUILD_BASE_DIR, 'mtoa.mod'))
@@ -609,6 +621,11 @@ for p in arpybds:
    PACKAGE_FILES += [
       [os.path.join(env['ARNOLD_PYTHON'], p), os.path.join('scripts', d)]
    ]
+   
+for p in apiheaders:
+   PACKAGE_FILES += [
+      [p, 'include']
+   ]
 
 for e in ext_files:
    PACKAGE_FILES += [
@@ -651,6 +668,7 @@ if system.os() == 'windows':
 aliases = []
 aliases.append(env.Alias('install-module',  env['TARGET_MODULE_PATH']))
 aliases.append(env.Alias('install-python',  env['TARGET_PYTHON_PATH']))
+aliases.append(env.Alias('install-include',  env['TARGET_INCLUDE_PATH']))
 aliases.append(env.Alias('install-icons',   env['TARGET_ICONS_PATH']))
 aliases.append(env.Alias('install-descr',   env['TARGET_DESCR_PATH']))
 aliases.append(env.Alias('install-lib',     env['TARGET_LIB_PATH']))
