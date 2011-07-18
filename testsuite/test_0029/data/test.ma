@@ -31442,7 +31442,44 @@ createNode polySphere -name "polySphere1";
 	setAttr ".subdivisionsAxis" 40;
 	setAttr ".subdivisionsHeight" 40;
 createNode aiOptions -shared -name "defaultArnoldRenderOptions";
-	setAttr ".arnoldRenderImageFormat" 1;
+	addAttr -cachedInternally true -shortName "driver_exr_compression" -longName "driverExrCompression" 
+		-defaultValue 2 -minValue 0 -maxValue 4 -enumName "none:rle:zip:piz:pxr24" -attributeType "enum";
+	addAttr -cachedInternally true -keyable true -shortName "driver_half_precision" 
+		-longName "driverHalfPrecision" -minValue 0 -maxValue 1 -attributeType "bool";
+	addAttr -cachedInternally true -keyable true -shortName "driver_tiled" -longName "driverTiled" 
+		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
+	addAttr -cachedInternally true -keyable true -shortName "driver_preserve_layer_name" 
+		-longName "driverPreserveLayerName" -minValue 0 -maxValue 1 -attributeType "bool";
+	addAttr -cachedInternally true -keyable true -shortName "driver_quality" -longName "driverQuality" 
+		-defaultValue 100 -minValue 0 -maxValue 100 -attributeType "long";
+	addAttr -cachedInternally true -keyable true -shortName "driver_output_padded" -longName "driverOutputPadded" 
+		-minValue 0 -maxValue 1 -attributeType "bool";
+	addAttr -cachedInternally true -keyable true -shortName "driver_gamma" -longName "driverGamma" 
+		-defaultValue 2.2000000476837158 -minValue 9.9999997473787516e-05 -softMaxValue 5 
+		-attributeType "float";
+	addAttr -cachedInternally true -keyable true -shortName "driver_dither_amplitude" 
+		-longName "driverDitherAmplitude" -defaultValue 1 -attributeType "float";
+	addAttr -cachedInternally true -shortName "driver_png_format" -longName "driverPngFormat" 
+		-minValue 0 -maxValue 1 -enumName "int8:int16" -attributeType "enum";
+	addAttr -cachedInternally true -shortName "driver_tiff_compression" -longName "driverTiffCompression" 
+		-minValue 0 -maxValue 4 -enumName "none:lzw:ccittrle:zip:packbits" -attributeType "enum";
+	addAttr -cachedInternally true -shortName "driver_tiff_format" -longName "driverTiffFormat" 
+		-minValue 0 -maxValue 3 -enumName "int8:int16:int32:float32" -attributeType "enum";
+	addAttr -cachedInternally true -keyable true -shortName "driver_unpremult_alpha" 
+		-longName "driverUnpremultAlpha" -minValue 0 -maxValue 1 -attributeType "bool";
+	addAttr -cachedInternally true -keyable true -shortName "filter_width" -longName "filterWidth" 
+		-defaultValue 3 -attributeType "float";
+	addAttr -cachedInternally true -shortName "filter_domain" -longName "filterDomain" 
+		-minValue 0 -maxValue 1 -enumName "first_hit:all_hits" -attributeType "enum";
+	addAttr -cachedInternally true -keyable true -shortName "filter_minimum" -longName "filterMinimum" 
+		-attributeType "float";
+	addAttr -cachedInternally true -keyable true -shortName "filter_maximum" -longName "filterMaximum" 
+		-defaultValue 1 -attributeType "float";
+	addAttr -cachedInternally true -keyable true -shortName "filter_scalar_mode" -longName "filterScalarMode" 
+		-minValue 0 -maxValue 1 -attributeType "bool";
+	setAttr ".imageFormat" -type "string" "tiff";
+	setAttr ".filterType" -type "string" "gaussian";
+	setAttr -keyable on ".driverTiled" no;
 createNode shadingEngine -name "aiStandard1SG";
 	setAttr ".isHistoricallyInteresting" 0;
 	setAttr ".renderableOnlySet" yes;

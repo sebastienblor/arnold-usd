@@ -242,6 +242,7 @@ public:
    void SetupLog() const;
    
    MString VerifyFileName(MString fileName, bool compressed);
+   MString GetFileExtension(const MString& imageRenderFormat) const;
    void UpdateImageFilename();
    void UpdateImageOptions();
    MString GetImageFilename();

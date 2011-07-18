@@ -48,8 +48,39 @@ void CRenderOptions::GetFromMaya()
 {
    ProcessCommonRenderOptions();
    ProcessArnoldRenderOptions();
-   // SetupImageOutputs();
    UpdateImageFilename();
+}
+
+// Unused by AOV branch but that will mess existing scripts
+// TODO : share this with the UI proc (call a Python script)
+// so that we know they're both in sync
+MString CRenderOptions::GetFileExtension(const MString& imageRenderFormat) const
+{
+   MString imageFileExtension;
+
+   if (imageRenderFormat == "exr")
+   {
+      imageFileExtension = "exr";
+   }
+   else if (imageRenderFormat == "tiff")
+   {
+      imageFileExtension = "tif";
+   }
+   else if (imageRenderFormat == "jpeg")
+   {
+      imageFileExtension = "jpg";
+   }
+   else if (imageRenderFormat == "png")
+   {
+      imageFileExtension = "png";
+   }
+   else
+   {
+      AiMsgError("[mtoa] Unknown image render format '%s'", imageRenderFormat.asChar());
+      imageFileExtension = "";
+   }
+
+   return imageFileExtension;
 }
 
 // sets the m_imageFilename member
@@ -71,6 +102,7 @@ void CRenderOptions::UpdateImageFilename()
    MFnDagNode camDagParent(camDag.parent(0));
    nameCamera = camDagParent.name();
 
+   m_imageFileExtension = GetFileExtension(m_arnoldRenderImageFormat);
 
    // Notes on MCommonRenderSettingsData::getImageName:
    //   - sceneFileName is only used if defaultRenderGlobals.imageFilePrefix is not set
@@ -125,9 +157,10 @@ void CRenderOptions::UpdateImageFilename()
       MObject mAOVObject = aov.GetNode();
       MFnDependencyNode fnNode = MFnDependencyNode(mAOVObject);
       MString driverType = fnNode.findPlug("imageFormat", true).asString();
+
       MString filename = m_defaultRenderGlobalsData.getImageName(pathType, fileFrameNumber,
                                                                  sceneFileName, nameCamera,
-                                                                 driverType, renderLayer,
+                                                                 GetFileExtension(driverType), renderLayer,
                                                                  tokens, 1);
       std::cout << "+++" << sceneFileName << " " << filename << std::endl;
       aov.SetImageFilename(filename);
@@ -155,6 +188,7 @@ MString CRenderOptions::GetImageFilename()
    MFnDagNode camDagParent(camDag.parent(0));
    nameCamera = camDagParent.name();
 
+   m_imageFileExtension = GetFileExtension(m_arnoldRenderImageFormat);
 
    // Notes on MCommonRenderSettingsData::getImageName:
    //   - sceneFileName is only used if defaultRenderGlobals.imageFilePrefix is not set
@@ -192,6 +226,8 @@ MString CRenderOptions::GetAOVImageFilename(MString fileName)
    MString cameraFolderName;
    MObject renderLayer = MFnRenderLayer::currentLayer();
    double fileFrameNumber = MAnimControl::currentTime().value();
+
+   m_imageFileExtension = GetFileExtension(m_arnoldRenderImageFormat);
 
    // file name
    MFileObject fileObj;
@@ -263,6 +299,12 @@ void CRenderOptions::ProcessCommonRenderOptions()
       m_useRenderRegion = fnRenderGlobals.findPlug("useRenderRegion").asBool();
 
       MRenderUtil::getCommonRenderSettings(m_defaultRenderGlobalsData);
+
+      // unsigned int   imageFormat
+      // MString     customImageFormat
+      // MString     customExt;
+      // m_imageFormat = m_defaultRenderGlobalsData.customImageFormat();
+
       m_isAnimated = m_defaultRenderGlobalsData.isAnimated();
       m_extensionPadding = m_defaultRenderGlobalsData.framePadding;
       m_startFrame = static_cast<float>(m_defaultRenderGlobalsData.frameStart.as(MTime::uiUnit()));
@@ -311,8 +353,8 @@ void CRenderOptions::ProcessArnoldRenderOptions()
       MPlugArray conns;
       MFnDependencyNode fnArnoldRenderOptions(node);
 
-      MFnEnumAttribute arnold_render_format(fnArnoldRenderOptions.findPlug("arnoldRenderImageFormat").attribute());
-      m_arnoldRenderImageFormat         = arnold_render_format.fieldName(fnArnoldRenderOptions.findPlug("arnoldRenderImageFormat").asShort());
+
+      m_arnoldRenderImageFormat  = fnArnoldRenderOptions.findPlug("imageFormat").asString();
 
       m_progressive_rendering    = fnArnoldRenderOptions.findPlug("progressive_rendering").asBool();
       m_threads                  = fnArnoldRenderOptions.findPlug("threads_autodetect").asBool() ? 0 : fnArnoldRenderOptions.findPlug("threads").asInt();

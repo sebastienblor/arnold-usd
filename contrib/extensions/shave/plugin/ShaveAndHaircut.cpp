@@ -7,7 +7,7 @@
 
 #include <ai_nodes.h>
 
-class CExtensionAttrHelper
+class CExtensionAttrHelper;
 
 MStatus CShaveTranslator::UpdateHairInfo()
 {

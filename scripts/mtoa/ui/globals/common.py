@@ -74,6 +74,15 @@ def getMultiCameraChildren(camera):
                     cameras.append(result)
     return cameras
 
+def fileTypeToExtension(fileType):
+   if (fileType == "jpeg") :
+       return "jpg"
+   elif (fileType == "tiff") :
+       return "tif"
+   else :
+       return fileType
+
+
 # ----------------------------------------------------------------------------
 # Utility procedures used by other procedures in this file.
 # Must be used to account for multiple instances of the same tab.
@@ -440,7 +449,7 @@ def changeArnoldFileNameFormat(*args):
 
     item = pm.optionMenuGrp('extMenu', q=True, sl=True)
 
-    pm.mel.setMayaSoftwareFrameExt(item, 0)
+    pm.mel.setMayaSoftwareFrameExt(fileTypeToExtension(item), 0)
 
     # Update the batch render window if it exists
     #

@@ -100,8 +100,6 @@ MStatus CRenderSession::Begin(CRenderOptions* options)
 {
    MStatus status = MStatus::kSuccess;
 
-
-   m_is_active = true;
    if (AiUniverseIsActive())
    {
       AiMsgWarning("[mtoa] There can only be one RenderSession active.");
@@ -111,7 +109,8 @@ MStatus CRenderSession::Begin(CRenderOptions* options)
    }
 
    // Begin the Arnold universe, read metadata file and load plugins
-   m_is_active = ArnoldUniverseBegin();
+   ArnoldUniverseBegin();
+   m_is_active = AiUniverseIsActive();
    if (m_is_active)
    {
       status = LoadPlugins();
@@ -128,13 +127,24 @@ MStatus CRenderSession::Begin(CRenderOptions* options)
                        NULL,
                        (AtNodeMethods*) mtoa_driver_mtd,
                        AI_VERSION);
-         AiMsgInfo("[mtoa] Installed renderview_display driver node entry");
+         const AtNodeEntry* driverEntry = AiNodeEntryLookUp("renderview_display");
+         if (NULL != driverEntry)
+         {
+            AiMsgInfo("[mtoa] Installed renderview_display driver");
+            status = MStatus::kSuccess;
+         }
+         else
+         {
+            AiMsgInfo("[mtoa] Could not instal renderview_display driver");
+            status = MStatus::kFailure;
+         }
       }
 
       return status;
    }
    else
    {
+      AiMsgError("[mtoa] Could not initialize the Arnold universe in CRenderSession.Begin(CRenderOptions* options)");
       return MStatus::kFailure;
    }
 }
@@ -396,6 +406,7 @@ AtNode * CRenderSession::CreateFileOutput()
 
    // set the output driver
    MString driverType = fnArnoldRenderOptions.findPlug("imageFormat").asString();
+   AiMsgError("[mtoa] Preparing file output for driver '%s'", driverType.asChar());
    AtNode* driver = CMayaScene::GetArnoldSession()->ExportDriver(node, driverType);
    if (driver != NULL)
    {
@@ -438,9 +449,21 @@ AtNode * CRenderSession::CreateRenderViewOutput()
    const AtNodeEntry* driverEntry = AiNodeEntryLookUp("renderview_display");
    if (driverEntry == NULL)
    {
-      AiMsgError("[mtoa] the renderview display driver is not available");
+      AiMsgWarning("[mtoa] the renderview display driver should be available at this point");
+      // renderview display
+      if (!m_renderOptions.BatchMode())
+      {
+         AiNodeInstall(AI_NODE_DRIVER,
+                       AI_TYPE_NONE,
+                       "renderview_display",
+                       NULL,
+                       (AtNodeMethods*) mtoa_driver_mtd,
+                       AI_VERSION);
+         driverEntry = AiNodeEntryLookUp("renderview_display");
+      }
    }
-   else
+
+   if (driverEntry != NULL)
    {
       // FIXME : we should query the translator list in case it has already been exported
       // or create one with CMayaScene::GetArnoldSession()->ExportFilter(node, filterType);
@@ -453,10 +476,13 @@ AtNode * CRenderSession::CreateRenderViewOutput()
       }
       AiNodeSetFlt(driver, "gamma", m_renderOptions.outputGamma());
    }
+   else
+   {
+      AiMsgInfo("[mtoa] Could not instal renderview_display driver");
+   }
 
    return driver;
 }
-
 
 void CRenderSession::DoInteractiveRender()
 {

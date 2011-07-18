@@ -1,19 +1,19 @@
 //Maya ASCII 2011 scene
 //Name: test.ma
-//Last modified: Tue, May 31, 2011 04:59:15 PM
-//Codeset: 1252
+//Last modified: Mon, Jul 18, 2011 12:10:22 AM
+//Codeset: UTF-8
 requires maya "2011";
-requires "mtoa" "0.7.0";
+requires "mtoa" "0.9.0";
 currentUnit -linear centimeter -angle degree -time film;
 fileInfo "application" "maya";
 fileInfo "product" "Maya 2011";
 fileInfo "version" "2011 x64";
-fileInfo "cutIdentifier" "201009060330-781623";
-fileInfo "osv" "Microsoft Windows 7 Business Edition, 64-bit Windows 7  (Build 7600)\n";
+fileInfo "cutIdentifier" "201009060248-781623";
+fileInfo "osv" "Linux 2.6.18-194.32.1.el5 #1 SMP Wed Jan 5 17:52:25 EST 2011 x86_64";
 createNode transform -shared -name "persp";
 	setAttr ".visibility" no;
 	setAttr ".translate" -type "double3" 30.483578307447715 22.862685876352771 30.483578307447715 ;
-	setAttr ".rotate" -type "double3" -27.938352729602322 45.000000000000007 -2.2489917831974721e-015 ;
+	setAttr ".rotate" -type "double3" -27.938352729602322 45.000000000000007 -2.2489917831974721e-15 ;
 createNode camera -shared -name "perspShape" -parent "persp";
 	addAttr -cachedInternally true -keyable true -shortName "ai_filtermap" -longName "aiFiltermap" 
 		-attributeType "message";
@@ -23,6 +23,9 @@ createNode camera -shared -name "perspShape" -parent "persp";
 		-defaultValue 90 -minValue 0 -maxValue 1000000000 -softMaxValue 180 -attributeType "float";
 	addAttr -cachedInternally true -keyable true -shortName "ai_projective" -longName "aiProjective" 
 		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
+	addAttr -cachedInternally true -keyable true -shortName "ai_focus_distance" -longName "aiFocusDistance" 
+		-defaultValue 1 -minValue 0 -maxValue 1000000000 -softMinValue 0 -softMaxValue 200 
+		-attributeType "float";
 	addAttr -cachedInternally true -keyable true -shortName "ai_aperture_size" -longName "aiApertureSize" 
 		-minValue 0 -maxValue 20 -softMinValue 0 -softMaxValue 1 -attributeType "float";
 	addAttr -cachedInternally true -keyable true -shortName "ai_aperture_blades" -longName "aiApertureBlades" 
@@ -38,9 +41,6 @@ createNode camera -shared -name "perspShape" -parent "persp";
 		-defaultValue 90 -minValue 0 -maxValue 1000000000 -softMaxValue 360 -attributeType "float";
 	addAttr -cachedInternally true -keyable true -shortName "ai_autocrop" -longName "aiAutocrop" 
 		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_focus_distance" -longName "aiFocusDistance" 
-		-defaultValue 5 -minValue 0 -maxValue 1000000000 -softMinValue 0 -softMaxValue 200 
-		-attributeType "float";
 	addAttr -cachedInternally true -usedAsColor -keyable true -shortName "ai_uv_remap" 
 		-longName "aiUvRemap" -attributeType "float3" -numberOfChildren 3;
 	addAttr -cachedInternally true -keyable true -shortName "ai_uv_remapr" -longName "aiUvRemapR" 
@@ -60,7 +60,7 @@ createNode camera -shared -name "perspShape" -parent "persp";
 	setAttr ".imageName" -type "string" "persp";
 	setAttr ".depthName" -type "string" "persp_depth";
 	setAttr ".maskName" -type "string" "persp_mask";
-	setAttr ".tumblePivot" -type "double3" -2.86102294921875e-006 0 -2.86102294921875e-006 ;
+	setAttr ".tumblePivot" -type "double3" -2.86102294921875e-06 0 -2.86102294921875e-06 ;
 	setAttr ".homeCommand" -type "string" "viewSet -p %camera";
 	setAttr ".displayResolution" yes;
 	setAttr -keyable on ".aiTranslator" -type "string" "perspective";
@@ -77,6 +77,9 @@ createNode camera -shared -name "topShape" -parent "top";
 		-defaultValue 90 -minValue 0 -maxValue 1000000000 -softMaxValue 180 -attributeType "float";
 	addAttr -cachedInternally true -keyable true -shortName "ai_projective" -longName "aiProjective" 
 		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
+	addAttr -cachedInternally true -keyable true -shortName "ai_focus_distance" -longName "aiFocusDistance" 
+		-defaultValue 1 -minValue 0 -maxValue 1000000000 -softMinValue 0 -softMaxValue 200 
+		-attributeType "float";
 	addAttr -cachedInternally true -keyable true -shortName "ai_aperture_size" -longName "aiApertureSize" 
 		-minValue 0 -maxValue 20 -softMinValue 0 -softMaxValue 1 -attributeType "float";
 	addAttr -cachedInternally true -keyable true -shortName "ai_aperture_blades" -longName "aiApertureBlades" 
@@ -92,9 +95,6 @@ createNode camera -shared -name "topShape" -parent "top";
 		-defaultValue 90 -minValue 0 -maxValue 1000000000 -softMaxValue 360 -attributeType "float";
 	addAttr -cachedInternally true -keyable true -shortName "ai_autocrop" -longName "aiAutocrop" 
 		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_focus_distance" -longName "aiFocusDistance" 
-		-defaultValue 5 -minValue 0 -maxValue 1000000000 -softMinValue 0 -softMaxValue 200 
-		-attributeType "float";
 	addAttr -cachedInternally true -usedAsColor -keyable true -shortName "ai_uv_remap" 
 		-longName "aiUvRemap" -attributeType "float3" -numberOfChildren 3;
 	addAttr -cachedInternally true -keyable true -shortName "ai_uv_remapr" -longName "aiUvRemapR" 
@@ -129,6 +129,9 @@ createNode camera -shared -name "frontShape" -parent "front";
 		-defaultValue 90 -minValue 0 -maxValue 1000000000 -softMaxValue 180 -attributeType "float";
 	addAttr -cachedInternally true -keyable true -shortName "ai_projective" -longName "aiProjective" 
 		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
+	addAttr -cachedInternally true -keyable true -shortName "ai_focus_distance" -longName "aiFocusDistance" 
+		-defaultValue 1 -minValue 0 -maxValue 1000000000 -softMinValue 0 -softMaxValue 200 
+		-attributeType "float";
 	addAttr -cachedInternally true -keyable true -shortName "ai_aperture_size" -longName "aiApertureSize" 
 		-minValue 0 -maxValue 20 -softMinValue 0 -softMaxValue 1 -attributeType "float";
 	addAttr -cachedInternally true -keyable true -shortName "ai_aperture_blades" -longName "aiApertureBlades" 
@@ -144,9 +147,6 @@ createNode camera -shared -name "frontShape" -parent "front";
 		-defaultValue 90 -minValue 0 -maxValue 1000000000 -softMaxValue 360 -attributeType "float";
 	addAttr -cachedInternally true -keyable true -shortName "ai_autocrop" -longName "aiAutocrop" 
 		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_focus_distance" -longName "aiFocusDistance" 
-		-defaultValue 5 -minValue 0 -maxValue 1000000000 -softMinValue 0 -softMaxValue 200 
-		-attributeType "float";
 	addAttr -cachedInternally true -usedAsColor -keyable true -shortName "ai_uv_remap" 
 		-longName "aiUvRemap" -attributeType "float3" -numberOfChildren 3;
 	addAttr -cachedInternally true -keyable true -shortName "ai_uv_remapr" -longName "aiUvRemapR" 
@@ -182,6 +182,9 @@ createNode camera -shared -name "sideShape" -parent "side";
 		-defaultValue 90 -minValue 0 -maxValue 1000000000 -softMaxValue 180 -attributeType "float";
 	addAttr -cachedInternally true -keyable true -shortName "ai_projective" -longName "aiProjective" 
 		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
+	addAttr -cachedInternally true -keyable true -shortName "ai_focus_distance" -longName "aiFocusDistance" 
+		-defaultValue 1 -minValue 0 -maxValue 1000000000 -softMinValue 0 -softMaxValue 200 
+		-attributeType "float";
 	addAttr -cachedInternally true -keyable true -shortName "ai_aperture_size" -longName "aiApertureSize" 
 		-minValue 0 -maxValue 20 -softMinValue 0 -softMaxValue 1 -attributeType "float";
 	addAttr -cachedInternally true -keyable true -shortName "ai_aperture_blades" -longName "aiApertureBlades" 
@@ -197,9 +200,6 @@ createNode camera -shared -name "sideShape" -parent "side";
 		-defaultValue 90 -minValue 0 -maxValue 1000000000 -softMaxValue 360 -attributeType "float";
 	addAttr -cachedInternally true -keyable true -shortName "ai_autocrop" -longName "aiAutocrop" 
 		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_focus_distance" -longName "aiFocusDistance" 
-		-defaultValue 5 -minValue 0 -maxValue 1000000000 -softMinValue 0 -softMaxValue 200 
-		-attributeType "float";
 	addAttr -cachedInternally true -usedAsColor -keyable true -shortName "ai_uv_remap" 
 		-longName "aiUvRemap" -attributeType "float3" -numberOfChildren 3;
 	addAttr -cachedInternally true -keyable true -shortName "ai_uv_remapr" -longName "aiUvRemapR" 
@@ -226,8 +226,6 @@ createNode transform -name "pSphere1";
 createNode mesh -name "pSphereShape1" -parent "pSphere1";
 	addAttr -cachedInternally true -keyable true -shortName "ai_sss_use_gi" -longName "aiSssUseGi" 
 		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_sss_max_samples" -longName "aiSssMaxSamples" 
-		-defaultValue 100000 -minValue 0 -softMaxValue 1000000 -attributeType "long";
 	addAttr -cachedInternally true -keyable true -shortName "ai_sss_sample_spacing" 
 		-longName "aiSssSampleSpacing" -defaultValue 0.10000000149011612 -minValue 0 -softMaxValue 
 		1 -attributeType "float";
@@ -255,6 +253,8 @@ createNode mesh -name "pSphereShape1" -parent "pSphere1";
 		-minValue 0 -maxValue 1 -attributeType "bool";
 	addAttr -cachedInternally true -keyable true -shortName "ai_expcol" -longName "aiExportColors" 
 		-minValue 0 -maxValue 1 -attributeType "bool";
+	addAttr -cachedInternally true -keyable true -shortName "ai_sss_max_samples" -longName "aiSssMaxSamples" 
+		-defaultValue 100000 -minValue 0 -softMaxValue 1000000 -attributeType "long";
 	addAttr -cachedInternally true -shortName "mso" -longName "miShadingSamplesOverride" 
 		-minValue 0 -maxValue 1 -attributeType "bool";
 	addAttr -cachedInternally true -shortName "msh" -longName "miShadingSamples" -minValue 
@@ -302,6 +302,45 @@ createNode mesh -name "pSphereShape1" -parent "pSphere1";
 	setAttr ".collisionOffsetVelocityMultiplier[0]"  0 1 1;
 	setAttr ".collisionDepthVelocityMultiplier[0]"  0 1 1;
 	setAttr ".subdiv_dicing_camera" -type "string" "Default";
+createNode aiOptions -shared -name "defaultArnoldRenderOptions";
+	addAttr -cachedInternally true -shortName "driver_exr_compression" -longName "driverExrCompression" 
+		-defaultValue 2 -minValue 0 -maxValue 4 -enumName "none:rle:zip:piz:pxr24" -attributeType "enum";
+	addAttr -cachedInternally true -keyable true -shortName "driver_half_precision" 
+		-longName "driverHalfPrecision" -minValue 0 -maxValue 1 -attributeType "bool";
+	addAttr -cachedInternally true -keyable true -shortName "driver_tiled" -longName "driverTiled" 
+		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
+	addAttr -cachedInternally true -keyable true -shortName "driver_preserve_layer_name" 
+		-longName "driverPreserveLayerName" -minValue 0 -maxValue 1 -attributeType "bool";
+	addAttr -cachedInternally true -keyable true -shortName "driver_quality" -longName "driverQuality" 
+		-defaultValue 100 -minValue 0 -maxValue 100 -attributeType "long";
+	addAttr -cachedInternally true -keyable true -shortName "driver_output_padded" -longName "driverOutputPadded" 
+		-minValue 0 -maxValue 1 -attributeType "bool";
+	addAttr -cachedInternally true -keyable true -shortName "driver_gamma" -longName "driverGamma" 
+		-defaultValue 2.2000000476837158 -minValue 9.9999997473787516e-05 -softMaxValue 5 
+		-attributeType "float";
+	addAttr -cachedInternally true -keyable true -shortName "driver_dither_amplitude" 
+		-longName "driverDitherAmplitude" -defaultValue 1 -attributeType "float";
+	addAttr -cachedInternally true -shortName "driver_png_format" -longName "driverPngFormat" 
+		-minValue 0 -maxValue 1 -enumName "int8:int16" -attributeType "enum";
+	addAttr -cachedInternally true -shortName "driver_tiff_compression" -longName "driverTiffCompression" 
+		-minValue 0 -maxValue 4 -enumName "none:lzw:ccittrle:zip:packbits" -attributeType "enum";
+	addAttr -cachedInternally true -shortName "driver_tiff_format" -longName "driverTiffFormat" 
+		-minValue 0 -maxValue 3 -enumName "int8:int16:int32:float32" -attributeType "enum";
+	addAttr -cachedInternally true -keyable true -shortName "driver_unpremult_alpha" 
+		-longName "driverUnpremultAlpha" -minValue 0 -maxValue 1 -attributeType "bool";
+	addAttr -cachedInternally true -keyable true -shortName "filter_width" -longName "filterWidth" 
+		-defaultValue 3 -attributeType "float";
+	addAttr -cachedInternally true -shortName "filter_domain" -longName "filterDomain" 
+		-minValue 0 -maxValue 1 -enumName "first_hit:all_hits" -attributeType "enum";
+	addAttr -cachedInternally true -keyable true -shortName "filter_minimum" -longName "filterMinimum" 
+		-attributeType "float";
+	addAttr -cachedInternally true -keyable true -shortName "filter_maximum" -longName "filterMaximum" 
+		-defaultValue 1 -attributeType "float";
+	addAttr -cachedInternally true -keyable true -shortName "filter_scalar_mode" -longName "filterScalarMode" 
+		-minValue 0 -maxValue 1 -attributeType "bool";
+	setAttr ".imageFormat" -type "string" "tiff";
+	setAttr ".filterType" -type "string" "gaussian";
+	setAttr -keyable on ".driverTiled" no;
 createNode lightLinker -shared -name "lightLinker1";
 	setAttr -size 4 ".link";
 	setAttr -size 4 ".shadowLink";
@@ -310,9 +349,6 @@ createNode displayLayer -name "defaultLayer";
 createNode renderLayerManager -name "renderLayerManager";
 createNode renderLayer -name "defaultRenderLayer";
 	setAttr ".global" yes;
-createNode aiOptions -shared -name "defaultArnoldRenderOptions";
-	setAttr ".arnoldRenderImageFormat" 1;
-	setAttr ".gamma" 1;
 createNode polySphere -name "polySphere1";
 	setAttr ".radius" 10;
 	setAttr ".subdivisionsAxis" 50;
@@ -348,7 +384,8 @@ select -noExpand :postProcessList1;
 select -noExpand :renderGlobalsList1;
 select -noExpand :defaultRenderGlobals;
 	setAttr ".currentRenderer" -type "string" "arnold";
-	setAttr ".imageFormat" 3;
+	setAttr ".imageFormat" 51;
+	setAttr ".imfPluginKey" -type "string" "tiff";
 	setAttr ".imageFilePrefix" -type "string" "testrender";
 select -noExpand :defaultResolution;
 	setAttr ".width" 160;
@@ -362,6 +399,7 @@ select -noExpand :defaultHardwareRenderGlobals;
 	setAttr ".filename" -type "string" "im";
 	setAttr ".resolution" -type "string" "ntsc_4d 646 485 1.333";
 connectAttr "polySphere1.output" "pSphereShape1.inMesh";
+connectAttr ":time1.outTime" ":defaultArnoldRenderOptions.AA_seed";
 relationship "link" ":lightLinker1" ":initialShadingGroup.message" ":defaultLightSet.message";
 relationship "link" ":lightLinker1" ":initialParticleSE.message" ":defaultLightSet.message";
 relationship "link" ":lightLinker1" "ArnoldStandardShader1SG.message" ":defaultLightSet.message";
@@ -373,7 +411,6 @@ relationship "shadowLink" ":lightLinker1" "ArnoldStandardShader1SG1.message" ":d
 connectAttr "layerManager.displayLayerId[0]" "defaultLayer.identification";
 connectAttr "renderLayerManager.renderLayerId[0]" "defaultRenderLayer.identification"
 		;
-connectAttr ":time1.outTime" ":defaultArnoldRenderOptions.AA_seed";
 connectAttr "ArnoldStandardShader1SG.message" "materialInfo1.shadingGroup";
 connectAttr "ArnoldStandardShader1.message" "materialInfo1.material";
 connectAttr "ArnoldStandardShader1.message" "materialInfo1.texture" -nextAvailable
