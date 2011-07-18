@@ -110,7 +110,7 @@ MStatus CRenderSession::Begin(CRenderOptions* options)
 
    // Begin the Arnold universe, read metadata file and load plugins
    ArnoldUniverseBegin();
-   m_is_active = AiUniverseIsActive();
+   m_is_active = AiUniverseIsActive() ? true : false;
    if (m_is_active)
    {
       status = LoadPlugins();
