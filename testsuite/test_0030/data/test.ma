@@ -1,19 +1,19 @@
 //Maya ASCII 2011 scene
 //Name: test.ma
-//Last modified: Fri, Jul 01, 2011 03:25:02 PM
-//Codeset: 1252
+//Last modified: Mon, Jul 18, 2011 05:33:53 PM
+//Codeset: UTF-8
 requires maya "2011";
-requires "mtoa" "0.8.0";
+requires "mtoa" "0.9.0";
 currentUnit -linear centimeter -angle degree -time film;
 fileInfo "application" "maya";
 fileInfo "product" "Maya 2011";
 fileInfo "version" "2011 x64";
-fileInfo "cutIdentifier" "201009060330-781623";
-fileInfo "osv" "Microsoft Windows 7 Business Edition, 64-bit Windows 7  (Build 7600)\n";
+fileInfo "cutIdentifier" "201009060248-781623";
+fileInfo "osv" "Linux 2.6.18-194.32.1.el5 #1 SMP Wed Jan 5 17:52:25 EST 2011 x86_64";
 createNode transform -shared -name "persp";
 	setAttr ".visibility" no;
 	setAttr ".translate" -type "double3" 8.2209683823296658 6.1657262420436485 8.2209683525273434 ;
-	setAttr ".rotate" -type "double3" -27.938352729602322 45.000000000000007 -2.2489917831974721e-015 ;
+	setAttr ".rotate" -type "double3" -27.938352729602322 45.000000000000007 -2.2489917831974721e-15 ;
 createNode camera -shared -name "perspShape" -parent "persp";
 	addAttr -cachedInternally true -keyable true -shortName "ai_filtermap" -longName "aiFiltermap" 
 		-attributeType "message";
@@ -99,7 +99,7 @@ createNode camera -shared -name "perspShape" -parent "persp";
 	setAttr ".imageName" -type "string" "persp";
 	setAttr ".depthName" -type "string" "persp_depth";
 	setAttr ".maskName" -type "string" "persp_mask";
-	setAttr ".tumblePivot" -type "double3" 5.9604644775390625e-008 0 2.9802322387695313e-008 ;
+	setAttr ".tumblePivot" -type "double3" 5.9604644775390625e-08 0 2.9802322387695312e-08 ;
 	setAttr ".homeCommand" -type "string" "viewSet -p %camera";
 	setAttr ".displayResolution" yes;
 	setAttr -keyable on ".aiTranslator" -type "string" "perspective";
@@ -386,8 +386,9 @@ createNode transform -name "pSphere1";
 createNode mesh -name "pSphereShape1" -parent "pSphere1";
 	addAttr -cachedInternally true -keyable true -shortName "ai_sss_use_gi" -longName "aiSssUseGi" 
 		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_sss_max_samples" -longName "aiSssMaxSamples" 
-		-defaultValue 100000 -minValue 0 -softMaxValue 1000000 -attributeType "long";
+	addAttr -cachedInternally true -shortName "ai_sss_sample_distribution" -longName "aiSssSampleDistribution" 
+		-minValue 0 -maxValue 3 -enumName "blue_noise:blue_noise_Pref:triangle_midpoint:polygon_midpoint" 
+		-attributeType "enum";
 	addAttr -cachedInternally true -keyable true -shortName "ai_sss_sample_spacing" 
 		-longName "aiSssSampleSpacing" -defaultValue 0.10000000149011612 -minValue 0 -softMaxValue 
 		1 -attributeType "float";
@@ -415,6 +416,8 @@ createNode mesh -name "pSphereShape1" -parent "pSphere1";
 		-minValue 0 -maxValue 1 -attributeType "bool";
 	addAttr -cachedInternally true -keyable true -shortName "ai_expcol" -longName "aiExportColors" 
 		-minValue 0 -maxValue 1 -attributeType "bool";
+	addAttr -cachedInternally true -keyable true -shortName "ai_sss_max_samples" -longName "aiSssMaxSamples" 
+		-defaultValue 100000 -minValue 0 -softMaxValue 1000000 -attributeType "long";
 	addAttr -cachedInternally true -shortName "mso" -longName "miShadingSamplesOverride" 
 		-minValue 0 -maxValue 1 -attributeType "bool";
 	addAttr -cachedInternally true -shortName "msh" -longName "miShadingSamples" -minValue 
@@ -468,8 +471,6 @@ createNode pointLight -name "pointLightShape1" -parent "pointLight1";
 		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
 	addAttr -cachedInternally true -keyable true -shortName "ai_exposure" -longName "aiExposure" 
 		-minValue 0 -softMaxValue 10 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_radius" -longName "aiRadius" 
-		-minValue 0 -softMaxValue 10 -attributeType "float";
 	addAttr -cachedInternally true -keyable true -shortName "ai_samples" -longName "aiSamples" 
 		-defaultValue 1 -minValue 0 -maxValue 100 -attributeType "long";
 	addAttr -cachedInternally true -keyable true -shortName "ai_mis" -longName "aiMis" 
@@ -480,6 +481,8 @@ createNode pointLight -name "pointLightShape1" -parent "pointLight1";
 		-defaultValue 1 -minValue 0 -softMaxValue 20 -attributeType "float";
 	addAttr -cachedInternally true -keyable true -shortName "ai_bounces" -longName "aiBounces" 
 		-defaultValue 999 -minValue 0 -maxValue 10000 -attributeType "long";
+	addAttr -cachedInternally true -keyable true -multi -shortName "ai_filters" -longName "aiFilters" 
+		-attributeType "message";
 	addAttr -cachedInternally true -keyable true -shortName "ai_oss" -longName "aiOverrideSssSamples" 
 		-minValue 0 -maxValue 1 -attributeType "bool";
 	addAttr -cachedInternally true -keyable true -shortName "ai_sss_samples" -longName "aiSssSamples" 
@@ -488,14 +491,17 @@ createNode pointLight -name "pointLightShape1" -parent "pointLight1";
 		-longName "aiAffectVolumetrics" -defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
 	addAttr -cachedInternally true -keyable true -shortName "ai_cast_volumetric_shadows" 
 		-longName "aiCastVolumetricShadows" -defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
+	addAttr -cachedInternally true -keyable true -shortName "ai_radius" -longName "aiRadius" 
+		-minValue 0 -softMaxValue 10 -attributeType "float";
 	setAttr -keyable off ".visibility";
 	setAttr ".useOnlySingleDmap" no;
 createNode transform -name "hairSystem1";
 createNode hairSystem -name "hairSystemShape1" -parent "hairSystem1";
 	addAttr -cachedInternally true -keyable true -shortName "ai_sss_use_gi" -longName "aiSssUseGi" 
 		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_sss_max_samples" -longName "aiSssMaxSamples" 
-		-defaultValue 100000 -attributeType "long";
+	addAttr -cachedInternally true -shortName "ai_sss_sample_distribution" -longName "aiSssSampleDistribution" 
+		-minValue 0 -maxValue 3 -enumName "blue_noise:blue_noise_Pref:triangle_midpoint:polygon_midpoint" 
+		-attributeType "enum";
 	addAttr -cachedInternally true -keyable true -shortName "ai_sss_sample_spacing" 
 		-longName "aiSssSampleSpacing" -defaultValue 0.10000000149011612 -attributeType "float";
 	addAttr -cachedInternally true -keyable true -shortName "ai_self_shadows" -longName "aiSelfShadows" 
@@ -516,6 +522,8 @@ createNode hairSystem -name "hairSystemShape1" -parent "hairSystem1";
 		-minValue 0 -maxValue 1 -attributeType "bool";
 	addAttr -cachedInternally true -keyable true -shortName "ai_hair_shader" -longName "aiHairShader" 
 		-attributeType "message";
+	addAttr -cachedInternally true -keyable true -shortName "ai_sss_max_samples" -longName "aiSssMaxSamples" 
+		-defaultValue 100000 -attributeType "long";
 	addAttr -cachedInternally true -shortName "mso" -longName "miShadingSamplesOverride" 
 		-minValue 0 -maxValue 1 -attributeType "bool";
 	addAttr -cachedInternally true -shortName "msh" -longName "miShadingSamples" -minValue 
@@ -2302,7 +2310,44 @@ createNode polySphere -name "polySphere1";
 	setAttr ".subdivisionsAxis" 40;
 	setAttr ".subdivisionsHeight" 40;
 createNode aiOptions -shared -name "defaultArnoldRenderOptions";
-	setAttr ".arnoldRenderImageFormat" 1;
+	addAttr -cachedInternally true -shortName "driver_exr_compression" -longName "driverExrCompression" 
+		-defaultValue 2 -minValue 0 -maxValue 4 -enumName "none:rle:zip:piz:pxr24" -attributeType "enum";
+	addAttr -cachedInternally true -keyable true -shortName "driver_half_precision" 
+		-longName "driverHalfPrecision" -minValue 0 -maxValue 1 -attributeType "bool";
+	addAttr -cachedInternally true -keyable true -shortName "driver_tiled" -longName "driverTiled" 
+		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
+	addAttr -cachedInternally true -keyable true -shortName "driver_preserve_layer_name" 
+		-longName "driverPreserveLayerName" -minValue 0 -maxValue 1 -attributeType "bool";
+	addAttr -cachedInternally true -keyable true -shortName "driver_quality" -longName "driverQuality" 
+		-defaultValue 100 -minValue 0 -maxValue 100 -attributeType "long";
+	addAttr -cachedInternally true -keyable true -shortName "driver_output_padded" -longName "driverOutputPadded" 
+		-minValue 0 -maxValue 1 -attributeType "bool";
+	addAttr -cachedInternally true -keyable true -shortName "driver_gamma" -longName "driverGamma" 
+		-defaultValue 2.2000000476837158 -minValue 9.9999997473787516e-05 -softMaxValue 5 
+		-attributeType "float";
+	addAttr -cachedInternally true -keyable true -shortName "driver_dither_amplitude" 
+		-longName "driverDitherAmplitude" -defaultValue 1 -attributeType "float";
+	addAttr -cachedInternally true -shortName "driver_png_format" -longName "driverPngFormat" 
+		-minValue 0 -maxValue 1 -enumName "int8:int16" -attributeType "enum";
+	addAttr -cachedInternally true -shortName "driver_tiff_compression" -longName "driverTiffCompression" 
+		-minValue 0 -maxValue 4 -enumName "none:lzw:ccittrle:zip:packbits" -attributeType "enum";
+	addAttr -cachedInternally true -shortName "driver_tiff_format" -longName "driverTiffFormat" 
+		-minValue 0 -maxValue 3 -enumName "int8:int16:int32:float32" -attributeType "enum";
+	addAttr -cachedInternally true -keyable true -shortName "driver_unpremult_alpha" 
+		-longName "driverUnpremultAlpha" -minValue 0 -maxValue 1 -attributeType "bool";
+	addAttr -cachedInternally true -keyable true -shortName "filter_width" -longName "filterWidth" 
+		-defaultValue 3 -attributeType "float";
+	addAttr -cachedInternally true -shortName "filter_domain" -longName "filterDomain" 
+		-minValue 0 -maxValue 1 -enumName "first_hit:all_hits" -attributeType "enum";
+	addAttr -cachedInternally true -keyable true -shortName "filter_minimum" -longName "filterMinimum" 
+		-attributeType "float";
+	addAttr -cachedInternally true -keyable true -shortName "filter_maximum" -longName "filterMaximum" 
+		-defaultValue 1 -attributeType "float";
+	addAttr -cachedInternally true -keyable true -shortName "filter_scalar_mode" -longName "filterScalarMode" 
+		-minValue 0 -maxValue 1 -attributeType "bool";
+	setAttr ".imageFormat" -type "string" "tiff";
+	setAttr ".filterType" -type "string" "gaussian";
+	setAttr -keyable on ".driverTiled" no;
 createNode shadingEngine -name "aiStandard1SG";
 	setAttr ".isHistoricallyInteresting" 0;
 	setAttr ".renderableOnlySet" yes;
@@ -2336,6 +2381,8 @@ select -noExpand :postProcessList1;
 select -noExpand :renderGlobalsList1;
 select -noExpand :defaultRenderGlobals;
 	setAttr ".currentRenderer" -type "string" "arnold";
+	setAttr ".imageFormat" 51;
+	setAttr ".imfPluginKey" -type "string" "tiff";
 	setAttr ".imageFilePrefix" -type "string" "testrender";
 select -noExpand :defaultResolution;
 	setAttr ".width" 160;

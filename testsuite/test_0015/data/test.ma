@@ -1,18 +1,18 @@
 //Maya ASCII 2011 scene
-//Name: sky_rotate.ma
-//Last modified: Wed, Jun 08, 2011 04:38:29 PM
-//Codeset: 1252
+//Name: test.ma
+//Last modified: Mon, Jul 18, 2011 06:17:23 PM
+//Codeset: UTF-8
 requires maya "2011";
-requires "mtoa" "0.7.0";
+requires "mtoa" "0.9.0";
 currentUnit -linear centimeter -angle degree -time film;
 fileInfo "application" "maya";
 fileInfo "product" "Maya 2011";
 fileInfo "version" "2011 x64";
-fileInfo "cutIdentifier" "201009060330-781623";
-fileInfo "osv" "Microsoft Windows 7 Business Edition, 64-bit Windows 7  (Build 7600)\n";
+fileInfo "cutIdentifier" "201009060248-781623";
+fileInfo "osv" "Linux 2.6.18-194.32.1.el5 #1 SMP Wed Jan 5 17:52:25 EST 2011 x86_64";
 createNode transform -shared -name "persp";
 	setAttr ".visibility" no;
-	setAttr ".translate" -type "double3" -3.337860107421875e-006 0 40 ;
+	setAttr ".translate" -type "double3" -3.337860107421875e-06 0 40 ;
 createNode camera -shared -name "perspShape" -parent "persp";
 	addAttr -cachedInternally true -keyable true -shortName "ai_filtermap" -longName "aiFiltermap" 
 		-attributeType "message";
@@ -74,7 +74,7 @@ createNode camera -shared -name "perspShape" -parent "persp";
 	setAttr ".imageName" -type "string" "persp";
 	setAttr ".depthName" -type "string" "persp_depth";
 	setAttr ".maskName" -type "string" "persp_mask";
-	setAttr ".tumblePivot" -type "double3" -3.337860107421875e-006 0 -2.86102294921875e-006 ;
+	setAttr ".tumblePivot" -type "double3" -3.337860107421875e-06 0 -2.86102294921875e-06 ;
 	setAttr ".homeCommand" -type "string" "viewSet -p %camera";
 	setAttr ".displayResolution" yes;
 	setAttr -keyable on ".aiTranslator" -type "string" "perspective";
@@ -297,6 +297,8 @@ createNode aiSkyDomeLight -name "aiSkyDomeLight1" -parent "transform1";
 		-defaultValue 1 -attributeType "float";
 	addAttr -cachedInternally true -keyable true -shortName "ai_bounces" -longName "aiBounces" 
 		-defaultValue 999 -attributeType "long";
+	addAttr -cachedInternally true -keyable true -multi -shortName "ai_filters" -longName "aiFilters" 
+		-attributeType "message";
 	addAttr -cachedInternally true -keyable true -shortName "ai_oss" -longName "aiOverrideSssSamples" 
 		-minValue 0 -maxValue 1 -attributeType "bool";
 	addAttr -cachedInternally true -keyable true -shortName "ai_sss_samples" -longName "aiSssSamples" 
@@ -355,8 +357,9 @@ createNode transform -name "pSphere1";
 createNode mesh -name "pSphereShape1" -parent "pSphere1";
 	addAttr -cachedInternally true -keyable true -shortName "ai_sss_use_gi" -longName "aiSssUseGi" 
 		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_sss_max_samples" -longName "aiSssMaxSamples" 
-		-defaultValue 100000 -minValue 0 -softMaxValue 1000000 -attributeType "long";
+	addAttr -cachedInternally true -shortName "ai_sss_sample_distribution" -longName "aiSssSampleDistribution" 
+		-minValue 0 -maxValue 3 -enumName "blue_noise:blue_noise_Pref:triangle_midpoint:polygon_midpoint" 
+		-attributeType "enum";
 	addAttr -cachedInternally true -keyable true -shortName "ai_sss_sample_spacing" 
 		-longName "aiSssSampleSpacing" -defaultValue 0.10000000149011612 -minValue 0 -softMaxValue 
 		1 -attributeType "float";
@@ -384,6 +387,8 @@ createNode mesh -name "pSphereShape1" -parent "pSphere1";
 		-minValue 0 -maxValue 1 -attributeType "bool";
 	addAttr -cachedInternally true -keyable true -shortName "ai_expcol" -longName "aiExportColors" 
 		-minValue 0 -maxValue 1 -attributeType "bool";
+	addAttr -cachedInternally true -keyable true -shortName "ai_sss_max_samples" -longName "aiSssMaxSamples" 
+		-defaultValue 100000 -minValue 0 -softMaxValue 1000000 -attributeType "long";
 	addAttr -cachedInternally true -keyable true -shortName "sss_use_gi" -longName "sssUseGi" 
 		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
 	addAttr -cachedInternally true -keyable true -shortName "sss_max_samples" -longName "sssMaxSamples" 
@@ -431,14 +436,47 @@ createNode mesh -name "pSphereShape1" -parent "pSphere1";
 	setAttr ".collisionOffsetVelocityMultiplier[0]"  0 1 1;
 	setAttr ".collisionDepthVelocityMultiplier[0]"  0 1 1;
 createNode aiOptions -shared -name "defaultArnoldRenderOptions";
-	setAttr ".arnoldRenderImageFormat" 1;
-	setAttr ".filter_width" 4;
-	setAttr ".driver_gamma" 1;
-	setAttr ".light_gamma" 1;
-	setAttr ".shader_gamma" 1;
-	setAttr ".texture_gamma" 1;
+	addAttr -cachedInternally true -shortName "driver_exr_compression" -longName "driverExrCompression" 
+		-defaultValue 2 -minValue 0 -maxValue 4 -enumName "none:rle:zip:piz:pxr24" -attributeType "enum";
+	addAttr -cachedInternally true -keyable true -shortName "driver_half_precision" 
+		-longName "driverHalfPrecision" -minValue 0 -maxValue 1 -attributeType "bool";
+	addAttr -cachedInternally true -keyable true -shortName "driver_tiled" -longName "driverTiled" 
+		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
+	addAttr -cachedInternally true -keyable true -shortName "driver_preserve_layer_name" 
+		-longName "driverPreserveLayerName" -minValue 0 -maxValue 1 -attributeType "bool";
+	addAttr -cachedInternally true -keyable true -shortName "driver_quality" -longName "driverQuality" 
+		-defaultValue 100 -minValue 0 -maxValue 100 -attributeType "long";
+	addAttr -cachedInternally true -keyable true -shortName "driver_output_padded" -longName "driverOutputPadded" 
+		-minValue 0 -maxValue 1 -attributeType "bool";
+	addAttr -cachedInternally true -keyable true -shortName "driver_gamma" -longName "driverGamma" 
+		-defaultValue 2.2000000476837158 -minValue 9.9999997473787516e-05 -softMaxValue 5 
+		-attributeType "float";
+	addAttr -cachedInternally true -keyable true -shortName "driver_dither_amplitude" 
+		-longName "driverDitherAmplitude" -defaultValue 1 -attributeType "float";
+	addAttr -cachedInternally true -shortName "driver_png_format" -longName "driverPngFormat" 
+		-minValue 0 -maxValue 1 -enumName "int8:int16" -attributeType "enum";
+	addAttr -cachedInternally true -shortName "driver_tiff_compression" -longName "driverTiffCompression" 
+		-minValue 0 -maxValue 4 -enumName "none:lzw:ccittrle:zip:packbits" -attributeType "enum";
+	addAttr -cachedInternally true -shortName "driver_tiff_format" -longName "driverTiffFormat" 
+		-minValue 0 -maxValue 3 -enumName "int8:int16:int32:float32" -attributeType "enum";
+	addAttr -cachedInternally true -keyable true -shortName "driver_unpremult_alpha" 
+		-longName "driverUnpremultAlpha" -minValue 0 -maxValue 1 -attributeType "bool";
+	addAttr -cachedInternally true -keyable true -shortName "filter_width" -longName "filterWidth" 
+		-defaultValue 3 -attributeType "float";
+	addAttr -cachedInternally true -shortName "filter_domain" -longName "filterDomain" 
+		-minValue 0 -maxValue 1 -enumName "first_hit:all_hits" -attributeType "enum";
+	addAttr -cachedInternally true -keyable true -shortName "filter_minimum" -longName "filterMinimum" 
+		-attributeType "float";
+	addAttr -cachedInternally true -keyable true -shortName "filter_maximum" -longName "filterMaximum" 
+		-defaultValue 1 -attributeType "float";
+	addAttr -cachedInternally true -keyable true -shortName "filter_scalar_mode" -longName "filterScalarMode" 
+		-minValue 0 -maxValue 1 -attributeType "bool";
+	setAttr ".imageFormat" -type "string" "tiff";
+	setAttr ".filterType" -type "string" "gaussian";
 	setAttr ".GIDiffuseDepth" 2;
 	setAttr ".GIGlossyDepth" 2;
+	setAttr -keyable on ".driverTiled" no;
+	setAttr -keyable on ".filterWidth" 4;
 createNode lightLinker -shared -name "lightLinker1";
 	setAttr -size 5 ".link";
 	setAttr -size 5 ".shadowLink";
@@ -461,7 +499,7 @@ createNode script -name "sceneConfigurationScriptNode";
 createNode file -name "file1";
 	setAttr ".alphaGain" 0;
 	setAttr ".alphaOffset" 1;
-	setAttr ".fileTextureName" -type "string" "grid_opacity.tif";
+	setAttr ".fileTextureName" -type "string" "/mnt/data/orenouard/Eclipse/Arnold/mtoa/testsuite/test_0015/data/grid_opacity.tif";
 createNode place2dTexture -name "place2dTexture1";
 createNode shadingEngine -name "aiStandard2SG";
 	setAttr ".isHistoricallyInteresting" 0;
@@ -471,7 +509,7 @@ createNode aiStandard -name "aiStandard1";
 	setAttr ".Kd" 0;
 	setAttr ".Ks" 1;
 	setAttr ".specularBrdf" 2;
-	setAttr ".specularRoughness" 0.001;
+	setAttr ".specularRoughness" 0.0010000000474974513;
 createNode shadingEngine -name "aiStandard3SG";
 	setAttr ".isHistoricallyInteresting" 0;
 	setAttr ".renderableOnlySet" yes;
@@ -495,7 +533,8 @@ select -noExpand :defaultRenderUtilityList1;
 select -noExpand :renderGlobalsList1;
 select -noExpand :defaultRenderGlobals;
 	setAttr ".currentRenderer" -type "string" "arnold";
-	setAttr ".imageFormat" 0;
+	setAttr ".imageFormat" 51;
+	setAttr ".imfPluginKey" -type "string" "tiff";
 	setAttr ".imageFilePrefix" -type "string" "testrender";
 select -noExpand :defaultResolution;
 	setAttr ".width" 160;
@@ -592,4 +631,4 @@ connectAttr "place2dTexture1.message" ":defaultRenderUtilityList1.utilities" -ne
 		;
 connectAttr "transform1.instObjGroups" ":defaultLightSet.dagSetMembers" -nextAvailable
 		;
-// End of sky_rotate.ma
+// End of test.ma

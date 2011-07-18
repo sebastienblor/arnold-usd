@@ -406,7 +406,7 @@ AtNode * CRenderSession::CreateFileOutput()
 
    // set the output driver
    MString driverType = fnArnoldRenderOptions.findPlug("imageFormat").asString();
-   AiMsgError("[mtoa] Preparing file output for driver '%s'", driverType.asChar());
+   AiMsgDebug("[mtoa] Preparing file output for driver '%s'", driverType.asChar());
    AtNode* driver = CMayaScene::GetArnoldSession()->ExportDriver(node, driverType);
    if (driver != NULL)
    {

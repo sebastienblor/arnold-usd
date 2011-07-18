@@ -1,15 +1,15 @@
 //Maya ASCII 2011 scene
 //Name: test.ma
-//Last modified: Thu, Jun 16, 2011 06:08:01 PM
-//Codeset: 1252
+//Last modified: Mon, Jul 18, 2011 06:23:00 PM
+//Codeset: UTF-8
 requires maya "2011";
-requires "mtoa" "0.7.0";
+requires "mtoa" "0.9.0";
 currentUnit -linear centimeter -angle degree -time film;
 fileInfo "application" "maya";
 fileInfo "product" "Maya 2011";
 fileInfo "version" "2011 x64";
-fileInfo "cutIdentifier" "201009060330-781623";
-fileInfo "osv" "Microsoft Windows 7 Business Edition, 64-bit Windows 7  (Build 7600)\n";
+fileInfo "cutIdentifier" "201009060248-781623";
+fileInfo "osv" "Linux 2.6.18-194.32.1.el5 #1 SMP Wed Jan 5 17:52:25 EST 2011 x86_64";
 createNode transform -shared -name "persp";
 	setAttr ".visibility" no;
 	setAttr ".translate" -type "double3" 73.945326931069616 96.175177985298532 254.91017482379903 ;
@@ -61,7 +61,7 @@ createNode camera -shared -name "perspShape" -parent "persp";
 	setAttr ".imageName" -type "string" "persp";
 	setAttr ".depthName" -type "string" "persp_depth";
 	setAttr ".maskName" -type "string" "persp_mask";
-	setAttr ".tumblePivot" -type "double3" -54.288243715995243 2.8421709430404007e-014 
+	setAttr ".tumblePivot" -type "double3" -54.288243715995243 2.8421709430404007e-14 
 		126.67660417673417 ;
 	setAttr ".homeCommand" -type "string" "viewSet -p %camera";
 	setAttr ".displayResolution" yes;
@@ -226,12 +226,13 @@ createNode camera -shared -name "sideShape" -parent "side";
 	setAttr ".orthographic" yes;
 	setAttr -keyable on ".aiTranslator" -type "string" "orthographic";
 createNode transform -name "pPlane2";
-	setAttr ".translate" -type "double3" 15 2.8421709430404007e-014 0 ;
+	setAttr ".translate" -type "double3" 15 2.8421709430404007e-14 0 ;
 createNode mesh -name "pPlaneShape2" -parent "pPlane2";
 	addAttr -cachedInternally true -keyable true -shortName "ai_sss_use_gi" -longName "aiSssUseGi" 
 		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_sss_max_samples" -longName "aiSssMaxSamples" 
-		-defaultValue 100000 -minValue 0 -softMaxValue 1000000 -attributeType "long";
+	addAttr -cachedInternally true -shortName "ai_sss_sample_distribution" -longName "aiSssSampleDistribution" 
+		-minValue 0 -maxValue 3 -enumName "blue_noise:blue_noise_Pref:triangle_midpoint:polygon_midpoint" 
+		-attributeType "enum";
 	addAttr -cachedInternally true -keyable true -shortName "ai_sss_sample_spacing" 
 		-longName "aiSssSampleSpacing" -defaultValue 0.10000000149011612 -minValue 0 -softMaxValue 
 		1 -attributeType "float";
@@ -259,6 +260,8 @@ createNode mesh -name "pPlaneShape2" -parent "pPlane2";
 		-minValue 0 -maxValue 1 -attributeType "bool";
 	addAttr -cachedInternally true -keyable true -shortName "ai_expcol" -longName "aiExportColors" 
 		-minValue 0 -maxValue 1 -attributeType "bool";
+	addAttr -cachedInternally true -keyable true -shortName "ai_sss_max_samples" -longName "aiSssMaxSamples" 
+		-defaultValue 100000 -minValue 0 -softMaxValue 1000000 -attributeType "long";
 	addAttr -cachedInternally true -keyable true -shortName "sss_use_gi" -longName "sssUseGi" 
 		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
 	addAttr -cachedInternally true -keyable true -shortName "sss_max_samples" -longName "sssMaxSamples" 
@@ -301,18 +304,16 @@ createNode mesh -name "pPlaneShape2" -parent "pPlane2";
 	setAttr ".visibleInReflections" yes;
 	setAttr ".visibleInRefractions" yes;
 	setAttr ".uvSet[0].uvSetName" -type "string" "map1";
-	setAttr -size 4 ".uvSet[0].uvSetPoints[0:3]" -type "float2" 0 0 1 
-		0 0 1 1 1;
+	setAttr -size 4 ".uvSet[0].uvSetPoints[0:3]" -type "float2" 0 0 1 0 0 1 1 1;
 	setAttr ".currentUVSet" -type "string" "map1";
 	setAttr ".displayColorChannel" -type "string" "Ambient+Diffuse";
 	setAttr ".collisionOffsetVelocityMultiplier[0]"  0 1 1;
 	setAttr ".collisionDepthVelocityMultiplier[0]"  0 1 1;
-	setAttr -size 4 ".pnts[0:3]" -type "float3"  -7.1054274e-015 0 -30 
-		-30 0 7.1054274e-015 30 0 -7.1054274e-015 7.1054274e-015 0 30;
-	setAttr -size 4 ".vrts[0:3]"  -15 -3.3306691e-015 15 15 -3.3306691e-015 
-		15 -15 3.3306691e-015 -15 15 3.3306691e-015 -15;
-	setAttr -size 4 ".edge[0:3]"  0 1 0 0 2 
-		0 1 3 0 2 3 0;
+	setAttr -size 4 ".pnts[0:3]" -type "float3"  -7.1054274e-15 0 -30 -30 0 7.1054274e-15 
+		30 0 -7.1054274e-15 7.1054274e-15 0 30;
+	setAttr -size 4 ".vrts[0:3]"  -15 -3.3306691e-15 15 15 -3.3306691e-15 15 -15 3.3306691e-15 
+		-15 15 3.3306691e-15 -15;
+	setAttr -size 4 ".edge[0:3]"  0 1 0 0 2 0 1 3 0 2 3 0;
 	setAttr ".face[0]" -type "polyFaces" 
 		f 4 0 2 -4 -2 
 		mu 0 4 0 1 3 2 ;
@@ -320,12 +321,13 @@ createNode mesh -name "pPlaneShape2" -parent "pPlane2";
 	setAttr ".creaseVertexData" -type "dataPolyComponent" Index_Data Vertex 0 ;
 	setAttr ".holeFaceData" -type "dataPolyComponent" Index_Data Face 0 ;
 createNode transform -name "pPlane3";
-	setAttr ".translate" -type "double3" -15 2.8421709430404007e-014 0 ;
+	setAttr ".translate" -type "double3" -15 2.8421709430404007e-14 0 ;
 createNode mesh -name "pPlaneShape3" -parent "pPlane3";
 	addAttr -cachedInternally true -keyable true -shortName "ai_sss_use_gi" -longName "aiSssUseGi" 
 		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_sss_max_samples" -longName "aiSssMaxSamples" 
-		-defaultValue 100000 -minValue 0 -softMaxValue 1000000 -attributeType "long";
+	addAttr -cachedInternally true -shortName "ai_sss_sample_distribution" -longName "aiSssSampleDistribution" 
+		-minValue 0 -maxValue 3 -enumName "blue_noise:blue_noise_Pref:triangle_midpoint:polygon_midpoint" 
+		-attributeType "enum";
 	addAttr -cachedInternally true -keyable true -shortName "ai_sss_sample_spacing" 
 		-longName "aiSssSampleSpacing" -defaultValue 0.10000000149011612 -minValue 0 -softMaxValue 
 		1 -attributeType "float";
@@ -353,6 +355,8 @@ createNode mesh -name "pPlaneShape3" -parent "pPlane3";
 		-minValue 0 -maxValue 1 -attributeType "bool";
 	addAttr -cachedInternally true -keyable true -shortName "ai_expcol" -longName "aiExportColors" 
 		-minValue 0 -maxValue 1 -attributeType "bool";
+	addAttr -cachedInternally true -keyable true -shortName "ai_sss_max_samples" -longName "aiSssMaxSamples" 
+		-defaultValue 100000 -minValue 0 -softMaxValue 1000000 -attributeType "long";
 	addAttr -cachedInternally true -keyable true -shortName "sss_use_gi" -longName "sssUseGi" 
 		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
 	addAttr -cachedInternally true -keyable true -shortName "sss_max_samples" -longName "sssMaxSamples" 
@@ -395,18 +399,16 @@ createNode mesh -name "pPlaneShape3" -parent "pPlane3";
 	setAttr ".visibleInReflections" yes;
 	setAttr ".visibleInRefractions" yes;
 	setAttr ".uvSet[0].uvSetName" -type "string" "map1";
-	setAttr -size 4 ".uvSet[0].uvSetPoints[0:3]" -type "float2" 0 0 1 
-		0 0 1 1 1;
+	setAttr -size 4 ".uvSet[0].uvSetPoints[0:3]" -type "float2" 0 0 1 0 0 1 1 1;
 	setAttr ".currentUVSet" -type "string" "map1";
 	setAttr ".displayColorChannel" -type "string" "Ambient+Diffuse";
 	setAttr ".collisionOffsetVelocityMultiplier[0]"  0 1 1;
 	setAttr ".collisionDepthVelocityMultiplier[0]"  0 1 1;
-	setAttr -size 4 ".pnts[0:3]" -type "float3"  -7.1054274e-015 0 -30 
-		-30 0 7.1054274e-015 30 0 -7.1054274e-015 7.1054274e-015 0 30;
-	setAttr -size 4 ".vrts[0:3]"  -15 -3.3306691e-015 15 15 -3.3306691e-015 
-		15 -15 3.3306691e-015 -15 15 3.3306691e-015 -15;
-	setAttr -size 4 ".edge[0:3]"  0 1 0 0 2 
-		0 1 3 0 2 3 0;
+	setAttr -size 4 ".pnts[0:3]" -type "float3"  -7.1054274e-15 0 -30 -30 0 7.1054274e-15 
+		30 0 -7.1054274e-15 7.1054274e-15 0 30;
+	setAttr -size 4 ".vrts[0:3]"  -15 -3.3306691e-15 15 15 -3.3306691e-15 15 -15 3.3306691e-15 
+		-15 15 3.3306691e-15 -15;
+	setAttr -size 4 ".edge[0:3]"  0 1 0 0 2 0 1 3 0 2 3 0;
 	setAttr ".face[0]" -type "polyFaces" 
 		f 4 0 2 -4 -2 
 		mu 0 4 0 1 3 2 ;
@@ -414,12 +416,13 @@ createNode mesh -name "pPlaneShape3" -parent "pPlane3";
 	setAttr ".creaseVertexData" -type "dataPolyComponent" Index_Data Vertex 0 ;
 	setAttr ".holeFaceData" -type "dataPolyComponent" Index_Data Face 0 ;
 createNode transform -name "pPlane4";
-	setAttr ".translate" -type "double3" -15 2.8421709430404007e-014 -30 ;
+	setAttr ".translate" -type "double3" -15 2.8421709430404007e-14 -30 ;
 createNode mesh -name "pPlaneShape4" -parent "pPlane4";
 	addAttr -cachedInternally true -keyable true -shortName "ai_sss_use_gi" -longName "aiSssUseGi" 
 		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_sss_max_samples" -longName "aiSssMaxSamples" 
-		-defaultValue 100000 -minValue 0 -softMaxValue 1000000 -attributeType "long";
+	addAttr -cachedInternally true -shortName "ai_sss_sample_distribution" -longName "aiSssSampleDistribution" 
+		-minValue 0 -maxValue 3 -enumName "blue_noise:blue_noise_Pref:triangle_midpoint:polygon_midpoint" 
+		-attributeType "enum";
 	addAttr -cachedInternally true -keyable true -shortName "ai_sss_sample_spacing" 
 		-longName "aiSssSampleSpacing" -defaultValue 0.10000000149011612 -minValue 0 -softMaxValue 
 		1 -attributeType "float";
@@ -447,6 +450,8 @@ createNode mesh -name "pPlaneShape4" -parent "pPlane4";
 		-minValue 0 -maxValue 1 -attributeType "bool";
 	addAttr -cachedInternally true -keyable true -shortName "ai_expcol" -longName "aiExportColors" 
 		-minValue 0 -maxValue 1 -attributeType "bool";
+	addAttr -cachedInternally true -keyable true -shortName "ai_sss_max_samples" -longName "aiSssMaxSamples" 
+		-defaultValue 100000 -minValue 0 -softMaxValue 1000000 -attributeType "long";
 	addAttr -cachedInternally true -keyable true -shortName "sss_use_gi" -longName "sssUseGi" 
 		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
 	addAttr -cachedInternally true -keyable true -shortName "sss_max_samples" -longName "sssMaxSamples" 
@@ -489,18 +494,16 @@ createNode mesh -name "pPlaneShape4" -parent "pPlane4";
 	setAttr ".visibleInReflections" yes;
 	setAttr ".visibleInRefractions" yes;
 	setAttr ".uvSet[0].uvSetName" -type "string" "map1";
-	setAttr -size 4 ".uvSet[0].uvSetPoints[0:3]" -type "float2" 0 0 1 
-		0 0 1 1 1;
+	setAttr -size 4 ".uvSet[0].uvSetPoints[0:3]" -type "float2" 0 0 1 0 0 1 1 1;
 	setAttr ".currentUVSet" -type "string" "map1";
 	setAttr ".displayColorChannel" -type "string" "Ambient+Diffuse";
 	setAttr ".collisionOffsetVelocityMultiplier[0]"  0 1 1;
 	setAttr ".collisionDepthVelocityMultiplier[0]"  0 1 1;
-	setAttr -size 4 ".pnts[0:3]" -type "float3"  -7.1054274e-015 0 -30 
-		-30 0 7.1054274e-015 30 0 -7.1054274e-015 7.1054274e-015 0 30;
-	setAttr -size 4 ".vrts[0:3]"  -15 -3.3306691e-015 15 15 -3.3306691e-015 
-		15 -15 3.3306691e-015 -15 15 3.3306691e-015 -15;
-	setAttr -size 4 ".edge[0:3]"  0 1 0 0 2 
-		0 1 3 0 2 3 0;
+	setAttr -size 4 ".pnts[0:3]" -type "float3"  -7.1054274e-15 0 -30 -30 0 7.1054274e-15 
+		30 0 -7.1054274e-15 7.1054274e-15 0 30;
+	setAttr -size 4 ".vrts[0:3]"  -15 -3.3306691e-15 15 15 -3.3306691e-15 15 -15 3.3306691e-15 
+		-15 15 3.3306691e-15 -15;
+	setAttr -size 4 ".edge[0:3]"  0 1 0 0 2 0 1 3 0 2 3 0;
 	setAttr ".face[0]" -type "polyFaces" 
 		f 4 0 2 -4 -2 
 		mu 0 4 0 1 3 2 ;
@@ -508,12 +511,13 @@ createNode mesh -name "pPlaneShape4" -parent "pPlane4";
 	setAttr ".creaseVertexData" -type "dataPolyComponent" Index_Data Vertex 0 ;
 	setAttr ".holeFaceData" -type "dataPolyComponent" Index_Data Face 0 ;
 createNode transform -name "pPlane5";
-	setAttr ".translate" -type "double3" -45 2.8421709430404007e-014 -30 ;
+	setAttr ".translate" -type "double3" -45 2.8421709430404007e-14 -30 ;
 createNode mesh -name "pPlaneShape5" -parent "pPlane5";
 	addAttr -cachedInternally true -keyable true -shortName "ai_sss_use_gi" -longName "aiSssUseGi" 
 		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_sss_max_samples" -longName "aiSssMaxSamples" 
-		-defaultValue 100000 -minValue 0 -softMaxValue 1000000 -attributeType "long";
+	addAttr -cachedInternally true -shortName "ai_sss_sample_distribution" -longName "aiSssSampleDistribution" 
+		-minValue 0 -maxValue 3 -enumName "blue_noise:blue_noise_Pref:triangle_midpoint:polygon_midpoint" 
+		-attributeType "enum";
 	addAttr -cachedInternally true -keyable true -shortName "ai_sss_sample_spacing" 
 		-longName "aiSssSampleSpacing" -defaultValue 0.10000000149011612 -minValue 0 -softMaxValue 
 		1 -attributeType "float";
@@ -541,6 +545,8 @@ createNode mesh -name "pPlaneShape5" -parent "pPlane5";
 		-minValue 0 -maxValue 1 -attributeType "bool";
 	addAttr -cachedInternally true -keyable true -shortName "ai_expcol" -longName "aiExportColors" 
 		-minValue 0 -maxValue 1 -attributeType "bool";
+	addAttr -cachedInternally true -keyable true -shortName "ai_sss_max_samples" -longName "aiSssMaxSamples" 
+		-defaultValue 100000 -minValue 0 -softMaxValue 1000000 -attributeType "long";
 	addAttr -cachedInternally true -keyable true -shortName "sss_use_gi" -longName "sssUseGi" 
 		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
 	addAttr -cachedInternally true -keyable true -shortName "sss_max_samples" -longName "sssMaxSamples" 
@@ -583,18 +589,16 @@ createNode mesh -name "pPlaneShape5" -parent "pPlane5";
 	setAttr ".visibleInReflections" yes;
 	setAttr ".visibleInRefractions" yes;
 	setAttr ".uvSet[0].uvSetName" -type "string" "map1";
-	setAttr -size 4 ".uvSet[0].uvSetPoints[0:3]" -type "float2" 0 0 1 
-		0 0 1 1 1;
+	setAttr -size 4 ".uvSet[0].uvSetPoints[0:3]" -type "float2" 0 0 1 0 0 1 1 1;
 	setAttr ".currentUVSet" -type "string" "map1";
 	setAttr ".displayColorChannel" -type "string" "Ambient+Diffuse";
 	setAttr ".collisionOffsetVelocityMultiplier[0]"  0 1 1;
 	setAttr ".collisionDepthVelocityMultiplier[0]"  0 1 1;
-	setAttr -size 4 ".pnts[0:3]" -type "float3"  -7.1054274e-015 0 -30 
-		-30 0 1.0658141e-014 30 0 -3.5527137e-015 7.1054274e-015 0 30;
-	setAttr -size 4 ".vrts[0:3]"  -15 -3.3306691e-015 15 15 -3.3306691e-015 
-		15 -15 3.3306691e-015 -15 15 3.3306691e-015 -15;
-	setAttr -size 4 ".edge[0:3]"  0 1 0 0 2 
-		0 1 3 0 2 3 0;
+	setAttr -size 4 ".pnts[0:3]" -type "float3"  -7.1054274e-15 0 -30 -30 0 1.0658141e-14 
+		30 0 -3.5527137e-15 7.1054274e-15 0 30;
+	setAttr -size 4 ".vrts[0:3]"  -15 -3.3306691e-15 15 15 -3.3306691e-15 15 -15 3.3306691e-15 
+		-15 15 3.3306691e-15 -15;
+	setAttr -size 4 ".edge[0:3]"  0 1 0 0 2 0 1 3 0 2 3 0;
 	setAttr ".face[0]" -type "polyFaces" 
 		f 4 0 2 -4 -2 
 		mu 0 4 0 1 3 2 ;
@@ -602,12 +606,13 @@ createNode mesh -name "pPlaneShape5" -parent "pPlane5";
 	setAttr ".creaseVertexData" -type "dataPolyComponent" Index_Data Vertex 0 ;
 	setAttr ".holeFaceData" -type "dataPolyComponent" Index_Data Face 0 ;
 createNode transform -name "pPlane6";
-	setAttr ".translate" -type "double3" -45 2.8421709430404007e-014 0 ;
+	setAttr ".translate" -type "double3" -45 2.8421709430404007e-14 0 ;
 createNode mesh -name "pPlaneShape6" -parent "pPlane6";
 	addAttr -cachedInternally true -keyable true -shortName "ai_sss_use_gi" -longName "aiSssUseGi" 
 		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_sss_max_samples" -longName "aiSssMaxSamples" 
-		-defaultValue 100000 -minValue 0 -softMaxValue 1000000 -attributeType "long";
+	addAttr -cachedInternally true -shortName "ai_sss_sample_distribution" -longName "aiSssSampleDistribution" 
+		-minValue 0 -maxValue 3 -enumName "blue_noise:blue_noise_Pref:triangle_midpoint:polygon_midpoint" 
+		-attributeType "enum";
 	addAttr -cachedInternally true -keyable true -shortName "ai_sss_sample_spacing" 
 		-longName "aiSssSampleSpacing" -defaultValue 0.10000000149011612 -minValue 0 -softMaxValue 
 		1 -attributeType "float";
@@ -635,6 +640,8 @@ createNode mesh -name "pPlaneShape6" -parent "pPlane6";
 		-minValue 0 -maxValue 1 -attributeType "bool";
 	addAttr -cachedInternally true -keyable true -shortName "ai_expcol" -longName "aiExportColors" 
 		-minValue 0 -maxValue 1 -attributeType "bool";
+	addAttr -cachedInternally true -keyable true -shortName "ai_sss_max_samples" -longName "aiSssMaxSamples" 
+		-defaultValue 100000 -minValue 0 -softMaxValue 1000000 -attributeType "long";
 	addAttr -cachedInternally true -keyable true -shortName "sss_use_gi" -longName "sssUseGi" 
 		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
 	addAttr -cachedInternally true -keyable true -shortName "sss_max_samples" -longName "sssMaxSamples" 
@@ -677,18 +684,16 @@ createNode mesh -name "pPlaneShape6" -parent "pPlane6";
 	setAttr ".visibleInReflections" yes;
 	setAttr ".visibleInRefractions" yes;
 	setAttr ".uvSet[0].uvSetName" -type "string" "map1";
-	setAttr -size 4 ".uvSet[0].uvSetPoints[0:3]" -type "float2" 0 0 1 
-		0 0 1 1 1;
+	setAttr -size 4 ".uvSet[0].uvSetPoints[0:3]" -type "float2" 0 0 1 0 0 1 1 1;
 	setAttr ".currentUVSet" -type "string" "map1";
 	setAttr ".displayColorChannel" -type "string" "Ambient+Diffuse";
 	setAttr ".collisionOffsetVelocityMultiplier[0]"  0 1 1;
 	setAttr ".collisionDepthVelocityMultiplier[0]"  0 1 1;
-	setAttr -size 4 ".pnts[0:3]" -type "float3"  -7.1054274e-015 0 -30 
-		-30 0 7.1054274e-015 30 0 -7.1054274e-015 7.1054274e-015 0 30;
-	setAttr -size 4 ".vrts[0:3]"  -15 -3.3306691e-015 15 15 -3.3306691e-015 
-		15 -15 3.3306691e-015 -15 15 3.3306691e-015 -15;
-	setAttr -size 4 ".edge[0:3]"  0 1 0 0 2 
-		0 1 3 0 2 3 0;
+	setAttr -size 4 ".pnts[0:3]" -type "float3"  -7.1054274e-15 0 -30 -30 0 7.1054274e-15 
+		30 0 -7.1054274e-15 7.1054274e-15 0 30;
+	setAttr -size 4 ".vrts[0:3]"  -15 -3.3306691e-15 15 15 -3.3306691e-15 15 -15 3.3306691e-15 
+		-15 15 3.3306691e-15 -15;
+	setAttr -size 4 ".edge[0:3]"  0 1 0 0 2 0 1 3 0 2 3 0;
 	setAttr ".face[0]" -type "polyFaces" 
 		f 4 0 2 -4 -2 
 		mu 0 4 0 1 3 2 ;
@@ -700,8 +705,9 @@ createNode transform -name "pPlane7";
 createNode mesh -name "pPlaneShape7" -parent "pPlane7";
 	addAttr -cachedInternally true -keyable true -shortName "ai_sss_use_gi" -longName "aiSssUseGi" 
 		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_sss_max_samples" -longName "aiSssMaxSamples" 
-		-defaultValue 100000 -minValue 0 -softMaxValue 1000000 -attributeType "long";
+	addAttr -cachedInternally true -shortName "ai_sss_sample_distribution" -longName "aiSssSampleDistribution" 
+		-minValue 0 -maxValue 3 -enumName "blue_noise:blue_noise_Pref:triangle_midpoint:polygon_midpoint" 
+		-attributeType "enum";
 	addAttr -cachedInternally true -keyable true -shortName "ai_sss_sample_spacing" 
 		-longName "aiSssSampleSpacing" -defaultValue 0.10000000149011612 -minValue 0 -softMaxValue 
 		1 -attributeType "float";
@@ -729,6 +735,8 @@ createNode mesh -name "pPlaneShape7" -parent "pPlane7";
 		-minValue 0 -maxValue 1 -attributeType "bool";
 	addAttr -cachedInternally true -keyable true -shortName "ai_expcol" -longName "aiExportColors" 
 		-minValue 0 -maxValue 1 -attributeType "bool";
+	addAttr -cachedInternally true -keyable true -shortName "ai_sss_max_samples" -longName "aiSssMaxSamples" 
+		-defaultValue 100000 -minValue 0 -softMaxValue 1000000 -attributeType "long";
 	addAttr -cachedInternally true -keyable true -shortName "sss_use_gi" -longName "sssUseGi" 
 		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
 	addAttr -cachedInternally true -keyable true -shortName "sss_max_samples" -longName "sssMaxSamples" 
@@ -771,18 +779,16 @@ createNode mesh -name "pPlaneShape7" -parent "pPlane7";
 	setAttr ".visibleInReflections" yes;
 	setAttr ".visibleInRefractions" yes;
 	setAttr ".uvSet[0].uvSetName" -type "string" "map1";
-	setAttr -size 4 ".uvSet[0].uvSetPoints[0:3]" -type "float2" 0 0 1 
-		0 0 1 1 1;
+	setAttr -size 4 ".uvSet[0].uvSetPoints[0:3]" -type "float2" 0 0 1 0 0 1 1 1;
 	setAttr ".currentUVSet" -type "string" "map1";
 	setAttr ".displayColorChannel" -type "string" "Ambient+Diffuse";
 	setAttr ".collisionOffsetVelocityMultiplier[0]"  0 1 1;
 	setAttr ".collisionDepthVelocityMultiplier[0]"  0 1 1;
-	setAttr -size 4 ".pnts[0:3]" -type "float3"  -7.1054274e-015 0 -30 
-		-30 0 7.1054274e-015 30 0 -7.1054274e-015 7.1054274e-015 0 30;
-	setAttr -size 4 ".vrts[0:3]"  -15 -3.3306691e-015 15 15 -3.3306691e-015 
-		15 -15 3.3306691e-015 -15 15 3.3306691e-015 -15;
-	setAttr -size 4 ".edge[0:3]"  0 1 0 0 2 
-		0 1 3 0 2 3 0;
+	setAttr -size 4 ".pnts[0:3]" -type "float3"  -7.1054274e-15 0 -30 -30 0 7.1054274e-15 
+		30 0 -7.1054274e-15 7.1054274e-15 0 30;
+	setAttr -size 4 ".vrts[0:3]"  -15 -3.3306691e-15 15 15 -3.3306691e-15 15 -15 3.3306691e-15 
+		-15 15 3.3306691e-15 -15;
+	setAttr -size 4 ".edge[0:3]"  0 1 0 0 2 0 1 3 0 2 3 0;
 	setAttr ".face[0]" -type "polyFaces" 
 		f 4 0 2 -4 -2 
 		mu 0 4 0 1 3 2 ;
@@ -794,8 +800,9 @@ createNode transform -name "pPlane8";
 createNode mesh -name "pPlaneShape8" -parent "pPlane8";
 	addAttr -cachedInternally true -keyable true -shortName "ai_sss_use_gi" -longName "aiSssUseGi" 
 		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_sss_max_samples" -longName "aiSssMaxSamples" 
-		-defaultValue 100000 -minValue 0 -softMaxValue 1000000 -attributeType "long";
+	addAttr -cachedInternally true -shortName "ai_sss_sample_distribution" -longName "aiSssSampleDistribution" 
+		-minValue 0 -maxValue 3 -enumName "blue_noise:blue_noise_Pref:triangle_midpoint:polygon_midpoint" 
+		-attributeType "enum";
 	addAttr -cachedInternally true -keyable true -shortName "ai_sss_sample_spacing" 
 		-longName "aiSssSampleSpacing" -defaultValue 0.10000000149011612 -minValue 0 -softMaxValue 
 		1 -attributeType "float";
@@ -823,6 +830,8 @@ createNode mesh -name "pPlaneShape8" -parent "pPlane8";
 		-minValue 0 -maxValue 1 -attributeType "bool";
 	addAttr -cachedInternally true -keyable true -shortName "ai_expcol" -longName "aiExportColors" 
 		-minValue 0 -maxValue 1 -attributeType "bool";
+	addAttr -cachedInternally true -keyable true -shortName "ai_sss_max_samples" -longName "aiSssMaxSamples" 
+		-defaultValue 100000 -minValue 0 -softMaxValue 1000000 -attributeType "long";
 	addAttr -cachedInternally true -keyable true -shortName "sss_use_gi" -longName "sssUseGi" 
 		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
 	addAttr -cachedInternally true -keyable true -shortName "sss_max_samples" -longName "sssMaxSamples" 
@@ -865,18 +874,16 @@ createNode mesh -name "pPlaneShape8" -parent "pPlane8";
 	setAttr ".visibleInReflections" yes;
 	setAttr ".visibleInRefractions" yes;
 	setAttr ".uvSet[0].uvSetName" -type "string" "map1";
-	setAttr -size 4 ".uvSet[0].uvSetPoints[0:3]" -type "float2" 0 0 1 
-		0 0 1 1 1;
+	setAttr -size 4 ".uvSet[0].uvSetPoints[0:3]" -type "float2" 0 0 1 0 0 1 1 1;
 	setAttr ".currentUVSet" -type "string" "map1";
 	setAttr ".displayColorChannel" -type "string" "Ambient+Diffuse";
 	setAttr ".collisionOffsetVelocityMultiplier[0]"  0 1 1;
 	setAttr ".collisionDepthVelocityMultiplier[0]"  0 1 1;
-	setAttr -size 4 ".pnts[0:3]" -type "float3"  -7.1054274e-015 0 -30 
-		-30 0 7.1054274e-015 30 0 -7.1054274e-015 7.1054274e-015 0 30;
-	setAttr -size 4 ".vrts[0:3]"  -15 -3.3306691e-015 15 15 -3.3306691e-015 
-		15 -15 3.3306691e-015 -15 15 3.3306691e-015 -15;
-	setAttr -size 4 ".edge[0:3]"  0 1 0 0 2 
-		0 1 3 0 2 3 0;
+	setAttr -size 4 ".pnts[0:3]" -type "float3"  -7.1054274e-15 0 -30 -30 0 7.1054274e-15 
+		30 0 -7.1054274e-15 7.1054274e-15 0 30;
+	setAttr -size 4 ".vrts[0:3]"  -15 -3.3306691e-15 15 15 -3.3306691e-15 15 -15 3.3306691e-15 
+		-15 15 3.3306691e-15 -15;
+	setAttr -size 4 ".edge[0:3]"  0 1 0 0 2 0 1 3 0 2 3 0;
 	setAttr ".face[0]" -type "polyFaces" 
 		f 4 0 2 -4 -2 
 		mu 0 4 0 1 3 2 ;
@@ -884,12 +891,13 @@ createNode mesh -name "pPlaneShape8" -parent "pPlane8";
 	setAttr ".creaseVertexData" -type "dataPolyComponent" Index_Data Vertex 0 ;
 	setAttr ".holeFaceData" -type "dataPolyComponent" Index_Data Face 0 ;
 createNode transform -name "pPlane9";
-	setAttr ".translate" -type "double3" 45 2.8421709430404007e-014 30 ;
+	setAttr ".translate" -type "double3" 45 2.8421709430404007e-14 30 ;
 createNode mesh -name "pPlaneShape9" -parent "pPlane9";
 	addAttr -cachedInternally true -keyable true -shortName "ai_sss_use_gi" -longName "aiSssUseGi" 
 		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_sss_max_samples" -longName "aiSssMaxSamples" 
-		-defaultValue 100000 -minValue 0 -softMaxValue 1000000 -attributeType "long";
+	addAttr -cachedInternally true -shortName "ai_sss_sample_distribution" -longName "aiSssSampleDistribution" 
+		-minValue 0 -maxValue 3 -enumName "blue_noise:blue_noise_Pref:triangle_midpoint:polygon_midpoint" 
+		-attributeType "enum";
 	addAttr -cachedInternally true -keyable true -shortName "ai_sss_sample_spacing" 
 		-longName "aiSssSampleSpacing" -defaultValue 0.10000000149011612 -minValue 0 -softMaxValue 
 		1 -attributeType "float";
@@ -917,6 +925,8 @@ createNode mesh -name "pPlaneShape9" -parent "pPlane9";
 		-minValue 0 -maxValue 1 -attributeType "bool";
 	addAttr -cachedInternally true -keyable true -shortName "ai_expcol" -longName "aiExportColors" 
 		-minValue 0 -maxValue 1 -attributeType "bool";
+	addAttr -cachedInternally true -keyable true -shortName "ai_sss_max_samples" -longName "aiSssMaxSamples" 
+		-defaultValue 100000 -minValue 0 -softMaxValue 1000000 -attributeType "long";
 	addAttr -cachedInternally true -keyable true -shortName "sss_use_gi" -longName "sssUseGi" 
 		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
 	addAttr -cachedInternally true -keyable true -shortName "sss_max_samples" -longName "sssMaxSamples" 
@@ -959,18 +969,16 @@ createNode mesh -name "pPlaneShape9" -parent "pPlane9";
 	setAttr ".visibleInReflections" yes;
 	setAttr ".visibleInRefractions" yes;
 	setAttr ".uvSet[0].uvSetName" -type "string" "map1";
-	setAttr -size 4 ".uvSet[0].uvSetPoints[0:3]" -type "float2" 0 0 1 
-		0 0 1 1 1;
+	setAttr -size 4 ".uvSet[0].uvSetPoints[0:3]" -type "float2" 0 0 1 0 0 1 1 1;
 	setAttr ".currentUVSet" -type "string" "map1";
 	setAttr ".displayColorChannel" -type "string" "Ambient+Diffuse";
 	setAttr ".collisionOffsetVelocityMultiplier[0]"  0 1 1;
 	setAttr ".collisionDepthVelocityMultiplier[0]"  0 1 1;
-	setAttr -size 4 ".pnts[0:3]" -type "float3"  -7.1054274e-015 0 -30 
-		-30 0 3.5527137e-015 30 0 -1.0658141e-014 7.1054274e-015 0 30;
-	setAttr -size 4 ".vrts[0:3]"  -15 -3.3306691e-015 15 15 -3.3306691e-015 
-		15 -15 3.3306691e-015 -15 15 3.3306691e-015 -15;
-	setAttr -size 4 ".edge[0:3]"  0 1 0 0 2 
-		0 1 3 0 2 3 0;
+	setAttr -size 4 ".pnts[0:3]" -type "float3"  -7.1054274e-15 0 -30 -30 0 3.5527137e-15 
+		30 0 -1.0658141e-14 7.1054274e-15 0 30;
+	setAttr -size 4 ".vrts[0:3]"  -15 -3.3306691e-15 15 15 -3.3306691e-15 15 -15 3.3306691e-15 
+		-15 15 3.3306691e-15 -15;
+	setAttr -size 4 ".edge[0:3]"  0 1 0 0 2 0 1 3 0 2 3 0;
 	setAttr ".face[0]" -type "polyFaces" 
 		f 4 0 2 -4 -2 
 		mu 0 4 0 1 3 2 ;
@@ -982,8 +990,9 @@ createNode transform -name "pPlane10";
 createNode mesh -name "pPlaneShape10" -parent "pPlane10";
 	addAttr -cachedInternally true -keyable true -shortName "ai_sss_use_gi" -longName "aiSssUseGi" 
 		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_sss_max_samples" -longName "aiSssMaxSamples" 
-		-defaultValue 100000 -minValue 0 -softMaxValue 1000000 -attributeType "long";
+	addAttr -cachedInternally true -shortName "ai_sss_sample_distribution" -longName "aiSssSampleDistribution" 
+		-minValue 0 -maxValue 3 -enumName "blue_noise:blue_noise_Pref:triangle_midpoint:polygon_midpoint" 
+		-attributeType "enum";
 	addAttr -cachedInternally true -keyable true -shortName "ai_sss_sample_spacing" 
 		-longName "aiSssSampleSpacing" -defaultValue 0.10000000149011612 -minValue 0 -softMaxValue 
 		1 -attributeType "float";
@@ -1011,6 +1020,8 @@ createNode mesh -name "pPlaneShape10" -parent "pPlane10";
 		-minValue 0 -maxValue 1 -attributeType "bool";
 	addAttr -cachedInternally true -keyable true -shortName "ai_expcol" -longName "aiExportColors" 
 		-minValue 0 -maxValue 1 -attributeType "bool";
+	addAttr -cachedInternally true -keyable true -shortName "ai_sss_max_samples" -longName "aiSssMaxSamples" 
+		-defaultValue 100000 -minValue 0 -softMaxValue 1000000 -attributeType "long";
 	addAttr -cachedInternally true -keyable true -shortName "sss_use_gi" -longName "sssUseGi" 
 		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
 	addAttr -cachedInternally true -keyable true -shortName "sss_max_samples" -longName "sssMaxSamples" 
@@ -1053,18 +1064,16 @@ createNode mesh -name "pPlaneShape10" -parent "pPlane10";
 	setAttr ".visibleInReflections" yes;
 	setAttr ".visibleInRefractions" yes;
 	setAttr ".uvSet[0].uvSetName" -type "string" "map1";
-	setAttr -size 4 ".uvSet[0].uvSetPoints[0:3]" -type "float2" 0 0 1 
-		0 0 1 1 1;
+	setAttr -size 4 ".uvSet[0].uvSetPoints[0:3]" -type "float2" 0 0 1 0 0 1 1 1;
 	setAttr ".currentUVSet" -type "string" "map1";
 	setAttr ".displayColorChannel" -type "string" "Ambient+Diffuse";
 	setAttr ".collisionOffsetVelocityMultiplier[0]"  0 1 1;
 	setAttr ".collisionDepthVelocityMultiplier[0]"  0 1 1;
-	setAttr -size 4 ".pnts[0:3]" -type "float3"  -7.1054274e-015 0 -30 
-		-30 0 7.1054274e-015 30 0 -7.1054274e-015 7.1054274e-015 0 30;
-	setAttr -size 4 ".vrts[0:3]"  -15 -3.3306691e-015 15 15 -3.3306691e-015 
-		15 -15 3.3306691e-015 -15 15 3.3306691e-015 -15;
-	setAttr -size 4 ".edge[0:3]"  0 1 0 0 2 
-		0 1 3 0 2 3 0;
+	setAttr -size 4 ".pnts[0:3]" -type "float3"  -7.1054274e-15 0 -30 -30 0 7.1054274e-15 
+		30 0 -7.1054274e-15 7.1054274e-15 0 30;
+	setAttr -size 4 ".vrts[0:3]"  -15 -3.3306691e-15 15 15 -3.3306691e-15 15 -15 3.3306691e-15 
+		-15 15 3.3306691e-15 -15;
+	setAttr -size 4 ".edge[0:3]"  0 1 0 0 2 0 1 3 0 2 3 0;
 	setAttr ".face[0]" -type "polyFaces" 
 		f 4 0 2 -4 -2 
 		mu 0 4 0 1 3 2 ;
@@ -1076,8 +1085,9 @@ createNode transform -name "pPlane11";
 createNode mesh -name "pPlaneShape11" -parent "pPlane11";
 	addAttr -cachedInternally true -keyable true -shortName "ai_sss_use_gi" -longName "aiSssUseGi" 
 		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_sss_max_samples" -longName "aiSssMaxSamples" 
-		-defaultValue 100000 -minValue 0 -softMaxValue 1000000 -attributeType "long";
+	addAttr -cachedInternally true -shortName "ai_sss_sample_distribution" -longName "aiSssSampleDistribution" 
+		-minValue 0 -maxValue 3 -enumName "blue_noise:blue_noise_Pref:triangle_midpoint:polygon_midpoint" 
+		-attributeType "enum";
 	addAttr -cachedInternally true -keyable true -shortName "ai_sss_sample_spacing" 
 		-longName "aiSssSampleSpacing" -defaultValue 0.10000000149011612 -minValue 0 -softMaxValue 
 		1 -attributeType "float";
@@ -1105,6 +1115,8 @@ createNode mesh -name "pPlaneShape11" -parent "pPlane11";
 		-minValue 0 -maxValue 1 -attributeType "bool";
 	addAttr -cachedInternally true -keyable true -shortName "ai_expcol" -longName "aiExportColors" 
 		-minValue 0 -maxValue 1 -attributeType "bool";
+	addAttr -cachedInternally true -keyable true -shortName "ai_sss_max_samples" -longName "aiSssMaxSamples" 
+		-defaultValue 100000 -minValue 0 -softMaxValue 1000000 -attributeType "long";
 	addAttr -cachedInternally true -keyable true -shortName "sss_use_gi" -longName "sssUseGi" 
 		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
 	addAttr -cachedInternally true -keyable true -shortName "sss_max_samples" -longName "sssMaxSamples" 
@@ -1147,18 +1159,16 @@ createNode mesh -name "pPlaneShape11" -parent "pPlane11";
 	setAttr ".visibleInReflections" yes;
 	setAttr ".visibleInRefractions" yes;
 	setAttr ".uvSet[0].uvSetName" -type "string" "map1";
-	setAttr -size 4 ".uvSet[0].uvSetPoints[0:3]" -type "float2" 0 0 1 
-		0 0 1 1 1;
+	setAttr -size 4 ".uvSet[0].uvSetPoints[0:3]" -type "float2" 0 0 1 0 0 1 1 1;
 	setAttr ".currentUVSet" -type "string" "map1";
 	setAttr ".displayColorChannel" -type "string" "Ambient+Diffuse";
 	setAttr ".collisionOffsetVelocityMultiplier[0]"  0 1 1;
 	setAttr ".collisionDepthVelocityMultiplier[0]"  0 1 1;
-	setAttr -size 4 ".pnts[0:3]" -type "float3"  -7.1054274e-015 0 -30 
-		-30 0 3.5527137e-015 30 0 -1.0658141e-014 7.1054274e-015 0 30;
-	setAttr -size 4 ".vrts[0:3]"  -15 -3.3306691e-015 15 15 -3.3306691e-015 
-		15 -15 3.3306691e-015 -15 15 3.3306691e-015 -15;
-	setAttr -size 4 ".edge[0:3]"  0 1 0 0 2 
-		0 1 3 0 2 3 0;
+	setAttr -size 4 ".pnts[0:3]" -type "float3"  -7.1054274e-15 0 -30 -30 0 3.5527137e-15 
+		30 0 -1.0658141e-14 7.1054274e-15 0 30;
+	setAttr -size 4 ".vrts[0:3]"  -15 -3.3306691e-15 15 15 -3.3306691e-15 15 -15 3.3306691e-15 
+		-15 15 3.3306691e-15 -15;
+	setAttr -size 4 ".edge[0:3]"  0 1 0 0 2 0 1 3 0 2 3 0;
 	setAttr ".face[0]" -type "polyFaces" 
 		f 4 0 2 -4 -2 
 		mu 0 4 0 1 3 2 ;
@@ -1166,12 +1176,13 @@ createNode mesh -name "pPlaneShape11" -parent "pPlane11";
 	setAttr ".creaseVertexData" -type "dataPolyComponent" Index_Data Vertex 0 ;
 	setAttr ".holeFaceData" -type "dataPolyComponent" Index_Data Face 0 ;
 createNode transform -name "pPlane12";
-	setAttr ".translate" -type "double3" 45 5.6843418860808015e-014 -30 ;
+	setAttr ".translate" -type "double3" 45 5.6843418860808015e-14 -30 ;
 createNode mesh -name "pPlaneShape12" -parent "pPlane12";
 	addAttr -cachedInternally true -keyable true -shortName "ai_sss_use_gi" -longName "aiSssUseGi" 
 		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_sss_max_samples" -longName "aiSssMaxSamples" 
-		-defaultValue 100000 -minValue 0 -softMaxValue 1000000 -attributeType "long";
+	addAttr -cachedInternally true -shortName "ai_sss_sample_distribution" -longName "aiSssSampleDistribution" 
+		-minValue 0 -maxValue 3 -enumName "blue_noise:blue_noise_Pref:triangle_midpoint:polygon_midpoint" 
+		-attributeType "enum";
 	addAttr -cachedInternally true -keyable true -shortName "ai_sss_sample_spacing" 
 		-longName "aiSssSampleSpacing" -defaultValue 0.10000000149011612 -minValue 0 -softMaxValue 
 		1 -attributeType "float";
@@ -1199,6 +1210,8 @@ createNode mesh -name "pPlaneShape12" -parent "pPlane12";
 		-minValue 0 -maxValue 1 -attributeType "bool";
 	addAttr -cachedInternally true -keyable true -shortName "ai_expcol" -longName "aiExportColors" 
 		-minValue 0 -maxValue 1 -attributeType "bool";
+	addAttr -cachedInternally true -keyable true -shortName "ai_sss_max_samples" -longName "aiSssMaxSamples" 
+		-defaultValue 100000 -minValue 0 -softMaxValue 1000000 -attributeType "long";
 	addAttr -cachedInternally true -keyable true -shortName "sss_use_gi" -longName "sssUseGi" 
 		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
 	addAttr -cachedInternally true -keyable true -shortName "sss_max_samples" -longName "sssMaxSamples" 
@@ -1241,18 +1254,16 @@ createNode mesh -name "pPlaneShape12" -parent "pPlane12";
 	setAttr ".visibleInReflections" yes;
 	setAttr ".visibleInRefractions" yes;
 	setAttr ".uvSet[0].uvSetName" -type "string" "map1";
-	setAttr -size 4 ".uvSet[0].uvSetPoints[0:3]" -type "float2" 0 0 1 
-		0 0 1 1 1;
+	setAttr -size 4 ".uvSet[0].uvSetPoints[0:3]" -type "float2" 0 0 1 0 0 1 1 1;
 	setAttr ".currentUVSet" -type "string" "map1";
 	setAttr ".displayColorChannel" -type "string" "Ambient+Diffuse";
 	setAttr ".collisionOffsetVelocityMultiplier[0]"  0 1 1;
 	setAttr ".collisionDepthVelocityMultiplier[0]"  0 1 1;
-	setAttr -size 4 ".pnts[0:3]" -type "float3"  -7.1054274e-015 0 -30 
-		-30 0 1.0658141e-014 30 0 -3.5527137e-015 7.1054274e-015 0 30;
-	setAttr -size 4 ".vrts[0:3]"  -15 -3.3306691e-015 15 15 -3.3306691e-015 
-		15 -15 3.3306691e-015 -15 15 3.3306691e-015 -15;
-	setAttr -size 4 ".edge[0:3]"  0 1 0 0 2 
-		0 1 3 0 2 3 0;
+	setAttr -size 4 ".pnts[0:3]" -type "float3"  -7.1054274e-15 0 -30 -30 0 1.0658141e-14 
+		30 0 -3.5527137e-15 7.1054274e-15 0 30;
+	setAttr -size 4 ".vrts[0:3]"  -15 -3.3306691e-15 15 15 -3.3306691e-15 15 -15 3.3306691e-15 
+		-15 15 3.3306691e-15 -15;
+	setAttr -size 4 ".edge[0:3]"  0 1 0 0 2 0 1 3 0 2 3 0;
 	setAttr ".face[0]" -type "polyFaces" 
 		f 4 0 2 -4 -2 
 		mu 0 4 0 1 3 2 ;
@@ -1264,8 +1275,9 @@ createNode transform -name "pPlane13";
 createNode mesh -name "pPlaneShape13" -parent "pPlane13";
 	addAttr -cachedInternally true -keyable true -shortName "ai_sss_use_gi" -longName "aiSssUseGi" 
 		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_sss_max_samples" -longName "aiSssMaxSamples" 
-		-defaultValue 100000 -minValue 0 -softMaxValue 1000000 -attributeType "long";
+	addAttr -cachedInternally true -shortName "ai_sss_sample_distribution" -longName "aiSssSampleDistribution" 
+		-minValue 0 -maxValue 3 -enumName "blue_noise:blue_noise_Pref:triangle_midpoint:polygon_midpoint" 
+		-attributeType "enum";
 	addAttr -cachedInternally true -keyable true -shortName "ai_sss_sample_spacing" 
 		-longName "aiSssSampleSpacing" -defaultValue 0.10000000149011612 -minValue 0 -softMaxValue 
 		1 -attributeType "float";
@@ -1293,6 +1305,8 @@ createNode mesh -name "pPlaneShape13" -parent "pPlane13";
 		-minValue 0 -maxValue 1 -attributeType "bool";
 	addAttr -cachedInternally true -keyable true -shortName "ai_expcol" -longName "aiExportColors" 
 		-minValue 0 -maxValue 1 -attributeType "bool";
+	addAttr -cachedInternally true -keyable true -shortName "ai_sss_max_samples" -longName "aiSssMaxSamples" 
+		-defaultValue 100000 -minValue 0 -softMaxValue 1000000 -attributeType "long";
 	addAttr -cachedInternally true -keyable true -shortName "sss_use_gi" -longName "sssUseGi" 
 		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
 	addAttr -cachedInternally true -keyable true -shortName "sss_max_samples" -longName "sssMaxSamples" 
@@ -1335,18 +1349,16 @@ createNode mesh -name "pPlaneShape13" -parent "pPlane13";
 	setAttr ".visibleInReflections" yes;
 	setAttr ".visibleInRefractions" yes;
 	setAttr ".uvSet[0].uvSetName" -type "string" "map1";
-	setAttr -size 4 ".uvSet[0].uvSetPoints[0:3]" -type "float2" 0 0 1 
-		0 0 1 1 1;
+	setAttr -size 4 ".uvSet[0].uvSetPoints[0:3]" -type "float2" 0 0 1 0 0 1 1 1;
 	setAttr ".currentUVSet" -type "string" "map1";
 	setAttr ".displayColorChannel" -type "string" "Ambient+Diffuse";
 	setAttr ".collisionOffsetVelocityMultiplier[0]"  0 1 1;
 	setAttr ".collisionDepthVelocityMultiplier[0]"  0 1 1;
-	setAttr -size 4 ".pnts[0:3]" -type "float3"  -7.1054274e-015 0 -30 
-		-30 0 7.1054274e-015 30 0 -7.1054274e-015 7.1054274e-015 0 30;
-	setAttr -size 4 ".vrts[0:3]"  -15 -3.3306691e-015 15 15 -3.3306691e-015 
-		15 -15 3.3306691e-015 -15 15 3.3306691e-015 -15;
-	setAttr -size 4 ".edge[0:3]"  0 1 0 0 2 
-		0 1 3 0 2 3 0;
+	setAttr -size 4 ".pnts[0:3]" -type "float3"  -7.1054274e-15 0 -30 -30 0 7.1054274e-15 
+		30 0 -7.1054274e-15 7.1054274e-15 0 30;
+	setAttr -size 4 ".vrts[0:3]"  -15 -3.3306691e-15 15 15 -3.3306691e-15 15 -15 3.3306691e-15 
+		-15 15 3.3306691e-15 -15;
+	setAttr -size 4 ".edge[0:3]"  0 1 0 0 2 0 1 3 0 2 3 0;
 	setAttr ".face[0]" -type "polyFaces" 
 		f 4 0 2 -4 -2 
 		mu 0 4 0 1 3 2 ;
@@ -1354,15 +1366,47 @@ createNode mesh -name "pPlaneShape13" -parent "pPlane13";
 	setAttr ".creaseVertexData" -type "dataPolyComponent" Index_Data Vertex 0 ;
 	setAttr ".holeFaceData" -type "dataPolyComponent" Index_Data Face 0 ;
 createNode aiOptions -shared -name "defaultArnoldRenderOptions";
-	setAttr ".arnoldRenderImageFormat" 1;
-	setAttr ".gamma" 1;
-	setAttr ".driver_gamma" 1;
-	setAttr ".light_gamma" 1;
-	setAttr ".shader_gamma" 1;
-	setAttr ".texture_gamma" 1;
+	addAttr -cachedInternally true -shortName "driver_exr_compression" -longName "driverExrCompression" 
+		-defaultValue 2 -minValue 0 -maxValue 4 -enumName "none:rle:zip:piz:pxr24" -attributeType "enum";
+	addAttr -cachedInternally true -keyable true -shortName "driver_half_precision" 
+		-longName "driverHalfPrecision" -minValue 0 -maxValue 1 -attributeType "bool";
+	addAttr -cachedInternally true -keyable true -shortName "driver_tiled" -longName "driverTiled" 
+		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
+	addAttr -cachedInternally true -keyable true -shortName "driver_preserve_layer_name" 
+		-longName "driverPreserveLayerName" -minValue 0 -maxValue 1 -attributeType "bool";
+	addAttr -cachedInternally true -keyable true -shortName "driver_quality" -longName "driverQuality" 
+		-defaultValue 100 -minValue 0 -maxValue 100 -attributeType "long";
+	addAttr -cachedInternally true -keyable true -shortName "driver_output_padded" -longName "driverOutputPadded" 
+		-minValue 0 -maxValue 1 -attributeType "bool";
+	addAttr -cachedInternally true -keyable true -shortName "driver_gamma" -longName "driverGamma" 
+		-defaultValue 2.2000000476837158 -minValue 9.9999997473787516e-05 -softMaxValue 5 
+		-attributeType "float";
+	addAttr -cachedInternally true -keyable true -shortName "driver_dither_amplitude" 
+		-longName "driverDitherAmplitude" -defaultValue 1 -attributeType "float";
+	addAttr -cachedInternally true -shortName "driver_png_format" -longName "driverPngFormat" 
+		-minValue 0 -maxValue 1 -enumName "int8:int16" -attributeType "enum";
+	addAttr -cachedInternally true -shortName "driver_tiff_compression" -longName "driverTiffCompression" 
+		-minValue 0 -maxValue 4 -enumName "none:lzw:ccittrle:zip:packbits" -attributeType "enum";
+	addAttr -cachedInternally true -shortName "driver_tiff_format" -longName "driverTiffFormat" 
+		-minValue 0 -maxValue 3 -enumName "int8:int16:int32:float32" -attributeType "enum";
+	addAttr -cachedInternally true -keyable true -shortName "driver_unpremult_alpha" 
+		-longName "driverUnpremultAlpha" -minValue 0 -maxValue 1 -attributeType "bool";
+	addAttr -cachedInternally true -keyable true -shortName "filter_width" -longName "filterWidth" 
+		-defaultValue 3 -attributeType "float";
+	addAttr -cachedInternally true -shortName "filter_domain" -longName "filterDomain" 
+		-minValue 0 -maxValue 1 -enumName "first_hit:all_hits" -attributeType "enum";
+	addAttr -cachedInternally true -keyable true -shortName "filter_minimum" -longName "filterMinimum" 
+		-attributeType "float";
+	addAttr -cachedInternally true -keyable true -shortName "filter_maximum" -longName "filterMaximum" 
+		-defaultValue 1 -attributeType "float";
+	addAttr -cachedInternally true -keyable true -shortName "filter_scalar_mode" -longName "filterScalarMode" 
+		-minValue 0 -maxValue 1 -attributeType "bool";
+	setAttr ".imageFormat" -type "string" "tiff";
+	setAttr ".filterType" -type "string" "gaussian";
+	setAttr -keyable on ".driverTiled" no;
 createNode lightLinker -shared -name "lightLinker1";
-	setAttr -size 17 ".link";
-	setAttr -size 17 ".shadowLink";
+	setAttr -size 15 ".link";
+	setAttr -size 15 ".shadowLink";
 createNode displayLayerManager -name "layerManager";
 createNode displayLayer -name "defaultLayer";
 createNode renderLayerManager -name "renderLayerManager";
@@ -1646,7 +1690,8 @@ select -noExpand :defaultRenderUtilityList1;
 select -noExpand :renderGlobalsList1;
 select -noExpand :defaultRenderGlobals;
 	setAttr ".currentRenderer" -type "string" "arnold";
-	setAttr ".imageFormat" 0;
+	setAttr ".imageFormat" 51;
+	setAttr ".imfPluginKey" -type "string" "tiff";
 	setAttr ".imageFilePrefix" -type "string" "testrender";
 select -noExpand :defaultResolution;
 	setAttr ".width" 160;
@@ -1659,8 +1704,6 @@ select -noExpand :hardwareRenderGlobals;
 select -noExpand :defaultHardwareRenderGlobals;
 	setAttr ".filename" -type "string" "im";
 	setAttr ".resolution" -type "string" "ntsc_4d 646 485 1.333";
-select -noExpand :ikSystem;
-	setAttr -size 4 ".ikSolver";
 connectAttr ":time1.outTime" ":defaultArnoldRenderOptions.AA_seed";
 relationship "link" ":lightLinker1" ":initialShadingGroup.message" ":defaultLightSet.message";
 relationship "link" ":lightLinker1" ":initialParticleSE.message" ":defaultLightSet.message";
