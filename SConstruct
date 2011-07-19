@@ -58,16 +58,16 @@ vars.AddVariables(
                    get_default_path('ARNOLD_HOME', 'Arnold')),                   
       PathVariable('ARNOLD_API_INCLUDES', 
                    'Where to find Arnold API includes', 
-                   os.path.join('$ARNOLD', 'include'), PathVariable.PathIsDir),
+                   '.', PathVariable.PathIsDir),
       PathVariable('ARNOLD_API_LIB', 
                    'Where to find Arnold API static libraries', 
-                   os.path.join('$ARNOLD', 'lib'), PathVariable.PathIsDir),
+                   '.', PathVariable.PathIsDir),
       PathVariable('ARNOLD_BINARIES', 
                    'Where to find Arnold API dynamic libraries and executables', 
-                   os.path.join('$ARNOLD', 'bin'), PathVariable.PathIsDir),   
+                   '.', PathVariable.PathIsDir),   
       PathVariable('ARNOLD_PYTHON', 
                    'Where to find Arnold python bindings', 
-                   os.path.join('$ARNOLD', 'python'), PathVariable.PathIsDir),                                  
+                   '.', PathVariable.PathIsDir),                                  
       PathVariable('TARGET_MODULE_PATH', 
                    'Path used for installation of the mtoa module', 
                    '.', PathVariable.PathIsDirCreate),
@@ -124,6 +124,22 @@ else:
    env = Environment(variables = vars)
 
 env.Append(BUILDERS = {'MakeModule' : make_module})
+
+if env['ARNOLD_API_INCLUDES'] == '.' :
+    env['ARNOLD_API_INCLUDES'] = os.path.join(env['ARNOLD'], 'include')
+    
+if env['ARNOLD_BINARIES'] == '.' :
+    env['ARNOLD_BINARIES'] = os.path.join(env['ARNOLD'], 'bin')
+
+if env['ARNOLD_PYTHON'] == '.' :
+    env['ARNOLD_PYTHON'] = os.path.join(env['ARNOLD'], 'python')
+        
+# linus conventions would be to actually use libs for dynamic libraries!
+if env['ARNOLD_API_LIB'] == '.' :
+    if system.os() == 'windows':
+        env['ARNOLD_API_LIB'] = os.path.join(env['ARNOLD'], 'lib')
+    else :
+        env['ARNOLD_API_LIB'] = os.path.join(env['ARNOLD'], 'bin')
 
 if env['TARGET_MODULE_PATH'] == '.':
    print "Please define TARGET_MODULE_PATH (Path used for installation of the mtoa plugin)"
