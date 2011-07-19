@@ -8,8 +8,8 @@ BUILTIN_AOVS = (
                 ('Z',       'FLOAT'),
                 ('OPACITY', 'RGB'),
                 ('ID',      'INT'),
-                ('OBJECT',  'NODE'),
-                ('SHADER',  'NODE'),
+#                ('OBJECT',  'NODE'),
+#                ('SHADER',  'NODE'),
                 ('P',       'POINT'),
                 ('N',       'VECTOR'))
 
