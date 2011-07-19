@@ -23,6 +23,7 @@ CAOV::CAOV()
      m_type(0),
      m_enabled(true),
      m_prefix(""),
+     m_imageformat(""),
      m_filename(""),
      m_object(MObject::kNullObj)
 {
@@ -33,6 +34,7 @@ CAOV::CAOV(const CAOV &rhs)
      m_type(rhs.m_type),
      m_enabled(rhs.m_enabled),
      m_prefix(rhs.m_prefix),
+     m_imageformat(rhs.m_imageformat),
      m_filename(rhs.m_filename),
      m_object(rhs.m_object)
 {
@@ -49,6 +51,7 @@ CAOV& CAOV::operator=(const CAOV &rhs)
       m_name = rhs.m_name;
       m_type = rhs.m_type;
       m_prefix = rhs.m_prefix;
+      m_imageformat = rhs.m_imageformat;
       m_filename = rhs.m_filename;
    }
    return *this;
@@ -111,7 +114,8 @@ bool CAOV::FromMaya(MObject &AOVNode)
    Strip(m_prefix);
    NormalizePath(m_prefix);
 
-   m_filename = "";
+   m_imageformat = fnNode.findPlug("imageFormat", true).asString();
+   m_filename = m_prefix;
 
    return true;
 }
@@ -121,7 +125,8 @@ MString CAOV::SetupOutput(AtNode *defaultDriver, AtNode *defaultFilter) const
 {
    assert(AiUniverseIsActive());
 
-   AiMsgDebug("[mtoa] [aov %s] Setting AOV output: filter and driver.", m_name.asChar());
+   AiMsgDebug("[mtoa] [aov %s] Setting AOV output: filter and driver.",
+         m_name.asChar());
 
    MFnDependencyNode fnNode = MFnDependencyNode(m_object);
 
@@ -135,6 +140,7 @@ MString CAOV::SetupOutput(AtNode *defaultDriver, AtNode *defaultFilter) const
    {
       // use default filter
       filter = defaultFilter;
+      filterName = AiNodeGetName(filter);
       AiMsgDebug("[mtoa] [aov %s] Uses default filter %s(%s).",
          m_name.asChar(), AiNodeGetName(filter), AiNodeEntryGetName(filter->base_node));
    }
@@ -166,14 +172,20 @@ MString CAOV::SetupOutput(AtNode *defaultDriver, AtNode *defaultFilter) const
    MString nodeTypeName = AiNodeEntryGetName(driver->base_node);
    MString driverName = nodeTypeName + "_" + m_name;
 
+   // FIXME: old method re-used
+   MString filename = m_filename; // CMayaScene::GetRenderSession()->RenderOptions()->GetAOVImageFilename(m_filename);
+
+   AiMsgDebug("[mtoa] [aov %s] Creating driver %s(%s) using filename %s",
+         m_name.asChar(), driverName.asChar(), nodeTypeName.asChar(), filename.asChar());
+
    AiNodeSetStr(driver, "name", driverName.asChar());
-   AiNodeSetStr(driver, "filename", m_filename.asChar());
+   AiNodeSetStr(driver, "filename", filename.asChar());
 
    AiMsgDebug("[mtoa] [aov %s] Created driver %s(%s) with output filename '%s'.",
          m_name.asChar(), AiNodeGetName(driver), AiNodeEntryGetName(driver->base_node), AiNodeGetStr(driver, "filename"));
 
 
-   if (m_filename != "")
+   if (filename != "")
    {
       // create the output directory
       int result;
@@ -189,6 +201,7 @@ MString CAOV::SetupOutput(AtNode *defaultDriver, AtNode *defaultFilter) const
 
    char str[1024];
    sprintf(str, "%s %s %s %s", m_name.asChar(), AiParamGetTypeName(m_type), filterName.asChar(), driverName.asChar());
+   AiMsgDebug("[mtoa] [aov %s] prefix '%s' output line: %s", m_name.asChar(), m_prefix.asChar(), str);
 
    return MString(str);
 }

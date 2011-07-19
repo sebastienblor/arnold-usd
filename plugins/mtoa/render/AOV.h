@@ -55,6 +55,8 @@ public:
 
    inline const MString& GetPrefix() const { return m_prefix; }
 
+   inline const MString& GetImageFormat() const { return m_imageformat; }
+
    bool IsEnabled() { return m_enabled; }
    bool FromMaya(MObject &o);
 
@@ -75,6 +77,7 @@ protected:
    AtInt     m_type;
    bool      m_enabled;
    MString   m_prefix;
+   MString   m_imageformat;
    MString   m_filename;
    MObject   m_object;
    MFnDependencyNode m_fnNode;

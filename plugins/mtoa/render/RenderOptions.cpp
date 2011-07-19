@@ -115,8 +115,8 @@ void CRenderOptions::UpdateImageFilename()
    if (BatchMode())
    {
       // TODO: check that this is appropriate behavior (seems questionable)
-      if (MultiCameraRender())
-         nameCamera = sceneFileName + "/" + nameCamera;
+      // if (MultiCameraRender())
+      //   nameCamera = sceneFileName + "/" + nameCamera;
 
       pathType = m_defaultRenderGlobalsData.kFullPathImage;
       m_imageFilename = m_defaultRenderGlobalsData.getImageName(pathType, fileFrameNumber,
@@ -133,41 +133,50 @@ void CRenderOptions::UpdateImageFilename()
                                                                 m_imageFileExtension, renderLayer, 1);
    }
 
-   if (m_defaultRenderGlobalsData.name == "")
-   {
-      // setup the default RenderPass token
-      sceneFileName = "<RenderPass>/" + sceneFileName;
-      // FIXME: hard-wiring convention here:
-      // need a a complete replacement for MCommonRenderSettingsData::getImageName to avoid this
-      // (see mtoa.utils.expandFileTokens for the beginning of one)
-      sceneFileName += ".<RenderPass>";
-   }
+   // FIXME: hard-wiring convention here.
+   // sceneFileName ignored when the name has been explicitely set in the render globals
+   // sceneFileName = "<RenderPass>/" + sceneFileName;
+   sceneFileName += ".<RenderPass>";
+
    // because sets are ordered, their contents are const. we must make a new set
    // and overwrite it.
    AOVSet newAOVs;
    for (AOVSet::iterator it=m_aovs.begin(); it!=m_aovs.end(); ++it)
    {
       CAOV aov = (*it);
-      MString m_prefix = aov.GetPrefix();
-      if (m_prefix!="")
+      MString prefix = aov.GetPrefix();
+      if (prefix!="")
       {
-         sceneFileName=m_prefix;
+         sceneFileName += prefix;
       }
+
       MString tokens = MString("RenderPass=") + aov.GetName();
-      MObject mAOVObject = aov.GetNode();
-      MFnDependencyNode fnNode = MFnDependencyNode(mAOVObject);
-      MString driverType = fnNode.findPlug("imageFormat", true).asString();
+      // More direct
+      m_defaultRenderGlobalsData.setPassName(aov.GetName());
+
+      MString driverType = aov.GetImageFormat();
+      if (driverType == "<Use Globals>" || driverType == "") driverType = m_arnoldRenderImageFormat;
+      MString fileExtension = GetFileExtension(driverType);
 
       MString filename = m_defaultRenderGlobalsData.getImageName(pathType, fileFrameNumber,
                                                                  sceneFileName, nameCamera,
-                                                                 GetFileExtension(driverType), renderLayer,
+                                                                 fileExtension, renderLayer,
                                                                  tokens, 1);
-      std::cout << "+++" << sceneFileName << " " << filename << std::endl;
+
+      AiMsgDebug("[mtoa] [aov %s] UpdateImageFilename with sceneFileName '%s', prefix '%s', tokens '%s', extension '%s' : %s",
+            aov.GetName().asChar(), sceneFileName.asChar(), prefix.asChar(), tokens.asChar(), fileExtension.asChar(), filename.asChar());
+
       aov.SetImageFilename(filename);
       newAOVs.insert(aov);
    }
    m_aovs = newAOVs;
+
+   m_defaultRenderGlobalsData.setPassName("");
 }
+
+
+
+
 
 // sets the m_imageFilename member
 MString CRenderOptions::GetImageFilename()
@@ -253,33 +262,30 @@ MString CRenderOptions::GetAOVImageFilename(MString fileName)
    if (BatchMode())
    {
       // TODO: check that this is appropriate behavior (seems questionable)
-      if (MultiCameraRender())
-         nameCamera = sceneFileName + "/" + nameCamera;
+      // if (MultiCameraRender())
+      //   nameCamera = sceneFileName + "/" + nameCamera;
 
       pathType = m_defaultRenderGlobalsData.kFullPathImage;
-      MFnDagNode camDag(GetCamera());
-      MFnDagNode camDagParent(camDag.parent(0));
    }
    else
    {
       pathType = m_defaultRenderGlobalsData.kFullPathTmp;
    }
 
-   if (m_defaultRenderGlobalsData.name == "")
-   {
-      // setup the default RenderPass token
-      sceneFileName = "<RenderPass>/" + sceneFileName;
-      // FIXME: hard-wiring convention here:
-      // need a a complete replacement for MCommonRenderSettingsData::getImageName to avoid this
-      // (see mtoa.utils.expandFileTokens for the beginning of one)
-      sceneFileName += ".<RenderPass>";
-   }
+   sceneFileName += ".<RenderPass>";
    MString tokens = MString("RenderPass=") + "";
-   return m_defaultRenderGlobalsData.getImageName(pathType, fileFrameNumber,
+
+   MString filename =  m_defaultRenderGlobalsData.getImageName(pathType, fileFrameNumber,
                                                               sceneFileName, nameCamera,
                                                               m_imageFileExtension, renderLayer,
                                                               tokens, 1);
+
+   AiMsgDebug("[mtoa] GetAOVImageFilename sceneFileName '%s', tokens '%s', filename : %s",
+         sceneFileName.asChar(), tokens.asChar(), filename.asChar());
+
+   return filename;
 }
+
 
 void CRenderOptions::ProcessCommonRenderOptions()
 {

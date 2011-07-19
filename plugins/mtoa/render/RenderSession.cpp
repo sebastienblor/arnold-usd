@@ -406,15 +406,20 @@ AtNode * CRenderSession::CreateFileOutput()
 
    // set the output driver
    MString driverType = fnArnoldRenderOptions.findPlug("imageFormat").asString();
-   AiMsgDebug("[mtoa] Preparing file output for driver '%s'", driverType.asChar());
    AtNode* driver = CMayaScene::GetArnoldSession()->ExportDriver(node, driverType);
    if (driver != NULL)
    {
       AiNodeSetStr(driver, "name", AiNodeEntryGetName(driver->base_node));
       AiNodeSetStr(driver, "filename", m_renderOptions.GetImageFilename().asChar());
-  }
+   }
    else
+   {
       AiMsgError("[mtoa] image driver is NULL");
+   }
+
+   AiMsgDebug("[mtoa] Created driver %s(%s) with output filename '%s'.",
+         AiNodeGetName(driver), AiNodeEntryGetName(driver->base_node), AiNodeGetStr(driver, "filename"));
+
 
    return driver;
 }
@@ -429,7 +434,7 @@ AtNode * CRenderSession::CreateOutputFilter()
 
    // set the output driver
    MString filterType = fnArnoldRenderOptions.findPlug("filterType").asString();
-   AiMsgInfo("[mtoa] exporting filter \"%s\"", filterType.asChar());
+   AiMsgInfo("[mtoa] Creating default filter \"%s\"", filterType.asChar());
    AtNode* filter = CMayaScene::GetArnoldSession()->ExportFilter(node, filterType);
    if (filter == NULL)
       AiMsgError("[mtoa] filter is NULL");

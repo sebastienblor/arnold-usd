@@ -246,7 +246,7 @@ public:
    void UpdateImageFilename();
    void UpdateImageOptions();
    MString GetImageFilename();
-   MString GetAOVImageFilename(MString fileName);
+   MString GetAOVImageFilename(MString fileName = "");
 
 private:
 

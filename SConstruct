@@ -493,10 +493,17 @@ arpybds = find_files_recursive(os.path.join(env['ARNOLD_PYTHON']), ['.py'])
 env.InstallAs([os.path.join(env['TARGET_PYTHON_PATH'], x) for x in arpybds],
               [os.path.join(env['ARNOLD_PYTHON'], x) for x in arpybds])
 # install include files
-apiheaders = [os.path.join('plugins', 'mtoa', 'extension', 'Extension.h'),
+apiheaders = [os.path.join('plugins', 'mtoa', 'platform', 'Platform.h'),
+              os.path.join('plugins', 'mtoa', 'common', 'MObjectCompare.h'),
+              os.path.join('plugins', 'mtoa', 'common', 'AttrHelper.h'),
+              os.path.join('plugins', 'mtoa', 'extension', 'Extension.h'),
+              os.path.join('plugins', 'mtoa', 'extension', 'AbTranslator.h'),
+              os.path.join('plugins', 'mtoa', 'extension', 'PxUtils.h'),
+              os.path.join('plugins', 'mtoa', 'extension', 'PathUtils.h'),
               os.path.join('plugins', 'mtoa', 'session', 'ArnoldSession.h'),
               os.path.join('plugins', 'mtoa', 'session', 'SessionOptions.h'),
               os.path.join('plugins', 'mtoa', 'translators', 'NodeTranslator.h')]
+
 env.InstallAs([os.path.join(env['TARGET_INCLUDE_PATH'], os.path.basename(x)) for x in apiheaders],
               apiheaders)
 # install icons
