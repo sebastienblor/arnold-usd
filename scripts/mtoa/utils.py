@@ -1,3 +1,4 @@
+# NOTE: this module should not import PyMEL
 import maya.cmds as cmds
 import maya.mel as mel
 import inspect

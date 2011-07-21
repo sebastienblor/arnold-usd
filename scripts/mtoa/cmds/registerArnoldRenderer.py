@@ -1,6 +1,19 @@
+import glob
+import os
+import mtoa.utils as utils
+if 'pymel' not in globals():
+    # fix for pymel versions less than 1.0.3 (pre-2012)
+    import pymel
+    if pymel.__version__ < '1.0.3' and not hasattr(pymel, '_mtoaPatch'):
+        import sys
+        root = utils.mtoaPackageRoot()
+        path = os.path.join(root, 'mel', '2011')
+        sys.path.insert(0, path)
+        # clear so pymel reloads
+        reload(pymel)
+
 import pymel.core as pm
 import pymel.versions as versions
-import mtoa.utils as utils
 import mtoa.ui.exportass as exportass
 import mtoa.ui.nodeTreeLister as nodeTreeLister
 import mtoa.ui.globals.common
@@ -11,8 +24,6 @@ import mtoa.ui.ae.utils as aeUtils
 from mtoa.ui.ae.aiStandInTemplate import ArnoldExportRenderObjectWindow
 
 import mtoa.cmds.arnoldRender as arnoldRender
-import glob
-import os
 
 def _overrideMelScripts():
     root = utils.mtoaPackageRoot()
