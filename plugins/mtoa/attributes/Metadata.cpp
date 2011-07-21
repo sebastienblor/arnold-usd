@@ -133,12 +133,15 @@ AtParamValue MAiParamGetDefault(const AtNodeEntry *entry, const AtParamEntry* pa
          }
          break;
       }
+      case AI_TYPE_BYTE:
+      case AI_TYPE_POINTER:
+      case AI_TYPE_ARRAY:
       case AI_TYPE_NODE:
       case AI_TYPE_MATRIX:
          break;
       default:
       {
-         AiMsgError("[mtoa] Cannot override default value of type %s", AiParamGetTypeName(type));
+         AiMsgError("[mtoa] Cannot override default value of type %s for param %s on node %s", AiParamGetTypeName(type), param, AiNodeEntryGetName(entry));
       }
    }
 
