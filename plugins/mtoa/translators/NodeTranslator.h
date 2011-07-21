@@ -178,7 +178,6 @@ public:
    virtual bool IsMayaTypeDag() {return true;}
    virtual bool IsMayaTypeRenderable() {return true;}
 
-   static int GetMasterInstanceNumber(MObject node);
    virtual void AddUpdateCallbacks();
    // for initializer callbacks:
    static void MakeMayaVisibilityFlags(CBaseAttrHelper& helper);
@@ -199,7 +198,6 @@ protected:
 protected:
    MDagPath m_dagPath;
    MFnDagNode m_fnDagNode;
-   static ObjectHandleToDagMap s_masterInstances;
 };
 
 

@@ -44,7 +44,9 @@ class CNodeTranslator;
 typedef std::map<MObjectHandle, CNodeTranslator*, MObjectCompare> ObjectToTranslatorMap;
 // dag nodes: have one translator per instance, so they map MObject to a sub-map, from dag instance number to translator
 typedef std::map<MObjectHandle, std::map<int, CNodeTranslator*>, MObjectCompare> ObjectToDagTranslatorMap;
-
+// Abstract base class for Dag node translators
+//
+typedef std::map<MObjectHandle, MDagPath, MObjectCompare> ObjectHandleToDagMap;
 /// Opens an Arnold session, in which you can make changes to the Arnold universe: create or edit Arnold nodes.
 
 /// This class handles exporting all or part of the Maya scene to Arnold, for rendering, exporting as an ass
@@ -110,6 +112,11 @@ public:
    void QueueForUpdate(CNodeTranslator * translator);
    void RequestUpdate();
 
+   // Instances
+   int GetMasterInstanceNumber(MObject node);
+   inline void AddMasterInstanceHandle(MObjectHandle handle, MDagPath dagPath){m_masterInstances[handle] = dagPath;};
+   inline MDagPath GetMasterInstanceDagPath(MObjectHandle handle){return m_masterInstances[handle];};
+
 private:
 
    CArnoldSession()
@@ -164,6 +171,9 @@ private:
    // dag nodes, are a map in a map.
    // the first key is an MObjectHandle and the second the instance number
    ObjectToDagTranslatorMap m_processedDagTranslators;
+
+protected:
+   ObjectHandleToDagMap m_masterInstances;
 
 };  // class CArnoldSession
 

@@ -1079,26 +1079,6 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnold
 }
 
 //------------ CDagTranslator ------------//
-
-// populate an arnold AtMatrix with values from this Dag node's transformation.
-// the dag node must have an inclusiveMatrix attribute.
-
-ObjectHandleToDagMap CDagTranslator::s_masterInstances;
-
-// Returns the instance number of the master instance (it's not always 0!)
-// Returns -1 if no master instance has been encountered yet
-int CDagTranslator::GetMasterInstanceNumber(MObject node)
-{
-   MObjectHandle handle = MObjectHandle(node);
-   // if handle is not in the map, a new entry will be made with a default value
-   MDagPath dagPath = s_masterInstances[handle];
-   if (dagPath.isValid())
-   {
-      return dagPath.instanceNumber();
-   }
-   return -1;
-}
-
 void CDagTranslator::SetArnoldNodeName(AtNode* arnoldNode, const char* tag)
 {
    MString name;
@@ -1181,13 +1161,13 @@ bool CDagTranslator::IsMasterInstance(MDagPath &masterDag)
       if (instNum == 0)
       {
          // first visible instance is always the master (passed m_dagPath is assumed to be visible)
-         s_masterInstances[handle] = m_dagPath;
+         m_session->AddMasterInstanceHandle(handle, m_dagPath);
          return true;
       }
       else
       {
          // if handle is not in the map, a new entry will be made with a default value
-         MDagPath currDag = s_masterInstances[handle];
+         MDagPath currDag = m_session->GetMasterInstanceDagPath(handle);
          if (currDag.isValid())
          {
             // previously found the master
@@ -1204,13 +1184,13 @@ bool CDagTranslator::IsMasterInstance(MDagPath &masterDag)
             if (CArnoldSession::IsRenderablePath(currDag))
             {
                // found it
-               s_masterInstances[handle] = currDag;
+               m_session->AddMasterInstanceHandle(handle, currDag);
                masterDag.set(currDag);
                return false;
             }
          }
          // didn't find a master: m_dagPath is the master
-         s_masterInstances[handle] = m_dagPath;
+         m_session->AddMasterInstanceHandle(handle, m_dagPath);
          return true;
       }
    }
