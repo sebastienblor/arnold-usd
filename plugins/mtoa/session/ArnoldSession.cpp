@@ -48,7 +48,7 @@ namespace // <anonymous>
       return curLayer.inCurrentRenderLayer(dagPath);
    }
 
-   bool IsTemplated(MFnDagNode node)
+   bool IsTemplated(MFnDagNode & node)
    {
       MStatus status;
 
@@ -70,7 +70,7 @@ namespace // <anonymous>
             return false;
    }
 
-   bool IsVisible(MFnDagNode node)
+   bool IsVisible(MFnDagNode &node)
    {
       MStatus status;
 
@@ -95,7 +95,8 @@ namespace // <anonymous>
       MStatus stat = MStatus::kSuccess;
       while (stat == MStatus::kSuccess)
       {
-         MFnDagNode node(dagPath.node());
+         MFnDagNode node;
+         node.setObject(dagPath.node());
          if (!IsVisible(node))
             return false;
          stat = dagPath.pop();
@@ -109,7 +110,8 @@ namespace // <anonymous>
       MStatus stat = MStatus::kSuccess;
       while (stat == MStatus::kSuccess)
       {
-         MFnDagNode node(dagPath.node());
+         MFnDagNode node;
+         node.setObject(dagPath.node());
          if (IsTemplated(node))
             return true;
          stat = dagPath.pop();
@@ -276,7 +278,8 @@ bool CArnoldSession::IsRenderablePath(MDagPath dagPath)
    MStatus stat = MStatus::kSuccess;
    while (stat == MStatus::kSuccess)
    {
-      MFnDagNode node(dagPath.node());
+      MFnDagNode node;
+      node.setObject(dagPath.node());
       if (!IsVisible(node) || IsTemplated(node))
          return false;
       stat = dagPath.pop();
@@ -453,7 +456,15 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
       else
       {
          // Else if it's a full / renderable scene
-         status = ExportCameras();
+         if (m_sessionOptions.m_camera.isValid())
+         {
+            m_sessionOptions.m_camera.extendToShape();
+            ExportDagPath(m_sessionOptions.m_camera);
+         }
+         else
+         {
+            status = ExportCameras();
+         }
          // Then we filter them out to avoid double exporting cameras
          // m_sessionOptions.m_filter.excluded.insert(MFn::kCamera);
          status = ExportScene();

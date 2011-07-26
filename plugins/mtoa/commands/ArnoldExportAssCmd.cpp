@@ -184,7 +184,10 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    // or the first found renderable camera in batch mode
    // FIXME if you're exporting in selected mode to reuse in a standing
    // you probably don't want a camera anyway, remove this search and warnings in that case?
-   if (!camera.isValid()) camera = GetCamera();
+   if (!camera.isValid())
+   {
+      camera = GetCamera();
+   }
    cameraName = camera.partialPathName();
 
    // FIXME use the passed renderGlobals or options intead?
