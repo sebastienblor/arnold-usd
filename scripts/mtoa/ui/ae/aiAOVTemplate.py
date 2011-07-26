@@ -47,4 +47,21 @@ def aiAOVTemplate(nodeName):
 
     cmds.editorTemplate(endScrollLayout=True)
 
-
+    cmds.editorTemplate(nodeName, suppress='driverExrCompression')
+    cmds.editorTemplate(nodeName, suppress='driverHalfPrecision')
+    cmds.editorTemplate(nodeName, suppress='driverTiled')
+    cmds.editorTemplate(nodeName, suppress='driverPreserveLayerName')
+    cmds.editorTemplate(nodeName, suppress='driverQuality')
+    cmds.editorTemplate(nodeName, suppress='driverOutputPadded')
+    cmds.editorTemplate(nodeName, suppress='driverGamma')
+    cmds.editorTemplate(nodeName, suppress='driverDitherAmplitude')
+    cmds.editorTemplate(nodeName, suppress='driverDitherAmplitude')
+    cmds.editorTemplate(nodeName, suppress='driverPngFormat')
+    cmds.editorTemplate(nodeName, suppress='driverTiffCompression')
+    cmds.editorTemplate(nodeName, suppress='driverTiffFormat')
+    cmds.editorTemplate(nodeName, suppress='driverUnpremultAlpha')
+    cmds.editorTemplate(nodeName, suppress='filterWidth')
+    cmds.editorTemplate(nodeName, suppress='filterDomain')
+    cmds.editorTemplate(nodeName, suppress='filterMinimum')
+    cmds.editorTemplate(nodeName, suppress='filterMaximum')
+    cmds.editorTemplate(nodeName, suppress='filterScalarMode')
