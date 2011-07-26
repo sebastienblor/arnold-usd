@@ -44,14 +44,19 @@ supported operating system:
     to the shaders folder, for example:
     
     C:\solidangle\mtoadeploy\shaders    
+
+ 5. Create an environment variable MTOA_EXTENSIONS_PATH and set it to point to
+	the extensions folder:
+	
+	C:\solidangle\mtoadeploy\extensions
     
- 5. Finally, you also need to add the location of the Arnold binaries to your
+ 6. Finally, you also need to add the location of the Arnold binaries to your
     path. Edit the PATH environment variable and append the bin folder path,
     for example:
     
     C:\solidangle\mtoadeploy\bin
     
- 6. Now, run Maya. Go to Window > Settings/Preferences > 
+ 7. Now, run Maya. Go to Window > Settings/Preferences > 
     Plug-in Manager. If you don't yet see the MtoA plug-in listed, click on the
     Browse button and locate the mtoa.mll file (under
     C:\solidangle\mtoadeploy\plugins).
