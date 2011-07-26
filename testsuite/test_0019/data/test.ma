@@ -227,7 +227,7 @@ createNode aiStandIn -name "ArnoldStandInShape" -parent "ArnoldStandIn";
 	setAttr -keyable off ".visibility";
 	setAttr ".collisionOffsetVelocityMultiplier[0]"  0 1 1;
 	setAttr ".collisionDepthVelocityMultiplier[0]"  0 1 1;
-	setAttr ".dso" -type "string" "soccer.so";
+	setAttr ".dso" -type "string" "soccer.dll";
 	setAttr ".MinBoundingBox" -type "float3" -12 -12 -12 ;
 	setAttr ".MaxBoundingBox" -type "float3" 12 12 12 ;
 createNode transform -name "pointLight1";
