@@ -1201,7 +1201,8 @@ bool CDagTranslator::IsMasterInstance(MDagPath &masterDag)
 void CDagTranslator::GetRotationMatrix(AtMatrix& matrix)
 {
    MObject transform = m_dagPath.transform();
-   MFnTransform mTransform = MFnTransform(transform);
+   MFnTransform mTransform;
+   mTransform.setObject(transform);
    MTransformationMatrix mTransformMatrix = mTransform.transformation();
 
    MMatrix tm = mTransformMatrix.asRotateMatrix();

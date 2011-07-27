@@ -99,7 +99,8 @@ bool CAOV::FromMaya(MObject &AOVNode)
       return false;
    }
    m_object = AOVNode;
-   MFnDependencyNode fnNode = MFnDependencyNode(AOVNode);
+   MFnDependencyNode fnNode;
+   fnNode.setObject(AOVNode);
    m_name = fnNode.findPlug("name").asString();
    Strip(m_name);
 
@@ -128,7 +129,8 @@ MString CAOV::SetupOutput(AtNode *defaultDriver, AtNode *defaultFilter) const
    AiMsgDebug("[mtoa] [aov %s] Setting AOV output: filter and driver.",
          m_name.asChar());
 
-   MFnDependencyNode fnNode = MFnDependencyNode(m_object);
+   MFnDependencyNode fnNode;
+   fnNode.setObject(m_object);
 
    // Filter
    AtNode* filter;

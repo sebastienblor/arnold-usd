@@ -1017,7 +1017,8 @@ MStatus CDynamicAttrHelper::addAttribute(MObject& attrib)
 {
    MStatus stat;
    MStatus statAttr;
-   MFnDependencyNode fnNode = MFnDependencyNode(m_instance);
+   MFnDependencyNode fnNode;
+   fnNode.setObject(m_instance);
    MObject mAttr = fnNode.attribute(MFnAttribute(attrib).name(),&statAttr);
    if (statAttr == MS::kSuccess)
    {
