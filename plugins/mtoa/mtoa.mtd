@@ -615,7 +615,7 @@
     desc                    STRING  "Switch input depending on ray type."
     maya.name               STRING  "aiRaySwitch"
     maya.id                 INT     0x00115D04  
-    maya.classification     STRING  "utility"
+    maya.classification     STRING  "shader/surface"
 
 [node ambient_occlusion]
     desc                    STRING  "This shader can be used to display ambient occlusion on a geometry."
