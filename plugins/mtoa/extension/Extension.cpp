@@ -402,13 +402,19 @@ MStatus CExtension::RegisterPluginNodesAndTranslators(const MString &plugin)
          {
             status = nodeStatus;
          }
-
-         nodeStatus = RegisterTranslator(translator, mayaNode, arnoldNode);
+         MStatus translatorStatus;
+         translatorStatus = RegisterTranslator(translator, mayaNode, arnoldNode);
          // Only report hard failures, ignore kNotImplemented
-         if (MStatus::kSuccess != nodeStatus
-               && MStatus::kNotImplemented != nodeStatus)
+         if (MStatus::kSuccess != translatorStatus
+               && MStatus::kNotImplemented != translatorStatus)
          {
             status = nodeStatus;
+         }
+         // Warning for Arnold nodes that are from plugins and not translated
+         if (m_extensionName != "<built-in>" && MStatus::kNotImplemented == translatorStatus)
+         {
+            AiMsgWarning("[mtoa] [%s] [node %s] There was not enough metadata information to automatically register a translator for that node, ignored.",
+               m_extensionName.asChar(), arnoldNode.name.asChar());
          }
       }
    }
