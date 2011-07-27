@@ -374,7 +374,7 @@ node_update
 
    data->camera = AiUniverseGetCamera();
    
-   AtNode *camera = (AtNode*)AiNodeGetPtr(node, "cameraName");
+   AtNode *camera = (AtNode*)AiNodeGetPtr(node, "linkedCamera");
    if (camera != NULL) // Use a custom camera for the perspective projection
       data->camera = camera;
 
