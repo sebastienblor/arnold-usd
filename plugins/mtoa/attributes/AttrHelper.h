@@ -30,8 +30,8 @@
 
 #define OUT_NAME MString("outValue")
 #define OUT_COLOR_NAME MString("outColor")
-#define OUT_NODE_NAME MString("outNode")
-#define OUT_MATRIX_NAME MString("outMatrix")
+// #define OUT_NODE_NAME MString("outNode")
+// #define OUT_MATRIX_NAME MString("outMatrix")
 #define OUT_SHORTNAME MString("out")
 
 MString toMayaStyle(MString s);
@@ -181,18 +181,18 @@ public:
    virtual MObject MakeInput(const char* paramName);
    virtual MObject MakeInput(CAttrData& attrData);
 
-   void MakeOutputInt(MObject& attrib, bool isArray=false);
-   void MakeOutputBoolean(MObject& attrib, bool isArray=false);
-   void MakeOutputFloat(MObject& attrib, bool isArray=false);
-   void MakeOutputRGB(MObject& attrib, bool isArray=false);
-   void MakeOutputRGBA(MObject& attrib, MObject& attribA, bool isArray=false);
-   void MakeOutputVector(MObject& attrib, bool isArray=false);
-   void MakeOutputPoint(MObject& attrib, bool isArray=false);
-   void MakeOutputPoint2(MObject& attrib, MObject& attribX, MObject& attribY, bool isArray=false);
-   void MakeOutputString(MObject& attrib, bool isArray=false);
-   void MakeOutputMatrix(MObject& attrib, bool isArray=false);
-   void MakeOutputEnum(MObject& attrib, bool isArray=false);
-   void MakeOutputNode(MObject& attrib, bool isArray=false);
+   void MakeOutputInt(MObject& attrib, CAttrData& data);
+   void MakeOutputBoolean(MObject& attrib, CAttrData& data);
+   void MakeOutputFloat(MObject& attrib, CAttrData& data);
+   void MakeOutputRGB(MObject& attrib, CAttrData& data);
+   void MakeOutputRGBA(MObject& attrib, MObject& attribA, CAttrData& data);
+   void MakeOutputVector(MObject& attrib, CAttrData& data);
+   void MakeOutputPoint(MObject& attrib, CAttrData& data);
+   void MakeOutputPoint2(MObject& attrib, MObject& attribX, MObject& attribY, CAttrData& data);
+   void MakeOutputString(MObject& attrib, CAttrData& data);
+   void MakeOutputMatrix(MObject& attrib, CAttrData& data);
+   void MakeOutputEnum(MObject& attrib, CAttrData& data);
+   void MakeOutputNode(MObject& attrib, CAttrData& data);
 
    MObject MakeOutput();
 
