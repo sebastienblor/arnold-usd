@@ -239,7 +239,9 @@ def make_module(env, target, source):
    if not os.path.exists(os.path.dirname(source[0])) and os.path.dirname(source[0]):
       os.makedirs(os.path.dirname(source[0]))
    f = open(source[0], 'w' )
-   f.write('+ mtoa %s %s\n' % (get_mtoa_version(3), target[0]))
+   # Maya got problems with double digit versions
+   # f.write('+ mtoa %s %s\n' % (get_mtoa_version(3), target[0]))
+   f.write('+ mtoa %s %s\n' % ('any', target[0]))
    f.close()
 
 def get_library_extension():

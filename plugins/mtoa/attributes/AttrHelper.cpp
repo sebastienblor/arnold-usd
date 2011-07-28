@@ -867,7 +867,7 @@ MObject CBaseAttrHelper::MakeOutput()
       AiMsgError("[mtoa] Cannot retrieve output metadata from a null node entry.");
       return output;
    }
-   const char* nodeName = AiNodeEntryGetName(m_nodeEntry);
+   // const char* nodeName = AiNodeEntryGetName(m_nodeEntry);
    // AiMsgDebug("[mtoa] [node %s] Reading output metadata", nodeName);
 
    CAttrData data;

@@ -21,6 +21,14 @@ supported operating system:
  
  C:\solidangle\mtoadeploy
  
+	 Note : if you are using 2 different version of Maya (ie 2011 and 2012) and need
+	 to keep 2 different installations of MtoA, you can use:
+	 
+	 C:\solidangle\mtoadeploy\2011
+	 
+	 In that case replace C:\solidangle\mtoadeploy by C:\solidangle\mtoadeploy\2011 in
+	 the instructions below.
+ 
  Next, complete the following steps:
 
  1. First, locate the mtoa.mod file from the download pack:
@@ -30,7 +38,11 @@ supported operating system:
     Open this file in a text editor and make sure the single line contains the
     correct path, like so:
  
-    + mtoa 0.7 C:\solidangle\mtoadeploy
+    + mtoa any C:\solidangle\mtoadeploy
+    
+	Note : it should be MtoA version number in place of "any", but Maya modules seem to choke
+	on 2 digit versions, so the module path is not correctly set for MtoA versions 0.10.0 and above.
+	Using 'any' will work just as well as 0.9.0.
  
  2. Next, create an environment variable MAYA_MODULE_PATH and set it to point
     to your C:\solidangle\mtoadeploy folder (the folder where mtoa.mod is
