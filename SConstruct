@@ -623,7 +623,6 @@ if ext_shaders:
 ## (file_spec, destination_path)                        Copies a group of files specified by a glob expression
 ##
 PACKAGE_FILES = [
-[os.path.join('docs', 'HOW_TO_INSTALL.txt'), '.'],
 [os.path.join(BUILD_BASE_DIR, 'mtoa.mod'), '.'],
 [os.path.join('icons', '*.xpm'), 'icons'],
 [os.path.join('scripts', '*.xml'), '.'],
@@ -636,6 +635,7 @@ PACKAGE_FILES = [
 [MTOA_SHADERS[0], 'shaders'],
 [os.path.join(BUILD_BASE_DIR, 'docs', 'api', 'html'), os.path.join('doc', 'api')],
 [os.path.splitext(str(MTOA_API[0]))[0] + '.lib', 'lib'],
+[os.path.join('docs', 'HOW_TO_INSTALL.txt'), 'doc'],
 ]
 
 for p in pyfiles:

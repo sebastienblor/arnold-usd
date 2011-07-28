@@ -53,8 +53,10 @@
 
 #define MTOA_VERSION MTOA_MAJOR_VERSION "." MTOA_MINOR_VERSION "." MTOA_FIX_VERSION
 
-#define MAYA_VERSION "Any"
-   
+#ifndef MAYA_VERSION
+   #define MAYA_VERSION "Any"
+#endif
+
 namespace // <anonymous>
 {
    MStatus RegisterArnoldNodes(MObject object)
