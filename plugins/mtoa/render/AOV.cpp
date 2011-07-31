@@ -133,7 +133,6 @@ MString CAOV::SetupOutput(AtNode *defaultDriver, AtNode *defaultFilter) const
    fnNode.setObject(m_object);
 
    // Filter
-   AtNode* filter;
    MString filterType = fnNode.findPlug("filterType", true).asString();
    MString filterName;
 
@@ -141,10 +140,9 @@ MString CAOV::SetupOutput(AtNode *defaultDriver, AtNode *defaultFilter) const
    if (filterType == "<Use Globals>" || filterType == "")
    {
       // use default filter
-      filter = defaultFilter;
-      filterName = AiNodeGetName(filter);
+      filterName = AiNodeGetName(defaultFilter);
       AiMsgDebug("[mtoa] [aov %s] Uses default filter %s(%s).",
-         m_name.asChar(), AiNodeGetName(filter), AiNodeEntryGetName(filter->base_node));
+         m_name.asChar(), filterName.asChar(), AiNodeEntryGetName(defaultFilter->base_node));
    }
    else
    {

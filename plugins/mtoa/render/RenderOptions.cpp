@@ -106,6 +106,7 @@ void CRenderOptions::UpdateImageFilename()
 
    // Notes on MCommonRenderSettingsData::getImageName:
    //   - sceneFileName is only used if defaultRenderGlobals.imageFilePrefix is not set
+   //     WRONG: it is used if the <Scene> token appears in the imageFilePrefix
    //   - a "<RenderPass>/" token is added before the file name if any pass nodes are
    //     connected to a render layer AND <RenderPass> does not appear in defaultRenderGlobals.imageFilePrefix
    // because getImageName ignores the sceneFileName arg when defaultRenderGlobals.imageFilePrefix is non-empty,
@@ -122,8 +123,9 @@ void CRenderOptions::UpdateImageFilename()
       m_imageFilename = m_defaultRenderGlobalsData.getImageName(pathType, fileFrameNumber,
                                                                 sceneFileName, nameCamera,
                                                                 m_imageFileExtension, renderLayer, 1);
-      MFnDagNode camDag(GetCamera());
-      MFnDagNode camDagParent(camDag.parent(0));
+      // What as that for?
+      //MFnDagNode camDag(GetCamera());
+      //MFnDagNode camDagParent(camDag.parent(0));
    }
    else
    {
@@ -133,10 +135,7 @@ void CRenderOptions::UpdateImageFilename()
                                                                 m_imageFileExtension, renderLayer, 1);
    }
 
-   // FIXME: hard-wiring convention here.
-   // sceneFileName ignored when the name has been explicitely set in the render globals
-   // sceneFileName = "<RenderPass>/" + sceneFileName;
-   sceneFileName += ".<RenderPass>";
+   MString globalPrefix = m_defaultRenderGlobalsData.name;
 
    // because sets are ordered, their contents are const. we must make a new set
    // and overwrite it.
@@ -144,19 +143,52 @@ void CRenderOptions::UpdateImageFilename()
    for (AOVSet::iterator it=m_aovs.begin(); it!=m_aovs.end(); ++it)
    {
       CAOV aov = (*it);
+      MString aovPrefix;
       MString prefix = aov.GetPrefix();
-      if (prefix!="")
+      if (prefix.length() > 0)
       {
-         sceneFileName += prefix;
+         aovPrefix = prefix;
+      }
+      else
+      {
+         // Do not add "<RenderPass>/"
+         // as it was pre mtoa 0.9
+         if (globalPrefix.length() > 0)
+         {
+            // if not <RenderPass> in globalPrefix
+            if (globalPrefix.indexW("<RenderPass>") == -1)
+            {
+               aovPrefix = globalPrefix + ".<RenderPass>";
+            }
+            else
+            {
+               aovPrefix = globalPrefix;
+            }
+         }
+         else
+         {
+            aovPrefix = sceneFileName + ".<RenderPass>";
+         }
       }
 
       MString tokens = MString("RenderPass=") + aov.GetName();
+      tokens += " AOV=" + aov.GetName(); // backward compat
       // More direct
       m_defaultRenderGlobalsData.setPassName(aov.GetName());
 
       MString driverType = aov.GetImageFormat();
-      if (driverType == "<Use Globals>" || driverType == "") driverType = m_arnoldRenderImageFormat;
+      if (driverType == "<Use Globals>" || driverType == "")
+      {
+         driverType = m_arnoldRenderImageFormat;
+      }
       MString fileExtension = GetFileExtension(driverType);
+
+      // Sadly the following will not work
+      m_defaultRenderGlobalsData.name = aovPrefix;
+      // Need to set this value on the real node...
+      MGlobal::executeCommand("setAttr -type \"string\" defaultRenderGlobals.imageFilePrefix \"" + aovPrefix + "\"");
+      // ... and to re-query it for the change to be effective
+      MRenderUtil::getCommonRenderSettings(m_defaultRenderGlobalsData);
 
       MString filename = m_defaultRenderGlobalsData.getImageName(pathType, fileFrameNumber,
                                                                  sceneFileName, nameCamera,
@@ -164,128 +196,18 @@ void CRenderOptions::UpdateImageFilename()
                                                                  tokens, 1);
 
       AiMsgDebug("[mtoa] [aov %s] UpdateImageFilename with sceneFileName '%s', prefix '%s', tokens '%s', extension '%s' : %s",
-            aov.GetName().asChar(), sceneFileName.asChar(), prefix.asChar(), tokens.asChar(), fileExtension.asChar(), filename.asChar());
+            aov.GetName().asChar(), sceneFileName.asChar(), aovPrefix.asChar(), tokens.asChar(), fileExtension.asChar(), filename.asChar());
 
       aov.SetImageFilename(filename);
       newAOVs.insert(aov);
    }
    m_aovs = newAOVs;
 
+   // restore original file name prefix
+   MGlobal::executeCommand("setAttr -type \"string\" defaultRenderGlobals.imageFilePrefix \"" + globalPrefix + "\"");
+   MRenderUtil::getCommonRenderSettings(m_defaultRenderGlobalsData);
    m_defaultRenderGlobalsData.setPassName("");
 }
-
-
-
-
-
-// sets the m_imageFilename member
-MString CRenderOptions::GetImageFilename()
-{
-
-   MString nameCamera;
-   MString cameraFolderName;
-   MObject renderLayer = MFnRenderLayer::currentLayer();
-   double fileFrameNumber = MAnimControl::currentTime().value();
-
-   // file name
-   MFileObject fileObj;
-   fileObj.setRawFullName(MFileIO::currentFile());
-   MString sceneFileName = fileObj.resolvedName();
-   sceneFileName = sceneFileName.substringW(0, sceneFileName.rindexW('.')-1);
-   // get camera transform node for folder name
-   MFnDagNode camDag(GetCamera());
-   MFnDagNode camDagParent(camDag.parent(0));
-   nameCamera = camDagParent.name();
-
-   m_imageFileExtension = GetFileExtension(m_arnoldRenderImageFormat);
-
-   // Notes on MCommonRenderSettingsData::getImageName:
-   //   - sceneFileName is only used if defaultRenderGlobals.imageFilePrefix is not set
-   //   - a "<RenderPass>/" token is added before the file name if any pass nodes are
-   //     connected to a render layer AND <RenderPass> does not appear in defaultRenderGlobals.imageFilePrefix
-   // because getImageName ignores the sceneFileName arg when defaultRenderGlobals.imageFilePrefix is non-empty,
-   // we can only achieve the proper addition of the <RenderPass> token by creating a dummy render pass node.
-   // TODO: write a complete replacement for MCommonRenderSettingsData::getImageName
-   MCommonRenderSettingsData::MpathType pathType;
-   if (BatchMode())
-   {
-      // TODO: check that this is appropriate behavior (seems questionable)
-      if (MultiCameraRender())
-         nameCamera = sceneFileName + "/" + nameCamera;
-
-      pathType = m_defaultRenderGlobalsData.kFullPathImage;
-      return m_defaultRenderGlobalsData.getImageName(pathType, fileFrameNumber,
-                                                                sceneFileName, nameCamera,
-                                                                m_imageFileExtension, renderLayer, 1);
-   }
-   else
-   {
-      pathType = m_defaultRenderGlobalsData.kFullPathTmp;
-      return m_defaultRenderGlobalsData.getImageName(pathType, fileFrameNumber,
-                                                                sceneFileName, nameCamera,
-                                                                m_imageFileExtension, renderLayer, 1);
-   }
-
-}
-
-MString CRenderOptions::GetAOVImageFilename(MString fileName)
-{
-
-   MString nameCamera;
-   MString cameraFolderName;
-   MObject renderLayer = MFnRenderLayer::currentLayer();
-   double fileFrameNumber = MAnimControl::currentTime().value();
-
-   m_imageFileExtension = GetFileExtension(m_arnoldRenderImageFormat);
-
-   // file name
-   MFileObject fileObj;
-   fileObj.setRawFullName(MFileIO::currentFile());
-   MString sceneFileName = fileObj.resolvedName();
-   if (fileName != "")
-      sceneFileName = fileName;
-   sceneFileName = sceneFileName.substringW(0, sceneFileName.rindexW('.')-1);
-   // get camera transform node for folder name
-   MFnDagNode camDag(GetCamera());
-   MFnDagNode camDagParent(camDag.parent(0));
-   nameCamera = camDagParent.name();
-
-
-   // Notes on MCommonRenderSettingsData::getImageName:
-   //   - sceneFileName is only used if defaultRenderGlobals.imageFilePrefix is not set
-   //   - a "<RenderPass>/" token is added before the file name if any pass nodes are
-   //     connected to a render layer AND <RenderPass> does not appear in defaultRenderGlobals.imageFilePrefix
-   // because getImageName ignores the sceneFileName arg when defaultRenderGlobals.imageFilePrefix is non-empty,
-   // we can only achieve the proper addition of the <RenderPass> token by creating a dummy render pass node.
-   // TODO: write a complete replacement for MCommonRenderSettingsData::getImageName
-   MCommonRenderSettingsData::MpathType pathType;
-   if (BatchMode())
-   {
-      // TODO: check that this is appropriate behavior (seems questionable)
-      // if (MultiCameraRender())
-      //   nameCamera = sceneFileName + "/" + nameCamera;
-
-      pathType = m_defaultRenderGlobalsData.kFullPathImage;
-   }
-   else
-   {
-      pathType = m_defaultRenderGlobalsData.kFullPathTmp;
-   }
-
-   sceneFileName += ".<RenderPass>";
-   MString tokens = MString("RenderPass=") + "";
-
-   MString filename =  m_defaultRenderGlobalsData.getImageName(pathType, fileFrameNumber,
-                                                              sceneFileName, nameCamera,
-                                                              m_imageFileExtension, renderLayer,
-                                                              tokens, 1);
-
-   AiMsgDebug("[mtoa] GetAOVImageFilename sceneFileName '%s', tokens '%s', filename : %s",
-         sceneFileName.asChar(), tokens.asChar(), filename.asChar());
-
-   return filename;
-}
-
 
 void CRenderOptions::ProcessCommonRenderOptions()
 {

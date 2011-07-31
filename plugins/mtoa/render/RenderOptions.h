@@ -245,8 +245,6 @@ public:
    MString GetFileExtension(const MString& imageRenderFormat) const;
    void UpdateImageFilename();
    void UpdateImageOptions();
-   MString GetImageFilename();
-   MString GetAOVImageFilename(MString fileName = "");
 
 private:
 
