@@ -173,7 +173,7 @@ class PerspCameraTemplate(CameraTemplate):
         self.addSeparator()
         self.addAttribute('aiUvRemap')
 
-registerTranslatorUI(SpotLightTemplate, "spotLight")
+registerTranslatorUI(PerspCameraTemplate, "camera", "perspective")
 
 class AreaLightTemplate(lightTemplate.LightTemplate):
     # TODO: handle filter association via metadata
