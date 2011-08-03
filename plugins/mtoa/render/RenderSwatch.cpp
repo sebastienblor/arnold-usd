@@ -339,7 +339,7 @@ MStatus CRenderSwatchGenerator::AssignNode(AtNode* arnoldNode, CNodeTranslator* 
    {
       AiNodeSetFlt(geometry, "disp_height", depFn.findPlug("disp_height").asFloat());
       AiNodeSetFlt(geometry, "disp_zero_value", depFn.findPlug("disp_zero_value").asFloat());
-      AiNodeSetBool(geometry, "autobump", depFn.findPlug("autobump").asBool());
+      AiNodeSetBool(geometry, "disp_autobump", depFn.findPlug("disp_autobump").asBool());
 
       MPlugArray connections;
       connections.clear();

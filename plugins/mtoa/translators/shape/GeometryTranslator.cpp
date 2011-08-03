@@ -469,7 +469,7 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
          // it only influences the computation of the displacement bounds
          AiNodeSetFlt(polymesh, "disp_height", dispNode.findPlug("disp_height").asFloat());
          AiNodeSetFlt(polymesh, "disp_zero_value", dispNode.findPlug("disp_zero_value").asFloat());
-         AiNodeSetBool(polymesh, "autobump", dispNode.findPlug("autobump").asBool());
+         AiNodeSetBool(polymesh, "disp_autobump", dispNode.findPlug("disp_autobump").asBool());
 
          connections.clear();
          dispNode.findPlug("disp_map").connectedTo(connections, true, false);
