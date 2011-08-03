@@ -589,9 +589,7 @@
     [attr specular_rotation]
         min                 FLOAT   0.0
         max                 FLOAT   1.0
-    [attr enable_internal_reflections]
-        min                 FLOAT   0.0
-        max                 FLOAT   1.0    
+   
     # AOVs
     [attr aov_emission]
     aov.type                INT     0x06
