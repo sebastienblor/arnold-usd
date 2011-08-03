@@ -318,6 +318,7 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("texture_max_memory_MB");
    s_attributes.MakeInput("texture_max_open_files");
    s_attributes.MakeInput("texture_accept_untiled");
+   s_attributes.MakeInput("texture_accept_unmipped");
    s_attributes.MakeInput("texture_conservative_lookups");
    s_attributes.MakeInput("texture_per_file_stats");
 

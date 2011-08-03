@@ -669,6 +669,10 @@ def createArnoldTextureSettings():
                         label="Accept Untiled",
                         attribute='defaultArnoldRenderOptions.textureAcceptUntiled')
 
+    pm.attrControlGrp('texture_accept_unmipped',
+                        label="Accept Unmipped",
+                        attribute='defaultArnoldRenderOptions.textureAcceptUnmipped')
+    
     pm.attrControlGrp('texture_autotile',
                         label="Auto Tile Size",
                         attribute='defaultArnoldRenderOptions.textureAutotile')
