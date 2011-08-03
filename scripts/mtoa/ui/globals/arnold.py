@@ -722,6 +722,9 @@ def createArnoldOverrideSettings():
 
     pm.attrControlGrp('ignore_sss',
                         attribute='defaultArnoldRenderOptions.ignore_sss')
+    
+    pm.attrControlGrp('ignore_bump',
+                        attribute='defaultArnoldRenderOptions.ignore_bump')
 
     pm.setParent('..')
 

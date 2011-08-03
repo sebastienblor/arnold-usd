@@ -67,6 +67,8 @@
         maya.keyable        BOOL    False
     [attr ignore_sss]
         maya.keyable        BOOL    False
+    [attr ignore_bump]
+        maya.keyable        BOOL    False
     [attr auto_transparency_depth]
         maya.keyable        BOOL    False
         min                 INT     0
