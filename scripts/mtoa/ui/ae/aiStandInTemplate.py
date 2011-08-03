@@ -8,8 +8,9 @@ from customShapeAttributes import commonShapeAttributes
 def LoadStandInButtonPush(*arg):
     basicFilter = 'Arnold Archive (*.ass *.obj);;Arnold Procedural (*.so *.dll)'
     ret = cmds.fileDialog2(fileFilter=basicFilter, dialogStyle=2,cap='Load StandIn',okc='Load',fm=4)
-    if len(ret):
-        ArnoldStandInDsoEdit(ret[0])
+    if ret != None:
+        if len(ret):
+            ArnoldStandInDsoEdit(ret[0])
         
 def ArnoldStandInDsoEdit(mPath) :
     mArchivePath = ''
@@ -107,11 +108,16 @@ def aiStandInTemplate(nodeName):
     cmds.editorTemplate(endLayout=True)
 
     cmds.editorTemplate(beginLayout="Arnold", collapse=True)
-    commonShapeAttributes(nodeName)
+    cmds.editorTemplate("aiSelfShadows", addControl=True)
+    cmds.editorTemplate("aiOpaque", addControl=True)
+    cmds.editorTemplate("aiVisibleInDiffuse", addControl=True)
+    cmds.editorTemplate("aiVisibleInGlossy", addControl=True)
+    cmds.editorTemplate("aiSssUseGi", label="SSS Use Gi", addControl=True)
+    cmds.editorTemplate("aiSssSampleDistribution", label="SSS Samples Distribution", addControl=True)
+    cmds.editorTemplate("aiSssSampleSpacing", label="SSS Sample Spacing", addControl=True)
     cmds.editorTemplate(endLayout=True)
 
-
-    cmds.editorTemplate(endLayout=True)
+    #cmds.editorTemplate(endLayout=True)
 
     cmds.editorTemplate(beginLayout="Object Display", collapse=True)
     cmds.editorTemplate("visibility", addControl=True)
@@ -205,8 +211,9 @@ def aiStandInTemplate(nodeName):
 def SaveStandInButtonPush(*arg):
     basicFilter = "Arnold Source Scene (*.ass)"
     ret = cmds.fileDialog2(fileFilter=basicFilter, dialogStyle=2,cap="Save StandIn",okc="Save",fm=0)
-    if len(ret):
-        cmds.textField("aiExportFilename", edit=True, text=ret[0].replace(".ass",""))
+    if ret != None:
+        if len(ret):
+            cmds.textField("aiExportFilename", edit=True, text=ret[0].replace(".ass",""))
 
 def SequenceToggleOn(*arg):
    ToggleSequenceLine(True)
