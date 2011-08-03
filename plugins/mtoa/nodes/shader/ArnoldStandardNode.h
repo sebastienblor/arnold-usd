@@ -45,6 +45,7 @@ public:
    static MObject s_reflection_exit_colorG;
    static MObject s_reflection_exit_colorB;
    static MObject s_reflection_exit_color;
+   static MObject s_enable_internal_reflections;
    static MObject s_Krn;
    static MObject s_Ks;
    static MObject s_Ks_colorR;

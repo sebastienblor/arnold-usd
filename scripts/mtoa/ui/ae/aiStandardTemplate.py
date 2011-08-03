@@ -104,6 +104,7 @@ def aiStandardTemplate(nodeName):
     cmds.editorTemplate("enable_glossy_caustics", label="Enable Glossy Caustics", addControl=True)
     cmds.editorTemplate("enable_reflective_caustics", label="Enable Reflective Caustics", addControl=True)
     cmds.editorTemplate("enable_refractive_caustics", label="Enable Refractive Caustics", addControl=True)
+    cmds.editorTemplate("enable_internal_reflections", label="Enable Internal Reflections", addControl=True)
     cmds.editorTemplate(endNoOptimize=True)
     cmds.editorTemplate(endLayout=True)
 

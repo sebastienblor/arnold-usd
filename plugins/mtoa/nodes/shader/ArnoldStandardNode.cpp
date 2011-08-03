@@ -37,6 +37,7 @@ MObject CArnoldStandardNode::s_reflection_exit_colorR;
 MObject CArnoldStandardNode::s_reflection_exit_colorG;
 MObject CArnoldStandardNode::s_reflection_exit_colorB;
 MObject CArnoldStandardNode::s_reflection_exit_color;
+MObject CArnoldStandardNode::s_enable_internal_reflections;
 MObject CArnoldStandardNode::s_Krn;
 MObject CArnoldStandardNode::s_Ks;
 MObject CArnoldStandardNode::s_Ks_colorR;
@@ -433,6 +434,9 @@ MStatus CArnoldStandardNode::initialize()
 
    MAKE_COLOR(s_refraction_exit_color, "refraction_exit_color", "rfcec", 0.0f, 0.0f, 0.0f);
    MAKE_INPUT(nAttr, s_refraction_exit_color);
+
+   s_enable_internal_reflections = nAttr.create("enable_internal_reflections", "riref", MFnNumericData::kBoolean, 0);
+   MAKE_INPUT(nAttr, s_enable_internal_reflections);
 
    s_Phong_exponent = nAttr.create("Phong_exponent", "phonge", MFnNumericData::kFloat, 10);
    nAttr.setSoftMin(0);
