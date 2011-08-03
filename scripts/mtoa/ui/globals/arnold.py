@@ -67,6 +67,7 @@ def updateMotionBlurSettings(*args):
     pm.attrControlGrp('mb_shutter_type', edit=True, enable=flag)
     pm.attrControlGrp('mb_motion_steps', edit=True, enable=flag)
     pm.attrControlGrp('mb_motion_frames', edit=True, enable=flag)
+    pm.attrControlGrp('mb_shader_enable', edit=True, enable=flag)
 
 
 def updateLogSettings(*args):
