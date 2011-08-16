@@ -157,24 +157,6 @@ class SpotLightTemplate(lightTemplate.LightTemplate):
         self.commonLightAttributes()
 registerTranslatorUI(SpotLightTemplate, "spotLight")
 
-class CameraTemplate(ArnoldTranslatorTemplate):
-    def addDOFAttributes(self):
-        self.addAttribute("aiEnableDOF")
-        self.addSeparator()
-        self.addAttribute("aiFocusDistance")
-        self.addAttribute("aiApertureSize")
-        self.addAttribute("aiApertureBlades")
-        self.addAttribute("aiApertureBladeCurvature")
-        self.addAttribute("aiApertureRotation")
-
-class PerspCameraTemplate(CameraTemplate):
-    def setup(self):
-        self.addDOFAttributes()
-        self.addSeparator()
-        self.addAttribute('aiUvRemap')
-
-registerTranslatorUI(PerspCameraTemplate, "camera", "perspective")
-
 class AreaLightTemplate(lightTemplate.LightTemplate):
     # TODO: handle filter association via metadata
     def validFilters(self):
@@ -198,9 +180,34 @@ class AreaLightTemplate(lightTemplate.LightTemplate):
 
 registerTranslatorUI(AreaLightTemplate, "areaLight")
 
+class CameraTemplate(ArnoldTranslatorTemplate):
+    def addDOFAttributes(self):
+        self.addAttribute("aiEnableDOF")
+        self.addSeparator()
+        self.addAttribute("aiFocusDistance")
+        self.addAttribute("aiApertureSize")
+        self.addAttribute("aiApertureBlades")
+        self.addAttribute("aiApertureBladeCurvature")
+        self.addAttribute("aiApertureRotation")
+        
+    def cleanExtraAttributes(self):
+        for attr in self.getAttributes():
+            print 'Clean AETemplate for ->',attr
+            cmds.editorTemplate(suppress=attr)
+        
+
+class PerspCameraTemplate(CameraTemplate):
+    def setup(self):
+        self.addDOFAttributes()
+        self.addSeparator()
+        self.addAttribute('aiUvRemap')
+        self.cleanExtraAttributes()
+
+registerTranslatorUI(PerspCameraTemplate, "camera", "perspective")
+
 class OrthographicTemplate(CameraTemplate):
     def setup(self):
-        pass
+        self.cleanExtraAttributes()
 
 registerTranslatorUI(OrthographicTemplate, "camera", "orthographic")
 
@@ -210,6 +217,7 @@ class FisheyeCameraTemplate(CameraTemplate):
         self.addSeparator()
         self.addAttribute('aiFov')
         self.addAttribute('aiAutocrop')
+        self.cleanExtraAttributes()
 
 registerTranslatorUI(FisheyeCameraTemplate, "camera", "fisheye")
 
@@ -218,6 +226,7 @@ class CylCameraTemplate(CameraTemplate):
         self.addAttribute('aiHorizontalFov')
         self.addAttribute('aiVerticalFov')
         self.addAttribute('aiProjective')
+        self.cleanExtraAttributes()
 
 registerTranslatorUI(CylCameraTemplate, "camera", "cylindrical")
 

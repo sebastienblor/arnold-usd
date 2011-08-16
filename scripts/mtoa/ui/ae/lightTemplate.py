@@ -141,12 +141,21 @@ class LightTemplate(ArnoldTranslatorTemplate):
 
         self.addSeparator()
     
-    #    ui.addAttribute("aiOverrideSssSamples", aeCallback(overrideSssToggle), label="Override SSS Samples", addDynamicControl=True)
         self.addAttribute("aiSssSamples", label="SSS Samples")
 
         self.beginLayout(label="Light Filters", collapse=False)
         self.addCustom("aiFilters", self.customLightFiltersNew, self.customLightFiltersReplace)
         self.endLayout()
+        cmds.editorTemplate(suppress="aiCastShadows")
+        cmds.editorTemplate(suppress="aiExposure")
+        cmds.editorTemplate(suppress="aiSamples")
+        cmds.editorTemplate(suppress="aiMis")
+        cmds.editorTemplate(suppress="aiNormalize")
+        cmds.editorTemplate(suppress="aiBounceFactor")
+        cmds.editorTemplate(suppress="aiBounces")
+        cmds.editorTemplate(suppress="aiOverrideSssSamples")
+        cmds.editorTemplate(suppress="aiSssSamples")
+        cmds.editorTemplate(suppress="aiAngle")
 
     def moveLightFilterUp(self):
         items = cmds.textScrollList(self.scrollList, q=True, sii=True)
