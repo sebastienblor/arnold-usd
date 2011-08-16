@@ -1,815 +1,758 @@
-Cannot open log file 'D:\orenouard\Eclipse\Arnold\mtoa\build\windows_x86_64\msvc_opt\testsuite\test_0030\test_0030.log', using stdout instead
 
-Starting "C:\Program Files\Autodesk\Maya2011\bin\mayabatch.exe"
-log started Fri Jul 01 15:32:26 2011
-Arnold 3.3.7.0 windows 64-bit icc110 oiio808 sse (build date: Jun 16 2011 14:14:28)
-running on furnace, 24 x 3333 mhz GenuineIntel with 24567 mb
- 
-[METADATA] Loading metadata file: C:/solidAngle/mtoadeploy/2011/plug-ins/mtoa.mtd
-[mtoa] [<built-in>] Registered 12 new Maya nodes.
-[mtoa] [<built-in>] Registered a total of 13 translators for 21 Maya nodes (12 new and 9 existing).
-loading plugin: C:/solidAngle/mtoadeploy/2011/shaders/mtoa_shaders.dll ...
-mtoa_shaders.dll: MayaMultiplyDivide uses Arnold 3.3.7.0
-mtoa_shaders.dll: MayaClamp uses Arnold 3.3.7.0
-mtoa_shaders.dll: MayaGammaCorrect uses Arnold 3.3.7.0
-mtoa_shaders.dll: MayaCondition uses Arnold 3.3.7.0
-mtoa_shaders.dll: MayaReverse uses Arnold 3.3.7.0
-mtoa_shaders.dll: MayaBlendColors uses Arnold 3.3.7.0
-mtoa_shaders.dll: MayaFacingRatio uses Arnold 3.3.7.0
-mtoa_shaders.dll: MayaFlippedNormal uses Arnold 3.3.7.0
-mtoa_shaders.dll: MayaPlusMinusAverage1D uses Arnold 3.3.7.0
-mtoa_shaders.dll: MayaPlusMinusAverage2D uses Arnold 3.3.7.0
-mtoa_shaders.dll: MayaPlusMinusAverage3D uses Arnold 3.3.7.0
-mtoa_shaders.dll: MayaRemapValueToValue uses Arnold 3.3.7.0
-mtoa_shaders.dll: MayaRemapValueToColor uses Arnold 3.3.7.0
-mtoa_shaders.dll: MayaRemapColor uses Arnold 3.3.7.0
-mtoa_shaders.dll: MayaFile uses Arnold 3.3.7.0
-mtoa_shaders.dll: MayaPlace2DTexture uses Arnold 3.3.7.0
-mtoa_shaders.dll: MayaRamp uses Arnold 3.3.7.0
-mtoa_shaders.dll: MayaProjection uses Arnold 3.3.7.0
-mtoa_shaders.dll: MeshInfo uses Arnold 3.3.7.0
-mtoa_shaders.dll: TangentToObjectSpace uses Arnold 3.3.7.0
-mtoa_shaders.dll: MayaChecker uses Arnold 3.3.7.0
-mtoa_shaders.dll: MayaBulge uses Arnold 3.3.7.0
-mtoa_shaders.dll: MayaCloth uses Arnold 3.3.7.0
-mtoa_shaders.dll: MayaGrid uses Arnold 3.3.7.0
-mtoa_shaders.dll: MayaFractal uses Arnold 3.3.7.0
-mtoa_shaders.dll: MayaNoise uses Arnold 3.3.7.0
-mtoa_shaders.dll: MayaPlace3DTexture uses Arnold 3.3.7.0
-mtoa_shaders.dll: MayaRgbToHsv uses Arnold 3.3.7.0
-mtoa_shaders.dll: MayaHsvToRgb uses Arnold 3.3.7.0
-mtoa_shaders.dll: MayaLuminance uses Arnold 3.3.7.0
-mtoa_shaders.dll: MayaCloud uses Arnold 3.3.7.0
-mtoa_shaders.dll: MayaCloudAlpha uses Arnold 3.3.7.0
-mtoa_shaders.dll: MayaSnow uses Arnold 3.3.7.0
-mtoa_shaders.dll: MayaContrast uses Arnold 3.3.7.0
-mtoa_shaders.dll: MayaLayeredTexture uses Arnold 3.3.7.0
-mtoa_shaders.dll: MayaLayeredShader uses Arnold 3.3.7.0
-mtoa_shaders.dll: MayaSolidFractal uses Arnold 3.3.7.0
-mtoa_shaders.dll: MayaVolumeNoise uses Arnold 3.3.7.0
-mtoa_shaders.dll: MayaBrownian uses Arnold 3.3.7.0
-mtoa_shaders.dll: MayaStucco uses Arnold 3.3.7.0
-mtoa_shaders.dll: MayaRemapHsv uses Arnold 3.3.7.0
-mtoa_shaders.dll: MayaSetRange uses Arnold 3.3.7.0
-mtoa_shaders.dll: MayaImagePlane uses Arnold 3.3.7.0
-mtoa_shaders.dll: MayaSurfaceShader uses Arnold 3.3.7.0
-mtoa_shaders.dll: colorToFloat uses Arnold 3.3.7.0
-loaded 45 plugins in 0:00.12
-[mtoa] [mtoa_shaders] Registered 0 new Maya nodes.
-[mtoa] [mtoa_shaders] Registered a total of 24 translators for 24 Maya nodes (0 new and 24 existing).
-[mtoa] Loading extension shave(C:/solidAngle/mtoadeploy/2011/extensions/shave.dll).
-loading plugin: C:/solidAngle/mtoadeploy/2011/shaders/shave_shaders.dll ...
-shave_shaders.dll: ShaveHair uses Arnold 3.3.7.0
-loaded 1 plugins in 0:00.00
-[mtoa] [shave] Registered 0 new Maya nodes.
-[mtoa] [shave] Registered a total of 0 translators for 0 Maya nodes (0 new and 0 existing).
-[mtoa] Successfully loaded extension library shave(C:/solidAngle/mtoadeploy/2011/extensions/shave.dll).
-[mtoa] Registering 3 loaded extensions:
-[mtoa] Registered extension <built-in>(<built-in>).
-[mtoa] Registered extension mtoa_shaders(C:/solidAngle/mtoadeploy/2011/shaders/mtoa_shaders.dll).
-Warning: [mtoa] Extension shave requires Maya plugin shaveNode, registering will be deferred until plugin is loaded.
-[mtoa] Extension shave requires Maya plugin shaveNode, registering will be deferred until plugin is loaded.
-[mtoa] registering custom attr template for mesh
-[mtoa] registering custom attr template for hairSystem
-[mtoa] registering custom attr template for ambientLight
-[mtoa] registering custom attr template for directionalLight
-[mtoa] registering custom attr template for pointLight
-[mtoa] registering custom attr template for spotLight
-[mtoa] registering custom attr template for areaLight
+Starting "/usr/autodesk/maya2011-x64/bin/maya"
+
+00:00:00  738mb         | log started Tue Aug  9 17:57:43 2011
+00:00:00  738mb         | Arnold 3.3.10.0 linux 64-bit gcc412 glibc2111 oiio1000 sse (build date: Jul 21 2011 19:13:06)
+00:00:00  738mb         | running on 8 x 933 mhz GenuineIntel with 7983 mb
+00:00:00  738mb         |  
+00:00:00  738mb         | [METADATA] Loading metadata file: /home/ndu/workspace/mtoa/mtoadeploy/2011/plug-ins/mtoa.mtd
+00:00:00  739mb         | [mtoa] [<built-in>] Registered 12 new Maya nodes.
+00:00:00  739mb         | [mtoa] [<built-in>] Registered a total of 34 translators for 23 Maya nodes (12 new and 11 existing).
+00:00:00  739mb         | loading plugin: /home/ndu/workspace/mtoa/mtoadeploy/2011/shaders/mtoa_shaders.so ...
+00:00:00  741mb         | mtoa_shaders.so: MayaMultiplyDivide uses Arnold 3.3.10.0
+00:00:00  741mb         | mtoa_shaders.so: MayaClamp uses Arnold 3.3.10.0
+00:00:00  741mb         | mtoa_shaders.so: MayaGammaCorrect uses Arnold 3.3.10.0
+00:00:00  741mb         | mtoa_shaders.so: MayaCondition uses Arnold 3.3.10.0
+00:00:00  741mb         | mtoa_shaders.so: MayaReverse uses Arnold 3.3.10.0
+00:00:00  741mb         | mtoa_shaders.so: MayaBlendColors uses Arnold 3.3.10.0
+00:00:00  741mb         | mtoa_shaders.so: MayaFacingRatio uses Arnold 3.3.10.0
+00:00:00  741mb         | mtoa_shaders.so: MayaFlippedNormal uses Arnold 3.3.10.0
+00:00:00  741mb         | mtoa_shaders.so: MayaPlusMinusAverage1D uses Arnold 3.3.10.0
+00:00:00  741mb         | mtoa_shaders.so: MayaPlusMinusAverage2D uses Arnold 3.3.10.0
+00:00:00  741mb         | mtoa_shaders.so: MayaPlusMinusAverage3D uses Arnold 3.3.10.0
+00:00:00  741mb         | mtoa_shaders.so: MayaRemapValueToValue uses Arnold 3.3.10.0
+00:00:00  741mb         | mtoa_shaders.so: MayaRemapValueToColor uses Arnold 3.3.10.0
+00:00:00  741mb         | mtoa_shaders.so: MayaRemapColor uses Arnold 3.3.10.0
+00:00:00  741mb         | mtoa_shaders.so: MayaFile uses Arnold 3.3.10.0
+00:00:00  741mb         | mtoa_shaders.so: MayaPlace2DTexture uses Arnold 3.3.10.0
+00:00:00  741mb         | mtoa_shaders.so: MayaRamp uses Arnold 3.3.10.0
+00:00:00  741mb         | mtoa_shaders.so: MayaProjection uses Arnold 3.3.10.0
+00:00:00  741mb         | mtoa_shaders.so: MeshInfo uses Arnold 3.3.10.0
+00:00:00  741mb         | mtoa_shaders.so: TangentToObjectSpace uses Arnold 3.3.10.0
+00:00:00  741mb         | mtoa_shaders.so: MayaChecker uses Arnold 3.3.10.0
+00:00:00  741mb         | mtoa_shaders.so: MayaBulge uses Arnold 3.3.10.0
+00:00:00  741mb         | mtoa_shaders.so: MayaCloth uses Arnold 3.3.10.0
+00:00:00  741mb         | mtoa_shaders.so: MayaGrid uses Arnold 3.3.10.0
+00:00:00  741mb         | mtoa_shaders.so: MayaFractal uses Arnold 3.3.10.0
+00:00:00  741mb         | mtoa_shaders.so: MayaNoise uses Arnold 3.3.10.0
+00:00:00  741mb         | mtoa_shaders.so: MayaPlace3DTexture uses Arnold 3.3.10.0
+00:00:00  741mb         | mtoa_shaders.so: MayaRgbToHsv uses Arnold 3.3.10.0
+00:00:00  741mb         | mtoa_shaders.so: MayaHsvToRgb uses Arnold 3.3.10.0
+00:00:00  741mb         | mtoa_shaders.so: MayaLuminance uses Arnold 3.3.10.0
+00:00:00  741mb         | mtoa_shaders.so: MayaCloud uses Arnold 3.3.10.0
+00:00:00  741mb         | mtoa_shaders.so: MayaCloudAlpha uses Arnold 3.3.10.0
+00:00:00  741mb         | mtoa_shaders.so: MayaSnow uses Arnold 3.3.10.0
+00:00:00  741mb         | mtoa_shaders.so: MayaContrast uses Arnold 3.3.10.0
+00:00:00  741mb         | mtoa_shaders.so: MayaLayeredTexture uses Arnold 3.3.10.0
+00:00:00  741mb         | mtoa_shaders.so: MayaLayeredShader uses Arnold 3.3.10.0
+00:00:00  741mb         | mtoa_shaders.so: MayaSolidFractal uses Arnold 3.3.10.0
+00:00:00  741mb         | mtoa_shaders.so: MayaVolumeNoise uses Arnold 3.3.10.0
+00:00:00  741mb         | mtoa_shaders.so: MayaBrownian uses Arnold 3.3.10.0
+00:00:00  741mb         | mtoa_shaders.so: MayaStucco uses Arnold 3.3.10.0
+00:00:00  741mb         | mtoa_shaders.so: MayaRemapHsv uses Arnold 3.3.10.0
+00:00:00  741mb         | mtoa_shaders.so: MayaSetRange uses Arnold 3.3.10.0
+00:00:00  741mb         | mtoa_shaders.so: MayaImagePlane uses Arnold 3.3.10.0
+00:00:00  741mb         | mtoa_shaders.so: MayaSurfaceShader uses Arnold 3.3.10.0
+00:00:00  741mb         | mtoa_shaders.so: colorToFloat uses Arnold 3.3.10.0
+00:00:00  741mb         | loaded 45 plugins in 0:00.00
+00:00:00  741mb         | [mtoa] [mtoa_shaders] Registered 0 new Maya nodes.
+00:00:00  741mb         | [mtoa] [mtoa_shaders] Registered a total of 24 translators for 24 Maya nodes (0 new and 24 existing).
+00:00:00  741mb         | [mtoa] Loading extension shave(/home/ndu/workspace/mtoa/mtoadeploy/2011/extensions/shave.so).
+00:00:00  745mb         | loading plugin: /home/ndu/workspace/mtoa/mtoadeploy/2011/shaders/shave_shaders.so ...
+00:00:00  747mb         | shave_shaders.so: ShaveHair uses Arnold 3.3.10.0
+00:00:00  747mb         | loaded 1 plugins in 0:00.00
+00:00:00  747mb         | [mtoa] [shave] Registered 0 new Maya nodes.
+00:00:00  747mb         | [mtoa] [shave] Registered a total of 0 translators for 0 Maya nodes (0 new and 0 existing).
+00:00:00  747mb         | [mtoa] Successfully loaded extension library shave(/home/ndu/workspace/mtoa/mtoadeploy/2011/extensions/shave.so).
+00:00:00  747mb         | [mtoa] Registering 3 loaded extensions:
+00:00:00  747mb         | [mtoa] Registered extension <built-in>(<built-in>).
+00:00:00  747mb         | [mtoa] Registered extension mtoa_shaders(/home/ndu/workspace/mtoa/mtoadeploy/2011/shaders/mtoa_shaders.so).
+00:00:00  747mb         | [mtoa] Registered extension shave(/home/ndu/workspace/mtoa/mtoadeploy/2011/extensions/shave.so).
+pymel.core : INFO : Updating pymel with pre-loaded plugins: OpenEXRLoader, shaveNode, mayaHIK, mtoa
+registering translator template for <built-in> on mesh
+registering translator template for <built-in> on hairSystem
+registering translator template for <built-in> on ambientLight
+registering translator template for <built-in> on directionalLight
+registering translator template for <built-in> on pointLight
+registering translator template for <built-in> on spotLight
 registering translator template for perspective on camera
+registering translator template for <built-in> on areaLight
 registering translator template for orthographic on camera
 registering translator template for fisheye on camera
 registering translator template for cylindrical on camera
 Adding attribute changed callback for camera
-pymel.core : INFO : Updating pymel with pre-loaded plugins: mtoa
-Successfully registered renderer 'arnold'
- 
-releasing resources
-Arnold shutdown
-log started Fri Jul 01 15:32:27 2011
-Arnold 3.3.7.0 windows 64-bit icc110 oiio808 sse (build date: Jun 16 2011 14:14:28)
-running on furnace, 24 x 3333 mhz GenuineIntel with 24567 mb
- 
- 
-releasing resources
-Arnold shutdown
-File read in 1 seconds.
-Result: D:/orenouard/Eclipse/Arnold/mtoa/build/windows_x86_64/msvc_opt/testsuite/test_0030/test.ma
-log started Fri Jul 01 15:32:27 2011
-Arnold 3.3.7.0 windows 64-bit icc110 oiio808 sse (build date: Jun 16 2011 14:14:28)
-running on furnace, 24 x 3333 mhz GenuineIntel with 24567 mb
- 
- 
-releasing resources
-Arnold shutdown
-00:00:00  224mb         | log started Fri Jul 01 15:32:27 2011
-00:00:00  224mb         | Arnold 3.3.7.0 windows 64-bit icc110 oiio808 sse (build date: Jun 16 2011 14:14:28)
-00:00:00  224mb         | running on furnace, 24 x 3333 mhz GenuineIntel with 24567 mb
-00:00:00  224mb         |  
-00:00:00  224mb         | loading plugins from C:/solidAngle/mtoadeploy/2011/shaders ...
-00:00:00  224mb         |  mtoa_shaders.dll: MayaMultiplyDivide uses Arnold 3.3.7.0
-00:00:00  224mb         |  mtoa_shaders.dll: MayaClamp uses Arnold 3.3.7.0
-00:00:00  224mb         |  mtoa_shaders.dll: MayaGammaCorrect uses Arnold 3.3.7.0
-00:00:00  224mb         |  mtoa_shaders.dll: MayaCondition uses Arnold 3.3.7.0
-00:00:00  224mb         |  mtoa_shaders.dll: MayaReverse uses Arnold 3.3.7.0
-00:00:00  224mb         |  mtoa_shaders.dll: MayaBlendColors uses Arnold 3.3.7.0
-00:00:00  224mb         |  mtoa_shaders.dll: MayaFacingRatio uses Arnold 3.3.7.0
-00:00:00  224mb         |  mtoa_shaders.dll: MayaFlippedNormal uses Arnold 3.3.7.0
-00:00:00  224mb         |  mtoa_shaders.dll: MayaPlusMinusAverage1D uses Arnold 3.3.7.0
-00:00:00  224mb         |  mtoa_shaders.dll: MayaPlusMinusAverage2D uses Arnold 3.3.7.0
-00:00:00  224mb         |  mtoa_shaders.dll: MayaPlusMinusAverage3D uses Arnold 3.3.7.0
-00:00:00  224mb         |  mtoa_shaders.dll: MayaRemapValueToValue uses Arnold 3.3.7.0
-00:00:00  224mb         |  mtoa_shaders.dll: MayaRemapValueToColor uses Arnold 3.3.7.0
-00:00:00  224mb         |  mtoa_shaders.dll: MayaRemapColor uses Arnold 3.3.7.0
-00:00:00  224mb         |  mtoa_shaders.dll: MayaFile uses Arnold 3.3.7.0
-00:00:00  224mb         |  mtoa_shaders.dll: MayaPlace2DTexture uses Arnold 3.3.7.0
-00:00:00  224mb         |  mtoa_shaders.dll: MayaRamp uses Arnold 3.3.7.0
-00:00:00  224mb         |  mtoa_shaders.dll: MayaProjection uses Arnold 3.3.7.0
-00:00:00  224mb         |  mtoa_shaders.dll: MeshInfo uses Arnold 3.3.7.0
-00:00:00  224mb         |  mtoa_shaders.dll: TangentToObjectSpace uses Arnold 3.3.7.0
-00:00:00  224mb         |  mtoa_shaders.dll: MayaChecker uses Arnold 3.3.7.0
-00:00:00  224mb         |  mtoa_shaders.dll: MayaBulge uses Arnold 3.3.7.0
-00:00:00  224mb         |  mtoa_shaders.dll: MayaCloth uses Arnold 3.3.7.0
-00:00:00  224mb         |  mtoa_shaders.dll: MayaGrid uses Arnold 3.3.7.0
-00:00:00  224mb         |  mtoa_shaders.dll: MayaFractal uses Arnold 3.3.7.0
-00:00:00  224mb         |  mtoa_shaders.dll: MayaNoise uses Arnold 3.3.7.0
-00:00:00  224mb         |  mtoa_shaders.dll: MayaPlace3DTexture uses Arnold 3.3.7.0
-00:00:00  224mb         |  mtoa_shaders.dll: MayaRgbToHsv uses Arnold 3.3.7.0
-00:00:00  224mb         |  mtoa_shaders.dll: MayaHsvToRgb uses Arnold 3.3.7.0
-00:00:00  224mb         |  mtoa_shaders.dll: MayaLuminance uses Arnold 3.3.7.0
-00:00:00  224mb         |  mtoa_shaders.dll: MayaCloud uses Arnold 3.3.7.0
-00:00:00  224mb         |  mtoa_shaders.dll: MayaCloudAlpha uses Arnold 3.3.7.0
-00:00:00  224mb         |  mtoa_shaders.dll: MayaSnow uses Arnold 3.3.7.0
-00:00:00  224mb         |  mtoa_shaders.dll: MayaContrast uses Arnold 3.3.7.0
-00:00:00  224mb         |  mtoa_shaders.dll: MayaLayeredTexture uses Arnold 3.3.7.0
-00:00:00  224mb         |  mtoa_shaders.dll: MayaLayeredShader uses Arnold 3.3.7.0
-00:00:00  224mb         |  mtoa_shaders.dll: MayaSolidFractal uses Arnold 3.3.7.0
-00:00:00  224mb         |  mtoa_shaders.dll: MayaVolumeNoise uses Arnold 3.3.7.0
-00:00:00  224mb         |  mtoa_shaders.dll: MayaBrownian uses Arnold 3.3.7.0
-00:00:00  224mb         |  mtoa_shaders.dll: MayaStucco uses Arnold 3.3.7.0
-00:00:00  224mb         |  mtoa_shaders.dll: MayaRemapHsv uses Arnold 3.3.7.0
-00:00:00  224mb         |  mtoa_shaders.dll: MayaSetRange uses Arnold 3.3.7.0
-00:00:00  224mb         |  mtoa_shaders.dll: MayaImagePlane uses Arnold 3.3.7.0
-00:00:00  224mb         |  mtoa_shaders.dll: MayaSurfaceShader uses Arnold 3.3.7.0
-00:00:00  224mb         |  mtoa_shaders.dll: colorToFloat uses Arnold 3.3.7.0
-00:00:00  224mb         |  shave_shaders.dll: ShaveHair uses Arnold 3.3.7.0
-00:00:00  224mb         | loaded 46 plugins from 2 libs in 0:00.11
-00:00:00  224mb         | [mtoa] [maya aiOptions] Using translator <built-in>, provided by <built-in>(<built-in>).
-00:00:00  224mb         | [mtoa] [translator <built-in>] Exporting on node defaultArnoldRenderOptions.
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.AA_pattern requested by translator does not exist
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.AA_motionblur_pattern requested by translator does not exist
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.AA_sample_clamp_affects_aovs requested by translator does not exist
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.AA_sampling_dither requested by translator does not exist
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.thread_priority requested by translator does not exist
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.flush_buckets_on_halt requested by translator does not exist
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.error_color_bad_texture requested by translator does not exist
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.error_color_bad_mesh requested by translator does not exist
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.error_color_bad_pixel requested by translator does not exist
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.error_color_bad_shader requested by translator does not exist
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.outputs requested by translator does not exist
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.xres requested by translator does not exist
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.yres requested by translator does not exist
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.region_min_x requested by translator does not exist
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.region_min_y requested by translator does not exist
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.region_max_x requested by translator does not exist
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.region_max_y requested by translator does not exist
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.aspect_ratio requested by translator does not exist
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.buckets requested by translator does not exist
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.ignore_list requested by translator does not exist
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.auto_transparency_mode requested by translator does not exist
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.trace_opaque_first requested by translator does not exist
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.texture_searchpath requested by translator does not exist
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.texture_failure_retries requested by translator does not exist
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.texture_glossy_blur requested by translator does not exist
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.texture_diffuse_blur requested by translator does not exist
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.camera requested by translator does not exist
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.background_visibility requested by translator does not exist
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.bump_multiplier requested by translator does not exist
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.luminaire_bias requested by translator does not exist
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.shadow_bias requested by translator does not exist
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.low_light_threshold requested by translator does not exist
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.shadows_obey_light_linking requested by translator does not exist
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.skip_background_atmosphere requested by translator does not exist
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.sss_time requested by translator does not exist
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.max_shader_messages requested by translator does not exist
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.mindist_ulp_count requested by translator does not exist
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.CCW_points requested by translator does not exist
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.mesh_sanity requested by translator does not exist
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.shader_nan_checks requested by translator does not exist
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.bad_bounds_slack requested by translator does not exist
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.strict_procedural_compatibility requested by translator does not exist
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.procedural_searchpath requested by translator does not exist
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.shader_searchpath requested by translator does not exist
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.unload_plugins requested by translator does not exist
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.GI_hemi_pattern requested by translator does not exist
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.GI_Cranley_Patterson requested by translator does not exist
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.GI_direct_lighting requested by translator does not exist
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.GI_falloff_start_dist requested by translator does not exist
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.GI_falloff_stop_dist requested by translator does not exist
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.packet_tracing requested by translator does not exist
-00:00:00  224mb         | [mtoa] [translator <built-in>] Attribute defaultArnoldRenderOptions.packet_shader requested by translator does not exist
-00:00:00  224mb         | [mtoa] Exporting dag node perspShape of type camera
-00:00:00  224mb         | [mtoa] [translator perspective] Exporting on node perspShape.
-00:00:00  224mb         | [mtoa] Exporting dag node topShape of type camera
-00:00:00  224mb         | [mtoa] [translator orthographic] Exporting on node topShape.
-00:00:00  224mb         | [mtoa] Exporting dag node frontShape of type camera
-00:00:00  224mb         | [mtoa] [translator orthographic] Exporting on node frontShape.
-00:00:00  224mb         | [mtoa] Exporting dag node sideShape of type camera
-00:00:00  224mb         | [mtoa] [translator orthographic] Exporting on node sideShape.
-00:00:00  224mb         | [mtoa] Exporting dag node groundPlane_transform of type transform
-00:00:00  224mb         | [mtoa] Dag node groundPlane_transform of type transform ignored
-00:00:00  224mb         | [mtoa] Exporting dag node groundPlane of type groundPlane
-00:00:00  224mb         | [mtoa] Dag node groundPlane of type groundPlane ignored
-00:00:00  224mb         | [mtoa] Exporting dag node transform1 of type transform
-00:00:00  224mb         | [mtoa] Dag node transform1 of type transform ignored
-00:00:00  224mb         | [mtoa] Exporting dag node transform2 of type transform
-00:00:00  224mb         | [mtoa] Dag node transform2 of type transform ignored
-00:00:00  224mb         | [mtoa] Exporting dag node transform3 of type transform
-00:00:00  224mb         | [mtoa] Dag node transform3 of type transform ignored
-00:00:00  224mb         | [mtoa] Exporting dag node transform4 of type transform
-00:00:00  224mb         | [mtoa] Dag node transform4 of type transform ignored
-00:00:00  224mb         | [mtoa] Exporting dag node transform5 of type transform
-00:00:00  224mb         | [mtoa] Dag node transform5 of type transform ignored
-00:00:00  224mb         | [mtoa] Exporting dag node transform6 of type transform
-00:00:00  224mb         | [mtoa] Dag node transform6 of type transform ignored
-00:00:00  224mb         | [mtoa] Exporting dag node transform7 of type transform
-00:00:00  224mb         | [mtoa] Dag node transform7 of type transform ignored
-00:00:00  224mb         | [mtoa] Exporting dag node transform8 of type transform
-00:00:00  224mb         | [mtoa] Dag node transform8 of type transform ignored
-00:00:00  224mb         | [mtoa] Exporting dag node transform9 of type transform
-00:00:00  224mb         | [mtoa] Dag node transform9 of type transform ignored
-00:00:00  224mb         | [mtoa] Exporting dag node transform10 of type transform
-00:00:00  224mb         | [mtoa] Dag node transform10 of type transform ignored
-00:00:00  224mb         | [mtoa] Exporting dag node transform11 of type transform
-00:00:00  224mb         | [mtoa] Dag node transform11 of type transform ignored
-00:00:00  224mb         | [mtoa] Exporting dag node transform12 of type transform
-00:00:00  224mb         | [mtoa] Dag node transform12 of type transform ignored
-00:00:00  224mb         | [mtoa] Exporting dag node transform13 of type transform
-00:00:00  224mb         | [mtoa] Dag node transform13 of type transform ignored
-00:00:00  224mb         | [mtoa] Exporting dag node transform14 of type transform
-00:00:00  224mb         | [mtoa] Dag node transform14 of type transform ignored
-00:00:00  224mb         | [mtoa] Exporting dag node transform15 of type transform
-00:00:00  224mb         | [mtoa] Dag node transform15 of type transform ignored
-00:00:00  224mb         | [mtoa] Exporting dag node transform16 of type transform
-00:00:00  224mb         | [mtoa] Dag node transform16 of type transform ignored
-00:00:00  224mb         | [mtoa] Exporting dag node transform17 of type transform
-00:00:00  224mb         | [mtoa] Dag node transform17 of type transform ignored
-00:00:00  224mb         | [mtoa] Exporting dag node transform18 of type transform
-00:00:00  224mb         | [mtoa] Dag node transform18 of type transform ignored
-00:00:00  224mb         | [mtoa] Exporting dag node transform19 of type transform
-00:00:00  224mb         | [mtoa] Dag node transform19 of type transform ignored
-00:00:00  224mb         | [mtoa] Exporting dag node transform20 of type transform
-00:00:00  224mb         | [mtoa] Dag node transform20 of type transform ignored
-00:00:00  224mb         | [mtoa] Exporting dag node transform21 of type transform
-00:00:00  224mb         | [mtoa] Dag node transform21 of type transform ignored
-00:00:00  224mb         | [mtoa] Exporting dag node transform22 of type transform
-00:00:00  224mb         | [mtoa] Dag node transform22 of type transform ignored
-00:00:00  224mb         | [mtoa] Exporting dag node transform23 of type transform
-00:00:00  224mb         | [mtoa] Dag node transform23 of type transform ignored
-00:00:00  224mb         | [mtoa] Exporting dag node transform24 of type transform
-00:00:00  224mb         | [mtoa] Dag node transform24 of type transform ignored
-00:00:00  224mb         | [mtoa] Exporting dag node transform25 of type transform
-00:00:00  224mb         | [mtoa] Dag node transform25 of type transform ignored
-00:00:00  224mb         | [mtoa] Exporting dag node transform26 of type transform
-00:00:00  224mb         | [mtoa] Dag node transform26 of type transform ignored
-00:00:00  224mb         | [mtoa] Exporting dag node transform27 of type transform
-00:00:00  224mb         | [mtoa] Dag node transform27 of type transform ignored
-00:00:00  224mb         | [mtoa] Exporting dag node pSphere1 of type transform
-00:00:00  224mb         | [mtoa] Dag node pSphere1 of type transform ignored
-00:00:00  224mb         | [mtoa] Exporting dag node pSphereShape1 of type mesh
-00:00:00  224mb         | [mtoa] [maya mesh] Using translator <built-in>, provided by <built-in>(<built-in>).
-00:00:00  224mb         | [mtoa] [translator <built-in>] Exporting on node pSphereShape1.
-00:00:00  224mb         | [mtoa] [maya aiStandard] Using translator <built-in>, provided by <built-in>(<built-in>).
-00:00:00  224mb         | [mtoa] [translator <built-in>] Exporting on node aiStandard2.
-00:00:00  225mb         | [mtoa] Exporting dag node pointLight1 of type transform
-00:00:00  225mb         | [mtoa] Dag node pointLight1 of type transform ignored
-00:00:00  225mb         | [mtoa] Exporting dag node pointLightShape1 of type pointLight
-00:00:00  225mb         | [mtoa] [maya pointLight] Using translator <built-in>, provided by <built-in>(<built-in>).
-00:00:00  225mb         | [mtoa] [translator <built-in>] Exporting on node pointLightShape1.
-00:00:00  225mb         | [mtoa] Exporting dag node hairSystem1 of type transform
-00:00:00  225mb         | [mtoa] Dag node hairSystem1 of type transform ignored
-00:00:00  225mb         | [mtoa] Exporting dag node hairSystemShape1 of type hairSystem
-00:00:00  225mb         | [mtoa] [maya hairSystem] Using translator <built-in>, provided by <built-in>(<built-in>).
-00:00:00  225mb         | [mtoa] [translator <built-in>] Exporting on node hairSystemShape1.
-00:00:01  253mb         | [mtoa] Exporting dag node hairSystem1Follicles of type transform
-00:00:01  253mb         | [mtoa] Dag node hairSystem1Follicles of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1Follicle606 of type transform
-00:00:01  253mb         | [mtoa] Dag node pSphere1Follicle606 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape606 of type follicle
-00:00:01  253mb         | [mtoa] Dag node pSphere1FollicleShape606 of type follicle ignored
-00:00:01  253mb         | [mtoa] Exporting dag node curve1 of type transform
-00:00:01  253mb         | [mtoa] Dag node curve1 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1Follicle619 of type transform
-00:00:01  253mb         | [mtoa] Dag node pSphere1Follicle619 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape619 of type follicle
-00:00:01  253mb         | [mtoa] Dag node pSphere1FollicleShape619 of type follicle ignored
-00:00:01  253mb         | [mtoa] Exporting dag node curve2 of type transform
-00:00:01  253mb         | [mtoa] Dag node curve2 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1Follicle631 of type transform
-00:00:01  253mb         | [mtoa] Dag node pSphere1Follicle631 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape631 of type follicle
-00:00:01  253mb         | [mtoa] Dag node pSphere1FollicleShape631 of type follicle ignored
-00:00:01  253mb         | [mtoa] Exporting dag node curve3 of type transform
-00:00:01  253mb         | [mtoa] Dag node curve3 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1Follicle643 of type transform
-00:00:01  253mb         | [mtoa] Dag node pSphere1Follicle643 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape643 of type follicle
-00:00:01  253mb         | [mtoa] Dag node pSphere1FollicleShape643 of type follicle ignored
-00:00:01  253mb         | [mtoa] Exporting dag node curve4 of type transform
-00:00:01  253mb         | [mtoa] Dag node curve4 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1Follicle656 of type transform
-00:00:01  253mb         | [mtoa] Dag node pSphere1Follicle656 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape656 of type follicle
-00:00:01  253mb         | [mtoa] Dag node pSphere1FollicleShape656 of type follicle ignored
-00:00:01  253mb         | [mtoa] Exporting dag node curve5 of type transform
-00:00:01  253mb         | [mtoa] Dag node curve5 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1Follicle668 of type transform
-00:00:01  253mb         | [mtoa] Dag node pSphere1Follicle668 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape668 of type follicle
-00:00:01  253mb         | [mtoa] Dag node pSphere1FollicleShape668 of type follicle ignored
-00:00:01  253mb         | [mtoa] Exporting dag node curve6 of type transform
-00:00:01  253mb         | [mtoa] Dag node curve6 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1Follicle680 of type transform
-00:00:01  253mb         | [mtoa] Dag node pSphere1Follicle680 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape680 of type follicle
-00:00:01  253mb         | [mtoa] Dag node pSphere1FollicleShape680 of type follicle ignored
-00:00:01  253mb         | [mtoa] Exporting dag node curve7 of type transform
-00:00:01  253mb         | [mtoa] Dag node curve7 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1Follicle693 of type transform
-00:00:01  253mb         | [mtoa] Dag node pSphere1Follicle693 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape693 of type follicle
-00:00:01  253mb         | [mtoa] Dag node pSphere1FollicleShape693 of type follicle ignored
-00:00:01  253mb         | [mtoa] Exporting dag node curve8 of type transform
-00:00:01  253mb         | [mtoa] Dag node curve8 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1Follicle1906 of type transform
-00:00:01  253mb         | [mtoa] Dag node pSphere1Follicle1906 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape1906 of type follicle
-00:00:01  253mb         | [mtoa] Dag node pSphere1FollicleShape1906 of type follicle ignored
-00:00:01  253mb         | [mtoa] Exporting dag node curve9 of type transform
-00:00:01  253mb         | [mtoa] Dag node curve9 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1Follicle1919 of type transform
-00:00:01  253mb         | [mtoa] Dag node pSphere1Follicle1919 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape1919 of type follicle
-00:00:01  253mb         | [mtoa] Dag node pSphere1FollicleShape1919 of type follicle ignored
-00:00:01  253mb         | [mtoa] Exporting dag node curve10 of type transform
-00:00:01  253mb         | [mtoa] Dag node curve10 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1Follicle1931 of type transform
-00:00:01  253mb         | [mtoa] Dag node pSphere1Follicle1931 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape1931 of type follicle
-00:00:01  253mb         | [mtoa] Dag node pSphere1FollicleShape1931 of type follicle ignored
-00:00:01  253mb         | [mtoa] Exporting dag node curve11 of type transform
-00:00:01  253mb         | [mtoa] Dag node curve11 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1Follicle1943 of type transform
-00:00:01  253mb         | [mtoa] Dag node pSphere1Follicle1943 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape1943 of type follicle
-00:00:01  253mb         | [mtoa] Dag node pSphere1FollicleShape1943 of type follicle ignored
-00:00:01  253mb         | [mtoa] Exporting dag node curve12 of type transform
-00:00:01  253mb         | [mtoa] Dag node curve12 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1Follicle1956 of type transform
-00:00:01  253mb         | [mtoa] Dag node pSphere1Follicle1956 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape1956 of type follicle
-00:00:01  253mb         | [mtoa] Dag node pSphere1FollicleShape1956 of type follicle ignored
-00:00:01  253mb         | [mtoa] Exporting dag node curve13 of type transform
-00:00:01  253mb         | [mtoa] Dag node curve13 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1Follicle1968 of type transform
-00:00:01  253mb         | [mtoa] Dag node pSphere1Follicle1968 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape1968 of type follicle
-00:00:01  253mb         | [mtoa] Dag node pSphere1FollicleShape1968 of type follicle ignored
-00:00:01  253mb         | [mtoa] Exporting dag node curve14 of type transform
-00:00:01  253mb         | [mtoa] Dag node curve14 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1Follicle1980 of type transform
-00:00:01  253mb         | [mtoa] Dag node pSphere1Follicle1980 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape1980 of type follicle
-00:00:01  253mb         | [mtoa] Dag node pSphere1FollicleShape1980 of type follicle ignored
-00:00:01  253mb         | [mtoa] Exporting dag node curve15 of type transform
-00:00:01  253mb         | [mtoa] Dag node curve15 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1Follicle1993 of type transform
-00:00:01  253mb         | [mtoa] Dag node pSphere1Follicle1993 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape1993 of type follicle
-00:00:01  253mb         | [mtoa] Dag node pSphere1FollicleShape1993 of type follicle ignored
-00:00:01  253mb         | [mtoa] Exporting dag node curve16 of type transform
-00:00:01  253mb         | [mtoa] Dag node curve16 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1Follicle3106 of type transform
-00:00:01  253mb         | [mtoa] Dag node pSphere1Follicle3106 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape3106 of type follicle
-00:00:01  253mb         | [mtoa] Dag node pSphere1FollicleShape3106 of type follicle ignored
-00:00:01  253mb         | [mtoa] Exporting dag node curve17 of type transform
-00:00:01  253mb         | [mtoa] Dag node curve17 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1Follicle3119 of type transform
-00:00:01  253mb         | [mtoa] Dag node pSphere1Follicle3119 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape3119 of type follicle
-00:00:01  253mb         | [mtoa] Dag node pSphere1FollicleShape3119 of type follicle ignored
-00:00:01  253mb         | [mtoa] Exporting dag node curve18 of type transform
-00:00:01  253mb         | [mtoa] Dag node curve18 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1Follicle3131 of type transform
-00:00:01  253mb         | [mtoa] Dag node pSphere1Follicle3131 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape3131 of type follicle
-00:00:01  253mb         | [mtoa] Dag node pSphere1FollicleShape3131 of type follicle ignored
-00:00:01  253mb         | [mtoa] Exporting dag node curve19 of type transform
-00:00:01  253mb         | [mtoa] Dag node curve19 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1Follicle3143 of type transform
-00:00:01  253mb         | [mtoa] Dag node pSphere1Follicle3143 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape3143 of type follicle
-00:00:01  253mb         | [mtoa] Dag node pSphere1FollicleShape3143 of type follicle ignored
-00:00:01  253mb         | [mtoa] Exporting dag node curve20 of type transform
-00:00:01  253mb         | [mtoa] Dag node curve20 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1Follicle3156 of type transform
-00:00:01  253mb         | [mtoa] Dag node pSphere1Follicle3156 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape3156 of type follicle
-00:00:01  253mb         | [mtoa] Dag node pSphere1FollicleShape3156 of type follicle ignored
-00:00:01  253mb         | [mtoa] Exporting dag node curve21 of type transform
-00:00:01  253mb         | [mtoa] Dag node curve21 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1Follicle3168 of type transform
-00:00:01  253mb         | [mtoa] Dag node pSphere1Follicle3168 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape3168 of type follicle
-00:00:01  253mb         | [mtoa] Dag node pSphere1FollicleShape3168 of type follicle ignored
-00:00:01  253mb         | [mtoa] Exporting dag node curve22 of type transform
-00:00:01  253mb         | [mtoa] Dag node curve22 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1Follicle3180 of type transform
-00:00:01  253mb         | [mtoa] Dag node pSphere1Follicle3180 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape3180 of type follicle
-00:00:01  253mb         | [mtoa] Dag node pSphere1FollicleShape3180 of type follicle ignored
-00:00:01  253mb         | [mtoa] Exporting dag node curve23 of type transform
-00:00:01  253mb         | [mtoa] Dag node curve23 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1Follicle3193 of type transform
-00:00:01  253mb         | [mtoa] Dag node pSphere1Follicle3193 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape3193 of type follicle
-00:00:01  253mb         | [mtoa] Dag node pSphere1FollicleShape3193 of type follicle ignored
-00:00:01  253mb         | [mtoa] Exporting dag node curve24 of type transform
-00:00:01  253mb         | [mtoa] Dag node curve24 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1Follicle4306 of type transform
-00:00:01  253mb         | [mtoa] Dag node pSphere1Follicle4306 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape4306 of type follicle
-00:00:01  253mb         | [mtoa] Dag node pSphere1FollicleShape4306 of type follicle ignored
-00:00:01  253mb         | [mtoa] Exporting dag node curve25 of type transform
-00:00:01  253mb         | [mtoa] Dag node curve25 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1Follicle4319 of type transform
-00:00:01  253mb         | [mtoa] Dag node pSphere1Follicle4319 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape4319 of type follicle
-00:00:01  253mb         | [mtoa] Dag node pSphere1FollicleShape4319 of type follicle ignored
-00:00:01  253mb         | [mtoa] Exporting dag node curve26 of type transform
-00:00:01  253mb         | [mtoa] Dag node curve26 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1Follicle4331 of type transform
-00:00:01  253mb         | [mtoa] Dag node pSphere1Follicle4331 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape4331 of type follicle
-00:00:01  253mb         | [mtoa] Dag node pSphere1FollicleShape4331 of type follicle ignored
-00:00:01  253mb         | [mtoa] Exporting dag node curve27 of type transform
-00:00:01  253mb         | [mtoa] Dag node curve27 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1Follicle4343 of type transform
-00:00:01  253mb         | [mtoa] Dag node pSphere1Follicle4343 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape4343 of type follicle
-00:00:01  253mb         | [mtoa] Dag node pSphere1FollicleShape4343 of type follicle ignored
-00:00:01  253mb         | [mtoa] Exporting dag node curve28 of type transform
-00:00:01  253mb         | [mtoa] Dag node curve28 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1Follicle4356 of type transform
-00:00:01  253mb         | [mtoa] Dag node pSphere1Follicle4356 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape4356 of type follicle
-00:00:01  253mb         | [mtoa] Dag node pSphere1FollicleShape4356 of type follicle ignored
-00:00:01  253mb         | [mtoa] Exporting dag node curve29 of type transform
-00:00:01  253mb         | [mtoa] Dag node curve29 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1Follicle4368 of type transform
-00:00:01  253mb         | [mtoa] Dag node pSphere1Follicle4368 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape4368 of type follicle
-00:00:01  253mb         | [mtoa] Dag node pSphere1FollicleShape4368 of type follicle ignored
-00:00:01  253mb         | [mtoa] Exporting dag node curve30 of type transform
-00:00:01  253mb         | [mtoa] Dag node curve30 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1Follicle4380 of type transform
-00:00:01  253mb         | [mtoa] Dag node pSphere1Follicle4380 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape4380 of type follicle
-00:00:01  253mb         | [mtoa] Dag node pSphere1FollicleShape4380 of type follicle ignored
-00:00:01  253mb         | [mtoa] Exporting dag node curve31 of type transform
-00:00:01  253mb         | [mtoa] Dag node curve31 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1Follicle4393 of type transform
-00:00:01  253mb         | [mtoa] Dag node pSphere1Follicle4393 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape4393 of type follicle
-00:00:01  253mb         | [mtoa] Dag node pSphere1FollicleShape4393 of type follicle ignored
-00:00:01  253mb         | [mtoa] Exporting dag node curve32 of type transform
-00:00:01  253mb         | [mtoa] Dag node curve32 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1Follicle5606 of type transform
-00:00:01  253mb         | [mtoa] Dag node pSphere1Follicle5606 of type transform ignored
-00:00:01  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape5606 of type follicle
-00:00:01  253mb         | [mtoa] Dag node pSphere1FollicleShape5606 of type follicle ignored
-00:00:01  253mb         | [mtoa] Exporting dag node curve33 of type transform
-00:00:01  253mb         | [mtoa] Dag node curve33 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1Follicle5619 of type transform
-00:00:02  253mb         | [mtoa] Dag node pSphere1Follicle5619 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape5619 of type follicle
-00:00:02  253mb         | [mtoa] Dag node pSphere1FollicleShape5619 of type follicle ignored
-00:00:02  253mb         | [mtoa] Exporting dag node curve34 of type transform
-00:00:02  253mb         | [mtoa] Dag node curve34 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1Follicle5631 of type transform
-00:00:02  253mb         | [mtoa] Dag node pSphere1Follicle5631 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape5631 of type follicle
-00:00:02  253mb         | [mtoa] Dag node pSphere1FollicleShape5631 of type follicle ignored
-00:00:02  253mb         | [mtoa] Exporting dag node curve35 of type transform
-00:00:02  253mb         | [mtoa] Dag node curve35 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1Follicle5643 of type transform
-00:00:02  253mb         | [mtoa] Dag node pSphere1Follicle5643 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape5643 of type follicle
-00:00:02  253mb         | [mtoa] Dag node pSphere1FollicleShape5643 of type follicle ignored
-00:00:02  253mb         | [mtoa] Exporting dag node curve36 of type transform
-00:00:02  253mb         | [mtoa] Dag node curve36 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1Follicle5656 of type transform
-00:00:02  253mb         | [mtoa] Dag node pSphere1Follicle5656 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape5656 of type follicle
-00:00:02  253mb         | [mtoa] Dag node pSphere1FollicleShape5656 of type follicle ignored
-00:00:02  253mb         | [mtoa] Exporting dag node curve37 of type transform
-00:00:02  253mb         | [mtoa] Dag node curve37 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1Follicle5668 of type transform
-00:00:02  253mb         | [mtoa] Dag node pSphere1Follicle5668 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape5668 of type follicle
-00:00:02  253mb         | [mtoa] Dag node pSphere1FollicleShape5668 of type follicle ignored
-00:00:02  253mb         | [mtoa] Exporting dag node curve38 of type transform
-00:00:02  253mb         | [mtoa] Dag node curve38 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1Follicle5680 of type transform
-00:00:02  253mb         | [mtoa] Dag node pSphere1Follicle5680 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape5680 of type follicle
-00:00:02  253mb         | [mtoa] Dag node pSphere1FollicleShape5680 of type follicle ignored
-00:00:02  253mb         | [mtoa] Exporting dag node curve39 of type transform
-00:00:02  253mb         | [mtoa] Dag node curve39 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1Follicle5693 of type transform
-00:00:02  253mb         | [mtoa] Dag node pSphere1Follicle5693 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape5693 of type follicle
-00:00:02  253mb         | [mtoa] Dag node pSphere1FollicleShape5693 of type follicle ignored
-00:00:02  253mb         | [mtoa] Exporting dag node curve40 of type transform
-00:00:02  253mb         | [mtoa] Dag node curve40 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1Follicle6806 of type transform
-00:00:02  253mb         | [mtoa] Dag node pSphere1Follicle6806 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape6806 of type follicle
-00:00:02  253mb         | [mtoa] Dag node pSphere1FollicleShape6806 of type follicle ignored
-00:00:02  253mb         | [mtoa] Exporting dag node curve41 of type transform
-00:00:02  253mb         | [mtoa] Dag node curve41 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1Follicle6819 of type transform
-00:00:02  253mb         | [mtoa] Dag node pSphere1Follicle6819 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape6819 of type follicle
-00:00:02  253mb         | [mtoa] Dag node pSphere1FollicleShape6819 of type follicle ignored
-00:00:02  253mb         | [mtoa] Exporting dag node curve42 of type transform
-00:00:02  253mb         | [mtoa] Dag node curve42 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1Follicle6831 of type transform
-00:00:02  253mb         | [mtoa] Dag node pSphere1Follicle6831 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape6831 of type follicle
-00:00:02  253mb         | [mtoa] Dag node pSphere1FollicleShape6831 of type follicle ignored
-00:00:02  253mb         | [mtoa] Exporting dag node curve43 of type transform
-00:00:02  253mb         | [mtoa] Dag node curve43 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1Follicle6843 of type transform
-00:00:02  253mb         | [mtoa] Dag node pSphere1Follicle6843 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape6843 of type follicle
-00:00:02  253mb         | [mtoa] Dag node pSphere1FollicleShape6843 of type follicle ignored
-00:00:02  253mb         | [mtoa] Exporting dag node curve44 of type transform
-00:00:02  253mb         | [mtoa] Dag node curve44 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1Follicle6856 of type transform
-00:00:02  253mb         | [mtoa] Dag node pSphere1Follicle6856 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape6856 of type follicle
-00:00:02  253mb         | [mtoa] Dag node pSphere1FollicleShape6856 of type follicle ignored
-00:00:02  253mb         | [mtoa] Exporting dag node curve45 of type transform
-00:00:02  253mb         | [mtoa] Dag node curve45 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1Follicle6868 of type transform
-00:00:02  253mb         | [mtoa] Dag node pSphere1Follicle6868 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape6868 of type follicle
-00:00:02  253mb         | [mtoa] Dag node pSphere1FollicleShape6868 of type follicle ignored
-00:00:02  253mb         | [mtoa] Exporting dag node curve46 of type transform
-00:00:02  253mb         | [mtoa] Dag node curve46 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1Follicle6880 of type transform
-00:00:02  253mb         | [mtoa] Dag node pSphere1Follicle6880 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape6880 of type follicle
-00:00:02  253mb         | [mtoa] Dag node pSphere1FollicleShape6880 of type follicle ignored
-00:00:02  253mb         | [mtoa] Exporting dag node curve47 of type transform
-00:00:02  253mb         | [mtoa] Dag node curve47 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1Follicle6893 of type transform
-00:00:02  253mb         | [mtoa] Dag node pSphere1Follicle6893 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape6893 of type follicle
-00:00:02  253mb         | [mtoa] Dag node pSphere1FollicleShape6893 of type follicle ignored
-00:00:02  253mb         | [mtoa] Exporting dag node curve48 of type transform
-00:00:02  253mb         | [mtoa] Dag node curve48 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1Follicle8006 of type transform
-00:00:02  253mb         | [mtoa] Dag node pSphere1Follicle8006 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape8006 of type follicle
-00:00:02  253mb         | [mtoa] Dag node pSphere1FollicleShape8006 of type follicle ignored
-00:00:02  253mb         | [mtoa] Exporting dag node curve49 of type transform
-00:00:02  253mb         | [mtoa] Dag node curve49 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1Follicle8019 of type transform
-00:00:02  253mb         | [mtoa] Dag node pSphere1Follicle8019 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape8019 of type follicle
-00:00:02  253mb         | [mtoa] Dag node pSphere1FollicleShape8019 of type follicle ignored
-00:00:02  253mb         | [mtoa] Exporting dag node curve50 of type transform
-00:00:02  253mb         | [mtoa] Dag node curve50 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1Follicle8031 of type transform
-00:00:02  253mb         | [mtoa] Dag node pSphere1Follicle8031 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape8031 of type follicle
-00:00:02  253mb         | [mtoa] Dag node pSphere1FollicleShape8031 of type follicle ignored
-00:00:02  253mb         | [mtoa] Exporting dag node curve51 of type transform
-00:00:02  253mb         | [mtoa] Dag node curve51 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1Follicle8043 of type transform
-00:00:02  253mb         | [mtoa] Dag node pSphere1Follicle8043 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape8043 of type follicle
-00:00:02  253mb         | [mtoa] Dag node pSphere1FollicleShape8043 of type follicle ignored
-00:00:02  253mb         | [mtoa] Exporting dag node curve52 of type transform
-00:00:02  253mb         | [mtoa] Dag node curve52 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1Follicle8056 of type transform
-00:00:02  253mb         | [mtoa] Dag node pSphere1Follicle8056 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape8056 of type follicle
-00:00:02  253mb         | [mtoa] Dag node pSphere1FollicleShape8056 of type follicle ignored
-00:00:02  253mb         | [mtoa] Exporting dag node curve53 of type transform
-00:00:02  253mb         | [mtoa] Dag node curve53 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1Follicle8068 of type transform
-00:00:02  253mb         | [mtoa] Dag node pSphere1Follicle8068 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape8068 of type follicle
-00:00:02  253mb         | [mtoa] Dag node pSphere1FollicleShape8068 of type follicle ignored
-00:00:02  253mb         | [mtoa] Exporting dag node curve54 of type transform
-00:00:02  253mb         | [mtoa] Dag node curve54 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1Follicle8080 of type transform
-00:00:02  253mb         | [mtoa] Dag node pSphere1Follicle8080 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape8080 of type follicle
-00:00:02  253mb         | [mtoa] Dag node pSphere1FollicleShape8080 of type follicle ignored
-00:00:02  253mb         | [mtoa] Exporting dag node curve55 of type transform
-00:00:02  253mb         | [mtoa] Dag node curve55 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1Follicle8093 of type transform
-00:00:02  253mb         | [mtoa] Dag node pSphere1Follicle8093 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape8093 of type follicle
-00:00:02  253mb         | [mtoa] Dag node pSphere1FollicleShape8093 of type follicle ignored
-00:00:02  253mb         | [mtoa] Exporting dag node curve56 of type transform
-00:00:02  253mb         | [mtoa] Dag node curve56 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1Follicle9306 of type transform
-00:00:02  253mb         | [mtoa] Dag node pSphere1Follicle9306 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape9306 of type follicle
-00:00:02  253mb         | [mtoa] Dag node pSphere1FollicleShape9306 of type follicle ignored
-00:00:02  253mb         | [mtoa] Exporting dag node curve57 of type transform
-00:00:02  253mb         | [mtoa] Dag node curve57 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1Follicle9319 of type transform
-00:00:02  253mb         | [mtoa] Dag node pSphere1Follicle9319 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape9319 of type follicle
-00:00:02  253mb         | [mtoa] Dag node pSphere1FollicleShape9319 of type follicle ignored
-00:00:02  253mb         | [mtoa] Exporting dag node curve58 of type transform
-00:00:02  253mb         | [mtoa] Dag node curve58 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1Follicle9331 of type transform
-00:00:02  253mb         | [mtoa] Dag node pSphere1Follicle9331 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape9331 of type follicle
-00:00:02  253mb         | [mtoa] Dag node pSphere1FollicleShape9331 of type follicle ignored
-00:00:02  253mb         | [mtoa] Exporting dag node curve59 of type transform
-00:00:02  253mb         | [mtoa] Dag node curve59 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1Follicle9343 of type transform
-00:00:02  253mb         | [mtoa] Dag node pSphere1Follicle9343 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape9343 of type follicle
-00:00:02  253mb         | [mtoa] Dag node pSphere1FollicleShape9343 of type follicle ignored
-00:00:02  253mb         | [mtoa] Exporting dag node curve60 of type transform
-00:00:02  253mb         | [mtoa] Dag node curve60 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1Follicle9356 of type transform
-00:00:02  253mb         | [mtoa] Dag node pSphere1Follicle9356 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape9356 of type follicle
-00:00:02  253mb         | [mtoa] Dag node pSphere1FollicleShape9356 of type follicle ignored
-00:00:02  253mb         | [mtoa] Exporting dag node curve61 of type transform
-00:00:02  253mb         | [mtoa] Dag node curve61 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1Follicle9368 of type transform
-00:00:02  253mb         | [mtoa] Dag node pSphere1Follicle9368 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape9368 of type follicle
-00:00:02  253mb         | [mtoa] Dag node pSphere1FollicleShape9368 of type follicle ignored
-00:00:02  253mb         | [mtoa] Exporting dag node curve62 of type transform
-00:00:02  253mb         | [mtoa] Dag node curve62 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1Follicle9380 of type transform
-00:00:02  253mb         | [mtoa] Dag node pSphere1Follicle9380 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape9380 of type follicle
-00:00:02  253mb         | [mtoa] Dag node pSphere1FollicleShape9380 of type follicle ignored
-00:00:02  253mb         | [mtoa] Exporting dag node curve63 of type transform
-00:00:02  253mb         | [mtoa] Dag node curve63 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1Follicle9393 of type transform
-00:00:02  253mb         | [mtoa] Dag node pSphere1Follicle9393 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pSphere1FollicleShape9393 of type follicle
-00:00:02  253mb         | [mtoa] Dag node pSphere1FollicleShape9393 of type follicle ignored
-00:00:02  253mb         | [mtoa] Exporting dag node curve64 of type transform
-00:00:02  253mb         | [mtoa] Dag node curve64 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pfxHair1 of type transform
-00:00:02  253mb         | [mtoa] Dag node pfxHair1 of type transform ignored
-00:00:02  253mb         | [mtoa] Exporting dag node pfxHairShape1 of type pfxHair
-00:00:02  253mb         | [mtoa] Dag node pfxHairShape1 of type pfxHair ignored
-00:00:02  253mb         | [mtoa] Using camera perspShape to output image D:/orenouard/Eclipse/Arnold/mtoa/build/windows_x86_64/msvc_opt/testsuite/test_0030/testrender.tif.
-00:00:02  253mb         |  
-00:00:02  253mb         | [rlm] connecting to license server on 5053@localhost ...
-00:00:02  254mb         | [rlm] checkout of arnold (version 303) OK
-00:00:02  254mb         |  
-00:00:02  254mb         | there are 1 lights and 2 objects:
-00:00:02  254mb         |  1 polymeshes
-00:00:02  254mb         |  1 curves
-00:00:02  254mb         |  
-00:00:02  254mb         | auto-detected 24 threads
-00:00:02  254mb         | rendering image at 160 x 120, 3 AA samples, 2 GI samples, 1 GI bounces
-00:00:02  254mb         |  initializing 15 nodes ...
-00:00:02  256mb         |  node initialization done in 0:00.01
-00:00:02  258mb         |  creating root object list ...
-00:00:02  258mb         |   scene bounds: (-5.74078 -5.9357 -5.75893) -> (5.81435 5.94064 5.79083)
-00:00:02  258mb         |  updating 16 nodes ...
-00:00:02  258mb         |   pointLightShape1: 1 samples, raytraced
-00:00:02  258mb         |  node update done in 0:00.00
-00:00:02  258mb         |  [aov] parsing output statement: "RGBA RGBA gaussian_filter driver_tiff_perspShape"
-00:00:02  258mb         |  [aov] registered driver: "driver_tiff_perspShape" (driver_tiff)
-00:00:02  258mb         |  [aov]  * "RGBA" of type RGBA filtered by "gaussian_filter" (gaussian_filter)
-00:00:02  258mb         |  [aov] done preparing 1 AOV for 1 output to 1 driver (0 deep AOVs)
-00:00:02  258mb         |  starting 24 bucket workers of size 64x64 ...
-00:00:02  263mb         |   [accel] bvh4 done - 0:00.00 - 2 prims, 1 key
-00:00:03  275mb         |   [accel] bvh4 done - 0:00.21 - 153171 prims, 1 key
-00:00:03  275mb         |   [accel] bvh4 done - 0:00.00 - 3120 prims, 1 key
-00:00:03  276mb         |     5% done - 9 rays/pixel
-00:00:03  276mb         |    20% done - 9 rays/pixel
-00:00:03  277mb         |    35% done - 10 rays/pixel
-00:00:03  277mb         |    60% done - 11 rays/pixel
-00:00:03  277mb         |    75% done - 14 rays/pixel
-00:00:03  277mb         |   100% done - 16 rays/pixel
-00:00:03  277mb         |  bucket workers done in 0:00.47
-00:00:03  277mb         | render done
-00:00:03  277mb         | [driver_tiff] writing file `D:/orenouard/Eclipse/Arnold/mtoa/build/windows_x86_64/msvc_opt/testsuite/test_0030/testrender.tif'
-00:00:03  277mb         |  
-00:00:03  277mb         | -----------------------------------------------------------------------------------------
-00:00:03  277mb         | scene creation time:
-00:00:03  277mb         |  plugin loading               0:00.11
-00:00:03  277mb         |  system/unaccounted           0:02.78
-00:00:03  277mb         |  total                        0:02.80  ( 0.72% machine utilization)
-00:00:03  277mb         | -----------------------------------------------------------------------------------------
-00:00:03  277mb         | render time:
-00:00:03  277mb         |  node init                    0:00.01
-00:00:03  277mb         |  bucket rendering             0:00.47
-00:00:03  277mb         |   accel. building             0:00.21
-00:00:03  277mb         |   pixel rendering             0:00.26  (multi-threaded render, this value may not be reliable)
-00:00:03  277mb         |  system/unaccounted           0:00.47
-00:00:03  277mb         |  total                        0:00.51  ( 6.87% machine utilization)
-00:00:03  277mb         | -----------------------------------------------------------------------------------------
-00:00:03  277mb         | memory consumed in mb:
-00:00:03  277mb         |  at startup                    222.95
-00:00:03  277mb         |  plugins                         0.27
-00:00:03  277mb         |  AOV samples                    21.54
-00:00:03  277mb         |  output buffers                  1.57
-00:00:03  277mb         |  node overhead                   0.01
-00:00:03  277mb         |  message passing                 0.05
-00:00:03  277mb         |  memory pools                    9.28
-00:00:03  277mb         |  geometry                        4.85
-00:00:03  277mb         |    polymesh                      0.08
-00:00:03  277mb         |    curves                        4.77
-00:00:03  277mb         |  accel. structs                  7.91
-00:00:03  277mb         |  string pool                     0.13 (743 unique strings, overhead 0.11 mb)
-00:00:03  277mb         |  unaccounted                     9.57
-00:00:03  277mb         |  total peak                    278.13
-00:00:03  277mb         | -----------------------------------------------------------------------------------------
-00:00:03  277mb         | ray counts:                           (/pixel , /sample) (% total) (avg. hits) (max hits)
-00:00:03  277mb         |  camera                        185256 (   9.00,    1.00) ( 73.69%) (     0.27) (       1)
-00:00:03  277mb         |  shadow                         54259 (   2.64,    0.29) ( 21.58%) (     0.00) (       0)
-00:00:03  277mb         |  diffuse                        11871 (   0.58,    0.06) (  4.72%) (     0.34) (       1)
-00:00:03  277mb         |  total                         251386 (  12.21,    1.36) (100.00%) (     0.31) (       1)
-00:00:03  277mb         |  max depth                          1
-00:00:03  277mb         | -----------------------------------------------------------------------------------------
-00:00:03  277mb         | lighting calculations:                (/pixel , /sample)    secondary (/pixel , /sample)
-00:00:03  277mb         |  light loops                    50627 (   2.46,    0.27)         3989 (   0.19,    0.02)
-00:00:03  277mb         |  indirect diffuse                2971 (   0.14,    0.02)            0 (   0.00,    0.00)
-00:00:03  277mb         | -----------------------------------------------------------------------------------------
-00:00:03  277mb         | shader calls:                         (/pixel , /sample) (% total)
-00:00:03  277mb         |  primary                        54616 (   2.65,    0.29) (100.00%)
-00:00:03  277mb         |  total                          54616 (   2.65,    0.29) (100.00%)
-00:00:03  277mb         | -----------------------------------------------------------------------------------------
-00:00:03  277mb         | geometry:                             (% hit ) (instances) (  init mem,  final mem)
-00:00:03  277mb         |  lists                              1 (100.0%) (        0) (      0.00,       0.00)
-00:00:03  277mb         |  polymeshes                         1 (100.0%) (        0) (      0.07,       0.08)
-00:00:03  277mb         |  curves                             1 (100.0%) (        0) (      4.77,       4.77)
-00:00:03  277mb         | -----------------------------------------------------------------------------------------
-00:00:03  277mb         | geometric elements:                   (      min) (       avg.) (      max)
-00:00:03  277mb         |  objects (top level)                2 (        2) (        2.0) (        2)
-00:00:03  277mb         |  polygons                        1600 (     1600) (     1600.0) (     1600)
-00:00:03  277mb         |  curves                          1664 (     1664) (     1664.0) (     1664)
-00:00:03  277mb         |  curve segments                153171 (   153171) (   153171.0) (   153171)
-00:00:03  277mb         | -----------------------------------------------------------------------------------------
-00:00:03  277mb         | triangle tesselation:                 (      min) (       avg.) (      max) (/ element) (% total)
-00:00:03  277mb         |  polymeshes                      3120 (     3120) (     3120.0) (     3120) (     1.95) (100.00%)
-00:00:03  277mb         |  unique triangles:               3120
-00:00:03  277mb         |  memory use (in mb)              0.08
-00:00:03  277mb         |    vertices                      0.02
-00:00:03  277mb         |    vertex indices                0.01
-00:00:03  277mb         |    polygon base offsets          0.01
-00:00:03  277mb         |    polygon IDs                   0.01
-00:00:03  277mb         |    triangulation                 0.00
-00:00:03  277mb         |    packed normals                0.01
-00:00:03  277mb         |    normal indices                0.01
-00:00:03  277mb         |    uv coords                     0.01
-00:00:03  277mb         |    uv coords idxs                0.01
-00:00:03  277mb         |    uniform indices               0.00
-00:00:03  277mb         | -----------------------------------------------------------------------------------------
-00:00:03  277mb         | acceleration structures:              (% total)
-00:00:03  277mb         |  bvh                                3 (100.00%)
-00:00:03  277mb         |  total                              3 (100.00%)
-00:00:03  277mb         | -----------------------------------------------------------------------------------------
-00:00:03  277mb         | OpenImageIO ImageCache statistics (0000000021333300) ver 0.8.8
-00:00:03  277mb         |   No images opened
-00:00:03  277mb         |     Peak cache memory : 0 B
-00:00:03  277mb         | -----------------------------------------------------------------------------------------
-00:00:03  277mb         | [mtoa] Deleting translator for defaultArnoldRenderOptions
-00:00:03  277mb         | [mtoa] Deleting translator for aiStandard2
-00:00:03  277mb         | [mtoa] Deleting translator for |persp|perspShape [0]
-00:00:03  277mb         | [mtoa] Deleting translator for |top|topShape [0]
-00:00:03  277mb         | [mtoa] Deleting translator for |front|frontShape [0]
-00:00:03  277mb         | [mtoa] Deleting translator for |side|sideShape [0]
-00:00:03  277mb         | [mtoa] Deleting translator for |pointLight1|pointLightShape1 [0]
-00:00:03  277mb         | [mtoa] Deleting translator for |pSphere1|pSphereShape1 [0]
-00:00:03  277mb         | [mtoa] Deleting translator for |hairSystem1|hairSystemShape1 [0]
-00:00:03  277mb         |  
-00:00:03  277mb         | releasing resources
-00:00:03  248mb         |  unloading 2 plugins
-00:00:03  248mb         |   closing mtoa_shaders.dll ...
-00:00:03  248mb         |   closing shave_shaders.dll ...
-00:00:03  248mb         |  unloading plugins done
-00:00:03  248mb         | Arnold shutdown
-Scene D:\orenouard\Eclipse\Arnold\mtoa\build\windows_x86_64\msvc_opt\testsuite\test_0030\test.ma completed.
+registering translator template for exr on <driver>
+registering translator template for jpeg on <driver>
+registering translator template for png on <driver>
+registering translator template for tiff on <driver>
+registering translator template for blackman_harris on <filter>
+registering translator template for box on <filter>
+registering translator template for catrom on <filter>
+registering translator template for catrom2d on <filter>
+registering translator template for closest on <filter>
+registering translator template for cone on <filter>
+registering translator template for cook on <filter>
+registering translator template for cubic on <filter>
+registering translator template for disk on <filter>
+registering translator template for farthest on <filter>
+registering translator template for gaussian on <filter>
+registering translator template for heatmap on <filter>
+registering translator template for mitnet on <filter>
+registering translator template for sinc on <filter>
+registering translator template for triangle on <filter>
+registering translator template for variance on <filter>
+registering translator template for video on <filter>
+registering translator template for shave on shaveHair
+00:00:01  876mb         | Successfully imported python module 'arnold'
+00:00:01  876mb         | Successfully imported python module 'mtoa'
+00:00:01  882mb         | Successfully registered renderer 'arnold'
+00:00:01  882mb         |  
+00:00:01  882mb         | releasing resources
+00:00:01  878mb         | Arnold shutdown
+00:00:00  878mb         | log started Tue Aug  9 17:57:45 2011
+00:00:00  878mb         | Arnold 3.3.10.0 linux 64-bit gcc412 glibc2111 oiio1000 sse (build date: Jul 21 2011 19:13:06)
+00:00:00  878mb         | running on 8 x 933 mhz GenuineIntel with 7983 mb
+00:00:00  878mb         |  
+00:00:00  878mb         | [METADATA] Loading metadata file: /home/ndu/workspace/mtoa/mtoadeploy/2011/plug-ins/mtoa.mtd
+00:00:00  878mb         |  
+00:00:00  878mb         | releasing resources
+00:00:00  878mb         | Arnold shutdown
+00:00:00  880mb         | log started Tue Aug  9 17:57:45 2011
+00:00:00  880mb         | Arnold 3.3.10.0 linux 64-bit gcc412 glibc2111 oiio1000 sse (build date: Jul 21 2011 19:13:06)
+00:00:00  880mb         | running on 8 x 933 mhz GenuineIntel with 7983 mb
+00:00:00  880mb         |  
+00:00:00  880mb         | [METADATA] Loading metadata file: /home/ndu/workspace/mtoa/mtoadeploy/2011/plug-ins/mtoa.mtd
+00:00:00  880mb         |  
+00:00:00  880mb         | releasing resources
+00:00:00  880mb         | Arnold shutdown
+File read in 2 seconds.
+shaveEnsureVrayRenderCallbacksSet
+Result: /home/ndu/workspace/mtoa/build/linux_x86_64/gcc_debug/testsuite/test_0030/test.ma
+00:00:00  886mb         | log started Tue Aug  9 17:57:45 2011
+00:00:00  886mb         | Arnold 3.3.10.0 linux 64-bit gcc412 glibc2111 oiio1000 sse (build date: Jul 21 2011 19:13:06)
+00:00:00  886mb         | running on 8 x 933 mhz GenuineIntel with 7983 mb
+00:00:00  886mb         |  
+00:00:00  886mb         | [METADATA] Loading metadata file: /home/ndu/workspace/mtoa/mtoadeploy/2011/plug-ins/mtoa.mtd
+00:00:00  886mb         |  
+00:00:00  886mb         | releasing resources
+00:00:00  886mb         | Arnold shutdown
+00:00:00  886mb         | log started Tue Aug  9 17:57:45 2011
+00:00:00  886mb         | Arnold 3.3.10.0 linux 64-bit gcc412 glibc2111 oiio1000 sse (build date: Jul 21 2011 19:13:06)
+00:00:00  886mb         | running on 8 x 933 mhz GenuineIntel with 7983 mb
+00:00:00  886mb         |  
+00:00:00  886mb         | [METADATA] Loading metadata file: /home/ndu/workspace/mtoa/mtoadeploy/2011/plug-ins/mtoa.mtd
+00:00:00  886mb         | loading plugin: /home/ndu/workspace/mtoa/mtoadeploy/2011/shaders/mtoa_shaders.so ...
+00:00:00  888mb         | mtoa_shaders.so: MayaMultiplyDivide uses Arnold 3.3.10.0
+00:00:00  888mb         | mtoa_shaders.so: MayaClamp uses Arnold 3.3.10.0
+00:00:00  888mb         | mtoa_shaders.so: MayaGammaCorrect uses Arnold 3.3.10.0
+00:00:00  888mb         | mtoa_shaders.so: MayaCondition uses Arnold 3.3.10.0
+00:00:00  888mb         | mtoa_shaders.so: MayaReverse uses Arnold 3.3.10.0
+00:00:00  888mb         | mtoa_shaders.so: MayaBlendColors uses Arnold 3.3.10.0
+00:00:00  888mb         | mtoa_shaders.so: MayaFacingRatio uses Arnold 3.3.10.0
+00:00:00  888mb         | mtoa_shaders.so: MayaFlippedNormal uses Arnold 3.3.10.0
+00:00:00  888mb         | mtoa_shaders.so: MayaPlusMinusAverage1D uses Arnold 3.3.10.0
+00:00:00  888mb         | mtoa_shaders.so: MayaPlusMinusAverage2D uses Arnold 3.3.10.0
+00:00:00  888mb         | mtoa_shaders.so: MayaPlusMinusAverage3D uses Arnold 3.3.10.0
+00:00:00  888mb         | mtoa_shaders.so: MayaRemapValueToValue uses Arnold 3.3.10.0
+00:00:00  888mb         | mtoa_shaders.so: MayaRemapValueToColor uses Arnold 3.3.10.0
+00:00:00  888mb         | mtoa_shaders.so: MayaRemapColor uses Arnold 3.3.10.0
+00:00:00  888mb         | mtoa_shaders.so: MayaFile uses Arnold 3.3.10.0
+00:00:00  888mb         | mtoa_shaders.so: MayaPlace2DTexture uses Arnold 3.3.10.0
+00:00:00  888mb         | mtoa_shaders.so: MayaRamp uses Arnold 3.3.10.0
+00:00:00  888mb         | mtoa_shaders.so: MayaProjection uses Arnold 3.3.10.0
+00:00:00  888mb         | mtoa_shaders.so: MeshInfo uses Arnold 3.3.10.0
+00:00:00  888mb         | mtoa_shaders.so: TangentToObjectSpace uses Arnold 3.3.10.0
+00:00:00  888mb         | mtoa_shaders.so: MayaChecker uses Arnold 3.3.10.0
+00:00:00  888mb         | mtoa_shaders.so: MayaBulge uses Arnold 3.3.10.0
+00:00:00  888mb         | mtoa_shaders.so: MayaCloth uses Arnold 3.3.10.0
+00:00:00  888mb         | mtoa_shaders.so: MayaGrid uses Arnold 3.3.10.0
+00:00:00  888mb         | mtoa_shaders.so: MayaFractal uses Arnold 3.3.10.0
+00:00:00  888mb         | mtoa_shaders.so: MayaNoise uses Arnold 3.3.10.0
+00:00:00  888mb         | mtoa_shaders.so: MayaPlace3DTexture uses Arnold 3.3.10.0
+00:00:00  888mb         | mtoa_shaders.so: MayaRgbToHsv uses Arnold 3.3.10.0
+00:00:00  888mb         | mtoa_shaders.so: MayaHsvToRgb uses Arnold 3.3.10.0
+00:00:00  888mb         | mtoa_shaders.so: MayaLuminance uses Arnold 3.3.10.0
+00:00:00  888mb         | mtoa_shaders.so: MayaCloud uses Arnold 3.3.10.0
+00:00:00  888mb         | mtoa_shaders.so: MayaCloudAlpha uses Arnold 3.3.10.0
+00:00:00  888mb         | mtoa_shaders.so: MayaSnow uses Arnold 3.3.10.0
+00:00:00  888mb         | mtoa_shaders.so: MayaContrast uses Arnold 3.3.10.0
+00:00:00  888mb         | mtoa_shaders.so: MayaLayeredTexture uses Arnold 3.3.10.0
+00:00:00  888mb         | mtoa_shaders.so: MayaLayeredShader uses Arnold 3.3.10.0
+00:00:00  888mb         | mtoa_shaders.so: MayaSolidFractal uses Arnold 3.3.10.0
+00:00:00  888mb         | mtoa_shaders.so: MayaVolumeNoise uses Arnold 3.3.10.0
+00:00:00  888mb         | mtoa_shaders.so: MayaBrownian uses Arnold 3.3.10.0
+00:00:00  888mb         | mtoa_shaders.so: MayaStucco uses Arnold 3.3.10.0
+00:00:00  888mb         | mtoa_shaders.so: MayaRemapHsv uses Arnold 3.3.10.0
+00:00:00  888mb         | mtoa_shaders.so: MayaSetRange uses Arnold 3.3.10.0
+00:00:00  888mb         | mtoa_shaders.so: MayaImagePlane uses Arnold 3.3.10.0
+00:00:00  888mb         | mtoa_shaders.so: MayaSurfaceShader uses Arnold 3.3.10.0
+00:00:00  888mb         | mtoa_shaders.so: colorToFloat uses Arnold 3.3.10.0
+00:00:00  888mb         | loaded 45 plugins in 0:00.00
+00:00:00  888mb         | loading plugin: /home/ndu/workspace/mtoa/mtoadeploy/2011/shaders/shave_shaders.so ...
+00:00:00  890mb         | shave_shaders.so: ShaveHair uses Arnold 3.3.10.0
+00:00:00  890mb         | loaded 1 plugins in 0:00.00
+00:00:00  890mb         | [mtoa] Installed renderview_display driver
+00:00:00  890mb         | [mtoa] [maya aiOptions] Using translator <built-in>, provided by <built-in>(<built-in>).
+00:00:00  890mb         | COptionsTranslator <built-in>: CreateArnoldNodes on Maya node defaultArnoldRenderOptions(aiOptions) created arnold node 0x7c42010: options(options).
+00:00:00  890mb         | [mtoa] [translator <built-in>] Exporting on node defaultArnoldRenderOptions and upstream.
+00:00:00  890mb         | COptionsTranslator <built-in>: Export on Maya node defaultArnoldRenderOptions(aiOptions), Arnold node 0x7c42010: options(options).
+00:00:00  890mb         | [mtoa] Exporting frame 1.000000
+00:00:00  890mb         | [mtoa] Exporting dag node perspShape of type camera
+00:00:00  890mb         | [mtoa] [translator perspective] Exporting on node perspShape and upstream.
+00:00:00  890mb         | [mtoa] Exporting dag node topShape of type camera
+00:00:00  890mb         | [mtoa] [translator orthographic] Exporting on node topShape and upstream.
+00:00:00  890mb         | [mtoa] Exporting dag node frontShape of type camera
+00:00:00  890mb         | [mtoa] [translator orthographic] Exporting on node frontShape and upstream.
+00:00:00  890mb         | [mtoa] Exporting dag node sideShape of type camera
+00:00:00  890mb         | [mtoa] [translator orthographic] Exporting on node sideShape and upstream.
+00:00:00  890mb         | [mtoa] Exporting dag node groundPlane_transform of type transform
+00:00:00  890mb         | [mtoa] Dag node groundPlane_transform of type transform ignored
+00:00:00  890mb         | [mtoa] Exporting dag node groundPlane of type groundPlane
+00:00:00  890mb         | [mtoa] Dag node groundPlane of type groundPlane ignored
+00:00:00  890mb         | [mtoa] Exporting dag node pSphere1 of type transform
+00:00:00  890mb         | [mtoa] Dag node pSphere1 of type transform ignored
+00:00:00  890mb         | [mtoa] Exporting dag node pSphereShape1 of type mesh
+00:00:00  890mb         | [mtoa] [maya mesh] Using translator <built-in>, provided by <built-in>(<built-in>).
+00:00:00  890mb         | [mtoa] [translator <built-in>] Exporting on node pSphereShape1 and upstream.
+00:00:00  890mb         | [mtoa] [maya aiStandard] Using translator <built-in>, provided by <built-in>(<built-in>).
+00:00:00  890mb         | [mtoa] [translator <built-in>] Exporting on node aiStandard2 and upstream.
+00:00:00  891mb         | [mtoa] Exporting dag node pointLight1 of type transform
+00:00:00  891mb         | [mtoa] Dag node pointLight1 of type transform ignored
+00:00:00  891mb         | [mtoa] Exporting dag node pointLightShape1 of type pointLight
+00:00:00  891mb         | [mtoa] [maya pointLight] Using translator <built-in>, provided by <built-in>(<built-in>).
+00:00:00  891mb         | [mtoa] [translator <built-in>] Exporting on node pointLightShape1 and upstream.
+00:00:00  891mb         | [mtoa] Exporting dag node hairSystem1 of type transform
+00:00:00  891mb         | [mtoa] Dag node hairSystem1 of type transform ignored
+00:00:00  891mb         | [mtoa] Exporting dag node hairSystemShape1 of type hairSystem
+00:00:00  891mb         | [mtoa] [maya hairSystem] Using translator <built-in>, provided by <built-in>(<built-in>).
+00:00:00  891mb         | [mtoa] [translator <built-in>] Exporting on node hairSystemShape1 and upstream.
+00:00:00  923mb         | [mtoa] Exporting dag node hairSystem1Follicles of type transform
+00:00:00  923mb         | [mtoa] Dag node hairSystem1Follicles of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle606 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle606 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape606 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape606 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve1 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve1 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle619 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle619 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape619 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape619 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve2 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve2 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle631 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle631 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape631 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape631 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve3 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve3 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle643 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle643 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape643 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape643 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve4 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve4 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle656 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle656 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape656 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape656 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve5 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve5 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle668 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle668 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape668 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape668 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve6 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve6 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle680 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle680 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape680 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape680 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve7 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve7 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle693 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle693 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape693 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape693 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve8 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve8 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle1906 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle1906 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape1906 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape1906 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve9 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve9 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle1919 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle1919 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape1919 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape1919 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve10 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve10 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle1931 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle1931 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape1931 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape1931 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve11 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve11 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle1943 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle1943 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape1943 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape1943 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve12 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve12 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle1956 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle1956 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape1956 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape1956 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve13 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve13 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle1968 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle1968 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape1968 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape1968 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve14 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve14 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle1980 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle1980 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape1980 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape1980 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve15 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve15 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle1993 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle1993 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape1993 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape1993 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve16 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve16 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle3106 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle3106 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape3106 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape3106 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve17 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve17 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle3119 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle3119 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape3119 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape3119 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve18 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve18 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle3131 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle3131 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape3131 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape3131 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve19 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve19 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle3143 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle3143 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape3143 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape3143 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve20 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve20 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle3156 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle3156 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape3156 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape3156 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve21 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve21 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle3168 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle3168 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape3168 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape3168 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve22 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve22 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle3180 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle3180 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape3180 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape3180 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve23 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve23 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle3193 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle3193 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape3193 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape3193 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve24 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve24 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle4306 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle4306 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape4306 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape4306 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve25 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve25 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle4319 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle4319 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape4319 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape4319 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve26 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve26 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle4331 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle4331 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape4331 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape4331 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve27 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve27 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle4343 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle4343 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape4343 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape4343 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve28 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve28 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle4356 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle4356 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape4356 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape4356 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve29 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve29 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle4368 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle4368 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape4368 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape4368 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve30 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve30 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle4380 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle4380 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape4380 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape4380 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve31 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve31 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle4393 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle4393 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape4393 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape4393 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve32 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve32 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle5606 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle5606 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape5606 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape5606 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve33 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve33 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle5619 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle5619 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape5619 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape5619 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve34 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve34 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle5631 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle5631 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape5631 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape5631 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve35 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve35 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle5643 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle5643 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape5643 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape5643 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve36 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve36 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle5656 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle5656 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape5656 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape5656 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve37 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve37 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle5668 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle5668 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape5668 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape5668 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve38 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve38 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle5680 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle5680 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape5680 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape5680 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve39 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve39 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle5693 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle5693 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape5693 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape5693 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve40 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve40 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle6806 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle6806 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape6806 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape6806 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve41 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve41 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle6819 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle6819 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape6819 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape6819 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve42 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve42 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle6831 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle6831 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape6831 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape6831 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve43 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve43 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle6843 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle6843 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape6843 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape6843 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve44 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve44 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle6856 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle6856 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape6856 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape6856 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve45 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve45 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle6868 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle6868 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape6868 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape6868 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve46 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve46 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle6880 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle6880 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape6880 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape6880 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve47 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve47 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle6893 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle6893 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape6893 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape6893 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve48 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve48 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle8006 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle8006 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape8006 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape8006 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve49 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve49 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle8019 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle8019 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape8019 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape8019 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve50 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve50 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle8031 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle8031 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape8031 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape8031 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve51 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve51 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle8043 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle8043 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape8043 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape8043 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve52 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve52 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle8056 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle8056 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape8056 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape8056 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve53 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve53 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle8068 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle8068 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape8068 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape8068 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve54 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve54 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle8080 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle8080 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape8080 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape8080 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve55 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve55 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle8093 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle8093 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape8093 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape8093 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve56 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve56 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle9306 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle9306 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape9306 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape9306 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve57 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve57 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle9319 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle9319 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape9319 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape9319 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve58 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve58 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle9331 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle9331 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape9331 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape9331 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve59 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve59 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle9343 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle9343 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape9343 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape9343 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve60 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve60 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle9356 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle9356 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape9356 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape9356 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve61 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve61 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle9368 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle9368 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape9368 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape9368 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve62 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve62 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle9380 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle9380 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape9380 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape9380 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve63 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve63 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1Follicle9393 of type transform
+00:00:00  923mb         | [mtoa] Dag node pSphere1Follicle9393 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pSphere1FollicleShape9393 of type follicle
+00:00:00  923mb         | [mtoa] Dag node pSphere1FollicleShape9393 of type follicle ignored
+00:00:00  923mb         | [mtoa] Exporting dag node curve64 of type transform
+00:00:00  923mb         | [mtoa] Dag node curve64 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pfxHair1 of type transform
+00:00:00  923mb         | [mtoa] Dag node pfxHair1 of type transform ignored
+00:00:00  923mb         | [mtoa] Exporting dag node pfxHairShape1 of type pfxHair
+00:00:00  923mb         | [mtoa] Dag node pfxHairShape1 of type pfxHair ignored
+00:00:00  923mb         | [mtoa] Exporting dag node perspShape of type camera
+00:00:00  923mb         | CDriverTranslator tiff: CreateArnoldNodes on Maya node defaultArnoldRenderOptions(aiOptions) created arnold node 0x7b5f1c0: defaultArnoldRenderOptions_driver_tiff(driver_tiff).
+00:00:00  923mb         | [mtoa] Custom export of defaultArnoldRenderOptions(<driver>) as Arnold node defaultArnoldRenderOptions_driver_tiff(driver_tiff) using translator: tiff.
+00:00:00  923mb         | [mtoa] [translator tiff] Exporting on node defaultArnoldRenderOptions and upstream.
+00:00:00  923mb         | CDriverTranslator tiff: Export on Maya node defaultArnoldRenderOptions(aiOptions), Arnold node defaultArnoldRenderOptions_driver_tiff(driver_tiff).
+00:00:00  923mb         | CDriverTranslator tiff: Export on parameter filename
+00:00:00  923mb         | CDriverTranslator tiff: Export on parameter compression
+00:00:00  923mb         | CDriverTranslator tiff: Export on parameter format
+00:00:00  923mb         | CDriverTranslator tiff: Export on parameter tiled
+00:00:00  923mb         | CDriverTranslator tiff: Export on parameter output_padded
+00:00:00  923mb         | CDriverTranslator tiff: Export on parameter gamma
+00:00:00  923mb         | CDriverTranslator tiff: Export on parameter dither_amplitude
+00:00:00  923mb         | CDriverTranslator tiff: Export on parameter unpremult_alpha
+00:00:00  923mb         | CDriverTranslator tiff: Export on parameter name
+00:00:00  923mb         | [mtoa] Created driver driver_tiff(driver_tiff) with output filename '/home/ndu/workspace/mtoa/build/linux_x86_64/gcc_debug/testsuite/test_0030/testrender.tif'.
+00:00:00  923mb         | [mtoa] Creating default filter "gaussian"
+00:00:00  923mb         | CDriverTranslator gaussian: CreateArnoldNodes on Maya node defaultArnoldRenderOptions(aiOptions) created arnold node 0x7b4ea30: defaultArnoldRenderOptions_gaussian_filter(gaussian_filter).
+00:00:00  923mb         | [mtoa] Custom export of defaultArnoldRenderOptions(<filter>) as Arnold node defaultArnoldRenderOptions_gaussian_filter(gaussian_filter) using translator: gaussian.
+00:00:00  923mb         | [mtoa] [translator gaussian] Exporting on node defaultArnoldRenderOptions and upstream.
+00:00:00  923mb         | CDriverTranslator gaussian: Export on Maya node defaultArnoldRenderOptions(aiOptions), Arnold node defaultArnoldRenderOptions_gaussian_filter(gaussian_filter).
+00:00:00  923mb         | CDriverTranslator gaussian: Export on parameter width
+00:00:00  923mb         | CDriverTranslator gaussian: Export on parameter name
+00:00:00  923mb         |  
+00:00:00  923mb         | [rlm] connecting to license server on 5053@localhost ...
+00:00:00  927mb         | [rlm] checkout of arnold (version 303) OK
+00:00:00  935mb         |  
+00:00:00  935mb         | there are 1 lights and 2 objects:
+00:00:00  935mb         |  1 polymeshes
+00:00:00  935mb         |  1 curves
+00:00:00  935mb         |  
+00:00:00  935mb         | auto-detected 8 threads
+00:00:00  935mb         | rendering image at 160 x 120, 3 AA samples, 2 GI samples, 1 GI bounces
+00:00:00  935mb         |  initializing 15 nodes ...
+00:00:00  935mb         |  node initialization done in 0:00.01
+00:00:00 1011mb         |  creating root object list ...
+00:00:00 1011mb         |   scene bounds: (-5.74078 -5.9357 -5.75893) -> (5.81435 5.94064 5.79083)
+00:00:00 1011mb         |  updating 16 nodes ...
+00:00:00 1011mb         |   pointLightShape1: 1 samples, raytraced
+00:00:00 1011mb         |  node update done in 0:00.00
+00:00:00 1011mb         |  [aov] parsing output statement: "RGBA RGBA defaultArnoldRenderOptions_gaussian_filter driver_tiff"
+00:00:00 1011mb         |  [aov] registered driver: "driver_tiff" (driver_tiff)
+00:00:00 1011mb         |  [aov]  * "RGBA" of type RGBA filtered by "defaultArnoldRenderOptions_gaussian_filter" (gaussian_filter)
+00:00:00 1011mb         |  [aov] done preparing 1 AOV for 1 output to 1 driver (0 deep AOVs)
+00:00:00 1011mb         |  starting 8 bucket workers of size 64x64 ...
+00:00:00 1145mb         |   [accel] bvh4 done - 0:00.00 - 2 prims, 1 key
+00:00:01 1163mb         |   [accel] bvh4 done - 0:00.29 - 153171 prims, 1 key
+00:00:01 1163mb         |   [accel] bvh4 done - 0:00.00 - 3120 prims, 1 key
+[32m00:00:01 1163mb         |     5% done - 9 rays/pixel[0m
+[32m00:00:01 1163mb         |    20% done - 9 rays/pixel[0m
+[32m00:00:01 1163mb         |    35% done - 10 rays/pixel[0m
+[32m00:00:01 1163mb         |    60% done - 11 rays/pixel[0m
+[32m00:00:01 1163mb         |    75% done - 14 rays/pixel[0m
+[32m00:00:01 1163mb         |   100% done - 16 rays/pixel[0m
+00:00:01 1131mb         |  bucket workers done in 0:00.68
+00:00:01 1131mb         | render done
+00:00:01 1131mb         | [driver_tiff] writing file `/home/ndu/workspace/mtoa/build/linux_x86_64/gcc_debug/testsuite/test_0030/testrender.tif'
+00:00:01 1131mb         |  
+00:00:01 1131mb         | -----------------------------------------------------------------------------------------
+00:00:01 1131mb         | scene creation time:
+00:00:01 1131mb         |  plugin loading               0:00.00
+00:00:01 1131mb         |  system/unaccounted           0:00.68
+00:00:01 1131mb         |  total                        0:00.77  (11.77% machine utilization)
+00:00:01 1131mb         | -----------------------------------------------------------------------------------------
+00:00:01 1131mb         | render time:
+00:00:01 1131mb         |  node init                    0:00.01
+00:00:01 1131mb         |  bucket rendering             0:00.68
+00:00:01 1131mb         |   accel. building             0:00.30
+00:00:01 1131mb         |   pixel rendering             0:00.38  (multi-threaded render, this value may not be reliable)
+00:00:01 1131mb         |  system/unaccounted           0:00.53
+00:00:01 1131mb         |  total                        0:00.70  (24.19% machine utilization)
+00:00:01 1131mb         | -----------------------------------------------------------------------------------------
+00:00:01 1131mb         | memory consumed in mb:
+00:00:01 1131mb         |  at startup                    886.07
+00:00:01 1131mb         |  AOV samples                     7.18
+00:00:01 1131mb         |  output buffers                  0.57
+00:00:01 1131mb         |  node overhead                   0.01
+00:00:01 1131mb         |  message passing                 0.02
+00:00:01 1131mb         |  memory pools                    9.28
+00:00:01 1131mb         |  geometry                        4.85
+00:00:01 1131mb         |    polymesh                      0.08
+00:00:01 1131mb         |    curves                        4.77
+00:00:01 1131mb         |  accel. structs                  7.91
+00:00:01 1131mb         |  string pool                     0.14 (907 unique strings, overhead 0.10 mb)
+00:00:01 1131mb         |  texture cache                   0.00
+00:00:01 1131mb         |  unaccounted                   247.73
+00:00:01 1131mb         |  total peak                   1163.76
+00:00:01 1131mb         | -----------------------------------------------------------------------------------------
+00:00:01 1131mb         | ray counts:                           (/pixel , /sample) (% total) (avg. hits) (max hits)
+00:00:01 1131mb         |  camera                        185256 (   9.00,    1.00) ( 73.80%) (     0.27) (       1)
+00:00:01 1131mb         |  shadow                         54131 (   2.63,    0.29) ( 21.57%) (     0.00) (       0)
+00:00:01 1131mb         |  diffuse                        11622 (   0.56,    0.06) (  4.63%) (     0.32) (       1)
+00:00:01 1131mb         |  total                         251009 (  12.19,    1.35) (100.00%) (     0.31) (       1)
+00:00:01 1131mb         |  max depth                          1
+00:00:01 1131mb         | -----------------------------------------------------------------------------------------
+00:00:01 1131mb         | lighting calculations:                (/pixel , /sample)    secondary (/pixel , /sample)
+00:00:01 1131mb         |  light loops                    50729 (   2.46,    0.27)         3772 (   0.18,    0.02)
+00:00:01 1131mb         |  indirect diffuse                2907 (   0.14,    0.02)            0 (   0.00,    0.00)
+00:00:01 1131mb         | -----------------------------------------------------------------------------------------
+00:00:01 1131mb         | shader calls:                         (/pixel , /sample) (% total)
+00:00:01 1131mb         |  primary                        54501 (   2.65,    0.29) (100.00%)
+00:00:01 1131mb         |  total                          54501 (   2.65,    0.29) (100.00%)
+00:00:01 1131mb         | -----------------------------------------------------------------------------------------
+00:00:01 1131mb         | geometry:                             (% hit ) (instances) (  init mem,  final mem)
+00:00:01 1131mb         |  lists                              1 (100.0%) (        0) (      0.00,       0.00)
+00:00:01 1131mb         |  polymeshes                         1 (100.0%) (        0) (      0.07,       0.08)
+00:00:01 1131mb         |  curves                             1 (100.0%) (        0) (      4.77,       4.77)
+00:00:01 1131mb         | -----------------------------------------------------------------------------------------
+00:00:01 1131mb         | geometric elements:                   (      min) (       avg.) (      max)
+00:00:01 1131mb         |  objects (top level)                2 (        2) (        2.0) (        2)
+00:00:01 1131mb         |  polygons                        1600 (     1600) (     1600.0) (     1600)
+00:00:01 1131mb         |  curves                          1664 (     1664) (     1664.0) (     1664)
+00:00:01 1131mb         |  curve segments                153171 (   153171) (   153171.0) (   153171)
+00:00:01 1131mb         | -----------------------------------------------------------------------------------------
+00:00:01 1131mb         | triangle tesselation:                 (      min) (       avg.) (      max) (/ element) (% total)
+00:00:01 1131mb         |  polymeshes                      3120 (     3120) (     3120.0) (     3120) (     1.95) (100.00%)
+00:00:01 1131mb         |  unique triangles:               3120
+00:00:01 1131mb         |  memory use (in mb)              0.08
+00:00:01 1131mb         |    vertices                      0.02
+00:00:01 1131mb         |    vertex indices                0.01
+00:00:01 1131mb         |    polygon base offsets          0.01
+00:00:01 1131mb         |    polygon IDs                   0.01
+00:00:01 1131mb         |    triangulation                 0.00
+00:00:01 1131mb         |    packed normals                0.01
+00:00:01 1131mb         |    normal indices                0.01
+00:00:01 1131mb         |    uv coords                     0.01
+00:00:01 1131mb         |    uv coords idxs                0.01
+00:00:01 1131mb         |    uniform indices               0.00
+00:00:01 1131mb         | -----------------------------------------------------------------------------------------
+00:00:01 1131mb         | acceleration structures:              (% total)
+00:00:01 1131mb         |  bvh                                3 (100.00%)
+00:00:01 1131mb         |  total                              3 (100.00%)
+00:00:01 1131mb         | -----------------------------------------------------------------------------------------
+00:00:01 1131mb         |  
+00:00:01 1131mb         | releasing resources
+00:00:01 1016mb         |  unloading 2 plugins
+00:00:01 1016mb         |   closing mtoa_shaders.so ...
+00:00:01 1014mb         |   closing shave_shaders.so ...
+00:00:01 1012mb         |  unloading plugins done
+00:00:01 1012mb         | Arnold shutdown
+Scene /home/ndu/workspace/mtoa/build/linux_x86_64/gcc_debug/testsuite/test_0030/test.ma completed.

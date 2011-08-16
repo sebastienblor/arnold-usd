@@ -1,896 +1,770 @@
 //Maya ASCII 2011 scene
 //Name: test.ma
-//Last modified: Mon, Jul 18, 2011 06:14:35 PM
+//Last modified: Tue, Aug 09, 2011 05:53:26 PM
 //Codeset: UTF-8
 requires maya "2011";
-requires "mtoa" "0.9.0";
-currentUnit -linear centimeter -angle degree -time film;
+requires "mtoa" "0.10.0";
+requires "stereoCamera" "10.0";
+currentUnit -l centimeter -a degree -t film;
 fileInfo "application" "maya";
 fileInfo "product" "Maya 2011";
 fileInfo "version" "2011 x64";
 fileInfo "cutIdentifier" "201009060248-781623";
-fileInfo "osv" "Linux 2.6.18-194.32.1.el5 #1 SMP Wed Jan 5 17:52:25 EST 2011 x86_64";
-createNode transform -shared -name "persp";
-	setAttr ".visibility" no;
-	setAttr ".translate" -type "double3" 16.722772317035005 14.739098013784576 17.196404143463287 ;
-	setAttr ".rotate" -type "double3" -35.738352729602418 44.2 -2.2182365887199574e-15 ;
-	setAttr ".rotatePivot" -type "double3" -3.7305311785434307e-15 4.1302409908546105e-15 
-		-7.1054273576010019e-15 ;
-	setAttr ".rotatePivotTranslate" -type "double3" -1.4878539151390208e-14 -1.7318315130879441e-15 
-		3.0664719809111371e-15 ;
-createNode camera -shared -name "perspShape" -parent "persp";
-	addAttr -cachedInternally true -keyable true -shortName "ai_filtermap" -longName "aiFiltermap" 
-		-attributeType "message";
-	addAttr -cachedInternally true -keyable true -shortName "ai_horizontal_fov" -longName "aiHorizontalFov" 
-		-defaultValue 60 -minValue 0 -maxValue 1000000000 -softMaxValue 360 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_vertical_fov" -longName "aiVerticalFov" 
-		-defaultValue 90 -minValue 0 -maxValue 1000000000 -softMaxValue 180 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_projective" -longName "aiProjective" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_focus_distance" -longName "aiFocusDistance" 
-		-defaultValue 1 -minValue 0 -maxValue 1000000000 -softMinValue 0 -softMaxValue 200 
-		-attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_aperture_size" -longName "aiApertureSize" 
-		-minValue 0 -maxValue 20 -softMinValue 0 -softMaxValue 1 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_aperture_blades" -longName "aiApertureBlades" 
-		-minValue 3 -maxValue 40 -attributeType "long";
-	addAttr -cachedInternally true -keyable true -shortName "ai_aperture_blade_curvature" 
-		-longName "aiApertureBladeCurvature" -minValue -20 -maxValue 20 -softMinValue -5 
-		-softMaxValue 5 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_aperture_rotation" -longName "aiApertureRotation" 
-		-minValue 0 -maxValue 360 -softMinValue 0 -softMaxValue 50 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_edof" -longName "aiEnableDOF" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_fov" -longName "aiFov" 
-		-defaultValue 90 -minValue 0 -maxValue 1000000000 -softMaxValue 360 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_autocrop" -longName "aiAutocrop" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -usedAsColor -keyable true -shortName "ai_uv_remap" 
-		-longName "aiUvRemap" -attributeType "float3" -numberOfChildren 3;
-	addAttr -cachedInternally true -keyable true -shortName "ai_uv_remapr" -longName "aiUvRemapR" 
-		-attributeType "float" -parent "aiUvRemap";
-	addAttr -cachedInternally true -keyable true -shortName "ai_uv_remapg" -longName "aiUvRemapG" 
-		-attributeType "float" -parent "aiUvRemap";
-	addAttr -cachedInternally true -keyable true -shortName "ai_uv_remapb" -longName "aiUvRemapB" 
-		-attributeType "float" -parent "aiUvRemap";
-	addAttr -cachedInternally true -hidden true -keyable true -shortName "ai_uv_remapa" 
-		-longName "aiUvRemapA" -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_translator" -longName "aiTranslator" 
-		-dataType "string";
-	addAttr -cachedInternally true -keyable true -shortName "filtermap" -longName "filtermap" 
-		-attributeType "message";
-	addAttr -cachedInternally true -keyable true -shortName "focal_distance" -longName "focalDistance" 
-		-defaultValue 5 -minValue 0 -maxValue 1000000000 -softMinValue 0 -softMaxValue 200 
-		-attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "aperture_size" -longName "apertureSize" 
-		-defaultValue 0.20000000298023224 -minValue 0 -maxValue 20 -softMinValue 0 -softMaxValue 
-		0.5 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "aperture_blades" -longName "apertureBlades" 
-		-defaultValue 6 -minValue 3 -maxValue 40 -attributeType "long";
-	addAttr -cachedInternally true -keyable true -shortName "aperture_blade_curvature" 
-		-longName "apertureBladeCurvature" -minValue -20 -maxValue 20 -softMinValue -5 -softMaxValue 
-		5 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "aperture_rotation" -longName "apertureRotation" 
-		-minValue 0 -maxValue 360 -softMinValue 0 -softMaxValue 50 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "edof" -longName "enableDOF" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -usedAsColor -keyable true -shortName "uv_remap" 
-		-longName "uvRemap" -attributeType "float3" -numberOfChildren 3;
-	addAttr -cachedInternally true -keyable true -shortName "uv_remapr" -longName "uvRemapR" 
-		-attributeType "float" -parent "uvRemap";
-	addAttr -cachedInternally true -keyable true -shortName "uv_remapg" -longName "uvRemapG" 
-		-attributeType "float" -parent "uvRemap";
-	addAttr -cachedInternally true -keyable true -shortName "uv_remapb" -longName "uvRemapB" 
-		-attributeType "float" -parent "uvRemap";
-	addAttr -cachedInternally true -hidden true -keyable true -shortName "uv_remapa" 
-		-longName "uvRemapA" -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "arntr" -longName "arnoldTranslator" 
-		-dataType "string";
-	addAttr -cachedInternally true -keyable true -shortName "fov" -longName "fov" -defaultValue 
-		90 -minValue 0 -maxValue 1000000000 -softMaxValue 360 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "autocrop" -longName "autocrop" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "horizontal_fov" -longName "horizontalFov" 
-		-defaultValue 60 -minValue 0 -maxValue 1000000000 -softMaxValue 360 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "vertical_fov" -longName "verticalFov" 
-		-defaultValue 90 -minValue 0 -maxValue 1000000000 -softMaxValue 180 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "projective" -longName "projective" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	setAttr -keyable off ".visibility" no;
-	setAttr ".overscan" 1.3;
-	setAttr ".focalLength" 34.999999999999986;
-	setAttr ".centerOfInterest" 28.024519899009473;
-	setAttr ".orthographicWidth" 30;
-	setAttr ".imageName" -type "string" "persp";
-	setAttr ".depthName" -type "string" "persp_depth";
-	setAttr ".maskName" -type "string" "persp_mask";
-	setAttr ".homeCommand" -type "string" "viewSet -p %camera";
-	setAttr ".displayResolution" yes;
-	setAttr -keyable on ".aiTranslator" -type "string" "perspective";
-	setAttr -keyable on ".arnoldTranslator" -type "string" "orthographic";
-createNode transform -shared -name "top";
-	setAttr ".visibility" no;
-	setAttr ".translate" -type "double3" 0 100.1 0 ;
-	setAttr ".rotate" -type "double3" -89.999999999999986 0 0 ;
-createNode camera -shared -name "topShape" -parent "top";
-	addAttr -cachedInternally true -keyable true -shortName "ai_filtermap" -longName "aiFiltermap" 
-		-attributeType "message";
-	addAttr -cachedInternally true -keyable true -shortName "ai_horizontal_fov" -longName "aiHorizontalFov" 
-		-defaultValue 60 -minValue 0 -maxValue 1000000000 -softMaxValue 360 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_vertical_fov" -longName "aiVerticalFov" 
-		-defaultValue 90 -minValue 0 -maxValue 1000000000 -softMaxValue 180 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_projective" -longName "aiProjective" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_focus_distance" -longName "aiFocusDistance" 
-		-defaultValue 1 -minValue 0 -maxValue 1000000000 -softMinValue 0 -softMaxValue 200 
-		-attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_aperture_size" -longName "aiApertureSize" 
-		-minValue 0 -maxValue 20 -softMinValue 0 -softMaxValue 1 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_aperture_blades" -longName "aiApertureBlades" 
-		-minValue 3 -maxValue 40 -attributeType "long";
-	addAttr -cachedInternally true -keyable true -shortName "ai_aperture_blade_curvature" 
-		-longName "aiApertureBladeCurvature" -minValue -20 -maxValue 20 -softMinValue -5 
-		-softMaxValue 5 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_aperture_rotation" -longName "aiApertureRotation" 
-		-minValue 0 -maxValue 360 -softMinValue 0 -softMaxValue 50 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_edof" -longName "aiEnableDOF" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_fov" -longName "aiFov" 
-		-defaultValue 90 -minValue 0 -maxValue 1000000000 -softMaxValue 360 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_autocrop" -longName "aiAutocrop" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -usedAsColor -keyable true -shortName "ai_uv_remap" 
-		-longName "aiUvRemap" -attributeType "float3" -numberOfChildren 3;
-	addAttr -cachedInternally true -keyable true -shortName "ai_uv_remapr" -longName "aiUvRemapR" 
-		-attributeType "float" -parent "aiUvRemap";
-	addAttr -cachedInternally true -keyable true -shortName "ai_uv_remapg" -longName "aiUvRemapG" 
-		-attributeType "float" -parent "aiUvRemap";
-	addAttr -cachedInternally true -keyable true -shortName "ai_uv_remapb" -longName "aiUvRemapB" 
-		-attributeType "float" -parent "aiUvRemap";
-	addAttr -cachedInternally true -hidden true -keyable true -shortName "ai_uv_remapa" 
-		-longName "aiUvRemapA" -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_translator" -longName "aiTranslator" 
-		-dataType "string";
-	addAttr -cachedInternally true -keyable true -shortName "filtermap" -longName "filtermap" 
-		-attributeType "message";
-	addAttr -cachedInternally true -keyable true -shortName "focal_distance" -longName "focalDistance" 
-		-defaultValue 5 -minValue 0 -maxValue 1000000000 -softMinValue 0 -softMaxValue 200 
-		-attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "aperture_size" -longName "apertureSize" 
-		-defaultValue 0.20000000298023224 -minValue 0 -maxValue 20 -softMinValue 0 -softMaxValue 
-		0.5 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "aperture_blades" -longName "apertureBlades" 
-		-defaultValue 6 -minValue 3 -maxValue 40 -attributeType "long";
-	addAttr -cachedInternally true -keyable true -shortName "aperture_blade_curvature" 
-		-longName "apertureBladeCurvature" -minValue -20 -maxValue 20 -softMinValue -5 -softMaxValue 
-		5 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "aperture_rotation" -longName "apertureRotation" 
-		-minValue 0 -maxValue 360 -softMinValue 0 -softMaxValue 50 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "edof" -longName "enableDOF" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -usedAsColor -keyable true -shortName "uv_remap" 
-		-longName "uvRemap" -attributeType "float3" -numberOfChildren 3;
-	addAttr -cachedInternally true -keyable true -shortName "uv_remapr" -longName "uvRemapR" 
-		-attributeType "float" -parent "uvRemap";
-	addAttr -cachedInternally true -keyable true -shortName "uv_remapg" -longName "uvRemapG" 
-		-attributeType "float" -parent "uvRemap";
-	addAttr -cachedInternally true -keyable true -shortName "uv_remapb" -longName "uvRemapB" 
-		-attributeType "float" -parent "uvRemap";
-	addAttr -cachedInternally true -hidden true -keyable true -shortName "uv_remapa" 
-		-longName "uvRemapA" -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "arntr" -longName "arnoldTranslator" 
-		-dataType "string";
-	addAttr -cachedInternally true -keyable true -shortName "fov" -longName "fov" -defaultValue 
-		90 -minValue 0 -maxValue 1000000000 -softMaxValue 360 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "autocrop" -longName "autocrop" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "horizontal_fov" -longName "horizontalFov" 
-		-defaultValue 60 -minValue 0 -maxValue 1000000000 -softMaxValue 360 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "vertical_fov" -longName "verticalFov" 
-		-defaultValue 90 -minValue 0 -maxValue 1000000000 -softMaxValue 180 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "projective" -longName "projective" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	setAttr -keyable off ".visibility" no;
-	setAttr ".renderable" no;
-	setAttr ".centerOfInterest" 100.1;
-	setAttr ".orthographicWidth" 30;
-	setAttr ".imageName" -type "string" "top";
-	setAttr ".depthName" -type "string" "top_depth";
-	setAttr ".maskName" -type "string" "top_mask";
-	setAttr ".homeCommand" -type "string" "viewSet -t %camera";
-	setAttr ".orthographic" yes;
-	setAttr -keyable on ".aiTranslator" -type "string" "orthographic";
-	setAttr -keyable on ".arnoldTranslator" -type "string" "orthographic";
-createNode transform -shared -name "front";
-	setAttr ".visibility" no;
-	setAttr ".translate" -type "double3" 0 0 100.1 ;
-createNode camera -shared -name "frontShape" -parent "front";
-	addAttr -cachedInternally true -keyable true -shortName "ai_filtermap" -longName "aiFiltermap" 
-		-attributeType "message";
-	addAttr -cachedInternally true -keyable true -shortName "ai_horizontal_fov" -longName "aiHorizontalFov" 
-		-defaultValue 60 -minValue 0 -maxValue 1000000000 -softMaxValue 360 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_vertical_fov" -longName "aiVerticalFov" 
-		-defaultValue 90 -minValue 0 -maxValue 1000000000 -softMaxValue 180 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_projective" -longName "aiProjective" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_focus_distance" -longName "aiFocusDistance" 
-		-defaultValue 1 -minValue 0 -maxValue 1000000000 -softMinValue 0 -softMaxValue 200 
-		-attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_aperture_size" -longName "aiApertureSize" 
-		-minValue 0 -maxValue 20 -softMinValue 0 -softMaxValue 1 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_aperture_blades" -longName "aiApertureBlades" 
-		-minValue 3 -maxValue 40 -attributeType "long";
-	addAttr -cachedInternally true -keyable true -shortName "ai_aperture_blade_curvature" 
-		-longName "aiApertureBladeCurvature" -minValue -20 -maxValue 20 -softMinValue -5 
-		-softMaxValue 5 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_aperture_rotation" -longName "aiApertureRotation" 
-		-minValue 0 -maxValue 360 -softMinValue 0 -softMaxValue 50 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_edof" -longName "aiEnableDOF" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_fov" -longName "aiFov" 
-		-defaultValue 90 -minValue 0 -maxValue 1000000000 -softMaxValue 360 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_autocrop" -longName "aiAutocrop" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -usedAsColor -keyable true -shortName "ai_uv_remap" 
-		-longName "aiUvRemap" -attributeType "float3" -numberOfChildren 3;
-	addAttr -cachedInternally true -keyable true -shortName "ai_uv_remapr" -longName "aiUvRemapR" 
-		-attributeType "float" -parent "aiUvRemap";
-	addAttr -cachedInternally true -keyable true -shortName "ai_uv_remapg" -longName "aiUvRemapG" 
-		-attributeType "float" -parent "aiUvRemap";
-	addAttr -cachedInternally true -keyable true -shortName "ai_uv_remapb" -longName "aiUvRemapB" 
-		-attributeType "float" -parent "aiUvRemap";
-	addAttr -cachedInternally true -hidden true -keyable true -shortName "ai_uv_remapa" 
-		-longName "aiUvRemapA" -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_translator" -longName "aiTranslator" 
-		-dataType "string";
-	addAttr -cachedInternally true -keyable true -shortName "filtermap" -longName "filtermap" 
-		-attributeType "message";
-	addAttr -cachedInternally true -keyable true -shortName "focal_distance" -longName "focalDistance" 
-		-defaultValue 5 -minValue 0 -maxValue 1000000000 -softMinValue 0 -softMaxValue 200 
-		-attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "aperture_size" -longName "apertureSize" 
-		-defaultValue 0.20000000298023224 -minValue 0 -maxValue 20 -softMinValue 0 -softMaxValue 
-		0.5 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "aperture_blades" -longName "apertureBlades" 
-		-defaultValue 6 -minValue 3 -maxValue 40 -attributeType "long";
-	addAttr -cachedInternally true -keyable true -shortName "aperture_blade_curvature" 
-		-longName "apertureBladeCurvature" -minValue -20 -maxValue 20 -softMinValue -5 -softMaxValue 
-		5 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "aperture_rotation" -longName "apertureRotation" 
-		-minValue 0 -maxValue 360 -softMinValue 0 -softMaxValue 50 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "edof" -longName "enableDOF" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -usedAsColor -keyable true -shortName "uv_remap" 
-		-longName "uvRemap" -attributeType "float3" -numberOfChildren 3;
-	addAttr -cachedInternally true -keyable true -shortName "uv_remapr" -longName "uvRemapR" 
-		-attributeType "float" -parent "uvRemap";
-	addAttr -cachedInternally true -keyable true -shortName "uv_remapg" -longName "uvRemapG" 
-		-attributeType "float" -parent "uvRemap";
-	addAttr -cachedInternally true -keyable true -shortName "uv_remapb" -longName "uvRemapB" 
-		-attributeType "float" -parent "uvRemap";
-	addAttr -cachedInternally true -hidden true -keyable true -shortName "uv_remapa" 
-		-longName "uvRemapA" -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "arntr" -longName "arnoldTranslator" 
-		-dataType "string";
-	addAttr -cachedInternally true -keyable true -shortName "fov" -longName "fov" -defaultValue 
-		90 -minValue 0 -maxValue 1000000000 -softMaxValue 360 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "autocrop" -longName "autocrop" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "horizontal_fov" -longName "horizontalFov" 
-		-defaultValue 60 -minValue 0 -maxValue 1000000000 -softMaxValue 360 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "vertical_fov" -longName "verticalFov" 
-		-defaultValue 90 -minValue 0 -maxValue 1000000000 -softMaxValue 180 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "projective" -longName "projective" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	setAttr -keyable off ".visibility" no;
-	setAttr ".renderable" no;
-	setAttr ".centerOfInterest" 100.1;
-	setAttr ".orthographicWidth" 30;
-	setAttr ".imageName" -type "string" "front";
-	setAttr ".depthName" -type "string" "front_depth";
-	setAttr ".maskName" -type "string" "front_mask";
-	setAttr ".homeCommand" -type "string" "viewSet -f %camera";
-	setAttr ".orthographic" yes;
-	setAttr -keyable on ".aiTranslator" -type "string" "orthographic";
-	setAttr -keyable on ".arnoldTranslator" -type "string" "orthographic";
-createNode transform -shared -name "side";
-	setAttr ".visibility" no;
-	setAttr ".translate" -type "double3" 100.1 0 0 ;
-	setAttr ".rotate" -type "double3" 0 89.999999999999986 0 ;
-createNode camera -shared -name "sideShape" -parent "side";
-	addAttr -cachedInternally true -keyable true -shortName "ai_filtermap" -longName "aiFiltermap" 
-		-attributeType "message";
-	addAttr -cachedInternally true -keyable true -shortName "ai_horizontal_fov" -longName "aiHorizontalFov" 
-		-defaultValue 60 -minValue 0 -maxValue 1000000000 -softMaxValue 360 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_vertical_fov" -longName "aiVerticalFov" 
-		-defaultValue 90 -minValue 0 -maxValue 1000000000 -softMaxValue 180 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_projective" -longName "aiProjective" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_focus_distance" -longName "aiFocusDistance" 
-		-defaultValue 1 -minValue 0 -maxValue 1000000000 -softMinValue 0 -softMaxValue 200 
-		-attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_aperture_size" -longName "aiApertureSize" 
-		-minValue 0 -maxValue 20 -softMinValue 0 -softMaxValue 1 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_aperture_blades" -longName "aiApertureBlades" 
-		-minValue 3 -maxValue 40 -attributeType "long";
-	addAttr -cachedInternally true -keyable true -shortName "ai_aperture_blade_curvature" 
-		-longName "aiApertureBladeCurvature" -minValue -20 -maxValue 20 -softMinValue -5 
-		-softMaxValue 5 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_aperture_rotation" -longName "aiApertureRotation" 
-		-minValue 0 -maxValue 360 -softMinValue 0 -softMaxValue 50 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_edof" -longName "aiEnableDOF" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_fov" -longName "aiFov" 
-		-defaultValue 90 -minValue 0 -maxValue 1000000000 -softMaxValue 360 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_autocrop" -longName "aiAutocrop" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -usedAsColor -keyable true -shortName "ai_uv_remap" 
-		-longName "aiUvRemap" -attributeType "float3" -numberOfChildren 3;
-	addAttr -cachedInternally true -keyable true -shortName "ai_uv_remapr" -longName "aiUvRemapR" 
-		-attributeType "float" -parent "aiUvRemap";
-	addAttr -cachedInternally true -keyable true -shortName "ai_uv_remapg" -longName "aiUvRemapG" 
-		-attributeType "float" -parent "aiUvRemap";
-	addAttr -cachedInternally true -keyable true -shortName "ai_uv_remapb" -longName "aiUvRemapB" 
-		-attributeType "float" -parent "aiUvRemap";
-	addAttr -cachedInternally true -hidden true -keyable true -shortName "ai_uv_remapa" 
-		-longName "aiUvRemapA" -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_translator" -longName "aiTranslator" 
-		-dataType "string";
-	addAttr -cachedInternally true -keyable true -shortName "filtermap" -longName "filtermap" 
-		-attributeType "message";
-	addAttr -cachedInternally true -keyable true -shortName "focal_distance" -longName "focalDistance" 
-		-defaultValue 5 -minValue 0 -maxValue 1000000000 -softMinValue 0 -softMaxValue 200 
-		-attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "aperture_size" -longName "apertureSize" 
-		-defaultValue 0.20000000298023224 -minValue 0 -maxValue 20 -softMinValue 0 -softMaxValue 
-		0.5 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "aperture_blades" -longName "apertureBlades" 
-		-defaultValue 6 -minValue 3 -maxValue 40 -attributeType "long";
-	addAttr -cachedInternally true -keyable true -shortName "aperture_blade_curvature" 
-		-longName "apertureBladeCurvature" -minValue -20 -maxValue 20 -softMinValue -5 -softMaxValue 
-		5 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "aperture_rotation" -longName "apertureRotation" 
-		-minValue 0 -maxValue 360 -softMinValue 0 -softMaxValue 50 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "edof" -longName "enableDOF" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -usedAsColor -keyable true -shortName "uv_remap" 
-		-longName "uvRemap" -attributeType "float3" -numberOfChildren 3;
-	addAttr -cachedInternally true -keyable true -shortName "uv_remapr" -longName "uvRemapR" 
-		-attributeType "float" -parent "uvRemap";
-	addAttr -cachedInternally true -keyable true -shortName "uv_remapg" -longName "uvRemapG" 
-		-attributeType "float" -parent "uvRemap";
-	addAttr -cachedInternally true -keyable true -shortName "uv_remapb" -longName "uvRemapB" 
-		-attributeType "float" -parent "uvRemap";
-	addAttr -cachedInternally true -hidden true -keyable true -shortName "uv_remapa" 
-		-longName "uvRemapA" -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "arntr" -longName "arnoldTranslator" 
-		-dataType "string";
-	addAttr -cachedInternally true -keyable true -shortName "fov" -longName "fov" -defaultValue 
-		90 -minValue 0 -maxValue 1000000000 -softMaxValue 360 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "autocrop" -longName "autocrop" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "horizontal_fov" -longName "horizontalFov" 
-		-defaultValue 60 -minValue 0 -maxValue 1000000000 -softMaxValue 360 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "vertical_fov" -longName "verticalFov" 
-		-defaultValue 90 -minValue 0 -maxValue 1000000000 -softMaxValue 180 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "projective" -longName "projective" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	setAttr -keyable off ".visibility" no;
-	setAttr ".renderable" no;
-	setAttr ".centerOfInterest" 100.1;
-	setAttr ".orthographicWidth" 30;
-	setAttr ".imageName" -type "string" "side";
-	setAttr ".depthName" -type "string" "side_depth";
-	setAttr ".maskName" -type "string" "side_mask";
-	setAttr ".homeCommand" -type "string" "viewSet -s %camera";
-	setAttr ".orthographic" yes;
-	setAttr -keyable on ".aiTranslator" -type "string" "orthographic";
-	setAttr -keyable on ".arnoldTranslator" -type "string" "orthographic";
-createNode transform -name "pPlane1";
-createNode mesh -name "pPlaneShape1" -parent "pPlane1";
-	addAttr -cachedInternally true -keyable true -shortName "ai_sss_use_gi" -longName "aiSssUseGi" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -shortName "ai_sss_sample_distribution" -longName "aiSssSampleDistribution" 
-		-minValue 0 -maxValue 3 -enumName "blue_noise:blue_noise_Pref:triangle_midpoint:polygon_midpoint" 
-		-attributeType "enum";
-	addAttr -cachedInternally true -keyable true -shortName "ai_sss_sample_spacing" 
-		-longName "aiSssSampleSpacing" -defaultValue 0.10000000149011612 -minValue 0 -softMaxValue 
-		1 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_self_shadows" -longName "aiSelfShadows" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_opaque" -longName "aiOpaque" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_vid" -longName "aiVisibleInDiffuse" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_vig" -longName "aiVisibleInGlossy" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -shortName "ai_subdiv_type" -longName "aiSubdivType" 
-		-minValue 0 -maxValue 2 -enumName "none:catclark:linear" -attributeType "enum";
-	addAttr -cachedInternally true -keyable true -shortName "ai_subdiv_iterations" -longName "aiSubdivIterations" 
-		-defaultValue 1 -minValue 0 -maxValue 100 -softMinValue 0 -softMaxValue 10 -attributeType "long";
-	addAttr -cachedInternally true -shortName "ai_subdiv_adaptive_metric" -longName "aiSubdivAdaptiveMetric" 
-		-minValue 0 -maxValue 2 -enumName "auto:edge_length:flatness" -attributeType "enum";
-	addAttr -cachedInternally true -keyable true -shortName "ai_subdiv_pixel_error" 
-		-longName "aiSubdivPixelError" -minValue 0 -softMaxValue 10 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_subdiv_dicing_camera" 
-		-longName "aiSubdivDicingCamera" -attributeType "message";
-	addAttr -cachedInternally true -shortName "ai_subdiv_uv_smoothing" -longName "aiSubdivUvSmoothing" 
-		-minValue 0 -maxValue 3 -enumName "pin_corners:pin_borders:linear:smooth" -attributeType "enum";
-	addAttr -cachedInternally true -keyable true -shortName "ai_exptan" -longName "aiExportTangents" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_expcol" -longName "aiExportColors" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_sss_max_samples" -longName "aiSssMaxSamples" 
-		-defaultValue 100000 -minValue 0 -softMaxValue 1000000 -attributeType "long";
-	addAttr -cachedInternally true -keyable true -shortName "sss_use_gi" -longName "sssUseGi" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "sss_max_samples" -longName "sssMaxSamples" 
-		-defaultValue 100000 -minValue 0 -softMaxValue 1000000 -attributeType "long";
-	addAttr -cachedInternally true -keyable true -shortName "sss_sample_spacing" -longName "sssSampleSpacing" 
-		-defaultValue 0.10000000149011612 -minValue 0 -softMaxValue 1 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "self_shadows" -longName "selfShadows" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "opaque" -longName "opaque" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "vid" -longName "visibleInDiffuse" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "vig" -longName "visibleInGlossy" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -shortName "subdiv_type" -longName "subdivType" -minValue 
-		0 -maxValue 2 -enumName "none:catclark:linear" -attributeType "enum";
-	addAttr -cachedInternally true -keyable true -shortName "subdiv_iterations" -longName "subdivIterations" 
-		-defaultValue 1 -minValue 0 -maxValue 100 -softMinValue 0 -softMaxValue 10 -attributeType "long";
-	addAttr -cachedInternally true -shortName "subdiv_adaptive_metric" -longName "subdivAdaptiveMetric" 
-		-minValue 0 -maxValue 2 -enumName "auto:edge_length:flatness" -attributeType "enum";
-	addAttr -cachedInternally true -keyable true -shortName "subdiv_pixel_error" -longName "subdivPixelError" 
-		-minValue 0 -softMaxValue 10 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "subdiv_dicing_camera" -longName "subdivDicingCamera" 
-		-attributeType "message";
-	addAttr -cachedInternally true -shortName "subdiv_uv_smoothing" -longName "subdivUvSmoothing" 
-		-minValue 0 -maxValue 3 -enumName "pin_corners:pin_borders:linear:smooth" -attributeType "enum";
-	addAttr -cachedInternally true -keyable true -shortName "exptan" -longName "exportTangents" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "expcol" -longName "exportColors" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -shortName "mso" -longName "miShadingSamplesOverride" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -shortName "msh" -longName "miShadingSamples" -minValue 
-		0 -softMaxValue 8 -attributeType "float";
-	addAttr -cachedInternally true -shortName "mdo" -longName "miMaxDisplaceOverride" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -shortName "mmd" -longName "miMaxDisplace" -minValue 
-		0 -softMaxValue 1 -attributeType "float";
-	setAttr -keyable off ".visibility";
-	setAttr ".visibleInReflections" yes;
-	setAttr ".visibleInRefractions" yes;
-	setAttr ".uvSet[0].uvSetName" -type "string" "map1";
-	setAttr ".currentUVSet" -type "string" "map1";
-	setAttr ".displayColorChannel" -type "string" "Ambient+Diffuse";
-	setAttr ".collisionOffsetVelocityMultiplier[0]"  0 1 1;
-	setAttr ".collisionDepthVelocityMultiplier[0]"  0 1 1;
-createNode transform -name "hairSystem1";
-createNode hairSystem -name "hairSystemShape1" -parent "hairSystem1";
-	addAttr -cachedInternally true -keyable true -shortName "ai_sss_use_gi" -longName "aiSssUseGi" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -shortName "ai_sss_sample_distribution" -longName "aiSssSampleDistribution" 
-		-minValue 0 -maxValue 3 -enumName "blue_noise:blue_noise_Pref:triangle_midpoint:polygon_midpoint" 
-		-attributeType "enum";
-	addAttr -cachedInternally true -keyable true -shortName "ai_sss_sample_spacing" 
-		-longName "aiSssSampleSpacing" -defaultValue 0.10000000149011612 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_self_shadows" -longName "aiSelfShadows" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_opaque" -longName "aiOpaque" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_vid" -longName "aiVisibleInDiffuse" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_vig" -longName "aiVisibleInGlossy" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_min_pixel_width" -longName "aiMinPixelWidth" 
-		-attributeType "float";
-	addAttr -cachedInternally true -shortName "ai_mode" -longName "aiMode" -minValue 
-		0 -maxValue 1 -enumName "ribbon:thick" -attributeType "enum";
-	addAttr -cachedInternally true -keyable true -shortName "ai_export_hair_ids" -longName "aiExportHairIDs" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_override_hair" -longName "aiOverrideHair" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_hair_shader" -longName "aiHairShader" 
-		-attributeType "message";
-	addAttr -cachedInternally true -keyable true -shortName "ai_sss_max_samples" -longName "aiSssMaxSamples" 
-		-defaultValue 100000 -attributeType "long";
-	addAttr -cachedInternally true -keyable true -shortName "sss_use_gi" -longName "sssUseGi" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "sss_max_samples" -longName "sssMaxSamples" 
-		-defaultValue 100000 -attributeType "long";
-	addAttr -cachedInternally true -keyable true -shortName "sss_sample_spacing" -longName "sssSampleSpacing" 
-		-defaultValue 0.10000000149011612 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "self_shadows" -longName "selfShadows" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "opaque" -longName "opaque" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "vid" -longName "visibleInDiffuse" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "vig" -longName "visibleInGlossy" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "min_pixel_width" -longName "minPixelWidth" 
-		-attributeType "float";
-	addAttr -cachedInternally true -shortName "mode" -longName "mode" -minValue 0 -maxValue 
-		1 -enumName "ribbon:thick" -attributeType "enum";
-	addAttr -cachedInternally true -keyable true -shortName "override_hair" -longName "overrideHair" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "hair_shader" -longName "hairShader" 
-		-attributeType "message";
-	addAttr -cachedInternally true -shortName "mso" -longName "miShadingSamplesOverride" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -shortName "msh" -longName "miShadingSamples" -minValue 
-		0 -softMaxValue 8 -attributeType "float";
-	addAttr -cachedInternally true -shortName "mdo" -longName "miMaxDisplaceOverride" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -shortName "mmd" -longName "miMaxDisplace" -minValue 
-		0 -softMaxValue 1 -attributeType "float";
-	setAttr -keyable off ".visibility";
-	setAttr -size 64 ".inputHair";
-	setAttr ".evaluationOrder" 0;
-	setAttr ".stiffness" 0.1;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr ".clumpCurl[0]"  0 0.5 1;
-	setAttr ".clumpFlatness[0]"  0 0 1;
-	setAttr ".hairWidth" 0.3;
-	setAttr -size 2 ".hairWidthScale[0:1]"  0.80000001 1 3 1 0.2 3;
-	setAttr ".hairColor" -type "float3" 1 1 1 ;
-	setAttr -size 3 ".hairColorScale";
-	setAttr ".hairColorScale[0].hairColorScale_Position" 0;
-	setAttr ".hairColorScale[0].hairColorScale_Color" -type "float3" 0.5 0.5 0.5 ;
-	setAttr ".hairColorScale[0].hairColorScale_Interp" 3;
-	setAttr ".hairColorScale[1].hairColorScale_Position" 0.30000001192092896;
-	setAttr ".hairColorScale[1].hairColorScale_Color" -type "float3" 0.80000001 0.80000001 
-		0.80000001 ;
-	setAttr ".hairColorScale[1].hairColorScale_Interp" 3;
-	setAttr ".hairColorScale[2].hairColorScale_Position" 1;
-	setAttr ".hairColorScale[2].hairColorScale_Color" -type "float3" 1 1 1 ;
-	setAttr ".hairColorScale[2].hairColorScale_Interp" 3;
-	setAttr ".hairsPerClump" 1;
-	setAttr ".specularColor" -type "float3" 1 1 1 ;
-	setAttr ".displacementScale[0]"  0 1 1;
-createNode transform -name "hairSystem1Follicles";
-createNode transform -name "pPlane1Follicle606" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape606" -parent "pPlane1Follicle606";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.0625;
-	setAttr ".parameterV" 0.0625;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve1" -parent "pPlane1Follicle606";
-createNode nurbsCurve -name "curveShape1" -parent "curve1";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
-		1 9 0 no 3
-		10 0 1 2 3 4 5 6 7 8 9
-		10
-		0 0 0
-		0 0 0.55555555560000003
-		0 0 1.111111111
-		0 0 1.6666666670000001
-		0 0 2.2222222220000001
-		0 0 2.7777777779999999
-		0 0 3.3333333330000001
-		0 0 3.888888889
-		0 0 4.4444444440000002
-		0 0 5
-		;
-createNode transform -name "pPlane1Follicle619" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape619" -parent "pPlane1Follicle619";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.0625;
-	setAttr ".parameterV" 0.1875;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve2" -parent "pPlane1Follicle619";
-createNode nurbsCurve -name "curveShape2" -parent "curve2";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
-		1 9 0 no 3
-		10 0 1 2 3 4 5 6 7 8 9
-		10
-		0 0 0
-		0 0 0.55555555560000003
-		0 0 1.111111111
-		0 0 1.6666666670000001
-		0 0 2.2222222220000001
-		0 0 2.7777777779999999
-		0 0 3.3333333330000001
-		0 0 3.888888889
-		0 0 4.4444444440000002
-		0 0 5
-		;
-createNode transform -name "pPlane1Follicle631" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape631" -parent "pPlane1Follicle631";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.0625;
-	setAttr ".parameterV" 0.3125;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve3" -parent "pPlane1Follicle631";
-createNode nurbsCurve -name "curveShape3" -parent "curve3";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
-		1 9 0 no 3
-		10 0 1 2 3 4 5 6 7 8 9
-		10
-		0 0 0
-		0 0 0.55555555560000003
-		0 0 1.111111111
-		0 0 1.6666666670000001
-		0 0 2.2222222220000001
-		0 0 2.7777777779999999
-		0 0 3.3333333330000001
-		0 0 3.888888889
-		0 0 4.4444444440000002
-		0 0 5
-		;
-createNode transform -name "pPlane1Follicle643" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape643" -parent "pPlane1Follicle643";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.0625;
-	setAttr ".parameterV" 0.4375;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve4" -parent "pPlane1Follicle643";
-createNode nurbsCurve -name "curveShape4" -parent "curve4";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
-		1 9 0 no 3
-		10 0 1 2 3 4 5 6 7 8 9
-		10
-		0 0 0
-		0 0 0.55555555560000003
-		0 0 1.111111111
-		0 0 1.6666666670000001
-		0 0 2.2222222220000001
-		0 0 2.7777777779999999
-		0 0 3.3333333330000001
-		0 0 3.888888889
-		0 0 4.4444444440000002
-		0 0 5
-		;
-createNode transform -name "pPlane1Follicle656" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape656" -parent "pPlane1Follicle656";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.0625;
-	setAttr ".parameterV" 0.5625;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve5" -parent "pPlane1Follicle656";
-createNode nurbsCurve -name "curveShape5" -parent "curve5";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
-		1 9 0 no 3
-		10 0 1 2 3 4 5 6 7 8 9
-		10
-		0 0 0
-		0 0 0.55555555560000003
-		0 0 1.111111111
-		0 0 1.6666666670000001
-		0 0 2.2222222220000001
-		0 0 2.7777777779999999
-		0 0 3.3333333330000001
-		0 0 3.888888889
-		0 0 4.4444444440000002
-		0 0 5
-		;
-createNode transform -name "pPlane1Follicle668" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape668" -parent "pPlane1Follicle668";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.0625;
-	setAttr ".parameterV" 0.6875;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve6" -parent "pPlane1Follicle668";
-createNode nurbsCurve -name "curveShape6" -parent "curve6";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
-		1 9 0 no 3
-		10 0 1 2 3 4 5 6 7 8 9
-		10
-		0 0 0
-		0 0 0.55555555560000003
-		0 0 1.111111111
-		0 0 1.6666666670000001
-		0 0 2.2222222220000001
-		0 0 2.7777777779999999
-		0 0 3.3333333330000001
-		0 0 3.888888889
-		0 0 4.4444444440000002
-		0 0 5
-		;
-createNode transform -name "pPlane1Follicle680" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape680" -parent "pPlane1Follicle680";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.0625;
-	setAttr ".parameterV" 0.8125;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve7" -parent "pPlane1Follicle680";
-createNode nurbsCurve -name "curveShape7" -parent "curve7";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
-		1 9 0 no 3
-		10 0 1 2 3 4 5 6 7 8 9
-		10
-		0 0 0
-		0 0 0.55555555560000003
-		0 0 1.111111111
-		0 0 1.6666666670000001
-		0 0 2.2222222220000001
-		0 0 2.7777777779999999
-		0 0 3.3333333330000001
-		0 0 3.888888889
-		0 0 4.4444444440000002
-		0 0 5
-		;
-createNode transform -name "pPlane1Follicle693" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape693" -parent "pPlane1Follicle693";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.0625;
-	setAttr ".parameterV" 0.9375;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve8" -parent "pPlane1Follicle693";
-createNode nurbsCurve -name "curveShape8" -parent "curve8";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
-		1 9 0 no 3
-		10 0 1 2 3 4 5 6 7 8 9
-		10
-		0 0 0
-		0 0 0.55555555560000003
-		0 0 1.111111111
-		0 0 1.6666666670000001
-		0 0 2.2222222220000001
-		0 0 2.7777777779999999
-		0 0 3.3333333330000001
-		0 0 3.888888889
-		0 0 4.4444444440000002
-		0 0 5
-		;
-createNode transform -name "pPlane1Follicle1906" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape1906" -parent "pPlane1Follicle1906";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.1875;
-	setAttr ".parameterV" 0.0625;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve9" -parent "pPlane1Follicle1906";
-createNode nurbsCurve -name "curveShape9" -parent "curve9";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
-		1 9 0 no 3
-		10 0 1 2 3 4 5 6 7 8 9
-		10
-		0 0 0
-		0 0 0.55555555560000003
-		0 0 1.111111111
-		0 0 1.6666666670000001
-		0 0 2.2222222220000001
-		0 0 2.7777777779999999
-		0 0 3.3333333330000001
-		0 0 3.888888889
-		0 0 4.4444444440000002
-		0 0 5
-		;
-createNode transform -name "pPlane1Follicle1919" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape1919" -parent "pPlane1Follicle1919";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.1875;
-	setAttr ".parameterV" 0.1875;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve10" -parent "pPlane1Follicle1919";
-createNode nurbsCurve -name "curveShape10" -parent "curve10";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
-		1 9 0 no 3
-		10 0 1 2 3 4 5 6 7 8 9
-		10
-		0 0 0
-		0 0 0.55555555560000003
-		0 0 1.111111111
-		0 0 1.6666666670000001
-		0 0 2.2222222220000001
-		0 0 2.7777777779999999
-		0 0 3.3333333330000001
-		0 0 3.888888889
-		0 0 4.4444444440000002
-		0 0 5
-		;
-createNode transform -name "pPlane1Follicle1931" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape1931" -parent "pPlane1Follicle1931";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.1875;
-	setAttr ".parameterV" 0.3125;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve11" -parent "pPlane1Follicle1931";
-createNode nurbsCurve -name "curveShape11" -parent "curve11";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
-		1 9 0 no 3
-		10 0 1 2 3 4 5 6 7 8 9
-		10
-		0 0 0
-		0 0 0.55555555560000003
-		0 0 1.111111111
-		0 0 1.6666666670000001
-		0 0 2.2222222220000001
-		0 0 2.7777777779999999
-		0 0 3.3333333330000001
-		0 0 3.888888889
-		0 0 4.4444444440000002
-		0 0 5
-		;
-createNode transform -name "pPlane1Follicle1943" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape1943" -parent "pPlane1Follicle1943";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.1875;
-	setAttr ".parameterV" 0.4375;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve12" -parent "pPlane1Follicle1943";
-createNode nurbsCurve -name "curveShape12" -parent "curve12";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
-		1 9 0 no 3
-		10 0 1 2 3 4 5 6 7 8 9
-		10
-		0 0 0
-		0 0 0.55555555560000003
-		0 0 1.111111111
-		0 0 1.6666666670000001
-		0 0 2.2222222220000001
-		0 0 2.7777777779999999
-		0 0 3.3333333330000001
-		0 0 3.888888889
-		0 0 4.4444444440000002
-		0 0 5
-		;
-createNode transform -name "pPlane1Follicle1956" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape1956" -parent "pPlane1Follicle1956";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.1875;
-	setAttr ".parameterV" 0.5625;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve13" -parent "pPlane1Follicle1956";
-createNode nurbsCurve -name "curveShape13" -parent "curve13";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+fileInfo "osv" "Linux 2.6.32-33-generic #70-Ubuntu SMP Thu Jul 7 21:13:52 UTC 2011 x86_64";
+createNode transform -s -n "persp";
+	setAttr ".v" no;
+	setAttr ".t" -type "double3" 16.722772317035005 14.739098013784576 17.196404143463287 ;
+	setAttr ".r" -type "double3" -35.738352729602418 44.2 -2.2182365887199574e-15 ;
+	setAttr ".rp" -type "double3" -3.7305311785434307e-15 4.1302409908546105e-15 -7.1054273576010019e-15 ;
+	setAttr ".rpt" -type "double3" -1.4878539151390208e-14 -1.7318315130879441e-15 3.0664719809111371e-15 ;
+createNode camera -s -n "perspShape" -p "persp";
+	addAttr -ci true -k true -sn "ai_filtermap" -ln "aiFiltermap" -at "message";
+	addAttr -ci true -k true -sn "ai_horizontal_fov" -ln "aiHorizontalFov" -dv 60 -min 
+		0 -max 1000000000 -smx 360 -at "float";
+	addAttr -ci true -k true -sn "ai_vertical_fov" -ln "aiVerticalFov" -dv 90 -min 0 
+		-max 1000000000 -smx 180 -at "float";
+	addAttr -ci true -k true -sn "ai_projective" -ln "aiProjective" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "ai_focus_distance" -ln "aiFocusDistance" -dv 1 -min 
+		0 -max 1000000000 -smn 0 -smx 200 -at "float";
+	addAttr -ci true -k true -sn "ai_aperture_size" -ln "aiApertureSize" -min 0 -max 
+		20 -smn 0 -smx 1 -at "float";
+	addAttr -ci true -k true -sn "ai_aperture_blades" -ln "aiApertureBlades" -min 3 
+		-max 40 -at "long";
+	addAttr -ci true -k true -sn "ai_aperture_blade_curvature" -ln "aiApertureBladeCurvature" 
+		-min -20 -max 20 -smn -5 -smx 5 -at "float";
+	addAttr -ci true -k true -sn "ai_aperture_rotation" -ln "aiApertureRotation" -min 
+		0 -max 360 -smn 0 -smx 50 -at "float";
+	addAttr -ci true -k true -sn "ai_edof" -ln "aiEnableDOF" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_fov" -ln "aiFov" -dv 90 -min 0 -max 1000000000 
+		-smx 360 -at "float";
+	addAttr -ci true -k true -sn "ai_autocrop" -ln "aiAutocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -uac -k true -sn "ai_uv_remap" -ln "aiUvRemap" -at "float3" -nc 
+		3;
+	addAttr -ci true -k true -sn "ai_uv_remapr" -ln "aiUvRemapR" -at "float" -p "aiUvRemap";
+	addAttr -ci true -k true -sn "ai_uv_remapg" -ln "aiUvRemapG" -at "float" -p "aiUvRemap";
+	addAttr -ci true -k true -sn "ai_uv_remapb" -ln "aiUvRemapB" -at "float" -p "aiUvRemap";
+	addAttr -ci true -h true -k true -sn "ai_uv_remapa" -ln "aiUvRemapA" -at "float";
+	addAttr -ci true -k true -sn "ai_translator" -ln "aiTranslator" -dt "string";
+	addAttr -ci true -k true -sn "filtermap" -ln "filtermap" -at "message";
+	addAttr -ci true -k true -sn "focal_distance" -ln "focalDistance" -dv 5 -min 0 -max 
+		1000000000 -smn 0 -smx 200 -at "float";
+	addAttr -ci true -k true -sn "aperture_size" -ln "apertureSize" -dv 0.20000000298023224 
+		-min 0 -max 20 -smn 0 -smx 0.5 -at "float";
+	addAttr -ci true -k true -sn "aperture_blades" -ln "apertureBlades" -dv 6 -min 3 
+		-max 40 -at "long";
+	addAttr -ci true -k true -sn "aperture_blade_curvature" -ln "apertureBladeCurvature" 
+		-min -20 -max 20 -smn -5 -smx 5 -at "float";
+	addAttr -ci true -k true -sn "aperture_rotation" -ln "apertureRotation" -min 0 -max 
+		360 -smn 0 -smx 50 -at "float";
+	addAttr -ci true -k true -sn "edof" -ln "enableDOF" -min 0 -max 1 -at "bool";
+	addAttr -ci true -uac -k true -sn "uv_remap" -ln "uvRemap" -at "float3" -nc 3;
+	addAttr -ci true -k true -sn "uv_remapr" -ln "uvRemapR" -at "float" -p "uvRemap";
+	addAttr -ci true -k true -sn "uv_remapg" -ln "uvRemapG" -at "float" -p "uvRemap";
+	addAttr -ci true -k true -sn "uv_remapb" -ln "uvRemapB" -at "float" -p "uvRemap";
+	addAttr -ci true -h true -k true -sn "uv_remapa" -ln "uvRemapA" -at "float";
+	addAttr -ci true -k true -sn "arntr" -ln "arnoldTranslator" -dt "string";
+	addAttr -ci true -k true -sn "fov" -ln "fov" -dv 90 -min 0 -max 1000000000 -smx 
+		360 -at "float";
+	addAttr -ci true -k true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "horizontal_fov" -ln "horizontalFov" -dv 60 -min 0 
+		-max 1000000000 -smx 360 -at "float";
+	addAttr -ci true -k true -sn "vertical_fov" -ln "verticalFov" -dv 90 -min 0 -max 
+		1000000000 -smx 180 -at "float";
+	addAttr -ci true -k true -sn "projective" -ln "projective" -dv 1 -min 0 -max 1 -at "bool";
+	setAttr -k off ".v" no;
+	setAttr ".ovr" 1.3;
+	setAttr ".fl" 34.999999999999986;
+	setAttr ".coi" 28.024519899009473;
+	setAttr ".ow" 30;
+	setAttr ".imn" -type "string" "persp";
+	setAttr ".den" -type "string" "persp_depth";
+	setAttr ".man" -type "string" "persp_mask";
+	setAttr ".hc" -type "string" "viewSet -p %camera";
+	setAttr ".dr" yes;
+	setAttr -k on ".ai_translator" -type "string" "perspective";
+	setAttr -k on ".arntr" -type "string" "orthographic";
+createNode transform -s -n "top";
+	setAttr ".v" no;
+	setAttr ".t" -type "double3" 0 100.1 0 ;
+	setAttr ".r" -type "double3" -89.999999999999986 0 0 ;
+createNode camera -s -n "topShape" -p "top";
+	addAttr -ci true -k true -sn "ai_filtermap" -ln "aiFiltermap" -at "message";
+	addAttr -ci true -k true -sn "ai_horizontal_fov" -ln "aiHorizontalFov" -dv 60 -min 
+		0 -max 1000000000 -smx 360 -at "float";
+	addAttr -ci true -k true -sn "ai_vertical_fov" -ln "aiVerticalFov" -dv 90 -min 0 
+		-max 1000000000 -smx 180 -at "float";
+	addAttr -ci true -k true -sn "ai_projective" -ln "aiProjective" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "ai_focus_distance" -ln "aiFocusDistance" -dv 1 -min 
+		0 -max 1000000000 -smn 0 -smx 200 -at "float";
+	addAttr -ci true -k true -sn "ai_aperture_size" -ln "aiApertureSize" -min 0 -max 
+		20 -smn 0 -smx 1 -at "float";
+	addAttr -ci true -k true -sn "ai_aperture_blades" -ln "aiApertureBlades" -min 3 
+		-max 40 -at "long";
+	addAttr -ci true -k true -sn "ai_aperture_blade_curvature" -ln "aiApertureBladeCurvature" 
+		-min -20 -max 20 -smn -5 -smx 5 -at "float";
+	addAttr -ci true -k true -sn "ai_aperture_rotation" -ln "aiApertureRotation" -min 
+		0 -max 360 -smn 0 -smx 50 -at "float";
+	addAttr -ci true -k true -sn "ai_edof" -ln "aiEnableDOF" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_fov" -ln "aiFov" -dv 90 -min 0 -max 1000000000 
+		-smx 360 -at "float";
+	addAttr -ci true -k true -sn "ai_autocrop" -ln "aiAutocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -uac -k true -sn "ai_uv_remap" -ln "aiUvRemap" -at "float3" -nc 
+		3;
+	addAttr -ci true -k true -sn "ai_uv_remapr" -ln "aiUvRemapR" -at "float" -p "aiUvRemap";
+	addAttr -ci true -k true -sn "ai_uv_remapg" -ln "aiUvRemapG" -at "float" -p "aiUvRemap";
+	addAttr -ci true -k true -sn "ai_uv_remapb" -ln "aiUvRemapB" -at "float" -p "aiUvRemap";
+	addAttr -ci true -h true -k true -sn "ai_uv_remapa" -ln "aiUvRemapA" -at "float";
+	addAttr -ci true -k true -sn "ai_translator" -ln "aiTranslator" -dt "string";
+	addAttr -ci true -k true -sn "filtermap" -ln "filtermap" -at "message";
+	addAttr -ci true -k true -sn "focal_distance" -ln "focalDistance" -dv 5 -min 0 -max 
+		1000000000 -smn 0 -smx 200 -at "float";
+	addAttr -ci true -k true -sn "aperture_size" -ln "apertureSize" -dv 0.20000000298023224 
+		-min 0 -max 20 -smn 0 -smx 0.5 -at "float";
+	addAttr -ci true -k true -sn "aperture_blades" -ln "apertureBlades" -dv 6 -min 3 
+		-max 40 -at "long";
+	addAttr -ci true -k true -sn "aperture_blade_curvature" -ln "apertureBladeCurvature" 
+		-min -20 -max 20 -smn -5 -smx 5 -at "float";
+	addAttr -ci true -k true -sn "aperture_rotation" -ln "apertureRotation" -min 0 -max 
+		360 -smn 0 -smx 50 -at "float";
+	addAttr -ci true -k true -sn "edof" -ln "enableDOF" -min 0 -max 1 -at "bool";
+	addAttr -ci true -uac -k true -sn "uv_remap" -ln "uvRemap" -at "float3" -nc 3;
+	addAttr -ci true -k true -sn "uv_remapr" -ln "uvRemapR" -at "float" -p "uvRemap";
+	addAttr -ci true -k true -sn "uv_remapg" -ln "uvRemapG" -at "float" -p "uvRemap";
+	addAttr -ci true -k true -sn "uv_remapb" -ln "uvRemapB" -at "float" -p "uvRemap";
+	addAttr -ci true -h true -k true -sn "uv_remapa" -ln "uvRemapA" -at "float";
+	addAttr -ci true -k true -sn "arntr" -ln "arnoldTranslator" -dt "string";
+	addAttr -ci true -k true -sn "fov" -ln "fov" -dv 90 -min 0 -max 1000000000 -smx 
+		360 -at "float";
+	addAttr -ci true -k true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "horizontal_fov" -ln "horizontalFov" -dv 60 -min 0 
+		-max 1000000000 -smx 360 -at "float";
+	addAttr -ci true -k true -sn "vertical_fov" -ln "verticalFov" -dv 90 -min 0 -max 
+		1000000000 -smx 180 -at "float";
+	addAttr -ci true -k true -sn "projective" -ln "projective" -dv 1 -min 0 -max 1 -at "bool";
+	setAttr -k off ".v" no;
+	setAttr ".rnd" no;
+	setAttr ".coi" 100.1;
+	setAttr ".ow" 30;
+	setAttr ".imn" -type "string" "top";
+	setAttr ".den" -type "string" "top_depth";
+	setAttr ".man" -type "string" "top_mask";
+	setAttr ".hc" -type "string" "viewSet -t %camera";
+	setAttr ".o" yes;
+	setAttr -k on ".ai_translator" -type "string" "orthographic";
+	setAttr -k on ".arntr" -type "string" "orthographic";
+createNode transform -s -n "front";
+	setAttr ".v" no;
+	setAttr ".t" -type "double3" 0 0 100.1 ;
+createNode camera -s -n "frontShape" -p "front";
+	addAttr -ci true -k true -sn "ai_filtermap" -ln "aiFiltermap" -at "message";
+	addAttr -ci true -k true -sn "ai_horizontal_fov" -ln "aiHorizontalFov" -dv 60 -min 
+		0 -max 1000000000 -smx 360 -at "float";
+	addAttr -ci true -k true -sn "ai_vertical_fov" -ln "aiVerticalFov" -dv 90 -min 0 
+		-max 1000000000 -smx 180 -at "float";
+	addAttr -ci true -k true -sn "ai_projective" -ln "aiProjective" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "ai_focus_distance" -ln "aiFocusDistance" -dv 1 -min 
+		0 -max 1000000000 -smn 0 -smx 200 -at "float";
+	addAttr -ci true -k true -sn "ai_aperture_size" -ln "aiApertureSize" -min 0 -max 
+		20 -smn 0 -smx 1 -at "float";
+	addAttr -ci true -k true -sn "ai_aperture_blades" -ln "aiApertureBlades" -min 3 
+		-max 40 -at "long";
+	addAttr -ci true -k true -sn "ai_aperture_blade_curvature" -ln "aiApertureBladeCurvature" 
+		-min -20 -max 20 -smn -5 -smx 5 -at "float";
+	addAttr -ci true -k true -sn "ai_aperture_rotation" -ln "aiApertureRotation" -min 
+		0 -max 360 -smn 0 -smx 50 -at "float";
+	addAttr -ci true -k true -sn "ai_edof" -ln "aiEnableDOF" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_fov" -ln "aiFov" -dv 90 -min 0 -max 1000000000 
+		-smx 360 -at "float";
+	addAttr -ci true -k true -sn "ai_autocrop" -ln "aiAutocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -uac -k true -sn "ai_uv_remap" -ln "aiUvRemap" -at "float3" -nc 
+		3;
+	addAttr -ci true -k true -sn "ai_uv_remapr" -ln "aiUvRemapR" -at "float" -p "aiUvRemap";
+	addAttr -ci true -k true -sn "ai_uv_remapg" -ln "aiUvRemapG" -at "float" -p "aiUvRemap";
+	addAttr -ci true -k true -sn "ai_uv_remapb" -ln "aiUvRemapB" -at "float" -p "aiUvRemap";
+	addAttr -ci true -h true -k true -sn "ai_uv_remapa" -ln "aiUvRemapA" -at "float";
+	addAttr -ci true -k true -sn "ai_translator" -ln "aiTranslator" -dt "string";
+	addAttr -ci true -k true -sn "filtermap" -ln "filtermap" -at "message";
+	addAttr -ci true -k true -sn "focal_distance" -ln "focalDistance" -dv 5 -min 0 -max 
+		1000000000 -smn 0 -smx 200 -at "float";
+	addAttr -ci true -k true -sn "aperture_size" -ln "apertureSize" -dv 0.20000000298023224 
+		-min 0 -max 20 -smn 0 -smx 0.5 -at "float";
+	addAttr -ci true -k true -sn "aperture_blades" -ln "apertureBlades" -dv 6 -min 3 
+		-max 40 -at "long";
+	addAttr -ci true -k true -sn "aperture_blade_curvature" -ln "apertureBladeCurvature" 
+		-min -20 -max 20 -smn -5 -smx 5 -at "float";
+	addAttr -ci true -k true -sn "aperture_rotation" -ln "apertureRotation" -min 0 -max 
+		360 -smn 0 -smx 50 -at "float";
+	addAttr -ci true -k true -sn "edof" -ln "enableDOF" -min 0 -max 1 -at "bool";
+	addAttr -ci true -uac -k true -sn "uv_remap" -ln "uvRemap" -at "float3" -nc 3;
+	addAttr -ci true -k true -sn "uv_remapr" -ln "uvRemapR" -at "float" -p "uvRemap";
+	addAttr -ci true -k true -sn "uv_remapg" -ln "uvRemapG" -at "float" -p "uvRemap";
+	addAttr -ci true -k true -sn "uv_remapb" -ln "uvRemapB" -at "float" -p "uvRemap";
+	addAttr -ci true -h true -k true -sn "uv_remapa" -ln "uvRemapA" -at "float";
+	addAttr -ci true -k true -sn "arntr" -ln "arnoldTranslator" -dt "string";
+	addAttr -ci true -k true -sn "fov" -ln "fov" -dv 90 -min 0 -max 1000000000 -smx 
+		360 -at "float";
+	addAttr -ci true -k true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "horizontal_fov" -ln "horizontalFov" -dv 60 -min 0 
+		-max 1000000000 -smx 360 -at "float";
+	addAttr -ci true -k true -sn "vertical_fov" -ln "verticalFov" -dv 90 -min 0 -max 
+		1000000000 -smx 180 -at "float";
+	addAttr -ci true -k true -sn "projective" -ln "projective" -dv 1 -min 0 -max 1 -at "bool";
+	setAttr -k off ".v" no;
+	setAttr ".rnd" no;
+	setAttr ".coi" 100.1;
+	setAttr ".ow" 30;
+	setAttr ".imn" -type "string" "front";
+	setAttr ".den" -type "string" "front_depth";
+	setAttr ".man" -type "string" "front_mask";
+	setAttr ".hc" -type "string" "viewSet -f %camera";
+	setAttr ".o" yes;
+	setAttr -k on ".ai_translator" -type "string" "orthographic";
+	setAttr -k on ".arntr" -type "string" "orthographic";
+createNode transform -s -n "side";
+	setAttr ".v" no;
+	setAttr ".t" -type "double3" 100.1 0 0 ;
+	setAttr ".r" -type "double3" 0 89.999999999999986 0 ;
+createNode camera -s -n "sideShape" -p "side";
+	addAttr -ci true -k true -sn "ai_filtermap" -ln "aiFiltermap" -at "message";
+	addAttr -ci true -k true -sn "ai_horizontal_fov" -ln "aiHorizontalFov" -dv 60 -min 
+		0 -max 1000000000 -smx 360 -at "float";
+	addAttr -ci true -k true -sn "ai_vertical_fov" -ln "aiVerticalFov" -dv 90 -min 0 
+		-max 1000000000 -smx 180 -at "float";
+	addAttr -ci true -k true -sn "ai_projective" -ln "aiProjective" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "ai_focus_distance" -ln "aiFocusDistance" -dv 1 -min 
+		0 -max 1000000000 -smn 0 -smx 200 -at "float";
+	addAttr -ci true -k true -sn "ai_aperture_size" -ln "aiApertureSize" -min 0 -max 
+		20 -smn 0 -smx 1 -at "float";
+	addAttr -ci true -k true -sn "ai_aperture_blades" -ln "aiApertureBlades" -min 3 
+		-max 40 -at "long";
+	addAttr -ci true -k true -sn "ai_aperture_blade_curvature" -ln "aiApertureBladeCurvature" 
+		-min -20 -max 20 -smn -5 -smx 5 -at "float";
+	addAttr -ci true -k true -sn "ai_aperture_rotation" -ln "aiApertureRotation" -min 
+		0 -max 360 -smn 0 -smx 50 -at "float";
+	addAttr -ci true -k true -sn "ai_edof" -ln "aiEnableDOF" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_fov" -ln "aiFov" -dv 90 -min 0 -max 1000000000 
+		-smx 360 -at "float";
+	addAttr -ci true -k true -sn "ai_autocrop" -ln "aiAutocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -uac -k true -sn "ai_uv_remap" -ln "aiUvRemap" -at "float3" -nc 
+		3;
+	addAttr -ci true -k true -sn "ai_uv_remapr" -ln "aiUvRemapR" -at "float" -p "aiUvRemap";
+	addAttr -ci true -k true -sn "ai_uv_remapg" -ln "aiUvRemapG" -at "float" -p "aiUvRemap";
+	addAttr -ci true -k true -sn "ai_uv_remapb" -ln "aiUvRemapB" -at "float" -p "aiUvRemap";
+	addAttr -ci true -h true -k true -sn "ai_uv_remapa" -ln "aiUvRemapA" -at "float";
+	addAttr -ci true -k true -sn "ai_translator" -ln "aiTranslator" -dt "string";
+	addAttr -ci true -k true -sn "filtermap" -ln "filtermap" -at "message";
+	addAttr -ci true -k true -sn "focal_distance" -ln "focalDistance" -dv 5 -min 0 -max 
+		1000000000 -smn 0 -smx 200 -at "float";
+	addAttr -ci true -k true -sn "aperture_size" -ln "apertureSize" -dv 0.20000000298023224 
+		-min 0 -max 20 -smn 0 -smx 0.5 -at "float";
+	addAttr -ci true -k true -sn "aperture_blades" -ln "apertureBlades" -dv 6 -min 3 
+		-max 40 -at "long";
+	addAttr -ci true -k true -sn "aperture_blade_curvature" -ln "apertureBladeCurvature" 
+		-min -20 -max 20 -smn -5 -smx 5 -at "float";
+	addAttr -ci true -k true -sn "aperture_rotation" -ln "apertureRotation" -min 0 -max 
+		360 -smn 0 -smx 50 -at "float";
+	addAttr -ci true -k true -sn "edof" -ln "enableDOF" -min 0 -max 1 -at "bool";
+	addAttr -ci true -uac -k true -sn "uv_remap" -ln "uvRemap" -at "float3" -nc 3;
+	addAttr -ci true -k true -sn "uv_remapr" -ln "uvRemapR" -at "float" -p "uvRemap";
+	addAttr -ci true -k true -sn "uv_remapg" -ln "uvRemapG" -at "float" -p "uvRemap";
+	addAttr -ci true -k true -sn "uv_remapb" -ln "uvRemapB" -at "float" -p "uvRemap";
+	addAttr -ci true -h true -k true -sn "uv_remapa" -ln "uvRemapA" -at "float";
+	addAttr -ci true -k true -sn "arntr" -ln "arnoldTranslator" -dt "string";
+	addAttr -ci true -k true -sn "fov" -ln "fov" -dv 90 -min 0 -max 1000000000 -smx 
+		360 -at "float";
+	addAttr -ci true -k true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "horizontal_fov" -ln "horizontalFov" -dv 60 -min 0 
+		-max 1000000000 -smx 360 -at "float";
+	addAttr -ci true -k true -sn "vertical_fov" -ln "verticalFov" -dv 90 -min 0 -max 
+		1000000000 -smx 180 -at "float";
+	addAttr -ci true -k true -sn "projective" -ln "projective" -dv 1 -min 0 -max 1 -at "bool";
+	setAttr -k off ".v" no;
+	setAttr ".rnd" no;
+	setAttr ".coi" 100.1;
+	setAttr ".ow" 30;
+	setAttr ".imn" -type "string" "side";
+	setAttr ".den" -type "string" "side_depth";
+	setAttr ".man" -type "string" "side_mask";
+	setAttr ".hc" -type "string" "viewSet -s %camera";
+	setAttr ".o" yes;
+	setAttr -k on ".ai_translator" -type "string" "orthographic";
+	setAttr -k on ".arntr" -type "string" "orthographic";
+createNode transform -n "pPlane1";
+createNode mesh -n "pPlaneShape1" -p "pPlane1";
+	addAttr -ci true -k true -sn "ai_sss_use_gi" -ln "aiSssUseGi" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -sn "ai_sss_sample_distribution" -ln "aiSssSampleDistribution" 
+		-min 0 -max 3 -en "blue_noise:blue_noise_Pref:triangle_midpoint:polygon_midpoint" 
+		-at "enum";
+	addAttr -ci true -k true -sn "ai_sss_sample_spacing" -ln "aiSssSampleSpacing" -dv 
+		0.10000000149011612 -min 0 -smx 1 -at "float";
+	addAttr -ci true -k true -sn "ai_self_shadows" -ln "aiSelfShadows" -dv 1 -min 0 
+		-max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_opaque" -ln "aiOpaque" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_vid" -ln "aiVisibleInDiffuse" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "ai_vig" -ln "aiVisibleInGlossy" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -sn "ai_subdiv_type" -ln "aiSubdivType" -min 0 -max 2 -en "none:catclark:linear" 
+		-at "enum";
+	addAttr -ci true -k true -sn "ai_subdiv_iterations" -ln "aiSubdivIterations" -dv 
+		1 -min 0 -max 100 -smn 0 -smx 10 -at "long";
+	addAttr -ci true -sn "ai_subdiv_adaptive_metric" -ln "aiSubdivAdaptiveMetric" -min 
+		0 -max 2 -en "auto:edge_length:flatness" -at "enum";
+	addAttr -ci true -k true -sn "ai_subdiv_pixel_error" -ln "aiSubdivPixelError" -min 
+		0 -smx 10 -at "float";
+	addAttr -ci true -k true -sn "ai_subdiv_dicing_camera" -ln "aiSubdivDicingCamera" 
+		-at "message";
+	addAttr -ci true -sn "ai_subdiv_uv_smoothing" -ln "aiSubdivUvSmoothing" -min 0 -max 
+		3 -en "pin_corners:pin_borders:linear:smooth" -at "enum";
+	addAttr -ci true -k true -sn "ai_exptan" -ln "aiExportTangents" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_expcol" -ln "aiExportColors" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_sss_max_samples" -ln "aiSssMaxSamples" -dv 100000 
+		-min 0 -smx 1000000 -at "long";
+	addAttr -ci true -k true -sn "sss_use_gi" -ln "sssUseGi" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "sss_max_samples" -ln "sssMaxSamples" -dv 100000 -min 
+		0 -smx 1000000 -at "long";
+	addAttr -ci true -k true -sn "sss_sample_spacing" -ln "sssSampleSpacing" -dv 0.10000000149011612 
+		-min 0 -smx 1 -at "float";
+	addAttr -ci true -k true -sn "self_shadows" -ln "selfShadows" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "opaque" -ln "opaque" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "vid" -ln "visibleInDiffuse" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "vig" -ln "visibleInGlossy" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "subdiv_type" -ln "subdivType" -min 0 -max 2 -en "none:catclark:linear" 
+		-at "enum";
+	addAttr -ci true -k true -sn "subdiv_iterations" -ln "subdivIterations" -dv 1 -min 
+		0 -max 100 -smn 0 -smx 10 -at "long";
+	addAttr -ci true -sn "subdiv_adaptive_metric" -ln "subdivAdaptiveMetric" -min 0 
+		-max 2 -en "auto:edge_length:flatness" -at "enum";
+	addAttr -ci true -k true -sn "subdiv_pixel_error" -ln "subdivPixelError" -min 0 
+		-smx 10 -at "float";
+	addAttr -ci true -k true -sn "subdiv_dicing_camera" -ln "subdivDicingCamera" -at "message";
+	addAttr -ci true -sn "subdiv_uv_smoothing" -ln "subdivUvSmoothing" -min 0 -max 3 
+		-en "pin_corners:pin_borders:linear:smooth" -at "enum";
+	addAttr -ci true -k true -sn "exptan" -ln "exportTangents" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "expcol" -ln "exportColors" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "mso" -ln "miShadingSamplesOverride" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "msh" -ln "miShadingSamples" -min 0 -smx 8 -at "float";
+	addAttr -ci true -sn "mdo" -ln "miMaxDisplaceOverride" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "mmd" -ln "miMaxDisplace" -min 0 -smx 1 -at "float";
+	setAttr -k off ".v";
+	setAttr ".vir" yes;
+	setAttr ".vif" yes;
+	setAttr ".uvst[0].uvsn" -type "string" "map1";
+	setAttr ".cuvs" -type "string" "map1";
+	setAttr ".dcc" -type "string" "Ambient+Diffuse";
+	setAttr ".covm[0]"  0 1 1;
+	setAttr ".cdvm[0]"  0 1 1;
+createNode transform -n "hairSystem1";
+createNode hairSystem -n "hairSystemShape1" -p "hairSystem1";
+	addAttr -ci true -k true -sn "ai_sss_use_gi" -ln "aiSssUseGi" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -sn "ai_sss_sample_distribution" -ln "aiSssSampleDistribution" 
+		-min 0 -max 3 -en "blue_noise:blue_noise_Pref:triangle_midpoint:polygon_midpoint" 
+		-at "enum";
+	addAttr -ci true -k true -sn "ai_sss_sample_spacing" -ln "aiSssSampleSpacing" -dv 
+		0.10000000149011612 -at "float";
+	addAttr -ci true -k true -sn "ai_self_shadows" -ln "aiSelfShadows" -dv 1 -min 0 
+		-max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_opaque" -ln "aiOpaque" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_vid" -ln "aiVisibleInDiffuse" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "ai_vig" -ln "aiVisibleInGlossy" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "ai_min_pixel_width" -ln "aiMinPixelWidth" -at "float";
+	addAttr -ci true -sn "ai_mode" -ln "aiMode" -min 0 -max 1 -en "ribbon:thick" -at "enum";
+	addAttr -ci true -k true -sn "ai_export_hair_ids" -ln "aiExportHairIDs" -dv 1 -min 
+		0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_override_hair" -ln "aiOverrideHair" -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "ai_hair_shader" -ln "aiHairShader" -at "message";
+	addAttr -ci true -k true -sn "ai_sss_max_samples" -ln "aiSssMaxSamples" -dv 100000 
+		-at "long";
+	addAttr -ci true -k true -sn "sss_use_gi" -ln "sssUseGi" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "sss_max_samples" -ln "sssMaxSamples" -dv 100000 -at "long";
+	addAttr -ci true -k true -sn "sss_sample_spacing" -ln "sssSampleSpacing" -dv 0.10000000149011612 
+		-at "float";
+	addAttr -ci true -k true -sn "self_shadows" -ln "selfShadows" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "opaque" -ln "opaque" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "vid" -ln "visibleInDiffuse" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "vig" -ln "visibleInGlossy" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "min_pixel_width" -ln "minPixelWidth" -at "float";
+	addAttr -ci true -sn "mode" -ln "mode" -min 0 -max 1 -en "ribbon:thick" -at "enum";
+	addAttr -ci true -k true -sn "override_hair" -ln "overrideHair" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "hair_shader" -ln "hairShader" -at "message";
+	addAttr -ci true -sn "mso" -ln "miShadingSamplesOverride" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "msh" -ln "miShadingSamples" -min 0 -smx 8 -at "float";
+	addAttr -ci true -sn "mdo" -ln "miMaxDisplaceOverride" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "mmd" -ln "miMaxDisplace" -min 0 -smx 1 -at "float";
+	setAttr -k off ".v";
+	setAttr -s 64 ".ih";
+	setAttr ".evo" 0;
+	setAttr ".sfn" 0.1;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr ".clc[0]"  0 0.5 1;
+	setAttr ".cfl[0]"  0 0 1;
+	setAttr ".hwd" 0.3;
+	setAttr -s 2 ".hws[0:1]"  0.80000001 1 3 1 0.2 3;
+	setAttr ".hcl" -type "float3" 1 1 1 ;
+	setAttr -s 3 ".hcs";
+	setAttr ".hcs[0].hcsp" 0;
+	setAttr ".hcs[0].hcsc" -type "float3" 0.5 0.5 0.5 ;
+	setAttr ".hcs[0].hcsi" 3;
+	setAttr ".hcs[1].hcsp" 0.30000001192092896;
+	setAttr ".hcs[1].hcsc" -type "float3" 0.80000001 0.80000001 0.80000001 ;
+	setAttr ".hcs[1].hcsi" 3;
+	setAttr ".hcs[2].hcsp" 1;
+	setAttr ".hcs[2].hcsc" -type "float3" 1 1 1 ;
+	setAttr ".hcs[2].hcsi" 3;
+	setAttr ".hpc" 1;
+	setAttr ".spc" -type "float3" 1 1 1 ;
+	setAttr ".dsc[0]"  0 1 1;
+createNode transform -n "hairSystem1Follicles";
+createNode transform -n "pPlane1Follicle606" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape606" -p "pPlane1Follicle606";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.0625;
+	setAttr ".pv" 0.0625;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve1" -p "pPlane1Follicle606";
+createNode nurbsCurve -n "curveShape1" -p "curve1";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
+		1 9 0 no 3
+		10 0 1 2 3 4 5 6 7 8 9
+		10
+		0 0 0
+		0 0 0.55555555560000003
+		0 0 1.111111111
+		0 0 1.6666666670000001
+		0 0 2.2222222220000001
+		0 0 2.7777777779999999
+		0 0 3.3333333330000001
+		0 0 3.888888889
+		0 0 4.4444444440000002
+		0 0 5
+		;
+createNode transform -n "pPlane1Follicle619" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape619" -p "pPlane1Follicle619";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.0625;
+	setAttr ".pv" 0.1875;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve2" -p "pPlane1Follicle619";
+createNode nurbsCurve -n "curveShape2" -p "curve2";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
+		1 9 0 no 3
+		10 0 1 2 3 4 5 6 7 8 9
+		10
+		0 0 0
+		0 0 0.55555555560000003
+		0 0 1.111111111
+		0 0 1.6666666670000001
+		0 0 2.2222222220000001
+		0 0 2.7777777779999999
+		0 0 3.3333333330000001
+		0 0 3.888888889
+		0 0 4.4444444440000002
+		0 0 5
+		;
+createNode transform -n "pPlane1Follicle631" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape631" -p "pPlane1Follicle631";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.0625;
+	setAttr ".pv" 0.3125;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve3" -p "pPlane1Follicle631";
+createNode nurbsCurve -n "curveShape3" -p "curve3";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
+		1 9 0 no 3
+		10 0 1 2 3 4 5 6 7 8 9
+		10
+		0 0 0
+		0 0 0.55555555560000003
+		0 0 1.111111111
+		0 0 1.6666666670000001
+		0 0 2.2222222220000001
+		0 0 2.7777777779999999
+		0 0 3.3333333330000001
+		0 0 3.888888889
+		0 0 4.4444444440000002
+		0 0 5
+		;
+createNode transform -n "pPlane1Follicle643" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape643" -p "pPlane1Follicle643";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.0625;
+	setAttr ".pv" 0.4375;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve4" -p "pPlane1Follicle643";
+createNode nurbsCurve -n "curveShape4" -p "curve4";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
+		1 9 0 no 3
+		10 0 1 2 3 4 5 6 7 8 9
+		10
+		0 0 0
+		0 0 0.55555555560000003
+		0 0 1.111111111
+		0 0 1.6666666670000001
+		0 0 2.2222222220000001
+		0 0 2.7777777779999999
+		0 0 3.3333333330000001
+		0 0 3.888888889
+		0 0 4.4444444440000002
+		0 0 5
+		;
+createNode transform -n "pPlane1Follicle656" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape656" -p "pPlane1Follicle656";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.0625;
+	setAttr ".pv" 0.5625;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve5" -p "pPlane1Follicle656";
+createNode nurbsCurve -n "curveShape5" -p "curve5";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
+		1 9 0 no 3
+		10 0 1 2 3 4 5 6 7 8 9
+		10
+		0 0 0
+		0 0 0.55555555560000003
+		0 0 1.111111111
+		0 0 1.6666666670000001
+		0 0 2.2222222220000001
+		0 0 2.7777777779999999
+		0 0 3.3333333330000001
+		0 0 3.888888889
+		0 0 4.4444444440000002
+		0 0 5
+		;
+createNode transform -n "pPlane1Follicle668" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape668" -p "pPlane1Follicle668";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.0625;
+	setAttr ".pv" 0.6875;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve6" -p "pPlane1Follicle668";
+createNode nurbsCurve -n "curveShape6" -p "curve6";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
+		1 9 0 no 3
+		10 0 1 2 3 4 5 6 7 8 9
+		10
+		0 0 0
+		0 0 0.55555555560000003
+		0 0 1.111111111
+		0 0 1.6666666670000001
+		0 0 2.2222222220000001
+		0 0 2.7777777779999999
+		0 0 3.3333333330000001
+		0 0 3.888888889
+		0 0 4.4444444440000002
+		0 0 5
+		;
+createNode transform -n "pPlane1Follicle680" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape680" -p "pPlane1Follicle680";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.0625;
+	setAttr ".pv" 0.8125;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve7" -p "pPlane1Follicle680";
+createNode nurbsCurve -n "curveShape7" -p "curve7";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
+		1 9 0 no 3
+		10 0 1 2 3 4 5 6 7 8 9
+		10
+		0 0 0
+		0 0 0.55555555560000003
+		0 0 1.111111111
+		0 0 1.6666666670000001
+		0 0 2.2222222220000001
+		0 0 2.7777777779999999
+		0 0 3.3333333330000001
+		0 0 3.888888889
+		0 0 4.4444444440000002
+		0 0 5
+		;
+createNode transform -n "pPlane1Follicle693" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape693" -p "pPlane1Follicle693";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.0625;
+	setAttr ".pv" 0.9375;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve8" -p "pPlane1Follicle693";
+createNode nurbsCurve -n "curveShape8" -p "curve8";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
+		1 9 0 no 3
+		10 0 1 2 3 4 5 6 7 8 9
+		10
+		0 0 0
+		0 0 0.55555555560000003
+		0 0 1.111111111
+		0 0 1.6666666670000001
+		0 0 2.2222222220000001
+		0 0 2.7777777779999999
+		0 0 3.3333333330000001
+		0 0 3.888888889
+		0 0 4.4444444440000002
+		0 0 5
+		;
+createNode transform -n "pPlane1Follicle1906" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape1906" -p "pPlane1Follicle1906";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.1875;
+	setAttr ".pv" 0.0625;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve9" -p "pPlane1Follicle1906";
+createNode nurbsCurve -n "curveShape9" -p "curve9";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
+		1 9 0 no 3
+		10 0 1 2 3 4 5 6 7 8 9
+		10
+		0 0 0
+		0 0 0.55555555560000003
+		0 0 1.111111111
+		0 0 1.6666666670000001
+		0 0 2.2222222220000001
+		0 0 2.7777777779999999
+		0 0 3.3333333330000001
+		0 0 3.888888889
+		0 0 4.4444444440000002
+		0 0 5
+		;
+createNode transform -n "pPlane1Follicle1919" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape1919" -p "pPlane1Follicle1919";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.1875;
+	setAttr ".pv" 0.1875;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve10" -p "pPlane1Follicle1919";
+createNode nurbsCurve -n "curveShape10" -p "curve10";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
+		1 9 0 no 3
+		10 0 1 2 3 4 5 6 7 8 9
+		10
+		0 0 0
+		0 0 0.55555555560000003
+		0 0 1.111111111
+		0 0 1.6666666670000001
+		0 0 2.2222222220000001
+		0 0 2.7777777779999999
+		0 0 3.3333333330000001
+		0 0 3.888888889
+		0 0 4.4444444440000002
+		0 0 5
+		;
+createNode transform -n "pPlane1Follicle1931" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape1931" -p "pPlane1Follicle1931";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.1875;
+	setAttr ".pv" 0.3125;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve11" -p "pPlane1Follicle1931";
+createNode nurbsCurve -n "curveShape11" -p "curve11";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
+		1 9 0 no 3
+		10 0 1 2 3 4 5 6 7 8 9
+		10
+		0 0 0
+		0 0 0.55555555560000003
+		0 0 1.111111111
+		0 0 1.6666666670000001
+		0 0 2.2222222220000001
+		0 0 2.7777777779999999
+		0 0 3.3333333330000001
+		0 0 3.888888889
+		0 0 4.4444444440000002
+		0 0 5
+		;
+createNode transform -n "pPlane1Follicle1943" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape1943" -p "pPlane1Follicle1943";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.1875;
+	setAttr ".pv" 0.4375;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve12" -p "pPlane1Follicle1943";
+createNode nurbsCurve -n "curveShape12" -p "curve12";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
+		1 9 0 no 3
+		10 0 1 2 3 4 5 6 7 8 9
+		10
+		0 0 0
+		0 0 0.55555555560000003
+		0 0 1.111111111
+		0 0 1.6666666670000001
+		0 0 2.2222222220000001
+		0 0 2.7777777779999999
+		0 0 3.3333333330000001
+		0 0 3.888888889
+		0 0 4.4444444440000002
+		0 0 5
+		;
+createNode transform -n "pPlane1Follicle1956" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape1956" -p "pPlane1Follicle1956";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.1875;
+	setAttr ".pv" 0.5625;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve13" -p "pPlane1Follicle1956";
+createNode nurbsCurve -n "curveShape13" -p "curve13";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -905,19 +779,19 @@ createNode nurbsCurve -name "curveShape13" -parent "curve13";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pPlane1Follicle1968" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape1968" -parent "pPlane1Follicle1968";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.1875;
-	setAttr ".parameterV" 0.6875;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve14" -parent "pPlane1Follicle1968";
-createNode nurbsCurve -name "curveShape14" -parent "curve14";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+createNode transform -n "pPlane1Follicle1968" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape1968" -p "pPlane1Follicle1968";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.1875;
+	setAttr ".pv" 0.6875;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve14" -p "pPlane1Follicle1968";
+createNode nurbsCurve -n "curveShape14" -p "curve14";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -932,19 +806,19 @@ createNode nurbsCurve -name "curveShape14" -parent "curve14";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pPlane1Follicle1980" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape1980" -parent "pPlane1Follicle1980";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.1875;
-	setAttr ".parameterV" 0.8125;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve15" -parent "pPlane1Follicle1980";
-createNode nurbsCurve -name "curveShape15" -parent "curve15";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+createNode transform -n "pPlane1Follicle1980" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape1980" -p "pPlane1Follicle1980";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.1875;
+	setAttr ".pv" 0.8125;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve15" -p "pPlane1Follicle1980";
+createNode nurbsCurve -n "curveShape15" -p "curve15";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -959,19 +833,19 @@ createNode nurbsCurve -name "curveShape15" -parent "curve15";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pPlane1Follicle1993" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape1993" -parent "pPlane1Follicle1993";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.1875;
-	setAttr ".parameterV" 0.9375;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve16" -parent "pPlane1Follicle1993";
-createNode nurbsCurve -name "curveShape16" -parent "curve16";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+createNode transform -n "pPlane1Follicle1993" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape1993" -p "pPlane1Follicle1993";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.1875;
+	setAttr ".pv" 0.9375;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve16" -p "pPlane1Follicle1993";
+createNode nurbsCurve -n "curveShape16" -p "curve16";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -986,19 +860,19 @@ createNode nurbsCurve -name "curveShape16" -parent "curve16";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pPlane1Follicle3106" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape3106" -parent "pPlane1Follicle3106";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.3125;
-	setAttr ".parameterV" 0.0625;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve17" -parent "pPlane1Follicle3106";
-createNode nurbsCurve -name "curveShape17" -parent "curve17";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+createNode transform -n "pPlane1Follicle3106" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape3106" -p "pPlane1Follicle3106";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.3125;
+	setAttr ".pv" 0.0625;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve17" -p "pPlane1Follicle3106";
+createNode nurbsCurve -n "curveShape17" -p "curve17";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -1013,19 +887,19 @@ createNode nurbsCurve -name "curveShape17" -parent "curve17";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pPlane1Follicle3119" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape3119" -parent "pPlane1Follicle3119";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.3125;
-	setAttr ".parameterV" 0.1875;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve18" -parent "pPlane1Follicle3119";
-createNode nurbsCurve -name "curveShape18" -parent "curve18";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+createNode transform -n "pPlane1Follicle3119" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape3119" -p "pPlane1Follicle3119";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.3125;
+	setAttr ".pv" 0.1875;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve18" -p "pPlane1Follicle3119";
+createNode nurbsCurve -n "curveShape18" -p "curve18";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -1040,19 +914,19 @@ createNode nurbsCurve -name "curveShape18" -parent "curve18";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pPlane1Follicle3131" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape3131" -parent "pPlane1Follicle3131";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.3125;
-	setAttr ".parameterV" 0.3125;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve19" -parent "pPlane1Follicle3131";
-createNode nurbsCurve -name "curveShape19" -parent "curve19";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+createNode transform -n "pPlane1Follicle3131" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape3131" -p "pPlane1Follicle3131";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.3125;
+	setAttr ".pv" 0.3125;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve19" -p "pPlane1Follicle3131";
+createNode nurbsCurve -n "curveShape19" -p "curve19";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -1067,19 +941,19 @@ createNode nurbsCurve -name "curveShape19" -parent "curve19";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pPlane1Follicle3143" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape3143" -parent "pPlane1Follicle3143";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.3125;
-	setAttr ".parameterV" 0.4375;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve20" -parent "pPlane1Follicle3143";
-createNode nurbsCurve -name "curveShape20" -parent "curve20";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+createNode transform -n "pPlane1Follicle3143" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape3143" -p "pPlane1Follicle3143";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.3125;
+	setAttr ".pv" 0.4375;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve20" -p "pPlane1Follicle3143";
+createNode nurbsCurve -n "curveShape20" -p "curve20";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -1094,19 +968,19 @@ createNode nurbsCurve -name "curveShape20" -parent "curve20";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pPlane1Follicle3156" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape3156" -parent "pPlane1Follicle3156";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.3125;
-	setAttr ".parameterV" 0.5625;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve21" -parent "pPlane1Follicle3156";
-createNode nurbsCurve -name "curveShape21" -parent "curve21";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+createNode transform -n "pPlane1Follicle3156" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape3156" -p "pPlane1Follicle3156";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.3125;
+	setAttr ".pv" 0.5625;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve21" -p "pPlane1Follicle3156";
+createNode nurbsCurve -n "curveShape21" -p "curve21";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -1121,19 +995,19 @@ createNode nurbsCurve -name "curveShape21" -parent "curve21";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pPlane1Follicle3168" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape3168" -parent "pPlane1Follicle3168";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.3125;
-	setAttr ".parameterV" 0.6875;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve22" -parent "pPlane1Follicle3168";
-createNode nurbsCurve -name "curveShape22" -parent "curve22";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+createNode transform -n "pPlane1Follicle3168" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape3168" -p "pPlane1Follicle3168";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.3125;
+	setAttr ".pv" 0.6875;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve22" -p "pPlane1Follicle3168";
+createNode nurbsCurve -n "curveShape22" -p "curve22";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -1148,19 +1022,19 @@ createNode nurbsCurve -name "curveShape22" -parent "curve22";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pPlane1Follicle3180" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape3180" -parent "pPlane1Follicle3180";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.3125;
-	setAttr ".parameterV" 0.8125;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve23" -parent "pPlane1Follicle3180";
-createNode nurbsCurve -name "curveShape23" -parent "curve23";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+createNode transform -n "pPlane1Follicle3180" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape3180" -p "pPlane1Follicle3180";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.3125;
+	setAttr ".pv" 0.8125;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve23" -p "pPlane1Follicle3180";
+createNode nurbsCurve -n "curveShape23" -p "curve23";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -1175,19 +1049,19 @@ createNode nurbsCurve -name "curveShape23" -parent "curve23";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pPlane1Follicle3193" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape3193" -parent "pPlane1Follicle3193";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.3125;
-	setAttr ".parameterV" 0.9375;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve24" -parent "pPlane1Follicle3193";
-createNode nurbsCurve -name "curveShape24" -parent "curve24";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+createNode transform -n "pPlane1Follicle3193" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape3193" -p "pPlane1Follicle3193";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.3125;
+	setAttr ".pv" 0.9375;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve24" -p "pPlane1Follicle3193";
+createNode nurbsCurve -n "curveShape24" -p "curve24";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -1202,19 +1076,19 @@ createNode nurbsCurve -name "curveShape24" -parent "curve24";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pPlane1Follicle4306" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape4306" -parent "pPlane1Follicle4306";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.4375;
-	setAttr ".parameterV" 0.0625;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve25" -parent "pPlane1Follicle4306";
-createNode nurbsCurve -name "curveShape25" -parent "curve25";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+createNode transform -n "pPlane1Follicle4306" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape4306" -p "pPlane1Follicle4306";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.4375;
+	setAttr ".pv" 0.0625;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve25" -p "pPlane1Follicle4306";
+createNode nurbsCurve -n "curveShape25" -p "curve25";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -1229,19 +1103,19 @@ createNode nurbsCurve -name "curveShape25" -parent "curve25";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pPlane1Follicle4319" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape4319" -parent "pPlane1Follicle4319";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.4375;
-	setAttr ".parameterV" 0.1875;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve26" -parent "pPlane1Follicle4319";
-createNode nurbsCurve -name "curveShape26" -parent "curve26";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+createNode transform -n "pPlane1Follicle4319" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape4319" -p "pPlane1Follicle4319";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.4375;
+	setAttr ".pv" 0.1875;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve26" -p "pPlane1Follicle4319";
+createNode nurbsCurve -n "curveShape26" -p "curve26";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -1256,19 +1130,19 @@ createNode nurbsCurve -name "curveShape26" -parent "curve26";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pPlane1Follicle4331" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape4331" -parent "pPlane1Follicle4331";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.4375;
-	setAttr ".parameterV" 0.3125;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve27" -parent "pPlane1Follicle4331";
-createNode nurbsCurve -name "curveShape27" -parent "curve27";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+createNode transform -n "pPlane1Follicle4331" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape4331" -p "pPlane1Follicle4331";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.4375;
+	setAttr ".pv" 0.3125;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve27" -p "pPlane1Follicle4331";
+createNode nurbsCurve -n "curveShape27" -p "curve27";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -1283,19 +1157,19 @@ createNode nurbsCurve -name "curveShape27" -parent "curve27";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pPlane1Follicle4343" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape4343" -parent "pPlane1Follicle4343";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.4375;
-	setAttr ".parameterV" 0.4375;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve28" -parent "pPlane1Follicle4343";
-createNode nurbsCurve -name "curveShape28" -parent "curve28";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+createNode transform -n "pPlane1Follicle4343" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape4343" -p "pPlane1Follicle4343";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.4375;
+	setAttr ".pv" 0.4375;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve28" -p "pPlane1Follicle4343";
+createNode nurbsCurve -n "curveShape28" -p "curve28";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -1310,19 +1184,19 @@ createNode nurbsCurve -name "curveShape28" -parent "curve28";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pPlane1Follicle4356" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape4356" -parent "pPlane1Follicle4356";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.4375;
-	setAttr ".parameterV" 0.5625;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve29" -parent "pPlane1Follicle4356";
-createNode nurbsCurve -name "curveShape29" -parent "curve29";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+createNode transform -n "pPlane1Follicle4356" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape4356" -p "pPlane1Follicle4356";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.4375;
+	setAttr ".pv" 0.5625;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve29" -p "pPlane1Follicle4356";
+createNode nurbsCurve -n "curveShape29" -p "curve29";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -1337,19 +1211,19 @@ createNode nurbsCurve -name "curveShape29" -parent "curve29";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pPlane1Follicle4368" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape4368" -parent "pPlane1Follicle4368";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.4375;
-	setAttr ".parameterV" 0.6875;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve30" -parent "pPlane1Follicle4368";
-createNode nurbsCurve -name "curveShape30" -parent "curve30";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+createNode transform -n "pPlane1Follicle4368" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape4368" -p "pPlane1Follicle4368";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.4375;
+	setAttr ".pv" 0.6875;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve30" -p "pPlane1Follicle4368";
+createNode nurbsCurve -n "curveShape30" -p "curve30";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -1364,19 +1238,19 @@ createNode nurbsCurve -name "curveShape30" -parent "curve30";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pPlane1Follicle4380" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape4380" -parent "pPlane1Follicle4380";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.4375;
-	setAttr ".parameterV" 0.8125;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve31" -parent "pPlane1Follicle4380";
-createNode nurbsCurve -name "curveShape31" -parent "curve31";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+createNode transform -n "pPlane1Follicle4380" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape4380" -p "pPlane1Follicle4380";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.4375;
+	setAttr ".pv" 0.8125;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve31" -p "pPlane1Follicle4380";
+createNode nurbsCurve -n "curveShape31" -p "curve31";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -1391,19 +1265,19 @@ createNode nurbsCurve -name "curveShape31" -parent "curve31";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pPlane1Follicle4393" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape4393" -parent "pPlane1Follicle4393";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.4375;
-	setAttr ".parameterV" 0.9375;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve32" -parent "pPlane1Follicle4393";
-createNode nurbsCurve -name "curveShape32" -parent "curve32";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+createNode transform -n "pPlane1Follicle4393" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape4393" -p "pPlane1Follicle4393";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.4375;
+	setAttr ".pv" 0.9375;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve32" -p "pPlane1Follicle4393";
+createNode nurbsCurve -n "curveShape32" -p "curve32";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -1418,19 +1292,19 @@ createNode nurbsCurve -name "curveShape32" -parent "curve32";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pPlane1Follicle5606" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape5606" -parent "pPlane1Follicle5606";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.5625;
-	setAttr ".parameterV" 0.0625;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve33" -parent "pPlane1Follicle5606";
-createNode nurbsCurve -name "curveShape33" -parent "curve33";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+createNode transform -n "pPlane1Follicle5606" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape5606" -p "pPlane1Follicle5606";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.5625;
+	setAttr ".pv" 0.0625;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve33" -p "pPlane1Follicle5606";
+createNode nurbsCurve -n "curveShape33" -p "curve33";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -1445,19 +1319,19 @@ createNode nurbsCurve -name "curveShape33" -parent "curve33";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pPlane1Follicle5619" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape5619" -parent "pPlane1Follicle5619";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.5625;
-	setAttr ".parameterV" 0.1875;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve34" -parent "pPlane1Follicle5619";
-createNode nurbsCurve -name "curveShape34" -parent "curve34";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+createNode transform -n "pPlane1Follicle5619" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape5619" -p "pPlane1Follicle5619";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.5625;
+	setAttr ".pv" 0.1875;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve34" -p "pPlane1Follicle5619";
+createNode nurbsCurve -n "curveShape34" -p "curve34";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -1472,19 +1346,19 @@ createNode nurbsCurve -name "curveShape34" -parent "curve34";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pPlane1Follicle5631" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape5631" -parent "pPlane1Follicle5631";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.5625;
-	setAttr ".parameterV" 0.3125;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve35" -parent "pPlane1Follicle5631";
-createNode nurbsCurve -name "curveShape35" -parent "curve35";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+createNode transform -n "pPlane1Follicle5631" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape5631" -p "pPlane1Follicle5631";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.5625;
+	setAttr ".pv" 0.3125;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve35" -p "pPlane1Follicle5631";
+createNode nurbsCurve -n "curveShape35" -p "curve35";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -1499,19 +1373,19 @@ createNode nurbsCurve -name "curveShape35" -parent "curve35";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pPlane1Follicle5643" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape5643" -parent "pPlane1Follicle5643";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.5625;
-	setAttr ".parameterV" 0.4375;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve36" -parent "pPlane1Follicle5643";
-createNode nurbsCurve -name "curveShape36" -parent "curve36";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+createNode transform -n "pPlane1Follicle5643" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape5643" -p "pPlane1Follicle5643";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.5625;
+	setAttr ".pv" 0.4375;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve36" -p "pPlane1Follicle5643";
+createNode nurbsCurve -n "curveShape36" -p "curve36";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -1526,19 +1400,19 @@ createNode nurbsCurve -name "curveShape36" -parent "curve36";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pPlane1Follicle5656" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape5656" -parent "pPlane1Follicle5656";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.5625;
-	setAttr ".parameterV" 0.5625;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve37" -parent "pPlane1Follicle5656";
-createNode nurbsCurve -name "curveShape37" -parent "curve37";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+createNode transform -n "pPlane1Follicle5656" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape5656" -p "pPlane1Follicle5656";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.5625;
+	setAttr ".pv" 0.5625;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve37" -p "pPlane1Follicle5656";
+createNode nurbsCurve -n "curveShape37" -p "curve37";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -1553,19 +1427,19 @@ createNode nurbsCurve -name "curveShape37" -parent "curve37";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pPlane1Follicle5668" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape5668" -parent "pPlane1Follicle5668";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.5625;
-	setAttr ".parameterV" 0.6875;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve38" -parent "pPlane1Follicle5668";
-createNode nurbsCurve -name "curveShape38" -parent "curve38";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+createNode transform -n "pPlane1Follicle5668" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape5668" -p "pPlane1Follicle5668";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.5625;
+	setAttr ".pv" 0.6875;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve38" -p "pPlane1Follicle5668";
+createNode nurbsCurve -n "curveShape38" -p "curve38";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -1580,19 +1454,19 @@ createNode nurbsCurve -name "curveShape38" -parent "curve38";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pPlane1Follicle5680" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape5680" -parent "pPlane1Follicle5680";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.5625;
-	setAttr ".parameterV" 0.8125;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve39" -parent "pPlane1Follicle5680";
-createNode nurbsCurve -name "curveShape39" -parent "curve39";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+createNode transform -n "pPlane1Follicle5680" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape5680" -p "pPlane1Follicle5680";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.5625;
+	setAttr ".pv" 0.8125;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve39" -p "pPlane1Follicle5680";
+createNode nurbsCurve -n "curveShape39" -p "curve39";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -1607,19 +1481,19 @@ createNode nurbsCurve -name "curveShape39" -parent "curve39";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pPlane1Follicle5693" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape5693" -parent "pPlane1Follicle5693";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.5625;
-	setAttr ".parameterV" 0.9375;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve40" -parent "pPlane1Follicle5693";
-createNode nurbsCurve -name "curveShape40" -parent "curve40";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+createNode transform -n "pPlane1Follicle5693" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape5693" -p "pPlane1Follicle5693";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.5625;
+	setAttr ".pv" 0.9375;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve40" -p "pPlane1Follicle5693";
+createNode nurbsCurve -n "curveShape40" -p "curve40";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -1634,19 +1508,19 @@ createNode nurbsCurve -name "curveShape40" -parent "curve40";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pPlane1Follicle6806" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape6806" -parent "pPlane1Follicle6806";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.6875;
-	setAttr ".parameterV" 0.0625;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve41" -parent "pPlane1Follicle6806";
-createNode nurbsCurve -name "curveShape41" -parent "curve41";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+createNode transform -n "pPlane1Follicle6806" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape6806" -p "pPlane1Follicle6806";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.6875;
+	setAttr ".pv" 0.0625;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve41" -p "pPlane1Follicle6806";
+createNode nurbsCurve -n "curveShape41" -p "curve41";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -1661,19 +1535,19 @@ createNode nurbsCurve -name "curveShape41" -parent "curve41";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pPlane1Follicle6819" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape6819" -parent "pPlane1Follicle6819";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.6875;
-	setAttr ".parameterV" 0.1875;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve42" -parent "pPlane1Follicle6819";
-createNode nurbsCurve -name "curveShape42" -parent "curve42";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+createNode transform -n "pPlane1Follicle6819" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape6819" -p "pPlane1Follicle6819";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.6875;
+	setAttr ".pv" 0.1875;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve42" -p "pPlane1Follicle6819";
+createNode nurbsCurve -n "curveShape42" -p "curve42";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -1688,19 +1562,19 @@ createNode nurbsCurve -name "curveShape42" -parent "curve42";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pPlane1Follicle6831" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape6831" -parent "pPlane1Follicle6831";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.6875;
-	setAttr ".parameterV" 0.3125;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve43" -parent "pPlane1Follicle6831";
-createNode nurbsCurve -name "curveShape43" -parent "curve43";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+createNode transform -n "pPlane1Follicle6831" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape6831" -p "pPlane1Follicle6831";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.6875;
+	setAttr ".pv" 0.3125;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve43" -p "pPlane1Follicle6831";
+createNode nurbsCurve -n "curveShape43" -p "curve43";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -1715,19 +1589,19 @@ createNode nurbsCurve -name "curveShape43" -parent "curve43";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pPlane1Follicle6843" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape6843" -parent "pPlane1Follicle6843";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.6875;
-	setAttr ".parameterV" 0.4375;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve44" -parent "pPlane1Follicle6843";
-createNode nurbsCurve -name "curveShape44" -parent "curve44";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+createNode transform -n "pPlane1Follicle6843" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape6843" -p "pPlane1Follicle6843";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.6875;
+	setAttr ".pv" 0.4375;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve44" -p "pPlane1Follicle6843";
+createNode nurbsCurve -n "curveShape44" -p "curve44";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -1742,19 +1616,19 @@ createNode nurbsCurve -name "curveShape44" -parent "curve44";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pPlane1Follicle6856" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape6856" -parent "pPlane1Follicle6856";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.6875;
-	setAttr ".parameterV" 0.5625;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve45" -parent "pPlane1Follicle6856";
-createNode nurbsCurve -name "curveShape45" -parent "curve45";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+createNode transform -n "pPlane1Follicle6856" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape6856" -p "pPlane1Follicle6856";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.6875;
+	setAttr ".pv" 0.5625;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve45" -p "pPlane1Follicle6856";
+createNode nurbsCurve -n "curveShape45" -p "curve45";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -1769,19 +1643,19 @@ createNode nurbsCurve -name "curveShape45" -parent "curve45";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pPlane1Follicle6868" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape6868" -parent "pPlane1Follicle6868";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.6875;
-	setAttr ".parameterV" 0.6875;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve46" -parent "pPlane1Follicle6868";
-createNode nurbsCurve -name "curveShape46" -parent "curve46";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+createNode transform -n "pPlane1Follicle6868" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape6868" -p "pPlane1Follicle6868";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.6875;
+	setAttr ".pv" 0.6875;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve46" -p "pPlane1Follicle6868";
+createNode nurbsCurve -n "curveShape46" -p "curve46";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -1796,19 +1670,19 @@ createNode nurbsCurve -name "curveShape46" -parent "curve46";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pPlane1Follicle6880" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape6880" -parent "pPlane1Follicle6880";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.6875;
-	setAttr ".parameterV" 0.8125;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve47" -parent "pPlane1Follicle6880";
-createNode nurbsCurve -name "curveShape47" -parent "curve47";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+createNode transform -n "pPlane1Follicle6880" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape6880" -p "pPlane1Follicle6880";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.6875;
+	setAttr ".pv" 0.8125;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve47" -p "pPlane1Follicle6880";
+createNode nurbsCurve -n "curveShape47" -p "curve47";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -1823,19 +1697,19 @@ createNode nurbsCurve -name "curveShape47" -parent "curve47";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pPlane1Follicle6893" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape6893" -parent "pPlane1Follicle6893";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.6875;
-	setAttr ".parameterV" 0.9375;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve48" -parent "pPlane1Follicle6893";
-createNode nurbsCurve -name "curveShape48" -parent "curve48";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+createNode transform -n "pPlane1Follicle6893" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape6893" -p "pPlane1Follicle6893";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.6875;
+	setAttr ".pv" 0.9375;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve48" -p "pPlane1Follicle6893";
+createNode nurbsCurve -n "curveShape48" -p "curve48";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -1850,19 +1724,19 @@ createNode nurbsCurve -name "curveShape48" -parent "curve48";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pPlane1Follicle8006" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape8006" -parent "pPlane1Follicle8006";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.8125;
-	setAttr ".parameterV" 0.0625;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve49" -parent "pPlane1Follicle8006";
-createNode nurbsCurve -name "curveShape49" -parent "curve49";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+createNode transform -n "pPlane1Follicle8006" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape8006" -p "pPlane1Follicle8006";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.8125;
+	setAttr ".pv" 0.0625;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve49" -p "pPlane1Follicle8006";
+createNode nurbsCurve -n "curveShape49" -p "curve49";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -1877,19 +1751,19 @@ createNode nurbsCurve -name "curveShape49" -parent "curve49";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pPlane1Follicle8019" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape8019" -parent "pPlane1Follicle8019";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.8125;
-	setAttr ".parameterV" 0.1875;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve50" -parent "pPlane1Follicle8019";
-createNode nurbsCurve -name "curveShape50" -parent "curve50";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+createNode transform -n "pPlane1Follicle8019" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape8019" -p "pPlane1Follicle8019";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.8125;
+	setAttr ".pv" 0.1875;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve50" -p "pPlane1Follicle8019";
+createNode nurbsCurve -n "curveShape50" -p "curve50";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -1904,19 +1778,19 @@ createNode nurbsCurve -name "curveShape50" -parent "curve50";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pPlane1Follicle8031" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape8031" -parent "pPlane1Follicle8031";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.8125;
-	setAttr ".parameterV" 0.3125;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve51" -parent "pPlane1Follicle8031";
-createNode nurbsCurve -name "curveShape51" -parent "curve51";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+createNode transform -n "pPlane1Follicle8031" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape8031" -p "pPlane1Follicle8031";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.8125;
+	setAttr ".pv" 0.3125;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve51" -p "pPlane1Follicle8031";
+createNode nurbsCurve -n "curveShape51" -p "curve51";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -1931,19 +1805,19 @@ createNode nurbsCurve -name "curveShape51" -parent "curve51";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pPlane1Follicle8043" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape8043" -parent "pPlane1Follicle8043";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.8125;
-	setAttr ".parameterV" 0.4375;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve52" -parent "pPlane1Follicle8043";
-createNode nurbsCurve -name "curveShape52" -parent "curve52";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+createNode transform -n "pPlane1Follicle8043" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape8043" -p "pPlane1Follicle8043";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.8125;
+	setAttr ".pv" 0.4375;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve52" -p "pPlane1Follicle8043";
+createNode nurbsCurve -n "curveShape52" -p "curve52";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -1958,19 +1832,19 @@ createNode nurbsCurve -name "curveShape52" -parent "curve52";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pPlane1Follicle8056" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape8056" -parent "pPlane1Follicle8056";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.8125;
-	setAttr ".parameterV" 0.5625;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve53" -parent "pPlane1Follicle8056";
-createNode nurbsCurve -name "curveShape53" -parent "curve53";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+createNode transform -n "pPlane1Follicle8056" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape8056" -p "pPlane1Follicle8056";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.8125;
+	setAttr ".pv" 0.5625;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve53" -p "pPlane1Follicle8056";
+createNode nurbsCurve -n "curveShape53" -p "curve53";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -1985,19 +1859,19 @@ createNode nurbsCurve -name "curveShape53" -parent "curve53";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pPlane1Follicle8068" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape8068" -parent "pPlane1Follicle8068";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.8125;
-	setAttr ".parameterV" 0.6875;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve54" -parent "pPlane1Follicle8068";
-createNode nurbsCurve -name "curveShape54" -parent "curve54";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+createNode transform -n "pPlane1Follicle8068" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape8068" -p "pPlane1Follicle8068";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.8125;
+	setAttr ".pv" 0.6875;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve54" -p "pPlane1Follicle8068";
+createNode nurbsCurve -n "curveShape54" -p "curve54";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -2012,19 +1886,19 @@ createNode nurbsCurve -name "curveShape54" -parent "curve54";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pPlane1Follicle8080" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape8080" -parent "pPlane1Follicle8080";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.8125;
-	setAttr ".parameterV" 0.8125;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve55" -parent "pPlane1Follicle8080";
-createNode nurbsCurve -name "curveShape55" -parent "curve55";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+createNode transform -n "pPlane1Follicle8080" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape8080" -p "pPlane1Follicle8080";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.8125;
+	setAttr ".pv" 0.8125;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve55" -p "pPlane1Follicle8080";
+createNode nurbsCurve -n "curveShape55" -p "curve55";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -2039,19 +1913,19 @@ createNode nurbsCurve -name "curveShape55" -parent "curve55";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pPlane1Follicle8093" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape8093" -parent "pPlane1Follicle8093";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.8125;
-	setAttr ".parameterV" 0.9375;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve56" -parent "pPlane1Follicle8093";
-createNode nurbsCurve -name "curveShape56" -parent "curve56";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+createNode transform -n "pPlane1Follicle8093" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape8093" -p "pPlane1Follicle8093";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.8125;
+	setAttr ".pv" 0.9375;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve56" -p "pPlane1Follicle8093";
+createNode nurbsCurve -n "curveShape56" -p "curve56";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -2066,19 +1940,19 @@ createNode nurbsCurve -name "curveShape56" -parent "curve56";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pPlane1Follicle9306" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape9306" -parent "pPlane1Follicle9306";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.9375;
-	setAttr ".parameterV" 0.0625;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve57" -parent "pPlane1Follicle9306";
-createNode nurbsCurve -name "curveShape57" -parent "curve57";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+createNode transform -n "pPlane1Follicle9306" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape9306" -p "pPlane1Follicle9306";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.9375;
+	setAttr ".pv" 0.0625;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve57" -p "pPlane1Follicle9306";
+createNode nurbsCurve -n "curveShape57" -p "curve57";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -2093,19 +1967,19 @@ createNode nurbsCurve -name "curveShape57" -parent "curve57";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pPlane1Follicle9319" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape9319" -parent "pPlane1Follicle9319";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.9375;
-	setAttr ".parameterV" 0.1875;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve58" -parent "pPlane1Follicle9319";
-createNode nurbsCurve -name "curveShape58" -parent "curve58";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+createNode transform -n "pPlane1Follicle9319" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape9319" -p "pPlane1Follicle9319";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.9375;
+	setAttr ".pv" 0.1875;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve58" -p "pPlane1Follicle9319";
+createNode nurbsCurve -n "curveShape58" -p "curve58";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -2120,19 +1994,19 @@ createNode nurbsCurve -name "curveShape58" -parent "curve58";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pPlane1Follicle9331" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape9331" -parent "pPlane1Follicle9331";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.9375;
-	setAttr ".parameterV" 0.3125;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve59" -parent "pPlane1Follicle9331";
-createNode nurbsCurve -name "curveShape59" -parent "curve59";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+createNode transform -n "pPlane1Follicle9331" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape9331" -p "pPlane1Follicle9331";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.9375;
+	setAttr ".pv" 0.3125;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve59" -p "pPlane1Follicle9331";
+createNode nurbsCurve -n "curveShape59" -p "curve59";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -2147,19 +2021,19 @@ createNode nurbsCurve -name "curveShape59" -parent "curve59";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pPlane1Follicle9343" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape9343" -parent "pPlane1Follicle9343";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.9375;
-	setAttr ".parameterV" 0.4375;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve60" -parent "pPlane1Follicle9343";
-createNode nurbsCurve -name "curveShape60" -parent "curve60";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+createNode transform -n "pPlane1Follicle9343" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape9343" -p "pPlane1Follicle9343";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.9375;
+	setAttr ".pv" 0.4375;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve60" -p "pPlane1Follicle9343";
+createNode nurbsCurve -n "curveShape60" -p "curve60";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -2174,19 +2048,19 @@ createNode nurbsCurve -name "curveShape60" -parent "curve60";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pPlane1Follicle9356" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape9356" -parent "pPlane1Follicle9356";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.9375;
-	setAttr ".parameterV" 0.5625;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve61" -parent "pPlane1Follicle9356";
-createNode nurbsCurve -name "curveShape61" -parent "curve61";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+createNode transform -n "pPlane1Follicle9356" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape9356" -p "pPlane1Follicle9356";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.9375;
+	setAttr ".pv" 0.5625;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve61" -p "pPlane1Follicle9356";
+createNode nurbsCurve -n "curveShape61" -p "curve61";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -2201,19 +2075,19 @@ createNode nurbsCurve -name "curveShape61" -parent "curve61";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pPlane1Follicle9368" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape9368" -parent "pPlane1Follicle9368";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.9375;
-	setAttr ".parameterV" 0.6875;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve62" -parent "pPlane1Follicle9368";
-createNode nurbsCurve -name "curveShape62" -parent "curve62";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+createNode transform -n "pPlane1Follicle9368" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape9368" -p "pPlane1Follicle9368";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.9375;
+	setAttr ".pv" 0.6875;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve62" -p "pPlane1Follicle9368";
+createNode nurbsCurve -n "curveShape62" -p "curve62";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -2228,19 +2102,19 @@ createNode nurbsCurve -name "curveShape62" -parent "curve62";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pPlane1Follicle9380" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape9380" -parent "pPlane1Follicle9380";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.9375;
-	setAttr ".parameterV" 0.8125;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve63" -parent "pPlane1Follicle9380";
-createNode nurbsCurve -name "curveShape63" -parent "curve63";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+createNode transform -n "pPlane1Follicle9380" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape9380" -p "pPlane1Follicle9380";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.9375;
+	setAttr ".pv" 0.8125;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve63" -p "pPlane1Follicle9380";
+createNode nurbsCurve -n "curveShape63" -p "curve63";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -2255,19 +2129,19 @@ createNode nurbsCurve -name "curveShape63" -parent "curve63";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pPlane1Follicle9393" -parent "hairSystem1Follicles";
-createNode follicle -name "pPlane1FollicleShape9393" -parent "pPlane1Follicle9393";
-	setAttr -keyable off ".visibility";
-	setAttr ".parameterU" 0.9375;
-	setAttr ".parameterV" 0.9375;
-	setAttr -size 2 ".stiffnessScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".clumpWidthScale[0:1]"  0 1 3 1 0.2 3;
-	setAttr -size 2 ".attractionScale[0:1]"  0 1 3 1 0.2 3;
-createNode transform -name "curve64" -parent "pPlane1Follicle9393";
-createNode nurbsCurve -name "curveShape64" -parent "curve64";
-	setAttr -keyable off ".visibility";
-	setAttr ".intermediateObject" yes;
-	setAttr ".cached" -type "nurbsCurve" 
+createNode transform -n "pPlane1Follicle9393" -p "hairSystem1Follicles";
+createNode follicle -n "pPlane1FollicleShape9393" -p "pPlane1Follicle9393";
+	setAttr -k off ".v";
+	setAttr ".pu" 0.9375;
+	setAttr ".pv" 0.9375;
+	setAttr -s 2 ".sts[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".cws[0:1]"  0 1 3 1 0.2 3;
+	setAttr -s 2 ".ats[0:1]"  0 1 3 1 0.2 3;
+createNode transform -n "curve64" -p "pPlane1Follicle9393";
+createNode nurbsCurve -n "curveShape64" -p "curve64";
+	setAttr -k off ".v";
+	setAttr ".io" yes;
+	setAttr ".cc" -type "nurbsCurve" 
 		1 9 0 no 3
 		10 0 1 2 3 4 5 6 7 8 9
 		10
@@ -2282,755 +2156,610 @@ createNode nurbsCurve -name "curveShape64" -parent "curve64";
 		0 0 4.4444444440000002
 		0 0 5
 		;
-createNode transform -name "pfxHair1";
-createNode pfxHair -name "pfxHairShape1" -parent "pfxHair1";
-	setAttr -keyable off ".visibility";
-	setAttr ".displayPercent" 100;
-	setAttr ".drawAsMesh" no;
-createNode transform -name "directionalLight1";
-	setAttr ".translate" -type "double3" 0 15 0 ;
-	setAttr ".rotate" -type "double3" -90 0 0 ;
-createNode directionalLight -name "directionalLightShape1" -parent "directionalLight1";
-	addAttr -cachedInternally true -keyable true -shortName "ai_cast_shadows" -longName "aiCastShadows" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_exposure" -longName "aiExposure" 
-		-minValue 0 -softMaxValue 10 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_samples" -longName "aiSamples" 
-		-defaultValue 1 -minValue 0 -maxValue 100 -attributeType "long";
-	addAttr -cachedInternally true -keyable true -shortName "ai_mis" -longName "aiMis" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_normalize" -longName "aiNormalize" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_bounce_factor" -longName "aiBounceFactor" 
-		-defaultValue 1 -minValue 0 -softMaxValue 20 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_bounces" -longName "aiBounces" 
-		-defaultValue 999 -minValue 0 -maxValue 10000 -attributeType "long";
-	addAttr -cachedInternally true -keyable true -multi -shortName "ai_filters" -longName "aiFilters" 
-		-attributeType "message";
-	addAttr -cachedInternally true -keyable true -shortName "ai_oss" -longName "aiOverrideSssSamples" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_sss_samples" -longName "aiSssSamples" 
-		-defaultValue 1 -minValue 0 -maxValue 100 -attributeType "long";
-	addAttr -cachedInternally true -keyable true -shortName "ai_angle" -longName "aiAngle" 
-		-minValue 0 -softMaxValue 10 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "cast_shadows" -longName "castShadows" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "exposure" -longName "exposure" 
-		-attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "angle" -longName "angle" 
-		-attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "samples" -longName "samples" 
-		-defaultValue 1 -attributeType "long";
-	addAttr -cachedInternally true -keyable true -shortName "mis" -longName "mis" -defaultValue 
-		1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "normalize" -longName "normalize" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "bounce_factor" -longName "bounceFactor" 
-		-defaultValue 1 -minValue 0 -softMaxValue 20 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "bounces" -longName "bounces" 
-		-defaultValue 999 -minValue 0 -maxValue 10000 -attributeType "long";
-	addAttr -cachedInternally true -keyable true -shortName "oss" -longName "override_sss_samples" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "sss_samples" -longName "sssSamples" 
-		-defaultValue -1 -minValue 0 -maxValue 100 -attributeType "long";
-	setAttr -keyable off ".visibility";
-createNode aiOptions -shared -name "defaultArnoldRenderOptions";
-	addAttr -cachedInternally true -shortName "driver_exr_compression" -longName "driverExrCompression" 
-		-defaultValue 2 -minValue 0 -maxValue 4 -enumName "none:rle:zip:piz:pxr24" -attributeType "enum";
-	addAttr -cachedInternally true -keyable true -shortName "driver_half_precision" 
-		-longName "driverHalfPrecision" -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "driver_tiled" -longName "driverTiled" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "driver_preserve_layer_name" 
-		-longName "driverPreserveLayerName" -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "driver_quality" -longName "driverQuality" 
-		-defaultValue 100 -minValue 0 -maxValue 100 -attributeType "long";
-	addAttr -cachedInternally true -keyable true -shortName "driver_output_padded" -longName "driverOutputPadded" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "driver_gamma" -longName "driverGamma" 
-		-defaultValue 2.2000000476837158 -minValue 9.9999997473787516e-05 -softMaxValue 5 
-		-attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "driver_dither_amplitude" 
-		-longName "driverDitherAmplitude" -defaultValue 1 -attributeType "float";
-	addAttr -cachedInternally true -shortName "driver_png_format" -longName "driverPngFormat" 
-		-minValue 0 -maxValue 1 -enumName "int8:int16" -attributeType "enum";
-	addAttr -cachedInternally true -shortName "driver_tiff_compression" -longName "driverTiffCompression" 
-		-minValue 0 -maxValue 4 -enumName "none:lzw:ccittrle:zip:packbits" -attributeType "enum";
-	addAttr -cachedInternally true -shortName "driver_tiff_format" -longName "driverTiffFormat" 
-		-minValue 0 -maxValue 3 -enumName "int8:int16:int32:float32" -attributeType "enum";
-	addAttr -cachedInternally true -keyable true -shortName "driver_unpremult_alpha" 
-		-longName "driverUnpremultAlpha" -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "filter_width" -longName "filterWidth" 
-		-defaultValue 3 -attributeType "float";
-	addAttr -cachedInternally true -shortName "filter_domain" -longName "filterDomain" 
-		-minValue 0 -maxValue 1 -enumName "first_hit:all_hits" -attributeType "enum";
-	addAttr -cachedInternally true -keyable true -shortName "filter_minimum" -longName "filterMinimum" 
-		-attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "filter_maximum" -longName "filterMaximum" 
-		-defaultValue 1 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "filter_scalar_mode" -longName "filterScalarMode" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	setAttr ".imageFormat" -type "string" "tiff";
-	setAttr ".filterType" -type "string" "gaussian";
-	setAttr ".GIDiffuseDepth" 3;
-	setAttr ".GIGlossyDepth" 3;
-	setAttr ".GIReflectionDepth" 3;
-	setAttr ".GIRefractionDepth" 3;
-	setAttr -keyable on ".driverTiled" no;
-createNode lightLinker -shared -name "lightLinker1";
-	setAttr -size 3 ".link";
-	setAttr -size 3 ".shadowLink";
-createNode displayLayerManager -name "layerManager";
-createNode displayLayer -name "defaultLayer";
-createNode renderLayerManager -name "renderLayerManager";
-createNode renderLayer -name "defaultRenderLayer";
-	setAttr ".global" yes;
-createNode polyPlane -name "polyPlane1";
-	setAttr ".width" 20;
-	setAttr ".height" 20;
-	setAttr ".subdivisionsWidth" 1;
-	setAttr ".subdivisionsHeight" 1;
-	setAttr ".createUVs" 2;
-createNode script -name "sceneConfigurationScriptNode";
-	setAttr ".before" -type "string" "playbackOptions -min 1 -max 24 -ast 1 -aet 48 ";
-	setAttr ".scriptType" 6;
-createNode aiStandard -name "aiStandard1";
+createNode transform -n "pfxHair1";
+createNode pfxHair -n "pfxHairShape1" -p "pfxHair1";
+	setAttr -k off ".v";
+	setAttr ".dpc" 100;
+	setAttr ".dam" no;
+createNode transform -n "directionalLight1";
+	setAttr ".t" -type "double3" 0 15 0 ;
+	setAttr ".r" -type "double3" -90 0 0 ;
+createNode directionalLight -n "directionalLightShape1" -p "directionalLight1";
+	addAttr -ci true -k true -sn "ai_cast_shadows" -ln "aiCastShadows" -dv 1 -min 0 
+		-max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_exposure" -ln "aiExposure" -min 0 -smx 10 -at "float";
+	addAttr -ci true -k true -sn "ai_samples" -ln "aiSamples" -dv 1 -min 0 -max 100 
+		-at "long";
+	addAttr -ci true -k true -sn "ai_mis" -ln "aiMis" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_normalize" -ln "aiNormalize" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "ai_bounce_factor" -ln "aiBounceFactor" -dv 1 -min 
+		0 -smx 20 -at "float";
+	addAttr -ci true -k true -sn "ai_bounces" -ln "aiBounces" -dv 999 -min 0 -max 10000 
+		-at "long";
+	addAttr -ci true -k true -m -sn "ai_filters" -ln "aiFilters" -at "message";
+	addAttr -ci true -k true -sn "ai_oss" -ln "aiOverrideSssSamples" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_sss_samples" -ln "aiSssSamples" -dv 1 -min 0 -max 
+		100 -at "long";
+	addAttr -ci true -k true -sn "ai_angle" -ln "aiAngle" -min 0 -smx 10 -at "float";
+	addAttr -ci true -k true -sn "cast_shadows" -ln "castShadows" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "exposure" -ln "exposure" -at "float";
+	addAttr -ci true -k true -sn "angle" -ln "angle" -at "float";
+	addAttr -ci true -k true -sn "samples" -ln "samples" -dv 1 -at "long";
+	addAttr -ci true -k true -sn "mis" -ln "mis" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "normalize" -ln "normalize" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "bounce_factor" -ln "bounceFactor" -dv 1 -min 0 -smx 
+		20 -at "float";
+	addAttr -ci true -k true -sn "bounces" -ln "bounces" -dv 999 -min 0 -max 10000 -at "long";
+	addAttr -ci true -k true -sn "oss" -ln "override_sss_samples" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "sss_samples" -ln "sssSamples" -dv -1 -min 0 -max 100 
+		-at "long";
+	setAttr -k off ".v";
+createNode aiOptions -s -n "defaultArnoldRenderOptions";
+	addAttr -ci true -sn "driver_exr_compression" -ln "driverExrCompression" -dv 2 
+		-min 0 -max 4 -en "none:rle:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -k true -sn "driver_half_precision" -ln "driverHalfPrecision" -min 
+		0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "driver_tiled" -ln "driverTiled" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "driver_preserve_layer_name" -ln "driverPreserveLayerName" 
+		-min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "driver_quality" -ln "driverQuality" -dv 100 -min 0 
+		-max 100 -at "long";
+	addAttr -ci true -k true -sn "driver_output_padded" -ln "driverOutputPadded" -min 
+		0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "driver_gamma" -ln "driverGamma" -dv 2.2000000476837158 
+		-min 9.9999997473787516e-05 -smx 5 -at "float";
+	addAttr -ci true -k true -sn "driver_dither_amplitude" -ln "driverDitherAmplitude" 
+		-dv 1 -at "float";
+	addAttr -ci true -sn "driver_png_format" -ln "driverPngFormat" -min 0 -max 1 -en 
+		"int8:int16" -at "enum";
+	addAttr -ci true -sn "driver_tiff_compression" -ln "driverTiffCompression" -min 
+		0 -max 4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "driver_tiff_format" -ln "driverTiffFormat" -min 0 -max 3 -en 
+		"int8:int16:int32:float32" -at "enum";
+	addAttr -ci true -k true -sn "driver_unpremult_alpha" -ln "driverUnpremultAlpha" 
+		-min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "filter_width" -ln "filterWidth" -dv 3 -at "float";
+	addAttr -ci true -sn "filter_domain" -ln "filterDomain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -k true -sn "filter_minimum" -ln "filterMinimum" -at "float";
+	addAttr -ci true -k true -sn "filter_maximum" -ln "filterMaximum" -dv 1 -at "float";
+	addAttr -ci true -k true -sn "filter_scalar_mode" -ln "filterScalarMode" -min 0 
+		-max 1 -at "bool";
+	setAttr ".img" -type "string" "tiff";
+	setAttr ".fltr" -type "string" "gaussian";
+	setAttr ".dgamma" 1;
+	setAttr ".lgamma" 1;
+	setAttr ".sgamma" 1;
+	setAttr ".tgamma" 1;
+	setAttr ".GI_diffuse_depth" 3;
+	setAttr ".GI_glossy_depth" 3;
+	setAttr ".GI_reflection_depth" 3;
+	setAttr ".GI_refraction_depth" 3;
+	setAttr -k on ".driver_tiled" no;
+	setAttr -k on ".driver_gamma" 1;
+	setAttr -k on ".filter_width" 2;
+createNode lightLinker -s -n "lightLinker1";
+	setAttr -s 3 ".lnk";
+	setAttr -s 3 ".slnk";
+createNode displayLayerManager -n "layerManager";
+createNode displayLayer -n "defaultLayer";
+createNode renderLayerManager -n "renderLayerManager";
+createNode renderLayer -n "defaultRenderLayer";
+	setAttr ".g" yes;
+createNode polyPlane -n "polyPlane1";
+	setAttr ".w" 20;
+	setAttr ".h" 20;
+	setAttr ".sw" 1;
+	setAttr ".sh" 1;
+	setAttr ".cuv" 2;
+createNode script -n "sceneConfigurationScriptNode";
+	setAttr ".b" -type "string" "playbackOptions -min 1 -max 24 -ast 1 -aet 48 ";
+	setAttr ".st" 6;
+createNode aiStandard -n "aiStandard1";
 	setAttr ".Kd" 1;
-createNode shadingEngine -name "aiStandard1SG";
-	setAttr ".isHistoricallyInteresting" 0;
-	setAttr ".renderableOnlySet" yes;
-createNode materialInfo -name "materialInfo1";
-select -noExpand :time1;
-	setAttr ".outTime" 1;
-	setAttr ".unwarpedTime" 1;
-select -noExpand :renderPartition;
-	setAttr -size 3 ".sets";
-select -noExpand :initialShadingGroup;
-	setAttr ".renderableOnlySet" yes;
-select -noExpand :initialParticleSE;
-	setAttr ".renderableOnlySet" yes;
-select -noExpand :defaultShaderList1;
-	setAttr -size 3 ".shaders";
-select -noExpand :lightList1;
-select -noExpand :postProcessList1;
-	setAttr -size 2 ".postProcesses";
-select -noExpand :renderGlobalsList1;
-select -noExpand :defaultRenderGlobals;
-	setAttr ".currentRenderer" -type "string" "arnold";
-	setAttr ".imageFormat" 51;
-	setAttr ".imfPluginKey" -type "string" "tiff";
-	setAttr ".imageFilePrefix" -type "string" "testrender";
-select -noExpand :defaultResolution;
-	setAttr ".width" 160;
-	setAttr ".height" 120;
-	setAttr ".pixelAspect" 1;
-	setAttr ".deviceAspectRatio" 1.3333333730697632;
-select -noExpand :defaultLightSet;
-select -noExpand :hardwareRenderGlobals;
-	setAttr ".colorTextureResolution" 256;
-	setAttr ".bumpTextureResolution" 512;
-select -noExpand :defaultHardwareRenderGlobals;
-	setAttr ".filename" -type "string" "im";
-	setAttr ".resolution" -type "string" "ntsc_4d 646 485 1.333";
-connectAttr "polyPlane1.output" "pPlaneShape1.inMesh";
-connectAttr ":time1.outTime" "hairSystemShape1.currentTime";
-connectAttr "pPlane1FollicleShape606.outHair" "hairSystemShape1.inputHair[0]";
-connectAttr "pPlane1FollicleShape619.outHair" "hairSystemShape1.inputHair[1]";
-connectAttr "pPlane1FollicleShape631.outHair" "hairSystemShape1.inputHair[2]";
-connectAttr "pPlane1FollicleShape643.outHair" "hairSystemShape1.inputHair[3]";
-connectAttr "pPlane1FollicleShape656.outHair" "hairSystemShape1.inputHair[4]";
-connectAttr "pPlane1FollicleShape668.outHair" "hairSystemShape1.inputHair[5]";
-connectAttr "pPlane1FollicleShape680.outHair" "hairSystemShape1.inputHair[6]";
-connectAttr "pPlane1FollicleShape693.outHair" "hairSystemShape1.inputHair[7]";
-connectAttr "pPlane1FollicleShape1906.outHair" "hairSystemShape1.inputHair[8]";
-connectAttr "pPlane1FollicleShape1919.outHair" "hairSystemShape1.inputHair[9]";
-connectAttr "pPlane1FollicleShape1931.outHair" "hairSystemShape1.inputHair[10]";
-connectAttr "pPlane1FollicleShape1943.outHair" "hairSystemShape1.inputHair[11]";
-connectAttr "pPlane1FollicleShape1956.outHair" "hairSystemShape1.inputHair[12]";
-connectAttr "pPlane1FollicleShape1968.outHair" "hairSystemShape1.inputHair[13]";
-connectAttr "pPlane1FollicleShape1980.outHair" "hairSystemShape1.inputHair[14]";
-connectAttr "pPlane1FollicleShape1993.outHair" "hairSystemShape1.inputHair[15]";
-connectAttr "pPlane1FollicleShape3106.outHair" "hairSystemShape1.inputHair[16]";
-connectAttr "pPlane1FollicleShape3119.outHair" "hairSystemShape1.inputHair[17]";
-connectAttr "pPlane1FollicleShape3131.outHair" "hairSystemShape1.inputHair[18]";
-connectAttr "pPlane1FollicleShape3143.outHair" "hairSystemShape1.inputHair[19]";
-connectAttr "pPlane1FollicleShape3156.outHair" "hairSystemShape1.inputHair[20]";
-connectAttr "pPlane1FollicleShape3168.outHair" "hairSystemShape1.inputHair[21]";
-connectAttr "pPlane1FollicleShape3180.outHair" "hairSystemShape1.inputHair[22]";
-connectAttr "pPlane1FollicleShape3193.outHair" "hairSystemShape1.inputHair[23]";
-connectAttr "pPlane1FollicleShape4306.outHair" "hairSystemShape1.inputHair[24]";
-connectAttr "pPlane1FollicleShape4319.outHair" "hairSystemShape1.inputHair[25]";
-connectAttr "pPlane1FollicleShape4331.outHair" "hairSystemShape1.inputHair[26]";
-connectAttr "pPlane1FollicleShape4343.outHair" "hairSystemShape1.inputHair[27]";
-connectAttr "pPlane1FollicleShape4356.outHair" "hairSystemShape1.inputHair[28]";
-connectAttr "pPlane1FollicleShape4368.outHair" "hairSystemShape1.inputHair[29]";
-connectAttr "pPlane1FollicleShape4380.outHair" "hairSystemShape1.inputHair[30]";
-connectAttr "pPlane1FollicleShape4393.outHair" "hairSystemShape1.inputHair[31]";
-connectAttr "pPlane1FollicleShape5606.outHair" "hairSystemShape1.inputHair[32]";
-connectAttr "pPlane1FollicleShape5619.outHair" "hairSystemShape1.inputHair[33]";
-connectAttr "pPlane1FollicleShape5631.outHair" "hairSystemShape1.inputHair[34]";
-connectAttr "pPlane1FollicleShape5643.outHair" "hairSystemShape1.inputHair[35]";
-connectAttr "pPlane1FollicleShape5656.outHair" "hairSystemShape1.inputHair[36]";
-connectAttr "pPlane1FollicleShape5668.outHair" "hairSystemShape1.inputHair[37]";
-connectAttr "pPlane1FollicleShape5680.outHair" "hairSystemShape1.inputHair[38]";
-connectAttr "pPlane1FollicleShape5693.outHair" "hairSystemShape1.inputHair[39]";
-connectAttr "pPlane1FollicleShape6806.outHair" "hairSystemShape1.inputHair[40]";
-connectAttr "pPlane1FollicleShape6819.outHair" "hairSystemShape1.inputHair[41]";
-connectAttr "pPlane1FollicleShape6831.outHair" "hairSystemShape1.inputHair[42]";
-connectAttr "pPlane1FollicleShape6843.outHair" "hairSystemShape1.inputHair[43]";
-connectAttr "pPlane1FollicleShape6856.outHair" "hairSystemShape1.inputHair[44]";
-connectAttr "pPlane1FollicleShape6868.outHair" "hairSystemShape1.inputHair[45]";
-connectAttr "pPlane1FollicleShape6880.outHair" "hairSystemShape1.inputHair[46]";
-connectAttr "pPlane1FollicleShape6893.outHair" "hairSystemShape1.inputHair[47]";
-connectAttr "pPlane1FollicleShape8006.outHair" "hairSystemShape1.inputHair[48]";
-connectAttr "pPlane1FollicleShape8019.outHair" "hairSystemShape1.inputHair[49]";
-connectAttr "pPlane1FollicleShape8031.outHair" "hairSystemShape1.inputHair[50]";
-connectAttr "pPlane1FollicleShape8043.outHair" "hairSystemShape1.inputHair[51]";
-connectAttr "pPlane1FollicleShape8056.outHair" "hairSystemShape1.inputHair[52]";
-connectAttr "pPlane1FollicleShape8068.outHair" "hairSystemShape1.inputHair[53]";
-connectAttr "pPlane1FollicleShape8080.outHair" "hairSystemShape1.inputHair[54]";
-connectAttr "pPlane1FollicleShape8093.outHair" "hairSystemShape1.inputHair[55]";
-connectAttr "pPlane1FollicleShape9306.outHair" "hairSystemShape1.inputHair[56]";
-connectAttr "pPlane1FollicleShape9319.outHair" "hairSystemShape1.inputHair[57]";
-connectAttr "pPlane1FollicleShape9331.outHair" "hairSystemShape1.inputHair[58]";
-connectAttr "pPlane1FollicleShape9343.outHair" "hairSystemShape1.inputHair[59]";
-connectAttr "pPlane1FollicleShape9356.outHair" "hairSystemShape1.inputHair[60]";
-connectAttr "pPlane1FollicleShape9368.outHair" "hairSystemShape1.inputHair[61]";
-connectAttr "pPlane1FollicleShape9380.outHair" "hairSystemShape1.inputHair[62]";
-connectAttr "pPlane1FollicleShape9393.outHair" "hairSystemShape1.inputHair[63]";
-connectAttr "pPlane1FollicleShape606.outTranslate" "pPlane1Follicle606.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape606.outRotate" "pPlane1Follicle606.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape606.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape606.inputMesh";
-connectAttr "curveShape1.worldSpace" "pPlane1FollicleShape606.startPosition";
-connectAttr "pPlane1FollicleShape619.outTranslate" "pPlane1Follicle619.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape619.outRotate" "pPlane1Follicle619.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape619.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape619.inputMesh";
-connectAttr "curveShape2.worldSpace" "pPlane1FollicleShape619.startPosition";
-connectAttr "pPlane1FollicleShape631.outTranslate" "pPlane1Follicle631.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape631.outRotate" "pPlane1Follicle631.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape631.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape631.inputMesh";
-connectAttr "curveShape3.worldSpace" "pPlane1FollicleShape631.startPosition";
-connectAttr "pPlane1FollicleShape643.outTranslate" "pPlane1Follicle643.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape643.outRotate" "pPlane1Follicle643.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape643.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape643.inputMesh";
-connectAttr "curveShape4.worldSpace" "pPlane1FollicleShape643.startPosition";
-connectAttr "pPlane1FollicleShape656.outTranslate" "pPlane1Follicle656.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape656.outRotate" "pPlane1Follicle656.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape656.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape656.inputMesh";
-connectAttr "curveShape5.worldSpace" "pPlane1FollicleShape656.startPosition";
-connectAttr "pPlane1FollicleShape668.outTranslate" "pPlane1Follicle668.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape668.outRotate" "pPlane1Follicle668.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape668.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape668.inputMesh";
-connectAttr "curveShape6.worldSpace" "pPlane1FollicleShape668.startPosition";
-connectAttr "pPlane1FollicleShape680.outTranslate" "pPlane1Follicle680.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape680.outRotate" "pPlane1Follicle680.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape680.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape680.inputMesh";
-connectAttr "curveShape7.worldSpace" "pPlane1FollicleShape680.startPosition";
-connectAttr "pPlane1FollicleShape693.outTranslate" "pPlane1Follicle693.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape693.outRotate" "pPlane1Follicle693.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape693.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape693.inputMesh";
-connectAttr "curveShape8.worldSpace" "pPlane1FollicleShape693.startPosition";
-connectAttr "pPlane1FollicleShape1906.outTranslate" "pPlane1Follicle1906.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape1906.outRotate" "pPlane1Follicle1906.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape1906.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape1906.inputMesh";
-connectAttr "curveShape9.worldSpace" "pPlane1FollicleShape1906.startPosition";
-connectAttr "pPlane1FollicleShape1919.outTranslate" "pPlane1Follicle1919.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape1919.outRotate" "pPlane1Follicle1919.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape1919.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape1919.inputMesh";
-connectAttr "curveShape10.worldSpace" "pPlane1FollicleShape1919.startPosition";
-connectAttr "pPlane1FollicleShape1931.outTranslate" "pPlane1Follicle1931.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape1931.outRotate" "pPlane1Follicle1931.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape1931.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape1931.inputMesh";
-connectAttr "curveShape11.worldSpace" "pPlane1FollicleShape1931.startPosition";
-connectAttr "pPlane1FollicleShape1943.outTranslate" "pPlane1Follicle1943.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape1943.outRotate" "pPlane1Follicle1943.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape1943.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape1943.inputMesh";
-connectAttr "curveShape12.worldSpace" "pPlane1FollicleShape1943.startPosition";
-connectAttr "pPlane1FollicleShape1956.outTranslate" "pPlane1Follicle1956.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape1956.outRotate" "pPlane1Follicle1956.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape1956.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape1956.inputMesh";
-connectAttr "curveShape13.worldSpace" "pPlane1FollicleShape1956.startPosition";
-connectAttr "pPlane1FollicleShape1968.outTranslate" "pPlane1Follicle1968.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape1968.outRotate" "pPlane1Follicle1968.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape1968.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape1968.inputMesh";
-connectAttr "curveShape14.worldSpace" "pPlane1FollicleShape1968.startPosition";
-connectAttr "pPlane1FollicleShape1980.outTranslate" "pPlane1Follicle1980.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape1980.outRotate" "pPlane1Follicle1980.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape1980.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape1980.inputMesh";
-connectAttr "curveShape15.worldSpace" "pPlane1FollicleShape1980.startPosition";
-connectAttr "pPlane1FollicleShape1993.outTranslate" "pPlane1Follicle1993.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape1993.outRotate" "pPlane1Follicle1993.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape1993.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape1993.inputMesh";
-connectAttr "curveShape16.worldSpace" "pPlane1FollicleShape1993.startPosition";
-connectAttr "pPlane1FollicleShape3106.outTranslate" "pPlane1Follicle3106.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape3106.outRotate" "pPlane1Follicle3106.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape3106.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape3106.inputMesh";
-connectAttr "curveShape17.worldSpace" "pPlane1FollicleShape3106.startPosition";
-connectAttr "pPlane1FollicleShape3119.outTranslate" "pPlane1Follicle3119.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape3119.outRotate" "pPlane1Follicle3119.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape3119.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape3119.inputMesh";
-connectAttr "curveShape18.worldSpace" "pPlane1FollicleShape3119.startPosition";
-connectAttr "pPlane1FollicleShape3131.outTranslate" "pPlane1Follicle3131.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape3131.outRotate" "pPlane1Follicle3131.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape3131.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape3131.inputMesh";
-connectAttr "curveShape19.worldSpace" "pPlane1FollicleShape3131.startPosition";
-connectAttr "pPlane1FollicleShape3143.outTranslate" "pPlane1Follicle3143.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape3143.outRotate" "pPlane1Follicle3143.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape3143.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape3143.inputMesh";
-connectAttr "curveShape20.worldSpace" "pPlane1FollicleShape3143.startPosition";
-connectAttr "pPlane1FollicleShape3156.outTranslate" "pPlane1Follicle3156.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape3156.outRotate" "pPlane1Follicle3156.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape3156.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape3156.inputMesh";
-connectAttr "curveShape21.worldSpace" "pPlane1FollicleShape3156.startPosition";
-connectAttr "pPlane1FollicleShape3168.outTranslate" "pPlane1Follicle3168.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape3168.outRotate" "pPlane1Follicle3168.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape3168.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape3168.inputMesh";
-connectAttr "curveShape22.worldSpace" "pPlane1FollicleShape3168.startPosition";
-connectAttr "pPlane1FollicleShape3180.outTranslate" "pPlane1Follicle3180.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape3180.outRotate" "pPlane1Follicle3180.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape3180.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape3180.inputMesh";
-connectAttr "curveShape23.worldSpace" "pPlane1FollicleShape3180.startPosition";
-connectAttr "pPlane1FollicleShape3193.outTranslate" "pPlane1Follicle3193.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape3193.outRotate" "pPlane1Follicle3193.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape3193.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape3193.inputMesh";
-connectAttr "curveShape24.worldSpace" "pPlane1FollicleShape3193.startPosition";
-connectAttr "pPlane1FollicleShape4306.outTranslate" "pPlane1Follicle4306.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape4306.outRotate" "pPlane1Follicle4306.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape4306.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape4306.inputMesh";
-connectAttr "curveShape25.worldSpace" "pPlane1FollicleShape4306.startPosition";
-connectAttr "pPlane1FollicleShape4319.outTranslate" "pPlane1Follicle4319.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape4319.outRotate" "pPlane1Follicle4319.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape4319.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape4319.inputMesh";
-connectAttr "curveShape26.worldSpace" "pPlane1FollicleShape4319.startPosition";
-connectAttr "pPlane1FollicleShape4331.outTranslate" "pPlane1Follicle4331.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape4331.outRotate" "pPlane1Follicle4331.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape4331.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape4331.inputMesh";
-connectAttr "curveShape27.worldSpace" "pPlane1FollicleShape4331.startPosition";
-connectAttr "pPlane1FollicleShape4343.outTranslate" "pPlane1Follicle4343.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape4343.outRotate" "pPlane1Follicle4343.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape4343.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape4343.inputMesh";
-connectAttr "curveShape28.worldSpace" "pPlane1FollicleShape4343.startPosition";
-connectAttr "pPlane1FollicleShape4356.outTranslate" "pPlane1Follicle4356.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape4356.outRotate" "pPlane1Follicle4356.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape4356.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape4356.inputMesh";
-connectAttr "curveShape29.worldSpace" "pPlane1FollicleShape4356.startPosition";
-connectAttr "pPlane1FollicleShape4368.outTranslate" "pPlane1Follicle4368.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape4368.outRotate" "pPlane1Follicle4368.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape4368.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape4368.inputMesh";
-connectAttr "curveShape30.worldSpace" "pPlane1FollicleShape4368.startPosition";
-connectAttr "pPlane1FollicleShape4380.outTranslate" "pPlane1Follicle4380.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape4380.outRotate" "pPlane1Follicle4380.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape4380.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape4380.inputMesh";
-connectAttr "curveShape31.worldSpace" "pPlane1FollicleShape4380.startPosition";
-connectAttr "pPlane1FollicleShape4393.outTranslate" "pPlane1Follicle4393.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape4393.outRotate" "pPlane1Follicle4393.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape4393.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape4393.inputMesh";
-connectAttr "curveShape32.worldSpace" "pPlane1FollicleShape4393.startPosition";
-connectAttr "pPlane1FollicleShape5606.outTranslate" "pPlane1Follicle5606.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape5606.outRotate" "pPlane1Follicle5606.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape5606.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape5606.inputMesh";
-connectAttr "curveShape33.worldSpace" "pPlane1FollicleShape5606.startPosition";
-connectAttr "pPlane1FollicleShape5619.outTranslate" "pPlane1Follicle5619.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape5619.outRotate" "pPlane1Follicle5619.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape5619.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape5619.inputMesh";
-connectAttr "curveShape34.worldSpace" "pPlane1FollicleShape5619.startPosition";
-connectAttr "pPlane1FollicleShape5631.outTranslate" "pPlane1Follicle5631.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape5631.outRotate" "pPlane1Follicle5631.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape5631.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape5631.inputMesh";
-connectAttr "curveShape35.worldSpace" "pPlane1FollicleShape5631.startPosition";
-connectAttr "pPlane1FollicleShape5643.outTranslate" "pPlane1Follicle5643.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape5643.outRotate" "pPlane1Follicle5643.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape5643.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape5643.inputMesh";
-connectAttr "curveShape36.worldSpace" "pPlane1FollicleShape5643.startPosition";
-connectAttr "pPlane1FollicleShape5656.outTranslate" "pPlane1Follicle5656.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape5656.outRotate" "pPlane1Follicle5656.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape5656.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape5656.inputMesh";
-connectAttr "curveShape37.worldSpace" "pPlane1FollicleShape5656.startPosition";
-connectAttr "pPlane1FollicleShape5668.outTranslate" "pPlane1Follicle5668.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape5668.outRotate" "pPlane1Follicle5668.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape5668.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape5668.inputMesh";
-connectAttr "curveShape38.worldSpace" "pPlane1FollicleShape5668.startPosition";
-connectAttr "pPlane1FollicleShape5680.outTranslate" "pPlane1Follicle5680.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape5680.outRotate" "pPlane1Follicle5680.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape5680.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape5680.inputMesh";
-connectAttr "curveShape39.worldSpace" "pPlane1FollicleShape5680.startPosition";
-connectAttr "pPlane1FollicleShape5693.outTranslate" "pPlane1Follicle5693.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape5693.outRotate" "pPlane1Follicle5693.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape5693.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape5693.inputMesh";
-connectAttr "curveShape40.worldSpace" "pPlane1FollicleShape5693.startPosition";
-connectAttr "pPlane1FollicleShape6806.outTranslate" "pPlane1Follicle6806.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape6806.outRotate" "pPlane1Follicle6806.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape6806.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape6806.inputMesh";
-connectAttr "curveShape41.worldSpace" "pPlane1FollicleShape6806.startPosition";
-connectAttr "pPlane1FollicleShape6819.outTranslate" "pPlane1Follicle6819.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape6819.outRotate" "pPlane1Follicle6819.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape6819.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape6819.inputMesh";
-connectAttr "curveShape42.worldSpace" "pPlane1FollicleShape6819.startPosition";
-connectAttr "pPlane1FollicleShape6831.outTranslate" "pPlane1Follicle6831.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape6831.outRotate" "pPlane1Follicle6831.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape6831.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape6831.inputMesh";
-connectAttr "curveShape43.worldSpace" "pPlane1FollicleShape6831.startPosition";
-connectAttr "pPlane1FollicleShape6843.outTranslate" "pPlane1Follicle6843.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape6843.outRotate" "pPlane1Follicle6843.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape6843.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape6843.inputMesh";
-connectAttr "curveShape44.worldSpace" "pPlane1FollicleShape6843.startPosition";
-connectAttr "pPlane1FollicleShape6856.outTranslate" "pPlane1Follicle6856.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape6856.outRotate" "pPlane1Follicle6856.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape6856.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape6856.inputMesh";
-connectAttr "curveShape45.worldSpace" "pPlane1FollicleShape6856.startPosition";
-connectAttr "pPlane1FollicleShape6868.outTranslate" "pPlane1Follicle6868.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape6868.outRotate" "pPlane1Follicle6868.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape6868.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape6868.inputMesh";
-connectAttr "curveShape46.worldSpace" "pPlane1FollicleShape6868.startPosition";
-connectAttr "pPlane1FollicleShape6880.outTranslate" "pPlane1Follicle6880.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape6880.outRotate" "pPlane1Follicle6880.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape6880.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape6880.inputMesh";
-connectAttr "curveShape47.worldSpace" "pPlane1FollicleShape6880.startPosition";
-connectAttr "pPlane1FollicleShape6893.outTranslate" "pPlane1Follicle6893.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape6893.outRotate" "pPlane1Follicle6893.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape6893.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape6893.inputMesh";
-connectAttr "curveShape48.worldSpace" "pPlane1FollicleShape6893.startPosition";
-connectAttr "pPlane1FollicleShape8006.outTranslate" "pPlane1Follicle8006.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape8006.outRotate" "pPlane1Follicle8006.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape8006.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape8006.inputMesh";
-connectAttr "curveShape49.worldSpace" "pPlane1FollicleShape8006.startPosition";
-connectAttr "pPlane1FollicleShape8019.outTranslate" "pPlane1Follicle8019.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape8019.outRotate" "pPlane1Follicle8019.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape8019.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape8019.inputMesh";
-connectAttr "curveShape50.worldSpace" "pPlane1FollicleShape8019.startPosition";
-connectAttr "pPlane1FollicleShape8031.outTranslate" "pPlane1Follicle8031.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape8031.outRotate" "pPlane1Follicle8031.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape8031.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape8031.inputMesh";
-connectAttr "curveShape51.worldSpace" "pPlane1FollicleShape8031.startPosition";
-connectAttr "pPlane1FollicleShape8043.outTranslate" "pPlane1Follicle8043.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape8043.outRotate" "pPlane1Follicle8043.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape8043.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape8043.inputMesh";
-connectAttr "curveShape52.worldSpace" "pPlane1FollicleShape8043.startPosition";
-connectAttr "pPlane1FollicleShape8056.outTranslate" "pPlane1Follicle8056.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape8056.outRotate" "pPlane1Follicle8056.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape8056.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape8056.inputMesh";
-connectAttr "curveShape53.worldSpace" "pPlane1FollicleShape8056.startPosition";
-connectAttr "pPlane1FollicleShape8068.outTranslate" "pPlane1Follicle8068.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape8068.outRotate" "pPlane1Follicle8068.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape8068.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape8068.inputMesh";
-connectAttr "curveShape54.worldSpace" "pPlane1FollicleShape8068.startPosition";
-connectAttr "pPlane1FollicleShape8080.outTranslate" "pPlane1Follicle8080.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape8080.outRotate" "pPlane1Follicle8080.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape8080.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape8080.inputMesh";
-connectAttr "curveShape55.worldSpace" "pPlane1FollicleShape8080.startPosition";
-connectAttr "pPlane1FollicleShape8093.outTranslate" "pPlane1Follicle8093.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape8093.outRotate" "pPlane1Follicle8093.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape8093.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape8093.inputMesh";
-connectAttr "curveShape56.worldSpace" "pPlane1FollicleShape8093.startPosition";
-connectAttr "pPlane1FollicleShape9306.outTranslate" "pPlane1Follicle9306.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape9306.outRotate" "pPlane1Follicle9306.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape9306.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape9306.inputMesh";
-connectAttr "curveShape57.worldSpace" "pPlane1FollicleShape9306.startPosition";
-connectAttr "pPlane1FollicleShape9319.outTranslate" "pPlane1Follicle9319.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape9319.outRotate" "pPlane1Follicle9319.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape9319.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape9319.inputMesh";
-connectAttr "curveShape58.worldSpace" "pPlane1FollicleShape9319.startPosition";
-connectAttr "pPlane1FollicleShape9331.outTranslate" "pPlane1Follicle9331.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape9331.outRotate" "pPlane1Follicle9331.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape9331.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape9331.inputMesh";
-connectAttr "curveShape59.worldSpace" "pPlane1FollicleShape9331.startPosition";
-connectAttr "pPlane1FollicleShape9343.outTranslate" "pPlane1Follicle9343.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape9343.outRotate" "pPlane1Follicle9343.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape9343.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape9343.inputMesh";
-connectAttr "curveShape60.worldSpace" "pPlane1FollicleShape9343.startPosition";
-connectAttr "pPlane1FollicleShape9356.outTranslate" "pPlane1Follicle9356.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape9356.outRotate" "pPlane1Follicle9356.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape9356.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape9356.inputMesh";
-connectAttr "curveShape61.worldSpace" "pPlane1FollicleShape9356.startPosition";
-connectAttr "pPlane1FollicleShape9368.outTranslate" "pPlane1Follicle9368.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape9368.outRotate" "pPlane1Follicle9368.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape9368.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape9368.inputMesh";
-connectAttr "curveShape62.worldSpace" "pPlane1FollicleShape9368.startPosition";
-connectAttr "pPlane1FollicleShape9380.outTranslate" "pPlane1Follicle9380.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape9380.outRotate" "pPlane1Follicle9380.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape9380.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape9380.inputMesh";
-connectAttr "curveShape63.worldSpace" "pPlane1FollicleShape9380.startPosition";
-connectAttr "pPlane1FollicleShape9393.outTranslate" "pPlane1Follicle9393.translate"
-		 -lock on;
-connectAttr "pPlane1FollicleShape9393.outRotate" "pPlane1Follicle9393.rotate" -lock
-		 on;
-connectAttr "pPlaneShape1.worldMatrix" "pPlane1FollicleShape9393.inputWorldMatrix"
-		;
-connectAttr "pPlaneShape1.outMesh" "pPlane1FollicleShape9393.inputMesh";
-connectAttr "curveShape64.worldSpace" "pPlane1FollicleShape9393.startPosition";
-connectAttr "hairSystemShape1.outputRenderHairs" "pfxHairShape1.renderHairs";
-connectAttr ":time1.outTime" ":defaultArnoldRenderOptions.AA_seed";
+createNode shadingEngine -n "aiStandard1SG";
+	setAttr ".ihi" 0;
+	setAttr ".ro" yes;
+createNode materialInfo -n "materialInfo1";
+createNode script -n "uiConfigurationScriptNode";
+	setAttr ".b" -type "string" (
+		"// Maya Mel UI Configuration File.\n//\n//  This script is machine generated.  Edit at your own risk.\n//\n//\n\nglobal string $gMainPane;\nif (`paneLayout -exists $gMainPane`) {\n\n\tglobal int $gUseScenePanelConfig;\n\tint    $useSceneConfig = $gUseScenePanelConfig;\n\tint    $menusOkayInPanels = `optionVar -q allowMenusInPanels`;\tint    $nVisPanes = `paneLayout -q -nvp $gMainPane`;\n\tint    $nPanes = 0;\n\tstring $editorName;\n\tstring $panelName;\n\tstring $itemFilterName;\n\tstring $panelConfig;\n\n\t//\n\t//  get current state of the UI\n\t//\n\tsceneUIReplacement -update $gMainPane;\n\n\t$panelName = `sceneUIReplacement -getNextPanel \"modelPanel\" (localizedPanelLabel(\"Top View\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `modelPanel -unParent -l (localizedPanelLabel(\"Top View\")) -mbv $menusOkayInPanels `;\n\t\t\t$editorName = $panelName;\n            modelEditor -e \n                -camera \"top\" \n                -useInteractiveMode 0\n                -displayLights \"default\" \n                -displayAppearance \"wireframe\" \n"
+		+ "                -activeOnly 0\n                -ignorePanZoom 0\n                -wireframeOnShaded 0\n                -headsUpDisplay 1\n                -selectionHiliteDisplay 1\n                -useDefaultMaterial 0\n                -bufferMode \"double\" \n                -twoSidedLighting 1\n                -backfaceCulling 0\n                -xray 0\n                -jointXray 0\n                -activeComponentsXray 0\n                -displayTextures 0\n                -smoothWireframe 0\n                -lineWidth 1\n                -textureAnisotropic 0\n                -textureHilight 1\n                -textureSampling 2\n                -textureDisplay \"modulate\" \n                -textureMaxSize 16384\n                -fogging 0\n                -fogSource \"fragment\" \n                -fogMode \"linear\" \n                -fogStart 0\n                -fogEnd 100\n                -fogDensity 0.1\n                -fogColor 0.5 0.5 0.5 1 \n                -maxConstantTransparency 1\n                -rendererName \"base_OpenGL_Renderer\" \n"
+		+ "                -colorResolution 256 256 \n                -bumpResolution 512 512 \n                -textureCompression 0\n                -transparencyAlgorithm \"frontAndBackCull\" \n                -transpInShadows 0\n                -cullingOverride \"none\" \n                -lowQualityLighting 0\n                -maximumNumHardwareLights 1\n                -occlusionCulling 0\n                -shadingModel 0\n                -useBaseRenderer 0\n                -useReducedRenderer 0\n                -smallObjectCulling 0\n                -smallObjectThreshold -1 \n                -interactiveDisableShadows 0\n                -interactiveBackFaceCull 0\n                -sortTransparent 1\n                -nurbsCurves 1\n                -nurbsSurfaces 1\n                -polymeshes 1\n                -subdivSurfaces 1\n                -planes 1\n                -lights 1\n                -cameras 1\n                -controlVertices 1\n                -hulls 1\n                -grid 1\n                -joints 1\n                -ikHandles 1\n"
+		+ "                -deformers 1\n                -dynamics 1\n                -fluids 1\n                -hairSystems 1\n                -follicles 1\n                -nCloths 1\n                -nParticles 1\n                -nRigids 1\n                -dynamicConstraints 1\n                -locators 1\n                -manipulators 1\n                -dimensions 1\n                -handles 1\n                -pivots 1\n                -textures 1\n                -strokes 1\n                -shadows 0\n                $editorName;\nmodelEditor -e -viewSelected 0 $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tmodelPanel -edit -l (localizedPanelLabel(\"Top View\")) -mbv $menusOkayInPanels  $panelName;\n\t\t$editorName = $panelName;\n        modelEditor -e \n            -camera \"top\" \n            -useInteractiveMode 0\n            -displayLights \"default\" \n            -displayAppearance \"wireframe\" \n            -activeOnly 0\n            -ignorePanZoom 0\n            -wireframeOnShaded 0\n            -headsUpDisplay 1\n            -selectionHiliteDisplay 1\n"
+		+ "            -useDefaultMaterial 0\n            -bufferMode \"double\" \n            -twoSidedLighting 1\n            -backfaceCulling 0\n            -xray 0\n            -jointXray 0\n            -activeComponentsXray 0\n            -displayTextures 0\n            -smoothWireframe 0\n            -lineWidth 1\n            -textureAnisotropic 0\n            -textureHilight 1\n            -textureSampling 2\n            -textureDisplay \"modulate\" \n            -textureMaxSize 16384\n            -fogging 0\n            -fogSource \"fragment\" \n            -fogMode \"linear\" \n            -fogStart 0\n            -fogEnd 100\n            -fogDensity 0.1\n            -fogColor 0.5 0.5 0.5 1 \n            -maxConstantTransparency 1\n            -rendererName \"base_OpenGL_Renderer\" \n            -colorResolution 256 256 \n            -bumpResolution 512 512 \n            -textureCompression 0\n            -transparencyAlgorithm \"frontAndBackCull\" \n            -transpInShadows 0\n            -cullingOverride \"none\" \n            -lowQualityLighting 0\n"
+		+ "            -maximumNumHardwareLights 1\n            -occlusionCulling 0\n            -shadingModel 0\n            -useBaseRenderer 0\n            -useReducedRenderer 0\n            -smallObjectCulling 0\n            -smallObjectThreshold -1 \n            -interactiveDisableShadows 0\n            -interactiveBackFaceCull 0\n            -sortTransparent 1\n            -nurbsCurves 1\n            -nurbsSurfaces 1\n            -polymeshes 1\n            -subdivSurfaces 1\n            -planes 1\n            -lights 1\n            -cameras 1\n            -controlVertices 1\n            -hulls 1\n            -grid 1\n            -joints 1\n            -ikHandles 1\n            -deformers 1\n            -dynamics 1\n            -fluids 1\n            -hairSystems 1\n            -follicles 1\n            -nCloths 1\n            -nParticles 1\n            -nRigids 1\n            -dynamicConstraints 1\n            -locators 1\n            -manipulators 1\n            -dimensions 1\n            -handles 1\n            -pivots 1\n            -textures 1\n            -strokes 1\n"
+		+ "            -shadows 0\n            $editorName;\nmodelEditor -e -viewSelected 0 $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextPanel \"modelPanel\" (localizedPanelLabel(\"Side View\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `modelPanel -unParent -l (localizedPanelLabel(\"Side View\")) -mbv $menusOkayInPanels `;\n\t\t\t$editorName = $panelName;\n            modelEditor -e \n                -camera \"side\" \n                -useInteractiveMode 0\n                -displayLights \"default\" \n                -displayAppearance \"wireframe\" \n                -activeOnly 0\n                -ignorePanZoom 0\n                -wireframeOnShaded 0\n                -headsUpDisplay 1\n                -selectionHiliteDisplay 1\n                -useDefaultMaterial 0\n                -bufferMode \"double\" \n                -twoSidedLighting 1\n                -backfaceCulling 0\n                -xray 0\n                -jointXray 0\n                -activeComponentsXray 0\n"
+		+ "                -displayTextures 0\n                -smoothWireframe 0\n                -lineWidth 1\n                -textureAnisotropic 0\n                -textureHilight 1\n                -textureSampling 2\n                -textureDisplay \"modulate\" \n                -textureMaxSize 16384\n                -fogging 0\n                -fogSource \"fragment\" \n                -fogMode \"linear\" \n                -fogStart 0\n                -fogEnd 100\n                -fogDensity 0.1\n                -fogColor 0.5 0.5 0.5 1 \n                -maxConstantTransparency 1\n                -rendererName \"base_OpenGL_Renderer\" \n                -colorResolution 256 256 \n                -bumpResolution 512 512 \n                -textureCompression 0\n                -transparencyAlgorithm \"frontAndBackCull\" \n                -transpInShadows 0\n                -cullingOverride \"none\" \n                -lowQualityLighting 0\n                -maximumNumHardwareLights 1\n                -occlusionCulling 0\n                -shadingModel 0\n                -useBaseRenderer 0\n"
+		+ "                -useReducedRenderer 0\n                -smallObjectCulling 0\n                -smallObjectThreshold -1 \n                -interactiveDisableShadows 0\n                -interactiveBackFaceCull 0\n                -sortTransparent 1\n                -nurbsCurves 1\n                -nurbsSurfaces 1\n                -polymeshes 1\n                -subdivSurfaces 1\n                -planes 1\n                -lights 1\n                -cameras 1\n                -controlVertices 1\n                -hulls 1\n                -grid 1\n                -joints 1\n                -ikHandles 1\n                -deformers 1\n                -dynamics 1\n                -fluids 1\n                -hairSystems 1\n                -follicles 1\n                -nCloths 1\n                -nParticles 1\n                -nRigids 1\n                -dynamicConstraints 1\n                -locators 1\n                -manipulators 1\n                -dimensions 1\n                -handles 1\n                -pivots 1\n                -textures 1\n                -strokes 1\n"
+		+ "                -shadows 0\n                $editorName;\nmodelEditor -e -viewSelected 0 $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tmodelPanel -edit -l (localizedPanelLabel(\"Side View\")) -mbv $menusOkayInPanels  $panelName;\n\t\t$editorName = $panelName;\n        modelEditor -e \n            -camera \"side\" \n            -useInteractiveMode 0\n            -displayLights \"default\" \n            -displayAppearance \"wireframe\" \n            -activeOnly 0\n            -ignorePanZoom 0\n            -wireframeOnShaded 0\n            -headsUpDisplay 1\n            -selectionHiliteDisplay 1\n            -useDefaultMaterial 0\n            -bufferMode \"double\" \n            -twoSidedLighting 1\n            -backfaceCulling 0\n            -xray 0\n            -jointXray 0\n            -activeComponentsXray 0\n            -displayTextures 0\n            -smoothWireframe 0\n            -lineWidth 1\n            -textureAnisotropic 0\n            -textureHilight 1\n            -textureSampling 2\n            -textureDisplay \"modulate\" \n"
+		+ "            -textureMaxSize 16384\n            -fogging 0\n            -fogSource \"fragment\" \n            -fogMode \"linear\" \n            -fogStart 0\n            -fogEnd 100\n            -fogDensity 0.1\n            -fogColor 0.5 0.5 0.5 1 \n            -maxConstantTransparency 1\n            -rendererName \"base_OpenGL_Renderer\" \n            -colorResolution 256 256 \n            -bumpResolution 512 512 \n            -textureCompression 0\n            -transparencyAlgorithm \"frontAndBackCull\" \n            -transpInShadows 0\n            -cullingOverride \"none\" \n            -lowQualityLighting 0\n            -maximumNumHardwareLights 1\n            -occlusionCulling 0\n            -shadingModel 0\n            -useBaseRenderer 0\n            -useReducedRenderer 0\n            -smallObjectCulling 0\n            -smallObjectThreshold -1 \n            -interactiveDisableShadows 0\n            -interactiveBackFaceCull 0\n            -sortTransparent 1\n            -nurbsCurves 1\n            -nurbsSurfaces 1\n            -polymeshes 1\n            -subdivSurfaces 1\n"
+		+ "            -planes 1\n            -lights 1\n            -cameras 1\n            -controlVertices 1\n            -hulls 1\n            -grid 1\n            -joints 1\n            -ikHandles 1\n            -deformers 1\n            -dynamics 1\n            -fluids 1\n            -hairSystems 1\n            -follicles 1\n            -nCloths 1\n            -nParticles 1\n            -nRigids 1\n            -dynamicConstraints 1\n            -locators 1\n            -manipulators 1\n            -dimensions 1\n            -handles 1\n            -pivots 1\n            -textures 1\n            -strokes 1\n            -shadows 0\n            $editorName;\nmodelEditor -e -viewSelected 0 $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextPanel \"modelPanel\" (localizedPanelLabel(\"Front View\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `modelPanel -unParent -l (localizedPanelLabel(\"Front View\")) -mbv $menusOkayInPanels `;\n\t\t\t$editorName = $panelName;\n"
+		+ "            modelEditor -e \n                -camera \"front\" \n                -useInteractiveMode 0\n                -displayLights \"default\" \n                -displayAppearance \"wireframe\" \n                -activeOnly 0\n                -ignorePanZoom 0\n                -wireframeOnShaded 0\n                -headsUpDisplay 1\n                -selectionHiliteDisplay 1\n                -useDefaultMaterial 0\n                -bufferMode \"double\" \n                -twoSidedLighting 1\n                -backfaceCulling 0\n                -xray 0\n                -jointXray 0\n                -activeComponentsXray 0\n                -displayTextures 0\n                -smoothWireframe 0\n                -lineWidth 1\n                -textureAnisotropic 0\n                -textureHilight 1\n                -textureSampling 2\n                -textureDisplay \"modulate\" \n                -textureMaxSize 16384\n                -fogging 0\n                -fogSource \"fragment\" \n                -fogMode \"linear\" \n                -fogStart 0\n                -fogEnd 100\n"
+		+ "                -fogDensity 0.1\n                -fogColor 0.5 0.5 0.5 1 \n                -maxConstantTransparency 1\n                -rendererName \"base_OpenGL_Renderer\" \n                -colorResolution 256 256 \n                -bumpResolution 512 512 \n                -textureCompression 0\n                -transparencyAlgorithm \"frontAndBackCull\" \n                -transpInShadows 0\n                -cullingOverride \"none\" \n                -lowQualityLighting 0\n                -maximumNumHardwareLights 1\n                -occlusionCulling 0\n                -shadingModel 0\n                -useBaseRenderer 0\n                -useReducedRenderer 0\n                -smallObjectCulling 0\n                -smallObjectThreshold -1 \n                -interactiveDisableShadows 0\n                -interactiveBackFaceCull 0\n                -sortTransparent 1\n                -nurbsCurves 1\n                -nurbsSurfaces 1\n                -polymeshes 1\n                -subdivSurfaces 1\n                -planes 1\n                -lights 1\n"
+		+ "                -cameras 1\n                -controlVertices 1\n                -hulls 1\n                -grid 1\n                -joints 1\n                -ikHandles 1\n                -deformers 1\n                -dynamics 1\n                -fluids 1\n                -hairSystems 1\n                -follicles 1\n                -nCloths 1\n                -nParticles 1\n                -nRigids 1\n                -dynamicConstraints 1\n                -locators 1\n                -manipulators 1\n                -dimensions 1\n                -handles 1\n                -pivots 1\n                -textures 1\n                -strokes 1\n                -shadows 0\n                $editorName;\nmodelEditor -e -viewSelected 0 $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tmodelPanel -edit -l (localizedPanelLabel(\"Front View\")) -mbv $menusOkayInPanels  $panelName;\n\t\t$editorName = $panelName;\n        modelEditor -e \n            -camera \"front\" \n            -useInteractiveMode 0\n            -displayLights \"default\" \n"
+		+ "            -displayAppearance \"wireframe\" \n            -activeOnly 0\n            -ignorePanZoom 0\n            -wireframeOnShaded 0\n            -headsUpDisplay 1\n            -selectionHiliteDisplay 1\n            -useDefaultMaterial 0\n            -bufferMode \"double\" \n            -twoSidedLighting 1\n            -backfaceCulling 0\n            -xray 0\n            -jointXray 0\n            -activeComponentsXray 0\n            -displayTextures 0\n            -smoothWireframe 0\n            -lineWidth 1\n            -textureAnisotropic 0\n            -textureHilight 1\n            -textureSampling 2\n            -textureDisplay \"modulate\" \n            -textureMaxSize 16384\n            -fogging 0\n            -fogSource \"fragment\" \n            -fogMode \"linear\" \n            -fogStart 0\n            -fogEnd 100\n            -fogDensity 0.1\n            -fogColor 0.5 0.5 0.5 1 \n            -maxConstantTransparency 1\n            -rendererName \"base_OpenGL_Renderer\" \n            -colorResolution 256 256 \n            -bumpResolution 512 512 \n"
+		+ "            -textureCompression 0\n            -transparencyAlgorithm \"frontAndBackCull\" \n            -transpInShadows 0\n            -cullingOverride \"none\" \n            -lowQualityLighting 0\n            -maximumNumHardwareLights 1\n            -occlusionCulling 0\n            -shadingModel 0\n            -useBaseRenderer 0\n            -useReducedRenderer 0\n            -smallObjectCulling 0\n            -smallObjectThreshold -1 \n            -interactiveDisableShadows 0\n            -interactiveBackFaceCull 0\n            -sortTransparent 1\n            -nurbsCurves 1\n            -nurbsSurfaces 1\n            -polymeshes 1\n            -subdivSurfaces 1\n            -planes 1\n            -lights 1\n            -cameras 1\n            -controlVertices 1\n            -hulls 1\n            -grid 1\n            -joints 1\n            -ikHandles 1\n            -deformers 1\n            -dynamics 1\n            -fluids 1\n            -hairSystems 1\n            -follicles 1\n            -nCloths 1\n            -nParticles 1\n            -nRigids 1\n"
+		+ "            -dynamicConstraints 1\n            -locators 1\n            -manipulators 1\n            -dimensions 1\n            -handles 1\n            -pivots 1\n            -textures 1\n            -strokes 1\n            -shadows 0\n            $editorName;\nmodelEditor -e -viewSelected 0 $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextPanel \"modelPanel\" (localizedPanelLabel(\"Persp View\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `modelPanel -unParent -l (localizedPanelLabel(\"Persp View\")) -mbv $menusOkayInPanels `;\n\t\t\t$editorName = $panelName;\n            modelEditor -e \n                -camera \"persp\" \n                -useInteractiveMode 0\n                -displayLights \"default\" \n                -displayAppearance \"wireframe\" \n                -activeOnly 0\n                -ignorePanZoom 0\n                -wireframeOnShaded 0\n                -headsUpDisplay 1\n                -selectionHiliteDisplay 1\n                -useDefaultMaterial 0\n"
+		+ "                -bufferMode \"double\" \n                -twoSidedLighting 1\n                -backfaceCulling 0\n                -xray 0\n                -jointXray 0\n                -activeComponentsXray 0\n                -displayTextures 0\n                -smoothWireframe 0\n                -lineWidth 1\n                -textureAnisotropic 0\n                -textureHilight 1\n                -textureSampling 2\n                -textureDisplay \"modulate\" \n                -textureMaxSize 16384\n                -fogging 0\n                -fogSource \"fragment\" \n                -fogMode \"linear\" \n                -fogStart 0\n                -fogEnd 100\n                -fogDensity 0.1\n                -fogColor 0.5 0.5 0.5 1 \n                -maxConstantTransparency 1\n                -rendererName \"base_OpenGL_Renderer\" \n                -colorResolution 256 256 \n                -bumpResolution 512 512 \n                -textureCompression 0\n                -transparencyAlgorithm \"frontAndBackCull\" \n                -transpInShadows 0\n"
+		+ "                -cullingOverride \"none\" \n                -lowQualityLighting 0\n                -maximumNumHardwareLights 1\n                -occlusionCulling 0\n                -shadingModel 0\n                -useBaseRenderer 0\n                -useReducedRenderer 0\n                -smallObjectCulling 0\n                -smallObjectThreshold -1 \n                -interactiveDisableShadows 0\n                -interactiveBackFaceCull 0\n                -sortTransparent 1\n                -nurbsCurves 1\n                -nurbsSurfaces 1\n                -polymeshes 1\n                -subdivSurfaces 1\n                -planes 1\n                -lights 1\n                -cameras 1\n                -controlVertices 1\n                -hulls 1\n                -grid 1\n                -joints 1\n                -ikHandles 1\n                -deformers 1\n                -dynamics 1\n                -fluids 1\n                -hairSystems 1\n                -follicles 1\n                -nCloths 1\n                -nParticles 1\n                -nRigids 1\n"
+		+ "                -dynamicConstraints 1\n                -locators 1\n                -manipulators 1\n                -dimensions 1\n                -handles 1\n                -pivots 1\n                -textures 1\n                -strokes 1\n                -shadows 0\n                $editorName;\nmodelEditor -e -viewSelected 0 $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tmodelPanel -edit -l (localizedPanelLabel(\"Persp View\")) -mbv $menusOkayInPanels  $panelName;\n\t\t$editorName = $panelName;\n        modelEditor -e \n            -camera \"persp\" \n            -useInteractiveMode 0\n            -displayLights \"default\" \n            -displayAppearance \"wireframe\" \n            -activeOnly 0\n            -ignorePanZoom 0\n            -wireframeOnShaded 0\n            -headsUpDisplay 1\n            -selectionHiliteDisplay 1\n            -useDefaultMaterial 0\n            -bufferMode \"double\" \n            -twoSidedLighting 1\n            -backfaceCulling 0\n            -xray 0\n            -jointXray 0\n            -activeComponentsXray 0\n"
+		+ "            -displayTextures 0\n            -smoothWireframe 0\n            -lineWidth 1\n            -textureAnisotropic 0\n            -textureHilight 1\n            -textureSampling 2\n            -textureDisplay \"modulate\" \n            -textureMaxSize 16384\n            -fogging 0\n            -fogSource \"fragment\" \n            -fogMode \"linear\" \n            -fogStart 0\n            -fogEnd 100\n            -fogDensity 0.1\n            -fogColor 0.5 0.5 0.5 1 \n            -maxConstantTransparency 1\n            -rendererName \"base_OpenGL_Renderer\" \n            -colorResolution 256 256 \n            -bumpResolution 512 512 \n            -textureCompression 0\n            -transparencyAlgorithm \"frontAndBackCull\" \n            -transpInShadows 0\n            -cullingOverride \"none\" \n            -lowQualityLighting 0\n            -maximumNumHardwareLights 1\n            -occlusionCulling 0\n            -shadingModel 0\n            -useBaseRenderer 0\n            -useReducedRenderer 0\n            -smallObjectCulling 0\n            -smallObjectThreshold -1 \n"
+		+ "            -interactiveDisableShadows 0\n            -interactiveBackFaceCull 0\n            -sortTransparent 1\n            -nurbsCurves 1\n            -nurbsSurfaces 1\n            -polymeshes 1\n            -subdivSurfaces 1\n            -planes 1\n            -lights 1\n            -cameras 1\n            -controlVertices 1\n            -hulls 1\n            -grid 1\n            -joints 1\n            -ikHandles 1\n            -deformers 1\n            -dynamics 1\n            -fluids 1\n            -hairSystems 1\n            -follicles 1\n            -nCloths 1\n            -nParticles 1\n            -nRigids 1\n            -dynamicConstraints 1\n            -locators 1\n            -manipulators 1\n            -dimensions 1\n            -handles 1\n            -pivots 1\n            -textures 1\n            -strokes 1\n            -shadows 0\n            $editorName;\nmodelEditor -e -viewSelected 0 $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextPanel \"outlinerPanel\" (localizedPanelLabel(\"Outliner\")) `;\n"
+		+ "\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `outlinerPanel -unParent -l (localizedPanelLabel(\"Outliner\")) -mbv $menusOkayInPanels `;\n\t\t\t$editorName = $panelName;\n            outlinerEditor -e \n                -showShapes 1\n                -showAttributes 0\n                -showConnected 0\n                -showAnimCurvesOnly 0\n                -showMuteInfo 0\n                -organizeByLayer 1\n                -showAnimLayerWeight 1\n                -autoExpandLayers 1\n                -autoExpand 0\n                -showDagOnly 0\n                -showAssets 1\n                -showContainedOnly 1\n                -showPublishedAsConnected 0\n                -showContainerContents 1\n                -ignoreDagHierarchy 0\n                -expandConnections 0\n                -showUpstreamCurves 1\n                -showUnitlessCurves 1\n                -showCompounds 1\n                -showLeafs 1\n                -showNumericAttrsOnly 0\n                -highlightActive 1\n                -autoSelectNewObjects 0\n"
+		+ "                -doNotSelectNewObjects 0\n                -dropIsParent 1\n                -transmitFilters 0\n                -setFilter \"defaultSetFilter\" \n                -showSetMembers 1\n                -allowMultiSelection 1\n                -alwaysToggleSelect 0\n                -directSelect 0\n                -displayMode \"DAG\" \n                -expandObjects 0\n                -setsIgnoreFilters 1\n                -containersIgnoreFilters 0\n                -editAttrName 0\n                -showAttrValues 0\n                -highlightSecondary 0\n                -showUVAttrsOnly 0\n                -showTextureNodesOnly 0\n                -attrAlphaOrder \"default\" \n                -animLayerFilterOptions \"allAffecting\" \n                -sortOrder \"none\" \n                -longNames 0\n                -niceNames 1\n                -showNamespace 1\n                -showPinIcons 0\n                $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\toutlinerPanel -edit -l (localizedPanelLabel(\"Outliner\")) -mbv $menusOkayInPanels  $panelName;\n"
+		+ "\t\t$editorName = $panelName;\n        outlinerEditor -e \n            -showShapes 1\n            -showAttributes 0\n            -showConnected 0\n            -showAnimCurvesOnly 0\n            -showMuteInfo 0\n            -organizeByLayer 1\n            -showAnimLayerWeight 1\n            -autoExpandLayers 1\n            -autoExpand 0\n            -showDagOnly 0\n            -showAssets 1\n            -showContainedOnly 1\n            -showPublishedAsConnected 0\n            -showContainerContents 1\n            -ignoreDagHierarchy 0\n            -expandConnections 0\n            -showUpstreamCurves 1\n            -showUnitlessCurves 1\n            -showCompounds 1\n            -showLeafs 1\n            -showNumericAttrsOnly 0\n            -highlightActive 1\n            -autoSelectNewObjects 0\n            -doNotSelectNewObjects 0\n            -dropIsParent 1\n            -transmitFilters 0\n            -setFilter \"defaultSetFilter\" \n            -showSetMembers 1\n            -allowMultiSelection 1\n            -alwaysToggleSelect 0\n            -directSelect 0\n"
+		+ "            -displayMode \"DAG\" \n            -expandObjects 0\n            -setsIgnoreFilters 1\n            -containersIgnoreFilters 0\n            -editAttrName 0\n            -showAttrValues 0\n            -highlightSecondary 0\n            -showUVAttrsOnly 0\n            -showTextureNodesOnly 0\n            -attrAlphaOrder \"default\" \n            -animLayerFilterOptions \"allAffecting\" \n            -sortOrder \"none\" \n            -longNames 0\n            -niceNames 1\n            -showNamespace 1\n            -showPinIcons 0\n            $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"graphEditor\" (localizedPanelLabel(\"Graph Editor\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"graphEditor\" -l (localizedPanelLabel(\"Graph Editor\")) -mbv $menusOkayInPanels `;\n\n\t\t\t$editorName = ($panelName+\"OutlineEd\");\n            outlinerEditor -e \n                -showShapes 1\n                -showAttributes 1\n"
+		+ "                -showConnected 1\n                -showAnimCurvesOnly 1\n                -showMuteInfo 0\n                -organizeByLayer 1\n                -showAnimLayerWeight 1\n                -autoExpandLayers 1\n                -autoExpand 1\n                -showDagOnly 0\n                -showAssets 1\n                -showContainedOnly 0\n                -showPublishedAsConnected 0\n                -showContainerContents 0\n                -ignoreDagHierarchy 0\n                -expandConnections 1\n                -showUpstreamCurves 1\n                -showUnitlessCurves 1\n                -showCompounds 0\n                -showLeafs 1\n                -showNumericAttrsOnly 1\n                -highlightActive 0\n                -autoSelectNewObjects 1\n                -doNotSelectNewObjects 0\n                -dropIsParent 1\n                -transmitFilters 1\n                -setFilter \"0\" \n                -showSetMembers 0\n                -allowMultiSelection 1\n                -alwaysToggleSelect 0\n                -directSelect 0\n"
+		+ "                -displayMode \"DAG\" \n                -expandObjects 0\n                -setsIgnoreFilters 1\n                -containersIgnoreFilters 0\n                -editAttrName 0\n                -showAttrValues 0\n                -highlightSecondary 0\n                -showUVAttrsOnly 0\n                -showTextureNodesOnly 0\n                -attrAlphaOrder \"default\" \n                -animLayerFilterOptions \"allAffecting\" \n                -sortOrder \"none\" \n                -longNames 0\n                -niceNames 1\n                -showNamespace 1\n                -showPinIcons 1\n                $editorName;\n\n\t\t\t$editorName = ($panelName+\"GraphEd\");\n            animCurveEditor -e \n                -displayKeys 1\n                -displayTangents 0\n                -displayActiveKeys 0\n                -displayActiveKeyTangents 1\n                -displayInfinities 0\n                -autoFit 0\n                -snapTime \"integer\" \n                -snapValue \"none\" \n                -showResults \"off\" \n                -showBufferCurves \"off\" \n"
+		+ "                -smoothness \"fine\" \n                -resultSamples 1\n                -resultScreenSamples 0\n                -resultUpdate \"delayed\" \n                -showUpstreamCurves 1\n                -stackedCurves 0\n                -stackedCurvesMin -1\n                -stackedCurvesMax 1\n                -stackedCurvesSpace 0.2\n                -displayNormalized 0\n                -preSelectionHighlight 0\n                -constrainDrag 0\n                $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Graph Editor\")) -mbv $menusOkayInPanels  $panelName;\n\n\t\t\t$editorName = ($panelName+\"OutlineEd\");\n            outlinerEditor -e \n                -showShapes 1\n                -showAttributes 1\n                -showConnected 1\n                -showAnimCurvesOnly 1\n                -showMuteInfo 0\n                -organizeByLayer 1\n                -showAnimLayerWeight 1\n                -autoExpandLayers 1\n                -autoExpand 1\n                -showDagOnly 0\n"
+		+ "                -showAssets 1\n                -showContainedOnly 0\n                -showPublishedAsConnected 0\n                -showContainerContents 0\n                -ignoreDagHierarchy 0\n                -expandConnections 1\n                -showUpstreamCurves 1\n                -showUnitlessCurves 1\n                -showCompounds 0\n                -showLeafs 1\n                -showNumericAttrsOnly 1\n                -highlightActive 0\n                -autoSelectNewObjects 1\n                -doNotSelectNewObjects 0\n                -dropIsParent 1\n                -transmitFilters 1\n                -setFilter \"0\" \n                -showSetMembers 0\n                -allowMultiSelection 1\n                -alwaysToggleSelect 0\n                -directSelect 0\n                -displayMode \"DAG\" \n                -expandObjects 0\n                -setsIgnoreFilters 1\n                -containersIgnoreFilters 0\n                -editAttrName 0\n                -showAttrValues 0\n                -highlightSecondary 0\n                -showUVAttrsOnly 0\n"
+		+ "                -showTextureNodesOnly 0\n                -attrAlphaOrder \"default\" \n                -animLayerFilterOptions \"allAffecting\" \n                -sortOrder \"none\" \n                -longNames 0\n                -niceNames 1\n                -showNamespace 1\n                -showPinIcons 1\n                $editorName;\n\n\t\t\t$editorName = ($panelName+\"GraphEd\");\n            animCurveEditor -e \n                -displayKeys 1\n                -displayTangents 0\n                -displayActiveKeys 0\n                -displayActiveKeyTangents 1\n                -displayInfinities 0\n                -autoFit 0\n                -snapTime \"integer\" \n                -snapValue \"none\" \n                -showResults \"off\" \n                -showBufferCurves \"off\" \n                -smoothness \"fine\" \n                -resultSamples 1\n                -resultScreenSamples 0\n                -resultUpdate \"delayed\" \n                -showUpstreamCurves 1\n                -stackedCurves 0\n                -stackedCurvesMin -1\n                -stackedCurvesMax 1\n"
+		+ "                -stackedCurvesSpace 0.2\n                -displayNormalized 0\n                -preSelectionHighlight 0\n                -constrainDrag 0\n                $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"dopeSheetPanel\" (localizedPanelLabel(\"Dope Sheet\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"dopeSheetPanel\" -l (localizedPanelLabel(\"Dope Sheet\")) -mbv $menusOkayInPanels `;\n\n\t\t\t$editorName = ($panelName+\"OutlineEd\");\n            outlinerEditor -e \n                -showShapes 1\n                -showAttributes 1\n                -showConnected 1\n                -showAnimCurvesOnly 1\n                -showMuteInfo 0\n                -organizeByLayer 1\n                -showAnimLayerWeight 1\n                -autoExpandLayers 1\n                -autoExpand 0\n                -showDagOnly 0\n                -showAssets 1\n                -showContainedOnly 0\n                -showPublishedAsConnected 0\n"
+		+ "                -showContainerContents 0\n                -ignoreDagHierarchy 0\n                -expandConnections 1\n                -showUpstreamCurves 1\n                -showUnitlessCurves 0\n                -showCompounds 1\n                -showLeafs 1\n                -showNumericAttrsOnly 1\n                -highlightActive 0\n                -autoSelectNewObjects 0\n                -doNotSelectNewObjects 1\n                -dropIsParent 1\n                -transmitFilters 0\n                -setFilter \"0\" \n                -showSetMembers 0\n                -allowMultiSelection 1\n                -alwaysToggleSelect 0\n                -directSelect 0\n                -displayMode \"DAG\" \n                -expandObjects 0\n                -setsIgnoreFilters 1\n                -containersIgnoreFilters 0\n                -editAttrName 0\n                -showAttrValues 0\n                -highlightSecondary 0\n                -showUVAttrsOnly 0\n                -showTextureNodesOnly 0\n                -attrAlphaOrder \"default\" \n                -animLayerFilterOptions \"allAffecting\" \n"
+		+ "                -sortOrder \"none\" \n                -longNames 0\n                -niceNames 1\n                -showNamespace 1\n                -showPinIcons 0\n                $editorName;\n\n\t\t\t$editorName = ($panelName+\"DopeSheetEd\");\n            dopeSheetEditor -e \n                -displayKeys 1\n                -displayTangents 0\n                -displayActiveKeys 0\n                -displayActiveKeyTangents 0\n                -displayInfinities 0\n                -autoFit 0\n                -snapTime \"integer\" \n                -snapValue \"none\" \n                -outliner \"dopeSheetPanel1OutlineEd\" \n                -showSummary 1\n                -showScene 0\n                -hierarchyBelow 0\n                -showTicks 1\n                -selectionWindow 0 0 0 0 \n                $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Dope Sheet\")) -mbv $menusOkayInPanels  $panelName;\n\n\t\t\t$editorName = ($panelName+\"OutlineEd\");\n            outlinerEditor -e \n                -showShapes 1\n"
+		+ "                -showAttributes 1\n                -showConnected 1\n                -showAnimCurvesOnly 1\n                -showMuteInfo 0\n                -organizeByLayer 1\n                -showAnimLayerWeight 1\n                -autoExpandLayers 1\n                -autoExpand 0\n                -showDagOnly 0\n                -showAssets 1\n                -showContainedOnly 0\n                -showPublishedAsConnected 0\n                -showContainerContents 0\n                -ignoreDagHierarchy 0\n                -expandConnections 1\n                -showUpstreamCurves 1\n                -showUnitlessCurves 0\n                -showCompounds 1\n                -showLeafs 1\n                -showNumericAttrsOnly 1\n                -highlightActive 0\n                -autoSelectNewObjects 0\n                -doNotSelectNewObjects 1\n                -dropIsParent 1\n                -transmitFilters 0\n                -setFilter \"0\" \n                -showSetMembers 0\n                -allowMultiSelection 1\n                -alwaysToggleSelect 0\n"
+		+ "                -directSelect 0\n                -displayMode \"DAG\" \n                -expandObjects 0\n                -setsIgnoreFilters 1\n                -containersIgnoreFilters 0\n                -editAttrName 0\n                -showAttrValues 0\n                -highlightSecondary 0\n                -showUVAttrsOnly 0\n                -showTextureNodesOnly 0\n                -attrAlphaOrder \"default\" \n                -animLayerFilterOptions \"allAffecting\" \n                -sortOrder \"none\" \n                -longNames 0\n                -niceNames 1\n                -showNamespace 1\n                -showPinIcons 0\n                $editorName;\n\n\t\t\t$editorName = ($panelName+\"DopeSheetEd\");\n            dopeSheetEditor -e \n                -displayKeys 1\n                -displayTangents 0\n                -displayActiveKeys 0\n                -displayActiveKeyTangents 0\n                -displayInfinities 0\n                -autoFit 0\n                -snapTime \"integer\" \n                -snapValue \"none\" \n                -outliner \"dopeSheetPanel1OutlineEd\" \n"
+		+ "                -showSummary 1\n                -showScene 0\n                -hierarchyBelow 0\n                -showTicks 1\n                -selectionWindow 0 0 0 0 \n                $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"clipEditorPanel\" (localizedPanelLabel(\"Trax Editor\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"clipEditorPanel\" -l (localizedPanelLabel(\"Trax Editor\")) -mbv $menusOkayInPanels `;\n\n\t\t\t$editorName = clipEditorNameFromPanel($panelName);\n            clipEditor -e \n                -displayKeys 0\n                -displayTangents 0\n                -displayActiveKeys 0\n                -displayActiveKeyTangents 0\n                -displayInfinities 0\n                -autoFit 0\n                -snapTime \"none\" \n                -snapValue \"none\" \n                -manageSequencer 0 \n                $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n"
+		+ "\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Trax Editor\")) -mbv $menusOkayInPanels  $panelName;\n\n\t\t\t$editorName = clipEditorNameFromPanel($panelName);\n            clipEditor -e \n                -displayKeys 0\n                -displayTangents 0\n                -displayActiveKeys 0\n                -displayActiveKeyTangents 0\n                -displayInfinities 0\n                -autoFit 0\n                -snapTime \"none\" \n                -snapValue \"none\" \n                -manageSequencer 0 \n                $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"sequenceEditorPanel\" (localizedPanelLabel(\"Camera Sequencer\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"sequenceEditorPanel\" -l (localizedPanelLabel(\"Camera Sequencer\")) -mbv $menusOkayInPanels `;\n\n\t\t\t$editorName = sequenceEditorNameFromPanel($panelName);\n            clipEditor -e \n                -displayKeys 0\n"
+		+ "                -displayTangents 0\n                -displayActiveKeys 0\n                -displayActiveKeyTangents 0\n                -displayInfinities 0\n                -autoFit 0\n                -snapTime \"none\" \n                -snapValue \"none\" \n                -manageSequencer 1 \n                $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Camera Sequencer\")) -mbv $menusOkayInPanels  $panelName;\n\n\t\t\t$editorName = sequenceEditorNameFromPanel($panelName);\n            clipEditor -e \n                -displayKeys 0\n                -displayTangents 0\n                -displayActiveKeys 0\n                -displayActiveKeyTangents 0\n                -displayInfinities 0\n                -autoFit 0\n                -snapTime \"none\" \n                -snapValue \"none\" \n                -manageSequencer 1 \n                $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"hyperGraphPanel\" (localizedPanelLabel(\"Hypergraph Hierarchy\")) `;\n"
+		+ "\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"hyperGraphPanel\" -l (localizedPanelLabel(\"Hypergraph Hierarchy\")) -mbv $menusOkayInPanels `;\n\n\t\t\t$editorName = ($panelName+\"HyperGraphEd\");\n            hyperGraph -e \n                -graphLayoutStyle \"hierarchicalLayout\" \n                -orientation \"horiz\" \n                -mergeConnections 0\n                -zoom 1\n                -animateTransition 0\n                -showRelationships 1\n                -showShapes 0\n                -showDeformers 0\n                -showExpressions 0\n                -showConstraints 0\n                -showUnderworld 0\n                -showInvisible 0\n                -transitionFrames 1\n                -opaqueContainers 0\n                -freeform 0\n                -imagePosition 0 0 \n                -imageScale 1\n                -imageEnabled 0\n                -graphType \"DAG\" \n                -heatMapDisplay 0\n                -updateSelection 1\n                -updateNodeAdded 1\n"
+		+ "                -useDrawOverrideColor 0\n                -limitGraphTraversal -1\n                -range 0 0 \n                -iconSize \"smallIcons\" \n                -showCachedConnections 0\n                $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Hypergraph Hierarchy\")) -mbv $menusOkayInPanels  $panelName;\n\n\t\t\t$editorName = ($panelName+\"HyperGraphEd\");\n            hyperGraph -e \n                -graphLayoutStyle \"hierarchicalLayout\" \n                -orientation \"horiz\" \n                -mergeConnections 0\n                -zoom 1\n                -animateTransition 0\n                -showRelationships 1\n                -showShapes 0\n                -showDeformers 0\n                -showExpressions 0\n                -showConstraints 0\n                -showUnderworld 0\n                -showInvisible 0\n                -transitionFrames 1\n                -opaqueContainers 0\n                -freeform 0\n                -imagePosition 0 0 \n                -imageScale 1\n"
+		+ "                -imageEnabled 0\n                -graphType \"DAG\" \n                -heatMapDisplay 0\n                -updateSelection 1\n                -updateNodeAdded 1\n                -useDrawOverrideColor 0\n                -limitGraphTraversal -1\n                -range 0 0 \n                -iconSize \"smallIcons\" \n                -showCachedConnections 0\n                $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"hyperShadePanel\" (localizedPanelLabel(\"Hypershade\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"hyperShadePanel\" -l (localizedPanelLabel(\"Hypershade\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Hypershade\")) -mbv $menusOkayInPanels  $panelName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"visorPanel\" (localizedPanelLabel(\"Visor\")) `;\n"
+		+ "\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"visorPanel\" -l (localizedPanelLabel(\"Visor\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Visor\")) -mbv $menusOkayInPanels  $panelName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"polyTexturePlacementPanel\" (localizedPanelLabel(\"UV Texture Editor\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"polyTexturePlacementPanel\" -l (localizedPanelLabel(\"UV Texture Editor\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"UV Texture Editor\")) -mbv $menusOkayInPanels  $panelName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"renderWindowPanel\" (localizedPanelLabel(\"Render View\")) `;\n"
+		+ "\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"renderWindowPanel\" -l (localizedPanelLabel(\"Render View\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Render View\")) -mbv $menusOkayInPanels  $panelName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\tif ($useSceneConfig) {\n\t\tscriptedPanel -e -to $panelName;\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextPanel \"blendShapePanel\" (localizedPanelLabel(\"Blend Shape\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\tblendShapePanel -unParent -l (localizedPanelLabel(\"Blend Shape\")) -mbv $menusOkayInPanels ;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tblendShapePanel -edit -l (localizedPanelLabel(\"Blend Shape\")) -mbv $menusOkayInPanels  $panelName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"dynRelEdPanel\" (localizedPanelLabel(\"Dynamic Relationships\")) `;\n"
+		+ "\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"dynRelEdPanel\" -l (localizedPanelLabel(\"Dynamic Relationships\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Dynamic Relationships\")) -mbv $menusOkayInPanels  $panelName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"relationshipPanel\" (localizedPanelLabel(\"Relationship Editor\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"relationshipPanel\" -l (localizedPanelLabel(\"Relationship Editor\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Relationship Editor\")) -mbv $menusOkayInPanels  $panelName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"referenceEditorPanel\" (localizedPanelLabel(\"Reference Editor\")) `;\n"
+		+ "\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"referenceEditorPanel\" -l (localizedPanelLabel(\"Reference Editor\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Reference Editor\")) -mbv $menusOkayInPanels  $panelName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"componentEditorPanel\" (localizedPanelLabel(\"Component Editor\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"componentEditorPanel\" -l (localizedPanelLabel(\"Component Editor\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Component Editor\")) -mbv $menusOkayInPanels  $panelName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"dynPaintScriptedPanelType\" (localizedPanelLabel(\"Paint Effects\")) `;\n"
+		+ "\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"dynPaintScriptedPanelType\" -l (localizedPanelLabel(\"Paint Effects\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Paint Effects\")) -mbv $menusOkayInPanels  $panelName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"scriptEditorPanel\" (localizedPanelLabel(\"Script Editor\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"scriptEditorPanel\" -l (localizedPanelLabel(\"Script Editor\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Script Editor\")) -mbv $menusOkayInPanels  $panelName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\tif ($useSceneConfig) {\n\t\tscriptedPanel -e -to $panelName;\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"Stereo\" (localizedPanelLabel(\"Stereo\")) `;\n"
+		+ "\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"Stereo\" -l (localizedPanelLabel(\"Stereo\")) -mbv $menusOkayInPanels `;\nstring $editorName = ($panelName+\"Editor\");\n            stereoCameraView -e \n                -camera \"persp\" \n                -useInteractiveMode 0\n                -displayLights \"default\" \n                -displayAppearance \"wireframe\" \n                -activeOnly 0\n                -ignorePanZoom 0\n                -wireframeOnShaded 0\n                -headsUpDisplay 1\n                -selectionHiliteDisplay 1\n                -useDefaultMaterial 0\n                -bufferMode \"double\" \n                -twoSidedLighting 1\n                -backfaceCulling 0\n                -xray 0\n                -jointXray 0\n                -activeComponentsXray 0\n                -displayTextures 0\n                -smoothWireframe 0\n                -lineWidth 1\n                -textureAnisotropic 0\n                -textureHilight 1\n                -textureSampling 2\n"
+		+ "                -textureDisplay \"modulate\" \n                -textureMaxSize 16384\n                -fogging 0\n                -fogSource \"fragment\" \n                -fogMode \"linear\" \n                -fogStart 0\n                -fogEnd 100\n                -fogDensity 0.1\n                -fogColor 0.5 0.5 0.5 1 \n                -maxConstantTransparency 1\n                -colorResolution 4 4 \n                -bumpResolution 4 4 \n                -textureCompression 0\n                -transparencyAlgorithm \"frontAndBackCull\" \n                -transpInShadows 0\n                -cullingOverride \"none\" \n                -lowQualityLighting 0\n                -maximumNumHardwareLights 0\n                -occlusionCulling 0\n                -shadingModel 0\n                -useBaseRenderer 0\n                -useReducedRenderer 0\n                -smallObjectCulling 0\n                -smallObjectThreshold -1 \n                -interactiveDisableShadows 0\n                -interactiveBackFaceCull 0\n                -sortTransparent 1\n"
+		+ "                -nurbsCurves 1\n                -nurbsSurfaces 1\n                -polymeshes 1\n                -subdivSurfaces 1\n                -planes 1\n                -lights 1\n                -cameras 1\n                -controlVertices 1\n                -hulls 1\n                -grid 1\n                -joints 1\n                -ikHandles 1\n                -deformers 1\n                -dynamics 1\n                -fluids 1\n                -hairSystems 1\n                -follicles 1\n                -nCloths 1\n                -nParticles 1\n                -nRigids 1\n                -dynamicConstraints 1\n                -locators 1\n                -manipulators 1\n                -dimensions 1\n                -handles 1\n                -pivots 1\n                -textures 1\n                -strokes 1\n                -shadows 0\n                -displayMode \"centerEye\" \n                -viewColor 0 0 0 1 \n                $editorName;\nstereoCameraView -e -viewSelected 0 $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n"
+		+ "\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Stereo\")) -mbv $menusOkayInPanels  $panelName;\nstring $editorName = ($panelName+\"Editor\");\n            stereoCameraView -e \n                -camera \"persp\" \n                -useInteractiveMode 0\n                -displayLights \"default\" \n                -displayAppearance \"wireframe\" \n                -activeOnly 0\n                -ignorePanZoom 0\n                -wireframeOnShaded 0\n                -headsUpDisplay 1\n                -selectionHiliteDisplay 1\n                -useDefaultMaterial 0\n                -bufferMode \"double\" \n                -twoSidedLighting 1\n                -backfaceCulling 0\n                -xray 0\n                -jointXray 0\n                -activeComponentsXray 0\n                -displayTextures 0\n                -smoothWireframe 0\n                -lineWidth 1\n                -textureAnisotropic 0\n                -textureHilight 1\n                -textureSampling 2\n                -textureDisplay \"modulate\" \n                -textureMaxSize 16384\n"
+		+ "                -fogging 0\n                -fogSource \"fragment\" \n                -fogMode \"linear\" \n                -fogStart 0\n                -fogEnd 100\n                -fogDensity 0.1\n                -fogColor 0.5 0.5 0.5 1 \n                -maxConstantTransparency 1\n                -colorResolution 4 4 \n                -bumpResolution 4 4 \n                -textureCompression 0\n                -transparencyAlgorithm \"frontAndBackCull\" \n                -transpInShadows 0\n                -cullingOverride \"none\" \n                -lowQualityLighting 0\n                -maximumNumHardwareLights 0\n                -occlusionCulling 0\n                -shadingModel 0\n                -useBaseRenderer 0\n                -useReducedRenderer 0\n                -smallObjectCulling 0\n                -smallObjectThreshold -1 \n                -interactiveDisableShadows 0\n                -interactiveBackFaceCull 0\n                -sortTransparent 1\n                -nurbsCurves 1\n                -nurbsSurfaces 1\n                -polymeshes 1\n"
+		+ "                -subdivSurfaces 1\n                -planes 1\n                -lights 1\n                -cameras 1\n                -controlVertices 1\n                -hulls 1\n                -grid 1\n                -joints 1\n                -ikHandles 1\n                -deformers 1\n                -dynamics 1\n                -fluids 1\n                -hairSystems 1\n                -follicles 1\n                -nCloths 1\n                -nParticles 1\n                -nRigids 1\n                -dynamicConstraints 1\n                -locators 1\n                -manipulators 1\n                -dimensions 1\n                -handles 1\n                -pivots 1\n                -textures 1\n                -strokes 1\n                -shadows 0\n                -displayMode \"centerEye\" \n                -viewColor 0 0 0 1 \n                $editorName;\nstereoCameraView -e -viewSelected 0 $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\tif ($useSceneConfig) {\n        string $configName = `getPanel -cwl (localizedPanelLabel(\"Current Layout\"))`;\n"
+		+ "        if (\"\" != $configName) {\n\t\t\tpanelConfiguration -edit -label (localizedPanelLabel(\"Current Layout\")) \n\t\t\t\t-defaultImage \"\"\n\t\t\t\t-image \"\"\n\t\t\t\t-sc false\n\t\t\t\t-configString \"global string $gMainPane; paneLayout -e -cn \\\"single\\\" -ps 1 100 100 $gMainPane;\"\n\t\t\t\t-removeAllPanels\n\t\t\t\t-ap false\n\t\t\t\t\t(localizedPanelLabel(\"Persp View\")) \n\t\t\t\t\t\"modelPanel\"\n"
+		+ "\t\t\t\t\t\"$panelName = `modelPanel -unParent -l (localizedPanelLabel(\\\"Persp View\\\")) -mbv $menusOkayInPanels `;\\n$editorName = $panelName;\\nmodelEditor -e \\n    -cam `findStartUpCamera persp` \\n    -useInteractiveMode 0\\n    -displayLights \\\"default\\\" \\n    -displayAppearance \\\"wireframe\\\" \\n    -activeOnly 0\\n    -ignorePanZoom 0\\n    -wireframeOnShaded 0\\n    -headsUpDisplay 1\\n    -selectionHiliteDisplay 1\\n    -useDefaultMaterial 0\\n    -bufferMode \\\"double\\\" \\n    -twoSidedLighting 1\\n    -backfaceCulling 0\\n    -xray 0\\n    -jointXray 0\\n    -activeComponentsXray 0\\n    -displayTextures 0\\n    -smoothWireframe 0\\n    -lineWidth 1\\n    -textureAnisotropic 0\\n    -textureHilight 1\\n    -textureSampling 2\\n    -textureDisplay \\\"modulate\\\" \\n    -textureMaxSize 16384\\n    -fogging 0\\n    -fogSource \\\"fragment\\\" \\n    -fogMode \\\"linear\\\" \\n    -fogStart 0\\n    -fogEnd 100\\n    -fogDensity 0.1\\n    -fogColor 0.5 0.5 0.5 1 \\n    -maxConstantTransparency 1\\n    -rendererName \\\"base_OpenGL_Renderer\\\" \\n    -colorResolution 256 256 \\n    -bumpResolution 512 512 \\n    -textureCompression 0\\n    -transparencyAlgorithm \\\"frontAndBackCull\\\" \\n    -transpInShadows 0\\n    -cullingOverride \\\"none\\\" \\n    -lowQualityLighting 0\\n    -maximumNumHardwareLights 1\\n    -occlusionCulling 0\\n    -shadingModel 0\\n    -useBaseRenderer 0\\n    -useReducedRenderer 0\\n    -smallObjectCulling 0\\n    -smallObjectThreshold -1 \\n    -interactiveDisableShadows 0\\n    -interactiveBackFaceCull 0\\n    -sortTransparent 1\\n    -nurbsCurves 1\\n    -nurbsSurfaces 1\\n    -polymeshes 1\\n    -subdivSurfaces 1\\n    -planes 1\\n    -lights 1\\n    -cameras 1\\n    -controlVertices 1\\n    -hulls 1\\n    -grid 1\\n    -joints 1\\n    -ikHandles 1\\n    -deformers 1\\n    -dynamics 1\\n    -fluids 1\\n    -hairSystems 1\\n    -follicles 1\\n    -nCloths 1\\n    -nParticles 1\\n    -nRigids 1\\n    -dynamicConstraints 1\\n    -locators 1\\n    -manipulators 1\\n    -dimensions 1\\n    -handles 1\\n    -pivots 1\\n    -textures 1\\n    -strokes 1\\n    -shadows 0\\n    $editorName;\\nmodelEditor -e -viewSelected 0 $editorName\"\n"
+		+ "\t\t\t\t\t\"modelPanel -edit -l (localizedPanelLabel(\\\"Persp View\\\")) -mbv $menusOkayInPanels  $panelName;\\n$editorName = $panelName;\\nmodelEditor -e \\n    -cam `findStartUpCamera persp` \\n    -useInteractiveMode 0\\n    -displayLights \\\"default\\\" \\n    -displayAppearance \\\"wireframe\\\" \\n    -activeOnly 0\\n    -ignorePanZoom 0\\n    -wireframeOnShaded 0\\n    -headsUpDisplay 1\\n    -selectionHiliteDisplay 1\\n    -useDefaultMaterial 0\\n    -bufferMode \\\"double\\\" \\n    -twoSidedLighting 1\\n    -backfaceCulling 0\\n    -xray 0\\n    -jointXray 0\\n    -activeComponentsXray 0\\n    -displayTextures 0\\n    -smoothWireframe 0\\n    -lineWidth 1\\n    -textureAnisotropic 0\\n    -textureHilight 1\\n    -textureSampling 2\\n    -textureDisplay \\\"modulate\\\" \\n    -textureMaxSize 16384\\n    -fogging 0\\n    -fogSource \\\"fragment\\\" \\n    -fogMode \\\"linear\\\" \\n    -fogStart 0\\n    -fogEnd 100\\n    -fogDensity 0.1\\n    -fogColor 0.5 0.5 0.5 1 \\n    -maxConstantTransparency 1\\n    -rendererName \\\"base_OpenGL_Renderer\\\" \\n    -colorResolution 256 256 \\n    -bumpResolution 512 512 \\n    -textureCompression 0\\n    -transparencyAlgorithm \\\"frontAndBackCull\\\" \\n    -transpInShadows 0\\n    -cullingOverride \\\"none\\\" \\n    -lowQualityLighting 0\\n    -maximumNumHardwareLights 1\\n    -occlusionCulling 0\\n    -shadingModel 0\\n    -useBaseRenderer 0\\n    -useReducedRenderer 0\\n    -smallObjectCulling 0\\n    -smallObjectThreshold -1 \\n    -interactiveDisableShadows 0\\n    -interactiveBackFaceCull 0\\n    -sortTransparent 1\\n    -nurbsCurves 1\\n    -nurbsSurfaces 1\\n    -polymeshes 1\\n    -subdivSurfaces 1\\n    -planes 1\\n    -lights 1\\n    -cameras 1\\n    -controlVertices 1\\n    -hulls 1\\n    -grid 1\\n    -joints 1\\n    -ikHandles 1\\n    -deformers 1\\n    -dynamics 1\\n    -fluids 1\\n    -hairSystems 1\\n    -follicles 1\\n    -nCloths 1\\n    -nParticles 1\\n    -nRigids 1\\n    -dynamicConstraints 1\\n    -locators 1\\n    -manipulators 1\\n    -dimensions 1\\n    -handles 1\\n    -pivots 1\\n    -textures 1\\n    -strokes 1\\n    -shadows 0\\n    $editorName;\\nmodelEditor -e -viewSelected 0 $editorName\"\n"
+		+ "\t\t\t\t$configName;\n\n            setNamedPanelLayout (localizedPanelLabel(\"Current Layout\"));\n        }\n\n        panelHistory -e -clear mainPanelHistory;\n        setFocus `paneLayout -q -p1 $gMainPane`;\n        sceneUIReplacement -deleteRemaining;\n        sceneUIReplacement -clear;\n\t}\n\n\ngrid -spacing 5 -size 12 -divisions 5 -displayAxes yes -displayGridLines yes -displayDivisionLines yes -displayPerspectiveLabels no -displayOrthographicLabels no -displayAxesBold yes -perspectiveLabelPosition axis -orthographicLabelPosition edge;\nviewManip -drawCompass 0 -compassAngle 0 -frontParameters \"\" -homeParameters \"\" -selectionLockParameters \"\";\n}\n");
+	setAttr ".st" 3;
+select -ne :time1;
+	setAttr ".o" 1;
+	setAttr ".unw" 1;
+select -ne :renderPartition;
+	setAttr -s 3 ".st";
+select -ne :initialShadingGroup;
+	setAttr ".ro" yes;
+select -ne :initialParticleSE;
+	setAttr ".ro" yes;
+select -ne :defaultShaderList1;
+	setAttr -s 3 ".s";
+select -ne :lightList1;
+select -ne :postProcessList1;
+	setAttr -s 2 ".p";
+select -ne :renderGlobalsList1;
+select -ne :defaultRenderGlobals;
+	setAttr ".ren" -type "string" "arnold";
+	setAttr ".outf" 51;
+	setAttr ".imfkey" -type "string" "tiff";
+	setAttr ".ifp" -type "string" "testrender";
+select -ne :defaultResolution;
+	setAttr ".w" 160;
+	setAttr ".h" 120;
+	setAttr ".pa" 1;
+	setAttr ".dar" 1.3333333730697632;
+select -ne :defaultLightSet;
+select -ne :hardwareRenderGlobals;
+	setAttr ".ctrs" 256;
+	setAttr ".btrs" 512;
+select -ne :defaultHardwareRenderGlobals;
+	setAttr ".fn" -type "string" "im";
+	setAttr ".res" -type "string" "ntsc_4d 646 485 1.333";
+connectAttr "polyPlane1.out" "pPlaneShape1.i";
+connectAttr ":time1.o" "hairSystemShape1.cti";
+connectAttr "pPlane1FollicleShape606.oha" "hairSystemShape1.ih[0]";
+connectAttr "pPlane1FollicleShape619.oha" "hairSystemShape1.ih[1]";
+connectAttr "pPlane1FollicleShape631.oha" "hairSystemShape1.ih[2]";
+connectAttr "pPlane1FollicleShape643.oha" "hairSystemShape1.ih[3]";
+connectAttr "pPlane1FollicleShape656.oha" "hairSystemShape1.ih[4]";
+connectAttr "pPlane1FollicleShape668.oha" "hairSystemShape1.ih[5]";
+connectAttr "pPlane1FollicleShape680.oha" "hairSystemShape1.ih[6]";
+connectAttr "pPlane1FollicleShape693.oha" "hairSystemShape1.ih[7]";
+connectAttr "pPlane1FollicleShape1906.oha" "hairSystemShape1.ih[8]";
+connectAttr "pPlane1FollicleShape1919.oha" "hairSystemShape1.ih[9]";
+connectAttr "pPlane1FollicleShape1931.oha" "hairSystemShape1.ih[10]";
+connectAttr "pPlane1FollicleShape1943.oha" "hairSystemShape1.ih[11]";
+connectAttr "pPlane1FollicleShape1956.oha" "hairSystemShape1.ih[12]";
+connectAttr "pPlane1FollicleShape1968.oha" "hairSystemShape1.ih[13]";
+connectAttr "pPlane1FollicleShape1980.oha" "hairSystemShape1.ih[14]";
+connectAttr "pPlane1FollicleShape1993.oha" "hairSystemShape1.ih[15]";
+connectAttr "pPlane1FollicleShape3106.oha" "hairSystemShape1.ih[16]";
+connectAttr "pPlane1FollicleShape3119.oha" "hairSystemShape1.ih[17]";
+connectAttr "pPlane1FollicleShape3131.oha" "hairSystemShape1.ih[18]";
+connectAttr "pPlane1FollicleShape3143.oha" "hairSystemShape1.ih[19]";
+connectAttr "pPlane1FollicleShape3156.oha" "hairSystemShape1.ih[20]";
+connectAttr "pPlane1FollicleShape3168.oha" "hairSystemShape1.ih[21]";
+connectAttr "pPlane1FollicleShape3180.oha" "hairSystemShape1.ih[22]";
+connectAttr "pPlane1FollicleShape3193.oha" "hairSystemShape1.ih[23]";
+connectAttr "pPlane1FollicleShape4306.oha" "hairSystemShape1.ih[24]";
+connectAttr "pPlane1FollicleShape4319.oha" "hairSystemShape1.ih[25]";
+connectAttr "pPlane1FollicleShape4331.oha" "hairSystemShape1.ih[26]";
+connectAttr "pPlane1FollicleShape4343.oha" "hairSystemShape1.ih[27]";
+connectAttr "pPlane1FollicleShape4356.oha" "hairSystemShape1.ih[28]";
+connectAttr "pPlane1FollicleShape4368.oha" "hairSystemShape1.ih[29]";
+connectAttr "pPlane1FollicleShape4380.oha" "hairSystemShape1.ih[30]";
+connectAttr "pPlane1FollicleShape4393.oha" "hairSystemShape1.ih[31]";
+connectAttr "pPlane1FollicleShape5606.oha" "hairSystemShape1.ih[32]";
+connectAttr "pPlane1FollicleShape5619.oha" "hairSystemShape1.ih[33]";
+connectAttr "pPlane1FollicleShape5631.oha" "hairSystemShape1.ih[34]";
+connectAttr "pPlane1FollicleShape5643.oha" "hairSystemShape1.ih[35]";
+connectAttr "pPlane1FollicleShape5656.oha" "hairSystemShape1.ih[36]";
+connectAttr "pPlane1FollicleShape5668.oha" "hairSystemShape1.ih[37]";
+connectAttr "pPlane1FollicleShape5680.oha" "hairSystemShape1.ih[38]";
+connectAttr "pPlane1FollicleShape5693.oha" "hairSystemShape1.ih[39]";
+connectAttr "pPlane1FollicleShape6806.oha" "hairSystemShape1.ih[40]";
+connectAttr "pPlane1FollicleShape6819.oha" "hairSystemShape1.ih[41]";
+connectAttr "pPlane1FollicleShape6831.oha" "hairSystemShape1.ih[42]";
+connectAttr "pPlane1FollicleShape6843.oha" "hairSystemShape1.ih[43]";
+connectAttr "pPlane1FollicleShape6856.oha" "hairSystemShape1.ih[44]";
+connectAttr "pPlane1FollicleShape6868.oha" "hairSystemShape1.ih[45]";
+connectAttr "pPlane1FollicleShape6880.oha" "hairSystemShape1.ih[46]";
+connectAttr "pPlane1FollicleShape6893.oha" "hairSystemShape1.ih[47]";
+connectAttr "pPlane1FollicleShape8006.oha" "hairSystemShape1.ih[48]";
+connectAttr "pPlane1FollicleShape8019.oha" "hairSystemShape1.ih[49]";
+connectAttr "pPlane1FollicleShape8031.oha" "hairSystemShape1.ih[50]";
+connectAttr "pPlane1FollicleShape8043.oha" "hairSystemShape1.ih[51]";
+connectAttr "pPlane1FollicleShape8056.oha" "hairSystemShape1.ih[52]";
+connectAttr "pPlane1FollicleShape8068.oha" "hairSystemShape1.ih[53]";
+connectAttr "pPlane1FollicleShape8080.oha" "hairSystemShape1.ih[54]";
+connectAttr "pPlane1FollicleShape8093.oha" "hairSystemShape1.ih[55]";
+connectAttr "pPlane1FollicleShape9306.oha" "hairSystemShape1.ih[56]";
+connectAttr "pPlane1FollicleShape9319.oha" "hairSystemShape1.ih[57]";
+connectAttr "pPlane1FollicleShape9331.oha" "hairSystemShape1.ih[58]";
+connectAttr "pPlane1FollicleShape9343.oha" "hairSystemShape1.ih[59]";
+connectAttr "pPlane1FollicleShape9356.oha" "hairSystemShape1.ih[60]";
+connectAttr "pPlane1FollicleShape9368.oha" "hairSystemShape1.ih[61]";
+connectAttr "pPlane1FollicleShape9380.oha" "hairSystemShape1.ih[62]";
+connectAttr "pPlane1FollicleShape9393.oha" "hairSystemShape1.ih[63]";
+connectAttr "pPlane1FollicleShape606.ot" "pPlane1Follicle606.t" -l on;
+connectAttr "pPlane1FollicleShape606.or" "pPlane1Follicle606.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape606.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape606.inm";
+connectAttr "curveShape1.ws" "pPlane1FollicleShape606.sp";
+connectAttr "pPlane1FollicleShape619.ot" "pPlane1Follicle619.t" -l on;
+connectAttr "pPlane1FollicleShape619.or" "pPlane1Follicle619.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape619.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape619.inm";
+connectAttr "curveShape2.ws" "pPlane1FollicleShape619.sp";
+connectAttr "pPlane1FollicleShape631.ot" "pPlane1Follicle631.t" -l on;
+connectAttr "pPlane1FollicleShape631.or" "pPlane1Follicle631.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape631.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape631.inm";
+connectAttr "curveShape3.ws" "pPlane1FollicleShape631.sp";
+connectAttr "pPlane1FollicleShape643.ot" "pPlane1Follicle643.t" -l on;
+connectAttr "pPlane1FollicleShape643.or" "pPlane1Follicle643.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape643.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape643.inm";
+connectAttr "curveShape4.ws" "pPlane1FollicleShape643.sp";
+connectAttr "pPlane1FollicleShape656.ot" "pPlane1Follicle656.t" -l on;
+connectAttr "pPlane1FollicleShape656.or" "pPlane1Follicle656.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape656.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape656.inm";
+connectAttr "curveShape5.ws" "pPlane1FollicleShape656.sp";
+connectAttr "pPlane1FollicleShape668.ot" "pPlane1Follicle668.t" -l on;
+connectAttr "pPlane1FollicleShape668.or" "pPlane1Follicle668.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape668.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape668.inm";
+connectAttr "curveShape6.ws" "pPlane1FollicleShape668.sp";
+connectAttr "pPlane1FollicleShape680.ot" "pPlane1Follicle680.t" -l on;
+connectAttr "pPlane1FollicleShape680.or" "pPlane1Follicle680.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape680.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape680.inm";
+connectAttr "curveShape7.ws" "pPlane1FollicleShape680.sp";
+connectAttr "pPlane1FollicleShape693.ot" "pPlane1Follicle693.t" -l on;
+connectAttr "pPlane1FollicleShape693.or" "pPlane1Follicle693.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape693.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape693.inm";
+connectAttr "curveShape8.ws" "pPlane1FollicleShape693.sp";
+connectAttr "pPlane1FollicleShape1906.ot" "pPlane1Follicle1906.t" -l on;
+connectAttr "pPlane1FollicleShape1906.or" "pPlane1Follicle1906.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape1906.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape1906.inm";
+connectAttr "curveShape9.ws" "pPlane1FollicleShape1906.sp";
+connectAttr "pPlane1FollicleShape1919.ot" "pPlane1Follicle1919.t" -l on;
+connectAttr "pPlane1FollicleShape1919.or" "pPlane1Follicle1919.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape1919.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape1919.inm";
+connectAttr "curveShape10.ws" "pPlane1FollicleShape1919.sp";
+connectAttr "pPlane1FollicleShape1931.ot" "pPlane1Follicle1931.t" -l on;
+connectAttr "pPlane1FollicleShape1931.or" "pPlane1Follicle1931.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape1931.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape1931.inm";
+connectAttr "curveShape11.ws" "pPlane1FollicleShape1931.sp";
+connectAttr "pPlane1FollicleShape1943.ot" "pPlane1Follicle1943.t" -l on;
+connectAttr "pPlane1FollicleShape1943.or" "pPlane1Follicle1943.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape1943.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape1943.inm";
+connectAttr "curveShape12.ws" "pPlane1FollicleShape1943.sp";
+connectAttr "pPlane1FollicleShape1956.ot" "pPlane1Follicle1956.t" -l on;
+connectAttr "pPlane1FollicleShape1956.or" "pPlane1Follicle1956.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape1956.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape1956.inm";
+connectAttr "curveShape13.ws" "pPlane1FollicleShape1956.sp";
+connectAttr "pPlane1FollicleShape1968.ot" "pPlane1Follicle1968.t" -l on;
+connectAttr "pPlane1FollicleShape1968.or" "pPlane1Follicle1968.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape1968.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape1968.inm";
+connectAttr "curveShape14.ws" "pPlane1FollicleShape1968.sp";
+connectAttr "pPlane1FollicleShape1980.ot" "pPlane1Follicle1980.t" -l on;
+connectAttr "pPlane1FollicleShape1980.or" "pPlane1Follicle1980.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape1980.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape1980.inm";
+connectAttr "curveShape15.ws" "pPlane1FollicleShape1980.sp";
+connectAttr "pPlane1FollicleShape1993.ot" "pPlane1Follicle1993.t" -l on;
+connectAttr "pPlane1FollicleShape1993.or" "pPlane1Follicle1993.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape1993.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape1993.inm";
+connectAttr "curveShape16.ws" "pPlane1FollicleShape1993.sp";
+connectAttr "pPlane1FollicleShape3106.ot" "pPlane1Follicle3106.t" -l on;
+connectAttr "pPlane1FollicleShape3106.or" "pPlane1Follicle3106.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape3106.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape3106.inm";
+connectAttr "curveShape17.ws" "pPlane1FollicleShape3106.sp";
+connectAttr "pPlane1FollicleShape3119.ot" "pPlane1Follicle3119.t" -l on;
+connectAttr "pPlane1FollicleShape3119.or" "pPlane1Follicle3119.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape3119.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape3119.inm";
+connectAttr "curveShape18.ws" "pPlane1FollicleShape3119.sp";
+connectAttr "pPlane1FollicleShape3131.ot" "pPlane1Follicle3131.t" -l on;
+connectAttr "pPlane1FollicleShape3131.or" "pPlane1Follicle3131.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape3131.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape3131.inm";
+connectAttr "curveShape19.ws" "pPlane1FollicleShape3131.sp";
+connectAttr "pPlane1FollicleShape3143.ot" "pPlane1Follicle3143.t" -l on;
+connectAttr "pPlane1FollicleShape3143.or" "pPlane1Follicle3143.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape3143.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape3143.inm";
+connectAttr "curveShape20.ws" "pPlane1FollicleShape3143.sp";
+connectAttr "pPlane1FollicleShape3156.ot" "pPlane1Follicle3156.t" -l on;
+connectAttr "pPlane1FollicleShape3156.or" "pPlane1Follicle3156.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape3156.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape3156.inm";
+connectAttr "curveShape21.ws" "pPlane1FollicleShape3156.sp";
+connectAttr "pPlane1FollicleShape3168.ot" "pPlane1Follicle3168.t" -l on;
+connectAttr "pPlane1FollicleShape3168.or" "pPlane1Follicle3168.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape3168.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape3168.inm";
+connectAttr "curveShape22.ws" "pPlane1FollicleShape3168.sp";
+connectAttr "pPlane1FollicleShape3180.ot" "pPlane1Follicle3180.t" -l on;
+connectAttr "pPlane1FollicleShape3180.or" "pPlane1Follicle3180.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape3180.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape3180.inm";
+connectAttr "curveShape23.ws" "pPlane1FollicleShape3180.sp";
+connectAttr "pPlane1FollicleShape3193.ot" "pPlane1Follicle3193.t" -l on;
+connectAttr "pPlane1FollicleShape3193.or" "pPlane1Follicle3193.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape3193.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape3193.inm";
+connectAttr "curveShape24.ws" "pPlane1FollicleShape3193.sp";
+connectAttr "pPlane1FollicleShape4306.ot" "pPlane1Follicle4306.t" -l on;
+connectAttr "pPlane1FollicleShape4306.or" "pPlane1Follicle4306.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape4306.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape4306.inm";
+connectAttr "curveShape25.ws" "pPlane1FollicleShape4306.sp";
+connectAttr "pPlane1FollicleShape4319.ot" "pPlane1Follicle4319.t" -l on;
+connectAttr "pPlane1FollicleShape4319.or" "pPlane1Follicle4319.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape4319.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape4319.inm";
+connectAttr "curveShape26.ws" "pPlane1FollicleShape4319.sp";
+connectAttr "pPlane1FollicleShape4331.ot" "pPlane1Follicle4331.t" -l on;
+connectAttr "pPlane1FollicleShape4331.or" "pPlane1Follicle4331.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape4331.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape4331.inm";
+connectAttr "curveShape27.ws" "pPlane1FollicleShape4331.sp";
+connectAttr "pPlane1FollicleShape4343.ot" "pPlane1Follicle4343.t" -l on;
+connectAttr "pPlane1FollicleShape4343.or" "pPlane1Follicle4343.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape4343.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape4343.inm";
+connectAttr "curveShape28.ws" "pPlane1FollicleShape4343.sp";
+connectAttr "pPlane1FollicleShape4356.ot" "pPlane1Follicle4356.t" -l on;
+connectAttr "pPlane1FollicleShape4356.or" "pPlane1Follicle4356.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape4356.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape4356.inm";
+connectAttr "curveShape29.ws" "pPlane1FollicleShape4356.sp";
+connectAttr "pPlane1FollicleShape4368.ot" "pPlane1Follicle4368.t" -l on;
+connectAttr "pPlane1FollicleShape4368.or" "pPlane1Follicle4368.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape4368.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape4368.inm";
+connectAttr "curveShape30.ws" "pPlane1FollicleShape4368.sp";
+connectAttr "pPlane1FollicleShape4380.ot" "pPlane1Follicle4380.t" -l on;
+connectAttr "pPlane1FollicleShape4380.or" "pPlane1Follicle4380.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape4380.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape4380.inm";
+connectAttr "curveShape31.ws" "pPlane1FollicleShape4380.sp";
+connectAttr "pPlane1FollicleShape4393.ot" "pPlane1Follicle4393.t" -l on;
+connectAttr "pPlane1FollicleShape4393.or" "pPlane1Follicle4393.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape4393.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape4393.inm";
+connectAttr "curveShape32.ws" "pPlane1FollicleShape4393.sp";
+connectAttr "pPlane1FollicleShape5606.ot" "pPlane1Follicle5606.t" -l on;
+connectAttr "pPlane1FollicleShape5606.or" "pPlane1Follicle5606.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape5606.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape5606.inm";
+connectAttr "curveShape33.ws" "pPlane1FollicleShape5606.sp";
+connectAttr "pPlane1FollicleShape5619.ot" "pPlane1Follicle5619.t" -l on;
+connectAttr "pPlane1FollicleShape5619.or" "pPlane1Follicle5619.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape5619.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape5619.inm";
+connectAttr "curveShape34.ws" "pPlane1FollicleShape5619.sp";
+connectAttr "pPlane1FollicleShape5631.ot" "pPlane1Follicle5631.t" -l on;
+connectAttr "pPlane1FollicleShape5631.or" "pPlane1Follicle5631.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape5631.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape5631.inm";
+connectAttr "curveShape35.ws" "pPlane1FollicleShape5631.sp";
+connectAttr "pPlane1FollicleShape5643.ot" "pPlane1Follicle5643.t" -l on;
+connectAttr "pPlane1FollicleShape5643.or" "pPlane1Follicle5643.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape5643.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape5643.inm";
+connectAttr "curveShape36.ws" "pPlane1FollicleShape5643.sp";
+connectAttr "pPlane1FollicleShape5656.ot" "pPlane1Follicle5656.t" -l on;
+connectAttr "pPlane1FollicleShape5656.or" "pPlane1Follicle5656.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape5656.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape5656.inm";
+connectAttr "curveShape37.ws" "pPlane1FollicleShape5656.sp";
+connectAttr "pPlane1FollicleShape5668.ot" "pPlane1Follicle5668.t" -l on;
+connectAttr "pPlane1FollicleShape5668.or" "pPlane1Follicle5668.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape5668.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape5668.inm";
+connectAttr "curveShape38.ws" "pPlane1FollicleShape5668.sp";
+connectAttr "pPlane1FollicleShape5680.ot" "pPlane1Follicle5680.t" -l on;
+connectAttr "pPlane1FollicleShape5680.or" "pPlane1Follicle5680.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape5680.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape5680.inm";
+connectAttr "curveShape39.ws" "pPlane1FollicleShape5680.sp";
+connectAttr "pPlane1FollicleShape5693.ot" "pPlane1Follicle5693.t" -l on;
+connectAttr "pPlane1FollicleShape5693.or" "pPlane1Follicle5693.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape5693.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape5693.inm";
+connectAttr "curveShape40.ws" "pPlane1FollicleShape5693.sp";
+connectAttr "pPlane1FollicleShape6806.ot" "pPlane1Follicle6806.t" -l on;
+connectAttr "pPlane1FollicleShape6806.or" "pPlane1Follicle6806.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape6806.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape6806.inm";
+connectAttr "curveShape41.ws" "pPlane1FollicleShape6806.sp";
+connectAttr "pPlane1FollicleShape6819.ot" "pPlane1Follicle6819.t" -l on;
+connectAttr "pPlane1FollicleShape6819.or" "pPlane1Follicle6819.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape6819.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape6819.inm";
+connectAttr "curveShape42.ws" "pPlane1FollicleShape6819.sp";
+connectAttr "pPlane1FollicleShape6831.ot" "pPlane1Follicle6831.t" -l on;
+connectAttr "pPlane1FollicleShape6831.or" "pPlane1Follicle6831.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape6831.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape6831.inm";
+connectAttr "curveShape43.ws" "pPlane1FollicleShape6831.sp";
+connectAttr "pPlane1FollicleShape6843.ot" "pPlane1Follicle6843.t" -l on;
+connectAttr "pPlane1FollicleShape6843.or" "pPlane1Follicle6843.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape6843.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape6843.inm";
+connectAttr "curveShape44.ws" "pPlane1FollicleShape6843.sp";
+connectAttr "pPlane1FollicleShape6856.ot" "pPlane1Follicle6856.t" -l on;
+connectAttr "pPlane1FollicleShape6856.or" "pPlane1Follicle6856.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape6856.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape6856.inm";
+connectAttr "curveShape45.ws" "pPlane1FollicleShape6856.sp";
+connectAttr "pPlane1FollicleShape6868.ot" "pPlane1Follicle6868.t" -l on;
+connectAttr "pPlane1FollicleShape6868.or" "pPlane1Follicle6868.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape6868.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape6868.inm";
+connectAttr "curveShape46.ws" "pPlane1FollicleShape6868.sp";
+connectAttr "pPlane1FollicleShape6880.ot" "pPlane1Follicle6880.t" -l on;
+connectAttr "pPlane1FollicleShape6880.or" "pPlane1Follicle6880.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape6880.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape6880.inm";
+connectAttr "curveShape47.ws" "pPlane1FollicleShape6880.sp";
+connectAttr "pPlane1FollicleShape6893.ot" "pPlane1Follicle6893.t" -l on;
+connectAttr "pPlane1FollicleShape6893.or" "pPlane1Follicle6893.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape6893.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape6893.inm";
+connectAttr "curveShape48.ws" "pPlane1FollicleShape6893.sp";
+connectAttr "pPlane1FollicleShape8006.ot" "pPlane1Follicle8006.t" -l on;
+connectAttr "pPlane1FollicleShape8006.or" "pPlane1Follicle8006.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape8006.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape8006.inm";
+connectAttr "curveShape49.ws" "pPlane1FollicleShape8006.sp";
+connectAttr "pPlane1FollicleShape8019.ot" "pPlane1Follicle8019.t" -l on;
+connectAttr "pPlane1FollicleShape8019.or" "pPlane1Follicle8019.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape8019.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape8019.inm";
+connectAttr "curveShape50.ws" "pPlane1FollicleShape8019.sp";
+connectAttr "pPlane1FollicleShape8031.ot" "pPlane1Follicle8031.t" -l on;
+connectAttr "pPlane1FollicleShape8031.or" "pPlane1Follicle8031.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape8031.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape8031.inm";
+connectAttr "curveShape51.ws" "pPlane1FollicleShape8031.sp";
+connectAttr "pPlane1FollicleShape8043.ot" "pPlane1Follicle8043.t" -l on;
+connectAttr "pPlane1FollicleShape8043.or" "pPlane1Follicle8043.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape8043.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape8043.inm";
+connectAttr "curveShape52.ws" "pPlane1FollicleShape8043.sp";
+connectAttr "pPlane1FollicleShape8056.ot" "pPlane1Follicle8056.t" -l on;
+connectAttr "pPlane1FollicleShape8056.or" "pPlane1Follicle8056.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape8056.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape8056.inm";
+connectAttr "curveShape53.ws" "pPlane1FollicleShape8056.sp";
+connectAttr "pPlane1FollicleShape8068.ot" "pPlane1Follicle8068.t" -l on;
+connectAttr "pPlane1FollicleShape8068.or" "pPlane1Follicle8068.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape8068.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape8068.inm";
+connectAttr "curveShape54.ws" "pPlane1FollicleShape8068.sp";
+connectAttr "pPlane1FollicleShape8080.ot" "pPlane1Follicle8080.t" -l on;
+connectAttr "pPlane1FollicleShape8080.or" "pPlane1Follicle8080.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape8080.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape8080.inm";
+connectAttr "curveShape55.ws" "pPlane1FollicleShape8080.sp";
+connectAttr "pPlane1FollicleShape8093.ot" "pPlane1Follicle8093.t" -l on;
+connectAttr "pPlane1FollicleShape8093.or" "pPlane1Follicle8093.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape8093.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape8093.inm";
+connectAttr "curveShape56.ws" "pPlane1FollicleShape8093.sp";
+connectAttr "pPlane1FollicleShape9306.ot" "pPlane1Follicle9306.t" -l on;
+connectAttr "pPlane1FollicleShape9306.or" "pPlane1Follicle9306.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape9306.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape9306.inm";
+connectAttr "curveShape57.ws" "pPlane1FollicleShape9306.sp";
+connectAttr "pPlane1FollicleShape9319.ot" "pPlane1Follicle9319.t" -l on;
+connectAttr "pPlane1FollicleShape9319.or" "pPlane1Follicle9319.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape9319.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape9319.inm";
+connectAttr "curveShape58.ws" "pPlane1FollicleShape9319.sp";
+connectAttr "pPlane1FollicleShape9331.ot" "pPlane1Follicle9331.t" -l on;
+connectAttr "pPlane1FollicleShape9331.or" "pPlane1Follicle9331.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape9331.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape9331.inm";
+connectAttr "curveShape59.ws" "pPlane1FollicleShape9331.sp";
+connectAttr "pPlane1FollicleShape9343.ot" "pPlane1Follicle9343.t" -l on;
+connectAttr "pPlane1FollicleShape9343.or" "pPlane1Follicle9343.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape9343.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape9343.inm";
+connectAttr "curveShape60.ws" "pPlane1FollicleShape9343.sp";
+connectAttr "pPlane1FollicleShape9356.ot" "pPlane1Follicle9356.t" -l on;
+connectAttr "pPlane1FollicleShape9356.or" "pPlane1Follicle9356.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape9356.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape9356.inm";
+connectAttr "curveShape61.ws" "pPlane1FollicleShape9356.sp";
+connectAttr "pPlane1FollicleShape9368.ot" "pPlane1Follicle9368.t" -l on;
+connectAttr "pPlane1FollicleShape9368.or" "pPlane1Follicle9368.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape9368.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape9368.inm";
+connectAttr "curveShape62.ws" "pPlane1FollicleShape9368.sp";
+connectAttr "pPlane1FollicleShape9380.ot" "pPlane1Follicle9380.t" -l on;
+connectAttr "pPlane1FollicleShape9380.or" "pPlane1Follicle9380.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape9380.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape9380.inm";
+connectAttr "curveShape63.ws" "pPlane1FollicleShape9380.sp";
+connectAttr "pPlane1FollicleShape9393.ot" "pPlane1Follicle9393.t" -l on;
+connectAttr "pPlane1FollicleShape9393.or" "pPlane1Follicle9393.r" -l on;
+connectAttr "pPlaneShape1.wm" "pPlane1FollicleShape9393.iwm";
+connectAttr "pPlaneShape1.o" "pPlane1FollicleShape9393.inm";
+connectAttr "curveShape64.ws" "pPlane1FollicleShape9393.sp";
+connectAttr "hairSystemShape1.orh" "pfxHairShape1.rhs";
+connectAttr ":time1.o" ":defaultArnoldRenderOptions.aaseed";
 relationship "link" ":lightLinker1" ":initialShadingGroup.message" ":defaultLightSet.message";
 relationship "link" ":lightLinker1" ":initialParticleSE.message" ":defaultLightSet.message";
 relationship "link" ":lightLinker1" "aiStandard1SG.message" ":defaultLightSet.message";
 relationship "shadowLink" ":lightLinker1" ":initialShadingGroup.message" ":defaultLightSet.message";
 relationship "shadowLink" ":lightLinker1" ":initialParticleSE.message" ":defaultLightSet.message";
 relationship "shadowLink" ":lightLinker1" "aiStandard1SG.message" ":defaultLightSet.message";
-connectAttr "layerManager.displayLayerId[0]" "defaultLayer.identification";
-connectAttr "renderLayerManager.renderLayerId[0]" "defaultRenderLayer.identification"
-		;
-connectAttr "aiStandard1.outColor" "aiStandard1SG.surfaceShader";
-connectAttr "pPlaneShape1.instObjGroups" "aiStandard1SG.dagSetMembers" -nextAvailable
-		;
-connectAttr "aiStandard1SG.message" "materialInfo1.shadingGroup";
-connectAttr "aiStandard1.message" "materialInfo1.material";
-connectAttr "aiStandard1.message" "materialInfo1.texture" -nextAvailable;
-connectAttr "aiStandard1SG.partition" ":renderPartition.sets" -nextAvailable;
-connectAttr "aiStandard1.message" ":defaultShaderList1.shaders" -nextAvailable;
-connectAttr "directionalLightShape1.lightData" ":lightList1.lights" -nextAvailable
-		;
-connectAttr "directionalLight1.instObjGroups" ":defaultLightSet.dagSetMembers" -nextAvailable
-		;
+connectAttr "layerManager.dli[0]" "defaultLayer.id";
+connectAttr "renderLayerManager.rlmi[0]" "defaultRenderLayer.rlid";
+connectAttr "aiStandard1.out" "aiStandard1SG.ss";
+connectAttr "pPlaneShape1.iog" "aiStandard1SG.dsm" -na;
+connectAttr "aiStandard1SG.msg" "materialInfo1.sg";
+connectAttr "aiStandard1.msg" "materialInfo1.m";
+connectAttr "aiStandard1.msg" "materialInfo1.t" -na;
+connectAttr "aiStandard1SG.pa" ":renderPartition.st" -na;
+connectAttr "aiStandard1.msg" ":defaultShaderList1.s" -na;
+connectAttr "directionalLightShape1.ltd" ":lightList1.l" -na;
+connectAttr "directionalLight1.iog" ":defaultLightSet.dsm" -na;
 // End of test.ma

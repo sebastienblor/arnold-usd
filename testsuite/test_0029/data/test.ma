@@ -1,635 +1,521 @@
 //Maya ASCII 2011 scene
 //Name: test.ma
-//Last modified: Mon, Jul 18, 2011 06:30:02 PM
+//Last modified: Tue, Aug 09, 2011 05:53:32 PM
 //Codeset: UTF-8
 requires maya "2011";
-requires "shaveNode" "1.0";
-requires "mtoa" "0.9.0";
-currentUnit -linear centimeter -angle degree -time film;
+requires "shaveNode" "1.1";
+requires "mtoa" "0.10.0";
+requires "stereoCamera" "10.0";
+currentUnit -l centimeter -a degree -t film;
 fileInfo "application" "maya";
 fileInfo "product" "Maya 2011";
 fileInfo "version" "2011 x64";
 fileInfo "cutIdentifier" "201009060248-781623";
-fileInfo "osv" "Linux 2.6.18-194.32.1.el5 #1 SMP Wed Jan 5 17:52:25 EST 2011 x86_64";
-createNode transform -shared -name "persp";
-	setAttr ".visibility" no;
-	setAttr ".translate" -type "double3" 3.118014735719032 2.3385110070856787 3.1180147059167096 ;
-	setAttr ".rotate" -type "double3" -27.938352729602322 45.000000000000007 -2.2489917831974721e-15 ;
-createNode camera -shared -name "perspShape" -parent "persp";
-	addAttr -cachedInternally true -keyable true -shortName "ai_filtermap" -longName "aiFiltermap" 
-		-attributeType "message";
-	addAttr -cachedInternally true -keyable true -shortName "ai_horizontal_fov" -longName "aiHorizontalFov" 
-		-defaultValue 60 -minValue 0 -maxValue 1000000000 -softMaxValue 360 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_vertical_fov" -longName "aiVerticalFov" 
-		-defaultValue 90 -minValue 0 -maxValue 1000000000 -softMaxValue 180 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_projective" -longName "aiProjective" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_focus_distance" -longName "aiFocusDistance" 
-		-defaultValue 1 -minValue 0 -maxValue 1000000000 -softMinValue 0 -softMaxValue 200 
-		-attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_aperture_size" -longName "aiApertureSize" 
-		-minValue 0 -maxValue 20 -softMinValue 0 -softMaxValue 1 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_aperture_blades" -longName "aiApertureBlades" 
-		-minValue 3 -maxValue 40 -attributeType "long";
-	addAttr -cachedInternally true -keyable true -shortName "ai_aperture_blade_curvature" 
-		-longName "aiApertureBladeCurvature" -minValue -20 -maxValue 20 -softMinValue -5 
-		-softMaxValue 5 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_aperture_rotation" -longName "aiApertureRotation" 
-		-minValue 0 -maxValue 360 -softMinValue 0 -softMaxValue 50 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_edof" -longName "aiEnableDOF" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_fov" -longName "aiFov" 
-		-defaultValue 90 -minValue 0 -maxValue 1000000000 -softMaxValue 360 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_autocrop" -longName "aiAutocrop" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -usedAsColor -keyable true -shortName "ai_uv_remap" 
-		-longName "aiUvRemap" -attributeType "float3" -numberOfChildren 3;
-	addAttr -cachedInternally true -keyable true -shortName "ai_uv_remapr" -longName "aiUvRemapR" 
-		-attributeType "float" -parent "aiUvRemap";
-	addAttr -cachedInternally true -keyable true -shortName "ai_uv_remapg" -longName "aiUvRemapG" 
-		-attributeType "float" -parent "aiUvRemap";
-	addAttr -cachedInternally true -keyable true -shortName "ai_uv_remapb" -longName "aiUvRemapB" 
-		-attributeType "float" -parent "aiUvRemap";
-	addAttr -cachedInternally true -hidden true -keyable true -shortName "ai_uv_remapa" 
-		-longName "aiUvRemapA" -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_translator" -longName "aiTranslator" 
-		-dataType "string";
-	addAttr -cachedInternally true -keyable true -shortName "filtermap" -longName "filtermap" 
-		-attributeType "message";
-	addAttr -cachedInternally true -keyable true -shortName "focal_distance" -longName "focalDistance" 
-		-defaultValue 5 -minValue 0 -maxValue 1000000000 -softMinValue 0 -softMaxValue 200 
-		-attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "aperture_size" -longName "apertureSize" 
-		-defaultValue 0.20000000298023224 -minValue 0 -maxValue 20 -softMinValue 0 -softMaxValue 
-		0.5 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "aperture_blades" -longName "apertureBlades" 
-		-defaultValue 6 -minValue 3 -maxValue 40 -attributeType "long";
-	addAttr -cachedInternally true -keyable true -shortName "aperture_blade_curvature" 
-		-longName "apertureBladeCurvature" -minValue -20 -maxValue 20 -softMinValue -5 -softMaxValue 
-		5 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "aperture_rotation" -longName "apertureRotation" 
-		-minValue 0 -maxValue 360 -softMinValue 0 -softMaxValue 50 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "edof" -longName "enableDOF" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -usedAsColor -keyable true -shortName "uv_remap" 
-		-longName "uvRemap" -attributeType "float3" -numberOfChildren 3;
-	addAttr -cachedInternally true -keyable true -shortName "uv_remapr" -longName "uvRemapR" 
-		-attributeType "float" -parent "uvRemap";
-	addAttr -cachedInternally true -keyable true -shortName "uv_remapg" -longName "uvRemapG" 
-		-attributeType "float" -parent "uvRemap";
-	addAttr -cachedInternally true -keyable true -shortName "uv_remapb" -longName "uvRemapB" 
-		-attributeType "float" -parent "uvRemap";
-	addAttr -cachedInternally true -hidden true -keyable true -shortName "uv_remapa" 
-		-longName "uvRemapA" -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "arntr" -longName "arnoldTranslator" 
-		-dataType "string";
-	addAttr -cachedInternally true -keyable true -shortName "fov" -longName "fov" -defaultValue 
-		90 -minValue 0 -maxValue 1000000000 -softMaxValue 360 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "autocrop" -longName "autocrop" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "horizontal_fov" -longName "horizontalFov" 
-		-defaultValue 60 -minValue 0 -maxValue 1000000000 -softMaxValue 360 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "vertical_fov" -longName "verticalFov" 
-		-defaultValue 90 -minValue 0 -maxValue 1000000000 -softMaxValue 180 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "projective" -longName "projective" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	setAttr -keyable off ".visibility" no;
-	setAttr ".overscan" 1.3;
-	setAttr ".focalLength" 34.999999999999986;
-	setAttr ".centerOfInterest" 4.9912588363244321;
-	setAttr ".imageName" -type "string" "persp";
-	setAttr ".depthName" -type "string" "persp_depth";
-	setAttr ".maskName" -type "string" "persp_mask";
-	setAttr ".tumblePivot" -type "double3" 5.9604644775390625e-08 0 2.9802322387695312e-08 ;
-	setAttr ".homeCommand" -type "string" "viewSet -p %camera";
-	setAttr ".displayResolution" yes;
-	setAttr -keyable on ".aiTranslator" -type "string" "perspective";
-	setAttr -keyable on ".arnoldTranslator" -type "string" "perspective";
-createNode transform -shared -name "top";
-	setAttr ".visibility" no;
-	setAttr ".translate" -type "double3" 0 1000.1 0 ;
-	setAttr ".rotate" -type "double3" -89.999999999999986 0 0 ;
-createNode camera -shared -name "topShape" -parent "top";
-	addAttr -cachedInternally true -keyable true -shortName "ai_filtermap" -longName "aiFiltermap" 
-		-attributeType "message";
-	addAttr -cachedInternally true -keyable true -shortName "ai_horizontal_fov" -longName "aiHorizontalFov" 
-		-defaultValue 60 -minValue 0 -maxValue 1000000000 -softMaxValue 360 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_vertical_fov" -longName "aiVerticalFov" 
-		-defaultValue 90 -minValue 0 -maxValue 1000000000 -softMaxValue 180 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_projective" -longName "aiProjective" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_focus_distance" -longName "aiFocusDistance" 
-		-defaultValue 1 -minValue 0 -maxValue 1000000000 -softMinValue 0 -softMaxValue 200 
-		-attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_aperture_size" -longName "aiApertureSize" 
-		-minValue 0 -maxValue 20 -softMinValue 0 -softMaxValue 1 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_aperture_blades" -longName "aiApertureBlades" 
-		-minValue 3 -maxValue 40 -attributeType "long";
-	addAttr -cachedInternally true -keyable true -shortName "ai_aperture_blade_curvature" 
-		-longName "aiApertureBladeCurvature" -minValue -20 -maxValue 20 -softMinValue -5 
-		-softMaxValue 5 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_aperture_rotation" -longName "aiApertureRotation" 
-		-minValue 0 -maxValue 360 -softMinValue 0 -softMaxValue 50 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_edof" -longName "aiEnableDOF" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_fov" -longName "aiFov" 
-		-defaultValue 90 -minValue 0 -maxValue 1000000000 -softMaxValue 360 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_autocrop" -longName "aiAutocrop" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -usedAsColor -keyable true -shortName "ai_uv_remap" 
-		-longName "aiUvRemap" -attributeType "float3" -numberOfChildren 3;
-	addAttr -cachedInternally true -keyable true -shortName "ai_uv_remapr" -longName "aiUvRemapR" 
-		-attributeType "float" -parent "aiUvRemap";
-	addAttr -cachedInternally true -keyable true -shortName "ai_uv_remapg" -longName "aiUvRemapG" 
-		-attributeType "float" -parent "aiUvRemap";
-	addAttr -cachedInternally true -keyable true -shortName "ai_uv_remapb" -longName "aiUvRemapB" 
-		-attributeType "float" -parent "aiUvRemap";
-	addAttr -cachedInternally true -hidden true -keyable true -shortName "ai_uv_remapa" 
-		-longName "aiUvRemapA" -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_translator" -longName "aiTranslator" 
-		-dataType "string";
-	addAttr -cachedInternally true -keyable true -shortName "filtermap" -longName "filtermap" 
-		-attributeType "message";
-	addAttr -cachedInternally true -keyable true -shortName "focal_distance" -longName "focalDistance" 
-		-defaultValue 5 -minValue 0 -maxValue 1000000000 -softMinValue 0 -softMaxValue 200 
-		-attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "aperture_size" -longName "apertureSize" 
-		-defaultValue 0.20000000298023224 -minValue 0 -maxValue 20 -softMinValue 0 -softMaxValue 
-		0.5 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "aperture_blades" -longName "apertureBlades" 
-		-defaultValue 6 -minValue 3 -maxValue 40 -attributeType "long";
-	addAttr -cachedInternally true -keyable true -shortName "aperture_blade_curvature" 
-		-longName "apertureBladeCurvature" -minValue -20 -maxValue 20 -softMinValue -5 -softMaxValue 
-		5 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "aperture_rotation" -longName "apertureRotation" 
-		-minValue 0 -maxValue 360 -softMinValue 0 -softMaxValue 50 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "edof" -longName "enableDOF" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -usedAsColor -keyable true -shortName "uv_remap" 
-		-longName "uvRemap" -attributeType "float3" -numberOfChildren 3;
-	addAttr -cachedInternally true -keyable true -shortName "uv_remapr" -longName "uvRemapR" 
-		-attributeType "float" -parent "uvRemap";
-	addAttr -cachedInternally true -keyable true -shortName "uv_remapg" -longName "uvRemapG" 
-		-attributeType "float" -parent "uvRemap";
-	addAttr -cachedInternally true -keyable true -shortName "uv_remapb" -longName "uvRemapB" 
-		-attributeType "float" -parent "uvRemap";
-	addAttr -cachedInternally true -hidden true -keyable true -shortName "uv_remapa" 
-		-longName "uvRemapA" -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "arntr" -longName "arnoldTranslator" 
-		-dataType "string";
-	addAttr -cachedInternally true -keyable true -shortName "fov" -longName "fov" -defaultValue 
-		90 -minValue 0 -maxValue 1000000000 -softMaxValue 360 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "autocrop" -longName "autocrop" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "horizontal_fov" -longName "horizontalFov" 
-		-defaultValue 60 -minValue 0 -maxValue 1000000000 -softMaxValue 360 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "vertical_fov" -longName "verticalFov" 
-		-defaultValue 90 -minValue 0 -maxValue 1000000000 -softMaxValue 180 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "projective" -longName "projective" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	setAttr -keyable off ".visibility" no;
-	setAttr ".renderable" no;
-	setAttr ".centerOfInterest" 1000.1;
-	setAttr ".orthographicWidth" 30;
-	setAttr ".imageName" -type "string" "top";
-	setAttr ".depthName" -type "string" "top_depth";
-	setAttr ".maskName" -type "string" "top_mask";
-	setAttr ".homeCommand" -type "string" "viewSet -t %camera";
-	setAttr ".orthographic" yes;
-	setAttr -keyable on ".aiTranslator" -type "string" "orthographic";
-	setAttr -keyable on ".arnoldTranslator" -type "string" "orthographic";
-createNode transform -shared -name "front";
-	setAttr ".visibility" no;
-	setAttr ".translate" -type "double3" 0 0 1000.1 ;
-createNode camera -shared -name "frontShape" -parent "front";
-	addAttr -cachedInternally true -keyable true -shortName "ai_filtermap" -longName "aiFiltermap" 
-		-attributeType "message";
-	addAttr -cachedInternally true -keyable true -shortName "ai_horizontal_fov" -longName "aiHorizontalFov" 
-		-defaultValue 60 -minValue 0 -maxValue 1000000000 -softMaxValue 360 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_vertical_fov" -longName "aiVerticalFov" 
-		-defaultValue 90 -minValue 0 -maxValue 1000000000 -softMaxValue 180 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_projective" -longName "aiProjective" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_focus_distance" -longName "aiFocusDistance" 
-		-defaultValue 1 -minValue 0 -maxValue 1000000000 -softMinValue 0 -softMaxValue 200 
-		-attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_aperture_size" -longName "aiApertureSize" 
-		-minValue 0 -maxValue 20 -softMinValue 0 -softMaxValue 1 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_aperture_blades" -longName "aiApertureBlades" 
-		-minValue 3 -maxValue 40 -attributeType "long";
-	addAttr -cachedInternally true -keyable true -shortName "ai_aperture_blade_curvature" 
-		-longName "aiApertureBladeCurvature" -minValue -20 -maxValue 20 -softMinValue -5 
-		-softMaxValue 5 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_aperture_rotation" -longName "aiApertureRotation" 
-		-minValue 0 -maxValue 360 -softMinValue 0 -softMaxValue 50 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_edof" -longName "aiEnableDOF" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_fov" -longName "aiFov" 
-		-defaultValue 90 -minValue 0 -maxValue 1000000000 -softMaxValue 360 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_autocrop" -longName "aiAutocrop" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -usedAsColor -keyable true -shortName "ai_uv_remap" 
-		-longName "aiUvRemap" -attributeType "float3" -numberOfChildren 3;
-	addAttr -cachedInternally true -keyable true -shortName "ai_uv_remapr" -longName "aiUvRemapR" 
-		-attributeType "float" -parent "aiUvRemap";
-	addAttr -cachedInternally true -keyable true -shortName "ai_uv_remapg" -longName "aiUvRemapG" 
-		-attributeType "float" -parent "aiUvRemap";
-	addAttr -cachedInternally true -keyable true -shortName "ai_uv_remapb" -longName "aiUvRemapB" 
-		-attributeType "float" -parent "aiUvRemap";
-	addAttr -cachedInternally true -hidden true -keyable true -shortName "ai_uv_remapa" 
-		-longName "aiUvRemapA" -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_translator" -longName "aiTranslator" 
-		-dataType "string";
-	addAttr -cachedInternally true -keyable true -shortName "filtermap" -longName "filtermap" 
-		-attributeType "message";
-	addAttr -cachedInternally true -keyable true -shortName "focal_distance" -longName "focalDistance" 
-		-defaultValue 5 -minValue 0 -maxValue 1000000000 -softMinValue 0 -softMaxValue 200 
-		-attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "aperture_size" -longName "apertureSize" 
-		-defaultValue 0.20000000298023224 -minValue 0 -maxValue 20 -softMinValue 0 -softMaxValue 
-		0.5 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "aperture_blades" -longName "apertureBlades" 
-		-defaultValue 6 -minValue 3 -maxValue 40 -attributeType "long";
-	addAttr -cachedInternally true -keyable true -shortName "aperture_blade_curvature" 
-		-longName "apertureBladeCurvature" -minValue -20 -maxValue 20 -softMinValue -5 -softMaxValue 
-		5 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "aperture_rotation" -longName "apertureRotation" 
-		-minValue 0 -maxValue 360 -softMinValue 0 -softMaxValue 50 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "edof" -longName "enableDOF" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -usedAsColor -keyable true -shortName "uv_remap" 
-		-longName "uvRemap" -attributeType "float3" -numberOfChildren 3;
-	addAttr -cachedInternally true -keyable true -shortName "uv_remapr" -longName "uvRemapR" 
-		-attributeType "float" -parent "uvRemap";
-	addAttr -cachedInternally true -keyable true -shortName "uv_remapg" -longName "uvRemapG" 
-		-attributeType "float" -parent "uvRemap";
-	addAttr -cachedInternally true -keyable true -shortName "uv_remapb" -longName "uvRemapB" 
-		-attributeType "float" -parent "uvRemap";
-	addAttr -cachedInternally true -hidden true -keyable true -shortName "uv_remapa" 
-		-longName "uvRemapA" -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "arntr" -longName "arnoldTranslator" 
-		-dataType "string";
-	addAttr -cachedInternally true -keyable true -shortName "fov" -longName "fov" -defaultValue 
-		90 -minValue 0 -maxValue 1000000000 -softMaxValue 360 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "autocrop" -longName "autocrop" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "horizontal_fov" -longName "horizontalFov" 
-		-defaultValue 60 -minValue 0 -maxValue 1000000000 -softMaxValue 360 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "vertical_fov" -longName "verticalFov" 
-		-defaultValue 90 -minValue 0 -maxValue 1000000000 -softMaxValue 180 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "projective" -longName "projective" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	setAttr -keyable off ".visibility" no;
-	setAttr ".renderable" no;
-	setAttr ".centerOfInterest" 1000.1;
-	setAttr ".orthographicWidth" 30;
-	setAttr ".imageName" -type "string" "front";
-	setAttr ".depthName" -type "string" "front_depth";
-	setAttr ".maskName" -type "string" "front_mask";
-	setAttr ".homeCommand" -type "string" "viewSet -f %camera";
-	setAttr ".orthographic" yes;
-	setAttr -keyable on ".aiTranslator" -type "string" "orthographic";
-	setAttr -keyable on ".arnoldTranslator" -type "string" "orthographic";
-createNode transform -shared -name "side";
-	setAttr ".visibility" no;
-	setAttr ".translate" -type "double3" 1000.1 0 0 ;
-	setAttr ".rotate" -type "double3" 0 89.999999999999986 0 ;
-createNode camera -shared -name "sideShape" -parent "side";
-	addAttr -cachedInternally true -keyable true -shortName "ai_filtermap" -longName "aiFiltermap" 
-		-attributeType "message";
-	addAttr -cachedInternally true -keyable true -shortName "ai_horizontal_fov" -longName "aiHorizontalFov" 
-		-defaultValue 60 -minValue 0 -maxValue 1000000000 -softMaxValue 360 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_vertical_fov" -longName "aiVerticalFov" 
-		-defaultValue 90 -minValue 0 -maxValue 1000000000 -softMaxValue 180 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_projective" -longName "aiProjective" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_focus_distance" -longName "aiFocusDistance" 
-		-defaultValue 1 -minValue 0 -maxValue 1000000000 -softMinValue 0 -softMaxValue 200 
-		-attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_aperture_size" -longName "aiApertureSize" 
-		-minValue 0 -maxValue 20 -softMinValue 0 -softMaxValue 1 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_aperture_blades" -longName "aiApertureBlades" 
-		-minValue 3 -maxValue 40 -attributeType "long";
-	addAttr -cachedInternally true -keyable true -shortName "ai_aperture_blade_curvature" 
-		-longName "aiApertureBladeCurvature" -minValue -20 -maxValue 20 -softMinValue -5 
-		-softMaxValue 5 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_aperture_rotation" -longName "aiApertureRotation" 
-		-minValue 0 -maxValue 360 -softMinValue 0 -softMaxValue 50 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_edof" -longName "aiEnableDOF" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_fov" -longName "aiFov" 
-		-defaultValue 90 -minValue 0 -maxValue 1000000000 -softMaxValue 360 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_autocrop" -longName "aiAutocrop" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -usedAsColor -keyable true -shortName "ai_uv_remap" 
-		-longName "aiUvRemap" -attributeType "float3" -numberOfChildren 3;
-	addAttr -cachedInternally true -keyable true -shortName "ai_uv_remapr" -longName "aiUvRemapR" 
-		-attributeType "float" -parent "aiUvRemap";
-	addAttr -cachedInternally true -keyable true -shortName "ai_uv_remapg" -longName "aiUvRemapG" 
-		-attributeType "float" -parent "aiUvRemap";
-	addAttr -cachedInternally true -keyable true -shortName "ai_uv_remapb" -longName "aiUvRemapB" 
-		-attributeType "float" -parent "aiUvRemap";
-	addAttr -cachedInternally true -hidden true -keyable true -shortName "ai_uv_remapa" 
-		-longName "aiUvRemapA" -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_translator" -longName "aiTranslator" 
-		-dataType "string";
-	addAttr -cachedInternally true -keyable true -shortName "filtermap" -longName "filtermap" 
-		-attributeType "message";
-	addAttr -cachedInternally true -keyable true -shortName "focal_distance" -longName "focalDistance" 
-		-defaultValue 5 -minValue 0 -maxValue 1000000000 -softMinValue 0 -softMaxValue 200 
-		-attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "aperture_size" -longName "apertureSize" 
-		-defaultValue 0.20000000298023224 -minValue 0 -maxValue 20 -softMinValue 0 -softMaxValue 
-		0.5 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "aperture_blades" -longName "apertureBlades" 
-		-defaultValue 6 -minValue 3 -maxValue 40 -attributeType "long";
-	addAttr -cachedInternally true -keyable true -shortName "aperture_blade_curvature" 
-		-longName "apertureBladeCurvature" -minValue -20 -maxValue 20 -softMinValue -5 -softMaxValue 
-		5 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "aperture_rotation" -longName "apertureRotation" 
-		-minValue 0 -maxValue 360 -softMinValue 0 -softMaxValue 50 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "edof" -longName "enableDOF" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -usedAsColor -keyable true -shortName "uv_remap" 
-		-longName "uvRemap" -attributeType "float3" -numberOfChildren 3;
-	addAttr -cachedInternally true -keyable true -shortName "uv_remapr" -longName "uvRemapR" 
-		-attributeType "float" -parent "uvRemap";
-	addAttr -cachedInternally true -keyable true -shortName "uv_remapg" -longName "uvRemapG" 
-		-attributeType "float" -parent "uvRemap";
-	addAttr -cachedInternally true -keyable true -shortName "uv_remapb" -longName "uvRemapB" 
-		-attributeType "float" -parent "uvRemap";
-	addAttr -cachedInternally true -hidden true -keyable true -shortName "uv_remapa" 
-		-longName "uvRemapA" -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "arntr" -longName "arnoldTranslator" 
-		-dataType "string";
-	addAttr -cachedInternally true -keyable true -shortName "fov" -longName "fov" -defaultValue 
-		90 -minValue 0 -maxValue 1000000000 -softMaxValue 360 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "autocrop" -longName "autocrop" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "horizontal_fov" -longName "horizontalFov" 
-		-defaultValue 60 -minValue 0 -maxValue 1000000000 -softMaxValue 360 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "vertical_fov" -longName "verticalFov" 
-		-defaultValue 90 -minValue 0 -maxValue 1000000000 -softMaxValue 180 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "projective" -longName "projective" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	setAttr -keyable off ".visibility" no;
-	setAttr ".renderable" no;
-	setAttr ".centerOfInterest" 1000.1;
-	setAttr ".orthographicWidth" 30;
-	setAttr ".imageName" -type "string" "side";
-	setAttr ".depthName" -type "string" "side_depth";
-	setAttr ".maskName" -type "string" "side_mask";
-	setAttr ".homeCommand" -type "string" "viewSet -s %camera";
-	setAttr ".orthographic" yes;
-	setAttr -keyable on ".aiTranslator" -type "string" "orthographic";
-	setAttr -keyable on ".arnoldTranslator" -type "string" "orthographic";
-createNode transform -name "pSphere1";
-createNode mesh -name "pSphereShape1" -parent "pSphere1";
-	addAttr -cachedInternally true -keyable true -shortName "ai_sss_use_gi" -longName "aiSssUseGi" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -shortName "ai_sss_sample_distribution" -longName "aiSssSampleDistribution" 
-		-minValue 0 -maxValue 3 -enumName "blue_noise:blue_noise_Pref:triangle_midpoint:polygon_midpoint" 
-		-attributeType "enum";
-	addAttr -cachedInternally true -keyable true -shortName "ai_sss_sample_spacing" 
-		-longName "aiSssSampleSpacing" -defaultValue 0.10000000149011612 -minValue 0 -softMaxValue 
-		1 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_self_shadows" -longName "aiSelfShadows" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_opaque" -longName "aiOpaque" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_vid" -longName "aiVisibleInDiffuse" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_vig" -longName "aiVisibleInGlossy" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -shortName "ai_subdiv_type" -longName "aiSubdivType" 
-		-minValue 0 -maxValue 2 -enumName "none:catclark:linear" -attributeType "enum";
-	addAttr -cachedInternally true -keyable true -shortName "ai_subdiv_iterations" -longName "aiSubdivIterations" 
-		-defaultValue 1 -minValue 0 -maxValue 100 -softMinValue 0 -softMaxValue 10 -attributeType "long";
-	addAttr -cachedInternally true -shortName "ai_subdiv_adaptive_metric" -longName "aiSubdivAdaptiveMetric" 
-		-minValue 0 -maxValue 2 -enumName "auto:edge_length:flatness" -attributeType "enum";
-	addAttr -cachedInternally true -keyable true -shortName "ai_subdiv_pixel_error" 
-		-longName "aiSubdivPixelError" -minValue 0 -softMaxValue 10 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_subdiv_dicing_camera" 
-		-longName "aiSubdivDicingCamera" -attributeType "message";
-	addAttr -cachedInternally true -shortName "ai_subdiv_uv_smoothing" -longName "aiSubdivUvSmoothing" 
-		-minValue 0 -maxValue 3 -enumName "pin_corners:pin_borders:linear:smooth" -attributeType "enum";
-	addAttr -cachedInternally true -keyable true -shortName "ai_exptan" -longName "aiExportTangents" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_expcol" -longName "aiExportColors" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_sss_max_samples" -longName "aiSssMaxSamples" 
-		-defaultValue 100000 -minValue 0 -softMaxValue 1000000 -attributeType "long";
-	addAttr -cachedInternally true -shortName "mso" -longName "miShadingSamplesOverride" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -shortName "msh" -longName "miShadingSamples" -minValue 
-		0 -softMaxValue 8 -attributeType "float";
-	addAttr -cachedInternally true -shortName "mdo" -longName "miMaxDisplaceOverride" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -shortName "mmd" -longName "miMaxDisplace" -minValue 
-		0 -softMaxValue 1 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "sss_use_gi" -longName "sssUseGi" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "sss_max_samples" -longName "sssMaxSamples" 
-		-defaultValue 100000 -minValue 0 -softMaxValue 1000000 -attributeType "long";
-	addAttr -cachedInternally true -keyable true -shortName "sss_sample_spacing" -longName "sssSampleSpacing" 
-		-defaultValue 0.10000000149011612 -minValue 0 -softMaxValue 1 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "self_shadows" -longName "selfShadows" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "opaque" -longName "opaque" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "vid" -longName "visibleInDiffuse" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "vig" -longName "visibleInGlossy" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -shortName "subdiv_type" -longName "subdivType" -minValue 
-		0 -maxValue 2 -enumName "none:catclark:linear" -attributeType "enum";
-	addAttr -cachedInternally true -keyable true -shortName "subdiv_iterations" -longName "subdivIterations" 
-		-defaultValue 1 -minValue 0 -maxValue 100 -softMinValue 0 -softMaxValue 10 -attributeType "long";
-	addAttr -cachedInternally true -shortName "subdiv_adaptive_metric" -longName "subdivAdaptiveMetric" 
-		-minValue 0 -maxValue 2 -enumName "auto:edge_length:flatness" -attributeType "enum";
-	addAttr -cachedInternally true -keyable true -shortName "subdiv_pixel_error" -longName "subdivPixelError" 
-		-minValue 0 -softMaxValue 10 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "subdiv_dicing_camera" -longName "subdivDicingCamera" 
-		-attributeType "message";
-	addAttr -cachedInternally true -shortName "subdiv_uv_smoothing" -longName "subdivUvSmoothing" 
-		-minValue 0 -maxValue 3 -enumName "pin_corners:pin_borders:linear:smooth" -attributeType "enum";
-	addAttr -cachedInternally true -keyable true -shortName "exptan" -longName "exportTangents" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "expcol" -longName "exportColors" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	setAttr -keyable off ".visibility";
-	setAttr ".visibleInReflections" yes;
-	setAttr ".visibleInRefractions" yes;
-	setAttr ".uvSet[0].uvSetName" -type "string" "map1";
-	setAttr ".currentUVSet" -type "string" "map1";
-	setAttr ".displayColorChannel" -type "string" "Ambient+Diffuse";
-	setAttr ".collisionOffsetVelocityMultiplier[0]"  0 1 1;
-	setAttr ".collisionDepthVelocityMultiplier[0]"  0 1 1;
-createNode transform -name "shaveDisplayGroup";
-createNode transform -name "shavedisplay" -parent "shaveDisplayGroup";
-	setAttr -lock on ".translate";
-	setAttr -lock on ".rotate";
-	setAttr -lock on ".scale";
-createNode mesh -name "shaveDisplayShape" -parent "shavedisplay";
-	addAttr -cachedInternally true -keyable true -shortName "ai_sss_use_gi" -longName "aiSssUseGi" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -shortName "ai_sss_sample_distribution" -longName "aiSssSampleDistribution" 
-		-minValue 0 -maxValue 3 -enumName "blue_noise:blue_noise_Pref:triangle_midpoint:polygon_midpoint" 
-		-attributeType "enum";
-	addAttr -cachedInternally true -keyable true -shortName "ai_sss_sample_spacing" 
-		-longName "aiSssSampleSpacing" -defaultValue 0.10000000149011612 -minValue 0 -softMaxValue 
-		1 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_self_shadows" -longName "aiSelfShadows" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_opaque" -longName "aiOpaque" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_vid" -longName "aiVisibleInDiffuse" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_vig" -longName "aiVisibleInGlossy" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -shortName "ai_subdiv_type" -longName "aiSubdivType" 
-		-minValue 0 -maxValue 2 -enumName "none:catclark:linear" -attributeType "enum";
-	addAttr -cachedInternally true -keyable true -shortName "ai_subdiv_iterations" -longName "aiSubdivIterations" 
-		-defaultValue 1 -minValue 0 -maxValue 100 -softMinValue 0 -softMaxValue 10 -attributeType "long";
-	addAttr -cachedInternally true -shortName "ai_subdiv_adaptive_metric" -longName "aiSubdivAdaptiveMetric" 
-		-minValue 0 -maxValue 2 -enumName "auto:edge_length:flatness" -attributeType "enum";
-	addAttr -cachedInternally true -keyable true -shortName "ai_subdiv_pixel_error" 
-		-longName "aiSubdivPixelError" -minValue 0 -softMaxValue 10 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_subdiv_dicing_camera" 
-		-longName "aiSubdivDicingCamera" -attributeType "message";
-	addAttr -cachedInternally true -shortName "ai_subdiv_uv_smoothing" -longName "aiSubdivUvSmoothing" 
-		-minValue 0 -maxValue 3 -enumName "pin_corners:pin_borders:linear:smooth" -attributeType "enum";
-	addAttr -cachedInternally true -keyable true -shortName "ai_exptan" -longName "aiExportTangents" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_expcol" -longName "aiExportColors" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_sss_max_samples" -longName "aiSssMaxSamples" 
-		-defaultValue 100000 -minValue 0 -softMaxValue 1000000 -attributeType "long";
-	setAttr -keyable off ".visibility";
-	setAttr ".template" yes;
-	setAttr ".visibleInReflections" yes;
-	setAttr ".visibleInRefractions" yes;
-	setAttr ".uvSet[0].uvSetName" -type "string" "map1";
-	setAttr ".currentUVSet" -type "string" "map1";
-	setAttr ".displayColorChannel" -type "string" "Ambient+Diffuse";
-	setAttr ".collisionOffsetVelocityMultiplier[0]"  0 1 1;
-	setAttr ".collisionDepthVelocityMultiplier[0]"  0 1 1;
-createNode transform -name "shaveHair1";
-createNode shaveHair -name "shaveHairShape1" -parent "shaveHair1";
-	addAttr -cachedInternally true -keyable true -shortName "ai_sss_use_gi" -longName "aiSssUseGi" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -shortName "ai_sss_sample_distribution" -longName "aiSssSampleDistribution" 
-		-minValue 0 -maxValue 3 -enumName "blue_noise:blue_noise_Pref:triangle_midpoint:polygon_midpoint" 
-		-attributeType "enum";
-	addAttr -cachedInternally true -keyable true -shortName "ai_sss_sample_spacing" 
-		-longName "aiSssSampleSpacing" -defaultValue 0.10000000149011612 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_self_shadows" -longName "aiSelfShadows" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_opaque" -longName "aiOpaque" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_vid" -longName "aiVisibleInDiffuse" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_vig" -longName "aiVisibleInGlossy" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_min_pixel_width" -longName "aiMinPixelWidth" 
-		-attributeType "float";
-	addAttr -cachedInternally true -shortName "ai_mode" -longName "aiMode" -minValue 
-		0 -maxValue 1 -enumName "ribbon:thick" -attributeType "enum";
-	addAttr -cachedInternally true -keyable true -shortName "ai_export_hair_colours" 
-		-longName "aiExportHairColors" -defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_export_hair_ids" -longName "aiExportHairIDs" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_override_hair" -longName "aiOverrideHair" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_hair_shader" -longName "aiHairShader" 
-		-attributeType "message";
-	addAttr -cachedInternally true -keyable true -shortName "ai_sss_max_samples" -longName "aiSssMaxSamples" 
-		-defaultValue 100000 -attributeType "long";
-	setAttr ".caching" no;
-	setAttr ".isHistoricallyInteresting" 2;
-	setAttr ".nodeState" 0;
-	setAttr ".isCollapsed" no;
-	setAttr ".blackBox" no;
-	setAttr ".iconName" -type "string" "";
-	setAttr ".viewMode" 2;
-	setAttr ".templateVersion" 0;
-	setAttr ".uiTreatment" 0;
-	setAttr -keyable off ".visibility" yes;
-	setAttr ".intermediateObject" no;
-	setAttr ".template" no;
-	setAttr ".ghosting" no;
-	setAttr ".useObjectColor" no;
-	setAttr ".objectColor" 0;
-	setAttr ".overrideDisplayType" 0;
-	setAttr ".overrideLevelOfDetail" 0;
-	setAttr ".overrideShading" yes;
-	setAttr ".overrideTexturing" yes;
-	setAttr ".overridePlayback" yes;
-	setAttr ".overrideEnabled" no;
-	setAttr ".overrideVisibility" yes;
-	setAttr ".overrideColor" 0;
-	setAttr ".lodVisibility" yes;
-	setAttr ".identification" 0;
-	setAttr ".layerRenderable" yes;
-	setAttr ".layerOverrideColor" 0;
-	setAttr ".ghostingControl" 0;
-	setAttr ".ghostPreSteps" 3;
-	setAttr ".ghostPostSteps" 3;
-	setAttr ".ghostStepSize" 1;
-	setAttr ".ghostRangeStart" 0;
-	setAttr ".ghostRangeEnd" 100;
-	setAttr ".renderType" 0;
-	setAttr ".renderVolume" no;
-	setAttr ".visibleFraction" 1;
-	setAttr ".motionBlur" yes;
-	setAttr ".visibleInReflections" no;
-	setAttr ".visibleInRefractions" no;
-	setAttr ".castsShadows" yes;
-	setAttr ".receiveShadows" yes;
-	setAttr ".maxVisibilitySamplesOverride" no;
-	setAttr ".maxVisibilitySamples" 1;
-	setAttr ".geometryAntialiasingOverride" no;
-	setAttr ".antialiasingLevel" 1;
-	setAttr ".shadingSamplesOverride" no;
-	setAttr ".shadingSamples" 1;
-	setAttr ".maxShadingSamples" 1;
-	setAttr ".volumeSamplesOverride" no;
-	setAttr ".volumeSamples" 1;
-	setAttr ".depthJitter" no;
-	setAttr ".ignoreSelfShadowing" no;
-	setAttr ".primaryVisibility" yes;
-	setAttr ".tweak" no;
-	setAttr ".relativeTweak" yes;
-	setAttr ".uvPivot" -type "double2" 0 0 ;
-	setAttr ".displayImmediate" no;
-	setAttr ".displayColors" no;
-	setAttr ".displayColorChannel" -type "string" "color";
-	setAttr ".ignoreHwShader" no;
-	setAttr ".doubleSided" yes;
-	setAttr ".opposite" no;
-	setAttr ".smoothShading" yes;
-	setAttr ".boundingBoxScale" -type "float3" 1.5 1.5 1.5 ;
-	setAttr ".featureDisplacement" yes;
-	setAttr ".initialSampleRate" 6;
-	setAttr ".extraSampleRate" 5;
-	setAttr ".textureThreshold" 0;
-	setAttr ".normalThreshold" 30;
-	setAttr ".displayHWEnvironment" no;
-	setAttr ".disableDynamics" no;
-	setAttr ".displayAs" 1;
-	setAttr ".displayGuides" no;
-	setAttr ".displaySegmentLimit" 6;
-	setAttr ".hairColorTexture" -type "float3" 0 0 0 ;
-	setAttr ".active" yes;
-	setAttr ".mutantHairColorTexture" -type "float3" 0 0 0 ;
-	setAttr ".neverBeenInstanced" yes;
-	setAttr ".nodeVersion" 2;
-	setAttr ".shaveVersion" -type "string" "5.5v13";
-	setAttr ".overrideGeomShader" yes;
-	setAttr ".ribStuff" -type "string" "#string to insert in rib";
-	setAttr ".rootHairColorTexture" -type "float3" 0 0 0 ;
-	setAttr ".runDynamics" 0;
-	setAttr ".blindShaveData" -type "blindShaveData" 1228067 443775354 805306374 -1879048180 36 16777216 0 -1509949440 -197288268 -473989323 3950872
+fileInfo "osv" "Linux 2.6.32-33-generic #70-Ubuntu SMP Thu Jul 7 21:13:52 UTC 2011 x86_64";
+createNode transform -s -n "persp";
+	setAttr ".v" no;
+	setAttr ".t" -type "double3" 3.118014735719032 2.3385110070856787 3.1180147059167096 ;
+	setAttr ".r" -type "double3" -27.938352729602322 45.000000000000007 -2.2489917831974721e-15 ;
+createNode camera -s -n "perspShape" -p "persp";
+	addAttr -ci true -k true -sn "ai_filtermap" -ln "aiFiltermap" -at "message";
+	addAttr -ci true -k true -sn "ai_horizontal_fov" -ln "aiHorizontalFov" -dv 60 -min 
+		0 -max 1000000000 -smx 360 -at "float";
+	addAttr -ci true -k true -sn "ai_vertical_fov" -ln "aiVerticalFov" -dv 90 -min 0 
+		-max 1000000000 -smx 180 -at "float";
+	addAttr -ci true -k true -sn "ai_projective" -ln "aiProjective" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "ai_focus_distance" -ln "aiFocusDistance" -dv 1 -min 
+		0 -max 1000000000 -smn 0 -smx 200 -at "float";
+	addAttr -ci true -k true -sn "ai_aperture_size" -ln "aiApertureSize" -min 0 -max 
+		20 -smn 0 -smx 1 -at "float";
+	addAttr -ci true -k true -sn "ai_aperture_blades" -ln "aiApertureBlades" -min 3 
+		-max 40 -at "long";
+	addAttr -ci true -k true -sn "ai_aperture_blade_curvature" -ln "aiApertureBladeCurvature" 
+		-min -20 -max 20 -smn -5 -smx 5 -at "float";
+	addAttr -ci true -k true -sn "ai_aperture_rotation" -ln "aiApertureRotation" -min 
+		0 -max 360 -smn 0 -smx 50 -at "float";
+	addAttr -ci true -k true -sn "ai_edof" -ln "aiEnableDOF" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_fov" -ln "aiFov" -dv 90 -min 0 -max 1000000000 
+		-smx 360 -at "float";
+	addAttr -ci true -k true -sn "ai_autocrop" -ln "aiAutocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -uac -k true -sn "ai_uv_remap" -ln "aiUvRemap" -at "float3" -nc 
+		3;
+	addAttr -ci true -k true -sn "ai_uv_remapr" -ln "aiUvRemapR" -at "float" -p "aiUvRemap";
+	addAttr -ci true -k true -sn "ai_uv_remapg" -ln "aiUvRemapG" -at "float" -p "aiUvRemap";
+	addAttr -ci true -k true -sn "ai_uv_remapb" -ln "aiUvRemapB" -at "float" -p "aiUvRemap";
+	addAttr -ci true -h true -k true -sn "ai_uv_remapa" -ln "aiUvRemapA" -at "float";
+	addAttr -ci true -k true -sn "ai_translator" -ln "aiTranslator" -dt "string";
+	addAttr -ci true -k true -sn "filtermap" -ln "filtermap" -at "message";
+	addAttr -ci true -k true -sn "focal_distance" -ln "focalDistance" -dv 5 -min 0 -max 
+		1000000000 -smn 0 -smx 200 -at "float";
+	addAttr -ci true -k true -sn "aperture_size" -ln "apertureSize" -dv 0.20000000298023224 
+		-min 0 -max 20 -smn 0 -smx 0.5 -at "float";
+	addAttr -ci true -k true -sn "aperture_blades" -ln "apertureBlades" -dv 6 -min 3 
+		-max 40 -at "long";
+	addAttr -ci true -k true -sn "aperture_blade_curvature" -ln "apertureBladeCurvature" 
+		-min -20 -max 20 -smn -5 -smx 5 -at "float";
+	addAttr -ci true -k true -sn "aperture_rotation" -ln "apertureRotation" -min 0 -max 
+		360 -smn 0 -smx 50 -at "float";
+	addAttr -ci true -k true -sn "edof" -ln "enableDOF" -min 0 -max 1 -at "bool";
+	addAttr -ci true -uac -k true -sn "uv_remap" -ln "uvRemap" -at "float3" -nc 3;
+	addAttr -ci true -k true -sn "uv_remapr" -ln "uvRemapR" -at "float" -p "uvRemap";
+	addAttr -ci true -k true -sn "uv_remapg" -ln "uvRemapG" -at "float" -p "uvRemap";
+	addAttr -ci true -k true -sn "uv_remapb" -ln "uvRemapB" -at "float" -p "uvRemap";
+	addAttr -ci true -h true -k true -sn "uv_remapa" -ln "uvRemapA" -at "float";
+	addAttr -ci true -k true -sn "arntr" -ln "arnoldTranslator" -dt "string";
+	addAttr -ci true -k true -sn "fov" -ln "fov" -dv 90 -min 0 -max 1000000000 -smx 
+		360 -at "float";
+	addAttr -ci true -k true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "horizontal_fov" -ln "horizontalFov" -dv 60 -min 0 
+		-max 1000000000 -smx 360 -at "float";
+	addAttr -ci true -k true -sn "vertical_fov" -ln "verticalFov" -dv 90 -min 0 -max 
+		1000000000 -smx 180 -at "float";
+	addAttr -ci true -k true -sn "projective" -ln "projective" -dv 1 -min 0 -max 1 -at "bool";
+	setAttr -k off ".v" no;
+	setAttr ".ovr" 1.3;
+	setAttr ".fl" 34.999999999999986;
+	setAttr ".coi" 4.9912588363244321;
+	setAttr ".imn" -type "string" "persp";
+	setAttr ".den" -type "string" "persp_depth";
+	setAttr ".man" -type "string" "persp_mask";
+	setAttr ".tp" -type "double3" 5.9604644775390625e-08 0 2.9802322387695312e-08 ;
+	setAttr ".hc" -type "string" "viewSet -p %camera";
+	setAttr ".dr" yes;
+	setAttr -k on ".ai_translator" -type "string" "perspective";
+	setAttr -k on ".arntr" -type "string" "perspective";
+createNode transform -s -n "top";
+	setAttr ".v" no;
+	setAttr ".t" -type "double3" 0 1000.1 0 ;
+	setAttr ".r" -type "double3" -89.999999999999986 0 0 ;
+createNode camera -s -n "topShape" -p "top";
+	addAttr -ci true -k true -sn "ai_filtermap" -ln "aiFiltermap" -at "message";
+	addAttr -ci true -k true -sn "ai_horizontal_fov" -ln "aiHorizontalFov" -dv 60 -min 
+		0 -max 1000000000 -smx 360 -at "float";
+	addAttr -ci true -k true -sn "ai_vertical_fov" -ln "aiVerticalFov" -dv 90 -min 0 
+		-max 1000000000 -smx 180 -at "float";
+	addAttr -ci true -k true -sn "ai_projective" -ln "aiProjective" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "ai_focus_distance" -ln "aiFocusDistance" -dv 1 -min 
+		0 -max 1000000000 -smn 0 -smx 200 -at "float";
+	addAttr -ci true -k true -sn "ai_aperture_size" -ln "aiApertureSize" -min 0 -max 
+		20 -smn 0 -smx 1 -at "float";
+	addAttr -ci true -k true -sn "ai_aperture_blades" -ln "aiApertureBlades" -min 3 
+		-max 40 -at "long";
+	addAttr -ci true -k true -sn "ai_aperture_blade_curvature" -ln "aiApertureBladeCurvature" 
+		-min -20 -max 20 -smn -5 -smx 5 -at "float";
+	addAttr -ci true -k true -sn "ai_aperture_rotation" -ln "aiApertureRotation" -min 
+		0 -max 360 -smn 0 -smx 50 -at "float";
+	addAttr -ci true -k true -sn "ai_edof" -ln "aiEnableDOF" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_fov" -ln "aiFov" -dv 90 -min 0 -max 1000000000 
+		-smx 360 -at "float";
+	addAttr -ci true -k true -sn "ai_autocrop" -ln "aiAutocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -uac -k true -sn "ai_uv_remap" -ln "aiUvRemap" -at "float3" -nc 
+		3;
+	addAttr -ci true -k true -sn "ai_uv_remapr" -ln "aiUvRemapR" -at "float" -p "aiUvRemap";
+	addAttr -ci true -k true -sn "ai_uv_remapg" -ln "aiUvRemapG" -at "float" -p "aiUvRemap";
+	addAttr -ci true -k true -sn "ai_uv_remapb" -ln "aiUvRemapB" -at "float" -p "aiUvRemap";
+	addAttr -ci true -h true -k true -sn "ai_uv_remapa" -ln "aiUvRemapA" -at "float";
+	addAttr -ci true -k true -sn "ai_translator" -ln "aiTranslator" -dt "string";
+	addAttr -ci true -k true -sn "filtermap" -ln "filtermap" -at "message";
+	addAttr -ci true -k true -sn "focal_distance" -ln "focalDistance" -dv 5 -min 0 -max 
+		1000000000 -smn 0 -smx 200 -at "float";
+	addAttr -ci true -k true -sn "aperture_size" -ln "apertureSize" -dv 0.20000000298023224 
+		-min 0 -max 20 -smn 0 -smx 0.5 -at "float";
+	addAttr -ci true -k true -sn "aperture_blades" -ln "apertureBlades" -dv 6 -min 3 
+		-max 40 -at "long";
+	addAttr -ci true -k true -sn "aperture_blade_curvature" -ln "apertureBladeCurvature" 
+		-min -20 -max 20 -smn -5 -smx 5 -at "float";
+	addAttr -ci true -k true -sn "aperture_rotation" -ln "apertureRotation" -min 0 -max 
+		360 -smn 0 -smx 50 -at "float";
+	addAttr -ci true -k true -sn "edof" -ln "enableDOF" -min 0 -max 1 -at "bool";
+	addAttr -ci true -uac -k true -sn "uv_remap" -ln "uvRemap" -at "float3" -nc 3;
+	addAttr -ci true -k true -sn "uv_remapr" -ln "uvRemapR" -at "float" -p "uvRemap";
+	addAttr -ci true -k true -sn "uv_remapg" -ln "uvRemapG" -at "float" -p "uvRemap";
+	addAttr -ci true -k true -sn "uv_remapb" -ln "uvRemapB" -at "float" -p "uvRemap";
+	addAttr -ci true -h true -k true -sn "uv_remapa" -ln "uvRemapA" -at "float";
+	addAttr -ci true -k true -sn "arntr" -ln "arnoldTranslator" -dt "string";
+	addAttr -ci true -k true -sn "fov" -ln "fov" -dv 90 -min 0 -max 1000000000 -smx 
+		360 -at "float";
+	addAttr -ci true -k true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "horizontal_fov" -ln "horizontalFov" -dv 60 -min 0 
+		-max 1000000000 -smx 360 -at "float";
+	addAttr -ci true -k true -sn "vertical_fov" -ln "verticalFov" -dv 90 -min 0 -max 
+		1000000000 -smx 180 -at "float";
+	addAttr -ci true -k true -sn "projective" -ln "projective" -dv 1 -min 0 -max 1 -at "bool";
+	setAttr -k off ".v" no;
+	setAttr ".rnd" no;
+	setAttr ".coi" 1000.1;
+	setAttr ".ow" 30;
+	setAttr ".imn" -type "string" "top";
+	setAttr ".den" -type "string" "top_depth";
+	setAttr ".man" -type "string" "top_mask";
+	setAttr ".hc" -type "string" "viewSet -t %camera";
+	setAttr ".o" yes;
+	setAttr -k on ".ai_translator" -type "string" "orthographic";
+	setAttr -k on ".arntr" -type "string" "orthographic";
+createNode transform -s -n "front";
+	setAttr ".v" no;
+	setAttr ".t" -type "double3" 0 0 1000.1 ;
+createNode camera -s -n "frontShape" -p "front";
+	addAttr -ci true -k true -sn "ai_filtermap" -ln "aiFiltermap" -at "message";
+	addAttr -ci true -k true -sn "ai_horizontal_fov" -ln "aiHorizontalFov" -dv 60 -min 
+		0 -max 1000000000 -smx 360 -at "float";
+	addAttr -ci true -k true -sn "ai_vertical_fov" -ln "aiVerticalFov" -dv 90 -min 0 
+		-max 1000000000 -smx 180 -at "float";
+	addAttr -ci true -k true -sn "ai_projective" -ln "aiProjective" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "ai_focus_distance" -ln "aiFocusDistance" -dv 1 -min 
+		0 -max 1000000000 -smn 0 -smx 200 -at "float";
+	addAttr -ci true -k true -sn "ai_aperture_size" -ln "aiApertureSize" -min 0 -max 
+		20 -smn 0 -smx 1 -at "float";
+	addAttr -ci true -k true -sn "ai_aperture_blades" -ln "aiApertureBlades" -min 3 
+		-max 40 -at "long";
+	addAttr -ci true -k true -sn "ai_aperture_blade_curvature" -ln "aiApertureBladeCurvature" 
+		-min -20 -max 20 -smn -5 -smx 5 -at "float";
+	addAttr -ci true -k true -sn "ai_aperture_rotation" -ln "aiApertureRotation" -min 
+		0 -max 360 -smn 0 -smx 50 -at "float";
+	addAttr -ci true -k true -sn "ai_edof" -ln "aiEnableDOF" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_fov" -ln "aiFov" -dv 90 -min 0 -max 1000000000 
+		-smx 360 -at "float";
+	addAttr -ci true -k true -sn "ai_autocrop" -ln "aiAutocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -uac -k true -sn "ai_uv_remap" -ln "aiUvRemap" -at "float3" -nc 
+		3;
+	addAttr -ci true -k true -sn "ai_uv_remapr" -ln "aiUvRemapR" -at "float" -p "aiUvRemap";
+	addAttr -ci true -k true -sn "ai_uv_remapg" -ln "aiUvRemapG" -at "float" -p "aiUvRemap";
+	addAttr -ci true -k true -sn "ai_uv_remapb" -ln "aiUvRemapB" -at "float" -p "aiUvRemap";
+	addAttr -ci true -h true -k true -sn "ai_uv_remapa" -ln "aiUvRemapA" -at "float";
+	addAttr -ci true -k true -sn "ai_translator" -ln "aiTranslator" -dt "string";
+	addAttr -ci true -k true -sn "filtermap" -ln "filtermap" -at "message";
+	addAttr -ci true -k true -sn "focal_distance" -ln "focalDistance" -dv 5 -min 0 -max 
+		1000000000 -smn 0 -smx 200 -at "float";
+	addAttr -ci true -k true -sn "aperture_size" -ln "apertureSize" -dv 0.20000000298023224 
+		-min 0 -max 20 -smn 0 -smx 0.5 -at "float";
+	addAttr -ci true -k true -sn "aperture_blades" -ln "apertureBlades" -dv 6 -min 3 
+		-max 40 -at "long";
+	addAttr -ci true -k true -sn "aperture_blade_curvature" -ln "apertureBladeCurvature" 
+		-min -20 -max 20 -smn -5 -smx 5 -at "float";
+	addAttr -ci true -k true -sn "aperture_rotation" -ln "apertureRotation" -min 0 -max 
+		360 -smn 0 -smx 50 -at "float";
+	addAttr -ci true -k true -sn "edof" -ln "enableDOF" -min 0 -max 1 -at "bool";
+	addAttr -ci true -uac -k true -sn "uv_remap" -ln "uvRemap" -at "float3" -nc 3;
+	addAttr -ci true -k true -sn "uv_remapr" -ln "uvRemapR" -at "float" -p "uvRemap";
+	addAttr -ci true -k true -sn "uv_remapg" -ln "uvRemapG" -at "float" -p "uvRemap";
+	addAttr -ci true -k true -sn "uv_remapb" -ln "uvRemapB" -at "float" -p "uvRemap";
+	addAttr -ci true -h true -k true -sn "uv_remapa" -ln "uvRemapA" -at "float";
+	addAttr -ci true -k true -sn "arntr" -ln "arnoldTranslator" -dt "string";
+	addAttr -ci true -k true -sn "fov" -ln "fov" -dv 90 -min 0 -max 1000000000 -smx 
+		360 -at "float";
+	addAttr -ci true -k true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "horizontal_fov" -ln "horizontalFov" -dv 60 -min 0 
+		-max 1000000000 -smx 360 -at "float";
+	addAttr -ci true -k true -sn "vertical_fov" -ln "verticalFov" -dv 90 -min 0 -max 
+		1000000000 -smx 180 -at "float";
+	addAttr -ci true -k true -sn "projective" -ln "projective" -dv 1 -min 0 -max 1 -at "bool";
+	setAttr -k off ".v" no;
+	setAttr ".rnd" no;
+	setAttr ".coi" 1000.1;
+	setAttr ".ow" 30;
+	setAttr ".imn" -type "string" "front";
+	setAttr ".den" -type "string" "front_depth";
+	setAttr ".man" -type "string" "front_mask";
+	setAttr ".hc" -type "string" "viewSet -f %camera";
+	setAttr ".o" yes;
+	setAttr -k on ".ai_translator" -type "string" "orthographic";
+	setAttr -k on ".arntr" -type "string" "orthographic";
+createNode transform -s -n "side";
+	setAttr ".v" no;
+	setAttr ".t" -type "double3" 1000.1 0 0 ;
+	setAttr ".r" -type "double3" 0 89.999999999999986 0 ;
+createNode camera -s -n "sideShape" -p "side";
+	addAttr -ci true -k true -sn "ai_filtermap" -ln "aiFiltermap" -at "message";
+	addAttr -ci true -k true -sn "ai_horizontal_fov" -ln "aiHorizontalFov" -dv 60 -min 
+		0 -max 1000000000 -smx 360 -at "float";
+	addAttr -ci true -k true -sn "ai_vertical_fov" -ln "aiVerticalFov" -dv 90 -min 0 
+		-max 1000000000 -smx 180 -at "float";
+	addAttr -ci true -k true -sn "ai_projective" -ln "aiProjective" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "ai_focus_distance" -ln "aiFocusDistance" -dv 1 -min 
+		0 -max 1000000000 -smn 0 -smx 200 -at "float";
+	addAttr -ci true -k true -sn "ai_aperture_size" -ln "aiApertureSize" -min 0 -max 
+		20 -smn 0 -smx 1 -at "float";
+	addAttr -ci true -k true -sn "ai_aperture_blades" -ln "aiApertureBlades" -min 3 
+		-max 40 -at "long";
+	addAttr -ci true -k true -sn "ai_aperture_blade_curvature" -ln "aiApertureBladeCurvature" 
+		-min -20 -max 20 -smn -5 -smx 5 -at "float";
+	addAttr -ci true -k true -sn "ai_aperture_rotation" -ln "aiApertureRotation" -min 
+		0 -max 360 -smn 0 -smx 50 -at "float";
+	addAttr -ci true -k true -sn "ai_edof" -ln "aiEnableDOF" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_fov" -ln "aiFov" -dv 90 -min 0 -max 1000000000 
+		-smx 360 -at "float";
+	addAttr -ci true -k true -sn "ai_autocrop" -ln "aiAutocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -uac -k true -sn "ai_uv_remap" -ln "aiUvRemap" -at "float3" -nc 
+		3;
+	addAttr -ci true -k true -sn "ai_uv_remapr" -ln "aiUvRemapR" -at "float" -p "aiUvRemap";
+	addAttr -ci true -k true -sn "ai_uv_remapg" -ln "aiUvRemapG" -at "float" -p "aiUvRemap";
+	addAttr -ci true -k true -sn "ai_uv_remapb" -ln "aiUvRemapB" -at "float" -p "aiUvRemap";
+	addAttr -ci true -h true -k true -sn "ai_uv_remapa" -ln "aiUvRemapA" -at "float";
+	addAttr -ci true -k true -sn "ai_translator" -ln "aiTranslator" -dt "string";
+	addAttr -ci true -k true -sn "filtermap" -ln "filtermap" -at "message";
+	addAttr -ci true -k true -sn "focal_distance" -ln "focalDistance" -dv 5 -min 0 -max 
+		1000000000 -smn 0 -smx 200 -at "float";
+	addAttr -ci true -k true -sn "aperture_size" -ln "apertureSize" -dv 0.20000000298023224 
+		-min 0 -max 20 -smn 0 -smx 0.5 -at "float";
+	addAttr -ci true -k true -sn "aperture_blades" -ln "apertureBlades" -dv 6 -min 3 
+		-max 40 -at "long";
+	addAttr -ci true -k true -sn "aperture_blade_curvature" -ln "apertureBladeCurvature" 
+		-min -20 -max 20 -smn -5 -smx 5 -at "float";
+	addAttr -ci true -k true -sn "aperture_rotation" -ln "apertureRotation" -min 0 -max 
+		360 -smn 0 -smx 50 -at "float";
+	addAttr -ci true -k true -sn "edof" -ln "enableDOF" -min 0 -max 1 -at "bool";
+	addAttr -ci true -uac -k true -sn "uv_remap" -ln "uvRemap" -at "float3" -nc 3;
+	addAttr -ci true -k true -sn "uv_remapr" -ln "uvRemapR" -at "float" -p "uvRemap";
+	addAttr -ci true -k true -sn "uv_remapg" -ln "uvRemapG" -at "float" -p "uvRemap";
+	addAttr -ci true -k true -sn "uv_remapb" -ln "uvRemapB" -at "float" -p "uvRemap";
+	addAttr -ci true -h true -k true -sn "uv_remapa" -ln "uvRemapA" -at "float";
+	addAttr -ci true -k true -sn "arntr" -ln "arnoldTranslator" -dt "string";
+	addAttr -ci true -k true -sn "fov" -ln "fov" -dv 90 -min 0 -max 1000000000 -smx 
+		360 -at "float";
+	addAttr -ci true -k true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "horizontal_fov" -ln "horizontalFov" -dv 60 -min 0 
+		-max 1000000000 -smx 360 -at "float";
+	addAttr -ci true -k true -sn "vertical_fov" -ln "verticalFov" -dv 90 -min 0 -max 
+		1000000000 -smx 180 -at "float";
+	addAttr -ci true -k true -sn "projective" -ln "projective" -dv 1 -min 0 -max 1 -at "bool";
+	setAttr -k off ".v" no;
+	setAttr ".rnd" no;
+	setAttr ".coi" 1000.1;
+	setAttr ".ow" 30;
+	setAttr ".imn" -type "string" "side";
+	setAttr ".den" -type "string" "side_depth";
+	setAttr ".man" -type "string" "side_mask";
+	setAttr ".hc" -type "string" "viewSet -s %camera";
+	setAttr ".o" yes;
+	setAttr -k on ".ai_translator" -type "string" "orthographic";
+	setAttr -k on ".arntr" -type "string" "orthographic";
+createNode transform -n "pSphere1";
+createNode mesh -n "pSphereShape1" -p "pSphere1";
+	addAttr -ci true -k true -sn "ai_sss_use_gi" -ln "aiSssUseGi" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -sn "ai_sss_sample_distribution" -ln "aiSssSampleDistribution" 
+		-min 0 -max 3 -en "blue_noise:blue_noise_Pref:triangle_midpoint:polygon_midpoint" 
+		-at "enum";
+	addAttr -ci true -k true -sn "ai_sss_sample_spacing" -ln "aiSssSampleSpacing" -dv 
+		0.10000000149011612 -min 0 -smx 1 -at "float";
+	addAttr -ci true -k true -sn "ai_self_shadows" -ln "aiSelfShadows" -dv 1 -min 0 
+		-max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_opaque" -ln "aiOpaque" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_vid" -ln "aiVisibleInDiffuse" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "ai_vig" -ln "aiVisibleInGlossy" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -sn "ai_subdiv_type" -ln "aiSubdivType" -min 0 -max 2 -en "none:catclark:linear" 
+		-at "enum";
+	addAttr -ci true -k true -sn "ai_subdiv_iterations" -ln "aiSubdivIterations" -dv 
+		1 -min 0 -max 100 -smn 0 -smx 10 -at "long";
+	addAttr -ci true -sn "ai_subdiv_adaptive_metric" -ln "aiSubdivAdaptiveMetric" -min 
+		0 -max 2 -en "auto:edge_length:flatness" -at "enum";
+	addAttr -ci true -k true -sn "ai_subdiv_pixel_error" -ln "aiSubdivPixelError" -min 
+		0 -smx 10 -at "float";
+	addAttr -ci true -k true -sn "ai_subdiv_dicing_camera" -ln "aiSubdivDicingCamera" 
+		-at "message";
+	addAttr -ci true -sn "ai_subdiv_uv_smoothing" -ln "aiSubdivUvSmoothing" -min 0 -max 
+		3 -en "pin_corners:pin_borders:linear:smooth" -at "enum";
+	addAttr -ci true -k true -sn "ai_exptan" -ln "aiExportTangents" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_expcol" -ln "aiExportColors" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_sss_max_samples" -ln "aiSssMaxSamples" -dv 100000 
+		-min 0 -smx 1000000 -at "long";
+	addAttr -ci true -sn "mso" -ln "miShadingSamplesOverride" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "msh" -ln "miShadingSamples" -min 0 -smx 8 -at "float";
+	addAttr -ci true -sn "mdo" -ln "miMaxDisplaceOverride" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "mmd" -ln "miMaxDisplace" -min 0 -smx 1 -at "float";
+	addAttr -ci true -k true -sn "sss_use_gi" -ln "sssUseGi" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "sss_max_samples" -ln "sssMaxSamples" -dv 100000 -min 
+		0 -smx 1000000 -at "long";
+	addAttr -ci true -k true -sn "sss_sample_spacing" -ln "sssSampleSpacing" -dv 0.10000000149011612 
+		-min 0 -smx 1 -at "float";
+	addAttr -ci true -k true -sn "self_shadows" -ln "selfShadows" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "opaque" -ln "opaque" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "vid" -ln "visibleInDiffuse" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "vig" -ln "visibleInGlossy" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "subdiv_type" -ln "subdivType" -min 0 -max 2 -en "none:catclark:linear" 
+		-at "enum";
+	addAttr -ci true -k true -sn "subdiv_iterations" -ln "subdivIterations" -dv 1 -min 
+		0 -max 100 -smn 0 -smx 10 -at "long";
+	addAttr -ci true -sn "subdiv_adaptive_metric" -ln "subdivAdaptiveMetric" -min 0 
+		-max 2 -en "auto:edge_length:flatness" -at "enum";
+	addAttr -ci true -k true -sn "subdiv_pixel_error" -ln "subdivPixelError" -min 0 
+		-smx 10 -at "float";
+	addAttr -ci true -k true -sn "subdiv_dicing_camera" -ln "subdivDicingCamera" -at "message";
+	addAttr -ci true -sn "subdiv_uv_smoothing" -ln "subdivUvSmoothing" -min 0 -max 3 
+		-en "pin_corners:pin_borders:linear:smooth" -at "enum";
+	addAttr -ci true -k true -sn "exptan" -ln "exportTangents" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "expcol" -ln "exportColors" -min 0 -max 1 -at "bool";
+	setAttr -k off ".v";
+	setAttr ".vir" yes;
+	setAttr ".vif" yes;
+	setAttr ".uvst[0].uvsn" -type "string" "map1";
+	setAttr ".cuvs" -type "string" "map1";
+	setAttr ".dcc" -type "string" "Ambient+Diffuse";
+	setAttr ".covm[0]"  0 1 1;
+	setAttr ".cdvm[0]"  0 1 1;
+createNode transform -n "shaveDisplayGroup";
+createNode transform -n "shavedisplay" -p "shaveDisplayGroup";
+	setAttr -l on ".t";
+	setAttr -l on ".r";
+	setAttr -l on ".s";
+createNode mesh -n "shaveDisplayShape" -p "shavedisplay";
+	addAttr -ci true -k true -sn "ai_sss_use_gi" -ln "aiSssUseGi" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -sn "ai_sss_sample_distribution" -ln "aiSssSampleDistribution" 
+		-min 0 -max 3 -en "blue_noise:blue_noise_Pref:triangle_midpoint:polygon_midpoint" 
+		-at "enum";
+	addAttr -ci true -k true -sn "ai_sss_sample_spacing" -ln "aiSssSampleSpacing" -dv 
+		0.10000000149011612 -min 0 -smx 1 -at "float";
+	addAttr -ci true -k true -sn "ai_self_shadows" -ln "aiSelfShadows" -dv 1 -min 0 
+		-max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_opaque" -ln "aiOpaque" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_vid" -ln "aiVisibleInDiffuse" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "ai_vig" -ln "aiVisibleInGlossy" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -sn "ai_subdiv_type" -ln "aiSubdivType" -min 0 -max 2 -en "none:catclark:linear" 
+		-at "enum";
+	addAttr -ci true -k true -sn "ai_subdiv_iterations" -ln "aiSubdivIterations" -dv 
+		1 -min 0 -max 100 -smn 0 -smx 10 -at "long";
+	addAttr -ci true -sn "ai_subdiv_adaptive_metric" -ln "aiSubdivAdaptiveMetric" -min 
+		0 -max 2 -en "auto:edge_length:flatness" -at "enum";
+	addAttr -ci true -k true -sn "ai_subdiv_pixel_error" -ln "aiSubdivPixelError" -min 
+		0 -smx 10 -at "float";
+	addAttr -ci true -k true -sn "ai_subdiv_dicing_camera" -ln "aiSubdivDicingCamera" 
+		-at "message";
+	addAttr -ci true -sn "ai_subdiv_uv_smoothing" -ln "aiSubdivUvSmoothing" -min 0 -max 
+		3 -en "pin_corners:pin_borders:linear:smooth" -at "enum";
+	addAttr -ci true -k true -sn "ai_exptan" -ln "aiExportTangents" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_expcol" -ln "aiExportColors" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_sss_max_samples" -ln "aiSssMaxSamples" -dv 100000 
+		-min 0 -smx 1000000 -at "long";
+	setAttr -k off ".v";
+	setAttr ".tmp" yes;
+	setAttr ".vir" yes;
+	setAttr ".vif" yes;
+	setAttr ".uvst[0].uvsn" -type "string" "map1";
+	setAttr ".cuvs" -type "string" "map1";
+	setAttr ".dcc" -type "string" "Ambient+Diffuse";
+	setAttr ".covm[0]"  0 1 1;
+	setAttr ".cdvm[0]"  0 1 1;
+createNode transform -n "shaveHair1";
+createNode shaveHair -n "shaveHairShape1" -p "shaveHair1";
+	addAttr -ci true -k true -sn "ai_sss_use_gi" -ln "aiSssUseGi" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -sn "ai_sss_sample_distribution" -ln "aiSssSampleDistribution" 
+		-min 0 -max 3 -en "blue_noise:blue_noise_Pref:triangle_midpoint:polygon_midpoint" 
+		-at "enum";
+	addAttr -ci true -k true -sn "ai_sss_sample_spacing" -ln "aiSssSampleSpacing" -dv 
+		0.10000000149011612 -at "float";
+	addAttr -ci true -k true -sn "ai_self_shadows" -ln "aiSelfShadows" -dv 1 -min 0 
+		-max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_opaque" -ln "aiOpaque" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_vid" -ln "aiVisibleInDiffuse" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "ai_vig" -ln "aiVisibleInGlossy" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "ai_min_pixel_width" -ln "aiMinPixelWidth" -at "float";
+	addAttr -ci true -sn "ai_mode" -ln "aiMode" -min 0 -max 1 -en "ribbon:thick" -at "enum";
+	addAttr -ci true -k true -sn "ai_export_hair_colours" -ln "aiExportHairColors" -dv 
+		1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_export_hair_ids" -ln "aiExportHairIDs" -dv 1 -min 
+		0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_override_hair" -ln "aiOverrideHair" -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "ai_hair_shader" -ln "aiHairShader" -at "message";
+	addAttr -ci true -k true -sn "ai_sss_max_samples" -ln "aiSssMaxSamples" -dv 100000 
+		-at "long";
+	setAttr ".cch" no;
+	setAttr ".ihi" 2;
+	setAttr ".nds" 0;
+	setAttr ".isc" no;
+	setAttr ".bbx" no;
+	setAttr ".icn" -type "string" "";
+	setAttr ".vwm" 2;
+	setAttr ".tpv" 0;
+	setAttr ".uit" 0;
+	setAttr -k off ".v" yes;
+	setAttr ".io" no;
+	setAttr ".tmp" no;
+	setAttr ".gh" no;
+	setAttr ".uoc" no;
+	setAttr ".oc" 0;
+	setAttr ".ovdt" 0;
+	setAttr ".ovlod" 0;
+	setAttr ".ovs" yes;
+	setAttr ".ovt" yes;
+	setAttr ".ovp" yes;
+	setAttr ".ove" no;
+	setAttr ".ovv" yes;
+	setAttr ".ovc" 0;
+	setAttr ".lodv" yes;
+	setAttr ".rlid" 0;
+	setAttr ".rndr" yes;
+	setAttr ".lovc" 0;
+	setAttr ".gc" 0;
+	setAttr ".gpr" 3;
+	setAttr ".gps" 3;
+	setAttr ".gss" 1;
+	setAttr ".grs" 0;
+	setAttr ".gre" 100;
+	setAttr ".rt" 0;
+	setAttr ".rv" no;
+	setAttr ".vf" 1;
+	setAttr ".mb" yes;
+	setAttr ".vir" no;
+	setAttr ".vif" no;
+	setAttr ".csh" yes;
+	setAttr ".rcsh" yes;
+	setAttr ".vbo" no;
+	setAttr ".mvs" 1;
+	setAttr ".gao" no;
+	setAttr ".gal" 1;
+	setAttr ".sso" no;
+	setAttr ".ssa" 1;
+	setAttr ".msa" 1;
+	setAttr ".vso" no;
+	setAttr ".vss" 1;
+	setAttr ".dej" no;
+	setAttr ".iss" no;
+	setAttr ".vis" yes;
+	setAttr ".tw" no;
+	setAttr ".rtw" yes;
+	setAttr ".pv" -type "double2" 0 0 ;
+	setAttr ".di" no;
+	setAttr ".dcol" no;
+	setAttr ".dcc" -type "string" "color";
+	setAttr ".ih" no;
+	setAttr ".ds" yes;
+	setAttr ".op" no;
+	setAttr ".smo" yes;
+	setAttr ".bbs" -type "float3" 1.5 1.5 1.5 ;
+	setAttr ".fbda" yes;
+	setAttr ".dsr" 6;
+	setAttr ".xsr" 5;
+	setAttr ".fth" 0;
+	setAttr ".nat" 30;
+	setAttr ".dhe" no;
+	setAttr ".disabled" no;
+	setAttr ".dspyas" 1;
+	setAttr ".dg" no;
+	setAttr ".dsl" 6;
+	setAttr ".htc" -type "float3" 0 0 0 ;
+	setAttr ".act" yes;
+	setAttr ".mhtc" -type "float3" 0 0 0 ;
+	setAttr ".nbi" yes;
+	setAttr ".nv" 2;
+	setAttr ".sv" -type "string" "5.5v21";
+	setAttr ".ogsh" yes;
+	setAttr ".rbs" -type "string" "#string to insert in rib";
+	setAttr ".rhtc" -type "float3" 0 0 0 ;
+	setAttr ".rd" 0;
+	setAttr ".BSD" -type "blindShaveData" 1228067 443775354 805306374 -1879048180 36 16777216 0 -1509949440 -197288268 -473989323 3950872
  0 0 -1509949440 -197288268 -473989323 -12826344 1845493759 -2059557040 -2067823126 -12823160
  872415231 272478188 616533050 -12819976 -83886081 -1690453881 -977300855 -12816793 -1040187393 641581347
  1740609753 -12813609 -1996488705 -1321350721 -2067816664 -12811357 1308622847 1010684507 1421845880 -12809765
@@ -31331,287 +31217,344 @@ createNode shaveHair -name "shaveHairShape1" -parent "shaveHair1";
  -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
  -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
  -1 -1 -1 -1 -1 -1 -1 -1 -1;
-	setAttr ".amb/diff" 0.59504002332687378;
-	setAttr ".enableCollision" yes;
-	setAttr ".collisionMethod" 1;
-	setAttr ".dampening" 0;
-	setAttr ".frizzAnim" 0;
-	setAttr ".frizzAnimDir" -type "float3" 0 1 0 ;
-	setAttr ".animSpeed" 0;
-	setAttr ".displacement" 0;
-	setAttr ".frizzXFrequency" 138.20899963378906;
-	setAttr ".frizzYFrequency" 131.11799621582031;
-	setAttr ".frizzZFrequency" 138.20899963378906;
-	setAttr ".rootFrizz" 1.7934999465942383;
-	setAttr ".tipFrizz" 42.002998352050781;
-	setAttr ".geomShadow" 0.63635998964309692;
-	setAttr ".gloss" 0.085124000906944275;
-	setAttr ".hairColor" -type "float3" 0.96450663 1 0.77999997 ;
-	setAttr ".hairCount" 8456;
-	setAttr ".hueVariation" 18.181999206542969;
-	setAttr ".instancingStatus" no;
-	setAttr ".kinkXFrequency" 155;
-	setAttr ".kinkYFrequency" 155;
-	setAttr ".kinkZFrequency" 155;
-	setAttr ".rootKink" 0;
-	setAttr ".tipKink" 0;
-	setAttr ".multiStrandCount" 0;
-	setAttr ".mutantHairColor" -type "float3" 0.47058824 0.47058824 0.47058824 ;
-	setAttr ".percentMutantHairs" 0;
-	setAttr ".interpolateGuides" yes;
-	setAttr ".hairPasses" 1;
-	setAttr ".randomizeMulti" 0.21488000452518463;
-	setAttr ".randScale" 0.40000000596046448;
-	setAttr ".rootColor" -type "float3" 0.70248002 0.66596335 0.39690122 ;
-	setAttr ".rootStiffness" 0;
-	setAttr ".scale" 1;
-	setAttr ".hairSegments" 10;
-	setAttr ".selfShadow" 1;
-	setAttr ".specular" 0.99180001020431519;
-	setAttr ".rootSplay" 0.45464000105857849;
-	setAttr ".tipSplay" 0.2892799973487854;
-	setAttr ".multAsp" 0;
-	setAttr ".Offset" 0;
-	setAttr ".Aspect" 1;
-	setAttr ".stiffness" 0;
-	setAttr ".rootThickness" 0.72732001543045044;
-	setAttr ".tipThickness" 0.09920000284910202;
-	setAttr ".totalGuides" 1562;
-	setAttr ".valueVariation" 62.812000274658203;
-	setAttr -size 32 ".shaveTex";
-	setAttr ".shaveTex[0:6]" 0 0 0 0 0 0 0;
-	setAttr ".shaveTex[8]" 0;
-	setAttr ".shaveTex[12]" 0;
-	setAttr ".shaveTex[16]" 0;
-	setAttr ".shaveTex[20:21]" 0 0;
-	setAttr ".shaveTex[24:43]" 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0;
-	setAttr ".uSubdivisions" 2;
-	setAttr ".vSubdivisions" 2;
-	setAttr ".time" 1;
-	setAttr ".versionLock" 0;
-	setAttr ".displayHairMax" 10000;
-	setAttr ".displayHairRatio" 1;
-	setAttr ".specularTint" -type "float3" 1 1 1 ;
-	setAttr ".tipFade" yes;
-	setAttr ".squirrel" no;
-	setAttr ".cachedBBoxMin" -type "double3" -1.6602753400802612 -1.6718909740447998 
-		-1.6704795360565186 ;
-	setAttr ".cachedBBoxMax" -type "double3" 1.6818474531173706 1.6691436767578125 1.6677380800247192 ;
-	setAttr ".splineLock" no;
-	setAttr -keyable on ".aiSssUseGi" yes;
-	setAttr ".aiSssSampleDistribution" 0;
-	setAttr -keyable on ".aiSssSampleSpacing" 0.10000000149011612;
-	setAttr -keyable on ".aiSelfShadows" yes;
-	setAttr -keyable on ".aiOpaque" yes;
-	setAttr -keyable on ".aiVisibleInDiffuse" yes;
-	setAttr -keyable on ".aiVisibleInGlossy" yes;
-	setAttr -keyable on ".aiMinPixelWidth" 0;
-	setAttr ".aiMode" 0;
-	setAttr -keyable on ".aiExportHairColors" yes;
-	setAttr -keyable on ".aiExportHairIDs" yes;
-	setAttr -keyable on ".aiOverrideHair" no;
-	setAttr -keyable on ".aiSssMaxSamples" 100000;
-createNode transform -name "pointLight1";
-	setAttr ".translate" -type "double3" 0.8946263483617648 1.8998226219594425 2.2074515762557692 ;
-createNode pointLight -name "pointLightShape1" -parent "pointLight1";
-	addAttr -cachedInternally true -keyable true -shortName "ai_cast_shadows" -longName "aiCastShadows" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_exposure" -longName "aiExposure" 
-		-minValue 0 -softMaxValue 10 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_samples" -longName "aiSamples" 
-		-defaultValue 1 -minValue 0 -maxValue 100 -attributeType "long";
-	addAttr -cachedInternally true -keyable true -shortName "ai_mis" -longName "aiMis" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_normalize" -longName "aiNormalize" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_bounce_factor" -longName "aiBounceFactor" 
-		-defaultValue 1 -minValue 0 -softMaxValue 20 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "ai_bounces" -longName "aiBounces" 
-		-defaultValue 999 -minValue 0 -maxValue 10000 -attributeType "long";
-	addAttr -cachedInternally true -keyable true -multi -shortName "ai_filters" -longName "aiFilters" 
-		-attributeType "message";
-	addAttr -cachedInternally true -keyable true -shortName "ai_oss" -longName "aiOverrideSssSamples" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_sss_samples" -longName "aiSssSamples" 
-		-defaultValue 1 -minValue 0 -maxValue 100 -attributeType "long";
-	addAttr -cachedInternally true -keyable true -shortName "ai_affect_volumetrics" 
-		-longName "aiAffectVolumetrics" -defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_cast_volumetric_shadows" 
-		-longName "aiCastVolumetricShadows" -defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "ai_radius" -longName "aiRadius" 
-		-minValue 0 -softMaxValue 10 -attributeType "float";
-	setAttr -keyable off ".visibility";
-	setAttr ".useOnlySingleDmap" no;
-createNode lightLinker -shared -name "lightLinker1";
-	setAttr -size 5 ".link";
-	setAttr -size 5 ".shadowLink";
-createNode displayLayerManager -name "layerManager";
-createNode displayLayer -name "defaultLayer";
-createNode renderLayerManager -name "renderLayerManager";
-createNode renderLayer -name "defaultRenderLayer";
-	setAttr ".global" yes;
-createNode polySphere -name "polySphere1";
-	setAttr ".subdivisionsAxis" 40;
-	setAttr ".subdivisionsHeight" 40;
-createNode aiOptions -shared -name "defaultArnoldRenderOptions";
-	addAttr -cachedInternally true -shortName "driver_exr_compression" -longName "driverExrCompression" 
-		-defaultValue 2 -minValue 0 -maxValue 4 -enumName "none:rle:zip:piz:pxr24" -attributeType "enum";
-	addAttr -cachedInternally true -keyable true -shortName "driver_half_precision" 
-		-longName "driverHalfPrecision" -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "driver_tiled" -longName "driverTiled" 
-		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "driver_preserve_layer_name" 
-		-longName "driverPreserveLayerName" -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "driver_quality" -longName "driverQuality" 
-		-defaultValue 100 -minValue 0 -maxValue 100 -attributeType "long";
-	addAttr -cachedInternally true -keyable true -shortName "driver_output_padded" -longName "driverOutputPadded" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "driver_gamma" -longName "driverGamma" 
-		-defaultValue 2.2000000476837158 -minValue 9.9999997473787516e-05 -softMaxValue 5 
-		-attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "driver_dither_amplitude" 
-		-longName "driverDitherAmplitude" -defaultValue 1 -attributeType "float";
-	addAttr -cachedInternally true -shortName "driver_png_format" -longName "driverPngFormat" 
-		-minValue 0 -maxValue 1 -enumName "int8:int16" -attributeType "enum";
-	addAttr -cachedInternally true -shortName "driver_tiff_compression" -longName "driverTiffCompression" 
-		-minValue 0 -maxValue 4 -enumName "none:lzw:ccittrle:zip:packbits" -attributeType "enum";
-	addAttr -cachedInternally true -shortName "driver_tiff_format" -longName "driverTiffFormat" 
-		-minValue 0 -maxValue 3 -enumName "int8:int16:int32:float32" -attributeType "enum";
-	addAttr -cachedInternally true -keyable true -shortName "driver_unpremult_alpha" 
-		-longName "driverUnpremultAlpha" -minValue 0 -maxValue 1 -attributeType "bool";
-	addAttr -cachedInternally true -keyable true -shortName "filter_width" -longName "filterWidth" 
-		-defaultValue 3 -attributeType "float";
-	addAttr -cachedInternally true -shortName "filter_domain" -longName "filterDomain" 
-		-minValue 0 -maxValue 1 -enumName "first_hit:all_hits" -attributeType "enum";
-	addAttr -cachedInternally true -keyable true -shortName "filter_minimum" -longName "filterMinimum" 
-		-attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "filter_maximum" -longName "filterMaximum" 
-		-defaultValue 1 -attributeType "float";
-	addAttr -cachedInternally true -keyable true -shortName "filter_scalar_mode" -longName "filterScalarMode" 
-		-minValue 0 -maxValue 1 -attributeType "bool";
-	setAttr ".imageFormat" -type "string" "tiff";
-	setAttr ".filterType" -type "string" "gaussian";
-	setAttr -keyable on ".driverTiled" no;
-createNode shadingEngine -name "aiStandard1SG";
-	setAttr ".isHistoricallyInteresting" 0;
-	setAttr ".renderableOnlySet" yes;
-createNode materialInfo -name "materialInfo1";
-createNode script -name "sceneConfigurationScriptNode";
-	setAttr ".before" -type "string" "playbackOptions -min 1 -max 24 -ast 1 -aet 48 ";
-	setAttr ".scriptType" 6;
-createNode shadingEngine -name "surfaceShader1SG";
-	setAttr ".isHistoricallyInteresting" 0;
-	setAttr ".renderableOnlySet" yes;
-createNode materialInfo -name "materialInfo2";
-createNode aiStandard -name "aiStandard2";
-createNode shadingEngine -name "aiStandard2SG";
-	setAttr ".isHistoricallyInteresting" 0;
-	setAttr ".renderableOnlySet" yes;
-createNode materialInfo -name "materialInfo3";
-createNode shaveGlobals -shared -name "shaveGlobals";
-	setAttr ".caching" no;
-	setAttr ".isHistoricallyInteresting" 2;
-	setAttr ".nodeState" 0;
-	setAttr ".in1" 0;
-	setAttr ".in2" 0;
-	setAttr ".renderMode" 0;
-	setAttr ".enableInstanceGeometry" yes;
-	setAttr ".nativeIllumination" no;
-	setAttr ".doCompositing" yes;
-	setAttr ".composite2d" yes;
-	setAttr ".doHairShadows" yes;
-	setAttr ".useAllLights" yes;
-	setAttr ".shadowMatte" no;
-	setAttr ".shadowMatteIncludeBackfacing" yes;
-	setAttr ".keepHairPassPics" no;
-	setAttr ".renderQuality" 1;
-	setAttr ".hairFilenamePrefix" -type "string" "D:/orenouard/maya/projects/default/shaveHair";
-	setAttr ".tmpDir" -type "string" "";
-	setAttr ".hairOcclusionObjects" -type "string" "all";
-	setAttr ".shadowDensity" 1;
-	setAttr ".gravity" 1;
-	setAttr ".nodeVersion" 11;
-	setAttr ".useDRA" yes;
-	setAttr ".voxelResolution" 5;
-	setAttr ".mrEnableIrradiance" no;
-	setAttr ".mrIrradiance" 1;
-	setAttr ".mrOcclusionCollection" no;
-	setAttr ".mrSafeMode" yes;
-	setAttr ".mrSatelliteSupport" no;
-	setAttr ".mrUseRenderGlobalsCallbacks" yes;
-	setAttr ".visibleInReflections" no;
-	setAttr ".hideHair" no;
-	setAttr ".maxThreads" 0;
-	setAttr ".threadPerProcessor" yes;
-	setAttr ".verbose" yes;
-	setAttr ".voxelScaling" 1.1000000238418579;
-	setAttr ".address" ;
-	setAttr ".tileMemoryLimit" 90;
-	setAttr ".transparencyDepth" 30;
-	setAttr ".ribBinary" no;
-	setAttr ".ribBlurTimeBasis" 1;
-	setAttr ".ribBlurEnable" no;
-	setAttr ".ribBlurInheritSettings" 1;
-	setAttr ".ribBlurRestoreFrame" yes;
-	setAttr ".ribBlurShutterCloseOffset" 0.30000001192092896;
-	setAttr ".ribBlurShutterOpenOffset" -0.30000001192092896;
-	setAttr ".ribCompress" no;
-	setAttr ".ribKeepRibFiles" no;
-	setAttr ".ribNormals" no;
-	setAttr ".ribOpacities" yes;
-	setAttr ".hairPrimitiveType" 1;
-	setAttr ".ribRootPositions" no;
-	setAttr ".ribRootTipColors" yes;
-	setAttr ".ribStuff" -type "string" "Surface \"Shave\"";
-	setAttr ".ribVertexColors" no;
-	setAttr ".ribTimeUnits" 0;
-	setAttr ".ribUVs" no;
-	setAttr ".ribWCoords" no;
-	setAttr ".ribVoxelEnable" no;
-	setAttr ".ribVoxelFullPaths" no;
-	setAttr ".ribVoxelResolution" 5;
-	setAttr ".shadowHairRatio" 0.15000000596046448;
-	setAttr ".useDeepShadows" no;
-	setAttr ".vrayDraFile" -type "string" "";
-createNode objectSet -name "shaveHairShape1_growth";
-select -noExpand :time1;
-	setAttr ".outTime" 1;
-	setAttr ".unwarpedTime" 1;
-select -noExpand :renderPartition;
-	setAttr -size 5 ".sets";
-select -noExpand :initialShadingGroup;
-	setAttr ".renderableOnlySet" yes;
-select -noExpand :initialParticleSE;
-	setAttr ".renderableOnlySet" yes;
-select -noExpand :defaultShaderList1;
-	setAttr -size 3 ".shaders";
-select -noExpand :lightList1;
-select -noExpand :postProcessList1;
-	setAttr -size 2 ".postProcesses";
-select -noExpand :renderGlobalsList1;
-select -noExpand :defaultRenderGlobals;
-	setAttr ".currentRenderer" -type "string" "arnold";
-	setAttr ".imageFormat" 51;
-	setAttr ".imfPluginKey" -type "string" "tiff";
-	setAttr ".imageFilePrefix" -type "string" "testrender";
-select -noExpand :defaultResolution;
-	setAttr ".width" 160;
-	setAttr ".height" 120;
-	setAttr ".pixelAspect" 1;
-	setAttr ".deviceAspectRatio" 1.3333333730697632;
-select -noExpand :defaultLightSet;
-select -noExpand :hardwareRenderGlobals;
-	setAttr ".colorTextureResolution" 256;
-	setAttr ".bumpTextureResolution" 512;
-select -noExpand :defaultHardwareRenderGlobals;
-	setAttr ".filename" -type "string" "im";
-	setAttr ".resolution" -type "string" "ntsc_4d 646 485 1.333";
-connectAttr "polySphere1.output" "pSphereShape1.inMesh";
-connectAttr "shaveHairShape1.outputMesh" "shaveDisplayShape.inMesh";
-connectAttr ":time1.outTime" "shaveHairShape1.time";
-connectAttr "shaveHairShape1_growth.message" "shaveHairShape1.growthSet";
-connectAttr "pSphereShape1.worldMesh" "shaveHairShape1.inputMesh[0]";
-connectAttr "shaveDisplayShape.message" "shaveHairShape1.displayNode";
+	setAttr ".spambdif" 0.59504002332687378;
+	setAttr ".spec" yes;
+	setAttr ".spcm" 1;
+	setAttr ".damp" 0;
+	setAttr ".spfa" 0;
+	setAttr ".spad" -type "float3" 0 1 0 ;
+	setAttr ".spas" 0;
+	setAttr ".disp" 0;
+	setAttr ".spffx" 138.20899963378906;
+	setAttr ".spffy" 131.11799621582031;
+	setAttr ".spffz" 138.20899963378906;
+	setAttr ".sprf" 1.7934999465942383;
+	setAttr ".sptf" 42.002998352050781;
+	setAttr ".spgs" 0.63635998964309692;
+	setAttr ".spgloss" 0.085124000906944275;
+	setAttr ".sphcol" -type "float3" 0.96450663 1 0.77999997 ;
+	setAttr ".sphc" 8456;
+	setAttr ".sphv" 18.181999206542969;
+	setAttr ".spis" no;
+	setAttr ".spkfx" 155;
+	setAttr ".spkfy" 155;
+	setAttr ".spkfz" 155;
+	setAttr ".spkr" 0;
+	setAttr ".spkt" 0;
+	setAttr ".spms" 0;
+	setAttr ".spmhc" -type "float3" 0.47058824 0.47058824 0.47058824 ;
+	setAttr ".spmp" 0;
+	setAttr ".dointerp" yes;
+	setAttr ".sphp" 1;
+	setAttr ".sprm" 0.21488000452518463;
+	setAttr ".sprs" 0.40000000596046448;
+	setAttr ".sprtc" -type "float3" 0.70248002 0.66596335 0.39690122 ;
+	setAttr ".rstf" 0;
+	setAttr ".sc" 1;
+	setAttr ".spsegs" 10;
+	setAttr ".spss" 1;
+	setAttr ".spspec" 0.99180001020431519;
+	setAttr ".sprsp" 0.45464000105857849;
+	setAttr ".sptsp" 0.2892799973487854;
+	setAttr ".mlasp" 0;
+	setAttr ".offs" 0;
+	setAttr ".aspc" 1;
+	setAttr ".spstiff" 0;
+	setAttr ".sptr" 0.72732001543045044;
+	setAttr ".sptt" 0.09920000284910202;
+	setAttr ".sptg" 1562;
+	setAttr ".spvv" 62.812000274658203;
+	setAttr -s 32 ".shtx";
+	setAttr ".shtx[0:6]" 0 0 0 0 0 0 0;
+	setAttr ".shtx[8]" 0;
+	setAttr ".shtx[12]" 0;
+	setAttr ".shtx[16]" 0;
+	setAttr ".shtx[20:21]" 0 0;
+	setAttr ".shtx[24:43]" 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0;
+	setAttr ".tusd" 2;
+	setAttr ".tvsd" 2;
+	setAttr ".tm" 1;
+	setAttr ".vl" 0;
+	setAttr ".dhm" 10000;
+	setAttr ".dhr" 1;
+	setAttr ".sptn" -type "float3" 1 1 1 ;
+	setAttr ".tf" yes;
+	setAttr ".sq" no;
+	setAttr ".cbn" -type "double3" -1.6662061214447021 -1.6841590404510498 -1.6711395978927612 ;
+	setAttr ".cbx" -type "double3" 1.670947790145874 1.661170482635498 1.6649885177612305 ;
+	setAttr ".slk" no;
+	setAttr -k on ".ai_sss_use_gi" yes;
+	setAttr ".ai_sss_sample_distribution" 0;
+	setAttr -k on ".ai_sss_sample_spacing" 0.10000000149011612;
+	setAttr -k on ".ai_self_shadows" yes;
+	setAttr -k on ".ai_opaque" yes;
+	setAttr -k on ".ai_vid" yes;
+	setAttr -k on ".ai_vig" yes;
+	setAttr -k on ".ai_min_pixel_width" 0;
+	setAttr ".ai_mode" 0;
+	setAttr -k on ".ai_export_hair_colours" yes;
+	setAttr -k on ".ai_export_hair_ids" yes;
+	setAttr -k on ".ai_override_hair" no;
+	setAttr -k on ".ai_sss_max_samples" 100000;
+createNode transform -n "pointLight1";
+	setAttr ".t" -type "double3" 0.8946263483617648 1.8998226219594425 2.2074515762557692 ;
+createNode pointLight -n "pointLightShape1" -p "pointLight1";
+	addAttr -ci true -k true -sn "ai_cast_shadows" -ln "aiCastShadows" -dv 1 -min 0 
+		-max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_exposure" -ln "aiExposure" -min 0 -smx 10 -at "float";
+	addAttr -ci true -k true -sn "ai_samples" -ln "aiSamples" -dv 1 -min 0 -max 100 
+		-at "long";
+	addAttr -ci true -k true -sn "ai_mis" -ln "aiMis" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_normalize" -ln "aiNormalize" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "ai_bounce_factor" -ln "aiBounceFactor" -dv 1 -min 
+		0 -smx 20 -at "float";
+	addAttr -ci true -k true -sn "ai_bounces" -ln "aiBounces" -dv 999 -min 0 -max 10000 
+		-at "long";
+	addAttr -ci true -k true -m -sn "ai_filters" -ln "aiFilters" -at "message";
+	addAttr -ci true -k true -sn "ai_oss" -ln "aiOverrideSssSamples" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_sss_samples" -ln "aiSssSamples" -dv 1 -min 0 -max 
+		100 -at "long";
+	addAttr -ci true -k true -sn "ai_affect_volumetrics" -ln "aiAffectVolumetrics" -dv 
+		1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_cast_volumetric_shadows" -ln "aiCastVolumetricShadows" 
+		-dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_radius" -ln "aiRadius" -min 0 -smx 10 -at "float";
+	setAttr -k off ".v";
+	setAttr ".us" no;
+createNode lightLinker -s -n "lightLinker1";
+	setAttr -s 5 ".lnk";
+	setAttr -s 5 ".slnk";
+createNode displayLayerManager -n "layerManager";
+createNode displayLayer -n "defaultLayer";
+createNode renderLayerManager -n "renderLayerManager";
+createNode renderLayer -n "defaultRenderLayer";
+	setAttr ".g" yes;
+createNode polySphere -n "polySphere1";
+	setAttr ".sa" 40;
+	setAttr ".sh" 40;
+createNode aiOptions -s -n "defaultArnoldRenderOptions";
+	addAttr -ci true -sn "driver_exr_compression" -ln "driverExrCompression" -dv 2 
+		-min 0 -max 4 -en "none:rle:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -k true -sn "driver_half_precision" -ln "driverHalfPrecision" -min 
+		0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "driver_tiled" -ln "driverTiled" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "driver_preserve_layer_name" -ln "driverPreserveLayerName" 
+		-min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "driver_quality" -ln "driverQuality" -dv 100 -min 0 
+		-max 100 -at "long";
+	addAttr -ci true -k true -sn "driver_output_padded" -ln "driverOutputPadded" -min 
+		0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "driver_gamma" -ln "driverGamma" -dv 2.2000000476837158 
+		-min 9.9999997473787516e-05 -smx 5 -at "float";
+	addAttr -ci true -k true -sn "driver_dither_amplitude" -ln "driverDitherAmplitude" 
+		-dv 1 -at "float";
+	addAttr -ci true -sn "driver_png_format" -ln "driverPngFormat" -min 0 -max 1 -en 
+		"int8:int16" -at "enum";
+	addAttr -ci true -sn "driver_tiff_compression" -ln "driverTiffCompression" -min 
+		0 -max 4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "driver_tiff_format" -ln "driverTiffFormat" -min 0 -max 3 -en 
+		"int8:int16:int32:float32" -at "enum";
+	addAttr -ci true -k true -sn "driver_unpremult_alpha" -ln "driverUnpremultAlpha" 
+		-min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "filter_width" -ln "filterWidth" -dv 3 -at "float";
+	addAttr -ci true -sn "filter_domain" -ln "filterDomain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -k true -sn "filter_minimum" -ln "filterMinimum" -at "float";
+	addAttr -ci true -k true -sn "filter_maximum" -ln "filterMaximum" -dv 1 -at "float";
+	addAttr -ci true -k true -sn "filter_scalar_mode" -ln "filterScalarMode" -min 0 
+		-max 1 -at "bool";
+	setAttr ".img" -type "string" "tiff";
+	setAttr ".fltr" -type "string" "gaussian";
+	setAttr ".dgamma" 1;
+	setAttr ".lgamma" 1;
+	setAttr ".sgamma" 1;
+	setAttr ".tgamma" 1;
+	setAttr -k on ".driver_tiled" no;
+	setAttr -k on ".driver_gamma" 1;
+	setAttr -k on ".filter_width" 2;
+createNode shadingEngine -n "aiStandard1SG";
+	setAttr ".ihi" 0;
+	setAttr ".ro" yes;
+createNode materialInfo -n "materialInfo1";
+createNode script -n "sceneConfigurationScriptNode";
+	setAttr ".b" -type "string" "playbackOptions -min 1 -max 24 -ast 1 -aet 48 ";
+	setAttr ".st" 6;
+createNode shadingEngine -n "surfaceShader1SG";
+	setAttr ".ihi" 0;
+	setAttr ".ro" yes;
+createNode materialInfo -n "materialInfo2";
+createNode aiStandard -n "aiStandard2";
+createNode shadingEngine -n "aiStandard2SG";
+	setAttr ".ihi" 0;
+	setAttr ".ro" yes;
+createNode materialInfo -n "materialInfo3";
+createNode shaveGlobals -s -n "shaveGlobals";
+	setAttr ".cch" no;
+	setAttr ".ihi" 2;
+	setAttr ".nds" 0;
+	setAttr ".i1" 0;
+	setAttr ".i2" 0;
+	setAttr ".rndm" 0;
+	setAttr ".eig" yes;
+	setAttr ".nil" no;
+	setAttr ".dsc" yes;
+	setAttr ".c2d" yes;
+	setAttr ".dhs" yes;
+	setAttr ".ual" yes;
+	setAttr ".sm" no;
+	setAttr ".smbf" yes;
+	setAttr ".khrf" no;
+	setAttr ".rq" 1;
+	setAttr ".hfn" -type "string" "D:/orenouard/maya/projects/default/shaveHair";
+	setAttr ".tpd" -type "string" "";
+	setAttr ".sso" -type "string" "all";
+	setAttr ".sd" 1;
+	setAttr ".grav" 1;
+	setAttr ".nv" 11;
+	setAttr ".dra" yes;
+	setAttr ".vxrs" 5;
+	setAttr ".mrei" no;
+	setAttr ".mrir" 1;
+	setAttr ".mroc" no;
+	setAttr ".mrsm" yes;
+	setAttr ".mss" no;
+	setAttr ".rgcb" yes;
+	setAttr ".vrfl" no;
+	setAttr ".hh" no;
+	setAttr ".mth" 0;
+	setAttr ".tpp" yes;
+	setAttr ".verb" yes;
+	setAttr ".vs" 1.1000000238418579;
+	setAttr ".addr" ;
+	setAttr ".tml" 90;
+	setAttr ".td" 30;
+	setAttr ".rbin" no;
+	setAttr ".rbtb" 1;
+	setAttr ".rben" no;
+	setAttr ".rbis" 1;
+	setAttr ".rbrf" yes;
+	setAttr ".rbsc" 0.30000001192092896;
+	setAttr ".rbso" -0.30000001192092896;
+	setAttr ".rcmp" no;
+	setAttr ".rkrf" no;
+	setAttr ".rnrm" no;
+	setAttr ".ropa" yes;
+	setAttr ".prhpt" 1;
+	setAttr ".rrp" no;
+	setAttr ".rrtc" yes;
+	setAttr ".rst" -type "string" "Surface \"Shave\"";
+	setAttr ".rvc" no;
+	setAttr ".rtu" 0;
+	setAttr ".ruv" no;
+	setAttr ".rwc" no;
+	setAttr ".rvxe" no;
+	setAttr ".rvxp" no;
+	setAttr ".rvxr" 5;
+	setAttr ".shr" 0.15000000596046448;
+	setAttr ".uds" no;
+	setAttr ".vrd" -type "string" "";
+createNode objectSet -n "shaveHairShape1_growth";
+createNode script -n "uiConfigurationScriptNode";
+	setAttr ".b" -type "string" (
+		"// Maya Mel UI Configuration File.\n//\n//  This script is machine generated.  Edit at your own risk.\n//\n//\n\nglobal string $gMainPane;\nif (`paneLayout -exists $gMainPane`) {\n\n\tglobal int $gUseScenePanelConfig;\n\tint    $useSceneConfig = $gUseScenePanelConfig;\n\tint    $menusOkayInPanels = `optionVar -q allowMenusInPanels`;\tint    $nVisPanes = `paneLayout -q -nvp $gMainPane`;\n\tint    $nPanes = 0;\n\tstring $editorName;\n\tstring $panelName;\n\tstring $itemFilterName;\n\tstring $panelConfig;\n\n\t//\n\t//  get current state of the UI\n\t//\n\tsceneUIReplacement -update $gMainPane;\n\n\t$panelName = `sceneUIReplacement -getNextPanel \"modelPanel\" (localizedPanelLabel(\"Top View\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `modelPanel -unParent -l (localizedPanelLabel(\"Top View\")) -mbv $menusOkayInPanels `;\n\t\t\t$editorName = $panelName;\n            modelEditor -e \n                -camera \"top\" \n                -useInteractiveMode 0\n                -displayLights \"default\" \n                -displayAppearance \"wireframe\" \n"
+		+ "                -activeOnly 0\n                -ignorePanZoom 0\n                -wireframeOnShaded 0\n                -headsUpDisplay 1\n                -selectionHiliteDisplay 1\n                -useDefaultMaterial 0\n                -bufferMode \"double\" \n                -twoSidedLighting 1\n                -backfaceCulling 0\n                -xray 0\n                -jointXray 0\n                -activeComponentsXray 0\n                -displayTextures 0\n                -smoothWireframe 0\n                -lineWidth 1\n                -textureAnisotropic 0\n                -textureHilight 1\n                -textureSampling 2\n                -textureDisplay \"modulate\" \n                -textureMaxSize 16384\n                -fogging 0\n                -fogSource \"fragment\" \n                -fogMode \"linear\" \n                -fogStart 0\n                -fogEnd 100\n                -fogDensity 0.1\n                -fogColor 0.5 0.5 0.5 1 \n                -maxConstantTransparency 1\n                -rendererName \"base_OpenGL_Renderer\" \n"
+		+ "                -colorResolution 256 256 \n                -bumpResolution 512 512 \n                -textureCompression 0\n                -transparencyAlgorithm \"frontAndBackCull\" \n                -transpInShadows 0\n                -cullingOverride \"none\" \n                -lowQualityLighting 0\n                -maximumNumHardwareLights 1\n                -occlusionCulling 0\n                -shadingModel 0\n                -useBaseRenderer 0\n                -useReducedRenderer 0\n                -smallObjectCulling 0\n                -smallObjectThreshold -1 \n                -interactiveDisableShadows 0\n                -interactiveBackFaceCull 0\n                -sortTransparent 1\n                -nurbsCurves 1\n                -nurbsSurfaces 1\n                -polymeshes 1\n                -subdivSurfaces 1\n                -planes 1\n                -lights 1\n                -cameras 1\n                -controlVertices 1\n                -hulls 1\n                -grid 1\n                -joints 1\n                -ikHandles 1\n"
+		+ "                -deformers 1\n                -dynamics 1\n                -fluids 1\n                -hairSystems 1\n                -follicles 1\n                -nCloths 1\n                -nParticles 1\n                -nRigids 1\n                -dynamicConstraints 1\n                -locators 1\n                -manipulators 1\n                -dimensions 1\n                -handles 1\n                -pivots 1\n                -textures 1\n                -strokes 1\n                -shadows 0\n                $editorName;\nmodelEditor -e -viewSelected 0 $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tmodelPanel -edit -l (localizedPanelLabel(\"Top View\")) -mbv $menusOkayInPanels  $panelName;\n\t\t$editorName = $panelName;\n        modelEditor -e \n            -camera \"top\" \n            -useInteractiveMode 0\n            -displayLights \"default\" \n            -displayAppearance \"wireframe\" \n            -activeOnly 0\n            -ignorePanZoom 0\n            -wireframeOnShaded 0\n            -headsUpDisplay 1\n            -selectionHiliteDisplay 1\n"
+		+ "            -useDefaultMaterial 0\n            -bufferMode \"double\" \n            -twoSidedLighting 1\n            -backfaceCulling 0\n            -xray 0\n            -jointXray 0\n            -activeComponentsXray 0\n            -displayTextures 0\n            -smoothWireframe 0\n            -lineWidth 1\n            -textureAnisotropic 0\n            -textureHilight 1\n            -textureSampling 2\n            -textureDisplay \"modulate\" \n            -textureMaxSize 16384\n            -fogging 0\n            -fogSource \"fragment\" \n            -fogMode \"linear\" \n            -fogStart 0\n            -fogEnd 100\n            -fogDensity 0.1\n            -fogColor 0.5 0.5 0.5 1 \n            -maxConstantTransparency 1\n            -rendererName \"base_OpenGL_Renderer\" \n            -colorResolution 256 256 \n            -bumpResolution 512 512 \n            -textureCompression 0\n            -transparencyAlgorithm \"frontAndBackCull\" \n            -transpInShadows 0\n            -cullingOverride \"none\" \n            -lowQualityLighting 0\n"
+		+ "            -maximumNumHardwareLights 1\n            -occlusionCulling 0\n            -shadingModel 0\n            -useBaseRenderer 0\n            -useReducedRenderer 0\n            -smallObjectCulling 0\n            -smallObjectThreshold -1 \n            -interactiveDisableShadows 0\n            -interactiveBackFaceCull 0\n            -sortTransparent 1\n            -nurbsCurves 1\n            -nurbsSurfaces 1\n            -polymeshes 1\n            -subdivSurfaces 1\n            -planes 1\n            -lights 1\n            -cameras 1\n            -controlVertices 1\n            -hulls 1\n            -grid 1\n            -joints 1\n            -ikHandles 1\n            -deformers 1\n            -dynamics 1\n            -fluids 1\n            -hairSystems 1\n            -follicles 1\n            -nCloths 1\n            -nParticles 1\n            -nRigids 1\n            -dynamicConstraints 1\n            -locators 1\n            -manipulators 1\n            -dimensions 1\n            -handles 1\n            -pivots 1\n            -textures 1\n            -strokes 1\n"
+		+ "            -shadows 0\n            $editorName;\nmodelEditor -e -viewSelected 0 $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextPanel \"modelPanel\" (localizedPanelLabel(\"Side View\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `modelPanel -unParent -l (localizedPanelLabel(\"Side View\")) -mbv $menusOkayInPanels `;\n\t\t\t$editorName = $panelName;\n            modelEditor -e \n                -camera \"side\" \n                -useInteractiveMode 0\n                -displayLights \"default\" \n                -displayAppearance \"wireframe\" \n                -activeOnly 0\n                -ignorePanZoom 0\n                -wireframeOnShaded 0\n                -headsUpDisplay 1\n                -selectionHiliteDisplay 1\n                -useDefaultMaterial 0\n                -bufferMode \"double\" \n                -twoSidedLighting 1\n                -backfaceCulling 0\n                -xray 0\n                -jointXray 0\n                -activeComponentsXray 0\n"
+		+ "                -displayTextures 0\n                -smoothWireframe 0\n                -lineWidth 1\n                -textureAnisotropic 0\n                -textureHilight 1\n                -textureSampling 2\n                -textureDisplay \"modulate\" \n                -textureMaxSize 16384\n                -fogging 0\n                -fogSource \"fragment\" \n                -fogMode \"linear\" \n                -fogStart 0\n                -fogEnd 100\n                -fogDensity 0.1\n                -fogColor 0.5 0.5 0.5 1 \n                -maxConstantTransparency 1\n                -rendererName \"base_OpenGL_Renderer\" \n                -colorResolution 256 256 \n                -bumpResolution 512 512 \n                -textureCompression 0\n                -transparencyAlgorithm \"frontAndBackCull\" \n                -transpInShadows 0\n                -cullingOverride \"none\" \n                -lowQualityLighting 0\n                -maximumNumHardwareLights 1\n                -occlusionCulling 0\n                -shadingModel 0\n                -useBaseRenderer 0\n"
+		+ "                -useReducedRenderer 0\n                -smallObjectCulling 0\n                -smallObjectThreshold -1 \n                -interactiveDisableShadows 0\n                -interactiveBackFaceCull 0\n                -sortTransparent 1\n                -nurbsCurves 1\n                -nurbsSurfaces 1\n                -polymeshes 1\n                -subdivSurfaces 1\n                -planes 1\n                -lights 1\n                -cameras 1\n                -controlVertices 1\n                -hulls 1\n                -grid 1\n                -joints 1\n                -ikHandles 1\n                -deformers 1\n                -dynamics 1\n                -fluids 1\n                -hairSystems 1\n                -follicles 1\n                -nCloths 1\n                -nParticles 1\n                -nRigids 1\n                -dynamicConstraints 1\n                -locators 1\n                -manipulators 1\n                -dimensions 1\n                -handles 1\n                -pivots 1\n                -textures 1\n                -strokes 1\n"
+		+ "                -shadows 0\n                $editorName;\nmodelEditor -e -viewSelected 0 $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tmodelPanel -edit -l (localizedPanelLabel(\"Side View\")) -mbv $menusOkayInPanels  $panelName;\n\t\t$editorName = $panelName;\n        modelEditor -e \n            -camera \"side\" \n            -useInteractiveMode 0\n            -displayLights \"default\" \n            -displayAppearance \"wireframe\" \n            -activeOnly 0\n            -ignorePanZoom 0\n            -wireframeOnShaded 0\n            -headsUpDisplay 1\n            -selectionHiliteDisplay 1\n            -useDefaultMaterial 0\n            -bufferMode \"double\" \n            -twoSidedLighting 1\n            -backfaceCulling 0\n            -xray 0\n            -jointXray 0\n            -activeComponentsXray 0\n            -displayTextures 0\n            -smoothWireframe 0\n            -lineWidth 1\n            -textureAnisotropic 0\n            -textureHilight 1\n            -textureSampling 2\n            -textureDisplay \"modulate\" \n"
+		+ "            -textureMaxSize 16384\n            -fogging 0\n            -fogSource \"fragment\" \n            -fogMode \"linear\" \n            -fogStart 0\n            -fogEnd 100\n            -fogDensity 0.1\n            -fogColor 0.5 0.5 0.5 1 \n            -maxConstantTransparency 1\n            -rendererName \"base_OpenGL_Renderer\" \n            -colorResolution 256 256 \n            -bumpResolution 512 512 \n            -textureCompression 0\n            -transparencyAlgorithm \"frontAndBackCull\" \n            -transpInShadows 0\n            -cullingOverride \"none\" \n            -lowQualityLighting 0\n            -maximumNumHardwareLights 1\n            -occlusionCulling 0\n            -shadingModel 0\n            -useBaseRenderer 0\n            -useReducedRenderer 0\n            -smallObjectCulling 0\n            -smallObjectThreshold -1 \n            -interactiveDisableShadows 0\n            -interactiveBackFaceCull 0\n            -sortTransparent 1\n            -nurbsCurves 1\n            -nurbsSurfaces 1\n            -polymeshes 1\n            -subdivSurfaces 1\n"
+		+ "            -planes 1\n            -lights 1\n            -cameras 1\n            -controlVertices 1\n            -hulls 1\n            -grid 1\n            -joints 1\n            -ikHandles 1\n            -deformers 1\n            -dynamics 1\n            -fluids 1\n            -hairSystems 1\n            -follicles 1\n            -nCloths 1\n            -nParticles 1\n            -nRigids 1\n            -dynamicConstraints 1\n            -locators 1\n            -manipulators 1\n            -dimensions 1\n            -handles 1\n            -pivots 1\n            -textures 1\n            -strokes 1\n            -shadows 0\n            $editorName;\nmodelEditor -e -viewSelected 0 $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextPanel \"modelPanel\" (localizedPanelLabel(\"Front View\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `modelPanel -unParent -l (localizedPanelLabel(\"Front View\")) -mbv $menusOkayInPanels `;\n\t\t\t$editorName = $panelName;\n"
+		+ "            modelEditor -e \n                -camera \"front\" \n                -useInteractiveMode 0\n                -displayLights \"default\" \n                -displayAppearance \"wireframe\" \n                -activeOnly 0\n                -ignorePanZoom 0\n                -wireframeOnShaded 0\n                -headsUpDisplay 1\n                -selectionHiliteDisplay 1\n                -useDefaultMaterial 0\n                -bufferMode \"double\" \n                -twoSidedLighting 1\n                -backfaceCulling 0\n                -xray 0\n                -jointXray 0\n                -activeComponentsXray 0\n                -displayTextures 0\n                -smoothWireframe 0\n                -lineWidth 1\n                -textureAnisotropic 0\n                -textureHilight 1\n                -textureSampling 2\n                -textureDisplay \"modulate\" \n                -textureMaxSize 16384\n                -fogging 0\n                -fogSource \"fragment\" \n                -fogMode \"linear\" \n                -fogStart 0\n                -fogEnd 100\n"
+		+ "                -fogDensity 0.1\n                -fogColor 0.5 0.5 0.5 1 \n                -maxConstantTransparency 1\n                -rendererName \"base_OpenGL_Renderer\" \n                -colorResolution 256 256 \n                -bumpResolution 512 512 \n                -textureCompression 0\n                -transparencyAlgorithm \"frontAndBackCull\" \n                -transpInShadows 0\n                -cullingOverride \"none\" \n                -lowQualityLighting 0\n                -maximumNumHardwareLights 1\n                -occlusionCulling 0\n                -shadingModel 0\n                -useBaseRenderer 0\n                -useReducedRenderer 0\n                -smallObjectCulling 0\n                -smallObjectThreshold -1 \n                -interactiveDisableShadows 0\n                -interactiveBackFaceCull 0\n                -sortTransparent 1\n                -nurbsCurves 1\n                -nurbsSurfaces 1\n                -polymeshes 1\n                -subdivSurfaces 1\n                -planes 1\n                -lights 1\n"
+		+ "                -cameras 1\n                -controlVertices 1\n                -hulls 1\n                -grid 1\n                -joints 1\n                -ikHandles 1\n                -deformers 1\n                -dynamics 1\n                -fluids 1\n                -hairSystems 1\n                -follicles 1\n                -nCloths 1\n                -nParticles 1\n                -nRigids 1\n                -dynamicConstraints 1\n                -locators 1\n                -manipulators 1\n                -dimensions 1\n                -handles 1\n                -pivots 1\n                -textures 1\n                -strokes 1\n                -shadows 0\n                $editorName;\nmodelEditor -e -viewSelected 0 $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tmodelPanel -edit -l (localizedPanelLabel(\"Front View\")) -mbv $menusOkayInPanels  $panelName;\n\t\t$editorName = $panelName;\n        modelEditor -e \n            -camera \"front\" \n            -useInteractiveMode 0\n            -displayLights \"default\" \n"
+		+ "            -displayAppearance \"wireframe\" \n            -activeOnly 0\n            -ignorePanZoom 0\n            -wireframeOnShaded 0\n            -headsUpDisplay 1\n            -selectionHiliteDisplay 1\n            -useDefaultMaterial 0\n            -bufferMode \"double\" \n            -twoSidedLighting 1\n            -backfaceCulling 0\n            -xray 0\n            -jointXray 0\n            -activeComponentsXray 0\n            -displayTextures 0\n            -smoothWireframe 0\n            -lineWidth 1\n            -textureAnisotropic 0\n            -textureHilight 1\n            -textureSampling 2\n            -textureDisplay \"modulate\" \n            -textureMaxSize 16384\n            -fogging 0\n            -fogSource \"fragment\" \n            -fogMode \"linear\" \n            -fogStart 0\n            -fogEnd 100\n            -fogDensity 0.1\n            -fogColor 0.5 0.5 0.5 1 \n            -maxConstantTransparency 1\n            -rendererName \"base_OpenGL_Renderer\" \n            -colorResolution 256 256 \n            -bumpResolution 512 512 \n"
+		+ "            -textureCompression 0\n            -transparencyAlgorithm \"frontAndBackCull\" \n            -transpInShadows 0\n            -cullingOverride \"none\" \n            -lowQualityLighting 0\n            -maximumNumHardwareLights 1\n            -occlusionCulling 0\n            -shadingModel 0\n            -useBaseRenderer 0\n            -useReducedRenderer 0\n            -smallObjectCulling 0\n            -smallObjectThreshold -1 \n            -interactiveDisableShadows 0\n            -interactiveBackFaceCull 0\n            -sortTransparent 1\n            -nurbsCurves 1\n            -nurbsSurfaces 1\n            -polymeshes 1\n            -subdivSurfaces 1\n            -planes 1\n            -lights 1\n            -cameras 1\n            -controlVertices 1\n            -hulls 1\n            -grid 1\n            -joints 1\n            -ikHandles 1\n            -deformers 1\n            -dynamics 1\n            -fluids 1\n            -hairSystems 1\n            -follicles 1\n            -nCloths 1\n            -nParticles 1\n            -nRigids 1\n"
+		+ "            -dynamicConstraints 1\n            -locators 1\n            -manipulators 1\n            -dimensions 1\n            -handles 1\n            -pivots 1\n            -textures 1\n            -strokes 1\n            -shadows 0\n            $editorName;\nmodelEditor -e -viewSelected 0 $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextPanel \"modelPanel\" (localizedPanelLabel(\"Persp View\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `modelPanel -unParent -l (localizedPanelLabel(\"Persp View\")) -mbv $menusOkayInPanels `;\n\t\t\t$editorName = $panelName;\n            modelEditor -e \n                -camera \"persp\" \n                -useInteractiveMode 0\n                -displayLights \"default\" \n                -displayAppearance \"wireframe\" \n                -activeOnly 0\n                -ignorePanZoom 0\n                -wireframeOnShaded 0\n                -headsUpDisplay 1\n                -selectionHiliteDisplay 1\n                -useDefaultMaterial 0\n"
+		+ "                -bufferMode \"double\" \n                -twoSidedLighting 1\n                -backfaceCulling 0\n                -xray 0\n                -jointXray 0\n                -activeComponentsXray 0\n                -displayTextures 0\n                -smoothWireframe 0\n                -lineWidth 1\n                -textureAnisotropic 0\n                -textureHilight 1\n                -textureSampling 2\n                -textureDisplay \"modulate\" \n                -textureMaxSize 16384\n                -fogging 0\n                -fogSource \"fragment\" \n                -fogMode \"linear\" \n                -fogStart 0\n                -fogEnd 100\n                -fogDensity 0.1\n                -fogColor 0.5 0.5 0.5 1 \n                -maxConstantTransparency 1\n                -rendererName \"base_OpenGL_Renderer\" \n                -colorResolution 256 256 \n                -bumpResolution 512 512 \n                -textureCompression 0\n                -transparencyAlgorithm \"frontAndBackCull\" \n                -transpInShadows 0\n"
+		+ "                -cullingOverride \"none\" \n                -lowQualityLighting 0\n                -maximumNumHardwareLights 1\n                -occlusionCulling 0\n                -shadingModel 0\n                -useBaseRenderer 0\n                -useReducedRenderer 0\n                -smallObjectCulling 0\n                -smallObjectThreshold -1 \n                -interactiveDisableShadows 0\n                -interactiveBackFaceCull 0\n                -sortTransparent 1\n                -nurbsCurves 1\n                -nurbsSurfaces 1\n                -polymeshes 1\n                -subdivSurfaces 1\n                -planes 1\n                -lights 1\n                -cameras 1\n                -controlVertices 1\n                -hulls 1\n                -grid 1\n                -joints 1\n                -ikHandles 1\n                -deformers 1\n                -dynamics 1\n                -fluids 1\n                -hairSystems 1\n                -follicles 1\n                -nCloths 1\n                -nParticles 1\n                -nRigids 1\n"
+		+ "                -dynamicConstraints 1\n                -locators 1\n                -manipulators 1\n                -dimensions 1\n                -handles 1\n                -pivots 1\n                -textures 1\n                -strokes 1\n                -shadows 0\n                $editorName;\nmodelEditor -e -viewSelected 0 $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tmodelPanel -edit -l (localizedPanelLabel(\"Persp View\")) -mbv $menusOkayInPanels  $panelName;\n\t\t$editorName = $panelName;\n        modelEditor -e \n            -camera \"persp\" \n            -useInteractiveMode 0\n            -displayLights \"default\" \n            -displayAppearance \"wireframe\" \n            -activeOnly 0\n            -ignorePanZoom 0\n            -wireframeOnShaded 0\n            -headsUpDisplay 1\n            -selectionHiliteDisplay 1\n            -useDefaultMaterial 0\n            -bufferMode \"double\" \n            -twoSidedLighting 1\n            -backfaceCulling 0\n            -xray 0\n            -jointXray 0\n            -activeComponentsXray 0\n"
+		+ "            -displayTextures 0\n            -smoothWireframe 0\n            -lineWidth 1\n            -textureAnisotropic 0\n            -textureHilight 1\n            -textureSampling 2\n            -textureDisplay \"modulate\" \n            -textureMaxSize 16384\n            -fogging 0\n            -fogSource \"fragment\" \n            -fogMode \"linear\" \n            -fogStart 0\n            -fogEnd 100\n            -fogDensity 0.1\n            -fogColor 0.5 0.5 0.5 1 \n            -maxConstantTransparency 1\n            -rendererName \"base_OpenGL_Renderer\" \n            -colorResolution 256 256 \n            -bumpResolution 512 512 \n            -textureCompression 0\n            -transparencyAlgorithm \"frontAndBackCull\" \n            -transpInShadows 0\n            -cullingOverride \"none\" \n            -lowQualityLighting 0\n            -maximumNumHardwareLights 1\n            -occlusionCulling 0\n            -shadingModel 0\n            -useBaseRenderer 0\n            -useReducedRenderer 0\n            -smallObjectCulling 0\n            -smallObjectThreshold -1 \n"
+		+ "            -interactiveDisableShadows 0\n            -interactiveBackFaceCull 0\n            -sortTransparent 1\n            -nurbsCurves 1\n            -nurbsSurfaces 1\n            -polymeshes 1\n            -subdivSurfaces 1\n            -planes 1\n            -lights 1\n            -cameras 1\n            -controlVertices 1\n            -hulls 1\n            -grid 1\n            -joints 1\n            -ikHandles 1\n            -deformers 1\n            -dynamics 1\n            -fluids 1\n            -hairSystems 1\n            -follicles 1\n            -nCloths 1\n            -nParticles 1\n            -nRigids 1\n            -dynamicConstraints 1\n            -locators 1\n            -manipulators 1\n            -dimensions 1\n            -handles 1\n            -pivots 1\n            -textures 1\n            -strokes 1\n            -shadows 0\n            $editorName;\nmodelEditor -e -viewSelected 0 $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextPanel \"outlinerPanel\" (localizedPanelLabel(\"Outliner\")) `;\n"
+		+ "\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `outlinerPanel -unParent -l (localizedPanelLabel(\"Outliner\")) -mbv $menusOkayInPanels `;\n\t\t\t$editorName = $panelName;\n            outlinerEditor -e \n                -showShapes 1\n                -showAttributes 0\n                -showConnected 0\n                -showAnimCurvesOnly 0\n                -showMuteInfo 0\n                -organizeByLayer 1\n                -showAnimLayerWeight 1\n                -autoExpandLayers 1\n                -autoExpand 0\n                -showDagOnly 0\n                -showAssets 1\n                -showContainedOnly 1\n                -showPublishedAsConnected 0\n                -showContainerContents 1\n                -ignoreDagHierarchy 0\n                -expandConnections 0\n                -showUpstreamCurves 1\n                -showUnitlessCurves 1\n                -showCompounds 1\n                -showLeafs 1\n                -showNumericAttrsOnly 0\n                -highlightActive 1\n                -autoSelectNewObjects 0\n"
+		+ "                -doNotSelectNewObjects 0\n                -dropIsParent 1\n                -transmitFilters 0\n                -setFilter \"defaultSetFilter\" \n                -showSetMembers 1\n                -allowMultiSelection 1\n                -alwaysToggleSelect 0\n                -directSelect 0\n                -displayMode \"DAG\" \n                -expandObjects 0\n                -setsIgnoreFilters 1\n                -containersIgnoreFilters 0\n                -editAttrName 0\n                -showAttrValues 0\n                -highlightSecondary 0\n                -showUVAttrsOnly 0\n                -showTextureNodesOnly 0\n                -attrAlphaOrder \"default\" \n                -animLayerFilterOptions \"allAffecting\" \n                -sortOrder \"none\" \n                -longNames 0\n                -niceNames 1\n                -showNamespace 1\n                -showPinIcons 0\n                $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\toutlinerPanel -edit -l (localizedPanelLabel(\"Outliner\")) -mbv $menusOkayInPanels  $panelName;\n"
+		+ "\t\t$editorName = $panelName;\n        outlinerEditor -e \n            -showShapes 1\n            -showAttributes 0\n            -showConnected 0\n            -showAnimCurvesOnly 0\n            -showMuteInfo 0\n            -organizeByLayer 1\n            -showAnimLayerWeight 1\n            -autoExpandLayers 1\n            -autoExpand 0\n            -showDagOnly 0\n            -showAssets 1\n            -showContainedOnly 1\n            -showPublishedAsConnected 0\n            -showContainerContents 1\n            -ignoreDagHierarchy 0\n            -expandConnections 0\n            -showUpstreamCurves 1\n            -showUnitlessCurves 1\n            -showCompounds 1\n            -showLeafs 1\n            -showNumericAttrsOnly 0\n            -highlightActive 1\n            -autoSelectNewObjects 0\n            -doNotSelectNewObjects 0\n            -dropIsParent 1\n            -transmitFilters 0\n            -setFilter \"defaultSetFilter\" \n            -showSetMembers 1\n            -allowMultiSelection 1\n            -alwaysToggleSelect 0\n            -directSelect 0\n"
+		+ "            -displayMode \"DAG\" \n            -expandObjects 0\n            -setsIgnoreFilters 1\n            -containersIgnoreFilters 0\n            -editAttrName 0\n            -showAttrValues 0\n            -highlightSecondary 0\n            -showUVAttrsOnly 0\n            -showTextureNodesOnly 0\n            -attrAlphaOrder \"default\" \n            -animLayerFilterOptions \"allAffecting\" \n            -sortOrder \"none\" \n            -longNames 0\n            -niceNames 1\n            -showNamespace 1\n            -showPinIcons 0\n            $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"graphEditor\" (localizedPanelLabel(\"Graph Editor\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"graphEditor\" -l (localizedPanelLabel(\"Graph Editor\")) -mbv $menusOkayInPanels `;\n\n\t\t\t$editorName = ($panelName+\"OutlineEd\");\n            outlinerEditor -e \n                -showShapes 1\n                -showAttributes 1\n"
+		+ "                -showConnected 1\n                -showAnimCurvesOnly 1\n                -showMuteInfo 0\n                -organizeByLayer 1\n                -showAnimLayerWeight 1\n                -autoExpandLayers 1\n                -autoExpand 1\n                -showDagOnly 0\n                -showAssets 1\n                -showContainedOnly 0\n                -showPublishedAsConnected 0\n                -showContainerContents 0\n                -ignoreDagHierarchy 0\n                -expandConnections 1\n                -showUpstreamCurves 1\n                -showUnitlessCurves 1\n                -showCompounds 0\n                -showLeafs 1\n                -showNumericAttrsOnly 1\n                -highlightActive 0\n                -autoSelectNewObjects 1\n                -doNotSelectNewObjects 0\n                -dropIsParent 1\n                -transmitFilters 1\n                -setFilter \"0\" \n                -showSetMembers 0\n                -allowMultiSelection 1\n                -alwaysToggleSelect 0\n                -directSelect 0\n"
+		+ "                -displayMode \"DAG\" \n                -expandObjects 0\n                -setsIgnoreFilters 1\n                -containersIgnoreFilters 0\n                -editAttrName 0\n                -showAttrValues 0\n                -highlightSecondary 0\n                -showUVAttrsOnly 0\n                -showTextureNodesOnly 0\n                -attrAlphaOrder \"default\" \n                -animLayerFilterOptions \"allAffecting\" \n                -sortOrder \"none\" \n                -longNames 0\n                -niceNames 1\n                -showNamespace 1\n                -showPinIcons 1\n                $editorName;\n\n\t\t\t$editorName = ($panelName+\"GraphEd\");\n            animCurveEditor -e \n                -displayKeys 1\n                -displayTangents 0\n                -displayActiveKeys 0\n                -displayActiveKeyTangents 1\n                -displayInfinities 0\n                -autoFit 0\n                -snapTime \"integer\" \n                -snapValue \"none\" \n                -showResults \"off\" \n                -showBufferCurves \"off\" \n"
+		+ "                -smoothness \"fine\" \n                -resultSamples 1\n                -resultScreenSamples 0\n                -resultUpdate \"delayed\" \n                -showUpstreamCurves 1\n                -stackedCurves 0\n                -stackedCurvesMin -1\n                -stackedCurvesMax 1\n                -stackedCurvesSpace 0.2\n                -displayNormalized 0\n                -preSelectionHighlight 0\n                -constrainDrag 0\n                $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Graph Editor\")) -mbv $menusOkayInPanels  $panelName;\n\n\t\t\t$editorName = ($panelName+\"OutlineEd\");\n            outlinerEditor -e \n                -showShapes 1\n                -showAttributes 1\n                -showConnected 1\n                -showAnimCurvesOnly 1\n                -showMuteInfo 0\n                -organizeByLayer 1\n                -showAnimLayerWeight 1\n                -autoExpandLayers 1\n                -autoExpand 1\n                -showDagOnly 0\n"
+		+ "                -showAssets 1\n                -showContainedOnly 0\n                -showPublishedAsConnected 0\n                -showContainerContents 0\n                -ignoreDagHierarchy 0\n                -expandConnections 1\n                -showUpstreamCurves 1\n                -showUnitlessCurves 1\n                -showCompounds 0\n                -showLeafs 1\n                -showNumericAttrsOnly 1\n                -highlightActive 0\n                -autoSelectNewObjects 1\n                -doNotSelectNewObjects 0\n                -dropIsParent 1\n                -transmitFilters 1\n                -setFilter \"0\" \n                -showSetMembers 0\n                -allowMultiSelection 1\n                -alwaysToggleSelect 0\n                -directSelect 0\n                -displayMode \"DAG\" \n                -expandObjects 0\n                -setsIgnoreFilters 1\n                -containersIgnoreFilters 0\n                -editAttrName 0\n                -showAttrValues 0\n                -highlightSecondary 0\n                -showUVAttrsOnly 0\n"
+		+ "                -showTextureNodesOnly 0\n                -attrAlphaOrder \"default\" \n                -animLayerFilterOptions \"allAffecting\" \n                -sortOrder \"none\" \n                -longNames 0\n                -niceNames 1\n                -showNamespace 1\n                -showPinIcons 1\n                $editorName;\n\n\t\t\t$editorName = ($panelName+\"GraphEd\");\n            animCurveEditor -e \n                -displayKeys 1\n                -displayTangents 0\n                -displayActiveKeys 0\n                -displayActiveKeyTangents 1\n                -displayInfinities 0\n                -autoFit 0\n                -snapTime \"integer\" \n                -snapValue \"none\" \n                -showResults \"off\" \n                -showBufferCurves \"off\" \n                -smoothness \"fine\" \n                -resultSamples 1\n                -resultScreenSamples 0\n                -resultUpdate \"delayed\" \n                -showUpstreamCurves 1\n                -stackedCurves 0\n                -stackedCurvesMin -1\n                -stackedCurvesMax 1\n"
+		+ "                -stackedCurvesSpace 0.2\n                -displayNormalized 0\n                -preSelectionHighlight 0\n                -constrainDrag 0\n                $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"dopeSheetPanel\" (localizedPanelLabel(\"Dope Sheet\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"dopeSheetPanel\" -l (localizedPanelLabel(\"Dope Sheet\")) -mbv $menusOkayInPanels `;\n\n\t\t\t$editorName = ($panelName+\"OutlineEd\");\n            outlinerEditor -e \n                -showShapes 1\n                -showAttributes 1\n                -showConnected 1\n                -showAnimCurvesOnly 1\n                -showMuteInfo 0\n                -organizeByLayer 1\n                -showAnimLayerWeight 1\n                -autoExpandLayers 1\n                -autoExpand 0\n                -showDagOnly 0\n                -showAssets 1\n                -showContainedOnly 0\n                -showPublishedAsConnected 0\n"
+		+ "                -showContainerContents 0\n                -ignoreDagHierarchy 0\n                -expandConnections 1\n                -showUpstreamCurves 1\n                -showUnitlessCurves 0\n                -showCompounds 1\n                -showLeafs 1\n                -showNumericAttrsOnly 1\n                -highlightActive 0\n                -autoSelectNewObjects 0\n                -doNotSelectNewObjects 1\n                -dropIsParent 1\n                -transmitFilters 0\n                -setFilter \"0\" \n                -showSetMembers 0\n                -allowMultiSelection 1\n                -alwaysToggleSelect 0\n                -directSelect 0\n                -displayMode \"DAG\" \n                -expandObjects 0\n                -setsIgnoreFilters 1\n                -containersIgnoreFilters 0\n                -editAttrName 0\n                -showAttrValues 0\n                -highlightSecondary 0\n                -showUVAttrsOnly 0\n                -showTextureNodesOnly 0\n                -attrAlphaOrder \"default\" \n                -animLayerFilterOptions \"allAffecting\" \n"
+		+ "                -sortOrder \"none\" \n                -longNames 0\n                -niceNames 1\n                -showNamespace 1\n                -showPinIcons 0\n                $editorName;\n\n\t\t\t$editorName = ($panelName+\"DopeSheetEd\");\n            dopeSheetEditor -e \n                -displayKeys 1\n                -displayTangents 0\n                -displayActiveKeys 0\n                -displayActiveKeyTangents 0\n                -displayInfinities 0\n                -autoFit 0\n                -snapTime \"integer\" \n                -snapValue \"none\" \n                -outliner \"dopeSheetPanel1OutlineEd\" \n                -showSummary 1\n                -showScene 0\n                -hierarchyBelow 0\n                -showTicks 1\n                -selectionWindow 0 0 0 0 \n                $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Dope Sheet\")) -mbv $menusOkayInPanels  $panelName;\n\n\t\t\t$editorName = ($panelName+\"OutlineEd\");\n            outlinerEditor -e \n                -showShapes 1\n"
+		+ "                -showAttributes 1\n                -showConnected 1\n                -showAnimCurvesOnly 1\n                -showMuteInfo 0\n                -organizeByLayer 1\n                -showAnimLayerWeight 1\n                -autoExpandLayers 1\n                -autoExpand 0\n                -showDagOnly 0\n                -showAssets 1\n                -showContainedOnly 0\n                -showPublishedAsConnected 0\n                -showContainerContents 0\n                -ignoreDagHierarchy 0\n                -expandConnections 1\n                -showUpstreamCurves 1\n                -showUnitlessCurves 0\n                -showCompounds 1\n                -showLeafs 1\n                -showNumericAttrsOnly 1\n                -highlightActive 0\n                -autoSelectNewObjects 0\n                -doNotSelectNewObjects 1\n                -dropIsParent 1\n                -transmitFilters 0\n                -setFilter \"0\" \n                -showSetMembers 0\n                -allowMultiSelection 1\n                -alwaysToggleSelect 0\n"
+		+ "                -directSelect 0\n                -displayMode \"DAG\" \n                -expandObjects 0\n                -setsIgnoreFilters 1\n                -containersIgnoreFilters 0\n                -editAttrName 0\n                -showAttrValues 0\n                -highlightSecondary 0\n                -showUVAttrsOnly 0\n                -showTextureNodesOnly 0\n                -attrAlphaOrder \"default\" \n                -animLayerFilterOptions \"allAffecting\" \n                -sortOrder \"none\" \n                -longNames 0\n                -niceNames 1\n                -showNamespace 1\n                -showPinIcons 0\n                $editorName;\n\n\t\t\t$editorName = ($panelName+\"DopeSheetEd\");\n            dopeSheetEditor -e \n                -displayKeys 1\n                -displayTangents 0\n                -displayActiveKeys 0\n                -displayActiveKeyTangents 0\n                -displayInfinities 0\n                -autoFit 0\n                -snapTime \"integer\" \n                -snapValue \"none\" \n                -outliner \"dopeSheetPanel1OutlineEd\" \n"
+		+ "                -showSummary 1\n                -showScene 0\n                -hierarchyBelow 0\n                -showTicks 1\n                -selectionWindow 0 0 0 0 \n                $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"clipEditorPanel\" (localizedPanelLabel(\"Trax Editor\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"clipEditorPanel\" -l (localizedPanelLabel(\"Trax Editor\")) -mbv $menusOkayInPanels `;\n\n\t\t\t$editorName = clipEditorNameFromPanel($panelName);\n            clipEditor -e \n                -displayKeys 0\n                -displayTangents 0\n                -displayActiveKeys 0\n                -displayActiveKeyTangents 0\n                -displayInfinities 0\n                -autoFit 0\n                -snapTime \"none\" \n                -snapValue \"none\" \n                -manageSequencer 0 \n                $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n"
+		+ "\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Trax Editor\")) -mbv $menusOkayInPanels  $panelName;\n\n\t\t\t$editorName = clipEditorNameFromPanel($panelName);\n            clipEditor -e \n                -displayKeys 0\n                -displayTangents 0\n                -displayActiveKeys 0\n                -displayActiveKeyTangents 0\n                -displayInfinities 0\n                -autoFit 0\n                -snapTime \"none\" \n                -snapValue \"none\" \n                -manageSequencer 0 \n                $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"sequenceEditorPanel\" (localizedPanelLabel(\"Camera Sequencer\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"sequenceEditorPanel\" -l (localizedPanelLabel(\"Camera Sequencer\")) -mbv $menusOkayInPanels `;\n\n\t\t\t$editorName = sequenceEditorNameFromPanel($panelName);\n            clipEditor -e \n                -displayKeys 0\n"
+		+ "                -displayTangents 0\n                -displayActiveKeys 0\n                -displayActiveKeyTangents 0\n                -displayInfinities 0\n                -autoFit 0\n                -snapTime \"none\" \n                -snapValue \"none\" \n                -manageSequencer 1 \n                $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Camera Sequencer\")) -mbv $menusOkayInPanels  $panelName;\n\n\t\t\t$editorName = sequenceEditorNameFromPanel($panelName);\n            clipEditor -e \n                -displayKeys 0\n                -displayTangents 0\n                -displayActiveKeys 0\n                -displayActiveKeyTangents 0\n                -displayInfinities 0\n                -autoFit 0\n                -snapTime \"none\" \n                -snapValue \"none\" \n                -manageSequencer 1 \n                $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"hyperGraphPanel\" (localizedPanelLabel(\"Hypergraph Hierarchy\")) `;\n"
+		+ "\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"hyperGraphPanel\" -l (localizedPanelLabel(\"Hypergraph Hierarchy\")) -mbv $menusOkayInPanels `;\n\n\t\t\t$editorName = ($panelName+\"HyperGraphEd\");\n            hyperGraph -e \n                -graphLayoutStyle \"hierarchicalLayout\" \n                -orientation \"horiz\" \n                -mergeConnections 0\n                -zoom 1\n                -animateTransition 0\n                -showRelationships 1\n                -showShapes 0\n                -showDeformers 0\n                -showExpressions 0\n                -showConstraints 0\n                -showUnderworld 0\n                -showInvisible 0\n                -transitionFrames 1\n                -opaqueContainers 0\n                -freeform 0\n                -imagePosition 0 0 \n                -imageScale 1\n                -imageEnabled 0\n                -graphType \"DAG\" \n                -heatMapDisplay 0\n                -updateSelection 1\n                -updateNodeAdded 1\n"
+		+ "                -useDrawOverrideColor 0\n                -limitGraphTraversal -1\n                -range 0 0 \n                -iconSize \"smallIcons\" \n                -showCachedConnections 0\n                $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Hypergraph Hierarchy\")) -mbv $menusOkayInPanels  $panelName;\n\n\t\t\t$editorName = ($panelName+\"HyperGraphEd\");\n            hyperGraph -e \n                -graphLayoutStyle \"hierarchicalLayout\" \n                -orientation \"horiz\" \n                -mergeConnections 0\n                -zoom 1\n                -animateTransition 0\n                -showRelationships 1\n                -showShapes 0\n                -showDeformers 0\n                -showExpressions 0\n                -showConstraints 0\n                -showUnderworld 0\n                -showInvisible 0\n                -transitionFrames 1\n                -opaqueContainers 0\n                -freeform 0\n                -imagePosition 0 0 \n                -imageScale 1\n"
+		+ "                -imageEnabled 0\n                -graphType \"DAG\" \n                -heatMapDisplay 0\n                -updateSelection 1\n                -updateNodeAdded 1\n                -useDrawOverrideColor 0\n                -limitGraphTraversal -1\n                -range 0 0 \n                -iconSize \"smallIcons\" \n                -showCachedConnections 0\n                $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"hyperShadePanel\" (localizedPanelLabel(\"Hypershade\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"hyperShadePanel\" -l (localizedPanelLabel(\"Hypershade\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Hypershade\")) -mbv $menusOkayInPanels  $panelName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"visorPanel\" (localizedPanelLabel(\"Visor\")) `;\n"
+		+ "\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"visorPanel\" -l (localizedPanelLabel(\"Visor\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Visor\")) -mbv $menusOkayInPanels  $panelName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"polyTexturePlacementPanel\" (localizedPanelLabel(\"UV Texture Editor\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"polyTexturePlacementPanel\" -l (localizedPanelLabel(\"UV Texture Editor\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"UV Texture Editor\")) -mbv $menusOkayInPanels  $panelName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"renderWindowPanel\" (localizedPanelLabel(\"Render View\")) `;\n"
+		+ "\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"renderWindowPanel\" -l (localizedPanelLabel(\"Render View\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Render View\")) -mbv $menusOkayInPanels  $panelName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\tif ($useSceneConfig) {\n\t\tscriptedPanel -e -to $panelName;\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextPanel \"blendShapePanel\" (localizedPanelLabel(\"Blend Shape\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\tblendShapePanel -unParent -l (localizedPanelLabel(\"Blend Shape\")) -mbv $menusOkayInPanels ;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tblendShapePanel -edit -l (localizedPanelLabel(\"Blend Shape\")) -mbv $menusOkayInPanels  $panelName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"dynRelEdPanel\" (localizedPanelLabel(\"Dynamic Relationships\")) `;\n"
+		+ "\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"dynRelEdPanel\" -l (localizedPanelLabel(\"Dynamic Relationships\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Dynamic Relationships\")) -mbv $menusOkayInPanels  $panelName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"relationshipPanel\" (localizedPanelLabel(\"Relationship Editor\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"relationshipPanel\" -l (localizedPanelLabel(\"Relationship Editor\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Relationship Editor\")) -mbv $menusOkayInPanels  $panelName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"referenceEditorPanel\" (localizedPanelLabel(\"Reference Editor\")) `;\n"
+		+ "\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"referenceEditorPanel\" -l (localizedPanelLabel(\"Reference Editor\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Reference Editor\")) -mbv $menusOkayInPanels  $panelName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"componentEditorPanel\" (localizedPanelLabel(\"Component Editor\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"componentEditorPanel\" -l (localizedPanelLabel(\"Component Editor\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Component Editor\")) -mbv $menusOkayInPanels  $panelName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"dynPaintScriptedPanelType\" (localizedPanelLabel(\"Paint Effects\")) `;\n"
+		+ "\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"dynPaintScriptedPanelType\" -l (localizedPanelLabel(\"Paint Effects\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Paint Effects\")) -mbv $menusOkayInPanels  $panelName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"scriptEditorPanel\" (localizedPanelLabel(\"Script Editor\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"scriptEditorPanel\" -l (localizedPanelLabel(\"Script Editor\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Script Editor\")) -mbv $menusOkayInPanels  $panelName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\tif ($useSceneConfig) {\n\t\tscriptedPanel -e -to $panelName;\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"Stereo\" (localizedPanelLabel(\"Stereo\")) `;\n"
+		+ "\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"Stereo\" -l (localizedPanelLabel(\"Stereo\")) -mbv $menusOkayInPanels `;\nstring $editorName = ($panelName+\"Editor\");\n            stereoCameraView -e \n                -camera \"persp\" \n                -useInteractiveMode 0\n                -displayLights \"default\" \n                -displayAppearance \"wireframe\" \n                -activeOnly 0\n                -ignorePanZoom 0\n                -wireframeOnShaded 0\n                -headsUpDisplay 1\n                -selectionHiliteDisplay 1\n                -useDefaultMaterial 0\n                -bufferMode \"double\" \n                -twoSidedLighting 1\n                -backfaceCulling 0\n                -xray 0\n                -jointXray 0\n                -activeComponentsXray 0\n                -displayTextures 0\n                -smoothWireframe 0\n                -lineWidth 1\n                -textureAnisotropic 0\n                -textureHilight 1\n                -textureSampling 2\n"
+		+ "                -textureDisplay \"modulate\" \n                -textureMaxSize 16384\n                -fogging 0\n                -fogSource \"fragment\" \n                -fogMode \"linear\" \n                -fogStart 0\n                -fogEnd 100\n                -fogDensity 0.1\n                -fogColor 0.5 0.5 0.5 1 \n                -maxConstantTransparency 1\n                -colorResolution 4 4 \n                -bumpResolution 4 4 \n                -textureCompression 0\n                -transparencyAlgorithm \"frontAndBackCull\" \n                -transpInShadows 0\n                -cullingOverride \"none\" \n                -lowQualityLighting 0\n                -maximumNumHardwareLights 0\n                -occlusionCulling 0\n                -shadingModel 0\n                -useBaseRenderer 0\n                -useReducedRenderer 0\n                -smallObjectCulling 0\n                -smallObjectThreshold -1 \n                -interactiveDisableShadows 0\n                -interactiveBackFaceCull 0\n                -sortTransparent 1\n"
+		+ "                -nurbsCurves 1\n                -nurbsSurfaces 1\n                -polymeshes 1\n                -subdivSurfaces 1\n                -planes 1\n                -lights 1\n                -cameras 1\n                -controlVertices 1\n                -hulls 1\n                -grid 1\n                -joints 1\n                -ikHandles 1\n                -deformers 1\n                -dynamics 1\n                -fluids 1\n                -hairSystems 1\n                -follicles 1\n                -nCloths 1\n                -nParticles 1\n                -nRigids 1\n                -dynamicConstraints 1\n                -locators 1\n                -manipulators 1\n                -dimensions 1\n                -handles 1\n                -pivots 1\n                -textures 1\n                -strokes 1\n                -shadows 0\n                -displayMode \"centerEye\" \n                -viewColor 0 0 0 1 \n                $editorName;\nstereoCameraView -e -viewSelected 0 $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n"
+		+ "\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Stereo\")) -mbv $menusOkayInPanels  $panelName;\nstring $editorName = ($panelName+\"Editor\");\n            stereoCameraView -e \n                -camera \"persp\" \n                -useInteractiveMode 0\n                -displayLights \"default\" \n                -displayAppearance \"wireframe\" \n                -activeOnly 0\n                -ignorePanZoom 0\n                -wireframeOnShaded 0\n                -headsUpDisplay 1\n                -selectionHiliteDisplay 1\n                -useDefaultMaterial 0\n                -bufferMode \"double\" \n                -twoSidedLighting 1\n                -backfaceCulling 0\n                -xray 0\n                -jointXray 0\n                -activeComponentsXray 0\n                -displayTextures 0\n                -smoothWireframe 0\n                -lineWidth 1\n                -textureAnisotropic 0\n                -textureHilight 1\n                -textureSampling 2\n                -textureDisplay \"modulate\" \n                -textureMaxSize 16384\n"
+		+ "                -fogging 0\n                -fogSource \"fragment\" \n                -fogMode \"linear\" \n                -fogStart 0\n                -fogEnd 100\n                -fogDensity 0.1\n                -fogColor 0.5 0.5 0.5 1 \n                -maxConstantTransparency 1\n                -colorResolution 4 4 \n                -bumpResolution 4 4 \n                -textureCompression 0\n                -transparencyAlgorithm \"frontAndBackCull\" \n                -transpInShadows 0\n                -cullingOverride \"none\" \n                -lowQualityLighting 0\n                -maximumNumHardwareLights 0\n                -occlusionCulling 0\n                -shadingModel 0\n                -useBaseRenderer 0\n                -useReducedRenderer 0\n                -smallObjectCulling 0\n                -smallObjectThreshold -1 \n                -interactiveDisableShadows 0\n                -interactiveBackFaceCull 0\n                -sortTransparent 1\n                -nurbsCurves 1\n                -nurbsSurfaces 1\n                -polymeshes 1\n"
+		+ "                -subdivSurfaces 1\n                -planes 1\n                -lights 1\n                -cameras 1\n                -controlVertices 1\n                -hulls 1\n                -grid 1\n                -joints 1\n                -ikHandles 1\n                -deformers 1\n                -dynamics 1\n                -fluids 1\n                -hairSystems 1\n                -follicles 1\n                -nCloths 1\n                -nParticles 1\n                -nRigids 1\n                -dynamicConstraints 1\n                -locators 1\n                -manipulators 1\n                -dimensions 1\n                -handles 1\n                -pivots 1\n                -textures 1\n                -strokes 1\n                -shadows 0\n                -displayMode \"centerEye\" \n                -viewColor 0 0 0 1 \n                $editorName;\nstereoCameraView -e -viewSelected 0 $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\tif ($useSceneConfig) {\n        string $configName = `getPanel -cwl (localizedPanelLabel(\"Current Layout\"))`;\n"
+		+ "        if (\"\" != $configName) {\n\t\t\tpanelConfiguration -edit -label (localizedPanelLabel(\"Current Layout\")) \n\t\t\t\t-defaultImage \"\"\n\t\t\t\t-image \"\"\n\t\t\t\t-sc false\n\t\t\t\t-configString \"global string $gMainPane; paneLayout -e -cn \\\"single\\\" -ps 1 100 100 $gMainPane;\"\n\t\t\t\t-removeAllPanels\n\t\t\t\t-ap false\n\t\t\t\t\t(localizedPanelLabel(\"Persp View\")) \n\t\t\t\t\t\"modelPanel\"\n"
+		+ "\t\t\t\t\t\"$panelName = `modelPanel -unParent -l (localizedPanelLabel(\\\"Persp View\\\")) -mbv $menusOkayInPanels `;\\n$editorName = $panelName;\\nmodelEditor -e \\n    -cam `findStartUpCamera persp` \\n    -useInteractiveMode 0\\n    -displayLights \\\"default\\\" \\n    -displayAppearance \\\"wireframe\\\" \\n    -activeOnly 0\\n    -ignorePanZoom 0\\n    -wireframeOnShaded 0\\n    -headsUpDisplay 1\\n    -selectionHiliteDisplay 1\\n    -useDefaultMaterial 0\\n    -bufferMode \\\"double\\\" \\n    -twoSidedLighting 1\\n    -backfaceCulling 0\\n    -xray 0\\n    -jointXray 0\\n    -activeComponentsXray 0\\n    -displayTextures 0\\n    -smoothWireframe 0\\n    -lineWidth 1\\n    -textureAnisotropic 0\\n    -textureHilight 1\\n    -textureSampling 2\\n    -textureDisplay \\\"modulate\\\" \\n    -textureMaxSize 16384\\n    -fogging 0\\n    -fogSource \\\"fragment\\\" \\n    -fogMode \\\"linear\\\" \\n    -fogStart 0\\n    -fogEnd 100\\n    -fogDensity 0.1\\n    -fogColor 0.5 0.5 0.5 1 \\n    -maxConstantTransparency 1\\n    -rendererName \\\"base_OpenGL_Renderer\\\" \\n    -colorResolution 256 256 \\n    -bumpResolution 512 512 \\n    -textureCompression 0\\n    -transparencyAlgorithm \\\"frontAndBackCull\\\" \\n    -transpInShadows 0\\n    -cullingOverride \\\"none\\\" \\n    -lowQualityLighting 0\\n    -maximumNumHardwareLights 1\\n    -occlusionCulling 0\\n    -shadingModel 0\\n    -useBaseRenderer 0\\n    -useReducedRenderer 0\\n    -smallObjectCulling 0\\n    -smallObjectThreshold -1 \\n    -interactiveDisableShadows 0\\n    -interactiveBackFaceCull 0\\n    -sortTransparent 1\\n    -nurbsCurves 1\\n    -nurbsSurfaces 1\\n    -polymeshes 1\\n    -subdivSurfaces 1\\n    -planes 1\\n    -lights 1\\n    -cameras 1\\n    -controlVertices 1\\n    -hulls 1\\n    -grid 1\\n    -joints 1\\n    -ikHandles 1\\n    -deformers 1\\n    -dynamics 1\\n    -fluids 1\\n    -hairSystems 1\\n    -follicles 1\\n    -nCloths 1\\n    -nParticles 1\\n    -nRigids 1\\n    -dynamicConstraints 1\\n    -locators 1\\n    -manipulators 1\\n    -dimensions 1\\n    -handles 1\\n    -pivots 1\\n    -textures 1\\n    -strokes 1\\n    -shadows 0\\n    $editorName;\\nmodelEditor -e -viewSelected 0 $editorName\"\n"
+		+ "\t\t\t\t\t\"modelPanel -edit -l (localizedPanelLabel(\\\"Persp View\\\")) -mbv $menusOkayInPanels  $panelName;\\n$editorName = $panelName;\\nmodelEditor -e \\n    -cam `findStartUpCamera persp` \\n    -useInteractiveMode 0\\n    -displayLights \\\"default\\\" \\n    -displayAppearance \\\"wireframe\\\" \\n    -activeOnly 0\\n    -ignorePanZoom 0\\n    -wireframeOnShaded 0\\n    -headsUpDisplay 1\\n    -selectionHiliteDisplay 1\\n    -useDefaultMaterial 0\\n    -bufferMode \\\"double\\\" \\n    -twoSidedLighting 1\\n    -backfaceCulling 0\\n    -xray 0\\n    -jointXray 0\\n    -activeComponentsXray 0\\n    -displayTextures 0\\n    -smoothWireframe 0\\n    -lineWidth 1\\n    -textureAnisotropic 0\\n    -textureHilight 1\\n    -textureSampling 2\\n    -textureDisplay \\\"modulate\\\" \\n    -textureMaxSize 16384\\n    -fogging 0\\n    -fogSource \\\"fragment\\\" \\n    -fogMode \\\"linear\\\" \\n    -fogStart 0\\n    -fogEnd 100\\n    -fogDensity 0.1\\n    -fogColor 0.5 0.5 0.5 1 \\n    -maxConstantTransparency 1\\n    -rendererName \\\"base_OpenGL_Renderer\\\" \\n    -colorResolution 256 256 \\n    -bumpResolution 512 512 \\n    -textureCompression 0\\n    -transparencyAlgorithm \\\"frontAndBackCull\\\" \\n    -transpInShadows 0\\n    -cullingOverride \\\"none\\\" \\n    -lowQualityLighting 0\\n    -maximumNumHardwareLights 1\\n    -occlusionCulling 0\\n    -shadingModel 0\\n    -useBaseRenderer 0\\n    -useReducedRenderer 0\\n    -smallObjectCulling 0\\n    -smallObjectThreshold -1 \\n    -interactiveDisableShadows 0\\n    -interactiveBackFaceCull 0\\n    -sortTransparent 1\\n    -nurbsCurves 1\\n    -nurbsSurfaces 1\\n    -polymeshes 1\\n    -subdivSurfaces 1\\n    -planes 1\\n    -lights 1\\n    -cameras 1\\n    -controlVertices 1\\n    -hulls 1\\n    -grid 1\\n    -joints 1\\n    -ikHandles 1\\n    -deformers 1\\n    -dynamics 1\\n    -fluids 1\\n    -hairSystems 1\\n    -follicles 1\\n    -nCloths 1\\n    -nParticles 1\\n    -nRigids 1\\n    -dynamicConstraints 1\\n    -locators 1\\n    -manipulators 1\\n    -dimensions 1\\n    -handles 1\\n    -pivots 1\\n    -textures 1\\n    -strokes 1\\n    -shadows 0\\n    $editorName;\\nmodelEditor -e -viewSelected 0 $editorName\"\n"
+		+ "\t\t\t\t$configName;\n\n            setNamedPanelLayout (localizedPanelLabel(\"Current Layout\"));\n        }\n\n        panelHistory -e -clear mainPanelHistory;\n        setFocus `paneLayout -q -p1 $gMainPane`;\n        sceneUIReplacement -deleteRemaining;\n        sceneUIReplacement -clear;\n\t}\n\n\ngrid -spacing 5 -size 12 -divisions 5 -displayAxes yes -displayGridLines yes -displayDivisionLines yes -displayPerspectiveLabels no -displayOrthographicLabels no -displayAxesBold yes -perspectiveLabelPosition axis -orthographicLabelPosition edge;\nviewManip -drawCompass 0 -compassAngle 0 -frontParameters \"\" -homeParameters \"\" -selectionLockParameters \"\";\n}\n");
+	setAttr ".st" 3;
+select -ne :time1;
+	setAttr ".o" 1;
+	setAttr ".unw" 1;
+select -ne :renderPartition;
+	setAttr -s 5 ".st";
+select -ne :initialShadingGroup;
+	setAttr ".ro" yes;
+select -ne :initialParticleSE;
+	setAttr ".ro" yes;
+select -ne :defaultShaderList1;
+	setAttr -s 3 ".s";
+select -ne :lightList1;
+select -ne :postProcessList1;
+	setAttr -s 2 ".p";
+select -ne :renderGlobalsList1;
+select -ne :defaultRenderGlobals;
+	setAttr ".ren" -type "string" "arnold";
+	setAttr ".outf" 51;
+	setAttr ".imfkey" -type "string" "tiff";
+	setAttr ".ifp" -type "string" "testrender";
+select -ne :defaultResolution;
+	setAttr ".w" 160;
+	setAttr ".h" 120;
+	setAttr ".pa" 1;
+	setAttr ".dar" 1.3333333730697632;
+select -ne :defaultLightSet;
+select -ne :hardwareRenderGlobals;
+	setAttr ".ctrs" 256;
+	setAttr ".btrs" 512;
+select -ne :defaultHardwareRenderGlobals;
+	setAttr ".fn" -type "string" "im";
+	setAttr ".res" -type "string" "ntsc_4d 646 485 1.333";
+connectAttr "polySphere1.out" "pSphereShape1.i";
+connectAttr "shaveHairShape1.out" "shaveDisplayShape.i";
+connectAttr ":time1.o" "shaveHairShape1.tm";
+connectAttr "shaveHairShape1_growth.msg" "shaveHairShape1.gs";
+connectAttr "pSphereShape1.w" "shaveHairShape1.input[0]";
+connectAttr "shaveDisplayShape.msg" "shaveHairShape1.dn";
 relationship "link" ":lightLinker1" ":initialShadingGroup.message" ":defaultLightSet.message";
 relationship "link" ":lightLinker1" ":initialParticleSE.message" ":defaultLightSet.message";
 relationship "link" ":lightLinker1" "aiStandard1SG.message" ":defaultLightSet.message";
@@ -31622,27 +31565,22 @@ relationship "shadowLink" ":lightLinker1" ":initialParticleSE.message" ":default
 relationship "shadowLink" ":lightLinker1" "aiStandard1SG.message" ":defaultLightSet.message";
 relationship "shadowLink" ":lightLinker1" "surfaceShader1SG.message" ":defaultLightSet.message";
 relationship "shadowLink" ":lightLinker1" "aiStandard2SG.message" ":defaultLightSet.message";
-connectAttr "layerManager.displayLayerId[0]" "defaultLayer.identification";
-connectAttr "renderLayerManager.renderLayerId[0]" "defaultRenderLayer.identification"
-		;
-connectAttr ":time1.outTime" ":defaultArnoldRenderOptions.AA_seed";
-connectAttr "aiStandard1SG.message" "materialInfo1.shadingGroup";
-connectAttr "surfaceShader1SG.message" "materialInfo2.shadingGroup";
-connectAttr "aiStandard2.outColor" "aiStandard2SG.surfaceShader";
-connectAttr "pSphereShape1.instObjGroups" "aiStandard2SG.dagSetMembers" -nextAvailable
-		;
-connectAttr "aiStandard2SG.message" "materialInfo3.shadingGroup";
-connectAttr "aiStandard2.message" "materialInfo3.material";
-connectAttr "aiStandard2.message" "materialInfo3.texture" -nextAvailable;
-connectAttr "pSphereShape1.instObjGroups" "shaveHairShape1_growth.dagSetMembers"
-		 -nextAvailable;
-connectAttr "aiStandard1SG.partition" ":renderPartition.sets" -nextAvailable;
-connectAttr "surfaceShader1SG.partition" ":renderPartition.sets" -nextAvailable;
-connectAttr "aiStandard2SG.partition" ":renderPartition.sets" -nextAvailable;
-connectAttr "shaveDisplayShape.instObjGroups" ":initialShadingGroup.dagSetMembers"
-		 -nextAvailable;
-connectAttr "aiStandard2.message" ":defaultShaderList1.shaders" -nextAvailable;
-connectAttr "pointLightShape1.lightData" ":lightList1.lights" -nextAvailable;
-connectAttr "pointLight1.instObjGroups" ":defaultLightSet.dagSetMembers" -nextAvailable
-		;
+connectAttr "layerManager.dli[0]" "defaultLayer.id";
+connectAttr "renderLayerManager.rlmi[0]" "defaultRenderLayer.rlid";
+connectAttr ":time1.o" ":defaultArnoldRenderOptions.aaseed";
+connectAttr "aiStandard1SG.msg" "materialInfo1.sg";
+connectAttr "surfaceShader1SG.msg" "materialInfo2.sg";
+connectAttr "aiStandard2.out" "aiStandard2SG.ss";
+connectAttr "pSphereShape1.iog" "aiStandard2SG.dsm" -na;
+connectAttr "aiStandard2SG.msg" "materialInfo3.sg";
+connectAttr "aiStandard2.msg" "materialInfo3.m";
+connectAttr "aiStandard2.msg" "materialInfo3.t" -na;
+connectAttr "pSphereShape1.iog" "shaveHairShape1_growth.dsm" -na;
+connectAttr "aiStandard1SG.pa" ":renderPartition.st" -na;
+connectAttr "surfaceShader1SG.pa" ":renderPartition.st" -na;
+connectAttr "aiStandard2SG.pa" ":renderPartition.st" -na;
+connectAttr "shaveDisplayShape.iog" ":initialShadingGroup.dsm" -na;
+connectAttr "aiStandard2.msg" ":defaultShaderList1.s" -na;
+connectAttr "pointLightShape1.ltd" ":lightList1.l" -na;
+connectAttr "pointLight1.iog" ":defaultLightSet.dsm" -na;
 // End of test.ma
