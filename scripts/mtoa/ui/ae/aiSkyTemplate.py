@@ -21,8 +21,8 @@ def aiSkyTemplate(nodeName):
 
     cmds.editorTemplate("castsShadows", addControl=True, label="Casts Shadows")
     cmds.editorTemplate("primaryVisibility", addControl=True, label="Primary Visibility")
-    cmds.editorTemplate("visibleInDiffuse", addControl=True, label="Visible in Diffuse")
-    cmds.editorTemplate("visibleInGlossy", addControl=True, label="Visible in Glossy")
+    cmds.editorTemplate("aiVisibleInDiffuse", addControl=True, label="Visible in Diffuse")
+    cmds.editorTemplate("aiVisibleInGlossy", addControl=True, label="Visible in Glossy")
     cmds.editorTemplate("visibleInReflections", addControl=True, label="Visible in Reflections")
     cmds.editorTemplate("visibleInRefractions", addControl=True, label="Visible in Refractions")
     cmds.editorTemplate(endNoOptimize=True)
