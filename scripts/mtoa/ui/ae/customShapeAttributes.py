@@ -157,7 +157,7 @@ class SpotLightTemplate(lightTemplate.LightTemplate):
         self.commonLightAttributes()
 registerTranslatorUI(SpotLightTemplate, "spotLight")
 
-class AreaLightTemplate(lightTemplate.LightTemplate):
+class QuadLightTemplate(lightTemplate.LightTemplate):
     # TODO: handle filter association via metadata
     def validFilters(self):
         return ['aiLightBlocker', 'aiLightDecay']
@@ -178,7 +178,34 @@ class AreaLightTemplate(lightTemplate.LightTemplate):
 
         self.commonLightAttributes()
 
-registerTranslatorUI(AreaLightTemplate, "areaLight")
+registerTranslatorUI(QuadLightTemplate, "areaLight", "quad")
+
+class CylinderLightTemplate(lightTemplate.LightTemplate):
+    # TODO: handle filter association via metadata
+    def validFilters(self):
+        return ['aiLightBlocker', 'aiLightDecay']
+ 
+    def setup(self):
+        self.addAttribute("aiCastShadows")
+        self.addAttribute("aiExposure")
+        self.addAttribute("aiSamples")
+        self.addAttribute("aiMis", label="Multiple Importance Sampling")
+
+        self.addSeparator()
+
+        self.addAttribute("aiAffectVolumetrics")
+        self.addAttribute("aiCastVolumetricShadows")
+
+        self.addSeparator()
+
+        self.commonLightAttributes()
+registerTranslatorUI(CylinderLightTemplate, "areaLight", "cylinder")
+
+def areaLightTranslatorChanged(transPlug):
+    print "areaLightTranslatorChanged"
+    # when a file is opening, we need to choose one attribute to lead, because
+    # the order that attributes are set is unpredictable. This fixes a case
+    # where translators may have gotten out of sync
 
 class CameraTemplate(ArnoldTranslatorTemplate):
     def addDOFAttributes(self):
@@ -193,8 +220,7 @@ class CameraTemplate(ArnoldTranslatorTemplate):
     def cleanExtraAttributes(self):
         for attr in self.getAttributes():
             print 'Clean AETemplate for ->',attr
-            cmds.editorTemplate(suppress=attr)
-        
+            cmds.editorTemplate(suppress=attr)        
 
 class PerspCameraTemplate(CameraTemplate):
     def setup(self):
@@ -277,6 +303,9 @@ print "Adding attribute changed callback for camera"
 callbacks.addAttributeChangedCallbacks('camera',
                                        [('aiTranslator', cameraTranslatorChanged),
                                         ('orthographic', cameraOrthographicChanged)])
+print "Adding attribute changed callback for lights"
+callbacks.addAttributeChangedCallbacks('areaLight',
+                                       [('aiTranslator', areaLightTranslatorChanged),])
 
 def registerDriverTemplates():
     # register driver templates

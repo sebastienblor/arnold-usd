@@ -17,6 +17,7 @@
 #include "nodes/shader/ArnoldDisplacementNode.h"
 #include "nodes/shape/ArnoldStandIns.h"
 #include "nodes/light/ArnoldSkyDomeLightNode.h"
+#include "nodes/light/ArnoldAreaLightNode.h"
 
 #include "translators/options/OptionsTranslator.h"
 #include "translators/camera/CameraTranslators.h"
@@ -82,6 +83,13 @@ namespace // <anonymous>
                                     CSphereLocator::id,
                                     CSphereLocator::creator,
                                     CSphereLocator::initialize,
+                                    MPxNode::kLocatorNode);
+      CHECK_MSTATUS(status);
+
+      status = plugin.registerNode("aiAreaLightLocator",
+                                    CArnoldAreaLightNode::id,
+                                    CArnoldAreaLightNode::creator,
+                                    CArnoldAreaLightNode::initialize,
                                     MPxNode::kLocatorNode);
       CHECK_MSTATUS(status);
 
@@ -167,9 +175,13 @@ namespace // <anonymous>
                                    CSpotLightTranslator::creator,
                                    CSpotLightTranslator::NodeInitializer);
        builtin->RegisterTranslator("areaLight",
-                                   "",
-                                   CAreaLightTranslator::creator,
-                                   CAreaLightTranslator::NodeInitializer);
+                                   "quad",
+                                   CQuadLightTranslator::creator,
+                                   CQuadLightTranslator::NodeInitializer);
+       builtin->RegisterTranslator("areaLight",
+                                   "cylinder",
+                                   CCylinderLightTranslator::creator,
+                                   CCylinderLightTranslator::NodeInitializer);
        builtin->RegisterTranslator("pointLight",
                                    "",
                                    CPointLightTranslator::creator,

@@ -63,20 +63,36 @@ public:
    }
 };
 
-class CAreaLightTranslator : public CLightTranslator
+class CQuadLightTranslator : public CLightTranslator
 {
 public:
    void Export(AtNode* light);
    static void NodeInitializer(CAbTranslator context);
    static void* creator()
    {
-      return new CAreaLightTranslator();
+      return new CQuadLightTranslator();
    }
    AtNode* CreateArnoldNodes()
    {
       return AddArnoldNode("quad_light");
    }
 };
+
+class CCylinderLightTranslator : public CLightTranslator
+{
+public:
+   void Export(AtNode* light);
+   static void NodeInitializer(CAbTranslator context);
+   static void* creator()
+   {
+      return new CCylinderLightTranslator();
+   }
+   AtNode* CreateArnoldNodes()
+   {
+      return AddArnoldNode("cylinder_light");
+   }
+};
+
 
 class CSkyDomeLightTranslator : public CLightTranslator
 {

@@ -102,10 +102,10 @@ void CSpotLightTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInput("lens_radius");
 }
 
-// AreaLight
+// Quad AreaLight
 //
 
-void CAreaLightTranslator::Export(AtNode* light)
+void CQuadLightTranslator::Export(AtNode* light)
 {
    CLightTranslator::Export(light);
 
@@ -123,17 +123,35 @@ void CAreaLightTranslator::Export(AtNode* light)
    AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaObjectPlug("aiCastVolumetricShadows").asBool());
 }
 
-void CAreaLightTranslator::NodeInitializer(CAbTranslator context)
+void CQuadLightTranslator::NodeInitializer(CAbTranslator context)
 {
    CExtensionAttrHelper helper(context.maya, "quad_light");
    // common attributes
    MakeCommonAttributes(helper);
-   // spot light attributes
+   // quad light attributes
    helper.MakeInput("resolution");
    helper.MakeInput("affect_volumetrics");
    helper.MakeInput("cast_volumetric_shadows");
 }
 
+// Cylinder AreaLight
+//
+void CCylinderLightTranslator::Export(AtNode* light)
+{
+   CLightTranslator::Export(light);
+
+   AiNodeSetBool(light, "affect_volumetrics", FindMayaObjectPlug("aiAffectVolumetrics").asBool());
+   AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaObjectPlug("aiCastVolumetricShadows").asBool());
+}
+
+void CCylinderLightTranslator::NodeInitializer(CAbTranslator context)
+{
+   CExtensionAttrHelper helper(context.maya, "cylinder_light");
+   // common attributes
+   MakeCommonAttributes(helper);
+   helper.MakeInput("affect_volumetrics");
+   helper.MakeInput("cast_volumetric_shadows");
+}
 
 // SkyDomeLight
 //
