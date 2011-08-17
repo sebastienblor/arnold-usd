@@ -525,7 +525,7 @@ env.InstallAs([os.path.join(env['TARGET_INCLUDE_PATH'], os.path.basename(x)) for
 # install icons
 env.Install(env['TARGET_ICONS_PATH'], glob.glob(os.path.join('icons', '*.xpm')))
 # install renderer description
-env.Install(env['TARGET_DESCR_PATH'], glob.glob(os.path.join('scripts', '*.xml')))
+env.Install(env['TARGET_DESCR_PATH'], glob.glob(os.path.join('scripts', 'arnoldRenderer.xml')))
 
 env.MakeModule(env['TARGET_MODULE_PATH'], os.path.join(BUILD_BASE_DIR, 'mtoa.mod'))
 env.Install(env['TARGET_MODULE_PATH'], os.path.join(BUILD_BASE_DIR, 'mtoa.mod'))

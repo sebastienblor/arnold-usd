@@ -48,7 +48,7 @@ supported operating system:
     to your C:\solidangle\mtoadeploy folder (the folder where mtoa.mod is
     located).
  
- 3. Then, create another environment variable MAYA_RENDER_DESC and set that to
+ 3. Then, create another environment variable MAYA_RENDER_DESC_PATH and set that to
     point at the location of the arnoldRenderer.xml file (in this example,
     C:\solidangle\mtoadeploy).
     
