@@ -5777,6 +5777,14 @@ global proc hyperShadePanelBuildCreateMenu(string $panel, string $parent)
 
 	menuItem -divider true;
 
+	// Begin MTOA
+	if (`pluginInfo -query -loaded mtoa`)
+	{
+		aiHyperShadeCreateMenu_BuildMenu();
+		menuItem -divider true;
+	}
+	// End MTOA
+
 	// We will only show custom shader UI 
 	// if mental ray plugin is loaded.
 	//
@@ -6906,7 +6914,16 @@ global proc hyperShadePanelMenuCommand(
             warning( (uiRes("m_hyperShadePanel.kNotASceneTabWarn")));
         }
 	}
-
+	// BEGIN MTOA
+	else if ($command == "disableSwatches")
+	{
+		renderThumbnailUpdate 0;
+	}
+	else if ($command == "enableSwatches")
+	{
+		renderThumbnailUpdate 1;
+	}
+	// END MTOA
 	else
 	{
 		string $errorMsg = (uiRes("m_hyperShadePanel.kCommandNotImplemented"));
@@ -7699,6 +7716,24 @@ proc createButtonsColumnContent(string $panel, string $buttonsColumn)
 						+ "\", \"asList\")")
 				asListColumnButton;
 
+			// BEGIN MTOA
+			iconTextCheckBox
+				-image1 "autoload.png"
+				-width $iconSize
+				-height $iconSize
+				-annotation "Toggle Swatch Rendering"
+				-v `renderThumbnailUpdate -q`
+				-onCommand 
+					("hyperShadePanelMenuCommand(\"" 
+						+ $panel 
+						+ "\", \"enableSwatches\")")
+				-offCommand 
+					("hyperShadePanelMenuCommand(\"" 
+						+ $panel 
+						+ "\", \"disableSwatches\")")
+				toggleSwatchesColumnButton;
+			// END MTOA
+			
 			separator -height $iconSize -visible false separator1;
 
 			// Buttons for View as Small/Medium/Large Swatches
@@ -7809,7 +7844,16 @@ proc createButtonsColumnContent(string $panel, string $buttonsColumn)
 				-af asListColumnButton left 0
 				-af asListColumnButton right 0
 
-				-ac separator1 top 0 asListColumnButton
+				// BEGIN MTOA
+				-ac toggleSwatchesColumnButton top 0 asListColumnButton
+				-an toggleSwatchesColumnButton bottom
+				-af toggleSwatchesColumnButton left 0
+				-af toggleSwatchesColumnButton right 0
+
+				-ac separator1 top 0 toggleSwatchesColumnButton
+				//-ac separator1 top 0 asListColumnButton
+				// END MTOA
+
 				-an separator1 bottom
 				-af separator1 left 0
 				-af separator1 right 0

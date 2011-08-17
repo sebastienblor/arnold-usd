@@ -602,6 +602,15 @@ global proc createAssignNewMaterialTreeLister(string $item)
         $filterString = ($filterString + " rendernode/mentalray/material");
 	}
 
+	// BEGIN MTOA
+	// If shader/surface is of the classifications, add arnold
+	// material node to the classification array.
+	if( $showMentalRayCustomShaders == 1 && `pluginInfo -query -loaded mtoa` )
+	{
+		$filterString = ($filterString + " arnold/shader");
+	}
+	// END MTOA
+
 	// Create the window and treeLister.
 	//
 	int $anmWindowWidth = 300; 

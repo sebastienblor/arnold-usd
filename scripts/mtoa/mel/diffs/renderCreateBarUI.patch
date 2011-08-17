@@ -1,0 +1,45 @@
+diff -r 30fc65e8cd32 scripts/mtoa/mel/2011/renderCreateBarUI.mel
+--- a/scripts/mtoa/mel/2011/renderCreateBarUI.mel
++++ b/scripts/mtoa/mel/2011/renderCreateBarUI.mel
+@@ -84,15 +84,23 @@
+ 
+ 	string $nodes[];
+ 	string $mentalrayClassfication = "rendernode/mentalray";
++	// Begin MTOA
++	string $arnoldClassfication = "arnold";
+ 
+-	if( startsWith($classification, $mentalrayClassfication) ) 
++	if( startsWith($classification, $mentalrayClassfication) ||
++		startsWith($classification, $arnoldClassfication)) 
+ 	{
+ 		$nodes = `listNodeTypes $classification`;
+ 	}
+ 	else
+ 	{
+ 		$nodes = `listNodeTypes -ex $mentalrayClassfication $classification`;
++		// Chad: can't figure out how to exclude multiple classifcation types in one go. tried multi-use and joining with ":"
++		// have to exclude as a post-op:
++		string $exclNodes[] = `listNodeTypes $arnoldClassfication`;
++		$nodes = stringArrayRemove($exclNodes, $nodes);
+ 	}
++	// End MTOA
+ 
+ 	int $dynamicsIsLicensed = `licenseCheck -mode edit -type fx`;
+ 	int $completeLicense = `licenseCheck -mode edit -type complete`;
+@@ -487,7 +495,15 @@
+ 
+ 	string $filterClassArray[];
+ 	$filterClassArray = stringToStringArray($filterString, " ");
+-	
++
++	// Begin MTOA
++	if (`pluginInfo -query -loaded mtoa`)
++	{
++		// this proc created inside mtoa.ui.nodeTreeLister
++		createArnoldNodesTreeLister_Content($renderNodeTreeLister, $postCommand, $filterString);
++	}
++	// End MTOA
++		
+ 	createMayaNodesTreeLister_Content($renderNodeTreeLister, $postCommand, $filterClassArray);
+ 
+ 	if (`pluginInfo -query -loaded Mayatomr`)
