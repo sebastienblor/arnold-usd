@@ -435,9 +435,9 @@ else:
       maya_env.Append(LIBPATH = [os.path.join(env['MAYA_ROOT'], 'lib')])
    elif system.os() == 'darwin':
       # MAYA_LOCATION on osx includes Maya.app/Contents
-      maya_include_dir = os.path.join(env['MAYA_ROOT'], 'devkit/include')
+      maya_include_dir = os.path.join(env['MAYA_ROOT'], '../../devkit/include')
       maya_env.Append(CPPPATH = [maya_include_dir])
-      maya_env.Append(LIBPATH = [os.path.join(env['MAYA_ROOT'], 'Maya.app/Contents/MacOS')])
+      maya_env.Append(LIBPATH = [os.path.join(env['MAYA_ROOT'], 'MacOS')])
 
    maya_env.Append(LIBS=Split('ai pthread Foundation OpenMaya OpenMayaRender OpenMayaUI OpenMayaAnim OpenMayaFX'))
 
