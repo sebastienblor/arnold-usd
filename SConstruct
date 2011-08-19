@@ -162,9 +162,14 @@ if env['COLOR_CMDS']:
    color_bred    = color_red   + color_bright
    color_reset   = Fore.RESET + Back.RESET + Style.RESET_ALL
 
+arnold_version  = get_arnold_version(os.path.join(env['ARNOLD_API_INCLUDES'], 'ai_version.h'))
+maya_version    = get_maya_version(os.path.join(env['MAYA_ROOT'], 'include', 'maya', 'MTypes.h'))
+
 print ''
 print 'Building       : ' + 'MtoA %s' % (MTOA_VERSION)
-print 'Arnold version : ' + get_arnold_version(os.path.join(env['ARNOLD_API_INCLUDES'], 'ai_version.h'))
+print 'Arnold version : %s' % arnold_version
+print 'Maya version   : %s' % maya_version
+#print 'Maya location  : %s' % (env['MAYA_ROOT'])
 print 'Mode           : %s' % (env['MODE'])
 print 'Host OS        : %s' % (system.os())
 print 'Host arch.     : %s' % (system.host_arch())
@@ -354,7 +359,7 @@ env.Append(CPPPATH = [env['ARNOLD_API_INCLUDES']])
 env.Append(LIBPATH = [env['ARNOLD_API_LIB'], env['ARNOLD_BINARIES']])
    
 ## configure base directory for temp files
-BUILD_BASE_DIR = os.path.join('build', '%s_%s' % (system.os(), system.target_arch()), '%s_%s' % (env['COMPILER'], env['MODE']))
+BUILD_BASE_DIR = os.path.join('build', '%s_%s' % (system.os(), system.target_arch()), maya_version, '%s_%s' % (env['COMPILER'], env['MODE']))
 
 if not env['SHOW_CMDS']:
    ## hide long compile lines from the user
@@ -532,7 +537,7 @@ env.Install(env['TARGET_MODULE_PATH'], os.path.join(BUILD_BASE_DIR, 'mtoa.mod'))
 
 ## Sets release package name based on MtoA version, architecture and compiler used.
 ##
-package_name = "MtoA-" + MTOA_VERSION + "-" + system.get_arch_label(system.os(), system.target_arch()) + "-" + get_maya_version(os.path.join(maya_include_dir, 'maya', 'MTypes.h'))
+package_name = "MtoA-" + MTOA_VERSION + "-" + system.get_arch_label(system.os(), system.target_arch()) + "-" + maya_version
 
 if env['MODE'] in ['debug', 'profile']:
    package_name += '-' + env['MODE']
