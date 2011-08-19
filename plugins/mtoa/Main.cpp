@@ -86,13 +86,6 @@ namespace // <anonymous>
                                     MPxNode::kLocatorNode);
       CHECK_MSTATUS(status);
 
-      status = plugin.registerNode("aiAreaLightLocator",
-                                    CArnoldAreaLightNode::id,
-                                    CArnoldAreaLightNode::creator,
-                                    CArnoldAreaLightNode::initialize,
-                                    MPxNode::kLocatorNode);
-      CHECK_MSTATUS(status);
-
       // Render Options
       status = plugin.registerNode("aiOptions",
                                     CArnoldOptionsNode::id,
@@ -134,8 +127,16 @@ namespace // <anonymous>
                                    MPxNode::kLocatorNode,
                                    &lightWithSwatch);
                                    // &lightNoSwatch);
-
       CHECK_MSTATUS(status);
+
+      status = plugin.registerNode("aiAreaLightLocator",
+                                    CArnoldAreaLightNode::id,
+                                    CArnoldAreaLightNode::creator,
+                                    CArnoldAreaLightNode::initialize,
+                                    MPxNode::kLocatorNode,
+                                    &lightWithSwatch);
+      CHECK_MSTATUS(status);
+
 
       // Special shaders (not visible from Maya shaders menu)
       MString environmentWithSwatch = CLASSIFY_SHADER_ENVIRONMENT
@@ -178,7 +179,7 @@ namespace // <anonymous>
                                    "quad",
                                    CQuadLightTranslator::creator,
                                    CQuadLightTranslator::NodeInitializer);
-       builtin->RegisterTranslator("areaLight",
+       builtin->RegisterTranslator("aiAreaLightLocator",
                                    "cylinder",
                                    CCylinderLightTranslator::creator,
                                    CCylinderLightTranslator::NodeInitializer);
