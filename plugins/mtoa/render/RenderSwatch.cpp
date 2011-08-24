@@ -30,6 +30,7 @@ CRenderSwatchGenerator::CRenderSwatchGenerator(MObject dependNode,
                                                                     imageResolution)
 {
    m_iteration = 0;
+   ClearSwatch();
    SetSwatchClass(dependNode);
 }
 
@@ -488,6 +489,9 @@ bool CRenderSwatchGenerator::doIteration()
 
    if (m_iteration == 0)
    {
+      // Not necessary if done in constructor
+      // ClearSwatch();
+
       // Arnold can only render one thing at a time.
       // It may be an option to block/wait here, but only
       // if it's another swatch render taking place.
