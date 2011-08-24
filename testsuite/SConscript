@@ -140,6 +140,12 @@ def run_test(target, source, env):
    previous_path = os.environ.get('PATH')
    os.environ['PATH'] = test_env['ENV']['PATH']
    
+   ## why this being in Maya.env doesn't work?
+   previous_render_desc = os.environ.get('MAYA_RENDER_DESC_PATH')
+   os.environ['MAYA_RENDER_DESC_PATH'] = test_env.subst(test_env['TARGET_DESCR_PATH'])
+   
+   print os.environ['MAYA_APP_DIR']
+   
    ## remove any leftovers
    saferemove(test_env['OUTPUT_IMAGE'])
    saferemove('new.jpg')
@@ -353,6 +359,8 @@ Arnold testsuite - %s
           os.environ['DYLD_LIBRARY_PATH'] = previous_lib_path
        elif system.os() == 'linux':
           os.environ['LD_LIBRARY_PATH'] = previous_lib_path
+   if previous_render_desc :
+      os.environ['MAYA_RENDER_DESC_PATH'] = previous_render_desc
    ## always succeeds (unless some of the functions above throw an error)
    return None
 
