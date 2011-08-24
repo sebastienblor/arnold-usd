@@ -385,7 +385,7 @@ def process_testsuite(target, source, env):
       print 'Ran %d regression tests - %d failed!' % (len(source), failed)
 
    MTOA_VERSION    = '<not available>'
-   ARNOLD_VERSION  = get_arnold_version(os.path.join(env['ARNOLD_API_INCLUDES'], 'ai_version.h'))
+   ARNOLD_VERSION  = get_arnold_version(os.path.join(env.subst(env['ARNOLD_API_INCLUDES']), 'ai_version.h'))
    (REVISION, URL) = get_latest_revision()
          
    ## create testsuite html
@@ -611,7 +611,7 @@ append_to_path(test_env, os.path.abspath(str(TIFF2JPEG[0].dir)))
 prepend_to_path(test_env, env.subst('$TARGET_LIB_PATH'))
 prepend_to_path(test_env, env.subst('$TARGET_PLUGIN_PATH'))
 ## as well as Arnold executables
-prepend_to_path(test_env, test_env['ARNOLD_BINARIES'])
+prepend_to_path(test_env, env.subst(test_env['ARNOLD_BINARIES']))
 ## and Maya's
 prepend_to_path(test_env, os.path.join(test_env['MAYA_ROOT'], 'bin'))
 

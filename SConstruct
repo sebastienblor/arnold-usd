@@ -58,16 +58,16 @@ vars.AddVariables(
                    get_default_path('ARNOLD_HOME', 'Arnold')),                   
       PathVariable('ARNOLD_API_INCLUDES', 
                    'Where to find Arnold API includes', 
-                   '.', PathVariable.PathIsDir),
+                   os.path.join('$ARNOLD', 'include'), PathVariable.PathIsDir),
       PathVariable('ARNOLD_API_LIB', 
                    'Where to find Arnold API static libraries', 
-                   '.', PathVariable.PathIsDir),
+                   os.path.join('$ARNOLD', 'bin'), PathVariable.PathIsDir),
       PathVariable('ARNOLD_BINARIES', 
                    'Where to find Arnold API dynamic libraries and executables', 
-                   '.', PathVariable.PathIsDir),   
+                   os.path.join('$ARNOLD', 'bin'), PathVariable.PathIsDir),
       PathVariable('ARNOLD_PYTHON', 
                    'Where to find Arnold python bindings', 
-                   '.', PathVariable.PathIsDir),                                  
+                   os.path.join('$ARNOLD', 'python'), PathVariable.PathIsDir),  
       PathVariable('TARGET_MODULE_PATH', 
                    'Path used for installation of the mtoa module', 
                    '.', PathVariable.PathIsDirCreate),
@@ -162,14 +162,13 @@ if env['COLOR_CMDS']:
    color_bred    = color_red   + color_bright
    color_reset   = Fore.RESET + Back.RESET + Style.RESET_ALL
 
-arnold_version  = get_arnold_version(os.path.join(env['ARNOLD_API_INCLUDES'], 'ai_version.h'))
+arnold_version  = get_arnold_version(os.path.join(env.subst(env['ARNOLD_API_INCLUDES']), 'ai_version.h'))
 maya_version    = get_maya_version(os.path.join(env['MAYA_ROOT'], 'include', 'maya', 'MTypes.h'))
 
 print ''
 print 'Building       : ' + 'MtoA %s' % (MTOA_VERSION)
 print 'Arnold version : %s' % arnold_version
 print 'Maya version   : %s' % maya_version
-#print 'Maya location  : %s' % (env['MAYA_ROOT'])
 print 'Mode           : %s' % (env['MODE'])
 print 'Host OS        : %s' % (system.os())
 print 'Host arch.     : %s' % (system.host_arch())
@@ -492,15 +491,19 @@ if system.os() == 'windows':
    env.Command(mtoa_new, str(MTOA[0]), Copy("$TARGET", "$SOURCE"))
    env.Install(env['TARGET_PLUGIN_PATH'], [mtoa_new])
    env.Install(env['TARGET_SHADER_PATH'], MTOA_SHADERS[0])
+   libs = glob.glob(os.path.join(env.subst(env['ARNOLD_API_LIB']), '*.lib'))
 else:
    env.Install(env['TARGET_PLUGIN_PATH'], MTOA)
    env.Install(env['TARGET_SHADER_PATH'], MTOA_SHADERS)
+   if system.os() == 'linux':
+       libs = glob.glob(os.path.join(env.subst(env['ARNOLD_API_LIB']), '*.so'))
+   else:
+       libs = glob.glob(os.path.join(env.subst(env['ARNOLD_API_LIB']), '*.dylib'))
 
-libs = glob.glob(os.path.join(env['ARNOLD_API_LIB'], '*.lib'))
 env.Install(env['TARGET_LIB_PATH'], libs)
 
-dylibs = glob.glob(os.path.join(env['ARNOLD_BINARIES'], '*%s' % get_library_extension()))
-dylibs += glob.glob(os.path.join(env['ARNOLD_BINARIES'], '*%s.*' % get_library_extension()))
+dylibs = glob.glob(os.path.join(env.subst(env['ARNOLD_BINARIES']), '*%s' % get_library_extension()))
+dylibs += glob.glob(os.path.join(env.subst(env['ARNOLD_BINARIES']), '*%s.*' % get_library_extension()))
 env.Install(env['TARGET_BINARIES'], dylibs)
 
 env.Install(env['TARGET_BINARIES'], MTOA_API[0])
@@ -510,7 +513,7 @@ pyfiles = find_files_recursive('scripts', ['.py', '.mel'])
 env.InstallAs([os.path.join(env['TARGET_PYTHON_PATH'], x) for x in pyfiles],
               [os.path.join('scripts', x) for x in pyfiles])
 # install Arnold python bindings
-arpybds = find_files_recursive(os.path.join(env['ARNOLD_PYTHON']), ['.py'])
+arpybds = find_files_recursive(os.path.join(env.subst(env['ARNOLD_PYTHON'])), ['.py'])
 env.InstallAs([os.path.join(env['TARGET_PYTHON_PATH'], x) for x in arpybds],
               [os.path.join(env['ARNOLD_PYTHON'], x) for x in arpybds])
 # install include files
