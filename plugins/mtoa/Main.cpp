@@ -72,11 +72,6 @@ namespace // <anonymous>
                                     CArnoldStandInShapeUI::creator);
       CHECK_MSTATUS(status);
 
-      // Swatch renderer.
-      status = MSwatchRenderRegister::registerSwatchRender(ARNOLD_SWATCH,
-                                                           CRenderSwatchGenerator::creator);
-      CHECK_MSTATUS(status);
-
       // Abstract Classes
       status = plugin.registerNode("SphereLocator",
                                     CSphereLocator::id,
@@ -154,69 +149,69 @@ namespace // <anonymous>
                                   "",
                                   CLambertTranslator::creator);
       // A Dag node in Maya but a depend node in Arnold
-       builtin->RegisterTranslator("aiSky",
-                                   "",
-                                   CSkyShaderTranslator::creator);
-       // Lights
-       builtin->RegisterTranslator("directionalLight",
-                                   "",
-                                   CDirectionalLightTranslator::creator,
-                                   CDirectionalLightTranslator::NodeInitializer);
-       builtin->RegisterTranslator("spotLight",
-                                   "",
-                                   CSpotLightTranslator::creator,
-                                   CSpotLightTranslator::NodeInitializer);
-       builtin->RegisterTranslator("areaLight",
-                                   "",
-                                   CAreaLightTranslator::creator,
-                                   CAreaLightTranslator::NodeInitializer);
-       builtin->RegisterTranslator("pointLight",
-                                   "",
-                                   CPointLightTranslator::creator,
-                                   CPointLightTranslator::NodeInitializer);
-       builtin->RegisterTranslator("ambientLight",
-                                   "",
-                                   CAmbientLightTranslator::creator,
-                                   CAmbientLightTranslator::NodeInitializer);
-       builtin->RegisterTranslator("aiSkyDomeLight",
-                                   "",
-                                   CSkyDomeLightTranslator::creator,
-                                   CSkyDomeLightTranslator::NodeInitializer);
-       // Geometry
-       builtin->RegisterTranslator("mesh",
-                                   "",
-                                   CMeshTranslator::creator,
-                                   CMeshTranslator::NodeInitializer);
-       builtin->RegisterTranslator("nurbsSurface",
-                                   "",
-                                   CNurbsSurfaceTranslator::creator,
-                                   CNurbsSurfaceTranslator::NodeInitializer);
-       builtin->RegisterTranslator("aiStandIn",
-                                   "builtin",
-                                   CArnoldStandInsTranslator::creator,
-                                   CArnoldStandInsTranslator::NodeInitializer);
-       // Multiple camera translators for single Maya camera node
-       builtin->RegisterTranslator("camera",
-                                   "perspective",
-                                   CPerspCameraTranslator::creator,
-                                   CPerspCameraTranslator::NodeInitializer);
-       builtin->RegisterTranslator("camera",
-                                   "orthographic",
-                                   COrthoCameraTranslator::creator,
-                                   COrthoCameraTranslator::NodeInitializer);
-       builtin->RegisterTranslator("camera",
-                                   "fisheye",
-                                   CFishEyeCameraTranslator::creator,
-                                   CFishEyeCameraTranslator::NodeInitializer);
-       builtin->RegisterTranslator("camera",
-                                   "cylindrical",
-                                   CCylCameraTranslator::creator,
-                                   CCylCameraTranslator::NodeInitializer);
-       // Hair
-       builtin->RegisterTranslator("hairSystem",
-                                   "",
-                                   CHairTranslator::creator,
-                                   CHairTranslator::NodeInitializer);
+      builtin->RegisterTranslator("aiSky",
+                                  "",
+                                  CSkyShaderTranslator::creator);
+      // Lights
+      builtin->RegisterTranslator("directionalLight",
+                                  "",
+                                  CDirectionalLightTranslator::creator,
+                                  CDirectionalLightTranslator::NodeInitializer);
+      builtin->RegisterTranslator("spotLight",
+                                  "",
+                                  CSpotLightTranslator::creator,
+                                  CSpotLightTranslator::NodeInitializer);
+      builtin->RegisterTranslator("areaLight",
+                                  "",
+                                  CAreaLightTranslator::creator,
+                                  CAreaLightTranslator::NodeInitializer);
+      builtin->RegisterTranslator("pointLight",
+                                  "",
+                                  CPointLightTranslator::creator,
+                                  CPointLightTranslator::NodeInitializer);
+      builtin->RegisterTranslator("ambientLight",
+                                  "",
+                                  CAmbientLightTranslator::creator,
+                                  CAmbientLightTranslator::NodeInitializer);
+      builtin->RegisterTranslator("aiSkyDomeLight",
+                                  "",
+                                  CSkyDomeLightTranslator::creator,
+                                  CSkyDomeLightTranslator::NodeInitializer);
+      // Geometry
+      builtin->RegisterTranslator("mesh",
+                                  "",
+                                  CMeshTranslator::creator,
+                                  CMeshTranslator::NodeInitializer);
+      builtin->RegisterTranslator("nurbsSurface",
+                                  "",
+                                  CNurbsSurfaceTranslator::creator,
+                                  CNurbsSurfaceTranslator::NodeInitializer);
+      builtin->RegisterTranslator("aiStandIn",
+                                  "builtin",
+                                  CArnoldStandInsTranslator::creator,
+                                  CArnoldStandInsTranslator::NodeInitializer);
+      // Multiple camera translators for single Maya camera node
+      builtin->RegisterTranslator("camera",
+                                  "perspective",
+                                  CPerspCameraTranslator::creator,
+                                  CPerspCameraTranslator::NodeInitializer);
+      builtin->RegisterTranslator("camera",
+                                  "orthographic",
+                                  COrthoCameraTranslator::creator,
+                                  COrthoCameraTranslator::NodeInitializer);
+      builtin->RegisterTranslator("camera",
+                                  "fisheye",
+                                  CFishEyeCameraTranslator::creator,
+                                  CFishEyeCameraTranslator::NodeInitializer);
+      builtin->RegisterTranslator("camera",
+                                  "cylindrical",
+                                  CCylCameraTranslator::creator,
+                                  CCylCameraTranslator::NodeInitializer);
+      // Hair
+      builtin->RegisterTranslator("hairSystem",
+                                  "",
+                                  CHairTranslator::creator,
+                                  CHairTranslator::NodeInitializer);
 
       // Load all plugins path or only shaders?
       CExtension* shaders;
@@ -268,7 +263,7 @@ namespace // <anonymous>
       status = CExtensionsManager::LoadExtensions();
       status = CExtensionsManager::LoadArnoldPlugins();
       // Finally register all nodes from the loaded extensions with Maya in load order
-      CExtensionsManager::RegisterExtensions();
+      status = CExtensionsManager::RegisterExtensions();
 
       // CExtension::CreateCallbacks();
 
@@ -321,7 +316,8 @@ namespace // <anonymous>
 
 DLLEXPORT MStatus initializePlugin(MObject object)
 {
-   MStatus status;
+   MStatus status, returnStatus;
+   returnStatus = MStatus::kSuccess;
 
    MFnPlugin plugin(object, MTOA_VENDOR, MTOA_VERSION, MAYA_VERSION);
 
@@ -332,68 +328,274 @@ DLLEXPORT MStatus initializePlugin(MObject object)
 
    ArnoldUniverseBegin();
 
-   // TODO: Add proper checking and handling of returned status
-   status = plugin.registerCommand("arnoldRender", CArnoldRenderCmd::creator, CArnoldRenderCmd::newSyntax);
-   status = plugin.registerCommand("arnoldIpr", CArnoldIprCmd::creator, CArnoldIprCmd::newSyntax);
-   status = plugin.registerCommand("arnoldExportAss", CArnoldExportAssCmd::creator, CArnoldExportAssCmd::newSyntax);
-   status = plugin.registerCommand("arnoldPlugins", CArnoldPluginCmd::creator, CArnoldPluginCmd::newSyntax);
+   // ASS file translator
    status = plugin.registerFileTranslator(CArnoldAssTranslator::fileType,
          CArnoldAssTranslator::fileIcon,
          CArnoldAssTranslator::creator,
          CArnoldAssTranslator::optionScript,
          CArnoldAssTranslator::optionDefault,
          false);
+   CHECK_MSTATUS(status);
+   if (MStatus::kSuccess == status)
+   {
+      AiMsgInfo("Successfully registered Arnold ass file translator");
+      MGlobal::displayInfo("Successfully registered Arnold ass file translator");
+   }
+   else
+   {
+      returnStatus = MStatus::kFailure;
+      AiMsgError("Failed to register Arnold ass file translator");
+      MGlobal::displayError("Failed to register Arnold ass file translator");
+   }
+   // Swatch renderer
+   status = MSwatchRenderRegister::registerSwatchRender(ARNOLD_SWATCH, CRenderSwatchGenerator::creator);
+   CHECK_MSTATUS(status);
+   if (MStatus::kSuccess == status)
+   {
+      AiMsgInfo("Successfully registered Arnold swatch renderer");
+      MGlobal::displayInfo("Successfully registered Arnold swatch renderer");
+   }
+   else
+   {
+      returnStatus = MStatus::kFailure;
+      AiMsgError("Failed to register Arnold swatch renderer");
+      MGlobal::displayError("Failed to register Arnold swatch renderer");
+   }
+   // Commands
+   status = plugin.registerCommand("arnoldRender", CArnoldRenderCmd::creator, CArnoldRenderCmd::newSyntax);
+   CHECK_MSTATUS(status);
+   if (MStatus::kSuccess == status)
+   {
+      AiMsgInfo("Successfully registered 'arnoldRender' command");
+      MGlobal::displayInfo("Successfully registered 'arnoldRender' command");
+   }
+   else
+   {
+      returnStatus = MStatus::kFailure;
+      AiMsgError("Failed to register 'arnoldRender' command");
+      MGlobal::displayError("Failed to register 'arnoldRender' command");
+   }
+   status = plugin.registerCommand("arnoldIpr", CArnoldIprCmd::creator, CArnoldIprCmd::newSyntax);
+   CHECK_MSTATUS(status);
+   if (MStatus::kSuccess == status)
+   {
+      AiMsgInfo("Successfully registered 'arnoldIpr' command");
+      MGlobal::displayInfo("Successfully registered 'arnoldIpr command");
+   }
+   else
+   {
+      returnStatus = MStatus::kFailure;
+      AiMsgError("Failed to register 'arnoldIpr' command");
+      MGlobal::displayError("Failed to register 'arnoldIpr' command");
+   }
+   status = plugin.registerCommand("arnoldExportAss", CArnoldExportAssCmd::creator, CArnoldExportAssCmd::newSyntax);
+   CHECK_MSTATUS(status);
+   if (MStatus::kSuccess == status)
+   {
+      AiMsgInfo("Successfully registered 'arnoldExportAss' command");
+      MGlobal::displayInfo("Successfully registered 'arnoldExportAss' command");
+   }
+   else
+   {
+      returnStatus = MStatus::kFailure;
+      AiMsgError("Failed to register 'arnoldExportAss' command");
+      MGlobal::displayError("Failed to register 'arnoldExportAss' command");
+   }
+   status = plugin.registerCommand("arnoldPlugins", CArnoldPluginCmd::creator, CArnoldPluginCmd::newSyntax);
+   CHECK_MSTATUS(status);
+   if (MStatus::kSuccess == status)
+   {
+      AiMsgInfo("Successfully registered 'arnoldPlugins' command");
+      MGlobal::displayInfo("Successfully registered 'arnoldPlugins' command");
+   }
+   else
+   {
+      returnStatus = MStatus::kFailure;
+      AiMsgError("Failed to register 'arnoldPlugins' command");
+      MGlobal::displayError("Failed to register 'arnoldPlugins' command");
+   }
 
-   RegisterArnoldNodes(object);
+   status = RegisterArnoldNodes(object);
+   if (MStatus::kSuccess == status)
+   {
+      AiMsgInfo("Successfully registered Arnold nodes");
+      MGlobal::displayInfo("Successfully registered Arnold nodes");
+   }
+   else
+   {
+      returnStatus = MStatus::kFailure;
+      AiMsgError("Failed to register Arnold nodes");
+      MGlobal::displayError("Failed to register Arnold nodes");
+   }
 
    // Since executePythonCommand eats error output, trying to see if we can access every required module
    status = MGlobal::executePythonCommand(MString("import arnold"), true, false);
    CHECK_MSTATUS(status);
    if (MStatus::kSuccess == status)
+   {
       AiMsgInfo("Successfully imported python module 'arnold'");
+      MGlobal::displayInfo("Successfully imported python module 'arnold'");
+   }
    else
+   {
+      returnStatus = MStatus::kFailure;
       AiMsgError("Failed to import python module 'arnold'");
+      MGlobal::displayError("Failed to import python module 'arnold'");
+   }
    status = MGlobal::executePythonCommand(MString("import mtoa"), true, false);
    CHECK_MSTATUS(status);
    if (MStatus::kSuccess == status)
+   {
       AiMsgInfo("Successfully imported python module 'mtoa'");
+      MGlobal::displayInfo("Successfully imported python module 'mtoa'");
+   }
    else
+   {
+      returnStatus = MStatus::kFailure;
       AiMsgError("Failed to import python module 'mtoa'");
+      MGlobal::displayError("Failed to import python module 'mtoa'");
+   }
 
    // Register the Arnold renderer
    status = MGlobal::executePythonCommand(MString("import mtoa.cmds.registerArnoldRenderer;mtoa.cmds.registerArnoldRenderer.registerArnoldRenderer()"), true, false);
    CHECK_MSTATUS(status);
    if (MStatus::kSuccess == status)
+   {
       AiMsgInfo("Successfully registered renderer 'arnold'");
+      MGlobal::displayInfo("Successfully registered renderer 'arnold'");
+   }
    else
+   {
+      returnStatus = MStatus::kFailure;
       AiMsgError("Failed to register renderer 'arnold'");
-
+      MGlobal::displayError("Failed to register renderer 'arnold'");
+   }
 
    ArnoldUniverseEnd();
 
-   return status;
+   return returnStatus;
 }
 
 DLLEXPORT MStatus uninitializePlugin(MObject object)
 {
-   MStatus status;
+   MStatus status, returnStatus;
+   returnStatus = MStatus::kSuccess;
+
    MFnPlugin plugin(object);
 
    ArnoldUniverseBegin();
 
    status = MGlobal::executePythonCommand(MString("import mtoa.cmds.unregisterArnoldRenderer;mtoa.cmds.unregisterArnoldRenderer.unregisterArnoldRenderer()"), true, false);
    CHECK_MSTATUS(status);
+   if (MStatus::kSuccess == status)
+   {
+      AiMsgInfo("Successfully deregistered renderer 'arnold'");
+      MGlobal::displayInfo("Successfully deregistered renderer 'arnold'");
+   }
+   else
+   {
+      returnStatus = MStatus::kFailure;
+      AiMsgError("Failed to deregister renderer 'arnold'");
+      MGlobal::displayError("Failed to deregister renderer 'arnold'");
+   }
 
    status = UnregisterArnoldNodes(object);
+   if (MStatus::kSuccess == status)
+   {
+      AiMsgInfo("Successfully deregistered Arnold nodes");
+      MGlobal::displayInfo("Successfully deregistered Arnold nodes");
+   }
+   else
+   {
+      returnStatus = MStatus::kFailure;
+      AiMsgError("Failed to deregister Arnold nodes");
+      MGlobal::displayError("Failed to deregister Arnold nodes");
+   }
 
-   // TODO: Add proper checking and handling of returned status
-   status = plugin.deregisterCommand("arnoldRender");
-   status = plugin.deregisterCommand("arnoldIpr");
-   status = plugin.deregisterCommand("arnoldExportAss");
+   // Deregister in inverse order of registration
+   // Commands
    status = plugin.deregisterCommand("arnoldPlugins");
+   CHECK_MSTATUS(status);
+   if (MStatus::kSuccess == status)
+   {
+      AiMsgInfo("Successfully deregistered 'arnoldPlugins' command");
+      MGlobal::displayInfo("Successfully deregistered 'arnoldPlugins' command");
+   }
+   else
+   {
+      returnStatus = MStatus::kFailure;
+      AiMsgError("Failed to deregister 'arnoldPlugins' command");
+      MGlobal::displayError("Failed to deregister 'arnoldPlugins' command");
+   }
+   status = plugin.deregisterCommand("arnoldExportAss");
+   CHECK_MSTATUS(status);
+   if (MStatus::kSuccess == status)
+   {
+      AiMsgInfo("Successfully deregistered 'arnoldExportAss' command");
+      MGlobal::displayInfo("Successfully deregistered 'arnoldExportAss' command");
+   }
+   else
+   {
+      returnStatus = MStatus::kFailure;
+      AiMsgError("Failed to deregister 'arnoldExportAss' command");
+      MGlobal::displayError("Failed to deregister 'arnoldExportAss' command");
+   }
+   status = plugin.deregisterCommand("arnoldIpr");
+   CHECK_MSTATUS(status);
+   if (MStatus::kSuccess == status)
+   {
+      AiMsgInfo("Successfully deregistered 'arnoldIpr' command");
+      MGlobal::displayInfo("Successfully deregistered 'arnoldIpr' command");
+   }
+   else
+   {
+      returnStatus = MStatus::kFailure;
+      AiMsgError("Failed to deregister 'arnoldIpr' command");
+      MGlobal::displayError("Failed to deregister 'arnoldIpr' command");
+   }
+   status = plugin.deregisterCommand("arnoldRender");
+   CHECK_MSTATUS(status);
+   if (MStatus::kSuccess == status)
+   {
+      AiMsgInfo("Successfully deregistered 'arnoldRender' command");
+      MGlobal::displayInfo("Successfully deregistered 'arnoldRender' command");
+   }
+   else
+   {
+      returnStatus = MStatus::kFailure;
+      AiMsgError("Failed to deregister 'arnoldRender' command");
+      MGlobal::displayError("Failed to deregister 'arnoldRender' command");
+   }
+   // Swatch renderer
+   status = MSwatchRenderRegister::registerSwatchRender(ARNOLD_SWATCH, CRenderSwatchGenerator::creator);
+   CHECK_MSTATUS(status);
+   if (MStatus::kSuccess == status)
+   {
+      AiMsgInfo("Successfully deregistered Arnold swatch renderer");
+      MGlobal::displayInfo("Successfully deregistered Arnold swatch renderer");
+   }
+   else
+   {
+      returnStatus = MStatus::kFailure;
+      AiMsgError("Failed to deregister Arnold swatch renderer");
+      MGlobal::displayError("Failed to deregister Arnold swatch renderer");
+   }
+   // ASS file translator
    status = plugin.deregisterFileTranslator(CArnoldAssTranslator::fileType);
+   CHECK_MSTATUS(status);
+   if (MStatus::kSuccess == status)
+   {
+      AiMsgInfo("Successfully deregistered Arnold ass file translator");
+      MGlobal::displayInfo("Successfully deregistered Arnold ass file translator");
+   }
+   else
+   {
+      returnStatus = MStatus::kFailure;
+      AiMsgError("Failed to deregister Arnold ass file translator");
+      MGlobal::displayError("Failed to deregister Arnold ass file translator");
+   }
 
    ArnoldUniverseEnd();
 
-   return status;
+   return returnStatus;
 }

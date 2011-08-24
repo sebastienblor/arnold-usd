@@ -478,13 +478,12 @@ void CRenderSwatchGenerator::ErrorSwatch(const MString msg)
 
 bool CRenderSwatchGenerator::doIteration()
 {
-   
+   MStatus status;
+
    // Arnold is rendering, so bail out.
    // Return false to be called again.
    // This is how we manage to render many
    // swatches "at the same time".
-   MStatus status;
-
    if (AiRendering()) return false;
 
    if (m_iteration == 0)

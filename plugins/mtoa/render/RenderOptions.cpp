@@ -36,6 +36,8 @@ CRenderOptions::CRenderOptions()
 ,  m_useRenderRegion(false)
 ,  m_clearBeforeRender(false)
 ,  m_multiCameraRender(false)
+,  m_arnoldRenderImageFormat("tiff")
+,  m_isAnimated(false)
 ,  m_display_gamma(1.0f)
 ,  m_outputAssMask(AI_NODE_ALL)
 ,  m_log_filename("")
@@ -354,6 +356,8 @@ void CRenderOptions::SetupLog() const
    AiMsgSetConsoleFlags(GetFlagsFromVerbosityLevel(m_log_console_verbosity) | AI_LOG_COLOR);
    AiMsgSetLogFileFlags(GetFlagsFromVerbosityLevel(m_log_file_verbosity));
 
+   // Not working correctly until we can add to callback rather than replace it,
+   // or have access to original callback code
    // Callback for script editor echo has to be disabled, because not way to know
    // the log filename and write to it from callback
    // AiMsgSetCallback(MtoaLogCallback);
