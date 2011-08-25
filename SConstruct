@@ -20,10 +20,14 @@ MTOA_VERSION = get_mtoa_version(3)
 
 if system.os() == 'darwin':
    ALLOWED_COMPILERS = ('gcc',)   # Do not remove this comma, it's magic
+   arnold_default_api_lib = os.path.join('$ARNOLD', 'bin')
 elif system.os() == 'linux':
    ALLOWED_COMPILERS = ('gcc',)   # Do not remove this comma, it's magic
+   # linux conventions would be to actually use lib for dynamic libraries!
+   arnold_default_api_lib = os.path.join('$ARNOLD', 'bin')
 elif system.os() == 'windows':
    ALLOWED_COMPILERS = ('msvc', 'icc')
+   arnold_default_api_lib = os.path.join('$ARNOLD', 'lib')
 else:
    print "Unknown operating system: %s" % system.os()
    Exit(1)
@@ -61,7 +65,7 @@ vars.AddVariables(
                    os.path.join('$ARNOLD', 'include'), PathVariable.PathIsDir),
       PathVariable('ARNOLD_API_LIB', 
                    'Where to find Arnold API static libraries', 
-                   os.path.join('$ARNOLD', 'bin'), PathVariable.PathIsDir),
+                   arnold_default_api_lib, PathVariable.PathIsDir),
       PathVariable('ARNOLD_BINARIES', 
                    'Where to find Arnold API dynamic libraries and executables', 
                    os.path.join('$ARNOLD', 'bin'), PathVariable.PathIsDir),
@@ -124,22 +128,6 @@ else:
    env = Environment(variables = vars)
 
 env.Append(BUILDERS = {'MakeModule' : make_module})
-
-if env['ARNOLD_API_INCLUDES'] == '.' :
-    env['ARNOLD_API_INCLUDES'] = os.path.join(env['ARNOLD'], 'include')
-    
-if env['ARNOLD_BINARIES'] == '.' :
-    env['ARNOLD_BINARIES'] = os.path.join(env['ARNOLD'], 'bin')
-
-if env['ARNOLD_PYTHON'] == '.' :
-    env['ARNOLD_PYTHON'] = os.path.join(env['ARNOLD'], 'python')
-        
-# linus conventions would be to actually use libs for dynamic libraries!
-if env['ARNOLD_API_LIB'] == '.' :
-    if system.os() == 'windows':
-        env['ARNOLD_API_LIB'] = os.path.join(env['ARNOLD'], 'lib')
-    else :
-        env['ARNOLD_API_LIB'] = os.path.join(env['ARNOLD'], 'bin')
 
 if env['TARGET_MODULE_PATH'] == '.':
    print "Please define TARGET_MODULE_PATH (Path used for installation of the mtoa plugin)"
@@ -515,7 +503,7 @@ env.InstallAs([os.path.join(env['TARGET_PYTHON_PATH'], x) for x in pyfiles],
 # install Arnold python bindings
 arpybds = find_files_recursive(os.path.join(env.subst(env['ARNOLD_PYTHON'])), ['.py'])
 env.InstallAs([os.path.join(env['TARGET_PYTHON_PATH'], x) for x in arpybds],
-              [os.path.join(env['ARNOLD_PYTHON'], x) for x in arpybds])
+              [os.path.join(env.subst(env['ARNOLD_PYTHON']), x) for x in arpybds])
 # install include files
 apiheaders = [os.path.join('plugins', 'mtoa', 'platform', 'Platform.h'),
               os.path.join('plugins', 'mtoa', 'common', 'MObjectCompare.h'),
@@ -635,10 +623,10 @@ PACKAGE_FILES = [
 [os.path.join('icons', '*.xpm'), 'icons'],
 [os.path.join('scripts', '*.xml'), '.'],
 [MTOA_API[0], 'bin'],
-[os.path.join(env['ARNOLD_API_LIB'], '*.lib'), 'lib'],
-[os.path.join(env['ARNOLD_BINARIES'], 'kick%s' % get_executable_extension()), 'bin'],
-[os.path.join(env['ARNOLD_BINARIES'], 'maketx%s' % get_executable_extension()), 'bin'],
-[os.path.join(env['ARNOLD_BINARIES'], '*%s' % get_library_extension()), 'bin'],
+[os.path.join(env.subst(env['ARNOLD_API_LIB']), '*.lib'), 'lib'],
+[os.path.join(env.subst(env['ARNOLD_BINARIES']), 'kick%s' % get_executable_extension()), 'bin'],
+[os.path.join(env.subst(env['ARNOLD_BINARIES']), 'maketx%s' % get_executable_extension()), 'bin'],
+[os.path.join(env.subst(env['ARNOLD_BINARIES']), '*%s' % get_library_extension()), 'bin'],
 [os.path.join('plugins', 'mtoa', 'mtoa.mtd'), 'plug-ins'],
 [MTOA_SHADERS[0], 'shaders'],
 [os.path.join(BUILD_BASE_DIR, 'docs', 'api', 'html'), os.path.join('doc', 'api')],
@@ -655,7 +643,7 @@ for p in pyfiles:
 for p in arpybds:
    (d, f) = os.path.split(p)
    PACKAGE_FILES += [
-      [os.path.join(env['ARNOLD_PYTHON'], p), os.path.join('scripts', d)]
+      [os.path.join(env.subst(env['ARNOLD_PYTHON']), p), os.path.join('scripts', d)]
    ]
    
 for p in apiheaders:
@@ -680,7 +668,7 @@ if system.os() == 'windows':
 elif system.os() == 'linux':
    PACKAGE_FILES += [
       [MTOA[0], 'plug-ins'],
-      [os.path.join(env['ARNOLD_BINARIES'], '*%s.*' % get_library_extension()), 'bin'],
+      [os.path.join(env.subst(env['ARNOLD_BINARIES']), '*%s.*' % get_library_extension()), 'bin'],
    ]
 elif system.os() == 'darwin':
    PACKAGE_FILES += [
