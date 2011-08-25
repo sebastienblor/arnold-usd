@@ -61,7 +61,7 @@ vars.AddVariables(
                    os.path.join('$ARNOLD', 'include'), PathVariable.PathIsDir),
       PathVariable('ARNOLD_API_LIB', 
                    'Where to find Arnold API static libraries', 
-                   os.path.join('$ARNOLD', 'bin'), PathVariable.PathIsDir),
+                   os.path.join('$ARNOLD', 'lib'), PathVariable.PathIsDir),
       PathVariable('ARNOLD_BINARIES', 
                    'Where to find Arnold API dynamic libraries and executables', 
                    os.path.join('$ARNOLD', 'bin'), PathVariable.PathIsDir),
