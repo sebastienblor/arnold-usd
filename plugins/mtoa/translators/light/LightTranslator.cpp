@@ -75,10 +75,7 @@ void CLightTranslator::Export(AtNode* light)
    AiNodeSetInt(light,  "bounces",         FindMayaObjectPlug("aiBounces").asInt());
    AiNodeSetFlt(light,  "bounce_factor",   FindMayaObjectPlug("aiBounceFactor").asFloat());
 
-   if (FindMayaObjectPlug("aiOverrideSssSamples").asBool())
-   {
-      AiNodeSetInt(light, "sss_samples", FindMayaObjectPlug("aiSssSamples").asInt());
-   }
+   AiNodeSetInt(light, "sss_samples", FindMayaObjectPlug("aiSssSamples").asInt());
    
    MStatus status;
    MPlug pFilters = FindMayaObjectPlug("aiFilters");

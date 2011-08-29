@@ -166,38 +166,41 @@ shader_evaluate
    AtUInt numEntries = AiShaderEvalParamUInt(p_numEntries);
    if (numEntries > 0)
    {
-      if (numEntries > 16) numEntries = 16;
-      AtArray *positions = AiArrayAllocate(numEntries, 1, AI_TYPE_FLOAT);
-      AtArray *colors = AiArrayAllocate(numEntries, 1, AI_TYPE_RGB);
-      for (AtUInt32 i=0; i<numEntries; ++i)
+      AtPoint2 uv;
+      uv = AiShaderEvalParamPnt2(p_uvCoord);
+      // Will be set to GLOBALS by update if unconnected
+      if (uv.x == UV_GLOBALS) uv.x = sg->u;
+      if (uv.y == UV_GLOBALS) uv.y = sg->v;
+
+      if (!IsValidUV(uv.x, uv.y))
       {
-         AiArraySetFlt(positions, i, AiShaderEvalParamFlt(p_position0+i));
-         AiArraySetRGB(colors, i, AiShaderEvalParamRGB(p_color0+i));
+         // early out
+         MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
+         return;
       }
-      // Only one color entry then it's a plain color / texture
-      result = AiArrayGetRGB(colors, 0);
-      // Sort the arrays, since positions can be connected, order can change
-      // Sort position array
-      if (numEntries > 1)
+      if (numEntries == 1)
       {
+         // Only one color entry then it's a plain color / texture
+         result = AiShaderEvalParamRGB(p_color0);
+      }
+      else // (numEntries > 1)
+      {
+         if (numEntries > 16) numEntries = 16;
+         AtArray *positions = AiArrayAllocate(numEntries, 1, AI_TYPE_FLOAT);
+         AtArray *colors = AiArrayAllocate(numEntries, 1, AI_TYPE_RGB);
+         for (AtUInt32 i=0; i<numEntries; ++i)
+         {
+            AiArraySetFlt(positions, i, AiShaderEvalParamFlt(p_position0+i));
+            AiArraySetRGB(colors, i, AiShaderEvalParamRGB(p_color0+i));
+         }
+         // Sort the arrays, since positions can be connected, order can change
+         // Sort position array
          AtUInt* shuffle = new AtUInt[numEntries];
          if (SortFloatArray(positions, shuffle))
          {
             ShuffleArray(colors, shuffle, AI_TYPE_RGB);
          }
          delete[] shuffle;
-
-         AtPoint2 uv;
-         uv = AiShaderEvalParamPnt2(p_uvCoord);
-         // Will be set to GLOBALS by update if unconnected
-         if (uv.x == UV_GLOBALS) uv.x = sg->u;
-         if (uv.y == UV_GLOBALS) uv.y = sg->v;
-
-         if (!IsValidUV(uv.x, uv.y))
-         {
-            MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
-            return;
-         }
 
          float u = uv.x;
          float v = uv.y;
@@ -324,10 +327,9 @@ shader_evaluate
             Ramp(positions, colors, v, interp, result);
             break;
          }
+         AiArrayDestroy(positions);
+         AiArrayDestroy(colors);
       }
-
-      AiArrayDestroy(positions);
-      AiArrayDestroy(colors);
    }
 
    AiRGBtoRGBA(result, sg->out.RGBA);

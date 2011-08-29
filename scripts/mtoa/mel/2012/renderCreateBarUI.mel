@@ -1,4 +1,4 @@
-// Copyright (C) 1997-2010 Autodesk, Inc., and/or its licensors.
+// Copyright (C) 1997-2011 Autodesk, Inc., and/or its licensors.
 // All rights reserved.
 //
 // The coded instructions, statements, computer programs, and/or related
@@ -156,7 +156,8 @@ global proc addToRenderNodeTreeLister(
 		}
 		string $nodePath = $frame + "/" + $labelName;
 		nodeTreeLister -e -add $nodePath ("render_" + $type + ".png") $command $renderNodeTreeLister;
-        python(("_fav.addPath('" + $nodePath + "','" + $type + "')"));
+        
+        python(("_fav.addPath(\"" + encodeString($nodePath) + "\",\"" + encodeString($type) + "\")"));
 
 // QT_TODO - Probably need to be able to disable if necessary
 //		if(		(!$dynamicsIsLicensed) 
@@ -264,6 +265,11 @@ global proc initializeMayaNodeTypeInfo ()
         $mayaNodeTypeInfo[$index++] = "postprocess/opticalFX";
         $mayaNodeTypeInfo[$index++] = "-asPostProcess";
         $mayaNodeTypeInfo[$index++] = "";
+
+        $mayaNodeTypeInfo[$index++] = "Maya/" + localizedNodeClassificationLabel( "Rendering" );
+        $mayaNodeTypeInfo[$index++] = "rendering";
+        $mayaNodeTypeInfo[$index++] = "-asRendering";
+        $mayaNodeTypeInfo[$index++] = "";
     }    
 }
 
@@ -316,6 +322,14 @@ global proc createMayaNodesTreeLister_Content(string $renderNodeTreeLister, stri
 //		This procedure contains code for adding Maya nodes
 //		to the treeLister.
 {
+    // use the shortname of the tree control for faster lookups 
+    // since we know it's under the current parent
+    string $buff[];
+    int $num = `tokenize $renderNodeTreeLister "|" $buff`;
+    if ($num > 0) {
+        $renderNodeTreeLister = $buff[$num-1];
+    }
+
 	if(size($filterClasses) == 0) {
 		// Create all categories
 		//
@@ -387,7 +401,7 @@ proc renderCreateBarInitDefaultFavorites(string $fname)
     for ($nodeType in $defaultNodeTypes) {
         string $suffix = `nodeTypeNiceName($nodeType)`;
         string $fullPath = ($basePath + "/" + $suffix) ;
-        string $tuple = ("('" + $fullPath + "','" + $nodeType + "')");
+        string $tuple = ("(\"" + encodeString($fullPath) + "\",\"" + encodeString($nodeType) + "\")");
         $defaultFavs += ($tuple + ",");
     }
     $defaultFavs += "]";
@@ -409,7 +423,8 @@ global proc string[] renderCreateBarFavorites()
         // No favorites.  Create a default set
         renderCreateBarInitDefaultFavorites($fname);
     }
-    string $favs[] = python("import maya.app.general.tlfavorites as _fav;_fav.readFavorites('" + $fname + "')");
+    string $fnameenc = `encodeString $fname`;
+    string $favs[] = python("import maya.app.general.tlfavorites as _fav;_fav.readFavorites(\"" + $fnameenc + "\")");
     python("del _fav");
     return $favs;
 }
@@ -424,8 +439,9 @@ proc renderCreateBarInitFavorites(string $lister)
         // No favorites.  Create a default set
         renderCreateBarInitDefaultFavorites($fname);
     }
+    string $fnameenc = `encodeString $fname`;
     string $py = ( "import maya.app.general.tlfavorites as _fav;" +
-                   "_fav.attachStore('" + $lister + "','" + $fname + "');" + 
+                   "_fav.attachStore('" + $lister + "',\"" + $fnameenc + "\");" + 
                    "del _fav");
     python($py);
 }
@@ -531,7 +547,7 @@ global proc buildRenderNodeTreeListerContent(string $renderNodeTreeLister, strin
 
     // Init treeLister
     renderCreateBarInitPopupMenu($renderNodeTreeLister);
-    renderCreateBarInitFavorites($renderNodeTreeLister);
+    catch( renderCreateBarInitFavorites($renderNodeTreeLister) );
 
     treeLister -e -expandToDepth 0 $renderNodeTreeLister;
 }

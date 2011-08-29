@@ -22,18 +22,19 @@ def aiSkyDomeLightTemplate(nodeName):
     cmds.editorTemplate("aiExposure", addControl=True, label="Exposure")
     cmds.editorTemplate("aiSamples", addControl=True, label="Samples")
     cmds.editorTemplate("aiMis", addControl=True, label="Multiple Importance Sampling")
+
     cmds.editorTemplate(addSeparator=True)
-    
-    customShapeAttributes.commonLightAttributes(nodeName)
-
-    cmds.editorTemplate(endLayout=True)
-
-    cmds.editorTemplate(beginLayout="Shadows", collapse=True)
-
     cmds.editorTemplate("aiCastShadows", addControl=True, label="Cast Shadows")
     cmds.editorTemplate("shadowDensity", addControl=True, label="Shadow Density")
     cmds.editorTemplate("shadowColor", addControl=True, label="Shadow Color")
 
+    # r3D: The following line expects a template and not a string and was breaking the layout (trac #427)
+    #customShapeAttributes.commonLightAttributes(nodeName)
+    cmds.editorTemplate(addSeparator=True)
+    cmds.editorTemplate("aiBounceFactor", addControl=True, label="Bounce Factor")
+    cmds.editorTemplate("aiBounces", addControl=True, label="Bounces")
+    cmds.editorTemplate("aiSssSamples", addControl=True, label="SSS Samples")
+    
     cmds.editorTemplate(endLayout=True)
 
     cmds.editorTemplate(beginLayout="Hardware Texturing", collapse=True)
@@ -90,7 +91,7 @@ def aiSkyDomeLightTemplate(nodeName):
 
     for extra in extras:
         cmds.editorTemplate(nodeName, suppress=extra)
-
+    
 
     # include/call base class/node attributes
     mel.eval('AEdependNodeTemplate "%s"'%nodeName)

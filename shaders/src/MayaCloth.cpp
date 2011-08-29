@@ -1,10 +1,5 @@
 #include <ai.h>
 
-#ifdef _MSC_VER
-#define _USE_MATH_DEFINES
-#endif
-#include <cmath>
-
 #include "MayaUtils.h"
 
 AI_SHADER_NODE_EXPORT_METHODS(MayaClothMtd);
@@ -114,12 +109,12 @@ shader_evaluate
 
    if (uWave > 0.0f)
    {
-      ss -= uWave * sin(tt * 2.0f * (float)M_PI);
+      ss -= uWave * sin(tt * 2.0f * (float)AI_PI);
    }
 
    if (vWave > 0.0f)
    {
-      tt += vWave * sin(prewavedSS * 2.0f * (float)M_PI);
+      tt += vWave * sin(prewavedSS * 2.0f * (float)AI_PI);
    }
 
    if (widthSpread > 0.0f)

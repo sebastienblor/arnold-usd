@@ -116,10 +116,12 @@ maketest_bld = Builder(action = Action(make_test, "Creating test '$TARGET'..."))
 def run_test(target, source, env):
    global TOTAL_RUNNING_TIME
    status = 'OK'
+   cause = None
    TEST_NAME = env['TEST_NAME']
    
    test_env = env.Clone()
-       
+   output_image = test_env['OUTPUT_IMAGE']
+
    # add libai to library search path, and Arnold bin dir to path
    if system.os() == 'darwin':
       #test_env.AppendENVPath('DYLD_LIBRARY_PATH', test_env['EXTERNAL_PATH'], envname='ENV', sep=':', delete_existing=1)  
@@ -140,6 +142,12 @@ def run_test(target, source, env):
    previous_path = os.environ.get('PATH')
    os.environ['PATH'] = test_env['ENV']['PATH']
    
+   ## why this being in Maya.env doesn't work?
+   previous_render_desc = os.environ.get('MAYA_RENDER_DESC_PATH')
+   os.environ['MAYA_RENDER_DESC_PATH'] = test_env.subst(test_env['TARGET_DESCR_PATH'])
+   
+   print os.environ['MAYA_APP_DIR']
+   
    ## remove any leftovers
    saferemove(test_env['OUTPUT_IMAGE'])
    saferemove('new.jpg')
@@ -149,31 +157,44 @@ def run_test(target, source, env):
 
    show_test_output = (test_env['SHOW_TEST_OUTPUT'] == 'always') or (test_env['SHOW_TEST_OUTPUT'] == 'single' and (len(TESTS) == 1))
 
+   f = open('README', 'r')
+   summary = f.readline().strip('\n')
+   f.close()
+
+   print '='*80
+   print  '%s %s' % (TEST_NAME.ljust(15), summary)
+   print '-'*80
+   
    for cmd in test_env['TEST_SCRIPT'].splitlines():
       ## TODO: attach valgrind to each command
-      output_to_file = not show_test_output or test_env['UPDATE_REFERENCE']
+      if test_env['UPDATE_REFERENCE']:
+          show_test_output = False
+      output_to_file = not show_test_output
       before_time = time.time()
       
+      output_image_dir, output_image_name = os.path.split(os.path.abspath(output_image))
       # replace test render dir with this test dir
       # image filename "testrender" and format "Tiff" are set in the test scene render settings
       # cmd = string.replace(cmd, "test.log", os.path.join(os.path.abspath(os.path.dirname(test_env['OUTPUT_IMAGE'])), (test_env['TEST_NAME']+'.log')))
-      cmd = string.replace(cmd, "%dir%", os.path.abspath(os.path.dirname(test_env['OUTPUT_IMAGE'])))
-      cmd = string.replace(cmd, "%file%", os.path.join(os.path.abspath(os.path.dirname(test_env['OUTPUT_IMAGE'])), 'test.ma'))
+      cmd = string.replace(cmd, "%dir%", output_image_dir)
+      cmd = string.replace(cmd, "%file%", os.path.join(output_image_dir, 'test.ma'))
       
       # verbose and log options for Render cmd : -verb -log "test.log" 
       if show_test_output:
-         cmd = string.replace(cmd, "%options%", '')
+         cmd = string.replace(cmd, "%options%", '-im %s' % os.path.splitext(output_image_name)[0])
          print cmd
+         print '-'*80
       else:
          logfile = "%s.log" % (TEST_NAME)
-         logfile = os.path.join(os.path.abspath(os.path.dirname(test_env['OUTPUT_IMAGE'])), logfile)
-         cmd = string.replace(cmd, "%options%", '-log %s' % (logfile,))
+         logfile = os.path.join(output_image_dir, logfile)
+         print "logging to", logfile
+         cmd = string.replace(cmd, "%options%", '-log %s -im %s' % (logfile, os.path.splitext(output_image_name)[0]))
          if system.os() == 'windows':
             cmd = '%s  1> "%s" 2>&1' % (cmd, logfile)
          else:
             cmd = '%s  > "%s" 2>> "%s"' % (cmd, logfile, logfile)
          
-      retcode = os.system(cmd)        
+      retcode = os.system(cmd)
                        
       ## redirect test output (if not using os.system
       # if output_to_file:
@@ -184,10 +205,14 @@ def run_test(target, source, env):
       # else:
          # p = subprocess.Popen(cmd)
          # retcode = p.wait()
+      
+      if show_test_output:
+          print '-'*80
 
       running_time = time.time() - before_time
-      print '%s time: %s' % (TEST_NAME, running_time)
+      print '%s %s' % ('time'.ljust(15), running_time)
       TOTAL_RUNNING_TIME += running_time
+
       status = process_return_code(retcode)
       if test_env['FORCE_RESULT'] == 'FAILED':
          # In this case, retcode interpretation is fliped (except for crashed tests)
@@ -201,9 +226,9 @@ def run_test(target, source, env):
          elif status == 'OK':
             status = 'FAILED'
       if status != 'OK':
-         break  
-         
-   output_image = test_env['OUTPUT_IMAGE']
+         cause = 'non-zero return code'
+         break
+
    reference_image = test_env['REFERENCE_IMAGE']
    has_diff = False
    if status =='OK' and test_env['FORCE_RESULT'] == 'OK' and reference_image != '':
@@ -231,6 +256,7 @@ def run_test(target, source, env):
          diff_retcode = os.system(difftiff_cmd)
          if diff_retcode != 0:
             status = 'FAILED'
+            cause = 'images differ'
             ## run difftiff again (!) to make one with a solid alpha...
             if system.os() == 'windows':
                os.system('difftiff -s -f dif.tif %s %s > nul 2> nul' % (output_image, reference_image))
@@ -244,18 +270,17 @@ def run_test(target, source, env):
          os.system('tiff2jpeg %s new.jpg' % (output_image))
       else:
          status = 'FAILED'
+         cause = "output image does not exist: '%s'" % output_image
    if test_env['FORCE_RESULT'] == 'OK' and reference_image != '' and os.path.exists(reference_image):
       os.system('tiff2jpeg %s ref.jpg' % (reference_image))
 
 
    ## progress text (scream if the test didn't pass)
    if status == 'OK':
-      print '%s %s' % (TEST_NAME, status)
+      print '%s %s' % ('status'.ljust(15), status)
    else:
-      f = open('README', 'r')
-      summary = f.readline().strip('\n')
-      f.close
-      print '%s %s: %s' % (TEST_NAME, status, summary)
+      print '%s %s' % ('status'.ljust(15), status)
+      print '%s %s' % ('cause'.ljust(15), cause)
 
 
    ## get README so that we can stick it inside the html file
@@ -353,6 +378,8 @@ Arnold testsuite - %s
           os.environ['DYLD_LIBRARY_PATH'] = previous_lib_path
        elif system.os() == 'linux':
           os.environ['LD_LIBRARY_PATH'] = previous_lib_path
+   if previous_render_desc :
+      os.environ['MAYA_RENDER_DESC_PATH'] = previous_render_desc
    ## always succeeds (unless some of the functions above throw an error)
    return None
 
@@ -377,7 +404,7 @@ def process_testsuite(target, source, env):
       print 'Ran %d regression tests - %d failed!' % (len(source), failed)
 
    MTOA_VERSION    = '<not available>'
-   ARNOLD_VERSION  = get_arnold_version(os.path.join(env['ARNOLD_API_INCLUDES'], 'ai_version.h'))
+   ARNOLD_VERSION  = get_arnold_version(os.path.join(env.subst(env['ARNOLD_API_INCLUDES']), 'ai_version.h'))
    (REVISION, URL) = get_latest_revision()
          
    ## create testsuite html
@@ -603,7 +630,7 @@ append_to_path(test_env, os.path.abspath(str(TIFF2JPEG[0].dir)))
 prepend_to_path(test_env, env.subst('$TARGET_LIB_PATH'))
 prepend_to_path(test_env, env.subst('$TARGET_PLUGIN_PATH'))
 ## as well as Arnold executables
-prepend_to_path(test_env, test_env['ARNOLD_BINARIES'])
+prepend_to_path(test_env, env.subst(test_env['ARNOLD_BINARIES']))
 ## and Maya's
 prepend_to_path(test_env, os.path.join(test_env['MAYA_ROOT'], 'bin'))
 

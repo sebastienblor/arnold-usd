@@ -89,11 +89,9 @@ MStatus CMayaScene::Begin(ArnoldSessionMode mode)
 
    CRenderOptions renderOptions;
    // FIXME : allow to pass a specific maya ArnoldRenderOptions node
-   renderOptions.GetFromMaya();
    if (mode == MTOA_SESSION_SWATCH)
    {
       // FIXME: default or use swatch defaults
-      // renderOptions = CRenderOptions();
       renderOptions.SetBatch(false);
       renderOptions.SetProgressive(false);
       //FIXME: fill renderOptions instead
@@ -101,11 +99,13 @@ MStatus CMayaScene::Begin(ArnoldSessionMode mode)
    }
    else if (mode == MTOA_SESSION_ASS)
    {
+      renderOptions.GetFromMaya();
       renderOptions.SetBatch(true);
       renderOptions.SetupLog();
    }
    else if (mode == MTOA_SESSION_IPR)
    {
+      renderOptions.GetFromMaya();
       renderOptions.SetBatch(false);
       renderOptions.SetProgressive(true);
       renderOptions.SetupLog();
@@ -113,6 +113,7 @@ MStatus CMayaScene::Begin(ArnoldSessionMode mode)
    }
    else
    {
+      renderOptions.GetFromMaya();
       renderOptions.SetupLog();
    }
 

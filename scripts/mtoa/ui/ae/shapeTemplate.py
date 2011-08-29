@@ -135,11 +135,12 @@ class BaseTemplate(object):
     # creation
     def attachToUI(self, nodeName, parent=None):
         "add the appropriate callbacks to the current UI"
-        currParent = cmds.setParent()
+        currParent = cmds.setParent(query=True)
         if parent is not None:
             cmds.setParent(parent)
         self._doBuild(nodeName)
-        cmds.setParent(currParent)
+        if currParent is not None and currParent != '' :
+            cmds.setParent(currParent)
 
     def attachToAE(self, controlAttr='aiTranslator'):
         "add the appropriate callbacks to the editor template"
@@ -151,7 +152,7 @@ class BaseTemplate(object):
 class AttributeTemplate(BaseTemplate):
     """
     This class provides a framework for managing AE-like templates. Once instantiated,
-    the UI can be registered as an AE tempalte via AttributeTemplate.attachToAE(),
+    the UI can be registered as an AE template via AttributeTemplate.attachToAE(),
     or simply built as a normal UI via AttributeTemplate.attachToUI()
     """
     SEPARATOR = '-'
@@ -444,7 +445,7 @@ class TranslatorControl(BaseTemplate):
 
 
     def attachToUI(self, nodeName, parent=None):
-        currParent = cmds.setParent()
+        currParent = cmds.setParent(query=True)
         if parent is not None:
             cmds.setParent(parent)
 

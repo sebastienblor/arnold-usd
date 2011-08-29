@@ -5,10 +5,6 @@ import inspect
 import re
 import os
 
-def mtoaPackageRoot():
-    '''return the path to the mtoa python package directory'''
-    return os.path.dirname(inspect.getfile(inspect.currentframe()))
-
 def even(num):
     return bool(num % 2)
 
@@ -23,6 +19,10 @@ def prettify(s):
     return ' '.join([capitalize(x) for x in re.findall('[a-zA-Z][a-z]*[0-9]*',s)])
 
 _objectStore = {}
+
+def mtoaPackageRoot():
+    '''return the path to the mtoa python package directory'''
+    return os.path.dirname(inspect.getfile(inspect.currentframe()))
 
 def pyToMelProc(pyobj, args=(), returnType=None, procName=None, useName=False, procPrefix='pyToMel_'):
     '''

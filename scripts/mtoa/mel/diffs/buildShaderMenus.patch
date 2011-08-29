@@ -1,0 +1,19 @@
+diff -r 30fc65e8cd32 scripts/mtoa/mel/2011/buildShaderMenus.mel
+--- a/scripts/mtoa/mel/2011/buildShaderMenus.mel
++++ b/scripts/mtoa/mel/2011/buildShaderMenus.mel
+@@ -602,6 +602,15 @@
+         $filterString = ($filterString + " rendernode/mentalray/material");
+ 	}
+ 
++	// BEGIN MTOA
++	// If shader/surface is of the classifications, add arnold
++	// material node to the classification array.
++	if( $showMentalRayCustomShaders == 1 && `pluginInfo -query -loaded mtoa` )
++	{
++		$filterString = ($filterString + " arnold/shader");
++	}
++	// END MTOA
++
+ 	// Create the window and treeLister.
+ 	//
+ 	int $anmWindowWidth = 300; 

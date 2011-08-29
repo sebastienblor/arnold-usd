@@ -78,19 +78,13 @@ node_finish
 
 shader_evaluate
 {
-   // mix root and tip colors
-   AtColor opacity_color;
    AtColor opacity = AiShaderEvalParamRGB(p_strand_opacity);
-
-   AiColorLerp(opacity_color, sg->v, opacity, opacity);
-
-   sg->out_opacity = opacity_color;
 
    // This piece of user-data is automatically set by the curves node when
    // using auto-enlargement (min_pixel_width > 0)
    AtFloat geo_opacity;
    if (AiUDataGetFlt("geo_opacity", &geo_opacity))
-      sg->out_opacity *= geo_opacity;
+      opacity *= geo_opacity;
       
    if (AiShaderGlobalsApplyOpacity(sg, opacity))
       return;

@@ -30,6 +30,7 @@ CRenderSwatchGenerator::CRenderSwatchGenerator(MObject dependNode,
                                                                     imageResolution)
 {
    m_iteration = 0;
+   ClearSwatch();
    SetSwatchClass(dependNode);
 }
 
@@ -478,17 +479,19 @@ void CRenderSwatchGenerator::ErrorSwatch(const MString msg)
 
 bool CRenderSwatchGenerator::doIteration()
 {
-   
+   MStatus status;
+
    // Arnold is rendering, so bail out.
    // Return false to be called again.
    // This is how we manage to render many
    // swatches "at the same time".
-   MStatus status;
-
    if (AiRendering()) return false;
 
    if (m_iteration == 0)
    {
+      // Not necessary if done in constructor
+      // ClearSwatch();
+
       // Arnold can only render one thing at a time.
       // It may be an option to block/wait here, but only
       // if it's another swatch render taking place.

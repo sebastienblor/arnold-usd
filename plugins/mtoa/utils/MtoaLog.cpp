@@ -108,6 +108,8 @@ DLLEXPORT void MtoaSetupLogging()
 
    AiMsgSetConsoleFlags(defaultLogFlags | AI_LOG_COLOR);
    AiMsgSetLogFileFlags(defaultLogFlags);
+   // Not working correctly until we can add to callback rather than replace it,
+   // or have access to original callback code
    // AiMsgSetCallback(MtoaLogCallback);
 }
 
@@ -132,5 +134,7 @@ void MtoaSetupSwatchLogging()
 
    AiMsgSetConsoleFlags(defaultLogFlags | AI_LOG_COLOR);
    AiMsgSetLogFileFlags(defaultLogFlags);
+   // Not working correctly until we can add to callback rather than replace it,
+   // or have access to original callback code
    // AiMsgSetCallback(MtoaLogCallback);
 }
