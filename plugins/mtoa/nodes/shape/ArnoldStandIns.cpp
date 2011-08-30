@@ -560,7 +560,6 @@ MStatus CArnoldStandInShape::initialize()
 
    s_attributes.MakeInput("opaque");
    s_attributes.MakeInput("self_shadows");
-   s_attributes.MakeInput("sss_use_gi");
    s_attributes.MakeInput("sss_sample_distribution");
    s_attributes.MakeInput("sss_sample_spacing");
 

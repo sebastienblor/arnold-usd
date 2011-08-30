@@ -293,7 +293,7 @@ void CRenderOptions::ProcessArnoldRenderOptions()
       m_AA_samples               = fnArnoldRenderOptions.findPlug("AA_samples").asInt();
       m_GI_diffuse_samples       = fnArnoldRenderOptions.findPlug("GI_diffuse_samples").asInt();
       m_GI_glossy_samples        = fnArnoldRenderOptions.findPlug("GI_glossy_samples").asInt();
-      m_GI_sss_hemi_samples      = fnArnoldRenderOptions.findPlug("GI_sss_hemi_samples").asInt();
+      m_sss_sample_factor        = fnArnoldRenderOptions.findPlug("sss_sample_factor").asInt();
       m_AA_sample_clamp          = fnArnoldRenderOptions.findPlug("use_sample_clamp").asBool() ? fnArnoldRenderOptions.findPlug("AA_sample_clamp").asFloat() : (float) AI_INFINITE;
 
       m_lock_sampling_noise      = fnArnoldRenderOptions.findPlug("lock_sampling_noise").asBool();

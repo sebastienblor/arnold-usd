@@ -180,7 +180,7 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("GI_diffuse_samples");
    s_attributes.MakeInput("GI_glossy_samples");
    s_attributes.MakeInput("GI_refraction_samples");
-   s_attributes.MakeInput("GI_sss_hemi_samples");
+   s_attributes.MakeInput("sss_sample_factor");
 
    s_use_sample_clamp = nAttr.create("use_sample_clamp", "usesmpclamp", MFnNumericData::kBoolean, 0);
    nAttr.setKeyable(false);

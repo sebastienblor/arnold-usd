@@ -141,9 +141,6 @@ class LightTemplate(ArnoldTranslatorTemplate):
 
         self.addSeparator()
     
-    #    ui.addAttribute("aiOverrideSssSamples", aeCallback(overrideSssToggle), label="Override SSS Samples", addDynamicControl=True)
-        self.addAttribute("aiSssSamples", label="SSS Samples")
-
         self.beginLayout(label="Light Filters", collapse=False)
         self.addCustom("aiFilters", self.customLightFiltersNew, self.customLightFiltersReplace)
         self.endLayout()

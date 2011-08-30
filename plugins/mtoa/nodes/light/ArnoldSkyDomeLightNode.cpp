@@ -86,7 +86,6 @@ MStatus CArnoldSkyDomeLightNode::initialize()
    // s_normalize = s_attributes.MakeInput("normalize");
    // s_attributes.MakeInput("bounce_factor");
    // s_attributes.MakeInput("bounces");
-   // s_attributes.MakeInput("sss_samples");
 
    // arrays
    // TODO: use metdata to rename this attribute to light_filters

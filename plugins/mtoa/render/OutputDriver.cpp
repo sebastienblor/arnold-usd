@@ -325,7 +325,7 @@ void FinishedWithDisplayUpdateQueue()
    const AtInt aaSamples(AiNodeGetInt(AiUniverseGetOptions(), "AA_samples"));
    const AtInt diffuseSamples(AiNodeGetInt(AiUniverseGetOptions(), "GI_diffuse_samples"));
    const AtInt glossySamples(AiNodeGetInt(AiUniverseGetOptions(), "GI_glossy_samples"));
-   const AtInt sssSamples(AiNodeGetInt(AiUniverseGetOptions(), "GI_sss_hemi_samples"));
+   const AtInt sampleFactor(AiNodeGetInt(AiUniverseGetOptions(), "sss_sample_factor"));
 
    // Calculate the time taken.
    const time_t elapsed = time(NULL) - s_start_time;
@@ -337,7 +337,7 @@ void FinishedWithDisplayUpdateQueue()
             aaSamples,
             diffuseSamples,
             glossySamples,
-            sssSamples);
+            sampleFactor);
    MGlobal::executeCommandOnIdle(command_str, false);
 }
 

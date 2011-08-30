@@ -74,9 +74,7 @@ void CLightTranslator::Export(AtNode* light)
    AiNodeSetBool(light, "normalize",       FindMayaObjectPlug("aiNormalize").asBool());
    AiNodeSetInt(light,  "bounces",         FindMayaObjectPlug("aiBounces").asInt());
    AiNodeSetFlt(light,  "bounce_factor",   FindMayaObjectPlug("aiBounceFactor").asFloat());
-
-   AiNodeSetInt(light, "sss_samples", FindMayaObjectPlug("aiSssSamples").asInt());
-   
+ 
    MStatus status;
    MPlug pFilters = FindMayaObjectPlug("aiFilters");
    if (!pFilters.isNull())
@@ -130,12 +128,6 @@ void CLightTranslator::MakeCommonAttributes(CBaseAttrHelper& helper)
    helper.MakeInput("bounce_factor");
    helper.MakeInput("bounces");
    helper.MakeInput("filters");
-   CAttrData data;
-   data.defaultValue.BOOL = false;
-   data.name = "aiOverrideSssSamples";
-   data.shortName = "ai_oss";
-   helper.MakeInputBoolean(data);
-   helper.MakeInput("sss_samples");
 }
 
 void CLightTranslator::Delete()

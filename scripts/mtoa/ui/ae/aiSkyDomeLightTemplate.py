@@ -33,7 +33,6 @@ def aiSkyDomeLightTemplate(nodeName):
     cmds.editorTemplate(addSeparator=True)
     cmds.editorTemplate("aiBounceFactor", addControl=True, label="Bounce Factor")
     cmds.editorTemplate("aiBounces", addControl=True, label="Bounces")
-    cmds.editorTemplate("aiSssSamples", addControl=True, label="SSS Samples")
     
     cmds.editorTemplate(endLayout=True)
 

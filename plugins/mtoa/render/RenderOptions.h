@@ -288,7 +288,7 @@ private:
    AtUInt   m_AA_samples;
    AtUInt   m_GI_diffuse_samples;
    AtUInt   m_GI_glossy_samples;
-   AtUInt   m_GI_sss_hemi_samples;
+   AtUInt   m_sss_sample_factor;
    float    m_AA_sample_clamp;
    bool     m_lock_sampling_noise;
 

@@ -5,23 +5,13 @@ from mtoa.ui.ae.utils import aeCallback
 from mtoa.ui.ae.shapeTemplate import registerUI, registerDefaultTranslator, ArnoldTranslatorTemplate, AutoTranslatorTemplate, registerTranslatorUI
 import mtoa.callbacks as callbacks
 
-def overrideSssToggle(attrName):
-    if cmds.getAttr(attrName+".aiOverrideSssSamples"):
-        cmds.editorTemplate(dimControl=(attrName, "aiSssSamples", False))
-    else:
-        cmds.editorTemplate(dimControl=(attrName, "aiSssSamples", True))
-
 def commonLightAttributes(ui):
     ui.addAttribute("aiNormalize")
     ui.addAttribute("aiBounceFactor")
     ui.addAttribute("aiBounces")
     ui.addSeparator()
-#    ui.addAttribute("aiOverrideSssSamples", aeCallback(overrideSssToggle), label="Override SSS Samples", addDynamicControl=True)
-    ui.addAttribute("aiSssSamples", label="SSS Samples")
     ui.addSeparator()
-    ui.addAttribute("aiSssUseGi", label="SSS Use Gi")
     ui.addAttribute("aiSssSampleDistribution", label="SSS Samples Distribution")
-    ui.addAttribute("aiSssSampleSpacing", label="SSS Sample Spacing")
 #    cmds.editorTemplate(beginLayout="Light Filters")
 #
 #    cmds.editorTemplate(aeCallback(lightFiltersTemplate.customLightFiltersNew), aeCallback(lightFiltersTemplate.customLightFiltersReplace), "aiLightFilters", callCustom=True)
@@ -67,10 +57,7 @@ def builtin_mesh(ui):
     ui.addAttribute("aiSubdivDicingCamera", label="Subdivision Dicing Camera")
     ui.addAttribute("aiSubdivUvSmoothing", label="Subdivision UVs Smoothing")
     ui.addSeparator()
-#    ui.addAttribute("aiOverrideSssSamples", aeCallback(overrideSssToggle), label="Override SSS Samples", addDynamicControl=True)
-    ui.addAttribute("aiSssUseGi", label="SSS Use Gi")
     ui.addAttribute("aiSssSampleDistribution", label="SSS Samples Distribution")
-    ui.addAttribute("aiSssSampleSpacing", label="SSS Sample Spacing")
     ui.addSeparator()
     ui.addAttribute("aiExportTangents")
     ui.addAttribute("aiExportColors")

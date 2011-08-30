@@ -324,9 +324,9 @@ def createArnoldSamplingSettings():
                         attribute='defaultArnoldRenderOptions.giGlossySamples')
     '''
     
-    pm.attrControlGrp('ss_sss_hemi_samples',
-                   label="SSS Samples",
-                   attribute='defaultArnoldRenderOptions.GISssHemiSamples')
+    pm.attrControlGrp('ss_sss_sample_factor',
+                   label="SSS Sample Factor",
+                   attribute='defaultArnoldRenderOptions.sss_sample_factor')
 
     pm.checkBoxGrp('ss_clamp_sample_values',
                      cc=updateSamplingSettings,
