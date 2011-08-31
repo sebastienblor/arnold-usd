@@ -161,7 +161,7 @@
         maya.keyable        BOOL    False
         min                 INT     1
         max                 INT     100
-        softmin             INT     0
+        softmin             INT     1
         softmax             INT     10        
         default             INT     4        
 
