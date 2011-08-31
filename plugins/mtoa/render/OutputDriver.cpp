@@ -322,10 +322,10 @@ void FinishedWithDisplayUpdateQueue()
    s_finishedRendering = false;
 
    // Get some data from Arnold before it gets deleted with the universe.
-   const AtInt aaSamples(AiNodeGetInt(AiUniverseGetOptions(), "AA_samples"));
-   const AtInt diffuseSamples(AiNodeGetInt(AiUniverseGetOptions(), "GI_diffuse_samples"));
-   const AtInt glossySamples(AiNodeGetInt(AiUniverseGetOptions(), "GI_glossy_samples"));
-   const AtInt sampleFactor(AiNodeGetInt(AiUniverseGetOptions(), "sss_sample_factor"));
+   const AtInt AA_Samples(AiNodeGetInt(AiUniverseGetOptions(), "AA_samples"));
+   const AtInt GI_diffuse_samples(AiNodeGetInt(AiUniverseGetOptions(), "GI_diffuse_samples"));
+   const AtInt GI_glossy_samples(AiNodeGetInt(AiUniverseGetOptions(), "GI_glossy_samples"));
+   const AtInt sss_sample_factor(AiNodeGetInt(AiUniverseGetOptions(), "sss_sample_factor"));
 
    // Calculate the time taken.
    const time_t elapsed = time(NULL) - s_start_time;
@@ -334,10 +334,10 @@ void FinishedWithDisplayUpdateQueue()
             "arnoldIpr -mode finishedIPR -elapsedTime \"%ld:%02ld\" -samplingInfo \"[%d/%d/%d/%d]\" ;",
             elapsed / 60,
             elapsed % 60,
-            aaSamples,
-            diffuseSamples,
-            glossySamples,
-            sampleFactor);
+            AA_Samples,
+            GI_diffuse_samples,
+            GI_glossy_samples,
+            sss_sample_factor);
    MGlobal::executeCommandOnIdle(command_str, false);
 }
 
