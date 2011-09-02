@@ -649,7 +649,7 @@ CNodeTranslator* CExtensionsManager::GetTranslator(const MString &typeName,
 }
 
 MStringArray CExtensionsManager::GetTranslatorNames(const MString &typeName,
-                                       const MString &provider)
+                                                    const MString &provider)
 {
    MStringArray result;
 
@@ -667,6 +667,7 @@ MStringArray CExtensionsManager::GetTranslatorNames(const MString &typeName,
          if (noTest || provider == trsIt->provider)
          {
             result.append(trsIt->name);
+            result.append(trsIt->arnold);
          }
       }
    }

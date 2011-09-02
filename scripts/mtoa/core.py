@@ -95,7 +95,15 @@ def getAttributeData(nodeType):
     data = cmds.arnoldPlugins(getAttrData=nodeType) or []
     # convert empty strings to None
     data = [x or None for x in data]
-    result = []
-    for i in range(0, len(data), 4):
-        result.append(tuple(data[i:i+4]))
-    return result
+    return utils.groupn(data, 4)
+
+def listTranslators(nodeType):
+    '''
+    return a list of (translator, arnoldNode) pairs
+    '''
+    import maya.cmds as cmds
+    data = cmds.arnoldPlugins(listTranslators=nodeType) or []
+    # convert empty strings to None
+    data = [x or None for x in data]
+    return utils.groupn(data, 2)
+    

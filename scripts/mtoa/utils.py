@@ -18,6 +18,12 @@ def prettify(s):
     "convert from '_fooBar_Spangle22poop1' to 'Foo Bar Spangle22 Poop1'"
     return ' '.join([capitalize(x) for x in re.findall('[a-zA-Z][a-z]*[0-9]*',s)])
 
+def groupn(iterable, n):
+    '''
+    group a flat list into tuples of length n
+    '''
+    return zip(*[iter(iterable)]*n)
+
 _objectStore = {}
 
 def mtoaPackageRoot():

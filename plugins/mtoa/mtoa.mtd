@@ -848,7 +848,7 @@
 
 [node driver_tiff]
     maya.attr_prefix        STRING  "driver_"
-    maya.translator         STRING  "tiff"
+    maya.translator         STRING  "tif"
     [attr filename]
         maya.hide           BOOL    true
     [attr gamma]
