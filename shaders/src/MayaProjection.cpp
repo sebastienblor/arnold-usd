@@ -514,7 +514,7 @@ shader_evaluate
          // Is there a way to get N for P+dPdx and P+dPdy?
          // Lets hope curvature is not too high
          stx = TriPlanarMapping(ComputePoint(sg, TP_SAMPLE_DX, local, mappingCoordinate, pcamm), N);
-         stx = TriPlanarMapping(ComputePoint(sg, TP_SAMPLE_DY, local, mappingCoordinate, pcamm), N);
+         sty = TriPlanarMapping(ComputePoint(sg, TP_SAMPLE_DY, local, mappingCoordinate, pcamm), N);
          mapped = true;
       }
       break;
