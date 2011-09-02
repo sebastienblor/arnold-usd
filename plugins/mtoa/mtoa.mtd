@@ -13,6 +13,8 @@
 # wireframe                   0x00115D08
 # fog                         0x00115D0A
 # volume_scattering           0x00115D0B
+# bump2d                      0x00115D0C
+# noise                       0x00115D0D
 
 
 # options
@@ -641,10 +643,16 @@
     maya.hide               BOOL    True
 
 [node noise]
-    maya.hide               BOOL    True
+    desc                    STRING  "2D procedural noise"
+    maya.name               STRING  "aiNoise"
+    maya.id                 INT     0x00115D0D
+    maya.classification     STRING  "shader/utility"
 
 [node bump2d]
-    maya.hide               BOOL    True
+    desc                    STRING  "2D bump mapping shader that changes the normals of all nodes downstream from it"
+    maya.name               STRING  "aiBump2d"
+    maya.id                 INT     0x00115D0C
+    maya.classification     STRING  "shader/utility"
 
 [node image]
     maya.hide               BOOL    True
