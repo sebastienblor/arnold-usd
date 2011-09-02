@@ -58,6 +58,7 @@ def builtin_mesh(ui):
     ui.addAttribute("aiSubdivUvSmoothing", label="Subdivision UVs Smoothing")
     ui.addSeparator()
     ui.addAttribute("aiSssSampleDistribution", label="SSS Samples Distribution")
+    ui.addAttribute("aiSssSampleSpacing", label="SSS Sample Spacing")
     ui.addSeparator()
     ui.addAttribute("aiExportTangents")
     ui.addAttribute("aiExportColors")
