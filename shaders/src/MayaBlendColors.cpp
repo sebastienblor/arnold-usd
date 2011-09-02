@@ -27,10 +27,16 @@ node_parameters
 shader_evaluate
 {
    AtFloat blend  = AiShaderEvalParamFlt(p_blender);
-   AtRGB   color1 = AiShaderEvalParamRGB(p_color1);
-   AtRGB   color2 = AiShaderEvalParamRGB(p_color2);
-   
-   AiColorLerp(sg->out.RGB, blend, color2, color1);
+   if (blend == 0.0f)
+      sg->out.RGB = AiShaderEvalParamRGB(p_color2);
+   else if (blend == 1.0f)
+      sg->out.RGB = AiShaderEvalParamRGB(p_color1);
+   else
+   {
+      AtRGB   color1 = AiShaderEvalParamRGB(p_color1);
+      AtRGB   color2 = AiShaderEvalParamRGB(p_color2);
+      AiColorLerp(sg->out.RGB, blend, color2, color1);
+   }
 }
 
 node_initialize

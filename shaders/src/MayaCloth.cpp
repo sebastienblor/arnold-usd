@@ -73,6 +73,12 @@ shader_evaluate
    if (uv.x == UV_GLOBALS) uv.x = sg->u;
    if (uv.y == UV_GLOBALS) uv.y = sg->v;
 
+   if (!IsValidUV(uv))
+   {
+      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
+      return;
+   }
+
    float randomness = AiShaderEvalParamFlt(p_randomness);
    float uWave = AiShaderEvalParamFlt(p_uWave);
    float vWave = AiShaderEvalParamFlt(p_vWave);
@@ -82,12 +88,6 @@ shader_evaluate
    float brightSpread = AiShaderEvalParamFlt(p_brightSpread);
    float ss = uv.x;
    float tt = uv.y;
-
-   if (!IsValidUV(uv.x, uv.y))
-   {
-      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
-      return;
-   }
 
    ss = Mod(ss, 1.000001f);
    tt = Mod(tt, 1.000001f);

@@ -172,7 +172,7 @@ shader_evaluate
       if (uv.x == UV_GLOBALS) uv.x = sg->u;
       if (uv.y == UV_GLOBALS) uv.y = sg->v;
 
-      if (!IsValidUV(uv.x, uv.y))
+      if (!IsValidUV(uv))
       {
          // early out
          MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);

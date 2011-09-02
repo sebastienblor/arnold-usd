@@ -53,10 +53,6 @@ node_finish
 
 shader_evaluate
 {
-   AtFloat lacunarity = AiShaderEvalParamFlt(p_lacunarity);
-   AtFloat increment = AiShaderEvalParamFlt(p_increment);
-   AtFloat octaves = AiShaderEvalParamFlt(p_octaves);
-   AtVector weight3d = AiShaderEvalParamVec(p_weight3d);
    AtMatrix *placementMatrix = AiShaderEvalParamMtx(p_placementMatrix);
    AtBoolean wrap = AiShaderEvalParamBool(p_wrap);
    AtBoolean local = AiShaderEvalParamBool(p_local);
@@ -72,6 +68,11 @@ shader_evaluate
                 (-1.0f <= P.y && P.y <= 1.0f) &&
                 (-1.0f <= P.z && P.z <= 1.0f)))
    {
+      AtFloat lacunarity = AiShaderEvalParamFlt(p_lacunarity);
+      AtFloat increment = AiShaderEvalParamFlt(p_increment);
+      AtFloat octaves = AiShaderEvalParamFlt(p_octaves);
+      AtVector weight3d = AiShaderEvalParamVec(p_weight3d);
+
       int i = 0;
       float curAmp = 1.0f;
       float curFreq = 1.0f;

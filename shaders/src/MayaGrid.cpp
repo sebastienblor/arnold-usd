@@ -72,6 +72,12 @@ shader_evaluate
    if (uv.x == UV_GLOBALS) uv.x = sg->u;
    if (uv.y == UV_GLOBALS) uv.y = sg->v;
 
+   if (!IsValidUV(uv))
+   {
+      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
+      return;
+   }
+
    float uWidth = AiShaderEvalParamFlt(p_uWidth);
    float vWidth = AiShaderEvalParamFlt(p_vWidth);
    AtRGB lineColor = AiShaderEvalParamRGB(p_lineColor);
@@ -80,12 +86,6 @@ shader_evaluate
 
    float filter = AiShaderEvalParamFlt(p_filter);
    float filterOffset = AiShaderEvalParamFlt(p_filterOffset);
-
-   if (!IsValidUV(uv.x, uv.y))
-   {
-      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
-      return;
-   }
 
    float ss = uv.x;
    float tt = 1.0f - uv.y;

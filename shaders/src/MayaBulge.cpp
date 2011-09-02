@@ -57,14 +57,14 @@ shader_evaluate
    if (uv.x == UV_GLOBALS) uv.x = sg->u;
    if (uv.y == UV_GLOBALS) uv.y = sg->v;
 
-   float uWidth = AiShaderEvalParamFlt(p_uWidth);
-   float vWidth = AiShaderEvalParamFlt(p_vWidth);
-
-   if (!IsValidUV(uv.x, uv.y))
+   if (!IsValidUV(uv))
    {
       MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
       return;
    }
+
+   float uWidth = AiShaderEvalParamFlt(p_uWidth);
+   float vWidth = AiShaderEvalParamFlt(p_vWidth);
 
    float ss = uv.x;
    float tt = uv.y;

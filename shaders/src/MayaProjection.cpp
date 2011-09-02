@@ -416,13 +416,6 @@ shader_evaluate
    AtFloat uAngle = AiShaderEvalParamFlt(p_u_angle);
    AtFloat vAngle = AiShaderEvalParamFlt(p_v_angle);
 
-   AtRGB defaultColor  = AiShaderEvalParamRGB(p_default_color);
-   AtRGB colorGain     = AiShaderEvalParamRGB(p_color_gain);
-   AtRGB colorOffset   = AiShaderEvalParamRGB(p_color_offset);
-   AtFloat alphaGain   = AiShaderEvalParamFlt(p_alpha_gain);
-   AtFloat alphaOffset = AiShaderEvalParamFlt(p_alpha_offset);
-
-   bool invert = (AiShaderEvalParamBool(p_invert) == TRUE);
    bool wrap   = (AiShaderEvalParamBool(p_wrap) == TRUE);
    bool local  = (AiShaderEvalParamBool(p_local) == TRUE);
 
@@ -626,6 +619,13 @@ shader_evaluate
 
    if (mapped)
    {
+      bool invert = (AiShaderEvalParamBool(p_invert) == TRUE);
+
+      AtRGB colorGain     = AiShaderEvalParamRGB(p_color_gain);
+      AtRGB colorOffset   = AiShaderEvalParamRGB(p_color_offset);
+      AtFloat alphaGain   = AiShaderEvalParamFlt(p_alpha_gain);
+      AtFloat alphaOffset = AiShaderEvalParamFlt(p_alpha_offset);
+
       float u, v, dudx, dudy, dvdx, dvdy;
 
       u = sg->u;
@@ -667,7 +667,7 @@ shader_evaluate
    }
    else
    {
-      AiRGBtoRGBA(defaultColor, outColor);
+      AiRGBtoRGBA(AiShaderEvalParamRGB(p_default_color), outColor);
    }
 
    if (usePref) RestorePoints(sg, tmpPts);
