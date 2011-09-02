@@ -44,7 +44,7 @@ def registerDefaultTranslator(nodeType, stringOrFunc):
     _translatorControllers[nodeType] = inst
 
     # set defaults for existing nodes
-    for node in cmds.ls(type=nodeType):
+    for node in cmds.ls(exactType=nodeType):
         # this will set aiTranslator if it is not set
         # TOOD: replace this with a call to TranslatorControl.getCurrentTranslator
         inst.getCurrentTranslator(node)

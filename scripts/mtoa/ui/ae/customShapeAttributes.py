@@ -133,24 +133,6 @@ class SpotLightTemplate(lightTemplate.LightTemplate):
         self.commonLightAttributes()
 registerTranslatorUI(SpotLightTemplate, "spotLight")
 
-class CameraTemplate(ArnoldTranslatorTemplate):
-    def addDOFAttributes(self):
-        self.addAttribute("aiEnableDOF")
-        self.addSeparator()
-        self.addAttribute("aiFocusDistance")
-        self.addAttribute("aiApertureSize")
-        self.addAttribute("aiApertureBlades")
-        self.addAttribute("aiApertureBladeCurvature")
-        self.addAttribute("aiApertureRotation")
-
-class PerspCameraTemplate(CameraTemplate):
-    def setup(self):
-        self.addDOFAttributes()
-        self.addSeparator()
-        self.addAttribute('aiUvRemap')
-
-registerTranslatorUI(PerspCameraTemplate, "camera", "perspective")
-
 class AreaLightTemplate(lightTemplate.LightTemplate):
     # TODO: handle filter association via metadata
     def validFilters(self):
@@ -174,11 +156,32 @@ class AreaLightTemplate(lightTemplate.LightTemplate):
 
 registerTranslatorUI(AreaLightTemplate, "areaLight")
 
+class CameraTemplate(ArnoldTranslatorTemplate):
+    def addDOFAttributes(self):
+        self.addAttribute("aiEnableDOF")
+        self.addSeparator()
+        self.addAttribute("aiFocusDistance")
+        self.addAttribute("aiApertureSize")
+        self.addAttribute("aiApertureBlades")
+        self.addAttribute("aiApertureBladeCurvature")
+        self.addAttribute("aiApertureRotation")
+
+class PerspCameraTemplate(CameraTemplate):
+    def setup(self):
+        self.addDOFAttributes()
+        self.addSeparator()
+        self.addAttribute('aiUvRemap')
+
+registerTranslatorUI(PerspCameraTemplate, "camera", "perspective")
+registerTranslatorUI(PerspCameraTemplate, "stereoRigCamera", "perspective")
+
+
 class OrthographicTemplate(CameraTemplate):
     def setup(self):
         pass
 
 registerTranslatorUI(OrthographicTemplate, "camera", "orthographic")
+registerTranslatorUI(OrthographicTemplate, "stereoRigCamera", "orthographic")
 
 class FisheyeCameraTemplate(CameraTemplate):
     def setup(self):
@@ -188,6 +191,7 @@ class FisheyeCameraTemplate(CameraTemplate):
         self.addAttribute('aiAutocrop')
 
 registerTranslatorUI(FisheyeCameraTemplate, "camera", "fisheye")
+registerTranslatorUI(FisheyeCameraTemplate, "stereoRigCamera", "fisheye")
 
 class CylCameraTemplate(CameraTemplate):
     def setup(self):
@@ -196,6 +200,7 @@ class CylCameraTemplate(CameraTemplate):
         self.addAttribute('aiProjective')
 
 registerTranslatorUI(CylCameraTemplate, "camera", "cylindrical")
+registerTranslatorUI(CylCameraTemplate, "stereoRigCamera", "cylindrical")
 
 def cameraOrthographicChanged(orthoPlug, *args):
     "called to sync .aiTranslator when .orthographic changes"
@@ -239,9 +244,14 @@ def getCameraDefault(cam):
     return default
 
 registerDefaultTranslator('camera', getCameraDefault)
+registerDefaultTranslator('stereoRigCamera', getCameraDefault)
 
 print "Adding attribute changed callback for camera"
 callbacks.addAttributeChangedCallbacks('camera',
+                                       [('aiTranslator', cameraTranslatorChanged),
+                                        ('orthographic', cameraOrthographicChanged)])
+
+callbacks.addAttributeChangedCallbacks('stereoRigCamera',
                                        [('aiTranslator', cameraTranslatorChanged),
                                         ('orthographic', cameraOrthographicChanged)])
 
