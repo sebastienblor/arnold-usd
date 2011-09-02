@@ -5,19 +5,6 @@ from mtoa.ui.ae.utils import aeCallback
 from mtoa.ui.ae.shapeTemplate import registerUI, registerDefaultTranslator, ArnoldTranslatorTemplate, AutoTranslatorTemplate, registerTranslatorUI
 import mtoa.callbacks as callbacks
 
-def commonLightAttributes(ui):
-    ui.addAttribute("aiNormalize")
-    ui.addAttribute("aiBounceFactor")
-    ui.addAttribute("aiBounces")
-    ui.addSeparator()
-    ui.addSeparator()
-    ui.addAttribute("aiSssSampleDistribution", label="SSS Samples Distribution")
-#    cmds.editorTemplate(beginLayout="Light Filters")
-#
-#    cmds.editorTemplate(aeCallback(lightFiltersTemplate.customLightFiltersNew), aeCallback(lightFiltersTemplate.customLightFiltersReplace), "aiLightFilters", callCustom=True)
-#
-#    cmds.editorTemplate(endLayout=True)
-
 def renderStatsAttributes(ui):
     ui.addAttribute("castsShadows")
     ui.addAttribute("primaryVisibility")
