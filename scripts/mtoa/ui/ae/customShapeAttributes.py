@@ -7,6 +7,7 @@ import mtoa.callbacks as callbacks
 
 def renderStatsAttributes(ui):
     ui.addAttribute("castsShadows")
+    ui.addAttribute("receiveShadows")
     ui.addAttribute("primaryVisibility")
     ui.addAttribute("visibleInReflections")
     ui.addAttribute("visibleInRefractions")
