@@ -15,7 +15,7 @@
 # volume_scattering           0x00115D0B
 # bump2d                      0x00115D0C
 # noise                       0x00115D0D
-
+# bump3d                      0x00115D0E
 
 # options
 
@@ -653,6 +653,12 @@
     maya.name               STRING  "aiBump2d"
     maya.id                 INT     0x00115D0C
     maya.classification     STRING  "shader/utility"
+    [attr bump_height]
+        desc                STRING  "Bump HeightAmbient diffuse value."
+        label               STRING  "Bump Height"
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+        default             FLOAT   0.01
 
 [node image]
     maya.hide               BOOL    True
@@ -661,7 +667,23 @@
     maya.hide               BOOL    True
 
 [node bump3d]
-    maya.hide               BOOL    True
+    desc                    STRING  "3D bump mapping shader that changes the normals of all nodes downstream from it"
+    maya.name               STRING  "aiBump3d"
+    maya.id                 INT     0x00115D0E
+    maya.classification     STRING  "shader/utility"
+    [attr bump_height]
+        desc                STRING  "Bump HeightAmbient diffuse value."
+        label               STRING  "Bump Height"
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+        default             FLOAT   0.01
+    [attr epsilon]
+        desc                STRING  "Epsilon."
+        label               STRING  "Epsilon"
+        min                 FLOAT   0.0000001
+        softmin             FLOAT   0.0001
+        softmax             FLOAT   1.0
+        default             FLOAT   0.001
 
 [node hair]
     desc                    STRING  "Shader for Arnold hair tubes."
