@@ -654,7 +654,7 @@
     maya.id                 INT     0x00115D0C
     maya.classification     STRING  "shader/utility"
     [attr bump_height]
-        desc                STRING  "Bump HeightAmbient diffuse value."
+        desc                STRING  "Bump Height value."
         label               STRING  "Bump Height"
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
@@ -672,7 +672,7 @@
     maya.id                 INT     0x00115D0E
     maya.classification     STRING  "shader/utility"
     [attr bump_height]
-        desc                STRING  "Bump HeightAmbient diffuse value."
+        desc                STRING  "Bump Height value."
         label               STRING  "Bump Height"
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
