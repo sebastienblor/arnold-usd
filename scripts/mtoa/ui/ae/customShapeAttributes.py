@@ -4,32 +4,11 @@ import mtoa.ui.ae.lightTemplate as lightTemplate
 from mtoa.ui.ae.utils import aeCallback
 from mtoa.ui.ae.shapeTemplate import registerUI, registerDefaultTranslator, ArnoldTranslatorTemplate, AutoTranslatorTemplate, registerTranslatorUI
 import mtoa.callbacks as callbacks
-
-def overrideSssToggle(attrName):
-    if cmds.getAttr(attrName+".aiOverrideSssSamples"):
-        cmds.editorTemplate(dimControl=(attrName, "aiSssSamples", False))
-    else:
-        cmds.editorTemplate(dimControl=(attrName, "aiSssSamples", True))
-
-def commonLightAttributes(ui):
-    ui.addAttribute("aiNormalize")
-    ui.addAttribute("aiBounceFactor")
-    ui.addAttribute("aiBounces")
-    ui.addSeparator()
-#    ui.addAttribute("aiOverrideSssSamples", aeCallback(overrideSssToggle), label="Override SSS Samples", addDynamicControl=True)
-    ui.addAttribute("aiSssSamples", label="SSS Samples")
-    ui.addSeparator()
-    ui.addAttribute("aiSssUseGi", label="SSS Use Gi")
-    ui.addAttribute("aiSssSampleDistribution", label="SSS Samples Distribution")
-    ui.addAttribute("aiSssSampleSpacing", label="SSS Sample Spacing")
-#    cmds.editorTemplate(beginLayout="Light Filters")
-#
-#    cmds.editorTemplate(aeCallback(lightFiltersTemplate.customLightFiltersNew), aeCallback(lightFiltersTemplate.customLightFiltersReplace), "aiLightFilters", callCustom=True)
-#
-#    cmds.editorTemplate(endLayout=True)
+import mtoa.core as core
 
 def renderStatsAttributes(ui):
     ui.addAttribute("castsShadows")
+    ui.addAttribute("receiveShadows")
     ui.addAttribute("primaryVisibility")
     ui.addAttribute("visibleInReflections")
     ui.addAttribute("visibleInRefractions")
@@ -67,8 +46,6 @@ def builtin_mesh(ui):
     ui.addAttribute("aiSubdivDicingCamera", label="Subdivision Dicing Camera")
     ui.addAttribute("aiSubdivUvSmoothing", label="Subdivision UVs Smoothing")
     ui.addSeparator()
-#    ui.addAttribute("aiOverrideSssSamples", aeCallback(overrideSssToggle), label="Override SSS Samples", addDynamicControl=True)
-    ui.addAttribute("aiSssUseGi", label="SSS Use Gi")
     ui.addAttribute("aiSssSampleDistribution", label="SSS Samples Distribution")
     ui.addAttribute("aiSssSampleSpacing", label="SSS Sample Spacing")
     ui.addSeparator()
@@ -231,11 +208,32 @@ class PerspCameraTemplate(CameraTemplate):
 
 registerTranslatorUI(PerspCameraTemplate, "camera", "perspective")
 
+class CameraTemplate(ArnoldTranslatorTemplate):
+    def addDOFAttributes(self):
+        self.addAttribute("aiEnableDOF")
+        self.addSeparator()
+        self.addAttribute("aiFocusDistance")
+        self.addAttribute("aiApertureSize")
+        self.addAttribute("aiApertureBlades")
+        self.addAttribute("aiApertureBladeCurvature")
+        self.addAttribute("aiApertureRotation")
+
+class PerspCameraTemplate(CameraTemplate):
+    def setup(self):
+        self.addDOFAttributes()
+        self.addSeparator()
+        self.addAttribute('aiUvRemap')
+
+registerTranslatorUI(PerspCameraTemplate, "camera", "perspective")
+registerTranslatorUI(PerspCameraTemplate, "stereoRigCamera", "perspective")
+
+
 class OrthographicTemplate(CameraTemplate):
     def setup(self):
         self.cleanExtraAttributes()
 
 registerTranslatorUI(OrthographicTemplate, "camera", "orthographic")
+registerTranslatorUI(OrthographicTemplate, "stereoRigCamera", "orthographic")
 
 class FisheyeCameraTemplate(CameraTemplate):
     def setup(self):
@@ -246,6 +244,7 @@ class FisheyeCameraTemplate(CameraTemplate):
         self.cleanExtraAttributes()
 
 registerTranslatorUI(FisheyeCameraTemplate, "camera", "fisheye")
+registerTranslatorUI(FisheyeCameraTemplate, "stereoRigCamera", "fisheye")
 
 class CylCameraTemplate(CameraTemplate):
     def setup(self):
@@ -255,6 +254,7 @@ class CylCameraTemplate(CameraTemplate):
         self.cleanExtraAttributes()
 
 registerTranslatorUI(CylCameraTemplate, "camera", "cylindrical")
+registerTranslatorUI(CylCameraTemplate, "stereoRigCamera", "cylindrical")
 
 def cameraOrthographicChanged(orthoPlug, *args):
     "called to sync .aiTranslator when .orthographic changes"
@@ -298,6 +298,7 @@ def getCameraDefault(cam):
     return default
 
 registerDefaultTranslator('camera', getCameraDefault)
+registerDefaultTranslator('stereoRigCamera', getCameraDefault)
 
 print "Adding attribute changed callback for camera"
 callbacks.addAttributeChangedCallbacks('camera',
@@ -307,12 +308,14 @@ print "Adding attribute changed callback for lights"
 callbacks.addAttributeChangedCallbacks('areaLight',
                                        [('aiTranslator', areaLightTranslatorChanged),])
 
+callbacks.addAttributeChangedCallbacks('stereoRigCamera',
+                                       [('aiTranslator', cameraTranslatorChanged),
+                                        ('orthographic', cameraOrthographicChanged)])
+
 def registerDriverTemplates():
     # register driver templates
-    for transName in cmds.arnoldPlugins(listTranslators="<driver>"):
+    for transName, arnoldNode in core.listTranslators("<driver>"):
         transName = str(transName) # doesn't like unicode
-        # FIXME: create a real relationship between the arnold node and the translator name
-        arnoldNode = 'driver_%s' % transName
         cls = type('Driver_%sTemplate' % transName, (AutoTranslatorTemplate,), dict(_arnoldNodeType=arnoldNode))
         registerTranslatorUI(cls, "<driver>", transName)
     
@@ -320,10 +323,8 @@ def registerDriverTemplates():
 
 def registerFilterTemplates():
     # register driver templates
-    for transName in cmds.arnoldPlugins(listTranslators="<filter>"):
+    for transName, arnoldNode in core.listTranslators("<filter>"):
         transName = str(transName) # doesn't like unicode
-        # FIXME: create a real relationship between the arnold node and the translator name
-        arnoldNode = '%s_filter' % transName
         cls = type('Filter_%sTemplate' % transName, (AutoTranslatorTemplate,), dict(_arnoldNodeType=arnoldNode))
         registerTranslatorUI(cls, "<filter>", transName)
 

@@ -17,9 +17,6 @@ void CShapeTranslator::ProcessRenderFlags(AtNode* node)
    if (!plug.isNull()) AiNodeSetBool(node, "receive_shadows", plug.asBool());
 
    // Subsurface Scattering
-   plug = FindMayaObjectPlug("aiSssUseGi");
-   if (!plug.isNull()) AiNodeSetBool(node, "sss_use_gi", plug.asBool());
-
    plug = FindMayaObjectPlug("aiSssSampleDistribution");
    if (!plug.isNull())
    {
@@ -51,7 +48,6 @@ void CShapeTranslator::ProcessRenderFlags(AtNode* node)
 //
 void CShapeTranslator::MakeCommonAttributes(CBaseAttrHelper& helper)
 {
-   helper.MakeInput("sss_use_gi");
    helper.MakeInput("sss_sample_distribution");
    helper.MakeInput("sss_sample_spacing");
 

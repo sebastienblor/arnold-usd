@@ -220,6 +220,25 @@ namespace // <anonymous>
                                    "cylindrical",
                                    CCylCameraTranslator::creator,
                                    CCylCameraTranslator::NodeInitializer);
+
+      // stereoCameraRig is a sub-type of the maya camera, and is also renderable
+      builtin->RegisterTranslator("stereoRigCamera",
+                                  "perspective",
+                                  CPerspCameraTranslator::creator,
+                                  CPerspCameraTranslator::NodeInitializer);
+      builtin->RegisterTranslator("stereoRigCamera",
+                                  "orthographic",
+                                  COrthoCameraTranslator::creator,
+                                  COrthoCameraTranslator::NodeInitializer);
+      builtin->RegisterTranslator("stereoRigCamera",
+                                  "fisheye",
+                                  CFishEyeCameraTranslator::creator,
+                                  CFishEyeCameraTranslator::NodeInitializer);
+      builtin->RegisterTranslator("stereoRigCamera",
+                                  "cylindrical",
+                                  CCylCameraTranslator::creator,
+                                  CCylCameraTranslator::NodeInitializer);
+
        // Hair
        builtin->RegisterTranslator("hairSystem",
                                    "",

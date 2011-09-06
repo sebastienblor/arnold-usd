@@ -29,6 +29,9 @@ def manageCallback(callbackId):
 def _makeNodeAddedCB(nodeType):
     def nodeAddedCB(obj, *args):
         fnNode = om.MFnDependencyNode(obj)
+        # nodeAdded callback includes sub-types, but we want exact type only
+        if fnNode.typeName() != nodeType:
+            return
         name = fnNode.name()
         global _nodeAddedCallbacks
         for func, apiArgs in _nodeAddedCallbacks[nodeType]:
@@ -68,6 +71,11 @@ def _makeAttributeChangedCallback(nodeType):
     installs attributeChanged scriptjobs for the passed attribute
     """
     def installAttrChangeCallback(obj):
+        fnNode = om.MFnDependencyNode(obj)
+        # nodeAdded callback includes sub-types, but we want exact type only
+        if fnNode.typeName() != nodeType:
+            return
+
         # scriptJob does not receive an arg, but we want ours to
         def attrChanged(msg, plug, otherPlug, *args):
             global _attrChangedCallbacks

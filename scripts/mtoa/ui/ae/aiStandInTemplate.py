@@ -112,7 +112,6 @@ def aiStandInTemplate(nodeName):
     cmds.editorTemplate("aiOpaque", addControl=True)
     cmds.editorTemplate("aiVisibleInDiffuse", addControl=True)
     cmds.editorTemplate("aiVisibleInGlossy", addControl=True)
-    cmds.editorTemplate("aiSssUseGi", label="SSS Use Gi", addControl=True)
     cmds.editorTemplate("aiSssSampleDistribution", label="SSS Samples Distribution", addControl=True)
     cmds.editorTemplate("aiSssSampleSpacing", label="SSS Sample Spacing", addControl=True)
     cmds.editorTemplate(endLayout=True)

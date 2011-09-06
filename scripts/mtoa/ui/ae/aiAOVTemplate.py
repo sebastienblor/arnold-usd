@@ -1,6 +1,7 @@
 import maya.cmds as cmds
 import maya.mel as mel
 from mtoa.ui.ae.shapeTemplate import TranslatorControl
+import mtoa.core as core
 
 class AOVTranslatorControl(TranslatorControl):
     '''
@@ -9,7 +10,7 @@ class AOVTranslatorControl(TranslatorControl):
     USE_GLOBALS = '<Use Globals>'
     def getTranslators(self):
         if self._translators is None:
-            self._translators = [self.USE_GLOBALS] + cmds.arnoldPlugins(listTranslators=self.nodeType())
+            self._translators = [self.USE_GLOBALS] + [x[0] for x in core.listTranslators(self.nodeType())]
         return self._translators
 
     def getDefaultTranslator(self, nodeName):

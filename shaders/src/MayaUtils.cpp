@@ -161,10 +161,10 @@ float UnmapValue(float v, float vmin, float vmax)
    return (vmin + (vmax - vmin) * v);
 }
 
-bool IsValidUV(float u, float v)
+bool IsValidUV(AtPoint2 &uv)
 {
    // place2dTexture return (UV_INVALID, UV_INVALID) for invalid UVs
-   return (u > UV_INVALID && v > UV_INVALID);
+   return (uv.x > UV_INVALID && uv.y > UV_INVALID);
 }
 
 float Integral(float t, float nedge)

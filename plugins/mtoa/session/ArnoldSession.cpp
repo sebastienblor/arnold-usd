@@ -364,8 +364,7 @@ MStatus CArnoldSession::UpdateMotionFrames()
       double frame = exportFrame - byFrame * 0.5 + shutterOffset;
       for (unsigned int step=0; (step < motionSteps); ++step)
       {
-         frame += double(step) * stepSize;
-         m_motion_frames.push_back(frame);
+         m_motion_frames.push_back(frame + (double)step * stepSize);
       }
    }
    else

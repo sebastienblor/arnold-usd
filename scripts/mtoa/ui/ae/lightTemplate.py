@@ -141,8 +141,6 @@ class LightTemplate(ArnoldTranslatorTemplate):
 
         self.addSeparator()
     
-        self.addAttribute("aiSssSamples", label="SSS Samples")
-
         self.beginLayout(label="Light Filters", collapse=False)
         self.addCustom("aiFilters", self.customLightFiltersNew, self.customLightFiltersReplace)
         self.endLayout()

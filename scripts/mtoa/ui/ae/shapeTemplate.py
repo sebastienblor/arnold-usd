@@ -44,7 +44,7 @@ def registerDefaultTranslator(nodeType, stringOrFunc):
     _translatorControllers[nodeType] = inst
 
     # set defaults for existing nodes
-    for node in cmds.ls(type=nodeType):
+    for node in cmds.ls(exactType=nodeType):
         # this will set aiTranslator if it is not set
         # TOOD: replace this with a call to TranslatorControl.getCurrentTranslator
         inst.getCurrentTranslator(node)
@@ -343,11 +343,11 @@ class TranslatorControl(BaseTemplate):
             transName = cmds.getAttr(nodeName + "." + self._attr)
         except :
             transName = None
-        if not transName:
+        translators = self.getTranslators()
+        if not transName or transName not in translators:
             # set default
             transName = self.getDefaultTranslator(nodeName)
             if transName is None:
-                translators = self.getTranslators()
                 if not translators:
                     cmds.warning("cannot find default translator for %s" % nodeName)
                     return
@@ -435,7 +435,7 @@ class TranslatorControl(BaseTemplate):
 
     def getTranslators(self):
         if self._translators is None:
-            self._translators = cmds.arnoldPlugins(listTranslators=self.nodeType()) or []
+            self._translators = [x[0] for x in core.listTranslators(self.nodeType())]
         return self._translators
 
     def getTranslatorTemplates(self):

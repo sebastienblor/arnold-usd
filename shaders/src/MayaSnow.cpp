@@ -53,11 +53,6 @@ node_finish
 
 shader_evaluate
 {
-   AtRGB snowColor = AiShaderEvalParamRGB(p_snowColor);
-   AtRGB surfaceColor = AiShaderEvalParamRGB(p_surfaceColor);
-   AtFloat threshold = AiShaderEvalParamFlt(p_threshold);
-   AtFloat depthDecay = AiShaderEvalParamFlt(p_depthDecay);
-   AtFloat thickness = AiShaderEvalParamFlt(p_thickness);
    AtMatrix *placementMatrix = AiShaderEvalParamMtx(p_placementMatrix);
    AtBoolean local = AiShaderEvalParamBool(p_local);
    AtBoolean wrap = AiShaderEvalParamBool(p_wrap);
@@ -73,6 +68,11 @@ shader_evaluate
                 (-1.0f <= P.y && P.y <= 1.0f) &&
                 (-1.0f <= P.z && P.z <= 1.0f)))
    {
+      AtRGB snowColor = AiShaderEvalParamRGB(p_snowColor);
+      AtRGB surfaceColor = AiShaderEvalParamRGB(p_surfaceColor);
+      AtFloat threshold = AiShaderEvalParamFlt(p_threshold);
+      AtFloat depthDecay = AiShaderEvalParamFlt(p_depthDecay);
+      AtFloat thickness = AiShaderEvalParamFlt(p_thickness);
       AtVector U, N;
 
       AiV3Create(U, 0.0f, 1.0f, 0.0f);

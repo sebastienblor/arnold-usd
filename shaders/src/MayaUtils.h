@@ -17,7 +17,7 @@ AtRGBA Mix(const AtRGBA &c0, const AtRGBA &c1, float t);
 float MapValue(float v, float vmin, float vmax);
 float UnmapValue(float v, float vmin, float vmax);
 
-bool IsValidUV(float u, float v);
+bool IsValidUV(AtPoint2 &uv);
 float Integral(float t, float nedge);
 float Mod(float n, float d);
 

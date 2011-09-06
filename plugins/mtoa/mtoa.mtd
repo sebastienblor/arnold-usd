@@ -13,7 +13,9 @@
 # wireframe                   0x00115D08
 # fog                         0x00115D0A
 # volume_scattering           0x00115D0B
-
+# bump2d                      0x00115D0C
+# noise                       0x00115D0D
+# bump3d                      0x00115D0E
 
 # options
 
@@ -157,14 +159,13 @@
         max                 INT     100
         softmin             INT     0
         softmax             INT     10
-    [attr GI_sss_hemi_samples]
+    [attr sss_sample_factor]
         maya.keyable        BOOL    False
-        min                 INT     -1
+        min                 INT     1
         max                 INT     100
-        softmin             INT     -1
-        softmax             INT     10
-        maya.orig_shortname STRING  "GIssshemismpls"
-
+        softmin             INT     1
+        softmax             INT     10        
+        default             INT     4        
 
 # lights
 
@@ -178,10 +179,6 @@
     [attr bounces]
         min                 INT     0
         max                 INT     10000
-    [attr sss_samples]
-        min                 INT     0
-        max                 INT     100
-        default             INT     0
 
 [node distant_light]
     maya.name               STRING  "directionalLight"
@@ -203,10 +200,6 @@
     [attr bounces]
         min                 INT     0
         max                 INT     10000
-    [attr sss_samples]
-        min                 INT     0
-        max                 INT     100
-        default             INT     0
 
 [node point_light]
     maya.name               STRING  "pointLight"
@@ -228,10 +221,6 @@
     [attr bounces]
         min                 INT     0
         max                 INT     10000
-    [attr sss_samples]
-        min                 INT     0
-        max                 INT     100
-        default             INT     0
 
 [node spot_light]
     maya.name               STRING  "spotLight"
@@ -253,10 +242,6 @@
     [attr bounces]
         min                 INT     0
         max                 INT     10000
-    [attr sss_samples]
-        min                 INT     0
-        max                 INT     100
-        default             INT     0
     [attr aspect_ratio]
         min                 FLOAT   0.0
         max                 FLOAT   100.0
@@ -285,10 +270,6 @@
     [attr bounces]
         min                 INT     0
         max                 INT     10000
-    [attr sss_samples]
-        min                 INT     0
-        max                 INT     100
-        default             INT     0
 
 [node skydome_light]
     maya.name               STRING  "aiSkyDomeLight"
@@ -309,10 +290,6 @@
        min                  INT     0
        max                  INT     100
        default              INT     1
-   [attr sss_samples]
-       min                  INT     0
-       max                  INT     100
-       default              INT     0
 
 # light filters
 
@@ -666,10 +643,22 @@
     maya.hide               BOOL    True
 
 [node noise]
-    maya.hide               BOOL    True
+    desc                    STRING  "2D procedural noise"
+    maya.name               STRING  "aiNoise"
+    maya.id                 INT     0x00115D0D
+    maya.classification     STRING  "shader/utility"
 
 [node bump2d]
-    maya.hide               BOOL    True
+    desc                    STRING  "2D bump mapping shader that changes the normals of all nodes downstream from it"
+    maya.name               STRING  "aiBump2d"
+    maya.id                 INT     0x00115D0C
+    maya.classification     STRING  "shader/utility"
+    [attr bump_height]
+        desc                STRING  "Bump Height value."
+        label               STRING  "Bump Height"
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+        default             FLOAT   0.01
 
 [node image]
     maya.hide               BOOL    True
@@ -678,7 +667,23 @@
     maya.hide               BOOL    True
 
 [node bump3d]
-    maya.hide               BOOL    True
+    desc                    STRING  "3D bump mapping shader that changes the normals of all nodes downstream from it"
+    maya.name               STRING  "aiBump3d"
+    maya.id                 INT     0x00115D0E
+    maya.classification     STRING  "shader/utility"
+    [attr bump_height]
+        desc                STRING  "Bump Height value."
+        label               STRING  "Bump Height"
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+        default             FLOAT   0.01
+    [attr epsilon]
+        desc                STRING  "Epsilon."
+        label               STRING  "Epsilon"
+        min                 FLOAT   0.0000001
+        softmin             FLOAT   0.0001
+        softmax             FLOAT   1.0
+        default             FLOAT   0.001
 
 [node hair]
     desc                    STRING  "Shader for Arnold hair tubes."
@@ -796,8 +801,6 @@
     [attr subdiv_pixel_error]
         min                 FLOAT   0.0
         softmax             FLOAT   10.0
-    [attr sss_use_gi]
-        label               STRING  "Use GI with SSS"
     [attr sss_sample_spacing]
         label               STRING  "SSS Sample Spacing"
         min                 FLOAT   0.0
@@ -816,9 +819,6 @@
     [attr glossy_visibility]
         maya.name           STRING  "aiGlossyVisibility"
         label               STRING  "Visible In Glossy"
-    [attr sss_use_gi]
-        maya.name           STRING  "aiSssUseGi"
-        label               STRING  "Use GI with SSS"
     [attr sss_sample_spacing]
         maya.name           STRING  "aiSssSampleSpacing"
         label               STRING  "SSS Sample Spacing"
@@ -870,7 +870,7 @@
 
 [node driver_tiff]
     maya.attr_prefix        STRING  "driver_"
-    maya.translator         STRING  "tiff"
+    maya.translator         STRING  "tif"
     [attr filename]
         maya.hide           BOOL    true
     [attr gamma]

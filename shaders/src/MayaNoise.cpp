@@ -128,6 +128,12 @@ shader_evaluate
    if (uv.x == UV_GLOBALS) uv.x = sg->u;
    if (uv.y == UV_GLOBALS) uv.y = sg->v;
 
+   if (!IsValidUV(uv))
+   {
+      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
+      return;
+   }
+
    float threshold = AiShaderEvalParamFlt(p_threshold);
    float amplitude = AiShaderEvalParamFlt(p_amplitude);
    float ratio = AiShaderEvalParamFlt(p_ratio);
@@ -145,12 +151,6 @@ shader_evaluate
    float randomness = AiShaderEvalParamFlt(p_randomness);
    int falloff = AiShaderEvalParamInt(p_falloff);
    int numWaves = AiShaderEvalParamInt(p_numWaves);
-
-   if (!IsValidUV(uv.x, uv.y))
-   {
-      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
-      return;
-   }
 
    float ss = uv.x;
    float tt = uv.y;
