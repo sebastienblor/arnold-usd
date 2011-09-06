@@ -93,6 +93,20 @@ public:
    }
 };
 
+class CDiskLightTranslator : public CLightTranslator
+{
+public:
+   void Export(AtNode* light);
+   static void NodeInitializer(CAbTranslator context);
+   static void* creator()
+   {
+      return new CDiskLightTranslator();
+   }
+   AtNode* CreateArnoldNodes()
+   {
+      return AddArnoldNode("disk_light");
+   }
+};
 
 class CSkyDomeLightTranslator : public CLightTranslator
 {

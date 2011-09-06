@@ -156,6 +156,7 @@ class QuadLightTemplate(lightTemplate.LightTemplate):
         self.commonLightAttributes()
 
 registerTranslatorUI(QuadLightTemplate, "areaLight", "quad")
+registerTranslatorUI(QuadLightTemplate, "aiAreaLight", "quad")
 
 class CylinderLightTemplate(lightTemplate.LightTemplate):
     # TODO: handle filter association via metadata
@@ -176,13 +177,71 @@ class CylinderLightTemplate(lightTemplate.LightTemplate):
         self.addSeparator()
 
         self.commonLightAttributes()
-registerTranslatorUI(CylinderLightTemplate, "areaLight", "cylinder")
+registerTranslatorUI(CylinderLightTemplate, "aiAreaLight", "cylinder")
 
-def areaLightTranslatorChanged(transPlug):
-    print "areaLightTranslatorChanged"
+class DiskLightTemplate(lightTemplate.LightTemplate):
+    # TODO: handle filter association via metadata
+    def validFilters(self):
+        return ['aiLightBlocker', 'aiLightDecay']
+ 
+    def setup(self):
+        self.addAttribute("aiCastShadows")
+        self.addAttribute("aiExposure")
+        self.addAttribute("aiSamples")
+        self.addAttribute("aiMis", label="Multiple Importance Sampling")
+
+        self.addSeparator()
+
+        self.addAttribute("aiAffectVolumetrics")
+        self.addAttribute("aiCastVolumetricShadows")
+
+        self.addSeparator()
+
+        self.commonLightAttributes()
+registerTranslatorUI(DiskLightTemplate, "aiAreaLight", "disk")
+
+def getAreaDefault(area):
+    default = 'quad'
+    try:
+        default = cmds.getAttr(area + '.type')
+    except:
+        pass
+    return default
+
+registerDefaultTranslator('aiAreaLight', getAreaDefault)
+
+def areaLightTranslatorChanged(transPlug, *args):
+    "called to sync .type when .aiTranslator changes"
+    value = om.MFnDependencyNode(transPlug.node()).findPlug('aiTranslator').asString()
+    print "areaLightTranslatorChanged", value
     # when a file is opening, we need to choose one attribute to lead, because
     # the order that attributes are set is unpredictable. This fixes a case
     # where translators may have gotten out of sync
+    typeVal = 0
+    if value == 'cylinder':
+        typeVal = 1
+    elif value == 'disk':
+        typeVal = 2
+    om.MFnDependencyNode(transPlug.node()).findPlug('type').setInt(typeVal)
+    
+def areaLightTypeChanged(lightPlug, *args):
+    "called to sync .aiTranslator when .type changes"
+    value = om.MFnDependencyNode(lightPlug.node()).findPlug('type').asInt()
+    print "areaLightTypeChanged", value
+    # Quad
+    if value == 0:
+         om.MFnDependencyNode(lightPlug.node()).findPlug('aiTranslator').setString("quad")
+    # Cylinder
+    elif value == 1:
+         om.MFnDependencyNode(lightPlug.node()).findPlug('aiTranslator').setString("cylinder")
+    # Disk
+    elif value == 2:
+         om.MFnDependencyNode(lightPlug.node()).findPlug('aiTranslator').setString("disk")
+    
+print "Adding attribute changed callback for aiAreaLight"
+callbacks.addAttributeChangedCallbacks('aiAreaLight',
+                                       [('aiTranslator', areaLightTranslatorChanged),
+                                        ('type', areaLightTypeChanged)])
 
 class CameraTemplate(ArnoldTranslatorTemplate):
     def addDOFAttributes(self):
@@ -304,9 +363,6 @@ print "Adding attribute changed callback for camera"
 callbacks.addAttributeChangedCallbacks('camera',
                                        [('aiTranslator', cameraTranslatorChanged),
                                         ('orthographic', cameraOrthographicChanged)])
-print "Adding attribute changed callback for lights"
-callbacks.addAttributeChangedCallbacks('areaLight',
-                                       [('aiTranslator', areaLightTranslatorChanged),])
 
 callbacks.addAttributeChangedCallbacks('stereoRigCamera',
                                        [('aiTranslator', cameraTranslatorChanged),

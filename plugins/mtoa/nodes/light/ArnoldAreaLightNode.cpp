@@ -26,8 +26,6 @@ MObject CArnoldAreaLightNode::s_colorG;
 MObject CArnoldAreaLightNode::s_colorB;
 MObject CArnoldAreaLightNode::s_color;
 MObject CArnoldAreaLightNode::s_intensity;
-MObject CArnoldAreaLightNode::s_shadowDensity;
-MObject CArnoldAreaLightNode::s_shadowColor;
 MObject CArnoldAreaLightNode::s_affectDiffuse;
 MObject CArnoldAreaLightNode::s_affectSpecular;
 // Arnold outputs
@@ -63,7 +61,7 @@ MStatus CArnoldAreaLightNode::compute( const MPlug&, MDataBlock& )
 
 void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath &, M3dView::DisplayStyle style, M3dView::DisplayStatus displayStatus )
 {
-   int displayStyle  = view.displayStyle();
+   //int displayStyle  = view.displayStyle();
    int displayStatusInt = displayStatus;
    // Get the size
    //
@@ -83,13 +81,8 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath &, M3dView::Disp
    }
    GLUquadricObj *qobj;
    qobj = gluNewQuadric();
-   // None
-   if (areaType==0)
-   {
-
-   }
    // Quad
-   else if (areaType==1)
+   if (areaType==0)
    {
       glBegin(GL_QUADS);                  // Draw A Quad
          glVertex3f(-1.0f, 1.0f, 0.0f);            // Top Left
@@ -97,17 +90,38 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath &, M3dView::Disp
          glVertex3f( 1.0f,-1.0f, 0.0f);            // Bottom Right
          glVertex3f(-1.0f,-1.0f, 0.0f);            // Bottom Left
       glEnd();                   // Done Drawing The Quad
+      glBegin(GL_LINES);
+         glVertex3f(-1.0f, 1.0f, 0.0f);            // Top Left
+         glVertex3f( 1.0f,-1.0f, 0.0f);            // Bottom Right
+         glVertex3f(-1.0f,-1.0f, 0.0f);            // Bottom Left
+         glVertex3f( 1.0f, 1.0f, 0.0f);            // Top Right
+         glVertex3f( 0.0f, 0.0f, 0.0f);
+         glVertex3f( 0.0f, 0.0f,-1.0f);
+      glEnd();                   // Done Drawing The direction
    }
    // Cylinder
+   else if (areaType==1)
+   {
+      gluQuadricDrawStyle(qobj, GLU_LINE); /* wireframe */
+      gluQuadricNormals(qobj, GLU_NONE);
+      glPushMatrix();
+      glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
+      glTranslatef(0.0f, 0.0f, -1.0f);
+      gluCylinder(qobj, 1.0f, 1.0f, 2.0f, 20, 1);
+      glPopMatrix();
+   }
+   // Disk
    else if (areaType==2)
    {
       gluQuadricDrawStyle(qobj, GLU_LINE); /* wireframe */
       gluQuadricNormals(qobj, GLU_NONE);
       glPushMatrix();
-      glRotatef(90.0, 1.0, 0.0, 0.0);
-      glTranslatef(0.0, 0.0, -1.0);
-      gluCylinder(qobj, 1.0, 1.0, 2.0, 20, 1);
+      gluDisk(qobj, 0.0f, 1.0f, 20, 1);
       glPopMatrix();
+      glBegin(GL_LINES);
+         glVertex3f( 0.0f, 0.0f, 0.0f);            // Bottom Right
+         glVertex3f( 0.0f, 0.0f,-1.0f);            // Bottom Left
+      glEnd();                   // Done Drawing The direction
    }
    // Restore all GL bits
    glPopAttrib();
@@ -134,33 +148,18 @@ void* CArnoldAreaLightNode::creator()
 
 MStatus CArnoldAreaLightNode::initialize()
 {
-   MFnNumericAttribute nAttr;
    MFnLightDataAttribute lAttr;
+   MFnNumericAttribute nAttr;
+   MFnTypedAttribute tAttr;
    MFnEnumAttribute eAttr;
    MStatus         stat;
 
-   s_intensity = s_attributes.MakeInput("intensity");
-
-   s_shadowDensity = s_attributes.MakeInput("shadow_density");
-   s_shadowColor = s_attributes.MakeInput("shadow_color");
-
-   // Metadata must be present to get it as Maya attributes emitDiffuse and emitSpecular
-   s_affectDiffuse = s_attributes.MakeInput("affect_diffuse");
-   s_affectDiffuse = s_attributes.MakeInput("affect_specular");
-
    s_type = eAttr.create("type", "typ", 0);
-   eAttr.addField("none", 0);
-   eAttr.addField("quad", 1);
-   eAttr.addField("cylinder", 2);
+   eAttr.addField("quad", 0);
+   eAttr.addField("cylinder", 1);
+   eAttr.addField("disk", 2);
    eAttr.setInternal(true);
-
-   stat = addAttribute( s_type );
-   if (!stat) {
-      stat.perror("addAttribute");
-      return stat;
-   }
-
-   MFnTypedAttribute tAttr;
+   addAttribute( s_type );
 
    MAKE_COLOR(s_color, "color", "sc", 1, 1, 1);
    nAttr.setKeyable(true);
@@ -169,6 +168,21 @@ MStatus CArnoldAreaLightNode::initialize()
    nAttr.setWritable(true);
    nAttr.setInternal(true);
    addAttribute(s_color);
+
+   s_intensity = nAttr.create("intensity", "intensity", MFnNumericData::kFloat, 1.0f);
+   nAttr.setStorable(true);
+   nAttr.setKeyable(true);
+   addAttribute(s_intensity);
+
+   s_affectDiffuse = nAttr.create("emitDiffuse", "emitDiffuse", MFnNumericData::kBoolean, 1);
+   nAttr.setHidden(false);
+   nAttr.setKeyable(true);
+   addAttribute(s_affectDiffuse);
+
+   s_affectSpecular = nAttr.create("emitSpecular", "emitSpecular", MFnNumericData::kBoolean, 1);
+   nAttr.setHidden(false);
+   nAttr.setKeyable(true);
+   addAttribute(s_affectSpecular);
 
    // MAYA SPECIFIC INPUTS
    s_pointCamera = nAttr.createPoint("pointCamera", "p");
@@ -279,8 +293,6 @@ MStatus CArnoldAreaLightNode::initialize()
 
    attributeAffects(s_color, aLightData);
    attributeAffects(s_intensity, aLightData);
-   attributeAffects(s_shadowDensity, aLightData);
-   attributeAffects(s_shadowColor, aLightData);
    attributeAffects(s_affectDiffuse, aLightData);
    attributeAffects(s_affectSpecular, aLightData);
 

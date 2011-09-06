@@ -124,7 +124,7 @@ namespace // <anonymous>
                                    // &lightNoSwatch);
       CHECK_MSTATUS(status);
 
-      status = plugin.registerNode("aiAreaLightLocator",
+      status = plugin.registerNode("aiAreaLight",
                                     CArnoldAreaLightNode::id,
                                     CArnoldAreaLightNode::creator,
                                     CArnoldAreaLightNode::initialize,
@@ -174,10 +174,6 @@ namespace // <anonymous>
                                    "quad",
                                    CQuadLightTranslator::creator,
                                    CQuadLightTranslator::NodeInitializer);
-       builtin->RegisterTranslator("aiAreaLightLocator",
-                                   "cylinder",
-                                   CCylinderLightTranslator::creator,
-                                   CCylinderLightTranslator::NodeInitializer);
        builtin->RegisterTranslator("pointLight",
                                    "",
                                    CPointLightTranslator::creator,
@@ -186,6 +182,20 @@ namespace // <anonymous>
                                    "",
                                    CAmbientLightTranslator::creator,
                                    CAmbientLightTranslator::NodeInitializer);
+       // Multiple light translators for single Arnold areaLight node
+       builtin->RegisterTranslator("aiAreaLight",
+                                   "quad",
+                                   CQuadLightTranslator::creator,
+                                   CQuadLightTranslator::NodeInitializer);
+       builtin->RegisterTranslator("aiAreaLight",
+                                   "cylinder",
+                                   CCylinderLightTranslator::creator,
+                                   CCylinderLightTranslator::NodeInitializer);
+       builtin->RegisterTranslator("aiAreaLight",
+                                   "disk",
+                                   CDiskLightTranslator::creator,
+                                   CDiskLightTranslator::NodeInitializer);
+       // Arnold skyDomeLight node
        builtin->RegisterTranslator("aiSkyDomeLight",
                                    "",
                                    CSkyDomeLightTranslator::creator,

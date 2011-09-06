@@ -153,6 +153,25 @@ void CCylinderLightTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInput("cast_volumetric_shadows");
 }
 
+// Disk AreaLight
+//
+void CDiskLightTranslator::Export(AtNode* light)
+{
+   CLightTranslator::Export(light);
+
+   AiNodeSetBool(light, "affect_volumetrics", FindMayaObjectPlug("aiAffectVolumetrics").asBool());
+   AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaObjectPlug("aiCastVolumetricShadows").asBool());
+}
+
+void CDiskLightTranslator::NodeInitializer(CAbTranslator context)
+{
+   CExtensionAttrHelper helper(context.maya, "disk_light");
+   // common attributes
+   MakeCommonAttributes(helper);
+   helper.MakeInput("affect_volumetrics");
+   helper.MakeInput("cast_volumetric_shadows");
+}
+
 // SkyDomeLight
 //
 void CSkyDomeLightTranslator::GetMatrix(AtMatrix& matrix)
