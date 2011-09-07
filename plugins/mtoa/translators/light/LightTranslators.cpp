@@ -142,6 +142,11 @@ void CCylinderLightTranslator::Export(AtNode* light)
 
    AiNodeSetBool(light, "affect_volumetrics", FindMayaObjectPlug("aiAffectVolumetrics").asBool());
    AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaObjectPlug("aiCastVolumetricShadows").asBool());
+
+   MTransformationMatrix tm(m_dagPath.inclusiveMatrix());
+   double scale[3] = {1.0f, 1.0f, 1.0f};
+   tm.getScale(scale, MSpace::kPreTransform);
+   AiNodeSetFlt(light, "radius", (scale[0]+scale[1])/2.0f);
 }
 
 void CCylinderLightTranslator::NodeInitializer(CAbTranslator context)
@@ -161,6 +166,10 @@ void CDiskLightTranslator::Export(AtNode* light)
 
    AiNodeSetBool(light, "affect_volumetrics", FindMayaObjectPlug("aiAffectVolumetrics").asBool());
    AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaObjectPlug("aiCastVolumetricShadows").asBool());
+   MTransformationMatrix tm(m_dagPath.inclusiveMatrix());
+   double scale[3] = {1.0f, 1.0f, 1.0f};
+   tm.getScale(scale, MSpace::kPreTransform);
+   AiNodeSetFlt(light, "radius", (scale[0]+scale[2])/2.0f);
 }
 
 void CDiskLightTranslator::NodeInitializer(CAbTranslator context)

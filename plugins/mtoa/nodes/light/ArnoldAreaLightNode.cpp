@@ -167,6 +167,9 @@ MStatus CArnoldAreaLightNode::initialize()
    s_intensity = nAttr.create("intensity", "intensity", MFnNumericData::kFloat, 1.0f);
    nAttr.setStorable(true);
    nAttr.setKeyable(true);
+   nAttr.setMin(0);
+   nAttr.setSoftMin(0);
+   nAttr.setSoftMax(10);
    addAttribute(s_intensity);
 
    s_affectDiffuse = nAttr.create("emitDiffuse", "emitDiffuse", MFnNumericData::kBoolean, 1);

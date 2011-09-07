@@ -38,9 +38,8 @@ def aiAreaLightTemplate(nodeName):
     cmds.editorTemplate("aiBounceFactor", addControl=True, label="Bounce Factor")
     cmds.editorTemplate("aiBounces", addControl=True, label="Bounces")
     cmds.editorTemplate("aiSssSamples", addControl=True, label="SSS Samples")
-    
     cmds.editorTemplate(endLayout=True)
-
+    
     # include/call base class/node attributes
     mel.eval('AEdependNodeTemplate "%s"' % nodeName)
     cmds.editorTemplate(suppress="blackBox")
@@ -122,9 +121,7 @@ def aiAreaLightTemplate(nodeName):
     cmds.editorTemplate(suppress="localPosition")
     cmds.editorTemplate(suppress="localScale")
     cmds.editorTemplate(suppress="normalCamera")
-    cmds.editorTemplate(suppress="pointCamera")   
-    cmds.editorTemplate(suppress="aiTranslator")   
-    
+    cmds.editorTemplate(suppress="pointCamera")
     
     cmds.editorTemplate(addExtraControls=True)
     cmds.editorTemplate(endScrollLayout=True)
