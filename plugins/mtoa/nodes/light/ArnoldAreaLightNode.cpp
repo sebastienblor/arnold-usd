@@ -3,11 +3,6 @@
 #include "nodes/ShaderUtils.h"
 #include "nodes/ArnoldNodeIDs.h"
 
-#include <ai_ray.h>
-#include <ai_shader_util.h>
-
-#include <ai_metadata.h>
-
 #include <maya/MFnEnumAttribute.h>
 #include <maya/MFnNumericAttribute.h>
 #include <maya/MFnTypedAttribute.h>

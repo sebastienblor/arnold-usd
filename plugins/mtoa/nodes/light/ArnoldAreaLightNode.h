@@ -1,30 +1,26 @@
 #ifndef ARNOLDAREALIGHTNODE_H
 #define ARNOLDAREALIGHTNODE_H
 
-#if defined(_DARWIN)
-   #include <OpenGL/gl.h>
-   #include <OpenGL/glu.h>
-#else
-   #include <GL/gl.h>
-   #include <GL/glu.h>
-#endif
-
-#include <ai_types.h>
 #include "attributes/AttrHelper.h"
 #include "nodes/ArnoldNodeIDs.h"
 
+#include <maya/MStatus.h>
 #include <maya/MPxLocatorNode.h>
-#include <maya/MString.h>
+#include <maya/MBoundingBox.h>
+#include <maya/MObject.h>
 #include <maya/MTypeId.h>
-#include <maya/MPlug.h>
-#include <maya/MVector.h>
-#include <maya/MDataBlock.h>
-#include <maya/MDataHandle.h>
-#include <maya/MColor.h>
 #include <maya/M3dView.h>
-#include <maya/MFnPlugin.h>
-#include <maya/MDistance.h>
-#include <maya/MFnEnumAttribute.h>
+#include <maya/MPlug.h>
+#include <maya/MDagPath.h>
+#include <maya/MDataBlock.h>
+
+#if defined(_DARWIN)
+   #include <OpenGL/gl.h>
+   #include <OpenGL/glu.h>
+#else 
+   #include <GL/gl.h>
+   #include <GL/glu.h>
+#endif   
 
 class CArnoldAreaLightNode : public MPxLocatorNode
 {
