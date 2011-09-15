@@ -177,6 +177,16 @@ CExtension* CExtensionsManager::LoadExtension(const MString &file,
          // TODO MStatus returning initializeExtension?
          if (MStatus::kSuccess == status)
          {
+            // Info
+            unsigned int newNodes = extension->RegisteredNodesCount();
+            unsigned int trsNodes = extension->TranslatedNodesCount();
+            unsigned int trsCount = extension->TranslatorCount();
+
+            AiMsgInfo("[mtoa] [%s] Declares a total of %i new Maya nodes.",
+                  extension->GetExtensionName().asChar(), newNodes);
+            AiMsgInfo("[mtoa] [%s] Declares a total of %i translators for %i Maya nodes (%i new and %i existing).",
+                  extension->GetExtensionName().asChar(), trsCount, trsNodes, newNodes, trsNodes - newNodes);
+
             AiMsgInfo("[mtoa] Successfully loaded extension library %s(%s).",
                   extension->GetExtensionName().asChar(), extension->GetExtensionFile().asChar());
          }
@@ -326,9 +336,13 @@ MStatus CExtensionsManager::RegisterExtension(CExtension* extension)
          AiMsgWarning("[mtoa] Extension %s requires Maya plugin %s, registering will be deferred until plugin is loaded.",
                extension->GetExtensionName().asChar(), pluginName.asChar());
          extension->m_deferred = true;
-         return status;
+         return MStatus::kNotFound;
       }
    }
+
+   unsigned int regNewNodes = 0;
+   unsigned int regTrsNodes = 0;
+   unsigned int regTrsCount = 0;
 
    // We need to update all global maps with this extension's maps
    // and register the new Maya nodes provided by this extension with Maya
@@ -360,6 +374,7 @@ MStatus CExtensionsManager::RegisterExtension(CExtension* extension)
       {
          std::pair<MayaNodesSet::iterator, bool> ret;
          ret = s_registeredMayaNodes.insert(*mayaNode);
+         regNewNodes++;
       }
       // Update return status
       if (MStatus::kSuccess != nodeStatus)
@@ -384,66 +399,104 @@ MStatus CExtensionsManager::RegisterExtension(CExtension* extension)
    {
       mayaNode = &tnodeIt->first;
       TranslatorsSet &newTrans = tnodeIt->second;
-      TranslatorsSet* oldTrans = FindRegisteredTranslators(*mayaNode);
-      if (NULL == oldTrans)
-      {
-         s_registeredTranslators[*mayaNode] = TranslatorsSet();
-         oldTrans = &s_registeredTranslators[*mayaNode];
-      }
 
-      TranslatorsSet::iterator trsIt;
-      for (trsIt = newTrans.begin();
-            trsIt != newTrans.end();
-            trsIt++)
+      if (newTrans.size() > 0)
       {
-         const CPxTranslator &translator = *trsIt;
-         std::pair<TranslatorsSet::iterator, bool> ret;
-         ret = oldTrans->insert(translator);
-         if (true == ret.second)
+         TranslatorsSet* oldTrans = FindRegisteredTranslators(*mayaNode);
+         if (NULL == oldTrans)
          {
-            AiMsgDebug("[mtoa] [maya %s] Added translator %s provided by %s(%s).",
-                  mayaNode->name.asChar(),
-                  translator.name.asChar(),
-                  translator.provider.asChar(), translator.file.asChar());
+            s_registeredTranslators[*mayaNode] = TranslatorsSet();
+            oldTrans = &s_registeredTranslators[*mayaNode];
+            regTrsNodes++;
          }
-         else
+
+         TranslatorsSet::iterator trsIt;
+         for (trsIt = newTrans.begin();
+               trsIt != newTrans.end();
+               trsIt++)
          {
-            AiMsgDebug("[mtoa] [maya %s] Replaced translator %s provided by %s(%s) with translator %s provided by %s(%s).",
-                  mayaNode->name.asChar(),
-                  translator.name.asChar(),
-                  translator.provider.asChar(), translator.file.asChar(),
-                  ret.first->name.asChar(),
-                  ret.first->provider.asChar(), ret.first->file.asChar());
-            oldTrans->erase(ret.first);
-            oldTrans->insert(translator);
-            // TODO : remove old additionnal attributes before we add new ones ?
+            const CPxTranslator &translator = *trsIt;
+            std::pair<TranslatorsSet::iterator, bool> ret;
+            ret = oldTrans->insert(translator);
+            if (true == ret.second)
+            {
+               AiMsgDebug("[mtoa] [maya %s] Added translator %s provided by %s(%s).",
+                     mayaNode->name.asChar(),
+                     translator.name.asChar(),
+                     translator.provider.asChar(), translator.file.asChar());
+            }
+            else
+            {
+               AiMsgDebug("[mtoa] [maya %s] Replaced translator %s provided by %s(%s) with translator %s provided by %s(%s).",
+                     mayaNode->name.asChar(),
+                     translator.name.asChar(),
+                     translator.provider.asChar(), translator.file.asChar(),
+                     ret.first->name.asChar(),
+                     ret.first->provider.asChar(), ret.first->file.asChar());
+               oldTrans->erase(ret.first);
+               oldTrans->insert(translator);
+               // TODO : remove old additionnal attributes before we add new ones ?
+            }
+            if (NULL != translator.initialize)
+            {
+               translator.initialize(CAbTranslator(translator.name, translator.arnold, mayaNode->name, translator.provider));
+            }
+            regTrsCount++;
          }
-         if (NULL != translator.initialize)
-         {
-            translator.initialize(CAbTranslator(translator.name, translator.arnold, mayaNode->name, translator.provider));
+         // Add aiTranslator if more than one translator
+         if (oldTrans->size() > 1) {
+            CExtensionAttrHelper helper(mayaNode->name);
+            CAttrData data;
+            data.defaultValue.STR = "";
+            data.name = "aiTranslator";
+            data.shortName = "ai_translator";
+            helper.MakeInputString(data);
          }
-      }
-      // Add aiTranslator if more than one translator
-      if (oldTrans->size() > 1) {
-         CExtensionAttrHelper helper(mayaNode->name);
-         CAttrData data;
-         data.defaultValue.STR = "";
-         data.name = "aiTranslator";
-         data.shortName = "ai_translator";
-         helper.MakeInputString(data);
       }
    }
 
+   // Info
+   unsigned int declNewNodes = extension->RegisteredNodesCount();
+   unsigned int declTrsNodes = extension->TranslatedNodesCount();
+   unsigned int declTrsCount = extension->TranslatorCount();
+
+   if (regNewNodes == declNewNodes)
+   {
+      AiMsgDebug("[mtoa] [%s] Successfully registered %i out of %i new Maya nodes it declares.",
+         extension->GetExtensionName().asChar(), regNewNodes, declNewNodes);
+   }
+   else
+   {
+      AiMsgWarning("[mtoa] [%s] Only managed to register %i out of %i new Maya nodes it declares.",
+         extension->GetExtensionName().asChar(), regNewNodes, declNewNodes);
+   }
+   if (regTrsCount == declTrsCount)
+   {
+      AiMsgDebug("[mtoa] [%s] Successfully registered %i out of %i translators it declares.",
+         extension->GetExtensionName().asChar(), regTrsCount, declTrsCount);
+   }
+   else
+   {
+      AiMsgWarning("[mtoa] [%s] Only managed to register %i out of %i translators it declares.",
+         extension->GetExtensionName().asChar(), regTrsCount, declTrsCount);
+   }
+
+   // Final status
    if (MStatus::kSuccess == status)
    {
-      // TODO : add count of registered nodes and translators
       AiMsgInfo("[mtoa] Registered extension %s(%s).", extension->GetExtensionName().asChar(), extension->GetExtensionFile().asChar());
+
       extension->m_registered = true;
       extension->m_deferred = false;
       // Load associated scripts
       MString cmd = "import mtoa.api.extensions;mtoa.api.extensions.loadExtensionUI('" + extension->GetExtensionFile() + "')";
       CHECK_MSTATUS(MGlobal::executePythonCommand(cmd));
    }
+   else
+   {
+      AiMsgError("[mtoa] Could not register extension %s(%s).", extension->GetExtensionName().asChar(), extension->GetExtensionFile().asChar());
+   }
+
    return status;
 }
 
@@ -461,7 +514,8 @@ MStatus CExtensionsManager::RegisterExtensions()
       if (!extIt->IsRegistered() && !extIt->IsDeferred())
       {
          MStatus extStatus = RegisterExtension(&(*extIt));
-         if (MStatus::kSuccess != extStatus) status = extStatus;
+         // Only in case of failure (ignore kNotFound for deferred extensions)
+         if (MStatus::kFailure == extStatus) status = extStatus;
       }
    }
 

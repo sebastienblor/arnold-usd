@@ -349,10 +349,12 @@ MStatus CExtension::RegisterPluginNodesAndTranslators(const MString &plugin)
 
    // Arnold api doc says AiNodeEntryGetFilename returns <buit-in> for
    // built-in nodes, but it seems to return an empty string.
-   if (plugin.numChars() == 0)
-      AiMsgDebug("[mtoa] [%s] Registering new Maya nodes and translators for built-in nodes.", m_extensionName.asChar());
-   else
-      AiMsgDebug("[mtoa] [%s] Registering new Maya nodes and translators for Arnold plugin %s.", m_extensionName.asChar(), plugin.asChar());
+   MString pluginName = (plugin.numChars()==0) ? "built-in nodes" : MString("plugin ") + plugin;
+   AiMsgDebug("[mtoa] [%s] Generating new Maya nodes and translators for Arnold %s.", m_extensionName.asChar(), pluginName.asChar());
+
+   unsigned int prevNewNodes = RegisteredNodesCount();
+   unsigned int prevTrsNodes = TranslatedNodesCount();
+   unsigned int prevTrsCount = TranslatorCount();
 
    AtNodeEntryIterator* nodeIter = AiUniverseGetNodeEntryIterator(AI_NODE_ALL);
    while (!AiNodeEntryIteratorFinished(nodeIter))
@@ -421,13 +423,14 @@ MStatus CExtension::RegisterPluginNodesAndTranslators(const MString &plugin)
    AiNodeEntryIteratorDestroy(nodeIter);
 
    // Info
-   AiMsgInfo("[mtoa] [%s] Registered %i new Maya nodes.",
-         m_extensionName.asChar(), RegisteredNodesCount());
+   unsigned int newNodes = RegisteredNodesCount() - prevNewNodes;
+   unsigned int trsNodes = TranslatedNodesCount() - prevTrsNodes;
+   unsigned int trsCount = TranslatorCount() - prevTrsCount;
 
-   unsigned int newNodes = RegisteredNodesCount();
-   unsigned int trsNodes = TranslatedNodesCount();
-   AiMsgInfo("[mtoa] [%s] Registered a total of %i translators for %i Maya nodes (%i new and %i existing).",
-         m_extensionName.asChar(), TranslatorCount(), trsNodes, newNodes, trsNodes - newNodes);
+   AiMsgInfo("[mtoa] [%s] Generated %i new Maya nodes for Arnold %s.",
+         m_extensionName.asChar(), newNodes, pluginName.asChar());
+   AiMsgInfo("[mtoa] [%s] Generated %i translators for %i Maya nodes (%i new and %i existing) for Arnold %s.",
+         m_extensionName.asChar(), trsCount, trsNodes, newNodes, trsNodes - newNodes, pluginName.asChar());
 
    return status;
 }
