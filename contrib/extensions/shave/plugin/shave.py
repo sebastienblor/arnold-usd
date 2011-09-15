@@ -1,8 +1,8 @@
 import maya.cmds as cmds
 from mtoa.ui.ae.customShapeAttributes import commonShapeAttributes, renderStatsAttributes
-from mtoa.ui.ae.shapeTemplate import registerUI
+from mtoa.ui.ae.shapeTemplate import translatorUI
 
-@registerUI("shaveHair")
+@translatorUI("shaveHair")
 def builtin_hairSystem(ui):
     renderStatsAttributes(ui)
     commonShapeAttributes(ui)

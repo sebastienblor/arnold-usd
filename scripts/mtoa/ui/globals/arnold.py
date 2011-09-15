@@ -1,5 +1,5 @@
 import pymel.core as pm
-from mtoa.ui.ae.shapeTemplate import createTranslatorUI
+from mtoa.ui.ae.shapeTemplate import createTranslatorUI, createTranslatorMenu
 from mtoa.callbacks import *
 
 def updateRenderSettings(*args):
@@ -356,7 +356,7 @@ def createArnoldSamplingSettings():
 #    pm.rowLayout(numberOfColumns=2, columnWidth=(1, 80))
 #    pm.separator(style='none')
 
-    createTranslatorUI('defaultArnoldRenderOptions.filterType',
+    createTranslatorMenu('defaultArnoldRenderOptions.filterType',
                        label='Filter Type',
                        nodeType='<filter>',
                        default='gaussian')

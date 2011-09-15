@@ -1,8 +1,8 @@
-import maya.cmds as cmds
+import pymel.core as pm
 import maya.OpenMaya as om
 import mtoa.ui.ae.lightTemplate as lightTemplate
 from mtoa.ui.ae.utils import aeCallback
-from mtoa.ui.ae.shapeTemplate import registerUI, registerDefaultTranslator, ArnoldTranslatorTemplate, AutoTranslatorTemplate, registerTranslatorUI
+import mtoa.ui.ae.shapeTemplate as templates
 import mtoa.callbacks as callbacks
 import mtoa.core as core
 
@@ -19,22 +19,21 @@ def commonShapeAttributes(ui):
     ui.addAttribute("aiVisibleInDiffuse")
     ui.addAttribute("aiVisibleInGlossy")
 
-
 def subdivDicingCameraNew(attrName):
-    cmds.setUITemplate('attributeEditorTemplate', pst=True)
-    cmds.attrNavigationControlGrp( 'aiSubdivDicingCameraCtrl',
+    pm.setUITemplate('attributeEditorTemplate', pst=True)
+    pm.attrNavigationControlGrp( 'aiSubdivDicingCameraCtrl',
                                     at=attrName,
                                     label="Subdivision Dicing Camera" )
-    cmds.setUITemplate(ppt=True)
+    pm.setUITemplate(ppt=True)
 
 def subdivDicingCameraReplace(attrName):
-    cmds.attrNavigationControlGrp(  'aiSubdivDicingCameraCtrl', edit=True,
+    pm.attrNavigationControlGrp(  'aiSubdivDicingCameraCtrl', edit=True,
                                     at=attrName )
-    # cmds.editorTemplate("aiSubdivDicingCamera", label="Subdivision Dicing Camera", addDynamicControl=True)
-    cmds.editorTemplate(aeCallback(subdivDicingCameraNew), aeCallback(subdivDicingCameraReplace), "aiSubdivDicingCamera", callCustom=True)
+    # pm.editorTemplate("aiSubdivDicingCamera", label="Subdivision Dicing Camera", addDynamicControl=True)
+    pm.editorTemplate(aeCallback(subdivDicingCameraNew), aeCallback(subdivDicingCameraReplace), "aiSubdivDicingCamera", callCustom=True)
 
 
-@registerUI("mesh", "<built-in>")
+@templates.translatorUI("mesh", "<built-in>")
 def builtin_mesh(ui):
     commonShapeAttributes(ui)
     ui.addSeparator()
@@ -51,14 +50,14 @@ def builtin_mesh(ui):
     ui.addSeparator()
     ui.addAttribute("aiExportTangents")
     ui.addAttribute("aiExportColors")
-    #cmds.editorTemplate("aiExportHairIDs", label="Export Hair IDs", addDynamicControl=True)
+    #pm.editorTemplate("aiExportHairIDs", label="Export Hair IDs", addDynamicControl=True)
     # FIXME: these are not on the shape node!
 #    ui.addSeparator()
 #
 #    ui.addAttribute("enableProcedural")
 #    ui.addAttribute("dso")
 
-@registerUI("hairSystem", "<built-in>")
+@templates.translatorUI("hairSystem", "<built-in>")
 def builtin_hairSystem(ui):
     commonShapeAttributes(ui)
     ui.addSeparator()
@@ -75,7 +74,7 @@ class AmbientLightTemplate(lightTemplate.LightTemplate):
 
     def setup(self):
         self.commonLightAttributes()
-registerTranslatorUI(AmbientLightTemplate, "ambientLight")
+templates.registerTranslatorUI(AmbientLightTemplate, "ambientLight")
 
 class DirectionalLightTemplate(lightTemplate.LightTemplate):
     # TODO: handle filter association via metadata
@@ -89,7 +88,7 @@ class DirectionalLightTemplate(lightTemplate.LightTemplate):
         self.addAttribute("aiMis", label="Multiple Importance Sampling")
         self.addSeparator()
         self.commonLightAttributes()
-registerTranslatorUI(DirectionalLightTemplate, "directionalLight")
+templates.registerTranslatorUI(DirectionalLightTemplate, "directionalLight")
 
 class PointLightTemplate(lightTemplate.LightTemplate):
     # TODO: handle filter association via metadata
@@ -106,7 +105,7 @@ class PointLightTemplate(lightTemplate.LightTemplate):
         self.addAttribute("aiCastVolumetricShadows")
         self.addSeparator()
         self.commonLightAttributes()
-registerTranslatorUI(PointLightTemplate, "pointLight")
+templates.registerTranslatorUI(PointLightTemplate, "pointLight")
 
 class SpotLightTemplate(lightTemplate.LightTemplate):
     # TODO: handle filter association via metadata
@@ -132,7 +131,7 @@ class SpotLightTemplate(lightTemplate.LightTemplate):
         self.addSeparator()
 
         self.commonLightAttributes()
-registerTranslatorUI(SpotLightTemplate, "spotLight")
+templates.registerTranslatorUI(SpotLightTemplate, "spotLight")
 
 class AreaLightTemplate(lightTemplate.LightTemplate):
     # TODO: handle filter association via metadata
@@ -155,9 +154,9 @@ class AreaLightTemplate(lightTemplate.LightTemplate):
 
         self.commonLightAttributes()
 
-registerTranslatorUI(AreaLightTemplate, "areaLight")
+templates.registerTranslatorUI(AreaLightTemplate, "areaLight")
 
-class CameraTemplate(ArnoldTranslatorTemplate):
+class CameraTemplate(templates.ArnoldTranslatorTemplate):
     def addDOFAttributes(self):
         self.addAttribute("aiEnableDOF")
         self.addSeparator()
@@ -173,16 +172,16 @@ class PerspCameraTemplate(CameraTemplate):
         self.addSeparator()
         self.addAttribute('aiUvRemap')
 
-registerTranslatorUI(PerspCameraTemplate, "camera", "perspective")
-registerTranslatorUI(PerspCameraTemplate, "stereoRigCamera", "perspective")
+templates.registerTranslatorUI(PerspCameraTemplate, "camera", "perspective")
+templates.registerTranslatorUI(PerspCameraTemplate, "stereoRigCamera", "perspective")
 
 
 class OrthographicTemplate(CameraTemplate):
     def setup(self):
         pass
 
-registerTranslatorUI(OrthographicTemplate, "camera", "orthographic")
-registerTranslatorUI(OrthographicTemplate, "stereoRigCamera", "orthographic")
+templates.registerTranslatorUI(OrthographicTemplate, "camera", "orthographic")
+templates.registerTranslatorUI(OrthographicTemplate, "stereoRigCamera", "orthographic")
 
 class FisheyeCameraTemplate(CameraTemplate):
     def setup(self):
@@ -191,8 +190,8 @@ class FisheyeCameraTemplate(CameraTemplate):
         self.addAttribute('aiFov')
         self.addAttribute('aiAutocrop')
 
-registerTranslatorUI(FisheyeCameraTemplate, "camera", "fisheye")
-registerTranslatorUI(FisheyeCameraTemplate, "stereoRigCamera", "fisheye")
+templates.registerTranslatorUI(FisheyeCameraTemplate, "camera", "fisheye")
+templates.registerTranslatorUI(FisheyeCameraTemplate, "stereoRigCamera", "fisheye")
 
 class CylCameraTemplate(CameraTemplate):
     def setup(self):
@@ -200,8 +199,8 @@ class CylCameraTemplate(CameraTemplate):
         self.addAttribute('aiVerticalFov')
         self.addAttribute('aiProjective')
 
-registerTranslatorUI(CylCameraTemplate, "camera", "cylindrical")
-registerTranslatorUI(CylCameraTemplate, "stereoRigCamera", "cylindrical")
+templates.registerTranslatorUI(CylCameraTemplate, "camera", "cylindrical")
+templates.registerTranslatorUI(CylCameraTemplate, "stereoRigCamera", "cylindrical")
 
 def cameraOrthographicChanged(orthoPlug, *args):
     "called to sync .aiTranslator when .orthographic changes"
@@ -217,8 +216,8 @@ def cameraOrthographicChanged(orthoPlug, *args):
         newTrans = 'perspective'
     #print "newTrans", newTrans
     if newTrans:
-        if cmds.optionMenuGrp('aiTranslatorOMG', exists=True):
-            cmds.optionMenuGrp('aiTranslatorOMG', edit=True, value=newTrans)
+        if pm.optionMenuGrp('aiTranslatorOMG', exists=True):
+            pm.optionMenuGrp('aiTranslatorOMG', edit=True, value=newTrans)
         transPlug.setString(newTrans)
 
 def cameraTranslatorChanged(transPlug, *args):
@@ -241,11 +240,11 @@ def cameraTranslatorChanged(transPlug, *args):
             orthoPlug.setBool(False)
 
 def getCameraDefault(cam):
-    default = 'orthographic' if cmds.getAttr(cam + '.orthographic') else 'perspective'
+    default = 'orthographic' if pm.getAttr(cam + '.orthographic') else 'perspective'
     return default
 
-registerDefaultTranslator('camera', getCameraDefault)
-registerDefaultTranslator('stereoRigCamera', getCameraDefault)
+templates.registerDefaultTranslator('camera', getCameraDefault)
+templates.registerDefaultTranslator('stereoRigCamera', getCameraDefault)
 
 print "Adding attribute changed callback for camera"
 callbacks.addAttributeChangedCallbacks('camera',
@@ -260,19 +259,19 @@ def registerDriverTemplates():
     # register driver templates
     for transName, arnoldNode in core.listTranslators("<driver>"):
         transName = str(transName) # doesn't like unicode
-        cls = type('Driver_%sTemplate' % transName, (AutoTranslatorTemplate,), dict(_arnoldNodeType=arnoldNode))
-        registerTranslatorUI(cls, "<driver>", transName)
+        cls = type('Driver_%sTemplate' % transName, (templates.AutoTranslatorTemplate,), dict(_arnoldNodeType=arnoldNode))
+        templates.registerTranslatorUI(cls, "<driver>", transName)
     
-    #registerDefaultTranslator('<driver>', 'exr')
+    #templates.registerDefaultTranslator('<driver>', 'exr')
 
 def registerFilterTemplates():
     # register driver templates
     for transName, arnoldNode in core.listTranslators("<filter>"):
         transName = str(transName) # doesn't like unicode
-        cls = type('Filter_%sTemplate' % transName, (AutoTranslatorTemplate,), dict(_arnoldNodeType=arnoldNode))
-        registerTranslatorUI(cls, "<filter>", transName)
+        cls = type('Filter_%sTemplate' % transName, (templates.AutoTranslatorTemplate,), dict(_arnoldNodeType=arnoldNode))
+        templates.registerTranslatorUI(cls, "<filter>", transName)
 
-    #registerDefaultTranslator('<filter>', 'gaussian')
+    #templates.registerDefaultTranslator('<filter>', 'gaussian')
 
 registerDriverTemplates()
 registerFilterTemplates()
