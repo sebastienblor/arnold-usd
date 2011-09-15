@@ -1217,8 +1217,12 @@ void CDagTranslator::GetRotationMatrix(AtMatrix& matrix)
 
 void CDagTranslator::GetMatrix(AtMatrix& matrix)
 {
-   MMatrix tm = m_dagPath.inclusiveMatrix();
-
+   MStatus stat;
+   MMatrix tm = m_dagPath.inclusiveMatrix(&stat);
+   if (MStatus::kSuccess != stat)
+   {
+      AiMsgError("Failed to get transformation matrix for %s",  m_dagPath.partialPathName().asChar());
+   }
    for (int J = 0; (J < 4); ++J)
    {
       for (int I = 0; (I < 4); ++I)

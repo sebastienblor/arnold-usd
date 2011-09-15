@@ -11,7 +11,8 @@ public:
    AtNode* CreateArnoldNodes();
    void Export(AtNode*);
    void Update(AtNode*);
-   void CApiShapeTranslator::ExportMotion(AtNode*, AtUInt);
+   void ExportMotion(AtNode*, AtUInt);
+   static void NodeInitializer(CAbTranslator);
    static void* creator();
 };
 
@@ -53,6 +54,12 @@ void CApiShapeTranslator::ExportMotion(AtNode* shape, AtUInt step)
    ExportMatrix(shape, step);
 }
 
+void CApiShapeTranslator::NodeInitializer(CAbTranslator context)
+{
+   CExtensionAttrHelper helper(context.maya, "box");
+   CShapeTranslator::MakeCommonAttributes(helper);
+}
+
 void* CApiShapeTranslator::creator()
 {
    return new CApiShapeTranslator();
@@ -65,7 +72,10 @@ DLLEXPORT void initializeExtension(CExtension& extension)
 {
    MStatus status;
    extension.Requires("apiMeshShape");
-   status = extension.RegisterTranslator("apiMesh", "", CApiShapeTranslator::creator);
+   status = extension.RegisterTranslator( "apiMesh",
+                                          "",
+                                          CApiShapeTranslator::creator,
+                                          CApiShapeTranslator::NodeInitializer);
 }
 
 DLLEXPORT void deinitializeExtension(CExtension& extension)
