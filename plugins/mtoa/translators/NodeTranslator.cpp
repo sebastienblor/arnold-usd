@@ -126,13 +126,6 @@ AtNode* CNodeTranslator::DoExport(AtUInt step)
 
          ExportMotion(m_atNode, step);
       }
-
-      // Add Update callbacks on last step
-      if (step == (GetNumMotionSteps()-1) &&
-          GetSessionMode() == MTOA_SESSION_IPR)
-      {
-         AddUpdateCallbacks();
-      }
    }
    return m_atNode;
 }
@@ -157,13 +150,6 @@ AtNode* CNodeTranslator::DoUpdate(AtUInt step)
       }
       else if (RequiresMotionData())
          UpdateMotion(m_atNode, step);
-
-      // Add Update callbacks on last step
-      if (step == (GetNumMotionSteps()-1) &&
-            GetSessionMode() == MTOA_SESSION_IPR)
-      {
-         AddUpdateCallbacks();
-      }
    }
    else
    {
