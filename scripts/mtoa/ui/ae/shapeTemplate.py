@@ -352,7 +352,10 @@ class TranslatorControl(BaseTemplate):
                     cmds.warning("cannot find default translator for %s" % nodeName)
                     return
                 transName = translators[0]
-            cmds.setAttr(nodeName + "." + self._attr, transName, type='string')
+            try :
+                cmds.setAttr(nodeName + "." + self._attr, transName, type='string')
+            except :
+                cmds.warning("cannot set default translator for %s" % nodeName)
         return transName
 
     def updateChildrenCallback(self, attr):
