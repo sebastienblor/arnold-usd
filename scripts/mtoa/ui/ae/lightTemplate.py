@@ -3,7 +3,7 @@ import maya.mel as mel
 import mtoa.ui.ae.utils as aeUtils
 import mtoa.core as core
 from mtoa.callbacks import *
-from mtoa.ui.ae.shapeTemplate import ArnoldTranslatorTemplate
+from mtoa.ui.ae.shapeTemplate import AttributeTemplate
 from mtoa.utils import prettify
 import mtoa.callbacks as callbacks
 
@@ -108,7 +108,7 @@ class LightFilterWindow(object):
         filterNodeType = dict(self.filters())[filterLabels]
         self.template.addLightFilter(filterNodeType)
 
-class LightTemplate(ArnoldTranslatorTemplate):
+class LightTemplate(AttributeTemplate):
     MENU_NODE_TYPE = 0
     MENU_NODE_INSTANCE = 1
     def __init__(self, nodeType):

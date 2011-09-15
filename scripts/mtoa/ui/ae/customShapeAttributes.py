@@ -6,66 +6,53 @@ import mtoa.ui.ae.shapeTemplate as templates
 import mtoa.callbacks as callbacks
 import mtoa.core as core
 
-def renderStatsAttributes(ui):
-    ui.addControl("castsShadows")
-    ui.addControl("receiveShadows")
-    ui.addControl("primaryVisibility")
-    ui.addControl("visibleInReflections")
-    ui.addControl("visibleInRefractions")
-
-def commonShapeAttributes(ui):
-    ui.addControl("aiSelfShadows")
-    ui.addControl("aiOpaque")
-    ui.addControl("aiVisibleInDiffuse")
-    ui.addControl("aiVisibleInGlossy")
-
-def subdivDicingCameraNew(attrName):
-    pm.setUITemplate('attributeEditorTemplate', pst=True)
-    pm.attrNavigationControlGrp( 'aiSubdivDicingCameraCtrl',
+class MeshTemplate(templates.ShapeTranslatorTemplate):
+    def subdivDicingCameraNew(self, attrName):
+        pm.setUITemplate('attributeEditorTemplate', pst=True)
+        pm.attrNavigationControlGrp('aiSubdivDicingCameraCtrl',
                                     at=attrName,
                                     label="Subdivision Dicing Camera" )
-    pm.setUITemplate(ppt=True)
-
-def subdivDicingCameraReplace(attrName):
-    pm.attrNavigationControlGrp(  'aiSubdivDicingCameraCtrl', edit=True,
+        pm.setUITemplate(ppt=True)
+    
+    def subdivDicingCameraReplace(self, attrName):
+        pm.attrNavigationControlGrp('aiSubdivDicingCameraCtrl', edit=True,
                                     at=attrName )
-    # pm.editorTemplate("aiSubdivDicingCamera", label="Subdivision Dicing Camera", addDynamicControl=True)
-    pm.editorTemplate(aeCallback(subdivDicingCameraNew), aeCallback(subdivDicingCameraReplace), "aiSubdivDicingCamera", callCustom=True)
+        # pm.editorTemplate("aiSubdivDicingCamera", label="Subdivision Dicing Camera", addDynamicControl=True)
+        #pm.editorTemplate(aeCallback(self.subdivDicingCameraNew), aeCallback(self.subdivDicingCameraReplace), "aiSubdivDicingCamera", callCustom=True)
 
+    def setup(self):
+        self.commonShapeAttributes()
+        self.addSeparator()
+        self.addControl("aiSubdivType", label="Subdivision Type")
+        self.addControl("aiSubdivIterations", label="Subdivision Iterations")
+        self.addControl("aiSubdivAdaptiveMetric", label="Subdivision Adaptive Metric")
+        self.addControl("aiSubdivPixelError", label="Subdivision Pixel Error")
+        # TODO: add dicing camera UI
+        self.addControl("aiSubdivDicingCamera", label="Subdivision Dicing Camera")
+        self.addControl("aiSubdivUvSmoothing", label="Subdivision UVs Smoothing")
+        self.addSeparator()
+        self.addControl("aiSssSampleDistribution", label="SSS Samples Distribution")
+        self.addControl("aiSssSampleSpacing", label="SSS Sample Spacing")
+        self.addSeparator()
+        self.addControl("aiExportTangents")
+        self.addControl("aiExportColors")
+        #pm.editorTemplate("aiExportHairIDs", label="Export Hair IDs", addDynamicControl=True)
+        # FIXME: these are not on the shape node!
+#       ui.addSeparator()
+#       ui.addControl("enableProcedural")
+#       ui.addControl("dso")
+templates.registerTranslatorUI(MeshTemplate, "mesh", "<built-in>")
 
-@templates.translatorUI("mesh", "<built-in>")
-def builtin_mesh(ui):
-    commonShapeAttributes(ui)
-    ui.addSeparator()
-    ui.addControl("aiSubdivType", label="Subdivision Type")
-    ui.addControl("aiSubdivIterations", label="Subdivision Iterations")
-    ui.addControl("aiSubdivAdaptiveMetric", label="Subdivision Adaptive Metric")
-    ui.addControl("aiSubdivPixelError", label="Subdivision Pixel Error")
-    # TODO: add dicing camera UI
-    ui.addControl("aiSubdivDicingCamera", label="Subdivision Dicing Camera")
-    ui.addControl("aiSubdivUvSmoothing", label="Subdivision UVs Smoothing")
-    ui.addSeparator()
-    ui.addControl("aiSssSampleDistribution", label="SSS Samples Distribution")
-    ui.addControl("aiSssSampleSpacing", label="SSS Sample Spacing")
-    ui.addSeparator()
-    ui.addControl("aiExportTangents")
-    ui.addControl("aiExportColors")
-    #pm.editorTemplate("aiExportHairIDs", label="Export Hair IDs", addDynamicControl=True)
-    # FIXME: these are not on the shape node!
-#    ui.addSeparator()
-#
-#    ui.addControl("enableProcedural")
-#    ui.addControl("dso")
-
-@templates.translatorUI("hairSystem", "<built-in>")
-def builtin_hairSystem(ui):
-    commonShapeAttributes(ui)
-    ui.addSeparator()
-    ui.addControl("aiOverrideHair")
-    ui.addControl("aiHairShader")
-    ui.addSeparator()
-    ui.addControl("aiMinPixelWidth")
-    ui.addControl("aiMode")
+class HairSystemTemplate(templates.ShapeTranslatorTemplate):
+    def setup(self):
+        self.commonShapeAttributes()
+        self.addSeparator()
+        self.addControl("aiOverrideHair")
+        self.addControl("aiHairShader")
+        self.addSeparator()
+        self.addControl("aiMinPixelWidth")
+        self.addControl("aiMode")
+templates.registerTranslatorUI(HairSystemTemplate, "hairSystem", "<built-in>")
 
 class AmbientLightTemplate(lightTemplate.LightTemplate):
     # TODO: handle filter association via metadata
@@ -156,7 +143,7 @@ class AreaLightTemplate(lightTemplate.LightTemplate):
 
 templates.registerTranslatorUI(AreaLightTemplate, "areaLight")
 
-class CameraTemplate(templates.ArnoldTranslatorTemplate):
+class CameraTemplate(templates.AttributeTemplate):
     def addDOFAttributes(self):
         self.addControl("aiEnableDOF")
         self.addSeparator()

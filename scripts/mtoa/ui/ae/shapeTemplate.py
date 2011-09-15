@@ -35,20 +35,31 @@ def registerDefaultTranslator(nodeType, stringOrFunc):
 
     # to register a default translator, we need to create a TranslatorControl instance for this
     # node type.
+    if isinstance(stringOrFunc, basestring):
+        func = lambda node: stringOrFunc
+    elif callable(stringOrFunc):
+        func = staticmethod(stringOrFunc)
+    else:
+        cmds.warning("[mtoa] you must pass a string or a function to registerDefaultTranslator")
+        return
 
+    global _templates
     try:
-        inst = _templates[nodeType]
-        inst.setDefaultTranslator(stringOrFunc)
+        cls = _templates[nodeType]
     except KeyError:
-        inst = TranslatorControl(nodeType, default=stringOrFunc)
-        _templates[nodeType] = inst
+        cls = type('%s_TransControl' % nodeType, (TranslatorControl,), {})
+        # FIXME:
+        cls._nodeType = nodeType
+        _templates[nodeType] = cls
+
+    cls.getDefaultTranslator = func
 
     # set defaults for existing nodes
     for node in cmds.ls(exactType=nodeType):
         # this will set aiTranslator if it is not set
-        inst.getCurrentTranslator(node)
+        cls.getCurrentTranslator(node)
 
-    callbacks.addNodeAddedCallback(inst._doSetDefaultTranslator, nodeType)
+    callbacks.addNodeAddedCallback(cls._doSetDefaultTranslator, nodeType)
 
 
 #-------------------------------------------------
@@ -129,11 +140,11 @@ class BaseTemplate(object):
         if currParent is not None and currParent != '' :
             cmds.setParent(currParent)
 
-    def attachToAE(self, controlAttr='aiTranslator'):
+    def attachToAE(self):
         "add the appropriate callbacks to the editor template"
         cmds.editorTemplate(aeCallback(lambda attr: self._doBuild(attr.split('.')[0])),
                             aeCallback(lambda attr: self._doUpdate(attr.split('.')[0])),
-                            controlAttr,
+                            'message',
                             callCustom=True)
 
 def controlBuilder(func):
@@ -142,7 +153,6 @@ def controlBuilder(func):
     that the wrapped function implements is delayed until the AttributeTemplate.build() is called
     """
     def wrapped(self, *args, **kwargs):
-        print "running wrapped", func.__name__, self, args, kwargs
         self._builders.append((func, args, kwargs))
     wrapped.__name__ = func.__name__
     wrapped.__doc__ = func.__doc__
@@ -232,9 +242,17 @@ class AttributeTemplate(BaseTemplate):
         self._layoutStack.pop()
         cmds.setParent(self._layoutStack[-1])
 
-    def attachToAE(self, controlAttr='aiTranslator'):
+    # for compatibility with pymel.core.uitypes.AETemplate
+    def beginNoOptimize(self):
+        pass
+
+    # for compatibility with pymel.core.uitypes.AETemplate
+    def endNoOptimize(self):
+        pass
+
+    def attachToAE(self):
         "add the appropriate callbacks to the editor template"
-        super(AttributeTemplate, self).attachToAE(controlAttr)
+        super(AttributeTemplate, self).attachToAE()
 #        for attr in self.getAttributes():
 #            cmds.editorTemplate(suppress=attr)
 
@@ -246,6 +264,11 @@ class AttributeEditorTemplate(pm.uitypes.AETemplate):
     def addCustom(self, attr, newFunc, replaceFunc):
         self.callCustom(newFunc, replaceFunc, attr)
 
+    def attachToAE(self):
+        pass
+    
+    def attachToUI(self):
+        raise TypeError("This template can only be used in the Attribute Editor")
 #
 #class AttributeEditorTemplate(AttributeTemplate):
 #    def addSwatch(self):
@@ -271,16 +294,34 @@ class AttributeEditorTemplate(pm.uitypes.AETemplate):
 #        '''
 #        cmds.editorTemplate(addExtraControls=True)
 
-class ArnoldTranslatorTemplate(AttributeEditorTemplate):
+class ShapeMixin(object):
+    def renderStatsAttributes(self):
+        self.addControl("castsShadows")
+        self.addControl("receiveShadows")
+        self.addControl("primaryVisibility")
+        self.addControl("visibleInReflections")
+        self.addControl("visibleInRefractions")
+
+    def commonShapeAttributes(self):
+        self.addControl("aiSelfShadows")
+        self.addControl("aiOpaque")
+        self.addControl("aiVisibleInDiffuse")
+        self.addControl("aiVisibleInGlossy")
+
+class ShapeAETemplate(AttributeEditorTemplate):
     pass
 
-#class ArnoldTranslatorTemplate(AttributeTemplate):
+class ShapeTranslatorTemplate(AttributeTemplate):
+    pass
+
+
+#class AttributeTemplate(AttributeTemplate):
 #    """
 #    To implement an AE template for a custom translator, create a subclass of this class and
 #    register it using registerTranslatorUI
 #    """
 #    def __init__(self, nodeType):
-#        super(ArnoldTranslatorTemplate, self).__init__(nodeType)
+#        super(AttributeTemplate, self).__init__(nodeType)
 #        self._keyableDefaults = {}
 #
 #    def showInChannelBox(self, enabled):
@@ -334,14 +375,18 @@ class TranslatorControl(BaseTemplate):
     each node that has registered arnold translator UIs. Manually creating a TranslatorControl is only necessary if you
     need to customize the default controller behavior.
     '''
+    _attr = 'aiTranslator'
+    _default = None
     def __init__(self, nodeType, label='Arnold Translator', controlAttr='aiTranslator', default=None, optionMenuName=None):
         super(TranslatorControl, self).__init__(nodeType)
-        self._attr = controlAttr
         self._optionMenu = optionMenuName if optionMenuName is not None else controlAttr + "OMG"
         self._translators = None
         self._nodeName = None
         self._nodeType = nodeType
         self._label = label
+
+        # class attributes
+        self._attr = controlAttr
         if not (default is None or isinstance(default, basestring) or callable(default)):
             cmds.warning("[mtoa] default translator must be a string or a function")
             return
@@ -349,20 +394,23 @@ class TranslatorControl(BaseTemplate):
 
     #---- translator methods
 
-    def _doSetDefaultTranslator(self, node):
+    @classmethod
+    def _doSetDefaultTranslator(cls, node):
         try:
-            node.attr(self._attr).set(self.getDefaultTranslator(node))
+            cmds.setAttr(node + '.' + cls._attr, cls.getDefaultTranslator(node), type='string')
         except RuntimeError:
             cmds.warning("failed to set default translator for %s" % node.name())
 
-    def setDefaultTranslator(self, default):
-        self._default = default
-            
-    def getDefaultTranslator(self, node):
-        if isinstance(self._default, basestring):
-            return self._default
-        elif callable(self._default):
-            return self._default(node)
+    @classmethod
+    def setDefaultTranslator(cls, default):
+        cls._default = default
+
+    @classmethod
+    def getDefaultTranslator(cls, node):
+        if isinstance(cls._default, basestring):
+            return cls._default
+        elif callable(cls._default):
+            return cls._default(node)
 
     def getCurrentTranslator(self, nodeName):
         """
@@ -428,7 +476,7 @@ class TranslatorControl(BaseTemplate):
                                  visible=(label == currentTranslator))
         # FIXME: this needs a check for read-only nodes from referenced files. also, not sure
         # changing attribute properties is the best approach
-        #ArnoldTranslatorTemplate.syncChannelBox(nodeName, nodeType, currentTranslator)
+        #AttributeTemplate.syncChannelBox(nodeName, nodeType, currentTranslator)
         # last child is the 'hide_me' control that always needs to be hidden
         cmds.layout(children[-1], edit=True, visible=False)
 
@@ -508,7 +556,7 @@ class TranslatorControl(BaseTemplate):
                                       adjustableColumn=True,
                                       #columnAttach=("both", 0)
                                       )
-                    template.attachToUI(nodeName)
+                    template(self.nodeType()).attachToUI(nodeName)
                     cmds.setParent(mainCol)
                 # for compatibility with AE templates
                 cmds.columnLayout()
@@ -517,7 +565,7 @@ class TranslatorControl(BaseTemplate):
                 self.updateMenu(nodeName)
             else:
                 translator, template = translatorTemplates[0]
-                template.attachToUI(nodeName)
+                template(self.nodeType()).attachToUI(nodeName)
             cmds.setParent(mainCol)
             cmds.setParent('..')
 
@@ -534,35 +582,30 @@ class TranslatorControl(BaseTemplate):
                 for translator, template in translatorTemplates:
                     # we always create a layout, even if it's empty
                     cmds.editorTemplate(beginLayout=translator, collapse=False)
-                    template.attachToAE(self._attr)
+                    template(self.nodeType()).attachToAE()
                     cmds.editorTemplate(endLayout=True)
                 # timing on AE's is difficult: the frameLayouts are not created at this point even though
                 # the `editorTemplate -beginLayout` calls have been made. this is a little hack
                 # to ensure we get a callback after the AE ui elements have been built: normal controls can get
                 # an update callback, but we don't have any normal controls around, so we'll have to make one and
                 # hide it
-                cmds.editorTemplate(self._attr,
+                cmds.editorTemplate('message',
                                     aeCallback(self.updateChildrenCallback),
                                     addDynamicControl=True, label='hide_me')
             else:
                 translator, template = translatorTemplates[0]
-                template.attachToAE(translator)
+                template(self.nodeType()).attachToAE()
             cmds.editorTemplate(endLayout=True)
 
-#class DriverTranslatorControl(TranslatorControl):
-#    def __init__(self, controlAttr='imageType', optionMenuName=None):
-#        TranslatorControl.__init__(self, controlAttr, optionMenuName)
-
-
-def registerAETemplate(templateClass, nodeType):
-    assert inspect.isclass(templateClass) and issubclass(templateClass, ArnoldTranslatorTemplate), \
-        "you must pass a subclass of ArnoldTranslatorTemplate"
-    inst = templateClass(nodeType)
+def registerAETemplate(templateClass, nodeType, ignoreDupes=True):
+#    assert inspect.isclass(templateClass) and issubclass(templateClass, AttributeTemplate), \
+#        "you must pass a subclass of AttributeTemplate"
+    #inst = templateClass(nodeType)
     print "registering attribute template for %s" % nodeType
     global _templates
-    _templates[nodeType] = inst
+    _templates[nodeType] = templateClass
 
-def aeTemplate(nodeType, baseClass=ArnoldTranslatorTemplate):
+def aeTemplate(nodeType, baseClass=AttributeTemplate):
     """
     decorator
     """
@@ -576,22 +619,25 @@ def aeTemplate(nodeType, baseClass=ArnoldTranslatorTemplate):
 def registerTranslatorUI(templateClass, nodeType, translatorName='<built-in>'):
     """
     a translator UI is a specialized attribute template based on the
-    ArnoldTranslatorTemplate class.
+    AttributeTemplate class.
     """
     global _translatorTemplates
-    assert inspect.isclass(templateClass) and issubclass(templateClass, ArnoldTranslatorTemplate),\
-        "you must pass a subclass of ArnoldTranslatorTemplate"
+#    assert inspect.isclass(templateClass) and issubclass(templateClass, AttributeTemplate),\
+#        "you must pass a subclass of AttributeTemplate"
     print "registering translator template for %s on %s" % (translatorName, nodeType)
 
-    template = templateClass(nodeType)
-    _translatorTemplates[nodeType][translatorName] = template
+    _translatorTemplates[nodeType][translatorName] = templateClass
 
-    if nodeType not in _templates:
-        _templates[nodeType] = TranslatorControl(nodeType)
+    global _templates
+    try:
+        cls = _templates[nodeType]
+    except KeyError:
+        cls = type('%s_TransControl' % nodeType, (TranslatorControl,), {})
+        _templates[nodeType] = cls
 
-def translatorUI(nodeType, translatorName=None, baseClass=ArnoldTranslatorTemplate):
+def translatorUI(nodeType, translatorName=None, baseClass=AttributeTemplate):
     """
-    decorator for registering a function for creating a simple translator UI. The function receives an ArnoldTranslatorTemplate
+    decorator for registering a function for creating a simple translator UI. The function receives an AttributeTemplate
     instance, which it uses to make calls to addControl, addSeparator, addCustom, etc. 
     """
     def registerUIDecorator(func):
@@ -602,7 +648,7 @@ def translatorUI(nodeType, translatorName=None, baseClass=ArnoldTranslatorTempla
                 transName = module.__name__.split('.')[0]
             else:
                 transName = '<built-in>'
-        cls = type(nodeType + "Template", (baseClass,), dict(setup=func))
+        cls = type(nodeType + "_TransTemplate", (baseClass,), dict(setup=func))
         registerTranslatorUI(cls, nodeType, transName)
         # return function unchanged
         return func
@@ -633,17 +679,14 @@ def shapeTemplate(nodeName):
     global _templates
     nodeType = cmds.objectType(nodeName)
 
-    template = None
     try:
         # has one been explicitly registered?
         template = _templates[nodeType]
     except KeyError:
-        if getTranslators(nodeType):
-            # if not and this node has translators, create a default TranslatorControl
-            template = TranslatorControl(nodeType)
-    if template:
+        pass
+    else:
         cmds.editorTemplate(beginLayout='Arnold', collapse=True)
-        template.attachToAE()
+        template(nodeType).attachToAE()
         cmds.editorTemplate(endLayout=True)
 
     cmds.editorTemplate(beginLayout=mel.eval('uiRes("m_AEshapeTemplate.kObjectDisplay")'))

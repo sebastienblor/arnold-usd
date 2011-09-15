@@ -117,7 +117,7 @@ def addAOVControl(nodeType, attr):
     aovSelect = AOVOptionMenuGrp(nodeType, attr)
     aovSelect.attachToAE()
 
-class AttributeEditorTemplate(AttributeEditorTemplate):
+class ShaderMixin(object):
     def addSwatch(self):
         self.addCustom("message", aiSwatchDisplay.aiSwatchDisplayNew, aiSwatchDisplay.aiSwatchDisplayReplace)
 
@@ -126,18 +126,22 @@ class AttributeEditorTemplate(AttributeEditorTemplate):
         aovAttrs = aovs.getNodeAOVAttrs(nodeType=self.nodeType())
         if aovAttrs:
             self.beginLayout("AOVs", collapse=True)
-            self.beginNoOptimize()
-            self.addControl('enableAOVs', label='Enable AOVs')
-            self.addControl('overrideAOVs', label='Override AOV Names')
-            self.endNoOptimize()
-            dynamic = self.nodeType() not in set(pm.pluginInfo("mtoa", q=True, dependNode=True))
+#            self.beginNoOptimize()
+#            self.addControl('enableAOVs', label='Enable AOVs')
+#            self.addControl('overrideAOVs', label='Override AOV Names')
+#            self.endNoOptimize()
+            dynamic = self.nodeType() not in set(cmds.pluginInfo("mtoa", q=True, dependNode=True))
             for name, attr in aovAttrs:
                 if dynamic:
                     attr = 'ai_' + attr
-                addAOVControl(self.nodeType(), attr)
-#                menu = AOVOptionMenuGrp(self.nodeType(), attr)
-#                # FIXME: need a proper system for chaining templates
-#                self.addCustom(attr, 
-#                               lambda nodeAttr, aovMenu=menu: aovMenu._doBuild(nodeAttr.split('.', 1)[0]),
-#                               lambda nodeAttr, aovMenu=menu: aovMenu._doUpdate(nodeAttr.split('.', 1)[0]))
+#                addAOVControl(self.nodeType(), attr)
+                menu = AOVOptionMenuGrp(self.nodeType(), attr)
+                # FIXME: need a proper system for chaining templates
+                self.addCustom(attr, 
+                               lambda nodeAttr, aovMenu=menu: aovMenu._doBuild(nodeAttr.split('.', 1)[0]),
+                               lambda nodeAttr, aovMenu=menu: aovMenu._doUpdate(nodeAttr.split('.', 1)[0]))
             self.endLayout()
+
+class ShaderAETemplate(AttributeEditorTemplate, ShaderMixin):
+    pass
+
