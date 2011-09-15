@@ -1,5 +1,6 @@
 import maya.cmds as cmds
 import maya.mel as mel
+import pymel.core as pm
 from maya.utils import executeDeferred
 from mtoa.ui.ae.utils import aeCallback, AttrControlGrp
 from mtoa.utils import prettify
@@ -25,39 +26,29 @@ def getTranslators(nodeType):
 
 def registerDefaultTranslator(nodeType, stringOrFunc):
     """
-    register the default translator for a node. the second argument identifies the name of the
+    Register the default translator for a node. the second argument identifies the name of the
     translator.  pass a string if the default is always the same,
     or a function which returns a string, if the default depends on context.
 
-    the default will automatically be set whenever a node of the given type is added to the scene.
+    The default will automatically be set whenever a node of the given type is added to the scene.
     """
+
     # to register a default translator, we need to create a TranslatorControl instance for this
     # node type.
-    if isinstance(stringOrFunc, basestring):
-        classdict = {}
-        kwargs = dict(default=stringOrFunc)
-    elif callable(stringOrFunc):
-        classdict = {'getDefaultTranslator' : staticmethod(stringOrFunc)}
-        kwargs = {}
-    else:
-        cmds.warning("[mtoa] you must pass a string or a function to registerDefaultTranslator")
-        return
 
     try:
         inst = _templates[nodeType]
+        inst.setDefaultTranslator(stringOrFunc)
     except KeyError:
-        # create one
-        cls = type('%s_TransControl' % nodeType, (TranslatorControl,), classdict)
-        inst = cls(nodeType, **kwargs)
+        inst = TranslatorControl(nodeType, default=stringOrFunc)
         _templates[nodeType] = inst
 
     # set defaults for existing nodes
     for node in cmds.ls(exactType=nodeType):
         # this will set aiTranslator if it is not set
-        # TOOD: replace this with a call to TranslatorControl.getCurrentTranslator
         inst.getCurrentTranslator(node)
 
-    callbacks.addNodeAddedCallback(inst.setDefaultTranslator, nodeType)
+    callbacks.addNodeAddedCallback(inst._doSetDefaultTranslator, nodeType)
 
 
 #-------------------------------------------------
@@ -111,6 +102,7 @@ class BaseTemplate(object):
         self._nodeName = nodeName
 
     # queries
+    @property
     def nodeName(self):
         "get the active node"
         # assert self._nodeName, "%r: nodeName should be set by now" % self
@@ -118,11 +110,11 @@ class BaseTemplate(object):
 
     def nodeType(self):
         if self._nodeType is None:
-            self._nodeType = cmds.objectType(self.nodeName())
+            self._nodeType = cmds.objectType(self.nodeName)
         return self._nodeType
 
     def nodeAttr(self, attr):
-        return self.nodeName() + '.' + attr
+        return self.nodeName + '.' + attr
 
     def nodeAttrExists(self, attr):
         return cmds.addAttr(self.nodeAttr(attr), q=True, ex=True)
@@ -144,19 +136,26 @@ class BaseTemplate(object):
                             controlAttr,
                             callCustom=True)
 
+def controlBuilder(func):
+    """
+    decorator to make an AttributeTemplate method capable of building a UI control. the functionality
+    that the wrapped function implements is delayed until the AttributeTemplate.build() is called
+    """
+    def wrapped(self, *args, **kwargs):
+        print "running wrapped", func.__name__, self, args, kwargs
+        self._builders.append((func, args, kwargs))
+    wrapped.__name__ = func.__name__
+    wrapped.__doc__ = func.__doc__
+    return wrapped
+
 class AttributeTemplate(BaseTemplate):
     """
     This class provides a framework for creating and managing AE-like templates with multiple UI elements.
     """
-    SEPARATOR = '-'
-    ATTRIBUTE = 'attr'
-    CUSTOM = 'custom'
-    BEGIN_LAYOUT = 'beginLayout'
-    END_LAYOUT = 'endLayout'
     def __init__(self, nodeType=None):
         super(AttributeTemplate, self).__init__(nodeType)
         self._controls = []
-        self._attributes = []
+        self._builders = []
         self._layoutStack = []
         self.setup()
 
@@ -173,36 +172,8 @@ class AttributeTemplate(BaseTemplate):
         '''
         cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
         self._layoutStack.append(cmds.setParent(query=True))
-        for mode, data in self._attributes:
-            if mode == self.SEPARATOR:
-                cmds.separator()
-            elif mode == self.ATTRIBUTE:
-                attr, label, annotation = data
-                # TODO: lookup label and descr from metadata
-                if not label:
-                    label = prettify(attr)
-                    if label.startswith('Ai '):
-                        label = label[3:]
-                kwargs = {}
-                kwargs['label'] = label
-                kwargs['attribute'] = self.nodeAttr(attr)
-                if annotation:
-                    kwargs['annotation'] = annotation
-                parent = self._layoutStack[-1]
-                control = AttrControlGrp(**kwargs)
-                self._controls.append((attr, control.setAttribute, parent))
-            elif mode == self.CUSTOM:
-                attr, createFunc, updateFunc = data
-                parent = self._layoutStack[-1]
-                createFunc(self.nodeAttr(attr))
-                self._controls.append((attr, updateFunc, parent))
-            elif mode == self.BEGIN_LAYOUT:
-                cmds.setParent(self._layoutStack[-1])
-                cmds.frameLayout(**data)
-                self._layoutStack.append(cmds.columnLayout(adjustableColumn=True))
-            elif mode == self.END_LAYOUT:
-                self._layoutStack.pop()
-                cmds.setParent(self._layoutStack[-1])
+        for func, args, kwargs in self._builders:
+            func(self, *args, **kwargs)
         cmds.setUITemplate(popTemplate=True)
 
     def update(self):
@@ -213,83 +184,138 @@ class AttributeTemplate(BaseTemplate):
         cmds.setUITemplate(popTemplate=True)
 
     # building
-    def addAttribute(self, attr, label=None, annotation=None):
-        self._attributes.append((self.ATTRIBUTE,
-                                 (attr, label, annotation)))
+    def _addControl(self, attr, updateFunc, parent):
+        self._controls.append((attr, updateFunc, parent))
 
+    @controlBuilder
+    def addControl(self, attr, label=None, annotation=None):
+        # TODO: lookup label and descr from metadata
+        if not label:
+            label = prettify(attr)
+            if label.startswith('Ai '):
+                label = label[3:]
+        kwargs = {}
+        kwargs['label'] = label
+        kwargs['attribute'] = self.nodeAttr(attr)
+        if annotation:
+            kwargs['annotation'] = annotation
+        parent = self._layoutStack[-1]
+        control = AttrControlGrp(**kwargs)
+        self._addControl(attr, control.setAttribute, parent)
+
+    @controlBuilder
     def addSeparator(self):
-        self._attributes.append((self.SEPARATOR,
-                                 None))
+        cmds.separator()
 
+    @controlBuilder
     def addCustom(self, attr, createFunc, updateFunc):
-        self._attributes.append((self.CUSTOM,
-                                 (attr, createFunc, updateFunc)))
+        parent = self._layoutStack[-1]
+        createFunc(self.nodeAttr(attr))
+        self._addControl(attr, updateFunc, parent)
 
-    def beginLayout(self, **kwargs):
+    @controlBuilder
+    def beginLayout(self, label, **kwargs):
         '''
         begin a frameLayout.
         accepts any keyword args valid for creating a frameLayout
         '''
-        self._attributes.append((self.BEGIN_LAYOUT, kwargs))
+        kwargs['label'] = label
+        cmds.setParent(self._layoutStack[-1])
+        cmds.frameLayout(**kwargs)
+        self._layoutStack.append(cmds.columnLayout(adjustableColumn=True))
 
-    def endLayout(self,):
+    @controlBuilder
+    def endLayout(self):
         '''
         end the current frameLayout
         '''
-        self._attributes.append((self.END_LAYOUT, None))
-
-    def getAttributes(self):
-        "return attributes controlled by this template"
-        return [x[0] for x in self._attributes if x[0] != self.SEPARATOR]
+        self._layoutStack.pop()
+        cmds.setParent(self._layoutStack[-1])
 
     def attachToAE(self, controlAttr='aiTranslator'):
         "add the appropriate callbacks to the editor template"
         super(AttributeTemplate, self).attachToAE(controlAttr)
-        for attr in self.getAttributes():
-            cmds.editorTemplate(suppress=attr)
+#        for attr in self.getAttributes():
+#            cmds.editorTemplate(suppress=attr)
 
-class ArnoldTranslatorTemplate(AttributeTemplate):
-    """
-    To implement an AE template for a custom translator, create a subclass of this class and
-    register it using registerTranslatorUI
-    """
-    def __init__(self, nodeType):
-        super(ArnoldTranslatorTemplate, self).__init__(nodeType)
-        self._keyableDefaults = {}
+class AttributeEditorTemplate(pm.uitypes.AETemplate):
+    def __init__(self, nodeName):
+        super(AttributeEditorTemplate, self).__init__(nodeName)
+        self.setup()
 
-    def showInChannelBox(self, enabled):
-        for attr in self.getAttributes():
-            type = self.nodeAttrType(attr)
-            keyable = enabled and cmds.attributeQuery(attr, node=self.nodeName(), keyable=True)
-            if cmds.attributeQuery(attr, node=self.nodeName(), numberOfChildren=True):
-                children = cmds.attributeQuery(attr, node=self.nodeName(), listChildren=True)
-                for c in children:
-                    # some sort of a bug forces a call like this in order to set keyable and channelbox correctly...
-                    cmds.setAttr(self.nodeAttr(c), channelBox=enabled, keyable=keyable)
-                    cmds.setAttr(self.nodeAttr(c), keyable=keyable)
-            else:
-                # some sort of a bug forces a call like this in order to set keyable and channelbox correctly...
-                cmds.setAttr(self.nodeAttr(attr), channelBox=enabled, keyable=keyable)
-                cmds.setAttr(self.nodeAttr(attr), keyable=keyable)
+    def addCustom(self, attr, newFunc, replaceFunc):
+        self.callCustom(newFunc, replaceFunc, attr)
 
-    @staticmethod
-    def syncChannelBox(nodeName, nodeType, default):
-        """
-        make only the attributes for the active translator visible in the channel box
-        """
-        templates = getTranslatorTemplates(nodeType)
-        # Do the actual syncing with the ChannelBox
-        for name, template in templates.items():
-            if name == default:
-                continue
-            template._setActiveNode(nodeName)
-            template.showInChannelBox(False)
-        # We need to run this last for cases where templates share attributes
-        if default in templates:
-            templates[default]._setActiveNode(nodeName)
-            templates[default].showInChannelBox(True)
+#
+#class AttributeEditorTemplate(AttributeTemplate):
+#    def addSwatch(self):
+#        self.addCustom("message", aiSwatchDisplay.aiSwatchDisplayNew, aiSwatchDisplay.aiSwatchDisplayReplace)
+#
+#    @controlBuilder
+#    def beginScrollLayout(self):
+#        cmds.setParent(self._layoutStack[-1])
+#        self._layoutStack.append(cmds.scrollLayout())
+#
+#    @controlBuilder
+#    def endScrollLayout(self):
+#        '''
+#        end the current scrollLayout
+#        '''
+#        self._layoutStack.pop()
+#        cmds.setParent(self._layoutStack[-1])
+#
+#    @controlBuilder
+#    def addExtraControls(self):
+#        '''
+#        end the current scrollLayout
+#        '''
+#        cmds.editorTemplate(addExtraControls=True)
 
-class AutoTranslatorTemplate(ArnoldTranslatorTemplate):
+class ArnoldTranslatorTemplate(AttributeEditorTemplate):
+    pass
+
+#class ArnoldTranslatorTemplate(AttributeTemplate):
+#    """
+#    To implement an AE template for a custom translator, create a subclass of this class and
+#    register it using registerTranslatorUI
+#    """
+#    def __init__(self, nodeType):
+#        super(ArnoldTranslatorTemplate, self).__init__(nodeType)
+#        self._keyableDefaults = {}
+#
+#    def showInChannelBox(self, enabled):
+#        for attr in self.getAttributes():
+#            type = self.nodeAttrType(attr)
+#            keyable = enabled and cmds.attributeQuery(attr, node=self.nodeName, keyable=True)
+#            if cmds.attributeQuery(attr, node=self.nodeName, numberOfChildren=True):
+#                children = cmds.attributeQuery(attr, node=self.nodeName, listChildren=True)
+#                for c in children:
+#                    # some sort of a bug forces a call like this in order to set keyable and channelbox correctly...
+#                    cmds.setAttr(self.nodeAttr(c), channelBox=enabled, keyable=keyable)
+#                    cmds.setAttr(self.nodeAttr(c), keyable=keyable)
+#            else:
+#                # some sort of a bug forces a call like this in order to set keyable and channelbox correctly...
+#                cmds.setAttr(self.nodeAttr(attr), channelBox=enabled, keyable=keyable)
+#                cmds.setAttr(self.nodeAttr(attr), keyable=keyable)
+#
+#    @staticmethod
+#    def syncChannelBox(nodeName, nodeType, default):
+#        """
+#        make only the attributes for the active translator visible in the channel box
+#        """
+#        templates = getTranslatorTemplates(nodeType)
+#        # Do the actual syncing with the ChannelBox
+#        for name, template in templates.items():
+#            if name == default:
+#                continue
+#            template._setActiveNode(nodeName)
+#            template.showInChannelBox(False)
+#        # We need to run this last for cases where templates share attributes
+#        if default in templates:
+#            templates[default]._setActiveNode(nodeName)
+#            templates[default].showInChannelBox(True)
+
+class AutoTranslatorTemplate(AttributeTemplate):
     _arnoldNodeType = None
 
     def setup(self):
@@ -297,16 +323,16 @@ class AutoTranslatorTemplate(ArnoldTranslatorTemplate):
         default setup automatically builds a UI based on metadata
         """
         for paramName, attrName, label, annotation in core.getAttributeData(self._arnoldNodeType):
-            self.addAttribute(attrName,
-                              label if label else prettify(paramName),
-                              annotation)
+            self.addControl(attrName,
+                            label if label else prettify(paramName),
+                            annotation)
 
 class TranslatorControl(BaseTemplate):
     '''
     Allows multiple AttributeTemplates, each representing an arnold translator, to be controlled via
-    one optionMenu, such that only the active template is visible.  A default controller is created for
-    each node that has arnold translators. You only need to manually create a TranslatorControl if you need to customize
-    this behavior.
+    one optionMenu, such that only the active template is visible.  A default controller is automatically created for
+    each node that has registered arnold translator UIs. Manually creating a TranslatorControl is only necessary if you
+    need to customize the default controller behavior.
     '''
     def __init__(self, nodeType, label='Arnold Translator', controlAttr='aiTranslator', default=None, optionMenuName=None):
         super(TranslatorControl, self).__init__(nodeType)
@@ -316,18 +342,27 @@ class TranslatorControl(BaseTemplate):
         self._nodeName = None
         self._nodeType = nodeType
         self._label = label
+        if not (default is None or isinstance(default, basestring) or callable(default)):
+            cmds.warning("[mtoa] default translator must be a string or a function")
+            return
         self._default = default
 
     #---- translator methods
 
-    def setDefaultTranslator(self, nodeName):
+    def _doSetDefaultTranslator(self, node):
         try:
-            cmds.setAttr(nodeName + "." + self._attr, self.getDefaultTranslator(nodeName), type='string')
+            node.attr(self._attr).set(self.getDefaultTranslator(node))
         except RuntimeError:
-            cmds.warning("failed to set default translator for %s" % nodeName)
+            cmds.warning("failed to set default translator for %s" % node.name())
 
-    def getDefaultTranslator(self, nodeName):
-        return self._default
+    def setDefaultTranslator(self, default):
+        self._default = default
+            
+    def getDefaultTranslator(self, node):
+        if isinstance(self._default, basestring):
+            return self._default
+        elif callable(self._default):
+            return self._default(node)
 
     def getCurrentTranslator(self, nodeName):
         """
@@ -551,10 +586,13 @@ def registerTranslatorUI(templateClass, nodeType, translatorName='<built-in>'):
     template = templateClass(nodeType)
     _translatorTemplates[nodeType][translatorName] = template
 
+    if nodeType not in _templates:
+        _templates[nodeType] = TranslatorControl(nodeType)
+
 def translatorUI(nodeType, translatorName=None, baseClass=ArnoldTranslatorTemplate):
     """
     decorator for registering a function for creating a simple translator UI. The function receives an ArnoldTranslatorTemplate
-    instance, which it uses to make calls to addAttribute, addSeparator, addCustom, etc. 
+    instance, which it uses to make calls to addControl, addSeparator, addCustom, etc. 
     """
     def registerUIDecorator(func):
         transName = translatorName
@@ -601,7 +639,7 @@ def shapeTemplate(nodeName):
         template = _templates[nodeType]
     except KeyError:
         if getTranslators(nodeType):
-            # if not, then create a default
+            # if not and this node has translators, create a default TranslatorControl
             template = TranslatorControl(nodeType)
     if template:
         cmds.editorTemplate(beginLayout='Arnold', collapse=True)

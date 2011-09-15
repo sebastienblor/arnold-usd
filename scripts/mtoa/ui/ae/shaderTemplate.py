@@ -3,7 +3,8 @@ import mtoa.aovs as aovs
 import utils
 import mtoa.callbacks as callbacks
 from mtoa.ui.ae.utils import aeCallback
-from mtoa.ui.ae.shapeTemplate import BaseTemplate
+import mtoa.ui.ae.aiSwatchDisplay as aiSwatchDisplay
+from mtoa.ui.ae.shapeTemplate import BaseTemplate, AttributeEditorTemplate
 
 global _aovCallbacks
 _aovCallbacks = []
@@ -27,7 +28,7 @@ class AOVOptionMenuGrp(BaseTemplate):
     @classmethod
     def globalAOVListChanged(cls):
         for inst in cls._instances:
-            if inst.nodeName() is not None and cmds.objExists(inst.nodeName()):
+            if inst.nodeName is not None and cmds.objExists(inst.nodeName):
                 inst.update()
 
     def changeCallback(self, nodeAttr, newAOV):
@@ -116,16 +117,27 @@ def addAOVControl(nodeType, attr):
     aovSelect = AOVOptionMenuGrp(nodeType, attr)
     aovSelect.attachToAE()
 
-def aovLayout(nodeType):
-    '''Add an aov control for each aov registered for this node type'''
-    aovAttrs = aovs.getNodeAOVAttrs(nodeType=nodeType)
-    if aovAttrs:
-        cmds.editorTemplate(beginLayout="AOVs", collapse=True)
-        cmds.editorTemplate(beginNoOptimize=True)
-        cmds.editorTemplate('enableAOVs', label='Enable AOVs', addControl=True)
-        cmds.editorTemplate('overrideAOVs', label='Override AOV Names', addControl=True)
-        cmds.editorTemplate(endNoOptimize=True)
-        for name, attr in aovAttrs:
-            addAOVControl(nodeType, attr)
-        cmds.editorTemplate(endLayout=True)
+class AttributeEditorTemplate(AttributeEditorTemplate):
+    def addSwatch(self):
+        self.addCustom("message", aiSwatchDisplay.aiSwatchDisplayNew, aiSwatchDisplay.aiSwatchDisplayReplace)
 
+    def addAOVLayout(self):
+        '''Add an aov control for each aov registered for this node type'''
+        aovAttrs = aovs.getNodeAOVAttrs(nodeType=self.nodeType())
+        if aovAttrs:
+            self.beginLayout("AOVs", collapse=True)
+            self.beginNoOptimize()
+            self.addControl('enableAOVs', label='Enable AOVs')
+            self.addControl('overrideAOVs', label='Override AOV Names')
+            self.endNoOptimize()
+            dynamic = self.nodeType() not in set(pm.pluginInfo("mtoa", q=True, dependNode=True))
+            for name, attr in aovAttrs:
+                if dynamic:
+                    attr = 'ai_' + attr
+                addAOVControl(self.nodeType(), attr)
+#                menu = AOVOptionMenuGrp(self.nodeType(), attr)
+#                # FIXME: need a proper system for chaining templates
+#                self.addCustom(attr, 
+#                               lambda nodeAttr, aovMenu=menu: aovMenu._doBuild(nodeAttr.split('.', 1)[0]),
+#                               lambda nodeAttr, aovMenu=menu: aovMenu._doUpdate(nodeAttr.split('.', 1)[0]))
+            self.endLayout()

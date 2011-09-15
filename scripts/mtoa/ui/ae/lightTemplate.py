@@ -135,13 +135,13 @@ class LightTemplate(ArnoldTranslatorTemplate):
         cmds.connectAttr('%s.message' % filter, '%s.aiFilters[0]' % node)
 
     def commonLightAttributes(self):
-        self.addAttribute("aiNormalize")
-        self.addAttribute("aiBounceFactor")
-        self.addAttribute("aiBounces")
+        self.addControl("aiNormalize")
+        self.addControl("aiBounceFactor")
+        self.addControl("aiBounces")
 
         self.addSeparator()
     
-        self.beginLayout(label="Light Filters", collapse=False)
+        self.beginLayout("Light Filters", collapse=False)
         self.addCustom("aiFilters", self.customLightFiltersNew, self.customLightFiltersReplace)
         self.endLayout()
 
