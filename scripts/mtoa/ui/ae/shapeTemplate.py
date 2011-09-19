@@ -45,7 +45,7 @@ def registerDefaultTranslator(nodeType, stringOrFunc):
     inst.setDefaultTranslator(stringOrFunc)
 
     # set defaults for existing nodes
-    for node in cmds.ls(exactType=nodeType):
+    for node in pm.ls(exactType=nodeType):
         # this will set aiTranslator if it is not set
         inst.getCurrentTranslator(node)
 
@@ -362,12 +362,13 @@ class AutoTranslatorTemplate(AttributeTemplate):
                             label if label else prettify(paramName),
                             annotation)
 
-class DisableLoader(pm.uitypes.AELoader):
-    """
-    Metaclass which disables the automatic loading behavior of AETemplate
-    """
-    def __new__(cls, classname, bases, classdict):
-        return type.__new__(cls, classname, bases, classdict)
+if pymel.__version__ >= '1.0.1':
+    class DisableLoader(pm.uitypes.AELoader):
+        """
+        Metaclass which disables the automatic loading behavior of AETemplate
+        """
+        def __new__(cls, classname, bases, classdict):
+            return type.__new__(cls, classname, bases, classdict)
 
 class TranslatorControl(AttributeEditorTemplate):
     '''
@@ -376,7 +377,8 @@ class TranslatorControl(AttributeEditorTemplate):
     each node that has registered arnold translator UIs. Manually creating a TranslatorControl is only necessary if you
     need to customize the default controller behavior.
     '''
-    __metaclass__ = DisableLoader
+    if pymel.__version__ >= '1.0.1':
+        __metaclass__ = DisableLoader
     def __init__(self, nodeType, label='Arnold Translator', controlAttr='aiTranslator', default=None, optionMenuName=None):
         self.autoBuild = False
         super(TranslatorControl, self).__init__(nodeType)
@@ -399,7 +401,7 @@ class TranslatorControl(AttributeEditorTemplate):
 
     def _doSetDefaultTranslator(self, node):
         try:
-            cmds.setAttr(node + '.' + self._attr, self.getDefaultTranslator(node), type='string')
+            node.attr(self._attr).set(self.getDefaultTranslator(node))
         except RuntimeError:
             cmds.warning("failed to set default translator for %s" % node.name())
 
