@@ -154,6 +154,8 @@ public:
    void UpdateImageFilename();
    void UpdateImageOptions();
    void UpdateImageDimensions();
+   inline const MObject& GetArnoldRenderOptions() const { return m_options; }
+   inline void SetArnoldRenderOptions(const MObject& options) { m_options = options; }
 
 private:
 
@@ -162,7 +164,6 @@ private:
 
    void SetupImageOptions() const;
    void SetupImageFilter() const;
-   MStatus GetOptionsNode(MObject& optionsNode) const;
 
 private:
 
@@ -176,7 +177,10 @@ private:
    AtFloat  m_endFrame;
    AtFloat  m_byFrameStep;
    bool     m_multiCameraRender;
+
+   MObject  m_options;
    MDagPath m_camera;
+
    MString  m_renderDriver;
    MString  m_imageFileExtension;
    MString  m_imageFilename;

@@ -88,7 +88,7 @@ MStatus CMayaScene::Begin(ArnoldSessionMode mode)
    sessionOptions.SetArnoldRenderOptions(ArnoldRenderOptionsNode);
 
    CRenderOptions renderOptions;
-   // FIXME : allow to pass a specific maya ArnoldRenderOptions node
+   renderOptions.SetArnoldRenderOptions(ArnoldRenderOptionsNode);
    if (mode == MTOA_SESSION_SWATCH)
    {
       // FIXME: default or use swatch defaults

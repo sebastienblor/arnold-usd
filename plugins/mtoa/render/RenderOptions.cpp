@@ -139,8 +139,8 @@ void CRenderOptions::ProcessCommonRenderOptions()
 
 void CRenderOptions::ProcessArnoldRenderOptions()
 {
-   MObject        node;
-   if (GetOptionsNode(node) == MS::kSuccess)
+   MObject node = GetArnoldRenderOptions();
+   if (node != MObject::kNullObj)
    {
       MPlugArray conns;
       MFnDependencyNode fnArnoldRenderOptions(node);
@@ -189,33 +189,17 @@ void CRenderOptions::SetCamera(MDagPath& camera)
 
 void CRenderOptions::UpdateImageDimensions()
 {
-   MObject        node;
-   if (GetOptionsNode(node) == MS::kSuccess)
+   AtNode* options = AiUniverseGetOptions();
+   if (useRenderRegion())
    {
-      AtNode* options = AiUniverseGetOptions();
-      if (useRenderRegion())
-      {
-         AiNodeSetInt(options, "region_min_x", minX());
-         AiNodeSetInt(options, "region_min_y", height() - maxY() - 1);
-         AiNodeSetInt(options, "region_max_x", maxX());
-         AiNodeSetInt(options, "region_max_y", height() - minY() - 1);
-      }
-
-      AiNodeSetInt(options, "xres", width());
-      AiNodeSetInt(options, "yres", height());
-      AiNodeSetFlt(options, "aspect_ratio", pixelAspectRatio());
+      AiNodeSetInt(options, "region_min_x", minX());
+      AiNodeSetInt(options, "region_min_y", height() - maxY() - 1);
+      AiNodeSetInt(options, "region_max_x", maxX());
+      AiNodeSetInt(options, "region_max_y", height() - minY() - 1);
    }
+
+   AiNodeSetInt(options, "xres", width());
+   AiNodeSetInt(options, "yres", height());
+   AiNodeSetFlt(options, "aspect_ratio", pixelAspectRatio());
 }
 
-MStatus CRenderOptions::GetOptionsNode(MObject& optionsNode) const
-{
-   MSelectionList list;
-   list.add("defaultArnoldRenderOptions");
-
-   if (list.length() > 0)
-   {
-      list.getDependNode(0, optionsNode);
-      return MS::kSuccess;
-   }
-   return MS::kFailure;
-}
