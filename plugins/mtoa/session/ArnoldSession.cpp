@@ -413,11 +413,11 @@ AtNode* CArnoldSession::ExportOptions()
    MObject options = m_sessionOptions.GetArnoldRenderOptions();
    if (options.isNull())
    {
-      AiMsgWarning("[mtoa] Failed to export options node");
+      AiMsgWarning("[mtoa] Failed to find Arnold options node");
       return NULL;
    }
-   // until arnold supports multiple outputs, all dependNode exports must be plugs, so just use a message
-   AtNode* result = ExportNode(MFnDependencyNode(options).findPlug("message"));
+   AiMsgDebug("[mtoa] Exporting Arnold options '%s'", MFnDependencyNode(options).name().asChar());
+   AtNode* result = ExportNode(options, "message");
    // Store the options translator for later use
    m_optionsTranslator = (COptionsTranslator*)GetActiveTranslator(options);
    return result;
@@ -437,6 +437,14 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
    // It wouldn't be efficient to test the whole scene against selection state
    // so selected gets a special treatment
    bool exportSelected = (NULL != selected) ? true : false;
+   if (exportSelected)
+   {
+      AiMsgDebug("[mtoa] Exporting selection (%i objects)", selected->length());
+   }
+   else
+   {
+      AiMsgDebug("[mtoa] Exporting scene");
+   }
 
    // Set up export options
    ArnoldSessionMode exportMode = m_sessionOptions.m_mode;
