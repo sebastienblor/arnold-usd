@@ -7,17 +7,17 @@ import mtoa.callbacks as callbacks
 import mtoa.core as core
 
 def renderStatsAttributes(ui):
-    ui.addAttribute("castsShadows")
-    ui.addAttribute("receiveShadows")
-    ui.addAttribute("primaryVisibility")
-    ui.addAttribute("visibleInReflections")
-    ui.addAttribute("visibleInRefractions")
+    ui.addControl("castsShadows")
+    ui.addControl("receiveShadows")
+    ui.addControl("primaryVisibility")
+    ui.addControl("visibleInReflections")
+    ui.addControl("visibleInRefractions")
 
 def commonShapeAttributes(ui):
-    ui.addAttribute("aiSelfShadows")
-    ui.addAttribute("aiOpaque")
-    ui.addAttribute("aiVisibleInDiffuse")
-    ui.addAttribute("aiVisibleInGlossy")
+    ui.addControl("aiSelfShadows")
+    ui.addControl("aiOpaque")
+    ui.addControl("aiVisibleInDiffuse")
+    ui.addControl("aiVisibleInGlossy")
 
 def subdivDicingCameraNew(attrName):
     pm.setUITemplate('attributeEditorTemplate', pst=True)
@@ -37,35 +37,35 @@ def subdivDicingCameraReplace(attrName):
 def builtin_mesh(ui):
     commonShapeAttributes(ui)
     ui.addSeparator()
-    ui.addAttribute("aiSubdivType", label="Subdivision Type")
-    ui.addAttribute("aiSubdivIterations", label="Subdivision Iterations")
-    ui.addAttribute("aiSubdivAdaptiveMetric", label="Subdivision Adaptive Metric")
-    ui.addAttribute("aiSubdivPixelError", label="Subdivision Pixel Error")
+    ui.addControl("aiSubdivType", label="Subdivision Type")
+    ui.addControl("aiSubdivIterations", label="Subdivision Iterations")
+    ui.addControl("aiSubdivAdaptiveMetric", label="Subdivision Adaptive Metric")
+    ui.addControl("aiSubdivPixelError", label="Subdivision Pixel Error")
     # TODO: add dicing camera UI
-    ui.addAttribute("aiSubdivDicingCamera", label="Subdivision Dicing Camera")
-    ui.addAttribute("aiSubdivUvSmoothing", label="Subdivision UVs Smoothing")
+    ui.addControl("aiSubdivDicingCamera", label="Subdivision Dicing Camera")
+    ui.addControl("aiSubdivUvSmoothing", label="Subdivision UVs Smoothing")
     ui.addSeparator()
-    ui.addAttribute("aiSssSampleDistribution", label="SSS Samples Distribution")
-    ui.addAttribute("aiSssSampleSpacing", label="SSS Sample Spacing")
+    ui.addControl("aiSssSampleDistribution", label="SSS Samples Distribution")
+    ui.addControl("aiSssSampleSpacing", label="SSS Sample Spacing")
     ui.addSeparator()
-    ui.addAttribute("aiExportTangents")
-    ui.addAttribute("aiExportColors")
+    ui.addControl("aiExportTangents")
+    ui.addControl("aiExportColors")
     #pm.editorTemplate("aiExportHairIDs", label="Export Hair IDs", addDynamicControl=True)
     # FIXME: these are not on the shape node!
 #    ui.addSeparator()
 #
-#    ui.addAttribute("enableProcedural")
-#    ui.addAttribute("dso")
+#    ui.addControl("enableProcedural")
+#    ui.addControl("dso")
 
 @templates.translatorUI("hairSystem", "<built-in>")
 def builtin_hairSystem(ui):
     commonShapeAttributes(ui)
     ui.addSeparator()
-    ui.addAttribute("aiOverrideHair")
-    ui.addAttribute("aiHairShader")
+    ui.addControl("aiOverrideHair")
+    ui.addControl("aiHairShader")
     ui.addSeparator()
-    ui.addAttribute("aiMinPixelWidth")
-    ui.addAttribute("aiMode")
+    ui.addControl("aiMinPixelWidth")
+    ui.addControl("aiMode")
 
 class AmbientLightTemplate(lightTemplate.LightTemplate):
     # TODO: handle filter association via metadata
@@ -81,11 +81,11 @@ class DirectionalLightTemplate(lightTemplate.LightTemplate):
     def validFilters(self):
         return ['aiLightBlocker']
     def setup(self):
-        self.addAttribute("aiCastShadows")
-        self.addAttribute("aiExposure")
-        self.addAttribute("aiAngle")
-        self.addAttribute("aiSamples")
-        self.addAttribute("aiMis", label="Multiple Importance Sampling")
+        self.addControl("aiCastShadows")
+        self.addControl("aiExposure")
+        self.addControl("aiAngle")
+        self.addControl("aiSamples")
+        self.addControl("aiMis", label="Multiple Importance Sampling")
         self.addSeparator()
         self.commonLightAttributes()
 templates.registerTranslatorUI(DirectionalLightTemplate, "directionalLight")
@@ -95,14 +95,14 @@ class PointLightTemplate(lightTemplate.LightTemplate):
     def validFilters(self):
         return ['aiLightBlocker', 'aiLightDecay']
     def setup(self):
-        self.addAttribute("aiCastShadows")
-        self.addAttribute("aiExposure")
-        self.addAttribute("aiRadius")
-        self.addAttribute("aiSamples")
-        self.addAttribute("aiMis", label="Multiple Importance Sampling")
+        self.addControl("aiCastShadows")
+        self.addControl("aiExposure")
+        self.addControl("aiRadius")
+        self.addControl("aiSamples")
+        self.addControl("aiMis", label="Multiple Importance Sampling")
         self.addSeparator()
-        self.addAttribute("aiAffectVolumetrics")
-        self.addAttribute("aiCastVolumetricShadows")
+        self.addControl("aiAffectVolumetrics")
+        self.addControl("aiCastVolumetricShadows")
         self.addSeparator()
         self.commonLightAttributes()
 templates.registerTranslatorUI(PointLightTemplate, "pointLight")
@@ -112,21 +112,21 @@ class SpotLightTemplate(lightTemplate.LightTemplate):
     def validFilters(self):
         return ['aiLightBlocker', 'aiLightDecay', 'aiBarndoor', 'aiGobo']
     def setup(self):
-        self.addAttribute("aiCastShadows")
-        self.addAttribute("aiExposure")
-        self.addAttribute("aiRadius")
-        self.addAttribute("aiSamples")
-        self.addAttribute("aiMis", label="Multiple Importance Sampling")
+        self.addControl("aiCastShadows")
+        self.addControl("aiExposure")
+        self.addControl("aiRadius")
+        self.addControl("aiSamples")
+        self.addControl("aiMis", label="Multiple Importance Sampling")
 
         self.addSeparator()
 
-        self.addAttribute("aiAffectVolumetrics")
-        self.addAttribute("aiCastVolumetricShadows")
+        self.addControl("aiAffectVolumetrics")
+        self.addControl("aiCastVolumetricShadows")
 
         self.addSeparator()
 
-        self.addAttribute("aiAspectRatio")
-        self.addAttribute("aiLensRadius")
+        self.addControl("aiAspectRatio")
+        self.addControl("aiLensRadius")
 
         self.addSeparator()
 
@@ -139,16 +139,16 @@ class AreaLightTemplate(lightTemplate.LightTemplate):
         return ['aiLightBlocker', 'aiLightDecay']
 
     def setup(self):
-        self.addAttribute("aiCastShadows")
-        self.addAttribute("aiExposure")
-        self.addAttribute("aiSamples")
-        self.addAttribute("aiMis", label="Multiple Importance Sampling")
+        self.addControl("aiCastShadows")
+        self.addControl("aiExposure")
+        self.addControl("aiSamples")
+        self.addControl("aiMis", label="Multiple Importance Sampling")
 
         self.addSeparator()
 
-        self.addAttribute("aiResolution")
-        self.addAttribute("aiAffectVolumetrics")
-        self.addAttribute("aiCastVolumetricShadows")
+        self.addControl("aiResolution")
+        self.addControl("aiAffectVolumetrics")
+        self.addControl("aiCastVolumetricShadows")
 
         self.addSeparator()
 
@@ -158,19 +158,19 @@ templates.registerTranslatorUI(AreaLightTemplate, "areaLight")
 
 class CameraTemplate(templates.ArnoldTranslatorTemplate):
     def addDOFAttributes(self):
-        self.addAttribute("aiEnableDOF")
+        self.addControl("aiEnableDOF")
         self.addSeparator()
-        self.addAttribute("aiFocusDistance")
-        self.addAttribute("aiApertureSize")
-        self.addAttribute("aiApertureBlades")
-        self.addAttribute("aiApertureBladeCurvature")
-        self.addAttribute("aiApertureRotation")
+        self.addControl("aiFocusDistance")
+        self.addControl("aiApertureSize")
+        self.addControl("aiApertureBlades")
+        self.addControl("aiApertureBladeCurvature")
+        self.addControl("aiApertureRotation")
 
 class PerspCameraTemplate(CameraTemplate):
     def setup(self):
         self.addDOFAttributes()
         self.addSeparator()
-        self.addAttribute('aiUvRemap')
+        self.addControl('aiUvRemap')
 
 templates.registerTranslatorUI(PerspCameraTemplate, "camera", "perspective")
 templates.registerTranslatorUI(PerspCameraTemplate, "stereoRigCamera", "perspective")
@@ -187,17 +187,17 @@ class FisheyeCameraTemplate(CameraTemplate):
     def setup(self):
         self.addDOFAttributes()
         self.addSeparator()
-        self.addAttribute('aiFov')
-        self.addAttribute('aiAutocrop')
+        self.addControl('aiFov')
+        self.addControl('aiAutocrop')
 
 templates.registerTranslatorUI(FisheyeCameraTemplate, "camera", "fisheye")
 templates.registerTranslatorUI(FisheyeCameraTemplate, "stereoRigCamera", "fisheye")
 
 class CylCameraTemplate(CameraTemplate):
     def setup(self):
-        self.addAttribute('aiHorizontalFov')
-        self.addAttribute('aiVerticalFov')
-        self.addAttribute('aiProjective')
+        self.addControl('aiHorizontalFov')
+        self.addControl('aiVerticalFov')
+        self.addControl('aiProjective')
 
 templates.registerTranslatorUI(CylCameraTemplate, "camera", "cylindrical")
 templates.registerTranslatorUI(CylCameraTemplate, "stereoRigCamera", "cylindrical")
