@@ -370,14 +370,14 @@ node_loader
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case 46:
+   case 45:
       node->methods     = WriteColorMtd;
       node->output_type = AI_TYPE_RGBA;
       node->name        = "writeColor";
       node->node_type   = AI_NODE_SHADER;
       break;
 
-   case 47:
+   case 46:
       node->methods     = WriteFloatMtd;
       node->output_type = AI_TYPE_FLOAT;
       node->name        = "writeFloat";

@@ -3,6 +3,7 @@ a module for managing mtoa's callbacks
 """
  
 import maya.cmds as cmds
+import pymel.core as pm
 import maya.OpenMaya as om
 from collections import defaultdict
 
@@ -28,17 +29,16 @@ def manageCallback(callbackId):
 
 def _makeNodeAddedCB(nodeType):
     def nodeAddedCB(obj, *args):
-        fnNode = om.MFnDependencyNode(obj)
+        node = pm.nt.DependNode(obj)
         # nodeAdded callback includes sub-types, but we want exact type only
-        if fnNode.typeName() != nodeType:
+        if node.type() != nodeType:
             return
-        name = fnNode.name()
         global _nodeAddedCallbacks
         for func, apiArgs in _nodeAddedCallbacks[nodeType]:
             if apiArgs:
                 func(obj)
             else:
-                func(name)
+                func(node)
     # no unicode allowed
     nodeAddedCB.__name__ = "nodeAddedCB_" + str(nodeType) 
     return nodeAddedCB

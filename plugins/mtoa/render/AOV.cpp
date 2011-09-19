@@ -53,6 +53,7 @@ CAOV& CAOV::operator=(const CAOV &rhs)
       m_prefix = rhs.m_prefix;
       m_imageformat = rhs.m_imageformat;
       m_filename = rhs.m_filename;
+      m_object = rhs.m_object;
    }
    return *this;
 }

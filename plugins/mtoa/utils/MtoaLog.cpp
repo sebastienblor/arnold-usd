@@ -96,10 +96,10 @@ DLLEXPORT AtVoid MtoaLogCallback(AtInt logmask, AtInt severity, const char *msg_
 DLLEXPORT void MtoaSetupLogging()
 {
    AiMsgSetLogFileName(MString("$MTOA_LOG_PATH/arnold.log").expandEnvironmentVariablesAndTilde().asChar());
-#ifdef _DEBUG
-   AtInt defaultLogFlags = AI_LOG_ALL;
-#else
+#ifdef NDEBUG
    AtInt defaultLogFlags = (AI_LOG_ALL & ~AI_LOG_DEBUG);
+#else
+   AtInt defaultLogFlags = AI_LOG_ALL;
 #endif
 
    // MString loglevelStr = MString("$MTOA_LOG_VERBOSITY").expandEnvironmentVariablesAndTilde();
@@ -116,11 +116,12 @@ DLLEXPORT void MtoaSetupLogging()
 void MtoaSetupSwatchLogging()
 {
    AiMsgSetLogFileName(MString("$MTOA_LOG_PATH/arnold.log").expandEnvironmentVariablesAndTilde().asChar());
-#ifdef _DEBUG
-   AtInt defaultLogFlags = AI_LOG_ALL;
-#else
+#ifdef NDEBUG
    AtInt defaultLogFlags = AI_LOG_WARNINGS | AI_LOG_ERRORS | AI_LOG_TIMESTAMP | AI_LOG_BACKTRACE;
+#else
+   AtInt defaultLogFlags = AI_LOG_ALL;
 #endif
+
    // MString loglevelStr = MString("$MTOA_SWATCH_LOG_VERBOSITY").expandEnvironmentVariablesAndTilde();
    // if (loglevelStr.isShort())
    //    defaultLogFlags = GetFlagsFromVerbosityLevel(loglevelStr.asShort());

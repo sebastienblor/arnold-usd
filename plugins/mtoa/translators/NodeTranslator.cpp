@@ -126,13 +126,6 @@ AtNode* CNodeTranslator::DoExport(AtUInt step)
 
          ExportMotion(m_atNode, step);
       }
-
-      // Add Update callbacks on last step
-      if (step == (GetNumMotionSteps()-1) &&
-          GetSessionMode() == MTOA_SESSION_IPR)
-      {
-         AddUpdateCallbacks();
-      }
    }
    return m_atNode;
 }
@@ -157,13 +150,6 @@ AtNode* CNodeTranslator::DoUpdate(AtUInt step)
       }
       else if (RequiresMotionData())
          UpdateMotion(m_atNode, step);
-
-      // Add Update callbacks on last step
-      if (step == (GetNumMotionSteps()-1) &&
-            GetSessionMode() == MTOA_SESSION_IPR)
-      {
-         AddUpdateCallbacks();
-      }
    }
    else
    {
@@ -1217,8 +1203,12 @@ void CDagTranslator::GetRotationMatrix(AtMatrix& matrix)
 
 void CDagTranslator::GetMatrix(AtMatrix& matrix)
 {
-   MMatrix tm = m_dagPath.inclusiveMatrix();
-
+   MStatus stat;
+   MMatrix tm = m_dagPath.inclusiveMatrix(&stat);
+   if (MStatus::kSuccess != stat)
+   {
+      AiMsgError("Failed to get transformation matrix for %s",  m_dagPath.partialPathName().asChar());
+   }
    for (int J = 0; (J < 4); ++J)
    {
       for (int I = 0; (I < 4); ++I)

@@ -1,26 +1,23 @@
-import maya.cmds as cmds
-import maya.mel as mel
+import pymel.core as pm
+from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
-import mtoa.utils as utils
-import mtoa.ui.ae.utils as aeUtils
-import mtoa.ui.ae.shaderTemplate as shaderTemplate
+class AEaiWriteColorTemplate(ShaderAETemplate):
 
-def aiWriteColorTemplate(nodeName):
+    def setup(self):
+        #mel.eval('AEswatchDisplay "%s"' % nodeName)
 
-    #mel.eval('AEswatchDisplay "%s"' % nodeName)
+        self.beginScrollLayout()
+        self.beginLayout("Write Color Attributes", collapse=False)
 
-    cmds.editorTemplate(beginScrollLayout=True)
-    cmds.editorTemplate(beginLayout="Write Color Attributes", collapse=False)
+        self.addControl("beauty")
+        self.addControl("input")
+        self.addAOVControl('aovName')
 
-    cmds.editorTemplate("beauty", addControl=True)
-    cmds.editorTemplate("input", addControl=True)
-    shaderTemplate.addAOVControl('aiWriteColor', 'aovName')
+        self.endLayout()
 
-    cmds.editorTemplate(endLayout=True)
+        # include/call base class/node attributes
+        pm.mel.AEdependNodeTemplate(self.nodeName)
+        self.addExtraControls()
 
-    # include/call base class/node attributes
-    mel.eval('AEdependNodeTemplate "%s"'%nodeName)
-    cmds.editorTemplate(addExtraControls=True)
-
-    cmds.editorTemplate(endScrollLayout=True)
+        self.endScrollLayout()
 

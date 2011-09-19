@@ -1,4 +1,4 @@
-import maya.cmds as cmds
+﻿import maya.cmds as cmds
 import maya.mel as mel
 import mtoa.utils as utils
 import mtoa.ui.ae
@@ -45,10 +45,12 @@ def loadAETemplates():
     templates = []
     for importer, modname, ispkg in pkgutil.iter_modules(mtoa.ui.ae.__path__):
         if modname.endswith('Template') and modname not in templates:
-            templates.append(modname)
-            procName = 'AE%s' % modname
-            _makeAEProc(modname, modname, procName)
-
+            # TODO: use importer?
+            mod = __import__(modname, globals(), locals(), [], -1)
+            if hasattr(mod, modname):
+                templates.append(modname)
+                procName = 'AE%s' % modname
+                _makeAEProc(modname, modname, procName)
     loadAEshapesTemplate()
 
 def loadAEshapesTemplate():
@@ -83,7 +85,8 @@ def interToUI(label):
 def attrType(attr):
     type = cmds.getAttr(attr, type=True)
     if type == 'float3':
-        if cmds.addAttr(attr, q=True, usedAsColor=True):
+        node, at = attr.split('.', 1)
+        if cmds.attributeQuery(at, node=node, usedAsColor=1):
             type = 'color'
     return type
 
