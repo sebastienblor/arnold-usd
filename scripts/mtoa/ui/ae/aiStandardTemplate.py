@@ -5,13 +5,6 @@ from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
 
 class AEaiStandardTemplate(ShaderAETemplate):
-    def bumpNew(self, attrName):
-        pm.setUITemplate('attributeEditorTemplate', pst=True)
-        pm.attrNavigationControlGrp('bumpControl', label="Bump Mapping", at=attrName)
-        pm.setUITemplate(ppt=True)
-
-    def bumpReplace(self, attrName):
-        pm.attrNavigationControlGrp('bumpControl', edit=True, at=attrName)
 
     def checkSpecularFresnel(self, nodeName):
         aeUtils.arnoldDimControlIfFalse(nodeName, "Ksn", "specular_Fresnel")
@@ -23,8 +16,7 @@ class AEaiStandardTemplate(ShaderAETemplate):
         self.addSwatch()
 
         self.beginScrollLayout()
-        #pm.editorTemplate(beginScrollLayout=True)
-        
+
         self.addCustom('message', 'AEshaderTypeNew', 'AEshaderTypeReplace')
 
         self.beginLayout("Diffuse", collapse=False)
@@ -70,7 +62,7 @@ class AEaiStandardTemplate(ShaderAETemplate):
         self.addControl("reflection_exit_use_environment", label="Reflection Exit Use Environment")
         self.addControl("reflection_exit_color", label="Reflection Exit Color")
         self.endLayout() # End Reflection Layout
-    
+
         self.beginLayout("Refraction", collapse=True)
         self.addControl("IOR", label="Index of Refraction")
         self.addControl("transmittance", label="Transmittance")
@@ -82,9 +74,7 @@ class AEaiStandardTemplate(ShaderAETemplate):
         self.addControl("refraction_exit_color", label="Refraction Exit Color")
         self.endLayout() # End Refraction Layout
 
-        self.beginLayout("Bump Mapping", collapse=True)
-        self.addCustom("normalCamera", self.bumpNew, self.bumpReplace)
-        self.endLayout() # End Bump Layout
+        self.addBumpLayout()
 
         self.beginLayout("Subsurface scattering", collapse=True)
         self.addControl("Ksss_color", label="Color")
@@ -123,5 +113,3 @@ class AEaiStandardTemplate(ShaderAETemplate):
         self.addExtraControls()
         self.endScrollLayout()
 
-        #pm.editorTemplate(addExtraControls=True)
-        #pm.editorTemplate(endScrollLayout=True)

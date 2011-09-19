@@ -357,9 +357,9 @@ def createArnoldSamplingSettings():
 #    pm.separator(style='none')
 
     createTranslatorMenu('defaultArnoldRenderOptions.filterType',
-                       label='Filter Type',
-                       nodeType='<filter>',
-                       default='gaussian')
+                         label='Filter Type',
+                         nodeType='<filter>',
+                         default='gaussian')
 
 #    pm.attrEnumOptionMenu('os_filter_type',
 #                               cc=updateArnoldFilterOptions,

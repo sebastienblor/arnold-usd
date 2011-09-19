@@ -1,7 +1,6 @@
-import maya.cmds as cmds
-import maya.mel as mel
+import pymel.core as pm
 from mtoa.ui.ae.shapeTemplate import TranslatorControl, getTranslators
-import mtoa.core as core
+from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
 class AOVTranslatorControl(TranslatorControl):
     '''
@@ -16,57 +15,63 @@ class AOVTranslatorControl(TranslatorControl):
     def getDefaultTranslator(self, nodeName):
         return self.USE_GLOBALS
 
-def aiAOVTemplate(nodeName):
 
-    #mel.eval('AEswatchDisplay "%s"' % nodeName)
+class AEaiAOVTemplate(ShaderAETemplate):
 
-    cmds.editorTemplate(beginScrollLayout=True)
-    cmds.editorTemplate(beginLayout="AOV Attributes", collapse=False)
+    def setup(self):
+        #mel.eval('AEswatchDisplay "%s"' % nodeName)
 
-    #cmds.editorTemplate(beginLayout="Primary Controls", collapse=False)
-    cmds.editorTemplate('enabled', addControl=True)
-    cmds.editorTemplate('name', addControl=True)
-    cmds.editorTemplate('type', addControl=True)
-    cmds.editorTemplate('prefix', addControl=True)
-    #cmds.editorTemplate(endLayout=True)
+        self.beginScrollLayout()
+        self.beginLayout("AOV Attributes", collapse=False)
 
-    driverCtrl = AOVTranslatorControl(nodeType='<driver>',
-                                      label='',
-                                      controlAttr='imageFormat')
-    cmds.editorTemplate(beginLayout='Image Format', collapse=False)
-    driverCtrl.attachToAE()
-    cmds.editorTemplate(endLayout=True)
+        #self.beginLayout("Primary Controls", collapse=False)
+        self.addControl('enabled')
+        self.addControl('name')
+        self.addControl('type')
+        self.addControl('prefix')
+        #self.endLayout()
 
-    fitlerCtrl = AOVTranslatorControl(nodeType='<filter>',
-                                      label='',
-                                      controlAttr='filterType')
-    cmds.editorTemplate(beginLayout='Filter', collapse=False)
-    fitlerCtrl.attachToAE()
-    cmds.editorTemplate(endLayout=True)
+        self.beginLayout('Image Format', collapse=False)
+        driverTemplate = AOVTranslatorControl(
+                              nodeType='<driver>',
+                              label='',
+                              controlAttr='imageFormat')
+        driverTemplate._doSetup(self.nodeName)
+        #self.addChildTemplate('imageFormat', driverTemplate)
+        self.endLayout()
 
-    cmds.editorTemplate(endLayout=True)
+        self.beginLayout('Filter', collapse=False)
+        filterTemplate = AOVTranslatorControl(
+                              nodeType='<filter>',
+                              label='',
+                              controlAttr='filterType')
+        filterTemplate._doSetup(self.nodeName)
+        #self.addChildTemplate('filterType', filterTemplate)
+        self.endLayout()
 
-    # include/call base class/node attributes
-    mel.eval('AEdependNodeTemplate "%s"' % nodeName)
-    cmds.editorTemplate(addExtraControls=True)
+        self.endLayout()
 
-    cmds.editorTemplate(endScrollLayout=True)
+        # include/call base class/node attributes
+        pm.mel.AEdependNodeTemplate(self.nodeName)
+        self.addExtraControls()
 
-    cmds.editorTemplate(nodeName, suppress='driverExrCompression')
-    cmds.editorTemplate(nodeName, suppress='driverHalfPrecision')
-    cmds.editorTemplate(nodeName, suppress='driverTiled')
-    cmds.editorTemplate(nodeName, suppress='driverPreserveLayerName')
-    cmds.editorTemplate(nodeName, suppress='driverQuality')
-    cmds.editorTemplate(nodeName, suppress='driverOutputPadded')
-    cmds.editorTemplate(nodeName, suppress='driverGamma')
-    cmds.editorTemplate(nodeName, suppress='driverDitherAmplitude')
-    cmds.editorTemplate(nodeName, suppress='driverDitherAmplitude')
-    cmds.editorTemplate(nodeName, suppress='driverPngFormat')
-    cmds.editorTemplate(nodeName, suppress='driverTiffCompression')
-    cmds.editorTemplate(nodeName, suppress='driverTiffFormat')
-    cmds.editorTemplate(nodeName, suppress='driverUnpremultAlpha')
-    cmds.editorTemplate(nodeName, suppress='filterWidth')
-    cmds.editorTemplate(nodeName, suppress='filterDomain')
-    cmds.editorTemplate(nodeName, suppress='filterMinimum')
-    cmds.editorTemplate(nodeName, suppress='filterMaximum')
-    cmds.editorTemplate(nodeName, suppress='filterScalarMode')
+        self.endScrollLayout()
+
+        self.suppress('driverExrCompression')
+        self.suppress('driverHalfPrecision')
+        self.suppress('driverTiled')
+        self.suppress('driverPreserveLayerName')
+        self.suppress('driverQuality')
+        self.suppress('driverOutputPadded')
+        self.suppress('driverGamma')
+        self.suppress('driverDitherAmplitude')
+        self.suppress('driverDitherAmplitude')
+        self.suppress('driverPngFormat')
+        self.suppress('driverTiffCompression')
+        self.suppress('driverTiffFormat')
+        self.suppress('driverUnpremultAlpha')
+        self.suppress('filterWidth')
+        self.suppress('filterDomain')
+        self.suppress('filterMinimum')
+        self.suppress('filterMaximum')
+        self.suppress('filterScalarMode')

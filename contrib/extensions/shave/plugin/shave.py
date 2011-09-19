@@ -1,7 +1,7 @@
 import maya.cmds as cmds
 from mtoa.ui.ae.shapeTemplate import translatorUI
 
-@translatorUI("shaveHair")
+@translatorUI("shaveHair", "shave")
 def shaveHair(ui):
     ui.renderStatsAttributes()
     ui.commonShapeAttributes()
