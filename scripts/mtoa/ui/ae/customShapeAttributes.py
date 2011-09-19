@@ -227,7 +227,7 @@ def cameraTranslatorChanged(transPlug, *args):
             orthoPlug.setBool(False)
 
 def getCameraDefault(cam):
-    default = 'orthographic' if pm.getAttr(cam + '.orthographic') else 'perspective'
+    default = 'orthographic' if cam.orthographic.get() else 'perspective'
     return default
 
 templates.registerDefaultTranslator('camera', getCameraDefault)

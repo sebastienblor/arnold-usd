@@ -1,5 +1,4 @@
-import maya.cmds as cmds
-import maya.mel as mel
+import pymel.core as pm
 import mtoa.ui.ae.utils as aeUtils
 import mtoa.core as core
 from mtoa.callbacks import *
@@ -10,9 +9,9 @@ import mtoa.callbacks as callbacks
 def getSourcePlug(plugname, index):
     conns = []
     if index < 0:
-        conns = cmds.listConnections(plugname, p=1, s=1, d=0)
+        conns = pm.listConnections(plugname, p=1, s=1, d=0)
     else:
-        conns = cmds.listConnections('%s[%s]'%(plugname, index), p=1, s=1, d=0)
+        conns = pm.listConnections('%s[%s]'%(plugname, index), p=1, s=1, d=0)
     if conns:
         if len(conns) == 1:
             return conns[0]
@@ -29,7 +28,7 @@ def getNodeName(plugname):
 
 def getConnectedCount(plugname):
     srcplug = ''
-    n= cmds.getAttr(plugname, size=True)
+    n= pm.getAttr(plugname, size=True)
     c = 0
 
     for i in range(0, n):
@@ -47,50 +46,50 @@ def swapConnections(plugname, i_zero, i_one):
     srcPlug_one = getSourcePlug(dstPlug_one, -1)
 
     if srcPlug_zero != "":
-        cmds.disconnectAttr(srcPlug_zero, dstPlug_zero)
+        pm.disconnectAttr(srcPlug_zero, dstPlug_zero)
 
     if srcPlug_one != "":
-        cmds.disconnectAttr(srcPlug_one, dstPlug_one)
+        pm.disconnectAttr(srcPlug_one, dstPlug_one)
 
     if srcPlug_zero != "":
-        cmds.connectAttr(srcPlug_zero, dstPlug_one)
+        pm.connectAttr(srcPlug_zero, dstPlug_one)
 
     if srcPlug_one != "":
-        cmds.connectAttr(srcPlug_one, dstPlug_zero)
+        pm.connectAttr(srcPlug_one, dstPlug_zero)
 
 class LightFilterWindow(object):
     
     def __init__(self, template):
         self.template = template
         self.win = "arnold_filter_list_win"
-        if cmds.window(self.win, exists=True):
-            cmds.deleteUI(self.win)
+        if pm.window(self.win, exists=True):
+            pm.deleteUI(self.win)
     
-        cmds.window(self.win, title="Add Light Filter",
+        pm.window(self.win, title="Add Light Filter",
                     sizeable=False,
                     resizeToFitChildren=True)
-        #cmds.windowPref(removeAll=True)
-        cmds.columnLayout(adjustableColumn=True,
+        #pm.windowPref(removeAll=True)
+        pm.columnLayout(adjustableColumn=True,
                           columnOffset=("both", 10),
                           #columnAttach=('both',1),
                           rowSpacing=10)
     
-        self.scrollList = cmds.textScrollList('alf_filter_list', nr=4, ams=False)
-        cmds.textScrollList(self.scrollList,
+        self.scrollList = pm.textScrollList('alf_filter_list', nr=4, ams=False)
+        pm.textScrollList(self.scrollList,
                             e=True,
                             doubleClickCommand=Callback(self.addFilterAndHide))
 
         for label, nodeType in self.filters():
-            cmds.textScrollList(self.scrollList, edit=True, append=label)
+            pm.textScrollList(self.scrollList, edit=True, append=label)
 
-        cmds.rowLayout(numberOfColumns=2, columnAlign2=("center", "center"))
-        cmds.button(width=100, label="Add", command=Callback(self.addFilterAndHide))
-        cmds.button(width=100, label="Cancel", command=Callback(cmds.deleteUI, self.win, window=True))
+        pm.rowLayout(numberOfColumns=2, columnAlign2=("center", "center"))
+        pm.button(width=100, label="Add", command=Callback(self.addFilterAndHide))
+        pm.button(width=100, label="Cancel", command=Callback(pm.deleteUI, self.win, window=True))
     
-        cmds.setParent('..')
-        cmds.setParent('..')
+        pm.setParent('..')
+        pm.setParent('..')
 
-        cmds.showWindow(self.win)
+        pm.showWindow(self.win)
 
     def filters(self):
         result = []
@@ -99,8 +98,8 @@ class LightFilterWindow(object):
         return result
 
     def addFilterAndHide(self):
-        cmds.window(self.win, edit=True, visible=False)
-        filterLabels = cmds.textScrollList(self.scrollList, q=True, si=True)
+        pm.window(self.win, edit=True, visible=False)
+        filterLabels = pm.textScrollList(self.scrollList, q=True, si=True)
         if filterLabels:
             filterLabels = filterLabels[0]
         else:
@@ -129,10 +128,12 @@ class LightTemplate(AttributeTemplate):
         # use a shared light decay node
         if om.MFileIO.isReadingFile() or om.MFileIO.isOpeningFile():
             return
-        filter = 'defaultLightDecay'
-        if not cmds.objExists(filter) or not cmds.nodeType(filter) == 'aiLightDecay':
+        try:
+            filter = pm.nt.DependNode( 'defaultLightDecay')
+        except pm.MayaObjectError:
             filter = core.createArnoldNode('aiLightDecay', name='defaultLightDecay', skipSelect=True)
-        cmds.connectAttr('%s.message' % filter, '%s.aiFilters[0]' % node)
+
+        filter.message.connect(node.aiFilters[0])
 
     def commonLightAttributes(self):
         self.addControl("aiNormalize")
@@ -146,7 +147,7 @@ class LightTemplate(AttributeTemplate):
         self.endLayout()
 
     def moveLightFilterUp(self):
-        items = cmds.textScrollList(self.scrollList, q=True, sii=True)
+        items = pm.textScrollList(self.scrollList, q=True, sii=True)
         if not items:
             return 0
     
@@ -157,7 +158,7 @@ class LightTemplate(AttributeTemplate):
 
     def moveLightFilterDown(self):
         attr = self.nodeAttr('aiFilters')
-        items = cmds.textScrollList(self.scrollList, q=True, sii=True)
+        items = pm.textScrollList(self.scrollList, q=True, sii=True)
         if not items:
             return 0
 
@@ -170,32 +171,30 @@ class LightTemplate(AttributeTemplate):
         '''
         update the buttons in response to a change to the list of connected filters
         '''
-        items = cmds.textScrollList(self.scrollList, q=True, si=True)
+        items = pm.textScrollList(self.scrollList, q=True, si=True)
 
-        selection = 0
-        if items:
-            selection = 1
+        selection = 1 if items else 0
 
-        cmds.button('lf_remove_button', edit=True, enable=selection)
-        cmds.button('lf_move_up_button', edit=True, enable=selection)
-        cmds.button('lf_move_down_button', edit=True, enable=selection)
+        pm.button('lf_remove_button', edit=True, enable=selection)
+        pm.button('lf_move_up_button', edit=True, enable=selection)
+        pm.button('lf_move_down_button', edit=True, enable=selection)
 
     def addLightFilterWin(self):
         LightFilterWindow(self)
 
-    def addLightFilterCB(self, value):
-        if not value:
+    def addLightFilterCB(self, nodeType):
+        if not nodeType:
             # selected a menu divider. reset
             self.updateAddMenu()
             return
-        items = cmds.optionMenuGrp(self.addOptionMenuGrp, query=True, itemListLong=True)
-        index = cmds.optionMenuGrp(self.addOptionMenuGrp, query=True, select=True)
-        mode = cmds.menuItem(items[index-1], query=True, data=True)
+        items = pm.optionMenuGrp(self.addOptionMenuGrp, query=True, itemListLong=True)
+        index = pm.optionMenuGrp(self.addOptionMenuGrp, query=True, select=True)
+        mode = pm.menuItem(items[index-1], query=True, data=True)
         if mode == self.MENU_NODE_TYPE:
-            newFilter = self.addLightFilter(value)
-            mel.eval('updateAE "%s"' % newFilter)
+            newFilter = self.addLightFilter(nodeType)
+            pm.mel.updateAE(newFilter)
         else:
-            self.connectLightFilter(value)
+            self.connectLightFilter(nodeType)
 
     def addLightFilter(self, filterNodeType):
         '''
@@ -208,17 +207,15 @@ class LightTemplate(AttributeTemplate):
     def connectLightFilter(self, newFilter):
         attr =  self.nodeAttr('aiFilters')
         nfilters = getConnectedCount(attr)
-        cmds.connectAttr("%s.message" % newFilter, '%s[%s]'%(attr, nfilters))
+        newFilter.message.connect('%s[%s]'%(attr, nfilters))
         self.lightFiltersUpdateList()
         self.updateAddMenu()
 
     def removeLightFilter(self):
         attr = self.nodeAttr('aiFilters')
 
-        selection = cmds.textScrollList(self.scrollList, q=True, si=True)
-        selected = ''
-        if selection:
-            selected = selection[0]
+        selection = pm.textScrollList(self.scrollList, q=True, si=True)
+        selected = selection[0] if selection else ''
 
         nfilters = getConnectedCount(attr)
 
@@ -230,9 +227,9 @@ class LightTemplate(AttributeTemplate):
                 for k in range(j+1, nfilters):
                     swapConnections(attr, j, k)
                     j+=1
-                cmds.disconnectAttr(srcplug, '%s[%s]'%(attr, nfilters-1))
+                pm.disconnectAttr(srcplug, '%s[%s]'%(attr, nfilters-1))
                 # node might be used elsewhere, so we can't just delete it
-                #cmds.delete(filter)
+                #pm.delete(filter)
 
         self.lightFiltersUpdateList()
 
@@ -250,79 +247,77 @@ class LightTemplate(AttributeTemplate):
         '''
         refresh the list of connected light filters
         '''
-        selection = cmds.textScrollList(self.scrollList, q=True, si=True)
-        selected = ''
-        if selection:
-            selected = selection[0]
+        selection = pm.textScrollList(self.scrollList, q=True, si=True)
+        selected = selection[0] if selection else ''
     
-        cmds.textScrollList(self.scrollList, edit=True, removeAll=True)
+        pm.textScrollList(self.scrollList, edit=True, removeAll=True)
         for filter in self.getConnectedLightFilters():
-            cmds.textScrollList(self.scrollList, edit=True, append=filter)
+            pm.textScrollList(self.scrollList, edit=True, append=filter)
             if filter == selected:
-                cmds.textScrollList(self.scrollList, edit=True, si=selected)
+                pm.textScrollList(self.scrollList, edit=True, si=selected)
     
         self.lightFilterListChanged()
 
     def customLightFiltersChanged(self, userChangeCB=None):
         if userChangeCB:
-            cmds.evalDeferred(userChangeCB)
+            pm.evalDeferred(userChangeCB)
 
     def updateCustomLightFiltersNew(self):
-        val = cmds.textScrollList(self.scrollList, q=True, si=True)
+        val = pm.textScrollList(self.scrollList, q=True, si=True)
         if val:
-            mel.eval('updateAE "%s"'%val[0])
+            pm.mel.updateAE(val[0])
 
     def updateAddMenu(self):
         # clear
-        for item in cmds.optionMenuGrp(self.addOptionMenuGrp, query=True, itemListLong=True) or []:
-            cmds.deleteUI(item)
+        for item in pm.optionMenuGrp(self.addOptionMenuGrp, query=True, itemListLong=True) or []:
+            pm.deleteUI(item)
         # rebuild
-        cmds.menuItem(label='<Add Filter>', parent=self.addOptionMenu)
+        pm.menuItem(label='<Add Filter>', parent=self.addOptionMenu)
         for filterType in self.validFilters():
-            cmds.menuItem(label=filterType, data=self.MENU_NODE_TYPE, parent=self.addOptionMenu)
+            pm.menuItem(label=filterType, data=self.MENU_NODE_TYPE, parent=self.addOptionMenu)
         connected = self.getConnectedLightFilters()
-        existing = [node for node in cmds.ls(type=self.validFilters()) or [] if node not in connected]
+        existing = [node for node in pm.ls(type=self.validFilters()) or [] if node not in connected]
         if existing:
-            #cmds.menuItem(label='<Existing Filters...>', parent=self.addOptionMenu)
-            cmds.menuItem(divider=True, parent=self.addOptionMenu)
+            #pm.menuItem(label='<Existing Filters...>', parent=self.addOptionMenu)
+            pm.menuItem(divider=True, parent=self.addOptionMenu)
             for filter in existing:
-                cmds.menuItem(label=filter, data=self.MENU_NODE_INSTANCE, parent=self.addOptionMenu)
+                pm.menuItem(label=filter, data=self.MENU_NODE_INSTANCE, parent=self.addOptionMenu)
 
     def customLightFiltersNew(self, attr):
-        cmds.rowLayout(numberOfColumns=3,
+        pm.rowLayout(numberOfColumns=3,
                        adjustableColumn=2,
                        rowAttach=(1, "top", 0),
                        columnWidth=[(1, 140), (2, 230)])
-        cmds.text(label="")
-        cmds.columnLayout(adjustableColumn=True,
+        pm.text(label="")
+        pm.columnLayout(adjustableColumn=True,
                           columnAttach=("both", 0),
                           rowSpacing=5)
         uiName = '%s_aiFilter'%(self.nodeType())
-        self.scrollList = cmds.textScrollList(uiName, height=150, ams=False,
+        self.scrollList = pm.textScrollList(uiName, height=150, ams=False,
                                               sc=self.lightFilterListChanged,
                                               dcc=self.updateCustomLightFiltersNew)
 
-        cmds.rowLayout(numberOfColumns=2,
+        pm.rowLayout(numberOfColumns=2,
                        columnWidth2=(80,80),
                        columnAttach2=("both", "both"),
                        columnAlign2=("center", "center"),
                        columnOffset2=(2, 2))
 
-        cmds.button('lf_add_button', label="Add", c=Callback(self.addLightFilterWin))
-        cmds.button('lf_remove_button', label="Remove", c=Callback(self.removeLightFilter))
+        pm.button('lf_add_button', label="Add", c=Callback(self.addLightFilterWin))
+        pm.button('lf_remove_button', label="Remove", c=Callback(self.removeLightFilter))
         # implicit end of row layout
-        cmds.setParent('..') # back to column layout
-        cmds.setParent('..') # back to row layout
-        cmds.columnLayout(adjustableColumn=False,
+        pm.setParent('..') # back to column layout
+        pm.setParent('..') # back to row layout
+        pm.columnLayout(adjustableColumn=False,
                           columnAttach=("both", 0),
                           rowSpacing=5)
-        cmds.symbolButton('lf_move_up_button', image='arrowUp.xpm', c=Callback(self.moveLightFilterUp))
-        cmds.symbolButton('lf_move_down_button', image='arrowDown.xpm', c=Callback(self.moveLightFilterDown))
-        cmds.setParent('..')
-        cmds.setParent('..')
+        pm.symbolButton('lf_move_up_button', image='arrowUp.xpm', c=Callback(self.moveLightFilterUp))
+        pm.symbolButton('lf_move_down_button', image='arrowDown.xpm', c=Callback(self.moveLightFilterDown))
+        pm.setParent('..')
+        pm.setParent('..')
         
-        self.addOptionMenuGrp = cmds.optionMenuGrp('lf_add_menu', label='Add',
-                                                   changeCommand=self.addLightFilterCB)
+        self.addOptionMenuGrp = pm.optionMenuGrp('lf_add_menu', label='Add',
+                                                 changeCommand=self.addLightFilterCB)
         self.addOptionMenu = self.addOptionMenuGrp + '|OptionMenu'
     
         self.lightFiltersUpdateList()
