@@ -511,17 +511,18 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
       if (GetSessionMode() == MTOA_SESSION_RENDER || GetSessionMode() == MTOA_SESSION_IPR)
       {
          MGlobal::viewFrame(MTime(GetExportFrame(), MTime::uiUnit()));
-         // add callbacks after frame is reset
-         if (GetSessionMode() == MTOA_SESSION_IPR)
-         {
-            ObjectToTranslatorMap::iterator it;
-            for (it = m_processedTranslators.begin(); it != m_processedTranslators.end(); ++it)
-            {
-               it->second->AddUpdateCallbacks();
-            }
-         }
       }
       m_isExportingMotion = false;
+   }
+
+   // add callbacks after all is done
+   if (GetSessionMode() == MTOA_SESSION_IPR)
+   {
+      ObjectToTranslatorMap::iterator it;
+      for (it = m_processedTranslators.begin(); it != m_processedTranslators.end(); ++it)
+      {
+         it->second->AddUpdateCallbacks();
+      }
    }
 
    return status;
@@ -814,17 +815,19 @@ void CArnoldSession::DoUpdate()
          }
       }
       MGlobal::viewFrame(MTime(GetExportFrame(), MTime::uiUnit()));
-      // Add IPR callbacks after frame has been reset
-      for(std::vector<CNodeTranslator*>::iterator iter = m_translatorsToUpdate.begin();
-         iter != m_translatorsToUpdate.end(); ++iter)
-      {
-         CNodeTranslator* translator = (*iter);
-         if (translator != NULL)translator->AddUpdateCallbacks();
-      }
+
       m_isExportingMotion = false;
    }
 
-   // Clear the list.
+   // re-add IPR callbacks to all updated translators after ALL updates are done
+   for(std::vector<CNodeTranslator*>::iterator iter = m_translatorsToUpdate.begin();
+      iter != m_translatorsToUpdate.end(); ++iter)
+   {
+      CNodeTranslator* translator = (*iter);
+      if (translator != NULL) translator->AddUpdateCallbacks();
+   }
+
+   // Clear the list and the reques update flag.
    m_translatorsToUpdate.clear();
    m_requestUpdate = false;
 }
