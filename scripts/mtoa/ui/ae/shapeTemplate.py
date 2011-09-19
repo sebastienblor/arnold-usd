@@ -1,5 +1,6 @@
 ﻿import maya.cmds as cmds
 import maya.mel as mel
+import pymel
 import pymel.core as pm
 from maya.utils import executeDeferred
 from mtoa.ui.ae.utils import aeCallback, AttrControlGrp
