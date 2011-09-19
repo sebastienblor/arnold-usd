@@ -1,4 +1,4 @@
-import pymel.core as pm
+﻿import pymel.core as pm
 from mtoa.ui.ae.shapeTemplate import createTranslatorMenu
 from mtoa.callbacks import *
 
@@ -357,9 +357,9 @@ def createArnoldSamplingSettings():
 #    pm.separator(style='none')
 
     createTranslatorMenu('defaultArnoldRenderOptions.filterType',
-                       label='Filter Type',
-                       nodeType='<filter>',
-                       default='gaussian')
+                         label='Filter Type',
+                         nodeType='<filter>',
+                         default='gaussian')
 
 #    pm.attrEnumOptionMenu('os_filter_type',
 #                               cc=updateArnoldFilterOptions,

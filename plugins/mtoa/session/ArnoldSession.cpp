@@ -506,9 +506,21 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
             dependIt->second->DoExport(step);
          }
       }
-      // Note: do not reset frame or that's an extra unnecessary scene eval when exporting a sequence
-      // caller (CMayaScene usually) should take care of resetting in single frame export mode
-      // MGlobal::viewFrame(MTime(GetExportFrame(), MTime::uiUnit()));
+      // Note: only reset frame during interactive renders, otherwise that's an extra unnecessary scene eval
+      // when exporting a sequence
+      if (GetSessionMode() == MTOA_SESSION_RENDER || GetSessionMode() == MTOA_SESSION_IPR)
+      {
+         MGlobal::viewFrame(MTime(GetExportFrame(), MTime::uiUnit()));
+         // add callbacks after frame is reset
+         if (GetSessionMode() == MTOA_SESSION_IPR)
+         {
+            ObjectToTranslatorMap::iterator it;
+            for (it = m_processedTranslators.begin(); it != m_processedTranslators.end(); ++it)
+            {
+               it->second->AddUpdateCallbacks();
+            }
+         }
+      }
       m_isExportingMotion = false;
    }
 
@@ -802,6 +814,13 @@ void CArnoldSession::DoUpdate()
          }
       }
       MGlobal::viewFrame(MTime(GetExportFrame(), MTime::uiUnit()));
+      // Add IPR callbacks after frame has been reset
+      for(std::vector<CNodeTranslator*>::iterator iter = m_translatorsToUpdate.begin();
+         iter != m_translatorsToUpdate.end(); ++iter)
+      {
+         CNodeTranslator* translator = (*iter);
+         if (translator != NULL)translator->AddUpdateCallbacks();
+      }
       m_isExportingMotion = false;
    }
 

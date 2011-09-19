@@ -1,4 +1,4 @@
-'''
+﻿'''
  Copyright (C) 1997-2010 Autodesk, Inc., and/or its licensors.
  All rights reserved.
 
@@ -547,10 +547,10 @@ def createArnoldImageFormatControl():
         pm.deleteUI(fullPath)
 
     createTranslatorMenu('defaultArnoldRenderOptions.imageFormat', 
-                       label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kImageFormatMenu"),
-                       nodeType='<driver>',
-                       default='exr',
-                       optionMenuName='imageMenuMayaSW')
+                         label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kImageFormatMenu"),
+                         nodeType='<driver>',
+                         default='exr',
+                         optionMenuName='imageMenuMayaSW')
 
     # We need to create controls that we don't need to avoid
     # Maya errors because of the harcoded code. keep them hidden

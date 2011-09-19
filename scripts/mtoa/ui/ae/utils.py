@@ -1,4 +1,4 @@
-import maya.cmds as cmds
+﻿import maya.cmds as cmds
 import maya.mel as mel
 import mtoa.utils as utils
 import mtoa.ui.ae
@@ -44,13 +44,13 @@ def attributeExists(attribute, nodeName):
 def loadAETemplates():
     templates = []
     for importer, modname, ispkg in pkgutil.iter_modules(mtoa.ui.ae.__path__):
-        # TODO: use importer?
-        mod = __import__(modname, globals(), locals(), [], -1)
-        if modname.endswith('Template') and modname not in templates and hasattr(mod, modname):
-            templates.append(modname)
-            procName = 'AE%s' % modname
-            _makeAEProc(modname, modname, procName)
-
+        if modname.endswith('Template') and modname not in templates:
+            # TODO: use importer?
+            mod = __import__(modname, globals(), locals(), [], -1)
+            if hasattr(mod, modname):
+                templates.append(modname)
+                procName = 'AE%s' % modname
+                _makeAEProc(modname, modname, procName)
     loadAEshapesTemplate()
 
 def loadAEshapesTemplate():
