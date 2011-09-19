@@ -1,26 +1,25 @@
 import pymel.core as pm
 import mtoa.utils as utils
 import mtoa.ui.ae.utils as aeUtils
-from mtoa.ui.ae.shaderTemplate import AttributeEditorTemplate
+from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
 
-class AEaiStandardTemplate(AttributeEditorTemplate):
+class AEaiStandardTemplate(ShaderAETemplate):
     def bumpNew(self, attrName):
         pm.setUITemplate('attributeEditorTemplate', pst=True)
         pm.attrNavigationControlGrp('bumpControl', label="Bump Mapping", at=attrName)
         pm.setUITemplate(ppt=True)
-    
+
     def bumpReplace(self, attrName):
         pm.attrNavigationControlGrp('bumpControl', edit=True, at=attrName)
-    
+
     def checkSpecularFresnel(self, nodeName):
         aeUtils.arnoldDimControlIfFalse(nodeName, "Ksn", "specular_Fresnel")
-    
+
     def checkReflectionFresnel(self, nodeName):
         aeUtils.arnoldDimControlIfFalse(nodeName, "Krn", "Fresnel")
-    
+
     def setup(self):
-    
         self.addSwatch()
 
         self.beginScrollLayout()
@@ -41,7 +40,7 @@ class AEaiStandardTemplate(AttributeEditorTemplate):
         self.addControl("indirect_diffuse", label="Indirect Diffuse")
         self.endLayout()
         self.endLayout()#End Diffuse Layout
-    
+
         self.beginLayout("Specular", collapse=False)
         self.addControl("Ks_color", label="Color")
         self.addControl("Ks", label="Weight")
@@ -54,13 +53,13 @@ class AEaiStandardTemplate(AttributeEditorTemplate):
         self.addSeparator()
         self.addControl("specular_Fresnel", changeCommand=self.checkSpecularFresnel, label="Fresnel")
         self.addControl("Ksn", label="Fresnel Coefficient")
-    
+
         self.beginLayout("Extended Controls", collapse=True)
         self.addControl("direct_specular", label="Direct Specularity")
         self.addControl("indirect_specular", label="Indirect Specularity")
         self.endLayout()
         self.endLayout()# End Specular Layout
-    
+
         self.beginLayout("Reflection", collapse=True)
         self.addControl("Kr_color", label="Color")
         self.addControl("Kr", label="Weight")
@@ -82,22 +81,22 @@ class AEaiStandardTemplate(AttributeEditorTemplate):
         self.addControl("refraction_exit_use_environment", label="Refraction Exit Use Environment")
         self.addControl("refraction_exit_color", label="Refraction Exit Color")
         self.endLayout() # End Refraction Layout
-    
+
         self.beginLayout("Bump Mapping", collapse=True)
         self.addCustom("normalCamera", self.bumpNew, self.bumpReplace)
         self.endLayout() # End Bump Layout
-    
+
         self.beginLayout("Subsurface scattering", collapse=True)
         self.addControl("Ksss_color", label="Color")
         self.addControl("Ksss", label="Weight")
         self.addControl("sss_radius", label="Radius")
         self.endLayout() # End SSS Layout
-    
+
         self.beginLayout("Emission", collapse=True)
         self.addControl("emission_color", label="Color")
         self.addControl("emission", label="Weight")
         self.endLayout() # End Emission Layout
-    
+
         self.beginLayout("Caustics", collapse=True)
         self.beginNoOptimize()
         self.addControl("enable_glossy_caustics", label="Enable Glossy Caustics")
@@ -106,18 +105,18 @@ class AEaiStandardTemplate(AttributeEditorTemplate):
         self.addControl("enable_internal_reflections", label="Enable Internal Reflections")
         self.endNoOptimize()
         self.endLayout() # End Caustics Layout
-    
+
         self.beginLayout("Advanced", collapse=True)
         self.addControl("bounce_factor", label="Bounce Factor")
         self.addControl("opacity", label="Opacity")
         self.endLayout() # End Advanced Layout
-    
+
         self.beginLayout("Hardware Texturing", collapse=True)
         #pm.mel.eval('AEhardwareTextureTemplate "%s"' % self.nodeName() + r'("Kd_color Kd Ks_color Ks")')
         self.endLayout()
-    
+
         self.addAOVLayout()
-    
+
         # include/call base class/node attributes
         pm.mel.AEdependNodeTemplate(self.nodeName)
 
