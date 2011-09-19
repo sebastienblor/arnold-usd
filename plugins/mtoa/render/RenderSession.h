@@ -32,9 +32,6 @@ public:
    /// Terminate a render. This will shutdown the Arnold universe.
    MStatus End();
 
-   /// Load the external shaders/procedrals into Arnold.
-   MStatus LoadPlugins();
-
    /// Get the render view ready.
    /// \param addIdleRenderViewUpdate Optionally install a callback for IPR.
    MStatus PrepareRenderView(bool addIdleRenderViewUpdate=false);

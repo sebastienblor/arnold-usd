@@ -1,4 +1,5 @@
 #include "Universe.h"
+#include "extension/Extension.h"
 
 #include <ai_universe.h>
 #include <ai_metadata.h>
@@ -39,12 +40,24 @@ void InstallNodes()
    }
 }
 
+// Reload the Arnold plugins that were registered by the extensions manager for this session
+void LoadPlugins()
+{
+   MStringArray plugins = CExtension::GetAllLoadedArnoldPlugins();
+   for (unsigned int i=0; i<plugins.length(); ++i)
+   {
+      const MString pluginFile = plugins[i];
+      AiLoadPlugin(pluginFile.asChar());
+   }
+}
+
 bool ArnoldUniverseBegin()
 {
    if (!AiUniverseIsActive())
    {
       AiBegin();
       MtoaSetupLogging();
+      LoadPlugins();
       ReadMetafile();
       return true;
    }

@@ -109,25 +109,8 @@ unsigned int CRenderSession::RenderThread(AtVoid* data)
    return 0;
 }
 
-// Reload the Arnold plugins that were registered by the extensions manager for this session
-MStatus CRenderSession::LoadPlugins()
-{
-   MStatus status = MStatus::kSuccess;
-
-   MStringArray plugins = CExtension::GetAllLoadedArnoldPlugins();
-   for (unsigned int i=0; i<plugins.length(); ++i)
-   {
-      const MString pluginFile = plugins[i];
-      AiLoadPlugin(pluginFile.asChar());
-   }
-
-   return status;
-}
-
 MStatus CRenderSession::Begin(CRenderOptions* options)
 {
-   MStatus status = MStatus::kSuccess;
-
    if (AiUniverseIsActive())
    {
       AiMsgWarning("[mtoa] There can only be one RenderSession active.");
@@ -141,12 +124,10 @@ MStatus CRenderSession::Begin(CRenderOptions* options)
    m_is_active = AiUniverseIsActive() ? true : false;
    if (m_is_active)
    {
-      status = LoadPlugins();
-
       m_renderOptions = *options;
       m_renderOptions.SetupLog();
       InstallNodes();
-      return status;
+      return MStatus::kSuccess;
    }
    else
    {
