@@ -6,6 +6,7 @@
 #include "attributes/AttrHelper.h"
 #include "session/ArnoldSession.h"
 #include "extension/AbTranslator.h"
+#include "render/AOV.h"
 
 #include <ai_nodes.h>
 

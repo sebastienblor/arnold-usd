@@ -1,5 +1,6 @@
 #include "NodeTranslator.h"
 #include "render/RenderOptions.h"
+#include "translators/options/OptionsTranslator.h"
 
 #include <ai_ray.h>
 #include <ai_metadata.h>
@@ -68,7 +69,7 @@ namespace // <anonymous>
          AiNodeSetRGB(arnoldNode, arnoldParam, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
 
 #define COMP_CONNECTIONS_RGBA(plug, arnoldNode, arnoldParam) \
-		AiNodeSetRGBA(arnoldNode, arnoldParam, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat(), 1.0f); \
+      AiNodeSetRGBA(arnoldNode, arnoldParam, plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat(), 1.0f); \
       COMP_CONNECTIONS(plug, arnoldNode, arnoldParam, ".r", ".g", ".b") \
 
 #define COMP_CONNECTIONS_VEC(plug, arnoldNode, arnoldParam) \

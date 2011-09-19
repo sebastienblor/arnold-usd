@@ -38,6 +38,34 @@
 
 extern AtNodeMethods* mtoa_driver_mtd;
 
+namespace
+{
+   MString VerifyFileName(MString fileName, bool compressed)
+   {
+      unsigned int len = fileName.length();
+
+      if (!compressed)
+      {
+         if ((len < 4) || (fileName.substring(len - 4, len - 1).toLowerCase() != ".ass"))
+            fileName += ".ass";
+      }
+      else
+      {
+         if ((len < 7) || (fileName.substring(len - 7, len - 1).toLowerCase() != ".ass.gz"))
+         {
+            if ((len < 4) || (fileName.substring(len - 4, len - 1).toLowerCase() == ".ass"))
+               fileName += ".gz";
+            else if ((len < 3) || (fileName.substring(len - 3, len - 1).toLowerCase() == ".gz"))
+               fileName = fileName.substring(0, len - 4) + ".ass.gz";
+            else
+               fileName += ".ass.gz";
+         }
+      }
+
+      return fileName;
+   }
+}
+
 // This will update the render view if needed.
 // It's called from a maya idle event callback.
 // This means it's called a *lot*.
@@ -117,29 +145,7 @@ MStatus CRenderSession::Begin(CRenderOptions* options)
 
       m_renderOptions = *options;
       m_renderOptions.SetupLog();
-
-      // renderview display
-      if (!m_renderOptions.BatchMode())
-      {
-         AiNodeInstall(AI_NODE_DRIVER,
-                       AI_TYPE_NONE,
-                       "renderview_display",
-                       NULL,
-                       (AtNodeMethods*) mtoa_driver_mtd,
-                       AI_VERSION);
-         const AtNodeEntry* driverEntry = AiNodeEntryLookUp("renderview_display");
-         if (NULL != driverEntry)
-         {
-            AiMsgInfo("[mtoa] Installed renderview_display driver");
-            status = MStatus::kSuccess;
-         }
-         else
-         {
-            AiMsgInfo("[mtoa] Could not instal renderview_display driver");
-            status = MStatus::kFailure;
-         }
-      }
-
+      InstallNodes();
       return status;
    }
    else
@@ -236,11 +242,6 @@ void CRenderSession::InterruptRender()
    }
 }
 
-void CRenderSession::SetBatch(bool batch)
-{
-   m_renderOptions.SetBatch(batch);
-}
-
 void CRenderSession::SetResolution(const int width, const int height)
 {
    if (width != -1) m_renderOptions.SetWidth(width);
@@ -270,16 +271,8 @@ void CRenderSession::SetCamera(MDagPath cameraNode)
 
    cameraNode.extendToShape();
    m_renderOptions.SetCamera(cameraNode);
-   // FIXME: do this more explicitly: at this point the node should be exported, this is just retrieving the arnold node
-   AtNode* camera = CMayaScene::GetArnoldSession()->ExportDagPath(cameraNode);
-   if (camera == NULL)
-   {
-      AiMsgError("[mtoa] Setting camera %s failed", cameraNode.partialPathName().asChar());
-      return;
-   }
-   AiNodeSetPtr(AiUniverseGetOptions(), "camera", camera);
-   m_renderOptions.UpdateImageFilename();
 
+   /*
    // FIXME: this would best be handled by a kind of translator post-process hook.
 
    // check visibility for all image planes.
@@ -336,157 +329,7 @@ void CRenderSession::SetCamera(MDagPath cameraNode)
             }
          }
       }
-   }
-}
-
-void CRenderSession::SetMultiCameraRender(bool multi)
-{
-   m_renderOptions.SetMultiCameraRender(multi);
-}
-
-void CRenderSession::SetupRenderOutput()
-{
-   assert(AiUniverseIsActive());
-
-   m_renderOptions.UpdateImageOptions();
-
-   AtNode * render_view = CreateRenderViewOutput();
-   AtNode * file_driver = CreateFileOutput();
-   AtNode * filter = CreateOutputFilter();
-
-   // OUTPUT STRINGS
-   AtChar   str[1024];
-   MString  outString;
-   unsigned int ndrivers = 0;
-   if (render_view != NULL) ++ndrivers;
-   if (file_driver != NULL) ++ndrivers;
-
-   AtArray* outputs  = AiArrayAllocate(ndrivers+m_renderOptions.NumAOVs(), 1, AI_TYPE_STRING);
-
-   int driver_num(0);
-   if (render_view != NULL)
-   {
-      MObject node;
-      m_renderOptions.GetOptionsNode(node);
-      MFnDependencyNode fnArnoldRenderOptions(node);
-
-      AiMsgWarning("display AOV: %s", fnArnoldRenderOptions.findPlug("displayAOV").asString().asChar());
-      sprintf(str, "%s RGBA %s %s", fnArnoldRenderOptions.findPlug("displayAOV").asString().asChar(),
-              AiNodeGetName(filter), AiNodeGetName(render_view));
-      //sprintf(str, "RGBA RGBA %s %s", AiNodeGetName(filter), AiNodeGetName(render_view));
-      AiArraySetStr(outputs, driver_num++, str);
-   }
-
-   if (file_driver != NULL)
-   {
-      sprintf(str, "RGBA RGBA %s %s", AiNodeGetName(filter), AiNodeGetName(file_driver));
-      AiArraySetStr(outputs, driver_num++, str);
-
-      unsigned int i = 0;
-      for (AOVSet::iterator it=m_renderOptions.m_aovs.begin(); it!=m_renderOptions.m_aovs.end(); ++it)
-      {
-         outString = it->SetupOutput(file_driver, filter);
-         AiArraySetStr(outputs, ndrivers + i++, outString.asChar());
-         AiMsgDebug("[mtoa] [aov %s] Added output: %s", it->GetName().asChar(), outString.asChar());
-      }
-   }
-   AiNodeSetArray(AiUniverseGetOptions(), "outputs", outputs);
-}
-
-AtNode * CRenderSession::CreateFileOutput()
-{
-   assert(AiUniverseIsActive());
-
-   // Don't install the file driver when in IPR mode.
-   if (CMayaScene::GetSessionMode() == MTOA_SESSION_IPR) return NULL;
-
-   MObject node;
-   m_renderOptions.GetOptionsNode(node);
-   MFnDependencyNode fnArnoldRenderOptions(node);
-
-   // set the output driver
-   MString driverType = fnArnoldRenderOptions.findPlug("imageFormat").asString();
-   AtNode* driver = CMayaScene::GetArnoldSession()->ExportDriver(node, driverType);
-   if (driver != NULL)
-   {
-      AiNodeSetStr(driver, "name", AiNodeEntryGetName(driver->base_node));
-      AiNodeSetStr(driver, "filename", m_renderOptions.GetImageFilename().asChar());
-   }
-   else
-   {
-      AiMsgError("[mtoa] image driver is NULL");
-   }
-
-   AiMsgDebug("[mtoa] Created driver %s(%s) with output filename '%s'.",
-         AiNodeGetName(driver), AiNodeEntryGetName(driver->base_node), AiNodeGetStr(driver, "filename"));
-
-
-   return driver;
-}
-
-AtNode * CRenderSession::CreateOutputFilter()
-{
-   assert(AiUniverseIsActive());
-
-   MObject node;
-   m_renderOptions.GetOptionsNode(node);
-   MFnDependencyNode fnArnoldRenderOptions(node);
-
-   // set the output driver
-   MString filterType = fnArnoldRenderOptions.findPlug("filterType").asString();
-   AiMsgInfo("[mtoa] Creating default filter \"%s\"", filterType.asChar());
-   AtNode* filter = CMayaScene::GetArnoldSession()->ExportFilter(node, filterType);
-   if (filter == NULL)
-      AiMsgError("[mtoa] filter is NULL");
-
-   return filter;
-}
-
-AtNode * CRenderSession::CreateRenderViewOutput()
-{
-   assert(AiUniverseIsActive());
-
-   // Don't create it if we're in batch mode.
-   if (m_renderOptions.BatchMode()) return NULL;
-
-   AtNode * driver = NULL;
-
-   const AtNodeEntry* driverEntry = AiNodeEntryLookUp("renderview_display");
-   if (driverEntry == NULL)
-   {
-      AiMsgWarning("[mtoa] the renderview display driver should be available at this point");
-      // renderview display
-      if (!m_renderOptions.BatchMode())
-      {
-         AiNodeInstall(AI_NODE_DRIVER,
-                       AI_TYPE_NONE,
-                       "renderview_display",
-                       NULL,
-                       (AtNodeMethods*) mtoa_driver_mtd,
-                       AI_VERSION);
-         driverEntry = AiNodeEntryLookUp("renderview_display");
-      }
-   }
-
-   if (driverEntry != NULL)
-   {
-      // FIXME : we should query the translator list in case it has already been exported
-      // or create one with CMayaScene::GetArnoldSession()->ExportFilter(node, filterType);
-      driver = AiNodeLookUpByName("renderview_display");
-      if (driver == NULL)
-      {
-         AiMsgWarning("[mtoa] no existing renderview_display driver, creating one");
-         driver = AiNode("renderview_display");
-         AiNodeSetStr(driver, "name", "renderview_display");
-      }
-      AiNodeSetFlt(driver, "gamma", m_renderOptions.outputGamma());
-   }
-   else
-   {
-      AiMsgInfo("[mtoa] Could not instal renderview_display driver");
-   }
-
-   return driver;
+   }*/
 }
 
 void CRenderSession::DoInteractiveRender()
@@ -496,8 +339,6 @@ void CRenderSession::DoInteractiveRender()
    MComputation comp;
    comp.beginComputation();
 
-   SetBatch(false);
-   SetupRenderOutput();
    PrepareRenderView(false);
 
    // Start the render thread.
@@ -517,9 +358,6 @@ void CRenderSession::DoInteractiveRender()
 
 AtULong CRenderSession::DoBatchRender()
 {
-   SetBatch(true);
-   SetupRenderOutput();
-
    return AiRender(AI_RENDER_MODE_CAMERA);
 }
 
@@ -657,13 +495,13 @@ void CRenderSession::DoAssWrite(MString customFileName)
    // if no custom fileName is given, use the default one in the environment variable
    if (customFileName.length() > 0)
    {
-      fileName = m_renderOptions.VerifyFileName(customFileName.asChar(),
-                                                m_renderOptions.outputAssCompressed());
+      fileName = VerifyFileName(customFileName.asChar(),
+                                m_renderOptions.outputAssCompressed());
    }
    else
    {
-      fileName = m_renderOptions.VerifyFileName(m_renderOptions.outputAssFile().expandEnvironmentVariablesAndTilde(),
-                                                m_renderOptions.outputAssCompressed());
+      fileName = VerifyFileName(m_renderOptions.outputAssFile().expandEnvironmentVariablesAndTilde(),
+                                m_renderOptions.outputAssCompressed());
    }
 
    if (fileName.length() == 0)
@@ -674,7 +512,6 @@ void CRenderSession::DoAssWrite(MString customFileName)
    {
       AiMsgInfo("[mtoa] Exporting Maya scene to file \"%s\"", fileName.asChar());
 
-      SetupRenderOutput();
       // FIXME : problem this is actually double filtering files
       // (Once at export to AiUniverse and once at file write from it)
       AiASSWrite(fileName.asChar(), m_renderOptions.outputAssMask(), false);
@@ -728,8 +565,6 @@ void CRenderSession::DoIPRRender()
    if (!m_paused_ipr)
    {
       SetProgressive(true);
-      SetBatch(false);
-      SetupRenderOutput();
       PrepareRenderView(true); // Install callbacks.
 
       // Start the render thread.
@@ -798,8 +633,16 @@ void CRenderSession::DoSwatchRender(const AtInt resolution)
    // Use the render view output driver. It will *not* be displayed
    // in the render view, we're just using the Arnold Node.
    // See DisplayUpdateQueueToMImage() for how we get the image.
-   AtNode * const render_view = CreateRenderViewOutput();
-   AtNode * const filter      = CreateOutputFilter();
+   AtNode * const render_view = AiNode("renderview_display");
+   AiNodeSetStr(render_view, "name", "swatch_renderview_display");
+
+   MObject optNode;
+   AtFloat gamma = m_renderOptions.GetOptionsNode(optNode) ? MFnDependencyNode(optNode).findPlug("display_gamma").asFloat() : 2.2f;
+   AiNodeSetFlt(render_view, "gamma", gamma);
+
+   AtNode * const filter = AiNode("gaussian_filter");
+   AiNodeSetFlt(filter, "width", 2.0f);
+
    AtNode * const options     = AiUniverseGetOptions();
 
    // Create the single output line. No AOVs or anything.

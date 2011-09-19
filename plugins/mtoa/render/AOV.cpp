@@ -24,8 +24,9 @@ CAOV::CAOV()
      m_enabled(true),
      m_prefix(""),
      m_imageformat(""),
-     m_filename(""),
-     m_object(MObject::kNullObj)
+     m_object(MObject::kNullObj),
+     m_driver(NULL),
+     m_filter(NULL)
 {
 }
 
@@ -35,8 +36,9 @@ CAOV::CAOV(const CAOV &rhs)
      m_enabled(rhs.m_enabled),
      m_prefix(rhs.m_prefix),
      m_imageformat(rhs.m_imageformat),
-     m_filename(rhs.m_filename),
-     m_object(rhs.m_object)
+     m_object(rhs.m_object),
+     m_driver(rhs.m_driver),
+     m_filter(rhs.m_filter)
 {
 }
 
@@ -52,8 +54,9 @@ CAOV& CAOV::operator=(const CAOV &rhs)
       m_type = rhs.m_type;
       m_prefix = rhs.m_prefix;
       m_imageformat = rhs.m_imageformat;
-      m_filename = rhs.m_filename;
       m_object = rhs.m_object;
+      m_driver = rhs.m_driver;
+      m_filter = rhs.m_filter;
    }
    return *this;
 }
@@ -117,13 +120,35 @@ bool CAOV::FromMaya(MObject &AOVNode)
    NormalizePath(m_prefix);
 
    m_imageformat = fnNode.findPlug("imageFormat", true).asString();
-   m_filename = m_prefix;
 
    return true;
 }
 
+void CAOV::SetImageFilename(const MString &filename) const
+{
+   if (m_driver == NULL)
+   {
+      AiMsgError("[mtoa] [aov] Cannot set filename for \"%s\": the driver has not been created", GetName().asChar());
+      return;
+   }
+   AiNodeSetStr(m_driver, "filename", filename.asChar());
 
-MString CAOV::SetupOutput(AtNode *defaultDriver, AtNode *defaultFilter) const
+   if (filename != "")
+   {
+      // create the output directory
+      int result;
+      std::string outDir = filename.asChar();
+      size_t p0 = outDir.find_last_of("\\/");
+      if (p0 != std::string::npos)
+      {
+         outDir = outDir.substr(0, p0);
+         // FIXME: this should be handled by MCommonRenderSettingsData.getImageName
+         MGlobal::executeCommand("sysFile -makeDir \"" + MString(outDir.c_str()) + "\"", result);
+      }
+   }
+}
+
+MString CAOV::SetupOutput(AtNode *defaultDriver, AtNode *defaultFilter)
 {
    assert(AiUniverseIsActive());
 
@@ -147,58 +172,31 @@ MString CAOV::SetupOutput(AtNode *defaultDriver, AtNode *defaultFilter) const
    }
    else
    {
-      AtNode* filter = CMayaScene::GetArnoldSession()->ExportFilter(m_object, filterType);
-      MString nodeTypeName = AiNodeEntryGetName(filter->base_node);
+      m_filter = CMayaScene::GetArnoldSession()->ExportFilter(m_object, filterType);
+      MString nodeTypeName = AiNodeEntryGetName(m_filter->base_node);
       filterName = nodeTypeName + "_" + m_name;
-      AiNodeSetStr(filter, "name", filterName.asChar());
+      AiNodeSetStr(m_filter, "name", filterName.asChar());
       AiMsgDebug("[mtoa] [aov %s] Created new filter %s(%s).",
-            m_name.asChar(), AiNodeGetName(filter), AiNodeEntryGetName(filter->base_node));
+            m_name.asChar(), AiNodeGetName(m_filter), AiNodeEntryGetName(m_filter->base_node));
    }
 
    // Driver
-   AtNode *driver;
    MString driverType = fnNode.findPlug("imageFormat", true).asString();
 
    // FIXME: AiNodeDestroy previous node in IPR mode or track these translators
    if (driverType == "<Use Globals>" || driverType == "")
    {
       // create a copy of the default driver for this AOV (this is a deep copy)
-      driver = AiNodeClone(defaultDriver);
+      m_driver = AiNodeClone(defaultDriver);
    }
    else
    {
-      driver = CMayaScene::GetArnoldSession()->ExportDriver(m_object, driverType);
+      m_driver = CMayaScene::GetArnoldSession()->ExportDriver(m_object, driverType);
    }
 
-   MString nodeTypeName = AiNodeEntryGetName(driver->base_node);
+   MString nodeTypeName = AiNodeEntryGetName(m_driver->base_node);
    MString driverName = nodeTypeName + "_" + m_name;
-
-   // FIXME: old method re-used
-   MString filename = m_filename; // CMayaScene::GetRenderSession()->RenderOptions()->GetAOVImageFilename(m_filename);
-
-   AiMsgDebug("[mtoa] [aov %s] Creating driver %s(%s) using filename %s",
-         m_name.asChar(), driverName.asChar(), nodeTypeName.asChar(), filename.asChar());
-
-   AiNodeSetStr(driver, "name", driverName.asChar());
-   AiNodeSetStr(driver, "filename", filename.asChar());
-
-   AiMsgDebug("[mtoa] [aov %s] Created driver %s(%s) with output filename '%s'.",
-         m_name.asChar(), AiNodeGetName(driver), AiNodeEntryGetName(driver->base_node), AiNodeGetStr(driver, "filename"));
-
-
-   if (filename != "")
-   {
-      // create the output directory
-      int result;
-      std::string outDir = m_filename.asChar();
-      size_t p0 = outDir.find_last_of("\\/");
-      if (p0 != std::string::npos)
-      {
-         outDir = outDir.substr(0, p0);
-         // FIXME: this should be handled by MCommonRenderSettingsData.getImageName
-         MGlobal::executeCommand("sysFile -makeDir \"" + MString(outDir.c_str()) + "\"", result);
-      }
-   }
+   AiNodeSetStr(m_driver, "name", driverName.asChar());
 
    char str[1024];
    sprintf(str, "%s %s %s %s", m_name.asChar(), AiParamGetTypeName(m_type), filterName.asChar(), driverName.asChar());
@@ -206,4 +204,6 @@ MString CAOV::SetupOutput(AtNode *defaultDriver, AtNode *defaultFilter) const
 
    return MString(str);
 }
+
+
 

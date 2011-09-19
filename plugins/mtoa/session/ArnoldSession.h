@@ -3,6 +3,7 @@
 
 #include "common/MObjectCompare.h"
 #include "platform/Platform.h"
+#include "render/AOV.h"
 #include "SessionOptions.h"
 
 #include <ai_nodes.h>
@@ -36,6 +37,7 @@ enum DagFiltered
 };
 
 class CNodeTranslator;
+class COptionsTranslator;
 
 // TODO : translator per output attribute / arnold node for Maya node that can alternatively
 // generate different Arnold nodes (multiple outputs), possibly in the same Arnold universe
@@ -75,6 +77,7 @@ public:
    AtNode* ExportWithTranslator(MObject node, const MString &mayaNodeClass, const MString &translatorName);
    AtNode* ExportDriver(MObject node, const MString &translatorName);
    AtNode* ExportFilter(MObject node, const MString &translatorName);
+   AtNode* ExportOptions();
 
    CNodeTranslator * GetActiveTranslator(const MObject node);
    static bool IsRenderablePath(MDagPath dagPath);
@@ -93,8 +96,7 @@ public:
    }
 
    inline const MDagPath& GetExportCamera() const         { return m_sessionOptions.GetExportCamera(); }
-   inline void SetExportCamera(MDagPath camera)           { m_sessionOptions.SetExportCamera(camera); }
-
+   void SetExportCamera(MDagPath camera);
    inline unsigned int GetExportFilter() const { return m_sessionOptions.GetExportFilter(); }
    inline void SetExportFilter(unsigned int mask) { m_sessionOptions.SetExportFilter(mask); }
 
@@ -117,12 +119,37 @@ public:
    inline void AddMasterInstanceHandle(MObjectHandle handle, MDagPath dagPath){m_masterInstances[handle] = dagPath;};
    inline MDagPath GetMasterInstanceDagPath(MObjectHandle handle){return m_masterInstances[handle];};
 
+   bool IsBatch() const { return (GetSessionMode() == MTOA_SESSION_BATCH || GetSessionMode() == MTOA_SESSION_ASS); }
+
+   bool IsActiveAOV(CAOV &aov) const;
+   AOVSet GetActiveAOVs() const;
+
+/*
+   bool IsActiveAOV(CAOV &aov) const
+   {
+      if (m_aovs.count(aov))
+         return true;
+      else
+         return false;
+   }
+
+   AOVSet GetActiveAOVs() const
+   {
+      return m_aovs;
+   }
+
+   AtUInt NumAOVs() const
+   {
+      return static_cast<AtUInt>(m_aovs.size());
+   }
+*/
 private:
 
    CArnoldSession()
       :  m_sessionOptions(CSessionOptions())
       ,  m_isExportingMotion(false)
       ,  m_requestUpdate(false)
+      ,  m_optionsTranslator(NULL)
    {
    }
 
@@ -146,6 +173,7 @@ private:
    MStatus ExportScene();
    MStatus ExportCameras();
    MStatus ExportLights();
+
    MStatus ExportSelection(MSelectionList& selected);
    MStatus IterSelection(MSelectionList& selected);
 
@@ -156,6 +184,8 @@ private:
    void DoUpdate();
    void ClearUpdateCallbacks();
    
+   //void ProcessAOVs();
+
 private:
 
    CSessionOptions m_sessionOptions;
@@ -175,6 +205,8 @@ private:
 protected:
    ObjectHandleToDagMap m_masterInstances;
 
+   COptionsTranslator* m_optionsTranslator;
+   //AOVSet m_aovs;
 };  // class CArnoldSession
 
 #endif // ARNOLDSESSION_H

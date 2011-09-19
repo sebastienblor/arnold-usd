@@ -4,6 +4,10 @@
 #include <ai_metadata.h>
 #include <ai_render.h>
 
+#include <maya/MGlobal.h>
+
+extern AtNodeMethods* mtoa_driver_mtd;
+
 MString g_metafile = "";
 
 void SetMetafile(MString metafile)
@@ -20,6 +24,19 @@ MStatus ReadMetafile()
       return MStatus::kFailure;
    }
    return MStatus::kSuccess;
+}
+
+void InstallNodes()
+{
+   if (MGlobal::mayaState() == MGlobal::kInteractive)
+   {
+      AiNodeInstall(AI_NODE_DRIVER,
+                    AI_TYPE_NONE,
+                    "renderview_display",
+                    NULL,
+                    (AtNodeMethods*) mtoa_driver_mtd,
+                    AI_VERSION);
+   }
 }
 
 bool ArnoldUniverseBegin()

@@ -2,6 +2,7 @@
 #include "ArnoldSession.h"
 #include "extension/ExtensionsManager.h"
 #include "scene/MayaScene.h"
+#include "translators/options/OptionsTranslator.h"
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
@@ -289,13 +290,43 @@ bool CArnoldSession::IsRenderablePath(MDagPath dagPath)
 
 // Private Methods
 
+/*
+/// For each active AOV add a CAOV class to m_aovs
+void CArnoldSession::ProcessAOVs()
+{
+   MFnDependencyNode fnOptions = MFnDependencyNode(GetArnoldRenderOptions());
+   AOVMode aovMode = AOVMode(fnOptions.findPlug("aovMode").asInt());
+   if (aovMode == AOV_MODE_ENABLED ||
+         (IsBatch() && aovMode == AOV_MODE_BATCH_ONLY))
+   {
+      MPlugArray conns;
+      MPlug pAOVs = fnOptions.findPlug("aovs");
+      for (unsigned int i = 0; i < pAOVs.evaluateNumElements(); ++i)
+      {
+         if (pAOVs[i].connectedTo(conns, true, false))
+         {
+            CAOV aov;
+            MObject oAOV = conns[0].node();
+            if (aov.FromMaya(oAOV))
+               if (aov.IsEnabled())
+                  m_aovs.insert(aov);
+            else
+               MGlobal::displayWarning("[mtoa] Could not setup AOV attribute " + MFnDependencyNode(oAOV).name());
+         }
+      }
+   }
+   else
+      AiMsgDebug("[mtoa] [aovs] disabled");
+}
+*/
+
 MStatus CArnoldSession::Begin(CSessionOptions* options)
 {
    MStatus status = MStatus::kSuccess;
 
    m_sessionOptions = *options;
    UpdateMotionBlurData();
-
+   //ProcessAOVs();
    return status;
 }
 
@@ -376,6 +407,21 @@ MStatus CArnoldSession::UpdateMotionFrames()
    return status;
 }
 
+/// Export the Arnold Render Options node
+AtNode* CArnoldSession::ExportOptions()
+{
+   MObject options = m_sessionOptions.GetArnoldRenderOptions();
+   if (options.isNull())
+   {
+      AiMsgWarning("[mtoa] Failed to export options node");
+      return NULL;
+   }
+   // until arnold supports multiple outputs, all dependNode exports must be plugs, so just use a message
+   AtNode* result = ExportNode(MFnDependencyNode(options).findPlug("message"));
+   // Store the options translator for later use
+   m_optionsTranslator = (COptionsTranslator*)GetActiveTranslator(options);
+   return result;
+}
 
 /// Primary entry point for exporting a Maya scene to Arnold
 MStatus CArnoldSession::Export(MSelectionList* selected)
@@ -395,7 +441,7 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
    // Set up export options
    ArnoldSessionMode exportMode = m_sessionOptions.m_mode;
    // Export the Arnold Render Options node
-   ExportNode(m_sessionOptions.m_options);
+   ExportOptions();
    // Are we motion blurred (any type)?
    const bool mb = IsMotionBlurEnabled();
 
@@ -417,7 +463,7 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
    MGlobal::viewFrame(MTime(m_motion_frames[0], MTime::uiUnit()));
 
    // First "real" export
-   if (exportMode == MTOA_SESSION_RENDER || exportMode == MTOA_SESSION_IPR)
+   if (exportMode == MTOA_SESSION_RENDER || exportMode == MTOA_SESSION_BATCH || exportMode == MTOA_SESSION_IPR)
    {
       // Either for a specific camera or export all cameras
       // Note : in "render selected" mode Maya exports all lights and cameras
@@ -850,6 +896,28 @@ void CArnoldSession::ClearUpdateCallbacks()
       }
    }
    
+}
+
+void CArnoldSession::SetExportCamera(MDagPath camera)
+{
+   if (m_optionsTranslator != NULL)
+      m_optionsTranslator->SetCamera(AiUniverseGetOptions(), camera);
+   m_sessionOptions.SetExportCamera(camera);
+}
+
+bool CArnoldSession::IsActiveAOV(CAOV &aov) const
+{
+   if (m_optionsTranslator != NULL)
+      return m_optionsTranslator->IsActiveAOV(aov);
+   return false;
+}
+
+AOVSet CArnoldSession::GetActiveAOVs() const
+{
+   if (m_optionsTranslator != NULL)
+      return m_optionsTranslator->GetActiveAOVs();
+   AOVSet empty;
+   return empty;
 }
 
 // Returns the instance number of the master instance (it's not always 0!)

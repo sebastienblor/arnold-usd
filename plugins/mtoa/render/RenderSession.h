@@ -89,8 +89,6 @@ public:
    /// \return returns false if there was no complete image.
    bool GetSwatchImage(MImage & image);
 
-   /// Set whether we're in batch mode.
-   void SetBatch(bool batch);
    /// Set the resolution of the render.
    /// \param width width in pixels.
    /// \param height height in pixels.
@@ -99,7 +97,6 @@ public:
    MDagPath GetCamera() const;
    /// Set the camera to use for render.
    void SetCamera(MDagPath cameraNode);
-   void SetMultiCameraRender(bool multi);
    void SetProgressive(bool is_progressive);
    void SetRegion(const AtUInt left,const AtUInt right,
                   const AtUInt bottom, const AtUInt top);
@@ -139,14 +136,6 @@ private:
    void AddIdleRenderViewCallback();
    static void updateRenderViewCallback(void *);
    void ClearIdleRenderViewCallback();
-
-   // These functions setup the file output
-   // and Render View output driver.
-   void SetupRenderOutput();
-   AtNode * CreateFileOutput();
-   AtNode * CreateRenderViewOutput();
-   AtNode * CreateOutputFilter();
-   AtNode * CreateAovOutputFilter();
 
 private:
 

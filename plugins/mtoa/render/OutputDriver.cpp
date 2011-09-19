@@ -71,6 +71,7 @@ static bool                                    s_finishedRendering;
 node_parameters
 {
    AiParameterFLT ("gamma", 1.0f);
+   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }
 
 node_initialize

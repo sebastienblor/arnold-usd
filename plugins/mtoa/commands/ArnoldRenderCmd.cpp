@@ -222,22 +222,20 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
          CMayaScene::ExecuteScript(renderGlobals.preRenderMel);
 
          // FIXME: do we really need to reset everything each time?
-         CMayaScene::Begin(MTOA_SESSION_RENDER);
+         CMayaScene::Begin(MTOA_SESSION_BATCH);
          CArnoldSession* arnoldSession = CMayaScene::GetArnoldSession();
          CRenderSession* renderSession = CMayaScene::GetRenderSession();
          arnoldSession->SetExportFrame(framerender);
-         renderSession->SetBatch(batch);
 
          CMayaScene::Export(selectedPtr);
          // Reset resolution and output since it's a new export, new options node
          renderSession->SetResolution(width, height);
-         if (cameras.length() > 1) renderSession->SetMultiCameraRender(true);
 
          for (unsigned int arrayIter = 0; (arrayIter < cameras.length()); arrayIter++)
          {
             // It is ok to set the camera here, because if camera is no set at export time,
             // all the cameras are exported during the export.
-            renderSession->SetCamera(cameras[arrayIter]);
+            arnoldSession->SetExportCamera(cameras[arrayIter]);
 
             if (renderSession->DoBatchRender() != AI_SUCCESS)
             {
@@ -277,9 +275,6 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       if (MStatus::kSuccess == sel.getDagPath(0, camera)) arnoldSession->SetExportCamera(camera);
       CMayaScene::Export(selectedPtr);
       renderSession->SetResolution(width, height);
-      // Set the render session camera.
-      // FIXME: define a MTOA_EXPORT_BATCH and MTOA_EXPORT_INTERACTIVE
-      renderSession->SetBatch(false);
       // Set the render session camera.
       renderSession->SetCamera(camera);
       renderSession->DoInteractiveRender(); // Start the render.

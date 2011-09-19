@@ -20,12 +20,8 @@ public:
 
    static MSyntax newSyntax();
    static MDagPath GetCamera();
-   void SetBatch(bool batch) {m_batch = batch;}
-   bool IsBatch() const {return m_batch;}
    MStatus doIt(const MArgList& argList);
 
-private:
-   bool m_batch;
 }; // class CArnoldExportAssCmd
 
 #endif // ARNOLD_EXPORT_ASS_CMD_H
