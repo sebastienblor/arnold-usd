@@ -1,5 +1,5 @@
 import pymel.core as pm
-from mtoa.ui.ae.shapeTemplate import createTranslatorUI, createTranslatorMenu
+from mtoa.ui.ae.shapeTemplate import createTranslatorMenu
 from mtoa.callbacks import *
 
 def updateRenderSettings(*args):
