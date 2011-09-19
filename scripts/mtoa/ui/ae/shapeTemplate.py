@@ -13,8 +13,11 @@ import inspect
 global _translatorTemplates
 _translatorTemplates = defaultdict(dict)
 
-global _translatorControllers
-_translatorControllers = {}
+global _templates
+_templates = {}
+
+def getTranslators(nodeType):
+    return [x[0] for x in core.listTranslators(nodeType)]
 
 #-------------------------------------------------
 # translator defaults
@@ -22,7 +25,8 @@ _translatorControllers = {}
 
 def registerDefaultTranslator(nodeType, stringOrFunc):
     """
-    register the default translator for a node. pass a string if the default is static,
+    register the default translator for a node. the second argument identifies the name of the
+    translator.  pass a string if the default is always the same,
     or a function which returns a string, if the default depends on context.
 
     the default will automatically be set whenever a node of the given type is added to the scene.
@@ -39,9 +43,13 @@ def registerDefaultTranslator(nodeType, stringOrFunc):
         cmds.warning("[mtoa] you must pass a string or a function to registerDefaultTranslator")
         return
 
-    cls = type('%s_TransControl', (TranslatorControl,), classdict)
-    inst = cls(nodeType, **kwargs)
-    _translatorControllers[nodeType] = inst
+    try:
+        inst = _templates[nodeType]
+    except KeyError:
+        # create one
+        cls = type('%s_TransControl' % nodeType, (TranslatorControl,), classdict)
+        inst = cls(nodeType, **kwargs)
+        _templates[nodeType] = inst
 
     # set defaults for existing nodes
     for node in cmds.ls(exactType=nodeType):
@@ -69,27 +77,14 @@ def getTranslatorTemplate(nodeType, translatorName):
     return a setup template *instance* for the given nodeType, or None if one has not been registered
     """
     try:
-        cls = getTranslatorTemplates(nodeType)[translatorName]
-        template = cls(nodeType)
-        template.setup()
-        return template
+        return getTranslatorTemplates(nodeType)[translatorName]
     except KeyError:
         pass
 
-def registerTranslatorUI(cls, nodeType, translatorName='<built-in>'):
-    """
-    a translator UI is a specialize custom attr template based on the
-    ArnoldTranslatorTemplate class.
-    """
-    global _customAttrTemplates
-    assert inspect.isclass(cls) and issubclass(cls, ArnoldTranslatorTemplate), "you must pass a subclass of ArnoldTranslatorTemplate"
-    print "registering translator template for %s on %s" % (translatorName, nodeType)
-    _translatorTemplates[nodeType][translatorName] = cls
-
 class BaseTemplate(object):
     """
-    This class provides a framework for managing AE-like templates. Once instantiated,
-    the UI can be registered as an AE tempalte via AttributeTemplate.attachToAE(),
+    This class provides a framework for creating UIs that are compatible with the Attribute Editor.
+    Once instantiated, the UI can be attached to an AE template via AttributeTemplate.attachToAE(),
     or simply built as a normal UI via AttributeTemplate.attachToUI()
     """
     def __init__(self, nodeType=None):
@@ -151,9 +146,7 @@ class BaseTemplate(object):
 
 class AttributeTemplate(BaseTemplate):
     """
-    This class provides a framework for managing AE-like templates. Once instantiated,
-    the UI can be registered as an AE template via AttributeTemplate.attachToAE(),
-    or simply built as a normal UI via AttributeTemplate.attachToUI()
+    This class provides a framework for creating and managing AE-like templates with multiple UI elements.
     """
     SEPARATOR = '-'
     ATTRIBUTE = 'attr'
@@ -165,11 +158,20 @@ class AttributeTemplate(BaseTemplate):
         self._controls = []
         self._attributes = []
         self._layoutStack = []
+        self.setup()
+
+    def setup(self):
+        """
+        this method should be overridden. it is called when the class is initialized. it is kept as a
+        separate method to avoid the user coming into conflict with variables managed by this class
+        """
+        pass
 
     def build(self):
         '''
         build the UI from the list of added attributes
         '''
+        cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
         self._layoutStack.append(cmds.setParent(query=True))
         for mode, data in self._attributes:
             if mode == self.SEPARATOR:
@@ -186,23 +188,29 @@ class AttributeTemplate(BaseTemplate):
                 kwargs['attribute'] = self.nodeAttr(attr)
                 if annotation:
                     kwargs['annotation'] = annotation
+                parent = self._layoutStack[-1]
                 control = AttrControlGrp(**kwargs)
-                self._controls.append((attr, control.setAttribute))
+                self._controls.append((attr, control.setAttribute, parent))
             elif mode == self.CUSTOM:
                 attr, createFunc, updateFunc = data
+                parent = self._layoutStack[-1]
                 createFunc(self.nodeAttr(attr))
-                self._controls.append((attr, updateFunc))
+                self._controls.append((attr, updateFunc, parent))
             elif mode == self.BEGIN_LAYOUT:
                 cmds.setParent(self._layoutStack[-1])
                 cmds.frameLayout(**data)
-                self._layoutStack.append(cmds.columnLayout())
+                self._layoutStack.append(cmds.columnLayout(adjustableColumn=True))
             elif mode == self.END_LAYOUT:
                 self._layoutStack.pop()
                 cmds.setParent(self._layoutStack[-1])
+        cmds.setUITemplate(popTemplate=True)
 
     def update(self):
-        for attr, updateFunc in self._controls:
+        cmds.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+        for attr, updateFunc, parent in self._controls:
+            cmds.setParent(parent)
             updateFunc(self.nodeAttr(attr))
+        cmds.setUITemplate(popTemplate=True)
 
     # building
     def addAttribute(self, attr, label=None, annotation=None):
@@ -293,26 +301,12 @@ class AutoTranslatorTemplate(ArnoldTranslatorTemplate):
                               label if label else prettify(paramName),
                               annotation)
 
-def registerUI(nodeType, translatorName=None, baseClass=ArnoldTranslatorTemplate):
-    "decorator for easily registering a simple UI function"
-    def registerUIDecorator(func):
-        transName = translatorName
-        if transName is None:
-            module = inspect.getmodule(func)
-            if hasattr(module, '__name__'):
-                transName = module.__name__.split('.')[0]
-            else:
-                transName = '<built-in>'
-        cls = type(nodeType + "Template", (baseClass,), dict(setup=func))
-        registerTranslatorUI(cls, nodeType, transName)
-        # return function unchanged
-        return func
-    return registerUIDecorator
-
 class TranslatorControl(BaseTemplate):
     '''
     Allows multiple AttributeTemplates, each representing an arnold translator, to be controlled via
-    one optionMenu, such that only the active template is visible.
+    one optionMenu, such that only the active template is visible.  A default controller is created for
+    each node that has arnold translators. You only need to manually create a TranslatorControl if you need to customize
+    this behavior.
     '''
     def __init__(self, nodeType, label='Arnold Translator', controlAttr='aiTranslator', default=None, optionMenuName=None):
         super(TranslatorControl, self).__init__(nodeType)
@@ -378,6 +372,13 @@ class TranslatorControl(BaseTemplate):
         fullpath = cmds.layout(self._optionMenu, query=True, fullPathName=True)
         # get the grand-parent columnLayout
         gparent = fullpath.rsplit('|', 2)[0]
+        # get the great-grand parent frame layout
+        frame = fullpath.rsplit('|', 3)[0]
+        try:
+            cmds.frameLayout(frame, edit=True, collapsable=False, labelVisible=False)
+        except RuntimeError:
+            # this is a little dirty: it will only succeed when attaching to AE
+            pass
         children = cmds.layout(gparent, query=True, childArray=True)
         # hide all frameLayouts but ours
         assert currentTranslator, "we should have a translator set by now"
@@ -438,7 +439,7 @@ class TranslatorControl(BaseTemplate):
 
     def getTranslators(self):
         if self._translators is None:
-            self._translators = [x[0] for x in core.listTranslators(self.nodeType())]
+            self._translators = getTranslators(self.nodeType())
         return self._translators
 
     def getTranslatorTemplates(self):
@@ -461,6 +462,7 @@ class TranslatorControl(BaseTemplate):
                 # if there is more than one translator, we group each in its own layout
                 # FIXME: reduce this to one call:
                 cmds.columnLayout()
+                # create the menu for selecting the translator
                 self.createMenu(nodeName)
                 cmds.setParent(mainCol)
                 for translator, template in translatorTemplates:
@@ -484,12 +486,13 @@ class TranslatorControl(BaseTemplate):
             cmds.setParent(mainCol)
             cmds.setParent('..')
 
-    def attachToAE(self, layoutName='Arnold', collapse=True):
+    def attachToAE(self):
         translatorTemplates = self.getTranslatorTemplates()
         if translatorTemplates:
-            cmds.editorTemplate(beginLayout=layoutName, collapse=collapse)
+            cmds.editorTemplate(beginLayout='hide', collapse=False)
             if len(translatorTemplates) > 1:
                 # if there is more than one translator, we group each in its own layout
+                # create the menu for selecting the translator
                 cmds.editorTemplate(aeCallback(lambda attr: self.createMenu(attr.split('.')[0])),
                                     aeCallback(lambda attr: self.updateMenu(attr.split('.')[0])),
                                     self._attr, callCustom=True)
@@ -515,9 +518,61 @@ class TranslatorControl(BaseTemplate):
 #    def __init__(self, controlAttr='imageType', optionMenuName=None):
 #        TranslatorControl.__init__(self, controlAttr, optionMenuName)
 
-def createTranslatorUI(nodeAttr, label=None, nodeType=None, default=None, optionMenuName=None):
+
+def registerAETemplate(templateClass, nodeType):
+    assert inspect.isclass(templateClass) and issubclass(templateClass, ArnoldTranslatorTemplate), \
+        "you must pass a subclass of ArnoldTranslatorTemplate"
+    inst = templateClass(nodeType)
+    print "registering attribute template for %s" % nodeType
+    global _templates
+    _templates[nodeType] = inst
+
+def aeTemplate(nodeType, baseClass=ArnoldTranslatorTemplate):
+    """
+    decorator
+    """
+    def registerUIDecorator(func):
+        cls = type(nodeType + "Template", (baseClass,), dict(setup=func))
+        registerAETemplate(cls, nodeType)
+        # return function unchanged
+        return func
+    return registerUIDecorator
+
+def registerTranslatorUI(templateClass, nodeType, translatorName='<built-in>'):
+    """
+    a translator UI is a specialized attribute template based on the
+    ArnoldTranslatorTemplate class.
+    """
+    global _translatorTemplates
+    assert inspect.isclass(templateClass) and issubclass(templateClass, ArnoldTranslatorTemplate),\
+        "you must pass a subclass of ArnoldTranslatorTemplate"
+    print "registering translator template for %s on %s" % (translatorName, nodeType)
+
+    template = templateClass(nodeType)
+    _translatorTemplates[nodeType][translatorName] = template
+
+def translatorUI(nodeType, translatorName=None, baseClass=ArnoldTranslatorTemplate):
+    """
+    decorator for registering a function for creating a simple translator UI. The function receives an ArnoldTranslatorTemplate
+    instance, which it uses to make calls to addAttribute, addSeparator, addCustom, etc. 
+    """
+    def registerUIDecorator(func):
+        transName = translatorName
+        if transName is None:
+            module = inspect.getmodule(func)
+            if hasattr(module, '__name__'):
+                transName = module.__name__.split('.')[0]
+            else:
+                transName = '<built-in>'
+        cls = type(nodeType + "Template", (baseClass,), dict(setup=func))
+        registerTranslatorUI(cls, nodeType, transName)
+        # return function unchanged
+        return func
+    return registerUIDecorator
+
+def createTranslatorMenu(nodeAttr, label=None, nodeType=None, default=None, optionMenuName=None):
     '''
-    convenience function for creating a TranslatorControl
+    convenience function for creating a TranslatorControl and attaching it to a UI
     '''
     node, controlAttr = nodeAttr.split('.', 1)
     if nodeType is None:
@@ -537,12 +592,21 @@ def shapeTemplate(nodeName):
     """
     override for the builtin maya shapeTemplate procedure
     """
+    global _templates
     nodeType = cmds.objectType(nodeName)
+
+    template = None
     try:
-        transCtrl = _translatorControllers[nodeType]
+        # has one been explicitly registered?
+        template = _templates[nodeType]
     except KeyError:
-        transCtrl = TranslatorControl(nodeType)
-    transCtrl.attachToAE()
+        if getTranslators(nodeType):
+            # if not, then create a default
+            template = TranslatorControl(nodeType)
+    if template:
+        cmds.editorTemplate(beginLayout='Arnold', collapse=True)
+        template.attachToAE()
+        cmds.editorTemplate(endLayout=True)
 
     cmds.editorTemplate(beginLayout=mel.eval('uiRes("m_AEshapeTemplate.kObjectDisplay")'))
 

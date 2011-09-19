@@ -27,7 +27,7 @@ import math
 import pymel.core as pm
 
 import mtoa.utils as utils
-from mtoa.ui.ae.shapeTemplate import createTranslatorUI
+from mtoa.ui.ae.shapeTemplate import createTranslatorMenu
 from mtoa.callbacks import *
 
 if pm.mel.getApplicationVersionAsFloat() >= 2011:
@@ -546,7 +546,7 @@ def createArnoldImageFormatControl():
     if pm.layout(fullPath, exists=True):
         pm.deleteUI(fullPath)
 
-    createTranslatorUI('defaultArnoldRenderOptions.imageFormat', 
+    createTranslatorMenu('defaultArnoldRenderOptions.imageFormat', 
                        label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kImageFormatMenu"),
                        nodeType='<driver>',
                        default='exr',

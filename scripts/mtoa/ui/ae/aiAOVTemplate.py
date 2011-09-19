@@ -1,6 +1,6 @@
 import maya.cmds as cmds
 import maya.mel as mel
-from mtoa.ui.ae.shapeTemplate import TranslatorControl
+from mtoa.ui.ae.shapeTemplate import TranslatorControl, getTranslators
 import mtoa.core as core
 
 class AOVTranslatorControl(TranslatorControl):
@@ -10,7 +10,7 @@ class AOVTranslatorControl(TranslatorControl):
     USE_GLOBALS = '<Use Globals>'
     def getTranslators(self):
         if self._translators is None:
-            self._translators = [self.USE_GLOBALS] + [x[0] for x in core.listTranslators(self.nodeType())]
+            self._translators = [self.USE_GLOBALS] + getTranslators(self.nodeType())
         return self._translators
 
     def getDefaultTranslator(self, nodeName):
@@ -33,12 +33,16 @@ def aiAOVTemplate(nodeName):
     driverCtrl = AOVTranslatorControl(nodeType='<driver>',
                                       label='',
                                       controlAttr='imageFormat')
-    driverCtrl.attachToAE('Image Format', collapse=False)
+    cmds.editorTemplate(beginLayout='Image Format', collapse=False)
+    driverCtrl.attachToAE()
+    cmds.editorTemplate(endLayout=True)
 
     fitlerCtrl = AOVTranslatorControl(nodeType='<filter>',
                                       label='',
                                       controlAttr='filterType')
-    fitlerCtrl.attachToAE('Filter', collapse=False)
+    cmds.editorTemplate(beginLayout='Filter', collapse=False)
+    fitlerCtrl.attachToAE()
+    cmds.editorTemplate(endLayout=True)
 
     cmds.editorTemplate(endLayout=True)
 
