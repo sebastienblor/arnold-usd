@@ -11,6 +11,16 @@
 #include <maya/MDataHandle.h>
 #include <maya/MFloatVector.h>
 
+#define _USE_MGL_FT_
+#include <maya/MGLFunctionTable.h>
+static MGLFunctionTable *gGLFT = NULL;
+
+#define LEAD_COLOR            18 // green
+#define ACTIVE_COLOR          15 // white
+#define ACTIVE_AFFECTED_COLOR 8  // purple
+#define DORMANT_COLOR         4  // blue
+#define HILITE_COLOR          17 // pale blue
+
 MTypeId CArnoldAreaLightNode::id( ARNOLD_NODEID_AREA_LIGHT );
 CStaticAttrHelper CArnoldAreaLightNode::s_attributes(CArnoldAreaLightNode::addAttribute);
 MObject CArnoldAreaLightNode::s_type;
@@ -54,11 +64,11 @@ MStatus CArnoldAreaLightNode::compute( const MPlug&, MDataBlock& )
    return MS::kUnknownParameter;
 }
 
-void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath &, M3dView::DisplayStyle style, M3dView::DisplayStatus displayStatus )
+void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dView::DisplayStyle style, M3dView::DisplayStatus displayStatus )
 {
-   //int displayStyle  = view.displayStyle();
-   int displayStatusInt = displayStatus;
-   // Get the size
+   //
+   M3dView::ColorTable activeColorTable  = M3dView::kActiveColors;
+   //M3dView::ColorTable dormantColorTable = M3dView::kDormantColors;
    //
    MObject thisNode = thisMObject();
    MPlug plug( thisNode, s_type );
@@ -69,57 +79,78 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath &, M3dView::Disp
    // Get all GL bits
    glPushAttrib(GL_ALL_ATTRIB_BITS);
    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-   // If it's selected
-   if (displayStatusInt != 8)
+   // Display color
+   switch (displayStatus)
    {
-      glColor4f(0.75, 0, 0, 0.2f);
+   case M3dView::kLead:
+      view.setDrawColor(LEAD_COLOR, activeColorTable);
+      break;
+   case M3dView::kActive:
+      view.setDrawColor(ACTIVE_COLOR, activeColorTable);
+      break;
+   case M3dView::kActiveAffected:
+      view.setDrawColor(ACTIVE_AFFECTED_COLOR, activeColorTable);
+      break;
+   /*
+   case M3dView::kDormant:
+      view.setDrawColor(DORMANT_COLOR, dormantColorTable);
+      break;
+   case M3dView::kHilite:
+      view.setDrawColor(HILITE_COLOR, activeColorTable);
+      break;
+   */
+   default:
+      gGLFT->glColor4f(0.75, 0, 0, 0.2f);
+      break;
    }
    GLUquadricObj *qobj;
    qobj = gluNewQuadric();
    // Quad
    if (areaType==0)
    {
-      glBegin(GL_QUADS);                  // Draw A Quad
-         glVertex3f(-1.0f, 1.0f, 0.0f);            // Top Left
-         glVertex3f( 1.0f, 1.0f, 0.0f);            // Top Right
-         glVertex3f( 1.0f,-1.0f, 0.0f);            // Bottom Right
-         glVertex3f(-1.0f,-1.0f, 0.0f);            // Bottom Left
-      glEnd();                   // Done Drawing The Quad
-      glBegin(GL_LINES);
-         glVertex3f(-1.0f, 1.0f, 0.0f);            // Top Left
-         glVertex3f( 1.0f,-1.0f, 0.0f);            // Bottom Right
-         glVertex3f(-1.0f,-1.0f, 0.0f);            // Bottom Left
-         glVertex3f( 1.0f, 1.0f, 0.0f);            // Top Right
-         glVertex3f( 0.0f, 0.0f, 0.0f);
-         glVertex3f( 0.0f, 0.0f,-1.0f);
-      glEnd();                   // Done Drawing The direction
+      gGLFT->glBegin(GL_QUADS);
+      gGLFT->glVertex3f(-1.0f, 1.0f, 0.0f);
+      gGLFT->glVertex3f( 1.0f, 1.0f, 0.0f);
+      gGLFT->glVertex3f( 1.0f,-1.0f, 0.0f);
+      gGLFT->glVertex3f(-1.0f,-1.0f, 0.0f);
+      gGLFT->glEnd();
+      gGLFT->glBegin(GL_LINES);
+      gGLFT->glVertex3f(-1.0f, 1.0f, 0.0f);
+      gGLFT->glVertex3f( 1.0f,-1.0f, 0.0f);
+      gGLFT->glVertex3f(-1.0f,-1.0f, 0.0f);
+      gGLFT->glVertex3f( 1.0f, 1.0f, 0.0f);
+      // Done Drawing The direction
+      gGLFT->glVertex3f( 0.0f, 0.0f, 0.0f);
+      gGLFT->glVertex3f( 0.0f, 0.0f,-1.0f);
+      gGLFT->glEnd();
    }
    // Cylinder
    else if (areaType==1)
    {
-      gluQuadricDrawStyle(qobj, GLU_LINE); /* wireframe */
+      gluQuadricDrawStyle(qobj, GLU_LINE);
       gluQuadricNormals(qobj, GLU_NONE);
-      glPushMatrix();
-      glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
-      glTranslatef(0.0f, 0.0f, -1.0f);
+      gGLFT->glPushMatrix();
+      gGLFT->glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
+      gGLFT->glTranslatef(0.0f, 0.0f, -1.0f);
       gluCylinder(qobj, 1.0f, 1.0f, 2.0f, 20, 1);
-      glPopMatrix();
+      gGLFT->glPopMatrix();
    }
    // Disk
    else if (areaType==2)
    {
-      gluQuadricDrawStyle(qobj, GLU_LINE); /* wireframe */
+      gluQuadricDrawStyle(qobj, GLU_LINE);
       gluQuadricNormals(qobj, GLU_NONE);
-      glPushMatrix();
+      gGLFT->glPushMatrix();
       gluDisk(qobj, 0.0f, 1.0f, 20, 1);
-      glPopMatrix();
-      glBegin(GL_LINES);
-         glVertex3f( 0.0f, 0.0f, 0.0f);            // Bottom Right
-         glVertex3f( 0.0f, 0.0f,-1.0f);            // Bottom Left
-      glEnd();                   // Done Drawing The direction
+      gGLFT->glPopMatrix();
+      gGLFT->glBegin(GL_LINES);
+      // Done Drawing The direction
+      gGLFT->glVertex3f( 0.0f, 0.0f, 0.0f);
+      gGLFT->glVertex3f( 0.0f, 0.0f,-1.0f);
+      gGLFT->glEnd();
    }
    // Restore all GL bits
-   glPopAttrib();
+   gGLFT->glPopAttrib();
    view.endGL();
 }
 

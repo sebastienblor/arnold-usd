@@ -38,8 +38,13 @@ def aiAreaLightTemplate(nodeName):
     cmds.editorTemplate("aiBounceFactor", addControl=True, label="Bounce Factor")
     cmds.editorTemplate("aiBounces", addControl=True, label="Bounces")
     cmds.editorTemplate("aiSssSamples", addControl=True, label="SSS Samples")
+    
     cmds.editorTemplate(endLayout=True)
     
+    cmds.editorTemplate(beginLayout="Light Filters", collapse=False)
+    #self.addCustom("aiFilters", self.customLightFiltersNew, self.customLightFiltersReplace)
+    cmds.editorTemplate(endLayout=True)
+
     # include/call base class/node attributes
     mel.eval('AEdependNodeTemplate "%s"' % nodeName)
     cmds.editorTemplate(suppress="blackBox")

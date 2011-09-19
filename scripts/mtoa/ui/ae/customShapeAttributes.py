@@ -213,30 +213,29 @@ registerDefaultTranslator('aiAreaLight', getAreaDefault)
 def areaLightTranslatorChanged(transPlug, *args):
     "called to sync .type when .aiTranslator changes"
     value = om.MFnDependencyNode(transPlug.node()).findPlug('aiTranslator').asString()
-    print "areaLightTranslatorChanged", value
-    # when a file is opening, we need to choose one attribute to lead, because
-    # the order that attributes are set is unpredictable. This fixes a case
-    # where translators may have gotten out of sync
+    #print "areaLightTranslatorChanged", value
     typeVal = 0
     if value == 'cylinder':
         typeVal = 1
     elif value == 'disk':
         typeVal = 2
-    om.MFnDependencyNode(transPlug.node()).findPlug('type').setInt(typeVal)
+    if typeVal != om.MFnDependencyNode(transPlug.node()).findPlug('type').asInt():
+        om.MFnDependencyNode(transPlug.node()).findPlug('type').setInt(typeVal)
     
 def areaLightTypeChanged(lightPlug, *args):
     "called to sync .aiTranslator when .type changes"
     value = om.MFnDependencyNode(lightPlug.node()).findPlug('type').asInt()
-    print "areaLightTypeChanged", value
-    # Quad
-    if value == 0:
-         om.MFnDependencyNode(lightPlug.node()).findPlug('aiTranslator').setString("quad")
+    #print "areaLightTypeChanged", value
+    # Quad (default)
+    typeVal = "quad"
     # Cylinder
-    elif value == 1:
-         om.MFnDependencyNode(lightPlug.node()).findPlug('aiTranslator').setString("cylinder")
+    if value == 1:
+         typeVal = "cylinder"
     # Disk
     elif value == 2:
-         om.MFnDependencyNode(lightPlug.node()).findPlug('aiTranslator').setString("disk")
+         typeVal = "disk"
+    if typeVal != om.MFnDependencyNode(lightPlug.node()).findPlug('aiTranslator').asString():
+         om.MFnDependencyNode(lightPlug.node()).findPlug('aiTranslator').setString(typeVal)
     
 print "Adding attribute changed callback for aiAreaLight"
 callbacks.addAttributeChangedCallbacks('aiAreaLight',
