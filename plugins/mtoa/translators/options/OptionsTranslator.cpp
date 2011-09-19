@@ -359,3 +359,10 @@ void COptionsTranslator::Export(AtNode *options)
    }
 
 }
+
+void COptionsTranslator::Update(AtNode *options)
+{
+   // set the camera
+   MDagPath camera = m_session->GetExportCamera();
+   SetCamera(options, camera);
+}

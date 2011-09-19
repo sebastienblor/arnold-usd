@@ -8,7 +8,10 @@ class DLLEXPORT COptionsTranslator : public CNodeTranslator
 public:
    static void* creator(){return new COptionsTranslator();}
    virtual void Export(AtNode* options);
+   virtual void Update(AtNode *options);
    AtNode* CreateArnoldNodes();
+   virtual bool DependsOnExportCamera() {return true;}
+
    void SetCamera(AtNode *options, MDagPath& cameraNode);
    bool IsActiveAOV(CAOV &aov) const
    {

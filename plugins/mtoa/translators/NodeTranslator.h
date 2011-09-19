@@ -60,6 +60,7 @@ public:
 
    virtual bool IsMayaTypeDag() {return false;}
    virtual bool IsMayaTypeRenderable() {return false;}
+   virtual bool DependsOnExportCamera() {return false;}
 
 protected:
    CNodeTranslator()  :

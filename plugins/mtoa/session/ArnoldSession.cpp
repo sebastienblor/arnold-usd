@@ -906,11 +906,37 @@ void CArnoldSession::ClearUpdateCallbacks()
    
 }
 
+/// Set the camera to export.
+
+/// If called prior to export, only the specified camera will be exported. If not set, all cameras
+/// will be exported, but some translators may not be able to fully export without an export camera specified.
+/// To address this potential issue, this method should be called after a multi-cam export, as it will cause all
+/// translators for which CNodeTranslator::DependsOnExportCamera() returns true to be updated.
+///
 void CArnoldSession::SetExportCamera(MDagPath camera)
 {
-   if (m_optionsTranslator != NULL)
-      m_optionsTranslator->SetCamera(AiUniverseGetOptions(), camera);
    m_sessionOptions.SetExportCamera(camera);
+
+   // queue up translators for update
+   ObjectToTranslatorMap::iterator it;
+   for(it = m_processedTranslators.begin(); it != m_processedTranslators.end(); ++it)
+   {
+      if (it->second->DependsOnExportCamera())
+         QueueForUpdate(it->second);
+   }
+
+   // Delete Dag Translators
+   ObjectToDagTranslatorMap::iterator dagIt;
+   for(dagIt = m_processedDagTranslators.begin(); dagIt != m_processedDagTranslators.end(); ++dagIt)
+   {
+      std::map<int, CNodeTranslator*>::iterator instIt;
+      for(instIt = dagIt->second.begin(); instIt != dagIt->second.end(); ++instIt)
+      {
+         if (instIt->second->DependsOnExportCamera())
+            QueueForUpdate(instIt->second);
+      }
+   }
+   DoUpdate();
 }
 
 bool CArnoldSession::IsActiveAOV(CAOV &aov) const
