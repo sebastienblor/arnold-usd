@@ -264,7 +264,7 @@ createNode aiOptions -s -n "defaultArnoldRenderOptions";
 	addAttr -ci true -k true -sn "filter_maximum" -ln "filterMaximum" -dv 1 -at "float";
 	addAttr -ci true -k true -sn "filter_scalar_mode" -ln "filterScalarMode" -min 0 
 		-max 1 -at "bool";
-	setAttr ".img" -type "string" "tiff";
+	setAttr ".img" -type "string" "tif";
 	setAttr ".fltr" -type "string" "gaussian";
 	setAttr ".dgamma" 1;
 	setAttr ".lgamma" 1;
@@ -368,7 +368,7 @@ select -ne :renderGlobalsList1;
 select -ne :defaultRenderGlobals;
 	setAttr ".ren" -type "string" "arnold";
 	setAttr ".outf" 51;
-	setAttr ".imfkey" -type "string" "tiff";
+	setAttr ".imfkey" -type "string" "tif";
 	setAttr ".ifp" -type "string" "testrender";
 select -ne :defaultResolution;
 	setAttr ".w" 160;
