@@ -122,6 +122,20 @@ class BaseTemplate(object):
     def nodeAttrExists(self, attr):
         return pm.addAttr(self.nodeAttr(attr), q=True, ex=True)
 
+def delayedAttr(func):
+    def wrapped(self, attr, *args, **kwargs):
+        self._actions.append((func, (attr,) + args, kwargs))
+        self._attributes.append(attr)
+    wrapped.__doc__ = func.__doc__
+    wrapped.__name__ = func.__name__
+    return wrapped
+
+def delayed(func):
+    def wrapped(self, *args, **kwargs):
+        self._actions.append((func, args, kwargs))
+    wrapped.__doc__ = func.__doc__
+    wrapped.__name__ = func.__name__
+    return wrapped
 
 class AttributeTemplate(BaseTemplate):
     """
@@ -130,9 +144,12 @@ class AttributeTemplate(BaseTemplate):
     """
     def __init__(self, nodeType):
         super(AttributeTemplate, self).__init__(nodeType)
+        self._actions = []
+        self._attributes = []
         self._controls = []
         self._builders = []
         self._layoutStack = []
+        self.setup()
 
     def _doSetup(self, attr):
         '''
@@ -141,17 +158,13 @@ class AttributeTemplate(BaseTemplate):
         self._setActiveNode(attr.split('.')[0])
         pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
         self._layoutStack.append(pm.setParent(query=True))
-        self.setup()
+        for func, args, kwargs in self._actions:
+            func(self, *args, **kwargs)
         pm.setUITemplate(popTemplate=True)
 
     def _doUpdate(self, attr):
         self._setActiveNode(attr.split('.')[0])
         self.update()
-
-    def addChildTemplate(self, attr, template):
-        if isinstance(template, pm.uitypes.AETemplate):
-            print "this is a pm.uitypes.AETemplate subclass. this will probably break"
-        self.addCustom(attr, template._doSetup, template._doUpdate)
 
     def setup(self):
         """
@@ -171,6 +184,13 @@ class AttributeTemplate(BaseTemplate):
     def _manageControl(self, attr, updateFunc, parent):
         self._controls.append((attr, updateFunc, parent))
 
+    @delayedAttr
+    def addChildTemplate(self, attr, template):
+        if isinstance(template, pm.uitypes.AETemplate):
+            print "this is a pm.uitypes.AETemplate subclass. this will probably break"
+        self.addCustom(attr, template._doSetup, template._doUpdate)
+
+    @delayedAttr
     def addControl(self, attr, label=None, annotation=None):
         # TODO: lookup label and descr from metadata
         if not label:
@@ -187,15 +207,18 @@ class AttributeTemplate(BaseTemplate):
         control = AttrControlGrp(**kwargs)
         self._manageControl(attr, control.setAttribute, parent)
 
+    @delayed
     def addSeparator(self):
         pm.separator()
 
+    @delayedAttr
     def addCustom(self, attr, createFunc, updateFunc):
         parent = self._layoutStack[-1]
         pm.setParent(parent)
         createFunc(self.nodeAttr(attr))
         self._manageControl(attr, updateFunc, parent)
 
+    @delayed
     def beginLayout(self, label, **kwargs):
         '''
         begin a frameLayout.
@@ -206,6 +229,7 @@ class AttributeTemplate(BaseTemplate):
         pm.frameLayout(**kwargs)
         self._layoutStack.append(pm.columnLayout(adjustableColumn=True))
 
+    @delayed
     def endLayout(self):
         '''
         end the current frameLayout
@@ -214,10 +238,12 @@ class AttributeTemplate(BaseTemplate):
         pm.setParent(self._layoutStack[-1])
 
     # for compatibility with pymel.core.uitypes.AETemplate
+    @delayed
     def beginNoOptimize(self):
         pass
 
     # for compatibility with pymel.core.uitypes.AETemplate
+    @delayed
     def endNoOptimize(self):
         pass
 
@@ -269,6 +295,9 @@ class AttributeEditorTemplate(pm.uitypes.AETemplate):
         "set the active node"
         self._nodeName = nodeName
 
+    def nodeAttr(self, attr):
+        return self.nodeName + '.' + attr
+
     def setup(self):
         pass
 
@@ -280,12 +309,14 @@ class AttributeEditorTemplate(pm.uitypes.AETemplate):
 
     def addChildTemplate(self, attr, template):
         if isinstance(template, pm.uitypes.AETemplate):
-            template._doSetup(attr)
+            template._doSetup(self.nodeAttr(attr))
         else:
+            for attr in template._attributes:
+                pm.editorTemplate(suppress=attr)
             pm.editorTemplate(aeCallback(template._doSetup),
-                                aeCallback(template._doUpdate),
-                                attr,
-                                callCustom=True)
+                              aeCallback(template._doUpdate),
+                              attr,
+                              callCustom=True)
 
 class ShapeMixin(object):
     def renderStatsAttributes(self):
