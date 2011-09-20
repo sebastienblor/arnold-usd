@@ -12,6 +12,7 @@ def aiSkyDomeLightTemplate(nodeName):
 
     cmds.editorTemplate("color", addControl=True, label="Color")
     cmds.editorTemplate("intensity", addControl=True, label="Intensity")
+    cmds.editorTemplate("resolution", addControl=True, label="Resolution")
     cmds.editorTemplate(beginNoOptimize=True)
     cmds.editorTemplate("emitDiffuse", addControl=True, label="Emit Diffuse")
     cmds.editorTemplate("emitSpecular",addControl=True, label="Emit Specular")
