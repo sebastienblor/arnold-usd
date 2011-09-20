@@ -1,10 +1,21 @@
-import maya.cmds as cmds
-import maya.mel as mel
-import mtoa.ui.ae.customShapeAttributes as customShapeAttributes
-from mtoa.ui.ae.aiSwatchDisplay import aiSwatchDisplay
+import pymel.core as pm
 import mtoa.ui.ae.lightTemplate as lightTemplate
+import mtoa.ui.ae.shapeTemplate as templates
 
-class AEaiAreaLightTemplate(lightTemplate.LightTemplate):
+class AEaiAreaLightTemplate(templates.AttributeEditorTemplate):
+    def setup(self):
+        self.beginScrollLayout()
+
+        self.beginLayout("Arnold Area Light Attributes", collapse=False)
+        self.addChildTemplate('aiTranslator', templates.getNodeTemplate('aiAreaLight'))
+        self.endLayout()
+
+        pm.mel.AEdependNodeTemplate(self.nodeName)
+
+        self.addExtraControls()
+        self.endScrollLayout()
+
+class BaseAreaLightTemplate(lightTemplate.LightTemplate):
     def validFilters(self):
         return ['aiLightBlocker', 'aiLightDecay']
 
@@ -16,10 +27,20 @@ class AEaiAreaLightTemplate(lightTemplate.LightTemplate):
 
         self.addSeparator()
 
-        self.addControl("aiResolution")
         self.addControl("aiAffectVolumetrics")
         self.addControl("aiCastVolumetricShadows")
 
         self.addSeparator()
 
-        #self.commonLightAttributes()
+        self.commonLightAttributes()
+
+class QuadAreaLightTemplate(BaseAreaLightTemplate):
+    def setup(self):
+        self.addControl("aiResolution")
+        self.addSeparator()
+        super(QuadAreaLightTemplate, self).setup()
+
+templates.registerAETemplate(templates.TranslatorControl, "aiAreaLight", label="Light Shape")
+templates.registerTranslatorUI(QuadAreaLightTemplate, "aiAreaLight", "quad")
+templates.registerTranslatorUI(BaseAreaLightTemplate, "aiAreaLight", "cylinder")
+templates.registerTranslatorUI(BaseAreaLightTemplate, "aiAreaLight", "disk")

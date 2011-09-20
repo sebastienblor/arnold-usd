@@ -707,19 +707,4 @@ def shapeTemplate(nodeName):
     # include/call base class/node attributes
     mel.eval('AEdagNodeInclude "%s"'%nodeName)
 
-    cmds.editorTemplate(suppress="aiSssUseGi")
-    cmds.editorTemplate(suppress="aiSssSampleDistribution")
-    cmds.editorTemplate(suppress="aiSssSampleSpacing")
-    cmds.editorTemplate(suppress="aiSelfShadows")
-    cmds.editorTemplate(suppress="aiOpaque")
-    cmds.editorTemplate(suppress="aiVisibleInDiffuse")
-    cmds.editorTemplate(suppress="aiVisibleInGlossy")
-    cmds.editorTemplate(suppress="aiSubdivType")
-    cmds.editorTemplate(suppress="aiSubdivIterations")
-    cmds.editorTemplate(suppress="aiSubdivAdaptiveMetric")
-    cmds.editorTemplate(suppress="aiSubdivPixelError")
-    cmds.editorTemplate(suppress="aiSubdivUvSmoothing")
-    cmds.editorTemplate(suppress="aiExportTangents")
-    cmds.editorTemplate(suppress="aiExportColors")
-    cmds.editorTemplate(suppress="aiSubdivDicingCamera")
 

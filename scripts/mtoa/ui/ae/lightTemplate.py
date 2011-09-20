@@ -110,11 +110,13 @@ class LightFilterWindow(object):
 class LightTemplate(AttributeTemplate):
     MENU_NODE_TYPE = 0
     MENU_NODE_INSTANCE = 1
+    _callbacks = []
     def __init__(self, nodeType):
         super(LightTemplate, self).__init__(nodeType)
         # create callback to create decay filter
-        if 'aiLightDecay' in self.validFilters():
+        if 'aiLightDecay' in self.validFilters() and nodeType not in self.__class__._callbacks:
             callbacks.addNodeAddedCallback(self.addDefaultDecay, nodeType)
+            self.__class__._callbacks.append(nodeType)
 
     def validFilters(self):
         '''override in sub-class to provide the list of filters valid for a given light type'''
@@ -141,20 +143,13 @@ class LightTemplate(AttributeTemplate):
         self.addControl("aiBounces")
 
         self.addSeparator()
-    
+
+        self.lightFiltersLayout()
+
+    def lightFiltersLayout(self):
         self.beginLayout("Light Filters", collapse=False)
         self.addCustom("aiFilters", self.customLightFiltersNew, self.customLightFiltersReplace)
         self.endLayout()
-        cmds.editorTemplate(suppress="aiCastShadows")
-        cmds.editorTemplate(suppress="aiExposure")
-        cmds.editorTemplate(suppress="aiSamples")
-        cmds.editorTemplate(suppress="aiMis")
-        cmds.editorTemplate(suppress="aiNormalize")
-        cmds.editorTemplate(suppress="aiBounceFactor")
-        cmds.editorTemplate(suppress="aiBounces")
-        cmds.editorTemplate(suppress="aiOverrideSssSamples")
-        cmds.editorTemplate(suppress="aiSssSamples")
-        cmds.editorTemplate(suppress="aiAngle")
 
     def moveLightFilterUp(self):
         items = pm.textScrollList(self.scrollList, q=True, sii=True)
