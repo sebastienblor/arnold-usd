@@ -85,6 +85,7 @@ class BaseTemplate(object):
     def __init__(self, nodeType):
         self._nodeType = nodeType
         self._nodeName = None
+        self._attr = None
 
     def __repr__(self):
         return '%s(%r)' % (self.__class__.__name__, self.nodeType())
@@ -93,16 +94,19 @@ class BaseTemplate(object):
         '''
         build the UI from the list of added attributes
         '''
-        self._setActiveNode(nodeAttr.split('.')[0])
+        self._setActiveNode(nodeAttr)
         self.setup()
 
     def _doUpdate(self, nodeAttr, *args):
-        self._setActiveNode(nodeAttr.split('.')[0])
+        self._setActiveNode(nodeAttr)
         self.update()
 
     def _setActiveNode(self, nodeName):
         "set the active node"
-        self._nodeName = nodeName
+        parts = nodeName.split('.', 1)
+        self._nodeName = parts[0]
+        if len(parts) > 1:
+            self._attr = parts[1]
 
     # queries
     @property
@@ -110,6 +114,10 @@ class BaseTemplate(object):
         "get the active node"
         # assert self._nodeName, "%r: nodeName should be set by now" % self
         return self._nodeName
+
+    @property
+    def attr(self):
+        return self._attr
 
     def nodeType(self):
         if self._nodeType is None:
@@ -151,19 +159,19 @@ class AttributeTemplate(BaseTemplate):
         self._layoutStack = []
         self.setup()
 
-    def _doSetup(self, attr):
+    def _doSetup(self, nodeAttr):
         '''
         build the UI from the list of added attributes
         '''
-        self._setActiveNode(attr.split('.')[0])
+        self._setActiveNode(nodeAttr)
         pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
         self._layoutStack.append(pm.setParent(query=True))
         for func, args, kwargs in self._actions:
             func(self, *args, **kwargs)
         pm.setUITemplate(popTemplate=True)
 
-    def _doUpdate(self, attr):
-        self._setActiveNode(attr.split('.')[0])
+    def _doUpdate(self, nodeAttr):
+        self._setActiveNode(nodeAttr)
         self.update()
 
     def setup(self):
@@ -271,6 +279,7 @@ class AttributeEditorTemplate(pm.uitypes.AETemplate):
     """
     autoBuild = True
     def __init__(self, arg):
+        self._attr = None
         if self.autoBuild:
             # arg is a node name
             super(AttributeEditorTemplate, self).__init__(arg)
@@ -280,20 +289,23 @@ class AttributeEditorTemplate(pm.uitypes.AETemplate):
             self._nodeName = None
             self._nodeType = arg
 
-    def _doSetup(self, node, *args):
+    def _doSetup(self, nodeAttr, *args):
         '''
         build the UI from the list of added attributes
         '''
-        self._setActiveNode(node)
+        self._setActiveNode(nodeAttr)
         self.setup()
 
-    def _doUpdate(self, node, *args):
-        self._setActiveNode(node)
+    def _doUpdate(self, nodeAttr, *args):
+        self._setActiveNode(nodeAttr)
         self.update()
 
     def _setActiveNode(self, nodeName):
         "set the active node"
-        self._nodeName = nodeName
+        parts = nodeName.split('.', 1)
+        self._nodeName = parts[0]
+        if len(parts) > 1:
+            self._attr = parts[1]
 
     def nodeAttr(self, attr):
         return self.nodeName + '.' + attr
@@ -418,7 +430,8 @@ class TranslatorControl(AttributeEditorTemplate):
         self._label = label
 
         # class attributes
-        self._attr = controlAttr
+        if self._attr is None:
+            self._attr = controlAttr
         if not (default is None or isinstance(default, basestring) or callable(default)):
             pm.warning("[mtoa] default translator must be a string or a function")
             return
@@ -464,8 +477,10 @@ class TranslatorControl(AttributeEditorTemplate):
                 transName = translators[0]
             try :
                 pm.setAttr(nodeName + "." + self._attr, transName)
-            except :
+            except:
                 pm.warning("cannot set default translator for %s" % nodeName)
+                import traceback
+                traceback.print_exc()
         return transName
 
     def updateChildrenCallback(self, attr):
@@ -598,7 +613,7 @@ class TranslatorControlUI(TranslatorControl):
         currParent = pm.setParent(query=True)
         if parent is not None:
             pm.setParent(parent)
-        template._doSetup(self.nodeName)
+        template._doSetup(self.nodeAttr(attr))
         if currParent is not None and currParent != '' :
             pm.setParent(currParent)
 
@@ -711,7 +726,7 @@ def createTranslatorMenu(nodeAttr, label=None, nodeType=None, default=None, opti
     if default:
         kwargs['default'] = default
     trans = TranslatorControlUI(nodeType, **kwargs)
-    trans._doSetup(node)
+    trans._doSetup(nodeAttr)
     return trans
 
 def shapeTemplate(nodeName):

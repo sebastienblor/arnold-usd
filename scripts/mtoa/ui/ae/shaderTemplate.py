@@ -15,16 +15,23 @@ class AOVOptionMenuGrp(BaseTemplate):
     UNKNOWN_AOV_ITEM = "%s (Inactive)"
     BEAUTY_ITEM = "RGBA"
     _instances = []
-    def __init__(self, nodeType, attr, label=None, allowCreation=True, includeBeauty=False):
+    def __init__(self, nodeType, label=None, allowCreation=True, includeBeauty=False):
         super(AOVOptionMenuGrp, self).__init__(nodeType)
         self.__class__._instances.append(self)
-        self.attr = attr
-        self.menuName = nodeType + attr + '_aovOptionMenu'
         self.activeNodes = None
         self.allowCreation = allowCreation
         self.includeBeauty = includeBeauty
-        self.label = label if label else utils.interToUI(attr)
+        self._label = label
 
+    # TODO: convert to propertycache
+    @property
+    def menuName(self):
+        return self.nodeType() + self.attr + '_aovOptionMenu'
+    # TODO: convert to propertycache
+    @property
+    def label(self):
+        return self._label if self._label else utils.interToUI(self.attr)
+    
     @classmethod
     def globalAOVListChanged(cls):
         for inst in cls._instances:
@@ -130,7 +137,7 @@ class ShaderMixin(object):
         self.addCustom("message", aiSwatchDisplay.aiSwatchDisplayNew, aiSwatchDisplay.aiSwatchDisplayReplace)
 
     def addAOVControl(self, attr):
-        menu = AOVOptionMenuGrp(self.nodeType(), attr)
+        menu = AOVOptionMenuGrp(self.nodeType())
         self.addChildTemplate(attr, menu)
 
     def addAOVLayout(self):
