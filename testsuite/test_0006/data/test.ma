@@ -402,7 +402,7 @@ createNode aiOptions -shared -name "defaultArnoldRenderOptions";
 		-defaultValue 1 -attributeType "float";
 	addAttr -cachedInternally true -keyable true -shortName "filter_scalar_mode" -longName "filterScalarMode" 
 		-minValue 0 -maxValue 1 -attributeType "bool";
-	setAttr ".imageFormat" -type "string" "tiff";
+	setAttr ".imageFormat" -type "string" "tif";
 	setAttr ".renderType" 2;
 	setAttr ".filterType" -type "string" "gaussian";
 	setAttr ".GIDiffuseDepth" 2;
@@ -447,7 +447,7 @@ select -noExpand :renderGlobalsList1;
 select -noExpand :defaultRenderGlobals;
 	setAttr ".currentRenderer" -type "string" "arnold";
 	setAttr ".imageFormat" 51;
-	setAttr ".imfPluginKey" -type "string" "tiff";
+	setAttr ".imfPluginKey" -type "string" "tif";
 	setAttr ".imageFilePrefix" -type "string" "testrender";
 select -noExpand :defaultResolution;
 	setAttr ".width" 160;

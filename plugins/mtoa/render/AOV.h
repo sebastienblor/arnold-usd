@@ -60,9 +60,9 @@ public:
    bool IsEnabled() { return m_enabled; }
    bool FromMaya(MObject &o);
 
-   void SetImageFilename(const MString &filename){ m_filename = filename; }
+   void SetImageFilename(const MString &filename) const;
 
-   MString SetupOutput(AtNode *defaultDriver, AtNode *defaultFilter) const;
+   MString SetupOutput(AtNode *defaultDriver, AtNode *defaultFilter);
 
 protected:
 
@@ -78,9 +78,10 @@ protected:
    bool      m_enabled;
    MString   m_prefix;
    MString   m_imageformat;
-   MString   m_filename;
    MObject   m_object;
    MFnDependencyNode m_fnNode;
+   AtNode*   m_driver;
+   AtNode*   m_filter;
 };
 
 

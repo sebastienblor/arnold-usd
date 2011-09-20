@@ -92,8 +92,7 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    bool createDirectory = true;
 
    // Batch mode
-   const bool batch = argDB.isFlagSet("batch") ? true : false;
-   SetBatch(batch);
+   bool batch = argDB.isFlagSet("batch") ? true : false;
    // Custom filename
    if (argDB.isFlagSet("filename"))
    {
@@ -233,7 +232,7 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
                                               createDirectory,
                                               isSequence,
                                               subFrames,
-                                              IsBatch(), &status);
+                                              batch, &status);
       tocfilename = renderSession->GetAssName(customFileName,
                                               renderGlobals,
                                               curframe,
@@ -244,7 +243,7 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
                                               createDirectory,
                                               isSequence,
                                               subFrames,
-                                              IsBatch(), &status);
+                                              batch, &status);
 
       CMayaScene::Export();
       // TODO: package all of this in a method

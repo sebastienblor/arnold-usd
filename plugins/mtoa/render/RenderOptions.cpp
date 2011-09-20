@@ -27,8 +27,6 @@
 #include <direct.h>
 #endif // _WIN32
 
-extern AtNodeMethods* mtoa_driver_mtd;
-
 CRenderOptions::CRenderOptions()
 :  m_minx(0), m_miny(0), m_maxx(0), m_maxy(0)
 ,  m_width(0), m_height(0)
@@ -36,9 +34,6 @@ CRenderOptions::CRenderOptions()
 ,  m_useRenderRegion(false)
 ,  m_clearBeforeRender(false)
 ,  m_multiCameraRender(false)
-,  m_arnoldRenderImageFormat("tiff")
-,  m_isAnimated(false)
-,  m_display_gamma(1.0f)
 ,  m_outputAssMask(AI_NODE_ALL)
 ,  m_log_filename("")
 ,  m_log_max_warnings(100)
@@ -50,7 +45,6 @@ void CRenderOptions::GetFromMaya()
 {
    ProcessCommonRenderOptions();
    ProcessArnoldRenderOptions();
-   UpdateImageFilename();
 }
 
 // Unused by AOV branch but that will mess existing scripts
@@ -85,132 +79,6 @@ MString CRenderOptions::GetFileExtension(const MString& imageRenderFormat) const
    return imageFileExtension;
 }
 
-// sets the m_imageFilename member
-void CRenderOptions::UpdateImageFilename() 
-{
-
-   MString nameCamera;
-   MString cameraFolderName;
-   MObject renderLayer = MFnRenderLayer::currentLayer();
-   double fileFrameNumber = MAnimControl::currentTime().value();
-
-   // file name
-   MFileObject fileObj;
-   fileObj.setRawFullName(MFileIO::currentFile());
-   MString sceneFileName = fileObj.resolvedName();
-   sceneFileName = sceneFileName.substringW(0, sceneFileName.rindexW('.')-1);
-   // get camera transform node for folder name
-   MFnDagNode camDag(GetCamera());
-   MFnDagNode camDagParent(camDag.parent(0));
-   nameCamera = camDagParent.name();
-
-   m_imageFileExtension = GetFileExtension(m_arnoldRenderImageFormat);
-
-   // Notes on MCommonRenderSettingsData::getImageName:
-   //   - sceneFileName is only used if defaultRenderGlobals.imageFilePrefix is not set
-   //     WRONG: it is used if the <Scene> token appears in the imageFilePrefix
-   //   - a "<RenderPass>/" token is added before the file name if any pass nodes are
-   //     connected to a render layer AND <RenderPass> does not appear in defaultRenderGlobals.imageFilePrefix
-   // because getImageName ignores the sceneFileName arg when defaultRenderGlobals.imageFilePrefix is non-empty,
-   // we can only achieve the proper addition of the <RenderPass> token by creating a dummy render pass node.
-   // TODO: write a complete replacement for MCommonRenderSettingsData::getImageName
-   MCommonRenderSettingsData::MpathType pathType;
-   if (BatchMode())
-   {
-      // TODO: check that this is appropriate behavior (seems questionable)
-      // if (MultiCameraRender())
-      //   nameCamera = sceneFileName + "/" + nameCamera;
-
-      pathType = m_defaultRenderGlobalsData.kFullPathImage;
-      m_imageFilename = m_defaultRenderGlobalsData.getImageName(pathType, fileFrameNumber,
-                                                                sceneFileName, nameCamera,
-                                                                m_imageFileExtension, renderLayer, 1);
-      // What as that for?
-      //MFnDagNode camDag(GetCamera());
-      //MFnDagNode camDagParent(camDag.parent(0));
-   }
-   else
-   {
-      pathType = m_defaultRenderGlobalsData.kFullPathTmp;
-      m_imageFilename = m_defaultRenderGlobalsData.getImageName(pathType, fileFrameNumber,
-                                                                sceneFileName, nameCamera,
-                                                                m_imageFileExtension, renderLayer, 1);
-   }
-
-   MString globalPrefix = m_defaultRenderGlobalsData.name;
-
-   // because sets are ordered, their contents are const. we must make a new set
-   // and overwrite it.
-   AOVSet newAOVs;
-   for (AOVSet::iterator it=m_aovs.begin(); it!=m_aovs.end(); ++it)
-   {
-      CAOV aov = (*it);
-      MString aovPrefix;
-      MString prefix = aov.GetPrefix();
-      if (prefix.length() > 0)
-      {
-         aovPrefix = prefix;
-      }
-      else
-      {
-         // Do not add "<RenderPass>/"
-         // as it was pre mtoa 0.9
-         if (globalPrefix.length() > 0)
-         {
-            // if not <RenderPass> in globalPrefix
-            if (globalPrefix.indexW("<RenderPass>") == -1)
-            {
-               aovPrefix = globalPrefix + ".<RenderPass>";
-            }
-            else
-            {
-               aovPrefix = globalPrefix;
-            }
-         }
-         else
-         {
-            aovPrefix = sceneFileName + ".<RenderPass>";
-         }
-      }
-
-      MString tokens = MString("RenderPass=") + aov.GetName();
-      tokens += " AOV=" + aov.GetName(); // backward compat
-      // More direct
-      m_defaultRenderGlobalsData.setPassName(aov.GetName());
-
-      MString driverType = aov.GetImageFormat();
-      if (driverType == "<Use Globals>" || driverType == "")
-      {
-         driverType = m_arnoldRenderImageFormat;
-      }
-      MString fileExtension = GetFileExtension(driverType);
-
-      // Sadly the following will not work
-      m_defaultRenderGlobalsData.name = aovPrefix;
-      // Need to set this value on the real node...
-      MGlobal::executeCommand("setAttr -type \"string\" defaultRenderGlobals.imageFilePrefix \"" + aovPrefix + "\"");
-      // ... and to re-query it for the change to be effective
-      MRenderUtil::getCommonRenderSettings(m_defaultRenderGlobalsData);
-
-      MString filename = m_defaultRenderGlobalsData.getImageName(pathType, fileFrameNumber,
-                                                                 sceneFileName, nameCamera,
-                                                                 fileExtension, renderLayer,
-                                                                 tokens, 1);
-
-      AiMsgDebug("[mtoa] [aov %s] UpdateImageFilename with sceneFileName '%s', prefix '%s', tokens '%s', extension '%s' : %s",
-            aov.GetName().asChar(), sceneFileName.asChar(), aovPrefix.asChar(), tokens.asChar(), fileExtension.asChar(), filename.asChar());
-
-      aov.SetImageFilename(filename);
-      newAOVs.insert(aov);
-   }
-   m_aovs = newAOVs;
-
-   // restore original file name prefix
-   MGlobal::executeCommand("setAttr -type \"string\" defaultRenderGlobals.imageFilePrefix \"" + globalPrefix + "\"");
-   MRenderUtil::getCommonRenderSettings(m_defaultRenderGlobalsData);
-   m_defaultRenderGlobalsData.setPassName("");
-}
-
 void CRenderOptions::ProcessCommonRenderOptions()
 {
    MStatus        status;
@@ -234,12 +102,6 @@ void CRenderOptions::ProcessCommonRenderOptions()
       // MString     customImageFormat
       // MString     customExt;
       // m_imageFormat = m_defaultRenderGlobalsData.customImageFormat();
-
-      m_isAnimated = m_defaultRenderGlobalsData.isAnimated();
-      m_extensionPadding = m_defaultRenderGlobalsData.framePadding;
-      m_startFrame = static_cast<float>(m_defaultRenderGlobalsData.frameStart.as(MTime::uiUnit()));
-      m_endFrame = static_cast<float>(m_defaultRenderGlobalsData.frameEnd.as(MTime::uiUnit()));
-      m_byFrameStep = m_defaultRenderGlobalsData.frameBy;
 
       if (m_useRenderRegion)
       {
@@ -277,35 +139,14 @@ void CRenderOptions::ProcessCommonRenderOptions()
 
 void CRenderOptions::ProcessArnoldRenderOptions()
 {
-   MObject        node;
-   if (GetOptionsNode(node) == MS::kSuccess)
+   MObject node = GetArnoldRenderOptions();
+   if (node != MObject::kNullObj)
    {
       MPlugArray conns;
       MFnDependencyNode fnArnoldRenderOptions(node);
 
-
-      m_arnoldRenderImageFormat  = fnArnoldRenderOptions.findPlug("imageFormat").asString();
-
       m_progressive_rendering    = fnArnoldRenderOptions.findPlug("progressive_rendering").asBool();
-      m_threads                  = fnArnoldRenderOptions.findPlug("threads_autodetect").asBool() ? 0 : fnArnoldRenderOptions.findPlug("threads").asInt();
-      m_plugins_path             = fnArnoldRenderOptions.findPlug("plugins_path").asString();
-
-      m_AA_samples               = fnArnoldRenderOptions.findPlug("AA_samples").asInt();
-      m_GI_diffuse_samples       = fnArnoldRenderOptions.findPlug("GI_diffuse_samples").asInt();
-      m_GI_glossy_samples        = fnArnoldRenderOptions.findPlug("GI_glossy_samples").asInt();
       m_sss_sample_factor        = fnArnoldRenderOptions.findPlug("sss_sample_factor").asInt();
-      m_AA_sample_clamp          = fnArnoldRenderOptions.findPlug("use_sample_clamp").asBool() ? fnArnoldRenderOptions.findPlug("AA_sample_clamp").asFloat() : (float) AI_INFINITE;
-
-      m_lock_sampling_noise      = fnArnoldRenderOptions.findPlug("lock_sampling_noise").asBool();
-
-      MFnEnumAttribute enum_filter_type(fnArnoldRenderOptions.findPlug("filter_type").attribute());
-      m_filter_type  = enum_filter_type.fieldName(fnArnoldRenderOptions.findPlug("filter_type").asShort());
-
-      m_light_gamma   = fnArnoldRenderOptions.findPlug("light_gamma").asFloat();
-      m_shader_gamma  = fnArnoldRenderOptions.findPlug("shader_gamma").asFloat();
-      m_texture_gamma = fnArnoldRenderOptions.findPlug("texture_gamma").asFloat();
-      m_display_gamma  = fnArnoldRenderOptions.findPlug("display_gamma").asFloat();
-
       m_clearBeforeRender = fnArnoldRenderOptions.findPlug("clear_before_render").asBool();
 
       m_outputAssFile       = fnArnoldRenderOptions.findPlug("output_ass_filename").asString();
@@ -316,29 +157,6 @@ void CRenderOptions::ProcessArnoldRenderOptions()
       m_log_max_warnings      = fnArnoldRenderOptions.findPlug("log_max_warnings").asInt();
       m_log_console_verbosity = fnArnoldRenderOptions.findPlug("log_console_verbosity").asInt();
       m_log_file_verbosity    = fnArnoldRenderOptions.findPlug("log_file_verbosity").asInt();
-
-      // AOVs
-      ClearAOVs();
-      AOVMode aovMode = AOVMode(fnArnoldRenderOptions.findPlug("aovMode").asInt());
-      if (aovMode == AOV_MODE_ENABLED ||
-            (BatchMode() && aovMode == AOV_MODE_BATCH_ONLY))
-      {
-         MPlug pAOVs = fnArnoldRenderOptions.findPlug("aovs");
-         for (unsigned int i = 0; i < pAOVs.evaluateNumElements(); ++i)
-         {
-            if (pAOVs[i].connectedTo(conns, true, false))
-            {
-               CAOV aov;
-               MObject oAOV = conns[0].node();
-               if (aov.FromMaya(oAOV)  && aov.IsEnabled())
-                  AddAOV(aov);
-               else
-                  MGlobal::displayWarning("[mtoa] Could not setup AOV attribute " + MFnDependencyNode(oAOV).name());
-            }
-         }
-      }
-      else
-         AiMsgDebug("[mtoa] [aovs] disabled");
    }
    else
    {
@@ -364,60 +182,24 @@ void CRenderOptions::SetupLog() const
    // AiMsgResetCallback();
 }
 
-void CRenderOptions::UpdateImageOptions()
+void CRenderOptions::SetCamera(MDagPath& camera)
 {
-   MObject        node;
-   if (GetOptionsNode(node) == MS::kSuccess)
-   {
-      AtNode* options = AiUniverseGetOptions();
-      if (useRenderRegion())
-      {
-         AiNodeSetInt(options, "region_min_x", minX());
-         AiNodeSetInt(options, "region_min_y", height() - maxY() - 1);
-         AiNodeSetInt(options, "region_max_x", maxX());
-         AiNodeSetInt(options, "region_max_y", height() - minY() - 1);
-      }
-
-      AiNodeSetInt(options, "xres", width());
-      AiNodeSetInt(options, "yres", height());
-      AiNodeSetFlt(options, "aspect_ratio", pixelAspectRatio());
-   }
+   m_camera = camera;
 }
 
-MString CRenderOptions::VerifyFileName(MString fileName, bool compressed)
+void CRenderOptions::UpdateImageDimensions()
 {
-   unsigned int len = fileName.length();
-
-   if (!compressed)
+   AtNode* options = AiUniverseGetOptions();
+   if (useRenderRegion())
    {
-      if ((len < 4) || (fileName.substring(len - 4, len - 1).toLowerCase() != ".ass"))
-         fileName += ".ass";
-   }
-   else
-   {
-      if ((len < 7) || (fileName.substring(len - 7, len - 1).toLowerCase() != ".ass.gz"))
-      {
-         if ((len < 4) || (fileName.substring(len - 4, len - 1).toLowerCase() == ".ass"))
-            fileName += ".gz";
-         else if ((len < 3) || (fileName.substring(len - 3, len - 1).toLowerCase() == ".gz"))
-            fileName = fileName.substring(0, len - 4) + ".ass.gz";
-         else
-            fileName += ".ass.gz";
-      }
+      AiNodeSetInt(options, "region_min_x", minX());
+      AiNodeSetInt(options, "region_min_y", height() - maxY() - 1);
+      AiNodeSetInt(options, "region_max_x", maxX());
+      AiNodeSetInt(options, "region_max_y", height() - minY() - 1);
    }
 
-   return fileName;
+   AiNodeSetInt(options, "xres", width());
+   AiNodeSetInt(options, "yres", height());
+   AiNodeSetFlt(options, "aspect_ratio", pixelAspectRatio());
 }
 
-MStatus CRenderOptions::GetOptionsNode(MObject& optionsNode) const
-{
-   MSelectionList list;
-   list.add("defaultArnoldRenderOptions");
-
-   if (list.length() > 0)
-   {
-      list.getDependNode(0, optionsNode);
-      return MS::kSuccess;
-   }
-   return MS::kFailure;
-}

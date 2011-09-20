@@ -63,7 +63,6 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
       CMayaScene::ExecuteScript(renderGlobals.preMel);
       CMayaScene::ExecuteScript(renderGlobals.preRenderMel);
 
-      // This will export the scene.
       CMayaScene::Begin(MTOA_SESSION_IPR);
       MSelectionList sel;
       args.getFlagArgument("camera", 0, sel);
@@ -102,6 +101,9 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
       // Close down Arnold, clearing out the old data.
       CArnoldSession* arnoldSession = CMayaScene::GetArnoldSession();
       CRenderSession* renderSession = CMayaScene::GetRenderSession();
+
+      // FIXME: why do all this resetting? shouldn't the camera and resolution still exist on the previous sessions?
+
       // We save and restore the res instead of using the translated one because
       // the translated value is from the render globals. We may have been
       // passed in a different value to start with.
@@ -127,8 +129,8 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
       }
 
       // Set resolution and camera as passed in.
-      CMayaScene::GetRenderSession()->SetResolution(width, height);
-      CMayaScene::GetRenderSession()->SetCamera(camera);
+      renderSession->SetResolution(width, height);
+      renderSession->SetCamera(camera);
 
       // Start off the render.
       renderSession->DoIPRRender();

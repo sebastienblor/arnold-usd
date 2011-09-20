@@ -88,11 +88,11 @@ MStatus CMayaScene::Begin(ArnoldSessionMode mode)
    sessionOptions.SetArnoldRenderOptions(ArnoldRenderOptionsNode);
 
    CRenderOptions renderOptions;
-   // FIXME : allow to pass a specific maya ArnoldRenderOptions node
+   renderOptions.SetArnoldRenderOptions(ArnoldRenderOptionsNode);
    if (mode == MTOA_SESSION_SWATCH)
    {
       // FIXME: default or use swatch defaults
-      renderOptions.SetBatch(false);
+      //renderOptions.SetBatch(false);
       renderOptions.SetProgressive(false);
       //FIXME: fill renderOptions instead
       MtoaSetupSwatchLogging();
@@ -100,20 +100,27 @@ MStatus CMayaScene::Begin(ArnoldSessionMode mode)
    else if (mode == MTOA_SESSION_ASS)
    {
       renderOptions.GetFromMaya();
-      renderOptions.SetBatch(true);
+      //renderOptions.SetBatch(true);
       renderOptions.SetupLog();
    }
    else if (mode == MTOA_SESSION_IPR)
    {
       renderOptions.GetFromMaya();
-      renderOptions.SetBatch(false);
+      //renderOptions.SetBatch(false);
       renderOptions.SetProgressive(true);
       renderOptions.SetupLog();
       status = SetupIPRCallbacks();
    }
-   else
+   else if (mode == MTOA_SESSION_RENDER)
    {
       renderOptions.GetFromMaya();
+      //renderOptions.SetBatch(false);
+      renderOptions.SetupLog();
+   }
+   else if (mode == MTOA_SESSION_BATCH)
+   {
+      renderOptions.GetFromMaya();
+      //renderOptions.SetBatch(true);
       renderOptions.SetupLog();
    }
 
@@ -150,10 +157,12 @@ MStatus CMayaScene::End()
 MStatus CMayaScene::Export(MSelectionList* selected)
 {
    MStatus status;
-
    if (NULL != s_arnoldSession)
    {
       status = s_arnoldSession->Export(selected);
+      // FIXME: provide access to resolution settings in arnoldSession, and export them
+      // in OptionsTranslator
+      s_renderSession->m_renderOptions.UpdateImageDimensions();
    }
    else
    {

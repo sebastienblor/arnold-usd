@@ -10,6 +10,9 @@ DLLEXPORT void SetMetafile(MString metafile);
 
 DLLEXPORT MStatus ReadMetafile();
 
+DLLEXPORT void InstallNodes();
+DLLEXPORT void LoadPlugins();
+
 // return true if the universe had to be initialized (and thus should be uninitialized), false if it was already active
 DLLEXPORT bool ArnoldUniverseBegin();
 DLLEXPORT void ArnoldUniverseEnd();
