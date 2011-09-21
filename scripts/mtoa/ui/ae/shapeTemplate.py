@@ -136,6 +136,7 @@ def delayedAttr(func):
         self._attributes.append(attr)
     wrapped.__doc__ = func.__doc__
     wrapped.__name__ = func.__name__
+    wrapped._orig = func
     return wrapped
 
 def delayed(func):
@@ -143,6 +144,7 @@ def delayed(func):
         self._actions.append((func, args, kwargs))
     wrapped.__doc__ = func.__doc__
     wrapped.__name__ = func.__name__
+    wrapped._orig = func
     return wrapped
 
 class AttributeTemplate(BaseTemplate):
@@ -196,7 +198,7 @@ class AttributeTemplate(BaseTemplate):
     def addChildTemplate(self, attr, template):
         if isinstance(template, pm.uitypes.AETemplate):
             print "this is a pm.uitypes.AETemplate subclass. this will probably break"
-        self.addCustom(attr, template._doSetup, template._doUpdate)
+        self.addCustom._orig(self, attr, template._doSetup, template._doUpdate)
 
     @delayedAttr
     def addControl(self, attr, label=None, annotation=None):
@@ -323,8 +325,9 @@ class AttributeEditorTemplate(pm.uitypes.AETemplate):
         if isinstance(template, pm.uitypes.AETemplate):
             template._doSetup(self.nodeAttr(attr))
         else:
-            for attr in template._attributes:
-                pm.editorTemplate(suppress=attr)
+            if hasattr(template, '_attributes'):
+                for attr in template._attributes:
+                    pm.editorTemplate(suppress=attr)
             pm.editorTemplate(aeCallback(template._doSetup),
                               aeCallback(template._doUpdate),
                               attr,
