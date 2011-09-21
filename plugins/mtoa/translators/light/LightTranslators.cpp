@@ -1,4 +1,4 @@
-#include "LightTranslators.h"
+﻿#include "LightTranslators.h"
 
 #include <maya/MFnAmbientLight.h>
 #include <maya/MFnAreaLight.h>
