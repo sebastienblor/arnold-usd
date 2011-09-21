@@ -105,7 +105,6 @@ def _updateExistingNodes(nodeType, func):
             continue
         fnNode.setObject(node)
         if fnNode.typeName() == nodeType:
-            print "updating", fnNode.name()
             func(node)
         nodeIt.next()
         if nodeIt.isDone():
