@@ -135,7 +135,11 @@ class LightTemplate(AttributeTemplate):
         except pm.MayaObjectError:
             filter = core.createArnoldNode('aiLightDecay', name='defaultLightDecay', skipSelect=True)
 
-        filter.message.connect(node.aiFilters[0])
+        try :
+            filter.message.connect(node.aiFilters[0])
+            filter.decayType.connect(node.decayRate)
+        except :
+            pass
 
     def commonLightAttributes(self):
         self.addControl("aiNormalize")
@@ -234,6 +238,8 @@ class LightTemplate(AttributeTemplate):
                     j+=1
                 pm.disconnectAttr(srcplug, '%s[%s]'%(attr, nfilters-1))
                 # node might be used elsewhere, so we can't just delete it
+                # Note: with proper 'existsWithoutConnections' settings Maya would do it if it isn't
+                # connected to anything anymore
                 #pm.delete(filter)
 
         self.lightFiltersUpdateList()

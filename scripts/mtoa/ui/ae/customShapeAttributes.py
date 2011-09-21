@@ -143,6 +143,26 @@ class AreaLightTemplate(lightTemplate.LightTemplate):
 
 templates.registerTranslatorUI(AreaLightTemplate, "areaLight")
 
+# Actually currently connecting the other way round, filter's decayRate
+# to light's decay type which might be the best idea
+"""
+def lightDecayChanged(decayPlug, *args):
+    "called to sync first found lightDecay filter when decayRate changes"
+    # fnCam = om.MFnCamera(transPlug.node())
+    # currTrans = transPlug.asString()
+    #orthoPlug = fnCam.findPlug('orthographic')
+    # isOrtho = orthoPlug.asBool()
+    print "lightDecayChanged", decayPlug.name(), decayPlug.asInt()
+    print "filters", lightTemplate.LightTemplate.getConnectedLightFilters()
+    # aiLightDecay
+
+print "Adding attribute changed callback for lights"
+callbacks.addAttributeChangedCallback(lightDecayChanged, 'pointLight', 'decayRate')
+callbacks.addAttributeChangedCallback(lightDecayChanged, 'spotLight', 'decayRate')
+callbacks.addAttributeChangedCallback(lightDecayChanged, 'areaLight', 'decayRate')
+callbacks.addAttributeChangedCallback(lightDecayChanged, 'aiAreaLight', 'decayRate')
+"""
+
 class CameraTemplate(templates.AttributeTemplate):
     def addDOFAttributes(self):
         self.addControl("aiEnableDOF")
