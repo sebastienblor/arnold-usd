@@ -303,7 +303,6 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setSoftMin(0);
    nAttr.setSoftMax(1);
    nAttr.setMin(0);
-   nAttr.setMax(20);
    addAttribute(s_motion_frames);
 
    s_attributes.MakeInput("sss_subpixel_cache");

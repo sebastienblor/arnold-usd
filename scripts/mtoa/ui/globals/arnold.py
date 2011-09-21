@@ -602,12 +602,11 @@ def createArnoldMotionBlurSettings():
     pm.connectControl('mb_shutter_size', 'defaultArnoldRenderOptions.shutter_size', index=2)
     pm.connectControl('mb_shutter_size', 'defaultArnoldRenderOptions.shutter_size', index=3)
 
-    pm.floatSliderGrp('mb_motion_frames',
+    pm.attrControlGrp('mb_motion_frames',
                       label="Sample Range (Frames)",
+                      attribute='defaultArnoldRenderOptions.motion_frames',
                       cc=lambda *args: pm.evalDeferred(updateShutterAngle)
                       )
-    pm.connectControl('mb_motion_frames', 'defaultArnoldRenderOptions.motion_frames', index=2)
-    pm.connectControl('mb_motion_frames', 'defaultArnoldRenderOptions.motion_frames', index=3)
 
     pm.separator(style='none')
 
