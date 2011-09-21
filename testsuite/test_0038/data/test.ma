@@ -1,6 +1,6 @@
 //Maya ASCII 2011 scene
 //Name: test.ma
-//Last modified: Wed, Sep 21, 2011 03:24:03 PM
+//Last modified: Thu, Sep 22, 2011 12:27:38 AM
 //Codeset: 1252
 requires maya "2011";
 requires "mtoa" "0.11.0";
@@ -306,9 +306,9 @@ createNode mesh -name "pSphereShape1" -parent "pSphere1";
 	setAttr ".collisionDepthVelocityMultiplier[0]"  0 1 1;
 	setAttr ".subdiv_dicing_camera" -type "string" "Default";
 createNode transform -name "transform1";
-	setAttr ".translate" -type "double3" 13.181185309949182 19.477375940652475 12.227286581842323 ;
+	setAttr ".translate" -type "double3" 13.181185309949182 9.5625550114428233 12.227286581842323 ;
 	setAttr ".rotate" -type "double3" -35.857810735752722 51.562840528206323 -2.5581311053783442e-015 ;
-	setAttr ".scale" -type "double3" 7.1270260243465868 32.425269243025269 7.1270260243465868 ;
+	setAttr ".scale" -type "double3" 0.65407363476769775 8.7668503860207529 0.65407363476769775 ;
 createNode aiAreaLight -name "aiAreaLight" -parent "transform1";
 	addAttr -cachedInternally true -keyable true -shortName "ai_cast_shadows" -longName "aiCastShadows" 
 		-defaultValue 1 -minValue 0 -maxValue 1 -attributeType "bool";
