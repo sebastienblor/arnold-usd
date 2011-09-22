@@ -572,10 +572,23 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
    // add callbacks after all is done
    if (GetSessionMode() == MTOA_SESSION_IPR)
    {
+      // TODO: unify storage for translators, this is cumbersome
+      // For Node translators
       ObjectToTranslatorMap::iterator it;
       for (it = m_processedTranslators.begin(); it != m_processedTranslators.end(); ++it)
       {
          it->second->AddUpdateCallbacks();
+      }
+      // For Dag node translators
+      ObjectToDagTranslatorMap::iterator itd;
+      for (itd = m_processedDagTranslators.begin(); itd != m_processedDagTranslators.end(); ++itd)
+      {
+         // finally, loop through instances
+         std::map<int, CNodeTranslator*>::iterator instIt;
+         for(instIt = itd->second.begin(); instIt != itd->second.end(); ++instIt)
+         {
+            instIt->second->AddUpdateCallbacks();
+         }
       }
    }
 
