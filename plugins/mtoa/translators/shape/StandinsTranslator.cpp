@@ -135,6 +135,7 @@ void CArnoldStandInsTranslator::ExportStandinsShaders(AtNode* procedural)
          // Note that disp_height has no actual influence on the scale of the displacement if it is vector based
          // it only influences the computation of the displacement bounds
          AiNodeSetFlt(procedural, "disp_height", dispNode.findPlug("disp_height").asFloat());
+         AiNodeSetFlt(procedural, "disp_padding", dispNode.findPlug("disp_padding").asFloat());
          AiNodeSetFlt(procedural, "disp_zero_value", dispNode.findPlug("disp_zero_value").asFloat());
 
          connections.clear();

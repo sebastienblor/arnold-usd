@@ -468,6 +468,7 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
          // Note that disp_height has no actual influence on the scale of the displacement if it is vector based
          // it only influences the computation of the displacement bounds
          AiNodeSetFlt(polymesh, "disp_height", dispNode.findPlug("disp_height").asFloat());
+         AiNodeSetFlt(polymesh, "disp_padding", dispNode.findPlug("disp_padding").asFloat());
          AiNodeSetFlt(polymesh, "disp_zero_value", dispNode.findPlug("disp_zero_value").asFloat());
          AiNodeSetBool(polymesh, "disp_autobump", dispNode.findPlug("disp_autobump").asBool());
 

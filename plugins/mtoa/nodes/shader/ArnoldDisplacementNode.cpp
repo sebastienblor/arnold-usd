@@ -18,6 +18,7 @@
 MTypeId CArnoldDisplacementNode::id(ARNOLD_NODEID_DISPLACEMENT);
 
 MObject CArnoldDisplacementNode::s_height;
+MObject CArnoldDisplacementNode::s_padding;
 MObject CArnoldDisplacementNode::s_zero_value;
 MObject CArnoldDisplacementNode::s_mapR;
 MObject CArnoldDisplacementNode::s_mapG;
@@ -54,16 +55,18 @@ MStatus CArnoldDisplacementNode::initialize()
    MFnNumericAttribute  nAttr;
 
    s_height = nAttr.create("disp_height", "hgt", MFnNumericData::kFloat, 1);
-   nAttr.setMin(-100);
-   nAttr.setMax(100);
    nAttr.setSoftMin(0);
    nAttr.setSoftMax(10);
    nAttr.setConnectable(false);
    MAKE_INPUT(nAttr, s_height);
+   
+   s_padding = nAttr.create("disp_padding", "padding", MFnNumericData::kFloat, 1);
+   nAttr.setSoftMin(0);
+   nAttr.setSoftMax(10);
+   nAttr.setConnectable(false);
+   MAKE_INPUT(nAttr, s_padding);   
 
    s_zero_value = nAttr.create("disp_zero_value", "zerov", MFnNumericData::kFloat, 0);
-   nAttr.setMin(-100);
-   nAttr.setMax(100);
    nAttr.setSoftMin(0);
    nAttr.setSoftMax(1);
    nAttr.setConnectable(false);

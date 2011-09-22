@@ -23,6 +23,7 @@ public:
 
    // Input attributes
    static MObject s_height;
+   static MObject s_padding;
    static MObject s_zero_value;
    static MObject s_mapR;
    static MObject s_mapG;

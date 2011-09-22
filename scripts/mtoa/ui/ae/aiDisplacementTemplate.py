@@ -11,6 +11,7 @@ def aiDisplacementTemplate(nodeName):
     cmds.editorTemplate(beginLayout="Displacement Attributes", collapse=False)
 
     cmds.editorTemplate("disp_height", addControl=True, label="Height")
+    cmds.editorTemplate("disp_padding", addControl=True, label="Padding")
     cmds.editorTemplate("disp_zero_value", addControl=True, label="Zero Value")
     cmds.editorTemplate("disp_map", addControl=True, label="Map")
     cmds.editorTemplate("disp_autobump", addControl=True, label="Auto Bump")

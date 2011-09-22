@@ -339,6 +339,7 @@ MStatus CRenderSwatchGenerator::AssignNode(AtNode* arnoldNode, CNodeTranslator* 
    if (m_swatchClass == SWATCH_DISPLACEMENT)
    {
       AiNodeSetFlt(geometry, "disp_height", depFn.findPlug("disp_height").asFloat());
+      AiNodeSetFlt(geometry, "disp_padding", depFn.findPlug("disp_padding").asFloat());
       AiNodeSetFlt(geometry, "disp_zero_value", depFn.findPlug("disp_zero_value").asFloat());
       AiNodeSetBool(geometry, "disp_autobump", depFn.findPlug("disp_autobump").asBool());
 
