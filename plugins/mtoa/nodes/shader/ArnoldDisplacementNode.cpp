@@ -60,7 +60,7 @@ MStatus CArnoldDisplacementNode::initialize()
    nAttr.setConnectable(false);
    MAKE_INPUT(nAttr, s_height);
    
-   s_padding = nAttr.create("disp_padding", "padding", MFnNumericData::kFloat, 1);
+   s_padding = nAttr.create("disp_padding", "padding", MFnNumericData::kFloat, 0);
    nAttr.setSoftMin(0);
    nAttr.setSoftMax(10);
    nAttr.setConnectable(false);
