@@ -237,6 +237,11 @@ class LightTemplate(AttributeTemplate):
                     swapConnections(attr, j, k)
                     j+=1
                 pm.disconnectAttr(srcplug, '%s[%s]'%(attr, nfilters-1))
+                # for decay filters, if they were connected to light's decayRate
+                try :
+                    pm.disconnectAttr('%s.%s' % (filter, 'decayType'), '%s.%s' % (self.nodeName, 'decayRate'))
+                except :
+                    pass
                 # node might be used elsewhere, so we can't just delete it
                 # Note: with proper 'existsWithoutConnections' settings Maya would do it if it isn't
                 # connected to anything anymore
