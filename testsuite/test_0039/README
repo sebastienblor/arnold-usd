@@ -1,0 +1,5 @@
+Add disp_padding to set displacement bounds in displacement shader
+
+Test of the new disp_padding parameter introduced in Arnold 3.3.12
+
+author: r3D
