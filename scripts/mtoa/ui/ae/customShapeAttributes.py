@@ -140,7 +140,6 @@ class AreaLightTemplate(lightTemplate.LightTemplate):
         self.addSeparator()
 
         self.commonLightAttributes()
-
 templates.registerTranslatorUI(AreaLightTemplate, "areaLight")
 
 # Actually currently connecting the other way round, filter's decayRate

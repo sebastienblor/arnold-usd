@@ -4,12 +4,22 @@ import mtoa.ui.ae.shapeTemplate as templates
 
 class AEaiAreaLightTemplate(templates.AttributeEditorTemplate):
     def setup(self):
+        # why does this break template whereas it works with AEaiStandardTemplate ?
+        # self.addSwatch()
+        # parent seems wrong. Controls / widget don't use the AETemplate style either (too wide)
+        
         self.beginScrollLayout()
 
+        self.addControl("color")
+        self.addControl("intensity")
+        self.addControl("emitDiffuse")
+        self.addControl("emitSpecular")
+                    
         self.beginLayout("Arnold Area Light Attributes", collapse=False)
         self.addChildTemplate('aiTranslator', templates.getNodeTemplate('aiAreaLight'))
         self.endLayout()
 
+        # include/call base class/node attributes
         pm.mel.AEdependNodeTemplate(self.nodeName)
 
         self.addExtraControls()
