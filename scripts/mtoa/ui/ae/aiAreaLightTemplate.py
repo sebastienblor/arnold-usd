@@ -1,12 +1,11 @@
 import pymel.core as pm
 import mtoa.ui.ae.lightTemplate as lightTemplate
+from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 import mtoa.ui.ae.shapeTemplate as templates
 
-class AEaiAreaLightTemplate(templates.AttributeEditorTemplate):
+class AEaiAreaLightTemplate(ShaderAETemplate):
     def setup(self):
-        # why does this break template whereas it works with AEaiStandardTemplate ?
-        # self.addSwatch()
-        # parent seems wrong. Controls / widget don't use the AETemplate style either (too wide)
+        self.addSwatch()
         
         self.beginScrollLayout()
 
