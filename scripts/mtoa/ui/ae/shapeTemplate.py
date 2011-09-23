@@ -691,6 +691,10 @@ def registerTranslatorUI(templateClass, nodeType, translatorName='<built-in>'):
     UI is registered.
     """
     global _translatorTemplates
+    translators = getTranslators(nodeType)
+    if translatorName not in translators:
+        pm.warning('[mtoa] Registering unknown translator "%s" for Maya node %s. Valid choices are: %s' % \
+                   (translatorName, nodeType, ', '.join(['"%s"' % x for x in translators])))
 #    assert inspect.isclass(templateClass) and issubclass(templateClass, AttributeTemplate),\
 #        "you must pass a subclass of AttributeTemplate"
     _translatorTemplates[nodeType][translatorName] = templateClass(nodeType)

@@ -171,7 +171,7 @@ namespace // <anonymous>
                                    CSpotLightTranslator::creator,
                                    CSpotLightTranslator::NodeInitializer);
        builtin->RegisterTranslator("areaLight",
-                                   "quad",
+                                   "",
                                    CQuadLightTranslator::creator,
                                    CQuadLightTranslator::NodeInitializer);
        builtin->RegisterTranslator("pointLight",
