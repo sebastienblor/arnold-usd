@@ -9,11 +9,11 @@ namespace
 
 enum ColorToFloatParams
 {
-   p_color,
-   p_channel
+   p_input,
+   p_component
 };
 
-enum Channel
+enum component
 {
    CH_RED = 0,
    CH_GREEN,
@@ -22,7 +22,7 @@ enum Channel
    CH_LUMINANCE
 };
 
-const char* enum_channel[] =
+const char* enum_component[] =
 {
    "R",
    "G",
@@ -36,8 +36,8 @@ const char* enum_channel[] =
 
 node_parameters
 {
-   AiParameterRGBA("color", 0, 0, 0, 1);
-   AiParameterENUM("channel", CH_LUMINANCE, enum_channel);
+   AiParameterRGBA("input", 0, 0, 0, 1);
+   AiParameterENUM("component", CH_LUMINANCE, enum_component);
 
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }
@@ -56,9 +56,9 @@ node_finish
 
 shader_evaluate
 {
-   AtRGBA color = AiShaderEvalParamRGBA(p_color);
-   AtInt channel = AiShaderEvalParamEnum(p_channel);
-   switch (channel)
+   AtRGBA color = AiShaderEvalParamRGBA(p_input);
+   AtInt component = AiShaderEvalParamEnum(p_component);
+   switch (component)
    {
    case CH_RED:
       sg->out.FLT = color.r;
