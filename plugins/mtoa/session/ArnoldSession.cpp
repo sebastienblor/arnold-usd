@@ -1,4 +1,3 @@
-﻿
 #include "ArnoldSession.h"
 #include "extension/ExtensionsManager.h"
 #include "scene/MayaScene.h"
