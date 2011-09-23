@@ -42,10 +42,11 @@ class COptionsTranslator;
 // TODO : translator per output attribute / arnold node for Maya node that can alternatively
 // generate different Arnold nodes (multiple outputs), possibly in the same Arnold universe
 // when the maya node is shared (Trac #351)
-// depend nodes map from MObject to translator
-typedef std::map<MObjectHandle, CNodeTranslator*, MObjectCompare> ObjectToTranslatorMap;
+// depend nodes map from Node + Attr MObject to translator(s)
+typedef std::multimap<CNodeAttrHandle, CNodeTranslator*> ObjectToTranslatorMap;
+typedef std::pair<CNodeAttrHandle, CNodeTranslator*> ObjectToTranslatorPair;
 // dag nodes: have one translator per instance, so they map MObject to a sub-map, from dag instance number to translator
-typedef std::map<MObjectHandle, std::map<int, CNodeTranslator*>, MObjectCompare> ObjectToDagTranslatorMap;
+typedef std::map<CNodeAttrHandle, std::map<int, CNodeTranslator*> > ObjectToDagTranslatorMap;
 // Abstract base class for Dag node translators
 //
 typedef std::map<MObjectHandle, MDagPath, MObjectCompare> ObjectHandleToDagMap;
@@ -70,8 +71,7 @@ public:
 
    // Called by translators
    AtNode* ExportDagPath(MDagPath &dagPath, MStatus* stat=NULL);
-   AtNode* ExportNode(MPlug& shaderOutputPlug, MStatus* stat=NULL);
-   AtNode* ExportNode(MObject node, const MString &attrName="", MStatus* stat=NULL);
+   AtNode* ExportNode(const MPlug& shaderOutputPlug, MStatus* stat=NULL);
 
    // FIXME : shouldn't probably be public
    AtNode* ExportWithTranslator(MObject node, const MString &mayaNodeClass, const MString &translatorName);

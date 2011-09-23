@@ -1,4 +1,5 @@
 #include "ArnoldSession.h"
+#include "attributes/Components.h"
 #include "extension/ExtensionsManager.h"
 #include "scene/MayaScene.h"
 #include "translators/options/OptionsTranslator.h"
@@ -118,8 +119,8 @@ namespace // <anonymous>
       }
       return false;
    }
+}
 
-} // namespace
 
 // Public Methods
 
@@ -130,7 +131,7 @@ AtNode* CArnoldSession::ExportDagPath(MDagPath &dagPath, MStatus* stat)
    MStatus status = MStatus::kSuccess;
    AtNode* arnoldNode = NULL;
 
-   MObjectHandle handle = MObjectHandle(dagPath.node());
+   CNodeAttrHandle handle(dagPath.node());
    int instanceNum = dagPath.instanceNumber();
    MString name = dagPath.partialPathName();
    MString type = MFnDagNode(dagPath).typeName();
@@ -170,13 +171,9 @@ AtNode* CArnoldSession::ExportDagPath(MDagPath &dagPath, MStatus* stat)
 
 // Export a plug (dependency node output attribute)
 //
-AtNode* CArnoldSession::ExportNode(MPlug& shaderOutputPlug, MStatus *stat)
+AtNode* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, MStatus *stat)
 {
-   return ExportNode(shaderOutputPlug.node(), shaderOutputPlug.partialName(false, false, false, false, false, true), stat);
-}
-
-AtNode* CArnoldSession::ExportNode(MObject mayaNode, const MString &attrName, MStatus *stat)
-{
+   MObject mayaNode = shaderOutputPlug.node();
    MStatus status = MStatus::kSuccess;
    AtNode* arnoldNode = NULL;
 
@@ -184,33 +181,67 @@ AtNode* CArnoldSession::ExportNode(MObject mayaNode, const MString &attrName, MS
    if (MDagPath::getAPathTo(mayaNode, dagPath) == MS::kSuccess)
       return ExportDagPath(dagPath, stat);
 
-   // First check if this node has already been processed
-   MObjectHandle handle = MObjectHandle(mayaNode);
-   // Check if node has already been processed
-   ObjectToTranslatorMap::iterator it = m_processedTranslators.find(handle);
-   if (it != m_processedTranslators.end() && it->second->m_outputAttr == attrName)
+   MPlug resultPlug;
+   // returns the primary attribute (i.e. if the shaderOutputPlug is outColorR, resultPlug is outColor)
+   ComponentType compMode = IsFloatComponent(shaderOutputPlug, resultPlug);
+
+   CNodeTranslator* translator = CExtensionsManager::GetTranslator(mayaNode);
+   if (translator == NULL)
    {
-      status = MStatus::kSuccess;
-      arnoldNode = it->second->GetArnoldRootNode();
+      status = MStatus::kNotImplemented;
+      MFnDependencyNode fnNode(mayaNode);
+      AiMsgDebug("[mtoa] [maya %s] Maya node type not supported: %s", fnNode.name().asChar(),
+                 fnNode.typeName().asChar());
+      return NULL;
+   }
+   MPlug resolvedPlug;
+   // resolving the plug gives translators a chance to replace ".message" with ".outColor", for example, or to reject it outright.
+   // once the attribute is properly resolved it can be used as a key in our multimap cache
+   if (translator->ResolveOutputPlug(resultPlug, resolvedPlug))
+   {
+      resultPlug = resolvedPlug;
    }
    else
    {
-      // else get a new translator for that node
-      CNodeTranslator* translator = CExtensionsManager::GetTranslator(mayaNode);
-      if (translator != NULL)
-      {
-         status = MStatus::kSuccess;
-         arnoldNode = translator->Init(this, mayaNode, attrName);
-         m_processedTranslators[handle] = translator;
-         translator->DoExport(0);
-      }
-      else
-      {
-         status = MStatus::kNotImplemented;
-         AiMsgDebug("[mtoa] Maya node type not supported: %s", MFnDependencyNode(mayaNode).typeName().asChar());
-      }
+      delete translator;
+      status = MStatus::kNotImplemented;
+      MFnDependencyNode fnNode(mayaNode);
+      AiMsgDebug("[mtoa] [maya %s] Invalid output attribute: \"%s\"", fnNode.name().asChar(),
+                 resultPlug.partialName(false, false, false, false, false, true).asChar());
+      return NULL;
    }
 
+   CNodeAttrHandle handle(resultPlug);
+   if (!translator->DisableCaching())
+   {
+      // Check if node has already been processed
+      ObjectToTranslatorMap::iterator it = m_processedTranslators.find(handle);
+      if (it != m_processedTranslators.end())
+      {
+         delete translator;
+         status = MStatus::kSuccess;
+         arnoldNode = it->second->GetArnoldRootNode();
+         translator = it->second;
+      }
+   }
+   if (arnoldNode == NULL)
+   {
+      status = MStatus::kSuccess;
+      translator->Init(this, mayaNode, resultPlug.partialName(false, false, false, false, false, true));
+      m_processedTranslators.insert(ObjectToTranslatorPair(handle, translator));
+      arnoldNode = translator->DoExport(0);
+   }
+   // conversion nodes are not created in an efficient manner, but it's good enough until multiple outputs are supported natively.
+   // each translator stores only one "root" arnold node, which is used if the same maya node is encountered again.
+   // conversion nodes are applied after the root depending which component is accessed (if any). we can't store
+   // the conversion without a new temporary structure that would further convolute things. The result is
+   // that a new conversion node is generated every time a component is accessed, and NOT reused later if the same component
+   // is accessed again.  oh well.
+   if (arnoldNode != NULL)
+   {
+      if (compMode != COMPONENT_TYPE_NONE)
+         arnoldNode = InsertConversionNodes(shaderOutputPlug, compMode, arnoldNode);
+   }
    if (NULL != stat) *stat = status;
    return arnoldNode;
 }
@@ -251,17 +282,18 @@ AtNode* CArnoldSession::ExportFilter(MObject mayaNode, const MString &translator
    return ExportWithTranslator(mayaNode, "<filter>", translatorName);
 }
 
+// FIXME: there may be more than one translator that matches a single maya node
 CNodeTranslator * CArnoldSession::GetActiveTranslator(const MObject node)
 {
-   MObjectHandle node_handle(node);
+   CNodeAttrHandle handle(node);
 
-   ObjectToTranslatorMap::iterator translatorIt = m_processedTranslators.find(node_handle);
+   ObjectToTranslatorMap::iterator translatorIt = m_processedTranslators.find(handle);
    if (translatorIt != m_processedTranslators.end())
    {
       return static_cast< CNodeTranslator* >(translatorIt->second);
    }
 
-   ObjectToDagTranslatorMap::iterator dagIt = m_processedDagTranslators.find(node_handle);
+   ObjectToDagTranslatorMap::iterator dagIt = m_processedDagTranslators.find(handle);
    if (dagIt != m_processedDagTranslators.end())
    {
       // TODO: Figure out some magic to get the correct instance.
@@ -342,7 +374,7 @@ MStatus CArnoldSession::End()
    ObjectToTranslatorMap::iterator it;
    for(it = m_processedTranslators.begin(); it != m_processedTranslators.end(); ++it)
    {
-      AiMsgDebug("[mtoa] Deleting translator for %s", MFnDependencyNode(it->first.object()).name().asChar());
+      //AiMsgDebug("[mtoa] Deleting translator for %s", MFnDependencyNode(it->first.object()).name().asChar());
       delete it->second;
    }
    m_processedTranslators.clear();
@@ -354,8 +386,8 @@ MStatus CArnoldSession::End()
       std::map<int, CNodeTranslator*>::iterator instIt;
       for(instIt = dagIt->second.begin(); instIt != dagIt->second.end(); ++instIt)
       {
-         MFnDagNode fnDag(dagIt->first.object());
-         AiMsgDebug("[mtoa] Deleting translator for %s [%d]", fnDag.fullPathName().asChar(), instIt->first);
+         //MFnDagNode fnDag(dagIt->first.object());
+         //AiMsgDebug("[mtoa] Deleting translator for %s [%d]", fnDag.fullPathName().asChar(), instIt->first);
          delete instIt->second;
       }
    }
@@ -415,8 +447,9 @@ AtNode* CArnoldSession::ExportOptions()
       AiMsgWarning("[mtoa] Failed to find Arnold options node");
       return NULL;
    }
-   AiMsgDebug("[mtoa] Exporting Arnold options '%s'", MFnDependencyNode(options).name().asChar());
-   AtNode* result = ExportNode(options, "message");
+   MFnDependencyNode fnNode = MFnDependencyNode(options);
+   AiMsgDebug("[mtoa] Exporting Arnold options '%s'", fnNode.name().asChar());
+   AtNode* result = ExportNode(fnNode.findPlug("message"));
    // Store the options translator for later use
    m_optionsTranslator = (COptionsTranslator*)GetActiveTranslator(options);
    return result;

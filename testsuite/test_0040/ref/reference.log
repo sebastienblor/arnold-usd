@@ -1,0 +1,664 @@
+
+Starting "/usr/autodesk/maya2011.04-x64/bin/maya"
+
+mental ray for Maya 2011 
+mental ray: version 3.8.1.33, Aug 20 2010, revision 124793
+mental ray: ------------------------------------------------
+mental ray:     luma shader libary: published 2010-10-25
+mental ray: ------------------------------------------------
+mental ray: ------------------------------------------------
+mental ray:     luma shader libary: published 2010-10-25
+mental ray: ------------------------------------------------
+/usr/autodesk/maya2011.04-x64/lib/python2.6/site-packages/MySQL_python-1.2.2-py2.6-linux-x86_64.egg/MySQLdb/__init__.py:34: DeprecationWarning: the sets module is deprecated
+----------------------------------------
+Luma Master userSetup.py Running
+----------------------------------------
+pymel.core.system : INFO : Using custom path class luma.Filepath
+pymel.core : INFO : Updating pymel with pre-loaded plugins: nexusSets, Mayatomr, animImportUtil, MayaMuscle, objExport, tiffFloatReader
+pymel.mayautils : INFO : Added 36 directories to Maya script path
+delayed python startup
+installing scene open callback
+luma : INFO : RenderLayerNameEnforcer is on the prowl!
+
+
+----------------------------------------
+Luma Master userSetup.mel Running
+----------------------------------------
+Setting Auto-Loaded Plugins
+Sourcing Key Scripts
+createNexusGlobalsTab
+setting nxsMaterials
+lib
+lm_FileMenu
+dkAnim
+importExport
+rushSubmit
+newShotAssetDialog
+Setting Luma Preferences
+Sourcing Delayed Startup scripts...
+///  Finished  running  Luma userSetup.mel Startup:
+
+
+/////////////////////////////////////////////
+
+
+/////////////////////////////////////////////
+/// Sourcing USER'S userSetup.mel files:
+chad mel userSetup being run
+----------------------------------------
+00:00:00 1092mb         | log started Thu Aug  4 17:04:07 2011
+00:00:00 1092mb         | Arnold 3.3.10.1 linux 64-bit gcc412 glibc29 oiio1000 sse (build date: Aug  2 2011 15:24:10)
+00:00:00 1092mb         | running on ws-050.luma-pictures.com, 8 x 2992 mhz GenuineIntel with 8001 mb
+00:00:00 1092mb         |  
+00:00:00 1092mb         | [METADATA] Loading metadata file: /usr/local/solidAngle/mtoa-0.10/2011/plug-ins/mtoa.mtd
+00:00:00 1093mb         | [mtoa] [<built-in>] Registered 12 new Maya nodes.
+00:00:00 1093mb         | [mtoa] [<built-in>] Registered a total of 34 translators for 23 Maya nodes (12 new and 11 existing).
+00:00:00 1093mb         | loading plugin: /usr/local/solidAngle/mtoa-0.10/2011/shaders/mtoa_shaders.so ...
+00:00:00 1095mb         | mtoa_shaders.so: MayaMultiplyDivide uses Arnold 3.3.10.1
+00:00:00 1095mb         | mtoa_shaders.so: MayaClamp uses Arnold 3.3.10.1
+00:00:00 1095mb         | mtoa_shaders.so: MayaGammaCorrect uses Arnold 3.3.10.1
+00:00:00 1095mb         | mtoa_shaders.so: MayaCondition uses Arnold 3.3.10.1
+00:00:00 1095mb         | mtoa_shaders.so: MayaReverse uses Arnold 3.3.10.1
+00:00:00 1095mb         | mtoa_shaders.so: MayaBlendColors uses Arnold 3.3.10.1
+00:00:00 1095mb         | mtoa_shaders.so: MayaFacingRatio uses Arnold 3.3.10.1
+00:00:00 1095mb         | mtoa_shaders.so: MayaFlippedNormal uses Arnold 3.3.10.1
+00:00:00 1095mb         | mtoa_shaders.so: MayaPlusMinusAverage1D uses Arnold 3.3.10.1
+00:00:00 1095mb         | mtoa_shaders.so: MayaPlusMinusAverage2D uses Arnold 3.3.10.1
+00:00:00 1095mb         | mtoa_shaders.so: MayaPlusMinusAverage3D uses Arnold 3.3.10.1
+00:00:00 1095mb         | mtoa_shaders.so: MayaRemapValueToValue uses Arnold 3.3.10.1
+00:00:00 1095mb         | mtoa_shaders.so: MayaRemapValueToColor uses Arnold 3.3.10.1
+00:00:00 1095mb         | mtoa_shaders.so: MayaRemapColor uses Arnold 3.3.10.1
+00:00:00 1095mb         | mtoa_shaders.so: MayaFile uses Arnold 3.3.10.1
+00:00:00 1095mb         | mtoa_shaders.so: MayaPlace2DTexture uses Arnold 3.3.10.1
+00:00:00 1095mb         | mtoa_shaders.so: MayaRamp uses Arnold 3.3.10.1
+00:00:00 1095mb         | mtoa_shaders.so: MayaProjection uses Arnold 3.3.10.1
+00:00:00 1095mb         | mtoa_shaders.so: MeshInfo uses Arnold 3.3.10.1
+00:00:00 1095mb         | mtoa_shaders.so: TangentToObjectSpace uses Arnold 3.3.10.1
+00:00:00 1095mb         | mtoa_shaders.so: MayaChecker uses Arnold 3.3.10.1
+00:00:00 1095mb         | mtoa_shaders.so: MayaBulge uses Arnold 3.3.10.1
+00:00:00 1095mb         | mtoa_shaders.so: MayaCloth uses Arnold 3.3.10.1
+00:00:00 1095mb         | mtoa_shaders.so: MayaGrid uses Arnold 3.3.10.1
+00:00:00 1095mb         | mtoa_shaders.so: MayaFractal uses Arnold 3.3.10.1
+00:00:00 1095mb         | mtoa_shaders.so: MayaNoise uses Arnold 3.3.10.1
+00:00:00 1095mb         | mtoa_shaders.so: MayaPlace3DTexture uses Arnold 3.3.10.1
+00:00:00 1095mb         | mtoa_shaders.so: MayaRgbToHsv uses Arnold 3.3.10.1
+00:00:00 1095mb         | mtoa_shaders.so: MayaHsvToRgb uses Arnold 3.3.10.1
+00:00:00 1095mb         | mtoa_shaders.so: MayaLuminance uses Arnold 3.3.10.1
+00:00:00 1095mb         | mtoa_shaders.so: MayaCloud uses Arnold 3.3.10.1
+00:00:00 1095mb         | mtoa_shaders.so: MayaCloudAlpha uses Arnold 3.3.10.1
+00:00:00 1095mb         | mtoa_shaders.so: MayaSnow uses Arnold 3.3.10.1
+00:00:00 1095mb         | mtoa_shaders.so: MayaContrast uses Arnold 3.3.10.1
+00:00:00 1095mb         | mtoa_shaders.so: MayaLayeredTexture uses Arnold 3.3.10.1
+00:00:00 1095mb         | mtoa_shaders.so: MayaLayeredShader uses Arnold 3.3.10.1
+00:00:00 1095mb         | mtoa_shaders.so: MayaSolidFractal uses Arnold 3.3.10.1
+00:00:00 1095mb         | mtoa_shaders.so: MayaVolumeNoise uses Arnold 3.3.10.1
+00:00:00 1095mb         | mtoa_shaders.so: MayaBrownian uses Arnold 3.3.10.1
+00:00:00 1095mb         | mtoa_shaders.so: MayaStucco uses Arnold 3.3.10.1
+00:00:00 1095mb         | mtoa_shaders.so: MayaRemapHsv uses Arnold 3.3.10.1
+00:00:00 1095mb         | mtoa_shaders.so: MayaSetRange uses Arnold 3.3.10.1
+00:00:00 1095mb         | mtoa_shaders.so: MayaImagePlane uses Arnold 3.3.10.1
+00:00:00 1095mb         | mtoa_shaders.so: MayaSurfaceShader uses Arnold 3.3.10.1
+00:00:00 1095mb         | mtoa_shaders.so: colorToFloat uses Arnold 3.3.10.1
+00:00:00 1095mb         | mtoa_shaders.so: vectorToFloat uses Arnold 3.3.10.1
+00:00:00 1095mb         | mtoa_shaders.so: pointToFloat uses Arnold 3.3.10.1
+00:00:00 1095mb         | mtoa_shaders.so: point2ToFloat uses Arnold 3.3.10.1
+00:00:00 1095mb         | mtoa_shaders.so: writeColor uses Arnold 3.3.10.1
+00:00:00 1095mb         | mtoa_shaders.so: writeFloat uses Arnold 3.3.10.1
+00:00:00 1095mb         | loaded 50 plugins in 0:00.00
+00:00:00 1095mb         | [mtoa] [mtoa_shaders] Registered 2 new Maya nodes.
+00:00:00 1095mb         | [mtoa] [mtoa_shaders] Registered a total of 26 translators for 26 Maya nodes (2 new and 24 existing).
+00:00:00 1095mb         | [mtoa] Loading extension shave(/usr/local/solidAngle/mtoa-0.10/2011/extensions/shave.so).
+[31m00:00:00 1095mb ERROR   | [mtoa] Error loading extension library: libShave.so: cannot open shared object file: No such file or directory.[0m
+00:00:00 1095mb         | loading plugin: /Volumes/sv-dev01/devRepo/chad/arnold/shaders/published/3.3.10/Linux-x86_64/luma.so ...
+00:00:00 1097mb         | luma.so: shadow_catcher uses Arnold 3.3.10.0
+00:00:00 1097mb         | luma.so: aov_passthrough uses Arnold 3.3.10.0
+00:00:00 1097mb         | loaded 2 plugins in 0:00.00
+00:00:00 1097mb         | [mtoa] [luma] Registered 2 new Maya nodes.
+00:00:00 1097mb         | [mtoa] [luma] Registered a total of 2 translators for 2 Maya nodes (2 new and 0 existing).
+00:00:00 1097mb         | loading plugin: /usr/local/solidAngle/mtoa-0.10/2011/shaders/shave_shaders.so ...
+00:00:00 1099mb         | shave_shaders.so: ShaveHair uses Arnold 3.3.10.1
+00:00:00 1099mb         | loaded 1 plugins in 0:00.00
+00:00:00 1099mb         | [mtoa] [shave_shaders] Registered 0 new Maya nodes.
+00:00:00 1099mb         | [mtoa] [shave_shaders] Registered a total of 0 translators for 0 Maya nodes (0 new and 0 existing).
+00:00:00 1099mb         | loading plugin: /usr/local/solidAngle/mtoa-0.10/2011/shaders/kettle_uber.so ...
+00:00:00 1102mb         | kettle_uber.so: kettle_uber uses Arnold 3.3.8.0
+00:00:00 1102mb         | kettle_uber.so: kettle_mix uses Arnold 3.3.8.0
+00:00:00 1102mb         | kettle_uber.so: kettle_bake uses Arnold 3.3.8.0
+00:00:00 1102mb         | kettle_uber.so: testshader uses Arnold 3.3.8.0
+00:00:00 1102mb         | [METADATA] Loading metadata file: /usr/local/solidAngle/mtoa-0.10/2011/shaders/kettle_uber.mtd
+00:00:00 1102mb         | loaded 4 plugins in 0:00.00
+[33m00:00:00 1102mb WARNING | [mtoa] [kettle_uber] [node kettle_mix] Assigning temporary node id 1138176 to associated Maya type name aiKettleMix.[0m
+[33m00:00:00 1102mb WARNING | [mtoa] [kettle_uber] [node kettle_bake] There was not enough metadata information to automatically register a translator for that node, ignored.[0m
+[33m00:00:00 1102mb WARNING | [mtoa] [kettle_uber] [node testshader] Assigning temporary node id 1138177 to associated Maya type name aiTestshader.[0m
+00:00:00 1102mb         | [mtoa] [kettle_uber] Registered 3 new Maya nodes.
+00:00:00 1102mb         | [mtoa] [kettle_uber] Registered a total of 3 translators for 4 Maya nodes (3 new and 1 existing).
+00:00:00 1102mb         | loading plugin: /usr/local/solidAngle/mtoa-0.10/2011/shaders/libsitoa_shaders.so ...
+00:00:00 1104mb         | libsitoa_shaders.so: material_phong uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: material_constant uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: material_lambert uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_sprite uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_incidence_v2 uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: XSIAmbientOcclusion uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: txt2d_image_explicit uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: txt2d_scalarimage_explicit uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: txt2d_gradient_v2 uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: txt3d_cellular_v3 uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: BA_cell_scl uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: BA_fractal4d2_scl uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_attribute_boolean uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_attribute_color uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_attribute_integer uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_attribute_scalar uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_attribute_vector uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_zbump uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: XSINormalMap2 uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: XSINormalMap3 uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: soft_fog uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_channel_picker uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_color_combine uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_hlsa_combine uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_hsva_combine uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_color_correction uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_color_balance uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_color_hls_adjust uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: mib_color_intensity uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_color_invert uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: rgba_keyer uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_scalar_invert uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_color_2mix uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_color_8mix uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_color_gradient uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_color_to_scalar uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_color_to_vector uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_color_rgb_to_hsv uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_color_hsv_to_rgb uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_integer_to_scalar uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_scalar_to_color uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_scalar_to_integer uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_scalars_to_vector uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_vector_to_color uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_vector_to_scalar uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_color_math_basic uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_color_math_exponent uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_color_math_logic uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_color_math_unary uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_color_smoothrange uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: mib_color_average uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_interp_linear uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_color_inrange uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_scalar_math_basic uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_scalar_math_exponent uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_scalar_inrange uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_scalar_math_logic uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_scalar_math_unary uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_scalar_smoothrange uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_boolean_math_logic uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_boolean_negate uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_vector_math_scalar uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_vector_math_vector uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_atten_linear uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_dielectric_ior uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: mib_opacity uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: mib_reflect uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_diffuse_reflection uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: mib_refract uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_diffuse_refraction_phen uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_transparency uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_color_passthrough uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_color_passthrought uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_color_storeinchannel uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_scalar_storeinchannel uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_vector_storeinchannel uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_boolean_storeinchannel uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_integer_storeinchannel uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: mib_twosided uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_color_switch uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_scalar_switch uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_vector_switch uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_color_multi_switch uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_scalar_multi_switch uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_vector_multi_switch uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_state_vector uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_state_scalar uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: mib_texture_lookup uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: map_lookup_color uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: map_lookup_scalar uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_vertex_color_alpha uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_texproj_lookup uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: mip_cameramap uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_image_clip uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_matte uses Arnold 3.3.1.0
+00:00:00 1104mb         | libsitoa_shaders.so: sib_texturelayer uses Arnold 3.3.1.0
+00:00:00 1105mb         | libsitoa_shaders.so: sib_illum_shadowmaterial uses Arnold 3.3.1.0
+00:00:00 1105mb         | libsitoa_shaders.so: sta_environment uses Arnold 3.3.1.0
+00:00:00 1105mb         | libsitoa_shaders.so: sta_displacement uses Arnold 3.3.1.0
+00:00:00 1105mb         | libsitoa_shaders.so: sta_curve_id uses Arnold 3.3.1.0
+00:00:00 1105mb         | libsitoa_shaders.so: sta_groupnode uses Arnold 3.3.1.0
+00:00:00 1105mb         | libsitoa_shaders.so: sta_camera_projection uses Arnold 3.3.1.0
+00:00:00 1105mb         | [METADATA] Loading metadata file: /usr/local/solidAngle/mtoa-0.10/2011/shaders/libsitoa_shaders.mtd
+00:00:00 1105mb         | loaded 102 plugins in 0:00.01
+00:00:00 1105mb         | [mtoa] [libsitoa_shaders] Registered 102 new Maya nodes.
+00:00:00 1105mb         | [mtoa] [libsitoa_shaders] Registered a total of 102 translators for 102 Maya nodes (102 new and 0 existing).
+00:00:00 1105mb         | [mtoa] Registering 6 loaded extensions:
+00:00:00 1105mb         | [mtoa] Registered extension <built-in>(<built-in>).
+00:00:00 1105mb         | [mtoa] Registered extension mtoa_shaders(/usr/local/solidAngle/mtoa-0.10/2011/shaders/mtoa_shaders.so).
+00:00:00 1105mb         | [mtoa] Registered extension luma(/Volumes/sv-dev01/devRepo/chad/arnold/shaders/published/3.3.10/Linux-x86_64/luma.so).
+00:00:00 1105mb         | [mtoa] Registered extension shave_shaders(/usr/local/solidAngle/mtoa-0.10/2011/shaders/shave_shaders.so).
+00:00:00 1105mb         | [mtoa] Registered extension kettle_uber(/usr/local/solidAngle/mtoa-0.10/2011/shaders/kettle_uber.so).
+00:00:00 1107mb         | [mtoa] Registered extension libsitoa_shaders(/usr/local/solidAngle/mtoa-0.10/2011/shaders/libsitoa_shaders.so).
+00:00:00 1110mb         | Successfully imported python module 'arnold'
+00:00:00 1110mb         | Successfully imported python module 'mtoa'
+registering translator template for <built-in> on mesh
+registering translator template for <built-in> on hairSystem
+registering translator template for <built-in> on ambientLight
+registering translator template for <built-in> on directionalLight
+registering translator template for <built-in> on pointLight
+registering translator template for <built-in> on spotLight
+registering translator template for perspective on camera
+registering translator template for <built-in> on areaLight
+registering translator template for orthographic on camera
+registering translator template for fisheye on camera
+registering translator template for cylindrical on camera
+Adding attribute changed callback for camera
+registering translator template for exr on <driver>
+registering translator template for jpeg on <driver>
+registering translator template for png on <driver>
+registering translator template for tif on <driver>
+registering translator template for blackman_harris on <filter>
+registering translator template for box on <filter>
+registering translator template for catrom on <filter>
+registering translator template for catrom2d on <filter>
+registering translator template for closest on <filter>
+registering translator template for cone on <filter>
+registering translator template for cook on <filter>
+registering translator template for cubic on <filter>
+registering translator template for disk on <filter>
+registering translator template for farthest on <filter>
+registering translator template for gaussian on <filter>
+registering translator template for heatmap on <filter>
+registering translator template for mitnet on <filter>
+registering translator template for sinc on <filter>
+registering translator template for triangle on <filter>
+registering translator template for variance on <filter>
+registering translator template for video on <filter>
+00:00:00 1117mb         | Successfully registered renderer 'arnold'
+00:00:00 1117mb         |  
+00:00:00 1117mb         | releasing resources
+00:00:00 1106mb         | Arnold shutdown
+00:00:00 1106mb         | log started Thu Aug  4 17:04:07 2011
+00:00:00 1106mb         | Arnold 3.3.10.1 linux 64-bit gcc412 glibc29 oiio1000 sse (build date: Aug  2 2011 15:24:10)
+00:00:00 1106mb         | running on ws-050.luma-pictures.com, 8 x 2992 mhz GenuineIntel with 8001 mb
+00:00:00 1106mb         |  
+00:00:00 1106mb         | [METADATA] Loading metadata file: /usr/local/solidAngle/mtoa-0.10/2011/plug-ins/mtoa.mtd
+00:00:00 1106mb         |  
+00:00:00 1106mb         | releasing resources
+00:00:00 1106mb         | Arnold shutdown
+File read in 0 seconds.
+00:00:00 1121mb         | log started Thu Aug  4 17:04:08 2011
+00:00:00 1121mb         | Arnold 3.3.10.1 linux 64-bit gcc412 glibc29 oiio1000 sse (build date: Aug  2 2011 15:24:10)
+00:00:00 1121mb         | running on ws-050.luma-pictures.com, 8 x 2992 mhz GenuineIntel with 8001 mb
+00:00:00 1121mb         |  
+00:00:00 1121mb         | [METADATA] Loading metadata file: /usr/local/solidAngle/mtoa-0.10/2011/plug-ins/mtoa.mtd
+00:00:00 1121mb         |  
+00:00:00 1121mb         | releasing resources
+00:00:00 1121mb         | Arnold shutdown
+Result: /Volumes/sv-dev01/devRepo/chad/arnold/mtoa/build/linux_x86_64/gcc_opt/testsuite/test_0040/test.ma
+00:00:00 1140mb         | log started Thu Aug  4 17:04:09 2011
+00:00:00 1140mb         | Arnold 3.3.10.1 linux 64-bit gcc412 glibc29 oiio1000 sse (build date: Aug  2 2011 15:24:10)
+00:00:00 1140mb         | running on ws-050.luma-pictures.com, 8 x 2992 mhz GenuineIntel with 8001 mb
+00:00:00 1140mb         |  
+00:00:00 1140mb         | [METADATA] Loading metadata file: /usr/local/solidAngle/mtoa-0.10/2011/plug-ins/mtoa.mtd
+00:00:00 1140mb         |  
+00:00:00 1140mb         | releasing resources
+00:00:00 1140mb         | Arnold shutdown
+00:00:00 1140mb         | log started Thu Aug  4 17:04:09 2011
+00:00:00 1140mb         | Arnold 3.3.10.1 linux 64-bit gcc412 glibc29 oiio1000 sse (build date: Aug  2 2011 15:24:10)
+00:00:00 1140mb         | running on ws-050.luma-pictures.com, 8 x 2992 mhz GenuineIntel with 8001 mb
+00:00:00 1140mb         |  
+00:00:00 1140mb         | [METADATA] Loading metadata file: /usr/local/solidAngle/mtoa-0.10/2011/plug-ins/mtoa.mtd
+00:00:00 1140mb         | loading plugin: /Volumes/sv-dev01/devRepo/chad/arnold/shaders/published/3.3.10/Linux-x86_64/luma.so ...
+00:00:00 1142mb         | luma.so: shadow_catcher uses Arnold 3.3.10.0
+00:00:00 1142mb         | luma.so: aov_passthrough uses Arnold 3.3.10.0
+00:00:00 1142mb         | loaded 2 plugins in 0:00.00
+00:00:00 1142mb         | loading plugin: /usr/local/solidAngle/mtoa-0.10/2011/shaders/kettle_uber.so ...
+00:00:00 1144mb         | kettle_uber.so: kettle_uber uses Arnold 3.3.8.0
+00:00:00 1144mb         | kettle_uber.so: kettle_mix uses Arnold 3.3.8.0
+00:00:00 1144mb         | kettle_uber.so: kettle_bake uses Arnold 3.3.8.0
+00:00:00 1144mb         | kettle_uber.so: testshader uses Arnold 3.3.8.0
+00:00:00 1144mb         | [METADATA] Loading metadata file: /usr/local/solidAngle/mtoa-0.10/2011/shaders/kettle_uber.mtd
+00:00:00 1144mb         | loaded 4 plugins in 0:00.00
+00:00:00 1144mb         | loading plugin: /usr/local/solidAngle/mtoa-0.10/2011/shaders/libsitoa_shaders.so ...
+00:00:00 1146mb         | libsitoa_shaders.so: material_phong uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: material_constant uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: material_lambert uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_sprite uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_incidence_v2 uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: XSIAmbientOcclusion uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: txt2d_image_explicit uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: txt2d_scalarimage_explicit uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: txt2d_gradient_v2 uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: txt3d_cellular_v3 uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: BA_cell_scl uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: BA_fractal4d2_scl uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_attribute_boolean uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_attribute_color uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_attribute_integer uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_attribute_scalar uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_attribute_vector uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_zbump uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: XSINormalMap2 uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: XSINormalMap3 uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: soft_fog uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_channel_picker uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_color_combine uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_hlsa_combine uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_hsva_combine uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_color_correction uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_color_balance uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_color_hls_adjust uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: mib_color_intensity uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_color_invert uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: rgba_keyer uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_scalar_invert uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_color_2mix uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_color_8mix uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_color_gradient uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_color_to_scalar uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_color_to_vector uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_color_rgb_to_hsv uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_color_hsv_to_rgb uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_integer_to_scalar uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_scalar_to_color uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_scalar_to_integer uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_scalars_to_vector uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_vector_to_color uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_vector_to_scalar uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_color_math_basic uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_color_math_exponent uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_color_math_logic uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_color_math_unary uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_color_smoothrange uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: mib_color_average uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_interp_linear uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_color_inrange uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_scalar_math_basic uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_scalar_math_exponent uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_scalar_inrange uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_scalar_math_logic uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_scalar_math_unary uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_scalar_smoothrange uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_boolean_math_logic uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_boolean_negate uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_vector_math_scalar uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_vector_math_vector uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_atten_linear uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_dielectric_ior uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: mib_opacity uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: mib_reflect uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_diffuse_reflection uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: mib_refract uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_diffuse_refraction_phen uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_transparency uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_color_passthrough uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_color_passthrought uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_color_storeinchannel uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_scalar_storeinchannel uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_vector_storeinchannel uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_boolean_storeinchannel uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_integer_storeinchannel uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: mib_twosided uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_color_switch uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_scalar_switch uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_vector_switch uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_color_multi_switch uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_scalar_multi_switch uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_vector_multi_switch uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_state_vector uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_state_scalar uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: mib_texture_lookup uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: map_lookup_color uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: map_lookup_scalar uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_vertex_color_alpha uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_texproj_lookup uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: mip_cameramap uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_image_clip uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_matte uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_texturelayer uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sib_illum_shadowmaterial uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sta_environment uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sta_displacement uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sta_curve_id uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sta_groupnode uses Arnold 3.3.1.0
+00:00:00 1146mb         | libsitoa_shaders.so: sta_camera_projection uses Arnold 3.3.1.0
+00:00:00 1146mb         | [METADATA] Loading metadata file: /usr/local/solidAngle/mtoa-0.10/2011/shaders/libsitoa_shaders.mtd
+00:00:00 1146mb         | loaded 102 plugins in 0:00.01
+00:00:00 1146mb         | loading plugin: /usr/local/solidAngle/mtoa-0.10/2011/shaders/mtoa_shaders.so ...
+00:00:00 1149mb         | mtoa_shaders.so: MayaMultiplyDivide uses Arnold 3.3.10.1
+00:00:00 1149mb         | mtoa_shaders.so: MayaClamp uses Arnold 3.3.10.1
+00:00:00 1149mb         | mtoa_shaders.so: MayaGammaCorrect uses Arnold 3.3.10.1
+00:00:00 1149mb         | mtoa_shaders.so: MayaCondition uses Arnold 3.3.10.1
+00:00:00 1149mb         | mtoa_shaders.so: MayaReverse uses Arnold 3.3.10.1
+00:00:00 1149mb         | mtoa_shaders.so: MayaBlendColors uses Arnold 3.3.10.1
+00:00:00 1149mb         | mtoa_shaders.so: MayaFacingRatio uses Arnold 3.3.10.1
+00:00:00 1149mb         | mtoa_shaders.so: MayaFlippedNormal uses Arnold 3.3.10.1
+00:00:00 1149mb         | mtoa_shaders.so: MayaPlusMinusAverage1D uses Arnold 3.3.10.1
+00:00:00 1149mb         | mtoa_shaders.so: MayaPlusMinusAverage2D uses Arnold 3.3.10.1
+00:00:00 1149mb         | mtoa_shaders.so: MayaPlusMinusAverage3D uses Arnold 3.3.10.1
+00:00:00 1149mb         | mtoa_shaders.so: MayaRemapValueToValue uses Arnold 3.3.10.1
+00:00:00 1149mb         | mtoa_shaders.so: MayaRemapValueToColor uses Arnold 3.3.10.1
+00:00:00 1149mb         | mtoa_shaders.so: MayaRemapColor uses Arnold 3.3.10.1
+00:00:00 1149mb         | mtoa_shaders.so: MayaFile uses Arnold 3.3.10.1
+00:00:00 1149mb         | mtoa_shaders.so: MayaPlace2DTexture uses Arnold 3.3.10.1
+00:00:00 1149mb         | mtoa_shaders.so: MayaRamp uses Arnold 3.3.10.1
+00:00:00 1149mb         | mtoa_shaders.so: MayaProjection uses Arnold 3.3.10.1
+00:00:00 1149mb         | mtoa_shaders.so: MeshInfo uses Arnold 3.3.10.1
+00:00:00 1149mb         | mtoa_shaders.so: TangentToObjectSpace uses Arnold 3.3.10.1
+00:00:00 1149mb         | mtoa_shaders.so: MayaChecker uses Arnold 3.3.10.1
+00:00:00 1149mb         | mtoa_shaders.so: MayaBulge uses Arnold 3.3.10.1
+00:00:00 1149mb         | mtoa_shaders.so: MayaCloth uses Arnold 3.3.10.1
+00:00:00 1149mb         | mtoa_shaders.so: MayaGrid uses Arnold 3.3.10.1
+00:00:00 1149mb         | mtoa_shaders.so: MayaFractal uses Arnold 3.3.10.1
+00:00:00 1149mb         | mtoa_shaders.so: MayaNoise uses Arnold 3.3.10.1
+00:00:00 1149mb         | mtoa_shaders.so: MayaPlace3DTexture uses Arnold 3.3.10.1
+00:00:00 1149mb         | mtoa_shaders.so: MayaRgbToHsv uses Arnold 3.3.10.1
+00:00:00 1149mb         | mtoa_shaders.so: MayaHsvToRgb uses Arnold 3.3.10.1
+00:00:00 1149mb         | mtoa_shaders.so: MayaLuminance uses Arnold 3.3.10.1
+00:00:00 1149mb         | mtoa_shaders.so: MayaCloud uses Arnold 3.3.10.1
+00:00:00 1149mb         | mtoa_shaders.so: MayaCloudAlpha uses Arnold 3.3.10.1
+00:00:00 1149mb         | mtoa_shaders.so: MayaSnow uses Arnold 3.3.10.1
+00:00:00 1149mb         | mtoa_shaders.so: MayaContrast uses Arnold 3.3.10.1
+00:00:00 1149mb         | mtoa_shaders.so: MayaLayeredTexture uses Arnold 3.3.10.1
+00:00:00 1149mb         | mtoa_shaders.so: MayaLayeredShader uses Arnold 3.3.10.1
+00:00:00 1149mb         | mtoa_shaders.so: MayaSolidFractal uses Arnold 3.3.10.1
+00:00:00 1149mb         | mtoa_shaders.so: MayaVolumeNoise uses Arnold 3.3.10.1
+00:00:00 1149mb         | mtoa_shaders.so: MayaBrownian uses Arnold 3.3.10.1
+00:00:00 1149mb         | mtoa_shaders.so: MayaStucco uses Arnold 3.3.10.1
+00:00:00 1149mb         | mtoa_shaders.so: MayaRemapHsv uses Arnold 3.3.10.1
+00:00:00 1149mb         | mtoa_shaders.so: MayaSetRange uses Arnold 3.3.10.1
+00:00:00 1149mb         | mtoa_shaders.so: MayaImagePlane uses Arnold 3.3.10.1
+00:00:00 1149mb         | mtoa_shaders.so: MayaSurfaceShader uses Arnold 3.3.10.1
+00:00:00 1149mb         | mtoa_shaders.so: colorToFloat uses Arnold 3.3.10.1
+00:00:00 1149mb         | mtoa_shaders.so: vectorToFloat uses Arnold 3.3.10.1
+00:00:00 1149mb         | mtoa_shaders.so: pointToFloat uses Arnold 3.3.10.1
+00:00:00 1149mb         | mtoa_shaders.so: point2ToFloat uses Arnold 3.3.10.1
+00:00:00 1149mb         | mtoa_shaders.so: writeColor uses Arnold 3.3.10.1
+00:00:00 1149mb         | mtoa_shaders.so: writeFloat uses Arnold 3.3.10.1
+00:00:00 1149mb         | loaded 50 plugins in 0:00.00
+00:00:00 1149mb         | loading plugin: /usr/local/solidAngle/mtoa-0.10/2011/shaders/shave_shaders.so ...
+00:00:00 1151mb         | shave_shaders.so: ShaveHair uses Arnold 3.3.10.1
+00:00:00 1151mb         | loaded 1 plugins in 0:00.00
+00:00:00 1151mb         | [mtoa] [maya aiOptions] Using translator <built-in>, provided by <built-in>(<built-in>).
+00:00:00 1151mb         | COptionsTranslator <built-in>: CreateArnoldNodes on Maya node defaultArnoldRenderOptions(aiOptions) created arnold node 0xc635f50: options(options).
+00:00:00 1151mb         | [mtoa] [translator <built-in>] Exporting on plug defaultArnoldRenderOptions.message and upstream.
+00:00:00 1151mb         | COptionsTranslator <built-in>: Export on Maya node defaultArnoldRenderOptions(aiOptions), Arnold node 0xc635f50: options(options).
+00:00:00 1151mb         | exporting filter "gaussian"
+00:00:00 1151mb         | CDriverTranslator gaussian: CreateArnoldNodes on Maya node defaultArnoldRenderOptions(aiOptions) created arnold node 0xc757410: defaultArnoldRenderOptions_gaussian_filter(gaussian_filter).
+00:00:00 1151mb         | [mtoa] Custom export of defaultArnoldRenderOptions(<filter>) as Arnold node defaultArnoldRenderOptions_gaussian_filter(gaussian_filter) using translator: gaussian.
+00:00:00 1151mb         | [mtoa] [translator gaussian] Exporting on node defaultArnoldRenderOptions and upstream.
+00:00:00 1151mb         | CDriverTranslator gaussian: Export on Maya node defaultArnoldRenderOptions(aiOptions), Arnold node defaultArnoldRenderOptions_gaussian_filter(gaussian_filter).
+00:00:00 1151mb         | CDriverTranslator gaussian: Export on parameter width
+00:00:00 1151mb         | CDriverTranslator gaussian: Export on parameter name
+00:00:00 1151mb         | CDriverTranslator tif: CreateArnoldNodes on Maya node defaultArnoldRenderOptions(aiOptions) created arnold node 0xc75fc40: defaultArnoldRenderOptions_driver_tiff(driver_tiff).
+00:00:00 1151mb         | [mtoa] Custom export of defaultArnoldRenderOptions(<driver>) as Arnold node defaultArnoldRenderOptions_driver_tiff(driver_tiff) using translator: tif.
+00:00:00 1151mb         | [mtoa] [translator tif] Exporting on node defaultArnoldRenderOptions and upstream.
+00:00:00 1151mb         | CDriverTranslator tif: Export on Maya node defaultArnoldRenderOptions(aiOptions), Arnold node defaultArnoldRenderOptions_driver_tiff(driver_tiff).
+00:00:00 1151mb         | CDriverTranslator tif: Export on parameter filename
+00:00:00 1151mb         | CDriverTranslator tif: Export on parameter compression
+00:00:00 1151mb         | CDriverTranslator tif: Export on parameter format
+00:00:00 1151mb         | CDriverTranslator tif: Export on parameter tiled
+00:00:00 1151mb         | CDriverTranslator tif: Export on parameter output_padded
+00:00:00 1151mb         | CDriverTranslator tif: Export on parameter gamma
+00:00:00 1151mb         | CDriverTranslator tif: Export on parameter dither_amplitude
+00:00:00 1151mb         | CDriverTranslator tif: Export on parameter unpremult_alpha
+00:00:00 1151mb         | CDriverTranslator tif: Export on parameter name
+00:00:00 1151mb         | [mtoa] Exporting frame 2.000000
+00:00:00 1151mb         | [mtoa] Exporting dag node perspShape of type camera
+00:00:00 1151mb         | [mtoa] [translator perspective] Exporting on node perspShape and upstream.
+00:00:00 1151mb         | [mtoa] Exporting dag node topShape of type camera
+00:00:00 1151mb         | [mtoa] [translator orthographic] Exporting on node topShape and upstream.
+00:00:00 1151mb         | [mtoa] Exporting dag node frontShape of type camera
+00:00:00 1151mb         | [mtoa] [translator orthographic] Exporting on node frontShape and upstream.
+00:00:00 1151mb         | [mtoa] Exporting dag node sideShape of type camera
+00:00:00 1151mb         | [mtoa] [translator orthographic] Exporting on node sideShape and upstream.
+00:00:00 1151mb         | [mtoa] Exporting dag node perspShape2 of type camera
+00:00:00 1151mb         | [mtoa] [translator perspective] Exporting on node perspShape2 and upstream.
+00:00:00 1151mb         | [mtoa] Exporting dag node groundPlane_transform of type transform
+00:00:00 1151mb         | [mtoa] Dag node groundPlane_transform of type transform ignored
+00:00:00 1151mb         | [mtoa] Exporting dag node groundPlane of type groundPlane
+00:00:00 1151mb         | [mtoa] Dag node groundPlane of type groundPlane ignored
+00:00:00 1151mb         | [mtoa] Exporting dag node persp1 of type transform
+00:00:00 1151mb         | [mtoa] Dag node persp1 of type transform ignored
+00:00:00 1151mb         | [mtoa] Exporting dag node perspShape2 of type camera
+00:00:00 1151mb         | [mtoa] Exporting dag node pSphere1 of type transform
+00:00:00 1151mb         | [mtoa] Dag node pSphere1 of type transform ignored
+00:00:00 1151mb         | [mtoa] Exporting dag node pSphereShape1 of type mesh
+00:00:00 1151mb         | [mtoa] [maya mesh] Using translator <built-in>, provided by <built-in>(<built-in>).
+00:00:00 1151mb         | [mtoa] [translator <built-in>] Exporting on node pSphereShape1 and upstream.
+00:00:00 1151mb         | [mtoa] [maya surfaceShader] Using translator mtoa_shaders, provided by mtoa_shaders(mtoa_shaders).
+00:00:00 1151mb         | [mtoa] [translator mtoa_shaders] Exporting on plug surfaceShader3.outColor and upstream.
+00:00:00 1151mb         | [mtoa] [maya checker] Using translator mtoa_shaders, provided by mtoa_shaders(mtoa_shaders).
+00:00:00 1151mb         | [mtoa] [translator mtoa_shaders] Exporting on plug outAlpha.outColor and upstream.
+00:00:00 1151mb         | [mtoa] [maya ramp] Using translator mtoa_shaders, provided by mtoa_shaders(/usr/local/solidAngle/mtoa-0.10/2011/shaders/mtoa_shaders.so).
+00:00:00 1151mb         | [mtoa] [translator mtoa_shaders] Exporting on plug ramp2.outColor and upstream.
+00:00:00 1151mb         | [mtoa] [maya clamp] Using translator mtoa_shaders, provided by mtoa_shaders(mtoa_shaders).
+00:00:00 1151mb         | [mtoa] [translator mtoa_shaders] Exporting on plug color_comp_to_point2_comp.output and upstream.
+00:00:00 1151mb         | [mtoa] [maya samplerInfo] Using translator facingRatio, provided by mtoa_shaders(/usr/local/solidAngle/mtoa-0.10/2011/shaders/mtoa_shaders.so).
+00:00:00 1151mb         | [mtoa] [translator facingRatio] Exporting on plug samplerInfo1.facingRatio and upstream.
+00:00:00 1151mb         | [mtoa] [maya place2dTexture] Using translator mtoa_shaders, provided by mtoa_shaders(/usr/local/solidAngle/mtoa-0.10/2011/shaders/mtoa_shaders.so).
+00:00:00 1151mb         | [mtoa] [translator mtoa_shaders] Exporting on plug point2_comp_to_point2_comp.outUV and upstream.
+00:00:00 1151mb         | [mtoa] [maya place2dTexture] Using translator mtoa_shaders, provided by mtoa_shaders(/usr/local/solidAngle/mtoa-0.10/2011/shaders/mtoa_shaders.so).
+00:00:00 1151mb         | [mtoa] [translator mtoa_shaders] Exporting on plug place2dTexture3.outUV and upstream.
+00:00:00 1151mb         | [mtoa] [maya multiplyDivide] Using translator mtoa_shaders, provided by mtoa_shaders(mtoa_shaders).
+00:00:00 1151mb         | [mtoa] [translator mtoa_shaders] Exporting on plug multiplyDivide1.output and upstream.
+00:00:00 1151mb         | [mtoa] [maya remapValue] Using translator mtoa_shaders, provided by mtoa_shaders(/usr/local/solidAngle/mtoa-0.10/2011/shaders/mtoa_shaders.so).
+00:00:00 1151mb         | [mtoa] [translator mtoa_shaders] Exporting on plug float_to_vec_component.outValue and upstream.
+00:00:00 1151mb         | [mtoa] [maya plusMinusAverage] Using translator mtoa_shaders, provided by mtoa_shaders(/usr/local/solidAngle/mtoa-0.10/2011/shaders/mtoa_shaders.so).
+00:00:00 1151mb         | [mtoa] [translator mtoa_shaders] Exporting on plug vec_comp_to_vec_comp.output3D and upstream.
+00:00:00 1151mb         | [mtoa] [translator <built-in>] CNodeTranslator::DoUpdate step 0, m_atNode 0xc635f50
+00:00:00 1151mb         | [mtoa] [translator <built-in>] Updating Arnold options(options) translated from Maya defaultArnoldRenderOptions(aiOptions): 0xc635f50
+00:00:00 1151mb         | [mtoa] Exporting dag node perspShape of type camera
+00:00:00 1151mb         |  
+00:00:00 1151mb         | [rlm] connecting to license server on 5053@sv-lic10 ...
+00:00:00 1156mb         | [rlm] checkout of arnold (version 303) OK
+00:00:00 1156mb         |  
+00:00:00 1156mb         | there are 0 lights and 1 objects:
+00:00:00 1156mb         |  1 polymeshes
+00:00:00 1156mb         |  
+00:00:00 1156mb         | auto-detected 8 threads
+00:00:00 1156mb         | rendering image at 160 x 120, 3 AA samples, 2 GI samples, 1 GI bounces
+00:00:00 1156mb         |  initializing 30 nodes ...
+00:00:00 1156mb         |  node initialization done in 0:00.00
+00:00:00 1256mb         |  creating root object list ...
+00:00:00 1256mb         |   scene bounds: (-1 -1 -1) -> (1 1 1)
+00:00:00 1256mb         |  updating 30 nodes ...
+00:00:00 1256mb         |  node update done in 0:00.00
+00:00:00 1256mb         |  [aov] parsing output statement: "RGBA RGBA gaussian_filter driver_tiff"
+00:00:00 1256mb         |  [aov] registered driver: "driver_tiff" (driver_tiff)
+00:00:00 1256mb         |  [aov]  * "RGBA" of type RGBA filtered by "gaussian_filter" (gaussian_filter)
+00:00:00 1256mb         |  [aov] done preparing 1 AOV for 1 output to 1 driver (0 deep AOVs)
+00:00:00 1256mb         |  starting 8 bucket workers of size 64x64 ...
+00:00:00 1331mb         |   [accel] bvh4 done - 0:00.00 - 760 prims, 1 key
+[32m00:00:00 1469mb         |    10% done - 9 rays/pixel[0m
+[32m00:00:00 1533mb         |    20% done - 9 rays/pixel[0m
+[32m00:00:00 1533mb         |    35% done - 9 rays/pixel[0m
+[32m00:00:00 1533mb         |    60% done - 9 rays/pixel[0m
+[32m00:00:00 1533mb         |    75% done - 9 rays/pixel[0m
+[32m00:00:00 1533mb         |   100% done - 9 rays/pixel[0m
+00:00:00 1483mb         |  bucket workers done in 0:00.39
+00:00:00 1483mb         | render done
+00:00:00 1483mb         | [driver_tiff] writing file `/Volumes/sv-dev01/devRepo/chad/arnold/mtoa/build/linux_x86_64/gcc_opt/testsuite/test_0040/testrender.tif'
+00:00:00 1483mb         |  
+00:00:00 1483mb         | -----------------------------------------------------------------------------------------
+00:00:00 1483mb         | scene creation time:
+00:00:00 1483mb         |  plugin loading               0:00.02
+00:00:00 1483mb         |  system/unaccounted           0:00.06
+00:00:00 1483mb         |  total                        0:00.06  ( 7.90% machine utilization)
+00:00:00 1483mb         | -----------------------------------------------------------------------------------------
+00:00:00 1483mb         | render time:
+00:00:00 1483mb         |  node init                    0:00.00
+00:00:00 1483mb         |  bucket rendering             0:00.39
+00:00:00 1483mb         |   accel. building             0:00.00
+00:00:00 1483mb         |   pixel rendering             0:00.39  (multi-threaded render, this value may not be reliable)
+00:00:00 1483mb         |  system/unaccounted           0:00.26
+00:00:00 1483mb         |  total                        0:00.40  (34.24% machine utilization)
+00:00:00 1483mb         | -----------------------------------------------------------------------------------------
+00:00:00 1483mb         | memory consumed in mb:
+00:00:00 1483mb         |  at startup                   1140.25
+00:00:00 1483mb         |  AOV samples                     7.18
+00:00:00 1483mb         |  output buffers                  0.57
+00:00:00 1483mb         |  node overhead                   0.01
+00:00:00 1483mb         |  message passing                 0.02
+00:00:00 1483mb         |  memory pools                    9.28
+00:00:00 1483mb         |  geometry                        0.02
+00:00:00 1483mb         |    polymesh                      0.02
+00:00:00 1483mb         |  accel. structs                  0.02
+00:00:00 1483mb         |  string pool                     0.14 (1440 unique strings, overhead 0.09 mb)
+00:00:00 1483mb         |  texture cache                   0.00
+00:00:00 1483mb         |  unaccounted                   376.47
+00:00:00 1483mb         |  total peak                   1533.97
+00:00:00 1483mb         | -----------------------------------------------------------------------------------------
+00:00:00 1483mb         | ray counts:                           (/pixel , /sample) (% total) (avg. hits) (max hits)
+00:00:00 1483mb         |  camera                        185256 (   9.00,    1.00) (100.00%) (     0.33) (       1)
+00:00:00 1483mb         |  total                         185256 (   9.00,    1.00) (100.00%) (     0.33) (       1)
+00:00:00 1483mb         |  max depth                          0
+00:00:00 1483mb         | -----------------------------------------------------------------------------------------
+00:00:00 1483mb         | shader calls:                         (/pixel , /sample) (% total)
+00:00:00 1483mb         |  primary                        61966 (   3.01,    0.33) (  1.56%)
+00:00:00 1483mb         |  total                        3965824 ( 192.67,   21.41) (100.00%)
+00:00:00 1483mb         | -----------------------------------------------------------------------------------------
+00:00:00 1483mb         | geometry:                             (% hit ) (instances) (  init mem,  final mem)
+00:00:00 1483mb         |  polymeshes                         1 (100.0%) (        0) (      0.01,       0.02)
+00:00:00 1483mb         | -----------------------------------------------------------------------------------------
+00:00:00 1483mb         | geometric elements:                   (      min) (       avg.) (      max)
+00:00:00 1483mb         |  polygons                         400 (      400) (      400.0) (      400)
+00:00:00 1483mb         | -----------------------------------------------------------------------------------------
+00:00:00 1483mb         | triangle tesselation:                 (      min) (       avg.) (      max) (/ element) (% total)
+00:00:00 1483mb         |  polymeshes                       760 (      760) (      760.0) (      760) (     1.90) (100.00%)
+00:00:00 1483mb         |  unique triangles:                760
+00:00:00 1483mb         |  memory use (in mb)              0.02
+00:00:00 1483mb         |    vertices                      0.00
+00:00:00 1483mb         |    vertex indices                0.00
+00:00:00 1483mb         |    polygon base offsets          0.00
+00:00:00 1483mb         |    polygon IDs                   0.00
+00:00:00 1483mb         |    triangulation                 0.00
+00:00:00 1483mb         |    packed normals                0.00
+00:00:00 1483mb         |    normal indices                0.00
+00:00:00 1483mb         |    uv coords                     0.00
+00:00:00 1483mb         |    uv coords idxs                0.00
+00:00:00 1483mb         |    uniform indices               0.00
+00:00:00 1483mb         | -----------------------------------------------------------------------------------------
+00:00:00 1483mb         | acceleration structures:              (% total)
+00:00:00 1483mb         |  bvh                                1 (100.00%)
+00:00:00 1483mb         |  total                              1 (100.00%)
+00:00:00 1483mb         | -----------------------------------------------------------------------------------------
+00:00:00 1483mb         |  
+00:00:00 1483mb         | releasing resources
+00:00:00 1473mb         |  unloading 5 plugins
+00:00:00 1473mb         |   closing luma.so ...
+00:00:00 1471mb         |   closing kettle_uber.so ...
+00:00:00 1469mb         |   closing libsitoa_shaders.so ...
+00:00:00 1467mb         |   closing mtoa_shaders.so ...
+00:00:00 1465mb         |   closing shave_shaders.so ...
+00:00:00 1463mb         |  unloading plugins done
+00:00:00 1463mb         | Arnold shutdown
+Scene /Volumes/sv-dev01/devRepo/chad/arnold/mtoa/build/linux_x86_64/gcc_opt/testsuite/test_0040/test.ma completed.

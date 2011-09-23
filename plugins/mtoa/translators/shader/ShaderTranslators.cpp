@@ -315,9 +315,7 @@ void CLambertTranslator::Export(AtNode* shader)
    plug.connectedTo(connections, true, false);
    if (connections.length() > 0)
    {
-      MString m_outputAttr = connections[0].partialName(false, false, false, false, false, true);
-
-      AtNode* m_fnNode = ExportNode(connections[0].node(), m_outputAttr);
+      AtNode* m_fnNode = ExportNode(connections[0]);
 
       if (m_fnNode != NULL)
          AiNodeLink(m_fnNode, "@before", shader);
@@ -643,82 +641,74 @@ void CRemapValueTranslator::Export(AtNode* shader)
 //
 AtNode* CRemapColorTranslator::CreateArnoldNodes()
 {
-   if (m_outputAttr == "outColor")
-   {
-      return AddArnoldNode("MayaRemapColor");
-   }
-   return NULL;
+   return AddArnoldNode("MayaRemapColor");
 }
 
 void CRemapColorTranslator::Export(AtNode* shader)
 {
-   if (m_outputAttr == "outColor")
+   static const char *remapInterpolationStrings[] =
    {
-      static const char *remapInterpolationStrings[] =
+    "none",
+    "linear",
+    "smooth",
+    "spline"
+   };
+
+   MPlug attr, elem, pos, val, interp;
+
+   const char *plugNames[3] = {"red", "green", "blue"};
+   const char *posNames[6] = {"red_Position",   "rPositions",
+                              "green_Position", "gPositions",
+                              "blue_Position",  "bPositions"};
+   const char *valNames[6] = {"red_FloatValue",   "rValues",
+                              "green_FloatValue", "gValues",
+                              "blue_FloatValue",  "bValues"};
+   const char *interpNames[6] = {"red_Interp",   "rInterpolations",
+                                 "green_Interp", "gInterpolations",
+                                 "blue_Interp",  "bInterpolations"};
+
+   // FIXME: change shader parameter name to match maya
+   ProcessParameter(shader, "input", AI_TYPE_RGB, FindMayaObjectPlug("color"));
+   ProcessParameter(shader, "inputMin", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "inputMax", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "outputMin", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "outputMax", AI_TYPE_FLOAT);
+
+   for (int ci=0; ci<3; ++ci)
+   {
+      MObject opos = GetMayaObjectAttribute(posNames[ci*2]);
+      MObject oval = GetMayaObjectAttribute(valNames[ci*2]);
+      MObject ointerp = GetMayaObjectAttribute(interpNames[ci*2]);
+
+      // Note: this doesn't handle connection coming in individual elements
+      attr = FindMayaObjectPlug(plugNames[ci]);
+      AtArray *positions = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_FLOAT);
+      AtArray *values = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_FLOAT);
+      AtArray *interps = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_STRING);
+      for (unsigned int i=0; i<attr.numElements(); ++i)
       {
-       "none",
-       "linear",
-       "smooth",
-       "spline"
-      };
-
-      MPlug attr, elem, pos, val, interp;
-
-      const char *plugNames[3] = {"red", "green", "blue"};
-      const char *posNames[6] = {"red_Position",   "rPositions",
-                                 "green_Position", "gPositions",
-                                 "blue_Position",  "bPositions"};
-      const char *valNames[6] = {"red_FloatValue",   "rValues",
-                                 "green_FloatValue", "gValues",
-                                 "blue_FloatValue",  "bValues"};
-      const char *interpNames[6] = {"red_Interp",   "rInterpolations",
-                                    "green_Interp", "gInterpolations",
-                                    "blue_Interp",  "bInterpolations"};
-
-      // FIXME: change shader parameter name to match maya or use metadata
-      ProcessParameter(shader, "input", AI_TYPE_RGB, FindMayaObjectPlug("color"));
-
-      ProcessParameter(shader, "inputMin", AI_TYPE_FLOAT);
-      ProcessParameter(shader, "inputMax", AI_TYPE_FLOAT);
-      ProcessParameter(shader, "outputMin", AI_TYPE_FLOAT);
-      ProcessParameter(shader, "outputMax", AI_TYPE_FLOAT);
-
-      for (int ci=0; ci<3; ++ci)
-      {
-         MObject opos = GetMayaObjectAttribute(posNames[ci*2]);
-         MObject oval = GetMayaObjectAttribute(valNames[ci*2]);
-         MObject ointerp = GetMayaObjectAttribute(interpNames[ci*2]);
-
-         // Note: this doesn't handle connection coming in individual elements
-         attr = FindMayaObjectPlug(plugNames[ci]);
-         AtArray *positions = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_FLOAT);
-         AtArray *values = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_FLOAT);
-         AtArray *interps = AiArrayAllocate(attr.numElements(), 1, AI_TYPE_STRING);
-         for (unsigned int i=0; i<attr.numElements(); ++i)
-         {
-            elem = attr.elementByPhysicalIndex(i);
-            pos = elem.child(opos);
-            val = elem.child(oval);
-            interp = elem.child(ointerp);
-            AiArraySetFlt(positions, i, pos.asFloat());
-            AiArraySetFlt(values, i, val.asFloat());
-            AiArraySetStr(interps, i, remapInterpolationStrings[interp.asInt()]);
-         }
-         // Need to sort array (maya has the excellent idea not to do it)
-         if (positions->nelements > 1)
-         {
-            AtUInt* shuffle = new AtUInt[positions->nelements];
-            if (SortFloatArray(positions, shuffle))
-            {
-               ShuffleArray(values, shuffle, AI_TYPE_FLOAT);
-               ShuffleArray(interps, shuffle, AI_TYPE_STRING);
-            }
-            delete[] shuffle;
-         }
-         AiNodeSetArray(shader, posNames[ci*2 + 1], positions);
-         AiNodeSetArray(shader, valNames[ci*2 + 1], values);
-         AiNodeSetArray(shader, interpNames[ci*2 + 1], interps);
+         elem = attr.elementByPhysicalIndex(i);
+         pos = elem.child(opos);
+         val = elem.child(oval);
+         interp = elem.child(ointerp);
+         AiArraySetFlt(positions, i, pos.asFloat());
+         AiArraySetFlt(values, i, val.asFloat());
+         AiArraySetStr(interps, i, remapInterpolationStrings[interp.asInt()]);
       }
+      // Need to sort array (maya has the excellent idea not to do it)
+      if (positions->nelements > 1)
+      {
+         AtUInt* shuffle = new AtUInt[positions->nelements];
+         if (SortFloatArray(positions, shuffle))
+         {
+            ShuffleArray(values, shuffle, AI_TYPE_FLOAT);
+            ShuffleArray(interps, shuffle, AI_TYPE_STRING);
+         }
+         delete[] shuffle;
+      }
+      AiNodeSetArray(shader, posNames[ci*2 + 1], positions);
+      AiNodeSetArray(shader, valNames[ci*2 + 1], values);
+      AiNodeSetArray(shader, interpNames[ci*2 + 1], interps);
    }
 }
 

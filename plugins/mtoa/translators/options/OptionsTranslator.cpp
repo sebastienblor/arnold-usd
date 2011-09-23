@@ -308,30 +308,20 @@ void COptionsTranslator::Export(AtNode *options)
       }
    }
 
-   MObject background;
+   // BACKGROUND SHADER
+   //
    MPlugArray conns;
    MPlug pBG = FindMayaObjectPlug("background");
    pBG.connectedTo(conns, true, false);
    if (conns.length() == 1)
    {
-      background = conns[0].node();
-   }
-   else
-   {
-      background = MObject::kNullObj;
-   }
-
-   // BACKGROUND SHADER
-   //
-   if (!background.isNull())
-   {
-      AiNodeSetPtr(options, "background", ExportNode(background));
+      AiNodeSetPtr(options, "background", ExportNode(conns[0]));
    }
 
    // ATMOSPHERE SHADER
    //
    MSelectionList list;
-   MObject        node;
+   MPlug        shader;
 
    AtInt atmosphere = FindMayaObjectPlug("atmosphere").asInt();
    switch (atmosphere)
@@ -340,20 +330,20 @@ void COptionsTranslator::Export(AtNode *options)
       break;
 
    case 1:  // Fog
-      list.add("defaultFog");
+      list.add("defaultFog.outColor");
       if (list.length() > 0)
       {
-         list.getDependNode(0, node);
-         AiNodeSetPtr(options, "atmosphere", ExportNode(node));
+         list.getPlug(0, shader);
+         AiNodeSetPtr(options, "atmosphere", ExportNode(shader));
       }
       break;
 
    case 2:  // Volume Scattering
-      list.add("defaultVolumeScattering");
+      list.add("defaultVolumeScattering.outColor");
       if (list.length() > 0)
       {
-         list.getDependNode(0, node);
-         AiNodeSetPtr(options, "atmosphere", ExportNode(node));
+         list.getPlug(0, shader);
+         AiNodeSetPtr(options, "atmosphere", ExportNode(shader));
       }
       break;
    }

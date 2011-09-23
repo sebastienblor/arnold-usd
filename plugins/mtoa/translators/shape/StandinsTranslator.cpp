@@ -107,8 +107,7 @@ void CArnoldStandInsTranslator::ExportStandinsShaders(AtNode* procedural)
       if (connections.length() > 0)
       {
          // shader assigned to node
-         AtNode* shader = m_session->ExportNode(connections[0].node());
-
+         AtNode* shader = ExportNode(connections[0]);
          AiNodeSetPtr(procedural, "shader", shader);
          meshShaders.push_back(shader);
       }
@@ -130,7 +129,7 @@ void CArnoldStandInsTranslator::ExportStandinsShaders(AtNode* procedural)
       // are there any connections to displacementShader?
       if (connections.length() > 0)
       {
-         MFnDependencyNode dispNode(connections[0].node());
+         MFnDependencyNode dispNode(connections[0]);
 
          // Note that disp_height has no actual influence on the scale of the displacement if it is vector based
          // it only influences the computation of the displacement bounds
@@ -143,8 +142,7 @@ void CArnoldStandInsTranslator::ExportStandinsShaders(AtNode* procedural)
 
          if (connections.length() > 0)
          {
-            MString attrName = connections[0].partialName(false, false, false, false, false, true);
-            AtNode* dispImage(m_session->ExportNode(connections[0].node(), attrName));
+            AtNode* dispImage(ExportNode(connections[0]));
 
             MPlug pVectorDisp = dispNode.findPlug("vector_displacement", false);
             if (!pVectorDisp.isNull() && pVectorDisp.asBool())

@@ -22,8 +22,9 @@ public:
    {
       return new CShaderTranslator();
    }
-   AtNode* CreateArnoldNodes();
-   void Export(AtNode* atNode);
+   virtual AtNode* CreateArnoldNodes();
+   virtual void Export(AtNode* atNode);
+   virtual bool ResolveOutputPlug(const MPlug& outputPlug, MPlug &resolvedOutputPlug);
 
 protected:
    bool m_motion;
