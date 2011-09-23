@@ -131,38 +131,36 @@ AtNode* CArnoldSession::ExportDagPath(MDagPath &dagPath, MStatus* stat)
    MStatus status = MStatus::kSuccess;
    AtNode* arnoldNode = NULL;
 
-   CNodeAttrHandle handle(dagPath.node());
-   int instanceNum = dagPath.instanceNumber();
    MString name = dagPath.partialPathName();
    MString type = MFnDagNode(dagPath).typeName();
    AiMsgDebug("[mtoa] Exporting dag node %s of type %s", name.asChar(), type.asChar());
-   // Check if node has already been processed
-   ObjectToDagTranslatorMap::iterator it = m_processedDagTranslators.find(handle);
-   if (it != m_processedDagTranslators.end() && it->second.count(instanceNum))
+
+   CDagTranslator* translator = CExtensionsManager::GetTranslator(dagPath);
+   if (translator == NULL || !translator->IsMayaTypeDag())
+   {
+      status = MStatus::kNotImplemented;
+      AiMsgDebug("[mtoa] Dag node %s of type %s ignored", name.asChar(), type.asChar());
+      return NULL;
+   }
+   CNodeAttrHandle handle(dagPath);
+   if (!translator->DisableCaching())
+   {
+      // Check if node has already been processed
+      ObjectToTranslatorMap::iterator it = m_processedTranslators.find(handle);
+      if (it != m_processedTranslators.end())
+      {
+         delete translator;
+         status = MStatus::kSuccess;
+         arnoldNode = it->second->GetArnoldRootNode();
+         translator = (CDagTranslator*)it->second;
+      }
+   }
+   if (arnoldNode == NULL)
    {
       status = MStatus::kSuccess;
-      arnoldNode = it->second[instanceNum]->GetArnoldRootNode();
-   }
-   else
-   {
-      // else get a new translator for that node
-      CDagTranslator* translator = CExtensionsManager::GetTranslator(dagPath);
-      if (translator != NULL && translator->IsMayaTypeDag())
-      {
-         status = MStatus::kSuccess;
-         if (translator->IsMayaTypeRenderable())
-         {
-            arnoldNode = translator->Init(this, dagPath);
-            translator->DoExport(0);
-            // save it for later
-            m_processedDagTranslators[handle][instanceNum] = translator;
-         }
-      }
-      else
-      {
-         status = MStatus::kNotImplemented;
-         AiMsgDebug("[mtoa] Dag node %s of type %s ignored", name.asChar(), type.asChar());
-      }
+      translator->Init(this, dagPath);
+      m_processedTranslators.insert(ObjectToTranslatorPair(handle, translator));
+      arnoldNode = translator->DoExport(0);
    }
 
    if (NULL != stat) *stat = status;
@@ -204,6 +202,7 @@ AtNode* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, MStatus *stat)
    else
    {
       delete translator;
+      translator = NULL;
       status = MStatus::kNotImplemented;
       MFnDependencyNode fnNode(mayaNode);
       AiMsgDebug("[mtoa] [maya %s] Invalid output attribute: \"%s\"", fnNode.name().asChar(),
@@ -286,21 +285,11 @@ AtNode* CArnoldSession::ExportFilter(MObject mayaNode, const MString &translator
 CNodeTranslator * CArnoldSession::GetActiveTranslator(const MObject node)
 {
    CNodeAttrHandle handle(node);
-
    ObjectToTranslatorMap::iterator translatorIt = m_processedTranslators.find(handle);
    if (translatorIt != m_processedTranslators.end())
    {
       return static_cast< CNodeTranslator* >(translatorIt->second);
    }
-
-   ObjectToDagTranslatorMap::iterator dagIt = m_processedDagTranslators.find(handle);
-   if (dagIt != m_processedDagTranslators.end())
-   {
-      // TODO: Figure out some magic to get the correct instance.
-      const int instanceNum = 0;
-      return static_cast< CNodeTranslator* >(dagIt->second[instanceNum]);
-   }
-
    return NULL;
 }
 
@@ -379,19 +368,6 @@ MStatus CArnoldSession::End()
    }
    m_processedTranslators.clear();
 
-   // Delete Dag Translators
-   ObjectToDagTranslatorMap::iterator dagIt;
-   for(dagIt = m_processedDagTranslators.begin(); dagIt != m_processedDagTranslators.end(); ++dagIt)
-   {
-      std::map<int, CNodeTranslator*>::iterator instIt;
-      for(instIt = dagIt->second.begin(); instIt != dagIt->second.end(); ++instIt)
-      {
-         //MFnDagNode fnDag(dagIt->first.object());
-         //AiMsgDebug("[mtoa] Deleting translator for %s [%d]", fnDag.fullPathName().asChar(), instIt->first);
-         delete instIt->second;
-      }
-   }
-   m_processedDagTranslators.clear();
    m_masterInstances.clear();
    // Clear motion frames storage
    m_motion_frames.clear();
@@ -575,21 +551,12 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
          // Since all nodes *should* be exported at this point, the following calls to DoExport do not
          // traverse the DG even if the translators call ExportNode or ExportDag. This makes it safe
          // to re-export all objects from a flattened list
-         ObjectToDagTranslatorMap::iterator dagIt;
-         for(dagIt = m_processedDagTranslators.begin(); dagIt != m_processedDagTranslators.end(); ++dagIt)
+
+         // finally, loop through the already processed translators and export for current step
+         ObjectToTranslatorMap::iterator it;
+         for (it = m_processedTranslators.begin(); it != m_processedTranslators.end(); ++it)
          {
-            // finally, loop through instances
-            std::map<int, CNodeTranslator*>::iterator instIt;
-            for(instIt = dagIt->second.begin(); instIt != dagIt->second.end(); ++instIt)
-            {
-               instIt->second->DoExport(step);
-            }
-         }
-         // finally, loop through the already processed depend translators and export for current step
-         ObjectToTranslatorMap::iterator dependIt;
-         for(dependIt = m_processedTranslators.begin(); dependIt != m_processedTranslators.end(); ++dependIt)
-         {
-            dependIt->second->DoExport(step);
+            it->second->DoExport(step);
          }
       }
       // Note: only reset frame during interactive renders, otherwise that's an extra unnecessary scene eval
@@ -941,17 +908,6 @@ void CArnoldSession::ClearUpdateCallbacks()
    {
       if (it->second != NULL) it->second->RemoveUpdateCallbacks();
    }
-
-   ObjectToDagTranslatorMap::iterator dagIt;
-   for(dagIt = m_processedDagTranslators.begin(); dagIt != m_processedDagTranslators.end(); ++dagIt)
-   {
-      std::map<int, CNodeTranslator*>::iterator instIt;
-      for(instIt = dagIt->second.begin(); instIt != dagIt->second.end(); ++instIt)
-      {
-         instIt->second->RemoveUpdateCallbacks();
-      }
-   }
-   
 }
 
 /// Set the camera to export.
@@ -971,18 +927,6 @@ void CArnoldSession::SetExportCamera(MDagPath camera)
    {
       if (it->second->DependsOnExportCamera())
          QueueForUpdate(it->second);
-   }
-
-   // Delete Dag Translators
-   ObjectToDagTranslatorMap::iterator dagIt;
-   for(dagIt = m_processedDagTranslators.begin(); dagIt != m_processedDagTranslators.end(); ++dagIt)
-   {
-      std::map<int, CNodeTranslator*>::iterator instIt;
-      for(instIt = dagIt->second.begin(); instIt != dagIt->second.end(); ++instIt)
-      {
-         if (instIt->second->DependsOnExportCamera())
-            QueueForUpdate(instIt->second);
-      }
    }
    DoUpdate();
 }

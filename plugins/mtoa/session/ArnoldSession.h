@@ -196,11 +196,8 @@ private:
    bool m_requestUpdate;
    std::vector< CNodeTranslator * > m_translatorsToUpdate;
 
-   // depend nodes, are a map with MObjectHandle as a key
+   // depend nodes and dag nodes are a multimap with CNodeAttrHandle as a key
    ObjectToTranslatorMap m_processedTranslators;
-   // dag nodes, are a map in a map.
-   // the first key is an MObjectHandle and the second the instance number
-   ObjectToDagTranslatorMap m_processedDagTranslators;
 
 protected:
    ObjectHandleToDagMap m_masterInstances;
