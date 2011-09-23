@@ -191,7 +191,7 @@
         min                 FLOAT   0.0
         softmax             FLOAT   10.0
     [attr samples]
-        min                 INT     0
+        min                 INT     1
         max                 INT     100
         default             INT     1
     [attr bounce_factor]
@@ -212,7 +212,7 @@
         min                 FLOAT   0.0
         softmax             FLOAT   10.0
     [attr samples]
-        min                 INT     0
+        min                 INT     1
         max                 INT     100
         default             INT     1
     [attr bounce_factor]
@@ -233,7 +233,7 @@
         min                 FLOAT   0.0
         softmax             FLOAT   10.0
     [attr samples]
-        min                 INT     0
+        min                 INT     1
         max                 INT     100
         default             INT     1
     [attr bounce_factor]
@@ -261,7 +261,7 @@
         min                 FLOAT   0.0
         softmax             FLOAT   10.0
     [attr samples]
-        min                 INT     0
+        min                 INT     1
         max                 INT     100
         default             INT     1
     [attr bounce_factor]
@@ -287,7 +287,7 @@
        min                  FLOAT   0.0
        softmax              FLOAT   10.0
    [attr samples]
-       min                  INT     0
+       min                  INT     1
        max                  INT     100
        default              INT     1
 
