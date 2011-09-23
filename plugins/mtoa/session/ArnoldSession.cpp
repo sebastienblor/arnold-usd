@@ -261,6 +261,8 @@ AtNode* CArnoldSession::ExportWithTranslator(MObject mayaNode, const MString &ma
             AiNodeGetName(shader), AiNodeEntryGetName(shader->base_node),
             translatorName.asChar());
       translator->DoExport(0);
+      CNodeAttrHandle handle(mayaNode, translatorName);
+      m_processedTranslators.insert(ObjectToTranslatorPair(handle, translator));
    }
    else
    {
