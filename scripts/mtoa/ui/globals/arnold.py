@@ -802,9 +802,9 @@ def createArnoldRendererGlobalsTab():
     createArnoldMotionBlurSettings()
     pm.setParent('..')
 
-    # Subsurface scattering
+    # Sub-Surface Scattering
     #
-    pm.frameLayout('arnoldSSSSettings', label="Subsurface scattering", cll= True, cl=1)
+    pm.frameLayout('arnoldSSSSettings', label="Sub-Surface Scattering", cll= True, cl=1)
     createArnoldSSSSettings()
     pm.setParent('..')
 

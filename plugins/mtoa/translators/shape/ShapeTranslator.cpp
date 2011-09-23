@@ -16,7 +16,7 @@ void CShapeTranslator::ProcessRenderFlags(AtNode* node)
    plug = FindMayaObjectPlug("receiveShadows");
    if (!plug.isNull()) AiNodeSetBool(node, "receive_shadows", plug.asBool());
 
-   // Subsurface Scattering
+   // Sub-Surface Scattering
    plug = FindMayaObjectPlug("aiSssSampleDistribution");
    if (!plug.isNull())
    {

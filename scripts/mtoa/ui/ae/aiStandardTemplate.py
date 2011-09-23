@@ -88,7 +88,7 @@ def aiStandardTemplate(nodeName):
     cmds.editorTemplate(aeCallback(bumpNew), aeCallback(bumpReplace), "normalCamera", callCustom=True)
     cmds.editorTemplate(endLayout=True)
 
-    cmds.editorTemplate(beginLayout="Subsurface scattering", collapse=True)
+    cmds.editorTemplate(beginLayout="Sub-Surface Scattering", collapse=True)
     cmds.editorTemplate("Ksss_color", label="Color", addControl=True)
     cmds.editorTemplate("Ksss", label="Weight", addControl=True)
     cmds.editorTemplate("sss_radius", label="Radius", addControl=True)
