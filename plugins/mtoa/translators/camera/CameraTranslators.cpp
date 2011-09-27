@@ -1,5 +1,6 @@
-
 #include "CameraTranslators.h"
+
+#include <maya/MPlugArray.h>
 
 using namespace std;
 
@@ -177,8 +178,27 @@ void CPerspCameraTranslator::Export(AtNode* camera)
    ExportDOF(camera);
    ExportImagePlanes(0);
 
-   // FIXME: this should be set by metadata
-   ProcessParameter(camera, "uv_remap", AI_TYPE_RGBA, FindMayaObjectPlug("aiUvRemap"));
+   // UV Remap export
+   MObject uvRemapNode;
+   MPlugArray conns;
+   MPlug pUVR = FindMayaObjectPlug("aiUvRemap");
+   pUVR.connectedTo(conns, true, false);
+   if (conns.length() == 1)
+   {
+      uvRemapNode = conns[0].node();
+   }
+   else
+   {
+      uvRemapNode = MObject::kNullObj;
+   }
+   if (!uvRemapNode.isNull())
+   {
+      AiNodeLink(ExportNode(uvRemapNode), "uv_remap", camera);
+   }
+   else
+   {
+      ProcessParameter(camera, "uv_remap", AI_TYPE_RGBA, pUVR);
+   }
 
    if (m_motion)
    {
