@@ -58,6 +58,14 @@ def builtin_mesh(ui):
 #    ui.addAttribute("enableProcedural")
 #    ui.addAttribute("dso")
 
+def hairShaderNew(attrName):
+    cmds.setUITemplate('attributeEditorTemplate', pst=True)
+    cmds.attrNavigationControlGrp('aiHairShader', label="Hair Shader", at=attrName)
+    cmds.setUITemplate(ppt=True)
+
+def hairShaderReplace(attrName):
+    cmds.attrNavigationControlGrp('aiHairShader', edit=True, at=attrName)
+
 @registerUI("hairSystem", "<built-in>")
 def builtin_hairSystem(ui):
     commonShapeAttributes(ui)
