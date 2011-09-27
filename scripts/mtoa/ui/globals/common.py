@@ -586,7 +586,7 @@ def getCameras():
     Return a tuple of (ortho, mono, stereo) camera lists, converting camera
     shapes to transforms
     '''
-    ortho = [pm.PyNode(x) for x in pm.listCameras(orthographic=True)] or []
+    ortho = [pm.PyNode(x) for x in pm.listCameras(orthographic=True) or []]
     mono = []
     stereo = []
     # List all mono perspective cameras first
@@ -1980,6 +1980,9 @@ def updateArnoldRendererCommonGlobalsTab(*args):
      renderer to reflect values which may have been copied from the previous
      current renderer.
     '''
+    # Re check for aiOptions node to exists
+    pm.createNode('aiOptions', skipSelect=True, shared=True, name="defaultArnoldRenderOptions")
+
     updateArnoldFileNamePrefixControl()
     updateArnoldFileNameFormatControl()
 
