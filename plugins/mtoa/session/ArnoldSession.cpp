@@ -580,17 +580,6 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
       {
          it->second->AddUpdateCallbacks();
       }
-      // For Dag node translators
-      ObjectToDagTranslatorMap::iterator itd;
-      for (itd = m_processedDagTranslators.begin(); itd != m_processedDagTranslators.end(); ++itd)
-      {
-         // finally, loop through instances
-         std::map<int, CNodeTranslator*>::iterator instIt;
-         for(instIt = itd->second.begin(); instIt != itd->second.end(); ++instIt)
-         {
-            instIt->second->AddUpdateCallbacks();
-         }
-      }
    }
 
    return status;
