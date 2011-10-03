@@ -467,7 +467,7 @@ MString CRenderSession::GetAssName(const MString& customName,
    return assFileName;
 }
 
-void CRenderSession::DoAssWrite(MString customFileName)
+void CRenderSession::DoAssWrite(MString customFileName, const bool compressed)
 {
    assert(AiUniverseIsActive());
 
@@ -476,13 +476,11 @@ void CRenderSession::DoAssWrite(MString customFileName)
    // if no custom fileName is given, use the default one in the environment variable
    if (customFileName.length() > 0)
    {
-      fileName = VerifyFileName(customFileName.asChar(),
-                                m_renderOptions.outputAssCompressed());
+      fileName = VerifyFileName(customFileName.asChar(), compressed);
    }
    else
    {
-      fileName = VerifyFileName(m_renderOptions.outputAssFile().expandEnvironmentVariablesAndTilde(),
-                                m_renderOptions.outputAssCompressed());
+      fileName = VerifyFileName(m_renderOptions.outputAssFile().expandEnvironmentVariablesAndTilde(), compressed);
    }
 
    if (fileName.length() == 0)

@@ -150,7 +150,6 @@ void CRenderOptions::ProcessArnoldRenderOptions()
       m_clearBeforeRender = fnArnoldRenderOptions.findPlug("clear_before_render").asBool();
 
       m_outputAssFile       = fnArnoldRenderOptions.findPlug("output_ass_filename").asString();
-      m_outputAssCompressed = fnArnoldRenderOptions.findPlug("output_ass_compressed").asBool();
       m_outputAssMask       = fnArnoldRenderOptions.findPlug("output_ass_mask").asInt();
 
       m_log_filename          = fnArnoldRenderOptions.findPlug("log_filename").asString();

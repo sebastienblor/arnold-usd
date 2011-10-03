@@ -32,6 +32,7 @@ MSyntax CArnoldExportAssCmd::newSyntax()
    syntax.addFlag("ef", "endFrame", MSyntax::kDouble);
    syntax.addFlag("fs", "frameStep", MSyntax::kDouble);
    syntax.addFlag("o", "options", MSyntax::kString);
+   syntax.addFlag("c", "compressed");
    return syntax;
 }
 
@@ -87,9 +88,15 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    MDagPath camera;
    MString cameraName = "";
    MString optionsName = "";
+   MString assExtension = "ass";
+
    bool exportSelected = false;
    bool writeBox = false;
    bool createDirectory = true;
+   bool isSequence = false;
+   bool subFrames = false;
+   bool compressed = false;
+   double startframe, endframe, framestep;
 
    // Batch mode
    bool batch = argDB.isFlagSet("batch") ? true : false;
@@ -103,6 +110,10 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
       if (nchars > 4 && customFileName.substringW(nchars-4, nchars) == ".ass")
       {
          customFileName = customFileName.substringW(0, nchars-5);
+      }
+      else if  (nchars > 7 && customFileName.substringW(nchars-7, nchars) == ".ass.gz")
+      {
+         customFileName = customFileName.substringW(0, nchars-8);
       }
    }
    // Rendered render layer
@@ -132,29 +143,22 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
       argDB.getFlagArgument("options", 0, optionsName);
       // TODO: Set the arnoldRenderOptions node to use
    }
-
-   double startframe, endframe, framestep;
-   bool isSequence = false;
-   bool subFrames = false;
-
+   // Start frame
    if (argDB.isFlagSet("startFrame"))
    {
-      // isSequence = true;
       argDB.getFlagArgument("startFrame", 0, startframe);
    }
    else
    {
       startframe = MAnimControl::currentTime().as(MTime::uiUnit());
    }
+   // End frame
    if (argDB.isFlagSet("endFrame"))
    {
       isSequence = true;
       argDB.getFlagArgument("endFrame", 0, endframe);
    }
-   else
-   {
-      isSequence = false;
-   }
+   // Frame step
    if (argDB.isFlagSet("frameStep"))
    {
       argDB.getFlagArgument("frameStep", 0, framestep);
@@ -163,7 +167,7 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    {
       framestep = 1;
    }
-
+   // If it's a sequence
    if (isSequence)
    {
       subFrames = (fabs(framestep - floor(framestep)) >= AI_EPSILON || fabs(startframe - floor(startframe)) >= AI_EPSILON);
@@ -175,6 +179,12 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    {
       endframe = startframe;
       framestep = 1;
+   }
+   // Compressed
+   if (argDB.isFlagSet("compressed"))
+   {
+      compressed = true;
+      assExtension = "ass.gz";
    }
 
    // Get Maya scene information
@@ -221,18 +231,19 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
       arnoldSession->SetExportFilter(arnoldSession->GetExportFilter() & ~MTOA_FILTER_LAYER);
       arnoldSession->SetExportCamera(camera);
       arnoldSession->SetExportFrame(curframe);
-
+      // getting ass file name
       curfilename = renderSession->GetAssName(customFileName,
                                               renderGlobals,
                                               curframe,
                                               sceneName,
                                               cameraName,
-                                              "ass",
+                                              assExtension,
                                               renderLayer,
                                               createDirectory,
                                               isSequence,
                                               subFrames,
                                               batch, &status);
+      // getting ass toc file name
       tocfilename = renderSession->GetAssName(customFileName,
                                               renderGlobals,
                                               curframe,
@@ -248,7 +259,7 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
       CMayaScene::Export();
       // TODO: package all of this in a method
       if (writeBox) AiNodeSetBool(AiUniverseGetOptions(), "preserve_scene_data", true);
-      renderSession->DoAssWrite(curfilename);
+      renderSession->DoAssWrite(curfilename, compressed);
       if (writeBox) renderSession->WriteAsstoc(tocfilename, renderSession->GetBoundingBox());
 
       CMayaScene::End();

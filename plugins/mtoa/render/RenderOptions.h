@@ -83,11 +83,6 @@ public:
       return m_outputAssFile;
    }
 
-   bool outputAssCompressed() const
-   {
-      return m_outputAssCompressed;
-   }
-
    AtUInt outputAssMask() const
    {
       return m_outputAssMask;
@@ -202,7 +197,6 @@ private:
    bool     m_lock_sampling_noise;
 
    MString  m_outputAssFile;
-   bool     m_outputAssCompressed;
 
    bool     m_outputAssBoundingBox;
    AtUInt   m_outputAssMask;
