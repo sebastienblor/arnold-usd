@@ -33,6 +33,8 @@ MSyntax CArnoldExportAssCmd::newSyntax()
    syntax.addFlag("fs", "frameStep", MSyntax::kDouble);
    syntax.addFlag("o", "options", MSyntax::kString);
    syntax.addFlag("c", "compressed");
+   syntax.useSelectionAsDefault(true);
+   syntax.setObjectType(MSyntax::kSelectionList);
    return syntax;
 }
 
@@ -89,6 +91,7 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    MString cameraName = "";
    MString optionsName = "";
    MString assExtension = "ass";
+   MSelectionList sList;
 
    bool exportSelected = false;
    bool writeBox = false;
@@ -131,6 +134,8 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    if (argDB.isFlagSet("selected"))
    {
       exportSelected = true;
+      argDB.getObjects(sList);
+
    }
    // Output bounding box
    if (argDB.isFlagSet("boundingBox"))
@@ -256,7 +261,7 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
                                               subFrames,
                                               batch, &status);
 
-      CMayaScene::Export();
+      CMayaScene::Export(&sList);
       // TODO: package all of this in a method
       if (writeBox) AiNodeSetBool(AiUniverseGetOptions(), "preserve_scene_data", true);
       renderSession->DoAssWrite(curfilename, compressed);
