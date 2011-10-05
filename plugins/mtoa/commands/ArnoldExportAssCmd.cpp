@@ -261,7 +261,11 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
                                               subFrames,
                                               batch, &status);
 
-      CMayaScene::Export(&sList);
+      // Export the scene or the selection
+      if (exportSelected)
+         CMayaScene::Export(&sList);
+      else
+         CMayaScene::Export();
       // TODO: package all of this in a method
       if (writeBox) AiNodeSetBool(AiUniverseGetOptions(), "preserve_scene_data", true);
       renderSession->DoAssWrite(curfilename, compressed);
