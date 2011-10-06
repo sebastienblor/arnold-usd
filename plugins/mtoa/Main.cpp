@@ -362,9 +362,10 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    }
    else
    {
-      returnStatus = MStatus::kFailure;
       AiMsgError("Failed to register Arnold ass file translator");
       MGlobal::displayError("Failed to register Arnold ass file translator");
+      ArnoldUniverseEnd();
+      return MStatus::kFailure;
    }
    // Swatch renderer
    status = MSwatchRenderRegister::registerSwatchRender(ARNOLD_SWATCH, CRenderSwatchGenerator::creator);
@@ -376,9 +377,10 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    }
    else
    {
-      returnStatus = MStatus::kFailure;
       AiMsgError("Failed to register Arnold swatch renderer");
       MGlobal::displayError("Failed to register Arnold swatch renderer");
+      ArnoldUniverseEnd();
+      return MStatus::kFailure;
    }
    // Commands
    status = plugin.registerCommand("arnoldRender", CArnoldRenderCmd::creator, CArnoldRenderCmd::newSyntax);
@@ -390,9 +392,10 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    }
    else
    {
-      returnStatus = MStatus::kFailure;
       AiMsgError("Failed to register 'arnoldRender' command");
       MGlobal::displayError("Failed to register 'arnoldRender' command");
+      ArnoldUniverseEnd();
+      return MStatus::kFailure;
    }
    status = plugin.registerCommand("arnoldIpr", CArnoldIprCmd::creator, CArnoldIprCmd::newSyntax);
    CHECK_MSTATUS(status);
@@ -403,9 +406,10 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    }
    else
    {
-      returnStatus = MStatus::kFailure;
       AiMsgError("Failed to register 'arnoldIpr' command");
       MGlobal::displayError("Failed to register 'arnoldIpr' command");
+      ArnoldUniverseEnd();
+      return MStatus::kFailure;
    }
    status = plugin.registerCommand("arnoldExportAss", CArnoldExportAssCmd::creator, CArnoldExportAssCmd::newSyntax);
    CHECK_MSTATUS(status);
@@ -416,9 +420,10 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    }
    else
    {
-      returnStatus = MStatus::kFailure;
       AiMsgError("Failed to register 'arnoldExportAss' command");
       MGlobal::displayError("Failed to register 'arnoldExportAss' command");
+      ArnoldUniverseEnd();
+      return MStatus::kFailure;
    }
    status = plugin.registerCommand("arnoldPlugins", CArnoldPluginCmd::creator, CArnoldPluginCmd::newSyntax);
    CHECK_MSTATUS(status);
@@ -429,9 +434,10 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    }
    else
    {
-      returnStatus = MStatus::kFailure;
       AiMsgError("Failed to register 'arnoldPlugins' command");
       MGlobal::displayError("Failed to register 'arnoldPlugins' command");
+      ArnoldUniverseEnd();
+      return MStatus::kFailure;
    }
 
    status = RegisterArnoldNodes(object);
@@ -442,9 +448,10 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    }
    else
    {
-      returnStatus = MStatus::kFailure;
       AiMsgError("Failed to register Arnold nodes");
       MGlobal::displayError("Failed to register Arnold nodes");
+      ArnoldUniverseEnd();
+      return MStatus::kFailure;
    }
 
    // Since executePythonCommand eats error output, trying to see if we can access every required module
@@ -457,9 +464,10 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    }
    else
    {
-      returnStatus = MStatus::kFailure;
       AiMsgError("Failed to import python module 'arnold'");
       MGlobal::displayError("Failed to import python module 'arnold'");
+      ArnoldUniverseEnd();
+      return MStatus::kFailure;
    }
    status = MGlobal::executePythonCommand(MString("import mtoa"), true, false);
    CHECK_MSTATUS(status);
@@ -470,9 +478,10 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    }
    else
    {
-      returnStatus = MStatus::kFailure;
       AiMsgError("Failed to import python module 'mtoa'");
       MGlobal::displayError("Failed to import python module 'mtoa'");
+      ArnoldUniverseEnd();
+      return MStatus::kFailure;
    }
 
    // Register the Arnold renderer
@@ -485,9 +494,10 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    }
    else
    {
-      returnStatus = MStatus::kFailure;
       AiMsgError("Failed to register renderer 'arnold'");
       MGlobal::displayError("Failed to register renderer 'arnold'");
+      ArnoldUniverseEnd();
+      return MStatus::kFailure;
    }
 
    ArnoldUniverseEnd();
