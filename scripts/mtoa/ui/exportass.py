@@ -95,6 +95,12 @@ def arnoldAssOpts(parent = '', action = '', initialSettings = '', resultCallback
         # If more options are used, the callback expects them to be ";" separated
         if cmds.checkBox('oa_write_bbox', q=True, value=True):
             currentOptions = '-bb'
+        # compressed export
+        if cmds.checkBox('oa_compressed', q=True, value=True):
+            if currentOptions == '':
+                currentOptions = '-c'
+            else:
+                currentOptions += ' ; -c'
 
         print 'callback: %(c)s, options: %(o)s\n' % {"c": resultCallback, "o": currentOptions}
         mel.eval(resultCallback+'("'+currentOptions+'")')

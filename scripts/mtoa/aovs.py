@@ -2,16 +2,19 @@ import pymel.core as pm
 import sys
 
 BUILTIN_AOVS = (
+                ('P',       'POINT'),
+                ('Z',       'FLOAT'),
+                ('N',       'VECTOR'),
+                ('OPACITY', 'RGB'),
+                ('motionvector', 'RGB'),
+                ('Pref',    'RGB'),
 #                ('RGB',     'RGB'),
 #                ('RGBA',    'RGBA'),
 #                ('A',       'FLOAT'),
-                ('Z',       'FLOAT'),
-                ('OPACITY', 'RGB'),
 #                ('ID',      'INT'),
 #                ('OBJECT',  'NODE'),
 #                ('SHADER',  'NODE'),
-                ('P',       'POINT'),
-                ('N',       'VECTOR'))
+                )
 
 def getAOVNode():
     return AOVNode(pm.PyNode('defaultArnoldRenderOptions'))

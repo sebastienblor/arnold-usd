@@ -586,7 +586,7 @@ def getCameras():
     Return a tuple of (ortho, mono, stereo) camera lists, converting camera
     shapes to transforms
     '''
-    ortho = [pm.PyNode(x) for x in pm.listCameras(orthographic=True)] or []
+    ortho = [pm.PyNode(x) for x in pm.listCameras(orthographic=True) or []]
     mono = []
     stereo = []
     # List all mono perspective cameras first
@@ -1466,8 +1466,8 @@ def updateArnoldResolution(*args):
                     resDpi = gDefaultDpi
 
                 if width == resWidth and height == resHeight \
-                     and math.abs(aspect - resAspect) < 0.001 \
-                     and (resDpi==0 or math.abs(dpi - resDpi)) < 0.001:
+                     and math.fabs(aspect - resAspect) < 0.001 \
+                     and (resDpi==0 or math.fabs(dpi - resDpi)) < 0.001:
 
                     whichRes = numResolutionPresets + resItem + 2
                     break
@@ -1492,7 +1492,7 @@ def updateArnoldResolution(*args):
             resAspect = pm.getAttr(resNodeName + ".deviceAspectRatio")
 
             if width == resWidth and height == resHeight \
-                  and math.abs(aspect - resAspect) < 0.001:
+                  and math.fabs(aspect - resAspect) < 0.001:
 
                 # We add _2_ to $resItem below: 1 because we're
                 # skipping the first item (Custom) in the list, and 1
@@ -1980,6 +1980,9 @@ def updateArnoldRendererCommonGlobalsTab(*args):
      renderer to reflect values which may have been copied from the previous
      current renderer.
     '''
+    # Re check for aiOptions node to exists
+    pm.createNode('aiOptions', skipSelect=True, shared=True, name="defaultArnoldRenderOptions")
+
     updateArnoldFileNamePrefixControl()
     updateArnoldFileNameFormatControl()
 

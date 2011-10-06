@@ -6,7 +6,7 @@ import mtoa.callbacks as callbacks
 from customShapeAttributes import commonShapeAttributes
 
 def LoadStandInButtonPush(*arg):
-    basicFilter = 'Arnold Archive (*.ass *.obj);;Arnold Procedural (*.so *.dll)'
+    basicFilter = 'Arnold Archive (*.ass *.ass.gz *.obj);;Arnold Procedural (*.so *.dll)'
     ret = cmds.fileDialog2(fileFilter=basicFilter, dialogStyle=2,cap='Load StandIn',okc='Load',fm=4)
     if ret != None:
         if len(ret):
@@ -27,6 +27,19 @@ def ArnoldStandInDsoEdit(mPath) :
     # Sequence of .ass
     elif re.search(r'([-_/a-zA-Z0-9.]+)([0-9.]+)(.ass)',mPath) != None:
         m_groups = re.search(r'([-_/a-zA-Z0-9.]+)([0-9.]+)(.ass)',mPath).groups()
+        mArchivePath = m_groups[0]+'#'+m_groups[2]
+        if '.' in m_groups[1]:
+            cmds.setAttr(nodeName+".useSubFrame",True)
+        else:
+            cmds.setAttr(nodeName+".useSubFrame",False)
+        cmds.setAttr(nodeName+".useFrameExtension",True)
+    # Single .ass.gz
+    elif re.search(r'([-_/a-zA-Z0-9.]+)(\.ass.gz)',mPath) != None:
+        mArchivePath = mPath
+        cmds.setAttr(nodeName+".useFrameExtension",False)
+    # Sequence of .ass.gz
+    elif re.search(r'([-_/a-zA-Z0-9.]+)([0-9.]+)(.ass.gz)',mPath) != None:
+        m_groups = re.search(r'([-_/a-zA-Z0-9.]+)([0-9.]+)(.ass.gz)',mPath).groups()
         mArchivePath = m_groups[0]+'#'+m_groups[2]
         if '.' in m_groups[1]:
             cmds.setAttr(nodeName+".useSubFrame",True)
@@ -208,11 +221,13 @@ def aiStandInTemplate(nodeName):
     cmds.editorTemplate(endScrollLayout=True)
 
 def SaveStandInButtonPush(*arg):
-    basicFilter = "Arnold Source Scene (*.ass)"
+    basicFilter = "Arnold Source Scene (*.ass *.ass.gz)"
     ret = cmds.fileDialog2(fileFilter=basicFilter, dialogStyle=2,cap="Save StandIn",okc="Save",fm=0)
     if ret != None:
         if len(ret):
-            cmds.textField("aiExportFilename", edit=True, text=ret[0].replace(".ass",""))
+            if (".gz") in ret[0]:
+                cmds.checkBox("aiCompressedAss", edit=True, value=True)
+            cmds.textField("aiExportFilename", edit=True, text=ret[0].replace(".ass","").replace(".gz",""))
 
 def SequenceToggleOn(*arg):
    ToggleSequenceLine(True)
@@ -233,20 +248,25 @@ def DoExportStandInArchive(*arg):
    if len(cmds.ls(sl=True)):
       if (name != None) and (name != ""):
          # Output mask for shape and shader only
-         if not cmds.ls('defaultArnoldRenderOptions'):
-            cmds.createNode('aiOptions', skipSelect=True, shared=True, name='defaultArnoldRenderOptions')
+         cmds.createNode('aiOptions', skipSelect=True, shared=True, name='defaultArnoldRenderOptions')
+         # save current output ass mask
          oldOutputMask = cmds.getAttr("defaultArnoldRenderOptions.output_ass_mask")
          cmds.setAttr("defaultArnoldRenderOptions.output_ass_mask", 24)
-
+         # compressed output ?
+         compressed = False
+         if cmds.checkBox("aiCompressedAss", query=True, value=True):
+             compressed = True
+         # Sequence ?
          if cmds.checkBox("aiExportSequence", query=True, value=True):
             start = cmds.floatField("aiExportStart", query=True, value=True)
             end   = cmds.floatField("aiExportEnd", query=True, value=True)
             step  = cmds.floatField("aiExportStep", query=True, value=True)
-            cmds.arnoldExportAss(f=name, s=True, bb=True, sf=start, ef=end, fs=step)
+            cmds.arnoldExportAss(f=name, s=True, bb=True, sf=start, ef=end, fs=step, c=compressed)
          else:
-            cmds.arnoldExportAss(f=name, s=True, bb=True)
+            cmds.arnoldExportAss(f=name, s=True, bb=True, c=compressed)
          # Restore old output mask
          cmds.setAttr("defaultArnoldRenderOptions.output_ass_mask", oldOutputMask)
+         # Delete export window
          cmds.deleteUI("arnold_export_render_object_win")
       else:
          cmds.confirmDialog( title="Error", message="Enter a name", button="Ok", dismissString="Ok", icon="warning" )
@@ -260,14 +280,16 @@ def ArnoldExportRenderObjectWindow(*arg):
    if cmds.window(win, exists=True):
       cmds.deleteUI(win)
     
-   cmds.window(win, title="Export StandIn Archive", resizeToFitChildren=True)
+   cmds.window(win, title="Export StandIn Archive") #, resizeToFitChildren=True)
     
    cmds.frameLayout( label="File", borderStyle='out' )
     
-   cmds.rowColumnLayout( numberOfColumns=3, columnAlign=(1, "right"), columnAttach=[(1, "left", 0), (2, "both", 0), (3, "right", 0)], columnWidth=[(1,145),(3,30)] )
+   cmds.rowColumnLayout( numberOfColumns=3, columnAlign=[(1, "left"),(3,"right")],
+                          columnAttach=[(1, "left", 0), (2, "both", 0), (3, "right", 0)], columnWidth=[(1,145),(3,30)] )
    cmds.text(label="Filename ")
    cmds.textField("aiExportFilename")
    cmds.button( label="...", command=SaveStandInButtonPush)
+   cmds.checkBox("aiCompressedAss",label="Compressed")
    cmds.setParent( '..' )
     
    cmds.setParent( '..' )

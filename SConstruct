@@ -91,7 +91,7 @@ vars.AddVariables(
                    'Path used for installation of icons', 
                    os.path.join('$TARGET_MODULE_PATH', 'icons'), PathVariable.PathIsDirCreate),
       PathVariable('TARGET_DESCR_PATH', 
-                   'Path for renderer description file', 
+                   'Path for renderer description xml file', 
                    '$TARGET_MODULE_PATH', PathVariable.PathIsDirCreate),
       PathVariable('TARGET_SHADER_PATH', 
                    'Path used for installation of arnold shaders', 
@@ -102,6 +102,9 @@ vars.AddVariables(
       PathVariable('TARGET_LIB_PATH', 
                    'Path for libraries', 
                    os.path.join('$TARGET_MODULE_PATH', 'lib'), PathVariable.PathIsDirCreate),
+      PathVariable('TARGET_DOC_PATH', 
+                   'Path for documentation', 
+                   os.path.join('$TARGET_MODULE_PATH', 'docs'), PathVariable.PathIsDirCreate),                  
       PathVariable('TARGET_BINARIES', 
                    'Path for libraries', 
                    os.path.join('$TARGET_MODULE_PATH', 'bin'), PathVariable.PathIsDirCreate),
@@ -127,11 +130,11 @@ if system.os() == 'windows':
 else:
    env = Environment(variables = vars)
 
-env.Append(BUILDERS = {'MakeModule' : make_module})
-
 if env['TARGET_MODULE_PATH'] == '.':
    print "Please define TARGET_MODULE_PATH (Path used for installation of the mtoa plugin)"
    Exit(1)
+
+env.Append(BUILDERS = {'MakeModule' : make_module})
 
 system.set_target_arch(env['TARGET_ARCH'])
 
@@ -150,9 +153,33 @@ if env['COLOR_CMDS']:
    color_bred    = color_red   + color_bright
    color_reset   = Fore.RESET + Back.RESET + Style.RESET_ALL
 
-arnold_version  = get_arnold_version(os.path.join(env.subst(env['ARNOLD_API_INCLUDES']), 'ai_version.h'))
-maya_version    = get_maya_version(os.path.join(env['MAYA_ROOT'], 'include', 'maya', 'MTypes.h'))
+#define shortcuts for the above paths, with substitution of environment variables
+MAYA_ROOT = env.subst(env['MAYA_ROOT'])
+EXTERNAL_PATH = env.subst(env['EXTERNAL_PATH'])
+ARNOLD = env.subst(env['ARNOLD'])
+ARNOLD_API_INCLUDES = env.subst(env['ARNOLD_API_INCLUDES'])
+ARNOLD_API_LIB = env.subst(env['ARNOLD_API_LIB'])
+ARNOLD_BINARIES = env.subst(env['ARNOLD_BINARIES'])
+ARNOLD_PYTHON = env.subst(env['ARNOLD_PYTHON']) 
+TARGET_MODULE_PATH = env.subst(env['TARGET_MODULE_PATH']) 
+TARGET_PLUGIN_PATH = env.subst(env['TARGET_PLUGIN_PATH'])  
+TARGET_SCRIPTS_PATH = env.subst(env['TARGET_SCRIPTS_PATH']) 
+TARGET_PYTHON_PATH = env.subst(env['TARGET_PYTHON_PATH']) 
+TARGET_INCLUDE_PATH = env.subst(env['TARGET_INCLUDE_PATH']) 
+TARGET_ICONS_PATH = env.subst(env['TARGET_ICONS_PATH'])  
+TARGET_DESCR_PATH = env.subst(env['TARGET_DESCR_PATH'])  
+TARGET_SHADER_PATH = env.subst(env['TARGET_SHADER_PATH']) 
+TARGET_EXTENSION_PATH = env.subst(env['TARGET_EXTENSION_PATH']) 
+TARGET_LIB_PATH = env.subst(env['TARGET_LIB_PATH'])  
+TARGET_DOC_PATH = env.subst(env['TARGET_DOC_PATH'])  
+TARGET_BINARIES = env.subst(env['TARGET_BINARIES']) 
+SHAVE_API = env.subst(env['SHAVE_API'])
 
+# Get arnold and maya versions used for this build
+arnold_version  = get_arnold_version(os.path.join(ARNOLD_API_INCLUDES, 'ai_version.h'))
+maya_version    = get_maya_version(os.path.join(MAYA_ROOT, 'include', 'maya', 'MTypes.h'))
+
+# print build info
 print ''
 print 'Building       : ' + 'MtoA %s' % (MTOA_VERSION)
 print 'Arnold version : %s' % arnold_version
@@ -162,6 +189,7 @@ print 'Host OS        : %s' % (system.os())
 print 'Host arch.     : %s' % (system.host_arch())
 print 'Target arch.   : %s' % (system.target_arch())
 print ''
+
 
 ################################
 ## COMPILER OPTIONS
@@ -342,8 +370,8 @@ elif system.os() == 'linux':
    env.Append(CPPDEFINES = Split('_LINUX'))
 
 ## Add path to Arnold API by default
-env.Append(CPPPATH = [env['ARNOLD_API_INCLUDES']])
-env.Append(LIBPATH = [env['ARNOLD_API_LIB'], env['ARNOLD_BINARIES']])
+env.Append(CPPPATH = [ARNOLD_API_INCLUDES])
+env.Append(LIBPATH = [ARNOLD_API_LIB, ARNOLD_BINARIES])
    
 ## configure base directory for temp files
 BUILD_BASE_DIR = os.path.join('build', '%s_%s' % (system.os(), system.target_arch()), maya_version, '%s_%s' % (env['COMPILER'], env['MODE']))
@@ -365,12 +393,12 @@ env['BUILDERS']['MakePackage'] = Builder(action = Action(make_package, "Preparin
 env['ROOT_DIR'] = os.getcwd()
 
 if system.os() == 'windows':
-   maya_include_dir = os.path.join(env['MAYA_ROOT'], 'include')
+   maya_include_dir = os.path.join(env.subst(env['MAYA_ROOT']), 'include')
    maya_env = env.Clone()
    maya_env.Append(CPPPATH = ['.'])
    maya_env.Append(CPPPATH = [maya_include_dir])
    maya_env.Append(CPPDEFINES = Split('NT_PLUGIN REQUIRE_IOSTREAM'))
-   maya_env.Append(LIBPATH = [os.path.join(env['MAYA_ROOT'], 'lib')])
+   maya_env.Append(LIBPATH = [os.path.join(MAYA_ROOT, 'lib')])
    
    maya_env.Append(LIBS=Split('ai.lib OpenGl32.lib glu32.lib Foundation.lib OpenMaya.lib OpenMayaRender.lib OpenMayaUI.lib OpenMayaAnim.lib OpenMayaFX.lib'))
    
@@ -420,16 +448,16 @@ else:
    maya_env.Append(CPPDEFINES = Split('_BOOL REQUIRE_IOSTREAM'))
 
    if system.os() == 'linux':
-      maya_include_dir = os.path.join(env['MAYA_ROOT'], 'include')
+      maya_include_dir = os.path.join(MAYA_ROOT, 'include')
       maya_env.Append(CPPPATH = [maya_include_dir])
       maya_env.Append(LIBS=Split('GL GLU'))
       maya_env.Append(CPPDEFINES = Split('LINUX'))
-      maya_env.Append(LIBPATH = [os.path.join(env['MAYA_ROOT'], 'lib')])
+      maya_env.Append(LIBPATH = [os.path.join(MAYA_ROOT, 'lib')])
    elif system.os() == 'darwin':
       # MAYA_LOCATION on osx includes Maya.app/Contents
-      maya_include_dir = os.path.join(env['MAYA_ROOT'], '../../devkit/include')
+      maya_include_dir = os.path.join(MAYA_ROOT, '../../devkit/include')
       maya_env.Append(CPPPATH = [maya_include_dir])
-      maya_env.Append(LIBPATH = [os.path.join(env['MAYA_ROOT'], 'MacOS')])
+      maya_env.Append(LIBPATH = [os.path.join(MAYA_ROOT, 'MacOS')])
 
    maya_env.Append(LIBS=Split('ai pthread Foundation OpenMaya OpenMayaRender OpenMayaUI OpenMayaAnim OpenMayaFX'))
 
@@ -472,61 +500,61 @@ MTOA_API_DOCS = env.SConscript('docs/doxygen_api/SConscript',
                      exports     = 'env BUILD_BASE_DIR')
 SConscriptChdir(1)
 
-env.Install(env['TARGET_PLUGIN_PATH'], os.path.join('plugins', 'mtoa', 'mtoa.mtd'))
+env.Install(TARGET_PLUGIN_PATH, os.path.join('plugins', 'mtoa', 'mtoa.mtd'))
 if system.os() == 'windows':
    # Rename plugins as .mll and install them in the target path
    mtoa_new = os.path.splitext(str(MTOA[0]))[0] + '.mll'
    env.Command(mtoa_new, str(MTOA[0]), Copy("$TARGET", "$SOURCE"))
-   env.Install(env['TARGET_PLUGIN_PATH'], [mtoa_new])
-   env.Install(env['TARGET_SHADER_PATH'], MTOA_SHADERS[0])
+   env.Install(TARGET_PLUGIN_PATH, [mtoa_new])
+   env.Install(TARGET_SHADER_PATH, MTOA_SHADERS[0])
    libs = glob.glob(os.path.join(env.subst(env['ARNOLD_API_LIB']), '*.lib'))
 else:
-   env.Install(env['TARGET_PLUGIN_PATH'], MTOA)
-   env.Install(env['TARGET_SHADER_PATH'], MTOA_SHADERS)
+   env.Install(TARGET_PLUGIN_PATH, MTOA)
+   env.Install(TARGET_SHADER_PATH, MTOA_SHADERS)
    if system.os() == 'linux':
-       libs = glob.glob(os.path.join(env.subst(env['ARNOLD_API_LIB']), '*.so'))
+       libs = glob.glob(os.path.join(ARNOLD_API_LIB, '*.so'))
    else:
-       libs = glob.glob(os.path.join(env.subst(env['ARNOLD_API_LIB']), '*.dylib'))
+       libs = glob.glob(os.path.join(ARNOLD_API_LIB, '*.dylib'))
 
 env.Install(env['TARGET_LIB_PATH'], libs)
 
-dylibs = glob.glob(os.path.join(env.subst(env['ARNOLD_BINARIES']), '*%s' % get_library_extension()))
-dylibs += glob.glob(os.path.join(env.subst(env['ARNOLD_BINARIES']), '*%s.*' % get_library_extension()))
+dylibs = glob.glob(os.path.join(ARNOLD_BINARIES, '*%s' % get_library_extension()))
+dylibs += glob.glob(os.path.join(ARNOLD_BINARIES, '*%s.*' % get_library_extension()))
 env.Install(env['TARGET_BINARIES'], dylibs)
 
 env.Install(env['TARGET_BINARIES'], MTOA_API[0])
 
 # install mtoa scritps
 pyfiles = find_files_recursive('scripts', ['.py', '.mel'])
-env.InstallAs([os.path.join(env['TARGET_PYTHON_PATH'], x) for x in pyfiles],
+env.InstallAs([os.path.join(TARGET_PYTHON_PATH, x) for x in pyfiles],
               [os.path.join('scripts', x) for x in pyfiles])
 # install Arnold python bindings
-arpybds = find_files_recursive(os.path.join(env.subst(env['ARNOLD_PYTHON'])), ['.py'])
-env.InstallAs([os.path.join(env['TARGET_PYTHON_PATH'], x) for x in arpybds],
-              [os.path.join(env.subst(env['ARNOLD_PYTHON']), x) for x in arpybds])
+arpybds = find_files_recursive(ARNOLD_PYTHON, ['.py'])
+env.InstallAs([os.path.join(TARGET_PYTHON_PATH, x) for x in arpybds],
+              [os.path.join(ARNOLD_PYTHON, x) for x in arpybds])
 # install include files
 apibasepath = os.path.join('plugins', 'mtoa')
-apiheaders = [os.path.join(apibasepath, 'platform', 'Platform.h'),
-              os.path.join(apibasepath, 'common', 'MObjectCompare.h'),
-              os.path.join(apibasepath, 'attributes', 'AttrHelper.h'),
-              os.path.join(apibasepath, 'extension', 'Extension.h'),
-              os.path.join(apibasepath, 'extension', 'AbTranslator.h'),
-              os.path.join(apibasepath, 'extension', 'PxUtils.h'),
-              os.path.join(apibasepath, 'extension', 'PathUtils.h'),
-              os.path.join(apibasepath, 'session', 'ArnoldSession.h'),
-              os.path.join(apibasepath, 'session', 'SessionOptions.h'),
-              os.path.join(apibasepath, 'translators', 'NodeTranslator.h'),
-              os.path.join(apibasepath, 'translators', 'shape', 'ShapeTranslator.h')]
+apiheaders = [os.path.join('platform', 'Platform.h'),
+              os.path.join('common', 'MObjectCompare.h'),
+              os.path.join('attributes', 'AttrHelper.h'),
+              os.path.join('extension', 'Extension.h'),
+              os.path.join('extension', 'AbTranslator.h'),
+              os.path.join('extension', 'PxUtils.h'),
+              os.path.join('extension', 'PathUtils.h'),
+              os.path.join('session', 'ArnoldSession.h'),
+              os.path.join('session', 'SessionOptions.h'),
+              os.path.join('translators', 'NodeTranslator.h'),
+              os.path.join('translators', 'shape', 'ShapeTranslator.h')]
 
-env.InstallAs([os.path.join(env['TARGET_INCLUDE_PATH'], os.path.relpath(x, apibasepath)) for x in apiheaders],
-              apiheaders)
+env.InstallAs([os.path.join(TARGET_INCLUDE_PATH, x) for x in apiheaders],
+              [os.path.join(apibasepath, x) for x in apiheaders])
 # install icons
-env.Install(env['TARGET_ICONS_PATH'], glob.glob(os.path.join('icons', '*.xpm')))
+env.Install(TARGET_ICONS_PATH, glob.glob(os.path.join('icons', '*.xpm')))
 # install renderer description
-env.Install(env['TARGET_DESCR_PATH'], glob.glob(os.path.join('scripts', 'arnoldRenderer.xml')))
+env.Install(TARGET_DESCR_PATH, glob.glob(os.path.join('scripts', 'arnoldRenderer.xml')))
 
-env.MakeModule(env['TARGET_MODULE_PATH'], os.path.join(BUILD_BASE_DIR, 'mtoa.mod'))
-env.Install(env['TARGET_MODULE_PATH'], os.path.join(BUILD_BASE_DIR, 'mtoa.mod'))
+env.MakeModule(TARGET_MODULE_PATH, os.path.join(BUILD_BASE_DIR, 'mtoa.mod'))
+env.Install(TARGET_MODULE_PATH, os.path.join(BUILD_BASE_DIR, 'mtoa.mod'))
 
 ## Sets release package name based on MtoA version, architecture and compiler used.
 ##
@@ -551,7 +579,7 @@ PACKAGE = env.MakePackage(package_name, MTOA + MTOA_API + MTOA_SHADERS + MTOA_AP
 
 ext_env = maya_env.Clone()
 ext_env.Append(CPPPATH = ['plugin', os.path.join(maya_env['ROOT_DIR'], 'plugins', 'mtoa'), env['ARNOLD_API_INCLUDES']])
-ext_env.Append(LIBPATH = ['.', env['ARNOLD_API_LIB'], env['ARNOLD_BINARIES']])
+ext_env.Append(LIBPATH = ['.', ARNOLD_API_LIB, ARNOLD_BINARIES])
 ext_env.Append(LIBPATH = [ os.path.join(maya_env['ROOT_DIR'], os.path.split(str(MTOA[0]))[0]),
                            os.path.join(maya_env['ROOT_DIR'], os.path.split(str(MTOA_API[0]))[0])])
 ext_env.Append(LIBS = ['mtoa_api'])
@@ -609,9 +637,9 @@ for ext in os.listdir(ext_base_dir):
                 ext_files.append(pyfile)
 
 if ext_files:
-   env.Install(env['TARGET_EXTENSION_PATH'], ext_files)
+   env.Install(TARGET_EXTENSION_PATH, ext_files)
 if ext_shaders:
-   env.Install(env['TARGET_SHADER_PATH'], ext_shaders)
+   env.Install(TARGET_SHADER_PATH, ext_shaders)
 
 ## Specifies the files that will be included in the release package.
 ## List items have 2 or 3 elements, with 3 possible formats:
@@ -625,10 +653,10 @@ PACKAGE_FILES = [
 [os.path.join('icons', '*.xpm'), 'icons'],
 [os.path.join('scripts', '*.xml'), '.'],
 [MTOA_API[0], 'bin'],
-[os.path.join(env.subst(env['ARNOLD_API_LIB']), '*.lib'), 'lib'],
-[os.path.join(env.subst(env['ARNOLD_BINARIES']), 'kick%s' % get_executable_extension()), 'bin'],
-[os.path.join(env.subst(env['ARNOLD_BINARIES']), 'maketx%s' % get_executable_extension()), 'bin'],
-[os.path.join(env.subst(env['ARNOLD_BINARIES']), '*%s' % get_library_extension()), 'bin'],
+[os.path.join(ARNOLD_API_LIB, '*.lib'), 'lib'],
+[os.path.join(ARNOLD_BINARIES, 'kick%s' % get_executable_extension()), 'bin'],
+[os.path.join(ARNOLD_BINARIES, 'maketx%s' % get_executable_extension()), 'bin'],
+[os.path.join(ARNOLD_BINARIES, '*%s' % get_library_extension()), 'bin'],
 [os.path.join('plugins', 'mtoa', 'mtoa.mtd'), 'plug-ins'],
 [MTOA_SHADERS[0], 'shaders'],
 [os.path.join(BUILD_BASE_DIR, 'docs', 'api', 'html'), os.path.join('doc', 'api')],
@@ -645,12 +673,17 @@ for p in pyfiles:
 for p in arpybds:
    (d, f) = os.path.split(p)
    PACKAGE_FILES += [
-      [os.path.join(env.subst(env['ARNOLD_PYTHON']), p), os.path.join('scripts', d)]
+      [os.path.join(ARNOLD_PYTHON, p), os.path.join('scripts', d)]
    ]
    
 for p in apiheaders:
+   (d, f) = os.path.split(p)
+   print p, d, f
+   print TARGET_INCLUDE_PATH
+   print os.path.join(TARGET_INCLUDE_PATH, p)
+   print os.path.join('include', d)
    PACKAGE_FILES += [
-      [p, os.path.join('include', os.path.relpath(p, apibasepath))]
+      [os.path.join(TARGET_INCLUDE_PATH, p), os.path.join('include', d)]
    ]
    
 for e in ext_files:
@@ -670,7 +703,7 @@ if system.os() == 'windows':
 elif system.os() == 'linux':
    PACKAGE_FILES += [
       [MTOA[0], 'plug-ins'],
-      [os.path.join(env.subst(env['ARNOLD_BINARIES']), '*%s.*' % get_library_extension()), 'bin'],
+      [os.path.join(ARNOLD_BINARIES, '*%s.*' % get_library_extension()), 'bin'],
    ]
 elif system.os() == 'darwin':
    PACKAGE_FILES += [
