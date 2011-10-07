@@ -4,10 +4,12 @@ import mtoa.utils as utils
 if 'pymel' not in globals():
     # fix for pymel versions less than 1.0.3 (pre-2012)
     import pymel
+    import pymel.versions as versions
+    maya_version = versions.shortName()
     if pymel.__version__ < '1.0.3' and not hasattr(pymel, '_mtoaPatch'):
         import sys
         root = utils.mtoaPackageRoot()
-        path = os.path.join(root, 'mel', '2011')
+        path = os.path.join(root, maya_version)
         sys.path.insert(0, path)
         # clear so pymel reloads
         reload(pymel)
@@ -27,8 +29,8 @@ import mtoa.cmds.arnoldRender as arnoldRender
 
 def _overrideMelScripts():
     root = utils.mtoaPackageRoot()
-    mayaVersion = versions.shortName()
-    for f in glob.glob(os.path.join(root, 'mel', mayaVersion, '*.mel')):
+    maya_version = versions.shortName()
+    for f in glob.glob(os.path.join(root, maya_version, 'mel', '*.mel')):
         pm.mel.source(pm.mel.encodeString(f))
 
 # We need to override this two proc to avoid
