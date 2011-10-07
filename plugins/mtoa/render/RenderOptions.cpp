@@ -34,6 +34,7 @@ CRenderOptions::CRenderOptions()
 ,  m_useRenderRegion(false)
 ,  m_clearBeforeRender(false)
 ,  m_multiCameraRender(false)
+,  m_use_existing_tiled_textures(true)
 ,  m_outputAssMask(AI_NODE_ALL)
 ,  m_log_filename("")
 ,  m_log_max_warnings(100)
@@ -148,6 +149,8 @@ void CRenderOptions::ProcessArnoldRenderOptions()
       m_progressive_rendering    = fnArnoldRenderOptions.findPlug("progressive_rendering").asBool();
       m_sss_sample_factor        = fnArnoldRenderOptions.findPlug("sss_sample_factor").asInt();
       m_clearBeforeRender = fnArnoldRenderOptions.findPlug("clear_before_render").asBool();
+      
+      m_use_existing_tiled_textures = fnArnoldRenderOptions.findPlug("use_existing_tiled_textures").asBool();
 
       m_outputAssFile       = fnArnoldRenderOptions.findPlug("output_ass_filename").asString();
       m_outputAssMask       = fnArnoldRenderOptions.findPlug("output_ass_mask").asInt();

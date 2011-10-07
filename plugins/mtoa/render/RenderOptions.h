@@ -77,6 +77,11 @@ public:
    {
       return m_clearBeforeRender;
    }
+   
+   bool useExistingTiledTextures() const 
+   { 
+     return m_use_existing_tiled_textures; 
+   }
 
    MString outputAssFile() const
    {
@@ -196,6 +201,8 @@ private:
    float    m_AA_sample_clamp;
    bool     m_lock_sampling_noise;
 
+   bool m_use_existing_tiled_textures;
+   
    MString  m_outputAssFile;
 
    bool     m_outputAssBoundingBox;
