@@ -1,6 +1,5 @@
 import maya.cmds as cmds
 import maya.mel as mel
-import mtoa.ui.ae.customShapeAttributes as customShapeAttributes
 from mtoa.ui.ae.aiSwatchDisplay import aiSwatchDisplay
 
 def aiSkyDomeLightTemplate(nodeName):
@@ -29,8 +28,7 @@ def aiSkyDomeLightTemplate(nodeName):
     cmds.editorTemplate("shadowDensity", addControl=True, label="Shadow Density")
     cmds.editorTemplate("shadowColor", addControl=True, label="Shadow Color")
 
-    # r3D: The following line expects a template and not a string and was breaking the layout (trac #427)
-    #customShapeAttributes.commonLightAttributes(nodeName)
+    # FIXME: use light template code here
     cmds.editorTemplate(addSeparator=True)
     cmds.editorTemplate("aiBounceFactor", addControl=True, label="Bounce Factor")
     cmds.editorTemplate("aiBounces", addControl=True, label="Bounces")

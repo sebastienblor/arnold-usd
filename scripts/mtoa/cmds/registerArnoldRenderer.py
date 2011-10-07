@@ -229,9 +229,15 @@ def registerArnoldRenderer():
                         c=lambda *args: pm.createNode('aiStandIn', n='ArnoldStandInShape'))
             pm.menuItem('ArnoldExportStandIn', parent='ArnoldStandIn', label='Export', c=ArnoldExportRenderObjectWindow)
 
-            #cmds.menuItem(parent='ArnoldMenu', divider=True)
+            #cmds.menuItem(parent='ArnoldMenu', divider=True)aiSkyDomeLight1
             # Add option box for file translator
             utils.pyToMelProc(exportass.arnoldAssOpts,
                               [('string', 'parent'), ('string', 'action'),
                                ('string', 'initialSettings'), ('string', 'resultCallback')],
                                useName=True)
+
+            pm.menuItem('ArnoldLights', label='Lights', parent='ArnoldMenu', subMenu=True)
+            pm.menuItem('ArnoldAreaLights', parent='ArnoldLights', label="Area Light",
+                        c=lambda *args: pm.createNode('aiAreaLight', n='aiAreaLight'))
+            pm.menuItem('SkydomeLight', parent='ArnoldLights', label="Skydome Light",
+                        c=lambda *args: pm.createNode('aiSkyDomeLight', n='aiSkyDomeLight'))
