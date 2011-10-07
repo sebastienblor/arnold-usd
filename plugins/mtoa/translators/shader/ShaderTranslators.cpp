@@ -27,6 +27,7 @@
 #include <maya/MRenderUtil.h>
 
 #include <string>
+#include <fstream>
 
 static bool SortFloatArray(AtArray *a, AtUInt *shuffle=NULL)
 {
@@ -387,6 +388,17 @@ void CFileTranslator::Export(AtNode* shader)
    else
    {
       resolvedFilename = FindMayaObjectPlug("filename").asString();
+   }
+   CRenderOptions renderOptions; 
+   renderOptions.GetFromMaya();
+   if(renderOptions.useExistingTiledTextures())
+   { 
+      MString tx_filename(resolvedFilename.substring(0, resolvedFilename.rindexW(".")) + MString("tx"));
+      std::ifstream ifile(tx_filename.asChar());
+      if(ifile.is_open())
+      { 
+         resolvedFilename = tx_filename; 
+      } 
    }
    AiNodeSetStr(shader, "filename", resolvedFilename.asChar());
 

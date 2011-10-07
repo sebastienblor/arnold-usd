@@ -67,6 +67,8 @@ public:
    static MObject s_shutter_type;
    static MObject s_motion_steps;
    static MObject s_motion_frames;
+   
+   static MObject s_use_existing_tiled_textures;
 
    static MObject s_output_ass_filename;
    static MObject s_output_ass_compressed;
