@@ -524,10 +524,16 @@ env.Install(env['TARGET_BINARIES'], dylibs)
 
 env.Install(env['TARGET_BINARIES'], MTOA_API[0])
 
-# install mtoa scritps
-pyfiles = find_files_recursive('scripts', ['.py', '.mel'])
-env.InstallAs([os.path.join(TARGET_PYTHON_PATH, x) for x in pyfiles],
-              [os.path.join('scripts', x) for x in pyfiles])
+# install mtoa common scritps
+scriptfiles = find_files_recursive(os.path.join('scripts', 'mtoa'), ['.py', '.mel'])
+env.InstallAs([os.path.join(TARGET_PYTHON_PATH, 'mtoa', x) for x in scriptfiles],
+              [os.path.join('scripts', 'mtoa', x) for x in scriptfiles])
+
+# install mtoa version specific scritps (myst be done after to allow overwriting)
+versionfiles = find_files_recursive(os.path.join('scripts', maya_version), ['.py', '.mel'])
+env.InstallAs([os.path.join(TARGET_PYTHON_PATH, 'mtoa', maya_version, x) for x in versionfiles],
+              [os.path.join('scripts', maya_version, x) for x in versionfiles])
+
 # install Arnold python bindings
 arpybds = find_files_recursive(ARNOLD_PYTHON, ['.py'])
 env.InstallAs([os.path.join(TARGET_PYTHON_PATH, x) for x in arpybds],
@@ -664,10 +670,17 @@ PACKAGE_FILES = [
 [os.path.join('docs', 'HOW_TO_INSTALL.txt'), 'doc'],
 ]
 
-for p in pyfiles:
+
+for p in scriptfiles:
    (d, f) = os.path.split(p)
    PACKAGE_FILES += [
-      [os.path.join('scripts', p), os.path.join('scripts', d)]
+      [os.path.join('scripts', 'mtoa', p), os.path.join('scripts', 'mtoa', d)]
+   ]
+
+for p in versionfiles:
+   (d, f) = os.path.split(p)
+   PACKAGE_FILES += [
+      [os.path.join('scripts', maya_version, p), os.path.join('scripts', 'mtoa', maya_version, d)]
    ]
 
 for p in arpybds:
@@ -678,10 +691,6 @@ for p in arpybds:
    
 for p in apiheaders:
    (d, f) = os.path.split(p)
-   print p, d, f
-   print TARGET_INCLUDE_PATH
-   print os.path.join(TARGET_INCLUDE_PATH, p)
-   print os.path.join('include', d)
    PACKAGE_FILES += [
       [os.path.join(TARGET_INCLUDE_PATH, p), os.path.join('include', d)]
    ]

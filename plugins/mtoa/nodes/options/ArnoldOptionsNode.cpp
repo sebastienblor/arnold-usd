@@ -51,6 +51,7 @@ MObject CArnoldOptionsNode::s_shutter_offset;
 MObject CArnoldOptionsNode::s_shutter_type;
 MObject CArnoldOptionsNode::s_motion_steps;
 MObject CArnoldOptionsNode::s_motion_frames;
+MObject CArnoldOptionsNode::s_use_existing_tiled_textures;
 MObject CArnoldOptionsNode::s_output_ass_filename;
 MObject CArnoldOptionsNode::s_output_ass_compressed;
 MObject CArnoldOptionsNode::s_output_ass_mask;
@@ -320,6 +321,9 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("texture_accept_unmipped");
    s_attributes.MakeInput("texture_conservative_lookups");
    s_attributes.MakeInput("texture_per_file_stats");
+   s_use_existing_tiled_textures = nAttr.create("use_existing_tiled_textures", "usetx", MFnNumericData::kBoolean, 0); 
+   nAttr.setKeyable(false); 
+   addAttribute(s_use_existing_tiled_textures);
 
    // feature overrides
    s_attributes.MakeInput("ignore_textures");
