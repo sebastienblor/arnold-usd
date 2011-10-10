@@ -256,14 +256,18 @@ def DoExportStandInArchive(*arg):
          compressed = False
          if cmds.checkBox("aiCompressedAss", query=True, value=True):
              compressed = True
+         # ascii output ?
+         binaryAss = True
+         if cmds.checkBox("aiBinaryAss", query=True, value=True):
+             binaryAss = False
          # Sequence ?
          if cmds.checkBox("aiExportSequence", query=True, value=True):
             start = cmds.floatField("aiExportStart", query=True, value=True)
             end   = cmds.floatField("aiExportEnd", query=True, value=True)
             step  = cmds.floatField("aiExportStep", query=True, value=True)
-            cmds.arnoldExportAss(f=name, s=True, bb=True, sf=start, ef=end, fs=step, c=compressed)
+            cmds.arnoldExportAss(f=name, s=True, bb=True, sf=start, ef=end, fs=step, c=compressed, a=binaryAss)
          else:
-            cmds.arnoldExportAss(f=name, s=True, bb=True, c=compressed)
+            cmds.arnoldExportAss(f=name, s=True, bb=True, c=compressed, a=binaryAss)
          # Restore old output mask
          cmds.setAttr("defaultArnoldRenderOptions.output_ass_mask", oldOutputMask)
          # Delete export window
@@ -285,11 +289,15 @@ def ArnoldExportRenderObjectWindow(*arg):
    cmds.frameLayout( label="File", borderStyle='out' )
     
    cmds.rowColumnLayout( numberOfColumns=3, columnAlign=[(1, "left"),(3,"right")],
-                          columnAttach=[(1, "left", 0), (2, "both", 0), (3, "right", 0)], columnWidth=[(1,145),(3,30)] )
+                          columnAttach=[(1, "left", 0), (2, "both", 0), (3, "right", 0)], columnWidth=[(1,145),(2,300),(3,30)] )
    cmds.text(label="Filename ")
    cmds.textField("aiExportFilename")
    cmds.button( label="...", command=SaveStandInButtonPush)
    cmds.checkBox("aiCompressedAss",label="Compressed")
+   cmds.checkBox("aiBinaryAss",label="Binary")
+   cmds.checkBox("aiBinaryAss", edit=True, value=cmds.getAttr("defaultArnoldRenderOptions.binaryAss"))
+   #cmds.connectControl("aiBinaryAss", "defaultArnoldRenderOptions.binaryAss")
+
    cmds.setParent( '..' )
     
    cmds.setParent( '..' )

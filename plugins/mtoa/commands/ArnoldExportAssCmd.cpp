@@ -35,6 +35,7 @@ MSyntax CArnoldExportAssCmd::newSyntax()
    syntax.addFlag("c", "compressed");
    syntax.useSelectionAsDefault(true);
    syntax.setObjectType(MSyntax::kSelectionList);
+   syntax.addFlag("a", "asciiAss");
    return syntax;
 }
 
@@ -99,6 +100,7 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    bool isSequence = false;
    bool subFrames = false;
    bool compressed = false;
+   bool asciiAss   = true;
    double startframe, endframe, framestep;
 
    // Batch mode
@@ -191,6 +193,11 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
       compressed = true;
       assExtension = "ass.gz";
    }
+   // AsciiAss
+   if (argDB.isFlagSet("asciiAss"))
+   {
+      asciiAss = false;
+   }
 
    // Get Maya scene information
    MString sceneName = MFileIO::currentFile();
@@ -268,6 +275,10 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
          CMayaScene::Export();
       // TODO: package all of this in a method
       if (writeBox) AiNodeSetBool(AiUniverseGetOptions(), "preserve_scene_data", true);
+      // ascii ass export
+      if (!asciiAss){
+         AiNodeSetBool(AiUniverseGetOptions(), "binary_ass", false);
+      }
       renderSession->DoAssWrite(curfilename, compressed);
       if (writeBox) renderSession->WriteAsstoc(tocfilename, renderSession->GetBoundingBox());
 

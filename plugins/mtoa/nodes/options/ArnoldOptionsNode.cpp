@@ -388,5 +388,7 @@ MStatus CArnoldOptionsNode::initialize()
    tAttr.setDefault(sData.create("RGBA"));
    addAttribute(s_displayAOV);
 
+   s_attributes.MakeInput("binary_ass");
+
    return MS::kSuccess;
 }

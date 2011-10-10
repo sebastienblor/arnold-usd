@@ -68,6 +68,10 @@ def arnoldAssOpts(parent = '', action = '', initialSettings = '', resultCallback
         if '-bb' in initialSettings:
             cmds.checkBox('oa_write_bbox', edit=True, value=True)
 
+        cmds.checkBox('oa_binary_ass', label='Binary Ass Export')
+        cmds.checkBox('oa_binary_ass', edit=True, value=cmds.getAttr('defaultArnoldRenderOptions.binaryAss'))
+        #cmds.connectControl('oa_binary_ass', 'defaultArnoldRenderOptions.binaryAss')
+
         cmds.separator(style='none')
 
         cmds.text('Export Node Types')
@@ -101,6 +105,12 @@ def arnoldAssOpts(parent = '', action = '', initialSettings = '', resultCallback
                 currentOptions = '-c'
             else:
                 currentOptions += ' ; -c'
+        # ascii export
+        if cmds.checkBox('oa_binary_ass', q=True, value=False):
+            if currentOptions == '':
+                currentOptions = '-a'
+            else:
+                currentOptions += ' ; -a'
 
         print 'callback: %(c)s, options: %(o)s\n' % {"c": resultCallback, "o": currentOptions}
         mel.eval(resultCallback+'("'+currentOptions+'")')

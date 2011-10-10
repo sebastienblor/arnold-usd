@@ -175,6 +175,10 @@ def createArnoldRenderSettings():
                    label='Preserve Scene Data',
                    attribute='defaultArnoldRenderOptions.preserveSceneData')
 
+    pm.attrControlGrp('os_binary_ass',
+                   label='Binary Ass Export',
+                   attribute='defaultArnoldRenderOptions.binaryAss')
+
     pm.separator()
 
     pm.checkBoxGrp('os_threads_autodetect',
