@@ -890,6 +890,11 @@
 [node blackman_harris_filter]
     maya.attr_prefix        STRING  "filter_"
     maya.translator         STRING  "blackman_harris"
+    # we put 2 as default here to have 2 for gaussian as default. Kinda ugly but since
+    # blackman harris filter is the first to create the filter width attribute on defaultArnoldGlobal
+    # it's the only way we got for the moment.
+    [attr width]
+        default             FLOAT   2.0
 
 [node box_filter]
     maya.attr_prefix        STRING  "filter_"
@@ -927,12 +932,7 @@
     maya.attr_prefix        STRING  "filter_"
     maya.translator         STRING  "farthest"
 
-[node gaussian_filter]
-    maya.attr_prefix        STRING  "filter_"
-    maya.translator         STRING  "gaussian"
-
 [node heatmap_filter]
-
     maya.attr_prefix        STRING  "filter_"
     maya.translator         STRING  "heatmap"
 
@@ -943,16 +943,28 @@
 [node sinc_filter]
     maya.attr_prefix        STRING  "filter_"
     maya.translator         STRING  "sinc"
+    [attr width]
+        default             FLOAT   2.0
 
 [node triangle_filter]
     maya.attr_prefix        STRING  "filter_"
     maya.translator         STRING  "triangle"
+    [attr width]
+        default             FLOAT   2.0
 
 [node variance_filter]
     maya.attr_prefix        STRING  "filter_"
     maya.translator         STRING  "variance"
+    [attr width]
+        default             FLOAT   2.0
 
 [node video_filter]
     maya.attr_prefix        STRING  "filter_"
     maya.translator         STRING  "video"
+
+[node gaussian_filter]
+    maya.attr_prefix        STRING  "filter_"
+    maya.translator         STRING  "gaussian"
+    [attr width]
+        default             FLOAT   2.0
 
