@@ -279,7 +279,7 @@ def createArnoldSamplingSettings():
 
     pm.intSliderGrp('ss_AA_samples',
                         label="AA Samples",
-                        minValue = -10,
+                        minValue = 1,
                         maxValue = 10,
                         fieldMinValue=-10,
                         fieldMaxValue=100,

@@ -26,7 +26,7 @@
         maya.keyable        BOOL    False
         min                 INT     -10
         max                 INT     100
-        softmin             INT     -10
+        softmin             INT     1
         softmax             INT     10
         default             INT     3
         maya.orig_shortname STRING  "AAsmpls"
