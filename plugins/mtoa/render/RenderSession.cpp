@@ -91,7 +91,8 @@ unsigned int CRenderSession::RenderThread(AtVoid* data)
    CRenderOptions * render_options = static_cast< CRenderOptions * >(data);
    // set progressive start point on AA
    const AtInt num_aa_samples = AiNodeGetInt(AiUniverseGetOptions(), "AA_samples");
-   AtInt init_progressive_samples = render_options->isProgressive() ? -3 : num_aa_samples;
+   const AtInt sminInit = render_options->progressiveInitialLevel();
+   AtInt init_progressive_samples = render_options->isProgressive() ? sminInit : num_aa_samples;
    AtUInt prog_passes = render_options->isProgressive() ? ((-init_progressive_samples) + 2) : 1;
 
    // Get rid of any previous renders tiles that have not yet

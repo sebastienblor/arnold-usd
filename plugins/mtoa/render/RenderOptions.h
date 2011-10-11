@@ -141,6 +141,11 @@ public:
       return m_progressive_rendering;
    }
 
+   int progressiveInitialLevel() const
+   {
+      return m_progressive_initial_level;
+   }
+
    void SetProgressive(const bool is_progressive)
    {
       m_progressive_rendering = is_progressive;
@@ -191,6 +196,7 @@ private:
    MCommonRenderSettingsData m_defaultRenderGlobalsData;
 
    bool     m_progressive_rendering;
+   AtUInt   m_progressive_initial_level;
    AtUInt   m_threads;
    MString  m_plugins_path;
 

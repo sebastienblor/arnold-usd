@@ -27,6 +27,7 @@ MObject CArnoldOptionsNode::s_aovMode;
 MObject CArnoldOptionsNode::s_renderType;
 MObject CArnoldOptionsNode::s_outputAssBoundingBox;
 MObject CArnoldOptionsNode::s_progressive_rendering;
+MObject CArnoldOptionsNode::s_progressive_initial_level;
 MObject CArnoldOptionsNode::s_threads;
 MObject CArnoldOptionsNode::s_threads_autodetect;
 MObject CArnoldOptionsNode::s_clear_before_render;
@@ -146,6 +147,14 @@ MStatus CArnoldOptionsNode::initialize()
    s_progressive_rendering = nAttr.create("progressive_rendering", "prog", MFnNumericData::kBoolean, 0);
    nAttr.setKeyable(false);
    addAttribute(s_progressive_rendering);
+
+   s_progressive_initial_level = nAttr.create("progressive_initial_level", "progil", MFnNumericData::kInt, -3);
+   nAttr.setKeyable(false);
+   nAttr.setMin(-10);
+   nAttr.setMax(100);
+   nAttr.setSoftMin(-10);
+   nAttr.setSoftMax(10);
+   addAttribute(s_progressive_initial_level);
 
    s_attributes.MakeInput("physically_based");
 

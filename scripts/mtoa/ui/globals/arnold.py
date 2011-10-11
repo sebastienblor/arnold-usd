@@ -163,6 +163,10 @@ def createArnoldRenderSettings():
                    label='Progressive Rendering',
                    attribute='defaultArnoldRenderOptions.progressive_rendering')
 
+    pm.attrControlGrp('os_progressive_initial_level',
+                    label="Progressive Initial Level",
+                    attribute='defaultArnoldRenderOptions.progressive_initial_level')
+
     pm.attrControlGrp('os_physically_based',
                    label="Physically Based",
                    attribute='defaultArnoldRenderOptions.physicallyBased')

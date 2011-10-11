@@ -146,7 +146,8 @@ void CRenderOptions::ProcessArnoldRenderOptions()
       MPlugArray conns;
       MFnDependencyNode fnArnoldRenderOptions(node);
 
-      m_progressive_rendering    = fnArnoldRenderOptions.findPlug("progressive_rendering").asBool();
+      m_progressive_rendering     = fnArnoldRenderOptions.findPlug("progressive_rendering").asBool();
+      m_progressive_initial_level = fnArnoldRenderOptions.findPlug("progressive_initial_level").asInt();
       m_sss_sample_factor        = fnArnoldRenderOptions.findPlug("sss_sample_factor").asInt();
       m_clearBeforeRender = fnArnoldRenderOptions.findPlug("clear_before_render").asBool();
       
