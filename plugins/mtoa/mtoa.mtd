@@ -24,13 +24,13 @@
     maya.id                 INT     0x00115C00
     [attr AA_samples]
         maya.keyable        BOOL    False
-        min                 INT     0
+        min                 INT     -10
         max                 INT     100
-        softmin             INT     1
+        softmin             INT     -10
         softmax             INT     10
         default             INT     3
         maya.orig_shortname STRING  "AAsmpls"
-    [attr bucket_scanning]
+   [attr bucket_scanning]
         maya.keyable        BOOL    False
         maya.orig_shortname STRING  "bktsc"
     [attr bucket_size]

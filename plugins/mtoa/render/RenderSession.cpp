@@ -93,22 +93,22 @@ unsigned int CRenderSession::RenderThread(AtVoid* data)
    const AtInt num_aa_samples = AiNodeGetInt(AiUniverseGetOptions(), "AA_samples");
    const AtInt sminInit = render_options->progressiveInitialLevel();
    AtInt init_progressive_samples = render_options->isProgressive() ? sminInit : num_aa_samples;
-   AtUInt prog_passes = render_options->isProgressive() ? ((-init_progressive_samples) + 2) : 1;
 
    // Get rid of any previous renders tiles that have not yet
    // been displayed.
    InitializeDisplayUpdateQueue();
 
    AtULong ai_status(AI_SUCCESS);
-   for (AtUInt i = 0; (i < prog_passes); ++i)
+   for (int i = init_progressive_samples; i <= num_aa_samples; i++)
    {
-      AtInt sampling = i + init_progressive_samples;
-      if (i + 1 == prog_passes) sampling = num_aa_samples;
+      AtInt sampling = i ;
+      if (sampling >= 0) sampling = num_aa_samples;
 
       AiNodeSetInt(AiUniverseGetOptions(), "AA_samples", sampling);
       // Begin a render!
       ai_status = AiRender(AI_RENDER_MODE_CAMERA);
       if (ai_status != AI_SUCCESS) break;
+      if (sampling > 0) break;
    }
 
    // Put this back after we're done interating through.

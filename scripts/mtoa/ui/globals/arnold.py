@@ -21,6 +21,8 @@ def updateComputeSamples(*args):
     glossyDepth = pm.getAttr('defaultArnoldRenderOptions.GIGlossyDepth')
     refractionDepth = pm.getAttr('defaultArnoldRenderOptions.GIRefractionDepth')
     
+    if AASamples <= 0:
+        AASamples = 1
     AASamplesComputed = AASamples * AASamples
     
     GISamplesComputed = GISamples * GISamples * AASamplesComputed
@@ -277,7 +279,9 @@ def createArnoldSamplingSettings():
 
     pm.intSliderGrp('ss_AA_samples',
                         label="AA Samples",
+                        minValue = -10,
                         maxValue = 10,
+                        fieldMinValue=-10,
                         fieldMaxValue=100,
                         cc=lambda *args: pm.evalDeferred(updateComputeSamples)
                         )
