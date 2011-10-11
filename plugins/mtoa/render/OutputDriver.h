@@ -22,6 +22,8 @@ void ProcessDisplayUpdateQueueWithInterupt(MComputation & comp);
 /// param refresh the render view is slow to refresh, so pass false if possible.
 bool ProcessSomeOfDisplayUpdateQueue(const bool refresh=true);
 
+void RefreshRenderViewBBox();
+
 /// Clear the queue.
 void ClearDisplayUpdateQueue();
 

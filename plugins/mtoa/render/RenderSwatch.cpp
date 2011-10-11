@@ -482,11 +482,21 @@ bool CRenderSwatchGenerator::doIteration()
 {
    MStatus status;
 
+   // Arnold is in IPR mode, no point wasting our time with a swatch.
+   // Return true so were not called again.
+   if ( CMayaScene::GetArnoldSession()->GetSessionMode() == MTOA_SESSION_IPR)
+   {
+      return true;
+   }
+
    // Arnold is rendering, so bail out.
    // Return false to be called again.
    // This is how we manage to render many
    // swatches "at the same time".
-   if (AiRendering()) return false;
+   if (AiRendering())
+   {
+      return false;
+   }
 
    if (m_iteration == 0)
    {
@@ -496,7 +506,6 @@ bool CRenderSwatchGenerator::doIteration()
       // Arnold can only render one thing at a time.
       // It may be an option to block/wait here, but only
       // if it's another swatch render taking place.
-      // if (CMayaScene::GetRenderSession()->IsActive()) return false;
       if (AiUniverseIsActive()) return false;
 
       // Build the swatch scene

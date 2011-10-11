@@ -119,6 +119,7 @@ private:
       : m_paused_ipr(false)
       , m_is_active(false)
       , m_idle_cb(0)
+      , m_timer_cb(0)
       , m_render_thread(NULL)
    {
    }
@@ -131,8 +132,12 @@ private:
    /// The idle callback is used to update the
    /// render view when rendering IPR.
    void AddIdleRenderViewCallback();
-   static void updateRenderViewCallback(void *);
    void ClearIdleRenderViewCallback();
+   /// Tells the render view to update the image, it's called during idle time.
+   static void RefreshRenderView(float, float, void *);
+   /// Passes the pending tiles from the output driver to the render view, called by a
+   /// timer so we don't overload the render view (it's very slow).
+   static void TransferTilesToRenderView(void*);
 
 private:
 
@@ -145,6 +150,7 @@ private:
    /// \see updateRenderViewCallback
    /// \see ClearIdleRenderViewCallback
    MCallbackId    m_idle_cb;
+   MCallbackId    m_timer_cb;
 
    /// This is a pointer to the thread which is running RenderThread.
    AtVoid*        m_render_thread;

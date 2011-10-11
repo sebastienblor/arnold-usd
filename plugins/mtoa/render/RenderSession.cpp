@@ -22,6 +22,7 @@
 #include <maya/MComputation.h>
 #include <maya/MEventMessage.h>
 #include <maya/MNodeMessage.h>
+#include <maya/MTimerMessage.h>
 #include <maya/MMessage.h> // for MCallbackId
 #include <maya/MCommonRenderSettingsData.h>
 #include <maya/MRenderUtil.h>
@@ -69,9 +70,17 @@ namespace
 // This will update the render view if needed.
 // It's called from a maya idle event callback.
 // This means it's called a *lot*.
-void CRenderSession::updateRenderViewCallback(void *)
+void CRenderSession::RefreshRenderView(float, float, void *)
 {
-   ProcessSomeOfDisplayUpdateQueue();
+   // This will make the render view show any tiles.
+   RefreshRenderViewBBox();
+}
+
+void CRenderSession::TransferTilesToRenderView(void*)
+{
+   // Send the tiles to the render view. The false argument
+   // tells it not to display them just yet.
+   ProcessUpdateMessage(false);
 }
 
 // This is the code for the render thread. This version is used for IPR
@@ -320,7 +329,7 @@ void CRenderSession::DoInteractiveRender()
    MComputation comp;
    comp.beginComputation();
 
-   PrepareRenderView(false);
+   PrepareRenderView();
 
    // Start the render thread.
    m_render_thread = AiThreadCreate(CRenderSession::RenderThread,
@@ -333,6 +342,7 @@ void CRenderSession::DoInteractiveRender()
    // This returns when the render is done or if someone
    // has hit escape.
    ProcessDisplayUpdateQueueWithInterupt(comp);
+
    comp.endComputation();
 }
 
@@ -520,9 +530,9 @@ MStatus CRenderSession::PrepareRenderView(bool addIdleRenderViewUpdate)
    else
    {
       status = MRenderView::startRender(m_renderOptions.width(),
-                                          m_renderOptions.height(),
-                                          !m_renderOptions.clearBeforeRender(),
-                                          true);
+                                        m_renderOptions.height(),
+                                        !m_renderOptions.clearBeforeRender(),
+                                        true);
    }
 
    if (MStatus::kSuccess != status)
@@ -584,24 +594,42 @@ AtUInt64 CRenderSession::GetUsedMemory()
 
 void CRenderSession::AddIdleRenderViewCallback()
 {
-   if (0 == m_idle_cb)
+   MStatus status;
+   if (m_idle_cb == 0)
    {
-      MStatus status;
       m_idle_cb = MEventMessage::addEventCallback("idle",
-                                                   CRenderSession::updateRenderViewCallback,
+                                                   CRenderSession::TransferTilesToRenderView,
                                                    NULL,
                                                    &status);
+   }
+
+   if (m_timer_cb == 0)
+   {
+      // This is called at ~24 times a second.
+      m_timer_cb = MTimerMessage::addTimerCallback( 1.0f / 24.0f,
+                                                    CRenderSession::RefreshRenderView,
+                                                    NULL,
+                                                    &status);
    }
 }
 
 void CRenderSession::ClearIdleRenderViewCallback()
 {
    // Don't clear the callback if we're in the middle of a render.
-   if (m_idle_cb != 0)
+   if (m_idle_cb != 0 || m_timer_cb != 0)
    {
-      MMessage::removeCallback(m_idle_cb);
       MRenderView::endRender();
-      m_idle_cb = 0;
+      if (m_idle_cb != 0)
+      {
+         MMessage::removeCallback(m_idle_cb);
+         m_idle_cb = 0;
+      }
+   
+      if (m_timer_cb != 0)
+      {
+         MMessage::removeCallback(m_timer_cb);
+         m_timer_cb = 0;
+      }
    }
 }
 

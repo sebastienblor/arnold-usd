@@ -31,8 +31,9 @@ AI_DRIVER_NODE_EXPORT_METHODS(mtoa_driver_mtd);
 
 struct COutputDriverData
 {
-   AtUInt    imageWidth, imageHeight;
+   AtBBox2   refresh_bbox;
    float     gamma;
+   AtUInt    imageWidth, imageHeight;
    AtBoolean rendering;
 };
 
@@ -120,13 +121,6 @@ driver_prepare_bucket
                                bucket_xo + bucket_size_x - 1, bucket_yo + bucket_size_y - 1,
                                NULL) ;
 
-   // msg.msgType = MSG_BUCKET_PREPARE;
-   // msg.bucketRect.minx = bucket_xo;
-   // msg.bucketRect.miny = bucket_yo;
-   // msg.bucketRect.maxx = bucket_xo + bucket_size_x - 1;
-   // msg.bucketRect.maxy = bucket_yo + bucket_size_y - 1;
-   // msg.pixels          = NULL;
-
    s_displayUpdateQueue.push(msg);
 }
 
@@ -166,8 +160,6 @@ driver_write_bucket
                AtUInt out_idx = targetY * bucket_size_x + targetX;
                RV_PIXEL* pixel = &pixels[out_idx];
 
-               // JS: Commented this out, makes no sense.
-               //AiColorClamp(rgb, rgb, 0, 1);
                AiColorGamma(&rgb, s_outputDriverData.gamma);
 
                pixel->r = rgb.r * 255;
@@ -195,8 +187,6 @@ driver_write_bucket
                AtUInt out_idx = targetY * bucket_size_x + targetX;
                RV_PIXEL* pixel = &pixels[out_idx];
 
-               // JS: Commented this out, makes no sense.
-               //AiRGBAClamp(rgba, rgba, 0, 1);
                AiRGBAGamma(&rgba, s_outputDriverData.gamma);
 
                pixel->r = rgba.r * 255;
@@ -239,13 +229,39 @@ node_finish
 void UpdateBucket(const AtBBox2& bucketRect, RV_PIXEL* pixels, const bool refresh)
 {
    // Flip vertically
-   AtInt   miny = s_outputDriverData.imageHeight - bucketRect.maxy - 1;
-   AtInt   maxy = s_outputDriverData.imageHeight - bucketRect.miny - 1;
+   const AtInt miny = s_outputDriverData.imageHeight - bucketRect.maxy - 1;
+   const AtInt maxy = s_outputDriverData.imageHeight - bucketRect.miny - 1;
 
    MRenderView::updatePixels(bucketRect.minx, bucketRect.maxx, miny, maxy, pixels);
-   if (refresh) MRenderView::refresh(bucketRect.minx, bucketRect.maxx, miny, maxy);
+   if (refresh)
+   {
+      MRenderView::refresh(bucketRect.minx, bucketRect.maxx, miny, maxy);
+   }
+   else
+   {
+      // Expand the bounding box for the render view refresh in RefreshRenderViewBBox().
+      if (bucketRect.minx < s_outputDriverData.refresh_bbox.minx)
+         s_outputDriverData.refresh_bbox.minx = bucketRect.minx;
+      
+      if (bucketRect.maxx > s_outputDriverData.refresh_bbox.maxx)
+         s_outputDriverData.refresh_bbox.maxx = bucketRect.maxx;
+      
+      if (miny < s_outputDriverData.refresh_bbox.miny)
+         s_outputDriverData.refresh_bbox.miny = miny;
+      
+      if (maxy > s_outputDriverData.refresh_bbox.maxy)
+         s_outputDriverData.refresh_bbox.maxy = maxy;
+   }
 
    delete[] pixels;
+}
+
+void RefreshRenderViewBBox()
+{
+   MRenderView::refresh(s_outputDriverData.refresh_bbox.minx,
+                        s_outputDriverData.refresh_bbox.maxx,
+                        s_outputDriverData.refresh_bbox.miny,
+                        s_outputDriverData.refresh_bbox.maxy);
 }
 
 // Please note: this function flips the Y as the resulting
