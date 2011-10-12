@@ -1,6 +1,8 @@
 #ifndef MOBJECTCOMPARE_H
 #define MOBJECTCOMPARE_H
 
+#include <cstring>
+
 #include <maya/MObjectHandle.h>
 #include <maya/MDagPath.h>
 #include <maya/MPlug.h>
