@@ -8,6 +8,8 @@ BUILTIN_AOVS = (
                 ('OPACITY', 'RGB'),
                 ('motionvector', 'RGB'),
                 ('Pref',    'RGB'),
+                ('raycount','FLOAT'),
+                ('cputime', 'FLOAT'),
 #                ('RGB',     'RGB'),
 #                ('RGBA',    'RGBA'),
 #                ('A',       'FLOAT'),
