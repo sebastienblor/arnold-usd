@@ -411,21 +411,6 @@ void ProcessDisplayUpdateQueue()
    }
 }
 
-bool ProcessSomeOfDisplayUpdateQueue(const bool refresh)
-{
-   // If we're done, do the whole queue.
-   if (s_finishedRendering)
-   {
-      ProcessDisplayUpdateQueue();
-      return false;
-   }
-   // Otherwise we just to a bit of it.
-   else
-   {
-      return ProcessUpdateMessage(refresh);
-   }
-}
-
 void ProcessDisplayUpdateQueueWithInterupt(MComputation & comp)
 {
    // Break out the loop when we've displayed the last complete image.

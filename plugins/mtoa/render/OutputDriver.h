@@ -18,10 +18,6 @@ void ProcessDisplayUpdateQueue();
 /// \param comp a MComputation that should already have had begin() called.
 void ProcessDisplayUpdateQueueWithInterupt(MComputation & comp);
 
-/// Process one message from the queue unless rendering is done, in which case the whole queue is processed.
-/// param refresh the render view is slow to refresh, so pass false if possible.
-bool ProcessSomeOfDisplayUpdateQueue(const bool refresh=true);
-
 void RefreshRenderViewBBox();
 
 /// Clear the queue.
