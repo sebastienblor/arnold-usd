@@ -659,7 +659,6 @@ PACKAGE_FILES = [
 [os.path.join('icons', '*.xpm'), 'icons'],
 [os.path.join('scripts', '*.xml'), '.'],
 [MTOA_API[0], 'bin'],
-[os.path.join(ARNOLD_API_LIB, '*.lib'), 'lib'],
 [os.path.join(ARNOLD_BINARIES, 'kick%s' % get_executable_extension()), 'bin'],
 [os.path.join(ARNOLD_BINARIES, 'maketx%s' % get_executable_extension()), 'bin'],
 [os.path.join(ARNOLD_BINARIES, '*%s' % get_library_extension()), 'bin'],
