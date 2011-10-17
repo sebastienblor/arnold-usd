@@ -147,7 +147,6 @@ private:
 
    /// This is a special callback installed to update the render view while Arnold is rendering in IPR.
    /// \see AddIdleRenderViewCallback
-   /// \see updateRenderViewCallback
    /// \see ClearIdleRenderViewCallback
    MCallbackId    m_idle_cb;
    MCallbackId    m_timer_cb;
