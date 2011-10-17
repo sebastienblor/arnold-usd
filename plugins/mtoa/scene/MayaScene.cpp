@@ -107,7 +107,6 @@ MStatus CMayaScene::Begin(ArnoldSessionMode mode)
    {
       renderOptions.GetFromMaya();
       //renderOptions.SetBatch(false);
-      renderOptions.SetProgressive(true);
       renderOptions.SetupLog();
       status = SetupIPRCallbacks();
    }
@@ -115,6 +114,7 @@ MStatus CMayaScene::Begin(ArnoldSessionMode mode)
    {
       renderOptions.GetFromMaya();
       //renderOptions.SetBatch(false);
+      renderOptions.SetProgressive(false);
       renderOptions.SetupLog();
    }
    else if (mode == MTOA_SESSION_BATCH)

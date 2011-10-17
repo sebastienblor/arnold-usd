@@ -157,10 +157,6 @@ def createArnoldRenderSettings():
                    label="Render Type",
                    attribute='defaultArnoldRenderOptions.renderType')
 
-    pm.attrControlGrp('os_outputAssBoundingBox',
-                   label="Export BoundingBox",
-                   attribute='defaultArnoldRenderOptions.outputAssBoundingBox')                   
-
     pm.attrControlGrp('os_progressive_rendering',
                    label='Progressive Rendering',
                    attribute='defaultArnoldRenderOptions.progressive_rendering')
@@ -168,35 +164,6 @@ def createArnoldRenderSettings():
     pm.attrControlGrp('os_progressive_initial_level',
                     label="Progressive Initial Level",
                     attribute='defaultArnoldRenderOptions.progressive_initial_level')
-
-    pm.attrControlGrp('os_physically_based',
-                   label="Physically Based",
-                   attribute='defaultArnoldRenderOptions.physicallyBased')
-    
-    pm.attrControlGrp('os_enable_hit_refinement',
-                   label="Enable Hit Refinement",
-                   attribute='defaultArnoldRenderOptions.enable_hit_refinement')
-
-    pm.attrControlGrp('os_preserve_scene_data',
-                   label='Preserve Scene Data',
-                   attribute='defaultArnoldRenderOptions.preserveSceneData')
-
-    pm.attrControlGrp('os_binary_ass',
-                   label='Binary Ass Export',
-                   attribute='defaultArnoldRenderOptions.binaryAss')
-
-    pm.separator()
-
-    pm.checkBoxGrp('os_threads_autodetect',
-                     cc=updateRenderSettings,
-                     label='',
-                     label1='Autodetect Threads')
-
-    pm.connectControl('os_threads_autodetect', 'defaultArnoldRenderOptions.threads_autodetect', index=2)
-
-    pm.attrControlGrp('os_threads',
-                   label="Threads",
-                   attribute='defaultArnoldRenderOptions.threads')
 
     pm.separator()
 
@@ -214,6 +181,47 @@ def createArnoldRenderSettings():
 
     pm.separator()
 
+    pm.checkBoxGrp('os_threads_autodetect',
+                     cc=updateRenderSettings,
+                     label='',
+                     label1='Autodetect Threads')
+
+    pm.connectControl('os_threads_autodetect', 'defaultArnoldRenderOptions.threads_autodetect', index=2)
+
+    pm.attrControlGrp('os_threads',
+                   label="Threads",
+                   attribute='defaultArnoldRenderOptions.threads')
+
+    pm.separator()
+
+    pm.attrControlGrp('os_binary_ass',
+                   label='Binary Ass Export',
+                   attribute='defaultArnoldRenderOptions.binaryAss')
+
+    pm.attrControlGrp('os_outputAssBoundingBox',
+                   label="Export BoundingBox",
+                   attribute='defaultArnoldRenderOptions.outputAssBoundingBox')                   
+
+    pm.attrControlGrp('os_preserve_scene_data',
+                   label='Preserve Scene Data',
+                   attribute='defaultArnoldRenderOptions.preserveSceneData')
+
+    pm.separator()
+
+    pm.attrControlGrp('os_enable_hit_refinement',
+                   label="Enable Hit Refinement",
+                   attribute='defaultArnoldRenderOptions.enable_hit_refinement')
+
+    pm.attrControlGrp('os_physically_based',
+                   label="Physically Based",
+                   attribute='defaultArnoldRenderOptions.physicallyBased')
+    
+    pm.attrControlGrp('os_shadow_terminator_fix',
+                   label="Shadow Terminator Fix",
+                   attribute='defaultArnoldRenderOptions.shadowTerminatorFix')
+
+    pm.separator()
+
     pm.attrControlGrp('os_abort_on_error',
                    label="Abort On Error",
                    attribute='defaultArnoldRenderOptions.abortOnError')
@@ -225,10 +233,6 @@ def createArnoldRenderSettings():
     pm.attrControlGrp('os_skip_license_check',
                    label="Skip License Check",
                    attribute='defaultArnoldRenderOptions.skip_license_check')
-
-    pm.attrControlGrp('os_shadow_terminator_fix',
-                   label="Shadow Terminator Fix",
-                   attribute='defaultArnoldRenderOptions.shadowTerminatorFix')
 
     pm.separator()
 

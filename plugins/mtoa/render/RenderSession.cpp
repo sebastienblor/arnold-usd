@@ -554,7 +554,6 @@ void CRenderSession::DoIPRRender()
 
    if (!m_paused_ipr)
    {
-      SetProgressive(true);
       PrepareRenderView(true); // Install callbacks.
 
       // Start the render thread.
