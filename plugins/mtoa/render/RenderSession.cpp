@@ -605,8 +605,7 @@ void CRenderSession::AddIdleRenderViewCallback()
 
    if (m_timer_cb == 0)
    {
-      // This is called at ~24 times a second.
-      m_timer_cb = MTimerMessage::addTimerCallback( 1.0f / 8.0f,
+      m_timer_cb = MTimerMessage::addTimerCallback( 1.0f / 12.0f,
                                                     CRenderSession::RefreshRenderView,
                                                     NULL,
                                                     &status);
