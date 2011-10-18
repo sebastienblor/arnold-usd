@@ -35,8 +35,8 @@
         maya.orig_shortname STRING  "bktsc"
     [attr bucket_size]
         maya.keyable        BOOL    False
-        min                 INT     1
-        softmin             INT     1
+        min                 INT     16
+        softmin             INT     16
         softmax             INT     256
         maya.orig_shortname STRING  "bktsz"
     [attr abort_on_error]
