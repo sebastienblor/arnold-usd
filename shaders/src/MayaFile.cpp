@@ -175,8 +175,8 @@ shader_evaluate
       outV += offset.y;
 
       outDuDx *= icx * repeat.x;
-      outDuDy *= icy * repeat.y;
-      outDvDx *= icx * repeat.x;
+      outDuDy *= icx * repeat.x;
+      outDvDx *= icy * repeat.y;
       outDvDy *= icy * repeat.y;
 
       // do mirror, stagger before rotation
