@@ -1,0 +1,6 @@
+Changing the Device Aspect Ratio and the Pixel Aspect Ratio
+
+Changing the Device Aspect Ratio or the Pixel Aspect Ratios gives an error (trac #505)
+This tests checks an image with a custom set device aspect ratio and pixel aspect ratio
+
+author: r3D
