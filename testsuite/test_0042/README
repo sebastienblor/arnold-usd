@@ -1,0 +1,8 @@
+Suboptimal filtering when tiling a texture over an object with MayaFile
+
+Using a MayaFile? shader in an object with a big repetition in the tiling 
+will produce progressive suboptimal filtering.
+This doesn't happen using the builtin image shader with a tscale of 150.
+See (trac #536)
+
+author: r3D
