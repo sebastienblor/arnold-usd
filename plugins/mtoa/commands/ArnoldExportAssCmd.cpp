@@ -268,6 +268,8 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
                                               subFrames,
                                               batch, &status);
 
+      // We can't precompute sList since it won't survive moving from frame to frame with viewFrame
+      argDB.getObjects(sList);
       // Export the scene or the selection
       if (exportSelected)
          CMayaScene::Export(&sList);
