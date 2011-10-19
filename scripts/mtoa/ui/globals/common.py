@@ -1834,7 +1834,7 @@ def adjustArnoldDeviceAspect(node):
     oldParent = pm.setParent(query=True)
     setParentToArnoldCommonTab()
 
-    devAspect = node.deviceAspectRatio.get()
+    devAspect = node.deviceAspectRatio
     width = node.width.get()
     height = node.height.get()
 
@@ -1865,7 +1865,7 @@ def updateArnoldDeviceAspectRatio(*args):
     setParentToArnoldCommonTab()
 
     pm.setAttr('defaultResolution.deviceAspectRatio', pm.floatFieldGrp('resRatio', q=True, v1=True))
-    adjustArnoldPixelAspect('defaultResolution')
+    adjustArnoldPixelAspect(pm.nt.DependNode('defaultResolution'))
     updateArnoldResolution()
 
     pm.setParent(oldParent)
