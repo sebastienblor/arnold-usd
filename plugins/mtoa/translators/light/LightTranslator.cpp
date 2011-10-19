@@ -25,7 +25,7 @@
 #include <vector>
 #include <string>
 
-void CLightTranslator::ExportLightFilters(AtNode* light, const MObjectArray &filterNodes)
+void CLightTranslator::ExportLightFilters(AtNode* light, const MPlugArray &filterNodes)
 {
    std::vector<AtNode*> filters;
 
@@ -79,7 +79,7 @@ void CLightTranslator::Export(AtNode* light)
    MPlug pFilters = FindMayaObjectPlug("aiFilters");
    if (!pFilters.isNull())
    {
-      MObjectArray filters;
+      MPlugArray filters;
       MPlugArray pSources;
 
       for (unsigned int i=0; i<pFilters.numElements(); ++i)
@@ -88,7 +88,7 @@ void CLightTranslator::Export(AtNode* light)
          pFilter.connectedTo(pSources, true, false);
          if (pSources.length() == 1)
          {
-            filters.append(pSources[0].node());
+            filters.append(pSources[0]);
          }
       }
 

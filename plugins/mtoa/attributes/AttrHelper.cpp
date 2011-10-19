@@ -794,7 +794,7 @@ void CBaseAttrHelper::MakeOutputRGBA(MObject& attrib, MObject& attribA, CAttrDat
    nAttr.setArray(AtBooleanToBool(data.isArray));
    MAKE_OUTPUT(nAttr, attrib);
 
-   attribA = nAttr.create(OUT_COLOR_NAME + "A", data.shortName + "a", MFnNumericData::kFloat);
+   attribA = nAttr.create(OUT_ALPHA_NAME, data.shortName + "a", MFnNumericData::kFloat);
    nAttr.setHidden(true);
    MAKE_OUTPUT(nAttr, attribA);
 }
@@ -932,7 +932,7 @@ MObject CBaseAttrHelper::MakeOutput()
       {
          MObject outputA;
          MakeOutputRGBA(output, outputA, data);
-         m_attributes[std::string(data.name.asChar()) + "A"] = outputA;
+         m_attributes[OUT_ALPHA_NAME.asChar()] = outputA;
          break;
       }
       case AI_TYPE_VECTOR:

@@ -90,7 +90,7 @@ void CHairTranslator::Update( AtNode *curve )
          plug.connectedTo(hairShaderPlugs, true, false);
          if (hairShaderPlugs.length() > 0)
          {
-            shader = ExportNode(hairShaderPlugs[0].node());
+            shader = ExportNode(hairShaderPlugs[0]);
          }
       }
    }

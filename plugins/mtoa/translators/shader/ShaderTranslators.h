@@ -3,7 +3,18 @@
 
 #include "ShaderTranslator.h"
 
+// we use ShaderTranslator here for its specialized ResolveOutputPlug method
 #define SHADER_TRANSLATOR(name)\
+   class name : public CShaderTranslator\
+   {\
+   public:\
+      static void* creator(){return new name();}\
+      virtual void Export(AtNode* shader);\
+      AtNode* CreateArnoldNodes();\
+   };
+
+// we don't use ShaderTranslator here to get a simpler ResolveOutputPlug method
+#define SHADER_TRANSLATOR_MULTIOUT(name)\
    class name : public CNodeTranslator\
    {\
    public:\
@@ -26,9 +37,9 @@ SHADER_TRANSLATOR(CFileTranslator);
 SHADER_TRANSLATOR(CPlace2DTextureTranslator);
 SHADER_TRANSLATOR(CBump2DTranslator);
 SHADER_TRANSLATOR(CBump3DTranslator);
-SHADER_TRANSLATOR(CSamplerInfoTranslator);
-SHADER_TRANSLATOR(CPlusMinusAverageTranslator);
-SHADER_TRANSLATOR(CRemapValueTranslator);
+SHADER_TRANSLATOR_MULTIOUT(CSamplerInfoTranslator);
+SHADER_TRANSLATOR_MULTIOUT(CPlusMinusAverageTranslator);
+SHADER_TRANSLATOR_MULTIOUT(CRemapValueTranslator);
 SHADER_TRANSLATOR(CRemapColorTranslator);
 SHADER_TRANSLATOR(CProjectionTranslator);
 SHADER_TRANSLATOR(CRampTranslator);

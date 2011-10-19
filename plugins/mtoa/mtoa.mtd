@@ -1,4 +1,3 @@
-
 # options                     0x00115C00
 # barndoor                    0x00115C80
 # gobo                        0x00115C81
@@ -6,6 +5,8 @@
 # light_decay                 0x00115C83
 # sky                         0x00115C84
 # skydome_light               0x00115C85
+# area_light                  0x00115C86
+
 # standard                    0x00115D01
 # utility                     0x00115D03
 # ray_switch                  0x00115D04
@@ -253,10 +254,34 @@
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
 
-[node quad_light]
-    maya.name               STRING  "areaLight"
-    maya.id                 INT     0x41524c54
+[node skydome_light]
+    maya.name               STRING  "aiSkyDomeLight"
+    maya.id                 INT     0x00115C85
     maya.classification     STRING  "light"
+    maya.type               STRING  "kLocatorNode"
+   [attr affect_diffuse]
+       maya.name            STRING  "emitDiffuse"
+   [attr affect_specular]
+       maya.name            STRING  "emitSpecular"
+   [attr intensity]
+       min                  FLOAT   0.0
+       softmax              FLOAT   10.0
+   [attr exposure]
+       min                  FLOAT   0.0
+       softmax              FLOAT   10.0
+   [attr samples]
+       min                  INT     0
+       max                  INT     100
+       default              INT     1
+
+[node quad_light]
+    maya.name               STRING  "aiAreaLight"
+    maya.id                 INT     0x00115C86
+    maya.classification     STRING  "light"
+    maya.type               STRING  "kLocatorNode"
+   [attr intensity]
+       min                  FLOAT   0.0
+       softmax              FLOAT   10.0
     [attr exposure]
         min                 FLOAT   0.0
         softmax             FLOAT   10.0
@@ -271,9 +296,29 @@
         min                 INT     0
         max                 INT     10000
 
-[node skydome_light]
-    maya.name               STRING  "aiSkyDomeLight"
-    maya.id                 INT     0x00115C85
+[node cylinder_light]
+    maya.name               STRING  "aiAreaLight"
+    maya.id                 INT     0x00115C86
+    maya.classification     STRING  "light"
+    maya.type               STRING  "kLocatorNode"
+   [attr affect_diffuse]
+       maya.name            STRING  "emitDiffuse"
+   [attr affect_specular]
+       maya.name            STRING  "emitSpecular"
+   [attr intensity]
+       min                  FLOAT   0.0
+       softmax              FLOAT   10.0
+   [attr exposure]
+       min                  FLOAT   0.0
+       softmax              FLOAT   10.0
+   [attr samples]
+       min                  INT     0
+       max                  INT     100
+       default              INT     1
+
+[node disk_light]
+    maya.name               STRING  "aiAreaLight"
+    maya.id                 INT     0x00115C86
     maya.classification     STRING  "light"
     maya.type               STRING  "kLocatorNode"
    [attr affect_diffuse]

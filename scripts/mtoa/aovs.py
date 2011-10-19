@@ -1,4 +1,4 @@
-import pymel.core as pm
+﻿import pymel.core as pm
 import sys
 
 BUILTIN_AOVS = (
@@ -172,7 +172,7 @@ def getRegisteredAOVs(builtin=False, nodeType=None):
         else:
             result = [x[0] for x in getNodeAOVAttrs(nodeType)]
     else:
-        result = pm.arnoldPlugins(listAOVs=True)
+        result = pm.cmds.arnoldPlugins(listAOVs=True)
     if builtin:
         result = getBuiltinAOVs() + result
     return result
@@ -183,7 +183,7 @@ def getBuiltinAOVs():
 def getNodeAOVAttrs(nodeType):
     "returns a list of registered (aov name, aov attribute) pairs for the given node type"
     # convert to a 2d array
-    tmp = pm.arnoldPlugins(listAOVs=True, nodeType=nodeType)
+    tmp = pm.cmds.arnoldPlugins(listAOVs=True, nodeType=nodeType)
     result = []
     for i in range(0, len(tmp), 2):
         result.append((tmp[i], tmp[i+1]))
@@ -195,7 +195,7 @@ def getNodeAOVs(nodeType):
     return [x[0] for x in getNodeAOVAttrs(nodeType)]
 
 def getNodesWithAOVs():
-    return sorted(pm.arnoldPlugins(listAOVNodeTypes=True))
+    return sorted(pm.cmds.arnoldPlugins(listAOVNodeTypes=True))
 
 def getAOVGroups():
     return ['<builtin>']
@@ -211,7 +211,7 @@ def getAllShaderAOVs():
     '''
     # TODO: rewrite in c++ if this is too slow
     aovs = set([])
-    for nodeType in pm.arnoldPlugins(listAOVNodeTypes=True):
+    for nodeType in pm.cmds.arnoldPlugins(listAOVNodeTypes=True):
         attrs = dict(getNodeAOVAttrs(nodeType)).values()
         for node in pm.ls(type=nodeType):
             for attr in attrs:

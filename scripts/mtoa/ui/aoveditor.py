@@ -272,8 +272,8 @@ def createArnoldAOVTab():
     pm.columnLayout('enableAOVs', adjustableColumn=True)
     pm.attrControlGrp(attribute=aovNode.node.aovMode, label='Mode')
 
-    ctrl = shaderTemplate.AOVOptionMenuGrp('aiOptions', 'displayAOV', label='Renderview AOV', allowCreation=False, includeBeauty=True)
-    ctrl.attachToUI('defaultArnoldRenderOptions')
+    ctrl = shaderTemplate.AOVOptionMenuGrp('aiOptions', label='Renderview AOV', allowCreation=False, includeBeauty=True)
+    ctrl._doSetup(aovNode.node.name() + '.displayAOV')
 
     pm.setParent(parentForm)
 

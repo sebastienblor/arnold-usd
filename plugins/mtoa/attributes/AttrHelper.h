@@ -30,6 +30,7 @@
 
 #define OUT_NAME MString("outValue")
 #define OUT_COLOR_NAME MString("outColor")
+#define OUT_ALPHA_NAME MString("outAlpha")
 // #define OUT_NODE_NAME MString("outNode")
 // #define OUT_MATRIX_NAME MString("outMatrix")
 #define OUT_SHORTNAME MString("out")

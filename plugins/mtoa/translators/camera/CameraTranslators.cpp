@@ -193,7 +193,7 @@ void CPerspCameraTranslator::Export(AtNode* camera)
    }
    if (!uvRemapNode.isNull())
    {
-      AiNodeLink(ExportNode(uvRemapNode), "uv_remap", camera);
+      AiNodeLink(ExportNode(conns[0]), "uv_remap", camera);
    }
    else
    {

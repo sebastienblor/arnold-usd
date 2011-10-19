@@ -1,9 +1,7 @@
-import re
+﻿import re
 import maya.cmds as cmds
 import maya.mel as mel
 from mtoa.ui.ae.utils import aeCallback
-import mtoa.callbacks as callbacks
-from customShapeAttributes import commonShapeAttributes
 
 def LoadStandInButtonPush(*arg):
     basicFilter = 'Arnold Archive (*.ass *.ass.gz *.obj);;Arnold Procedural (*.so *.dll)'

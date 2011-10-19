@@ -38,7 +38,8 @@ private:
    AtNode* DoUpdate(AtUInt step);
    AtNode* DoCreateArnoldNodes();
    void SetTranslatorName(MString name) {m_abstract.name = MString(name);}
-
+   bool ProcessParameterComponentInputs(AtNode* arnoldNode, const MPlug &plug, const char* arnoldAttrib, int arnoldAttribType);
+   AtNode* ProcessParameterInputs(AtNode* arnoldNode, const MPlug &plug, const char* arnoldAttrib, int arnoldAttribType);
 public:
    MString GetTranslatorName() {return m_abstract.name;}
 
@@ -73,7 +74,11 @@ protected:
    // UpdateMotion runs during IPR for step>0 (calls ExportMotion by default)
    virtual void UpdateMotion(AtNode* atNode, AtUInt step){ExportMotion(atNode, step);}
    virtual bool RequiresMotionData() {return false;}
+   /// Instead of caching translator exports, allow a Maya node to be exported multiple times, each time generating new arnold nodes
+   virtual bool DisableCaching() {return false;}
    virtual AtNode* CreateArnoldNodes() = 0;
+   /// Return false if the passed outputAttribute is invalid
+   virtual bool ResolveOutputPlug(const MPlug& outputPlug, MPlug &resolvedOutputPlug);
    virtual void Delete() {}
    void DoDelete();
 
@@ -101,8 +106,7 @@ protected:
    inline ArnoldSessionMode GetSessionMode() const {return m_session->GetSessionMode();}
 
    // session action
-   AtNode* ExportNode(MObject node, const MString &attrName="") { return m_session->ExportNode(node, attrName);}
-   AtNode* ExportNode(MPlug& outputPlug) {return m_session->ExportNode(outputPlug);}
+   AtNode* ExportNode(const MPlug& outputPlug) {return m_session->ExportNode(outputPlug);}
    AtNode* ExportDagPath(MDagPath &dagPath) {return m_session->ExportDagPath(dagPath);}
 
    // get the arnold node that this translator is exporting (should only be used after all export steps are complete)

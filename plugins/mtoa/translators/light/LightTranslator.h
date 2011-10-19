@@ -21,7 +21,7 @@ public:
 protected:
    virtual void Export(AtNode* light);
    virtual void ExportMotion(AtNode* light, AtUInt step);
-   virtual void ExportLightFilters(AtNode* light, const MObjectArray &filters);
+   virtual void ExportLightFilters(AtNode* light, const MPlugArray &filters);
    virtual void Delete();
    static void MakeCommonAttributes(CBaseAttrHelper& helper);
 

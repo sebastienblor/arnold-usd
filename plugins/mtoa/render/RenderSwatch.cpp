@@ -1,4 +1,4 @@
-#include "utils/Universe.h"
+﻿#include "utils/Universe.h"
 #include "scene/MayaScene.h"
 #include "render/RenderSession.h"
 #include "RenderSwatch.h"
@@ -349,7 +349,7 @@ MStatus CRenderSwatchGenerator::AssignNode(AtNode* arnoldNode, CNodeTranslator* 
       if (connections.length() > 0)
       {
          MString attrName = connections[0].partialName(false, false, false, false, false, true);
-         AtNode* dispImage(exportSession->ExportNode(connections[0].node(), attrName));
+         AtNode* dispImage(exportSession->ExportNode(connections[0]));
          if (dispImage != NULL)
          {
             // FIXME : why request a non networked plug?

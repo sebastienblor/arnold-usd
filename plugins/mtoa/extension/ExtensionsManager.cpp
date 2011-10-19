@@ -640,7 +640,19 @@ CNodeTranslator* CExtensionsManager::GetTranslator(const MObject &object)
    MString transName = "";
    MStatus status;
    MPlug plug = depFn.findPlug("aiTranslator", &status);
-   if (MStatus::kSuccess == status) transName = plug.asString();
+   if (status == MStatus::kSuccess)
+   {
+      MObject attr = plug.attribute();
+      if (attr.hasFn(MFn::kEnumAttribute))
+      {
+         MFnEnumAttribute fnAttr(attr, &status);
+         transName = fnAttr.fieldName(plug.asInt());
+      }
+      else
+      {
+         transName = plug.asString();
+      }
+   }
 
    return (CNodeTranslator*) GetTranslator(typeName, transName);
 }

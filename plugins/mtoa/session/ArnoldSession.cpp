@@ -1,4 +1,5 @@
 #include "ArnoldSession.h"
+#include "attributes/Components.h"
 #include "extension/ExtensionsManager.h"
 #include "scene/MayaScene.h"
 #include "translators/options/OptionsTranslator.h"
@@ -118,8 +119,8 @@ namespace // <anonymous>
       }
       return false;
    }
+}
 
-} // namespace
 
 // Public Methods
 
@@ -130,38 +131,36 @@ AtNode* CArnoldSession::ExportDagPath(MDagPath &dagPath, MStatus* stat)
    MStatus status = MStatus::kSuccess;
    AtNode* arnoldNode = NULL;
 
-   MObjectHandle handle = MObjectHandle(dagPath.node());
-   int instanceNum = dagPath.instanceNumber();
    MString name = dagPath.partialPathName();
    MString type = MFnDagNode(dagPath).typeName();
    AiMsgDebug("[mtoa] Exporting dag node %s of type %s", name.asChar(), type.asChar());
-   // Check if node has already been processed
-   ObjectToDagTranslatorMap::iterator it = m_processedDagTranslators.find(handle);
-   if (it != m_processedDagTranslators.end() && it->second.count(instanceNum))
+
+   CDagTranslator* translator = CExtensionsManager::GetTranslator(dagPath);
+   if (translator == NULL || !translator->IsMayaTypeDag())
+   {
+      status = MStatus::kNotImplemented;
+      AiMsgDebug("[mtoa] Dag node %s of type %s ignored", name.asChar(), type.asChar());
+      return NULL;
+   }
+   CNodeAttrHandle handle(dagPath);
+   if (!translator->DisableCaching())
+   {
+      // Check if node has already been processed
+      ObjectToTranslatorMap::iterator it = m_processedTranslators.find(handle);
+      if (it != m_processedTranslators.end())
+      {
+         delete translator;
+         status = MStatus::kSuccess;
+         arnoldNode = it->second->GetArnoldRootNode();
+         translator = (CDagTranslator*)it->second;
+      }
+   }
+   if (arnoldNode == NULL)
    {
       status = MStatus::kSuccess;
-      arnoldNode = it->second[instanceNum]->GetArnoldRootNode();
-   }
-   else
-   {
-      // else get a new translator for that node
-      CDagTranslator* translator = CExtensionsManager::GetTranslator(dagPath);
-      if (translator != NULL && translator->IsMayaTypeDag())
-      {
-         status = MStatus::kSuccess;
-         if (translator->IsMayaTypeRenderable())
-         {
-            arnoldNode = translator->Init(this, dagPath);
-            translator->DoExport(0);
-            // save it for later
-            m_processedDagTranslators[handle][instanceNum] = translator;
-         }
-      }
-      else
-      {
-         status = MStatus::kNotImplemented;
-         AiMsgDebug("[mtoa] Dag node %s of type %s ignored", name.asChar(), type.asChar());
-      }
+      translator->Init(this, dagPath);
+      m_processedTranslators.insert(ObjectToTranslatorPair(handle, translator));
+      arnoldNode = translator->DoExport(0);
    }
 
    if (NULL != stat) *stat = status;
@@ -170,13 +169,9 @@ AtNode* CArnoldSession::ExportDagPath(MDagPath &dagPath, MStatus* stat)
 
 // Export a plug (dependency node output attribute)
 //
-AtNode* CArnoldSession::ExportNode(MPlug& shaderOutputPlug, MStatus *stat)
+AtNode* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, MStatus *stat)
 {
-   return ExportNode(shaderOutputPlug.node(), shaderOutputPlug.partialName(false, false, false, false, false, true), stat);
-}
-
-AtNode* CArnoldSession::ExportNode(MObject mayaNode, const MString &attrName, MStatus *stat)
-{
+   MObject mayaNode = shaderOutputPlug.node();
    MStatus status = MStatus::kSuccess;
    AtNode* arnoldNode = NULL;
 
@@ -184,33 +179,68 @@ AtNode* CArnoldSession::ExportNode(MObject mayaNode, const MString &attrName, MS
    if (MDagPath::getAPathTo(mayaNode, dagPath) == MS::kSuccess)
       return ExportDagPath(dagPath, stat);
 
-   // First check if this node has already been processed
-   MObjectHandle handle = MObjectHandle(mayaNode);
-   // Check if node has already been processed
-   ObjectToTranslatorMap::iterator it = m_processedTranslators.find(handle);
-   if (it != m_processedTranslators.end() && it->second->m_outputAttr == attrName)
+   MPlug resultPlug;
+   // returns the primary attribute (i.e. if the shaderOutputPlug is outColorR, resultPlug is outColor)
+   ComponentType compMode = IsFloatComponent(shaderOutputPlug, resultPlug);
+
+   CNodeTranslator* translator = CExtensionsManager::GetTranslator(mayaNode);
+   if (translator == NULL)
    {
-      status = MStatus::kSuccess;
-      arnoldNode = it->second->GetArnoldRootNode();
+      status = MStatus::kNotImplemented;
+      MFnDependencyNode fnNode(mayaNode);
+      AiMsgDebug("[mtoa] [maya %s] Maya node type not supported: %s", fnNode.name().asChar(),
+                 fnNode.typeName().asChar());
+      return NULL;
+   }
+   MPlug resolvedPlug;
+   // resolving the plug gives translators a chance to replace ".message" with ".outColor", for example, or to reject it outright.
+   // once the attribute is properly resolved it can be used as a key in our multimap cache
+   if (translator->ResolveOutputPlug(resultPlug, resolvedPlug))
+   {
+      resultPlug = resolvedPlug;
    }
    else
    {
-      // else get a new translator for that node
-      CNodeTranslator* translator = CExtensionsManager::GetTranslator(mayaNode);
-      if (translator != NULL)
-      {
-         status = MStatus::kSuccess;
-         arnoldNode = translator->Init(this, mayaNode, attrName);
-         m_processedTranslators[handle] = translator;
-         translator->DoExport(0);
-      }
-      else
-      {
-         status = MStatus::kNotImplemented;
-         AiMsgDebug("[mtoa] Maya node type not supported: %s", MFnDependencyNode(mayaNode).typeName().asChar());
-      }
+      delete translator;
+      translator = NULL;
+      status = MStatus::kNotImplemented;
+      MFnDependencyNode fnNode(mayaNode);
+      AiMsgDebug("[mtoa] [maya %s] Invalid output attribute: \"%s\"", fnNode.name().asChar(),
+                 resultPlug.partialName(false, false, false, false, false, true).asChar());
+      return NULL;
    }
 
+   CNodeAttrHandle handle(resultPlug);
+   if (!translator->DisableCaching())
+   {
+      // Check if node has already been processed
+      ObjectToTranslatorMap::iterator it = m_processedTranslators.find(handle);
+      if (it != m_processedTranslators.end())
+      {
+         delete translator;
+         status = MStatus::kSuccess;
+         arnoldNode = it->second->GetArnoldRootNode();
+         translator = it->second;
+      }
+   }
+   if (arnoldNode == NULL)
+   {
+      status = MStatus::kSuccess;
+      translator->Init(this, mayaNode, resultPlug.partialName(false, false, false, false, false, true));
+      m_processedTranslators.insert(ObjectToTranslatorPair(handle, translator));
+      arnoldNode = translator->DoExport(0);
+   }
+   // conversion nodes are not created in an efficient manner, but it's good enough until multiple outputs are supported natively.
+   // each translator stores only one "root" arnold node, which is used if the same maya node is encountered again.
+   // conversion nodes are applied after the root depending which component is accessed (if any). we can't store
+   // the conversion without a new temporary structure that would further convolute things. The result is
+   // that a new conversion node is generated every time a component is accessed, and NOT reused later if the same component
+   // is accessed again.  oh well.
+   if (arnoldNode != NULL)
+   {
+      if (compMode != COMPONENT_TYPE_NONE)
+         arnoldNode = InsertConversionNodes(shaderOutputPlug, compMode, arnoldNode);
+   }
    if (NULL != stat) *stat = status;
    return arnoldNode;
 }
@@ -231,6 +261,8 @@ AtNode* CArnoldSession::ExportWithTranslator(MObject mayaNode, const MString &ma
             AiNodeGetName(shader), AiNodeEntryGetName(shader->base_node),
             translatorName.asChar());
       translator->DoExport(0);
+      CNodeAttrHandle handle(mayaNode, translatorName);
+      m_processedTranslators.insert(ObjectToTranslatorPair(handle, translator));
    }
    else
    {
@@ -251,24 +283,15 @@ AtNode* CArnoldSession::ExportFilter(MObject mayaNode, const MString &translator
    return ExportWithTranslator(mayaNode, "<filter>", translatorName);
 }
 
+// FIXME: there may be more than one translator that matches a single maya node
 CNodeTranslator * CArnoldSession::GetActiveTranslator(const MObject node)
 {
-   MObjectHandle node_handle(node);
-
-   ObjectToTranslatorMap::iterator translatorIt = m_processedTranslators.find(node_handle);
+   CNodeAttrHandle handle(node);
+   ObjectToTranslatorMap::iterator translatorIt = m_processedTranslators.find(handle);
    if (translatorIt != m_processedTranslators.end())
    {
       return static_cast< CNodeTranslator* >(translatorIt->second);
    }
-
-   ObjectToDagTranslatorMap::iterator dagIt = m_processedDagTranslators.find(node_handle);
-   if (dagIt != m_processedDagTranslators.end())
-   {
-      // TODO: Figure out some magic to get the correct instance.
-      const int instanceNum = 0;
-      return static_cast< CNodeTranslator* >(dagIt->second[instanceNum]);
-   }
-
    return NULL;
 }
 
@@ -342,24 +365,11 @@ MStatus CArnoldSession::End()
    ObjectToTranslatorMap::iterator it;
    for(it = m_processedTranslators.begin(); it != m_processedTranslators.end(); ++it)
    {
-      AiMsgDebug("[mtoa] Deleting translator for %s", MFnDependencyNode(it->first.object()).name().asChar());
+      //AiMsgDebug("[mtoa] Deleting translator for %s", MFnDependencyNode(it->first.object()).name().asChar());
       delete it->second;
    }
    m_processedTranslators.clear();
 
-   // Delete Dag Translators
-   ObjectToDagTranslatorMap::iterator dagIt;
-   for(dagIt = m_processedDagTranslators.begin(); dagIt != m_processedDagTranslators.end(); ++dagIt)
-   {
-      std::map<int, CNodeTranslator*>::iterator instIt;
-      for(instIt = dagIt->second.begin(); instIt != dagIt->second.end(); ++instIt)
-      {
-         MFnDagNode fnDag(dagIt->first.object());
-         AiMsgDebug("[mtoa] Deleting translator for %s [%d]", fnDag.fullPathName().asChar(), instIt->first);
-         delete instIt->second;
-      }
-   }
-   m_processedDagTranslators.clear();
    m_masterInstances.clear();
    // Clear motion frames storage
    m_motion_frames.clear();
@@ -415,8 +425,9 @@ AtNode* CArnoldSession::ExportOptions()
       AiMsgWarning("[mtoa] Failed to find Arnold options node");
       return NULL;
    }
-   AiMsgDebug("[mtoa] Exporting Arnold options '%s'", MFnDependencyNode(options).name().asChar());
-   AtNode* result = ExportNode(options, "message");
+   MFnDependencyNode fnNode = MFnDependencyNode(options);
+   AiMsgDebug("[mtoa] Exporting Arnold options '%s'", fnNode.name().asChar());
+   AtNode* result = ExportNode(fnNode.findPlug("message"));
    // Store the options translator for later use
    m_optionsTranslator = (COptionsTranslator*)GetActiveTranslator(options);
    return result;
@@ -542,21 +553,12 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
          // Since all nodes *should* be exported at this point, the following calls to DoExport do not
          // traverse the DG even if the translators call ExportNode or ExportDag. This makes it safe
          // to re-export all objects from a flattened list
-         ObjectToDagTranslatorMap::iterator dagIt;
-         for(dagIt = m_processedDagTranslators.begin(); dagIt != m_processedDagTranslators.end(); ++dagIt)
+
+         // finally, loop through the already processed translators and export for current step
+         ObjectToTranslatorMap::iterator it;
+         for (it = m_processedTranslators.begin(); it != m_processedTranslators.end(); ++it)
          {
-            // finally, loop through instances
-            std::map<int, CNodeTranslator*>::iterator instIt;
-            for(instIt = dagIt->second.begin(); instIt != dagIt->second.end(); ++instIt)
-            {
-               instIt->second->DoExport(step);
-            }
-         }
-         // finally, loop through the already processed depend translators and export for current step
-         ObjectToTranslatorMap::iterator dependIt;
-         for(dependIt = m_processedTranslators.begin(); dependIt != m_processedTranslators.end(); ++dependIt)
-         {
-            dependIt->second->DoExport(step);
+            it->second->DoExport(step);
          }
       }
       // Note: only reset frame during interactive renders, otherwise that's an extra unnecessary scene eval
@@ -577,17 +579,6 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
       for (it = m_processedTranslators.begin(); it != m_processedTranslators.end(); ++it)
       {
          it->second->AddUpdateCallbacks();
-      }
-      // For Dag node translators
-      ObjectToDagTranslatorMap::iterator itd;
-      for (itd = m_processedDagTranslators.begin(); itd != m_processedDagTranslators.end(); ++itd)
-      {
-         // finally, loop through instances
-         std::map<int, CNodeTranslator*>::iterator instIt;
-         for(instIt = itd->second.begin(); instIt != itd->second.end(); ++instIt)
-         {
-            instIt->second->AddUpdateCallbacks();
-         }
       }
    }
 
@@ -908,17 +899,6 @@ void CArnoldSession::ClearUpdateCallbacks()
    {
       if (it->second != NULL) it->second->RemoveUpdateCallbacks();
    }
-
-   ObjectToDagTranslatorMap::iterator dagIt;
-   for(dagIt = m_processedDagTranslators.begin(); dagIt != m_processedDagTranslators.end(); ++dagIt)
-   {
-      std::map<int, CNodeTranslator*>::iterator instIt;
-      for(instIt = dagIt->second.begin(); instIt != dagIt->second.end(); ++instIt)
-      {
-         instIt->second->RemoveUpdateCallbacks();
-      }
-   }
-   
 }
 
 /// Set the camera to export.
@@ -938,18 +918,6 @@ void CArnoldSession::SetExportCamera(MDagPath camera)
    {
       if (it->second->DependsOnExportCamera())
          QueueForUpdate(it->second);
-   }
-
-   // Delete Dag Translators
-   ObjectToDagTranslatorMap::iterator dagIt;
-   for(dagIt = m_processedDagTranslators.begin(); dagIt != m_processedDagTranslators.end(); ++dagIt)
-   {
-      std::map<int, CNodeTranslator*>::iterator instIt;
-      for(instIt = dagIt->second.begin(); instIt != dagIt->second.end(); ++instIt)
-      {
-         if (instIt->second->DependsOnExportCamera())
-            QueueForUpdate(instIt->second);
-      }
    }
    DoUpdate();
 }

@@ -405,7 +405,7 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
       if (connections.length() > 0)
       {
          // shader assigned to node
-         AtNode* shader = ExportNode(connections[0].node());
+         AtNode* shader = ExportNode(connections[0]);
 
          AiNodeSetPtr(polymesh, "shader", shader);
          meshShaders.push_back(shader);
@@ -433,7 +433,7 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
          // FIXME: there should be a check if connections.length() > 0
          // this is not a simple fix because it will shift all the indices,
          // but as it is now, it will crash if nothing is connected to "surfaceShader"
-         meshShaders.push_back(ExportNode(connections[0].node()));
+         meshShaders.push_back(ExportNode(connections[0]));
       }
 
       AiNodeSetArray(polymesh, "shader", AiArrayConvert((AtInt)meshShaders.size(), 1, AI_TYPE_NODE, &meshShaders[0], TRUE));
@@ -478,7 +478,7 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
          if (connections.length() > 0)
          {
             MString attrName = connections[0].partialName(false, false, false, false, false, true);
-            AtNode* dispImage(ExportNode(connections[0].node(), attrName));
+            AtNode* dispImage(ExportNode(connections[0]));
 
             // FIXME : why request a non networked plug?
             MPlug pVectorDisp = dispNode.findPlug("vector_displacement", false);
@@ -886,7 +886,7 @@ AtNode* CGeometryTranslator::ExportInstance(AtNode *instance, const MDagPath& ma
 
       if ((shaderPlug != shaderPlugMaster) || (!equalShaderArrays))
       {
-         AtNode* shader = ExportNode(connections[0].node());
+         AtNode* shader = ExportNode(connections[0]);
          AiNodeSetPtr(instance, "shader", shader);
       }
    }
