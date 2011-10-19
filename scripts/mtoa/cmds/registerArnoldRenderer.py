@@ -266,7 +266,8 @@ def registerArnoldRenderer():
                                useName=True)
 
             pm.menuItem('ArnoldLights', label='Lights', parent='ArnoldMenu', subMenu=True)
-            pm.menuItem('ArnoldAreaLights', parent='ArnoldLights', label="Area Light",
-                        c=lambda *args: pm.createNode('aiAreaLight', n='aiAreaLight'))
+            # disabled until fully functional
+            # pm.menuItem('ArnoldAreaLights', parent='ArnoldLights', label="Area Light",
+            #            c=lambda *args: pm.createNode('aiAreaLight', n='aiAreaLight'))
             pm.menuItem('SkydomeLight', parent='ArnoldLights', label="Skydome Light",
                         c=lambda *args: pm.createNode('aiSkyDomeLight', n='aiSkyDomeLight'))

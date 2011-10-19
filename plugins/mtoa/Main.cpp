@@ -45,8 +45,8 @@
 
 #define MTOA_VENDOR "SolidAngle"
 #define MTOA_MAJOR_VERSION_NUM 0
-#define MTOA_MINOR_VERSION_NUM 11
-#define MTOA_FIX_VERSION "0"
+#define MTOA_MINOR_VERSION_NUM 12
+#define MTOA_FIX_VERSION "dev"
 
 
 #define MTOA_MAJOR_VERSION         MTOA_TOSTRING(MTOA_MAJOR_VERSION_NUM)
@@ -124,12 +124,14 @@ namespace // <anonymous>
                                    // &lightNoSwatch);
       CHECK_MSTATUS(status);
 
+      MString hide                  = "";
       status = plugin.registerNode("aiAreaLight",
                                     CArnoldAreaLightNode::id,
                                     CArnoldAreaLightNode::creator,
                                     CArnoldAreaLightNode::initialize,
                                     MPxNode::kLocatorNode,
-                                    &lightWithSwatch);
+                                    &hide);
+                                    // &lightWithSwatch);
       CHECK_MSTATUS(status);
 
 
