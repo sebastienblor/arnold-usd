@@ -425,7 +425,7 @@ AtNode* CArnoldSession::ExportOptions()
       AiMsgWarning("[mtoa] Failed to find Arnold options node");
       return NULL;
    }
-   MFnDependencyNode fnNode = MFnDependencyNode(options);
+   MFnDependencyNode fnNode(options);
    AiMsgDebug("[mtoa] Exporting Arnold options '%s'", fnNode.name().asChar());
    AtNode* result = ExportNode(fnNode.findPlug("message"));
    // Store the options translator for later use
