@@ -1,4 +1,4 @@
-﻿#include "ShaderTranslators.h"
+#include "ShaderTranslators.h"
 #include "scene/MayaScene.h"
 #include "render/RenderOptions.h"
 #include "render/RenderSession.h"
