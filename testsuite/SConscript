@@ -146,8 +146,6 @@ def run_test(target, source, env):
    previous_render_desc = os.environ.get('MAYA_RENDER_DESC_PATH')
    os.environ['MAYA_RENDER_DESC_PATH'] = test_env.subst(test_env['TARGET_DESCR_PATH'])
    
-   print os.environ['MAYA_APP_DIR']
-   
    ## remove any leftovers
    saferemove(test_env['OUTPUT_IMAGE'])
    saferemove('new.jpg')
