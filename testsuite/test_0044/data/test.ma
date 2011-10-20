@@ -1,0 +1,2381 @@
+//Maya ASCII 2011 scene
+//Name: test.ma
+//Last modified: Tue, Oct 18, 2011 11:59:19 AM
+//Codeset: UTF-8
+requires maya "2011";
+requires "mtoa" "0.11.0";
+requires "Mayatomr" "2011.0m - 3.8.1.33 ";
+requires "stereoCamera" "10.0";
+currentUnit -l centimeter -a degree -t film;
+fileInfo "application" "maya";
+fileInfo "product" "Maya 2011";
+fileInfo "version" "2011 x64";
+fileInfo "cutIdentifier" "201009060248-781623";
+fileInfo "osv" "Linux 2.6.27.21-170.2.56.fc10.x86_64 #1 SMP Mon Mar 23 23:08:10 EDT 2009 x86_64";
+fileInfo "saveHistory0" "/Volumes/sv-dev01/devRepo/chad/arnold/mtoa/testsuite/test_0044/data/test.ma&chad&ws-050.luma-pictures.com&Tuesday, October 18 2011 @ 11:59:19 AM (PDT)";
+fileInfo "saveHistory1" "/Volumes/sv-dev01/devRepo/chad/arnold/mtoa/testsuite/test_0044/data/test.ma&chad&ws-050.luma-pictures.com&Tuesday, October 18 2011 @ 11:56:44 AM (PDT)";
+fileInfo "saveHistory2" "/Volumes/sv-dev01/devRepo/chad/arnold/mtoa/testsuite/test_0040/data/test.ma&chad&ws-050.luma-pictures.com&Thursday, August 04 2011 @ 04:37:50 PM (PDT)";
+fileInfo "saveHistory3" "/Volumes/sv-dev01/devRepo/chad/arnold/mtoa/testsuite/test_0040/data/test.ma&chad&ws-050.luma-pictures.com&Thursday, August 04 2011 @ 04:36:30 PM (PDT)";
+fileInfo "nexSGFix" "True";
+createNode transform -s -n "persp";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".v" no;
+	setAttr ".t" -type "double3" 3.543554980740081 0.095420835005041879 0.051383667685833273 ;
+	setAttr ".r" -type "double3" -2.138352729599184 -270.99999999999613 -1.1390100746655594e-14 ;
+	setAttr ".lumaID" -type "string" "a:1292543810.78:0.842974524452";
+createNode camera -s -n "perspShape" -p "persp";
+	addAttr -ci true -k true -sn "ai_filtermap" -ln "aiFiltermap" -at "message";
+	addAttr -ci true -k true -sn "ai_horizontal_fov" -ln "aiHorizontalFov" -dv 60 -min 
+		0 -max 1000000000 -smx 360 -at "float";
+	addAttr -ci true -k true -sn "ai_vertical_fov" -ln "aiVerticalFov" -dv 90 -min 0 
+		-max 1000000000 -smx 180 -at "float";
+	addAttr -ci true -k true -sn "ai_projective" -ln "aiProjective" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "ai_focus_distance" -ln "aiFocusDistance" -dv 1 -min 
+		0 -max 1000000000 -smn 0 -smx 200 -at "float";
+	addAttr -ci true -k true -sn "ai_aperture_size" -ln "aiApertureSize" -min 0 -max 
+		20 -smn 0 -smx 1 -at "float";
+	addAttr -ci true -k true -sn "ai_aperture_blades" -ln "aiApertureBlades" -min 3 
+		-max 40 -at "long";
+	addAttr -ci true -k true -sn "ai_aperture_blade_curvature" -ln "aiApertureBladeCurvature" 
+		-min -20 -max 20 -smn -5 -smx 5 -at "float";
+	addAttr -ci true -k true -sn "ai_aperture_rotation" -ln "aiApertureRotation" -min 
+		0 -max 360 -smn 0 -smx 50 -at "float";
+	addAttr -ci true -k true -sn "ai_edof" -ln "aiEnableDOF" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_fov" -ln "aiFov" -dv 90 -min 0 -max 1000000000 
+		-smx 360 -at "float";
+	addAttr -ci true -k true -sn "ai_autocrop" -ln "aiAutocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -uac -k true -sn "ai_uv_remap" -ln "aiUvRemap" -at "float3" -nc 
+		3;
+	addAttr -ci true -k true -sn "ai_uv_remapr" -ln "aiUvRemapR" -at "float" -p "aiUvRemap";
+	addAttr -ci true -k true -sn "ai_uv_remapg" -ln "aiUvRemapG" -at "float" -p "aiUvRemap";
+	addAttr -ci true -k true -sn "ai_uv_remapb" -ln "aiUvRemapB" -at "float" -p "aiUvRemap";
+	addAttr -ci true -h true -k true -sn "ai_uv_remapa" -ln "aiUvRemapA" -at "float";
+	addAttr -ci true -k true -sn "ai_translator" -ln "aiTranslator" -dt "string";
+	addAttr -ci true -k true -sn "filtermap" -ln "filtermap" -at "message";
+	addAttr -ci true -k true -sn "focal_distance" -ln "focalDistance" -dv 5 -min 0 -max 
+		1000000000 -smn 0 -smx 200 -at "float";
+	addAttr -ci true -k true -sn "aperture_size" -ln "apertureSize" -dv 0.20000000298023224 
+		-min 0 -max 20 -smn 0 -smx 0.5 -at "float";
+	addAttr -ci true -k true -sn "aperture_blades" -ln "apertureBlades" -dv 6 -min 3 
+		-max 40 -at "long";
+	addAttr -ci true -k true -sn "aperture_blade_curvature" -ln "apertureBladeCurvature" 
+		-min -20 -max 20 -smn -5 -smx 5 -at "float";
+	addAttr -ci true -k true -sn "aperture_rotation" -ln "apertureRotation" -min 0 -max 
+		360 -smn 0 -smx 50 -at "float";
+	addAttr -ci true -k true -sn "edof" -ln "enableDOF" -min 0 -max 1 -at "bool";
+	addAttr -ci true -uac -k true -sn "uv_remap" -ln "uvRemap" -at "float3" -nc 3;
+	addAttr -ci true -k true -sn "uv_remapr" -ln "uvRemapR" -at "float" -p "uvRemap";
+	addAttr -ci true -k true -sn "uv_remapg" -ln "uvRemapG" -at "float" -p "uvRemap";
+	addAttr -ci true -k true -sn "uv_remapb" -ln "uvRemapB" -at "float" -p "uvRemap";
+	addAttr -ci true -h true -k true -sn "uv_remapa" -ln "uvRemapA" -at "float";
+	addAttr -ci true -k true -sn "arntr" -ln "arnoldTranslator" -dt "string";
+	addAttr -ci true -k true -sn "fov" -ln "fov" -dv 90 -min 0 -max 1000000000 -smx 
+		360 -at "float";
+	addAttr -ci true -k true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "horizontal_fov" -ln "horizontalFov" -dv 60 -min 0 
+		-max 1000000000 -smx 360 -at "float";
+	addAttr -ci true -k true -sn "vertical_fov" -ln "verticalFov" -dv 90 -min 0 -max 
+		1000000000 -smx 180 -at "float";
+	addAttr -ci true -k true -sn "projective" -ln "projective" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr -k off ".v" no;
+	setAttr ".fl" 34.999999999999993;
+	setAttr ".coi" 2.6617837714946715;
+	setAttr ".imn" -type "string" "persp";
+	setAttr ".den" -type "string" "persp_depth";
+	setAttr ".man" -type "string" "persp_mask";
+	setAttr ".hc" -type "string" "viewSet -p %camera";
+	setAttr ".dr" yes;
+	setAttr -k on ".ai_translator" -type "string" "perspective";
+	setAttr -k on ".focal_distance" 4;
+	setAttr -k on ".aperture_size" 0.10000000149011612;
+	setAttr -k on ".arntr" -type "string" "perspective";
+	setAttr ".lumaID" -type "string" "a:1292543810.78:0.369170061596";
+createNode transform -s -n "top";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".v" no;
+	setAttr ".t" -type "double3" 0 100.1 0 ;
+	setAttr ".r" -type "double3" -89.999999999999986 0 0 ;
+	setAttr ".lumaID" -type "string" "a:1292543810.78:0.701369956448";
+createNode camera -s -n "topShape" -p "top";
+	addAttr -ci true -k true -sn "ai_filtermap" -ln "aiFiltermap" -at "message";
+	addAttr -ci true -k true -sn "ai_horizontal_fov" -ln "aiHorizontalFov" -dv 60 -min 
+		0 -max 1000000000 -smx 360 -at "float";
+	addAttr -ci true -k true -sn "ai_vertical_fov" -ln "aiVerticalFov" -dv 90 -min 0 
+		-max 1000000000 -smx 180 -at "float";
+	addAttr -ci true -k true -sn "ai_projective" -ln "aiProjective" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "ai_focus_distance" -ln "aiFocusDistance" -dv 1 -min 
+		0 -max 1000000000 -smn 0 -smx 200 -at "float";
+	addAttr -ci true -k true -sn "ai_aperture_size" -ln "aiApertureSize" -min 0 -max 
+		20 -smn 0 -smx 1 -at "float";
+	addAttr -ci true -k true -sn "ai_aperture_blades" -ln "aiApertureBlades" -min 3 
+		-max 40 -at "long";
+	addAttr -ci true -k true -sn "ai_aperture_blade_curvature" -ln "aiApertureBladeCurvature" 
+		-min -20 -max 20 -smn -5 -smx 5 -at "float";
+	addAttr -ci true -k true -sn "ai_aperture_rotation" -ln "aiApertureRotation" -min 
+		0 -max 360 -smn 0 -smx 50 -at "float";
+	addAttr -ci true -k true -sn "ai_edof" -ln "aiEnableDOF" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_fov" -ln "aiFov" -dv 90 -min 0 -max 1000000000 
+		-smx 360 -at "float";
+	addAttr -ci true -k true -sn "ai_autocrop" -ln "aiAutocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -uac -k true -sn "ai_uv_remap" -ln "aiUvRemap" -at "float3" -nc 
+		3;
+	addAttr -ci true -k true -sn "ai_uv_remapr" -ln "aiUvRemapR" -at "float" -p "aiUvRemap";
+	addAttr -ci true -k true -sn "ai_uv_remapg" -ln "aiUvRemapG" -at "float" -p "aiUvRemap";
+	addAttr -ci true -k true -sn "ai_uv_remapb" -ln "aiUvRemapB" -at "float" -p "aiUvRemap";
+	addAttr -ci true -h true -k true -sn "ai_uv_remapa" -ln "aiUvRemapA" -at "float";
+	addAttr -ci true -k true -sn "ai_translator" -ln "aiTranslator" -dt "string";
+	addAttr -ci true -k true -sn "filtermap" -ln "filtermap" -at "message";
+	addAttr -ci true -k true -sn "focal_distance" -ln "focalDistance" -dv 5 -min 0 -max 
+		1000000000 -smn 0 -smx 200 -at "float";
+	addAttr -ci true -k true -sn "aperture_size" -ln "apertureSize" -dv 0.20000000298023224 
+		-min 0 -max 20 -smn 0 -smx 0.5 -at "float";
+	addAttr -ci true -k true -sn "aperture_blades" -ln "apertureBlades" -dv 6 -min 3 
+		-max 40 -at "long";
+	addAttr -ci true -k true -sn "aperture_blade_curvature" -ln "apertureBladeCurvature" 
+		-min -20 -max 20 -smn -5 -smx 5 -at "float";
+	addAttr -ci true -k true -sn "aperture_rotation" -ln "apertureRotation" -min 0 -max 
+		360 -smn 0 -smx 50 -at "float";
+	addAttr -ci true -k true -sn "edof" -ln "enableDOF" -min 0 -max 1 -at "bool";
+	addAttr -ci true -uac -k true -sn "uv_remap" -ln "uvRemap" -at "float3" -nc 3;
+	addAttr -ci true -k true -sn "uv_remapr" -ln "uvRemapR" -at "float" -p "uvRemap";
+	addAttr -ci true -k true -sn "uv_remapg" -ln "uvRemapG" -at "float" -p "uvRemap";
+	addAttr -ci true -k true -sn "uv_remapb" -ln "uvRemapB" -at "float" -p "uvRemap";
+	addAttr -ci true -h true -k true -sn "uv_remapa" -ln "uvRemapA" -at "float";
+	addAttr -ci true -k true -sn "arntr" -ln "arnoldTranslator" -dt "string";
+	addAttr -ci true -k true -sn "fov" -ln "fov" -dv 90 -min 0 -max 1000000000 -smx 
+		360 -at "float";
+	addAttr -ci true -k true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "horizontal_fov" -ln "horizontalFov" -dv 60 -min 0 
+		-max 1000000000 -smx 360 -at "float";
+	addAttr -ci true -k true -sn "vertical_fov" -ln "verticalFov" -dv 90 -min 0 -max 
+		1000000000 -smx 180 -at "float";
+	addAttr -ci true -k true -sn "projective" -ln "projective" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr -k off ".v" no;
+	setAttr ".rnd" no;
+	setAttr ".coi" 100.1;
+	setAttr ".ow" 30;
+	setAttr ".imn" -type "string" "top";
+	setAttr ".den" -type "string" "top_depth";
+	setAttr ".man" -type "string" "top_mask";
+	setAttr ".hc" -type "string" "viewSet -t %camera";
+	setAttr ".o" yes;
+	setAttr -k on ".ai_translator" -type "string" "orthographic";
+	setAttr -k on ".arntr" -type "string" "orthographic";
+	setAttr ".lumaID" -type "string" "a:1292543810.78:0.0901379666454";
+createNode transform -s -n "front";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".v" no;
+	setAttr ".t" -type "double3" 0 0 100.1 ;
+	setAttr ".lumaID" -type "string" "a:1292543810.78:0.868060622798";
+createNode camera -s -n "frontShape" -p "front";
+	addAttr -ci true -k true -sn "ai_filtermap" -ln "aiFiltermap" -at "message";
+	addAttr -ci true -k true -sn "ai_horizontal_fov" -ln "aiHorizontalFov" -dv 60 -min 
+		0 -max 1000000000 -smx 360 -at "float";
+	addAttr -ci true -k true -sn "ai_vertical_fov" -ln "aiVerticalFov" -dv 90 -min 0 
+		-max 1000000000 -smx 180 -at "float";
+	addAttr -ci true -k true -sn "ai_projective" -ln "aiProjective" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "ai_focus_distance" -ln "aiFocusDistance" -dv 1 -min 
+		0 -max 1000000000 -smn 0 -smx 200 -at "float";
+	addAttr -ci true -k true -sn "ai_aperture_size" -ln "aiApertureSize" -min 0 -max 
+		20 -smn 0 -smx 1 -at "float";
+	addAttr -ci true -k true -sn "ai_aperture_blades" -ln "aiApertureBlades" -min 3 
+		-max 40 -at "long";
+	addAttr -ci true -k true -sn "ai_aperture_blade_curvature" -ln "aiApertureBladeCurvature" 
+		-min -20 -max 20 -smn -5 -smx 5 -at "float";
+	addAttr -ci true -k true -sn "ai_aperture_rotation" -ln "aiApertureRotation" -min 
+		0 -max 360 -smn 0 -smx 50 -at "float";
+	addAttr -ci true -k true -sn "ai_edof" -ln "aiEnableDOF" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_fov" -ln "aiFov" -dv 90 -min 0 -max 1000000000 
+		-smx 360 -at "float";
+	addAttr -ci true -k true -sn "ai_autocrop" -ln "aiAutocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -uac -k true -sn "ai_uv_remap" -ln "aiUvRemap" -at "float3" -nc 
+		3;
+	addAttr -ci true -k true -sn "ai_uv_remapr" -ln "aiUvRemapR" -at "float" -p "aiUvRemap";
+	addAttr -ci true -k true -sn "ai_uv_remapg" -ln "aiUvRemapG" -at "float" -p "aiUvRemap";
+	addAttr -ci true -k true -sn "ai_uv_remapb" -ln "aiUvRemapB" -at "float" -p "aiUvRemap";
+	addAttr -ci true -h true -k true -sn "ai_uv_remapa" -ln "aiUvRemapA" -at "float";
+	addAttr -ci true -k true -sn "ai_translator" -ln "aiTranslator" -dt "string";
+	addAttr -ci true -k true -sn "filtermap" -ln "filtermap" -at "message";
+	addAttr -ci true -k true -sn "focal_distance" -ln "focalDistance" -dv 5 -min 0 -max 
+		1000000000 -smn 0 -smx 200 -at "float";
+	addAttr -ci true -k true -sn "aperture_size" -ln "apertureSize" -dv 0.20000000298023224 
+		-min 0 -max 20 -smn 0 -smx 0.5 -at "float";
+	addAttr -ci true -k true -sn "aperture_blades" -ln "apertureBlades" -dv 6 -min 3 
+		-max 40 -at "long";
+	addAttr -ci true -k true -sn "aperture_blade_curvature" -ln "apertureBladeCurvature" 
+		-min -20 -max 20 -smn -5 -smx 5 -at "float";
+	addAttr -ci true -k true -sn "aperture_rotation" -ln "apertureRotation" -min 0 -max 
+		360 -smn 0 -smx 50 -at "float";
+	addAttr -ci true -k true -sn "edof" -ln "enableDOF" -min 0 -max 1 -at "bool";
+	addAttr -ci true -uac -k true -sn "uv_remap" -ln "uvRemap" -at "float3" -nc 3;
+	addAttr -ci true -k true -sn "uv_remapr" -ln "uvRemapR" -at "float" -p "uvRemap";
+	addAttr -ci true -k true -sn "uv_remapg" -ln "uvRemapG" -at "float" -p "uvRemap";
+	addAttr -ci true -k true -sn "uv_remapb" -ln "uvRemapB" -at "float" -p "uvRemap";
+	addAttr -ci true -h true -k true -sn "uv_remapa" -ln "uvRemapA" -at "float";
+	addAttr -ci true -k true -sn "arntr" -ln "arnoldTranslator" -dt "string";
+	addAttr -ci true -k true -sn "fov" -ln "fov" -dv 90 -min 0 -max 1000000000 -smx 
+		360 -at "float";
+	addAttr -ci true -k true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "horizontal_fov" -ln "horizontalFov" -dv 60 -min 0 
+		-max 1000000000 -smx 360 -at "float";
+	addAttr -ci true -k true -sn "vertical_fov" -ln "verticalFov" -dv 90 -min 0 -max 
+		1000000000 -smx 180 -at "float";
+	addAttr -ci true -k true -sn "projective" -ln "projective" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr -k off ".v" no;
+	setAttr ".rnd" no;
+	setAttr ".coi" 100.1;
+	setAttr ".ow" 30;
+	setAttr ".imn" -type "string" "front";
+	setAttr ".den" -type "string" "front_depth";
+	setAttr ".man" -type "string" "front_mask";
+	setAttr ".hc" -type "string" "viewSet -f %camera";
+	setAttr ".o" yes;
+	setAttr -k on ".ai_translator" -type "string" "orthographic";
+	setAttr -k on ".arntr" -type "string" "orthographic";
+	setAttr ".lumaID" -type "string" "a:1292543810.78:0.477657204049";
+createNode transform -s -n "side";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".v" no;
+	setAttr ".t" -type "double3" 100.1 0 0 ;
+	setAttr ".r" -type "double3" 0 89.999999999999986 0 ;
+	setAttr ".lumaID" -type "string" "a:1292543810.78:0.0689165906814";
+createNode camera -s -n "sideShape" -p "side";
+	addAttr -ci true -k true -sn "ai_filtermap" -ln "aiFiltermap" -at "message";
+	addAttr -ci true -k true -sn "ai_horizontal_fov" -ln "aiHorizontalFov" -dv 60 -min 
+		0 -max 1000000000 -smx 360 -at "float";
+	addAttr -ci true -k true -sn "ai_vertical_fov" -ln "aiVerticalFov" -dv 90 -min 0 
+		-max 1000000000 -smx 180 -at "float";
+	addAttr -ci true -k true -sn "ai_projective" -ln "aiProjective" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "ai_focus_distance" -ln "aiFocusDistance" -dv 1 -min 
+		0 -max 1000000000 -smn 0 -smx 200 -at "float";
+	addAttr -ci true -k true -sn "ai_aperture_size" -ln "aiApertureSize" -min 0 -max 
+		20 -smn 0 -smx 1 -at "float";
+	addAttr -ci true -k true -sn "ai_aperture_blades" -ln "aiApertureBlades" -min 3 
+		-max 40 -at "long";
+	addAttr -ci true -k true -sn "ai_aperture_blade_curvature" -ln "aiApertureBladeCurvature" 
+		-min -20 -max 20 -smn -5 -smx 5 -at "float";
+	addAttr -ci true -k true -sn "ai_aperture_rotation" -ln "aiApertureRotation" -min 
+		0 -max 360 -smn 0 -smx 50 -at "float";
+	addAttr -ci true -k true -sn "ai_edof" -ln "aiEnableDOF" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_fov" -ln "aiFov" -dv 90 -min 0 -max 1000000000 
+		-smx 360 -at "float";
+	addAttr -ci true -k true -sn "ai_autocrop" -ln "aiAutocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -uac -k true -sn "ai_uv_remap" -ln "aiUvRemap" -at "float3" -nc 
+		3;
+	addAttr -ci true -k true -sn "ai_uv_remapr" -ln "aiUvRemapR" -at "float" -p "aiUvRemap";
+	addAttr -ci true -k true -sn "ai_uv_remapg" -ln "aiUvRemapG" -at "float" -p "aiUvRemap";
+	addAttr -ci true -k true -sn "ai_uv_remapb" -ln "aiUvRemapB" -at "float" -p "aiUvRemap";
+	addAttr -ci true -h true -k true -sn "ai_uv_remapa" -ln "aiUvRemapA" -at "float";
+	addAttr -ci true -k true -sn "ai_translator" -ln "aiTranslator" -dt "string";
+	addAttr -ci true -k true -sn "filtermap" -ln "filtermap" -at "message";
+	addAttr -ci true -k true -sn "focal_distance" -ln "focalDistance" -dv 5 -min 0 -max 
+		1000000000 -smn 0 -smx 200 -at "float";
+	addAttr -ci true -k true -sn "aperture_size" -ln "apertureSize" -dv 0.20000000298023224 
+		-min 0 -max 20 -smn 0 -smx 0.5 -at "float";
+	addAttr -ci true -k true -sn "aperture_blades" -ln "apertureBlades" -dv 6 -min 3 
+		-max 40 -at "long";
+	addAttr -ci true -k true -sn "aperture_blade_curvature" -ln "apertureBladeCurvature" 
+		-min -20 -max 20 -smn -5 -smx 5 -at "float";
+	addAttr -ci true -k true -sn "aperture_rotation" -ln "apertureRotation" -min 0 -max 
+		360 -smn 0 -smx 50 -at "float";
+	addAttr -ci true -k true -sn "edof" -ln "enableDOF" -min 0 -max 1 -at "bool";
+	addAttr -ci true -uac -k true -sn "uv_remap" -ln "uvRemap" -at "float3" -nc 3;
+	addAttr -ci true -k true -sn "uv_remapr" -ln "uvRemapR" -at "float" -p "uvRemap";
+	addAttr -ci true -k true -sn "uv_remapg" -ln "uvRemapG" -at "float" -p "uvRemap";
+	addAttr -ci true -k true -sn "uv_remapb" -ln "uvRemapB" -at "float" -p "uvRemap";
+	addAttr -ci true -h true -k true -sn "uv_remapa" -ln "uvRemapA" -at "float";
+	addAttr -ci true -k true -sn "arntr" -ln "arnoldTranslator" -dt "string";
+	addAttr -ci true -k true -sn "fov" -ln "fov" -dv 90 -min 0 -max 1000000000 -smx 
+		360 -at "float";
+	addAttr -ci true -k true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "horizontal_fov" -ln "horizontalFov" -dv 60 -min 0 
+		-max 1000000000 -smx 360 -at "float";
+	addAttr -ci true -k true -sn "vertical_fov" -ln "verticalFov" -dv 90 -min 0 -max 
+		1000000000 -smx 180 -at "float";
+	addAttr -ci true -k true -sn "projective" -ln "projective" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr -k off ".v" no;
+	setAttr ".rnd" no;
+	setAttr ".coi" 100.1;
+	setAttr ".ow" 30;
+	setAttr ".imn" -type "string" "side";
+	setAttr ".den" -type "string" "side_depth";
+	setAttr ".man" -type "string" "side_mask";
+	setAttr ".hc" -type "string" "viewSet -s %camera";
+	setAttr ".o" yes;
+	setAttr -k on ".ai_translator" -type "string" "orthographic";
+	setAttr -k on ".arntr" -type "string" "orthographic";
+	setAttr ".lumaID" -type "string" "a:1292543810.78:0.883109732476";
+createNode transform -n "persp1";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".t" -type "double3" 19.378018665169563 11.145031574928081 -13.190445001778897 ;
+	setAttr ".r" -type "double3" -30.938352729601846 140.99999999999906 0 ;
+	setAttr ".lumaID" -type "string" "a:1304446547.39:0.78480438668";
+createNode camera -n "perspShape2" -p "persp1";
+	addAttr -ci true -k true -sn "ai_filtermap" -ln "aiFiltermap" -at "message";
+	addAttr -ci true -k true -sn "ai_horizontal_fov" -ln "aiHorizontalFov" -dv 60 -min 
+		0 -max 1000000000 -smx 360 -at "float";
+	addAttr -ci true -k true -sn "ai_vertical_fov" -ln "aiVerticalFov" -dv 90 -min 0 
+		-max 1000000000 -smx 180 -at "float";
+	addAttr -ci true -k true -sn "ai_projective" -ln "aiProjective" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "ai_focus_distance" -ln "aiFocusDistance" -dv 1 -min 
+		0 -max 1000000000 -smn 0 -smx 200 -at "float";
+	addAttr -ci true -k true -sn "ai_aperture_size" -ln "aiApertureSize" -min 0 -max 
+		20 -smn 0 -smx 1 -at "float";
+	addAttr -ci true -k true -sn "ai_aperture_blades" -ln "aiApertureBlades" -min 3 
+		-max 40 -at "long";
+	addAttr -ci true -k true -sn "ai_aperture_blade_curvature" -ln "aiApertureBladeCurvature" 
+		-min -20 -max 20 -smn -5 -smx 5 -at "float";
+	addAttr -ci true -k true -sn "ai_aperture_rotation" -ln "aiApertureRotation" -min 
+		0 -max 360 -smn 0 -smx 50 -at "float";
+	addAttr -ci true -k true -sn "ai_edof" -ln "aiEnableDOF" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_fov" -ln "aiFov" -dv 90 -min 0 -max 1000000000 
+		-smx 360 -at "float";
+	addAttr -ci true -k true -sn "ai_autocrop" -ln "aiAutocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -uac -k true -sn "ai_uv_remap" -ln "aiUvRemap" -at "float3" -nc 
+		3;
+	addAttr -ci true -k true -sn "ai_uv_remapr" -ln "aiUvRemapR" -at "float" -p "aiUvRemap";
+	addAttr -ci true -k true -sn "ai_uv_remapg" -ln "aiUvRemapG" -at "float" -p "aiUvRemap";
+	addAttr -ci true -k true -sn "ai_uv_remapb" -ln "aiUvRemapB" -at "float" -p "aiUvRemap";
+	addAttr -ci true -h true -k true -sn "ai_uv_remapa" -ln "aiUvRemapA" -at "float";
+	addAttr -ci true -k true -sn "ai_translator" -ln "aiTranslator" -dt "string";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	addAttr -ci true -k true -sn "filtermap" -ln "filtermap" -at "message";
+	addAttr -ci true -k true -sn "focal_distance" -ln "focalDistance" -dv 5 -min 0 -max 
+		1000000000 -smn 0 -smx 200 -at "float";
+	addAttr -ci true -k true -sn "aperture_size" -ln "apertureSize" -dv 0.20000000298023224 
+		-min 0 -max 20 -smn 0 -smx 0.5 -at "float";
+	addAttr -ci true -k true -sn "aperture_blades" -ln "apertureBlades" -dv 6 -min 3 
+		-max 40 -at "long";
+	addAttr -ci true -k true -sn "aperture_blade_curvature" -ln "apertureBladeCurvature" 
+		-min -20 -max 20 -smn -5 -smx 5 -at "float";
+	addAttr -ci true -k true -sn "aperture_rotation" -ln "apertureRotation" -min 0 -max 
+		360 -smn 0 -smx 50 -at "float";
+	addAttr -ci true -k true -sn "edof" -ln "enableDOF" -min 0 -max 1 -at "bool";
+	addAttr -ci true -uac -k true -sn "uv_remap" -ln "uvRemap" -at "float3" -nc 3;
+	addAttr -ci true -k true -sn "uv_remapr" -ln "uvRemapR" -at "float" -p "uvRemap";
+	addAttr -ci true -k true -sn "uv_remapg" -ln "uvRemapG" -at "float" -p "uvRemap";
+	addAttr -ci true -k true -sn "uv_remapb" -ln "uvRemapB" -at "float" -p "uvRemap";
+	addAttr -ci true -h true -k true -sn "uv_remapa" -ln "uvRemapA" -at "float";
+	addAttr -ci true -k true -sn "arntr" -ln "arnoldTranslator" -dt "string";
+	addAttr -ci true -k true -sn "fov" -ln "fov" -dv 90 -min 0 -max 1000000000 -smx 
+		360 -at "float";
+	addAttr -ci true -k true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "horizontal_fov" -ln "horizontalFov" -dv 60 -min 0 
+		-max 1000000000 -smx 360 -at "float";
+	addAttr -ci true -k true -sn "vertical_fov" -ln "verticalFov" -dv 90 -min 0 -max 
+		1000000000 -smx 180 -at "float";
+	addAttr -ci true -k true -sn "projective" -ln "projective" -dv 1 -min 0 -max 1 -at "bool";
+	setAttr -k off ".v";
+	setAttr ".rnd" no;
+	setAttr ".fl" 34.999999999999993;
+	setAttr ".coi" 23.923424361645026;
+	setAttr ".imn" -type "string" "persp1";
+	setAttr ".den" -type "string" "persp1_depth";
+	setAttr ".man" -type "string" "persp1_mask";
+	setAttr ".hc" -type "string" "viewSet -p %camera";
+	setAttr -k on ".ai_translator" -type "string" "perspective";
+	setAttr ".lumaID" -type "string" "a:1304446547.39:0.606877262845";
+	setAttr -k on ".arntr" -type "string" "perspective";
+createNode transform -n "pSphere1";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".t" -type "double3" 0 0 0.86433077973951322 ;
+	setAttr ".s" -type "double3" 0.80746250018211785 0.80746250018211785 0.80746250018211785 ;
+	setAttr ".lumaID" -type "string" "a:1310167324.63:0.0186269795619";
+createNode mesh -n "pSphereShape1" -p "pSphere1";
+	addAttr -ci true -sn "ai_sss_sample_distribution" -ln "aiSssSampleDistribution" 
+		-min 0 -max 3 -en "blue_noise:blue_noise_Pref:triangle_midpoint:polygon_midpoint" 
+		-at "enum";
+	addAttr -ci true -k true -sn "ai_sss_sample_spacing" -ln "aiSssSampleSpacing" -dv 
+		0.10000000149011612 -min 0 -smx 1 -at "float";
+	addAttr -ci true -k true -sn "ai_self_shadows" -ln "aiSelfShadows" -dv 1 -min 0 
+		-max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_opaque" -ln "aiOpaque" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_vid" -ln "aiVisibleInDiffuse" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "ai_vig" -ln "aiVisibleInGlossy" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -sn "ai_subdiv_type" -ln "aiSubdivType" -min 0 -max 2 -en "none:catclark:linear" 
+		-at "enum";
+	addAttr -ci true -k true -sn "ai_subdiv_iterations" -ln "aiSubdivIterations" -dv 
+		1 -min 0 -max 100 -smn 0 -smx 10 -at "long";
+	addAttr -ci true -sn "ai_subdiv_adaptive_metric" -ln "aiSubdivAdaptiveMetric" -min 
+		0 -max 2 -en "auto:edge_length:flatness" -at "enum";
+	addAttr -ci true -k true -sn "ai_subdiv_pixel_error" -ln "aiSubdivPixelError" -min 
+		0 -smx 10 -at "float";
+	addAttr -ci true -k true -sn "ai_subdiv_dicing_camera" -ln "aiSubdivDicingCamera" 
+		-at "message";
+	addAttr -ci true -sn "ai_subdiv_uv_smoothing" -ln "aiSubdivUvSmoothing" -min 0 -max 
+		3 -en "pin_corners:pin_borders:linear:smooth" -at "enum";
+	addAttr -ci true -k true -sn "ai_exptan" -ln "aiExportTangents" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_expcol" -ln "aiExportColors" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "ai_sss_use_gi" -ln "aiSssUseGi" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_sss_max_samples" -ln "aiSssMaxSamples" -dv 100000 
+		-min 0 -smx 1000000 -at "long";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	addAttr -ci true -sn "mso" -ln "miShadingSamplesOverride" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "msh" -ln "miShadingSamples" -min 0 -smx 8 -at "float";
+	addAttr -ci true -sn "mdo" -ln "miMaxDisplaceOverride" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "mmd" -ln "miMaxDisplace" -min 0 -smx 1 -at "float";
+	setAttr -k off ".v";
+	setAttr ".vir" yes;
+	setAttr ".vif" yes;
+	setAttr ".uvst[0].uvsn" -type "string" "map1";
+	setAttr ".cuvs" -type "string" "map1";
+	setAttr ".dcc" -type "string" "Ambient+Diffuse";
+	setAttr ".covm[0]"  0 1 1;
+	setAttr ".cdvm[0]"  0 1 1;
+	setAttr ".lumaID" -type "string" "a:1310167324.63:0.690731347409";
+createNode transform -n "pSphere2";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".t" -type "double3" 0 0 -0.8604004905855811 ;
+	setAttr ".s" -type "double3" 0.80746250018211785 0.80746250018211785 0.80746250018211785 ;
+	setAttr ".lumaID" -type "string" "a:1318963832.75:0.392079927987";
+createNode mesh -n "pSphereShape2" -p "pSphere2";
+	addAttr -ci true -sn "ai_sss_sample_distribution" -ln "aiSssSampleDistribution" 
+		-min 0 -max 3 -en "blue_noise:blue_noise_Pref:triangle_midpoint:polygon_midpoint" 
+		-at "enum";
+	addAttr -ci true -k true -sn "ai_sss_sample_spacing" -ln "aiSssSampleSpacing" -dv 
+		0.10000000149011612 -min 0 -smx 1 -at "float";
+	addAttr -ci true -k true -sn "ai_self_shadows" -ln "aiSelfShadows" -dv 1 -min 0 
+		-max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_opaque" -ln "aiOpaque" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_vid" -ln "aiVisibleInDiffuse" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "ai_vig" -ln "aiVisibleInGlossy" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -sn "ai_subdiv_type" -ln "aiSubdivType" -min 0 -max 2 -en "none:catclark:linear" 
+		-at "enum";
+	addAttr -ci true -k true -sn "ai_subdiv_iterations" -ln "aiSubdivIterations" -dv 
+		1 -min 0 -max 100 -smn 0 -smx 10 -at "long";
+	addAttr -ci true -sn "ai_subdiv_adaptive_metric" -ln "aiSubdivAdaptiveMetric" -min 
+		0 -max 2 -en "auto:edge_length:flatness" -at "enum";
+	addAttr -ci true -k true -sn "ai_subdiv_pixel_error" -ln "aiSubdivPixelError" -min 
+		0 -smx 10 -at "float";
+	addAttr -ci true -k true -sn "ai_subdiv_dicing_camera" -ln "aiSubdivDicingCamera" 
+		-at "message";
+	addAttr -ci true -sn "ai_subdiv_uv_smoothing" -ln "aiSubdivUvSmoothing" -min 0 -max 
+		3 -en "pin_corners:pin_borders:linear:smooth" -at "enum";
+	addAttr -ci true -k true -sn "ai_exptan" -ln "aiExportTangents" -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_expcol" -ln "aiExportColors" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "ai_sss_use_gi" -ln "aiSssUseGi" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "ai_sss_max_samples" -ln "aiSssMaxSamples" -dv 100000 
+		-min 0 -smx 1000000 -at "long";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	addAttr -ci true -sn "mso" -ln "miShadingSamplesOverride" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "msh" -ln "miShadingSamples" -min 0 -smx 8 -at "float";
+	addAttr -ci true -sn "mdo" -ln "miMaxDisplaceOverride" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "mmd" -ln "miMaxDisplace" -min 0 -smx 1 -at "float";
+	setAttr -k off ".v";
+	setAttr ".vir" yes;
+	setAttr ".vif" yes;
+	setAttr ".uvst[0].uvsn" -type "string" "map1";
+	setAttr -s 439 ".uvst[0].uvsp";
+	setAttr ".uvst[0].uvsp[0:249]" -type "float2" 0 0.050000001 0.050000001 0.050000001 
+		0.1 0.050000001 0.15000001 0.050000001 0.2 0.050000001 0.25 0.050000001 0.30000001 
+		0.050000001 0.35000002 0.050000001 0.40000004 0.050000001 0.45000005 0.050000001 
+		0.50000006 0.050000001 0.55000007 0.050000001 0.60000008 0.050000001 0.6500001 0.050000001 
+		0.70000011 0.050000001 0.75000012 0.050000001 0.80000013 0.050000001 0.85000014 0.050000001 
+		0.90000015 0.050000001 0.95000017 0.050000001 1.0000001 0.050000001 0 0.1 0.050000001 
+		0.1 0.1 0.1 0.15000001 0.1 0.2 0.1 0.25 0.1 0.30000001 0.1 0.35000002 0.1 0.40000004 
+		0.1 0.45000005 0.1 0.50000006 0.1 0.55000007 0.1 0.60000008 0.1 0.6500001 0.1 0.70000011 
+		0.1 0.75000012 0.1 0.80000013 0.1 0.85000014 0.1 0.90000015 0.1 0.95000017 0.1 1.0000001 
+		0.1 0 0.15000001 0.050000001 0.15000001 0.1 0.15000001 0.15000001 0.15000001 0.2 
+		0.15000001 0.25 0.15000001 0.30000001 0.15000001 0.35000002 0.15000001 0.40000004 
+		0.15000001 0.45000005 0.15000001 0.50000006 0.15000001 0.55000007 0.15000001 0.60000008 
+		0.15000001 0.6500001 0.15000001 0.70000011 0.15000001 0.75000012 0.15000001 0.80000013 
+		0.15000001 0.85000014 0.15000001 0.90000015 0.15000001 0.95000017 0.15000001 1.0000001 
+		0.15000001 0 0.2 0.050000001 0.2 0.1 0.2 0.15000001 0.2 0.2 0.2 0.25 0.2 0.30000001 
+		0.2 0.35000002 0.2 0.40000004 0.2 0.45000005 0.2 0.50000006 0.2 0.55000007 0.2 0.60000008 
+		0.2 0.6500001 0.2 0.70000011 0.2 0.75000012 0.2 0.80000013 0.2 0.85000014 0.2 0.90000015 
+		0.2 0.95000017 0.2 1.0000001 0.2 0 0.25 0.050000001 0.25 0.1 0.25 0.15000001 0.25 
+		0.2 0.25 0.25 0.25 0.30000001 0.25 0.35000002 0.25 0.40000004 0.25 0.45000005 0.25 
+		0.50000006 0.25 0.55000007 0.25 0.60000008 0.25 0.6500001 0.25 0.70000011 0.25 0.75000012 
+		0.25 0.80000013 0.25 0.85000014 0.25 0.90000015 0.25 0.95000017 0.25 1.0000001 0.25 
+		0 0.30000001 0.050000001 0.30000001 0.1 0.30000001 0.15000001 0.30000001 0.2 0.30000001 
+		0.25 0.30000001 0.30000001 0.30000001 0.35000002 0.30000001 0.40000004 0.30000001 
+		0.45000005 0.30000001 0.50000006 0.30000001 0.55000007 0.30000001 0.60000008 0.30000001 
+		0.6500001 0.30000001 0.70000011 0.30000001 0.75000012 0.30000001 0.80000013 0.30000001 
+		0.85000014 0.30000001 0.90000015 0.30000001 0.95000017 0.30000001 1.0000001 0.30000001 
+		0 0.35000002 0.050000001 0.35000002 0.1 0.35000002 0.15000001 0.35000002 0.2 0.35000002 
+		0.25 0.35000002 0.30000001 0.35000002 0.35000002 0.35000002 0.40000004 0.35000002 
+		0.45000005 0.35000002 0.50000006 0.35000002 0.55000007 0.35000002 0.60000008 0.35000002 
+		0.6500001 0.35000002 0.70000011 0.35000002 0.75000012 0.35000002 0.80000013 0.35000002 
+		0.85000014 0.35000002 0.90000015 0.35000002 0.95000017 0.35000002 1.0000001 0.35000002 
+		0 0.40000004 0.050000001 0.40000004 0.1 0.40000004 0.15000001 0.40000004 0.2 0.40000004 
+		0.25 0.40000004 0.30000001 0.40000004 0.35000002 0.40000004 0.40000004 0.40000004 
+		0.45000005 0.40000004 0.50000006 0.40000004 0.55000007 0.40000004 0.60000008 0.40000004 
+		0.6500001 0.40000004 0.70000011 0.40000004 0.75000012 0.40000004 0.80000013 0.40000004 
+		0.85000014 0.40000004 0.90000015 0.40000004 0.95000017 0.40000004 1.0000001 0.40000004 
+		0 0.45000005 0.050000001 0.45000005 0.1 0.45000005 0.15000001 0.45000005 0.2 0.45000005 
+		0.25 0.45000005 0.30000001 0.45000005 0.35000002 0.45000005 0.40000004 0.45000005 
+		0.45000005 0.45000005 0.50000006 0.45000005 0.55000007 0.45000005 0.60000008 0.45000005 
+		0.6500001 0.45000005 0.70000011 0.45000005 0.75000012 0.45000005 0.80000013 0.45000005 
+		0.85000014 0.45000005 0.90000015 0.45000005 0.95000017 0.45000005 1.0000001 0.45000005 
+		0 0.50000006 0.050000001 0.50000006 0.1 0.50000006 0.15000001 0.50000006 0.2 0.50000006 
+		0.25 0.50000006 0.30000001 0.50000006 0.35000002 0.50000006 0.40000004 0.50000006 
+		0.45000005 0.50000006 0.50000006 0.50000006 0.55000007 0.50000006 0.60000008 0.50000006 
+		0.6500001 0.50000006 0.70000011 0.50000006 0.75000012 0.50000006 0.80000013 0.50000006 
+		0.85000014 0.50000006 0.90000015 0.50000006 0.95000017 0.50000006 1.0000001 0.50000006 
+		0 0.55000007 0.050000001 0.55000007 0.1 0.55000007 0.15000001 0.55000007 0.2 0.55000007 
+		0.25 0.55000007 0.30000001 0.55000007 0.35000002 0.55000007 0.40000004 0.55000007 
+		0.45000005 0.55000007 0.50000006 0.55000007 0.55000007 0.55000007 0.60000008 0.55000007 
+		0.6500001 0.55000007 0.70000011 0.55000007 0.75000012 0.55000007 0.80000013 0.55000007 
+		0.85000014 0.55000007 0.90000015 0.55000007 0.95000017 0.55000007 1.0000001 0.55000007 
+		0 0.60000008 0.050000001 0.60000008 0.1 0.60000008 0.15000001 0.60000008 0.2 0.60000008 
+		0.25 0.60000008 0.30000001 0.60000008 0.35000002 0.60000008 0.40000004 0.60000008 
+		0.45000005 0.60000008 0.50000006 0.60000008 0.55000007 0.60000008 0.60000008 0.60000008 
+		0.6500001 0.60000008 0.70000011 0.60000008 0.75000012 0.60000008 0.80000013 0.60000008 
+		0.85000014 0.60000008 0.90000015 0.60000008;
+	setAttr ".uvst[0].uvsp[250:438]" 0.95000017 0.60000008 1.0000001 0.60000008 0 0.6500001 
+		0.050000001 0.6500001 0.1 0.6500001 0.15000001 0.6500001 0.2 0.6500001 0.25 0.6500001 
+		0.30000001 0.6500001 0.35000002 0.6500001 0.40000004 0.6500001 0.45000005 0.6500001 
+		0.50000006 0.6500001 0.55000007 0.6500001 0.60000008 0.6500001 0.6500001 0.6500001 
+		0.70000011 0.6500001 0.75000012 0.6500001 0.80000013 0.6500001 0.85000014 0.6500001 
+		0.90000015 0.6500001 0.95000017 0.6500001 1.0000001 0.6500001 0 0.70000011 0.050000001 
+		0.70000011 0.1 0.70000011 0.15000001 0.70000011 0.2 0.70000011 0.25 0.70000011 0.30000001 
+		0.70000011 0.35000002 0.70000011 0.40000004 0.70000011 0.45000005 0.70000011 0.50000006 
+		0.70000011 0.55000007 0.70000011 0.60000008 0.70000011 0.6500001 0.70000011 0.70000011 
+		0.70000011 0.75000012 0.70000011 0.80000013 0.70000011 0.85000014 0.70000011 0.90000015 
+		0.70000011 0.95000017 0.70000011 1.0000001 0.70000011 0 0.75000012 0.050000001 0.75000012 
+		0.1 0.75000012 0.15000001 0.75000012 0.2 0.75000012 0.25 0.75000012 0.30000001 0.75000012 
+		0.35000002 0.75000012 0.40000004 0.75000012 0.45000005 0.75000012 0.50000006 0.75000012 
+		0.55000007 0.75000012 0.60000008 0.75000012 0.6500001 0.75000012 0.70000011 0.75000012 
+		0.75000012 0.75000012 0.80000013 0.75000012 0.85000014 0.75000012 0.90000015 0.75000012 
+		0.95000017 0.75000012 1.0000001 0.75000012 0 0.80000013 0.050000001 0.80000013 0.1 
+		0.80000013 0.15000001 0.80000013 0.2 0.80000013 0.25 0.80000013 0.30000001 0.80000013 
+		0.35000002 0.80000013 0.40000004 0.80000013 0.45000005 0.80000013 0.50000006 0.80000013 
+		0.55000007 0.80000013 0.60000008 0.80000013 0.6500001 0.80000013 0.70000011 0.80000013 
+		0.75000012 0.80000013 0.80000013 0.80000013 0.85000014 0.80000013 0.90000015 0.80000013 
+		0.95000017 0.80000013 1.0000001 0.80000013 0 0.85000014 0.050000001 0.85000014 0.1 
+		0.85000014 0.15000001 0.85000014 0.2 0.85000014 0.25 0.85000014 0.30000001 0.85000014 
+		0.35000002 0.85000014 0.40000004 0.85000014 0.45000005 0.85000014 0.50000006 0.85000014 
+		0.55000007 0.85000014 0.60000008 0.85000014 0.6500001 0.85000014 0.70000011 0.85000014 
+		0.75000012 0.85000014 0.80000013 0.85000014 0.85000014 0.85000014 0.90000015 0.85000014 
+		0.95000017 0.85000014 1.0000001 0.85000014 0 0.90000015 0.050000001 0.90000015 0.1 
+		0.90000015 0.15000001 0.90000015 0.2 0.90000015 0.25 0.90000015 0.30000001 0.90000015 
+		0.35000002 0.90000015 0.40000004 0.90000015 0.45000005 0.90000015 0.50000006 0.90000015 
+		0.55000007 0.90000015 0.60000008 0.90000015 0.6500001 0.90000015 0.70000011 0.90000015 
+		0.75000012 0.90000015 0.80000013 0.90000015 0.85000014 0.90000015 0.90000015 0.90000015 
+		0.95000017 0.90000015 1.0000001 0.90000015 0 0.95000017 0.050000001 0.95000017 0.1 
+		0.95000017 0.15000001 0.95000017 0.2 0.95000017 0.25 0.95000017 0.30000001 0.95000017 
+		0.35000002 0.95000017 0.40000004 0.95000017 0.45000005 0.95000017 0.50000006 0.95000017 
+		0.55000007 0.95000017 0.60000008 0.95000017 0.6500001 0.95000017 0.70000011 0.95000017 
+		0.75000012 0.95000017 0.80000013 0.95000017 0.85000014 0.95000017 0.90000015 0.95000017 
+		0.95000017 0.95000017 1.0000001 0.95000017 0.025 0 0.075000003 0 0.125 0 0.175 0 
+		0.22500001 0 0.27500001 0 0.32500002 0 0.375 0 0.42500001 0 0.47499999 0 0.52500004 
+		0 0.57499999 0 0.625 0 0.67500001 0 0.72500002 0 0.77500004 0 0.82499999 0 0.875 
+		0 0.92500001 0 0.97500002 0 0.025 1 0.075000003 1 0.125 1 0.175 1 0.22500001 1 0.27500001 
+		1 0.32500002 1 0.375 1 0.42500001 1 0.47499999 1 0.52500004 1 0.57499999 1 0.625 
+		1 0.67500001 1 0.72500002 1 0.77500004 1 0.82499999 1 0.875 1 0.92500001 1 0.97500002 
+		1;
+	setAttr ".cuvs" -type "string" "map1";
+	setAttr ".dcc" -type "string" "Ambient+Diffuse";
+	setAttr ".covm[0]"  0 1 1;
+	setAttr ".cdvm[0]"  0 1 1;
+	setAttr -s 382 ".vt";
+	setAttr ".vt[0:165]"  0.14877813 -0.98768836 -0.048340943 0.12655823 -0.98768836 
+		-0.091949932 0.091949932 -0.98768836 -0.12655823 0.048340935 -0.98768836 -0.14877811 
+		0 -0.98768836 -0.15643455 -0.048340935 -0.98768836 -0.1487781 -0.091949917 -0.98768836 
+		-0.1265582 -0.12655818 -0.98768836 -0.091949902 -0.14877807 -0.98768836 -0.048340924 
+		-0.15643452 -0.98768836 0 -0.14877807 -0.98768836 0.048340924 -0.12655818 -0.98768836 
+		0.091949895 -0.091949895 -0.98768836 0.12655817 -0.048340924 -0.98768836 0.14877805 
+		-4.6621107e-09 -0.98768836 0.15643449 0.048340909 -0.98768836 0.14877804 0.09194988 
+		-0.98768836 0.12655815 0.12655815 -0.98768836 0.091949888 0.14877804 -0.98768836 
+		0.048340913 0.15643448 -0.98768836 0 0.29389283 -0.95105654 -0.095491566 0.25000018 
+		-0.95105654 -0.18163574 0.18163574 -0.95105654 -0.25000015 0.095491551 -0.95105654 
+		-0.2938928 0 -0.95105654 -0.30901715 -0.095491551 -0.95105654 -0.29389277 -0.18163571 
+		-0.95105654 -0.25000009 -0.25000009 -0.95105654 -0.18163569 -0.29389271 -0.95105654 
+		-0.095491529 -0.30901706 -0.95105654 0 -0.29389271 -0.95105654 0.095491529 -0.25000006 
+		-0.95105654 0.18163568 -0.18163568 -0.95105654 0.25000006 -0.095491529 -0.95105654 
+		0.29389268 -9.2094243e-09 -0.95105654 0.30901703 0.095491499 -0.95105654 0.29389265 
+		0.18163563 -0.95105654 0.25000003 0.25 -0.95105654 0.18163565 0.29389265 -0.95105654 
+		0.095491506 0.309017 -0.95105654 0 0.43177092 -0.89100653 -0.14029087 0.36728629 
+		-0.89100653 -0.2668491 0.2668491 -0.89100653 -0.36728626 0.14029086 -0.89100653 -0.43177086 
+		0 -0.89100653 -0.45399073 -0.14029086 -0.89100653 -0.43177083 -0.26684904 -0.89100653 
+		-0.36728618 -0.36728615 -0.89100653 -0.26684901 -0.43177077 -0.89100653 -0.14029081 
+		-0.45399064 -0.89100653 0 -0.43177077 -0.89100653 0.14029081 -0.36728612 -0.89100653 
+		0.26684898 -0.26684898 -0.89100653 0.36728612 -0.14029081 -0.89100653 0.43177071 
+		-1.3529972e-08 -0.89100653 0.45399058 0.14029078 -0.89100653 0.43177068 0.26684892 
+		-0.89100653 0.36728609 0.36728606 -0.89100653 0.26684895 0.43177065 -0.89100653 0.1402908 
+		0.45399052 -0.89100653 0 0.55901736 -0.809017 -0.18163574 0.47552857 -0.809017 -0.34549171 
+		0.34549171 -0.809017 -0.47552854 0.18163572 -0.809017 -0.5590173 0 -0.809017 -0.58778554 
+		-0.18163572 -0.809017 -0.55901724 -0.34549165 -0.809017 -0.47552842 -0.47552839 -0.809017 
+		-0.34549159 -0.55901712 -0.809017 -0.18163566 -0.58778536 -0.809017 0 -0.55901712 
+		-0.809017 0.18163566 -0.47552836 -0.809017 0.34549156 -0.34549156 -0.809017 0.47552833 
+		-0.18163566 -0.809017 0.55901706 -1.7517365e-08 -0.809017 0.5877853 0.18163562 -0.809017 
+		0.55901706 0.3454915 -0.809017 0.4755283 0.47552827 -0.809017 0.34549153 0.559017 
+		-0.809017 0.18163563 0.58778524 -0.809017 0 0.67249894 -0.70710677 -0.21850814 0.57206178 
+		-0.70710677 -0.41562718 0.41562718 -0.70710677 -0.57206172 0.21850812 -0.70710677 
+		-0.67249888 0 -0.70710677 -0.70710713 -0.21850812 -0.70710677 -0.67249882 -0.41562709 
+		-0.70710677 -0.5720616 -0.57206154 -0.70710677 -0.41562706 -0.6724987 -0.70710677 
+		-0.21850805 -0.70710695 -0.70710677 0 -0.6724987 -0.70710677 0.21850805 -0.57206154 
+		-0.70710677 0.415627 -0.415627 -0.70710677 0.57206148 -0.21850805 -0.70710677 0.67249858 
+		-2.1073424e-08 -0.70710677 0.70710683 0.21850799 -0.70710677 0.67249858 0.41562691 
+		-0.70710677 0.57206142 0.57206142 -0.70710677 0.41562697 0.67249852 -0.70710677 0.21850802 
+		0.70710677 -0.70710677 0 0.7694214 -0.58778524 -0.25000015 0.65450895 -0.58778524 
+		-0.47552854 0.47552854 -0.58778524 -0.65450889 0.25000012 -0.58778524 -0.76942128 
+		0 -0.58778524 -0.80901736 -0.25000012 -0.58778524 -0.76942122 -0.47552845 -0.58778524 
+		-0.65450877 -0.65450871 -0.58778524 -0.47552839 -0.7694211 -0.58778524 -0.25000006 
+		-0.80901718 -0.58778524 0 -0.7694211 -0.58778524 0.25000006 -0.65450865 -0.58778524 
+		0.47552836 -0.47552836 -0.58778524 0.65450859 -0.25000006 -0.58778524 0.76942098 
+		-2.4110586e-08 -0.58778524 0.80901712 0.24999999 -0.58778524 0.76942098 0.47552827 
+		-0.58778524 0.65450853 0.65450853 -0.58778524 0.4755283 0.76942092 -0.58778524 0.25 
+		0.809017 -0.58778524 0 0.8473981 -0.45399052 -0.27533633 0.72083992 -0.45399052 -0.5237208 
+		0.5237208 -0.45399052 -0.72083986 0.2753363 -0.45399052 -0.84739798 0 -0.45399052 
+		-0.89100695 -0.2753363 -0.45399052 -0.84739798 -0.52372068 -0.45399052 -0.72083968 
+		-0.72083962 -0.45399052 -0.52372062 -0.8473978 -0.45399052 -0.27533621 -0.89100677 
+		-0.45399052 0 -0.8473978 -0.45399052 0.27533621 -0.72083962 -0.45399052 0.52372062 
+		-0.52372062 -0.45399052 0.72083956 -0.27533621 -0.45399052 0.84739769 -2.6554064e-08 
+		-0.45399052 0.89100665 0.27533615 -0.45399052 0.84739763 0.5237205 -0.45399052 0.7208395 
+		0.72083944 -0.45399052 0.52372056 0.84739757 -0.45399052 0.27533618 0.89100653 -0.45399052 
+		0 0.90450913 -0.30901697 -0.2938928 0.7694214 -0.30901697 -0.55901736 0.55901736 
+		-0.30901697 -0.76942134 0.29389277 -0.30901697 -0.90450901 0 -0.30901697 -0.95105702 
+		-0.29389277 -0.30901697 -0.90450895 -0.55901724 -0.30901697 -0.76942122 -0.76942116 
+		-0.30901697 -0.55901718 -0.90450877 -0.30901697 -0.29389271 -0.95105678 -0.30901697 
+		0 -0.90450877 -0.30901697 0.29389271 -0.7694211 -0.30901697 0.55901712 -0.55901712 
+		-0.30901697 0.76942104 -0.29389271 -0.30901697 0.90450865 -2.8343694e-08 -0.30901697 
+		0.95105666 0.29389262 -0.30901697 0.90450859 0.559017 -0.30901697 0.76942098 0.76942092 
+		-0.30901697 0.55901706 0.90450853 -0.30901697 0.29389265 0.95105654 -0.30901697 0 
+		0.93934804 -0.15643437 -0.30521268 0.79905719 -0.15643437 -0.580549 0.580549 -0.15643437 
+		-0.79905713 0.30521265 -0.15643437 -0.93934792 0 -0.15643437 -0.98768884 -0.30521265 
+		-0.15643437 -0.93934786;
+	setAttr ".vt[166:331]" -0.58054888 -0.15643437 -0.79905695 -0.79905689 -0.15643437 
+		-0.58054882 -0.93934768 -0.15643437 -0.30521256 -0.9876886 -0.15643437 0 -0.93934768 
+		-0.15643437 0.30521256 -0.79905683 -0.15643437 0.58054876 -0.58054876 -0.15643437 
+		0.79905677 -0.30521256 -0.15643437 0.93934757 -2.9435407e-08 -0.15643437 0.98768848 
+		0.30521247 -0.15643437 0.93934757 0.58054864 -0.15643437 0.79905671 0.79905665 -0.15643437 
+		0.5805487 0.93934751 -0.15643437 0.3052125 0.98768836 -0.15643437 0 0.95105714 0 
+		-0.30901718 0.80901754 0 -0.5877856 0.5877856 0 -0.80901748 0.30901715 0 -0.95105702 
+		0 0 -1.0000005 -0.30901715 0 -0.95105696 -0.58778548 0 -0.8090173 -0.80901724 0 -0.58778542 
+		-0.95105678 0 -0.30901706 -1.0000002 0 0 -0.95105678 0 0.30901706 -0.80901718 0 0.58778536 
+		-0.58778536 0 0.80901712 -0.30901706 0 0.95105666 -2.9802322e-08 0 1.0000001 0.30901697 
+		0 0.9510566 0.58778524 0 0.80901706 0.809017 0 0.5877853 0.95105654 0 0.309017 1 
+		0 0 0.93934804 0.15643437 -0.30521268 0.79905719 0.15643437 -0.580549 0.580549 0.15643437 
+		-0.79905713 0.30521265 0.15643437 -0.93934792 0 0.15643437 -0.98768884 -0.30521265 
+		0.15643437 -0.93934786 -0.58054888 0.15643437 -0.79905695 -0.79905689 0.15643437 
+		-0.58054882 -0.93934768 0.15643437 -0.30521256 -0.9876886 0.15643437 0 -0.93934768 
+		0.15643437 0.30521256 -0.79905683 0.15643437 0.58054876 -0.58054876 0.15643437 0.79905677 
+		-0.30521256 0.15643437 0.93934757 -2.9435407e-08 0.15643437 0.98768848 0.30521247 
+		0.15643437 0.93934757 0.58054864 0.15643437 0.79905671 0.79905665 0.15643437 0.5805487 
+		0.93934751 0.15643437 0.3052125 0.98768836 0.15643437 0 0.90450913 0.30901697 -0.2938928 
+		0.7694214 0.30901697 -0.55901736 0.55901736 0.30901697 -0.76942134 0.29389277 0.30901697 
+		-0.90450901 0 0.30901697 -0.95105702 -0.29389277 0.30901697 -0.90450895 -0.55901724 
+		0.30901697 -0.76942122 -0.76942116 0.30901697 -0.55901718 -0.90450877 0.30901697 
+		-0.29389271 -0.95105678 0.30901697 0 -0.90450877 0.30901697 0.29389271 -0.7694211 
+		0.30901697 0.55901712 -0.55901712 0.30901697 0.76942104 -0.29389271 0.30901697 0.90450865 
+		-2.8343694e-08 0.30901697 0.95105666 0.29389262 0.30901697 0.90450859 0.559017 0.30901697 
+		0.76942098 0.76942092 0.30901697 0.55901706 0.90450853 0.30901697 0.29389265 0.95105654 
+		0.30901697 0 0.8473981 0.45399052 -0.27533633 0.72083992 0.45399052 -0.5237208 0.5237208 
+		0.45399052 -0.72083986 0.2753363 0.45399052 -0.84739798 0 0.45399052 -0.89100695 
+		-0.2753363 0.45399052 -0.84739798 -0.52372068 0.45399052 -0.72083968 -0.72083962 
+		0.45399052 -0.52372062 -0.8473978 0.45399052 -0.27533621 -0.89100677 0.45399052 0 
+		-0.8473978 0.45399052 0.27533621 -0.72083962 0.45399052 0.52372062 -0.52372062 0.45399052 
+		0.72083956 -0.27533621 0.45399052 0.84739769 -2.6554064e-08 0.45399052 0.89100665 
+		0.27533615 0.45399052 0.84739763 0.5237205 0.45399052 0.7208395 0.72083944 0.45399052 
+		0.52372056 0.84739757 0.45399052 0.27533618 0.89100653 0.45399052 0 0.7694214 0.58778524 
+		-0.25000015 0.65450895 0.58778524 -0.47552854 0.47552854 0.58778524 -0.65450889 0.25000012 
+		0.58778524 -0.76942128 0 0.58778524 -0.80901736 -0.25000012 0.58778524 -0.76942122 
+		-0.47552845 0.58778524 -0.65450877 -0.65450871 0.58778524 -0.47552839 -0.7694211 
+		0.58778524 -0.25000006 -0.80901718 0.58778524 0 -0.7694211 0.58778524 0.25000006 
+		-0.65450865 0.58778524 0.47552836 -0.47552836 0.58778524 0.65450859 -0.25000006 0.58778524 
+		0.76942098 -2.4110586e-08 0.58778524 0.80901712 0.24999999 0.58778524 0.76942098 
+		0.47552827 0.58778524 0.65450853 0.65450853 0.58778524 0.4755283 0.76942092 0.58778524 
+		0.25 0.809017 0.58778524 0 0.67249894 0.70710677 -0.21850814 0.57206178 0.70710677 
+		-0.41562718 0.41562718 0.70710677 -0.57206172 0.21850812 0.70710677 -0.67249888 0 
+		0.70710677 -0.70710713 -0.21850812 0.70710677 -0.67249882 -0.41562709 0.70710677 
+		-0.5720616 -0.57206154 0.70710677 -0.41562706 -0.6724987 0.70710677 -0.21850805 -0.70710695 
+		0.70710677 0 -0.6724987 0.70710677 0.21850805 -0.57206154 0.70710677 0.415627 -0.415627 
+		0.70710677 0.57206148 -0.21850805 0.70710677 0.67249858 -2.1073424e-08 0.70710677 
+		0.70710683 0.21850799 0.70710677 0.67249858 0.41562691 0.70710677 0.57206142 0.57206142 
+		0.70710677 0.41562697 0.67249852 0.70710677 0.21850802 0.70710677 0.70710677 0 0.55901736 
+		0.809017 -0.18163574 0.47552857 0.809017 -0.34549171 0.34549171 0.809017 -0.47552854 
+		0.18163572 0.809017 -0.5590173 0 0.809017 -0.58778554 -0.18163572 0.809017 -0.55901724 
+		-0.34549165 0.809017 -0.47552842 -0.47552839 0.809017 -0.34549159 -0.55901712 0.809017 
+		-0.18163566 -0.58778536 0.809017 0 -0.55901712 0.809017 0.18163566 -0.47552836 0.809017 
+		0.34549156 -0.34549156 0.809017 0.47552833 -0.18163566 0.809017 0.55901706 -1.7517365e-08 
+		0.809017 0.5877853 0.18163562 0.809017 0.55901706 0.3454915 0.809017 0.4755283 0.47552827 
+		0.809017 0.34549153 0.559017 0.809017 0.18163563 0.58778524 0.809017 0 0.43177092 
+		0.89100653 -0.14029087 0.36728629 0.89100653 -0.2668491 0.2668491 0.89100653 -0.36728626 
+		0.14029086 0.89100653 -0.43177086 0 0.89100653 -0.45399073 -0.14029086 0.89100653 
+		-0.43177083 -0.26684904 0.89100653 -0.36728618 -0.36728615 0.89100653 -0.26684901 
+		-0.43177077 0.89100653 -0.14029081 -0.45399064 0.89100653 0 -0.43177077 0.89100653 
+		0.14029081 -0.36728612 0.89100653 0.26684898;
+	setAttr ".vt[332:381]" -0.26684898 0.89100653 0.36728612 -0.14029081 0.89100653 
+		0.43177071 -1.3529972e-08 0.89100653 0.45399058 0.14029078 0.89100653 0.43177068 
+		0.26684892 0.89100653 0.36728609 0.36728606 0.89100653 0.26684895 0.43177065 0.89100653 
+		0.1402908 0.45399052 0.89100653 0 0.29389283 0.95105654 -0.095491566 0.25000018 0.95105654 
+		-0.18163574 0.18163574 0.95105654 -0.25000015 0.095491551 0.95105654 -0.2938928 0 
+		0.95105654 -0.30901715 -0.095491551 0.95105654 -0.29389277 -0.18163571 0.95105654 
+		-0.25000009 -0.25000009 0.95105654 -0.18163569 -0.29389271 0.95105654 -0.095491529 
+		-0.30901706 0.95105654 0 -0.29389271 0.95105654 0.095491529 -0.25000006 0.95105654 
+		0.18163568 -0.18163568 0.95105654 0.25000006 -0.095491529 0.95105654 0.29389268 -9.2094243e-09 
+		0.95105654 0.30901703 0.095491499 0.95105654 0.29389265 0.18163563 0.95105654 0.25000003 
+		0.25 0.95105654 0.18163565 0.29389265 0.95105654 0.095491506 0.309017 0.95105654 
+		0 0.14877813 0.98768836 -0.048340943 0.12655823 0.98768836 -0.091949932 0.091949932 
+		0.98768836 -0.12655823 0.048340935 0.98768836 -0.14877811 0 0.98768836 -0.15643455 
+		-0.048340935 0.98768836 -0.1487781 -0.091949917 0.98768836 -0.1265582 -0.12655818 
+		0.98768836 -0.091949902 -0.14877807 0.98768836 -0.048340924 -0.15643452 0.98768836 
+		0 -0.14877807 0.98768836 0.048340924 -0.12655818 0.98768836 0.091949895 -0.091949895 
+		0.98768836 0.12655817 -0.048340924 0.98768836 0.14877805 -4.6621107e-09 0.98768836 
+		0.15643449 0.048340909 0.98768836 0.14877804 0.09194988 0.98768836 0.12655815 0.12655815 
+		0.98768836 0.091949888 0.14877804 0.98768836 0.048340913 0.15643448 0.98768836 0 
+		0 -1 0 0 1 0;
+	setAttr -s 780 ".ed";
+	setAttr ".ed[0:165]"  0 1 1 1 2 1 2 3 1 3 4 1 4 5 1 5 6 1 6 7 1 7 8 1 8 9 1 9 10 
+		1 10 11 1 11 12 1 12 13 1 13 14 1 14 15 1 15 16 1 16 17 1 17 18 1 18 19 1 19 0 1 
+		20 21 1 21 22 1 22 23 1 23 24 1 24 25 1 25 26 1 26 27 1 27 28 1 28 29 1 29 30 1 30 
+		31 1 31 32 1 32 33 1 33 34 1 34 35 1 35 36 1 36 37 1 37 38 1 38 39 1 39 20 1 40 41 
+		1 41 42 1 42 43 1 43 44 1 44 45 1 45 46 1 46 47 1 47 48 1 48 49 1 49 50 1 50 51 1 
+		51 52 1 52 53 1 53 54 1 54 55 1 55 56 1 56 57 1 57 58 1 58 59 1 59 40 1 60 61 1 61 
+		62 1 62 63 1 63 64 1 64 65 1 65 66 1 66 67 1 67 68 1 68 69 1 69 70 1 70 71 1 71 72 
+		1 72 73 1 73 74 1 74 75 1 75 76 1 76 77 1 77 78 1 78 79 1 79 60 1 80 81 1 81 82 1 
+		82 83 1 83 84 1 84 85 1 85 86 1 86 87 1 87 88 1 88 89 1 89 90 1 90 91 1 91 92 1 92 
+		93 1 93 94 1 94 95 1 95 96 1 96 97 1 97 98 1 98 99 1 99 80 1 100 101 1 101 102 1 
+		102 103 1 103 104 1 104 105 1 105 106 1 106 107 1 107 108 1 108 109 1 109 110 1 110 
+		111 1 111 112 1 112 113 1 113 114 1 114 115 1 115 116 1 116 117 1 117 118 1 118 119 
+		1 119 100 1 120 121 1 121 122 1 122 123 1 123 124 1 124 125 1 125 126 1 126 127 1 
+		127 128 1 128 129 1 129 130 1 130 131 1 131 132 1 132 133 1 133 134 1 134 135 1 135 
+		136 1 136 137 1 137 138 1 138 139 1 139 120 1 140 141 1 141 142 1 142 143 1 143 144 
+		1 144 145 1 145 146 1 146 147 1 147 148 1 148 149 1 149 150 1 150 151 1 151 152 1 
+		152 153 1 153 154 1 154 155 1 155 156 1 156 157 1 157 158 1 158 159 1 159 140 1 160 
+		161 1 161 162 1 162 163 1 163 164 1 164 165 1 165 166 1;
+	setAttr ".ed[166:331]" 166 167 1 167 168 1 168 169 1 169 170 1 170 171 1 171 172 
+		1 172 173 1 173 174 1 174 175 1 175 176 1 176 177 1 177 178 1 178 179 1 179 160 1 
+		180 181 1 181 182 1 182 183 1 183 184 1 184 185 1 185 186 1 186 187 1 187 188 1 188 
+		189 1 189 190 1 190 191 1 191 192 1 192 193 1 193 194 1 194 195 1 195 196 1 196 197 
+		1 197 198 1 198 199 1 199 180 1 200 201 1 201 202 1 202 203 1 203 204 1 204 205 1 
+		205 206 1 206 207 1 207 208 1 208 209 1 209 210 1 210 211 1 211 212 1 212 213 1 213 
+		214 1 214 215 1 215 216 1 216 217 1 217 218 1 218 219 1 219 200 1 220 221 1 221 222 
+		1 222 223 1 223 224 1 224 225 1 225 226 1 226 227 1 227 228 1 228 229 1 229 230 1 
+		230 231 1 231 232 1 232 233 1 233 234 1 234 235 1 235 236 1 236 237 1 237 238 1 238 
+		239 1 239 220 1 240 241 1 241 242 1 242 243 1 243 244 1 244 245 1 245 246 1 246 247 
+		1 247 248 1 248 249 1 249 250 1 250 251 1 251 252 1 252 253 1 253 254 1 254 255 1 
+		255 256 1 256 257 1 257 258 1 258 259 1 259 240 1 260 261 1 261 262 1 262 263 1 263 
+		264 1 264 265 1 265 266 1 266 267 1 267 268 1 268 269 1 269 270 1 270 271 1 271 272 
+		1 272 273 1 273 274 1 274 275 1 275 276 1 276 277 1 277 278 1 278 279 1 279 260 1 
+		280 281 1 281 282 1 282 283 1 283 284 1 284 285 1 285 286 1 286 287 1 287 288 1 288 
+		289 1 289 290 1 290 291 1 291 292 1 292 293 1 293 294 1 294 295 1 295 296 1 296 297 
+		1 297 298 1 298 299 1 299 280 1 300 301 1 301 302 1 302 303 1 303 304 1 304 305 1 
+		305 306 1 306 307 1 307 308 1 308 309 1 309 310 1 310 311 1 311 312 1 312 313 1 313 
+		314 1 314 315 1 315 316 1 316 317 1 317 318 1 318 319 1 319 300 1 320 321 1 321 322 
+		1 322 323 1 323 324 1 324 325 1 325 326 1 326 327 1 327 328 1 328 329 1 329 330 1 
+		330 331 1 331 332 1;
+	setAttr ".ed[332:497]" 332 333 1 333 334 1 334 335 1 335 336 1 336 337 1 337 338 
+		1 338 339 1 339 320 1 340 341 1 341 342 1 342 343 1 343 344 1 344 345 1 345 346 1 
+		346 347 1 347 348 1 348 349 1 349 350 1 350 351 1 351 352 1 352 353 1 353 354 1 354 
+		355 1 355 356 1 356 357 1 357 358 1 358 359 1 359 340 1 360 361 1 361 362 1 362 363 
+		1 363 364 1 364 365 1 365 366 1 366 367 1 367 368 1 368 369 1 369 370 1 370 371 1 
+		371 372 1 372 373 1 373 374 1 374 375 1 375 376 1 376 377 1 377 378 1 378 379 1 379 
+		360 1 0 20 1 1 21 1 2 22 1 3 23 1 4 24 1 5 25 1 6 26 1 7 27 1 8 28 1 9 29 1 10 30 
+		1 11 31 1 12 32 1 13 33 1 14 34 1 15 35 1 16 36 1 17 37 1 18 38 1 19 39 1 20 40 1 
+		21 41 1 22 42 1 23 43 1 24 44 1 25 45 1 26 46 1 27 47 1 28 48 1 29 49 1 30 50 1 31 
+		51 1 32 52 1 33 53 1 34 54 1 35 55 1 36 56 1 37 57 1 38 58 1 39 59 1 40 60 1 41 61 
+		1 42 62 1 43 63 1 44 64 1 45 65 1 46 66 1 47 67 1 48 68 1 49 69 1 50 70 1 51 71 1 
+		52 72 1 53 73 1 54 74 1 55 75 1 56 76 1 57 77 1 58 78 1 59 79 1 60 80 1 61 81 1 62 
+		82 1 63 83 1 64 84 1 65 85 1 66 86 1 67 87 1 68 88 1 69 89 1 70 90 1 71 91 1 72 92 
+		1 73 93 1 74 94 1 75 95 1 76 96 1 77 97 1 78 98 1 79 99 1 80 100 1 81 101 1 82 102 
+		1 83 103 1 84 104 1 85 105 1 86 106 1 87 107 1 88 108 1 89 109 1 90 110 1 91 111 
+		1 92 112 1 93 113 1 94 114 1 95 115 1 96 116 1 97 117 1 98 118 1 99 119 1 100 120 
+		1 101 121 1 102 122 1 103 123 1 104 124 1 105 125 1 106 126 1 107 127 1 108 128 1 
+		109 129 1 110 130 1 111 131 1 112 132 1 113 133 1 114 134 1 115 135 1 116 136 1 117 
+		137 1;
+	setAttr ".ed[498:663]" 118 138 1 119 139 1 120 140 1 121 141 1 122 142 1 123 143 
+		1 124 144 1 125 145 1 126 146 1 127 147 1 128 148 1 129 149 1 130 150 1 131 151 1 
+		132 152 1 133 153 1 134 154 1 135 155 1 136 156 1 137 157 1 138 158 1 139 159 1 140 
+		160 1 141 161 1 142 162 1 143 163 1 144 164 1 145 165 1 146 166 1 147 167 1 148 168 
+		1 149 169 1 150 170 1 151 171 1 152 172 1 153 173 1 154 174 1 155 175 1 156 176 1 
+		157 177 1 158 178 1 159 179 1 160 180 1 161 181 1 162 182 1 163 183 1 164 184 1 165 
+		185 1 166 186 1 167 187 1 168 188 1 169 189 1 170 190 1 171 191 1 172 192 1 173 193 
+		1 174 194 1 175 195 1 176 196 1 177 197 1 178 198 1 179 199 1 180 200 1 181 201 1 
+		182 202 1 183 203 1 184 204 1 185 205 1 186 206 1 187 207 1 188 208 1 189 209 1 190 
+		210 1 191 211 1 192 212 1 193 213 1 194 214 1 195 215 1 196 216 1 197 217 1 198 218 
+		1 199 219 1 200 220 1 201 221 1 202 222 1 203 223 1 204 224 1 205 225 1 206 226 1 
+		207 227 1 208 228 1 209 229 1 210 230 1 211 231 1 212 232 1 213 233 1 214 234 1 215 
+		235 1 216 236 1 217 237 1 218 238 1 219 239 1 220 240 1 221 241 1 222 242 1 223 243 
+		1 224 244 1 225 245 1 226 246 1 227 247 1 228 248 1 229 249 1 230 250 1 231 251 1 
+		232 252 1 233 253 1 234 254 1 235 255 1 236 256 1 237 257 1 238 258 1 239 259 1 240 
+		260 1 241 261 1 242 262 1 243 263 1 244 264 1 245 265 1 246 266 1 247 267 1 248 268 
+		1 249 269 1 250 270 1 251 271 1 252 272 1 253 273 1 254 274 1 255 275 1 256 276 1 
+		257 277 1 258 278 1 259 279 1 260 280 1 261 281 1 262 282 1 263 283 1 264 284 1 265 
+		285 1 266 286 1 267 287 1 268 288 1 269 289 1 270 290 1 271 291 1 272 292 1 273 293 
+		1 274 294 1 275 295 1 276 296 1 277 297 1 278 298 1 279 299 1 280 300 1 281 301 1 
+		282 302 1 283 303 1;
+	setAttr ".ed[664:779]" 284 304 1 285 305 1 286 306 1 287 307 1 288 308 1 289 309 
+		1 290 310 1 291 311 1 292 312 1 293 313 1 294 314 1 295 315 1 296 316 1 297 317 1 
+		298 318 1 299 319 1 300 320 1 301 321 1 302 322 1 303 323 1 304 324 1 305 325 1 306 
+		326 1 307 327 1 308 328 1 309 329 1 310 330 1 311 331 1 312 332 1 313 333 1 314 334 
+		1 315 335 1 316 336 1 317 337 1 318 338 1 319 339 1 320 340 1 321 341 1 322 342 1 
+		323 343 1 324 344 1 325 345 1 326 346 1 327 347 1 328 348 1 329 349 1 330 350 1 331 
+		351 1 332 352 1 333 353 1 334 354 1 335 355 1 336 356 1 337 357 1 338 358 1 339 359 
+		1 340 360 1 341 361 1 342 362 1 343 363 1 344 364 1 345 365 1 346 366 1 347 367 1 
+		348 368 1 349 369 1 350 370 1 351 371 1 352 372 1 353 373 1 354 374 1 355 375 1 356 
+		376 1 357 377 1 358 378 1 359 379 1 380 0 1 380 1 1 380 2 1 380 3 1 380 4 1 380 5 
+		1 380 6 1 380 7 1 380 8 1 380 9 1 380 10 1 380 11 1 380 12 1 380 13 1 380 14 1 380 
+		15 1 380 16 1 380 17 1 380 18 1 380 19 1 360 381 1 361 381 1 362 381 1 363 381 1 
+		364 381 1 365 381 1 366 381 1 367 381 1 368 381 1 369 381 1 370 381 1 371 381 1 372 
+		381 1 373 381 1 374 381 1 375 381 1 376 381 1 377 381 1 378 381 1 379 381 1;
+	setAttr -s 400 ".fc[0:399]" -type "polyFaces" 
+		f 4 0 381 -21 -381 
+		mu 0 4 0 1 22 21 
+		f 4 1 382 -22 -382 
+		mu 0 4 1 2 23 22 
+		f 4 2 383 -23 -383 
+		mu 0 4 2 3 24 23 
+		f 4 3 384 -24 -384 
+		mu 0 4 3 4 25 24 
+		f 4 4 385 -25 -385 
+		mu 0 4 4 5 26 25 
+		f 4 5 386 -26 -386 
+		mu 0 4 5 6 27 26 
+		f 4 6 387 -27 -387 
+		mu 0 4 6 7 28 27 
+		f 4 7 388 -28 -388 
+		mu 0 4 7 8 29 28 
+		f 4 8 389 -29 -389 
+		mu 0 4 8 9 30 29 
+		f 4 9 390 -30 -390 
+		mu 0 4 9 10 31 30 
+		f 4 10 391 -31 -391 
+		mu 0 4 10 11 32 31 
+		f 4 11 392 -32 -392 
+		mu 0 4 11 12 33 32 
+		f 4 12 393 -33 -393 
+		mu 0 4 12 13 34 33 
+		f 4 13 394 -34 -394 
+		mu 0 4 13 14 35 34 
+		f 4 14 395 -35 -395 
+		mu 0 4 14 15 36 35 
+		f 4 15 396 -36 -396 
+		mu 0 4 15 16 37 36 
+		f 4 16 397 -37 -397 
+		mu 0 4 16 17 38 37 
+		f 4 17 398 -38 -398 
+		mu 0 4 17 18 39 38 
+		f 4 18 399 -39 -399 
+		mu 0 4 18 19 40 39 
+		f 4 19 380 -40 -400 
+		mu 0 4 19 20 41 40 
+		f 4 20 401 -41 -401 
+		mu 0 4 21 22 43 42 
+		f 4 21 402 -42 -402 
+		mu 0 4 22 23 44 43 
+		f 4 22 403 -43 -403 
+		mu 0 4 23 24 45 44 
+		f 4 23 404 -44 -404 
+		mu 0 4 24 25 46 45 
+		f 4 24 405 -45 -405 
+		mu 0 4 25 26 47 46 
+		f 4 25 406 -46 -406 
+		mu 0 4 26 27 48 47 
+		f 4 26 407 -47 -407 
+		mu 0 4 27 28 49 48 
+		f 4 27 408 -48 -408 
+		mu 0 4 28 29 50 49 
+		f 4 28 409 -49 -409 
+		mu 0 4 29 30 51 50 
+		f 4 29 410 -50 -410 
+		mu 0 4 30 31 52 51 
+		f 4 30 411 -51 -411 
+		mu 0 4 31 32 53 52 
+		f 4 31 412 -52 -412 
+		mu 0 4 32 33 54 53 
+		f 4 32 413 -53 -413 
+		mu 0 4 33 34 55 54 
+		f 4 33 414 -54 -414 
+		mu 0 4 34 35 56 55 
+		f 4 34 415 -55 -415 
+		mu 0 4 35 36 57 56 
+		f 4 35 416 -56 -416 
+		mu 0 4 36 37 58 57 
+		f 4 36 417 -57 -417 
+		mu 0 4 37 38 59 58 
+		f 4 37 418 -58 -418 
+		mu 0 4 38 39 60 59 
+		f 4 38 419 -59 -419 
+		mu 0 4 39 40 61 60 
+		f 4 39 400 -60 -420 
+		mu 0 4 40 41 62 61 
+		f 4 40 421 -61 -421 
+		mu 0 4 42 43 64 63 
+		f 4 41 422 -62 -422 
+		mu 0 4 43 44 65 64 
+		f 4 42 423 -63 -423 
+		mu 0 4 44 45 66 65 
+		f 4 43 424 -64 -424 
+		mu 0 4 45 46 67 66 
+		f 4 44 425 -65 -425 
+		mu 0 4 46 47 68 67 
+		f 4 45 426 -66 -426 
+		mu 0 4 47 48 69 68 
+		f 4 46 427 -67 -427 
+		mu 0 4 48 49 70 69 
+		f 4 47 428 -68 -428 
+		mu 0 4 49 50 71 70 
+		f 4 48 429 -69 -429 
+		mu 0 4 50 51 72 71 
+		f 4 49 430 -70 -430 
+		mu 0 4 51 52 73 72 
+		f 4 50 431 -71 -431 
+		mu 0 4 52 53 74 73 
+		f 4 51 432 -72 -432 
+		mu 0 4 53 54 75 74 
+		f 4 52 433 -73 -433 
+		mu 0 4 54 55 76 75 
+		f 4 53 434 -74 -434 
+		mu 0 4 55 56 77 76 
+		f 4 54 435 -75 -435 
+		mu 0 4 56 57 78 77 
+		f 4 55 436 -76 -436 
+		mu 0 4 57 58 79 78 
+		f 4 56 437 -77 -437 
+		mu 0 4 58 59 80 79 
+		f 4 57 438 -78 -438 
+		mu 0 4 59 60 81 80 
+		f 4 58 439 -79 -439 
+		mu 0 4 60 61 82 81 
+		f 4 59 420 -80 -440 
+		mu 0 4 61 62 83 82 
+		f 4 60 441 -81 -441 
+		mu 0 4 63 64 85 84 
+		f 4 61 442 -82 -442 
+		mu 0 4 64 65 86 85 
+		f 4 62 443 -83 -443 
+		mu 0 4 65 66 87 86 
+		f 4 63 444 -84 -444 
+		mu 0 4 66 67 88 87 
+		f 4 64 445 -85 -445 
+		mu 0 4 67 68 89 88 
+		f 4 65 446 -86 -446 
+		mu 0 4 68 69 90 89 
+		f 4 66 447 -87 -447 
+		mu 0 4 69 70 91 90 
+		f 4 67 448 -88 -448 
+		mu 0 4 70 71 92 91 
+		f 4 68 449 -89 -449 
+		mu 0 4 71 72 93 92 
+		f 4 69 450 -90 -450 
+		mu 0 4 72 73 94 93 
+		f 4 70 451 -91 -451 
+		mu 0 4 73 74 95 94 
+		f 4 71 452 -92 -452 
+		mu 0 4 74 75 96 95 
+		f 4 72 453 -93 -453 
+		mu 0 4 75 76 97 96 
+		f 4 73 454 -94 -454 
+		mu 0 4 76 77 98 97 
+		f 4 74 455 -95 -455 
+		mu 0 4 77 78 99 98 
+		f 4 75 456 -96 -456 
+		mu 0 4 78 79 100 99 
+		f 4 76 457 -97 -457 
+		mu 0 4 79 80 101 100 
+		f 4 77 458 -98 -458 
+		mu 0 4 80 81 102 101 
+		f 4 78 459 -99 -459 
+		mu 0 4 81 82 103 102 
+		f 4 79 440 -100 -460 
+		mu 0 4 82 83 104 103 
+		f 4 80 461 -101 -461 
+		mu 0 4 84 85 106 105 
+		f 4 81 462 -102 -462 
+		mu 0 4 85 86 107 106 
+		f 4 82 463 -103 -463 
+		mu 0 4 86 87 108 107 
+		f 4 83 464 -104 -464 
+		mu 0 4 87 88 109 108 
+		f 4 84 465 -105 -465 
+		mu 0 4 88 89 110 109 
+		f 4 85 466 -106 -466 
+		mu 0 4 89 90 111 110 
+		f 4 86 467 -107 -467 
+		mu 0 4 90 91 112 111 
+		f 4 87 468 -108 -468 
+		mu 0 4 91 92 113 112 
+		f 4 88 469 -109 -469 
+		mu 0 4 92 93 114 113 
+		f 4 89 470 -110 -470 
+		mu 0 4 93 94 115 114 
+		f 4 90 471 -111 -471 
+		mu 0 4 94 95 116 115 
+		f 4 91 472 -112 -472 
+		mu 0 4 95 96 117 116 
+		f 4 92 473 -113 -473 
+		mu 0 4 96 97 118 117 
+		f 4 93 474 -114 -474 
+		mu 0 4 97 98 119 118 
+		f 4 94 475 -115 -475 
+		mu 0 4 98 99 120 119 
+		f 4 95 476 -116 -476 
+		mu 0 4 99 100 121 120 
+		f 4 96 477 -117 -477 
+		mu 0 4 100 101 122 121 
+		f 4 97 478 -118 -478 
+		mu 0 4 101 102 123 122 
+		f 4 98 479 -119 -479 
+		mu 0 4 102 103 124 123 
+		f 4 99 460 -120 -480 
+		mu 0 4 103 104 125 124 
+		f 4 100 481 -121 -481 
+		mu 0 4 105 106 127 126 
+		f 4 101 482 -122 -482 
+		mu 0 4 106 107 128 127 
+		f 4 102 483 -123 -483 
+		mu 0 4 107 108 129 128 
+		f 4 103 484 -124 -484 
+		mu 0 4 108 109 130 129 
+		f 4 104 485 -125 -485 
+		mu 0 4 109 110 131 130 
+		f 4 105 486 -126 -486 
+		mu 0 4 110 111 132 131 
+		f 4 106 487 -127 -487 
+		mu 0 4 111 112 133 132 
+		f 4 107 488 -128 -488 
+		mu 0 4 112 113 134 133 
+		f 4 108 489 -129 -489 
+		mu 0 4 113 114 135 134 
+		f 4 109 490 -130 -490 
+		mu 0 4 114 115 136 135 
+		f 4 110 491 -131 -491 
+		mu 0 4 115 116 137 136 
+		f 4 111 492 -132 -492 
+		mu 0 4 116 117 138 137 
+		f 4 112 493 -133 -493 
+		mu 0 4 117 118 139 138 
+		f 4 113 494 -134 -494 
+		mu 0 4 118 119 140 139 
+		f 4 114 495 -135 -495 
+		mu 0 4 119 120 141 140 
+		f 4 115 496 -136 -496 
+		mu 0 4 120 121 142 141 
+		f 4 116 497 -137 -497 
+		mu 0 4 121 122 143 142 
+		f 4 117 498 -138 -498 
+		mu 0 4 122 123 144 143 
+		f 4 118 499 -139 -499 
+		mu 0 4 123 124 145 144 
+		f 4 119 480 -140 -500 
+		mu 0 4 124 125 146 145 
+		f 4 120 501 -141 -501 
+		mu 0 4 126 127 148 147 
+		f 4 121 502 -142 -502 
+		mu 0 4 127 128 149 148 
+		f 4 122 503 -143 -503 
+		mu 0 4 128 129 150 149 
+		f 4 123 504 -144 -504 
+		mu 0 4 129 130 151 150 
+		f 4 124 505 -145 -505 
+		mu 0 4 130 131 152 151 
+		f 4 125 506 -146 -506 
+		mu 0 4 131 132 153 152 
+		f 4 126 507 -147 -507 
+		mu 0 4 132 133 154 153 
+		f 4 127 508 -148 -508 
+		mu 0 4 133 134 155 154 
+		f 4 128 509 -149 -509 
+		mu 0 4 134 135 156 155 
+		f 4 129 510 -150 -510 
+		mu 0 4 135 136 157 156 
+		f 4 130 511 -151 -511 
+		mu 0 4 136 137 158 157 
+		f 4 131 512 -152 -512 
+		mu 0 4 137 138 159 158 
+		f 4 132 513 -153 -513 
+		mu 0 4 138 139 160 159 
+		f 4 133 514 -154 -514 
+		mu 0 4 139 140 161 160 
+		f 4 134 515 -155 -515 
+		mu 0 4 140 141 162 161 
+		f 4 135 516 -156 -516 
+		mu 0 4 141 142 163 162 
+		f 4 136 517 -157 -517 
+		mu 0 4 142 143 164 163 
+		f 4 137 518 -158 -518 
+		mu 0 4 143 144 165 164 
+		f 4 138 519 -159 -519 
+		mu 0 4 144 145 166 165 
+		f 4 139 500 -160 -520 
+		mu 0 4 145 146 167 166 
+		f 4 140 521 -161 -521 
+		mu 0 4 147 148 169 168 
+		f 4 141 522 -162 -522 
+		mu 0 4 148 149 170 169 
+		f 4 142 523 -163 -523 
+		mu 0 4 149 150 171 170 
+		f 4 143 524 -164 -524 
+		mu 0 4 150 151 172 171 
+		f 4 144 525 -165 -525 
+		mu 0 4 151 152 173 172 
+		f 4 145 526 -166 -526 
+		mu 0 4 152 153 174 173 
+		f 4 146 527 -167 -527 
+		mu 0 4 153 154 175 174 
+		f 4 147 528 -168 -528 
+		mu 0 4 154 155 176 175 
+		f 4 148 529 -169 -529 
+		mu 0 4 155 156 177 176 
+		f 4 149 530 -170 -530 
+		mu 0 4 156 157 178 177 
+		f 4 150 531 -171 -531 
+		mu 0 4 157 158 179 178 
+		f 4 151 532 -172 -532 
+		mu 0 4 158 159 180 179 
+		f 4 152 533 -173 -533 
+		mu 0 4 159 160 181 180 
+		f 4 153 534 -174 -534 
+		mu 0 4 160 161 182 181 
+		f 4 154 535 -175 -535 
+		mu 0 4 161 162 183 182 
+		f 4 155 536 -176 -536 
+		mu 0 4 162 163 184 183 
+		f 4 156 537 -177 -537 
+		mu 0 4 163 164 185 184 
+		f 4 157 538 -178 -538 
+		mu 0 4 164 165 186 185 
+		f 4 158 539 -179 -539 
+		mu 0 4 165 166 187 186 
+		f 4 159 520 -180 -540 
+		mu 0 4 166 167 188 187 
+		f 4 160 541 -181 -541 
+		mu 0 4 168 169 190 189 
+		f 4 161 542 -182 -542 
+		mu 0 4 169 170 191 190 
+		f 4 162 543 -183 -543 
+		mu 0 4 170 171 192 191 
+		f 4 163 544 -184 -544 
+		mu 0 4 171 172 193 192 
+		f 4 164 545 -185 -545 
+		mu 0 4 172 173 194 193 
+		f 4 165 546 -186 -546 
+		mu 0 4 173 174 195 194 
+		f 4 166 547 -187 -547 
+		mu 0 4 174 175 196 195 
+		f 4 167 548 -188 -548 
+		mu 0 4 175 176 197 196 
+		f 4 168 549 -189 -549 
+		mu 0 4 176 177 198 197 
+		f 4 169 550 -190 -550 
+		mu 0 4 177 178 199 198 
+		f 4 170 551 -191 -551 
+		mu 0 4 178 179 200 199 
+		f 4 171 552 -192 -552 
+		mu 0 4 179 180 201 200 
+		f 4 172 553 -193 -553 
+		mu 0 4 180 181 202 201 
+		f 4 173 554 -194 -554 
+		mu 0 4 181 182 203 202 
+		f 4 174 555 -195 -555 
+		mu 0 4 182 183 204 203 
+		f 4 175 556 -196 -556 
+		mu 0 4 183 184 205 204 
+		f 4 176 557 -197 -557 
+		mu 0 4 184 185 206 205 
+		f 4 177 558 -198 -558 
+		mu 0 4 185 186 207 206 
+		f 4 178 559 -199 -559 
+		mu 0 4 186 187 208 207 
+		f 4 179 540 -200 -560 
+		mu 0 4 187 188 209 208 
+		f 4 180 561 -201 -561 
+		mu 0 4 189 190 211 210 
+		f 4 181 562 -202 -562 
+		mu 0 4 190 191 212 211 
+		f 4 182 563 -203 -563 
+		mu 0 4 191 192 213 212 
+		f 4 183 564 -204 -564 
+		mu 0 4 192 193 214 213 
+		f 4 184 565 -205 -565 
+		mu 0 4 193 194 215 214 
+		f 4 185 566 -206 -566 
+		mu 0 4 194 195 216 215 
+		f 4 186 567 -207 -567 
+		mu 0 4 195 196 217 216 
+		f 4 187 568 -208 -568 
+		mu 0 4 196 197 218 217 
+		f 4 188 569 -209 -569 
+		mu 0 4 197 198 219 218 
+		f 4 189 570 -210 -570 
+		mu 0 4 198 199 220 219 
+		f 4 190 571 -211 -571 
+		mu 0 4 199 200 221 220 
+		f 4 191 572 -212 -572 
+		mu 0 4 200 201 222 221 
+		f 4 192 573 -213 -573 
+		mu 0 4 201 202 223 222 
+		f 4 193 574 -214 -574 
+		mu 0 4 202 203 224 223 
+		f 4 194 575 -215 -575 
+		mu 0 4 203 204 225 224 
+		f 4 195 576 -216 -576 
+		mu 0 4 204 205 226 225 
+		f 4 196 577 -217 -577 
+		mu 0 4 205 206 227 226 
+		f 4 197 578 -218 -578 
+		mu 0 4 206 207 228 227 
+		f 4 198 579 -219 -579 
+		mu 0 4 207 208 229 228 
+		f 4 199 560 -220 -580 
+		mu 0 4 208 209 230 229 
+		f 4 200 581 -221 -581 
+		mu 0 4 210 211 232 231 
+		f 4 201 582 -222 -582 
+		mu 0 4 211 212 233 232 
+		f 4 202 583 -223 -583 
+		mu 0 4 212 213 234 233 
+		f 4 203 584 -224 -584 
+		mu 0 4 213 214 235 234 
+		f 4 204 585 -225 -585 
+		mu 0 4 214 215 236 235 
+		f 4 205 586 -226 -586 
+		mu 0 4 215 216 237 236 
+		f 4 206 587 -227 -587 
+		mu 0 4 216 217 238 237 
+		f 4 207 588 -228 -588 
+		mu 0 4 217 218 239 238 
+		f 4 208 589 -229 -589 
+		mu 0 4 218 219 240 239 
+		f 4 209 590 -230 -590 
+		mu 0 4 219 220 241 240 
+		f 4 210 591 -231 -591 
+		mu 0 4 220 221 242 241 
+		f 4 211 592 -232 -592 
+		mu 0 4 221 222 243 242 
+		f 4 212 593 -233 -593 
+		mu 0 4 222 223 244 243 
+		f 4 213 594 -234 -594 
+		mu 0 4 223 224 245 244 
+		f 4 214 595 -235 -595 
+		mu 0 4 224 225 246 245 
+		f 4 215 596 -236 -596 
+		mu 0 4 225 226 247 246 
+		f 4 216 597 -237 -597 
+		mu 0 4 226 227 248 247 
+		f 4 217 598 -238 -598 
+		mu 0 4 227 228 249 248 
+		f 4 218 599 -239 -599 
+		mu 0 4 228 229 250 249 
+		f 4 219 580 -240 -600 
+		mu 0 4 229 230 251 250 
+		f 4 220 601 -241 -601 
+		mu 0 4 231 232 253 252 
+		f 4 221 602 -242 -602 
+		mu 0 4 232 233 254 253 
+		f 4 222 603 -243 -603 
+		mu 0 4 233 234 255 254 
+		f 4 223 604 -244 -604 
+		mu 0 4 234 235 256 255 
+		f 4 224 605 -245 -605 
+		mu 0 4 235 236 257 256 
+		f 4 225 606 -246 -606 
+		mu 0 4 236 237 258 257 
+		f 4 226 607 -247 -607 
+		mu 0 4 237 238 259 258 
+		f 4 227 608 -248 -608 
+		mu 0 4 238 239 260 259 
+		f 4 228 609 -249 -609 
+		mu 0 4 239 240 261 260 
+		f 4 229 610 -250 -610 
+		mu 0 4 240 241 262 261 
+		f 4 230 611 -251 -611 
+		mu 0 4 241 242 263 262 
+		f 4 231 612 -252 -612 
+		mu 0 4 242 243 264 263 
+		f 4 232 613 -253 -613 
+		mu 0 4 243 244 265 264 
+		f 4 233 614 -254 -614 
+		mu 0 4 244 245 266 265 
+		f 4 234 615 -255 -615 
+		mu 0 4 245 246 267 266 
+		f 4 235 616 -256 -616 
+		mu 0 4 246 247 268 267 
+		f 4 236 617 -257 -617 
+		mu 0 4 247 248 269 268 
+		f 4 237 618 -258 -618 
+		mu 0 4 248 249 270 269 
+		f 4 238 619 -259 -619 
+		mu 0 4 249 250 271 270 
+		f 4 239 600 -260 -620 
+		mu 0 4 250 251 272 271 
+		f 4 240 621 -261 -621 
+		mu 0 4 252 253 274 273 
+		f 4 241 622 -262 -622 
+		mu 0 4 253 254 275 274 
+		f 4 242 623 -263 -623 
+		mu 0 4 254 255 276 275 
+		f 4 243 624 -264 -624 
+		mu 0 4 255 256 277 276 
+		f 4 244 625 -265 -625 
+		mu 0 4 256 257 278 277 
+		f 4 245 626 -266 -626 
+		mu 0 4 257 258 279 278 
+		f 4 246 627 -267 -627 
+		mu 0 4 258 259 280 279 
+		f 4 247 628 -268 -628 
+		mu 0 4 259 260 281 280 
+		f 4 248 629 -269 -629 
+		mu 0 4 260 261 282 281 
+		f 4 249 630 -270 -630 
+		mu 0 4 261 262 283 282 
+		f 4 250 631 -271 -631 
+		mu 0 4 262 263 284 283 
+		f 4 251 632 -272 -632 
+		mu 0 4 263 264 285 284 
+		f 4 252 633 -273 -633 
+		mu 0 4 264 265 286 285 
+		f 4 253 634 -274 -634 
+		mu 0 4 265 266 287 286 
+		f 4 254 635 -275 -635 
+		mu 0 4 266 267 288 287 
+		f 4 255 636 -276 -636 
+		mu 0 4 267 268 289 288 
+		f 4 256 637 -277 -637 
+		mu 0 4 268 269 290 289 
+		f 4 257 638 -278 -638 
+		mu 0 4 269 270 291 290 
+		f 4 258 639 -279 -639 
+		mu 0 4 270 271 292 291 
+		f 4 259 620 -280 -640 
+		mu 0 4 271 272 293 292 
+		f 4 260 641 -281 -641 
+		mu 0 4 273 274 295 294 
+		f 4 261 642 -282 -642 
+		mu 0 4 274 275 296 295 
+		f 4 262 643 -283 -643 
+		mu 0 4 275 276 297 296 
+		f 4 263 644 -284 -644 
+		mu 0 4 276 277 298 297 
+		f 4 264 645 -285 -645 
+		mu 0 4 277 278 299 298 
+		f 4 265 646 -286 -646 
+		mu 0 4 278 279 300 299 
+		f 4 266 647 -287 -647 
+		mu 0 4 279 280 301 300 
+		f 4 267 648 -288 -648 
+		mu 0 4 280 281 302 301 
+		f 4 268 649 -289 -649 
+		mu 0 4 281 282 303 302 
+		f 4 269 650 -290 -650 
+		mu 0 4 282 283 304 303 
+		f 4 270 651 -291 -651 
+		mu 0 4 283 284 305 304 
+		f 4 271 652 -292 -652 
+		mu 0 4 284 285 306 305 
+		f 4 272 653 -293 -653 
+		mu 0 4 285 286 307 306 
+		f 4 273 654 -294 -654 
+		mu 0 4 286 287 308 307 
+		f 4 274 655 -295 -655 
+		mu 0 4 287 288 309 308 
+		f 4 275 656 -296 -656 
+		mu 0 4 288 289 310 309 
+		f 4 276 657 -297 -657 
+		mu 0 4 289 290 311 310 
+		f 4 277 658 -298 -658 
+		mu 0 4 290 291 312 311 
+		f 4 278 659 -299 -659 
+		mu 0 4 291 292 313 312 
+		f 4 279 640 -300 -660 
+		mu 0 4 292 293 314 313 
+		f 4 280 661 -301 -661 
+		mu 0 4 294 295 316 315 
+		f 4 281 662 -302 -662 
+		mu 0 4 295 296 317 316 
+		f 4 282 663 -303 -663 
+		mu 0 4 296 297 318 317 
+		f 4 283 664 -304 -664 
+		mu 0 4 297 298 319 318 
+		f 4 284 665 -305 -665 
+		mu 0 4 298 299 320 319 
+		f 4 285 666 -306 -666 
+		mu 0 4 299 300 321 320 
+		f 4 286 667 -307 -667 
+		mu 0 4 300 301 322 321 
+		f 4 287 668 -308 -668 
+		mu 0 4 301 302 323 322 
+		f 4 288 669 -309 -669 
+		mu 0 4 302 303 324 323 
+		f 4 289 670 -310 -670 
+		mu 0 4 303 304 325 324 
+		f 4 290 671 -311 -671 
+		mu 0 4 304 305 326 325 
+		f 4 291 672 -312 -672 
+		mu 0 4 305 306 327 326 
+		f 4 292 673 -313 -673 
+		mu 0 4 306 307 328 327 
+		f 4 293 674 -314 -674 
+		mu 0 4 307 308 329 328 
+		f 4 294 675 -315 -675 
+		mu 0 4 308 309 330 329 
+		f 4 295 676 -316 -676 
+		mu 0 4 309 310 331 330 
+		f 4 296 677 -317 -677 
+		mu 0 4 310 311 332 331 
+		f 4 297 678 -318 -678 
+		mu 0 4 311 312 333 332 
+		f 4 298 679 -319 -679 
+		mu 0 4 312 313 334 333 
+		f 4 299 660 -320 -680 
+		mu 0 4 313 314 335 334 
+		f 4 300 681 -321 -681 
+		mu 0 4 315 316 337 336 
+		f 4 301 682 -322 -682 
+		mu 0 4 316 317 338 337 
+		f 4 302 683 -323 -683 
+		mu 0 4 317 318 339 338 
+		f 4 303 684 -324 -684 
+		mu 0 4 318 319 340 339 
+		f 4 304 685 -325 -685 
+		mu 0 4 319 320 341 340 
+		f 4 305 686 -326 -686 
+		mu 0 4 320 321 342 341 
+		f 4 306 687 -327 -687 
+		mu 0 4 321 322 343 342 
+		f 4 307 688 -328 -688 
+		mu 0 4 322 323 344 343 
+		f 4 308 689 -329 -689 
+		mu 0 4 323 324 345 344 
+		f 4 309 690 -330 -690 
+		mu 0 4 324 325 346 345 
+		f 4 310 691 -331 -691 
+		mu 0 4 325 326 347 346 
+		f 4 311 692 -332 -692 
+		mu 0 4 326 327 348 347 
+		f 4 312 693 -333 -693 
+		mu 0 4 327 328 349 348 
+		f 4 313 694 -334 -694 
+		mu 0 4 328 329 350 349 
+		f 4 314 695 -335 -695 
+		mu 0 4 329 330 351 350 
+		f 4 315 696 -336 -696 
+		mu 0 4 330 331 352 351 
+		f 4 316 697 -337 -697 
+		mu 0 4 331 332 353 352 
+		f 4 317 698 -338 -698 
+		mu 0 4 332 333 354 353 
+		f 4 318 699 -339 -699 
+		mu 0 4 333 334 355 354 
+		f 4 319 680 -340 -700 
+		mu 0 4 334 335 356 355 
+		f 4 320 701 -341 -701 
+		mu 0 4 336 337 358 357 
+		f 4 321 702 -342 -702 
+		mu 0 4 337 338 359 358 
+		f 4 322 703 -343 -703 
+		mu 0 4 338 339 360 359 
+		f 4 323 704 -344 -704 
+		mu 0 4 339 340 361 360 
+		f 4 324 705 -345 -705 
+		mu 0 4 340 341 362 361 
+		f 4 325 706 -346 -706 
+		mu 0 4 341 342 363 362 
+		f 4 326 707 -347 -707 
+		mu 0 4 342 343 364 363 
+		f 4 327 708 -348 -708 
+		mu 0 4 343 344 365 364 
+		f 4 328 709 -349 -709 
+		mu 0 4 344 345 366 365 
+		f 4 329 710 -350 -710 
+		mu 0 4 345 346 367 366 
+		f 4 330 711 -351 -711 
+		mu 0 4 346 347 368 367 
+		f 4 331 712 -352 -712 
+		mu 0 4 347 348 369 368 
+		f 4 332 713 -353 -713 
+		mu 0 4 348 349 370 369 
+		f 4 333 714 -354 -714 
+		mu 0 4 349 350 371 370 
+		f 4 334 715 -355 -715 
+		mu 0 4 350 351 372 371 
+		f 4 335 716 -356 -716 
+		mu 0 4 351 352 373 372 
+		f 4 336 717 -357 -717 
+		mu 0 4 352 353 374 373 
+		f 4 337 718 -358 -718 
+		mu 0 4 353 354 375 374 
+		f 4 338 719 -359 -719 
+		mu 0 4 354 355 376 375 
+		f 4 339 700 -360 -720 
+		mu 0 4 355 356 377 376 
+		f 4 340 721 -361 -721 
+		mu 0 4 357 358 379 378 
+		f 4 341 722 -362 -722 
+		mu 0 4 358 359 380 379 
+		f 4 342 723 -363 -723 
+		mu 0 4 359 360 381 380 
+		f 4 343 724 -364 -724 
+		mu 0 4 360 361 382 381 
+		f 4 344 725 -365 -725 
+		mu 0 4 361 362 383 382 
+		f 4 345 726 -366 -726 
+		mu 0 4 362 363 384 383 
+		f 4 346 727 -367 -727 
+		mu 0 4 363 364 385 384 
+		f 4 347 728 -368 -728 
+		mu 0 4 364 365 386 385 
+		f 4 348 729 -369 -729 
+		mu 0 4 365 366 387 386 
+		f 4 349 730 -370 -730 
+		mu 0 4 366 367 388 387 
+		f 4 350 731 -371 -731 
+		mu 0 4 367 368 389 388 
+		f 4 351 732 -372 -732 
+		mu 0 4 368 369 390 389 
+		f 4 352 733 -373 -733 
+		mu 0 4 369 370 391 390 
+		f 4 353 734 -374 -734 
+		mu 0 4 370 371 392 391 
+		f 4 354 735 -375 -735 
+		mu 0 4 371 372 393 392 
+		f 4 355 736 -376 -736 
+		mu 0 4 372 373 394 393 
+		f 4 356 737 -377 -737 
+		mu 0 4 373 374 395 394 
+		f 4 357 738 -378 -738 
+		mu 0 4 374 375 396 395 
+		f 4 358 739 -379 -739 
+		mu 0 4 375 376 397 396 
+		f 4 359 720 -380 -740 
+		mu 0 4 376 377 398 397 
+		f 3 -1 -741 741 
+		mu 0 3 1 0 399 
+		f 3 -2 -742 742 
+		mu 0 3 2 1 400 
+		f 3 -3 -743 743 
+		mu 0 3 3 2 401 
+		f 3 -4 -744 744 
+		mu 0 3 4 3 402 
+		f 3 -5 -745 745 
+		mu 0 3 5 4 403 
+		f 3 -6 -746 746 
+		mu 0 3 6 5 404 
+		f 3 -7 -747 747 
+		mu 0 3 7 6 405 
+		f 3 -8 -748 748 
+		mu 0 3 8 7 406 
+		f 3 -9 -749 749 
+		mu 0 3 9 8 407 
+		f 3 -10 -750 750 
+		mu 0 3 10 9 408 
+		f 3 -11 -751 751 
+		mu 0 3 11 10 409 
+		f 3 -12 -752 752 
+		mu 0 3 12 11 410 
+		f 3 -13 -753 753 
+		mu 0 3 13 12 411 
+		f 3 -14 -754 754 
+		mu 0 3 14 13 412 
+		f 3 -15 -755 755 
+		mu 0 3 15 14 413 
+		f 3 -16 -756 756 
+		mu 0 3 16 15 414 
+		f 3 -17 -757 757 
+		mu 0 3 17 16 415 
+		f 3 -18 -758 758 
+		mu 0 3 18 17 416 
+		f 3 -19 -759 759 
+		mu 0 3 19 18 417 
+		f 3 -20 -760 740 
+		mu 0 3 20 19 418 
+		f 3 360 761 -761 
+		mu 0 3 378 379 419 
+		f 3 361 762 -762 
+		mu 0 3 379 380 420 
+		f 3 362 763 -763 
+		mu 0 3 380 381 421 
+		f 3 363 764 -764 
+		mu 0 3 381 382 422 
+		f 3 364 765 -765 
+		mu 0 3 382 383 423 
+		f 3 365 766 -766 
+		mu 0 3 383 384 424 
+		f 3 366 767 -767 
+		mu 0 3 384 385 425 
+		f 3 367 768 -768 
+		mu 0 3 385 386 426 
+		f 3 368 769 -769 
+		mu 0 3 386 387 427 
+		f 3 369 770 -770 
+		mu 0 3 387 388 428 
+		f 3 370 771 -771 
+		mu 0 3 388 389 429 
+		f 3 371 772 -772 
+		mu 0 3 389 390 430 
+		f 3 372 773 -773 
+		mu 0 3 390 391 431 
+		f 3 373 774 -774 
+		mu 0 3 391 392 432 
+		f 3 374 775 -775 
+		mu 0 3 392 393 433 
+		f 3 375 776 -776 
+		mu 0 3 393 394 434 
+		f 3 376 777 -777 
+		mu 0 3 394 395 435 
+		f 3 377 778 -778 
+		mu 0 3 395 396 436 
+		f 3 378 779 -779 
+		mu 0 3 396 397 437 
+		f 3 379 760 -780 
+		mu 0 3 397 398 438 ;
+	setAttr ".cd" -type "dataPolyComponent" Index_Data Edge 0 ;
+	setAttr ".cvd" -type "dataPolyComponent" Index_Data Vertex 0 ;
+	setAttr ".hfd" -type "dataPolyComponent" Index_Data Face 0 ;
+	setAttr ".lumaID" -type "string" "a:1318963832.75:0.774046683342";
+createNode aiOptions -s -n "defaultArnoldRenderOptions";
+	addAttr -ci true -sn "driver_exr_compression" -ln "driverExrCompression" -dv 2 
+		-min 0 -max 4 -en "none:rle:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -k true -sn "driver_half_precision" -ln "driverHalfPrecision" -min 
+		0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "driver_tiled" -ln "driverTiled" -dv 1 -min 0 -max 
+		1 -at "bool";
+	addAttr -ci true -k true -sn "driver_preserve_layer_name" -ln "driverPreserveLayerName" 
+		-min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "driver_quality" -ln "driverQuality" -dv 100 -min 0 
+		-max 100 -at "long";
+	addAttr -ci true -k true -sn "driver_output_padded" -ln "driverOutputPadded" -min 
+		0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "driver_gamma" -ln "driverGamma" -dv 2.2000000476837158 
+		-min 9.9999997473787516e-05 -smx 5 -at "float";
+	addAttr -ci true -k true -sn "driver_dither_amplitude" -ln "driverDitherAmplitude" 
+		-dv 1 -at "float";
+	addAttr -ci true -sn "driver_png_format" -ln "driverPngFormat" -min 0 -max 1 -en 
+		"int8:int16" -at "enum";
+	addAttr -ci true -sn "driver_tiff_compression" -ln "driverTiffCompression" -dv 1 
+		-min 0 -max 4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -sn "driver_tiff_format" -ln "driverTiffFormat" -min 0 -max 3 -en 
+		"int8:int16:int32:float32" -at "enum";
+	addAttr -ci true -k true -sn "driver_unpremult_alpha" -ln "driverUnpremultAlpha" 
+		-min 0 -max 1 -at "bool";
+	addAttr -ci true -k true -sn "filter_width" -ln "filterWidth" -dv 3 -at "float";
+	addAttr -ci true -sn "filter_domain" -ln "filterDomain" -min 0 -max 1 -en "first_hit:all_hits" 
+		-at "enum";
+	addAttr -ci true -k true -sn "filter_minimum" -ln "filterMinimum" -at "float";
+	addAttr -ci true -k true -sn "filter_maximum" -ln "filterMaximum" -dv 1 -at "float";
+	addAttr -ci true -k true -sn "filter_scalar_mode" -ln "filterScalarMode" -min 0 
+		-max 1 -at "bool";
+	addAttr -ci true -k true -sn "driver_filename" -ln "driverFilename" -dt "string";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".img" -type "string" "tif";
+	setAttr ".aovm" 1;
+	setAttr ".fltr" -type "string" "gaussian";
+	setAttr ".mots" 11;
+	setAttr ".motf" 0.25;
+	setAttr ".oamask" 255;
+	setAttr -k on ".driver_half_precision" yes;
+	setAttr -k on ".driver_tiled" no;
+	setAttr ".lumaID" -type "string" "a:1292543823.37:0.763113719731";
+createNode lightLinker -s -n "lightLinker1";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr -s 11 ".lnk";
+	setAttr -s 11 ".slnk";
+	setAttr ".lumaID" -type "string" "a:1292543810.78:0.167805055758";
+createNode displayLayerManager -n "layerManager";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".lumaID" -type "string" "a:1292543811.36:0.590663748025";
+createNode displayLayer -n "defaultLayer";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".lumaID" -type "string" "a:1292543811.36:0.738199646578";
+createNode renderLayerManager -n "renderLayerManager";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".lumaID" -type "string" "a:1292543811.36:0.0651947789961";
+createNode renderLayer -n "defaultRenderLayer";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".g" yes;
+	setAttr ".lumaID" -type "string" "a:1292543811.36:0.984934109685";
+createNode shadingEngine -n "ArnoldStandardShader1SG";
+	addAttr -ci true -k true -m -sn "ai_aovs" -ln "aiAOVs" -at "message";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".ihi" 0;
+	setAttr ".ro" yes;
+	setAttr ".lumaID" -type "string" "a:1292543852.89:0.822631597294";
+createNode materialInfo -n "materialInfo1";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".lumaID" -type "string" "a:1292543852.89:0.97871350292";
+createNode mentalrayItemsList -s -n "mentalrayItemsList";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr -s 17 ".opt";
+	setAttr ".lumaID" -type "string" "a:1292543868.14:0.16508281247";
+createNode mentalrayGlobals -s -n "mentalrayGlobals";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	addAttr -ci true -h true -sn "sunAndSkyShader" -ln "sunAndSkyShader" -at "message";
+	setAttr ".rvb" 5;
+	setAttr ".ivb" no;
+	setAttr ".xpfx" no;
+	setAttr ".pct" no;
+	setAttr ".ptt" no;
+	setAttr ".lumaID" -type "string" "a:1292543868.14:0.926473562544";
+createNode mentalrayOptions -s -n "miDefaultOptions";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	addAttr -ci true -m -sn "stringOptions" -ln "stringOptions" -at "compound" -nc 3;
+	addAttr -ci true -sn "name" -ln "name" -dt "string" -p "stringOptions";
+	addAttr -ci true -sn "value" -ln "value" -dt "string" -p "stringOptions";
+	addAttr -ci true -sn "type" -ln "type" -dt "string" -p "stringOptions";
+	setAttr ".rapc" 5;
+	setAttr ".maxr" 2;
+	setAttr ".lumaID" -type "string" "a:1292543868.14:0.708056388642";
+	setAttr -s 28 ".stringOptions";
+	setAttr ".stringOptions[0].name" -type "string" "rast motion factor";
+	setAttr ".stringOptions[0].value" -type "string" "1.0";
+	setAttr ".stringOptions[0].type" -type "string" "scalar";
+	setAttr ".stringOptions[1].name" -type "string" "rast transparency depth";
+	setAttr ".stringOptions[1].value" -type "string" "8";
+	setAttr ".stringOptions[1].type" -type "string" "integer";
+	setAttr ".stringOptions[2].name" -type "string" "rast useopacity";
+	setAttr ".stringOptions[2].value" -type "string" "true";
+	setAttr ".stringOptions[2].type" -type "string" "boolean";
+	setAttr ".stringOptions[3].name" -type "string" "importon";
+	setAttr ".stringOptions[3].value" -type "string" "false";
+	setAttr ".stringOptions[3].type" -type "string" "boolean";
+	setAttr ".stringOptions[4].name" -type "string" "importon density";
+	setAttr ".stringOptions[4].value" -type "string" "1.0";
+	setAttr ".stringOptions[4].type" -type "string" "scalar";
+	setAttr ".stringOptions[5].name" -type "string" "importon merge";
+	setAttr ".stringOptions[5].value" -type "string" "0.0";
+	setAttr ".stringOptions[5].type" -type "string" "scalar";
+	setAttr ".stringOptions[6].name" -type "string" "importon trace depth";
+	setAttr ".stringOptions[6].value" -type "string" "0";
+	setAttr ".stringOptions[6].type" -type "string" "integer";
+	setAttr ".stringOptions[7].name" -type "string" "importon traverse";
+	setAttr ".stringOptions[7].value" -type "string" "true";
+	setAttr ".stringOptions[7].type" -type "string" "boolean";
+	setAttr ".stringOptions[8].name" -type "string" "shadowmap pixel samples";
+	setAttr ".stringOptions[8].value" -type "string" "3";
+	setAttr ".stringOptions[8].type" -type "string" "integer";
+	setAttr ".stringOptions[9].name" -type "string" "ambient occlusion";
+	setAttr ".stringOptions[9].value" -type "string" "false";
+	setAttr ".stringOptions[9].type" -type "string" "boolean";
+	setAttr ".stringOptions[10].name" -type "string" "ambient occlusion rays";
+	setAttr ".stringOptions[10].value" -type "string" "256";
+	setAttr ".stringOptions[10].type" -type "string" "integer";
+	setAttr ".stringOptions[11].name" -type "string" "ambient occlusion cache";
+	setAttr ".stringOptions[11].value" -type "string" "false";
+	setAttr ".stringOptions[11].type" -type "string" "boolean";
+	setAttr ".stringOptions[12].name" -type "string" "ambient occlusion cache density";
+	setAttr ".stringOptions[12].value" -type "string" "1.0";
+	setAttr ".stringOptions[12].type" -type "string" "scalar";
+	setAttr ".stringOptions[13].name" -type "string" "ambient occlusion cache points";
+	setAttr ".stringOptions[13].value" -type "string" "64";
+	setAttr ".stringOptions[13].type" -type "string" "integer";
+	setAttr ".stringOptions[14].name" -type "string" "irradiance particles";
+	setAttr ".stringOptions[14].value" -type "string" "false";
+	setAttr ".stringOptions[14].type" -type "string" "boolean";
+	setAttr ".stringOptions[15].name" -type "string" "irradiance particles rays";
+	setAttr ".stringOptions[15].value" -type "string" "256";
+	setAttr ".stringOptions[15].type" -type "string" "integer";
+	setAttr ".stringOptions[16].name" -type "string" "irradiance particles interpolate";
+	setAttr ".stringOptions[16].value" -type "string" "1";
+	setAttr ".stringOptions[16].type" -type "string" "integer";
+	setAttr ".stringOptions[17].name" -type "string" "irradiance particles interppoints";
+	setAttr ".stringOptions[17].value" -type "string" "64";
+	setAttr ".stringOptions[17].type" -type "string" "integer";
+	setAttr ".stringOptions[18].name" -type "string" "irradiance particles indirect passes";
+	setAttr ".stringOptions[18].value" -type "string" "0";
+	setAttr ".stringOptions[18].type" -type "string" "integer";
+	setAttr ".stringOptions[19].name" -type "string" "irradiance particles scale";
+	setAttr ".stringOptions[19].value" -type "string" "1.0";
+	setAttr ".stringOptions[19].type" -type "string" "scalar";
+	setAttr ".stringOptions[20].name" -type "string" "irradiance particles env";
+	setAttr ".stringOptions[20].value" -type "string" "true";
+	setAttr ".stringOptions[20].type" -type "string" "boolean";
+	setAttr ".stringOptions[21].name" -type "string" "irradiance particles env rays";
+	setAttr ".stringOptions[21].value" -type "string" "256";
+	setAttr ".stringOptions[21].type" -type "string" "integer";
+	setAttr ".stringOptions[22].name" -type "string" "irradiance particles env scale";
+	setAttr ".stringOptions[22].value" -type "string" "1";
+	setAttr ".stringOptions[22].type" -type "string" "integer";
+	setAttr ".stringOptions[23].name" -type "string" "irradiance particles rebuild";
+	setAttr ".stringOptions[23].value" -type "string" "true";
+	setAttr ".stringOptions[23].type" -type "string" "boolean";
+	setAttr ".stringOptions[24].name" -type "string" "irradiance particles file";
+	setAttr ".stringOptions[24].value" -type "string" "";
+	setAttr ".stringOptions[24].type" -type "string" "string";
+	setAttr ".stringOptions[25].name" -type "string" "geom displace motion factor";
+	setAttr ".stringOptions[25].value" -type "string" "1.0";
+	setAttr ".stringOptions[25].type" -type "string" "scalar";
+	setAttr ".stringOptions[26].name" -type "string" "contrast all buffers";
+	setAttr ".stringOptions[26].value" -type "string" "true";
+	setAttr ".stringOptions[26].type" -type "string" "boolean";
+	setAttr ".stringOptions[27].name" -type "string" "finalgather normal tolerance";
+	setAttr ".stringOptions[27].value" -type "string" "25.842";
+	setAttr ".stringOptions[27].type" -type "string" "scalar";
+createNode mentalrayFramebuffer -s -n "miDefaultFramebuffer";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".lumaID" -type "string" "a:1292543868.15:0.77701318097";
+createNode script -n "sceneConfigurationScriptNode";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".b" -type "string" "playbackOptions -min 1 -max 24 -ast 1 -aet 48 ";
+	setAttr ".st" 6;
+	setAttr ".lumaID" -type "string" "a:1292543919.2:0.0285823201715";
+createNode file -n "file1";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	addAttr -ci true -sn "resolution" -ln "resolution" -dv 32 -at "long";
+	setAttr ".ftn" -type "string" "/Volumes/luma/dev/byPrefix/DEV/DEV_000_CDO/lite/maya/sourceimages/pPlaneShape1.jpg";
+	setAttr ".lumaID" -type "string" "a:1292615508.8:0.610688249863";
+	setAttr ".resolution" 256;
+createNode surfaceShader -n "surfaceShader1";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".lumaID" -type "string" "a:1292615518.55:0.011718405467";
+createNode shadingEngine -n "surfaceShader1SG";
+	addAttr -ci true -k true -m -sn "ai_aovs" -ln "aiAOVs" -at "message";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".ihi" 0;
+	setAttr ".ro" yes;
+	setAttr ".lumaID" -type "string" "a:1292615518.57:0.731679023426";
+createNode materialInfo -n "materialInfo2";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".lumaID" -type "string" "a:1292615518.57:0.330743273861";
+createNode shadingEngine -n "displacementShader1SG";
+	addAttr -ci true -k true -m -sn "ai_aovs" -ln "aiAOVs" -at "message";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".ihi" 0;
+	setAttr ".ro" yes;
+	setAttr ".lumaID" -type "string" "a:1292637323.63:0.375187587026";
+createNode materialInfo -n "materialInfo3";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".lumaID" -type "string" "a:1292637323.63:0.605764353569";
+createNode shadingEngine -n "ArnoldDisplacementShader1SG";
+	addAttr -ci true -k true -m -sn "ai_aovs" -ln "aiAOVs" -at "message";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".ihi" 0;
+	setAttr ".ro" yes;
+	setAttr ".lumaID" -type "string" "a:1292637325.9:0.989227967657";
+createNode materialInfo -n "materialInfo4";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".lumaID" -type "string" "a:1292637325.9:0.130860848452";
+createNode surfaceShader -n "surfaceShader2";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".lumaID" -type "string" "a:1292637343.42:0.786098897522";
+createNode shadingEngine -n "surfaceShader2SG";
+	addAttr -ci true -k true -m -sn "ai_aovs" -ln "aiAOVs" -at "message";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".ihi" 0;
+	setAttr ".ro" yes;
+	setAttr ".lumaID" -type "string" "a:1292637343.42:0.371353149395";
+createNode materialInfo -n "materialInfo5";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".lumaID" -type "string" "a:1292637343.42:0.138685312503";
+createNode ramp -n "ramp1";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr -s 3 ".cel";
+	setAttr ".cel[0].ep" 0;
+	setAttr ".cel[0].ec" -type "float3" 1 0 0 ;
+	setAttr ".cel[1].ep" 0.5;
+	setAttr ".cel[1].ec" -type "float3" 0 1 0 ;
+	setAttr ".cel[2].ep" 1;
+	setAttr ".cel[2].ec" -type "float3" 0 0 1 ;
+	setAttr ".lumaID" -type "string" "a:1295462112.04:0.757327071153";
+createNode place2dTexture -n "place2dTexture1";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".lumaID" -type "string" "a:1295462112.13:0.445756576247";
+createNode mentalrayOptions -s -n "miContourPreset";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".lumaID" -type "string" "a:1295552742.68:0.265652434205";
+createNode mentalrayOptions -s -n "Draft";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".rapc" 5;
+	setAttr ".maxr" 2;
+	setAttr ".lumaID" -type "string" "a:1295552742.68:0.247876576293";
+createNode mentalrayOptions -s -n "DraftMotionBlur";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".rapc" 5;
+	setAttr ".maxr" 2;
+	setAttr ".mb" 1;
+	setAttr ".tconr" 1;
+	setAttr ".tcong" 1;
+	setAttr ".tconb" 1;
+	setAttr ".tcona" 1;
+	setAttr ".lumaID" -type "string" "a:1295552742.68:0.372206228205";
+createNode mentalrayOptions -s -n "DraftRapidMotion";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".scan" 3;
+	setAttr ".rapc" 6;
+	setAttr ".raps" 0.25;
+	setAttr ".maxr" 2;
+	setAttr ".mb" 1;
+	setAttr ".tconr" 1;
+	setAttr ".tcong" 1;
+	setAttr ".tconb" 1;
+	setAttr ".tcona" 1;
+	setAttr ".lumaID" -type "string" "a:1295552742.68:0.766622745283";
+createNode mentalrayOptions -s -n "Preview";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".minsp" -1;
+	setAttr ".maxsp" 1;
+	setAttr ".fil" 1;
+	setAttr ".rapc" 6;
+	setAttr ".raps" 3;
+	setAttr ".rflr" 2;
+	setAttr ".rfrr" 2;
+	setAttr ".maxr" 4;
+	setAttr ".lumaID" -type "string" "a:1295552742.68:0.412697133773";
+createNode mentalrayOptions -s -n "PreviewMotionblur";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".minsp" -1;
+	setAttr ".maxsp" 1;
+	setAttr ".fil" 1;
+	setAttr ".rapc" 6;
+	setAttr ".raps" 3;
+	setAttr ".rflr" 2;
+	setAttr ".rfrr" 2;
+	setAttr ".maxr" 4;
+	setAttr ".mb" 1;
+	setAttr ".tconr" 0.5;
+	setAttr ".tcong" 0.5;
+	setAttr ".tconb" 0.5;
+	setAttr ".tcona" 0.5;
+	setAttr ".lumaID" -type "string" "a:1295552742.68:0.329312645643";
+createNode mentalrayOptions -s -n "PreviewRapidMotion";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".minsp" -1;
+	setAttr ".maxsp" 1;
+	setAttr ".fil" 1;
+	setAttr ".scan" 3;
+	setAttr ".rapc" 3;
+	setAttr ".rflr" 2;
+	setAttr ".rfrr" 2;
+	setAttr ".maxr" 4;
+	setAttr ".mb" 1;
+	setAttr ".tconr" 0.5;
+	setAttr ".tcong" 0.5;
+	setAttr ".tconb" 0.5;
+	setAttr ".tcona" 0.5;
+	setAttr ".lumaID" -type "string" "a:1295552742.68:0.345565148008";
+createNode mentalrayOptions -s -n "PreviewCaustics";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".minsp" -1;
+	setAttr ".maxsp" 1;
+	setAttr ".fil" 1;
+	setAttr ".rapc" 6;
+	setAttr ".raps" 3;
+	setAttr ".rflr" 2;
+	setAttr ".rfrr" 2;
+	setAttr ".maxr" 4;
+	setAttr ".ca" yes;
+	setAttr ".cc" 1;
+	setAttr ".cr" 1;
+	setAttr ".lumaID" -type "string" "a:1295552742.68:0.0417519332973";
+createNode mentalrayOptions -s -n "PreviewGlobalIllum";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".minsp" -1;
+	setAttr ".maxsp" 1;
+	setAttr ".fil" 1;
+	setAttr ".rapc" 6;
+	setAttr ".raps" 3;
+	setAttr ".rflr" 2;
+	setAttr ".rfrr" 2;
+	setAttr ".maxr" 4;
+	setAttr ".gi" yes;
+	setAttr ".gc" 1;
+	setAttr ".gr" 1;
+	setAttr ".lumaID" -type "string" "a:1295552742.68:0.139756219622";
+createNode mentalrayOptions -s -n "PreviewFinalGather";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".minsp" -1;
+	setAttr ".maxsp" 1;
+	setAttr ".fil" 1;
+	setAttr ".rapc" 6;
+	setAttr ".raps" 3;
+	setAttr ".rflr" 2;
+	setAttr ".rfrr" 2;
+	setAttr ".maxr" 4;
+	setAttr ".fg" yes;
+	setAttr ".lumaID" -type "string" "a:1295552742.69:0.733150745801";
+createNode mentalrayOptions -s -n "Production";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".minsp" 0;
+	setAttr ".maxsp" 2;
+	setAttr ".fil" 2;
+	setAttr ".rapc" 8;
+	setAttr ".raps" 4;
+	setAttr ".rflr" 10;
+	setAttr ".rfrr" 10;
+	setAttr ".maxr" 20;
+	setAttr ".lumaID" -type "string" "a:1295552742.69:0.623892455497";
+createNode mentalrayOptions -s -n "ProductionMotionblur";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".minsp" 0;
+	setAttr ".maxsp" 2;
+	setAttr ".fil" 2;
+	setAttr ".rapc" 8;
+	setAttr ".raps" 4;
+	setAttr ".rflr" 10;
+	setAttr ".rfrr" 10;
+	setAttr ".maxr" 20;
+	setAttr ".mb" 2;
+	setAttr ".lumaID" -type "string" "a:1295552742.69:0.392979727637";
+createNode mentalrayOptions -s -n "ProductionRapidMotion";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".minsp" 0;
+	setAttr ".maxsp" 2;
+	setAttr ".fil" 2;
+	setAttr ".scan" 3;
+	setAttr ".rapc" 8;
+	setAttr ".raps" 2;
+	setAttr ".rflr" 10;
+	setAttr ".rfrr" 10;
+	setAttr ".maxr" 20;
+	setAttr ".mb" 2;
+	setAttr ".lumaID" -type "string" "a:1295552742.69:0.771077694131";
+createNode mentalrayOptions -s -n "ProductionFineTrace";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".conr" 0.019999999552965164;
+	setAttr ".cong" 0.019999999552965164;
+	setAttr ".conb" 0.019999999552965164;
+	setAttr ".minsp" 1;
+	setAttr ".maxsp" 2;
+	setAttr ".fil" 1;
+	setAttr ".filw" 0.75;
+	setAttr ".filh" 0.75;
+	setAttr ".jit" yes;
+	setAttr ".scan" 0;
+	setAttr ".rapc" 6;
+	setAttr ".raps" 3;
+	setAttr ".lumaID" -type "string" "a:1295552742.69:0.570050407279";
+createNode mentalrayOptions -s -n "ProductionRapidFur";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".conr" 0.039999999105930328;
+	setAttr ".cong" 0.029999999329447746;
+	setAttr ".conb" 0.070000000298023224;
+	setAttr ".minsp" 0;
+	setAttr ".maxsp" 2;
+	setAttr ".fil" 1;
+	setAttr ".filw" 1.1449999809265137;
+	setAttr ".filh" 1.1449999809265137;
+	setAttr ".jit" yes;
+	setAttr ".scan" 3;
+	setAttr ".rapc" 3;
+	setAttr ".raps" 0.25;
+	setAttr ".ray" no;
+	setAttr ".shmap" 3;
+	setAttr ".mbsm" no;
+	setAttr ".bism" 0.019999999552965164;
+	setAttr ".lumaID" -type "string" "a:1295552742.69:0.118368502083";
+createNode mentalrayOptions -s -n "ProductionRapidHair";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".conr" 0.039999999105930328;
+	setAttr ".cong" 0.029999999329447746;
+	setAttr ".conb" 0.070000000298023224;
+	setAttr ".minsp" 0;
+	setAttr ".maxsp" 2;
+	setAttr ".fil" 1;
+	setAttr ".filw" 1.1449999809265137;
+	setAttr ".filh" 1.1449999809265137;
+	setAttr ".jit" yes;
+	setAttr ".scan" 3;
+	setAttr ".rapc" 6;
+	setAttr ".ray" no;
+	setAttr ".shmap" 3;
+	setAttr ".mbsm" no;
+	setAttr ".bism" 0.019999999552965164;
+	setAttr ".lumaID" -type "string" "a:1295552742.69:0.953182114998";
+createNode shadingEngine -n "ArnoldStandardShader2SG";
+	addAttr -ci true -k true -m -sn "ai_aovs" -ln "aiAOVs" -at "message";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".ihi" 0;
+	setAttr ".ro" yes;
+	setAttr ".lumaID" -type "string" "a:1295554445.08:0.727766031669";
+createNode materialInfo -n "materialInfo6";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".lumaID" -type "string" "a:1295554445.08:0.565720536964";
+createNode aiStandard -n "aiStandard1";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".lumaID" -type "string" "a:1303323616.31:0.428443242721";
+createNode shadingEngine -n "aiStandard1SG";
+	addAttr -ci true -k true -m -sn "ai_aovs" -ln "aiAOVs" -at "message";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".ihi" 0;
+	setAttr ".ro" yes;
+	setAttr ".lumaID" -type "string" "a:1303323616.33:0.612520181505";
+createNode materialInfo -n "materialInfo7";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".lumaID" -type "string" "a:1303323616.33:0.817786567497";
+createNode aiWriteColor -n "aiWriteColor1";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".aov_name" -type "string" "customColo";
+	setAttr ".lumaID" -type "string" "a:1303513193.2:0.763179307074";
+createNode surfaceShader -n "surfaceShader3";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".lumaID" -type "string" "a:1310166001.9:0.241648970725";
+createNode shadingEngine -n "surfaceShader3SG";
+	addAttr -ci true -k true -m -sn "ai_aovs" -ln "aiAOVs" -at "message";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".ihi" 0;
+	setAttr ".ro" yes;
+	setAttr ".lumaID" -type "string" "a:1310166001.91:0.487384395222";
+createNode materialInfo -n "materialInfo8";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".lumaID" -type "string" "a:1310166001.91:0.648140939226";
+createNode ramp -n "ramp2";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr -s 3 ".cel";
+	setAttr ".cel[0].ep" 0;
+	setAttr ".cel[0].ec" -type "float3" 1 0 0 ;
+	setAttr ".cel[1].ep" 0.5;
+	setAttr ".cel[1].ec" -type "float3" 0 1 0 ;
+	setAttr ".cel[2].ep" 1;
+	setAttr ".cel[2].ec" -type "float3" 0 0 1 ;
+	setAttr ".lumaID" -type "string" "a:1310166007.16:0.0766800892567";
+createNode place2dTexture -n "point2_comp_to_point2_comp";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".lumaID" -type "string" "a:1310166007.18:0.162886383048";
+createNode polySphere -n "polySphere1";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".lumaID" -type "string" "a:1310167324.63:0.394413022664";
+createNode samplerInfo -n "samplerInfo1";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".n" -type "float3" 0 0 0.99999994 ;
+	setAttr ".r" -type "float3" 0 0 0.99999994 ;
+	setAttr ".lumaID" -type "string" "a:1310167358.3:0.484836311764";
+createNode clamp -n "color_comp_to_point2_comp";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".mn" -type "float3" -0.5 -0.5 -0.5 ;
+	setAttr ".mx" -type "float3" 0.89999998 0.89999998 0.89999998 ;
+	setAttr ".lumaID" -type "string" "a:1310167376.34:0.768693323095";
+createNode mia_exposure_simple -n "mia_exposure_simple1";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".S02" 0;
+	setAttr ".S03" 0;
+	setAttr ".lumaID" -type "string" "a:1310598901.52:0.167014046806";
+createNode plusMinusAverage -n "vec_comp_to_vec_comp";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".i2[0]" -type "float2" 0 0;
+	setAttr ".lumaID" -type "string" "a:1310598985.02:0.205080308206";
+createNode remapValue -n "float_to_vec_component";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr -s 3 ".vl[0:2]"  0 0 2 1 1 1 0.23478261 0.77999997 2;
+	setAttr -s 2 ".cl";
+	setAttr ".cl[0].cli" 1;
+	setAttr ".cl[1].clp" 1;
+	setAttr ".cl[1].clc" -type "float3" 1 1 1 ;
+	setAttr ".cl[1].cli" 1;
+	setAttr ".lumaID" -type "string" "a:1310599083.56:0.811129207641";
+createNode multiplyDivide -n "multiplyDivide1";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".lumaID" -type "string" "a:1310599121.82:0.85752713221";
+createNode multiplyDivide -n "multiplyDivide2";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".lumaID" -type "string" "a:1310600436.64:0.304362595478";
+createNode checker -n "outAlpha";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".lumaID" -type "string" "a:1312496695.47:0.49259582169";
+createNode place2dTexture -n "place2dTexture3";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".re" -type "float2" 4 4 ;
+	setAttr ".lumaID" -type "string" "a:1312496695.51:0.51221712097";
+createNode aiStandard -n "aiStandard2";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".lumaID" -type "string" "a:1312497208.46:0.424666439728";
+createNode surfaceShader -n "surfaceShader4";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".lumaID" -type "string" "a:1318963997.57:0.81346545914";
+createNode shadingEngine -n "surfaceShader4SG";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".ihi" 0;
+	setAttr ".ro" yes;
+	setAttr ".lumaID" -type "string" "a:1318963997.59:0.459891105116";
+createNode materialInfo -n "materialInfo9";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".lumaID" -type "string" "a:1318963997.59:0.325681427104";
+createNode aiAmbientOcclusion -n "aiAmbientOcclusion1";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".spread" 0.5;
+	setAttr ".white" -type "float3" 0.46865034 0.46865034 0.46865034 ;
+	setAttr ".lumaID" -type "string" "a:1318964090.42:0.00242041854394";
+createNode aiAmbientOcclusion -n "aiAmbientOcclusion2";
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".lumaID" -type "string" "a:1318964094.75:0.368413419687";
+select -ne :time1;
+	setAttr ".o" 2;
+	setAttr ".unw" 2;
+select -ne :renderPartition;
+	setAttr -s 11 ".st";
+select -ne :initialShadingGroup;
+	setAttr ".ro" yes;
+select -ne :initialParticleSE;
+	setAttr ".ro" yes;
+select -ne :defaultShaderList1;
+	setAttr -s 11 ".s";
+select -ne :defaultTextureList1;
+	setAttr -s 4 ".tx";
+select -ne :postProcessList1;
+	setAttr -s 2 ".p";
+select -ne :defaultRenderUtilityList1;
+	setAttr -s 10 ".u";
+select -ne :renderGlobalsList1;
+select -ne :defaultRenderGlobals;
+	setAttr ".ren" -type "string" "arnold";
+	setAttr ".outf" 51;
+	setAttr ".imfkey" -type "string" "tif";
+	setAttr ".ep" 4;
+	setAttr ".pff" yes;
+	setAttr ".ifp" -type "string" "testrender";
+select -ne :defaultResolution;
+	addAttr -ci true -sn "projectWidth" -ln "projectWidth" -at "double";
+	addAttr -ci true -sn "projectHeight" -ln "projectHeight" -at "double";
+	addAttr -ci true -sn "projectPixelAspect" -ln "projectPixelAspect" -at "double";
+	addAttr -ci true -sn "overscanWidth" -ln "overscanWidth" -at "double";
+	addAttr -ci true -sn "overscanHeight" -ln "overscanHeight" -at "double";
+	addAttr -ci true -sn "projectResEnabled" -ln "projectResEnabled" -at "double";
+	addAttr -ci true -sn "applyOverscan" -ln "applyOverscan" -at "double";
+	addAttr -ci true -sn "correctPixelAspect" -ln "correctPixelAspect" -at "double";
+	addAttr -ci true -sn "resolutionMultiplier" -ln "resolutionMultiplier" -min 0.01 
+		-max 10 -at "double";
+	setAttr ".w" 320;
+	setAttr ".h" 240;
+	setAttr ".pa" 1;
+	setAttr ".dar" 1.3329999446868896;
+	setAttr ".projectWidth" 2048;
+	setAttr ".projectHeight" 1556;
+	setAttr ".projectPixelAspect" 1;
+	setAttr ".overscanWidth" 1;
+	setAttr ".overscanHeight" 1;
+	setAttr ".applyOverscan" 1;
+	setAttr ".correctPixelAspect" 1;
+	setAttr ".resolutionMultiplier" 1;
+select -ne :hardwareRenderGlobals;
+	setAttr ".ctrs" 256;
+	setAttr ".btrs" 512;
+select -ne :defaultHardwareRenderGlobals;
+	setAttr ".fn" -type "string" "im";
+	setAttr ".res" -type "string" "ntsc_4d 646 485 1.333";
+select -ne :strokeGlobals;
+	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".lumaID" -type "string" "a:1292543810.78:0.491419832703";
+connectAttr "mia_exposure_simple1.msg" ":perspShape.mils";
+connectAttr "polySphere1.out" "pSphereShape1.i";
+connectAttr ":time1.o" ":defaultArnoldRenderOptions.aaseed";
+relationship "link" ":lightLinker1" ":initialShadingGroup.message" ":defaultLightSet.message";
+relationship "link" ":lightLinker1" ":initialParticleSE.message" ":defaultLightSet.message";
+relationship "link" ":lightLinker1" "ArnoldStandardShader1SG.message" ":defaultLightSet.message";
+relationship "link" ":lightLinker1" "surfaceShader1SG.message" ":defaultLightSet.message";
+relationship "link" ":lightLinker1" "displacementShader1SG.message" ":defaultLightSet.message";
+relationship "link" ":lightLinker1" "ArnoldDisplacementShader1SG.message" ":defaultLightSet.message";
+relationship "link" ":lightLinker1" "surfaceShader2SG.message" ":defaultLightSet.message";
+relationship "link" ":lightLinker1" "ArnoldStandardShader2SG.message" ":defaultLightSet.message";
+relationship "link" ":lightLinker1" "aiStandard1SG.message" ":defaultLightSet.message";
+relationship "link" ":lightLinker1" "surfaceShader3SG.message" ":defaultLightSet.message";
+relationship "link" ":lightLinker1" "surfaceShader4SG.message" ":defaultLightSet.message";
+relationship "shadowLink" ":lightLinker1" ":initialShadingGroup.message" ":defaultLightSet.message";
+relationship "shadowLink" ":lightLinker1" ":initialParticleSE.message" ":defaultLightSet.message";
+relationship "shadowLink" ":lightLinker1" "ArnoldStandardShader1SG.message" ":defaultLightSet.message";
+relationship "shadowLink" ":lightLinker1" "surfaceShader1SG.message" ":defaultLightSet.message";
+relationship "shadowLink" ":lightLinker1" "displacementShader1SG.message" ":defaultLightSet.message";
+relationship "shadowLink" ":lightLinker1" "ArnoldDisplacementShader1SG.message" ":defaultLightSet.message";
+relationship "shadowLink" ":lightLinker1" "surfaceShader2SG.message" ":defaultLightSet.message";
+relationship "shadowLink" ":lightLinker1" "ArnoldStandardShader2SG.message" ":defaultLightSet.message";
+relationship "shadowLink" ":lightLinker1" "aiStandard1SG.message" ":defaultLightSet.message";
+relationship "shadowLink" ":lightLinker1" "surfaceShader3SG.message" ":defaultLightSet.message";
+relationship "shadowLink" ":lightLinker1" "surfaceShader4SG.message" ":defaultLightSet.message";
+connectAttr "layerManager.dli[0]" "defaultLayer.id";
+connectAttr "renderLayerManager.rlmi[0]" "defaultRenderLayer.rlid";
+connectAttr "ArnoldStandardShader1SG.msg" "materialInfo1.sg";
+connectAttr ":mentalrayGlobals.msg" ":mentalrayItemsList.glb";
+connectAttr ":miDefaultOptions.msg" ":mentalrayItemsList.opt" -na;
+connectAttr ":miContourPreset.msg" ":mentalrayItemsList.opt" -na;
+connectAttr ":Draft.msg" ":mentalrayItemsList.opt" -na;
+connectAttr ":DraftMotionBlur.msg" ":mentalrayItemsList.opt" -na;
+connectAttr ":DraftRapidMotion.msg" ":mentalrayItemsList.opt" -na;
+connectAttr ":Preview.msg" ":mentalrayItemsList.opt" -na;
+connectAttr ":PreviewMotionblur.msg" ":mentalrayItemsList.opt" -na;
+connectAttr ":PreviewRapidMotion.msg" ":mentalrayItemsList.opt" -na;
+connectAttr ":PreviewCaustics.msg" ":mentalrayItemsList.opt" -na;
+connectAttr ":PreviewGlobalIllum.msg" ":mentalrayItemsList.opt" -na;
+connectAttr ":PreviewFinalGather.msg" ":mentalrayItemsList.opt" -na;
+connectAttr ":Production.msg" ":mentalrayItemsList.opt" -na;
+connectAttr ":ProductionMotionblur.msg" ":mentalrayItemsList.opt" -na;
+connectAttr ":ProductionRapidMotion.msg" ":mentalrayItemsList.opt" -na;
+connectAttr ":ProductionFineTrace.msg" ":mentalrayItemsList.opt" -na;
+connectAttr ":ProductionRapidFur.msg" ":mentalrayItemsList.opt" -na;
+connectAttr ":ProductionRapidHair.msg" ":mentalrayItemsList.opt" -na;
+connectAttr ":miDefaultFramebuffer.msg" ":mentalrayItemsList.fb" -na;
+connectAttr ":miDefaultOptions.msg" ":mentalrayGlobals.opt";
+connectAttr ":miDefaultFramebuffer.msg" ":mentalrayGlobals.fb";
+connectAttr "file1.oc" "surfaceShader1.oc";
+connectAttr "surfaceShader1.oc" "surfaceShader1SG.ss";
+connectAttr "surfaceShader1SG.msg" "materialInfo2.sg";
+connectAttr "surfaceShader1.msg" "materialInfo2.m";
+connectAttr "file1.msg" "materialInfo2.t" -na;
+connectAttr "file1.oc" "materialInfo2.tc";
+connectAttr "displacementShader1SG.msg" "materialInfo3.sg";
+connectAttr "ArnoldDisplacementShader1SG.msg" "materialInfo4.sg";
+connectAttr "surfaceShader2.oc" "surfaceShader2SG.ss";
+connectAttr "surfaceShader2SG.msg" "materialInfo5.sg";
+connectAttr "surfaceShader2.msg" "materialInfo5.m";
+connectAttr "surfaceShader2.msg" "materialInfo5.t" -na;
+connectAttr "place2dTexture1.o" "ramp1.uv";
+connectAttr "place2dTexture1.ofs" "ramp1.fs";
+connectAttr "ArnoldStandardShader2SG.msg" "materialInfo6.sg";
+connectAttr "aiStandard1.out" "aiStandard1SG.ss";
+connectAttr "aiStandard1SG.msg" "materialInfo7.sg";
+connectAttr "aiStandard1.msg" "materialInfo7.m";
+connectAttr "aiStandard1.msg" "materialInfo7.t" -na;
+connectAttr "multiplyDivide1.oy" "surfaceShader3.ocg";
+connectAttr "multiplyDivide1.oz" "surfaceShader3.ocb";
+connectAttr "outAlpha.oa" "surfaceShader3.ocr";
+connectAttr "surfaceShader3.oc" "surfaceShader3SG.ss";
+connectAttr "pSphereShape1.iog" "surfaceShader3SG.dsm" -na;
+connectAttr "surfaceShader3SG.msg" "materialInfo8.sg";
+connectAttr "surfaceShader3.msg" "materialInfo8.m";
+connectAttr "surfaceShader3.msg" "materialInfo8.t" -na;
+connectAttr "point2_comp_to_point2_comp.ov" "ramp2.v";
+connectAttr "point2_comp_to_point2_comp.ofs" "ramp2.fs";
+connectAttr "samplerInfo1.fr" "color_comp_to_point2_comp.ipr";
+connectAttr "aiAmbientOcclusion1.outr" "color_comp_to_point2_comp.ipg";
+connectAttr "aiAmbientOcclusion2.outg" "color_comp_to_point2_comp.ipb";
+connectAttr "ramp2.oc" "vec_comp_to_vec_comp.i3[0]";
+connectAttr "vec_comp_to_vec_comp.o3x" "float_to_vec_component.i";
+connectAttr "vec_comp_to_vec_comp.o3y" "multiplyDivide1.i1y";
+connectAttr "vec_comp_to_vec_comp.o3z" "multiplyDivide1.i1z";
+connectAttr "float_to_vec_component.ov" "multiplyDivide1.i1x";
+connectAttr "vec_comp_to_vec_comp.o3" "multiplyDivide2.i1";
+connectAttr "place2dTexture3.o" "outAlpha.uv";
+connectAttr "place2dTexture3.ofs" "outAlpha.fs";
+connectAttr "ramp2.oc" "outAlpha.c1";
+connectAttr "color_comp_to_point2_comp.op" "surfaceShader4.oc";
+connectAttr "surfaceShader4.oc" "surfaceShader4SG.ss";
+connectAttr "pSphereShape2.iog" "surfaceShader4SG.dsm" -na;
+connectAttr "surfaceShader4SG.msg" "materialInfo9.sg";
+connectAttr "surfaceShader4.msg" "materialInfo9.m";
+connectAttr "surfaceShader4.msg" "materialInfo9.t" -na;
+connectAttr "aiAmbientOcclusion1.spread" "aiAmbientOcclusion2.spread";
+connectAttr "aiAmbientOcclusion1.white" "aiAmbientOcclusion2.white";
+connectAttr "ArnoldStandardShader1SG.pa" ":renderPartition.st" -na;
+connectAttr "surfaceShader1SG.pa" ":renderPartition.st" -na;
+connectAttr "displacementShader1SG.pa" ":renderPartition.st" -na;
+connectAttr "ArnoldDisplacementShader1SG.pa" ":renderPartition.st" -na;
+connectAttr "surfaceShader2SG.pa" ":renderPartition.st" -na;
+connectAttr "ArnoldStandardShader2SG.pa" ":renderPartition.st" -na;
+connectAttr "aiStandard1SG.pa" ":renderPartition.st" -na;
+connectAttr "surfaceShader3SG.pa" ":renderPartition.st" -na;
+connectAttr "surfaceShader4SG.pa" ":renderPartition.st" -na;
+connectAttr "surfaceShader1.msg" ":defaultShaderList1.s" -na;
+connectAttr "surfaceShader2.msg" ":defaultShaderList1.s" -na;
+connectAttr "aiStandard1.msg" ":defaultShaderList1.s" -na;
+connectAttr "aiWriteColor1.msg" ":defaultShaderList1.s" -na;
+connectAttr "surfaceShader3.msg" ":defaultShaderList1.s" -na;
+connectAttr "aiStandard2.msg" ":defaultShaderList1.s" -na;
+connectAttr "surfaceShader4.msg" ":defaultShaderList1.s" -na;
+connectAttr "aiAmbientOcclusion1.msg" ":defaultShaderList1.s" -na;
+connectAttr "aiAmbientOcclusion2.msg" ":defaultShaderList1.s" -na;
+connectAttr "file1.msg" ":defaultTextureList1.tx" -na;
+connectAttr "ramp1.msg" ":defaultTextureList1.tx" -na;
+connectAttr "ramp2.msg" ":defaultTextureList1.tx" -na;
+connectAttr "outAlpha.msg" ":defaultTextureList1.tx" -na;
+connectAttr "place2dTexture1.msg" ":defaultRenderUtilityList1.u" -na;
+connectAttr "point2_comp_to_point2_comp.msg" ":defaultRenderUtilityList1.u" -na;
+connectAttr "samplerInfo1.msg" ":defaultRenderUtilityList1.u" -na;
+connectAttr "color_comp_to_point2_comp.msg" ":defaultRenderUtilityList1.u" -na;
+connectAttr "mia_exposure_simple1.msg" ":defaultRenderUtilityList1.u" -na;
+connectAttr "vec_comp_to_vec_comp.msg" ":defaultRenderUtilityList1.u" -na;
+connectAttr "float_to_vec_component.msg" ":defaultRenderUtilityList1.u" -na;
+connectAttr "multiplyDivide1.msg" ":defaultRenderUtilityList1.u" -na;
+connectAttr "multiplyDivide2.msg" ":defaultRenderUtilityList1.u" -na;
+connectAttr "place2dTexture3.msg" ":defaultRenderUtilityList1.u" -na;
+// End of test.ma
