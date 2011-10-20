@@ -155,6 +155,7 @@ if env['COLOR_CMDS']:
 
 #define shortcuts for the above paths, with substitution of environment variables
 MAYA_ROOT = env.subst(env['MAYA_ROOT'])
+MAYA_INCLUDE_PATH = os.path.join(MAYA_ROOT, '../../devkit/include' if system.os() == 'darwin' else 'include')
 EXTERNAL_PATH = env.subst(env['EXTERNAL_PATH'])
 ARNOLD = env.subst(env['ARNOLD'])
 ARNOLD_API_INCLUDES = env.subst(env['ARNOLD_API_INCLUDES'])
@@ -177,7 +178,7 @@ SHAVE_API = env.subst(env['SHAVE_API'])
 
 # Get arnold and maya versions used for this build
 arnold_version  = get_arnold_version(os.path.join(ARNOLD_API_INCLUDES, 'ai_version.h'))
-maya_version    = get_maya_version(os.path.join(MAYA_ROOT, 'include', 'maya', 'MTypes.h'))
+maya_version    = get_maya_version(os.path.join(MAYA_INCLUDE_PATH, 'maya', 'MTypes.h'))
 
 # print build info
 print ''
@@ -393,10 +394,9 @@ env['BUILDERS']['MakePackage'] = Builder(action = Action(make_package, "Preparin
 env['ROOT_DIR'] = os.getcwd()
 
 if system.os() == 'windows':
-   maya_include_dir = os.path.join(env.subst(env['MAYA_ROOT']), 'include')
    maya_env = env.Clone()
    maya_env.Append(CPPPATH = ['.'])
-   maya_env.Append(CPPPATH = [maya_include_dir])
+   maya_env.Append(CPPPATH = [MAYA_INCLUDE_PATH])
    maya_env.Append(CPPDEFINES = Split('NT_PLUGIN REQUIRE_IOSTREAM'))
    maya_env.Append(LIBPATH = [os.path.join(MAYA_ROOT, 'lib')])
    
@@ -448,15 +448,13 @@ else:
    maya_env.Append(CPPDEFINES = Split('_BOOL REQUIRE_IOSTREAM'))
 
    if system.os() == 'linux':
-      maya_include_dir = os.path.join(MAYA_ROOT, 'include')
-      maya_env.Append(CPPPATH = [maya_include_dir])
+      maya_env.Append(CPPPATH = [MAYA_INCLUDE_PATH])
       maya_env.Append(LIBS=Split('GL GLU'))
       maya_env.Append(CPPDEFINES = Split('LINUX'))
       maya_env.Append(LIBPATH = [os.path.join(MAYA_ROOT, 'lib')])
    elif system.os() == 'darwin':
       # MAYA_LOCATION on osx includes Maya.app/Contents
-      maya_include_dir = os.path.join(MAYA_ROOT, '../../devkit/include')
-      maya_env.Append(CPPPATH = [maya_include_dir])
+      maya_env.Append(CPPPATH = [MAYA_INCLUDE_PATH])
       maya_env.Append(LIBPATH = [os.path.join(MAYA_ROOT, 'MacOS')])
 
    maya_env.Append(LIBS=Split('ai pthread Foundation OpenMaya OpenMayaRender OpenMayaUI OpenMayaAnim OpenMayaFX'))
