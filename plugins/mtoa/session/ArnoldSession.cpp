@@ -283,14 +283,26 @@ AtNode* CArnoldSession::ExportFilter(MObject mayaNode, const MString &translator
    return ExportWithTranslator(mayaNode, "<filter>", translatorName);
 }
 
-// FIXME: there may be more than one translator that matches a single maya node
-CNodeTranslator * CArnoldSession::GetActiveTranslator(const MObject node)
+bool CArnoldSession::GetActiveTranslators(const MObject& object, std::vector<CNodeTranslator* >& result)
 {
-   CNodeAttrHandle handle(node);
-   ObjectToTranslatorMap::iterator translatorIt = m_processedTranslators.find(handle);
-   if (translatorIt != m_processedTranslators.end())
+   CNodeAttrHandle handle(object);
+   ObjectToTranslatorMap::iterator it = m_processedTranslators.find(handle);
+   if (it == m_processedTranslators.end())
+      return false;
+   for (; it != m_processedTranslators.end(); ++it)
    {
-      return static_cast< CNodeTranslator* >(translatorIt->second);
+      result.push_back(static_cast< CNodeTranslator* >(it->second));
+   }
+   return true;
+}
+
+CNodeTranslator * CArnoldSession::GetActiveTranslator(const MPlug& plug)
+{
+   CNodeAttrHandle handle(plug);
+   ObjectToTranslatorMap::iterator it = m_processedTranslators.find(handle);
+   if (it != m_processedTranslators.end())
+   {
+      return static_cast< CNodeTranslator* >(it->second);
    }
    return NULL;
 }
@@ -368,8 +380,8 @@ MStatus CArnoldSession::End()
       //AiMsgDebug("[mtoa] Deleting translator for %s", MFnDependencyNode(it->first.object()).name().asChar());
       delete it->second;
    }
+   m_optionsTranslator = NULL; // translators are now deleted, so reset to NULL
    m_processedTranslators.clear();
-
    m_masterInstances.clear();
    // Clear motion frames storage
    m_motion_frames.clear();
@@ -427,9 +439,10 @@ AtNode* CArnoldSession::ExportOptions()
    }
    MFnDependencyNode fnNode(options);
    AiMsgDebug("[mtoa] Exporting Arnold options '%s'", fnNode.name().asChar());
-   AtNode* result = ExportNode(fnNode.findPlug("message"));
+   MPlug optPlug = fnNode.findPlug("message");
+   AtNode* result = ExportNode(optPlug);
    // Store the options translator for later use
-   m_optionsTranslator = (COptionsTranslator*)GetActiveTranslator(options);
+   m_optionsTranslator = (COptionsTranslator*)GetActiveTranslator(optPlug);
    return result;
 }
 

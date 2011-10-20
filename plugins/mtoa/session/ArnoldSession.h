@@ -79,7 +79,8 @@ public:
    AtNode* ExportFilter(MObject node, const MString &translatorName);
    AtNode* ExportOptions();
 
-   CNodeTranslator * GetActiveTranslator(const MObject node);
+   bool GetActiveTranslators(const MObject& object, std::vector<CNodeTranslator* >& result);
+   CNodeTranslator * GetActiveTranslator(const MPlug& plug);
    static bool IsRenderablePath(MDagPath dagPath);
 
    inline const ArnoldSessionMode& GetSessionMode() const         { return m_sessionOptions.GetSessionMode(); }

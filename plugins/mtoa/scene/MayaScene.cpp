@@ -307,10 +307,11 @@ void CMayaScene::IPRNewNodeCallback(MObject & node, void *)
    CRenderSession* renderSession = GetRenderSession();
    CArnoldSession* arnoldSession = GetArnoldSession();
    renderSession->InterruptRender();
-   CNodeTranslator * translator = arnoldSession->GetActiveTranslator(node);
-   if (translator != NULL)
+   std::vector<CNodeTranslator *> translators;
+   if (arnoldSession->GetActiveTranslators(node, translators))
    {
-      arnoldSession->QueueForUpdate(translator);
+      for (unsigned int i=0; i < translators.size(); ++i)
+         arnoldSession->QueueForUpdate(translators[i]);
    }
    else
    {
