@@ -212,6 +212,7 @@ if env['COMPILER'] == 'gcc':
       env.Append(CCFLAGS = Split('-fvisibility=hidden'))
       env.Append(CXXFLAGS = Split('-fvisibility=hidden'))
       env.Append(LINKFLAGS = Split('-fvisibility=hidden'))
+      env.Append(CPPDEFINES = Split('NDEBUG'))
 
    ## Hardcode '.' directory in RPATH in linux
    if system.os() == 'linux':
@@ -234,7 +235,7 @@ if env['COMPILER'] == 'gcc':
          env.Append(CCFLAGS = Split('-gstabs')) 
          env.Append(LINKFLAGS = Split('-gstabs')) 
       else: 
-         env.Append(CCFLAGS = Split('-g')) 
+         env.Append(CCFLAGS = Split('-g -fno-omit-frame-pointer')) 
          env.Append(LINKFLAGS = Split('-g')) 
    if system.os() == 'linux' and env['MODE'] == 'profile':
       env.Append(CCFLAGS = Split('-pg'))
