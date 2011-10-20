@@ -76,6 +76,7 @@ protected:
    virtual bool RequiresMotionData() {return false;}
    /// Instead of caching translator exports, allow a Maya node to be exported multiple times, each time generating new arnold nodes
    virtual bool DisableCaching() {return false;}
+   /// Create nodes using AddArnoldNode(), and return the node which forms the root of the exported network
    virtual AtNode* CreateArnoldNodes() = 0;
    /// Return false if the passed outputAttribute is invalid
    virtual bool ResolveOutputPlug(const MPlug& outputPlug, MPlug &resolvedOutputPlug);
@@ -111,6 +112,7 @@ protected:
 
    // get the arnold node that this translator is exporting (should only be used after all export steps are complete)
    AtNode* GetArnoldRootNode();
+   void SetArnoldRootNode(AtNode* node);
    AtNode* GetArnoldNode(const char* tag="");
    AtNode* AddArnoldNode(const char* type, const char* tag="");
    virtual void SetArnoldNodeName(AtNode* arnoldNode, const char* tag="");

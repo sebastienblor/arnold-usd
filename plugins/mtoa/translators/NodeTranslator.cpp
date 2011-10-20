@@ -60,7 +60,8 @@ namespace // <anonymous>
 // internal use only
 AtNode* CNodeTranslator::DoExport(AtUInt step)
 {
-   if (m_atNode != NULL)
+   AtNode* node = GetArnoldNode("");
+   if (node != NULL)
    {
       if (step == 0)
       {
@@ -70,8 +71,8 @@ AtNode* CNodeTranslator::DoExport(AtUInt step)
          else
             AiMsgDebug("[mtoa] [translator %s] Exporting on node %s and upstream.",
                   GetTranslatorName().asChar(), GetMayaNodeName().asChar());
-         Export(m_atNode);
-         ExportUserAttribute(m_atNode);
+         Export(node);
+         ExportUserAttribute(node);
       }
       else if (RequiresMotionData())
       {
@@ -82,20 +83,22 @@ AtNode* CNodeTranslator::DoExport(AtUInt step)
             AiMsgDebug("[mtoa] [translator %s] Exporting motion on node %s and upstream.",
                   GetTranslatorName().asChar(), GetMayaNodeName().asChar());
 
-         ExportMotion(m_atNode, step);
+         ExportMotion(node, step);
       }
    }
-   return m_atNode;
+   return GetArnoldRootNode();
 }
 
 // internal use only
 AtNode* CNodeTranslator::DoUpdate(AtUInt step)
 {
    assert(AiUniverseIsActive());
-   AiMsgDebug("[mtoa] [translator %s] CNodeTranslator::DoUpdate step %i, m_atNode %p",
-         GetTranslatorName().asChar(), step, m_atNode);
+   AtNode* node = GetArnoldNode("");
 
-   if (m_atNode != NULL)
+   AiMsgDebug("[mtoa] [translator %s] CNodeTranslator::DoUpdate step %i, node %p",
+         GetTranslatorName().asChar(), step, node);
+
+   if (node != NULL)
    {
       AiMsgDebug("[mtoa] [translator %s] Updating Arnold %s(%s) translated from Maya %s(%s): %p",
          GetTranslatorName().asChar(),
@@ -103,11 +106,11 @@ AtNode* CNodeTranslator::DoUpdate(AtUInt step)
          GetMayaNodeName().asChar(), GetMayaNodeTypeName().asChar(), m_atNode);
       if (step == 0)
       {
-         Update(m_atNode);
-         ExportUserAttribute(m_atNode);
+         Update(node);
+         ExportUserAttribute(node);
       }
       else if (RequiresMotionData())
-         UpdateMotion(m_atNode, step);
+         UpdateMotion(node, step);
    }
    else
    {
@@ -115,7 +118,7 @@ AtNode* CNodeTranslator::DoUpdate(AtUInt step)
          GetTranslatorName().asChar(), GetMayaNodeName().asChar(), GetMayaNodeTypeName().asChar());
    }
 
-   return m_atNode;
+   return GetArnoldRootNode();
 }
 
 AtNode* CNodeTranslator::DoCreateArnoldNodes()
@@ -124,8 +127,9 @@ AtNode* CNodeTranslator::DoCreateArnoldNodes()
    if (m_atNode == NULL)
       AiMsgWarning("[mtoa] [translator %s] Translation on %s returned an empty Arnold root node.",
             GetTranslatorName().asChar(), GetMayaNodeName().asChar());
-
-   return m_atNode;
+   if (m_atNodes.count("") == 0)
+      m_atNodes[""] = m_atNode;
+   return GetArnoldRootNode();
 }
 
 AtNode* CNodeTranslator::GetArnoldRootNode()
@@ -133,6 +137,17 @@ AtNode* CNodeTranslator::GetArnoldRootNode()
    return m_atNode;
 }
 
+/// Set the root node of the exported shading network
+///
+/// Usually this function does not need to be called as the return result of CreateArnoldNodes()
+/// serves the same purpose. This is included to allow dynamic networks to be created where the root node
+/// is still unknown during CreateArnoldNodes()
+void CNodeTranslator::SetArnoldRootNode(AtNode* node)
+{
+   m_atNode = node;
+}
+
+/// Retrieve a node previously created using AddArnoldNode()
 AtNode* CNodeTranslator::GetArnoldNode(const char* tag)
 {
    if (m_atNodes.count(tag))
@@ -146,6 +161,7 @@ AtNode* CNodeTranslator::GetArnoldNode(const char* tag)
    }
 }
 
+/// Create an arnold node of the specified type, and save with the given tag (defaults to "")
 AtNode* CNodeTranslator::AddArnoldNode(const char* type, const char* tag)
 {
    const AtNodeEntry* nodeEntry = AiNodeEntryLookUp(type);

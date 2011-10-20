@@ -35,7 +35,6 @@ public:
 SHADER_TRANSLATOR(CLambertTranslator);
 SHADER_TRANSLATOR(CFileTranslator);
 SHADER_TRANSLATOR(CPlace2DTextureTranslator);
-SHADER_TRANSLATOR(CBump2DTranslator);
 SHADER_TRANSLATOR(CBump3DTranslator);
 SHADER_TRANSLATOR_MULTIOUT(CSamplerInfoTranslator);
 SHADER_TRANSLATOR_MULTIOUT(CPlusMinusAverageTranslator);
@@ -45,5 +44,14 @@ SHADER_TRANSLATOR(CProjectionTranslator);
 SHADER_TRANSLATOR(CRampTranslator);
 SHADER_TRANSLATOR(CLayeredTextureTranslator);
 SHADER_TRANSLATOR(CLayeredShaderTranslator);
+
+class CBump2DTranslator : public CNodeTranslator
+{
+public:
+   static void* creator(){return new CBump2DTranslator();}
+   virtual void Export(AtNode* shader);
+   AtNode* CreateArnoldNodes();
+   bool DisableCaching() {return true;};
+};
 
 #endif // SHADER_TRANSLATORS_H

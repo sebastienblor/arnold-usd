@@ -38,7 +38,10 @@ void CShaderTranslator::Export(AtNode *shader)
       AtNode* bump = ExportNode(connections[0]);
 
       if (bump != NULL)
-         AiNodeLink(bump, "@before", shader);
+      {
+         AiNodeLink(shader, "shader", bump);
+         SetArnoldRootNode(bump);
+      }
    }
 }
 
