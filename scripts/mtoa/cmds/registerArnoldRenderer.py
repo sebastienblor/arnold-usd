@@ -114,7 +114,7 @@ def addOneTabToGlobalsWindow(renderer, tabLabel, createProc):
         except:
             pass
         return
-
+    
     displayAllTabs = pm.mel.isDisplayingAllRendererTabs()
 
     # If the current renderer the renderer is not this
@@ -226,7 +226,12 @@ def registerArnoldRenderer():
 
 
         pm.evalDeferred(arnoldAddGlobalsTabs)
-
+        
+        #We have to source this file otherwise maya will override
+        #our mel proc overrides below.
+        #
+        pm.mel.source('createMayaSoftwareCommonGlobalsTab.mel')
+        
         utils.pyToMelProc(addOneTabToGlobalsWindow,
                           [('string', 'renderer'), ('string', 'tabLabel'), ('string', 'createProc')],
                           useName=True)
