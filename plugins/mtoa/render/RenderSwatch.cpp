@@ -5,7 +5,6 @@
 
 #include "extension/ExtensionsManager.h"
 
-
 #include <maya/MImage.h>
 #include <ai_msg.h>
 #include <ai_node_entry.h>

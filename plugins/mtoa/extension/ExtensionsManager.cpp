@@ -457,7 +457,7 @@ MStatus CExtensionsManager::RegisterExtension(CExtension* extension)
 
    // Info
    unsigned int declNewNodes = extension->RegisteredNodesCount();
-   unsigned int declTrsNodes = extension->TranslatedNodesCount();
+   // unsigned int declTrsNodes = extension->TranslatedNodesCount();
    unsigned int declTrsCount = extension->TranslatorCount();
 
    if (regNewNodes == declNewNodes)
