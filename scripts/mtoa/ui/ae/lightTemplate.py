@@ -191,19 +191,27 @@ class LightTemplate(AttributeTemplate):
     def addLightFilterWin(self):
         LightFilterWindow(self)
 
-    def addLightFilterCB(self, nodeType):
-        if not nodeType:
+    def addLightFilterCB(self, name):
+        """
+        This callback is triggered when the filter menu changes.  The filter menu contains a list of 
+        filter types, and of existing filter nodes.
+        """
+        if not name:
             # selected a menu divider. reset
             self.updateAddMenu()
             return
         items = pm.optionMenuGrp(self.addOptionMenuGrp, query=True, itemListLong=True)
         index = pm.optionMenuGrp(self.addOptionMenuGrp, query=True, select=True)
+        # get the mode of the callback
         mode = pm.menuItem(items[index-1], query=True, data=True)
         if mode == self.MENU_NODE_TYPE:
-            newFilter = self.addLightFilter(nodeType)
-            pm.mel.updateAE(newFilter)
-        else:
-            self.connectLightFilter(nodeType)
+            # name is a type
+            newFilter = self.addLightFilter(name)
+            # not sure whether selecting is the right thing to do. it's a bit of jolt.
+            #pm.mel.updateAE(newFilter)
+        else: # MENU_NODE_INSTANCE
+            # name is an existing node
+            self.connectLightFilter(pm.nt.DependNode(name))
 
     def addLightFilter(self, filterNodeType):
         '''
