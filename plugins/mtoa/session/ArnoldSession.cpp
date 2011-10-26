@@ -876,9 +876,10 @@ void CArnoldSession::DoUpdate()
       // Scene is motion blured, get the data for the steps.
       for (unsigned int step = 0; (step < GetNumMotionSteps()); ++step)
       {
+         AiMsgDebug("[mtoa.session]     Updating step %d at frame %f", step, m_motion_frames[step]);
          MGlobal::viewFrame(MTime(m_motion_frames[step], MTime::uiUnit()));
-         for(std::vector<CNodeTranslator*>::iterator iter = m_translatorsToUpdate.begin();
-            iter != m_translatorsToUpdate.end(); ++iter)
+         for (std::vector<CNodeTranslator*>::iterator iter = m_translatorsToUpdate.begin();
+             iter != m_translatorsToUpdate.end(); ++iter)
          {
             CNodeTranslator* translator = (*iter);
             if (translator != NULL)translator->DoUpdate(step);
@@ -889,12 +890,16 @@ void CArnoldSession::DoUpdate()
       m_isExportingMotion = false;
    }
 
-   // re-add IPR callbacks to all updated translators after ALL updates are done
-   for(std::vector<CNodeTranslator*>::iterator iter = m_translatorsToUpdate.begin();
-      iter != m_translatorsToUpdate.end(); ++iter)
+   // add callbacks after all is done
+   if (GetSessionMode() == MTOA_SESSION_IPR)
    {
-      CNodeTranslator* translator = (*iter);
-      if (translator != NULL) translator->AddUpdateCallbacks();
+      // re-add IPR callbacks to all updated translators after ALL updates are done
+      for(std::vector<CNodeTranslator*>::iterator iter = m_translatorsToUpdate.begin();
+         iter != m_translatorsToUpdate.end(); ++iter)
+      {
+         CNodeTranslator* translator = (*iter);
+         if (translator != NULL) translator->AddUpdateCallbacks();
+      }
    }
 
    // Clear the list and the reques update flag.
@@ -923,6 +928,7 @@ void CArnoldSession::ClearUpdateCallbacks()
 ///
 void CArnoldSession::SetExportCamera(MDagPath camera)
 {
+   AiMsgDebug("[mtoa.session] Setting export camera to \"%s\"", camera.partialPathName().asChar());
    m_sessionOptions.SetExportCamera(camera);
 
    // queue up translators for update
