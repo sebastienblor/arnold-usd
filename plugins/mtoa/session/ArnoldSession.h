@@ -101,6 +101,9 @@ public:
    inline unsigned int GetExportFilter() const { return m_sessionOptions.GetExportFilter(); }
    inline void SetExportFilter(unsigned int mask) { m_sessionOptions.SetExportFilter(mask); }
 
+   // Export options
+   inline const CSessionOptions& GetSessionOptions() const  { return m_sessionOptions; }
+   // Arnoldrender options
    inline const MObject& GetArnoldRenderOptions() const   { return m_sessionOptions.GetArnoldRenderOptions(); }
    
    inline bool IsMotionBlurEnabled(int type = MTOA_MBLUR_ALL) const { return m_sessionOptions.IsMotionBlurEnabled(type); }
@@ -156,8 +159,7 @@ private:
 
    ~CArnoldSession() { End(); }
 
-   // Export options
-   inline const CSessionOptions& GetSessionOptions() const  { return m_sessionOptions; }
+   // Edit Export options
    inline CSessionOptions* SessionOptions()                 { return &m_sessionOptions; }
    inline void SetSessionOptions(CSessionOptions& options)  { m_sessionOptions = options; }
 

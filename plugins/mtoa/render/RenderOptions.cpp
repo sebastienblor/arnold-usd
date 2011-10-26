@@ -163,7 +163,7 @@ void CRenderOptions::ProcessArnoldRenderOptions()
    }
    else
    {
-      AiMsgError("[mtoa] Could not find defaultArnoldRenderOptions");
+      AiMsgError("[mtoa] No known Arnold render options");
    }
 }
 

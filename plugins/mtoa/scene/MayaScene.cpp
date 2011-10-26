@@ -81,12 +81,17 @@ MStatus CMayaScene::Begin(ArnoldSessionMode mode)
       list.getDependNode(0, ArnoldRenderOptionsNode);
       fnArnoldRenderOptions.setObject(ArnoldRenderOptionsNode);
    }
+   else
+   {
+      AiMsgError("[mtoa] could not find defaultArnoldRenderOptions");
+   }
 
    CSessionOptions sessionOptions;
    sessionOptions.SetSessionMode(mode);
    sessionOptions.SetExportFrame(MAnimControl::currentTime().as(MTime::uiUnit()));
    sessionOptions.SetArnoldRenderOptions(ArnoldRenderOptionsNode);
 
+   // FIXME: why do we have a double storage for the render options node?
    CRenderOptions renderOptions;
    renderOptions.SetArnoldRenderOptions(ArnoldRenderOptionsNode);
    if (mode == MTOA_SESSION_SWATCH)

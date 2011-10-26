@@ -387,7 +387,11 @@ void CFileTranslator::Export(AtNode* shader)
    {
       resolvedFilename = FindMayaObjectPlug("filename").asString();
    }
-   CRenderOptions renderOptions; 
+
+   // FIXME really inconvenient, a CRenderOptions instance should be stored in session
+   // or that class eliminated completely
+   CRenderOptions renderOptions;
+   renderOptions.SetArnoldRenderOptions(GetArnoldRenderOptions());
    renderOptions.GetFromMaya();
    if(renderOptions.useExistingTiledTextures())
    { 
