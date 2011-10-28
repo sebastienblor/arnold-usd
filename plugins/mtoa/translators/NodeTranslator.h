@@ -65,7 +65,11 @@ public:
 
 protected:
    CNodeTranslator()  :
-      m_abstract(CAbTranslator())
+      m_abstract(CAbTranslator()),
+      m_session(NULL),
+      m_atNode(NULL),
+      m_outputAttr(""),
+      m_step(0)
    {}
    virtual void Export(AtNode* atNode) = 0;
    virtual void ExportMotion(AtNode* atNode, AtUInt step){}
@@ -87,6 +91,10 @@ protected:
    virtual AtNode* ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, int element=-1);
    // For a specific Maya plug
    virtual AtNode* ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, const MPlug& plug);
+   virtual void ProcessArrayParameter(AtNode* arnoldNode, const char* arnoldParamName, const MPlug& plug);
+   void ProcessArrayElement(AtInt type, AtArray* array, AtUInt i, const MPlug& elem);
+   void ProcessAnimatedParameter(AtNode* arnoldNode, const char* arnoldParamName, const MPlug& plug, AtUInt step);
+   AtNode* ProcessStaticParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, const MPlug& plug);
 
    void ExportUserAttribute(AtNode *anode);
 
@@ -101,6 +109,7 @@ protected:
          local_motion_attr = plug.asBool();
       return local_motion_attr;
    }
+   inline unsigned int GetMotionStep() const {return m_step;}
    inline unsigned int GetNumMotionSteps() const {return m_session->GetNumMotionSteps();}
    inline float GetShutterSize() const {return m_session->GetShutterSize();}
    inline unsigned int GetShutterType() const {return m_session->GetShutterType();}
@@ -151,6 +160,7 @@ protected:
    MObject m_object;
    MFnDependencyNode m_fnNode;
    MString m_outputAttr;
+   AtUInt m_step;
 
    // This stores callback IDs for the callbacks this
    // translator creates.
