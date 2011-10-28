@@ -64,6 +64,7 @@ public:
    static void MayaPluginLoadedCallback(const MStringArray &strs, void *clientData);
    static MCallbackId CreatePluginLoadedCallback();
    static MStatus RemovePluginLoadedCallback();
+   static const bool IsRegisteredMayaNode(const MString &mayaNodeType);
 
 protected:
    static CExtension* NewExtension(const MString &extensionFile);
