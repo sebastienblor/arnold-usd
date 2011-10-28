@@ -128,8 +128,9 @@ node_parameters
    AiParameterBOOL("inheritsTransform", true);
    AiParameterMTX("parentMatrix", id);
 
-   AiMetaDataSetStr(mds, NULL, "maya.name", "place3dTexture");
-   AiMetaDataSetInt(mds, NULL, "maya.id", 0x52504c44);
+   //AiMetaDataSetStr(mds, NULL, "maya.name", "place3dTexture");
+   //AiMetaDataSetInt(mds, NULL, "maya.id", 0x52504c44);
+   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }
 
 node_initialize

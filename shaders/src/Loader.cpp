@@ -53,6 +53,7 @@ extern AtNodeMethods* PointToFloatMtd;
 extern AtNodeMethods* Point2ToFloatMtd;
 extern AtNodeMethods* WriteColorMtd;
 extern AtNodeMethods* WriteFloatMtd;
+extern AtNodeMethods* AnimMatrixMtd;
 
 node_loader
 {
@@ -405,6 +406,13 @@ node_loader
       node->methods     = WriteFloatMtd;
       node->output_type = AI_TYPE_FLOAT;
       node->name        = "writeFloat";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+
+   case 50:
+      node->methods     = AnimMatrixMtd;
+      node->output_type = AI_TYPE_MATRIX;
+      node->name        = "anim_matrix";
       node->node_type   = AI_NODE_SHADER;
       break;
 

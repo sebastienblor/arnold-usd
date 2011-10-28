@@ -904,12 +904,30 @@ AtNode* CNodeTranslator::ProcessStaticParameter(AtNode* arnoldNode, const char* 
       break;
    case AI_TYPE_MATRIX:
       {
-         AtMatrix am;
-         MObject matObj = plug.asMObject();
-         MFnMatrixData matData(matObj);
-         MMatrix mm = matData.matrix();
-         ConvertMatrix(am, mm);
-         AiNodeSetMatrix(arnoldNode, arnoldParamName, am);
+         // special case for shaders with matrix values that represent transformations
+         // FIXME: introduce "xform" metadata to explicitly mark a matrix parameter
+         if (RequiresMotionData() && strcmp(arnoldParamName, "placementMatrix") == 0)
+         {
+            // create an interpolation node for matrices
+            AtNode* animNode = AddArnoldNode("anim_matrix", arnoldParamName);
+            AtArray* matrices = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_MATRIX);
+
+            ProcessArrayElement(AI_TYPE_MATRIX, matrices, 0, plug);
+
+            // Set the parameter for the interpolation node
+            AiNodeSetArray(animNode, "values", matrices);
+            // link to our node
+            AiNodeLink(animNode, arnoldParamName, arnoldNode);
+         }
+         else
+         {
+            AtMatrix am;
+            MObject matObj = plug.asMObject();
+            MFnMatrixData matData(matObj);
+            MMatrix mm = matData.matrix();
+            ConvertMatrix(am, mm);
+            AiNodeSetMatrix(arnoldNode, arnoldParamName, am);
+         }
       }
       break;
    case AI_TYPE_BOOLEAN:
