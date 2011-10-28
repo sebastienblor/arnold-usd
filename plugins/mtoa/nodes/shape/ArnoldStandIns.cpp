@@ -41,11 +41,11 @@
 #include <maya/MGLFunctionTable.h>
 static MGLFunctionTable *gGLFT = NULL;
 
-#define LEAD_COLOR				18	// green
-#define ACTIVE_COLOR			15	// white
-#define ACTIVE_AFFECTED_COLOR	8	// purple
-#define DORMANT_COLOR			4	// blue
-#define HILITE_COLOR			17	// pale blue
+#define LEAD_COLOR            18 // green
+#define ACTIVE_COLOR       15 // white
+#define ACTIVE_AFFECTED_COLOR 8  // purple
+#define DORMANT_COLOR         4  // blue
+#define HILITE_COLOR       17 // pale blue
 MTypeId CArnoldStandInShape::id(ARNOLD_NODEID_STAND_INS);
 
 CStaticAttrHelper CArnoldStandInShape::s_attributes(CArnoldStandInShape::addAttribute);
@@ -64,9 +64,10 @@ MObject CArnoldStandInShape::s_boundingBoxMax;
 
 CArnoldStandInGeom::CArnoldStandInGeom()
 {
+   dso  = "";
+   data = "";
    mode = 0;
    geomLoaded = "";
-   dso = "";
    scale = 1.0f;
    BBmin = MPoint(-1.0f, -1.0f, -1.0f);
    BBmax = MPoint(1.0f, 1.0f, 1.0f);
@@ -108,6 +109,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
    CArnoldStandInGeom* geom = nonConstThis->geometry();
 
    MString assfile = geom->filename;
+   MString dsoData = geom->data;
    bool AiUniverseCreated = false;
    if (assfile != "")
    {
@@ -164,6 +166,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          AiNodeSetBool(options, "preserve_scene_data", true);
          AtNode * procedural = AiNode("procedural");
          AiNodeSetStr(procedural, "dso", assfile.asChar());
+         AiNodeSetStr(procedural, "data", dsoData.asChar());
          AiNodeSetBool(procedural, "load_at_init", true);
          if (AiRender(AI_RENDER_MODE_FREE) == AI_SUCCESS)
             processRead = true;
@@ -296,6 +299,11 @@ bool CArnoldStandInShape::getInternalValueInContext(const MPlug& plug, MDataHand
       datahandle.set(fGeometry.dso);
       isOk = true;
    }
+   else if (plug == s_data)
+   {
+      datahandle.set(fGeometry.data);
+      isOk = true;
+   }
    else if (plug == s_mode)
    {
       datahandle.set(fGeometry.mode);
@@ -352,6 +360,10 @@ bool CArnoldStandInShape::setInternalValueInContext(const MPlug& plug,
 {
    bool isOk = true;
    if (plug == s_dso)
+   {
+      isOk = true;
+   }
+   else if (plug == s_data)
    {
       isOk = true;
    }
@@ -582,6 +594,9 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
    MObject this_object = thisMObject();
    MPlug plug(this_object, s_dso);
    plug.getValue(fGeometry.dso);
+
+   plug.setAttribute(s_data);
+   plug.getValue(fGeometry.data);
 
    plug.setAttribute(s_mode);
    plug.getValue(fGeometry.mode);

@@ -21,6 +21,7 @@ class CArnoldStandInGeom
 public:
    CArnoldStandInGeom();
    MString dso;
+   MString data;
    MString filename;
    MString geomLoaded;
    int mode;
@@ -86,7 +87,7 @@ private:
 }; // class CArnoldStandInShape
 
 
-// UI class	- defines the UI part of a shape node
+// UI class - defines the UI part of a shape node
 class CArnoldStandInShapeUI: public MPxSurfaceShapeUI
 {
 public:

@@ -69,7 +69,17 @@ def ArnoldStandInDsoEdit(mPath) :
         cmds.text("standInDataLabel", edit=True, enable=False)
         cmds.textField("standInData", edit=True, enable=False)
     cmds.textField("standInDsoPath", edit=True, text=mArchivePath)
-   
+
+def ArnoldStandInDataEdit(mData) :
+    # Select StandIn shape
+    m_tmpSelected = cmds.ls(sl=1)[0]
+    if cmds.listRelatives(m_tmpSelected) != None:
+        nodeName = cmds.listRelatives(m_tmpSelected)[0]
+    else:
+        nodeName = m_tmpSelected
+    # Set data
+    cmds.setAttr(nodeName+".data",mData,type="string")
+
 def ArnoldStandInTemplateDsoNew(nodeName) :
     cmds.rowColumnLayout( numberOfColumns=3, columnAlign=(1, "right"), columnAttach=[(1, "left", 0), (2, "both", 0), (3, "right", 0)], columnWidth=[(1,145),(3,30)] )
     cmds.text(label="Path ")
@@ -78,15 +88,17 @@ def ArnoldStandInTemplateDsoNew(nodeName) :
     cmds.button( label="...", command=LoadStandInButtonPush)
     
 def ArnoldStandInTemplateDataNew(nodeName) :
+    print 'ArnoldStandInTemplateDataNew',nodeName
     cmds.rowColumnLayout( numberOfColumns=2, columnAlign=(1, "right"), columnAttach=[(1, "left", 0), (2, "right", 0)], columnWidth=(1,145) )
     cmds.text("standInDataLabel", label="Data ", enable=False)
-    path = cmds.textField("standInData")
+    path = cmds.textField("standInData",changeCommand=ArnoldStandInDataEdit)
     cmds.textField( path, edit=True, text=cmds.getAttr(nodeName), enable=False)
 
 def ArnoldStandInTemplateDsoReplace(plugName) :
     cmds.textField( "standInDsoPath", edit=True, text=cmds.getAttr(plugName) )
 
 def ArnoldStandInTemplateDataReplace(plugName) :
+    print 'ArnoldStandInTemplateDataReplace',plugName
     cmds.textField( "standInData", edit=True, text=cmds.getAttr(plugName) )
 
 def aiStandInTemplate(nodeName):
