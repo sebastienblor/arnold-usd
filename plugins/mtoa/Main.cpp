@@ -124,14 +124,12 @@ namespace // <anonymous>
                                    // &lightNoSwatch);
       CHECK_MSTATUS(status);
 
-      MString hide                  = "";
       status = plugin.registerNode("aiAreaLight",
                                     CArnoldAreaLightNode::id,
                                     CArnoldAreaLightNode::creator,
                                     CArnoldAreaLightNode::initialize,
                                     MPxNode::kLocatorNode,
-                                    &hide);
-                                    // &lightWithSwatch);
+                                    &lightWithSwatch);
       CHECK_MSTATUS(status);
 
 
