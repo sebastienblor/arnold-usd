@@ -372,6 +372,11 @@ MStatus CArnoldSession::End()
    {
       ClearUpdateCallbacks();
    }
+   else if (GetSessionMode() == MTOA_SESSION_ASS && MGlobal::mayaState() == MGlobal::kInteractive && IsMotionBlurEnabled())
+   {
+      // reset to export frame
+      MGlobal::viewFrame(MTime(GetExportFrame(), MTime::uiUnit()));
+   }
 
    // Delete translators
    ObjectToTranslatorMap::iterator it;
@@ -575,7 +580,7 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
          }
       }
       // Note: only reset frame during interactive renders, otherwise that's an extra unnecessary scene eval
-      // when exporting a sequence
+      // when exporting a sequence.  Other modes are reset to the export frame in CArnoldSessions::End().
       if (GetSessionMode() == MTOA_SESSION_RENDER || GetSessionMode() == MTOA_SESSION_IPR)
       {
          MGlobal::viewFrame(MTime(GetExportFrame(), MTime::uiUnit()));
