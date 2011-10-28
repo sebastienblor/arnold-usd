@@ -200,7 +200,7 @@ void CPerspCameraTranslator::Export(AtNode* camera)
       ProcessParameter(camera, "uv_remap", AI_TYPE_RGBA, pUVR);
    }
 
-   if (m_motion)
+   if (RequiresMotionData())
    {
       AtArray* fovs = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_FLOAT);
       AiArraySetFlt(fovs, 0, fov);
@@ -262,7 +262,7 @@ void CFishEyeCameraTranslator::Export(AtNode* camera)
    //plug = FindMayaObjectPlug("aiFiltermap");
    //AiNodeSetRGB(camera, "aiFiltermap", plug.child(0).asFloat(), plug.child(1).asFloat(), plug.child(2).asFloat());
 
-   if (m_motion)
+   if (RequiresMotionData())
    {
       AtArray* fovs = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_FLOAT);
       AiArraySetFlt(fovs, 0, fov);
@@ -324,7 +324,7 @@ void CCylCameraTranslator::Export(AtNode* camera)
    MPlug plug = FindMayaObjectPlug("aiProjective");
    AiNodeSetBool(camera, "aiProjective", plug.asBool());
 
-   if (m_motion)
+   if (RequiresMotionData())
    {
       AtArray* h_fovs = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_FLOAT);
       AtArray* v_fovs = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_FLOAT);

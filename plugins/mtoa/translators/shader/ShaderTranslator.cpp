@@ -5,12 +5,6 @@
 
 // Auto shader translator
 //
-AtNode* CShaderTranslator::Init(CArnoldSession* session, MDagPath& dagPath, MString outputAttr)
-{
-   m_motion = session->IsMotionBlurEnabled(MTOA_MBLUR_SHADER);
-
-   return CNodeTranslator::Init(session, dagPath.node(), outputAttr);
-}
 
 AtNode* CShaderTranslator::CreateArnoldNodes()
 {

@@ -758,7 +758,7 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, AtUInt step)
    }
 }
 
-void CGeometryTranslator::IsGeoDeforming()
+bool CGeometryTranslator::IsGeoDeforming()
 {
     bool history = false;
     bool pnts = false;
@@ -779,7 +779,8 @@ void CGeometryTranslator::IsGeoDeforming()
     }
 
     if (!history && !pnts && !m_displaced)
-        m_motionDeform = false;
+        return false;
+    return true;
 }
 
 void CGeometryTranslator::ExportMeshParameters(AtNode* polymesh)
@@ -824,7 +825,9 @@ AtNode* CGeometryTranslator::ExportMesh(AtNode* polymesh, bool update)
    ExportMatrix(polymesh, 0);
    ExportMeshParameters(polymesh);
    ExportMeshShaders(polymesh, m_fnMesh);
-   IsGeoDeforming();
+   // if enabled, double check motion deform
+   if (m_motionDeform)
+      m_motionDeform = IsGeoDeforming();
    if (!update)
       ExportMeshGeoData(polymesh, 0);
    return polymesh;

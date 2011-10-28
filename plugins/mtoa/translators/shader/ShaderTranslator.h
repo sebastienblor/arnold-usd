@@ -25,9 +25,6 @@ public:
    virtual AtNode* CreateArnoldNodes();
    virtual void Export(AtNode* atNode);
    virtual bool ResolveOutputPlug(const MPlug& outputPlug, MPlug &resolvedOutputPlug);
-
-protected:
-   bool m_motion;
 };
 
 

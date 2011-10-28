@@ -23,7 +23,6 @@ public:
    virtual AtNode* Init(CArnoldSession* session, MDagPath& dagPath, MString outputAttr="")
    {
       m_atNode = CDagTranslator::Init(session, dagPath, outputAttr);
-      m_motion = session->IsMotionBlurEnabled(MTOA_MBLUR_CAMERA);
       m_fnCamera.setObject(dagPath);
       return m_atNode;
    }
@@ -31,7 +30,7 @@ public:
    // FIXME: this method shouldn't be required.
    virtual bool RequiresMotionData()
    {
-      return m_motion;
+      return m_session->IsMotionBlurEnabled(MTOA_MBLUR_CAMERA);
    }
 
 protected:
@@ -46,7 +45,6 @@ protected:
    static void MakeDOFAttributes(CExtensionAttrHelper &helper);
 
 protected:
-   bool m_motion;
    MFnCamera m_fnCamera;
 };
 

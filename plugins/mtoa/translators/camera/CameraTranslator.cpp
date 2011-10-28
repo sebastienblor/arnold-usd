@@ -79,7 +79,7 @@ void CCameraTranslator::ExportImagePlane(AtUInt step, MObject& imgPlane)
       if (type == 0)
       {
          // get data
-         if ((!m_motion) || (step == 0)) // why not simply check the step? won't step always be 0 if motion is off?
+         if (step == 0)
          {
             MString frameNumber("0");
             frameNumber += GetExportFrame() + fnRes.findPlug("frameOffset").asInt();
@@ -169,7 +169,7 @@ void CCameraTranslator::ExportImagePlane(AtUInt step, MObject& imgPlane)
          ipHeight = planeSizeY;
       }
 
-      if ((!m_motion) || (step == 0))
+      if (step == 0)
       {
          // CREATE PLANE
          AtNode* imagePlane = AiNode("polymesh");
@@ -280,7 +280,7 @@ void CCameraTranslator::ExportImagePlane(AtUInt step, MObject& imgPlane)
          AiNodeSetPtr(imagePlane, "shader", imagePlaneShader);
          AiNodeSetBool(imagePlane, "opaque", 0);
 
-      }// ((!m_motion) || (step == 0))
+      }// (step == 0)
 
       AtNode* imagePlane = AiNodeLookUpByName(imagePlaneName.asChar());
 
@@ -341,7 +341,7 @@ void CCameraTranslator::ExportImagePlane(AtUInt step, MObject& imgPlane)
       }
 
       // image plane should move with the camera to render it with no motion blur
-      if (m_motion)
+      if (RequiresMotionData())
       {
          if (step == 0)
          {
@@ -419,7 +419,7 @@ void CCameraTranslator::ExportCameraData(AtNode* camera)
 
    GetMatrix(matrix);
    
-   if (m_motion)
+   if (RequiresMotionData())
    {
       AtArray* matrices = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_MATRIX);
       AiArraySetMtx(matrices, 0, matrix);

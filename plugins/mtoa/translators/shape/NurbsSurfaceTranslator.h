@@ -12,7 +12,7 @@ class CNurbsSurfaceTranslator : public CGeometryTranslator
 public:
    virtual void Export(AtNode* anode);
    virtual void ExportMotion(AtNode* anode, AtUInt step);
-   virtual void IsGeoDeforming();
+   virtual bool IsGeoDeforming();
 
    static void* creator()
    {

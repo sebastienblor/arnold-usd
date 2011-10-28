@@ -11,12 +11,11 @@ public:
    virtual AtNode* Init(CArnoldSession* session, MDagPath& dagPath, MString outputAttr="")
    {
       CDagTranslator::Init(session, dagPath, outputAttr);
-      m_motion = session->IsMotionBlurEnabled(MTOA_MBLUR_LIGHT);
       return m_atNode;
    }
    bool RequiresMotionData()
    {
-      return m_motion;
+      return m_session->IsMotionBlurEnabled(MTOA_MBLUR_LIGHT);
    }
 protected:
    virtual void Export(AtNode* light);
@@ -24,9 +23,6 @@ protected:
    virtual void ExportLightFilters(AtNode* light, const MPlugArray &filters);
    virtual void Delete();
    static void MakeCommonAttributes(CBaseAttrHelper& helper);
-
-protected:
-   bool m_motion;
 };
 
 #endif // LIGHT_TRANSLATOR_H

@@ -137,7 +137,8 @@ void CNurbsSurfaceTranslator::ExportMotion(AtNode* anode, AtUInt step)
 }
 
 // TODO: implement this check for nurbs.
-void CNurbsSurfaceTranslator::IsGeoDeforming()
+bool CNurbsSurfaceTranslator::IsGeoDeforming()
 {
+   return true;
 }
 
