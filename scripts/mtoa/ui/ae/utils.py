@@ -7,6 +7,7 @@ import os
 import pkgutil
 import re
 import sys
+import inspect
 
 def arnoldGetDimValue(node, attr):
 
@@ -44,13 +45,19 @@ def attributeExists(attribute, nodeName):
 def loadAETemplates():
     templates = []
     for importer, modname, ispkg in pkgutil.iter_modules(mtoa.ui.ae.__path__):
+        # module name must end in "Template"
         if modname.endswith('Template') and modname not in templates:
             # TODO: use importer?
             mod = __import__(modname, globals(), locals(), [], -1)
+            procName = 'AE%s' % modname
             if hasattr(mod, modname):
+                # a function named after the module
                 templates.append(modname)
-                procName = 'AE%s' % modname
                 _makeAEProc(modname, modname, procName)
+            elif hasattr(mod, procName):
+                # a class named AEmodname
+                templates.append(modname)
+                _makeAEProc(modname, procName, procName)
     loadAEshapesTemplate()
 
 def loadAEshapesTemplate():
@@ -60,20 +67,25 @@ def loadAEshapesTemplate():
 def aeCallback(func):
     return utils.pyToMelProc(func, [('string', 'nodeName')], procPrefix='AEArnoldCallback')
 
-def _makeAEProc(modname, classname, procname):
+def _makeAEProc(modname, objname, procname):
     contents = '''global proc %(procname)s( string $nodeName ){
-    python("import %(__name__)s;%(__name__)s._aeLoader('%(modname)s','%(classname)s','" + $nodeName + "')");}'''
+    python("import %(__name__)s;%(__name__)s._aeLoader('%(modname)s','%(objname)s','" + $nodeName + "')");}'''
     d = locals().copy()
     d['__name__'] = __name__
     mel.eval( contents % d )
 
-def _aeLoader(modname, classname, nodename):
-    mod = __import__(modname, globals(), locals(), [classname], -1)
+def _aeLoader(modname, objname, nodename):
+    mod = __import__(modname, globals(), locals(), [objname], -1)
     try:
-        f = getattr(mod,classname)
-        f(nodename)
+        f = getattr(mod, objname)
+        if inspect.isfunction(f):
+            f(nodename)
+        elif inspect.isclass(f):
+            f(nodename, doSetup=True)
+        else:
+            print "AE object %s has invalid type %s" % (f, type(f))
     except Exception:
-        print "failed to load python attribute editor template '%s.%s'" % (modname, classname)
+        print "failed to load python attribute editor template '%s.%s'" % (modname, objname)
         import traceback
         traceback.print_exc()
 

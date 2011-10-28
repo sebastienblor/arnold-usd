@@ -257,6 +257,14 @@ class AttributeTemplate(BaseTemplate):
     def endNoOptimize(self):
         pass
 
+if pymel.__version__ >= '1.0.1':
+    class DisableLoader(pm.uitypes.AELoader):
+        """
+        Metaclass which disables the automatic loading behavior of AETemplate
+        """
+        def __new__(cls, classname, bases, classdict):
+            return type.__new__(cls, classname, bases, classdict)
+
 class AttributeEditorTemplate(pm.uitypes.AETemplate):
     """
     A sub-class of pymel.uitypes.AETemplate.  A properly defined AETemplate class will automatically
@@ -266,12 +274,6 @@ class AttributeEditorTemplate(pm.uitypes.AETemplate):
     This sub-class adds a compatibility layer to make it behave more like mtoa's AttributeTemplate class,
     which is used for translator UIs. 
 
-    One tricky consideration is that pymel.uitypes.AETemplate triggers building immediately upon init, but for our uses, it is
-    preferable to store an instantiated class and build it later, which is how AttributeTemplate works.  The 
-    AttributeTemplate.autoBuild boolean exists for this purpose.
-    It allows for auto-building to be globally disabled, while avoiding adding an additional argument to __init__, which
-    would make it incompatible with AttributeTemplate
-
     AttributeEditorTemplates are used for:
         - Full AE Node Templates
         - Partial AE Templates that are used inline (cannot be used with callCustom)
@@ -279,12 +281,14 @@ class AttributeEditorTemplate(pm.uitypes.AETemplate):
     AttributeTemplates are used for:
         - Partial AE Templates that are used with callCustom
     """
-    autoBuild = True
-    def __init__(self, arg):
+    if pymel.__version__ >= '1.0.1':
+        __metaclass__ = DisableLoader
+
+    def __init__(self, arg, doSetup=False):
         self._attr = None
-        if self.autoBuild:
+        if doSetup:
             # arg is a node name
-            super(AttributeEditorTemplate, self).__init__(arg)
+            print "doing Setup"
             self._doSetup(arg)
         else:
             # argument is a node type
@@ -308,6 +312,11 @@ class AttributeEditorTemplate(pm.uitypes.AETemplate):
         self._nodeName = parts[0]
         if len(parts) > 1:
             self._attr = parts[1]
+
+    def nodeType(self):
+        if self._nodeType is None:
+            self._nodeType = pm.objectType(self.nodeName)
+        return self._nodeType
 
     def nodeAttr(self, attr):
         return self.nodeName + '.' + attr
@@ -407,14 +416,6 @@ class AutoTranslatorTemplate(AttributeTemplate):
                             label if label else prettify(paramName),
                             annotation)
 
-if pymel.__version__ >= '1.0.1':
-    class DisableLoader(pm.uitypes.AELoader):
-        """
-        Metaclass which disables the automatic loading behavior of AETemplate
-        """
-        def __new__(cls, classname, bases, classdict):
-            return type.__new__(cls, classname, bases, classdict)
-
 class TranslatorControl(AttributeEditorTemplate):
     '''
     Allows multiple AttributeTemplates, each representing an arnold translator, to be controlled via
@@ -422,12 +423,8 @@ class TranslatorControl(AttributeEditorTemplate):
     each node that has registered arnold translator UIs. Manually creating a TranslatorControl is only necessary if you
     need to customize the default controller behavior.
     '''
-    if pymel.__version__ >= '1.0.1':
-        __metaclass__ = DisableLoader
     def __init__(self, nodeType, label='Arnold Translator', controlAttr='aiTranslator', default=None, optionMenuName=None):
-        self.autoBuild = False
         super(TranslatorControl, self).__init__(nodeType)
-        self.autoBuild = True
         self._optionMenu = optionMenuName if optionMenuName is not None else controlAttr + "OMG"
         self._translators = None
         self._label = label
@@ -660,15 +657,12 @@ def registerAETemplate(templateClass, nodeType, *args, **kwargs):
     print "registering attribute template for %s" % nodeType
     global _templates
     if nodeType not in _templates:
-        AttributeEditorTemplate.autoBuild = False
         try:
             _templates[nodeType] = templateClass(nodeType, *args, **kwargs)
         except:
             print "Failed to instantiate AE Template", templateClass
             import traceback
             traceback.print_exc()
-        finally:
-            AttributeEditorTemplate.autoBuild = True
 
 def aeTemplate(nodeType, baseClass=AttributeTemplate):
     """
