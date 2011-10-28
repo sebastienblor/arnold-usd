@@ -2,20 +2,30 @@
 import os
 import sys
 import mtoa.utils as utils
+
 if 'pymel' not in globals():
     # fix for pymel versions less than 1.0.3 (pre-2012)
     import pymel
     import pymel.versions as versions
+    print "Imported module pymel %s" % pymel.__version__
     maya_version = versions.shortName()
     if pymel.__version__ < '1.0.3' and not hasattr(pymel, '_mtoaPatch'):
+        print "Maya %s reloading patched pymel" % maya_version
         root = utils.mtoaPackageRoot()
         path = os.path.join(root, maya_version)
         sys.path.insert(0, path)
         # clear so pymel reloads
         reload(pymel)
 
+
 import pymel.core as pm
 import pymel.versions as versions
+
+if hasattr(pymel, '_mtoaPatch') :
+    print "Patched pymel version %s loaded" % pymel.__version__
+else :
+    print "Standard pymel version %s loaded" % pymel.__version__
+
 import mtoa.ui.exportass as exportass
 import mtoa.ui.nodeTreeLister as nodeTreeLister
 import mtoa.ui.globals.common
@@ -39,8 +49,6 @@ def _overridePythonScripts():
     maya_version = versions.shortName()
     path = os.path.join(root, maya_version)
     sys.path.insert(0, path)
-
-"""    
     # for root, dirnames, filenames in os.walk('path'): 
     for f in os.listdir(path):
         if f.endswith('.py'):
@@ -48,7 +56,7 @@ def _overridePythonScripts():
             import_string = "from %s import *" % os.path.splitext(f)[0]
             exec import_string
             # module = __import__(os.path.splitext(f)[0])
-"""
+
 
 # We need to override this two proc to avoid
 # errors because of the hardcoded code.
@@ -189,9 +197,6 @@ def arnoldAddGlobalsTabs():
                                                       utils.pyToMelProc(createArnoldAOVTab, useName=True), 
                                                       utils.pyToMelProc(updateArnoldAOVTab, useName=True)))
 
-def arnoldRendererCallbacks():
-    from rendererCallbacks import *
-
 
 def registerArnoldRenderer():
     pm.createNode('aiOptions', skipSelect=True, shared=True, name='defaultArnoldRenderOptions')
@@ -249,11 +254,6 @@ def registerArnoldRenderer():
         _overrideMelScripts()
 
         pm.renderer('arnold', edit=True, addGlobalsNode='defaultArnoldRenderOptions')
-
-        # Add the Arnold renderer callbacks
-        maya_version = versions.shortName()
-        if (maya_version >= '2013') :
-            arnoldRendererCallbacks()
 
         # Add an Arnold menu in Maya main window
         if not pm.about(b=1):
