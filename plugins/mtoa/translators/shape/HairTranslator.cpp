@@ -160,7 +160,11 @@ void CHairTranslator::Update( AtNode *curve )
       // We should get the UV from the closest mesh for all connected shapes
       // To support a hairsystem that was applied to more than one mesh
       AtVector2 uvparam(AI_P2_ZERO);
-      if (hasConnectedShapes) uvparam = GetHairRootUVs(line[0], meshInt, mesh);
+      float2 root_uv;
+      m_hairLines[i].GetCurveRootUV(root_uv);
+      uvparam.x = root_uv[0];
+      uvparam.y = root_uv[1];
+      // if (hasConnectedShapes) uvparam = GetHairRootUVs(line[0], meshInt, mesh);
 
       // Set UVs
       AiArraySetFlt(curveUParamCoord, i, uvparam.x);
@@ -314,6 +318,9 @@ AtVector2 CHairTranslator::GetHairRootUVs(const MVector& lineStart, MMeshInterse
    AtVector2 rootUVs;
    float uv[2];
  
+   // FIXME: meshInt.getClosestPoint(point, closest) is useless here since it doesn't return the closest face
+   // and thus mesh.getUVAtPoint is called without passing a face id, which means a full intersection search again
+   // (this time without the MMeshIntersector kd-tree class to help)
    MPoint point(lineStart.x, lineStart.y, lineStart.z);
    MPointOnMesh closest;
    meshInt.getClosestPoint(point, closest);
@@ -389,10 +396,14 @@ AtUInt CHairTranslator::GetHairLines(MObject& hair, std::vector<CHairLine>& hair
          MRenderLine renderLine = mainLines.renderLine(i, &status);
          MVectorArray line  = renderLine.getLine();
          MDoubleArray width = renderLine.getWidth();
+         // TODO : no idea how to get that info from the paintFx node,
+         // or to get the corresponding follicle for a specific paintFx curve
+         float root_uv[2]   = {0, 0};
 
          CHairLine hairLine;
          hairLine.SetCurvePoints(line);
          hairLine.SetCurveWidths(width);
+         hairLine.SetCurveRootUV(root_uv);
          hairLines.push_back(hairLine);
       }
 
@@ -423,7 +434,13 @@ AtUInt CHairTranslator::GetHairLines(MObject& hair, std::vector<CHairLine>& hair
          if (follicleHairPlug.length() > 0)
          {
             MPlugArray nurbsHairPlug;
-            MFnDependencyNode depNodeCurveHair(follicleHairPlug[0].node());
+            MObject follicleNode = follicleHairPlug[0].node();
+            MFnDependencyNode depNodeCurveHair(follicleNode);
+            MString name = depNodeCurveHair.name();
+
+            float root_uv[2];
+            root_uv[0] = depNodeCurveHair.findPlug("parameterU").asFloat();
+            root_uv[1] = depNodeCurveHair.findPlug("parameterV").asFloat();
             depNodeCurveHair.findPlug("outCurve").connectedTo(nurbsHairPlug, false, true);
 
             if (nurbsHairPlug.length() > 0)
@@ -453,6 +470,7 @@ AtUInt CHairTranslator::GetHairLines(MObject& hair, std::vector<CHairLine>& hair
                CHairLine hairLine;
                hairLine.SetCurvePoints(line);
                hairLine.SetCurveWidths(width);
+               hairLine.SetCurveRootUV(root_uv);
                hairLines.push_back(hairLine);
             }
          }

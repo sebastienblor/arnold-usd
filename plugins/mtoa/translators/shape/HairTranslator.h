@@ -11,8 +11,10 @@ class CHairLine
 public:
    void SetCurvePoints(MVectorArray &points) { curvePoints = points; }
    void SetCurveWidths(MDoubleArray &widths) { curveWidths = widths; }
+   void SetCurveRootUV(float2 &uv) { root_uv[0] = uv[0]; root_uv[1] = uv[1]; }
    void GetCurvePoints(MVectorArray &points) const { points = curvePoints; }
    void GetCurveWidths(MDoubleArray &widths) const { widths = curveWidths; }
+   void GetCurveRootUV(float2 &uv) const { uv[0] = root_uv[0]; uv[1] = root_uv[1]; }
    void clear()
    {
       curvePoints.clear();
@@ -22,6 +24,7 @@ public:
 private:
    MVectorArray curvePoints;
    MDoubleArray curveWidths;
+   float2       root_uv;
 };
 
 class CHairTranslator
