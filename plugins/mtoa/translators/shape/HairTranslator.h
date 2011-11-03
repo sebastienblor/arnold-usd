@@ -11,19 +11,23 @@ class CHairLine
 public:
    void SetCurvePoints(MVectorArray &points) { curvePoints = points; }
    void SetCurveWidths(MDoubleArray &widths) { curveWidths = widths; }
+   void SetCurveColors(MVectorArray &colors) { curveColors = colors; }
    void SetCurveRootUV(float2 &uv) { root_uv[0] = uv[0]; root_uv[1] = uv[1]; }
    void GetCurvePoints(MVectorArray &points) const { points = curvePoints; }
    void GetCurveWidths(MDoubleArray &widths) const { widths = curveWidths; }
+   void GetCurveColors(MVectorArray &colors) { colors = curveColors; }
    void GetCurveRootUV(float2 &uv) const { uv[0] = root_uv[0]; uv[1] = root_uv[1]; }
    void clear()
    {
       curvePoints.clear();
       curveWidths.clear();
+      curveColors.clear();
    }
 
 private:
    MVectorArray curvePoints;
    MDoubleArray curveWidths;
+   MVectorArray curveColors;
    float2       root_uv;
 };
 
@@ -51,7 +55,8 @@ private:
                          AtArray* curvePoints,
                          AtArray* curveNextLineStartsInterp,
                          AtArray* curveNextLineStarts,
-                         AtArray* curveWidths);
+                         AtArray* curveWidths,
+                         AtArray* curveColors);
    AtVector2 GetHairRootUVs(const MVector& lineStart, MMeshIntersector& meshInt, MFnMesh& mesh);
    void GetHairShapeMeshes(const MObject& hair, MDagPathArray& shapes);
    AtUInt GetHairLines(MObject& hair, std::vector<CHairLine>& hairLines);

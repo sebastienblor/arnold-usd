@@ -74,8 +74,8 @@ void CHairTranslator::Update( AtNode *curve )
    AtArray* curveVParamCoord           = AiArrayAllocate(m_numMainLines, 1, AI_TYPE_FLOAT);
 
    // A couple of arrays to keep track of where each hairline begins in the points array (step 0)
-   AtArray* curveNextLineStarts       = AiArrayAllocate(m_numMainLines, 1, AI_TYPE_INT);
-   AtArray* curveNextLineStartsInterp = AiArrayAllocate(m_numMainLines, 1, AI_TYPE_INT);
+   AtArray* curveNextLineStarts        = AiArrayAllocate(m_numMainLines, 1, AI_TYPE_INT);
+   AtArray* curveNextLineStartsInterp  = AiArrayAllocate(m_numMainLines, 1, AI_TYPE_INT);
 
    MPlug plug;
    // Check if we using a custom hair shader.
@@ -113,18 +113,18 @@ void CHairTranslator::Update( AtNode *curve )
 
    // Prepare connected shape info and intersection data
    // Support hairsystem that was applied to only one mesh
-   MDagPath shapePath;
-   MMeshIntersector meshInt;
-   MFnMesh mesh;
-   if (hasConnectedShapes)
-   {
-      shapePath = connectedShapes[0];
-      MObject shapeNode = shapePath.node();
-      const MMatrix matrix = shapePath.inclusiveMatrix();
-      meshInt.create(shapeNode, matrix);
-
-      mesh.setObject(shapeNode);
-   }
+   // MDagPath shapePath;
+   // MMeshIntersector meshInt;
+   // MFnMesh mesh;
+   // if (hasConnectedShapes)
+   // {
+   //   shapePath = connectedShapes[0];
+   //    MObject shapeNode = shapePath.node();
+   //    const MMatrix matrix = shapePath.inclusiveMatrix();
+   //    meshInt.create(shapeNode, matrix);
+   //
+   //    mesh.setObject(shapeNode);
+   // }
 
    plug = m_fnNode.findPlug("aiExportHairIDs");
    bool export_curve_id = true;
@@ -164,6 +164,7 @@ void CHairTranslator::Update( AtNode *curve )
       m_hairLines[i].GetCurveRootUV(root_uv);
       uvparam.x = root_uv[0];
       uvparam.y = root_uv[1];
+      // TODO : leave an option to use exact but slow method?
       // if (hasConnectedShapes) uvparam = GetHairRootUVs(line[0], meshInt, mesh);
 
       // Set UVs
@@ -185,20 +186,24 @@ void CHairTranslator::Update( AtNode *curve )
    // Allocate memory for all curve points and widths
    AtArray* curvePoints = AiArrayAllocate(numPointsInterpolation, GetNumMotionSteps(), AI_TYPE_POINT);
    AtArray* curveWidths = AiArrayAllocate(numPoints,              GetNumMotionSteps(), AI_TYPE_FLOAT);
+   AtArray* curveColors = AiArrayAllocate(numPoints,              GetNumMotionSteps(), AI_TYPE_RGB);
 
    ProcessHairLines(0,
                     curvePoints,
                     curveNextLineStartsInterp,
                     curveNextLineStarts,
-                    curveWidths);
+                    curveWidths,
+                    curveColors);
    // Clear out the temporary arrays.
    clear();
 
    // Extra attributes
    AiNodeDeclare(curve, "uparamcoord", "uniform FLOAT");
    AiNodeDeclare(curve, "vparamcoord", "uniform FLOAT");
+   AiNodeDeclare(curve, "colors",      "uniform  ARRAY RGB");
    AiNodeDeclare(curve, "next_line_starts_interp", "constant ARRAY INT");
    AiNodeDeclare(curve, "next_line_starts",        "constant ARRAY INT");
+
 
    // Assign shader
    if (shader != NULL) AiNodeSetPtr(curve, "shader", shader);
@@ -218,6 +223,7 @@ void CHairTranslator::Update( AtNode *curve )
    AiNodeSetArray(curve, "radius",                    curveWidths);
    AiNodeSetArray(curve, "num_points",                curveNumPoints);
    AiNodeSetArray(curve, "points",                    curvePoints);
+   AiNodeSetArray(curve, "colors",                    curveColors);
    AiNodeSetArray(curve, "next_line_starts_interp",   curveNextLineStartsInterp);
    AiNodeSetArray(curve, "next_line_starts",          curveNextLineStarts);
 
@@ -250,7 +256,8 @@ void CHairTranslator::ExportMotion(AtNode *curve, AtUInt step)
                     AiNodeGetArray(curve, "points"),
                     AiNodeGetArray(curve, "next_line_starts_interp"),
                     AiNodeGetArray(curve, "next_line_starts"),
-                    AiNodeGetArray(curve, "radius"));
+                    AiNodeGetArray(curve, "radius"),
+                    AiNodeGetArray(curve, "colors"));
 
    // Clear out the temporary arrays.
    clear();
@@ -260,7 +267,8 @@ void CHairTranslator::ProcessHairLines(AtUInt step,
                                        AtArray* curvePoints,
                                        AtArray* curveNextLineStartsInterp,
                                        AtArray* curveNextLineStarts,
-                                       AtArray* curveWidths)
+                                       AtArray* curveWidths,
+                                       AtArray* curveColors)
 {
    const int numPointsPerStep         = AiArrayGetInt(curveNextLineStartsInterp,
                                                       curveNextLineStartsInterp->nelements-1);
@@ -271,6 +279,8 @@ void CHairTranslator::ProcessHairLines(AtUInt step,
       m_hairLines[strand].GetCurvePoints(line);
       MDoubleArray widths;
       m_hairLines[strand].GetCurveWidths(widths);
+      MVectorArray colors;
+      m_hairLines[strand].GetCurveColors(colors);
       const int renderLineLength = line.length();
 
       // Ignore one or less cv curves
@@ -296,10 +306,15 @@ void CHairTranslator::ProcessHairLines(AtUInt step,
             AiArraySetPnt(curvePoints,
                           j+1 + curveLineInterpStartsIdx + (step * numPointsPerStep),
                           curvePoint);
-            
+            AiArraySetRGB(curveColors,
+                          j+curveLineStartsIdx + (step * numPointsPerStep),
+                          AiColorCreate(static_cast<float>(colors[j].x), static_cast<float>(colors[j].y), static_cast<float>(colors[j].z)));
             // Animated widths are not supported, so just export on step 0
             if (step == 0)
+            {
                AiArraySetFlt(curveWidths, j+curveLineStartsIdx, static_cast<float>(widths[j]/2.0));
+               // AiArraySetRGB(curveColors, j+curveLineStartsIdx, AiColorCreate(colors[j].x, colors[j].y, colors[j].z));
+            }
          }
 
          // Last point duplicated.
@@ -385,6 +400,9 @@ AtUInt CHairTranslator::GetHairLines(MObject& hair, std::vector<CHairLine>& hair
       MRenderLineArray flowerLines;
 
       // And then all lines, we'll only need mainLines
+      // getLineData (MRenderLineArray &mainLines, MRenderLineArray &leafLines, MRenderLineArray &flowerLines,
+      // bool doLines, bool doTwist, bool doWidth, bool doFlatness, bool doParameter,
+      // bool doColor, bool doIncandescence, bool doTransparency, bool worldSpace)
       pfxHair.getLineData(mainLines, leafLines, flowerLines, true, true, true, true, true, true, true, false, true);
       numMainLines += mainLines.length();
       hairLines.reserve(numMainLines);
@@ -396,6 +414,7 @@ AtUInt CHairTranslator::GetHairLines(MObject& hair, std::vector<CHairLine>& hair
          MRenderLine renderLine = mainLines.renderLine(i, &status);
          MVectorArray line  = renderLine.getLine();
          MDoubleArray width = renderLine.getWidth();
+         MVectorArray color = renderLine.getColor();
          // TODO : no idea how to get that info from the paintFx node,
          // or to get the corresponding follicle for a specific paintFx curve
          float root_uv[2]   = {0, 0};
@@ -403,6 +422,7 @@ AtUInt CHairTranslator::GetHairLines(MObject& hair, std::vector<CHairLine>& hair
          CHairLine hairLine;
          hairLine.SetCurvePoints(line);
          hairLine.SetCurveWidths(width);
+         hairLine.SetCurveColors(color);
          hairLine.SetCurveRootUV(root_uv);
          hairLines.push_back(hairLine);
       }
@@ -441,22 +461,30 @@ AtUInt CHairTranslator::GetHairLines(MObject& hair, std::vector<CHairLine>& hair
             float root_uv[2];
             root_uv[0] = depNodeCurveHair.findPlug("parameterU").asFloat();
             root_uv[1] = depNodeCurveHair.findPlug("parameterV").asFloat();
-            depNodeCurveHair.findPlug("outCurve").connectedTo(nurbsHairPlug, false, true);
 
+            // TODO: handle blend, evaluate possible connection at follicle uvs
+            MPlug colorPlug = depNodeCurveHair.findPlug("color");
+            MVector fcolor;
+            fcolor = MVector(colorPlug.child(0).asFloat(), colorPlug.child(1).asFloat(), colorPlug.child(2).asFloat());
+
+            depNodeCurveHair.findPlug("outCurve").connectedTo(nurbsHairPlug, false, true);
             if (nurbsHairPlug.length() > 0)
             {
                MFnNurbsCurve follicleCurve(nurbsHairPlug[0].node());
 
                MPointArray cvs;
                follicleCurve.getCVs(cvs, MSpace::kWorld);
-               MVectorArray line;
-               MDoubleArray width;
+               unsigned int numcvs = cvs.length();
+
+               MVectorArray line(numcvs);
+               MDoubleArray width(numcvs);
+               MVectorArray color(numcvs, fcolor);
 
                // Transform from MPointArray to MVectorArray
-               for (unsigned int j = 0; j < cvs.length(); j++)
+               for (unsigned int j = 0; j < numcvs; j++)
                {
                   MVector vector(cvs[j]);
-                  line.append(vector);
+                  line[j] = vector;
                   double rampParam;
                   follicleCurve.getParamAtPoint(cvs[j], rampParam);
 
@@ -464,12 +492,13 @@ AtUInt CHairTranslator::GetHairLines(MObject& hair, std::vector<CHairLine>& hair
                   rampParam = rampParam / float(follicleCurve.numSpans());
                   float rampValue;
                   hairWidthScale.getValueAtPosition(float(rampParam), rampValue);
-                  width.append(nurbsHairWidth * rampValue);
+                  width[j] = nurbsHairWidth * rampValue;
                }
 
                CHairLine hairLine;
                hairLine.SetCurvePoints(line);
                hairLine.SetCurveWidths(width);
+               hairLine.SetCurveColors(color);
                hairLine.SetCurveRootUV(root_uv);
                hairLines.push_back(hairLine);
             }
