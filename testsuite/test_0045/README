@@ -1,0 +1,6 @@
+Maya Layered Texture doesn't take into account Alpha Is Luminance checkbox
+
+We are not taking into account alpha is luminance check in Maya Layered 
+Texture shader (ticket #557)
+
+author: r3D
