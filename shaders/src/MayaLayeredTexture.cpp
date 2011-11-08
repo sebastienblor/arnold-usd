@@ -293,11 +293,9 @@ shader_evaluate
       }
    }
 
-   AtBoolean lala = AiShaderEvalParamBool(p_alphaIsLuminance);
-   AtBoolean lala1 = AiShaderEvalParamBool(1);
    if (AiShaderEvalParamBool(p_alphaIsLuminance) == TRUE)
    {
-      result.a = result.r*0.30f + result.g*0.59f + result.b*0.11f; // ntsc luminance
+      result.a = result.r*0.30f + result.g*0.59f + result.b*0.11f; // NTSC luminance
    }
    sg->out.RGBA = result;
 }
