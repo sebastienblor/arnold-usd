@@ -37,9 +37,8 @@
 #include <fstream>
 #include <string>
 
-#define _USE_MGL_FT_
+#include <maya/MHardwareRenderer.h>
 #include <maya/MGLFunctionTable.h>
-static MGLFunctionTable *gGLFT = NULL;
 
 #define LEAD_COLOR            18 // green
 #define ACTIVE_COLOR       15 // white
@@ -741,7 +740,11 @@ void CArnoldStandInShapeUI::getDrawRequests(const MDrawInfo & info, bool /*objec
 
 void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) const
 {
-
+   // Initialize GL function table first time through
+   static MGLFunctionTable *gGLFT = NULL;
+   if (gGLFT == NULL)
+      gGLFT = MHardwareRenderer::theRenderer()->glFunctionTable();
+      
    MDrawData data = request.drawData();
    CArnoldStandInGeom * geom = (CArnoldStandInGeom*) data.geometry();
    view.beginGL();

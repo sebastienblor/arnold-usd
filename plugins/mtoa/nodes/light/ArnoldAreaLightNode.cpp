@@ -10,10 +10,8 @@
 #include <maya/MDataBlock.h>
 #include <maya/MDataHandle.h>
 #include <maya/MFloatVector.h>
-
-#define _USE_MGL_FT_
+#include <maya/MHardwareRenderer.h>
 #include <maya/MGLFunctionTable.h>
-static MGLFunctionTable *gGLFT = NULL;
 
 #define LEAD_COLOR            18 // green
 #define ACTIVE_COLOR          15 // white
@@ -66,7 +64,11 @@ MStatus CArnoldAreaLightNode::compute( const MPlug&, MDataBlock& )
 
 void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dView::DisplayStyle style, M3dView::DisplayStatus displayStatus )
 {
-   //
+   // Initialize GL function table first time through
+   static MGLFunctionTable *gGLFT = NULL;
+   if (gGLFT == NULL)
+      gGLFT = MHardwareRenderer::theRenderer()->glFunctionTable();
+      
    M3dView::ColorTable activeColorTable  = M3dView::kActiveColors;
    //M3dView::ColorTable dormantColorTable = M3dView::kDormantColors;
    //
