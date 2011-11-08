@@ -1,5 +1,7 @@
 #include "ShapeTranslator.h"
 
+#include <maya/MPlugArray.h>
+
 // computes and sets the visibility mask as well as other shape attributes related to ray visibility
 // (self_shadows, opaque)
 void CShapeTranslator::ProcessRenderFlags(AtNode* node)
@@ -44,6 +46,56 @@ void CShapeTranslator::ProcessRenderFlags(AtNode* node)
 
 }
 
+
+void CShapeTranslator::ExportLightLinking(AtNode* shape)
+{
+   std::vector<AtNode*> lights;
+   MObjectArray mayaLights;
+
+   if (FindMayaObjectPlug("aiUseLightGroup").asBool())
+   {
+      AiNodeSetBool(shape, "use_light_group", FindMayaObjectPlug("aiUseLightGroup").asBool());
+      MPlug pLights = FindMayaObjectPlug("aiLightGroup");
+      if (!pLights.isNull())
+      {
+         MPlugArray pSources;
+
+         for (unsigned int i=0; i<pLights.numElements(); ++i)
+         {
+             MPlug pLight = pLights[i];
+             pLight.connectedTo(pSources, true, false);
+             if (pSources.length() == 1)
+             {
+                mayaLights.append(pSources[0].node());
+             }
+         }
+      }
+   }
+
+   for (unsigned int i=0; i<mayaLights.length(); ++i)
+   {
+      MDagPath lightPath;
+      MDagPath::getAPathTo(mayaLights[i], lightPath);
+      if (lightPath.isValid())
+      {
+         AtNode* light = ExportDagPath(lightPath);
+         if (light != NULL)
+         {
+            lights.push_back(light);
+         }
+      }
+   }
+
+   if (lights.size() > 0)
+   {
+      AiNodeSetArray(shape, "light_group", AiArrayConvert((AtInt)lights.size(), 1, AI_TYPE_NODE, &lights[0], TRUE));
+   }
+   else
+   {
+      AiNodeSetArray(shape, "light_group", NULL);
+   }
+}
+
 // create attributes common to arnold shape nodes
 //
 void CShapeTranslator::MakeCommonAttributes(CBaseAttrHelper& helper)
@@ -53,6 +105,9 @@ void CShapeTranslator::MakeCommonAttributes(CBaseAttrHelper& helper)
 
    helper.MakeInput("self_shadows");
    helper.MakeInput("opaque");
+
+   helper.MakeInput("use_light_group");
+   helper.MakeInput("light_group");
 
    MakeArnoldVisibilityFlags(helper);
 }

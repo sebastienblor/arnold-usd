@@ -824,6 +824,7 @@ AtNode* CGeometryTranslator::ExportMesh(AtNode* polymesh, bool update)
    ExportMatrix(polymesh, 0);
    ExportMeshParameters(polymesh);
    ExportMeshShaders(polymesh, m_fnMesh);
+   ExportLightLinking(polymesh);
    IsGeoDeforming();
    if (!update)
       ExportMeshGeoData(polymesh, 0);
@@ -890,6 +891,9 @@ AtNode* CGeometryTranslator::ExportInstance(AtNode *instance, const MDagPath& ma
          AiNodeSetPtr(instance, "shader", shader);
       }
    }
+
+   ExportLightLinking(instance);
+
    return instance;
 }
 
