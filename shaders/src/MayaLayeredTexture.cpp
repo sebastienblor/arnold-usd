@@ -15,6 +15,7 @@ namespace
    enum MayaLayeredTextureParams
    {
       p_numInputs,
+      p_alphaIsLuminance,
       p_color0,
       p_color1,
       p_color2,
@@ -23,7 +24,7 @@ namespace
       p_color5,
       p_color6,
       p_color7,
-	   p_alpha0,
+      p_alpha0,
       p_alpha1,
       p_alpha2,
       p_alpha3,
@@ -39,7 +40,7 @@ namespace
       p_colorConnectedToAlpha5,
       p_colorConnectedToAlpha6,
       p_colorConnectedToAlpha7,
-	   p_blendMode0,
+      p_blendMode0,
       p_blendMode1,
       p_blendMode2,
       p_blendMode3,
@@ -47,7 +48,7 @@ namespace
       p_blendMode5,
       p_blendMode6,
       p_blendMode7,
-	   p_visible0,
+      p_visible0,
       p_visible1,
       p_visible2,
       p_visible3,
@@ -96,7 +97,8 @@ namespace
 
 node_parameters
 {
-	AiParameterUINT("numInputs", 0);
+   AiParameterUINT("numInputs", 0);
+   AiParameterBOOL("alphaIsLuminance", FALSE);
    AiParameterRGBA("color0", 0.0f, 0.0f, 0.0f, 1.0f);
    AiParameterRGBA("color1", 0.0f, 0.0f, 0.0f, 1.0f);
    AiParameterRGBA("color2", 0.0f, 0.0f, 0.0f, 1.0f);
@@ -161,10 +163,10 @@ shader_evaluate
 
    if (numInputs > 0)
    {
-	   for (int i = numInputs-1; i >= 0; --i)
-	   {
-		   if (AiShaderEvalParamBool(p_visible0+i) == FALSE)   // Disabled, skip
-			   continue;
+      for (int i = numInputs-1; i >= 0; --i)
+      {
+         if (AiShaderEvalParamBool(p_visible0+i) == FALSE)   // Disabled, skip
+            continue;
 
          AtRGBA color = AiShaderEvalParamRGBA(p_color0+i);
          AtFloat alpha = AiShaderEvalParamFlt(p_alpha0+i);
@@ -182,7 +184,7 @@ shader_evaluate
          {
             case BM_NONE:
             {
-			      result.r = color.r;
+               result.r = color.r;
                result.g = color.g;
                result.b = color.b;
                result.a = alpha;
@@ -190,106 +192,112 @@ shader_evaluate
             break;
 
             case BM_OVER:
-		      {
-			      result.r = color.r * alpha + (result.r * (1.0f - alpha));
-			      result.g = color.g * alpha + (result.g * (1.0f - alpha));
-			      result.b = color.b * alpha + (result.b * (1.0f - alpha));
+            {
+               result.r = color.r * alpha + (result.r * (1.0f - alpha));
+               result.g = color.g * alpha + (result.g * (1.0f - alpha));
+               result.b = color.b * alpha + (result.b * (1.0f - alpha));
                result.a = 1.0f - ((1.0f - result.a) * (1.0f - alpha));
-		      }
+            }
             break;
 
             case BM_IN:
-		      {
-			      result.r *= alpha;
-			      result.g *= alpha;
-			      result.b *= alpha;
+            {
+               result.r *= alpha;
+               result.g *= alpha;
+               result.b *= alpha;
                result.a *= alpha;
-		      }
+            }
             break;
 
             case BM_OUT:
-		      {
-			      result.r *= (1.0f - alpha);
-			      result.g *= (1.0f - alpha);
-			      result.b *= (1.0f - alpha);
+            {
+               result.r *= (1.0f - alpha);
+               result.g *= (1.0f - alpha);
+               result.b *= (1.0f - alpha);
                result.a *= (1.0f - alpha);
-		      }
+            }
             break;
 
             case BM_ADD:
-		      {
-			      result.r += color.r * alpha;
-			      result.g += color.g * alpha;
-			      result.b += color.b * alpha;
-		      }
+            {
+               result.r += color.r * alpha;
+               result.g += color.g * alpha;
+               result.b += color.b * alpha;
+            }
             break;
 
             case BM_SUBTRACT:
-		      {
-			      result.r -= color.r * alpha;
-			      result.g -= color.g * alpha;
-			      result.b -= color.b * alpha;
-		      }
+            {
+               result.r -= color.r * alpha;
+               result.g -= color.g * alpha;
+               result.b -= color.b * alpha;
+            }
             break;
 
             case BM_MULTIPLY:
-		      {
-			      result.r *= (color.r * alpha + 1.0f - alpha);
-			      result.g *= (color.g * alpha + 1.0f - alpha);
-			      result.b *= (color.b * alpha + 1.0f - alpha);
-		      }
+            {
+               result.r *= (color.r * alpha + 1.0f - alpha);
+               result.g *= (color.g * alpha + 1.0f - alpha);
+               result.b *= (color.b * alpha + 1.0f - alpha);
+            }
             break;
 
             case BM_DIFFERENCE:
-		      {
+            {
                result.r = (fabs((color.r * alpha) - result.r)) * alpha + result.r * (1.0f - alpha);
-			      result.g = (fabs((color.g * alpha) - result.g)) * alpha + result.g * (1.0f - alpha);
-			      result.b = (fabs((color.b * alpha) - result.b)) * alpha + result.b * (1.0f - alpha);
+               result.g = (fabs((color.g * alpha) - result.g)) * alpha + result.g * (1.0f - alpha);
+               result.b = (fabs((color.b * alpha) - result.b)) * alpha + result.b * (1.0f - alpha);
             }
             break;
 
             case BM_LIGHTEN:
-		      {
+            {
                result.r = (MAX((color.r * alpha), result.r)) * alpha + result.r * (1.0f - alpha);
-			      result.g = (MAX((color.g * alpha), result.g)) * alpha + result.g * (1.0f - alpha);
-			      result.b = (MAX((color.b * alpha), result.b)) * alpha + result.b * (1.0f - alpha);
+               result.g = (MAX((color.g * alpha), result.g)) * alpha + result.g * (1.0f - alpha);
+               result.b = (MAX((color.b * alpha), result.b)) * alpha + result.b * (1.0f - alpha);
             }
             break;
 
             case BM_DARKEN:
-		      {
+            {
                result.r = (MIN((color.r * alpha), result.r)) * alpha + result.r * (1.0f - alpha);
-			      result.g = (MIN((color.g * alpha), result.g)) * alpha + result.g * (1.0f - alpha);
-			      result.b = (MIN((color.b * alpha), result.b)) * alpha + result.b * (1.0f - alpha);
+               result.g = (MIN((color.g * alpha), result.g)) * alpha + result.g * (1.0f - alpha);
+               result.b = (MIN((color.b * alpha), result.b)) * alpha + result.b * (1.0f - alpha);
             }
             break;
 
             case BM_SATURATE:
-		      {
-			      result.r *= (1.0f + (color.r * alpha));
-			      result.g *= (1.0f + (color.g * alpha));
-			      result.b *= (1.0f + (color.b * alpha));
-		      }
+            {
+               result.r *= (1.0f + (color.r * alpha));
+               result.g *= (1.0f + (color.g * alpha));
+               result.b *= (1.0f + (color.b * alpha));
+            }
             break;
 
             case BM_DESATURATE:
-		      {
-			      result.r *= (1.0f - (color.r * alpha));
-			      result.g *= (1.0f - (color.g * alpha));
-			      result.b *= (1.0f - (color.b * alpha));
-		      }
+            {
+               result.r *= (1.0f - (color.r * alpha));
+               result.g *= (1.0f - (color.g * alpha));
+               result.b *= (1.0f - (color.b * alpha));
+            }
             break;
 
             case BM_ILLUMINATE:
-		      {
-			      result.r *= (2.0f * color.r * alpha + 1.0f - alpha);
-			      result.g *= (2.0f * color.g * alpha + 1.0f - alpha);
-			      result.b *= (2.0f * color.b * alpha + 1.0f - alpha);
-		      }
+            {
+               result.r *= (2.0f * color.r * alpha + 1.0f - alpha);
+               result.g *= (2.0f * color.g * alpha + 1.0f - alpha);
+               result.b *= (2.0f * color.b * alpha + 1.0f - alpha);
+            }
             break;
          }
-	   }
+      }
    }
 
-	sg->out.RGBA = result;
+   AtBoolean lala = AiShaderEvalParamBool(p_alphaIsLuminance);
+   AtBoolean lala1 = AiShaderEvalParamBool(1);
+   if (AiShaderEvalParamBool(p_alphaIsLuminance) == TRUE)
+   {
+      result.a = result.r*0.30f + result.g*0.59f + result.b*0.11f; // ntsc luminance
+   }
+   sg->out.RGBA = result;
 }

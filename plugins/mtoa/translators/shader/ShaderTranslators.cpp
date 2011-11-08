@@ -883,6 +883,8 @@ void CLayeredTextureTranslator::Export(AtNode* shader)
 
    AiNodeSetUInt(shader, "numInputs", numElements);
 
+   ProcessParameter(shader, "alphaIsLuminance", AI_TYPE_BOOLEAN);
+   
    MObject colorAttr = m_fnNode.attribute("color");
    MObject alphaAttr = m_fnNode.attribute("alpha");
    MObject blendModeAttr = m_fnNode.attribute("blendMode");
