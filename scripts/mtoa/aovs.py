@@ -5,7 +5,7 @@ BUILTIN_AOVS = (
                 ('P',       'POINT'),
                 ('Z',       'FLOAT'),
                 ('N',       'VECTOR'),
-                ('opacity', 'RGB'),
+                ('OPACITY', 'RGB'),
                 ('motionvector', 'RGB'),
                 ('Pref',    'RGB'),
                 ('raycount','FLOAT'),
