@@ -23,7 +23,12 @@ void CHairTranslator::NodeInitializer(CAbTranslator context)
    data.name = "aiExportHairIDs";
    data.shortName = "ai_export_hair_ids";
    helper.MakeInputBoolean(data);
-   
+
+   data.defaultValue.BOOL = false;
+   data.name = "aiExportHairUVs";
+   data.shortName = "ai_export_hair_uvs";
+   helper.MakeInputBoolean(data);
+
    data.defaultValue.BOOL = false;
    data.name = "aiOverrideHair";
    data.shortName = "ai_override_hair";
@@ -48,12 +53,6 @@ void CHairTranslator::Update( AtNode *curve )
 {
    MObject objectHairShape(m_dagPath.node());
 
-   // Get connected shapes
-   MDagPathArray connectedShapes;
-   GetHairShapeMeshes(objectHairShape, connectedShapes);
-
-   const bool hasConnectedShapes = connectedShapes.length() > 0;
-
    MFnDagNode fnDagNodeHairShape(objectHairShape);
    MFnDependencyNode fnDepNodeHair(objectHairShape);
 
@@ -68,10 +67,6 @@ void CHairTranslator::Update( AtNode *curve )
 
    // The num points array (int array the size of numLines, no motionsteps)
    AtArray* curveNumPoints             = AiArrayAllocate(m_numMainLines, 1, AI_TYPE_INT);
-
-   // The U and V param coords arrays
-   AtArray* curveUParamCoord           = AiArrayAllocate(m_numMainLines, 1, AI_TYPE_FLOAT);
-   AtArray* curveVParamCoord           = AiArrayAllocate(m_numMainLines, 1, AI_TYPE_FLOAT);
 
    // A couple of arrays to keep track of where each hairline begins in the points array (step 0)
    AtArray* curveNextLineStarts        = AiArrayAllocate(m_numMainLines, 1, AI_TYPE_INT);
@@ -111,20 +106,37 @@ void CHairTranslator::Update( AtNode *curve )
       // https://trac.solidangle.com/mtoa/ticket/109
    }
 
-   // Prepare connected shape info and intersection data
-   // Support hairsystem that was applied to only one mesh
-   // MDagPath shapePath;
-   // MMeshIntersector meshInt;
-   // MFnMesh mesh;
-   // if (hasConnectedShapes)
-   // {
-   //   shapePath = connectedShapes[0];
-   //    MObject shapeNode = shapePath.node();
-   //    const MMatrix matrix = shapePath.inclusiveMatrix();
-   //    meshInt.create(shapeNode, matrix);
-   //
-   //    mesh.setObject(shapeNode);
-   // }
+   plug = m_fnNode.findPlug("aiExportHairUVs");
+   bool export_curve_uvs = plug.isNull() ? false : plug.asBool();
+
+   // TODO : MMeshIntersector is useless for UVs query
+   // until it returns a closest face as well as a closest point
+   MMeshIntersector meshInt;
+   MFnMesh mesh;
+   bool hasConnectedShapes = false;
+   // The U and V param coords arrays
+   AtArray* curveUParamCoord = NULL;
+   AtArray* curveVParamCoord = NULL;
+   if (export_curve_uvs)
+   {
+      curveUParamCoord = AiArrayAllocate(m_numMainLines, 1, AI_TYPE_FLOAT);
+      curveVParamCoord = AiArrayAllocate(m_numMainLines, 1, AI_TYPE_FLOAT);
+
+      // Get connected shapes
+      MDagPathArray connectedShapes;
+      GetHairShapeMeshes(objectHairShape, connectedShapes);
+      hasConnectedShapes = connectedShapes.length() > 0;
+      // Prepare connected shape info and intersection data
+      // Support hairsystem that was applied to only one mesh
+      if (hasConnectedShapes)
+      {
+         MDagPath shapePath = connectedShapes[0];
+         MObject shapeNode = shapePath.node();
+         const MMatrix matrix = shapePath.inclusiveMatrix();
+         meshInt.create(shapeNode, matrix);
+         mesh.setObject(shapeNode);
+      }
+   }
 
    plug = m_fnNode.findPlug("aiExportHairIDs");
    bool export_curve_id = true;
@@ -157,19 +169,21 @@ void CHairTranslator::Update( AtNode *curve )
       // Set num points
       AiArraySetInt(curveNumPoints, i, pointsInterpolationLine);
 
-      // We should get the UV from the closest mesh for all connected shapes
-      // To support a hairsystem that was applied to more than one mesh
-      AtVector2 uvparam(AI_P2_ZERO);
-      float2 root_uv;
-      m_hairLines[i].GetCurveRootUV(root_uv);
-      uvparam.x = root_uv[0];
-      uvparam.y = root_uv[1];
-      // TODO : leave an option to use exact but slow method?
-      // if (hasConnectedShapes) uvparam = GetHairRootUVs(line[0], meshInt, mesh);
-
       // Set UVs
-      AiArraySetFlt(curveUParamCoord, i, uvparam.x);
-      AiArraySetFlt(curveVParamCoord, i, uvparam.y);
+      if (export_curve_uvs)
+      {
+         // We should get the UV from the closest mesh for all connected shapes
+         // To support a hairsystem that was applied to more than one mesh
+         AtVector2 uvparam(AI_P2_ZERO);
+         float2 root_uv;
+         m_hairLines[i].GetCurveRootUV(root_uv);
+         uvparam.x = root_uv[0];
+         uvparam.y = root_uv[1];
+         // TODO : leave an option to use exact but slow method?
+         if (hasConnectedShapes) uvparam = GetHairRootUVs(line[0], meshInt, mesh);
+         AiArraySetFlt(curveUParamCoord, i, uvparam.x);
+         AiArraySetFlt(curveVParamCoord, i, uvparam.y);
+      }
 
       if (export_curve_id)
       {
@@ -198,8 +212,6 @@ void CHairTranslator::Update( AtNode *curve )
    clear();
 
    // Extra attributes
-   AiNodeDeclare(curve, "uparamcoord", "uniform FLOAT");
-   AiNodeDeclare(curve, "vparamcoord", "uniform FLOAT");
    AiNodeDeclare(curve, "colors",      "uniform  ARRAY RGB");
    AiNodeDeclare(curve, "next_line_starts_interp", "constant ARRAY INT");
    AiNodeDeclare(curve, "next_line_starts",        "constant ARRAY INT");
@@ -227,13 +239,18 @@ void CHairTranslator::Update( AtNode *curve )
    AiNodeSetArray(curve, "next_line_starts_interp",   curveNextLineStartsInterp);
    AiNodeSetArray(curve, "next_line_starts",          curveNextLineStarts);
 
-   AiNodeSetArray(curve, "uparamcoord",               curveUParamCoord);
-   AiNodeSetArray(curve, "vparamcoord",               curveVParamCoord);
+   if(export_curve_uvs)
+   {
+      AiNodeDeclare(curve, "uparamcoord", "uniform FLOAT");
+      AiNodeDeclare(curve, "vparamcoord", "uniform FLOAT");
+      AiNodeSetArray(curve, "uparamcoord", curveUParamCoord);
+      AiNodeSetArray(curve, "vparamcoord", curveVParamCoord);
+   }
 
    if(export_curve_id)
    {
-      AiNodeDeclare(curve, "curve_id",        "uniform UINT");
-      AiNodeSetArray(curve, "curve_id",       curveID);
+      AiNodeDeclare(curve, "curve_id", "uniform UINT");
+      AiNodeSetArray(curve, "curve_id", curveID);
    }
 }
 
