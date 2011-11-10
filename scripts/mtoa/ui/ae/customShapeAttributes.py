@@ -47,6 +47,8 @@ class HairSystemTemplate(templates.ShapeTranslatorTemplate):
     def setup(self):
         self.commonShapeAttributes()
         self.addSeparator()
+        self.addControl("aiExportHairIDs")
+        self.addControl("aiExportHairUVs")
         self.addControl("aiOverrideHair")
         self.addControl("aiHairShader")
         self.addSeparator()
