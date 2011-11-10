@@ -20,6 +20,7 @@ node_parameters
    AiMetaDataSetStr(mds, NULL, "maya.name", "aiWriteColor");
    AiMetaDataSetInt(mds, NULL, "maya.id", 0x00115D10);
    AiMetaDataSetStr(mds, NULL, "maya.classification", "shader/utility");
+   AiMetaDataSetBool(mds, NULL, "maya.swatch", FALSE);
 
    AiParameterRGBA("beauty", 0, 0, 0, 0);
    AiParameterRGBA("input", 0, 0, 0, 0);
