@@ -19,7 +19,7 @@ node_parameters
    // Node metadata
    AiMetaDataSetStr(mds, NULL, "maya.name", "aiWriteFloat");
    AiMetaDataSetInt(mds, NULL, "maya.id", 0x00115D11);
-   AiMetaDataSetStr(mds, NULL, "maya.classification", "shader/surface");
+   AiMetaDataSetStr(mds, NULL, "maya.classification", "shader/utility");
 
    AiParameterRGBA("beauty", 0, 0, 0, 0);
    AiParameterRGBA("input", 0, 0, 0, 0);
