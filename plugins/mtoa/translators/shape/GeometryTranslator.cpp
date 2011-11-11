@@ -892,6 +892,7 @@ AtNode* CGeometryTranslator::ExportInstance(AtNode *instance, const MDagPath& ma
       }
    }
 
+   // Export light linking per instance
    ExportLightLinking(instance);
 
    return instance;

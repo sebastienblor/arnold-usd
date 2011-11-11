@@ -1,6 +1,7 @@
-#include "ShapeTranslator.h"
+   #include "ShapeTranslator.h"
 
 #include <maya/MPlugArray.h>
+#include <maya/MDagPathArray.h>
 
 // computes and sets the visibility mask as well as other shape attributes related to ray visibility
 // (self_shadows, opaque)
@@ -50,11 +51,13 @@ void CShapeTranslator::ProcessRenderFlags(AtNode* node)
 void CShapeTranslator::ExportLightLinking(AtNode* shape)
 {
    std::vector<AtNode*> lights;
-   MObjectArray mayaLights;
+   MDagPathArray mayaLights;
+   MStatus status;
+
 
    if (FindMayaObjectPlug("aiUseLightGroup").asBool())
    {
-      AiNodeSetBool(shape, "use_light_group", FindMayaObjectPlug("aiUseLightGroup").asBool());
+      AiNodeSetBool(shape, "use_light_group", true);
       MPlug pLights = FindMayaObjectPlug("aiLightGroup");
       if (!pLights.isNull())
       {
@@ -66,19 +69,54 @@ void CShapeTranslator::ExportLightLinking(AtNode* shape)
              pLight.connectedTo(pSources, true, false);
              if (pSources.length() == 1)
              {
-                mayaLights.append(pSources[0].node());
+                MDagPath lightPath;
+                MDagPath::getAPathTo(pSources[0].node(), lightPath);
+                // TODO : handle multiple shapes cases
+                lightPath.extendToShape();
+                mayaLights.append(lightPath);
              }
          }
+      }
+   }
+   else
+   {
+      AiNodeSetBool(shape, "use_light_group", true);
+
+      // Get linked lights (use transform to support linking of instance lights)
+      MString linkcmd = MString("maya.cmds.lightlink(query=True, object='")+GetMayaNodeName()
+                        +MString("', sets=False, hierarchy=False, transforms=True, shapes=False)");
+      MStringArray lightLinks;
+      status = MGlobal::executePythonCommand(MString("import maya.cmds;")+linkcmd,
+                                             lightLinks,
+                                             true, false);
+      CHECK_MSTATUS(status);
+
+      MSelectionList list;
+      for (unsigned int i=0; i<lightLinks.length(); ++i)
+      {
+         MGlobal::displayInfo(lightLinks[i]);
+         list.add(lightLinks[i]);
+      }
+      for (unsigned int i=0; i<list.length(); ++i)
+      {
+         MDagPath lightPath;
+         list.getDagPath(i, lightPath);
+         // TODO : handle multiple shapes cases
+         lightPath.extendToShape();
+         mayaLights.append(lightPath);
       }
    }
 
    for (unsigned int i=0; i<mayaLights.length(); ++i)
    {
-      MDagPath lightPath;
-      MDagPath::getAPathTo(mayaLights[i], lightPath);
+      MDagPath lightPath = mayaLights[i];
       if (lightPath.isValid())
       {
+         // TODO: shoud this respect current selection for render / export selection
+         // and or export filters? In that case use CArnoldSession::ExportSelection and
+         // CArnoldSession::FileredStatus instead
          AtNode* light = ExportDagPath(lightPath);
+         // TODO : might be safer to check it's indeed a light that has been exported
          if (light != NULL)
          {
             lights.push_back(light);
