@@ -79,10 +79,10 @@ shader_evaluate
       pU = &sg->u;
       pV = &sg->v;
    }
-   *pU = (0.5f * (atan(rdir.y/rdir.x) / AI_PI));
-   if      (rdir.y > 0.0f && rdir.x > 0.0f) *pU = *pU + .5;
-   else if (rdir.y < 0.0f && rdir.x > 0.0f) *pU = *pU + .5;
-   *pV = 1- (acos(rdir.z/R) /  AI_PI);
+   *pU = (0.5f * (atanf(rdir.y/rdir.x) / (AtFloat)AI_PI));
+   if      (rdir.y > 0.0f && rdir.x > 0.0f) *pU = *pU + .5f;
+   else if (rdir.y < 0.0f && rdir.x > 0.0f) *pU = *pU + .5f;
+   *pV = 1 - (acosf(rdir.z/R) / (AtFloat)AI_PI);
 
    // call input
    sg->out.RGB = AiShaderEvalParamRGB(p_image);
