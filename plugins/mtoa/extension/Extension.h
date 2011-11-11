@@ -8,12 +8,34 @@
 #include <maya/MTypeId.h>
 #include <maya/MPxNode.h>
 
+#include <algorithm>
+
 #define BUILTIN "<built-in>"
 
 class CAbMayaNode;
 
 // To track loaded Arnold plugins
-typedef std::set<std::string> LoadedArnoldPluginsSet;
+class PluginStore: public std::vector<std::string>
+{
+public:
+   iterator find(const std::string& item)
+   {
+      return std::find(begin(), end(), item);
+   }
+
+   void insert(const std::string& item)
+   {
+      push_back(item);
+   }
+   void erase(const std::string& item)
+   {
+      iterator it = find(item);
+      std::vector<std::string>::erase(it);
+   }
+};
+
+
+typedef PluginStore LoadedArnoldPluginsSet;
 // To track required  Maya plugins
 typedef std::set<std::string> RequiredMayaPluginsSet;
 
