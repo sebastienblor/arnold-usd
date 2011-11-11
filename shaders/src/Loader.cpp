@@ -31,6 +31,7 @@ extern AtNodeMethods* MayaGridMtd;
 extern AtNodeMethods* MayaFractalMtd;
 extern AtNodeMethods* MayaNoiseMtd;
 extern AtNodeMethods* MayaPlace3DTextureMtd;
+extern AtNodeMethods* MayaEnvSphereMtd;
 extern AtNodeMethods* MayaRgbToHsvMtd;
 extern AtNodeMethods* MayaHsvToRgbMtd;
 extern AtNodeMethods* MayaLuminanceMtd;
@@ -407,6 +408,13 @@ node_loader
       node->name        = "writeFloat";
       node->node_type   = AI_NODE_SHADER;
       break;
+
+   case 50:
+      node->methods     = MayaEnvSphereMtd;
+      node->output_type = AI_TYPE_RGBA;
+      node->name        = "MayaEnvSphere";
+      node->node_type   = AI_NODE_SHADER;
+      break;      
 
    default:
       return FALSE;
