@@ -17,6 +17,7 @@
 # bump2d                      0x00115D0C
 # noise                       0x00115D0D
 # bump3d                      0x00115D0E
+# motion_vector               0x00115D0F
 
 # options
 
@@ -710,7 +711,10 @@
     maya.hide               BOOL    True
 
 [node motion_vector]
-    maya.hide               BOOL    True
+    desc                    STRING  "Motion vectors"
+    maya.name               STRING  "aiMotionVector"
+    maya.id                 INT     0x00115D0F
+    maya.classification     STRING  "shader/utility"
 
 [node bump3d]
     desc                    STRING  "3D bump mapping shader that changes the normals of all nodes downstream from it"
