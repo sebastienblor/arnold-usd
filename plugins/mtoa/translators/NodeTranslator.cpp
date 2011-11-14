@@ -63,6 +63,7 @@ AtNode* CNodeTranslator::DoExport(AtUInt step)
    AtNode* node = GetArnoldNode("");
    if (node != NULL)
    {
+      m_step = step;
       if (step == 0)
       {
          if (m_outputAttr != "")
@@ -790,7 +791,6 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnold
                      GetTranslatorName().asChar(), m_fnNode.name().asChar(), element);
             }
          }
-
          return ProcessParameter(arnoldNode, arnoldParamName, arnoldParamType, plug);
       }
       else
@@ -806,7 +806,7 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnold
    return NULL;
 }
 
-// export values to an arnold parameter from a maya plug, recursively following connections in the dependency graph.
+/// Export values to an arnold parameter from a maya plug, recursively following connections in the dependency graph.
 AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, const MPlug& plug)
 {
    if (arnoldNode == NULL)
@@ -823,6 +823,13 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnold
       return NULL;
    }
 
+   // It doesn't make sense to call this method when step is greater than 0
+   if (GetMotionStep() > 0)
+   {
+      AiMsgWarning("[mtoa] [translator %s] %s.%s: ProcessParameter should not be used on motion steps greater than 0",
+            GetTranslatorName().asChar(), AiNodeGetName(arnoldNode), arnoldParamName);
+      return NULL;
+   }
    // Uncomment only when necessary, will be very verbose
    // AiMsgDebug("[mtoa] [translator %s] Processing Maya %s(%s) for Arnold %s.%s(%s).",
    //      GetTranslatorName().asChar(),
@@ -847,7 +854,11 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnold
       if (connected != NULL)
          return connected;
    }
+   return ProcessStaticParameter(arnoldNode, arnoldParamName, arnoldParamType, plug);
+}
 
+AtNode* CNodeTranslator::ProcessStaticParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, const MPlug& plug)
+{
    switch(arnoldParamType)
    {
    case AI_TYPE_RGB:
@@ -893,12 +904,30 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnold
       break;
    case AI_TYPE_MATRIX:
       {
-         AtMatrix am;
-         MObject matObj = plug.asMObject();
-         MFnMatrixData matData(matObj);
-         MMatrix mm = matData.matrix();
-         ConvertMatrix(am, mm);
-         AiNodeSetMatrix(arnoldNode, arnoldParamName, am);
+         // special case for shaders with matrix values that represent transformations
+         // FIXME: introduce "xform" metadata to explicitly mark a matrix parameter
+         if (RequiresMotionData() && strcmp(arnoldParamName, "placementMatrix") == 0)
+         {
+            // create an interpolation node for matrices
+            AtNode* animNode = AddArnoldNode("anim_matrix", arnoldParamName);
+            AtArray* matrices = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_MATRIX);
+
+            ProcessArrayElement(AI_TYPE_MATRIX, matrices, 0, plug);
+
+            // Set the parameter for the interpolation node
+            AiNodeSetArray(animNode, "values", matrices);
+            // link to our node
+            AiNodeLink(animNode, arnoldParamName, arnoldNode);
+         }
+         else
+         {
+            AtMatrix am;
+            MObject matObj = plug.asMObject();
+            MFnMatrixData matData(matObj);
+            MMatrix mm = matData.matrix();
+            ConvertMatrix(am, mm);
+            AiNodeSetMatrix(arnoldNode, arnoldParamName, am);
+         }
       }
       break;
    case AI_TYPE_BOOLEAN:
@@ -953,10 +982,19 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnold
             MGlobal::displayError("[mtoa] Arnold parameter is of type array, but corresponding Maya attribute is not");
             return NULL;
          }
-         const AtParamEntry* paramEntry = AiNodeEntryLookUpParameter(arnoldNode->base_node, arnoldParamName);
-         const AtParamValue* defaultValue = AiParamGetDefault(paramEntry);
-         AtUInt type = defaultValue->ARRAY->type;
-         // index matters tells us whether to condense a sparse array or try to export everything
+         ProcessArrayParameter(arnoldNode, arnoldParamName, plug);
+      }
+      break;
+   }
+   return NULL;
+}
+
+void CNodeTranslator::ProcessArrayParameter(AtNode* arnoldNode, const char* arnoldParamName, const MPlug& plug)
+{
+   const AtParamEntry* paramEntry = AiNodeEntryLookUpParameter(arnoldNode->base_node, arnoldParamName);
+   const AtParamValue* defaultValue = AiParamGetDefault(paramEntry);
+   AtUInt type = defaultValue->ARRAY->type;
+   // index matters tells us whether to condense a sparse array or try to export everything
 //         int indexMatters = MFnAttribute(plug.attribute()).indexMatters();
 //         MIntArray indices;
 //         if (indexMattrs)
@@ -968,131 +1006,131 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnold
 //         else
 //            plug.getExistingArrayAttributeIndices(indices);
 
-         // for now do all elements
-         AtUInt size = plug.numElements();
-         AtArray* array = AiArrayAllocate(size, 1, type);
-         MPlug elem;
-         MPlugArray connections;
-         for (AtUInt i = 0; i < size; ++i)
-         {
-            // cout << plug.partialName(true, false, false, false, false, true) << " index " << i << endl;
-            // FIXME: follow connections when arnold 3.4 is release
-            //plug.selectAncestorLogicalIndex(i, plug.attribute());
-            elem = plug[i];//
-            switch(type)
-            {
-            case AI_TYPE_RGB:
-               {
-                  // FIXME: exporting all zeros!!!
-                  AtRGB color;
-                  color.r = elem.child(0).asFloat();
-                  color.g = elem.child(1).asFloat();
-                  color.b = elem.child(2).asFloat();
-                  cout << "value is " << color.r << ", " << color.g << ", " << color.b << endl;
-                  AiArraySetRGB(array, i, color);
-               }
-               break;
-            case AI_TYPE_RGBA:
-               {
-                  AtRGBA color;
-                  color.r = elem.child(0).asFloat();
-                  color.g = elem.child(1).asFloat();
-                  color.b = elem.child(2).asFloat();
-                  // Is the source parameter RGB or RGBA?
-                  if (elem.numChildren() == 4)
-                  {
-                     color.a = elem.child(3).asFloat();
-                     AiArraySetRGBA(array, i, color);
-                  }
-                  else
-                  {
-                     color.a = 1.0f;
-                     // FIXME: handle alphas!
-                     AiArraySetRGBA(array, i, color);
-                  }
-               }
-               break;
-            case AI_TYPE_FLOAT:
-               {
-                  cout << "value is " << elem.asFloat() << endl;
-                  AiArraySetFlt(array, i, elem.asFloat());
-               }
-               break;
-            case AI_TYPE_POINT2:
-               {
-                  float x, y;
-                  MObject numObj = elem.asMObject();
-                  MFnNumericData numData(numObj);
-                  numData.getData2Float(x, y);
-                  AtPoint2 vec2;
-                  AiV2Create(vec2, x, y);
-                  AiArraySetPnt2(array, i, vec2);
-               }
-               break;
-            case AI_TYPE_MATRIX:
-               {
-                  AtMatrix am;
-                  MObject matObj = elem.asMObject();
-                  MFnMatrixData matData(matObj);
-                  MMatrix mm = matData.matrix();
-                  ConvertMatrix(am, mm);
-                  AiArraySetMtx(array, i, am);
-               }
-               break;
-            case AI_TYPE_BOOLEAN:
-               {
-                  AiArraySetBool(array, i, elem.asBool());
-               }
-               break;
-            case AI_TYPE_ENUM:
-               {
-                  AiArraySetInt(array, i, elem.asInt());
-               }
-               break;
-            case AI_TYPE_INT:
-               {
-                  AiArraySetInt(array, i, elem.asInt());
-               }
-               break;
-            case AI_TYPE_STRING:
-               {
-                  AiArraySetStr(array, i, elem.asString().asChar());
-               }
-               break;
-            case AI_TYPE_VECTOR:
-               {
-                  // FIXME: follow component connections when arnold 3.4 is release
-                  AtVector vec3;
-                  AiV3Create(vec3, elem.child(0).asFloat(), elem.child(1).asFloat(), elem.child(2).asFloat());
-                  AiArraySetVec(array, i, vec3);
-               }
-               break;
-            case AI_TYPE_POINT:
-               {
-                  // FIXME: follow component connections when arnold 3.4 is release
-                  AtVector vec3;
-                  AiV3Create(vec3, elem.child(0).asFloat(), elem.child(1).asFloat(), elem.child(2).asFloat());
-                  AiArraySetPnt(array, i, vec3);
-               }
-               break;
-            case AI_TYPE_NODE:
-               {
-                  elem.connectedTo(connections, true, false);
-                  AtNode* linkedNode = NULL;
-                  if (connections.length() > 0)
-                  {
-                     linkedNode = ExportNode(connections[0]);
-                  }
-                  AiArraySetPtr(array, i, linkedNode);
-               }
-               break;
-            } // switch
-         } // for loop
-         if (size) AiNodeSetArray(arnoldNode, arnoldParamName, array);
+   // for now do all elements
+   AtUInt size = plug.numElements();
+   AtArray* array = AiArrayAllocate(size, 1, type);
+   MPlug elem;
+   MPlugArray connections;
+   for (AtUInt i = 0; i < size; ++i)
+   {
+      // cout << plug.partialName(true, false, false, false, false, true) << " index " << i << endl;
+      // FIXME: follow connections when arnold 3.4 is release
+      //plug.selectAncestorLogicalIndex(i, plug.attribute());
+      elem = plug[i];//
+      ProcessArrayElement(type, array, i, elem);
+   } // for loop
+   if (size) AiNodeSetArray(arnoldNode, arnoldParamName, array);
+}
+
+void CNodeTranslator::ProcessArrayElement(AtInt type, AtArray* array, AtUInt i, const MPlug& elem)
+{
+   switch(type)
+   {
+   case AI_TYPE_RGB:
+      {
+         // FIXME: exporting all zeros!!!
+         AtRGB color;
+         color.r = elem.child(0).asFloat();
+         color.g = elem.child(1).asFloat();
+         color.b = elem.child(2).asFloat();
+         AiArraySetRGB(array, i, color);
       }
       break;
-   }
-   return NULL;
+   case AI_TYPE_RGBA:
+      {
+         AtRGBA color;
+         color.r = elem.child(0).asFloat();
+         color.g = elem.child(1).asFloat();
+         color.b = elem.child(2).asFloat();
+         // Is the source parameter RGB or RGBA?
+         if (elem.numChildren() == 4)
+         {
+            color.a = elem.child(3).asFloat();
+            AiArraySetRGBA(array, i, color);
+         }
+         else
+         {
+            color.a = 1.0f;
+            // FIXME: handle alphas!
+            AiArraySetRGBA(array, i, color);
+         }
+      }
+      break;
+   case AI_TYPE_FLOAT:
+      {
+         AiArraySetFlt(array, i, elem.asFloat());
+      }
+      break;
+   case AI_TYPE_POINT2:
+      {
+         float x, y;
+         MObject numObj = elem.asMObject();
+         MFnNumericData numData(numObj);
+         numData.getData2Float(x, y);
+         AtPoint2 vec2;
+         AiV2Create(vec2, x, y);
+         AiArraySetPnt2(array, i, vec2);
+      }
+      break;
+   case AI_TYPE_MATRIX:
+      {
+         AtMatrix am;
+         MObject matObj = elem.asMObject();
+         MFnMatrixData matData(matObj);
+         MMatrix mm = matData.matrix();
+         ConvertMatrix(am, mm);
+         AiArraySetMtx(array, i, am);
+      }
+      break;
+   case AI_TYPE_BOOLEAN:
+      {
+         AiArraySetBool(array, i, elem.asBool());
+      }
+      break;
+   case AI_TYPE_ENUM:
+      {
+         AiArraySetInt(array, i, elem.asInt());
+      }
+      break;
+   case AI_TYPE_INT:
+      {
+         AiArraySetInt(array, i, elem.asInt());
+      }
+      break;
+   case AI_TYPE_STRING:
+      {
+         AiArraySetStr(array, i, elem.asString().asChar());
+      }
+      break;
+   case AI_TYPE_VECTOR:
+      {
+         // FIXME: follow component connections when arnold 3.4 is release
+         AtVector vec3;
+         AiV3Create(vec3, elem.child(0).asFloat(), elem.child(1).asFloat(), elem.child(2).asFloat());
+         AiArraySetVec(array, i, vec3);
+      }
+      break;
+   case AI_TYPE_POINT:
+      {
+         // FIXME: follow component connections when arnold 3.4 is release
+         AtVector vec3;
+         AiV3Create(vec3, elem.child(0).asFloat(), elem.child(1).asFloat(), elem.child(2).asFloat());
+         AiArraySetPnt(array, i, vec3);
+      }
+      break;
+   case AI_TYPE_NODE:
+      {
+         MPlugArray connections;
+         elem.connectedTo(connections, true, false);
+         AtNode* linkedNode = NULL;
+         if (connections.length() > 0)
+         {
+            linkedNode = ExportNode(connections[0]);
+         }
+         AiArraySetPtr(array, i, linkedNode);
+      }
+      break;
+   } // switch
 }
 
 //------------ CDagTranslator ------------//

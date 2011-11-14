@@ -97,7 +97,7 @@ void CLightTranslator::Export(AtNode* light)
 
    GetMatrix(matrix);
 
-   if (m_motion)
+   if (RequiresMotionData())
    {
       AtArray* matrices = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_MATRIX);
       AiArraySetMtx(matrices, 0, matrix);

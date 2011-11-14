@@ -1,4 +1,4 @@
-﻿import pymel.core as pm
+import pymel.core as pm
 import sys
 
 BUILTIN_AOVS = (

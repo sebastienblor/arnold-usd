@@ -5,12 +5,6 @@
 
 // Auto shader translator
 //
-AtNode* CShaderTranslator::Init(CArnoldSession* session, MDagPath& dagPath, MString outputAttr)
-{
-   m_motion = session->IsMotionBlurEnabled(MTOA_MBLUR_SHADER);
-
-   return CNodeTranslator::Init(session, dagPath.node(), outputAttr);
-}
 
 AtNode* CShaderTranslator::CreateArnoldNodes()
 {
@@ -42,6 +36,24 @@ void CShaderTranslator::Export(AtNode *shader)
       {
          AiNodeLink(shader, "shader", bump);
          SetArnoldRootNode(bump);
+      }
+   }
+}
+
+void CShaderTranslator::ExportMotion(AtNode *shader, AtUInt step)
+{
+   MStatus status;
+   AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(shader->base_node);
+   while (!AiParamIteratorFinished(nodeParam))
+   {
+      const AtParamEntry *paramEntry = AiParamIteratorGetNext(nodeParam);
+      const char* paramName = AiParamGetName(paramEntry);
+
+      // FIXME: introduce "xform" metadata to explicitly mark a matrix parameter
+      if (strcmp(paramName, "placementMatrix") == 0)
+      {
+         AtArray* matrices = AiNodeGetArray(GetArnoldNode(paramName), "values");
+         ProcessArrayElement(AI_TYPE_MATRIX, matrices, GetMotionStep(), FindMayaObjectPlug(paramName));
       }
    }
 }
@@ -84,4 +96,9 @@ bool CShaderTranslator::ResolveOutputPlug(const MPlug& outputPlug, MPlug &resolv
    else
       resolvedOutputPlug=outputPlug;
    return true;
+}
+
+bool CShaderTranslator::RequiresMotionData()
+{
+   return IsMotionBlurEnabled(MTOA_MBLUR_SHADER);
 }

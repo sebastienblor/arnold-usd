@@ -739,27 +739,7 @@ void CProjectionTranslator::Export(AtNode* shader)
 {
    MStatus status;
 
-   // FIXME: change shader parameter name to match maya or use metadata
-   ProcessParameter(shader, "type", AI_TYPE_INT, FindMayaObjectPlug("projType"));
-
-   ProcessParameter(shader, "uAngle", AI_TYPE_FLOAT);
-   ProcessParameter(shader, "vAngle", AI_TYPE_FLOAT);
-   ProcessParameter(shader, "local", AI_TYPE_BOOLEAN);
-   ProcessParameter(shader, "wrap", AI_TYPE_BOOLEAN);
-   ProcessParameter(shader, "invert", AI_TYPE_BOOLEAN);
-   ProcessParameter(shader, "colorGain", AI_TYPE_RGB);
-   ProcessParameter(shader, "colorOffset", AI_TYPE_RGB);
-   ProcessParameter(shader, "defaultColor", AI_TYPE_RGB);
-   ProcessParameter(shader, "alphaGain", AI_TYPE_FLOAT);
-   ProcessParameter(shader, "alphaOffset", AI_TYPE_FLOAT);
-   ProcessParameter(shader, "image", AI_TYPE_RGBA);
-   ProcessParameter(shader, "placementMatrix", AI_TYPE_MATRIX);
-
-   // alphaIsLuminance?
-
-   ProcessParameter(shader, "fitType", AI_TYPE_INT);
-   // FIXME: change shader parameter name to match maya
-   ProcessParameter(shader, "fillType", AI_TYPE_INT, FindMayaObjectPlug("fitFill"));
+   CShaderTranslator::Export(shader);
 
    MPlug typePlug = FindMayaObjectPlug("projType");
    MPlug camPlug = FindMayaObjectPlug("linkedCamera");

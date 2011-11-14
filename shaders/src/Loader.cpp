@@ -54,6 +54,7 @@ extern AtNodeMethods* PointToFloatMtd;
 extern AtNodeMethods* Point2ToFloatMtd;
 extern AtNodeMethods* WriteColorMtd;
 extern AtNodeMethods* WriteFloatMtd;
+extern AtNodeMethods* AnimMatrixMtd;
 
 node_loader
 {
@@ -415,6 +416,13 @@ node_loader
       node->name        = "MayaEnvSphere";
       node->node_type   = AI_NODE_SHADER;
       break;      
+
+   case 51:
+      node->methods     = AnimMatrixMtd;
+      node->output_type = AI_TYPE_MATRIX;
+      node->name        = "anim_matrix";
+      node->node_type   = AI_NODE_SHADER;
+      break;
 
    default:
       return FALSE;

@@ -331,7 +331,7 @@ AtVector ComputePoint(AtShaderGlobals *sg, TargetPoint which, bool local, AtMatr
 
 node_parameters
 {
-   AiParameterENUM("type", 0, gs_ProjectionTypeNames);
+   AiParameterENUM("projType", 0, gs_ProjectionTypeNames);
    AiParameterRGBA("image", 0.0f, 0.0f, 0.0f, 1.0f);
    AiParameterFLT("uAngle", 180.0f);
    AiParameterFLT("vAngle", 90.0f);
@@ -345,11 +345,16 @@ node_parameters
    AiParameterBOOL("local", false);
    AiParameterMTX("placementMatrix", AI_M4_IDENTITY);
    AiParameterENUM("fitType", 1, gs_FitTypeNames);
-   AiParameterENUM("fillType", 0, gs_FillTypeNames);
+   AiParameterENUM("fitFill", 0, gs_FillTypeNames);
    AiParameterNODE("linkedCamera", NULL);
+
+   // hide from auto-translation
    AiParameterFLT("cameraNearPlane", 1.0f);
+   AiMetaDataSetBool(mds, "cameraNearPlane", "maya.hide", true);
    AiParameterFLT("cameraHorizontalFOV", 0.97738438111682457f); // 56 degrees
+   AiMetaDataSetBool(mds, "cameraHorizontalFOV", "maya.hide", true);
    AiParameterFLT("cameraAspectRatio", 1.0f);
+   AiMetaDataSetBool(mds, "cameraAspectRatio", "maya.hide", true);
 
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }

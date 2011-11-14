@@ -73,7 +73,7 @@ protected:
 
    static void ShaderAssignmentCallback(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void*);
    void AddShaderAssignmentCallbacks(MObject & dagNode);
-   virtual void IsGeoDeforming();
+   virtual bool IsGeoDeforming();
 
 protected:
    bool m_isMasterDag;
