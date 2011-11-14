@@ -54,4 +54,12 @@ public:
    bool DisableCaching() {return true;};
 };
 
+class CAnimCurveTranslator : public CShaderTranslator
+{
+public:
+   static void* creator(){return new CAnimCurveTranslator();}
+   virtual void Export(AtNode* shader);
+   virtual void ExportMotion(AtNode* shader, AtUInt step);
+   AtNode* CreateArnoldNodes();
+};
 #endif // SHADER_TRANSLATORS_H

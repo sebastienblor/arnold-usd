@@ -997,3 +997,38 @@ void CLayeredShaderTranslator::Export(AtNode* shader)
       }
    }
 }
+
+
+// Anim Nodes
+//
+AtNode*  CAnimCurveTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode("anim_float");
+}
+
+void CAnimCurveTranslator::Export(AtNode* shader)
+{
+   MFnAnimCurve fnCurve(GetMayaObject());
+   MStatus status;
+   double value = fnCurve.evaluate(MAnimControl::currentTime(), &status);
+
+   if (RequiresMotionData())
+   {
+      AtArray* values = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_FLOAT);
+      AiArraySetFlt(values, 0, value);
+      AiNodeSetArray(shader, "values", values);
+   }
+   else
+   {
+      AiNodeSetFlt(shader, "values", value);
+   }
+}
+
+void CAnimCurveTranslator::ExportMotion(AtNode* shader, AtUInt step)
+{
+   MFnAnimCurve fnCurve(GetMayaObject());
+   MStatus status;
+   double value = fnCurve.evaluate(MAnimControl::currentTime(), &status);
+   AtArray* values = AiNodeGetArray(shader, "values");
+   AiArraySetFlt(values, step, value);
+}
