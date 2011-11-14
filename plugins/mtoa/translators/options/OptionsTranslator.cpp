@@ -44,10 +44,16 @@ void COptionsTranslator::ProcessAOVs()
             CAOV aov;
             MObject oAOV = conns[0].node();
             if (aov.FromMaya(oAOV))
+            {
                if (aov.IsEnabled())
+               {
                   m_aovs.insert(aov);
+               }
+            }
             else
+            {
                MGlobal::displayWarning("[mtoa] Could not setup AOV attribute " + MFnDependencyNode(oAOV).name());
+            }
          }
       }
    }
