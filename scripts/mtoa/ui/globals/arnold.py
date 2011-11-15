@@ -620,6 +620,7 @@ def createArnoldMotionBlurSettings():
 
     pm.floatSliderGrp('mb_motion_frames',
                       label="Sample Range (Frames)",
+                      fieldMaxValue=100000,
                       cc=lambda *args: pm.evalDeferred(updateShutterAngle)
                       )
                       
