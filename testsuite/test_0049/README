@@ -1,0 +1,5 @@
+Make some fixes to the Motion Blur Options Interface
+
+Allow "Sample Range (frames)" take any positive value and allow "Shutter Offset (frames)" take any value. (Ticket #569)
+
+author: pedro.gomez
