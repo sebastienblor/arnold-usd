@@ -292,8 +292,6 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setKeyable(false);
    nAttr.setSoftMin(-0.5f);
    nAttr.setSoftMax(0.5f);
-   nAttr.setMin(-1);
-   nAttr.setMax(1);
    addAttribute(s_shutter_offset);
 
    s_shutter_type = eAttr.create("shutter_type", "shutt", 0);
