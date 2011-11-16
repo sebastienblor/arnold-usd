@@ -1120,6 +1120,7 @@ def createArnoldCommonResolution():
         # Yes, we need the eval here, to avoid doing the source
         # until we know whether the file actually exists
         pm.mel.eval('catchQuiet( eval("userImageFormats.mel"))')
+        gUserImageFormatData = pm.melGlobals['gUserImageFormatData']
 
     pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
 
