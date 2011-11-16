@@ -72,10 +72,10 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
    M3dView::ColorTable activeColorTable  = M3dView::kActiveColors;
    //M3dView::ColorTable dormantColorTable = M3dView::kDormantColors;
    //
-   MObject thisNode = thisMObject();
-   MPlug plug( thisNode, s_type );
-   int areaType;
-   plug.getValue( areaType );
+
+   MFnDependencyNode myNode(thisMObject());
+   MPlug translatorPlug = myNode.findPlug("aiTranslator");
+   MString areaType = translatorPlug.asString();
 
    view.beginGL();
    // Get all GL bits
@@ -108,7 +108,7 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
    GLUquadricObj *qobj;
    qobj = gluNewQuadric();
    // Quad
-   if (areaType==0)
+   if (areaType == "quad")
    {
       gGLFT->glBegin(GL_QUADS);
       gGLFT->glVertex3f(-1.0f, 1.0f, 0.0f);
@@ -127,7 +127,7 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
       gGLFT->glEnd();
    }
    // Cylinder
-   else if (areaType==1)
+   else if (areaType == "cylinder")
    {
       gluQuadricDrawStyle(qobj, GLU_LINE);
       gluQuadricNormals(qobj, GLU_NONE);
@@ -138,7 +138,7 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
       gGLFT->glPopMatrix();
    }
    // Disk
-   else if (areaType==2)
+   else if (areaType == "disk")
    {
       gluQuadricDrawStyle(qobj, GLU_LINE);
       gluQuadricNormals(qobj, GLU_NONE);
