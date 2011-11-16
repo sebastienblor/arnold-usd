@@ -18,6 +18,20 @@ enum ArnoldSessionMode
    MTOA_SESSION_ASS
 };
 
+enum ArnoldLightLinkMode
+{
+   MTOA_LIGHTLINK_NONE,
+   MTOA_LIGHTLINK_MAYA
+};
+
+enum ArnoldShadowLinkMode
+{
+   MTOA_SHADOWLINK_NONE,
+   MTOA_SHADOWLINK_LIGHT,
+   MTOA_SHADOWLINK_MAYA,
+};
+
+// Filters
 #define MTOA_FILTER_DISABLE   0x0000
 #define MTOA_FILTER_HIDDEN    0x0001
 #define MTOA_FILTER_TEMPLATED 0x0002
@@ -51,12 +65,12 @@ struct CMotionBlurOptions
    unsigned int   steps;
    double         by_frame;
 
-   CMotionBlurOptions() : enable_mask(MTOA_MBLUR_DISABLE),
-                     shutter_size(0.0f),
-                     shutter_offset(0.0f),
-                     shutter_type(0),
-                     steps(1),
-                     by_frame(0.0) {}
+   CMotionBlurOptions() :  enable_mask(MTOA_MBLUR_DISABLE),
+                           shutter_size(0.0f),
+                           shutter_offset(0.0f),
+                           shutter_type(0),
+                           steps(1),
+                           by_frame(0.0) {}
 };
 
 /// Structure to hold options relative to a CArnoldSession
@@ -67,18 +81,26 @@ struct CSessionOptions
 
 private:
 
-   CSessionOptions() : m_mode(MTOA_SESSION_UNDEFINED),
-                      m_frame(0.0f),
-                      m_options(MObject()),
-                      m_camera(MDagPath()),
-                      m_filter(CMayaExportFilter()),
-                      m_motion(CMotionBlurOptions())
+   CSessionOptions() :  m_mode(MTOA_SESSION_UNDEFINED),
+                        m_lightlink(MTOA_LIGHTLINK_NONE),
+                        m_shadowlink(MTOA_SHADOWLINK_LIGHT),
+                        m_frame(0.0f),
+                        m_options(MObject()),
+                        m_camera(MDagPath()),
+                        m_filter(CMayaExportFilter()),
+                        m_motion(CMotionBlurOptions())
    {
       m_frame = MAnimControl::currentTime().as(MTime::uiUnit());
    }
 
    inline const ArnoldSessionMode& GetSessionMode() const {return m_mode;}
    inline void SetSessionMode(ArnoldSessionMode mode) { m_mode = mode; }
+
+   inline const ArnoldLightLinkMode& GetLightLinkMode() const {return m_lightlink;}
+   inline void SetLightLinkMode(ArnoldLightLinkMode mode) { m_lightlink = mode; }
+
+   inline const ArnoldShadowLinkMode& GetShadowLinkMode() const {return m_shadowlink;}
+   inline void SetShadowLinkMode(ArnoldShadowLinkMode mode) { m_shadowlink = mode; }
 
    inline const MDagPath& GetExportCamera() const { return m_camera; }
    inline void SetExportCamera(MDagPath camera) { camera.extendToShape();m_camera = camera; }
@@ -97,11 +119,13 @@ private:
 
    inline void SetExportFrame(double frame) { m_frame = frame; }
 
-   void UpdateMotionBlurData();
+   MStatus GetFromMaya();
 
 private:
 
    ArnoldSessionMode    m_mode;
+   ArnoldLightLinkMode  m_lightlink;
+   ArnoldShadowLinkMode m_shadowlink;
    double               m_frame;
 
    MObject              m_options;

@@ -42,10 +42,12 @@ CRenderOptions::CRenderOptions()
 ,  m_log_file_verbosity(5)
 {}
 
-void CRenderOptions::GetFromMaya()
+MStatus CRenderOptions::GetFromMaya()
 {
-   ProcessCommonRenderOptions();
-   ProcessArnoldRenderOptions();
+   MStatus status;
+   status = ProcessCommonRenderOptions();
+   status = ProcessArnoldRenderOptions();
+   return status;
 }
 
 // Unused by AOV branch but that will mess existing scripts
@@ -80,7 +82,7 @@ MString CRenderOptions::GetFileExtension(const MString& imageRenderFormat) const
    return imageFileExtension;
 }
 
-void CRenderOptions::ProcessCommonRenderOptions()
+MStatus CRenderOptions::ProcessCommonRenderOptions()
 {
    MStatus        status;
    MSelectionList list;
@@ -135,11 +137,21 @@ void CRenderOptions::ProcessCommonRenderOptions()
          }
       }
 
+      status = MStatus::kSuccess;
    }
+   else
+   {
+      AiMsgError("[mtoa] No known common render options");
+      status = MStatus::kFailure;
+   }
+
+   return status;
 }
 
-void CRenderOptions::ProcessArnoldRenderOptions()
+MStatus CRenderOptions::ProcessArnoldRenderOptions()
 {
+   MStatus status;
+
    MObject node = GetArnoldRenderOptions();
    if (node != MObject::kNullObj)
    {
@@ -160,11 +172,16 @@ void CRenderOptions::ProcessArnoldRenderOptions()
       m_log_max_warnings      = fnArnoldRenderOptions.findPlug("log_max_warnings").asInt();
       m_log_console_verbosity = fnArnoldRenderOptions.findPlug("log_console_verbosity").asInt();
       m_log_file_verbosity    = fnArnoldRenderOptions.findPlug("log_file_verbosity").asInt();
+
+      status = MStatus::kSuccess;
    }
    else
    {
       AiMsgError("[mtoa] No known Arnold render options");
+      status = MStatus::kFailure;
    }
+
+   return status;
 }
 
 

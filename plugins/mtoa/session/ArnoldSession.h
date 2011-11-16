@@ -20,7 +20,7 @@
 #include <maya/MMessage.h>
 #include <maya/MPlug.h>
 #include <maya/MCommonRenderSettingsData.h>
-
+#include <maya/MLightLinks.h>
 
 #include <vector>
 #include <set>
@@ -86,6 +86,12 @@ public:
    inline const ArnoldSessionMode& GetSessionMode() const         { return m_sessionOptions.GetSessionMode(); }
    inline void SetSessionMode(ArnoldSessionMode mode)             { m_sessionOptions.SetSessionMode(mode); }
 
+   inline const ArnoldLightLinkMode& GetLightLinkMode() const {return m_sessionOptions.m_lightlink;}
+   inline void SetLightLinkMode(ArnoldLightLinkMode mode) { m_sessionOptions.m_lightlink = mode; }
+
+   inline const ArnoldShadowLinkMode& GetShadowLinkMode() const {return m_sessionOptions.m_shadowlink;}
+   inline void SetShadowLinkMode(ArnoldShadowLinkMode mode) { m_sessionOptions.m_shadowlink = mode; }
+
    inline double GetExportFrame() const                   { return m_sessionOptions.GetExportFrame(); }
    void SetExportFrame(double frame)
    {
@@ -110,6 +116,9 @@ public:
    inline unsigned int GetNumMotionSteps() const { return m_sessionOptions.GetNumMotionSteps(); }
    inline float GetShutterSize() const { return m_sessionOptions.GetShutterSize(); }
    inline unsigned int GetShutterType() const { return m_sessionOptions.GetShutterType(); }
+
+   // Light linker
+   inline MLightLinks* MayaLightLinks() { return &m_lightLinks; }
 
    // Flag to avoid IPR loops
    inline bool IsExportingMotion() const {return m_isExportingMotion; }
@@ -151,6 +160,7 @@ private:
 
    CArnoldSession()
       :  m_sessionOptions(CSessionOptions())
+      ,  m_lightLinks(MLightLinks())
       ,  m_isExportingMotion(false)
       ,  m_requestUpdate(false)
       ,  m_optionsTranslator(NULL)
@@ -168,7 +178,7 @@ private:
    /// Terminate an export session
    MStatus End();
 
-   MStatus UpdateMotionBlurData();
+   MStatus UpdateLightLinks();
    MStatus UpdateMotionFrames();
    
    MStatus Export(MSelectionList* selected = NULL);
@@ -192,6 +202,7 @@ private:
 private:
 
    CSessionOptions m_sessionOptions;
+   MLightLinks m_lightLinks;
 
    bool m_isExportingMotion;
    std::vector<double> m_motion_frames;

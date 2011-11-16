@@ -656,6 +656,22 @@ def createArnoldSSSSettings():
 
     pm.setUITemplate(popTemplate=True)
 
+def createArnoldLightLinkSettings():
+
+    pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+    pm.columnLayout(adjustableColumn=True)
+
+    pm.attrControlGrp('lightLinking',
+                        label="Light Linking",
+                        attribute='defaultArnoldRenderOptions.lightLinking')
+
+    pm.attrControlGrp('shadowLinking',
+                        label="Shadow Linking",
+                        attribute='defaultArnoldRenderOptions.shadowLinking')
+
+    pm.setParent('..')
+
+    pm.setUITemplate(popTemplate=True)
 
 def createArnoldSubdivSettings():
 
@@ -826,6 +842,12 @@ def createArnoldRendererGlobalsTab():
     #
     pm.frameLayout('arnoldSSSSettings', label="Sub-Surface Scattering", cll= True, cl=1)
     createArnoldSSSSettings()
+    pm.setParent('..')
+
+    # Light Linking
+    #
+    pm.frameLayout('arnoldLightLinkSettings', label="Light Linking", cll= True, cl=1)
+    createArnoldLightLinkSettings()
     pm.setParent('..')
 
     # Subdivision Surfaces

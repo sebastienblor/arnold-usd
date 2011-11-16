@@ -151,7 +151,7 @@ public:
       m_progressive_rendering = is_progressive;
    }
 
-   void GetFromMaya();
+   MStatus GetFromMaya();
 
    void SetupLog() const;
    
@@ -164,8 +164,8 @@ public:
 
 private:
 
-   void ProcessCommonRenderOptions();
-   void ProcessArnoldRenderOptions();
+   MStatus ProcessCommonRenderOptions();
+   MStatus ProcessArnoldRenderOptions();
 
    void SetupImageOptions() const;
    void SetupImageFilter() const;

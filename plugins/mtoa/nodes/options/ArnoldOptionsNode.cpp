@@ -1,6 +1,7 @@
 
 #include "ArnoldOptionsNode.h"
 #include "render/RenderOptions.h"
+#include "session/SessionOptions.h"
 #include "nodes/ShaderUtils.h"
 #include "nodes/ArnoldNodeIDs.h"
 
@@ -41,6 +42,8 @@ MObject CArnoldOptionsNode::s_driver_gamma;
 MObject CArnoldOptionsNode::s_light_gamma;
 MObject CArnoldOptionsNode::s_shader_gamma;
 MObject CArnoldOptionsNode::s_texture_gamma;
+MObject CArnoldOptionsNode::s_light_linking;
+MObject CArnoldOptionsNode::s_shadow_linking;
 MObject CArnoldOptionsNode::s_motion_blur_enable;
 MObject CArnoldOptionsNode::s_mb_lights_enable;
 MObject CArnoldOptionsNode::s_mb_camera_enable;
@@ -257,6 +260,19 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("auto_transparency_depth");
    s_attributes.MakeInput("auto_transparency_threshold");
    s_attributes.MakeInput("auto_transparency_probabilistic");
+
+   s_light_linking = eAttr.create("lightLinking", "llnk", 0);
+      eAttr.setKeyable(false);
+      eAttr.addField("None", MTOA_LIGHTLINK_NONE);
+      eAttr.addField("Maya Light Links", MTOA_LIGHTLINK_MAYA);
+      addAttribute(s_light_linking);
+
+   s_shadow_linking = eAttr.create("shadowLinking", "slnk", 0);
+      eAttr.setKeyable(false);
+      eAttr.addField("None", MTOA_SHADOWLINK_NONE);
+      eAttr.addField("Follows Light Linking", MTOA_SHADOWLINK_LIGHT);
+      eAttr.addField("Maya Shadow Links", MTOA_SHADOWLINK_MAYA);
+      addAttribute(s_shadow_linking);
 
    s_motion_blur_enable = nAttr.create("motion_blur_enable", "mb_en", MFnNumericData::kBoolean, 0);
    nAttr.setKeyable(false);
