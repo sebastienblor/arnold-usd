@@ -1,389 +1,573 @@
-Cannot open log file 'D:\orenouard\Eclipse\Arnold\mtoa\build\windows_x86_64\2011\msvc_opt\testsuite\test_0033\test_0033.log', using stdout instead
+Cannot open log file 'C:\solidangle\mtoa\mtoa-main\build\windows_x86_64\2012\msvc_opt\testsuite\test_0033\test_0033.log', using stdout instead
 
-Starting "C:\Program Files\Autodesk\Maya2011\bin\mayabatch.exe"
-00:00:00  120mb         | log started Fri Sep 02 16:33:58 2011
-00:00:00  120mb         | Arnold 3.3.11.0.dev windows 64-bit icc110 oiio1000 sse (build date: Aug 24 2011 14:33:47)
-00:00:00  123mb         | running on furnace, 24 x 3333 mhz GenuineIntel with 24567 mb
-00:00:00  123mb         |  
-00:00:00  123mb         | [METADATA] Loading metadata file: C:/solidAngle/mtoadeploy/2011/plug-ins/mtoa.mtd
-00:00:00  123mb         | Successfully registered Arnold ass file translator
-Successfully registered Arnold ass file translator
-00:00:00  123mb         | Successfully registered Arnold swatch renderer
-Successfully registered Arnold swatch renderer
-00:00:00  123mb         | Successfully registered 'arnoldRender' command
-Successfully registered 'arnoldRender' command
-00:00:00  123mb         | Successfully registered 'arnoldIpr' command
-Successfully registered 'arnoldIpr command
-00:00:00  123mb         | Successfully registered 'arnoldExportAss' command
-Successfully registered 'arnoldExportAss' command
-00:00:00  123mb         | Successfully registered 'arnoldPlugins' command
-Successfully registered 'arnoldPlugins' command
-00:00:00  123mb         | [mtoa] [<built-in>] Registered 14 new Maya nodes.
-00:00:00  123mb         | [mtoa] [<built-in>] Registered a total of 36 translators for 25 Maya nodes (14 new and 11 existing).
-00:00:00  123mb         | loading plugin: C:/solidAngle/mtoadeploy/2011/shaders/mtoa_shaders.dll ...
-00:00:00  124mb         | mtoa_shaders.dll: MayaMultiplyDivide uses Arnold 3.3.11.0.dev
-00:00:00  124mb         | mtoa_shaders.dll: MayaClamp uses Arnold 3.3.11.0.dev
-00:00:00  124mb         | mtoa_shaders.dll: MayaGammaCorrect uses Arnold 3.3.11.0.dev
-00:00:00  124mb         | mtoa_shaders.dll: MayaCondition uses Arnold 3.3.11.0.dev
-00:00:00  124mb         | mtoa_shaders.dll: MayaReverse uses Arnold 3.3.11.0.dev
-00:00:00  124mb         | mtoa_shaders.dll: MayaBlendColors uses Arnold 3.3.11.0.dev
-00:00:00  124mb         | mtoa_shaders.dll: MayaFacingRatio uses Arnold 3.3.11.0.dev
-00:00:00  124mb         | mtoa_shaders.dll: MayaFlippedNormal uses Arnold 3.3.11.0.dev
-00:00:00  124mb         | mtoa_shaders.dll: MayaPlusMinusAverage1D uses Arnold 3.3.11.0.dev
-00:00:00  124mb         | mtoa_shaders.dll: MayaPlusMinusAverage2D uses Arnold 3.3.11.0.dev
-00:00:00  124mb         | mtoa_shaders.dll: MayaPlusMinusAverage3D uses Arnold 3.3.11.0.dev
-00:00:00  124mb         | mtoa_shaders.dll: MayaRemapValueToValue uses Arnold 3.3.11.0.dev
-00:00:00  124mb         | mtoa_shaders.dll: MayaRemapValueToColor uses Arnold 3.3.11.0.dev
-00:00:00  124mb         | mtoa_shaders.dll: MayaRemapColor uses Arnold 3.3.11.0.dev
-00:00:00  124mb         | mtoa_shaders.dll: MayaFile uses Arnold 3.3.11.0.dev
-00:00:00  124mb         | mtoa_shaders.dll: MayaPlace2DTexture uses Arnold 3.3.11.0.dev
-00:00:00  124mb         | mtoa_shaders.dll: MayaRamp uses Arnold 3.3.11.0.dev
-00:00:00  124mb         | mtoa_shaders.dll: MayaProjection uses Arnold 3.3.11.0.dev
-00:00:00  124mb         | mtoa_shaders.dll: MeshInfo uses Arnold 3.3.11.0.dev
-00:00:00  124mb         | mtoa_shaders.dll: TangentToObjectSpace uses Arnold 3.3.11.0.dev
-00:00:00  124mb         | mtoa_shaders.dll: MayaChecker uses Arnold 3.3.11.0.dev
-00:00:00  124mb         | mtoa_shaders.dll: MayaBulge uses Arnold 3.3.11.0.dev
-00:00:00  124mb         | mtoa_shaders.dll: MayaCloth uses Arnold 3.3.11.0.dev
-00:00:00  124mb         | mtoa_shaders.dll: MayaGrid uses Arnold 3.3.11.0.dev
-00:00:00  124mb         | mtoa_shaders.dll: MayaFractal uses Arnold 3.3.11.0.dev
-00:00:00  124mb         | mtoa_shaders.dll: MayaNoise uses Arnold 3.3.11.0.dev
-00:00:00  124mb         | mtoa_shaders.dll: MayaPlace3DTexture uses Arnold 3.3.11.0.dev
-00:00:00  124mb         | mtoa_shaders.dll: MayaRgbToHsv uses Arnold 3.3.11.0.dev
-00:00:00  124mb         | mtoa_shaders.dll: MayaHsvToRgb uses Arnold 3.3.11.0.dev
-00:00:00  124mb         | mtoa_shaders.dll: MayaLuminance uses Arnold 3.3.11.0.dev
-00:00:00  124mb         | mtoa_shaders.dll: MayaCloud uses Arnold 3.3.11.0.dev
-00:00:00  124mb         | mtoa_shaders.dll: MayaCloudAlpha uses Arnold 3.3.11.0.dev
-00:00:00  124mb         | mtoa_shaders.dll: MayaSnow uses Arnold 3.3.11.0.dev
-00:00:00  124mb         | mtoa_shaders.dll: MayaContrast uses Arnold 3.3.11.0.dev
-00:00:00  124mb         | mtoa_shaders.dll: MayaLayeredTexture uses Arnold 3.3.11.0.dev
-00:00:00  124mb         | mtoa_shaders.dll: MayaLayeredShader uses Arnold 3.3.11.0.dev
-00:00:00  124mb         | mtoa_shaders.dll: MayaSolidFractal uses Arnold 3.3.11.0.dev
-00:00:00  124mb         | mtoa_shaders.dll: MayaVolumeNoise uses Arnold 3.3.11.0.dev
-00:00:00  124mb         | mtoa_shaders.dll: MayaBrownian uses Arnold 3.3.11.0.dev
-00:00:00  124mb         | mtoa_shaders.dll: MayaStucco uses Arnold 3.3.11.0.dev
-00:00:00  124mb         | mtoa_shaders.dll: MayaRemapHsv uses Arnold 3.3.11.0.dev
-00:00:00  124mb         | mtoa_shaders.dll: MayaSetRange uses Arnold 3.3.11.0.dev
-00:00:00  124mb         | mtoa_shaders.dll: MayaImagePlane uses Arnold 3.3.11.0.dev
-00:00:00  124mb         | mtoa_shaders.dll: MayaSurfaceShader uses Arnold 3.3.11.0.dev
-00:00:00  124mb         | mtoa_shaders.dll: colorToFloat uses Arnold 3.3.11.0.dev
-00:00:00  124mb         | loaded 45 plugins in 0:00.13
-00:00:00  124mb         | [mtoa] [mtoa_shaders] Registered 0 new Maya nodes.
-00:00:00  124mb         | [mtoa] [mtoa_shaders] Registered a total of 24 translators for 24 Maya nodes (0 new and 24 existing).
-00:00:00  124mb         | [mtoa] Loading extension shave(C:/solidAngle/mtoadeploy/2011/extensions/shave.dll).
-00:00:00  127mb         | loading plugin: C:/solidAngle/mtoadeploy/2011/shaders/shave_shaders.dll ...
-00:00:00  127mb         | shave_shaders.dll: ShaveHair uses Arnold 3.3.11.0.dev
-00:00:00  127mb         | loaded 1 plugins in 0:00.00
-00:00:00  127mb         | [mtoa] [shave] Registered 0 new Maya nodes.
-00:00:00  127mb         | [mtoa] [shave] Registered a total of 0 translators for 0 Maya nodes (0 new and 0 existing).
-00:00:00  127mb         | [mtoa] Successfully loaded extension library shave(C:/solidAngle/mtoadeploy/2011/extensions/shave.dll).
-00:00:00  127mb         | [mtoa] Registering 3 loaded extensions:
-00:00:00  128mb         | [mtoa] Registered extension <built-in>(<built-in>).
-00:00:00  128mb         | [mtoa] Registered extension mtoa_shaders(C:/solidAngle/mtoadeploy/2011/shaders/mtoa_shaders.dll).
-00:00:00  128mb WARNING | [mtoa] Extension shave requires Maya plugin shaveNode, registering will be deferred until plugin is loaded.
-00:00:00  128mb         | Successfully registered Arnold nodes
-Successfully registered Arnold nodes
-00:00:00  131mb         | Successfully imported python module 'arnold'
-Successfully imported python module 'arnold'
-00:00:00  131mb         | Successfully imported python module 'mtoa'
-Successfully imported python module 'mtoa'
+Starting "C:\Program Files\Autodesk\Maya2012\bin\mayabatch.exe"
+00:00:00  118mb         | log started Wed Nov 16 14:41:33 2011
+00:00:00  118mb         | Arnold 3.3.13.1 windows 64-bit icc110 oiio1000 sse (build date: Oct 25 2011 16:37:41)
+00:00:00  119mb         | running on borja-PC, 8 x 3292 mhz GenuineIntel with 8148 mb
+00:00:00  119mb         |  
+00:00:00  119mb         | [METADATA] Loading metadata file: C:/solidAngle/mtoadeploy/2012/plug-ins/mtoa.mtd
+00:00:00  119mb         | Successfully registered Arnold ass file translator
+00:00:00  119mb         | Successfully registered Arnold swatch renderer
+00:00:00  119mb         | Successfully registered 'arnoldRender' command
+00:00:00  119mb         | Successfully registered 'arnoldIpr' command
+00:00:00  119mb         | Successfully registered 'arnoldExportAss' command
+00:00:00  119mb         | Successfully registered 'arnoldPlugins' command
+00:00:00  119mb         | [mtoa] [<built-in>] Generated 16 new Maya nodes for Arnold built-in nodes.
+00:00:00  119mb         | [mtoa] [<built-in>] Generated 38 translators for 27 Maya nodes (16 new and 11 existing) for Arnold built-in nodes.
+00:00:00  119mb         | loading plugin: C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll ...
+00:00:00  120mb         |  mtoa_shaders.dll: MayaMultiplyDivide uses Arnold 3.3.13.1
+00:00:00  120mb         |  mtoa_shaders.dll: MayaClamp uses Arnold 3.3.13.1
+00:00:00  120mb         |  mtoa_shaders.dll: MayaGammaCorrect uses Arnold 3.3.13.1
+00:00:00  120mb         |  mtoa_shaders.dll: MayaCondition uses Arnold 3.3.13.1
+00:00:00  120mb         |  mtoa_shaders.dll: MayaReverse uses Arnold 3.3.13.1
+00:00:00  120mb         |  mtoa_shaders.dll: MayaBlendColors uses Arnold 3.3.13.1
+00:00:00  120mb         |  mtoa_shaders.dll: MayaFacingRatio uses Arnold 3.3.13.1
+00:00:00  120mb         |  mtoa_shaders.dll: MayaFlippedNormal uses Arnold 3.3.13.1
+00:00:00  120mb         |  mtoa_shaders.dll: MayaPlusMinusAverage1D uses Arnold 3.3.13.1
+00:00:00  120mb         |  mtoa_shaders.dll: MayaPlusMinusAverage2D uses Arnold 3.3.13.1
+00:00:00  120mb         |  mtoa_shaders.dll: MayaPlusMinusAverage3D uses Arnold 3.3.13.1
+00:00:00  120mb         |  mtoa_shaders.dll: MayaRemapValueToValue uses Arnold 3.3.13.1
+00:00:00  120mb         |  mtoa_shaders.dll: MayaRemapValueToColor uses Arnold 3.3.13.1
+00:00:00  120mb         |  mtoa_shaders.dll: MayaRemapColor uses Arnold 3.3.13.1
+00:00:00  120mb         |  mtoa_shaders.dll: MayaFile uses Arnold 3.3.13.1
+00:00:00  120mb         |  mtoa_shaders.dll: MayaPlace2DTexture uses Arnold 3.3.13.1
+00:00:00  120mb         |  mtoa_shaders.dll: MayaRamp uses Arnold 3.3.13.1
+00:00:00  120mb         |  mtoa_shaders.dll: MayaProjection uses Arnold 3.3.13.1
+00:00:00  120mb         |  mtoa_shaders.dll: MeshInfo uses Arnold 3.3.13.1
+00:00:00  120mb         |  mtoa_shaders.dll: TangentToObjectSpace uses Arnold 3.3.13.1
+00:00:00  120mb         |  mtoa_shaders.dll: MayaChecker uses Arnold 3.3.13.1
+00:00:00  120mb         |  mtoa_shaders.dll: MayaBulge uses Arnold 3.3.13.1
+00:00:00  120mb         |  mtoa_shaders.dll: MayaCloth uses Arnold 3.3.13.1
+00:00:00  120mb         |  mtoa_shaders.dll: MayaGrid uses Arnold 3.3.13.1
+00:00:00  120mb         |  mtoa_shaders.dll: MayaFractal uses Arnold 3.3.13.1
+00:00:00  120mb         |  mtoa_shaders.dll: MayaNoise uses Arnold 3.3.13.1
+00:00:00  120mb         |  mtoa_shaders.dll: MayaPlace3DTexture uses Arnold 3.3.13.1
+00:00:00  120mb         |  mtoa_shaders.dll: MayaRgbToHsv uses Arnold 3.3.13.1
+00:00:00  120mb         |  mtoa_shaders.dll: MayaHsvToRgb uses Arnold 3.3.13.1
+00:00:00  120mb         |  mtoa_shaders.dll: MayaLuminance uses Arnold 3.3.13.1
+00:00:00  120mb         |  mtoa_shaders.dll: MayaCloud uses Arnold 3.3.13.1
+00:00:00  120mb         |  mtoa_shaders.dll: MayaCloudAlpha uses Arnold 3.3.13.1
+00:00:00  120mb         |  mtoa_shaders.dll: MayaSnow uses Arnold 3.3.13.1
+00:00:00  120mb         |  mtoa_shaders.dll: MayaContrast uses Arnold 3.3.13.1
+00:00:00  120mb         |  mtoa_shaders.dll: MayaLayeredTexture uses Arnold 3.3.13.1
+00:00:00  120mb         |  mtoa_shaders.dll: MayaLayeredShader uses Arnold 3.3.13.1
+00:00:00  120mb         |  mtoa_shaders.dll: MayaSolidFractal uses Arnold 3.3.13.1
+00:00:00  120mb         |  mtoa_shaders.dll: MayaVolumeNoise uses Arnold 3.3.13.1
+00:00:00  120mb         |  mtoa_shaders.dll: MayaBrownian uses Arnold 3.3.13.1
+00:00:00  120mb         |  mtoa_shaders.dll: MayaStucco uses Arnold 3.3.13.1
+00:00:00  120mb         |  mtoa_shaders.dll: MayaRemapHsv uses Arnold 3.3.13.1
+00:00:00  120mb         |  mtoa_shaders.dll: MayaSetRange uses Arnold 3.3.13.1
+00:00:00  120mb         |  mtoa_shaders.dll: MayaImagePlane uses Arnold 3.3.13.1
+00:00:00  120mb         |  mtoa_shaders.dll: MayaSurfaceShader uses Arnold 3.3.13.1
+00:00:00  120mb         |  mtoa_shaders.dll: colorToFloat uses Arnold 3.3.13.1
+00:00:00  120mb         |  mtoa_shaders.dll: vectorToFloat uses Arnold 3.3.13.1
+00:00:00  120mb         |  mtoa_shaders.dll: pointToFloat uses Arnold 3.3.13.1
+00:00:00  120mb         |  mtoa_shaders.dll: point2ToFloat uses Arnold 3.3.13.1
+00:00:00  120mb         |  mtoa_shaders.dll: writeColor uses Arnold 3.3.13.1
+00:00:00  120mb         |  mtoa_shaders.dll: writeFloat uses Arnold 3.3.13.1
+00:00:00  120mb         |  mtoa_shaders.dll: MayaEnvSphere uses Arnold 3.3.13.1
+00:00:00  120mb         |  mtoa_shaders.dll: anim_matrix uses Arnold 3.3.13.1
+00:00:00  120mb         | loaded 52 plugins from 1 lib(s) in 0:00.00
+00:00:00  120mb         | [mtoa] [mtoa_shaders] Generated 2 new Maya nodes for Arnold plugin C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll.
+00:00:00  120mb         | [mtoa] [mtoa_shaders] Generated 26 translators for 26 Maya nodes (2 new and 24 existing) for Arnold plugin C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll.
+00:00:00  120mb         | [mtoa] Registering 2 loaded extensions:
+
+API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1145
+: (kInvalidParameter): Object is incompatible with this method
+
+API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1145
+: (kInvalidParameter): Object is incompatible with this method
+00:00:00  121mb         | [mtoa] Registered extension <built-in>(<built-in>).
+00:00:00  121mb         | [mtoa] Registered extension mtoa_shaders(C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll).
+00:00:00  121mb         | Successfully registered Arnold nodes
+00:00:00  124mb         | Successfully imported python module 'arnold'
+00:00:00  124mb         | Successfully imported python module 'mtoa'
+Maya 2012 importing module pymel 1.0.3
 pymel.core : INFO : Updating pymel with pre-loaded plugins: mtoa
-registering translator template for <built-in> on mesh
-registering translator template for <built-in> on hairSystem
-registering translator template for <built-in> on ambientLight
-registering translator template for <built-in> on directionalLight
-registering translator template for <built-in> on pointLight
-registering translator template for <built-in> on spotLight
-registering translator template for <built-in> on areaLight
-registering translator template for perspective on camera
-registering translator template for perspective on stereoRigCamera
-registering translator template for orthographic on camera
-registering translator template for orthographic on stereoRigCamera
-registering translator template for fisheye on camera
-registering translator template for fisheye on stereoRigCamera
-registering translator template for cylindrical on camera
-registering translator template for cylindrical on stereoRigCamera
+Standard pymel version 1.0.3 loaded
+registering attribute template for aiAreaLight
+registering attribute template for aiAreaLight
+registering attribute template for aiAreaLight
+registering attribute template for aiAreaLight
+registering attribute template for mesh
+registering attribute template for hairSystem
+registering attribute template for ambientLight
+registering attribute template for directionalLight
+registering attribute template for pointLight
+registering attribute template for spotLight
+registering attribute template for areaLight
+registering attribute template for camera
+registering attribute template for stereoRigCamera
+registering attribute template for camera
+registering attribute template for stereoRigCamera
+registering attribute template for camera
+registering attribute template for stereoRigCamera
+registering attribute template for camera
+registering attribute template for stereoRigCamera
 Adding attribute changed callback for camera
-registering translator template for exr on <driver>
-registering translator template for jpeg on <driver>
-registering translator template for png on <driver>
-registering translator template for tif on <driver>
-registering translator template for blackman_harris on <filter>
-registering translator template for box on <filter>
-registering translator template for catrom on <filter>
-registering translator template for catrom2d on <filter>
-registering translator template for closest on <filter>
-registering translator template for cone on <filter>
-registering translator template for cook on <filter>
-registering translator template for cubic on <filter>
-registering translator template for disk on <filter>
-registering translator template for farthest on <filter>
-registering translator template for gaussian on <filter>
-registering translator template for heatmap on <filter>
-registering translator template for mitnet on <filter>
-registering translator template for sinc on <filter>
-registering translator template for triangle on <filter>
-registering translator template for variance on <filter>
-registering translator template for video on <filter>
-00:00:01  212mb         | Successfully registered renderer 'arnold'
-Successfully registered renderer 'arnold'
-00:00:01  212mb         |  
-00:00:01  212mb         | releasing resources
-00:00:01  212mb         | Arnold shutdown
-00:00:00  212mb         | log started Fri Sep 02 16:34:00 2011
-00:00:00  212mb         | Arnold 3.3.11.0.dev windows 64-bit icc110 oiio1000 sse (build date: Aug 24 2011 14:33:47)
-00:00:00  212mb         | running on furnace, 24 x 3333 mhz GenuineIntel with 24567 mb
-00:00:00  212mb         |  
-00:00:00  212mb         | [METADATA] Loading metadata file: C:/solidAngle/mtoadeploy/2011/plug-ins/mtoa.mtd
-00:00:00  212mb         |  
-00:00:00  212mb         | releasing resources
-00:00:00  212mb         | Arnold shutdown
-File read in 1 seconds.
-Result: D:/orenouard/Eclipse/Arnold/mtoa/build/windows_x86_64/2011/msvc_opt/testsuite/test_0033/test.ma
-00:00:00  214mb         | log started Fri Sep 02 16:34:00 2011
-00:00:00  214mb         | Arnold 3.3.11.0.dev windows 64-bit icc110 oiio1000 sse (build date: Aug 24 2011 14:33:47)
-00:00:00  215mb         | running on furnace, 24 x 3333 mhz GenuineIntel with 24567 mb
-00:00:00  215mb         |  
-00:00:00  215mb         | [METADATA] Loading metadata file: C:/solidAngle/mtoadeploy/2011/plug-ins/mtoa.mtd
-00:00:00  215mb         |  
-00:00:00  215mb         | releasing resources
-00:00:00  215mb         | Arnold shutdown
-00:00:00  215mb         | log started Fri Sep 02 16:34:00 2011
-00:00:00  215mb         | Arnold 3.3.11.0.dev windows 64-bit icc110 oiio1000 sse (build date: Aug 24 2011 14:33:47)
-00:00:00  215mb         | running on furnace, 24 x 3333 mhz GenuineIntel with 24567 mb
-00:00:00  215mb         |  
-00:00:00  215mb         | [METADATA] Loading metadata file: C:/solidAngle/mtoadeploy/2011/plug-ins/mtoa.mtd
-00:00:00  215mb         | loading plugin: C:/solidAngle/mtoadeploy/2011/shaders/mtoa_shaders.dll ...
-00:00:00  215mb         | mtoa_shaders.dll: MayaMultiplyDivide uses Arnold 3.3.11.0.dev
-00:00:00  215mb         | mtoa_shaders.dll: MayaClamp uses Arnold 3.3.11.0.dev
-00:00:00  215mb         | mtoa_shaders.dll: MayaGammaCorrect uses Arnold 3.3.11.0.dev
-00:00:00  215mb         | mtoa_shaders.dll: MayaCondition uses Arnold 3.3.11.0.dev
-00:00:00  215mb         | mtoa_shaders.dll: MayaReverse uses Arnold 3.3.11.0.dev
-00:00:00  215mb         | mtoa_shaders.dll: MayaBlendColors uses Arnold 3.3.11.0.dev
-00:00:00  215mb         | mtoa_shaders.dll: MayaFacingRatio uses Arnold 3.3.11.0.dev
-00:00:00  215mb         | mtoa_shaders.dll: MayaFlippedNormal uses Arnold 3.3.11.0.dev
-00:00:00  215mb         | mtoa_shaders.dll: MayaPlusMinusAverage1D uses Arnold 3.3.11.0.dev
-00:00:00  215mb         | mtoa_shaders.dll: MayaPlusMinusAverage2D uses Arnold 3.3.11.0.dev
-00:00:00  215mb         | mtoa_shaders.dll: MayaPlusMinusAverage3D uses Arnold 3.3.11.0.dev
-00:00:00  215mb         | mtoa_shaders.dll: MayaRemapValueToValue uses Arnold 3.3.11.0.dev
-00:00:00  215mb         | mtoa_shaders.dll: MayaRemapValueToColor uses Arnold 3.3.11.0.dev
-00:00:00  215mb         | mtoa_shaders.dll: MayaRemapColor uses Arnold 3.3.11.0.dev
-00:00:00  215mb         | mtoa_shaders.dll: MayaFile uses Arnold 3.3.11.0.dev
-00:00:00  215mb         | mtoa_shaders.dll: MayaPlace2DTexture uses Arnold 3.3.11.0.dev
-00:00:00  215mb         | mtoa_shaders.dll: MayaRamp uses Arnold 3.3.11.0.dev
-00:00:00  215mb         | mtoa_shaders.dll: MayaProjection uses Arnold 3.3.11.0.dev
-00:00:00  215mb         | mtoa_shaders.dll: MeshInfo uses Arnold 3.3.11.0.dev
-00:00:00  215mb         | mtoa_shaders.dll: TangentToObjectSpace uses Arnold 3.3.11.0.dev
-00:00:00  215mb         | mtoa_shaders.dll: MayaChecker uses Arnold 3.3.11.0.dev
-00:00:00  215mb         | mtoa_shaders.dll: MayaBulge uses Arnold 3.3.11.0.dev
-00:00:00  215mb         | mtoa_shaders.dll: MayaCloth uses Arnold 3.3.11.0.dev
-00:00:00  215mb         | mtoa_shaders.dll: MayaGrid uses Arnold 3.3.11.0.dev
-00:00:00  215mb         | mtoa_shaders.dll: MayaFractal uses Arnold 3.3.11.0.dev
-00:00:00  215mb         | mtoa_shaders.dll: MayaNoise uses Arnold 3.3.11.0.dev
-00:00:00  215mb         | mtoa_shaders.dll: MayaPlace3DTexture uses Arnold 3.3.11.0.dev
-00:00:00  215mb         | mtoa_shaders.dll: MayaRgbToHsv uses Arnold 3.3.11.0.dev
-00:00:00  215mb         | mtoa_shaders.dll: MayaHsvToRgb uses Arnold 3.3.11.0.dev
-00:00:00  215mb         | mtoa_shaders.dll: MayaLuminance uses Arnold 3.3.11.0.dev
-00:00:00  215mb         | mtoa_shaders.dll: MayaCloud uses Arnold 3.3.11.0.dev
-00:00:00  215mb         | mtoa_shaders.dll: MayaCloudAlpha uses Arnold 3.3.11.0.dev
-00:00:00  215mb         | mtoa_shaders.dll: MayaSnow uses Arnold 3.3.11.0.dev
-00:00:00  215mb         | mtoa_shaders.dll: MayaContrast uses Arnold 3.3.11.0.dev
-00:00:00  215mb         | mtoa_shaders.dll: MayaLayeredTexture uses Arnold 3.3.11.0.dev
-00:00:00  216mb         | mtoa_shaders.dll: MayaLayeredShader uses Arnold 3.3.11.0.dev
-00:00:00  216mb         | mtoa_shaders.dll: MayaSolidFractal uses Arnold 3.3.11.0.dev
-00:00:00  216mb         | mtoa_shaders.dll: MayaVolumeNoise uses Arnold 3.3.11.0.dev
-00:00:00  216mb         | mtoa_shaders.dll: MayaBrownian uses Arnold 3.3.11.0.dev
-00:00:00  216mb         | mtoa_shaders.dll: MayaStucco uses Arnold 3.3.11.0.dev
-00:00:00  216mb         | mtoa_shaders.dll: MayaRemapHsv uses Arnold 3.3.11.0.dev
-00:00:00  216mb         | mtoa_shaders.dll: MayaSetRange uses Arnold 3.3.11.0.dev
-00:00:00  216mb         | mtoa_shaders.dll: MayaImagePlane uses Arnold 3.3.11.0.dev
-00:00:00  216mb         | mtoa_shaders.dll: MayaSurfaceShader uses Arnold 3.3.11.0.dev
-00:00:00  216mb         | mtoa_shaders.dll: colorToFloat uses Arnold 3.3.11.0.dev
-00:00:00  216mb         | loaded 45 plugins in 0:00.14
-00:00:00  216mb         | loading plugin: C:/solidAngle/mtoadeploy/2011/shaders/shave_shaders.dll ...
-00:00:00  216mb         | shave_shaders.dll: ShaveHair uses Arnold 3.3.11.0.dev
-00:00:00  216mb         | loaded 1 plugins in 0:00.00
-00:00:00  216mb         | [mtoa] Installed renderview_display driver
-00:00:00  216mb         | [mtoa] [maya aiOptions] Using translator <built-in>, provided by <built-in>(<built-in>).
-00:00:00  216mb         | COptionsTranslator <built-in>: CreateArnoldNodes on Maya node defaultArnoldRenderOptions(aiOptions) created arnold node 00000000227CF010: options(options).
-00:00:00  216mb         | [mtoa] [translator <built-in>] Exporting on node defaultArnoldRenderOptions and upstream.
-00:00:00  216mb         | COptionsTranslator <built-in>: Export on Maya node defaultArnoldRenderOptions(aiOptions), Arnold node 00000000227CF010: options(options).
-00:00:00  216mb         | [mtoa] Exporting frame 1.000000
-00:00:00  216mb         | [mtoa] Exporting dag node perspShape of type camera
-00:00:00  216mb         | [mtoa] [translator perspective] Exporting on node perspShape and upstream.
-00:00:00  216mb         | [mtoa] Exporting dag node topShape of type camera
-00:00:00  216mb         | [mtoa] [translator orthographic] Exporting on node topShape and upstream.
-00:00:00  216mb         | [mtoa] Exporting dag node frontShape of type camera
-00:00:00  216mb         | [mtoa] [translator orthographic] Exporting on node frontShape and upstream.
-00:00:00  216mb         | [mtoa] Exporting dag node sideShape of type camera
-00:00:00  216mb         | [mtoa] [translator orthographic] Exporting on node sideShape and upstream.
-00:00:00  216mb         | [mtoa] Exporting dag node groundPlane_transform of type transform
-00:00:00  216mb         | [mtoa] Dag node groundPlane_transform of type transform ignored
-00:00:00  216mb         | [mtoa] Exporting dag node groundPlane of type groundPlane
-00:00:00  216mb         | [mtoa] Dag node groundPlane of type groundPlane ignored
-00:00:00  216mb         | [mtoa] Exporting dag node pCube1 of type transform
-00:00:00  216mb         | [mtoa] Dag node pCube1 of type transform ignored
-00:00:00  216mb         | [mtoa] Exporting dag node pCubeShape1 of type mesh
-00:00:00  216mb         | [mtoa] [maya mesh] Using translator <built-in>, provided by <built-in>(<built-in>).
-00:00:00  216mb         | [mtoa] [translator <built-in>] Exporting on node pCubeShape1 and upstream.
-00:00:00  216mb         | [mtoa] [maya surfaceShader] Using translator mtoa_shaders, provided by mtoa_shaders(mtoa_shaders).
-00:00:00  216mb         | [mtoa] [translator mtoa_shaders] Exporting on node surfaceShader1 and upstream.
-00:00:00  216mb         | [mtoa] [maya projection] Using translator mtoa_shaders, provided by mtoa_shaders(C:/solidAngle/mtoadeploy/2011/shaders/mtoa_shaders.dll).
-00:00:00  216mb         | [mtoa] [translator mtoa_shaders] Exporting on plug projection1.outColor and upstream.
-00:00:00  216mb         | [mtoa] [maya file] Using translator mtoa_shaders, provided by mtoa_shaders(C:/solidAngle/mtoadeploy/2011/shaders/mtoa_shaders.dll).
-00:00:00  216mb         | [mtoa] [translator mtoa_shaders] Exporting on plug file1.outColor and upstream.
-00:00:00  216mb         | [mtoa] Exporting dag node place3dTexture1 of type place3dTexture
-00:00:00  216mb         | [mtoa] [maya place3dTexture] Using translator mtoa_shaders, provided by mtoa_shaders(mtoa_shaders).
-00:00:00  216mb         | [mtoa] Dag node place3dTexture1 of type place3dTexture ignored
-00:00:00  216mb         | [mtoa] Exporting dag node place3dTexture1 of type place3dTexture
-00:00:00  216mb         | [mtoa] [maya place3dTexture] Using translator mtoa_shaders, provided by mtoa_shaders(mtoa_shaders).
-00:00:00  216mb         | [mtoa] Dag node place3dTexture1 of type place3dTexture ignored
-00:00:00  216mb         | [mtoa] Exporting dag node perspShape of type camera
-00:00:00  216mb ERROR   | [mtoa] Unknown image render format 'tif'
-00:00:00  216mb         | CDriverTranslator tif: CreateArnoldNodes on Maya node defaultArnoldRenderOptions(aiOptions) created arnold node 00000000227CEF50: defaultArnoldRenderOptions_driver_tiff(driver_tiff).
-00:00:00  216mb         | [mtoa] Custom export of defaultArnoldRenderOptions(<driver>) as Arnold node defaultArnoldRenderOptions_driver_tiff(driver_tiff) using translator: tif.
-00:00:00  216mb         | [mtoa] [translator tif] Exporting on node defaultArnoldRenderOptions and upstream.
-00:00:00  216mb         | CDriverTranslator tif: Export on Maya node defaultArnoldRenderOptions(aiOptions), Arnold node defaultArnoldRenderOptions_driver_tiff(driver_tiff).
-00:00:00  216mb         | CDriverTranslator tif: Export on parameter filename
-00:00:00  216mb         | CDriverTranslator tif: Export on parameter compression
-00:00:00  216mb         | CDriverTranslator tif: Export on parameter format
-00:00:00  216mb         | CDriverTranslator tif: Export on parameter tiled
-00:00:00  216mb         | CDriverTranslator tif: Export on parameter output_padded
-00:00:00  216mb         | CDriverTranslator tif: Export on parameter gamma
-00:00:00  216mb         | CDriverTranslator tif: Export on parameter dither_amplitude
-00:00:00  216mb         | CDriverTranslator tif: Export on parameter unpremult_alpha
-00:00:00  216mb         | CDriverTranslator tif: Export on parameter name
-00:00:00  216mb         | [mtoa] Created driver driver_tiff(driver_tiff) with output filename 'D:/orenouard/Eclipse/Arnold/mtoa/build/windows_x86_64/2011/msvc_opt/testsuite/test_0033/testrender.tif'.
-00:00:00  216mb         | [mtoa] Creating default filter "gaussian"
-00:00:00  216mb         | CDriverTranslator gaussian: CreateArnoldNodes on Maya node defaultArnoldRenderOptions(aiOptions) created arnold node 00000000227CFF70: defaultArnoldRenderOptions_gaussian_filter(gaussian_filter).
-00:00:00  216mb         | [mtoa] Custom export of defaultArnoldRenderOptions(<filter>) as Arnold node defaultArnoldRenderOptions_gaussian_filter(gaussian_filter) using translator: gaussian.
-00:00:00  216mb         | [mtoa] [translator gaussian] Exporting on node defaultArnoldRenderOptions and upstream.
-00:00:00  216mb         | CDriverTranslator gaussian: Export on Maya node defaultArnoldRenderOptions(aiOptions), Arnold node defaultArnoldRenderOptions_gaussian_filter(gaussian_filter).
-00:00:00  216mb         | CDriverTranslator gaussian: Export on parameter width
-00:00:00  216mb         | CDriverTranslator gaussian: Export on parameter name
-00:00:00  216mb         |  
-00:00:00  216mb         | [rlm] connecting to license server on 5053@localhost ...
-00:00:00  217mb         | [rlm] checkout of arnold (version 303) OK
-00:00:00  217mb         |  
-00:00:00  217mb         | there are 0 lights and 1 object:
-00:00:00  217mb         |  1 polymesh
-00:00:00  217mb         |  
-00:00:00  217mb         | auto-detected 24 threads
-00:00:00  217mb         | rendering image at 160 x 120, 3 AA samples, 2 GI samples, 1 GI bounces
-00:00:00  217mb         |  initializing 14 nodes ...
-00:00:00  217mb         |  node initialization done in 0:00.00
-00:00:00  220mb         |  creating root object list ...
-00:00:00  220mb         |   scene bounds: (-0.5 -0.5 -0.5) -> (0.5 0.5 0.5)
-00:00:00  220mb         |  updating 14 nodes ...
-00:00:00  220mb         |  node update done in 0:00.00
-00:00:00  220mb         |  [aov] parsing output statement: "RGBA RGBA defaultArnoldRenderOptions_gaussian_filter driver_tiff"
-00:00:00  220mb         |  [aov] registered driver: "driver_tiff" (driver_tiff)
-00:00:00  220mb         |  [aov]  * "RGBA" of type RGBA filtered by "defaultArnoldRenderOptions_gaussian_filter" (gaussian_filter)
-00:00:00  221mb         |  [aov] done preparing 1 AOV for 1 output to 1 driver (0 deep AOVs)
-00:00:00  221mb         |  starting 24 bucket workers of size 64x64 ...
-00:00:00  226mb         |   [accel] bvh4 done - 0:00.00 - 6 prims, 1 key
-00:00:00  229mb         |     5% done - 9 rays/pixel
-00:00:00  229mb         |    20% done - 9 rays/pixel
-00:00:00  230mb         |    35% done - 9 rays/pixel
-00:00:00  230mb         |    60% done - 9 rays/pixel
-00:00:00  230mb         |    75% done - 9 rays/pixel
-00:00:00  230mb         |   100% done - 9 rays/pixel
-00:00:00  230mb         |  bucket workers done in 0:00.29
-00:00:00  230mb         | render done
-00:00:00  230mb         | [driver_tiff] writing file `D:/orenouard/Eclipse/Arnold/mtoa/build/windows_x86_64/2011/msvc_opt/testsuite/test_0033/testrender.tif'
-00:00:00  230mb         |  
-00:00:00  230mb         | -----------------------------------------------------------------------------------------
-00:00:00  230mb         | scene creation time:
-00:00:00  230mb         |  plugin loading               0:00.14
-00:00:00  230mb         |  system/unaccounted           0:00.49
-00:00:00  230mb         |  total                        0:00.49  ( 0.13% machine utilization)
-00:00:00  230mb         | -----------------------------------------------------------------------------------------
-00:00:00  230mb         | render time:
-00:00:00  230mb         |  node init                    0:00.00
-00:00:00  230mb         |  bucket rendering             0:00.29
-00:00:00  230mb         |   accel. building             0:00.00
-00:00:00  230mb         |   pixel rendering             0:00.29  (multi-threaded render, this value may not be reliable)
-00:00:00  230mb         |  system/unaccounted           0:00.29
-00:00:00  230mb         |  total                        0:00.33  (11.52% machine utilization)
-00:00:00  230mb         | -----------------------------------------------------------------------------------------
-00:00:00  230mb         | memory consumed in mb:
-00:00:00  230mb         |  at startup                    215.63
-00:00:00  230mb         |  AOV samples                    21.54
-00:00:00  230mb         |  output buffers                  1.57
-00:00:00  230mb         |  node overhead                   0.00
-00:00:00  230mb         |  message passing                 0.05
-00:00:00  230mb         |  memory pools                    9.28
-00:00:00  230mb         |  geometry                        0.00
-00:00:00  230mb         |    polymesh                      0.00
-00:00:00  230mb         |  accel. structs                  0.00
-00:00:00  230mb         |  string pool                     0.14 (903 unique strings, overhead 0.10 mb)
-00:00:00  230mb         |  texture cache                   1.33
-00:00:00  230mb         |  unaccounted                   -18.70
-00:00:00  230mb         |  total peak                    230.84
-00:00:00  230mb         | -----------------------------------------------------------------------------------------
-00:00:00  230mb         | ray counts:                           (/pixel , /sample) (% total) (avg. hits) (max hits)
-00:00:00  230mb         |  camera                        185256 (   9.00,    1.00) (100.00%) (     0.43) (       1)
-00:00:00  230mb         |  total                         185256 (   9.00,    1.00) (100.00%) (     0.43) (       1)
-00:00:00  230mb         |  max depth                          0
-00:00:00  230mb         | -----------------------------------------------------------------------------------------
-00:00:00  230mb         | shader calls:                         (/pixel , /sample) (% total)
-00:00:00  230mb         |  primary                        80304 (   3.90,    0.43) ( 33.33%)
-00:00:00  230mb         |  total                         240912 (  11.70,    1.30) (100.00%)
-00:00:00  230mb         | -----------------------------------------------------------------------------------------
-00:00:00  230mb         | geometry:                             (% hit ) (instances) (  init mem,  final mem)
-00:00:00  230mb         |  polymeshes                         1 (100.0%) (        0) (      0.00,       0.00)
-00:00:00  230mb         | -----------------------------------------------------------------------------------------
-00:00:00  230mb         | geometric elements:                   (      min) (       avg.) (      max)
-00:00:00  230mb         |  polygons                           3 (        3) (        3.0) (        3)
-00:00:00  230mb         | -----------------------------------------------------------------------------------------
-00:00:00  230mb         | triangle tesselation:                 (      min) (       avg.) (      max) (/ element) (% total)
-00:00:00  230mb         |  polymeshes                         6 (        6) (        6.0) (        6) (     2.00) (100.00%)
-00:00:00  230mb         |  unique triangles:                  6
-00:00:00  230mb         |  memory use (in mb)              0.00
-00:00:00  230mb         |    vertices                      0.00
-00:00:00  230mb         |    vertex indices                0.00
-00:00:00  230mb         |    triangulation                 0.00
-00:00:00  230mb         |    packed normals                0.00
-00:00:00  230mb         |    normal indices                0.00
-00:00:00  230mb         |    uv coords                     0.00
-00:00:00  230mb         |    uv coords idxs                0.00
-00:00:00  230mb         |    uniform indices               0.00
-00:00:00  230mb         | -----------------------------------------------------------------------------------------
-00:00:01  230mb         | acceleration structures:              (% total)
-00:00:01  230mb         |  bvh                                1 (100.00%)
-00:00:01  230mb         |  total                              1 (100.00%)
-00:00:01  230mb         | -----------------------------------------------------------------------------------------
-00:00:01  230mb         | OpenImageIO Texture statistics (00000000167227C0, cache = 000000002278D200)
-00:00:01  230mb         |   Queries/batches : 
-00:00:01  230mb         |     texture     :  80304 queries in 80304 batches
-00:00:01  230mb         |     texture 3d  :  0 queries in 0 batches
-00:00:01  230mb         |     shadow      :  0 queries in 0 batches
-00:00:01  230mb         |     environment :  0 queries in 0 batches
-00:00:01  230mb         |   Interpolations :
-00:00:01  230mb         |     closest  : 0
-00:00:01  230mb         |     bilinear : 288218
-00:00:01  230mb         |     bicubic  : 236
-00:00:01  230mb         |   Average anisotropy : 1.8
-00:00:01  230mb         |   Max anisotropy in the wild : 2.05
-00:00:01  230mb         | 
-00:00:01  230mb         | OpenImageIO ImageCache statistics (000000002278D200) ver 0.10.0
-00:00:01  230mb         |   Images : 1 unique
-00:00:01  230mb         |     ImageInputs : 1 created, 1 current, 1 peak
-00:00:01  230mb         |     Total size of all images referenced : 1.0 MB
-00:00:01  230mb         |     Read from disk : 1.4 MB
-00:00:01  230mb         |     File I/O time : 0.2s (0.0s average per thread)
-00:00:01  230mb         |     File open time only : 0.0s
-00:00:01  230mb         |   Tiles: 88 created, 85 current, 85 peak
-00:00:01  230mb         |     total tile requests : 652810
-00:00:01  230mb         |     micro-cache misses : 15684 (2.40254%)
-00:00:01  230mb         |     main cache misses : 34 (0.00520825%)
-00:00:01  230mb         |     Peak cache memory : 1.3 MB
-00:00:01  230mb         |   1 not tiled, 1 not MIP-mapped
-00:00:01  230mb         | -----------------------------------------------------------------------------------------
-00:00:01  230mb         |  
-00:00:01  230mb         | releasing resources
-00:00:01  221mb         |  unloading 2 plugins
-00:00:01  221mb         |   closing mtoa_shaders.dll ...
-00:00:01  220mb         |   closing shave_shaders.dll ...
-00:00:01  220mb         |  unloading plugins done
-00:00:01  220mb         | Arnold shutdown
-Scene D:\orenouard\Eclipse\Arnold\mtoa\build\windows_x86_64\2011\msvc_opt\testsuite\test_0033\test.ma completed.
+registering attribute template for <driver>
+registering attribute template for <driver>
+registering attribute template for <driver>
+registering attribute template for <driver>
+registering attribute template for <filter>
+registering attribute template for <filter>
+registering attribute template for <filter>
+registering attribute template for <filter>
+registering attribute template for <filter>
+registering attribute template for <filter>
+registering attribute template for <filter>
+registering attribute template for <filter>
+registering attribute template for <filter>
+registering attribute template for <filter>
+registering attribute template for <filter>
+registering attribute template for <filter>
+registering attribute template for <filter>
+registering attribute template for <filter>
+registering attribute template for <filter>
+registering attribute template for <filter>
+registering attribute template for <filter>
+Maya 2012 sourcing MEL override C:\solidAngle\mtoadeploy\2012\scripts\mtoa\2012\mel\buildShaderMenus.mel
+Maya 2012 sourcing MEL override C:\solidAngle\mtoadeploy\2012\scripts\mtoa\2012\mel\hyperShadePanel.mel
+Maya 2012 sourcing MEL override C:\solidAngle\mtoadeploy\2012\scripts\mtoa\2012\mel\renderCreateBarUI.mel
+00:00:01  208mb         | Successfully registered renderer 'arnold'
+00:00:01  208mb         |  
+00:00:01  208mb         | releasing resources
+00:00:01  208mb         | Arnold shutdown
+00:00:00  208mb         | log started Wed Nov 16 14:41:34 2011
+00:00:00  208mb         | Arnold 3.3.13.1 windows 64-bit icc110 oiio1000 sse (build date: Oct 25 2011 16:37:41)
+00:00:00  208mb         | running on borja-PC, 8 x 3292 mhz GenuineIntel with 8148 mb
+00:00:00  208mb         |  
+00:00:00  208mb         | loading plugin: C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll ...
+00:00:00  208mb         |  mtoa_shaders.dll: MayaMultiplyDivide uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaClamp uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaGammaCorrect uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaCondition uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaReverse uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaBlendColors uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaFacingRatio uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaFlippedNormal uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaPlusMinusAverage1D uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaPlusMinusAverage2D uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaPlusMinusAverage3D uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaRemapValueToValue uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaRemapValueToColor uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaRemapColor uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaFile uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaPlace2DTexture uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaRamp uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaProjection uses Arnold 3.3.13.1
+00:00:00  209mb         |  mtoa_shaders.dll: MeshInfo uses Arnold 3.3.13.1
+00:00:00  209mb         |  mtoa_shaders.dll: TangentToObjectSpace uses Arnold 3.3.13.1
+00:00:00  209mb         |  mtoa_shaders.dll: MayaChecker uses Arnold 3.3.13.1
+00:00:00  209mb         |  mtoa_shaders.dll: MayaBulge uses Arnold 3.3.13.1
+00:00:00  209mb         |  mtoa_shaders.dll: MayaCloth uses Arnold 3.3.13.1
+00:00:00  209mb         |  mtoa_shaders.dll: MayaGrid uses Arnold 3.3.13.1
+00:00:00  209mb         |  mtoa_shaders.dll: MayaFractal uses Arnold 3.3.13.1
+00:00:00  209mb         |  mtoa_shaders.dll: MayaNoise uses Arnold 3.3.13.1
+00:00:00  209mb         |  mtoa_shaders.dll: MayaPlace3DTexture uses Arnold 3.3.13.1
+00:00:00  209mb         |  mtoa_shaders.dll: MayaRgbToHsv uses Arnold 3.3.13.1
+00:00:00  209mb         |  mtoa_shaders.dll: MayaHsvToRgb uses Arnold 3.3.13.1
+00:00:00  209mb         |  mtoa_shaders.dll: MayaLuminance uses Arnold 3.3.13.1
+00:00:00  209mb         |  mtoa_shaders.dll: MayaCloud uses Arnold 3.3.13.1
+00:00:00  209mb         |  mtoa_shaders.dll: MayaCloudAlpha uses Arnold 3.3.13.1
+00:00:00  209mb         |  mtoa_shaders.dll: MayaSnow uses Arnold 3.3.13.1
+00:00:00  209mb         |  mtoa_shaders.dll: MayaContrast uses Arnold 3.3.13.1
+00:00:00  209mb         |  mtoa_shaders.dll: MayaLayeredTexture uses Arnold 3.3.13.1
+00:00:00  209mb         |  mtoa_shaders.dll: MayaLayeredShader uses Arnold 3.3.13.1
+00:00:00  209mb         |  mtoa_shaders.dll: MayaSolidFractal uses Arnold 3.3.13.1
+00:00:00  209mb         |  mtoa_shaders.dll: MayaVolumeNoise uses Arnold 3.3.13.1
+00:00:00  209mb         |  mtoa_shaders.dll: MayaBrownian uses Arnold 3.3.13.1
+00:00:00  209mb         |  mtoa_shaders.dll: MayaStucco uses Arnold 3.3.13.1
+00:00:00  209mb         |  mtoa_shaders.dll: MayaRemapHsv uses Arnold 3.3.13.1
+00:00:00  209mb         |  mtoa_shaders.dll: MayaSetRange uses Arnold 3.3.13.1
+00:00:00  209mb         |  mtoa_shaders.dll: MayaImagePlane uses Arnold 3.3.13.1
+00:00:00  209mb         |  mtoa_shaders.dll: MayaSurfaceShader uses Arnold 3.3.13.1
+00:00:00  209mb         |  mtoa_shaders.dll: colorToFloat uses Arnold 3.3.13.1
+00:00:00  209mb         |  mtoa_shaders.dll: vectorToFloat uses Arnold 3.3.13.1
+00:00:00  209mb         |  mtoa_shaders.dll: pointToFloat uses Arnold 3.3.13.1
+00:00:00  209mb         |  mtoa_shaders.dll: point2ToFloat uses Arnold 3.3.13.1
+00:00:00  209mb         |  mtoa_shaders.dll: writeColor uses Arnold 3.3.13.1
+00:00:00  209mb         |  mtoa_shaders.dll: writeFloat uses Arnold 3.3.13.1
+00:00:00  209mb         |  mtoa_shaders.dll: MayaEnvSphere uses Arnold 3.3.13.1
+00:00:00  209mb         |  mtoa_shaders.dll: anim_matrix uses Arnold 3.3.13.1
+00:00:00  209mb         | loaded 52 plugins from 1 lib(s) in 0:00.00
+00:00:00  209mb         | [METADATA] Loading metadata file: C:/solidAngle/mtoadeploy/2012/plug-ins/mtoa.mtd
+00:00:00  209mb         |  
+00:00:00  209mb         | releasing resources
+00:00:00  208mb         | Arnold shutdown
+mental ray for Maya 2012 
+mental ray: version 3.9.1.36, Feb  2 2011, revision 138829
+00:00:00  239mb         | log started Wed Nov 16 14:41:34 2011
+00:00:00  239mb         | Arnold 3.3.13.1 windows 64-bit icc110 oiio1000 sse (build date: Oct 25 2011 16:37:41)
+00:00:00  239mb         | running on borja-PC, 8 x 3292 mhz GenuineIntel with 8148 mb
+00:00:00  239mb         |  
+00:00:00  239mb         | loading plugin: C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll ...
+00:00:00  239mb         |  mtoa_shaders.dll: MayaMultiplyDivide uses Arnold 3.3.13.1
+00:00:00  239mb         |  mtoa_shaders.dll: MayaClamp uses Arnold 3.3.13.1
+00:00:00  239mb         |  mtoa_shaders.dll: MayaGammaCorrect uses Arnold 3.3.13.1
+00:00:00  239mb         |  mtoa_shaders.dll: MayaCondition uses Arnold 3.3.13.1
+00:00:00  240mb         |  mtoa_shaders.dll: MayaReverse uses Arnold 3.3.13.1
+00:00:00  240mb         |  mtoa_shaders.dll: MayaBlendColors uses Arnold 3.3.13.1
+00:00:00  240mb         |  mtoa_shaders.dll: MayaFacingRatio uses Arnold 3.3.13.1
+00:00:00  240mb         |  mtoa_shaders.dll: MayaFlippedNormal uses Arnold 3.3.13.1
+00:00:00  240mb         |  mtoa_shaders.dll: MayaPlusMinusAverage1D uses Arnold 3.3.13.1
+00:00:00  240mb         |  mtoa_shaders.dll: MayaPlusMinusAverage2D uses Arnold 3.3.13.1
+00:00:00  240mb         |  mtoa_shaders.dll: MayaPlusMinusAverage3D uses Arnold 3.3.13.1
+00:00:00  240mb         |  mtoa_shaders.dll: MayaRemapValueToValue uses Arnold 3.3.13.1
+00:00:00  240mb         |  mtoa_shaders.dll: MayaRemapValueToColor uses Arnold 3.3.13.1
+00:00:00  240mb         |  mtoa_shaders.dll: MayaRemapColor uses Arnold 3.3.13.1
+00:00:00  240mb         |  mtoa_shaders.dll: MayaFile uses Arnold 3.3.13.1
+00:00:00  240mb         |  mtoa_shaders.dll: MayaPlace2DTexture uses Arnold 3.3.13.1
+00:00:00  240mb         |  mtoa_shaders.dll: MayaRamp uses Arnold 3.3.13.1
+00:00:00  240mb         |  mtoa_shaders.dll: MayaProjection uses Arnold 3.3.13.1
+00:00:00  240mb         |  mtoa_shaders.dll: MeshInfo uses Arnold 3.3.13.1
+00:00:00  240mb         |  mtoa_shaders.dll: TangentToObjectSpace uses Arnold 3.3.13.1
+00:00:00  240mb         |  mtoa_shaders.dll: MayaChecker uses Arnold 3.3.13.1
+00:00:00  240mb         |  mtoa_shaders.dll: MayaBulge uses Arnold 3.3.13.1
+00:00:00  240mb         |  mtoa_shaders.dll: MayaCloth uses Arnold 3.3.13.1
+00:00:00  240mb         |  mtoa_shaders.dll: MayaGrid uses Arnold 3.3.13.1
+00:00:00  240mb         |  mtoa_shaders.dll: MayaFractal uses Arnold 3.3.13.1
+00:00:00  240mb         |  mtoa_shaders.dll: MayaNoise uses Arnold 3.3.13.1
+00:00:00  240mb         |  mtoa_shaders.dll: MayaPlace3DTexture uses Arnold 3.3.13.1
+00:00:00  240mb         |  mtoa_shaders.dll: MayaRgbToHsv uses Arnold 3.3.13.1
+00:00:00  240mb         |  mtoa_shaders.dll: MayaHsvToRgb uses Arnold 3.3.13.1
+00:00:00  240mb         |  mtoa_shaders.dll: MayaLuminance uses Arnold 3.3.13.1
+00:00:00  240mb         |  mtoa_shaders.dll: MayaCloud uses Arnold 3.3.13.1
+00:00:00  240mb         |  mtoa_shaders.dll: MayaCloudAlpha uses Arnold 3.3.13.1
+00:00:00  240mb         |  mtoa_shaders.dll: MayaSnow uses Arnold 3.3.13.1
+00:00:00  240mb         |  mtoa_shaders.dll: MayaContrast uses Arnold 3.3.13.1
+00:00:00  240mb         |  mtoa_shaders.dll: MayaLayeredTexture uses Arnold 3.3.13.1
+00:00:00  240mb         |  mtoa_shaders.dll: MayaLayeredShader uses Arnold 3.3.13.1
+00:00:00  240mb         |  mtoa_shaders.dll: MayaSolidFractal uses Arnold 3.3.13.1
+00:00:00  240mb         |  mtoa_shaders.dll: MayaVolumeNoise uses Arnold 3.3.13.1
+00:00:00  240mb         |  mtoa_shaders.dll: MayaBrownian uses Arnold 3.3.13.1
+00:00:00  240mb         |  mtoa_shaders.dll: MayaStucco uses Arnold 3.3.13.1
+00:00:00  240mb         |  mtoa_shaders.dll: MayaRemapHsv uses Arnold 3.3.13.1
+00:00:00  240mb         |  mtoa_shaders.dll: MayaSetRange uses Arnold 3.3.13.1
+00:00:00  240mb         |  mtoa_shaders.dll: MayaImagePlane uses Arnold 3.3.13.1
+00:00:00  240mb         |  mtoa_shaders.dll: MayaSurfaceShader uses Arnold 3.3.13.1
+00:00:00  240mb         |  mtoa_shaders.dll: colorToFloat uses Arnold 3.3.13.1
+00:00:00  240mb         |  mtoa_shaders.dll: vectorToFloat uses Arnold 3.3.13.1
+00:00:00  240mb         |  mtoa_shaders.dll: pointToFloat uses Arnold 3.3.13.1
+00:00:00  240mb         |  mtoa_shaders.dll: point2ToFloat uses Arnold 3.3.13.1
+00:00:00  240mb         |  mtoa_shaders.dll: writeColor uses Arnold 3.3.13.1
+00:00:00  240mb         |  mtoa_shaders.dll: writeFloat uses Arnold 3.3.13.1
+00:00:00  240mb         |  mtoa_shaders.dll: MayaEnvSphere uses Arnold 3.3.13.1
+00:00:00  240mb         |  mtoa_shaders.dll: anim_matrix uses Arnold 3.3.13.1
+00:00:00  240mb         | loaded 52 plugins from 1 lib(s) in 0:00.00
+00:00:00  240mb         | [METADATA] Loading metadata file: C:/solidAngle/mtoadeploy/2012/plug-ins/mtoa.mtd
+00:00:00  240mb         |  
+00:00:00  240mb         | releasing resources
+00:00:00  240mb         | Arnold shutdown
+File read in 0 seconds.
+Warning: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
+Result: C:/solidangle/mtoa/mtoa-main/build/windows_x86_64/2012/msvc_opt/testsuite/test_0033/test.ma
+00:00:00  248mb         | log started Wed Nov 16 14:41:35 2011
+00:00:00  248mb         | Arnold 3.3.13.1 windows 64-bit icc110 oiio1000 sse (build date: Oct 25 2011 16:37:41)
+00:00:00  248mb         | running on borja-PC, 8 x 3292 mhz GenuineIntel with 8148 mb
+00:00:00  248mb         |  
+00:00:00  248mb         | loading plugin: C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll ...
+00:00:00  248mb         |  mtoa_shaders.dll: MayaMultiplyDivide uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaClamp uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaGammaCorrect uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaCondition uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaReverse uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaBlendColors uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaFacingRatio uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaFlippedNormal uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaPlusMinusAverage1D uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaPlusMinusAverage2D uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaPlusMinusAverage3D uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaRemapValueToValue uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaRemapValueToColor uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaRemapColor uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaFile uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaPlace2DTexture uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaRamp uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaProjection uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MeshInfo uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: TangentToObjectSpace uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaChecker uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaBulge uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaCloth uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaGrid uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaFractal uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaNoise uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaPlace3DTexture uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaRgbToHsv uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaHsvToRgb uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaLuminance uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaCloud uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaCloudAlpha uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaSnow uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaContrast uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaLayeredTexture uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaLayeredShader uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaSolidFractal uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaVolumeNoise uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaBrownian uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaStucco uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaRemapHsv uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaSetRange uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaImagePlane uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaSurfaceShader uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: colorToFloat uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: vectorToFloat uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: pointToFloat uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: point2ToFloat uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: writeColor uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: writeFloat uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaEnvSphere uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: anim_matrix uses Arnold 3.3.13.1
+00:00:00  248mb         | loaded 52 plugins from 1 lib(s) in 0:00.00
+00:00:00  248mb         | [METADATA] Loading metadata file: C:/solidAngle/mtoadeploy/2012/plug-ins/mtoa.mtd
+00:00:00  248mb         |  
+00:00:00  248mb         | releasing resources
+00:00:00  248mb         | Arnold shutdown
+00:00:00  248mb         | log started Wed Nov 16 14:41:35 2011
+00:00:00  248mb         | Arnold 3.3.13.1 windows 64-bit icc110 oiio1000 sse (build date: Oct 25 2011 16:37:41)
+00:00:00  248mb         | running on borja-PC, 8 x 3292 mhz GenuineIntel with 8148 mb
+00:00:00  248mb         |  
+00:00:00  248mb         | loading plugin: C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll ...
+00:00:00  248mb         |  mtoa_shaders.dll: MayaMultiplyDivide uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaClamp uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaGammaCorrect uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaCondition uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaReverse uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaBlendColors uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaFacingRatio uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaFlippedNormal uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaPlusMinusAverage1D uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaPlusMinusAverage2D uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaPlusMinusAverage3D uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaRemapValueToValue uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaRemapValueToColor uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaRemapColor uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaFile uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaPlace2DTexture uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaRamp uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaProjection uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MeshInfo uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: TangentToObjectSpace uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaChecker uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaBulge uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaCloth uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaGrid uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaFractal uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaNoise uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaPlace3DTexture uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaRgbToHsv uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaHsvToRgb uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaLuminance uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaCloud uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaCloudAlpha uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaSnow uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaContrast uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaLayeredTexture uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaLayeredShader uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaSolidFractal uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaVolumeNoise uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaBrownian uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaStucco uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaRemapHsv uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaSetRange uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaImagePlane uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaSurfaceShader uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: colorToFloat uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: vectorToFloat uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: pointToFloat uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: point2ToFloat uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: writeColor uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: writeFloat uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: MayaEnvSphere uses Arnold 3.3.13.1
+00:00:00  248mb         |  mtoa_shaders.dll: anim_matrix uses Arnold 3.3.13.1
+00:00:00  248mb         | loaded 52 plugins from 1 lib(s) in 0:00.00
+00:00:00  248mb         | [METADATA] Loading metadata file: C:/solidAngle/mtoadeploy/2012/plug-ins/mtoa.mtd
+00:00:00  248mb         | [mtoa] Exporting scene
+00:00:00  248mb         | [mtoa] Exporting Arnold options 'defaultArnoldRenderOptions'
+00:00:00  248mb         | [mtoa] [maya aiOptions] Using translator <built-in>, provided by <built-in>(<built-in>).
+00:00:00  248mb         | COptionsTranslator <built-in>: CreateArnoldNodes on Maya node defaultArnoldRenderOptions(aiOptions) created arnold node 0000000020F51230: options(options).
+00:00:00  248mb         | [mtoa] [translator <built-in>] Exporting on plug defaultArnoldRenderOptions.message and upstream.
+00:00:00  248mb         | COptionsTranslator <built-in>: Export on Maya node defaultArnoldRenderOptions(aiOptions), Arnold node 0000000020F51230: options(options).
+00:00:00  248mb         | exporting filter "gaussian"
+00:00:00  248mb         | CDriverTranslator gaussian: CreateArnoldNodes on Maya node defaultArnoldRenderOptions(aiOptions) created arnold node 0000000020F51470: defaultArnoldRenderOptions_gaussian_filter(gaussian_filter).
+00:00:00  248mb         | [mtoa] Custom export of defaultArnoldRenderOptions(<filter>) as Arnold node defaultArnoldRenderOptions_gaussian_filter(gaussian_filter) using translator: gaussian.
+00:00:00  248mb         | [mtoa] [translator gaussian] Exporting on node defaultArnoldRenderOptions and upstream.
+00:00:00  248mb         | CDriverTranslator gaussian: Export on Maya node defaultArnoldRenderOptions(aiOptions), Arnold node defaultArnoldRenderOptions_gaussian_filter(gaussian_filter).
+00:00:00  248mb         | CDriverTranslator gaussian: Export on parameter width
+00:00:00  248mb         | CDriverTranslator gaussian: Export on parameter name
+00:00:00  248mb         | [mtoa] [aovs] disabled
+00:00:00  248mb         | CDriverTranslator tif: CreateArnoldNodes on Maya node defaultArnoldRenderOptions(aiOptions) created arnold node 0000000020F51650: defaultArnoldRenderOptions_driver_tiff(driver_tiff).
+00:00:00  248mb         | [mtoa] Custom export of defaultArnoldRenderOptions(<driver>) as Arnold node defaultArnoldRenderOptions_driver_tiff(driver_tiff) using translator: tif.
+00:00:00  248mb         | [mtoa] [translator tif] Exporting on node defaultArnoldRenderOptions and upstream.
+00:00:00  248mb         | CDriverTranslator tif: Export on Maya node defaultArnoldRenderOptions(aiOptions), Arnold node defaultArnoldRenderOptions_driver_tiff(driver_tiff).
+00:00:00  248mb         | CDriverTranslator tif: Export on parameter filename
+00:00:00  248mb         | CDriverTranslator tif: Export on parameter compression
+00:00:00  248mb         | CDriverTranslator tif: Export on parameter format
+00:00:00  248mb         | CDriverTranslator tif: Export on parameter tiled
+00:00:00  248mb         | CDriverTranslator tif: Export on parameter output_padded
+00:00:00  248mb         | CDriverTranslator tif: Export on parameter gamma
+00:00:00  248mb         | CDriverTranslator tif: Export on parameter dither_amplitude
+00:00:00  248mb         | CDriverTranslator tif: Export on parameter unpremult_alpha
+00:00:00  248mb         | CDriverTranslator tif: Export on parameter name
+00:00:00  248mb         | [mtoa] Exporting frame 1.000000
+00:00:00  248mb         | [mtoa] Exporting dag node perspShape of type camera
+00:00:00  248mb         | [mtoa] [translator perspective] Exporting on node perspShape and upstream.
+00:00:00  248mb         | [mtoa] Exporting dag node topShape of type camera
+00:00:00  248mb         | [mtoa] [translator orthographic] Exporting on node topShape and upstream.
+00:00:00  248mb         | [mtoa] Exporting dag node frontShape of type camera
+00:00:00  248mb         | [mtoa] [translator orthographic] Exporting on node frontShape and upstream.
+00:00:00  248mb         | [mtoa] Exporting dag node sideShape of type camera
+00:00:00  248mb         | [mtoa] [translator orthographic] Exporting on node sideShape and upstream.
+00:00:00  248mb         | [mtoa] Exporting dag node groundPlane_transform of type transform
+00:00:00  248mb         | [mtoa] Dag node groundPlane_transform of type transform ignored
+00:00:00  248mb         | [mtoa] Exporting dag node groundPlane of type groundPlane
+00:00:00  248mb         | [mtoa] Dag node groundPlane of type groundPlane ignored
+00:00:00  248mb         | [mtoa] Exporting dag node pCube1 of type transform
+00:00:00  248mb         | [mtoa] Dag node pCube1 of type transform ignored
+00:00:00  248mb         | [mtoa] Exporting dag node pCubeShape1 of type mesh
+00:00:00  248mb         | [mtoa] [maya mesh] Using translator <built-in>, provided by <built-in>(<built-in>).
+00:00:00  248mb         | [mtoa] [translator <built-in>] Exporting on node pCubeShape1 and upstream.
+00:00:00  249mb         | [mtoa] [maya surfaceShader] Using translator mtoa_shaders, provided by mtoa_shaders(mtoa_shaders).
+00:00:00  249mb         | [mtoa] [translator mtoa_shaders] Exporting on plug surfaceShader1.outColor and upstream.
+00:00:00  249mb         | [mtoa] [maya projection] Using translator mtoa_shaders, provided by mtoa_shaders(C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll).
+00:00:00  249mb         | [mtoa] [translator mtoa_shaders] Exporting on plug projection1.outColor and upstream.
+00:00:00  249mb         | [mtoa] [maya file] Using translator mtoa_shaders, provided by mtoa_shaders(C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll).
+00:00:00  249mb         | [mtoa] [translator mtoa_shaders] Exporting on plug file1.outColor and upstream.
+00:00:00  249mb         | [mtoa] Exporting dag node place3dTexture1 of type place3dTexture
+00:00:00  249mb         | [mtoa] Dag node place3dTexture1 of type place3dTexture ignored
+00:00:00  249mb         | [mtoa] Exporting dag node place3dTexture1 of type place3dTexture
+00:00:00  249mb         | [mtoa] Dag node place3dTexture1 of type place3dTexture ignored
+00:00:00  249mb         | [mtoa.session] Setting export camera to "perspShape"
+00:00:00  249mb         | [mtoa] [translator <built-in>] CNodeTranslator::DoUpdate step 0, node 0000000020F51230
+00:00:00  249mb         | [mtoa] [translator <built-in>] Updating Arnold options(options) translated from Maya defaultArnoldRenderOptions(aiOptions): 0000000020F51230
+00:00:00  249mb         | [mtoa] Exporting dag node perspShape of type camera
+00:00:00  249mb         |  
+00:00:00  249mb         | [rlm] connecting to license server on 5053@localhost ...
+00:00:00  249mb         | [rlm] checkout of arnold (version 303) OK
+00:00:00  250mb         |  
+00:00:00  250mb         | there are 0 lights and 1 object:
+00:00:00  250mb         |  1 polymesh
+00:00:00  250mb         |  
+00:00:00  250mb         | auto-detected 8 threads
+00:00:00  250mb         | rendering image at 160 x 120, 3 AA samples, 2 GI samples, 1 GI bounces
+00:00:00  250mb         |  initializing 14 nodes ...
+00:00:00  250mb         |  node initialization done in 0:00.00
+00:00:00  253mb         |  creating root object list ...
+00:00:00  253mb         |   scene bounds: (-0.5 -0.5 -0.5) -> (0.5 0.5 0.5)
+00:00:00  253mb         |  updating 14 nodes ...
+00:00:00  253mb         |  node update done in 0:00.00
+00:00:00  253mb         |  [aov] parsing output statement: "RGBA RGBA gaussian_filter driver_tiff"
+00:00:00  253mb         |  [aov] registered driver: "driver_tiff" (driver_tiff)
+00:00:00  253mb         |  [aov]  * "RGBA" of type RGBA filtered by "gaussian_filter" (gaussian_filter)
+00:00:00  253mb         |  [aov] done preparing 1 AOV for 1 output to 1 driver (0 deep AOVs)
+00:00:00  253mb         |  starting 8 bucket workers of size 64x64 ...
+00:00:00  256mb         |   [accel] bvh4 done - 0:00.00 - 6 prims, 1 key
+00:00:00  261mb         |     5% done - 9 rays/pixel
+00:00:00  261mb         |    20% done - 9 rays/pixel
+00:00:00  262mb         |    35% done - 9 rays/pixel
+00:00:00  262mb         |    60% done - 9 rays/pixel
+00:00:00  262mb         |    75% done - 9 rays/pixel
+00:00:00  263mb         |   100% done - 9 rays/pixel
+00:00:00  262mb         |  bucket workers done in 0:00.23
+00:00:00  262mb         | render done
+00:00:00  262mb         | [driver_tiff] writing file `C:/solidangle/mtoa/mtoa-main/build/windows_x86_64/2012/msvc_opt/testsuite/test_0033/testrender.tif'
+00:00:00  263mb         |  
+00:00:00  263mb         | -----------------------------------------------------------------------------------------
+00:00:00  263mb         | scene creation time:
+00:00:00  263mb         |  plugin loading               0:00.00
+00:00:00  263mb         |  system/unaccounted           0:00.02
+00:00:00  263mb         |  total                        0:00.02  ( 7.14% machine utilization)
+00:00:00  263mb         | -----------------------------------------------------------------------------------------
+00:00:00  263mb         | render time:
+00:00:00  263mb         |  node init                    0:00.00
+00:00:00  263mb         |  bucket rendering             0:00.23
+00:00:00  263mb         |   accel. building             0:00.00
+00:00:00  263mb         |   pixel rendering             0:00.23  (multi-threaded render, this value may not be reliable)
+00:00:00  263mb         |  system/unaccounted           0:00.15
+00:00:00  263mb         |  total                        0:00.23  (35.88% machine utilization)
+00:00:00  263mb         | -----------------------------------------------------------------------------------------
+00:00:00  263mb         | memory consumed in mb:
+00:00:00  263mb         |  at startup                    248.48
+00:00:00  263mb         |  plugins                         0.12
+00:00:00  263mb         |  AOV samples                     7.18
+00:00:00  263mb         |  output buffers                  0.57
+00:00:00  263mb         |  node overhead                   0.00
+00:00:00  263mb         |  message passing                 0.02
+00:00:00  263mb         |  memory pools                    9.28
+00:00:00  263mb         |  geometry                        0.00
+00:00:00  263mb         |    polymesh                      0.00
+00:00:00  263mb         |  accel. structs                  0.00
+00:00:00  263mb         |  string pool                     0.14 (922 unique strings, overhead 0.10 mb)
+00:00:00  263mb         |  texture cache                   1.33
+00:00:00  263mb         |  unaccounted                    -4.10
+00:00:00  263mb         |  total peak                    263.02
+00:00:00  263mb         | -----------------------------------------------------------------------------------------
+00:00:00  263mb         | ray counts:                           (/pixel , /sample) (% total) (avg. hits) (max hits)
+00:00:00  263mb         |  camera                        185256 (   9.00,    1.00) (100.00%) (     0.43) (       1)
+00:00:00  263mb         |  total                         185256 (   9.00,    1.00) (100.00%) (     0.43) (       1)
+00:00:00  263mb         |  max depth                          0
+00:00:00  263mb         | -----------------------------------------------------------------------------------------
+00:00:00  263mb         | shader calls:                         (/pixel , /sample) (% total)
+00:00:00  263mb         |  primary                        80304 (   3.90,    0.43) ( 33.33%)
+00:00:00  263mb         |  total                         240912 (  11.70,    1.30) (100.00%)
+00:00:00  263mb         | -----------------------------------------------------------------------------------------
+00:00:00  263mb         | geometry:                             (% hit ) (instances) (  init mem,  final mem)
+00:00:00  263mb         |  polymeshes                         1 (100.0%) (        0) (      0.00,       0.00)
+00:00:00  263mb         | -----------------------------------------------------------------------------------------
+00:00:00  263mb         | geometric elements:                   (      min) (       avg.) (      max)
+00:00:00  263mb         |  polygons                           3 (        3) (        3.0) (        3)
+00:00:00  263mb         | -----------------------------------------------------------------------------------------
+00:00:00  263mb         | triangle tesselation:                 (      min) (       avg.) (      max) (/ element) (% total)
+00:00:00  263mb         |  polymeshes                         6 (        6) (        6.0) (        6) (     2.00) (100.00%)
+00:00:00  263mb         |  unique triangles:                  6
+00:00:00  263mb         |  memory use (in mb)              0.00
+00:00:00  263mb         |    vertices                      0.00
+00:00:00  263mb         |    vertex indices                0.00
+00:00:00  263mb         |    triangulation                 0.00
+00:00:00  263mb         |    packed normals                0.00
+00:00:00  263mb         |    normal indices                0.00
+00:00:00  263mb         |    uv coords                     0.00
+00:00:00  263mb         |    uv coords idxs                0.00
+00:00:00  263mb         |    uniform indices               0.00
+00:00:00  263mb         |  largest polymeshes by triangle count:
+00:00:00  263mb         |            6 tris -- pCubeShape1
+00:00:00  263mb         | -----------------------------------------------------------------------------------------
+00:00:00  263mb         | acceleration structures:              (% total)
+00:00:00  263mb         |  bvh                                1 (100.00%)
+00:00:00  263mb         |  total                              1 (100.00%)
+00:00:00  263mb         | -----------------------------------------------------------------------------------------
+00:00:00  263mb         | OpenImageIO Texture statistics (0000000020F1D1F0, cache = 0000000021159D20)
+00:00:00  263mb         |   Queries/batches : 
+00:00:00  263mb         |     texture     :  80304 queries in 80304 batches
+00:00:00  263mb         |     texture 3d  :  0 queries in 0 batches
+00:00:00  263mb         |     shadow      :  0 queries in 0 batches
+00:00:00  263mb         |     environment :  0 queries in 0 batches
+00:00:00  263mb         |   Interpolations :
+00:00:00  263mb         |     closest  : 0
+00:00:00  263mb         |     bilinear : 288218
+00:00:00  263mb         |     bicubic  : 236
+00:00:00  263mb         |   Average anisotropy : 1.8
+00:00:00  263mb         |   Max anisotropy in the wild : 2.05
+00:00:00  263mb         | 
+00:00:00  263mb         | OpenImageIO ImageCache statistics (0000000021159D20) ver 0.10.0
+00:00:00  263mb         |   Images : 1 unique
+00:00:00  263mb         |     ImageInputs : 1 created, 1 current, 1 peak
+00:00:00  263mb         |     Total size of all images referenced : 1.0 MB
+00:00:00  263mb         |     Read from disk : 1.0 MB
+00:00:00  263mb         |     File I/O time : 0.1s (0.0s average per thread)
+00:00:00  263mb         |     File open time only : 0.0s
+00:00:00  263mb         |   Tiles: 85 created, 85 current, 85 peak
+00:00:00  263mb         |     total tile requests : 652810
+00:00:00  263mb         |     micro-cache misses : 15684 (2.40254%)
+00:00:00  263mb         |     main cache misses : 29 (0.00444233%)
+00:00:00  263mb         |     Peak cache memory : 1.3 MB
+00:00:00  263mb         |   1 not tiled, 1 not MIP-mapped
+00:00:00  263mb         | -----------------------------------------------------------------------------------------
+00:00:00  263mb         |  
+00:00:00  263mb         | releasing resources
+00:00:00  253mb         |  unloading 1 plugin
+00:00:00  253mb         |   closing mtoa_shaders.dll ...
+00:00:00  253mb         |  unloading plugins done
+00:00:00  253mb         | Arnold shutdown
+Scene C:\solidangle\mtoa\mtoa-main\build\windows_x86_64\2012\msvc_opt\testsuite\test_0033\test.ma completed.
