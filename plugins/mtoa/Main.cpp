@@ -298,6 +298,16 @@ namespace // <anonymous>
          shaders->RegisterTranslator("ramp",
                                      "",
                                      CRampTranslator::creator);
+
+         shaders->RegisterTranslator("animCurveTA",
+                                     "",
+                                     CAnimCurveTranslator::creator);
+         shaders->RegisterTranslator("animCurveTL",
+                                     "",
+                                     CAnimCurveTranslator::creator);
+         shaders->RegisterTranslator("animCurveTU",
+                                     "",
+                                     CAnimCurveTranslator::creator);
       }
 
       // Will load all found plugins and try to register nodes and translators

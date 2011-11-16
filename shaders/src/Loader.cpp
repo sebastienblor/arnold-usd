@@ -55,6 +55,10 @@ extern AtNodeMethods* Point2ToFloatMtd;
 extern AtNodeMethods* WriteColorMtd;
 extern AtNodeMethods* WriteFloatMtd;
 extern AtNodeMethods* AnimMatrixMtd;
+extern AtNodeMethods* AnimFloatMtd;
+extern AtNodeMethods* AnimPointMtd;
+extern AtNodeMethods* AnimVectorMtd;
+extern AtNodeMethods* AnimColorMtd;
 
 node_loader
 {
@@ -421,6 +425,34 @@ node_loader
       node->methods     = AnimMatrixMtd;
       node->output_type = AI_TYPE_MATRIX;
       node->name        = "anim_matrix";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+
+   case 52:
+      node->methods     = AnimFloatMtd;
+      node->output_type = AI_TYPE_FLOAT;
+      node->name        = "anim_float";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+
+   case 53:
+      node->methods     = AnimPointMtd;
+      node->output_type = AI_TYPE_POINT;
+      node->name        = "anim_point";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+
+   case 54:
+      node->methods     = AnimVectorMtd;
+      node->output_type = AI_TYPE_VECTOR;
+      node->name        = "anim_vector";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+
+   case 55:
+      node->methods     = AnimColorMtd;
+      node->output_type = AI_TYPE_RGBA;
+      node->name        = "anim_color";
       node->node_type   = AI_NODE_SHADER;
       break;
 
