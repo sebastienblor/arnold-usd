@@ -216,7 +216,9 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    MRenderUtil::getCommonRenderSettings(renderGlobals);
 
    // Just incase we're rendering with IPR.
-   MGlobal::executeCommand("stopIprRendering renderView;");
+   MStringArray panelName;
+   MGlobal::executeCommand("getPanel -scriptType renderWindowPanel", panelName);
+   MGlobal::executeCommand("stopIprRendering " + panelName[0]);
    CMayaScene::End();
    // Cannot export while a render is active
    if (AiUniverseIsActive())

@@ -202,6 +202,8 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
       // Format a bit of info for the renderview.
       const AtUInt64 mem_used(CMayaScene::GetRenderSession()->GetUsedMemory());
 
+      MStringArray panelName;
+      MGlobal::executeCommand("getPanel -scriptType renderWindowPanel", panelName);
       MString rvInfo("renderWindowEditor -edit -pcaption (\"    (Arnold Renderer)\\n");
       rvInfo += "Memory: ";
       rvInfo += (unsigned int)mem_used;
@@ -223,7 +225,7 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
 
       rvInfo += "    Camera: ";
       rvInfo += CMayaScene::GetRenderSession()->RenderOptions()->GetCameraName();
-      rvInfo += "\") renderView;";
+      rvInfo += "\") " + panelName[0];
 
       MGlobal::executeCommandOnIdle(rvInfo, false);
    }
