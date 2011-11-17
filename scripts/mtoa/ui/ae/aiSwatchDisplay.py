@@ -58,7 +58,7 @@ def aiSwatchDisplayReplace(plugName) :
                       edit=True,
                       shadingNode=node,
                       annotation='Refresh Swatch',
-                      pressCommand='updateFileNodeSwatch("%s")' % node) 
+                      pressCommand=lambda *args: mel.eval("updateFileNodeSwatch "+node)) 
     cmds.popupMenu('swatchPopup', edit=True, button=3)
     cmds.menuItem( 'swatchSmall', edit=True,
                    command=lambda *args: cmds.swatchDisplayPort('swatchDisplay', edit=True, wh=(64, 64), rs=64))
