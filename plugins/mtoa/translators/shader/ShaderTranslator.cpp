@@ -80,7 +80,7 @@ bool CShaderTranslator::ResolveOutputPlug(const MPlug& outputPlug, MPlug &resolv
       }
    }
    // proper outputs are readable and not writable, but we should only check for those nodes created by mtoa
-   else if (!fnAttr.isReadable() || fnAttr.isWritable() &&
+   else if ((!fnAttr.isReadable() || fnAttr.isWritable()) &&
          CExtensionsManager::IsRegisteredMayaNode(MFnDependencyNode(outputPlug.node()).typeName()))
    {
       return false;
