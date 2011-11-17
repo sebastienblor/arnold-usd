@@ -83,7 +83,7 @@ private:
 
    CSessionOptions() :  m_mode(MTOA_SESSION_UNDEFINED),
                         m_lightlink(MTOA_LIGHTLINK_NONE),
-                        m_shadowlink(MTOA_SHADOWLINK_LIGHT),
+                        m_shadowlink(MTOA_SHADOWLINK_NONE),
                         m_frame(0.0f),
                         m_options(MObject()),
                         m_camera(MDagPath()),

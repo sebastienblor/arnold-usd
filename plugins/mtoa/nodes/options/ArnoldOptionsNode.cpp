@@ -265,6 +265,7 @@ MStatus CArnoldOptionsNode::initialize()
       eAttr.setKeyable(false);
       eAttr.addField("None", MTOA_LIGHTLINK_NONE);
       eAttr.addField("Maya Light Links", MTOA_LIGHTLINK_MAYA);
+      eAttr.setDefault(MTOA_LIGHTLINK_MAYA);
       addAttribute(s_light_linking);
 
    s_shadow_linking = eAttr.create("shadowLinking", "slnk", 0);
@@ -272,6 +273,7 @@ MStatus CArnoldOptionsNode::initialize()
       eAttr.addField("None", MTOA_SHADOWLINK_NONE);
       eAttr.addField("Follows Light Linking", MTOA_SHADOWLINK_LIGHT);
       eAttr.addField("Maya Shadow Links", MTOA_SHADOWLINK_MAYA);
+      eAttr.setDefault(MTOA_SHADOWLINK_LIGHT);
       addAttribute(s_shadow_linking);
 
    s_motion_blur_enable = nAttr.create("motion_blur_enable", "mb_en", MFnNumericData::kBoolean, 0);
