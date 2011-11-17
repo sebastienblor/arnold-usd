@@ -85,6 +85,8 @@ public:
 
    static MObject s_displayAOV;
 
+   static MObject s_enable_swatch_render;
+   
 };  // class CArnoldOptionsNode
 
 #endif // ARNOLDOPTIONSNODE_H

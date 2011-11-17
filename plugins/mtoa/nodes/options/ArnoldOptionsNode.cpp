@@ -63,6 +63,7 @@ MObject CArnoldOptionsNode::s_log_file_verbosity;
 MObject CArnoldOptionsNode::s_background;
 MObject CArnoldOptionsNode::s_atmosphere;
 MObject CArnoldOptionsNode::s_displayAOV;
+MObject CArnoldOptionsNode::s_enable_swatch_render;
 
 CStaticAttrHelper CArnoldOptionsNode::s_attributes(CArnoldOptionsNode::addAttribute);
 
@@ -400,6 +401,10 @@ MStatus CArnoldOptionsNode::initialize()
    addAttribute(s_displayAOV);
 
    s_attributes.MakeInput("binary_ass");
+   
+   s_enable_swatch_render = nAttr.create("enable_swatch_render", "ensr", MFnNumericData::kBoolean, 1);
+   nAttr.setKeyable(false);
+   addAttribute(s_enable_swatch_render);
 
    return MS::kSuccess;
 }

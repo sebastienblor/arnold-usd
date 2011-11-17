@@ -233,7 +233,11 @@ def createArnoldRenderSettings():
     pm.attrControlGrp('os_skip_license_check',
                    label="Skip License Check",
                    attribute='defaultArnoldRenderOptions.skip_license_check')
-
+                   
+    pm.attrControlGrp('os_enable_swatch_render',
+                   label="Enable Swatch Render",
+                   attribute='defaultArnoldRenderOptions.enable_swatch_render')
+             
     pm.separator()
 
     pm.attrControlGrp('os_plugins_path',
