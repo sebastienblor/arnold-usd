@@ -1,0 +1,5 @@
+Support for light linking
+
+Uses Maya light linking, shadow linking obeys light linking. Trac #76.
+
+author: olivier.renouard
