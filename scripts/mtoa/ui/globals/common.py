@@ -66,10 +66,11 @@ def getMultiCameraChildren(camera):
     if pm.pluginInfo("stereoCamera", query=True, loaded=True):
         import maya.app.stereo.stereoCameraRig as stereoCameraRig
         if stereoCameraRig.isRigRoot(str(camera)):
-            result = camera.leftCam.get()
+            # camera.leftCam.get() does not work on Maya2011
+            result = camera.leftCam.inputs()[0]
             if result:
                 cameras.append(result)
-                result = camera.rightCam.get()
+                result = camera.rightCam.inputs()[0]
                 if result:
                     cameras.append(result)
     return cameras
@@ -694,7 +695,8 @@ def arnoldChangedCamera(camera, cameraMode, menu):
 
 def setArnoldCheckboxFromAttr(camera, chkbox, attr):
     if pm.hasAttr(camera, 'stereoRigType'):
-        camera = camera.leftCam.get()
+        # camera.leftCam.get() does not work on Maya2011
+        camera = camera.leftCam.inputs()[0]
     val = camera.attr(attr).get()
     pm.checkBoxGrp(chkbox, e=True, value1=val)
 
@@ -738,8 +740,9 @@ def updateArnoldCameraControl(*args):
     if rigs:
         for rig in rigs:
             nonRenderableCameras.append(MENU_SEPARATOR)
-            lCam = rig.leftCam.get().getShape()
-            rCam = rig.rightCam.get().getShape()
+            # rig.leftCam.get() does not work in Maya2011
+            lCam = rig.leftCam.inputs()[0].getShape()
+            rCam = rig.rightCam.inputs()[0].getShape()
             cameras = rig.listRelatives(type="camera", allDescendents=True)
             # Add an entry for the rig pair if at least one cam is not
             # renderable. Use the + character to mark it.
