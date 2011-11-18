@@ -1,4 +1,4 @@
-#ifndef ARNOLDOPTIONSNODE_H
+﻿#ifndef ARNOLDOPTIONSNODE_H
 #define ARNOLDOPTIONSNODE_H
 
 #include "attributes/AttrHelper.h"
@@ -56,6 +56,9 @@ public:
    static MObject s_light_gamma;
    static MObject s_shader_gamma;
    static MObject s_texture_gamma;
+
+   static MObject s_light_linking;
+   static MObject s_shadow_linking;
 
    static MObject s_motion_blur_enable;
    static MObject s_mb_camera_enable;

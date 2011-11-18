@@ -86,30 +86,33 @@ MStatus CMayaScene::Begin(ArnoldSessionMode mode)
       AiMsgError("[mtoa] could not find defaultArnoldRenderOptions");
    }
 
+   // FIXME: why do we have a double storage for the render options node?
    CSessionOptions sessionOptions;
+   sessionOptions.SetArnoldRenderOptions(ArnoldRenderOptionsNode);
    sessionOptions.SetSessionMode(mode);
    sessionOptions.SetExportFrame(MAnimControl::currentTime().as(MTime::uiUnit()));
-   sessionOptions.SetArnoldRenderOptions(ArnoldRenderOptionsNode);
 
-   // FIXME: why do we have a double storage for the render options node?
    CRenderOptions renderOptions;
    renderOptions.SetArnoldRenderOptions(ArnoldRenderOptionsNode);
+
    if (mode == MTOA_SESSION_SWATCH)
    {
       // FIXME: default or use swatch defaults
       //renderOptions.SetBatch(false);
       renderOptions.SetProgressive(false);
-      //FIXME: fill renderOptions instead
+      //FIXME: renderOptions.SetupLog() should do this for given mode
       MtoaSetupSwatchLogging();
    }
    else if (mode == MTOA_SESSION_ASS)
    {
+      sessionOptions.GetFromMaya();
       renderOptions.GetFromMaya();
       //renderOptions.SetBatch(true);
       renderOptions.SetupLog();
    }
    else if (mode == MTOA_SESSION_IPR)
    {
+      sessionOptions.GetFromMaya();
       renderOptions.GetFromMaya();
       //renderOptions.SetBatch(false);
       renderOptions.SetupLog();
@@ -117,6 +120,7 @@ MStatus CMayaScene::Begin(ArnoldSessionMode mode)
    }
    else if (mode == MTOA_SESSION_RENDER)
    {
+      sessionOptions.GetFromMaya();
       renderOptions.GetFromMaya();
       //renderOptions.SetBatch(false);
       renderOptions.SetProgressive(false);
@@ -124,6 +128,7 @@ MStatus CMayaScene::Begin(ArnoldSessionMode mode)
    }
    else if (mode == MTOA_SESSION_BATCH)
    {
+      sessionOptions.GetFromMaya();
       renderOptions.GetFromMaya();
       //renderOptions.SetBatch(true);
       renderOptions.SetupLog();
@@ -132,8 +137,6 @@ MStatus CMayaScene::Begin(ArnoldSessionMode mode)
    // Init both render and export sessions
    status = renderSession->Begin(&renderOptions);
    status = arnoldSession->Begin(&sessionOptions);
-
-   // renderSession->RenderOptions()->SetupLog();
 
 
    return status;

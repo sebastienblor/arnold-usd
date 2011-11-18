@@ -1,6 +1,18 @@
 import maya.cmds as cmds
 import maya.mel as mel
 from mtoa.ui.ae.aiSwatchDisplay import aiSwatchDisplay
+from mtoa.ui.ae.utils import aeCallback
+
+def ArnoldMakeLightExclusive(attr):
+    lightName = attr.split(".")[0]
+    cmds.rowLayout(nc=2, cal=[2, 'left'])
+    cmds.text(label="")
+    cmds.exclusiveLightCheckBox('exclusiveButton', light=lightName, label="Illuminates By Default")
+    cmds.setParent('..')
+    
+def ArnoldReplaceLightExclusive(attr):
+    lightName = attr.split(".")[0]
+    cmds.exclusiveLightCheckBox('exclusiveButton', edit=True, light=lightName)
 
 def aiSkyDomeLightTemplate(nodeName):
 
@@ -13,10 +25,9 @@ def aiSkyDomeLightTemplate(nodeName):
     cmds.editorTemplate("color", addControl=True, label="Color")
     cmds.editorTemplate("intensity", addControl=True, label="Intensity")
     cmds.editorTemplate("resolution", addControl=True, label="Resolution")
-    cmds.editorTemplate(beginNoOptimize=True)
+    cmds.editorTemplate(aeCallback(ArnoldMakeLightExclusive), aeCallback(ArnoldReplaceLightExclusive), "instObjGroups", callCustom=True)
     cmds.editorTemplate("emitDiffuse", addControl=True, label="Emit Diffuse")
     cmds.editorTemplate("emitSpecular",addControl=True, label="Emit Specular")
-    cmds.editorTemplate(endNoOptimize=True)
     cmds.editorTemplate(addSeparator=True)
     cmds.editorTemplate("format", addControl=True, label="Format")
     cmds.editorTemplate("aiExposure", addControl=True, label="Exposure")

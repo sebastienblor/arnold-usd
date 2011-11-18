@@ -32,6 +32,7 @@
 #include <maya/MFileObject.h>
 
 #include <assert.h>
+#include <stdio.h>
 
 // When we're sure these utilities stay, we can expose them
 // as static method on CArnoldSession or a separate helper class
@@ -359,7 +360,9 @@ MStatus CArnoldSession::Begin(CSessionOptions* options)
    MStatus status = MStatus::kSuccess;
 
    m_sessionOptions = *options;
-   UpdateMotionBlurData();
+
+   status = UpdateLightLinks();
+   status = UpdateMotionFrames();
    //ProcessAOVs();
    return status;
 }
@@ -394,12 +397,14 @@ MStatus CArnoldSession::End()
    return status;
 }
 
-MStatus CArnoldSession::UpdateMotionBlurData()
+MStatus CArnoldSession::UpdateLightLinks()
 {
    MStatus status = MStatus::kSuccess;
-
-   m_sessionOptions.UpdateMotionBlurData();
-   status = UpdateMotionFrames();
+   if (m_sessionOptions.GetLightLinkMode() == MTOA_LIGHTLINK_MAYA
+         || m_sessionOptions.GetShadowLinkMode() == MTOA_SHADOWLINK_MAYA)
+   {
+      status = m_lightLinks.parseLinks();
+   }
 
    return status;
 }

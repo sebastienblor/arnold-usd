@@ -4,6 +4,17 @@ from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 import mtoa.ui.ae.shapeTemplate as templates
 
 class AEaiAreaLightTemplate(ShaderAETemplate):
+    def makeLightExclusive(self, attr):
+        lightName = attr.split(".")[0]
+        pm.rowLayout(nc=2, cal=[2, 'left'])
+        pm.text(label="")
+        pm.exclusiveLightCheckBox('exclusiveButton', light=lightName, label="Illuminates By Default")
+        pm.setParent('..')
+        
+    def replaceLightExclusive(self, attr):
+        lightName = attr.split(".")[0]
+        pm.exclusiveLightCheckBox('exclusiveButton', edit=True, light=lightName)
+    
     def setup(self):
         self.addSwatch()
         
@@ -11,6 +22,7 @@ class AEaiAreaLightTemplate(ShaderAETemplate):
 
         self.addControl("color")
         self.addControl("intensity")
+        self.addCustom("instObjGroups", self.makeLightExclusive, self.replaceLightExclusive)
         self.addControl("emitDiffuse")
         self.addControl("emitSpecular")
                     

@@ -1,4 +1,4 @@
-
+﻿
 #include "GeometryTranslator.h"
 
 #include <maya/MNodeMessage.h>
@@ -825,9 +825,12 @@ AtNode* CGeometryTranslator::ExportMesh(AtNode* polymesh, bool update)
    ExportMatrix(polymesh, 0);
    ExportMeshParameters(polymesh);
    ExportMeshShaders(polymesh, m_fnMesh);
+   ExportLightLinking(polymesh);
    // if enabled, double check motion deform
    if (m_motionDeform)
       m_motionDeform = IsGeoDeforming();
+
+   IsGeoDeforming();
    if (!update)
       ExportMeshGeoData(polymesh, 0);
    return polymesh;
@@ -893,6 +896,10 @@ AtNode* CGeometryTranslator::ExportInstance(AtNode *instance, const MDagPath& ma
          AiNodeSetPtr(instance, "shader", shader);
       }
    }
+
+   // Export light linking per instance
+   ExportLightLinking(instance);
+
    return instance;
 }
 

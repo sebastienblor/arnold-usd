@@ -279,6 +279,6 @@ def registerArnoldRenderer():
 
             pm.menuItem('ArnoldLights', label='Lights', parent='ArnoldMenu', subMenu=True)
             pm.menuItem('ArnoldAreaLights', parent='ArnoldLights', label="Area Light",
-                        c=lambda *args: pm.createNode('aiAreaLight', n='aiAreaLight'))
+                        c=lambda *args: pm.shadingNode('aiAreaLight', name='aiAreaLight', asLight=True))
             pm.menuItem('SkydomeLight', parent='ArnoldLights', label="Skydome Light",
-                        c=lambda *args: pm.createNode('aiSkyDomeLight', n='aiSkyDomeLight'))
+                        c=lambda *args: pm.shadingNode('aiSkyDomeLight', name='aiSkyDomeLight', asLight=True))
