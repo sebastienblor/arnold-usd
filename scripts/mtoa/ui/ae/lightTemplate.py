@@ -311,7 +311,7 @@ class LightTemplate(AttributeTemplate):
         pm.rowLayout(numberOfColumns=3,
                        adjustableColumn=2,
                        rowAttach=(1, "top", 0),
-                       columnWidth=[(1, 140), (2, 230)])
+                       columnWidth=[(1, 140), (2, 180)])
         pm.text(label="")
         pm.columnLayout(adjustableColumn=True,
                           columnAttach=("both", 0),
@@ -332,14 +332,14 @@ class LightTemplate(AttributeTemplate):
         # implicit end of row layout
         pm.setParent('..') # back to column layout
         pm.setParent('..') # back to row layout
-        pm.columnLayout(adjustableColumn=False,
+        pm.columnLayout(adjustableColumn=True,
                           columnAttach=("both", 0),
                           rowSpacing=5)
         pm.symbolButton('lf_move_up_button', image='arrowUp.xpm', c=Callback(self.moveLightFilterUp))
         pm.symbolButton('lf_move_down_button', image='arrowDown.xpm', c=Callback(self.moveLightFilterDown))
         pm.setParent('..')
         pm.setParent('..')
-        
+                
         self.addOptionMenuGrp = pm.optionMenuGrp('lf_add_menu', label='Add',
                                                  changeCommand=self.addLightFilterCB)
         self.addOptionMenu = self.addOptionMenuGrp + '|OptionMenu'
