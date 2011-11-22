@@ -81,6 +81,9 @@ AtNode* CArnoldStandInsTranslator::ExportInstance(AtNode *instance, const MDagPa
    // FIXME: it is incorrect to assume that instance 0 is the master as it may be hidden (chad)
    standInNode.getConnectedShaders(0, shadersMaster, indicesMaster);
 
+   // Export light linking per instance
+   ExportLightLinking(instance);
+
    return instance;
 }
 
@@ -190,6 +193,7 @@ AtNode* CArnoldStandInsTranslator::ExportProcedural(AtNode* procedural, bool upd
    ExportMatrix(procedural, 0);
    ProcessRenderFlags(procedural);
    ExportStandinsShaders(procedural);
+   ExportLightLinking(procedural);
    if (!update)
    {
       MString dso = m_DagNode.findPlug("dso").asString().expandEnvironmentVariablesAndTilde();
