@@ -44,7 +44,6 @@ class BaseAreaLightTemplate(lightTemplate.LightTemplate):
         self.addControl("aiCastShadows")
         self.addControl("aiExposure")
         self.addControl("aiSamples")
-        self.addControl("aiMis", label="Multiple Importance Sampling")
 
         self.addSeparator()
 
