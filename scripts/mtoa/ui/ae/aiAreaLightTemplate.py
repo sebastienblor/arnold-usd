@@ -17,16 +17,18 @@ class AEaiAreaLightTemplate(ShaderAETemplate):
     
     def setup(self):
         self.addSwatch()
-        
+
         self.beginScrollLayout()
+
+        self.beginLayout("Arnold Area Light Attributes", collapse=False)
 
         self.addControl("color")
         self.addControl("intensity")
+        self.addControl("aiExposure", label = "Exposure")        
         self.addCustom("instObjGroups", self.makeLightExclusive, self.replaceLightExclusive)
         self.addControl("emitDiffuse")
         self.addControl("emitSpecular")
-                    
-        self.beginLayout("Arnold Area Light Attributes", collapse=False)
+        
         self.addChildTemplate('aiTranslator', templates.getNodeTemplate('aiAreaLight'))
         self.endLayout()
 
@@ -42,7 +44,6 @@ class BaseAreaLightTemplate(lightTemplate.LightTemplate):
 
     def setup(self):
         self.addControl("aiCastShadows")
-        self.addControl("aiExposure")
         self.addControl("aiSamples")
 
         self.addSeparator()
