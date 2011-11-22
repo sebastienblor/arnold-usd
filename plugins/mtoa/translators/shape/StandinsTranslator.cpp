@@ -19,7 +19,13 @@
 void CArnoldStandInsTranslator::NodeInitializer(CAbTranslator context)
 {
    CExtensionAttrHelper helper(context.maya, "procedural");
+   CShapeTranslator::MakeCommonAttributes(helper);
 
+   CAttrData data;
+   data.defaultValue.BOOL = true;
+   data.name = "overrideLightLinking";
+   data.shortName = "oll";
+   helper.MakeInputBoolean(data);
 }
 
 AtNode* CArnoldStandInsTranslator::CreateArnoldNodes()
@@ -70,16 +76,23 @@ AtNode* CArnoldStandInsTranslator::ExportInstance(AtNode *instance, const MDagPa
    AiNodeSetPtr(instance, "node", masterNode);
    AiNodeSetBool(instance, "inherit_xform", false);
 
-   //
-   // SHADERS
-   //
-   MFnMesh standInNode(m_dagPath.node());
-   MObjectArray shaders, shadersMaster;
-   MIntArray indices, indicesMaster;
+   if (m_DagNode.findPlug("overrideShading").asBool())
+   {
+      // FIXME: this code has no effect
+      MFnMesh standInNode(m_dagPath.node());
+      MObjectArray shaders, shadersMaster;
+      MIntArray indices, indicesMaster;
 
-   standInNode.getConnectedShaders(instanceNum, shaders, indices);
-   // FIXME: it is incorrect to assume that instance 0 is the master as it may be hidden (chad)
-   standInNode.getConnectedShaders(0, shadersMaster, indicesMaster);
+      standInNode.getConnectedShaders(instanceNum, shaders, indices);
+      // FIXME: it is incorrect to assume that instance 0 is the master as it may be hidden (chad)
+      standInNode.getConnectedShaders(0, shadersMaster, indicesMaster);
+
+      // ExportStandinsShaders(instance);
+   }
+   if (m_DagNode.findPlug("overrideLightLinking").asBool())
+   {
+      ExportLightLinking(instance);
+   }
 
    // Export light linking per instance
    ExportLightLinking(instance);
@@ -192,8 +205,15 @@ AtNode* CArnoldStandInsTranslator::ExportProcedural(AtNode* procedural, bool upd
 
    ExportMatrix(procedural, 0);
    ProcessRenderFlags(procedural);
-   ExportStandinsShaders(procedural);
-   ExportLightLinking(procedural);
+   if (m_DagNode.findPlug("overrideShading").asBool())
+   {
+      ExportStandinsShaders(procedural);
+   }
+   if (m_DagNode.findPlug("overrideLightLinking").asBool())
+   {
+      ExportLightLinking(procedural);
+   }
+
    if (!update)
    {
       MString dso = m_DagNode.findPlug("dso").asString().expandEnvironmentVariablesAndTilde();
