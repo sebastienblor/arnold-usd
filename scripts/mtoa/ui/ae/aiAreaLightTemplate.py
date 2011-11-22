@@ -45,6 +45,7 @@ class BaseAreaLightTemplate(lightTemplate.LightTemplate):
     def setup(self):
         self.addControl("aiCastShadows")
         self.addControl("aiSamples")
+        self.addControl("aiNormalize")
 
         self.addSeparator()
 

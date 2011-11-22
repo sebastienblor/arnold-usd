@@ -142,7 +142,6 @@ class LightTemplate(AttributeTemplate):
             pass
 
     def commonLightAttributes(self):
-        self.addControl("aiNormalize")
         self.addControl("aiBounceFactor")
         self.addControl("aiBounces")
 

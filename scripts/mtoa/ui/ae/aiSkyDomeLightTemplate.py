@@ -32,6 +32,8 @@ def aiSkyDomeLightTemplate(nodeName):
     cmds.editorTemplate("format", addControl=True, label="Format")
     cmds.editorTemplate("aiExposure", addControl=True, label="Exposure")
     cmds.editorTemplate("aiSamples", addControl=True, label="Samples")
+    cmds.editorTemplate("aiNormalize", addControl=True, label="Normalize")
+
 
     cmds.editorTemplate(addSeparator=True)
     cmds.editorTemplate("aiCastShadows", addControl=True, label="Cast Shadows")
