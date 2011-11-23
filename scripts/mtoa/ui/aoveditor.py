@@ -200,6 +200,8 @@ class ArnoldAOVEditor(object):
     def attrAddedCallback(self, msg, plug, otherPlug, *args):
         #print "attr changed", msg, pm.Attribute(plug)
         #if msg & pm.api.MNodeMessage.kAttributeArrayAdded:
+        if self.waitingToRefresh or om.MFileIO.isOpeningFile() or om.MFileIO.isNewingFile():
+            return
         if msg & pm.api.MNodeMessage.kConnectionMade or msg & pm.api.MNodeMessage.kConnectionBroken:
 #            attr = pm.Attribute(plug)
 #            otherAttr = pm.Attribute(otherPlug)
@@ -266,6 +268,7 @@ def arnoldAOVEditor(*args):
     return ed
 
 def createArnoldAOVTab():
+    print "createArnoldAOVTab"
     parentForm = cmds.setParent(query=True)
 
     aovNode = aovs.getAOVNode()

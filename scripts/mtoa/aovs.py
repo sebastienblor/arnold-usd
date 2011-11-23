@@ -28,15 +28,17 @@ def safeDelete(node):
         pm.delete(node)
 
 class AOVNode(object):
-    def __init__(self, nodeName):
-        self._node = nodeName
-        self._aovAttr = nodeName.aovs
+    def __init__(self, node):
+        self._node = node
+        self._aovAttr = node.aovs
 
     def __repr__(self):
         return '%s(%r)' % (self.__class__.__name__, self._node)
 
     @property
     def node(self):
+        if not self._node.exists():
+            raise TypeError("node doesn't exist")
         return self._node
 
     def getIndices(self):
