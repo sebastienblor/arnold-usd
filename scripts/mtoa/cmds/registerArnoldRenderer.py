@@ -207,7 +207,33 @@ def addOneTabToGlobalsWindow(renderer, tabLabel, createProc):
     # Restore the old manage status for the tabForm.
     pm.formLayout('tabForm', edit=True, manage=tabFormManagedStatus)
 
-def arnoldAddGlobalsTabs():
+def _register():
+    args = {}
+    args['renderProcedure'] = utils.pyToMelProc(arnoldRender.arnoldRender,
+                                          [('int', 'width'), ('int', 'height'),
+                                           ('int', 'doShadows'), ('int', 'doGlowPass'),
+                                           ('string', 'camera'), ('string', 'options')])
+    args['renderRegionProcedure'] = 'mayaRenderRegion'
+    args['commandRenderProcedure']    = utils.pyToMelProc(arnoldRender.arnoldBatchRender,
+                                                    [('string', 'option')])
+    args['batchRenderProcedure']      = utils.pyToMelProc(arnoldRender.arnoldBatchRender,
+                                                    [('string', 'option')])
+    args['iprRenderProcedure']        = utils.pyToMelProc(arnoldRender.arnoldIprRender,
+                                                    [('int', 'width'), ('int', 'height'),
+                                                     ('int', 'doShadows'), ('int', 'doGlowPass'),
+                                                     ('string', 'camera')])
+    args['isRunningIprProcedure']     = utils.pyToMelProc(arnoldRender.arnoldIprIsRunning, returnType='int')
+    args['startIprRenderProcedure']   = utils.pyToMelProc(arnoldRender.arnoldIprStart,
+                                                    [('string', 'editor'), ('int', 'resolutionX'),
+                                                     ('int', 'resolutionY'), ('string', 'camera')])
+    args['stopIprRenderProcedure']    = utils.pyToMelProc(arnoldRender.arnoldIprStop)
+    args['refreshIprRenderProcedure'] = utils.pyToMelProc(arnoldRender.arnoldIprRefresh)
+    args['pauseIprRenderProcedure']   = utils.pyToMelProc(arnoldRender.arnoldIprPause,
+                                                    [('string', 'editor'), ('int', 'pause')])
+    args['changeIprRegionProcedure']  = utils.pyToMelProc(arnoldRender.arnoldIprChangeRegion,
+                                                    [('string', 'renderPanel')])
+    pm.renderer('arnold', rendererUIName='Arnold Renderer', **args)
+        
     pm.renderer('arnold', edit=True, addGlobalsTab=('Common',
                                                       utils.pyToMelProc(createArnoldRendererCommonGlobalsTab, useName=True),
                                                       utils.pyToMelProc(updateArnoldRendererCommonGlobalsTab, useName=True)))
@@ -217,42 +243,16 @@ def arnoldAddGlobalsTabs():
     pm.renderer('arnold', edit=True, addGlobalsTab=('AOVs', 
                                                       utils.pyToMelProc(createArnoldAOVTab, useName=True), 
                                                       utils.pyToMelProc(updateArnoldAOVTab, useName=True)))
+    pm.renderer('arnold', edit=True, addGlobalsNode='defaultArnoldRenderOptions')
 
 
 def registerArnoldRenderer():
     pm.createNode('aiOptions', skipSelect=True, shared=True, name='defaultArnoldRenderOptions')
-
     alreadyRegistered = pm.renderer('arnold', exists=True)
     if not alreadyRegistered:
-        pm.renderer('arnold',
-                      rendererUIName='Arnold Renderer',
-                      renderProcedure = utils.pyToMelProc(arnoldRender.arnoldRender,
-                                                          [('int', 'width'), ('int', 'height'),
-                                                           ('int', 'doShadows'), ('int', 'doGlowPass'),
-                                                           ('string', 'camera'), ('string', 'options')]),
-                      renderRegionProcedure = 'mayaRenderRegion',
-                      commandRenderProcedure    = utils.pyToMelProc(arnoldRender.arnoldBatchRender,
-                                                                    [('string', 'option')]),
-                      batchRenderProcedure      = utils.pyToMelProc(arnoldRender.arnoldBatchRender,
-                                                                    [('string', 'option')]),
-                      iprRenderProcedure        = utils.pyToMelProc(arnoldRender.arnoldIprRender,
-                                                                    [('int', 'width'), ('int', 'height'),
-                                                                     ('int', 'doShadows'), ('int', 'doGlowPass'),
-                                                                     ('string', 'camera')]),
-                      isRunningIprProcedure     = utils.pyToMelProc(arnoldRender.arnoldIprIsRunning, returnType='int'),
-                      startIprRenderProcedure   = utils.pyToMelProc(arnoldRender.arnoldIprStart,
-                                                                    [('string', 'editor'), ('int', 'resolutionX'),
-                                                                     ('int', 'resolutionY'), ('string', 'camera')]),
-                      stopIprRenderProcedure    = utils.pyToMelProc(arnoldRender.arnoldIprStop),
-                      refreshIprRenderProcedure = utils.pyToMelProc(arnoldRender.arnoldIprRefresh),
-                      pauseIprRenderProcedure   = utils.pyToMelProc(arnoldRender.arnoldIprPause,
-                                                                    [('string', 'editor'), ('int', 'pause')]),
-                      changeIprRegionProcedure  = utils.pyToMelProc(arnoldRender.arnoldIprChangeRegion,
-                                                                    [('string', 'renderPanel')]))
 
+        pm.evalDeferred(_register)
 
-        pm.evalDeferred(arnoldAddGlobalsTabs)
-        
         #We have to source this file otherwise maya will override
         #our mel proc overrides below.
         #
@@ -278,8 +278,6 @@ def registerArnoldRenderer():
         # version specific overrides or additions
         _overridePythonScripts()
         _overrideMelScripts()
-
-        pm.renderer('arnold', edit=True, addGlobalsNode='defaultArnoldRenderOptions')
 
         # Add an Arnold menu in Maya main window
         if not pm.about(b=1):
