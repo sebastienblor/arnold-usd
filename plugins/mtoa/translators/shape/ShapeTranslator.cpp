@@ -159,7 +159,8 @@ void CShapeTranslator::ExportLightLinking(AtNode* shape)
 
       AiNodeSetBool(shape, "use_shadow_group", true);
    }
-   else if (shadowLinkMode == MTOA_SHADOWLINK_NONE)
+   else if ((shadowLinkMode == MTOA_SHADOWLINK_NONE) ||
+            (shadowLinkMode == MTOA_SHADOWLINK_LIGHT && lightLinkMode == MTOA_LIGHTLINK_NONE))
    {
       AiNodeSetBool(shape, "use_shadow_group", false);
    }
