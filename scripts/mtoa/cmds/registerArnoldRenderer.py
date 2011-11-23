@@ -45,6 +45,8 @@ from mtoa.ui.ae.aiStandInTemplate import ArnoldExportRenderObjectWindow
 import mtoa.cmds.arnoldRender as arnoldRender
 
 def _overrideMelScripts():
+    # for those procedures that we could not simply define overrides interactively, we keep edited files
+    # per version of maya
     root = utils.mtoaPackageRoot()
     maya_version = versions.shortName()
     for f in glob.glob(os.path.join(root, maya_version, 'mel', '*.mel')):
@@ -64,6 +66,18 @@ def _overridePythonScripts():
             exec import_string
             # module = __import__(os.path.splitext(f)[0])
 
+def _addAEHooks():
+    """
+    in versions of Maya prior to 2013 there is no way to override built-in AE templates.
+    """
+    # Realflow uses the AEshapeHooks global variable as a convention for sharing AEshapeTemplate overrides,
+    # so we will too, unless a more popular convention is found.
+    pm.melGlobals.initVar('string[]', 'AEshapeHooks')
+    hooks = list(pm.melGlobals['AEshapeHooks'])
+    import mtoa.ui.ae.shapeTemplate
+    procName = utils.pyToMelProc(mtoa.ui.ae.shapeTemplate.arnoldShapeHook, [('string', 'nodeName')], useName=True)
+    hooks.append(procName)
+    pm.melGlobals['AEshapeHooks'] = hooks
 
 # We need to override this two proc to avoid
 # errors because of the hardcoded code.
@@ -253,9 +267,14 @@ def registerArnoldRenderer():
         utils.pyToMelProc(updateMayaImageFormatControl,
                           useName=True)
 
+        # AE Templates
         aeUtils.loadAETemplates()
+        _addAEHooks()
         import mtoa.ui.ae.customShapeAttributes
-        
+
+        # Reload the AE Window if it has already been opened
+        pm.evalDeferred(aeUtils.rebuildAE)
+
         # version specific overrides or additions
         _overridePythonScripts()
         _overrideMelScripts()

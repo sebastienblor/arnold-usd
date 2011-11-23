@@ -734,6 +734,20 @@ def shapeTemplate(nodeName):
     """
     override for the builtin maya shapeTemplate procedure
     """
+    #Run the hooks.
+    for hook in pm.melGlobals['AEshapeHooks']:
+        pm.mel.eval(hook + ' "' + nodeName + '"')
+
+    pm.editorTemplate(beginLayout=pm.mel.uiRes("m_AEshapeTemplate.kObjectDisplay"))
+
+    # include/call base class/node attributes
+    pm.mel.AEdagNodeCommon(nodeName)
+    pm.editorTemplate(endLayout=True)
+
+    # include/call base class/node attributes
+    pm.mel.AEdagNodeInclude(nodeName)
+
+def arnoldShapeHook(nodeName):
     global _templates
     nodeType = pm.objectType(nodeName)
 
@@ -746,14 +760,4 @@ def shapeTemplate(nodeName):
         pm.editorTemplate(beginLayout='Arnold', collapse=True)
         template._doSetup(nodeName)
         pm.editorTemplate(endLayout=True)
-
-    pm.editorTemplate(beginLayout=pm.mel.uiRes("m_AEshapeTemplate.kObjectDisplay"))
-
-    # include/call base class/node attributes
-    pm.mel.AEdagNodeCommon(nodeName)
-    pm.editorTemplate(endLayout=True)
-
-    # include/call base class/node attributes
-    pm.mel.AEdagNodeInclude(nodeName)
-
 

@@ -1,5 +1,4 @@
-﻿import maya.cmds as cmds
-import maya.mel as mel
+﻿import pymel.core as pm
 import mtoa.utils as utils
 import mtoa.ui.ae
 
@@ -12,21 +11,21 @@ import inspect
 def arnoldGetDimValue(node, attr):
 
     fullAttr = '%s.%s'%(node, attr)
-    value = cmds.getAttr(fullAttr)
+    value = pm.getAttr(fullAttr)
     return value
 
 # Dims target control if source attribute is true.
 def arnoldDimControlIfTrue(node, target, source):
     dim = arnoldGetDimValue(node, source)
-    cmds.editorTemplate(dimControl=(node, target, dim))
+    pm.editorTemplate(dimControl=(node, target, dim))
 
 # Dims target control if source attribute is false.
 def arnoldDimControlIfFalse(node, target, source):
     dim = not arnoldGetDimValue(node, source)
-    cmds.editorTemplate(dimControl=(node, target, dim))
+    pm.editorTemplate(dimControl=(node, target, dim))
 
 def getNodeType(name):
-    nodeType = cmds.nodeType(name)
+    nodeType = pm.nodeType(name)
     lights = ["ambientLight",
                 "directionalLight",
                 "pointLight",
@@ -39,7 +38,7 @@ def getNodeType(name):
     return nodeType
 
 def attributeExists(attribute, nodeName):
-    return cmds.attributeQuery(attribute, node=nodeName, exists=True)
+    return pm.attributeQuery(attribute, node=nodeName, exists=True)
 
 
 def loadAETemplates():
@@ -72,7 +71,7 @@ def _makeAEProc(modname, objname, procname):
     python("import %(__name__)s;%(__name__)s._aeLoader('%(modname)s','%(objname)s','" + $nodeName + "')");}'''
     d = locals().copy()
     d['__name__'] = __name__
-    mel.eval( contents % d )
+    pm.mel.eval( contents % d )
 
 def _aeLoader(modname, objname, nodename):
     mod = __import__(modname, globals(), locals(), [objname], -1)
@@ -95,32 +94,41 @@ def interToUI(label):
     return label
 
 def attrType(attr):
-    type = cmds.getAttr(attr, type=True)
+    type = pm.getAttr(attr, type=True)
     if type == 'float3':
         node, at = attr.split('.', 1)
-        if cmds.attributeQuery(at, node=node, usedAsColor=1):
+        if pm.attributeQuery(at, node=node, usedAsColor=1):
             type = 'color'
     return type
 
+def rebuildAE():
+    "completely rebuild the attribute editor"
+    edForm = pm.melGlobals['gAttributeEditorForm']
+    if pm.layout(edForm, q=True, exists=True):
+        children = pm.layout(edForm, q=True, childArray=True)
+        if children:
+            pm.deleteUI(children[0])
+            pm.mel.attributeEditorVisibilityStateChange(True, "")
+
 class AttrControlGrp(object):
     UI_TYPES = {
-        'float':cmds.attrFieldSliderGrp,
-        'float2':cmds.attrFieldGrp,
-        'float3':cmds.attrFieldGrp,
-        'color':cmds.attrColorSliderGrp,
-        'bool':cmds.attrControlGrp,
-        'long':cmds.attrFieldSliderGrp,
-        'long2':cmds.attrFieldGrp,
-        'long3':cmds.attrFieldGrp,
-        'short':cmds.attrFieldSliderGrp,
-        'short2':cmds.attrFieldGrp,
-        'short3':cmds.attrFieldGrp,
-        'enum':cmds.attrEnumOptionMenuGrp,
-        'double':cmds.attrFieldSliderGrp,
-        'double2':cmds.attrFieldGrp,
-        'double3':cmds.attrFieldGrp,
-        'string':cmds.attrControlGrp,
-        'message':cmds.attrNavigationControlGrp
+        'float':pm.cmds.attrFieldSliderGrp,
+        'float2':pm.cmds.attrFieldGrp,
+        'float3':pm.cmds.attrFieldGrp,
+        'color':pm.cmds.attrColorSliderGrp,
+        'bool':pm.cmds.attrControlGrp,
+        'long':pm.cmds.attrFieldSliderGrp,
+        'long2':pm.cmds.attrFieldGrp,
+        'long3':pm.cmds.attrFieldGrp,
+        'short':pm.cmds.attrFieldSliderGrp,
+        'short2':pm.cmds.attrFieldGrp,
+        'short3':pm.cmds.attrFieldGrp,
+        'enum':pm.cmds.attrEnumOptionMenuGrp,
+        'double':pm.cmds.attrFieldSliderGrp,
+        'double2':pm.cmds.attrFieldGrp,
+        'double3':pm.cmds.attrFieldGrp,
+        'string':pm.cmds.attrControlGrp,
+        'message':pm.cmds.attrNavigationControlGrp
     }
     def __init__(self, attribute, *args, **kwargs):
         self.attribute = attribute
