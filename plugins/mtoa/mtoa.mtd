@@ -305,9 +305,9 @@
     maya.id                 INT     0x00115C86
     maya.classification     STRING  "light"
     maya.type               STRING  "kLocatorNode"
-   [attr intensity]
-       min                  FLOAT   0.0
-       softmax              FLOAT   10.0
+    [attr intensity]
+        min                 FLOAT   0.0
+        softmax             FLOAT   10.0
     [attr exposure]
         min                 FLOAT   0.0
         softmax             FLOAT   10.0
@@ -505,7 +505,7 @@
         max                 FLOAT   20.0
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
-        # default               FLOAT   0.2
+        # default           FLOAT   0.2
         animatable          BOOL    True
     [attr aperture_blades]
         min                 INT     3
