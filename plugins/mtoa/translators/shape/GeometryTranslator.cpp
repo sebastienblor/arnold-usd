@@ -1,4 +1,4 @@
-﻿
+
 #include "GeometryTranslator.h"
 
 #include <maya/MNodeMessage.h>

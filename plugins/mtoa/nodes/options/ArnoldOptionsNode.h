@@ -1,4 +1,4 @@
-﻿#ifndef ARNOLDOPTIONSNODE_H
+#ifndef ARNOLDOPTIONSNODE_H
 #define ARNOLDOPTIONSNODE_H
 
 #include "attributes/AttrHelper.h"

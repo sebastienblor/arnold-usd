@@ -1,4 +1,4 @@
-﻿
+
 #include "ArnoldOptionsNode.h"
 #include "render/RenderOptions.h"
 #include "session/SessionOptions.h"
