@@ -870,10 +870,25 @@ void CArnoldSession::DoUpdate()
 {
    assert(AiUniverseIsActive());
    // Are we motion blurred?
-   const bool mb = IsMotionBlurEnabled();
+   bool mb = IsMotionBlurEnabled();
+   if (mb)
+   {
+      // don't step through frames if our translators don't need motion blur
+      mb = false;
+      for (std::vector<CNodeTranslator*>::iterator iter = m_translatorsToUpdate.begin();
+         iter != m_translatorsToUpdate.end(); ++iter)
+      {
+         if ((*iter)->RequiresMotionData())
+         {
+            mb = true;
+            break;
+         }
+      }
+   }
+
    if (!mb)
    {
-      for(std::vector<CNodeTranslator*>::iterator iter = m_translatorsToUpdate.begin();
+      for (std::vector<CNodeTranslator*>::iterator iter = m_translatorsToUpdate.begin();
          iter != m_translatorsToUpdate.end(); ++iter)
       {
          CNodeTranslator* translator = (*iter);
