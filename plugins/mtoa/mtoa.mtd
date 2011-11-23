@@ -299,6 +299,8 @@
         min                 INT     0
         max                 INT     100
         default             INT     1
+    [attr color]
+        linkable            BOOL    True
 
 [node quad_light]
     maya.name               STRING  "aiAreaLight"
@@ -326,6 +328,8 @@
     [attr bounces]
         min                 INT     0
         max                 INT     10000
+    [attr color]
+        linkable            BOOL    True
 
 [node cylinder_light]
     maya.name               STRING  "aiAreaLight"

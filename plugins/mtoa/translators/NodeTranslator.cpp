@@ -836,7 +836,10 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnold
    //      plug.name().asChar(), MFnDependencyNode(plug.node()).typeName().asChar(),
    //      AiNodeGetName(arnoldNode), arnoldParamName, AiNodeEntryGetName(arnoldNode->base_node));
 
-   bool acceptLinks = ((AiNodeEntryGetType(arnoldNode->base_node) & (AI_NODE_SHADER | AI_NODE_LIGHT)) != 0) ? true : false;
+   AtBoolean acceptLinks = FALSE;
+   // if the linkable metadata is not set, then only link if the node is a shader
+   if (!AiMetaDataGetBool(arnoldNode->base_node, arnoldParamName, "linkable", &acceptLinks))
+      acceptLinks = ((AiNodeEntryGetType(arnoldNode->base_node) & AI_NODE_SHADER) != 0) ? TRUE : FALSE;
 
    // ignoreWhenRendering flag
    if (acceptLinks && plug.isIgnoredWhenRendering()) return NULL;
