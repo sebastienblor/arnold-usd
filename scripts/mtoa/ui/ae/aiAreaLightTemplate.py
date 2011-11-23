@@ -43,12 +43,15 @@ class BaseAreaLightTemplate(lightTemplate.LightTemplate):
         return ['aiLightBlocker', 'aiLightDecay']
 
     def setup(self):
-        self.addControl("aiCastShadows")
         self.addControl("aiSamples")
         self.addControl("aiNormalize")
 
         self.addSeparator()
 
+        self.addControl("aiCastShadows")
+
+        self.addSeparator()
+        
         self.addControl("aiAffectVolumetrics")
         self.addControl("aiCastVolumetricShadows")
 

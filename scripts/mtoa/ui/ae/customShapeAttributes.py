@@ -63,7 +63,12 @@ class AmbientLightTemplate(lightTemplate.LightTemplate):
 
     def setup(self):
         self.addControl("aiNormalize")  
-        self.addSeparator()        
+
+        self.addSeparator()
+        
+        self.addControl("aiCastShadows")
+
+        self.addSeparator()
         self.commonLightAttributes()
 templates.registerTranslatorUI(AmbientLightTemplate, "ambientLight")
 
@@ -72,12 +77,17 @@ class DirectionalLightTemplate(lightTemplate.LightTemplate):
     def validFilters(self):
         return ['aiLightBlocker']
     def setup(self):
-        self.addControl("aiCastShadows")
         self.addControl("aiExposure")
         self.addControl("aiAngle")
         self.addControl("aiSamples")
-        self.addControl("aiNormalize")        
+        self.addControl("aiNormalize")
+        
         self.addSeparator()
+        
+        self.addControl("aiCastShadows")
+
+        self.addSeparator()
+
         self.commonLightAttributes()
 templates.registerTranslatorUI(DirectionalLightTemplate, "directionalLight")
 
@@ -86,12 +96,17 @@ class PointLightTemplate(lightTemplate.LightTemplate):
     def validFilters(self):
         return ['aiLightBlocker', 'aiLightDecay']
     def setup(self):
-        self.addControl("aiCastShadows")
         self.addControl("aiExposure")
         self.addControl("aiRadius")
         self.addControl("aiSamples")
-        self.addControl("aiNormalize")        
+        self.addControl("aiNormalize")
+
         self.addSeparator()
+
+        self.addControl("aiCastShadows")
+
+        self.addSeparator()
+
         self.addControl("aiAffectVolumetrics")
         self.addControl("aiCastVolumetricShadows")
         self.addSeparator()
@@ -103,11 +118,14 @@ class SpotLightTemplate(lightTemplate.LightTemplate):
     def validFilters(self):
         return ['aiLightBlocker', 'aiLightDecay', 'aiBarndoor', 'aiGobo']
     def setup(self):
-        self.addControl("aiCastShadows")
         self.addControl("aiExposure")
         self.addControl("aiRadius")
         self.addControl("aiSamples")
-        self.addControl("aiNormalize")        
+        self.addControl("aiNormalize")
+
+        self.addSeparator()
+
+        self.addControl("aiCastShadows")
 
         self.addSeparator()
 
@@ -130,10 +148,13 @@ class AreaLightTemplate(lightTemplate.LightTemplate):
         return ['aiLightBlocker', 'aiLightDecay']
 
     def setup(self):
-        self.addControl("aiCastShadows")
         self.addControl("aiExposure")
         self.addControl("aiSamples")
-        self.addControl("aiNormalize")        
+        self.addControl("aiNormalize")
+
+        self.addSeparator()
+
+        self.addControl("aiCastShadows")
 
         self.addSeparator()
 
