@@ -79,6 +79,9 @@ class DirectionalLightTemplate(lightTemplate.LightTemplate):
     def setup(self):
         self.addControl("aiExposure")
         self.addControl("aiAngle")
+        
+        self.addSeparator()
+        
         self.addControl("aiSamples")
         self.addControl("aiNormalize")
         
@@ -97,8 +100,11 @@ class PointLightTemplate(lightTemplate.LightTemplate):
         return ['aiLightBlocker', 'aiLightDecay']
     def setup(self):
         self.addControl("aiExposure")
-        self.addControl("aiRadius")
+        
+        self.addSeparator()
+        
         self.addControl("aiSamples")
+        self.addControl("aiRadius")
         self.addControl("aiNormalize")
 
         self.addSeparator()
@@ -119,8 +125,11 @@ class SpotLightTemplate(lightTemplate.LightTemplate):
         return ['aiLightBlocker', 'aiLightDecay', 'aiBarndoor', 'aiGobo']
     def setup(self):
         self.addControl("aiExposure")
-        self.addControl("aiRadius")
+        
+        self.addSeparator()
+                        
         self.addControl("aiSamples")
+        self.addControl("aiRadius")
         self.addControl("aiNormalize")
 
         self.addSeparator()
@@ -149,6 +158,9 @@ class AreaLightTemplate(lightTemplate.LightTemplate):
 
     def setup(self):
         self.addControl("aiExposure")
+        
+        self.addSeparator()
+        
         self.addControl("aiSamples")
         self.addControl("aiNormalize")
 
@@ -159,6 +171,9 @@ class AreaLightTemplate(lightTemplate.LightTemplate):
         self.addSeparator()
 
         self.addControl("aiResolution")
+        
+        self.addSeparator()
+
         self.addControl("aiAffectVolumetrics")
         self.addControl("aiCastVolumetricShadows")
 
