@@ -32,7 +32,7 @@
         softmax             INT     10
         default             INT     3
         maya.orig_shortname STRING  "AAsmpls"
-   [attr bucket_scanning]
+    [attr bucket_scanning]
         maya.keyable        BOOL    False
         maya.orig_shortname STRING  "bktsc"
     [attr bucket_size]
@@ -181,6 +181,11 @@
     [attr bounces]
         min                 INT     0
         max                 INT     10000
+    [attr shadow_density]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
 
 [node distant_light]
     maya.name               STRING  "directionalLight"
@@ -199,6 +204,11 @@
     [attr bounce_factor]
         min                 FLOAT   0.0
         softmax             FLOAT   20.0
+    [attr shadow_density]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
     [attr bounces]
         min                 INT     0
         max                 INT     10000
@@ -220,6 +230,11 @@
     [attr bounce_factor]
         min                 FLOAT   0.0
         softmax             FLOAT   20.0
+    [attr shadow_density]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
     [attr bounces]
         min                 INT     0
         max                 INT     10000
@@ -249,6 +264,11 @@
         max                 FLOAT   100.0
         softmin             FLOAT   0.0
         softmax             FLOAT   1.0
+    [attr shadow_density]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
     [attr lens_radius]
         min                 FLOAT   0.0
         max                 FLOAT   100.0
@@ -260,20 +280,25 @@
     maya.id                 INT     0x00115C85
     maya.classification     STRING  "light"
     maya.type               STRING  "kLocatorNode"
-   [attr affect_diffuse]
-       maya.name            STRING  "emitDiffuse"
-   [attr affect_specular]
-       maya.name            STRING  "emitSpecular"
-   [attr intensity]
-       min                  FLOAT   0.0
-       softmax              FLOAT   10.0
-   [attr exposure]
-       min                  FLOAT   0.0
-       softmax              FLOAT   10.0
-   [attr samples]
-       min                  INT     0
-       max                  INT     100
-       default              INT     1
+    [attr affect_diffuse]
+        maya.name           STRING  "emitDiffuse"
+    [attr affect_specular]
+        maya.name           STRING  "emitSpecular"
+    [attr intensity]
+        min                 FLOAT   0.0
+        softmax             FLOAT   10.0
+    [attr exposure]
+        min                 FLOAT   0.0
+        softmax             FLOAT   10.0
+    [attr shadow_density]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr samples]
+        min                 INT     0
+        max                 INT     100
+        default             INT     1
 
 [node quad_light]
     maya.name               STRING  "aiAreaLight"
@@ -286,6 +311,11 @@
     [attr exposure]
         min                 FLOAT   0.0
         softmax             FLOAT   10.0
+    [attr shadow_density]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
     [attr samples]
         min                 INT     1
         max                 INT     100
@@ -302,40 +332,50 @@
     maya.id                 INT     0x00115C86
     maya.classification     STRING  "light"
     maya.type               STRING  "kLocatorNode"
-   [attr affect_diffuse]
-       maya.name            STRING  "emitDiffuse"
-   [attr affect_specular]
-       maya.name            STRING  "emitSpecular"
-   [attr intensity]
-       min                  FLOAT   0.0
-       softmax              FLOAT   10.0
-   [attr exposure]
-       min                  FLOAT   0.0
-       softmax              FLOAT   10.0
-   [attr samples]
-       min                  INT     0
-       max                  INT     100
-       default              INT     1
+    [attr affect_diffuse]
+        maya.name           STRING  "emitDiffuse"
+    [attr affect_specular]
+        maya.name           STRING  "emitSpecular"
+    [attr intensity]
+        min                 FLOAT   0.0
+        softmax             FLOAT   10.0
+    [attr exposure]
+        min                 FLOAT   0.0
+        softmax             FLOAT   10.0
+    [attr shadow_density]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr samples]
+        min                 INT     0
+        max                 INT     100
+        default             INT     1
 
 [node disk_light]
     maya.name               STRING  "aiAreaLight"
     maya.id                 INT     0x00115C86
     maya.classification     STRING  "light"
     maya.type               STRING  "kLocatorNode"
-   [attr affect_diffuse]
-       maya.name            STRING  "emitDiffuse"
-   [attr affect_specular]
-       maya.name            STRING  "emitSpecular"
-   [attr intensity]
-       min                  FLOAT   0.0
-       softmax              FLOAT   10.0
-   [attr exposure]
-       min                  FLOAT   0.0
-       softmax              FLOAT   10.0
-   [attr samples]
-       min                  INT     1
-       max                  INT     100
-       default              INT     1
+    [attr affect_diffuse]
+        maya.name           STRING  "emitDiffuse"
+    [attr affect_specular]
+        maya.name           STRING  "emitSpecular"
+    [attr intensity]
+        min                 FLOAT   0.0
+        softmax             FLOAT   10.0
+    [attr exposure]
+        min                 FLOAT   0.0
+        softmax             FLOAT   10.0
+    [attr shadow_density]
+        min                 FLOAT   0.0
+        max                 FLOAT   1.0
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr samples]
+        min                 INT     1
+        max                 INT     100
+        default             INT     1
 
 # light filters
 

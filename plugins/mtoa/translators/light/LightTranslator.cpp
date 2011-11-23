@@ -123,7 +123,7 @@ void CLightTranslator::MakeCommonAttributes(CBaseAttrHelper& helper)
    helper.MakeInput("cast_shadows");
    helper.MakeInput("exposure");
    helper.MakeInput("samples");
-   helper.MakeInput("mis");
+   helper.MakeInput("mis"); // Deprecated in the #586 refactoring November 2012
    helper.MakeInput("normalize");
    helper.MakeInput("bounce_factor");
    helper.MakeInput("bounces");
