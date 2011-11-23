@@ -244,7 +244,20 @@ def _register():
                                                       utils.pyToMelProc(createArnoldAOVTab, useName=True), 
                                                       utils.pyToMelProc(updateArnoldAOVTab, useName=True)))
     pm.renderer('arnold', edit=True, addGlobalsNode='defaultArnoldRenderOptions')
-
+    
+    #We have to source this file otherwise maya will override
+    #our mel proc overrides below.
+    #
+    pm.mel.source('createMayaSoftwareCommonGlobalsTab.mel')
+    
+    utils.pyToMelProc(addOneTabToGlobalsWindow,
+                      [('string', 'renderer'), ('string', 'tabLabel'), ('string', 'createProc')],
+                      useName=True)
+    utils.pyToMelProc(renderSettingsTabLabel_melToUI,
+                      [('string', 'mel')],
+                      useName=True)
+    utils.pyToMelProc(updateMayaImageFormatControl,
+                      useName=True)
 
 def registerArnoldRenderer():
     pm.createNode('aiOptions', skipSelect=True, shared=True, name='defaultArnoldRenderOptions')
@@ -252,20 +265,6 @@ def registerArnoldRenderer():
     if not alreadyRegistered:
 
         pm.evalDeferred(_register)
-
-        #We have to source this file otherwise maya will override
-        #our mel proc overrides below.
-        #
-        pm.mel.source('createMayaSoftwareCommonGlobalsTab.mel')
-        
-        utils.pyToMelProc(addOneTabToGlobalsWindow,
-                          [('string', 'renderer'), ('string', 'tabLabel'), ('string', 'createProc')],
-                          useName=True)
-        utils.pyToMelProc(renderSettingsTabLabel_melToUI,
-                          [('string', 'mel')],
-                          useName=True)
-        utils.pyToMelProc(updateMayaImageFormatControl,
-                          useName=True)
 
         # AE Templates
         aeUtils.loadAETemplates()

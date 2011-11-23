@@ -1,4 +1,5 @@
 ﻿import pymel.core as pm
+from pymel.mayautils import executeDeferred
 import mtoa.ui.ae.utils as aeUtils
 import mtoa.core as core
 from mtoa.callbacks import *
@@ -115,7 +116,7 @@ class LightTemplate(AttributeTemplate):
         super(LightTemplate, self).__init__(nodeType)
         # create callback to create decay filter
         if 'aiLightDecay' in self.validFilters() and nodeType not in self.__class__._callbacks:
-            callbacks.addNodeAddedCallback(self.addDefaultDecay, nodeType)
+            executeDeferred(callbacks.addNodeAddedCallback, self.addDefaultDecay, nodeType)
             self.__class__._callbacks.append(nodeType)
 
     def validFilters(self):

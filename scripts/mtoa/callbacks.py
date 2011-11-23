@@ -100,6 +100,8 @@ def _updateExistingNodes(nodeType, func):
     fnNode = om.MFnDependencyNode()
     nodeIt = om.MItDependencyNodes()
     while 1:
+        if nodeIt.isDone():
+            break
         node = nodeIt.item()
         if node.isNull():
             continue
@@ -107,8 +109,6 @@ def _updateExistingNodes(nodeType, func):
         if fnNode.typeName() == nodeType:
             func(node)
         nodeIt.next()
-        if nodeIt.isDone():
-            break
 
 def addAttributeChangedCallback(func, nodeType, attribute, applyToExisting=True):
     """
