@@ -205,9 +205,6 @@ shader_evaluate
          float u = uv.x;
          float v = uv.y;
 
-         u = Mod(u, 1.000001f);
-         v = Mod(v, 1.000001f);
-
          float uWave = AiShaderEvalParamFlt(p_u_wave);
          float vWave = AiShaderEvalParamFlt(p_v_wave);
          float noiseAmp = AiShaderEvalParamFlt(p_noise);
@@ -234,6 +231,9 @@ shader_evaluate
          {
             u -= uWave * static_cast<float>(sin(preWaveV * AI_PITIMES2));
          }
+
+         u = Mod(u, 1.000001f);
+         v = Mod(v, 1.000001f);
 
          AtInt type = AiShaderEvalParamInt(p_type);
          RampInterpolationType interp = (RampInterpolationType) AiShaderEvalParamInt(p_interp);
