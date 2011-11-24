@@ -21,6 +21,8 @@
 #include <vector>
 #include <map>
 
+#define AI_ATT_SEP "."
+#define AI_TAG_SEP "@"
 
 // Abstract base class for all Maya-to-Arnold node translators
 //

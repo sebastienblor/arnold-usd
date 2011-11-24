@@ -191,9 +191,9 @@ void CNodeTranslator::SetArnoldNodeName(AtNode* arnoldNode, const char* tag)
 {
    MString name = GetMayaNodeName();
    if (m_outputAttr.numChars())
-      name = name + ">>" + m_outputAttr;
+      name = name + AI_ATT_SEP + m_outputAttr;
    if (strlen(tag))
-      name = name +  "_" + tag;
+      name = name + AI_TAG_SEP + tag;
 
    AiNodeSetStr(arnoldNode, "name", name.asChar());
 }
@@ -1147,9 +1147,9 @@ void CDagTranslator::SetArnoldNodeName(AtNode* arnoldNode, const char* tag)
       name = m_dagPath.fullPathName();
 
    if (m_outputAttr.numChars())
-      name = name + ">>" + m_outputAttr;
+      name = name + AI_ATT_SEP + m_outputAttr;
    if (strlen(tag))
-      name = name +  "_" + tag;
+      name = name + AI_TAG_SEP + tag;
 
    AiNodeSetStr(arnoldNode, "name", name.asChar());
 }
