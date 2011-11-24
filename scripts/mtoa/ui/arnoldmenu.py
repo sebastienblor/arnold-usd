@@ -1,4 +1,13 @@
 import pymel.core as pm
+import maya.cmds as cmds
+
+def doCreateStandIn():
+    pm.createNode('aiStandIn', n='ArnoldStandInShape')
+    if not cmds.objExists('ArnoldStandInDefaultLightSet'):
+        cmds.createNode("objectSet", name="ArnoldStandInDefaultLightSet", shared=True)
+        cmds.lightlink(object='ArnoldStandInDefaultLightSet', light='defaultLightSet')
+    else:
+        cmds.sets(add='ArnoldStandInDefaultLightSet')
 
 def doExportStandin():
     pm.mel.eval('ExportSelectionOptions')
@@ -11,7 +20,7 @@ def createArnoldMenu():
         pm.menu('ArnoldMenu', label='Arnold', parent='MayaWindow', tearOff=True )
         pm.menuItem('ArnoldStandIn', label='StandIn', parent='ArnoldMenu', subMenu=True)
         pm.menuItem('ArnoldCreateStandIn', parent='ArnoldStandIn', label="Create",
-                    c=lambda *args: pm.createNode('aiStandIn', n='ArnoldStandInShape'))
+                    c=lambda *args: doCreateStandIn())
         pm.menuItem('ArnoldExportStandIn', parent='ArnoldStandIn', label='Export',
                     c=lambda *args: doExportStandin())
 

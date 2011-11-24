@@ -130,22 +130,38 @@ MStatus CArnoldAssTranslator::reader(const MFileObject& file,
             }
          }
       }
-      // We have nothing selected. Create a Standins and set it
+      // We have nothing selected. Create a StandIns and set it
       else
       {
-         MDagModifier m_dagModifier;
-         MObject m_standin = m_dagModifier.createNode("aiStandIn");
          MFnDagNode m_fnDagNode;
-         m_fnDagNode.setObject(m_standin);
+         MObject m_standin = m_fnDagNode.create("aiStandIn","ArnoldStandInShape");
          for (uint i=0;i<m_fnDagNode.childCount();i++)
          {
             m_standin = m_fnDagNode.child(i);
-            m_fnDagNode.setObject(m_standin);
-            MPlug m_dso = m_fnDagNode.findPlug("dso");
+            MFnDagNode m_fnDagNodeChildren(m_standin);
+            MPlug m_dso = m_fnDagNodeChildren.findPlug("dso");
             if (!m_dso.isNull())
             {
                m_dso.setValue(file.resolvedFullName());
             }
+
+            MSelectionList activeList;
+            activeList.add(MString("ArnoldStandInDefaultLightSet"));
+            
+            // Only create ArnoldStandInDefaultLightSet if it does not exist
+            if(activeList.length() == 0)
+            {
+               // Shared option will make that importing files with "ArnoldStandInDefaultLightSet" sets will not
+               //   create ArnoldStandInDefaultLightSet1, ArnoldStandInDefaultLightSet2, ...
+               MGlobal::executeCommand("createNode \"objectSet\" -name \"ArnoldStandInDefaultLightSet\" -shared;");
+               MGlobal::executeCommand("lightlink -object \"ArnoldStandInDefaultLightSet\" -light \"defaultLightSet\";");
+               activeList.add(MString("ArnoldStandInDefaultLightSet"));
+            }
+            
+            MObject m_setObject;
+            activeList.getDependNode(0,m_setObject);
+            MFnSet m_fnSet(m_setObject);
+            m_fnSet.addMember(m_standin);
          }
       }
    }
