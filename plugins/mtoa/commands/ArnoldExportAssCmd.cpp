@@ -25,7 +25,6 @@ MSyntax CArnoldExportAssCmd::newSyntax()
    MSyntax syntax;
    syntax.addFlag("b", "batch", MSyntax::kNoArg);
    syntax.addFlag("s", "selected");
-   syntax.addFlag("bb", "boundingBox");
    syntax.addFlag("f", "filename", MSyntax::kString);
    syntax.addFlag("cam", "camera", MSyntax::kSelectionItem);
    syntax.addFlag("sf", "startFrame", MSyntax::kDouble);
@@ -33,9 +32,14 @@ MSyntax CArnoldExportAssCmd::newSyntax()
    syntax.addFlag("fs", "frameStep", MSyntax::kDouble);
    syntax.addFlag("o", "options", MSyntax::kString);
    syntax.addFlag("c", "compressed");
+   syntax.addFlag("bb", "boundingBox");
+   syntax.addFlag("a", "asciiAss");
+   syntax.addFlag("m", "mask", MSyntax::kUnsigned);
+   syntax.addFlag("ll", "lightLinks", MSyntax::kUnsigned);
+   syntax.addFlag("sl", "shadowLinks", MSyntax::kUnsigned);
+
    syntax.useSelectionAsDefault(true);
    syntax.setObjectType(MSyntax::kSelectionList);
-   syntax.addFlag("a", "asciiAss");
    return syntax;
 }
 
@@ -101,6 +105,9 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    bool subFrames = false;
    bool compressed = false;
    bool asciiAss   = true;
+   int mask = -1;
+   int lightLinks = -1;
+   int shadowLinks = -1;
    double startframe, endframe, framestep;
 
    // Batch mode
@@ -143,6 +150,19 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    if (argDB.isFlagSet("boundingBox"))
    {
       writeBox  = true;
+   }
+   // Specific objects mask to write
+   if (argDB.isFlagSet("mask"))
+   {
+      argDB.getFlagArgument("mask", 0, mask);
+   }
+   if (argDB.isFlagSet("lightLinks"))
+   {
+      argDB.getFlagArgument("lightLinks", 0, lightLinks);
+   }
+   if (argDB.isFlagSet("shadowLinks"))
+   {
+      argDB.getFlagArgument("shadowLinks", 0, shadowLinks);
    }
    // Custom render options
    if (argDB.isFlagSet("options"))
@@ -245,6 +265,21 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
       arnoldSession->SetExportFilter(arnoldSession->GetExportFilter() & ~MTOA_FILTER_LAYER);
       arnoldSession->SetExportCamera(camera);
       arnoldSession->SetExportFrame(curframe);
+      // Set mask for nodes to export or use Arnold Render Globals if not passed
+      if (mask != -1)
+      {
+         renderSession->SetOutputAssMask(mask);
+      }
+      // Set light linking mode or use Arnold Render Globals if not passed
+      if (lightLinks != -1)
+      {
+         arnoldSession->SetLightLinkMode(ArnoldLightLinkMode(lightLinks));
+      }
+      // Set shadow linking mode or use Arnold Render Globals if not passed
+      if (shadowLinks != -1)
+      {
+         arnoldSession->SetShadowLinkMode(ArnoldShadowLinkMode(shadowLinks));
+      }
       // getting ass file name
       curfilename = renderSession->GetAssName(customFileName,
                                               renderGlobals,

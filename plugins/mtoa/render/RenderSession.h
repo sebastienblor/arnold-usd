@@ -86,6 +86,9 @@ public:
    /// \return returns false if there was no complete image.
    bool GetSwatchImage(MImage & image);
 
+   /// Set the ass output mask
+   inline void SetOutputAssMask(AtUInt mask) { m_renderOptions.SetOutputAssMask(mask); }
+
    /// Set the resolution of the render.
    /// \param width width in pixels.
    /// \param height height in pixels.

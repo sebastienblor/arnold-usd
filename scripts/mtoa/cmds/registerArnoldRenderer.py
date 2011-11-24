@@ -40,7 +40,7 @@ from mtoa.ui.globals.common import createArnoldRendererCommonGlobalsTab, updateA
 from mtoa.ui.globals.arnold import createArnoldRendererGlobalsTab, updateArnoldRendererGlobalsTab
 from mtoa.ui.aoveditor import createArnoldAOVTab, updateArnoldAOVTab
 import mtoa.ui.ae.utils as aeUtils
-from mtoa.ui.ae.aiStandInTemplate import ArnoldExportRenderObjectWindow
+from mtoa.ui.arnoldmenu import createArnoldMenu
 
 import mtoa.cmds.arnoldRender as arnoldRender
 
@@ -278,23 +278,11 @@ def registerArnoldRenderer():
         _overridePythonScripts()
         _overrideMelScripts()
 
-        # Add an Arnold menu in Maya main window
-        if not pm.about(b=1):
-            pm.menu('ArnoldMenu', label='Arnold', parent='MayaWindow', tearOff=True )
-            pm.menuItem('ArnoldStandIn', label='StandIn', parent='ArnoldMenu', subMenu=True)
-            pm.menuItem('ArnoldCreateStandIn', parent='ArnoldStandIn', label="Create",
-                        c=lambda *args: pm.createNode('aiStandIn', n='ArnoldStandInShape'))
-            pm.menuItem('ArnoldExportStandIn', parent='ArnoldStandIn', label='Export', c=ArnoldExportRenderObjectWindow)
+        # Add option box for file translator
+        utils.pyToMelProc(exportass.arnoldAssOpts,
+                          [('string', 'parent'), ('string', 'action'),
+                           ('string', 'initialSettings'), ('string', 'resultCallback')],
+                           useName=True)
 
-            #cmds.menuItem(parent='ArnoldMenu', divider=True)aiSkyDomeLight1
-            # Add option box for file translator
-            utils.pyToMelProc(exportass.arnoldAssOpts,
-                              [('string', 'parent'), ('string', 'action'),
-                               ('string', 'initialSettings'), ('string', 'resultCallback')],
-                               useName=True)
-
-            pm.menuItem('ArnoldLights', label='Lights', parent='ArnoldMenu', subMenu=True)
-            pm.menuItem('ArnoldAreaLights', parent='ArnoldLights', label="Area Light",
-                        c=lambda *args: pm.shadingNode('aiAreaLight', name='aiAreaLight', asLight=True))
-            pm.menuItem('SkydomeLight', parent='ArnoldLights', label="Skydome Light",
-                        c=lambda *args: pm.shadingNode('aiSkyDomeLight', name='aiSkyDomeLight', asLight=True))
+        # create the Arnold menu
+        createArnoldMenu()

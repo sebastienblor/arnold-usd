@@ -2,172 +2,275 @@ import maya.cmds as cmds
 import maya.mel as mel
 from mtoa.callbacks import *
 
+def pushOptionsUITemplate():
+    if (not cmds.uiTemplate('oa_optionsTemplate', exists=True)):
+        cmds.uiTemplate('oa_optionsTemplate')
 
-def storeMaskValues():
+        cmds.frameLayout(defineTemplate='oa_optionsTemplate',
+                         collapsable=True, collapse=False,
+                         labelVisible=True, borderVisible=False)
+        cmds.columnLayout(defineTemplate='oa_optionsTemplate',
+                          adjustableColumn=True)
+        
+        cmds.checkBoxGrp(defineTemplate='oa_optionsTemplate',
+                         columnWidth=[2,240], numberOfCheckBoxes=1,
+                         label='')
+        
+        cmds.optionMenuGrp(defineTemplate='oa_optionsTemplate',
+                           columnAlign=[1, "right"],
+                           columnWidth=[2,160])
+
+    cmds.setUITemplate('oa_optionsTemplate', pushTemplate=True)
+
+def popOptionsUITemplate():
+    cmds.setUITemplate(popTemplate=True)
+
+def getMaskValues():
     mask = 0
 
-    if cmds.checkBox('oa_export_options', q=True, value=True):
+    if cmds.checkBoxGrp('oa_export_options', q=True, value1=True):
         mask += 1
-    if cmds.checkBox('oa_export_cameras', q=True, value=True):
+    if cmds.checkBoxGrp('oa_export_cameras', q=True, value1=True):
         mask += 2
-    if cmds.checkBox('oa_export_lights', q=True, value=True):
+    if cmds.checkBoxGrp('oa_export_lights', q=True, value1=True):
         mask += 4
-    if cmds.checkBox('oa_export_shapes', q=True, value=True):
+    if cmds.checkBoxGrp('oa_export_shapes', q=True, value1=True):
         mask += 8
-    if cmds.checkBox('oa_export_shaders', q=True, value=True):
+    if cmds.checkBoxGrp('oa_export_shaders', q=True, value1=True):
         mask += 16
-    if cmds.checkBox('oa_export_override', q=True, value=True):
+    if cmds.checkBoxGrp('oa_export_override', q=True, value1=True):
         mask += 32
-    if cmds.checkBox('oa_export_drivers', q=True, value=True):
+    if cmds.checkBoxGrp('oa_export_drivers', q=True, value1=True):
         mask += 64
-    if cmds.checkBox('oa_export_filters', q=True, value=True):
+    if cmds.checkBoxGrp('oa_export_filters', q=True, value1=True):
         mask += 128
 
-    cmds.setAttr('defaultArnoldRenderOptions.output_ass_mask', mask)
+    return mask
 
-def readMaskValues():
-    mask = cmds.getAttr('defaultArnoldRenderOptions.output_ass_mask')
-
-    cmds.checkBox('oa_export_filters', edit=True, value=(mask / 128))
+def setMaskValues(mask):
+    cmds.checkBoxGrp('oa_export_filters', edit=True, value1=(mask / 128))
     mask = mask % 128
-    cmds.checkBox('oa_export_drivers', edit=True, value=(mask / 64))
+    cmds.checkBoxGrp('oa_export_drivers', edit=True, value1=(mask / 64))
     mask = mask % 64
-    cmds.checkBox('oa_export_override', edit=True, value=(mask / 32))
+    cmds.checkBoxGrp('oa_export_override', edit=True, value1=(mask / 32))
     mask = mask % 32
-    cmds.checkBox('oa_export_shaders', edit=True, value=(mask / 16))
+    cmds.checkBoxGrp('oa_export_shaders', edit=True, value1=(mask / 16))
     mask = mask % 16
-    cmds.checkBox('oa_export_shapes', edit=True, value=(mask / 8))
+    cmds.checkBoxGrp('oa_export_shapes', edit=True, value1=(mask / 8))
     mask = mask % 8
-    cmds.checkBox('oa_export_lights', edit=True, value=(mask / 4))
+    cmds.checkBoxGrp('oa_export_lights', edit=True, value1=(mask / 4))
     mask = mask % 4
-    cmds.checkBox('oa_export_cameras', edit=True, value=(mask / 2))
+    cmds.checkBoxGrp('oa_export_cameras', edit=True, value1=(mask / 2))
     mask = mask % 2
-    cmds.checkBox('oa_export_options', edit=True, value=mask)
+    cmds.checkBoxGrp('oa_export_options', edit=True, value1=mask)
 
+def SequenceToggleOn(*arg):
+   ToggleSequenceLine(True)
+   
+def SequenceToggleOff(*arg):
+   ToggleSequenceLine(False)
+
+def ToggleSequenceLine(flag):
+   cmds.text("oa_exportStartLabel",edit=True,enable=flag)
+   cmds.floatField("oa_exportStart",edit=True,enable=flag)
+   cmds.text("oa_exportEndLabel",edit=True,enable=flag)
+   cmds.floatField("oa_exportEnd",edit=True,enable=flag)
+   cmds.text("oa_exportStepLabel",edit=True,enable=flag)
+   cmds.floatField("oa_exportStep",edit=True,enable=flag)
+
+def LightToggleOn(*arg):
+   ToggleLightLinking(True)
+   
+def LightToggleOff(*arg):
+   ToggleLightLinking(False)
+
+def ToggleLightLinking(flag):
+   cmds.optionMenuGrp('oa_export_light_links',edit=True,enable=flag)
+   cmds.optionMenuGrp('oa_export_shadow_links',edit=True,enable=flag)
+   
+def parseSettingsString(settingsString):
+    settings = {}
+    if settingsString :
+        # parse settings
+        settingsDecs = settingsString.split(";")
+        for dec in settingsDecs :
+            flag, space, value = dec.partition(' ')
+            flag = flag.lstrip('-')
+            if value == '' :
+                settings[flag] = True
+            else :
+                try:
+                    settings[flag] = int(value)
+                except ValueError:
+                    try:
+                        settings[flag] = float(value)
+                    except:
+                        settings[flag] = value
+
+    # get default settings from options node
+    optionsNode = 'defaultArnoldRenderOptions'
+    if cmds.ls(optionsNode):    
+        settings.setdefault('compressed', cmds.getAttr('%s.output_ass_compressed' % optionsNode))
+        settings.setdefault('boundingBox', cmds.getAttr('%s.outputAssBoundingBox' % optionsNode))
+        settings.setdefault('asciiAss', not cmds.getAttr('%s.binaryAss' % optionsNode))
+        settings.setdefault('mask', cmds.getAttr('%s.output_ass_mask' % optionsNode))
+        settings.setdefault('lightLinks', cmds.getAttr('%s.lightLinking' % optionsNode))
+        settings.setdefault('shadowLinks', cmds.getAttr('%s.shadowLinking' % optionsNode))
+        
+    return settings
+
+def buildSettingsString(settings):
+    def flagSyntaxItems(items):
+        for key, value in items :
+            if value is True:
+                yield '-%s' % key
+            elif value is not False:
+                yield '-%s %r' % (key, value)
+        
+    settingsString = ';'.join(flagSyntaxItems(settings.items()))
+    return settingsString 
 
 def arnoldAssOpts(parent = '', action = '', initialSettings = '', resultCallback = ''):
-    print 'parent: %(p)s, action: %(a)s, settings: %(s)s, callback: %(c)s\n' % \
-      {"p": parent, "a": action, "s": initialSettings, "c": resultCallback}
+    
+    # print 'parent: %(p)s, action: %(a)s, initialSettings: %(s)s, resultCallback: %(c)s\n' % \
+    #  {"p": parent, "a": action, "s": initialSettings, "c": resultCallback}
 
     retval = 0
     currentOptions = ''
-
-    # Make sure the aiOptions node exists
-    if not cmds.ls('defaultArnoldRenderOptions'):
-        cmds.createNode('aiOptions', skipSelect=True, shared=True, name='defaultArnoldRenderOptions')
-
+        
     if action == 'post':
+        settings = parseSettingsString(initialSettings)
+        
         cmds.setParent(parent)
 
-        #cmds.connectControl('oa_filename', 'defaultArnoldRenderOptions.output_ass_filename', fileName=True)
+        pushOptionsUITemplate()
+        
+        cmds.columnLayout()
+        cmds.checkBoxGrp('oa_compressed',
+                         label1='Use Compression',
+                         value1=settings.get('compressed', False))
+        cmds.checkBoxGrp('oa_write_bbox',
+                         label1='Write Bounding Box',
+                         value1=settings.get('boundingBox', False))
+        cmds.checkBoxGrp('oa_binary_ass',
+                         label1='Binary Ass Export',
+                         value1=not settings.get('asciiAss', False))
 
-        cmds.checkBox('oa_compressed', label='Use Compression')
-        cmds.connectControl('oa_compressed', 'defaultArnoldRenderOptions.output_ass_compressed')
-
-        cmds.checkBox('oa_write_bbox', label='Write Bounding Box')
-        if '-bb' in initialSettings:
-            cmds.checkBox('oa_write_bbox', edit=True, value=True)
-
-        cmds.checkBox('oa_binary_ass', label='Binary Ass Export')
-        cmds.checkBox('oa_binary_ass', edit=True, value=cmds.getAttr('defaultArnoldRenderOptions.binaryAss'))
-        #cmds.connectControl('oa_binary_ass', 'defaultArnoldRenderOptions.binaryAss')
-
+        cmds.setParent('..')
         cmds.separator(style='none')
+        cmds.frameLayout(label='Export', collapsable=True)
+        cmds.columnLayout()
+        
+        cmds.checkBoxGrp('oa_export_options', label1='Options', value1=True)
+        cmds.checkBoxGrp('oa_export_cameras', label1='Cameras', value1=True)
+        cmds.checkBoxGrp('oa_export_lights', label1='Lights', value1=True,
+                         onCommand1=LightToggleOn,
+                         offCommand1=LightToggleOff)
+        cmds.checkBoxGrp('oa_export_shapes', label1='Shapes', value1=True)
+        cmds.checkBoxGrp('oa_export_shaders', label1='Shaders', value1=True)
+        cmds.checkBoxGrp('oa_export_override', label1='Override Nodes', value1=True)
+        cmds.checkBoxGrp('oa_export_drivers', label1='Drivers', value1=True)
+        cmds.checkBoxGrp('oa_export_filters', label1='Filters', value1=True)
+        setMaskValues(settings.get('mask', 255))
+        
+        cmds.text("oa_exportSeparator",label="")
+     
+        lightsOn = cmds.checkBoxGrp('oa_export_lights', query=True, value1=True)
+        
+        cmds.optionMenuGrp('oa_export_light_links', label='Light Linking')
+        entries = cmds.attributeQuery('lightLinking', typ='aiOptions', listEnum=True)[0].split(':')
+        for entry in entries :
+            cmds.menuItem(label=entry)
+        cmds.optionMenuGrp('oa_export_light_links', edit=True, select=1+settings.get('lightLinks', 0))
+        cmds.optionMenuGrp('oa_export_light_links', edit=True, enable=lightsOn)
+        
+        cmds.optionMenuGrp('oa_export_shadow_links', label='Shadow Linking')
+        entries = cmds.attributeQuery('shadowLinking', typ='aiOptions', listEnum=True)[0].split(':')
+        for entry in entries :
+            cmds.menuItem(label=entry)
+        cmds.optionMenuGrp('oa_export_shadow_links', edit=True, select=1+settings.get('shadowLinks', 0)) 
+        cmds.optionMenuGrp('oa_export_shadow_links', edit=True, enable=lightsOn)
+        
+        cmds.setParent('..')      
+        cmds.setParent('..')
+        cmds.separator(style='none')    
+        cmds.frameLayout(label='Sequence', collapsable=True)
+        cmds.columnLayout()
+        
+        if settings.get('startFrame', None) is not None and settings.get('endFrame', None) is not None:
+            sequence = True;
+        else:
+            sequence = False;
+        cmds.checkBoxGrp("oa_exportSequence",
+                         label1="Sequence",
+                         onCommand1=SequenceToggleOn,
+                         offCommand1=SequenceToggleOff,
+                         value1=sequence)
 
-        cmds.text('Export Node Types')
-        cmds.frameLayout(label='')
-        cmds.columnLayout(adjustableColumn=True,
-                       columnOffset=('both', 10),
-                       rowSpacing=10)
+        cmds.setParent( '..' ) 
+        cmds.rowColumnLayout(numberOfColumns=6,
+                             columnAttach=[(1, "left", 140), (2, "both", 0), (3, "both", 0),
+                                           (4, "both", 0), (5, "both", 0), (6, "right", 0)])
+        cmds.text("oa_exportStartLabel",label="Start ")
+        cmds.floatField("oa_exportStart")
+        start = cmds.playbackOptions(query=True, animationStartTime=True)
+        cmds.floatField("oa_exportStart", edit=True,
+                        value=settings.get('startFrame', start), enable=sequence)
+        cmds.text("oa_exportEndLabel",label="End   ")
+        cmds.floatField("oa_exportEnd")
+        end = cmds.playbackOptions(query=True, animationEndTime=True)
+        cmds.floatField("oa_exportEnd", edit=True,
+                        value=settings.get('endFrame', end), enable=sequence)
+        cmds.text("oa_exportStepLabel",label="Step  ")
+        cmds.floatField("oa_exportStep")
+        step = cmds.playbackOptions(query=True, by=True)
+        cmds.floatField("oa_exportStep", edit=True,
+                        value=settings.get('frameStep', step), enable=sequence)
 
-        cmds.checkBox('oa_export_options', align='left', label='Export Options Node', value=True)
-        cmds.checkBox('oa_export_cameras', align='left', label='Export Cameras', value=True)
-        cmds.checkBox('oa_export_lights', align='left', label='Export Lights', value=True)
-        cmds.checkBox('oa_export_shapes', align='left', label='Export Shapes', value=True)
-        cmds.checkBox('oa_export_shaders', align='left', label='Export Shaders', value=True)
-        cmds.checkBox('oa_export_override', align='left', label='Export Override Nodes', value=True)
-        cmds.checkBox('oa_export_drivers', align='left', label='Export Drivers', value=True)
-        cmds.checkBox('oa_export_filters', align='left', label='Export Filters', value=True)
-
-        readMaskValues()
+        cmds.setParent( '..' )
+        cmds.setParent( '..' )
+        
+        popOptionsUITemplate()
+        
         retval = 1
 
     elif action == 'query':
-        # TODO: make this more optionVar compliant ?
-        storeMaskValues()
+        settings = {}
+        
+        # output ass format
+        settings['compressed'] = cmds.checkBoxGrp('oa_compressed', query=True, value1=True)
+        settings['boundingBox'] = cmds.checkBoxGrp('oa_write_bbox', query=True, value1=True)
+        settings['asciiAss'] = not cmds.checkBoxGrp('oa_binary_ass', query=True, value1=True)      
+        
+        # export mask and options
+        settings['mask'] = getMaskValues()
+        
+        if (cmds.optionMenuGrp('oa_export_light_links', query=True, enable=True)):
+            settings['lightLinks'] = cmds.optionMenuGrp('oa_export_light_links', query=True, select=True) - 1
+        else:
+            settings['lightLinks'] = 0
+        if (cmds.optionMenuGrp('oa_export_shadow_links', query=True, enable=True)):    
+            settings['shadowLinks'] = cmds.optionMenuGrp('oa_export_shadow_links', query=True, select=True) - 1
+        else:
+            settings['shadowLinks'] = 0
+                    
+        # sequence
+        sequence = cmds.checkBoxGrp("oa_exportSequence", query=True, value1=True)
+        if sequence :
+            settings['startFrame'] = cmds.floatField("oa_exportStart", query=True, value=True)
+            settings['endFrame']   = cmds.floatField("oa_exportEnd", query=True, value=True)
+            settings['frameStep']  = cmds.floatField("oa_exportStep", query=True, value=True)        
 
-        # If more options are used, the callback expects them to be ";" separated
-        if cmds.checkBox('oa_write_bbox', q=True, value=True):
-            currentOptions = '-bb'
-        # compressed export
-        if cmds.checkBox('oa_compressed', q=True, value=True):
-            if currentOptions == '':
-                currentOptions = '-c'
-            else:
-                currentOptions += ' ; -c'
-        # ascii export
-        if cmds.checkBox('oa_binary_ass', q=True, value=False):
-            if currentOptions == '':
-                currentOptions = '-a'
-            else:
-                currentOptions += ' ; -a'
-
-        print 'callback: %(c)s, options: %(o)s\n' % {"c": resultCallback, "o": currentOptions}
+                
+        currentOptions = buildSettingsString(settings)        
+        # print 'callback: %(c)s, options: %(o)s\n' % {"c": resultCallback, "o": currentOptions}
         mel.eval(resultCallback+'("'+currentOptions+'")')
         retval = 1
-
     else:
         retval = 0
 
     return retval
 
-def doExportAssOpts():
-    if (cmds.radioButtonGrp('arnoldExportAssSelected', query=True, select=True) == 1):
-        mel.eval('ExportOptions')
-        # mel.eval('fileOptions "ExportAll" "projectViewer ExportAll"')
-        # mel.eval('setCurrentFileTypeOption "ExportAll" "actionOptionsForm" "ArnoldSceneSource"')
-    else :
-        mel.eval('ExportSelectionOptions')
-        # mel.eval('fileOptions "ExportActive" "projectViewer ExportActive"')
-        # mel.eval('setCurrentFileTypeOption "ExportActive" "actionOptionsForm" "ArnoldSceneSource"')
-
-def doExportAss():
-    if (cmds.radioButtonGrp('arnoldExportAssSelected', query=True, select=True) == 1):
-        mel.eval('Export')
-        # mel.eval('fileOptions "ExportAll" "projectViewer ExportAll"')
-        mel.eval('setCurrentFileTypeOption "ExportAll" "actionOptionsForm" "ArnoldSceneSource"')
-    else :
-        mel.eval('ExportSelection')
-        # mel.eval('fileOptions "ExportActive" "projectViewer ExportActive"')
-        mel.eval('setCurrentFileTypeOption "ExportActive" "actionOptionsForm" "ArnoldSceneSource"')
 
 
 
-def doExportAssAndClose(window):
-    doExportAssOpts()
-    cmds.deleteUI(window, window=True)
-
-def arnoldExportAss(*args):
-
-    # Make sure the aiOptions node exists
-    if not cmds.ls('defaultArnoldRenderOptions'):
-        cmds.createNode('aiOptions', skipSelect=True, shared=True, name='defaultArnoldRenderOptions')
-
-    window = cmds.window(title='Export to .ass Options', resizeToFitChildren=True)
-
-    cmds.columnLayout(adjustableColumn=True,
-                      columnOffset=("both", 20),
-                      rowSpacing=10)
-    cmds.radioButtonGrp('arnoldExportAssSelected',
-         numberOfRadioButtons=2,
-         select=1,
-                        labelArray2=['All', 'Selected'])
-
-    cmds.separator(style='none')
-
-    cmds.rowLayout(numberOfColumns=2)
-    cmds.button(width=80, label='Export', command=Callback(doExportAssAndClose, window))
-    cmds.button(width=80, label='Close', command=Callback(cmds.deleteUI, window, window=True))
-    cmds.setParent('..')
-
-    cmds.showWindow(window)

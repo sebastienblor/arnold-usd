@@ -6,11 +6,6 @@
 // Correct sub-directory will be created in projects and proposed as default path for write / read
 // It's easier to track scenes references when proper use of the file
 
-// Note: there is only a write method so far, but we could define a read (import) method
-// that would create a standin object for that ass file in the scene.
-// Advantages :
-// Allows to reference ass files in the scene, dependency handling becomes
-// very simple as they'll appear in the scene references header
 
 #include "ArnoldAssTranslator.h"
 
@@ -178,13 +173,6 @@ MStatus CArnoldAssTranslator::writer(const MFileObject& file,
    {
       cmdStr += " " + optionList[i];
    }
-
-   // Rest of the options on arnoldExportAss are
-   // syntax.addFlag("cam", "camera", MSyntax::kString);
-   // syntax.addFlag("sf", "startFrame", MSyntax::kLong);
-   // syntax.addFlag("ef", "endFrame", MSyntax::kLong);
-   // syntax.addFlag("fs", "frameStep", MSyntax::kLong);
-   // cmdStr += options;
 
    return MGlobal::executeCommand(cmdStr);
 

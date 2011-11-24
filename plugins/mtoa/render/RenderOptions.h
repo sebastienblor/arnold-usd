@@ -93,6 +93,11 @@ public:
       return m_outputAssMask;
    }
 
+   void SetOutputAssMask(AtUInt mask)
+   {
+      m_outputAssMask = mask;
+   }
+
    void SetCamera(MDagPath& camera);
 
    void SetWidth(AtUInt width)
