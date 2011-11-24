@@ -1,0 +1,6 @@
+MayaRamp UVs are badly wrapped
+
+When using ramp u/v waves parameters, resulting UVs were not wrapped in the
+right order (ticket #354)
+
+author: r3D
