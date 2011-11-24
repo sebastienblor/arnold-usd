@@ -268,7 +268,6 @@ def arnoldAOVEditor(*args):
     return ed
 
 def createArnoldAOVTab():
-    print "createArnoldAOVTab"
     parentForm = cmds.setParent(query=True)
 
     aovNode = aovs.getAOVNode()
