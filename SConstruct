@@ -155,7 +155,10 @@ if env['COLOR_CMDS']:
 
 #define shortcuts for the above paths, with substitution of environment variables
 MAYA_ROOT = env.subst(env['MAYA_ROOT'])
-MAYA_INCLUDE_PATH = os.path.join(MAYA_ROOT, '../../devkit/include' if system.os() == 'darwin' else 'include')
+if system.os() == 'darwin':
+    MAYA_INCLUDE_PATH = os.path.join(MAYA_ROOT, '../../devkit/include')
+else:
+    MAYA_INCLUDE_PATH = os.path.join(MAYA_ROOT, 'include')
 EXTERNAL_PATH = env.subst(env['EXTERNAL_PATH'])
 ARNOLD = env.subst(env['ARNOLD'])
 ARNOLD_API_INCLUDES = env.subst(env['ARNOLD_API_INCLUDES'])
