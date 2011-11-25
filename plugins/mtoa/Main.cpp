@@ -629,7 +629,7 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
       MGlobal::displayError("Failed to deregister 'arnoldRender' command");
    }
    // Swatch renderer
-   status = MSwatchRenderRegister::registerSwatchRender(ARNOLD_SWATCH, CRenderSwatchGenerator::creator);
+   status = MSwatchRenderRegister::unregisterSwatchRender(ARNOLD_SWATCH, CRenderSwatchGenerator::creator);
    CHECK_MSTATUS(status);
    if (MStatus::kSuccess == status)
    {
