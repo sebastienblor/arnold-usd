@@ -1,15 +1,15 @@
-//Maya ASCII 2012 scene
+//Maya ASCII 2011 scene
 //Name: test.ma
 //Last modified: Fri, Nov 11, 2011 02:37:56 PM
 //Codeset: 1252
-requires maya "2012";
+requires maya "2011";
 requires "mtoa" "0.13.0.dev";
 requires "Mayatomr" "2012.0m - 3.9.1.36 ";
 requires "stereoCamera" "10.0";
 currentUnit -l centimeter -a degree -t film;
 fileInfo "application" "maya";
-fileInfo "product" "Maya 2012";
-fileInfo "version" "2012 x64";
+fileInfo "product" "Maya 2011";
+fileInfo "version" "2011 x64";
 fileInfo "cutIdentifier" "001200000000-796618";
 fileInfo "osv" "Microsoft Windows 7 Business Edition, 64-bit Windows 7 Service Pack 1 (Build 7601)\n";
 createNode transform -s -n "persp";
