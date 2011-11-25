@@ -116,7 +116,10 @@ class LightTemplate(AttributeTemplate):
         super(LightTemplate, self).__init__(nodeType)
         # create callback to create decay filter
         if 'aiLightDecay' in self.validFilters() and nodeType not in self.__class__._callbacks:
-            executeDeferred(callbacks.addNodeAddedCallback, self.addDefaultDecay, nodeType)
+            if pm.mel.getApplicationVersionAsFloat() > 2011:
+                executeDeferred(callbacks.addNodeAddedCallback, self.addDefaultDecay, nodeType)
+            else:
+                callbacks.addNodeAddedCallback(self.addDefaultDecay, nodeType)
             self.__class__._callbacks.append(nodeType)
 
     def validFilters(self):
