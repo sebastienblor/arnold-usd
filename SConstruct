@@ -207,12 +207,13 @@ export_symbols = env['MODE'] in ['debug', 'profile']
 if env['COMPILER'] == 'gcc':
    # env.Append(CXXFLAGS = Split('-fno-rtti'))
 
+   if env['MODE'] == 'opt': 
+      env.Append(CPPDEFINES = Split('NDEBUG')) 
+
    ## Hide all internal symbols (the ones without AI_API decoration)
-   if env['MODE'] == 'opt':
-      env.Append(CCFLAGS = Split('-fvisibility=hidden'))
-      env.Append(CXXFLAGS = Split('-fvisibility=hidden'))
-      env.Append(LINKFLAGS = Split('-fvisibility=hidden'))
-      env.Append(CPPDEFINES = Split('NDEBUG'))
+   env.Append(CCFLAGS = Split('-fvisibility=hidden'))
+   env.Append(CXXFLAGS = Split('-fvisibility=hidden'))
+   env.Append(LINKFLAGS = Split('-fvisibility=hidden'))
 
    ## Hardcode '.' directory in RPATH in linux
    if system.os() == 'linux':
