@@ -1,0 +1,946 @@
+Cannot open log file 'C:\solidAngle\mtoa\mtoa-main\build\windows_x86_64\2011\msvc_opt\testsuite\test_0053\test_0053.log', using stdout instead
+
+Starting "C:\Program Files\Autodesk\Maya2011\bin\mayabatch.exe"
+00:00:00  120mb         | log started Fri Nov 25 18:30:41 2011
+00:00:00  120mb         | Arnold 3.3.13.1 windows 64-bit icc110 oiio1000 sse (build date: Oct 25 2011 16:37:41)
+00:00:00  120mb         | running on Berenjena, 4 x 2833 mhz GenuineIntel with 3839 mb
+00:00:00  120mb         |  
+00:00:00  120mb         | [METADATA] Loading metadata file: C:/solidAngle/mtoadeploy/2011/plug-ins/mtoa.mtd
+00:00:00  120mb         | Successfully registered Arnold ass file translator
+00:00:00  120mb         | Successfully registered Arnold swatch renderer
+00:00:00  120mb         | Successfully registered 'arnoldRender' command
+00:00:00  120mb         | Successfully registered 'arnoldIpr' command
+00:00:00  120mb         | Successfully registered 'arnoldExportAss' command
+00:00:00  120mb         | Successfully registered 'arnoldPlugins' command
+00:00:00  121mb         | [mtoa] [<built-in>] Generated 16 new Maya nodes for Arnold built-in nodes.
+00:00:00  121mb         | [mtoa] [<built-in>] Generated 38 translators for 27 Maya nodes (16 new and 11 existing) for Arnold built-in nodes.
+00:00:00  121mb         | loading plugin: C:/solidangle/mtoadeploy/2011/shaders/mtoa_shaders.dll ...
+00:00:00  121mb         |  mtoa_shaders.dll: MayaMultiplyDivide uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: MayaClamp uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: MayaGammaCorrect uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: MayaCondition uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: MayaReverse uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: MayaBlendColors uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: MayaFacingRatio uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: MayaFlippedNormal uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: MayaPlusMinusAverage1D uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: MayaPlusMinusAverage2D uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: MayaPlusMinusAverage3D uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: MayaRemapValueToValue uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: MayaRemapValueToColor uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: MayaRemapColor uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: MayaFile uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: MayaPlace2DTexture uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: MayaRamp uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: MayaProjection uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: MeshInfo uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: TangentToObjectSpace uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: MayaChecker uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: MayaBulge uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: MayaCloth uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: MayaGrid uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: MayaFractal uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: MayaNoise uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: MayaPlace3DTexture uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: MayaRgbToHsv uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: MayaHsvToRgb uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: MayaLuminance uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: MayaCloud uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: MayaCloudAlpha uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: MayaSnow uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: MayaContrast uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: MayaLayeredTexture uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: MayaLayeredShader uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: MayaSolidFractal uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: MayaVolumeNoise uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: MayaBrownian uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: MayaStucco uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: MayaRemapHsv uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: MayaSetRange uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: MayaImagePlane uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: MayaSurfaceShader uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: colorToFloat uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: vectorToFloat uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: pointToFloat uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: point2ToFloat uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: writeColor uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: writeFloat uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: MayaEnvSphere uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: anim_matrix uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: anim_float uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: anim_point uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: anim_vector uses Arnold 3.3.13.1
+00:00:00  121mb         |  mtoa_shaders.dll: anim_color uses Arnold 3.3.13.1
+00:00:00  121mb         | loaded 56 plugins from 1 lib(s) in 0:00.07
+00:00:00  121mb         | [mtoa] [mtoa_shaders] Generated 2 new Maya nodes for Arnold plugin C:/solidangle/mtoadeploy/2011/shaders/mtoa_shaders.dll.
+00:00:00  121mb         | [mtoa] [mtoa_shaders] Generated 26 translators for 26 Maya nodes (2 new and 24 existing) for Arnold plugin C:/solidangle/mtoadeploy/2011/shaders/mtoa_shaders.dll.
+00:00:00  122mb         | [mtoa] Registering 2 loaded extensions:
+00:00:00  122mb         | [mtoa] Registered extension <built-in>(<built-in>).
+00:00:00  122mb         | [mtoa] Registered extension mtoa_shaders(C:/solidangle/mtoadeploy/2011/shaders/mtoa_shaders.dll).
+00:00:00  122mb         | Successfully registered Arnold nodes
+00:00:00  125mb         | Successfully imported python module 'arnold'
+00:00:00  125mb         | Successfully imported python module 'mtoa'
+Maya 2011 importing module pymel 1.0.0
+Maya 2011 reloading patched pymel
+pymel.core : INFO : Updating pymel with pre-loaded plugins: VectorRender, DirectConnect, studioImport, mayaHIK, mtoa
+Patched pymel version 1.0.0 loaded
+registering attribute template for aiAreaLight
+registering attribute template for aiAreaLight
+registering attribute template for aiAreaLight
+registering attribute template for aiAreaLight
+registering attribute template for mesh
+registering attribute template for hairSystem
+registering attribute template for ambientLight
+registering attribute template for directionalLight
+registering attribute template for pointLight
+registering attribute template for spotLight
+registering attribute template for areaLight
+registering attribute template for camera
+registering attribute template for stereoRigCamera
+registering attribute template for camera
+registering attribute template for stereoRigCamera
+registering attribute template for camera
+registering attribute template for stereoRigCamera
+registering attribute template for camera
+registering attribute template for stereoRigCamera
+Adding attribute changed callback for camera
+registering attribute template for <driver>
+registering attribute template for <driver>
+registering attribute template for <driver>
+registering attribute template for <driver>
+registering attribute template for <filter>
+registering attribute template for <filter>
+registering attribute template for <filter>
+registering attribute template for <filter>
+registering attribute template for <filter>
+registering attribute template for <filter>
+registering attribute template for <filter>
+registering attribute template for <filter>
+registering attribute template for <filter>
+registering attribute template for <filter>
+registering attribute template for <filter>
+registering attribute template for <filter>
+registering attribute template for <filter>
+registering attribute template for <filter>
+registering attribute template for <filter>
+registering attribute template for <filter>
+registering attribute template for <filter>
+Maya 2011 sourcing MEL override C:\solidAngle\mtoadeploy\2011\scripts\mtoa\2011\mel\buildShaderMenus.mel
+Maya 2011 sourcing MEL override C:\solidAngle\mtoadeploy\2011\scripts\mtoa\2011\mel\hyperShadePanel.mel
+Maya 2011 sourcing MEL override C:\solidAngle\mtoadeploy\2011\scripts\mtoa\2011\mel\renderCreateBarUI.mel
+00:00:01  208mb         | Successfully registered renderer 'arnold'
+00:00:01  208mb         |  
+00:00:01  208mb         | releasing resources
+00:00:01  208mb         | Arnold shutdown
+00:00:00  208mb         | log started Fri Nov 25 18:30:42 2011
+00:00:00  208mb         | Arnold 3.3.13.1 windows 64-bit icc110 oiio1000 sse (build date: Oct 25 2011 16:37:41)
+00:00:00  208mb         | running on Berenjena, 4 x 2833 mhz GenuineIntel with 3839 mb
+00:00:00  208mb         |  
+00:00:00  208mb         | loading plugin: C:/solidangle/mtoadeploy/2011/shaders/mtoa_shaders.dll ...
+00:00:00  208mb         |  mtoa_shaders.dll: MayaMultiplyDivide uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaClamp uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaGammaCorrect uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaCondition uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaReverse uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaBlendColors uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaFacingRatio uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaFlippedNormal uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaPlusMinusAverage1D uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaPlusMinusAverage2D uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaPlusMinusAverage3D uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaRemapValueToValue uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaRemapValueToColor uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaRemapColor uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaFile uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaPlace2DTexture uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaRamp uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaProjection uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MeshInfo uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: TangentToObjectSpace uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaChecker uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaBulge uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaCloth uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaGrid uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaFractal uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaNoise uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaPlace3DTexture uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaRgbToHsv uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaHsvToRgb uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaLuminance uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaCloud uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaCloudAlpha uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaSnow uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaContrast uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaLayeredTexture uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaLayeredShader uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaSolidFractal uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaVolumeNoise uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaBrownian uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaStucco uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaRemapHsv uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaSetRange uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaImagePlane uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaSurfaceShader uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: colorToFloat uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: vectorToFloat uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: pointToFloat uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: point2ToFloat uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: writeColor uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: writeFloat uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: MayaEnvSphere uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: anim_matrix uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: anim_float uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: anim_point uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: anim_vector uses Arnold 3.3.13.1
+00:00:00  208mb         |  mtoa_shaders.dll: anim_color uses Arnold 3.3.13.1
+00:00:00  208mb         | loaded 56 plugins from 1 lib(s) in 0:00.08
+00:00:00  208mb         | [METADATA] Loading metadata file: C:/solidAngle/mtoadeploy/2011/plug-ins/mtoa.mtd
+00:00:00  208mb         |  
+00:00:00  208mb         | releasing resources
+00:00:00  208mb         | Arnold shutdown
+00:00:00  211mb         | log started Fri Nov 25 18:30:43 2011
+00:00:00  211mb         | Arnold 3.3.13.1 windows 64-bit icc110 oiio1000 sse (build date: Oct 25 2011 16:37:41)
+00:00:00  211mb         | running on Berenjena, 4 x 2833 mhz GenuineIntel with 3839 mb
+00:00:00  211mb         |  
+00:00:00  211mb         | loading plugin: C:/solidangle/mtoadeploy/2011/shaders/mtoa_shaders.dll ...
+00:00:00  211mb         |  mtoa_shaders.dll: MayaMultiplyDivide uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: MayaClamp uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: MayaGammaCorrect uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: MayaCondition uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: MayaReverse uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: MayaBlendColors uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: MayaFacingRatio uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: MayaFlippedNormal uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: MayaPlusMinusAverage1D uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: MayaPlusMinusAverage2D uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: MayaPlusMinusAverage3D uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: MayaRemapValueToValue uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: MayaRemapValueToColor uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: MayaRemapColor uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: MayaFile uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: MayaPlace2DTexture uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: MayaRamp uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: MayaProjection uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: MeshInfo uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: TangentToObjectSpace uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: MayaChecker uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: MayaBulge uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: MayaCloth uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: MayaGrid uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: MayaFractal uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: MayaNoise uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: MayaPlace3DTexture uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: MayaRgbToHsv uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: MayaHsvToRgb uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: MayaLuminance uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: MayaCloud uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: MayaCloudAlpha uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: MayaSnow uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: MayaContrast uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: MayaLayeredTexture uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: MayaLayeredShader uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: MayaSolidFractal uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: MayaVolumeNoise uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: MayaBrownian uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: MayaStucco uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: MayaRemapHsv uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: MayaSetRange uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: MayaImagePlane uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: MayaSurfaceShader uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: colorToFloat uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: vectorToFloat uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: pointToFloat uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: point2ToFloat uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: writeColor uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: writeFloat uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: MayaEnvSphere uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: anim_matrix uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: anim_float uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: anim_point uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: anim_vector uses Arnold 3.3.13.1
+00:00:00  211mb         |  mtoa_shaders.dll: anim_color uses Arnold 3.3.13.1
+00:00:00  211mb         | loaded 56 plugins from 1 lib(s) in 0:00.06
+00:00:00  211mb         | [METADATA] Loading metadata file: C:/solidAngle/mtoadeploy/2011/plug-ins/mtoa.mtd
+00:00:00  211mb         |  
+00:00:00  211mb         | releasing resources
+00:00:00  211mb         | Arnold shutdown
+mental ray for Maya 2011 
+mental ray: version 3.8.1.33, Aug 20 2010, revision 124793
+00:00:00  242mb         | log started Fri Nov 25 18:30:43 2011
+00:00:00  242mb         | Arnold 3.3.13.1 windows 64-bit icc110 oiio1000 sse (build date: Oct 25 2011 16:37:41)
+00:00:00  242mb         | running on Berenjena, 4 x 2833 mhz GenuineIntel with 3839 mb
+00:00:00  242mb         |  
+00:00:00  242mb         | loading plugin: C:/solidangle/mtoadeploy/2011/shaders/mtoa_shaders.dll ...
+00:00:00  242mb         |  mtoa_shaders.dll: MayaMultiplyDivide uses Arnold 3.3.13.1
+00:00:00  242mb         |  mtoa_shaders.dll: MayaClamp uses Arnold 3.3.13.1
+00:00:00  242mb         |  mtoa_shaders.dll: MayaGammaCorrect uses Arnold 3.3.13.1
+00:00:00  242mb         |  mtoa_shaders.dll: MayaCondition uses Arnold 3.3.13.1
+00:00:00  242mb         |  mtoa_shaders.dll: MayaReverse uses Arnold 3.3.13.1
+00:00:00  242mb         |  mtoa_shaders.dll: MayaBlendColors uses Arnold 3.3.13.1
+00:00:00  242mb         |  mtoa_shaders.dll: MayaFacingRatio uses Arnold 3.3.13.1
+00:00:00  242mb         |  mtoa_shaders.dll: MayaFlippedNormal uses Arnold 3.3.13.1
+00:00:00  242mb         |  mtoa_shaders.dll: MayaPlusMinusAverage1D uses Arnold 3.3.13.1
+00:00:00  242mb         |  mtoa_shaders.dll: MayaPlusMinusAverage2D uses Arnold 3.3.13.1
+00:00:00  242mb         |  mtoa_shaders.dll: MayaPlusMinusAverage3D uses Arnold 3.3.13.1
+00:00:00  242mb         |  mtoa_shaders.dll: MayaRemapValueToValue uses Arnold 3.3.13.1
+00:00:00  242mb         |  mtoa_shaders.dll: MayaRemapValueToColor uses Arnold 3.3.13.1
+00:00:00  242mb         |  mtoa_shaders.dll: MayaRemapColor uses Arnold 3.3.13.1
+00:00:00  242mb         |  mtoa_shaders.dll: MayaFile uses Arnold 3.3.13.1
+00:00:00  242mb         |  mtoa_shaders.dll: MayaPlace2DTexture uses Arnold 3.3.13.1
+00:00:00  242mb         |  mtoa_shaders.dll: MayaRamp uses Arnold 3.3.13.1
+00:00:00  242mb         |  mtoa_shaders.dll: MayaProjection uses Arnold 3.3.13.1
+00:00:00  242mb         |  mtoa_shaders.dll: MeshInfo uses Arnold 3.3.13.1
+00:00:00  242mb         |  mtoa_shaders.dll: TangentToObjectSpace uses Arnold 3.3.13.1
+00:00:00  242mb         |  mtoa_shaders.dll: MayaChecker uses Arnold 3.3.13.1
+00:00:00  242mb         |  mtoa_shaders.dll: MayaBulge uses Arnold 3.3.13.1
+00:00:00  242mb         |  mtoa_shaders.dll: MayaCloth uses Arnold 3.3.13.1
+00:00:00  242mb         |  mtoa_shaders.dll: MayaGrid uses Arnold 3.3.13.1
+00:00:00  242mb         |  mtoa_shaders.dll: MayaFractal uses Arnold 3.3.13.1
+00:00:00  242mb         |  mtoa_shaders.dll: MayaNoise uses Arnold 3.3.13.1
+00:00:00  242mb         |  mtoa_shaders.dll: MayaPlace3DTexture uses Arnold 3.3.13.1
+00:00:00  242mb         |  mtoa_shaders.dll: MayaRgbToHsv uses Arnold 3.3.13.1
+00:00:00  242mb         |  mtoa_shaders.dll: MayaHsvToRgb uses Arnold 3.3.13.1
+00:00:00  242mb         |  mtoa_shaders.dll: MayaLuminance uses Arnold 3.3.13.1
+00:00:00  242mb         |  mtoa_shaders.dll: MayaCloud uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaCloudAlpha uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaSnow uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaContrast uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaLayeredTexture uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaLayeredShader uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaSolidFractal uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaVolumeNoise uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaBrownian uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaStucco uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaRemapHsv uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaSetRange uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaImagePlane uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaSurfaceShader uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: colorToFloat uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: vectorToFloat uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: pointToFloat uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: point2ToFloat uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: writeColor uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: writeFloat uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaEnvSphere uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: anim_matrix uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: anim_float uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: anim_point uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: anim_vector uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: anim_color uses Arnold 3.3.13.1
+00:00:00  243mb         | loaded 56 plugins from 1 lib(s) in 0:00.07
+00:00:00  243mb         | [METADATA] Loading metadata file: C:/solidAngle/mtoadeploy/2011/plug-ins/mtoa.mtd
+00:00:00  243mb         |  
+00:00:00  243mb         | releasing resources
+00:00:00  243mb         | Arnold shutdown
+00:00:00  243mb         | log started Fri Nov 25 18:30:43 2011
+00:00:00  243mb         | Arnold 3.3.13.1 windows 64-bit icc110 oiio1000 sse (build date: Oct 25 2011 16:37:41)
+00:00:00  243mb         | running on Berenjena, 4 x 2833 mhz GenuineIntel with 3839 mb
+00:00:00  243mb         |  
+00:00:00  243mb         | loading plugin: C:/solidangle/mtoadeploy/2011/shaders/mtoa_shaders.dll ...
+00:00:00  243mb         |  mtoa_shaders.dll: MayaMultiplyDivide uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaClamp uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaGammaCorrect uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaCondition uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaReverse uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaBlendColors uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaFacingRatio uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaFlippedNormal uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaPlusMinusAverage1D uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaPlusMinusAverage2D uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaPlusMinusAverage3D uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaRemapValueToValue uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaRemapValueToColor uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaRemapColor uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaFile uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaPlace2DTexture uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaRamp uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaProjection uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MeshInfo uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: TangentToObjectSpace uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaChecker uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaBulge uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaCloth uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaGrid uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaFractal uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaNoise uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaPlace3DTexture uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaRgbToHsv uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaHsvToRgb uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaLuminance uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaCloud uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaCloudAlpha uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaSnow uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaContrast uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaLayeredTexture uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaLayeredShader uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaSolidFractal uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaVolumeNoise uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaBrownian uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaStucco uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaRemapHsv uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaSetRange uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaImagePlane uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaSurfaceShader uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: colorToFloat uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: vectorToFloat uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: pointToFloat uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: point2ToFloat uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: writeColor uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: writeFloat uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaEnvSphere uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: anim_matrix uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: anim_float uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: anim_point uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: anim_vector uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: anim_color uses Arnold 3.3.13.1
+00:00:00  243mb         | loaded 56 plugins from 1 lib(s) in 0:00.08
+00:00:00  243mb         | [METADATA] Loading metadata file: C:/solidAngle/mtoadeploy/2011/plug-ins/mtoa.mtd
+00:00:00  243mb         |  
+00:00:00  243mb         | releasing resources
+00:00:00  243mb         | Arnold shutdown
+00:00:00  243mb         | log started Fri Nov 25 18:30:43 2011
+00:00:00  243mb         | Arnold 3.3.13.1 windows 64-bit icc110 oiio1000 sse (build date: Oct 25 2011 16:37:41)
+00:00:00  243mb         | running on Berenjena, 4 x 2833 mhz GenuineIntel with 3839 mb
+00:00:00  243mb         |  
+00:00:00  243mb         | loading plugin: C:/solidangle/mtoadeploy/2011/shaders/mtoa_shaders.dll ...
+00:00:00  243mb         |  mtoa_shaders.dll: MayaMultiplyDivide uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaClamp uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaGammaCorrect uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaCondition uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaReverse uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaBlendColors uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaFacingRatio uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaFlippedNormal uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaPlusMinusAverage1D uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaPlusMinusAverage2D uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaPlusMinusAverage3D uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaRemapValueToValue uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaRemapValueToColor uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaRemapColor uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaFile uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaPlace2DTexture uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaRamp uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaProjection uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MeshInfo uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: TangentToObjectSpace uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaChecker uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaBulge uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaCloth uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaGrid uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaFractal uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaNoise uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaPlace3DTexture uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaRgbToHsv uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaHsvToRgb uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaLuminance uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaCloud uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaCloudAlpha uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaSnow uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaContrast uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaLayeredTexture uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaLayeredShader uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaSolidFractal uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaVolumeNoise uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaBrownian uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaStucco uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaRemapHsv uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaSetRange uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaImagePlane uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaSurfaceShader uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: colorToFloat uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: vectorToFloat uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: pointToFloat uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: point2ToFloat uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: writeColor uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: writeFloat uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaEnvSphere uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: anim_matrix uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: anim_float uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: anim_point uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: anim_vector uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: anim_color uses Arnold 3.3.13.1
+00:00:00  243mb         | loaded 56 plugins from 1 lib(s) in 0:00.08
+00:00:00  243mb         | [METADATA] Loading metadata file: C:/solidAngle/mtoadeploy/2011/plug-ins/mtoa.mtd
+00:00:00  243mb         |  
+00:00:00  243mb         | releasing resources
+00:00:00  243mb         | Arnold shutdown
+00:00:00  254mb         | log started Fri Nov 25 18:30:44 2011
+00:00:00  254mb         | Arnold 3.3.13.1 windows 64-bit icc110 oiio1000 sse (build date: Oct 25 2011 16:37:41)
+00:00:00  254mb         | running on Berenjena, 4 x 2833 mhz GenuineIntel with 3839 mb
+00:00:00  254mb         |  
+00:00:00  254mb         | loading plugin: C:/solidangle/mtoadeploy/2011/shaders/mtoa_shaders.dll ...
+00:00:00  254mb         |  mtoa_shaders.dll: MayaMultiplyDivide uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: MayaClamp uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: MayaGammaCorrect uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: MayaCondition uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: MayaReverse uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: MayaBlendColors uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: MayaFacingRatio uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: MayaFlippedNormal uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: MayaPlusMinusAverage1D uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: MayaPlusMinusAverage2D uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: MayaPlusMinusAverage3D uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: MayaRemapValueToValue uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: MayaRemapValueToColor uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: MayaRemapColor uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: MayaFile uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: MayaPlace2DTexture uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: MayaRamp uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: MayaProjection uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: MeshInfo uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: TangentToObjectSpace uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: MayaChecker uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: MayaBulge uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: MayaCloth uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: MayaGrid uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: MayaFractal uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: MayaNoise uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: MayaPlace3DTexture uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: MayaRgbToHsv uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: MayaHsvToRgb uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: MayaLuminance uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: MayaCloud uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: MayaCloudAlpha uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: MayaSnow uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: MayaContrast uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: MayaLayeredTexture uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: MayaLayeredShader uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: MayaSolidFractal uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: MayaVolumeNoise uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: MayaBrownian uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: MayaStucco uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: MayaRemapHsv uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: MayaSetRange uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: MayaImagePlane uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: MayaSurfaceShader uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: colorToFloat uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: vectorToFloat uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: pointToFloat uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: point2ToFloat uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: writeColor uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: writeFloat uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: MayaEnvSphere uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: anim_matrix uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: anim_float uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: anim_point uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: anim_vector uses Arnold 3.3.13.1
+00:00:00  254mb         |  mtoa_shaders.dll: anim_color uses Arnold 3.3.13.1
+00:00:00  254mb         | loaded 56 plugins from 1 lib(s) in 0:00.09
+00:00:00  254mb         | [METADATA] Loading metadata file: C:/solidAngle/mtoadeploy/2011/plug-ins/mtoa.mtd
+00:00:00  254mb         |  
+00:00:00  254mb         | releasing resources
+00:00:00  254mb         | Arnold shutdown
+00:00:00  257mb         | log started Fri Nov 25 18:30:44 2011
+00:00:00  257mb         | Arnold 3.3.13.1 windows 64-bit icc110 oiio1000 sse (build date: Oct 25 2011 16:37:41)
+00:00:00  257mb         | running on Berenjena, 4 x 2833 mhz GenuineIntel with 3839 mb
+00:00:00  257mb         |  
+00:00:00  257mb         | loading plugin: C:/solidangle/mtoadeploy/2011/shaders/mtoa_shaders.dll ...
+00:00:00  257mb         |  mtoa_shaders.dll: MayaMultiplyDivide uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaClamp uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaGammaCorrect uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaCondition uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaReverse uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaBlendColors uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaFacingRatio uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaFlippedNormal uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaPlusMinusAverage1D uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaPlusMinusAverage2D uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaPlusMinusAverage3D uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaRemapValueToValue uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaRemapValueToColor uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaRemapColor uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaFile uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaPlace2DTexture uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaRamp uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaProjection uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MeshInfo uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: TangentToObjectSpace uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaChecker uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaBulge uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaCloth uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaGrid uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaFractal uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaNoise uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaPlace3DTexture uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaRgbToHsv uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaHsvToRgb uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaLuminance uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaCloud uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaCloudAlpha uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaSnow uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaContrast uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaLayeredTexture uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaLayeredShader uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaSolidFractal uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaVolumeNoise uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaBrownian uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaStucco uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaRemapHsv uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaSetRange uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaImagePlane uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaSurfaceShader uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: colorToFloat uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: vectorToFloat uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: pointToFloat uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: point2ToFloat uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: writeColor uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: writeFloat uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaEnvSphere uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: anim_matrix uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: anim_float uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: anim_point uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: anim_vector uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: anim_color uses Arnold 3.3.13.1
+00:00:00  257mb         | loaded 56 plugins from 1 lib(s) in 0:00.06
+00:00:00  257mb         | [METADATA] Loading metadata file: C:/solidAngle/mtoadeploy/2011/plug-ins/mtoa.mtd
+00:00:00  257mb         |  
+00:00:00  257mb         | releasing resources
+00:00:00  257mb         | Arnold shutdown
+00:00:00  257mb         | log started Fri Nov 25 18:30:44 2011
+00:00:00  257mb         | Arnold 3.3.13.1 windows 64-bit icc110 oiio1000 sse (build date: Oct 25 2011 16:37:41)
+00:00:00  257mb         | running on Berenjena, 4 x 2833 mhz GenuineIntel with 3839 mb
+00:00:00  257mb         |  
+00:00:00  257mb         | loading plugin: C:/solidangle/mtoadeploy/2011/shaders/mtoa_shaders.dll ...
+00:00:00  257mb         |  mtoa_shaders.dll: MayaMultiplyDivide uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaClamp uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaGammaCorrect uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaCondition uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaReverse uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaBlendColors uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaFacingRatio uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaFlippedNormal uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaPlusMinusAverage1D uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaPlusMinusAverage2D uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaPlusMinusAverage3D uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaRemapValueToValue uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaRemapValueToColor uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaRemapColor uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaFile uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaPlace2DTexture uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaRamp uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaProjection uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MeshInfo uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: TangentToObjectSpace uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaChecker uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaBulge uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaCloth uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaGrid uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaFractal uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaNoise uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaPlace3DTexture uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaRgbToHsv uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaHsvToRgb uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaLuminance uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaCloud uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaCloudAlpha uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaSnow uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaContrast uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaLayeredTexture uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaLayeredShader uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaSolidFractal uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaVolumeNoise uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaBrownian uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaStucco uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaRemapHsv uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaSetRange uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaImagePlane uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaSurfaceShader uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: colorToFloat uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: vectorToFloat uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: pointToFloat uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: point2ToFloat uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: writeColor uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: writeFloat uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: MayaEnvSphere uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: anim_matrix uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: anim_float uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: anim_point uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: anim_vector uses Arnold 3.3.13.1
+00:00:00  257mb         |  mtoa_shaders.dll: anim_color uses Arnold 3.3.13.1
+00:00:00  257mb         | loaded 56 plugins from 1 lib(s) in 0:00.06
+00:00:00  257mb         | [METADATA] Loading metadata file: C:/solidAngle/mtoadeploy/2011/plug-ins/mtoa.mtd
+00:00:00  257mb         |  
+00:00:00  257mb         | releasing resources
+00:00:00  257mb         | Arnold shutdown
+Error: file: C:/solidAngle/mtoa/mtoa-main/build/windows_x86_64/2011/msvc_opt/testsuite/test_0053/test.ma line 5: Unknown Maya file version: 2012.
+00:00:00  264mb         | log started Fri Nov 25 18:30:44 2011
+00:00:00  264mb         | Arnold 3.3.13.1 windows 64-bit icc110 oiio1000 sse (build date: Oct 25 2011 16:37:41)
+00:00:00  264mb         | running on Berenjena, 4 x 2833 mhz GenuineIntel with 3839 mb
+00:00:00  264mb         |  
+00:00:00  264mb         | loading plugin: C:/solidangle/mtoadeploy/2011/shaders/mtoa_shaders.dll ...
+00:00:00  264mb         |  mtoa_shaders.dll: MayaMultiplyDivide uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: MayaClamp uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: MayaGammaCorrect uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: MayaCondition uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: MayaReverse uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: MayaBlendColors uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: MayaFacingRatio uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: MayaFlippedNormal uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: MayaPlusMinusAverage1D uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: MayaPlusMinusAverage2D uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: MayaPlusMinusAverage3D uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: MayaRemapValueToValue uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: MayaRemapValueToColor uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: MayaRemapColor uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: MayaFile uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: MayaPlace2DTexture uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: MayaRamp uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: MayaProjection uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: MeshInfo uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: TangentToObjectSpace uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: MayaChecker uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: MayaBulge uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: MayaCloth uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: MayaGrid uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: MayaFractal uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: MayaNoise uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: MayaPlace3DTexture uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: MayaRgbToHsv uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: MayaHsvToRgb uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: MayaLuminance uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: MayaCloud uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: MayaCloudAlpha uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: MayaSnow uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: MayaContrast uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: MayaLayeredTexture uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: MayaLayeredShader uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: MayaSolidFractal uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: MayaVolumeNoise uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: MayaBrownian uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: MayaStucco uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: MayaRemapHsv uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: MayaSetRange uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: MayaImagePlane uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: MayaSurfaceShader uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: colorToFloat uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: vectorToFloat uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: pointToFloat uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: point2ToFloat uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: writeColor uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: writeFloat uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: MayaEnvSphere uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: anim_matrix uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: anim_float uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: anim_point uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: anim_vector uses Arnold 3.3.13.1
+00:00:00  264mb         |  mtoa_shaders.dll: anim_color uses Arnold 3.3.13.1
+00:00:00  264mb         | loaded 56 plugins from 1 lib(s) in 0:00.08
+00:00:00  264mb         | [METADATA] Loading metadata file: C:/solidAngle/mtoadeploy/2011/plug-ins/mtoa.mtd
+00:00:00  264mb         |  
+00:00:00  264mb         | releasing resources
+00:00:00  264mb         | Arnold shutdown
+File read in 0 seconds.
+Warning: Errors have occurred while reading this scene that may result in data loss.
+Result: C:/solidAngle/mtoa/mtoa-main/build/windows_x86_64/2011/msvc_opt/testsuite/test_0053/test.ma
+00:00:00  265mb         | log started Fri Nov 25 18:30:45 2011
+00:00:00  265mb         | Arnold 3.3.13.1 windows 64-bit icc110 oiio1000 sse (build date: Oct 25 2011 16:37:41)
+00:00:00  265mb         | running on Berenjena, 4 x 2833 mhz GenuineIntel with 3839 mb
+00:00:00  265mb         |  
+00:00:00  265mb         | loading plugin: C:/solidangle/mtoadeploy/2011/shaders/mtoa_shaders.dll ...
+00:00:00  265mb         |  mtoa_shaders.dll: MayaMultiplyDivide uses Arnold 3.3.13.1
+00:00:00  265mb         |  mtoa_shaders.dll: MayaClamp uses Arnold 3.3.13.1
+00:00:00  265mb         |  mtoa_shaders.dll: MayaGammaCorrect uses Arnold 3.3.13.1
+00:00:00  265mb         |  mtoa_shaders.dll: MayaCondition uses Arnold 3.3.13.1
+00:00:00  265mb         |  mtoa_shaders.dll: MayaReverse uses Arnold 3.3.13.1
+00:00:00  265mb         |  mtoa_shaders.dll: MayaBlendColors uses Arnold 3.3.13.1
+00:00:00  265mb         |  mtoa_shaders.dll: MayaFacingRatio uses Arnold 3.3.13.1
+00:00:00  265mb         |  mtoa_shaders.dll: MayaFlippedNormal uses Arnold 3.3.13.1
+00:00:00  265mb         |  mtoa_shaders.dll: MayaPlusMinusAverage1D uses Arnold 3.3.13.1
+00:00:00  265mb         |  mtoa_shaders.dll: MayaPlusMinusAverage2D uses Arnold 3.3.13.1
+00:00:00  265mb         |  mtoa_shaders.dll: MayaPlusMinusAverage3D uses Arnold 3.3.13.1
+00:00:00  265mb         |  mtoa_shaders.dll: MayaRemapValueToValue uses Arnold 3.3.13.1
+00:00:00  265mb         |  mtoa_shaders.dll: MayaRemapValueToColor uses Arnold 3.3.13.1
+00:00:00  265mb         |  mtoa_shaders.dll: MayaRemapColor uses Arnold 3.3.13.1
+00:00:00  265mb         |  mtoa_shaders.dll: MayaFile uses Arnold 3.3.13.1
+00:00:00  265mb         |  mtoa_shaders.dll: MayaPlace2DTexture uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaRamp uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaProjection uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MeshInfo uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: TangentToObjectSpace uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaChecker uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaBulge uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaCloth uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaGrid uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaFractal uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaNoise uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaPlace3DTexture uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaRgbToHsv uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaHsvToRgb uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaLuminance uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaCloud uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaCloudAlpha uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaSnow uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaContrast uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaLayeredTexture uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaLayeredShader uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaSolidFractal uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaVolumeNoise uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaBrownian uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaStucco uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaRemapHsv uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaSetRange uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaImagePlane uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaSurfaceShader uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: colorToFloat uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: vectorToFloat uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: pointToFloat uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: point2ToFloat uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: writeColor uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: writeFloat uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaEnvSphere uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: anim_matrix uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: anim_float uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: anim_point uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: anim_vector uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: anim_color uses Arnold 3.3.13.1
+00:00:00  266mb         | loaded 56 plugins from 1 lib(s) in 0:00.10
+00:00:00  266mb         | [METADATA] Loading metadata file: C:/solidAngle/mtoadeploy/2011/plug-ins/mtoa.mtd
+00:00:00  266mb         |  
+00:00:00  266mb         | releasing resources
+00:00:00  266mb         | Arnold shutdown
+00:00:00  266mb         | log started Fri Nov 25 18:30:45 2011
+00:00:00  266mb         | Arnold 3.3.13.1 windows 64-bit icc110 oiio1000 sse (build date: Oct 25 2011 16:37:41)
+00:00:00  266mb         | running on Berenjena, 4 x 2833 mhz GenuineIntel with 3839 mb
+00:00:00  266mb         |  
+00:00:00  266mb         | loading plugin: C:/solidangle/mtoadeploy/2011/shaders/mtoa_shaders.dll ...
+00:00:00  266mb         |  mtoa_shaders.dll: MayaMultiplyDivide uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaClamp uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaGammaCorrect uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaCondition uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaReverse uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaBlendColors uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaFacingRatio uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaFlippedNormal uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaPlusMinusAverage1D uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaPlusMinusAverage2D uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaPlusMinusAverage3D uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaRemapValueToValue uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaRemapValueToColor uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaRemapColor uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaFile uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaPlace2DTexture uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaRamp uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaProjection uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MeshInfo uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: TangentToObjectSpace uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaChecker uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaBulge uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaCloth uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaGrid uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaFractal uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaNoise uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaPlace3DTexture uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaRgbToHsv uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaHsvToRgb uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaLuminance uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaCloud uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaCloudAlpha uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaSnow uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaContrast uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaLayeredTexture uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaLayeredShader uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaSolidFractal uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaVolumeNoise uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaBrownian uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaStucco uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaRemapHsv uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaSetRange uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaImagePlane uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaSurfaceShader uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: colorToFloat uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: vectorToFloat uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: pointToFloat uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: point2ToFloat uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: writeColor uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: writeFloat uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: MayaEnvSphere uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: anim_matrix uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: anim_float uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: anim_point uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: anim_vector uses Arnold 3.3.13.1
+00:00:00  266mb         |  mtoa_shaders.dll: anim_color uses Arnold 3.3.13.1
+00:00:00  266mb         | loaded 56 plugins from 1 lib(s) in 0:00.06
+00:00:00  266mb         | [METADATA] Loading metadata file: C:/solidAngle/mtoadeploy/2011/plug-ins/mtoa.mtd
+00:00:00  266mb         | exporting filter "gaussian"
+00:00:00  267mb         |  
+00:00:00  267mb         | [rlm] checkout of arnold (version 303) OK
+00:00:00  267mb         |  
+00:00:00  267mb         | there are 1 light and 5 objects:
+00:00:00  267mb         |  1 polymesh
+00:00:00  267mb         |  4 procedurals
+00:00:00  267mb         |  
+00:00:00  267mb         | rendering image at 160 x 120, 3 AA samples, 2 GI samples, 1 GI bounces
+00:00:00  267mb         |  initializing 18 nodes ...
+00:00:00  268mb WARNING |   line 7: can't rename node "procedural_DBC7842541917F8E5400000004" to "ArnoldStandInShape": name already in use
+00:00:00  268mb WARNING |   line 37: can't rename node "procedural_DBC7842641917F916E00000005" to "ArnoldStandIn1Shape": name already in use
+00:00:00  268mb WARNING |   line 54: can't rename node "procedural_DBC7842641917F932B00000006" to "ArnoldStandIn2Shape": name already in use
+00:00:00  268mb WARNING |   line 71: can't rename node "procedural_DBC7842641917F94E500000007" to "ArnoldStandIn3Shape": name already in use
+00:00:00  268mb WARNING |   line 37: can't rename node "lambert_DBC7842741917F981B00000001" to "lambert1.outColor": name already in use
+00:00:00  268mb WARNING |   line 7: can't rename node "polymesh_DBC7843041917FC93600000002" to "pCubeShape1": name already in use
+00:00:00  268mb WARNING |   line 40: can't rename node "lambert_DBC7843041917FCA3600000002" to "lambert1.outColor": name already in use
+00:00:00  268mb WARNING |   line 7: can't rename node "polymesh_DBC7843141917FCC0000000003" to "pCubeShape1": name already in use
+00:00:00  268mb WARNING |   line 36: can't rename node "lambert_DBC7843141917FCCF300000003" to "lambert1.outColor": name already in use
+00:00:00  268mb WARNING |   line 7: can't rename node "polymesh_DBC7843141917FCEF400000004" to "pCubeShape1": name already in use
+00:00:00  268mb WARNING |   line 40: can't rename node "lambert_DBC7843141917FCFFC00000004" to "lambert1.outColor": name already in use
+00:00:00  268mb WARNING |   line 47: can't rename node "distant_light_DBC7843141917FD12200000003" to "directionalLightShape1": name already in use
+00:00:00  268mb WARNING |   line 9: can't rename node "procedural_DBC784434191802F9500000008" to "ArnoldStandInShape": name already in use
+00:00:00  268mb WARNING |   line 22: can't rename node "procedural_DBC78443419180309800000009" to "ArnoldStandIn1Shape": name already in use
+00:00:00  268mb WARNING |   line 35: can't rename node "procedural_DBC78443419180318C0000000A" to "ArnoldStandIn2Shape": name already in use
+00:00:00  268mb WARNING |   line 48: can't rename node "procedural_DBC7844441918032860000000B" to "ArnoldStandIn3Shape": name already in use
+00:00:00  268mb WARNING |   line 61: can't rename node "distant_light_DBC78444419180335E00000004" to "directionalLightShape2": name already in use
+00:00:00  268mb WARNING |   line 8: can't rename node "polymesh_DBC78444419180351E00000005" to "pCubeShape1": name already in use
+00:00:00  268mb WARNING |   line 37: can't rename node "lambert_DBC78444419180361C00000005" to "lambert1.outColor": name already in use
+00:00:00  268mb WARNING |   line 7: can't rename node "polymesh_DBC7844541918037E600000006" to "pCubeShape1": name already in use
+00:00:00  268mb WARNING |   line 40: can't rename node "lambert_DBC78459419180A85300000006" to "lambert1.outColor": name already in use
+00:00:00  268mb WARNING |   line 7: can't rename node "polymesh_DBC7845A419180AA3100000007" to "pCubeShape1": name already in use
+00:00:00  268mb WARNING |   line 36: can't rename node "lambert_DBC7845A419180AB2200000007" to "lambert1.outColor": name already in use
+00:00:00  268mb WARNING |   line 43: can't rename node "distant_light_DBC7845A419180ABEE00000005" to "directionalLightShape1": name already in use
+00:00:00  268mb WARNING |   line 7: can't rename node "polymesh_DBC7845A419180ADC500000008" to "pCubeShape1": name already in use
+00:00:00  268mb WARNING |   line 40: can't rename node "lambert_DBC7845B419180AEC300000008" to "lambert1.outColor": name already in use
+00:00:00  268mb WARNING |   line 47: can't rename node "distant_light_DBC7845B419180AF9C00000006" to "directionalLightShape1": name already in use
+00:00:00  268mb WARNING |   line 8: can't rename node "procedural_DBC7846C4191810E290000000C" to "ArnoldStandInShape": name already in use
+00:00:00  268mb WARNING |   line 25: can't rename node "distant_light_DBC7846C4191810F0D00000007" to "directionalLightShape2": name already in use
+00:00:00  268mb WARNING |   line 38: can't rename node "procedural_DBC7846D41918110130000000D" to "ArnoldStandIn1Shape": name already in use
+00:00:00  268mb WARNING |   line 55: can't rename node "procedural_DBC7846D41918111140000000E" to "ArnoldStandIn2Shape": name already in use
+00:00:00  268mb WARNING |   line 72: can't rename node "procedural_DBC7846D41918112150000000F" to "ArnoldStandIn3Shape": name already in use
+00:00:00  268mb WARNING |   line 8: can't rename node "polymesh_DBC7846D41918113AB00000009" to "pCubeShape1": name already in use
+00:00:00  268mb WARNING |   line 37: can't rename node "lambert_DBC7846D419181149D00000009" to "lambert1.outColor": name already in use
+00:00:00  268mb WARNING |   line 7: can't rename node "polymesh_DBC784834191818BAA0000000A" to "pCubeShape1": name already in use
+00:00:00  268mb WARNING |   line 40: can't rename node "lambert_DBC784844191818CF80000000A" to "lambert1.outColor": name already in use
+00:00:00  268mb WARNING |   line 7: can't rename node "polymesh_DBC784844191818F090000000B" to "pCubeShape1": name already in use
+00:00:00  268mb WARNING |   line 36: can't rename node "lambert_DBC7848441918190490000000B" to "lambert1.outColor": name already in use
+00:00:00  268mb WARNING |   line 43: can't rename node "distant_light_DBC78484419181916C00000008" to "directionalLightShape1": name already in use
+00:00:00  268mb WARNING |   line 7: can't rename node "polymesh_DBC7848541918193C20000000C" to "pCubeShape1": name already in use
+00:00:00  268mb WARNING |   line 40: can't rename node "lambert_DBC78485419181951A0000000C" to "lambert1.outColor": name already in use
+00:00:00  268mb WARNING |   line 47: can't rename node "distant_light_DBC78485419181964600000009" to "directionalLightShape1": name already in use
+00:00:00  268mb WARNING |   line 7: can't rename node "procedural_DBC78498419181FD6F00000010" to "ArnoldStandInShape": name already in use
+00:00:00  268mb WARNING |   line 20: can't rename node "procedural_DBC78499419181FECA00000011" to "ArnoldStandIn1Shape": name already in use
+00:00:00  268mb WARNING |   line 33: can't rename node "procedural_DBC78499419182000400000012" to "ArnoldStandIn2Shape": name already in use
+00:00:00  268mb WARNING |   line 46: can't rename node "procedural_DBC78499419182013E00000013" to "ArnoldStandIn3Shape": name already in use
+00:00:00  268mb WARNING |   line 59: can't rename node "distant_light_DBC7849941918202560000000A" to "directionalLightShape2": name already in use
+00:00:00  268mb WARNING |   line 8: can't rename node "polymesh_DBC7849A419182044F0000000D" to "pCubeShape1": name already in use
+00:00:00  268mb WARNING |   line 37: can't rename node "lambert_DBC7849A419182058C0000000D" to "lambert1.outColor": name already in use
+00:00:00  268mb WARNING |   line 7: can't rename node "polymesh_DBC784AE41918270C80000000E" to "pCubeShape1": name already in use
+00:00:00  268mb WARNING |   line 40: can't rename node "lambert_DBC784AE41918272190000000E" to "lambert1.outColor": name already in use
+00:00:00  268mb WARNING |   line 7: can't rename node "polymesh_DBC784AE41918274630000000F" to "pCubeShape1": name already in use
+00:00:00  268mb WARNING |   line 36: can't rename node "lambert_DBC784AF41918275B60000000F" to "lambert1.outColor": name already in use
+00:00:00  268mb WARNING |   line 43: can't rename node "distant_light_DBC784AF41918276E10000000B" to "directionalLightShape1": name already in use
+00:00:00  268mb WARNING |   line 7: can't rename node "polymesh_DBC784AF419182794900000010" to "pCubeShape1": name already in use
+00:00:00  268mb WARNING |   line 40: can't rename node "lambert_DBC784B04191827AB500000010" to "lambert1.outColor": name already in use
+00:00:00  268mb WARNING |   line 47: can't rename node "distant_light_DBC784B04191827BF70000000C" to "directionalLightShape1": name already in use
+00:00:00  268mb         |  node initialization done in 0:00.15
+00:00:00  271mb         |  creating root object list ...
+00:00:00  271mb         |   scene bounds: (-17.5649 -0.5 -17.5649) -> (17.5649 0.5 17.5649)
+00:00:00  271mb         |  updating 79 nodes ...
+00:00:00  271mb         |  node update done in 0:00.03
+00:00:00  271mb         |  [aov] registered driver: "driver_tiff" (driver_tiff)
+00:00:00  271mb         |  [aov]  * "RGBA" of type RGBA filtered by "gaussian_filter" (gaussian_filter)
+00:00:00  271mb         |  [aov] done preparing 1 AOV for 1 output to 1 driver (0 deep AOVs)
+00:00:00  271mb         |  starting 4 bucket workers of size 64x64 ...
+00:00:01  277mb         |  bucket workers done in 0:00.89
+00:00:01  277mb         | render done
+00:00:01  277mb         | [driver_tiff] writing file `C:/solidAngle/mtoa/mtoa-main/build/windows_x86_64/2011/msvc_opt/testsuite/test_0053/testrender.tif'
+00:00:01  278mb         |  
+00:00:01  278mb         | releasing resources
+00:00:01  269mb         | Arnold shutdown
+Scene C:\solidAngle\mtoa\mtoa-main\build\windows_x86_64\2011\msvc_opt\testsuite\test_0053\test.ma completed.
