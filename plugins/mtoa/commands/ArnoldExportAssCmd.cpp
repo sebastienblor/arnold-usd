@@ -38,7 +38,6 @@ MSyntax CArnoldExportAssCmd::newSyntax()
    syntax.addFlag("ll", "lightLinks", MSyntax::kUnsigned);
    syntax.addFlag("sl", "shadowLinks", MSyntax::kUnsigned);
 
-   syntax.useSelectionAsDefault(true);
    syntax.setObjectType(MSyntax::kSelectionList);
    return syntax;
 }
@@ -90,15 +89,30 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
 
    // Initialize command syntax and get flags
    MSyntax syntax = newSyntax();
+   // Use selection if selected flag is set
+   bool exportSelected = argList.flagIndex("s", "selected") != MArgList::kInvalidArgIndex ? true : false;
+   syntax.useSelectionAsDefault(exportSelected);
    MArgDatabase argDB(syntax, argList, &status);
+   // We force "selected" mode when objects are passed explicitely
+   MSelectionList sList;
+   argDB.getObjects(sList);
+   if (sList.length() > 0)
+   {
+      exportSelected = true;
+   }
+   else if (exportSelected == true)
+   {
+      status = MStatus::kInvalidParameter;
+      MGlobal::displayError("arnoldExportAss -selected needs an active selection or a list of objects");
+      return status;
+   }
+
    MString customFileName = "";
    MDagPath camera;
    MString cameraName = "";
    MString optionsName = "";
    MString assExtension = "ass";
-   MSelectionList sList;
 
-   bool exportSelected = false;
    bool writeBox = false;
    bool createDirectory = true;
    bool isSequence = false;
@@ -117,15 +131,19 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    {
       // if custom file name is provided
       argDB.getFlagArgument("filename", 0, customFileName);
-      // Strip the .ass extension if present
+      // Strip the .ass, .gz or .ass.gz extension if present
       unsigned int nchars = customFileName.numChars();
-      if (nchars > 4 && customFileName.substringW(nchars-4, nchars) == ".ass")
+      if  (nchars > 7 && customFileName.substringW(nchars-7, nchars) == ".ass.gz")
+      {
+         customFileName = customFileName.substringW(0, nchars-8);
+      }
+      else if (nchars > 4 && customFileName.substringW(nchars-4, nchars) == ".ass")
       {
          customFileName = customFileName.substringW(0, nchars-5);
       }
-      else if  (nchars > 7 && customFileName.substringW(nchars-7, nchars) == ".ass.gz")
+      else if (nchars > 3 && customFileName.substringW(nchars-3, nchars) == ".gz")
       {
-         customFileName = customFileName.substringW(0, nchars-8);
+         customFileName = customFileName.substringW(0, nchars-4);
       }
    }
    // Rendered render layer
@@ -138,13 +156,6 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
       argDB.getFlagArgument("camera", 0, sel);
       MStatus status;
       status = sel.getDagPath(0, camera);
-   }
-   // Only selected
-   if (argDB.isFlagSet("selected"))
-   {
-      exportSelected = true;
-      argDB.getObjects(sList);
-
    }
    // Output bounding box
    if (argDB.isFlagSet("boundingBox"))
@@ -305,19 +316,21 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
                                               subFrames,
                                               batch, &status);
 
-      // We can't precompute sList since it won't survive moving from frame to frame with viewFrame
-      argDB.getObjects(sList);
       // Export the scene or the selection
       if (exportSelected)
+      {
+         // We can't precompute sList since it won't survive moving from frame to frame with viewFrame
+         argDB.getObjects(sList);
          CMayaScene::Export(&sList);
+      }
       else
+      {
          CMayaScene::Export();
+      }
       // TODO: package all of this in a method
       if (writeBox) AiNodeSetBool(AiUniverseGetOptions(), "preserve_scene_data", true);
       // ascii ass export
-      if (!asciiAss){
-         AiNodeSetBool(AiUniverseGetOptions(), "binary_ass", false);
-      }
+      if (!asciiAss) AiNodeSetBool(AiUniverseGetOptions(), "binary_ass", false);
       renderSession->DoAssWrite(curfilename, compressed);
       if (writeBox) renderSession->WriteAsstoc(tocfilename, renderSession->GetBoundingBox());
 

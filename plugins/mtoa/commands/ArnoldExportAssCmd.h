@@ -2,6 +2,7 @@
 #define ARNOLD_EXPORT_ASS_CMD_H
 
 #include <maya/MPxCommand.h>
+#include <maya/MArgList.h>
 #include <maya/MSyntax.h>
 #include <maya/MCommonRenderSettingsData.h>
 #include <maya/MDagPath.h>
