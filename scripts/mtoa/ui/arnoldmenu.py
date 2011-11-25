@@ -2,12 +2,12 @@ import pymel.core as pm
 import maya.cmds as cmds
 
 def doCreateStandIn():
-    pm.createNode('aiStandIn', n='ArnoldStandInShape')
     if not cmds.objExists('ArnoldStandInDefaultLightSet'):
         cmds.createNode("objectSet", name="ArnoldStandInDefaultLightSet", shared=True)
         cmds.lightlink(object='ArnoldStandInDefaultLightSet', light='defaultLightSet')
-    else:
-        cmds.sets(add='ArnoldStandInDefaultLightSet')
+
+    pm.createNode('aiStandIn', n='ArnoldStandInShape')
+    cmds.sets(add='ArnoldStandInDefaultLightSet')
 
 def doExportStandin():
     pm.mel.eval('ExportSelectionOptions')

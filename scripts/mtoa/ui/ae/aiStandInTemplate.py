@@ -81,7 +81,7 @@ def ArnoldStandInDataEdit(mData) :
     cmds.setAttr(nodeName+".data",mData,type="string")
 
 def ArnoldStandInTemplateDsoNew(nodeName) :
-    cmds.rowColumnLayout( numberOfColumns=3, columnAlign=(1, "right"), columnAttach=[(1, "left", 0), (2, "both", 0), (3, "right", 0)], columnWidth=[(1,145),(3,30)] )
+    cmds.rowColumnLayout( numberOfColumns=3, columnAlign=(1, "right"), columnAttach=[(1, "right", 0), (2, "both", 0), (3, "right", 0)], columnWidth=[(1,145),(3,30)] )
     cmds.text(label="Path ")
     path = cmds.textField("standInDsoPath",changeCommand=ArnoldStandInDsoEdit)
     cmds.textField( path, edit=True, text=cmds.getAttr(nodeName) )
@@ -89,7 +89,7 @@ def ArnoldStandInTemplateDsoNew(nodeName) :
     
 def ArnoldStandInTemplateDataNew(nodeName) :
     print 'ArnoldStandInTemplateDataNew',nodeName
-    cmds.rowColumnLayout( numberOfColumns=2, columnAlign=(1, "right"), columnAttach=[(1, "left", 0), (2, "right", 0)], columnWidth=(1,145) )
+    cmds.rowColumnLayout( numberOfColumns=2, columnAlign=(1, "right"), columnAttach=[(1, "right", 0), (2, "right", 0)], columnWidth=(1,145) )
     cmds.text("standInDataLabel", label="Data ", enable=False)
     path = cmds.textField("standInData",changeCommand=ArnoldStandInDataEdit)
     cmds.textField( path, edit=True, text=cmds.getAttr(nodeName), enable=False)
@@ -100,7 +100,7 @@ def ArnoldStandInTemplateDsoReplace(plugName) :
 def ArnoldStandInTemplateDataReplace(plugName) :
     print 'ArnoldStandInTemplateDataReplace',plugName
     cmds.textField( "standInData", edit=True, text=cmds.getAttr(plugName) )
-
+  
 def aiStandInTemplate(nodeName):
 
     cmds.editorTemplate(beginScrollLayout=True)
@@ -114,10 +114,11 @@ def aiStandInTemplate(nodeName):
     cmds.editorTemplate("frameNumber", label="Frame", addControl=True)
     cmds.editorTemplate("frameOffset", addControl=True)
     cmds.editorTemplate(addSeparator=True)
-    cmds.editorTemplate("overrideLightLinking", label="Override Light Linking", addControl=True)
-    cmds.editorTemplate("overrideShading", label="Override Shading", addControl=True)
-    cmds.editorTemplate("loadAtInit", label="Deferred Loading", addControl=True)
+    cmds.editorTemplate("overrideLightLinking", label="Override StandIn Light Linking", addControl=True)
+    cmds.editorTemplate(interruptOptimize=True)
+    cmds.editorTemplate("overrideShading", label="Override StandIn Shading", addControl=True)
     cmds.editorTemplate(addSeparator=True)
+    cmds.editorTemplate("loadAtInit", label="Defer StandIn Loading", addControl=True)
     cmds.editorTemplate("bboxScale", addControl=True)
     #cmds.editorTemplate("MaxBoundingBox", addControl=True)
     cmds.editorTemplate(endLayout=True) 
