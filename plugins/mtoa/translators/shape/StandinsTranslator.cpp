@@ -26,6 +26,11 @@ void CArnoldStandInsTranslator::NodeInitializer(CAbTranslator context)
    data.name = "overrideLightLinking";
    data.shortName = "oll";
    helper.MakeInputBoolean(data);
+   
+   data.defaultValue.BOOL = true;
+   data.name = "overrideShaders";
+   data.shortName = "osh";
+   helper.MakeInputBoolean(data);
 }
 
 AtNode* CArnoldStandInsTranslator::CreateArnoldNodes()
@@ -205,7 +210,7 @@ AtNode* CArnoldStandInsTranslator::ExportProcedural(AtNode* procedural, bool upd
 
    ExportMatrix(procedural, 0);
    ProcessRenderFlags(procedural);
-   if (m_DagNode.findPlug("overrideShading").asBool())
+   if (m_DagNode.findPlug("overrideShaders").asBool())
    {
       ExportStandinsShaders(procedural);
    }
