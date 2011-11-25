@@ -67,6 +67,8 @@ public:
    static const bool IsRegisteredMayaNode(const MString &mayaNodeType);
 
 protected:
+   static MStatus DoUnloadExtension(CExtension* extension);
+
    static CExtension* NewExtension(const MString &extensionFile);
    static MStatus DeleteExtension(CExtension* &extension);
 

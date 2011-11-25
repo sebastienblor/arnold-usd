@@ -37,13 +37,12 @@ public:
    MStatus addExtensionAttribute(MObject &attr) const;
    MStatus addExtensionAttribute(CAttrData &data) const;
    static void InitializeExistingNodes();
+   static void CreateCallbacks();
+   static void RemoveCallbacks();
 
 private:
    static void NodeCreatedCallback(MObject &node, void *clientData);
    MStatus AddNodeCallback(const MString &nodeClassName) const;
-   static void CreateCallbacks();
-   static void RemoveCallbacks();
-
 
 private:
    MString m_nodeClassName;

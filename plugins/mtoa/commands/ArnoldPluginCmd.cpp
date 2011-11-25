@@ -12,6 +12,7 @@
 MSyntax CArnoldPluginCmd::newSyntax()
 {
    MSyntax syntax;
+   syntax.addFlag("lsp", "listPlugins", MSyntax::kString);
    syntax.addFlag("lst", "listTranslators", MSyntax::kString);
    syntax.addFlag("le", "loadExtension", MSyntax::kString);
    syntax.addFlag("ule", "unloadExtension", MSyntax::kString);
@@ -30,7 +31,24 @@ MStatus CArnoldPluginCmd::doIt(const MArgList& argList)
    if (!status)
       return status;
 
-   if (args.isFlagSet("listTranslators"))
+   if (args.isFlagSet("listPlugins"))
+   {
+      MStringArray pluginNames;
+      MString extPath = args.flagArgumentString("listPlugins", 0);
+      CExtension* extension = CExtensionsManager::GetExtension(extPath);
+      if (NULL != extension)
+      {
+         pluginNames = extension->GetOwnLoadedArnoldPlugins();
+      }
+      else
+      {
+         MGlobal::displayError(MString("Could not find extension ")+extPath);
+      }
+      // Can also request only those from a specific extension
+      // with GetTranslatorNames(typeName, provider)
+      setResult(pluginNames);
+   }
+   else if (args.isFlagSet("listTranslators"))
    {
       MString typeName = args.flagArgumentString("listTranslators", 0);
       // Can also request only those from a specific extension

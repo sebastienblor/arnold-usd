@@ -242,14 +242,31 @@ MStatus CExtensionsManager::LoadExtensions(const MString &path)
 }
 
 /// Unload an extension
+MStatus CExtensionsManager::UnloadExtension(CExtension* extension)
+{
+   MStatus status = DoUnloadExtension(extension);
+   if (MStatus::kSuccess == status)
+   {
+      AiMsgInfo("[mtoa] Unloaded extension %s(%s).",
+         extension->GetExtensionName().asChar(), extension->GetExtensionFile().asChar());
+      // Remove from list
+      status = DeleteExtension(extension);
+   } 
+   return status;
+}
 
 /// Remove from the Arnold universe all nodes created by the specified extension and
 /// deregister any Maya nodes generated for them.
 /// Deregister all translators created by this extension
 /// Restore what it may have overriden
-MStatus CExtensionsManager::UnloadExtension(CExtension* extension)
+MStatus CExtensionsManager::DoUnloadExtension(CExtension* extension)
 {
    MStatus status = MStatus::kSuccess;
+
+   MString extensionName = extension->GetExtensionName();
+   MString extensionFile = extension->GetExtensionFile();
+   AiMsgDebug("[mtoa] Unloading extension %s(%s).",
+               extensionName.asChar(), extensionFile.asChar());
 
    if (extension->IsRegistered())
    {
@@ -273,22 +290,16 @@ MStatus CExtensionsManager::UnloadExtension(CExtension* extension)
             if (MStatus::kSuccess != status)
             {
                AiMsgError("[mtoa] Call to deinitializeExtension failed on extension library %s(%s).",
-                     extension->GetExtensionName().asChar(), extension->GetExtensionFile().asChar());
+                           extensionName.asChar(), extensionFile.asChar());
             }
          }
          LibraryUnload(pluginLib);
       }
-      if (MStatus::kSuccess == status)
-      {
-         AiMsgInfo("[mtoa] Unloaded extension %s(%s).",
-               extension->GetExtensionName().asChar(), extension->GetExtensionFile().asChar());
-         status = DeleteExtension(extension);
-      } 
    }
    else
    {
       AiMsgError("[mtoa] Error deregistering extension library: %s(%s).",
-            extension->GetExtensionName().asChar(), extension->GetExtensionFile().asChar());
+                  extensionName.asChar(), extensionFile.asChar());
    }
 
    return status;
@@ -300,13 +311,29 @@ MStatus CExtensionsManager::UnloadExtensions()
 {
    MStatus status = MStatus::kSuccess;
 
+   std::vector<CExtension*> unloaded;
    // s_extensions is a std::list of extensions (ordered in load order)
    ExtensionsList::iterator extIt;
-   extIt = s_extensions.begin();
-   while (extIt != s_extensions.end())
+   extIt = s_extensions.end();
+   while (extIt != s_extensions.begin())
    {
-      ExtensionsList::iterator current = extIt++;
-      MStatus extStatus = UnloadExtension(&(*current));
+      --extIt;
+      CExtension *extension = &(*extIt);
+      MStatus extStatus = DoUnloadExtension(extension);
+      if (MStatus::kSuccess == extStatus)
+      {
+         unloaded.push_back(extension);
+      }
+      else
+      {
+         status = extStatus;
+      }
+   }
+   // Delete the unloaded extensions from the list
+   std::vector<CExtension*>::iterator it;
+   for (it=unloaded.begin(); it!=unloaded.end(); it++)
+   {
+      MStatus extStatus = DeleteExtension(*it);
       if (MStatus::kSuccess != extStatus) status = extStatus;
    }
 

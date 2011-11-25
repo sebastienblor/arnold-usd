@@ -33,6 +33,8 @@
 #include "extension/ExtensionsManager.h"
 #include "extension/Extension.h"
 
+#include "scene/MayaScene.h"
+
 #include <ai_msg.h>
 #include <ai_render.h>
 
@@ -340,7 +342,11 @@ namespace // <anonymous>
 
       // Render Options
       // Remove creation callback
-      MDGMessage::removeCallback(CArnoldOptionsNode::sId);
+      if (CArnoldOptionsNode::sId != 0)
+      {
+         MDGMessage::removeCallback(CArnoldOptionsNode::sId);
+         CArnoldOptionsNode::sId = 0;
+      }
       // Deregister node
       status = plugin.deregisterNode(CArnoldOptionsNode::id);
       CHECK_MSTATUS(status);
@@ -544,6 +550,14 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
    returnStatus = MStatus::kSuccess;
 
    MFnPlugin plugin(object);
+
+#if MAYA_API_VERSION < 201200
+   // Remove custom MNodeClass class callbacks
+   MNodeClass::RemoveCallbacks();
+#endif
+
+   // Should be done when render finishes
+   CMayaScene::End();
 
    ArnoldUniverseBegin();
 

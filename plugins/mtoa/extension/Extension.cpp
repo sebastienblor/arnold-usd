@@ -241,15 +241,32 @@ MStatus CExtension::setFile(const MString &file)
 /// Unload all Arnold plugins this extensions has loaded
 MStatus CExtension::UnloadArnoldPlugins()
 {
+   AiMsgDebug("[mtoa] [%s] Unloading all Arnold plugins", m_extensionName.asChar());
+
    MStatus status = MStatus::kSuccess;
 
+   std::vector<std::string> unloaded;
    LoadedArnoldPluginsSet::iterator pluginIt;
-   pluginIt = m_ownLoadedArnoldPlugins.begin();
-   while (pluginIt != m_ownLoadedArnoldPlugins.end())
+   pluginIt = m_ownLoadedArnoldPlugins.end();
+   while (pluginIt != m_ownLoadedArnoldPlugins.begin())
    {
-      MStatus pstatus;
-      LoadedArnoldPluginsSet::iterator plugin = pluginIt++;
-      pstatus = UnloadArnoldPlugin(plugin->c_str());
+      pluginIt--;
+      std::string plugin(*pluginIt);
+      MStatus pstatus = DoUnloadArnoldPlugin(plugin.c_str());
+      if (MStatus::kSuccess == pstatus)
+      {
+         unloaded.push_back(plugin);
+      }
+      else
+      {
+         status = pstatus;
+      }
+   }
+   // Delete the unloaded plugins from the list
+   std::vector<std::string>::iterator it;
+   for (it=unloaded.begin(); it!=unloaded.end(); it++)
+   {
+      MStatus pstatus = DeleteArnoldPlugin(it->c_str());
       if (MStatus::kSuccess != pstatus) status = pstatus;
    }
 
@@ -265,6 +282,18 @@ MStatus CExtension::UnloadArnoldPlugins()
 ///
 MStatus CExtension::UnloadArnoldPlugin(const MString &resolved)
 {
+   MStatus status = DoUnloadArnoldPlugin(resolved);
+   if (MStatus::kSuccess == status)
+   {
+      status = DeleteArnoldPlugin(resolved);
+   }
+
+   return status;
+}
+
+MStatus CExtension::DoUnloadArnoldPlugin(const MString &resolved)
+{
+   AiMsgDebug("[mtoa] [%s] Unloading Arnold plugin %s", m_extensionName.asChar(), resolved.asChar());
    AtNodeEntryIterator* nodeIter = AiUniverseGetNodeEntryIterator(AI_NODE_ALL);
    while (!AiNodeEntryIteratorFinished(nodeIter))
    {
@@ -275,12 +304,14 @@ MStatus CExtension::UnloadArnoldPlugin(const MString &resolved)
          const char *arnoldNodeName = AiNodeEntryGetName(nentry);
          // remove from arnold
          AiNodeUninstall(arnoldNodeName);
+         AiMsgDebug("[mtoa] [%s] Uninstalled Arnold node %s", m_extensionName.asChar(), arnoldNodeName);
          // TODO: unregister as well?
          // DeregisterNode(arnoldNodeName);
       }
    }
 
-   return DeleteArnoldPlugin(resolved);
+   // No real success or failure info returned from Arnold currently
+   return MStatus::kSuccess;
 }
 
 /// Stores the given Arnold plugin file name in the list of plugins loaded by this extension.
@@ -304,6 +335,7 @@ MStatus CExtension::NewArnoldPlugin(const MString &file)
    }
    else
    {
+      AiMsgDebug("[mtoa] [%s] Loads Arnold plugin: %s", m_extensionName.asChar(), file.asChar());
       s_allLoadedArnoldPlugins.insert(file_str);
       m_ownLoadedArnoldPlugins.insert(file_str);
       return MStatus::kSuccess;

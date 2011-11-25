@@ -99,6 +99,7 @@ protected :
 
    MStatus UnloadArnoldPlugins();
    MStatus UnloadArnoldPlugin(const MString &resolved);
+   MStatus DoUnloadArnoldPlugin(const MString &resolved);
    MStatus NewArnoldPlugin(const MString &file);
    MStatus DeleteArnoldPlugin(const MString &file);
 

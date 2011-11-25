@@ -146,18 +146,9 @@ MStatus CMayaScene::End()
 {
    MStatus status = MStatus::kSuccess;
 
-   if (NULL != s_renderSession)
-   {
-      status = s_renderSession->End();
-   }
-   if (NULL != s_arnoldSession)
-   {
-      if (s_arnoldSession->GetSessionMode() == MTOA_SESSION_IPR)
-      {
-         ClearIPRCallbacks();
-      }
-      status = s_arnoldSession->End();
-   }
+   ClearIPRCallbacks();
+   if (NULL != s_renderSession) status = s_renderSession->End();
+   if (NULL != s_arnoldSession) status = s_arnoldSession->End();
 
    return status;
 }
