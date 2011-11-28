@@ -322,7 +322,7 @@ void CCylCameraTranslator::Export(AtNode* camera)
    ExportImagePlanes(0);
 
    MPlug plug = FindMayaObjectPlug("aiProjective");
-   AiNodeSetBool(camera, "aiProjective", plug.asBool());
+   AiNodeSetBool(camera, "projective", plug.asBool());
 
    if (RequiresMotionData())
    {
