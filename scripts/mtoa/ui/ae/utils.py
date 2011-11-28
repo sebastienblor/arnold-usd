@@ -108,7 +108,7 @@ def rebuildAE():
         children = pm.layout(edForm, q=True, childArray=True)
         if children:
             pm.deleteUI(children[0])
-            pm.mel.attributeEditorVisibilityStateChange(True, "")
+            pm.mel.attributeEditorVisibilityStateChange(1, "")
 
 class AttrControlGrp(object):
     UI_TYPES = {
