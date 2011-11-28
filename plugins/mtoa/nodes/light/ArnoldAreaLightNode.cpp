@@ -182,13 +182,6 @@ MStatus CArnoldAreaLightNode::initialize()
    MFnEnumAttribute eAttr;
    MStatus         stat;
 
-   s_type = eAttr.create("aiTranslator", "type", 0);
-   eAttr.addField("quad", 0);
-   eAttr.addField("cylinder", 1);
-   eAttr.addField("disk", 2);
-   eAttr.setInternal(true);
-   addAttribute( s_type );
-
    MAKE_COLOR(s_color, "color", "sc", 1, 1, 1);
    nAttr.setKeyable(true);
    nAttr.setStorable(true);
