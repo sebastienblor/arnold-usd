@@ -515,10 +515,10 @@ MStatus CArnoldStandInShape::initialize()
    addAttribute(s_dso);
 
    s_mode = eAttr.create("mode", "mode", 0);
-   eAttr.addField("bounding Box", 0);
-   eAttr.addField("polywire", 1);
-   eAttr.addField("wireframe", 2);
-   eAttr.addField("point Cloud", 3);
+   eAttr.addField("Bounding Box", 0);
+   eAttr.addField("Polywire", 1);
+   eAttr.addField("Wireframe", 2);
+   eAttr.addField("Point Cloud", 3);
    //eAttr.setInternal(true);
    addAttribute(s_mode);
 
@@ -644,18 +644,9 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
    if (fGeometry.filename != tmpFilename)
    {
       //refresh bounding box
-      if (!LoadBoundingBox())
+      if (fGeometry.mode != 0 || !LoadBoundingBox())
       {
-         float3 m_value;
-         plug.setAttribute(s_boundingBoxMin);
-         GetPointPlugValue(plug, m_value);
-         fGeometry.BBmin = MPoint(m_value[0], m_value[1], m_value[2]);
-
-         plug.setAttribute(s_boundingBoxMax);
-         GetPointPlugValue(plug, m_value);
-         fGeometry.BBmax = MPoint(m_value[0], m_value[1], m_value[2]);
-
-         fGeometry.bbox = MBoundingBox(fGeometry.BBmin, fGeometry.BBmax);
+         GetPointsFromAss();
       }
       fGeometry.updateView = true;
    }
