@@ -267,7 +267,7 @@ def registerArnoldRenderer():
         pm.evalDeferred(_register)
 
         # AE Templates
-        aeUtils.loadAETemplates()
+        pm.evalDeferred(aeUtils.loadAETemplates)
         _addAEHooks()
         import mtoa.ui.ae.customShapeAttributes
 
