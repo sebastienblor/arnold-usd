@@ -1,0 +1,5 @@
+Projective attribute in Cylinder camera is not set
+
+Tests the projective check of the cylinder camera (ticket #602)
+
+author: r3D
