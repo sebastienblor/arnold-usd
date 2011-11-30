@@ -481,8 +481,7 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
 
    // Set up export options
    ArnoldSessionMode exportMode = m_sessionOptions.m_mode;
-   // Export the Arnold Render Options node
-   ExportOptions();
+
    // Are we motion blurred (any type)?
    const bool mb = IsMotionBlurEnabled();
 
@@ -502,6 +501,9 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
    // When there is no motion blur we push the export frame in m_motion_frames[0]
    // so m_motion_frames[0] == m_frame
    MGlobal::viewFrame(MTime(m_motion_frames[0], MTime::uiUnit()));
+
+   // Export the Arnold Render Options node
+   ExportOptions();
 
    // First "real" export
    if (exportMode == MTOA_SESSION_RENDER || exportMode == MTOA_SESSION_BATCH || exportMode == MTOA_SESSION_IPR)
