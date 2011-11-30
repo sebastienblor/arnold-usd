@@ -1,0 +1,5 @@
+Camera motion blur is not working correctly
+
+Test motion blur with a moving camera (Ticket #607)
+
+author: pedro.gomez
