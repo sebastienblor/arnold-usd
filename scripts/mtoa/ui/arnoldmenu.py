@@ -10,7 +10,7 @@ def doCreateStandIn():
     cmds.sets(add='ArnoldStandInDefaultLightSet')
 
 def doExportStandin():
-    pm.mel.eval('ExportSelectionOptions')
+    pm.mel.eval('ExportSelection')
     pm.mel.eval('setCurrentFileTypeOption ExportActive "" "ArnoldSceneSource"')
 
    
