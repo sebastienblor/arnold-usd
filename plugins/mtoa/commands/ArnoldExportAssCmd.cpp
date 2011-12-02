@@ -1,3 +1,4 @@
+#include "utils/Version.h"
 #include "ArnoldExportAssCmd.h"
 #include "scene/MayaScene.h"
 
@@ -315,6 +316,10 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
                                               isSequence,
                                               subFrames,
                                               batch, &status);
+
+      MString mayaVersion = MGlobal::mayaVersion();     
+      MString appString = MString("MtoA ") + MTOA_VERSION + " Maya " + mayaVersion;
+      AiSetAppString(appString.asChar());
 
       // Export the scene or the selection
       if (exportSelected)
