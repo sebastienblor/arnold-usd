@@ -347,6 +347,8 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("texture_accept_unmipped");
    s_attributes.MakeInput("texture_conservative_lookups");
    s_attributes.MakeInput("texture_per_file_stats");
+   s_attributes.MakeInput("texture_diffuse_blur");
+   s_attributes.MakeInput("texture_glossy_blur");
    s_use_existing_tiled_textures = nAttr.create("use_existing_tiled_textures", "usetx", MFnNumericData::kBoolean, 0); 
    nAttr.setKeyable(false); 
    addAttribute(s_use_existing_tiled_textures);
