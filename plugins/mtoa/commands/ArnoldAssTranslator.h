@@ -15,10 +15,12 @@
 class CArnoldAssTranslator : public MPxFileTranslator
 {
 public:
-   static char fileType[];
+   static char fileTypeImport[];
+   static char fileTypeExport[];
    static char fileExtension[];
    static char fileIcon[];
-   static char optionScript[];
+   static char optionScriptImport[];
+   static char optionScriptExport[];
    static char optionDefault[];
 
    bool		haveReadMethod() const;
@@ -40,11 +42,11 @@ public:
 
    MStatus     IterSelection(MSelectionList& selected);
 
-   static void*	creator();
+   static void*	importCreator();
+   static void*	exportCreator();
 
 protected:
-   
-
+   bool m_isImporter;
 
 }; // class CArnoldAssTranslator
 

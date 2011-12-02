@@ -387,25 +387,46 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    ArnoldUniverseBegin();
 
    // ASS file translator
-   status = plugin.registerFileTranslator(CArnoldAssTranslator::fileType,
+   status = plugin.registerFileTranslator(CArnoldAssTranslator::fileTypeExport,
          CArnoldAssTranslator::fileIcon,
-         CArnoldAssTranslator::creator,
-         CArnoldAssTranslator::optionScript,
+         CArnoldAssTranslator::exportCreator,
+         CArnoldAssTranslator::optionScriptExport,
          CArnoldAssTranslator::optionDefault,
          false);
    CHECK_MSTATUS(status);
    if (MStatus::kSuccess == status)
    {
-      AiMsgInfo("Successfully registered Arnold ass file translator");
-      MGlobal::displayInfo("Successfully registered Arnold ass file translator");
+      AiMsgInfo("Successfully registered Arnold ass file exporter");
+      MGlobal::displayInfo("Successfully registered Arnold ass file exporter");
    }
    else
    {
-      AiMsgError("Failed to register Arnold ass file translator");
-      MGlobal::displayError("Failed to register Arnold ass file translator");
+      AiMsgError("Failed to register Arnold ass file exporter");
+      MGlobal::displayError("Failed to register Arnold ass file exporter");
       ArnoldUniverseEnd();
       return MStatus::kFailure;
    }
+   
+   status = plugin.registerFileTranslator(CArnoldAssTranslator::fileTypeImport,
+         CArnoldAssTranslator::fileIcon,
+         CArnoldAssTranslator::importCreator,
+         CArnoldAssTranslator::optionScriptImport,
+         CArnoldAssTranslator::optionDefault,
+         false);
+   CHECK_MSTATUS(status);
+   if (MStatus::kSuccess == status)
+   {
+      AiMsgInfo("Successfully registered Arnold ass file importer");
+      MGlobal::displayInfo("Successfully registered Arnold ass file importer");
+   }
+   else
+   {
+      AiMsgError("Failed to register Arnold ass file importer");
+      MGlobal::displayError("Failed to register Arnold ass file importer");
+      ArnoldUniverseEnd();
+      return MStatus::kFailure;
+   }
+   
    // Swatch renderer
    status = MSwatchRenderRegister::registerSwatchRender(ARNOLD_SWATCH, CRenderSwatchGenerator::creator);
    CHECK_MSTATUS(status);
@@ -657,18 +678,32 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
       MGlobal::displayError("Failed to deregister Arnold swatch renderer");
    }
    // ASS file translator
-   status = plugin.deregisterFileTranslator(CArnoldAssTranslator::fileType);
+   status = plugin.deregisterFileTranslator(CArnoldAssTranslator::fileTypeExport);
    CHECK_MSTATUS(status);
    if (MStatus::kSuccess == status)
    {
-      AiMsgInfo("Successfully deregistered Arnold ass file translator");
-      MGlobal::displayInfo("Successfully deregistered Arnold ass file translator");
+      AiMsgInfo("Successfully deregistered Arnold ass file exporter");
+      MGlobal::displayInfo("Successfully deregistered Arnold ass file exporter");
    }
    else
    {
       returnStatus = MStatus::kFailure;
-      AiMsgError("Failed to deregister Arnold ass file translator");
-      MGlobal::displayError("Failed to deregister Arnold ass file translator");
+      AiMsgError("Failed to deregister Arnold ass file exporter");
+      MGlobal::displayError("Failed to deregister Arnold ass file exporter");
+   }
+   
+   status = plugin.deregisterFileTranslator(CArnoldAssTranslator::fileTypeImport);
+   CHECK_MSTATUS(status);
+   if (MStatus::kSuccess == status)
+   {
+      AiMsgInfo("Successfully deregistered Arnold ass file importer");
+      MGlobal::displayInfo("Successfully deregistered Arnold ass file importer");
+   }
+   else
+   {
+      returnStatus = MStatus::kFailure;
+      AiMsgError("Failed to deregister Arnold ass file importer");
+      MGlobal::displayError("Failed to deregister Arnold ass file importer");
    }
 
    ArnoldUniverseEnd();

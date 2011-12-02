@@ -11,11 +11,11 @@ def doCreateStandIn():
 
 def doExportStandin():
     pm.mel.eval('ExportSelection')
-    pm.mel.eval('setCurrentFileTypeOption ExportActive "" "ArnoldSceneSource"')
+    pm.mel.eval('setCurrentFileTypeOption ExportActive "" "ArnoldSceneSource Exporter"')
 
 def doExportOptionsStandin():
     pm.mel.eval('ExportSelectionOptions')
-    pm.mel.eval('setCurrentFileTypeOption ExportActive "" "ArnoldSceneSource"')
+    pm.mel.eval('setCurrentFileTypeOption ExportActive "" "ArnoldSceneSource Exporter"')
    
 def createArnoldMenu():
     # Add an Arnold menu in Maya main window

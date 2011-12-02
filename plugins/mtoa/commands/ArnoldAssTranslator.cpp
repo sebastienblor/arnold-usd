@@ -13,20 +13,22 @@
 #include <maya/MStringArray.h>
 
 // Set some fixed values in the translator class
-char CArnoldAssTranslator::fileType[]        = "ArnoldSceneSource";
-char CArnoldAssTranslator::fileExtension[]   = "ass";
-char CArnoldAssTranslator::fileIcon[]        = "arnoldAssFile.xpm";
-char CArnoldAssTranslator::optionScript[]    = "arnoldAssOpts";
-char CArnoldAssTranslator::optionDefault[]   = "";
+char CArnoldAssTranslator::fileTypeImport[]        = "ArnoldSceneSource";
+char CArnoldAssTranslator::fileTypeExport[]        = "ArnoldSceneSource Exporter";
+char CArnoldAssTranslator::fileExtension[]         = "ass";
+char CArnoldAssTranslator::fileIcon[]              = "arnoldAssFile.xpm";
+char CArnoldAssTranslator::optionScriptImport[]    = "";
+char CArnoldAssTranslator::optionScriptExport[]    = "arnoldAssOpts";
+char CArnoldAssTranslator::optionDefault[]         = "";
 
 inline bool CArnoldAssTranslator::haveReadMethod () const
 {
-   return true;
+   return m_isImporter;
 }
 
 inline bool CArnoldAssTranslator::haveWriteMethod () const
 {
-   return true;
+   return !m_isImporter;
 }
 
 inline bool CArnoldAssTranslator::canBeOpened () const
@@ -39,9 +41,18 @@ inline MString CArnoldAssTranslator::defaultExtension() const
    return MString(fileExtension);
 }
 
-void* CArnoldAssTranslator::creator()
+void* CArnoldAssTranslator::importCreator()
 {
-   return new CArnoldAssTranslator();
+   CArnoldAssTranslator* at = new CArnoldAssTranslator();
+   at->m_isImporter = true;
+   return at;
+}
+
+void* CArnoldAssTranslator::exportCreator()
+{
+   CArnoldAssTranslator* at = new CArnoldAssTranslator();
+   at->m_isImporter = false;
+   return at;
 }
 
 // To identify an ass file, look at the header if possible or just use the extension
