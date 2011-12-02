@@ -13,6 +13,9 @@ def doExportStandin():
     pm.mel.eval('ExportSelection')
     pm.mel.eval('setCurrentFileTypeOption ExportActive "" "ArnoldSceneSource"')
 
+def doExportOptionsStandin():
+    pm.mel.eval('ExportSelectionOptions')
+    pm.mel.eval('setCurrentFileTypeOption ExportActive "" "ArnoldSceneSource"')
    
 def createArnoldMenu():
     # Add an Arnold menu in Maya main window
@@ -23,6 +26,8 @@ def createArnoldMenu():
                     c=lambda *args: doCreateStandIn())
         pm.menuItem('ArnoldExportStandIn', parent='ArnoldStandIn', label='Export',
                     c=lambda *args: doExportStandin())
+        pm.menuItem('ArnoldExportOptionsStandIn', parent='ArnoldStandIn', optionBox=True,
+                    c=lambda *args: doExportOptionsStandin())
 
         pm.menuItem('ArnoldLights', label='Lights', parent='ArnoldMenu', subMenu=True)
         pm.menuItem('ArnoldAreaLights', parent='ArnoldLights', label="Area Light",
