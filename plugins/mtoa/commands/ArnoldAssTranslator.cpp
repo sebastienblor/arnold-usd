@@ -114,9 +114,10 @@ MStatus CArnoldAssTranslator::reader(const MFileObject& file,
    }
    else if (mode == MPxFileTranslator::kImportAccessMode || mode == MPxFileTranslator::kReferenceAccessMode)
    {
-      // If we've got Standins selected, update the dso attribute
+      // If we've got StandIns selected, update the dso attribute
       MSelectionList selected;
       MGlobal::getActiveSelectionList(selected);
+      bool standInCreated = false;
       if (selected.length()>0)
       {
          // Get a expanded, flattened, filtered list of every dag
@@ -129,10 +130,14 @@ MStatus CArnoldAssTranslator::reader(const MFileObject& file,
             if (it.getDagPath(path) == MStatus::kSuccess)
             {
                MFnDagNode fnDagNode(path);
-               MPlug m_dso = fnDagNode.findPlug("dso");
-               if (!m_dso.isNull())
+               if(fnDagNode.typeName() == "aiStandIn")
                {
-                  m_dso.setValue(file.resolvedFullName());
+                  MPlug m_dso = fnDagNode.findPlug("dso");
+                  if (!m_dso.isNull())
+                  {
+                     m_dso.setValue(file.resolvedFullName());
+                     standInCreated = true;
+                  }
                }
             }
             else
@@ -141,8 +146,9 @@ MStatus CArnoldAssTranslator::reader(const MFileObject& file,
             }
          }
       }
-      // We have nothing selected. Create a StandIns and set it
-      else
+
+      // If we have not StandIns selected. Create a StandIns and set it
+      if(!standInCreated)
       {
          MFnDagNode m_fnDagNode;
          MObject m_standin = m_fnDagNode.create("aiStandIn","ArnoldStandInShape");
