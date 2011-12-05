@@ -1,5 +1,6 @@
 import pymel.core as pm
 import maya.cmds as cmds
+from mtoa.ui.ae.aiStandInTemplate import LoadStandInButtonPush
 
 def doCreateStandIn():
     if not cmds.objExists('ArnoldStandInDefaultLightSet'):
@@ -8,6 +9,15 @@ def doCreateStandIn():
 
     pm.createNode('aiStandIn', n='ArnoldStandInShape')
     cmds.sets(add='ArnoldStandInDefaultLightSet')
+    
+def doCreateStandInFile():
+    if not cmds.objExists('ArnoldStandInDefaultLightSet'):
+        cmds.createNode("objectSet", name="ArnoldStandInDefaultLightSet", shared=True)
+        cmds.lightlink(object='ArnoldStandInDefaultLightSet', light='defaultLightSet')
+
+    pm.createNode('aiStandIn', n='ArnoldStandInShape')
+    cmds.sets(add='ArnoldStandInDefaultLightSet')
+    LoadStandInButtonPush()
 
 def doExportStandin():
     pm.mel.eval('ExportSelection')
@@ -24,6 +34,8 @@ def createArnoldMenu():
         pm.menuItem('ArnoldStandIn', label='StandIn', parent='ArnoldMenu', subMenu=True)
         pm.menuItem('ArnoldCreateStandIn', parent='ArnoldStandIn', label="Create",
                     c=lambda *args: doCreateStandIn())
+        pm.menuItem('ArnoldCreateStandInFile', parent='ArnoldStandIn', optionBox=True,
+                    c=lambda *args: doCreateStandInFile())
         pm.menuItem('ArnoldExportStandIn', parent='ArnoldStandIn', label='Export',
                     c=lambda *args: doExportStandin())
         pm.menuItem('ArnoldExportOptionsStandIn', parent='ArnoldStandIn', optionBox=True,
