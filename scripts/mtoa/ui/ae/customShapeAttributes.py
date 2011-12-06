@@ -6,6 +6,22 @@ import mtoa.ui.ae.shapeTemplate as templates
 import mtoa.callbacks as callbacks
 import mtoa.core as core
 
+class ParticleTemplate(templates.ShapeTranslatorTemplate):
+    def setup(self):
+        self.commonShapeAttributes()
+        self.addSeparator()
+        self.addControl("export_particleId", label="Export Particle Id", value=1)
+        self.addControl("export_attributes", label="Export Attributes")
+templates.registerTranslatorUI(ParticleTemplate, "particle", "<built-in>")
+
+class NParticleTemplate(templates.ShapeTranslatorTemplate):
+    def setup(self):
+        self.commonShapeAttributes()
+        self.addSeparator()
+        self.addControl("export_particleId", label="Export Particle Id", value=1)
+        self.addControl("export_attributes", label="Export Attributes")
+templates.registerTranslatorUI(NParticleTemplate, "nParticle", "<built-in>")
+
 class MeshTemplate(templates.ShapeTranslatorTemplate):
     def subdivDicingCameraNew(self, attrName):
         pm.setUITemplate('attributeEditorTemplate', pst=True)

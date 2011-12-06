@@ -28,6 +28,8 @@
 #include "translators/shape/NurbsSurfaceTranslator.h"
 #include "translators/shape/HairTranslator.h"
 #include "translators/shape/StandinsTranslator.h"
+#include "translators/shape/ParticleTranslator.h"
+
 
 #include "render/RenderSwatch.h"
 
@@ -239,6 +241,21 @@ namespace // <anonymous>
                                    "",
                                    CHairTranslator::creator,
                                    CHairTranslator::NodeInitializer);
+
+       // Particles
+       builtin->RegisterTranslator("particle",
+                                   "",
+                                   CParticleTranslator::creator,
+                                   CParticleTranslator::NodeInitializer);
+
+       builtin->RegisterTranslator("nParticle",
+                                   "",
+                                   CParticleTranslator::creator,
+                                   CParticleTranslator::NodeInitializer);
+
+
+
+
 
       // Load all plugins path or only shaders?
       CExtension* shaders;

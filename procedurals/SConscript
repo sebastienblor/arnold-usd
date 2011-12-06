@@ -1,0 +1,61 @@
+# vim: filetype=python
+
+## load our own python modules
+import system
+from build_tools import find_files_recursive
+
+import os, glob
+
+# import build env
+Import('env')
+local_env = env.Clone(SHLIBPREFIX = '')
+
+# Add new procedural directory names here
+PROCEDURALS = ['ParticleInstancer', 'PartioReader'] 
+
+source_files = []
+include_files = []
+
+MTOA_PROCS = []
+
+# For every procedural found, get a list of source and include files
+for dir in PROCEDURALS:
+   base_dir = os.path.join(local_env['ROOT_DIR'], 'procedurals', dir)
+   if os.path.isdir(base_dir) and dir != '.svn':
+      proc_src_files = [os.path.join(dir, name) for name in find_files_recursive(base_dir, ['.c', '.cpp'])]
+      proc_inc_files = [os.path.join(dir, name) for name in find_files_recursive(base_dir, ['.h'])]
+      source_files  += proc_src_files
+      include_files += proc_inc_files
+      # Name of the final dll will be "mtoa_<directory>_proc"
+      MTOA_PROCS    += local_env.SharedLibrary(os.path.join(dir, 'mtoa_%s_proc' % dir), proc_src_files)
+ 
+local_env.Append(CPPPATH = ['.'])
+local_env.Append(LIBS = Split('ai'))
+
+if system.os() == 'windows':
+   MTOA_PROCS_PRJ = local_env.MSVSProject(target = 'mtoa_procs' + env['MSVS']['PROJECTSUFFIX'],
+                                           srcs = source_files + include_files,
+                                           incs = [],
+                                           buildtarget = 'procedurals',
+                                           cmdargs = ['-Q -s COMPILER=msvc MODE=debug TARGET_ARCH=x86',
+                                                      '-Q -s COMPILER=icc MODE=debug TARGET_ARCH=x86',
+                                                      '-Q -s COMPILER=msvc MODE=opt TARGET_ARCH=x86',
+                                                      '-Q -s COMPILER=icc MODE=opt TARGET_ARCH=x86'],
+                                           variant = ['Debug_MSVC|Win32',
+                                                      'Debug_ICC|Win32',
+                                                      'Opt_MSVC|Win32',
+                                                      'Opt_ICC|Win32'],
+                                           auto_build_solution = 0,
+                                           nokeep = 1)
+   
+   local_env.AlwaysBuild(MTOA_PROCS_PRJ)
+   
+   Return('MTOA_PROCS MTOA_PROCS_PRJ')
+elif system.os() == 'darwin':
+   local_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
+   #local_env.Append(LINKFLAGS = Split('-Wl,-rpath="\\$$ORIGIN" -z origin'))
+   Return('MTOA_PROCS')
+else:
+   local_env.Append(CCFLAGS = Split('-fvisibility=hidden')) # hide symbols by default
+   local_env.Append(LINKFLAGS = Split('-Wl,-rpath="\\$$ORIGIN" -z origin'))
+   Return('MTOA_PROCS')
