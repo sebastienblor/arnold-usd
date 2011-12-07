@@ -34,14 +34,14 @@ void CParticleTranslator::NodeInitializer(CAbTranslator context)
 
    CAttrData data;
 
-   data.defaultValue.BOOL = true;
+   data.defaultValue.BOOL = false;
    data.name = "export_particleId";
-   data.shortName = "exppartid";
+   data.shortName = "aiexppartid";
    helper.MakeInputBoolean(data);
 
    data.defaultValue.STR = "";
    data.name = "export_attributes";
-   data.shortName = "expartattr";
+   data.shortName = "aiexpartattr";
    helper.MakeInputString(data);
 
    MStringArray  enumNames;
@@ -59,6 +59,11 @@ void CParticleTranslator::NodeInitializer(CAbTranslator context)
    data.shortName = "minParticleRadius";
    helper.MakeInputFloat(data);
 
+   data.defaultValue.FLT = 1.0;
+   data.name = "radiusMultiplier";
+   data.shortName = "radiusMult";
+   helper.MakeInputFloat(data);
+
    data.defaultValue.FLT = 1000000;
    data.name = "max_particle_radius";
    data.shortName = "maxParticleRadius";
@@ -68,6 +73,11 @@ void CParticleTranslator::NodeInitializer(CAbTranslator context)
    data.name = "min_pixel_width";
    data.shortName = "minPixelWidth";
    helper.MakeInputFloat(data);
+
+   data.defaultValue.BOOL = false;
+   data.name = "deleteDeadParticles";
+   data.shortName = "delDead";
+   helper.MakeInputBoolean(data);
 
 }
 
@@ -124,6 +134,7 @@ void CParticleTranslator::ExportParticleShaders(AtNode* particle)
 
 }
 
+// FIXME: don't copy this from CGeometryTranslator, move it onto CShapeTranslator and use it
 MObject CParticleTranslator::GetNodeShadingGroup(MObject dagNode, int instanceNum)
 {
    MPlugArray        connections;
@@ -144,11 +155,10 @@ MObject CParticleTranslator::GetNodeShadingGroup(MObject dagNode, int instanceNu
    return MObject::kNullObj;
 }
 
-
+/// parse the m_customAttrs and populate the step vectors for each type of custom export attrs.
+/// called from within ExportParticleData
 void CParticleTranslator::ExportCustomParticleData(AtNode* particle, AtUInt step)
 {
-   //first, parsing the m_customAttrs
-
    MStringArray attrs;
 
    MStatus status = m_customAttrs.split(';', attrs);
@@ -166,77 +176,85 @@ void CParticleTranslator::ExportCustomParticleData(AtNode* particle, AtUInt step
          if (m_fnParticleSystem.isPerParticleDoubleAttribute(currentAttr))
          {
             MDoubleArray attributes;
-            uint size = m_fnParticleSystem.getPerParticleAttribute(currentAttr, attributes);
+            m_fnParticleSystem.getPerParticleAttribute(currentAttr, attributes);
 
-            AtArray* a_attributes = AiArrayAllocate(size, 1, AI_TYPE_FLOAT);
-            for (uint j = 0; j < size; j++)
+            for (int i = 0; i <= (GetNumMotionSteps()-1); i++)
             {
-               AiArraySetFlt(a_attributes, j + (step * size), attributes[j]);
+               out_customDoubleAttrArrays[currentAttr.asChar()].push_back(attributes);
             }
-            AiNodeDeclare(particle, currentAttr.asChar(), "uniform FLOAT");
-            AiNodeSetArray(particle, currentAttr.asChar(), a_attributes);
             continue;
          }
          else if (m_fnParticleSystem.isPerParticleVectorAttribute(currentAttr))
          {
             MVectorArray attributes;
-            uint size = m_fnParticleSystem.getPerParticleAttribute(currentAttr, attributes);
-            AtArray* a_attributes = AiArrayAllocate(size, 1, AI_TYPE_VECTOR);
-            AtVector a_attr;
-            for (uint j = 0; j < size; j++)
-            {
-               a_attr.x = (AtFloat)attributes[j].x;
-               a_attr.y = (AtFloat)attributes[j].y;
-               a_attr.z = (AtFloat)attributes[j].z;
+            m_fnParticleSystem.getPerParticleAttribute(currentAttr, attributes);
 
-               AiArraySetVec(a_attributes, j + (step * size), a_attr);
+            for (int i = 0; i <= (GetNumMotionSteps()-1); i++)
+            {
+               out_customVectorAttrArrays[currentAttr.asChar()].push_back(attributes);
             }
-            AiNodeDeclare(particle, currentAttr.asChar(), "uniform VECTOR");
-            AiNodeSetArray(particle, currentAttr.asChar(), a_attributes);
             continue;
 
          }
          else if (m_fnParticleSystem.isPerParticleIntAttribute(currentAttr))
          {
             MIntArray attributes;
-            uint size = m_fnParticleSystem.getPerParticleAttribute(currentAttr, attributes);
-            AtArray* a_attributes = AiArrayAllocate(size, 1, AI_TYPE_INT);
-            for (uint j = 0; j < size; j++)
+            m_fnParticleSystem.getPerParticleAttribute(currentAttr, attributes);
+            for (int i = 0; i <= (GetNumMotionSteps()-1); i++)
             {
-                  AiArraySetInt(a_attributes, j + (step * size), attributes[j]);
+               out_customIntAttrArrays[currentAttr.asChar()].push_back(attributes);
             }
-            AiNodeDeclare(particle, currentAttr.asChar(), "uniform INT");
-            AiNodeSetArray(particle, currentAttr.asChar(), a_attributes);
+
             continue;
 
          }
       }
    }
+
 }
 
 
-// Export particle datas with basic attributes rgbPP, OpacityPP, radiusPP and particleId
+/// Export particle datas with basic attributes rgbPP, OpacityPP, radiusPP and particleId
 
 void CParticleTranslator::ExportParticleData(AtNode* particle, AtUInt step)
 {
+   // quick synopsis:  we  loop on steps->particles->multipoint
+   // first step, we push a copy of first steps particle data into all arrays
+   // all other steps, we  loop on particle IDS  and find matching particles by ID  and modify  that steps value
+   // if we find new particles, we compute  previous velocity positions and add those particles to the end of all the arrays
+   // if particles die, we compute current values only,  based on last position and last velocity and leave all other attrs alone,
+   // as they are already populated with their most current values
 
+
+   // Reordered stuff into  motion blur and non motion blur sections
    //FIXME : need cleaner code, concatenate all the conditions.
-
+   MTime oneSec(1.0, MTime::kSeconds);
+   int fps =  (float)oneSec.asUnits(MTime::uiUnit());
+   uint totalSteps = GetNumMotionSteps();
    int numParticles;
-   int multiCount = 1;
-   float multiRadius = 0;
-   if (step == 0)
-   {
-      numParticles = m_fnParticleSystem.count();
-      m_particleCount = numParticles;
-   }
-   else
-   {
-      numParticles = m_particleCount;
-   }
 
-   AiMsgInfo("[mtoa] Particle count : %i",m_particleCount);
+   AtArray* a_positionArray(NULL);
+   AtArray* a_ParticleIdArray(NULL);
+   AtArray* a_ParticleMultiIndexArray(NULL);
+   AtArray* a_radiusArray(NULL);
+   AtArray* a_aspectArray(NULL);
+   AtArray* a_rgbPPArray(NULL);
+   AtArray* a_opacityPPArray(NULL);
 
+   MVectorArray   positionArray;
+   MVectorArray   velocityArray;
+   MIntArray      particleId;
+   MDoubleArray   radiusArray;
+   MDoubleArray   spriteScaleXPP;
+   MDoubleArray   spriteScaleYPP;
+   MVectorArray   rgbArray;
+   MDoubleArray   opacityArray;
+
+   MVector m_rgb;
+   AtRGB a_rgb;
+   MStatus status;
+
+   // FIXME: create an enum for the renderType
    int renderType = m_fnParticleSystem.renderType();
    // RENDERTYPE list:
    // 3 = multiPoint
@@ -249,150 +267,196 @@ void CParticleTranslator::ExportParticleData(AtNode* particle, AtUInt step)
    // 2 = blobbySurface
    // 0 = cloud
    // 1 = tube
-
    AiMsgInfo("ParticleType %i", renderType);
 
-   float minPixelWidth = m_fnParticleSystem.findPlug("minPixelWidth").asFloat();
-   AiNodeSetFlt(particle, "min_pixel_width", minPixelWidth);
-
+   // Particle shape extra attributes
    int  pointsAs     = m_fnParticleSystem.findPlug("renderPointsAs").asInt();
-   float minRadius = m_fnParticleSystem.findPlug("minParticleRadius").asFloat();
-   float maxRadius = m_fnParticleSystem.findPlug("maxParticleRadius").asFloat();
-
-
-   switch (renderType)
-   {
-      case 7: // sphere
-         AiNodeSetStr(particle, "mode", "sphere");
-         break;
-      case 8: // sprite
-         AiNodeSetStr(particle, "mode", "quad");
-         break;
-      case 2: // blobby surface
-         AiNodeSetStr(particle, "mode", "sphere");
-         break;
-      case 0: // cloud
-         AiNodeSetStr(particle, "mode", "sphere");
-         break;
-      case 1: // tube
-         AiNodeSetStr(particle, "mode", "sphere");
-         break;
-      default: // points
-         {
-            if (pointsAs == 1)
-               AiNodeSetStr(particle, "mode", "sphere");
-            else if (pointsAs == 2)
-               AiNodeSetStr(particle, "mode", "quad");
-            else
-               AiNodeSetStr(particle, "mode", "disk");
-         }
-   }
-
-   AtArray* a_positionArray(NULL);
-   AtArray* a_ParticleIdArray(NULL);
-   AtArray* a_radiusArray(NULL);
-   AtArray* a_aspectArray(NULL);
-   AtArray* a_rgbPPArray(NULL);
-   AtArray* a_opacityPPArray(NULL);
-
-   MVectorArray positionArray;
-   MIntArray particleId;
-   MDoubleArray radiusArray;
-   MDoubleArray spriteScaleXPP;
-   MDoubleArray spriteScaleYPP;
-   MVectorArray rgbArray;
-   MDoubleArray opacityArray;
-
-   MVector m_rgb;
-   AtRGB a_rgb;
-
-   // FIXME: optimize step > 0.  many calculations are occuring for all steps that should only occur on step == 0
-   //ask if the particle has the basic PP attributes we want to export
+   float minRadius   = m_fnParticleSystem.findPlug("minParticleRadius").asFloat();
+   float maxRadius   = m_fnParticleSystem.findPlug("maxParticleRadius").asFloat();
+   float radiusMult  = m_fnParticleSystem.findPlug("radiusMultiplier").asFloat();
    bool exportId     = m_fnParticleSystem.findPlug("export_particleId").asBool();
-   bool hasRadiusPP  = m_fnParticleSystem.isPerParticleDoubleAttribute(MString("radiusPP"));
-   bool hasRgb       = m_fnParticleSystem.hasRgb();
-
-   bool isSpritePP   = false;
-   bool doMultiPoint = false;
-
-   // opaqueness
-   bool hasOpacity = false;
-   bool isOpaque  = m_fnParticleSystem.findPlug("opaque").asBool();
-   if (!isOpaque)
-      hasOpacity = m_fnParticleSystem.hasOpacity();
-   AiNodeSetBool(particle, "opaque", isOpaque);
-
-   // get the arrays of standard attributes
-
-   m_fnParticleSystem.position(positionArray);
+   bool isOpaque     = m_fnParticleSystem.findPlug("opaque").asBool();
 
 
-   // RadiusPP overrides everything
-   if (hasRadiusPP && renderType != 8)
+   AiMsgInfo("[mtoa] Particle Exporting Step:: %i",step);
+
+   numParticles = m_fnParticleSystem.count();
+
+   std::map <std::string, std::vector< MVectorArray > >::iterator vecIt;
+   std::map <std::string, std::vector< MDoubleArray > >::iterator doubleIt;
+   std::map <std::string, std::vector< MIntArray > >::iterator intIt;
+
+   // STEP 0
+   if (step == 0)
    {
-      m_fnParticleSystem.getPerParticleAttribute(MString("radiusPP"), radiusArray);
-   }
-   else
-   {
-      MStatus status;
-      float particleSize= 1;
-      float radius = .5;
-      float pointSize = 1;
-      float lineWidth = 1;
-      float spriteScaleX = 1;
-      float spriteScaleY = 1;
-      MPlug radiusPlug( m_fnParticleSystem.findPlug("radius", &status));
-      if ( MS::kSuccess == status )
-      {
-         radiusPlug.getValue( radius );
-      }
-      MPlug pointPlug( m_fnParticleSystem.findPlug("pointSize", &status));
-      if ( MS::kSuccess == status )
-      {
-         pointPlug.getValue( pointSize );
-      }
-      MPlug linePlug( m_fnParticleSystem.findPlug("lineWidth", &status));
-      if ( MS::kSuccess == status )
-      {
-         linePlug.getValue( lineWidth );
-      }
-      MPlug ssXPlug( m_fnParticleSystem.findPlug("spriteScaleX", &status));
-      if ( MS::kSuccess == status )
-      {
-         ssXPlug.getValue( spriteScaleX );
-      }
-      MPlug ssYPlug( m_fnParticleSystem.findPlug("spriteScaleY", &status));
-      if ( MS::kSuccess == status )
-      {
-         ssYPlug.getValue( spriteScaleY );
-      }
+      // FIXME: set these defaults in the class initializer
+      multiCount = 1;
+      multiRadius = 0;
+      doExtraAttributes = false;
+      isSpritePP = false;
+      isSprite = false;
 
+      // FIXME: don't need to clear unless they've been populated before
+      out_positionArrays.clear();
+      out_colorArrays.clear();
+      out_opacityArrays.clear();
+      out_radiusArrays.clear();
+      out_customVectorAttrArrays.clear();
+      out_customDoubleAttrArrays.clear();
+      out_customIntAttrArrays.clear();
+      instant_customVectorAttrArrays.clear();
+      instant_customDoubleAttrArrays.clear();
+      instant_customIntAttrArrays.clear();
+      particleIDMap.clear();
+      instantVeloArray.clear();
+      out_idArray.clear();
+      spriteScaleXPP.clear();
+      spriteScaleYPP.clear();
+      radiusArray.clear();
+
+      deleteDeadParticles = m_fnParticleSystem.findPlug("deleteDeadParticles").asBool();
+
+      m_particleCount = numParticles;
+
+      float minPixelWidth = m_fnParticleSystem.findPlug("minPixelWidth").asFloat();
+      AiNodeSetFlt(particle, "min_pixel_width", minPixelWidth);
+
+
+      // TODO implement  streak / blobby / cloud / tube,  formats
       switch (renderType)
       {
+         case 7: // sphere
+            AiNodeSetStr(particle, "mode", "sphere");
+            break;
+         case 8: // sprite
+            AiNodeSetStr(particle, "mode", "quad");
+            isSprite = true;
+            break;
+         case 2: // blobby surface
+            AiNodeSetStr(particle, "mode", "sphere");
+            break;
+         case 0: // cloud
+            AiNodeSetStr(particle, "mode", "sphere");
+            break;
+         case 1: // tube
+            AiNodeSetStr(particle, "mode", "sphere");
+            break;
+         default: // points
+            {
+               if (pointsAs == 1)
+                  AiNodeSetStr(particle, "mode", "sphere");
+               else if (pointsAs == 2)
+                  AiNodeSetStr(particle, "mode", "quad");
+               else
+                  AiNodeSetStr(particle, "mode", "disk");
+            }
+      }
+      // now check for multi
+      if (renderType == 3 || renderType == 4) // multiPoint/multiStreak
+      {
+         doMultiPoint = true;
+         AiNodeDeclare(particle, "particleMultiIndex", "uniform INT");
+         MPlug mcPlug( m_fnParticleSystem.findPlug("multiCount", &status));
+         if ( MS::kSuccess == status )
+         {
+            mcPlug.getValue( multiCount );
+         }
+         MPlug mrPlug( m_fnParticleSystem.findPlug("multiRadius", &status));
+         if ( MS::kSuccess == status )
+         {
+            mrPlug.getValue( multiRadius );
+         }
+         multiRadius *=2;
+      }
+
+
+      // ask if the particle has the basic PP attributes we want to export
+      hasRGB = m_fnParticleSystem.hasRgb();
+
+      // opaqueness
+      hasOpacity = false;
+      if (!isOpaque)
+         hasOpacity = m_fnParticleSystem.hasOpacity();
+      AiNodeSetBool(particle, "opaque", isOpaque);
+
+      hasRadiusPP  = m_fnParticleSystem.isPerParticleDoubleAttribute(MString("radiusPP"));
+
+      if (exportId)
+      {
+         AiNodeDeclare(particle, "particleId", "uniform INT");
+      }
+
+      // get the array of rgbPPs
+      if (hasRGB)
+      {
+         m_fnParticleSystem.rgb(rgbArray);
+         AiNodeDeclare(particle, "rgbPP", "uniform RGB");
+      }
+
+      // get the array of opacities
+      if (hasOpacity)
+      {
+         m_fnParticleSystem.opacity(opacityArray);
+         AiNodeDeclare(particle, "opacityPP", "uniform FLOAT");
+      }
+
+
+      if (hasRadiusPP && !isSprite)
+      {
+         m_fnParticleSystem.getPerParticleAttribute(MString("radiusPP"), radiusArray);
+      }
+      else //
+      {
+         // FIXME: set these defaults in the initializer (unless they vary by mode)
+         particleSize= 1;
+         radius = .5;
+         pointSize = 1;
+         lineWidth = 1;
+         spriteScaleX = 1;
+         spriteScaleY = 1;
+
+         MPlug radiusPlug( m_fnParticleSystem.findPlug("radius", &status));
+         if ( MS::kSuccess == status )
+         {
+            radiusPlug.getValue( radius );
+         }
+         MPlug pointPlug( m_fnParticleSystem.findPlug("pointSize", &status));
+         if ( MS::kSuccess == status )
+         {
+            pointPlug.getValue( pointSize );
+         }
+         MPlug linePlug( m_fnParticleSystem.findPlug("lineWidth", &status));
+         if ( MS::kSuccess == status )
+         {
+            linePlug.getValue( lineWidth );
+         }
+         MPlug ssXPlug( m_fnParticleSystem.findPlug("spriteScaleX", &status));
+         if ( MS::kSuccess == status )
+         {
+            ssXPlug.getValue( spriteScaleX );
+         }
+         MPlug ssYPlug( m_fnParticleSystem.findPlug("spriteScaleY", &status));
+         if ( MS::kSuccess == status )
+         {
+            ssYPlug.getValue( spriteScaleY );
+         }
+
+         switch (renderType)
+         {
          case 3: // multiPoint
             {
                particleSize = (pointSize)*0.01;
-               doMultiPoint = true;
-               MPlug mcPlug( m_fnParticleSystem.findPlug("multiCount", &status));
-               if ( MS::kSuccess == status )
-               {
-                  mcPlug.getValue( multiCount );
-               }
-               MPlug mrPlug( m_fnParticleSystem.findPlug("multiRadius", &status));
-               if ( MS::kSuccess == status )
-               {
-                  mrPlug.getValue( multiRadius );
-               }
-               multiRadius *=2;
             }
             break;
          case 7: // sphere
-            particleSize = radius;
+            {
+               particleSize = radius;
+            }
             break;
          case 8: // sprite
             {
                if (m_fnParticleSystem.isPerParticleDoubleAttribute(MString("spriteScaleXPP")) &&
-                   m_fnParticleSystem.isPerParticleDoubleAttribute(MString("spriteScaleYPP")))
+               m_fnParticleSystem.isPerParticleDoubleAttribute(MString("spriteScaleYPP")))
                {
                   isSpritePP = true;
                   AiMsgInfo("SPRITESCALE and Y PP values found");
@@ -400,9 +464,7 @@ void CParticleTranslator::ExportParticleData(AtNode* particle, AtUInt step)
                   m_fnParticleSystem.getPerParticleAttribute(MString("spriteScaleYPP"), spriteScaleYPP);
                }
 
-               //float aspect = spriteScaleX/spriteScaleY;
                particleSize = spriteScaleX/2;
-
             }
             break;
          case 9: // streak
@@ -435,206 +497,563 @@ void CParticleTranslator::ExportParticleData(AtNode* particle, AtUInt step)
             break;
          default:
             particleSize = (pointSize)*0.01;
-      }
+         }
 
-      // populate the radius array with the value
-      for (int i=0; i<numParticles; i++)
-      {
-         for (int j=0; j<multiCount; j++)
+         // populate the radius array with the value
+         if (isSprite && !isSpritePP)
          {
-            if (renderType == 8 && !isSpritePP)
+            for (int i=0; i<numParticles; i++)
             {
                spriteScaleXPP.append(spriteScaleX);
                spriteScaleYPP.append(spriteScaleY);
             }
-            else
+         }
+         else
+         {
+            for (int i=0; i<numParticles; i++)
             {
                radiusArray.append(particleSize);
             }
          }
       }
-   } // End No RadiusPP
 
-   AiMsgInfo("MAYA ARRAYS DONE");
-   if (hasRgb)
-      a_rgbPPArray = AiArrayAllocate(numParticles*multiCount, 1, AI_TYPE_RGB);
 
-   if (hasOpacity)
-      a_opacityPPArray = AiArrayAllocate(numParticles*multiCount, 1, AI_TYPE_FLOAT);
-
-   if (exportId)
-   {
-      a_ParticleIdArray = AiArrayAllocate(numParticles*multiCount, 1, AI_TYPE_INT);
+      // Always get these
+      m_fnParticleSystem.position(positionArray);
+      m_fnParticleSystem.velocity(velocityArray);
       m_fnParticleSystem.particleIds(particleId);
-   }
 
-   /// Allocation of Arnold Arrays
-   if (step == 0)
-   {
-      // allocate
-       if (m_motionDeform || m_motion)
-       {
-          a_positionArray = AiArrayAllocate(numParticles*multiCount, GetNumMotionSteps(), AI_TYPE_POINT);
-          a_radiusArray = AiArrayAllocate(numParticles*multiCount, GetNumMotionSteps(), AI_TYPE_FLOAT) ;
-          if (renderType == 8)
-          {
-             a_aspectArray = AiArrayAllocate(numParticles*multiCount, GetNumMotionSteps(), AI_TYPE_FLOAT);
-          }
-       }
-       else
-       {
-          a_positionArray = AiArrayAllocate(numParticles*multiCount, 1, AI_TYPE_POINT);
-          a_radiusArray = AiArrayAllocate(numParticles*multiCount, 1, AI_TYPE_FLOAT) ;
-          if (renderType == 8)
-          {
-             a_aspectArray = AiArrayAllocate(numParticles*multiCount, 1, AI_TYPE_FLOAT);
-          }
-       }
+      instantVeloArray = velocityArray;
 
-      //write the points
-      AiNodeSetArray(particle, "points", a_positionArray);
-
-      //write the radius
-      AiNodeSetArray(particle, "radius", a_radiusArray);
-
-      if (renderType == 8)
+      // push back a "starter" array for all the steps
+      for (int i = 0; i <= (GetNumMotionSteps()-1); i++)
       {
-         AiNodeSetArray(particle, "aspect", a_aspectArray);
+         out_positionArrays.push_back(positionArray);
+
+         if (isSprite)
+         {
+            out_spriteScaleXArrays.push_back(spriteScaleXPP);
+            out_spriteScaleYArrays.push_back(spriteScaleYPP);
+         }
+         else
+         {
+            out_radiusArrays.push_back(radiusArray);
+         }
+
+         if (hasOpacity)
+         {
+            out_opacityArrays.push_back(opacityArray);
+         }
+
+         if (hasRGB)
+         {
+            out_colorArrays.push_back(rgbArray);
+         }
       }
 
-      // get the array of rgbPPs
-      if (hasRgb)
-         m_fnParticleSystem.rgb(rgbArray);
-
-      // get the array of opacities
-      if (hasOpacity)
-         m_fnParticleSystem.opacity(opacityArray);
-
-      if (hasRgb || hasOpacity || exportId)
+      //  create the map  from particleID to array index in the "out_*"  arrays
+      for (int i=0; i<numParticles; i++)
       {
-         for (int i=0; i<numParticles; i++)
+         int id = particleId[i];
+         particleIDMap[id] = i;
+         // FIXME: at this point haven't we just copied particleId to out_idArray? can we get rid of particleId?
+         out_idArray.append(id);  // need this to  export  ID list
+      }
+
+      m_customAttrs = m_fnParticleSystem.findPlug("export_attributes").asString();
+
+      if (m_customAttrs.length() != 0)
+      {
+         doExtraAttributes =true;
+         ExportCustomParticleData(particle, step);
+      }
+
+   }// end step == 0
+
+
+   // STEP  > 0
+   else
+   {
+      // FIXME: clearing these implies they've been previously filled? is that the case or are we being "extra safe"?
+      // also, if we're clearing these every step, then why are they class members?
+      instant_customVectorAttrArrays.clear();
+      instant_customDoubleAttrArrays.clear();
+      instant_customIntAttrArrays.clear();
+      positionArray.clear();
+      velocityArray.clear();
+      particleId.clear();
+
+      numParticles = m_fnParticleSystem.count();
+
+      particle = GetArnoldRootNode();
+
+      m_fnParticleSystem.position(positionArray);
+      m_fnParticleSystem.velocity(velocityArray);
+      m_fnParticleSystem.particleIds(particleId);
+
+      if (hasRGB)
+      {
+         // FIXME: No need to clear before passing to a function by reference.
+         rgbArray.clear();
+         m_fnParticleSystem.rgb(rgbArray);
+      }
+      if(hasOpacity)
+      {
+         opacityArray.clear();
+         m_fnParticleSystem.opacity(opacityArray);
+      }
+
+      if (hasRadiusPP && !isSprite)
+      {
+         radiusArray.clear();
+         m_fnParticleSystem.getPerParticleAttribute(MString("radiusPP"), radiusArray);
+      }
+      else
+      {
+
+         if (m_fnParticleSystem.isPerParticleDoubleAttribute(MString("spriteScaleXPP")) &&
+             m_fnParticleSystem.isPerParticleDoubleAttribute(MString("spriteScaleYPP")))
          {
-            for (int j=0; j<multiCount; j++)
+            spriteScaleXPP.clear();
+            spriteScaleYPP.clear();
+            AiMsgInfo("SPRITESCALE and Y PP values found");
+            m_fnParticleSystem.getPerParticleAttribute(MString("spriteScaleXPP"), spriteScaleXPP);
+            m_fnParticleSystem.getPerParticleAttribute(MString("spriteScaleYPP"), spriteScaleYPP);
+         }
+         else
+         {
+            radiusArray.clear();
+            spriteScaleXPP.clear();
+            spriteScaleYPP.clear();
+
+            // FIXME: these copy operations are likely slower than just cylcing through and setting values.
+            // however, you may be better off splitting step==0 into a separate function so that you can have custom
+            // inits for step > 0:  MDoubleArray radiusArray(numParticles-1, particleSize);
+            MDoubleArray temp(numParticles-1, particleSize);
+            radiusArray.copy(temp);
+            MDoubleArray spriteScaleXPPTemp(numParticles-1,spriteScaleX);
+            MDoubleArray spriteScaleYPPTemp(numParticles-1,spriteScaleY);
+            spriteScaleXPP.copy(spriteScaleXPPTemp);
+            spriteScaleYPP.copy(spriteScaleYPPTemp);
+         }
+      }
+
+      if (doExtraAttributes)
+      {
+         // FIXME: we don't need the extra cast to MString
+         // Extra export attrs
+         for (doubleIt = out_customDoubleAttrArrays.begin(); doubleIt != out_customDoubleAttrArrays.end(); doubleIt++)
+         {
+            MDoubleArray* attributes = new MDoubleArray;
+            m_fnParticleSystem.getPerParticleAttribute(MString(doubleIt->first.c_str()), *attributes);
+            // FIXME: i'm pretty sure the assignment below is a copy: we should use 'new' to create pointers.
+            // this applies to anywhere that we are putting M*Arrays into vectors or maps
+            // however, we need to ensure that we call 'delete' for each, or we'll have a memory leak
+            instant_customDoubleAttrArrays[doubleIt->first] = *attributes;
+         }
+         for (vecIt = out_customVectorAttrArrays.begin(); vecIt != out_customVectorAttrArrays.end(); vecIt++)
+         {
+            MVectorArray attributes;
+            m_fnParticleSystem.getPerParticleAttribute(MString(vecIt->first.c_str()), attributes);
+            instant_customVectorAttrArrays[vecIt->first] = attributes;
+         }
+         for (intIt = out_customIntAttrArrays.begin(); intIt != out_customIntAttrArrays.end(); intIt++)
+         {
+            MIntArray attributes;
+            m_fnParticleSystem.getPerParticleAttribute(MString(intIt->first.c_str()), attributes);
+            instant_customIntAttrArrays[intIt->first] = attributes;
+         }
+      }
+      // FIXME: this is another potentially large copy: do we need a copy?
+      std::map <int, int> tempMap = particleIDMap;
+      std::map <int, int>::iterator it;
+      int newParticleCount = 0;
+      for (int j = 0; j < numParticles; j++)
+      {
+         it = tempMap.find(particleId[j]);
+         if (it != tempMap.end())   // found the particle in the scene already
+         {
+            instantVeloArray[it->second] = velocityArray[j];
+            out_positionArrays[step][it->second] = positionArray[j];
+            if (hasRGB)
             {
-               if (hasRgb)
+               out_colorArrays[step][it->second] = rgbArray[j];
+            }
+            if(hasOpacity)
+            {
+               out_opacityArrays[step][it->second] = opacityArray[j];
+            }
+            if (hasRadiusPP && !isSprite)
+            {
+               out_radiusArrays[step][it->second] = radiusArray[j];
+            }
+            else
+            {
+               if (isSpritePP)
                {
-                  m_rgb = rgbArray[i];
-                  a_rgb.r = (AtFloat)m_rgb.x;
-                  a_rgb.g = (AtFloat)m_rgb.y;
-                  a_rgb.b = (AtFloat)m_rgb.z;
-                  AiArraySetRGB(a_rgbPPArray, ((i*multiCount)+j), a_rgb);
+                  out_spriteScaleXArrays[step][it->second] = spriteScaleXPP[j];
+                  out_spriteScaleYArrays[step][it->second] = spriteScaleYPP[j];
+               }
+            }
+
+            if (doExtraAttributes)
+            {
+               // Extra export attrs
+               for (doubleIt = out_customDoubleAttrArrays.begin(); doubleIt != out_customDoubleAttrArrays.end(); doubleIt++)
+               {
+                  out_customDoubleAttrArrays[doubleIt->first][step][it->second] = instant_customDoubleAttrArrays[doubleIt->first][j];
+               }
+               for (vecIt = out_customVectorAttrArrays.begin(); vecIt != out_customVectorAttrArrays.end(); vecIt++)
+               {
+                  out_customVectorAttrArrays[vecIt->first][step][it->second] = instant_customVectorAttrArrays[vecIt->first][j];
+               }
+               for (intIt = out_customIntAttrArrays.begin(); intIt != out_customIntAttrArrays.end(); intIt++)
+               {
+                  out_customIntAttrArrays[intIt->first][step][it->second] = instant_customIntAttrArrays[intIt->first][j];
+               }
+            }
+
+            tempMap.erase(it);
+         }
+         else   // new particle this step
+         {
+
+            newParticleCount ++;
+            //add new particles to the  arrays
+
+            particleIDMap[particleId[j]] = out_positionArrays[step].length();
+            for (uint k = 0; k < totalSteps; k++)
+            {
+               // add particle to this steps arrays
+               int s = (k-step);
+               if (s != 0)
+               {
+                  // FXIME: what's happening here?
+                  MVector velocitySubstep = (((velocityArray[j]/fps)*GetMotionByFrame())/(GetNumMotionSteps()-1))*s;
+                  MVector oldVeloPosition = positionArray[j] + velocitySubstep;
+                  out_positionArrays[k].append(oldVeloPosition);
+               }
+               else
+               {
+                  out_positionArrays[k].append(positionArray[j]);
+               }
+
+               instantVeloArray.append(velocityArray[j]);
+               out_idArray.append(particleId[j]);
+
+               if (hasRGB)
+               {
+                  out_colorArrays[k].append(rgbArray[j]);
                }
 
                if (hasOpacity)
                {
-                  AiArraySetFlt(a_opacityPPArray, ((i*multiCount)+j), opacityArray[i]);
+                  out_opacityArrays[k].append(opacityArray[j]);
                }
 
-               if (exportId)
+               if (hasRadiusPP && !isSprite)
                {
-                  AiArraySetInt(a_ParticleIdArray, ((i*multiCount)+j), (int)particleId[i]);
+                  out_radiusArrays[k].append(radiusArray[j]);
+               }
+
+               else
+               {
+                  if (isSprite)
+                  {
+                     if (isSpritePP)
+                     {
+                        out_spriteScaleXArrays[k].append(spriteScaleXPP[j]);
+                        out_spriteScaleYArrays[k].append(spriteScaleYPP[j]);
+                     }
+                     else
+                     {
+                        out_spriteScaleXArrays[k].append(spriteScaleX);
+                        out_spriteScaleYArrays[k].append(spriteScaleY);
+                     }
+                  }
+                  out_radiusArrays[k].append(particleSize);
+               }
+
+               if (doExtraAttributes)
+               {
+                  // Extra export attrs
+                  for (doubleIt = out_customDoubleAttrArrays.begin(); doubleIt != out_customDoubleAttrArrays.end(); doubleIt++)
+                  {
+                     out_customDoubleAttrArrays[doubleIt->first][k].append(instant_customDoubleAttrArrays[doubleIt->first][j]);
+                  }
+                  for (vecIt = out_customVectorAttrArrays.begin(); vecIt != out_customVectorAttrArrays.end(); vecIt++)
+                  {
+                     out_customVectorAttrArrays[vecIt->first][k].append(instant_customVectorAttrArrays[vecIt->first][j]);
+                  }
+                  for (intIt = out_customIntAttrArrays.begin(); intIt != out_customIntAttrArrays.end(); intIt++)
+                  {
+                     out_customIntAttrArrays[intIt->first][k].append(instant_customIntAttrArrays[intIt->first][j]);
+                  }
                }
             }
          }
       }
+      AiMsgInfo("[mtoa] Particle Export found %i new particles for this step",newParticleCount);
 
-      // add rgb per point attribute
-      if (hasRgb)
+      if (tempMap.size() > 0)
       {
-         AiNodeDeclare(particle, "rgbPP", "uniform RGB");
-         AiNodeSetArray(particle, "rgbPP", a_rgbPPArray);
+         AiMsgInfo("[mtoa] Particle Export found %i particles that died for this step, computing velocity...", (int)tempMap.size());
+
+         for (it = tempMap.begin(); it != tempMap.end(); it++)
+         {
+            // here we Support removing of dead particles via looping and culling by particle map in the final output loop
+            if (deleteDeadParticles)
+            {
+               particleIDMap[it->first] = -1;
+            }
+            else
+            {
+               // get last step's position
+               MVector velocitySubstep = (((instantVeloArray[it->second]/fps)*GetMotionByFrame())/(GetNumMotionSteps()-1));
+               MVector newVeloPosition = out_positionArrays[step-1][it->second] + velocitySubstep;
+               out_positionArrays[step][it->second] = newVeloPosition;
+            }
+
+          }
+      }
+   }
+   if (step == (GetNumMotionSteps()-1)) // Last step only
+   {
+
+      m_particleCount = out_positionArrays[0].length();
+
+      AiMsgInfo("[mtoa] Particle count : %i",m_particleCount);
+
+      /// Finally set the  position and  radius/aspect values with their cache values minus Transform position
+      AtPoint a_v;
+      MVector m_v;
+      AtFloat a_r;
+      AtFloat a_a;
+      //getting the matrix of the point particle object
+
+      MMatrix mpm = m_dagPath.inclusiveMatrix();
+
+      // FIXME: there is a utility for this on CNodeTranslator
+      // convert it to AtMatrix
+      AtMatrix apm;
+      for (int J = 0; (J < 4); ++J)
+      {
+         for (int I = 0; (I < 4); ++I)
+         {
+            apm[I][J] = (float) mpm[I][J];
+         }
+      }
+      // inverting the matrix
+      AiM4Invert (apm, apm);
+
+      // declare the arrays  now that we have gathered all the particle info from each step
+      a_positionArray = AiArrayAllocate(m_particleCount*multiCount, GetNumMotionSteps(), AI_TYPE_POINT);
+      a_radiusArray = AiArrayAllocate(m_particleCount*multiCount, GetNumMotionSteps(), AI_TYPE_FLOAT) ;
+
+      if (isSprite)
+      {
+         a_aspectArray = AiArrayAllocate(m_particleCount*multiCount, GetNumMotionSteps(), AI_TYPE_FLOAT);
       }
 
-      // add opacity per point attribute
-      // no need to export opacityPP if the particle is opaque !
-      if (hasOpacity)
-      {
-         AiNodeDeclare(particle, "opacityPP", "uniform FLOAT");
-         AiNodeSetArray(particle, "opacityPP", a_opacityPPArray);
-      }
-
-      // add particle id
       if (exportId)
       {
-         AiNodeDeclare(particle, "particleId", "uniform INT");
-         AiNodeSetArray(particle, "particleId", a_ParticleIdArray);
+         a_ParticleIdArray = AiArrayAllocate(m_particleCount*multiCount, GetNumMotionSteps(), AI_TYPE_INT);
       }
 
-   }
-   else // step > 0
-   {
-      // get curves node and arrays
-      // we may at this point need to get the velocity and  add it to position somehow
-      // FIXME: don't use lookupByName, use CTranslator::GetArnoldRootNode
-      particle = AiNodeLookUpByName(m_dagPath.partialPathName().asChar());
-
-      a_positionArray = AiNodeGetArray(particle, "points");
-      a_radiusArray = AiNodeGetArray(particle, "radius");
-      a_aspectArray = AiNodeGetArray(particle, "aspect");
-
-   }
-   AiMsgInfo("Anold Motionblur stuff done");
-   /// Finally set the  position and  radius values with their cache values minus Transform position
-   AtPoint a_v;
-   MVector m_v;
-   AtFloat a_r;
-   AtFloat a_a;
-   //getting the matrix of the point particle object
-
-   MMatrix mpm = m_dagPath.inclusiveMatrix();
-
-   // convert it to AtMatrix
-   AtMatrix apm;
-   for (int J = 0; (J < 4); ++J)
-   {
-      for (int I = 0; (I < 4); ++I)
+      if (doMultiPoint) // multiPoint index
       {
-         apm[I][J] = (float) mpm[I][J];
+         a_ParticleMultiIndexArray = AiArrayAllocate(m_particleCount*multiCount, GetNumMotionSteps(), AI_TYPE_INT);
       }
-   }
-   // inverting the matrix
-   AiM4Invert (apm, apm);
-
-   for (int i = 0; i < numParticles; i++)
-   {
-      for (int j = 0; j<multiCount; j++)
+      if (hasRGB)
       {
-         // ADD IN MULTIPOINT NOISE HERE
-         m_v = positionArray[i];
-         AtPoint noisePoint;
-         noisePoint.x = m_v.x+i+j+.1454329;
-         noisePoint.y = m_v.y-i+j+.3234548;
-         noisePoint.z = m_v.z+i+j+.09210;
-
-         a_v.x = (AtFloat)m_v.x+(AiPerlin4(noisePoint,i+j+.234)*multiRadius);
-         a_v.y = (AtFloat)m_v.y+(AiPerlin4(noisePoint,i+j+23)*multiRadius);
-         a_v.z = (AtFloat)m_v.z+(AiPerlin4(noisePoint,i+j-.487)*multiRadius);
-
-         //remove matrix for the point
-         AiM4PointByMatrixMult (&a_v, apm, &a_v);
-
-         AiArraySetPnt(a_positionArray, (((i*multiCount)+j) + (step * numParticles)), a_v);
-
-         if (renderType == 8)
-         {
-            a_a = spriteScaleXPP[i]/spriteScaleYPP[i];
-            AiArraySetFlt (a_aspectArray, (((i*multiCount)+j) + (step * numParticles)), (AtFloat)a_a);
-            a_r = CLAMP(((AtFloat)spriteScaleXPP[i]/2), minRadius, maxRadius);
-         }
-         else
-         {
-            a_r = CLAMP(((AtFloat)radiusArray[i]), minRadius, maxRadius);
-         }
-
-         AiArraySetFlt(a_radiusArray, (((i*multiCount)+j) + (step * numParticles)), a_r);
+         a_rgbPPArray = AiArrayAllocate(m_particleCount*multiCount, GetNumMotionSteps(),  AI_TYPE_RGB);
+      }
+      if(hasOpacity)
+      {
+         a_opacityPPArray = AiArrayAllocate(m_particleCount*multiCount, GetNumMotionSteps(), AI_TYPE_FLOAT);
       }
 
-   }
-   AiMsgInfo("Done EXPORT INSTANCE");
+      std::map <int, int>::iterator it;
+      for (uint s = 0; s < GetNumMotionSteps(); s++)
+      {
+         int i = 0;
+         for (it = particleIDMap.begin(); it != particleIDMap.end();  it++)
+         {
+            if (it->second >= 0)
+            {
+               for (int j = 0; j< multiCount; j++)
+               {
 
+                  m_v = out_positionArrays[s][it->second];
+
+                  AtPoint noisePoint;
+                  noisePoint.x = i+j+.1454329;
+                  noisePoint.y = i+j+.3234548;
+                  noisePoint.z = i+j+.0921081;
+
+                  a_v.x = (AtFloat)m_v.x+(AiPerlin4(noisePoint,i+j+.2340970)*multiRadius);
+                  a_v.y = (AtFloat)m_v.y+(AiPerlin4(noisePoint,i+j+23.1203093)*multiRadius);
+                  a_v.z = (AtFloat)m_v.z+(AiPerlin4(noisePoint,i+j-.4874771)*multiRadius);
+
+                  //remove matrix for the point
+                  AiM4PointByMatrixMult (&a_v, apm, &a_v);
+
+                  // Calculated offset index
+                  int  index =  s*(m_particleCount*multiCount) +i*multiCount+j;
+
+                  AiArraySetPnt(a_positionArray, index, a_v);
+
+                  if (isSprite)
+                  {
+                     a_a = out_spriteScaleXArrays[s][it->second]/out_spriteScaleYArrays[s][it->second];
+                     AiArraySetFlt (a_aspectArray, index, (AtFloat)a_a);
+
+                     a_r = CLAMP((((AtFloat)out_spriteScaleXArrays[s][it->second])/2), minRadius, maxRadius);
+                     a_r *= radiusMult;
+
+                  }
+                  else
+                  {
+                     a_r = CLAMP(((AtFloat)out_radiusArrays[s][it->second]), minRadius, maxRadius);
+                     a_r *= radiusMult;
+                  }
+
+                  AiArraySetFlt(a_radiusArray, index, a_r);
+
+                  if (exportId)
+                  {
+                     AiArraySetInt(a_ParticleIdArray, index, (int)it->first);
+                  }
+                  if (doMultiPoint)
+                  {
+                     AiArraySetInt(a_ParticleMultiIndexArray, index, (int)j);
+                  }
+                  if (hasRGB)
+                  {
+                     m_rgb = out_colorArrays[s][it->second];
+                     a_rgb.r = (AtFloat)m_rgb.x;
+                     a_rgb.g = (AtFloat)m_rgb.y;
+                     a_rgb.b = (AtFloat)m_rgb.z;
+                     AiArraySetRGB(a_rgbPPArray, index, a_rgb);
+                  }
+                  if (hasOpacity)
+                  {
+                     AiArraySetFlt(a_opacityPPArray, index,  out_opacityArrays[s][it->second]);
+                  }
+
+               }// end  multicount
+
+            }// if particle is valid (did not die within motion blur steps)
+
+            i++;  // tracking the  iteration thru the map
+
+         }// end particleIDMap  iteration
+
+      }// end  step
+
+   //write the points
+   AiNodeSetArray(particle, "points", a_positionArray);
+
+   //write the radius
+   AiNodeSetArray(particle, "radius", a_radiusArray);
+
+   if (renderType == 8)
+   {
+      AiNodeSetArray(particle, "aspect", a_aspectArray);
+   }
+
+   if (exportId)
+   {
+      AiNodeSetArray(particle, "particleId", a_ParticleIdArray);
+   }
+
+   if (doMultiPoint)
+   {
+      AiNodeSetArray(particle, "particleMultiIndex", a_ParticleMultiIndexArray);
+   }
+
+   if(hasRGB)
+   {
+      AiNodeSetArray(particle, "rgbPP", a_rgbPPArray);
+   }
+   if (hasOpacity)
+   {
+      AiNodeSetArray(particle, "opacityPP", a_opacityPPArray);
+   }
+
+   if (doExtraAttributes)
+   {
+      // Extra export attrs
+      for (doubleIt = out_customDoubleAttrArrays.begin(); doubleIt != out_customDoubleAttrArrays.end(); doubleIt++)
+      {
+         AtArray* a_attributes = AiArrayAllocate(m_particleCount*multiCount, GetNumMotionSteps(), AI_TYPE_FLOAT);
+         for (uint s = 0; s < GetNumMotionSteps(); s++)
+         {
+            for (int i = 0; i < m_particleCount; i++)
+            {
+               for (int j = 0; j< multiCount; j++)
+               {
+                  // Calculated offset index
+                  int  index =  s*(m_particleCount*multiCount) +i*multiCount+j;
+                  AiArraySetFlt(a_attributes, index, out_customDoubleAttrArrays[doubleIt->first][s][i]);
+               }
+            }
+         }
+         AiNodeDeclare(particle, doubleIt->first.c_str(), "uniform FLOAT");
+         AiNodeSetArray(particle, doubleIt->first.c_str(), a_attributes);
+
+      }
+      for (vecIt = out_customVectorAttrArrays.begin(); vecIt != out_customVectorAttrArrays.end(); vecIt++)
+      {
+         AtArray* a_attributes = AiArrayAllocate(m_particleCount*multiCount, GetNumMotionSteps(), AI_TYPE_VECTOR);
+         for (uint s = 0; s < GetNumMotionSteps(); s++)
+         {
+            for (int i = 0; i < m_particleCount; i++)
+            {
+               for (int j = 0; j< multiCount; j++)
+               {
+                  // Calculated offset index
+                  int  index =  s*(m_particleCount*multiCount) +i*multiCount+j;
+                  AtVector a_attr;
+
+                  a_attr.x = (AtFloat)out_customVectorAttrArrays[vecIt->first][s][i].x;
+                  a_attr.y = (AtFloat)out_customVectorAttrArrays[vecIt->first][s][i].y;
+                  a_attr.z = (AtFloat)out_customVectorAttrArrays[vecIt->first][s][i].z;
+
+                  AiArraySetVec(a_attributes, index, a_attr);
+               }
+            }
+         }
+         AiNodeDeclare(particle, vecIt->first.c_str(), "uniform VECTOR");
+         AiNodeSetArray(particle, vecIt->first.c_str(), a_attributes);
+
+      }
+      for(intIt = out_customIntAttrArrays.begin(); intIt != out_customIntAttrArrays.end(); intIt++)
+      {
+         AtArray* a_attributes = AiArrayAllocate(m_particleCount*multiCount, GetNumMotionSteps(), AI_TYPE_INT);
+        for (uint s = 0; s < GetNumMotionSteps(); s++)
+        {
+           for (int i = 0; i < m_particleCount; i++)
+           {
+              for (int j = 0; j< multiCount; j++)
+              {
+                 // Calculated offset index
+                 int  index =  s*(m_particleCount*multiCount) +i*multiCount+j;
+                 AiArraySetInt(a_attributes, index, out_customIntAttrArrays[intIt->first][s][i]);
+              }
+           }
+        }
+        AiNodeDeclare(particle, intIt->first.c_str(), "uniform INT");
+        AiNodeSetArray(particle, intIt->first.c_str(), a_attributes);
+      }
+   }
+
+   }
 }
 
 // FIXME: how does this differ from CGeometryTranslator::ExportInstance? why not use that?
+// CGeometryTranslator uses  "mesh.getConnectedShaders"  which does not exist in particleNode
+// connected shader needs to be found another way.
 AtNode* CParticleTranslator::ExportInstance(AtNode *instance, const MDagPath& masterInstance)
 {
 
@@ -692,28 +1111,19 @@ AtNode* CParticleTranslator::ExportInstance(AtNode *instance, const MDagPath& ma
 
 AtNode* CParticleTranslator::ExportParticle(AtNode* particle, bool update)
 {
-
+   MTimer exportParticleTimer;
+   exportParticleTimer.beginTimer();
    AiNodeSetStr(particle, "name", m_dagPath.partialPathName().asChar());
-
-   //MFnParticleSystem::RenderType renderType = m_fnParticleSystem.renderType();
-
-   //set particle type
-   //if (renderType == 7)
-   //   AiNodeSetStr(particle, "mode", "sphere");
-   //else
-   //   AiNodeSetStr(particle, "mode", "disk");
 
    ExportMatrix(particle, 0);
    ExportParticleShaders(particle);
    if (!update)
-       ExportParticleData(particle, 0);
-
-       m_customAttrs = m_fnParticleSystem.findPlug("export_attributes").asString();
-
-       if (m_customAttrs.length() != 0)
-       ExportCustomParticleData(particle, 0);
-
-
+   {
+     ExportParticleData(particle, 0);
+   }
+   exportParticleTimer.endTimer();
+   double elapsed = exportParticleTimer.elapsedTime();
+   AiMsgInfo("[mtoa] Particle Export took : %f seconds",elapsed);
    return particle;
 }
 
@@ -727,12 +1137,13 @@ void CParticleTranslator::Export(AtNode* anode)
       return;
    }
 
+   // FIXED
    // FIXME: dont' use string comparison here, use master DAG check from CreateArnoldNodes
-   const char* nodeType = AiNodeEntryGetName(anode->base_node);
 
-   if (strcmp(nodeType, "ginstance") == 0)
-      ExportInstance(anode, m_masterDag);
-   else if (strcmp(nodeType, "points") == 0)
+   if (m_isMasterDag)
       ExportParticle(anode, false);
+   else
+      ExportInstance(anode, m_masterDag);
+
 
 }
