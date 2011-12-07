@@ -2,31 +2,15 @@
 
 #include "scene/MayaScene.h"
 
-#ifdef _WIN32
-   #include <platform/win32/dirent.h>
-   #define PATHSEP ';'
-   #define DIRSEP "\\"
-   #define LIBEXT MString(".dll")
-#else
-   #include <sys/types.h>
-   #include <dirent.h>
-   #include <dlfcn.h>
-
-   #define PATHSEP ':'
-   #define DIRSEP "/"
-
-#endif
-
-
 
 void addVelocityToMatrix(AtMatrix& outMatrix, AtMatrix& matrix,
                          const MVector& velocityVector)
 {
    AiM4Copy(outMatrix, matrix);
 
-   outMatrix[3][0] = matrix[3][0] + velocityVector.x;
-   outMatrix[3][1] = matrix[3][1] + velocityVector.y;
-   outMatrix[3][2] = matrix[3][2] + velocityVector.z;
+   outMatrix[3][0] = matrix[3][0] + (AtFloat)velocityVector.x;
+   outMatrix[3][1] = matrix[3][1] + (AtFloat)velocityVector.y;
+   outMatrix[3][2] = matrix[3][2] + (AtFloat)velocityVector.z;
 
 }
 
@@ -102,7 +86,8 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, AtUInt step)
 {
 
    MTime oneSec(1.0, MTime::kSeconds);
-   int fps =  (float)oneSec.asUnits(MTime::uiUnit());
+   // FIXME: was it intended to be rounded to int ?
+   float fps =  (float)oneSec.asUnits(MTime::uiUnit());
    uint totalSteps = GetNumMotionSteps();
    //uint middleStep = ((totalSteps/2)+1)-1;
 
@@ -407,7 +392,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, AtUInt step)
             std::map<std::string, MDoubleArray>::iterator custDouble;
             for (custDouble = m_out_customDoubleAttrArrays.begin(); custDouble != m_out_customDoubleAttrArrays.end(); custDouble++)
             {
-               AtFloat doubleAttrValue = custDouble->second[j];
+               AtFloat doubleAttrValue = (AtFloat)custDouble->second[j];
 
                   AiNodeDeclare(instance, custDouble->first.c_str(), "constant FLOAT");
                   AiNodeSetFlt(instance, custDouble->first.c_str(),doubleAttrValue );

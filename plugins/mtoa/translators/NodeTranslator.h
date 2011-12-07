@@ -119,7 +119,7 @@ protected:
    inline const CSessionOptions& GetSessionOptions() const  { return m_session->GetSessionOptions(); }
    inline ArnoldSessionMode GetSessionMode() const {return m_session->GetSessionMode();}
    inline const MObject& GetArnoldRenderOptions() const   { return m_session->GetArnoldRenderOptions(); }
-   inline float GetMotionByFrame() const {return m_session->GetMotionByFrame(); }
+   inline double GetMotionByFrame() const {return m_session->GetMotionByFrame(); }
 
    // session action
    AtNode* ExportNode(const MPlug& outputPlug) {return m_session->ExportNode(outputPlug);}

@@ -108,8 +108,8 @@ static int Init(AtNode *mynode, void **user_ptr)
 
 
 
-            int pathEnd = AiArrayGetInt(pathStartIndices,i+1);
-            int pathStart = AiArrayGetInt(pathStartIndices,i);
+            int pathEnd = AiArrayGetInt(pathStartIndices,(AtULong)i+1);
+            int pathStart = AiArrayGetInt(pathStartIndices,(AtULong)i);
             int nbPath = pathEnd - pathStart;
 
             if (nbPath != 0)
@@ -130,7 +130,7 @@ static int Init(AtNode *mynode, void **user_ptr)
                   for (int step = 0; step < pathMatrixArray->nkeys; step++)
                   {
                      int offset = nbInsts * step;
-                     AiArraySetInt(partArray, index + offset, i + pathMatrixArray->nelements*step);
+                     AiArraySetInt(partArray, index + offset, AtULong(i + pathMatrixArray->nelements*step));
 
 
 

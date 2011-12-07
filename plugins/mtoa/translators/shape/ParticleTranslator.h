@@ -124,25 +124,25 @@ protected:
    MString m_customAttrs;
 
 
-   bool  m_hasRGB;
-   bool  m_hasOpacity;
-   bool  m_hasRadiusPP;
-   bool  m_isOpaque;
-   bool  m_doMultiPoint;
-   int   m_multiCount;
-   float m_multiRadius;
-   bool  m_isSpritePP;
-   bool  m_isSprite;
-   float m_particleSize;
-   float m_radius;
-   float m_pointSize;
-   float m_lineWidth;
-   float m_spriteScaleX;
-   float m_spriteScaleY;
-   bool  m_doExtraAttributes;
-   bool  m_deleteDeadParticles;
-   bool  m_inheritCacheTxfm;
-   bool  m_exportId;
+   bool		m_hasRGB;
+   bool		m_hasOpacity;
+   bool		m_hasRadiusPP;
+   bool		m_isOpaque;
+   bool		m_doMultiPoint;
+   int		m_multiCount;
+   double	m_multiRadius;
+   bool		m_isSpritePP;
+   bool		m_isSprite;
+   double	m_particleSize;
+   double	m_radius;
+   double	m_pointSize;
+   double	m_lineWidth;
+   double	m_spriteScaleX;
+   double	m_spriteScaleY;
+   bool		m_doExtraAttributes;
+   bool		m_deleteDeadParticles;
+   bool		m_inheritCacheTxfm;
+   bool		m_exportId;
 
 };
 

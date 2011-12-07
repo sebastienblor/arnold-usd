@@ -318,7 +318,7 @@ void CParticleTranslator::ExportPreambleData(AtNode* particle)
                   m_isSpritePP = true;
                }
 
-               m_particleSize = m_spriteScaleX/2;
+               m_particleSize = m_spriteScaleX/2.0;
             }
             break;
          case PARTICLE_TYPE_STREAK: // streak
@@ -555,7 +555,8 @@ void CParticleTranslator::GatherBlurSteps(AtNode* particle, AtUInt step)
    particle = GetArnoldRootNode();
 
    MTime oneSec(1.0, MTime::kSeconds);
-   int fps =  (float)oneSec.asUnits(MTime::uiUnit());
+   // FIXME: was it intended to be rounded to int ?
+   float fps =  (float)oneSec.asUnits(MTime::uiUnit());
 
    // now we iterate thru the particle list and change the data for this step.
 
@@ -751,7 +752,8 @@ void CParticleTranslator::ComputeBlurSteps(AtNode* particle, AtUInt step)
    AiMsgInfo("[mtoa] Particle Computing Step:: %i",step);
 
    MTime oneSec(1.0, MTime::kSeconds);
-   int fps =  (float)oneSec.asUnits(MTime::uiUnit());
+   // FIXME: was it intended to be rounded to int ?
+   float fps =  (float)oneSec.asUnits(MTime::uiUnit());
    //uint totalSteps = GetNumMotionSteps(); // not needed
 
    MVectorArray   velocityArray;
@@ -923,13 +925,13 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
                m_v = (*m_out_positionArrays[s])[pindex];
 
                AtPoint noisePoint;
-               noisePoint.x = i+j+.1454329;
-               noisePoint.y = i+j+.3234548;
-               noisePoint.z = i+j+.0921081;
+               noisePoint.x = AtFloat(i+j+0.1454329);
+               noisePoint.y = AtFloat(i+j+0.3234548);
+               noisePoint.z = AtFloat(i+j+0.0921081);
 
-               a_v.x = (AtFloat)m_v.x+(AiPerlin4(noisePoint,i+j+.2340970)*m_multiRadius);
-               a_v.y = (AtFloat)m_v.y+(AiPerlin4(noisePoint,i+j+23.1203093)*m_multiRadius);
-               a_v.z = (AtFloat)m_v.z+(AiPerlin4(noisePoint,i+j-.4874771)*m_multiRadius);
+               a_v.x = AtFloat(m_v.x+(AiPerlin4(noisePoint,i+j+0.2340970f)*m_multiRadius));
+               a_v.y = AtFloat(m_v.y+(AiPerlin4(noisePoint,i+j+23.1203093f)*m_multiRadius));
+               a_v.z = AtFloat(m_v.z+(AiPerlin4(noisePoint,i+j-0.4874771f)*m_multiRadius));
 
                //remove matrix for the point if inherit from transform is not  set
                if (!m_inheritCacheTxfm)
@@ -943,8 +945,8 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
 
                if (m_isSprite)
                {
-                  a_a = (*m_out_spriteScaleXArrays[s])[pindex]/(*m_out_spriteScaleYArrays[s])[pindex];
-                  AiArraySetFlt (a_aspectArray, index, (AtFloat)a_a);
+                  a_a = AtFloat((*m_out_spriteScaleXArrays[s])[pindex]/(*m_out_spriteScaleYArrays[s])[pindex]);
+                  AiArraySetFlt (a_aspectArray, index, a_a);
 
                   a_r = CLAMP((((AtFloat)(*m_out_spriteScaleXArrays[s])[pindex])/2), minRadius, maxRadius);
                   a_r *= radiusMult;
@@ -976,7 +978,7 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
                }
                if (m_hasOpacity)
                {
-                  AiArraySetFlt(a_opacityPPArray, index,  (*m_out_opacityArrays[s])[pindex]);
+                  AiArraySetFlt(a_opacityPPArray, index,  (AtFloat)(*m_out_opacityArrays[s])[pindex]);
                }
 
             }// end  multicount
@@ -1055,7 +1057,7 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
                {
                   // Calculated offset index
                   int  index =  s*(m_particleCount*m_multiCount) +i*m_multiCount+j;
-                  AiArraySetFlt(a_attributes, index, (*doubleIt->second[s])[i]);
+                  AiArraySetFlt(a_attributes, index, (AtFloat)(*doubleIt->second[s])[i]);
                }
             }
             // memory cleanup

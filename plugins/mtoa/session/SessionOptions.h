@@ -113,7 +113,7 @@ private:
    inline float GetShutterSize() const { return m_motion.shutter_size; }
    inline unsigned int GetShutterType() const { return m_motion.shutter_type; }
    inline double GetExportFrame() const { return m_frame; }
-   inline float GetMotionByFrame() const { return m_motion.by_frame; }
+   inline double GetMotionByFrame() const { return m_motion.by_frame; }
 
    inline const MObject& GetArnoldRenderOptions() const { return m_options; }
    inline void SetArnoldRenderOptions(const MObject& options) { m_options = options; }
