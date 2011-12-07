@@ -14,7 +14,8 @@
 #include <maya/MIntArray.h>
 #include <maya/MTime.h>
 #include <maya/MBoundingBox.h>
-
+#include <vector>
+#include <map>
 
 class CInstancerTranslator
    :   public CGeometryTranslator
@@ -45,6 +46,25 @@ protected:
    AtInt m_particleCount;
    MDagPath m_masterDag;
    MString m_customAttrs;
+
+   std::map<std::string, MVectorArray > m_out_customVectorAttrArrays;
+   std::map<std::string, MDoubleArray > m_out_customDoubleAttrArrays;
+   std::map<std::string, MIntArray > m_out_customIntAttrArrays;
+
+   std::map<std::string, MVectorArray > m_instant_customVectorAttrArrays;
+   std::map<std::string, MDoubleArray > m_instant_customDoubleAttrArrays;
+   std::map<std::string, MIntArray > m_instant_customIntAttrArrays;
+
+
+
+   MVectorArray m_instantVeloArray;
+   std::vector< AtArray* > m_vec_matrixArrays;
+   MIntArray  m_startIndicesArray;
+   MIntArray  m_pathIndicesArray;
+   MStringArray m_objectNames;
+   std::map<int, int>  m_particleIDMap;
+   MStringArray m_instanceTags; // for debug purposes
+
 };
 
 #endif // INSTANCER_H
