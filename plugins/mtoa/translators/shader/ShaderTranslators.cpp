@@ -530,6 +530,139 @@ void CPlusMinusAverageTranslator::Export(AtNode* shader)
    }
 }
 
+// ParticleSamplerInfo
+//
+AtNode* CParticleSamplerInfoTranslator::CreateArnoldNodes()
+{
+   if (
+         m_outputAttr == "outColor" ||
+         m_outputAttr == "outIncandescence" ||
+         m_outputAttr == "outTransparency"||
+         m_outputAttr == "rgbPP" ||
+         m_outputAttr == "incandescensePP" ||
+         m_outputAttr == "incandescense"
+      )
+   {
+      return AddArnoldNode("userDataColor");
+   }
+
+   else if(
+         m_outputAttr == "acceleration" ||
+         m_outputAttr == "force" ||
+         m_outputAttr == "position" ||
+         m_outputAttr == "worldPosition" ||
+         m_outputAttr == "birthPosition" ||
+         m_outputAttr == "birthWorldPosition" ||
+         m_outputAttr == "velocity" ||
+         m_outputAttr == "worldVelocity" ||
+         m_outputAttr == "userVector1PP" ||
+         m_outputAttr == "userVector2PP" ||
+         m_outputAttr == "userVector3PP" ||
+         m_outputAttr == "userVector4PP" ||
+         m_outputAttr == "userVector5PP"
+         )
+   {
+      return AddArnoldNode("userDataVector");
+   }
+   else if (
+         m_outputAttr == "ageNormalized" ||
+         m_outputAttr == "colorRed" ||
+         m_outputAttr == "colorGreen" ||
+         m_outputAttr == "colorBlue" ||
+         m_outputAttr == "opacityPP" ||
+         m_outputAttr == "opacity" ||
+         m_outputAttr == "particleId" ||
+         m_outputAttr == "lifespanPP" ||
+         m_outputAttr == "lifespan" ||
+         m_outputAttr == "age" ||
+         m_outputAttr == "birthTime" ||
+         m_outputAttr == "parentU" ||
+         m_outputAttr == "parentV" ||
+         m_outputAttr == "collisionU" ||
+         m_outputAttr == "collisionV" ||
+         m_outputAttr == "radiusPP" ||
+         m_outputAttr == "radius" ||
+         m_outputAttr == "userScalar1PP" ||
+         m_outputAttr == "userScalar2PP" ||
+         m_outputAttr == "userScalar3PP" ||
+         m_outputAttr == "userScalar4PP" ||
+         m_outputAttr == "userScalar5PP"
+         )
+   {
+      return AddArnoldNode("userDataFloat");
+   }
+   else
+      return NULL;
+}
+
+void CParticleSamplerInfoTranslator::Export(AtNode* shader)
+{
+   if (m_outputAttr == "outColor" || m_outputAttr == "rgbPP")
+   {
+      AiNodeSetStr(shader, "colorAttrName", "rgbPP");
+   }
+   else if (m_outputAttr == "outTransparency" )
+   {
+      AiNodeSetStr(shader, "colorAttrName", "opacityPP");
+   }
+   else if ( m_outputAttr == "opacityPP" || m_outputAttr == "opacity")
+   {
+      AiNodeSetStr(shader, "floatAttrName" , "opacityPP");
+   }
+   else if (m_outputAttr == "outIncandescence" || m_outputAttr == "incandescensePP" || m_outputAttr == "incandescense" )
+   {
+      AiNodeSetStr(shader, "colorAttrName", "incandescencePP");
+   }
+   else if (m_outputAttr == "lifespanPP" || m_outputAttr == "lifespan")
+   {
+      AiNodeSetStr(shader, "floatAttrName", "lifespanPP");
+   }
+   else if (m_outputAttr == "radiusPP" || m_outputAttr == "radius")
+   {
+      AiNodeSetStr(shader, "floatAttrName", "radiusPP");
+   }
+
+   else if(
+            m_outputAttr == "acceleration" ||
+            m_outputAttr == "force" ||
+            m_outputAttr == "position" ||
+            m_outputAttr == "worldPosition" ||
+            m_outputAttr == "birthPosition" ||
+            m_outputAttr == "birthWorldPosition" ||
+            m_outputAttr == "velocity" ||
+            m_outputAttr == "worldVelocity" ||
+            m_outputAttr == "userVector1PP" ||
+            m_outputAttr == "userVector2PP" ||
+            m_outputAttr == "userVector3PP" ||
+            m_outputAttr == "userVector4PP" ||
+            m_outputAttr == "userVector5PP"
+            )
+      {
+         AiNodeSetStr(shader, "vectorAttrName", m_outputAttr.asChar());
+      }
+   else if (
+            m_outputAttr == "ageNormalized" ||
+            m_outputAttr == "colorRed" ||
+            m_outputAttr == "colorGreen" ||
+            m_outputAttr == "colorBlue" ||
+            m_outputAttr == "particleId" ||
+            m_outputAttr == "age" ||
+            m_outputAttr == "birthTime" ||
+            m_outputAttr == "parentU" ||
+            m_outputAttr == "parentV" ||
+            m_outputAttr == "collisionU" ||
+            m_outputAttr == "collisionV" ||
+            m_outputAttr == "userScalar1PP" ||
+            m_outputAttr == "userScalar2PP" ||
+            m_outputAttr == "userScalar3PP" ||
+            m_outputAttr == "userScalar4PP" ||
+            m_outputAttr == "userScalar5PP"
+            )
+      {
+         AiNodeSetStr(shader, "floatAttrName", m_outputAttr.asChar());
+      }
+}
+
 // RemapValue
 //
 AtNode* CRemapValueTranslator::CreateArnoldNodes()

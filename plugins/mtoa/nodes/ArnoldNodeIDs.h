@@ -28,6 +28,9 @@
 #define ARNOLD_NODEID_HAIR                      0x00115D09
 #define ARNOLD_NODEID_FOG                       0x00115D0A
 #define ARNOLD_NODEID_VOLUME_SCATTERING         0x00115D0B
+#define ARNOLD_NODEID_USERDATAFLOAT             0x00115D0C
+#define ARNOLD_NODEID_USERDATACOLOR             0x00115D0D
+#define ARNOLD_NODEID_USERDATAVECTOR            0x00115D0E
 // For automatic node generation
 #define ARNOLD_NODEID_AUTOGEN                   0x00115E00
 

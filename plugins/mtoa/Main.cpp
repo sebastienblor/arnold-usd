@@ -288,6 +288,9 @@ namespace // <anonymous>
          shaders->RegisterTranslator("plusMinusAverage",
                                      "",
                                      CPlusMinusAverageTranslator::creator);
+         shaders->RegisterTranslator("particleSamplerInfo",
+                                     "",
+                                     CParticleSamplerInfoTranslator::creator);
          shaders->RegisterTranslator("remapValue",
                                      "",
                                      CRemapValueTranslator::creator);

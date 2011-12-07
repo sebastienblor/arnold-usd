@@ -59,6 +59,9 @@ extern AtNodeMethods* AnimFloatMtd;
 extern AtNodeMethods* AnimPointMtd;
 extern AtNodeMethods* AnimVectorMtd;
 extern AtNodeMethods* AnimColorMtd;
+extern AtNodeMethods* UserDataFloatMtd;
+extern AtNodeMethods* UserDataVectorMtd;
+extern AtNodeMethods* UserDataColorMtd;
 
 node_loader
 {
@@ -456,6 +459,26 @@ node_loader
       node->node_type   = AI_NODE_SHADER;
       break;
 
+   case 56:
+      node->methods     = UserDataFloatMtd;
+      node->output_type = AI_TYPE_FLOAT;
+      node->name        = "userDataFloat";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+
+   case 57:
+      node->methods     = UserDataVectorMtd;
+      node->output_type = AI_TYPE_VECTOR;
+      node->name        = "userDataVector";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+
+   case 58:
+      node->methods     = UserDataColorMtd;
+      node->output_type = AI_TYPE_RGB;
+      node->name        = "userDataColor";
+      node->node_type   = AI_NODE_SHADER;
+      break;
    default:
       return FALSE;
    }
