@@ -70,6 +70,13 @@ def ArnoldStandInDsoEdit(mPath) :
         cmds.textField("standInData", edit=True, enable=False)
     cmds.textField("standInDsoPath", edit=True, text=mArchivePath)
 
+def ArnoldStandInBBoxScaleEdit(mScale) :
+    # Get AE tab name
+    node = mel.eval('$tempNode = $gAECurrentTab')
+    
+    # Update value
+    cmds.setAttr(node+".bboxScale",mScale)
+    
 def ArnoldStandInDataEdit(mData) :
     # Select StandIn shape
     m_tmpSelected = cmds.ls(sl=1)[0]
@@ -100,7 +107,25 @@ def ArnoldStandInTemplateDsoReplace(plugName) :
 def ArnoldStandInTemplateDataReplace(plugName) :
     print 'ArnoldStandInTemplateDataReplace',plugName
     cmds.textField( "standInData", edit=True, text=cmds.getAttr(plugName) )
-  
+
+def loadAtInitChange(nodeName):
+    status = cmds.getAttr(nodeName+".loadAtInit")
+    if status == False:
+        cmds.floatField("standInBBoxScale", edit=True, enable=False)
+        cmds.text("standInBBoxScaleLabel", edit=True, enable=False)
+    else:
+        cmds.floatField("standInBBoxScale", edit=True, enable=True)
+        cmds.text("standInBBoxScaleLabel", edit=True, enable=True)
+
+def ArnoldStandInTemplateBBoxScaleNew(nodeName) :
+    cmds.rowColumnLayout( numberOfColumns=2, columnAlign=(1, "right"), columnAttach=[(1, "right", 0), (2, "left", 0)], columnWidth=[(1,145),(2,70)] )
+    cmds.text("standInBBoxScaleLabel", label="Bounding Box Scale ", enable=False)
+    path = cmds.floatField("standInBBoxScale", changeCommand=ArnoldStandInBBoxScaleEdit)
+    cmds.floatField(path, edit=True, value=cmds.getAttr(nodeName), enable=False)
+        
+def ArnoldStandInTemplateBBoxScaleReplace(plugName) :
+    cmds.floatField("standInBBoxScale", edit=True, value=cmds.getAttr(plugName) )
+        
 def aiStandInTemplate(nodeName):
 
     cmds.editorTemplate(beginScrollLayout=True)
@@ -118,8 +143,8 @@ def aiStandInTemplate(nodeName):
     cmds.editorTemplate(interruptOptimize=True)
     cmds.editorTemplate("overrideShaders", label="Override StandIn Shaders", addControl=True)
     cmds.editorTemplate(addSeparator=True)
-    cmds.editorTemplate("loadAtInit", label="Defer StandIn Load", addControl=True)
-    cmds.editorTemplate("bboxScale", addControl=True)
+    cmds.editorTemplate("loadAtInit", aeCallback(loadAtInitChange), label="Defer StandIn Load", addControl=True)
+    cmds.editorTemplate(aeCallback(ArnoldStandInTemplateBBoxScaleNew), aeCallback(ArnoldStandInTemplateBBoxScaleReplace), "bboxScale" , callCustom=True)
     #cmds.editorTemplate("MaxBoundingBox", addControl=True)
     cmds.editorTemplate(endLayout=True) 
         
