@@ -116,6 +116,7 @@ public:
    inline unsigned int GetNumMotionSteps() const { return m_sessionOptions.GetNumMotionSteps(); }
    inline float GetShutterSize() const { return m_sessionOptions.GetShutterSize(); }
    inline unsigned int GetShutterType() const { return m_sessionOptions.GetShutterType(); }
+   inline float GetMotionByFrame() const {return m_sessionOptions.GetMotionByFrame(); }
 
    // Light linker
    inline MLightLinks* MayaLightLinks() { return &m_lightLinks; }
