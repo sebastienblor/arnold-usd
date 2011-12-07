@@ -255,7 +255,7 @@ AtNode* CArnoldStandInsTranslator::ExportProcedural(AtNode* procedural, bool upd
          resolvedName = dso.asChar();
 
       unsigned int nchars = resolvedName.numChars();
-      if (nchars > 4 && resolvedName.substringW(nchars-3, nchars) == ".so")
+      if (nchars > 3 && resolvedName.substringW(nchars-3, nchars) == ".so")
       {
          resolvedName = resolvedName.substringW(0, nchars-4)+LIBEXT;
       }
@@ -263,7 +263,7 @@ AtNode* CArnoldStandInsTranslator::ExportProcedural(AtNode* procedural, bool upd
       {
          resolvedName = resolvedName.substringW(0, nchars-5)+LIBEXT;
       }
-      else if (nchars > 4 && resolvedName.substringW(nchars-6, nchars) == ".dylib")
+      else if (nchars > 6 && resolvedName.substringW(nchars-6, nchars) == ".dylib")
       {
          resolvedName = resolvedName.substringW(0, nchars-7)+LIBEXT;
       }
