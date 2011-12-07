@@ -118,28 +118,6 @@ void CParticleTranslator::ExportParticleShaders(AtNode* particle)
 
 }
 
-// FIXME: don't copy this from CGeometryTranslator, move it onto CShapeTranslator and use it
-MObject CParticleTranslator::GetNodeShadingGroup(MObject dagNode, int instanceNum)
-{
-   MPlugArray        connections;
-   MFnDependencyNode fnDGNode(dagNode);
-
-   MPlug plug(dagNode, fnDGNode.attribute("instObjGroups"));
-
-   plug.elementByLogicalIndex(instanceNum).connectedTo(connections, false, true);
-
-   for (unsigned int k=0; k<connections.length(); ++k)
-   {
-      MObject shadingGroup(connections[k].node());
-      if (shadingGroup.apiType() == MFn::kShadingEngine)
-      {
-         return shadingGroup;
-      }
-   }
-   return MObject::kNullObj;
-}
-
-
 /// parse the m_customAttrs and populate the step vectors for each type of custom export attrs.
 /// called from within ExportParticleData
 void CParticleTranslator::ExportCustomParticleData(AtNode* particle, AtUInt step)

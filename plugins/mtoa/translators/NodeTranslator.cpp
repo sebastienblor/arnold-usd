@@ -36,6 +36,7 @@
 
 namespace // <anonymous>
 {
+/*
    void ConvertMatrix(AtMatrix& matrix, const MMatrix& mayaMatrix)
    {
       for (int J = 0; (J < 4); ++J)
@@ -46,7 +47,7 @@ namespace // <anonymous>
          }
       }
    }
-
+*/
    const char* colorComp[4] = {"r", "g", "b", "a"};
    MStringArray colorComponents(colorComp, 4);
    const char* vectorComp[3] = {"x", "y", "z"};
@@ -147,6 +148,18 @@ void CNodeTranslator::SetArnoldRootNode(AtNode* node)
 {
    m_atNode = node;
 }
+
+/// convert from maya matrix to AtMatrix
+void CNodeTranslator::ConvertMatrix(AtMatrix& matrix, const MMatrix& mayaMatrix)
+   {
+      for (int J = 0; (J < 4); ++J)
+      {
+         for (int I = 0; (I < 4); ++I)
+         {
+            matrix[I][J] = (float) mayaMatrix[I][J];
+         }
+      }
+   }
 
 /// Retrieve a node previously created using AddArnoldNode()
 AtNode* CNodeTranslator::GetArnoldNode(const char* tag)

@@ -151,7 +151,7 @@ protected:
    static void NodeDirtyCallback(MObject &node, MPlug &plug, void *clientData);
    static void NameChangedCallback(MObject &node, const MString &str, void *clientData);
    static void NodeDeletedCallback(MObject &node, MDGModifier &modifier, void *clientData);
-
+   void ConvertMatrix(AtMatrix& matrix, const MMatrix& mayaMatrix);
 protected:
 
    CAbTranslator m_abstract;

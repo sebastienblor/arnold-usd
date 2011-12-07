@@ -60,7 +60,7 @@ protected:
 
    virtual void ExportParticleShaders(AtNode* particle);
 
-   MObject GetNodeShadingGroup(MObject dagNode, int instanceNum);
+
 
    virtual void ExportCustomParticleData(AtNode* particle, AtUInt step);
    virtual void ExportParticleData(AtNode* particle, AtUInt step);

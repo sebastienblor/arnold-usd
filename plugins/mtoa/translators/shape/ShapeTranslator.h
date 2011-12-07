@@ -2,7 +2,7 @@
 #define SHAPETRANSLATOR_H
 
 #include "translators/NodeTranslator.h"
-
+#include <maya/MPlugArray.h>
 
 
 class DLLEXPORT CShapeTranslator : public CDagTranslator
@@ -28,7 +28,8 @@ public:
 protected:
    bool m_motion;
    bool m_motionDeform;
-   
+
+   MObject GetNodeShadingGroup(MObject dagNode, int instanceNum);
 };
 
 #endif // SHAPETRANSLATOR_H

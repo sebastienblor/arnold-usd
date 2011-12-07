@@ -179,3 +179,22 @@ void CShapeTranslator::MakeCommonAttributes(CBaseAttrHelper& helper)
    MakeArnoldVisibilityFlags(helper);
 }
 
+MObject CShapeTranslator::GetNodeShadingGroup(MObject dagNode, int instanceNum)
+{
+   MPlugArray        connections;
+   MFnDependencyNode fnDGNode(dagNode);
+
+   MPlug plug(dagNode, fnDGNode.attribute("instObjGroups"));
+
+   plug.elementByLogicalIndex(instanceNum).connectedTo(connections, false, true);
+
+   for (unsigned int k=0; k<connections.length(); ++k)
+   {
+      MObject shadingGroup(connections[k].node());
+      if (shadingGroup.apiType() == MFn::kShadingEngine)
+      {
+         return shadingGroup;
+      }
+   }
+   return MObject::kNullObj;
+}

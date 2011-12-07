@@ -17,16 +17,7 @@
 
 #endif
 
-void ConvertMatrix(AtMatrix& matrix, const MMatrix& mayaMatrix)
-{
-   for (int J = 0; (J < 4); ++J)
-   {
-      for (int I = 0; (I < 4); ++I)
-      {
-         matrix[I][J] = (float) mayaMatrix[I][J];
-      }
-   }
-}
+
 
 void addVelocityToMatrix(AtMatrix& outMatrix, AtMatrix& matrix,
                          const MVector& velocityVector)

@@ -35,30 +35,10 @@ namespace
    }
 }
 
-MObject CGeometryTranslator::GetNodeShadingGroup(MObject dagNode, int instanceNum)
-{
-   MPlugArray        connections;
-   MFnDependencyNode fnDGNode(dagNode);
-
-   MPlug plug(dagNode, fnDGNode.attribute("instObjGroups"));
-
-   plug.elementByLogicalIndex(instanceNum).connectedTo(connections, false, true);
-
-   for (unsigned int k=0; k<connections.length(); ++k)
-   {
-      MObject shadingGroup(connections[k].node());
-      if (shadingGroup.apiType() == MFn::kShadingEngine)
-      {
-         return shadingGroup;
-      }
-   }
-   return MObject::kNullObj;
-}
-
 MObject CGeometryTranslator::GetNodeShader(MObject dagNode, int instanceNum)
 {
    MPlugArray        connections;
-   MObject shadingGroup = GetNodeShadingGroup(dagNode, instanceNum);
+   MObject shadingGroup = CShapeTranslator::GetNodeShadingGroup(dagNode, instanceNum);
    MFnDependencyNode fnDGNode(shadingGroup);
    MPlug shaderPlug = fnDGNode.findPlug("surfaceShader");
    shaderPlug.connectedTo(connections, true, false);
