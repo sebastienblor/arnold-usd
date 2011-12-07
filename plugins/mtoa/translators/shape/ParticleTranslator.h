@@ -4,12 +4,12 @@
 
 #include "GeometryTranslator.h"
 
-
 #include <maya/MFnParticleSystem.h>
 #include <maya/MNodeMessage.h>
 #include <maya/MTimer.h>
 #include <maya/MDoubleArray.h>
 #include <maya/MVectorArray.h>
+
 #include <vector>
 #include <map>
 
@@ -36,7 +36,8 @@ public:
       m_spriteScaleX(1),
       m_spriteScaleY(1),
       m_doExtraAttributes(false),
-      m_inheritCacheTxfm(false)
+      m_inheritCacheTxfm(false),
+      m_exportId(false)
 
 
    {}
@@ -59,55 +60,70 @@ public:
 protected:
 
    virtual void ExportParticleShaders(AtNode* particle);
-
-
-
    virtual void ExportCustomParticleData(AtNode* particle, AtUInt step);
-   virtual void ExportParticleData(AtNode* particle, AtUInt step);
+   virtual void ExportPreambleData(AtNode* particle);
+   virtual void GatherFirstStep(AtNode* particle);
+   virtual void GatherBlurSteps(AtNode* particle, AtUInt step);
+   virtual void ComputeBlurSteps(AtNode* particle, AtUInt step);
+   virtual void WriteOutParticle(AtNode* particle);
+
+   virtual void GatherStandardPPData(MVectorArray*   positionArray ,
+                                     MDoubleArray*   radiusArray ,
+                                     MDoubleArray*   spriteScaleXPP ,
+                                     MDoubleArray*   spriteScaleYPP ,
+                                     MVectorArray*   rgbArray ,
+                                     MDoubleArray*   opacityArray,
+                                     MVectorArray    &velocityArray,
+                                     MIntArray        &particleId);
 
    AtNode* ExportInstance(AtNode* instance, const MDagPath& masterInstance);
-   AtNode* ExportParticle(AtNode* particle, bool update);
+   //AtNode* ExportParticle(AtNode* particle, bool update, AtUInt step);
+   AtNode* ExportParticleNode(AtNode* particle, AtUInt step);
 
 
 protected:
 
-   enum { m_renderTypeCloud,           // 0
-          m_renderTypeTube,            // 1
-          m_renderTypeBlobbySurface,   // 2
-          m_renderTypeMultiPoint,      // 3
-          m_renderTypeMultiStreak,     // 4
-          m_renderTypeNumeric,         // 5
-          m_renderTypePoint,           // 6
-          m_renderTypeSphere,          // 7
-          m_renderTypeSprite,          // 8
-          m_renderTypeStreak           // 9
+   // by solid angle's conventions m_renderTypeSphere should be formatted like:  PARTICLE_TYPE_SPHERE
+   enum ParticleRenderType
+   {
+          PARTICLE_TYPE_CLOUD,           // 0
+          PARTICLE_TYPE_TUBE,            // 1
+          PARTICLE_TYPE_BLOBBYSURFACE,   // 2
+          PARTICLE_TYPE_MULTIPOINT,      // 3
+          PARTICLE_TYPE_MULTISTREAK,     // 4
+          PARTICLE_TYPE_NUMERIC,         // 5
+          PARTICLE_TYPE_POINT,           // 6
+          PARTICLE_TYPE_SPHERE,          // 7
+          PARTICLE_TYPE_SPRITE,          // 8
+          PARTICLE_TYPE_STREAK           // 9
    };
 
    // these hold  each frame steps values
-   std::vector< MVectorArray* >  out_positionArrays;
-   std::vector< MVectorArray* >  out_colorArrays;
-   std::vector< MDoubleArray* >  out_opacityArrays;
-   std::vector< MDoubleArray* >  out_radiusArrays;
-   std::vector< MDoubleArray* >  out_spriteScaleXArrays;
-   std::vector< MDoubleArray* >  out_spriteScaleYArrays;
+   std::vector< MVectorArray* >  m_out_positionArrays;
+   std::vector< MVectorArray* >  m_out_colorArrays;
+   std::vector< MDoubleArray* >  m_out_opacityArrays;
+   std::vector< MDoubleArray* >  m_out_radiusArrays;
+   std::vector< MDoubleArray* >  m_out_spriteScaleXArrays;
+   std::vector< MDoubleArray* >  m_out_spriteScaleYArrays;
+
 
    // these hold each frame steps values  per map entry  for  custom attrs
-   std::map<std::string,  std::vector< MVectorArray* > > out_customVectorAttrArrays;
-   std::map<std::string,  std::vector< MDoubleArray* > > out_customDoubleAttrArrays;
-   std::map<std::string,  std::vector< MIntArray*    > > out_customIntAttrArrays;
+   std::map<std::string,  std::vector< MVectorArray* > > m_out_customVectorAttrArrays;
+   std::map<std::string,  std::vector< MDoubleArray* > > m_out_customDoubleAttrArrays;
+   std::map<std::string,  std::vector< MIntArray*    > > m_out_customIntAttrArrays;
 
 
    // this is the main  ID->lookup map  we use to keep track of  the  particle id to  all the vectors of arrays
-   std::map<int, int>  particleIDMap;
+   std::map<int, int>  m_particleIDMap;
 
-   MVectorArray instantVeloArray;
+
+   MVectorArray m_instantVeloArray;
    MFnDagNode m_DagNode;
    MFnParticleSystem m_fnParticleSystem;
    AtInt m_particleCount;
    MString m_customAttrs;
 
-   // FIXME: all these must start with "m_"
-   // these are all checked  once per  export  on the 0-th step
+
    bool  m_hasRGB;
    bool  m_hasOpacity;
    bool  m_hasRadiusPP;
@@ -126,6 +142,7 @@ protected:
    bool  m_doExtraAttributes;
    bool  m_deleteDeadParticles;
    bool  m_inheritCacheTxfm;
+   bool  m_exportId;
 
 };
 
