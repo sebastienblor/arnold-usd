@@ -29,6 +29,7 @@
 #include "translators/shape/HairTranslator.h"
 #include "translators/shape/StandinsTranslator.h"
 #include "translators/shape/ParticleTranslator.h"
+#include "translators/shape/InstancerTranslator.h"
 
 
 #include "render/RenderSwatch.h"
@@ -253,8 +254,10 @@ namespace // <anonymous>
                                    CParticleTranslator::creator,
                                    CParticleTranslator::NodeInitializer);
 
-
-
+       builtin->RegisterTranslator("instancer",
+                                   "",
+                                   CInstancerTranslator::creator,
+                                   CInstancerTranslator::NodeInitializer);
 
 
       // Load all plugins path or only shaders?
