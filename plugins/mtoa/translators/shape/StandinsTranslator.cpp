@@ -81,26 +81,16 @@ AtNode* CArnoldStandInsTranslator::ExportInstance(AtNode *instance, const MDagPa
    AiNodeSetPtr(instance, "node", masterNode);
    AiNodeSetBool(instance, "inherit_xform", false);
 
-   if (m_DagNode.findPlug("overrideShading").asBool())
+   m_DagNode.setObject(masterInstance);
+   
+   if (m_DagNode.findPlug("overrideShaders").asBool())
    {
-      // FIXME: this code has no effect
-      MFnMesh standInNode(m_dagPath.node());
-      MObjectArray shaders, shadersMaster;
-      MIntArray indices, indicesMaster;
-
-      standInNode.getConnectedShaders(instanceNum, shaders, indices);
-      // FIXME: it is incorrect to assume that instance 0 is the master as it may be hidden (chad)
-      standInNode.getConnectedShaders(0, shadersMaster, indicesMaster);
-
-      // ExportStandinsShaders(instance);
+      ExportStandinsShaders(instance);
    }
    if (m_DagNode.findPlug("overrideLightLinking").asBool())
    {
       ExportLightLinking(instance);
    }
-
-   // Export light linking per instance
-   ExportLightLinking(instance);
 
    return instance;
 }
