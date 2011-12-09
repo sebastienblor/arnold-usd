@@ -12,12 +12,9 @@ def LoadStandInButtonPush(*arg):
         
 def ArnoldStandInDsoEdit(mPath) :
     mArchivePath = ''
-    # Select StandIn shape
-    m_tmpSelected = cmds.ls(sl=1)[0]
-    if cmds.listRelatives(m_tmpSelected) != None:
-        nodeName = cmds.listRelatives(m_tmpSelected)[0]
-    else:
-        nodeName = m_tmpSelected
+    # Get AE tab name
+    nodeName = mel.eval('$tempNode = $gAECurrentTab')
+    
     # Single .ass
     if   re.search(r'([-_/a-zA-Z0-9.]+)(\.ass)',mPath) != None:
         mArchivePath = mPath
@@ -78,12 +75,9 @@ def ArnoldStandInBBoxScaleEdit(mScale) :
     cmds.setAttr(node+".bboxScale",mScale)
     
 def ArnoldStandInDataEdit(mData) :
-    # Select StandIn shape
-    m_tmpSelected = cmds.ls(sl=1)[0]
-    if cmds.listRelatives(m_tmpSelected) != None:
-        nodeName = cmds.listRelatives(m_tmpSelected)[0]
-    else:
-        nodeName = m_tmpSelected
+    # Get AE tab name
+    nodeName = mel.eval('$tempNode = $gAECurrentTab')
+    
     # Set data
     cmds.setAttr(nodeName+".data",mData,type="string")
 
