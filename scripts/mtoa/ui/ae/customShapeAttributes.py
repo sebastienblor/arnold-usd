@@ -202,6 +202,8 @@ callbacks.addAttributeChangedCallback(lightDecayChanged, 'areaLight', 'decayRate
 callbacks.addAttributeChangedCallback(lightDecayChanged, 'aiAreaLight', 'decayRate')
 """
 
+templates.registerAETemplate(templates.TranslatorControl, "camera", label="Camera Type")
+
 class CameraTemplate(templates.AttributeTemplate):
     def addDOFAttributes(self):
         self.addControl("aiEnableDOF")
