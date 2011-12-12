@@ -571,6 +571,8 @@ def createArnoldImageFormatControl():
 
 
 def updateArnoldImageFormatControl(*args):
+    if not pm.objExists('defaultArnoldRenderOptions'):
+        pm.createNode('aiOptions', skipSelect=True, shared=True, name='defaultArnoldRenderOptions')
     curr = pm.getAttr('defaultArnoldRenderOptions.imageFormat')
     pm.setAttr('defaultRenderGlobals.imageFormat', 51)
     pm.setAttr('defaultRenderGlobals.imfkey', str(curr))

@@ -78,6 +78,8 @@ def createArnoldNode(nodeType, name=None, skipSelect=False, runtimeClassificatio
         node = pm.createNode(nodeType, **kwargs)
 
     # connect any shader aovs to global aov nodes
+    if not pm.objExists('defaultArnoldRenderOptions'):
+        pm.createNode('aiOptions', skipSelect=True, shared=True, name='defaultArnoldRenderOptions')
     activeAOVMap = aovs.getAOVMap()
     if activeAOVMap:
         for (aovName, aovAttr) in aovs.getNodeAOVAttrs(nodeType):
