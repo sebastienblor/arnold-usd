@@ -249,7 +249,7 @@ namespace // <anonymous>
                                    CParticleTranslator::creator,
                                    CParticleTranslator::NodeInitializer);
 
-       // builtin->RegisterTranslator("nParticle",
+       //builtin->RegisterTranslator("nParticle",
        //                            "",
        //                            CParticleTranslator::creator,
        //                            CParticleTranslator::NodeInitializer);

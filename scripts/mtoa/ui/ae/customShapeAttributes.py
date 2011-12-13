@@ -10,17 +10,36 @@ class ParticleTemplate(templates.ShapeTranslatorTemplate):
     def setup(self):
         self.commonShapeAttributes()
         self.addSeparator()
-        #self.addControl("export_particleId", label="Export Particle Id", value=1)
-        #self.addControl("export_attributes", label="Export Attributes")
+        self.addControl("aiSssSampleDistribution", label="SSS Samples Distribution")
+        self.addControl("aiSssSampleSpacing", label="SSS Sample Spacing")
+        self.addSeparator()
+        self.addControl("renderPointsAs", label="Render Points As")
+        self.addControl("minParticleRadius", label="Min Particle Radius")
+        self.addControl("radiusMultiplier", label="Radius Multiplier")
+        self.addControl("maxParticleRadius", label="Max Particle Radius")
+        self.addControl("minPixelWidth", label="Min Pixel Width")
+        self.addSeparator()   
+        self.addControl("export_particleId", label="Export Particle Id")
+        self.addControl("export_attributes", label="Export Attributes")
+        self.addSeparator()
+        self.addControl("deleteDeadParticles", label="Delete Dead Particles")
+        self.addControl("inheritCacheTransform", label="Inherit Cache Transform")
+        self.addControl("computeInstantBlurSteps", label="Compute Instant Blur Steps")
+        
 templates.registerTranslatorUI(ParticleTemplate, "particle", "<built-in>")
 
+"""
 class NParticleTemplate(templates.ShapeTranslatorTemplate):
     def setup(self):
         self.commonShapeAttributes()
         self.addSeparator()
-        #self.addControl("export_particleId", label="Export Particle Id", value=1)
-        #self.addControl("export_attributes", label="Export Attributes")
+        self.addControl("aiSssSampleDistribution", label="SSS Samples Distribution")
+        self.addControl("aiSssSampleSpacing", label="SSS Sample Spacing")
+        self.addSeparator()   
+        self.addControl("export_particleId", label="Export Particle Id", value=1)
+        self.addControl("export_attributes", label="Export Attributes")
 templates.registerTranslatorUI(NParticleTemplate, "nParticle", "<built-in>")
+"""
 
 class MeshTemplate(templates.ShapeTranslatorTemplate):
     def subdivDicingCameraNew(self, attrName):
