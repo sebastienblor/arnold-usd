@@ -90,6 +90,10 @@ public:
 
    static MObject s_enable_swatch_render;
    
+   static MObject s_texture_searchpath;
+   static MObject s_procedural_searchpath;
+   static MObject s_shader_searchpath;
+
 };  // class CArnoldOptionsNode
 
 #endif // ARNOLDOPTIONSNODE_H

@@ -238,12 +238,6 @@ def createArnoldRenderSettings():
                    label="Enable Swatch Render",
                    attribute='defaultArnoldRenderOptions.enable_swatch_render')
              
-    pm.separator()
-
-    pm.attrControlGrp('os_plugins_path',
-                   label="Plug-ins Path",
-                   attribute='defaultArnoldRenderOptions.plugins_path')
-
     pm.setParent('..')
 
     pm.setUITemplate(popTemplate=True)
@@ -774,6 +768,33 @@ def createArnoldOverrideSettings():
 
     pm.setUITemplate(popTemplate=True)
 
+def createArnoldPathSettings():
+
+    pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+    pm.columnLayout(adjustableColumn=True)
+    
+    pm.attrControlGrp('os_plugins_path',
+                   label="Plug-ins Path",
+                   attribute='defaultArnoldRenderOptions.plugins_path')
+
+    pm.separator()
+
+    pm.attrControlGrp('os_procedural_searchpath',
+                   label="Procedural Search Path",
+                   attribute='defaultArnoldRenderOptions.procedural_searchpath')
+
+    pm.attrControlGrp('os_shader_searchpath',
+                   label="Shader Search Path",
+                   attribute='defaultArnoldRenderOptions.shader_searchpath')
+
+    pm.attrControlGrp('os_texture_searchpath',
+                   label="Texture Search Path",
+                   attribute='defaultArnoldRenderOptions.texture_searchpath')
+
+    pm.setParent('..')
+
+    pm.setUITemplate(popTemplate=True)
+
 def createArnoldLogSettings():
 
     pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
@@ -883,6 +904,12 @@ def createArnoldRendererGlobalsTab():
     #
     pm.frameLayout('arnoldOverrideSettings', label="Feature Overrides", cll=True, cl=1)
     createArnoldOverrideSettings()
+    pm.setParent('..')
+
+    # Search path
+    #
+    pm.frameLayout('arnoldPathSettings', label="Search Path", cll=True, cl=1)
+    createArnoldPathSettings()
     pm.setParent('..')
 
     # Log
