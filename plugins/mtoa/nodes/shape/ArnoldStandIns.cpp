@@ -117,30 +117,30 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
       bool processRead = false;
       bool isSo = false;
       unsigned int nscn = assfile.numChars();
-      MString ext = assfile.substringW(nscn-3, nscn);
+      MString ext = assfile.substringW(nscn-3, nscn).toLowerCase();
       if (ext == ".so")
       {
          isSo = true;
       }
       unsigned int nchars = assfile.numChars();
-      if (nchars > 4 && assfile.substringW(nchars-3, nchars) == ".so")
+      if (nchars > 4 && assfile.substringW(nchars-3, nchars).toLowerCase() == ".so")
       {
          assfile = assfile.substringW(0, nchars-4)+LIBEXT;
          isSo = true;
       }
-      else if (nchars > 4 && assfile.substringW(nchars-4, nchars) == ".dll")
+      else if (nchars > 4 && assfile.substringW(nchars-4, nchars).toLowerCase() == ".dll")
       {
          assfile = assfile.substringW(0, nchars-5)+LIBEXT;
          isSo = true;
       }
-      else if (nchars > 4 && assfile.substringW(nchars-6, nchars) == ".dylib")
+      else if (nchars > 4 && assfile.substringW(nchars-6, nchars).toLowerCase() == ".dylib")
       {
          assfile = assfile.substringW(0, nchars-7)+LIBEXT;
          isSo = true;
       }
 
-      ext = assfile.substringW(nscn-4, nscn);
-      if (ext == ".ass")
+      ext = assfile.substringW(nscn-4, nscn).toLowerCase();
+      if (ext == ".ass" || (nscn > 7 && assfile.substring(nscn - 7, nscn).toLowerCase() == ".ass.gz"))
       {
          if (AiASSLoad(assfile.asChar()) == 0)
          {
