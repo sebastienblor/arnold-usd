@@ -473,11 +473,21 @@ MStatus CExtensionsManager::RegisterExtension(CExtension* extension)
          // Add aiTranslator if more than one translator
          if (oldTrans->size() > 1) {
             CExtensionAttrHelper helper(mayaNode->name);
-            CAttrData data;
-            data.defaultValue.STR = "";
-            data.name = "aiTranslator";
-            data.shortName = "ai_translator";
-            helper.MakeInputString(data);
+            if (helper.GetMayaNodeTypeId() != MTypeId(MFn::kInvalid))
+            {
+               AiMsgDebug("[mtoa] [maya %s] Multiple translators, adding \"aiTranslator\" attribute to Maya node",
+                  mayaNode->name.asChar());
+               CAttrData data;
+               data.defaultValue.STR = "";
+               data.name = "aiTranslator";
+               data.shortName = "ai_translator";
+               helper.MakeInputString(data);
+            } 
+            else
+            {
+               AiMsgDebug("[mtoa] [maya %s] Multiple translators, but inexistant Maya node type",
+                  mayaNode->name.asChar());
+            }
          }
       }
    }

@@ -170,6 +170,9 @@ void CShapeTranslator::ExportLightLinking(AtNode* shape)
 //
 void CShapeTranslator::MakeCommonAttributes(CBaseAttrHelper& helper)
 {
+   MString nodeType = helper.GetMayaNodeTypeName();
+   AiMsgDebug("[mtoa] Creating common Arnold shape attributes on Maya \"%s\" nodes", nodeType.asChar());
+
    helper.MakeInput("sss_sample_distribution");
    helper.MakeInput("sss_sample_spacing");
 

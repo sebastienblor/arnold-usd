@@ -16,7 +16,7 @@ void addVelocityToMatrix(AtMatrix& outMatrix, AtMatrix& matrix,
 
 void CInstancerTranslator::NodeInitializer(CAbTranslator context)
 {
-   CExtensionAttrHelper helper(context.maya);
+   CExtensionAttrHelper helper(context.maya, "ginstance");
 
    // node attributes
    CShapeTranslator::MakeCommonAttributes(helper);

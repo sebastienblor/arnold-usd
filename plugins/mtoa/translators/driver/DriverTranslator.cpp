@@ -55,9 +55,16 @@ void CDriverTranslator::NodeInitializer(CAbTranslator context)
    MString arnold = context.arnold;
    MString provider = context.provider;
    const AtNodeEntry *nodeEntry = AiNodeEntryLookUp(arnold.asChar());
-
-   AiMsgDebug("[mtoa] NodeInitializer for CDriverTranslator %s, provided by %s",
-              arnold.asChar(), provider.asChar());
+   if (NULL == nodeEntry)
+   {
+      AiMsgError("[mtoa] [maya %s] No Arnold driver of name %s is provided by %s",
+              maya.asChar(), arnold.asChar(), provider.asChar());
+   }
+   else
+   {
+      AiMsgDebug("[mtoa] [maya %s] NodeInitializer for CDriverTranslator %s, provided by %s",
+              maya.asChar(), arnold.asChar(), provider.asChar());
+   }
    // FIXME: remove this hard-wire
    CExtensionAttrHelper helper("aiOptions", nodeEntry);
    CExtensionAttrHelper helper2("aiAOV", nodeEntry);

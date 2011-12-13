@@ -27,7 +27,8 @@ AtNode* CParticleTranslator::CreateArnoldNodes()
 
 void CParticleTranslator::NodeInitializer(CAbTranslator context)
 {
-   CExtensionAttrHelper helper(context.maya, "points");
+   MString mayaNodeType = context.maya;
+   CExtensionAttrHelper helper(mayaNodeType, "points");
 
    // node attributes
    CShapeTranslator::MakeCommonAttributes(helper);
