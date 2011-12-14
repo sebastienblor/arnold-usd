@@ -51,7 +51,7 @@ node_parameters
 
 typedef struct
 {
-   AtFloat              gamma;
+   float              gamma;
    AtInt                max_diffuse_depth;
 }
 ShaderData;
@@ -82,7 +82,7 @@ shader_evaluate
 
    // This piece of user-data is automatically set by the curves node when
    // using auto-enlargement (min_pixel_width > 0)
-   AtFloat geo_opacity;
+   float geo_opacity;
    if (AiUDataGetFlt("geo_opacity", &geo_opacity))
       opacity *= geo_opacity;
       
@@ -101,18 +101,18 @@ shader_evaluate
    AtColor Cspec = AI_RGB_BLACK;
 
    // change the current (u,v) position according to the specified userdata channels
-   AtFloat oldU = sg->u;
-   AtFloat oldV = sg->v;
+   float oldU = sg->u;
+   float oldV = sg->v;
 
    AiUDataGetFlt(node->params[p_uparam].STR, &(sg->u));
    AiUDataGetFlt(node->params[p_vparam].STR, &(sg->v));
-   //AtFloat getGamma   = AiShaderEvalParamFlt(p_gamma);
-   AtFloat ambdiff    = AiShaderEvalParamFlt(p_ambdiff);
-   AtFloat gloss      = AiShaderEvalParamFlt(p_gloss);
-   AtFloat spec       = AiShaderEvalParamFlt(p_spec);
+   //float getGamma   = AiShaderEvalParamFlt(p_gamma);
+   float ambdiff    = AiShaderEvalParamFlt(p_ambdiff);
+   float gloss      = AiShaderEvalParamFlt(p_gloss);
+   float spec       = AiShaderEvalParamFlt(p_spec);
 
-   AtFloat direct_c   = AiShaderEvalParamFlt(p_direct_diffuse);
-   AtFloat indirect_c = AiShaderEvalParamFlt(p_indirect_diffuse);
+   float direct_c   = AiShaderEvalParamFlt(p_direct_diffuse);
+   float indirect_c = AiShaderEvalParamFlt(p_indirect_diffuse);
 
    AtColor spec_color = AiShaderEvalParamRGB(p_spec_color);
    AtColor root_color;
@@ -160,10 +160,10 @@ shader_evaluate
    {
       if (AiLightGetAffectDiffuse(sg->Lp))
       {
-         AtFloat TdotL = (float)AiV3Dot(T, sg->Ld);
-         AtFloat d = 1 - TdotL * TdotL;
+         float TdotL = (float)AiV3Dot(T, sg->Ld);
+         float d = 1 - TdotL * TdotL;
          d = d > 0 ? sqrtf(d) : 0;
-         AtFloat diffterm = (1 - ambdiff) + d * ambdiff;  // limits gamut of diffuse term
+         float diffterm = (1 - ambdiff) + d * ambdiff;  // limits gamut of diffuse term
          // diffuse x illumination
          Cdiff += (sg->Li * diffterm * sg->we) * direct_c;
       }
@@ -172,8 +172,8 @@ shader_evaluate
       {
          AtVector H = sg->Ld + V;
          AiV3Normalize(H, H);
-         AtFloat HdotT = (float)AiV3Dot(H, T);
-         AtFloat s = 1 - HdotT * HdotT;
+         float HdotT = (float)AiV3Dot(H, T);
+         float s = 1 - HdotT * HdotT;
          if (s > 0)
          {
             // note: s holds sin^2 of the angle between H and T
@@ -190,7 +190,7 @@ shader_evaluate
    // if kd_ind = 0 then use ambient
    // FIXME: we should be checking for the arnold diffuse depth before we use Indirect gi
    //
-   AtFloat kd_ind = AiShaderEvalParamFlt(p_kd_ind);
+   float kd_ind = AiShaderEvalParamFlt(p_kd_ind);
    if (kd_ind > 0)
       Cdiff += (kd_ind * AiIndirectDiffuse(&V,sg)) * indirect_c;
    else

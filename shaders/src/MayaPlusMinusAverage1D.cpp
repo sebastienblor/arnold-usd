@@ -71,7 +71,7 @@ shader_evaluate
    AtInt operation = AiShaderEvalParamEnum(p_operation);
    AtUInt numInputs = AiShaderEvalParamUInt(p_numInputs);
    
-   AtFloat result = 0.0f;
+   float result = 0.0f;
 
    if (numInputs > 0)
    {

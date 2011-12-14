@@ -183,9 +183,9 @@ private:
    bool     m_useRenderRegion;
    bool     m_clearBeforeRender; 
 
-   AtFloat  m_startFrame;
-   AtFloat  m_endFrame;
-   AtFloat  m_byFrameStep;
+   float  m_startFrame;
+   float  m_endFrame;
+   float  m_byFrameStep;
    bool     m_multiCameraRender;
 
    MObject  m_options;

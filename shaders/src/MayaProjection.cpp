@@ -148,7 +148,7 @@ AtPoint2 PlanarMapping(AtVector V)
    return st;
 }
 
-AtPoint2 SphericalMapping(AtVector V, AtFloat uAngle, AtFloat vAngle)
+AtPoint2 SphericalMapping(AtVector V, float uAngle, float vAngle)
 {
    AtPoint2 st;
 
@@ -161,7 +161,7 @@ AtPoint2 SphericalMapping(AtVector V, AtFloat uAngle, AtFloat vAngle)
    return st;
 }
 
-AtPoint2 CylindricalMapping(AtVector V, AtFloat uAngle)
+AtPoint2 CylindricalMapping(AtVector V, float uAngle)
 {
    AtPoint2 st;
 
@@ -418,8 +418,8 @@ shader_evaluate
 
    AtInt pt = AiShaderEvalParamEnum(p_type);
 
-   AtFloat uAngle = AiShaderEvalParamFlt(p_u_angle);
-   AtFloat vAngle = AiShaderEvalParamFlt(p_v_angle);
+   float uAngle = AiShaderEvalParamFlt(p_u_angle);
+   float vAngle = AiShaderEvalParamFlt(p_v_angle);
 
    bool wrap   = (AiShaderEvalParamBool(p_wrap) == TRUE);
    bool local  = (AiShaderEvalParamBool(p_local) == TRUE);
@@ -628,8 +628,8 @@ shader_evaluate
 
       AtRGB colorGain     = AiShaderEvalParamRGB(p_color_gain);
       AtRGB colorOffset   = AiShaderEvalParamRGB(p_color_offset);
-      AtFloat alphaGain   = AiShaderEvalParamFlt(p_alpha_gain);
-      AtFloat alphaOffset = AiShaderEvalParamFlt(p_alpha_offset);
+      float alphaGain   = AiShaderEvalParamFlt(p_alpha_gain);
+      float alphaOffset = AiShaderEvalParamFlt(p_alpha_offset);
 
       float u, v, dudx, dudy, dvdx, dvdy;
 

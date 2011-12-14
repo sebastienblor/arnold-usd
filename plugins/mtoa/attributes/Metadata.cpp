@@ -62,7 +62,7 @@ AtParamValue MAiParamGetDefault(const AtNodeEntry *entry, const AtParamEntry* pa
       }
       case AI_TYPE_FLOAT:
       {
-         AtFloat result;
+         float result;
          if (AiMetaDataGetFlt(entry, param, "default", &result))
          {
             if (isArray)

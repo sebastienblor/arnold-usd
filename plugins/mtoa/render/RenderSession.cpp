@@ -643,7 +643,7 @@ void CRenderSession::DoSwatchRender(const AtInt resolution)
    AiNodeSetStr(render_view, "name", "swatch_renderview_display");
 
    MObject optNode = m_renderOptions.GetArnoldRenderOptions();
-   AtFloat gamma =  optNode != MObject::kNullObj ? MFnDependencyNode(optNode).findPlug("display_gamma").asFloat() : 2.2f;
+   float gamma =  optNode != MObject::kNullObj ? MFnDependencyNode(optNode).findPlug("display_gamma").asFloat() : 2.2f;
    AiNodeSetFlt(render_view, "gamma", gamma);
 
    AtNode * const filter = AiNode("gaussian_filter");

@@ -204,9 +204,9 @@ shader_evaluate
    AiM4Identity(R);
    AiM4Identity(Ro);
 
-   AiM4RotationX(Rx, static_cast<AtFloat>(rotate.x * AI_RTOD));
-   AiM4RotationY(Ry, static_cast<AtFloat>(-rotate.y * AI_RTOD));
-   AiM4RotationZ(Rz, static_cast<AtFloat>(rotate.z * AI_RTOD));
+   AiM4RotationX(Rx, static_cast<float>(rotate.x * AI_RTOD));
+   AiM4RotationY(Ry, static_cast<float>(-rotate.y * AI_RTOD));
+   AiM4RotationZ(Rz, static_cast<float>(rotate.z * AI_RTOD));
    switch (rotateOrder)
    {
    case RO_XYZ:
@@ -236,9 +236,9 @@ shader_evaluate
       break;
    }
 
-   AiM4RotationX(Rx, static_cast<AtFloat>(rotateAxis.x * AI_RTOD));
-   AiM4RotationY(Ry, static_cast<AtFloat>(-rotateAxis.y * AI_RTOD));
-   AiM4RotationZ(Rz, static_cast<AtFloat>(rotateAxis.z * AI_RTOD));
+   AiM4RotationX(Rx, static_cast<float>(rotateAxis.x * AI_RTOD));
+   AiM4RotationY(Ry, static_cast<float>(-rotateAxis.y * AI_RTOD));
+   AiM4RotationZ(Rz, static_cast<float>(rotateAxis.z * AI_RTOD));
    AiM4Mult(tmp, Rx, Ry);
    AiM4Mult(Ro, tmp, Rz);
 

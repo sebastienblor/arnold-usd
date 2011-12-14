@@ -70,9 +70,9 @@ shader_evaluate
    {
       AtRGB snowColor = AiShaderEvalParamRGB(p_snowColor);
       AtRGB surfaceColor = AiShaderEvalParamRGB(p_surfaceColor);
-      AtFloat threshold = AiShaderEvalParamFlt(p_threshold);
-      AtFloat depthDecay = AiShaderEvalParamFlt(p_depthDecay);
-      AtFloat thickness = AiShaderEvalParamFlt(p_thickness);
+      float threshold = AiShaderEvalParamFlt(p_threshold);
+      float depthDecay = AiShaderEvalParamFlt(p_depthDecay);
+      float thickness = AiShaderEvalParamFlt(p_thickness);
       AtVector U, N;
 
       AiV3Create(U, 0.0f, 1.0f, 0.0f);

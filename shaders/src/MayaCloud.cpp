@@ -72,15 +72,15 @@ shader_evaluate
 {
    AtRGB color1 = AiShaderEvalParamRGB(p_color1);
    AtRGB color2 = AiShaderEvalParamRGB(p_color2);
-   AtFloat contrast = AiShaderEvalParamFlt(p_contrast);
-   AtFloat amplitude = AiShaderEvalParamFlt(p_amplitude);
+   float contrast = AiShaderEvalParamFlt(p_contrast);
+   float amplitude = AiShaderEvalParamFlt(p_amplitude);
    AtPoint2 depth = AiShaderEvalParamPnt2(p_depth);
    AtVector ripples = AiShaderEvalParamVec(p_ripples);
    AtBoolean softEdges = AiShaderEvalParamBool(p_softEdges);
-   AtFloat edgeThresh = AiShaderEvalParamFlt(p_edgeThresh);
-   AtFloat centerThresh = AiShaderEvalParamFlt(p_centerThresh);
-   AtFloat transpRange = AiShaderEvalParamFlt(p_transpRange);
-   AtFloat ratio = AiShaderEvalParamFlt(p_ratio);
+   float edgeThresh = AiShaderEvalParamFlt(p_edgeThresh);
+   float centerThresh = AiShaderEvalParamFlt(p_centerThresh);
+   float transpRange = AiShaderEvalParamFlt(p_transpRange);
+   float ratio = AiShaderEvalParamFlt(p_ratio);
    AtMatrix *placementMatrix = AiShaderEvalParamMtx(p_placementMatrix);
    AtBoolean local = AiShaderEvalParamBool(p_local);
    AtBoolean wrap = AiShaderEvalParamBool(p_wrap);

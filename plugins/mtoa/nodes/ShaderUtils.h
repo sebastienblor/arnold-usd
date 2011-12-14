@@ -155,7 +155,7 @@ const MString CLASSIFY_SHADER_UTILITY("utility");
 #define MAKE_FLOAT_INPUT(attrib, nodeEntry, paramEntry, paramName, attrName, attrShortName) \
    const AtParamValue* default_value = AiParamGetDefault(paramEntry);\
    attrib = nAttr.create(attrName, attrShortName, MFnNumericData::kFloat, default_value->FLT);\
-   AtFloat val;\
+   float val;\
    if (AiMetaDataGetFlt(nodeEntry, paramName, "min", &val))\
       nAttr.setMin(val);\
    if (AiMetaDataGetFlt(nodeEntry, paramName, "max", &val))\

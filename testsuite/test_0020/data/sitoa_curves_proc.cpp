@@ -189,8 +189,8 @@ static AtNode *GetNode(void *user_ptr, int i)
                   fread(&nuvsfloats, sizeof(AtUInt32), 1, fp);
 
                    // Allocating memory
-                  AtFloat *uvs_array = (AtFloat*) AiMalloc(sizeof(AtFloat)*nuvsfloats);
-                  fread(uvs_array, sizeof(AtFloat), nuvsfloats, fp);
+                  float *uvs_array = (float*) AiMalloc(sizeof(float)*nuvsfloats);
+                  fread(uvs_array, sizeof(float), nuvsfloats, fp);
 
                   // Setting data into Arnold Array
                   AtArray* uvs = AiArrayAllocate(nuvsfloats/2, 1, AI_TYPE_POINT2);
@@ -199,8 +199,8 @@ static AtNode *GetNode(void *user_ptr, int i)
                   AtUInt counter = 0;
                   for(AtUInt32 j=0; j<nuvsfloats; j+=2)
                   {
-                     uv.x = (AtFloat) uvs_array[j];
-                     uv.y = (AtFloat) uvs_array[j+1];
+                     uv.x = (float) uvs_array[j];
+                     uv.y = (float) uvs_array[j+1];
                      AiArraySetPnt2(uvs, counter++, uv);
                   }
 
@@ -230,25 +230,25 @@ static AtNode *GetNode(void *user_ptr, int i)
          {
             AtMatrix matrix;
 
-            fread(&matrix[0][0], sizeof(AtFloat), 1, fp);
-            fread(&matrix[0][1], sizeof(AtFloat), 1, fp);
-            fread(&matrix[0][2], sizeof(AtFloat), 1, fp);
-            fread(&matrix[0][3], sizeof(AtFloat), 1, fp);
+            fread(&matrix[0][0], sizeof(float), 1, fp);
+            fread(&matrix[0][1], sizeof(float), 1, fp);
+            fread(&matrix[0][2], sizeof(float), 1, fp);
+            fread(&matrix[0][3], sizeof(float), 1, fp);
 
-            fread(&matrix[1][0], sizeof(AtFloat), 1, fp);
-            fread(&matrix[1][1], sizeof(AtFloat), 1, fp);
-            fread(&matrix[1][2], sizeof(AtFloat), 1, fp);
-            fread(&matrix[1][3], sizeof(AtFloat), 1, fp);
+            fread(&matrix[1][0], sizeof(float), 1, fp);
+            fread(&matrix[1][1], sizeof(float), 1, fp);
+            fread(&matrix[1][2], sizeof(float), 1, fp);
+            fread(&matrix[1][3], sizeof(float), 1, fp);
 
-            fread(&matrix[2][0], sizeof(AtFloat), 1, fp);
-            fread(&matrix[2][1], sizeof(AtFloat), 1, fp);
-            fread(&matrix[2][2], sizeof(AtFloat), 1, fp);
-            fread(&matrix[2][3], sizeof(AtFloat), 1, fp);
+            fread(&matrix[2][0], sizeof(float), 1, fp);
+            fread(&matrix[2][1], sizeof(float), 1, fp);
+            fread(&matrix[2][2], sizeof(float), 1, fp);
+            fread(&matrix[2][3], sizeof(float), 1, fp);
 
-            fread(&matrix[3][0], sizeof(AtFloat), 1, fp);
-            fread(&matrix[3][1], sizeof(AtFloat), 1, fp);
-            fread(&matrix[3][2], sizeof(AtFloat), 1, fp);
-            fread(&matrix[3][3], sizeof(AtFloat), 1, fp);
+            fread(&matrix[3][0], sizeof(float), 1, fp);
+            fread(&matrix[3][1], sizeof(float), 1, fp);
+            fread(&matrix[3][2], sizeof(float), 1, fp);
+            fread(&matrix[3][3], sizeof(float), 1, fp);
 
             AiArraySetMtx(matrixs, i, matrix);
          }
@@ -271,14 +271,14 @@ static AtNode *GetNode(void *user_ptr, int i)
          fread(&num_radius_array, sizeof(AtUInt32), 1, fp);
 
          // Allocating memory
-         AtFloat *radius_array = (AtFloat*) AiMalloc(sizeof(AtFloat)*num_radius_array);
-         fread(radius_array, sizeof(AtFloat), num_radius_array, fp);
+         float *radius_array = (float*) AiMalloc(sizeof(float)*num_radius_array);
+         fread(radius_array, sizeof(float), num_radius_array, fp);
 
          //Settings Radius Array
          AtArray *radius = AiArrayAllocate(num_radius_array, 1, AI_TYPE_FLOAT);
 
          for(AtUInt32 i=0;i <num_radius_array; i++)
-            ((AtFloat*)(radius->data))[i] = (AtFloat)radius_array[i];
+            ((float*)(radius->data))[i] = (float)radius_array[i];
 
          AiNodeSetArray(curveNode, "radius", radius);
          AiFree(radius_array);
@@ -296,15 +296,15 @@ static AtNode *GetNode(void *user_ptr, int i)
          AtLong total_points = num_samples*num_points_array;
 
          // Allocating memory
-         AtFloat *points_array = (AtFloat*) AiMalloc(sizeof(AtFloat)*total_points);
-         fread(points_array, sizeof(AtFloat), total_points, fp);
+         float *points_array = (float*) AiMalloc(sizeof(float)*total_points);
+         fread(points_array, sizeof(float), total_points, fp);
 
          // Allocating points Array
          AtArray *points = AiArrayAllocate(num_points_array, num_samples, AI_TYPE_FLOAT);
 
          // Filling arnold array
          for(AtUInt32 i=0; i<(AtUInt32)total_points; i++)
-            ((AtFloat*)(points->data))[i] = (AtFloat) points_array[i];
+            ((float*)(points->data))[i] = (float) points_array[i];
 
          // Setting parameter value
          AiNodeSetArray(curveNode, "points", points);
@@ -383,8 +383,8 @@ AtVoid ReadParameterValue(AtNode* curve_node, FILE* fp, const AtChar* param_name
          }
          case AI_TYPE_FLOAT:
          {
-            AtFloat value;
-            fread(&value, sizeof(AtFloat), 1, fp);
+            float value;
+            fread(&value, sizeof(float), 1, fp);
             AiNodeSetFlt(curve_node, param_name, value);
             break;
          }

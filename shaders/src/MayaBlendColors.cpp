@@ -26,7 +26,7 @@ node_parameters
 
 shader_evaluate
 {
-   AtFloat blend  = AiShaderEvalParamFlt(p_blender);
+   float blend  = AiShaderEvalParamFlt(p_blender);
    if (blend == 0.0f)
       sg->out.RGB = AiShaderEvalParamRGB(p_color2);
    else if (blend == 1.0f)

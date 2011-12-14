@@ -68,8 +68,8 @@ void CSphereLocator::DrawUVSphere(float radius, int divisionsX, int divisionsY, 
    for(theta = -90; theta <= 90-dtheta; theta+=dtheta)
    {
       AtVector dir;
-      AtFloat u, v;
-      AtFloat x, y, z;
+      float u, v;
+      float x, y, z;
       x = y = z = 0;
 
       // little fix to get UVS nicely
@@ -253,7 +253,7 @@ void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView:
 {
    MStatus stat;
    const int divisions = 16;
-   AtFloat radius;
+   float radius;
    int facing;
 
    MFnDagNode fn(thisMObject());

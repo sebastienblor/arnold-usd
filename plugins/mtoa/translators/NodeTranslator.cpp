@@ -529,10 +529,10 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
                      {
                         MFnNumericData data(pAttr[i].asMObject());
                         data.getData4Double(r, g, b, a);
-                        rgba.r = static_cast<AtFloat>(r);
-                        rgba.g = static_cast<AtFloat>(g);
-                        rgba.b = static_cast<AtFloat>(b);
-                        rgba.a = static_cast<AtFloat>(a);
+                        rgba.r = static_cast<float>(r);
+                        rgba.g = static_cast<float>(g);
+                        rgba.b = static_cast<float>(b);
+                        rgba.a = static_cast<float>(a);
                         AiArraySetRGBA(ary, i, rgba);
                      }
                      AiNodeSetArray(anode, aname, ary);
@@ -545,7 +545,7 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
                      double r, g, b, a;
                      MFnNumericData data(pAttr.asMObject());
                      data.getData4Double(r, g, b, a);
-                     AiNodeSetRGBA(anode, aname, static_cast<AtFloat>(r), static_cast<AtFloat>(g), static_cast<AtFloat>(b), static_cast<AtFloat>(a));
+                     AiNodeSetRGBA(anode, aname, static_cast<float>(r), static_cast<float>(g), static_cast<float>(b), static_cast<float>(a));
                   }
                }
                break;
@@ -601,7 +601,7 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
                   AtArray *ary = AiArrayAllocate(data.length(), 1, AI_TYPE_FLOAT);
                   for (unsigned int i=0; i<data.length(); ++i)
                   {
-                     AiArraySetFlt(ary, i, static_cast<AtFloat>(data[i]));
+                     AiArraySetFlt(ary, i, static_cast<float>(data[i]));
                   }
                   AiNodeSetArray(anode, aname, ary);
                }
@@ -626,9 +626,9 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
                   AtArray *ary = AiArrayAllocate(data.length(), 1, AI_TYPE_POINT);
                   for (unsigned int i=0; i<data.length(); ++i)
                   {
-                     pnt.x = static_cast<AtFloat>(data[i].x);
-                     pnt.y = static_cast<AtFloat>(data[i].y);
-                     pnt.z = static_cast<AtFloat>(data[i].z);
+                     pnt.x = static_cast<float>(data[i].x);
+                     pnt.y = static_cast<float>(data[i].y);
+                     pnt.z = static_cast<float>(data[i].z);
                      AiArraySetPnt(ary, i, pnt);
                   }
                   AiNodeSetArray(anode, aname, ary);
@@ -642,9 +642,9 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
                   AtArray *ary = AiArrayAllocate(data.length(), 1, AI_TYPE_VECTOR);
                   for (unsigned int i=0; i<data.length(); ++i)
                   {
-                     vec.x = static_cast<AtFloat>(data[i].x);
-                     vec.y = static_cast<AtFloat>(data[i].y);
-                     vec.z = static_cast<AtFloat>(data[i].z);
+                     vec.x = static_cast<float>(data[i].x);
+                     vec.y = static_cast<float>(data[i].y);
+                     vec.z = static_cast<float>(data[i].z);
                      AiArraySetVec(ary, i, vec);
                   }
                   AiNodeSetArray(anode, aname, ary);
