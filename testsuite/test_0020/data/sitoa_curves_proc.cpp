@@ -8,7 +8,7 @@
 char* datafile;
 
 // Reads the parameter value from data file and assign it to node
-void ReadParameterValue(AtNode* curve_node, FILE* fp, const AtChar* param_name);
+void ReadParameterValue(AtNode* curve_node, FILE* fp, const char* param_name);
 
 // Startup -- on error return false.
 static int Init(AtNode *mynode, void **user_ptr)
@@ -46,10 +46,10 @@ static AtNode *GetNode(void *user_ptr, int i)
 
       if(fp != NULL)
       {
-         AtChar signature[12];
+         char signature[12];
 
          // Reading the header
-         size_t readed = fread(&signature, sizeof(AtChar), 12, fp);
+         size_t readed = fread(&signature, sizeof(char), 12, fp);
 
          // Check if header is correctly read
          if(readed < 1)
@@ -73,8 +73,8 @@ static AtNode *GetNode(void *user_ptr, int i)
          AtUInt32 len;
          fread(&len, sizeof(AtUInt32), 1, fp);
 
-         AtChar *nodename = (AtChar*) AiMalloc(sizeof(AtChar)*(len+1));
-         fread(nodename, sizeof(AtChar), len+1, fp);
+         char *nodename = (char*) AiMalloc(sizeof(char)*(len+1));
+         fread(nodename, sizeof(char), len+1, fp);
          AiNodeSetStr(curveNode, "name", nodename);
          AiFree(nodename);
 
@@ -92,8 +92,8 @@ static AtNode *GetNode(void *user_ptr, int i)
 
          if(len>0)
          {
-            AtChar *shadername = (AtChar*) AiMalloc(sizeof(AtChar)*(len+1));
-            fread(shadername, sizeof(AtChar), len+1, fp);
+            char *shadername = (char*) AiMalloc(sizeof(char)*(len+1));
+            fread(shadername, sizeof(char), len+1, fp);
 
             AtNode* shader_node = AiNodeLookUpByName(shadername);
             if(shader_node!=NULL)
@@ -125,8 +125,8 @@ static AtNode *GetNode(void *user_ptr, int i)
             AtUInt32 len;
             fread(&len, sizeof(AtUInt32), 1, fp);
 
-            AtChar *param_name = (AtChar*) AiMalloc(sizeof(AtChar)*(len+1));
-            fread(param_name, sizeof(AtChar), len+1, fp);
+            char *param_name = (char*) AiMalloc(sizeof(char)*(len+1));
+            fread(param_name, sizeof(char), len+1, fp);
 
             ReadParameterValue(curveNode, fp, param_name);
 
@@ -153,8 +153,8 @@ static AtNode *GetNode(void *user_ptr, int i)
                AtUInt32 len;
                fread(&len, sizeof(AtUInt32), 1, fp);
 
-               AtChar *light_name = (AtChar*) AiMalloc(sizeof(AtChar)*(len+1));
-               fread(light_name, sizeof(AtChar), len+1, fp);
+               char *light_name = (char*) AiMalloc(sizeof(char)*(len+1));
+               fread(light_name, sizeof(char), len+1, fp);
 
                AtNode* lightNode = AiNodeLookUpByName(light_name);
                AiArraySetPtr(light_group, ilight, lightNode);
@@ -178,8 +178,8 @@ static AtNode *GetNode(void *user_ptr, int i)
 
             if(len>0)
             {
-               AtChar *projectionname = (AtChar*) AiMalloc(sizeof(AtChar)*(len+1));
-               fread(projectionname, sizeof(AtChar), len+1, fp);
+               char *projectionname = (char*) AiMalloc(sizeof(char)*(len+1));
+               fread(projectionname, sizeof(char), len+1, fp);
 
                // Declaring userdef
                if(AiNodeDeclare(curveNode, projectionname, "uniform POINT2"))
@@ -342,7 +342,7 @@ static AtNode *GetNode(void *user_ptr, int i)
 }
 
 // Reads the parameter value from data file and assign it to node
-void ReadParameterValue(AtNode* curve_node, FILE* fp, const AtChar* param_name)
+void ReadParameterValue(AtNode* curve_node, FILE* fp, const char* param_name)
 {
    // Search param
    const AtParamEntry* param_entry = AiNodeEntryLookUpParameter(curve_node->base_node, param_name);
@@ -394,8 +394,8 @@ void ReadParameterValue(AtNode* curve_node, FILE* fp, const AtChar* param_name)
             AtUInt len;
             fread(&len, sizeof(AtUInt), 1, fp);
 
-            AtChar *value = (AtChar*) AiMalloc(sizeof(AtChar)*(len+1));
-            fread(value, sizeof(AtChar), len+1, fp);
+            char *value = (char*) AiMalloc(sizeof(char)*(len+1));
+            fread(value, sizeof(char), len+1, fp);
 
             AiNodeSetStr(curve_node, param_name, value);
             AiFree(value);

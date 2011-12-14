@@ -147,7 +147,7 @@ AtNode * COptionsTranslator::CreateFileOutput(MStringArray &outputs, AtNode *def
    if (m_driver != NULL)
    {
       AiNodeSetStr(m_driver, "name", AiNodeEntryGetName(m_driver->base_node));
-      AtChar   str[1024];
+      char   str[1024];
       sprintf(str, "RGBA RGBA %s %s", AiNodeGetName(defaultFilter), AiNodeGetName(m_driver));
       outputs.append(str);
    }
@@ -192,7 +192,7 @@ AtNode * COptionsTranslator::CreateRenderViewOutput(MStringArray &outputs, AtNod
    AiNodeSetStr(driver, "name", "renderview_display");
 
    AiNodeSetFlt(driver, "gamma", FindMayaObjectPlug("display_gamma").asFloat());
-   AtChar   str[1024];
+   char   str[1024];
    AiMsgWarning("display AOV: %s", FindMayaObjectPlug("displayAOV").asString().asChar());
    sprintf(str, "%s RGBA %s %s", FindMayaObjectPlug("displayAOV").asString().asChar(),
            AiNodeGetName(defaultFilter), AiNodeGetName(driver));

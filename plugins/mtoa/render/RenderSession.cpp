@@ -653,7 +653,7 @@ void CRenderSession::DoSwatchRender(const int resolution)
 
    // Create the single output line. No AOVs or anything.
    AtArray* outputs  = AiArrayAllocate(1, 1, AI_TYPE_STRING);
-   AtChar   str[1024];
+   char   str[1024];
    sprintf(str, "RGBA RGBA %s %s", AiNodeGetName(filter), AiNodeGetName(render_view));
    AiArraySetStr(outputs, 0, str);
    AiNodeSetArray(options, "outputs", outputs);
