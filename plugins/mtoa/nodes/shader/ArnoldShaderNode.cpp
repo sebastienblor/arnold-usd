@@ -133,7 +133,7 @@ MStatus CArnoldShaderNode::initialize()
                attributeAffects(attr, outputAttr);
             /*
             // AOVs
-            AtInt aovType;
+            int aovType;
             if (AiMetaDataGetInt(nodeEntry, paramName, "aov.type", &aovType))
             {
                // assert that we're a string parameter

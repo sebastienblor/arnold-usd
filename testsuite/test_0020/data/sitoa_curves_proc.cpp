@@ -8,7 +8,7 @@
 char* datafile;
 
 // Reads the parameter value from data file and assign it to node
-AtVoid ReadParameterValue(AtNode* curve_node, FILE* fp, const AtChar* param_name);
+void ReadParameterValue(AtNode* curve_node, FILE* fp, const char* param_name);
 
 // Startup -- on error return false.
 static int Init(AtNode *mynode, void **user_ptr)
@@ -46,10 +46,10 @@ static AtNode *GetNode(void *user_ptr, int i)
 
       if(fp != NULL)
       {
-         AtChar signature[12];
+         char signature[12];
 
          // Reading the header
-         size_t readed = fread(&signature, sizeof(AtChar), 12, fp);
+         size_t readed = fread(&signature, sizeof(char), 12, fp);
 
          // Check if header is correctly read
          if(readed < 1)
@@ -73,8 +73,8 @@ static AtNode *GetNode(void *user_ptr, int i)
          AtUInt32 len;
          fread(&len, sizeof(AtUInt32), 1, fp);
 
-         AtChar *nodename = (AtChar*) AiMalloc(sizeof(AtChar)*(len+1));
-         fread(nodename, sizeof(AtChar), len+1, fp);
+         char *nodename = (char*) AiMalloc(sizeof(char)*(len+1));
+         fread(nodename, sizeof(char), len+1, fp);
          AiNodeSetStr(curveNode, "name", nodename);
          AiFree(nodename);
 
@@ -92,8 +92,8 @@ static AtNode *GetNode(void *user_ptr, int i)
 
          if(len>0)
          {
-            AtChar *shadername = (AtChar*) AiMalloc(sizeof(AtChar)*(len+1));
-            fread(shadername, sizeof(AtChar), len+1, fp);
+            char *shadername = (char*) AiMalloc(sizeof(char)*(len+1));
+            fread(shadername, sizeof(char), len+1, fp);
 
             AtNode* shader_node = AiNodeLookUpByName(shadername);
             if(shader_node!=NULL)
@@ -125,8 +125,8 @@ static AtNode *GetNode(void *user_ptr, int i)
             AtUInt32 len;
             fread(&len, sizeof(AtUInt32), 1, fp);
 
-            AtChar *param_name = (AtChar*) AiMalloc(sizeof(AtChar)*(len+1));
-            fread(param_name, sizeof(AtChar), len+1, fp);
+            char *param_name = (char*) AiMalloc(sizeof(char)*(len+1));
+            fread(param_name, sizeof(char), len+1, fp);
 
             ReadParameterValue(curveNode, fp, param_name);
 
@@ -153,8 +153,8 @@ static AtNode *GetNode(void *user_ptr, int i)
                AtUInt32 len;
                fread(&len, sizeof(AtUInt32), 1, fp);
 
-               AtChar *light_name = (AtChar*) AiMalloc(sizeof(AtChar)*(len+1));
-               fread(light_name, sizeof(AtChar), len+1, fp);
+               char *light_name = (char*) AiMalloc(sizeof(char)*(len+1));
+               fread(light_name, sizeof(char), len+1, fp);
 
                AtNode* lightNode = AiNodeLookUpByName(light_name);
                AiArraySetPtr(light_group, ilight, lightNode);
@@ -178,8 +178,8 @@ static AtNode *GetNode(void *user_ptr, int i)
 
             if(len>0)
             {
-               AtChar *projectionname = (AtChar*) AiMalloc(sizeof(AtChar)*(len+1));
-               fread(projectionname, sizeof(AtChar), len+1, fp);
+               char *projectionname = (char*) AiMalloc(sizeof(char)*(len+1));
+               fread(projectionname, sizeof(char), len+1, fp);
 
                // Declaring userdef
                if(AiNodeDeclare(curveNode, projectionname, "uniform POINT2"))
@@ -189,18 +189,18 @@ static AtNode *GetNode(void *user_ptr, int i)
                   fread(&nuvsfloats, sizeof(AtUInt32), 1, fp);
 
                    // Allocating memory
-                  AtFloat *uvs_array = (AtFloat*) AiMalloc(sizeof(AtFloat)*nuvsfloats);
-                  fread(uvs_array, sizeof(AtFloat), nuvsfloats, fp);
+                  float *uvs_array = (float*) AiMalloc(sizeof(float)*nuvsfloats);
+                  fread(uvs_array, sizeof(float), nuvsfloats, fp);
 
                   // Setting data into Arnold Array
                   AtArray* uvs = AiArrayAllocate(nuvsfloats/2, 1, AI_TYPE_POINT2);
                   AtPoint2 uv;
 
-                  AtUInt counter = 0;
+                  unsigned int counter = 0;
                   for(AtUInt32 j=0; j<nuvsfloats; j+=2)
                   {
-                     uv.x = (AtFloat) uvs_array[j];
-                     uv.y = (AtFloat) uvs_array[j+1];
+                     uv.x = (float) uvs_array[j];
+                     uv.y = (float) uvs_array[j+1];
                      AiArraySetPnt2(uvs, counter++, uv);
                   }
 
@@ -226,29 +226,29 @@ static AtNode *GetNode(void *user_ptr, int i)
          AtArray* matrixs = AiArrayAllocate(1, num_matrix, AI_TYPE_MATRIX);
 
          // Reading each matrix
-         for(AtUInt i=0; i<num_matrix; i++)
+         for(unsigned int i=0; i<num_matrix; i++)
          {
             AtMatrix matrix;
 
-            fread(&matrix[0][0], sizeof(AtFloat), 1, fp);
-            fread(&matrix[0][1], sizeof(AtFloat), 1, fp);
-            fread(&matrix[0][2], sizeof(AtFloat), 1, fp);
-            fread(&matrix[0][3], sizeof(AtFloat), 1, fp);
+            fread(&matrix[0][0], sizeof(float), 1, fp);
+            fread(&matrix[0][1], sizeof(float), 1, fp);
+            fread(&matrix[0][2], sizeof(float), 1, fp);
+            fread(&matrix[0][3], sizeof(float), 1, fp);
 
-            fread(&matrix[1][0], sizeof(AtFloat), 1, fp);
-            fread(&matrix[1][1], sizeof(AtFloat), 1, fp);
-            fread(&matrix[1][2], sizeof(AtFloat), 1, fp);
-            fread(&matrix[1][3], sizeof(AtFloat), 1, fp);
+            fread(&matrix[1][0], sizeof(float), 1, fp);
+            fread(&matrix[1][1], sizeof(float), 1, fp);
+            fread(&matrix[1][2], sizeof(float), 1, fp);
+            fread(&matrix[1][3], sizeof(float), 1, fp);
 
-            fread(&matrix[2][0], sizeof(AtFloat), 1, fp);
-            fread(&matrix[2][1], sizeof(AtFloat), 1, fp);
-            fread(&matrix[2][2], sizeof(AtFloat), 1, fp);
-            fread(&matrix[2][3], sizeof(AtFloat), 1, fp);
+            fread(&matrix[2][0], sizeof(float), 1, fp);
+            fread(&matrix[2][1], sizeof(float), 1, fp);
+            fread(&matrix[2][2], sizeof(float), 1, fp);
+            fread(&matrix[2][3], sizeof(float), 1, fp);
 
-            fread(&matrix[3][0], sizeof(AtFloat), 1, fp);
-            fread(&matrix[3][1], sizeof(AtFloat), 1, fp);
-            fread(&matrix[3][2], sizeof(AtFloat), 1, fp);
-            fread(&matrix[3][3], sizeof(AtFloat), 1, fp);
+            fread(&matrix[3][0], sizeof(float), 1, fp);
+            fread(&matrix[3][1], sizeof(float), 1, fp);
+            fread(&matrix[3][2], sizeof(float), 1, fp);
+            fread(&matrix[3][3], sizeof(float), 1, fp);
 
             AiArraySetMtx(matrixs, i, matrix);
          }
@@ -271,14 +271,14 @@ static AtNode *GetNode(void *user_ptr, int i)
          fread(&num_radius_array, sizeof(AtUInt32), 1, fp);
 
          // Allocating memory
-         AtFloat *radius_array = (AtFloat*) AiMalloc(sizeof(AtFloat)*num_radius_array);
-         fread(radius_array, sizeof(AtFloat), num_radius_array, fp);
+         float *radius_array = (float*) AiMalloc(sizeof(float)*num_radius_array);
+         fread(radius_array, sizeof(float), num_radius_array, fp);
 
          //Settings Radius Array
          AtArray *radius = AiArrayAllocate(num_radius_array, 1, AI_TYPE_FLOAT);
 
          for(AtUInt32 i=0;i <num_radius_array; i++)
-            ((AtFloat*)(radius->data))[i] = (AtFloat)radius_array[i];
+            ((float*)(radius->data))[i] = (float)radius_array[i];
 
          AiNodeSetArray(curveNode, "radius", radius);
          AiFree(radius_array);
@@ -293,18 +293,18 @@ static AtNode *GetNode(void *user_ptr, int i)
          AtUInt32 num_points_array;
          fread(&num_points_array, sizeof(AtUInt32), 1, fp);
 
-         AtLong total_points = num_samples*num_points_array;
+         AtUInt32 total_points = num_samples*num_points_array;
 
          // Allocating memory
-         AtFloat *points_array = (AtFloat*) AiMalloc(sizeof(AtFloat)*total_points);
-         fread(points_array, sizeof(AtFloat), total_points, fp);
+         float *points_array = (float*) AiMalloc(sizeof(float)*total_points);
+         fread(points_array, sizeof(float), total_points, fp);
 
          // Allocating points Array
          AtArray *points = AiArrayAllocate(num_points_array, num_samples, AI_TYPE_FLOAT);
 
          // Filling arnold array
          for(AtUInt32 i=0; i<(AtUInt32)total_points; i++)
-            ((AtFloat*)(points->data))[i] = (AtFloat) points_array[i];
+            ((float*)(points->data))[i] = (float) points_array[i];
 
          // Setting parameter value
          AiNodeSetArray(curveNode, "points", points);
@@ -342,11 +342,11 @@ static AtNode *GetNode(void *user_ptr, int i)
 }
 
 // Reads the parameter value from data file and assign it to node
-AtVoid ReadParameterValue(AtNode* curve_node, FILE* fp, const AtChar* param_name)
+void ReadParameterValue(AtNode* curve_node, FILE* fp, const char* param_name)
 {
    // Search param
    const AtParamEntry* param_entry = AiNodeEntryLookUpParameter(curve_node->base_node, param_name);
-   AtInt param_type = AiParamGetType(param_entry);
+   int param_type = AiParamGetType(param_entry);
 
    if(param_type != AI_TYPE_UNDEFINED)
    {
@@ -362,15 +362,15 @@ AtVoid ReadParameterValue(AtNode* curve_node, FILE* fp, const AtChar* param_name
          }
          case AI_TYPE_INT:
          {
-            AtInt value;
-            fread(&value, sizeof(AtInt), 1, fp);
+            int value;
+            fread(&value, sizeof(int), 1, fp);
             AiNodeSetInt(curve_node, param_name, value);
             break;
          }
          case AI_TYPE_UINT:
          {
-            AtLong value;
-            fread(&value, sizeof(AtUInt), 1, fp);
+            AtUInt32 value;
+            fread(&value, sizeof(unsigned int), 1, fp);
             AiNodeSetUInt(curve_node, param_name, value);
             break;
          }
@@ -383,19 +383,19 @@ AtVoid ReadParameterValue(AtNode* curve_node, FILE* fp, const AtChar* param_name
          }
          case AI_TYPE_FLOAT:
          {
-            AtFloat value;
-            fread(&value, sizeof(AtFloat), 1, fp);
+            float value;
+            fread(&value, sizeof(float), 1, fp);
             AiNodeSetFlt(curve_node, param_name, value);
             break;
          }
          case AI_TYPE_ENUM:
          case AI_TYPE_STRING:
          {
-            AtUInt len;
-            fread(&len, sizeof(AtUInt), 1, fp);
+            unsigned int len;
+            fread(&len, sizeof(unsigned int), 1, fp);
 
-            AtChar *value = (AtChar*) AiMalloc(sizeof(AtChar)*(len+1));
-            fread(value, sizeof(AtChar), len+1, fp);
+            char *value = (char*) AiMalloc(sizeof(char)*(len+1));
+            fread(value, sizeof(char), len+1, fp);
 
             AiNodeSetStr(curve_node, param_name, value);
             AiFree(value);
@@ -410,9 +410,9 @@ AtVoid ReadParameterValue(AtNode* curve_node, FILE* fp, const AtChar* param_name
    }
    else
    {
-      AtInt value;
-      // Read Null parameters, which are defined as AtInt (see ticket #1064)
-      fread(&value, sizeof(AtInt), 1, fp);
+      int value;
+      // Read Null parameters, which are defined as int (see ticket #1064)
+      fread(&value, sizeof(int), 1, fp);
    }
 }
 

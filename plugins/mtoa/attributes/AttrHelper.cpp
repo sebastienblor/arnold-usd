@@ -217,7 +217,7 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
    {
        case AI_TYPE_INT:
       {
-         AtInt val;
+         int val;
          if (AiMetaDataGetInt(m_nodeEntry, paramName, "min", &val))
          {
             data.min.INT = val;
@@ -242,7 +242,7 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
       }
       case AI_TYPE_UINT:
       {
-         AtInt val;
+         int val;
          if (AiMetaDataGetInt(m_nodeEntry, paramName, "min", &val))
          {
             data.min.INT = (val < 0 ? 0 : val);
@@ -267,7 +267,7 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
       }
       case AI_TYPE_FLOAT:
       {
-         AtFloat val;
+         float val;
          if (AiMetaDataGetFlt(m_nodeEntry, paramName, "min", &val))
          {
             data.min.FLT = val;
@@ -325,13 +325,13 @@ void CBaseAttrHelper::MakeInputInt(MObject& attrib, CAttrData& data)
    attrib = nAttr.create(data.name, data.shortName, MFnNumericData::kInt, data.defaultValue.INT, &status);
    CHECK_MSTATUS(status);
    if (data.hasMin)
-      nAttr.setMin((AtInt)data.min.INT);
+      nAttr.setMin((int)data.min.INT);
    if (data.hasMax)
-      nAttr.setMax((AtInt)data.max.INT);
+      nAttr.setMax((int)data.max.INT);
    if (data.hasSoftMin)
-      nAttr.setSoftMin((AtInt)data.softMin.INT);
+      nAttr.setSoftMin((int)data.softMin.INT);
    if (data.hasSoftMax)
-      nAttr.setSoftMax((AtInt)data.softMax.INT);
+      nAttr.setSoftMax((int)data.softMax.INT);
    nAttr.setArray(AtBooleanToBool(data.isArray));
    nAttr.setKeyable(AtBooleanToBool(data.keyable));
    nAttr.setStorable(true);
@@ -383,13 +383,13 @@ void CBaseAttrHelper::MakeInputFloat(MObject& attrib, CAttrData& data)
    MFnNumericAttribute nAttr;
    attrib = nAttr.create(data.name, data.shortName, MFnNumericData::kFloat, data.defaultValue.FLT);
    if (data.hasMin)
-      nAttr.setMin((AtFloat)data.min.FLT);
+      nAttr.setMin((float)data.min.FLT);
    if (data.hasMax)
-      nAttr.setMax((AtFloat)data.max.FLT);
+      nAttr.setMax((float)data.max.FLT);
    if (data.hasSoftMin)
-      nAttr.setSoftMin((AtFloat)data.softMin.FLT);
+      nAttr.setSoftMin((float)data.softMin.FLT);
    if (data.hasSoftMax)
-      nAttr.setSoftMax((AtFloat)data.softMax.FLT);
+      nAttr.setSoftMax((float)data.softMax.FLT);
    nAttr.setArray(AtBooleanToBool(data.isArray));
    nAttr.setKeyable(AtBooleanToBool(data.keyable));
    nAttr.setStorable(true);

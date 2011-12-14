@@ -86,22 +86,22 @@ void CRenderSession::TransferTilesToRenderView(void*)
 // This is the code for the render thread. This version is used for IPR
 // to run the AiRender() process outside of the main thread.
 // This is *static*.
-unsigned int CRenderSession::RenderThread(AtVoid* data)
+unsigned int CRenderSession::RenderThread(void* data)
 {
    CRenderOptions * render_options = static_cast< CRenderOptions * >(data);
    // set progressive start point on AA
-   const AtInt num_aa_samples = AiNodeGetInt(AiUniverseGetOptions(), "AA_samples");
-   const AtInt sminInit = render_options->progressiveInitialLevel();
-   AtInt init_progressive_samples = render_options->isProgressive() ? sminInit : num_aa_samples;
+   const int num_aa_samples = AiNodeGetInt(AiUniverseGetOptions(), "AA_samples");
+   const int sminInit = render_options->progressiveInitialLevel();
+   int init_progressive_samples = render_options->isProgressive() ? sminInit : num_aa_samples;
 
    // Get rid of any previous renders tiles that have not yet
    // been displayed.
    InitializeDisplayUpdateQueue();
 
-   AtULong ai_status(AI_SUCCESS);
+   int ai_status(AI_SUCCESS);
    for (int i = init_progressive_samples; i <= num_aa_samples; i++)
    {
-      AtInt sampling = i ;
+      int sampling = i ;
       if (sampling >= 0) sampling = num_aa_samples;
 
       AiNodeSetInt(AiUniverseGetOptions(), "AA_samples", sampling);
@@ -239,8 +239,8 @@ void CRenderSession::SetResolution(const int width, const int height)
    if (height != -1) m_renderOptions.SetHeight(height);
 }
 
-void CRenderSession::SetRegion(const AtUInt left, const AtUInt right,
-                                const AtUInt bottom, const AtUInt top)
+void CRenderSession::SetRegion(const unsigned int left, const unsigned int right,
+                                const unsigned int bottom, const unsigned int top)
 {
    m_renderOptions.SetRegion(left, right, bottom, top);
 }
@@ -290,7 +290,7 @@ void CRenderSession::SetCamera(MDagPath cameraNode)
       imagePlanePlug = fnDagNode.findPlug("imagePlane");
       if (imagePlanePlug.numConnectedElements() > 0)
       {
-         for(AtUInt ips = 0; (ips < imagePlanePlug.numElements()); ips++)
+         for(unsigned int ips = 0; (ips < imagePlanePlug.numElements()); ips++)
          {
             MStatus status;
             imagePlaneNodePlug = imagePlanePlug.elementByPhysicalIndex(ips);
@@ -305,7 +305,7 @@ void CRenderSession::SetCamera(MDagPath cameraNode)
                imagePlaneName += ips;
                bool displayOnlyIfCurrent = fnRes.findPlug("displayOnlyIfCurrent", &status).asBool();
                AtNode* imagePlane = AiNodeLookUpByName(imagePlaneName.asChar());
-               AtInt visibility = 0;
+               int visibility = 0;
                AiMsgDebug("[mtoa] Using camera %s to output image %s.", cameraNode.partialPathName().asChar(), m_renderOptions.GetImageFilename().asChar());
 
                if ((displayOnlyIfCurrent && isRenderingCamera) || (!displayOnlyIfCurrent))
@@ -348,7 +348,7 @@ void CRenderSession::DoInteractiveRender()
 }
 
 
-AtULong CRenderSession::DoBatchRender()
+int CRenderSession::DoBatchRender()
 {
    return AiRender(AI_RENDER_MODE_CAMERA);
 }
@@ -632,7 +632,7 @@ void CRenderSession::ClearIdleRenderViewCallback()
    }
 }
 
-void CRenderSession::DoSwatchRender(const AtInt resolution)
+void CRenderSession::DoSwatchRender(const int resolution)
 {
    assert(AiUniverseIsActive());
 
@@ -643,7 +643,7 @@ void CRenderSession::DoSwatchRender(const AtInt resolution)
    AiNodeSetStr(render_view, "name", "swatch_renderview_display");
 
    MObject optNode = m_renderOptions.GetArnoldRenderOptions();
-   AtFloat gamma =  optNode != MObject::kNullObj ? MFnDependencyNode(optNode).findPlug("display_gamma").asFloat() : 2.2f;
+   float gamma =  optNode != MObject::kNullObj ? MFnDependencyNode(optNode).findPlug("display_gamma").asFloat() : 2.2f;
    AiNodeSetFlt(render_view, "gamma", gamma);
 
    AtNode * const filter = AiNode("gaussian_filter");
@@ -653,7 +653,7 @@ void CRenderSession::DoSwatchRender(const AtInt resolution)
 
    // Create the single output line. No AOVs or anything.
    AtArray* outputs  = AiArrayAllocate(1, 1, AI_TYPE_STRING);
-   AtChar   str[1024];
+   char   str[1024];
    sprintf(str, "RGBA RGBA %s %s", AiNodeGetName(filter), AiNodeGetName(render_view));
    AiArraySetStr(outputs, 0, str);
    AiNodeSetArray(options, "outputs", outputs);

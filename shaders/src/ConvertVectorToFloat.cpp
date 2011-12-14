@@ -55,7 +55,7 @@ node_finish
 shader_evaluate
 {
    AtVector vector = AiShaderEvalParamVec(p_input);
-   AtInt component = AiShaderEvalParamEnum(p_component);
+   int component = AiShaderEvalParamEnum(p_component);
    switch (component)
    {
    case CH_X:

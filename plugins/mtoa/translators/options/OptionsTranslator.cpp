@@ -147,7 +147,7 @@ AtNode * COptionsTranslator::CreateFileOutput(MStringArray &outputs, AtNode *def
    if (m_driver != NULL)
    {
       AiNodeSetStr(m_driver, "name", AiNodeEntryGetName(m_driver->base_node));
-      AtChar   str[1024];
+      char   str[1024];
       sprintf(str, "RGBA RGBA %s %s", AiNodeGetName(defaultFilter), AiNodeGetName(m_driver));
       outputs.append(str);
    }
@@ -192,7 +192,7 @@ AtNode * COptionsTranslator::CreateRenderViewOutput(MStringArray &outputs, AtNod
    AiNodeSetStr(driver, "name", "renderview_display");
 
    AiNodeSetFlt(driver, "gamma", FindMayaObjectPlug("display_gamma").asFloat());
-   AtChar   str[1024];
+   char   str[1024];
    AiMsgWarning("display AOV: %s", FindMayaObjectPlug("displayAOV").asString().asChar());
    sprintf(str, "%s RGBA %s %s", FindMayaObjectPlug("displayAOV").asString().asChar(),
            AiNodeGetName(defaultFilter), AiNodeGetName(driver));
@@ -280,7 +280,7 @@ void COptionsTranslator::Export(AtNode *options)
             // FIXME: this is supposed to use a connection to AA_seed attribute
             if (!FindMayaObjectPlug("lock_sampling_noise").asBool())
             {
-               AiNodeSetInt(options, "AA_seed", (AtInt)GetExportFrame());
+               AiNodeSetInt(options, "AA_seed", (int)GetExportFrame());
             }
          }
          else
@@ -329,7 +329,7 @@ void COptionsTranslator::Export(AtNode *options)
    MSelectionList list;
    MPlug        shader;
 
-   AtInt atmosphere = FindMayaObjectPlug("atmosphere").asInt();
+   int atmosphere = FindMayaObjectPlug("atmosphere").asInt();
    switch (atmosphere)
    {
    case 0:

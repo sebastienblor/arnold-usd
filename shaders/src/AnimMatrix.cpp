@@ -5,7 +5,7 @@ namespace
 {
 
 // a modified version of AiArrayInterpolateMtx, from arnold core
-AtVoid AiArrayInterpolateMtx(const AtArray *array, AtFloat time, AtInt idx, AtMatrix result)
+void AiArrayInterpolateMtx(const AtArray *array, float time, int idx, AtMatrix result)
 {
    AtMatrix* data = (AtMatrix*) array->data;
 
@@ -28,10 +28,10 @@ AtVoid AiArrayInterpolateMtx(const AtArray *array, AtFloat time, AtInt idx, AtMa
    }
    else
    {
-     AtFloat t_nkm1 = time * (array->nkeys-1);
-     AtInt   lokey  = FLOOR(t_nkm1);
-     AtInt   hikey  = lokey + 1;
-     AtFloat t      = t_nkm1 - lokey;
+     float t_nkm1 = time * (array->nkeys-1);
+     int   lokey  = FLOOR(t_nkm1);
+     int   hikey  = lokey + 1;
+     float t      = t_nkm1 - lokey;
 
      AiM4Lerp(result, t, data[lokey * array->nelements + idx], data[hikey* array->nelements + idx]);
      return;

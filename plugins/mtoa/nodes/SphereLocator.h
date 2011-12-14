@@ -44,7 +44,7 @@ public:
    static MStatus initialize();
    void SampleSN(MPlug &colorPlug);
    void DrawUVSphere(float radius, int divisionsX, int divisionsY, int format);
-   AtUInt NumSampleBase();
+   unsigned int NumSampleBase();
 
    // Input attributes
    static MObject s_colorR;

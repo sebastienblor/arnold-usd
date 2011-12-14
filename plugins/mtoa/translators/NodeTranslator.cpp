@@ -58,7 +58,7 @@ namespace // <anonymous>
 //------------ CNodeTranslator ------------//
 
 // internal use only
-AtNode* CNodeTranslator::DoExport(AtUInt step)
+AtNode* CNodeTranslator::DoExport(unsigned int step)
 {
    AtNode* node = GetArnoldNode("");
    if (node != NULL)
@@ -91,7 +91,7 @@ AtNode* CNodeTranslator::DoExport(AtUInt step)
 }
 
 // internal use only
-AtNode* CNodeTranslator::DoUpdate(AtUInt step)
+AtNode* CNodeTranslator::DoUpdate(unsigned int step)
 {
    assert(AiUniverseIsActive());
    AtNode* node = GetArnoldNode("");
@@ -529,10 +529,10 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
                      {
                         MFnNumericData data(pAttr[i].asMObject());
                         data.getData4Double(r, g, b, a);
-                        rgba.r = static_cast<AtFloat>(r);
-                        rgba.g = static_cast<AtFloat>(g);
-                        rgba.b = static_cast<AtFloat>(b);
-                        rgba.a = static_cast<AtFloat>(a);
+                        rgba.r = static_cast<float>(r);
+                        rgba.g = static_cast<float>(g);
+                        rgba.b = static_cast<float>(b);
+                        rgba.a = static_cast<float>(a);
                         AiArraySetRGBA(ary, i, rgba);
                      }
                      AiNodeSetArray(anode, aname, ary);
@@ -545,7 +545,7 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
                      double r, g, b, a;
                      MFnNumericData data(pAttr.asMObject());
                      data.getData4Double(r, g, b, a);
-                     AiNodeSetRGBA(anode, aname, static_cast<AtFloat>(r), static_cast<AtFloat>(g), static_cast<AtFloat>(b), static_cast<AtFloat>(a));
+                     AiNodeSetRGBA(anode, aname, static_cast<float>(r), static_cast<float>(g), static_cast<float>(b), static_cast<float>(a));
                   }
                }
                break;
@@ -601,7 +601,7 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
                   AtArray *ary = AiArrayAllocate(data.length(), 1, AI_TYPE_FLOAT);
                   for (unsigned int i=0; i<data.length(); ++i)
                   {
-                     AiArraySetFlt(ary, i, static_cast<AtFloat>(data[i]));
+                     AiArraySetFlt(ary, i, static_cast<float>(data[i]));
                   }
                   AiNodeSetArray(anode, aname, ary);
                }
@@ -626,9 +626,9 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
                   AtArray *ary = AiArrayAllocate(data.length(), 1, AI_TYPE_POINT);
                   for (unsigned int i=0; i<data.length(); ++i)
                   {
-                     pnt.x = static_cast<AtFloat>(data[i].x);
-                     pnt.y = static_cast<AtFloat>(data[i].y);
-                     pnt.z = static_cast<AtFloat>(data[i].z);
+                     pnt.x = static_cast<float>(data[i].x);
+                     pnt.y = static_cast<float>(data[i].y);
+                     pnt.z = static_cast<float>(data[i].z);
                      AiArraySetPnt(ary, i, pnt);
                   }
                   AiNodeSetArray(anode, aname, ary);
@@ -642,9 +642,9 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
                   AtArray *ary = AiArrayAllocate(data.length(), 1, AI_TYPE_VECTOR);
                   for (unsigned int i=0; i<data.length(); ++i)
                   {
-                     vec.x = static_cast<AtFloat>(data[i].x);
-                     vec.y = static_cast<AtFloat>(data[i].y);
-                     vec.z = static_cast<AtFloat>(data[i].z);
+                     vec.x = static_cast<float>(data[i].x);
+                     vec.y = static_cast<float>(data[i].y);
+                     vec.z = static_cast<float>(data[i].z);
                      AiArraySetVec(ary, i, vec);
                   }
                   AiNodeSetArray(anode, aname, ary);
@@ -996,25 +996,25 @@ void CNodeTranslator::ProcessArrayParameter(AtNode* arnoldNode, const char* arno
 {
    const AtParamEntry* paramEntry = AiNodeEntryLookUpParameter(arnoldNode->base_node, arnoldParamName);
    const AtParamValue* defaultValue = AiParamGetDefault(paramEntry);
-   AtUInt type = defaultValue->ARRAY->type;
+   unsigned int type = defaultValue->ARRAY->type;
    // index matters tells us whether to condense a sparse array or try to export everything
 //         int indexMatters = MFnAttribute(plug.attribute()).indexMatters();
 //         MIntArray indices;
 //         if (indexMattrs)
 //         {
 //            // do a little prep work so that we can have a unified processing loop below
-//            for (AtUInt i = 0; i < plug.numElements(); ++i)
+//            for (unsigned int i = 0; i < plug.numElements(); ++i)
 //               indices.append(i);
 //         }
 //         else
 //            plug.getExistingArrayAttributeIndices(indices);
 
    // for now do all elements
-   AtUInt size = plug.numElements();
+   unsigned int size = plug.numElements();
    AtArray* array = AiArrayAllocate(size, 1, type);
    MPlug elem;
    MPlugArray connections;
-   for (AtUInt i = 0; i < size; ++i)
+   for (unsigned int i = 0; i < size; ++i)
    {
       // cout << plug.partialName(true, false, false, false, false, true) << " index " << i << endl;
       // FIXME: follow connections when arnold 3.4 is release
@@ -1025,7 +1025,7 @@ void CNodeTranslator::ProcessArrayParameter(AtNode* arnoldNode, const char* arno
    if (size) AiNodeSetArray(arnoldNode, arnoldParamName, array);
 }
 
-void CNodeTranslator::ProcessArrayElement(AtInt type, AtArray* array, AtUInt i, const MPlug& elem)
+void CNodeTranslator::ProcessArrayElement(int type, AtArray* array, unsigned int i, const MPlug& elem)
 {
    switch(type)
    {
@@ -1214,7 +1214,7 @@ bool CDagTranslator::IsMasterInstance(MDagPath &masterDag)
    if (m_dagPath.isInstanced())
    {
       MObjectHandle handle = MObjectHandle(m_dagPath.node());
-      AtUInt instNum = m_dagPath.instanceNumber();
+      unsigned int instNum = m_dagPath.instanceNumber();
       // first instance
       if (instNum == 0)
       {
@@ -1235,7 +1235,7 @@ bool CDagTranslator::IsMasterInstance(MDagPath &masterDag)
          // find the master by searching preceding instances
          MDagPathArray allInstances;
          MDagPath::getAllPathsTo(m_dagPath.node(), allInstances);
-         AtUInt master_index = 0;
+         unsigned int master_index = 0;
          for (; (master_index < m_dagPath.instanceNumber()); master_index++)
          {
             currDag = allInstances[master_index];
@@ -1294,7 +1294,7 @@ void CDagTranslator::GetMatrix(AtMatrix& matrix)
 // exporting matrix information. it properly handles exporting a matrix array
 // if motion blur is enabled and required by the node. it should be called
 // at each motion step
-void CDagTranslator::ExportMatrix(AtNode* node, AtUInt step)
+void CDagTranslator::ExportMatrix(AtNode* node, unsigned int step)
 {
    AtMatrix matrix;
    GetMatrix(matrix);
@@ -1319,13 +1319,13 @@ void CDagTranslator::ExportMatrix(AtNode* node, AtUInt step)
 }
 
 // use standardized render flag names to compute an arnold visibility mask
-AtInt CDagTranslator::ComputeVisibility()
+int CDagTranslator::ComputeVisibility()
 {
    // Usually invisible nodes are not exported at all, just making sure here
    if (false == CArnoldSession::IsRenderablePath(m_dagPath))
       return AI_RAY_UNDEFINED;
 
-   AtInt visibility = AI_RAY_ALL;
+   int visibility = AI_RAY_ALL;
    MPlug plug;
 
    plug = FindMayaObjectPlug("castsShadows");

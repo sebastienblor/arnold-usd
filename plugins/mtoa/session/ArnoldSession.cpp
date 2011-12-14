@@ -787,7 +787,7 @@ MStatus CArnoldSession::IterSelection(MSelectionList& selected)
          // should we export all its dag paths?
          if (FilteredStatus(path) == MTOA_EXPORT_ACCEPTED)
          {
-            for (AtUInt child = 0; (child < path.childCount()); child++)
+            for (unsigned int child = 0; (child < path.childCount()); child++)
             {
                MObject ChildObject = path.child(child);
                path.push(ChildObject);

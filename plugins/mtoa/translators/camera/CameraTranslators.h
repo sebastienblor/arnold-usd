@@ -9,7 +9,7 @@ class CPerspCameraTranslator
 {
 public:
    virtual void Export(AtNode* camera);
-   virtual void ExportMotion(AtNode* camera, AtUInt step);
+   virtual void ExportMotion(AtNode* camera, unsigned int step);
    static void NodeInitializer(CAbTranslator context);
    static void* creator()
    {
@@ -28,7 +28,7 @@ class COrthoCameraTranslator
 {
 public:
    void Export(AtNode* camera);
-   void ExportMotion(AtNode* camera, AtUInt step);
+   void ExportMotion(AtNode* camera, unsigned int step);
    static void NodeInitializer(CAbTranslator context);
    static void* creator()
    {
@@ -45,7 +45,7 @@ class CFishEyeCameraTranslator
 {
 public:
    void Export(AtNode* camera);
-   void ExportMotion(AtNode* camera, AtUInt step);
+   void ExportMotion(AtNode* camera, unsigned int step);
    static void NodeInitializer(CAbTranslator context);
    static void* creator()
    {
@@ -63,7 +63,7 @@ class CCylCameraTranslator
 {
 public:
    void Export(AtNode* camera);
-   void ExportMotion(AtNode* camera, AtUInt step);
+   void ExportMotion(AtNode* camera, unsigned int step);
    static void NodeInitializer(CAbTranslator context);
    static void* creator()
    {

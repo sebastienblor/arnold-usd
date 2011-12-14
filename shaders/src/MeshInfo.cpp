@@ -51,7 +51,7 @@ node_finish
 shader_evaluate
 {
    int what = AiShaderEvalParamInt(p_what);
-   const AtChar *name = 0;
+   const char *name = 0;
 
    AtVector v;
    AtRGBA c;

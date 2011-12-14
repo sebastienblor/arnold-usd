@@ -104,9 +104,9 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       }
       if (renderGlobals.isAnimated())
       {
-         AtFloat startframe = static_cast<float> (renderGlobals.frameStart.as(MTime::uiUnit()));
-         AtFloat endframe = static_cast<float> (renderGlobals.frameEnd.as(MTime::uiUnit()));
-         AtFloat byframestep = renderGlobals.frameBy;
+         float startframe = static_cast<float> (renderGlobals.frameStart.as(MTime::uiUnit()));
+         float endframe = static_cast<float> (renderGlobals.frameEnd.as(MTime::uiUnit()));
+         float byframestep = renderGlobals.frameBy;
          cmdStr += " -sf ";
          cmdStr += startframe;
          cmdStr += " -ef ";

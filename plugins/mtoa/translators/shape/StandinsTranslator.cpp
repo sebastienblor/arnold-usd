@@ -62,7 +62,7 @@ void CArnoldStandInsTranslator::Export(AtNode* anode)
    }
 }
 
-void CArnoldStandInsTranslator::ExportMotion(AtNode* anode, AtUInt step)
+void CArnoldStandInsTranslator::ExportMotion(AtNode* anode, unsigned int step)
 {
    ExportMatrix(anode, step);
 }

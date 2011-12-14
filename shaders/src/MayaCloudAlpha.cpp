@@ -60,21 +60,21 @@ node_finish
 
 shader_evaluate
 {
-   AtFloat amplitude = AiShaderEvalParamFlt(p_amplitude);
+   float amplitude = AiShaderEvalParamFlt(p_amplitude);
    AtPoint2 depth = AiShaderEvalParamPnt2(p_depth);
    AtVector ripples = AiShaderEvalParamVec(p_ripples);
-   AtFloat edgeThresh = AiShaderEvalParamFlt(p_edgeThresh);
-   AtFloat centerThresh = AiShaderEvalParamFlt(p_centerThresh);
-   AtFloat transpRange = AiShaderEvalParamFlt(p_transpRange);
-   AtFloat ratio = AiShaderEvalParamFlt(p_ratio);
+   float edgeThresh = AiShaderEvalParamFlt(p_edgeThresh);
+   float centerThresh = AiShaderEvalParamFlt(p_centerThresh);
+   float transpRange = AiShaderEvalParamFlt(p_transpRange);
+   float ratio = AiShaderEvalParamFlt(p_ratio);
    AtMatrix *placementMatrix = AiShaderEvalParamMtx(p_placementMatrix);
    AtBoolean local = AiShaderEvalParamBool(p_local);
    AtBoolean wrap = AiShaderEvalParamBool(p_wrap);
    AtBoolean invert = AiShaderEvalParamBool(p_invert);
-   AtFloat alphaGain = AiShaderEvalParamFlt(p_alphaGain);
-   AtFloat alphaOffset = AiShaderEvalParamFlt(p_alphaOffset);
+   float alphaGain = AiShaderEvalParamFlt(p_alphaGain);
+   float alphaOffset = AiShaderEvalParamFlt(p_alphaOffset);
 
-   AtFloat result;
+   float result;
    AtPoint P;
 
    AtPoint tmpPts;

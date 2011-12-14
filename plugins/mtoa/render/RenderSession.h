@@ -40,7 +40,7 @@ public:
    /// Render into the Render View, not IPR.
    void DoInteractiveRender();
    /// Render in the background of Maya.
-   AtULong DoBatchRender();
+   int DoBatchRender();
    /// Get a valid ass name
    MString GetAssName(const MString& customName,
                       const MCommonRenderSettingsData& renderGlobals,
@@ -80,14 +80,14 @@ public:
    // Swatch Rendering methods
    /// Start a swatch render.
    /// \param resolution the resolution of the swatch, it must be square.
-   void DoSwatchRender(const AtInt resolution);
+   void DoSwatchRender(const int resolution);
    /// Return the rendered swatch.
    /// \param image storage to place the rendered image into.
    /// \return returns false if there was no complete image.
    bool GetSwatchImage(MImage & image);
 
    /// Set the ass output mask
-   inline void SetOutputAssMask(AtUInt mask) { m_renderOptions.SetOutputAssMask(mask); }
+   inline void SetOutputAssMask(unsigned int mask) { m_renderOptions.SetOutputAssMask(mask); }
 
    /// Set the resolution of the render.
    /// \param width width in pixels.
@@ -98,8 +98,8 @@ public:
    /// Set the camera to use for render.
    void SetCamera(MDagPath cameraNode);
    void SetProgressive(bool is_progressive);
-   void SetRegion(const AtUInt left,const AtUInt right,
-                  const AtUInt bottom, const AtUInt top);
+   void SetRegion(const unsigned int left,const unsigned int right,
+                  const unsigned int bottom, const unsigned int top);
 
    /// Return a pointer to the render options.
    /// \see CRenderOptions
@@ -130,7 +130,7 @@ private:
    ~CRenderSession();
 
    /// This is the static method which is the thread that calls AiRender().
-   static unsigned int RenderThread(AtVoid* data);
+   static unsigned int RenderThread(void* data);
    
    /// The idle callback is used to update the
    /// render view when rendering IPR.
@@ -155,7 +155,7 @@ private:
    MCallbackId    m_timer_cb;
 
    /// This is a pointer to the thread which is running RenderThread.
-   AtVoid*        m_render_thread;
+   void*        m_render_thread;
 
 
 }; // class CRenderSession

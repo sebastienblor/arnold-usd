@@ -59,7 +59,7 @@ class CAnimCurveTranslator : public CShaderTranslator
 public:
    static void* creator(){return new CAnimCurveTranslator();}
    virtual void Export(AtNode* shader);
-   virtual void ExportMotion(AtNode* shader, AtUInt step);
+   virtual void ExportMotion(AtNode* shader, unsigned int step);
    AtNode* CreateArnoldNodes();
 };
 #endif // SHADER_TRANSLATORS_H

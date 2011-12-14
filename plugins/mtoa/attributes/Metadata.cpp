@@ -13,7 +13,7 @@ AtParamValue MAiParamGetDefault(const AtNodeEntry *entry, const AtParamEntry* pa
    AtParamValue value;
    memcpy(&value, real, sizeof(AtParamValue));
 
-   AtInt type = AiParamGetType(paramEntry);
+   int type = AiParamGetType(paramEntry);
 
    bool isArray = false;
    if (type == AI_TYPE_ARRAY)
@@ -26,7 +26,7 @@ AtParamValue MAiParamGetDefault(const AtNodeEntry *entry, const AtParamEntry* pa
       case AI_TYPE_ENUM:
       case AI_TYPE_INT:
       {
-         AtInt result;
+         int result;
          if (AiMetaDataGetInt(entry, param, "default", &result))
          {
             if (isArray)
@@ -38,7 +38,7 @@ AtParamValue MAiParamGetDefault(const AtNodeEntry *entry, const AtParamEntry* pa
       }
       case AI_TYPE_UINT:
       {
-         AtInt result;
+         int result;
          if (AiMetaDataGetInt(entry, param, "default", &result))
          {
             if (isArray)
@@ -62,7 +62,7 @@ AtParamValue MAiParamGetDefault(const AtNodeEntry *entry, const AtParamEntry* pa
       }
       case AI_TYPE_FLOAT:
       {
-         AtFloat result;
+         float result;
          if (AiMetaDataGetFlt(entry, param, "default", &result))
          {
             if (isArray)

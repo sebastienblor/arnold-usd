@@ -21,8 +21,8 @@ bool IsValidUV(AtPoint2 &uv);
 float Integral(float t, float nedge);
 float Mod(float n, float d);
 
-bool SortFloatArray(AtArray *a, AtUInt *shuffle = NULL);
-void ShuffleArray(AtArray *a, AtUInt *shuffle, int arnoldType);
+bool SortFloatArray(AtArray *a, unsigned int *shuffle = NULL);
+void ShuffleArray(AtArray *a, unsigned int *shuffle, int arnoldType);
 
 enum InterpolationType
 {
@@ -73,12 +73,12 @@ void AddMayaColorBalanceParams(AtList *params);
    
 void MayaColorBalance(AtShaderGlobals* sg,
                              AtNode* node,
-                             AtInt p_start,
+                             int p_start,
                              AtRGBA & result);
 
 void MayaDefaultColor(AtShaderGlobals* sg,
                              AtNode* node,
-                             AtInt p_start,
+                             int p_start,
                              AtRGBA & result);
 
 AtVector RGBtoHSV(AtRGB inRgb);

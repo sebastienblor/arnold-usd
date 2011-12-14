@@ -56,7 +56,7 @@ void COrthoCameraTranslator::Export(AtNode* camera)
    ExportImagePlanes(0);
 }
 
-void COrthoCameraTranslator::ExportMotion(AtNode* camera, AtUInt step)
+void COrthoCameraTranslator::ExportMotion(AtNode* camera, unsigned int step)
 {
    ExportCameraMBData(camera, step);
    ExportImagePlanes(step);
@@ -212,7 +212,7 @@ void CPerspCameraTranslator::Export(AtNode* camera)
    }
 }
 
-void CPerspCameraTranslator::ExportMotion(AtNode* camera, AtUInt step)
+void CPerspCameraTranslator::ExportMotion(AtNode* camera, unsigned int step)
 {
    // FIXME: fov can be animated, but ExportFilmback currently calculates and sets screen_min and screen_max
    // which we don't want to do at each step
@@ -274,7 +274,7 @@ void CFishEyeCameraTranslator::Export(AtNode* camera)
    }
 }
 
-void CFishEyeCameraTranslator::ExportMotion(AtNode* camera, AtUInt step)
+void CFishEyeCameraTranslator::ExportMotion(AtNode* camera, unsigned int step)
 {
    float fov = ExportFilmback(camera);
 
@@ -340,7 +340,7 @@ void CCylCameraTranslator::Export(AtNode* camera)
    }
 }
 
-void CCylCameraTranslator::ExportMotion(AtNode* camera, AtUInt step)
+void CCylCameraTranslator::ExportMotion(AtNode* camera, unsigned int step)
 {
    float fovs[2];
    ExportFilmback(camera, fovs);

@@ -36,8 +36,8 @@ class DLLEXPORT CNodeTranslator
    friend class CRenderSwatchGenerator;
 
 private:
-   AtNode* DoExport(AtUInt step);
-   AtNode* DoUpdate(AtUInt step);
+   AtNode* DoExport(unsigned int step);
+   AtNode* DoUpdate(unsigned int step);
    AtNode* DoCreateArnoldNodes();
    void SetTranslatorName(MString name) {m_abstract.name = MString(name);}
    bool ProcessParameterComponentInputs(AtNode* arnoldNode, const MPlug &plug, const char* arnoldAttrib, int arnoldAttribType);
@@ -74,11 +74,11 @@ protected:
       m_step(0)
    {}
    virtual void Export(AtNode* atNode) = 0;
-   virtual void ExportMotion(AtNode* atNode, AtUInt step){}
+   virtual void ExportMotion(AtNode* atNode, unsigned int step){}
    // Update runs during IPR for step==0 (calls Export by default)
    virtual void Update(AtNode* atNode){Export(atNode);}
    // UpdateMotion runs during IPR for step>0 (calls ExportMotion by default)
-   virtual void UpdateMotion(AtNode* atNode, AtUInt step){ExportMotion(atNode, step);}
+   virtual void UpdateMotion(AtNode* atNode, unsigned int step){ExportMotion(atNode, step);}
    virtual bool RequiresMotionData() {return false;}
    /// Instead of caching translator exports, allow a Maya node to be exported multiple times, each time generating new arnold nodes
    virtual bool DisableCaching() {return false;}
@@ -94,8 +94,8 @@ protected:
    // For a specific Maya plug
    virtual AtNode* ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, const MPlug& plug);
    virtual void ProcessArrayParameter(AtNode* arnoldNode, const char* arnoldParamName, const MPlug& plug);
-   void ProcessArrayElement(AtInt type, AtArray* array, AtUInt i, const MPlug& elem);
-   void ProcessAnimatedParameter(AtNode* arnoldNode, const char* arnoldParamName, const MPlug& plug, AtUInt step);
+   void ProcessArrayElement(int type, AtArray* array, unsigned int i, const MPlug& elem);
+   void ProcessAnimatedParameter(AtNode* arnoldNode, const char* arnoldParamName, const MPlug& plug, unsigned int step);
    AtNode* ProcessStaticParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, const MPlug& plug);
 
    void ExportUserAttribute(AtNode *anode);
@@ -162,7 +162,7 @@ protected:
    MObject m_object;
    MFnDependencyNode m_fnNode;
    MString m_outputAttr;
-   AtUInt m_step;
+   unsigned int m_step;
 
    // This stores callback IDs for the callbacks this
    // translator creates.
@@ -212,8 +212,8 @@ protected:
    bool IsMasterInstance(MDagPath &masterDag);
    void GetRotationMatrix(AtMatrix& matrix);
    virtual void GetMatrix(AtMatrix& matrix);
-   void ExportMatrix(AtNode* node, AtUInt step);
-   AtInt ComputeVisibility();
+   void ExportMatrix(AtNode* node, unsigned int step);
+   int ComputeVisibility();
    virtual void Delete();
    void AddHierarchyCallbacks(const MDagPath & path);
    void SetArnoldNodeName(AtNode* arnoldNode, const char* tag="");

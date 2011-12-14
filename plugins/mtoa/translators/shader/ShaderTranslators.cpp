@@ -29,7 +29,7 @@
 #include <string>
 #include <fstream>
 
-static bool SortFloatArray(AtArray *a, AtUInt *shuffle=NULL)
+static bool SortFloatArray(AtArray *a, unsigned int *shuffle=NULL)
 {
    bool modified = false;
 
@@ -79,7 +79,7 @@ static bool SortFloatArray(AtArray *a, AtUInt *shuffle=NULL)
    return modified;
 }
 
-static void ShuffleArray(AtArray *a, AtUInt *shuffle, int arnoldType)
+static void ShuffleArray(AtArray *a, unsigned int *shuffle, int arnoldType)
 {
    if (!a || !shuffle)
    {
@@ -149,7 +149,7 @@ static void ShuffleArray(AtArray *a, AtUInt *shuffle, int arnoldType)
    }
    else if (arnoldType == AI_TYPE_INT)
    {
-      AtInt tmp;
+      int tmp;
       for (AtUInt32 i = 0; (i < a->nelements); ++i)
       {
          if (shuffle[i] < i)
@@ -161,7 +161,7 @@ static void ShuffleArray(AtArray *a, AtUInt *shuffle, int arnoldType)
    }
    else if (arnoldType == AI_TYPE_UINT)
    {
-      AtUInt tmp;
+      unsigned int tmp;
       for (AtUInt32 i = 0; (i < a->nelements); ++i)
       {
          if (shuffle[i] < i)
@@ -247,7 +247,7 @@ static void ShuffleArray(AtArray *a, AtUInt *shuffle, int arnoldType)
    }
    else if (arnoldType == AI_TYPE_ENUM)
    {
-      AtInt tmp;
+      int tmp;
       for (AtUInt32 i = 0; (i < a->nelements); ++i)
       {
          if (shuffle[i] < i)
@@ -290,8 +290,8 @@ void CSkyShaderTranslator::Export(AtNode* shader)
    ProcessParameter(shader, "format",    AI_TYPE_ENUM);
    ProcessParameter(shader, "intensity", AI_TYPE_FLOAT);
 
-   AtInt visibility = ComputeVisibility();
-   AiNodeSetBool(shader, "opaque_alpha", (AtInt)(visibility & AI_RAY_CAMERA));
+   int visibility = ComputeVisibility();
+   AiNodeSetBool(shader, "opaque_alpha", (int)(visibility & AI_RAY_CAMERA));
    AiNodeSetInt(shader, "visibility", visibility);
 }
 
@@ -509,7 +509,7 @@ void CPlusMinusAverageTranslator::Export(AtNode* shader)
    AiNodeSetInt(shader, "operation", plug.asInt());
 
    plug = m_fnNode.findPlug(inputName);
-   AtUInt numElements = plug.numElements();
+   unsigned int numElements = plug.numElements();
    if (numElements > 8)
    {
       MString warning;
@@ -589,7 +589,7 @@ void CRemapValueTranslator::Export(AtNode* shader)
       // Need to sort the arrays (maya has the excellent idea not to do it)
       if (positions->nelements > 1)
       {
-         AtUInt* shuffle = new AtUInt[positions->nelements];
+         unsigned int* shuffle = new unsigned int[positions->nelements];
          if (SortFloatArray(positions, shuffle))
          {
             ShuffleArray(values, shuffle, AI_TYPE_FLOAT);
@@ -639,7 +639,7 @@ void CRemapValueTranslator::Export(AtNode* shader)
       // Need to sort the arrays (maya has the excellent idea not to do it)
       if (positions->nelements > 1)
       {
-         AtUInt* shuffle = new AtUInt[positions->nelements];
+         unsigned int* shuffle = new unsigned int[positions->nelements];
          if (SortFloatArray(positions, shuffle))
          {
             ShuffleArray(values, shuffle, AI_TYPE_RGB);
@@ -714,7 +714,7 @@ void CRemapColorTranslator::Export(AtNode* shader)
       // Need to sort array (maya has the excellent idea not to do it)
       if (positions->nelements > 1)
       {
-         AtUInt* shuffle = new AtUInt[positions->nelements];
+         unsigned int* shuffle = new unsigned int[positions->nelements];
          if (SortFloatArray(positions, shuffle))
          {
             ShuffleArray(values, shuffle, AI_TYPE_FLOAT);
@@ -790,7 +790,7 @@ void CRampTranslator::Export(AtNode* shader)
    MObject opos = GetMayaObjectAttribute("position");
    MObject ocol = GetMayaObjectAttribute("color");
    plug = FindMayaObjectPlug("colorEntryList");
-   AtUInt numElements = plug.numElements();
+   unsigned int numElements = plug.numElements();
    // Limited to 16 connections
    if (numElements > 16)
    {
@@ -854,7 +854,7 @@ void CLayeredTextureTranslator::Export(AtNode* shader)
    char aiAttr[64];
 
    attr = m_fnNode.findPlug("inputs");
-   AtUInt numElements = attr.numElements();
+   unsigned int numElements = attr.numElements();
    if (numElements > 8)
    {
       AiMsgWarning("[mtoa] [translator %s] layeredTexture node has more than 8 inputs, only the first 8 will be handled", GetTranslatorName().asChar());
@@ -870,7 +870,7 @@ void CLayeredTextureTranslator::Export(AtNode* shader)
    MObject blendModeAttr = m_fnNode.attribute("blendMode");
    MObject isVisibleAttr = m_fnNode.attribute("isVisible");
 
-   for (AtUInt i = 0; i < numElements; ++i)
+   for (unsigned int i = 0; i < numElements; ++i)
    {
       elem = attr.elementByPhysicalIndex(i);
 
@@ -945,7 +945,7 @@ void CLayeredShaderTranslator::Export(AtNode* shader)
    ProcessParameter(shader, "compositingFlag", AI_TYPE_ENUM);
 
    attr = m_fnNode.findPlug("inputs");
-   AtUInt numElements = attr.numElements();
+   unsigned int numElements = attr.numElements();
    if (numElements > 8)
    {
       AiMsgWarning("[mtoa] [translator %s] LayeredShader node has more than 8 inputs, only the first 8 will be handled", GetTranslatorName().asChar());
@@ -957,7 +957,7 @@ void CLayeredShaderTranslator::Export(AtNode* shader)
    MObject colorAttr = m_fnNode.attribute("color");
    MObject transpAttr = m_fnNode.attribute("transparency");
 
-   for (AtUInt i = 0; i < numElements; ++i)
+   for (unsigned int i = 0; i < numElements; ++i)
    {
       elem = attr.elementByPhysicalIndex(i);
 
@@ -1024,7 +1024,7 @@ void CAnimCurveTranslator::Export(AtNode* shader)
    }
 }
 
-void CAnimCurveTranslator::ExportMotion(AtNode* shader, AtUInt step)
+void CAnimCurveTranslator::ExportMotion(AtNode* shader, unsigned int step)
 {
    MFnAnimCurve fnCurve(GetMayaObject());
    MStatus status;

@@ -148,7 +148,7 @@ AtPoint2 PlanarMapping(AtVector V)
    return st;
 }
 
-AtPoint2 SphericalMapping(AtVector V, AtFloat uAngle, AtFloat vAngle)
+AtPoint2 SphericalMapping(AtVector V, float uAngle, float vAngle)
 {
    AtPoint2 st;
 
@@ -161,7 +161,7 @@ AtPoint2 SphericalMapping(AtVector V, AtFloat uAngle, AtFloat vAngle)
    return st;
 }
 
-AtPoint2 CylindricalMapping(AtVector V, AtFloat uAngle)
+AtPoint2 CylindricalMapping(AtVector V, float uAngle)
 {
    AtPoint2 st;
 
@@ -390,7 +390,7 @@ node_update
       const AtParamEntry *pe = AiNodeEntryLookUpParameter(n->base_node, "filename");
       if (pe != 0 && AiParamGetType(pe) == AI_TYPE_STRING)
       {
-         AtUInt tw, th;
+         unsigned int tw, th;
          if (AiTextureGetResolution(AiNodeGetStr(n, "filename"), &tw, &th))
          {
             data->image_aspect = float(tw) / float(th);
@@ -416,10 +416,10 @@ shader_evaluate
 {
    ShaderData *data = (ShaderData*)node->local_data;
 
-   AtInt pt = AiShaderEvalParamEnum(p_type);
+   int pt = AiShaderEvalParamEnum(p_type);
 
-   AtFloat uAngle = AiShaderEvalParamFlt(p_u_angle);
-   AtFloat vAngle = AiShaderEvalParamFlt(p_v_angle);
+   float uAngle = AiShaderEvalParamFlt(p_u_angle);
+   float vAngle = AiShaderEvalParamFlt(p_v_angle);
 
    bool wrap   = (AiShaderEvalParamBool(p_wrap) == TRUE);
    bool local  = (AiShaderEvalParamBool(p_local) == TRUE);
@@ -528,7 +528,7 @@ shader_evaluate
       break;
    case PT_PERSPECTIVE:
       {
-         AtInt fitType = AiShaderEvalParamEnum(p_fit_type);
+         int fitType = AiShaderEvalParamEnum(p_fit_type);
 
          if (fitType != FIT_NONE)
          {
@@ -556,7 +556,7 @@ shader_evaluate
                   float uScale = 1.0f;
                   float vScale = 1.0f;
 
-                  AtInt fillType = AiShaderEvalParamEnum(p_fill_type);
+                  int fillType = AiShaderEvalParamEnum(p_fill_type);
 
                   if (fillType == FILL_FILL)
                   {
@@ -628,8 +628,8 @@ shader_evaluate
 
       AtRGB colorGain     = AiShaderEvalParamRGB(p_color_gain);
       AtRGB colorOffset   = AiShaderEvalParamRGB(p_color_offset);
-      AtFloat alphaGain   = AiShaderEvalParamFlt(p_alpha_gain);
-      AtFloat alphaOffset = AiShaderEvalParamFlt(p_alpha_offset);
+      float alphaGain   = AiShaderEvalParamFlt(p_alpha_gain);
+      float alphaOffset = AiShaderEvalParamFlt(p_alpha_offset);
 
       float u, v, dudx, dudy, dvdx, dvdy;
 

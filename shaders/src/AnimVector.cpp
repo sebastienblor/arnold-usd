@@ -5,7 +5,7 @@ namespace
 {
 
 // a modified version of AiArrayInterpolateFlt, from arnold core
-AtVector AiArrayInterpolateVec(const AtArray *array, AtFloat time, AtInt idx)
+AtVector AiArrayInterpolateVec(const AtArray *array, float time, int idx)
 {
    AtVector vector;
 
@@ -25,10 +25,10 @@ AtVector AiArrayInterpolateVec(const AtArray *array, AtFloat time, AtInt idx)
    }
    else
    {
-      AtFloat t_nkm1 = time * (array->nkeys-1);
-      AtInt   lokey  = FLOOR(t_nkm1);
-      AtInt   hikey  = lokey + 1;
-      AtFloat t      = t_nkm1 - lokey;
+      float t_nkm1 = time * (array->nkeys-1);
+      int   lokey  = FLOOR(t_nkm1);
+      int   hikey  = lokey + 1;
+      float t      = t_nkm1 - lokey;
 
       //AiAssert(lokey >= 0 && lokey < array->nkeys);
       //AiAssert(hikey >= 0 && hikey < array->nkeys);

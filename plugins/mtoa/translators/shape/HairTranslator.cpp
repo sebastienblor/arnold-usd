@@ -156,7 +156,7 @@ void CHairTranslator::Update( AtNode *curve )
    int numPointsInterpolation = 0;
    MStatus status;
    MVectorArray line;
-   for (AtUInt i = 0; i < m_numMainLines; ++i)
+   for (unsigned int i = 0; i < m_numMainLines; ++i)
    {
       m_hairLines[i].GetCurvePoints(line);
 
@@ -254,7 +254,7 @@ void CHairTranslator::Update( AtNode *curve )
    }
 }
 
-void CHairTranslator::ExportMotion(AtNode *curve, AtUInt step)
+void CHairTranslator::ExportMotion(AtNode *curve, unsigned int step)
 {
    // Check if motionblur is enabled and early out if it's not.
    if (!IsMotionBlurEnabled()) return;
@@ -280,7 +280,7 @@ void CHairTranslator::ExportMotion(AtNode *curve, AtUInt step)
    clear();
 }
 
-void CHairTranslator::ProcessHairLines(AtUInt step,
+void CHairTranslator::ProcessHairLines(unsigned int step,
                                        AtArray* curvePoints,
                                        AtArray* curveNextLineStartsInterp,
                                        AtArray* curveNextLineStarts,
@@ -290,7 +290,7 @@ void CHairTranslator::ProcessHairLines(AtUInt step,
    const int numPointsPerStep         = AiArrayGetInt(curveNextLineStartsInterp,
                                                       curveNextLineStartsInterp->nelements-1);
    // Process all hair lines
-   for (AtUInt strand = 0; strand < m_numMainLines; ++strand)
+   for (unsigned int strand = 0; strand < m_numMainLines; ++strand)
    {
       MVectorArray line;
       m_hairLines[strand].GetCurvePoints(line);
@@ -374,7 +374,7 @@ void CHairTranslator::GetHairShapeMeshes(const MObject& hair, MDagPathArray& sha
 
    // Loop through all follicles to find all connected shapes
    MHairSystem::getFollicle(hair, follicles, indices);
-   for (AtUInt i = 0; i < follicles.length(); i++)
+   for (unsigned int i = 0; i < follicles.length(); i++)
    {
       MFnDependencyNode depNodeFollicle(follicles[i]);
       MPlugArray meshes;
@@ -386,7 +386,7 @@ void CHairTranslator::GetHairShapeMeshes(const MObject& hair, MDagPathArray& sha
          meshDagNode.getPath(dagPath);
          // Check if it is already there
          bool append = true;
-         for (AtUInt j = 0; j < shapes.length(); j++)
+         for (unsigned int j = 0; j < shapes.length(); j++)
          {
             if (shapes[j] == dagPath)
             {
@@ -400,9 +400,9 @@ void CHairTranslator::GetHairShapeMeshes(const MObject& hair, MDagPathArray& sha
    }
 }
 
-AtUInt CHairTranslator::GetHairLines(MObject& hair, std::vector<CHairLine>& hairLines)
+unsigned int CHairTranslator::GetHairLines(MObject& hair, std::vector<CHairLine>& hairLines)
 {
-   AtUInt numMainLines = 0;
+   unsigned int numMainLines = 0;
 
    // Check out if there are pfx hairs
    MPlugArray pfxHairPlug;
@@ -425,7 +425,7 @@ AtUInt CHairTranslator::GetHairLines(MObject& hair, std::vector<CHairLine>& hair
       hairLines.reserve(numMainLines);
 
       // Move all renderlines to our CHairLine
-      for (AtUInt i = 0; i < numMainLines; i++)
+      for (unsigned int i = 0; i < numMainLines; i++)
       {
          MStatus status;
          MRenderLine renderLine = mainLines.renderLine(i, &status);

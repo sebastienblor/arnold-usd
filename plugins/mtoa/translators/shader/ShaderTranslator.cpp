@@ -40,7 +40,7 @@ void CShaderTranslator::Export(AtNode *shader)
    }
 }
 
-void CShaderTranslator::ExportMotion(AtNode *shader, AtUInt step)
+void CShaderTranslator::ExportMotion(AtNode *shader, unsigned int step)
 {
    MStatus status;
    AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(shader->base_node);

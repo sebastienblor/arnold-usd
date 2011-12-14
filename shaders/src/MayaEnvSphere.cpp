@@ -56,8 +56,8 @@ shader_evaluate
    AiM4VectorByMatrixMult(&rdir, rot, &rdir);
 
    // copy original globals
-   AtFloat inU = sg->u;
-   AtFloat inV = sg->v;
+   float inU = sg->u;
+   float inV = sg->v;
 
 //   sg->dudx = outDuDx;
 //   sg->dudy = outDuDy;
@@ -65,9 +65,9 @@ shader_evaluate
 //   sg->dvdy = outDvDy;
 
    // replace globals
-   AtFloat *pU;
-   AtFloat *pV;
-   AtFloat R = sqrt((rdir.x*rdir.x) + (rdir.y*rdir.y) + (rdir.z*rdir.z));
+   float *pU;
+   float *pV;
+   float R = sqrt((rdir.x*rdir.x) + (rdir.y*rdir.y) + (rdir.z*rdir.z));
    if (AiShaderEvalParamBool(p_flip))
    {
       // flip U and V
@@ -79,10 +79,10 @@ shader_evaluate
       pU = &sg->u;
       pV = &sg->v;
    }
-   *pU = (0.5f * (atanf(rdir.y/rdir.x) / (AtFloat)AI_PI));
+   *pU = (0.5f * (atanf(rdir.y/rdir.x) / (float)AI_PI));
    if      (rdir.y > 0.0f && rdir.x > 0.0f) *pU = *pU + .5f;
    else if (rdir.y < 0.0f && rdir.x > 0.0f) *pU = *pU + .5f;
-   *pV = 1 - (acosf(rdir.z/R) / (AtFloat)AI_PI);
+   *pV = 1 - (acosf(rdir.z/R) / (float)AI_PI);
 
    // call input
    sg->out.RGB = AiShaderEvalParamRGB(p_image);

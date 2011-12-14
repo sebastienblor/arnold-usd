@@ -122,25 +122,25 @@ node_finish
 
 shader_evaluate
 {
-   AtFloat threshold = AiShaderEvalParamFlt(p_threshold);
-   AtFloat amplitude = AiShaderEvalParamFlt(p_amplitude);
-   AtFloat ratio = AiShaderEvalParamFlt(p_ratio);
-   AtFloat frequencyRatio = AiShaderEvalParamFlt(p_frequencyRatio);
-   AtInt depthMax = AiShaderEvalParamInt(p_depthMax);
+   float threshold = AiShaderEvalParamFlt(p_threshold);
+   float amplitude = AiShaderEvalParamFlt(p_amplitude);
+   float ratio = AiShaderEvalParamFlt(p_ratio);
+   float frequencyRatio = AiShaderEvalParamFlt(p_frequencyRatio);
+   int depthMax = AiShaderEvalParamInt(p_depthMax);
    AtBoolean inflection = AiShaderEvalParamBool(p_inflection);
-   AtFloat time = AiShaderEvalParamFlt(p_time);
-   AtFloat frequency = AiShaderEvalParamFlt(p_frequency);
+   float time = AiShaderEvalParamFlt(p_time);
+   float frequency = AiShaderEvalParamFlt(p_frequency);
    AtPoint origin = AiShaderEvalParamPnt(p_origin);
    AtVector scale = AiShaderEvalParamVec(p_scale);
-   AtFloat implode = AiShaderEvalParamFlt(p_implode);
+   float implode = AiShaderEvalParamFlt(p_implode);
    AtPoint implodeCenter = AiShaderEvalParamPnt(p_implodeCenter);
-   AtInt noiseType = AiShaderEvalParamInt(p_noiseType);
-   AtFloat density = AiShaderEvalParamFlt(p_density);
-   AtFloat spottyness = AiShaderEvalParamFlt(p_spottyness);
-   AtFloat sizeRand = AiShaderEvalParamFlt(p_sizeRand);
-   AtFloat randomness = AiShaderEvalParamFlt(p_randomness);
-   AtInt falloff = AiShaderEvalParamInt(p_falloff);
-   AtInt numWaves = AiShaderEvalParamInt(p_numWaves);
+   int noiseType = AiShaderEvalParamInt(p_noiseType);
+   float density = AiShaderEvalParamFlt(p_density);
+   float spottyness = AiShaderEvalParamFlt(p_spottyness);
+   float sizeRand = AiShaderEvalParamFlt(p_sizeRand);
+   float randomness = AiShaderEvalParamFlt(p_randomness);
+   int falloff = AiShaderEvalParamInt(p_falloff);
+   int numWaves = AiShaderEvalParamInt(p_numWaves);
    AtMatrix *placementMatrix = AiShaderEvalParamMtx(p_placementMatrix);
    AtBoolean wrap = AiShaderEvalParamBool(p_wrap);
    AtBoolean local = AiShaderEvalParamBool(p_local);
@@ -168,12 +168,12 @@ shader_evaluate
          P = implodeCenter + dp;
       }
 
-      AtInt depth[2] = {0, depthMax};
-      AtFloat ripples[3] = {1.0f, 1.0f, 1.0f};
+      int depth[2] = {0, depthMax};
+      float ripples[3] = {1.0f, 1.0f, 1.0f};
 
       P *= frequency;
 
-      AtFloat noiseVal = 0.0f;
+      float noiseVal = 0.0f;
 
       switch (noiseType)
       {
@@ -189,7 +189,7 @@ shader_evaluate
          break;
       case NT_BILLOW:
          {
-            AtFloat radius = static_cast<AtFloat>(sqrt(0.5f * density));
+            float radius = static_cast<float>(sqrt(0.5f * density));
             noiseVal = BillowNoise(P, time, 3, radius, sizeRand, randomness, falloff, spottyness, depthMax, frequencyRatio, ratio, amplitude);
          }
          break;

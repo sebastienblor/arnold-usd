@@ -68,10 +68,10 @@ node_finish
 
 shader_evaluate
 {
-   AtInt operation = AiShaderEvalParamEnum(p_operation);
-   AtUInt numInputs = AiShaderEvalParamUInt(p_numInputs);
+   int operation = AiShaderEvalParamEnum(p_operation);
+   unsigned int numInputs = AiShaderEvalParamUInt(p_numInputs);
    
-   AtFloat result = 0.0f;
+   float result = 0.0f;
 
    if (numInputs > 0)
    {

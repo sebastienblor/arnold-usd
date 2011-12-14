@@ -68,9 +68,9 @@ shader_evaluate
                 (-1.0f <= P.y && P.y <= 1.0f) &&
                 (-1.0f <= P.z && P.z <= 1.0f)))
    {
-      AtFloat lacunarity = AiShaderEvalParamFlt(p_lacunarity);
-      AtFloat increment = AiShaderEvalParamFlt(p_increment);
-      AtFloat octaves = AiShaderEvalParamFlt(p_octaves);
+      float lacunarity = AiShaderEvalParamFlt(p_lacunarity);
+      float increment = AiShaderEvalParamFlt(p_increment);
+      float octaves = AiShaderEvalParamFlt(p_octaves);
       AtVector weight3d = AiShaderEvalParamVec(p_weight3d);
 
       int i = 0;

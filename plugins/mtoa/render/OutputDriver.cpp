@@ -33,7 +33,7 @@ struct COutputDriverData
 {
    AtBBox2   refresh_bbox;
    float     gamma;
-   AtUInt    imageWidth, imageHeight;
+   unsigned int    imageWidth, imageHeight;
    AtBoolean rendering;
 };
 
@@ -51,7 +51,7 @@ struct CDisplayUpdateMessage
    AtBBox2                   bucketRect;
    RV_PIXEL*                 pixels;      ///< These will be in the range of 0-255, not 0-1.
    CDisplayUpdateMessage(EDisplayUpdateMessageType msg = MSG_BUCKET_PREPARE,
-                           AtInt minx = 0, AtInt miny = 0, AtInt maxx = 0, AtInt maxy = 0,
+                           int minx = 0, int miny = 0, int maxx = 0, int maxy = 0,
                            RV_PIXEL* px = NULL)
    : msgType(msg), pixels(px)
    {
@@ -129,35 +129,35 @@ driver_prepare_bucket
 /// 0-255 instead of 0-1. It also flips it around height.
 driver_write_bucket
 {
-   AtInt         pixel_type;
-   const AtVoid* bucket_data;
+   int         pixel_type;
+   const void* bucket_data;
 
    // get the first AOV layer
    if (!AiOutputIteratorGetNext(iterator, NULL, &pixel_type, &bucket_data))
       return;
 
    RV_PIXEL* pixels = new RV_PIXEL[bucket_size_x * bucket_size_y];
-   AtInt minx = bucket_xo;
-   AtInt miny = bucket_yo;
-   AtInt maxx = bucket_xo + bucket_size_x - 1;
-   AtInt maxy = bucket_yo + bucket_size_y - 1;
+   int minx = bucket_xo;
+   int miny = bucket_yo;
+   int maxx = bucket_xo + bucket_size_x - 1;
+   int maxy = bucket_yo + bucket_size_y - 1;
 
    switch(pixel_type)
    {
       case AI_TYPE_RGB:
       {
-         for (AtInt j = miny; (j <= maxy); ++j)
+         for (int j = miny; (j <= maxy); ++j)
          {
-            for (AtInt i = minx; (i <= maxx); ++i)
+            for (int i = minx; (i <= maxx); ++i)
             {
-               AtUInt in_idx = (j-bucket_yo)*bucket_size_x + (i-bucket_xo);
+               unsigned int in_idx = (j-bucket_yo)*bucket_size_x + (i-bucket_xo);
                AtRGB  rgb = ((AtRGB*)bucket_data)[in_idx]; 
 
                // Flip vertically
-               AtInt targetX = i - minx;
-               AtInt targetY = bucket_size_y - (j - miny) - 1;
+               int targetX = i - minx;
+               int targetY = bucket_size_y - (j - miny) - 1;
 
-               AtUInt out_idx = targetY * bucket_size_x + targetX;
+               unsigned int out_idx = targetY * bucket_size_x + targetX;
                RV_PIXEL* pixel = &pixels[out_idx];
 
                AiColorGamma(&rgb, s_outputDriverData.gamma);
@@ -173,18 +173,18 @@ driver_write_bucket
 
       case AI_TYPE_RGBA:
       {
-         for (AtInt j = miny; (j <= maxy); ++j)
+         for (int j = miny; (j <= maxy); ++j)
          {
-            for (AtInt i = minx; (i <= maxx); ++i)
+            for (int i = minx; (i <= maxx); ++i)
             {
-               AtUInt in_idx = (j-bucket_yo)*bucket_size_x + (i-bucket_xo);
+               unsigned int in_idx = (j-bucket_yo)*bucket_size_x + (i-bucket_xo);
                AtRGBA  rgba = ((AtRGBA*)bucket_data)[in_idx]; 
 
                // Flip vertically
-               AtInt targetX = i - minx;
-               AtInt targetY = bucket_size_y - (j - miny) - 1;
+               int targetX = i - minx;
+               int targetY = bucket_size_y - (j - miny) - 1;
 
-               AtUInt out_idx = targetY * bucket_size_x + targetX;
+               unsigned int out_idx = targetY * bucket_size_x + targetX;
                RV_PIXEL* pixel = &pixels[out_idx];
 
                AiRGBAGamma(&rgba, s_outputDriverData.gamma);
@@ -229,8 +229,8 @@ node_finish
 void UpdateBucket(const AtBBox2& bucketRect, RV_PIXEL* pixels, const bool refresh)
 {
    // Flip vertically
-   const AtInt miny = s_outputDriverData.imageHeight - bucketRect.maxy - 1;
-   const AtInt maxy = s_outputDriverData.imageHeight - bucketRect.miny - 1;
+   const int miny = s_outputDriverData.imageHeight - bucketRect.maxy - 1;
+   const int maxy = s_outputDriverData.imageHeight - bucketRect.miny - 1;
 
    MRenderView::updatePixels(bucketRect.minx, bucketRect.maxx, miny, maxy, pixels);
    if (refresh)
@@ -269,8 +269,8 @@ void RefreshRenderViewBBox()
 void CopyBucketToBuffer(float * to_pixels,
                          const CDisplayUpdateMessage & bucket)
 {
-   const AtInt bucket_size_x = bucket.bucketRect.maxx - bucket.bucketRect.minx + 1;
-   const AtInt bucket_size_y = bucket.bucketRect.maxy - bucket.bucketRect.miny + 1;
+   const int bucket_size_x = bucket.bucketRect.maxx - bucket.bucketRect.minx + 1;
+   const int bucket_size_y = bucket.bucketRect.maxy - bucket.bucketRect.miny + 1;
 
    RV_PIXEL * from = bucket.pixels;
    const char num_channels(4);
@@ -339,10 +339,10 @@ void FinishedWithDisplayUpdateQueue()
    s_finishedRendering = false;
 
    // Get some data from Arnold before it gets deleted with the universe.
-   const AtInt AA_Samples(AiNodeGetInt(AiUniverseGetOptions(), "AA_samples"));
-   const AtInt GI_diffuse_samples(AiNodeGetInt(AiUniverseGetOptions(), "GI_diffuse_samples"));
-   const AtInt GI_glossy_samples(AiNodeGetInt(AiUniverseGetOptions(), "GI_glossy_samples"));
-   const AtInt sss_sample_factor(AiNodeGetInt(AiUniverseGetOptions(), "sss_sample_factor"));
+   const int AA_Samples(AiNodeGetInt(AiUniverseGetOptions(), "AA_samples"));
+   const int GI_diffuse_samples(AiNodeGetInt(AiUniverseGetOptions(), "GI_diffuse_samples"));
+   const int GI_glossy_samples(AiNodeGetInt(AiUniverseGetOptions(), "GI_glossy_samples"));
+   const int sss_sample_factor(AiNodeGetInt(AiUniverseGetOptions(), "sss_sample_factor"));
 
    // Calculate the time taken.
    const time_t elapsed = time(NULL) - s_start_time;

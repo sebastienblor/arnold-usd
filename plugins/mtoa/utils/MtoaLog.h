@@ -10,9 +10,9 @@
 #include <ai_msg.h>
 
 
-DLLEXPORT AtInt GetFlagsFromVerbosityLevel(AtUInt level);
+DLLEXPORT int GetFlagsFromVerbosityLevel(unsigned int level);
 
-DLLEXPORT AtVoid MtoaLogCallback(AtInt logmask, AtInt severity, const char *msg_string, AtInt tabs);
+DLLEXPORT void MtoaLogCallback(int logmask, int severity, const char *msg_string, int tabs);
 
 DLLEXPORT void MtoaSetupLogging();
 

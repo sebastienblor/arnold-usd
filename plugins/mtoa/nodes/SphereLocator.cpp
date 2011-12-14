@@ -68,8 +68,8 @@ void CSphereLocator::DrawUVSphere(float radius, int divisionsX, int divisionsY, 
    for(theta = -90; theta <= 90-dtheta; theta+=dtheta)
    {
       AtVector dir;
-      AtFloat u, v;
-      AtFloat x, y, z;
+      float u, v;
+      float x, y, z;
       x = y = z = 0;
 
       // little fix to get UVS nicely
@@ -183,13 +183,13 @@ void CSphereLocator::SampleSN(MPlug &colorPlug)
 
       // Get all the data based on UVs
       MFnDependencyNode fnThisNode(thisMObject());
-      AtUInt numSampleBase = NumSampleBase();
-      AtUInt numSamples    = numSampleBase * numSampleBase;
+      unsigned int numSampleBase = NumSampleBase();
+      unsigned int numSamples    = numSampleBase * numSampleBase;
 
-      for (AtUInt i = 0; (i < numSampleBase); i++)
+      for (unsigned int i = 0; (i < numSampleBase); i++)
       {
          float valuei = static_cast<float>(i) / numSampleBase;
-         for (AtUInt j = 0; (j < numSampleBase); j++)
+         for (unsigned int j = 0; (j < numSampleBase); j++)
          {
             float valuej = static_cast<float>(j) / numSampleBase;
             uCoords.append(valuej);
@@ -205,7 +205,7 @@ void CSphereLocator::SampleSN(MPlug &colorPlug)
 
       m_colorData = new char[numSamples * 4];
       int alpha = 255;
-      for(AtUInt i = 0; (i < colors.length()); i++)
+      for(unsigned int i = 0; (i < colors.length()); i++)
       {
          MFloatVector fv = colors[i];
          fv *= 255;
@@ -243,17 +243,17 @@ void CSphereLocator::draw(M3dView& view, const MDagPath& DGpath, M3dView::Displa
    view.endGL();
 }
 
-AtUInt CSphereLocator::NumSampleBase()
+unsigned int CSphereLocator::NumSampleBase()
 {
       MFnDependencyNode fnThisNode(thisMObject());
-      return static_cast<AtUInt>(pow(2.0, (fnThisNode.findPlug("sampling").asInt() + 6)));
+      return static_cast<unsigned int>(pow(2.0, (fnThisNode.findPlug("sampling").asInt() + 6)));
 }
 
 void CSphereLocator::OnDraw(M3dView& view, M3dView::DisplayStyle style, M3dView::DisplayStatus displayStatus)
 {
    MStatus stat;
    const int divisions = 16;
-   AtFloat radius;
+   float radius;
    int facing;
 
    MFnDagNode fn(thisMObject());

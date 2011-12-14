@@ -135,7 +135,7 @@ node_parameters
 
 node_initialize
 {
-   node->local_data = (AtVoid*) new P3DTData();
+   node->local_data = (void*) new P3DTData();
 }
 
 node_update
@@ -155,7 +155,7 @@ shader_evaluate
    AtVector rotate = AiShaderEvalParamPnt(p_rotate);
    AtVector scale = AiShaderEvalParamPnt(p_scale);
    AtVector shear = AiShaderEvalParamPnt(p_shear);
-   AtInt rotateOrder = AiShaderEvalParamInt(p_rotate_order);
+   int rotateOrder = AiShaderEvalParamInt(p_rotate_order);
    AtVector rotateAxis = AiShaderEvalParamPnt(p_rotate_axis);
    AtVector scalePivot = AiShaderEvalParamPnt(p_scale_pivot);
    AtVector rotatePivot = AiShaderEvalParamPnt(p_rotate_pivot);
@@ -204,9 +204,9 @@ shader_evaluate
    AiM4Identity(R);
    AiM4Identity(Ro);
 
-   AiM4RotationX(Rx, static_cast<AtFloat>(rotate.x * AI_RTOD));
-   AiM4RotationY(Ry, static_cast<AtFloat>(-rotate.y * AI_RTOD));
-   AiM4RotationZ(Rz, static_cast<AtFloat>(rotate.z * AI_RTOD));
+   AiM4RotationX(Rx, static_cast<float>(rotate.x * AI_RTOD));
+   AiM4RotationY(Ry, static_cast<float>(-rotate.y * AI_RTOD));
+   AiM4RotationZ(Rz, static_cast<float>(rotate.z * AI_RTOD));
    switch (rotateOrder)
    {
    case RO_XYZ:
@@ -236,9 +236,9 @@ shader_evaluate
       break;
    }
 
-   AiM4RotationX(Rx, static_cast<AtFloat>(rotateAxis.x * AI_RTOD));
-   AiM4RotationY(Ry, static_cast<AtFloat>(-rotateAxis.y * AI_RTOD));
-   AiM4RotationZ(Rz, static_cast<AtFloat>(rotateAxis.z * AI_RTOD));
+   AiM4RotationX(Rx, static_cast<float>(rotateAxis.x * AI_RTOD));
+   AiM4RotationY(Ry, static_cast<float>(-rotateAxis.y * AI_RTOD));
+   AiM4RotationZ(Rz, static_cast<float>(rotateAxis.z * AI_RTOD));
    AiM4Mult(tmp, Rx, Ry);
    AiM4Mult(Ro, tmp, Rz);
 

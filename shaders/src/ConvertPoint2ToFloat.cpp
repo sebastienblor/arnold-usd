@@ -51,7 +51,7 @@ node_finish
 shader_evaluate
 {
    AtPoint2 point = AiShaderEvalParamPnt2(p_input);
-   AtInt component = AiShaderEvalParamEnum(p_component);
+   int component = AiShaderEvalParamEnum(p_component);
    switch (component)
    {
    case CH_X:

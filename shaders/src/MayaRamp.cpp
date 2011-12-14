@@ -163,7 +163,7 @@ shader_evaluate
    AtRGB result = AI_RGB_BLACK;
    // Read positions and colors
    // Not using array and AiShaderEvalParamArray to allow individual connections
-   AtUInt numEntries = AiShaderEvalParamUInt(p_numEntries);
+   unsigned int numEntries = AiShaderEvalParamUInt(p_numEntries);
    if (numEntries > 0)
    {
       AtPoint2 uv;
@@ -195,7 +195,7 @@ shader_evaluate
          }
          // Sort the arrays, since positions can be connected, order can change
          // Sort position array
-         AtUInt* shuffle = new AtUInt[numEntries];
+         unsigned int* shuffle = new unsigned int[numEntries];
          if (SortFloatArray(positions, shuffle))
          {
             ShuffleArray(colors, shuffle, AI_TYPE_RGB);
@@ -235,7 +235,7 @@ shader_evaluate
          u = Mod(u, 1.000001f);
          v = Mod(v, 1.000001f);
 
-         AtInt type = AiShaderEvalParamInt(p_type);
+         int type = AiShaderEvalParamInt(p_type);
          RampInterpolationType interp = (RampInterpolationType) AiShaderEvalParamInt(p_interp);
          switch (type)
          {

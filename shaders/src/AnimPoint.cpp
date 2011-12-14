@@ -5,7 +5,7 @@ namespace
 {
 
 // a modified version of AiArrayInterpolateFlt, from arnold core
-AtPoint AiArrayInterpolatePnt(const AtArray *array, AtFloat time, AtInt idx)
+AtPoint AiArrayInterpolatePnt(const AtArray *array, float time, int idx)
 {
    AtPoint point;
 
@@ -25,10 +25,10 @@ AtPoint AiArrayInterpolatePnt(const AtArray *array, AtFloat time, AtInt idx)
    }
    else
    {
-      AtFloat t_nkm1 = time * (array->nkeys-1);
-      AtInt   lokey  = FLOOR(t_nkm1);
-      AtInt   hikey  = lokey + 1;
-      AtFloat t      = t_nkm1 - lokey;
+      float t_nkm1 = time * (array->nkeys-1);
+      int   lokey  = FLOOR(t_nkm1);
+      int   hikey  = lokey + 1;
+      float t      = t_nkm1 - lokey;
 
       point = AiV3Lerp(t,
          ((AtPoint *)array->data)[lokey * array->nelements + idx],

@@ -775,7 +775,7 @@ void CExtensionsManager::GetAOVs(MStringArray& result)
          extIt != s_extensions.end();
          extIt++)
    {
-      std::map<std::string, AtInt>::iterator it;
+      std::map<std::string, int>::iterator it;
       for (it = extIt->m_aovTypes.begin(); it != extIt->m_aovTypes.end(); ++it)
       {
          result.append(it->first.c_str());

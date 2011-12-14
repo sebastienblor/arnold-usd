@@ -123,7 +123,7 @@ void CNurbsSurfaceTranslator::Export(AtNode* anode)
    }
 }
 
-void CNurbsSurfaceTranslator::ExportMotion(AtNode* anode, AtUInt step)
+void CNurbsSurfaceTranslator::ExportMotion(AtNode* anode, unsigned int step)
 {
    // Re-tessalate the nurbs surface, but only if it's needed.
    if (m_motion && m_motionDeform && m_isMasterDag)

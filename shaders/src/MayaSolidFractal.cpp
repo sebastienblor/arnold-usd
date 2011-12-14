@@ -33,7 +33,7 @@ enum MayaSolidFractalParams
 
 static float Noise3D(const AtPoint &p, AtBoolean inflection)
 {
-   AtFloat noise = AiPerlin3(p);
+   float noise = AiPerlin3(p);
 
    if (inflection)
    {
@@ -45,7 +45,7 @@ static float Noise3D(const AtPoint &p, AtBoolean inflection)
 
 static float Noise4D(const AtPoint &p, float time, AtBoolean inflection)
 {
-   AtFloat noise = AiPerlin4(p, time);  
+   float noise = AiPerlin4(p, time);  
 
    if (inflection)
    {
@@ -96,13 +96,13 @@ node_finish
 
 shader_evaluate
 {
-   AtFloat threshold = AiShaderEvalParamFlt(p_threshold);
-   AtFloat amplitude = AiShaderEvalParamFlt(p_amplitude);
-   AtFloat ratio = AiShaderEvalParamFlt(p_ratio);
-   AtFloat frequencyRatio = AiShaderEvalParamFlt(p_frequencyRatio);
+   float threshold = AiShaderEvalParamFlt(p_threshold);
+   float amplitude = AiShaderEvalParamFlt(p_amplitude);
+   float ratio = AiShaderEvalParamFlt(p_ratio);
+   float frequencyRatio = AiShaderEvalParamFlt(p_frequencyRatio);
    AtVector ripples = AiShaderEvalParamVec(p_ripples);
    AtPoint2 depth = AiShaderEvalParamPnt2(p_depth);
-   AtFloat bias = AiShaderEvalParamFlt(p_bias);
+   float bias = AiShaderEvalParamFlt(p_bias);
    AtBoolean inflection = AiShaderEvalParamBool(p_inflection);
    AtBoolean animated = AiShaderEvalParamBool(p_animated);
    AtMatrix *placementMatrix = AiShaderEvalParamMtx(p_placementMatrix);
@@ -110,8 +110,8 @@ shader_evaluate
    AtBoolean local = AiShaderEvalParamBool(p_local);
 
    AtPoint P;
-   AtFloat time = 0.0f;
-   AtFloat timeRatio = 0.0f;
+   float time = 0.0f;
+   float timeRatio = 0.0f;
 
    AtPoint tmpPts;
    bool usePref = SetRefererencePoints(sg, tmpPts);

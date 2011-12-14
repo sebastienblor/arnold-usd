@@ -157,7 +157,7 @@ node_finish
 
 shader_evaluate
 {
-   AtUInt numInputs = AiShaderEvalParamUInt(p_numInputs);
+   unsigned int numInputs = AiShaderEvalParamUInt(p_numInputs);
 
    AtRGBA result = AI_RGBA_BLACK;
 
@@ -169,8 +169,8 @@ shader_evaluate
             continue;
 
          AtRGBA color = AiShaderEvalParamRGBA(p_color0+i);
-         AtFloat alpha = AiShaderEvalParamFlt(p_alpha0+i);
-         AtInt blendMode = AiShaderEvalParamInt(p_blendMode0+i);
+         float alpha = AiShaderEvalParamFlt(p_alpha0+i);
+         int blendMode = AiShaderEvalParamInt(p_blendMode0+i);
 
          AtBoolean colorConnectedToAlpha = AiShaderEvalParamBool(p_colorConnectedToAlpha0+i);
 

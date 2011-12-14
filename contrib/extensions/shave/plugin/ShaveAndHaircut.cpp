@@ -285,7 +285,7 @@ void CShaveTranslator::Update(AtNode* curve)
     m_hairInfo.clear();
 }
 
-void CShaveTranslator::ExportMotion(AtNode* curve, AtUInt step)
+void CShaveTranslator::ExportMotion(AtNode* curve, unsigned int step)
 {
    // Check if motionblur is enabled and early out if it's not.
    if (!IsMotionBlurEnabled()) return;
@@ -316,7 +316,7 @@ void CShaveTranslator::ExportMotion(AtNode* curve, AtUInt step)
 }
 
 
-void CShaveTranslator::ProcessHairLines(AtUInt step,
+void CShaveTranslator::ProcessHairLines(unsigned int step,
                                         AtArray* curvePoints,
                                         AtArray* curveNextLineStartsInterp,
                                         AtArray* curveNextLineStarts,

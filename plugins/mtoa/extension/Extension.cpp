@@ -199,7 +199,7 @@ MStatus CExtension::RegisterTranslator(const MString &mayaTypeName,
 }
 
 
-MStatus CExtension::RegisterAOV(const MString &mayaTypeName, const MString &aovName, AtInt dataType, const MString &aovAttr)
+MStatus CExtension::RegisterAOV(const MString &mayaTypeName, const MString &aovName, int dataType, const MString &aovAttr)
 {
    CPxMayaNode mayaNode(mayaTypeName);
    MayaNodeToTranslatorsMap::iterator nodeIt;

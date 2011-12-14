@@ -122,7 +122,7 @@ const MString CLASSIFY_SHADER_UTILITY("utility");
 #define MAKE_INT_INPUT(attrib, nodeEntry, paramEntry, paramName, attrName, attrShortName) \
    const AtParamValue* default_value = AiParamGetDefault(paramEntry);\
    attrib = nAttr.create(attrName, attrShortName, MFnNumericData::kInt, default_value->INT);\
-   AtInt val;\
+   int val;\
    if (AiMetaDataGetInt(nodeEntry, paramName, "min", &val))\
       nAttr.setMin(val);\
    if (AiMetaDataGetInt(nodeEntry, paramName, "max", &val))\
@@ -136,7 +136,7 @@ const MString CLASSIFY_SHADER_UTILITY("utility");
 #define MAKE_UINT_INPUT(attrib, nodeEntry, paramEntry, paramName, attrName, attrShortName) \
    const AtParamValue* default_value = AiParamGetDefault(paramEntry);\
    attrib = nAttr.create(attrName, attrShortName, MFnNumericData::kInt, default_value->INT);\
-   AtInt val;\
+   int val;\
    if (AiMetaDataGetInt(nodeEntry, paramName, "min", &val))\
       nAttr.setMin(val < 0 ? 0 : val);\
    if (AiMetaDataGetInt(nodeEntry, paramName, "max", &val))\
@@ -155,7 +155,7 @@ const MString CLASSIFY_SHADER_UTILITY("utility");
 #define MAKE_FLOAT_INPUT(attrib, nodeEntry, paramEntry, paramName, attrName, attrShortName) \
    const AtParamValue* default_value = AiParamGetDefault(paramEntry);\
    attrib = nAttr.create(attrName, attrShortName, MFnNumericData::kFloat, default_value->FLT);\
-   AtFloat val;\
+   float val;\
    if (AiMetaDataGetFlt(nodeEntry, paramName, "min", &val))\
       nAttr.setMin(val);\
    if (AiMetaDataGetFlt(nodeEntry, paramName, "max", &val))\

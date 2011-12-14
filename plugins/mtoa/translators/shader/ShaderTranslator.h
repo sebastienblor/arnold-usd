@@ -24,7 +24,7 @@ public:
    }
    virtual AtNode* CreateArnoldNodes();
    virtual void Export(AtNode* atNode);
-   virtual void ExportMotion(AtNode *shader, AtUInt step);
+   virtual void ExportMotion(AtNode *shader, unsigned int step);
    virtual bool ResolveOutputPlug(const MPlug& outputPlug, MPlug &resolvedOutputPlug);
    virtual bool RequiresMotionData();
 };
