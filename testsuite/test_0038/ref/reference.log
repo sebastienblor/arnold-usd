@@ -1,538 +1,552 @@
-Cannot open log file 'C:\solidangle\mtoa\mtoa-main\build\windows_x86_64\2012\msvc_debug\testsuite\test_0038\test_0038.log', using stdout instead
+Cannot open log file 'C:\solidAngle\mtoa\mtoa-main\build\windows_x86_64\2012\msvc_debug\testsuite\test_0038\test_0038.log', using stdout instead
 
 Starting "C:\Program Files\Autodesk\Maya2012\bin\mayabatch.exe"
-mental ray for Maya 2012 
-mental ray: version 3.9.1.36, Feb  2 2011, revision 138829
-00:00:00  147mb         | log started Wed Nov 16 16:51:13 2011
-00:00:00  147mb         | Arnold 3.3.13.1 windows 64-bit icc110 oiio1000 sse (build date: Oct 25 2011 16:37:41)
-00:00:00  147mb         | running on borja-PC, 8 x 3292 mhz GenuineIntel with 8148 mb
-00:00:00  147mb         |  
-00:00:00  147mb         | [METADATA] Loading metadata file: C:/solidAngle/mtoadeploy/2012/plug-ins/mtoa.mtd
-00:00:00  147mb         | Successfully registered Arnold ass file translator
-00:00:00  147mb         | Successfully registered Arnold swatch renderer
-00:00:00  147mb         | Successfully registered 'arnoldRender' command
-00:00:00  147mb         | Successfully registered 'arnoldIpr' command
-00:00:00  147mb         | Successfully registered 'arnoldExportAss' command
-00:00:00  147mb         | Successfully registered 'arnoldPlugins' command
-00:00:00  147mb         | [mtoa] [<built-in>] Generating new Maya nodes and translators for Arnold built-in nodes.
-00:00:00  147mb         | [mtoa] [<built-in>] [node options] Is associated with existing Maya node aiOptions.
-00:00:00  147mb         | [mtoa] [<built-in>] [node options] Not enough metadata information to automatically register a translator, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node persp_camera] Is associated with existing Maya node camera.
-00:00:00  147mb         | [mtoa] [<built-in>] [node persp_camera] Not enough metadata information to automatically register a translator, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node ortho_camera] Is associated with existing Maya node camera.
-00:00:00  147mb         | [mtoa] [<built-in>] [node ortho_camera] Not enough metadata information to automatically register a translator, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node fisheye_camera] Is associated with existing Maya node camera.
-00:00:00  147mb         | [mtoa] [<built-in>] [node fisheye_camera] Not enough metadata information to automatically register a translator, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node cyl_camera] Is associated with existing Maya node camera.
-00:00:00  147mb         | [mtoa] [<built-in>] [node cyl_camera] Not enough metadata information to automatically register a translator, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node point_light] Is associated with existing Maya node pointLight.
-00:00:00  147mb         | [mtoa] [<built-in>] [node point_light] Not enough metadata information to automatically register a translator, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node distant_light] Is associated with existing Maya node directionalLight.
-00:00:00  147mb         | [mtoa] [<built-in>] [node distant_light] Not enough metadata information to automatically register a translator, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node quad_light] Is associated with existing Maya node aiAreaLight.
-00:00:00  147mb         | [mtoa] [<built-in>] [node quad_light] Not enough metadata information to automatically register a translator, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node spot_light] Is associated with existing Maya node spotLight.
-00:00:00  147mb         | [mtoa] [<built-in>] [node spot_light] Not enough metadata information to automatically register a translator, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node ambient_light] Is associated with existing Maya node ambientLight.
-00:00:00  147mb         | [mtoa] [<built-in>] [node ambient_light] Not enough metadata information to automatically register a translator, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node skydome_light] Is associated with existing Maya node aiSkyDomeLight.
-00:00:00  147mb         | [mtoa] [<built-in>] [node skydome_light] Not enough metadata information to automatically register a translator, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node cylinder_light] Is associated with existing Maya node aiAreaLight.
-00:00:00  147mb         | [mtoa] [<built-in>] [node cylinder_light] Not enough metadata information to automatically register a translator, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node disk_light] Is associated with existing Maya node aiAreaLight.
-00:00:00  147mb         | [mtoa] [<built-in>] [node disk_light] Not enough metadata information to automatically register a translator, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] Registered new Maya node aiRaySwitch.
-00:00:00  147mb         | [mtoa] [<built-in>] [node ray_switch] Is associated with existing Maya node aiRaySwitch.
-00:00:00  147mb         | [mtoa] [<built-in>] [node ray_switch] Registered the translator <built-in> for associated Maya node aiRaySwitch.
-00:00:00  147mb         | [mtoa] [<built-in>] [node image] Marked as hidden.
-00:00:00  147mb         | [mtoa] [<built-in>] Registered new Maya node aiNoise.
-00:00:00  147mb         | [mtoa] [<built-in>] [node noise] Is associated with existing Maya node aiNoise.
-00:00:00  147mb         | [mtoa] [<built-in>] [node noise] Registered the translator <built-in> for associated Maya node aiNoise.
-00:00:00  147mb         | [mtoa] [<built-in>] Registered new Maya node aiUtility.
-00:00:00  147mb         | [mtoa] [<built-in>] [node utility] Is associated with existing Maya node aiUtility.
-00:00:00  147mb         | [mtoa] [<built-in>] [node utility] Registered the translator <built-in> for associated Maya node aiUtility.
-00:00:00  147mb         | [mtoa] [<built-in>] Registered new Maya node aiWireframe.
-00:00:00  147mb         | [mtoa] [<built-in>] [node wireframe] Is associated with existing Maya node aiWireframe.
-00:00:00  147mb         | [mtoa] [<built-in>] [node wireframe] Registered the translator <built-in> for associated Maya node aiWireframe.
-00:00:00  147mb         | [mtoa] [<built-in>] Registered new Maya node aiMotionVector.
-00:00:00  147mb         | [mtoa] [<built-in>] [node motion_vector] Is associated with existing Maya node aiMotionVector.
-00:00:00  147mb         | [mtoa] [<built-in>] [node motion_vector] Registered the translator <built-in> for associated Maya node aiMotionVector.
-00:00:00  147mb         | [mtoa] [<built-in>] Registered new Maya node aiGobo.
-00:00:00  147mb         | [mtoa] [<built-in>] [node gobo] Is associated with existing Maya node aiGobo.
-00:00:00  147mb         | [mtoa] [<built-in>] [node gobo] Registered the translator <built-in> for associated Maya node aiGobo.
-00:00:00  147mb         | [mtoa] [<built-in>] Registered new Maya node aiBarndoor.
-00:00:00  147mb         | [mtoa] [<built-in>] [node barndoor] Is associated with existing Maya node aiBarndoor.
-00:00:00  147mb         | [mtoa] [<built-in>] [node barndoor] Registered the translator <built-in> for associated Maya node aiBarndoor.
-00:00:00  147mb         | [mtoa] [<built-in>] Registered new Maya node aiLightBlocker.
-00:00:00  147mb         | [mtoa] [<built-in>] [node light_blocker] Is associated with existing Maya node aiLightBlocker.
-00:00:00  147mb         | [mtoa] [<built-in>] [node light_blocker] Registered the translator <built-in> for associated Maya node aiLightBlocker.
-00:00:00  147mb         | [mtoa] [<built-in>] Registered new Maya node aiLightDecay.
-00:00:00  147mb         | [mtoa] [<built-in>] [node light_decay] Is associated with existing Maya node aiLightDecay.
-00:00:00  147mb         | [mtoa] [<built-in>] [node light_decay] Registered the translator <built-in> for associated Maya node aiLightDecay.
-00:00:00  147mb         | [mtoa] [<built-in>] [node flat] Marked as hidden.
-00:00:00  147mb         | [mtoa] [<built-in>] [node lambert] Marked as hidden.
-00:00:00  147mb         | [<built-in>] Registered aov emission
-00:00:00  147mb         | [<built-in>] Registered aov direct_diffuse
-00:00:00  147mb         | [<built-in>] Registered aov direct_specular
-00:00:00  147mb         | [<built-in>] Registered aov indirect_diffuse
-00:00:00  147mb         | [<built-in>] Registered aov indirect_specular
-00:00:00  147mb         | [<built-in>] Registered aov reflection
-00:00:00  147mb         | [<built-in>] Registered aov refraction
-00:00:00  147mb         | [<built-in>] Registered aov sss
-00:00:00  147mb         | [mtoa] [<built-in>] Registered new Maya node aiStandard.
-00:00:00  147mb         | [mtoa] [<built-in>] [node standard] Is associated with existing Maya node aiStandard.
-00:00:00  147mb         | [mtoa] [<built-in>] [node standard] Registered the translator <built-in> for associated Maya node aiStandard.
-00:00:00  147mb         | [mtoa] [<built-in>] Registered new Maya node aiHair.
-00:00:00  147mb         | [mtoa] [<built-in>] [node hair] Is associated with existing Maya node aiHair.
-00:00:00  147mb         | [mtoa] [<built-in>] [node hair] Registered the translator <built-in> for associated Maya node aiHair.
-00:00:00  147mb         | [mtoa] [<built-in>] Registered new Maya node aiAmbientOcclusion.
-00:00:00  147mb         | [mtoa] [<built-in>] [node ambient_occlusion] Is associated with existing Maya node aiAmbientOcclusion.
-00:00:00  147mb         | [mtoa] [<built-in>] [node ambient_occlusion] Registered the translator <built-in> for associated Maya node aiAmbientOcclusion.
-00:00:00  147mb         | [mtoa] [<built-in>] Registered new Maya node aiBump2d.
-00:00:00  147mb         | [mtoa] [<built-in>] [node bump2d] Is associated with existing Maya node aiBump2d.
-00:00:00  147mb         | [mtoa] [<built-in>] [node bump2d] Registered the translator <built-in> for associated Maya node aiBump2d.
-00:00:00  147mb         | [mtoa] [<built-in>] Registered new Maya node aiBump3d.
-00:00:00  147mb         | [mtoa] [<built-in>] [node bump3d] Is associated with existing Maya node aiBump3d.
-00:00:00  147mb         | [mtoa] [<built-in>] [node bump3d] Registered the translator <built-in> for associated Maya node aiBump3d.
-00:00:00  147mb         | [mtoa] [<built-in>] [node sky] Is associated with existing Maya node aiSky.
-00:00:00  147mb         | [mtoa] [<built-in>] [node sky] Registered the translator <built-in> for associated Maya node aiSky.
-00:00:00  147mb         | [mtoa] [<built-in>] Registered new Maya node aiVolumeScattering.
-00:00:00  147mb         | [mtoa] [<built-in>] [node volume_scattering] Is associated with existing Maya node aiVolumeScattering.
-00:00:00  147mb         | [mtoa] [<built-in>] [node volume_scattering] Registered the translator <built-in> for associated Maya node aiVolumeScattering.
-00:00:00  147mb         | [mtoa] [<built-in>] Registered new Maya node aiFog.
-00:00:00  147mb         | [mtoa] [<built-in>] [node fog] Is associated with existing Maya node aiFog.
-00:00:00  147mb         | [mtoa] [<built-in>] [node fog] Registered the translator <built-in> for associated Maya node aiFog.
-00:00:00  147mb         | [mtoa] [<built-in>] [node driver_null] Marked as hidden.
-00:00:00  147mb         | [mtoa] [<built-in>] [node driver_display] Marked as hidden.
-00:00:00  147mb         | [mtoa] [<built-in>] [node driver_jpeg] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node driver_jpeg] Registered the translator jpeg for associated Maya node <driver>.
-00:00:00  147mb         | [mtoa] [<built-in>] [node driver_png] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node driver_png] Registered an alternative translator png for associated Maya node <driver>.
-00:00:00  147mb         | [mtoa] [<built-in>] [node driver_tiff] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node driver_tiff] Registered an alternative translator tif for associated Maya node <driver>.
-00:00:00  147mb         | [mtoa] [<built-in>] [node driver_exr] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node driver_exr] Registered the translator exr for associated Maya node <driver>.
-00:00:00  147mb         | [mtoa] [<built-in>] [node box_filter] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node box_filter] Registered the translator box for associated Maya node <filter>.
-00:00:00  147mb         | [mtoa] [<built-in>] [node catrom_filter] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node catrom_filter] Registered an alternative translator catrom for associated Maya node <filter>.
-00:00:00  147mb         | [mtoa] [<built-in>] [node catrom2d_filter] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node catrom2d_filter] Registered an alternative translator catrom2d for associated Maya node <filter>.
-00:00:00  147mb         | [mtoa] [<built-in>] [node closest_filter] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node closest_filter] Registered an alternative translator closest for associated Maya node <filter>.
-00:00:00  147mb         | [mtoa] [<built-in>] [node farthest_filter] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node farthest_filter] Registered an alternative translator farthest for associated Maya node <filter>.
-00:00:00  147mb         | [mtoa] [<built-in>] [node cook_filter] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node cook_filter] Registered an alternative translator cook for associated Maya node <filter>.
-00:00:00  147mb         | [mtoa] [<built-in>] [node cone_filter] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node cone_filter] Registered an alternative translator cone for associated Maya node <filter>.
-00:00:00  147mb         | [mtoa] [<built-in>] [node cubic_filter] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node cubic_filter] Registered an alternative translator cubic for associated Maya node <filter>.
-00:00:00  147mb         | [mtoa] [<built-in>] [node disk_filter] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node disk_filter] Registered an alternative translator disk for associated Maya node <filter>.
-00:00:00  147mb         | [mtoa] [<built-in>] [node mitnet_filter] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node mitnet_filter] Registered an alternative translator mitnet for associated Maya node <filter>.
-00:00:00  147mb         | [mtoa] [<built-in>] [node sinc_filter] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node sinc_filter] Registered an alternative translator sinc for associated Maya node <filter>.
-00:00:00  147mb         | [mtoa] [<built-in>] [node blackman_harris_filter] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node blackman_harris_filter] Registered the translator blackman_harris for associated Maya node <filter>.
-00:00:00  147mb         | [mtoa] [<built-in>] [node triangle_filter] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node triangle_filter] Registered an alternative translator triangle for associated Maya node <filter>.
-00:00:00  147mb         | [mtoa] [<built-in>] [node video_filter] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node video_filter] Registered an alternative translator video for associated Maya node <filter>.
-00:00:00  147mb         | [mtoa] [<built-in>] [node gaussian_filter] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node gaussian_filter] Registered an alternative translator gaussian for associated Maya node <filter>.
-00:00:00  147mb         | [mtoa] [<built-in>] [node variance_filter] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node variance_filter] Registered an alternative translator variance for associated Maya node <filter>.
-00:00:00  147mb         | [mtoa] [<built-in>] [node heatmap_filter] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node heatmap_filter] Registered an alternative translator heatmap for associated Maya node <filter>.
-00:00:00  147mb         | [mtoa] [<built-in>] [node sphere] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node sphere] Not enough metadata information to automatically register a translator, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node cylinder] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node cylinder] Not enough metadata information to automatically register a translator, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node cone] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node cone] Not enough metadata information to automatically register a translator, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node disk] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node disk] Not enough metadata information to automatically register a translator, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node plane] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node plane] Not enough metadata information to automatically register a translator, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node polymesh] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node polymesh] Not enough metadata information to automatically register a translator, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node nurbs] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node nurbs] Not enough metadata information to automatically register a translator, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node box] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node box] Not enough metadata information to automatically register a translator, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node curves] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node curves] Not enough metadata information to automatically register a translator, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node points] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node points] Not enough metadata information to automatically register a translator, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node implicit] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node implicit] Not enough metadata information to automatically register a translator, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node ginstance] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node ginstance] Not enough metadata information to automatically register a translator, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node procedural] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node procedural] Not enough metadata information to automatically register a translator, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node list_aggregate] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node list_aggregate] Not enough metadata information to automatically register a translator, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node override] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] [node override] Not enough metadata information to automatically register a translator, ignored.
-00:00:00  147mb         | [mtoa] [<built-in>] Generated 16 new Maya nodes for Arnold built-in nodes.
-00:00:00  147mb         | [mtoa] [<built-in>] Generated 38 translators for 27 Maya nodes (16 new and 11 existing) for Arnold built-in nodes.
-00:00:00  147mb         | [mtoa] [<built-in>] [node ] Registered the translator <built-in> for associated Maya node aiOptions.
-00:00:00  147mb         | [mtoa] [<built-in>] [node ] Registered the translator <built-in> for associated Maya node lambert.
-00:00:00  147mb         | [mtoa] [<built-in>] [node ] Replaced translator <built-in> for associated Maya node aiSky.
-00:00:00  147mb         | [mtoa] [<built-in>] [node ] Registered the translator <built-in> for associated Maya node directionalLight.
-00:00:00  147mb         | [mtoa] [<built-in>] [node ] Registered the translator <built-in> for associated Maya node spotLight.
-00:00:00  147mb         | [mtoa] [<built-in>] [node ] Registered the translator <built-in> for associated Maya node areaLight.
-00:00:00  147mb         | [mtoa] [<built-in>] [node ] Registered the translator <built-in> for associated Maya node pointLight.
-00:00:00  147mb         | [mtoa] [<built-in>] [node ] Registered the translator <built-in> for associated Maya node ambientLight.
-00:00:00  147mb         | [mtoa] [<built-in>] [node ] Registered the translator quad for associated Maya node aiAreaLight.
-00:00:00  148mb         | [mtoa] [<built-in>] [node ] Registered the translator cylinder for associated Maya node aiAreaLight.
-00:00:00  148mb         | [mtoa] [<built-in>] [node ] Registered an alternative translator disk for associated Maya node aiAreaLight.
-00:00:00  148mb         | [mtoa] [<built-in>] [node ] Registered the translator <built-in> for associated Maya node aiSkyDomeLight.
-00:00:00  148mb         | [mtoa] [<built-in>] [node ] Registered the translator <built-in> for associated Maya node mesh.
-00:00:00  148mb         | [mtoa] [<built-in>] [node ] Registered the translator <built-in> for associated Maya node nurbsSurface.
-00:00:00  148mb         | [mtoa] [<built-in>] [node ] Registered the translator builtin for associated Maya node aiStandIn.
-00:00:00  148mb         | [mtoa] [<built-in>] [node ] Registered the translator perspective for associated Maya node camera.
-00:00:00  148mb         | [mtoa] [<built-in>] [node ] Registered the translator orthographic for associated Maya node camera.
-00:00:00  148mb         | [mtoa] [<built-in>] [node ] Registered the translator fisheye for associated Maya node camera.
-00:00:00  148mb         | [mtoa] [<built-in>] [node ] Registered the translator cylindrical for associated Maya node camera.
-00:00:00  148mb         | [mtoa] [<built-in>] [node ] Registered the translator perspective for associated Maya node stereoRigCamera.
-00:00:00  148mb         | [mtoa] [<built-in>] [node ] Registered the translator orthographic for associated Maya node stereoRigCamera.
-00:00:00  148mb         | [mtoa] [<built-in>] [node ] Registered the translator fisheye for associated Maya node stereoRigCamera.
-00:00:00  148mb         | [mtoa] [<built-in>] [node ] Registered the translator cylindrical for associated Maya node stereoRigCamera.
-00:00:00  148mb         | [mtoa] [<built-in>] [node ] Registered the translator <built-in> for associated Maya node hairSystem.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] Found Arnold plugin file mtoa_shaders as C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll.
-00:00:00  148mb         | loading plugin: C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll ...
-00:00:00  148mb         |  mtoa_shaders.dll: MayaMultiplyDivide uses Arnold 3.3.13.1
-00:00:00  148mb         |  mtoa_shaders.dll: MayaClamp uses Arnold 3.3.13.1
-00:00:00  148mb         |  mtoa_shaders.dll: MayaGammaCorrect uses Arnold 3.3.13.1
-00:00:00  148mb         |  mtoa_shaders.dll: MayaCondition uses Arnold 3.3.13.1
-00:00:00  148mb         |  mtoa_shaders.dll: MayaReverse uses Arnold 3.3.13.1
-00:00:00  148mb         |  mtoa_shaders.dll: MayaBlendColors uses Arnold 3.3.13.1
-00:00:00  148mb         |  mtoa_shaders.dll: MayaFacingRatio uses Arnold 3.3.13.1
-00:00:00  148mb         |  mtoa_shaders.dll: MayaFlippedNormal uses Arnold 3.3.13.1
-00:00:00  148mb         |  mtoa_shaders.dll: MayaPlusMinusAverage1D uses Arnold 3.3.13.1
-00:00:00  148mb         |  mtoa_shaders.dll: MayaPlusMinusAverage2D uses Arnold 3.3.13.1
-00:00:00  148mb         |  mtoa_shaders.dll: MayaPlusMinusAverage3D uses Arnold 3.3.13.1
-00:00:00  148mb         |  mtoa_shaders.dll: MayaRemapValueToValue uses Arnold 3.3.13.1
-00:00:00  148mb         |  mtoa_shaders.dll: MayaRemapValueToColor uses Arnold 3.3.13.1
-00:00:00  148mb         |  mtoa_shaders.dll: MayaRemapColor uses Arnold 3.3.13.1
-00:00:00  148mb         |  mtoa_shaders.dll: MayaFile uses Arnold 3.3.13.1
-00:00:00  148mb         |  mtoa_shaders.dll: MayaPlace2DTexture uses Arnold 3.3.13.1
-00:00:00  148mb         |  mtoa_shaders.dll: MayaRamp uses Arnold 3.3.13.1
-00:00:00  148mb         |  mtoa_shaders.dll: MayaProjection uses Arnold 3.3.13.1
-00:00:00  148mb         |  mtoa_shaders.dll: MeshInfo uses Arnold 3.3.13.1
-00:00:00  148mb         |  mtoa_shaders.dll: TangentToObjectSpace uses Arnold 3.3.13.1
-00:00:00  148mb         |  mtoa_shaders.dll: MayaChecker uses Arnold 3.3.13.1
-00:00:00  148mb         |  mtoa_shaders.dll: MayaBulge uses Arnold 3.3.13.1
-00:00:00  148mb         |  mtoa_shaders.dll: MayaCloth uses Arnold 3.3.13.1
-00:00:00  148mb         |  mtoa_shaders.dll: MayaGrid uses Arnold 3.3.13.1
-00:00:00  148mb         |  mtoa_shaders.dll: MayaFractal uses Arnold 3.3.13.1
-00:00:00  148mb         |  mtoa_shaders.dll: MayaNoise uses Arnold 3.3.13.1
-00:00:00  148mb         |  mtoa_shaders.dll: MayaPlace3DTexture uses Arnold 3.3.13.1
-00:00:00  148mb         |  mtoa_shaders.dll: MayaRgbToHsv uses Arnold 3.3.13.1
-00:00:00  148mb         |  mtoa_shaders.dll: MayaHsvToRgb uses Arnold 3.3.13.1
-00:00:00  148mb         |  mtoa_shaders.dll: MayaLuminance uses Arnold 3.3.13.1
-00:00:00  148mb         |  mtoa_shaders.dll: MayaCloud uses Arnold 3.3.13.1
-00:00:00  148mb         |  mtoa_shaders.dll: MayaCloudAlpha uses Arnold 3.3.13.1
-00:00:00  148mb         |  mtoa_shaders.dll: MayaSnow uses Arnold 3.3.13.1
-00:00:00  148mb         |  mtoa_shaders.dll: MayaContrast uses Arnold 3.3.13.1
-00:00:00  148mb         |  mtoa_shaders.dll: MayaLayeredTexture uses Arnold 3.3.13.1
-00:00:00  148mb         |  mtoa_shaders.dll: MayaLayeredShader uses Arnold 3.3.13.1
-00:00:00  148mb         |  mtoa_shaders.dll: MayaSolidFractal uses Arnold 3.3.13.1
-00:00:00  148mb         |  mtoa_shaders.dll: MayaVolumeNoise uses Arnold 3.3.13.1
-00:00:00  148mb         |  mtoa_shaders.dll: MayaBrownian uses Arnold 3.3.13.1
-00:00:00  148mb         |  mtoa_shaders.dll: MayaStucco uses Arnold 3.3.13.1
-00:00:00  148mb         |  mtoa_shaders.dll: MayaRemapHsv uses Arnold 3.3.13.1
-00:00:00  148mb         |  mtoa_shaders.dll: MayaSetRange uses Arnold 3.3.13.1
-00:00:00  148mb         |  mtoa_shaders.dll: MayaImagePlane uses Arnold 3.3.13.1
-00:00:00  148mb         |  mtoa_shaders.dll: MayaSurfaceShader uses Arnold 3.3.13.1
-00:00:00  148mb         |  mtoa_shaders.dll: colorToFloat uses Arnold 3.3.13.1
-00:00:00  148mb         |  mtoa_shaders.dll: vectorToFloat uses Arnold 3.3.13.1
-00:00:00  148mb         |  mtoa_shaders.dll: pointToFloat uses Arnold 3.3.13.1
-00:00:00  148mb         |  mtoa_shaders.dll: point2ToFloat uses Arnold 3.3.13.1
-00:00:00  148mb         |  mtoa_shaders.dll: writeColor uses Arnold 3.3.13.1
-00:00:00  148mb         |  mtoa_shaders.dll: writeFloat uses Arnold 3.3.13.1
-00:00:00  148mb         |  mtoa_shaders.dll: MayaEnvSphere uses Arnold 3.3.13.1
-00:00:00  148mb         |  mtoa_shaders.dll: anim_matrix uses Arnold 3.3.13.1
-00:00:00  148mb         | loaded 52 plugins from 1 lib(s) in 0:00.00
-00:00:00  148mb         | [mtoa] [mtoa_shaders] Generating new Maya nodes and translators for Arnold plugin C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaMultiplyDivide] Is associated with existing Maya node multiplyDivide.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaMultiplyDivide] Registered the translator mtoa_shaders for associated Maya node multiplyDivide.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaClamp] Is associated with existing Maya node clamp.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaClamp] Registered the translator mtoa_shaders for associated Maya node clamp.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaGammaCorrect] Is associated with existing Maya node gammaCorrect.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaGammaCorrect] Registered the translator mtoa_shaders for associated Maya node gammaCorrect.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaCondition] Is associated with existing Maya node condition.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaCondition] Registered the translator mtoa_shaders for associated Maya node condition.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaReverse] Is associated with existing Maya node reverse.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaReverse] Registered the translator mtoa_shaders for associated Maya node reverse.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaBlendColors] Is associated with existing Maya node blendColors.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaBlendColors] Registered the translator mtoa_shaders for associated Maya node blendColors.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaFacingRatio] Marked as hidden.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaFlippedNormal] Marked as hidden.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaPlusMinusAverage1D] Marked as hidden.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaPlusMinusAverage2D] Marked as hidden.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaPlusMinusAverage3D] Marked as hidden.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaRemapValueToValue] Marked as hidden.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaRemapValueToColor] Marked as hidden.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaRemapColor] Marked as hidden.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaFile] Marked as hidden.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaPlace2DTexture] Marked as hidden.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaRamp] Marked as hidden.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaProjection] Marked as hidden.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MeshInfo] Marked as hidden.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node TangentToObjectSpace] Marked as hidden.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaChecker] Is associated with existing Maya node checker.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaChecker] Registered the translator mtoa_shaders for associated Maya node checker.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaBulge] Is associated with existing Maya node bulge.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaBulge] Registered the translator mtoa_shaders for associated Maya node bulge.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaCloth] Is associated with existing Maya node cloth.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaCloth] Registered the translator mtoa_shaders for associated Maya node cloth.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaGrid] Is associated with existing Maya node grid.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaGrid] Registered the translator mtoa_shaders for associated Maya node grid.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaFractal] Is associated with existing Maya node fractal.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaFractal] Registered the translator mtoa_shaders for associated Maya node fractal.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaNoise] Is associated with existing Maya node noise.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaNoise] Registered the translator mtoa_shaders for associated Maya node noise.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaPlace3DTexture] Marked as hidden.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaRgbToHsv] Is associated with existing Maya node rgbToHsv.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaRgbToHsv] Registered the translator mtoa_shaders for associated Maya node rgbToHsv.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaHsvToRgb] Is associated with existing Maya node hsvToRgb.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaHsvToRgb] Registered the translator mtoa_shaders for associated Maya node hsvToRgb.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaLuminance] Is associated with existing Maya node luminance.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaLuminance] Registered the translator mtoa_shaders for associated Maya node luminance.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaCloud] Marked as hidden.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaCloudAlpha] Marked as hidden.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaSnow] Is associated with existing Maya node snow.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaSnow] Registered the translator mtoa_shaders for associated Maya node snow.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaContrast] Is associated with existing Maya node contrast.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaContrast] Registered the translator mtoa_shaders for associated Maya node contrast.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaLayeredTexture] Marked as hidden.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaLayeredShader] Marked as hidden.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaSolidFractal] Is associated with existing Maya node solidFractal.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaSolidFractal] Registered the translator mtoa_shaders for associated Maya node solidFractal.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaVolumeNoise] Is associated with existing Maya node volumeNoise.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaVolumeNoise] Registered the translator mtoa_shaders for associated Maya node volumeNoise.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaBrownian] Is associated with existing Maya node brownian.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaBrownian] Registered the translator mtoa_shaders for associated Maya node brownian.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaStucco] Is associated with existing Maya node stucco.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaStucco] Registered the translator mtoa_shaders for associated Maya node stucco.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaRemapHsv] Marked as hidden.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaSetRange] Is associated with existing Maya node setRange.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaSetRange] Registered the translator mtoa_shaders for associated Maya node setRange.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaImagePlane] Marked as hidden.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaSurfaceShader] Is associated with existing Maya node surfaceShader.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaSurfaceShader] Registered the translator mtoa_shaders for associated Maya node surfaceShader.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node colorToFloat] Marked as hidden.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node vectorToFloat] Marked as hidden.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node pointToFloat] Marked as hidden.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node point2ToFloat] Marked as hidden.
-00:00:00  148mb         | [mtoa_shaders] Registered aov 
-00:00:00  148mb         | [mtoa] [mtoa_shaders] Registered new Maya node aiWriteColor.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node writeColor] Is associated with existing Maya node aiWriteColor.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node writeColor] Registered the translator mtoa_shaders for associated Maya node aiWriteColor.
-00:00:00  148mb         | [mtoa_shaders] Registered aov 
-00:00:00  148mb         | [mtoa] [mtoa_shaders] Registered new Maya node aiWriteFloat.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node writeFloat] Is associated with existing Maya node aiWriteFloat.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node writeFloat] Registered the translator mtoa_shaders for associated Maya node aiWriteFloat.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaEnvSphere] Is associated with existing Maya node envSphere.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node MayaEnvSphere] Registered the translator mtoa_shaders for associated Maya node envSphere.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node anim_matrix] Marked as hidden.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] Generated 2 new Maya nodes for Arnold plugin C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] Generated 26 translators for 26 Maya nodes (2 new and 24 existing) for Arnold plugin C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node ] Registered the translator mtoa_shaders for associated Maya node layeredShader.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node ] Registered the translator mtoa_shaders for associated Maya node layeredTexture.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node ] Registered the translator mtoa_shaders for associated Maya node file.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node ] Registered the translator mtoa_shaders for associated Maya node place2dTexture.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node ] Registered the translator mtoa_shaders for associated Maya node bump2d.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node ] Registered the translator mtoa_shaders for associated Maya node bump3d.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node ] Registered the translator facingRatio for associated Maya node samplerInfo.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node ] Registered the translator mtoa_shaders for associated Maya node plusMinusAverage.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node ] Registered the translator mtoa_shaders for associated Maya node remapValue.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node ] Registered the translator mtoa_shaders for associated Maya node remapColor.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node ] Registered the translator mtoa_shaders for associated Maya node projection.
-00:00:00  148mb         | [mtoa] [mtoa_shaders] [node ] Registered the translator mtoa_shaders for associated Maya node ramp.
-00:00:00  148mb         | [mtoa] Arnold plugin C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll already loaded, ignored.
-00:00:00  148mb         | [mtoa] Registering 2 loaded extensions:
-00:00:00  148mb         | [mtoa] Registering new Maya nodes provided by <built-in>(<built-in>).
-00:00:00  148mb         | [mtoa] Initializing ArnoldCustomShader as Maya node aiAmbientOcclusion, from Arnold node ambient_occlusion metadata, provided by <built-in>
-00:00:00  148mb         | [mtoa] Registered Maya node aiAmbientOcclusion provided by <built-in>(<built-in>).
-00:00:00  148mb         | [mtoa] Initializing ArnoldCustomShader as Maya node aiBarndoor, from Arnold node barndoor metadata, provided by <built-in>
-00:00:00  148mb         | [mtoa] Registered Maya node aiBarndoor provided by <built-in>(<built-in>).
-00:00:00  148mb         | [mtoa] Initializing ArnoldCustomShader as Maya node aiBump2d, from Arnold node bump2d metadata, provided by <built-in>
-00:00:00  148mb         | [mtoa] Registered Maya node aiBump2d provided by <built-in>(<built-in>).
-00:00:00  148mb         | [mtoa] Initializing ArnoldCustomShader as Maya node aiBump3d, from Arnold node bump3d metadata, provided by <built-in>
-00:00:00  148mb         | [mtoa] Registered Maya node aiBump3d provided by <built-in>(<built-in>).
-00:00:00  148mb         | [mtoa] Initializing ArnoldCustomShader as Maya node aiFog, from Arnold node fog metadata, provided by <built-in>
-00:00:00  148mb         | [mtoa] Registered Maya node aiFog provided by <built-in>(<built-in>).
-00:00:00  148mb         | [mtoa] Initializing ArnoldCustomShader as Maya node aiGobo, from Arnold node gobo metadata, provided by <built-in>
-00:00:00  148mb         | [mtoa] Registered Maya node aiGobo provided by <built-in>(<built-in>).
-00:00:00  148mb         | [mtoa] Initializing ArnoldCustomShader as Maya node aiHair, from Arnold node hair metadata, provided by <built-in>
-00:00:00  148mb         | [mtoa] Registered Maya node aiHair provided by <built-in>(<built-in>).
-00:00:00  148mb         | [mtoa] Initializing ArnoldCustomShader as Maya node aiLightBlocker, from Arnold node light_blocker metadata, provided by <built-in>
-00:00:00  149mb         | [mtoa] Registered Maya node aiLightBlocker provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] Initializing ArnoldCustomShader as Maya node aiLightDecay, from Arnold node light_decay metadata, provided by <built-in>
-00:00:00  149mb         | [mtoa] Registered Maya node aiLightDecay provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] Initializing ArnoldCustomShader as Maya node aiMotionVector, from Arnold node motion_vector metadata, provided by <built-in>
-00:00:00  149mb         | [mtoa] Registered Maya node aiMotionVector provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] Initializing ArnoldCustomShader as Maya node aiNoise, from Arnold node noise metadata, provided by <built-in>
-00:00:00  149mb         | [mtoa] Registered Maya node aiNoise provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] Initializing ArnoldCustomShader as Maya node aiRaySwitch, from Arnold node ray_switch metadata, provided by <built-in>
-00:00:00  149mb         | [mtoa] Registered Maya node aiRaySwitch provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] Initializing ArnoldCustomShader as Maya node aiStandard, from Arnold node standard metadata, provided by <built-in>
-00:00:00  149mb         | [mtoa] Registered Maya node aiStandard provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] Initializing ArnoldCustomShader as Maya node aiUtility, from Arnold node utility metadata, provided by <built-in>
-00:00:00  149mb         | [mtoa] Registered Maya node aiUtility provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] Initializing ArnoldCustomShader as Maya node aiVolumeScattering, from Arnold node volume_scattering metadata, provided by <built-in>
-00:00:00  149mb         | [mtoa] Registered Maya node aiVolumeScattering provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] Initializing ArnoldCustomShader as Maya node aiWireframe, from Arnold node wireframe metadata, provided by <built-in>
-00:00:00  149mb         | [mtoa] Registered Maya node aiWireframe provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] Registering new translators provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] [maya <driver>] Added translator exr provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] NodeInitializer for CDriverTranslator driver_exr, provided by <built-in>
-00:00:00  149mb         | [mtoa] [maya <driver>] Added translator jpeg provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] NodeInitializer for CDriverTranslator driver_jpeg, provided by <built-in>
-00:00:00  149mb         | [mtoa] [maya <driver>] Added translator png provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] NodeInitializer for CDriverTranslator driver_png, provided by <built-in>
-00:00:00  149mb         | [mtoa] [maya <driver>] Added translator tif provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] NodeInitializer for CDriverTranslator driver_tiff, provided by <built-in>
+00:00:00  140mb         | log started Wed Dec 14 16:12:34 2011
+00:00:00  140mb         | Arnold 3.3.13.1 windows 64-bit icc110 oiio1000 sse (build date: Oct 25 2011 16:37:41)
+00:00:00  140mb         | running on Berenjena, 4 x 2833 mhz GenuineIntel with 3839 mb
+00:00:00  140mb         |  
+00:00:00  140mb         | [METADATA] Loading metadata file: C:/solidAngle/mtoadeploy/2012/plug-ins/mtoa.mtd
+00:00:00  140mb         | Successfully registered Arnold ass file exporter
+00:00:00  140mb         | Successfully registered Arnold ass file importer
+00:00:00  140mb         | Successfully registered Arnold swatch renderer
+00:00:00  140mb         | Successfully registered 'arnoldRender' command
+00:00:00  140mb         | Successfully registered 'arnoldIpr' command
+00:00:00  140mb         | Successfully registered 'arnoldExportAss' command
+00:00:00  140mb         | Successfully registered 'arnoldPlugins' command
+00:00:00  141mb         | [mtoa] [<built-in>] Generating new Maya nodes and translators for Arnold built-in nodes.
+00:00:00  141mb         | [mtoa] [<built-in>] [node options] Is associated with existing Maya node aiOptions.
+00:00:00  141mb         | [mtoa] [<built-in>] [node options] Not enough metadata information to automatically register a translator, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node persp_camera] Is associated with existing Maya node camera.
+00:00:00  141mb         | [mtoa] [<built-in>] [node persp_camera] Not enough metadata information to automatically register a translator, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node ortho_camera] Is associated with existing Maya node camera.
+00:00:00  141mb         | [mtoa] [<built-in>] [node ortho_camera] Not enough metadata information to automatically register a translator, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node fisheye_camera] Is associated with existing Maya node camera.
+00:00:00  141mb         | [mtoa] [<built-in>] [node fisheye_camera] Not enough metadata information to automatically register a translator, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node cyl_camera] Is associated with existing Maya node camera.
+00:00:00  141mb         | [mtoa] [<built-in>] [node cyl_camera] Not enough metadata information to automatically register a translator, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node point_light] Is associated with existing Maya node pointLight.
+00:00:00  141mb         | [mtoa] [<built-in>] [node point_light] Not enough metadata information to automatically register a translator, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node distant_light] Is associated with existing Maya node directionalLight.
+00:00:00  141mb         | [mtoa] [<built-in>] [node distant_light] Not enough metadata information to automatically register a translator, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node quad_light] Is associated with existing Maya node aiAreaLight.
+00:00:00  141mb         | [mtoa] [<built-in>] [node quad_light] Not enough metadata information to automatically register a translator, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node spot_light] Is associated with existing Maya node spotLight.
+00:00:00  141mb         | [mtoa] [<built-in>] [node spot_light] Not enough metadata information to automatically register a translator, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node ambient_light] Is associated with existing Maya node ambientLight.
+00:00:00  141mb         | [mtoa] [<built-in>] [node ambient_light] Not enough metadata information to automatically register a translator, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node skydome_light] Is associated with existing Maya node aiSkyDomeLight.
+00:00:00  141mb         | [mtoa] [<built-in>] [node skydome_light] Not enough metadata information to automatically register a translator, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node cylinder_light] Is associated with existing Maya node aiAreaLight.
+00:00:00  141mb         | [mtoa] [<built-in>] [node cylinder_light] Not enough metadata information to automatically register a translator, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node disk_light] Is associated with existing Maya node aiAreaLight.
+00:00:00  141mb         | [mtoa] [<built-in>] [node disk_light] Not enough metadata information to automatically register a translator, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] Registered new Maya node aiRaySwitch.
+00:00:00  141mb         | [mtoa] [<built-in>] [node ray_switch] Is associated with existing Maya node aiRaySwitch.
+00:00:00  141mb         | [mtoa] [<built-in>] [node ray_switch] Registered the translator <built-in> for associated Maya node aiRaySwitch.
+00:00:00  141mb         | [mtoa] [<built-in>] [node image] Marked as hidden.
+00:00:00  141mb         | [mtoa] [<built-in>] Registered new Maya node aiNoise.
+00:00:00  141mb         | [mtoa] [<built-in>] [node noise] Is associated with existing Maya node aiNoise.
+00:00:00  141mb         | [mtoa] [<built-in>] [node noise] Registered the translator <built-in> for associated Maya node aiNoise.
+00:00:00  141mb         | [mtoa] [<built-in>] Registered new Maya node aiUtility.
+00:00:00  141mb         | [mtoa] [<built-in>] [node utility] Is associated with existing Maya node aiUtility.
+00:00:00  141mb         | [mtoa] [<built-in>] [node utility] Registered the translator <built-in> for associated Maya node aiUtility.
+00:00:00  141mb         | [mtoa] [<built-in>] Registered new Maya node aiWireframe.
+00:00:00  141mb         | [mtoa] [<built-in>] [node wireframe] Is associated with existing Maya node aiWireframe.
+00:00:00  141mb         | [mtoa] [<built-in>] [node wireframe] Registered the translator <built-in> for associated Maya node aiWireframe.
+00:00:00  141mb         | [mtoa] [<built-in>] Registered new Maya node aiMotionVector.
+00:00:00  141mb         | [mtoa] [<built-in>] [node motion_vector] Is associated with existing Maya node aiMotionVector.
+00:00:00  141mb         | [mtoa] [<built-in>] [node motion_vector] Registered the translator <built-in> for associated Maya node aiMotionVector.
+00:00:00  141mb         | [mtoa] [<built-in>] Registered new Maya node aiGobo.
+00:00:00  141mb         | [mtoa] [<built-in>] [node gobo] Is associated with existing Maya node aiGobo.
+00:00:00  141mb         | [mtoa] [<built-in>] [node gobo] Registered the translator <built-in> for associated Maya node aiGobo.
+00:00:00  141mb         | [mtoa] [<built-in>] Registered new Maya node aiBarndoor.
+00:00:00  141mb         | [mtoa] [<built-in>] [node barndoor] Is associated with existing Maya node aiBarndoor.
+00:00:00  141mb         | [mtoa] [<built-in>] [node barndoor] Registered the translator <built-in> for associated Maya node aiBarndoor.
+00:00:00  141mb         | [mtoa] [<built-in>] Registered new Maya node aiLightBlocker.
+00:00:00  141mb         | [mtoa] [<built-in>] [node light_blocker] Is associated with existing Maya node aiLightBlocker.
+00:00:00  141mb         | [mtoa] [<built-in>] [node light_blocker] Registered the translator <built-in> for associated Maya node aiLightBlocker.
+00:00:00  141mb         | [mtoa] [<built-in>] Registered new Maya node aiLightDecay.
+00:00:00  141mb         | [mtoa] [<built-in>] [node light_decay] Is associated with existing Maya node aiLightDecay.
+00:00:00  141mb         | [mtoa] [<built-in>] [node light_decay] Registered the translator <built-in> for associated Maya node aiLightDecay.
+00:00:00  141mb         | [mtoa] [<built-in>] [node flat] Marked as hidden.
+00:00:00  141mb         | [mtoa] [<built-in>] [node lambert] Marked as hidden.
+00:00:00  141mb         | [<built-in>] Registered aov emission
+00:00:00  141mb         | [<built-in>] Registered aov direct_diffuse
+00:00:00  141mb         | [<built-in>] Registered aov direct_specular
+00:00:00  141mb         | [<built-in>] Registered aov indirect_diffuse
+00:00:00  141mb         | [<built-in>] Registered aov indirect_specular
+00:00:00  141mb         | [<built-in>] Registered aov reflection
+00:00:00  141mb         | [<built-in>] Registered aov refraction
+00:00:00  141mb         | [<built-in>] Registered aov sss
+00:00:00  141mb         | [mtoa] [<built-in>] Registered new Maya node aiStandard.
+00:00:00  141mb         | [mtoa] [<built-in>] [node standard] Is associated with existing Maya node aiStandard.
+00:00:00  141mb         | [mtoa] [<built-in>] [node standard] Registered the translator <built-in> for associated Maya node aiStandard.
+00:00:00  141mb         | [mtoa] [<built-in>] Registered new Maya node aiHair.
+00:00:00  141mb         | [mtoa] [<built-in>] [node hair] Is associated with existing Maya node aiHair.
+00:00:00  141mb         | [mtoa] [<built-in>] [node hair] Registered the translator <built-in> for associated Maya node aiHair.
+00:00:00  141mb         | [mtoa] [<built-in>] Registered new Maya node aiAmbientOcclusion.
+00:00:00  141mb         | [mtoa] [<built-in>] [node ambient_occlusion] Is associated with existing Maya node aiAmbientOcclusion.
+00:00:00  141mb         | [mtoa] [<built-in>] [node ambient_occlusion] Registered the translator <built-in> for associated Maya node aiAmbientOcclusion.
+00:00:00  141mb         | [mtoa] [<built-in>] Registered new Maya node aiBump2d.
+00:00:00  141mb         | [mtoa] [<built-in>] [node bump2d] Is associated with existing Maya node aiBump2d.
+00:00:00  141mb         | [mtoa] [<built-in>] [node bump2d] Registered the translator <built-in> for associated Maya node aiBump2d.
+00:00:00  141mb         | [mtoa] [<built-in>] Registered new Maya node aiBump3d.
+00:00:00  141mb         | [mtoa] [<built-in>] [node bump3d] Is associated with existing Maya node aiBump3d.
+00:00:00  141mb         | [mtoa] [<built-in>] [node bump3d] Registered the translator <built-in> for associated Maya node aiBump3d.
+00:00:00  141mb         | [mtoa] [<built-in>] [node sky] Is associated with existing Maya node aiSky.
+00:00:00  141mb         | [mtoa] [<built-in>] [node sky] Registered the translator <built-in> for associated Maya node aiSky.
+00:00:00  141mb         | [mtoa] [<built-in>] Registered new Maya node aiVolumeScattering.
+00:00:00  141mb         | [mtoa] [<built-in>] [node volume_scattering] Is associated with existing Maya node aiVolumeScattering.
+00:00:00  141mb         | [mtoa] [<built-in>] [node volume_scattering] Registered the translator <built-in> for associated Maya node aiVolumeScattering.
+00:00:00  141mb         | [mtoa] [<built-in>] Registered new Maya node aiFog.
+00:00:00  141mb         | [mtoa] [<built-in>] [node fog] Is associated with existing Maya node aiFog.
+00:00:00  141mb         | [mtoa] [<built-in>] [node fog] Registered the translator <built-in> for associated Maya node aiFog.
+00:00:00  141mb         | [mtoa] [<built-in>] [node driver_null] Marked as hidden.
+00:00:00  141mb         | [mtoa] [<built-in>] [node driver_display] Marked as hidden.
+00:00:00  141mb         | [mtoa] [<built-in>] [node driver_jpeg] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node driver_jpeg] Registered the translator jpeg for associated Maya node <driver>.
+00:00:00  141mb         | [mtoa] [<built-in>] [node driver_png] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node driver_png] Registered an alternative translator png for associated Maya node <driver>.
+00:00:00  141mb         | [mtoa] [<built-in>] [node driver_tiff] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node driver_tiff] Registered an alternative translator tif for associated Maya node <driver>.
+00:00:00  141mb         | [mtoa] [<built-in>] [node driver_exr] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node driver_exr] Registered the translator exr for associated Maya node <driver>.
+00:00:00  141mb         | [mtoa] [<built-in>] [node box_filter] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node box_filter] Registered the translator box for associated Maya node <filter>.
+00:00:00  141mb         | [mtoa] [<built-in>] [node catrom_filter] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node catrom_filter] Registered an alternative translator catrom for associated Maya node <filter>.
+00:00:00  141mb         | [mtoa] [<built-in>] [node catrom2d_filter] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node catrom2d_filter] Registered an alternative translator catrom2d for associated Maya node <filter>.
+00:00:00  141mb         | [mtoa] [<built-in>] [node closest_filter] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node closest_filter] Registered an alternative translator closest for associated Maya node <filter>.
+00:00:00  141mb         | [mtoa] [<built-in>] [node farthest_filter] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node farthest_filter] Registered an alternative translator farthest for associated Maya node <filter>.
+00:00:00  141mb         | [mtoa] [<built-in>] [node cook_filter] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node cook_filter] Registered an alternative translator cook for associated Maya node <filter>.
+00:00:00  141mb         | [mtoa] [<built-in>] [node cone_filter] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node cone_filter] Registered an alternative translator cone for associated Maya node <filter>.
+00:00:00  141mb         | [mtoa] [<built-in>] [node cubic_filter] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node cubic_filter] Registered an alternative translator cubic for associated Maya node <filter>.
+00:00:00  141mb         | [mtoa] [<built-in>] [node disk_filter] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node disk_filter] Registered an alternative translator disk for associated Maya node <filter>.
+00:00:00  141mb         | [mtoa] [<built-in>] [node mitnet_filter] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node mitnet_filter] Registered an alternative translator mitnet for associated Maya node <filter>.
+00:00:00  141mb         | [mtoa] [<built-in>] [node sinc_filter] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node sinc_filter] Registered an alternative translator sinc for associated Maya node <filter>.
+00:00:00  141mb         | [mtoa] [<built-in>] [node blackman_harris_filter] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node blackman_harris_filter] Registered the translator blackman_harris for associated Maya node <filter>.
+00:00:00  141mb         | [mtoa] [<built-in>] [node triangle_filter] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node triangle_filter] Registered an alternative translator triangle for associated Maya node <filter>.
+00:00:00  141mb         | [mtoa] [<built-in>] [node video_filter] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node video_filter] Registered an alternative translator video for associated Maya node <filter>.
+00:00:00  141mb         | [mtoa] [<built-in>] [node gaussian_filter] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node gaussian_filter] Registered an alternative translator gaussian for associated Maya node <filter>.
+00:00:00  141mb         | [mtoa] [<built-in>] [node variance_filter] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node variance_filter] Registered an alternative translator variance for associated Maya node <filter>.
+00:00:00  141mb         | [mtoa] [<built-in>] [node heatmap_filter] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node heatmap_filter] Registered an alternative translator heatmap for associated Maya node <filter>.
+00:00:00  141mb         | [mtoa] [<built-in>] [node sphere] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node sphere] Not enough metadata information to automatically register a translator, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node cylinder] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node cylinder] Not enough metadata information to automatically register a translator, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node cone] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node cone] Not enough metadata information to automatically register a translator, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node disk] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node disk] Not enough metadata information to automatically register a translator, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node plane] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node plane] Not enough metadata information to automatically register a translator, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node polymesh] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node polymesh] Not enough metadata information to automatically register a translator, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node nurbs] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node nurbs] Not enough metadata information to automatically register a translator, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node box] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node box] Not enough metadata information to automatically register a translator, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node curves] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node curves] Not enough metadata information to automatically register a translator, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node points] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node points] Not enough metadata information to automatically register a translator, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node implicit] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node implicit] Not enough metadata information to automatically register a translator, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node ginstance] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node ginstance] Not enough metadata information to automatically register a translator, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node procedural] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node procedural] Not enough metadata information to automatically register a translator, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node list_aggregate] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node list_aggregate] Not enough metadata information to automatically register a translator, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node override] Not enough metadata information to automatically associate an existing or register a new Maya node, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] [node override] Not enough metadata information to automatically register a translator, ignored.
+00:00:00  141mb         | [mtoa] [<built-in>] Generated 16 new Maya nodes for Arnold built-in nodes.
+00:00:00  141mb         | [mtoa] [<built-in>] Generated 38 translators for 27 Maya nodes (16 new and 11 existing) for Arnold built-in nodes.
+00:00:00  141mb         | [mtoa] [<built-in>] [node ] Registered the translator <built-in> for associated Maya node aiOptions.
+00:00:00  141mb         | [mtoa] [<built-in>] [node ] Registered the translator <built-in> for associated Maya node lambert.
+00:00:00  141mb         | [mtoa] [<built-in>] [node ] Replaced translator <built-in> for associated Maya node aiSky.
+00:00:00  141mb         | [mtoa] [<built-in>] [node ] Registered the translator <built-in> for associated Maya node directionalLight.
+00:00:00  141mb         | [mtoa] [<built-in>] [node ] Registered the translator <built-in> for associated Maya node spotLight.
+00:00:00  141mb         | [mtoa] [<built-in>] [node ] Registered the translator <built-in> for associated Maya node areaLight.
+00:00:00  141mb         | [mtoa] [<built-in>] [node ] Registered the translator <built-in> for associated Maya node pointLight.
+00:00:00  141mb         | [mtoa] [<built-in>] [node ] Registered the translator <built-in> for associated Maya node ambientLight.
+00:00:00  141mb         | [mtoa] [<built-in>] [node ] Registered the translator quad for associated Maya node aiAreaLight.
+00:00:00  141mb         | [mtoa] [<built-in>] [node ] Registered the translator cylinder for associated Maya node aiAreaLight.
+00:00:00  141mb         | [mtoa] [<built-in>] [node ] Registered an alternative translator disk for associated Maya node aiAreaLight.
+00:00:00  141mb         | [mtoa] [<built-in>] [node ] Registered the translator <built-in> for associated Maya node aiSkyDomeLight.
+00:00:00  141mb         | [mtoa] [<built-in>] [node ] Registered the translator <built-in> for associated Maya node mesh.
+00:00:00  141mb         | [mtoa] [<built-in>] [node ] Registered the translator <built-in> for associated Maya node nurbsSurface.
+00:00:00  141mb         | [mtoa] [<built-in>] [node ] Registered the translator builtin for associated Maya node aiStandIn.
+00:00:00  141mb         | [mtoa] [<built-in>] [node ] Registered the translator perspective for associated Maya node camera.
+00:00:00  141mb         | [mtoa] [<built-in>] [node ] Registered the translator orthographic for associated Maya node camera.
+00:00:00  141mb         | [mtoa] [<built-in>] [node ] Registered the translator fisheye for associated Maya node camera.
+00:00:00  141mb         | [mtoa] [<built-in>] [node ] Registered the translator cylindrical for associated Maya node camera.
+00:00:00  141mb         | [mtoa] [<built-in>] [node ] Registered the translator perspective for associated Maya node stereoRigCamera.
+00:00:00  141mb         | [mtoa] [<built-in>] [node ] Registered the translator orthographic for associated Maya node stereoRigCamera.
+00:00:00  141mb         | [mtoa] [<built-in>] [node ] Registered the translator fisheye for associated Maya node stereoRigCamera.
+00:00:00  141mb         | [mtoa] [<built-in>] [node ] Registered the translator cylindrical for associated Maya node stereoRigCamera.
+00:00:00  141mb         | [mtoa] [<built-in>] [node ] Registered the translator <built-in> for associated Maya node hairSystem.
+00:00:00  141mb         | [mtoa] [mtoa_shaders] Found Arnold plugin file mtoa_shaders as C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll.
+00:00:00  141mb         | [mtoa] [mtoa_shaders] Loads Arnold plugin: C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll
+00:00:00  141mb         | loading plugin: C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll ...
+00:00:00  141mb         |  mtoa_shaders.dll: MayaMultiplyDivide uses Arnold 3.3.13.1
+00:00:00  141mb         |  mtoa_shaders.dll: MayaClamp uses Arnold 3.3.13.1
+00:00:00  141mb         |  mtoa_shaders.dll: MayaGammaCorrect uses Arnold 3.3.13.1
+00:00:00  141mb         |  mtoa_shaders.dll: MayaCondition uses Arnold 3.3.13.1
+00:00:00  141mb         |  mtoa_shaders.dll: MayaReverse uses Arnold 3.3.13.1
+00:00:00  141mb         |  mtoa_shaders.dll: MayaBlendColors uses Arnold 3.3.13.1
+00:00:00  141mb         |  mtoa_shaders.dll: MayaFacingRatio uses Arnold 3.3.13.1
+00:00:00  141mb         |  mtoa_shaders.dll: MayaFlippedNormal uses Arnold 3.3.13.1
+00:00:00  141mb         |  mtoa_shaders.dll: MayaPlusMinusAverage1D uses Arnold 3.3.13.1
+00:00:00  141mb         |  mtoa_shaders.dll: MayaPlusMinusAverage2D uses Arnold 3.3.13.1
+00:00:00  141mb         |  mtoa_shaders.dll: MayaPlusMinusAverage3D uses Arnold 3.3.13.1
+00:00:00  141mb         |  mtoa_shaders.dll: MayaRemapValueToValue uses Arnold 3.3.13.1
+00:00:00  141mb         |  mtoa_shaders.dll: MayaRemapValueToColor uses Arnold 3.3.13.1
+00:00:00  141mb         |  mtoa_shaders.dll: MayaRemapColor uses Arnold 3.3.13.1
+00:00:00  141mb         |  mtoa_shaders.dll: MayaFile uses Arnold 3.3.13.1
+00:00:00  141mb         |  mtoa_shaders.dll: MayaPlace2DTexture uses Arnold 3.3.13.1
+00:00:00  141mb         |  mtoa_shaders.dll: MayaRamp uses Arnold 3.3.13.1
+00:00:00  141mb         |  mtoa_shaders.dll: MayaProjection uses Arnold 3.3.13.1
+00:00:00  141mb         |  mtoa_shaders.dll: MeshInfo uses Arnold 3.3.13.1
+00:00:00  141mb         |  mtoa_shaders.dll: TangentToObjectSpace uses Arnold 3.3.13.1
+00:00:00  141mb         |  mtoa_shaders.dll: MayaChecker uses Arnold 3.3.13.1
+00:00:00  141mb         |  mtoa_shaders.dll: MayaBulge uses Arnold 3.3.13.1
+00:00:00  141mb         |  mtoa_shaders.dll: MayaCloth uses Arnold 3.3.13.1
+00:00:00  141mb         |  mtoa_shaders.dll: MayaGrid uses Arnold 3.3.13.1
+00:00:00  141mb         |  mtoa_shaders.dll: MayaFractal uses Arnold 3.3.13.1
+00:00:00  141mb         |  mtoa_shaders.dll: MayaNoise uses Arnold 3.3.13.1
+00:00:00  141mb         |  mtoa_shaders.dll: MayaPlace3DTexture uses Arnold 3.3.13.1
+00:00:00  141mb         |  mtoa_shaders.dll: MayaRgbToHsv uses Arnold 3.3.13.1
+00:00:00  141mb         |  mtoa_shaders.dll: MayaHsvToRgb uses Arnold 3.3.13.1
+00:00:00  141mb         |  mtoa_shaders.dll: MayaLuminance uses Arnold 3.3.13.1
+00:00:00  141mb         |  mtoa_shaders.dll: MayaCloud uses Arnold 3.3.13.1
+00:00:00  141mb         |  mtoa_shaders.dll: MayaCloudAlpha uses Arnold 3.3.13.1
+00:00:00  141mb         |  mtoa_shaders.dll: MayaSnow uses Arnold 3.3.13.1
+00:00:00  141mb         |  mtoa_shaders.dll: MayaContrast uses Arnold 3.3.13.1
+00:00:00  141mb         |  mtoa_shaders.dll: MayaLayeredTexture uses Arnold 3.3.13.1
+00:00:00  141mb         |  mtoa_shaders.dll: MayaLayeredShader uses Arnold 3.3.13.1
+00:00:00  141mb         |  mtoa_shaders.dll: MayaSolidFractal uses Arnold 3.3.13.1
+00:00:00  141mb         |  mtoa_shaders.dll: MayaVolumeNoise uses Arnold 3.3.13.1
+00:00:00  141mb         |  mtoa_shaders.dll: MayaBrownian uses Arnold 3.3.13.1
+00:00:00  141mb         |  mtoa_shaders.dll: MayaStucco uses Arnold 3.3.13.1
+00:00:00  141mb         |  mtoa_shaders.dll: MayaRemapHsv uses Arnold 3.3.13.1
+00:00:00  141mb         |  mtoa_shaders.dll: MayaSetRange uses Arnold 3.3.13.1
+00:00:00  141mb         |  mtoa_shaders.dll: MayaImagePlane uses Arnold 3.3.13.1
+00:00:00  142mb         |  mtoa_shaders.dll: MayaSurfaceShader uses Arnold 3.3.13.1
+00:00:00  142mb         |  mtoa_shaders.dll: colorToFloat uses Arnold 3.3.13.1
+00:00:00  142mb         |  mtoa_shaders.dll: vectorToFloat uses Arnold 3.3.13.1
+00:00:00  142mb         |  mtoa_shaders.dll: pointToFloat uses Arnold 3.3.13.1
+00:00:00  142mb         |  mtoa_shaders.dll: point2ToFloat uses Arnold 3.3.13.1
+00:00:00  142mb         |  mtoa_shaders.dll: writeColor uses Arnold 3.3.13.1
+00:00:00  142mb         |  mtoa_shaders.dll: writeFloat uses Arnold 3.3.13.1
+00:00:00  142mb         |  mtoa_shaders.dll: MayaEnvSphere uses Arnold 3.3.13.1
+00:00:00  142mb         |  mtoa_shaders.dll: anim_matrix uses Arnold 3.3.13.1
+00:00:00  142mb         |  mtoa_shaders.dll: anim_float uses Arnold 3.3.13.1
+00:00:00  142mb         |  mtoa_shaders.dll: anim_point uses Arnold 3.3.13.1
+00:00:00  142mb         |  mtoa_shaders.dll: anim_vector uses Arnold 3.3.13.1
+00:00:00  142mb         |  mtoa_shaders.dll: anim_color uses Arnold 3.3.13.1
+00:00:00  142mb         | loaded 56 plugins from 1 lib(s) in 0:00.09
+00:00:00  142mb         | [mtoa] [mtoa_shaders] Generating new Maya nodes and translators for Arnold plugin C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaMultiplyDivide] Is associated with existing Maya node multiplyDivide.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaMultiplyDivide] Registered the translator mtoa_shaders for associated Maya node multiplyDivide.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaClamp] Is associated with existing Maya node clamp.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaClamp] Registered the translator mtoa_shaders for associated Maya node clamp.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaGammaCorrect] Is associated with existing Maya node gammaCorrect.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaGammaCorrect] Registered the translator mtoa_shaders for associated Maya node gammaCorrect.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaCondition] Is associated with existing Maya node condition.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaCondition] Registered the translator mtoa_shaders for associated Maya node condition.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaReverse] Is associated with existing Maya node reverse.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaReverse] Registered the translator mtoa_shaders for associated Maya node reverse.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaBlendColors] Is associated with existing Maya node blendColors.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaBlendColors] Registered the translator mtoa_shaders for associated Maya node blendColors.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaFacingRatio] Marked as hidden.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaFlippedNormal] Marked as hidden.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaPlusMinusAverage1D] Marked as hidden.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaPlusMinusAverage2D] Marked as hidden.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaPlusMinusAverage3D] Marked as hidden.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaRemapValueToValue] Marked as hidden.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaRemapValueToColor] Marked as hidden.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaRemapColor] Marked as hidden.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaFile] Marked as hidden.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaPlace2DTexture] Marked as hidden.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaRamp] Marked as hidden.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaProjection] Marked as hidden.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MeshInfo] Marked as hidden.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node TangentToObjectSpace] Marked as hidden.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaChecker] Is associated with existing Maya node checker.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaChecker] Registered the translator mtoa_shaders for associated Maya node checker.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaBulge] Is associated with existing Maya node bulge.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaBulge] Registered the translator mtoa_shaders for associated Maya node bulge.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaCloth] Is associated with existing Maya node cloth.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaCloth] Registered the translator mtoa_shaders for associated Maya node cloth.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaGrid] Is associated with existing Maya node grid.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaGrid] Registered the translator mtoa_shaders for associated Maya node grid.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaFractal] Is associated with existing Maya node fractal.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaFractal] Registered the translator mtoa_shaders for associated Maya node fractal.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaNoise] Is associated with existing Maya node noise.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaNoise] Registered the translator mtoa_shaders for associated Maya node noise.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaPlace3DTexture] Marked as hidden.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaRgbToHsv] Is associated with existing Maya node rgbToHsv.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaRgbToHsv] Registered the translator mtoa_shaders for associated Maya node rgbToHsv.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaHsvToRgb] Is associated with existing Maya node hsvToRgb.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaHsvToRgb] Registered the translator mtoa_shaders for associated Maya node hsvToRgb.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaLuminance] Is associated with existing Maya node luminance.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaLuminance] Registered the translator mtoa_shaders for associated Maya node luminance.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaCloud] Marked as hidden.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaCloudAlpha] Marked as hidden.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaSnow] Is associated with existing Maya node snow.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaSnow] Registered the translator mtoa_shaders for associated Maya node snow.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaContrast] Is associated with existing Maya node contrast.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaContrast] Registered the translator mtoa_shaders for associated Maya node contrast.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaLayeredTexture] Marked as hidden.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaLayeredShader] Marked as hidden.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaSolidFractal] Is associated with existing Maya node solidFractal.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaSolidFractal] Registered the translator mtoa_shaders for associated Maya node solidFractal.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaVolumeNoise] Is associated with existing Maya node volumeNoise.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaVolumeNoise] Registered the translator mtoa_shaders for associated Maya node volumeNoise.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaBrownian] Is associated with existing Maya node brownian.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaBrownian] Registered the translator mtoa_shaders for associated Maya node brownian.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaStucco] Is associated with existing Maya node stucco.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaStucco] Registered the translator mtoa_shaders for associated Maya node stucco.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaRemapHsv] Marked as hidden.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaSetRange] Is associated with existing Maya node setRange.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaSetRange] Registered the translator mtoa_shaders for associated Maya node setRange.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaImagePlane] Marked as hidden.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaSurfaceShader] Is associated with existing Maya node surfaceShader.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaSurfaceShader] Registered the translator mtoa_shaders for associated Maya node surfaceShader.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node colorToFloat] Marked as hidden.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node vectorToFloat] Marked as hidden.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node pointToFloat] Marked as hidden.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node point2ToFloat] Marked as hidden.
+00:00:00  142mb         | [mtoa_shaders] Registered aov 
+00:00:00  142mb         | [mtoa] [mtoa_shaders] Registered new Maya node aiWriteColor.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node writeColor] Is associated with existing Maya node aiWriteColor.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node writeColor] Registered the translator mtoa_shaders for associated Maya node aiWriteColor.
+00:00:00  142mb         | [mtoa_shaders] Registered aov 
+00:00:00  142mb         | [mtoa] [mtoa_shaders] Registered new Maya node aiWriteFloat.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node writeFloat] Is associated with existing Maya node aiWriteFloat.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node writeFloat] Registered the translator mtoa_shaders for associated Maya node aiWriteFloat.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaEnvSphere] Is associated with existing Maya node envSphere.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node MayaEnvSphere] Registered the translator mtoa_shaders for associated Maya node envSphere.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node anim_matrix] Marked as hidden.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node anim_float] Marked as hidden.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node anim_point] Marked as hidden.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node anim_vector] Marked as hidden.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node anim_color] Marked as hidden.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] Generated 2 new Maya nodes for Arnold plugin C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] Generated 26 translators for 26 Maya nodes (2 new and 24 existing) for Arnold plugin C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node ] Registered the translator mtoa_shaders for associated Maya node layeredShader.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node ] Registered the translator mtoa_shaders for associated Maya node layeredTexture.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node ] Registered the translator mtoa_shaders for associated Maya node file.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node ] Registered the translator mtoa_shaders for associated Maya node place2dTexture.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node ] Registered the translator mtoa_shaders for associated Maya node bump2d.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node ] Registered the translator mtoa_shaders for associated Maya node bump3d.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node ] Registered the translator facingRatio for associated Maya node samplerInfo.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node ] Registered the translator mtoa_shaders for associated Maya node plusMinusAverage.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node ] Registered the translator mtoa_shaders for associated Maya node remapValue.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node ] Registered the translator mtoa_shaders for associated Maya node remapColor.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node ] Registered the translator mtoa_shaders for associated Maya node projection.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node ] Registered the translator mtoa_shaders for associated Maya node ramp.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node ] Registered the translator mtoa_shaders for associated Maya node animCurveTA.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node ] Registered the translator mtoa_shaders for associated Maya node animCurveTL.
+00:00:00  142mb         | [mtoa] [mtoa_shaders] [node ] Registered the translator mtoa_shaders for associated Maya node animCurveTU.
+00:00:00  142mb         | [mtoa] Arnold plugin C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll already loaded, ignored.
+00:00:00  142mb         | [mtoa] Registering 2 loaded extensions:
+00:00:00  142mb         | [mtoa] Registering new Maya nodes provided by <built-in>(<built-in>).
+00:00:00  142mb         | [mtoa] Initializing ArnoldCustomShader as Maya node aiAmbientOcclusion, from Arnold node ambient_occlusion metadata, provided by <built-in>
+00:00:00  142mb         | [mtoa] Registered Maya node aiAmbientOcclusion provided by <built-in>(<built-in>).
+00:00:00  142mb         | [mtoa] Initializing ArnoldCustomShader as Maya node aiBarndoor, from Arnold node barndoor metadata, provided by <built-in>
+00:00:00  142mb         | [mtoa] Registered Maya node aiBarndoor provided by <built-in>(<built-in>).
+00:00:00  142mb         | [mtoa] Initializing ArnoldCustomShader as Maya node aiBump2d, from Arnold node bump2d metadata, provided by <built-in>
+00:00:00  142mb         | [mtoa] Registered Maya node aiBump2d provided by <built-in>(<built-in>).
+00:00:00  142mb         | [mtoa] Initializing ArnoldCustomShader as Maya node aiBump3d, from Arnold node bump3d metadata, provided by <built-in>
+00:00:00  142mb         | [mtoa] Registered Maya node aiBump3d provided by <built-in>(<built-in>).
+00:00:00  142mb         | [mtoa] Initializing ArnoldCustomShader as Maya node aiFog, from Arnold node fog metadata, provided by <built-in>
+00:00:00  142mb         | [mtoa] Registered Maya node aiFog provided by <built-in>(<built-in>).
+00:00:00  142mb         | [mtoa] Initializing ArnoldCustomShader as Maya node aiGobo, from Arnold node gobo metadata, provided by <built-in>
+00:00:00  142mb         | [mtoa] Registered Maya node aiGobo provided by <built-in>(<built-in>).
+00:00:00  142mb         | [mtoa] Initializing ArnoldCustomShader as Maya node aiHair, from Arnold node hair metadata, provided by <built-in>
+00:00:00  142mb         | [mtoa] Registered Maya node aiHair provided by <built-in>(<built-in>).
+00:00:00  142mb         | [mtoa] Initializing ArnoldCustomShader as Maya node aiLightBlocker, from Arnold node light_blocker metadata, provided by <built-in>
+00:00:01  142mb         | [mtoa] Registered Maya node aiLightBlocker provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] Initializing ArnoldCustomShader as Maya node aiLightDecay, from Arnold node light_decay metadata, provided by <built-in>
+00:00:01  142mb         | [mtoa] Registered Maya node aiLightDecay provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] Initializing ArnoldCustomShader as Maya node aiMotionVector, from Arnold node motion_vector metadata, provided by <built-in>
+00:00:01  142mb         | [mtoa] Registered Maya node aiMotionVector provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] Initializing ArnoldCustomShader as Maya node aiNoise, from Arnold node noise metadata, provided by <built-in>
+00:00:01  142mb         | [mtoa] Registered Maya node aiNoise provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] Initializing ArnoldCustomShader as Maya node aiRaySwitch, from Arnold node ray_switch metadata, provided by <built-in>
+00:00:01  142mb         | [mtoa] Registered Maya node aiRaySwitch provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] Initializing ArnoldCustomShader as Maya node aiStandard, from Arnold node standard metadata, provided by <built-in>
+00:00:01  142mb         | [mtoa] Registered Maya node aiStandard provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] Initializing ArnoldCustomShader as Maya node aiUtility, from Arnold node utility metadata, provided by <built-in>
+00:00:01  142mb         | [mtoa] Registered Maya node aiUtility provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] Initializing ArnoldCustomShader as Maya node aiVolumeScattering, from Arnold node volume_scattering metadata, provided by <built-in>
+00:00:01  142mb         | [mtoa] Registered Maya node aiVolumeScattering provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] Initializing ArnoldCustomShader as Maya node aiWireframe, from Arnold node wireframe metadata, provided by <built-in>
+00:00:01  142mb         | [mtoa] Registered Maya node aiWireframe provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] Registering new translators provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] [maya <driver>] Added translator exr provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] NodeInitializer for CDriverTranslator driver_exr, provided by <built-in>
+00:00:01  142mb         | [mtoa] [maya <driver>] Added translator jpeg provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] NodeInitializer for CDriverTranslator driver_jpeg, provided by <built-in>
+00:00:01  142mb         | [mtoa] [maya <driver>] Added translator png provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] NodeInitializer for CDriverTranslator driver_png, provided by <built-in>
+00:00:01  142mb         | [mtoa] [maya <driver>] Added translator tif provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] NodeInitializer for CDriverTranslator driver_tiff, provided by <built-in>
 
 API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1145
 : (kInvalidParameter): Object is incompatible with this method
-00:00:00  149mb         | [mtoa] [maya <filter>] Added translator blackman_harris provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] NodeInitializer for CDriverTranslator blackman_harris_filter, provided by <built-in>
-00:00:00  149mb         | [mtoa] [maya <filter>] Added translator box provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] NodeInitializer for CDriverTranslator box_filter, provided by <built-in>
-00:00:00  149mb         | [mtoa] [maya <filter>] Added translator catrom provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] NodeInitializer for CDriverTranslator catrom_filter, provided by <built-in>
-00:00:00  149mb         | [mtoa] [maya <filter>] Added translator catrom2d provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] NodeInitializer for CDriverTranslator catrom2d_filter, provided by <built-in>
-00:00:00  149mb         | [mtoa] [maya <filter>] Added translator closest provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] NodeInitializer for CDriverTranslator closest_filter, provided by <built-in>
-00:00:00  149mb         | [mtoa] [maya <filter>] Added translator cone provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] NodeInitializer for CDriverTranslator cone_filter, provided by <built-in>
-00:00:00  149mb         | [mtoa] [maya <filter>] Added translator cook provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] NodeInitializer for CDriverTranslator cook_filter, provided by <built-in>
-00:00:00  149mb         | [mtoa] [maya <filter>] Added translator cubic provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] NodeInitializer for CDriverTranslator cubic_filter, provided by <built-in>
-00:00:00  149mb         | [mtoa] [maya <filter>] Added translator disk provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] NodeInitializer for CDriverTranslator disk_filter, provided by <built-in>
-00:00:00  149mb         | [mtoa] [maya <filter>] Added translator farthest provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] NodeInitializer for CDriverTranslator farthest_filter, provided by <built-in>
-00:00:00  149mb         | [mtoa] [maya <filter>] Added translator gaussian provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] NodeInitializer for CDriverTranslator gaussian_filter, provided by <built-in>
-00:00:00  149mb         | [mtoa] [maya <filter>] Added translator heatmap provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] NodeInitializer for CDriverTranslator heatmap_filter, provided by <built-in>
-00:00:00  149mb         | [mtoa] [maya <filter>] Added translator mitnet provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] NodeInitializer for CDriverTranslator mitnet_filter, provided by <built-in>
-00:00:00  149mb         | [mtoa] [maya <filter>] Added translator sinc provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] NodeInitializer for CDriverTranslator sinc_filter, provided by <built-in>
-00:00:00  149mb         | [mtoa] [maya <filter>] Added translator triangle provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] NodeInitializer for CDriverTranslator triangle_filter, provided by <built-in>
-00:00:00  149mb         | [mtoa] [maya <filter>] Added translator variance provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] NodeInitializer for CDriverTranslator variance_filter, provided by <built-in>
-00:00:00  149mb         | [mtoa] [maya <filter>] Added translator video provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] NodeInitializer for CDriverTranslator video_filter, provided by <built-in>
+00:00:01  142mb         | [mtoa] [maya <filter>] Added translator blackman_harris provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] NodeInitializer for CDriverTranslator blackman_harris_filter, provided by <built-in>
+00:00:01  142mb         | [mtoa] [maya <filter>] Added translator box provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] NodeInitializer for CDriverTranslator box_filter, provided by <built-in>
+00:00:01  142mb         | [mtoa] [maya <filter>] Added translator catrom provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] NodeInitializer for CDriverTranslator catrom_filter, provided by <built-in>
+00:00:01  142mb         | [mtoa] [maya <filter>] Added translator catrom2d provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] NodeInitializer for CDriverTranslator catrom2d_filter, provided by <built-in>
+00:00:01  142mb         | [mtoa] [maya <filter>] Added translator closest provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] NodeInitializer for CDriverTranslator closest_filter, provided by <built-in>
+00:00:01  142mb         | [mtoa] [maya <filter>] Added translator cone provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] NodeInitializer for CDriverTranslator cone_filter, provided by <built-in>
+00:00:01  142mb         | [mtoa] [maya <filter>] Added translator cook provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] NodeInitializer for CDriverTranslator cook_filter, provided by <built-in>
+00:00:01  142mb         | [mtoa] [maya <filter>] Added translator cubic provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] NodeInitializer for CDriverTranslator cubic_filter, provided by <built-in>
+00:00:01  142mb         | [mtoa] [maya <filter>] Added translator disk provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] NodeInitializer for CDriverTranslator disk_filter, provided by <built-in>
+00:00:01  142mb         | [mtoa] [maya <filter>] Added translator farthest provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] NodeInitializer for CDriverTranslator farthest_filter, provided by <built-in>
+00:00:01  142mb         | [mtoa] [maya <filter>] Added translator gaussian provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] NodeInitializer for CDriverTranslator gaussian_filter, provided by <built-in>
+00:00:01  142mb         | [mtoa] [maya <filter>] Added translator heatmap provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] NodeInitializer for CDriverTranslator heatmap_filter, provided by <built-in>
+00:00:01  142mb         | [mtoa] [maya <filter>] Added translator mitnet provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] NodeInitializer for CDriverTranslator mitnet_filter, provided by <built-in>
+00:00:01  142mb         | [mtoa] [maya <filter>] Added translator sinc provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] NodeInitializer for CDriverTranslator sinc_filter, provided by <built-in>
+00:00:01  142mb         | [mtoa] [maya <filter>] Added translator triangle provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] NodeInitializer for CDriverTranslator triangle_filter, provided by <built-in>
+00:00:01  142mb         | [mtoa] [maya <filter>] Added translator variance provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] NodeInitializer for CDriverTranslator variance_filter, provided by <built-in>
+00:00:01  142mb         | [mtoa] [maya <filter>] Added translator video provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] NodeInitializer for CDriverTranslator video_filter, provided by <built-in>
 
 API error detected in plugins\mtoa\attributes\AttrHelper.cpp at line 1145
 : (kInvalidParameter): Object is incompatible with this method
-00:00:00  149mb         | [mtoa] [maya aiAmbientOcclusion] Added translator <built-in> provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] [maya aiAreaLight] Added translator cylinder provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] [maya aiAreaLight] Added translator disk provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] [maya aiAreaLight] Added translator quad provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] [maya aiBarndoor] Added translator <built-in> provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] [maya aiBump2d] Added translator <built-in> provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] [maya aiBump3d] Added translator <built-in> provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] [maya aiFog] Added translator <built-in> provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] [maya aiGobo] Added translator <built-in> provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] [maya aiHair] Added translator <built-in> provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] [maya aiLightBlocker] Added translator <built-in> provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] [maya aiLightDecay] Added translator <built-in> provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] [maya aiMotionVector] Added translator <built-in> provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] [maya aiNoise] Added translator <built-in> provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] [maya aiOptions] Added translator <built-in> provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] [maya aiRaySwitch] Added translator <built-in> provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] [maya aiSky] Added translator <built-in> provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] [maya aiSkyDomeLight] Added translator <built-in> provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] [maya aiStandIn] Added translator builtin provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] [maya aiStandard] Added translator <built-in> provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] [maya aiUtility] Added translator <built-in> provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] [maya aiVolumeScattering] Added translator <built-in> provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] [maya aiWireframe] Added translator <built-in> provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] [maya ambientLight] Added translator <built-in> provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] [maya areaLight] Added translator <built-in> provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] [maya camera] Added translator cylindrical provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] [maya camera] Added translator fisheye provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] [maya camera] Added translator orthographic provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] [maya camera] Added translator perspective provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] [maya directionalLight] Added translator <built-in> provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] [maya hairSystem] Added translator <built-in> provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] [maya lambert] Added translator <built-in> provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] [maya mesh] Added translator <built-in> provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] [maya nurbsSurface] Added translator <built-in> provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] [maya pointLight] Added translator <built-in> provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] [maya spotLight] Added translator <built-in> provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] [maya stereoRigCamera] Added translator cylindrical provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] [maya stereoRigCamera] Added translator fisheye provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] [maya stereoRigCamera] Added translator orthographic provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] [maya stereoRigCamera] Added translator perspective provided by <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] [<built-in>] Successfully registered 16 out of 16 new Maya nodes it declares.
-00:00:00  149mb         | [mtoa] [<built-in>] Successfully registered 61 out of 61 translators it declares.
-00:00:00  149mb         | [mtoa] Registered extension <built-in>(<built-in>).
-00:00:00  149mb         | [mtoa] Registering new Maya nodes provided by mtoa_shaders(C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll).
-00:00:00  149mb         | [mtoa] Initializing ArnoldCustomShader as Maya node aiWriteColor, from Arnold node writeColor metadata, provided by mtoa_shaders
-00:00:00  149mb         | [mtoa] Registered Maya node aiWriteColor provided by mtoa_shaders(mtoa_shaders).
-00:00:00  149mb         | [mtoa] Initializing ArnoldCustomShader as Maya node aiWriteFloat, from Arnold node writeFloat metadata, provided by mtoa_shaders
-00:00:00  149mb         | [mtoa] Registered Maya node aiWriteFloat provided by mtoa_shaders(mtoa_shaders).
-00:00:00  149mb         | [mtoa] Registering new translators provided by mtoa_shaders(C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll).
-00:00:00  149mb         | [mtoa] [maya aiWriteColor] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
-00:00:00  149mb         | [mtoa] [maya aiWriteFloat] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
-00:00:00  149mb         | [mtoa] [maya blendColors] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
-00:00:00  149mb         | [mtoa] [maya brownian] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
-00:00:00  149mb         | [mtoa] [maya bulge] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
-00:00:00  149mb         | [mtoa] [maya bump2d] Added translator mtoa_shaders provided by mtoa_shaders(C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll).
-00:00:00  149mb         | [mtoa] [maya bump3d] Added translator mtoa_shaders provided by mtoa_shaders(C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll).
-00:00:00  149mb         | [mtoa] [maya checker] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
-00:00:00  149mb         | [mtoa] [maya clamp] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
-00:00:00  149mb         | [mtoa] [maya cloth] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
-00:00:00  149mb         | [mtoa] [maya condition] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
-00:00:00  149mb         | [mtoa] [maya contrast] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
-00:00:00  149mb         | [mtoa] [maya envSphere] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
-00:00:00  149mb         | [mtoa] [maya file] Added translator mtoa_shaders provided by mtoa_shaders(C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll).
-00:00:00  149mb         | [mtoa] [maya fractal] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
-00:00:00  149mb         | [mtoa] [maya gammaCorrect] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
-00:00:00  149mb         | [mtoa] [maya grid] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
-00:00:00  149mb         | [mtoa] [maya hsvToRgb] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
-00:00:00  149mb         | [mtoa] [maya layeredShader] Added translator mtoa_shaders provided by mtoa_shaders(C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll).
-00:00:00  149mb         | [mtoa] [maya layeredTexture] Added translator mtoa_shaders provided by mtoa_shaders(C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll).
-00:00:00  149mb         | [mtoa] [maya luminance] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
-00:00:00  149mb         | [mtoa] [maya multiplyDivide] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
-00:00:00  149mb         | [mtoa] [maya noise] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
-00:00:00  149mb         | [mtoa] [maya place2dTexture] Added translator mtoa_shaders provided by mtoa_shaders(C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll).
-00:00:00  149mb         | [mtoa] [maya plusMinusAverage] Added translator mtoa_shaders provided by mtoa_shaders(C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll).
-00:00:00  149mb         | [mtoa] [maya projection] Added translator mtoa_shaders provided by mtoa_shaders(C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll).
-00:00:00  149mb         | [mtoa] [maya ramp] Added translator mtoa_shaders provided by mtoa_shaders(C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll).
-00:00:00  149mb         | [mtoa] [maya remapColor] Added translator mtoa_shaders provided by mtoa_shaders(C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll).
-00:00:00  149mb         | [mtoa] [maya remapValue] Added translator mtoa_shaders provided by mtoa_shaders(C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll).
-00:00:00  149mb         | [mtoa] [maya reverse] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
-00:00:00  149mb         | [mtoa] [maya rgbToHsv] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
-00:00:00  149mb         | [mtoa] [maya samplerInfo] Added translator facingRatio provided by mtoa_shaders(C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll).
-00:00:00  149mb         | [mtoa] [maya setRange] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
-00:00:00  149mb         | [mtoa] [maya snow] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
-00:00:00  149mb         | [mtoa] [maya solidFractal] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
-00:00:00  149mb         | [mtoa] [maya stucco] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
-00:00:00  149mb         | [mtoa] [maya surfaceShader] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
-00:00:00  149mb         | [mtoa] [maya volumeNoise] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
-00:00:00  149mb         | [mtoa] [mtoa_shaders] Successfully registered 2 out of 2 new Maya nodes it declares.
-00:00:00  149mb         | [mtoa] [mtoa_shaders] Successfully registered 38 out of 38 translators it declares.
-00:00:00  149mb         | [mtoa] Registered extension mtoa_shaders(C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll).
-00:00:00  149mb         | Successfully registered Arnold nodes
-00:00:00  152mb         | Successfully imported python module 'arnold'
-00:00:00  152mb         | Successfully imported python module 'mtoa'
+00:00:01  142mb         | [mtoa] [maya aiAmbientOcclusion] Added translator <built-in> provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] [maya aiAreaLight] Added translator cylinder provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] [maya aiAreaLight] Added translator disk provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] [maya aiAreaLight] Added translator quad provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] [maya aiBarndoor] Added translator <built-in> provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] [maya aiBump2d] Added translator <built-in> provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] [maya aiBump3d] Added translator <built-in> provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] [maya aiFog] Added translator <built-in> provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] [maya aiGobo] Added translator <built-in> provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] [maya aiHair] Added translator <built-in> provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] [maya aiLightBlocker] Added translator <built-in> provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] [maya aiLightDecay] Added translator <built-in> provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] [maya aiMotionVector] Added translator <built-in> provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] [maya aiNoise] Added translator <built-in> provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] [maya aiOptions] Added translator <built-in> provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] [maya aiRaySwitch] Added translator <built-in> provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] [maya aiSky] Added translator <built-in> provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] [maya aiSkyDomeLight] Added translator <built-in> provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] [maya aiStandIn] Added translator builtin provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] [maya aiStandard] Added translator <built-in> provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] [maya aiUtility] Added translator <built-in> provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] [maya aiVolumeScattering] Added translator <built-in> provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] [maya aiWireframe] Added translator <built-in> provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] [maya ambientLight] Added translator <built-in> provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] [maya areaLight] Added translator <built-in> provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] [maya camera] Added translator cylindrical provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] [maya camera] Added translator fisheye provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] [maya camera] Added translator orthographic provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] [maya camera] Added translator perspective provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] [maya directionalLight] Added translator <built-in> provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] [maya hairSystem] Added translator <built-in> provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] [maya lambert] Added translator <built-in> provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] [maya mesh] Added translator <built-in> provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] [maya nurbsSurface] Added translator <built-in> provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] [maya pointLight] Added translator <built-in> provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] [maya spotLight] Added translator <built-in> provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] [maya stereoRigCamera] Added translator cylindrical provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] [maya stereoRigCamera] Added translator fisheye provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] [maya stereoRigCamera] Added translator orthographic provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] [maya stereoRigCamera] Added translator perspective provided by <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] [<built-in>] Successfully registered 16 out of 16 new Maya nodes it declares.
+00:00:01  142mb         | [mtoa] [<built-in>] Successfully registered 61 out of 61 translators it declares.
+00:00:01  142mb         | [mtoa] Registered extension <built-in>(<built-in>).
+00:00:01  142mb         | [mtoa] Registering new Maya nodes provided by mtoa_shaders(C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll).
+00:00:01  142mb         | [mtoa] Initializing ArnoldCustomShader as Maya node aiWriteColor, from Arnold node writeColor metadata, provided by mtoa_shaders
+00:00:01  143mb         | [mtoa] Registered Maya node aiWriteColor provided by mtoa_shaders(mtoa_shaders).
+00:00:01  143mb         | [mtoa] Initializing ArnoldCustomShader as Maya node aiWriteFloat, from Arnold node writeFloat metadata, provided by mtoa_shaders
+00:00:01  143mb         | [mtoa] Registered Maya node aiWriteFloat provided by mtoa_shaders(mtoa_shaders).
+00:00:01  143mb         | [mtoa] Registering new translators provided by mtoa_shaders(C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll).
+00:00:01  143mb         | [mtoa] [maya aiWriteColor] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
+00:00:01  143mb         | [mtoa] [maya aiWriteFloat] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
+00:00:01  143mb         | [mtoa] [maya animCurveTA] Added translator mtoa_shaders provided by mtoa_shaders(C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll).
+00:00:01  143mb         | [mtoa] [maya animCurveTL] Added translator mtoa_shaders provided by mtoa_shaders(C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll).
+00:00:01  143mb         | [mtoa] [maya animCurveTU] Added translator mtoa_shaders provided by mtoa_shaders(C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll).
+00:00:01  143mb         | [mtoa] [maya blendColors] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
+00:00:01  143mb         | [mtoa] [maya brownian] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
+00:00:01  143mb         | [mtoa] [maya bulge] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
+00:00:01  143mb         | [mtoa] [maya bump2d] Added translator mtoa_shaders provided by mtoa_shaders(C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll).
+00:00:01  143mb         | [mtoa] [maya bump3d] Added translator mtoa_shaders provided by mtoa_shaders(C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll).
+00:00:01  143mb         | [mtoa] [maya checker] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
+00:00:01  143mb         | [mtoa] [maya clamp] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
+00:00:01  143mb         | [mtoa] [maya cloth] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
+00:00:01  143mb         | [mtoa] [maya condition] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
+00:00:01  143mb         | [mtoa] [maya contrast] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
+00:00:01  143mb         | [mtoa] [maya envSphere] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
+00:00:01  143mb         | [mtoa] [maya file] Added translator mtoa_shaders provided by mtoa_shaders(C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll).
+00:00:01  143mb         | [mtoa] [maya fractal] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
+00:00:01  143mb         | [mtoa] [maya gammaCorrect] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
+00:00:01  143mb         | [mtoa] [maya grid] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
+00:00:01  143mb         | [mtoa] [maya hsvToRgb] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
+00:00:01  143mb         | [mtoa] [maya layeredShader] Added translator mtoa_shaders provided by mtoa_shaders(C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll).
+00:00:01  143mb         | [mtoa] [maya layeredTexture] Added translator mtoa_shaders provided by mtoa_shaders(C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll).
+00:00:01  143mb         | [mtoa] [maya luminance] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
+00:00:01  143mb         | [mtoa] [maya multiplyDivide] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
+00:00:01  143mb         | [mtoa] [maya noise] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
+00:00:01  143mb         | [mtoa] [maya place2dTexture] Added translator mtoa_shaders provided by mtoa_shaders(C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll).
+00:00:01  143mb         | [mtoa] [maya plusMinusAverage] Added translator mtoa_shaders provided by mtoa_shaders(C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll).
+00:00:01  143mb         | [mtoa] [maya projection] Added translator mtoa_shaders provided by mtoa_shaders(C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll).
+00:00:01  143mb         | [mtoa] [maya ramp] Added translator mtoa_shaders provided by mtoa_shaders(C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll).
+00:00:01  143mb         | [mtoa] [maya remapColor] Added translator mtoa_shaders provided by mtoa_shaders(C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll).
+00:00:01  143mb         | [mtoa] [maya remapValue] Added translator mtoa_shaders provided by mtoa_shaders(C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll).
+00:00:01  143mb         | [mtoa] [maya reverse] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
+00:00:01  143mb         | [mtoa] [maya rgbToHsv] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
+00:00:01  143mb         | [mtoa] [maya samplerInfo] Added translator facingRatio provided by mtoa_shaders(C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll).
+00:00:01  143mb         | [mtoa] [maya setRange] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
+00:00:01  143mb         | [mtoa] [maya snow] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
+00:00:01  143mb         | [mtoa] [maya solidFractal] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
+00:00:01  143mb         | [mtoa] [maya stucco] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
+00:00:01  143mb         | [mtoa] [maya surfaceShader] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
+00:00:01  143mb         | [mtoa] [maya volumeNoise] Added translator mtoa_shaders provided by mtoa_shaders(mtoa_shaders).
+00:00:01  143mb         | [mtoa] [mtoa_shaders] Successfully registered 2 out of 2 new Maya nodes it declares.
+00:00:01  143mb         | [mtoa] [mtoa_shaders] Successfully registered 41 out of 41 translators it declares.
+00:00:01  143mb         | [mtoa] Registered extension mtoa_shaders(C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll).
+00:00:01  143mb         | Successfully registered Arnold nodes
+00:00:01  145mb         | Successfully imported python module 'arnold'
+00:00:01  145mb         | Successfully imported python module 'mtoa'
 Maya 2012 importing module pymel 1.0.3
-pymel.core : INFO : Updating pymel with pre-loaded plugins: Mayatomr, mtoa
+pymel.core : INFO : Updating pymel with pre-loaded plugins: OpenEXRLoader, DirectConnect, studioImport, mayaHIK, mtoa
 Standard pymel version 1.0.3 loaded
 registering attribute template for aiAreaLight
 registering attribute template for aiAreaLight
@@ -545,6 +559,7 @@ registering attribute template for directionalLight
 registering attribute template for pointLight
 registering attribute template for spotLight
 registering attribute template for areaLight
+registering attribute template for camera
 registering attribute template for camera
 registering attribute template for stereoRigCamera
 registering attribute template for camera
@@ -578,370 +593,308 @@ registering attribute template for <filter>
 Maya 2012 sourcing MEL override C:\solidAngle\mtoadeploy\2012\scripts\mtoa\2012\mel\buildShaderMenus.mel
 Maya 2012 sourcing MEL override C:\solidAngle\mtoadeploy\2012\scripts\mtoa\2012\mel\hyperShadePanel.mel
 Maya 2012 sourcing MEL override C:\solidAngle\mtoadeploy\2012\scripts\mtoa\2012\mel\renderCreateBarUI.mel
-00:00:01  238mb         | Successfully registered renderer 'arnold'
-00:00:01  238mb         |  
-00:00:01  238mb         | releasing resources
-00:00:01  238mb         |  unloading 1 plugin
-00:00:01  238mb         |   closing mtoa_shaders.dll ...
-00:00:01  238mb         |  unloading plugins done
-00:00:01  238mb         | Arnold shutdown
-00:00:00  238mb         | log started Wed Nov 16 16:51:15 2011
-00:00:00  238mb         | Arnold 3.3.13.1 windows 64-bit icc110 oiio1000 sse (build date: Oct 25 2011 16:37:41)
-00:00:00  238mb         | running on borja-PC, 8 x 3292 mhz GenuineIntel with 8148 mb
-00:00:00  238mb         |  
-00:00:00  238mb         | loading plugin: C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll ...
-00:00:00  238mb         |  mtoa_shaders.dll: MayaMultiplyDivide uses Arnold 3.3.13.1
-00:00:00  238mb         |  mtoa_shaders.dll: MayaClamp uses Arnold 3.3.13.1
-00:00:00  238mb         |  mtoa_shaders.dll: MayaGammaCorrect uses Arnold 3.3.13.1
-00:00:00  238mb         |  mtoa_shaders.dll: MayaCondition uses Arnold 3.3.13.1
-00:00:00  238mb         |  mtoa_shaders.dll: MayaReverse uses Arnold 3.3.13.1
-00:00:00  238mb         |  mtoa_shaders.dll: MayaBlendColors uses Arnold 3.3.13.1
-00:00:00  238mb         |  mtoa_shaders.dll: MayaFacingRatio uses Arnold 3.3.13.1
-00:00:00  238mb         |  mtoa_shaders.dll: MayaFlippedNormal uses Arnold 3.3.13.1
-00:00:00  238mb         |  mtoa_shaders.dll: MayaPlusMinusAverage1D uses Arnold 3.3.13.1
-00:00:00  238mb         |  mtoa_shaders.dll: MayaPlusMinusAverage2D uses Arnold 3.3.13.1
-00:00:00  238mb         |  mtoa_shaders.dll: MayaPlusMinusAverage3D uses Arnold 3.3.13.1
-00:00:00  238mb         |  mtoa_shaders.dll: MayaRemapValueToValue uses Arnold 3.3.13.1
-00:00:00  238mb         |  mtoa_shaders.dll: MayaRemapValueToColor uses Arnold 3.3.13.1
-00:00:00  238mb         |  mtoa_shaders.dll: MayaRemapColor uses Arnold 3.3.13.1
-00:00:00  238mb         |  mtoa_shaders.dll: MayaFile uses Arnold 3.3.13.1
-00:00:00  238mb         |  mtoa_shaders.dll: MayaPlace2DTexture uses Arnold 3.3.13.1
-00:00:00  238mb         |  mtoa_shaders.dll: MayaRamp uses Arnold 3.3.13.1
-00:00:00  238mb         |  mtoa_shaders.dll: MayaProjection uses Arnold 3.3.13.1
-00:00:00  238mb         |  mtoa_shaders.dll: MeshInfo uses Arnold 3.3.13.1
-00:00:00  238mb         |  mtoa_shaders.dll: TangentToObjectSpace uses Arnold 3.3.13.1
-00:00:00  238mb         |  mtoa_shaders.dll: MayaChecker uses Arnold 3.3.13.1
-00:00:00  238mb         |  mtoa_shaders.dll: MayaBulge uses Arnold 3.3.13.1
-00:00:00  238mb         |  mtoa_shaders.dll: MayaCloth uses Arnold 3.3.13.1
-00:00:00  238mb         |  mtoa_shaders.dll: MayaGrid uses Arnold 3.3.13.1
-00:00:00  238mb         |  mtoa_shaders.dll: MayaFractal uses Arnold 3.3.13.1
-00:00:00  238mb         |  mtoa_shaders.dll: MayaNoise uses Arnold 3.3.13.1
-00:00:00  238mb         |  mtoa_shaders.dll: MayaPlace3DTexture uses Arnold 3.3.13.1
-00:00:00  238mb         |  mtoa_shaders.dll: MayaRgbToHsv uses Arnold 3.3.13.1
-00:00:00  238mb         |  mtoa_shaders.dll: MayaHsvToRgb uses Arnold 3.3.13.1
-00:00:00  238mb         |  mtoa_shaders.dll: MayaLuminance uses Arnold 3.3.13.1
-00:00:00  238mb         |  mtoa_shaders.dll: MayaCloud uses Arnold 3.3.13.1
-00:00:00  238mb         |  mtoa_shaders.dll: MayaCloudAlpha uses Arnold 3.3.13.1
-00:00:00  238mb         |  mtoa_shaders.dll: MayaSnow uses Arnold 3.3.13.1
-00:00:00  238mb         |  mtoa_shaders.dll: MayaContrast uses Arnold 3.3.13.1
-00:00:00  238mb         |  mtoa_shaders.dll: MayaLayeredTexture uses Arnold 3.3.13.1
-00:00:00  238mb         |  mtoa_shaders.dll: MayaLayeredShader uses Arnold 3.3.13.1
-00:00:00  238mb         |  mtoa_shaders.dll: MayaSolidFractal uses Arnold 3.3.13.1
-00:00:00  238mb         |  mtoa_shaders.dll: MayaVolumeNoise uses Arnold 3.3.13.1
-00:00:00  238mb         |  mtoa_shaders.dll: MayaBrownian uses Arnold 3.3.13.1
-00:00:00  238mb         |  mtoa_shaders.dll: MayaStucco uses Arnold 3.3.13.1
-00:00:00  238mb         |  mtoa_shaders.dll: MayaRemapHsv uses Arnold 3.3.13.1
-00:00:00  238mb         |  mtoa_shaders.dll: MayaSetRange uses Arnold 3.3.13.1
-00:00:00  238mb         |  mtoa_shaders.dll: MayaImagePlane uses Arnold 3.3.13.1
-00:00:00  238mb         |  mtoa_shaders.dll: MayaSurfaceShader uses Arnold 3.3.13.1
-00:00:00  238mb         |  mtoa_shaders.dll: colorToFloat uses Arnold 3.3.13.1
-00:00:00  238mb         |  mtoa_shaders.dll: vectorToFloat uses Arnold 3.3.13.1
-00:00:00  238mb         |  mtoa_shaders.dll: pointToFloat uses Arnold 3.3.13.1
-00:00:00  238mb         |  mtoa_shaders.dll: point2ToFloat uses Arnold 3.3.13.1
-00:00:00  238mb         |  mtoa_shaders.dll: writeColor uses Arnold 3.3.13.1
-00:00:00  238mb         |  mtoa_shaders.dll: writeFloat uses Arnold 3.3.13.1
-00:00:00  238mb         |  mtoa_shaders.dll: MayaEnvSphere uses Arnold 3.3.13.1
-00:00:00  238mb         |  mtoa_shaders.dll: anim_matrix uses Arnold 3.3.13.1
-00:00:00  238mb         | loaded 52 plugins from 1 lib(s) in 0:00.00
-00:00:00  238mb         | [METADATA] Loading metadata file: C:/solidAngle/mtoadeploy/2012/plug-ins/mtoa.mtd
-00:00:00  238mb         |  
-00:00:00  238mb         | releasing resources
-00:00:00  238mb         |  unloading 1 plugin
-00:00:00  238mb         |   closing mtoa_shaders.dll ...
-00:00:00  238mb         |  unloading plugins done
-00:00:00  238mb         | Arnold shutdown
+00:00:03  230mb         | Successfully registered renderer 'arnold'
+00:00:03  230mb         |  
+00:00:03  230mb         | releasing resources
+00:00:03  230mb         |  unloading 1 plugin
+00:00:03  230mb         |   closing mtoa_shaders.dll ...
+00:00:03  230mb         |  unloading plugins done
+00:00:03  230mb         | Arnold shutdown
+00:00:00  230mb         | log started Wed Dec 14 16:12:37 2011
+00:00:00  230mb         | Arnold 3.3.13.1 windows 64-bit icc110 oiio1000 sse (build date: Oct 25 2011 16:37:41)
+00:00:00  230mb         | running on Berenjena, 4 x 2833 mhz GenuineIntel with 3839 mb
+00:00:00  230mb         |  
+00:00:00  230mb         | loading plugin: C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll ...
+00:00:00  230mb         |  mtoa_shaders.dll: MayaMultiplyDivide uses Arnold 3.3.13.1
+00:00:00  230mb         |  mtoa_shaders.dll: MayaClamp uses Arnold 3.3.13.1
+00:00:00  230mb         |  mtoa_shaders.dll: MayaGammaCorrect uses Arnold 3.3.13.1
+00:00:00  230mb         |  mtoa_shaders.dll: MayaCondition uses Arnold 3.3.13.1
+00:00:00  230mb         |  mtoa_shaders.dll: MayaReverse uses Arnold 3.3.13.1
+00:00:00  230mb         |  mtoa_shaders.dll: MayaBlendColors uses Arnold 3.3.13.1
+00:00:00  230mb         |  mtoa_shaders.dll: MayaFacingRatio uses Arnold 3.3.13.1
+00:00:00  230mb         |  mtoa_shaders.dll: MayaFlippedNormal uses Arnold 3.3.13.1
+00:00:00  230mb         |  mtoa_shaders.dll: MayaPlusMinusAverage1D uses Arnold 3.3.13.1
+00:00:00  230mb         |  mtoa_shaders.dll: MayaPlusMinusAverage2D uses Arnold 3.3.13.1
+00:00:00  230mb         |  mtoa_shaders.dll: MayaPlusMinusAverage3D uses Arnold 3.3.13.1
+00:00:00  230mb         |  mtoa_shaders.dll: MayaRemapValueToValue uses Arnold 3.3.13.1
+00:00:00  230mb         |  mtoa_shaders.dll: MayaRemapValueToColor uses Arnold 3.3.13.1
+00:00:00  230mb         |  mtoa_shaders.dll: MayaRemapColor uses Arnold 3.3.13.1
+00:00:00  230mb         |  mtoa_shaders.dll: MayaFile uses Arnold 3.3.13.1
+00:00:00  230mb         |  mtoa_shaders.dll: MayaPlace2DTexture uses Arnold 3.3.13.1
+00:00:00  230mb         |  mtoa_shaders.dll: MayaRamp uses Arnold 3.3.13.1
+00:00:00  230mb         |  mtoa_shaders.dll: MayaProjection uses Arnold 3.3.13.1
+00:00:00  230mb         |  mtoa_shaders.dll: MeshInfo uses Arnold 3.3.13.1
+00:00:00  230mb         |  mtoa_shaders.dll: TangentToObjectSpace uses Arnold 3.3.13.1
+00:00:00  230mb         |  mtoa_shaders.dll: MayaChecker uses Arnold 3.3.13.1
+00:00:00  230mb         |  mtoa_shaders.dll: MayaBulge uses Arnold 3.3.13.1
+00:00:00  230mb         |  mtoa_shaders.dll: MayaCloth uses Arnold 3.3.13.1
+00:00:00  230mb         |  mtoa_shaders.dll: MayaGrid uses Arnold 3.3.13.1
+00:00:00  230mb         |  mtoa_shaders.dll: MayaFractal uses Arnold 3.3.13.1
+00:00:00  230mb         |  mtoa_shaders.dll: MayaNoise uses Arnold 3.3.13.1
+00:00:00  230mb         |  mtoa_shaders.dll: MayaPlace3DTexture uses Arnold 3.3.13.1
+00:00:00  230mb         |  mtoa_shaders.dll: MayaRgbToHsv uses Arnold 3.3.13.1
+00:00:00  230mb         |  mtoa_shaders.dll: MayaHsvToRgb uses Arnold 3.3.13.1
+00:00:00  230mb         |  mtoa_shaders.dll: MayaLuminance uses Arnold 3.3.13.1
+00:00:00  230mb         |  mtoa_shaders.dll: MayaCloud uses Arnold 3.3.13.1
+00:00:00  230mb         |  mtoa_shaders.dll: MayaCloudAlpha uses Arnold 3.3.13.1
+00:00:00  230mb         |  mtoa_shaders.dll: MayaSnow uses Arnold 3.3.13.1
+00:00:00  230mb         |  mtoa_shaders.dll: MayaContrast uses Arnold 3.3.13.1
+00:00:00  230mb         |  mtoa_shaders.dll: MayaLayeredTexture uses Arnold 3.3.13.1
+00:00:00  230mb         |  mtoa_shaders.dll: MayaLayeredShader uses Arnold 3.3.13.1
+00:00:00  230mb         |  mtoa_shaders.dll: MayaSolidFractal uses Arnold 3.3.13.1
+00:00:00  230mb         |  mtoa_shaders.dll: MayaVolumeNoise uses Arnold 3.3.13.1
+00:00:00  231mb         |  mtoa_shaders.dll: MayaBrownian uses Arnold 3.3.13.1
+00:00:00  231mb         |  mtoa_shaders.dll: MayaStucco uses Arnold 3.3.13.1
+00:00:00  231mb         |  mtoa_shaders.dll: MayaRemapHsv uses Arnold 3.3.13.1
+00:00:00  231mb         |  mtoa_shaders.dll: MayaSetRange uses Arnold 3.3.13.1
+00:00:00  231mb         |  mtoa_shaders.dll: MayaImagePlane uses Arnold 3.3.13.1
+00:00:00  231mb         |  mtoa_shaders.dll: MayaSurfaceShader uses Arnold 3.3.13.1
+00:00:00  231mb         |  mtoa_shaders.dll: colorToFloat uses Arnold 3.3.13.1
+00:00:00  231mb         |  mtoa_shaders.dll: vectorToFloat uses Arnold 3.3.13.1
+00:00:00  231mb         |  mtoa_shaders.dll: pointToFloat uses Arnold 3.3.13.1
+00:00:00  231mb         |  mtoa_shaders.dll: point2ToFloat uses Arnold 3.3.13.1
+00:00:00  231mb         |  mtoa_shaders.dll: writeColor uses Arnold 3.3.13.1
+00:00:00  231mb         |  mtoa_shaders.dll: writeFloat uses Arnold 3.3.13.1
+00:00:00  231mb         |  mtoa_shaders.dll: MayaEnvSphere uses Arnold 3.3.13.1
+00:00:00  231mb         |  mtoa_shaders.dll: anim_matrix uses Arnold 3.3.13.1
+00:00:00  231mb         |  mtoa_shaders.dll: anim_float uses Arnold 3.3.13.1
+00:00:00  231mb         |  mtoa_shaders.dll: anim_point uses Arnold 3.3.13.1
+00:00:00  231mb         |  mtoa_shaders.dll: anim_vector uses Arnold 3.3.13.1
+00:00:00  231mb         |  mtoa_shaders.dll: anim_color uses Arnold 3.3.13.1
+00:00:00  231mb         | loaded 56 plugins from 1 lib(s) in 0:00.12
+00:00:00  231mb         | [METADATA] Loading metadata file: C:/solidAngle/mtoadeploy/2012/plug-ins/mtoa.mtd
+00:00:00  231mb         |  
+00:00:00  231mb         | releasing resources
+00:00:00  231mb         |  unloading 1 plugin
+00:00:00  231mb         |   closing mtoa_shaders.dll ...
+00:00:00  230mb         |  unloading plugins done
+00:00:00  230mb         | Arnold shutdown
+00:00:00  243mb         | log started Wed Dec 14 16:12:37 2011
+00:00:00  243mb         | Arnold 3.3.13.1 windows 64-bit icc110 oiio1000 sse (build date: Oct 25 2011 16:37:41)
+00:00:00  243mb         | running on Berenjena, 4 x 2833 mhz GenuineIntel with 3839 mb
+00:00:00  243mb         |  
+00:00:00  243mb         | loading plugin: C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll ...
+00:00:00  243mb         |  mtoa_shaders.dll: MayaMultiplyDivide uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaClamp uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaGammaCorrect uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaCondition uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaReverse uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaBlendColors uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaFacingRatio uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaFlippedNormal uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaPlusMinusAverage1D uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaPlusMinusAverage2D uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaPlusMinusAverage3D uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaRemapValueToValue uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaRemapValueToColor uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaRemapColor uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaFile uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaPlace2DTexture uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaRamp uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaProjection uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MeshInfo uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: TangentToObjectSpace uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaChecker uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaBulge uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaCloth uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaGrid uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaFractal uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaNoise uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaPlace3DTexture uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaRgbToHsv uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaHsvToRgb uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaLuminance uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaCloud uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaCloudAlpha uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaSnow uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaContrast uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaLayeredTexture uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaLayeredShader uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaSolidFractal uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaVolumeNoise uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaBrownian uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaStucco uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaRemapHsv uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaSetRange uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaImagePlane uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaSurfaceShader uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: colorToFloat uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: vectorToFloat uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: pointToFloat uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: point2ToFloat uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: writeColor uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: writeFloat uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: MayaEnvSphere uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: anim_matrix uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: anim_float uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: anim_point uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: anim_vector uses Arnold 3.3.13.1
+00:00:00  243mb         |  mtoa_shaders.dll: anim_color uses Arnold 3.3.13.1
+00:00:00  243mb         | loaded 56 plugins from 1 lib(s) in 0:00.12
+00:00:00  243mb         | [METADATA] Loading metadata file: C:/solidAngle/mtoadeploy/2012/plug-ins/mtoa.mtd
+00:00:00  243mb         |  
+00:00:00  243mb         | releasing resources
+00:00:00  243mb         |  unloading 1 plugin
+00:00:00  243mb         |   closing mtoa_shaders.dll ...
+00:00:00  243mb         |  unloading plugins done
+00:00:00  243mb         | Arnold shutdown
 File read in 0 seconds.
-Result: C:/solidangle/mtoa/mtoa-main/build/windows_x86_64/2012/msvc_debug/testsuite/test_0038/test.ma
-00:00:00  250mb         | log started Wed Nov 16 16:51:15 2011
-00:00:00  250mb         | Arnold 3.3.13.1 windows 64-bit icc110 oiio1000 sse (build date: Oct 25 2011 16:37:41)
-00:00:00  250mb         | running on borja-PC, 8 x 3292 mhz GenuineIntel with 8148 mb
-00:00:00  250mb         |  
-00:00:00  250mb         | loading plugin: C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll ...
-00:00:00  250mb         |  mtoa_shaders.dll: MayaMultiplyDivide uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaClamp uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaGammaCorrect uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaCondition uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaReverse uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaBlendColors uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaFacingRatio uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaFlippedNormal uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaPlusMinusAverage1D uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaPlusMinusAverage2D uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaPlusMinusAverage3D uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaRemapValueToValue uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaRemapValueToColor uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaRemapColor uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaFile uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaPlace2DTexture uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaRamp uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaProjection uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MeshInfo uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: TangentToObjectSpace uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaChecker uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaBulge uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaCloth uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaGrid uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaFractal uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaNoise uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaPlace3DTexture uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaRgbToHsv uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaHsvToRgb uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaLuminance uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaCloud uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaCloudAlpha uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaSnow uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaContrast uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaLayeredTexture uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaLayeredShader uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaSolidFractal uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaVolumeNoise uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaBrownian uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaStucco uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaRemapHsv uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaSetRange uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaImagePlane uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaSurfaceShader uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: colorToFloat uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: vectorToFloat uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: pointToFloat uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: point2ToFloat uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: writeColor uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: writeFloat uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaEnvSphere uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: anim_matrix uses Arnold 3.3.13.1
-00:00:00  250mb         | loaded 52 plugins from 1 lib(s) in 0:00.00
-00:00:00  250mb         | [METADATA] Loading metadata file: C:/solidAngle/mtoadeploy/2012/plug-ins/mtoa.mtd
-00:00:00  250mb         |  
-00:00:00  250mb         | releasing resources
-00:00:00  250mb         |  unloading 1 plugin
-00:00:00  250mb         |   closing mtoa_shaders.dll ...
-00:00:00  250mb         |  unloading plugins done
-00:00:00  250mb         | Arnold shutdown
-00:00:00  250mb         | log started Wed Nov 16 16:51:15 2011
-00:00:00  250mb         | Arnold 3.3.13.1 windows 64-bit icc110 oiio1000 sse (build date: Oct 25 2011 16:37:41)
-00:00:00  250mb         | running on borja-PC, 8 x 3292 mhz GenuineIntel with 8148 mb
-00:00:00  250mb         |  
-00:00:00  250mb         | loading plugin: C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll ...
-00:00:00  250mb         |  mtoa_shaders.dll: MayaMultiplyDivide uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaClamp uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaGammaCorrect uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaCondition uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaReverse uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaBlendColors uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaFacingRatio uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaFlippedNormal uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaPlusMinusAverage1D uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaPlusMinusAverage2D uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaPlusMinusAverage3D uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaRemapValueToValue uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaRemapValueToColor uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaRemapColor uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaFile uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaPlace2DTexture uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaRamp uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaProjection uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MeshInfo uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: TangentToObjectSpace uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaChecker uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaBulge uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaCloth uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaGrid uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaFractal uses Arnold 3.3.13.1
-00:00:00  250mb         |  mtoa_shaders.dll: MayaNoise uses Arnold 3.3.13.1
-00:00:00  251mb         |  mtoa_shaders.dll: MayaPlace3DTexture uses Arnold 3.3.13.1
-00:00:00  251mb         |  mtoa_shaders.dll: MayaRgbToHsv uses Arnold 3.3.13.1
-00:00:00  251mb         |  mtoa_shaders.dll: MayaHsvToRgb uses Arnold 3.3.13.1
-00:00:00  251mb         |  mtoa_shaders.dll: MayaLuminance uses Arnold 3.3.13.1
-00:00:00  251mb         |  mtoa_shaders.dll: MayaCloud uses Arnold 3.3.13.1
-00:00:00  251mb         |  mtoa_shaders.dll: MayaCloudAlpha uses Arnold 3.3.13.1
-00:00:00  251mb         |  mtoa_shaders.dll: MayaSnow uses Arnold 3.3.13.1
-00:00:00  251mb         |  mtoa_shaders.dll: MayaContrast uses Arnold 3.3.13.1
-00:00:00  251mb         |  mtoa_shaders.dll: MayaLayeredTexture uses Arnold 3.3.13.1
-00:00:00  251mb         |  mtoa_shaders.dll: MayaLayeredShader uses Arnold 3.3.13.1
-00:00:00  251mb         |  mtoa_shaders.dll: MayaSolidFractal uses Arnold 3.3.13.1
-00:00:00  251mb         |  mtoa_shaders.dll: MayaVolumeNoise uses Arnold 3.3.13.1
-00:00:00  251mb         |  mtoa_shaders.dll: MayaBrownian uses Arnold 3.3.13.1
-00:00:00  251mb         |  mtoa_shaders.dll: MayaStucco uses Arnold 3.3.13.1
-00:00:00  251mb         |  mtoa_shaders.dll: MayaRemapHsv uses Arnold 3.3.13.1
-00:00:00  251mb         |  mtoa_shaders.dll: MayaSetRange uses Arnold 3.3.13.1
-00:00:00  251mb         |  mtoa_shaders.dll: MayaImagePlane uses Arnold 3.3.13.1
-00:00:00  251mb         |  mtoa_shaders.dll: MayaSurfaceShader uses Arnold 3.3.13.1
-00:00:00  251mb         |  mtoa_shaders.dll: colorToFloat uses Arnold 3.3.13.1
-00:00:00  251mb         |  mtoa_shaders.dll: vectorToFloat uses Arnold 3.3.13.1
-00:00:00  251mb         |  mtoa_shaders.dll: pointToFloat uses Arnold 3.3.13.1
-00:00:00  251mb         |  mtoa_shaders.dll: point2ToFloat uses Arnold 3.3.13.1
-00:00:00  251mb         |  mtoa_shaders.dll: writeColor uses Arnold 3.3.13.1
-00:00:00  251mb         |  mtoa_shaders.dll: writeFloat uses Arnold 3.3.13.1
-00:00:00  251mb         |  mtoa_shaders.dll: MayaEnvSphere uses Arnold 3.3.13.1
-00:00:00  251mb         |  mtoa_shaders.dll: anim_matrix uses Arnold 3.3.13.1
-00:00:00  251mb         | loaded 52 plugins from 1 lib(s) in 0:00.00
-00:00:00  251mb         | [METADATA] Loading metadata file: C:/solidAngle/mtoadeploy/2012/plug-ins/mtoa.mtd
-00:00:00  251mb         | [mtoa] Exporting scene
-00:00:00  251mb         | [mtoa] Exporting Arnold options 'defaultArnoldRenderOptions'
-00:00:00  251mb         | [mtoa] [maya aiOptions] Using translator <built-in>, provided by <built-in>(<built-in>).
-00:00:00  251mb         | COptionsTranslator <built-in>: CreateArnoldNodes on Maya node defaultArnoldRenderOptions(aiOptions) created arnold node 00000000217903F0: options(options).
-00:00:00  251mb         | [mtoa] [translator <built-in>] Exporting on plug defaultArnoldRenderOptions.message and upstream.
-00:00:00  251mb         | COptionsTranslator <built-in>: Export on Maya node defaultArnoldRenderOptions(aiOptions), Arnold node 00000000217903F0: options(options).
-00:00:00  251mb         | exporting filter "gaussian"
-00:00:00  251mb         | CDriverTranslator gaussian: CreateArnoldNodes on Maya node defaultArnoldRenderOptions(aiOptions) created arnold node 0000000021790630: defaultArnoldRenderOptions_gaussian_filter(gaussian_filter).
-00:00:00  251mb         | [mtoa] Custom export of defaultArnoldRenderOptions(<filter>) as Arnold node defaultArnoldRenderOptions_gaussian_filter(gaussian_filter) using translator: gaussian.
-00:00:00  251mb         | [mtoa] [translator gaussian] Exporting on node defaultArnoldRenderOptions and upstream.
-00:00:00  251mb         | CDriverTranslator gaussian: Export on Maya node defaultArnoldRenderOptions(aiOptions), Arnold node defaultArnoldRenderOptions_gaussian_filter(gaussian_filter).
-00:00:00  251mb         | CDriverTranslator gaussian: Export on parameter width
-00:00:00  251mb         | CDriverTranslator gaussian: Export on parameter name
-00:00:00  251mb         | [mtoa] [aovs] disabled
-00:00:00  251mb         | CDriverTranslator tif: CreateArnoldNodes on Maya node defaultArnoldRenderOptions(aiOptions) created arnold node 0000000021790810: defaultArnoldRenderOptions_driver_tiff(driver_tiff).
-00:00:00  251mb         | [mtoa] Custom export of defaultArnoldRenderOptions(<driver>) as Arnold node defaultArnoldRenderOptions_driver_tiff(driver_tiff) using translator: tif.
-00:00:00  251mb         | [mtoa] [translator tif] Exporting on node defaultArnoldRenderOptions and upstream.
-00:00:00  251mb         | CDriverTranslator tif: Export on Maya node defaultArnoldRenderOptions(aiOptions), Arnold node defaultArnoldRenderOptions_driver_tiff(driver_tiff).
-00:00:00  251mb         | CDriverTranslator tif: Export on parameter filename
-00:00:00  251mb         | CDriverTranslator tif: Export on parameter compression
-00:00:00  251mb         | CDriverTranslator tif: Export on parameter format
-00:00:00  251mb         | CDriverTranslator tif: Export on parameter tiled
-00:00:00  251mb         | CDriverTranslator tif: Export on parameter output_padded
-00:00:00  251mb         | CDriverTranslator tif: Export on parameter gamma
-00:00:00  251mb         | CDriverTranslator tif: Export on parameter dither_amplitude
-00:00:00  251mb         | CDriverTranslator tif: Export on parameter unpremult_alpha
-00:00:00  251mb         | CDriverTranslator tif: Export on parameter name
-00:00:00  251mb         | [mtoa] Exporting frame 1.000000
-00:00:00  251mb         | [mtoa] Exporting dag node perspShape of type camera
-00:00:00  251mb         | [mtoa] [translator perspective] Exporting on node perspShape and upstream.
-00:00:00  251mb         | [mtoa] Exporting dag node topShape of type camera
-00:00:00  251mb         | [mtoa] [translator orthographic] Exporting on node topShape and upstream.
-00:00:00  251mb         | [mtoa] Exporting dag node frontShape of type camera
-00:00:00  251mb         | [mtoa] [translator orthographic] Exporting on node frontShape and upstream.
-00:00:00  251mb         | [mtoa] Exporting dag node sideShape of type camera
-00:00:00  251mb         | [mtoa] [translator orthographic] Exporting on node sideShape and upstream.
-00:00:00  251mb         | [mtoa] Exporting dag node groundPlane_transform of type transform
-00:00:00  251mb         | [mtoa] Dag node groundPlane_transform of type transform ignored
-00:00:00  251mb         | [mtoa] Exporting dag node groundPlane of type groundPlane
-00:00:00  251mb         | [mtoa] Dag node groundPlane of type groundPlane ignored
-00:00:00  251mb         | [mtoa] Exporting dag node pSphere1 of type transform
-00:00:00  251mb         | [mtoa] Dag node pSphere1 of type transform ignored
-00:00:00  251mb         | [mtoa] Exporting dag node pSphereShape1 of type mesh
-00:00:00  251mb         | [mtoa] [maya mesh] Using translator <built-in>, provided by <built-in>(<built-in>).
-00:00:00  251mb         | [mtoa] [translator <built-in>] Exporting on node pSphereShape1 and upstream.
-00:00:00  251mb         | [mtoa] [maya aiStandard] Using translator <built-in>, provided by <built-in>(<built-in>).
-00:00:00  251mb         | [mtoa] [translator <built-in>] Exporting on plug aiStandard1.outColor and upstream.
-00:00:00  251mb         | [mtoa] Exporting dag node transform1 of type transform
-00:00:00  251mb         | [mtoa] Dag node transform1 of type transform ignored
-00:00:00  251mb         | [mtoa] Exporting dag node aiAreaLight of type aiAreaLight
-00:00:00  251mb         | [mtoa] [translator cylinder] Exporting on node aiAreaLight and upstream.
-00:00:00  251mb         | [mtoa.session] Setting export camera to "perspShape"
-00:00:00  251mb         | [mtoa] [translator <built-in>] CNodeTranslator::DoUpdate step 0, node 00000000217903F0
-00:00:00  251mb         | [mtoa] [translator <built-in>] Updating Arnold options(options) translated from Maya defaultArnoldRenderOptions(aiOptions): 00000000217903F0
-00:00:00  251mb         | [mtoa] Exporting dag node perspShape of type camera
-00:00:00  251mb         |  
-00:00:00  251mb         | [rlm] connecting to license server on 5053@localhost ...
-00:00:00  252mb         | [rlm] checkout of arnold (version 303) OK
-00:00:00  252mb         |  
-00:00:00  252mb         | there are 1 light and 1 object:
-00:00:00  252mb         |  1 polymesh
-00:00:00  252mb         |  
-00:00:00  252mb         | auto-detected 8 threads
-00:00:00  252mb         | rendering image at 160 x 120, 3 AA samples, 2 GI samples, 1 GI bounces
-00:00:00  252mb         |  initializing 13 nodes ...
-00:00:00  252mb         |  node initialization done in 0:00.00
-00:00:00  255mb         |  creating root object list ...
-00:00:00  255mb         |   scene bounds: (-10 -10 -9.98028) -> (10 10 9.98027)
-00:00:00  255mb         |  updating 13 nodes ...
-00:00:00  255mb         |   aiAreaLight: 1 sample, raytraced (cylinder_light)
-00:00:00  255mb         |  node update done in 0:00.00
-00:00:00  255mb         |  [aov] parsing output statement: "RGBA RGBA gaussian_filter driver_tiff"
-00:00:00  255mb         |  [aov] registered driver: "driver_tiff" (driver_tiff)
-00:00:00  255mb         |  [aov]  * "RGBA" of type RGBA filtered by "gaussian_filter" (gaussian_filter)
-00:00:00  255mb         |  [aov] done preparing 1 AOV for 1 output to 1 driver (0 deep AOVs)
-00:00:00  255mb         |  starting 8 bucket workers of size 64x64 ...
-00:00:00  261mb         |   [accel] bvh4 done - 0:00.00 - 4900 prims, 1 key
-00:00:00  262mb         |    10% done - 9 rays/pixel
-00:00:00  262mb         |    20% done - 9 rays/pixel
-00:00:00  263mb         |    40% done - 22 rays/pixel
-00:00:00  263mb         |    60% done - 19 rays/pixel
-00:00:00  264mb         |    75% done - 48 rays/pixel
-00:00:00  264mb         |   100% done - 55 rays/pixel
-00:00:00  264mb         |  bucket workers done in 0:00.26
-00:00:00  264mb         | render done
-00:00:00  264mb         | [driver_tiff] writing file `C:/solidangle/mtoa/mtoa-main/build/windows_x86_64/2012/msvc_debug/testsuite/test_0038/testrender.tif'
-00:00:00  264mb         |  
-00:00:00  264mb         | -----------------------------------------------------------------------------------------
-00:00:00  264mb         | scene creation time:
-00:00:00  264mb         |  plugin loading               0:00.00
-00:00:00  264mb         |  system/unaccounted           0:00.03
-00:00:00  264mb         |  total                        0:00.03  ( 5.86% machine utilization)
-00:00:00  264mb         | -----------------------------------------------------------------------------------------
-00:00:00  264mb         | render time:
-00:00:00  264mb         |  node init                    0:00.00
-00:00:00  264mb         |  bucket rendering             0:00.26
-00:00:00  264mb         |   accel. building             0:00.00
-00:00:00  264mb         |   pixel rendering             0:00.25  (multi-threaded render, this value may not be reliable)
-00:00:00  264mb         |  system/unaccounted           0:00.18
-00:00:00  264mb         |  total                        0:00.26  (31.92% machine utilization)
-00:00:00  264mb         | -----------------------------------------------------------------------------------------
-00:00:00  264mb         | memory consumed in mb:
-00:00:00  264mb         |  at startup                    250.84
-00:00:00  264mb         |  plugins                         0.20
-00:00:00  264mb         |  AOV samples                     7.18
-00:00:00  264mb         |  output buffers                  0.57
-00:00:00  264mb         |  node overhead                   0.00
-00:00:00  264mb         |  message passing                 0.02
-00:00:00  264mb         |  memory pools                    9.28
-00:00:00  264mb         |  geometry                        0.13
-00:00:00  264mb         |    polymesh                      0.13
-00:00:00  264mb         |  accel. structs                  0.16
-00:00:00  264mb         |  string pool                     0.14 (919 unique strings, overhead 0.10 mb)
-00:00:00  264mb         |  texture cache                   0.00
-00:00:00  264mb         |  unaccounted                    -4.31
-00:00:00  264mb         |  total peak                    264.21
-00:00:00  264mb         | -----------------------------------------------------------------------------------------
-00:00:00  264mb         | ray counts:                           (/pixel , /sample) (% total) (avg. hits) (max hits)
-00:00:00  264mb         |  camera                        185256 (   9.00,    1.00) ( 29.36%) (     0.27) (       1)
-00:00:00  264mb         |  shadow                         52278 (   2.54,    0.28) (  8.29%) (     0.00) (       0)
-00:00:00  264mb         |  diffuse                       196984 (   9.57,    1.06) ( 31.22%) (     0.00) (       1)
-00:00:00  264mb         |  glossy                        196378 (   9.54,    1.06) ( 31.13%) (     0.00) (       0)
-00:00:00  264mb         |  total                         630896 (  30.65,    3.41) (100.00%) (     0.10) (       1)
-00:00:00  264mb         |  max depth                          1
-00:00:00  264mb         | -----------------------------------------------------------------------------------------
-00:00:00  264mb         | lighting calculations:                (/pixel , /sample)    secondary (/pixel , /sample)
-00:00:00  264mb         |  light loops                    98492 (   4.78,    0.53)           57 (   0.00,    0.00)
-00:00:00  264mb         |    cached                       49246 (   2.39,    0.27)            0 (   0.00,    0.00)
-00:00:00  264mb         |  indirect diffuse               49246 (   2.39,    0.27)           57 (   0.00,    0.00)
-00:00:00  264mb         |  indirect glossy                49246 (   2.39,    0.27)            0 (   0.00,    0.00)
-00:00:00  264mb         | -----------------------------------------------------------------------------------------
-00:00:00  264mb         | shader calls:                         (/pixel , /sample) (% total)
-00:00:00  264mb         |  primary                        49303 (   2.40,    0.27) (100.00%)
-00:00:00  264mb         |  total                          49303 (   2.40,    0.27) (100.00%)
-00:00:00  264mb         | -----------------------------------------------------------------------------------------
-00:00:00  264mb         | geometry:                             (% hit ) (instances) (  init mem,  final mem)
-00:00:00  264mb         |  polymeshes                         1 (100.0%) (        0) (      0.11,       0.13)
-00:00:00  264mb         | -----------------------------------------------------------------------------------------
-00:00:00  264mb         | geometric elements:                   (      min) (       avg.) (      max)
-00:00:00  264mb         |  polygons                        2500 (     2500) (     2500.0) (     2500)
-00:00:00  264mb         | -----------------------------------------------------------------------------------------
-00:00:00  264mb         | triangle tesselation:                 (      min) (       avg.) (      max) (/ element) (% total)
-00:00:00  264mb         |  polymeshes                      4900 (     4900) (     4900.0) (     4900) (     1.96) (100.00%)
-00:00:00  264mb         |  unique triangles:               4900
-00:00:00  264mb         |  memory use (in mb)              0.13
-00:00:00  264mb         |    vertices                      0.03
-00:00:00  264mb         |    vertex indices                0.02
-00:00:00  264mb         |    polygon base offsets          0.01
-00:00:00  264mb         |    polygon IDs                   0.01
-00:00:00  264mb         |    triangulation                 0.00
-00:00:00  264mb         |    packed normals                0.01
-00:00:00  264mb         |    normal indices                0.02
-00:00:00  264mb         |    uv coords                     0.01
-00:00:00  264mb         |    uv coords idxs                0.02
-00:00:00  264mb         |    uniform indices               0.00
-00:00:00  264mb         |  largest polymeshes by triangle count:
-00:00:00  264mb         |         4900 tris -- pSphereShape1
-00:00:00  264mb         | -----------------------------------------------------------------------------------------
-00:00:00  264mb         | acceleration structures:              (% total)
-00:00:00  264mb         |  bvh                                1 (100.00%)
-00:00:00  264mb         |  total                              1 (100.00%)
-00:00:00  264mb         | -----------------------------------------------------------------------------------------
-00:00:00  264mb         |  
-00:00:00  264mb         | releasing resources
-00:00:00  254mb         |  unloading 1 plugin
-00:00:00  254mb         |   closing mtoa_shaders.dll ...
-00:00:00  253mb         |  unloading plugins done
-00:00:00  253mb         | Arnold shutdown
-Scene C:\solidangle\mtoa\mtoa-main\build\windows_x86_64\2012\msvc_debug\testsuite\test_0038\test.ma completed.
+Warning: This file is from an older version of Maya.  If saved, it will not be readable by previous versions.
+Result: C:/solidAngle/mtoa/mtoa-main/build/windows_x86_64/2012/msvc_debug/testsuite/test_0038/test.ma
+00:00:00  245mb         | log started Wed Dec 14 16:12:38 2011
+00:00:00  245mb         | Arnold 3.3.13.1 windows 64-bit icc110 oiio1000 sse (build date: Oct 25 2011 16:37:41)
+00:00:00  245mb         | running on Berenjena, 4 x 2833 mhz GenuineIntel with 3839 mb
+00:00:00  245mb         |  
+00:00:00  245mb         | loading plugin: C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll ...
+00:00:00  245mb         |  mtoa_shaders.dll: MayaMultiplyDivide uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaClamp uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaGammaCorrect uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaCondition uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaReverse uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaBlendColors uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaFacingRatio uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaFlippedNormal uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaPlusMinusAverage1D uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaPlusMinusAverage2D uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaPlusMinusAverage3D uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaRemapValueToValue uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaRemapValueToColor uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaRemapColor uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaFile uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaPlace2DTexture uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaRamp uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaProjection uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MeshInfo uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: TangentToObjectSpace uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaChecker uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaBulge uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaCloth uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaGrid uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaFractal uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaNoise uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaPlace3DTexture uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaRgbToHsv uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaHsvToRgb uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaLuminance uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaCloud uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaCloudAlpha uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaSnow uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaContrast uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaLayeredTexture uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaLayeredShader uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaSolidFractal uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaVolumeNoise uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaBrownian uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaStucco uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaRemapHsv uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaSetRange uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaImagePlane uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaSurfaceShader uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: colorToFloat uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: vectorToFloat uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: pointToFloat uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: point2ToFloat uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: writeColor uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: writeFloat uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaEnvSphere uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: anim_matrix uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: anim_float uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: anim_point uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: anim_vector uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: anim_color uses Arnold 3.3.13.1
+00:00:00  245mb         | loaded 56 plugins from 1 lib(s) in 0:00.09
+00:00:00  245mb         | [METADATA] Loading metadata file: C:/solidAngle/mtoadeploy/2012/plug-ins/mtoa.mtd
+00:00:00  245mb         |  
+00:00:00  245mb         | releasing resources
+00:00:00  245mb         |  unloading 1 plugin
+00:00:00  245mb         |   closing mtoa_shaders.dll ...
+00:00:00  245mb         |  unloading plugins done
+00:00:00  245mb         | Arnold shutdown
+00:00:00  245mb         | log started Wed Dec 14 16:12:38 2011
+00:00:00  245mb         | Arnold 3.3.13.1 windows 64-bit icc110 oiio1000 sse (build date: Oct 25 2011 16:37:41)
+00:00:00  245mb         | running on Berenjena, 4 x 2833 mhz GenuineIntel with 3839 mb
+00:00:00  245mb         |  
+00:00:00  245mb         | loading plugin: C:/solidangle/mtoadeploy/2012/shaders/mtoa_shaders.dll ...
+00:00:00  245mb         |  mtoa_shaders.dll: MayaMultiplyDivide uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaClamp uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaGammaCorrect uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaCondition uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaReverse uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaBlendColors uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaFacingRatio uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaFlippedNormal uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaPlusMinusAverage1D uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaPlusMinusAverage2D uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaPlusMinusAverage3D uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaRemapValueToValue uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaRemapValueToColor uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaRemapColor uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaFile uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaPlace2DTexture uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaRamp uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaProjection uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MeshInfo uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: TangentToObjectSpace uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaChecker uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaBulge uses Arnold 3.3.13.1
+00:00:00  245mb         |  mtoa_shaders.dll: MayaCloth uses Arnold 3.3.13.1
+00:00:00  246mb         |  mtoa_shaders.dll: MayaGrid uses Arnold 3.3.13.1
+00:00:00  246mb         |  mtoa_shaders.dll: MayaFractal uses Arnold 3.3.13.1
+00:00:00  246mb         |  mtoa_shaders.dll: MayaNoise uses Arnold 3.3.13.1
+00:00:00  246mb         |  mtoa_shaders.dll: MayaPlace3DTexture uses Arnold 3.3.13.1
+00:00:00  246mb         |  mtoa_shaders.dll: MayaRgbToHsv uses Arnold 3.3.13.1
+00:00:00  246mb         |  mtoa_shaders.dll: MayaHsvToRgb uses Arnold 3.3.13.1
+00:00:00  246mb         |  mtoa_shaders.dll: MayaLuminance uses Arnold 3.3.13.1
+00:00:00  246mb         |  mtoa_shaders.dll: MayaCloud uses Arnold 3.3.13.1
+00:00:00  246mb         |  mtoa_shaders.dll: MayaCloudAlpha uses Arnold 3.3.13.1
+00:00:00  246mb         |  mtoa_shaders.dll: MayaSnow uses Arnold 3.3.13.1
+00:00:00  246mb         |  mtoa_shaders.dll: MayaContrast uses Arnold 3.3.13.1
+00:00:00  246mb         |  mtoa_shaders.dll: MayaLayeredTexture uses Arnold 3.3.13.1
+00:00:00  246mb         |  mtoa_shaders.dll: MayaLayeredShader uses Arnold 3.3.13.1
+00:00:00  246mb         |  mtoa_shaders.dll: MayaSolidFractal uses Arnold 3.3.13.1
+00:00:00  246mb         |  mtoa_shaders.dll: MayaVolumeNoise uses Arnold 3.3.13.1
+00:00:00  246mb         |  mtoa_shaders.dll: MayaBrownian uses Arnold 3.3.13.1
+00:00:00  246mb         |  mtoa_shaders.dll: MayaStucco uses Arnold 3.3.13.1
+00:00:00  246mb         |  mtoa_shaders.dll: MayaRemapHsv uses Arnold 3.3.13.1
+00:00:00  246mb         |  mtoa_shaders.dll: MayaSetRange uses Arnold 3.3.13.1
+00:00:00  246mb         |  mtoa_shaders.dll: MayaImagePlane uses Arnold 3.3.13.1
+00:00:00  246mb         |  mtoa_shaders.dll: MayaSurfaceShader uses Arnold 3.3.13.1
+00:00:00  246mb         |  mtoa_shaders.dll: colorToFloat uses Arnold 3.3.13.1
+00:00:00  246mb         |  mtoa_shaders.dll: vectorToFloat uses Arnold 3.3.13.1
+00:00:00  246mb         |  mtoa_shaders.dll: pointToFloat uses Arnold 3.3.13.1
+00:00:00  246mb         |  mtoa_shaders.dll: point2ToFloat uses Arnold 3.3.13.1
+00:00:00  246mb         |  mtoa_shaders.dll: writeColor uses Arnold 3.3.13.1
+00:00:00  246mb         |  mtoa_shaders.dll: writeFloat uses Arnold 3.3.13.1
+00:00:00  246mb         |  mtoa_shaders.dll: MayaEnvSphere uses Arnold 3.3.13.1
+00:00:00  246mb         |  mtoa_shaders.dll: anim_matrix uses Arnold 3.3.13.1
+00:00:00  246mb         |  mtoa_shaders.dll: anim_float uses Arnold 3.3.13.1
+00:00:00  246mb         |  mtoa_shaders.dll: anim_point uses Arnold 3.3.13.1
+00:00:00  246mb         |  mtoa_shaders.dll: anim_vector uses Arnold 3.3.13.1
+00:00:00  246mb         |  mtoa_shaders.dll: anim_color uses Arnold 3.3.13.1
+00:00:00  246mb         | loaded 56 plugins from 1 lib(s) in 0:00.14
+00:00:00  246mb         | [METADATA] Loading metadata file: C:/solidAngle/mtoadeploy/2012/plug-ins/mtoa.mtd
+00:00:00  246mb         | exporting filter "gaussian"
+00:00:00  246mb         |  
+00:00:00  247mb         | [rlm] checkout of arnold (version 303) OK
+00:00:00  247mb         |  
+00:00:00  247mb         | there are 1 light and 1 object:
+00:00:00  247mb         |  1 polymesh
+00:00:00  247mb         |  
+00:00:00  247mb         | rendering image at 160 x 120, 3 AA samples, 2 GI samples, 1 GI bounces
+00:00:00  247mb         |  initializing 14 nodes ...
+00:00:00  247mb         |  node initialization done in 0:00.00
+00:00:00  250mb         |  creating root object list ...
+00:00:00  250mb         |   scene bounds: (-10 -10 -9.98028) -> (10 10 9.98027)
+00:00:00  250mb         |  updating 14 nodes ...
+00:00:00  250mb         |  node update done in 0:00.00
+00:00:00  250mb         |  [aov] registered driver: "driver_tiff" (driver_tiff)
+00:00:00  250mb         |  [aov]  * "RGBA" of type RGBA filtered by "gaussian_filter" (gaussian_filter)
+00:00:00  251mb         |  [aov] done preparing 1 AOV for 1 output to 1 driver (0 deep AOVs)
+00:00:00  251mb         |  starting 4 bucket workers of size 64x64 ...
+00:00:00  257mb         |  bucket workers done in 0:00.40
+00:00:00  257mb         | render done
+00:00:00  257mb         | [driver_tiff] writing file `C:/solidAngle/mtoa/mtoa-main/build/windows_x86_64/2012/msvc_debug/testsuite/test_0038/testrender.tif'
+00:00:00  257mb         |  
+00:00:00  257mb         | releasing resources
+00:00:00  248mb         | Arnold shutdown
+Scene C:\solidAngle\mtoa\mtoa-main\build\windows_x86_64\2012\msvc_debug\testsuite\test_0038\test.ma completed.
