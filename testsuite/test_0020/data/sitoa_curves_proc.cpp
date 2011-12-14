@@ -196,7 +196,7 @@ static AtNode *GetNode(void *user_ptr, int i)
                   AtArray* uvs = AiArrayAllocate(nuvsfloats/2, 1, AI_TYPE_POINT2);
                   AtPoint2 uv;
 
-                  AtUInt counter = 0;
+                  unsigned int counter = 0;
                   for(AtUInt32 j=0; j<nuvsfloats; j+=2)
                   {
                      uv.x = (float) uvs_array[j];
@@ -226,7 +226,7 @@ static AtNode *GetNode(void *user_ptr, int i)
          AtArray* matrixs = AiArrayAllocate(1, num_matrix, AI_TYPE_MATRIX);
 
          // Reading each matrix
-         for(AtUInt i=0; i<num_matrix; i++)
+         for(unsigned int i=0; i<num_matrix; i++)
          {
             AtMatrix matrix;
 
@@ -370,7 +370,7 @@ void ReadParameterValue(AtNode* curve_node, FILE* fp, const char* param_name)
          case AI_TYPE_UINT:
          {
             AtUInt32 value;
-            fread(&value, sizeof(AtUInt), 1, fp);
+            fread(&value, sizeof(unsigned int), 1, fp);
             AiNodeSetUInt(curve_node, param_name, value);
             break;
          }
@@ -391,8 +391,8 @@ void ReadParameterValue(AtNode* curve_node, FILE* fp, const char* param_name)
          case AI_TYPE_ENUM:
          case AI_TYPE_STRING:
          {
-            AtUInt len;
-            fread(&len, sizeof(AtUInt), 1, fp);
+            unsigned int len;
+            fread(&len, sizeof(unsigned int), 1, fp);
 
             char *value = (char*) AiMalloc(sizeof(char)*(len+1));
             fread(value, sizeof(char), len+1, fp);

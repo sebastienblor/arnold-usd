@@ -41,7 +41,7 @@ public:
    
    virtual void Export(AtNode* curve);
    virtual void Update(AtNode* curve);
-   virtual void ExportMotion(AtNode* curve, AtUInt step);
+   virtual void ExportMotion(AtNode* curve, unsigned int step);
    static void NodeInitializer(CAbTranslator context);
    AtNode* CreateArnoldNodes();
    static void* creator()
@@ -51,7 +51,7 @@ public:
 
    
 private:
-   void ProcessHairLines(AtUInt step,
+   void ProcessHairLines(unsigned int step,
                          AtArray* curvePoints,
                          AtArray* curveNextLineStartsInterp,
                          AtArray* curveNextLineStarts,
@@ -59,7 +59,7 @@ private:
                          AtArray* curveColors);
    AtVector2 GetHairRootUVs(const MVector& lineStart, MMeshIntersector& meshInt, MFnMesh& mesh);
    void GetHairShapeMeshes(const MObject& hair, MDagPathArray& shapes);
-   AtUInt GetHairLines(MObject& hair, std::vector<CHairLine>& hairLines);
+   unsigned int GetHairLines(MObject& hair, std::vector<CHairLine>& hairLines);
    void clear()
    {
       m_numMainLines = 0;
@@ -68,7 +68,7 @@ private:
 
 private:
    std::vector<CHairLine> m_hairLines;
-   AtUInt m_numMainLines;
+   unsigned int m_numMainLines;
 
    
 };

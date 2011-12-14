@@ -88,33 +88,33 @@ public:
       return m_outputAssFile;
    }
 
-   AtUInt outputAssMask() const
+   unsigned int outputAssMask() const
    {
       return m_outputAssMask;
    }
 
-   void SetOutputAssMask(AtUInt mask)
+   void SetOutputAssMask(unsigned int mask)
    {
       m_outputAssMask = mask;
    }
 
    void SetCamera(MDagPath& camera);
 
-   void SetWidth(AtUInt width)
+   void SetWidth(unsigned int width)
    {
       m_width = width;
 
       UpdateImageDimensions();
    }
 
-   void SetHeight(AtUInt height)
+   void SetHeight(unsigned int height)
    {
       m_height = height;
 
       UpdateImageDimensions();
    }
 
-   void SetRegion(const AtUInt left, const AtUInt right, const AtUInt bottom, const AtUInt top)
+   void SetRegion(const unsigned int left, const unsigned int right, const unsigned int bottom, const unsigned int top)
    {
       m_useRenderRegion = true;
 
@@ -201,14 +201,14 @@ private:
    MCommonRenderSettingsData m_defaultRenderGlobalsData;
 
    bool     m_progressive_rendering;
-   AtUInt   m_progressive_initial_level;
-   AtUInt   m_threads;
+   unsigned int   m_progressive_initial_level;
+   unsigned int   m_threads;
    MString  m_plugins_path;
 
-   AtUInt   m_AA_samples;
-   AtUInt   m_GI_diffuse_samples;
-   AtUInt   m_GI_glossy_samples;
-   AtUInt   m_sss_sample_factor;
+   unsigned int   m_AA_samples;
+   unsigned int   m_GI_diffuse_samples;
+   unsigned int   m_GI_glossy_samples;
+   unsigned int   m_sss_sample_factor;
    float    m_AA_sample_clamp;
    bool     m_lock_sampling_noise;
 
@@ -217,12 +217,12 @@ private:
    MString  m_outputAssFile;
 
    bool     m_outputAssBoundingBox;
-   AtUInt   m_outputAssMask;
+   unsigned int   m_outputAssMask;
 
    MString  m_log_filename;
-   AtUInt   m_log_max_warnings;
-   AtUInt   m_log_console_verbosity;
-   AtUInt   m_log_file_verbosity;
+   unsigned int   m_log_max_warnings;
+   unsigned int   m_log_console_verbosity;
+   unsigned int   m_log_file_verbosity;
 };
 
 #endif // RENDEROPTIONS_H

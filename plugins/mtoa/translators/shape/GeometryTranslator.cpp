@@ -5,16 +5,16 @@
 
 namespace
 {
-   void SetKeyData(AtArray* arr, AtUInt step, const std::vector<float>& data, AtUInt size)
+   void SetKeyData(AtArray* arr, unsigned int step, const std::vector<float>& data, unsigned int size)
    {
-      AtUInt index = 0;
+      unsigned int index = 0;
 
       switch(arr->type)
       {
          case AI_TYPE_POINT:
          {
             AtPoint pnt;
-            for(AtUInt J = 0; (J < size); ++J)
+            for(unsigned int J = 0; (J < size); ++J)
             {
                AiV3Create(pnt, data[index++], data[index++], data[index++]);
                AiArraySetPnt(arr, J + (size * step), pnt);
@@ -25,7 +25,7 @@ namespace
          case AI_TYPE_VECTOR:
          {
             AtVector vec;
-            for(AtUInt J = 0; (J < size); ++J)
+            for(unsigned int J = 0; (J < size); ++J)
             {
                AiV3Create(vec, data[index++], data[index++], data[index++]);
                AiArraySetVec(arr, J + (size * step), vec);
@@ -346,7 +346,7 @@ bool CGeometryTranslator::GetVertexColors(MFnMesh &fnMesh, std::map<std::string,
 }
 
 void CGeometryTranslator::GetComponentIDs(MFnMesh &fnMesh,
-      std::vector<AtUInt> &nsides,
+      std::vector<unsigned int> &nsides,
       std::vector<AtUInt32> &vidxs,
       std::vector<AtUInt32> &nidxs,
       std::vector<AtUInt32> &uvidxs,
@@ -439,9 +439,9 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
       AiNodeSetArray(polymesh, "shader", AiArrayConvert((int)meshShaders.size(), 1, AI_TYPE_NODE, &meshShaders[0], TRUE));
 
       // Export face to shader indices
-      // First convert from MIntArray to AtUInt vector
-      std::vector<AtUInt> shidxs;
-      for(AtUInt i = 0; i < indices.length(); i++)
+      // First convert from MIntArray to unsigned int vector
+      std::vector<unsigned int> shidxs;
+      for(unsigned int i = 0; i < indices.length(); i++)
          shidxs.push_back(indices[i]);
       AiNodeSetArray(polymesh, "shidxs", AiArrayConvert((int)shidxs.size(), 1, AI_TYPE_UINT, &(shidxs[0]), TRUE));
    }
@@ -501,7 +501,7 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
    }
 }
 
-void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, AtUInt step)
+void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
 {
    m_isRefSmooth = false;
 
@@ -560,7 +560,7 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, AtUInt step)
    if (step == 0)
    {
       std::vector<float> uvs;
-      std::vector<AtUInt> nsides;
+      std::vector<unsigned int> nsides;
       std::vector<AtUInt32> vidxs, nidxs, uvidxs;
       std::map<std::string, std::vector<float> > vcolors;
       std::vector<float> refVertices, refNormals;
@@ -652,7 +652,7 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, AtUInt step)
       // Passing vidxs directly put Arnold in trouble
       //AiNodeSetArray(polymesh, "vidxs", AiArrayConvert(vidxs.size(), 1, AI_TYPE_UINT, &(vidxs[0]), TRUE));
       AtArray *vidxsTmp = AiArrayAllocate((int)vidxs.size(), 1, AI_TYPE_UINT);
-      for(AtUInt i = 0; (i < vidxs.size()); i++)
+      for(unsigned int i = 0; (i < vidxs.size()); i++)
          AiArraySetUInt(vidxsTmp, i, vidxs[i]);
       AiNodeSetArray(polymesh, "vidxs", vidxsTmp);
 
@@ -661,7 +661,7 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, AtUInt step)
          // Same goes here
          //AiNodeSetArray(polymesh, "nidxs", AiArrayConvert(nidxs.size(), 1, AI_TYPE_UINT, &(nidxs[0]), TRUE));
          AtArray *nidxsTmp = AiArrayAllocate((int)nidxs.size(), 1, AI_TYPE_UINT);
-         for(AtUInt i = 0; (i < nidxs.size()); i++)
+         for(unsigned int i = 0; (i < nidxs.size()); i++)
             AiArraySetUInt(nidxsTmp, i, nidxs[i]);
          AiNodeSetArray(polymesh, "nidxs", nidxsTmp);
       }
@@ -679,7 +679,7 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, AtUInt step)
          // Same problem here
          //AiNodeSetArray(polymesh, "uvidxs", AiArrayConvert(uvidxs.size(), 1, AI_TYPE_UINT, &(uvidxs[0]), TRUE));
          AtArray *uvidxsTmp = AiArrayAllocate((int)uvidxs.size(), 1, AI_TYPE_UINT);
-         for(AtUInt i = 0; (i < uvidxs.size()); i++)
+         for(unsigned int i = 0; (i < uvidxs.size()); i++)
             AiArraySetUInt(uvidxsTmp, i, uvidxs[i]);
          AiNodeSetArray(polymesh, "uvidxs", uvidxsTmp);
       }
@@ -865,7 +865,7 @@ AtNode* CGeometryTranslator::ExportInstance(AtNode *instance, const MDagPath& ma
    bool equalShaderArrays = ((shaders.length() == shadersMaster.length()) && (indices.length() == indicesMaster.length()));
 
    // Compare face arrays
-   for(AtUInt j=0; (equalShaderArrays && (j < indices.length())); j++)
+   for(unsigned int j=0; (equalShaderArrays && (j < indices.length())); j++)
    {
       if (indices[j] != indicesMaster[j])
       {
@@ -873,7 +873,7 @@ AtNode* CGeometryTranslator::ExportInstance(AtNode *instance, const MDagPath& ma
       }
    }
    // Compare shader (actually SG) arrays
-   for(AtUInt i=0; (equalShaderArrays && (i < shaders.length())); i++)
+   for(unsigned int i=0; (equalShaderArrays && (i < shaders.length())); i++)
    {
       if (shaders[i] != shadersMaster[i])
       {
@@ -915,7 +915,7 @@ void CGeometryTranslator::Update(AtNode *anode)
    }
 }
 
-void CGeometryTranslator::ExportMotion(AtNode* anode, AtUInt step)
+void CGeometryTranslator::ExportMotion(AtNode* anode, unsigned int step)
 {
    // Ran into a strange bug where the object must be reset to
    // avoid a crash.  even calling .hasObj() was enough to avoid it
@@ -934,7 +934,7 @@ void CGeometryTranslator::ExportMotion(AtNode* anode, AtUInt step)
    }
 }
 
-void CGeometryTranslator::UpdateMotion(AtNode* anode, AtUInt step)
+void CGeometryTranslator::UpdateMotion(AtNode* anode, unsigned int step)
 {
    ExportMatrix(anode, step);
 }

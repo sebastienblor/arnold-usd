@@ -157,7 +157,7 @@ node_finish
 
 shader_evaluate
 {
-   AtUInt numInputs = AiShaderEvalParamUInt(p_numInputs);
+   unsigned int numInputs = AiShaderEvalParamUInt(p_numInputs);
 
    AtRGBA result = AI_RGBA_BLACK;
 

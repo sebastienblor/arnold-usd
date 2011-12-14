@@ -58,7 +58,7 @@ namespace // <anonymous>
 //------------ CNodeTranslator ------------//
 
 // internal use only
-AtNode* CNodeTranslator::DoExport(AtUInt step)
+AtNode* CNodeTranslator::DoExport(unsigned int step)
 {
    AtNode* node = GetArnoldNode("");
    if (node != NULL)
@@ -91,7 +91,7 @@ AtNode* CNodeTranslator::DoExport(AtUInt step)
 }
 
 // internal use only
-AtNode* CNodeTranslator::DoUpdate(AtUInt step)
+AtNode* CNodeTranslator::DoUpdate(unsigned int step)
 {
    assert(AiUniverseIsActive());
    AtNode* node = GetArnoldNode("");
@@ -996,25 +996,25 @@ void CNodeTranslator::ProcessArrayParameter(AtNode* arnoldNode, const char* arno
 {
    const AtParamEntry* paramEntry = AiNodeEntryLookUpParameter(arnoldNode->base_node, arnoldParamName);
    const AtParamValue* defaultValue = AiParamGetDefault(paramEntry);
-   AtUInt type = defaultValue->ARRAY->type;
+   unsigned int type = defaultValue->ARRAY->type;
    // index matters tells us whether to condense a sparse array or try to export everything
 //         int indexMatters = MFnAttribute(plug.attribute()).indexMatters();
 //         MIntArray indices;
 //         if (indexMattrs)
 //         {
 //            // do a little prep work so that we can have a unified processing loop below
-//            for (AtUInt i = 0; i < plug.numElements(); ++i)
+//            for (unsigned int i = 0; i < plug.numElements(); ++i)
 //               indices.append(i);
 //         }
 //         else
 //            plug.getExistingArrayAttributeIndices(indices);
 
    // for now do all elements
-   AtUInt size = plug.numElements();
+   unsigned int size = plug.numElements();
    AtArray* array = AiArrayAllocate(size, 1, type);
    MPlug elem;
    MPlugArray connections;
-   for (AtUInt i = 0; i < size; ++i)
+   for (unsigned int i = 0; i < size; ++i)
    {
       // cout << plug.partialName(true, false, false, false, false, true) << " index " << i << endl;
       // FIXME: follow connections when arnold 3.4 is release
@@ -1025,7 +1025,7 @@ void CNodeTranslator::ProcessArrayParameter(AtNode* arnoldNode, const char* arno
    if (size) AiNodeSetArray(arnoldNode, arnoldParamName, array);
 }
 
-void CNodeTranslator::ProcessArrayElement(int type, AtArray* array, AtUInt i, const MPlug& elem)
+void CNodeTranslator::ProcessArrayElement(int type, AtArray* array, unsigned int i, const MPlug& elem)
 {
    switch(type)
    {
@@ -1214,7 +1214,7 @@ bool CDagTranslator::IsMasterInstance(MDagPath &masterDag)
    if (m_dagPath.isInstanced())
    {
       MObjectHandle handle = MObjectHandle(m_dagPath.node());
-      AtUInt instNum = m_dagPath.instanceNumber();
+      unsigned int instNum = m_dagPath.instanceNumber();
       // first instance
       if (instNum == 0)
       {
@@ -1235,7 +1235,7 @@ bool CDagTranslator::IsMasterInstance(MDagPath &masterDag)
          // find the master by searching preceding instances
          MDagPathArray allInstances;
          MDagPath::getAllPathsTo(m_dagPath.node(), allInstances);
-         AtUInt master_index = 0;
+         unsigned int master_index = 0;
          for (; (master_index < m_dagPath.instanceNumber()); master_index++)
          {
             currDag = allInstances[master_index];
@@ -1294,7 +1294,7 @@ void CDagTranslator::GetMatrix(AtMatrix& matrix)
 // exporting matrix information. it properly handles exporting a matrix array
 // if motion blur is enabled and required by the node. it should be called
 // at each motion step
-void CDagTranslator::ExportMatrix(AtNode* node, AtUInt step)
+void CDagTranslator::ExportMatrix(AtNode* node, unsigned int step)
 {
    AtMatrix matrix;
    GetMatrix(matrix);

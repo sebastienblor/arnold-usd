@@ -109,7 +109,7 @@ void CLightTranslator::Export(AtNode* light)
    }
 }
 
-void CLightTranslator::ExportMotion(AtNode* light, AtUInt step)
+void CLightTranslator::ExportMotion(AtNode* light, unsigned int step)
 {
    AtMatrix matrix;
    GetMatrix(matrix);

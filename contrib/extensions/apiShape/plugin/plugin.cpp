@@ -11,7 +11,7 @@ public:
    AtNode* CreateArnoldNodes();
    void Export(AtNode*);
    void Update(AtNode*);
-   void ExportMotion(AtNode*, AtUInt);
+   void ExportMotion(AtNode*, unsigned int);
    static void NodeInitializer(CAbTranslator);
    static void* creator();
 };
@@ -45,7 +45,7 @@ void CApiShapeTranslator::Update(AtNode* shape)
    return;
 }
 
-void CApiShapeTranslator::ExportMotion(AtNode* shape, AtUInt step)
+void CApiShapeTranslator::ExportMotion(AtNode* shape, unsigned int step)
 {
    // Check if motionblur is enabled and early out if it's not.
    if (!IsMotionBlurEnabled()) return;

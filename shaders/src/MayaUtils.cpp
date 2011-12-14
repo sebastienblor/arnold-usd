@@ -4,22 +4,22 @@
 namespace
 {
 
-float _GetArrayFlt(AtArray *a, AtUInt i)
+float _GetArrayFlt(AtArray *a, unsigned int i)
 {
    return AiArrayGetFlt(a, i);
 }
 
-AtRGB _GetArrayRGB(AtArray *a, AtUInt i)
+AtRGB _GetArrayRGB(AtArray *a, unsigned int i)
 {
    return AiArrayGetRGB(a, i);
 }
 
 template <typename ValType>
-void RampT(AtArray *p, AtArray *c, float t, RampInterpolationType it, ValType &result, ValType (*getv)(AtArray*, AtUInt))
+void RampT(AtArray *p, AtArray *c, float t, RampInterpolationType it, ValType &result, ValType (*getv)(AtArray*, unsigned int))
 {
-   AtUInt inext = p->nelements;
+   unsigned int inext = p->nelements;
 
-   for (AtUInt i = 0; (i < p->nelements); ++i)
+   for (unsigned int i = 0; (i < p->nelements); ++i)
    {
       if (t < AiArrayGetFlt(p, i))
       {
@@ -40,7 +40,7 @@ void RampT(AtArray *p, AtArray *c, float t, RampInterpolationType it, ValType &r
       return;
    }
 
-   AtUInt icur = inext - 1;
+   unsigned int icur = inext - 1;
    float tcur = AiArrayGetFlt(p, icur);
    float tnext = AiArrayGetFlt(p, inext);
    ValType ccur = getv(c, icur);
@@ -177,7 +177,7 @@ float Mod(float n, float d)
    return (n - (floor(n / d) * d));
 }
 
-bool SortFloatArray(AtArray *a, AtUInt *shuffle)
+bool SortFloatArray(AtArray *a, unsigned int *shuffle)
 {
    bool modified = false;
 
@@ -227,7 +227,7 @@ bool SortFloatArray(AtArray *a, AtUInt *shuffle)
    return modified;
 }
 
-void ShuffleArray(AtArray *a, AtUInt *shuffle, int arnoldType)
+void ShuffleArray(AtArray *a, unsigned int *shuffle, int arnoldType)
 {
    if (!a || !shuffle)
    {
@@ -309,7 +309,7 @@ void ShuffleArray(AtArray *a, AtUInt *shuffle, int arnoldType)
    }
    else if (arnoldType == AI_TYPE_UINT)
    {
-      AtUInt tmp;
+      unsigned int tmp;
       for (AtUInt32 i = 0; (i < a->nelements); ++i)
       {
          if (shuffle[i] < i)
@@ -422,11 +422,11 @@ InterpolationType InterpolationNameToType(const char *n)
 }
 
 template <typename ValType>
-void InterpolateT(AtArray *p, AtArray *v, AtArray *it, float t, ValType &result, ValType (*getv)(AtArray*, AtUInt))
+void InterpolateT(AtArray *p, AtArray *v, AtArray *it, float t, ValType &result, ValType (*getv)(AtArray*, unsigned int))
 {
-   AtUInt inext = p->nelements;
+   unsigned int inext = p->nelements;
 
-   for (AtUInt i = 0; (i < p->nelements); ++i)
+   for (unsigned int i = 0; (i < p->nelements); ++i)
    {
       if (t < AiArrayGetFlt(p, i))
       {

@@ -36,11 +36,11 @@ public:
 protected:
    double GetDeviceAspect();
    void SetFilmTransform(AtNode* camera, double factorX=0, double factorY=0, double width=0, bool persp=true);
-   void ExportImagePlanes(AtUInt step);
-   void ExportImagePlane(AtUInt step, MObject& imgPlane);
+   void ExportImagePlanes(unsigned int step);
+   void ExportImagePlane(unsigned int step, MObject& imgPlane);
    void ExportDOF(AtNode* camera);
    void ExportCameraData(AtNode* camera);
-   void ExportCameraMBData(AtNode* camera, AtUInt step);
+   void ExportCameraMBData(AtNode* camera, unsigned int step);
    static void MakeDefaultAttributes(CExtensionAttrHelper &helper);
    static void MakeDOFAttributes(CExtensionAttrHelper &helper);
 

@@ -96,7 +96,7 @@ node_finish
 
 shader_evaluate
 {
-   AtUInt numInputs = AiShaderEvalParamUInt(p_numInputs);
+   unsigned int numInputs = AiShaderEvalParamUInt(p_numInputs);
    int flag = AiShaderEvalParamInt(p_compositingFlag);
 
    AtRGBA result = AI_RGBA_BLACK;
@@ -109,7 +109,7 @@ shader_evaluate
       AtRGB curColor = AI_RGB_BLACK;
       AtRGB curOpacity = AI_RGB_BLACK;
 
-      for (AtUInt i = 0; i < numInputs; ++i)
+      for (unsigned int i = 0; i < numInputs; ++i)
       {
          AtRGB opacity;
          AtRGB color = AiShaderEvalParamRGB(p_color0+i);

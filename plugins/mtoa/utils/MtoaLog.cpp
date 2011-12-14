@@ -2,7 +2,7 @@
 
 #include <maya/MGlobal.h>
 
-int GetFlagsFromVerbosityLevel(AtUInt level)
+int GetFlagsFromVerbosityLevel(unsigned int level)
 {
    int flags = 0;
 

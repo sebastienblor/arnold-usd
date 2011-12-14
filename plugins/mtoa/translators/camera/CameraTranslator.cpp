@@ -16,7 +16,7 @@
 
 using namespace std;
 
-void CCameraTranslator::ExportImagePlane(AtUInt step, MObject& imgPlane)
+void CCameraTranslator::ExportImagePlane(unsigned int step, MObject& imgPlane)
 {
    // get the dependency node of the image plane
    MFnDependencyNode fnRes(imgPlane);
@@ -363,7 +363,7 @@ void CCameraTranslator::ExportImagePlane(AtUInt step, MObject& imgPlane)
 }
 
 
-void CCameraTranslator::ExportImagePlanes(AtUInt step)
+void CCameraTranslator::ExportImagePlanes(unsigned int step)
 {
     MPlugArray connectedPlugs;
     MPlug      imagePlanePlug;
@@ -375,7 +375,7 @@ void CCameraTranslator::ExportImagePlanes(AtUInt step)
 
    if (imagePlanePlug.numConnectedElements() > 0)
    {
-      for (AtUInt ips = 0; (ips < imagePlanePlug.numElements()); ips++)
+      for (unsigned int ips = 0; (ips < imagePlanePlug.numElements()); ips++)
       {
          imagePlaneNodePlug = imagePlanePlug.elementByPhysicalIndex(ips);
          imagePlaneNodePlug.connectedTo(connectedPlugs, true, false, &status);
@@ -431,7 +431,7 @@ void CCameraTranslator::ExportCameraData(AtNode* camera)
    }
 }
 
-void CCameraTranslator::ExportCameraMBData(AtNode *camera, AtUInt step)
+void CCameraTranslator::ExportCameraMBData(AtNode *camera, unsigned int step)
 {
    AtMatrix matrix;
    GetMatrix(matrix);

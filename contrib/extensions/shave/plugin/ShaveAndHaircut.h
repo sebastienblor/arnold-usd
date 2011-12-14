@@ -9,7 +9,7 @@ public:
 
    virtual void Export(AtNode* camera);
    virtual void Update(AtNode* curve);
-   virtual void ExportMotion(AtNode* curve, AtUInt step);
+   virtual void ExportMotion(AtNode* curve, unsigned int step);
    static void NodeInitializer(CAbTranslator context);
    AtNode* CreateArnoldNodes();
    static void* creator()
@@ -18,7 +18,7 @@ public:
    }
 
 private:
-   void ProcessHairLines(AtUInt step,
+   void ProcessHairLines(unsigned int step,
                          AtArray* curvePoints,
                          AtArray* curveNextLineStartsInterp,
                          AtArray* curveNextLineStarts,

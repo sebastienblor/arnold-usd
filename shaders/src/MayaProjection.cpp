@@ -390,7 +390,7 @@ node_update
       const AtParamEntry *pe = AiNodeEntryLookUpParameter(n->base_node, "filename");
       if (pe != 0 && AiParamGetType(pe) == AI_TYPE_STRING)
       {
-         AtUInt tw, th;
+         unsigned int tw, th;
          if (AiTextureGetResolution(AiNodeGetStr(n, "filename"), &tw, &th))
          {
             data->image_aspect = float(tw) / float(th);

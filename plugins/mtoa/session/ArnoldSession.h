@@ -151,9 +151,9 @@ public:
       return m_aovs;
    }
 
-   AtUInt NumAOVs() const
+   unsigned int NumAOVs() const
    {
-      return static_cast<AtUInt>(m_aovs.size());
+      return static_cast<unsigned int>(m_aovs.size());
    }
 */
 private:

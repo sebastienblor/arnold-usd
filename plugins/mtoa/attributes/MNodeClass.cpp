@@ -29,7 +29,7 @@ MStatus MNodeClass::addExtensionAttribute(CAttrData &data) const
    // ensure we have a callback for this node
    AddNodeCallback(m_nodeClassName);
    std::vector<CAttrData>& attrData = s_attrData[m_nodeClassName.asChar()];
-   for (AtUInt i=0; i < attrData.size(); ++i)
+   for (unsigned int i=0; i < attrData.size(); ++i)
    {
       if (data.name == attrData[i].name)
       {
@@ -64,7 +64,7 @@ void MNodeClass::InitializeExistingNodes()
       {
          std::vector<CAttrData>& attrData = it->second;
          CDynamicAttrHelper helper = CDynamicAttrHelper(node);
-         for (AtUInt i=0; i < attrData.size(); ++i)
+         for (unsigned int i=0; i < attrData.size(); ++i)
          {
             CAttrData data = attrData[i];
             // only add the attribute if it does not yet exist
@@ -81,7 +81,7 @@ void MNodeClass::NodeCreatedCallback(MObject &node, void *clientData)
    MFnDependencyNode fnNode(node);
    std::vector<CAttrData>& attrData = s_attrData[fnNode.typeName().asChar()];
    CDynamicAttrHelper helper = CDynamicAttrHelper(node);
-   for (AtUInt i=0; i < attrData.size(); ++i)
+   for (unsigned int i=0; i < attrData.size(); ++i)
    {
       CAttrData data = attrData[i];
       helper.MakeInput(data);

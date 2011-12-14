@@ -663,7 +663,7 @@ MStatus CArnoldStandardNode::initialize()
    s_PlugsAffecting.append(s_bounce_factor);
    s_PlugsAffecting.append(s_emission);
 
-   for(AtUInt i = 0; (i < s_PlugsAffecting.length()); i++)
+   for(unsigned int i = 0; (i < s_PlugsAffecting.length()); i++)
    {
       attributeAffects(s_PlugsAffecting[i], s_OUT_color);
    }

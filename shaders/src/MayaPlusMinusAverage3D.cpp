@@ -69,7 +69,7 @@ node_finish
 shader_evaluate
 {
    int operation = AiShaderEvalParamEnum(p_operation);
-   AtUInt numInputs = AiShaderEvalParamUInt(p_numInputs);
+   unsigned int numInputs = AiShaderEvalParamUInt(p_numInputs);
    
    AtPoint result = {0.0f, 0.0f, 0.0f};
 

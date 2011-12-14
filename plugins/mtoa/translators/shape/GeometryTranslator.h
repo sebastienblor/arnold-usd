@@ -36,8 +36,8 @@ public:
       return CShapeTranslator::Init(session, dagPath, outputAttr);
    }
    virtual void Update(AtNode* anode);
-   virtual void ExportMotion(AtNode* anode, AtUInt step);
-   virtual void UpdateMotion(AtNode* anode, AtUInt step);
+   virtual void ExportMotion(AtNode* anode, unsigned int step);
+   virtual void UpdateMotion(AtNode* anode, unsigned int step);
    static void NodeInitializer(CAbTranslator context);
    virtual void AddUpdateCallbacks();
 
@@ -52,7 +52,7 @@ protected:
    bool GetRefObj(MFnMesh &fnMesh, std::vector<float> &refVertices, std::vector<float> &refNormals);
    bool GetVertexColors(MFnMesh &fnMesh, std::map<std::string, std::vector<float> > &vcolors);
    void GetComponentIDs(MFnMesh &fnMesh,
-         std::vector<AtUInt> &nsides,
+         std::vector<unsigned int> &nsides,
          std::vector<AtUInt32> &vidxs,
          std::vector<AtUInt32> &nidxs,
          std::vector<AtUInt32> &uvidxs,
@@ -64,12 +64,12 @@ protected:
    void ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh);
    virtual void ExportShaders();
 
-   void ExportMeshGeoData(AtNode* polymesh, AtUInt step);
+   void ExportMeshGeoData(AtNode* polymesh, unsigned int step);
    void ExportMeshParameters(AtNode* polymesh);
    AtNode* ExportMesh(AtNode* polymesh, bool update);
-   void ExportMeshMotion(AtNode* polymesh, AtUInt step);
+   void ExportMeshMotion(AtNode* polymesh, unsigned int step);
    AtNode* ExportInstance(AtNode* instance, const MDagPath& masterInstance);
-   void ExportInstanceMotion(AtNode* instance, AtUInt step);
+   void ExportInstanceMotion(AtNode* instance, unsigned int step);
 
    static void ShaderAssignmentCallback(MNodeMessage::AttributeMessage msg, MPlug & plug, MPlug & otherPlug, void*);
    void AddShaderAssignmentCallbacks(MObject & dagNode);

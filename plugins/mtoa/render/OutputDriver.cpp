@@ -33,7 +33,7 @@ struct COutputDriverData
 {
    AtBBox2   refresh_bbox;
    float     gamma;
-   AtUInt    imageWidth, imageHeight;
+   unsigned int    imageWidth, imageHeight;
    AtBoolean rendering;
 };
 
@@ -150,14 +150,14 @@ driver_write_bucket
          {
             for (int i = minx; (i <= maxx); ++i)
             {
-               AtUInt in_idx = (j-bucket_yo)*bucket_size_x + (i-bucket_xo);
+               unsigned int in_idx = (j-bucket_yo)*bucket_size_x + (i-bucket_xo);
                AtRGB  rgb = ((AtRGB*)bucket_data)[in_idx]; 
 
                // Flip vertically
                int targetX = i - minx;
                int targetY = bucket_size_y - (j - miny) - 1;
 
-               AtUInt out_idx = targetY * bucket_size_x + targetX;
+               unsigned int out_idx = targetY * bucket_size_x + targetX;
                RV_PIXEL* pixel = &pixels[out_idx];
 
                AiColorGamma(&rgb, s_outputDriverData.gamma);
@@ -177,14 +177,14 @@ driver_write_bucket
          {
             for (int i = minx; (i <= maxx); ++i)
             {
-               AtUInt in_idx = (j-bucket_yo)*bucket_size_x + (i-bucket_xo);
+               unsigned int in_idx = (j-bucket_yo)*bucket_size_x + (i-bucket_xo);
                AtRGBA  rgba = ((AtRGBA*)bucket_data)[in_idx]; 
 
                // Flip vertically
                int targetX = i - minx;
                int targetY = bucket_size_y - (j - miny) - 1;
 
-               AtUInt out_idx = targetY * bucket_size_x + targetX;
+               unsigned int out_idx = targetY * bucket_size_x + targetX;
                RV_PIXEL* pixel = &pixels[out_idx];
 
                AiRGBAGamma(&rgba, s_outputDriverData.gamma);

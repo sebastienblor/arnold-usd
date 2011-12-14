@@ -87,7 +87,7 @@ public:
    bool GetSwatchImage(MImage & image);
 
    /// Set the ass output mask
-   inline void SetOutputAssMask(AtUInt mask) { m_renderOptions.SetOutputAssMask(mask); }
+   inline void SetOutputAssMask(unsigned int mask) { m_renderOptions.SetOutputAssMask(mask); }
 
    /// Set the resolution of the render.
    /// \param width width in pixels.
@@ -98,8 +98,8 @@ public:
    /// Set the camera to use for render.
    void SetCamera(MDagPath cameraNode);
    void SetProgressive(bool is_progressive);
-   void SetRegion(const AtUInt left,const AtUInt right,
-                  const AtUInt bottom, const AtUInt top);
+   void SetRegion(const unsigned int left,const unsigned int right,
+                  const unsigned int bottom, const unsigned int top);
 
    /// Return a pointer to the render options.
    /// \see CRenderOptions

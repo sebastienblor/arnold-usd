@@ -239,8 +239,8 @@ void CRenderSession::SetResolution(const int width, const int height)
    if (height != -1) m_renderOptions.SetHeight(height);
 }
 
-void CRenderSession::SetRegion(const AtUInt left, const AtUInt right,
-                                const AtUInt bottom, const AtUInt top)
+void CRenderSession::SetRegion(const unsigned int left, const unsigned int right,
+                                const unsigned int bottom, const unsigned int top)
 {
    m_renderOptions.SetRegion(left, right, bottom, top);
 }
@@ -290,7 +290,7 @@ void CRenderSession::SetCamera(MDagPath cameraNode)
       imagePlanePlug = fnDagNode.findPlug("imagePlane");
       if (imagePlanePlug.numConnectedElements() > 0)
       {
-         for(AtUInt ips = 0; (ips < imagePlanePlug.numElements()); ips++)
+         for(unsigned int ips = 0; (ips < imagePlanePlug.numElements()); ips++)
          {
             MStatus status;
             imagePlaneNodePlug = imagePlanePlug.elementByPhysicalIndex(ips);

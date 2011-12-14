@@ -14,7 +14,7 @@ public:
 
    static void NodeInitializer(CAbTranslator context);
    void Export(AtNode* anode);
-   void ExportMotion(AtNode* anode, AtUInt step);
+   void ExportMotion(AtNode* anode, unsigned int step);
 
 protected:
    void ExportBoundingBox(AtNode* procedural);

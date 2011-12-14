@@ -181,7 +181,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
 
          vector<AtPoint> vertices;
          vector<AtUInt32> vidxs;
-         vector<AtUInt> nsides;
+         vector<unsigned int> nsides;
 
          int num_vertices(0);
          int num_vidxs(0);
@@ -230,7 +230,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
                      vidxs.resize(num_vidxs);
                      for (i = 0; i < num_vidxs; i++)
                      {
-                        AtUInt localTmpPnt = AiArrayGetUInt(myArray, i);
+                        unsigned int localTmpPnt = AiArrayGetUInt(myArray, i);
                         vidxs[i] = localTmpPnt;
 
                      }
@@ -243,7 +243,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
                      nsides.resize(num_nsides);
                      for (i = 0; i < num_nsides; i++)
                      {
-                        AtUInt localTmpPnt = AiArrayGetUInt(myArray, i);
+                        unsigned int localTmpPnt = AiArrayGetUInt(myArray, i);
                         nsides[i] = localTmpPnt;
                      }
                   }
@@ -803,12 +803,12 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
          gGLFT->glPushAttrib(MGL_CURRENT_BIT);
          gGLFT->glEnable(MGL_POLYGON_OFFSET_FILL);
 
-         for (AtUInt i = 0; i < geom->faceList.size(); ++i)
+         for (unsigned int i = 0; i < geom->faceList.size(); ++i)
          {
-            for (AtUInt j = 0; j < geom->faceList[i].size(); ++j)
+            for (unsigned int j = 0; j < geom->faceList[i].size(); ++j)
             {
                gGLFT->glBegin(MGL_POLYGON);
-               for (AtUInt k = 0; k < geom->faceList[i][j].size(); ++k)
+               for (unsigned int k = 0; k < geom->faceList[i][j].size(); ++k)
                {
                   gGLFT->glColor4f(0.5, 0.5, 0.5, 1);
                   gGLFT->glVertex3f(geom->faceList[i][j][k].x, geom->faceList[i][j][k].y, geom->faceList[i][j][k].z);
@@ -818,12 +818,12 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
          }
 
          gGLFT->glPopAttrib();
-         for (AtUInt i = 0; i < geom->faceList.size(); ++i)
+         for (unsigned int i = 0; i < geom->faceList.size(); ++i)
          {
-            for (AtUInt j = 0; j < geom->faceList[i].size(); ++j)
+            for (unsigned int j = 0; j < geom->faceList[i].size(); ++j)
             {
                gGLFT->glBegin(MGL_LINE_STRIP);
-               for (AtUInt k = 0; k < geom->faceList[i][j].size(); ++k)
+               for (unsigned int k = 0; k < geom->faceList[i][j].size(); ++k)
                {
                   gGLFT->glVertex3f(geom->faceList[i][j][k].x, geom->faceList[i][j][k].y, geom->faceList[i][j][k].z);
                }
@@ -835,12 +835,12 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
 
       case 2:
          gGLFT->glNewList(geom->dList, MGL_COMPILE);
-         for (AtUInt i = 0; i < geom->faceList.size(); ++i)
+         for (unsigned int i = 0; i < geom->faceList.size(); ++i)
          {
-            for (AtUInt j = 0; j < geom->faceList[i].size(); ++j)
+            for (unsigned int j = 0; j < geom->faceList[i].size(); ++j)
             {
                gGLFT->glBegin(MGL_LINE_STRIP);
-               for (AtUInt k = 0; k < geom->faceList[i][j].size(); ++k)
+               for (unsigned int k = 0; k < geom->faceList[i][j].size(); ++k)
                {
                   gGLFT->glVertex3f(geom->faceList[i][j][k].x, geom->faceList[i][j][k].y, geom->faceList[i][j][k].z);
                }
@@ -861,11 +861,11 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
          gGLFT->glNewList(geom->dList, MGL_COMPILE);
          gGLFT->glBegin(MGL_POINTS);
 
-         for (AtUInt i = 0; i < geom->faceList.size(); ++i)
+         for (unsigned int i = 0; i < geom->faceList.size(); ++i)
          {
-            for (AtUInt j = 0; j < geom->faceList[i].size(); ++j)
+            for (unsigned int j = 0; j < geom->faceList[i].size(); ++j)
             {
-               for (AtUInt k = 0; k < geom->faceList[i][j].size(); ++k)
+               for (unsigned int k = 0; k < geom->faceList[i][j].size(); ++k)
                {
                   gGLFT->glVertex3f(geom->faceList[i][j][k].x, geom->faceList[i][j][k].y, geom->faceList[i][j][k].z);
                }
