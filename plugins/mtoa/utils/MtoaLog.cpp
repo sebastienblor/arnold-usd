@@ -2,9 +2,9 @@
 
 #include <maya/MGlobal.h>
 
-AtInt GetFlagsFromVerbosityLevel(AtUInt level)
+int GetFlagsFromVerbosityLevel(AtUInt level)
 {
-   AtInt flags = 0;
+   int flags = 0;
 
    switch(level)
    {
@@ -20,7 +20,7 @@ AtInt GetFlagsFromVerbosityLevel(AtUInt level)
    return flags;
 }
 
-DLLEXPORT AtVoid MtoaLogCallback(AtInt logmask, AtInt severity, const char *msg_string, AtInt tabs)
+DLLEXPORT AtVoid MtoaLogCallback(int logmask, int severity, const char *msg_string, int tabs)
 {
    /*
    const char *header = "[mtoa] %s";
@@ -97,9 +97,9 @@ DLLEXPORT void MtoaSetupLogging()
 {
    AiMsgSetLogFileName(MString("$MTOA_LOG_PATH/arnold.log").expandEnvironmentVariablesAndTilde().asChar());
 #ifdef NDEBUG
-   AtInt defaultLogFlags = (AI_LOG_ALL & ~AI_LOG_DEBUG);
+   int defaultLogFlags = (AI_LOG_ALL & ~AI_LOG_DEBUG);
 #else
-   AtInt defaultLogFlags = AI_LOG_ALL;
+   int defaultLogFlags = AI_LOG_ALL;
 #endif
 
    // MString loglevelStr = MString("$MTOA_LOG_VERBOSITY").expandEnvironmentVariablesAndTilde();
@@ -117,9 +117,9 @@ void MtoaSetupSwatchLogging()
 {
    AiMsgSetLogFileName(MString("$MTOA_LOG_PATH/arnold.log").expandEnvironmentVariablesAndTilde().asChar());
 #ifdef NDEBUG
-   AtInt defaultLogFlags = AI_LOG_WARNINGS | AI_LOG_ERRORS | AI_LOG_TIMESTAMP | AI_LOG_BACKTRACE;
+   int defaultLogFlags = AI_LOG_WARNINGS | AI_LOG_ERRORS | AI_LOG_TIMESTAMP | AI_LOG_BACKTRACE;
 #else
-   AtInt defaultLogFlags = AI_LOG_ALL;
+   int defaultLogFlags = AI_LOG_ALL;
 #endif
 
    // MString loglevelStr = MString("$MTOA_SWATCH_LOG_VERBOSITY").expandEnvironmentVariablesAndTilde();

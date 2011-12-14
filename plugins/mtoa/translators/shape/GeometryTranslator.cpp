@@ -436,14 +436,14 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
          meshShaders.push_back(ExportNode(connections[0]));
       }
 
-      AiNodeSetArray(polymesh, "shader", AiArrayConvert((AtInt)meshShaders.size(), 1, AI_TYPE_NODE, &meshShaders[0], TRUE));
+      AiNodeSetArray(polymesh, "shader", AiArrayConvert((int)meshShaders.size(), 1, AI_TYPE_NODE, &meshShaders[0], TRUE));
 
       // Export face to shader indices
       // First convert from MIntArray to AtUInt vector
       std::vector<AtUInt> shidxs;
       for(AtUInt i = 0; i < indices.length(); i++)
          shidxs.push_back(indices[i]);
-      AiNodeSetArray(polymesh, "shidxs", AiArrayConvert((AtInt)shidxs.size(), 1, AI_TYPE_UINT, &(shidxs[0]), TRUE));
+      AiNodeSetArray(polymesh, "shidxs", AiArrayConvert((int)shidxs.size(), 1, AI_TYPE_UINT, &(shidxs[0]), TRUE));
    }
 
    //
@@ -647,11 +647,11 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, AtUInt step)
          }
       }
 
-      AiNodeSetArray(polymesh, "nsides", AiArrayConvert((AtInt)nsides.size(), 1, AI_TYPE_UINT, &(nsides[0]), TRUE));
+      AiNodeSetArray(polymesh, "nsides", AiArrayConvert((int)nsides.size(), 1, AI_TYPE_UINT, &(nsides[0]), TRUE));
 
       // Passing vidxs directly put Arnold in trouble
       //AiNodeSetArray(polymesh, "vidxs", AiArrayConvert(vidxs.size(), 1, AI_TYPE_UINT, &(vidxs[0]), TRUE));
-      AtArray *vidxsTmp = AiArrayAllocate((AtInt)vidxs.size(), 1, AI_TYPE_UINT);
+      AtArray *vidxsTmp = AiArrayAllocate((int)vidxs.size(), 1, AI_TYPE_UINT);
       for(AtUInt i = 0; (i < vidxs.size()); i++)
          AiArraySetUInt(vidxsTmp, i, vidxs[i]);
       AiNodeSetArray(polymesh, "vidxs", vidxsTmp);
@@ -660,7 +660,7 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, AtUInt step)
       {
          // Same goes here
          //AiNodeSetArray(polymesh, "nidxs", AiArrayConvert(nidxs.size(), 1, AI_TYPE_UINT, &(nidxs[0]), TRUE));
-         AtArray *nidxsTmp = AiArrayAllocate((AtInt)nidxs.size(), 1, AI_TYPE_UINT);
+         AtArray *nidxsTmp = AiArrayAllocate((int)nidxs.size(), 1, AI_TYPE_UINT);
          for(AtUInt i = 0; (i < nidxs.size()); i++)
             AiArraySetUInt(nidxsTmp, i, nidxs[i]);
          AiNodeSetArray(polymesh, "nidxs", nidxsTmp);
@@ -678,7 +678,7 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, AtUInt step)
          AiNodeSetArray(polymesh, "uvlist", AiArrayConvert(m_fnMesh.numUVs() * 2, 1, AI_TYPE_FLOAT, &(uvs[0]), TRUE));
          // Same problem here
          //AiNodeSetArray(polymesh, "uvidxs", AiArrayConvert(uvidxs.size(), 1, AI_TYPE_UINT, &(uvidxs[0]), TRUE));
-         AtArray *uvidxsTmp = AiArrayAllocate((AtInt)uvidxs.size(), 1, AI_TYPE_UINT);
+         AtArray *uvidxsTmp = AiArrayAllocate((int)uvidxs.size(), 1, AI_TYPE_UINT);
          for(AtUInt i = 0; (i < uvidxs.size()); i++)
             AiArraySetUInt(uvidxsTmp, i, uvidxs[i]);
          AiNodeSetArray(polymesh, "uvidxs", uvidxsTmp);

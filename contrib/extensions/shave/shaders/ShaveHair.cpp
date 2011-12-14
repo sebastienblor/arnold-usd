@@ -52,7 +52,7 @@ node_parameters
 typedef struct
 {
    float              gamma;
-   AtInt                max_diffuse_depth;
+   int                max_diffuse_depth;
 }
 ShaderData;
 

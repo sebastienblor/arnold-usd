@@ -80,7 +80,7 @@ public:
    // Swatch Rendering methods
    /// Start a swatch render.
    /// \param resolution the resolution of the swatch, it must be square.
-   void DoSwatchRender(const AtInt resolution);
+   void DoSwatchRender(const int resolution);
    /// Return the rendered swatch.
    /// \param image storage to place the rendered image into.
    /// \return returns false if there was no complete image.

@@ -88,7 +88,7 @@ public:
 
    MStatus RegisterAOV(const MString &nodeType,
                        const MString &aovName,
-                       AtInt dataType,
+                       int dataType,
                        const MString &aovAttr);
 
    static bool IsArnoldPluginLoaded(const MString &path);

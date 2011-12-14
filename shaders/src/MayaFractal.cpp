@@ -36,7 +36,7 @@ inline float get2DNoise(float x, float y, float px, float py, AtBoolean inflecti
    p.x = x;
    p.y = y;
 
-   noise = AiPeriodicPerlin2(p, (AtInt)px, (AtInt)py);
+   noise = AiPeriodicPerlin2(p, (int)px, (int)py);
    if (inflection) noise = fabs(noise);
 
    return noise;
@@ -48,7 +48,7 @@ inline float get3DNoise(float x, float y, float z, float px, float py, float pz,
    AtPoint p;
    AiV3Create(p, x, y, z);
 
-   noise = AiPeriodicPerlin3(p, (AtInt)px, (AtInt)py, (AtInt)pz);  
+   noise = AiPeriodicPerlin3(p, (int)px, (int)py, (int)pz);  
    if (inflection) noise = fabs(noise);
 
    return noise;

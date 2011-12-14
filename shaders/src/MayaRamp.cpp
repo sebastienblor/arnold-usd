@@ -235,7 +235,7 @@ shader_evaluate
          u = Mod(u, 1.000001f);
          v = Mod(v, 1.000001f);
 
-         AtInt type = AiShaderEvalParamInt(p_type);
+         int type = AiShaderEvalParamInt(p_type);
          RampInterpolationType interp = (RampInterpolationType) AiShaderEvalParamInt(p_interp);
          switch (type)
          {

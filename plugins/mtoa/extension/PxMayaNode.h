@@ -42,7 +42,7 @@ public:
    MStatus ReadMetaData(const AtNodeEntry* arnoldNodeEntry);
 
    void RegisterAOV(const MString &aovName,
-                    AtInt dataType,
+                    int dataType,
                     const MString &aovAttr);
 
 private:

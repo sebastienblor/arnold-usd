@@ -104,7 +104,7 @@ shader_evaluate
    float alphaGain = AiShaderEvalParamFlt(p_alphaGain);
    AtPoint2 coverage = AiShaderEvalParamPnt2(p_coverage);
    AtPoint2 translate = AiShaderEvalParamPnt2(p_translate);
-   AtInt displayMode = AiShaderEvalParamInt(p_display_mode);
+   int displayMode = AiShaderEvalParamInt(p_display_mode);
    
    AtRGBA result; 
    result.r = color.r;

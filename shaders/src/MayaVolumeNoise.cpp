@@ -126,7 +126,7 @@ shader_evaluate
    float amplitude = AiShaderEvalParamFlt(p_amplitude);
    float ratio = AiShaderEvalParamFlt(p_ratio);
    float frequencyRatio = AiShaderEvalParamFlt(p_frequencyRatio);
-   AtInt depthMax = AiShaderEvalParamInt(p_depthMax);
+   int depthMax = AiShaderEvalParamInt(p_depthMax);
    AtBoolean inflection = AiShaderEvalParamBool(p_inflection);
    float time = AiShaderEvalParamFlt(p_time);
    float frequency = AiShaderEvalParamFlt(p_frequency);
@@ -134,13 +134,13 @@ shader_evaluate
    AtVector scale = AiShaderEvalParamVec(p_scale);
    float implode = AiShaderEvalParamFlt(p_implode);
    AtPoint implodeCenter = AiShaderEvalParamPnt(p_implodeCenter);
-   AtInt noiseType = AiShaderEvalParamInt(p_noiseType);
+   int noiseType = AiShaderEvalParamInt(p_noiseType);
    float density = AiShaderEvalParamFlt(p_density);
    float spottyness = AiShaderEvalParamFlt(p_spottyness);
    float sizeRand = AiShaderEvalParamFlt(p_sizeRand);
    float randomness = AiShaderEvalParamFlt(p_randomness);
-   AtInt falloff = AiShaderEvalParamInt(p_falloff);
-   AtInt numWaves = AiShaderEvalParamInt(p_numWaves);
+   int falloff = AiShaderEvalParamInt(p_falloff);
+   int numWaves = AiShaderEvalParamInt(p_numWaves);
    AtMatrix *placementMatrix = AiShaderEvalParamMtx(p_placementMatrix);
    AtBoolean wrap = AiShaderEvalParamBool(p_wrap);
    AtBoolean local = AiShaderEvalParamBool(p_local);
@@ -168,7 +168,7 @@ shader_evaluate
          P = implodeCenter + dp;
       }
 
-      AtInt depth[2] = {0, depthMax};
+      int depth[2] = {0, depthMax};
       float ripples[3] = {1.0f, 1.0f, 1.0f};
 
       P *= frequency;

@@ -47,7 +47,7 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
    arnold = node;
    const char* ext = provider.asChar();
 
-   // AtInt arnoldNodeType = AiNodeEntryGetType(arnoldNodeEntry);
+   // int arnoldNodeType = AiNodeEntryGetType(arnoldNodeEntry);
    MString arnoldNodeTypeName = AiNodeEntryGetTypeName(arnoldNodeEntry);
    // If Maya node type name and ids were not specified
    if (name.numChars() == 0)
@@ -84,7 +84,7 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
    if (id.id() == 0)
    {
       // get maye typeId from metadata
-      AtInt nodeId;
+      int nodeId;
       if (AiMetaDataGetInt(arnoldNodeEntry, NULL, "maya.id", &nodeId))
       {
          id = MTypeId(nodeId);
@@ -139,7 +139,7 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
             helper.GetAttrData(paramName, attrData);
 
             // AOVs
-            AtInt aovType;
+            int aovType;
             if (AiMetaDataGetInt(arnoldNodeEntry, paramName, "aov.type", &aovType))
             {
                // assert that we're a string parameter
@@ -210,7 +210,7 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
 }
 
 void CPxMayaNode::RegisterAOV(const MString &aovName,
-                             AtInt dataType,
+                             int dataType,
                              const MString &aovAttr)
 {
    // there can only be one type per AOV

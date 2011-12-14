@@ -46,7 +46,7 @@ struct CAttrData
    MString shortName;
    AtParamValue defaultValue;
    AtBoolean isArray;
-   AtInt type;
+   int type;
    AtBoolean hasMin;
    AtParamValue min;
    AtBoolean hasMax;

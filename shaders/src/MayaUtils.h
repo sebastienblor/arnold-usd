@@ -73,12 +73,12 @@ void AddMayaColorBalanceParams(AtList *params);
    
 void MayaColorBalance(AtShaderGlobals* sg,
                              AtNode* node,
-                             AtInt p_start,
+                             int p_start,
                              AtRGBA & result);
 
 void MayaDefaultColor(AtShaderGlobals* sg,
                              AtNode* node,
-                             AtInt p_start,
+                             int p_start,
                              AtRGBA & result);
 
 AtVector RGBtoHSV(AtRGB inRgb);

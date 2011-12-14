@@ -107,8 +107,8 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
       // We save and restore the res instead of using the translated one because
       // the translated value is from the render globals. We may have been
       // passed in a different value to start with.
-      const AtInt width = renderSession->RenderOptions()->width();
-      const AtInt height = renderSession->RenderOptions()->height();
+      const int width = renderSession->RenderOptions()->width();
+      const int height = renderSession->RenderOptions()->height();
       // Same deal for the camera.
       MDagPath camera = renderSession->GetCamera();
       AiMsgDebug ("[mtoa] IPR refresh using last rendered camera '%s'", camera.partialPathName().asChar());

@@ -5,7 +5,7 @@ namespace
 {
 
 // a modifed version of AiArrayInterpolateFlt, from arnold core
-float AiArrayInterpolateFlt(const AtArray *array, float time, AtInt idx)
+float AiArrayInterpolateFlt(const AtArray *array, float time, int idx)
 {
    //AiAssert(array->type == AI_TYPE_FLOAT);
 
@@ -24,8 +24,8 @@ float AiArrayInterpolateFlt(const AtArray *array, float time, AtInt idx)
    else
    {
       float t_nkm1 = time * (array->nkeys-1);
-      AtInt   lokey  = FLOOR(t_nkm1);
-      AtInt   hikey  = lokey + 1;
+      int   lokey  = FLOOR(t_nkm1);
+      int   hikey  = lokey + 1;
       float t      = t_nkm1 - lokey;
 
       //AiAssert(lokey >= 0 && lokey < array->nkeys);

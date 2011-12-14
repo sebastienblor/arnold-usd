@@ -416,7 +416,7 @@ shader_evaluate
 {
    ShaderData *data = (ShaderData*)node->local_data;
 
-   AtInt pt = AiShaderEvalParamEnum(p_type);
+   int pt = AiShaderEvalParamEnum(p_type);
 
    float uAngle = AiShaderEvalParamFlt(p_u_angle);
    float vAngle = AiShaderEvalParamFlt(p_v_angle);
@@ -528,7 +528,7 @@ shader_evaluate
       break;
    case PT_PERSPECTIVE:
       {
-         AtInt fitType = AiShaderEvalParamEnum(p_fit_type);
+         int fitType = AiShaderEvalParamEnum(p_fit_type);
 
          if (fitType != FIT_NONE)
          {
@@ -556,7 +556,7 @@ shader_evaluate
                   float uScale = 1.0f;
                   float vScale = 1.0f;
 
-                  AtInt fillType = AiShaderEvalParamEnum(p_fill_type);
+                  int fillType = AiShaderEvalParamEnum(p_fill_type);
 
                   if (fillType == FILL_FILL)
                   {

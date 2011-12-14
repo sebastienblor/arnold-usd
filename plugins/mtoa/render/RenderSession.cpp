@@ -90,9 +90,9 @@ unsigned int CRenderSession::RenderThread(AtVoid* data)
 {
    CRenderOptions * render_options = static_cast< CRenderOptions * >(data);
    // set progressive start point on AA
-   const AtInt num_aa_samples = AiNodeGetInt(AiUniverseGetOptions(), "AA_samples");
-   const AtInt sminInit = render_options->progressiveInitialLevel();
-   AtInt init_progressive_samples = render_options->isProgressive() ? sminInit : num_aa_samples;
+   const int num_aa_samples = AiNodeGetInt(AiUniverseGetOptions(), "AA_samples");
+   const int sminInit = render_options->progressiveInitialLevel();
+   int init_progressive_samples = render_options->isProgressive() ? sminInit : num_aa_samples;
 
    // Get rid of any previous renders tiles that have not yet
    // been displayed.
@@ -101,7 +101,7 @@ unsigned int CRenderSession::RenderThread(AtVoid* data)
    AtULong ai_status(AI_SUCCESS);
    for (int i = init_progressive_samples; i <= num_aa_samples; i++)
    {
-      AtInt sampling = i ;
+      int sampling = i ;
       if (sampling >= 0) sampling = num_aa_samples;
 
       AiNodeSetInt(AiUniverseGetOptions(), "AA_samples", sampling);
@@ -305,7 +305,7 @@ void CRenderSession::SetCamera(MDagPath cameraNode)
                imagePlaneName += ips;
                bool displayOnlyIfCurrent = fnRes.findPlug("displayOnlyIfCurrent", &status).asBool();
                AtNode* imagePlane = AiNodeLookUpByName(imagePlaneName.asChar());
-               AtInt visibility = 0;
+               int visibility = 0;
                AiMsgDebug("[mtoa] Using camera %s to output image %s.", cameraNode.partialPathName().asChar(), m_renderOptions.GetImageFilename().asChar());
 
                if ((displayOnlyIfCurrent && isRenderingCamera) || (!displayOnlyIfCurrent))
@@ -632,7 +632,7 @@ void CRenderSession::ClearIdleRenderViewCallback()
    }
 }
 
-void CRenderSession::DoSwatchRender(const AtInt resolution)
+void CRenderSession::DoSwatchRender(const int resolution)
 {
    assert(AiUniverseIsActive());
 

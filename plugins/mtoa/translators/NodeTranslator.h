@@ -94,7 +94,7 @@ protected:
    // For a specific Maya plug
    virtual AtNode* ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, const MPlug& plug);
    virtual void ProcessArrayParameter(AtNode* arnoldNode, const char* arnoldParamName, const MPlug& plug);
-   void ProcessArrayElement(AtInt type, AtArray* array, AtUInt i, const MPlug& elem);
+   void ProcessArrayElement(int type, AtArray* array, AtUInt i, const MPlug& elem);
    void ProcessAnimatedParameter(AtNode* arnoldNode, const char* arnoldParamName, const MPlug& plug, AtUInt step);
    AtNode* ProcessStaticParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, const MPlug& plug);
 
@@ -213,7 +213,7 @@ protected:
    void GetRotationMatrix(AtMatrix& matrix);
    virtual void GetMatrix(AtMatrix& matrix);
    void ExportMatrix(AtNode* node, AtUInt step);
-   AtInt ComputeVisibility();
+   int ComputeVisibility();
    virtual void Delete();
    void AddHierarchyCallbacks(const MDagPath & path);
    void SetArnoldNodeName(AtNode* arnoldNode, const char* tag="");

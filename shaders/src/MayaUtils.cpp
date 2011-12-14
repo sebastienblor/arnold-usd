@@ -297,7 +297,7 @@ void ShuffleArray(AtArray *a, AtUInt *shuffle, int arnoldType)
    }
    else if (arnoldType == AI_TYPE_INT)
    {
-      AtInt tmp;
+      int tmp;
       for (AtUInt32 i = 0; (i < a->nelements); ++i)
       {
          if (shuffle[i] < i)
@@ -395,7 +395,7 @@ void ShuffleArray(AtArray *a, AtUInt *shuffle, int arnoldType)
    }
    else if (arnoldType == AI_TYPE_ENUM)
    {
-      AtInt tmp;
+      int tmp;
       for (AtUInt32 i = 0; (i < a->nelements); ++i)
       {
          if (shuffle[i] < i)
@@ -580,7 +580,7 @@ void AddMayaColorBalanceParams(AtList *params)
 
 void MayaColorBalance(AtShaderGlobals* sg,
                         AtNode* node,
-                        AtInt p_start,
+                        int p_start,
                         AtRGBA & result)
 {
    const AtRGB colorGain      = AiShaderEvalParamFuncRGB(sg, node, p_start + 1);  //p_colorGain);
@@ -611,7 +611,7 @@ void MayaColorBalance(AtShaderGlobals* sg,
 
 void MayaDefaultColor(AtShaderGlobals* sg,
                         AtNode* node,
-                        AtInt p_start,
+                        int p_start,
                         AtRGBA & result)
 {
    const AtRGB defaultColor   = AiShaderEvalParamFuncRGB(sg, node, p_start + 0);  //p_defaultColor);

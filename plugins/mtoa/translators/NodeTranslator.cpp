@@ -1025,7 +1025,7 @@ void CNodeTranslator::ProcessArrayParameter(AtNode* arnoldNode, const char* arno
    if (size) AiNodeSetArray(arnoldNode, arnoldParamName, array);
 }
 
-void CNodeTranslator::ProcessArrayElement(AtInt type, AtArray* array, AtUInt i, const MPlug& elem)
+void CNodeTranslator::ProcessArrayElement(int type, AtArray* array, AtUInt i, const MPlug& elem)
 {
    switch(type)
    {
@@ -1319,13 +1319,13 @@ void CDagTranslator::ExportMatrix(AtNode* node, AtUInt step)
 }
 
 // use standardized render flag names to compute an arnold visibility mask
-AtInt CDagTranslator::ComputeVisibility()
+int CDagTranslator::ComputeVisibility()
 {
    // Usually invisible nodes are not exported at all, just making sure here
    if (false == CArnoldSession::IsRenderablePath(m_dagPath))
       return AI_RAY_UNDEFINED;
 
-   AtInt visibility = AI_RAY_ALL;
+   int visibility = AI_RAY_ALL;
    MPlug plug;
 
    plug = FindMayaObjectPlug("castsShadows");

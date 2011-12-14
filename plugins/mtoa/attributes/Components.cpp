@@ -39,7 +39,7 @@ AtNode* InsertConversionNodes(const MPlug &shaderOutputPlug, ComponentType compM
    if (compMode == COMPONENT_TYPE_NONE)
       return NULL;
    // shaderOutputPlug type (float if we've gotten this far) should correspond to the output type of the arnold node
-   AtInt connectedOutType = AiNodeEntryGetOutputType(shader->base_node);
+   int connectedOutType = AiNodeEntryGetOutputType(shader->base_node);
    if (connectedOutType != AI_TYPE_FLOAT)
    {
       // If the connected shader's output type is anything other than float, the incoming

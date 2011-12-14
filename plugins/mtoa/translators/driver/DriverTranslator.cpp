@@ -42,7 +42,7 @@ void CDriverTranslator::Export(AtNode *shader)
    {
       const AtParamEntry *paramEntry = AiParamIteratorGetNext(nodeParam);
       const char* paramName = AiParamGetName(paramEntry);
-      AtInt paramType = AiParamGetType(paramEntry);
+      int paramType = AiParamGetType(paramEntry);
       AiMsgDebug("CDriverTranslator %s: Export on parameter %s", GetTranslatorName().asChar(), paramName);
       ProcessParameter(shader, paramName, paramType);
    }

@@ -5,7 +5,7 @@ namespace
 {
 
 // a modified version of AiArrayInterpolateFlt, from arnold core
-AtRGBA AiArrayInterpolateRGBA(const AtArray *array, float time, AtInt idx)
+AtRGBA AiArrayInterpolateRGBA(const AtArray *array, float time, int idx)
 {
    AtRGBA vector;
 
@@ -26,8 +26,8 @@ AtRGBA AiArrayInterpolateRGBA(const AtArray *array, float time, AtInt idx)
    else
    {
       float t_nkm1 = time * (array->nkeys-1);
-      AtInt   lokey  = FLOOR(t_nkm1);
-      AtInt   hikey  = lokey + 1;
+      int   lokey  = FLOOR(t_nkm1);
+      int   hikey  = lokey + 1;
       float t      = t_nkm1 - lokey;
 
       //AiAssert(lokey >= 0 && lokey < array->nkeys);

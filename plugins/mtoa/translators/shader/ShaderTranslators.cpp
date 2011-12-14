@@ -149,7 +149,7 @@ static void ShuffleArray(AtArray *a, AtUInt *shuffle, int arnoldType)
    }
    else if (arnoldType == AI_TYPE_INT)
    {
-      AtInt tmp;
+      int tmp;
       for (AtUInt32 i = 0; (i < a->nelements); ++i)
       {
          if (shuffle[i] < i)
@@ -247,7 +247,7 @@ static void ShuffleArray(AtArray *a, AtUInt *shuffle, int arnoldType)
    }
    else if (arnoldType == AI_TYPE_ENUM)
    {
-      AtInt tmp;
+      int tmp;
       for (AtUInt32 i = 0; (i < a->nelements); ++i)
       {
          if (shuffle[i] < i)
@@ -290,8 +290,8 @@ void CSkyShaderTranslator::Export(AtNode* shader)
    ProcessParameter(shader, "format",    AI_TYPE_ENUM);
    ProcessParameter(shader, "intensity", AI_TYPE_FLOAT);
 
-   AtInt visibility = ComputeVisibility();
-   AiNodeSetBool(shader, "opaque_alpha", (AtInt)(visibility & AI_RAY_CAMERA));
+   int visibility = ComputeVisibility();
+   AiNodeSetBool(shader, "opaque_alpha", (int)(visibility & AI_RAY_CAMERA));
    AiNodeSetInt(shader, "visibility", visibility);
 }
 

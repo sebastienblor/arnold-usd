@@ -155,7 +155,7 @@ shader_evaluate
    AtVector rotate = AiShaderEvalParamPnt(p_rotate);
    AtVector scale = AiShaderEvalParamPnt(p_scale);
    AtVector shear = AiShaderEvalParamPnt(p_shear);
-   AtInt rotateOrder = AiShaderEvalParamInt(p_rotate_order);
+   int rotateOrder = AiShaderEvalParamInt(p_rotate_order);
    AtVector rotateAxis = AiShaderEvalParamPnt(p_rotate_axis);
    AtVector scalePivot = AiShaderEvalParamPnt(p_scale_pivot);
    AtVector rotatePivot = AiShaderEvalParamPnt(p_rotate_pivot);

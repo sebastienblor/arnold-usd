@@ -24,7 +24,7 @@ struct CAOVData
 {
    MString attribute;
    MString name;
-   AtInt type;
+   int type;
 };
 
 enum AOVMode
@@ -74,7 +74,7 @@ protected:
 
    MString   m_name;
    // enumerator that corresponds to arnold's data type enum
-   AtInt     m_type;
+   int     m_type;
    bool      m_enabled;
    MString   m_prefix;
    MString   m_imageformat;

@@ -170,7 +170,7 @@ shader_evaluate
 
          AtRGBA color = AiShaderEvalParamRGBA(p_color0+i);
          float alpha = AiShaderEvalParamFlt(p_alpha0+i);
-         AtInt blendMode = AiShaderEvalParamInt(p_blendMode0+i);
+         int blendMode = AiShaderEvalParamInt(p_blendMode0+i);
 
          AtBoolean colorConnectedToAlpha = AiShaderEvalParamBool(p_colorConnectedToAlpha0+i);
 

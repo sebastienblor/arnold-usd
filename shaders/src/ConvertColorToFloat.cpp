@@ -57,7 +57,7 @@ node_finish
 shader_evaluate
 {
    AtRGBA color = AiShaderEvalParamRGBA(p_input);
-   AtInt component = AiShaderEvalParamEnum(p_component);
+   int component = AiShaderEvalParamEnum(p_component);
    switch (component)
    {
    case CH_RED:

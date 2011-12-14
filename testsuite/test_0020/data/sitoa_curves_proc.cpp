@@ -346,7 +346,7 @@ AtVoid ReadParameterValue(AtNode* curve_node, FILE* fp, const AtChar* param_name
 {
    // Search param
    const AtParamEntry* param_entry = AiNodeEntryLookUpParameter(curve_node->base_node, param_name);
-   AtInt param_type = AiParamGetType(param_entry);
+   int param_type = AiParamGetType(param_entry);
 
    if(param_type != AI_TYPE_UNDEFINED)
    {
@@ -362,8 +362,8 @@ AtVoid ReadParameterValue(AtNode* curve_node, FILE* fp, const AtChar* param_name
          }
          case AI_TYPE_INT:
          {
-            AtInt value;
-            fread(&value, sizeof(AtInt), 1, fp);
+            int value;
+            fread(&value, sizeof(int), 1, fp);
             AiNodeSetInt(curve_node, param_name, value);
             break;
          }
@@ -410,9 +410,9 @@ AtVoid ReadParameterValue(AtNode* curve_node, FILE* fp, const AtChar* param_name
    }
    else
    {
-      AtInt value;
-      // Read Null parameters, which are defined as AtInt (see ticket #1064)
-      fread(&value, sizeof(AtInt), 1, fp);
+      int value;
+      // Read Null parameters, which are defined as int (see ticket #1064)
+      fread(&value, sizeof(int), 1, fp);
    }
 }
 

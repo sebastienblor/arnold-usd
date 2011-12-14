@@ -280,7 +280,7 @@ void COptionsTranslator::Export(AtNode *options)
             // FIXME: this is supposed to use a connection to AA_seed attribute
             if (!FindMayaObjectPlug("lock_sampling_noise").asBool())
             {
-               AiNodeSetInt(options, "AA_seed", (AtInt)GetExportFrame());
+               AiNodeSetInt(options, "AA_seed", (int)GetExportFrame());
             }
          }
          else
@@ -329,7 +329,7 @@ void COptionsTranslator::Export(AtNode *options)
    MSelectionList list;
    MPlug        shader;
 
-   AtInt atmosphere = FindMayaObjectPlug("atmosphere").asInt();
+   int atmosphere = FindMayaObjectPlug("atmosphere").asInt();
    switch (atmosphere)
    {
    case 0:
