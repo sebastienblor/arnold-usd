@@ -5,7 +5,7 @@ namespace
 {
 
 // a modified version of AiArrayInterpolateMtx, from arnold core
-AtVoid AiArrayInterpolateMtx(const AtArray *array, float time, int idx, AtMatrix result)
+void AiArrayInterpolateMtx(const AtArray *array, float time, int idx, AtMatrix result)
 {
    AtMatrix* data = (AtMatrix*) array->data;
 

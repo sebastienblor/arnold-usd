@@ -130,7 +130,7 @@ driver_prepare_bucket
 driver_write_bucket
 {
    int         pixel_type;
-   const AtVoid* bucket_data;
+   const void* bucket_data;
 
    // get the first AOV layer
    if (!AiOutputIteratorGetNext(iterator, NULL, &pixel_type, &bucket_data))

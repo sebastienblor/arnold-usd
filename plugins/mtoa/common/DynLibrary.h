@@ -37,13 +37,13 @@ void *LibraryLoad(const char *filename);
 /*
  * Unload a dynamic library (dll/so) from memory
  */
-void LibraryUnload(AtVoid *handle);
+void LibraryUnload(void *handle);
 
 /*
  * Get a symbol pointer (usually a function) from a previously
  * loaded library
  */
-void *LibrarySymbol(AtVoid *handle, const char *name);
+void *LibrarySymbol(void *handle, const char *name);
 
 /*
  * Return a string with the last error message occurred during

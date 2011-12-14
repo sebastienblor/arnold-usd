@@ -12,7 +12,7 @@
 
 DLLEXPORT int GetFlagsFromVerbosityLevel(AtUInt level);
 
-DLLEXPORT AtVoid MtoaLogCallback(int logmask, int severity, const char *msg_string, int tabs);
+DLLEXPORT void MtoaLogCallback(int logmask, int severity, const char *msg_string, int tabs);
 
 DLLEXPORT void MtoaSetupLogging();
 

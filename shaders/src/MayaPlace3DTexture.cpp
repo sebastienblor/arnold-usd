@@ -135,7 +135,7 @@ node_parameters
 
 node_initialize
 {
-   node->local_data = (AtVoid*) new P3DTData();
+   node->local_data = (void*) new P3DTData();
 }
 
 node_update

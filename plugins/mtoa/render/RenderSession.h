@@ -130,7 +130,7 @@ private:
    ~CRenderSession();
 
    /// This is the static method which is the thread that calls AiRender().
-   static unsigned int RenderThread(AtVoid* data);
+   static unsigned int RenderThread(void* data);
    
    /// The idle callback is used to update the
    /// render view when rendering IPR.
@@ -155,7 +155,7 @@ private:
    MCallbackId    m_timer_cb;
 
    /// This is a pointer to the thread which is running RenderThread.
-   AtVoid*        m_render_thread;
+   void*        m_render_thread;
 
 
 }; // class CRenderSession

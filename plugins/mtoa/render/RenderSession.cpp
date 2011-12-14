@@ -86,7 +86,7 @@ void CRenderSession::TransferTilesToRenderView(void*)
 // This is the code for the render thread. This version is used for IPR
 // to run the AiRender() process outside of the main thread.
 // This is *static*.
-unsigned int CRenderSession::RenderThread(AtVoid* data)
+unsigned int CRenderSession::RenderThread(void* data)
 {
    CRenderOptions * render_options = static_cast< CRenderOptions * >(data);
    // set progressive start point on AA

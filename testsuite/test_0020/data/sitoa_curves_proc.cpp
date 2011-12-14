@@ -8,7 +8,7 @@
 char* datafile;
 
 // Reads the parameter value from data file and assign it to node
-AtVoid ReadParameterValue(AtNode* curve_node, FILE* fp, const AtChar* param_name);
+void ReadParameterValue(AtNode* curve_node, FILE* fp, const AtChar* param_name);
 
 // Startup -- on error return false.
 static int Init(AtNode *mynode, void **user_ptr)
@@ -342,7 +342,7 @@ static AtNode *GetNode(void *user_ptr, int i)
 }
 
 // Reads the parameter value from data file and assign it to node
-AtVoid ReadParameterValue(AtNode* curve_node, FILE* fp, const AtChar* param_name)
+void ReadParameterValue(AtNode* curve_node, FILE* fp, const AtChar* param_name)
 {
    // Search param
    const AtParamEntry* param_entry = AiNodeEntryLookUpParameter(curve_node->base_node, param_name);

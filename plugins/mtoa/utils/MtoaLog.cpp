@@ -20,7 +20,7 @@ int GetFlagsFromVerbosityLevel(AtUInt level)
    return flags;
 }
 
-DLLEXPORT AtVoid MtoaLogCallback(int logmask, int severity, const char *msg_string, int tabs)
+DLLEXPORT void MtoaLogCallback(int logmask, int severity, const char *msg_string, int tabs)
 {
    /*
    const char *header = "[mtoa] %s";
