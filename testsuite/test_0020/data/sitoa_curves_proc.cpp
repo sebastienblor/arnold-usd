@@ -293,7 +293,7 @@ static AtNode *GetNode(void *user_ptr, int i)
          AtUInt32 num_points_array;
          fread(&num_points_array, sizeof(AtUInt32), 1, fp);
 
-         AtLong total_points = num_samples*num_points_array;
+         AtUInt32 total_points = num_samples*num_points_array;
 
          // Allocating memory
          float *points_array = (float*) AiMalloc(sizeof(float)*total_points);
@@ -369,7 +369,7 @@ void ReadParameterValue(AtNode* curve_node, FILE* fp, const char* param_name)
          }
          case AI_TYPE_UINT:
          {
-            AtLong value;
+            AtUInt32 value;
             fread(&value, sizeof(AtUInt), 1, fp);
             AiNodeSetUInt(curve_node, param_name, value);
             break;

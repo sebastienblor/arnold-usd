@@ -53,9 +53,9 @@ protected:
    bool GetVertexColors(MFnMesh &fnMesh, std::map<std::string, std::vector<float> > &vcolors);
    void GetComponentIDs(MFnMesh &fnMesh,
          std::vector<AtUInt> &nsides,
-         std::vector<AtLong> &vidxs,
-         std::vector<AtLong> &nidxs,
-         std::vector<AtLong> &uvidxs,
+         std::vector<AtUInt32> &vidxs,
+         std::vector<AtUInt32> &nidxs,
+         std::vector<AtUInt32> &uvidxs,
          bool exportNormals,
          bool exportUVs);
 

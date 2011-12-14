@@ -40,7 +40,7 @@ public:
    /// Render into the Render View, not IPR.
    void DoInteractiveRender();
    /// Render in the background of Maya.
-   AtULong DoBatchRender();
+   int DoBatchRender();
    /// Get a valid ass name
    MString GetAssName(const MString& customName,
                       const MCommonRenderSettingsData& renderGlobals,

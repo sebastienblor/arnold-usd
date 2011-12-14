@@ -98,7 +98,7 @@ unsigned int CRenderSession::RenderThread(void* data)
    // been displayed.
    InitializeDisplayUpdateQueue();
 
-   AtULong ai_status(AI_SUCCESS);
+   int ai_status(AI_SUCCESS);
    for (int i = init_progressive_samples; i <= num_aa_samples; i++)
    {
       int sampling = i ;
@@ -348,7 +348,7 @@ void CRenderSession::DoInteractiveRender()
 }
 
 
-AtULong CRenderSession::DoBatchRender()
+int CRenderSession::DoBatchRender()
 {
    return AiRender(AI_RENDER_MODE_CAMERA);
 }

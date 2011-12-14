@@ -180,7 +180,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          geom->bbox.clear();
 
          vector<AtPoint> vertices;
-         vector<AtLong> vidxs;
+         vector<AtUInt32> vidxs;
          vector<AtUInt> nsides;
 
          int num_vertices(0);
@@ -257,7 +257,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
                      int c_nsides = nsides[j];
                      for (int k = cursor; k < cursor + c_nsides; k++)
                      {
-                        AtLong face = vidxs[k];
+                        AtUInt32 face = vidxs[k];
                         AtPoint pnt = vertices[face];
                         geom->faceList[obj][j].push_back(pnt);
                      }
