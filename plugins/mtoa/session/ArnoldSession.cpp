@@ -403,7 +403,8 @@ MStatus CArnoldSession::UpdateLightLinks()
    if (m_sessionOptions.GetLightLinkMode() == MTOA_LIGHTLINK_MAYA
          || m_sessionOptions.GetShadowLinkMode() == MTOA_SHADOWLINK_MAYA)
    {
-      status = m_lightLinks.parseLinks();
+      // Default values except last. We set componentSupport = false
+      status = m_lightLinks.parseLinks(MObject::kNullObj, false, NULL, false, false);
    }
 
    return status;
