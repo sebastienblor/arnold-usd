@@ -1,0 +1,5 @@
+Shaders are applied to faces instead of to objects with Light-Linking
+
+Shaders are applied to faces instead of to objects with Light-Linking (Tickets #635)
+
+author: pedro.gomez
