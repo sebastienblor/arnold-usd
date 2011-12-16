@@ -288,6 +288,7 @@ def createArnoldSamplingSettings():
                         cc=lambda *args: pm.evalDeferred(updateComputeSamples)
                         )
 
+    pm.connectControl('ss_AA_samples', 'defaultArnoldRenderOptions.AASamples', index=1)
     pm.connectControl('ss_AA_samples', 'defaultArnoldRenderOptions.AASamples', index=2)
     pm.connectControl('ss_AA_samples', 'defaultArnoldRenderOptions.AASamples', index=3)
 
@@ -305,6 +306,7 @@ def createArnoldSamplingSettings():
                         fieldMaxValue=100,
                         cc=lambda *args: pm.evalDeferred(updateComputeSamples))
     
+    pm.connectControl('ss_hemi_samples', 'defaultArnoldRenderOptions.GIDiffuseSamples', index=1)
     pm.connectControl('ss_hemi_samples', 'defaultArnoldRenderOptions.GIDiffuseSamples', index=2)
     pm.connectControl('ss_hemi_samples', 'defaultArnoldRenderOptions.GIDiffuseSamples', index=3)
     '''
@@ -320,6 +322,7 @@ def createArnoldSamplingSettings():
                         fieldMaxValue=100,
                         cc=lambda *args: pm.evalDeferred(updateComputeSamples))
     
+    pm.connectControl('ss_glossy_samples', 'defaultArnoldRenderOptions.GIGlossySamples', index=1)
     pm.connectControl('ss_glossy_samples', 'defaultArnoldRenderOptions.GIGlossySamples', index=2)
     pm.connectControl('ss_glossy_samples', 'defaultArnoldRenderOptions.GIGlossySamples', index=3)    
     
@@ -329,6 +332,7 @@ def createArnoldSamplingSettings():
                         fieldMaxValue=100,
                         cc=lambda *args: pm.evalDeferred(updateComputeSamples))
     
+    pm.connectControl('ss_refraction_samples', 'defaultArnoldRenderOptions.GIRefractionSamples', index=1)
     pm.connectControl('ss_refraction_samples', 'defaultArnoldRenderOptions.GIRefractionSamples', index=2)
     pm.connectControl('ss_refraction_samples', 'defaultArnoldRenderOptions.GIRefractionSamples', index=3)    
 
@@ -346,6 +350,7 @@ def createArnoldSamplingSettings():
                      cc=updateSamplingSettings,
                      label='Clamp Sample Values')
 
+    pm.connectControl('ss_clamp_sample_values', 'defaultArnoldRenderOptions.use_sample_clamp', index=1)
     pm.connectControl('ss_clamp_sample_values', 'defaultArnoldRenderOptions.use_sample_clamp', index=2)
 
     '''
@@ -471,6 +476,7 @@ def createArnoldRayDepthSettings():
                         fieldMaxValue=100,
                         cc=lambda *args: pm.evalDeferred(updateComputeSamples))
     
+    pm.connectControl('rs_diffuse_depth', 'defaultArnoldRenderOptions.GIDiffuseDepth', index=1)
     pm.connectControl('rs_diffuse_depth', 'defaultArnoldRenderOptions.GIDiffuseDepth', index=2)
     pm.connectControl('rs_diffuse_depth', 'defaultArnoldRenderOptions.GIDiffuseDepth', index=3)
     
@@ -486,6 +492,7 @@ def createArnoldRayDepthSettings():
                         fieldMaxValue=100,
                         cc=lambda *args: pm.evalDeferred(updateComputeSamples))
     
+    pm.connectControl('rs_glossy_depth', 'defaultArnoldRenderOptions.GIGlossyDepth', index=1)
     pm.connectControl('rs_glossy_depth', 'defaultArnoldRenderOptions.GIGlossyDepth', index=2)
     pm.connectControl('rs_glossy_depth', 'defaultArnoldRenderOptions.GIGlossyDepth', index=3)
     
@@ -505,6 +512,7 @@ def createArnoldRayDepthSettings():
                         fieldMaxValue=100,
                         cc=lambda *args: pm.evalDeferred(updateComputeSamples))
     
+    pm.connectControl('rs_refraction_depth', 'defaultArnoldRenderOptions.GIRefractionDepth', index=1)
     pm.connectControl('rs_refraction_depth', 'defaultArnoldRenderOptions.GIRefractionDepth', index=2)
     pm.connectControl('rs_refraction_depth', 'defaultArnoldRenderOptions.GIRefractionDepth', index=3)
 
@@ -556,6 +564,9 @@ def createArnoldEnvironmentSettings():
                             label = 'Atmosphere',
                             attribute='defaultArnoldRenderOptions.atmosphere',
                             cc=selectAtmosphere)
+    pm.connectControl('es_atmosphere', 'defaultArnoldRenderOptions.atmosphere', index=1)
+    pm.connectControl('es_atmosphere', 'defaultArnoldRenderOptions.atmosphere', index=2)
+    
     pm.setParent('..')
     pm.setParent('..')
 
@@ -570,6 +581,7 @@ def createArnoldMotionBlurSettings():
                      cc=updateMotionBlurSettings,
                      label='Enable')
 
+    pm.connectControl('mb_enable', 'defaultArnoldRenderOptions.motion_blur_enable', index=1)
     pm.connectControl('mb_enable', 'defaultArnoldRenderOptions.motion_blur_enable', index=2)
 
     '''
@@ -605,6 +617,7 @@ def createArnoldMotionBlurSettings():
     pm.floatSliderGrp('mb_shutter_size',
                       label="Shutter Size"
                       )
+    pm.connectControl('mb_shutter_size', 'defaultArnoldRenderOptions.shutter_size', index=1)
     pm.connectControl('mb_shutter_size', 'defaultArnoldRenderOptions.shutter_size', index=2)
     pm.connectControl('mb_shutter_size', 'defaultArnoldRenderOptions.shutter_size', index=3)
 
@@ -803,6 +816,7 @@ def createArnoldLogSettings():
     pm.textFieldGrp('log_filename',
                       label='Filename',
                       cc=updateLogSettings)
+    pm.connectControl('log_filename', 'defaultArnoldRenderOptions.log_filename', index=1)
     pm.connectControl('log_filename', 'defaultArnoldRenderOptions.log_filename', index=2)
 
     '''

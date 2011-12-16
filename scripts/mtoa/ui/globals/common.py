@@ -343,6 +343,7 @@ def createArnoldFileNamePrefixControl():
     pm.popupMenu(popup, edit=True, postMenuCommand=Callback(createArnoldInsertKeywordMenu, popup))
 
     # connect the label, so we can change its color
+    pm.connectControl('mayaSoftwareFileName', 'defaultRenderGlobals.imageFilePrefix', index=1)
     pm.connectControl('mayaSoftwareFileName', 'defaultRenderGlobals.imageFilePrefix', index=2)
 
     # Create a scriptJob which will update the control when the value of the
@@ -867,10 +868,14 @@ def updateArnoldCameraControl(*args):
                                     label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kAlphaChannel"))
             pm.checkBoxGrp(chkbox, e=True, cc=pm.Callback(arnoldCameraMaskChange, chkbox, camera, 'mask'))
             setArnoldCheckboxFromAttr(camera, chkbox, "mask")
+            pm.connectControl(chkbox, "%s.mask"%camShape, index=1)
+            pm.connectControl(chkbox, "%s.mask"%camShape, index=2)
             chkbox = pm.checkBoxGrp(numberOfCheckBoxes=1,
                                     label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kDepthChannel"))
             pm.checkBoxGrp(chkbox, e=True, cc=pm.Callback(arnoldCameraMaskChange, chkbox, camera, 'depth'))
             setArnoldCheckboxFromAttr(camera, chkbox, "depth")
+            pm.connectControl(chkbox, "%s.depth"%camShape, index=1)
+            pm.connectControl(chkbox, "%s.depth"%camShape, index=2)
 
             pm.setParent('..')
         pm.setParent('..')
@@ -1016,6 +1021,7 @@ def createArnoldCommonFrameRange():
                      cc=updateArnoldFrameNumberControls,
                      label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kRenumberFramesUsing"))
 
+    pm.connectControl('modifyExtensionCtrl', 'defaultRenderGlobals.modifyExtension', index=1)
     pm.connectControl('modifyExtensionCtrl', 'defaultRenderGlobals.modifyExtension', index=2)
 
     '''
