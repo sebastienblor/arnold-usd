@@ -1,5 +1,6 @@
 #include <ai.h>
 
+#define ARNOLD_NODEID_USERDATAFLOAT             0x00115D12
 
 AI_SHADER_NODE_EXPORT_METHODS(UserDataFloatMtd);
 
@@ -14,13 +15,12 @@ enum UserDataFloatParams
 
 node_parameters
 {
+   AiMetaDataSetStr(mds, NULL, "maya.name", "aiUserDataFloat");
+   AiMetaDataSetInt(mds, NULL, "maya.id", ARNOLD_NODEID_USERDATAFLOAT);
+   AiMetaDataSetStr(mds, NULL, "maya.classification", "shader/utility");
+   AiMetaDataSetBool(mds, NULL, "maya.swatch", FALSE);
 
    AiParameterSTR("floatAttrName", "");
-
-   AiMetaDataSetBool(mds, NULL, "maya.hide", false);
-   //AiMetaDataSetInt(mds, NULL, "maya.id", 0x00115D0C);  // setting this  fails on load?
-   AiMetaDataSetStr(mds, NULL, "maya.name", "userDataFloat");
-   AiMetaDataSetStr(mds, NULL, "maya.classification", "shader/utility");
 }
 
 node_initialize
@@ -42,12 +42,10 @@ shader_evaluate
 
    AtFloat f;
 
-
    name = AiShaderEvalParamStr(p_floatAttrName);
    if (AiUDataGetFlt(name, &f))
    {
       sg->out.FLT = f;
-
    }
    else
    {

@@ -514,10 +514,11 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    }
    else
    {
-      AiMsgError("Failed to register Arnold nodes");
-      MGlobal::displayError("Failed to register Arnold nodes");
-      ArnoldUniverseEnd();
-      return MStatus::kFailure;
+      AiMsgError("Failed to register one or more Arnold nodes");
+      MGlobal::displayError("Failed to register one or more Arnold nodes");
+      // NOTE: allow to keep going
+      // ArnoldUniverseEnd();
+      // return MStatus::kFailure;
    }
 
    // Since executePythonCommand eats error output, trying to see if we can access every required module
