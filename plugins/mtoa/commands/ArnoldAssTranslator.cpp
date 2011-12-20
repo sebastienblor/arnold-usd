@@ -172,6 +172,7 @@ MStatus CArnoldAssTranslator::reader(const MFileObject& file,
                //   create ArnoldStandInDefaultLightSet1, ArnoldStandInDefaultLightSet2, ...
                MGlobal::executeCommand("createNode \"objectSet\" -name \"ArnoldStandInDefaultLightSet\" -shared;");
                MGlobal::executeCommand("lightlink -object \"ArnoldStandInDefaultLightSet\" -light \"defaultLightSet\";");
+               MGlobal::executeCommand("lightlink -make -shadow -object \"ArnoldStandInDefaultLightSet\" -light \"defaultLightSet\";");
                activeList.add(MString("ArnoldStandInDefaultLightSet"));
             }
             

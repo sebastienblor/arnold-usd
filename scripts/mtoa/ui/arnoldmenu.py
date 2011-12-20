@@ -6,14 +6,16 @@ def doCreateStandIn():
     if not cmds.objExists('ArnoldStandInDefaultLightSet'):
         cmds.createNode("objectSet", name="ArnoldStandInDefaultLightSet", shared=True)
         cmds.lightlink(object='ArnoldStandInDefaultLightSet', light='defaultLightSet')
+        cmds.lightlink(make=True, shadow=True, object='ArnoldStandInDefaultLightSet', light='defaultLightSet')
 
     pm.createNode('aiStandIn', n='ArnoldStandInShape')
     cmds.sets(add='ArnoldStandInDefaultLightSet')
-    
+
 def doCreateStandInFile():
     if not cmds.objExists('ArnoldStandInDefaultLightSet'):
         cmds.createNode("objectSet", name="ArnoldStandInDefaultLightSet", shared=True)
         cmds.lightlink(object='ArnoldStandInDefaultLightSet', light='defaultLightSet')
+        cmds.lightlink(make=True, shadow=True, object='ArnoldStandInDefaultLightSet', light='defaultLightSet')
 
     pm.createNode('aiStandIn', n='ArnoldStandInShape')
     cmds.sets(add='ArnoldStandInDefaultLightSet')

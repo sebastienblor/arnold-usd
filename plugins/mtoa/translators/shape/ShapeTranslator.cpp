@@ -118,6 +118,11 @@ void CShapeTranslator::ExportLightLinking(AtNode* shape)
    else if (lightLinkMode == MTOA_LIGHTLINK_NONE)
    {
       AiNodeSetBool(shape, "use_light_group", false);
+      
+      if (shadowLinkMode == MTOA_SHADOWLINK_LIGHT)
+      {
+         AiNodeSetBool(shape, "use_shadow_group", false);
+      }
    }
 
    // Specific shadow linking
@@ -150,7 +155,7 @@ void CShapeTranslator::ExportLightLinking(AtNode* shape)
 
       if (shadows.size() > 0)
       {
-         AiNodeSetArray(shape, "shadow_group", AiArrayConvert((int)lights.size(), 1, AI_TYPE_NODE, &shadows[0], TRUE));
+         AiNodeSetArray(shape, "shadow_group", AiArrayConvert((int)shadows.size(), 1, AI_TYPE_NODE, &shadows[0], TRUE));
       }
       else
       {
@@ -159,8 +164,7 @@ void CShapeTranslator::ExportLightLinking(AtNode* shape)
 
       AiNodeSetBool(shape, "use_shadow_group", true);
    }
-   else if ((shadowLinkMode == MTOA_SHADOWLINK_NONE) ||
-            (shadowLinkMode == MTOA_SHADOWLINK_LIGHT && lightLinkMode == MTOA_LIGHTLINK_NONE))
+   else if (shadowLinkMode == MTOA_SHADOWLINK_NONE)
    {
       AiNodeSetBool(shape, "use_shadow_group", false);
    }
