@@ -846,6 +846,9 @@ AtNode* CGeometryTranslator::ExportInstance(AtNode *instance, const MDagPath& ma
 
    AiNodeSetPtr(instance, "node", masterNode);
    AiNodeSetBool(instance, "inherit_xform", false);
+   
+   int visibility = AiNodeGetInt(masterNode, "visibility");
+   AiNodeSetInt(instance, "visibility", visibility);
 
    //
    // SHADERS
