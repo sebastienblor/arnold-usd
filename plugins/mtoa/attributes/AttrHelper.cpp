@@ -617,9 +617,8 @@ void CBaseAttrHelper::MakeInputEnum(MObject& attrib, CAttrData& data)
    attrib = eAttr.create(data.name, data.shortName, data.defaultValue.INT);
    for (unsigned int ei = 0; ei < data.enums.length(); ++ei)
       eAttr.addField(data.enums[ei], ei);
-
-   addAttribute(attrib);
    eAttr.setArray(AtBooleanToBool(AtBooleanToBool(data.isArray)));
+   addAttribute(attrib);
 }
 
 void CBaseAttrHelper::MakeInputNode(MObject& attrib, const char* paramName)
@@ -1156,6 +1155,7 @@ MStatus CExtensionAttrHelper::addAttribute(MObject& attrib)
    else
    {
       AiMsgDebug("[mtoa] Added extension attribute %s.%s", nodeType.asChar(), attrName.asChar());
+      stat = dgMod.doIt();
    }
    CHECK_MSTATUS(stat);
    return stat;

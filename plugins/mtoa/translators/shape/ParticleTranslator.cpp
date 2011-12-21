@@ -36,13 +36,13 @@ void CParticleTranslator::NodeInitializer(CAbTranslator context)
    CAttrData data;
 
    data.defaultValue.BOOL = false;
-   data.name = "export_particleId";
-   data.shortName = "aiexppartid";
+   data.name = "aiExportParticleIDs";
+   data.shortName = "ai_export_particle_ids";
    helper.MakeInputBoolean(data);
 
    data.defaultValue.STR = "";
-   data.name = "export_attributes";
-   data.shortName = "aiexpartattr";
+   data.name = "aiExportAttributes";
+   data.shortName = "ai_export_attributes";
    helper.MakeInputString(data);
 
    MStringArray  enumNames;
@@ -50,44 +50,44 @@ void CParticleTranslator::NodeInitializer(CAbTranslator context)
    enumNames.append("spheres");
    enumNames.append("quads");
    //data.defaultValue.ENUM = 0; /// how do you do a default in an enum?
-   data.name = "render_points_as";
-   data.shortName = "renderPointsAs";
+   data.name = "aiRenderPointsAs";
+   data.shortName = "ai_render_points_as";
    data.enums= enumNames;
    helper.MakeInputEnum(data);
 
    data.defaultValue.FLT = 0;
-   data.name = "min_particle_radius";
-   data.shortName = "minParticleRadius";
+   data.name = "aiMinParticleRadius";
+   data.shortName = "ai_min_particle_radius";
    helper.MakeInputFloat(data);
 
    data.defaultValue.FLT = 1.0;
-   data.name = "radiusMultiplier";
-   data.shortName = "radiusMult";
+   data.name = "aiRadiusMultiplier";
+   data.shortName = "ai_radius_multiplier";
    helper.MakeInputFloat(data);
 
    data.defaultValue.FLT = 1000000;
-   data.name = "max_particle_radius";
-   data.shortName = "maxParticleRadius";
+   data.name = "aiMaxParticleRadius";
+   data.shortName = "ai_max_particle_radius";
    helper.MakeInputFloat(data);
 
    data.defaultValue.FLT = 0;
-   data.name = "min_pixel_width";
-   data.shortName = "minPixelWidth";
+   data.name = "aiMinPixelWidth";
+   data.shortName = "ai_min_pixel_width";
    helper.MakeInputFloat(data);
 
    data.defaultValue.BOOL = false;
-   data.name = "deleteDeadParticles";
-   data.shortName = "delDead";
+   data.name = "aiDeleteDeadParticles";
+   data.shortName = "ai_delete_dead_particles";
    helper.MakeInputBoolean(data);
 
    data.defaultValue.BOOL = false;
-   data.name = "inheritCacheTransform";
-   data.shortName = "inhCTx";
+   data.name = "aiInheritCacheTransform";
+   data.shortName = "ai_inherit_cache_transform";
    helper.MakeInputBoolean(data);
 
-   data.defaultValue.BOOL = false;
-   data.name = "computeInstantBlurSteps";
-   data.shortName = "compInstBlrSteps";
+   data.defaultValue.BOOL = true;
+   data.name = "aiInterpolateBlur";
+   data.shortName = "ai_interpolate_blur";
    helper.MakeInputBoolean(data);
 
 }
@@ -183,13 +183,13 @@ void CParticleTranslator::ExportPreambleData(AtNode* particle)
    MStatus status;
 
    // Particle shape extra attributes
-   int pointsAs            = m_fnParticleSystem.findPlug("renderPointsAs").asInt();
-   m_exportId              = m_fnParticleSystem.findPlug("export_particleId").asBool();
-   m_isOpaque              = m_fnParticleSystem.findPlug("opaque").asBool();
-   m_deleteDeadParticles   = m_fnParticleSystem.findPlug("deleteDeadParticles").asBool();
-   m_inheritCacheTxfm      = m_fnParticleSystem.findPlug("inheritCacheTransform").asBool();
+   int pointsAs            = m_fnParticleSystem.findPlug("aiRenderPointsAs").asInt();
+   m_exportId              = m_fnParticleSystem.findPlug("aiExportParticleIDs").asBool();
+   m_isOpaque              = m_fnParticleSystem.findPlug("aiOpaque").asBool();
+   m_deleteDeadParticles   = m_fnParticleSystem.findPlug("aiDeleteDeadParticles").asBool();
+   m_inheritCacheTxfm      = m_fnParticleSystem.findPlug("aiInheritCacheTransform").asBool();
 
-   float minPixelWidth = m_fnParticleSystem.findPlug("minPixelWidth").asFloat();
+   float minPixelWidth = m_fnParticleSystem.findPlug("aiMinPixelWidth").asFloat();
    AiNodeSetFlt(particle, "min_pixel_width", minPixelWidth);
 
    // TODO implement  streak / blobby / cloud / tube,  formats
@@ -428,7 +428,7 @@ void CParticleTranslator::GatherFirstStep(AtNode* particle)
       m_particleIDMap[id] = i;
    }
 
-   m_customAttrs = m_fnParticleSystem.findPlug("export_attributes").asString();
+   m_customAttrs = m_fnParticleSystem.findPlug("aiExportAttributes").asString();
 
    if (m_customAttrs.length() != 0)
    {
@@ -852,9 +852,9 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
    MVector m_rgb;
    AtRGB a_rgb;
 
-   float minRadius   = m_fnParticleSystem.findPlug("minParticleRadius").asFloat();
-   float maxRadius   = m_fnParticleSystem.findPlug("maxParticleRadius").asFloat();
-   float radiusMult  = m_fnParticleSystem.findPlug("radiusMultiplier").asFloat();
+   float minRadius   = m_fnParticleSystem.findPlug("aiMinParticleRadius").asFloat();
+   float maxRadius   = m_fnParticleSystem.findPlug("aiMaxParticleRadius").asFloat();
+   float radiusMult  = m_fnParticleSystem.findPlug("aiRadiusMultiplier").asFloat();
 
    std::map <std::string, std::vector< MVectorArray* > >::iterator vecIt;
    std::map <std::string, std::vector< MDoubleArray* > >::iterator doubleIt;
@@ -1247,13 +1247,13 @@ AtNode* CParticleTranslator::ExportParticleNode(AtNode* particle, AtUInt step)
    }
    else
    {
-      if (!(m_fnParticleSystem.findPlug("computeInstantBlurSteps").asBool()))
+      if ((m_fnParticleSystem.findPlug("aiInterpolateBlur").asBool()))
       {
-         GatherBlurSteps(particle, step); // gather the data from each step
+         ComputeBlurSteps(particle, step); // compute all the data from  the first steps  population
       }
       else
       {
-         ComputeBlurSteps(particle, step); // compute all the data from  the first steps  population
+         GatherBlurSteps(particle, step); // gather the data from each step
       }
    }
 

@@ -466,6 +466,11 @@ MStatus CExtensionsManager::RegisterExtension(CExtension* extension)
             }
             if (NULL != translator.initialize)
             {
+               MString mayaName = mayaNode->name;
+               AiMsgDebug("[mtoa] [maya %s] Calling initialize function for translator %s provided by %s(%s).",
+                     mayaNode->name.asChar(),
+                     translator.name.asChar(),
+                     translator.provider.asChar(), translator.file.asChar());
                translator.initialize(CAbTranslator(translator.name, translator.arnold, mayaNode->name, translator.provider));
             }
             regTrsCount++;
