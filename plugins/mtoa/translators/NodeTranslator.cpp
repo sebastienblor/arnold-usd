@@ -688,7 +688,18 @@ AtNode* CNodeTranslator::ProcessParameterInputs(AtNode* arnoldNode, const MPlug 
          AiNodeSetPtr(arnoldNode, arnoldParamName, connectedArnoldNode);
       }
       else
+      {
          AiNodeLink(connectedArnoldNode, arnoldParamName, arnoldNode);
+         // Check for success
+         if (AiNodeGetLink(arnoldNode, arnoldParamName) != connectedArnoldNode)
+         {
+            AiMsgWarning("[mtoa] Could not link %s to %s.%s.",
+               AiNodeGetName(connectedArnoldNode),
+               AiNodeGetName(arnoldNode),
+               arnoldParamName);
+            return NULL;
+         }
+      }
       return connectedArnoldNode;
    }
    return NULL;
@@ -857,10 +868,11 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnold
       if (connected != NULL)
          return connected;
    }
-   return ProcessStaticParameter(arnoldNode, arnoldParamName, arnoldParamType, plug);
+   return ProcessConstantParameter(arnoldNode, arnoldParamName, arnoldParamType, plug);
 }
 
-AtNode* CNodeTranslator::ProcessStaticParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, const MPlug& plug)
+/// Export value for unconnected parameter
+AtNode* CNodeTranslator::ProcessConstantParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, const MPlug& plug)
 {
    switch(arnoldParamType)
    {

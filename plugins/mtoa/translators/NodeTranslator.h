@@ -96,7 +96,7 @@ protected:
    virtual void ProcessArrayParameter(AtNode* arnoldNode, const char* arnoldParamName, const MPlug& plug);
    void ProcessArrayElement(int type, AtArray* array, unsigned int i, const MPlug& elem);
    void ProcessAnimatedParameter(AtNode* arnoldNode, const char* arnoldParamName, const MPlug& plug, unsigned int step);
-   AtNode* ProcessStaticParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, const MPlug& plug);
+   AtNode* ProcessConstantParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, const MPlug& plug);
 
    void ExportUserAttribute(AtNode *anode);
 

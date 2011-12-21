@@ -361,48 +361,44 @@ void CFileTranslator::Export(AtNode* shader)
          ProcessParameter(shader, "noiseUV", AI_TYPE_POINT2, srcNodeFn.findPlug("noiseUV"));
       }
    }
-   MString filename;
-   MString resolvedFilename;
-   MString frameNumber("0");
-   MStatus status;
-   frameNumber += GetExportFrame() + FindMayaObjectPlug("frameOffset").asInt();
-   MRenderUtil::exactFileTextureName(m_object, filename);
-   resolvedFilename = MRenderUtil::exactFileTextureName(filename, FindMayaObjectPlug("useFrameExtension").asBool(), frameNumber, &status);
-   if (status == MStatus::kSuccess)
-   {
-      resolvedFilename = filename;
 
-      /*
-      // FIXME : detect when to do this second resolution since it is ruining tokens
-      // by returing an empty string while also returning kSuccess
-      resolvedFilename = MRenderUtil::exactFileTextureName(filename, m_fnNode.findPlug("useFrameExtension").asBool(), frameNumber, &status);
-      if (status != MStatus::kSuccess)
-      {
-         cout << "failed 2nd resolution" << endl;
-         resolvedFilename = filename;
-      }
-      */
-   }
-   else
+   if (NULL == ProcessParameter(shader, "filename", AI_TYPE_STRING, FindMayaObjectPlug("fileTextureName")))
    {
-      resolvedFilename = FindMayaObjectPlug("filename").asString();
-   }
-
-   // FIXME really inconvenient, a CRenderOptions instance should be stored in session
-   // or that class eliminated completely
-   CRenderOptions renderOptions;
-   renderOptions.SetArnoldRenderOptions(GetArnoldRenderOptions());
-   renderOptions.GetFromMaya();
-   if(renderOptions.useExistingTiledTextures())
-   { 
-      MString tx_filename(resolvedFilename.substring(0, resolvedFilename.rindexW(".")) + MString("tx"));
-      std::ifstream ifile(tx_filename.asChar());
-      if(ifile.is_open())
+      MString filename; 
+      MString resolvedFilename; 
+      MString frameNumber("0"); 
+      MStatus status; 
+      frameNumber += GetExportFrame() + FindMayaObjectPlug("frameOffset").asInt(); 
+      MRenderUtil::exactFileTextureName(m_object, filename); 
+      resolvedFilename = MRenderUtil::exactFileTextureName(filename, FindMayaObjectPlug("useFrameExtension").asBool(), frameNumber, &status); 
+      if (status == MStatus::kSuccess) 
       { 
-         resolvedFilename = tx_filename; 
+         // Cancels above resolution since it ruins tokens
+         resolvedFilename = filename; 
       } 
+      else 
+      { 
+         resolvedFilename = FindMayaObjectPlug("fileTextureName").asString(); 
+      } 
+
+      // FIXME really inconvenient, a CRenderOptions instance should be stored in session 
+      // or that class eliminated completely 
+      CRenderOptions renderOptions; 
+      renderOptions.SetArnoldRenderOptions(GetArnoldRenderOptions()); 
+      renderOptions.GetFromMaya(); 
+      if(renderOptions.useExistingTiledTextures()) 
+      { 
+         MString tx_filename(resolvedFilename.substring(0, resolvedFilename.rindexW(".")) + MString("tx")); 
+         std::ifstream ifile(tx_filename.asChar()); 
+         if(ifile.is_open()) 
+         { 
+            resolvedFilename = tx_filename; 
+         } 
+      }
+
+      AiNodeSetStr(shader, "filename", resolvedFilename.asChar()); 
    }
-   AiNodeSetStr(shader, "filename", resolvedFilename.asChar());
+
 
    ProcessParameter(shader, "colorGain", AI_TYPE_RGB);
    ProcessParameter(shader, "colorOffset", AI_TYPE_RGB);
