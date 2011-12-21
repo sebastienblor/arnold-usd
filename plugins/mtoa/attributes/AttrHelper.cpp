@@ -622,6 +622,10 @@ void CBaseAttrHelper::MakeInputEnum(MObject& attrib, CAttrData& data)
 
    addAttribute(attrib);
    eAttr.setArray(AtBooleanToBool(AtBooleanToBool(data.isArray)));
+   eAttr.setKeyable(AtBooleanToBool(data.keyable));
+   eAttr.setStorable(true);
+   eAttr.setReadable(true);
+   eAttr.setWritable(true);
 }
 
 void CBaseAttrHelper::MakeInputNode(MObject& attrib, const char* paramName)
