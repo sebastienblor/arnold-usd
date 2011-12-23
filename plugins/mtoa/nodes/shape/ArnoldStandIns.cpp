@@ -2,6 +2,7 @@
 #include "nodes/ArnoldNodeIDs.h"
 #include "translators/NodeTranslator.h"
 #include "utils/Universe.h"
+#include "scene/MayaScene.h"
 
 #include <ai_render.h>
 #include <ai_dotass.h>
@@ -112,6 +113,15 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
    bool AiUniverseCreated = false;
    if (assfile != "")
    {
+      if (AiUniverseIsActive())
+      {
+         AiMsgWarning("[mtoa] There can only be one RenderSession active.");
+         AiRenderAbort();
+         CMayaScene::GetRenderSession()->InterruptRender();
+         ArnoldUniverseEnd();
+         CMayaScene::End();
+      }
+      
       AiUniverseCreated = ArnoldUniverseBegin();
 
       bool processRead = false;
