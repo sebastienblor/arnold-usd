@@ -178,6 +178,10 @@ def createArnoldRenderSettings():
     pm.attrControlGrp('os_clear_before_render',
                    label="Clear Before Render",
                    attribute='defaultArnoldRenderOptions.clear_before_render')
+                   
+    pm.attrControlGrp('os_force_scene_update_before_IPR_refresh',
+                   label='Force Scene Update On IPR Refresh',
+                   attribute='defaultArnoldRenderOptions.force_scene_update_before_IPR_refresh')
 
     pm.separator()
 

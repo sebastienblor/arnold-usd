@@ -78,6 +78,11 @@ public:
       return m_clearBeforeRender;
    }
    
+   bool sceneUpdateBeforeIPRRender() const
+   {
+      return m_forceSceneUpdateBeforeIPRRefresh;
+   }
+   
    bool useExistingTiledTextures() const 
    { 
      return m_use_existing_tiled_textures; 
@@ -182,6 +187,7 @@ private:
    float    m_pixelAspectRatio;
    bool     m_useRenderRegion;
    bool     m_clearBeforeRender; 
+   bool     m_forceSceneUpdateBeforeIPRRefresh;
 
    float  m_startFrame;
    float  m_endFrame;

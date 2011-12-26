@@ -44,6 +44,7 @@ public:
    static MObject s_threads;
    static MObject s_threads_autodetect;
    static MObject s_clear_before_render;
+   static MObject s_force_scene_update_before_IPR_refresh;
    static MObject s_plugins_path;
 
    static MObject s_use_sample_clamp;

@@ -162,6 +162,7 @@ MStatus CRenderOptions::ProcessArnoldRenderOptions()
       m_progressive_initial_level = fnArnoldRenderOptions.findPlug("progressive_initial_level").asInt();
       m_sss_sample_factor        = fnArnoldRenderOptions.findPlug("sss_sample_factor").asInt();
       m_clearBeforeRender = fnArnoldRenderOptions.findPlug("clear_before_render").asBool();
+      m_forceSceneUpdateBeforeIPRRefresh = fnArnoldRenderOptions.findPlug("force_scene_update_before_IPR_refresh").asBool();
       
       m_use_existing_tiled_textures = fnArnoldRenderOptions.findPlug("use_existing_tiled_textures").asBool();
 

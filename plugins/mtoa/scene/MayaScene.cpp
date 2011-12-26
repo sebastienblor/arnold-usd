@@ -325,6 +325,29 @@ void CMayaScene::IPRNewNodeCallback(MObject & node, void *)
          // arnoldSession->QueueForUpdate(); // add it?
       }
    }
+   
+   // Get the current Arnold Render Options
+   MSelectionList    list;
+   MObject           ArnoldRenderOptionsNode;
+   
+   list.add("defaultArnoldRenderOptions");
+   if (list.length() > 0)
+   {
+      list.getDependNode(0, ArnoldRenderOptionsNode);
+   }
+   else
+   {
+      AiMsgError("[mtoa] could not find defaultArnoldRenderOptions");
+   }
+
+   MFnDependencyNode fnArnoldRenderOptions(ArnoldRenderOptionsNode);
+   bool forceUpdate = fnArnoldRenderOptions.findPlug("force_scene_update_before_IPR_refresh").asBool();
+   
+   if(forceUpdate)
+   {
+      arnoldSession->RequestUpdate();
+   }
+
    UpdateIPR();
 }
 
@@ -344,6 +367,32 @@ void CMayaScene::IPRIdleCallback(void *)
       s_renderSession->InterruptRender();
       s_arnoldSession->SetExportFrame(MAnimControl::currentTime().as(MTime::uiUnit()));
       s_arnoldSession->DoUpdate();
+      
+      
+      // Get the current Arnold Render Options
+      MSelectionList    list;
+      MObject           ArnoldRenderOptionsNode;
+      
+      list.add("defaultArnoldRenderOptions");
+      if (list.length() > 0)
+      {
+         list.getDependNode(0, ArnoldRenderOptionsNode);
+      }
+      else
+      {
+         AiMsgError("[mtoa] could not find defaultArnoldRenderOptions");
+      }
+
+      MFnDependencyNode fnArnoldRenderOptions(ArnoldRenderOptionsNode);
+      bool forceUpdate = fnArnoldRenderOptions.findPlug("force_scene_update_before_IPR_refresh").asBool();
+            
+      if(forceUpdate)
+      {
+         CMayaScene::End();
+         CMayaScene::Begin(MTOA_SESSION_IPR);
+         CMayaScene::Export();
+      }
+      
       s_renderSession->DoIPRRender();
    }
 }
