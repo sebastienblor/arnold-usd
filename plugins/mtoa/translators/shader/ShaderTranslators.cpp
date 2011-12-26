@@ -361,7 +361,7 @@ void CFileTranslator::Export(AtNode* shader)
          ProcessParameter(shader, "noiseUV", AI_TYPE_POINT2, srcNodeFn.findPlug("noiseUV"));
       }
    }
-
+   
    if (NULL == ProcessParameter(shader, "filename", AI_TYPE_STRING, FindMayaObjectPlug("fileTextureName")))
    {
       MString filename; 
@@ -380,7 +380,7 @@ void CFileTranslator::Export(AtNode* shader)
       { 
          resolvedFilename = FindMayaObjectPlug("fileTextureName").asString(); 
       } 
-
+      
       // FIXME really inconvenient, a CRenderOptions instance should be stored in session 
       // or that class eliminated completely 
       CRenderOptions renderOptions; 
@@ -395,7 +395,7 @@ void CFileTranslator::Export(AtNode* shader)
             resolvedFilename = tx_filename; 
          } 
       }
-
+      
       AiNodeSetStr(shader, "filename", resolvedFilename.asChar()); 
    }
 
