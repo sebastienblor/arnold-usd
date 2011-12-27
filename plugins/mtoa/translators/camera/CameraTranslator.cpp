@@ -21,6 +21,14 @@ void CCameraTranslator::ExportImagePlane(unsigned int step, MObject& imgPlane)
    // get the dependency node of the image plane
    MFnDependencyNode fnRes(imgPlane);
    MStatus status;
+   
+   // If displayOnlyIfCurrent is true and this is not the current camera, do not export Image Plane
+   bool displayOnlyIfCurrent = fnRes.findPlug("displayOnlyIfCurrent", &status).asBool();
+   if(displayOnlyIfCurrent && (GetSession()->GetExportCamera().partialPathName() != m_fnCamera.partialPathName()))
+   {
+      return;
+   }
+   
    // check if the image plane should be created
    int displayMode = fnRes.findPlug("displayMode", &status).asInt();
    if (displayMode > 1)
