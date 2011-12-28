@@ -218,15 +218,11 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
                   {
                      AtMatrix current_matrix;
                      AiNodeGetMatrix(node, "matrix", current_matrix);
-                     
-                     if(inherit_xform)
+                     if (inherit_xform)
                      {
                         AiM4Mult(total_matrix, total_matrix, current_matrix);
                      }
-                     
                      inherit_xform = (int)AiNodeGetBool(node, "inherit_xform");
-                     
-                     //AtNode *masterNode;
                      node = (AtNode*)AiNodeGetPtr(node, "node");
                   }
                }
@@ -239,8 +235,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
 
                   AtMatrix current_matrix;
                   AiNodeGetMatrix(node, "matrix", current_matrix);
-                  
-                  if(inherit_xform)
+                  if (inherit_xform)
                   {
                      AiM4Mult(total_matrix, total_matrix, current_matrix);
                   }
