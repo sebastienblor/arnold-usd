@@ -208,7 +208,28 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
             AtNode *node = AiNodeIteratorGetNext(iter);
             if (node)
             {
+               AtMatrix total_matrix;
+               AiM4Identity(total_matrix);
+               int inherit_xform = 1;
                AtArray* myArray;
+               if (AiNodeIs(node, "ginstance"))
+               {
+                  while(AiNodeIs(node, "ginstance"))
+                  {
+                     AtMatrix current_matrix;
+                     AiNodeGetMatrix(node, "matrix", current_matrix);
+                     
+                     if(inherit_xform)
+                     {
+                        AiM4Mult(total_matrix, total_matrix, current_matrix);
+                     }
+                     
+                     inherit_xform = (int)AiNodeGetBool(node, "inherit_xform");
+                     
+                     //AtNode *masterNode;
+                     node = (AtNode*)AiNodeGetPtr(node, "node");
+                  }
+               }
                if (AiNodeIs(node, "polymesh"))
                {
                   // We can load a exact BBox, or compute it if not available
@@ -218,6 +239,11 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
 
                   AtMatrix current_matrix;
                   AiNodeGetMatrix(node, "matrix", current_matrix);
+                  
+                  if(inherit_xform)
+                  {
+                     AiM4Mult(total_matrix, total_matrix, current_matrix);
+                  }
 
                   myArray = AiNodeGetArray(node, "vlist");
                   if (myArray->type == 8)
@@ -227,7 +253,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
                      for (i = 0; i < num_vertices; i++)
                      {
                         AtPoint localTmpPnt = AiArrayGetPnt(myArray, i);
-                        AiM4PointByMatrixMult(&localTmpPnt, current_matrix, &localTmpPnt);
+                        AiM4PointByMatrixMult(&localTmpPnt, total_matrix, &localTmpPnt);
                         vertices[i] = localTmpPnt;
                         geom->bbox.expand(MPoint(MVector(localTmpPnt.x, localTmpPnt.y, localTmpPnt.z)));
                      }
