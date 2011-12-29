@@ -679,11 +679,51 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
       {
          GetPointsFromAss();
       }
+      
+      MPoint bbMin = fGeometry.bbox.min();
+      MPoint bbMax = fGeometry.bbox.max();
+      
+      // If BBox has zero size, make it default size
+      if (bbMin.x == bbMax.x && bbMin.y == bbMax.y && bbMin.z == bbMax.z)
+      {
+         float3 m_value;
+         plug.setAttribute(s_boundingBoxMin);
+         GetPointPlugValue(plug, m_value);
+         fGeometry.BBmin = MPoint(m_value[0], m_value[1], m_value[2]);
+
+         plug.setAttribute(s_boundingBoxMax);
+         GetPointPlugValue(plug, m_value);
+         fGeometry.BBmax = MPoint(m_value[0], m_value[1], m_value[2]);
+
+         fGeometry.bbox = MBoundingBox(fGeometry.BBmin, fGeometry.BBmax);
+      }
+      
       fGeometry.updateView = true;
    }
 
    if (fGeometry.mode == 0 && fGeometry.mode != tmpMode)
    {
+      // Try first to load bounding box size
+      if (!LoadBoundingBox())
+      {
+         MPoint bbMin = fGeometry.bbox.min();
+         MPoint bbMax = fGeometry.bbox.max();
+         
+         // If BBox has zero size, make it default size
+         if (bbMin.x == bbMax.x && bbMin.y == bbMax.y && bbMin.z == bbMax.z)
+         {
+            float3 m_value;
+            plug.setAttribute(s_boundingBoxMin);
+            GetPointPlugValue(plug, m_value);
+            fGeometry.BBmin = MPoint(m_value[0], m_value[1], m_value[2]);
+
+            plug.setAttribute(s_boundingBoxMax);
+            GetPointPlugValue(plug, m_value);
+            fGeometry.BBmax = MPoint(m_value[0], m_value[1], m_value[2]);
+
+            fGeometry.bbox = MBoundingBox(fGeometry.BBmin, fGeometry.BBmax);
+         }
+      }
       fGeometry.updateView = true;
    }
    else if (fGeometry.mode != 0 && fGeometry.mode != tmpMode)
@@ -692,6 +732,26 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
       //if we cant load the geom, we force bounding box
       if (load != MS::kSuccess)
          fGeometry.mode = 0;
+         
+      MPoint bbMin = fGeometry.bbox.min();
+      MPoint bbMax = fGeometry.bbox.max();
+      
+      // If BBox has zero size, make it default size and mode = 0
+      if (bbMin.x == bbMax.x && bbMin.y == bbMax.y && bbMin.z == bbMax.z)
+      {
+         float3 m_value;
+         plug.setAttribute(s_boundingBoxMin);
+         GetPointPlugValue(plug, m_value);
+         fGeometry.BBmin = MPoint(m_value[0], m_value[1], m_value[2]);
+
+         plug.setAttribute(s_boundingBoxMax);
+         GetPointPlugValue(plug, m_value);
+         fGeometry.BBmax = MPoint(m_value[0], m_value[1], m_value[2]);
+
+         fGeometry.bbox = MBoundingBox(fGeometry.BBmin, fGeometry.BBmax);
+         fGeometry.mode = 0;
+      }
+      
       fGeometry.updateView = true;
    }
 
