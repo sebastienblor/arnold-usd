@@ -126,14 +126,10 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
 
       bool processRead = false;
       bool isSo = false;
-      unsigned int nscn = assfile.numChars();
-      MString ext = assfile.substringW(nscn-3, nscn).toLowerCase();
-      if (ext == ".so")
-      {
-         isSo = true;
-      }
+      
+      // This will load correct platform library file independently of current extension
       unsigned int nchars = assfile.numChars();
-      if (nchars > 4 && assfile.substringW(nchars-3, nchars).toLowerCase() == ".so")
+      if (nchars > 3 && assfile.substringW(nchars-3, nchars).toLowerCase() == ".so")
       {
          assfile = assfile.substringW(0, nchars-4)+LIBEXT;
          isSo = true;
@@ -143,21 +139,23 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          assfile = assfile.substringW(0, nchars-5)+LIBEXT;
          isSo = true;
       }
-      else if (nchars > 4 && assfile.substringW(nchars-6, nchars).toLowerCase() == ".dylib")
+      else if (nchars > 6 && assfile.substringW(nchars-6, nchars).toLowerCase() == ".dylib")
       {
          assfile = assfile.substringW(0, nchars-7)+LIBEXT;
          isSo = true;
       }
 
-      ext = assfile.substringW(nscn-4, nscn).toLowerCase();
-      if (ext == ".ass" || (nscn > 7 && assfile.substring(nscn - 7, nscn).toLowerCase() == ".ass.gz"))
+      // If it is a .ass or a .ass.gz file.
+      if ((nchars > 4 && assfile.substring(nchars - 4, nchars).toLowerCase() == ".ass") ||
+          (nchars > 7 && assfile.substring(nchars - 7, nchars).toLowerCase() == ".ass.gz"))
       {
          if (AiASSLoad(assfile.asChar()) == 0)
          {
             processRead = true;
          }
       }
-      else if (ext == ".obj")
+      // If it is a .obj file
+      else if (nchars > 4 && assfile.substring(nchars - 4, nchars).toLowerCase() == ".obj")
       {
          AtNode *options = AiUniverseGetOptions();
          AiNodeSetBool(options, "preserve_scene_data", true);
@@ -165,10 +163,11 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          AiNodeSetStr(procedural, "dso", assfile.asChar());
          AiNodeSetBool(procedural, "load_at_init", true);
          if (AiRender(AI_RENDER_MODE_FREE) == AI_SUCCESS)
+         {
             processRead = true;
-         else
-            processRead = false;
+         }
       }
+      // If it is a lib file
       else if (isSo)
       {
          AtNode *options = AiUniverseGetOptions();
@@ -178,10 +177,11 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          AiNodeSetStr(procedural, "data", dsoData.asChar());
          AiNodeSetBool(procedural, "load_at_init", true);
          if (AiRender(AI_RENDER_MODE_FREE) == AI_SUCCESS)
+         {
             processRead = true;
-         else
-            processRead = false;
+         }
       }
+      
       if (processRead)
       {
          geom->geomLoaded = geom->filename;
