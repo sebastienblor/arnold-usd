@@ -639,6 +639,8 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
    MString tmpDso = fGeometry.dso;
    bool tmpLoadAtInit =  fGeometry.loadAtInit;
    float tmpScale =  fGeometry.scale;
+   bool tmpUseFrameExtension = fGeometry.useFrameExtension;
+   float tmpFrameStep = fGeometry.frame + fGeometry.frameOffset;
 
    MObject this_object = thisMObject();
    MPlug plug(this_object, s_dso);
@@ -668,28 +670,40 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
    plug.setAttribute(s_scale);
    plug.getValue(fGeometry.scale);
 
-   MString frameNumber = "0";
-
    float framestep = fGeometry.frame + fGeometry.frameOffset;
 
-   bool subFrames = ((framestep - floor(framestep)) >= 0.001);
-   char frameExt[64];
-   if (subFrames || fGeometry.useSubFrame)
+   // Only find for frame extension files if this option is true
+   if (fGeometry.useFrameExtension)
    {
-      int fullFrame = (int) floor(framestep);
-      int subFrame = (int) floor((framestep - fullFrame) * 1000);
-      sprintf(frameExt, ".%04d.%03d", fullFrame, subFrame);
+      // If changed framestep, useFrameExtension or dso
+      if (tmpFrameStep != framestep || tmpUseFrameExtension == false || tmpDso != fGeometry.dso)
+      {
+         MString frameNumber = "0";
+         
+         bool subFrames = ((framestep - floor(framestep)) >= 0.001);
+         char frameExt[64];
+         if (subFrames || fGeometry.useSubFrame)
+         {
+            int fullFrame = (int) floor(framestep);
+            int subFrame = (int) floor((framestep - fullFrame) * 1000);
+            sprintf(frameExt, ".%04d.%03d", fullFrame, subFrame);
+         }
+         else
+         {
+            sprintf(frameExt, ".%04d", (int) framestep);
+         }
+         frameNumber = frameExt;
+
+         bool resolved = MRenderUtil::exactFileTextureName(fGeometry.dso, fGeometry.useFrameExtension,
+               frameNumber, fGeometry.filename);
+
+         if (!resolved)
+         {
+            fGeometry.filename = fGeometry.dso;
+         }
+      }
    }
    else
-   {
-      sprintf(frameExt, ".%04d", (int) framestep);
-   }
-   frameNumber = frameExt;
-
-   bool resolved = MRenderUtil::exactFileTextureName(fGeometry.dso, fGeometry.useFrameExtension,
-         frameNumber, fGeometry.filename);
-
-   if (!resolved)
    {
       fGeometry.filename = fGeometry.dso;
    }
