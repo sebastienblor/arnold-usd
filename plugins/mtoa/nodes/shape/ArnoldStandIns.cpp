@@ -513,14 +513,27 @@ MBoundingBox CArnoldStandInShape::boundingBox() const
    bbMin.get(minCoords);
    bbMax.get(maxCoords);
 
-   minCoords[0] *= geom->scale;
-   minCoords[1] *= geom->scale;
-   minCoords[2] *= geom->scale;
+   if(geom->loadAtInit)
+   {
+      // Calculate scaled BBox dimensions
+      float halfSize[3] =
+      {0.5f*(maxCoords[0] - minCoords[0]),
+       0.5f*(maxCoords[1] - minCoords[1]),
+       0.5f*(maxCoords[2] - minCoords[2])};
+      float center[3] =
+      {0.5f*(maxCoords[0] + minCoords[0]),
+       0.5f*(maxCoords[1] + minCoords[1]),
+       0.5f*(maxCoords[2] + minCoords[2])};
 
-   maxCoords[0] *= geom->scale;
-   maxCoords[1] *= geom->scale;
-   maxCoords[2] *= geom->scale;
+      minCoords[0] = -halfSize[0]*geom->scale + center[0];
+      minCoords[1] = -halfSize[1]*geom->scale + center[1];
+      minCoords[2] = -halfSize[2]*geom->scale + center[2];
 
+      maxCoords[0] =  halfSize[0]*geom->scale + center[0];
+      maxCoords[1] =  halfSize[1]*geom->scale + center[1];
+      maxCoords[2] =  halfSize[2]*geom->scale + center[2];
+   }
+   
    return MBoundingBox (minCoords, maxCoords);
 
 }
