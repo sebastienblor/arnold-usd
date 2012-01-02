@@ -31,6 +31,7 @@ public:
    bool useSubFrame;
    bool IsGeomLoaded;
    MBoundingBox bbox;
+   bool loadAtInit;
    float scale;
    MPoint BBmin;
    MPoint BBmax;
