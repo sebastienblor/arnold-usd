@@ -38,6 +38,7 @@ public:
    vector<vector<vector<AtPoint> > > faceList;
    int dList;
    int updateView;
+   int updateBBox;
 
 };
 

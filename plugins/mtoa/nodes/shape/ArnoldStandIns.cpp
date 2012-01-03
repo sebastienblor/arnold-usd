@@ -74,6 +74,7 @@ CArnoldStandInGeom::CArnoldStandInGeom()
    bbox = MBoundingBox(BBmin, BBmax);
    IsGeomLoaded = false;
    updateView = true;
+   updateBBox = true;
    useSubFrame = false;
    useFrameExtension = false;
    dList = 0;
@@ -720,7 +721,7 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
    
    if (fGeometry.loadAtInit != tmpLoadAtInit || fGeometry.scale != tmpScale)
    {
-      fGeometry.updateView = true;
+      fGeometry.updateBBox = true;
    }
 
    if (fGeometry.filename != tmpFilename)
@@ -882,11 +883,73 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
    CArnoldStandInGeom * geom = (CArnoldStandInGeom*) data.geometry();
    view.beginGL();
 
-   if (geom->updateView)
+   if (geom->updateView || geom->updateBBox)
    {
       if (geom->dList == 0)
-         geom->dList = gGLFT->glGenLists(1);
+         geom->dList = gGLFT->glGenLists(2);
 
+      // Only show scaled BBox in this case
+      if(geom->loadAtInit)
+      {
+         MBoundingBox m_bbox = geom->bbox;
+         float minPt[4];
+         float maxPt[4];
+         m_bbox.min().get(minPt);
+         m_bbox.max().get(maxPt);
+         
+         // Calculate scaled BBox dimensions
+         float halfSize[3] =
+         {0.5f*(maxPt[0] - minPt[0]), 0.5f*(maxPt[1] - minPt[1]), 0.5f*(maxPt[2] - minPt[2])};
+         float center[3] =
+         {0.5f*(maxPt[0] + minPt[0]), 0.5f*(maxPt[1] + minPt[1]), 0.5f*(maxPt[2] + minPt[2])};
+         float sbottomLeftFront[3] =
+         {-halfSize[0]*geom->scale + center[0], -halfSize[1]*geom->scale + center[1], -halfSize[2]*geom->scale + center[2]};
+         float stopLeftFront[3] =
+         {-halfSize[0]*geom->scale + center[0],  halfSize[1]*geom->scale + center[1], -halfSize[2]*geom->scale + center[2]};
+         float sbottomRightFront[3] =
+         { halfSize[0]*geom->scale + center[0], -halfSize[1]*geom->scale + center[1], -halfSize[2]*geom->scale + center[2]};
+         float stopRightFront[3] =
+         { halfSize[0]*geom->scale + center[0],  halfSize[1]*geom->scale + center[1], -halfSize[2]*geom->scale + center[2]};
+         float sbottomLeftBack[3] =
+         {-halfSize[0]*geom->scale + center[0], -halfSize[1]*geom->scale + center[1],  halfSize[2]*geom->scale + center[2]};
+         float stopLeftBack[3] =
+         {-halfSize[0]*geom->scale + center[0],  halfSize[1]*geom->scale + center[1],  halfSize[2]*geom->scale + center[2]};
+         float sbottomRightBack[3] =
+         { halfSize[0]*geom->scale + center[0], -halfSize[1]*geom->scale + center[1],  halfSize[2]*geom->scale + center[2]};
+         float stopRightBack[3] =
+         { halfSize[0]*geom->scale + center[0],  halfSize[1]*geom->scale + center[1],  halfSize[2]*geom->scale + center[2]};
+               
+         gGLFT->glNewList(geom->dList+1, MGL_COMPILE);
+         gGLFT->glBegin(MGL_LINE_STRIP);
+         gGLFT->glVertex3fv(sbottomLeftFront);
+         gGLFT->glVertex3fv(sbottomLeftBack);
+         gGLFT->glVertex3fv(stopLeftBack);
+         gGLFT->glVertex3fv(stopLeftFront);
+         gGLFT->glVertex3fv(sbottomLeftFront);
+         gGLFT->glVertex3fv(sbottomRightFront);
+         gGLFT->glVertex3fv(sbottomRightBack);
+         gGLFT->glVertex3fv(stopRightBack);
+         gGLFT->glVertex3fv(stopRightFront);
+         gGLFT->glVertex3fv(sbottomRightFront);
+         gGLFT->glEnd();
+         
+         gGLFT->glBegin(MGL_LINES);
+         gGLFT->glVertex3fv(sbottomLeftBack);
+         gGLFT->glVertex3fv(sbottomRightBack);
+
+         gGLFT->glVertex3fv(stopLeftBack);
+         gGLFT->glVertex3fv(stopRightBack);
+
+         gGLFT->glVertex3fv(stopLeftFront);
+         gGLFT->glVertex3fv(stopRightFront);
+         gGLFT->glEnd();
+         gGLFT->glEndList();
+      }
+      geom->updateBBox = false;
+   }
+   
+   if (geom->updateView)
+   {
       MBoundingBox m_bbox = geom->bbox;
       float minPt[4];
       float maxPt[4];
@@ -937,8 +1000,7 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
          gGLFT->glVertex3fv(topLeftFront);
          gGLFT->glVertex3fv(topRightFront);
          gGLFT->glEnd();
-         // As we are displaying the BBox, we do not need facelist until mode changed again.
-         geom->faceList.clear();
+         gGLFT->glEndList();
          break;
 
       case 1:
@@ -973,6 +1035,7 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
                gGLFT->glEnd();
             }
          }
+         gGLFT->glEndList();
          break;
 
       case 2:
@@ -989,6 +1052,7 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
                gGLFT->glEnd();
             }
          }
+         gGLFT->glEndList();
          
          break;
 
@@ -1014,67 +1078,23 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
             }
          }
          gGLFT->glEnd();
+         gGLFT->glEndList();
          
          gGLFT->glDisable(MGL_POINT_SMOOTH);
          gGLFT->glPopAttrib();
          break;
       }
-      
-      // Only show scaled BBox in this case
-      if(geom->loadAtInit)
-      {
-         // Calculate scaled BBox dimensions
-         float halfSize[3] =
-         {0.5f*(maxPt[0] - minPt[0]), 0.5f*(maxPt[1] - minPt[1]), 0.5f*(maxPt[2] - minPt[2])};
-         float center[3] =
-         {0.5f*(maxPt[0] + minPt[0]), 0.5f*(maxPt[1] + minPt[1]), 0.5f*(maxPt[2] + minPt[2])};
-         float sbottomLeftFront[3] =
-         {-halfSize[0]*geom->scale + center[0], -halfSize[1]*geom->scale + center[1], -halfSize[2]*geom->scale + center[2]};
-         float stopLeftFront[3] =
-         {-halfSize[0]*geom->scale + center[0],  halfSize[1]*geom->scale + center[1], -halfSize[2]*geom->scale + center[2]};
-         float sbottomRightFront[3] =
-         { halfSize[0]*geom->scale + center[0], -halfSize[1]*geom->scale + center[1], -halfSize[2]*geom->scale + center[2]};
-         float stopRightFront[3] =
-         { halfSize[0]*geom->scale + center[0],  halfSize[1]*geom->scale + center[1], -halfSize[2]*geom->scale + center[2]};
-         float sbottomLeftBack[3] =
-         {-halfSize[0]*geom->scale + center[0], -halfSize[1]*geom->scale + center[1],  halfSize[2]*geom->scale + center[2]};
-         float stopLeftBack[3] =
-         {-halfSize[0]*geom->scale + center[0],  halfSize[1]*geom->scale + center[1],  halfSize[2]*geom->scale + center[2]};
-         float sbottomRightBack[3] =
-         { halfSize[0]*geom->scale + center[0], -halfSize[1]*geom->scale + center[1],  halfSize[2]*geom->scale + center[2]};
-         float stopRightBack[3] =
-         { halfSize[0]*geom->scale + center[0],  halfSize[1]*geom->scale + center[1],  halfSize[2]*geom->scale + center[2]};
-               
-         gGLFT->glBegin(MGL_LINE_STRIP);
-         gGLFT->glVertex3fv(sbottomLeftFront);
-         gGLFT->glVertex3fv(sbottomLeftBack);
-         gGLFT->glVertex3fv(stopLeftBack);
-         gGLFT->glVertex3fv(stopLeftFront);
-         gGLFT->glVertex3fv(sbottomLeftFront);
-         gGLFT->glVertex3fv(sbottomRightFront);
-         gGLFT->glVertex3fv(sbottomRightBack);
-         gGLFT->glVertex3fv(stopRightBack);
-         gGLFT->glVertex3fv(stopRightFront);
-         gGLFT->glVertex3fv(sbottomRightFront);
-         gGLFT->glEnd();
-         
-         gGLFT->glBegin(MGL_LINES);
-         gGLFT->glVertex3fv(sbottomLeftBack);
-         gGLFT->glVertex3fv(sbottomRightBack);
-
-         gGLFT->glVertex3fv(stopLeftBack);
-         gGLFT->glVertex3fv(stopRightBack);
-
-         gGLFT->glVertex3fv(stopLeftFront);
-         gGLFT->glVertex3fv(stopRightFront);
-         gGLFT->glEnd();
-      }
-      
-      gGLFT->glEndList();
-      
+      // Release facelist memory
+      geom->faceList.clear();
       geom->updateView = false;
    }
+   
    gGLFT->glCallList(geom->dList);
+   // Draw scaled BBox
+   if(geom->loadAtInit)
+   {
+      gGLFT->glCallList(geom->dList+1);
+   }
    view.endGL();
 
 }
