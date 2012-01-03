@@ -220,26 +220,36 @@ AtNode* CArnoldStandInsTranslator::ExportProcedural(AtNode* procedural, bool upd
       float frame = m_DagNode.findPlug("frameNumber").asFloat();
       float frameOffset = m_DagNode.findPlug("frameOffset").asFloat();
       bool useFrameExtension = m_DagNode.findPlug("useFrameExtension").asBool();
+      bool useSubFrame = m_DagNode.findPlug("useSubFrame").asBool();
 
       MString frameNumber = "0";
 
       float framestep = frame + frameOffset;
 
       bool subFrames = ((framestep - floor(framestep)) >= 0.001);
-      char frameExt[64];
-      if (subFrames)
+      char frameExtWithHash[64];
+      char frameExtWithDot[64];
+      if (subFrames || useSubFrame)
       {
          int fullFrame = (int) floor(framestep);
          int subFrame = (int) floor((framestep - fullFrame) * 1000);
-         sprintf(frameExt, ".%04d.%03d", fullFrame, subFrame);
+         sprintf(frameExtWithHash, "_%04d.%03d", fullFrame, subFrame);
+         sprintf(frameExtWithDot, ".%04d.%03d", fullFrame, subFrame);
       }
       else
       {
-         sprintf(frameExt, ".%04d", (int) framestep);
+         sprintf(frameExtWithHash, "_%04d", (int) framestep);
+         sprintf(frameExtWithDot, ".%04d", (int) framestep);
       }
-      frameNumber = frameExt;
+      frameNumber = frameExtWithDot;
 
-      bool resolved = MRenderUtil::exactFileTextureName(dso, useFrameExtension, frameExt, filename);
+      bool resolved = MRenderUtil::exactFileTextureName(dso, useFrameExtension, frameNumber, filename);
+      
+      if (!resolved)
+      {
+         frameNumber = frameExtWithHash;
+         resolved = MRenderUtil::exactFileTextureName(dso, useFrameExtension, frameNumber, filename);
+      }
 
       MString resolvedName;
       if (resolved)

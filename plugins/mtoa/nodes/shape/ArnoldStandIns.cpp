@@ -681,22 +681,32 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
          MString frameNumber = "0";
          
          bool subFrames = ((framestep - floor(framestep)) >= 0.001);
-         char frameExt[64];
+         char frameExtWithHash[64];
+         char frameExtWithDot[64];
          if (subFrames || fGeometry.useSubFrame)
          {
             int fullFrame = (int) floor(framestep);
             int subFrame = (int) floor((framestep - fullFrame) * 1000);
-            sprintf(frameExt, ".%04d.%03d", fullFrame, subFrame);
+            sprintf(frameExtWithHash, "_%04d.%03d", fullFrame, subFrame);
+            sprintf(frameExtWithDot, ".%04d.%03d", fullFrame, subFrame);
          }
          else
          {
-            sprintf(frameExt, ".%04d", (int) framestep);
+            sprintf(frameExtWithHash, "_%04d", (int) framestep);
+            sprintf(frameExtWithDot, ".%04d", (int) framestep);
          }
-         frameNumber = frameExt;
+         frameNumber = frameExtWithDot;
 
          bool resolved = MRenderUtil::exactFileTextureName(fGeometry.dso, fGeometry.useFrameExtension,
                frameNumber, fGeometry.filename);
 
+         if (!resolved)
+         {
+            frameNumber = frameExtWithHash;
+            resolved = MRenderUtil::exactFileTextureName(fGeometry.dso, fGeometry.useFrameExtension,
+               frameNumber, fGeometry.filename);
+         }
+         
          if (!resolved)
          {
             fGeometry.filename = fGeometry.dso;
