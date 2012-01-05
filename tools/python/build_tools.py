@@ -110,7 +110,7 @@ def get_mtoa_version(components = 3):
    FIX_VERSION =''
 
    # TODO: define in the plug-in the symbols necessary to get MtoA version 
-   f = open(os.path.join('plugins', 'mtoa', 'Main.cpp'), 'r')
+   f = open(os.path.join('plugins', 'mtoa', 'utils', 'Version.h'), 'r')
    while True:
       line = f.readline().lstrip(' \t')
       if line == "":
