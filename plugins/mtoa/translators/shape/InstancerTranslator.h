@@ -20,6 +20,14 @@
 class CInstancerTranslator
    :   public CGeometryTranslator
 {
+protected:
+   CInstancerTranslator() :
+      CGeometryTranslator()
+   {
+      // Just for debug info, translator creates whatever arnold nodes are required
+      // through the CreateArnoldNodes method
+      m_abstract.arnold = "ginstance";
+   }
 public:
    static void* creator()
    {

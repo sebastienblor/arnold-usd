@@ -19,6 +19,14 @@ public:
       return new CNurbsSurfaceTranslator();
    }
    AtNode* CreateArnoldNodes();
+protected:
+   CNurbsSurfaceTranslator()  :
+      CGeometryTranslator()
+   {
+      // Just for debug info, translator creates whatever arnold nodes are required
+      // through the CreateArnoldNodes method
+      m_abstract.arnold = "polymesh";
+   }
 private:
    MObject m_data_mobj;
    bool Tessellate(MDagPath & dagPath);

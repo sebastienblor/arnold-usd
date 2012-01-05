@@ -130,7 +130,7 @@ void CParticleTranslator::ExportCustomParticleData(AtNode* particle, AtUInt step
 {
    MStringArray attrs;
 
-   MStatus status = m_customAttrs.split(';', attrs);
+   MStatus status = m_customAttrs.split(' ', attrs);
    if (status ==  MS::kSuccess)
    {
       for (unsigned int i=0; i < attrs.length(); i++)

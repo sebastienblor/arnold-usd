@@ -752,12 +752,17 @@ MStatus CExtension::NewTranslator(const CPxTranslator &translator,
    trs = (CNodeTranslator*)creatorFunction();
    if (NULL != trs)
    {
+      if (trsProxy.name == "") trsProxy.name = trs->m_abstract.name;
+      if (trsProxy.arnold == "") trsProxy.arnold = trs->m_abstract.arnold;
+      // if (trsProxy.maya == "") trsProxy.maya = trs->m_abstract.maya;
+      if (trsProxy.provider == "") trsProxy.provider = trs->m_abstract.provider;
+
       delete trs;
    }
    else
    {
-      AiMsgError("[mtoa] [%s] Cannot create translator %s for Maya node %s: badly declared creator function?",
-            m_extensionName.asChar(), trsProxy.name.asChar(), mayaNode.name.asChar());
+      AiMsgError("[mtoa] [%s] [node %s] Cannot create translator %s for Maya node %s: badly declared creator function?",
+            m_extensionName.asChar(), trsProxy.arnold.asChar(), trsProxy.name.asChar(), mayaNode.name.asChar());
       return MStatus::kFailure;
    }
    TranslatorsSet nodeTranslators;
@@ -769,12 +774,14 @@ MStatus CExtension::NewTranslator(const CPxTranslator &translator,
    }
    // Add to this node's translators
    std::pair<TranslatorsSet::iterator, bool> ret;
+   unsigned int nbPrevTrs = nodeTranslators.size();
    ret = nodeTranslators.insert(trsProxy);
    if (true == ret.second)
    {
-      if (nodeTranslators.begin() == ret.first)
+      // if (nodeTranslators.begin() == ret.first)
+      if (0 == nbPrevTrs)
       {
-         // First translator to be create 
+         // First translator to be created 
          AiMsgDebug("[mtoa] [%s] [node %s] Registered the translator %s for associated Maya node %s.",
                trsProxy.provider.asChar(), trsProxy.arnold.asChar(), trsProxy.name.asChar(), mayaNode.name.asChar());
       }

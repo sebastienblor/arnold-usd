@@ -29,6 +29,7 @@
 #include "translators/shape/HairTranslator.h"
 #include "translators/shape/StandinsTranslator.h"
 #include "translators/shape/ParticleTranslator.h"
+#include "translators/shape/NParticleTranslator.h"
 #include "translators/shape/InstancerTranslator.h"
 
 
@@ -198,7 +199,7 @@ namespace // <anonymous>
                                    CNurbsSurfaceTranslator::creator,
                                    CNurbsSurfaceTranslator::NodeInitializer);
        builtin->RegisterTranslator("aiStandIn",
-                                   "builtin",
+                                   "",
                                    CArnoldStandInsTranslator::creator,
                                    CArnoldStandInsTranslator::NodeInitializer);
        // Multiple camera translators for single Maya camera node
@@ -251,8 +252,8 @@ namespace // <anonymous>
 
        builtin->RegisterTranslator("nParticle",
                                    "",
-                                   CParticleTranslator::creator,
-                                   CParticleTranslator::NodeInitializer);
+                                   CNParticleTranslator::creator,
+                                   CNParticleTranslator::NodeInitializer);
 
        builtin->RegisterTranslator("instancer",
                                    "",

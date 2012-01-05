@@ -30,7 +30,11 @@ protected:
    COptionsTranslator()  :
       CNodeTranslator(),
       m_driver(NULL)
-   {}
+   {
+      // Just for debug info, translator creates whatever arnold nodes are required
+      // through the CreateArnoldNodes method
+      m_abstract.arnold = "options";
+   }
    void ProcessAOVs();
    MString SetImageFilenames(MDagPath &camera);
    AtNode * CreateFileOutput(MStringArray &outputs, AtNode *defaultFilter);

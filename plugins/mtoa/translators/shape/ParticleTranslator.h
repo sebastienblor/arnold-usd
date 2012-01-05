@@ -19,8 +19,9 @@ class CParticleTranslator
    :   public CGeometryTranslator
 {
 public:
-   CParticleTranslator()
-      :m_hasRGB(false),
+   CParticleTranslator() :
+      CGeometryTranslator(),
+      m_hasRGB(false),
       m_hasOpacity(false),
       m_hasRadiusPP(false),
       m_isOpaque(false),
@@ -38,10 +39,11 @@ public:
       m_doExtraAttributes(false),
       m_inheritCacheTxfm(false),
       m_exportId(false)
-
-
-   {}
-
+   {
+      // Just for debug info, translator creates whatever arnold nodes are required
+      // through the CreateArnoldNodes method
+      m_abstract.arnold = "points";
+   }
 
    static void* creator()
    {

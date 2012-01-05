@@ -18,6 +18,14 @@ public:
       return new CMeshTranslator();
    }
    AtNode* CreateArnoldNodes();
+protected:
+   CMeshTranslator()  :
+      CGeometryTranslator()
+   {
+      // Just for debug info, translator creates whatever arnold nodes are required
+      // through the CreateArnoldNodes method
+      m_abstract.arnold = "polymesh";
+   }
 private:
    unsigned int GetNumMeshGroups();
 };

@@ -5,7 +5,7 @@
 #include "translators/shader/ShaderTranslator.h"
 #include "translators/driver/DriverTranslator.h"
 
-// A Maya node proxy
+// A translator proxy
 CPxTranslator::CPxTranslator(const MString &translatorName,
                              const MString &providerName,
                              const MString &providerFile,

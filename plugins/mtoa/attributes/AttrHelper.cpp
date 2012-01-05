@@ -1015,6 +1015,10 @@ MStatus CStaticAttrHelper::addAttribute(MObject& attrib)
    {
       AiMsgError("[mtoa] Unable to create static attribute corresponding to %s.%s", AiNodeEntryGetName(m_nodeEntry), MFnAttribute(attrib).name().asChar());
    }
+   else
+   {
+      AiMsgDebug("[mtoa] Added static attribute %s.%s", AiNodeEntryGetName(m_nodeEntry), MFnAttribute(attrib).name().asChar());
+   }
    CHECK_MSTATUS(stat);
    return stat;
 }
@@ -1041,6 +1045,10 @@ MStatus CDynamicAttrHelper::addAttribute(MObject& attrib)
    if (stat != MS::kSuccess)
    {
       AiMsgError("[mtoa] Unable to create dynamic attribute %s.%s", fnNode.name().asChar(), MFnAttribute(attrib).name().asChar());
+   }
+   else
+   {
+      AiMsgDebug("[mtoa] Added dynamic attribute %s.%s", fnNode.name().asChar(), MFnAttribute(attrib).name().asChar());
    }
    CHECK_MSTATUS(stat);
    return stat;
