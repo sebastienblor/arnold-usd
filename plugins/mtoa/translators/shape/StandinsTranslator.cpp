@@ -72,7 +72,6 @@ void CArnoldStandInsTranslator::ExportMotion(AtNode* anode, unsigned int step)
 AtNode* CArnoldStandInsTranslator::ExportInstance(AtNode *instance, const MDagPath& masterInstance)
 {
    AtNode* masterNode = AiNodeLookUpByName(masterInstance.partialPathName().asChar());
-   int instanceNum = m_dagPath.instanceNumber();
 
    AiNodeSetStr(instance, "name", m_dagPath.partialPathName().asChar());
 
