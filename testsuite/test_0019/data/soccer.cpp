@@ -136,11 +136,11 @@ static AtNode *getNode( void *d, int index )
 
   AtNode *n = AiNode( "polymesh" );
   AiNodeSetInt(n, "visibility", 255);
-  AiNodeSetArray(n, "vlist",  AiArrayConvert(294,  1, AI_TYPE_FLOAT, vlist,  TRUE));
-  AiNodeSetArray(n, "nsides", AiArrayConvert( 96,  1, AI_TYPE_BYTE,  nsides, TRUE));
-  AiNodeSetArray(n, "vidxs",  AiArrayConvert(384,  1, AI_TYPE_UINT,  vidxs,  TRUE));
-  AiNodeSetArray(n, "uvidxs", AiArrayConvert(384,  1, AI_TYPE_UINT,  uvidxs, TRUE));
-  AiNodeSetArray(n, "uvlist", AiArrayConvert(270,  1, AI_TYPE_FLOAT, uvlist, TRUE));
+  AiNodeSetArray(n, "vlist",  AiArrayConvert(294,  1, AI_TYPE_FLOAT, vlist));
+  AiNodeSetArray(n, "nsides", AiArrayConvert( 96,  1, AI_TYPE_BYTE,  nsides));
+  AiNodeSetArray(n, "vidxs",  AiArrayConvert(384,  1, AI_TYPE_UINT,  vidxs));
+  AiNodeSetArray(n, "uvidxs", AiArrayConvert(384,  1, AI_TYPE_UINT,  uvidxs));
+  AiNodeSetArray(n, "uvlist", AiArrayConvert(270,  1, AI_TYPE_FLOAT, uvlist));
   AiNodeSetStr(n, "name", "neiprop_soccer_lo_geomShape");
   return n;
 };

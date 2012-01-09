@@ -90,7 +90,7 @@ void CShapeTranslator::ExportLightLinking(AtNode* shape)
 
       if (lights.size() > 0)
       {
-         AiNodeSetArray(shape, "light_group", AiArrayConvert((int)lights.size(), 1, AI_TYPE_NODE, &lights[0], TRUE));
+         AiNodeSetArray(shape, "light_group", AiArrayConvert((int)lights.size(), 1, AI_TYPE_NODE, &lights[0]));
       }
       else
       {
@@ -104,7 +104,7 @@ void CShapeTranslator::ExportLightLinking(AtNode* shape)
       {
          if (lights.size() > 0)
          {
-            AiNodeSetArray(shape, "shadow_group", AiArrayConvert((int)lights.size(), 1, AI_TYPE_NODE, &lights[0], TRUE));
+            AiNodeSetArray(shape, "shadow_group", AiArrayConvert((int)lights.size(), 1, AI_TYPE_NODE, &lights[0]));
          }
          else
          {
@@ -155,7 +155,7 @@ void CShapeTranslator::ExportLightLinking(AtNode* shape)
 
       if (shadows.size() > 0)
       {
-         AiNodeSetArray(shape, "shadow_group", AiArrayConvert((int)shadows.size(), 1, AI_TYPE_NODE, &shadows[0], TRUE));
+         AiNodeSetArray(shape, "shadow_group", AiArrayConvert((int)shadows.size(), 1, AI_TYPE_NODE, &shadows[0]));
       }
       else
       {

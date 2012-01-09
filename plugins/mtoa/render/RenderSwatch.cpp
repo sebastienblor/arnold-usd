@@ -630,7 +630,7 @@ AtNode* CRenderSwatchGenerator::PolySphere()
                               0.13529903f, 0.46193975f, 0.13529903f, 0.19134173f, 0.46193975f, 0.0f, 0.0f, -0.5f, 0.0f, 0.0f, 0.5f, 0.0f
                             };
 
-   AtArray* vlist = AiArrayConvert(58, 1, AI_TYPE_POINT, &(vertices[0]), TRUE);
+   AtArray* vlist = AiArrayConvert(58, 1, AI_TYPE_POINT, &(vertices[0]));
 
    float uvs[158] =         {
                               0.0f, 0.125f, 0.125f, 0.125f, 0.25f, 0.125f, 0.375f, 0.125f, 0.5f, 0.125f, 0.625f, 0.125f, 0.75f, 0.125f, 0.875f, 0.125f,
@@ -645,7 +645,7 @@ AtNode* CRenderSwatchGenerator::PolySphere()
                               0.8125f, 1.0f, 0.9375f, 1.0f
                             };
 
-   AtArray *uvlist = AiArrayConvert(79, 1, AI_TYPE_POINT2, &(uvs[0]), TRUE);
+   AtArray *uvlist = AiArrayConvert(79, 1, AI_TYPE_POINT2, &(uvs[0]));
 
    AiNodeSetArray(sph, "nsides", nsides);
    AiNodeSetArray(sph, "vidxs", vidxs);
@@ -680,7 +680,7 @@ AtNode* CRenderSwatchGenerator::PolySphere()
                               1.4901161e-08f, 4.0133635e-08f, -0.9238795f, 1.4901161e-08f, 0.0f, -2.9802322e-08f, 1.4901161e-08f, 0.0f, -2.9802322e-08f
                             };
 
-   AtArray *tgtlist = AiArrayConvert(58, 1, AI_TYPE_VECTOR, &(tgts[0]), TRUE);
+   AtArray *tgtlist = AiArrayConvert(58, 1, AI_TYPE_VECTOR, &(tgts[0]));
 
    float bitgts[174] =      {
                               0.58399749f, 0.39825299f, -0.58399761f, 7.4505806e-09f, 0.39825299f, -0.82589734f, -0.58399755f, 0.39825302f, -0.58399749f,
@@ -704,7 +704,7 @@ AtNode* CRenderSwatchGenerator::PolySphere()
                               -0.82589722f, 0.39825302f, 7.4505806e-09f, -1.4901161e-08f, 0.21047819f, 1.4901161e-08f, 1.4901161e-08f, 0.21047819f, -1.4901161e-08f
                             };
 
-   AtArray *bitgtlist = AiArrayConvert(58, 1, AI_TYPE_VECTOR, &(bitgts[0]), TRUE);
+   AtArray *bitgtlist = AiArrayConvert(58, 1, AI_TYPE_VECTOR, &(bitgts[0]));
 
    AiNodeSetArray(sph, "tangent", tgtlist);
    AiNodeSetArray(sph, "bitangent", bitgtlist);

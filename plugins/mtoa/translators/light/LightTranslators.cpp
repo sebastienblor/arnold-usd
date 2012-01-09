@@ -116,7 +116,7 @@ void CQuadLightTranslator::Export(AtNode* light)
    AiV3Create(vertices[2], -1, -1, 0);
    AiV3Create(vertices[3], -1, 1, 0);
 
-   AiNodeSetArray(light, "vertices", AiArrayConvert(4, 1, AI_TYPE_POINT, vertices, true));
+   AiNodeSetArray(light, "vertices", AiArrayConvert(4, 1, AI_TYPE_POINT, vertices));
 
    AiNodeSetInt(light, "resolution", FindMayaObjectPlug("aiResolution").asInt());
    AiNodeSetBool(light, "affect_volumetrics", FindMayaObjectPlug("aiAffectVolumetrics").asBool());
