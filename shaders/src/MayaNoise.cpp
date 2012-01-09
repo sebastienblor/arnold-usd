@@ -246,7 +246,7 @@ shader_evaluate
       break;
    }
 
-   noiseVal = CLAMP(noiseVal + threshold, 0, 1);
+   noiseVal = CLAMP(noiseVal + threshold, 0.0f, 1.0f);
 
    AiRGBACreate(sg->out.RGBA, noiseVal, noiseVal, noiseVal, noiseVal);
    MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA);

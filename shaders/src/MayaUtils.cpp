@@ -872,7 +872,7 @@ float fBm(AtShaderGlobals *sg,
 
    if (pixel > pixelSize && i <= octaves[1])
    {
-      float weight = CLAMP(pixel/pixelSize - 1, 0, 1);
+      float weight = CLAMP(pixel/pixelSize - 1.0f, 0.0f, 1.0f);
       sum += weight * amp * AiPerlin4(pp * lacunarity, time);
    }
 
@@ -1058,7 +1058,7 @@ float ParticleDensity(int falloff,
 
       if (falloff == 3)
       {
-         fadeout = CLAMP(1-fadeout, 0, 1);
+         fadeout = CLAMP(1.0f-fadeout, 0.0f, 1.0f);
          fadeout += 1 - SmoothStep(0.0, 0.1f, fadeout);
       }
    }
