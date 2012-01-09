@@ -402,7 +402,7 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
                      AtArray *ary = AiArrayAllocate(pAttr.numElements(), 1, AI_TYPE_BYTE);
                      for (unsigned int i=0; i<pAttr.numElements(); ++i)
                      {
-                        AiArraySetBool(ary, i, pAttr[i].asChar());
+                        AiArraySetBool(ary, i, pAttr[i].asBool());
                      }
                      AiNodeSetArray(anode, aname, ary);
                   }
