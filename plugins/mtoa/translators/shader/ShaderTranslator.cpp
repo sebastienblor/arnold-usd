@@ -14,7 +14,7 @@ AtNode* CShaderTranslator::CreateArnoldNodes()
 void CShaderTranslator::Export(AtNode *shader)
 {
    MStatus status;
-   AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(shader->base_node);
+   AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(AiNodeGetNodeEntry(shader));
    while (!AiParamIteratorFinished(nodeParam))
    {
       const AtParamEntry *paramEntry = AiParamIteratorGetNext(nodeParam);
@@ -43,7 +43,7 @@ void CShaderTranslator::Export(AtNode *shader)
 void CShaderTranslator::ExportMotion(AtNode *shader, unsigned int step)
 {
    MStatus status;
-   AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(shader->base_node);
+   AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(AiNodeGetNodeEntry(shader));
    while (!AiParamIteratorFinished(nodeParam))
    {
       const AtParamEntry *paramEntry = AiParamIteratorGetNext(nodeParam);

@@ -387,7 +387,7 @@ node_update
    AtNode *n = AiNodeGetLink(node, "image");
    if (n != NULL)
    {
-      const AtParamEntry *pe = AiNodeEntryLookUpParameter(n->base_node, "filename");
+      const AtParamEntry *pe = AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(n), "filename");
       if (pe != 0 && AiParamGetType(pe) == AI_TYPE_STRING)
       {
          unsigned int tw, th;

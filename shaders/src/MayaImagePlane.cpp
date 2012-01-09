@@ -77,7 +77,7 @@ node_initialize
     {
         AtNode* node = AiNodeIteratorGetNext(iter);
         const char *name = AiNodeGetStr(node, "name");
-        if (node->base_node == mytype && AiNodeGetPtr(node, "camera") != cam)
+        if (AiNodeGetNodeEntry(node) == mytype && AiNodeGetPtr(node, "camera") != cam)
         {
             //AiNodeSetInt(node, "visibility", 0);
         }

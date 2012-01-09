@@ -156,7 +156,7 @@ MStatus CRenderSwatchGenerator::BuildArnoldScene()
    }
    MString arnoldNodeName(AiNodeGetName(arnoldNode));
    if (NULL != arnoldNode) {
-      const AtNodeEntry *nodeEntry = arnoldNode->base_node;
+      const AtNodeEntry *nodeEntry = AiNodeGetNodeEntry(arnoldNode);
       AiMsgDebug("[mtoa] [swatch] Exported %s(%s) as %s(%s)",
             mayaNodeName.asChar(), mayaNodeType.asChar(),
             AiNodeGetName(arnoldNode), AiNodeEntryGetTypeName(nodeEntry));
@@ -443,7 +443,7 @@ MStatus CRenderSwatchGenerator::ApplyOverrides(CNodeTranslator* translator)
          {
             MString nodeOverName = nodeOverPlug.partialName();
             AtNode* nodeOver = AiNodeLookUpByName(nodeOverName.asChar());
-            const AtNodeEntry* nodeOverEntry = nodeOver->base_node;
+            const AtNodeEntry* nodeOverEntry = AiNodeGetNodeEntry(nodeOver);
             unsigned int nAttrOverrides = nodeOverPlug.numChildren();
             for (unsigned int a=0; a<nAttrOverrides; a++)
             {

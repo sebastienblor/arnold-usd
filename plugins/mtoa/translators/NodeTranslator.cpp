@@ -103,7 +103,7 @@ AtNode* CNodeTranslator::DoUpdate(unsigned int step)
    {
       AiMsgDebug("[mtoa] [translator %s] Updating Arnold %s(%s) translated from Maya %s(%s): %p",
          GetTranslatorName().asChar(),
-         AiNodeGetName(m_atNode), AiNodeEntryGetName(m_atNode->base_node),
+         AiNodeGetName(m_atNode), AiNodeEntryGetName(AiNodeGetNodeEntry(m_atNode)),
          GetMayaNodeName().asChar(), GetMayaNodeTypeName().asChar(), m_atNode);
       if (step == 0)
       {
@@ -212,7 +212,7 @@ const char* CNodeTranslator::GetArnoldTypeName(const char* tag)
    }
    else
    {
-      return AiNodeEntryGetName(node->base_node);
+      return AiNodeEntryGetName(AiNodeGetNodeEntry(node));
    }
 }
 
@@ -779,7 +779,7 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnold
    MStatus status;
 
    // attr name name remap
-   const AtNodeEntry* arnoldNodeEntry = arnoldNode->base_node;
+   const AtNodeEntry* arnoldNodeEntry = AiNodeGetNodeEntry(arnoldNode);
    CBaseAttrHelper helper(arnoldNodeEntry);
    if (!helper.IsHidden(arnoldParamName))
    {
@@ -830,7 +830,7 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnold
    {
       AiMsgError("[mtoa] [translator %s] Null Maya plug was passed as source for parameter %s on Arnold node %s(%s)",
             GetTranslatorName().asChar(), arnoldParamName,
-            AiNodeGetName(arnoldNode), AiNodeEntryGetName(arnoldNode->base_node));
+            AiNodeGetName(arnoldNode), AiNodeEntryGetName(AiNodeGetNodeEntry(arnoldNode)));
       return NULL;
    }
 
@@ -845,12 +845,12 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnold
    // AiMsgDebug("[mtoa] [translator %s] Processing Maya %s(%s) for Arnold %s.%s(%s).",
    //      GetTranslatorName().asChar(),
    //      plug.name().asChar(), MFnDependencyNode(plug.node()).typeName().asChar(),
-   //      AiNodeGetName(arnoldNode), arnoldParamName, AiNodeEntryGetName(arnoldNode->base_node));
+   //      AiNodeGetName(arnoldNode), arnoldParamName, AiNodeEntryGetName(AiNodeGetNodeEntry(arnoldNode)));
 
    AtBoolean acceptLinks = FALSE;
    // if the linkable metadata is not set, then only link if the node is a shader
-   if (!AiMetaDataGetBool(arnoldNode->base_node, arnoldParamName, "linkable", &acceptLinks))
-      acceptLinks = ((AiNodeEntryGetType(arnoldNode->base_node) & AI_NODE_SHADER) != 0) ? TRUE : FALSE;
+   if (!AiMetaDataGetBool(AiNodeGetNodeEntry(arnoldNode), arnoldParamName, "linkable", &acceptLinks))
+      acceptLinks = ((AiNodeEntryGetType(AiNodeGetNodeEntry(arnoldNode)) & AI_NODE_SHADER) != 0) ? TRUE : FALSE;
 
    // ignoreWhenRendering flag
    if (acceptLinks && plug.isIgnoredWhenRendering()) return NULL;
@@ -1006,7 +1006,7 @@ AtNode* CNodeTranslator::ProcessConstantParameter(AtNode* arnoldNode, const char
 
 void CNodeTranslator::ProcessArrayParameter(AtNode* arnoldNode, const char* arnoldParamName, const MPlug& plug)
 {
-   const AtParamEntry* paramEntry = AiNodeEntryLookUpParameter(arnoldNode->base_node, arnoldParamName);
+   const AtParamEntry* paramEntry = AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(arnoldNode), arnoldParamName);
    const AtParamValue* defaultValue = AiParamGetDefault(paramEntry);
    unsigned int type = defaultValue->ARRAY->type;
    // index matters tells us whether to condense a sparse array or try to export everything

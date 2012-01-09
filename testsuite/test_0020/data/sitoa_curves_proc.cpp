@@ -345,7 +345,7 @@ static AtNode *GetNode(void *user_ptr, int i)
 void ReadParameterValue(AtNode* curve_node, FILE* fp, const char* param_name)
 {
    // Search param
-   const AtParamEntry* param_entry = AiNodeEntryLookUpParameter(curve_node->base_node, param_name);
+   const AtParamEntry* param_entry = AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(curve_node), param_name);
    int param_type = AiParamGetType(param_entry);
 
    if(param_type != AI_TYPE_UNDEFINED)

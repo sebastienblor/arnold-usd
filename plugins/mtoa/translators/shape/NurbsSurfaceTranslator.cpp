@@ -111,7 +111,7 @@ AtNode* CNurbsSurfaceTranslator::CreateArnoldNodes()
 
 void CNurbsSurfaceTranslator::Export(AtNode* anode)
 {
-   const char* nodeType = AiNodeEntryGetName (anode->base_node);
+   const char* nodeType = AiNodeEntryGetName (AiNodeGetNodeEntry(anode));
    if (strcmp(nodeType, "ginstance") == 0)
       ExportInstance(anode, m_masterDag);
    else if (strcmp(nodeType, "polymesh") == 0)

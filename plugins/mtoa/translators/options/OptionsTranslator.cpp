@@ -23,7 +23,7 @@ AtNode* COptionsTranslator::CreateArnoldNodes()
    AiMsgDebug("COptionsTranslator %s: CreateArnoldNodes on Maya node %s(%s) created arnold node %p: %s(%s).",
          GetTranslatorName().asChar(),
          GetMayaNodeName().asChar(), GetMayaNodeTypeName().asChar(),
-         options, AiNodeGetName(options), AiNodeEntryGetName(options->base_node));
+         options, AiNodeGetName(options), AiNodeEntryGetName(AiNodeGetNodeEntry(options)));
 
    return options;
 }
@@ -146,7 +146,7 @@ AtNode * COptionsTranslator::CreateFileOutput(MStringArray &outputs, AtNode *def
    m_driver = m_session->ExportDriver(m_object, driverType);
    if (m_driver != NULL)
    {
-      AiNodeSetStr(m_driver, "name", AiNodeEntryGetName(m_driver->base_node));
+      AiNodeSetStr(m_driver, "name", AiNodeEntryGetName(AiNodeGetNodeEntry(m_driver)));
       char   str[1024];
       sprintf(str, "RGBA RGBA %s %s", AiNodeGetName(defaultFilter), AiNodeGetName(m_driver));
       outputs.append(str);
@@ -175,7 +175,7 @@ AtNode * COptionsTranslator::CreateOutputFilter()
    AtNode* filter = m_session->ExportFilter(GetMayaObject(), filterType);
    if (filter != NULL)
    {
-      AiNodeSetStr(filter, "name", AiNodeEntryGetName(filter->base_node));
+      AiNodeSetStr(filter, "name", AiNodeEntryGetName(AiNodeGetNodeEntry(filter)));
    }
    else
       AiMsgError("[mtoa] filter is NULL");
@@ -245,7 +245,7 @@ void COptionsTranslator::Export(AtNode *options)
    AiMsgDebug("COptionsTranslator %s: Export on Maya node %s(%s), Arnold node %p: %s(%s).",
          GetTranslatorName().asChar(),
          GetMayaNodeName().asChar(), GetMayaNodeTypeName().asChar(),
-         options, AiNodeGetName(options), AiNodeEntryGetName(options->base_node));
+         options, AiNodeGetName(options), AiNodeEntryGetName(AiNodeGetNodeEntry(options)));
 
    SetupRenderOutput(options);
    // set the camera
@@ -254,8 +254,8 @@ void COptionsTranslator::Export(AtNode *options)
 
    MStatus status;
 
-   const AtNodeEntry* optionsEntry = options->base_node;
-   AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(options->base_node);
+   const AtNodeEntry* optionsEntry = AiNodeGetNodeEntry(options);
+   AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(AiNodeGetNodeEntry(options));
    while (!AiParamIteratorFinished(nodeParam))
    {
       const AtParamEntry *paramEntry = AiParamIteratorGetNext(nodeParam);
