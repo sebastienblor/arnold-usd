@@ -103,7 +103,7 @@ driver_extension
 
 driver_open
 {
-   AtParamValue *params = node->params;
+   AtParamValue *params = AiNodeGetParams(node);
 
    if (!s_outputDriverData.rendering)
    {
