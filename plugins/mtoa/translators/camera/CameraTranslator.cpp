@@ -221,10 +221,10 @@ void CCameraTranslator::ExportImagePlane(unsigned int step, MObject& imgPlane)
                vMax = 1.0f;
          }
          */
-         AiV2Create(uv1, uMin, vMin);
-         AiV2Create(uv2, uMax, vMin);
-         AiV2Create(uv3, uMin, vMax);
-         AiV2Create(uv4, uMax, vMax);
+         AiV2Create(uv1, (float)uMin, (float)vMin);
+         AiV2Create(uv2, (float)uMax, (float)vMin);
+         AiV2Create(uv3, (float)uMin, (float)vMax);
+         AiV2Create(uv4, (float)uMax, (float)vMax);
 
          AiNodeSetArray(imagePlane, "vlist", AiArray(4, 1, AI_TYPE_POINT, p1, p2, p3, p4));
          AiNodeSetArray(imagePlane, "nlist", AiArray(4, 1, AI_TYPE_VECTOR, n1, n1, n1, n1));
