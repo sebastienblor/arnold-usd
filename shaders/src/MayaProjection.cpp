@@ -370,12 +370,12 @@ node_initialize
 {
    ShaderData *data = (ShaderData*) AiMalloc(sizeof(ShaderData));
 
-   node->local_data = data;
+   AiNodeSetLocalData(node, data);
 }
 
 node_update
 {
-   ShaderData *data = (ShaderData*)node->local_data;
+   ShaderData *data = (ShaderData*)AiNodeGetLocalData(node);
 
    data->camera = AiUniverseGetCamera();
    
@@ -408,13 +408,13 @@ node_update
 
 node_finish
 {
-   ShaderData *data = (ShaderData*)node->local_data;
+   ShaderData *data = (ShaderData*)AiNodeGetLocalData(node);
    AiFree(data);
 }
 
 shader_evaluate
 {
-   ShaderData *data = (ShaderData*)node->local_data;
+   ShaderData *data = (ShaderData*)AiNodeGetLocalData(node);
 
    int pt = AiShaderEvalParamEnum(p_type);
 

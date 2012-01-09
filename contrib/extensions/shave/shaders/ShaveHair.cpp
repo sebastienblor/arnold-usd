@@ -59,12 +59,12 @@ ShaderData;
 node_initialize
 {
    ShaderData *data = (ShaderData*) AiMalloc(sizeof(ShaderData));
-   node->local_data = data;
+   AiNodeSetLocalData(node, data);
 }
 
 node_update
 {
-   ShaderData *data = (ShaderData*)node->local_data;
+   ShaderData *data = (ShaderData*)AiNodeGetLocalData(node);
    AtNode *options = AiUniverseGetOptions();
    data->max_diffuse_depth = AiNodeGetInt(options, "GI_diffuse_depth");
    data->gamma = 1.0f / AiNodeGetFlt(options, "shader_gamma");
@@ -72,7 +72,7 @@ node_update
 
 node_finish
 {
-   ShaderData *data = (ShaderData*)node->local_data;
+   ShaderData *data = (ShaderData*)AiNodeGetLocalData(node);
    AiFree(data);
 }
 
@@ -118,7 +118,7 @@ shader_evaluate
    AtColor root_color;
    AtColor tip_color;
 
-   ShaderData *data = (ShaderData*)node->local_data;
+   ShaderData *data = (ShaderData*)AiNodeGetLocalData(node);
 
    // FIXME: we need to gamma correct according to global settings
    AiUDataGetRGB(node->params[p_rootcolor].STR, &root_color);
