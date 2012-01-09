@@ -188,7 +188,7 @@ createNode aiStandIn -n "ArnoldStandInShape" -p "ArnoldStandIn";
 	setAttr -k off ".v";
 	setAttr ".covm[0]"  0 1 1;
 	setAttr ".cdvm[0]"  0 1 1;
-	setAttr ".dso" -type "string" "soccer.dll";
+	setAttr ".dso" -type "string" "./soccer.dll";
 	setAttr ".min" -type "float3" -12 -12 -12 ;
 	setAttr ".max" -type "float3" 12 12 12 ;
 createNode transform -n "pointLight1";
