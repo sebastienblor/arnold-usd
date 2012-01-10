@@ -119,7 +119,8 @@ void CParticleTranslator::ExportParticleShaders(AtNode* particle)
          meshShaders.push_back(shader);
       }
       else
-         AiMsgWarning("[mtoa] ShadingGroup %s has no surfaceShader input", fnDGNode.name().asChar());
+         AiMsgWarning("[mtoa] Particle system %s shadingGroup %s has no surfaceShader input",
+            m_fnParticleSystem.partialPathName(), fnDGNode.name().asChar());
    }
 
 }
@@ -179,7 +180,7 @@ void CParticleTranslator::ExportPreambleData(AtNode* particle)
 
    int renderType = m_fnParticleSystem.renderType();
 
-   AiMsgInfo("ParticleType %i", renderType);
+   AiMsgDebug("[mtoa] Exporting particle system %s with particleType %i", m_fnParticleSystem.partialPathName(), renderType);
    MStatus status;
 
    // Particle shape extra attributes
@@ -325,28 +326,28 @@ void CParticleTranslator::ExportPreambleData(AtNode* particle)
          case PARTICLE_TYPE_STREAK: // streak
             {
                MGlobal::displayWarning("[mtoa]: Streak particle type is not yet supported");
-               AiMsgInfo("[mtoa] Streak particle type is not yet supported");
+               AiMsgWarning("[mtoa] Streak particle type is not yet supported");
                m_particleSize = (m_lineWidth)*0.01;
             }
             break;
          case PARTICLE_TYPE_BLOBBYSURFACE:// blobby
             {
                MGlobal::displayWarning("[mtoa]: Blobby particle type is not yet supported");
-               AiMsgInfo("[mtoa] Blobby particle type is not yet supported");
+               AiMsgWarning("[mtoa] Blobby particle type is not yet supported");
                m_particleSize = m_radius;
             }
             break;
          case PARTICLE_TYPE_CLOUD:// cloud
             {
                MGlobal::displayWarning("[mtoa]: Cloud particle type is not yet supported");
-               AiMsgInfo("[mtoa] Cloud particle type is not yet supported");
+               AiMsgWarning("[mtoa] Cloud particle type is not yet supported");
                m_particleSize = m_radius;
             }
             break;
          case PARTICLE_TYPE_TUBE:// tube
             {
                MGlobal::displayWarning("[mtoa]: Tube particle type is not yet supported");
-               AiMsgInfo("[mtoa] Tube particle type is not yet supported");
+               AiMsgWarning("[mtoa] Tube particle type is not yet supported");
                m_particleSize = m_radius;
             }
             break;
@@ -384,7 +385,7 @@ void CParticleTranslator::GatherFirstStep(AtNode* particle)
 
    MStatus status;
 
-   AiMsgInfo("[mtoa] Particle Exporting Step:: 0");
+   AiMsgDebug("[mtoa] Particle system %s exporting step 0", m_fnParticleSystem.partialPathName());
 
    GatherStandardPPData( positionArray ,
                          radiusArray ,
@@ -442,7 +443,7 @@ void CParticleTranslator::GatherFirstStep(AtNode* particle)
 
 void CParticleTranslator::GatherBlurSteps(AtNode* particle, AtUInt step)
 {
-   AiMsgInfo("[mtoa] Particle Exporting Step:: %i",step);
+   AiMsgDebug("[mtoa] Particle system %s exporting step %i", m_fnParticleSystem.partialPathName(), step);
 
    int numParticles = m_fnParticleSystem.count();
 
@@ -714,14 +715,16 @@ void CParticleTranslator::GatherBlurSteps(AtNode* particle, AtUInt step)
       delete instant_customIntAttrArrays[intIt->first];
    }
 
-   AiMsgInfo("[mtoa] Particle Export found %i new particles for this step",newParticleCount);
+   AiMsgDebug("[mtoa] Particle system %s export found %i new particles for step %i",
+      m_fnParticleSystem.partialPathName(), newParticleCount, step);
 
    // if we still have entries in tempMap, that means the particle died in this frameStep and we need to update
    // the value for position based on velocity only.. all other attributes, since they were copied over at the beginning
    // can just stay the same. This  seems faster than iterating thru every  particle attribute  again here...
    if (tempMap.size() > 0)
    {
-      AiMsgInfo("[mtoa] Particle Export found %i particles that died for this step, computing velocity...", (int)tempMap.size());
+      AiMsgDebug("[mtoa] Particle system %s export found %i particles that died for step %i, computing velocity...",
+         m_fnParticleSystem.partialPathName(), (int)tempMap.size(), step);
 
       for (it = tempMap.begin(); it != tempMap.end(); it++)
       {
@@ -745,12 +748,12 @@ void CParticleTranslator::GatherBlurSteps(AtNode* particle, AtUInt step)
 /// instead of actually gathering the values from maya per step, we just use the first steps  values
 // and last steps velocity and compute  the new position.
 // we just copy the rest of the data via pointers as it doesn't need to change per frameStep.
-// There is an extra attribute  called  "computeInstantBlurSteps"  that defines whether to use this or the above
+// There is an extra attribute  called  "aiInterpolateBlurSteps"  that defines whether to use this or the above
 // function to populate the motion blur steps
 
-void CParticleTranslator::ComputeBlurSteps(AtNode* particle, AtUInt step)
+void CParticleTranslator::InterpolateBlurSteps(AtNode* particle, AtUInt step)
 {
-   AiMsgInfo("[mtoa] Particle Computing Step:: %i",step);
+   AiMsgDebug("[mtoa] Particle system %s interpolating step %i", m_fnParticleSystem.partialPathName(), step);
 
    MTime oneSec(1.0, MTime::kSeconds);
    // FIXME: was it intended to be rounded to int ?
@@ -862,7 +865,7 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
 
    m_particleCount = (*m_out_positionArrays[0]).length();
 
-   AiMsgInfo("[mtoa] Particle count : %i",m_particleCount);
+   AiMsgDebug("[mtoa] Particle system %s count: %i", m_fnParticleSystem.partialPathName(), m_particleCount);
 
    /// Finally set the  position and  radius/aspect values with their cache values minus Transform position
    AtPoint a_v;
@@ -991,7 +994,7 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
       }// end m_particleIDMap  iteration
 
       // CLEAN UP MEMORY
-      AiMsgInfo("[particleExport] cleaning up memory ");
+      AiMsgDebug("[mtoa] Particle system %s export cleaning up memory.", m_fnParticleSystem.partialPathName());
       delete m_out_positionArrays[s];
       if (m_hasRGB)
       {
@@ -1249,7 +1252,7 @@ AtNode* CParticleTranslator::ExportParticleNode(AtNode* particle, AtUInt step)
    {
       if ((m_fnParticleSystem.findPlug("aiInterpolateBlur").asBool()))
       {
-         ComputeBlurSteps(particle, step); // compute all the data from  the first steps  population
+         InterpolateBlurSteps(particle, step); // compute all the data from  the first steps  population
       }
       else
       {
@@ -1293,7 +1296,7 @@ void CParticleTranslator::Export(AtNode* anode)
    m_fnParticleSystem.setObject(m_dagPath.node());
    if (m_fnParticleSystem.isValid() == false)
    {
-      AiMsgError("[mtoa]: Particle system not exported. It has 0 particles");
+      AiMsgError("[mtoa]: Particle system %s not exported. It has 0 particles", m_fnParticleSystem.partialPathName());
       return;
    }
 
@@ -1305,7 +1308,7 @@ void CParticleTranslator::Export(AtNode* anode)
       ExportParticleNode(anode, 0);
       //exportParticleTimer.endTimer();
       //double elapsed = exportParticleTimer.elapsedTime();
-      //AiMsgInfo("[mtoa] Particle Export took : %f seconds",elapsed);
+      //AiMsgDebug("[mtoa] Particle system %s export took : %f seconds", m_fnParticleSystem.partialPathName(), elapsed);
    }
 
    else

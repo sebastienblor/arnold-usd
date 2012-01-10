@@ -66,7 +66,7 @@ protected:
    virtual void ExportPreambleData(AtNode* particle);
    virtual void GatherFirstStep(AtNode* particle);
    virtual void GatherBlurSteps(AtNode* particle, AtUInt step);
-   virtual void ComputeBlurSteps(AtNode* particle, AtUInt step);
+   virtual void InterpolateBlurSteps(AtNode* particle, AtUInt step);
    virtual void WriteOutParticle(AtNode* particle);
 
    virtual void GatherStandardPPData(MVectorArray*   positionArray ,

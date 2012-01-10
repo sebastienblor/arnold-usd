@@ -16,22 +16,6 @@ void addVelocityToMatrix(AtMatrix& outMatrix, AtMatrix& matrix,
 
 void CInstancerTranslator::NodeInitializer(CAbTranslator context)
 {
-   CExtensionAttrHelper helper(context.maya, "ginstance");
-
-   // node attributes
-   CShapeTranslator::MakeCommonAttributes(helper);
-
-   CAttrData data;
-
-   data.defaultValue.BOOL = false;
-   data.name = "export_particleId";
-   data.shortName = "exppartid";
-   helper.MakeInputBoolean(data);
-
-   data.defaultValue.STR = "";
-   data.name = "export_attributes";
-   data.shortName = "expartattr";
-   helper.MakeInputString(data);
 }
 
 AtNode* CInstancerTranslator::CreateArnoldNodes()
@@ -91,8 +75,8 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, AtUInt step)
    uint totalSteps = GetNumMotionSteps();
    //uint middleStep = ((totalSteps/2)+1)-1;
 
-   MFnInstancer maya_instancer(m_dagPath);
-   m_particleCount = maya_instancer.particleCount();
+   MFnInstancer m_fnMayaInstancer(m_dagPath);
+   m_particleCount = m_fnMayaInstancer.particleCount();
 
 
    MPlugArray conn;
@@ -101,7 +85,13 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, AtUInt step)
    depNodeInstancer.findPlug("inputPoints").connectedTo(conn, true, false);
 
    // inputPoints is not an array, so position [0] is the particleShape node
-   m_fnParticleSystem.setObject(conn[0].node());
+   MObject particleShape = conn[0].node();
+   m_fnParticleSystem.setObject(particleShape);
+
+   AiMsgDebug("[mtoa] Instancer %s for particle instancer %s exporting instances for step %i",
+      m_fnMayaInstancer.partialPathName(), m_fnParticleSystem.partialPathName(), step);
+
+
    MIntArray  partIds;
    MVectorArray velocities;
    m_fnParticleSystem.particleIds(partIds);
@@ -114,18 +104,17 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, AtUInt step)
 
    MStatus  status;
 
-   status = maya_instancer.allInstances(paths, mayaMatrices, particlePathStartIndices, pathIndices);
+   status = m_fnMayaInstancer.allInstances(paths, mayaMatrices, particlePathStartIndices, pathIndices);
    CHECK_MSTATUS(status);
 
-   bool exportID = maya_instancer.findPlug("export_particleId").asBool();
+   bool exportID = m_fnParticleSystem.findPlug("aiExportParticleIDs").asBool();
 
    /// STORE the custom attrs for use later
-   m_customAttrs = maya_instancer.findPlug("export_attributes").asString();
+   m_customAttrs = m_fnParticleSystem.findPlug("aiExportAttributes").asString();
 
-   std::cout << "CUSTOM ATTRS: " <<  m_customAttrs << std::endl;
+   // std::cout << "[mtoa] Particle instancer custom attributes: " <<  m_customAttrs << std::endl;
    MStringArray attrs;
-   status = m_customAttrs.split(';', attrs);
-
+   status = m_customAttrs.split(' ', attrs);
 
    m_instant_customDoubleAttrArrays.clear();
    m_instant_customVectorAttrArrays.clear();
@@ -212,7 +201,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, AtUInt step)
             m_startIndicesArray.append(particlePathStartIndices[j]);
             m_pathIndicesArray.append(pathIndices[j]);
             m_instantVeloArray.append(velocities[j]);
-            m_instanceTags.append("originalGangster");
+            m_instanceTags.append("originalParticle");
          }
       }
 
@@ -248,6 +237,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, AtUInt step)
       std::map <int, int>::iterator it;
       if (m_fnParticleSystem.count() > 0)
       {
+         int newParticleCount = 0;
          for (uint j = 0; j < partIds.length(); j++)
          {
             it = tempMap.find(partIds[j]);
@@ -262,7 +252,8 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, AtUInt step)
             }
             else  // found a new particle in this substep
             {
-               std::cout << "Adding new particle in this substep" << std::endl;
+               newParticleCount++;
+
                AtArray* outMatrix = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_MATRIX);
                AtMatrix matrix;
                ConvertMatrix(matrix, mayaMatrices[j]);
@@ -320,15 +311,18 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, AtUInt step)
                m_particleIDMap[partIds[j]] = m_vec_matrixArrays.size()-1;
                m_startIndicesArray.append(particlePathStartIndices[j]);
                m_pathIndicesArray.append(pathIndices[j]);
-               m_instanceTags.append("newToTheParty");
+               m_instanceTags.append("newParticle");
                m_instantVeloArray.append(velocities[j]);
 
             }
          }
+         AiMsgDebug("[mtoa] Instancer %s export for particle system %s found a %i new particles for step %i",
+                  m_fnMayaInstancer.partialPathName(), m_fnParticleSystem.partialPathName(), newParticleCount, step);
       }
       if (tempMap.size() > 0)
       {
-         std::cout << "found " << tempMap.size() << " particles that died, computing their new velocity" << std::endl;
+         AiMsgDebug("[mtoa] Instancer %s export for particle system %s found %i particles that died for step %i, computing velocity...",
+            m_fnMayaInstancer.partialPathName(), m_fnParticleSystem.partialPathName(), (int)tempMap.size(), step);
          for (it = tempMap.begin(); it != tempMap.end(); it++)
          {
             // get last steps  matrix
@@ -338,7 +332,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, AtUInt step)
             AiArrayGetMtx(m_vec_matrixArrays[it->second], step-1, substepMatrix);
             addVelocityToMatrix (substepMatrix, substepMatrix, velocitySubstep);
             AiArraySetMtx(m_vec_matrixArrays[it->second], step, substepMatrix);
-            m_instanceTags[it->second] = ("LostAtSea");
+            m_instanceTags[it->second] = ("deadParticle");
          }
       }
    }
@@ -363,7 +357,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, AtUInt step)
             int idx = m_pathIndicesArray[j];
             AtNode* obj = AiNodeLookUpByName(m_objectNames[idx].asChar());
             AiNodeSetPtr(instance, "node", obj);
-            AiNodeSetBool(instance, "inherit_xform", false);
+            AiNodeSetBool(instance, "inherit_xform", true);
             AiNodeSetArray(instance, "matrix", m_vec_matrixArrays[j]);
 
             //AiNodeDeclare(instance, "instanceTag", "constant STRING");
