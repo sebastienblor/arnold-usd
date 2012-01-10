@@ -34,6 +34,8 @@ public:
    MNodeClass (const MString &nodeClassName) :
       m_nodeClassName(nodeClassName)
    {};
+   inline MString typeName() const {return m_nodeClassName;}
+   MTypeId typeId() const;
    MStatus addExtensionAttribute(MObject &attr) const;
    MStatus addExtensionAttribute(CAttrData &data) const;
    static void InitializeExistingNodes();

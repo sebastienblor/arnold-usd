@@ -1,4 +1,4 @@
-#ifndef ATTRHELPER_H
+﻿#ifndef ATTRHELPER_H
 #define ATTRHELPER_H
 
 #include "platform/Platform.h"
@@ -204,6 +204,9 @@ public:
    bool IsHidden(const char* paramName);
    virtual MString GetMayaAttrName(const char* paramName);
    virtual MString GetMayaAttrShortName(const char* paramName);
+   // default methods, can't always get the information
+   virtual MString GetMayaNodeTypeName() const {return "";}
+   virtual MTypeId GetMayaNodeTypeId() const {return MTypeId(MFn::kBase);}
 
 protected:
    void ReadPrefixMetadata();
@@ -276,6 +279,9 @@ public:
       }
    }
 
+   MString GetMayaNodeTypeName() const {return m_instance.apiTypeStr();}
+   MTypeId GetMayaNodeTypeId() const {return MTypeId(m_instance.apiType());}
+
 protected:
    MObject m_instance;
 
@@ -303,19 +309,34 @@ public:
    CExtensionAttrHelper(MString nodeClassName, const AtNodeEntry* nodeEntry=NULL, const MString& prefix="ai_") :
       CBaseAttrHelper(nodeEntry, prefix),
       m_class(nodeClassName)
-   {}
+   {
+      if (MTypeId(MFn::kInvalid) == m_class.typeId())
+      {
+         AiMsgWarning("[mtoa] CExtensionAttrHelper was passed an unknown Maya node type \"%s\"",
+                      nodeClassName.asChar());
+      }
+   }
    /// @param nodeClassName  name of maya class to add attributes to
    /// @param nodeEntryName  arnold node entry to use when checking parameter metadata
    CExtensionAttrHelper(MString nodeClassName, const char* nodeEntryName, const MString& prefix="ai_") :
       CBaseAttrHelper(nodeEntryName, prefix),
       m_class(nodeClassName)
    {
+      if (MTypeId(MFn::kInvalid) == m_class.typeId())
+      {
+         AiMsgWarning("[mtoa] CExtensionAttrHelper was passed an unknown Maya node type \"%s\"",
+                      nodeClassName.asChar());
+      }
       if (m_nodeEntry == NULL)
       {
-         AiMsgWarning("[mtoa] CExtensionAttrHelper passed unknown Arnold node type \"%s\" for Maya node type \"%s\"",
+         AiMsgWarning("[mtoa] CExtensionAttrHelper was passed an unknown Arnold node type \"%s\" for Maya node type \"%s\"",
                       nodeEntryName, nodeClassName.asChar());
       }
    }
+
+   MString GetMayaNodeTypeName() const {return m_class.typeName();}
+   MTypeId GetMayaNodeTypeId() const {return m_class.typeId();}
+
 #if MAYA_API_VERSION < 201200
    void MakeInputInt(CAttrData& data);
    void MakeInputBoolean(CAttrData& data);

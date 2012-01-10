@@ -1,4 +1,4 @@
-#ifndef NODETRANSLATOR_H
+﻿#ifndef NODETRANSLATOR_H
 #define NODETRANSLATOR_H
 
 #include "common/MObjectCompare.h"
@@ -119,6 +119,7 @@ protected:
    inline const CSessionOptions& GetSessionOptions() const  { return m_session->GetSessionOptions(); }
    inline ArnoldSessionMode GetSessionMode() const {return m_session->GetSessionMode();}
    inline const MObject& GetArnoldRenderOptions() const   { return m_session->GetArnoldRenderOptions(); }
+   inline double GetMotionByFrame() const {return m_session->GetMotionByFrame(); }
 
    // session action
    AtNode* ExportNode(const MPlug& outputPlug) {return m_session->ExportNode(outputPlug);}
@@ -150,7 +151,7 @@ protected:
    static void NodeDirtyCallback(MObject &node, MPlug &plug, void *clientData);
    static void NameChangedCallback(MObject &node, const MString &str, void *clientData);
    static void NodeDeletedCallback(MObject &node, MDGModifier &modifier, void *clientData);
-
+   void ConvertMatrix(AtMatrix& matrix, const MMatrix& mayaMatrix);
 protected:
 
    CAbTranslator m_abstract;

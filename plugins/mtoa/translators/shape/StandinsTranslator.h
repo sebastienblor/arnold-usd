@@ -1,4 +1,4 @@
-#ifndef STANDINSTRANSLATOR_H
+﻿#ifndef STANDINSTRANSLATOR_H
 #define STANDINSTRANSLATOR_H
 
 #include "GeometryTranslator.h"
@@ -17,6 +17,13 @@ public:
    void ExportMotion(AtNode* anode, unsigned int step);
 
 protected:
+   CArnoldStandInsTranslator()  :
+      CGeometryTranslator()
+   {
+      // Just for debug info, translator creates whatever arnold nodes are required
+      // through the CreateArnoldNodes method
+      m_abstract.arnold = "procedural";
+   }
    void ExportBoundingBox(AtNode* procedural);
 
    void ExportStandinsShaders(AtNode* procedural);

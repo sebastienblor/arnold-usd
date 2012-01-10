@@ -1,4 +1,4 @@
-#include "ShapeTranslator.h"
+﻿#include "ShapeTranslator.h"
 
 #include <maya/MPlugArray.h>
 #include <maya/MDagPathArray.h>
@@ -174,6 +174,9 @@ void CShapeTranslator::ExportLightLinking(AtNode* shape)
 //
 void CShapeTranslator::MakeCommonAttributes(CBaseAttrHelper& helper)
 {
+   MString nodeType = helper.GetMayaNodeTypeName();
+   AiMsgDebug("[mtoa] Creating common Arnold shape attributes on Maya \"%s\" nodes", nodeType.asChar());
+
    helper.MakeInput("sss_sample_distribution");
    helper.MakeInput("sss_sample_spacing");
 
@@ -183,3 +186,22 @@ void CShapeTranslator::MakeCommonAttributes(CBaseAttrHelper& helper)
    MakeArnoldVisibilityFlags(helper);
 }
 
+MObject CShapeTranslator::GetNodeShadingGroup(MObject dagNode, int instanceNum)
+{
+   MPlugArray        connections;
+   MFnDependencyNode fnDGNode(dagNode);
+
+   MPlug plug(dagNode, fnDGNode.attribute("instObjGroups"));
+
+   plug.elementByLogicalIndex(instanceNum).connectedTo(connections, false, true);
+
+   for (unsigned int k=0; k<connections.length(); ++k)
+   {
+      MObject shadingGroup(connections[k].node());
+      if (shadingGroup.apiType() == MFn::kShadingEngine)
+      {
+         return shadingGroup;
+      }
+   }
+   return MObject::kNullObj;
+}

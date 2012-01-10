@@ -1,4 +1,4 @@
-#include "AttrHelper.h"
+﻿#include "AttrHelper.h"
 #include "nodes/ShaderUtils.h"
 #include "attributes/Metadata.h"
 
@@ -99,8 +99,6 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
       AiMsgError("[mtoa] [node %s] [attr %s] Attribute does not exist.", nodeName, paramName);
       return false;
    }
-
-
 
    data.defaultValue = MAiParamGetDefault(m_nodeEntry, paramEntry);
    data.name = GetMayaAttrName(paramName);
@@ -619,13 +617,12 @@ void CBaseAttrHelper::MakeInputEnum(MObject& attrib, CAttrData& data)
    attrib = eAttr.create(data.name, data.shortName, data.defaultValue.INT);
    for (unsigned int ei = 0; ei < data.enums.length(); ++ei)
       eAttr.addField(data.enums[ei], ei);
-
-   addAttribute(attrib);
    eAttr.setArray(AtBooleanToBool(AtBooleanToBool(data.isArray)));
    eAttr.setKeyable(AtBooleanToBool(data.keyable));
    eAttr.setStorable(true);
    eAttr.setReadable(true);
    eAttr.setWritable(true);
+   addAttribute(attrib);
 }
 
 void CBaseAttrHelper::MakeInputNode(MObject& attrib, const char* paramName)
@@ -740,12 +737,12 @@ MObject CBaseAttrHelper::MakeInput(CAttrData& attrData)
       case AI_TYPE_POINTER:
       {
          const char* typeName = AiParamGetTypeName(attrData.type);
-         MGlobal::displayWarning(MString("[mtoa] Unable to create attribute \"") + attrData.name + "\": parameters of type " + typeName + " are not supported");
+         AiMsgWarning("[mtoa] Unable to create input attribute \"%s\": parameters of type %s are not supported", attrData.name.asChar(), typeName);
          return MObject::kNullObj;
       }
       default:
       {
-         MGlobal::displayError(MString("[mtoa] Unable to create attribute \"") + attrData.name + "\": unknown parameter type");
+         AiMsgError("[mtoa] Unable to create input attribute \"%s\": unknown parameter type", attrData.name.asChar());
          return MObject::kNullObj;
       }
    } // switch
@@ -979,12 +976,13 @@ MObject CBaseAttrHelper::MakeOutput()
       case AI_TYPE_BYTE:
       case AI_TYPE_POINTER:
       {
-         MGlobal::displayWarning(MString("[mtoa]  Unable to create attribute \"") + data.name + "\": parameters of type " + typeName + " are not supported");
+         const char* typeName = AiParamGetTypeName(data.type);
+         AiMsgWarning("[mtoa] Unable to create output attribute \"%s\": parameters of type %s are not supported", data.name.asChar(), typeName);
          return MObject::kNullObj;
       }
       default:
       {
-         MGlobal::displayError(MString("[mtoa] Unable to create attribute \"") + data.name + "\": unknown parameter type");
+         AiMsgError("[mtoa] Unable to create output attribute \"%s\": unknown parameter type", data.name.asChar());
          return MObject::kNullObj;
       }
    } // switch
@@ -1018,7 +1016,13 @@ MStatus CStaticAttrHelper::addAttribute(MObject& attrib)
    stat = m_addFunc(attrib);
    // FIXME: not reliable to use MFnAttribute to get the name: the MObject could be invalid
    if (stat != MS::kSuccess)
-      MGlobal::displayError(MString("[mtoa] Unable to create attribute ") + AiNodeEntryGetName(m_nodeEntry) + "." + MFnAttribute(attrib).name());
+   {
+      AiMsgError("[mtoa] Unable to create static attribute corresponding to %s.%s", AiNodeEntryGetName(m_nodeEntry), MFnAttribute(attrib).name().asChar());
+   }
+   else
+   {
+      AiMsgDebug("[mtoa] Added static attribute %s.%s", AiNodeEntryGetName(m_nodeEntry), MFnAttribute(attrib).name().asChar());
+   }
    CHECK_MSTATUS(stat);
    return stat;
 }
@@ -1043,7 +1047,13 @@ MStatus CDynamicAttrHelper::addAttribute(MObject& attrib)
    stat = fnNode.addAttribute(attrib);
    // FIXME: not reliable to use MFnAttribute to get the name: the MObject could be invalid
    if (stat != MS::kSuccess)
-      MGlobal::displayError(MString("[mtoa] Unable to create attribute ") + fnNode.name() + "." + MFnAttribute(attrib).name());
+   {
+      AiMsgError("[mtoa] Unable to create dynamic attribute %s.%s", fnNode.name().asChar(), MFnAttribute(attrib).name().asChar());
+   }
+   else
+   {
+      AiMsgDebug("[mtoa] Added dynamic attribute %s.%s", fnNode.name().asChar(), MFnAttribute(attrib).name().asChar());
+   }
    CHECK_MSTATUS(stat);
    return stat;
 }
@@ -1144,8 +1154,21 @@ MObject CExtensionAttrHelper::MakeInput(CAttrData& attrData)
 MStatus CExtensionAttrHelper::addAttribute(MObject& attrib)
 {
    MStatus stat;
+
+   MString nodeType = m_class.typeName();
+   MString attrName = MFnAttribute(attrib).name();
+
    MDGModifier dgMod;
    stat = dgMod.addExtensionAttribute(m_class, attrib);
+   if (MStatus::kSuccess != stat)
+   {
+      AiMsgError("[mtoa] Unable to create extension attribute %s.%s", nodeType.asChar(), attrName.asChar());
+   }
+   else
+   {
+      AiMsgDebug("[mtoa] Added extension attribute %s.%s", nodeType.asChar(), attrName.asChar());
+      stat = dgMod.doIt();
+   }
    CHECK_MSTATUS(stat);
    return stat;
 }

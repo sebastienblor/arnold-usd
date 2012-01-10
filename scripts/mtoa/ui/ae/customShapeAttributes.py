@@ -1,10 +1,37 @@
-import pymel.core as pm
+﻿import pymel.core as pm
 import maya.OpenMaya as om
 import mtoa.ui.ae.lightTemplate as lightTemplate
 from mtoa.ui.ae.utils import aeCallback
 import mtoa.ui.ae.shapeTemplate as templates
 import mtoa.callbacks as callbacks
 import mtoa.core as core
+
+class ParticleTemplate(templates.ShapeTranslatorTemplate):
+    def setup(self):
+        self.commonShapeAttributes()
+        self.addSeparator()
+        self.addControl("aiSssSampleDistribution", label="SSS Samples Distribution")
+        self.addControl("aiSssSampleSpacing", label="SSS Sample Spacing")
+        self.addSeparator()
+        self.addControl("aiRenderPointsAs", label="Render Points As")
+        self.addControl("aiMinParticleRadius", label="Min Particle Radius")
+        self.addControl("aiRadiusMultiplier", label="Radius Multiplier")
+        self.addControl("aiMaxParticleRadius", label="Max Particle Radius")
+        self.addControl("aiMinPixelWidth", label="Min Pixel Width")
+        self.addSeparator()   
+        self.addControl("aiExportParticleIDs", label="Export Particle Id")
+        self.addControl("aiExportAttributes", label="Export Attributes")
+        self.addSeparator()
+        self.addControl("aiDeleteDeadParticles", label="Delete Dead Particles")
+        self.addControl("aiInheritCacheTransform", label="Inherit Cache Transform")
+        self.addControl("aiInterpolateBlur", label="Interpolate Blur Steps")
+        
+templates.registerTranslatorUI(ParticleTemplate, "particle", "<built-in>")
+
+class NParticleTemplate(ParticleTemplate):
+        pass
+    
+templates.registerTranslatorUI(NParticleTemplate, "nParticle", "<built-in>")
 
 class MeshTemplate(templates.ShapeTranslatorTemplate):
     def subdivDicingCameraNew(self, attrName):

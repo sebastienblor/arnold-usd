@@ -1,4 +1,4 @@
-#ifndef GEOMETRYTRANSLATOR_H
+﻿#ifndef GEOMETRYTRANSLATOR_H
 #define GEOMETRYTRANSLATOR_H
 
 #include "ShapeTranslator.h"
@@ -59,7 +59,6 @@ protected:
          bool exportNormals,
          bool exportUVs);
 
-   MObject GetNodeShadingGroup(MObject dagNode, int instanceNum);
    MObject GetNodeShader(MObject dagNode, int instanceNum);
    void ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh);
    virtual void ExportShaders();

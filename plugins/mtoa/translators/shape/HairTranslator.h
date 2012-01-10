@@ -1,4 +1,4 @@
-#ifndef HAIRTRANSLATOR_H
+﻿#ifndef HAIRTRANSLATOR_H
 #define HAIRTRANSLATOR_H
 
 #include "GeometryTranslator.h"
@@ -35,10 +35,15 @@ class CHairTranslator
    :   public CGeometryTranslator
 {
 public:
-   CHairTranslator()
-      :m_numMainLines(0)
-   {}
-   
+   CHairTranslator() :
+      CGeometryTranslator(),
+      m_numMainLines(0)
+   {
+      // Just for debug info, translator creates whatever arnold nodes are required
+      // through the CreateArnoldNodes method
+      m_abstract.arnold = "curves";
+   }
+
    virtual void Export(AtNode* curve);
    virtual void Update(AtNode* curve);
    virtual void ExportMotion(AtNode* curve, unsigned int step);

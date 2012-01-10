@@ -96,6 +96,9 @@ vars.AddVariables(
       PathVariable('TARGET_SHADER_PATH', 
                    'Path used for installation of arnold shaders', 
                    os.path.join('$TARGET_MODULE_PATH', 'shaders'), PathVariable.PathIsDirCreate),
+      PathVariable('TARGET_PROCEDURAL_PATH', 
+                   'Path used for installation of arnold procedurals', 
+                   os.path.join('$TARGET_MODULE_PATH', 'procedurals'), PathVariable.PathIsDirCreate),
       PathVariable('TARGET_EXTENSION_PATH', 
                    'Path used for installation of mtoa translator extensions', 
                    os.path.join('$TARGET_MODULE_PATH', 'extensions'), PathVariable.PathIsDirCreate),
@@ -422,6 +425,11 @@ if system.os() == 'windows':
                                                      duplicate = 0,
                                                      exports   = 'env')
 
+   [MTOA_PROCS, MTOA_PROCS_PRJ] = env.SConscript(os.path.join('procedurals', 'SConscript'),
+                                                     variant_dir = os.path.join(BUILD_BASE_DIR, 'procedurals'),
+                                                     duplicate = 0,
+                                                     exports   = 'env')
+
    INSTALL_PRJ = env.MSVSProject(target = 'install' + env['MSVS']['PROJECTSUFFIX'],
                                  srcs = [],
                                  incs = [],
@@ -479,6 +487,11 @@ else:
                                  duplicate = 0,
                                  exports   = 'env')
 
+   MTOA_PROCS = env.SConscript(os.path.join('procedurals', 'SConscript'),
+                                 variant_dir = os.path.join(BUILD_BASE_DIR, 'procedurals'),
+                                 duplicate = 0,
+                                 exports   = 'env')
+
 Depends(MTOA, MTOA_API[0])
 
 DIFFTIFF = env.SConscript(os.path.join('tools', 'difftiff', 'SConscript'),
@@ -510,10 +523,12 @@ if system.os() == 'windows':
    env.Command(mtoa_new, str(MTOA[0]), Copy("$TARGET", "$SOURCE"))
    env.Install(TARGET_PLUGIN_PATH, [mtoa_new])
    env.Install(TARGET_SHADER_PATH, MTOA_SHADERS[0])
+   env.Install(env['TARGET_PROCEDURAL_PATH'], MTOA_PROCS[0])
    libs = glob.glob(os.path.join(env.subst(env['ARNOLD_API_LIB']), '*.lib'))
 else:
    env.Install(TARGET_PLUGIN_PATH, MTOA)
    env.Install(TARGET_SHADER_PATH, MTOA_SHADERS)
+   env.Install(env['TARGET_PROCEDURAL_PATH'], MTOA_PROCS)
    if system.os() == 'linux':
        libs = glob.glob(os.path.join(ARNOLD_API_LIB, '*.so'))
    else:
@@ -579,7 +594,7 @@ if system.os() == 'windows':
 else:
    package_name += ".tgz"
 
-PACKAGE = env.MakePackage(package_name, MTOA + MTOA_API + MTOA_SHADERS + MTOA_API_DOCS)
+PACKAGE = env.MakePackage(package_name, MTOA + MTOA_API + MTOA_SHADERS + MTOA_PROCS + MTOA_API_DOCS)
 #PACKAGE = env.MakePackage(package_name, MTOA + MTOA_API + MTOA_SHADERS)
 
 ################################
@@ -731,6 +746,7 @@ if system.os() == 'windows':
    env.Depends(SOLUTION, MTOA_PRJ)
    env.Depends(SOLUTION, MTOA_API_PRJ)
    env.Depends(SOLUTION, MTOA_SHADERS_PRJ)
+   env.Depends(SOLUTION, MTOA_PROCS_PRJ)
    env.Depends(SOLUTION, INSTALL_PRJ)
    env.AlwaysBuild(INSTALL_PRJ)
    top_level_alias(env, 'solution', SOLUTION)

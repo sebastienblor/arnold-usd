@@ -1,4 +1,4 @@
-#ifndef SHADER_TRANSLATORS_H
+﻿#ifndef SHADER_TRANSLATORS_H
 #define SHADER_TRANSLATORS_H
 
 #include "ShaderTranslator.h"
@@ -39,6 +39,7 @@ SHADER_TRANSLATOR(CBump3DTranslator);
 SHADER_TRANSLATOR_MULTIOUT(CSamplerInfoTranslator);
 SHADER_TRANSLATOR_MULTIOUT(CPlusMinusAverageTranslator);
 SHADER_TRANSLATOR_MULTIOUT(CRemapValueTranslator);
+SHADER_TRANSLATOR_MULTIOUT(CParticleSamplerInfoTranslator);
 SHADER_TRANSLATOR(CRemapColorTranslator);
 SHADER_TRANSLATOR(CProjectionTranslator);
 SHADER_TRANSLATOR(CRampTranslator);

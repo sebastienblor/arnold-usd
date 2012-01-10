@@ -1,4 +1,4 @@
-#include "MNodeClass.h"
+﻿#include "MNodeClass.h"
 #include "AttrHelper.h"
 
 #include <maya/MGlobal.h>
@@ -12,6 +12,20 @@
 MCallbackIdArray MNodeClass::s_callbackIDs;
 ExtensionAttrMap MNodeClass::s_attrs;
 ExtensionAttrDataMap MNodeClass::s_attrData;
+
+// FIXME: we can't provide full 2012 like functionality,
+// just return MTypeId corresponding to MFn::kInvalid when the node type is unknown
+MTypeId MNodeClass::typeId() const
+{
+   if (!MFnPlugin::isNodeRegistered(m_nodeClassName))
+   {
+      return MTypeId(MFn::kInvalid);
+   }
+   else
+   {
+      return MTypeId(MFn::kBase);
+   }
+}
 
 // FIXME: this method does not work
 MStatus MNodeClass::addExtensionAttribute(MObject &attr) const
@@ -107,20 +121,9 @@ MStatus MNodeClass::AddNodeCallback(const MString &nodeClassName) const
          s_mayaPluginData[providedByPlugin].push_back(pluginData);
       }
       else*/
-      if (strcmp(nodeClassName.asChar(), "<driver>" ) != 0)
-      {
-         return MS::kFailure;
-      }
-      else if (strcmp(nodeClassName.asChar(), "<filter>") != 0)
-      {
-         return MS::kFailure;
-      }
-      else
-      {
-         AiMsgWarning("[mtoa] Cannot add a callback on %s: the node type does not exist.", nodeClassName.asChar());
-         AiMsgWarning("[mtoa] If the node is provided by a plugin, load the plugin before the extension that defines a translator for that node");
-         return MS::kFailure;
-      }
+      AiMsgWarning("[mtoa] Cannot add a callback on %s: the node type does not exist.", nodeClassName.asChar());
+      AiMsgWarning("[mtoa] If the node is provided by a plugin, load the plugin before the extension that defines a translator for that node");
+      return MS::kFailure;
    }
    MStatus status;
    // add a callback for creating arnold attributes

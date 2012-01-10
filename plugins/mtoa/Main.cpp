@@ -28,6 +28,10 @@
 #include "translators/shape/NurbsSurfaceTranslator.h"
 #include "translators/shape/HairTranslator.h"
 #include "translators/shape/StandinsTranslator.h"
+#include "translators/shape/ParticleTranslator.h"
+#include "translators/shape/NParticleTranslator.h"
+#include "translators/shape/InstancerTranslator.h"
+
 
 #include "render/RenderSwatch.h"
 
@@ -195,7 +199,7 @@ namespace // <anonymous>
                                    CNurbsSurfaceTranslator::creator,
                                    CNurbsSurfaceTranslator::NodeInitializer);
        builtin->RegisterTranslator("aiStandIn",
-                                   "builtin",
+                                   "",
                                    CArnoldStandInsTranslator::creator,
                                    CArnoldStandInsTranslator::NodeInitializer);
        // Multiple camera translators for single Maya camera node
@@ -240,6 +244,23 @@ namespace // <anonymous>
                                    CHairTranslator::creator,
                                    CHairTranslator::NodeInitializer);
 
+       // Particles
+       builtin->RegisterTranslator("particle",
+                                   "",
+                                   CParticleTranslator::creator,
+                                   CParticleTranslator::NodeInitializer);
+
+       builtin->RegisterTranslator("nParticle",
+                                   "",
+                                   CNParticleTranslator::creator,
+                                   CNParticleTranslator::NodeInitializer);
+
+       builtin->RegisterTranslator("instancer",
+                                   "",
+                                   CInstancerTranslator::creator,
+                                   CInstancerTranslator::NodeInitializer);
+
+
       // Load all plugins path or only shaders?
       CExtension* shaders;
       shaders = CExtensionsManager::LoadArnoldPlugin("mtoa_shaders", "$ARNOLD_PLUGIN_PATH", &status);
@@ -271,6 +292,9 @@ namespace // <anonymous>
          shaders->RegisterTranslator("plusMinusAverage",
                                      "",
                                      CPlusMinusAverageTranslator::creator);
+         shaders->RegisterTranslator("particleSamplerInfo",
+                                     "",
+                                     CParticleSamplerInfoTranslator::creator);
          shaders->RegisterTranslator("remapValue",
                                      "",
                                      CRemapValueTranslator::creator);
@@ -491,10 +515,11 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    }
    else
    {
-      AiMsgError("Failed to register Arnold nodes");
-      MGlobal::displayError("Failed to register Arnold nodes");
-      ArnoldUniverseEnd();
-      return MStatus::kFailure;
+      AiMsgError("Failed to register one or more Arnold nodes");
+      MGlobal::displayError("Failed to register one or more Arnold nodes");
+      // NOTE: allow to keep going
+      // ArnoldUniverseEnd();
+      // return MStatus::kFailure;
    }
 
    // Since executePythonCommand eats error output, trying to see if we can access every required module
