@@ -1,4 +1,4 @@
-﻿#ifndef GEOMETRYTRANSLATOR_H
+#ifndef GEOMETRYTRANSLATOR_H
 #define GEOMETRYTRANSLATOR_H
 
 #include "ShapeTranslator.h"

@@ -1,4 +1,4 @@
-﻿#include "MNodeClass.h"
+#include "MNodeClass.h"
 #include "AttrHelper.h"
 
 #include <maya/MGlobal.h>

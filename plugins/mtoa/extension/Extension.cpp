@@ -1,4 +1,4 @@
-﻿#include "Extension.h"
+#include "Extension.h"
 
 #include "common/DynLibrary.h"
 #include "nodes/ArnoldNodeIDs.h"

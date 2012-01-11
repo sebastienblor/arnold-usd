@@ -1,4 +1,4 @@
-﻿#include "AttrHelper.h"
+#include "AttrHelper.h"
 #include "nodes/ShaderUtils.h"
 #include "attributes/Metadata.h"
 

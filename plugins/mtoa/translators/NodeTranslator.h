@@ -1,4 +1,4 @@
-﻿#ifndef NODETRANSLATOR_H
+#ifndef NODETRANSLATOR_H
 #define NODETRANSLATOR_H
 
 #include "common/MObjectCompare.h"

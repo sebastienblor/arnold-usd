@@ -1,4 +1,4 @@
-﻿#include "DriverTranslator.h"
+#include "DriverTranslator.h"
 #include "utils/Universe.h"
 
 #include <assert.h>

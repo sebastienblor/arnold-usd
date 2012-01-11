@@ -1,4 +1,4 @@
-﻿#ifndef ARNOLDNODEIDS_H
+#ifndef ARNOLDNODEIDS_H
 #define ARNOLDNODEIDS_H
 
 // Arnolds internal ids are 0x00115C00 - 0x00115DFF
