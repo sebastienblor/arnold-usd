@@ -89,7 +89,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, AtUInt step)
    m_fnParticleSystem.setObject(particleShape);
 
    AiMsgDebug("[mtoa] Instancer %s for particle instancer %s exporting instances for step %i",
-      m_fnMayaInstancer.partialPathName(), m_fnParticleSystem.partialPathName(), step);
+      m_fnMayaInstancer.partialPathName().asChar(), m_fnParticleSystem.partialPathName().asChar(), step);
 
 
    MIntArray  partIds;
@@ -317,12 +317,12 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, AtUInt step)
             }
          }
          AiMsgDebug("[mtoa] Instancer %s export for particle system %s found a %i new particles for step %i",
-                  m_fnMayaInstancer.partialPathName(), m_fnParticleSystem.partialPathName(), newParticleCount, step);
+                  m_fnMayaInstancer.partialPathName().asChar(), m_fnParticleSystem.partialPathName().asChar(), newParticleCount, step);
       }
       if (tempMap.size() > 0)
       {
          AiMsgDebug("[mtoa] Instancer %s export for particle system %s found %i particles that died for step %i, computing velocity...",
-            m_fnMayaInstancer.partialPathName(), m_fnParticleSystem.partialPathName(), (int)tempMap.size(), step);
+            m_fnMayaInstancer.partialPathName().asChar(), m_fnParticleSystem.partialPathName().asChar(), (int)tempMap.size(), step);
          for (it = tempMap.begin(); it != tempMap.end(); it++)
          {
             // get last steps  matrix

@@ -120,7 +120,7 @@ void CParticleTranslator::ExportParticleShaders(AtNode* particle)
       }
       else
          AiMsgWarning("[mtoa] Particle system %s shadingGroup %s has no surfaceShader input",
-            m_fnParticleSystem.partialPathName(), fnDGNode.name().asChar());
+            m_fnParticleSystem.partialPathName().asChar(), fnDGNode.name().asChar());
    }
 
 }
@@ -180,7 +180,7 @@ void CParticleTranslator::ExportPreambleData(AtNode* particle)
 
    int renderType = m_fnParticleSystem.renderType();
 
-   AiMsgDebug("[mtoa] Exporting particle system %s with particleType %i", m_fnParticleSystem.partialPathName(), renderType);
+   AiMsgDebug("[mtoa] Exporting particle system %s with particleType %i", m_fnParticleSystem.partialPathName().asChar(), renderType);
    MStatus status;
 
    // Particle shape extra attributes
@@ -385,7 +385,7 @@ void CParticleTranslator::GatherFirstStep(AtNode* particle)
 
    MStatus status;
 
-   AiMsgDebug("[mtoa] Particle system %s exporting step 0", m_fnParticleSystem.partialPathName());
+   AiMsgDebug("[mtoa] Particle system %s exporting step 0", m_fnParticleSystem.partialPathName().asChar());
 
    GatherStandardPPData( positionArray ,
                          radiusArray ,
@@ -443,7 +443,7 @@ void CParticleTranslator::GatherFirstStep(AtNode* particle)
 
 void CParticleTranslator::GatherBlurSteps(AtNode* particle, AtUInt step)
 {
-   AiMsgDebug("[mtoa] Particle system %s exporting step %i", m_fnParticleSystem.partialPathName(), step);
+   AiMsgDebug("[mtoa] Particle system %s exporting step %i", m_fnParticleSystem.partialPathName().asChar(), step);
 
    int numParticles = m_fnParticleSystem.count();
 
@@ -716,7 +716,7 @@ void CParticleTranslator::GatherBlurSteps(AtNode* particle, AtUInt step)
    }
 
    AiMsgDebug("[mtoa] Particle system %s export found %i new particles for step %i",
-      m_fnParticleSystem.partialPathName(), newParticleCount, step);
+      m_fnParticleSystem.partialPathName().asChar(), newParticleCount, step);
 
    // if we still have entries in tempMap, that means the particle died in this frameStep and we need to update
    // the value for position based on velocity only.. all other attributes, since they were copied over at the beginning
@@ -724,7 +724,7 @@ void CParticleTranslator::GatherBlurSteps(AtNode* particle, AtUInt step)
    if (tempMap.size() > 0)
    {
       AiMsgDebug("[mtoa] Particle system %s export found %i particles that died for step %i, computing velocity...",
-         m_fnParticleSystem.partialPathName(), (int)tempMap.size(), step);
+         m_fnParticleSystem.partialPathName().asChar(), (int)tempMap.size(), step);
 
       for (it = tempMap.begin(); it != tempMap.end(); it++)
       {
@@ -753,7 +753,7 @@ void CParticleTranslator::GatherBlurSteps(AtNode* particle, AtUInt step)
 
 void CParticleTranslator::InterpolateBlurSteps(AtNode* particle, AtUInt step)
 {
-   AiMsgDebug("[mtoa] Particle system %s interpolating step %i", m_fnParticleSystem.partialPathName(), step);
+   AiMsgDebug("[mtoa] Particle system %s interpolating step %i", m_fnParticleSystem.partialPathName().asChar(), step);
 
    MTime oneSec(1.0, MTime::kSeconds);
    // FIXME: was it intended to be rounded to int ?
@@ -865,7 +865,7 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
 
    m_particleCount = (*m_out_positionArrays[0]).length();
 
-   AiMsgDebug("[mtoa] Particle system %s count: %i", m_fnParticleSystem.partialPathName(), m_particleCount);
+   AiMsgDebug("[mtoa] Particle system %s count: %i", m_fnParticleSystem.partialPathName().asChar(), m_particleCount);
 
    /// Finally set the  position and  radius/aspect values with their cache values minus Transform position
    AtPoint a_v;
@@ -994,7 +994,7 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
       }// end m_particleIDMap  iteration
 
       // CLEAN UP MEMORY
-      AiMsgDebug("[mtoa] Particle system %s export cleaning up memory.", m_fnParticleSystem.partialPathName());
+      AiMsgDebug("[mtoa] Particle system %s export cleaning up memory.", m_fnParticleSystem.partialPathName().asChar());
       delete m_out_positionArrays[s];
       if (m_hasRGB)
       {
@@ -1296,7 +1296,7 @@ void CParticleTranslator::Export(AtNode* anode)
    m_fnParticleSystem.setObject(m_dagPath.node());
    if (m_fnParticleSystem.isValid() == false)
    {
-      AiMsgError("[mtoa]: Particle system %s not exported. It has 0 particles", m_fnParticleSystem.partialPathName());
+      AiMsgError("[mtoa]: Particle system %s not exported. It has 0 particles", m_fnParticleSystem.partialPathName().asChar());
       return;
    }
 
@@ -1308,7 +1308,7 @@ void CParticleTranslator::Export(AtNode* anode)
       ExportParticleNode(anode, 0);
       //exportParticleTimer.endTimer();
       //double elapsed = exportParticleTimer.elapsedTime();
-      //AiMsgDebug("[mtoa] Particle system %s export took : %f seconds", m_fnParticleSystem.partialPathName(), elapsed);
+      //AiMsgDebug("[mtoa] Particle system %s export took : %f seconds", m_fnParticleSystem.partialPathName().asChar(), elapsed);
    }
 
    else
