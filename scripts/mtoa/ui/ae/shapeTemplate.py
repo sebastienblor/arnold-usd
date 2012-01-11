@@ -67,7 +67,7 @@ def getTranslatorTemplate(nodeType, translatorName):
     return a template instance for the given nodeType, or None if one has not been registered
     """
     try:
-        return getTranslatorTemplates(nodeType)[translatorName]
+        return getTranslatorTemplates(nodeType)[translatorName](nodeType)
     except KeyError:
         pass
 
@@ -167,7 +167,7 @@ class AttributeTemplate(BaseTemplate):
         '''
         self._setActiveNode(nodeAttr)
         pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
-        self._layoutStack.append(pm.setParent(query=True))
+        self._layoutStack = [pm.setParent(query=True)]
         for func, args, kwargs in self._actions:
             func(self, *args, **kwargs)
         pm.setUITemplate(popTemplate=True)
@@ -691,7 +691,7 @@ def registerTranslatorUI(templateClass, nodeType, translatorName='<built-in>'):
                    (translatorName, nodeType, ', '.join(['"%s"' % x for x in translators])))
 #    assert inspect.isclass(templateClass) and issubclass(templateClass, AttributeTemplate),\
 #        "you must pass a subclass of AttributeTemplate"
-    _translatorTemplates[nodeType][translatorName] = templateClass(nodeType)
+    _translatorTemplates[nodeType][translatorName] = templateClass
 
     registerAETemplate(TranslatorControl, nodeType)
 
