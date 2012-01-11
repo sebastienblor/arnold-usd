@@ -313,6 +313,7 @@ void COptionsTranslator::Export(AtNode *options)
          }
       }
    }
+   AiParamIteratorDestroy(nodeParam);
 
    // BACKGROUND SHADER
    //

@@ -46,7 +46,7 @@ void CDriverTranslator::Export(AtNode *shader)
       AiMsgDebug("CDriverTranslator %s: Export on parameter %s", GetTranslatorName().asChar(), paramName);
       ProcessParameter(shader, paramName, paramType);
    }
-
+   AiParamIteratorDestroy(nodeParam);
 }
 
 void CDriverTranslator::NodeInitializer(CAbTranslator context)
