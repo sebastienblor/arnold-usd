@@ -90,11 +90,14 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
 
    // Initialize command syntax and get flags
    MSyntax syntax = newSyntax();
-   // Use selection if selected flag is set
-   bool exportSelected = argList.flagIndex("s", "selected") != MArgList::kInvalidArgIndex ? true : false;
+   // we must use an MArgParser because MArgList is not python compatible, and we
+   // use this result to set syntax.useSelectionAsDefault() prior to creating the MArgDatabase.
+   MArgParser args(syntax, argList, &status);
+   bool exportSelected = args.isFlagSet("selected");
    syntax.useSelectionAsDefault(exportSelected);
    MArgDatabase argDB(syntax, argList, &status);
-   // We force "selected" mode when objects are passed explicitely
+
+   // We force "selected" mode when objects are passed explicitly
    MSelectionList sList;
    argDB.getObjects(sList);
    if (sList.length() > 0)
