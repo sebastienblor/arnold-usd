@@ -168,16 +168,16 @@ MString CAOV::SetupOutput(AtNode *defaultDriver, AtNode *defaultFilter)
       // use default filter
       filterName = AiNodeGetName(defaultFilter);
       AiMsgDebug("[mtoa] [aov %s] Uses default filter %s(%s).",
-         m_name.asChar(), filterName.asChar(), AiNodeEntryGetName(defaultFilter->base_node));
+         m_name.asChar(), filterName.asChar(), AiNodeEntryGetName(AiNodeGetNodeEntry(defaultFilter)));
    }
    else
    {
       m_filter = CMayaScene::GetArnoldSession()->ExportFilter(m_object, filterType);
-      MString nodeTypeName = AiNodeEntryGetName(m_filter->base_node);
+      MString nodeTypeName = AiNodeEntryGetName(AiNodeGetNodeEntry(m_filter));
       filterName = nodeTypeName + "_" + m_name;
       AiNodeSetStr(m_filter, "name", filterName.asChar());
       AiMsgDebug("[mtoa] [aov %s] Created new filter %s(%s).",
-            m_name.asChar(), AiNodeGetName(m_filter), AiNodeEntryGetName(m_filter->base_node));
+            m_name.asChar(), AiNodeGetName(m_filter), AiNodeEntryGetName(AiNodeGetNodeEntry(m_filter)));
    }
 
    // Driver
@@ -194,7 +194,7 @@ MString CAOV::SetupOutput(AtNode *defaultDriver, AtNode *defaultFilter)
       m_driver = CMayaScene::GetArnoldSession()->ExportDriver(m_object, driverType);
    }
 
-   MString nodeTypeName = AiNodeEntryGetName(m_driver->base_node);
+   MString nodeTypeName = AiNodeEntryGetName(AiNodeGetNodeEntry(m_driver));
    MString driverName = nodeTypeName + "_" + m_name;
    AiNodeSetStr(m_driver, "name", driverName.asChar());
 

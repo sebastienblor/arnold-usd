@@ -135,7 +135,7 @@ node_parameters
 
 node_initialize
 {
-   node->local_data = (void*) new P3DTData();
+   AiNodeSetLocalData(node, new P3DTData());
 }
 
 node_update
@@ -144,12 +144,12 @@ node_update
 
 node_finish
 {
-   delete (reinterpret_cast<P3DTData*> (node->local_data));
+   delete (reinterpret_cast<P3DTData*> (AiNodeGetLocalData(node)));
 }
 
 shader_evaluate
 {
-   P3DTData *data = reinterpret_cast<P3DTData*> (node->local_data);
+   P3DTData *data = reinterpret_cast<P3DTData*> (AiNodeGetLocalData(node));
 
    AtVector translate = AiShaderEvalParamPnt(p_translate);
    AtVector rotate = AiShaderEvalParamPnt(p_rotate);

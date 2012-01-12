@@ -259,7 +259,7 @@ AtNode* CArnoldSession::ExportWithTranslator(MObject mayaNode, const MString &ma
       shader = translator->Init(this, mayaNode);
       AiMsgDebug("[mtoa] Custom export of %s(%s) as Arnold node %s(%s) using translator: %s.",
             MFnDependencyNode(mayaNode).name().asChar(), mayaNodeClass.asChar(),
-            AiNodeGetName(shader), AiNodeEntryGetName(shader->base_node),
+            AiNodeGetName(shader), AiNodeEntryGetName(AiNodeGetNodeEntry(shader)),
             translatorName.asChar());
       translator->DoExport(0);
       CNodeAttrHandle handle(mayaNode, translatorName);

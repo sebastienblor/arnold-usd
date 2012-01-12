@@ -31,12 +31,12 @@ void InstallNodes()
 {
    if (MGlobal::mayaState() == MGlobal::kInteractive)
    {
-      AiNodeInstall(AI_NODE_DRIVER,
-                    AI_TYPE_NONE,
-                    "renderview_display",
-                    NULL,
-                    (AtNodeMethods*) mtoa_driver_mtd,
-                    AI_VERSION);
+      AiNodeEntryInstall(AI_NODE_DRIVER,
+                         AI_TYPE_NONE,
+                         "renderview_display",
+                         NULL,
+                         (AtNodeMethods*) mtoa_driver_mtd,
+                         AI_VERSION);
    }
 }
 

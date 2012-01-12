@@ -16,7 +16,8 @@ namespace
             AtPoint pnt;
             for(unsigned int J = 0; (J < size); ++J)
             {
-               AiV3Create(pnt, data[index++], data[index++], data[index++]);
+               AiV3Create(pnt, data[index+0], data[index+1], data[index+2]);
+               index += 3;
                AiArraySetPnt(arr, J + (size * step), pnt);
             }
          }
@@ -27,7 +28,8 @@ namespace
             AtVector vec;
             for(unsigned int J = 0; (J < size); ++J)
             {
-               AiV3Create(vec, data[index++], data[index++], data[index++]);
+               AiV3Create(vec, data[index+0], data[index+1], data[index+2]);
+               index += 3;
                AiArraySetVec(arr, J + (size * step), vec);
             }
          }
@@ -416,14 +418,14 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
          meshShaders.push_back(ExportNode(connections[0]));
       }
 
-      AiNodeSetArray(polymesh, "shader", AiArrayConvert((int)meshShaders.size(), 1, AI_TYPE_NODE, &meshShaders[0], TRUE));
+      AiNodeSetArray(polymesh, "shader", AiArrayConvert((int)meshShaders.size(), 1, AI_TYPE_NODE, &meshShaders[0]));
 
       // Export face to shader indices
       // First convert from MIntArray to unsigned int vector
       std::vector<unsigned int> shidxs;
       for(unsigned int i = 0; i < indices.length(); i++)
          shidxs.push_back(indices[i]);
-      AiNodeSetArray(polymesh, "shidxs", AiArrayConvert((int)shidxs.size(), 1, AI_TYPE_UINT, &(shidxs[0]), TRUE));
+      AiNodeSetArray(polymesh, "shidxs", AiArrayConvert((int)shidxs.size(), 1, AI_TYPE_UINT, &(shidxs[0])));
    }
 
    //
@@ -590,15 +592,15 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
       if (!m_motionDeform || !IsLocalMotionBlurEnabled())
       {
          // No deformation motion blur, so we create normal arrays
-         AiNodeSetArray(polymesh, "vlist", AiArrayConvert(m_fnMesh.numVertices() * 3, 1, AI_TYPE_FLOAT, &(vertices[0]), TRUE));
+         AiNodeSetArray(polymesh, "vlist", AiArrayConvert(m_fnMesh.numVertices() * 3, 1, AI_TYPE_FLOAT, &(vertices[0])));
 
          if (exportNormals && (m_fnMesh.numNormals() > 0))
-            AiNodeSetArray(polymesh, "nlist", AiArrayConvert(m_fnMesh.numNormals() * 3, 1, AI_TYPE_FLOAT, &(normals[0]), TRUE));
+            AiNodeSetArray(polymesh, "nlist", AiArrayConvert(m_fnMesh.numNormals() * 3, 1, AI_TYPE_FLOAT, &(normals[0])));
 
          if (exportTangents)
          {
-            AiNodeSetArray(polymesh, "tangent", AiArrayConvert(m_fnMesh.numVertices(), 1, AI_TYPE_VECTOR, &(tangents[0]), TRUE));
-            AiNodeSetArray(polymesh, "bitangent", AiArrayConvert(m_fnMesh.numVertices(), 1, AI_TYPE_VECTOR, &(bitangents[0]), TRUE));
+            AiNodeSetArray(polymesh, "tangent", AiArrayConvert(m_fnMesh.numVertices(), 1, AI_TYPE_VECTOR, &(tangents[0])));
+            AiNodeSetArray(polymesh, "bitangent", AiArrayConvert(m_fnMesh.numVertices(), 1, AI_TYPE_VECTOR, &(bitangents[0])));
          }
       }
       else
@@ -627,10 +629,10 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
          }
       }
 
-      AiNodeSetArray(polymesh, "nsides", AiArrayConvert((int)nsides.size(), 1, AI_TYPE_UINT, &(nsides[0]), TRUE));
+      AiNodeSetArray(polymesh, "nsides", AiArrayConvert((int)nsides.size(), 1, AI_TYPE_UINT, &(nsides[0])));
 
       // Passing vidxs directly put Arnold in trouble
-      //AiNodeSetArray(polymesh, "vidxs", AiArrayConvert(vidxs.size(), 1, AI_TYPE_UINT, &(vidxs[0]), TRUE));
+      //AiNodeSetArray(polymesh, "vidxs", AiArrayConvert(vidxs.size(), 1, AI_TYPE_UINT, &(vidxs[0])));
       AtArray *vidxsTmp = AiArrayAllocate((int)vidxs.size(), 1, AI_TYPE_UINT);
       for(unsigned int i = 0; (i < vidxs.size()); i++)
          AiArraySetUInt(vidxsTmp, i, vidxs[i]);
@@ -639,7 +641,7 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
       if (exportNormals)
       {
          // Same goes here
-         //AiNodeSetArray(polymesh, "nidxs", AiArrayConvert(nidxs.size(), 1, AI_TYPE_UINT, &(nidxs[0]), TRUE));
+         //AiNodeSetArray(polymesh, "nidxs", AiArrayConvert(nidxs.size(), 1, AI_TYPE_UINT, &(nidxs[0])));
          AtArray *nidxsTmp = AiArrayAllocate((int)nidxs.size(), 1, AI_TYPE_UINT);
          for(unsigned int i = 0; (i < nidxs.size()); i++)
             AiArraySetUInt(nidxsTmp, i, nidxs[i]);
@@ -648,16 +650,16 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
 
       if (exportReferenceObjects)
       {
-           AiNodeSetArray(polymesh, "Pref", AiArrayConvert(m_fnMesh.numVertices(), 1, AI_TYPE_POINT, &(refVertices[0]), TRUE));
-         AiNodeSetArray(polymesh, "Nref", AiArrayConvert(m_fnMesh.numNormals(), 1, AI_TYPE_VECTOR, &(refNormals[0]), TRUE));
+           AiNodeSetArray(polymesh, "Pref", AiArrayConvert(m_fnMesh.numVertices(), 1, AI_TYPE_POINT, &(refVertices[0])));
+         AiNodeSetArray(polymesh, "Nref", AiArrayConvert(m_fnMesh.numNormals(), 1, AI_TYPE_VECTOR, &(refNormals[0])));
 
       }
 
       if (exportUVs)
       {
-         AiNodeSetArray(polymesh, "uvlist", AiArrayConvert(m_fnMesh.numUVs() * 2, 1, AI_TYPE_FLOAT, &(uvs[0]), TRUE));
+         AiNodeSetArray(polymesh, "uvlist", AiArrayConvert(m_fnMesh.numUVs() * 2, 1, AI_TYPE_FLOAT, &(uvs[0])));
          // Same problem here
-         //AiNodeSetArray(polymesh, "uvidxs", AiArrayConvert(uvidxs.size(), 1, AI_TYPE_UINT, &(uvidxs[0]), TRUE));
+         //AiNodeSetArray(polymesh, "uvidxs", AiArrayConvert(uvidxs.size(), 1, AI_TYPE_UINT, &(uvidxs[0])));
          AtArray *uvidxsTmp = AiArrayAllocate((int)uvidxs.size(), 1, AI_TYPE_UINT);
          for(unsigned int i = 0; (i < uvidxs.size()); i++)
             AiArraySetUInt(uvidxsTmp, i, uvidxs[i]);
@@ -671,7 +673,7 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
          {
             if (strcmp(it->first.c_str(), "sss_faceset") != 0)
             {
-               AiNodeSetArray(polymesh, it->first.c_str(), AiArrayConvert(m_fnMesh.numVertices(), 1, AI_TYPE_RGBA, &(it->second[0]), TRUE));
+               AiNodeSetArray(polymesh, it->first.c_str(), AiArrayConvert(m_fnMesh.numVertices(), 1, AI_TYPE_RGBA, &(it->second[0])));
             }
             else
             {

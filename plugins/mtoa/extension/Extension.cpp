@@ -303,7 +303,7 @@ MStatus CExtension::DoUnloadArnoldPlugin(const MString &resolved)
       {
          const char *arnoldNodeName = AiNodeEntryGetName(nentry);
          // remove from arnold
-         AiNodeUninstall(arnoldNodeName);
+         AiNodeEntryUninstall(arnoldNodeName);
          AiMsgDebug("[mtoa] [%s] Uninstalled Arnold node %s", m_extensionName.asChar(), arnoldNodeName);
          // TODO: unregister as well?
          // DeregisterNode(arnoldNodeName);

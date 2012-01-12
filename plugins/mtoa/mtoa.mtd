@@ -471,11 +471,6 @@
     maya.name               STRING  "aiLightDecay"
     maya.id                 INT     0x00115C83
     maya.classification     STRING  "light/filter"
-    [attr decay_type]
-        default             INT     2 # quadratic
-    [attr decay_radius]
-        min                 FLOAT   0.0
-        softmax             FLOAT   10.0
     [attr far_end]
         min                 FLOAT   0.0
         softmax             FLOAT   1000.0

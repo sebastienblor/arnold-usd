@@ -51,6 +51,7 @@ void CPointLightTranslator::Export(AtNode* light)
 
    AiNodeSetFlt(light, "radius", FindMayaObjectPlug("aiRadius").asFloat());
 
+   AiNodeSetInt(light,  "decay_type",      FindMayaObjectPlug("aiDecayType").asInt());
    AiNodeSetBool(light, "affect_volumetrics", FindMayaObjectPlug("aiAffectVolumetrics").asBool());
    AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaObjectPlug("aiCastVolumetricShadows").asBool());
 }
@@ -61,6 +62,7 @@ void CPointLightTranslator::NodeInitializer(CAbTranslator context)
    // common attributes
    MakeCommonAttributes(helper);
    // point light attributes
+   helper.MakeInput("decay_type");
    helper.MakeInput("affect_volumetrics");
    helper.MakeInput("cast_volumetric_shadows");
    helper.MakeInput("radius");
@@ -82,6 +84,7 @@ void CSpotLightTranslator::Export(AtNode* light)
 
    AiNodeSetFlt(light, "radius", FindMayaObjectPlug("aiRadius").asFloat());
 
+   AiNodeSetInt(light,  "decay_type",      FindMayaObjectPlug("aiDecayType").asInt());
    AiNodeSetBool(light, "affect_volumetrics", FindMayaObjectPlug("aiAffectVolumetrics").asBool());
    AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaObjectPlug("aiCastVolumetricShadows").asBool());
 
@@ -95,6 +98,7 @@ void CSpotLightTranslator::NodeInitializer(CAbTranslator context)
    // common attributes
    MakeCommonAttributes(helper);
    // spot light attributes
+   helper.MakeInput("decay_type");
    helper.MakeInput("affect_volumetrics");
    helper.MakeInput("cast_volumetric_shadows");
    helper.MakeInput("aspect_ratio");
@@ -116,8 +120,9 @@ void CQuadLightTranslator::Export(AtNode* light)
    AiV3Create(vertices[2], -1, -1, 0);
    AiV3Create(vertices[3], -1, 1, 0);
 
-   AiNodeSetArray(light, "vertices", AiArrayConvert(4, 1, AI_TYPE_POINT, vertices, true));
+   AiNodeSetArray(light, "vertices", AiArrayConvert(4, 1, AI_TYPE_POINT, vertices));
 
+   AiNodeSetInt(light,  "decay_type",      FindMayaObjectPlug("aiDecayType").asInt());
    AiNodeSetInt(light, "resolution", FindMayaObjectPlug("aiResolution").asInt());
    AiNodeSetBool(light, "affect_volumetrics", FindMayaObjectPlug("aiAffectVolumetrics").asBool());
    AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaObjectPlug("aiCastVolumetricShadows").asBool());
@@ -129,6 +134,7 @@ void CQuadLightTranslator::NodeInitializer(CAbTranslator context)
    // common attributes
    MakeCommonAttributes(helper);
    // quad light attributes
+   helper.MakeInput("decay_type");
    helper.MakeInput("resolution");
    helper.MakeInput("affect_volumetrics");
    helper.MakeInput("cast_volumetric_shadows");
@@ -140,6 +146,7 @@ void CCylinderLightTranslator::Export(AtNode* light)
 {
    CLightTranslator::Export(light);
 
+   AiNodeSetInt(light,  "decay_type",      FindMayaObjectPlug("aiDecayType").asInt());
    AiNodeSetBool(light, "affect_volumetrics", FindMayaObjectPlug("aiAffectVolumetrics").asBool());
    AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaObjectPlug("aiCastVolumetricShadows").asBool());
 
@@ -154,6 +161,7 @@ void CCylinderLightTranslator::NodeInitializer(CAbTranslator context)
    CExtensionAttrHelper helper(context.maya, "cylinder_light");
    // common attributes
    MakeCommonAttributes(helper);
+   helper.MakeInput("decay_type");
    helper.MakeInput("affect_volumetrics");
    helper.MakeInput("cast_volumetric_shadows");
 }
@@ -164,6 +172,7 @@ void CDiskLightTranslator::Export(AtNode* light)
 {
    CLightTranslator::Export(light);
 
+   AiNodeSetInt(light,  "decay_type",      FindMayaObjectPlug("aiDecayType").asInt());
    AiNodeSetBool(light, "affect_volumetrics", FindMayaObjectPlug("aiAffectVolumetrics").asBool());
    AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaObjectPlug("aiCastVolumetricShadows").asBool());
    MTransformationMatrix tm(m_dagPath.inclusiveMatrix());
@@ -177,6 +186,7 @@ void CDiskLightTranslator::NodeInitializer(CAbTranslator context)
    CExtensionAttrHelper helper(context.maya, "disk_light");
    // common attributes
    MakeCommonAttributes(helper);
+   helper.MakeInput("decay_type");
    helper.MakeInput("affect_volumetrics");
    helper.MakeInput("cast_volumetric_shadows");
 }

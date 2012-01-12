@@ -10,7 +10,7 @@ AtNode* CDriverTranslator::CreateArnoldNodes()
 
    MString mayaShader = GetMayaNodeTypeName();
    AtNode* created = AddArnoldNode(m_abstract.arnold.asChar(), m_abstract.arnold.asChar());
-   const AtNodeEntry* nodeEntry = created->base_node;
+   const AtNodeEntry* nodeEntry = AiNodeGetNodeEntry(created);
 
    AiMsgDebug("CDriverTranslator %s: CreateArnoldNodes on Maya node %s(%s) created arnold node %p: %s(%s).",
          GetTranslatorName().asChar(),
@@ -29,7 +29,7 @@ void CDriverTranslator::Export(AtNode *shader)
    MStatus status;
    MPlug plug;
 
-   const AtNodeEntry* nodeEntry = shader->base_node;
+   const AtNodeEntry* nodeEntry = AiNodeGetNodeEntry(shader);
 
    AiMsgDebug("CDriverTranslator %s: Export on Maya node %s(%s), Arnold node %s(%s).",
          GetTranslatorName().asChar(),

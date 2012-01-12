@@ -28,6 +28,7 @@ class AEaiAreaLightTemplate(ShaderAETemplate):
         self.addCustom("instObjGroups", self.makeLightExclusive, self.replaceLightExclusive)
         self.addControl("emitDiffuse")
         self.addControl("emitSpecular")
+        self.addControl("aiDecayType")
         
         self.addChildTemplate('aiTranslator', templates.getNodeTemplate('aiAreaLight'))
         self.endLayout()

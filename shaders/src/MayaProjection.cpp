@@ -370,12 +370,12 @@ node_initialize
 {
    ShaderData *data = (ShaderData*) AiMalloc(sizeof(ShaderData));
 
-   node->local_data = data;
+   AiNodeSetLocalData(node, data);
 }
 
 node_update
 {
-   ShaderData *data = (ShaderData*)node->local_data;
+   ShaderData *data = (ShaderData*)AiNodeGetLocalData(node);
 
    data->camera = AiUniverseGetCamera();
    
@@ -387,7 +387,7 @@ node_update
    AtNode *n = AiNodeGetLink(node, "image");
    if (n != NULL)
    {
-      const AtParamEntry *pe = AiNodeEntryLookUpParameter(n->base_node, "filename");
+      const AtParamEntry *pe = AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(n), "filename");
       if (pe != 0 && AiParamGetType(pe) == AI_TYPE_STRING)
       {
          unsigned int tw, th;
@@ -408,13 +408,13 @@ node_update
 
 node_finish
 {
-   ShaderData *data = (ShaderData*)node->local_data;
+   ShaderData *data = (ShaderData*)AiNodeGetLocalData(node);
    AiFree(data);
 }
 
 shader_evaluate
 {
-   ShaderData *data = (ShaderData*)node->local_data;
+   ShaderData *data = (ShaderData*)AiNodeGetLocalData(node);
 
    int pt = AiShaderEvalParamEnum(p_type);
 

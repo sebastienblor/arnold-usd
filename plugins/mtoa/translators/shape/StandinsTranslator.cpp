@@ -51,7 +51,7 @@ AtNode* CArnoldStandInsTranslator::CreateArnoldNodes()
 
 void CArnoldStandInsTranslator::Export(AtNode* anode)
 {
-   const char* nodeType = AiNodeEntryGetName(anode->base_node);
+   const char* nodeType = AiNodeEntryGetName(AiNodeGetNodeEntry(anode));
    if (strcmp(nodeType, "ginstance") == 0)
    {
       ExportInstance(anode, m_masterDag);
