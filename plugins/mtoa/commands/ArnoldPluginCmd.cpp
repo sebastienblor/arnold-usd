@@ -104,6 +104,7 @@ MStatus CArnoldPluginCmd::doIt(const MArgList& argList)
             result.append(desc);
          }
       }
+      AiParamIteratorDestroy(nodeParam);
       setResult(result);
       if (AiUniverseCreated) ArnoldUniverseEnd();
    }

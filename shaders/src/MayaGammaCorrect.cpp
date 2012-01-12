@@ -16,8 +16,7 @@ enum MayaGammaCorrectParams
 node_parameters
 {
    AiParameterRGB("value", 0, 0, 0);
-   AiParameterRGB("gamma", 1, 1, 1);
-   AiMetaDataSetBool(mds, "gamma", "always_linear", TRUE); // no gamma correction
+   AiParameterVEC("gamma", 1, 1, 1);
 
    AiMetaDataSetStr(mds, NULL, "maya.name", "gammaCorrect");
    AiMetaDataSetInt(mds, NULL, "maya.id", 0x5247414d);
@@ -38,9 +37,21 @@ node_finish
 shader_evaluate
 {
    AtColor value = AiShaderEvalParamRGB(p_value);
-   AtColor gamma = AiShaderEvalParamRGB(p_gamma);
+   AtVector gamma = AiShaderEvalParamVec(p_gamma);
 
-   sg->out.RGB.r = (gamma.r == 0) ? value.r : pow(value.r, 1.0f / gamma.r);
-   sg->out.RGB.g = (gamma.g == 0) ? value.g : pow(value.g, 1.0f / gamma.g);
-   sg->out.RGB.b = (gamma.b == 0) ? value.b : pow(value.b, 1.0f / gamma.b);
+   if (value.r < AI_EPSILON)
+      sg->out.RGB.r = 0.0f;
+   else
+      sg->out.RGB.r = (gamma.x == 0.0f || gamma.x == 1.0f) ? value.r : pow(value.r, 1.0f / gamma.x);
+
+   if (value.g < AI_EPSILON)
+      sg->out.RGB.g = 0.0f;
+   else
+      sg->out.RGB.g = (gamma.y == 0.0f || gamma.y == 1.0f) ? value.g : pow(value.g, 1.0f / gamma.y);
+
+   if (value.b < AI_EPSILON)
+      sg->out.RGB.b = 0.0f;
+   else
+      sg->out.RGB.b = (gamma.x == 0.0f || gamma.z == 1.0f) ? value.b : pow(value.b, 1.0f / gamma.z);
+
 }

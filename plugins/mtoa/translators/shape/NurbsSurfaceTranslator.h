@@ -1,4 +1,4 @@
-﻿#ifndef NURBSSURFACETRANSLATOR_H
+#ifndef NURBSSURFACETRANSLATOR_H
 #define NURBSSURFACETRANSLATOR_H
 
 #include "GeometryTranslator.h"

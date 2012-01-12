@@ -1,4 +1,4 @@
-﻿#ifndef HAIRTRANSLATOR_H
+#ifndef HAIRTRANSLATOR_H
 #define HAIRTRANSLATOR_H
 
 #include "GeometryTranslator.h"

@@ -1,4 +1,4 @@
-﻿#ifndef ARNOLDSESSION_H
+#ifndef ARNOLDSESSION_H
 #define ARNOLDSESSION_H
 
 #include "common/MObjectCompare.h"

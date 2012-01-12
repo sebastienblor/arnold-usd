@@ -1,4 +1,4 @@
-﻿#ifndef ATTRHELPER_H
+#ifndef ATTRHELPER_H
 #define ATTRHELPER_H
 
 #include "platform/Platform.h"

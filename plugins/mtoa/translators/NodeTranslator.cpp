@@ -1,4 +1,4 @@
-﻿#include "NodeTranslator.h"
+#include "NodeTranslator.h"
 #include "render/RenderOptions.h"
 #include "extension/ExtensionsManager.h"
 

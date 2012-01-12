@@ -1,4 +1,4 @@
-﻿#ifndef STANDINSTRANSLATOR_H
+#ifndef STANDINSTRANSLATOR_H
 #define STANDINSTRANSLATOR_H
 
 #include "GeometryTranslator.h"

@@ -1,4 +1,4 @@
-﻿#include "ShapeTranslator.h"
+#include "ShapeTranslator.h"
 
 #include <maya/MPlugArray.h>
 #include <maya/MDagPathArray.h>

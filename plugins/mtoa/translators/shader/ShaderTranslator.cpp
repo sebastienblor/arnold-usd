@@ -22,6 +22,7 @@ void CShaderTranslator::Export(AtNode *shader)
 
       if (strcmp(paramName, "name") != 0) ProcessParameter(shader, paramName, AiParamGetType(paramEntry));
    }
+   AiParamIteratorDestroy(nodeParam);
 
    MPlugArray connections;
 
@@ -56,6 +57,7 @@ void CShaderTranslator::ExportMotion(AtNode *shader, unsigned int step)
          ProcessArrayElement(AI_TYPE_MATRIX, matrices, GetMotionStep(), FindMayaObjectPlug(paramName));
       }
    }
+   AiParamIteratorDestroy(nodeParam);
 }
 
 bool CShaderTranslator::ResolveOutputPlug(const MPlug& outputPlug, MPlug &resolvedOutputPlug)

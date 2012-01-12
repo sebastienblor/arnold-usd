@@ -1,4 +1,4 @@
-﻿
+
 #include "ExtensionsManager.h"
 #include "common/DynLibrary.h"
 #include "AbMayaNode.h"

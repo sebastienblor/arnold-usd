@@ -1,4 +1,4 @@
-﻿#ifndef SHADER_TRANSLATORS_H
+#ifndef SHADER_TRANSLATORS_H
 #define SHADER_TRANSLATORS_H
 
 #include "ShaderTranslator.h"
