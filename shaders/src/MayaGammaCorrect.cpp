@@ -39,19 +39,16 @@ shader_evaluate
    AtColor value = AiShaderEvalParamRGB(p_value);
    AtVector gamma = AiShaderEvalParamVec(p_gamma);
 
-   if (value.r < AI_EPSILON)
-      sg->out.RGB.r = 0.0f;
-   else
-      sg->out.RGB.r = (gamma.x == 0.0f || gamma.x == 1.0f) ? value.r : pow(value.r, 1.0f / gamma.x);
+   if (value.r < AI_EPSILON) value.r = (float) AI_EPSILON; 
+   if (value.g < AI_EPSILON) value.g = (float) AI_EPSILON; 
+   if (value.b < AI_EPSILON) value.b = (float) AI_EPSILON; 
 
-   if (value.g < AI_EPSILON)
-      sg->out.RGB.g = 0.0f;
-   else
-      sg->out.RGB.g = (gamma.y == 0.0f || gamma.y == 1.0f) ? value.g : pow(value.g, 1.0f / gamma.y);
+   if (gamma.x < AI_EPSILON) gamma.x = (float) AI_EPSILON; 
+   if (gamma.y < AI_EPSILON) gamma.y = (float) AI_EPSILON; 
+   if (gamma.z < AI_EPSILON) gamma.z = (float) AI_EPSILON; 
 
-   if (value.b < AI_EPSILON)
-      sg->out.RGB.b = 0.0f;
-   else
-      sg->out.RGB.b = (gamma.x == 0.0f || gamma.z == 1.0f) ? value.b : pow(value.b, 1.0f / gamma.z);
+   sg->out.RGB.r = powf(value.r, 1.f / gamma.x); 
+   sg->out.RGB.g = powf(value.g, 1.f / gamma.y); 
+   sg->out.RGB.b = powf(value.b, 1.f / gamma.z); 
 
 }
