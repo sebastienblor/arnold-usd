@@ -114,12 +114,12 @@ class LightTemplate(AttributeTemplate):
     _callbacks = []
     def __init__(self, nodeType):
         super(LightTemplate, self).__init__(nodeType)
-        # create callback to create decay filter
-        if 'aiLightDecay' in self.validFilters() and nodeType not in self.__class__._callbacks:
+        # create callback to attach Maya Decay Rate to Arnold Decay Type
+        if nodeType not in self.__class__._callbacks:
             if pm.mel.getApplicationVersionAsFloat() > 2011:
-                executeDeferred(callbacks.addNodeAddedCallback, self.addDefaultDecay, nodeType)
+                executeDeferred(callbacks.addNodeAddedCallback, self.attachDecay, nodeType)
             else:
-                callbacks.addNodeAddedCallback(self.addDefaultDecay, nodeType)
+                callbacks.addNodeAddedCallback(self.attachDecay, nodeType)
             self.__class__._callbacks.append(nodeType)
 
     def validFilters(self):
@@ -127,23 +127,14 @@ class LightTemplate(AttributeTemplate):
         # TODO: dynamically lookup full list of light filters
         return ['aiLightBlocker', 'aiLightDecay']
 
-    def addDefaultDecay(self, node, *args):
+    def attachDecay(self, node, *args):
         '''
-        called when a light is created to add a default decay filter
+        called when a light is created to attach Maya Decay Rate to Arnold Decay Type
         '''
-        # use a shared light decay node
-        if om.MFileIO.isReadingFile() or om.MFileIO.isOpeningFile():
-            return
-        try:
-            filter = pm.nt.DependNode( 'defaultLightDecay')
-        except pm.MayaObjectError:
-            filter = core.createArnoldNode('aiLightDecay', name='defaultLightDecay', skipSelect=True)
-
-        try :
-            filter.message.connect(node.aiFilters[0])
-            filter.decayType.connect(node.decayRate)
-        except :
-            pass
+        nodeName = ""+node
+        if(cmds.attributeQuery("decayRate", node=nodeName, exists=True)):
+            expr = node.decayRate + "=" + node.aiDecayType+"*2;"
+            cmds.expression(ae=0, s=expr, o=nodeName)
 
     def commonLightAttributes(self):
         self.addControl("aiBounceFactor")
@@ -248,11 +239,6 @@ class LightTemplate(AttributeTemplate):
                     swapConnections(attr, j, k)
                     j+=1
                 pm.disconnectAttr(srcplug, '%s[%s]'%(attr, nfilters-1))
-                # for decay filters, if they were connected to light's decayRate
-                try :
-                    pm.disconnectAttr('%s.%s' % (filter, 'decayType'), '%s.%s' % (self.nodeName, 'decayRate'))
-                except :
-                    pass
                 # node might be used elsewhere, so we can't just delete it
                 # Note: with proper 'existsWithoutConnections' settings Maya would do it if it isn't
                 # connected to anything anymore

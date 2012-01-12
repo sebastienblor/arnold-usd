@@ -59,7 +59,7 @@ templates.registerTranslatorUI(HairSystemTemplate, "hairSystem", "<built-in>")
 class AmbientLightTemplate(lightTemplate.LightTemplate):
     # TODO: handle filter association via metadata
     def validFilters(self):
-        return ['aiLightBlocker', 'aiLightDecay']
+        return ['aiLightBlocker']
 
     def setup(self):
         self.addControl("aiNormalize")  
@@ -99,6 +99,7 @@ class PointLightTemplate(lightTemplate.LightTemplate):
     def validFilters(self):
         return ['aiLightBlocker', 'aiLightDecay']
     def setup(self):
+        self.addControl("aiDecayType")
         self.addControl("aiExposure")
         
         self.addSeparator()
@@ -124,6 +125,7 @@ class SpotLightTemplate(lightTemplate.LightTemplate):
     def validFilters(self):
         return ['aiLightBlocker', 'aiLightDecay', 'aiBarndoor', 'aiGobo']
     def setup(self):
+        self.addControl("aiDecayType")
         self.addControl("aiExposure")
         
         self.addSeparator()
@@ -157,6 +159,7 @@ class AreaLightTemplate(lightTemplate.LightTemplate):
         return ['aiLightBlocker', 'aiLightDecay']
 
     def setup(self):
+        self.addControl("aiDecayType")
         self.addControl("aiExposure")
         
         self.addSeparator()

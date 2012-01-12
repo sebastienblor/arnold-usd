@@ -18,14 +18,6 @@ def aiLightDecayTemplate(nodeName):
 
     cmds.editorTemplate(beginScrollLayout=True)
 
-    cmds.editorTemplate(beginLayout="Decay Attributes", collapse=False)
-
-    cmds.editorTemplate("decay_type", addControl=True, label="Geometry Type")
-    cmds.editorTemplate("decay_radius", addControl=True, label="Density")
-    cmds.editorTemplate("decay_clamp", addControl=True, label="Geometry Type")
-
-    cmds.editorTemplate(endLayout=True)
-
     cmds.editorTemplate(beginLayout="Attenuation", collapse=False)
 
     cmds.editorTemplate("use_near_atten", aeCallback(checkNearAtten), addControl=True, label="Use Near Attenuation")
@@ -37,12 +29,6 @@ def aiLightDecayTemplate(nodeName):
     cmds.editorTemplate("use_far_atten", aeCallback(checkNearAtten), addControl=True, label="Use Far Attenuation")
     cmds.editorTemplate("far_start", addControl=True, label="Far Start")
     cmds.editorTemplate("far_end", addControl=True, label="Far End")
-
-    cmds.editorTemplate(endLayout=True)
-
-    cmds.editorTemplate(beginLayout="Transform Attributes", collapse=False)
-
-    cmds.editorTemplate("geometry_matrix", addControl=True, label="Geometry Matrix")
 
     cmds.editorTemplate(endLayout=True)
 
