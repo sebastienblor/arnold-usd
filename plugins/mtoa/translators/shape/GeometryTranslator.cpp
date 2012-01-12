@@ -16,7 +16,8 @@ namespace
             AtPoint pnt;
             for(unsigned int J = 0; (J < size); ++J)
             {
-               AiV3Create(pnt, data[index++], data[index++], data[index++]);
+               AiV3Create(pnt, data[index+0], data[index+1], data[index+2]);
+               index += 3;
                AiArraySetPnt(arr, J + (size * step), pnt);
             }
          }
@@ -27,7 +28,8 @@ namespace
             AtVector vec;
             for(unsigned int J = 0; (J < size); ++J)
             {
-               AiV3Create(vec, data[index++], data[index++], data[index++]);
+               AiV3Create(vec, data[index+0], data[index+1], data[index+2]);
+               index += 3;
                AiArraySetVec(arr, J + (size * step), vec);
             }
          }
