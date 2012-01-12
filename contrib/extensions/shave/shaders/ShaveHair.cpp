@@ -104,8 +104,10 @@ shader_evaluate
    float oldU = sg->u;
    float oldV = sg->v;
 
-   AiUDataGetFlt(node->params[p_uparam].STR, &(sg->u));
-   AiUDataGetFlt(node->params[p_vparam].STR, &(sg->v));
+   AtParamValue *params = AiNodeGetParams(node);
+
+   AiUDataGetFlt(params[p_uparam].STR, &(sg->u));
+   AiUDataGetFlt(params[p_vparam].STR, &(sg->v));
    //float getGamma   = AiShaderEvalParamFlt(p_gamma);
    float ambdiff    = AiShaderEvalParamFlt(p_ambdiff);
    float gloss      = AiShaderEvalParamFlt(p_gloss);
@@ -121,8 +123,8 @@ shader_evaluate
    ShaderData *data = (ShaderData*)AiNodeGetLocalData(node);
 
    // FIXME: we need to gamma correct according to global settings
-   AiUDataGetRGB(node->params[p_rootcolor].STR, &root_color);
-   AiUDataGetRGB(node->params[p_tipcolor].STR, &tip_color);
+   AiUDataGetRGB(params[p_rootcolor].STR, &root_color);
+   AiUDataGetRGB(params[p_tipcolor].STR, &tip_color);
 
    //AiColorGamma(&root_color, getGamma);
    //AiColorGamma(&tip_color, getGamma);
