@@ -1,0 +1,5 @@
+Applying a shading group to a polymesh with smooth mesh enabled will crash Maya
+
+Applying a shading group to a polymesh with smooth mesh enabled will crash Maya (Ticket #406)
+
+author: pedro.gomez
