@@ -422,16 +422,38 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
 
       // Export face to shader indices
       // First convert from MIntArray to unsigned int vector
+      
+      int divisions = 0;
+      int facesOffset = 0;
+      int multiplier = 0;
+      
+      if (m_fnMesh.findPlug("displaySmoothMesh").asBool())
+      {
+         MMeshSmoothOptions options;
+         MStatus status = m_fnMesh.getSmoothMeshDisplayOptions(options);
+         
+         CHECK_MSTATUS(status);
+         
+         divisions = options.divisions();
+         if(divisions > 0)
+            multiplier = (pow(4.0f, (divisions-1)));
+      }
+      
       std::vector<unsigned int> shidxs;
-      for(unsigned int i = 0; i < indices.length(); i++)
+      for (unsigned int i = 0; i < indices.length(); i++)
+      {
+         int subdivisions = multiplier * m_fnMesh.polygonVertexCount(i);
          shidxs.push_back(indices[i]);
+         for (int j = 0; j < subdivisions -1; j++)
+            shidxs.push_back(indices[i]);
+      }
       AiNodeSetArray(polymesh, "shidxs", AiArrayConvert((int)shidxs.size(), 1, AI_TYPE_UINT, &(shidxs[0])));
    }
 
    //
    // DISPLACEMENT
    //
-   // Currently does not work for per-face assignment
+   // Currently Arnold does not support displacement per-face assignment
    if (!shadingGroup.isNull())
    {
       MPlugArray        connections;
@@ -650,9 +672,8 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
 
       if (exportReferenceObjects)
       {
-           AiNodeSetArray(polymesh, "Pref", AiArrayConvert(m_fnMesh.numVertices(), 1, AI_TYPE_POINT, &(refVertices[0])));
+         AiNodeSetArray(polymesh, "Pref", AiArrayConvert(m_fnMesh.numVertices(), 1, AI_TYPE_POINT, &(refVertices[0])));
          AiNodeSetArray(polymesh, "Nref", AiArrayConvert(m_fnMesh.numNormals(), 1, AI_TYPE_VECTOR, &(refNormals[0])));
-
       }
 
       if (exportUVs)
