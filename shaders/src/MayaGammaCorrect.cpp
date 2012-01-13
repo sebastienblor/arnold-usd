@@ -39,9 +39,9 @@ shader_evaluate
    AtColor value = AiShaderEvalParamRGB(p_value);
    AtVector gamma = AiShaderEvalParamVec(p_gamma);
 
-   if (value.r < AI_EPSILON) value.r = (float) AI_EPSILON; 
-   if (value.g < AI_EPSILON) value.g = (float) AI_EPSILON; 
-   if (value.b < AI_EPSILON) value.b = (float) AI_EPSILON; 
+   if (value.r < 0.f) value.r = 0.f; 
+   if (value.g < 0.f) value.g = 0.f; 
+   if (value.b < 0.f) value.b = 0.f; 
 
    if (gamma.x < AI_EPSILON) gamma.x = (float) AI_EPSILON; 
    if (gamma.y < AI_EPSILON) gamma.y = (float) AI_EPSILON; 
