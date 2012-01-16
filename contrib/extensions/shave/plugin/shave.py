@@ -1,16 +1,16 @@
-import maya.cmds as cmds
-from mtoa.ui.ae.shapeTemplate import translatorUI
+import pymel.core as pm
+from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
+import mtoa.ui.ae.shapeTemplate as templates
+from mtoa.ui.ae.shapeTemplate import ShapeTranslatorTemplate
 
-@translatorUI("shaveHair", "shave")
-def shaveHair(ui):
-    ui.renderStatsAttributes()
-    ui.commonShapeAttributes()
-    ui.addSeparator()
+class ShaveTemplate(ShapeTranslatorTemplate):
+    def setup(self):
+        self.addControl("aiOverrideHair")
+        self.addControl("aiHairShader")
+    
+        self.addSeparator()
+    
+        self.addControl("aiMinPixelWidth")
+        self.addControl("aiMode")
 
-    ui.addControl("aiOverrideHair")
-    ui.addControl("aiHairShader")
-
-    ui.addSeparator()
-
-    ui.addControl("aiMinPixelWidth")
-    ui.addControl("aiMode")
+templates.registerTranslatorUI(ShaveTemplate, "shaveHair", "shave")        
