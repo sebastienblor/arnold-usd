@@ -101,7 +101,7 @@ MStatus CMayaScene::Begin(ArnoldSessionMode mode)
       //renderOptions.SetBatch(false);
       renderOptions.SetProgressive(false);
       //FIXME: renderOptions.SetupLog() should do this for given mode
-      MtoaSetupSwatchLogging();
+      MtoaSetupLogging(DEFAULT_SWATCH_LOG_FLAGS);
    }
    else if (mode == MTOA_SESSION_ASS)
    {

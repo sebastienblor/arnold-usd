@@ -51,12 +51,12 @@ void LoadPlugins()
    }
 }
 
-bool ArnoldUniverseBegin()
+bool ArnoldUniverseBegin(int logFlags)
 {
    if (!AiUniverseIsActive())
    {
       AiBegin();
-      MtoaSetupLogging();
+      MtoaSetupLogging(logFlags);
       LoadPlugins();
       ReadMetafile();
       return true;

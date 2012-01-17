@@ -14,7 +14,7 @@ DLLEXPORT void InstallNodes();
 DLLEXPORT void LoadPlugins();
 
 // return true if the universe had to be initialized (and thus should be uninitialized), false if it was already active
-DLLEXPORT bool ArnoldUniverseBegin();
+DLLEXPORT bool ArnoldUniverseBegin(int logFlags = DEFAULT_LOG_FLAGS);
 DLLEXPORT void ArnoldUniverseEnd();
 
 #endif // UNIVERSE_H_

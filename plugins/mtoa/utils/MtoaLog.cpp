@@ -93,49 +93,15 @@ DLLEXPORT void MtoaLogCallback(int logmask, int severity, const char *msg_string
 // Setup a default logging level to use when not rendering.
 // Logging parameters are stored on the render options node and are only put in place when a render
 // is triggered.
-DLLEXPORT void MtoaSetupLogging()
+DLLEXPORT void MtoaSetupLogging(int logFlags)
 {
    AiMsgSetLogFileName(MString("$MTOA_LOG_PATH/arnold.log").expandEnvironmentVariablesAndTilde().asChar());
-#ifdef NDEBUG
-   int defaultLogFlags = (AI_LOG_ALL & ~AI_LOG_DEBUG);
-#else
-   int defaultLogFlags = AI_LOG_ALL;
-#endif
 
-   // MString loglevelStr = MString("$MTOA_LOG_VERBOSITY").expandEnvironmentVariablesAndTilde();
-   // if (loglevelStr.isShort())
-   //    defaultLogFlags = GetFlagsFromVerbosityLevel(loglevelStr.asShort());
-
-   AiMsgSetConsoleFlags(defaultLogFlags | AI_LOG_COLOR);
-   AiMsgSetLogFileFlags(defaultLogFlags);
+   AiMsgSetConsoleFlags(logFlags | AI_LOG_COLOR);
+   AiMsgSetLogFileFlags(logFlags);
    // Not working correctly until we can add to callback rather than replace it,
    // or have access to original callback code
    // AiMsgSetCallback(MtoaLogCallback);
 }
 
-void MtoaSetupSwatchLogging()
-{
-   AiMsgSetLogFileName(MString("$MTOA_LOG_PATH/arnold.log").expandEnvironmentVariablesAndTilde().asChar());
-#ifdef NDEBUG
-   int defaultLogFlags = AI_LOG_WARNINGS | AI_LOG_ERRORS | AI_LOG_TIMESTAMP | AI_LOG_BACKTRACE;
-#else
-   int defaultLogFlags = AI_LOG_ALL;
-#endif
 
-   // MString loglevelStr = MString("$MTOA_SWATCH_LOG_VERBOSITY").expandEnvironmentVariablesAndTilde();
-   // if (loglevelStr.isShort())
-   //    defaultLogFlags = GetFlagsFromVerbosityLevel(loglevelStr.asShort());
-
-
-   // TODO: Should we be using render options for logging, or is it better not to clutter
-   // the log with swatch output?
-   // If we use global render options, m_renderSession->Init() already did
-   // m_renderSession->m_renderOptions.SetupLog();
-   // TODO: read these from an environment variable
-
-   AiMsgSetConsoleFlags(defaultLogFlags | AI_LOG_COLOR);
-   AiMsgSetLogFileFlags(defaultLogFlags);
-   // Not working correctly until we can add to callback rather than replace it,
-   // or have access to original callback code
-   // AiMsgSetCallback(MtoaLogCallback);
-}
