@@ -44,7 +44,9 @@ vars.AddVariables(
       EnumVariable('COMPILER'   , 'Set compiler to use'       , ALLOWED_COMPILERS[0], allowed_values=ALLOWED_COMPILERS),
       EnumVariable('TARGET_ARCH', 'Allows compiling for a different architecture', system.host_arch(), allowed_values=system.get_valid_target_archs()),
       BoolVariable('SHOW_CMDS'  , 'Display the actual command lines used for building', False),
-
+      PathVariable('LINK', 'Linker to use', None),
+      PathVariable('SHCXX', 'C++ compiler used for generating shared-library objects', None),
+                   
       BoolVariable('COLOR_CMDS' , 'Display colored output messages when building', False),
       EnumVariable('SHOW_TEST_OUTPUT', 'Display the test log as it is being run', 'single', allowed_values=('always', 'never', 'single')),
       BoolVariable('UPDATE_REFERENCE', 'Update the reference log/image for the specified targets', False),

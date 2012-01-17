@@ -375,24 +375,47 @@ MStatus CRenderSwatchGenerator::AssignNode(AtNode* arnoldNode, CNodeTranslator* 
    // If we are swatching a light or light filter
 
    if (m_swatchClass == SWATCH_LIGHT) {
-      AiNodeSetPnt(arnoldNode, "position", -5.f, 5.f, 5.f);
+      // Build matrix for a light positioned at -1, 1, 1 looking at 0, 0, 0
+      // NOTE: if it's considered too dark make it closer, do NOT overwrite
+      // intensity or the actual swatched light intensity won't be used
+      // which is what we want for swatching
+      AtMatrix matrix;
+      AtVector frame[4];
+      AiV3Create(frame[0], 0.f, 0.f, 1.73f);
+      AiV3Create(frame[1], 0.707107f, 0.408248f, -0.57735f);
+      AiV3Create(frame[2], 0.0f, 0.816497f, 0.57735f);
+      AiV3Create(frame[3], 0.707107f, -0.408248f, 0.57735f);
+      AiM4Frame(matrix, &frame[0], &frame[1], &frame[2], &frame[3]);
+
+      AiNodeSetMatrix(arnoldNode, "matrix", matrix);
    }
-   else if (m_swatchClass == SWATCH_LIGHTFILTER)
+   else if (m_swatchClass == SWATCH_LIGHTFILTER || m_swatchClass == SWATCH_ATMOSPHERE)
    {
-      // Use a spot light to preview light filters
+      // Use a spot light at -1, 1, 1 looking at 0, 0, 0
+      // to preview light filters and atmosphere effects
       AtNode *light = AiNode("spot_light");
       AiNodeSetStr(light, "name", "light");
-      AiNodeSetPnt(light, "position", -5.f, 5.f, 5.f);
+      AiNodeSetFlt(light, "intensity", 1.f);
+      AiNodeSetPnt(light, "position", -1.f, 1.f, 1.f);
       AiNodeSetPnt(light, "look_at", 0.f, 0.f, 0.f);
+      // AiNodeSetFlt(light, "cone_angle", 30.f);
 
-      AiNodeSetPtr(light, "filters", arnoldNode);
+      if (m_swatchClass == SWATCH_LIGHTFILTER)
+      {
+         AiNodeSetPtr(light, "filters", arnoldNode);
+      }
+      else if (m_swatchClass == SWATCH_ATMOSPHERE)
+      {
+         AiNodeSetBool(light, "affect_volumetrics", true);
+         AiNodeSetBool(light, "cast_volumetric_shadows", true);
+      }
    }
    else
    {
-      // Default swatch light
-      AtNode *light = AiNode("point_light");
+      // Default light for swatching shaders etc
+      AtNode *light = AiNode("distant_light");
       AiNodeSetStr(light, "name", "light");
-      AiNodeSetPnt(light, "position", -5.f, 5.f, 5.f);
+      AiNodeSetVec(light, "direction", 1.0f, -1.f, -1.0f);
    }
 
    // Set the global options for background and atmosphere
@@ -407,6 +430,7 @@ MStatus CRenderSwatchGenerator::AssignNode(AtNode* arnoldNode, CNodeTranslator* 
    else
    {
       // Add a default sky shader to get solid alpha
+      // TODO : options to use a custom environment for swatches or use render setting's?
       AtNode* background = AiNode("sky");
       AiNodeSetStr(background, "name", "background");
       AiNodeSetRGB (background, "color", 0.0f, 0.0f, 0.0f);
