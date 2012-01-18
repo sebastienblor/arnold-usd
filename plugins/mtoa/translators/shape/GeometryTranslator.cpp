@@ -424,7 +424,7 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
       // First convert from MIntArray to unsigned int vector
       
       int divisions = 0;
-      int facesOffset = 0;
+      // int facesOffset = 0;
       int multiplier = 0;
       
       if (m_fnMesh.findPlug("displaySmoothMesh").asBool())
@@ -436,7 +436,7 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
          
          divisions = options.divisions();
          if(divisions > 0)
-            multiplier = (pow(4.0f, (divisions-1)));
+            multiplier = static_cast<int> (pow(4.0f, (divisions-1)));
       }
       
       std::vector<unsigned int> shidxs;
