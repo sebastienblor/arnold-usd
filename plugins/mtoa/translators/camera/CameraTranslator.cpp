@@ -99,7 +99,11 @@ void CCameraTranslator::ExportImagePlane(unsigned int step, MObject& imgPlane)
 
          //0:Fill 1:Best 2:Horizontal 3:Vertical 4:ToSize
          mImage.getSize(iWidth, iHeight);
-         double iAspect = double(iWidth) / iHeight;
+         double iAspect = 1.0;
+         if (iWidth > 0 && iHeight > 0)
+         {
+            iAspect = double(iWidth) / iHeight;
+         }
          double planeAspect = (planeSizeX * lensSqueeze) / planeSizeY;
          if (iAspect != planeAspect)
          {
