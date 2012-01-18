@@ -1,0 +1,6 @@
+Rendering a camera with image plane and no texture associated gives the error "incorrectly defined uv coordinates"
+
+Rendering a camera with image plane and no texture associated gives the error "incorrectly defined uv coordinates" (ticket #680).
+This also tests the cameraImagePlane functionality.
+
+author: r3d
