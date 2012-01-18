@@ -182,7 +182,7 @@ shader_evaluate
        sg->u = inU;
        sg->v = inV;
    }
-   else if (strlen(filename) != 0)
+   else if (idata->texture_handle != NULL)
    {   
        // do texture lookup
        AtTextureParams texparams;
