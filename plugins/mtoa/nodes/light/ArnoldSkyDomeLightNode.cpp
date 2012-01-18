@@ -82,7 +82,6 @@ MStatus CArnoldSkyDomeLightNode::initialize()
    // s_castShadows = s_attributes.MakeInput("cast_shadows");
    // s_exposure = s_attributes.MakeInput("exposure");
    // s_samples = s_attributes.MakeInput("samples");
-   // s_attributes.MakeInput("mis");
    // s_normalize = s_attributes.MakeInput("normalize");
    // s_attributes.MakeInput("bounce_factor");
    // s_attributes.MakeInput("bounces");

@@ -70,7 +70,6 @@ void CLightTranslator::Export(AtNode* light)
    AiNodeSetBool(light, "cast_shadows",    FindMayaObjectPlug("aiCastShadows").asBool());
    AiNodeSetFlt(light,  "exposure",        FindMayaObjectPlug("aiExposure").asFloat());
    AiNodeSetInt(light,  "samples",         FindMayaObjectPlug("aiSamples").asInt());
-   AiNodeSetBool(light, "mis",             FindMayaObjectPlug("aiMis").asBool());
    AiNodeSetBool(light, "normalize",       FindMayaObjectPlug("aiNormalize").asBool());
    AiNodeSetInt(light,  "bounces",         FindMayaObjectPlug("aiBounces").asInt());
    AiNodeSetFlt(light,  "bounce_factor",   FindMayaObjectPlug("aiBounceFactor").asFloat());
@@ -123,7 +122,6 @@ void CLightTranslator::MakeCommonAttributes(CBaseAttrHelper& helper)
    helper.MakeInput("cast_shadows");
    helper.MakeInput("exposure");
    helper.MakeInput("samples");
-   helper.MakeInput("mis"); // Deprecated in the #586 refactoring November 2012
    helper.MakeInput("normalize");
    helper.MakeInput("bounce_factor");
    helper.MakeInput("bounces");
