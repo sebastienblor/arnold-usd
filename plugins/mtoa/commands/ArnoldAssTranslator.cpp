@@ -2,7 +2,7 @@
 // Alternative to exportAssCmd as a proper Maya file translator
 // Advantages :
 // Allows the file type to be recognized by Maya
-// file -type "ArnoldSceneSource" becomes available
+// file -type "ASS" becomes available
 // Correct sub-directory will be created in projects and proposed as default path for write / read
 // It's easier to track scenes references when proper use of the file
 
@@ -13,8 +13,8 @@
 #include <maya/MStringArray.h>
 
 // Set some fixed values in the translator class
-char CArnoldAssTranslator::fileTypeImport[]        = "ArnoldSceneSource";
-char CArnoldAssTranslator::fileTypeExport[]        = "ArnoldSceneSource Exporter";
+char CArnoldAssTranslator::fileTypeImport[]        = "ASS";
+char CArnoldAssTranslator::fileTypeExport[]        = "ASS Export";
 char CArnoldAssTranslator::fileExtension[]         = "ass";
 char CArnoldAssTranslator::fileIcon[]              = "arnoldAssFile.xpm";
 char CArnoldAssTranslator::optionScriptImport[]    = "";
@@ -189,7 +189,7 @@ MStatus CArnoldAssTranslator::reader(const MFileObject& file,
 // Maya calls this method to have the translator write out a file.
 // At the moment just a call to arnoldExportAss cmd but would be cleaner to move
 // the code of arnoldExportAss cmd here and use the file command :
-// 'file -type "arnoldSceneSource"'
+// 'file -type "ASS"'
 MStatus CArnoldAssTranslator::writer(const MFileObject& file,
                                      const MString& options,
                                      MPxFileTranslator::FileAccessMode mode)
