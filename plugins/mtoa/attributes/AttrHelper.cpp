@@ -879,6 +879,7 @@ MObject CBaseAttrHelper::MakeOutput()
    }
    const char* typeName = AiParamGetTypeName(data.type);
    const char* attrName;
+
    if (AiMetaDataGetStr(m_nodeEntry, NULL, "maya.output_name", &attrName))
    {
       data.name = MString(attrName);
@@ -976,7 +977,6 @@ MObject CBaseAttrHelper::MakeOutput()
       case AI_TYPE_BYTE:
       case AI_TYPE_POINTER:
       {
-         const char* typeName = AiParamGetTypeName(data.type);
          AiMsgWarning("[mtoa] Unable to create output attribute \"%s\": parameters of type %s are not supported", data.name.asChar(), typeName);
          return MObject::kNullObj;
       }
