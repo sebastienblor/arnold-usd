@@ -459,7 +459,7 @@ MString CRenderSession::GetAssName(const MString& customName,
       {
          // If we got an active project, query the subdirectory registered for ass files
          dirProject = MGlobal::executeCommandStringResult("workspace -q -rd \"" + curProject + "\"");
-         assDir = MGlobal::executeCommandStringResult("workspace -q -fileRuleEntry ArnoldSceneSource");
+         assDir = MGlobal::executeCommandStringResult("workspace -q -fileRuleEntry ASS");
       }
       // Use current project ass files subdir, or if none found, use current maya scene dir
       if (dirProject.numChars() && assDir.numChars())
