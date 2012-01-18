@@ -1,4 +1,5 @@
 ﻿import pymel.core as pm
+import maya.cmds as cmds
 import maya.OpenMaya as om
 import mtoa.ui.ae.lightTemplate as lightTemplate
 from mtoa.ui.ae.utils import aeCallback
@@ -126,7 +127,7 @@ class PointLightTemplate(lightTemplate.LightTemplate):
     def validFilters(self):
         return ['aiLightBlocker', 'aiLightDecay']
     def setup(self):
-        self.addControl("aiDecayType")
+        cmds.editorTemplate("aiDecayType", aeCallback(self.customDecayTypeAttach),  addControl=True)
         self.addControl("aiExposure")
         
         self.addSeparator()
@@ -145,6 +146,17 @@ class PointLightTemplate(lightTemplate.LightTemplate):
         self.addControl("aiCastVolumetricShadows")
         self.addSeparator()
         self.commonLightAttributes()
+    # attach Maya Decay Rate to Arnold Decay Type
+    def customDecayTypeAttach(self, attr):
+        nodeName = ""+attr
+        if(cmds.attributeQuery("decayRate", node=nodeName, exists=True)):
+            destAttrName = nodeName + ".decayRate"
+            origAttrName = nodeName + ".aiDecayType"
+            cmds.setAttr(destAttrName, lock=False)
+            value = cmds.getAttr(origAttrName)
+            cmds.setAttr(destAttrName, lock=False)
+            cmds.setAttr(destAttrName, value*2)
+            cmds.setAttr(destAttrName, lock=True)
 templates.registerTranslatorUI(PointLightTemplate, "pointLight")
 
 class SpotLightTemplate(lightTemplate.LightTemplate):
