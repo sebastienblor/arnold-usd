@@ -114,27 +114,11 @@ class LightTemplate(AttributeTemplate):
     _callbacks = []
     def __init__(self, nodeType):
         super(LightTemplate, self).__init__(nodeType)
-        # create callback to attach Maya Decay Rate to Arnold Decay Type
-        if nodeType not in self.__class__._callbacks:
-            if pm.mel.getApplicationVersionAsFloat() > 2011:
-                executeDeferred(callbacks.addNodeAddedCallback, self.attachDecay, nodeType)
-            else:
-                callbacks.addNodeAddedCallback(self.attachDecay, nodeType)
-            self.__class__._callbacks.append(nodeType)
 
     def validFilters(self):
         '''override in sub-class to provide the list of filters valid for a given light type'''
         # TODO: dynamically lookup full list of light filters
         return ['aiLightBlocker', 'aiLightDecay']
-
-    def attachDecay(self, node, *args):
-        '''
-        called when a light is created to attach Maya Decay Rate to Arnold Decay Type
-        '''
-        nodeName = ""+node
-        if(cmds.attributeQuery("decayRate", node=nodeName, exists=True)):
-            expr = node.decayRate + "=" + node.aiDecayType+"*2;"
-            cmds.expression(ae=0, s=expr, o=nodeName)
 
     def commonLightAttributes(self):
         self.addControl("aiBounceFactor")
