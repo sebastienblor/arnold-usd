@@ -32,6 +32,11 @@ enum MayaFileParams
 
 };
 
+typedef struct AtImageData
+{
+   AtTextureHandle* texture_handle;
+} AtImageData;
+
 node_parameters
 {
    AiParameterPNT2("coverage", 1.0f, 1.0f);
@@ -54,19 +59,29 @@ node_parameters
 
 node_initialize
 {
+   AtImageData *idata = (AtImageData*) AiMalloc(sizeof(AtImageData));
+   idata->texture_handle = NULL;
+   AiNodeSetLocalData(node, idata);
 }
 
 node_update
 {
+   AtImageData *idata = (AtImageData*) AiNodeGetLocalData(node);
+   AiTextureHandleDestroy(idata->texture_handle);
+   idata->texture_handle = AiTextureHandleCreate(AiNodeGetStr(node, "filename"));
 }
 
 node_finish
 {
+   AtImageData *idata = (AtImageData*) AiNodeGetLocalData(node);
+   AiTextureHandleDestroy(idata->texture_handle);
+   AiFree(AiNodeGetLocalData(node));
 }
 
 shader_evaluate
 {
-   const char *filename = AiShaderEvalParamStr(p_filename);
+   AtImageData *idata = (AtImageData*) AiNodeGetLocalData(node);
+   
    AtPoint2 coverage = AiShaderEvalParamPnt2(p_coverage);
    AtPoint2 translate = AiShaderEvalParamPnt2(p_translate_frame);
    float frotate = AiShaderEvalParamFlt(p_rotate_frame);
@@ -242,7 +257,7 @@ shader_evaluate
       AiTextureParamsSetDefaults(&texparams);
       // setup filter?
 
-      sg->out.RGBA = AiTextureAccess(sg, filename, &texparams);
+      sg->out.RGBA = AiTextureHandleAccess(sg, idata->texture_handle, &texparams, NULL);
       MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA);
 
       // restore shader globals

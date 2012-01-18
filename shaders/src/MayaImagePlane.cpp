@@ -23,6 +23,11 @@ enum ImagePlaneParams {
     p_camera
 };
 
+typedef struct AtImageData
+{
+   AtTextureHandle* texture_handle;
+} AtImageData;
+
 inline float mod(float n, float d)
 {
    return (n - (floor(n / d) * d));
@@ -85,19 +90,29 @@ node_initialize
 
     AiNodeIteratorDestroy(iter);
     */
+   AtImageData *idata = (AtImageData*) AiMalloc(sizeof(AtImageData));
+   idata->texture_handle = NULL;
+   AiNodeSetLocalData(node, idata);    
 }
 
 node_update
 {
+   AtImageData *idata = (AtImageData*) AiNodeGetLocalData(node);
+   AiTextureHandleDestroy(idata->texture_handle);
+   idata->texture_handle = AiTextureHandleCreate(AiNodeGetStr(node, "filename"));
 }
 
 node_finish
 {
+   AtImageData *idata = (AtImageData*) AiNodeGetLocalData(node);
+   AiTextureHandleDestroy(idata->texture_handle);
+   AiFree(AiNodeGetLocalData(node));
 }
 
 shader_evaluate
 {
-   const char *filename = AiShaderEvalParamStr(p_filename);
+   AtImageData *idata = (AtImageData*) AiNodeGetLocalData(node);
+   
    AtRGB color = AiShaderEvalParamRGB(p_color);
    AtRGB colorGain = AiShaderEvalParamRGB(p_colorGain);
    AtRGB colorOffset = AiShaderEvalParamRGB(p_colorOffset);
@@ -112,7 +127,7 @@ shader_evaluate
    result.b = color.b;
    result.a = 1.0f;
 
-   if (strlen(filename) != 0 && (coverage.x != 1.0f || coverage.y != 1.0f))
+   if (idata->texture_handle != NULL && (coverage.x != 1.0f || coverage.y != 1.0f))
    {
        float inU = sg->u;
        float inV = sg->v;
@@ -162,7 +177,7 @@ shader_evaluate
        AiTextureParamsSetDefaults(&texparams);
        // setup filter?
 
-       result = AiTextureAccess(sg, filename, &texparams);
+       result = AiTextureHandleAccess(sg, idata->texture_handle, &texparams, NULL);
        //AtRGBA result = color;
        sg->u = inU;
        sg->v = inV;
@@ -173,7 +188,7 @@ shader_evaluate
        AtTextureParams texparams;
        AiTextureParamsSetDefaults(&texparams);
        // setup filter?
-       result = AiTextureAccess(sg, filename, &texparams);
+       result = AiTextureHandleAccess(sg, idata->texture_handle, &texparams, NULL);
    }
    if (displayMode == 2)
    {
