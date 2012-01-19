@@ -49,9 +49,14 @@ def _overrideMelScripts():
     # per version of maya
     root = utils.mtoaPackageRoot()
     maya_version = versions.shortName()
-    for f in glob.glob(os.path.join(root, maya_version, 'mel', '*.mel')):
+    meldir = os.path.join(root, maya_version, 'mel')
+    os.environ['MAYA_SCRIPT_PATH'] = meldir + os.pathsep + os.environ['MAYA_SCRIPT_PATH']
+    for f in glob.glob(os.path.join(meldir, '*.mel')):
         print "Maya %s sourcing MEL override %s" % (maya_version, f)
         pm.mel.source(pm.mel.encodeString(f))
+        test = pm.mel.whatIs(os.path.split(f)[1]).split(': ', 1)
+        if len(test) == 2 and test[1] != f:
+            pm.warning("Overriding failed: Maya is still using %s" % test[1])
 
 def _overridePythonScripts():
     root = utils.mtoaPackageRoot()
