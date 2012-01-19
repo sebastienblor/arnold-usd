@@ -57,7 +57,7 @@ MObject CArnoldStandInShape::s_frameNumber;
 MObject CArnoldStandInShape::s_useSubFrame;
 MObject CArnoldStandInShape::s_frameOffset;
 MObject CArnoldStandInShape::s_data;
-MObject CArnoldStandInShape::s_loadAtInit;
+MObject CArnoldStandInShape::s_deferStandinLoad;
 MObject CArnoldStandInShape::s_scale;
 MObject CArnoldStandInShape::s_boundingBoxMin;
 MObject CArnoldStandInShape::s_boundingBoxMax;
@@ -514,7 +514,7 @@ MBoundingBox CArnoldStandInShape::boundingBox() const
    bbMin.get(minCoords);
    bbMax.get(maxCoords);
 
-   if(geom->loadAtInit)
+   if(geom->deferStandinLoad)
    {
       // Calculate scaled BBox dimensions
       float halfSize[3] =
@@ -594,11 +594,11 @@ MStatus CArnoldStandInShape::initialize()
    nAttr.setStorable(true);
    addAttribute(s_data);
 
-   s_loadAtInit = nAttr.create("loadAtInit", "loadAtInit", MFnNumericData::kBoolean, 0);
+   s_deferStandinLoad = nAttr.create("deferStandinLoad", "deferStandinLoad", MFnNumericData::kBoolean, 0);
    nAttr.setHidden(false);
    nAttr.setKeyable(true);
    nAttr.setStorable(true);
-   addAttribute(s_loadAtInit);
+   addAttribute(s_deferStandinLoad);
 
    s_scale = nAttr.create("BoundingBoxScale", "bboxScale", MFnNumericData::kFloat, 1.0);
    nAttr.setHidden(false);
@@ -638,7 +638,7 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
 
    MString tmpFilename = fGeometry.filename;
    MString tmpDso = fGeometry.dso;
-   bool tmpLoadAtInit =  fGeometry.loadAtInit;
+   bool tmpDeferStandinLoad =  fGeometry.deferStandinLoad;
    float tmpScale =  fGeometry.scale;
    bool tmpUseFrameExtension = fGeometry.useFrameExtension;
    float tmpFrameStep = fGeometry.frame + fGeometry.frameOffset;
@@ -665,8 +665,8 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
    plug.setAttribute(s_frameOffset);
    plug.getValue(fGeometry.frameOffset);
 
-   plug.setAttribute(s_loadAtInit);
-   plug.getValue(fGeometry.loadAtInit);
+   plug.setAttribute(s_deferStandinLoad);
+   plug.getValue(fGeometry.deferStandinLoad);
    
    plug.setAttribute(s_scale);
    plug.getValue(fGeometry.scale);
@@ -719,7 +719,7 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
       fGeometry.filename = fGeometry.dso;
    }
    
-   if (fGeometry.loadAtInit != tmpLoadAtInit || fGeometry.scale != tmpScale)
+   if (fGeometry.deferStandinLoad != tmpDeferStandinLoad || fGeometry.scale != tmpScale)
    {
       fGeometry.updateBBox = true;
    }
@@ -889,7 +889,7 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
          geom->dList = gGLFT->glGenLists(2);
 
       // Only show scaled BBox in this case
-      if(geom->loadAtInit)
+      if(geom->deferStandinLoad)
       {
          MBoundingBox m_bbox = geom->bbox;
          float minPt[4];
@@ -1091,7 +1091,7 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
    
    gGLFT->glCallList(geom->dList);
    // Draw scaled BBox
-   if(geom->loadAtInit)
+   if(geom->deferStandinLoad)
    {
       gGLFT->glCallList(geom->dList+1);
    }

@@ -102,8 +102,8 @@ def ArnoldStandInTemplateDataReplace(plugName) :
     print 'ArnoldStandInTemplateDataReplace',plugName
     cmds.textField( "standInData", edit=True, text=cmds.getAttr(plugName) )
 
-def loadAtInitChange(nodeName):
-    status = cmds.getAttr(nodeName+".loadAtInit")
+def deferStandinLoadChange(nodeName):
+    status = cmds.getAttr(nodeName+".deferStandinLoad")
     if status == False:
         cmds.floatField("standInBBoxScale", edit=True, enable=False)
         cmds.text("standInBBoxScaleLabel", edit=True, enable=False)
@@ -137,7 +137,7 @@ def aiStandInTemplate(nodeName):
     cmds.editorTemplate(interruptOptimize=True)
     cmds.editorTemplate("overrideShaders", label="Override StandIn Shaders", addControl=True)
     cmds.editorTemplate(addSeparator=True)
-    cmds.editorTemplate("loadAtInit", aeCallback(loadAtInitChange), label="Defer StandIn Load", addControl=True)
+    cmds.editorTemplate("deferStandinLoad", aeCallback(deferStandinLoadChange), label="Defer StandIn Load", addControl=True)
     cmds.editorTemplate(aeCallback(ArnoldStandInTemplateBBoxScaleNew), aeCallback(ArnoldStandInTemplateBBoxScaleReplace), "bboxScale" , callCustom=True)
     #cmds.editorTemplate("MaxBoundingBox", addControl=True)
     cmds.editorTemplate(endLayout=True) 
