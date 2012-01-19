@@ -1,0 +1,6 @@
+Add Smooth tangents for subdivision surfaces option to the Arnold Parameters PPG
+
+Test the new smooth tangents for subdivision surfaces with an anisotropic standard shader (ticket #654)
+
+
+author: r3D
