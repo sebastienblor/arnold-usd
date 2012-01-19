@@ -127,7 +127,7 @@ class PointLightTemplate(lightTemplate.LightTemplate):
     def validFilters(self):
         return ['aiLightBlocker', 'aiLightDecay']
     def setup(self):
-        cmds.editorTemplate("aiDecayType", aeCallback(self.customDecayTypeAttach),  addControl=True)
+        cmds.editorTemplate("aiDecayType", aeCallback(self.customDecayTypeAttach), label="Decay Type", addControl=True)
         self.addControl("aiExposure")
         
         self.addSeparator()
@@ -164,7 +164,7 @@ class SpotLightTemplate(lightTemplate.LightTemplate):
     def validFilters(self):
         return ['aiLightBlocker', 'aiLightDecay', 'aiBarndoor', 'aiGobo']
     def setup(self):
-        self.addControl("aiDecayType")
+        cmds.editorTemplate("aiDecayType", aeCallback(self.customDecayTypeAttach), label="Decay Type", addControl=True)
         self.addControl("aiExposure")
         
         self.addSeparator()
@@ -190,6 +190,17 @@ class SpotLightTemplate(lightTemplate.LightTemplate):
         self.addSeparator()
 
         self.commonLightAttributes()
+    # attach Maya Decay Rate to Arnold Decay Type
+    def customDecayTypeAttach(self, attr):
+        nodeName = ""+attr
+        if(cmds.attributeQuery("decayRate", node=nodeName, exists=True)):
+            destAttrName = nodeName + ".decayRate"
+            origAttrName = nodeName + ".aiDecayType"
+            cmds.setAttr(destAttrName, lock=False)
+            value = cmds.getAttr(origAttrName)
+            cmds.setAttr(destAttrName, lock=False)
+            cmds.setAttr(destAttrName, value*2)
+            cmds.setAttr(destAttrName, lock=True)
 templates.registerTranslatorUI(SpotLightTemplate, "spotLight")
 
 class AreaLightTemplate(lightTemplate.LightTemplate):
@@ -198,7 +209,7 @@ class AreaLightTemplate(lightTemplate.LightTemplate):
         return ['aiLightBlocker', 'aiLightDecay']
 
     def setup(self):
-        self.addControl("aiDecayType")
+        cmds.editorTemplate("aiDecayType", aeCallback(self.customDecayTypeAttach), label="Decay Type", addControl=True)
         self.addControl("aiExposure")
         
         self.addSeparator()
@@ -222,6 +233,17 @@ class AreaLightTemplate(lightTemplate.LightTemplate):
         self.addSeparator()
 
         self.commonLightAttributes()
+    # attach Maya Decay Rate to Arnold Decay Type
+    def customDecayTypeAttach(self, attr):
+        nodeName = ""+attr
+        if(cmds.attributeQuery("decayRate", node=nodeName, exists=True)):
+            destAttrName = nodeName + ".decayRate"
+            origAttrName = nodeName + ".aiDecayType"
+            cmds.setAttr(destAttrName, lock=False)
+            value = cmds.getAttr(origAttrName)
+            cmds.setAttr(destAttrName, lock=False)
+            cmds.setAttr(destAttrName, value*2)
+            cmds.setAttr(destAttrName, lock=True)
 templates.registerTranslatorUI(AreaLightTemplate, "areaLight")
 
 # Actually currently connecting the other way round, filter's decayRate
