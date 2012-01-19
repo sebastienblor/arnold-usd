@@ -817,6 +817,7 @@ void CGeometryTranslator::ExportMeshParameters(AtNode* polymesh)
       AiNodeSetInt(polymesh, "subdiv_adaptive_metric",FindMayaObjectPlug("aiSubdivAdaptiveMetric").asInt());
       AiNodeSetFlt(polymesh, "subdiv_pixel_error",    FindMayaObjectPlug("aiSubdivPixelError").asFloat());
       AiNodeSetInt(polymesh, "subdiv_uv_smoothing",   FindMayaObjectPlug("aiSubdivUvSmoothing").asInt());
+      AiNodeSetBool(polymesh, "subdiv_smooth_derivs", FindMayaObjectPlug("aiSubdivSmoothDerivs").asBool());
 
       ProcessParameter(polymesh, "subdiv_dicing_camera", AI_TYPE_NODE, FindMayaObjectPlug("aiSubdivDicingCamera"));
 
@@ -990,6 +991,8 @@ void CGeometryTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInput("subdiv_pixel_error");
    helper.MakeInput("subdiv_dicing_camera");
    helper.MakeInput("subdiv_uv_smoothing");
+   helper.MakeInput("subdiv_smooth_derivs");
+
 
    CAttrData data;
 

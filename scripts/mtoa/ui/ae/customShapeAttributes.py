@@ -58,6 +58,7 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
         # TODO: add dicing camera UI
         self.addControl("aiSubdivDicingCamera", label="Subdivision Dicing Camera")
         self.addControl("aiSubdivUvSmoothing", label="Subdivision UVs Smoothing")
+        self.addControl("aiSubdivSmoothDerivs", label="Smooth Subdivision Tangents")
         self.addSeparator()
         self.addControl("aiSssSampleDistribution", label="SSS Samples Distribution")
         self.addControl("aiSssSampleSpacing", label="SSS Sample Spacing")
