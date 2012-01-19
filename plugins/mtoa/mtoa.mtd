@@ -35,6 +35,7 @@
     [attr bucket_scanning]
         maya.keyable        BOOL    False
         maya.orig_shortname STRING  "bktsc"
+        default             INT     6  # Spiral
     [attr bucket_size]
         maya.keyable        BOOL    False
         min                 INT     16
