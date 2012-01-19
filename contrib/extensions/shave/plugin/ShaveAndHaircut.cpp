@@ -35,6 +35,50 @@ void CShaveTranslator::Export(AtNode* curve)
    Update(curve);
 }
 
+AtNode* CShaveTranslator::CreateShaveShader(AtNode* curve)
+{
+   AtNode* shader = AiNode("ShaveHair");
+
+   // Fade the hairstrand towards the tip.
+   MPlug plug = m_fnNode.findPlug("tipFade");
+   if (plug.asBool())
+   {
+      // If tip fade is on then the hairs are not opaque no
+      // matter the attribute setting.
+      AiNodeSetBool(curve, "opaque", false);
+
+      AtNode* ramp = AiNode("MayaRamp");
+      AtNode* placementNode = AiNode("MayaPlace2DTexture");
+      AiNodeSetStr(ramp, "type", "v");
+
+      AiNodeSetUInt(ramp, "numEntries", 2);
+      AiNodeSetFlt(ramp, "position0", 0.55f);
+      AiNodeSetRGB(ramp, "color0", 1.0f, 1.0f, 1.0f);
+
+      AiNodeSetFlt(ramp, "position1", 1.0f);
+      AiNodeSetRGB(ramp, "color1", 0.0f, 0.0f, 0.0f);
+
+      AiNodeLink (placementNode, "uvCoord", ramp);
+      AiNodeLink (ramp, "strand_opacity", shader);
+   }
+
+   // Add shader uparam and vparam names.
+   AiNodeSetStr(shader, "uparam",   "uparamcoord");
+   AiNodeSetStr(shader, "vparam",   "vparamcoord");
+
+   // Add root and tip color.
+   AiNodeSetStr(shader, "rootcolor","rootcolorparam");
+   AiNodeSetStr(shader, "tipcolor", "tipcolorparam");
+
+   // Set specular and gloss.
+   plug = m_fnNode.findPlug("specular");
+   AiNodeSetFlt(shader, "spec", plug.asFloat());
+
+   plug = m_fnNode.findPlug("gloss");
+   AiNodeSetFlt(shader, "gloss", plug.asFloat() * 2000.0f);
+   return shader;
+}
+
 void CShaveTranslator::Update(AtNode* curve)
 {
    // Export shaveAndHaircut info into a variable
@@ -49,8 +93,6 @@ void CShaveTranslator::Update(AtNode* curve)
    // The shader nodes
    // TODO: Kill these and export it properly.
    AtNode* shader       = NULL;
-   AtNode* ramp         = NULL;
-   AtNode* placementNode= NULL;
 
    // Export the transform matrix
    ExportMatrix(curve, 0);
@@ -78,44 +120,7 @@ void CShaveTranslator::Update(AtNode* curve)
    // Default to the ShaveHair shader if nothing else has been set.
    if (shader == NULL)
    {
-      shader = AiNode("ShaveHair");
-
-      // Fade the hairstrand towards the tip.
-      plug = m_fnNode.findPlug("tipFade");
-      if (plug.asBool())
-      {
-         // If tip fade is on then the hairs are not opaque no
-         // matter the attribute setting.
-         AiNodeSetBool(curve, "opaque", false);
-         
-         ramp = AiNode("MayaRamp");
-         placementNode = AiNode("MayaPlace2DTexture");
-         AiNodeSetStr(ramp, "type", "v");
-
-         AiNodeSetUInt(ramp, "numEntries", 2);
-         AiNodeSetFlt(ramp, "position0", 0.55f);
-         AiNodeSetRGB(ramp, "color0", 1.0f, 1.0f, 1.0f);
-         AiNodeSetFlt(ramp, "position1", 1.0f);
-         AiNodeSetRGB(ramp, "color1", 0.0f, 0.0f, 0.0f);
-
-         AiNodeLink (placementNode, "uvCoord", ramp);
-         AiNodeLink (ramp, "strand_opacity", shader);
-      }
-
-      // Add shader uparam and vparam names.
-      AiNodeSetStr(shader, "uparam",   "uparamcoord");
-      AiNodeSetStr(shader, "vparam",   "vparamcoord");
-   
-      // Add root and tip color.
-      AiNodeSetStr(shader, "rootcolor","rootcolorparam");
-      AiNodeSetStr(shader, "tipcolor", "tipcolorparam");
-   
-      // Set specular and gloss.
-      plug = m_fnNode.findPlug("specular");
-      AiNodeSetFlt(shader, "spec", plug.asFloat());
-
-      plug = m_fnNode.findPlug("gloss");
-      AiNodeSetFlt(shader, "gloss", plug.asFloat() * 2000.0f);
+      shader = CreateShaveShader(curve);
    }
    
    if (shader != NULL)

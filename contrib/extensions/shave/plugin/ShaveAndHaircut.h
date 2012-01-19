@@ -18,6 +18,7 @@ public:
    }
 
 private:
+   AtNode* CreateShaveShader(AtNode* curve);
    void ProcessHairLines(unsigned int step,
                          AtArray* curvePoints,
                          AtArray* curveNextLineStartsInterp,
