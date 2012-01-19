@@ -137,12 +137,19 @@ AtNode* CArnoldSession::ExportDagPath(MDagPath &dagPath, MStatus* stat)
    AiMsgDebug("[mtoa] Exporting dag node %s of type %s", name.asChar(), type.asChar());
 
    CDagTranslator* translator = CExtensionsManager::GetTranslator(dagPath);
-   if (translator == NULL || !translator->IsMayaTypeDag())
+   if (translator == NULL)
    {
-      status = MStatus::kNotImplemented;
+      if (stat != NULL) *stat = MStatus::kNotImplemented;
       AiMsgDebug("[mtoa] Dag node %s of type %s ignored", name.asChar(), type.asChar());
       return NULL;
    }
+   else if (!translator->IsMayaTypeDag())
+   {
+      if (stat != NULL) *stat = MStatus::kInvalidParameter;
+      AiMsgDebug("[mtoa] translator for %s of type %s is not a DAG translator", name.asChar(), type.asChar());
+      return NULL;
+   }
+
    CNodeAttrHandle handle(dagPath);
    if (!translator->DisableCaching())
    {
@@ -178,11 +185,16 @@ AtNode* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, MStatus *stat)
 
    MDagPath dagPath;
    if (MDagPath::getAPathTo(mayaNode, dagPath) == MS::kSuccess)
-      return ExportDagPath(dagPath, stat);
-
-   MPlug resultPlug;
-   // returns the primary attribute (i.e. if the shaderOutputPlug is outColorR, resultPlug is outColor)
-   ComponentType compMode = IsFloatComponent(shaderOutputPlug, resultPlug);
+   {
+      MStatus status = MStatus::kSuccess;
+      arnoldNode = ExportDagPath(dagPath, &status);
+      // kInvalidParameter is returned when a non-DAG translator is used on a DAG node, but we can still export that here
+      if (status != MStatus::kInvalidParameter)
+      {
+         if (stat != NULL) *stat = status;
+         return arnoldNode;
+      }
+   }
 
    CNodeTranslator* translator = CExtensionsManager::GetTranslator(mayaNode);
    if (translator == NULL)
@@ -193,6 +205,10 @@ AtNode* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, MStatus *stat)
                  fnNode.typeName().asChar());
       return NULL;
    }
+   MPlug resultPlug;
+   // returns the primary attribute (i.e. if the shaderOutputPlug is outColorR, resultPlug is outColor)
+   ComponentType compMode = IsFloatComponent(shaderOutputPlug, resultPlug);
+
    MPlug resolvedPlug;
    // resolving the plug gives translators a chance to replace ".message" with ".outColor", for example, or to reject it outright.
    // once the attribute is properly resolved it can be used as a key in our multimap cache
