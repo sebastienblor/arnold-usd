@@ -80,9 +80,8 @@ MString COptionsTranslator::SetImageFilenames(MDagPath &camera)
    MString sceneFileName = fileObj.resolvedName();
    sceneFileName = sceneFileName.substringW(0, sceneFileName.rindexW('.')-1);
 
-   MFnDagNode camDag(camera);
-   MFnDagNode camDagParent = camDag.parent(0);
-   MString nameCamera = camDagParent.name();
+   MFnDagNode camDagTransform(camera.transform());
+   MString nameCamera = camDagTransform.name();
 
    // Notes on MCommonRenderSettingsData::getImageName:
    //   - sceneFileName is only used if defaultRenderGlobals.imageFilePrefix is not set
