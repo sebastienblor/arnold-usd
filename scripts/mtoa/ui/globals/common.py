@@ -23,6 +23,7 @@
 
 import os
 import math
+import re
 
 import pymel.core as pm
 
@@ -531,6 +532,80 @@ def updateArnoldFileNameFormatControl(*args):
 
     pm.setParent(oldParent)
 
+def createArnoldUseCustomExtensionControl():
+
+    pm.checkBoxGrp('useCustomExtensionCtrl',
+                   numberOfCheckBoxes=1,
+                   label='',
+                   label1=pm.mel.uiRes('m_createMayaSoftwareCommonGlobalsTab.kUseCustomExtension'),
+                   cc=changeArnoldUseCustomExtension)
+
+    pm.scriptJob(parent='useCustomExtensionCtrl',
+                 attributeChange=("defaultRenderGlobals.outFormatControl", updateArnoldUseCustomExtensionControl))
+
+def updateArnoldUseCustomExtensionControl():
+    
+    oldParent = pm.setParent(query=True)
+    setParentToArnoldCommonTab();
+    useImage = pm.getAttr('defaultRenderGlobals.outFormatControl') !=  1
+
+    pm.checkBoxGrp('useCustomExtensionCtrl',
+                   e=True,
+                   value1=cmds.getAttr('defaultRenderGlobals.outFormatControl') == 2,
+                   enable=useImage)
+
+    pm.setParent(oldParent)
+
+def changeArnoldUseCustomExtension(*args, **kwargs):
+    #  Procedure Name:
+    #      changeCustomExtensionCheck
+    #
+    #  Description:
+    #		This procedure is called when the user turns the custom
+    #		extension on or off.  It sets the internal representation
+    #		and then updates the example to show the changes.
+    #
+    oldParent = pm.setParent(query=True)
+    setParentToArnoldCommonTab();
+    isOn = pm.checkBoxGrp('useCustomExtensionCtrl', query=True, value1=True)
+    if isOn:
+        pm.setAttr('defaultRenderGlobals.outFormatControl', 2)
+    else:
+        # We have to figure out if there should be an extension
+        # at all or not.
+        #
+        item = pm.optionMenuGrp('extMenu', query=True, select=True)
+        
+        if item == 1 or item == 5:
+            pm.setAttr('defaultRenderGlobals.outFormatControl', 1)
+        else:
+            pm.setAttr('defaultRenderGlobals.outFormatControl', 0)
+        
+        pm.setParent(oldParent)
+
+def createArnoldCustomExtensionControl():
+
+    pm.attrControlGrp('userExt',
+                      label=pm.mel.uiRes('m_createMayaSoftwareCommonGlobalsTab.kExtension'),
+                      attribute='defaultRenderGlobals.outFormatExt')
+    
+    pm.connectControl('userExt', 'defaultRenderGlobals.outFormatExt', index=1)
+
+    pm.scriptJob(parent='userExt',
+                 attributeChange=('defaultRenderGlobals.outFormatControl', updateArnoldCustomExtensionControl))
+
+def updateArnoldCustomExtensionControl():
+    oldParent = pm.setParent(query=True)
+    
+    setParentToArnoldCommonTab();
+    
+    useImage = pm.getAttr('defaultRenderGlobals.outFormatControl') != 1
+    value1 = pm.getAttr('defaultRenderGlobals.outFormatControl') == 2
+    useExt = useImage and value1
+    
+    pm.attrControlGrp('userExt', edit=True, enable=useExt)
+    
+    pm.setParent(oldParent)
 
 def createArnoldImageFormatControl():
 
@@ -931,6 +1006,60 @@ def updateArnoldFrameNumberControls(*args):
 
     pm.setParent(oldParent)
 
+def createArnoldRenderVersionKeywordMenu(parent):
+
+    pm.popupMenu(parent, edit=True, deleteAllItems=True)
+    pm.setParent(parent, menu=True)
+    
+    pm.menuItem(label=pm.mel.uiRes('m_createMayaSoftwareCommonGlobalsTab.kVersionTitle'), enable=0)
+    pm.menuItem(divider=True)
+    
+    val = pm.textFieldGrp('renderVersionCtrl', q=True, text=True)
+    ival, ival2 = ('1', '2')
+    match = re.search('^(\d+)|(\d+)$', val)
+    if match:
+        i = int(match.group())
+        if i > 0:
+            ival2 = val.replace(str(i), str(i + 1))
+            ival = val.replace(str(i), str(i - 1))
+        else:
+            ival = '1'
+
+    #callBack = pm.textFieldGrp("renderVersionCtrl", e=True, text="^1s", forceChangeCommand=True)
+    formatString = pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kVersionNumber")
+    pm.menuItem(label=formatString.replace('^1s', ival),
+                command=Callback(pm.textFieldGrp, 'renderVersionCtrl', e=True, text=ival, forceChangeCommand=True))
+
+    pm.menuItem(label=formatString.replace('^1s', ival2),
+                command=Callback(pm.textFieldGrp, 'renderVersionCtrl', e=True, text=ival2, forceChangeCommand=True))
+
+    date = pm.date(format="YY_MM_DD")
+    pm.menuItem(label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kVersionDate").replace('^1s', date),
+                command=Callback(pm.textFieldGrp, 'renderVersionCtrl', e=True, text=date, forceChangeCommand=True))
+    
+    time = pm.date(format="hh-mm-ss")
+    pm.menuItem(label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kVersionTime").replace('^1s', time),
+                command=Callback(pm.textFieldGrp, 'renderVersionCtrl', e=True, text=time, forceChangeCommand=True))
+
+def updateArnoldRenderVersionControl():
+    oldParent = pm.setParent(query=True)
+    setParentToArnoldCommonTab();
+    
+    version = pm.getAttr('defaultRenderGlobals.renderVersion')
+    version = '' if not version else version
+    pm.textFieldGrp('renderVersionCtrl', edit=True, text=version)
+    
+    pm.setParent(oldParent)
+
+def changeArnoldRenderVersion(*args, **kwargs):
+    oldParent = pm.setParent(query=True)
+    setParentToArnoldCommonTab();
+    
+    version = pm.textFieldGrp('renderVersionCtrl', query=True, text=True)
+    pm.setAttr('defaultRenderGlobals.renderVersion', version, type="string")
+    
+    pm.setParent(oldParent)
+
 def createArnoldCommonImageFile():
     '''
     Procedure Name:
@@ -950,7 +1079,6 @@ def createArnoldCommonImageFile():
     if pm.layout(fullPath, exists=True):
         pm.deleteUI(fullPath)
 
-
     pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
 
     pm.columnLayout('imageFileOutputSW', adjustableColumn=True)
@@ -961,11 +1089,34 @@ def createArnoldCommonImageFile():
 
     createArnoldFileNameFormatControl()
 
+
     pm.attrControlGrp('extensionPaddingCtrl',
                         attribute='defaultRenderGlobals.extensionPadding',
                         label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kFramePadding"),
                         hideMapButton=True)
-
+    
+    pm.separator()
+     
+    createArnoldUseCustomExtensionControl()
+    createArnoldCustomExtensionControl()
+    
+    pm.textFieldGrp('renderVersionCtrl',
+                    label=pm.mel.uiRes('m_createMayaSoftwareCommonGlobalsTab.kVersionLabel'),
+                    annotation=pm.mel.uiRes('m_createMayaSoftwareCommonGlobalsTab.kVersionLabelAnn'),
+                    cc=changeArnoldRenderVersion)
+    if pm.mel.getApplicationVersionAsFloat() >= 2011:
+        popup = pm.popupMenu(parent='renderVersionCtrl|field')
+    else:
+        popup = pm.popupMenu(parent='renderVersionCtrl')
+        
+    pm.popupMenu(popup, edit=True, postMenuCommand=Callback(createArnoldRenderVersionKeywordMenu, popup))
+    pm.connectControl('renderVersionCtrl', 'defaultRenderGlobals.renderVersion', index=1)
+    pm.scriptJob(parent='renderVersionCtrl',
+                 attributeChange=('defaultRenderGlobals.renderVersion', updateArnoldRenderVersionControl))
+    
+    updateArnoldRenderVersionControl()
+    updateArnoldUseCustomExtensionControl()
+    updateArnoldCustomExtensionControl()
 
     pm.setParent(parent)
     pm.setUITemplate(popTemplate=True)
