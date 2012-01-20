@@ -13,4 +13,10 @@ class ShaveTemplate(ShapeTranslatorTemplate):
         self.addControl("aiMinPixelWidth")
         self.addControl("aiMode")
 
-templates.registerTranslatorUI(ShaveTemplate, "shaveHair", "shave")        
+        self.addSeparator()
+
+        self.addControl("aiDiffuseCache")
+        self.addControl("aiIndirect")
+        self.addControl("aiDirectDiffuse")
+
+templates.registerTranslatorUI(ShaveTemplate, "shaveHair", "shave")

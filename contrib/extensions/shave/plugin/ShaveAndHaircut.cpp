@@ -72,10 +72,26 @@ AtNode* CShaveTranslator::CreateShaveShader(AtNode* curve)
 
    // Set specular and gloss.
    plug = m_fnNode.findPlug("specular");
-   AiNodeSetFlt(shader, "spec", plug.asFloat());
+   ProcessParameter(shader, "spec", AI_TYPE_FLOAT, plug);
 
    plug = m_fnNode.findPlug("gloss");
-   AiNodeSetFlt(shader, "gloss", plug.asFloat() * 2000.0f);
+   ProcessParameter(shader, "gloss", AI_TYPE_FLOAT, plug);
+
+   plug = m_fnNode.findPlug("specularTint");
+   ProcessParameter(shader, "spec_color", AI_TYPE_RGB, plug);
+
+   plug = m_fnNode.findPlug("amb/diff");
+   ProcessParameter(shader, "ambdiff", AI_TYPE_FLOAT, plug);
+
+   plug = m_fnNode.findPlug("aiDiffuseCache");
+   ProcessParameter(shader, "diffuse_cache", AI_TYPE_BOOLEAN, plug);
+
+   plug = m_fnNode.findPlug("aiIndirect");
+   ProcessParameter(shader, "kd_ind", AI_TYPE_FLOAT, plug);
+
+   plug = m_fnNode.findPlug("aiDirectDiffuse");
+   ProcessParameter(shader, "direct_diffuse", AI_TYPE_FLOAT, plug);
+
    return shader;
 }
 
@@ -412,4 +428,13 @@ void CShaveTranslator::NodeInitializer(CAbTranslator context)
    data.name = "aiHairShader";
    data.shortName = "ai_hair_shader";
    helper.MakeInputNode(data);
+
+   CExtensionAttrHelper helper2(context.maya, "ShaveHair");
+   helper2.MakeInput("diffuse_cache");
+
+   helper2.MakeInput("direct_diffuse");
+
+   helper2.GetAttrData("kd_ind", data);
+   data.name = "aiIndirect";
+   helper2.MakeInputFloat(data);
 }

@@ -13,7 +13,6 @@ enum ShaveHairParams
 {
    p_rootcolor,
    p_tipcolor,
-   p_gamma,
    p_strand_opacity,
    p_ambdiff,
    p_ambient,
@@ -30,21 +29,24 @@ enum ShaveHairParams
 
 node_parameters
 {
-   AiParameterSTR("rootcolor"        , NULL);
-   AiParameterSTR("tipcolor"         , NULL);
-   AiParameterFLT("gamma"            , 0.45f);
-   AiParameterRGB("strand_opacity"   , 1.0f, 1.0f, 1.0f);
-   AiParameterFLT("ambdiff"          , 1.0f);
-   AiParameterRGB("ambient"          , 1.0f, 1.0f, 1.0f);
-   AiParameterFLT("gloss"            , 10.0f);
-   AiParameterRGB("spec_color"       , 1.0f, 1.0f, 1.0f);
-   AiParameterFLT("spec"             , 1.0f);
-   AiParameterFLT("kd_ind"           , 1.0f);
-   AiParameterSTR("uparam"           , NULL);
-   AiParameterSTR("vparam"           , NULL);
-   AiParameterFLT("direct_diffuse"   , 1.0f);
-   AiParameterFLT("indirect_diffuse" , 1.0f);
-   AiParameterBOOL("diffuse_cache"    , TRUE);
+   AiParameterSTR(       "rootcolor"        , NULL);
+   AiParameterSTR(       "tipcolor"         , NULL);
+   AiParameterRGB(       "strand_opacity"   , 1.0f, 1.0f, 1.0f);
+   AiParameterFLT(       "ambdiff"          , 1.0f);
+   AiParameterRGB(       "ambient"          , 1.0f, 1.0f, 1.0f);
+   AiParameterFLT(       "gloss"            , 10.0f);
+   AiParameterRGB(       "spec_color"       , 1.0f, 1.0f, 1.0f);
+   AiParameterFLT(       "spec"             , 1.0f);
+   AiParameterFLT(       "kd_ind"           , 1.0f);
+   AiMetaDataSetFlt(mds, "kd_ind"           , "softmax", 10.0f);
+   AiMetaDataSetFlt(mds, "kd_ind"           , "min",     0.0f);
+   AiParameterSTR(       "uparam"           , NULL);
+   AiParameterSTR(       "vparam"           , NULL);
+   AiParameterFLT(       "direct_diffuse"   , 1.0f);
+   AiMetaDataSetFlt(mds, "direct_diffuse"   , "softmax", 1.0f);
+   AiMetaDataSetFlt(mds, "direct_diffuse"   , "min",     0.0f);
+   AiParameterFLT(       "indirect_diffuse" , 1.0f);
+   AiParameterBOOL(      "diffuse_cache"    , TRUE);
 
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }
@@ -110,7 +112,7 @@ shader_evaluate
    AiUDataGetFlt(params[p_vparam].STR, &(sg->v));
    //float getGamma   = AiShaderEvalParamFlt(p_gamma);
    float ambdiff    = AiShaderEvalParamFlt(p_ambdiff);
-   float gloss      = AiShaderEvalParamFlt(p_gloss);
+   float gloss      = AiShaderEvalParamFlt(p_gloss) * 2000;
    float spec       = AiShaderEvalParamFlt(p_spec);
 
    float direct_c   = AiShaderEvalParamFlt(p_direct_diffuse);
@@ -125,9 +127,6 @@ shader_evaluate
    // FIXME: we need to gamma correct according to global settings
    AiUDataGetRGB(params[p_rootcolor].STR, &root_color);
    AiUDataGetRGB(params[p_tipcolor].STR, &tip_color);
-
-   //AiColorGamma(&root_color, getGamma);
-   //AiColorGamma(&tip_color, getGamma);
 
    AiColorGamma(&root_color, data->gamma);
    AiColorGamma(&tip_color, data->gamma);
