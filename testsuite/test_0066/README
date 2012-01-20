@@ -1,0 +1,6 @@
+Particles with extreme motion blur, oversampling, and export of all blur steps (Ticket #70)
+
+Particles with extreme motion blur, oversampling, and export of all blur steps (Ticket #70)
+Interpolate Blur Steps needs to be turned off to have curved trails.
+
+author: olivier.renouard
