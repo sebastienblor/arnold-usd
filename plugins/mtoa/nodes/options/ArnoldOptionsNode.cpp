@@ -138,6 +138,8 @@ MStatus CArnoldOptionsNode::initialize()
    eAttr.addField("enabled", 1);
    eAttr.addField("batch_only", 2);
    addAttribute(s_aovMode);
+   
+   s_attributes.MakeInput("enable_aov_composition");   
 
    s_renderType = eAttr.create("renderType", "arnrt", 0);
    eAttr.setKeyable(false);
