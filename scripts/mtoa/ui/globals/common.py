@@ -765,7 +765,7 @@ def arnoldChangedCamera(camera, cameraMode, menu):
         # Now make the new cameras renderable
         for cam in cameras:
             if newCamNeedLayerAdj:
-                pm.editRenderLayerAdjustment(cam.renderable.get())
+                pm.editRenderLayerAdjustment(cam.renderable)
             cam.renderable.set(True)
 
     # Finally force recomputing the UI
