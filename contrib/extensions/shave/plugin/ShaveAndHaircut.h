@@ -18,11 +18,11 @@ public:
    }
 
 private:
+
    AtNode* CreateShaveShader(AtNode* curve);
-   void ProcessHairLines(unsigned int step,
+   void ProcessHairLines(const unsigned int step,
                          AtArray* curvePoints,
-                         AtArray* curveNextLineStartsInterp,
-                         AtArray* curveNextLineStarts,
+                         AtArray* curveNumPoints,
                          AtArray* curveWidths);
    MStatus UpdateHairInfo();
    shaveAPI::HairInfo m_hairInfo;
