@@ -55,7 +55,7 @@ def _overrideMelScripts():
         print "Maya %s sourcing MEL override %s" % (maya_version, f)
         pm.mel.source(pm.mel.encodeString(f))
         test = pm.mel.whatIs(os.path.split(f)[1]).split(': ', 1)
-        if len(test) == 2 and test[1] != f:
+        if len(test) == 2 and test[1].replace('\\', '/') != f.replace('\\', '/'):
             pm.warning("Overriding failed: Maya is still using %s" % test[1])
 
 def _overridePythonScripts():
