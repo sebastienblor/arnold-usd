@@ -1265,6 +1265,9 @@ AtNode* CParticleTranslator::ExportParticleNode(AtNode* particle, AtUInt step)
    {
       WriteOutParticle(particle);
    }
+   /// visibility flags
+   ProcessRenderFlags(particle);
+
    return particle;
 }
 
