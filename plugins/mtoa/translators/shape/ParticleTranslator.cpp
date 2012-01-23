@@ -94,6 +94,7 @@ void CParticleTranslator::NodeInitializer(CAbTranslator context)
 
 void CParticleTranslator::UpdateMotion(AtNode* anode, AtUInt step)
 {
+   // ProcessRenderFlags(anode);
    ExportMatrix(anode, step);
 }
 
@@ -1274,6 +1275,7 @@ AtNode* CParticleTranslator::ExportParticleNode(AtNode* particle, AtUInt step)
 
 void CParticleTranslator::Update(AtNode *anode)
 {
+   ProcessRenderFlags(anode);
    ExportMatrix(anode, 0);
 }
 
