@@ -869,7 +869,7 @@ def createArnoldRendererGlobalsTab():
 
     # Ray depth
     #
-    pm.frameLayout('arnoldRayDepthSettings', label="Ray Depth", cll= True, cl=0)
+    pm.frameLayout('arnoldRayDepthSettings', label="Ray Depth", cll= True, cl=1)
     createArnoldRayDepthSettings()
     pm.setParent('..')
 
