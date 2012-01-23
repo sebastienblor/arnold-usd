@@ -95,7 +95,8 @@ void CParticleTranslator::NodeInitializer(CAbTranslator context)
 void CParticleTranslator::UpdateMotion(AtNode* anode, AtUInt step)
 {
    // ProcessRenderFlags(anode);
-   ExportMatrix(anode, step);
+   // FIXME: Crashes
+   // ExportMatrix(anode, step);
 }
 
 void CParticleTranslator::ExportParticleShaders(AtNode* particle)
