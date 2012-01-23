@@ -92,6 +92,32 @@ bool CGeometryTranslator::GetVertices(MFnMesh &fnMesh, std::vector<float> &verti
    return false;
 }
 
+bool CGeometryTranslator::GetPerVertexNormalsWorld(MFnMesh &fnMesh, std::vector<float> &normals, bool force)
+{
+   int nnorms = fnMesh.numNormals();
+   if (nnorms > 0 && (force || (FindMayaObjectPlug("smoothShading").asBool() && !FindMayaObjectPlug("aiSubdivType").asBool())))
+   {
+      normals.resize(fnMesh.numVertices() * 3);
+
+      // A mesh has no transform, we must trace it back in the DAG
+      MDagPath dp;
+      fnMesh.getPath(dp);
+      MFnMesh normFn(dp);
+
+      MFloatVectorArray normalArray;
+      normFn.getVertexNormals(false, normalArray, MSpace::kWorld);
+
+      for (int J = 0; (J < fnMesh.numVertices()); ++J)
+      {
+         normals[J * 3 + 0] = normalArray[J].x;
+         normals[J * 3 + 1] = normalArray[J].y;
+         normals[J * 3 + 2] = normalArray[J].z;
+      }
+      return true;
+   }
+   return false;
+}
+
 bool CGeometryTranslator::GetNormals(MFnMesh &fnMesh, std::vector<float> &normals)
 {
    int nnorms = fnMesh.numNormals();
@@ -227,8 +253,10 @@ bool CGeometryTranslator::GetRefObj(MFnMesh &fnMesh, std::vector<float> &refVert
    {
       // Get vertices of the reference object in world space
       GetVerticesWorld(m_fnMeshRef, refVertices);
-      // Get normals of the reference object
-      GetNormals(m_fnMeshRef, refNormals);
+      // Get normals of the reference object (as we are outputing this as a user-data varying data, 
+      // we must have 1 normal per vertex 
+      // Also, even if subdivision is applied we want to get the normals data 
+      GetPerVertexNormalsWorld(m_fnMeshRef, refNormals, true); 
 
       // If we are using a smoothed reference object, we need to delete it.
       //FIXME : This is somehow dirty, but I can't find a way to have a real "virtual" DAG object from generateSmoothMesh.
@@ -589,8 +617,11 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
 
       if (exportReferenceObjects)
       {
-          AiNodeDeclare(polymesh, "Pref", "varying POINT");
-          AiNodeDeclare(polymesh, "Nref", "varying VECTOR");
+         AiNodeDeclare(polymesh, "Pref", "varying POINT");
+         if (refNormals.size() > 0)
+         {
+            AiNodeDeclare(polymesh, "Nref", "varying VECTOR");
+         }
       }
 
       // Declare user parameters for color sets
@@ -673,7 +704,10 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
       if (exportReferenceObjects)
       {
          AiNodeSetArray(polymesh, "Pref", AiArrayConvert(m_fnMesh.numVertices(), 1, AI_TYPE_POINT, &(refVertices[0])));
-         AiNodeSetArray(polymesh, "Nref", AiArrayConvert(m_fnMesh.numNormals(), 1, AI_TYPE_VECTOR, &(refNormals[0])));
+         if (refNormals.size() > 0)
+         {
+            AiNodeSetArray(polymesh, "Nref", AiArrayConvert(m_fnMesh.numNormals(), 1, AI_TYPE_VECTOR, &(refNormals[0])));
+         }
       }
 
       if (exportUVs)

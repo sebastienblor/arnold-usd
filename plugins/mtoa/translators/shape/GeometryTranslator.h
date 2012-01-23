@@ -45,6 +45,7 @@ protected:
 
    bool GetVerticesWorld(MFnMesh &fnMesh, std::vector<float> &vertices);
    bool GetVertices(MFnMesh &fnMesh, std::vector<float> &vertices);
+   bool GetPerVertexNormalsWorld(MFnMesh &fnMesh, std::vector<float> &normals, bool force=false);
    bool GetNormals(MFnMesh &fnMesh, std::vector<float> &normals);
    bool GetTangents(MFnMesh &fnMesh, std::vector<float> &tangents, std::vector<float> &bitangents);
    bool GetUVs(MFnMesh &fnMesh, std::vector<float> &uvs);
