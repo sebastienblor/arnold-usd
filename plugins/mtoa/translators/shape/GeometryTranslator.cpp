@@ -264,9 +264,8 @@ bool CGeometryTranslator::GetRefObj(MFnMesh &fnMesh, std::vector<float> &refVert
       {
          MDagPath dp;
          m_fnMeshRef.getPath(dp);
-         MDagPath transform(dp);
          MObject node = dp.node();
-         MGlobal::deleteNode(node);
+         MGlobal::removeFromModel(node);
       }
       return true;
    }
