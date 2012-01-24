@@ -417,11 +417,13 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
          AtNode* shader = ExportNode(connections[0]);
 
          AiNodeSetPtr(polymesh, "shader", shader);
-         meshShaders.push_back(shader);
       }
       else
+      {
          AiMsgWarning("[mtoa] [translator %s] ShadingGroup %s has no surfaceShader input",
                GetTranslatorName().asChar(), fnDGNode.name().asChar());
+         AiNodeSetPtr(polymesh, "shader", NULL);
+      }
    }
    else
    {
@@ -439,12 +441,19 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
          MPlug             shaderPlug(shadingGroups[J], fnDGNode.attribute("surfaceShader"));
 
          shaderPlug.connectedTo(connections, true, false);
-         // FIXME: there should be a check if connections.length() > 0
-         // this is not a simple fix because it will shift all the indices,
-         // but as it is now, it will crash if nothing is connected to "surfaceShader"
-         meshShaders.push_back(ExportNode(connections[0]));
+         
+         if (connections.length() > 0)
+         {
+            meshShaders.push_back(ExportNode(connections[0]));
+         }
+         else
+         {
+            AiMsgWarning("[mtoa] [translator %s] ShadingGroup %s has no surfaceShader input",
+               GetTranslatorName().asChar(), fnDGNode.name().asChar());
+            meshShaders.push_back(NULL);
+         }
       }
-
+      
       AiNodeSetArray(polymesh, "shader", AiArrayConvert((int)meshShaders.size(), 1, AI_TYPE_NODE, &meshShaders[0]));
 
       // Export face to shader indices
