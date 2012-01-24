@@ -126,17 +126,6 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
       gGLFT->glVertex3f( 0.0f, 0.0f,-1.0f);
       gGLFT->glEnd();
    }
-   // Cylinder
-   else if (areaType == "cylinder")
-   {
-      gluQuadricDrawStyle(qobj, GLU_LINE);
-      gluQuadricNormals(qobj, GLU_NONE);
-      gGLFT->glPushMatrix();
-      gGLFT->glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
-      gGLFT->glTranslatef(0.0f, 0.0f, -1.0f);
-      gluCylinder(qobj, 1.0f, 1.0f, 2.0f, 20, 1);
-      gGLFT->glPopMatrix();
-   }
    // Disk
    else if (areaType == "disk")
    {
@@ -150,6 +139,17 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
       gGLFT->glVertex3f( 0.0f, 0.0f, 0.0f);
       gGLFT->glVertex3f( 0.0f, 0.0f,-1.0f);
       gGLFT->glEnd();
+   }
+   // Cylinder
+   else
+   {
+      gluQuadricDrawStyle(qobj, GLU_LINE);
+      gluQuadricNormals(qobj, GLU_NONE);
+      gGLFT->glPushMatrix();
+      gGLFT->glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
+      gGLFT->glTranslatef(0.0f, 0.0f, -1.0f);
+      gluCylinder(qobj, 1.0f, 1.0f, 2.0f, 20, 1);
+      gGLFT->glPopMatrix();
    }
    // Restore all GL bits
    gGLFT->glPopAttrib();
