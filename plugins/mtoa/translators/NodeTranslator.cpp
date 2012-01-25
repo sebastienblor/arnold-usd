@@ -1,6 +1,7 @@
 #include "NodeTranslator.h"
 #include "render/RenderOptions.h"
 #include "extension/ExtensionsManager.h"
+#include "attributes/Components.h"
 
 #include <ai_ray.h>
 #include <ai_metadata.h>
@@ -48,10 +49,6 @@ namespace // <anonymous>
       }
    }
 */
-   const char* colorComp[4] = {"r", "g", "b", "a"};
-   MStringArray colorComponents(colorComp, 4);
-   const char* vectorComp[3] = {"x", "y", "z"};
-   MStringArray vectorComponents(vectorComp, 3);
 
 } // namespace
 
@@ -689,10 +686,10 @@ AtNode* CNodeTranslator::ProcessParameterInputs(AtNode* arnoldNode, const MPlug 
    if (connections.length() > 0)
    {
       // process connections
-      MPlug connectedMayaPlug = connections[0];
-      AtNode* connectedArnoldNode = ExportNode(connectedMayaPlug);
+      MPlug srcMayaPlug = connections[0];
+      AtNode* srcArnoldNode = ExportNode(srcMayaPlug);
 
-      if (connectedArnoldNode == NULL)
+      if (srcArnoldNode == NULL)
          return NULL;
 
       if (arnoldParamType == AI_TYPE_NODE)
@@ -701,22 +698,24 @@ AtNode* CNodeTranslator::ProcessParameterInputs(AtNode* arnoldNode, const MPlug 
          // there is no way of assigning the value of a message attribute other than via a connection.
          // In the case of a NODE/message connection we should not use AiNodeLink, which is used to delay evaluation
          // of a parameter until render, we should just set the value.
-         AiNodeSetPtr(arnoldNode, arnoldParamName, connectedArnoldNode);
+         AiNodeSetPtr(arnoldNode, arnoldParamName, srcArnoldNode);
       }
       else
       {
          // Check for success
-         // FIXME: get component name: "r", "g", "b", "x", etc
-         if (!AiNodeLink(connectedArnoldNode, arnoldParamName, arnoldNode))
+         // get component name: "r", "g", "b", "x", etc
+         int outputType = AiNodeEntryGetOutputType(AiNodeGetNodeEntry(srcArnoldNode));
+         MString component = GetComponentName(outputType,srcMayaPlug);
+         if (!AiNodeLinkOutput(srcArnoldNode, component.asChar(), arnoldNode, arnoldParamName))
          {
             AiMsgWarning("[mtoa] Could not link %s to %s.%s.",
-               AiNodeGetName(connectedArnoldNode),
+               AiNodeGetName(srcArnoldNode),
                AiNodeGetName(arnoldNode),
                arnoldParamName);
             return NULL;
          }
       }
-      return connectedArnoldNode;
+      return srcArnoldNode;
    }
    return NULL;
 }
@@ -727,41 +726,9 @@ bool CNodeTranslator::ProcessParameterComponentInputs(AtNode* arnoldNode, const 
                                                       const char* arnoldParamName,
                                                       int arnoldParamType)
 {
-   unsigned int numComponents = 0;
-   MStringArray componentNames;
-   switch (arnoldParamType)
-   {
-   case AI_TYPE_RGB:
-   case AI_TYPE_RGBA:
-      {
-         componentNames = colorComponents;
-         numComponents = 3;
-      }
-      break;
-   case AI_TYPE_VECTOR:
-   case AI_TYPE_POINT:
-      {
-         componentNames = vectorComponents;
-         numComponents = 3;
-      }
-      break;
-   case AI_TYPE_POINT2:
-      {
-         componentNames = vectorComponents;
-         numComponents = 2;
-      }
-      break;
-   default:
-      {
-         AiMsgWarning("[mtoa] Attribute %s does not support component connections",
-                      parentPlug.partialName(true, false, false, false, false, true).asChar());
-         return false;
-      }
-//   case AI_TYPE_MATRIX:
-//      numComponents = 3
-//      break;
-   }
+   const MStringArray componentNames = GetComponentNames(arnoldParamType);
    unsigned int compConnected = 0;
+   unsigned int numComponents = componentNames.length();
    MPlugArray conn;
    for (unsigned int i=0; i < numComponents; i++)
    {
@@ -1178,7 +1145,6 @@ void CNodeTranslator::ProcessConstantArrayElement(int type, AtArray* array, unsi
       break;
    case AI_TYPE_VECTOR:
       {
-         // FIXME: follow component connections when arnold 3.4 is release
          AtVector vec3;
          AiV3Create(vec3, elem.child(0).asFloat(), elem.child(1).asFloat(), elem.child(2).asFloat());
          AiArraySetVec(array, i, vec3);
@@ -1186,7 +1152,6 @@ void CNodeTranslator::ProcessConstantArrayElement(int type, AtArray* array, unsi
       break;
    case AI_TYPE_POINT:
       {
-         // FIXME: follow component connections when arnold 3.4 is release
          AtVector vec3;
          AiV3Create(vec3, elem.child(0).asFloat(), elem.child(1).asFloat(), elem.child(2).asFloat());
          AiArraySetPnt(array, i, vec3);
