@@ -44,7 +44,7 @@ public:
 
 
 protected:
-
+   int ComputeMasterVisibility(const MDagPath& masterDagPath) const;
    virtual void ExportInstancer(AtNode* instancer, bool update);
    virtual void ExportInstances(AtNode* instancer, AtUInt step);
 
@@ -70,6 +70,7 @@ protected:
    MIntArray  m_startIndicesArray;
    MIntArray  m_pathIndicesArray;
    MStringArray m_objectNames;
+   MDagPathArray m_objectDagPaths;
    std::map<int, int>  m_particleIDMap;
    MStringArray m_instanceTags; // for debug purposes
 

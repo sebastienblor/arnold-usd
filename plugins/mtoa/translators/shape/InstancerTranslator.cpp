@@ -2,6 +2,8 @@
 
 #include "scene/MayaScene.h"
 
+#include <maya/MFnDagNode.h>
+
 
 void addVelocityToMatrix(AtMatrix& outMatrix, AtMatrix& matrix,
                          const MVector& velocityVector)
@@ -54,6 +56,53 @@ void CInstancerTranslator::ExportMotion(AtNode* anode, AtUInt step)
 void CInstancerTranslator::UpdateMotion(AtNode* anode, AtUInt step)
 {
    ExportMatrix(anode, step);
+}
+
+int CInstancerTranslator::ComputeMasterVisibility(const MDagPath& masterDagPath) const{
+
+   MObject node = masterDagPath.node();
+   MFnDagNode fnNode;
+   fnNode.setObject(node);
+   
+   int visibility = AI_RAY_ALL;
+   
+   MPlug plug = fnNode.findPlug("castsShadows");
+   if (!plug.isNull() && !plug.asBool())
+   {
+      visibility &= ~AI_RAY_SHADOW;
+   }
+
+   plug = fnNode.findPlug("primaryVisibility");
+   if (!plug.isNull() && !plug.asBool())
+   {
+      visibility &= ~AI_RAY_CAMERA;
+   }
+
+   plug = fnNode.findPlug("visibleInReflections");
+   if (!plug.isNull() && !plug.asBool())
+   {
+      visibility &= ~AI_RAY_REFLECTED;
+   }
+
+   plug = fnNode.findPlug("visibleInRefractions");
+   if (!plug.isNull() && !plug.asBool())
+   {
+      visibility &= ~AI_RAY_REFRACTED;
+   }
+
+   plug = fnNode.findPlug("aiVisibleInDiffuse");
+   if (!plug.isNull() && !plug.asBool())
+   {
+      visibility &= ~AI_RAY_DIFFUSE;
+   }
+
+   plug = fnNode.findPlug("aiVisibleInGlossy");
+   if (!plug.isNull() && !plug.asBool())
+   {
+      visibility &= ~AI_RAY_GLOSSY;
+   }
+   
+   return visibility;
 }
 
 void CInstancerTranslator::ExportInstancer(AtNode* instancer, bool update)
@@ -187,7 +236,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, AtUInt step)
 
       if (m_fnParticleSystem.count() > 0)
       {
-         for (uint j = 0; j < particlePathStartIndices.length(); j++)
+         for (uint j = 0; j < partIds.length(); j++)
          {
             AtArray* outMatrix = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_MATRIX);
             AtMatrix matrix;
@@ -228,6 +277,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, AtUInt step)
             ExportDagPath(dagPathMaster);
          }
          m_objectNames.append(dagPathMaster.partialPathName().asChar());
+         m_objectDagPaths.append(dagPathMaster);
       }
       // Done export object masters
    }
@@ -362,9 +412,10 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, AtUInt step)
 
             //AiNodeDeclare(instance, "instanceTag", "constant STRING");
             //AiNodeSetStr(instance, "instanceTag", m_instanceTags[j].asChar()); // for debug purposes
-
+           
             // need this in case instance sources are hidden
-            AiNodeSetInt(instance, "visibility", 1);
+            int visibility = ComputeMasterVisibility(m_objectDagPaths[idx]);
+            AiNodeSetInt(instance, "visibility", visibility);
 
             // add the custom user selected attributes to export
             std::map<std::string, MVectorArray>::iterator custVect;
