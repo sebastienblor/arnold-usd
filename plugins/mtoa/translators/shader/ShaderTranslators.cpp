@@ -476,54 +476,7 @@ AtNode* CPlusMinusAverageTranslator::CreateArnoldNodes()
 
 void CPlusMinusAverageTranslator::Export(AtNode* shader)
 {
-   MString inputName = m_outputAttr;
-   int attribType = AI_TYPE_NONE;
-
-   if (m_outputAttr == "output1D")
-   {
-      inputName = "input1D";
-      attribType = AI_TYPE_FLOAT;
-   }
-   if (m_outputAttr == "output2D")
-   {
-      inputName = "input2D";
-      attribType = AI_TYPE_POINT2;
-   }
-   else if (m_outputAttr == "output3D")
-   {
-      inputName = "input3D";
-      attribType = AI_TYPE_POINT;
-   }
-
-   if (AI_TYPE_NONE == attribType) return;
-
-   MPlug plug, elemPlug;
-   // char mayaAttr[64];
-   char aiAttr[64];
-
-   plug = m_fnNode.findPlug("operation");
-   AiNodeSetInt(shader, "operation", plug.asInt());
-
-   plug = m_fnNode.findPlug(inputName);
-   unsigned int numElements = plug.numElements();
-   if (numElements > 8)
-   {
-      MString warning;
-      warning.format("plusMinusAverage node '^1s' has more than 8 inputs, only the first 8 will be handled", GetMayaNodeName());
-      MGlobal::displayWarning(warning);
-
-      numElements = 8;
-   }
-
-   AiNodeSetUInt(shader, "numInputs", numElements);
-
-   for (unsigned int i=0; i<numElements; ++i)
-   {
-      elemPlug = plug.elementByPhysicalIndex(i);
-      // sprintf(mayaAttr, "%s[%u]", inputName.asChar(), elem.logicalIndex());
-      sprintf(aiAttr, "value%u", i);
-      ProcessParameter(shader, aiAttr, attribType, elemPlug);
-   }
+   CShaderTranslator::Export(shader);
 }
 
 // ParticleSamplerInfo
