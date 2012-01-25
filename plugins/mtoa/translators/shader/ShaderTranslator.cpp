@@ -54,7 +54,7 @@ void CShaderTranslator::ExportMotion(AtNode *shader, unsigned int step)
       if (strcmp(paramName, "placementMatrix") == 0)
       {
          AtArray* matrices = AiNodeGetArray(GetArnoldNode(paramName), "values");
-         ProcessArrayElement(AI_TYPE_MATRIX, matrices, GetMotionStep(), FindMayaObjectPlug(paramName));
+         ProcessConstantArrayElement(AI_TYPE_MATRIX, matrices, GetMotionStep(), FindMayaObjectPlug(paramName));
       }
    }
    AiParamIteratorDestroy(nodeParam);

@@ -677,8 +677,11 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
    }
 }
 
-AtNode* CNodeTranslator::ProcessParameterInputs(AtNode* arnoldNode, const MPlug &plug, const char* arnoldParamName,
-                                                     int arnoldParamType)
+/// Calls ExportNode and AiNodeLink if there are incoming connections to 'plug'
+/// returns the connected arnold AtNode or NULL
+AtNode* CNodeTranslator::ProcessParameterInputs(AtNode* arnoldNode, const MPlug &plug,
+                                                const char* arnoldParamName,
+                                                int arnoldParamType)
 {
    MPlugArray connections;
    plug.connectedTo(connections, true, false);
@@ -694,17 +697,17 @@ AtNode* CNodeTranslator::ProcessParameterInputs(AtNode* arnoldNode, const MPlug 
 
       if (arnoldParamType == AI_TYPE_NODE)
       {
-         // An AI_TYPE_NODE param is controlled via a Maya message attribute. Unlike numeric attributes, there is
-         // no way of assigning the value of a message attribute other than via a connection.
+         // An AI_TYPE_NODE param is controlled via a Maya message attribute. Unlike numeric attributes, in Maya
+         // there is no way of assigning the value of a message attribute other than via a connection.
          // In the case of a NODE/message connection we should not use AiNodeLink, which is used to delay evaluation
          // of a parameter until render, we should just set the value.
          AiNodeSetPtr(arnoldNode, arnoldParamName, connectedArnoldNode);
       }
       else
       {
-         AiNodeLink(connectedArnoldNode, arnoldParamName, arnoldNode);
          // Check for success
-         if (AiNodeGetLink(arnoldNode, arnoldParamName) != connectedArnoldNode)
+         // FIXME: get component name: "r", "g", "b", "x", etc
+         if (!AiNodeLink(connectedArnoldNode, arnoldParamName, arnoldNode))
          {
             AiMsgWarning("[mtoa] Could not link %s to %s.%s.",
                AiNodeGetName(connectedArnoldNode),
@@ -718,9 +721,11 @@ AtNode* CNodeTranslator::ProcessParameterInputs(AtNode* arnoldNode, const MPlug 
    return NULL;
 }
 
-// return true if all components are processed
-bool CNodeTranslator::ProcessParameterComponentInputs(AtNode* arnoldNode, const MPlug &plug, const char* arnoldParamName,
-                                                           int arnoldParamType)
+/// Called for compound plugs with float children. calls ProcessParameterInputs for each component
+/// returns true if all components have incoming nodes.
+bool CNodeTranslator::ProcessParameterComponentInputs(AtNode* arnoldNode, const MPlug &parentPlug,
+                                                      const char* arnoldParamName,
+                                                      int arnoldParamType)
 {
    unsigned int numComponents = 0;
    MStringArray componentNames;
@@ -749,7 +754,7 @@ bool CNodeTranslator::ProcessParameterComponentInputs(AtNode* arnoldNode, const 
    default:
       {
          AiMsgWarning("[mtoa] Attribute %s does not support component connections",
-                      plug.partialName(true, false, false, false, false, true).asChar());
+                      parentPlug.partialName(true, false, false, false, false, true).asChar());
          return false;
       }
 //   case AI_TYPE_MATRIX:
@@ -762,7 +767,7 @@ bool CNodeTranslator::ProcessParameterComponentInputs(AtNode* arnoldNode, const 
    {
       MString compAttrName(arnoldParamName);
       compAttrName += "." + componentNames[i];
-      MPlug childPlug = plug.child(i);
+      MPlug childPlug = parentPlug.child(i);
       // components are always float
       if (ProcessParameterInputs(arnoldNode, childPlug, compAttrName.asChar(), AI_TYPE_FLOAT) != NULL)
          ++compConnected;
@@ -772,8 +777,8 @@ bool CNodeTranslator::ProcessParameterComponentInputs(AtNode* arnoldNode, const 
    {
       numComponents = 4;
       MStatus stat;
-      MString name = plug.partialName(false, false, false, false, false, true) + "A";
-      MPlug childPlug = MFnDependencyNode(plug.node()).findPlug(name, false, &stat);
+      MString name = parentPlug.partialName(false, false, false, false, false, true) + "A";
+      MPlug childPlug = MFnDependencyNode(parentPlug.node()).findPlug(name, false, &stat);
       if (stat == MS::kSuccess)
       {
          MString compAttrName(arnoldParamName);
@@ -787,7 +792,8 @@ bool CNodeTranslator::ProcessParameterComponentInputs(AtNode* arnoldNode, const 
 
 
 // Using the translator's MObject m_object and corresponding attrbuteName (default behavior)
-AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, int element)
+AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName,
+                                          int arnoldParamType, int element)
 {
    MStatus status;
 
@@ -830,8 +836,11 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnold
    return NULL;
 }
 
-/// Export values to an arnold parameter from a maya plug, recursively following connections in the dependency graph.
-AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, const MPlug& plug)
+/// Main entry point to export values to an arnold parameter from a maya plug, recursively following
+/// connections in the dependency graph.
+/// Calls ProcessParameterInputs for parameters that allow linking or ProcessConstantParameter
+AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName,
+                                          int arnoldParamType, const MPlug& plug)
 {
    if (arnoldNode == NULL)
    {
@@ -878,14 +887,20 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnold
       // we could know for certain that a plug had been disconnected, instead of calling it blindly as we do now.
       AiNodeUnlink(arnoldNode, arnoldParamName);
       AtNode *connected = ProcessParameterInputs(arnoldNode, plug, arnoldParamName, arnoldParamType);
+      // if we're connected, we're done, otherwise call ProcessConstantParameter
       if (connected != NULL)
          return connected;
    }
    return ProcessConstantParameter(arnoldNode, arnoldParamName, arnoldParamType, plug);
 }
 
-/// Export value for unconnected parameter
-AtNode* CNodeTranslator::ProcessConstantParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, const MPlug& plug)
+/// Export value for a plug with no direct connections (may have child or element connections).
+/// For arrays, calls ProcessArrayParameter.
+/// For simple numeric types, calls AiNodeSet*.
+/// For compound types, first calls ProcessParameterComponentInputs. If ProcessParameterComponentInputs returns
+/// false (not all components linked) then AiNodeSet* is called for all components.
+AtNode* CNodeTranslator::ProcessConstantParameter(AtNode* arnoldNode, const char* arnoldParamName,
+                                                  int arnoldParamType, const MPlug& plug)
 {
    switch(arnoldParamType)
    {
@@ -940,7 +955,7 @@ AtNode* CNodeTranslator::ProcessConstantParameter(AtNode* arnoldNode, const char
             AtNode* animNode = AddArnoldNode("anim_matrix", arnoldParamName);
             AtArray* matrices = AiArrayAllocate(1, GetNumMotionSteps(), AI_TYPE_MATRIX);
 
-            ProcessArrayElement(AI_TYPE_MATRIX, matrices, 0, plug);
+            ProcessConstantArrayElement(AI_TYPE_MATRIX, matrices, 0, plug);
 
             // Set the parameter for the interpolation node
             AiNodeSetArray(animNode, "values", matrices);
@@ -1017,11 +1032,13 @@ AtNode* CNodeTranslator::ProcessConstantParameter(AtNode* arnoldNode, const char
    return NULL;
 }
 
+/// Allocate an AtArray, ProcessConstantArrayElement to fill it with values from the array plug, and call AiNodeSetArray.
+/// Also calls ProcessParameterInputs.
 void CNodeTranslator::ProcessArrayParameter(AtNode* arnoldNode, const char* arnoldParamName, const MPlug& plug)
 {
    const AtParamEntry* paramEntry = AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(arnoldNode), arnoldParamName);
    const AtParamValue* defaultValue = AiParamGetDefault(paramEntry);
-   unsigned int type = defaultValue->ARRAY->type;
+   unsigned int arnoldParamType = defaultValue->ARRAY->type;
    // index matters tells us whether to condense a sparse array or try to export everything
 //         int indexMatters = MFnAttribute(plug.attribute()).indexMatters();
 //         MIntArray indices;
@@ -1036,21 +1053,50 @@ void CNodeTranslator::ProcessArrayParameter(AtNode* arnoldNode, const char* arno
 
    // for now do all elements
    unsigned int size = plug.numElements();
-   AtArray* array = AiArrayAllocate(size, 1, type);
-   MPlug elem;
+   AtArray* array = AiArrayAllocate(size, 1, arnoldParamType);
+   MPlug elemPlug;
    MPlugArray connections;
    for (unsigned int i = 0; i < size; ++i)
    {
       // cout << plug.partialName(true, false, false, false, false, true) << " index " << i << endl;
-      // FIXME: follow connections when arnold 3.4 is release
       //plug.selectAncestorLogicalIndex(i, plug.attribute());
-      elem = plug[i];//
-      ProcessArrayElement(type, array, i, elem);
+      elemPlug = plug[i];
+
+      // connections:
+      // An AI_TYPE_NODE param is controlled via a Maya message attribute. Unlike numeric attributes, in Maya
+      // there is no way of assigning the value of a message attribute other than via a connection.
+      // Therefore, we handle node/message connections in ProcessArrayElement
+      if (arnoldParamType != AI_TYPE_NODE)
+      {
+         MString elemName = MString(arnoldParamName) + "[" + i + "]";
+         AtNode* connected = ProcessParameterInputs(arnoldNode, elemPlug, elemName.asChar(), arnoldParamType);
+         // FIXME: should we always evaluate components even if something was connected at the parent level?
+         if (connected == NULL)
+         {
+            // component connections
+            // FIXME: linking to components of array elements may not be supported.  we may have to insert conversion nodes
+            switch(arnoldParamType)
+            {
+            case AI_TYPE_RGB:
+            case AI_TYPE_RGBA:
+            case AI_TYPE_POINT2:
+            case AI_TYPE_VECTOR:
+            case AI_TYPE_POINT:
+               {
+                  ProcessParameterComponentInputs(arnoldNode, elemPlug, elemName.asChar(), arnoldParamType);
+               }
+               break;
+            }
+            // TODO: matrix?
+         }
+      }
+      // constant value
+      ProcessConstantArrayElement(arnoldParamType, array, i, elemPlug);
    } // for loop
    if (size) AiNodeSetArray(arnoldNode, arnoldParamName, array);
 }
 
-void CNodeTranslator::ProcessArrayElement(int type, AtArray* array, unsigned int i, const MPlug& elem)
+void CNodeTranslator::ProcessConstantArrayElement(int type, AtArray* array, unsigned int i, const MPlug& elem)
 {
    switch(type)
    {
