@@ -36,6 +36,7 @@
 #include <maya/MRenderView.h>
 
 #include <cstdio>
+#include <assert.h>
 
 extern AtNodeMethods* mtoa_driver_mtd;
 

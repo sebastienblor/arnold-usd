@@ -1041,7 +1041,6 @@ void CNodeTranslator::ProcessArrayParameter(AtNode* arnoldNode, const char* arno
          if (connected == NULL)
          {
             // component connections
-            // FIXME: linking to components of array elements may not be supported.  we may have to insert conversion nodes
             switch(arnoldParamType)
             {
             case AI_TYPE_RGB:
@@ -1050,15 +1049,24 @@ void CNodeTranslator::ProcessArrayParameter(AtNode* arnoldNode, const char* arno
             case AI_TYPE_VECTOR:
             case AI_TYPE_POINT:
                {
-                  ProcessParameterComponentInputs(arnoldNode, elemPlug, elemName.asChar(), arnoldParamType);
+                  if(ProcessParameterComponentInputs(arnoldNode, elemPlug, elemName.asChar(), arnoldParamType) == false)
+                  {
+                     // constant value
+                     ProcessConstantArrayElement(arnoldParamType, array, i, elemPlug);
+                  }
                }
                break;
+            default:
+               // constant value
+               ProcessConstantArrayElement(arnoldParamType, array, i, elemPlug);
             }
-            // TODO: matrix?
          }
       }
-      // constant value
-      ProcessConstantArrayElement(arnoldParamType, array, i, elemPlug);
+      else
+      {
+         // constant value
+         ProcessConstantArrayElement(arnoldParamType, array, i, elemPlug);
+      }
    } // for loop
    if (size) AiNodeSetArray(arnoldNode, arnoldParamName, array);
 }
