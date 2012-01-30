@@ -22,6 +22,7 @@ float Integral(float t, float nedge);
 float Mod(float n, float d);
 
 bool SortFloatArray(AtArray *a, unsigned int *shuffle = NULL);
+bool SortFloatIndexArray(AtArray *a, unsigned int *shuffle);
 void ShuffleArray(AtArray *a, unsigned int *shuffle, int arnoldType);
 
 enum InterpolationType
@@ -52,8 +53,8 @@ enum RampInterpolationType
 extern const char* RampInterpolationNames[];
 
 RampInterpolationType RampInterpolationNameToType(const char *n);
-void Ramp(AtArray *p, AtArray *v, float t, RampInterpolationType rit, float &out);
-void Ramp(AtArray *p, AtArray *v, float t, RampInterpolationType rit, AtRGB &out);
+void Ramp(AtArray *p, AtArray *v, float t, RampInterpolationType rit, float &out, unsigned int *shuffle);
+void Ramp(AtArray *p, AtArray *v, float t, RampInterpolationType rit, AtRGB &out, unsigned int *shuffle);
 
 #ifndef LOG_05
 #  define LOG_05 -0.693147180559945  /* log(0.5) */

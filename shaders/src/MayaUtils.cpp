@@ -15,13 +15,13 @@ AtRGB _GetArrayRGB(AtArray *a, unsigned int i)
 }
 
 template <typename ValType>
-void RampT(AtArray *p, AtArray *c, float t, RampInterpolationType it, ValType &result, ValType (*getv)(AtArray*, unsigned int))
+void RampT(AtArray *p, AtArray *c, float t, RampInterpolationType it, ValType &result, ValType (*getv)(AtArray*, unsigned int), unsigned int *shuffle)
 {
    unsigned int inext = p->nelements;
 
    for (unsigned int i = 0; (i < p->nelements); ++i)
    {
-      if (t < AiArrayGetFlt(p, i))
+      if (t < AiArrayGetFlt(p, shuffle[i]))
       {
          inext = i;
          break;
@@ -30,21 +30,21 @@ void RampT(AtArray *p, AtArray *c, float t, RampInterpolationType it, ValType &r
 
    if (inext >= p->nelements)
    {
-      result = getv(c, p->nelements - 1);
+      result = getv(c, shuffle[p->nelements - 1]);
       return;
    }
 
    if (inext == 0)
    {
-      result = getv(c, 0);
+      result = getv(c, shuffle[0]);
       return;
    }
 
    unsigned int icur = inext - 1;
-   float tcur = AiArrayGetFlt(p, icur);
-   float tnext = AiArrayGetFlt(p, inext);
-   ValType ccur = getv(c, icur);
-   ValType cnext = getv(c, inext);
+   float tcur = AiArrayGetFlt(p, shuffle[icur]);
+   float tnext = AiArrayGetFlt(p, shuffle[inext]);
+   ValType ccur = getv(c, shuffle[icur]);
+   ValType cnext = getv(c, shuffle[inext]);
    float u = (t - tcur) / (tnext - tcur);
 
    switch (it)
@@ -63,8 +63,8 @@ void RampT(AtArray *p, AtArray *c, float t, RampInterpolationType it, ValType &r
       break;
    case RIT_BUMP:
       {
-         float lcur = Luminosity(ccur);
-         float lnext = Luminosity(cnext);
+         float lcur = RampLuminance(ccur);
+         float lnext = RampLuminance(cnext);
          if (lcur < lnext)
          {
             u = sin(u * static_cast<float>(AI_PI) / 2.0f);
@@ -77,8 +77,8 @@ void RampT(AtArray *p, AtArray *c, float t, RampInterpolationType it, ValType &r
       break;
    case RIT_SPIKE:
       {
-         float lcur = Luminosity(ccur);
-         float lnext = Luminosity(cnext);
+         float lcur = RampLuminance(ccur);
+         float lnext = RampLuminance(cnext);
          if (lcur > lnext)
          {
             u = sin(u * static_cast<float>(AI_PI) / 2.0f);
@@ -129,6 +129,22 @@ float Luminance(const AtRGB &color)
 float Luminance(const AtRGBA &color)
 {
    return (0.3f * color.r + 0.59f * color.g + 0.11f * color.b);
+}
+
+// This one is defined for the RampT template function to work properly
+float RampLuminance(float v)
+{
+   return v;
+}
+
+float RampLuminance(const AtRGB &color)
+{
+   return (0.3f * color.r + 0.3f * color.g + 0.3f * color.b);
+}
+
+float RampLuminance(const AtRGBA &color)
+{
+   return (0.3f * color.r + 0.3f * color.g + 0.3f * color.b);
 }
 
 float Mix(float a, float b, float t)
@@ -219,6 +235,47 @@ bool SortFloatArray(AtArray *a, unsigned int *shuffle)
                   shuffle[i] = shuffle[i + 1];
                   shuffle[i + 1] = tmp;
                }
+            }
+         }
+      }
+   }
+
+   return modified;
+}
+
+bool SortFloatIndexArray(AtArray *a, unsigned int *shuffle)
+{
+   bool modified = false;
+
+   if (a && shuffle && a->nelements > 0)
+   {
+      float p0, p1;
+      int tmp;
+
+      bool swapped = true;
+      AtUInt32 n = a->nelements;
+
+      for (AtUInt32 i = 0; (i < n); ++i)
+      {
+         shuffle[i] = i;
+      }
+
+      while (swapped)
+      {
+         swapped = false;
+         n -= 1;
+         for (AtUInt32 i = 0; (i < n); ++i)
+         {
+            p0 = AiArrayGetFlt(a, shuffle[i]);
+            p1 = AiArrayGetFlt(a, shuffle[i + 1]);
+            if (p0 > p1)
+            {
+               swapped = true;
+               modified = true;
+
+               tmp = shuffle[i];
+               shuffle[i] = shuffle[i + 1];
+               shuffle[i + 1] = tmp;
             }
          }
       }
@@ -556,14 +613,14 @@ void Interpolate(AtArray *p, AtArray *v, AtArray *it, float t, AtRGB &out)
    InterpolateT(p, v, it, t, out, _GetArrayRGB);
 }
 
-void Ramp(AtArray *p, AtArray *v, float t, RampInterpolationType it, float &out)
+void Ramp(AtArray *p, AtArray *v, float t, RampInterpolationType it, float &out, unsigned int *shuffle)
 {
-   RampT(p, v, t, it, out, _GetArrayFlt);
+   RampT(p, v, t, it, out, _GetArrayFlt, shuffle);
 }
 
-void Ramp(AtArray *p, AtArray *v, float t, RampInterpolationType it, AtRGB &out)
+void Ramp(AtArray *p, AtArray *v, float t, RampInterpolationType it, AtRGB &out, unsigned int *shuffle)
 {
-   RampT(p, v, t, it, out, _GetArrayRGB);
+   RampT(p, v, t, it, out, _GetArrayRGB, shuffle);
 }
 
 

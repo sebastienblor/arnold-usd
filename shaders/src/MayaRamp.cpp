@@ -100,10 +100,10 @@ shader_evaluate
 {
    AtRGB result = AI_RGB_BLACK;
    // Read positions and colors
-   AtArray* positionsArray = AiShaderEvalParamArray(p_positions);
-   AtArray* colorsArray = AiShaderEvalParamArray(p_colors);
+   AtArray* positions = AiShaderEvalParamArray(p_positions);
+   AtArray* colors = AiShaderEvalParamArray(p_colors);
 
-   if (positionsArray->nelements > 0)
+   if (positions->nelements > 0)
    {
       AtPoint2 uv;
       uv = AiShaderEvalParamPnt2(p_uvCoord);
@@ -117,28 +117,17 @@ shader_evaluate
          MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
          return;
       }
-      if (positionsArray->nelements == 1)
+      if (positions->nelements == 1)
       {
          // Only one color entry then it's a plain color / texture
-         result = AiArrayGetRGB(colorsArray, 0);
+         result = AiArrayGetRGB(colors, 0);
       }
-      else // (positionsArray->nelements > 1)
+      else // (positions->nelements > 1)
       {
-         AtArray *positions = AiArrayAllocate(positionsArray->nelements, 1, AI_TYPE_FLOAT);
-         AtArray *colors = AiArrayAllocate(positionsArray->nelements, 1, AI_TYPE_RGB);
-         for (AtUInt32 i=0; i<positionsArray->nelements; ++i)
-         {
-            AiArraySetFlt(positions, i, AiArrayGetFlt(positionsArray, i));
-            AiArraySetRGB(colors, i, AiArrayGetRGB(colorsArray, i));
-         }
-         // Sort the arrays, since positions can be connected, order can change
-         // Sort position array
-         unsigned int* shuffle = new unsigned int[positionsArray->nelements];
-         if (SortFloatArray(positions, shuffle))
-         {
-            ShuffleArray(colors, shuffle, AI_TYPE_RGB);
-         }
-         delete[] shuffle;
+         // get array with sorted index
+         //unsigned int* shuffle = new unsigned int[positions->nelements];
+         unsigned int* shuffle = (unsigned int*)AiShaderGlobalsQuickAlloc(sg, positions->nelements * sizeof(unsigned int));
+         SortFloatIndexArray(positions, shuffle);
 
          float u = uv.x;
          float v = uv.y;
@@ -178,15 +167,15 @@ shader_evaluate
          switch (type)
          {
          case RT_U:
-            Ramp(positions, colors, u, interp, result);
+            Ramp(positions, colors, u, interp, result, shuffle);
             break;
          case RT_V:
-            Ramp(positions, colors, v, interp, result);
+            Ramp(positions, colors, v, interp, result, shuffle);
             break;
          case RT_DIAGONAL:
             {
                float t = 0.5f * (u + v);
-               Ramp(positions, colors, t, interp, result);
+               Ramp(positions, colors, t, interp, result, shuffle);
             }
             break;
          case RT_RADIAL:
@@ -198,7 +187,7 @@ shader_evaluate
                t = - t - 0.25f;
                if (t < 0.0f)
                   t += 1.0f;
-               Ramp(positions, colors, t, interp, result);
+               Ramp(positions, colors, t, interp, result, shuffle);
             }
             break;
          case RT_CIRCULAR:
@@ -206,13 +195,13 @@ shader_evaluate
                float x = u - 0.5f;
                float y = v - 0.5f;
                float t = float(sqrt(2.0) * sqrt(x*x + y*y));
-               Ramp(positions, colors, t, interp, result);
+               Ramp(positions, colors, t, interp, result, shuffle);
             }
             break;
          case RT_BOX:
             {
                float t = 2.0f * MAX(fabs(u-0.5f), fabs(v-0.5f));
-               Ramp(positions, colors, t, interp, result);
+               Ramp(positions, colors, t, interp, result, shuffle);
             }
             break;
          case RT_UV:
@@ -220,8 +209,8 @@ shader_evaluate
                float t0 = 2.0f * fabs(u - 0.5f);
                float t1 = 2.0f * fabs(v - 0.5f);
                AtRGB c0, c1;
-               Ramp(positions, colors, t0, interp, c0);
-               Ramp(positions, colors, t1, interp, c1);
+               Ramp(positions, colors, t0, interp, c0, shuffle);
+               Ramp(positions, colors, t1, interp, c1, shuffle);
                result = c0 * c1;
             }
             break;
@@ -235,6 +224,7 @@ shader_evaluate
                }
                else
                {
+                  // Maya do not use the ordered colors but the created order
                   result = (1.0f - u) * (1.0f - v) * AiArrayGetRGB(colors, 0);
                   if (positions->nelements > 1)
                   {
@@ -256,17 +246,15 @@ shader_evaluate
                float t0 = 2.0f * fabs(u - 0.5f);
                float t1 = 2.0f * fabs(v - 0.5f);
                AtRGB c0, c1;
-               Ramp(positions, colors, t0, interp, c0);
-               Ramp(positions, colors, t1, interp, c1);
+               Ramp(positions, colors, t0, interp, c0, shuffle);
+               Ramp(positions, colors, t1, interp, c1, shuffle);
                result = 0.5f * (c0 + c1);
             }
             break;
          default:
-            Ramp(positions, colors, v, interp, result);
+            Ramp(positions, colors, v, interp, result, shuffle);
             break;
          }
-         AiArrayDestroy(positions);
-         AiArrayDestroy(colors);
       }
    }
 
