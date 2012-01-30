@@ -37,7 +37,7 @@ SHADER_TRANSLATOR(CFileTranslator);
 SHADER_TRANSLATOR(CPlace2DTextureTranslator);
 SHADER_TRANSLATOR(CBump3DTranslator);
 SHADER_TRANSLATOR_MULTIOUT(CSamplerInfoTranslator);
-SHADER_TRANSLATOR_MULTIOUT(CPlusMinusAverageTranslator);
+SHADER_TRANSLATOR(CPlusMinusAverageTranslator);
 SHADER_TRANSLATOR_MULTIOUT(CRemapValueTranslator);
 SHADER_TRANSLATOR_MULTIOUT(CParticleSamplerInfoTranslator);
 SHADER_TRANSLATOR(CRemapColorTranslator);

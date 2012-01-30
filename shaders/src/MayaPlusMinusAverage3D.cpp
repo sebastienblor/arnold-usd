@@ -8,15 +8,7 @@ namespace
 enum MayaPlusMinusAverage3DParams
 {
    p_operation,
-   p_numInputs,
-   p_value0,
-   p_value1,
-   p_value2,
-   p_value3,
-   p_value4,
-   p_value5,
-   p_value6,
-   p_value7
+   p_input3D
 };
 
 enum MathOperation
@@ -41,15 +33,7 @@ const char* MathOperationNames[] =
 node_parameters
 {
    AiParameterENUM("operation", OP_PLUS, MathOperationNames);
-   AiParameterUINT("numInputs", 0);
-   AiParameterPNT("value0", 0.0f, 0.0f, 0.0f);
-   AiParameterPNT("value1", 0.0f, 0.0f, 0.0f);
-   AiParameterPNT("value2", 0.0f, 0.0f, 0.0f);
-   AiParameterPNT("value3", 0.0f, 0.0f, 0.0f);
-   AiParameterPNT("value4", 0.0f, 0.0f, 0.0f);
-   AiParameterPNT("value5", 0.0f, 0.0f, 0.0f);
-   AiParameterPNT("value6", 0.0f, 0.0f, 0.0f);
-   AiParameterPNT("value7", 0.0f, 0.0f, 0.0f);
+   AiParameterARRAY("input3D", AiArray(0, 0, AI_TYPE_POINT));
 
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }
@@ -69,36 +53,36 @@ node_finish
 shader_evaluate
 {
    int operation = AiShaderEvalParamEnum(p_operation);
-   unsigned int numInputs = AiShaderEvalParamUInt(p_numInputs);
+   AtArray* inputs = AiShaderEvalParamArray(p_input3D);
    
    AtPoint result = {0.0f, 0.0f, 0.0f};
 
-   if (numInputs > 0)
+   if (inputs->nelements > 0)
    {
       switch (operation)
       {
          case OP_PLUS:
          case OP_AVERAGE:
-            for (AtUInt32 i=0; i<numInputs; ++i)
+            for (AtUInt32 i=0; i<inputs->nelements; ++i)
             {
-               result += AiShaderEvalParamPnt(p_value0+i);
+               result += AiArrayGetPnt(inputs, i);
             }
             break;
          case OP_MINUS:
-            result = AiShaderEvalParamPnt(p_value0);
-            for (AtUInt32 i=1; i<numInputs; ++i)
+            result = AiArrayGetPnt(inputs, 0);
+            for (AtUInt32 i=1; i<inputs->nelements; ++i)
             {
-               result -= AiShaderEvalParamPnt(p_value0+i);
+               result -= AiArrayGetPnt(inputs, i);
             }
             break;
          default:
-            result = AiShaderEvalParamPnt(p_value0);
+            result = AiArrayGetPnt(inputs, 0);
             break;
       }
 
       if (operation == OP_AVERAGE)
       {
-         float divider = 1.0f / float(numInputs);
+         float divider = 1.0f / float(inputs->nelements);
          result *= divider;
       }
    }

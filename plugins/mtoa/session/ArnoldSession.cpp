@@ -206,11 +206,13 @@ AtNode* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, MStatus *stat)
       return NULL;
    }
    MPlug resultPlug;
+
    // returns the primary attribute (i.e. if the shaderOutputPlug is outColorR, resultPlug is outColor)
-   ComponentType compMode = IsFloatComponent(shaderOutputPlug, resultPlug);
+   ResolveFloatComponent(shaderOutputPlug, resultPlug);
 
    MPlug resolvedPlug;
-   // resolving the plug gives translators a chance to replace ".message" with ".outColor", for example, or to reject it outright.
+   // resolving the plug gives translators a chance to replace ".message" with ".outColor",
+   // for example, or to reject it outright.
    // once the attribute is properly resolved it can be used as a key in our multimap cache
    if (translator->ResolveOutputPlug(resultPlug, resolvedPlug))
    {
@@ -246,17 +248,6 @@ AtNode* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, MStatus *stat)
       translator->Init(this, mayaNode, resultPlug.partialName(false, false, false, false, false, true));
       m_processedTranslators.insert(ObjectToTranslatorPair(handle, translator));
       arnoldNode = translator->DoExport(0);
-   }
-   // conversion nodes are not created in an efficient manner, but it's good enough until multiple outputs are supported natively.
-   // each translator stores only one "root" arnold node, which is used if the same maya node is encountered again.
-   // conversion nodes are applied after the root depending which component is accessed (if any). we can't store
-   // the conversion without a new temporary structure that would further convolute things. The result is
-   // that a new conversion node is generated every time a component is accessed, and NOT reused later if the same component
-   // is accessed again.  oh well.
-   if (arnoldNode != NULL)
-   {
-      if (compMode != COMPONENT_TYPE_NONE)
-         arnoldNode = InsertConversionNodes(shaderOutputPlug, compMode, arnoldNode);
    }
    if (NULL != stat) *stat = status;
    return arnoldNode;

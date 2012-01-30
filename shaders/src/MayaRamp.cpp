@@ -22,39 +22,8 @@ enum MayaRampParams
    p_uvCoord,
    p_noise,
    p_noise_freq,
-   p_numEntries,
-   p_position0,
-   p_position1,
-   p_position2,
-   p_position3,
-   p_position4,
-   p_position5,
-   p_position6,
-   p_position7,
-   p_position8,
-   p_position9,
-   p_position10,
-   p_position11,
-   p_position12,
-   p_position13,
-   p_position14,
-   p_position15,
-   p_color0,
-   p_color1,
-   p_color2,
-   p_color3,
-   p_color4,
-   p_color5,
-   p_color6,
-   p_color7,
-   p_color8,
-   p_color9,
-   p_color10,
-   p_color11,
-   p_color12,
-   p_color13,
-   p_color14,
-   p_color15,
+   p_positions,
+   p_colors,
    MAYA_COLOR_BALANCE_ENUM
 };
 
@@ -97,40 +66,9 @@ node_parameters
    AiParameterFLT("noise", 0.0f);
    AiParameterFLT("noiseFreq", 0.5f);
 
-   AiParameterUINT("numEntries", 0);
-   AiParameterFLT("position0", 0.0f);
-   AiParameterFLT("position1", 0.0f);
-   AiParameterFLT("position2", 0.0f);
-   AiParameterFLT("position3", 0.0f);
-   AiParameterFLT("position4", 0.0f);
-   AiParameterFLT("position5", 0.0f);
-   AiParameterFLT("position6", 0.0f);
-   AiParameterFLT("position7", 0.0f);
-   AiParameterFLT("position8", 0.0f);
-   AiParameterFLT("position9", 0.0f);
-   AiParameterFLT("position10", 0.0f);
-   AiParameterFLT("position11", 0.0f);
-   AiParameterFLT("position12", 0.0f);
-   AiParameterFLT("position13", 0.0f);
-   AiParameterFLT("position14", 0.0f);
-   AiParameterFLT("position15", 0.0f);
+   AiParameterARRAY("position", AiArray(0, 0, AI_TYPE_FLOAT));
 
-   AiParameterRGB("color0", 0.0f, 0.0f, 0.0f);
-   AiParameterRGB("color1", 0.0f, 0.0f, 0.0f);
-   AiParameterRGB("color2", 0.0f, 0.0f, 0.0f);
-   AiParameterRGB("color3", 0.0f, 0.0f, 0.0f);
-   AiParameterRGB("color4", 0.0f, 0.0f, 0.0f);
-   AiParameterRGB("color5", 0.0f, 0.0f, 0.0f);
-   AiParameterRGB("color6", 0.0f, 0.0f, 0.0f);
-   AiParameterRGB("color7", 0.0f, 0.0f, 0.0f);
-   AiParameterRGB("color8", 0.0f, 0.0f, 0.0f);
-   AiParameterRGB("color9", 0.0f, 0.0f, 0.0f);
-   AiParameterRGB("color10", 0.0f, 0.0f, 0.0f);
-   AiParameterRGB("color11", 0.0f, 0.0f, 0.0f);
-   AiParameterRGB("color12", 0.0f, 0.0f, 0.0f);
-   AiParameterRGB("color13", 0.0f, 0.0f, 0.0f);
-   AiParameterRGB("color14", 0.0f, 0.0f, 0.0f);
-   AiParameterRGB("color15", 0.0f, 0.0f, 0.0f);
+   AiParameterARRAY("color", AiArray(0, 0, AI_TYPE_RGB));
 
    AddMayaColorBalanceParams(params);
 
@@ -162,9 +100,10 @@ shader_evaluate
 {
    AtRGB result = AI_RGB_BLACK;
    // Read positions and colors
-   // Not using array and AiShaderEvalParamArray to allow individual connections
-   unsigned int numEntries = AiShaderEvalParamUInt(p_numEntries);
-   if (numEntries > 0)
+   AtArray* positionsArray = AiShaderEvalParamArray(p_positions);
+   AtArray* colorsArray = AiShaderEvalParamArray(p_colors);
+
+   if (positionsArray->nelements > 0)
    {
       AtPoint2 uv;
       uv = AiShaderEvalParamPnt2(p_uvCoord);
@@ -178,24 +117,23 @@ shader_evaluate
          MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
          return;
       }
-      if (numEntries == 1)
+      if (positionsArray->nelements == 1)
       {
          // Only one color entry then it's a plain color / texture
-         result = AiShaderEvalParamRGB(p_color0);
+         result = AiArrayGetRGB(colorsArray, 0);
       }
-      else // (numEntries > 1)
+      else // (positionsArray->nelements > 1)
       {
-         if (numEntries > 16) numEntries = 16;
-         AtArray *positions = AiArrayAllocate(numEntries, 1, AI_TYPE_FLOAT);
-         AtArray *colors = AiArrayAllocate(numEntries, 1, AI_TYPE_RGB);
-         for (AtUInt32 i=0; i<numEntries; ++i)
+         AtArray *positions = AiArrayAllocate(positionsArray->nelements, 1, AI_TYPE_FLOAT);
+         AtArray *colors = AiArrayAllocate(positionsArray->nelements, 1, AI_TYPE_RGB);
+         for (AtUInt32 i=0; i<positionsArray->nelements; ++i)
          {
-            AiArraySetFlt(positions, i, AiShaderEvalParamFlt(p_position0+i));
-            AiArraySetRGB(colors, i, AiShaderEvalParamRGB(p_color0+i));
+            AiArraySetFlt(positions, i, AiArrayGetFlt(positionsArray, i));
+            AiArraySetRGB(colors, i, AiArrayGetRGB(colorsArray, i));
          }
          // Sort the arrays, since positions can be connected, order can change
          // Sort position array
-         unsigned int* shuffle = new unsigned int[numEntries];
+         unsigned int* shuffle = new unsigned int[positionsArray->nelements];
          if (SortFloatArray(positions, shuffle))
          {
             ShuffleArray(colors, shuffle, AI_TYPE_RGB);

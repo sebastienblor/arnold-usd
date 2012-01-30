@@ -42,6 +42,7 @@ private:
    void SetTranslatorName(MString name) {m_abstract.name = MString(name);}
    bool ProcessParameterComponentInputs(AtNode* arnoldNode, const MPlug &plug, const char* arnoldAttrib, int arnoldAttribType);
    AtNode* ProcessParameterInputs(AtNode* arnoldNode, const MPlug &plug, const char* arnoldAttrib, int arnoldAttribType);
+
 public:
    MString GetTranslatorName() {return m_abstract.name;}
 
@@ -93,8 +94,10 @@ protected:
    virtual AtNode* ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, int element=-1);
    // For a specific Maya plug
    virtual AtNode* ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, const MPlug& plug);
+   void InitArrayParameter(AtNode* arnoldNode, const char* arnoldParamName, unsigned int arnoldParamType, unsigned int size);
+   virtual void ProcessArrayParameterElement(AtNode* arnoldNode, const char* arnoldParamName, const MPlug& elemPlug, unsigned int arnoldParamType, unsigned int pos);
    virtual void ProcessArrayParameter(AtNode* arnoldNode, const char* arnoldParamName, const MPlug& plug);
-   void ProcessArrayElement(int type, AtArray* array, unsigned int i, const MPlug& elem);
+   void ProcessConstantArrayElement(int type, AtArray* array, unsigned int i, const MPlug& elem);
    void ProcessAnimatedParameter(AtNode* arnoldNode, const char* arnoldParamName, const MPlug& plug, unsigned int step);
    AtNode* ProcessConstantParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, const MPlug& plug);
 

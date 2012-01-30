@@ -476,54 +476,7 @@ AtNode* CPlusMinusAverageTranslator::CreateArnoldNodes()
 
 void CPlusMinusAverageTranslator::Export(AtNode* shader)
 {
-   MString inputName = m_outputAttr;
-   int attribType = AI_TYPE_NONE;
-
-   if (m_outputAttr == "output1D")
-   {
-      inputName = "input1D";
-      attribType = AI_TYPE_FLOAT;
-   }
-   if (m_outputAttr == "output2D")
-   {
-      inputName = "input2D";
-      attribType = AI_TYPE_POINT2;
-   }
-   else if (m_outputAttr == "output3D")
-   {
-      inputName = "input3D";
-      attribType = AI_TYPE_POINT;
-   }
-
-   if (AI_TYPE_NONE == attribType) return;
-
-   MPlug plug, elemPlug;
-   // char mayaAttr[64];
-   char aiAttr[64];
-
-   plug = m_fnNode.findPlug("operation");
-   AiNodeSetInt(shader, "operation", plug.asInt());
-
-   plug = m_fnNode.findPlug(inputName);
-   unsigned int numElements = plug.numElements();
-   if (numElements > 8)
-   {
-      MString warning;
-      warning.format("plusMinusAverage node '^1s' has more than 8 inputs, only the first 8 will be handled", GetMayaNodeName());
-      MGlobal::displayWarning(warning);
-
-      numElements = 8;
-   }
-
-   AiNodeSetUInt(shader, "numInputs", numElements);
-
-   for (unsigned int i=0; i<numElements; ++i)
-   {
-      elemPlug = plug.elementByPhysicalIndex(i);
-      // sprintf(mayaAttr, "%s[%u]", inputName.asChar(), elem.logicalIndex());
-      sprintf(aiAttr, "value%u", i);
-      ProcessParameter(shader, aiAttr, attribType, elemPlug);
-   }
+   CShaderTranslator::Export(shader);
 }
 
 // ParticleSamplerInfo
@@ -920,27 +873,20 @@ void CRampTranslator::Export(AtNode* shader)
    MObject ocol = GetMayaObjectAttribute("color");
    plug = FindMayaObjectPlug("colorEntryList");
    unsigned int numElements = plug.numElements();
-   // Limited to 16 connections
-   if (numElements > 16)
-   {
-      MString warning;
-      warning.format("ramp node '^1s' has more than 8 inputs, only the first 8 will be handled", GetMayaNodeName());
-      MGlobal::displayWarning(warning);
-      numElements = 16;
-   }
-   AiNodeSetUInt(shader, "numEntries", numElements);
 
    // Loop on color entries (position, color)
-   char aiAttr[64];
+
+   InitArrayParameter(shader, "position", AI_TYPE_FLOAT, numElements);
+   InitArrayParameter(shader, "color", AI_TYPE_RGB, numElements);
+   
    for (unsigned int i=0; i<numElements; ++i)
    {
       elem = plug.elementByPhysicalIndex(i);
       pos = elem.child(opos);
       col = elem.child(ocol);
-      sprintf(aiAttr, "position%u", i);
-      ProcessParameter(shader, aiAttr, AI_TYPE_FLOAT, pos);
-      sprintf(aiAttr, "color%u", i);
-      ProcessParameter(shader, aiAttr, AI_TYPE_RGB, col);
+      
+      ProcessArrayParameterElement(shader, "position", pos, AI_TYPE_FLOAT, i);
+      ProcessArrayParameterElement(shader, "color", col, AI_TYPE_RGB, i);
    }
 }
 

@@ -1,9 +1,9 @@
 //Maya ASCII 2011 scene
 //Name: test.ma
-//Last modified: Tue, Oct 18, 2011 11:59:19 AM
+//Last modified: Tue, Jan 24, 2012 04:16:46 PM
 //Codeset: UTF-8
 requires maya "2011";
-requires "mtoa" "0.11.0";
+requires "mtoa" "0.14.0";
 requires "Mayatomr" "2011.0m - 3.8.1.33 ";
 requires "stereoCamera" "10.0";
 currentUnit -l centimeter -a degree -t film;
@@ -11,11 +11,11 @@ fileInfo "application" "maya";
 fileInfo "product" "Maya 2011";
 fileInfo "version" "2011 x64";
 fileInfo "cutIdentifier" "201009060248-781623";
-fileInfo "osv" "Linux 2.6.27.21-170.2.56.fc10.x86_64 #1 SMP Mon Mar 23 23:08:10 EDT 2009 x86_64";
-fileInfo "saveHistory0" "/Volumes/sv-dev01/devRepo/chad/arnold/mtoa/testsuite/test_0044/data/test.ma&chad&ws-050.luma-pictures.com&Tuesday, October 18 2011 @ 11:59:19 AM (PDT)";
-fileInfo "saveHistory1" "/Volumes/sv-dev01/devRepo/chad/arnold/mtoa/testsuite/test_0044/data/test.ma&chad&ws-050.luma-pictures.com&Tuesday, October 18 2011 @ 11:56:44 AM (PDT)";
-fileInfo "saveHistory2" "/Volumes/sv-dev01/devRepo/chad/arnold/mtoa/testsuite/test_0040/data/test.ma&chad&ws-050.luma-pictures.com&Thursday, August 04 2011 @ 04:37:50 PM (PDT)";
-fileInfo "saveHistory3" "/Volumes/sv-dev01/devRepo/chad/arnold/mtoa/testsuite/test_0040/data/test.ma&chad&ws-050.luma-pictures.com&Thursday, August 04 2011 @ 04:36:30 PM (PDT)";
+fileInfo "osv" "Linux 2.6.40.3-0.fc15.x86_64 #1 SMP Tue Aug 16 04:10:59 UTC 2011 x86_64";
+fileInfo "saveHistory0" "/Volumes/sv-dev01/devRepo/chad/arnold/mtoa/testsuite/test_0044/data/test.ma&chad&ws-050.luma-pictures.com&Tuesday, January 24 2012 @ 04:16:46 PM (PST)";
+fileInfo "saveHistory1" "/Volumes/sv-dev01/devRepo/chad/arnold/mtoa/testsuite/test_0044/data/test.ma&chad&ws-050.luma-pictures.com&Tuesday, January 24 2012 @ 04:16:12 PM (PST)";
+fileInfo "saveHistory2" "/Volumes/sv-dev01/devRepo/chad/arnold/mtoa/testsuite/test_0044/data/test.ma&chad&ws-050.luma-pictures.com&Tuesday, October 18 2011 @ 11:59:19 AM (PDT)";
+fileInfo "saveHistory3" "/Volumes/sv-dev01/devRepo/chad/arnold/mtoa/testsuite/test_0044/data/test.ma&chad&ws-050.luma-pictures.com&Tuesday, October 18 2011 @ 11:56:44 AM (PDT)";
 fileInfo "nexSGFix" "True";
 createNode transform -s -n "persp";
 	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
@@ -391,7 +391,7 @@ createNode transform -n "pSphere1";
 	setAttr ".s" -type "double3" 0.80746250018211785 0.80746250018211785 0.80746250018211785 ;
 	setAttr ".lumaID" -type "string" "a:1310167324.63:0.0186269795619";
 createNode mesh -n "pSphereShape1" -p "pSphere1";
-	addAttr -ci true -sn "ai_sss_sample_distribution" -ln "aiSssSampleDistribution" 
+	addAttr -ci true -k true -sn "ai_sss_sample_distribution" -ln "aiSssSampleDistribution" 
 		-min 0 -max 3 -en "blue_noise:blue_noise_Pref:triangle_midpoint:polygon_midpoint" 
 		-at "enum";
 	addAttr -ci true -k true -sn "ai_sss_sample_spacing" -ln "aiSssSampleSpacing" -dv 
@@ -403,18 +403,20 @@ createNode mesh -n "pSphereShape1" -p "pSphere1";
 		1 -at "bool";
 	addAttr -ci true -k true -sn "ai_vig" -ln "aiVisibleInGlossy" -dv 1 -min 0 -max 
 		1 -at "bool";
-	addAttr -ci true -sn "ai_subdiv_type" -ln "aiSubdivType" -min 0 -max 2 -en "none:catclark:linear" 
-		-at "enum";
+	addAttr -ci true -k true -sn "ai_subdiv_type" -ln "aiSubdivType" -min 0 -max 2 -en 
+		"none:catclark:linear" -at "enum";
 	addAttr -ci true -k true -sn "ai_subdiv_iterations" -ln "aiSubdivIterations" -dv 
 		1 -min 0 -max 100 -smn 0 -smx 10 -at "long";
-	addAttr -ci true -sn "ai_subdiv_adaptive_metric" -ln "aiSubdivAdaptiveMetric" -min 
-		0 -max 2 -en "auto:edge_length:flatness" -at "enum";
+	addAttr -ci true -k true -sn "ai_subdiv_adaptive_metric" -ln "aiSubdivAdaptiveMetric" 
+		-min 0 -max 2 -en "auto:edge_length:flatness" -at "enum";
 	addAttr -ci true -k true -sn "ai_subdiv_pixel_error" -ln "aiSubdivPixelError" -min 
 		0 -smx 10 -at "float";
 	addAttr -ci true -k true -sn "ai_subdiv_dicing_camera" -ln "aiSubdivDicingCamera" 
 		-at "message";
-	addAttr -ci true -sn "ai_subdiv_uv_smoothing" -ln "aiSubdivUvSmoothing" -min 0 -max 
-		3 -en "pin_corners:pin_borders:linear:smooth" -at "enum";
+	addAttr -ci true -k true -sn "ai_subdiv_uv_smoothing" -ln "aiSubdivUvSmoothing" 
+		-min 0 -max 3 -en "pin_corners:pin_borders:linear:smooth" -at "enum";
+	addAttr -ci true -k true -sn "ai_subdiv_smooth_derivs" -ln "aiSubdivSmoothDerivs" 
+		-min 0 -max 1 -at "bool";
 	addAttr -ci true -k true -sn "ai_exptan" -ln "aiExportTangents" -min 0 -max 1 -at "bool";
 	addAttr -ci true -k true -sn "ai_expcol" -ln "aiExportColors" -min 0 -max 1 -at "bool";
 	addAttr -ci true -sn "ai_sss_use_gi" -ln "aiSssUseGi" -dv 1 -min 0 -max 1 -at "bool";
@@ -440,7 +442,7 @@ createNode transform -n "pSphere2";
 	setAttr ".s" -type "double3" 0.80746250018211785 0.80746250018211785 0.80746250018211785 ;
 	setAttr ".lumaID" -type "string" "a:1318963832.75:0.392079927987";
 createNode mesh -n "pSphereShape2" -p "pSphere2";
-	addAttr -ci true -sn "ai_sss_sample_distribution" -ln "aiSssSampleDistribution" 
+	addAttr -ci true -k true -sn "ai_sss_sample_distribution" -ln "aiSssSampleDistribution" 
 		-min 0 -max 3 -en "blue_noise:blue_noise_Pref:triangle_midpoint:polygon_midpoint" 
 		-at "enum";
 	addAttr -ci true -k true -sn "ai_sss_sample_spacing" -ln "aiSssSampleSpacing" -dv 
@@ -452,18 +454,20 @@ createNode mesh -n "pSphereShape2" -p "pSphere2";
 		1 -at "bool";
 	addAttr -ci true -k true -sn "ai_vig" -ln "aiVisibleInGlossy" -dv 1 -min 0 -max 
 		1 -at "bool";
-	addAttr -ci true -sn "ai_subdiv_type" -ln "aiSubdivType" -min 0 -max 2 -en "none:catclark:linear" 
-		-at "enum";
+	addAttr -ci true -k true -sn "ai_subdiv_type" -ln "aiSubdivType" -min 0 -max 2 -en 
+		"none:catclark:linear" -at "enum";
 	addAttr -ci true -k true -sn "ai_subdiv_iterations" -ln "aiSubdivIterations" -dv 
 		1 -min 0 -max 100 -smn 0 -smx 10 -at "long";
-	addAttr -ci true -sn "ai_subdiv_adaptive_metric" -ln "aiSubdivAdaptiveMetric" -min 
-		0 -max 2 -en "auto:edge_length:flatness" -at "enum";
+	addAttr -ci true -k true -sn "ai_subdiv_adaptive_metric" -ln "aiSubdivAdaptiveMetric" 
+		-min 0 -max 2 -en "auto:edge_length:flatness" -at "enum";
 	addAttr -ci true -k true -sn "ai_subdiv_pixel_error" -ln "aiSubdivPixelError" -min 
 		0 -smx 10 -at "float";
 	addAttr -ci true -k true -sn "ai_subdiv_dicing_camera" -ln "aiSubdivDicingCamera" 
 		-at "message";
-	addAttr -ci true -sn "ai_subdiv_uv_smoothing" -ln "aiSubdivUvSmoothing" -min 0 -max 
-		3 -en "pin_corners:pin_borders:linear:smooth" -at "enum";
+	addAttr -ci true -k true -sn "ai_subdiv_uv_smoothing" -ln "aiSubdivUvSmoothing" 
+		-min 0 -max 3 -en "pin_corners:pin_borders:linear:smooth" -at "enum";
+	addAttr -ci true -k true -sn "ai_subdiv_smooth_derivs" -ln "aiSubdivSmoothDerivs" 
+		-min 0 -max 1 -at "bool";
 	addAttr -ci true -k true -sn "ai_exptan" -ln "aiExportTangents" -min 0 -max 1 -at "bool";
 	addAttr -ci true -k true -sn "ai_expcol" -ln "aiExportColors" -min 0 -max 1 -at "bool";
 	addAttr -ci true -sn "ai_sss_use_gi" -ln "aiSssUseGi" -dv 1 -min 0 -max 1 -at "bool";
@@ -1629,8 +1633,8 @@ createNode mesh -n "pSphereShape2" -p "pSphere2";
 	setAttr ".hfd" -type "dataPolyComponent" Index_Data Face 0 ;
 	setAttr ".lumaID" -type "string" "a:1318963832.75:0.774046683342";
 createNode aiOptions -s -n "defaultArnoldRenderOptions";
-	addAttr -ci true -sn "driver_exr_compression" -ln "driverExrCompression" -dv 2 
-		-min 0 -max 4 -en "none:rle:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -k true -sn "driver_exr_compression" -ln "driverExrCompression" 
+		-dv 2 -min 0 -max 4 -en "none:rle:zip:piz:pxr24" -at "enum";
 	addAttr -ci true -k true -sn "driver_half_precision" -ln "driverHalfPrecision" -min 
 		0 -max 1 -at "bool";
 	addAttr -ci true -k true -sn "driver_tiled" -ln "driverTiled" -dv 1 -min 0 -max 
@@ -1645,17 +1649,17 @@ createNode aiOptions -s -n "defaultArnoldRenderOptions";
 		-min 9.9999997473787516e-05 -smx 5 -at "float";
 	addAttr -ci true -k true -sn "driver_dither_amplitude" -ln "driverDitherAmplitude" 
 		-dv 1 -at "float";
-	addAttr -ci true -sn "driver_png_format" -ln "driverPngFormat" -min 0 -max 1 -en 
-		"int8:int16" -at "enum";
-	addAttr -ci true -sn "driver_tiff_compression" -ln "driverTiffCompression" -dv 1 
-		-min 0 -max 4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
-	addAttr -ci true -sn "driver_tiff_format" -ln "driverTiffFormat" -min 0 -max 3 -en 
-		"int8:int16:int32:float32" -at "enum";
+	addAttr -ci true -k true -sn "driver_png_format" -ln "driverPngFormat" -min 0 -max 
+		1 -en "int8:int16" -at "enum";
+	addAttr -ci true -k true -sn "driver_tiff_compression" -ln "driverTiffCompression" 
+		-dv 1 -min 0 -max 4 -en "none:lzw:ccittrle:zip:packbits" -at "enum";
+	addAttr -ci true -k true -sn "driver_tiff_format" -ln "driverTiffFormat" -min 0 
+		-max 3 -en "int8:int16:int32:float32" -at "enum";
 	addAttr -ci true -k true -sn "driver_unpremult_alpha" -ln "driverUnpremultAlpha" 
 		-min 0 -max 1 -at "bool";
-	addAttr -ci true -k true -sn "filter_width" -ln "filterWidth" -dv 3 -at "float";
-	addAttr -ci true -sn "filter_domain" -ln "filterDomain" -min 0 -max 1 -en "first_hit:all_hits" 
-		-at "enum";
+	addAttr -ci true -k true -sn "filter_width" -ln "filterWidth" -dv 2 -at "float";
+	addAttr -ci true -k true -sn "filter_domain" -ln "filterDomain" -min 0 -max 1 -en 
+		"first_hit:all_hits" -at "enum";
 	addAttr -ci true -k true -sn "filter_minimum" -ln "filterMinimum" -at "float";
 	addAttr -ci true -k true -sn "filter_maximum" -ln "filterMaximum" -dv 1 -at "float";
 	addAttr -ci true -k true -sn "filter_scalar_mode" -ln "filterScalarMode" -min 0 
@@ -2145,7 +2149,10 @@ createNode mia_exposure_simple -n "mia_exposure_simple1";
 	setAttr ".lumaID" -type "string" "a:1310598901.52:0.167014046806";
 createNode plusMinusAverage -n "vec_comp_to_vec_comp";
 	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
+	setAttr ".op" 3;
 	setAttr ".i2[0]" -type "float2" 0 0;
+	setAttr -s 2 ".i3";
+	setAttr -s 2 ".i3";
 	setAttr ".lumaID" -type "string" "a:1310598985.02:0.205080308206";
 createNode remapValue -n "float_to_vec_component";
 	addAttr -ci true -sn "lumaID" -ln "lumaID" -dt "string";
@@ -2330,6 +2337,9 @@ connectAttr "samplerInfo1.fr" "color_comp_to_point2_comp.ipr";
 connectAttr "aiAmbientOcclusion1.outr" "color_comp_to_point2_comp.ipg";
 connectAttr "aiAmbientOcclusion2.outg" "color_comp_to_point2_comp.ipb";
 connectAttr "ramp2.oc" "vec_comp_to_vec_comp.i3[0]";
+connectAttr "ramp2.ocr" "vec_comp_to_vec_comp.i3[1].i3x";
+connectAttr "ramp2.ocg" "vec_comp_to_vec_comp.i3[1].i3y";
+connectAttr "ramp2.ocb" "vec_comp_to_vec_comp.i3[1].i3z";
 connectAttr "vec_comp_to_vec_comp.o3x" "float_to_vec_component.i";
 connectAttr "vec_comp_to_vec_comp.o3y" "multiplyDivide1.i1y";
 connectAttr "vec_comp_to_vec_comp.o3z" "multiplyDivide1.i1z";

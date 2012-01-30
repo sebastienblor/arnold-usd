@@ -54,7 +54,7 @@ void CShaderTranslator::ExportMotion(AtNode *shader, unsigned int step)
       if (strcmp(paramName, "placementMatrix") == 0)
       {
          AtArray* matrices = AiNodeGetArray(GetArnoldNode(paramName), "values");
-         ProcessArrayElement(AI_TYPE_MATRIX, matrices, GetMotionStep(), FindMayaObjectPlug(paramName));
+         ProcessConstantArrayElement(AI_TYPE_MATRIX, matrices, GetMotionStep(), FindMayaObjectPlug(paramName));
       }
    }
    AiParamIteratorDestroy(nodeParam);
@@ -67,7 +67,8 @@ bool CShaderTranslator::ResolveOutputPlug(const MPlug& outputPlug, MPlug &resolv
    MString attrName = outputPlug.partialName(false, false, false, false, false, true);
    if (fnAttr.type() == MFn::kMessageAttribute)
    {
-      // for basic shaders with a single output, which this translator represents, message attributes are equivalent to outColor/outValue
+      // for basic shaders with a single output, which this translator represents, message attributes are equivalent
+      // to outColor/outValue
       MFnDependencyNode fnNode(outputPlug.node());
       resolvedOutputPlug = fnNode.findPlug("outColor", &status);
       if (status != MS::kSuccess)
@@ -82,6 +83,7 @@ bool CShaderTranslator::ResolveOutputPlug(const MPlug& outputPlug, MPlug &resolv
       }
    }
    // proper outputs are readable and not writable, but we should only check for those nodes created by mtoa
+   // since maya nodes do not strictly adhere to this (surfaceShader.outColor is writable, for example)
    else if ((!fnAttr.isReadable() || fnAttr.isWritable()) &&
          CExtensionsManager::IsRegisteredMayaNode(MFnDependencyNode(outputPlug.node()).typeName()))
    {
