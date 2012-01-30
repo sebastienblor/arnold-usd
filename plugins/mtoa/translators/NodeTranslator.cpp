@@ -999,6 +999,55 @@ AtNode* CNodeTranslator::ProcessConstantParameter(AtNode* arnoldNode, const char
    return NULL;
 }
 
+void CNodeTranslator::InitArrayParameter(AtNode* arnoldNode, const char* arnoldParamName, unsigned int arnoldParamType, unsigned int size)
+{
+   AtArray* array = AiArrayAllocate(size, 1, arnoldParamType);
+   AiNodeSetArray(arnoldNode, arnoldParamName, array);
+}
+
+void CNodeTranslator::ProcessArrayParameterElement(AtNode* arnoldNode, const char* arnoldParamName, const MPlug& elemPlug, unsigned int arnoldParamType, unsigned int pos)
+{
+   AtArray* array = AiNodeGetArray(arnoldNode, arnoldParamName);
+   // connections:
+   // An AI_TYPE_NODE param is controlled via a Maya message attribute. Unlike numeric attributes, in Maya
+   // there is no way of assigning the value of a message attribute other than via a connection.
+   // Therefore, we handle node/message connections in ProcessArrayElement
+   if (arnoldParamType != AI_TYPE_NODE)
+   {
+      MString elemName = MString(arnoldParamName) + "[" + pos + "]";
+      AtNode* connected = ProcessParameterInputs(arnoldNode, elemPlug, elemName.asChar(), arnoldParamType);
+      // FIXME: should we always evaluate components even if something was connected at the parent level?
+      if (connected == NULL)
+      {
+         // component connections
+         switch(arnoldParamType)
+         {
+         case AI_TYPE_RGB:
+         case AI_TYPE_RGBA:
+         case AI_TYPE_POINT2:
+         case AI_TYPE_VECTOR:
+         case AI_TYPE_POINT:
+            {
+               if(ProcessParameterComponentInputs(arnoldNode, elemPlug, elemName.asChar(), arnoldParamType) == false)
+               {
+                  // constant value
+                  ProcessConstantArrayElement(arnoldParamType, array, pos, elemPlug);
+               }
+            }
+            break;
+         default:
+            // constant value
+            ProcessConstantArrayElement(arnoldParamType, array, pos, elemPlug);
+         }
+      }
+   }
+   else
+   {
+      // constant value
+      ProcessConstantArrayElement(arnoldParamType, array, pos, elemPlug);
+   }
+}
+
 /// Allocate an AtArray, ProcessConstantArrayElement to fill it with values from the array plug, and call AiNodeSetArray.
 /// Also calls ProcessParameterInputs.
 void CNodeTranslator::ProcessArrayParameter(AtNode* arnoldNode, const char* arnoldParamName, const MPlug& plug)
@@ -1020,55 +1069,16 @@ void CNodeTranslator::ProcessArrayParameter(AtNode* arnoldNode, const char* arno
 
    // for now do all elements
    unsigned int size = plug.numElements();
-   AtArray* array = AiArrayAllocate(size, 1, arnoldParamType);
+   InitArrayParameter(arnoldNode, arnoldParamName, arnoldParamType, size);
    MPlug elemPlug;
-   MPlugArray connections;
    for (unsigned int i = 0; i < size; ++i)
    {
       // cout << plug.partialName(true, false, false, false, false, true) << " index " << i << endl;
       //plug.selectAncestorLogicalIndex(i, plug.attribute());
       elemPlug = plug[i];
 
-      // connections:
-      // An AI_TYPE_NODE param is controlled via a Maya message attribute. Unlike numeric attributes, in Maya
-      // there is no way of assigning the value of a message attribute other than via a connection.
-      // Therefore, we handle node/message connections in ProcessArrayElement
-      if (arnoldParamType != AI_TYPE_NODE)
-      {
-         MString elemName = MString(arnoldParamName) + "[" + i + "]";
-         AtNode* connected = ProcessParameterInputs(arnoldNode, elemPlug, elemName.asChar(), arnoldParamType);
-         // FIXME: should we always evaluate components even if something was connected at the parent level?
-         if (connected == NULL)
-         {
-            // component connections
-            switch(arnoldParamType)
-            {
-            case AI_TYPE_RGB:
-            case AI_TYPE_RGBA:
-            case AI_TYPE_POINT2:
-            case AI_TYPE_VECTOR:
-            case AI_TYPE_POINT:
-               {
-                  if(ProcessParameterComponentInputs(arnoldNode, elemPlug, elemName.asChar(), arnoldParamType) == false)
-                  {
-                     // constant value
-                     ProcessConstantArrayElement(arnoldParamType, array, i, elemPlug);
-                  }
-               }
-               break;
-            default:
-               // constant value
-               ProcessConstantArrayElement(arnoldParamType, array, i, elemPlug);
-            }
-         }
-      }
-      else
-      {
-         // constant value
-         ProcessConstantArrayElement(arnoldParamType, array, i, elemPlug);
-      }
-   } // for loop
-   if (size) AiNodeSetArray(arnoldNode, arnoldParamName, array);
+      ProcessArrayParameterElement(arnoldNode, arnoldParamName, elemPlug, arnoldParamType, i);
+   }
 }
 
 void CNodeTranslator::ProcessConstantArrayElement(int type, AtArray* array, unsigned int i, const MPlug& elem)
