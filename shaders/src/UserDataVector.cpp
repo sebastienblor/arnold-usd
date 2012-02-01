@@ -18,7 +18,7 @@ node_parameters
    AiMetaDataSetStr(mds, NULL, "maya.name", "aiUserDataVector");
    AiMetaDataSetInt(mds, NULL, "maya.id", ARNOLD_NODEID_USERDATAVECTOR);
    AiMetaDataSetStr(mds, NULL, "maya.classification", "shader/utility");
-   AiMetaDataSetBool(mds, NULL, "maya.swatch", FALSE);
+   AiMetaDataSetBool(mds, NULL, "maya.swatch", false);
 
    AiParameterSTR("vectorAttrName", "");
 }

@@ -219,7 +219,7 @@ static int Init(AtNode *mynode, void **user_ptr)
       AiRenderAbort();
    }
 
-   return TRUE;
+   return true;
 }
 
 // All done, deallocate stuff
@@ -242,7 +242,7 @@ static int Cleanup(void *user_ptr)
    AiArrayDestroy(partArray);
 
    AiMsgInfo("[INSTANCER] Done cleaning datas");
-   return TRUE;
+   return true;
 }
 
 // Get number of nodes

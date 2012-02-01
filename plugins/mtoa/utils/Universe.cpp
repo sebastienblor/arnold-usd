@@ -18,7 +18,7 @@ void SetMetafile(MString metafile)
 
 MStatus ReadMetafile()
 {
-   AtBoolean readMetaSuccess = AiMetaDataLoadFile(g_metafile.asChar());
+   bool readMetaSuccess = AiMetaDataLoadFile(g_metafile.asChar());
    if (!readMetaSuccess)
    {
       AiMsgError("[mtoa] Could not read mtoa built-in metadata file mtoa.mtd");

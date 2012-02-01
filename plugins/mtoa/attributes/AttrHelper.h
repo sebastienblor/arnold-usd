@@ -42,21 +42,21 @@ MString toMayaStyle(MString s);
 /// Structure for holding attribute properties
 struct CAttrData
 {
-   MString name;
-   MString shortName;
-   MString stringDefault;
+   MString      name;
+   MString      shortName;
+   MString      stringDefault;
    AtParamValue defaultValue;
-   AtBoolean isArray;
-   int type;
-   AtBoolean hasMin;
+   bool         isArray;
+   int        type;
+   bool         hasMin;
    AtParamValue min;
-   AtBoolean hasMax;
+   bool         hasMax;
    AtParamValue max;
-   AtBoolean hasSoftMin;
+   bool         hasSoftMin;
    AtParamValue softMin;
-   AtBoolean hasSoftMax;
+   bool         hasSoftMax;
    AtParamValue softMax;
-   AtBoolean keyable;
+   bool         keyable;
    MStringArray enums;
    CAttrData() :  name(""),
                   shortName(""),

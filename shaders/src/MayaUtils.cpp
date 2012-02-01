@@ -383,7 +383,7 @@ void ShuffleArray(AtArray *a, unsigned int *shuffle, int arnoldType)
       {
          if (shuffle[i] < i)
             continue;
-         tmp = (AiArrayGetBool(a, i) == TRUE);
+         tmp = (AiArrayGetBool(a, i) == true);
          AiArraySetBool(a, i, AiArrayGetBool(a, shuffle[i]));
          AiArraySetBool(a, shuffle[i], tmp);
       }
@@ -644,8 +644,8 @@ void MayaColorBalance(AtShaderGlobals* sg,
    const AtRGB colorOffset    = AiShaderEvalParamFuncRGB(sg, node, p_start + 2);  //p_colorOffset);
    const float alphaGain      = AiShaderEvalParamFuncFlt(sg, node, p_start + 3);  //p_alphaGain);
    const float alphaOffset    = AiShaderEvalParamFuncFlt(sg, node, p_start + 4);  //p_alphaOffset);
-   const AtBoolean alphaIsLuminance     = AiShaderEvalParamFuncBool(sg, node, p_start+ 5);  //alphaIsLuminance);
-   const AtBoolean invert = AiShaderEvalParamFuncBool(sg, node, p_start+ 6); //p_invert);
+   const bool alphaIsLuminance     = AiShaderEvalParamFuncBool(sg, node, p_start+ 5);  //alphaIsLuminance);
+   const bool invert = AiShaderEvalParamFuncBool(sg, node, p_start+ 6); //p_invert);
 
    if (invert)
    {
@@ -1258,7 +1258,7 @@ float CosWaves(float posX,
 bool SetRefererencePoints(AtShaderGlobals *sg, AtPoint &tmpPts)
 {
    AtPoint Pref;
-   AtBoolean usePref = AiUDataGetPnt("Pref",&Pref);
+   bool usePref = AiUDataGetPnt("Pref",&Pref);
    if (usePref)
    {
       tmpPts = sg->P;
@@ -1287,7 +1287,7 @@ bool SetRefererencePoints(AtShaderGlobals *sg, AtPoint &tmpPts)
 bool SetRefererenceNormals(AtShaderGlobals *sg, AtVector &tmpNmrs)
 {
    AtVector Nref;
-   AtBoolean useNref = AiUDataGetPnt("Nref",&Nref);
+   bool useNref = AiUDataGetPnt("Nref",&Nref);
    if (useNref)
    {
       tmpNmrs = sg->N;

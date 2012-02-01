@@ -397,7 +397,7 @@ MStatus CExtension::RegisterPluginNodesAndTranslators(const MString &plugin)
       if (strcmp(nodeFile, plugin.asChar()) == 0)
       {
          // If the Arnold node is marked as a node that should be ignored
-         AtBoolean hide;
+         bool hide;
          if (AiMetaDataGetBool(nentry, NULL, "maya.hide", &hide) && hide)
          {
             AiMsgDebug("[mtoa] [%s] [node %s] Marked as hidden.", m_extensionName.asChar(), nodeName);
@@ -495,7 +495,7 @@ MStatus CExtension::RegisterPluginTranslators(const MString &plugin)
       if (strcmp(nodeFile, plugin.asChar()) == 0)
       {
          // If the Arnold node is marked as a node that should be ignored
-         AtBoolean ignore;
+         bool ignore;
          if (AiMetaDataGetBool(nentry, NULL, "maya.ignore", &ignore) && ignore)
          {
             AiMsgDebug("[mtoa] [%s] [node %s] Marked as ignored.", m_extensionName.asChar(), nodeName);

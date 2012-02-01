@@ -54,8 +54,8 @@ node_finish
 shader_evaluate
 {
    AtMatrix *placementMatrix = AiShaderEvalParamMtx(p_placementMatrix);
-   AtBoolean wrap = AiShaderEvalParamBool(p_wrap);
-   AtBoolean local = AiShaderEvalParamBool(p_local);
+   bool wrap = AiShaderEvalParamBool(p_wrap);
+   bool local = AiShaderEvalParamBool(p_local);
 
    AtPoint P;
 

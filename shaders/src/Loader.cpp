@@ -489,10 +489,10 @@ node_loader
       break;
 
    default:
-      return FALSE;
+      return false;
    }
 
    sprintf(node->version, AI_VERSION);
 
-   return TRUE;
+   return true;
 }

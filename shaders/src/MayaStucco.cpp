@@ -58,8 +58,8 @@ shader_evaluate
    AtRGB channel2 = AiShaderEvalParamRGB(p_channel2);
    float shaker = AiShaderEvalParamFlt(p_shaker);
    AtMatrix *placementMatrix = AiShaderEvalParamMtx(p_placementMatrix);
-   AtBoolean local = AiShaderEvalParamBool(p_local);
-   AtBoolean wrap = AiShaderEvalParamBool(p_wrap);
+   bool local = AiShaderEvalParamBool(p_local);
+   bool wrap = AiShaderEvalParamBool(p_wrap);
 
    AtPoint P;
 

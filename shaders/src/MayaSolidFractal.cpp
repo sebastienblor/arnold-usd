@@ -31,7 +31,7 @@ enum MayaSolidFractalParams
    MAYA_COLOR_BALANCE_ENUM
 };
 
-static float Noise3D(const AtPoint &p, AtBoolean inflection)
+static float Noise3D(const AtPoint &p, bool inflection)
 {
    float noise = AiPerlin3(p);
 
@@ -43,7 +43,7 @@ static float Noise3D(const AtPoint &p, AtBoolean inflection)
    return noise;
 }
 
-static float Noise4D(const AtPoint &p, float time, AtBoolean inflection)
+static float Noise4D(const AtPoint &p, float time, bool inflection)
 {
    float noise = AiPerlin4(p, time);  
 
@@ -103,11 +103,11 @@ shader_evaluate
    AtVector ripples = AiShaderEvalParamVec(p_ripples);
    AtPoint2 depth = AiShaderEvalParamPnt2(p_depth);
    float bias = AiShaderEvalParamFlt(p_bias);
-   AtBoolean inflection = AiShaderEvalParamBool(p_inflection);
-   AtBoolean animated = AiShaderEvalParamBool(p_animated);
+   bool inflection = AiShaderEvalParamBool(p_inflection);
+   bool animated = AiShaderEvalParamBool(p_animated);
    AtMatrix *placementMatrix = AiShaderEvalParamMtx(p_placementMatrix);
-   AtBoolean wrap = AiShaderEvalParamBool(p_wrap);
-   AtBoolean local = AiShaderEvalParamBool(p_local);
+   bool wrap = AiShaderEvalParamBool(p_wrap);
+   bool local = AiShaderEvalParamBool(p_local);
 
    AtPoint P;
    float time = 0.0f;

@@ -68,9 +68,9 @@ shader_evaluate
    float transpRange = AiShaderEvalParamFlt(p_transpRange);
    float ratio = AiShaderEvalParamFlt(p_ratio);
    AtMatrix *placementMatrix = AiShaderEvalParamMtx(p_placementMatrix);
-   AtBoolean local = AiShaderEvalParamBool(p_local);
-   AtBoolean wrap = AiShaderEvalParamBool(p_wrap);
-   AtBoolean invert = AiShaderEvalParamBool(p_invert);
+   bool local = AiShaderEvalParamBool(p_local);
+   bool wrap = AiShaderEvalParamBool(p_wrap);
+   bool invert = AiShaderEvalParamBool(p_invert);
    float alphaGain = AiShaderEvalParamFlt(p_alphaGain);
    float alphaOffset = AiShaderEvalParamFlt(p_alphaOffset);
 

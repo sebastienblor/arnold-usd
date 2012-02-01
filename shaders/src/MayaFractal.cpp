@@ -29,7 +29,7 @@ enum MayaFractalParams
    MAYA_COLOR_BALANCE_ENUM
 };
 
-inline float get2DNoise(float x, float y, float px, float py, AtBoolean inflection)
+inline float get2DNoise(float x, float y, float px, float py, bool inflection)
 {
    float noise;
    AtPoint2 p;
@@ -42,7 +42,7 @@ inline float get2DNoise(float x, float y, float px, float py, AtBoolean inflecti
    return noise;
 }
 
-inline float get3DNoise(float x, float y, float z, float px, float py, float pz, AtBoolean inflection)
+inline float get3DNoise(float x, float y, float z, float px, float py, float pz, bool inflection)
 {
    float noise;
    AtPoint p;
@@ -117,8 +117,8 @@ shader_evaluate
    float levelMin = AiShaderEvalParamFlt(p_levelMin);
    float levelMax = AiShaderEvalParamFlt(p_levelMax);
    float threshold = AiShaderEvalParamFlt(p_threshold);
-   AtBoolean animated = AiShaderEvalParamBool(p_animated);
-   AtBoolean inflection = AiShaderEvalParamBool(p_inflection);
+   bool animated = AiShaderEvalParamBool(p_animated);
+   bool inflection = AiShaderEvalParamBool(p_inflection);
 
    float ss = uv.x;
    float tt = uv.y;

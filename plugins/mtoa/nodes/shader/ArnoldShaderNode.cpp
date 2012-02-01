@@ -123,7 +123,7 @@ MStatus CArnoldShaderNode::initialize()
       // skip the special "name" parameter
       if (strcmp(paramName, "name") != 0)
       {
-         AtBoolean hide = false;
+         bool hide = false;
          if (!AiMetaDataGetBool(nodeEntry, paramName, "maya.hide", &hide) || !hide)
          {
             CAttrData attrData;
@@ -142,7 +142,7 @@ MStatus CArnoldShaderNode::initialize()
                   AiMsgError("[mtoa] AOV parameters must be of type string");
                   continue;
                }
-               AtBoolean hide = false;
+               bool hide = false;
                if (!AiMetaDataGetBool(nodeEntry, paramName, "aov.hide", &hide) || !hide)
                {
                   // it's an aov parameter

@@ -78,11 +78,11 @@ shader_evaluate
    AtPoint2 coverage = AiShaderEvalParamPnt2(p_coverage);
    AtPoint2 translate = AiShaderEvalParamPnt2(p_translate_frame);
    float frotate = AiShaderEvalParamFlt(p_rotate_frame);
-   bool mirrorU = (AiShaderEvalParamBool(p_mirror_u) == TRUE);
-   bool mirrorV = (AiShaderEvalParamBool(p_mirror_v) == TRUE);
-   bool wrapU = (AiShaderEvalParamBool(p_wrap_u) == TRUE);
-   bool wrapV = (AiShaderEvalParamBool(p_wrap_v) == TRUE);
-   bool stagger = (AiShaderEvalParamBool(p_stagger) == TRUE);
+   bool mirrorU = (AiShaderEvalParamBool(p_mirror_u) == true);
+   bool mirrorV = (AiShaderEvalParamBool(p_mirror_v) == true);
+   bool wrapU = (AiShaderEvalParamBool(p_wrap_u) == true);
+   bool wrapV = (AiShaderEvalParamBool(p_wrap_v) == true);
+   bool stagger = (AiShaderEvalParamBool(p_stagger) == true);
    AtPoint2 repeat = AiShaderEvalParamPnt2(p_repeat);
    AtPoint2 offset = AiShaderEvalParamPnt2(p_offset);
    float rotate = AiShaderEvalParamFlt(p_rotate);

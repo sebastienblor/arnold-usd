@@ -421,8 +421,8 @@ shader_evaluate
    float uAngle = AiShaderEvalParamFlt(p_u_angle);
    float vAngle = AiShaderEvalParamFlt(p_v_angle);
 
-   bool wrap   = (AiShaderEvalParamBool(p_wrap) == TRUE);
-   bool local  = (AiShaderEvalParamBool(p_local) == TRUE);
+   bool wrap   = (AiShaderEvalParamBool(p_wrap) == true);
+   bool local  = (AiShaderEvalParamBool(p_local) == true);
 
    //AtMatrix* mappingCoordinate = AiShaderEvalParamMtx(p_placement_matrix);
    AtMatrix* space = AiShaderEvalParamMtx(p_placement_matrix);
@@ -624,7 +624,7 @@ shader_evaluate
 
    if (mapped)
    {
-      bool invert = (AiShaderEvalParamBool(p_invert) == TRUE);
+      bool invert = (AiShaderEvalParamBool(p_invert) == true);
 
       AtRGB colorGain     = AiShaderEvalParamRGB(p_color_gain);
       AtRGB colorOffset   = AiShaderEvalParamRGB(p_color_offset);

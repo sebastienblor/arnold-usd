@@ -178,7 +178,7 @@ static void ShuffleArray(AtArray *a, unsigned int *shuffle, int arnoldType)
       {
          if (shuffle[i] < i)
             continue;
-         tmp = (AiArrayGetBool(a, i) == TRUE);
+         tmp = (AiArrayGetBool(a, i) == true);
          AiArraySetBool(a, i, AiArrayGetBool(a, shuffle[i]));
          AiArraySetBool(a, shuffle[i], tmp);
       }
@@ -899,7 +899,7 @@ void CRampTranslator::Export(AtNode* shader)
    ProcessParameter(shader, "defaultColor", AI_TYPE_RGB);
    ProcessParameter(shader, "alphaGain", AI_TYPE_FLOAT);
    ProcessParameter(shader, "alphaOffset", AI_TYPE_FLOAT);
-   AiNodeSetBool(shader, "alphaIsLuminance", AtBoolean(true));
+   AiNodeSetBool(shader, "alphaIsLuminance", bool(true));
    ProcessParameter(shader, "invert", AI_TYPE_BOOLEAN);
    ProcessParameter(shader, "uvCoord", AI_TYPE_POINT2);
 

@@ -50,7 +50,7 @@ node_parameters
 {
    AiParameterARRAY("values", AiArray(0, 0, AI_TYPE_FLOAT));
 
-   AiMetaDataSetBool(mds, NULL, "maya.hide", TRUE);
+   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }
 
 shader_evaluate

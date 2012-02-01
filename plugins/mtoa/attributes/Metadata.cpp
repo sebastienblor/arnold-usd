@@ -50,7 +50,7 @@ AtParamValue MAiParamGetDefault(const AtNodeEntry *entry, const AtParamEntry* pa
       }
       case AI_TYPE_BOOLEAN:
       {
-         AtBoolean result;
+         bool result;
          if (AiMetaDataGetBool(entry, param, "default", &result))
          {
             if (isArray)

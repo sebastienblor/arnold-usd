@@ -14,13 +14,13 @@ void ReadParameterValue(AtNode* curve_node, FILE* fp, const char* param_name);
 static int Init(AtNode *mynode, void **user_ptr)
 {
    datafile = (char*) AiNodeGetStr(mynode, "data");
-   return TRUE;
+   return true;
 }
 
 // All done, deallocate stuff
 static int Cleanup(void *user_ptr)
 {
-   return TRUE;
+   return true;
 }
 
 

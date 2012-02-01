@@ -60,11 +60,11 @@ namespace
 
 node_parameters
 {
-   AiParameterBOOL("alphaIsLuminance", FALSE);
+   AiParameterBOOL("alphaIsLuminance", false);
    AiParameterARRAY("color", AiArray(0, 0, AI_TYPE_RGBA));
    AiParameterARRAY("alpha", AiArray(0, 0, AI_TYPE_FLOAT));
    AiParameterARRAY("blendMode", AiArray(0, 0, AI_TYPE_INT));
-   AiParameterARRAY("visible", AiArray(0, FALSE, AI_TYPE_BOOLEAN));
+   AiParameterARRAY("visible", AiArray(0, false, AI_TYPE_BOOLEAN));
 
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }
@@ -96,7 +96,7 @@ shader_evaluate
       for (int i = numInputs-1; i >= 0; --i)
       {
          bool visible = AiArrayGetBool(visibles, i);
-         if (visible == FALSE) continue;
+         if (visible == false) continue;
 
          AtRGBA color = AiArrayGetRGBA(colors, i);
          float alpha = AiArrayGetFlt(alphas, i);
@@ -222,7 +222,7 @@ shader_evaluate
    // AiArrayDestroy(modes);
    // AiArrayDestroy(visibles);
 
-   if (AiShaderEvalParamBool(p_alphaIsLuminance) == TRUE)
+   if (AiShaderEvalParamBool(p_alphaIsLuminance) == true)
    {
       result.a = result.r*0.30f + result.g*0.59f + result.b*0.11f; // NTSC luminance
    }

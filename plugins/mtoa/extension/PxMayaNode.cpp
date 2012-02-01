@@ -132,7 +132,7 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
       // skip the special "name" parameter
       if (strcmp(paramName, "name") != 0)
       {
-         AtBoolean hide = false;
+         bool hide = false;
          if (!AiMetaDataGetBool(arnoldNodeEntry, paramName, "maya.hide", &hide) || !hide)
          {
             CAttrData attrData;
@@ -195,7 +195,7 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
       if (!AiMetaDataGetStr(arnoldNodeEntry, NULL, "maya.classification", &classificationMtd))
          classificationMtd = CLASSIFY_SHADER.asChar();
       // should we use swatch to preview this node
-      AtBoolean doSwatch;
+      bool doSwatch;
       if (!AiMetaDataGetBool(arnoldNodeEntry, NULL, "maya.swatch", &doSwatch))
          doSwatch = true;
       if (strlen(classificationMtd))

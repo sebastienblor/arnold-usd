@@ -34,7 +34,7 @@ struct COutputDriverData
    AtBBox2   refresh_bbox;
    float     gamma;
    unsigned int    imageWidth, imageHeight;
-   AtBoolean rendering;
+   bool rendering;
 };
 
 enum EDisplayUpdateMessageType
@@ -77,7 +77,7 @@ node_parameters
 
 node_initialize
 {
-   AiDriverInitialize(node, FALSE, NULL);
+   AiDriverInitialize(node, false, NULL);
 }
 
 node_update
@@ -90,9 +90,9 @@ driver_supports_pixel_type
    {
       case AI_TYPE_RGB:
       case AI_TYPE_RGBA:
-         return TRUE;
+         return true;
       default:
-         return FALSE;
+         return false;
    }
 }
 
@@ -110,7 +110,7 @@ driver_open
       s_outputDriverData.imageWidth  = display_window.maxx - display_window.minx + 1;
       s_outputDriverData.imageHeight = display_window.maxy - display_window.miny + 1;
       s_outputDriverData.gamma       = _gamma;
-      s_outputDriverData.rendering   = TRUE;
+      s_outputDriverData.rendering   = true;
    }
 }
 
@@ -211,7 +211,7 @@ driver_close
    msg.msgType = MSG_IMAGE_COMPLETE;
    s_displayUpdateQueue.push(msg);
 
-   s_outputDriverData.rendering = FALSE;
+   s_outputDriverData.rendering = false;
 }
 
 node_finish

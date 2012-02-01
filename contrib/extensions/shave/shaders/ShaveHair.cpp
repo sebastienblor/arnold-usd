@@ -46,7 +46,7 @@ node_parameters
    AiMetaDataSetFlt(mds, "direct_diffuse"   , "softmax", 1.0f);
    AiMetaDataSetFlt(mds, "direct_diffuse"   , "min",     0.0f);
    AiParameterFLT(       "indirect_diffuse" , 1.0f);
-   AiParameterBOOL(      "diffuse_cache"    , TRUE);
+   AiParameterBOOL(      "diffuse_cache"    , true);
 
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }
@@ -153,7 +153,7 @@ shader_evaluate
    // some lights to be ignored if they happen to be on the wrong side of this
    // normal. Setting sg->fhemi forces the lights to be gathered regardless of
    // where the normal is pointing
-   sg->fhemi = FALSE;
+   sg->fhemi = false;
 
    // direct lighting
    AiLightsPrepare(sg);
@@ -206,12 +206,12 @@ shader_evaluate
 node_loader
 {
    if (i > 0)
-      return FALSE;
+      return false;
 
    node->methods      = ShaveHairMtd;
    node->output_type  = AI_TYPE_RGB;
    node->name         = "ShaveHair";
    node->node_type    = AI_NODE_SHADER;
    strcpy(node->version, AI_VERSION);
-   return TRUE;
+   return true;
 }

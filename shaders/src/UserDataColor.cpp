@@ -19,7 +19,7 @@ node_parameters
    AiMetaDataSetStr(mds, NULL, "maya.name", "aiUserDataColor");
    AiMetaDataSetInt(mds, NULL, "maya.id", ARNOLD_NODEID_USERDATACOLOR);
    AiMetaDataSetStr(mds, NULL, "maya.classification", "shader/utility");
-   AiMetaDataSetBool(mds, NULL, "maya.swatch", FALSE);
+   AiMetaDataSetBool(mds, NULL, "maya.swatch", false);
 
    AiParameterSTR("colorAttrName", "");
 }

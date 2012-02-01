@@ -161,7 +161,7 @@ shader_evaluate
    AtVector rotatePivot = AiShaderEvalParamPnt(p_rotate_pivot);
    AtVector scalePivotTranslate = AiShaderEvalParamPnt(p_scale_pivot_translate);
    AtVector rotatePivotTranslate = AiShaderEvalParamPnt(p_rotate_pivot_translate);
-   bool inheritsTransform = (AiShaderEvalParamBool(p_inherits_transform) == TRUE);
+   bool inheritsTransform = (AiShaderEvalParamBool(p_inherits_transform) == true);
    AtMatrix *parentMatrix = AiShaderEvalParamMtx(p_parent_matrix);
 
    AtMatrix *pM = data->getOrCreateMatrix(sg);

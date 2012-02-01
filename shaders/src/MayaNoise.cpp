@@ -140,7 +140,7 @@ shader_evaluate
    float time = AiShaderEvalParamFlt(p_time);
    float frequencyRatio = AiShaderEvalParamFlt(p_frequencyRatio);
    int depthMax = AiShaderEvalParamInt(p_depthMax);
-   AtBoolean inflection = AiShaderEvalParamBool(p_inflection);
+   bool inflection = AiShaderEvalParamBool(p_inflection);
    float implode = AiShaderEvalParamFlt(p_implode);
    float frequency = AiShaderEvalParamFlt(p_frequency);
    AtPoint2 implodeCenter = AiShaderEvalParamPnt2(p_implodeCenter);
