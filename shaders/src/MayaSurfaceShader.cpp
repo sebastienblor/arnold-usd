@@ -45,7 +45,7 @@ node_finish
 
 shader_evaluate
 {
-   sg->out_opacity = AiShaderEvalParamRGB(p_outTransparency);
+   AiColorSub(sg->out_opacity, AI_RGB_WHITE, AiShaderEvalParamRGB(p_outTransparency));
    AtRGB color = AiShaderEvalParamRGB(p_outColor);
    sg->out.RGBA.r = color.r;
    sg->out.RGBA.g = color.g;

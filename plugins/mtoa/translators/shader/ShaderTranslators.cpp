@@ -304,22 +304,58 @@ AtNode*  CLambertTranslator::CreateArnoldNodes()
 
 void CLambertTranslator::Export(AtNode* shader)
 {
-   // FIXME: correct metadata for these 3 parameters would make a custom translator unnecessary
+   // One to one translations
    ProcessParameter(shader, "Kd", AI_TYPE_FLOAT, FindMayaObjectPlug("diffuse"));
    ProcessParameter(shader, "Kd_color", AI_TYPE_RGB, FindMayaObjectPlug("color"));
-   ProcessParameter(shader, "opacity", AI_TYPE_RGB, FindMayaObjectPlug("outMatteOpacity"));
 
+   // Custom translation
    MPlugArray connections;
+   MPlug plug;
 
-   MPlug plug = FindMayaObjectPlug("normalCamera");
-
-   plug.connectedTo(connections, true, false);
-   if (connections.length() > 0)
+   // Transparency to opacity
+   plug = FindMayaObjectPlug("transparency");
+   if (!plug.isNull())
    {
-      AtNode* m_fnNode = ExportNode(connections[0]);
+      // For IPR unlink first
+      if (AiNodeIsLinked(shader, "opacity")) AiNodeUnlink(shader, "opacity");
+      plug.connectedTo(connections, true, false);
+      if (connections.length() > 0)
+      {
+         AtNode* inNode = ExportNode(connections[0]);
+         // Need to reverse it
+         if (inNode != NULL)
+         {
+            MString tag = GetMayaNodeName() + ".transparency";
+            AtNode* reverseNode = AddArnoldNode("MayaReverse", tag.asChar());
+            AiNodeLink(inNode, "input", reverseNode);
+            AiNodeLink(reverseNode, "opacity", shader);
+         }
+      }
+      else
+      {
 
-      if (m_fnNode != NULL)
-         AiNodeLink(m_fnNode, "@before", shader);
+         AiNodeSetRGB(shader, "opacity",
+                        1.0f - plug.child(0).asFloat(),
+                        1.0f - plug.child(1).asFloat(),
+                        1.0f - plug.child(2).asFloat());
+      }
+   }
+
+   // Normal camera
+   plug = FindMayaObjectPlug("normalCamera");
+   if (!plug.isNull())
+   {
+      // For IPR unlink first
+      if (AiNodeIsLinked(shader, "@before")) AiNodeUnlink(shader, "@before");
+      plug.connectedTo(connections, true, false);
+      if (connections.length() > 0)
+      {
+         AtNode* inNode = ExportNode(connections[0]);
+         if (inNode != NULL)
+         {
+            AiNodeLink(inNode, "@before", shader);
+         }
+      }
    }
 }
 
@@ -922,82 +958,37 @@ AtNode*  CLayeredTextureTranslator::CreateArnoldNodes()
 
 void CLayeredTextureTranslator::Export(AtNode* shader)
 {
-   MPlug attr, elem, color, alpha, blendMode, isVisible;
-   MPlugArray connections;
-   MObject colorSrc, alphaSrc;
-   bool colorConnectedToAlpha;
-   char aiAttr[64];
-
-   attr = m_fnNode.findPlug("inputs");
-   unsigned int numElements = attr.numElements();
-   if (numElements > 8)
-   {
-      AiMsgWarning("[mtoa] [translator %s] layeredTexture node has more than 8 inputs, only the first 8 will be handled", GetTranslatorName().asChar());
-      numElements = 8;
-   }
-
-   AiNodeSetUInt(shader, "numInputs", numElements);
-
    ProcessParameter(shader, "alphaIsLuminance", AI_TYPE_BOOLEAN);
-   
-   MObject colorAttr = m_fnNode.attribute("color");
-   MObject alphaAttr = m_fnNode.attribute("alpha");
-   MObject blendModeAttr = m_fnNode.attribute("blendMode");
-   MObject isVisibleAttr = m_fnNode.attribute("isVisible");
 
-   for (unsigned int i = 0; i < numElements; ++i)
+   MPlug inputs, elemt, color, alpha, mode, visible;
+   inputs = FindMayaObjectPlug("inputs");
+   MObject ocolor = GetMayaObjectAttribute("color");
+   MObject oalpha = GetMayaObjectAttribute("alpha");
+   MObject omode = GetMayaObjectAttribute("blendMode");
+   MObject ovisible = GetMayaObjectAttribute("isVisible");
+   unsigned int numElements = inputs.numElements();
+
+   // Init shader array parameters
+
+   InitArrayParameter(shader, "color", AI_TYPE_RGBA, numElements);
+   InitArrayParameter(shader, "alpha", AI_TYPE_FLOAT, numElements);
+   InitArrayParameter(shader, "blendMode", AI_TYPE_INT, numElements);
+   InitArrayParameter(shader, "visible", AI_TYPE_BOOLEAN, numElements);
+
+   // Loop on input entries
+
+   for (unsigned int i=0; i<numElements; ++i)
    {
-      elem = attr.elementByPhysicalIndex(i);
+      elemt = inputs.elementByPhysicalIndex(i);
+      color = elemt.child(ocolor);
+      alpha = elemt.child(oalpha);
+      mode = elemt.child(omode);
+      visible = elemt.child(ovisible);
 
-      color = elem.child(colorAttr);
-      alpha = elem.child(alphaAttr);
-      blendMode = elem.child(blendModeAttr);
-      isVisible = elem.child(isVisibleAttr);
-
-      sprintf(aiAttr, "color%u", i);
-      ProcessParameter(shader, aiAttr, AI_TYPE_RGBA, color);
-
-      // Alpha connection is only handled when 
-      // The input in color and alpha is the same
-
-      colorSrc = MObject::kNullObj;
-      alphaSrc = MObject::kNullObj;
-
-      color.connectedTo(connections, true, false);
-      if (connections.length() > 0)
-         colorSrc = connections[0].node();
-
-      connections.clear();
-      alpha.connectedTo(connections, true, false);
-      if (connections.length() > 0)
-         alphaSrc = connections[0].node();
-
-      if (alphaSrc.isNull())
-         colorConnectedToAlpha = false;
-      else
-         colorConnectedToAlpha = (colorSrc == alphaSrc);
-
-      sprintf(aiAttr, "colorConnectedToAlpha%u", i);
-      AiNodeSetBool(shader, aiAttr, colorConnectedToAlpha ? TRUE : FALSE);
-
-      if (!colorConnectedToAlpha && alphaSrc.isNull())
-      {
-         // Export alpha value when it's not connected
-
-         sprintf(aiAttr, "alpha%u", i);
-         AiNodeSetFlt(shader, aiAttr, alpha.asFloat());
-      }
-      else
-      {
-         sprintf(aiAttr, "alpha%u", i);
-         ProcessParameter(shader, aiAttr, AI_TYPE_FLOAT, alpha);
-      }
-
-      sprintf(aiAttr, "blendMode%u", i);
-      ProcessParameter(shader, aiAttr, AI_TYPE_ENUM, blendMode);
-
-      sprintf(aiAttr, "visible%u", i);
-      ProcessParameter(shader, aiAttr, AI_TYPE_BOOLEAN, isVisible);
+      ProcessArrayParameterElement(shader, "color", color, AI_TYPE_RGBA, i);
+      ProcessArrayParameterElement(shader, "alpha", alpha, AI_TYPE_FLOAT, i);
+      ProcessArrayParameterElement(shader, "blendMode", mode, AI_TYPE_INT, i);
+      ProcessArrayParameterElement(shader, "visible", visible, AI_TYPE_BOOLEAN, i);
    }
 }
 
@@ -1010,66 +1001,29 @@ AtNode*  CLayeredShaderTranslator::CreateArnoldNodes()
 
 void CLayeredShaderTranslator::Export(AtNode* shader)
 {
-   MPlug attr, elem, color, transp;
-   MPlugArray connections;
-   MObject colorSrc, transpSrc;
-   bool useTransparency;
-   // char mayaAttr[64];
-   char aiAttr[64];
-
    ProcessParameter(shader, "compositingFlag", AI_TYPE_ENUM);
 
-   attr = m_fnNode.findPlug("inputs");
-   unsigned int numElements = attr.numElements();
-   if (numElements > 8)
+   MPlug inputs, elemt, color, trans;
+   inputs = FindMayaObjectPlug("inputs");
+   MObject ocol = GetMayaObjectAttribute("color");
+   MObject otrs = GetMayaObjectAttribute("transparency");
+   unsigned int numElements = inputs.numElements();
+
+   // Init shader array parameters
+
+   InitArrayParameter(shader, "color", AI_TYPE_RGBA, numElements);
+   InitArrayParameter(shader, "transparency", AI_TYPE_RGB, numElements);
+
+   // Loop on input entries
+
+   for (unsigned int i=0; i<numElements; ++i)
    {
-      AiMsgWarning("[mtoa] [translator %s] LayeredShader node has more than 8 inputs, only the first 8 will be handled", GetTranslatorName().asChar());
-      numElements = 8;
-   }
+      elemt = inputs.elementByPhysicalIndex(i);
+      color = elemt.child(ocol);
+      trans = elemt.child(otrs);
 
-   AiNodeSetUInt(shader, "numInputs", numElements);
-
-   MObject colorAttr = m_fnNode.attribute("color");
-   MObject transpAttr = m_fnNode.attribute("transparency");
-
-   for (unsigned int i = 0; i < numElements; ++i)
-   {
-      elem = attr.elementByPhysicalIndex(i);
-
-      color = elem.child(colorAttr);
-      transp = elem.child(transpAttr);
-
-      colorSrc = MObject::kNullObj;
-      transpSrc = MObject::kNullObj;
-
-      connections.clear();
-      color.connectedTo(connections, true, false);
-      if (connections.length() > 0)
-         colorSrc = connections[0].node();
-
-      connections.clear();
-      transp.connectedTo(connections, true, false);
-      if (connections.length() > 0)
-         transpSrc = connections[0].node();
-
-      if (transpSrc.isNull())
-         useTransparency = true;
-      else
-         useTransparency = (colorSrc != transpSrc);
-
-      // sprintf(mayaAttr, "inputs[%u].color", elem.logicalIndex());
-      sprintf(aiAttr, "color%u", i);
-      ProcessParameter(shader, aiAttr, AI_TYPE_RGB, color);
-
-      sprintf(aiAttr, "useTransparency%u", i);
-      AiNodeSetBool(shader, aiAttr, useTransparency ? TRUE : FALSE);
-
-      if (useTransparency)
-      {
-         // sprintf(mayaAttr, "inputs[%u].transparency", elem.logicalIndex());
-         sprintf(aiAttr, "transparency%u", i);
-         ProcessParameter(shader, aiAttr, AI_TYPE_RGB, transp);
-      }
+      ProcessArrayParameterElement(shader, "color", color, AI_TYPE_RGBA, i);
+      ProcessArrayParameterElement(shader, "transparency", trans, AI_TYPE_RGB, i);
    }
 }
 

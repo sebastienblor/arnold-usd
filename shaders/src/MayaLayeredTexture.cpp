@@ -14,48 +14,11 @@ namespace
 
    enum MayaLayeredTextureParams
    {
-      p_numInputs,
       p_alphaIsLuminance,
-      p_color0,
-      p_color1,
-      p_color2,
-      p_color3,
-      p_color4,
-      p_color5,
-      p_color6,
-      p_color7,
-      p_alpha0,
-      p_alpha1,
-      p_alpha2,
-      p_alpha3,
-      p_alpha4,
-      p_alpha5,
-      p_alpha6,
-      p_alpha7,
-      p_colorConnectedToAlpha0,
-      p_colorConnectedToAlpha1,
-      p_colorConnectedToAlpha2,
-      p_colorConnectedToAlpha3,
-      p_colorConnectedToAlpha4,
-      p_colorConnectedToAlpha5,
-      p_colorConnectedToAlpha6,
-      p_colorConnectedToAlpha7,
-      p_blendMode0,
-      p_blendMode1,
-      p_blendMode2,
-      p_blendMode3,
-      p_blendMode4,
-      p_blendMode5,
-      p_blendMode6,
-      p_blendMode7,
-      p_visible0,
-      p_visible1,
-      p_visible2,
-      p_visible3,
-      p_visible4,
-      p_visible5,
-      p_visible6,
-      p_visible7,
+      p_color,
+      p_alpha,
+      p_blendMode,
+      p_visible
    };
 
    enum BlendMode
@@ -97,48 +60,11 @@ namespace
 
 node_parameters
 {
-   AiParameterUINT("numInputs", 0);
    AiParameterBOOL("alphaIsLuminance", FALSE);
-   AiParameterRGBA("color0", 0.0f, 0.0f, 0.0f, 1.0f);
-   AiParameterRGBA("color1", 0.0f, 0.0f, 0.0f, 1.0f);
-   AiParameterRGBA("color2", 0.0f, 0.0f, 0.0f, 1.0f);
-   AiParameterRGBA("color3", 0.0f, 0.0f, 0.0f, 1.0f);
-   AiParameterRGBA("color4", 0.0f, 0.0f, 0.0f, 1.0f);
-   AiParameterRGBA("color5", 0.0f, 0.0f, 0.0f, 1.0f);
-   AiParameterRGBA("color6", 0.0f, 0.0f, 0.0f, 1.0f);
-   AiParameterRGBA("color7", 0.0f, 0.0f, 0.0f, 1.0f);
-   AiParameterFLT("alpha0", 1.0f);
-   AiParameterFLT("alpha1", 1.0f);
-   AiParameterFLT("alpha2", 1.0f);
-   AiParameterFLT("alpha3", 1.0f); 
-   AiParameterFLT("alpha4", 1.0f);
-   AiParameterFLT("alpha5", 1.0f);
-   AiParameterFLT("alpha6", 1.0f);
-   AiParameterFLT("alpha7", 1.0f);
-   AiParameterBOOL("colorConnectedToAlpha0", FALSE);
-   AiParameterBOOL("colorConnectedToAlpha1", FALSE);
-   AiParameterBOOL("colorConnectedToAlpha2", FALSE);
-   AiParameterBOOL("colorConnectedToAlpha3", FALSE);
-   AiParameterBOOL("colorConnectedToAlpha4", FALSE);
-   AiParameterBOOL("colorConnectedToAlpha5", FALSE);
-   AiParameterBOOL("colorConnectedToAlpha6", FALSE);
-   AiParameterBOOL("colorConnectedToAlpha7", FALSE);
-   AiParameterENUM("blendMode0", 0, gs_BlendModeNames);
-   AiParameterENUM("blendMode1", 0, gs_BlendModeNames);
-   AiParameterENUM("blendMode2", 0, gs_BlendModeNames);
-   AiParameterENUM("blendMode3", 0, gs_BlendModeNames);
-   AiParameterENUM("blendMode4", 0, gs_BlendModeNames);
-   AiParameterENUM("blendMode5", 0, gs_BlendModeNames);
-   AiParameterENUM("blendMode6", 0, gs_BlendModeNames);
-   AiParameterENUM("blendMode7", 0, gs_BlendModeNames);
-   AiParameterBOOL("visible0", FALSE);
-   AiParameterBOOL("visible1", FALSE);
-   AiParameterBOOL("visible2", FALSE);
-   AiParameterBOOL("visible3", FALSE);
-   AiParameterBOOL("visible4", FALSE);
-   AiParameterBOOL("visible5", FALSE);
-   AiParameterBOOL("visible6", FALSE);
-   AiParameterBOOL("visible7", FALSE);
+   AiParameterARRAY("color", AiArray(0, 0, AI_TYPE_RGBA));
+   AiParameterARRAY("alpha", AiArray(0, 0, AI_TYPE_FLOAT));
+   AiParameterARRAY("blendMode", AiArray(0, 0, AI_TYPE_INT));
+   AiParameterARRAY("visible", AiArray(0, FALSE, AI_TYPE_BOOLEAN));
 
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }
@@ -157,7 +83,11 @@ node_finish
 
 shader_evaluate
 {
-   unsigned int numInputs = AiShaderEvalParamUInt(p_numInputs);
+   AtArray* colors = AiShaderEvalParamArray(p_color);
+   AtArray* alphas = AiShaderEvalParamArray(p_alpha);
+   AtArray* modes = AiShaderEvalParamArray(p_blendMode);
+   AtArray* visibles = AiShaderEvalParamArray(p_visible);
+   unsigned int numInputs = colors->nelements;
 
    AtRGBA result = AI_RGBA_BLACK;
 
@@ -165,22 +95,16 @@ shader_evaluate
    {
       for (int i = numInputs-1; i >= 0; --i)
       {
-         if (AiShaderEvalParamBool(p_visible0+i) == FALSE)   // Disabled, skip
-            continue;
+         bool visible = AiArrayGetBool(visibles, i);
+         if (visible == FALSE) continue;
 
-         AtRGBA color = AiShaderEvalParamRGBA(p_color0+i);
-         float alpha = AiShaderEvalParamFlt(p_alpha0+i);
-         int blendMode = AiShaderEvalParamInt(p_blendMode0+i);
+         AtRGBA color = AiArrayGetRGBA(colors, i);
+         float alpha = AiArrayGetFlt(alphas, i);
+         BlendMode mode = (BlendMode) AiArrayGetInt(modes, i);
 
-         AtBoolean colorConnectedToAlpha = AiShaderEvalParamBool(p_colorConnectedToAlpha0+i);
+         alpha *= color.a;
 
-         // Multiply input alpha with the color's alpha value to support alpha texturing
-         // Until Arnold has a proper connectable array attribute
-
-         if (colorConnectedToAlpha)
-            alpha *= color.a;
-
-         switch (blendMode)
+         switch (mode)
          {
             case BM_NONE:
             {
@@ -292,6 +216,11 @@ shader_evaluate
          }
       }
    }
+
+   // AiArrayDestroy(colors);
+   // AiArrayDestroy(alphas);
+   // AiArrayDestroy(modes);
+   // AiArrayDestroy(visibles);
 
    if (AiShaderEvalParamBool(p_alphaIsLuminance) == TRUE)
    {
