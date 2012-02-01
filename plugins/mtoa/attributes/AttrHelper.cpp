@@ -742,12 +742,16 @@ MObject CBaseAttrHelper::MakeInput(CAttrData& attrData)
          MakeInputEnum(input, attrData);
          break;
       }
-      case AI_TYPE_NONE:
       case AI_TYPE_BYTE:
       case AI_TYPE_POINTER:
       {
          const char* typeName = AiParamGetTypeName(attrData.type);
          AiMsgWarning("[mtoa] Unable to create input attribute \"%s\": parameters of type %s are not supported", attrData.name.asChar(), typeName);
+         return MObject::kNullObj;
+      }
+      case AI_TYPE_UNDEFINED: // same as AI_TYPE_NONE
+      {
+         MGlobal::displayWarning(MString("[mtoa] Unable to create attribute \"") + attrData.name + "\": parameters type is undefined");
          return MObject::kNullObj;
       }
       default:

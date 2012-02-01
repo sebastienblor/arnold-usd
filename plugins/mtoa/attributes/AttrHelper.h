@@ -62,6 +62,7 @@ struct CAttrData
                   shortName(""),
                   stringDefault(""),
                   isArray(false),
+                  type(AI_TYPE_UNDEFINED),
                   hasMin(false),
                   hasMax(false),
                   hasSoftMin(false),
