@@ -70,7 +70,7 @@ void Ramp(AtArray *p, AtArray *v, float t, RampInterpolationType rit, AtRGB &out
    p_alphaIsLuminance,          \
    p_invert
 
-void AddMayaColorBalanceParams(AtList *params);
+void AddMayaColorBalanceParams(AtList *params, AtMetaDataStore* mds);
    
 void MayaColorBalance(AtShaderGlobals* sg,
                              AtNode* node,

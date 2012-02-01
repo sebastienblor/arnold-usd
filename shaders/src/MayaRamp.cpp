@@ -70,7 +70,7 @@ node_parameters
 
    AiParameterARRAY("color", AiArray(0, 0, AI_TYPE_RGB));
 
-   AddMayaColorBalanceParams(params);
+   AddMayaColorBalanceParams(params, mds);
 
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }

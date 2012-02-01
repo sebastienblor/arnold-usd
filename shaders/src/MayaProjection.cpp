@@ -348,6 +348,9 @@ node_parameters
    AiParameterENUM("fitFill", 0, gs_FillTypeNames);
    AiParameterNODE("linkedCamera", NULL);
 
+   AiMetaDataSetBool(mds, "colorGain", "always_linear", true);
+   AiMetaDataSetBool(mds, "colorOffset", "always_linear", true);
+
    // hide from auto-translation
    AiParameterFLT("cameraNearPlane", 1.0f);
    AiMetaDataSetBool(mds, "cameraNearPlane", "maya.hide", true);

@@ -31,7 +31,7 @@ node_parameters
    AiParameterRGB("color2", 0.0f, 0.0f, 0.0f);
    AiParameterFLT("contrast", 1.0);
    AiParameterPNT2("uvCoord", 0.0f, 0.0f);
-   AddMayaColorBalanceParams(params);
+   AddMayaColorBalanceParams(params, mds);
    AiParameterFLT("filter", 1.0f);
    AiParameterFLT("filterOffset", 0.0f);
    

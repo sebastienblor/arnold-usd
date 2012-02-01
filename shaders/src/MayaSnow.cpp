@@ -33,7 +33,7 @@ node_parameters
    AiParameterBOOL("wrap", true);
    AiParameterBOOL("local", false);
    AiParameterMTX("placementMatrix", id);
-   AddMayaColorBalanceParams(params);
+   AddMayaColorBalanceParams(params, mds);
 
    AiMetaDataSetStr(mds, NULL, "maya.name", "snow");
    AiMetaDataSetInt(mds, NULL, "maya.id", 0x5254534e);

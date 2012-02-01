@@ -15,7 +15,7 @@ enum MayaGammaCorrectParams
 
 node_parameters
 {
-   AiParameterRGB("value", 0, 0, 0);
+   AiParameterVEC("value", 0, 0, 0);
    AiParameterVEC("gamma", 1, 1, 1);
 
    AiMetaDataSetStr(mds, NULL, "maya.name", "gammaCorrect");
@@ -36,19 +36,19 @@ node_finish
 
 shader_evaluate
 {
-   AtColor value = AiShaderEvalParamRGB(p_value);
+   AtVector value = AiShaderEvalParamVec(p_value);
    AtVector gamma = AiShaderEvalParamVec(p_gamma);
 
-   if (value.r < 0.f) value.r = 0.f; 
-   if (value.g < 0.f) value.g = 0.f; 
-   if (value.b < 0.f) value.b = 0.f; 
+   if (value.x < 0.f) value.x = 0.f;
+   if (value.y < 0.f) value.y = 0.f;
+   if (value.z < 0.f) value.z = 0.f;
 
    if (gamma.x < AI_EPSILON) gamma.x = (float) AI_EPSILON; 
    if (gamma.y < AI_EPSILON) gamma.y = (float) AI_EPSILON; 
    if (gamma.z < AI_EPSILON) gamma.z = (float) AI_EPSILON; 
 
-   sg->out.RGB.r = powf(value.r, 1.f / gamma.x); 
-   sg->out.RGB.g = powf(value.g, 1.f / gamma.y); 
-   sg->out.RGB.b = powf(value.b, 1.f / gamma.z); 
+   sg->out.RGB.r = powf(value.x, 1.f / gamma.x);
+   sg->out.RGB.g = powf(value.y, 1.f / gamma.y);
+   sg->out.RGB.b = powf(value.z, 1.f / gamma.z);
 
 }

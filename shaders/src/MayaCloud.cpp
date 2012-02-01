@@ -53,6 +53,8 @@ node_parameters
    AiParameterBOOL("local", false);
    AiParameterBOOL("wrap", true);
 
+   AiMetaDataSetBool(mds, "colorGain", "always_linear", true);
+   AiMetaDataSetBool(mds, "colorOffset", "always_linear", true);
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }
 

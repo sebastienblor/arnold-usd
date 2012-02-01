@@ -52,7 +52,7 @@ node_parameters
    AiParameterFLT("rotateUV", 0.0f);
    AiParameterSTR("filename", "");
    AiParameterPNT2("noiseUV", 0.0f, 0.0f);
-   AddMayaColorBalanceParams(params);
+   AddMayaColorBalanceParams(params, mds);
    
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }

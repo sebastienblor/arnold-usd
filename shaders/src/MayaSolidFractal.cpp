@@ -76,7 +76,7 @@ node_parameters
    AiParameterMTX("placementMatrix", id);
    AiParameterBOOL("wrap", true);
    AiParameterBOOL("local", false);
-   AddMayaColorBalanceParams(params);
+   AddMayaColorBalanceParams(params, mds);
 
    AiMetaDataSetStr(mds, NULL, "maya.name", "solidFractal");
    AiMetaDataSetInt(mds, NULL, "maya.id", 0x52544633);

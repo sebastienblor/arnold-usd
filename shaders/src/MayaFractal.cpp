@@ -70,7 +70,7 @@ node_parameters
    AiParameterFLT("time", 0.0f);
    AiParameterFLT("timeRatio", 2.0f);
    AiParameterPNT2("uvCoord", 0.0f, 0.0f);
-   AddMayaColorBalanceParams(params);
+   AddMayaColorBalanceParams(params, mds);
 
    AiMetaDataSetStr(mds, NULL, "maya.name", "fractal");
    AiMetaDataSetInt(mds, NULL, "maya.id", 0x52543246);

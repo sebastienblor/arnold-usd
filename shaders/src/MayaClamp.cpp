@@ -20,6 +20,9 @@ node_parameters
    AiParameterRGB("max", 1, 1, 1);
    AiParameterRGB("input", 0, 0, 0);
 
+   AiMetaDataSetBool(mds, "min", "always_linear", true);
+   AiMetaDataSetBool(mds, "max", "always_linear", true);
+
    AiMetaDataSetStr(mds, NULL, "maya.name", "clamp");
    AiMetaDataSetInt(mds, NULL, "maya.id", 0x52434c33);
 }

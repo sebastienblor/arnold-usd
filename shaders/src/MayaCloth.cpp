@@ -38,7 +38,7 @@ node_parameters
    AiParameterFLT("widthSpread", 0.0f);
    AiParameterFLT("brightSpread", 0.0f);
    AiParameterPNT2("uvCoord", 0.0f, 0.0f);
-   AddMayaColorBalanceParams(params);
+   AddMayaColorBalanceParams(params, mds);
    
    AiMetaDataSetStr(mds, NULL, "maya.name", "cloth");
    AiMetaDataSetInt(mds, NULL, "maya.id", 0x5254434C);
