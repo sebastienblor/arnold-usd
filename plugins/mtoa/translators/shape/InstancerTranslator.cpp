@@ -263,18 +263,22 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, AtUInt step)
 
       /// export instance object masters
       int numObjects = paths.length();
-
+      MFnDagNode fnDag;
       for (int i = 0; i < numObjects; ++i)
       {
          MDagPath dagPathMaster = paths[i];
-         // Check if the node is in the scene already.
-         AtNode* masterNode = AiNodeLookUpByName(dagPathMaster.partialPathName().asChar());
-
-         // if not, we export it
-         if (!masterNode)
+         fnDag.setObject(dagPathMaster);
+         // MFnInstancer.allInstances returns intermediate objects. D'oh!
+         if (!fnDag.isIntermediateObject())
          {
-            // FIXME: check if the object will not be exported a second time later !
-            ExportDagPath(dagPathMaster);
+            // Check if the node is in the scene already.
+            AtNode* masterNode = AiNodeLookUpByName(dagPathMaster.partialPathName().asChar());
+            // if not, we export it
+            if (!masterNode)
+            {
+               // FIXME: check if the object will not be exported a second time later !
+               ExportDagPath(dagPathMaster);
+            }
          }
          m_objectNames.append(dagPathMaster.partialPathName().asChar());
          m_objectDagPaths.append(dagPathMaster);
