@@ -16,6 +16,7 @@
 #include <maya/MFnTypedAttribute.h>
 #include <maya/MFnMatrixAttribute.h>
 #include <maya/MFnMessageAttribute.h>
+#include <maya/MFnCompoundAttribute.h>
 #include <maya/MStringArray.h>
 
 #include <maya/MTypes.h>
@@ -27,6 +28,7 @@
 
 #include <string>
 #include <map>
+#include <vector>
 
 #define OUT_NAME MString("outValue")
 #define OUT_COLOR_NAME MString("outColor")
@@ -70,6 +72,11 @@ struct CAttrData
                   keyable(true)   {}
 };
 
+struct CCompoundAttrData
+{
+   CAttrData data;
+   std::vector<CAttrData> children;
+};
 
 typedef MStatus  (*AddAttributeFunction)(const MObject &attr);
 
@@ -147,40 +154,31 @@ public:
 
    virtual void MakeInputInt(MObject& attrib, const char* paramName);
    virtual void MakeInputInt(CAttrData& data);
-   virtual void MakeInputInt(MObject& attrib, CAttrData& data);
    virtual void MakeInputBoolean(MObject& attrib, const char* paramName);
    virtual void MakeInputBoolean(CAttrData& data);
-   virtual void MakeInputBoolean(MObject& attrib, CAttrData& data);
    virtual void MakeInputFloat(MObject& attrib, const char* paramName);
    virtual void MakeInputFloat(CAttrData& data);
-   virtual void MakeInputFloat(MObject& attrib, CAttrData& data);
    virtual void MakeInputRGB(MObject& attrib, const char* paramName);
    virtual void MakeInputRGB(CAttrData& data);
-   virtual void MakeInputRGB(MObject& attrib, CAttrData& data);
    virtual void MakeInputRGBA(MObject& attrib, MObject& attribA, const char* paramName);
    virtual void MakeInputRGBA(CAttrData& data);
-   virtual void MakeInputRGBA(MObject& attrib, MObject& attribA, CAttrData& data);
    virtual void MakeInputVector(MObject& attrib, const char* paramName);
    virtual void MakeInputVector(CAttrData& data);
-   virtual void MakeInputVector(MObject& attrib,CAttrData& data);
    virtual void MakeInputPoint(MObject& attrib, const char* paramName);
    virtual void MakeInputPoint(CAttrData& data);
-   virtual void MakeInputPoint(MObject& attrib, CAttrData& data);
    virtual void MakeInputPoint2(MObject& attrib, MObject& attribX, MObject& attribY, const char* paramName);
    virtual void MakeInputPoint2(CAttrData& data);
-   virtual void MakeInputPoint2(MObject& attrib, MObject& attribX, MObject& attribY, CAttrData& data);
    virtual void MakeInputString(MObject& attrib, const char* paramName);
    virtual void MakeInputString(CAttrData& data);
-   virtual void MakeInputString(MObject& attrib, CAttrData& data);
    virtual void MakeInputMatrix(MObject& attrib, const char* paramName);
    virtual void MakeInputMatrix(CAttrData& data);
-   virtual void MakeInputMatrix(MObject& attrib, CAttrData& data);
    virtual void MakeInputEnum(MObject& attrib, const char* paramName);
    virtual void MakeInputEnum(CAttrData& data);
-   virtual void MakeInputEnum(MObject& attrib, CAttrData& data);
    virtual void MakeInputNode(MObject& attrib, const char* paramName);
    virtual void MakeInputNode(CAttrData& data);
-   virtual void MakeInputNode(MObject& attrib, CAttrData& data);
+
+   virtual void MakeInputCompound(CAttrData& data, std::vector<CAttrData>& children);
+   virtual void MakeInputCompound(MObject& attrib, CAttrData& data, std::vector<CAttrData>& children);
 
    virtual MObject MakeInput(const char* paramName);
    virtual MObject MakeInput(CAttrData& attrData);
@@ -213,6 +211,20 @@ public:
 
 protected:
    void ReadPrefixMetadata();
+
+   virtual void MakeInputInt(MObject& attrib, CAttrData& data);
+   virtual void MakeInputBoolean(MObject& attrib, CAttrData& data);
+   virtual void MakeInputFloat(MObject& attrib, CAttrData& data);
+   virtual void MakeInputRGB(MObject& attrib, CAttrData& data);
+   virtual void MakeInputRGBA(MObject& attrib, MObject& attribA, CAttrData& data);
+   virtual void MakeInputVector(MObject& attrib,CAttrData& data);
+   virtual void MakeInputPoint(MObject& attrib, CAttrData& data);
+   virtual void MakeInputPoint2(MObject& attrib, MObject& attribX, MObject& attribY, CAttrData& data);
+   virtual void MakeInputString(MObject& attrib, CAttrData& data);
+   virtual void MakeInputMatrix(MObject& attrib, CAttrData& data);
+   virtual void MakeInputEnum(MObject& attrib, CAttrData& data);
+   virtual void MakeInputNode(MObject& attrib, CAttrData& data);
+   virtual void MakeInput(MObject& input, CAttrData& attrData);
 
    const AtNodeEntry* m_nodeEntry;
    int m_attrNum;
@@ -353,6 +365,7 @@ public:
    void MakeInputMatrix(CAttrData& data);
    void MakeInputEnum(CAttrData& data);
    void MakeInputNode(CAttrData& data);
+   void MakeInputCompound(CAttrData& data, std::vector<CAttrData>& children);
    MObject MakeInput(const char* paramName);
    MObject MakeInput(CAttrData& attrData);
 #else

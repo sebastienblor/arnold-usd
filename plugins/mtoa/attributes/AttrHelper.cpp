@@ -8,6 +8,7 @@
 #include <maya/MFnStringData.h>
 #include <maya/MGlobal.h>
 #include <maya/MDGModifier.h>
+#include <maya/MObjectArray.h>
 
 // convert from "arnold_style" to "mayaStyle"
 // ignores the capitalization of input strings: letters are only capitalized
@@ -83,10 +84,7 @@ MString CBaseAttrHelper::GetMayaAttrShortName(const char* paramName)
 bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
 {
    if (m_nodeEntry == NULL)
-   {
-      AiMsgError("[mtoa] Cannot retrieve parameter metadata from a null node entry.");
       return false;
-   }
 
    const char* nodeName = AiNodeEntryGetName(m_nodeEntry);
    // AiMsgDebug("[mtoa] [node %s] [attr %s] Reading metadata", nodeName, paramName);
@@ -315,12 +313,14 @@ void CBaseAttrHelper::MakeInputInt(MObject& attrib, const char* paramName)
    CAttrData data;
    GetAttrData(paramName, data);
    MakeInputInt(attrib, data);
+   addAttribute(attrib);
 }
 
 void CBaseAttrHelper::MakeInputInt(CAttrData& data)
 {
    MObject attrib;
-   return MakeInputInt(attrib, data);
+   MakeInputInt(attrib, data);
+   addAttribute(attrib);
 }
 
 void CBaseAttrHelper::MakeInputInt(MObject& attrib, CAttrData& data)
@@ -342,7 +342,6 @@ void CBaseAttrHelper::MakeInputInt(MObject& attrib, CAttrData& data)
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
-   addAttribute(attrib);
 }
 
 void CBaseAttrHelper::MakeInputBoolean(MObject& attrib, const char* paramName)
@@ -350,12 +349,14 @@ void CBaseAttrHelper::MakeInputBoolean(MObject& attrib, const char* paramName)
    CAttrData data;
    GetAttrData(paramName, data);
    MakeInputBoolean(attrib, data);
+   addAttribute(attrib);
 }
 
 void CBaseAttrHelper::MakeInputBoolean(CAttrData& data)
 {
    MObject attrib;
-   return MakeInputBoolean(attrib, data);
+   MakeInputBoolean(attrib, data);
+   addAttribute(attrib);
 }
 
 void CBaseAttrHelper::MakeInputBoolean(MObject& attrib, CAttrData& data)
@@ -367,7 +368,6 @@ void CBaseAttrHelper::MakeInputBoolean(MObject& attrib, CAttrData& data)
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
-   addAttribute(attrib);
 }
 
 void CBaseAttrHelper::MakeInputFloat(MObject& attrib, const char* paramName)
@@ -375,12 +375,14 @@ void CBaseAttrHelper::MakeInputFloat(MObject& attrib, const char* paramName)
    CAttrData data;
    GetAttrData(paramName, data);
    MakeInputFloat(attrib, data);
+   addAttribute(attrib);
 }
 
 void CBaseAttrHelper::MakeInputFloat(CAttrData& data)
 {
    MObject attrib;
-   return MakeInputFloat(attrib, data);
+   MakeInputFloat(attrib, data);
+   addAttribute(attrib);
 }
 
 void CBaseAttrHelper::MakeInputFloat(MObject& attrib, CAttrData& data)
@@ -400,7 +402,6 @@ void CBaseAttrHelper::MakeInputFloat(MObject& attrib, CAttrData& data)
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
-   addAttribute(attrib);
 }
 
 void CBaseAttrHelper::MakeInputRGB(MObject& attrib, const char* paramName)
@@ -408,12 +409,14 @@ void CBaseAttrHelper::MakeInputRGB(MObject& attrib, const char* paramName)
    CAttrData data;
    GetAttrData(paramName, data);
    MakeInputRGB(attrib, data);
+   addAttribute(attrib);
 }
 
 void CBaseAttrHelper::MakeInputRGB(CAttrData& data)
 {
    MObject attrib;
-   return MakeInputRGB(attrib, data);
+   MakeInputRGB(attrib, data);
+   addAttribute(attrib);
 }
 
 void CBaseAttrHelper::MakeInputRGB(MObject& attrib, CAttrData& data)
@@ -427,7 +430,6 @@ void CBaseAttrHelper::MakeInputRGB(MObject& attrib, CAttrData& data)
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
-   addAttribute(attrib);
 }
 
 void CBaseAttrHelper::MakeInputRGBA(MObject& attrib, MObject& attribA, const char* paramName)
@@ -435,13 +437,17 @@ void CBaseAttrHelper::MakeInputRGBA(MObject& attrib, MObject& attribA, const cha
    CAttrData data;
    GetAttrData(paramName, data);
    MakeInputRGBA(attrib, attribA, data);
+   addAttribute(attrib);
+   addAttribute(attribA);
 }
 
 void CBaseAttrHelper::MakeInputRGBA(CAttrData& data)
 {
    MObject attrib;
    MObject attribA;
-   return MakeInputRGBA(attrib, attribA, data);
+   MakeInputRGBA(attrib, attribA, data);
+   addAttribute(attrib);
+   addAttribute(attribA);
 }
 
 void CBaseAttrHelper::MakeInputRGBA(MObject& attrib, MObject& attribA, CAttrData& data)
@@ -455,7 +461,6 @@ void CBaseAttrHelper::MakeInputRGBA(MObject& attrib, MObject& attribA, CAttrData
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
-   addAttribute(attrib);
 
    attribA = nAttr.create(data.name + "A", data.shortName + "a", MFnNumericData::kFloat, data.defaultValue.RGBA.a);
    nAttr.setHidden(true);
@@ -463,7 +468,6 @@ void CBaseAttrHelper::MakeInputRGBA(MObject& attrib, MObject& attribA, CAttrData
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
-   addAttribute(attribA);
 }
 
 void CBaseAttrHelper::MakeInputVector(MObject& attrib, const char* paramName)
@@ -471,12 +475,14 @@ void CBaseAttrHelper::MakeInputVector(MObject& attrib, const char* paramName)
    CAttrData data;
    GetAttrData(paramName, data);
    MakeInputVector(attrib, data);
+   addAttribute(attrib);
 }
 
 void CBaseAttrHelper::MakeInputVector(CAttrData& data)
 {
    MObject attrib;
-   return MakeInputVector(attrib, data);
+   MakeInputVector(attrib, data);
+   addAttribute(attrib);
 }
 
 void CBaseAttrHelper::MakeInputVector(MObject& attrib, CAttrData& data)
@@ -490,7 +496,6 @@ void CBaseAttrHelper::MakeInputVector(MObject& attrib, CAttrData& data)
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
-   addAttribute(attrib);
 }
 
 void CBaseAttrHelper::MakeInputPoint(MObject& attrib, const char* paramName)
@@ -498,12 +503,14 @@ void CBaseAttrHelper::MakeInputPoint(MObject& attrib, const char* paramName)
    CAttrData data;
    GetAttrData(paramName, data);
    MakeInputPoint(attrib, data);
+   addAttribute(attrib);
 }
 
 void CBaseAttrHelper::MakeInputPoint(CAttrData& data)
 {
    MObject attrib;
-   return MakeInputPoint(attrib, data);
+   MakeInputPoint(attrib, data);
+   addAttribute(attrib);
 }
 
 void CBaseAttrHelper::MakeInputPoint(MObject& attrib, CAttrData& data)
@@ -517,13 +524,13 @@ void CBaseAttrHelper::MakeInputPoint(MObject& attrib, CAttrData& data)
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
-   addAttribute(attrib);
 }
 void CBaseAttrHelper::MakeInputPoint2(MObject& attrib, MObject& attribX, MObject& attribY, const char* paramName)
 {
    CAttrData data;
    GetAttrData(paramName, data);
    MakeInputPoint2(attrib, attribX, attribY, data);
+   addAttribute(attrib);
 }
 
 void CBaseAttrHelper::MakeInputPoint2(CAttrData& data)
@@ -531,7 +538,8 @@ void CBaseAttrHelper::MakeInputPoint2(CAttrData& data)
    MObject attrib;
    MObject attribX;
    MObject attribY;
-   return MakeInputPoint2(attrib, attribX, attribY, data);
+   MakeInputPoint2(attrib, attribX, attribY, data);
+   addAttribute(attrib);
 }
 
 void CBaseAttrHelper::MakeInputPoint2(MObject& attrib, MObject& attribX, MObject& attribY, CAttrData& data)
@@ -547,7 +555,7 @@ void CBaseAttrHelper::MakeInputPoint2(MObject& attrib, MObject& attribX, MObject
    nAttr.setStorable(true);
    nAttr.setReadable(true);
    nAttr.setWritable(true);
-   addAttribute(attrib);
+
 }
 
 void CBaseAttrHelper::MakeInputString(MObject& attrib, const char* paramName)
@@ -555,12 +563,14 @@ void CBaseAttrHelper::MakeInputString(MObject& attrib, const char* paramName)
    CAttrData data;
    GetAttrData(paramName, data);
    MakeInputString(attrib, data);
+   addAttribute(attrib);
 }
 
 void CBaseAttrHelper::MakeInputString(CAttrData& data)
 {
    MObject attrib;
-   return MakeInputString(attrib, data);
+   MakeInputString(attrib, data);
+   addAttribute(attrib);
 }
 
 void CBaseAttrHelper::MakeInputString(MObject& attrib, CAttrData& data)
@@ -576,7 +586,6 @@ void CBaseAttrHelper::MakeInputString(MObject& attrib, CAttrData& data)
    tAttr.setStorable(true);
    tAttr.setReadable(true);
    tAttr.setWritable(true);
-   addAttribute(attrib);
 }
 
 void CBaseAttrHelper::MakeInputMatrix(MObject& attrib, const char* paramName)
@@ -584,12 +593,14 @@ void CBaseAttrHelper::MakeInputMatrix(MObject& attrib, const char* paramName)
    CAttrData data;
    GetAttrData(paramName, data);
    MakeInputMatrix(attrib, data);
+   addAttribute(attrib);
 }
 
 void CBaseAttrHelper::MakeInputMatrix(CAttrData& data)
 {
    MObject attrib;
-   return MakeInputMatrix(attrib, data);
+   MakeInputMatrix(attrib, data);
+   addAttribute(attrib);
 }
 
 void CBaseAttrHelper::MakeInputMatrix(MObject& attrib, CAttrData& data)
@@ -598,7 +609,10 @@ void CBaseAttrHelper::MakeInputMatrix(MObject& attrib, CAttrData& data)
 
    attrib = mAttr.create(data.name, data.shortName, MFnMatrixAttribute::kFloat);
    mAttr.setArray(data.isArray);
-   MAKE_INPUT(mAttr, attrib);
+   mAttr.setKeyable(true);
+   mAttr.setStorable(true);
+   mAttr.setReadable(true);
+   mAttr.setWritable(true);
 
 //   const AtParamValue* data.defaultValue = AiParamGetDefault(paramEntry);
 //   MFloatMatrix mmat(data.defaultValue.pMTX);
@@ -610,12 +624,14 @@ void CBaseAttrHelper::MakeInputEnum(MObject& attrib, const char* paramName)
    CAttrData data;
    GetAttrData(paramName, data);
    MakeInputEnum(attrib, data);
+   addAttribute(attrib);
 }
 
 void CBaseAttrHelper::MakeInputEnum(CAttrData& data)
 {
    MObject attrib;
-   return MakeInputEnum(attrib, data);
+   MakeInputEnum(attrib, data);
+   addAttribute(attrib);
 }
 
 void CBaseAttrHelper::MakeInputEnum(MObject& attrib, CAttrData& data)
@@ -629,7 +645,6 @@ void CBaseAttrHelper::MakeInputEnum(MObject& attrib, CAttrData& data)
    eAttr.setStorable(true);
    eAttr.setReadable(true);
    eAttr.setWritable(true);
-   addAttribute(attrib);
 }
 
 void CBaseAttrHelper::MakeInputNode(MObject& attrib, const char* paramName)
@@ -637,12 +652,14 @@ void CBaseAttrHelper::MakeInputNode(MObject& attrib, const char* paramName)
    CAttrData data;
    GetAttrData(paramName, data);
    MakeInputNode(attrib, data);
+   addAttribute(attrib);
 }
 
 void CBaseAttrHelper::MakeInputNode(CAttrData& data)
 {
    MObject attrib;
-   return MakeInputNode(attrib, data);
+   MakeInputNode(attrib, data);
+   addAttribute(attrib);
 }
 
 void CBaseAttrHelper::MakeInputNode(MObject& attrib, CAttrData& data)
@@ -654,7 +671,39 @@ void CBaseAttrHelper::MakeInputNode(MObject& attrib, CAttrData& data)
    if (data.isArray)
       // no need to keep disconnected plugs around for message attributes
       msgAttr.setDisconnectBehavior(MFnAttribute::kDelete);
-   MAKE_INPUT(msgAttr, attrib);
+   msgAttr.setKeyable(true);
+   msgAttr.setStorable(true);
+   msgAttr.setReadable(true);
+   msgAttr.setWritable(true);
+}
+
+void CBaseAttrHelper::MakeInputCompound(CAttrData& data, std::vector<CAttrData>& children)
+{
+   MObject attrib;
+   return MakeInputCompound(attrib, data, children);
+}
+
+void CBaseAttrHelper::MakeInputCompound(MObject& attrib, CAttrData& data, std::vector<CAttrData>& children)
+{
+   MFnCompoundAttribute cmpAttr;
+
+   MObjectArray childObjs;
+   for (unsigned int i=0; i < children.size(); i++)
+   {
+      MObject obj;
+      // the following does not call addAttribute, which is essential
+      MakeInput(obj, children[i]);
+      childObjs.append(obj);
+   }
+   attrib = cmpAttr.create(data.name, data.shortName);
+   cmpAttr.setArray(true);
+   for (unsigned int i=0; i < childObjs.length(); i++)
+      cmpAttr.addChild(childObjs[i]);
+
+   cmpAttr.setReadable(true);
+   cmpAttr.setWritable(true);
+   // cmpAttr.setIndexMatters(true);
+   CHECK_MSTATUS(addAttribute(attrib));
 }
 
 MObject CBaseAttrHelper::MakeInput(const char* paramName)
@@ -667,6 +716,13 @@ MObject CBaseAttrHelper::MakeInput(const char* paramName)
 MObject CBaseAttrHelper::MakeInput(CAttrData& attrData)
 {
    MObject input;
+   MakeInput(input, attrData);
+   if (input != MObject::kNullObj) addAttribute(input);
+   return input;
+}
+
+void CBaseAttrHelper::MakeInput(MObject& input, CAttrData& attrData)
+{
    switch (attrData.type)
    {
       case AI_TYPE_INT:
@@ -699,6 +755,8 @@ MObject CBaseAttrHelper::MakeInput(CAttrData& attrData)
       {
          MObject inputA;
          MakeInputRGBA(input, inputA, attrData);
+         // FIXME: !!!
+         addAttribute(inputA);
          m_attributes[std::string(attrData.name.asChar()) + "A"] = inputA;
          break;
       }
@@ -747,21 +805,22 @@ MObject CBaseAttrHelper::MakeInput(CAttrData& attrData)
       {
          const char* typeName = AiParamGetTypeName(attrData.type);
          AiMsgWarning("[mtoa] Unable to create input attribute \"%s\": parameters of type %s are not supported", attrData.name.asChar(), typeName);
-         return MObject::kNullObj;
+         return;
       }
       case AI_TYPE_UNDEFINED: // same as AI_TYPE_NONE
       {
          MGlobal::displayWarning(MString("[mtoa] Unable to create attribute \"") + attrData.name + "\": parameters type is undefined");
-         return MObject::kNullObj;
+         input = MObject::kNullObj;
+         return;
       }
       default:
       {
          AiMsgError("[mtoa] Unable to create input attribute \"%s\": unknown parameter type", attrData.name.asChar());
-         return MObject::kNullObj;
+         input = MObject::kNullObj;
+         return;
       }
    } // switch
    m_attributes[attrData.name.asChar()] = input;
-   return input;
 }
 
 // Outputs
@@ -1149,6 +1208,13 @@ void CExtensionAttrHelper::MakeInputNode(CAttrData& data)
    MakeInput(data);
 }
 
+void CExtensionAttrHelper::MakeInputCompound(CAttrData& attrData, std::vector<CAttrData>& children)
+{
+   MStatus stat;
+   stat = m_class.addExtensionAttribute(attrData, children);
+   CHECK_MSTATUS(stat);
+}
+
 MObject CExtensionAttrHelper::MakeInput(const char* paramName)
 {
    CAttrData attrData;
@@ -1164,6 +1230,8 @@ MObject CExtensionAttrHelper::MakeInput(CAttrData& attrData)
    // this is bad form, but we don't have an MObject to return yet
    return MObject::kNullObj;
 }
+
+
 #else
 MStatus CExtensionAttrHelper::addAttribute(MObject& attrib)
 {

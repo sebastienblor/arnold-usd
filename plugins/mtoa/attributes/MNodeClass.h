@@ -25,8 +25,10 @@
 /// Used here for adding extension attributes on node creation
 
 struct CAttrData;
+struct CCompoundAttrData;
+
 typedef std::map<std::string, std::vector<MObject> > ExtensionAttrMap;
-typedef std::map<std::string, std::vector<CAttrData> > ExtensionAttrDataMap;
+typedef std::map<std::string, std::vector<CCompoundAttrData> > ExtensionAttrDataMap;
 
 class DLLEXPORT MNodeClass
 {
@@ -38,6 +40,7 @@ public:
    MTypeId typeId() const;
    MStatus addExtensionAttribute(MObject &attr) const;
    MStatus addExtensionAttribute(CAttrData &data) const;
+   MStatus addExtensionAttribute(CAttrData &data, std::vector<CAttrData>& children) const;
    static void InitializeExistingNodes();
    static void CreateCallbacks();
    static void RemoveCallbacks();

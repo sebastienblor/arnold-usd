@@ -42,10 +42,10 @@ MStatus MNodeClass::addExtensionAttribute(CAttrData &data) const
 {
    // ensure we have a callback for this node
    AddNodeCallback(m_nodeClassName);
-   std::vector<CAttrData>& attrData = s_attrData[m_nodeClassName.asChar()];
+   std::vector<CCompoundAttrData>& attrData = s_attrData[m_nodeClassName.asChar()];
    for (unsigned int i=0; i < attrData.size(); ++i)
    {
-      if (data.name == attrData[i].name)
+      if (data.name == attrData[i].data.name)
       {
          // skip dupes without raising a warning: probably just two translators
          // that use the same attributes
@@ -53,8 +53,34 @@ MStatus MNodeClass::addExtensionAttribute(CAttrData &data) const
          return MS::kSuccess;
       }
    }
+   CCompoundAttrData cdata;
+   cdata.data = data;
    // save data for later
-   s_attrData[m_nodeClassName.asChar()].push_back(data);
+   s_attrData[m_nodeClassName.asChar()].push_back(cdata);
+   // we don't really know if it succeeded, but since we're trying to be MNodeClass compatible...
+   return MS::kSuccess;
+}
+
+MStatus MNodeClass::addExtensionAttribute(CAttrData &data, std::vector<CAttrData>& children) const
+{
+   // ensure we have a callback for this node
+   AddNodeCallback(m_nodeClassName);
+   std::vector<CCompoundAttrData>& attrData = s_attrData[m_nodeClassName.asChar()];
+   for (unsigned int i=0; i < attrData.size(); ++i)
+   {
+      if (data.name == attrData[i].data.name)
+      {
+         // skip dupes without raising a warning: probably just two translators
+         // that use the same attributes
+         // TODO: compare CAttrData values and raise warning when they differ
+         return MS::kSuccess;
+      }
+   }
+   CCompoundAttrData cdata;
+   cdata.data = data;
+   cdata.children = children;
+   // save data for later
+   s_attrData[m_nodeClassName.asChar()].push_back(cdata);
    // we don't really know if it succeeded, but since we're trying to be MNodeClass compatible...
    return MS::kSuccess;
 }
@@ -71,34 +97,33 @@ void MNodeClass::InitializeExistingNodes()
       MObject node = nodeIt.item();
       if (node.isNull())
          continue;
-      fnNode.setObject(node);
-      // don't use [] access to map because that creates a new entry
-      ExtensionAttrDataMap::iterator it = s_attrData.find(fnNode.typeName().asChar());
-      if (it != s_attrData.end())
-      {
-         std::vector<CAttrData>& attrData = it->second;
-         CDynamicAttrHelper helper = CDynamicAttrHelper(node);
-         for (unsigned int i=0; i < attrData.size(); ++i)
-         {
-            CAttrData data = attrData[i];
-            // only add the attribute if it does not yet exist
-            fnNode.findPlug(data.name, false, &status);
-            if (status == MS::kInvalidParameter)
-               helper.MakeInput(data);
-         }
-      }
+      NodeCreatedCallback(node, NULL);
    }
 }
 
 void MNodeClass::NodeCreatedCallback(MObject &node, void *clientData)
 {
+   MStatus status;
    MFnDependencyNode fnNode(node);
-   std::vector<CAttrData>& attrData = s_attrData[fnNode.typeName().asChar()];
-   CDynamicAttrHelper helper = CDynamicAttrHelper(node);
-   for (unsigned int i=0; i < attrData.size(); ++i)
+   // don't use [] access to map because that creates a new entry
+   ExtensionAttrDataMap::iterator it = s_attrData.find(fnNode.typeName().asChar());
+   if (it != s_attrData.end())
    {
-      CAttrData data = attrData[i];
-      helper.MakeInput(data);
+      std::vector<CCompoundAttrData>& attrData = it->second;
+      CDynamicAttrHelper helper = CDynamicAttrHelper(node);
+      for (unsigned int i=0; i < attrData.size(); ++i)
+      {
+         CCompoundAttrData cdata = attrData[i];
+         // only add the attribute if it does not yet exist
+         fnNode.findPlug(cdata.data.name, false, &status);
+         if (status == MS::kInvalidParameter)
+         {
+            if (cdata.children.size())
+               helper.MakeInputCompound(cdata.data, cdata.children);
+            else
+               helper.MakeInput(cdata.data);
+         }
+      }
    }
 }
 
