@@ -44,6 +44,7 @@ struct CAttrData
 {
    MString name;
    MString shortName;
+   MString stringDefault;
    AtParamValue defaultValue;
    AtBoolean isArray;
    int type;
@@ -59,6 +60,7 @@ struct CAttrData
    MStringArray enums;
    CAttrData() :  name(""),
                   shortName(""),
+                  stringDefault(""),
                   isArray(false),
                   hasMin(false),
                   hasMax(false),

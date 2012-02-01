@@ -298,6 +298,11 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
                break;
             data.enums.append(enumStr);
          }
+         break;
+      }
+      case AI_TYPE_STRING:
+      {
+         data.stringDefault = data.defaultValue.STR;
       }
    }
    return true;
@@ -562,7 +567,7 @@ void CBaseAttrHelper::MakeInputString(MObject& attrib, CAttrData& data)
 
    attrib = tAttr.create(data.name, data.shortName, MFnData::kString);
    MFnStringData strData;
-   MObject defObj = strData.create(data.defaultValue.STR);
+   MObject defObj = strData.create(data.stringDefault);
    tAttr.setDefault(defObj);
    tAttr.setArray(AtBooleanToBool(data.isArray));
    tAttr.setKeyable(AtBooleanToBool(data.keyable));
