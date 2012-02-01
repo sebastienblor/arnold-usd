@@ -28,7 +28,7 @@ node_parameters
    AiParameterFLT("inputMax", 1.0f);
    AiParameterARRAY("positions", AiArray(2, 1, AI_TYPE_FLOAT, 0.0f, 1.0f));
    AiParameterARRAY("values", AiArray(2, 1, AI_TYPE_FLOAT, 0.0f, 1.0f));
-   AiParameterARRAY("interpolations", AiArray(2, 1, AI_TYPE_STRING, "linear", "linear"));
+   AiParameterARRAY("interpolations", AiArray(2, 1, AI_TYPE_INT, 1, 1));
    AiParameterFLT("outputMin", 0.0f);
    AiParameterFLT("outputMax", 1.0f);
 
@@ -57,12 +57,15 @@ shader_evaluate
    AtArray *pos = AiShaderEvalParamArray(p_key_pos);
    AtArray *val = AiShaderEvalParamArray(p_key_val);
    AtArray *interp = AiShaderEvalParamArray(p_key_interp);
+   
+   unsigned int* shuffle = (unsigned int*)AiShaderGlobalsQuickAlloc(sg, pos->nelements * sizeof(unsigned int));
+   SortFloatIndexArray(pos, shuffle);
 
    float output = 0.0f;
 
    input = MapValue(input, imin, imax);
 
-   Interpolate(pos, val, interp, input, output);
+   InterpolateShuffle(pos, val, interp, input, output, shuffle);
 
    sg->out.FLT = UnmapValue(output, omin, omax);
 }

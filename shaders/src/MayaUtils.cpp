@@ -193,56 +193,6 @@ float Mod(float n, float d)
    return (n - (floor(n / d) * d));
 }
 
-bool SortFloatArray(AtArray *a, unsigned int *shuffle)
-{
-   bool modified = false;
-
-   if (a && a->nelements > 0)
-   {
-      float p0, p1;
-      int tmp;
-
-      bool swapped = true;
-      AtUInt32 n = a->nelements;
-
-      if (shuffle)
-      {
-         for (AtUInt32 i = 0; (i < n); ++i)
-         {
-            shuffle[i] = i;
-         }
-      }
-
-      while (swapped)
-      {
-         swapped = false;
-         n -= 1;
-         for (AtUInt32 i = 0; (i < n); ++i)
-         {
-            p0 = AiArrayGetFlt(a, i);
-            p1 = AiArrayGetFlt(a, i + 1);
-            if (p0 > p1)
-            {
-               swapped = true;
-               modified = true;
-
-               AiArraySetFlt(a, i, p1);
-               AiArraySetFlt(a, i + 1, p0);
-
-               if (shuffle)
-               {
-                  tmp = shuffle[i];
-                  shuffle[i] = shuffle[i + 1];
-                  shuffle[i + 1] = tmp;
-               }
-            }
-         }
-      }
-   }
-
-   return modified;
-}
-
 bool SortFloatIndexArray(AtArray *a, unsigned int *shuffle)
 {
    bool modified = false;
@@ -282,186 +232,6 @@ bool SortFloatIndexArray(AtArray *a, unsigned int *shuffle)
    }
 
    return modified;
-}
-
-void ShuffleArray(AtArray *a, unsigned int *shuffle, int arnoldType)
-{
-   if (!a || !shuffle)
-   {
-      return;
-   }
-
-   if (arnoldType == AI_TYPE_FLOAT)
-   {
-      float tmp;
-      for (AtUInt32 i = 0; (i < a->nelements); ++i)
-      {
-         if (shuffle[i] < i)
-            continue;
-         tmp = AiArrayGetFlt(a, i);
-         AiArraySetFlt(a, i, AiArrayGetFlt(a, shuffle[i]));
-         AiArraySetFlt(a, shuffle[i], tmp);
-      }
-   }
-   else if (arnoldType == AI_TYPE_RGB)
-   {
-      AtRGB tmp;
-      for (AtUInt32 i = 0; (i < a->nelements); ++i)
-      {
-         if (shuffle[i] < i)
-            continue;
-         tmp = AiArrayGetRGB(a, i);
-         AiArraySetRGB(a, i, AiArrayGetRGB(a, shuffle[i]));
-         AiArraySetRGB(a, shuffle[i], tmp);
-      }
-   }
-   else if (arnoldType == AI_TYPE_RGBA)
-   {
-      AtRGBA tmp;
-      for (AtUInt32 i = 0; (i < a->nelements); ++i)
-      {
-         if (shuffle[i] < i)
-            continue;
-         tmp = AiArrayGetRGBA(a, i);
-         AiArraySetRGBA(a, i, AiArrayGetRGBA(a, shuffle[i]));
-         AiArraySetRGBA(a, shuffle[i], tmp);
-      }
-   }
-   else if (arnoldType == AI_TYPE_STRING)
-   {
-      std::string tmp0, tmp1;
-      for (AtUInt32 i = 0; (i < a->nelements); ++i)
-      {
-         if (shuffle[i] < i)
-            continue;
-         tmp0 = AiArrayGetStr(a, i);
-         tmp1 = AiArrayGetStr(a, shuffle[i]);
-         AiArraySetStr(a, i, tmp1.c_str());
-         AiArraySetStr(a, shuffle[i], tmp0.c_str());
-      }
-   }
-   else if (arnoldType == AI_TYPE_BYTE)
-   {
-      AtByte tmp;
-      for (AtUInt32 i = 0; (i < a->nelements); ++i)
-      {
-         if (shuffle[i] < i)
-            continue;
-         tmp = AiArrayGetByte(a, i);
-         AiArraySetByte(a, i, AiArrayGetByte(a, shuffle[i]));
-         AiArraySetByte(a, shuffle[i], tmp);
-      }
-   }
-   else if (arnoldType == AI_TYPE_INT)
-   {
-      int tmp;
-      for (AtUInt32 i = 0; (i < a->nelements); ++i)
-      {
-         if (shuffle[i] < i)
-            continue;
-         tmp = AiArrayGetByte(a, i);
-         AiArraySetByte(a, i, AiArrayGetByte(a, shuffle[i]));
-         AiArraySetByte(a, shuffle[i], tmp);
-      }
-   }
-   else if (arnoldType == AI_TYPE_UINT)
-   {
-      unsigned int tmp;
-      for (AtUInt32 i = 0; (i < a->nelements); ++i)
-      {
-         if (shuffle[i] < i)
-            continue;
-         tmp = AiArrayGetByte(a, i);
-         AiArraySetByte(a, i, AiArrayGetByte(a, shuffle[i]));
-         AiArraySetByte(a, shuffle[i], tmp);
-      }
-   }
-   else if (arnoldType == AI_TYPE_BOOLEAN)
-   {
-      bool tmp;
-      for (AtUInt32 i = 0; (i < a->nelements); ++i)
-      {
-         if (shuffle[i] < i)
-            continue;
-         tmp = (AiArrayGetBool(a, i) == true);
-         AiArraySetBool(a, i, AiArrayGetBool(a, shuffle[i]));
-         AiArraySetBool(a, shuffle[i], tmp);
-      }
-   }
-   else if (arnoldType == AI_TYPE_VECTOR)
-   {
-      AtVector tmp;
-      for (AtUInt32 i = 0; (i < a->nelements); ++i)
-      {
-         if (shuffle[i] < i)
-            continue;
-         tmp = AiArrayGetVec(a, i);
-         AiArraySetVec(a, i, AiArrayGetVec(a, shuffle[i]));
-         AiArraySetVec(a, shuffle[i], tmp);
-      }
-   }
-   else if (arnoldType == AI_TYPE_POINT)
-   {
-      AtPoint tmp;
-      for (AtUInt32 i = 0; (i < a->nelements); ++i)
-      {
-         if (shuffle[i] < i)
-            continue;
-         tmp = AiArrayGetPnt(a, i);
-         AiArraySetPnt(a, i, AiArrayGetPnt(a, shuffle[i]));
-         AiArraySetPnt(a, shuffle[i], tmp);
-      }
-   }
-   else if (arnoldType == AI_TYPE_POINT2)
-   {
-      AtPoint2 tmp;
-      for (AtUInt32 i = 0; (i < a->nelements); ++i)
-      {
-         if (shuffle[i] < i)
-            continue;
-         tmp = AiArrayGetPnt2(a, i);
-         AiArraySetPnt2(a, i, AiArrayGetPnt2(a, shuffle[i]));
-         AiArraySetPnt2(a, shuffle[i], tmp);
-      }
-   }
-   else if (arnoldType == AI_TYPE_POINTER)
-   {
-      void *tmp;
-      for (AtUInt32 i = 0; (i < a->nelements); ++i)
-      {
-         if (shuffle[i] < i)
-            continue;
-         tmp = AiArrayGetPtr(a, i);
-         AiArraySetPtr(a, i, AiArrayGetPtr(a, shuffle[i]));
-         AiArraySetPtr(a, shuffle[i], tmp);
-      }
-   }
-   else if (arnoldType == AI_TYPE_MATRIX)
-   {
-      AtMatrix tmp0;
-      AtMatrix tmp1;
-      for (AtUInt32 i = 0; (i < a->nelements); ++i)
-      {
-         if (shuffle[i] < i)
-            continue;
-         AiArrayGetMtx(a, i, tmp0);
-         AiArrayGetMtx(a, shuffle[i], tmp1);
-         AiArraySetMtx(a, i, tmp1);
-         AiArraySetMtx(a, shuffle[i], tmp0);
-      }
-   }
-   else if (arnoldType == AI_TYPE_ENUM)
-   {
-      int tmp;
-      for (AtUInt32 i = 0; (i < a->nelements); ++i)
-      {
-         if (shuffle[i] < i)
-            continue;
-         tmp = AiArrayGetInt(a, i);
-         AiArraySetInt(a, i, AiArrayGetInt(a, shuffle[i]));
-         AiArraySetInt(a, shuffle[i], tmp);
-      }
-   }
 }
 
 const char* InterpolationNames[] =
@@ -515,7 +285,7 @@ void InterpolateT(AtArray *p, AtArray *v, AtArray *it, float t, ValType &result,
    float dp = p2 - p1;
    float u = (t - p1) / dp;
 
-   int itype = InterpolationNameToType(AiArrayGetStr(it, iprev));
+   int itype = AiArrayGetInt(it, iprev);
 
    switch (itype)
    {
@@ -586,6 +356,142 @@ void InterpolateT(AtArray *p, AtArray *v, AtArray *it, float t, ValType &result,
    }
 }
 
+template <typename ValType>
+void InterpolateShuffleT(AtArray *p, AtArray *v, AtArray *it, float t, ValType &result, ValType (*getv)(AtArray*, unsigned int), unsigned int *shuffle)
+{
+   unsigned int inext = p->nelements;
+
+   for (unsigned int i = 0; (i < p->nelements); ++i)
+   {
+      if (t < AiArrayGetFlt(p, shuffle[i]))
+      {
+         inext = i;
+         break;
+      }
+   }
+
+   if (inext >= p->nelements)
+   {
+      result = getv(v, shuffle[p->nelements - 1]);
+      return;
+   }
+
+   int iprev = inext - 1;
+   
+   if (iprev < 0)
+   {
+      result = getv(v, shuffle[0]);
+      return;
+   }
+
+   float p1 = AiArrayGetFlt(p, shuffle[iprev]);
+   float p2 = AiArrayGetFlt(p, shuffle[inext]);
+
+   ValType v1 = getv(v, shuffle[iprev]);
+   ValType v2 = getv(v, shuffle[inext]);
+
+   float dp = p2 - p1;
+   float u = (t - p1) / dp;
+
+   int itype = AiArrayGetInt(it, shuffle[iprev]);
+
+   switch (itype)
+   {
+   case IT_NONE:
+      result = v1;
+      break;
+
+   case IT_LINEAR:
+      result = v1 + u * (v2 - v1);
+      break;
+
+   case IT_SMOOTH:
+      {
+         float u2 = u * u;
+         float u3 = u * u2;
+         float a =  2.0f * u3 - 3.0f * u2 + 1.0f;
+         float b = -2.0f * u3 + 3.0f * u2 ;
+         result = a * v1 + b * v2;
+      }
+      break;
+
+   case IT_SPLINE:
+      {
+         ValType dv = v2 - v1;
+         
+         // Calculate previous to previous position and value
+         float p0;
+         ValType y0;
+         if (iprev == 0)
+         {
+            p0 = p1 - dp;
+            y0 = v1;
+         }
+         else
+         {
+            p0 = AiArrayGetFlt(p, shuffle[iprev-1]);
+            y0 = getv(v, shuffle[iprev-1]);
+         }
+         
+         // Calculate next to next position and value
+         float p3;
+         ValType v3;
+         if (inext == v->nelements - 1)
+         {
+            p3 = p2 + dp;
+            v3 = v2;
+         }
+         else
+         {
+            p3 = AiArrayGetFlt(p, shuffle[inext+1]);
+            v3 = getv(v, shuffle[inext+1]);
+         }
+         
+         // Compute tangents
+         float tanSize = 0.2f;
+         float tx = tanSize * dp;
+         if( tx < AI_EPSILON )
+         {
+            tx = AI_EPSILON;
+         }
+         
+         // Compute start tangent
+         float sx = p2-p0;	
+         ValType sy = v2-y0;
+         if( sx < AI_EPSILON )
+         {
+            sx = AI_EPSILON;
+         }
+         sy *= tanSize * dp/sx;
+         ValType m1 = sy / tx;
+         
+         // Compute end tangent
+         sx = p3-p1;	
+         sy = v3-v1;	
+         if( sx < AI_EPSILON )
+         {
+            sx = AI_EPSILON;
+         }
+         sy *= tanSize * dp/sx;
+         ValType m2 = sy / tx;
+         
+         float tFromP1 = (t - p1);
+         
+         float length = 1.0f / (dp * dp);
+         ValType d1 = dp * m1;
+         ValType d2 = dp * m2;
+         
+         ValType c0 = (d1 + d2 - 2*dv) * length / dp;
+         ValType c1 = (dv + dv + dv - 2*d1 - d2) * length;
+         result = tFromP1 * (tFromP1 * (tFromP1 * c0 + c1) + m1) + v1;
+      }
+      break;
+
+   default:
+      result = v1;
+   }
+}
+
 const char* RampInterpolationNames[] =
 {
    "none",
@@ -611,6 +517,16 @@ void Interpolate(AtArray *p, AtArray *v, AtArray *it, float t, float &out)
 void Interpolate(AtArray *p, AtArray *v, AtArray *it, float t, AtRGB &out)
 {
    InterpolateT(p, v, it, t, out, _GetArrayRGB);
+}
+
+void InterpolateShuffle(AtArray *p, AtArray *v, AtArray *it, float t, float &out, unsigned int *shuffle)
+{
+   InterpolateShuffleT(p, v, it, t, out, _GetArrayFlt, shuffle);
+}
+
+void InterpolateShuffle(AtArray *p, AtArray *v, AtArray *it, float t, AtRGB &out, unsigned int *shuffle)
+{
+   InterpolateShuffleT(p, v, it, t, out, _GetArrayRGB, shuffle);
 }
 
 void Ramp(AtArray *p, AtArray *v, float t, RampInterpolationType it, float &out, unsigned int *shuffle)
@@ -817,6 +733,8 @@ AtRGB HSVtoRGB(AtVector inHsv)
    else
    {
       float f = inHsv.x / 60.0f;
+      if(f >= 6.0f)
+         f = 0.0f;
 
       int Hi = int(f) % 6;
 

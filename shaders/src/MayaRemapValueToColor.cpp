@@ -31,7 +31,7 @@ node_parameters
    AiArraySetRGB(vdef, 0, AI_RGB_BLACK);
    AiArraySetRGB(vdef, 1, AI_RGB_WHITE);
    AiParameterARRAY("values", vdef);
-   AiParameterARRAY("interpolations", AiArray(2, 1, AI_TYPE_STRING, "linear", "linear"));;
+   AiParameterARRAY("interpolations", AiArray(2, 1, AI_TYPE_INT, 1, 1));;
    AiParameterFLT("outputMin", 0.0f);
    AiParameterFLT("outputMax", 1.0f);
 
@@ -64,9 +64,12 @@ shader_evaluate
    AtArray *val = AiShaderEvalParamArray(p_key_val);
    AtArray *interp = AiShaderEvalParamArray(p_key_interp);
 
+   unsigned int* shuffle = (unsigned int*)AiShaderGlobalsQuickAlloc(sg, pos->nelements * sizeof(unsigned int));
+   SortFloatIndexArray(pos, shuffle);
+   
    input = MapValue(input, imin, imax);
 
-   Interpolate(pos, val, interp, input, output);
+   InterpolateShuffle(pos, val, interp, input, output, shuffle);
 
    sg->out.RGB.r = UnmapValue(output.r, omin, omax);
    sg->out.RGB.g = UnmapValue(output.g, omin, omax);

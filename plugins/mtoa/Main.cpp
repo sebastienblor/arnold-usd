@@ -301,6 +301,9 @@ namespace // <anonymous>
          shaders->RegisterTranslator("remapColor",
                                      "",
                                      CRemapColorTranslator::creator);
+         shaders->RegisterTranslator("remapHsv",
+                                     "",
+                                     CRemapHsvTranslator::creator);
          shaders->RegisterTranslator("projection",
                                      "",
                                      CProjectionTranslator::creator);

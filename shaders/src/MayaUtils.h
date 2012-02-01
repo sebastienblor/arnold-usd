@@ -21,9 +21,7 @@ bool IsValidUV(AtPoint2 &uv);
 float Integral(float t, float nedge);
 float Mod(float n, float d);
 
-bool SortFloatArray(AtArray *a, unsigned int *shuffle = NULL);
 bool SortFloatIndexArray(AtArray *a, unsigned int *shuffle);
-void ShuffleArray(AtArray *a, unsigned int *shuffle, int arnoldType);
 
 enum InterpolationType
 {
@@ -38,6 +36,9 @@ extern const char* InterpolationNames[];
 InterpolationType InterpolationNameToType(const char *n);
 void Interpolate(AtArray *p, AtArray *v, AtArray *it, float t, float &out);
 void Interpolate(AtArray *p, AtArray *v, AtArray *it, float t, AtRGB &out);
+
+void InterpolateShuffle(AtArray *p, AtArray *v, AtArray *it, float t, float &out, unsigned int *shuffle);
+void InterpolateShuffle(AtArray *p, AtArray *v, AtArray *it, float t, AtRGB &out, unsigned int *shuffle);
 
 enum RampInterpolationType
 {

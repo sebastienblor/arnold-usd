@@ -34,13 +34,13 @@ node_parameters
    AiParameterFLT("inputMax", 1.0f);
    AiParameterARRAY("rPositions", AiArray(2, 1, AI_TYPE_FLOAT, 0.0f, 1.0f));
    AiParameterARRAY("rValues", AiArray(2, 1, AI_TYPE_FLOAT, 0.0f, 1.0f));
-   AiParameterARRAY("rInterpolations", AiArray(2, 1, AI_TYPE_STRING, "linear", "linear"));
+   AiParameterARRAY("rInterpolations", AiArray(2, 1, AI_TYPE_INT, 1, 1));
    AiParameterARRAY("gPositions", AiArray(2, 1, AI_TYPE_FLOAT, 0.0f, 1.0f));
    AiParameterARRAY("gValues", AiArray(2, 1, AI_TYPE_FLOAT, 0.0f, 1.0f));
-   AiParameterARRAY("gInterpolations", AiArray(2, 1, AI_TYPE_STRING, "linear", "linear"));
+   AiParameterARRAY("gInterpolations", AiArray(2, 1, AI_TYPE_INT, 1, 1));
    AiParameterARRAY("bPositions", AiArray(2, 1, AI_TYPE_FLOAT, 0.0f, 1.0f));
    AiParameterARRAY("bValues", AiArray(2, 1, AI_TYPE_FLOAT, 0.0f, 1.0f));
-   AiParameterARRAY("bInterpolations", AiArray(2, 1, AI_TYPE_STRING, "linear", "linear"));
+   AiParameterARRAY("bInterpolations", AiArray(2, 1, AI_TYPE_INT, 1, 1));
    AiParameterFLT("outputMin", 0.0f);
    AiParameterFLT("outputMax", 1.0f);
 
@@ -59,6 +59,7 @@ node_finish
 {
 }
 
+
 shader_evaluate
 {
    AtRGB input = AiShaderEvalParamRGB(p_input);
@@ -72,24 +73,39 @@ shader_evaluate
    input.r = MapValue(input.r, imin, imax);
    input.g = MapValue(input.g, imin, imax);
    input.b = MapValue(input.b, imin, imax);
+   
+   AtArray* rPos = AiShaderEvalParamArray(p_key_red_pos);
+   unsigned int* rShuffle = (unsigned int*)AiShaderGlobalsQuickAlloc(sg, rPos->nelements * sizeof(unsigned int));
+   SortFloatIndexArray(rPos, rShuffle);
+   
+   AtArray* gPos = AiShaderEvalParamArray(p_key_green_pos);
+   unsigned int* gShuffle = (unsigned int*)AiShaderGlobalsQuickAlloc(sg, gPos->nelements * sizeof(unsigned int));
+   SortFloatIndexArray(gPos, gShuffle);
+   
+   AtArray* bPos = AiShaderEvalParamArray(p_key_blue_pos);
+   unsigned int* bShuffle = (unsigned int*)AiShaderGlobalsQuickAlloc(sg, bPos->nelements * sizeof(unsigned int));
+   SortFloatIndexArray(bPos, bShuffle);
 
-   Interpolate(AiShaderEvalParamArray(p_key_red_pos),
-               AiShaderEvalParamArray(p_key_red_val),
-               AiShaderEvalParamArray(p_key_red_interp),
-               input.r,
-               output.r);
+   InterpolateShuffle(rPos,
+                     AiShaderEvalParamArray(p_key_red_val),
+                     AiShaderEvalParamArray(p_key_red_interp),
+                     input.r,
+                     output.r,
+                     rShuffle);
 
-   Interpolate(AiShaderEvalParamArray(p_key_green_pos),
-               AiShaderEvalParamArray(p_key_green_val),
-               AiShaderEvalParamArray(p_key_green_interp),
-               input.g,
-               output.g);
+   InterpolateShuffle(gPos,
+                     AiShaderEvalParamArray(p_key_green_val),
+                     AiShaderEvalParamArray(p_key_green_interp),
+                     input.g,
+                     output.g,
+                     gShuffle);
 
-   Interpolate(AiShaderEvalParamArray(p_key_blue_pos),
-               AiShaderEvalParamArray(p_key_blue_val),
-               AiShaderEvalParamArray(p_key_blue_interp),
-               input.b,
-               output.b);
+   InterpolateShuffle(bPos,
+                     AiShaderEvalParamArray(p_key_blue_val),
+                     AiShaderEvalParamArray(p_key_blue_interp),
+                     input.b,
+                     output.b,
+                     bShuffle);
 
    sg->out.RGB.r = UnmapValue(output.r, omin, omax);
    sg->out.RGB.g = UnmapValue(output.g, omin, omax);

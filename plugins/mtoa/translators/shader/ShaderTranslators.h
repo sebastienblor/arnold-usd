@@ -45,6 +45,7 @@ SHADER_TRANSLATOR(CProjectionTranslator);
 SHADER_TRANSLATOR(CRampTranslator);
 SHADER_TRANSLATOR(CLayeredTextureTranslator);
 SHADER_TRANSLATOR(CLayeredShaderTranslator);
+SHADER_TRANSLATOR(CRemapHsvTranslator);
 
 class CBump2DTranslator : public CNodeTranslator
 {

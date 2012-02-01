@@ -125,7 +125,6 @@ shader_evaluate
       else // (positions->nelements > 1)
       {
          // get array with sorted index
-         //unsigned int* shuffle = new unsigned int[positions->nelements];
          unsigned int* shuffle = (unsigned int*)AiShaderGlobalsQuickAlloc(sg, positions->nelements * sizeof(unsigned int));
          SortFloatIndexArray(positions, shuffle);
 
