@@ -125,7 +125,6 @@ MStatus CRenderSession::Begin(CRenderOptions* options)
    if (AiUniverseIsActive())
    {
       AiMsgWarning("[mtoa] There can only be one RenderSession active.");
-      AiRenderAbort();
       InterruptRender();
       ArnoldUniverseEnd();
    }
@@ -157,7 +156,6 @@ MStatus CRenderSession::End()
    }
    else
    {
-      AiRenderAbort();
       InterruptRender();
       ArnoldUniverseEnd();
    }
@@ -221,6 +219,9 @@ void CRenderSession::InterruptRender()
    assert(AiUniverseIsActive());
 
    if (AiRendering()) AiRenderInterrupt();
+
+   // Clear the display queue
+   ClearDisplayUpdateQueue();
 
    // Stop the Idle update.
    ClearIdleRenderViewCallback();
@@ -555,6 +556,10 @@ void CRenderSession::DoIPRRender()
 
    if (!m_paused_ipr)
    {
+      assert(AiUniverseIsActive());
+
+      if (AiRendering()) InterruptRender();
+
       PrepareRenderView(true); // Install callbacks.
 
       // Start the render thread.
@@ -562,6 +567,7 @@ void CRenderSession::DoIPRRender()
                                        &m_renderOptions,
                                        AI_PRIORITY_LOW);
    }
+
 }
 
 void CRenderSession::FinishedIPRTuning()

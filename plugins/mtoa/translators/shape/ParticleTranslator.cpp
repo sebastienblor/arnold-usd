@@ -16,6 +16,10 @@
 #include <ai_msg.h>
 #include <ai_nodes.h>
 
+#ifdef _DEBUG
+#define new DEBUG_NEW
+#endif
+
 AtNode* CParticleTranslator::CreateArnoldNodes()
 {
    m_isMasterDag = IsMasterInstance(m_masterDag);

@@ -30,6 +30,10 @@
 #include <maya/MFnMatrixData.h>
 #include <maya/MFileObject.h>
 
+#ifdef _DEBUG
+#define new DEBUG_NEW
+#endif
+
 std::vector< CNodeTranslator * > CMayaScene::s_translatorsToIPRUpdate;
 MCallbackId CMayaScene::s_IPRIdleCallbackId = 0;
 MCallbackId CMayaScene::s_NewNodeCallbackId = 0;
@@ -147,8 +151,18 @@ MStatus CMayaScene::End()
    MStatus status = MStatus::kSuccess;
 
    ClearIPRCallbacks();
-   if (NULL != s_renderSession) status = s_renderSession->End();
-   if (NULL != s_arnoldSession) status = s_arnoldSession->End();
+   if (NULL != s_renderSession)
+   {
+      status = s_renderSession->End();
+      delete s_renderSession;
+      s_renderSession = NULL;
+   }
+   if (NULL != s_arnoldSession)
+   {
+      status = s_arnoldSession->End();
+      delete s_arnoldSession;
+      s_arnoldSession = NULL;
+   }
 
    return status;
 }

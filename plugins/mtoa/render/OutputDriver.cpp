@@ -19,6 +19,10 @@
 #include <time.h>
 time_t s_start_time;
 
+#ifdef _DEBUG
+#define new DEBUG_NEW
+#endif
+
 /// \defgroup render_view Render View Output Driver
 /// These are the methods that make up the arnold side of the Render View update code.
 /// @{
@@ -291,7 +295,7 @@ void CopyBucketToBuffer(float * to_pixels,
       }
    }
 
-   delete [] bucket.pixels;
+   delete[] bucket.pixels;
 }
 
 // Create an MImage from the buffer/queue rendered from Arnold.

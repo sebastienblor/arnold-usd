@@ -288,7 +288,7 @@ elif env['COMPILER'] == 'msvc':
       LINK_FLAGS += " /LTCG"   # enables link time code generation (needed by /GL)
    else:  ## Debug mode
       MSVC_FLAGS += " /Od"   # disables all optimizations
-      MSVC_FLAGS += " /MD"   # uses *NON-DEBUG* multithreaded DLL runtime library
+      MSVC_FLAGS += " /MDd"   # uses *NON-DEBUG* multithreaded DLL runtime library
 
       LINK_FLAGS += " /DEBUG"
 
@@ -298,8 +298,11 @@ elif env['COMPILER'] == 'msvc':
    if env['MODE'] == 'opt':
       env.Append(CPPDEFINES = Split('NDEBUG'))
 # We cannot enable this define, as it will try to use symbols from the debug runtime library  
-#   if env['MODE'] == 'debug':
-#      env.Append(CPPDEFINES = Split('_DEBUG'))
+# Re-acivated to allow memory tracking in MSVC
+   if env['MODE'] == 'debug':
+      env.Append(CPPDEFINES = Split('_DEBUG'))
+      # for MSVC memory tracking 
+      env.Append(CPPDEFINES = Split('_CRTDBG_MAP_ALLOC'))
 
    env.Append(CPPDEFINES = Split('_CRT_SECURE_NO_WARNINGS'))
 elif env['COMPILER'] == 'icc':
@@ -355,7 +358,7 @@ elif env['COMPILER'] == 'icc':
       XILINK_FLAGS += " /INCREMENTAL:NO"
    else:
       ICC_FLAGS += " /Od"   # disables all optimizations
-      ICC_FLAGS += " /MD"   # uses *NON-DEBUG* multithreaded DLL runtime library
+      ICC_FLAGS += " /MDd"   # uses *NON-DEBUG* multithreaded DLL runtime library
 
       XILINK_FLAGS += " /INCREMENTAL"
 
@@ -367,7 +370,7 @@ elif env['COMPILER'] == 'icc':
 # We cannot enable this define, as it will try to use symbols from the debug runtime library  
 #   if env['MODE'] == 'debug':
 #      env.Append(CPPDEFINES = Split('_DEBUG'))
-
+            
 if env['MODE'] == 'debug':
    env.Append(CPPDEFINES = Split('ARNOLD_DEBUG'))
 
@@ -382,7 +385,7 @@ elif system.os() == 'linux':
    env.Append(CPPDEFINES = Split('_LINUX'))
 
 ## Add path to Arnold API by default
-env.Append(CPPPATH = [ARNOLD_API_INCLUDES])
+env.Append(CPPPATH = [ARNOLD_API_INCLUDES,])
 env.Append(LIBPATH = [ARNOLD_API_LIB, ARNOLD_BINARIES])
    
 ## configure base directory for temp files
@@ -409,7 +412,7 @@ if system.os() == 'windows':
    maya_env.Append(CPPPATH = ['.'])
    maya_env.Append(CPPPATH = [MAYA_INCLUDE_PATH])
    maya_env.Append(CPPDEFINES = Split('NT_PLUGIN REQUIRE_IOSTREAM'))
-   maya_env.Append(LIBPATH = [os.path.join(MAYA_ROOT, 'lib')])
+   maya_env.Append(LIBPATH = [os.path.join(MAYA_ROOT, 'lib'),])
    
    maya_env.Append(LIBS=Split('ai.lib OpenGl32.lib glu32.lib Foundation.lib OpenMaya.lib OpenMayaRender.lib OpenMayaUI.lib OpenMayaAnim.lib OpenMayaFX.lib'))
    
@@ -562,6 +565,11 @@ env.InstallAs([os.path.join(TARGET_PYTHON_PATH, x) for x in arpybds],
 # install include files
 apibasepath = os.path.join('plugins', 'mtoa')
 apiheaders = [os.path.join('platform', 'Platform.h'),
+              os.path.join('platform', 'darwin', 'Event.h'),
+              os.path.join('platform', 'linux', 'Event.h'),
+              os.path.join('platform', 'win32', 'Event.h'),
+              os.path.join('platform', 'win32', 'dirent.h'),
+              os.path.join('platform', 'win32', 'Debug.h'),
               os.path.join('common', 'MObjectCompare.h'),
               os.path.join('attributes', 'AttrHelper.h'),
               os.path.join('extension', 'Extension.h'),
@@ -614,7 +622,7 @@ ext_env.Append(CPPPATH = ['plugin', os.path.join(maya_env['ROOT_DIR'], 'plugins'
 ext_env.Append(LIBPATH = ['.', ARNOLD_API_LIB, ARNOLD_BINARIES])
 ext_env.Append(LIBPATH = [ os.path.join(maya_env['ROOT_DIR'], os.path.split(str(MTOA[0]))[0]),
                            os.path.join(maya_env['ROOT_DIR'], os.path.split(str(MTOA_API[0]))[0])])
-ext_env.Append(LIBS = ['mtoa_api'])
+ext_env.Append(LIBS = ['mtoa_api',])
 
 ext_base_dir = os.path.join('contrib', 'extensions')
 ext_files = []

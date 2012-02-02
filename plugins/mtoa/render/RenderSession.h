@@ -127,7 +127,7 @@ private:
    {
    }
 
-   ~CRenderSession();
+   ~CRenderSession() { End(); };
 
    /// This is the static method which is the thread that calls AiRender().
    static unsigned int RenderThread(void* data);

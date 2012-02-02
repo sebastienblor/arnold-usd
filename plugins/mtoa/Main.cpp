@@ -384,6 +384,11 @@ namespace // <anonymous>
 
 DLLEXPORT MStatus initializePlugin(MObject object)
 {
+   // This will dump memory leak info in debugger output window on program exit.
+#ifdef _DEBUG
+   _CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
+#endif
+
    MStatus status, returnStatus;
    returnStatus = MStatus::kSuccess;
 

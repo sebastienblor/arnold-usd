@@ -4,16 +4,19 @@
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #define DLLEXPORT __declspec(dllexport)
+#ifdef _MSC_VER
+#pragma warning(disable:4251)
+#pragma warning(disable:4267)
+#include "platform/win32/Debug.h"
+#endif // _MSC_VER
 #include "platform/win32/Event.h"
 #include <platform/win32/dirent.h>
 #define PATHSEP ';'
 #define DIRSEP "/"
 #define LIBEXT ".dll"
-#ifdef _MSC_VER
-#pragma warning(disable:4251)
-#pragma warning(disable:4267)
-#endif // _MSC_VER
-#else
+
+#else // _WIN32
+
 #include <sys/types.h>
 #include <dirent.h>
 #include <dlfcn.h>
@@ -32,6 +35,8 @@
 #include "platform/darwin/Event.h"
 #define LIBEXT ".dylib"
 #endif // _DARWIN
-#endif // _WIN32
+
+#endif // #else _WIN32
+
 
 #endif  // PLATFORM_H
