@@ -34,8 +34,6 @@ enum InterpolationType
 extern const char* InterpolationNames[];
 
 InterpolationType InterpolationNameToType(const char *n);
-void Interpolate(AtArray *p, AtArray *v, AtArray *it, float t, float &out);
-void Interpolate(AtArray *p, AtArray *v, AtArray *it, float t, AtRGB &out);
 
 void InterpolateShuffle(AtArray *p, AtArray *v, AtArray *it, float t, float &out, unsigned int *shuffle);
 void InterpolateShuffle(AtArray *p, AtArray *v, AtArray *it, float t, AtRGB &out, unsigned int *shuffle);
