@@ -487,13 +487,6 @@ node_loader
       node->name        = "userDataString";
       node->node_type   = AI_NODE_SHADER;
       break;
-      
-   case 60:
-      node->methods     = MayaRemapColorMtd;
-      node->output_type = AI_TYPE_RGB;
-      node->name        = "MayaRemapHsv";
-      node->node_type   = AI_NODE_SHADER;
-      break;
 
    default:
       return false;
