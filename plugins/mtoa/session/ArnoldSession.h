@@ -138,6 +138,8 @@ public:
    bool IsActiveAOV(CAOV &aov) const;
    AOVSet GetActiveAOVs() const;
 
+   DagFiltered FilteredStatus(MDagPath dagPath);
+   
 /*
    bool IsActiveAOV(CAOV &aov) const
    {
@@ -190,8 +192,6 @@ private:
 
    MStatus ExportSelection(MSelectionList& selected);
    MStatus IterSelection(MSelectionList& selected);
-
-   DagFiltered FilteredStatus(MDagPath dagPath);
 
    inline bool NeedsUpdate() { return m_requestUpdate; }
 

@@ -74,7 +74,7 @@ void CShapeTranslator::ExportLightLinking(AtNode* shape)
          MDagPath lightPath = mayaLights[i];
          // TODO : handle multiple shapes cases
          lightPath.extendToShape();
-         if (lightPath.isValid())
+         if (lightPath.isValid() && (session->FilteredStatus(lightPath) == MTOA_EXPORT_ACCEPTED))
          {
             // TODO: shoud this respect current selection for render / export selection
             // and or export filters? In that case use CArnoldSession::ExportSelection and
@@ -139,7 +139,7 @@ void CShapeTranslator::ExportLightLinking(AtNode* shape)
          MDagPath shadowPath = mayaShadows[i];
          // TODO : handle multiple shapes cases
          shadowPath.extendToShape();
-         if (shadowPath.isValid())
+         if (shadowPath.isValid() && (session->FilteredStatus(shadowPath) == MTOA_EXPORT_ACCEPTED))
          {
             // TODO: shoud this respect current selection for render / export selection
             // and or export filters? In that case use CArnoldSession::ExportSelection and
