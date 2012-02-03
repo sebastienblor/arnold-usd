@@ -4,39 +4,6 @@
 namespace
 {
 
-// a modifed version of AiArrayInterpolateFlt, from arnold core
-float AiArrayInterpolateFlt(const AtArray *array, float time, int idx)
-{
-   //AiAssert(array->type == AI_TYPE_FLOAT);
-
-   if (array->nkeys == 1 || time <= 0)
-      return ((float *)array->data)[idx];
-
-   if (time >= 1)
-      return ((float *)array->data)[(array->nkeys - 1) * array->nelements + idx];
-
-   if (array->nkeys == 2)
-   {
-      return LERP(time,
-         ((float *)array->data)[idx],
-         ((float *)array->data)[array->nelements + idx]);
-   }
-   else
-   {
-      float t_nkm1 = time * (array->nkeys-1);
-      int   lokey  = FLOOR(t_nkm1);
-      int   hikey  = lokey + 1;
-      float t      = t_nkm1 - lokey;
-
-      //AiAssert(lokey >= 0 && lokey < array->nkeys);
-      //AiAssert(hikey >= 0 && hikey < array->nkeys);
-
-      return LERP(t,
-         ((float *)array->data)[lokey * array->nelements + idx],
-         ((float *)array->data)[hikey * array->nelements + idx] );
-   }
-}
-
 enum AnimFloatParams
 {
    p_values
