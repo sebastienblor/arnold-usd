@@ -65,6 +65,8 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
         self.addSeparator()
         self.addControl("aiExportTangents")
         self.addControl("aiExportColors")
+        self.addControl("aiExportRefNormals")
+        self.addControl("aiExportRefTangents")
         #pm.editorTemplate("aiExportHairIDs", label="Export Hair IDs", addDynamicControl=True)
         # FIXME: these are not on the shape node!
 #       ui.addSeparator()

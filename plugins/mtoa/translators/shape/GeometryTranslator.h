@@ -43,14 +43,26 @@ public:
 
 protected:
 
-   bool GetVerticesWorld(MFnMesh &fnMesh, std::vector<float> &vertices);
-   bool GetVertices(MFnMesh &fnMesh, std::vector<float> &vertices);
-   bool GetPerVertexNormalsWorld(MFnMesh &fnMesh, std::vector<float> &normals, bool force=false);
+   bool GetVertices(MFnMesh &fnMesh,
+         std::vector<float> &vertices,
+         MSpace::Space space=MSpace::kObject);
+   bool GetPerVertexNormals(MFnMesh &fnMesh,
+         std::vector<float> &normals,
+         MSpace::Space space=MSpace::kObject,
+         bool force=false);
    bool GetNormals(MFnMesh &fnMesh, std::vector<float> &normals);
-   bool GetTangents(MFnMesh &fnMesh, std::vector<float> &tangents, std::vector<float> &bitangents);
+   bool GetTangents(MFnMesh &fnMesh,
+         std::vector<float> &tangents,
+         std::vector<float> &bitangents,
+         MSpace::Space space=MSpace::kObject,
+         bool force=false);
    bool GetUVs(MFnMesh &fnMesh, std::vector<float> &uvs);
    bool GetMeshRefObj(MFnMesh &fnMesh);
-   bool GetRefObj(MFnMesh &fnMesh, std::vector<float> &refVertices, std::vector<float> &refNormals);
+   bool GetRefObj(MFnMesh &fnMesh,
+         std::vector<float> &refVertices,
+         std::vector<float> &refNormals,
+         std::vector<float> &refTangents,
+         std::vector<float> &refBitangents);
    bool GetVertexColors(MFnMesh &fnMesh, std::map<std::string, std::vector<float> > &vcolors);
    void GetComponentIDs(MFnMesh &fnMesh,
          std::vector<unsigned int> &nsides,
