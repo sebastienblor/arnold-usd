@@ -1120,7 +1120,7 @@ void CGeometryTranslator::NodeInitializer(CAbTranslator context)
    data.shortName = "ai_exprpt";
    helper.MakeInputBoolean(data);
 
-   data.defaultValue.BOOL = true;
+   data.defaultValue.BOOL = false;
    data.name = "aiExportRefNormals";
    data.shortName = "ai_exprnrm";
    helper.MakeInputBoolean(data);
