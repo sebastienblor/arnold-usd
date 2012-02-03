@@ -47,7 +47,7 @@ void CMeshTranslator::Export(AtNode* anode)
 {
    if (GetNumMeshGroups() == 0)
    {
-      AiMsgError("[mtoa] [translator %s] Mesh not exported, it has 0 groups.", GetTranslatorName().asChar());
+      AiMsgError("[mtoa.translator]  %-30s | Mesh not exported, it has 0 shading groups.", GetMayaNodeName().asChar());
       return;
    }
    const char* nodeType = AiNodeEntryGetName(AiNodeGetNodeEntry(anode));

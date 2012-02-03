@@ -51,7 +51,6 @@ void CSkyShaderTranslator::Export(AtNode* shader)
 
    double scale[3];
    tmatrix.getScale(scale, MSpace::kTransform);
-   AiMsgDebug("Sky scale %f %f %f", scale[0], scale[1], scale[2]);
    // Invert in Z to account for the env sphere being viewed from inside
    AiNodeSetVec(shader, "X", 1.0f/static_cast<float>(scale[0]), 0.0f, 0.0f);
    AiNodeSetVec(shader, "Y", 0.0f, 1.0f/static_cast<float>(scale[1]), 0.0f);
@@ -255,7 +254,10 @@ AtNode* CSamplerInfoTranslator::CreateArnoldNodes()
       return AddArnoldNode("MayaFlippedNormal");
    }
    else
+   {
+      AiMsgError("[mtoa] [translator %s] invalid output attribute requested: %s", GetTranslatorName().asChar(), m_outputAttr.asChar());
       return NULL;
+   }
 }
 
 void CSamplerInfoTranslator::Export(AtNode* shader)
@@ -278,7 +280,10 @@ AtNode* CPlusMinusAverageTranslator::CreateArnoldNodes()
       return AddArnoldNode("MayaPlusMinusAverage3D");
    }
    else
+   {
+      AiMsgError("[mtoa] [translator %s] invalid output attribute requested: %s", GetTranslatorName().asChar(), m_outputAttr.asChar());
       return NULL;
+   }
 }
 
 void CPlusMinusAverageTranslator::Export(AtNode* shader)
@@ -432,7 +437,10 @@ AtNode* CRemapValueTranslator::CreateArnoldNodes()
       return AddArnoldNode("MayaRemapValueToColor");
    }
    else
+   {
+      AiMsgError("[mtoa] [translator %s] invalid output attribute requested: %s", GetTranslatorName().asChar(), m_outputAttr.asChar());
       return NULL;
+   }
 }
 
 void CRemapValueTranslator::Export(AtNode* shader)

@@ -20,11 +20,6 @@ AtNode* COptionsTranslator::CreateArnoldNodes()
    assert(AiUniverseIsActive());
 
    AtNode* options = AiUniverseGetOptions();
-   AiMsgDebug("COptionsTranslator %s: CreateArnoldNodes on Maya node %s(%s) created arnold node %p: %s(%s).",
-         GetTranslatorName().asChar(),
-         GetMayaNodeName().asChar(), GetMayaNodeTypeName().asChar(),
-         options, AiNodeGetName(options), AiNodeEntryGetName(AiNodeGetNodeEntry(options)));
-
    return options;
 }
 
@@ -170,7 +165,6 @@ AtNode * COptionsTranslator::CreateOutputFilter()
 {
    // set the output driver
    MString filterType = FindMayaObjectPlug("filterType").asString();
-   AiMsgInfo("exporting filter \"%s\"", filterType.asChar());
    AtNode* filter = m_session->ExportFilter(GetMayaObject(), filterType);
    if (filter != NULL)
    {
@@ -240,11 +234,6 @@ void COptionsTranslator::SetCamera(AtNode *options, MDagPath& cameraNode)
 void COptionsTranslator::Export(AtNode *options)
 {
    assert(AiUniverseIsActive());
-
-   AiMsgDebug("COptionsTranslator %s: Export on Maya node %s(%s), Arnold node %p: %s(%s).",
-         GetTranslatorName().asChar(),
-         GetMayaNodeName().asChar(), GetMayaNodeTypeName().asChar(),
-         options, AiNodeGetName(options), AiNodeEntryGetName(AiNodeGetNodeEntry(options)));
 
    SetupRenderOutput(options);
    // set the camera

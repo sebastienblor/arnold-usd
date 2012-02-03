@@ -134,21 +134,26 @@ AtNode* CArnoldSession::ExportDagPath(MDagPath &dagPath, MStatus* stat)
 
    MString name = dagPath.partialPathName();
    MString type = MFnDagNode(dagPath).typeName();
-   AiMsgDebug("[mtoa] Exporting dag node %s of type %s", name.asChar(), type.asChar());
 
+   AiMsgTab(1);
    CDagTranslator* translator = CExtensionsManager::GetTranslator(dagPath);
+
    if (translator == NULL)
    {
       if (stat != NULL) *stat = MStatus::kNotImplemented;
-      AiMsgDebug("[mtoa] Dag node %s of type %s ignored", name.asChar(), type.asChar());
+      AiMsgDebug("[mtoa.session]     %-30s | Ignoring DAG node of type %s", name.asChar(), type.asChar());
+      AiMsgTab(-1);
       return NULL;
    }
    else if (!translator->IsMayaTypeDag())
    {
       if (stat != NULL) *stat = MStatus::kInvalidParameter;
       AiMsgDebug("[mtoa] translator for %s of type %s is not a DAG translator", name.asChar(), type.asChar());
+      AiMsgTab(-1);
       return NULL;
    }
+
+   AiMsgDebug("[mtoa.session]     %-30s | Exporting DAG node of type %s", name.asChar(), type.asChar());
 
    CNodeAttrHandle handle(dagPath);
    if (!translator->DisableCaching())
@@ -172,6 +177,7 @@ AtNode* CArnoldSession::ExportDagPath(MDagPath &dagPath, MStatus* stat)
    }
 
    if (NULL != stat) *stat = status;
+   AiMsgTab(-1);
    return arnoldNode;
 }
 
@@ -196,18 +202,22 @@ AtNode* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, MStatus *stat)
       }
    }
 
+   AiMsgTab(1);
    CNodeTranslator* translator = CExtensionsManager::GetTranslator(mayaNode);
+
    if (translator == NULL)
    {
       status = MStatus::kNotImplemented;
       MFnDependencyNode fnNode(mayaNode);
-      AiMsgDebug("[mtoa] [maya %s] Maya node type not supported: %s", fnNode.name().asChar(),
+      AiMsgDebug("[mtoa.session]     %30s: Maya node type not supported: %s", fnNode.name().asChar(),
                  fnNode.typeName().asChar());
+      AiMsgTab(-1);
       return NULL;
    }
    MPlug resultPlug;
 
    // returns the primary attribute (i.e. if the shaderOutputPlug is outColorR, resultPlug is outColor)
+
    ResolveFloatComponent(shaderOutputPlug, resultPlug);
 
    MPlug resolvedPlug;
@@ -226,6 +236,7 @@ AtNode* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, MStatus *stat)
       MFnDependencyNode fnNode(mayaNode);
       AiMsgDebug("[mtoa] [maya %s] Invalid output attribute: \"%s\"", fnNode.name().asChar(),
                  resultPlug.partialName(false, false, false, false, false, true).asChar());
+      AiMsgTab(-1);
       return NULL;
    }
 
@@ -250,6 +261,7 @@ AtNode* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, MStatus *stat)
       arnoldNode = translator->DoExport(0);
    }
    if (NULL != stat) *stat = status;
+   AiMsgTab(-1);
    return arnoldNode;
 }
 
@@ -260,13 +272,14 @@ AtNode* CArnoldSession::ExportWithTranslator(MObject mayaNode, const MString &ma
 
    AtNode* shader = NULL;
 
+   AiMsgTab(1);
    CNodeTranslator* translator = CExtensionsManager::GetTranslator(mayaNodeClass, translatorName);
    if (translator != NULL)
    {
       shader = translator->Init(this, mayaNode);
-      AiMsgDebug("[mtoa] Custom export of %s(%s) as Arnold node %s(%s) using translator: %s.",
-            MFnDependencyNode(mayaNode).name().asChar(), mayaNodeClass.asChar(),
-            AiNodeGetName(shader), AiNodeEntryGetName(AiNodeGetNodeEntry(shader)),
+      AiMsgDebug("[mtoa.session]     %-30s | Exporting type %s using translator: \"%s\"",
+            MFnDependencyNode(mayaNode).name().asChar(),
+            mayaNodeClass.asChar(),
             translatorName.asChar());
       translator->DoExport(0);
       CNodeAttrHandle handle(mayaNode, translatorName);
@@ -274,10 +287,12 @@ AtNode* CArnoldSession::ExportWithTranslator(MObject mayaNode, const MString &ma
    }
    else
    {
-      AiMsgDebug("[mtoa] Forcing export of %s(%s), translator type not supported: %s.",
-            MFnDependencyNode(mayaNode).name().asChar(), mayaNodeClass.asChar(),
+      AiMsgDebug("[mtoa.session]     %-30s | Skipping export of type %s: translator type not supported: \"%s\"",
+            MFnDependencyNode(mayaNode).name().asChar(),
+            mayaNodeClass.asChar(),
             translatorName.asChar());
    }
+   AiMsgTab(-1);
    return shader;
 }
 
@@ -500,11 +515,11 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
       // first step is the real export
       // FIXME: use middle step will give better average results for values
       // that can't be motion blurred in Arnold
-      AiMsgDebug("[mtoa] Exporting step 0 at frame %f", m_motion_frames[0]);
+      AiMsgDebug("[mtoa.session]     Exporting step 0 at frame %f", m_motion_frames[0]);
    }
    else
    {
-      AiMsgDebug("[mtoa] Exporting frame %f", m_motion_frames[0]);
+      AiMsgDebug("[mtoa.session]     Exporting frame %f", m_motion_frames[0]);
    }
    // When there is no motion blur we push the export frame in m_motion_frames[0]
    // so m_motion_frames[0] == m_frame
@@ -580,7 +595,7 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
       for (unsigned int step = 1; step < GetNumMotionSteps(); ++step)
       {
          MGlobal::viewFrame(MTime(m_motion_frames[step], MTime::uiUnit()));
-         AiMsgDebug("[mtoa] Exporting step %d at frame %f", step, m_motion_frames[step]);
+         AiMsgDebug("[mtoa.session]     Exporting step %d at frame %f", step, m_motion_frames[step]);
          // then, loop through the already processed dag translators and export for current step
          // NOTE: these exports are subject to the normal pre-processed checks which prevent redundant exports.
          // Since all nodes *should* be exported at this point, the following calls to DoExport do not

@@ -157,8 +157,8 @@ MStatus CRenderSwatchGenerator::BuildArnoldScene()
    MString arnoldNodeName(AiNodeGetName(arnoldNode));
    if (NULL != arnoldNode) {
       const AtNodeEntry *nodeEntry = AiNodeGetNodeEntry(arnoldNode);
-      AiMsgDebug("[mtoa] [swatch] Exported %s(%s) as %s(%s)",
-            mayaNodeName.asChar(), mayaNodeType.asChar(),
+      AiMsgDebug("[mtoa.swatch] %-30s | Exported as %s(%s)",
+            mayaNodeName.asChar(),
             AiNodeGetName(arnoldNode), AiNodeEntryGetTypeName(nodeEntry));
    }
 
@@ -497,7 +497,7 @@ void CRenderSwatchGenerator::ClearSwatch()
 
 void CRenderSwatchGenerator::ErrorSwatch(const MString msg)
 {
-   AiMsgError("[mtoa] [swatch] %s", msg.asChar());
+   AiMsgError("[mtoa.swatch] %s", msg.asChar());
    ClearSwatch();
 }
 
