@@ -63,45 +63,14 @@ struct CDisplayUpdateMessage
    CDisplayUpdateMessage(EDisplayUpdateMessageType msg = MSG_BUCKET_PREPARE,
                            int minx = 0, int miny = 0, int maxx = 0, int maxy = 0,
                            RV_PIXEL* px = NULL)
-      : msgType(msg), pixels(px)
    {
-      m_lock          = false;
+      msgType         = msg;
       bucketRect.minx = minx;
       bucketRect.miny = miny;
       bucketRect.maxx = maxx;
       bucketRect.maxy = maxy;
+      pixels          = px;
    }
-   CDisplayUpdateMessage(const CDisplayUpdateMessage &other)
-   {
-      msgType         = other.msgType;
-      bucketRect.minx = other.bucketRect.minx;
-      bucketRect.miny = other.bucketRect.miny;
-      bucketRect.maxx = other.bucketRect.maxx;
-      bucketRect.maxy = other.bucketRect.maxy;
-      pixels          = other.pixels;
-      m_lock          = other.m_lock;
-   }
-   ~CDisplayUpdateMessage()
-   {
-      if (!m_lock && pixels != NULL) delete [] pixels;
-   }
-   void operator=(const CDisplayUpdateMessage &other)
-   {
-      msgType         = other.msgType;
-      bucketRect.minx = other.bucketRect.minx;
-      bucketRect.miny = other.bucketRect.miny;
-      bucketRect.maxx = other.bucketRect.maxx;
-      bucketRect.maxy = other.bucketRect.maxy;
-      pixels          = other.pixels;
-      m_lock          = other.m_lock;
-   }
-   inline void lock()   { m_lock = true; }
-   inline void unlock() { m_lock = false; }
-
-private:
-
-   bool m_lock;
-   
 };
 
 static CMTBlockingQueue<CDisplayUpdateMessage> s_displayUpdateQueue;
@@ -293,6 +262,8 @@ void UpdateBucket(const CDisplayUpdateMessage & msg, const bool refresh)
       if (maxy > s_outputDriverData.refresh_bbox.maxy)
          s_outputDriverData.refresh_bbox.maxy = maxy;
    }
+
+   if (msg.pixels != NULL) delete[] msg.pixels;
 }
 
 void RefreshRenderViewBBox()
@@ -329,6 +300,7 @@ void CopyBucketToBuffer(float * to_pixels,
          ++from;
       }
    }
+   if (msg.pixels != NULL) delete[] msg.pixels;
 }
 
 // Create an MImage from the buffer/queue rendered from Arnold.
