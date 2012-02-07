@@ -1,3 +1,4 @@
+#include "platform/Platform.h"
 #include "utils/Universe.h"
 #include "scene/MayaScene.h"
 #include "render/RenderSession.h"
@@ -13,6 +14,10 @@
 #include <string.h> // for memset.
 #include <string>
 #include <algorithm>
+
+#ifdef _DEBUG
+#define new DEBUG_NEW
+#endif
 
 MSwatchRenderBase* CRenderSwatchGenerator::creator(MObject dependNode,
                                                   MObject renderNode,

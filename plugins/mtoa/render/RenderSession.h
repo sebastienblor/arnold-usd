@@ -28,7 +28,7 @@ class DLLEXPORT CRenderSession
 public:
 
    /// Initialize the Arnold universe, it will be ready for translation and render
-   MStatus Begin(CRenderOptions* options);
+   MStatus Begin(const CRenderOptions &options);
    /// Terminate a render. This will shutdown the Arnold universe.
    MStatus End();
 

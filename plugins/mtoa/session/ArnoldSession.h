@@ -177,7 +177,7 @@ private:
    inline void SetSessionOptions(CSessionOptions& options)  { m_sessionOptions = options; }
 
    /// Initialize with passed CSessionOptions, ready for translating to the Arnold universe
-   MStatus Begin(CSessionOptions* options);
+   MStatus Begin(const CSessionOptions &options);
    /// Terminate an export session
    MStatus End();
 

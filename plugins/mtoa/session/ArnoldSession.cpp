@@ -1,3 +1,4 @@
+#include "platform/Platform.h"
 #include "ArnoldSession.h"
 #include "attributes/Components.h"
 #include "extension/ExtensionsManager.h"
@@ -33,6 +34,10 @@
 
 #include <assert.h>
 #include <stdio.h>
+
+#ifdef _DEBUG
+#define new DEBUG_NEW
+#endif
 
 // When we're sure these utilities stay, we can expose them
 // as static method on CArnoldSession or a separate helper class
@@ -377,11 +382,11 @@ void CArnoldSession::ProcessAOVs()
 }
 */
 
-MStatus CArnoldSession::Begin(CSessionOptions* options)
+MStatus CArnoldSession::Begin(const CSessionOptions &options)
 {
    MStatus status = MStatus::kSuccess;
 
-   m_sessionOptions = *options;
+   m_sessionOptions = options;
 
    status = UpdateLightLinks();
    status = UpdateMotionFrames();
@@ -403,15 +408,17 @@ MStatus CArnoldSession::End()
       MGlobal::viewFrame(MTime(GetExportFrame(), MTime::uiUnit()));
    }
 
-   // Delete translators
+   // Delete stored translators
    ObjectToTranslatorMap::iterator it;
    for(it = m_processedTranslators.begin(); it != m_processedTranslators.end(); ++it)
    {
       //AiMsgDebug("[mtoa] Deleting translator for %s", MFnDependencyNode(it->first.object()).name().asChar());
       delete it->second;
    }
-   m_optionsTranslator = NULL; // translators are now deleted, so reset to NULL
+   // Any translators are in the processed translators map, so already deleted
    m_processedTranslators.clear();
+   m_translatorsToUpdate.clear();
+   m_optionsTranslator = NULL;
    m_masterInstances.clear();
    // Clear motion frames storage
    m_motion_frames.clear();
@@ -932,7 +939,7 @@ void CArnoldSession::DoUpdate()
              iter != m_translatorsToUpdate.end(); ++iter)
          {
             CNodeTranslator* translator = (*iter);
-            if (translator != NULL)translator->DoUpdate(step);
+            if (translator != NULL) translator->DoUpdate(step);
          }
       }
       MGlobal::viewFrame(MTime(GetExportFrame(), MTime::uiUnit()));
@@ -952,7 +959,7 @@ void CArnoldSession::DoUpdate()
       }
    }
 
-   // Clear the list and the reques update flag.
+   // Clear the list and the request update flag.
    m_translatorsToUpdate.clear();
    m_requestUpdate = false;
 }

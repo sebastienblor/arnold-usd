@@ -26,12 +26,14 @@
 
 #ifdef _LINUX
 #define DLLEXPORT __attribute__ ((visibility("default")))
+#define DEBUG_NEW new
 #include "platform/linux/Event.h"
 #define LIBEXT ".so"
 #endif // _LINUX
 
 #ifdef _DARWIN
 #define DLLEXPORT __attribute__ ((visibility("default")))
+#define DEBUG_NEW new
 #include "platform/darwin/Event.h"
 #define LIBEXT ".dylib"
 #endif // _DARWIN

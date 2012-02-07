@@ -1,4 +1,4 @@
-
+#include "platform/Platform.h"
 #include "MayaScene.h"
 #include "extension/ExtensionsManager.h"
 #include "utils/MtoaLog.h"
@@ -34,7 +34,6 @@
 #define new DEBUG_NEW
 #endif
 
-std::vector< CNodeTranslator * > CMayaScene::s_translatorsToIPRUpdate;
 MCallbackId CMayaScene::s_IPRIdleCallbackId = 0;
 MCallbackId CMayaScene::s_NewNodeCallbackId = 0;
 CRenderSession* CMayaScene::s_renderSession = NULL;
@@ -43,7 +42,7 @@ CArnoldSession* CMayaScene::s_arnoldSession = NULL;
 // Cheap singleton
 CRenderSession* CMayaScene::GetRenderSession()
 {
-   if (!s_renderSession)
+   if (s_renderSession == NULL)
       s_renderSession = new CRenderSession();
 
    return s_renderSession;
@@ -51,7 +50,7 @@ CRenderSession* CMayaScene::GetRenderSession()
 
 CArnoldSession* CMayaScene::GetArnoldSession()
 {
-   if (!s_arnoldSession)
+   if (s_arnoldSession == NULL)
       s_arnoldSession = new CArnoldSession();
 
    return s_arnoldSession;
@@ -139,8 +138,8 @@ MStatus CMayaScene::Begin(ArnoldSessionMode mode)
    }
 
    // Init both render and export sessions
-   status = renderSession->Begin(&renderOptions);
-   status = arnoldSession->Begin(&sessionOptions);
+   status = renderSession->Begin(renderOptions);
+   status = arnoldSession->Begin(sessionOptions);
 
 
    return status;

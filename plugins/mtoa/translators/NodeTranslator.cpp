@@ -1,3 +1,4 @@
+#include "platform/Platform.h"
 #include "NodeTranslator.h"
 #include "render/RenderOptions.h"
 #include "extension/ExtensionsManager.h"
@@ -34,6 +35,9 @@
 #include <ai_universe.h>
 #include <assert.h>
 
+#ifdef _DEBUG
+#define new DEBUG_NEW
+#endif
 
 namespace // <anonymous>
 {

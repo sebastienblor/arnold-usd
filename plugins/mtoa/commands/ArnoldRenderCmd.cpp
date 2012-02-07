@@ -281,6 +281,7 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
 
       CMayaScene::ExecuteScript(renderGlobals.postRenderMel);
       CMayaScene::End(); // Clean up.
+      // DEBUG_MEMORY;
    }
 
    return status;
