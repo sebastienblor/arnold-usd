@@ -1,3 +1,4 @@
+#include "platform/Platform.h"
 #include "utils/Universe.h"
 #include "utils/MtoaLog.h"
 #include "RenderSession.h"
@@ -37,6 +38,10 @@
 
 #include <cstdio>
 #include <assert.h>
+
+#ifdef _DEBUG
+#define new DEBUG_NEW
+#endif
 
 extern AtNodeMethods* mtoa_driver_mtd;
 
@@ -95,10 +100,6 @@ unsigned int CRenderSession::RenderThread(void* data)
    const int sminInit = render_options->progressiveInitialLevel();
    int init_progressive_samples = render_options->isProgressive() ? sminInit : num_aa_samples;
 
-   // Get rid of any previous renders tiles that have not yet
-   // been displayed.
-   InitializeDisplayUpdateQueue();
-
    int ai_status(AI_SUCCESS);
    for (int i = init_progressive_samples; i <= num_aa_samples; i++)
    {
@@ -125,6 +126,7 @@ MStatus CRenderSession::Begin(CRenderOptions* options)
    if (AiUniverseIsActive())
    {
       AiMsgWarning("[mtoa] There can only be one RenderSession active.");
+      // AiRenderAbort();
       InterruptRender();
       ArnoldUniverseEnd();
    }
@@ -142,7 +144,7 @@ MStatus CRenderSession::Begin(CRenderOptions* options)
    else
    {
       AiMsgError("[mtoa] Could not initialize the Arnold universe in CRenderSession.Begin(CRenderOptions* options)");
-      return MStatus::kFailure;
+   	  return MStatus::kFailure;
    }
 }
 
@@ -156,12 +158,15 @@ MStatus CRenderSession::End()
    }
    else
    {
+      // AiRenderAbort();
       InterruptRender();
       ArnoldUniverseEnd();
    }
    m_is_active = false;
    // Restore "out of rendering" logging
    MtoaSetupLogging();
+
+   _CrtDumpMemoryLeaks();
 
    return status;
 }
@@ -216,12 +221,7 @@ MStatus CRenderSession::WriteAsstoc(const MString& filename, const AtBBox& bBox)
 
 void CRenderSession::InterruptRender()
 {
-   assert(AiUniverseIsActive());
-
    if (AiRendering()) AiRenderInterrupt();
-
-   // Clear the display queue
-   ClearDisplayUpdateQueue();
 
    // Stop the Idle update.
    ClearIdleRenderViewCallback();
@@ -233,6 +233,9 @@ void CRenderSession::InterruptRender()
       AiThreadClose(m_render_thread);
       m_render_thread = NULL;		// Until this is handled by AiThreadClose? Had issues where it tried to close an already closed thread
    }
+
+   // Clear the display queue
+   ClearDisplayUpdateQueue();
 }
 
 void CRenderSession::SetResolution(const int width, const int height)
@@ -334,19 +337,29 @@ void CRenderSession::DoInteractiveRender()
 
    PrepareRenderView();
 
+   // Get rid of any previous renders tiles that have not yet been displayed.
+   InitializeDisplayUpdateQueue();
+
    // Start the render thread.
    m_render_thread = AiThreadCreate(CRenderSession::RenderThread,
                                     &m_renderOptions,
                                     AI_PRIORITY_LOW);
 
-   // Not sure I like this call here, but it guarantees the queue
-   // is clear before the process is called.
-   ClearDisplayUpdateQueue();
    // This returns when the render is done or if someone
    // has hit escape.
    ProcessDisplayUpdateQueueWithInterupt(comp);
 
+   // Wait for the thread to clear.
+   if (m_render_thread != NULL)
+   {
+      AiThreadWait(m_render_thread);
+      AiThreadClose(m_render_thread);
+      m_render_thread = NULL;		// Until this is handled by AiThreadClose? Had issues where it tried to close an already closed thread
+   }
+
    comp.endComputation();
+
+   ClearDisplayUpdateQueue();
 }
 
 
@@ -556,11 +569,10 @@ void CRenderSession::DoIPRRender()
 
    if (!m_paused_ipr)
    {
-      assert(AiUniverseIsActive());
-
-      if (AiRendering()) InterruptRender();
-
-      PrepareRenderView(true); // Install callbacks.
+      // Get rid of any previous renders tiles that have not yet been displayed.
+      InitializeDisplayUpdateQueue();
+      // Install callbacks.
+      PrepareRenderView(true);
 
       // Start the render thread.
       m_render_thread = AiThreadCreate(CRenderSession::RenderThread,
@@ -572,6 +584,7 @@ void CRenderSession::DoIPRRender()
 
 void CRenderSession::FinishedIPRTuning()
 {
+   InterruptRender();
    ClearIdleRenderViewCallback();
 }
 
@@ -588,6 +601,7 @@ void CRenderSession::UnPauseIPR()
 {
    assert(AiUniverseIsActive());
 
+   InterruptRender();
    m_paused_ipr = false;
    CMayaScene::UpdateIPR();
    DoIPRRender();
@@ -671,6 +685,8 @@ void CRenderSession::DoSwatchRender(const int resolution)
    AiNodeSetInt(options, "yres", resolution);
    AiNodeSetInt(options, "bucket_size", resolution/4);
 
+   // Get rid of any previous renders tiles that have not yet been displayed.
+   InitializeDisplayUpdateQueue();
    // Start the render thread.
    m_render_thread = AiThreadCreate(CRenderSession::RenderThread,
                                     &m_renderOptions,
@@ -687,10 +703,18 @@ bool CRenderSession::GetSwatchImage(MImage & image)
       return false;
    }
    
-   // Wait for the swatch to finish.
-   AiThreadWait(m_render_thread);
+   // Wait for the thread to clear.
+   if (m_render_thread != NULL)
+   {
+      AiThreadWait(m_render_thread);
+      AiThreadClose(m_render_thread);
+      m_render_thread = NULL;		// Until this is handled by AiThreadClose? Had issues where it tried to close an already closed thread
+   }
 
    // Store the image in the passed in MImage reference.
-   return DisplayUpdateQueueToMImage(image);
+   bool success =  DisplayUpdateQueueToMImage(image);
+   ClearDisplayUpdateQueue();
+
+   return success;
 }
 

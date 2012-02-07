@@ -245,8 +245,8 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
             }
          }
 
-         CMayaScene::End();
          CMayaScene::ExecuteScript(renderGlobals.postRenderMel);
+         CMayaScene::End();
       }
    }
 
@@ -278,9 +278,9 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       // Set the render session camera.
       renderSession->SetCamera(camera);
       renderSession->DoInteractiveRender(); // Start the render.
-      CMayaScene::End(); // Clean up.
 
       CMayaScene::ExecuteScript(renderGlobals.postRenderMel);
+      CMayaScene::End(); // Clean up.
    }
 
    return status;

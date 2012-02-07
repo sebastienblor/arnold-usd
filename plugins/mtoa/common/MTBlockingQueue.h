@@ -26,23 +26,28 @@ public:
       AiCritSecClose(&m_accessCritSec);
    }
 
-   void reset()
+   void clear()
    {
       AiCritSecEnter(&m_accessCritSec);
       m_notEmpty.unset();
       m_notFull.set();
       while (!m_queue.empty())
+      {
+         m_queue.front().unlock();
          m_queue.pop();
+      }
       AiCritSecLeave(&m_accessCritSec);
    }
 
-   bool push(const T& data)
+   bool push(T& data)
    {
       AiCritSecEnter(&m_accessCritSec);
       bool result = false;
       if (!isFull())
       {
+         data.lock();
          m_queue.push(data);
+         m_queue.front().unlock();
          result = true;
       }
       AiCritSecLeave(&m_accessCritSec);
@@ -61,8 +66,10 @@ public:
       bool result = false;
       if (!isEmpty())
       {
+         m_queue.front().lock();
          data = m_queue.front();
          m_queue.pop();
+         data.unlock();
          result = true;
       }
       AiCritSecLeave(&m_accessCritSec);
@@ -99,6 +106,7 @@ public:
    {
       return m_queue.size();
    }
+
    
 protected:
 

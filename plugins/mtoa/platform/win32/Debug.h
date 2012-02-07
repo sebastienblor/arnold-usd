@@ -11,7 +11,7 @@
 // Use this at any point in code
 // to dump memory leaks info into debugger output window
 #ifndef DEBUG_MEMORY
-#define DEBUG_MEMORY _CrtDumpMemoryLeaks();
+#define DEBUG_MEMORY _CrtDumpMemoryLeaks()
 #endif // DEBUG_MEMORY
 #else
 #ifndef DEBUG_MEMORY

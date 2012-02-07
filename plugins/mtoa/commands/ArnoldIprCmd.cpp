@@ -98,24 +98,23 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
 
    else if (mode == "refresh")
    {
-      // Close down Arnold, clearing out the old data.
-      CArnoldSession* arnoldSession = CMayaScene::GetArnoldSession();
-      CRenderSession* renderSession = CMayaScene::GetRenderSession();
-
       // FIXME: why do all this resetting? shouldn't the camera and resolution still exist on the previous sessions?
 
       // We save and restore the res instead of using the translated one because
       // the translated value is from the render globals. We may have been
       // passed in a different value to start with.
-      const int width = renderSession->RenderOptions()->width();
-      const int height = renderSession->RenderOptions()->height();
+      const int width = CMayaScene::GetRenderSession()->RenderOptions()->width();
+      const int height = CMayaScene::GetRenderSession()->RenderOptions()->height();
       // Same deal for the camera.
-      MDagPath camera = renderSession->GetCamera();
+      MDagPath camera = CMayaScene::GetRenderSession()->GetCamera();
       AiMsgDebug ("[mtoa] IPR refresh using last rendered camera '%s'", camera.partialPathName().asChar());
 
       // End and restart a new render session re-using saved resolution and camera
       CMayaScene::End();
       CMayaScene::Begin(MTOA_SESSION_IPR);
+
+      CArnoldSession* arnoldSession = CMayaScene::GetArnoldSession();
+      CRenderSession* renderSession = CMayaScene::GetRenderSession();
 
       arnoldSession->SetExportCamera(camera);
       if (!renderGlobals.renderAll)
@@ -170,8 +169,6 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
          // Set the render session camera.
          renderSession->SetCamera(camera);
       }
-
-
       // Start off the render.
       renderSession->DoIPRRender();
    }
@@ -179,7 +176,6 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
    {
       CMayaScene::GetRenderSession()->PauseIPR();
    }
-
    else if (mode == "unpause")
    {
       if (!CMayaScene::GetRenderSession()->IsActive())
@@ -187,11 +183,9 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
          MGlobal::displayError("Error starting Arnold IPR");
          return MS::kFailure;
       }
-
       // Start off the render.
       CMayaScene::GetRenderSession()->UnPauseIPR();
    }
-
    else if ((mode == "finishedIPR"))
    {
       // We might be rendering again by the time this is called.
@@ -228,7 +222,8 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
       rvInfo += "\") " + panelName[0];
 
       MGlobal::executeCommandOnIdle(rvInfo, false);
+      // CMayaScene::End();
    }
-
+   
    return status;
 }

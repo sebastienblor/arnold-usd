@@ -1,4 +1,4 @@
-
+#include "platform/Platform.h"
 #include "common/MTBlockingQueue.h"
 
 #include "render/RenderSession.h"
@@ -12,6 +12,7 @@
 #include <ai_universe.h>
 
 #include <maya/MComputation.h>
+#include <maya/MAtomic.h>
 #include <maya/MRenderView.h>
 #include <maya/MGlobal.h>
 #include <maya/MImage.h>
@@ -49,21 +50,58 @@ enum EDisplayUpdateMessageType
    MSG_RENDER_DONE
 };
 
+// Do not use copy constructor and assignment operator outside
+// of a critical section
+// (basically do not use them, CMTBlockingQueue uses them)
 struct CDisplayUpdateMessage
 {
+
    EDisplayUpdateMessageType msgType;
    AtBBox2                   bucketRect;
-   RV_PIXEL*                 pixels;      ///< These will be in the range of 0-255, not 0-1.
+   RV_PIXEL*                 pixels;
+
    CDisplayUpdateMessage(EDisplayUpdateMessageType msg = MSG_BUCKET_PREPARE,
                            int minx = 0, int miny = 0, int maxx = 0, int maxy = 0,
                            RV_PIXEL* px = NULL)
-   : msgType(msg), pixels(px)
+      : msgType(msg), pixels(px)
    {
+      m_lock          = false;
       bucketRect.minx = minx;
       bucketRect.miny = miny;
       bucketRect.maxx = maxx;
       bucketRect.maxy = maxy;
    }
+   CDisplayUpdateMessage(const CDisplayUpdateMessage &other)
+   {
+      msgType         = other.msgType;
+      bucketRect.minx = other.bucketRect.minx;
+      bucketRect.miny = other.bucketRect.miny;
+      bucketRect.maxx = other.bucketRect.maxx;
+      bucketRect.maxy = other.bucketRect.maxy;
+      pixels          = other.pixels;
+      m_lock          = other.m_lock;
+   }
+   ~CDisplayUpdateMessage()
+   {
+      if (!m_lock && pixels != NULL) delete [] pixels;
+   }
+   void operator=(const CDisplayUpdateMessage &other)
+   {
+      msgType         = other.msgType;
+      bucketRect.minx = other.bucketRect.minx;
+      bucketRect.miny = other.bucketRect.miny;
+      bucketRect.maxx = other.bucketRect.maxx;
+      bucketRect.maxy = other.bucketRect.maxy;
+      pixels          = other.pixels;
+      m_lock          = other.m_lock;
+   }
+   inline void lock()   { m_lock = true; }
+   inline void unlock() { m_lock = false; }
+
+private:
+
+   bool m_lock;
+   
 };
 
 static CMTBlockingQueue<CDisplayUpdateMessage> s_displayUpdateQueue;
@@ -204,7 +242,6 @@ driver_write_bucket
    }
 
    CDisplayUpdateMessage msg(MSG_BUCKET_UPDATE, minx, miny, maxx, maxy, pixels);
-
    s_displayUpdateQueue.push(msg);
 }
 
@@ -230,25 +267,25 @@ node_finish
 /// \name Render View and Queue processing.
 /// \{
 
-void UpdateBucket(const AtBBox2& bucketRect, RV_PIXEL* pixels, const bool refresh)
+void UpdateBucket(const CDisplayUpdateMessage & msg, const bool refresh)
 {
    // Flip vertically
-   const int miny = s_outputDriverData.imageHeight - bucketRect.maxy - 1;
-   const int maxy = s_outputDriverData.imageHeight - bucketRect.miny - 1;
+   const int miny = s_outputDriverData.imageHeight - msg.bucketRect.maxy - 1;
+   const int maxy = s_outputDriverData.imageHeight - msg.bucketRect.miny - 1;
 
-   MRenderView::updatePixels(bucketRect.minx, bucketRect.maxx, miny, maxy, pixels);
+   MRenderView::updatePixels(msg.bucketRect.minx, msg.bucketRect.maxx, miny, maxy, msg.pixels);
    if (refresh)
    {
-      MRenderView::refresh(bucketRect.minx, bucketRect.maxx, miny, maxy);
+      MRenderView::refresh(msg.bucketRect.minx, msg.bucketRect.maxx, miny, maxy);
    }
    else
    {
       // Expand the bounding box for the render view refresh in RefreshRenderViewBBox().
-      if (bucketRect.minx < s_outputDriverData.refresh_bbox.minx)
-         s_outputDriverData.refresh_bbox.minx = bucketRect.minx;
+      if (msg.bucketRect.minx < s_outputDriverData.refresh_bbox.minx)
+         s_outputDriverData.refresh_bbox.minx = msg.bucketRect.minx;
       
-      if (bucketRect.maxx > s_outputDriverData.refresh_bbox.maxx)
-         s_outputDriverData.refresh_bbox.maxx = bucketRect.maxx;
+      if (msg.bucketRect.maxx > s_outputDriverData.refresh_bbox.maxx)
+         s_outputDriverData.refresh_bbox.maxx = msg.bucketRect.maxx;
       
       if (miny < s_outputDriverData.refresh_bbox.miny)
          s_outputDriverData.refresh_bbox.miny = miny;
@@ -256,8 +293,6 @@ void UpdateBucket(const AtBBox2& bucketRect, RV_PIXEL* pixels, const bool refres
       if (maxy > s_outputDriverData.refresh_bbox.maxy)
          s_outputDriverData.refresh_bbox.maxy = maxy;
    }
-
-   delete[] pixels;
 }
 
 void RefreshRenderViewBBox()
@@ -271,21 +306,21 @@ void RefreshRenderViewBBox()
 // Please note: this function flips the Y as the resulting
 // image is for use with MImage.
 void CopyBucketToBuffer(float * to_pixels,
-                         const CDisplayUpdateMessage & bucket)
+                        const CDisplayUpdateMessage & msg)
 {
-   const int bucket_size_x = bucket.bucketRect.maxx - bucket.bucketRect.minx + 1;
-   const int bucket_size_y = bucket.bucketRect.maxy - bucket.bucketRect.miny + 1;
+   const int bucket_size_x = msg.bucketRect.maxx - msg.bucketRect.minx + 1;
+   const int bucket_size_y = msg.bucketRect.maxy - msg.bucketRect.miny + 1;
 
-   RV_PIXEL * from = bucket.pixels;
+   RV_PIXEL * from = msg.pixels;
    const char num_channels(4);
    for(int y(0); y < bucket_size_y; ++y)
    {
       // Invert Y.
-      const int oy = (bucket_size_y - y) + bucket.bucketRect.miny - 1;
+      const int oy = (bucket_size_y - y) + msg.bucketRect.miny - 1;
       for(int x(0); x < bucket_size_x; ++x)
       {
          // Offset into the buffer.
-         const int ox = (x + bucket.bucketRect.minx);
+         const int ox = (x + msg.bucketRect.minx);
          const int to_idx = (oy * s_outputDriverData.imageWidth + ox) * num_channels;
          to_pixels[to_idx+0]= from->r;
          to_pixels[to_idx+1]= from->g;
@@ -294,8 +329,6 @@ void CopyBucketToBuffer(float * to_pixels,
          ++from;
       }
    }
-
-   delete[] bucket.pixels;
 }
 
 // Create an MImage from the buffer/queue rendered from Arnold.
@@ -308,7 +341,7 @@ bool DisplayUpdateQueueToMImage(MImage & image)
                 MImage::kFloat);                // Has to be for swatches it seems.
 
    CDisplayUpdateMessage msg;
-   
+
    while(!s_displayUpdateQueue.isEmpty())
    {
       if (s_displayUpdateQueue.pop(msg))
@@ -364,7 +397,7 @@ void FinishedWithDisplayUpdateQueue()
 
 void ClearDisplayUpdateQueue()
 {
-   s_displayUpdateQueue.reset();
+   s_displayUpdateQueue.clear();
    s_finishedRendering = false;
 }
 
@@ -388,7 +421,7 @@ bool ProcessUpdateMessage(const bool refresh)
             // TODO: Implement this...
             break;
          case MSG_BUCKET_UPDATE:
-            UpdateBucket(msg.bucketRect, msg.pixels, refresh);
+            UpdateBucket(msg, refresh);
             break;
          case MSG_IMAGE_COMPLETE:
             // Received "end-of-image" message.
