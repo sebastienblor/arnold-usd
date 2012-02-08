@@ -8,6 +8,7 @@
 #include "commands/ArnoldIprCmd.h"
 #include "commands/ArnoldPluginCmd.h"
 
+#include "nodes/TxTextureFile.h"
 #include "nodes/ShaderUtils.h"
 #include "nodes/ArnoldAOVNode.h"
 #include "nodes/MayaNodeIDs.h"
@@ -442,6 +443,28 @@ DLLEXPORT MStatus initializePlugin(MObject object)
       return MStatus::kFailure;
    }
    
+   // Register image formats
+   MStringArray extensions;
+   extensions.append("tex");
+   extensions.append("tx");
+   plugin.registerImageFile(CTxTextureFile::fileName,
+                           CTxTextureFile::creator, 
+                           extensions);
+   CHECK_MSTATUS(status);
+   if (MStatus::kSuccess == status)
+   {
+      AiMsgInfo("Successfully registered tx texture file");
+      MGlobal::displayInfo("Successfully registered tx texture file");
+   }
+   else
+   {
+      AiMsgError("Failed to register tx texture file");
+      MGlobal::displayError("Failed to register tx texture file");
+      ArnoldUniverseEnd();
+      return MStatus::kFailure;
+   }
+   
+   
    // Swatch renderer
    status = MSwatchRenderRegister::registerSwatchRender(ARNOLD_SWATCH, CRenderSwatchGenerator::creator);
    CHECK_MSTATUS(status);
@@ -693,6 +716,22 @@ DLLEXPORT MStatus uninitializePlugin(MObject object)
       AiMsgError("Failed to deregister Arnold swatch renderer");
       MGlobal::displayError("Failed to deregister Arnold swatch renderer");
    }
+   
+   // Deregister image formats
+   status = plugin.deregisterImageFile(CTxTextureFile::fileName);
+   CHECK_MSTATUS(status);
+   if (MStatus::kSuccess == status)
+   {
+      AiMsgInfo("Successfully deregistered tx texture file");
+      MGlobal::displayInfo("Successfully deregistered tx texture file");
+   }
+   else
+   {
+      returnStatus = MStatus::kFailure;
+      AiMsgError("Failed to deregister tx texture file");
+      MGlobal::displayError("Failed to deregister tx texture file");
+   }
+   
    // ASS file translator
    status = plugin.deregisterFileTranslator(CArnoldAssTranslator::fileTypeExport);
    CHECK_MSTATUS(status);
