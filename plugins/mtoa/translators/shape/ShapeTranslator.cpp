@@ -21,26 +21,7 @@ void CShapeTranslator::ProcessRenderFlags(AtNode* node)
 
    // Sub-Surface Scattering
    plug = FindMayaObjectPlug("aiSssSampleDistribution");
-   if (!plug.isNull())
-   {
-      int m_enum = plug.asInt();
-      switch (m_enum)
-      {
-      case 0:
-         AiNodeSetStr(node, "sss_sample_distribution", "blue_noise");
-         break;
-      case 1:
-         AiNodeSetStr(node, "sss_sample_distribution", "blue_noise_Pref");
-         break;
-      case 2:
-         AiNodeSetStr(node, "sss_sample_distribution", "triangle_midpoint");
-         break;
-
-      case 3:
-         AiNodeSetStr(node, "sss_sample_distribution", "polygon_midpoint");
-         break;
-      }
-   }
+   if (!plug.isNull()) AiNodeSetInt(node, "sss_sample_distribution", plug.asInt());
 
    plug = FindMayaObjectPlug("aiSssSampleSpacing");
    if (!plug.isNull()) AiNodeSetFlt(node, "sss_sample_spacing", plug.asFloat());

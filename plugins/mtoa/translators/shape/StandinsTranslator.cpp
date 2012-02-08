@@ -48,6 +48,33 @@ AtNode* CArnoldStandInsTranslator::CreateArnoldNodes()
    }
 }
 
+/// overrides CShapeTranslator::ProcessRenderFlags to ensure that we don't set aiOpaque unless overrideOpaque is enabled
+void CArnoldStandInsTranslator::ProcessRenderFlags(AtNode* node)
+{
+   AiNodeSetInt(node, "visibility", ComputeVisibility());
+
+   MPlug plug;
+   plug = FindMayaObjectPlug("aiSelfShadows");
+   if (!plug.isNull()) AiNodeSetBool(node, "self_shadows", plug.asBool());
+
+   // for standins, we check
+   plug = FindMayaObjectPlug("overrideOpaque");
+   if (plug.isNull() || plug.asBool())
+   {
+      plug = FindMayaObjectPlug("aiOpaque");
+      if (!plug.isNull()) AiNodeSetBool(node, "opaque", plug.asBool());
+   }
+   plug = FindMayaObjectPlug("receiveShadows");
+   if (!plug.isNull()) AiNodeSetBool(node, "receive_shadows", plug.asBool());
+
+   // Sub-Surface Scattering
+   plug = FindMayaObjectPlug("aiSssSampleDistribution");
+   if (!plug.isNull()) AiNodeSetInt(node, "sss_sample_distribution", plug.asInt());
+
+   plug = FindMayaObjectPlug("aiSssSampleSpacing");
+   if (!plug.isNull()) AiNodeSetFlt(node, "sss_sample_spacing", plug.asFloat());
+
+}
 
 void CArnoldStandInsTranslator::Export(AtNode* anode)
 {

@@ -617,6 +617,14 @@ MStatus CArnoldStandInShape::initialize()
    nAttr.setKeyable(true);
    nAttr.setStorable(true);
    addAttribute(s_boundingBoxMax);
+   
+   // atributes that are used only by translation
+   CAttrData data;
+
+   data.defaultValue.BOOL = false;
+   data.name = "overrideOpaque";
+   data.shortName = "overrideOpaque";
+   s_attributes.MakeInputBoolean(data);
 
    s_attributes.MakeInput("opaque");
    s_attributes.MakeInput("self_shadows");

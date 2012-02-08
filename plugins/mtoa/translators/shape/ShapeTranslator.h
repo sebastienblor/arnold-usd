@@ -20,7 +20,7 @@ public:
       return (m_motion && IsLocalMotionBlurEnabled());
    }
    
-   void ProcessRenderFlags(AtNode* node);
+   virtual void ProcessRenderFlags(AtNode* node);
    void ExportLightLinking(AtNode* polymesh);
    // for initializer callbacks:
    static void MakeCommonAttributes(CBaseAttrHelper& helper);

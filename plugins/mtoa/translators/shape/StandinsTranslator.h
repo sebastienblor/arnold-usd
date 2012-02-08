@@ -11,6 +11,7 @@ public:
       return new CArnoldStandInsTranslator();
    }
    virtual AtNode* CreateArnoldNodes();
+   virtual void ProcessRenderFlags(AtNode* node);
 
    static void NodeInitializer(CAbTranslator context);
    void Export(AtNode* anode);
