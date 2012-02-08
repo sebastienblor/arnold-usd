@@ -73,6 +73,7 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
 #       ui.addControl("enableProcedural")
 #       ui.addControl("dso")
 templates.registerTranslatorUI(MeshTemplate, "mesh", "<built-in>")
+templates.registerTranslatorUI(MeshTemplate, "nurbsSurface", "<built-in>")
 
 class HairSystemTemplate(templates.ShapeTranslatorTemplate):
     def setup(self):
