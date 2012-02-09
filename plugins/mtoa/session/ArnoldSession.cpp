@@ -390,6 +390,9 @@ MStatus CArnoldSession::Begin(const CSessionOptions &options)
 
    status = UpdateLightLinks();
    status = UpdateMotionFrames();
+
+   m_is_active = true;
+
    //ProcessAOVs();
    return status;
 }
@@ -422,6 +425,8 @@ MStatus CArnoldSession::End()
    m_masterInstances.clear();
    // Clear motion frames storage
    m_motion_frames.clear();
+
+   m_is_active = false;
 
    return status;
 }

@@ -55,8 +55,10 @@ public:
    /// Return the instance of the render session.
    static CRenderSession* GetRenderSession();
 
-   inline static const ArnoldSessionMode& GetSessionMode() { return GetArnoldSession()->GetSessionMode(); }
-   inline static bool IsExportingMotion() { return GetArnoldSession()->IsExportingMotion(); }
+   static bool IsActive();
+
+   inline static const ArnoldSessionMode& GetSessionMode();
+   inline static bool IsExportingMotion();
 
    static MStatus Begin(ArnoldSessionMode mode);
    static MStatus End();

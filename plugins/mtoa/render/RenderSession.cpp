@@ -220,9 +220,12 @@ MStatus CRenderSession::WriteAsstoc(const MString& filename, const AtBBox& bBox)
 
 void CRenderSession::InterruptRender()
 {
-   if (AiRendering()) AiRenderInterrupt();
+   if (AiRendering())
+   {
+      AiRenderInterrupt();
+   }
 
-   // Stop the Idle update.
+   // Stop the Idle update if there was one
    ClearIdleRenderViewCallback();
 
    // Wait for the thread to clear.
@@ -233,8 +236,10 @@ void CRenderSession::InterruptRender()
       m_render_thread = NULL;	
    }
 
-   // Clear the display queue
+   // Clear the display queue if any
    ClearDisplayUpdateQueue();
+   // Stop updating Render view if it was an interactive render
+   MRenderView::endRender();
 }
 
 void CRenderSession::SetResolution(const int width, const int height)
@@ -257,6 +262,11 @@ void CRenderSession::SetProgressive(const bool is_progressive)
 MDagPath CRenderSession::GetCamera() const
 {
    return m_renderOptions.GetCamera();
+}
+
+MString CRenderSession::GetRenderViewPanelName() const
+{
+   return m_renderOptions.GetRenderViewPanelName();
 }
 
 /// Export the passed camera node and set options.camera
@@ -327,6 +337,11 @@ void CRenderSession::SetCamera(MDagPath cameraNode)
    }*/
 }
 
+void CRenderSession::SetRenderViewPanelName(const MString &panel)
+{
+   m_renderOptions.SetRenderViewPanelName(panel);
+}
+
 void CRenderSession::DoInteractiveRender()
 {
    assert(AiUniverseIsActive());
@@ -339,8 +354,9 @@ void CRenderSession::DoInteractiveRender()
 
    PrepareRenderView();
 
-   // Get rid of any previous renders tiles that have not yet been displayed.
-   InitializeDisplayUpdateQueue();
+   // Get rid of any previous renders tiles that have not yet been displayed,
+   // and prepare the display update queue for rendered camera in render view panel
+   InitializeDisplayUpdateQueue(RenderOptions()->GetCameraName(), RenderOptions()->GetRenderViewPanelName());
 
    // Start the render thread.
    m_render_thread = AiThreadCreate(CRenderSession::RenderThread,
@@ -360,8 +376,8 @@ void CRenderSession::DoInteractiveRender()
    }
 
    comp.endComputation();
-
    ClearDisplayUpdateQueue();
+   MRenderView::endRender();
 
    // DEBUG_MEMORY;
 }
@@ -562,7 +578,8 @@ MStatus CRenderSession::PrepareRenderView(bool addIdleRenderViewUpdate)
    }
 
    ClearIdleRenderViewCallback();
-   if (addIdleRenderViewUpdate) AddIdleRenderViewCallback();
+   if (addIdleRenderViewUpdate)
+      AddIdleRenderViewCallback();
 
    return status;
 }
@@ -576,9 +593,9 @@ void CRenderSession::DoIPRRender()
       // Interrupt existing render if any
       InterruptRender();
 
-      // Get rid of any previous renders tiles that have not yet been displayed.
-      InitializeDisplayUpdateQueue();
-
+      // Get rid of any previous renders tiles that have not yet been displayed,
+      // and prepare the display update queue for rendered camera in render view panel
+      InitializeDisplayUpdateQueue(RenderOptions()->GetCameraName(), RenderOptions()->GetRenderViewPanelName());
       // DEBUG_MEMORY;
 
       // Install callbacks.
@@ -588,14 +605,15 @@ void CRenderSession::DoIPRRender()
       m_render_thread = AiThreadCreate(CRenderSession::RenderThread,
                                        &m_renderOptions,
                                        AI_PRIORITY_LOW);
-   }
 
+   }
 }
 
 void CRenderSession::FinishedIPRTuning()
 {
-   InterruptRender();
    ClearIdleRenderViewCallback();
+   ClearDisplayUpdateQueue();
+   MRenderView::endRender();
    // DEBUG_MEMORY;
 }
 
@@ -603,8 +621,10 @@ void CRenderSession::PauseIPR()
 {
    assert(AiUniverseIsActive());
 
-   InterruptRender();
    ClearIdleRenderViewCallback();
+   ClearDisplayUpdateQueue();
+   MRenderView::endRender();
+
    m_paused_ipr = true;
 }
 
@@ -612,7 +632,6 @@ void CRenderSession::UnPauseIPR()
 {
    assert(AiUniverseIsActive());
 
-   InterruptRender();
    m_paused_ipr = false;
    CMayaScene::UpdateIPR();
    DoIPRRender();
@@ -649,7 +668,6 @@ void CRenderSession::ClearIdleRenderViewCallback()
    // Don't clear the callback if we're in the middle of a render.
    if (m_idle_cb != 0 || m_timer_cb != 0)
    {
-      MRenderView::endRender();
       if (m_idle_cb != 0)
       {
          MMessage::removeCallback(m_idle_cb);
@@ -699,6 +717,7 @@ void CRenderSession::DoSwatchRender(const int resolution)
    // Close existing render if any
    InterruptRender();
    // Get rid of any previous renders tiles that have not yet been displayed.
+   // We have no render view to display info to
    InitializeDisplayUpdateQueue();
    // Start the render thread.
    m_render_thread = AiThreadCreate(CRenderSession::RenderThread,
@@ -719,6 +738,13 @@ bool CRenderSession::GetSwatchImage(MImage & image)
    // Store the image in the passed in MImage reference.
    bool success =  DisplayUpdateQueueToMImage(image);
 
+   // Wait for the thread to clear.
+   if (m_render_thread != NULL)
+   {
+      AiThreadWait(m_render_thread);
+      AiThreadClose(m_render_thread);
+      m_render_thread = NULL;		// Until this is handled by AiThreadClose? Had issues where it tried to close an already closed thread
+   }
    ClearDisplayUpdateQueue();
 
    return success;

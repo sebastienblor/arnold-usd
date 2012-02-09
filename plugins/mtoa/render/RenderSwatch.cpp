@@ -527,7 +527,7 @@ bool CRenderSwatchGenerator::doIteration()
    {
       // Arnold is in IPR mode, no point wasting our time with a swatch.
       // Return true so were not called again.
-      if ( CMayaScene::GetArnoldSession()->GetSessionMode() == MTOA_SESSION_IPR)
+      if ( CMayaScene::GetSessionMode() == MTOA_SESSION_IPR)
       {
          return true;
       }

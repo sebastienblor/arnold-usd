@@ -22,8 +22,6 @@ MSyntax CArnoldIprCmd::newSyntax()
    syntax.addFlag("w", "width", MSyntax::kUnsigned);
    syntax.addFlag("h", "height", MSyntax::kUnsigned);
    syntax.addFlag("m", "mode", MSyntax::kString);
-   syntax.addFlag("et", "elapsedTime", MSyntax::kString);
-   syntax.addFlag("si", "samplingInfo", MSyntax::kString);
 
    return syntax;
 }
@@ -41,7 +39,7 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
    // "-mode" flag is not set, so we simply return a bool with the rendering status
    if (!args.isFlagSet("mode"))
    {
-      setResult(CMayaScene::GetRenderSession()->IsActive());
+      setResult(CMayaScene::IsActive());
       return MS::kSuccess;
    }
 
@@ -83,6 +81,9 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
       // Set resolution and camera as passed in.
       CMayaScene::GetRenderSession()->SetResolution(width, height);
       CMayaScene::GetRenderSession()->SetCamera(camera);
+      MStringArray allPanelNames;
+      MGlobal::executeCommand("getPanel -scriptType renderWindowPanel", allPanelNames);
+      if (allPanelNames.length()>0) CMayaScene::GetRenderSession()->SetRenderViewPanelName(allPanelNames[0]);
 
       // No need to call render as Maya sends us "unpause" next.
 
@@ -90,6 +91,12 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
 
    else if (mode == "stop")
    {
+      if (!CMayaScene::IsActive())
+      {
+         MGlobal::displayError("Error stopping Arnold IPR, Arnold Render session is not active.");
+         return MS::kFailure;
+      }
+
       CMayaScene::End();
 
       CMayaScene::ExecuteScript(renderGlobals.postRenderMel);
@@ -98,6 +105,11 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
 
    else if (mode == "refresh")
    {
+      if (!CMayaScene::IsActive())
+      {
+         MGlobal::displayError("Error refreshing Arnold IPR, Arnold Render session is not active.");
+         return MS::kFailure;
+      }
       // FIXME: why do all this resetting? shouldn't the camera and resolution still exist on the previous sessions?
 
       // We save and restore the res instead of using the translated one because
@@ -107,7 +119,9 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
       const int height = CMayaScene::GetRenderSession()->RenderOptions()->height();
       // Same deal for the camera.
       MDagPath camera = CMayaScene::GetRenderSession()->GetCamera();
-      AiMsgDebug ("[mtoa] IPR refresh using last rendered camera '%s'", camera.partialPathName().asChar());
+      MString panel = CMayaScene::GetRenderSession()->GetRenderViewPanelName();
+      AiMsgDebug ("[mtoa] IPR refresh using last rendered camera '%s' in panel '%s'",
+                  camera.partialPathName().asChar(), panel.asChar());
 
       // End and restart a new render session re-using saved resolution and camera
       CMayaScene::End();
@@ -130,6 +144,7 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
       // Set resolution and camera as passed in.
       renderSession->SetResolution(width, height);
       renderSession->SetCamera(camera);
+      renderSession->SetRenderViewPanelName(panel);
 
       // Start off the render.
       renderSession->DoIPRRender();
@@ -137,14 +152,14 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
 
    else if ((mode == "region") || (mode == "render"))
    {
-      CRenderSession* renderSession = CMayaScene::GetRenderSession();
-      renderSession->InterruptRender();
-
-      if (!renderSession->IsActive())
+      if (!CMayaScene::IsActive())
       {
-         MGlobal::displayError("Error rendering Arnold IPR, Arnold is not active.");
+         MGlobal::displayError("Error rendering Arnold IPR, Arnold Render session is not active.");
          return MS::kFailure;
       }
+
+      CRenderSession* renderSession = CMayaScene::GetRenderSession();
+      renderSession->InterruptRender();
 
       if (mode == "region")
       {
@@ -168,19 +183,27 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
          status = sel.getDagPath(0, camera);
          // Set the render session camera.
          renderSession->SetCamera(camera);
+         MStringArray allPanelNames;
+         MGlobal::executeCommand("getPanel -scriptType renderWindowPanel", allPanelNames);
+         if (allPanelNames.length() > 0) renderSession->SetRenderViewPanelName(allPanelNames[0]);
       }
       // Start off the render.
       renderSession->DoIPRRender();
    }
    else if ((mode == "pause"))
    {
+      if (!CMayaScene::IsActive())
+      {
+         MGlobal::displayError("Error pausing Arnold IPR, Arnold Render session is not active.");
+         return MS::kFailure;
+      }
       CMayaScene::GetRenderSession()->PauseIPR();
    }
    else if (mode == "unpause")
    {
-      if (!CMayaScene::GetRenderSession()->IsActive())
+      if (!CMayaScene::IsActive())
       {
-         MGlobal::displayError("Error starting Arnold IPR");
+         MGlobal::displayError("Error unpausing Arnold IPR, Arnold Render session is not active.");
          return MS::kFailure;
       }
       // Start off the render.
@@ -188,41 +211,18 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
    }
    else if ((mode == "finishedIPR"))
    {
+      if (!CMayaScene::IsActive())
+      {
+         MGlobal::displayError("Error finishing Arnold IPR, Arnold Render session is not active.");
+         return MS::kFailure;
+      }
+
       // We might be rendering again by the time this is called.
       if (AiRendering()) return status;
          
       CMayaScene::GetRenderSession()->FinishedIPRTuning();
 
-      // Format a bit of info for the renderview.
-      const AtUInt64 mem_used(CMayaScene::GetRenderSession()->GetUsedMemory());
-
-      MStringArray panelName;
-      MGlobal::executeCommand("getPanel -scriptType renderWindowPanel", panelName);
-      MString rvInfo("renderWindowEditor -edit -pcaption (\"    (Arnold Renderer)\\n");
-      rvInfo += "Memory: ";
-      rvInfo += (unsigned int)mem_used;
-      rvInfo += "Mb";
-
-      if (args.isFlagSet("samplingInfo"))
-      {
-         const MString samplingInfo(args.flagArgumentString("samplingInfo", 0));
-         rvInfo += "    Sampling: ";
-         rvInfo += samplingInfo;
-      }
-
-      if (args.isFlagSet("elapsedTime"))
-      {
-         const MString elapsedTime(args.flagArgumentString("elapsedTime", 0));
-         rvInfo += "    Render Time: ";
-         rvInfo += elapsedTime;
-      }
-
-      rvInfo += "    Camera: ";
-      rvInfo += CMayaScene::GetRenderSession()->RenderOptions()->GetCameraName();
-      rvInfo += "\") " + panelName[0];
-
-      MGlobal::executeCommandOnIdle(rvInfo, false);
-      // CMayaScene::End();
+      CMayaScene::End();
    }
    
    return status;

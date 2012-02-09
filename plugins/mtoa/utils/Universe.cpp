@@ -68,7 +68,10 @@ void ArnoldUniverseEnd()
 {
    if (AiUniverseIsActive())
    {
-      AiRenderAbort();
+      if (AiRendering())
+         AiRenderInterrupt();
+      if (AiRendering())
+         AiRenderAbort();
       AiEnd();
       // MtoaSetupLogging();
       // AiMsgResetCallback();

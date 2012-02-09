@@ -76,7 +76,8 @@ struct CDisplayUpdateMessage
 static CMTBlockingQueue<CDisplayUpdateMessage> s_displayUpdateQueue;
 static COutputDriverData                       s_outputDriverData;
 static bool                                    s_finishedRendering;
-
+static MString                                 s_camera_name;
+static MString                                 s_panel_name;
 
 /// \name Arnold Output Driver.
 /// \{
@@ -236,7 +237,7 @@ node_finish
 /// \name Render View and Queue processing.
 /// \{
 
-void UpdateBucket(const CDisplayUpdateMessage & msg, const bool refresh)
+void UpdateBucket(CDisplayUpdateMessage & msg, const bool refresh)
 {
    // Flip vertically
    const int miny = s_outputDriverData.imageHeight - msg.bucketRect.maxy - 1;
@@ -263,7 +264,11 @@ void UpdateBucket(const CDisplayUpdateMessage & msg, const bool refresh)
          s_outputDriverData.refresh_bbox.maxy = maxy;
    }
 
-   if (msg.pixels != NULL) delete[] msg.pixels;
+   if (msg.pixels != NULL)
+   {
+      delete[] msg.pixels;
+      msg.pixels = NULL;
+   }
 }
 
 void RefreshRenderViewBBox()
@@ -277,7 +282,7 @@ void RefreshRenderViewBBox()
 // Please note: this function flips the Y as the resulting
 // image is for use with MImage.
 void CopyBucketToBuffer(float * to_pixels,
-                        const CDisplayUpdateMessage & msg)
+                        CDisplayUpdateMessage & msg)
 {
    const int bucket_size_x = msg.bucketRect.maxx - msg.bucketRect.minx + 1;
    const int bucket_size_y = msg.bucketRect.maxy - msg.bucketRect.miny + 1;
@@ -300,7 +305,11 @@ void CopyBucketToBuffer(float * to_pixels,
          ++from;
       }
    }
-   if (msg.pixels != NULL) delete[] msg.pixels;
+   if (msg.pixels != NULL)
+   {
+      delete[] msg.pixels;
+      msg.pixels = NULL;
+   }
 }
 
 // Create an MImage from the buffer/queue rendered from Arnold.
@@ -335,18 +344,18 @@ bool DisplayUpdateQueueToMImage(MImage & image)
    return false;
 }
 
-void InitializeDisplayUpdateQueue()
+void InitializeDisplayUpdateQueue(const MString camera, const MString panel)
 {
    // Clears the display update queue, in case we had aborted a previous render.
    ClearDisplayUpdateQueue();
    s_start_time = time(NULL);
    s_finishedRendering = false;
+   s_camera_name = camera;
+   s_panel_name = panel;
 }
 
 void FinishedWithDisplayUpdateQueue()
 {
-   s_finishedRendering = false;
-
    // Get some data from Arnold before it gets deleted with the universe.
    const int AA_Samples(AiNodeGetInt(AiUniverseGetOptions(), "AA_samples"));
    const int GI_diffuse_samples(AiNodeGetInt(AiUniverseGetOptions(), "GI_diffuse_samples"));
@@ -355,16 +364,44 @@ void FinishedWithDisplayUpdateQueue()
 
    // Calculate the time taken.
    const time_t elapsed = time(NULL) - s_start_time;
-   char command_str[256];
-   sprintf(command_str,
-            "arnoldIpr -mode finishedIPR -elapsedTime \"%ld:%02ld\" -samplingInfo \"[%d/%d/%d/%d]\" ;",
-            elapsed / 60,
-            elapsed % 60,
-            AA_Samples,
-            GI_diffuse_samples,
-            GI_glossy_samples,
-            sss_sample_factor);
-   MGlobal::executeCommandOnIdle(command_str, false);
+   // And ram used
+   const AtUInt64 mem_used = AiMsgUtilGetUsedMemory() / 1024 / 1024;
+
+   // Format a bit of info for the renderview.
+   if (s_panel_name != "")
+   {
+      MString rvInfo("renderWindowEditor -edit -pcaption (\"    (Arnold Renderer)\\n");
+      rvInfo += "Memory: ";
+      rvInfo += (unsigned int)mem_used;
+      rvInfo += "Mb";
+
+      rvInfo += "    Sampling: ";
+      rvInfo += "[";
+      rvInfo += AA_Samples;
+      rvInfo += "/";
+      rvInfo += GI_diffuse_samples;
+      rvInfo += "/";
+      rvInfo += GI_glossy_samples;
+      rvInfo += "/";
+      rvInfo += sss_sample_factor;
+      rvInfo += "]";
+
+      rvInfo += "    Render Time: ";
+      rvInfo += int(elapsed / 60);
+      rvInfo += ":";
+      rvInfo += int(elapsed % 60);
+
+      if (s_camera_name != "")
+      {
+         rvInfo += "    Camera: ";
+         rvInfo += s_camera_name;
+      }
+
+      rvInfo += "\") " + s_panel_name;
+      MGlobal::executeCommandOnIdle(rvInfo, false);
+   }
+
+   ClearDisplayUpdateQueue();
 }
 
 void ClearDisplayUpdateQueue()
@@ -397,12 +434,12 @@ bool ProcessUpdateMessage(const bool refresh)
             break;
          case MSG_IMAGE_COMPLETE:
             // Received "end-of-image" message.
-            //AiMsgDebug("[mtoa] Got end image");
+            AiMsgDebug("[mtoa] Got end image");
             break;
          case MSG_RENDER_DONE:
             // Recieved "end-of-rendering" message.
-            FinishedWithDisplayUpdateQueue();
-            //AiMsgDebug("[mtoa] Got end render message");
+            AiMsgDebug("[mtoa] Got end render message");
+            FinishedWithDisplayUpdateQueue();           
             return false;
          }
       }
@@ -429,7 +466,11 @@ void ProcessDisplayUpdateQueueWithInterupt(MComputation & comp)
    while(ProcessUpdateMessage(!s_finishedRendering))
    {
       // Break if the user wants out.
-      if (comp.isInterruptRequested()) break;
+      if (comp.isInterruptRequested())
+      {
+         FinishedWithDisplayUpdateQueue();
+         break;
+      }
    }
 }
 /// \}

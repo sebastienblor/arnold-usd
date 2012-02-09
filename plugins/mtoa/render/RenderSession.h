@@ -95,9 +95,16 @@ public:
    void SetResolution(const int width, const int height);
    /// Get the camera used to render
    MDagPath GetCamera() const;
+   /// Get the render view panel name for interactive render
+   MString GetRenderViewPanelName() const;
+
    /// Set the camera to use for render.
    void SetCamera(MDagPath cameraNode);
+   /// Set the render view panel name to render in
+   void SetRenderViewPanelName(const MString &panel);
+   /// Set progressive mode
    void SetProgressive(bool is_progressive);
+   /// Set render region
    void SetRegion(const unsigned int left,const unsigned int right,
                   const unsigned int bottom, const unsigned int top);
 
@@ -110,10 +117,7 @@ public:
    /// this will return true, because the RenderSession is busy. Even
    /// though Arnold is not currently rendering.
    /// \return if we're active.
-   bool IsActive() const
-   {
-      return m_is_active;
-   }
+   inline bool IsActive() const { return m_is_active; }
 
 
 private:
