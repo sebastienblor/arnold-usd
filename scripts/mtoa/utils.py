@@ -92,23 +92,6 @@ def pyToMelProc(pyobj, args=(), returnType=None, procName=None, useName=False, p
     _objectStore[objId] = pyobj
     return d['procname']
 
-def arnoldFixLightFilters():
-
-    lights = cmds.ls(type='light')
-    for light in lights:
-        if cmds.attributeQuery("aiLightFilters", exists=True, node=light):
-                attr = '%s.aiLightFilters'%light
-                if cmds.getAttr(attr, type=True) == 'string':
-                    filters = cmds.getAttr(attr)
-                    tmp = filters.split(':')
-
-                    cmds.deleteAttr(attr)
-                    cmds.addAttr(ln='aiLightFilters', sn='light_filters', nn='Light Filters', at='message', multi=light)
-
-                    for filter in filters:
-                        if cmds.objExists(filter):
-                            cmds.connectAttr('%s.message'%filter, '%s.[%d]'%(attr, i))
-
 # from supportRenderers.mel
 def currentRenderer():
     return cmds.getAttr('defaultRenderGlobals.currentRenderer')
