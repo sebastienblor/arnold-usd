@@ -94,6 +94,24 @@ void CArnoldStandInsTranslator::ExportMotion(AtNode* anode, unsigned int step)
    ExportMatrix(anode, step);
 }
 
+void CArnoldStandInsTranslator::Update(AtNode* anode)
+{
+   const char* nodeType = AiNodeEntryGetName(AiNodeGetNodeEntry(anode));
+   if (strcmp(nodeType, "ginstance") == 0)
+   {
+      ExportInstance(anode, m_masterDag);
+   }
+   else
+   {
+      ExportProcedural(anode, true);
+   }
+}
+
+void CArnoldStandInsTranslator::UpdateMotion(AtNode* anode, unsigned int step)
+{
+   ExportMatrix(anode, step);
+}
+
 // Deprecated : Arnold support procedural instance, but it's not safe.
 //
 AtNode* CArnoldStandInsTranslator::ExportInstance(AtNode *instance, const MDagPath& masterInstance)
