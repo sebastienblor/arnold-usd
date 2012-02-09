@@ -668,6 +668,12 @@ void CRampTranslator::Export(AtNode* shader)
    ProcessParameter(shader, "vWave", AI_TYPE_FLOAT);
    ProcessParameter(shader, "noise", AI_TYPE_FLOAT);
    ProcessParameter(shader, "noiseFreq", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "hueNoise", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "hueNoiseFreq", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "satNoise", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "satNoiseFreq", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "valNoise", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "valNoiseFreq", AI_TYPE_FLOAT);
    ProcessParameter(shader, "colorGain", AI_TYPE_RGB);
    ProcessParameter(shader, "colorOffset", AI_TYPE_RGB);
    ProcessParameter(shader, "defaultColor", AI_TYPE_RGB);

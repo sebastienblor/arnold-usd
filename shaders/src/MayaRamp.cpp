@@ -24,6 +24,12 @@ enum MayaRampParams
    p_noise_freq,
    p_positions,
    p_colors,
+   p_hue_noise,
+   p_sat_noise,
+   p_val_noise,
+   p_hue_noise_freq,
+   p_sat_noise_freq,
+   p_val_noise_freq,
    MAYA_COLOR_BALANCE_ENUM
 };
 
@@ -54,6 +60,41 @@ const char* RampTypeNames[] =
    NULL
 };
 
+static AtRGB hsvNoise(const AtRGB &in, float u, float v, float ha, float hf, float sa, float sf, float va, float vf)
+{
+   AtPoint2 p;
+
+   AtVector hsv = RGBtoHSV(in);
+   hsv.x /= 360.0f;
+
+   if (ha > 0.0f)
+   {
+      p.x = (16 * hf * u + 0.75f);
+      p.y = (16 * hf * v + 0.75f);
+      hsv.x += ha * AiPerlin2(p);
+      hsv.x = Mod(hsv.x, 1.000001f);
+   }
+
+   if (sa > 0.0f)
+   {
+      p.x = (16 * sf * u + 0.75f);
+      p.y = (16 * sf * v + 0.75f);
+      hsv.y += sa * AiPerlin2(p);
+      hsv.y = CLAMP(hsv.y, 0.0f, 1.0f);
+   }
+
+   if (va > 0.0f)
+   {
+      p.x = (16 * vf * u + 0.75f);
+      p.y = (16 * vf * v + 0.75f);
+      hsv.z += va * AiPerlin2(p);
+      hsv.z = CLAMP(hsv.z, 0.0f, 1.0f);
+   }
+
+   hsv.x *= 360.0f;
+   return HSVtoRGB(hsv);
+}
+
 };
 
 node_parameters
@@ -69,6 +110,13 @@ node_parameters
    AiParameterARRAY("position", AiArray(0, 0, AI_TYPE_FLOAT));
 
    AiParameterARRAY("color", AiArray(0, 0, AI_TYPE_RGB));
+   
+   AiParameterFLT("hueNoise", 0.0f);
+   AiParameterFLT("satNoise", 0.0f);
+   AiParameterFLT("valNoise", 0.0f);
+   AiParameterFLT("hueNoiseFreq", 0.5f);
+   AiParameterFLT("satNoiseFreq", 0.5f);
+   AiParameterFLT("valNoiseFreq", 0.5f);
 
    AddMayaColorBalanceParams(params, mds);
 
@@ -99,24 +147,69 @@ node_finish
 shader_evaluate
 {
    AtRGB result = AI_RGB_BLACK;
+   
+   float hNoiseAmp = AiShaderEvalParamFlt(p_hue_noise);
+   float hNoiseFreq = AiShaderEvalParamFlt(p_hue_noise_freq);
+   float sNoiseAmp = AiShaderEvalParamFlt(p_sat_noise);
+   float sNoiseFreq = AiShaderEvalParamFlt(p_sat_noise_freq);
+   float vNoiseAmp = AiShaderEvalParamFlt(p_val_noise);
+   float vNoiseFreq = AiShaderEvalParamFlt(p_val_noise_freq);
+   bool applyHsvNoise = (hNoiseAmp > 0.0f || sNoiseAmp > 0.0f || vNoiseAmp > 0.0f);
+
+   AtPoint2 uv = AiShaderEvalParamPnt2(p_uvCoord);
+   // Will be set to GLOBALS by update if unconnected
+   if (uv.x == UV_GLOBALS) uv.x = sg->u;
+   if (uv.y == UV_GLOBALS) uv.y = sg->v;
+
+   if (!IsValidUV(uv))
+   {
+      // early out
+      MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
+      return;
+   }
+   
+   float u = uv.x;
+   float v = uv.y;
+
+   float uWave = AiShaderEvalParamFlt(p_u_wave);
+   float vWave = AiShaderEvalParamFlt(p_v_wave);
+   float noiseAmp = AiShaderEvalParamFlt(p_noise);
+   float noiseFreq = AiShaderEvalParamFlt(p_noise_freq);
+
+   if (noiseAmp > 0.0f)
+   {
+      AtPoint2 puv;
+      puv.x = u * 16 * noiseFreq + 0.75f;
+      puv.y = v * 16 * noiseFreq + 0.75f;
+      float n = noiseAmp * AiPerlin2(puv);
+      u += n;
+      v += n;
+   }
+
+   float preWaveV = v;
+
+   if (vWave > 0.0f)
+   {
+      v += vWave * static_cast<float>(sin(u * AI_PITIMES2));
+   }
+
+   if (uWave > 0.0f)
+   {
+      u -= uWave * static_cast<float>(sin(preWaveV * AI_PITIMES2));
+   }
+
+   // for hsvNoise, we should use non-wrapped uvs or we'll have discontinuities
+   float nu = u;
+   float nv = v;
+   u = Mod(u, 1.000001f);
+   v = Mod(v, 1.000001f);
+   
    // Read positions and colors
    AtArray* positions = AiShaderEvalParamArray(p_positions);
    AtArray* colors = AiShaderEvalParamArray(p_colors);
 
    if (positions->nelements > 0)
    {
-      AtPoint2 uv;
-      uv = AiShaderEvalParamPnt2(p_uvCoord);
-      // Will be set to GLOBALS by update if unconnected
-      if (uv.x == UV_GLOBALS) uv.x = sg->u;
-      if (uv.y == UV_GLOBALS) uv.y = sg->v;
-
-      if (!IsValidUV(uv))
-      {
-         // early out
-         MayaDefaultColor(sg, node, p_defaultColor, sg->out.RGBA);
-         return;
-      }
       if (positions->nelements == 1)
       {
          // Only one color entry then it's a plain color / texture
@@ -127,39 +220,6 @@ shader_evaluate
          // get array with sorted index
          unsigned int* shuffle = (unsigned int*)AiShaderGlobalsQuickAlloc(sg, positions->nelements * sizeof(unsigned int));
          SortFloatIndexArray(positions, shuffle);
-
-         float u = uv.x;
-         float v = uv.y;
-
-         float uWave = AiShaderEvalParamFlt(p_u_wave);
-         float vWave = AiShaderEvalParamFlt(p_v_wave);
-         float noiseAmp = AiShaderEvalParamFlt(p_noise);
-         float noiseFreq = AiShaderEvalParamFlt(p_noise_freq);
-
-         if (noiseAmp > 0.0f)
-         {
-            AtPoint2 puv;
-            puv.x = u * 16 * noiseFreq;
-            puv.y = v * 16 * noiseFreq;
-            float n = noiseAmp * AiPerlin2(puv);
-            u += n;
-            v += n;
-         }
-
-         float preWaveV = v;
-
-         if (vWave > 0.0f)
-         {
-            v += vWave * static_cast<float>(sin(u * AI_PITIMES2));
-         }
-
-         if (uWave > 0.0f)
-         {
-            u -= uWave * static_cast<float>(sin(preWaveV * AI_PITIMES2));
-         }
-
-         u = Mod(u, 1.000001f);
-         v = Mod(v, 1.000001f);
 
          int type = AiShaderEvalParamInt(p_type);
          RampInterpolationType interp = (RampInterpolationType) AiShaderEvalParamInt(p_interp);
@@ -257,7 +317,15 @@ shader_evaluate
       }
    }
 
-   AiRGBtoRGBA(result, sg->out.RGBA);
+   if (applyHsvNoise)
+   {
+      AiRGBtoRGBA(hsvNoise(result, nu, nv, hNoiseAmp, hNoiseFreq, sNoiseAmp, sNoiseFreq, vNoiseAmp, vNoiseFreq), sg->out.RGBA);
+   }
+   else
+   {
+      AiRGBtoRGBA(result, sg->out.RGBA);
+   }
+
    // Alpha output is always the luminance
    // so translator should always set alphaIsLuminance = true;
    MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA);
