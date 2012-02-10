@@ -57,8 +57,8 @@ public:
 
    static bool IsActive();
 
-   inline static const ArnoldSessionMode& GetSessionMode();
-   inline static bool IsExportingMotion();
+   static const ArnoldSessionMode& GetSessionMode();
+   static bool IsExportingMotion();
 
    static MStatus Begin(ArnoldSessionMode mode);
    static MStatus End();

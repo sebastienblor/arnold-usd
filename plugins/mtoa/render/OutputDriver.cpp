@@ -316,13 +316,13 @@ void CopyBucketToBuffer(float * to_pixels,
 // The resulting image will be flipped, just how Maya likes it.
 bool DisplayUpdateQueueToMImage(MImage & image)
 {
+   image.release();
    image.create(s_outputDriverData.imageWidth,
                 s_outputDriverData.imageHeight,
                 4,                               // RGBA
                 MImage::kFloat);                // Has to be for swatches it seems.
 
    CDisplayUpdateMessage msg;
-
    while(!s_displayUpdateQueue.isEmpty())
    {
       if (s_displayUpdateQueue.pop(msg))
@@ -434,11 +434,11 @@ bool ProcessUpdateMessage(const bool refresh)
             break;
          case MSG_IMAGE_COMPLETE:
             // Received "end-of-image" message.
-            AiMsgDebug("[mtoa] Got end image");
+            // AiMsgDebug("[mtoa] Got end image");
             break;
          case MSG_RENDER_DONE:
             // Recieved "end-of-rendering" message.
-            AiMsgDebug("[mtoa] Got end render message");
+            // AiMsgDebug("[mtoa] Got end render message");
             FinishedWithDisplayUpdateQueue();           
             return false;
          }
