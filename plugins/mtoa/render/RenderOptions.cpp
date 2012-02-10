@@ -1,3 +1,4 @@
+#include "platform/Platform.h"
 #include "utils/MtoaLog.h"
 #include "RenderOptions.h"
 #include "scene/MayaScene.h"
@@ -26,6 +27,11 @@
 #ifdef _WIN32
 #include <direct.h>
 #endif // _WIN32
+
+#ifdef _DEBUG
+#define new DEBUG_NEW
+#endif
+
 
 CRenderOptions::CRenderOptions()
 :  m_minx(0), m_miny(0), m_maxx(0), m_maxy(0)

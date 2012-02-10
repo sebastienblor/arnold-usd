@@ -245,8 +245,8 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
             }
          }
 
-         CMayaScene::End();
          CMayaScene::ExecuteScript(renderGlobals.postRenderMel);
+         CMayaScene::End();
       }
    }
 
@@ -277,10 +277,16 @@ MStatus CArnoldRenderCmd::doIt(const MArgList& argList)
       renderSession->SetResolution(width, height);
       // Set the render session camera.
       renderSession->SetCamera(camera);
+      // And render view panel
+      MStringArray allPanelNames;
+      MGlobal::executeCommand("getPanel -scriptType renderWindowPanel", allPanelNames);
+      if (allPanelNames.length() > 0) renderSession->SetRenderViewPanelName(allPanelNames[0]);
       renderSession->DoInteractiveRender(); // Start the render.
+
       CMayaScene::End(); // Clean up.
 
       CMayaScene::ExecuteScript(renderGlobals.postRenderMel);
+      // DEBUG_MEMORY;
    }
 
    return status;

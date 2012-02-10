@@ -1,4 +1,4 @@
-
+#include "platform/Platform.h"
 #include "MayaScene.h"
 #include "extension/ExtensionsManager.h"
 #include "utils/MtoaLog.h"
@@ -34,7 +34,6 @@
 #define new DEBUG_NEW
 #endif
 
-std::vector< CNodeTranslator * > CMayaScene::s_translatorsToIPRUpdate;
 MCallbackId CMayaScene::s_IPRIdleCallbackId = 0;
 MCallbackId CMayaScene::s_NewNodeCallbackId = 0;
 CRenderSession* CMayaScene::s_renderSession = NULL;
@@ -43,26 +42,46 @@ CArnoldSession* CMayaScene::s_arnoldSession = NULL;
 // Cheap singleton
 CRenderSession* CMayaScene::GetRenderSession()
 {
-   if (!s_renderSession)
-      s_renderSession = new CRenderSession();
-
    return s_renderSession;
 }
 
 CArnoldSession* CMayaScene::GetArnoldSession()
 {
-   if (!s_arnoldSession)
-      s_arnoldSession = new CArnoldSession();
-
    return s_arnoldSession;
+}
+
+bool CMayaScene::IsActive()
+{
+   return (s_arnoldSession != NULL && s_arnoldSession->IsActive())
+         && (s_renderSession != NULL && s_renderSession->IsActive());
+}
+
+const ArnoldSessionMode& CMayaScene::GetSessionMode()
+{
+   if (s_arnoldSession != NULL)
+      return s_arnoldSession->GetSessionMode();
+   else
+      return MTOA_SESSION_UNDEFINED;
+}
+
+bool CMayaScene::IsExportingMotion()
+{
+   if (s_arnoldSession != NULL)
+      return s_arnoldSession->IsExportingMotion();
+   else
+      return false;
 }
 
 MStatus CMayaScene::Begin(ArnoldSessionMode mode)
 {
    MStatus status = MStatus::kSuccess;
 
-   CRenderSession* renderSession = GetRenderSession();
-   CArnoldSession* arnoldSession = GetArnoldSession();
+   // FIXME: raise an error if Begin is called on active session
+   // (forcing a CMayaScene::End() to be called before a CMayaScene::Begin() ?
+   if (s_renderSession == NULL)
+      s_renderSession = new CRenderSession();
+   if (s_arnoldSession == NULL)
+      s_arnoldSession = new CArnoldSession();
 
    MSelectionList    list;
    MObject           defaultRenderGlobalsNode;
@@ -139,8 +158,8 @@ MStatus CMayaScene::Begin(ArnoldSessionMode mode)
    }
 
    // Init both render and export sessions
-   status = renderSession->Begin(&renderOptions);
-   status = arnoldSession->Begin(&sessionOptions);
+   status = s_renderSession->Begin(renderOptions);
+   status = s_arnoldSession->Begin(sessionOptions);
 
 
    return status;
@@ -151,15 +170,15 @@ MStatus CMayaScene::End()
    MStatus status = MStatus::kSuccess;
 
    ClearIPRCallbacks();
-   if (NULL != s_renderSession)
+   if (s_renderSession != NULL)
    {
-      status = s_renderSession->End();
+      // status = s_renderSession->End(); // Unnecessary it's in the destructor for CRenderSession already
       delete s_renderSession;
       s_renderSession = NULL;
    }
-   if (NULL != s_arnoldSession)
+   if (s_arnoldSession != NULL)
    {
-      status = s_arnoldSession->End();
+      // status = s_arnoldSession->End(); // Unnecessary it's in the destructor for CArnoldSession already
       delete s_arnoldSession;
       s_arnoldSession = NULL;
    }

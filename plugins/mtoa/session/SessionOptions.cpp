@@ -1,9 +1,14 @@
+#include "platform/Platform.h"
 #include "SessionOptions.h"
 
 #include <ai_msg.h>
 
 #include "maya/MFnDependencyNode.h"
 #include "maya/MPlug.h"
+
+#ifdef _DEBUG
+#define new DEBUG_NEW
+#endif
 
 MStatus CSessionOptions::GetFromMaya()
 {

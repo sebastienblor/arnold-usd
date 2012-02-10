@@ -1,3 +1,4 @@
+#include "platform/Platform.h"
 #include "utils/Universe.h"
 #include "scene/MayaScene.h"
 #include "render/RenderSession.h"
@@ -13,6 +14,10 @@
 #include <string.h> // for memset.
 #include <string>
 #include <algorithm>
+
+#ifdef _DEBUG
+#define new DEBUG_NEW
+#endif
 
 MSwatchRenderBase* CRenderSwatchGenerator::creator(MObject dependNode,
                                                   MObject renderNode,
@@ -139,8 +144,15 @@ MStatus CRenderSwatchGenerator::BuildArnoldScene()
       mayaNodeName = MFnDependencyNode(mayaNode).name();
 
    // Load basic swatch scene (additions will be done depending on what is previewed)
+   /*
    if (MStatus::kSuccess != LoadAssForNode()
          && MStatus::kSuccess != DefaultArnoldScene())
+   {
+      ErrorSwatch("Could not create Arnold swatch scene");
+      return MStatus::kFailure;
+   }
+   */
+   if (MStatus::kSuccess != DefaultArnoldScene())
    {
       ErrorSwatch("Could not create Arnold swatch scene");
       return MStatus::kFailure;
@@ -152,35 +164,36 @@ MStatus CRenderSwatchGenerator::BuildArnoldScene()
    if (MStatus::kSuccess != status)
    {
       ErrorSwatch("Could not export \"" + mayaNodeName + "\" of type \"" + mayaNodeType + "\"");
-      return MStatus::kFailure;
    }
-   MString arnoldNodeName(AiNodeGetName(arnoldNode));
-   if (NULL != arnoldNode) {
-      const AtNodeEntry *nodeEntry = AiNodeGetNodeEntry(arnoldNode);
-      AiMsgDebug("[mtoa.swatch] %-30s | Exported as %s(%s)",
-            mayaNodeName.asChar(),
-            AiNodeGetName(arnoldNode), AiNodeEntryGetTypeName(nodeEntry));
+   else
+   {
+      MString arnoldNodeName(AiNodeGetName(arnoldNode));
+      if (NULL != arnoldNode) {
+         const AtNodeEntry *nodeEntry = AiNodeGetNodeEntry(arnoldNode);
+         AiMsgDebug("[mtoa.swatch] %-30s | Exported as %s(%s)",
+               mayaNodeName.asChar(),
+               AiNodeGetName(arnoldNode), AiNodeEntryGetTypeName(nodeEntry));
+      }
+
+      // Assign it in the scene, depending on what it is
+      status = AssignNode(arnoldNode, translator);
+      if (MStatus::kSuccess != status)
+      {
+         ErrorSwatch("Could not assign \"" + mayaNodeName + "\" exported as \"" + arnoldNodeName + "\"");
+      }
+      // Add a camera
+      // TODO : would it be possible / interesting to allow preview of cameras?
+      AtNode* camera = AiNode("persp_camera");
+      AiNodeSetStr(camera, "name", "camera");
+      AiNodeSetPnt(camera, "position", 0.f, 0.f, 1.14f);
+      // Apply any swatch options (overrides) that are present on mayaNode
+      if (MStatus::kSuccess != ApplyOverrides(translator))
+      {
+         ErrorSwatch("Could not apply overrides present on \"" + mayaNodeName + "\"");
+      }
    }
 
-   // Assign it in the scene, depending on what it is
-   status = AssignNode(arnoldNode, translator);
-   if (MStatus::kSuccess != status)
-   {
-      ErrorSwatch("Could not assign \"" + mayaNodeName + "\" exported as \"" + arnoldNodeName + "\"");
-      return MStatus::kFailure;
-   }
-   // Add a camera
-   // TODO : would it be possible / interesting to allow preview of cameras?
-   AtNode* camera = AiNode("persp_camera");
-   AiNodeSetStr(camera, "name", "camera");
-   AiNodeSetPnt(camera, "position", 0.f, 0.f, 1.14f);
-   // Apply any swatch options (overrides) that are present on mayaNode
-   if (MStatus::kSuccess != ApplyOverrides(translator))
-   {
-      ErrorSwatch("Could not apply overrides present on \"" + mayaNodeName + "\"");
-      return MStatus::kFailure;
-   }
-
+   if (translator != NULL) delete translator;
    return MStatus::kSuccess;
 
 }
@@ -489,6 +502,7 @@ MStatus CRenderSwatchGenerator::ApplyOverrides(CNodeTranslator* translator)
 
 void CRenderSwatchGenerator::ClearSwatch()
 {
+   image().release();
    const int num_pixels(resolution() * resolution());
    image().create(resolution(), resolution(), 4, MImage::kByte);
    unsigned char * pixels = image().pixels();
@@ -522,15 +536,14 @@ bool CRenderSwatchGenerator::doIteration()
    {
       // Arnold is in IPR mode, no point wasting our time with a swatch.
       // Return true so were not called again.
-      if ( CMayaScene::GetArnoldSession()->GetSessionMode() == MTOA_SESSION_IPR)
+      // We don't want to end the current session there
+      if ( CMayaScene::GetSessionMode() == MTOA_SESSION_IPR)
       {
          return true;
       }
-
-      // Arnold is rendering, so bail out.
-      // Return false to be called again.
-      // This is how we manage to render many
-      // swatches "at the same time".
+      // Arnold is rendering, so bail out. Return false to be called again.
+      // This is how we manage to render many swatches "at the same time".
+      // We don't want to end the current session there
       if (AiRendering())
       {
          return false;
@@ -538,43 +551,57 @@ bool CRenderSwatchGenerator::doIteration()
 
       if (m_iteration == 0)
       {
-         // Not necessary if done in constructor
-         // ClearSwatch();
-
-         // Arnold can only render one thing at a time.
-         // It may be an option to block/wait here, but only
-         // if it's another swatch render taking place.
-         if (AiUniverseIsActive()) return false;
-
-         // Build the swatch scene
-         status = BuildArnoldScene();
-         if (MStatus::kSuccess != status)
+         // Start, must build the swatch scene
+         // Arnold can only render one thing at a time. It may be an option to block/wait here,
+         // but only if it's another swatch render taking place. We don't want to end the
+         // current session there
+         if (AiUniverseIsActive())
          {
+            return false;
+         }
+         // Build the swatch scene, abort swatch in case of error
+         status = BuildArnoldScene();
+         if (MStatus::kSuccess == status)
+         {
+            // Return to be called again
+            m_iteration++;
+            return false;
+         }
+         else
+         {
+            // Abort
             ErrorSwatch("Render failed: could not complete swatch scene.");
             CMayaScene::End();
             return true;
          }
       }
-      // Scene/ass is built, so start the render.
       else if (m_iteration == 1)
       {
-         if (!AiUniverseIsActive())
+         // Scene/ass is built, so start the render.
+         if (AiUniverseIsActive())
+         {
+            // Uncomment this to get a debug ass for swatches, but then set preserve_scene_data or disable actual render
+            // CMayaScene::GetRenderSession()->DoAssWrite("/mnt/data/orenouard/maya/projects/Arnold/ASS/swatch.ass");
+            CMayaScene::GetRenderSession()->DoSwatchRender(resolution());
+            m_iteration++;
+            return false;
+         }
+         else
          {
             ErrorSwatch("Render failed: Arnold universe not active.");
-            return true; // Stop iterating/rendering.
+            // Stop iterating/rendering.
+            CMayaScene::End();
+            return true; 
          }
-         // Uncomment this to get a debug ass for swatches, but then set preserve_scene_data or disable actual render
-         // CMayaScene::GetRenderSession()->DoAssWrite("/mnt/data/orenouard/maya/projects/Arnold/ASS/swatch.ass");
-         CMayaScene::GetRenderSession()->DoSwatchRender(resolution());
       }
-      // We must be done rendering.
       else
       {
+         // We must be done rendering.
          if (CMayaScene::GetRenderSession()->GetSwatchImage(image()))
          {
             image().convertPixelFormat(MImage::kByte, 1.0f/255);
-            CMayaScene::End();
             // Stop being called/iterated.
+            CMayaScene::End();
             return true;
          }
          else
@@ -585,17 +612,13 @@ bool CRenderSwatchGenerator::doIteration()
             return false;
          }
       }
-
-      // Up the iteration count and return false so we're
-      // called again.
-      m_iteration++;
-      return false;
    }
    else
    {
       CMayaScene::End();
       return true;
    }
+
 }
 
 // This will create a polygon sphere for swatching

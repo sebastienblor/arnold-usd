@@ -105,6 +105,11 @@ public:
 
    void SetCamera(MDagPath& camera);
 
+   void SetRenderViewPanelName(const MString &panel)
+   {
+      m_panel = panel;
+   }
+
    void SetWidth(unsigned int width)
    {
       m_width = width;
@@ -139,6 +144,11 @@ public:
    MString GetCameraName() const
    {
       return MFnDagNode(m_camera).name();
+   }
+
+   MString GetRenderViewPanelName() const
+   {
+      return m_panel;
    }
 
    bool MultiCameraRender() const
@@ -189,13 +199,14 @@ private:
    bool     m_clearBeforeRender; 
    bool     m_forceSceneUpdateBeforeIPRRefresh;
 
-   float  m_startFrame;
-   float  m_endFrame;
-   float  m_byFrameStep;
+   float    m_startFrame;
+   float    m_endFrame;
+   float    m_byFrameStep;
    bool     m_multiCameraRender;
 
    MObject  m_options;
    MDagPath m_camera;
+   MString  m_panel;
 
    MString  m_renderDriver;
    MString  m_imageFileExtension;

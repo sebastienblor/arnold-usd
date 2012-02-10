@@ -1,3 +1,4 @@
+#include "platform/Platform.h"
 #include "AOV.h"
 #include "scene/MayaScene.h"
 
@@ -17,6 +18,9 @@
 #include <assert.h>
 #include <string>
 
+#ifdef _DEBUG
+#define new DEBUG_NEW
+#endif
 
 CAOV::CAOV()
    : m_name(""),

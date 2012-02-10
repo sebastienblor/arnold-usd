@@ -167,6 +167,7 @@ private:
       ,  m_isExportingMotion(false)
       ,  m_requestUpdate(false)
       ,  m_optionsTranslator(NULL)
+      ,  m_is_active(false)
    {
    }
 
@@ -177,7 +178,7 @@ private:
    inline void SetSessionOptions(CSessionOptions& options)  { m_sessionOptions = options; }
 
    /// Initialize with passed CSessionOptions, ready for translating to the Arnold universe
-   MStatus Begin(CSessionOptions* options);
+   MStatus Begin(const CSessionOptions &options);
    /// Terminate an export session
    MStatus End();
 
@@ -193,11 +194,12 @@ private:
    MStatus ExportSelection(MSelectionList& selected);
    MStatus IterSelection(MSelectionList& selected);
 
-   inline bool NeedsUpdate() { return m_requestUpdate; }
+   inline bool NeedsUpdate() const { return m_requestUpdate; }
 
    void DoUpdate();
    void ClearUpdateCallbacks();
-   
+
+   inline bool IsActive() const { return m_is_active; }
    //void ProcessAOVs();
 
 private:
@@ -217,7 +219,8 @@ private:
 protected:
    ObjectHandleToDagMap m_masterInstances;
 
-   COptionsTranslator* m_optionsTranslator;
+   COptionsTranslator*  m_optionsTranslator;
+   bool                 m_is_active;
    //AOVSet m_aovs;
 };  // class CArnoldSession
 

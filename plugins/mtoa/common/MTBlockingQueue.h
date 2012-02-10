@@ -26,17 +26,23 @@ public:
       AiCritSecClose(&m_accessCritSec);
    }
 
-   void reset()
+   void clear()
    {
       AiCritSecEnter(&m_accessCritSec);
       m_notEmpty.unset();
       m_notFull.set();
       while (!m_queue.empty())
+      {
+         if (m_queue.front().pixels != NULL)
+         {
+            delete[] m_queue.front().pixels;
+         }
          m_queue.pop();
+      }
       AiCritSecLeave(&m_accessCritSec);
    }
 
-   bool push(const T& data)
+   bool push(T& data)
    {
       AiCritSecEnter(&m_accessCritSec);
       bool result = false;
@@ -99,6 +105,7 @@ public:
    {
       return m_queue.size();
    }
+
    
 protected:
 
