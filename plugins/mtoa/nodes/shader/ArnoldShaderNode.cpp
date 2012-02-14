@@ -12,6 +12,7 @@
 #include <maya/MFnDependencyNode.h>
 #include <maya/MDGModifier.h>
 #include <maya/MStatus.h>
+#include <maya/MFloatVector.h>
 
 #include <ai_node_entry.h>
 #include <ai_params.h>
@@ -103,14 +104,20 @@ MStatus CArnoldShaderNode::initialize()
       addAttribute(attrib);
 
       if (outputExists)
+      {
+         // If it is a surface, make default outColor gray
          attributeAffects(attrib, outputAttr);
+         MFnNumericAttribute nAttrTmp(outputAttr);
+         nAttrTmp.setDefault(float(0.5), float(0.5), float(0.5));
+      }
 
+      // Make default hardware color gray
       MObject hwColor = nAttr.createColor("hardwareColor", "hwc");
       nAttr.setKeyable(true);
       nAttr.setStorable(true);
       nAttr.setReadable(true);
       nAttr.setWritable(true);
-      nAttr.setDefault(0.8f, 0.8f, 0.8f);
+      nAttr.setDefault(0.5f, 0.5f, 0.5f);
       addAttribute(hwColor);
    }
 

@@ -8,6 +8,7 @@
 #include "nodes/MayaNodeIDs.h"
 #include "nodes/ShaderUtils.h"
 #include "nodes/shader/ArnoldShaderNode.h"
+#include "nodes/shader/ArnoldStandardNode.h"
 
 #include <ai_metadata.h>
 
@@ -174,9 +175,18 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
       }
       else if (arnoldNodeTypeName == "shader")
       {
-         creator = CArnoldShaderNode::creator;
-         initialize = CArnoldShaderNode::initialize;
-         abstract = &CArnoldShaderNode::s_abstract;
+         if(id == 0x00115D01) //aiStandard node
+         {
+            creator = CArnoldStandardNode::creator;
+            initialize = CArnoldStandardNode::initialize;
+            abstract = &CArnoldStandardNode::s_abstract;
+         }
+         else
+         {
+            creator = CArnoldShaderNode::creator;
+            initialize = CArnoldShaderNode::initialize;
+            abstract = &CArnoldShaderNode::s_abstract;
+         }
          type = MPxNode::kDependNode;
       }
       else if (arnoldNodeTypeName == "shape")

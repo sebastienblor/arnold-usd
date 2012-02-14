@@ -423,7 +423,7 @@ createNode polySphere -name "polySphere1";
 	setAttr ".subdivisionsAxis" 50;
 	setAttr ".subdivisionsHeight" 50;
 createNode aiStandard -name "aiStandard1";
-	setAttr ".KdColor" -type "float3" 1 0.27499998 0.27499998 ;
+	setAttr ".Kd_color" -type "float3" 1 0.27499998 0.27499998 ;
 createNode shadingEngine -name "aiStandard1SG";
 	setAttr ".isHistoricallyInteresting" 0;
 	setAttr ".renderableOnlySet" yes;

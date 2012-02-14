@@ -587,6 +587,8 @@
     maya.name               STRING  "aiStandard"
     maya.id                 INT     0x00115D01
     maya.classification     STRING  "shader/surface"
+    maya.output_name        STRING  "outColor"
+    maya.output_shortname   STRING  "out"
     [attr IOR]
         min                 FLOAT   0.0
         max                 FLOAT   10.0
@@ -597,6 +599,8 @@
     [attr Kd]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
+    [attr Kd_color]
+        maya.name           STRING  "color"
     [attr Kr]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0

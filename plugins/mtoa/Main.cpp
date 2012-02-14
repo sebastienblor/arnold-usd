@@ -20,6 +20,7 @@
 #include "nodes/shape/ArnoldStandIns.h"
 #include "nodes/light/ArnoldSkyDomeLightNode.h"
 #include "nodes/light/ArnoldAreaLightNode.h"
+#include "nodes/shader/ArnoldStandardNode.h"
 
 #include "translators/options/OptionsTranslator.h"
 #include "translators/camera/CameraTranslators.h"

@@ -27,7 +27,7 @@ class AEaiStandardTemplate(ShaderAETemplate):
         self.addCustom('message', 'AEshaderTypeNew', 'AEshaderTypeReplace')
 
         self.beginLayout("Diffuse", collapse=False)
-        self.addControl("KdColor", label="Color", annotation="Diffuse Color")
+        self.addControl("color",  label="Color", annotation="Diffuse Color")
         self.addControl("Kd", label="Weight")
         self.addControl("diffuse_roughness", label="Roughness")
         self.addControl("Kb", label="Backlight")
