@@ -109,7 +109,7 @@ class AEaiStandardTemplate(ShaderAETemplate):
         self.endLayout() # End Advanced Layout
 
         self.beginLayout("Hardware Texturing", collapse=True)
-        #pm.mel.eval('AEhardwareTextureTemplate "%s"' % self.nodeName() + r'("Kd_color Kd Ks_color Ks")')
+        pm.mel.eval('AEhardwareTextureTemplate "%s"' % self.nodeName + r'("color emission_color ")')
         self.endLayout()
 
         self.addAOVLayout()
