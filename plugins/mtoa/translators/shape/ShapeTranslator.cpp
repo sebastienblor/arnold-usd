@@ -3,6 +3,10 @@
 #include <maya/MPlugArray.h>
 #include <maya/MDagPathArray.h>
 
+#include <algorithm>
+
+#include <maya/MPlugArray.h>
+
 // computes and sets the visibility mask as well as other shape attributes related to ray visibility
 // (self_shadows, opaque)
 void CShapeTranslator::ProcessRenderFlags(AtNode* node)
@@ -167,6 +171,78 @@ void CShapeTranslator::MakeCommonAttributes(CBaseAttrHelper& helper)
    MakeArnoldVisibilityFlags(helper);
 }
 
+// called for shaders connected directly to shapes
+AtNode* CShapeTranslator::ExportRootShader(MObject mayaShader, const MString &attrName)
+{
+   AtNode* beauty = ExportNode(mayaShader, attrName);
+   return AddAOVDefaults(beauty);
+}
+
+AtNode* CShapeTranslator::AddAOVDefaults(AtNode *beauty)
+{
+   AOVSet active = m_session->GetActiveAOVs();
+
+   // get the active AOVs not in the exported list
+   AOVSet unused;
+   std::set_difference(active.begin(), active.end(),
+                       m_AOVs.begin(), m_AOVs.end(),
+                       std::inserter(unused, unused.begin()));
+
+   MFnDependencyNode fnNode;
+   for (AOVSet::iterator it=unused.begin(); it!=unused.end(); ++it)
+   {
+      CAOV aov = *it;
+      MObject oAOV = aov.GetNode();
+      if (oAOV != MObject::kNullObj)
+      {
+         fnNode.setObject(oAOV);
+         MPlug plug = fnNode.findPlug("defaultValue");
+         MPlugArray connections;
+         plug.connectedTo(connections, true, false);
+         if (connections.length() > 0)
+         {
+            AtNode* write = NULL;
+            int type = fnNode.findPlug("type").asInt();
+            switch(type)
+            {
+               case AI_TYPE_RGB:
+               case AI_TYPE_RGBA:
+               {
+                  write = AddArnoldNode("writeColor", aov.GetName().asChar());
+                  break;
+               }
+               case AI_TYPE_FLOAT:
+               {
+                  write = AddArnoldNode("writeFloat", aov.GetName().asChar());
+                  break;
+               }
+//               case AI_TYPE_INT:
+//               {
+//                  write = AddArnoldNode("writeFloat", aov.GetName().asChar());
+//                  break;
+//               }
+            }
+            if (write != NULL)
+            {
+               AiNodeLink(beauty, "beauty", write);
+               AiNodeSetStr(write, "aov_name", aov.GetName().asChar());
+               // process connections
+               // use m_session->ExportNode to avoid processing aovs for this node
+               AtNode* linkedNode = m_session->ExportNode(connections[0]);
+               if (linkedNode != NULL)
+               {
+                  AiNodeLink(linkedNode, "input", write);
+                  beauty = write;
+               }
+               else
+                  AiMsgWarning("[mtoa] [aov] invalid input on default value for \"%s\"", aov.GetName().asChar());
+            }
+         }
+         //ProcessParameter(shader, plug, "input", AI_TYPE_RGB);
+      }
+   }
+   return beauty;
+}
 MObject CShapeTranslator::GetNodeShadingGroup(MObject dagNode, int instanceNum)
 {
    MPlugArray        connections;

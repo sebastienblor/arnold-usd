@@ -2,6 +2,7 @@
 from mtoa.ui.ae.shapeTemplate import TranslatorControl, getTranslators
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
+from mtoa.ui.ae.utils import aeCallback
 class AOVTranslatorControl(TranslatorControl):
     '''
     Adds a "<Use Globals>" menu option
@@ -15,8 +16,15 @@ class AOVTranslatorControl(TranslatorControl):
     def getDefaultTranslator(self, nodeName):
         return self.USE_GLOBALS
 
-
 class AEaiAOVTemplate(ShaderAETemplate):
+
+    def aiAOV_defaultValueNew(self, nodeAttr):
+        pm.attrNavigationControlGrp('aiAOVDefaultValue',
+                                    label='Default',
+                                    at=nodeAttr)
+
+    def aiAOV_defaultValueReplace(self, nodeAttr):
+        pm.attrNavigationControlGrp('aiAOVDefaultValue', edit=True, at=nodeAttr)
 
     def setup(self):
         #mel.eval('AEswatchDisplay "%s"' % nodeName)
@@ -30,6 +38,7 @@ class AEaiAOVTemplate(ShaderAETemplate):
         self.addControl('type')
         self.addControl('prefix')
         #self.endLayout()
+        self.addCustom('defaultValue', self.aiAOV_defaultValueNew, self.aiAOV_defaultValueReplace)
 
         self.beginLayout('Image Format', collapse=False)
         driverTemplate = AOVTranslatorControl(

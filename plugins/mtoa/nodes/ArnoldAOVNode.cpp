@@ -10,6 +10,7 @@
 #include <maya/MFnStringData.h>
 #include <maya/MFnTypedAttribute.h>
 #include <maya/MFnCompoundAttribute.h>
+#include <maya/MFnMessageAttribute.h>
 
 MTypeId CArnoldAOVNode::id(ARNOLD_NODEID_AOV);
 
@@ -17,6 +18,7 @@ MObject CArnoldAOVNode::s_name;
 MObject CArnoldAOVNode::s_enabled;
 MObject CArnoldAOVNode::s_type;
 MObject CArnoldAOVNode::s_prefix;
+MObject CArnoldAOVNode::s_defaultValue;
 MObject CArnoldAOVNode::s_imageFormat;
 MObject CArnoldAOVNode::s_filterType;
 
@@ -31,7 +33,9 @@ MStatus CArnoldAOVNode::initialize()
    MFnEnumAttribute eAttr;
    MFnCompoundAttribute cAttr;
    MFnNumericAttribute nAttr;
+   MFnMessageAttribute mAttr;
    MFnStringData sData;
+
 
    s_enabled = nAttr.create("enabled", "aoven", MFnNumericData::kBoolean, 1);
    nAttr.setKeyable(false);
@@ -55,6 +59,10 @@ MStatus CArnoldAOVNode::initialize()
    eAttr.addField("pointer", AI_TYPE_POINTER);
    eAttr.setKeyable(false);
    addAttribute(s_type);
+
+   s_defaultValue = mAttr.create("defaultValue", "dftv");
+   mAttr.setKeyable(false);
+   addAttribute(s_defaultValue);
 
    s_prefix = tAttr.create("prefix", "aovpre", MFnData::kString);
    tAttr.setKeyable(false);

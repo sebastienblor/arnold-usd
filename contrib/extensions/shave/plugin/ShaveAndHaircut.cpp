@@ -122,7 +122,7 @@ void CShaveTranslator::Update(AtNode* curve)
          plug.connectedTo(curveShaderPlug, true, false);
          if (curveShaderPlug.length() > 0)
          {
-            shader = ExportNode(curveShaderPlug[0]);
+            shader = ExportRootShader(curveShaderPlug[0]);
          }
       }
    }
@@ -130,7 +130,7 @@ void CShaveTranslator::Update(AtNode* curve)
    // Default to the ShaveHair shader if nothing else has been set.
    if (shader == NULL)
    {
-      shader = CreateShaveShader(curve);
+      shader = AddAOVDefaults(CreateShaveShader(curve));
    }
    
    if (shader != NULL)

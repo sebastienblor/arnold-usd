@@ -413,7 +413,7 @@ node_loader
 
    case 49:
       node->methods     = WriteFloatMtd;
-      node->output_type = AI_TYPE_FLOAT;
+      node->output_type = AI_TYPE_RGBA;
       node->name        = "writeFloat";
       node->node_type   = AI_NODE_SHADER;
       break;

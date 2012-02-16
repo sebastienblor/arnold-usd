@@ -25,6 +25,8 @@ public:
    // for initializer callbacks:
    static void MakeCommonAttributes(CBaseAttrHelper& helper);
 
+   virtual AtNode* ExportRootShader(MObject mayaShader, const MString &attrName="");
+   AtNode* AddAOVDefaults(AtNode *shader);
 protected:
    bool m_motion;
    bool m_motionDeform;

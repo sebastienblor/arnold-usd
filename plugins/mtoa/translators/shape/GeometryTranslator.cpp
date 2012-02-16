@@ -3,6 +3,8 @@
 
 #include <maya/MNodeMessage.h>
 
+#include <algorithm>
+
 namespace
 {
    void SetKeyData(AtArray* arr, unsigned int step, const std::vector<float>& data, unsigned int size)
@@ -460,7 +462,7 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
       if (connections.length() > 0)
       {
          // shader assigned to node
-         AtNode* shader = ExportNode(connections[0]);
+         AtNode* shader = ExportRootShader(connections[0]);
 
          AiNodeSetPtr(polymesh, "shader", shader);
       }
@@ -490,7 +492,7 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
          
          if (connections.length() > 0)
          {
-            meshShaders.push_back(ExportNode(connections[0]));
+            meshShaders.push_back(ExportRootShader(connections[0]));
          }
          else
          {
