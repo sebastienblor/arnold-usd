@@ -129,7 +129,6 @@ protected:
    inline double GetMotionByFrame() const {return m_session->GetMotionByFrame(); }
 
    // session action
-   AtNode* ExportNode(MObject node, const MString &attrName="") { return m_session->ExportNode(node, attrName, &m_AOVs);}
    AtNode* ExportNode(const MPlug& outputPlug) {return m_session->ExportNode(outputPlug, &m_AOVs);}
    AtNode* ExportDagPath(MDagPath &dagPath) {return m_session->ExportDagPath(dagPath);}
 

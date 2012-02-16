@@ -25,13 +25,17 @@ public:
    // for initializer callbacks:
    static void MakeCommonAttributes(CBaseAttrHelper& helper);
 
-   virtual AtNode* ExportRootShader(MObject mayaShader, const MString &attrName="");
+protected:
+   virtual AtNode* ExportRootShader(const MPlug& plug);
    AtNode* AddAOVDefaults(AtNode *shader);
+   MObject GetNodeShadingGroup(MObject dagNode, int instanceNum);
+
 protected:
    bool m_motion;
    bool m_motionDeform;
 
-   MObject GetNodeShadingGroup(MObject dagNode, int instanceNum);
+
 };
 
 #endif // SHAPETRANSLATOR_H
+

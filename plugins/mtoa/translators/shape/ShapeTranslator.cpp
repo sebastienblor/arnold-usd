@@ -172,9 +172,9 @@ void CShapeTranslator::MakeCommonAttributes(CBaseAttrHelper& helper)
 }
 
 // called for shaders connected directly to shapes
-AtNode* CShapeTranslator::ExportRootShader(MObject mayaShader, const MString &attrName)
+AtNode* CShapeTranslator::ExportRootShader(const MPlug& plug)
 {
-   AtNode* beauty = ExportNode(mayaShader, attrName);
+   AtNode* beauty = ExportNode(plug);
    return AddAOVDefaults(beauty);
 }
 

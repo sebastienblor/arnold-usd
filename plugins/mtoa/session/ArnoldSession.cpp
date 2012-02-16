@@ -188,11 +188,6 @@ AtNode* CArnoldSession::ExportDagPath(MDagPath &dagPath, MStatus* stat)
 
 // Export a plug (dependency node output attribute)
 //
-AtNode* CArnoldSession::ExportNode(const MObject& mayaNode, const MString &attrName, AOVSet* aovs, MStatus* stat)
-{
-   return ExportNode(MFnDependencyNode(mayaNode).findPlug(attrName), aovs, stat);
-}
-
 AtNode* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AOVSet* aovs, MStatus *stat)
 {
    MObject mayaNode = shaderOutputPlug.node();
