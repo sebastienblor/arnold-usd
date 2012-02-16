@@ -79,7 +79,8 @@ public:
       m_goSample    = true;
       m_goUVSample  = true;
       
-      MNodeMessage::addNodePreRemovalCallback(thisMObject(), removeSphereLocator, this);
+      MObject obj = thisMObject();
+      MNodeMessage::addNodePreRemovalCallback(obj, removeSphereLocator, this);
    }
    
    static void removeSphereLocator(MObject& node, void* clientData)
