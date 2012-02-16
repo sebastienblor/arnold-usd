@@ -54,11 +54,11 @@ class AOVBrowser(object):
         update the contents of all scroll lists
         '''
         for nodeType in aovs.getAOVGroups():
-            pm.textScrollList(self.groupLst, edit=True, append=nodeType, selectItem=nodeType)
+            pm.textScrollList(self.groupLst, edit=True, append=nodeType)
         for nodeType in aovs.getNodeTypesWithAOVs():
             # make sure we have at least one named aov
             if any([x for x in aovs.getRegisteredAOVs(nodeType=nodeType) if x]):
-                pm.textScrollList(self.groupLst, edit=True, append=nodeType, selectItem=nodeType)
+                pm.textScrollList(self.groupLst, edit=True, append=nodeType)
         # populate available and active based on aovs provided by groups and nodes
         self.updateActiveAOVs()
 
@@ -70,7 +70,7 @@ class AOVBrowser(object):
         map = defaultdict(list)
         typeMap = {}
         for nodeType in aovs.getNodeTypesWithAOVs():
-            for aovName, attr, type in aovs.getNodeAOVData(nodeType):
+            for aovName, attr, type in aovs.getNodeGlobalAOVData(nodeType):
                 map[aovName].append((nodeType, attr))
                 typeMap[aovName] = type
         typeMap.update(dict(aovs.BUILTIN_AOVS))
@@ -157,9 +157,10 @@ class ArnoldAOVEditor(object):
 
         pm.frameLayout(label='Primary AOVs', width=WIDTH, collapsable=True, collapse=False)
         self.aovCol = pm.columnLayout()
-        pm.rowLayout(nc=2, columnWidth2=[150, 150], columnAttach2=['right', 'both'])
+        pm.rowLayout(nc=3, columnWidth3=[140, 100, 100], columnAttach3=['right', 'both', 'both'])
         pm.text(label='')
-        pm.button(label='Add Custom AOV', c=lambda *args: self.renderOptions.addAOV('custom'))
+        pm.button(label='Add Custom', c=lambda *args: shaderTemplate.newAOVPrompt())
+        pm.button(label='Delete All', c=lambda *args: pm.delete(pm.ls(type='aiAOV')))
         pm.setParent('..') # rowLayout
 
         pm.separator()
@@ -189,7 +190,7 @@ class ArnoldAOVEditor(object):
         for aovNode in self.renderOptions.getActiveAOVNodes():
             self.addControlRow(aovNode)
         self.browser.updateActiveAOVs()
-        shaderTemplate.AOVOptionMenuGrp.globalAOVListChanged()
+        shaderTemplate.globalAOVListChanged()
 
     def attrAddedCallback(self, msg, plug, otherPlug, *args):
         #print "attr changed", msg, pm.Attribute(plug)
@@ -217,6 +218,7 @@ class ArnoldAOVEditor(object):
 #                #print "removing row"
 #                self.removeControlRow()
 
+
     def addControlRow(self, aovNode, lockName=False):
         row = pm.rowLayout(numberOfColumns=5,
                                 columnWidth5=[130, 150, 70, 20, 20],
@@ -225,10 +227,11 @@ class ArnoldAOVEditor(object):
         enabledCtrl = pm.checkBox(label='')
         pm.connectControl(enabledCtrl, aovNode.attr('enabled'))
 
+        nameAttr = aovNode.attr('name')
         # use evalDeferred to ensure that the update happens after the aov node attribute is set
         nameCtrl = pm.textField(editable=not lockName,
                                 changeCommand=lambda *args: pm.evalDeferred(self.refresh))
-        pm.connectControl(nameCtrl, aovNode.attr('name'))
+        pm.connectControl(nameCtrl, nameAttr)
         # must set editability after connecting control
         nameCtrl.setEditable(not lockName)
 
@@ -237,7 +240,7 @@ class ArnoldAOVEditor(object):
         pm.attrEnumOptionMenuGrp(attribute=str(aovNode.attr('type')), columnWidth2=[1, 60])
         pm.symbolButton(image="navButtonConnected.png",
                         command=lambda *args: pm.select(aovNode))
-        # we need a reliable way to get the plug name
+
         pm.symbolButton(image="smallTrash.png",
                         command=lambda *args: self.removeAOV(aovNode))
         cmds.setParent('..')

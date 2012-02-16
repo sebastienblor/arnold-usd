@@ -24,6 +24,13 @@ def groupn(iterable, n):
     '''
     return zip(*[iter(iterable)]*n)
 
+def createColor(node, name):
+    node = str(node)
+    cmds.addAttr(node, longName=name, at='float3', usedAsColor=True)
+    cmds.addAttr(node, longName=name + 'R', at='float', parent=name)
+    cmds.addAttr(node, longName=name + 'G', at='float', parent=name)
+    cmds.addAttr(node, longName=name + 'B', at='float', parent=name)
+
 _objectStore = {}
 
 def mtoaPackageRoot():
