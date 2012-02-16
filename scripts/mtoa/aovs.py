@@ -1,5 +1,5 @@
 import pymel.core as pm
-import sys
+import mtoa.utils as utils
 
 BUILTIN_AOVS = (
                 ('P',       'POINT'),
@@ -18,14 +18,16 @@ BUILTIN_AOVS = (
 #                ('SHADER',  'NODE'),
                 )
 
-def getAOVNode():
-    return AOVNode(pm.PyNode('defaultArnoldRenderOptions'))
-
 def safeDelete(node):
+    '''delete a node, or disconnect it, if it is read-only'''
     if node.isReadOnly():
         node.message.disconnect()
     else:
         pm.delete(node)
+
+#------------------------------------------------------------
+# scene queries
+#------------------------------------------------------------
 
 class AOVNode(object):
     def __init__(self, node):
@@ -40,13 +42,6 @@ class AOVNode(object):
         if not self._node.exists():
             raise TypeError("node doesn't exist")
         return self._node
-
-    def getIndices(self):
-        indices = self._aovAttr.getArrayIndices()
-        # don't know why the -1 index shows up sometimes: api bug coming through in pymel.
-        if indices and indices[-1] == -1:
-            indices.pop()
-        return indices
 
     def getActiveAOVs(self, indices=False):
         '''
@@ -85,6 +80,10 @@ class AOVNode(object):
             if aovNode.attr('name').get() == aovName:
                 return aovNode
 
+    def getAOVMap(self):
+        '''return a mapping from aovName to aovNode'''
+        return dict(self.getActiveAOVNodes(names=True))
+
     def addAOV(self, aovName):
         '''
         add an AOV to the active list for this AOV node if it does not already exist
@@ -96,34 +95,6 @@ class AOVNode(object):
             aovNode.attr('name').set(aovName)
             aovNode.message.connect(self._aovAttr, nextAvailable=True)
             return aovNode
-
-#    def removeAOV(self, aov):
-#        '''
-#        remove an AOV from the active list for this AOV node
-#
-#        returns the index of the AOV removed or None, if the named aov does not exist on the node
-#        '''
-#        if isinstance(aov, int):
-#            at = self._aovAttr[aov]
-#            inputs = at.inputs()
-#            if inputs:
-#                name = inputs[0].attr('name').get()
-#                safeDelete(inputs[0])
-#            else:
-#                name = None
-#            pm.removeMultiInstance(at, b=True)
-#            return name
-#        elif isinstance(aov, basestring):
-#            for i in self.getIndices():
-#                at = self._aovAttr[i]
-#                inputs = at.inputs()
-#                if inputs:
-#                    name = inputs[0].attr('name').get()
-#                    if name == aov:
-#                        safeDelete(inputs[0])
-#                        # the following line is crashing when called from AOV browser
-#                        #pm.removeMultiInstance(at, b=True)
-#                        return i
 
     def removeAOV(self, aovName):
         '''
@@ -150,6 +121,9 @@ class AOVNode(object):
         if aovNode:
             aovNode.attr('name').set(newName)
 
+def getAOVNode():
+    return AOVNode(pm.PyNode('defaultArnoldRenderOptions'))
+
 def getActiveAOVs():
     return getAOVNode().getActiveAOVs()
 
@@ -158,15 +132,18 @@ def getActiveAOVNodes(names=False):
 
 def getAOVMap():
     '''return a mapping from aovName to aovNode'''
-    return dict(getActiveAOVNodes(names=True))
+    return getAOVNode().getAOVMap()
 
+#------------------------------------------------------------
+# global queries
+#------------------------------------------------------------
 
 def getRegisteredAOVs(builtin=False, nodeType=None):
     '''
     returns a list of all registered aov names.
 
     @param builtin: set to True to include built-in AOVs
-    @param nodeType: provide a node name or list of node names, returns AOVs for only those nodes
+    @param nodeType: a node name or list of node names to restrict result to AOVs for only those nodes
     '''
     if nodeType:
         if isinstance(nodeType, (list, tuple)):
@@ -185,18 +162,10 @@ def getBuiltinAOVs():
 def getNodeAOVAttrs(nodeType):
     "returns a list of registered (aov name, aov attribute) pairs for the given node type"
     # convert to a 2d array
-    tmp = pm.cmds.arnoldPlugins(listAOVs=True, nodeType=nodeType)
-    result = []
-    for i in range(0, len(tmp), 2):
-        result.append((tmp[i], tmp[i+1]))
-    # sort alphabetically by aov name
+    result = utils.groupn(pm.cmds.arnoldPlugins(listAOVs=True, nodeType=nodeType), 2)
     return sorted(result, key=lambda x: x[0])
 
-def getNodeAOVs(nodeType):
-    "returns a list of registered aov names for the given node type"
-    return [x[0] for x in getNodeAOVAttrs(nodeType)]
-
-def getNodesWithAOVs():
+def getNodeTypesWithAOVs():
     return sorted(pm.cmds.arnoldPlugins(listAOVNodeTypes=True))
 
 def getAOVGroups():
@@ -207,15 +176,15 @@ def getGroupAOVs(groupName):
         return getBuiltinAOVs()
     raise
 
-def getAllShaderAOVs():
-    '''
-    collect a set of AOVs as present on shader attributes
-    '''
-    # TODO: rewrite in c++ if this is too slow
-    aovs = set([])
-    for nodeType in pm.cmds.arnoldPlugins(listAOVNodeTypes=True):
-        attrs = dict(getNodeAOVAttrs(nodeType)).values()
-        for node in pm.ls(type=nodeType):
-            for attr in attrs:
-                aovs.add(pm.getAttr(node + '.' + attr))
-    return aovs
+#def getAllShaderAOVs():
+#    '''
+#    collect a set of AOVs as present on shader attributes
+#    '''
+#    # TODO: rewrite in c++ if this is too slow
+#    aovs = set([])
+#    for nodeType in pm.cmds.arnoldPlugins(listAOVNodeTypes=True):
+#        attrs = dict(getNodeAOVAttrs(nodeType)).values()
+#        for node in pm.ls(type=nodeType):
+#            for attr in attrs:
+#                aovs.add(pm.getAttr(node + '.' + attr))
+#    return aovs

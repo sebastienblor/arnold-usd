@@ -64,9 +64,9 @@ class AOVBrowser(object):
         '''
         for nodeType in aovs.getAOVGroups():
             pm.textScrollList(self.groupLst, edit=True, append=nodeType, selectItem=nodeType)
-        for nodeType in aovs.getNodesWithAOVs():
+        for nodeType in aovs.getNodeTypesWithAOVs():
             # make sure we have at least one named aov
-            if any([x for x in aovs.getNodeAOVs(nodeType) if x]):
+            if any([x for x in aovs.getRegisteredAOVs(nodeType=nodeType) if x]):
                 pm.textScrollList(self.groupLst, edit=True, append=nodeType, selectItem=nodeType)
         # populate available and active based on aovs provided by groups and nodes
         self.updateActiveAOVs()
@@ -77,7 +77,7 @@ class AOVBrowser(object):
         AOV attributes for any nodes in the scene.
         '''
         map = defaultdict(list)
-        for nodeType in aovs.getNodesWithAOVs():
+        for nodeType in aovs.getNodeTypesWithAOVs():
             for aovName, attr in aovs.getNodeAOVAttrs(nodeType):
                 map[aovName].append((nodeType, attr))
 
@@ -138,7 +138,7 @@ class AOVBrowser(object):
                 # it's an AOV group
                 aovList = aovs.getGroupAOVs(group)
             else:
-                aovList = [x for x in aovs.getNodeAOVs(group) if x]
+                aovList = [x for x in aovs.getRegisteredAOVs(nodeType=group) if x]
             for aovName in aovList:
                 if aovName not in activeAOVs:
                     pm.textScrollList(self.availableLst, edit=True, append=aovName)
