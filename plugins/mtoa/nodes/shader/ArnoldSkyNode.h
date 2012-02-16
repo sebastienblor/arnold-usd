@@ -50,15 +50,11 @@ public:
 
    virtual void postConstructor()
    {
-      // Initialize colorData
-      m_colorData   = NULL;
-      m_UData       = NULL;
-      m_VData       = NULL;
-      m_goSample    = true;
-      m_goUVSample  = true;
+      // Call parent postConstructor as it is not done automatically as the parent constructor
+      CSphereLocator::postConstructor();
 
       setMPSafe(true);
-      MDGMessage::addNodeRemovedCallback(removeSky, "ArnoldSkyShader");
+      MDGMessage::addNodeRemovedCallback(removeSky, "aiSky", this);
    }
 
    static void* creator();

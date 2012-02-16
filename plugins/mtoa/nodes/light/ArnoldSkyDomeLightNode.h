@@ -14,15 +14,12 @@ class CArnoldSkyDomeLightNode
 public:
    virtual void postConstructor()
    {
-      // Initialize colorData
-      m_colorData   = NULL;
-      m_UData       = NULL;
-      m_VData       = NULL;
-      m_goSample    = true;
-      m_goUVSample  = true;
-
+      // Call parent postConstructor as it is not done automatically as the parent constructor
+      CSphereLocator::postConstructor();
+      
       setMPSafe(true);
    }
+
 
    static void* creator();
    static MStatus initialize();

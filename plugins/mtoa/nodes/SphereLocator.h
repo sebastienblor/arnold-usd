@@ -18,6 +18,7 @@
 #endif   
 
 #include <maya/MDGMessage.h>
+#include <maya/MNodeMessage.h>
 #include <maya/MSelectionList.h>
 #include <maya/MFnDependencyNode.h>
 #include <maya/MStatus.h>
@@ -28,6 +29,9 @@ class CSphereLocator
 
 public:
 
+   CSphereLocator();
+   virtual ~CSphereLocator();
+   
    static MTypeId id;
 
    virtual void draw(M3dView& view, const MDagPath& DGpath, M3dView::DisplayStyle style, M3dView::DisplayStatus status);
@@ -65,6 +69,37 @@ public:
    // Need to check if sampling again is needed
    bool   m_goSample;
    bool   m_goUVSample;
+   
+   virtual void postConstructor()
+   {
+      // Initialize colorData
+      m_colorData   = NULL;
+      m_UData       = NULL;
+      m_VData       = NULL;
+      m_goSample    = true;
+      m_goUVSample  = true;
+      
+      MNodeMessage::addNodePreRemovalCallback(thisMObject(), removeSphereLocator, this);
+   }
+   
+   static void removeSphereLocator(MObject& node, void* clientData)
+   {
+      if (((CSphereLocator*)clientData)->m_colorData != NULL)
+      {
+         delete[] ((CSphereLocator*)clientData)->m_colorData;
+         ((CSphereLocator*)clientData)->m_colorData = NULL;
+      }
+      if (((CSphereLocator*)clientData)->m_UData != NULL)
+      {
+         delete[] ((CSphereLocator*)clientData)->m_UData;
+         ((CSphereLocator*)clientData)->m_UData = NULL;
+      }
+      if (((CSphereLocator*)clientData)->m_VData != NULL)
+      {
+         delete[] ((CSphereLocator*)clientData)->m_VData;
+         ((CSphereLocator*)clientData)->m_VData = NULL;
+      }
+   }
 
 };  // class CSphereLocator
 

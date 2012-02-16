@@ -43,6 +43,14 @@ void* CSphereLocator::creator()
    return new CSphereLocator();
 }
 
+CSphereLocator::CSphereLocator()
+{
+}
+
+CSphereLocator::~CSphereLocator()
+{
+}
+
 bool CSphereLocator::isAbstractClass()
 {
    return true;
@@ -61,6 +69,10 @@ void CSphereLocator::DrawUVSphere(float radius, int divisionsX, int divisionsY, 
    if (m_goUVSample)
    {
       int numUVdata = divisionsX * divisionsY * 4;
+      if (m_UData != NULL)
+         delete[] m_UData;
+      if (m_VData != NULL)
+         delete[] m_VData;
       m_UData = new float[numUVdata];
       m_VData = new float[numUVdata];
    }
@@ -203,6 +215,8 @@ void CSphereLocator::SampleSN(MPlug &colorPlug)
 
       MStatus status = MRenderUtil::sampleShadingNetwork(depNodeSkyColorName, numSamples, false, false, cameraMat, NULL, &uCoords, &vCoords, NULL, NULL, NULL, NULL, NULL, colors, transps);
 
+      if (m_colorData != NULL)
+         delete[] m_colorData;
       m_colorData = new char[numSamples * 4];
       int alpha = 255;
       for(unsigned int i = 0; (i < colors.length()); i++)
