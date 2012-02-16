@@ -19,13 +19,23 @@ public:
    {
       return (m_motion && IsLocalMotionBlurEnabled());
    }
-   
+   virtual ~CShapeTranslator()
+   {
+      delete m_shaders;
+   }
+
+protected:
+   CShapeTranslator() :
+      CDagTranslator()
+   {
+      m_shaders = new AtNodeSet;
+   }
+
    virtual void ProcessRenderFlags(AtNode* node);
    void ExportLightLinking(AtNode* polymesh);
    // for initializer callbacks:
    static void MakeCommonAttributes(CBaseAttrHelper& helper);
 
-protected:
    virtual AtNode* ExportRootShader(const MPlug& plug);
    AtNode* AddAOVDefaults(AtNode *shader);
    MObject GetNodeShadingGroup(MObject dagNode, int instanceNum);

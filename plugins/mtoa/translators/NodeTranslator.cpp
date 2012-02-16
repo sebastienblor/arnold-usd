@@ -60,9 +60,11 @@ namespace // <anonymous>
 
 //------------ CNodeTranslator ------------//
 
-/// gather up the active AOVs for the current node
+/// gather up the active AOVs for the current node and add them to m_AOVs
 void CNodeTranslator::ComputeAOVs()
 {
+   // FIXME: add early bail out if AOVs are not enabled
+
    MStringArray aovAttrs;
 
    MString typeName = GetMayaNodeTypeName();
@@ -70,7 +72,6 @@ void CNodeTranslator::ComputeAOVs()
    // FIXME: use more efficient insertion method
    MStatus stat;
    MPlug plug;
-   // TODO: check that the AOVs are active in the globals
    for (unsigned int i=1; i < aovAttrs.length(); i+=3)
    {
       plug = FindMayaObjectPlug(aovAttrs[i], &stat);
@@ -80,15 +81,17 @@ void CNodeTranslator::ComputeAOVs()
          MString value = plug.asString();
          aov.SetName(value);
          if (m_session->IsActiveAOV(aov))
+         {
             m_localAOVs.insert(aov);
-         else
-            AiMsgDebug("[mtoa] AOV %s is inactive on attr %s", value.asChar(), aovAttrs[i].asChar());
+            AiMsgDebug("[mtoa.translator.aov] %-30s | \"%s\" is active on attr %s",
+                       GetMayaNodeName().asChar(), value.asChar(), aovAttrs[i].asChar());
+         }
       }
    }
 }
 
 
-void CNodeTranslator::GetAOVs(AOVSet* aovs)
+void CNodeTranslator::TrackAOVs(AOVSet* aovs)
 {
    // create union
    AOVSet tempSet;
@@ -417,7 +420,7 @@ void CNodeTranslator::NodeDeletedCallback(MObject &node, MDGModifier &modifier, 
    }
 }
 
-
+/// add this node's AOVs into the passed AOVSet
 void CNodeTranslator::RequestUpdate(void *clientData)
 {
    // Remove this node from the callback list.

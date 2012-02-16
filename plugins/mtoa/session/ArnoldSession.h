@@ -52,6 +52,8 @@ typedef std::map<CNodeAttrHandle, std::map<int, CNodeTranslator*> > ObjectToDagT
 typedef std::map<MObjectHandle, MDagPath, MObjectCompare> ObjectHandleToDagMap;
 /// Opens an Arnold session, in which you can make changes to the Arnold universe: create or edit Arnold nodes.
 
+typedef std::set<AtNode*> AtNodeSet;
+
 /// This class handles exporting all or part of the Maya scene to Arnold, for rendering, exporting as an ass
 /// file or any other use. It has methods to export individual objects or whole scenes, and tracks the list
 /// of translators created for each Maya node export.
@@ -71,7 +73,7 @@ public:
 
    // Called by translators
    AtNode* ExportDagPath(MDagPath &dagPath, MStatus* stat=NULL);
-   AtNode* ExportNode(const MPlug& shaderOutputPlug, AOVSet* aovs=NULL, MStatus* stat=NULL);
+   AtNode* ExportNode(const MPlug& shaderOutputPlug, AtNodeSet* nodes=NULL, AOVSet* aovs=NULL, MStatus* stat=NULL);
 
    // FIXME : shouldn't probably be public
    AtNode* ExportWithTranslator(MObject node, const MString &mayaNodeClass, const MString &translatorName);

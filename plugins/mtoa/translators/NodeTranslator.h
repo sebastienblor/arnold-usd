@@ -65,7 +65,8 @@ public:
    virtual bool IsMayaTypeDag() {return false;}
    virtual bool IsMayaTypeRenderable() {return false;}
    virtual bool DependsOnExportCamera() {return false;}
-   void GetAOVs(AOVSet* aovs);
+   virtual void TrackAOVs(AOVSet* aovs);
+   virtual void TrackShaders(AtNodeSet* nodes) {m_shaders = nodes;};
 
 protected:
    CNodeTranslator()  :
@@ -75,7 +76,8 @@ protected:
       m_outputAttr(""),
       m_step(0),
       m_localAOVs(),
-      m_upstreamAOVs()
+      m_upstreamAOVs(),
+      m_shaders(NULL)
    {}
    void ComputeAOVs();
    void WriteAOVUserAttributes(AtNode* atNode);
@@ -130,7 +132,7 @@ protected:
    inline double GetMotionByFrame() const {return m_session->GetMotionByFrame(); }
 
    // session action
-   AtNode* ExportNode(const MPlug& outputPlug) {return m_session->ExportNode(outputPlug, &m_upstreamAOVs);}
+   AtNode* ExportNode(const MPlug& outputPlug) {return m_session->ExportNode(outputPlug, m_shaders, &m_upstreamAOVs);}
    AtNode* ExportDagPath(MDagPath &dagPath) {return m_session->ExportDagPath(dagPath);}
 
    // get the arnold node that this translator is exporting (should only be used after all export steps are complete)
@@ -174,6 +176,7 @@ protected:
    unsigned int m_step;
    AOVSet m_localAOVs;
    AOVSet m_upstreamAOVs;
+   AtNodeSet* m_shaders;
 
    // This stores callback IDs for the callbacks this
    // translator creates.
