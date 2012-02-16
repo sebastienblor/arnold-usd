@@ -33,9 +33,14 @@ ExtensionsList CExtensionsManager::s_extensions;
 MCallbackId CExtensionsManager::s_pluginLoadedCallbackId = 0;
 
 /// The Maya plugin it's used in (MtoA)
-void CExtensionsManager::SetMayaPlugin(MObject plugin)
+void CExtensionsManager::SetMayaPlugin(const MObject& plugin)
 {
    s_plugin = plugin;
+}
+
+const MObject& CExtensionsManager::GetMayaPlugin()
+{
+   return s_plugin;
 }
 
 /// Returns a pointer to the extension handling built-in nodes

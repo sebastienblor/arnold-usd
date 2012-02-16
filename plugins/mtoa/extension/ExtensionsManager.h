@@ -27,7 +27,8 @@ typedef std::list<CExtension> ExtensionsList;
 class DLLEXPORT CExtensionsManager
 {
 public:
-   static void SetMayaPlugin(MObject plugin);
+   static void SetMayaPlugin(const MObject& plugin);
+   static const MObject& GetMayaPlugin();
    static CExtension* GetBuiltin(MStatus *returnStatus=NULL);
 
    static CExtension* LoadArnoldPlugin(const MString &file,
