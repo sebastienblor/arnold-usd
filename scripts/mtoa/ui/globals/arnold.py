@@ -6,7 +6,6 @@ def updateRenderSettings(*args):
     flag = pm.getAttr('defaultArnoldRenderOptions.threads_autodetect') == False
     pm.attrControlGrp('os_threads', edit=True, enable=flag)
 
-
 def updateSamplingSettings(*args):
     flag = pm.getAttr('defaultArnoldRenderOptions.use_sample_clamp') == True
     pm.attrControlGrp('ss_max_value', edit=True, enable=flag)
@@ -90,9 +89,9 @@ def selectBackground(*args):
 def changeBackground(node, field):
     connection = pm.listConnections('defaultArnoldRenderOptions.background')
     if connection:
-        if pm.nodeType(connection) == 'transform':
-            connection = pm.listRelatives(connection, s=True)[0]
-        if connection == node:
+        if pm.nodeType(connection[0]) == 'transform':
+            connection = pm.listRelatives(connection[0], s=True)
+        if str(connection[0]) == str(node):
             selectBackground()
             return 0
     pm.connectAttr("%s.message"%node,'defaultArnoldRenderOptions.background', force=True)
@@ -120,7 +119,6 @@ def buildBackgroundMenu(popup, field):
     skies = pm.ls(type='aiSky')
 
     pm.popupMenu(popup, edit=True, deleteAllItems=True)
-
     for item in skies:
         pm.menuItem(parent=popup, label=item, command=Callback(changeBackground, item, field))
 
@@ -550,13 +548,13 @@ def createArnoldEnvironmentSettings():
 
     pm.rowLayout(adjustableColumn=2, numberOfColumns=3)
     pm.text(label="Background")
-    bgfield = pm.textField(editable=False)
+    bgfield = pm.textField("defaultArnoldRenderOptionsBackgroundTextField",editable=False)
     bgpopup = pm.popupMenu(parent=bgfield)
     pm.popupMenu(bgpopup, edit=True, postMenuCommand=Callback(buildBackgroundMenu, bgpopup, bgfield))
     pm.button(label="Select", height=22, width=50, command=selectBackground)
     pm.setParent('..')
 
-    conns = pm.listConnections('defaultArnoldRenderOptions.background', s=True, d=False)
+    conns = cmds.listConnections('defaultArnoldRenderOptions.background', s=True, d=False)
     if conns:
         pm.textField(bgfield, edit=True, text=conns[0])
 
@@ -952,6 +950,9 @@ def createArnoldRendererGlobalsTab():
 
     updateArnoldRendererGlobalsTab()
 
+def updateBackgroundSettings(*args):
+    background = getBackgroundShader()
+    pm.textField('defaultArnoldRenderOptionsBackgroundTextField', edit=True, text=background)
 
 def updateArnoldRendererGlobalsTab(*args):
     updateComputeSamples()
@@ -959,3 +960,4 @@ def updateArnoldRendererGlobalsTab(*args):
     updateSamplingSettings()
     updateMotionBlurSettings()
     updateLogSettings()
+    updateBackgroundSettings()

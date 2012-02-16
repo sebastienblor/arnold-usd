@@ -37,7 +37,7 @@ import mtoa.ui.exportass as exportass
 import mtoa.ui.nodeTreeLister as nodeTreeLister
 import mtoa.ui.globals.common
 from mtoa.ui.globals.common import createArnoldRendererCommonGlobalsTab, updateArnoldRendererCommonGlobalsTab
-from mtoa.ui.globals.arnold import createArnoldRendererGlobalsTab, updateArnoldRendererGlobalsTab
+from mtoa.ui.globals.arnold import createArnoldRendererGlobalsTab, updateArnoldRendererGlobalsTab, updateBackgroundSettings
 from mtoa.ui.aoveditor import createArnoldAOVTab, updateArnoldAOVTab
 import mtoa.ui.ae.utils as aeUtils
 from mtoa.ui.arnoldmenu import createArnoldMenu
@@ -249,7 +249,7 @@ def _register():
                                                       utils.pyToMelProc(createArnoldAOVTab, useName=True), 
                                                       utils.pyToMelProc(updateArnoldAOVTab, useName=True)))
     pm.renderer('arnold', edit=True, addGlobalsNode='defaultArnoldRenderOptions')
-    
+    utils.pyToMelProc(updateBackgroundSettings, useName=True)
     #We have to source this file otherwise maya will override
     #our mel proc overrides below.
     #

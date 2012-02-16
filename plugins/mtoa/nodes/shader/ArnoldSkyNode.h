@@ -16,36 +16,13 @@ class CArnoldSkyNode
 
 public:
 
-   static void removeSky(MObject& node, void* clientData)
+   static void removeSky(MPlug &srcPlug, MPlug &destPlug, bool made, void *clientData)
    {
-      MFnDependencyNode depNode(node);
-
-      MPlug plug = depNode.findPlug("message");
-
-      MPlugArray conns;
-
-      if (plug.connectedTo(conns, false, true))
-      {
-         MObject dstObj;
-         MFnDependencyNode dstNode;
-         MDGModifier dgMod;
-
-         for (unsigned int i=0; i<conns.length(); ++i)
-         {
-            dstObj = conns[i].node();
-            dstNode.setObject(dstObj);
-
-            if (dstNode.name() == "defaultArnoldRenderOptions")
-            {
-               // Disconnect to avoid defaultArnoldRenderGlobals be deleted
-               dgMod.disconnect(plug, conns[i]);
-               dgMod.doIt();
-               // And refresh arnold render options tab
-               MGlobal::executeCommand("UpdateArnoldRendererGlobalsTab()");
-               break;
-            }
-         }
-      }
+      MString srcName = srcPlug.partialName(false, false, false, false, false, true);
+      MString destName = destPlug.name();
+      
+      if(srcName == "message" && destName == "defaultArnoldRenderOptions.background")
+         MGlobal::executeCommand("updateBackgroundSettings()");
    }
 
    virtual void postConstructor()
@@ -54,7 +31,8 @@ public:
       CSphereLocator::postConstructor();
 
       setMPSafe(true);
-      MDGMessage::addNodeRemovedCallback(removeSky, "aiSky", this);
+
+      MDGMessage::addConnectionCallback(removeSky);
    }
 
    static void* creator();
