@@ -265,7 +265,6 @@ def _register():
                       useName=True)
 
 def registerArnoldRenderer():
-    pm.createNode('aiOptions', skipSelect=True, shared=True, name='defaultArnoldRenderOptions')
     alreadyRegistered = pm.renderer('arnold', exists=True)
     if not alreadyRegistered:
 

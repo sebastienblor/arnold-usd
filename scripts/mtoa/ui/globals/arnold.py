@@ -1,6 +1,7 @@
 ﻿import pymel.core as pm
 from mtoa.ui.ae.shapeTemplate import createTranslatorMenu
 from mtoa.callbacks import *
+import mtoa.core as core
 
 def updateRenderSettings(*args):
     flag = pm.getAttr('defaultArnoldRenderOptions.threads_autodetect') == False
@@ -851,7 +852,7 @@ def createArnoldLogSettings():
 def createArnoldRendererGlobalsTab():
 
     # Make sure the aiOptions node exists
-    pm.createNode('aiOptions', skipSelect=True, shared=True, name='defaultArnoldRenderOptions')
+    core.createOptions()
 
     parentForm = pm.setParent(query=True)
 

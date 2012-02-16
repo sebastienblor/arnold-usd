@@ -77,19 +77,21 @@ def createArnoldNode(nodeType, name=None, skipSelect=False, runtimeClassificatio
         pm.warning("[mtoa] Could not determine runtime classification of %s: set maya.classification metadata" % nodeType)
         node = pm.createNode(nodeType, **kwargs)
 
-    # connect any shader aovs to global aov nodes
     if not pm.objExists('defaultArnoldRenderOptions'):
         pm.createNode('aiOptions', skipSelect=True, shared=True, name='defaultArnoldRenderOptions')
-    activeAOVMap = aovs.getAOVMap()
-    if activeAOVMap:
-        for aovName, aovAttr, aovType in aovs.getNodeGlobalAOVData(nodeType):
-            aovNodeAttr = node.attr(aovAttr)
-            try:
-                aovNode = activeAOVMap[aovNodeAttr.get()]
-            except KeyError:
-                pass
-            else:
-                aovNode.attr('name').connect(aovNodeAttr)
+
+    if runtimeClassification in ('asShader', 'asTexture', 'asUtility'):
+        # connect any shader aovs to global aov nodes
+        activeAOVMap = aovs.getAOVMap()
+        if activeAOVMap:
+            for aovName, aovAttr, aovType in aovs.getNodeGlobalAOVData(nodeType):
+                aovNodeAttr = node.attr(aovAttr)
+                try:
+                    aovNode = activeAOVMap[aovNodeAttr.get()]
+                except KeyError:
+                    pass
+                else:
+                    aovNode.attr('name').connect(aovNodeAttr)
     return node
 
 def getAttributeData(nodeType):
@@ -108,4 +110,25 @@ def listTranslators(nodeType):
     # convert empty strings to None
     data = [x or None for x in data]
     return utils.groupn(data, 2)
-    
+
+def createStandIn(path=None):
+    if not pm.objExists('ArnoldStandInDefaultLightSet'):
+        pm.createNode("objectSet", name="ArnoldStandInDefaultLightSet", shared=True)
+        pm.lightlink(object='ArnoldStandInDefaultLightSet', light='defaultLightSet')
+
+    standIn = pm.createNode('aiStandIn', n='ArnoldStandInShape')
+    # temp fix until we can correct in c++ plugin
+    standIn.visibleInReflections.set(True)
+    standIn.visibleInRefractions.set(True)
+    pm.sets('ArnoldStandInDefaultLightSet', add=standIn)
+    if path:
+        standIn.dso.set(path)
+    return standIn
+
+def createOptions():
+    """
+    override this with your own function to set defaults
+    """
+    # the shared option ensures that it is only created if it does not exist
+    return pm.createNode('aiOptions', skipSelect=True, shared=True, name='defaultArnoldRenderOptions')
+

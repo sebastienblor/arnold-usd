@@ -30,6 +30,7 @@ import pymel.core as pm
 import mtoa.utils as utils
 from mtoa.ui.ae.shapeTemplate import createTranslatorMenu
 from mtoa.callbacks import *
+import mtoa.core as core
 
 if pm.mel.getApplicationVersionAsFloat() >= 2011:
     from maya.app.stereo import stereoCameraRig
@@ -647,8 +648,7 @@ def createArnoldImageFormatControl():
 
 
 def updateArnoldImageFormatControl(*args):
-    if not pm.objExists('defaultArnoldRenderOptions'):
-        pm.createNode('aiOptions', skipSelect=True, shared=True, name='defaultArnoldRenderOptions')
+    core.createOptions()
     curr = pm.getAttr('defaultArnoldRenderOptions.imageFormat')
     pm.setAttr('defaultRenderGlobals.imageFormat', 51)
     pm.setAttr('defaultRenderGlobals.imfkey', str(curr))
@@ -2144,7 +2144,7 @@ def updateArnoldRendererCommonGlobalsTab(*args):
      current renderer.
     '''
     # Re check for aiOptions node to exists
-    pm.createNode('aiOptions', skipSelect=True, shared=True, name="defaultArnoldRenderOptions")
+    core.createOptions()
 
     updateArnoldFileNamePrefixControl()
     updateArnoldFileNameFormatControl()
@@ -2179,7 +2179,7 @@ def createArnoldRendererCommonGlobalsTab():
     '''
 
     # Make sure the aiOptions node exists
-    pm.createNode('aiOptions', skipSelect=True, shared=True, name="defaultArnoldRenderOptions")
+    core.createOptions()
 
     parentForm = pm.setParent(query=True)
 
