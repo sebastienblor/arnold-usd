@@ -60,11 +60,12 @@ public:
    virtual MString GetMayaNodeName() const { return m_fnNode.name(); }
    virtual MString GetMayaNodeTypeName() const { return m_fnNode.typeName(); }
    virtual MObject GetMayaObjectAttribute(MString attributeName) const { return m_fnNode.attribute(attributeName); }
-   virtual MPlug FindMayaObjectPlug(MString attributeName) const { return m_fnNode.findPlug(attributeName); }
+   virtual MPlug FindMayaObjectPlug(MString attributeName, MStatus* ReturnStatus=NULL) const { return m_fnNode.findPlug(attributeName, ReturnStatus); }
 
    virtual bool IsMayaTypeDag() {return false;}
    virtual bool IsMayaTypeRenderable() {return false;}
    virtual bool DependsOnExportCamera() {return false;}
+   void GetAOVs(AOVSet* aovs);
 
 protected:
    CNodeTranslator()  :
@@ -72,8 +73,11 @@ protected:
       m_session(NULL),
       m_atNode(NULL),
       m_outputAttr(""),
-      m_step(0)
+      m_step(0),
+      m_AOVs()
    {}
+   void ComputeAOVs();
+   void WriteAOVUserAttributes(AtNode* atNode);
    virtual void Export(AtNode* atNode) = 0;
    virtual void ExportMotion(AtNode* atNode, unsigned int step){}
    // Update runs during IPR for step==0 (calls Export by default)
@@ -125,7 +129,8 @@ protected:
    inline double GetMotionByFrame() const {return m_session->GetMotionByFrame(); }
 
    // session action
-   AtNode* ExportNode(const MPlug& outputPlug) {return m_session->ExportNode(outputPlug);}
+   AtNode* ExportNode(MObject node, const MString &attrName="") { return m_session->ExportNode(node, attrName, &m_AOVs);}
+   AtNode* ExportNode(const MPlug& outputPlug) {return m_session->ExportNode(outputPlug, &m_AOVs);}
    AtNode* ExportDagPath(MDagPath &dagPath) {return m_session->ExportDagPath(dagPath);}
 
    // get the arnold node that this translator is exporting (should only be used after all export steps are complete)
@@ -167,6 +172,7 @@ protected:
    MFnDependencyNode m_fnNode;
    MString m_outputAttr;
    unsigned int m_step;
+   AOVSet m_AOVs;
 
    // This stores callback IDs for the callbacks this
    // translator creates.

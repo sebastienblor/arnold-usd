@@ -27,6 +27,9 @@ struct CAOVData
    int type;
 };
 
+class CAOV;
+typedef std::set<CAOV> AOVSet;
+
 enum AOVMode
 {
    AOV_MODE_DISABLED,

@@ -71,7 +71,8 @@ public:
 
    // Called by translators
    AtNode* ExportDagPath(MDagPath &dagPath, MStatus* stat=NULL);
-   AtNode* ExportNode(const MPlug& shaderOutputPlug, MStatus* stat=NULL);
+   AtNode* ExportNode(const MPlug& shaderOutputPlug, AOVSet* aovs=NULL, MStatus* stat=NULL);
+   AtNode* ExportNode(const MObject& mayaNode, const MString &attrName="", AOVSet* aovs=NULL, MStatus* stat=NULL);
 
    // FIXME : shouldn't probably be public
    AtNode* ExportWithTranslator(MObject node, const MString &mayaNodeClass, const MString &translatorName);

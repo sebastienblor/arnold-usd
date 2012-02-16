@@ -31,6 +31,7 @@
 #include <maya/MFnTransform.h>
 
 #include <string>
+#include <algorithm>
 
 #include <ai_universe.h>
 #include <assert.h>
@@ -59,6 +60,84 @@ namespace // <anonymous>
 
 //------------ CNodeTranslator ------------//
 
+/// gather up the active AOVs for the current node
+void CNodeTranslator::ComputeAOVs()
+{
+   MStringArray aovAttrs;
+
+   MString typeName = GetMayaNodeTypeName();
+   CExtensionsManager::GetNodeAOVs(typeName, aovAttrs);
+   // FIXME: use more efficient insertion method
+   MStatus stat;
+   MPlug plug;
+   // TODO: check that the AOVs are active in the globals
+   for (unsigned int i=1; i < aovAttrs.length(); i+=2)
+   {
+      plug = FindMayaObjectPlug(aovAttrs[i], &stat);
+      if (stat == MS::kSuccess)
+      {
+         CAOV aov;
+         MString value = plug.asString();
+         aov.SetName(value);
+         if (m_session->IsActiveAOV(aov))
+            m_AOVs.insert(aov);
+         else
+            AiMsgDebug("[mtoa] AOV %s is inactive on attr %s", value.asChar(), aovAttrs[i].asChar());
+      }
+   }
+}
+
+
+void CNodeTranslator::GetAOVs(AOVSet* aovs)
+{
+   // create union
+   AOVSet tempSet;
+   std::set_union(m_AOVs.begin(), m_AOVs.end(),
+                  aovs->begin(), aovs->end(),
+                  std::inserter(tempSet, tempSet.begin()));
+   aovs->swap(tempSet);
+}
+
+void CNodeTranslator::WriteAOVUserAttributes(AtNode* atNode)
+{
+   if (m_AOVs.size() && AiNodeDeclare(atNode, "mtoa_aovs", "constant ARRAY STRING"))
+   {
+      AiMsgDebug("[mtoa] [aovs] %s writing accumulated AOVs", GetMayaNodeName().asChar());
+      AtArray *ary = AiArrayAllocate(m_AOVs.size(), 1, AI_TYPE_STRING);
+      unsigned int i=0;
+      for (AOVSet::iterator it=m_AOVs.begin(); it!=m_AOVs.end(); ++it)
+      {
+         AiMsgDebug("[mtoa] [aovs]     %s", it->GetName().asChar());
+         AiArraySetStr(ary, i, it->GetName().asChar());
+         ++i;
+      }
+      AiNodeSetArray(atNode, "mtoa_aovs", ary);
+      /*
+      const CRenderOptions* renderOptions = CRenderSession::GetInstance()->RenderOptions();
+      std::vector<std::string> activeAOVs;
+      for (AOVSet::iterator it=m_AOVs.begin(); it!=m_AOVs.end(); ++it)
+      {
+         CAOV aov = *it;
+         if (renderOptions->IsActiveAOV(aov))
+         {
+            activeAOVs.push_back(aov.GetName().asChar());
+         }
+      }
+      unsigned int size = activeAOVs.size();
+      if (size)
+      {
+         cout << GetFnNode().name() << ": " << size << " active AOVs" << endl;
+         AtArray *ary = AiArrayAllocate(size, 1, AI_TYPE_STRING);
+         for (unsigned int i=0; i < size; ++i)
+         {
+            cout << "   " << activeAOVs[i] << endl;
+            AiArraySetStr(ary, i, activeAOVs[i].c_str());
+         }
+         AiNodeSetArray(atNode, "mtoa_aovs", ary);
+      }*/
+   }
+}
+
 // internal use only
 AtNode* CNodeTranslator::DoExport(unsigned int step)
 {
@@ -74,8 +153,10 @@ AtNode* CNodeTranslator::DoExport(unsigned int step)
          else
             AiMsgDebug("[mtoa.translator]  %-30s | Exporting (%s)",
                        GetMayaNodeName().asChar(), GetTranslatorName().asChar());
+         ComputeAOVs();
          Export(node);
          ExportUserAttribute(node);
+         WriteAOVUserAttributes(node);
       }
       else if (RequiresMotionData())
       {

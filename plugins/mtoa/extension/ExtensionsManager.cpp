@@ -867,6 +867,9 @@ void CExtensionsManager::GetNodeAOVs(const MString &mayaTypeName, MStringArray& 
 {
    CPxMayaNode mayaType(mayaTypeName);
    MayaNodeToTranslatorsMap::iterator transIt = s_registeredTranslators.find(mayaType);
+   if (transIt == s_registeredTranslators.end())
+      return;
+
    mayaType = transIt->first;
 
    for (unsigned int i = 0; i < mayaType.m_aovs.size(); ++i)

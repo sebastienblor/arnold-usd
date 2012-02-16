@@ -188,7 +188,12 @@ AtNode* CArnoldSession::ExportDagPath(MDagPath &dagPath, MStatus* stat)
 
 // Export a plug (dependency node output attribute)
 //
-AtNode* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, MStatus *stat)
+AtNode* CArnoldSession::ExportNode(const MObject& mayaNode, const MString &attrName, AOVSet* aovs, MStatus* stat)
+{
+   return ExportNode(MFnDependencyNode(mayaNode).findPlug(attrName), aovs, stat);
+}
+
+AtNode* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AOVSet* aovs, MStatus *stat)
 {
    MObject mayaNode = shaderOutputPlug.node();
    MStatus status = MStatus::kSuccess;
@@ -264,6 +269,11 @@ AtNode* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, MStatus *stat)
       translator->Init(this, mayaNode, resultPlug.partialName(false, false, false, false, false, true));
       m_processedTranslators.insert(ObjectToTranslatorPair(handle, translator));
       arnoldNode = translator->DoExport(0);
+   }
+   if (arnoldNode != NULL)
+   {
+      if (aovs != NULL)
+         translator->GetAOVs(aovs);
    }
    if (NULL != stat) *stat = status;
    AiMsgTab(-1);
