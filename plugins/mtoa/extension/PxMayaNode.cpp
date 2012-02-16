@@ -152,7 +152,7 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
                }
                // it's an aov parameter
                AtParamValue defaultValue = MAiParamGetDefault(arnoldNodeEntry, paramEntry);
-               RegisterAOV(defaultValue.STR, aovType, attrData.name);
+               RegisterAOV(defaultValue.STR, aovType, attrData.shortName);
             }
          }
       }
@@ -229,7 +229,7 @@ void CPxMayaNode::RegisterAOV(const MString &aovName,
    data.attribute = aovAttr;
    data.name = aovName;
    data.type = dataType;
-   AiMsgDebug("[%s] Registered aov %s",
-              provider.asChar(), aovName.asChar());
+   AiMsgInfo("[mtoa] [%s] [node %s] Registered AOV \"%s\"",
+             provider.asChar(), name.asChar(), aovName.asChar());
    m_aovs.push_back(data);
 }

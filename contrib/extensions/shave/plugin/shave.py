@@ -1,9 +1,9 @@
 import pymel.core as pm
-from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 import mtoa.ui.ae.shapeTemplate as templates
-from mtoa.ui.ae.shapeTemplate import ShapeTranslatorTemplate
+from mtoa.ui.ae.shapeTemplate import AttributeTemplate, ShapeMixin, registerTranslatorUI
+from mtoa.ui.ae.shaderTemplate import ShaderMixin
 
-class ShaveTemplate(ShapeTranslatorTemplate):
+class ShaveHairTemplate(AttributeTemplate, ShapeMixin, ShaderMixin):
     def setup(self):
         self.addControl("aiOverrideHair")
         self.addControl("aiHairShader")
@@ -19,4 +19,6 @@ class ShaveTemplate(ShapeTranslatorTemplate):
         self.addControl("aiIndirect")
         self.addControl("aiDirectDiffuse")
 
-templates.registerTranslatorUI(ShaveTemplate, "shaveHair", "shave")
+        self.addAOVLayout()
+
+templates.registerTranslatorUI(ShaveHairTemplate, "shaveHair", "shave")
