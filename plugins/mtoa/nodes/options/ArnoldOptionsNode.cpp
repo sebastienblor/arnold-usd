@@ -133,10 +133,10 @@ MStatus CArnoldOptionsNode::initialize()
 
    s_aovMode = eAttr.create("aovMode", "aovm");
    eAttr.setKeyable(false);
-   eAttr.setDefault(true);
    eAttr.addField("disabled", 0);
    eAttr.addField("enabled", 1);
    eAttr.addField("batch_only", 2);
+   eAttr.setDefault(1);
    addAttribute(s_aovMode);
    
    s_attributes.MakeInput("enable_aov_composition");   
