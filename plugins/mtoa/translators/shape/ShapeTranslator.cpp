@@ -185,7 +185,7 @@ AtNode* CShapeTranslator::AddAOVDefaults(AtNode *beauty)
    // get the active AOVs not in the exported list
    AOVSet unused;
    std::set_difference(active.begin(), active.end(),
-                       m_AOVs.begin(), m_AOVs.end(),
+                       m_upstreamAOVs.begin(), m_upstreamAOVs.end(),
                        std::inserter(unused, unused.begin()));
 
    MFnDependencyNode fnNode;

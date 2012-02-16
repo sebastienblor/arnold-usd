@@ -80,7 +80,7 @@ void CNodeTranslator::ComputeAOVs()
          MString value = plug.asString();
          aov.SetName(value);
          if (m_session->IsActiveAOV(aov))
-            m_AOVs.insert(aov);
+            m_localAOVs.insert(aov);
          else
             AiMsgDebug("[mtoa] AOV %s is inactive on attr %s", value.asChar(), aovAttrs[i].asChar());
       }
@@ -92,7 +92,10 @@ void CNodeTranslator::GetAOVs(AOVSet* aovs)
 {
    // create union
    AOVSet tempSet;
-   std::set_union(m_AOVs.begin(), m_AOVs.end(),
+   std::set_union(m_localAOVs.begin(), m_localAOVs.end(),
+                  m_upstreamAOVs.begin(), m_upstreamAOVs.end(),
+                  std::inserter(tempSet, tempSet.begin()));
+   std::set_union(tempSet.begin(), tempSet.end(),
                   aovs->begin(), aovs->end(),
                   std::inserter(tempSet, tempSet.begin()));
    aovs->swap(tempSet);
@@ -100,12 +103,12 @@ void CNodeTranslator::GetAOVs(AOVSet* aovs)
 
 void CNodeTranslator::WriteAOVUserAttributes(AtNode* atNode)
 {
-   if (m_AOVs.size() && AiNodeDeclare(atNode, "mtoa_aovs", "constant ARRAY STRING"))
+   if (m_upstreamAOVs.size() && AiNodeDeclare(atNode, "mtoa_aovs", "constant ARRAY STRING"))
    {
       AiMsgDebug("[mtoa] [aovs] %s writing accumulated AOVs", GetMayaNodeName().asChar());
-      AtArray *ary = AiArrayAllocate(m_AOVs.size(), 1, AI_TYPE_STRING);
+      AtArray *ary = AiArrayAllocate(m_upstreamAOVs.size(), 1, AI_TYPE_STRING);
       unsigned int i=0;
-      for (AOVSet::iterator it=m_AOVs.begin(); it!=m_AOVs.end(); ++it)
+      for (AOVSet::iterator it=m_upstreamAOVs.begin(); it!=m_upstreamAOVs.end(); ++it)
       {
          AiMsgDebug("[mtoa] [aovs]     %s", it->GetName().asChar());
          AiArraySetStr(ary, i, it->GetName().asChar());
@@ -115,7 +118,7 @@ void CNodeTranslator::WriteAOVUserAttributes(AtNode* atNode)
       /*
       const CRenderOptions* renderOptions = CRenderSession::GetInstance()->RenderOptions();
       std::vector<std::string> activeAOVs;
-      for (AOVSet::iterator it=m_AOVs.begin(); it!=m_AOVs.end(); ++it)
+      for (AOVSet::iterator it=m_localAOVs.begin(); it!=m_localAOVs.end(); ++it)
       {
          CAOV aov = *it;
          if (renderOptions->IsActiveAOV(aov))

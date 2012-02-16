@@ -74,7 +74,8 @@ protected:
       m_atNode(NULL),
       m_outputAttr(""),
       m_step(0),
-      m_AOVs()
+      m_localAOVs(),
+      m_upstreamAOVs()
    {}
    void ComputeAOVs();
    void WriteAOVUserAttributes(AtNode* atNode);
@@ -129,7 +130,7 @@ protected:
    inline double GetMotionByFrame() const {return m_session->GetMotionByFrame(); }
 
    // session action
-   AtNode* ExportNode(const MPlug& outputPlug) {return m_session->ExportNode(outputPlug, &m_AOVs);}
+   AtNode* ExportNode(const MPlug& outputPlug) {return m_session->ExportNode(outputPlug, &m_upstreamAOVs);}
    AtNode* ExportDagPath(MDagPath &dagPath) {return m_session->ExportDagPath(dagPath);}
 
    // get the arnold node that this translator is exporting (should only be used after all export steps are complete)
@@ -171,7 +172,8 @@ protected:
    MFnDependencyNode m_fnNode;
    MString m_outputAttr;
    unsigned int m_step;
-   AOVSet m_AOVs;
+   AOVSet m_localAOVs;
+   AOVSet m_upstreamAOVs;
 
    // This stores callback IDs for the callbacks this
    // translator creates.
