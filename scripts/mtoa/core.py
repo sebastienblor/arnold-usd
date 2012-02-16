@@ -82,7 +82,7 @@ def createArnoldNode(nodeType, name=None, skipSelect=False, runtimeClassificatio
         pm.createNode('aiOptions', skipSelect=True, shared=True, name='defaultArnoldRenderOptions')
     activeAOVMap = aovs.getAOVMap()
     if activeAOVMap:
-        for (aovName, aovAttr) in aovs.getNodeAOVAttrs(nodeType):
+        for aovName, aovAttr, aovType in aovs.getNodeAOVData(nodeType):
             aovNodeAttr = node.attr(aovAttr)
             try:
                 aovNode = activeAOVMap[aovNodeAttr.get()]

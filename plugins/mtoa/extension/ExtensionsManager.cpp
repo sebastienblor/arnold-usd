@@ -886,6 +886,8 @@ void CExtensionsManager::GetNodeAOVs(const MString &mayaTypeName, MStringArray& 
    {
       result.append(mayaType.m_aovs[i].name);
       result.append(mayaType.m_aovs[i].attribute);
+      MString type = AiParamGetTypeName(mayaType.m_aovs[i].type);
+      result.append(type.toLowerCase());
    }
 }
 

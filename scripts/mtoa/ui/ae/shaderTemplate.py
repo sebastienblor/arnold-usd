@@ -142,7 +142,7 @@ class ShaderMixin(object):
 
     def addAOVLayout(self):
         '''Add an aov control for each aov registered for this node type'''
-        aovAttrs = aovs.getNodeAOVAttrs(nodeType=self.nodeType())
+        aovAttrs = aovs.getNodeAOVData(nodeType=self.nodeType())
         if aovAttrs:
             self.beginLayout("AOVs", collapse=True)
 #            self.beginNoOptimize()
@@ -150,7 +150,7 @@ class ShaderMixin(object):
 #            self.addControl('overrideAOVs', label='Override AOV Names')
 #            self.endNoOptimize()
             dynamic = self.nodeType() not in set(pm.pluginInfo("mtoa", q=True, dependNode=True))
-            for name, attr in aovAttrs:
+            for name, attr, type in aovAttrs:
                 if dynamic:
                     attr = 'ai_' + attr
                 self.addAOVControl(attr)

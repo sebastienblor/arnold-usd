@@ -71,7 +71,7 @@ void CNodeTranslator::ComputeAOVs()
    MStatus stat;
    MPlug plug;
    // TODO: check that the AOVs are active in the globals
-   for (unsigned int i=1; i < aovAttrs.length(); i+=2)
+   for (unsigned int i=1; i < aovAttrs.length(); i+=3)
    {
       plug = FindMayaObjectPlug(aovAttrs[i], &stat);
       if (stat == MS::kSuccess)

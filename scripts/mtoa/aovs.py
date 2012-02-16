@@ -1,22 +1,35 @@
 import pymel.core as pm
 import mtoa.utils as utils
+from collections import namedtuple
 
 BUILTIN_AOVS = (
-                ('P',       'POINT'),
-                ('Z',       'FLOAT'),
-                ('N',       'VECTOR'),
-                ('opacity', 'RGB'),
-                ('motionvector', 'RGB'),
-                ('Pref',    'RGB'),
-                ('raycount','FLOAT'),
-                ('cputime', 'FLOAT'),
-#                ('RGB',     'RGB'),
-#                ('RGBA',    'RGBA'),
-#                ('A',       'FLOAT'),
-#                ('ID',      'INT'),
-#                ('OBJECT',  'NODE'),
-#                ('SHADER',  'NODE'),
+                ('P',       'point'),
+                ('Z',       'float'),
+                ('N',       'vector'),
+                ('opacity', 'rgb'),
+                ('motionvector', 'rgb'),
+                ('Pref',    'rgb'),
+                ('raycount','float'),
+                ('cputime', 'float'),
+#                ('RGB',     'rgb'),
+#                ('RGBA',    'rgba'),
+#                ('A',       'float'),
+#                ('ID',      'int'),
+#                ('OBJECT',  'node'),
+#                ('SHADER',  'node'),
                 )
+
+# TODO: use types from arnold python module?
+TYPES = (
+    "int",
+    "bool",
+    "float",
+    "rgb",
+    "rgba",
+    "vector",
+    "point",
+    "point2",
+    "pointer")
 
 def safeDelete(node):
     '''delete a node, or disconnect it, if it is read-only'''
@@ -84,7 +97,7 @@ class AOVNode(object):
         '''return a mapping from aovName to aovNode'''
         return dict(self.getActiveAOVNodes(names=True))
 
-    def addAOV(self, aovName):
+    def addAOV(self, aovName, aovType='rgba'):
         '''
         add an AOV to the active list for this AOV node if it does not already exist
 
@@ -93,6 +106,7 @@ class AOVNode(object):
         if aovName not in self.getActiveAOVs():
             aovNode = pm.createNode('aiAOV', name='aiAOV_' + aovName, skipSelect=True)
             aovNode.attr('name').set(aovName)
+            aovNode.attr('type').set(aovType)
             aovNode.message.connect(self._aovAttr, nextAvailable=True)
             return aovNode
 
@@ -138,6 +152,8 @@ def getAOVMap():
 # global queries
 #------------------------------------------------------------
 
+AOVData = namedtuple('AOVData', ['name', 'attribute', 'type'])
+
 def getRegisteredAOVs(builtin=False, nodeType=None):
     '''
     returns a list of all registered aov names.
@@ -147,9 +163,9 @@ def getRegisteredAOVs(builtin=False, nodeType=None):
     '''
     if nodeType:
         if isinstance(nodeType, (list, tuple)):
-            result = [x[0] for x in getNodeAOVAttrs(nt) for nt in nodeType]
+            result = [x[0] for x in getNodeAOVData(nt) for nt in nodeType]
         else:
-            result = [x[0] for x in getNodeAOVAttrs(nodeType)]
+            result = [x[0] for x in getNodeAOVData(nodeType)]
     else:
         result = pm.cmds.arnoldPlugins(listAOVs=True)
     if builtin:
@@ -159,14 +175,16 @@ def getRegisteredAOVs(builtin=False, nodeType=None):
 def getBuiltinAOVs():
     return [x[0] for x in BUILTIN_AOVS]
 
-def getNodeAOVAttrs(nodeType):
-    "returns a list of registered (aov name, aov attribute) pairs for the given node type"
+def getNodeAOVData(nodeType):
+    "returns a list of registered (name, attribute, data type) pairs for the given node type"
     # convert to a 2d array
-    result = utils.groupn(pm.cmds.arnoldPlugins(listAOVs=True, nodeType=nodeType), 2)
-    return sorted(result, key=lambda x: x[0])
+    result = [AOVData(*x) for x in utils.groupn(pm.cmds.arnoldPlugins(listAOVs=True, nodeType=nodeType), 3)]
+    return sorted(result, key=lambda x: x.name)
 
 def getNodeTypesWithAOVs():
     return sorted(pm.cmds.arnoldPlugins(listAOVNodeTypes=True))
+
+#- groups
 
 def getAOVGroups():
     return ['<builtin>']
@@ -183,7 +201,7 @@ def getGroupAOVs(groupName):
 #    # TODO: rewrite in c++ if this is too slow
 #    aovs = set([])
 #    for nodeType in pm.cmds.arnoldPlugins(listAOVNodeTypes=True):
-#        attrs = dict(getNodeAOVAttrs(nodeType)).values()
+#        attrs = dict(getNodeAOVData(nodeType)).values()
 #        for node in pm.ls(type=nodeType):
 #            for attr in attrs:
 #                aovs.add(pm.getAttr(node + '.' + attr))
