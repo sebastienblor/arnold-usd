@@ -99,6 +99,8 @@ public:
          delete[] ((CSphereLocator*)clientData)->m_VData;
          ((CSphereLocator*)clientData)->m_VData = NULL;
       }
+      ((CSphereLocator*)clientData)->m_goSample    = true;
+      ((CSphereLocator*)clientData)->m_goUVSample  = true;
    }
 
 };  // class CSphereLocator
