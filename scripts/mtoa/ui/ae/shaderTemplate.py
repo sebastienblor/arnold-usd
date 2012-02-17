@@ -26,7 +26,7 @@ class AOVOptionMenuGrp(templates.BaseTemplate):
     BEAUTY_ITEM = "RGBA"
     _instances = []
     
-    def __init__(self, nodeType, label=None, allowCreation=True, includeBeauty=False, allowEmpty=True, allowDisable=True):
+    def __init__(self, nodeType, label=None, allowCreation=True, includeBeauty=False, allowEmpty=True, allowDisable=False):
         super(AOVOptionMenuGrp, self).__init__(nodeType)
         aovs.addAOVChangedCallback(self.update)
         self.activeNodes = None
