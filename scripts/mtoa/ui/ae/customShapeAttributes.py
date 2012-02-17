@@ -374,18 +374,14 @@ callbacks.addAttributeChangedCallbacks('stereoRigCamera',
 def registerDriverTemplates():
     # register driver templates
     for transName, arnoldNode in core.listTranslators("aiAOVDriver"):
-        transName = str(transName) # doesn't like unicode
-        cls = type('Driver_%sTemplate' % transName, (templates.AutoTranslatorTemplate,), dict(_arnoldNodeType=arnoldNode))
-        templates.registerTranslatorUI(cls, "aiAOVDriver", transName)
+        templates.registerAutoTranslatorUI(arnoldNode, "aiAOVDriver", transName)
 
     templates.registerDefaultTranslator('aiAOVDriver', 'exr')
 
 def registerFilterTemplates():
     # register driver templates
     for transName, arnoldNode in core.listTranslators("aiAOVFilter"):
-        transName = str(transName) # doesn't like unicode
-        cls = type('Filter_%sTemplate' % transName, (templates.AutoTranslatorTemplate,), dict(_arnoldNodeType=arnoldNode))
-        templates.registerTranslatorUI(cls, "aiAOVFilter", transName)
+        templates.registerAutoTranslatorUI(arnoldNode, "aiAOVFilter", transName)
 
     templates.registerDefaultTranslator('aiAOVFilter', 'gaussian')
 

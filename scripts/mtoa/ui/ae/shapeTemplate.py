@@ -405,13 +405,22 @@ class ShapeTranslatorTemplate(AttributeTemplate, ShapeMixin):
 #            templates[default].showInChannelBox(True)
 
 class AutoTranslatorTemplate(AttributeTemplate):
+    '''
+    A translator template which automatically builds itself based on data queries from
+    an arnold node type
+    
+    It is highly recommended that you use the utility function registerAutoTranslatorUI()
+    to create a template of this type
+    '''
     _arnoldNodeType = None
-
+    _attribData = None
     def setup(self):
         """
         default setup automatically builds a UI based on metadata
         """
-        for paramName, attrName, label, annotation in core.getAttributeData(self._arnoldNodeType):
+        if self.__class__._attribData is None:
+            self.__class__._attribData = core.getAttributeData(self._arnoldNodeType)
+        for paramName, attrName, label, annotation in self._attribData:
             self.addControl(attrName,
                             label if label else prettify(paramName),
                             annotation)
@@ -675,7 +684,7 @@ def aeTemplate(nodeType, baseClass=AttributeTemplate):
         return func
     return registerUIDecorator
 
-def registerTranslatorUI(templateClass, nodeType, translatorName='<built-in>'):
+def registerTranslatorUI(templateClass, mayaNodeType, translatorName='<built-in>'):
     """
     A translator UI is a specialized attribute template based on the AttributeTemplate class. 
     
@@ -685,15 +694,31 @@ def registerTranslatorUI(templateClass, nodeType, translatorName='<built-in>'):
     UI is registered.
     """
     global _translatorTemplates
-    translators = getTranslators(nodeType)
+    translators = getTranslators(mayaNodeType)
     if translatorName not in translators:
         pm.warning('[mtoa] Registering unknown translator "%s" for Maya node %s. Valid choices are: %s' % \
-                   (translatorName, nodeType, ', '.join(['"%s"' % x for x in translators])))
+                   (translatorName, mayaNodeType, ', '.join(['"%s"' % x for x in translators])))
 #    assert inspect.isclass(templateClass) and issubclass(templateClass, AttributeTemplate),\
 #        "you must pass a subclass of AttributeTemplate"
-    _translatorTemplates[nodeType][translatorName] = templateClass
+    _translatorTemplates[mayaNodeType][translatorName] = templateClass
 
-    registerAETemplate(TranslatorControl, nodeType)
+    registerAETemplate(TranslatorControl, mayaNodeType)
+
+def registerAutoTranslatorUI(arnoldNode, mayaNodeType, translatorName='<built-in>'):
+    """
+    Utility function for automatically creating a translator UI template based on an arnold
+    node type
+    """
+    translatorName = str(translatorName) # doesn't like unicode
+    # we query the attribute data up front instead of when the translator is initialized or setup
+    # so that it is done when mtoa.cmds.registerArnoldRenderer is first  called and the Arnold
+    # universe is already active. otherwise, successive calls to core.getAttributeData later on cause
+    # the Arnold universe to repeatedly begin and end.
+    cls = type('%s_%sTemplate' % (mayaNodeType, translatorName),
+               (AutoTranslatorTemplate,),
+               dict(_arnoldNodeType=arnoldNode,
+                    _attribData = core.getAttributeData(arnoldNode)))
+    registerTranslatorUI(cls, mayaNodeType, translatorName)
 
 # FIXME: should we just get rid of this?
 def translatorUI(nodeType, translatorName='<built-in>', baseClass=AttributeTemplate):
