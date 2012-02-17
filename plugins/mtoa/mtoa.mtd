@@ -928,16 +928,16 @@
     maya.hide               BOOL    true
 
 [node driver_exr]
-    maya.attr_prefix        STRING  "driver_"
+    maya.attr_prefix        STRING  ""
     maya.translator         STRING  "exr"
     [attr filename]
         maya.hide           BOOL    true
     [attr compression]
-        maya.name           STRING  "driverExrCompression"
-        maya.shortname      STRING  "driver_exr_compression"
+        maya.name           STRING  "exrCompression"
+        maya.shortname      STRING  "exr_compression"
 
 [node driver_jpeg]
-    maya.attr_prefix        STRING  "driver_"
+    maya.attr_prefix        STRING  ""
     maya.translator         STRING  "jpeg"
     [attr filename]
         maya.hide           BOOL    true
@@ -950,7 +950,7 @@
         max                 INT     100
 
 [node driver_png]
-    maya.attr_prefix        STRING  "driver_"
+    maya.attr_prefix        STRING  ""
     maya.translator         STRING  "png"
     [attr filename]
         maya.hide           BOOL    true
@@ -959,11 +959,11 @@
         min                 FLOAT   0.0001
         softmax             FLOAT   5.0
     [attr format]
-        maya.name           STRING  "driverPngFormat"
-        maya.shortname      STRING  "driver_png_format"
+        maya.name           STRING  "pngFormat"
+        maya.shortname      STRING  "png_format"
 
 [node driver_tiff]
-    maya.attr_prefix        STRING  "driver_"
+    maya.attr_prefix        STRING  ""
     maya.translator         STRING  "tif"
     [attr filename]
         maya.hide           BOOL    true
@@ -972,16 +972,16 @@
         min                 FLOAT   0.0001
         softmax             FLOAT   5.0
     [attr compression]
-        maya.name           STRING  "driverTiffCompression"
-        maya.shortname      STRING  "driver_tiff_compression"
+        maya.name           STRING  "tiffCompression"
+        maya.shortname      STRING  "tiff_compression"
     [attr format]
-        maya.name           STRING  "driverTiffFormat"
-        maya.shortname      STRING  "driver_tiff_format"
+        maya.name           STRING  "tiffFormat"
+        maya.shortname      STRING  "tiff_format"
 
 # filters
 
 [node blackman_harris_filter]
-    maya.attr_prefix        STRING  "filter_"
+    maya.attr_prefix        STRING  ""
     maya.translator         STRING  "blackman_harris"
     # we put 2 as default here to have 2 for gaussian as default. Kinda ugly but since
     # blackman harris filter is the first to create the filter width attribute on defaultArnoldGlobal
@@ -990,73 +990,73 @@
         default             FLOAT   2.0
 
 [node box_filter]
-    maya.attr_prefix        STRING  "filter_"
+    maya.attr_prefix        STRING  ""
     maya.translator         STRING  "box"
 
 [node catrom2d_filter]
-    maya.attr_prefix        STRING  "filter_"
+    maya.attr_prefix        STRING  ""
     maya.translator         STRING  "catrom2d"
 
 [node catrom_filter]
-    maya.attr_prefix        STRING  "filter_"
+    maya.attr_prefix        STRING  ""
     maya.translator         STRING  "catrom"
 
 [node closest_filter]
-    maya.attr_prefix        STRING  "filter_"
+    maya.attr_prefix        STRING  ""
     maya.translator         STRING  "closest"
 
 [node cone_filter]
-    maya.attr_prefix        STRING  "filter_"
+    maya.attr_prefix        STRING  ""
     maya.translator         STRING  "cone"
 
 [node cook_filter]
-    maya.attr_prefix        STRING  "filter_"
+    maya.attr_prefix        STRING  ""
     maya.translator         STRING  "cook"
 
 [node cubic_filter]
-    maya.attr_prefix        STRING  "filter_"
+    maya.attr_prefix        STRING  ""
     maya.translator         STRING  "cubic"
 
 [node disk_filter]
-    maya.attr_prefix        STRING  "filter_"
+    maya.attr_prefix        STRING  ""
     maya.translator         STRING  "disk"
 
 [node farthest_filter]
-    maya.attr_prefix        STRING  "filter_"
+    maya.attr_prefix        STRING  ""
     maya.translator         STRING  "farthest"
 
 [node heatmap_filter]
-    maya.attr_prefix        STRING  "filter_"
+    maya.attr_prefix        STRING  ""
     maya.translator         STRING  "heatmap"
 
 [node mitnet_filter]
-    maya.attr_prefix        STRING  "filter_"
+    maya.attr_prefix        STRING  ""
     maya.translator         STRING  "mitnet"
 
 [node sinc_filter]
-    maya.attr_prefix        STRING  "filter_"
+    maya.attr_prefix        STRING  ""
     maya.translator         STRING  "sinc"
     [attr width]
         default             FLOAT   2.0
 
 [node triangle_filter]
-    maya.attr_prefix        STRING  "filter_"
+    maya.attr_prefix        STRING  ""
     maya.translator         STRING  "triangle"
     [attr width]
         default             FLOAT   2.0
 
 [node variance_filter]
-    maya.attr_prefix        STRING  "filter_"
+    maya.attr_prefix        STRING  ""
     maya.translator         STRING  "variance"
     [attr width]
         default             FLOAT   2.0
 
 [node video_filter]
-    maya.attr_prefix        STRING  "filter_"
+    maya.attr_prefix        STRING  ""
     maya.translator         STRING  "video"
 
 [node gaussian_filter]
-    maya.attr_prefix        STRING  "filter_"
+    maya.attr_prefix        STRING  ""
     maya.translator         STRING  "gaussian"
     [attr width]
         default             FLOAT   2.0

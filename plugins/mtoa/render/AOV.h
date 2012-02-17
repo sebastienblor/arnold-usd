@@ -8,6 +8,7 @@
 #include <maya/MString.h>
 #include <maya/MPlug.h>
 #include <maya/MFnDependencyNode.h>
+#include <maya/MStringArray.h>
 
 #include <cstring>
 #include <string>
@@ -58,14 +59,14 @@ public:
 
    inline const MString& GetPrefix() const { return m_prefix; }
 
-   inline const MString& GetImageFormat() const { return m_imageformat; }
+   inline const MStringArray& GetImageFormats() const { return m_extensions; }
 
    bool IsEnabled() { return m_enabled; }
    bool FromMaya(MObject &o);
 
-   void SetImageFilename(const MString &filename) const;
+   void SetImageFilename(unsigned int driverNum, const MString &filename) const;
 
-   MString SetupOutput(AtNode *defaultDriver, AtNode *defaultFilter);
+   void SetupOutputs(MStringArray &result, AtNode *defaultDriver, AtNode *defaultFilter);
 
 protected:
 
@@ -83,8 +84,9 @@ protected:
    MString   m_imageformat;
    MObject   m_object;
    MFnDependencyNode m_fnNode;
-   AtNode*   m_driver;
-   AtNode*   m_filter;
+   std::vector<AtNode*>  m_drivers;
+   std::vector<AtNode*>  m_filters;
+   MStringArray m_extensions;
 };
 
 

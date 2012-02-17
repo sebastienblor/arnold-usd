@@ -35,6 +35,7 @@ public:
    static MObject s_imageFormat;
    static MObject s_aovs;
    static MObject s_aovMode;
+   static MObject s_driver;
 
    static MObject s_renderType;
    static MObject s_outputAssBoundingBox;
@@ -52,6 +53,7 @@ public:
    static MObject s_lock_sampling_noise;
    static MObject s_aa_seed;
    static MObject s_filterType;
+   static MObject s_filter;
 
    static MObject s_driver_gamma;
    static MObject s_light_gamma;

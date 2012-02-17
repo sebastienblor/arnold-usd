@@ -12,7 +12,7 @@ public:
    AtNode* CreateArnoldNodes();
    virtual bool DependsOnExportCamera() {return true;}
 
-   void SetCamera(AtNode *options, MDagPath& cameraNode);
+   void SetCamera(AtNode *options);
    bool IsActiveAOV(CAOV &aov) const
    {
       if (m_aovs.count(aov))

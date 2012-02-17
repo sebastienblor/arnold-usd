@@ -11,6 +11,8 @@
 #include "nodes/TxTextureFile.h"
 #include "nodes/ShaderUtils.h"
 #include "nodes/ArnoldAOVNode.h"
+#include "nodes/ArnoldDriverNode.h"
+#include "nodes/ArnoldFilterNode.h"
 #include "nodes/MayaNodeIDs.h"
 #include "nodes/ArnoldNodeIDs.h"
 #include "nodes/SphereLocator.h"
@@ -86,6 +88,17 @@ namespace // <anonymous>
                                    CArnoldAOVNode::initialize);
       CHECK_MSTATUS(status);
 
+      status = plugin.registerNode("aiAOVDriver",
+                                   CArnoldDriverNode::id,
+                                   CArnoldDriverNode::creator,
+                                   CArnoldDriverNode::initialize);
+      CHECK_MSTATUS(status);
+
+      status = plugin.registerNode("aiAOVFilter",
+                                   CArnoldFilterNode::id,
+                                   CArnoldFilterNode::creator,
+                                   CArnoldFilterNode::initialize);
+      CHECK_MSTATUS(status);
 
 
       // Displacement Shaders

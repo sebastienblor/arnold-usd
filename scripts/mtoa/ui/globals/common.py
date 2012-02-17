@@ -624,9 +624,10 @@ def createArnoldImageFormatControl():
     if pm.layout(fullPath, exists=True):
         pm.deleteUI(fullPath)
 
-    createTranslatorMenu('defaultArnoldRenderOptions.imageFormat', 
+    # TODO: connect node to options
+    createTranslatorMenu('defaultArnoldDriver.aiTranslator', 
                          label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kImageFormatMenu"),
-                         nodeType='<driver>',
+                         nodeType='aiAOVDriver',
                          default='exr',
                          optionMenuName='imageMenuMayaSW')
 
@@ -640,7 +641,7 @@ def createArnoldImageFormatControl():
 
     pm.scriptJob(
         parent=parent,
-        attributeChange=("defaultArnoldRenderOptions.imageFormat",
+        attributeChange=("defaultArnoldDriver.aiTranslator",
                          updateArnoldImageFormatControl))
 
 #    changeArnoldImageFormat()
@@ -649,7 +650,7 @@ def createArnoldImageFormatControl():
 
 def updateArnoldImageFormatControl(*args):
     core.createOptions()
-    curr = pm.getAttr('defaultArnoldRenderOptions.imageFormat')
+    curr = pm.getAttr('defaultArnoldDriver.aiTranslator')
     pm.setAttr('defaultRenderGlobals.imageFormat', 51)
     pm.setAttr('defaultRenderGlobals.imfkey', str(curr))
 

@@ -1,8 +1,8 @@
 import pymel.core as pm
 from mtoa.callbacks import *
 import mtoa.aovs as aovs
+import mtoa.utils as utils
 import mtoa.ui.ae.shaderTemplate as shaderTemplate
-from mtoa.ui.ae.aiAOVTemplate import AOVTranslatorControl
 import mtoa.ui.ae.shapeTemplate as shapeTemplate
 import mtoa.core as core
 import mtoa.callbacks as callbacks
@@ -11,7 +11,7 @@ import sys
 
 UI_NAME = 'ArnoldAOVUI'
 AOV_ATTRS = ('name', 'type', 'prefix')
-WIDTH = 400
+WIDTH = 414
 
 def _uiName(tag):
     return '%s_%s' % (UI_NAME, tag)
@@ -19,7 +19,7 @@ def _uiName(tag):
 global _updating
 _updating = False
 
-AOV_CALLBACK_ATTRS = ('type', 'defaultValue', 'filterType', 'imageFormat', 'prefix')
+AOV_CALLBACK_ATTRS = ('type', 'defaultValue')
 
 class AOVBrowser(object):
     '''
@@ -191,7 +191,6 @@ class AOVBrowser(object):
             groups = self.nodeTypes
         else:
             groups = pm.textScrollList(self.groupLst, query=True, selectItem=True)
-            
 
         # first, find out what's selected, so we can reselect any persistent items
         sel = pm.textScrollList(self.availableLst, query=True, selectItem=True)
@@ -200,7 +199,7 @@ class AOVBrowser(object):
         pm.textScrollList(self.availableLst, edit=True, removeAll=True)
         pm.textScrollList(self.activeLst, edit=True, removeAll=True)
         try:
-            activeAOVs = self.renderOptions.getActiveAOVs()
+            activeAOVs = [x[0] for x in self.renderOptions.getActiveAOVs()]
         except pm.MayaNodeError:
             activeAOVs = []
         self.allAOVs = set([])
@@ -220,24 +219,31 @@ class AOVBrowser(object):
                     pm.textScrollList(self.activeLst, edit=True, append=aovName)
 
 class AOVItem(object):
+    aovRowWidths = [18, 110, 68]
+    outputRowWidths = [60, 108]
     def __init__(self, parent, aovObject, lockName=False):
+        self.outputsChanged = True
         self.parent = parent
         self.aov = aovObject
-
+        self.menus = []
         DARK_BLUE = [.16, .17, .2]
         aovNode = self.aov.node
 
-        kwargs = dict(nc=2,
-                      columnWidth2=[30, 368],
-                      columnAttach2=['right', 'both'])
+        self.baseWidget = pm.cmds.columnLayout(adj=True)
 
-        self.row = pm.rowLayout(**kwargs)
+        pm.cmds.rowLayout(nc=3,
+                     rowAttach=([1, 'top', 2],
+                                [3, 'top', 2]),
+                     columnWidth3=[sum(self.aovRowWidths)+8, sum(self.outputRowWidths)+8, 20],
+                     columnAttach3=['right', 'both', 'both'])
 
-        self.enabledCtrl = pm.checkBox(label='')
-        pm.rowLayout(numberOfColumns=6,
-                     columnWidth6=[110, 68, 84, 54, 20, 20],
-                     columnAttach6=['both', 'both', 'both', 'both', 'both', 'both'])
-        
+        # AOV UI --------
+        pm.cmds.rowLayout(nc=3,
+                     
+                     columnWidth3=self.aovRowWidths,
+                     columnAttach3=['right', 'both', 'both'])
+
+        self.enabledCtrl = pm.cmds.checkBox(label='')
         pm.connectControl(self.enabledCtrl, aovNode.attr('enabled'))
 
         nameAttr = aovNode.attr('name')
@@ -253,58 +259,179 @@ class AOVItem(object):
             # orange
             self.nameCtrl.setBackgroundColor(DARK_BLUE)
 
+        #pm.text(label='name')
         # attrEnumOptionMenu does not work with multi-attrs and optionMenu does not work with connectControl,
         # so, unfortunately, our best option is attrEnumOptionMenuGrp
-        self.channelsMenu = pm.attrEnumOptionMenuGrp(attribute=str(aovNode.attr('type')), columnWidth2=[1, 50])
+        self.channelsMenu = pm.cmds.attrEnumOptionMenuGrp(attribute=str(aovNode.attr('type')), columnWidth2=[1, 50])
 
-#        driverTemplate = AOVTranslatorControl(
-#                              nodeType='<driver>',
-#                              label='',
-#                              controlAttr='imageFormat')
-#        driverTemplate._doSetup(aovNode.name())
+#        self.channelsMenu = pm.optionMenu()
+#        for typeName, enum in aovs.TYPES:
+#            pm.menuItem(label=typeName, data=enum)
+#        pm.connectControl(self.channelsMenu, aovNode.attr('type').name())
+        #self.menus.append(self.channelsMenu)
+        pm.setParent('..')
+
+        pm.cmds.frameLayout(labelVisible=False)
+        self.outputColumn = pm.cmds.columnLayout(adj=True, rowSpacing=2)
+
+        # cache the list of outputs
+        self.outputs = []
+        for outputAttr in aovNode.attr('outputs'):
+            try:
+                driverNode = outputAttr.driver.inputs()[0]
+                filterNode = outputAttr.filter.inputs()[0]
+            except IndexError:
+                continue
+            else:
+                outputRow = self.buildOutputRow(outputAttr, driverNode, filterNode)
+                self.outputs.append((outputRow, outputAttr, driverNode, filterNode))
+                #pm.symbolButton(image="navButtonConnected.png")
+                #pm.symbolButton(image="smallTrash.png")
+                pm.setParent('..')
+
+        pm.setParent('..')
+        pm.setParent('..')
+
+
+        aovMenuButton = pm.cmds.symbolButton(image="arrowDown.png")
+#        pm.symbolButton(image="smallTrash.png",
+#                        command=lambda *args: self.parent.removeAOV(aovNode))
+
+        self.popupMenu = pm.cmds.popupMenu(parent=aovMenuButton, button=1, postMenuCommand=self.buildPopupMenu)
+
+        pm.setParent('..')
+        pm.setParent('..')
+
+    def buildOutputRow(self, outputAttr, driverNode, filterNode):
+        pm.setParent(self.outputColumn)
+        defaultDriver = '<%s>' % pm.getAttr('defaultArnoldDriver.aiTranslator')
+        defaultFilter = '<%s>' % pm.getAttr('defaultArnoldFilter.aiTranslator')
+        # DRIVER UI ----------
+        outputRow = pm.cmds.rowLayout(nc=2,
+                     columnWidth2=self.outputRowWidths,
+                     columnAttach2=['both', 'both'])
+
+        driverMenu = pm.cmds.optionMenu(label='', w=50,
+                                   changeCommand=lambda newDriver, at=outputAttr.driver: \
+                                        self.driverChangedCallback(at, newDriver))
         
-#        createTranslatorMenu(str(aovNode.attr('imageFormat')), label='',
-#                             nodeType='<driver>',)
-        #pm.optionMenu(label='')
-        filterAttr = aovNode.attr('filterType')
-        self.filterMenu = pm.optionMenu(label='', w=80,
-                                   changeCommand=lambda *args: filterAttr.set(args[0].strip('<>')))
-        defaultFilter = '<%s>' % self.parent.renderOptions.node.filterType.get()
-        pm.menuItem(label=defaultFilter)
-        for tran in shapeTemplate.getTranslators('<filter>'):
-            pm.menuItem(label=tran)
-        filter = filterAttr.get()
-        if filter in ['', '<Use Globals>']:
-            filter = defaultFilter
-        self.filterMenu.setValue(filter)
-
-        driverAttr = aovNode.attr('imageFormat')
-        self.driverMenu = pm.optionMenu(label='', w=50,
-                                   changeCommand=lambda *args: driverAttr.set(args[0].strip('<>')))
-        defaultDriver = '<%s>' % self.parent.renderOptions.node.imageFormat.get()
-        pm.menuItem(label=defaultDriver)
-        for tran in shapeTemplate.getTranslators('<driver>'):
-            pm.menuItem(label=tran)
-        driver = driverAttr.get()
-        if driver in ['', '<Use Globals>']:
+        pm.cmds.menuItem(label=defaultDriver)
+        for tran in shapeTemplate.getTranslators('aiAOVDriver'):
+            pm.cmds.menuItem(label=tran)
+        if driverNode.name() == 'defaultArnoldDriver':
             driver = defaultDriver
-        self.driverMenu.setValue(driver)
+        else:
+            driver = driverNode.attr('aiTranslator').get()
+        try:
+            pm.cmds.optionMenu(driverMenu, e=True, value=driver)
+            #driverMenu.setValue(driver)
+        except RuntimeError:
+            pm.warning("[mtoa] %s: Unknown driver %r" % (driverNode, driver))
 
-        self.navButton = pm.symbolButton(image="navButtonConnected.png",
-                        command=lambda *args: pm.select(aovNode))
+        self.menus.append(driverMenu)
 
+        filterMenu = pm.cmds.optionMenu(label='', w=80,
+                                   changeCommand=lambda newFilter, at=outputAttr.filter: \
+                                        self.filterChangedCallback(at, newFilter))
+        
+        pm.cmds.menuItem(label=defaultFilter)
+        for tran in shapeTemplate.getTranslators('aiAOVFilter'):
+            pm.cmds.menuItem(label=tran)
+        if filterNode.name() == 'defaultArnoldFilter':
+            filter = defaultFilter
+        else:
+            filter = filterNode.attr('aiTranslator').get()
+        try:
+            pm.cmds.optionMenu(filterMenu, e=True, value=filter)
+            #filterMenu.setValue(filter)
+        except RuntimeError:
+            pm.warning("[mtoa] %s: Unknown filter %r" % (filterNode, filter))
+        self.menus.append(filterMenu)
+        return outputRow
 
-        pm.symbolButton(image="smallTrash.png",
-                        command=lambda *args: self.parent.removeAOV(aovNode))
+    def driverChangedCallback(self, aovOutputAttr, newValue):
+        self.outputChangedCallback(aovOutputAttr, newValue, 'aiAOVDriver', 'defaultArnoldDriver.message')
 
-        cmds.setParent('..')
-        cmds.setParent('..')
+    def filterChangedCallback(self, aovOutputAttr, newValue):
+        self.outputChangedCallback(aovOutputAttr, newValue, 'aiAOVFilter', 'defaultArnoldFilter.message')
+
+    def outputChangedCallback(self, aovOutputAttr, newValue, outputType, defaultNodePlug):
+        """
+        change callback for both filter and driver menus
+        
+        outputType: either 'aiAOVDriver' or 'aiAOVFilter'
+        """
+        conn = aovOutputAttr.inputs()
+        if newValue.startswith('<'):
+            pm.connectAttr(defaultNodePlug, aovOutputAttr, force=True)
+            pm.select(defaultNodePlug.split('.')[0])
+            if conn and not conn[0].outputs():
+                utils.safeDelete(conn[0])
+        else:
+            if conn and conn[0].outputs():
+                # other AOVs are dependent on existing filter/driver. create and connect a new one
+                outputNode = pm.createNode(outputType)
+                pm.connectAttr(outputNode.message, aovOutputAttr, force=True)
+            else:
+                outputNode = conn[0]
+            newValue = newValue.strip('<>')
+            outputNode.aiTranslator.set(newValue)
 
     def getMenus(self):
-        return [self.filterMenu, self.driverMenu]
+        return self.menus
 
     def delete(self):
-        self.row.delete()
+        pm.deleteUI(self.baseWidget)
+
+    def addOutput(self):
+#        driverNode = pm.createNode('aiDriver')
+#        filterNode = pm.createNode('aiFilter')
+        driverNode = pm.nt.DependNode('defaultArnoldDriver')
+        filterNode = pm.nt.DependNode('defaultArnoldFilter')
+        outputAttr = self.aov.node.attr('outputs')
+        outputAttr = outputAttr.elementByLogicalIndex(outputAttr.numElements())
+ 
+        driverNode.message.connect(outputAttr.driver)
+        filterNode.message.connect(outputAttr.filter)
+        outputRow = self.buildOutputRow(outputAttr, driverNode, filterNode)
+        self.outputs.append((outputRow, outputAttr, driverNode, filterNode))
+        self.outputsChanged = True
+
+    def removeOutput(self, index):
+        outputRow, outputAttr, driverNode, filterNode = self.outputs.pop(index)
+        if driverNode.message.outputs() > 1:
+            outputAttr.driver.disconnect()
+        else:
+            utils.safeDelete(driverNode)
+
+        if filterNode.message.outputs() > 1:
+            outputAttr.filter.disconnect()
+        else:
+            utils.safeDelete(filterNode)
+        outputAttr.remove()
+        pm.deleteUI(outputRow)
+        self.outputsChanged = True
+
+    def buildPopupMenu(self, menu, parent):
+        if self.outputsChanged:
+            pm.popupMenu(self.popupMenu, edit=True, deleteAllItems=True)
+            pm.cmds.menuItem(parent=menu, label='Select AOV Node', c=lambda *args: pm.select(self.aov.node))
+            pm.cmds.menuItem(parent=menu, label='Remove AOV', c=lambda *args: self.parent.removeAOV(self.aov.node))
+            pm.cmds.menuItem(parent=menu, label='Add New Output Driver', c=lambda *args: self.addOutput())
+            pm.cmds.menuItem(parent=menu, divider=True)
+            if len(self.outputs) > 1:
+                for i, (outputRow, outputAttr, driver, filter) in enumerate(self.outputs):
+                    subMenu = pm.cmds.menuItem(parent=menu, label='Output Driver %d' % (i+1), subMenu=True)
+                    pm.cmds.menuItem(parent=subMenu, label='Select Driver', c=lambda *args: pm.select(driver))
+                    pm.cmds.menuItem(parent=subMenu, label='Select Filter', c=lambda *args: pm.select(filter))
+                    pm.cmds.menuItem(parent=subMenu, divider=True)
+                    pm.cmds.menuItem(parent=subMenu, label='Remove', c=lambda *args: self.removeOutput(i))
+            else:
+                outputRow, outputAttr, driver, filter = self.outputs[0]
+                pm.cmds.menuItem(parent=menu, label='Select Driver', c=lambda *args: pm.select(driver))
+                pm.cmds.menuItem(parent=menu, label='Select Filter', c=lambda *args: pm.select(filter))
+            self.outputsChanged = False
+        return menu
 
 class ArnoldAOVEditor(object):
 
@@ -315,33 +442,34 @@ class ArnoldAOVEditor(object):
         self.aovRows = {}
         self.renderOptions = aovs.getAOVNode() if aovNode is None else aovNode
 
-        pm.columnLayout('arnoldAOVMainColumn')
+        pm.cmds.columnLayout('arnoldAOVMainColumn')
 
-        pm.frameLayout('arnoldAOVBrowserFrame', label='AOV Browser', width=WIDTH, collapsable=True, collapse=False)
+        pm.cmds.frameLayout('arnoldAOVBrowserFrame', label='AOV Browser', width=WIDTH, collapsable=True, collapse=False)
 
         self.browser = AOVBrowser(self.renderOptions)
         pm.setParent('..') # frame
 
-        pm.frameLayout('arnoldAOVPrimaryFrame', label='AOVs', width=WIDTH, collapsable=True, collapse=False)
-        self.aovCol = pm.columnLayout('arnoldAOVListColumn')
+        pm.cmds.frameLayout('arnoldAOVPrimaryFrame', label='AOVs', width=WIDTH, collapsable=True, collapse=False)
+        self.aovCol = pm.cmds.columnLayout('arnoldAOVListColumn', adj=True)
 
-        pm.rowLayout('arnoldAOVButtonRow', nc=3, columnWidth3=[140, 100, 100], columnAttach3=['right', 'both', 'both'])
-        pm.text(label='')
-        pm.button(label='Add Custom', c=lambda *args: shaderTemplate.newAOVPrompt())
-        pm.button(label='Delete All', c=lambda *args: pm.delete(pm.ls(type='aiAOV')))
+        pm.cmds.rowLayout('arnoldAOVButtonRow', nc=3, columnWidth3=[140, 100, 100], columnAttach3=['right', 'both', 'both'])
+        pm.cmds.text(label='')
+        pm.cmds.button(label='Add Custom', c=lambda *args: shaderTemplate.newAOVPrompt())
+        pm.cmds.button(label='Delete All', c=lambda *args: pm.delete(pm.ls(type='aiAOV')))
         pm.setParent('..') # rowLayout
 
-        pm.rowLayout(nc=5,
-                     columnWidth5=[45, 94, 66, 80, 60],
-                     columnAttach5=['both', 'both', 'both', 'both', 'both'])
-        pm.text(label='enable')
-        pm.text(label='name')
-        pm.text(label='channels')
-        pm.text(label='filter')
-        pm.text(label='driver')
-        pm.setParent('..') # rowLayout
+        pm.cmds.separator(style='in')
+        pm.rowLayout(nc=4,
+                     columnWidth4=[130, 66, 80, 40],
+                     columnAttach4=['both', 'both', 'both', 'both'])
+        pm.cmds.text(label='name')
+        pm.cmds.text(label='data')
+        pm.cmds.text(label='driver')
+        pm.cmds.text(label='filter')
+
+        pm.cmds.setParent('..') # rowLayout
         
-        pm.separator()
+        pm.cmds.separator(style='in')
 
     #    pm.text(_uiName('prefixLbl'), align='center', label='Prefix', parent=form)
     #    pm.textField(_uiName('prefixFld'), enable=False, text='', parent=form, changeCommand=Callback(setAOVPrefix, aovnode))
@@ -397,11 +525,12 @@ class ArnoldAOVEditor(object):
             self.addRows()
 
         self.browser.updateActiveAOVs()
-        # a maya bug causes menus to ignore their specified width
-        print "refresh", numDeleted, len(self.optionMenus)
-        if numDeleted != len(self.optionMenus):
-            print "creating script job"
-            pm.scriptJob(runOnce=True, idleEvent=self.fixOptionMenus)
+
+#        # a maya bug causes menus to ignore their specified width
+#        print "refresh", numDeleted, len(self.optionMenus)
+#        if numDeleted != len(self.optionMenus):
+#            print "creating script job"
+#            pm.scriptJob(runOnce=True, idleEvent=self.fixOptionMenus)
 
 #    def attrAddedCallback(self, msg, plug, otherPlug, *args):
 #        #print "attr changed", msg, pm.Attribute(plug)
@@ -455,7 +584,7 @@ def arnoldAOVEditor(*args):
     ed = ArnoldAOVEditor()
     print time.time() - s
     win.show()
-    pm.evalDeferred(ed.fixOptionMenus)
+    #pm.evalDeferred(ed.fixOptionMenus)
     return ed
 
 def arnoldAOVBrowser(**kwargs):

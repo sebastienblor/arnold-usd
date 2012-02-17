@@ -3,6 +3,7 @@ import mtoa.utils as utils
 import mtoa.callbacks as callbacks
 from collections import namedtuple
 from itertools import groupby
+import arnold.ai_params
 
 BUILTIN_AOVS = (
                 ('P',       'point'),
@@ -21,17 +22,16 @@ BUILTIN_AOVS = (
 #                ('SHADER',  'node'),
                 )
 
-# TODO: use types from arnold python module?
 TYPES = (
-    "int",
-    "bool",
-    "float",
-    "rgb",
-    "rgba",
-    "vector",
-    "point",
-    "point2",
-    "pointer")
+    ("int",    arnold.ai_params.AI_TYPE_INT),
+    ("bool",   arnold.ai_params.AI_TYPE_BOOLEAN),
+    ("float",  arnold.ai_params.AI_TYPE_FLOAT),
+    ("rgb",    arnold.ai_params.AI_TYPE_RGB),
+    ("rgba",   arnold.ai_params.AI_TYPE_RGBA),
+    ("vector", arnold.ai_params.AI_TYPE_VECTOR),
+    ("point",  arnold.ai_params.AI_TYPE_POINT),
+    ("point2", arnold.ai_params.AI_TYPE_POINT2),
+    ("pointer",arnold.ai_params.AI_TYPE_POINTER))
 
 
 GlobalAOVData = namedtuple('GlobalAOVData', ['name', 'attribute', 'type'])
@@ -58,13 +58,6 @@ class SceneAOV(object):
     @property
     def node(self):
         return self._node
-
-def safeDelete(node):
-    '''delete a node, or disconnect it, if it is read-only'''
-    if node.isReadOnly():
-        node.message.disconnect()
-    else:
-        pm.delete(node)
 
 #------------------------------------------------------------
 # scene queries
@@ -153,7 +146,12 @@ class AOVNode(object):
 
         returns the created AOV node
         '''
+        if not isinstance(aovType, int):
+            aovType = dict(TYPES)[aovType]
         aovNode = pm.createNode('aiAOV', name='aiAOV_' + aovName, skipSelect=True)
+        out = aovNode.attr('outputs')[0]
+        pm.connectAttr('defaultArnoldDriver.message', out.driver)
+        pm.connectAttr('defaultArnoldFilter.message', out.filter)
         aovNode.attr('name').set(aovName)
         aovNode.attr('type').set(aovType)
         aovNode.message.connect(self._aovAttr, nextAvailable=True)
@@ -168,7 +166,7 @@ class AOVNode(object):
         '''
         aovNode = self.getAOVNode(aovName)
         if aovNode:
-            safeDelete(aovNode)
+            self.removeAOVNode(aovNode)
             return True
         return False
 
@@ -180,11 +178,19 @@ class AOVNode(object):
         '''
         matches = self.getAOVNodes(aovName)
         for aovNode in matches:
-            safeDelete(aovNode)
+            self.removeAOVNode(aovNode)
         return bool(matches)
 
     def removeAOVNode(self, aovNode):
-        safeDelete(aovNode)
+        print aovNode
+        inputs = aovNode.inputs(type=['aiAOVDriver', 'aiAOVFilter'])
+        print inputs
+        utils.safeDelete(aovNode)
+        
+        for input in inputs:
+            # callback may have deleted it
+            if input.exists() and not input.message.outputs():
+                print "deleting", input
 
     def renameAOVs(self, oldName, newName):
         '''

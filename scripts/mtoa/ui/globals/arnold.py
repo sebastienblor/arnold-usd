@@ -378,9 +378,10 @@ def createArnoldSamplingSettings():
 #    pm.rowLayout(numberOfColumns=2, columnWidth=(1, 80))
 #    pm.separator(style='none')
 
-    createTranslatorMenu('defaultArnoldRenderOptions.filterType',
+    # TODO: connect node to options
+    createTranslatorMenu('defaultArnoldFilter.aiTranslator',
                          label='Filter Type',
-                         nodeType='<filter>',
+                         nodeType='aiAOVFilter',
                          default='gaussian')
 
 #    pm.attrEnumOptionMenu('os_filter_type',

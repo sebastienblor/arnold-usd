@@ -425,7 +425,7 @@ class TranslatorControl(AttributeEditorTemplate):
     '''
     def __init__(self, nodeType, label='Arnold Translator', controlAttr='aiTranslator', default=None, optionMenuName=None):
         super(TranslatorControl, self).__init__(nodeType)
-        self._optionMenu = optionMenuName if optionMenuName is not None else controlAttr + "OMG"
+        self._optionMenu = optionMenuName if optionMenuName is not None else (nodeType + '_' + controlAttr + "OMG")
         self._translators = None
         self._label = label
 

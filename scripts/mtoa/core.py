@@ -77,8 +77,7 @@ def createArnoldNode(nodeType, name=None, skipSelect=False, runtimeClassificatio
         pm.warning("[mtoa] Could not determine runtime classification of %s: set maya.classification metadata" % nodeType)
         node = pm.createNode(nodeType, **kwargs)
 
-    if not pm.objExists('defaultArnoldRenderOptions'):
-        pm.createNode('aiOptions', skipSelect=True, shared=True, name='defaultArnoldRenderOptions')
+    createOptions()
 
     if runtimeClassification in ('asShader', 'asTexture', 'asUtility'):
         # connect any shader aovs to global aov nodes
@@ -125,10 +124,85 @@ def createStandIn(path=None):
         standIn.dso.set(path)
     return standIn
 
+def upgradeAOVOutput(options, defaultFilter=None, defaultDriver=None):
+    """
+    Upgrades scenes to use new node-base filter and drivers
+
+    Unfortunately, in Maya 2012 old driver/filter attributes are extension attributes, so no longer
+    exist on the aiAOV node.  As a result AOVs that overrode the global value will lose 
+    driver/filter specific settings like compression and quality.
+    """
+    print "[mtoa] upgrading to new AOV driver/filter setup"
+    aovNodes = pm.ls(type='aiAOV')
+    if defaultDriver is None:
+        defaultDriver = pm.nt.DependNode('defaultArnoldDriver')
+        
+    if defaultFilter is None:
+        defaultFilter = pm.nt.DependNode('defaultArnoldFilter')
+
+    driver = options.imageFormat.get()
+    defaultDriver.aiTranslator.set(driver)
+
+    filter = options.filterType.get()
+    defaultFilter.aiTranslator.set(filter)
+
+    data = [(aovNodes, 'aiAOVDriver', '.outputs[0].driver', 'imageFormat', defaultDriver),
+            (aovNodes, 'aiAOVFilter', '.outputs[0].filter', 'filterType', defaultFilter)]
+
+    for nodes, mayaNodeType, inputAttr, controlAttr, defaultNode in data:
+#        attrSet = set([])
+#        for transName, arnoldNode in listTranslators(mayaNodeType):
+#            print "\t", arnoldNode
+#            for paramName, attrName, label, annotation in getAttributeData(arnoldNode):
+#                print "\t\t", paramName, attrName
+#                attrSet.add(attrName)
+        for node in nodes:
+            at = node.name() + inputAttr
+            inputs = pm.listConnections(at, source=True, destination=False)
+            if not inputs:
+                translator = node.attr(controlAttr).get()
+                if translator in ['', '<Use Globals>']:
+                    defaultNode.message.connect(at)
+                    print "[mtoa] upgrading %s: connected to default node %s" % (node, defaultNode)
+                else:
+                    outputNode = pm.createNode(mayaNodeType, skipSelect=True)
+                    print "[mtoa] upgrading %s: created new node %s and set translator to %r" % (node, outputNode, translator)
+                    outputNode.message.connect(at)
+                    outputNode.aiTranslator.set(translator)
+
+#                for attr in attrSet:
+#                    oldName = outputType + attr[0].upper() + attr[1:]
+#                    try:
+#                        value = aovNode.attr(oldName).get()
+#                        print aovNode, oldName, value
+#                    except AttributeError:
+#                        pass
+#                    outputNode.attr(attr)
+
+
 def createOptions():
     """
     override this with your own function to set defaults
     """
     # the shared option ensures that it is only created if it does not exist
-    return pm.createNode('aiOptions', skipSelect=True, shared=True, name='defaultArnoldRenderOptions')
+    options = pm.createNode('aiOptions', skipSelect=True, shared=True, name='defaultArnoldRenderOptions')
+    filterNode = pm.createNode('aiAOVFilter', name='defaultArnoldFilter', skipSelect=True, shared=True)
+    driverNode = pm.createNode('aiAOVDriver', name='defaultArnoldDriver', skipSelect=True, shared=True)
+
+    if (filterNode or driverNode) and not options:
+        options = pm.nt.DependNode('defaultArnoldRenderOptions')
+        # options previously existed, so we need to upgrade
+        upgradeAOVOutput(options, filterNode, driverNode)
+
+    # if we're just creating the options node, then be sure to connect up the driver and filter
+    if not filterNode:
+        filterNode = pm.nt.DependNode('defaultArnoldFilter')
+    if not driverNode:
+        driverNode = pm.nt.DependNode('defaultArnoldDriver')
+    if not options:
+        options = pm.nt.DependNode('defaultArnoldRenderOptions')
+
+    filterNode.message.connect(options.filter, force=True)
+    driverNode.message.connect(options.driver, force=True)
+
 

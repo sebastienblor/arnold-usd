@@ -74,11 +74,6 @@ public:
    // Called by translators
    AtNode* ExportDagPath(MDagPath &dagPath, MStatus* stat=NULL);
    AtNode* ExportNode(const MPlug& shaderOutputPlug, AtNodeSet* nodes=NULL, AOVSet* aovs=NULL, MStatus* stat=NULL);
-
-   // FIXME : shouldn't probably be public
-   AtNode* ExportWithTranslator(MObject node, const MString &mayaNodeClass, const MString &translatorName);
-   AtNode* ExportDriver(MObject node, const MString &translatorName);
-   AtNode* ExportFilter(MObject node, const MString &translatorName);
    AtNode* ExportOptions();
 
    bool GetActiveTranslators(const MObject& object, std::vector<CNodeTranslator* >& result);

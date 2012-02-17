@@ -125,6 +125,13 @@ def findMelScript(name):
                 break
     return proc
 
+def safeDelete(node):
+    '''delete a node, or disconnect it, if it is read-only'''
+    if node.isReadOnly():
+        node.message.disconnect()
+    else:
+        cmds.delete(str(node))
+
 def _substitute(parts, tokens, allOrNothing=False):
     result = []
     for i, tok in enumerate(parts):

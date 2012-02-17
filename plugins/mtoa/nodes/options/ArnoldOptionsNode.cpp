@@ -25,6 +25,7 @@ MCallbackId CArnoldOptionsNode::sId;
 MObject CArnoldOptionsNode::s_imageFormat;
 MObject CArnoldOptionsNode::s_aovs;
 MObject CArnoldOptionsNode::s_aovMode;
+MObject CArnoldOptionsNode::s_driver;
 MObject CArnoldOptionsNode::s_renderType;
 MObject CArnoldOptionsNode::s_outputAssBoundingBox;
 MObject CArnoldOptionsNode::s_progressive_rendering;
@@ -39,6 +40,7 @@ MObject CArnoldOptionsNode::s_AA_sample_clamp;
 MObject CArnoldOptionsNode::s_lock_sampling_noise;
 MObject CArnoldOptionsNode::s_aa_seed;
 MObject CArnoldOptionsNode::s_filterType;
+MObject CArnoldOptionsNode::s_filter;
 MObject CArnoldOptionsNode::s_driver_gamma;
 MObject CArnoldOptionsNode::s_light_gamma;
 MObject CArnoldOptionsNode::s_shader_gamma;
@@ -451,6 +453,14 @@ MStatus CArnoldOptionsNode::initialize()
    tAttr.setKeyable(false);
    tAttr.setDefault(sData.create(""));
    addAttribute(s_texture_searchpath);
+
+   s_driver = mAttr.create("driver", "drvr");
+   mAttr.setKeyable(false);
+   addAttribute(s_driver);
+
+   s_filter = mAttr.create("filter", "filt");
+   mAttr.setKeyable(false);
+   addAttribute(s_filter);
 
    return MS::kSuccess;
 }

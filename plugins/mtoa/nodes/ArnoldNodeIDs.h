@@ -7,6 +7,8 @@
 #define ARNOLD_NODEID_RENDER_OPTIONS            0x00115C00
 #define ARNOLD_NODEID_STAND_INS                 0x00115C01
 #define ARNOLD_NODEID_SPHERE_LOCATOR            0x00115C02
+#define ARNOLD_NODEID_DRIVER                    0x00115C03
+#define ARNOLD_NODEID_FILTER                    0x00115C04
 
 // Arnold Lights and light filters
 #define ARNOLD_NODEID_BARNDOOR                  0x00115C80

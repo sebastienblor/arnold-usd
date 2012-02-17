@@ -71,11 +71,11 @@ MStatus CPxMayaNode::ReadMetaData(const AtNodeEntry* arnoldNodeEntry)
       }
       else if (arnoldNodeTypeName == "driver")
       {
-         name = "<driver>";
+         name = "aiAOVDriver";
       }
       else if (arnoldNodeTypeName == "filter")
       {
-         name = "<filter>";
+         name = "aiAOVFilter";
       }
       else
       {

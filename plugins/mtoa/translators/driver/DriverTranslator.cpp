@@ -18,18 +18,13 @@ void CDriverTranslator::Export(AtNode *shader)
    assert(AiUniverseIsActive());
 
    MStatus status;
-   MPlug plug;
-
-   const AtNodeEntry* nodeEntry = AiNodeGetNodeEntry(shader);
-
-   CBaseAttrHelper helper(nodeEntry);
-   AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(nodeEntry);
+   AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(AiNodeGetNodeEntry(shader));
    while (!AiParamIteratorFinished(nodeParam))
    {
       const AtParamEntry *paramEntry = AiParamIteratorGetNext(nodeParam);
       const char* paramName = AiParamGetName(paramEntry);
-      int paramType = AiParamGetType(paramEntry);
-      ProcessParameter(shader, paramName, paramType);
+
+      if (strcmp(paramName, "name") != 0) ProcessParameter(shader, paramName, AiParamGetType(paramEntry));
    }
    AiParamIteratorDestroy(nodeParam);
 }
@@ -41,9 +36,7 @@ void CDriverTranslator::NodeInitializer(CAbTranslator context)
    MString provider = context.provider;
    const AtNodeEntry *nodeEntry = AiNodeEntryLookUp(arnold.asChar());
 
-   // FIXME: remove this hard-wire
-   CExtensionAttrHelper helper("aiOptions", nodeEntry);
-   CExtensionAttrHelper helper2("aiAOV", nodeEntry);
+   CExtensionAttrHelper helper(maya, nodeEntry);
    // inputs
    AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(nodeEntry);
    while (!AiParamIteratorFinished(nodeParam))
@@ -53,7 +46,6 @@ void CDriverTranslator::NodeInitializer(CAbTranslator context)
       if (!helper.IsHidden(paramName))
       {
          helper.MakeInput(paramName);
-         helper2.MakeInput(paramName);
       }
    }
    AiParamIteratorDestroy(nodeParam);

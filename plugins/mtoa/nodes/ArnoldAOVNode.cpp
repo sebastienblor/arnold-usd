@@ -22,6 +22,11 @@ MObject CArnoldAOVNode::s_defaultValue;
 MObject CArnoldAOVNode::s_imageFormat;
 MObject CArnoldAOVNode::s_filterType;
 
+MObject CArnoldAOVNode::s_outputs;
+MObject CArnoldAOVNode::s_driver;
+MObject CArnoldAOVNode::s_filter;
+
+
 void* CArnoldAOVNode::creator()
 {
    return new CArnoldAOVNode();
@@ -34,7 +39,7 @@ MStatus CArnoldAOVNode::initialize()
    MFnNumericAttribute nAttr;
    MFnMessageAttribute mAttr;
    MFnStringData sData;
-
+   MFnCompoundAttribute cmpAttr;
 
    s_enabled = nAttr.create("enabled", "aoven", MFnNumericData::kBoolean, 1);
    nAttr.setKeyable(false);
@@ -68,14 +73,33 @@ MStatus CArnoldAOVNode::initialize()
    tAttr.setDefault(sData.create(""));
    addAttribute(s_prefix);
 
+   // TODO: remove after transitioning to new driver/filter nodes
    s_imageFormat = tAttr.create("imageFormat", "img", MFnData::kString);
    tAttr.setKeyable(false);
    tAttr.setDefault(sData.create(""));
    addAttribute(s_imageFormat);
 
+   // TODO: remove after transitioning to new driver/filter nodes
    s_filterType = tAttr.create("filterType", "fltr", MFnData::kString);
    tAttr.setKeyable(false);
    tAttr.setDefault(sData.create(""));
    addAttribute(s_filterType);
+
+   s_outputs = cmpAttr.create("outputs", "out");
+   cmpAttr.setArray(true);
+   cmpAttr.setIndexMatters(false); // allow -nextAvailable
+
+   s_driver = mAttr.create("driver", "drvr");
+   mAttr.setKeyable(false);
+   cmpAttr.addChild(s_driver);
+
+   s_filter = mAttr.create("filter", "ftr");
+   mAttr.setKeyable(false);
+   cmpAttr.addChild(s_filter);
+
+   cmpAttr.setKeyable(false);
+
+   addAttribute(s_outputs);
+
    return MStatus::kSuccess;
 }
