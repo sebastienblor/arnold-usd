@@ -27,7 +27,7 @@ MStatus CArnoldFilterNode::initialize()
    MFnMessageAttribute mAttr;
    MFnStringData sData;
 
-   s_filter = tAttr.create("aiTranslator", "fltr", MFnData::kString);
+   s_filter = tAttr.create("aiTranslator", "ai_translator", MFnData::kString);
    tAttr.setKeyable(false);
    tAttr.setDefault(sData.create(""));
    addAttribute(s_filter);
