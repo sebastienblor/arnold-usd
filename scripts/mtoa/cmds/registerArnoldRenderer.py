@@ -1,22 +1,26 @@
 ﻿import glob
 import os
 import sys
-import mtoa.utils as utils
+import inspect
+
+def mtoaPackageRoot():
+    '''return the path to the mtoa python package directory'''
+    return os.path.dirname(os.path.dirname(inspect.getfile(inspect.currentframe())))
 
 if 'pymel' not in globals():
     import pymel
     import pymel.versions as versions
     maya_version = versions.shortName()
-    print "Maya %s importing module pymel %s" % (maya_version, pymel.__version__)
+    print "Maya %s importing module pymel %s (%s)" % (maya_version, pymel.__version__, pymel.__file__)
 else :
-    print "Maya %s had already imported module pymel %s" % (maya_version, pymel.__version__)
+    print "Maya %s had already imported module pymel %s (%s)" % (maya_version, pymel.__version__, pymel.__file__)
     
 # fix for pymel versions less than 1.0.3 (pre-2012)
 if 'pymel' in globals():
     if pymel.__version__ < '1.0.3' and not hasattr(pymel, '_mtoaPatch'):
         maya_version = versions.shortName()
         print "Maya %s reloading patched pymel" % maya_version
-        root = utils.mtoaPackageRoot()
+        root = mtoaPackageRoot()
         path = os.path.join(root, maya_version)
         sys.path.insert(0, path)
         # clear so pymel reloads
@@ -32,26 +36,31 @@ if hasattr(pymel, '_mtoaPatch') :
     print "Patched pymel version %s loaded" % pymel.__version__
 else :
     print "Standard pymel version %s loaded" % pymel.__version__
-
-import mtoa.ui.exportass as exportass
-import mtoa.ui.nodeTreeLister as nodeTreeLister
-import mtoa.ui.globals.common
-from mtoa.ui.globals.common import createArnoldRendererCommonGlobalsTab, updateArnoldRendererCommonGlobalsTab
-from mtoa.ui.globals.arnold import createArnoldRendererGlobalsTab, updateArnoldRendererGlobalsTab, updateBackgroundSettings
-from mtoa.ui.aoveditor import createArnoldAOVTab, updateArnoldAOVTab
-import mtoa.ui.ae.utils as aeUtils
-from mtoa.ui.arnoldmenu import createArnoldMenu
-
-import mtoa.cmds.arnoldRender as arnoldRender
+try:
+    import mtoa.utils as utils
+    import mtoa.ui.exportass as exportass
+    import mtoa.ui.nodeTreeLister as nodeTreeLister
+    import mtoa.ui.globals.common
+    from mtoa.ui.globals.common import createArnoldRendererCommonGlobalsTab, updateArnoldRendererCommonGlobalsTab
+    from mtoa.ui.globals.arnold import createArnoldRendererGlobalsTab, updateArnoldRendererGlobalsTab, updateBackgroundSettings
+    from mtoa.ui.aoveditor import createArnoldAOVTab, updateArnoldAOVTab
+    import mtoa.ui.ae.utils as aeUtils
+    from mtoa.ui.arnoldmenu import createArnoldMenu
+    import mtoa.cmds.arnoldRender as arnoldRender
+except:
+    import traceback
+    traceback.print_exc(file=sys.__stderr__) # goes to the console
+    raise
 
 def _overrideMelScripts():
     # for those procedures that we could not simply define overrides interactively, we keep edited files
     # per version of maya
-    root = utils.mtoaPackageRoot()
+    root = mtoaPackageRoot()
     maya_version = versions.shortName()
     meldir = os.path.join(root, maya_version, 'mel')
     os.environ['MAYA_SCRIPT_PATH'] = meldir + os.pathsep + os.environ['MAYA_SCRIPT_PATH']
     for f in glob.glob(os.path.join(meldir, '*.mel')):
+        print>>sys.__stdout__, "Maya %s sourcing MEL override %s" % (maya_version, f)
         print "Maya %s sourcing MEL override %s" % (maya_version, f)
         pm.mel.source(pm.mel.encodeString(f))
         test = pm.mel.whatIs(os.path.split(f)[1]).split(': ', 1)
@@ -59,13 +68,17 @@ def _overrideMelScripts():
             pm.warning("Overriding failed: Maya is still using %s" % test[1])
 
 def _overridePythonScripts():
-    root = utils.mtoaPackageRoot()
+    root = mtoaPackageRoot()
     maya_version = versions.shortName()
     path = os.path.join(root, maya_version)
+    if not os.path.isdir(path):
+        print>>sys.__stdout__, "MtoA python override directory does not exist: %s" % (path)
+        return
     sys.path.insert(0, path)
     # for root, dirnames, filenames in os.walk('path'): 
     for f in os.listdir(path):
         if f.endswith('.py'):
+            print>>sys.__stdout__, "Maya %s importing * from Python override %s from %s" % (maya_version, f, path)
             print "Maya %s importing * from Python override %s from %s" % (maya_version, f, path)
             import_string = "from %s import *" % os.path.splitext(f)[0]
             exec import_string
@@ -265,28 +278,34 @@ def _register():
                       useName=True)
 
 def registerArnoldRenderer():
-    alreadyRegistered = pm.renderer('arnold', exists=True)
-    if not alreadyRegistered:
+    try:
+        alreadyRegistered = pm.renderer('arnold', exists=True)
+        if not alreadyRegistered:
 
-        pm.evalDeferred(_register)
+            pm.evalDeferred(_register)
 
-        # AE Templates
-        pm.evalDeferred(aeUtils.loadAETemplates)
-        _addAEHooks()
-        import mtoa.ui.ae.customShapeAttributes
+            # AE Templates
+            # the following must occur even in batch mode because they contain calls to registerDefaultTranslator
+            pm.evalDeferred(aeUtils.loadAETemplates)
+            _addAEHooks()
+            import mtoa.ui.ae.customShapeAttributes
+            if not pm.about(batch=True):
+                # Reload the AE Window if it has already been opened
+                pm.evalDeferred(aeUtils.rebuildAE)
+                # create the Arnold menu
+                createArnoldMenu()
 
-        # Reload the AE Window if it has already been opened
-        pm.evalDeferred(aeUtils.rebuildAE)
+            # version specific overrides or additions
+            _overridePythonScripts()
+            _overrideMelScripts()
 
-        # version specific overrides or additions
-        _overridePythonScripts()
-        _overrideMelScripts()
+            # Add option box for file translator
+            utils.pyToMelProc(exportass.arnoldAssOpts,
+                              [('string', 'parent'), ('string', 'action'),
+                               ('string', 'initialSettings'), ('string', 'resultCallback')],
+                               useName=True)
+    except:
+        import traceback
+        traceback.print_exc(file=sys.__stderr__)
+        raise
 
-        # Add option box for file translator
-        utils.pyToMelProc(exportass.arnoldAssOpts,
-                          [('string', 'parent'), ('string', 'action'),
-                           ('string', 'initialSettings'), ('string', 'resultCallback')],
-                           useName=True)
-
-        # create the Arnold menu
-        createArnoldMenu()

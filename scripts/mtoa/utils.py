@@ -33,10 +33,6 @@ def createColor(node, name):
 
 _objectStore = {}
 
-def mtoaPackageRoot():
-    '''return the path to the mtoa python package directory'''
-    return os.path.dirname(inspect.getfile(inspect.currentframe()))
-
 def pyToMelProc(pyobj, args=(), returnType=None, procName=None, useName=False, procPrefix='pyToMel_'):
     '''
     create a MEL procedure from a python callable
