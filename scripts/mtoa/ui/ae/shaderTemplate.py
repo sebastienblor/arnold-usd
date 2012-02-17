@@ -1,14 +1,9 @@
 ﻿import pymel.core as pm
 import mtoa.aovs as aovs
-import mtoa.callbacks as callbacks
 import mtoa.ui.ae.aiSwatchDisplay as aiSwatchDisplay
 from mtoa.ui.ae.utils import interToUI
 import mtoa.ui.ae.shapeTemplate as templates
-
-_uiInstances = set([])
-
-def trackAOVUI(uiInstance):
-    _uiInstances.add(uiInstance)
+import mtoa.core as core
 
 def newAOVPrompt(default=''):
     result = pm.cmds.promptDialog(button=['Create', 'Cancel'],
@@ -18,16 +13,12 @@ def newAOVPrompt(default=''):
                                   title='New AOV',
                                   text=default)
     if result == 'Create':
+        core.createOptions()
         newAOV = pm.promptDialog(query=True, text=True)
         return aovs.getAOVNode().addAOV(newAOV)
     else:
         print "AOV creation canceled"
 
-def globalAOVListChanged():
-    for inst in _uiInstances:
-        if inst.nodeName is not None and pm.objExists(inst.nodeName):
-            inst.update()
-            
 class AOVOptionMenuGrp(templates.BaseTemplate):
     EMPTY_AOV_ITEM = "<None>"
     NEW_AOV_ITEM = "<Create New...>"
@@ -35,12 +26,14 @@ class AOVOptionMenuGrp(templates.BaseTemplate):
     BEAUTY_ITEM = "RGBA"
     _instances = []
     
-    def __init__(self, nodeType, label=None, allowCreation=True, includeBeauty=False):
+    def __init__(self, nodeType, label=None, allowCreation=True, includeBeauty=False, allowEmpty=True, allowDisable=True):
         super(AOVOptionMenuGrp, self).__init__(nodeType)
-        trackAOVUI(self)
+        aovs.addAOVChangedCallback(self.update)
         self.activeNodes = None
         self.allowCreation = allowCreation
         self.includeBeauty = includeBeauty
+        self.allowDisable = allowDisable
+        self.allowEmpty = allowEmpty
         self._label = label
     # TODO: convert to propertycache
     @property
@@ -91,42 +84,62 @@ class AOVOptionMenuGrp(templates.BaseTemplate):
             currVal = self.EMPTY_AOV_ITEM
         elif currVal not in self.activeNames and currVal != self.BEAUTY_ITEM:
             currVal = self.UNKNOWN_AOV_ITEM % currVal
-            pm.menuItem(label=currVal, parent=(self.menuName + '|OptionMenu'))
+            pm.menuItem(label=currVal, parent=(self.menuName))
 
         if self.includeBeauty:
-            pm.menuItem(label=self.BEAUTY_ITEM, parent=(self.menuName + '|OptionMenu'))
+            pm.menuItem(label=self.BEAUTY_ITEM, parent=(self.menuName))
 
         # add items
         for aov in self.activeNames:
-            pm.menuItem(label=aov, parent=(self.menuName + '|OptionMenu'))
+            pm.menuItem(label=aov, parent=(self.menuName))
 
-        pm.menuItem(label=self.EMPTY_AOV_ITEM, parent=(self.menuName + '|OptionMenu'))
+        if self.allowEmpty:
+            pm.menuItem(label=self.EMPTY_AOV_ITEM, parent=(self.menuName))
 
         if self.allowCreation:
-            pm.menuItem(label=self.NEW_AOV_ITEM, parent=(self.menuName + '|OptionMenu'))
+            pm.menuItem(label=self.NEW_AOV_ITEM, parent=(self.menuName))
         # set active
-        pm.optionMenuGrp(self.menuName, edit=True, value=currVal)
+        pm.optionMenu(self.menuName, edit=True, value=currVal)
 
     def clear(self):
-        for item in pm.optionMenuGrp(self.menuName, query=True, itemListLong=True) or []:
+        for item in pm.optionMenu(self.menuName, query=True, itemListLong=True) or []:
             pm.deleteUI(item)
 
     def setup(self):
         nodeAttr = self.nodeAttr(self.attr)
-        pm.optionMenuGrp(self.menuName, label=self.label)
+
+        pm.setUITemplate(popTemplate=1)
+        
+        if self.allowDisable:
+            kwargs = dict(nc=3,
+                          columnWidth3=[145, 20, 200],
+                          columnAttach3=['right', 'both', 'both'])
+        else:
+            kwargs = dict(nc=2,
+                          columnWidth2=[145, 220],
+                          columnAttach2=['right', 'both'])
+        pm.rowLayout(**kwargs)
+        pm.text(label=self.label)
+        if self.allowDisable:
+            pm.checkBox(label='')
+        pm.optionMenu(self.menuName)
+        pm.setParent('..')
+
         self.updateMenu(nodeAttr)
-        menu = pm.optionMenuGrp(self.menuName, edit=True,
-                                  changeCommand=lambda *args: self.changeCallback(nodeAttr, *args))
+        menu = pm.optionMenu(self.menuName, edit=True,
+                             changeCommand=lambda *args: self.changeCallback(nodeAttr, *args))
 
         # make sure the UI gets updated if the attribute changes while we have the AE open
         pm.scriptJob(parent=menu,
                      attributeChange=(nodeAttr, lambda: self.updateMenu(nodeAttr)))
 
     def update(self):
+        if self.nodeName is None or not pm.objExists(self.nodeName):
+            return
         nodeAttr = self.nodeAttr(self.attr)
         self.updateMenu(nodeAttr)
-        menu = pm.optionMenuGrp(self.menuName, edit=True,
-                           changeCommand=lambda *args: self.changeCallback(nodeAttr, *args))
+        menu = pm.optionMenu(self.menuName, edit=True,
+                             changeCommand=lambda *args: self.changeCallback(nodeAttr, *args))
         pm.scriptJob(parent=menu, replacePrevious=True,
                      attributeChange=(nodeAttr, lambda: self.updateMenu(nodeAttr)))
 
@@ -166,6 +179,7 @@ class ShaderMixin(object):
                     attr = 'ai_' + attr
                 self.addAOVControl(attr)
             self.endLayout()
+
 
 class ShaderAETemplate(templates.AttributeEditorTemplate, ShaderMixin):
     pass

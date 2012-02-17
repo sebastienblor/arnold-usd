@@ -1,6 +1,7 @@
 #include "ArnoldPluginCmd.h"
 #include "extension/ExtensionsManager.h"
 #include "attributes/AttrHelper.h"
+#include "scene/MayaScene.h"
 #include "utils/Universe.h"
 
 #include <maya/MArgDatabase.h>
@@ -20,6 +21,8 @@ MSyntax CArnoldPluginCmd::newSyntax()
 
    syntax.addFlag("aov", "listAOVs", MSyntax::kNoArg);
    syntax.addFlag("nt", "nodeType", MSyntax::kString);
+   syntax.addFlag("n", "nodePlug", MSyntax::kSelectionItem);
+
    syntax.addFlag("lnt", "listAOVNodeTypes", MSyntax::kNoArg);
    return syntax;
 }
@@ -116,6 +119,29 @@ MStatus CArnoldPluginCmd::doIt(const MArgList& argList)
          MString nodeType;
          args.getFlagArgument("nodeType", 0, nodeType);
          CExtensionsManager::GetNodeAOVs(nodeType, result);
+      }
+      else if (args.isFlagSet("nodePlug"))
+      {
+         MSelectionList sel;
+         args.getFlagArgument("nodePlug", 0, sel);
+         MPlug plug;
+         MStatus status = sel.getPlug(0, plug);
+         CHECK_MSTATUS(status);
+         //MGlobal::displayError(MString("Could not find extension "));
+
+         AOVSet aovs;
+         CMayaScene::Begin(MTOA_SESSION_SWATCH);
+         CArnoldSession* arnoldSession = CMayaScene::GetArnoldSession();
+         arnoldSession->ExportOptions();
+         AtNode* node = arnoldSession->ExportNode(plug, NULL, &aovs, &status);
+
+         CHECK_MSTATUS(status);
+         CMayaScene::End();
+
+         for (AOVSet::iterator it=aovs.begin(); it!=aovs.end(); ++it)
+         {
+            result.append(it->GetName());
+         }
       }
       else
          CExtensionsManager::GetAOVs(result);

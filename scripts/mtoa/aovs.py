@@ -1,5 +1,6 @@
 import pymel.core as pm
 import mtoa.utils as utils
+import mtoa.callbacks as callbacks
 from collections import namedtuple
 
 BUILTIN_AOVS = (
@@ -237,6 +238,35 @@ def getGroupAOVs(groupName):
     if groupName == '<builtin>':
         return getBuiltinAOVs()
     raise
+
+global updating
+updating = False
+
+_aovCallbacks = []
+
+def addAOVChangedCallback(func):
+    _aovCallbacks.append(func)
+
+def _doGlobalAOVListChanged():
+    global updating
+    try:
+        for func in _aovCallbacks:
+            func()
+    finally:
+        updating = False
+
+def _globalAOVListChanged(*args):
+    global updating
+    if not updating:
+        updating = True
+        print "_globalAOVListChanged evalDeferred"
+        pm.evalDeferred(_doGlobalAOVListChanged)
+    else:
+        print "_globalAOVListChanged skipping"
+
+callbacks.addAttributeChangedCallback(_globalAOVListChanged, 'aiOptions', 'aovList',
+                                      context= pm.api.MNodeMessage.kConnectionMade | pm.api.MNodeMessage.kConnectionBroken,
+                                      applyToExisting=True)
 
 
 #def getAllShaderAOVs():
