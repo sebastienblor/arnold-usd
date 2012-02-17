@@ -120,7 +120,7 @@ MString COptionsTranslator::SetImageFilenames(MDagPath &camera)
       MString tokens = MString("RenderPass=") + it->GetName();
       MString filename = defaultRenderGlobalsData.getImageName(pathType, fileFrameNumber,
                                                                sceneFileName, nameCamera,
-                                                               "", renderLayer,
+                                                               it->GetImageFormat(),renderLayer,
                                                                tokens, 1);
       // FIXME: the driver is not getting its filename set
       it->SetImageFilename(filename);
