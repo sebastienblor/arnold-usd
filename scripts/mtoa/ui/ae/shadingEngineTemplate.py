@@ -21,23 +21,26 @@ def getAOVsInNetwork(rootNode):
         results[node] = [node.attr(at).get() for (aov, at, type) in aovs.getNodeGlobalAOVData(node.type())]
     return results
 
-class ShadingGroupTemplate(templates.AttributeEditorTemplate):
+class ShadingEngineTemplate(templates.AttributeEditorTemplate):
     def __init__(self, nodeType):
         self._msgCtrls = []
-        aovs.addAOVChangedCallback(self.update)
-        super(ShadingGroupTemplate, self).__init__(nodeType)
+        aovs.addAOVChangedCallback(self.update, 'ShadingEngineTemplate')
+        self.networkCol = None
+        self.otherCol = None
+        super(ShadingEngineTemplate, self).__init__(nodeType)
 
     def setup(self):
         self.addCustom("aiCustomAOVs", self.buildNetworkAOVBrowser, self.updateNetworkAOVBrowser)
 
 
     def update(self):
-        print "ShadingGroupTemplate.update"
-        if self.nodeName is None or not pm.objExists(self.nodeName):
+        print "ShadingEngineTemplate.update"
+        if self.nodeName is None or not pm.objExists(self.nodeName) \
+            or self.networkCol is None or not pm.layout(self.networkCol, exists=True):
             return
         #self.updateCustomAOVArray()
         nodeAttr = pm.Attribute(self.nodeAttr('aiCustomAOVs'))
-        for aov in aovs.getActiveAOVs(sortByName=True):
+        for aov in aovs.getActiveAOVs():
             # FIXME- delay setting the aov name attribute until something is connected
             #cb = utils.pyToMelProc(pm.Callback(nodeAttr[aov.index].aovName.set, aov.name))
             at = nodeAttr[aov.index]
@@ -55,7 +58,8 @@ class ShadingGroupTemplate(templates.AttributeEditorTemplate):
                 self.aovNodes[aov].append(node)
 
     def buildNetworkAOVBrowser(self, nodeAttr):
-
+        # TODO: move this into AttributeEditorTemplate
+        self._setActiveNodeAttr(nodeAttr)
         self.updateNetworkData()
         with pm.uitypes.UITemplate('attributeEditorTemplate'):
             pm.cmds.frameLayout(label='AOVs in Shading Network', collapse=False)
@@ -95,6 +99,8 @@ class ShadingGroupTemplate(templates.AttributeEditorTemplate):
             pm.setParent('..') # frameLayout
 
     def updateNetworkAOVBrowser(self, nodeAttr):
+        # TODO: move this into AttributeEditorTemplate
+        self._setActiveNodeAttr(nodeAttr)
         self.updateNetworkData()
         for ctrl in self._msgCtrls:
             pm.deleteUI(ctrl)
@@ -107,28 +113,29 @@ class ShadingGroupTemplate(templates.AttributeEditorTemplate):
 
     def buildNetworkAOVs(self, nodeAttr):
         nodeAttr = pm.Attribute(nodeAttr)
-        for aov in aovs.getActiveAOVs(sortByName=True):
-            if aov.name in self.networkAOVs:
+        for aovName, aovList in aovs.getActiveAOVs(group=True):
+            if aovName in self.networkAOVs:
+                aov = aovList[0]
                 at = nodeAttr[aov.index]
-                at.aovName.set(aov.name)
+                at.aovName.set(aovName)
                 ctrl = pm.attrNavigationControlGrp(at=at.aovInput,
-                                                   label=aov.name)
+                                                   label=aovName)
                 self._msgCtrls.append(ctrl)
                 pm.popupMenu(parent=ctrl);
                 pm.menuItem(subMenu=True, label="Goto Node")
-                for node in self.aovNodes[aov.name]:
+                for node in self.aovNodes[aovName]:
                     pm.cmds.menuItem(label=node.name(), command=lambda arg, node=node: pm.select(node))
 
     def buildOtherAOVs(self, nodeAttr):
         print "buildOtherAOVs"
         nodeAttr = pm.Attribute(nodeAttr)
-        for aov in aovs.getActiveAOVs(sortByName=True):
-            if aov.name not in self.networkAOVs:
+        for aovName, aov in aovs.getActiveAOVs():
+            if aovName not in self.networkAOVs:
                 at = nodeAttr[aov.index]
-                at.aovName.set(aov.name)
-                print "other aov", aov.name
+                at.aovName.set(aovName)
+                print "other aov", aovName
                 self._msgCtrls.append(pm.cmds.attrNavigationControlGrp(at=at.aovInput.name(),
-                                                                       label=aov.name))
+                                                                       label=aovName))
 
     def buildCustomAOVArray(self, nodeAttr):
         print "buildCustomAOVArray", nodeAttr
@@ -140,14 +147,14 @@ class ShadingGroupTemplate(templates.AttributeEditorTemplate):
         else:
             usedAOVs = set([])
         print aovs.getActiveAOVs(), usedAOVs
-        for aov in aovs.getActiveAOVs(sortByName=True):
+        for aovName, aov in aovs.getActiveAOVs():
             # FIXME- delay setting the aov name attribute until something is connected
             #cb = utils.pyToMelProc(pm.Callback(nodeAttr[aov.index].aovName.set, aov.name))
             at = nodeAttr[aov.index]
-            at.aovName.set(aov.name)
+            at.aovName.set(aovName)
             self._msgCtrls.append(pm.cmds.attrNavigationControlGrp(at=at.aovInput.name(),
-                                                                   label=aov.name,
-                                                                   enable=aov.name not in usedAOVs))
+                                                                   label=aovName,
+                                                                   enable=aovName not in usedAOVs))
 
     def updateCustomAOVArray(self, nodeAttr):
         print "updateCustomAOVArray", nodeAttr
@@ -178,12 +185,12 @@ def createDummyPlugs(sg):
         aovList = aovs.getActiveAOVs()
     except pm.MayaObjectError:
         return
-    for aov in aovList:
+    for aovName, aov in aovList:
         print sg, aov
-        aov = 'ai_' + aov.name
+        aov = 'ai_' + aovName
         if not sg.hasAttr(aov):
             utils.createColor(sg, aov)
 
-templates.registerAETemplate(ShadingGroupTemplate, "shadingEngine")
-callbacks.addNodeAddedCallback(createDummyPlugs, "shadingEngine")
+templates.registerAETemplate(ShadingEngineTemplate, "shadingEngine")
+#callbacks.addNodeAddedCallback(createDummyPlugs, "shadingEngine")
 

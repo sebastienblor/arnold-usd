@@ -6,6 +6,7 @@ import maya.cmds as cmds
 import pymel.core as pm
 import maya.OpenMaya as om
 from collections import defaultdict
+import types
 
 global _callbackIds
 _callbackIds = om.MCallbackIdArray()
@@ -101,7 +102,6 @@ def _makeInstallAttributeChangedCallback(nodeType):
         # nodeAdded callback includes sub-types, but we want exact type only
         if fnNode.typeName() != nodeType:
             return
-
         # scriptJob does not receive an arg, but we want ours to
         def attrChanged(msg, plug, otherPlug, *args):
             global _attrChangedCallbacks
@@ -111,17 +111,15 @@ def _makeInstallAttributeChangedCallback(nodeType):
                 pass
             else:
                 plugName = plug.partialName(False, False, True, False, True, True)
-                try:
-                    func, context = funcMap[plugName]
-                except KeyError:
-                    pass
-                else:
+                # functions which should execute on any attribute change have a key of None
+                funcList = funcMap.get(plugName, []) + funcMap.get(None, [])
+
+                for func, context in funcList:
                     if context & msg:
                         func(plug, otherPlug, *args)
-                    else:
-                        print "skipping", plugName, func, "based on context", msg, context
+                    #else: print "skipping %s %s based on context %s %s" % (plugName, func, msg, context)
 #        _attrChangedCallbacks[_getHandle(node)]
-        om.MNodeMessage.addAttributeChangedCallback(obj, attrChanged)
+        manageCallback(om.MNodeMessage.addAttributeChangedCallback(obj, attrChanged))
     return installAttrChangeCallback
 
 def _updateExistingNodes(nodeType, func):
@@ -148,8 +146,10 @@ def addAttributeChangedCallback(func, nodeType, attribute, context=ANY_CHANGE, a
         should take a single string arg for the node of the attribute that changed
     nodeType : string
         type of node to install attribute changed callbacks for 
-    attribute : string
-        name of attribute without leading period ('.')
+    attribute : string, list, or None
+        name of attribute without leading period ('.').
+        If a list, func will be registered for all of the passed attributes.
+        If None, func will execute on any attribute change for the given node. 
     context : int mask
         an AttributeMessage enum from maya.OpenMaya.MNodeMessage describing what type of attribute
         change triggers the callback. defaults to any
@@ -161,8 +161,12 @@ def addAttributeChangedCallback(func, nodeType, attribute, context=ANY_CHANGE, a
     if nodeType not in _attrChangedCallbacks:
         # add a callback which creates the scriptJob that calls our function
         addNodeAddedCallback(nodeAddedCallback, nodeType, applyToExisting=False, apiArgs=True)
-        _attrChangedCallbacks[nodeType] = {}
-    _attrChangedCallbacks[nodeType][attribute] = (func, context)
+        _attrChangedCallbacks[nodeType] = defaultdict(list)
+    if isinstance(attribute, (list, tuple)):
+        for at in attribute:
+            _attrChangedCallbacks[nodeType][at].append((func, context))
+    else:
+        _attrChangedCallbacks[nodeType][attribute].append((func, context))
 
     # setup callback for existing nodes
     if applyToExisting and not om.MFileIO.isOpeningFile():
@@ -191,18 +195,18 @@ def addAttributeChangedCallbacks(nodeType, attrFuncs, context=ANY_CHANGE):
     if nodeType not in _attrChangedCallbacks:
         # add a callback which creates the scriptJob that calls our function
         addNodeAddedCallback(nodeAddedCallback, nodeType, apiArgs=True)
-        _attrChangedCallbacks[nodeType] = {}
+        _attrChangedCallbacks[nodeType] = defaultdict(list)
 
     for attr, func in attrFuncs:
         # TODO: support more than one callback per nodeType/attribute
-        _attrChangedCallbacks[nodeType][attr] = (func, context)
+        _attrChangedCallbacks[nodeType][attr].append((func, context))
 
     # setup callback for existing nodes
     if not om.MFileIO.isOpeningFile():
         _updateExistingNodes(nodeType, nodeAddedCallback)
 
-def removeAttributeChangedCallback(nodeType, attribute):
-    _attrChangedCallbacks[nodeType].pop(attribute)
+def removeAttributeChangedCallbacks(nodeType, attribute):
+    return _attrChangedCallbacks[nodeType].pop(attribute)
 
 manageCallback(om.MSceneMessage.addStringArrayCallback(om.MSceneMessage.kAfterPluginUnload, _removeCallbacks, None))
 
@@ -257,7 +261,6 @@ class CallbackWithArgs(Callback):
             return self.func(*self.args + args, **kwargsFinal)
         finally:
             cmds.undoInfo(closeChunk=1)
-
 
 class CallbackQueue(object):
     '''

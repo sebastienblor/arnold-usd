@@ -94,14 +94,14 @@ class BaseTemplate(object):
         '''
         build the UI from the list of added attributes
         '''
-        self._setActiveNode(nodeAttr)
+        self._setActiveNodeAttr(nodeAttr)
         self.setup()
 
     def _doUpdate(self, nodeAttr, *args):
-        self._setActiveNode(nodeAttr)
+        self._setActiveNodeAttr(nodeAttr)
         self.update()
 
-    def _setActiveNode(self, nodeName):
+    def _setActiveNodeAttr(self, nodeName):
         "set the active node"
         parts = nodeName.split('.', 1)
         self._nodeName = parts[0]
@@ -165,7 +165,7 @@ class AttributeTemplate(BaseTemplate):
         '''
         build the UI from the list of added attributes
         '''
-        self._setActiveNode(nodeAttr)
+        self._setActiveNodeAttr(nodeAttr)
         pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
         self._layoutStack = [pm.setParent(query=True)]
         for func, args, kwargs in self._actions:
@@ -173,7 +173,7 @@ class AttributeTemplate(BaseTemplate):
         pm.setUITemplate(popTemplate=True)
 
     def _doUpdate(self, nodeAttr):
-        self._setActiveNode(nodeAttr)
+        self._setActiveNodeAttr(nodeAttr)
         self.update()
 
     def setup(self):
@@ -299,14 +299,14 @@ class AttributeEditorTemplate(pm.uitypes.AETemplate):
         '''
         build the UI from the list of added attributes
         '''
-        self._setActiveNode(nodeAttr)
+        self._setActiveNodeAttr(nodeAttr)
         self.setup()
 
     def _doUpdate(self, nodeAttr, *args):
-        self._setActiveNode(nodeAttr)
+        self._setActiveNodeAttr(nodeAttr)
         self.update()
 
-    def _setActiveNode(self, nodeName):
+    def _setActiveNodeAttr(self, nodeName):
         "set the active node"
         parts = nodeName.split('.', 1)
         self._nodeName = parts[0]
@@ -397,11 +397,11 @@ class ShapeTranslatorTemplate(AttributeTemplate, ShapeMixin):
 #        for name, template in templates.items():
 #            if name == default:
 #                continue
-#            template._setActiveNode(nodeName)
+#            template._setActiveNodeAttr(nodeName)
 #            template.showInChannelBox(False)
 #        # We need to run this last for cases where templates share attributes
 #        if default in templates:
-#            templates[default]._setActiveNode(nodeName)
+#            templates[default]._setActiveNodeAttr(nodeName)
 #            templates[default].showInChannelBox(True)
 
 class AutoTranslatorTemplate(AttributeTemplate):

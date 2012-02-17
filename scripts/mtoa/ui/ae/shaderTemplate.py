@@ -134,7 +134,7 @@ class AOVOptionMenuGrp(templates.BaseTemplate):
                      attributeChange=(nodeAttr, lambda: self.updateMenu(nodeAttr)))
 
     def update(self):
-        if self.nodeName is None or not pm.objExists(self.nodeName):
+        if self.nodeName is None or not pm.objExists(self.nodeName) or not pm.control(self.menuName, exists=True):
             return
         nodeAttr = self.nodeAttr(self.attr)
         self.updateMenu(nodeAttr)
