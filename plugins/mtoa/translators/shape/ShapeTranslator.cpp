@@ -201,122 +201,7 @@ AtNode* CShapeTranslator::ExportRootShader(AtNode *rootShader)
    return CreateShadingGroupShader(rootShader, aovShaders);
 }
 
-/// Find and export the surfaceShader for the passed shadingGroup and add the AOV defaults.
-AtNode* CShapeTranslator::ExportRootShader(const MObject& shadingGroup)
-{
-   AtNode *rootShader = NULL;
-   std::vector<AtNode*> aovShaders;
-
-   MPlugArray        connections;
-   MFnDependencyNode fnDGNode(shadingGroup);
-   MPlug shaderPlug = fnDGNode.findPlug("surfaceShader");
-   shaderPlug.connectedTo(connections, true, false);
-   if (connections.length() > 0)
-   {
-      // export the root shading network, this fills m_shaders
-      rootShader = ExportNode(connections[0]);
-
-      // loop through and export custom AOV networks
-      MPlug arrayPlug = fnDGNode.findPlug("aiCustomAOVs");
-      for (unsigned int i = 0; i < arrayPlug.numElements (); i++)
-      {
-         MPlug msgPlug = arrayPlug[i].child(1);
-         msgPlug.connectedTo(connections, true, false);
-         if (connections.length() > 0)
-         {
-            // by using m_session->ExportNode we avoid tracking aovs.
-            AtNode* writeNode = m_session->ExportNode(connections[0]);
-            // since we know this maya node is connected to aiCustomAOVs it will have a write node
-            // inserted after it by CShaderTranslator::ProcessAOVOutput (assuming the node is translated by
-            // CShaderTranslator)
-            // TODO: check shader type: rootShader should always be an aov write node, unless it is a conversion node
-
-            // if the node is not yet in the shading network for this shape, then branch it in.
-            // m_shaders contains all the arnold nodes in a shape's shading network, as tracked by ExportRootShader.
-            if (!m_shaders->count(writeNode))
-            {
-               aovShaders.push_back(writeNode);
-            }
-         }
-      }
-   }
-   else
-      AiMsgWarning("[mtoa] [translator %s] ShadingGroup %s has no surfaceShader input",
-            GetTranslatorName().asChar(), fnDGNode.name().asChar());
-
-   AddAOVDefaults(aovShaders); // modifies aovShaders list
-   return CreateShadingGroupShader(rootShader, aovShaders);
-}
-
-/// Adds new AOV write nodes to aovShaders for any AOVs with defaults not present in this shading network
-void CShapeTranslator::AddAOVDefaults(std::vector<AtNode*> &aovShaders)
-{
-   AOVSet active = m_session->GetActiveAOVs();
-
-   // get the active AOVs not in the exported list
-   AOVSet unused;
-   std::set_difference(active.begin(), active.end(),
-                       m_upstreamAOVs.begin(), m_upstreamAOVs.end(),
-                       std::inserter(unused, unused.begin()));
-
-   MFnDependencyNode fnNode;
-   for (AOVSet::iterator it=unused.begin(); it!=unused.end(); ++it)
-   {
-      CAOV aov = *it;
-      MObject oAOV = aov.GetNode();
-      if (oAOV != MObject::kNullObj)
-      {
-         fnNode.setObject(oAOV);
-         MPlug plug = fnNode.findPlug("defaultValue");
-         MPlugArray connections;
-         plug.connectedTo(connections, true, false);
-         if (connections.length() > 0)
-         {
-            int outType = fnNode.findPlug("type").asInt();
-            MString nodeType = "";
-            switch (outType)
-            {
-            case AI_TYPE_FLOAT:
-               nodeType = "writeFloatInline";
-               break;
-            case AI_TYPE_RGB:
-            case AI_TYPE_RGBA:
-               nodeType = "writeColorInline";
-               break;
-            case AI_TYPE_VECTOR:
-               nodeType = "writeVectorInline";
-               break;
-            case AI_TYPE_POINT:
-               nodeType = "writePointInline";
-               break;
-            case AI_TYPE_POINT2:
-               nodeType = "writePoint2Inline";
-               break;
-            default:
-               {
-                  AiMsgWarning("[mtoa] Not of a supported AOV data type: %s",
-                               GetMayaNodeName().asChar());
-                  continue;
-               }
-            }
-            // process connections
-            // use m_session->ExportNode to avoid processing aovs for this node
-            AtNode* linkedNode = m_session->ExportNode(connections[0]);
-            if (linkedNode != NULL)
-            {
-               AtNode* writeNode = AiNode(nodeType.asChar());;
-               AiNodeSetStr(writeNode, "aov_name", aov.GetName().asChar());
-               AiNodeLink(linkedNode, "input", writeNode);
-               aovShaders.push_back(writeNode);
-            }
-            else
-               AiMsgWarning("[mtoa] [aov] invalid input on default value for \"%s\"", aov.GetName().asChar());
-         }
-         //ProcessParameter(shader, plug, "input", AI_TYPE_RGB);
-      }
-   }
-}
-MObject CShapeTranslator::GetNodeShadingGroup(MObject dagNode, int instanceNum)
+MPlug CShapeTranslator::GetNodeShadingGroup(MObject dagNode, int instanceNum)
 {
    MPlugArray        connections;
    MFnDependencyNode fnDGNode(dagNode);
@@ -327,11 +212,11 @@ MObject CShapeTranslator::GetNodeShadingGroup(MObject dagNode, int instanceNum)
 
    for (unsigned int k=0; k<connections.length(); ++k)
    {
-      MObject shadingGroup(connections[k].node());
-      if (shadingGroup.apiType() == MFn::kShadingEngine)
+      MPlug sgPlug = connections[k];
+      if (sgPlug.node().apiType() == MFn::kShadingEngine)
       {
-         return shadingGroup;
+         return sgPlug;
       }
    }
-   return MObject::kNullObj;
+   return MPlug();
 }

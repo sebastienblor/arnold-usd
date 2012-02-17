@@ -463,10 +463,10 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
 
    std::vector<AtNode*> meshShaders;
 
-   MObject shadingGroup = GetNodeShadingGroup(m_dagPath.node(), instanceNum);
-   if (!shadingGroup.isNull())
+   MPlug shadingGroupPlug = GetNodeShadingGroup(m_dagPath.node(), instanceNum);
+   if (!shadingGroupPlug.isNull())
    {
-      AtNode *shader = ExportRootShader(shadingGroup);
+      AtNode *shader = ExportNode(shadingGroupPlug);
       if (shader != NULL)
       {
          AiNodeSetPtr(polymesh, "shader", shader);
@@ -474,12 +474,15 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
       else
       {
          AiMsgWarning("[mtoa] [translator %s] ShadingGroup %s has no surfaceShader input",
-               GetTranslatorName().asChar(), MFnDependencyNode(shadingGroup).name().asChar());
+               GetTranslatorName().asChar(), MFnDependencyNode(shadingGroupPlug.node()).name().asChar());
          AiNodeSetPtr(polymesh, "shader", NULL);
       }
    }
+   // TODO: support face assignment
    else
    {
+      AiMsgWarning("[mtoa.translator]  %-30s | Face assignment is currently not supported.", GetMayaNodeName().asChar());
+      /*
       MIntArray indices;
       // Per-face assignment
       MObjectArray shadingGroups;
@@ -532,21 +535,21 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
       for (unsigned int i = 0; i < indices.length(); i++)
       {
          int subdivisions = multiplier * m_fnMesh.polygonVertexCount(i);
-         shidxs.push_back(indices[i]);
          for (int j = 0; j < subdivisions -1; j++)
             shidxs.push_back(indices[i]);
       }
       AiNodeSetArray(polymesh, "shidxs", AiArrayConvert((int)shidxs.size(), 1, AI_TYPE_UINT, &(shidxs[0])));
+      */
    }
 
    //
    // DISPLACEMENT
    //
    // Currently Arnold does not support displacement per-face assignment
-   if (!shadingGroup.isNull())
+   if (!shadingGroupPlug.isNull())
    {
       MPlugArray        connections;
-      MFnDependencyNode fnDGNode(shadingGroup);
+      MFnDependencyNode fnDGNode(shadingGroupPlug.node());
       MPlug shaderPlug = fnDGNode.findPlug("displacementShader");
       shaderPlug.connectedTo(connections, true, false);
 

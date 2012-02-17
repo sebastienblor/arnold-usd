@@ -132,6 +132,58 @@ void CNodeTranslator::TrackAOVs(AOVSet* aovs)
    aovs->swap(tempSet);
 }
 
+/// Adds new AOV write nodes to aovShaders for any AOVs with defaults not present in this shading network.
+/// Can be used by ShadingEngineTranslator or by ShapeTranslator for nodes like shave which act like Shape + ShadingGroup + Shader in one
+void CNodeTranslator::AddAOVDefaults(std::vector<AtNode*> &aovShaders)
+{
+   AOVSet active = m_session->GetActiveAOVs();
+   AOVSet total;
+   AOVSet unused;
+
+   // get the active AOVs not in the exported list
+   std::set_union(m_localAOVs.begin(), m_localAOVs.end(),
+                  m_upstreamAOVs.begin(), m_upstreamAOVs.end(),
+                  std::inserter(total, total.begin()));
+
+   std::set_difference(active.begin(), active.end(),
+                       total.begin(), total.end(),
+                       std::inserter(unused, unused.begin()));
+
+   MFnDependencyNode fnNode;
+   for (AOVSet::iterator it=unused.begin(); it!=unused.end(); ++it)
+   {
+      CAOV aov = *it;
+      MObject oAOV = aov.GetNode();
+      if (oAOV != MObject::kNullObj)
+      {
+         fnNode.setObject(oAOV);
+         MPlug plug = fnNode.findPlug("defaultValue");
+         MPlugArray connections;
+         plug.connectedTo(connections, true, false);
+         if (connections.length() > 0)
+         {
+            int outType = fnNode.findPlug("type").asInt();
+            MString nodeType = GetAOVNodeType(outType);
+
+            // process connections
+            // use m_session->ExportNode to avoid processing aovs for this node
+            AtNode* linkedNode = m_session->ExportNode(connections[0]);
+            if (linkedNode != NULL)
+            {
+               const char* aovName = aov.GetName().asChar();
+               AtNode* writeNode = AddArnoldNode(nodeType.asChar(), aovName);
+               AiNodeSetStr(writeNode, "aov_name", aovName);
+               AiNodeLink(linkedNode, "input", writeNode);
+               aovShaders.push_back(writeNode);
+            }
+            else
+               AiMsgWarning("[mtoa] [aov] invalid input on default value for \"%s\"", aov.GetName().asChar());
+         }
+         //ProcessParameter(shader, plug, "input", AI_TYPE_RGB);
+      }
+   }
+}
+
 void CNodeTranslator::WriteAOVUserAttributes(AtNode* atNode)
 {
    if (m_upstreamAOVs.size() && AiNodeDeclare(atNode, "mtoa_aovs", "constant ARRAY STRING"))

@@ -33,7 +33,7 @@
 #include "translators/shape/ParticleTranslator.h"
 #include "translators/shape/NParticleTranslator.h"
 #include "translators/shape/InstancerTranslator.h"
-
+#include "translators/shader/ShadingEngineTranslator.h"
 
 #include "render/RenderSwatch.h"
 
@@ -322,9 +322,16 @@ namespace // <anonymous>
          shaders->RegisterTranslator("animCurveTU",
                                      "",
                                      CAnimCurveTranslator::creator);
+
+         shaders->RegisterTranslator("shadingEngine",
+                                     "",
+                                     CShadingEngineTranslator::creator,
+                                     CShadingEngineTranslator::NodeInitializer);
       }
 
       // Will load all found plugins and try to register nodes and translators
+
+
       // for the new Arnold node each create. A CExtension is initialized.
       status = CExtensionsManager::LoadExtensions();
       status = CExtensionsManager::LoadArnoldPlugins();

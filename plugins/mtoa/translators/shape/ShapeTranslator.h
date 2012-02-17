@@ -39,9 +39,8 @@ protected:
    void AddAOVDefaults(std::vector<AtNode*> &aovShaders);
    virtual AtNode* ExportRootShader(const MPlug& plug);
    virtual AtNode* ExportRootShader(AtNode *rootShader);
-   virtual AtNode* ExportRootShader(const MObject& shadingGroup);
    AtNode* CreateShadingGroupShader(AtNode *rootShader, std::vector<AtNode*> &aovShaders);
-   MObject GetNodeShadingGroup(MObject dagNode, int instanceNum);
+   MPlug GetNodeShadingGroup(MObject dagNode, int instanceNum);
 
 protected:
    bool m_motion;
