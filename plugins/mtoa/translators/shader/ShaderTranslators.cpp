@@ -69,7 +69,7 @@ void CSkyShaderTranslator::Export(AtNode* shader)
 //
 AtNode*  CLambertTranslator::CreateArnoldNodes()
 {
-   return AddArnoldNode("lambert");
+   return ProcessAOVOutput(AddArnoldNode("lambert"));
 }
 
 void CLambertTranslator::Export(AtNode* shader)
@@ -133,7 +133,7 @@ void CLambertTranslator::Export(AtNode* shader)
 //
 AtNode*  CFileTranslator::CreateArnoldNodes()
 {
-   return AddArnoldNode("MayaFile");
+   return ProcessAOVOutput(AddArnoldNode("MayaFile"));
 }
 
 void CFileTranslator::Export(AtNode* shader)
@@ -232,7 +232,7 @@ void CBump2DTranslator::Export(AtNode* shader)
 //
 AtNode*  CBump3DTranslator::CreateArnoldNodes()
 {
-   return AddArnoldNode("bump3d");
+   return  ProcessAOVOutput(AddArnoldNode("bump3d"));
 }
 
 void CBump3DTranslator::Export(AtNode* shader)
@@ -247,11 +247,11 @@ AtNode* CSamplerInfoTranslator::CreateArnoldNodes()
 {
    if (m_outputAttr == "facingRatio")
    {
-      return AddArnoldNode("MayaFacingRatio");
+      return ProcessAOVOutput(AddArnoldNode("MayaFacingRatio"));
    }
    else if (m_outputAttr == "flippedNormal")
    {
-      return AddArnoldNode("MayaFlippedNormal");
+      return ProcessAOVOutput(AddArnoldNode("MayaFlippedNormal"));
    }
    else
    {
@@ -269,15 +269,15 @@ AtNode* CPlusMinusAverageTranslator::CreateArnoldNodes()
 {
    if (m_outputAttr == "output1D")
    {
-      return AddArnoldNode("MayaPlusMinusAverage1D");
+      return ProcessAOVOutput(AddArnoldNode("MayaPlusMinusAverage1D"));
    }
    else if (m_outputAttr == "output2D")
    {
-      return AddArnoldNode("MayaPlusMinusAverage2D");
+      return ProcessAOVOutput(AddArnoldNode("MayaPlusMinusAverage2D"));
    }
    else if (m_outputAttr == "output3D")
    {
-      return AddArnoldNode("MayaPlusMinusAverage3D");
+      return ProcessAOVOutput(AddArnoldNode("MayaPlusMinusAverage3D"));
    }
    else
    {
@@ -430,11 +430,11 @@ AtNode* CRemapValueTranslator::CreateArnoldNodes()
 {
    if (m_outputAttr == "outValue")
    {
-      return AddArnoldNode("MayaRemapValueToValue");
+      return ProcessAOVOutput(AddArnoldNode("MayaRemapValueToValue"));
    }
    else if (m_outputAttr == "outColor")
    {
-      return AddArnoldNode("MayaRemapValueToColor");
+      return ProcessAOVOutput(AddArnoldNode("MayaRemapValueToColor"));
    }
    else
    {
@@ -516,7 +516,7 @@ void CRemapValueTranslator::Export(AtNode* shader)
 //
 AtNode* CRemapColorTranslator::CreateArnoldNodes()
 {
-   return AddArnoldNode("MayaRemapColor");
+   return ProcessAOVOutput(AddArnoldNode("MayaRemapColor"));
 }
 
 void CRemapColorTranslator::Export(AtNode* shader)
@@ -657,7 +657,7 @@ void CProjectionTranslator::Export(AtNode* shader)
 //
 AtNode*  CRampTranslator::CreateArnoldNodes()
 {
-   return AddArnoldNode("MayaRamp");
+   return ProcessAOVOutput(AddArnoldNode("MayaRamp"));
 }
 
 void CRampTranslator::Export(AtNode* shader)
@@ -710,7 +710,7 @@ void CRampTranslator::Export(AtNode* shader)
 
 AtNode*  CPlace2DTextureTranslator::CreateArnoldNodes()
 {
-   return AddArnoldNode("MayaPlace2DTexture");
+   return ProcessAOVOutput(AddArnoldNode("MayaPlace2DTexture"));
 }
 
 void CPlace2DTextureTranslator::Export(AtNode* shader)
@@ -733,7 +733,7 @@ void CPlace2DTextureTranslator::Export(AtNode* shader)
 //
 AtNode*  CLayeredTextureTranslator::CreateArnoldNodes()
 {
-   return AddArnoldNode("MayaLayeredTexture");
+   return ProcessAOVOutput(AddArnoldNode("MayaLayeredTexture"));
 }
 
 void CLayeredTextureTranslator::Export(AtNode* shader)
@@ -776,7 +776,7 @@ void CLayeredTextureTranslator::Export(AtNode* shader)
 //
 AtNode*  CLayeredShaderTranslator::CreateArnoldNodes()
 {
-   return AddArnoldNode("MayaLayeredShader");
+   return ProcessAOVOutput(AddArnoldNode("MayaLayeredShader"));
 }
 
 void CLayeredShaderTranslator::Export(AtNode* shader)

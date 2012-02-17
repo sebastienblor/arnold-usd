@@ -446,6 +446,17 @@ void CGeometryTranslator::ExportShaders()
    ExportMeshShaders(GetArnoldRootNode(), m_fnMesh);
 }
 
+
+
+/// Nodes to be written to AOVs are connected to a special attribute on the shading group called aiCustomAOVs.
+/// The simplest solution to exporting these custom AOVs would be to branch them in at the root of the network.
+/// However, because Arnold lacks output caching, and considering that the nodes connected to aiCustomAOVs may
+/// appear elsewhere in the shape's shading network, we must take great pains to build linear node networks in
+/// order to avoid entire shading networks from being evaluated multiple times during render (i.e., we must avoid a
+/// node's output being connected to more than one node). So instead of a simple branching design, we must insert the
+/// AOV write nodes within the body of the network, immediately following the node whose output needs to be written.
+/// Those AOVs are handled by CShaderTranslator::ProcessAOVOutput, while the remainder are processed in
+/// CGeometryTranslator::ExportMeshShaders
 void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
 {
    int instanceNum = m_dagPath.isInstanced() ? m_dagPath.instanceNumber() : 0;
@@ -455,21 +466,15 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
    MObject shadingGroup = GetNodeShadingGroup(m_dagPath.node(), instanceNum);
    if (!shadingGroup.isNull())
    {
-      MPlugArray        connections;
-      MFnDependencyNode fnDGNode(shadingGroup);
-      MPlug shaderPlug = fnDGNode.findPlug("surfaceShader");
-      shaderPlug.connectedTo(connections, true, false);
-      if (connections.length() > 0)
+      AtNode *shader = ExportRootShader(shadingGroup);
+      if (shader != NULL)
       {
-         // shader assigned to node
-         AtNode* shader = ExportRootShader(connections[0]);
-
          AiNodeSetPtr(polymesh, "shader", shader);
       }
       else
       {
          AiMsgWarning("[mtoa] [translator %s] ShadingGroup %s has no surfaceShader input",
-               GetTranslatorName().asChar(), fnDGNode.name().asChar());
+               GetTranslatorName().asChar(), MFnDependencyNode(shadingGroup).name().asChar());
          AiNodeSetPtr(polymesh, "shader", NULL);
       }
    }

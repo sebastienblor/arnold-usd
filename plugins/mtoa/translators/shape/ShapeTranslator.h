@@ -36,8 +36,11 @@ protected:
    // for initializer callbacks:
    static void MakeCommonAttributes(CBaseAttrHelper& helper);
 
+   void AddAOVDefaults(std::vector<AtNode*> &aovShaders);
    virtual AtNode* ExportRootShader(const MPlug& plug);
-   AtNode* AddAOVDefaults(AtNode *shader);
+   virtual AtNode* ExportRootShader(AtNode *rootShader);
+   virtual AtNode* ExportRootShader(const MObject& shadingGroup);
+   AtNode* CreateShadingGroupShader(AtNode *rootShader, std::vector<AtNode*> &aovShaders);
    MObject GetNodeShadingGroup(MObject dagNode, int instanceNum);
 
 protected:

@@ -31,7 +31,6 @@ MStatus CArnoldAOVNode::initialize()
 {
    MFnTypedAttribute tAttr;
    MFnEnumAttribute eAttr;
-   MFnCompoundAttribute cAttr;
    MFnNumericAttribute nAttr;
    MFnMessageAttribute mAttr;
    MFnStringData sData;

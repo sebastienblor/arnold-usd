@@ -57,6 +57,34 @@ namespace // <anonymous>
 
 } // namespace
 
+MString GetAOVNodeType(int type)
+{
+   MString nodeType = "";
+   switch (type)
+   {
+   case AI_TYPE_FLOAT:
+      nodeType = "writeFloatInline";
+      break;
+   case AI_TYPE_RGB:
+   case AI_TYPE_RGBA:
+      nodeType = "writeColorInline";
+      break;
+   case AI_TYPE_VECTOR:
+      nodeType = "writeVectorInline";
+      break;
+   case AI_TYPE_POINT:
+      nodeType = "writePointInline";
+      break;
+   case AI_TYPE_POINT2:
+      nodeType = "writePoint2Inline";
+      break;
+   default:
+      {
+         break;
+      }
+   }
+   return nodeType;
+}
 
 //------------ CNodeTranslator ------------//
 

@@ -24,6 +24,8 @@
 #define AI_ATT_SEP "."
 #define AI_TAG_SEP "@"
 
+MString GetAOVNodeType(int type);
+
 // Abstract base class for all Maya-to-Arnold node translators
 //
 class DLLEXPORT CNodeTranslator

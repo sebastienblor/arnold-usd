@@ -139,7 +139,7 @@ void CShaveTranslator::Update(AtNode* curve)
    // Default to the ShaveHair shader if nothing else has been set.
    if (shader == NULL)
    {
-      shader = AddAOVDefaults(CreateShaveShader(curve));
+      shader = ExportRootShader(CreateShaveShader(curve));
    }
    
    if (shader != NULL)
