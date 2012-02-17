@@ -8,8 +8,24 @@ AtNode*  CShadingEngineTranslator::CreateArnoldNodes()
 
 void CShadingEngineTranslator::NodeInitializer(CAbTranslator context)
 {
+   CExtensionAttrHelper helper(context.maya);
 
+   std::vector<CAttrData> children(2);
 
+   children[0].name = "aovName";
+   children[0].shortName = "aov_name";
+   children[0].type = AI_TYPE_STRING;
+
+   children[1].name = "aovInput";
+   children[1].shortName = "aov_input";
+   children[1].type = AI_TYPE_NODE;
+
+   CAttrData data;
+   data.name = "aiCustomAOVs";
+   data.shortName = "aovs";
+   data.isArray = true;
+
+   helper.MakeInputCompound(data, children);
 }
 
 /// Find and export the surfaceShader for the passed shadingGroup and add the AOV defaults.

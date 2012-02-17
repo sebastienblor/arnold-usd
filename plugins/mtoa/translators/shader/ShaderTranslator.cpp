@@ -80,42 +80,6 @@ AtNode* CShaderTranslator::ProcessAOVOutput(AtNode* shader)
    return currNode;
 }
 
-/// Add a dynamic array attribute for custom AOVs
-MStatus CShaderTranslator::MakeAOVAttributes(MObject& node)
-{
-   MFnDependencyNode fnNode(node);
-
-   MFnCompoundAttribute cmpAttr;
-   MFnMessageAttribute mAttr;
-   MFnTypedAttribute tAttr;
-   MFnNumericAttribute nAttr;
-
-   MStatus status;
-
-   MObject aName = tAttr.create("aovName", "aov_name", MFnData::kString, &status);
-   CHECK_MSTATUS(status);
-   tAttr.setStorable(true);
-   tAttr.setReadable(true);
-   tAttr.setWritable(true);
-
-   MObject aNode = mAttr.create("aovInput", "aov_input", &status);
-   CHECK_MSTATUS(status);
-   mAttr.setReadable(true);
-   mAttr.setWritable(true);
-
-   MObject aAOV = cmpAttr.create("aiCustomAOVs", "aovs", &status);
-   cmpAttr.setArray(true);
-   cmpAttr.addChild(aName);
-   cmpAttr.addChild(aNode);
-
-   cmpAttr.setReadable(true);
-   cmpAttr.setWritable(true);
-   // cmpAttr.setIndexMatters(true);
-   CHECK_MSTATUS(fnNode.addAttribute(aAOV));
-
-   return status;
-}
-
 AtNode* CShaderTranslator::CreateArnoldNodes()
 {
    return ProcessAOVOutput(AddArnoldNode(m_abstract.arnold.asChar()));

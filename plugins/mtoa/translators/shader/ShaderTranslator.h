@@ -27,7 +27,6 @@ public:
    virtual void ExportMotion(AtNode *shader, unsigned int step);
    virtual bool ResolveOutputPlug(const MPlug& outputPlug, MPlug &resolvedOutputPlug);
    virtual bool RequiresMotionData();
-   static MStatus MakeAOVAttributes(MObject& node);
 
 protected:
    AtNode* ProcessAOVOutput(AtNode* shader);
