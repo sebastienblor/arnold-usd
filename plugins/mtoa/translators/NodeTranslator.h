@@ -81,8 +81,8 @@ protected:
       m_upstreamAOVs(),
       m_shaders(NULL)
    {}
-   void ComputeAOVs();
-   void AddAOVDefaults(std::vector<AtNode*> &aovShaders);
+   virtual void ComputeAOVs();
+   void AddAOVDefaults(AtNode* shadingEngine, std::vector<AtNode*> &aovShaders);
    void WriteAOVUserAttributes(AtNode* atNode);
    virtual void Export(AtNode* atNode) = 0;
    virtual void ExportMotion(AtNode* atNode, unsigned int step){}

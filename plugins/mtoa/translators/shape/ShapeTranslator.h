@@ -19,24 +19,13 @@ public:
    {
       return (m_motion && IsLocalMotionBlurEnabled());
    }
-   virtual ~CShapeTranslator()
-   {
-      delete m_shaders;
-   }
 
 protected:
-   CShapeTranslator() :
-      CDagTranslator()
-   {
-      m_shaders = new AtNodeSet;
-   }
-
    virtual void ProcessRenderFlags(AtNode* node);
    void ExportLightLinking(AtNode* polymesh);
    // for initializer callbacks:
    static void MakeCommonAttributes(CBaseAttrHelper& helper);
 
-   void AddAOVDefaults(std::vector<AtNode*> &aovShaders);
    virtual AtNode* ExportRootShader(const MPlug& plug);
    virtual AtNode* ExportRootShader(AtNode *rootShader);
    AtNode* CreateShadingGroupShader(AtNode *rootShader, std::vector<AtNode*> &aovShaders);

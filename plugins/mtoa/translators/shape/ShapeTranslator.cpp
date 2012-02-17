@@ -173,18 +173,14 @@ void CShapeTranslator::MakeCommonAttributes(CBaseAttrHelper& helper)
 
 AtNode* CShapeTranslator::CreateShadingGroupShader(AtNode *rootShader, std::vector<AtNode*> &aovShaders)
 {
-   int numCustom = aovShaders.size();
-   // Do we want to always create a shadingEngine shader for consistency?
-   if (numCustom)
-   {
-      // insert shading group shader to evaluate extra AOV inputs
-      AtNode* shadingEngine = AiNode("MayaShadingEngine");
-      AiNodeSetArray(shadingEngine, "aov_inputs", AiArrayConvert(numCustom, 1, AI_TYPE_NODE, &aovShaders[0]));
-      AiNodeSetStr(shadingEngine, "name", (GetMayaNodeName() + "@SG").asChar());
-      AiNodeLink(rootShader, "beauty", shadingEngine);
-      return shadingEngine;
-   }
-   return rootShader;
+   // insert shading group shader to evaluate extra AOV inputs
+   AtNode* shadingEngine = AiNode("MayaShadingEngine");
+
+   AddAOVDefaults(shadingEngine, aovShaders);
+
+   AiNodeSetStr(shadingEngine, "name", (GetMayaNodeName() + "@SG").asChar());
+   AiNodeLink(rootShader, "beauty", shadingEngine);
+   return shadingEngine;
 }
 
 // called for shaders connected directly to shapes
@@ -197,7 +193,6 @@ AtNode* CShapeTranslator::ExportRootShader(const MPlug& plug)
 AtNode* CShapeTranslator::ExportRootShader(AtNode *rootShader)
 {
    std::vector<AtNode*> aovShaders;
-   AddAOVDefaults(aovShaders);
    return CreateShadingGroupShader(rootShader, aovShaders);
 }
 

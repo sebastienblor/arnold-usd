@@ -446,17 +446,6 @@ void CGeometryTranslator::ExportShaders()
    ExportMeshShaders(GetArnoldRootNode(), m_fnMesh);
 }
 
-
-
-/// Nodes to be written to AOVs are connected to a special attribute on the shading group called aiCustomAOVs.
-/// The simplest solution to exporting these custom AOVs would be to branch them in at the root of the network.
-/// However, because Arnold lacks output caching, and considering that the nodes connected to aiCustomAOVs may
-/// appear elsewhere in the shape's shading network, we must take great pains to build linear node networks in
-/// order to avoid entire shading networks from being evaluated multiple times during render (i.e., we must avoid a
-/// node's output being connected to more than one node). So instead of a simple branching design, we must insert the
-/// AOV write nodes within the body of the network, immediately following the node whose output needs to be written.
-/// Those AOVs are handled by CShaderTranslator::ProcessAOVOutput, while the remainder are processed in
-/// CGeometryTranslator::ExportMeshShaders
 void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
 {
    int instanceNum = m_dagPath.isInstanced() ? m_dagPath.instanceNumber() : 0;
@@ -469,6 +458,7 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
       AtNode *shader = ExportNode(shadingGroupPlug);
       if (shader != NULL)
       {
+         meshShaders.push_back(shader);
          AiNodeSetPtr(polymesh, "shader", shader);
       }
       else
@@ -541,6 +531,10 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
       AiNodeSetArray(polymesh, "shidxs", AiArrayConvert((int)shidxs.size(), 1, AI_TYPE_UINT, &(shidxs[0])));
       */
    }
+   // we must write this as user data bc AiNodeGet* is thread-locked while AIUDataGet* is not
+   AiNodeDeclare(polymesh, "mtoa_shading_groups", "constant ARRAY NODE");
+   AiNodeSetArray(polymesh, "mtoa_shading_groups",
+                  AiArrayConvert(meshShaders.size(), 1, AI_TYPE_NODE, &(meshShaders[0])));
 
    //
    // DISPLACEMENT
@@ -639,6 +633,7 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
          m_fnMesh.setObject(mesh_mobj);
       }
    }
+
    //
    // GEOMETRY
    //

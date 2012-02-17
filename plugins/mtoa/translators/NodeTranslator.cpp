@@ -133,9 +133,13 @@ void CNodeTranslator::TrackAOVs(AOVSet* aovs)
 }
 
 /// Adds new AOV write nodes to aovShaders for any AOVs with defaults not present in this shading network.
-/// Can be used by ShadingEngineTranslator or by ShapeTranslator for nodes like shave which act like Shape + ShadingGroup + Shader in one
-void CNodeTranslator::AddAOVDefaults(std::vector<AtNode*> &aovShaders)
+/// Defaults are specified by connecting a shader to the "defaultValue" attribute of an aiAOV node.
+/// Can be used by ShadingEngineTranslator or by ShapeTranslator for nodes like shave which act like
+/// Shape + ShadingGroup + Shader in one
+void CNodeTranslator::AddAOVDefaults(AtNode* shadingEngine, std::vector<AtNode*> &aovShaders)
 {
+   // FIXME: add early bail out if AOVs are not enabled
+
    AOVSet active = m_session->GetActiveAOVs();
    AOVSet total;
    AOVSet unused;
@@ -182,6 +186,7 @@ void CNodeTranslator::AddAOVDefaults(std::vector<AtNode*> &aovShaders)
          //ProcessParameter(shader, plug, "input", AI_TYPE_RGB);
       }
    }
+   AiNodeSetArray(shadingEngine, "aov_inputs", AiArrayConvert(aovShaders.size(), 1, AI_TYPE_NODE, &aovShaders[0]));
 }
 
 void CNodeTranslator::WriteAOVUserAttributes(AtNode* atNode)

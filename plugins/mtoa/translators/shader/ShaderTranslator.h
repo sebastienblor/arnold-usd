@@ -3,6 +3,8 @@
 
 #include "translators/NodeTranslator.h"
 
+#include <maya/MPlugArray.h>
+
 //--------------- CShaderTranslator ------------------------------------------
 
 /// A Translator class which can automatically export simple Maya nodes.
@@ -30,6 +32,10 @@ public:
 
 protected:
    AtNode* ProcessAOVOutput(AtNode* shader);
+   void AssociateAOVsWithShadingGroups();
+
+protected:
+   std::map<std::string, MPlugArray> m_aovShadingGroups;
 };
 
 #endif // SHADER_TRANSLATOR_H

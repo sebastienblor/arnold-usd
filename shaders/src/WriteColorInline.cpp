@@ -1,4 +1,5 @@
 #include <ai.h>
+#include "MayaUtils.h"
 
 namespace
 {
@@ -6,7 +7,8 @@ namespace
 enum WriteColorInlineParams
 {
    p_input,
-   p_name
+   p_name,
+   p_sets
 };
 
 
@@ -21,12 +23,15 @@ node_parameters
 
    AiParameterRGBA("input", 0.0f, 0.0f, 0.0f, 1.0f);
    AiParameterSTR("aov_name", "");
+   AiParameterARRAY("sets", AiArray(0, 0, AI_TYPE_NODE));
 }
 
 shader_evaluate
 {
    sg->out.RGBA = AiShaderEvalParamRGBA(p_input);
-   AiAOVSetRGBA(sg, AiShaderEvalParamStr(p_name), sg->out.RGBA);
+
+   if (IsInShadingGroup(AiShaderEvalParamArray(p_sets), sg))
+      AiAOVSetRGBA(sg, AiShaderEvalParamStr(p_name), sg->out.RGBA);
 }
 
 node_initialize
