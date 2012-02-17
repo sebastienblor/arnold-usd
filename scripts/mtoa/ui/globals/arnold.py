@@ -533,10 +533,6 @@ def createArnoldRayDepthSettings():
                         label="Auto transp. threshold",
                         attribute='defaultArnoldRenderOptions.autoTransparencyThreshold')
 
-    pm.attrControlGrp('rs_auto_transparency_probabilistic',
-                        label="Auto transp. probabilistic",
-                        attribute='defaultArnoldRenderOptions.autoTransparencyProbabilistic')
-
     pm.setParent('..')
 
     pm.setUITemplate(popTemplate=True)

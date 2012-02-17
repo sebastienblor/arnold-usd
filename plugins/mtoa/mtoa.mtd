@@ -85,9 +85,6 @@
         min                 FLOAT   0.0
         max                 FLOAT   10.0
         maya.orig_shortname STRING  "at_t"
-    [attr auto_transparency_probabilistic]
-        maya.keyable        BOOL    False
-        maya.orig_shortname STRING  "at_p"
     [attr sss_subpixel_cache]
         maya.keyable        BOOL    False
         maya.orig_shortname STRING  "sssspc"

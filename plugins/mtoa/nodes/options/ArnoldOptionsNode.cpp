@@ -270,7 +270,6 @@ MStatus CArnoldOptionsNode::initialize()
 
    s_attributes.MakeInput("auto_transparency_depth");
    s_attributes.MakeInput("auto_transparency_threshold");
-   s_attributes.MakeInput("auto_transparency_probabilistic");
 
    s_light_linking = eAttr.create("lightLinking", "llnk", 0);
       eAttr.setKeyable(false);
