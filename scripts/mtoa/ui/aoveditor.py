@@ -442,12 +442,12 @@ class ArnoldAOVEditor(object):
         self.aovRows = {}
         self.renderOptions = aovs.getAOVNode() if aovNode is None else aovNode
 
-        pm.cmds.columnLayout('arnoldAOVMainColumn')
+        self.mainCol = pm.cmds.columnLayout('arnoldAOVMainColumn')
 
         pm.cmds.frameLayout('arnoldAOVBrowserFrame', label='AOV Browser', width=WIDTH, collapsable=True, collapse=False)
 
         self.browser = AOVBrowser(self.renderOptions)
-        pm.setParent('..') # frame
+        pm.setParent(self.mainCol)
 
         pm.cmds.frameLayout('arnoldAOVPrimaryFrame', label='AOVs', width=WIDTH, collapsable=True, collapse=False)
         self.aovCol = pm.cmds.columnLayout('arnoldAOVListColumn', adj=True)
@@ -575,6 +575,12 @@ class ArnoldAOVEditor(object):
             pm.optionMenu(menu, edit=True, visible=False)
             pm.optionMenu(menu, edit=True, visible=True)
 
+    def setEnabledState(self):
+        mode = self.renderOptions.node.attr('aovMode').get()
+        print mode
+        state = mode > 0
+        pm.cmds.columnLayout(self.mainCol, edit=True, enable=state)
+
 def arnoldAOVEditor(*args):
     if pm.window(UI_NAME, exists=True):
         pm.deleteUI(UI_NAME)
@@ -595,6 +601,7 @@ def arnoldAOVBrowser(**kwargs):
     win.show()
     return browser
 
+
 def createArnoldAOVTab():
     parentForm = cmds.setParent(query=True)
 
@@ -602,6 +609,7 @@ def createArnoldAOVTab():
     pm.columnLayout('enableAOVs', adjustableColumn=True)
     
     with pm.uitypes.UITemplate('attributeEditorTemplate'):
+
         pm.attrControlGrp(attribute=aovNode.node.aovMode, label='Mode')
     
         ctrl = shaderTemplate.AOVOptionMenuGrp('aiOptions', label='Render View AOV',
@@ -620,7 +628,7 @@ def createArnoldAOVTab():
 
     cmds.columnLayout('arnoldTabColumn', adjustableColumn=True)
 
-    ArnoldAOVEditor(aovNode)
+    ed = ArnoldAOVEditor(aovNode)
 
     cmds.formLayout(parentForm,
                edit=True,
@@ -634,6 +642,10 @@ def createArnoldAOVTab():
                     ac=[('arnoldAOVsScrollLayout', "top", 5, 'enableAOVs')])
 
     cmds.setParent(parentForm)
+
+    ed.setEnabledState()
+    pm.scriptJob(attributeChange = (aovNode.node.aovMode, ed.setEnabledState), parent=ed.mainCol)
+
     #cmds.setUITemplate(popTemplate=True)
 
 def updateArnoldAOVTab():
