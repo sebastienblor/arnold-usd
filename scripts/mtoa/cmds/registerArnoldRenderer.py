@@ -80,7 +80,7 @@ def _addAEHooks():
     pm.melGlobals.initVar('string[]', 'AEshapeHooks')
     hooks = list(pm.melGlobals['AEshapeHooks'])
     import mtoa.ui.ae.shapeTemplate
-    procName = utils.pyToMelProc(mtoa.ui.ae.shapeTemplate.arnoldShapeHook, [('string', 'nodeName')], useName=True)
+    procName = utils.pyToMelProc(mtoa.ui.ae.shapeTemplate.loadArnoldTemplate, [('string', 'nodeName')], useName=True)
     hooks.append(procName)
     pm.melGlobals['AEshapeHooks'] = hooks
 

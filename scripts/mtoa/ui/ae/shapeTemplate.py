@@ -260,7 +260,7 @@ class AttributeTemplate(BaseTemplate):
 if pymel.__version__ >= '1.0.1':
     class DisableLoader(pm.uitypes.AELoader):
         """
-        Metaclass which disables the automatic loading behavior of AETemplate
+        Metaclass which disables the automatic loading behavior of pymel's AETemplate
         """
         def __new__(cls, classname, bases, classdict):
             return type.__new__(cls, classname, bases, classdict)
@@ -654,11 +654,11 @@ class TranslatorControlUI(TranslatorControl):
 def registerAETemplate(templateClass, nodeType, *args, **kwargs):
     assert inspect.isclass(templateClass) and issubclass(templateClass, (AttributeTemplate, AttributeEditorTemplate)), \
         "you must pass a subclass of AttributeTemplate or AttributeEditorTemplate"
-    print "registering attribute template for %s" % nodeType
     global _templates
     if nodeType not in _templates:
         try:
             _templates[nodeType] = templateClass(nodeType, *args, **kwargs)
+            print "registered attribute template for %s" % nodeType
         except:
             print "Failed to instantiate AE Template", templateClass
             import traceback
@@ -734,7 +734,8 @@ def shapeTemplate(nodeName):
     """
     override for the builtin maya shapeTemplate procedure
     """
-    #Run the hooks.
+    # Run the hooks.
+    # see mtoa.registerArnoldRenderer._addAEHooks for where loadArnoldTemplate gets added to AEshapeHooks
     for hook in pm.melGlobals['AEshapeHooks']:
         pm.mel.eval(hook + ' "' + nodeName + '"')
 
@@ -747,7 +748,10 @@ def shapeTemplate(nodeName):
     # include/call base class/node attributes
     pm.mel.AEdagNodeInclude(nodeName)
 
-def arnoldShapeHook(nodeName):
+def loadArnoldTemplate(nodeName):
+    """
+    Create the "Arnold" AE template for the passed node
+    """
     global _templates
     nodeType = pm.objectType(nodeName)
 
