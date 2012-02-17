@@ -15,9 +15,10 @@ def newAOVPrompt(default=''):
     if result == 'Create':
         core.createOptions()
         newAOV = pm.promptDialog(query=True, text=True)
-        return aovs.getAOVNode().addAOV(newAOV)
+        return newAOV, aovs.getAOVNode().addAOV(newAOV)
     else:
         print "AOV creation canceled"
+        return None, None
 
 class AOVOptionMenuGrp(templates.BaseTemplate):
     EMPTY_AOV_ITEM = "<None>"
@@ -29,7 +30,6 @@ class AOVOptionMenuGrp(templates.BaseTemplate):
     def __init__(self, nodeType, label=None, allowCreation=True, includeBeauty=False, allowEmpty=True, allowDisable=False):
         super(AOVOptionMenuGrp, self).__init__(nodeType)
         aovs.addAOVChangedCallback(self.update)
-        self.activeNodes = None
         self.allowCreation = allowCreation
         self.includeBeauty = includeBeauty
         self.allowDisable = allowDisable
@@ -57,29 +57,22 @@ class AOVOptionMenuGrp(templates.BaseTemplate):
                 # TODO: reset menu to previous value?
                 default = ''
 
-            aovNode = newAOVPrompt(default)
+            aovName, aovNode = newAOVPrompt(default)
             if aovNode is None:
                 return
-            aovNode.attr('name').connect(nodeAttr, force=True)
         elif newAOV == self.BEAUTY_ITEM:
-            conn = pm.listConnections(nodeAttr, source=True, destination=False, plugs=True)
-            if conn:
-                pm.disconnectAttr(conn[0], nodeAttr)
-            pm.setAttr(nodeAttr, self.BEAUTY_ITEM, type='string')
+            aovName = self.BEAUTY_ITEM
         elif newAOV == self.EMPTY_AOV_ITEM:
-            conn = pm.listConnections(nodeAttr, source=True, destination=False, plugs=True)
-            if conn:
-                pm.disconnectAttr(conn[0], nodeAttr)
-            pm.setAttr(nodeAttr, "", type='string')
+            aovName = ""
         else:
-            # attribute changed callback updates the UI
-            self.activeNodes[newAOV].attr('name').connect(nodeAttr, force=True)
+            aovName = newAOV
+        pm.setAttr(nodeAttr, aovName)
 
     def updateMenu(self, nodeAttr):
         self.clear()
         currVal = pm.getAttr(nodeAttr)
-        self.activeNodes = dict(aovs.getActiveAOVNodes(names=True))
-        self.activeNames = sorted(self.activeNodes.keys())
+        activeNodes = dict(aovs.getActiveAOVNodes(names=True))
+        self.activeNames = sorted(activeNodes.keys())
         if not currVal:
             currVal = self.EMPTY_AOV_ITEM
         elif currVal not in self.activeNames and currVal != self.BEAUTY_ITEM:

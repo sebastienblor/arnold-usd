@@ -79,18 +79,6 @@ def createArnoldNode(nodeType, name=None, skipSelect=False, runtimeClassificatio
 
     createOptions()
 
-    if runtimeClassification in ('asShader', 'asTexture', 'asUtility'):
-        # connect any shader aovs to global aov nodes
-        activeAOVMap = dict(aovs.getActiveAOVNodes(names=True))
-        if activeAOVMap:
-            for aovName, aovAttr, aovType in aovs.getNodeGlobalAOVData(nodeType):
-                aovNodeAttr = node.attr(aovAttr)
-                try:
-                    aovNode = activeAOVMap[aovNodeAttr.get()]
-                except KeyError:
-                    pass
-                else:
-                    aovNode.attr('name').connect(aovNodeAttr)
     return node
 
 def getAttributeData(nodeType):
