@@ -102,7 +102,7 @@ MString COptionsTranslator::SetImageFilenames(MDagPath &camera)
                                                          "", renderLayer,
                                                          "RenderPass=beauty", 1);
 
-   if (m_driver != NULL)
+   if (m_driver != NULL && AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(m_driver), "filename") != NULL)
       AiNodeSetStr(m_driver, "filename", imageFilename.asChar());
 
    if (defaultRenderGlobalsData.name == "")

@@ -135,6 +135,9 @@ void CAOV::SetImageFilename(const MString &filename) const
       AiMsgError("[mtoa] [aov] Cannot set filename for \"%s\": the driver has not been created", GetName().asChar());
       return;
    }
+   if (AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(m_driver), "filename") == NULL)
+      return;
+
    AiNodeSetStr(m_driver, "filename", filename.asChar());
 
    if (filename != "")
