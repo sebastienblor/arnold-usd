@@ -11,10 +11,13 @@ from collections import defaultdict
 # Shading Group
 #------------------------------------------
 
-def createCallback(attr, aovName):
-    print "running"
-
 def getAOVsInNetwork(rootNode):
+    '''
+    returns a map from PyNode to aovs
+    
+    the aov list contains all registered aovs for that node type, regardless of whether
+    they are currently enabled in the globals 
+    '''
     results = {}
     for node in pm.listHistory(rootNode, pruneDagObjects=True):
         # TOOD: cache this result
@@ -27,6 +30,13 @@ class ShadingEngineTemplate(templates.AttributeEditorTemplate):
         aovs.addAOVChangedCallback(self.update, 'ShadingEngineTemplate')
         self.networkCol = None
         self.otherCol = None
+
+        # populated by updateNetworkData()
+        self.networkData = None # mapping from node -> aov list
+        self.networkAOVs = None # set of all possible aovs in network, regardless of whether they are active
+        self.networkNodeTypes =None # set of node types in the shading network 
+        self.aovNodes = None # reverse lookup to networkData:  aovName -> node list
+
         super(ShadingEngineTemplate, self).__init__(nodeType)
 
     def setup(self):
@@ -34,11 +44,10 @@ class ShadingEngineTemplate(templates.AttributeEditorTemplate):
 
 
     def update(self):
-        print "ShadingEngineTemplate.update"
         if self.nodeName is None or not pm.objExists(self.nodeName) \
             or self.networkCol is None or not pm.layout(self.networkCol, exists=True):
             return
-        #self.updateCustomAOVArray()
+
         nodeAttr = pm.Attribute(self.nodeAttr('aiCustomAOVs'))
         for aov in aovs.getAOVs():
             # FIXME- delay setting the aov name attribute until something is connected
@@ -48,55 +57,60 @@ class ShadingEngineTemplate(templates.AttributeEditorTemplate):
 
     def updateNetworkData(self):
         self.networkData = getAOVsInNetwork(self.nodeAttr('surfaceShader'))
-        self.networkAOVs = set([])
+        self.networkAOVs = set(aovs.getBuiltinAOVs()) # builtins are always in network
         self.networkNodeTypes = set([])
         self.aovNodes = defaultdict(list)
-        for node, aovs in self.networkData.iteritems():
-            self.networkAOVs.update(aovs)
+        for node, aovList in self.networkData.iteritems():
+            self.networkAOVs.update(aovList)
             self.networkNodeTypes.add(node.type())
-            for aov in aovs:
+            for aov in aovList:
                 self.aovNodes[aov].append(node)
 
     def buildNetworkAOVBrowser(self, nodeAttr):
         # TODO: move this into AttributeEditorTemplate
         self._setActiveNodeAttr(nodeAttr)
         self.updateNetworkData()
-        with pm.uitypes.UITemplate('attributeEditorTemplate'):
-            pm.cmds.frameLayout(label='AOVs in Shading Network', collapse=False)
-            pm.cmds.columnLayout(adjustableColumn=True)
-            
-            pm.cmds.rowLayout(nc=2)
-            pm.cmds.text(label='')
-            pm.cmds.button(label='AOV Browser',
-                      c=lambda *args: aoveditor.arnoldAOVBrowser(listAOVGroups=False,
-                                                                 nodeTypes=self.networkNodeTypes))
-            pm.setParent('..') # rowLayout
 
-            pm.cmds.frameLayout(labelVisible=False, collapsable=False)
-            self.networkCol = pm.cmds.columnLayout(adjustableColumn=True)
-            self.buildNetworkAOVs(nodeAttr)
-            pm.setParent('..') # columnLayout
-            pm.setParent('..') # frameLayout
+        aovList = aovs.getAOVs()
 
-            pm.setParent('..') # columnLayout
-            pm.setParent('..') # frameLayout
+        pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+    
+        pm.cmds.frameLayout(label='AOVs in Shading Network', collapse=False)
+        pm.cmds.columnLayout(adjustableColumn=True)
+        
+        pm.cmds.rowLayout(nc=2)
+        pm.cmds.text(label='')
+        pm.cmds.button(label='AOV Browser',
+                  c=lambda *args: aoveditor.arnoldAOVBrowser(listAOVGroups=False,
+                                                             nodeTypes=self.networkNodeTypes))
+        pm.setParent('..') # rowLayout
 
-            pm.cmds.frameLayout(label='Other AOVs', collapse=False)
-            pm.cmds.columnLayout(adjustableColumn=True)
+        pm.cmds.frameLayout(labelVisible=False, collapsable=False)
+        self.networkCol = pm.cmds.columnLayout(adjustableColumn=True)
+        self.buildNetworkAOVs(nodeAttr, aovList)
+        pm.setParent('..') # columnLayout
+        pm.setParent('..') # frameLayout
 
-            pm.cmds.rowLayout(nc=2)
-            pm.cmds.text(label='')
-            pm.cmds.button(label='Add Custom', c=lambda *args: shaderTemplate.newAOVPrompt())
-            pm.setParent('..') # rowLayout
+        pm.setParent('..') # columnLayout
+        pm.setParent('..') # frameLayout
 
-            pm.cmds.frameLayout(labelVisible=False, collapsable=False)
-            self.otherCol = pm.cmds.columnLayout(adjustableColumn=True)
-            self.buildOtherAOVs(nodeAttr)
-            pm.setParent('..') # columnLayout
-            pm.setParent('..') # frameLayout
+        pm.cmds.frameLayout(label='Other AOVs', collapse=False)
+        pm.cmds.columnLayout(adjustableColumn=True)
 
-            pm.setParent('..') # columnLayout
-            pm.setParent('..') # frameLayout
+        pm.cmds.rowLayout(nc=2)
+        pm.cmds.text(label='')
+        pm.cmds.button(label='Add Custom', c=lambda *args: shaderTemplate.newAOVPrompt())
+        pm.setParent('..') # rowLayout
+
+        pm.cmds.frameLayout(labelVisible=False, collapsable=False)
+        self.otherCol = pm.cmds.columnLayout(adjustableColumn=True)
+        self.buildOtherAOVs(nodeAttr, aovList)
+        pm.setParent('..') # columnLayout
+        pm.setParent('..') # frameLayout
+
+        pm.setParent('..') # columnLayout
+        pm.setParent('..') # frameLayout
+        pm.setUITemplate('attributeEditorTemplate', popTemplate=True)
 
     def updateNetworkAOVBrowser(self, nodeAttr):
         # TODO: move this into AttributeEditorTemplate
@@ -105,17 +119,25 @@ class ShadingEngineTemplate(templates.AttributeEditorTemplate):
         for ctrl in self._msgCtrls:
             pm.deleteUI(ctrl)
         self._msgCtrls = []
-        with pm.uitypes.UITemplate('attributeEditorTemplate'):
-            pm.setParent(self.networkCol)
-            self.buildNetworkAOVs(nodeAttr)
-            pm.setParent(self.otherCol)
-            self.buildOtherAOVs(nodeAttr)
 
-    def buildNetworkAOVs(self, nodeAttr):
+        pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+
+        aovList = aovs.getAOVs()
+        pm.setParent(self.networkCol)
+        self.buildNetworkAOVs(nodeAttr, aovList)
+
+        pm.setParent(self.otherCol)
+        self.buildOtherAOVs(nodeAttr, aovList)
+
+        pm.setUITemplate('attributeEditorTemplate', popTemplate=True)
+
+    def buildNetworkAOVs(self, nodeAttr, aovList):
+        '''
+        Populate the UI with an attrNavigationControlGrp for each AOV in the network
+        '''
         nodeAttr = pm.Attribute(nodeAttr)
-        for aovName, aovList in aovs.getAOVs(group=True):
-            if aovName in self.networkAOVs:
-                aov = aovList[0]
+        for aov in aovList:
+            if aov.name in self.networkAOVs:
                 at = nodeAttr[aov.index]
                 at.aovName.set(aov.name)
                 ctrl = pm.attrNavigationControlGrp(at=at.aovInput,
@@ -126,39 +148,18 @@ class ShadingEngineTemplate(templates.AttributeEditorTemplate):
                 for node in self.aovNodes[aov.name]:
                     pm.cmds.menuItem(label=node.name(), command=lambda arg, node=node: pm.select(node))
 
-    def buildOtherAOVs(self, nodeAttr):
+    def buildOtherAOVs(self, nodeAttr, aovList):
+        '''
+        Populate the UI with an attrNavigationControlGrp for each AOV not in the network
+        '''
         nodeAttr = pm.Attribute(nodeAttr)
-        for aov in aovs.getAOVs():
+        for aov in aovList:
             if aov.name not in self.networkAOVs:
                 at = nodeAttr[aov.index]
                 at.aovName.set(aov.name)
                 self._msgCtrls.append(pm.cmds.attrNavigationControlGrp(at=at.aovInput.name(),
                                                                        label=aov.name))
 
-    def buildCustomAOVArray(self, nodeAttr):
-        nodeAttr = pm.Attribute(nodeAttr)
-
-        conn = pm.listConnections(self.nodeAttr('surfaceShader'), s=True, d=False, p=True)
-        if conn: 
-            usedAOVs = set(pm.cmds.arnoldPlugins(listAOVs=True, nodePlug=conn[0].name()))
-        else:
-            usedAOVs = set([])
-        for aov in aovs.getAOVs():
-            # FIXME- delay setting the aov name attribute until something is connected
-            #cb = utils.pyToMelProc(pm.Callback(nodeAttr[aov.index].aovName.set, aov.name))
-            at = nodeAttr[aov.index]
-            at.aovName.set(aov.name)
-            self._msgCtrls.append(pm.cmds.attrNavigationControlGrp(at=at.aovInput.name(),
-                                                                   label=aov.name,
-                                                                   enable=aov.name not in usedAOVs))
-
-    def updateCustomAOVArray(self, nodeAttr):
-        print "updateCustomAOVArray", nodeAttr
-
-        for ctrl in self._msgCtrls:
-            pm.deleteUI(ctrl)
-        self._msgCtrls = []
-        self.buildCustomAOVArray(nodeAttr)
 
 templates.registerAETemplate(ShadingEngineTemplate, "shadingEngine")
 
