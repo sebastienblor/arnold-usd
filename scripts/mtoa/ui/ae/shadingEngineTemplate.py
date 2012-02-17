@@ -117,28 +117,25 @@ class ShadingEngineTemplate(templates.AttributeEditorTemplate):
             if aovName in self.networkAOVs:
                 aov = aovList[0]
                 at = nodeAttr[aov.index]
-                at.aovName.set(aovName)
+                at.aovName.set(aov.name)
                 ctrl = pm.attrNavigationControlGrp(at=at.aovInput,
-                                                   label=aovName)
+                                                   label=aov.name)
                 self._msgCtrls.append(ctrl)
                 pm.popupMenu(parent=ctrl);
                 pm.menuItem(subMenu=True, label="Goto Node")
-                for node in self.aovNodes[aovName]:
+                for node in self.aovNodes[aov.name]:
                     pm.cmds.menuItem(label=node.name(), command=lambda arg, node=node: pm.select(node))
 
     def buildOtherAOVs(self, nodeAttr):
-        print "buildOtherAOVs"
         nodeAttr = pm.Attribute(nodeAttr)
-        for aovName, aov in aovs.getActiveAOVs():
-            if aovName not in self.networkAOVs:
+        for aov in aovs.getActiveAOVs():
+            if aov.name not in self.networkAOVs:
                 at = nodeAttr[aov.index]
-                at.aovName.set(aovName)
-                print "other aov", aovName
+                at.aovName.set(aov.name)
                 self._msgCtrls.append(pm.cmds.attrNavigationControlGrp(at=at.aovInput.name(),
-                                                                       label=aovName))
+                                                                       label=aov.name))
 
     def buildCustomAOVArray(self, nodeAttr):
-        print "buildCustomAOVArray", nodeAttr
         nodeAttr = pm.Attribute(nodeAttr)
 
         conn = pm.listConnections(self.nodeAttr('surfaceShader'), s=True, d=False, p=True)
@@ -146,15 +143,14 @@ class ShadingEngineTemplate(templates.AttributeEditorTemplate):
             usedAOVs = set(pm.cmds.arnoldPlugins(listAOVs=True, nodePlug=conn[0].name()))
         else:
             usedAOVs = set([])
-        print aovs.getActiveAOVs(), usedAOVs
-        for aovName, aov in aovs.getActiveAOVs():
+        for aov in aovs.getActiveAOVs():
             # FIXME- delay setting the aov name attribute until something is connected
             #cb = utils.pyToMelProc(pm.Callback(nodeAttr[aov.index].aovName.set, aov.name))
             at = nodeAttr[aov.index]
-            at.aovName.set(aovName)
+            at.aovName.set(aov.name)
             self._msgCtrls.append(pm.cmds.attrNavigationControlGrp(at=at.aovInput.name(),
-                                                                   label=aovName,
-                                                                   enable=aovName not in usedAOVs))
+                                                                   label=aov.name,
+                                                                   enable=aov.name not in usedAOVs))
 
     def updateCustomAOVArray(self, nodeAttr):
         print "updateCustomAOVArray", nodeAttr

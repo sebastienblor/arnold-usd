@@ -81,7 +81,7 @@ def createArnoldNode(nodeType, name=None, skipSelect=False, runtimeClassificatio
 
     if runtimeClassification in ('asShader', 'asTexture', 'asUtility'):
         # connect any shader aovs to global aov nodes
-        activeAOVMap = aovs.getAOVMap()
+        activeAOVMap = dict(aovs.getActiveAOVNodes(names=True))
         if activeAOVMap:
             for aovName, aovAttr, aovType in aovs.getNodeGlobalAOVData(nodeType):
                 aovNodeAttr = node.attr(aovAttr)

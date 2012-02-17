@@ -78,7 +78,7 @@ class AOVOptionMenuGrp(templates.BaseTemplate):
     def updateMenu(self, nodeAttr):
         self.clear()
         currVal = pm.getAttr(nodeAttr)
-        self.activeNodes = aovs.getAOVMap()
+        self.activeNodes = dict(aovs.getActiveAOVNodes(names=True))
         self.activeNames = sorted(self.activeNodes.keys())
         if not currVal:
             currVal = self.EMPTY_AOV_ITEM

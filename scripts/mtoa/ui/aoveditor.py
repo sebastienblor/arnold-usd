@@ -172,10 +172,10 @@ class AOVBrowser(object):
             global _updating
             _updating = True
             try:
+                self.renderOptions.removeAOVs(sel)
                 for aov in sel:
-                    if self.renderOptions.removeAOVs(aov) is not None:
-                        pm.textScrollList(self.availableLst, edit=True, append=aov)
-                        pm.textScrollList(self.activeLst, edit=True, removeItem=aov)
+                    pm.textScrollList(self.availableLst, edit=True, append=aov)
+                    pm.textScrollList(self.activeLst, edit=True, removeItem=aov)
             finally:
                 _updating = False
             self.updateActiveAOVs()
@@ -199,7 +199,7 @@ class AOVBrowser(object):
         pm.textScrollList(self.availableLst, edit=True, removeAll=True)
         pm.textScrollList(self.activeLst, edit=True, removeAll=True)
         try:
-            activeAOVs = [x[0] for x in self.renderOptions.getActiveAOVs()]
+            activeAOVs = self.renderOptions.getActiveAOVs()
         except pm.MayaNodeError:
             activeAOVs = []
         self.allAOVs = set([])
@@ -416,7 +416,7 @@ class AOVItem(object):
         if self.outputsChanged:
             pm.popupMenu(self.popupMenu, edit=True, deleteAllItems=True)
             pm.cmds.menuItem(parent=menu, label='Select AOV Node', c=lambda *args: pm.select(self.aov.node))
-            pm.cmds.menuItem(parent=menu, label='Remove AOV', c=lambda *args: self.parent.removeAOV(self.aov.node))
+            pm.cmds.menuItem(parent=menu, label='Remove AOV', c=lambda *args: self.parent.removeAOV(self.aov))
             pm.cmds.menuItem(parent=menu, label='Add New Output Driver', c=lambda *args: self.addOutput())
             pm.cmds.menuItem(parent=menu, divider=True)
             if len(self.outputs) > 1:
@@ -501,7 +501,7 @@ class ArnoldAOVEditor(object):
                 row = self.addControlRow(aov)
                 rows.append(row)
                 self.optionMenus.extend(row.getMenus())
-            self.aovRows[aovName] = rows
+            self.aovRows[aov.name] = rows
             self.aovControls.append(frame)
             pm.setParent('..')
             pm.setParent('..')
@@ -565,8 +565,8 @@ class ArnoldAOVEditor(object):
 #    def removeControlRow(self, aovName):
 #        self.aovControls.pop(aovName).delete()
 
-    def removeAOV(self, aovNode):
-        self.renderOptions.removeAOVNode(aovNode)
+    def removeAOV(self, aov):
+        self.renderOptions.removeAOV(aov)
 
     def fixOptionMenus(self):
         print "fixing", len(self.optionMenus)
