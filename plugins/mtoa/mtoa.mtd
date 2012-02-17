@@ -680,7 +680,7 @@
     desc                    STRING  "This shader can be used to display various info on a geometry."
     maya.name               STRING  "aiUtility"
     maya.id                 INT     0x00115D03
-    maya.classification     STRING  "shader/utility"
+    maya.classification     STRING  "shader/surface"
 
 [node ray_switch]
     desc                    STRING  "Switch input depending on ray type."
