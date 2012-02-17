@@ -33,6 +33,7 @@ TYPES = (
     ("point2", arnold.ai_params.AI_TYPE_POINT2),
     ("pointer",arnold.ai_params.AI_TYPE_POINTER))
 
+defaultFiltersByName = {'Z' : 'closest'}
 
 GlobalAOVData = namedtuple('GlobalAOVData', ['name', 'attribute', 'type'])
 
@@ -151,7 +152,14 @@ class AOVNode(object):
         aovNode = pm.createNode('aiAOV', name='aiAOV_' + aovName, skipSelect=True)
         out = aovNode.attr('outputs')[0]
         pm.connectAttr('defaultArnoldDriver.message', out.driver)
-        pm.connectAttr('defaultArnoldFilter.message', out.filter)
+        filter = defaultFiltersByName.get(aovName, None)
+        if filter:
+            node = pm.createNode('aiAOVFilter')
+            node.aiTranslator.set(filter)
+            filterAttr = node.attr('message')
+        else:
+            filterAttr = 'defaultArnoldFilter.message'
+        pm.connectAttr(filterAttr, out.filter)
         aovNode.attr('name').set(aovName)
         aovNode.attr('type').set(aovType)
         aovNode.message.connect(self._aovAttr, nextAvailable=True)
