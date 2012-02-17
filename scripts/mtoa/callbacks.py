@@ -258,3 +258,188 @@ class CallbackWithArgs(Callback):
         finally:
             cmds.undoInfo(closeChunk=1)
 
+
+class CallbackQueue(object):
+    '''
+    A basic queue of callback functions.
+    
+    It is comprised of 3 parts: 
+      - entryCallback():  should be passed to the function that will be triggering the callback chain
+                          (e.g. MNodeMessage.addAttributeChangedCallback)
+      - deferredCallback(): passed by entryCallback to evalDeferred
+      - the callback queue: custom functions added via addCallback() which are executed by deferredCallback()
+
+    '''
+    def __init__(self, callbacks=None):
+        self._callbackQueue = {}
+        if isinstance(callbacks, (list, tuple)):
+            for item in callbacks:
+                try:
+                    size = len(item)
+                except TypeError:
+                    size = 1
+                if size == 1:
+                    self.addCallback(item)
+                elif size == 2:
+                    self.addCallback(item[1], item[0])
+                elif size == 3:
+                    self.addCallback(item[1], item[0], item[2])
+                else:
+                    raise TypeError("If passing a list or tuple, must be a list of functions or of key, function pairs")
+        elif isinstance(callbacks, dict):
+            for key, func in callbacks.iteritems():
+                self.addCallback(func, key)
+        elif hasattr(callbacks, '__call__'):
+            self.addCallback(callbacks)
+        elif callbacks is not None:
+            raise TypeError("Please pass a list, tuple, dictionary, or function")
+
+    def __call__(self, *args, **kwargs):
+        self.entryCallback(*args, **kwargs)
+
+    def addCallback(self, func, key=None, passArgs=False):
+        if key is None:
+            key = func
+        self._callbackQueue[key] = (func, passArgs)
+
+    def removeCallback(self, key):
+        self._callbackQueu.pop(key)
+
+    def clearCallbacks(self):
+        self._callbackQueue = {}
+
+    def deferredCallback(self, *args, **kwargs):
+        for func, passArgs in self._callbackQueue.values():
+            try:
+                if passArgs:
+                    func(*args, **kwargs)
+                else:
+                    func()
+            except:
+                import traceback
+                traceback.print_exc()
+
+    def entryCallback(self, *args, **kwargs):
+        '''
+        the public callback function
+        '''
+        self.deferredCallback(*args, **kwargs)
+
+class DeferredCallbackQueue(CallbackQueue):
+    """
+    This class is used to execute one or many callbacks in a deferred fashion. It is intended to
+    resolve the problem of accumulating many deferred callbacks when just one will do.  For example,
+    when a scene is opened or a reference is created many attributeChanged callbacks may be triggered,
+    but instead of running a function for each of these, you may wish a function to only run once, when
+    the file is finished loading.
+
+    Once the class's entryCallback() is triggered, any additional callback requests will be ignored until the
+    deferredCallback() executes the callback queue.
+    
+    A single instance of the class can be used as a callback in multiple places (more than one attribute changed
+    callback, for example), and it will run only once, even if both attributes trigger the callback.
+    """
+    def __init__(self, callbacks=None):
+        super(DeferredCallbackQueue, self).__init__(callbacks)
+        self._updating = False
+
+    def deferredCallback(self, *args, **kwargs):
+        try:
+            super(DeferredCallbackQueue, self).deferredCallback(*args, **kwargs)
+        finally:
+            self._updating = False
+    
+    def entryCallback(self, *args):
+        '''
+        the public callback function
+        '''
+        if not self._updating:
+            #print pm.api.MFileIO.isOpeningFile(), pm.api.MFileIO.isReadingFile()
+            if not pm.api.MFileIO.isOpeningFile():
+                self._updating = True
+                #print self, "evalDeferred"
+                pm.evalDeferred(self.deferredCallback)
+        #else:print self, "skipping"
+
+class SceneLoadCallbackQueue(CallbackQueue):
+    '''
+    This callback queue delays any callbacks received while opening or referencing a scene
+    until after the operation has completed. Unlike DeferredCallbackQueue, which executes
+    only the first callback it receives, SceneLoadCallbackQueue will execute every
+    callback that it receives.
+    '''
+    def __init__(self, callbacks=None):
+        super(SceneLoadCallbackQueue, self).__init__(callbacks)
+        self._id = None
+        self._args = []
+
+    def __del__(self):
+        if self._id:
+            pm.api.MMessage.removeCallback(self._id)
+
+    def deferredCallback(self, *trash):
+        # arguments are intentionally unexpanded (i.e. they don't have * and **)
+        # trash is an argument pass by MSceneMessage that we don't want to keep
+        # print "SceneLoadCallbackQueue.deferredCallback", args
+        cb = super(SceneLoadCallbackQueue, self).deferredCallback
+        try:
+            for args, kwargs in self._args:
+                cb(*args, **kwargs)
+        finally:
+            self._args = []
+            if self._id:
+                pm.api.MMessage.removeCallback(self._id)
+                self._id = None
+
+    def entryCallback(self, *args, **kwargs):
+        '''
+        the public callback function
+        '''
+        
+        if not self._id:
+            #print self, "evalDeferred"
+            if pm.api.MFileIO.isOpeningFile():
+                self._args.append((args, kwargs))
+                #print "setting up scene open callback", args, kwargs
+                self._id = pm.api.MSceneMessage.addCallback(pm.api.MSceneMessage.kAfterOpen, self.deferredCallback)
+            elif pm.api.MFileIO.isReadingFile():
+                self._args.append((args, kwargs))
+                #print "setting up reference load callback", args, kwargs
+                self._id = pm.api.MSceneMessage.addCallback(pm.api.MSceneMessage.kAfterCreateReference, self.deferredCallback)
+            else:
+                #print "eval"
+                # execute immediately
+                super(SceneLoadCallbackQueue, self).deferredCallback(*args, **kwargs)
+        else:
+            # accumulate
+            self._args.append((args, kwargs))
+
+        #else:print self, "skipping"
+
+class DelayedIdleCallbackQueue(DeferredCallbackQueue):
+    '''
+    This callback queue runs once on idle, much like `scriptJob -runOnce -idleEvent`,
+    but with the key difference that an idleDelay can be specified such that the first n
+    idle events will be skipped before finally executing the callbacks.
+    
+    Unlike the other callback queues, this one sets up its own MEventMessage callback on init. 
+    '''
+    def __init__(self, callbacks=None, idleDelay=5):
+        super(DelayedIdleCallbackQueue, self).__init__(callbacks)
+        self._id = None
+        self._ticker = 0
+        self._delay = idleDelay
+        self._id = pm.api.MEventMessage.addEventCallback("idle", self.entryCallback)
+
+    def __del__(self):
+        if self._id:
+            pm.api.MMessage.removeCallback(self._id)
+
+    def entryCallback(self, *args):
+        if self._ticker == self._delay:
+            self._ticker = 0
+            pm.api.MMessage.removeCallback(self._id)
+            self._id = None
+            self.deferredCallback()
+        else:
+            self._ticker+=1 
