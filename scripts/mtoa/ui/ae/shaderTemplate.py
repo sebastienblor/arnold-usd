@@ -15,7 +15,7 @@ def newAOVPrompt(default=''):
     if result == 'Create':
         core.createOptions()
         newAOV = pm.promptDialog(query=True, text=True)
-        return newAOV, aovs.getAOVNode().addAOV(newAOV)
+        return newAOV, aovs.AOVInterface().addAOV(newAOV)
     else:
         print "AOV creation canceled"
         return None, None
@@ -71,7 +71,7 @@ class AOVOptionMenuGrp(templates.BaseTemplate):
     def updateMenu(self, nodeAttr):
         self.clear()
         currVal = pm.getAttr(nodeAttr)
-        activeNodes = dict(aovs.getActiveAOVNodes(names=True))
+        activeNodes = dict(aovs.getAOVNodes(names=True))
         self.activeNames = sorted(activeNodes.keys())
         if not currVal:
             currVal = self.EMPTY_AOV_ITEM

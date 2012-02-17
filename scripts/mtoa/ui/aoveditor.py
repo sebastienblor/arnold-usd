@@ -29,13 +29,13 @@ class AOVBrowser(object):
     '''
     def __init__(self, renderOptions=None, nodeTypes=None, listAOVGroups=True, showGroupsColumn=True):
         '''
-        renderOptions : an aov.AOVNode instance, or None to use the default
+        renderOptions : an aovs.AOVInterface instance, or None to use the default
         
         nodeTypes : a list of node types to display in the available nodes column, 
             or None to display the complete list of nodes with AOVs
         '''
         self.allAOVs = set([])
-        self.renderOptions = aovs.getAOVNode() if renderOptions is None else renderOptions
+        self.renderOptions = aovs.AOVInterface() if renderOptions is None else renderOptions
         self.allNodeTypes = set(aovs.getNodeTypesWithAOVs())
         if nodeTypes:
             self.setNodeTypes(nodeTypes)
@@ -201,7 +201,7 @@ class AOVBrowser(object):
         pm.textScrollList(self.availableLst, edit=True, removeAll=True)
         pm.textScrollList(self.activeLst, edit=True, removeAll=True)
         try:
-            activeAOVs = self.renderOptions.getActiveAOVs()
+            activeAOVs = self.renderOptions.getAOVs()
         except pm.MayaNodeError:
             activeAOVs = []
         self.allAOVs = set([])
@@ -461,7 +461,7 @@ class ArnoldAOVEditor(object):
         self.aovControls = []
         self.optionMenus = []
         self.aovRows = {}
-        self.renderOptions = aovs.getAOVNode() if aovNode is None else aovNode
+        self.renderOptions = aovs.AOVInterface() if aovNode is None else aovNode
 
         self.mainCol = pm.cmds.columnLayout('arnoldAOVMainColumn')
 
@@ -514,7 +514,7 @@ class ArnoldAOVEditor(object):
                 print "AOV callback no longer exists", attr
 
     def addRows(self):
-        for aovName, aovList in self.renderOptions.getActiveAOVs(group=True):
+        for aovName, aovList in self.renderOptions.getAOVs(group=True):
             frame = pm.frameLayout(collapsable=False, labelVisible=False)
             col = pm.columnLayout(adj=True)
             rows = []
@@ -607,7 +607,7 @@ def arnoldAOVBrowser(**kwargs):
 def createArnoldAOVTab():
     parentForm = cmds.setParent(query=True)
 
-    aovNode = aovs.getAOVNode()
+    aovNode = aovs.AOVInterface()
     pm.columnLayout('enableAOVs', adjustableColumn=True)
     
     pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)

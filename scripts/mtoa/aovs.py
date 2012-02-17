@@ -151,10 +151,10 @@ class SceneAOV(object):
 # scene queries
 #------------------------------------------------------------
 
-class AOVNode(object):
-    def __init__(self, node):
-        self._node = node
-        self._aovAttr = node.aovs
+class AOVInterface(object):
+    def __init__(self, node=None):
+        self._node = node if node else pm.PyNode('defaultArnoldRenderOptions')
+        self._aovAttr = self._node.aovs
 
     def __repr__(self):
         return '%s(%r)' % (self.__class__.__name__, self._node)
@@ -165,17 +165,20 @@ class AOVNode(object):
             raise TypeError("node doesn't exist")
         return self._node
     
-    def getActiveAOVs(self, group=False, sort=True, include=None, exclude=None):
+    def getAOVs(self, group=False, sort=True, enabled=None, include=None, exclude=None):
         '''
-        return a list of SceneAOV classes for all active AOVs in the scene
+        return a list of SceneAOV classes for all AOVs in the scene
         if group is True, the SceneAOVs are grouped by name: (aovName, [SceneAOV1, SceneAOV2, ...])
         
+        enabled: the enabled state of the AOV. ignored if None (default)
         include: a list of AOV names to include
         exclude: a list of AOV names to exclude
         '''
         result = [SceneAOV(fromAttr.node(), toAttr) for toAttr, fromAttr in self._aovAttr.inputs(plugs=True, connections=True)]
         if sorted:
             result = sorted(result)
+        if enabled is not None:
+            result = [aov for aov in result if aov.node.attr('enabled').get() == enabled]
         if group:
             result = [(aovName, list(aovs)) for aovName, aovs in groupby(result, lambda x: x.name)]
         if include:
@@ -184,7 +187,7 @@ class AOVNode(object):
             result = [a for a in result if a.name not in exclude]
         return result
 
-    def getActiveAOVNodes(self, names=False):
+    def getAOVNodes(self, names=False):
         '''
         sorted by aovName
         @param names: if True, returns pairs of (aovName, aovNode). if False, returns a list of aovNodes
@@ -203,7 +206,7 @@ class AOVNode(object):
         raises an error if there is more than one match.
         returns None if there are no matches.
         '''
-        matches = self.getActiveAOVs(include=[aovName])
+        matches = self.getAOVs(include=[aovName])
         if len(matches) > 1:
             raise ValueError("More than one AOV matches name %r" % aovName)
         elif matches:
@@ -260,7 +263,7 @@ class AOVNode(object):
 
         returns True if any nodes were removed
         '''
-        matches = self.getActiveAOVs(include=aovNames)
+        matches = self.getAOVs(include=aovNames)
         if matches:
             for aov in matches:
                 self._removeAOVNode(aov.node)
@@ -283,7 +286,7 @@ class AOVNode(object):
         '''
         rename an AOV in the active list
         '''
-        matches = self.getActiveAOVs(include=[oldName])
+        matches = self.getAOVs(include=[oldName])
         if matches:
             for aov in matches:
                 aov.node.attr('name').set(newName)
@@ -293,18 +296,15 @@ class AOVNode(object):
         else:
             raise NameError('Scene does not contain any AOVs with name %r' % oldName)
 
-def getAOVNode():
-    return AOVNode(pm.PyNode('defaultArnoldRenderOptions'))
-
-def getActiveAOVs(group=False, sort=True, include=None, exclude=None):
+def getAOVs(group=False, sort=True, enabled=None, include=None, exclude=None):
     try:
-        return getAOVNode().getActiveAOVs(group, sort, include, exclude)
+        return AOVInterface().getAOVs(group, sort, enabled, include, exclude)
     except pm.MayaNodeError:
         return []
 
-def getActiveAOVNodes(names=False):
+def getAOVNodes(names=False):
     try:
-        return getAOVNode().getActiveAOVNodes(names)
+        return AOVInterface().getAOVNodes(names)
     except pm.MayaNodeError:
         return []
 
@@ -372,7 +372,7 @@ def createAliases(sg):
     # This will run on scene startup but the list of AOVs will be unknown
     if sg.name() == "swatchShadingGroup":
         return
-    aovList = getActiveAOVs()
+    aovList = getAOVs()
     sgAttr = sg.aiCustomAOVs
     for aov in aovList:
         try:

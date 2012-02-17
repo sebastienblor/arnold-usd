@@ -40,7 +40,7 @@ class ShadingEngineTemplate(templates.AttributeEditorTemplate):
             return
         #self.updateCustomAOVArray()
         nodeAttr = pm.Attribute(self.nodeAttr('aiCustomAOVs'))
-        for aov in aovs.getActiveAOVs():
+        for aov in aovs.getAOVs():
             # FIXME- delay setting the aov name attribute until something is connected
             #cb = utils.pyToMelProc(pm.Callback(nodeAttr[aov.index].aovName.set, aov.name))
             at = nodeAttr[aov.index]
@@ -113,7 +113,7 @@ class ShadingEngineTemplate(templates.AttributeEditorTemplate):
 
     def buildNetworkAOVs(self, nodeAttr):
         nodeAttr = pm.Attribute(nodeAttr)
-        for aovName, aovList in aovs.getActiveAOVs(group=True):
+        for aovName, aovList in aovs.getAOVs(group=True):
             if aovName in self.networkAOVs:
                 aov = aovList[0]
                 at = nodeAttr[aov.index]
@@ -128,7 +128,7 @@ class ShadingEngineTemplate(templates.AttributeEditorTemplate):
 
     def buildOtherAOVs(self, nodeAttr):
         nodeAttr = pm.Attribute(nodeAttr)
-        for aov in aovs.getActiveAOVs():
+        for aov in aovs.getAOVs():
             if aov.name not in self.networkAOVs:
                 at = nodeAttr[aov.index]
                 at.aovName.set(aov.name)
@@ -143,7 +143,7 @@ class ShadingEngineTemplate(templates.AttributeEditorTemplate):
             usedAOVs = set(pm.cmds.arnoldPlugins(listAOVs=True, nodePlug=conn[0].name()))
         else:
             usedAOVs = set([])
-        for aov in aovs.getActiveAOVs():
+        for aov in aovs.getAOVs():
             # FIXME- delay setting the aov name attribute until something is connected
             #cb = utils.pyToMelProc(pm.Callback(nodeAttr[aov.index].aovName.set, aov.name))
             at = nodeAttr[aov.index]
