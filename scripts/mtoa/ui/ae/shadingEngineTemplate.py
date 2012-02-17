@@ -160,33 +160,5 @@ class ShadingEngineTemplate(templates.AttributeEditorTemplate):
         self._msgCtrls = []
         self.buildCustomAOVArray(nodeAttr)
 
-def replaceShadingGroupDummyAttrs(oldAOV, newAOV):
-    new = 'ai_' + newAOV
-    old = 'ai_' + oldAOV
-    for sg in pm.ls(type='shadingEngine'):
-        utils.createColor(sg, new)
-        try:
-            oldAttr = sg.attr(old)
-        except AttributeError:
-            pass
-        else:
-            # we don't need to worry about connections, bc this is just a dummy attribute
-            oldAttr.delete()
-
-def createDummyPlugs(sg):
-    if sg.name() == "swatchShadingGroup":
-        return
-    try:
-        # defaultArnoldRenderOptions may not exist yet
-        aovList = aovs.getActiveAOVs()
-    except pm.MayaObjectError:
-        return
-    for aovName, aov in aovList:
-        print sg, aov
-        aov = 'ai_' + aovName
-        if not sg.hasAttr(aov):
-            utils.createColor(sg, aov)
-
 templates.registerAETemplate(ShadingEngineTemplate, "shadingEngine")
-#callbacks.addNodeAddedCallback(createDummyPlugs, "shadingEngine")
 

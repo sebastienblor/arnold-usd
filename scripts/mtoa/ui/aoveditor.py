@@ -250,7 +250,7 @@ class AOVItem(object):
         # use evalDeferred to ensure that the update happens after the aov node attribute is set
         self.nameCtrl = pm.textField(editable=not lockName,
                                 # we save out the current aov name for the replaceShadingGroupDummyAttrs callback
-                                #changeCommand=lambda new, old=nameAttr.get(): pm.evalDeferred(self.refresh)
+                                changeCommand=lambda new, old=nameAttr.get(): self.aov.rename(new, old)
                                 )
         pm.connectControl(self.nameCtrl, nameAttr)
         # must set editability after connecting control

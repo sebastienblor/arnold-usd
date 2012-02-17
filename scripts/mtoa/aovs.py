@@ -39,6 +39,23 @@ GlobalAOVData = namedtuple('GlobalAOVData', ['name', 'attribute', 'type'])
 
 SceneAOVData = namedtuple('SceneAOVData', ['name', 'type', 'index', 'node'])
 
+def _removeAliases(aovNames):
+    for sg in pm.ls(type='shadingEngine'):
+        for aovName in aovNames:
+            try:
+                pm.aliasAttr(sg + '.ai_aov_' + aovName, remove=True)
+            except RuntimeError, err:
+                pass #print err
+
+def _addAliases(aovs):
+    for sg in pm.ls(type='shadingEngine'):
+        sgAttr = sg.aiCustomAOVs
+        for aov in aovs:
+            try:
+                pm.aliasAttr('ai_aov_' + aov.name, sgAttr[aov.index])
+            except RuntimeError, err:
+                pass #print err
+
 class SceneAOV(object):
     def __init__(self, node, destAttr):
         self.destAttr = destAttr
@@ -99,6 +116,29 @@ class SceneAOV(object):
     @property
     def node(self):
         return self._node
+
+    def rename(self, newName, oldName=None):
+        '''
+        rename an AOV in the active list.
+        
+        provide oldName if the attribute has already been renamed and you just need
+        to perform the proper bookkeeping 
+        '''
+        if oldName is None:
+            oldName = self.name
+            self.node.attr('name').set(newName)
+
+        for sg in pm.ls(type='shadingEngine'):
+            try:
+                pm.aliasAttr(sg + '.ai_aov_' + oldName, remove=True)
+            except RuntimeError, err:
+                pass #print err
+
+            sgAttr = sg.aiCustomAOVs
+            try:
+                pm.aliasAttr('ai_aov_' + newName, sgAttr[self.index])
+            except RuntimeError, err:
+                pass #print err
 
     def update(self):
         '''
@@ -192,6 +232,7 @@ class AOVNode(object):
         aovNode.attr('type').set(aovType)
         nextPlug = self._aovAttr.elementByLogicalIndex(self._aovAttr.numElements())
         aovNode.message.connect(nextPlug)
+        _addAliases([SceneAOV(aovNode, nextPlug)])
         return aovNode
 
     def removeAOV(self, aov):
@@ -209,6 +250,7 @@ class AOVNode(object):
             aovNode = aov.node
         if aovNode:
             self._removeAOVNode(aovNode)
+            _removeAliases([aovName])
             return True
         return False
 
@@ -222,6 +264,7 @@ class AOVNode(object):
         if matches:
             for aov in matches:
                 self._removeAOVNode(aov.node)
+            _removeAliases(aovNames)
             return True
         return False
 
@@ -245,18 +288,8 @@ class AOVNode(object):
             for aov in matches:
                 aov.node.attr('name').set(newName)
 
-            aov = matches[0]
-            for sg in pm.ls(type='shadingEngine'):
-                try:
-                    pm.aliasAttr(remove=sg + '.ai_aov_' + oldName)
-                except RuntimeError, err:
-                    print err
-
-                sgAttr = sg.aiCustomAOVs
-                try:
-                    pm.aliasAttr('ai_aov_' + newName, sgAttr[aov.index])
-                except RuntimeError, err:
-                    print err
+            # we can only use one
+            matches[0].rename(newName, oldName)
         else:
             raise NameError('Scene does not contain any AOVs with name %r' % oldName)
 
@@ -278,17 +311,6 @@ def getActiveAOVNodes(names=False):
 #------------------------------------------------------------
 # global queries
 #------------------------------------------------------------
-
-#def updateShadingGroups():
-#    aovs = getActiveAOVs()
-#    print aovs
-#    for sg in pm.ls(type='shadingEngine'):
-#        for aovName, aov in aovs:
-#            print "setting ", sg.aiCustomAOVs[i].aovName, aov
-#            sg.aiCustomAOVs[i].aovName.set(aov)
-#            # TODO: check type
-#            pm.aliasAttr(sg.attr(aov), remove=True)
-#            pm.aliasAttr(aov, sg.aiCustomAOVs[i].aovColorInput)
 
 def getRegisteredAOVs(builtin=False, nodeType=None):
     '''
@@ -342,9 +364,25 @@ def addAOVChangedCallback(func, key=None):
     _aovOptionsChangedCallbacks.addCallback(func, key)
 
 if not pm.about(batch=True):
-    callbacks.addAttributeChangedCallback(_aovOptionsChangedCallbacks.entryCallback, 'aiOptions', 'aovList',
+    callbacks.addAttributeChangedCallback(_aovOptionsChangedCallbacks, 'aiOptions', 'aovList',
                                           context=pm.api.MNodeMessage.kConnectionMade | pm.api.MNodeMessage.kConnectionBroken,
                                           applyToExisting=True)
-    
+
+def createAliases(sg):
+    # This will run on scene startup but the list of AOVs will be unknown
+    if sg.name() == "swatchShadingGroup":
+        return
+    aovList = getActiveAOVs()
+    sgAttr = sg.aiCustomAOVs
+    for aov in aovList:
+        try:
+            pm.aliasAttr('ai_aov_' + aov.name, sgAttr[aov.index])
+        except RuntimeError, err:
+            pass #print err
+
+_sgAliasesCallbacks = callbacks.SceneLoadCallbackQueue()
+_sgAliasesCallbacks.addCallback(createAliases, passArgs=True)
+callbacks.addNodeAddedCallback(_sgAliasesCallbacks, 'shadingEngine', applyToExisting=True, apiArgs=False)
+
     #callbacks.addAttributeChangedCallback(_aovOptionsChangedCallbacks.entryCallback, 'aiAOV', None, applyToExisting=True)
 
