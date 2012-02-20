@@ -152,15 +152,6 @@ class AOVBrowser(object):
             try:
                 for aovName in sel:
                     aov = self.renderOptions.addAOV(aovName, typeMap[aovName])
-                    aovNameAttr = aov.node.attr('name')
-                    # connect this aov node to all existing aov attributes
-                    for nodeType, aovAttr in map[aovName]:
-                        for node in pm.ls(type=nodeType):
-                            try:
-                                # do not force, in case it already has an incoming connection
-                                aovNameAttr.connect(node.attr(aovAttr))
-                            except:
-                                pass
             finally:
                 _updating = False
             self.updateActiveAOVs()
