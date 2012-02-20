@@ -235,8 +235,9 @@ class AOVInterface(object):
         aovNode.attr('type').set(aovType)
         nextPlug = self._aovAttr.elementByLogicalIndex(self._aovAttr.numElements())
         aovNode.message.connect(nextPlug)
-        _addAliases([SceneAOV(aovNode, nextPlug)])
-        return aovNode
+        aov = SceneAOV(aovNode, nextPlug)
+        _addAliases([aov])
+        return aov
 
     def removeAOV(self, aov):
         '''
