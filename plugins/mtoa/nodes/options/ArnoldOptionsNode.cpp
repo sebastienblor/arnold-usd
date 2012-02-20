@@ -370,10 +370,10 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("ignore_shadows");
    s_attributes.MakeInput("ignore_subdivision");
    s_attributes.MakeInput("ignore_displacement");
+   s_attributes.MakeInput("ignore_bump");   
+   s_attributes.MakeInput("ignore_smoothing");   
    s_attributes.MakeInput("ignore_motion_blur");
-   s_attributes.MakeInput("ignore_smoothing");
    s_attributes.MakeInput("ignore_sss");
-   s_attributes.MakeInput("ignore_bump");
    s_attributes.MakeInput("ignore_mis");
 
    s_output_ass_filename = tAttr.create("output_ass_filename", "file", MFnData::kString);

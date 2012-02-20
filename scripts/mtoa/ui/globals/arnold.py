@@ -757,24 +757,27 @@ def createArnoldOverrideSettings():
     pm.attrControlGrp('ignore_lights',
                         attribute='defaultArnoldRenderOptions.ignore_lights')
 
+    pm.attrControlGrp('ignore_shadows',
+                        attribute='defaultArnoldRenderOptions.ignore_shadows')
+                        
     pm.attrControlGrp('ignore_subdivision',
                         attribute='defaultArnoldRenderOptions.ignore_subdivision')
 
     pm.attrControlGrp('ignore_displacement',
                         attribute='defaultArnoldRenderOptions.ignore_displacement')
 
-    pm.attrControlGrp('ignore_motion_blur',
-                        attribute='defaultArnoldRenderOptions.ignore_motion_blur')
+    pm.attrControlGrp('ignore_bump',
+                        attribute='defaultArnoldRenderOptions.ignore_bump')
 
     pm.attrControlGrp('ignore_smoothing',
                         attribute='defaultArnoldRenderOptions.ignore_smoothing')
+                        
+    pm.attrControlGrp('ignore_motion_blur',
+                        attribute='defaultArnoldRenderOptions.ignore_motion_blur')
 
     pm.attrControlGrp('ignore_sss',
                         attribute='defaultArnoldRenderOptions.ignore_sss')
-    
-    pm.attrControlGrp('ignore_bump',
-                        attribute='defaultArnoldRenderOptions.ignore_bump')
-						
+    					
     pm.attrControlGrp('ignore_mis',
                         attribute='defaultArnoldRenderOptions.ignore_mis')						
 
