@@ -357,6 +357,7 @@ class AOVItem(object):
         if newValue.startswith('<'):
             pm.connectAttr(defaultNodePlug, aovOutputAttr, force=True)
             pm.select(defaultNodePlug.split('.')[0])
+            outputNode = defaultNodePlug
             if conn and not conn[0].outputs():
                 utils.safeDelete(conn[0])
         else:
@@ -368,6 +369,17 @@ class AOVItem(object):
                 outputNode = conn[0]
             newValue = newValue.strip('<>')
             outputNode.aiTranslator.set(newValue)
+        aovOutputAttr = aovOutputAttr.parent()
+        for i, (outputRow, outputAttr, driver, filter, menus) in enumerate(self.outputs):
+            if outputAttr == aovOutputAttr:
+                if outputType == 'aiAOVFilter':
+                    filter = outputNode
+                else:
+                    driver = outputNode
+                self.outputs[i] = (outputRow, outputAttr, driver, filter, menus)
+                self.outputsChanged = True
+                return
+        raise ValueError("Should not have reached here")
 
     def getMenus(self):
         '''
