@@ -69,21 +69,21 @@ class SceneAOV(object):
 
     def __eq__(self, other):
         if isinstance(other, basestring):
-            return other == self.name
+            return self.name == other
         else:
-            return other.name == self.name
+            return self.name == other.name
 
     def __lt__(self, other):
         if isinstance(other, basestring):
-            return other < self.name
+            return self.name < other
         else:
-            return other.name < self.name
+            return self.name < other.name
 
     def __gt__(self, other):
         if isinstance(other, basestring):
-            return other > self.name
+            return self.name > other
         else:
-            return other.name > self.name
+            return self.name > other.name
 
     @property
     def index(self):
