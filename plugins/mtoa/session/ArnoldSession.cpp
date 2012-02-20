@@ -19,6 +19,7 @@
 #include <maya/MFnRenderLayer.h>
 #include <maya/MMatrix.h>
 #include <maya/MPlug.h>
+#include <maya/MItDependencyNodes.h>
 #include <maya/MSelectionList.h>
 #include <maya/MItSelectionList.h>
 #include <maya/MFnTransform.h>
@@ -433,12 +434,38 @@ MStatus CArnoldSession::End()
 
 MStatus CArnoldSession::UpdateLightLinks()
 {
-   MStatus status = MStatus::kSuccess;
-   if (m_sessionOptions.GetLightLinkMode() == MTOA_LIGHTLINK_MAYA
-         || m_sessionOptions.GetShadowLinkMode() == MTOA_SHADOWLINK_MAYA)
+   m_numLights = 0;
+   MItDependencyNodes DgIterLights(MFn::kLight);
+   for (; (!DgIterLights.isDone()); DgIterLights.next())
    {
-      // Default values except last. We set componentSupport = false
-      status = m_lightLinks.parseLinks(MObject::kNullObj, false, NULL, false, false);
+      m_numLights += 1;
+   }
+   // TODO : turn off light linking option if we detect here that all lights
+   // "illuminate by default" ?
+
+   MStatus status = MStatus::kSuccess;
+
+   if (m_numLights > 0)
+   {
+      if (m_sessionOptions.GetLightLinkMode() == MTOA_LIGHTLINK_MAYA
+            || m_sessionOptions.GetShadowLinkMode() == MTOA_SHADOWLINK_MAYA)
+      {
+         // Default values except last. We set componentSupport = false
+         status = m_lightLinks.parseLinks(MObject::kNullObj, false, NULL, false, false);
+      }
+
+      if (MS::kSuccess == status)
+      {
+         AiMsgDebug("[mtoa] Parsed light linking information for %i lights", m_numLights);
+      }
+      else
+      {
+         AiMsgError("[mtoa] Failed to pare light linking information for %i lights", m_numLights);
+      }
+   }
+   else
+   {
+      AiMsgWarning("[mtoa] No light in scene");
    }
 
    return status;

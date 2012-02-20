@@ -120,6 +120,7 @@ public:
 
    // Light linker
    inline MLightLinks* MayaLightLinks() { return &m_lightLinks; }
+   inline unsigned int MayaLightCount() const { return m_numLights; }
 
    // Flag to avoid IPR loops
    inline bool IsExportingMotion() const {return m_isExportingMotion; }
@@ -163,6 +164,7 @@ private:
 
    CArnoldSession()
       :  m_sessionOptions(CSessionOptions())
+      ,  m_numLights(0)
       ,  m_lightLinks(MLightLinks())
       ,  m_isExportingMotion(false)
       ,  m_requestUpdate(false)
@@ -205,6 +207,8 @@ private:
 private:
 
    CSessionOptions m_sessionOptions;
+
+   unsigned int m_numLights;
    MLightLinks m_lightLinks;
 
    bool m_isExportingMotion;

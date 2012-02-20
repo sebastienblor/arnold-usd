@@ -37,55 +37,119 @@ void CShapeTranslator::ExportLightLinking(AtNode* shape)
    ArnoldLightLinkMode lightLinkMode = session->GetLightLinkMode();
    ArnoldShadowLinkMode shadowLinkMode = session->GetShadowLinkMode();
    MLightLinks* mayaLightLinks = session->MayaLightLinks();
+   unsigned int nbSceneLights = session->MayaLightCount();
 
    const MDagPath MayaShapePath = GetMayaDagPath();
    const MString MayaShapeName = MayaShapePath.partialPathName();
 
-   std::vector<AtNode*> lights;
-   MDagPathArray mayaLights;
    // NOTE no support for component linking and ignored lights
    if (lightLinkMode == MTOA_LIGHTLINK_MAYA)
    {
-      AiMsgDebug("[mtoa] Exporting light linking on %s", MayaShapeName.asChar());
+      std::vector<AtNode*> lights;
+      MDagPathArray mayaLights;
+
+      AiMsgDebug("[mtoa] Querying light linking on %s", MayaShapeName.asChar());
       status = mayaLightLinks->getLinkedLights(MayaShapePath, MObject::kNullObj, mayaLights);
       CHECK_MSTATUS(status);
 
-      for (unsigned int i=0; i<mayaLights.length(); ++i)
+      unsigned int nbLinkedLights = mayaLights.length();
+
+      // No need for a list if linked to all lights in scene
+      if (nbLinkedLights < nbSceneLights)
       {
-         MDagPath lightPath = mayaLights[i];
-         // TODO : handle multiple shapes cases
-         lightPath.extendToShape();
-         if (lightPath.isValid() && (session->FilteredStatus(lightPath) == MTOA_EXPORT_ACCEPTED))
+         AiMsgDebug("[mtoa] Exporting light linking on %s (%i lights out of %i total scene lights)",
+                     MayaShapeName.asChar(), nbLinkedLights, nbSceneLights );
+         for (unsigned int i=0; i<nbLinkedLights; ++i)
          {
-            // TODO: shoud this respect current selection for render / export selection
-            // and or export filters? In that case use CArnoldSession::ExportSelection and
-            // CArnoldSession::FileredStatus instead
-            AtNode* light = ExportDagPath(lightPath);
-            // TODO : might be safer to check it's indeed a light that has been exported
-            if (light != NULL)
+            MDagPath lightPath = mayaLights[i];
+            // TODO : handle multiple shapes cases
+            lightPath.extendToShape();
+            if (lightPath.isValid() && (session->FilteredStatus(lightPath) == MTOA_EXPORT_ACCEPTED))
             {
-               lights.push_back(light);
+               // TODO: shoud this respect current selection for render / export selection
+               // and or export filters? In that case use CArnoldSession::ExportSelection and
+               // CArnoldSession::FileredStatus instead
+               AtNode* light = ExportDagPath(lightPath);
+               // TODO : might be safer to check it's indeed a light that has been exported
+               if (light != NULL)
+               {
+                  lights.push_back(light);
+               }
             }
          }
-      }
 
-      if (lights.size() > 0)
-      {
-         AiNodeSetArray(shape, "light_group", AiArrayConvert((int)lights.size(), 1, AI_TYPE_NODE, &lights[0]));
+         if (lights.size() > 0)
+         {
+            AiNodeSetArray(shape, "light_group", AiArrayConvert((int)lights.size(), 1, AI_TYPE_NODE, &lights[0]));
+         }
+         else
+         {
+            AiNodeSetArray(shape, "light_group", AiArray(0, 1, AI_TYPE_NODE));
+         }
+
+         AiNodeSetBool(shape, "use_light_group", true);
+
+         // Shadow linking obeys light linking
+         if (shadowLinkMode == MTOA_SHADOWLINK_LIGHT)
+         {
+            if (lights.size() > 0)
+            {
+               AiNodeSetArray(shape, "shadow_group", AiArrayConvert((int)lights.size(), 1, AI_TYPE_NODE, &lights[0]));
+            }
+            else
+            {
+               AiNodeSetArray(shape, "shadow_group", AiArray(0, 1, AI_TYPE_NODE));
+            }
+
+            AiNodeSetBool(shape, "use_shadow_group", true);
+         }
       }
       else
       {
-         AiNodeSetArray(shape, "light_group", AiArray(0, 1, AI_TYPE_NODE));
+         AiMsgDebug("[mtoa] Skipping light linking on %s (linked to all %i total scene lights)",
+                     MayaShapeName.asChar(), nbSceneLights );
       }
+   }
 
-      AiNodeSetBool(shape, "use_light_group", true);
+   // Specific shadow linking
+   if (shadowLinkMode == MTOA_SHADOWLINK_MAYA)
+   {
+      std::vector<AtNode*> shadows;
+      MDagPathArray mayaShadows;
 
-      // Shadow linking obeys light linking
-      if (shadowLinkMode == MTOA_SHADOWLINK_LIGHT)
+      AiMsgDebug("[mtoa] Querying shadow linking on %s", MayaShapeName.asChar());
+      status = mayaLightLinks->getShadowLinkedLights(MayaShapePath, MObject::kNullObj, mayaShadows);
+      CHECK_MSTATUS(status);
+
+      unsigned int nbLinkedShadows = mayaShadows.length();
+
+      // No need for a list if linked to all lights in scene
+      if (nbLinkedShadows < nbSceneLights)
       {
-         if (lights.size() > 0)
+         AiMsgDebug("[mtoa] Exporting shadow linking on %s (%i lights out of %i total scene lights)",
+                     MayaShapeName.asChar(), nbLinkedShadows, nbSceneLights );
+         for (unsigned int i=0; i<nbLinkedShadows; ++i)
          {
-            AiNodeSetArray(shape, "shadow_group", AiArrayConvert((int)lights.size(), 1, AI_TYPE_NODE, &lights[0]));
+            MDagPath shadowPath = mayaShadows[i];
+            // TODO : handle multiple shapes cases
+            shadowPath.extendToShape();
+            if (shadowPath.isValid() && (session->FilteredStatus(shadowPath) == MTOA_EXPORT_ACCEPTED))
+            {
+               // TODO: shoud this respect current selection for render / export selection
+               // and or export filters? In that case use CArnoldSession::ExportSelection and
+               // CArnoldSession::FileredStatus instead
+               AtNode* shadow = ExportDagPath(shadowPath);
+               // TODO : might be safer to check it's indeed a light that has been exported
+               if (shadow != NULL)
+               {
+                  shadows.push_back(shadow);
+               }
+            }
+         }
+
+         if (shadows.size() > 0)
+         {
+            AiNodeSetArray(shape, "shadow_group", AiArrayConvert((int)shadows.size(), 1, AI_TYPE_NODE, &shadows[0]));
          }
          else
          {
@@ -94,60 +158,11 @@ void CShapeTranslator::ExportLightLinking(AtNode* shape)
 
          AiNodeSetBool(shape, "use_shadow_group", true);
       }
-      
-   }
-   else if (lightLinkMode == MTOA_LIGHTLINK_NONE)
-   {
-      AiNodeSetBool(shape, "use_light_group", false);
-      
-      if (shadowLinkMode == MTOA_SHADOWLINK_LIGHT)
-      {
-         AiNodeSetBool(shape, "use_shadow_group", false);
-      }
-   }
-
-   // Specific shadow linking
-   std::vector<AtNode*> shadows;
-   MDagPathArray mayaShadows;
-   if (shadowLinkMode == MTOA_SHADOWLINK_MAYA)
-   {
-      AiMsgDebug("[mtoa] Exporting shadow linking on %s", MayaShapeName.asChar());
-      status = mayaLightLinks->getShadowLinkedLights(MayaShapePath, MObject::kNullObj, mayaShadows);
-      CHECK_MSTATUS(status);
-
-      for (unsigned int i=0; i<mayaShadows.length(); ++i)
-      {
-         MDagPath shadowPath = mayaShadows[i];
-         // TODO : handle multiple shapes cases
-         shadowPath.extendToShape();
-         if (shadowPath.isValid() && (session->FilteredStatus(shadowPath) == MTOA_EXPORT_ACCEPTED))
-         {
-            // TODO: shoud this respect current selection for render / export selection
-            // and or export filters? In that case use CArnoldSession::ExportSelection and
-            // CArnoldSession::FileredStatus instead
-            AtNode* shadow = ExportDagPath(shadowPath);
-            // TODO : might be safer to check it's indeed a light that has been exported
-            if (shadow != NULL)
-            {
-               shadows.push_back(shadow);
-            }
-         }
-      }
-
-      if (shadows.size() > 0)
-      {
-         AiNodeSetArray(shape, "shadow_group", AiArrayConvert((int)shadows.size(), 1, AI_TYPE_NODE, &shadows[0]));
-      }
       else
       {
-         AiNodeSetArray(shape, "shadow_group", AiArray(0, 1, AI_TYPE_NODE));
+         AiMsgDebug("[mtoa] Skipping shadow linking on %s (linked to all %i total scene lights)",
+                  MayaShapeName.asChar(), nbSceneLights );
       }
-
-      AiNodeSetBool(shape, "use_shadow_group", true);
-   }
-   else if (shadowLinkMode == MTOA_SHADOWLINK_NONE)
-   {
-      AiNodeSetBool(shape, "use_shadow_group", false);
    }
 }
 
