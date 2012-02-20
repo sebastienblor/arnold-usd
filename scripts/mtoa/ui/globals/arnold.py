@@ -200,7 +200,9 @@ def createArnoldRenderSettings():
     pm.attrControlGrp('os_binary_ass',
                    label='Binary Ass Export',
                    attribute='defaultArnoldRenderOptions.binaryAss')
-
+    
+    pm.separator()
+                    
     pm.attrControlGrp('os_outputAssBoundingBox',
                    label="Export BoundingBox",
                    attribute='defaultArnoldRenderOptions.outputAssBoundingBox')                   
@@ -581,6 +583,10 @@ def createArnoldMotionBlurSettings():
     pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
     pm.columnLayout(adjustableColumn=True)
 
+    pm.attrControlGrp('reference_time',
+                   label='Reference Time',
+                   attribute='defaultArnoldRenderOptions.reference_time')
+                   
     pm.checkBoxGrp('mb_enable',
                      cc=updateMotionBlurSettings,
                      label='Enable')
@@ -613,10 +619,9 @@ def createArnoldMotionBlurSettings():
 
     pm.attrControlGrp('mb_shader_enable',
                         label="Shaders",
-                        attribute='defaultArnoldRenderOptions.mb_shader_enable')
-
+                        attribute='defaultArnoldRenderOptions.mb_shader_enable')                        
+                        
     pm.separator()
-
 
     pm.floatSliderGrp('mb_shutter_size',
                       label="Shutter Size"
