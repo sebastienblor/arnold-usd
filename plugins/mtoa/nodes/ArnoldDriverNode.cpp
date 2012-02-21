@@ -28,7 +28,7 @@ MStatus CArnoldDriverNode::initialize()
    MFnMessageAttribute mAttr;
    MFnStringData sData;
 
-   s_driver = tAttr.create("aiTranslator", "drvr", MFnData::kString);
+   s_driver = tAttr.create("aiTranslator", "ai_translator", MFnData::kString);
    tAttr.setKeyable(false);
    tAttr.setDefault(sData.create(""));
    addAttribute(s_driver);
