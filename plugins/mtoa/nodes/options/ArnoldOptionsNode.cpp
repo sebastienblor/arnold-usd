@@ -434,9 +434,7 @@ MStatus CArnoldOptionsNode::initialize()
    addAttribute(s_displayAOV);
 
    s_attributes.MakeInput("binary_ass");
-
-   s_attributes.MakeInput("reference_time");
-      
+   
    s_enable_swatch_render = nAttr.create("enable_swatch_render", "ensr", MFnNumericData::kBoolean, 1);
    nAttr.setKeyable(false);
    addAttribute(s_enable_swatch_render);
