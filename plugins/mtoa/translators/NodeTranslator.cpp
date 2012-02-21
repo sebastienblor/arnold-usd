@@ -349,7 +349,7 @@ void CNodeTranslator::RequestUpdate(void *clientData)
    }
    else
    {
-      AiMsgDebug("[mtoa.translator.ipr] %-30s | RequestUpdate: no translator in client data: %p.", translator->GetMayaNodeName().asChar(), clientData);
+      AiMsgDebug("[mtoa.translator.ipr] RequestUpdate: no translator in client data: %p.", clientData);
    }
 
    // Pass the update request to the export session
