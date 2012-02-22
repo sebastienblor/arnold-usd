@@ -39,22 +39,39 @@ GlobalAOVData = namedtuple('GlobalAOVData', ['name', 'attribute', 'type'])
 
 SceneAOVData = namedtuple('SceneAOVData', ['name', 'type', 'index', 'node'])
 
-def _removeAliases(aovNames):
+def getShadingGroupAOVMap(nodeAttr):
+    '''
+    return a mapping from aov name to element plug on aiCustomAOVs 
+    '''
+    nameToAttr = {}
+    for at in nodeAttr:
+        name = at.aovName.get()
+        if name:
+            nameToAttr[name] = at
+    return nameToAttr
+
+def removeAliases(aovs):
     for sg in pm.ls(type='shadingEngine'):
-        for aovName in aovNames:
+        for aov in aovs:
             try:
-                pm.aliasAttr(sg + '.ai_aov_' + aovName, remove=True)
+                pm.aliasAttr(sg + '.ai_aov_' + aov.name, remove=True)
             except RuntimeError, err:
                 pass #print err
 
-def _addAliases(aovs):
+def addAliases(aovs):
     for sg in pm.ls(type='shadingEngine'):
         sgAttr = sg.aiCustomAOVs
+        nameMapping = getShadingGroupAOVMap(sgAttr)
         for aov in aovs:
             try:
-                pm.aliasAttr('ai_aov_' + aov.name, sgAttr[aov.index])
-            except RuntimeError, err:
+                pm.aliasAttr('ai_aov_' + aov.name, nameMapping[aov.name])
+            except (RuntimeError, KeyError) as err:
                 pass #print err
+
+def refreshAliases():
+    aovList = getAOVs()
+    removeAliases(aovList)
+    addAliases(aovList)
 
 class SceneAOV(object):
     def __init__(self, node, destAttr):
@@ -236,7 +253,7 @@ class AOVInterface(object):
         nextPlug = self._aovAttr.elementByLogicalIndex(self._aovAttr.numElements())
         aovNode.message.connect(nextPlug)
         aov = SceneAOV(aovNode, nextPlug)
-        _addAliases([aov])
+        addAliases([aov])
         return aov
 
     def removeAOV(self, aov):
@@ -247,16 +264,14 @@ class AOVInterface(object):
         returns True if the node was found and removed, False otherwise
         '''
         if isinstance(aov, basestring):
-            aovName = aov
-            aovNode = self.getAOVNode(aov)
-        else:
-            aovName = aov.name
-            aovNode = aov.node
-        if aovNode:
-            self._removeAOVNode(aovNode)
-            _removeAliases([aovName])
-            return True
-        return False
+            matches = self.getAOV(include=[aov])
+            if not matches:
+                return False
+            assert len(matches) == 1
+            aov = matches[0]
+
+        self._removeAOVNode(aov.node)
+        removeAliases([aov])
 
     def removeAOVs(self, aovNames):
         '''
@@ -268,13 +283,13 @@ class AOVInterface(object):
         if matches:
             for aov in matches:
                 self._removeAOVNode(aov.node)
-            _removeAliases(aovNames)
+            removeAliases(matches)
             return True
         return False
 
     def _removeAOVNode(self, aovNode):
         '''
-        Note this does not remove aliases. You must call _removeAliases() manually
+        Note this does not remove aliases. You must call removeAliases() manually
         '''
         inputs = aovNode.inputs(type=['aiAOVDriver', 'aiAOVFilter'])
         utils.safeDelete(aovNode)

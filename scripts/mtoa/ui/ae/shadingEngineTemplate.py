@@ -22,23 +22,6 @@ def getAOVsInNetwork(rootNode):
         results[node] = [node.attr(at).get() for (aov, at, type) in aovs.getNodeGlobalAOVData(node.type())]
     return results
 
-def getCustomArrayData(nodeAttr, aovList):
-    '''
-    return three data structures regarding the shadingEngine aiCustomAOVs attribute:
-        - mapping from aov name to element plug on aiCustomAOVs 
-        - set of all indices used by aiCustomAOVs
-        - set of aov names that appear in aiCustomAOVs that are not in the globals
-    '''
-    nameToAttr = {}
-    arrayIndices = set([])
-    for at in nodeAttr:
-        name = at.aovName.get()
-        if name:
-            nameToAttr[name] = at
-            arrayIndices.add(at.index())
-    orphanedAOVs = set(nameToAttr.keys()).difference([aov.name for aov in aovList])
-    return nameToAttr, arrayIndices, orphanedAOVs
-
 class ShadingEngineTemplate(templates.AttributeEditorTemplate):
     def __init__(self, nodeType):
         self._msgCtrls = []
@@ -68,10 +51,7 @@ class ShadingEngineTemplate(templates.AttributeEditorTemplate):
             return
 
         nodeAttr = pm.Attribute(self.nodeAttr('aiCustomAOVs'))
-        aovList = aovs.getAOVs()
-        self.updateCustomArrayData(nodeAttr, aovList)
-        for aov in aovList:
-            self.getAOVAttr(nodeAttr, aov.name) 
+        self.updateAOVFrame(nodeAttr)
 
     def getAOVAttr(self, nodeAttr, aovName):
         '''
@@ -92,7 +72,15 @@ class ShadingEngineTemplate(templates.AttributeEditorTemplate):
             return at
 
     def updateCustomArrayData(self, nodeAttr, aovList):
-        self.nameToAttr, self.arrayIndices, self.orphanedAOVs = getCustomArrayData(nodeAttr, aovList)
+        '''
+        set three data structures regarding the shadingEngine aiCustomAOVs attribute:
+            - mapping from aov name to element plug on aiCustomAOVs 
+            - set of all indices used by aiCustomAOVs
+            - set of aov names that appear in aiCustomAOVs that are not in the globals
+        '''
+        self.nameToAttr = aovs.getShadingGroupAOVMap(nodeAttr)
+        self.arrayIndices = set([at.index() for at in self.nameToAttr.values()])
+        self.orphanedAOVs = set(self.nameToAttr.keys()).difference([aov.name for aov in aovList])
 
     def updateNetworkData(self):
         self.networkData = getAOVsInNetwork(self.nodeAttr('surfaceShader'))
@@ -162,6 +150,8 @@ class ShadingEngineTemplate(templates.AttributeEditorTemplate):
     def updateAOVFrame(self, nodeAttr):
         # TODO: move this into AttributeEditorTemplate
         self._setActiveNodeAttr(nodeAttr)
+        nodeAttr = pm.Attribute(nodeAttr)
+
         self.updateNetworkData()
         for ctrl in self._msgCtrls:
             pm.deleteUI(ctrl)
@@ -170,6 +160,8 @@ class ShadingEngineTemplate(templates.AttributeEditorTemplate):
         pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
 
         aovList = aovs.getAOVs()
+        self.updateCustomArrayData(nodeAttr, aovList)
+
         pm.setParent(self.networkCol)
         self.buildNetworkAOVs(nodeAttr, aovList)
 
