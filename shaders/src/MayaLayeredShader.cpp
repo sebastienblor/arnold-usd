@@ -2,6 +2,8 @@
 
 #include "MayaUtils.h"
 
+#include <vector>
+
 AI_SHADER_NODE_EXPORT_METHODS(MayaLayeredShaderMtd);
 
 namespace
@@ -48,6 +50,67 @@ namespace
       "texture",
       0,
    };
+}
+
+struct AOVLayer
+{
+   AtRGB color;
+   AtRGB opacity;
+   const char* name;
+};
+
+void layer_op(AtShaderGlobals *sg, AtInt flag, AtRGB color, AtRGB opacity, AtBoolean useTransparency,
+              AtRGB &curColor, AtRGB &curOpacity)
+{
+   AtColor orgOpacity = sg->out_opacity;
+   if (useTransparency)
+   {
+      opacity = 1.0f - opacity;
+      // Consider color pre-multiplied already
+   }
+   else
+   {
+      opacity = sg->out_opacity;
+      // Pre-multiply color
+      color.r *= opacity.r;
+      color.g *= opacity.g;
+      color.b *= opacity.b;
+   }
+
+   if (flag == CF_TEXTURE)
+   {
+      color *= opacity;
+   }
+
+   curColor += (1.0f - curOpacity) * color;
+   curOpacity += (1.0f - curOpacity) * opacity;
+
+   sg->out_opacity = orgOpacity;
+}
+
+AtRGBA post_process(const AtRGB &curColor, const AtRGB &curOpacity)
+{
+   AtRGBA result;
+   result.r = curColor.r;
+   result.g = curColor.g;
+   result.b = curColor.b;
+
+   // Un-premultiply color
+   if (curOpacity.r > AI_EPSILON)
+   {
+      result.r /= curOpacity.r;
+   }
+   if (curOpacity.g > AI_EPSILON)
+   {
+      result.g /= curOpacity.g;
+   }
+   if (curOpacity.b > AI_EPSILON)
+   {
+      result.b /= curOpacity.b;
+   }
+
+   result.a = CLAMP(Luminance(curOpacity), 0.0f, 1.0f);
+   return result;
 }
 
 node_parameters
@@ -104,63 +167,59 @@ shader_evaluate
 
    if (numInputs > 0)
    {
-      AtColor orgOpacity = sg->out_opacity;
+      AtArray *aovs = NULL;
+      AtUInt naovs = 0;
+      if (AiUDataGetArray("mtoa_aovs", &aovs))
+        naovs = aovs->nelements;
+      // array for the accumulated results, will be empty if there are no aovs
+      std::vector<AOVLayer> AOVValues(naovs);
+      AtUInt i=0;
+      for (std::vector<AOVLayer>::iterator it = AOVValues.begin(); it!=AOVValues.end(); ++it)
+      {
+         it->color = AI_RGB_BLACK;
+         it->opacity = AI_RGB_BLACK;
+         it->name = AiArrayGetStr(aovs, i);
+         ++i;
+      }
 
       AtRGB curColor = AI_RGB_BLACK;
       AtRGB curOpacity = AI_RGB_BLACK;
 
       for (unsigned int i = 0; i < numInputs; ++i)
       {
-         AtRGB opacity;
-         AtRGB color = AiShaderEvalParamRGB(p_color0+i);
-
+         AtRGB transparency = AiShaderEvalParamRGB(p_transparency0+i);
          AtBoolean useTransparency = AiShaderEvalParamBool(p_useTransparency0+i);
+         layer_op(sg, flag,
+                  AiShaderEvalParamRGB(p_color0+i),
+                  transparency,
+                  useTransparency,
+                  curColor, curOpacity);
 
-         if (useTransparency)
+         if (naovs)
          {
-            opacity = 1.0f - AiShaderEvalParamRGB(p_transparency0+i);
-            // Consider color pre-multiplied already
+            for (std::vector<AOVLayer>::iterator it = AOVValues.begin(); it!=AOVValues.end(); ++it)
+            {
+               AtRGB color = AI_RGB_BLACK;
+               // save the current value
+               AiAOVGetRGB(sg, it->name, color);
+               // layer it into the accumulated results for this AOV
+               // TODO: look into getting a pointer from AiAOVGetRGB
+               layer_op(sg, flag,
+                        color,
+                        transparency,
+                        useTransparency,
+                        it->color, it->opacity);
+            }
          }
-         else
-         {
-            opacity = sg->out_opacity;
-            // Pre-multiply color
-            color.r *= opacity.r;
-            color.g *= opacity.g;
-            color.b *= opacity.b;
-         }
-
-         if (flag == CF_TEXTURE)
-         {
-            color *= opacity;
-         }
-
-         curColor += (1.0f - curOpacity) * color;
-         curOpacity += (1.0f - curOpacity) * opacity;
-
-         sg->out_opacity = orgOpacity;
       }
-
-      // Un-premultiply color
-      if (curOpacity.r > AI_EPSILON)
-      {
-         curColor.r /= curOpacity.r;
-      }
-      if (curOpacity.g > AI_EPSILON)
-      {
-         curColor.g /= curOpacity.g;
-      }
-      if (curOpacity.b > AI_EPSILON)
-      {
-         curColor.b /= curOpacity.b;
-      }
-
-      result.r = curColor.r;
-      result.g = curColor.g;
-      result.b = curColor.b;
-      result.a = CLAMP(Luminance(curOpacity), 0.0f, 1.0f);
-
+      result = post_process(curColor, curOpacity);
       outOpacity = curOpacity;
+
+      for (std::vector<AOVLayer>::iterator it = AOVValues.begin(); it!=AOVValues.end(); ++it)
+      {
+         AtRGBA aovResult = post_process(it->color, it->opacity);
+         AiAOVSetRGBA(sg, it->name, aovResult);
+      }
    }
 
    sg->out.RGBA = result;
