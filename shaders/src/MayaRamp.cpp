@@ -278,8 +278,8 @@ shader_evaluate
                if (positions->nelements < 1)
                {
                   result.r = 0.0f;
-                  result.r = 0.0f;
-                  result.r = 0.0f;
+                  result.g = 0.0f;
+                  result.b = 0.0f;
                }
                else
                {
