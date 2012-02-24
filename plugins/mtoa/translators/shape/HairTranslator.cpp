@@ -73,9 +73,10 @@ void CHairTranslator::Update( AtNode *curve )
    AtArray* curveNextLineStartsInterp  = AiArrayAllocate(m_numMainLines, 1, AI_TYPE_INT);
 
    MPlug plug;
+   MFnDependencyNode fnNode(GetMayaObject());
    // Check if we using a custom hair shader.
    AtNode* shader = NULL;
-   plug = m_fnNode.findPlug("aiOverrideHair");
+   plug = fnNode.findPlug("aiOverrideHair");
    if (!plug.isNull() && plug.asBool())
    {
       MPlugArray hairShaderPlugs;
@@ -106,7 +107,7 @@ void CHairTranslator::Update( AtNode *curve )
       // https://trac.solidangle.com/mtoa/ticket/109
    }
 
-   plug = m_fnNode.findPlug("aiExportHairUVs");
+   plug = fnNode.findPlug("aiExportHairUVs");
    bool export_curve_uvs = plug.isNull() ? false : plug.asBool();
 
    // TODO : MMeshIntersector is useless for UVs query
@@ -138,7 +139,7 @@ void CHairTranslator::Update( AtNode *curve )
       }
    }
 
-   plug = m_fnNode.findPlug("aiExportHairIDs");
+   plug = fnNode.findPlug("aiExportHairIDs");
    bool export_curve_id = true;
    if (!plug.isNull())
    {

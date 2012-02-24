@@ -27,40 +27,45 @@ struct MObjectCompare
 class CNodeAttrHandle
 {
 public:
-   CNodeAttrHandle(const MObject& nodeObject, const MString& attrName) :
+   CNodeAttrHandle() :
+         m_nodeHandle(MObject::kNullObj),
+         m_attrName(""),
+         m_instanceNum(-1)
+   {}
+   CNodeAttrHandle(const MObject& nodeObject, const MString& attrName="") :
          m_nodeHandle(nodeObject),
          m_attrName(attrName),
          m_instanceNum(-1)
+   {}
+   CNodeAttrHandle(const MDagPath& dagPath, const MString& attrName="") :
+         m_nodeHandle(dagPath.node()),
+         m_attrName(attrName),
+         m_instanceNum(dagPath.instanceNumber())
    {}
    CNodeAttrHandle(const MPlug& plug, int instanceNum=-1) :
          m_nodeHandle(plug.node()),
          m_attrName(plug.partialName(false, false, false, false, false, true)),
          m_instanceNum(instanceNum)
    {}
-   CNodeAttrHandle(const MDagPath& dagPath) :
-         m_nodeHandle(dagPath.node()),
-         m_attrName(""),
-         m_instanceNum(dagPath.instanceNumber())
-   {}
-   // match any attribute
-   CNodeAttrHandle(const MObject& nodeObject) :
-         m_nodeHandle(nodeObject),
-         m_attrName(""),
-         m_instanceNum(-1)
-   {}
-   bool operator<(CNodeAttrHandle other) const
+   inline bool isValid() const { return m_nodeHandle.isValid(); }
+   inline bool isAlive() const { return m_nodeHandle.isAlive(); }
+   inline MObject object() const { return m_nodeHandle.object(); }
+   // inline const MObject & objectRef() const { return m_nodeHandle.objectRef(); }
+   inline MString attribute() const { return m_attrName; }
+   inline int instanceNum() const { return m_instanceNum; }
+   bool operator<(const CNodeAttrHandle &other) const
    {
       // check if same node
       if (m_nodeHandle.object() == other.m_nodeHandle.object())
       {
-         // only check instance if other provided
-         if (other.m_instanceNum >= 0)
+         // only check instance if provided
+         if (m_instanceNum >= 0 && other.m_instanceNum >= 0)
          {
             // test if same dag node
             if (m_instanceNum == other.m_instanceNum)
             {
-               // only check attributes if other provided
-               if (other.m_attrName.length())
+               // only check attributes if provided
+               if (m_attrName.length() > 0 && other.m_attrName.length() > 0)
                {
                   // strcmp returns 0 if equal, or > 0 if str1 is greater than str2 (i.e. str2 is less than str1)
                   return strcmp(m_attrName.asChar(), other.m_attrName.asChar()) > 0;
@@ -69,7 +74,7 @@ public:
             return (m_instanceNum < other.m_instanceNum);
          }
          // only check attributes if other provided
-         if (other.m_attrName.length())
+         if (m_attrName.length() > 0 && other.m_attrName.length() > 0)
          {
             // strcmp returns 0 if equal, or > 0 if str1 is greater than str2 (i.e. str2 is less than str1)
             return strcmp(m_attrName.asChar(), other.m_attrName.asChar()) > 0;
@@ -79,37 +84,39 @@ public:
       return m_nodeHandle.hashCode() < other.m_nodeHandle.hashCode();
    }
 
-   bool operator==(CNodeAttrHandle other) const
+   bool operator==(const CNodeAttrHandle &other) const
    {
       // check if same node
       if (m_nodeHandle.object() == other.m_nodeHandle.object())
       {
-         // only check instance if other provided
-         if (other.m_instanceNum >= 0)
+         // only check instance if provided
+         if (m_instanceNum >= 0 && other.m_instanceNum >= 0)
          {
             // test if same dag node
             if (m_instanceNum == other.m_instanceNum)
             {
-               // only check attributes if other provided
-               if (other.m_attrName.length())
-                  // check if same attribute
+               // only check attributes if provided
+               if (m_attrName.length() > 0 && other.m_attrName.length() > 0)
+               {
                   return (m_attrName == other.m_attrName);
+               }
                return true; // they are same dag node
             }
             return false;
          }
-         // only check attributes if other provided
-         if (other.m_attrName.length())
-            // check if same attribute
+         // only check attributes if provided
+         if (m_attrName.length() > 0 && other.m_attrName.length() > 0)
+         {
             return (m_attrName == other.m_attrName);
+         }
          return true; // they are same depend node
       }
       return false;
    }
-public :
-   const MObjectHandle m_nodeHandle;
-   const MString m_attrName;
-   const int m_instanceNum;
+private :
+   MObjectHandle m_nodeHandle;
+   MString m_attrName;
+   int m_instanceNum;
 };
 
 #endif // MOBJECTCOMPARE_H

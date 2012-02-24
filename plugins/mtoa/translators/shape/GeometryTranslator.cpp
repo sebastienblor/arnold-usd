@@ -48,10 +48,12 @@ MObject CGeometryTranslator::GetNodeShader(MObject dagNode, int instanceNum)
    return connections[0].node();
 }
 
-bool CGeometryTranslator::GetVertices(MFnMesh &fnMesh,
+bool CGeometryTranslator::GetVertices(const MObject &geometry,
                                       std::vector<float> &vertices,
                                       MSpace::Space space)
 {
+   MStatus status;
+   MFnMesh fnMesh(geometry);
    int nverts = fnMesh.numVertices();
    if (nverts > 0)
    {
@@ -61,8 +63,10 @@ bool CGeometryTranslator::GetVertices(MFnMesh &fnMesh,
       if (space == MSpace::kWorld)
       {
          // A mesh has no transform, we must trace it back in the DAG
+         // FIXME : won't work for smoothed mesh or tessellated nurbs
          MDagPath dp;
-         fnMesh.getPath(dp);
+         status = fnMesh.getPath(dp);
+         CHECK_MSTATUS(status);
          MFnMesh pointFn(dp);
          pointFn.getPoints(pointsArray, MSpace::kWorld);
       }
@@ -81,11 +85,14 @@ bool CGeometryTranslator::GetVertices(MFnMesh &fnMesh,
    return false;
 }
 
-bool CGeometryTranslator::GetPerVertexNormals(MFnMesh &fnMesh,
+bool CGeometryTranslator::GetPerVertexNormals(const MObject &geometry,
                                               std::vector<float> &normals,
                                               MSpace::Space space,
                                               bool force)
 {
+   MStatus status;
+   MFnMesh fnMesh(geometry);
+
    int nnorms = fnMesh.numNormals();
    if (nnorms > 0 && (force || (FindMayaObjectPlug("smoothShading").asBool() && !FindMayaObjectPlug("aiSubdivType").asBool())))
    {
@@ -95,8 +102,10 @@ bool CGeometryTranslator::GetPerVertexNormals(MFnMesh &fnMesh,
       if (space == MSpace::kWorld)
       {
          // A mesh has no transform, we must trace it back in the DAG
+         // FIXME : won't work for smoothed mesh or tessellated nurbs
          MDagPath dp;
-         fnMesh.getPath(dp);
+         status = fnMesh.getPath(dp);
+         CHECK_MSTATUS(status);
          MFnMesh normFn(dp);
          normFn.getVertexNormals(false, normalArray, MSpace::kWorld);
       }
@@ -116,8 +125,11 @@ bool CGeometryTranslator::GetPerVertexNormals(MFnMesh &fnMesh,
    return false;
 }
 
-bool CGeometryTranslator::GetNormals(MFnMesh &fnMesh, std::vector<float> &normals)
+bool CGeometryTranslator::GetNormals(const MObject &geometry,
+                                     std::vector<float> &normals)
 {
+   MFnMesh fnMesh(geometry);
+
    int nnorms = fnMesh.numNormals();
    if (FindMayaObjectPlug("smoothShading").asBool() &&
          !FindMayaObjectPlug("aiSubdivType").asBool() &&
@@ -139,12 +151,15 @@ bool CGeometryTranslator::GetNormals(MFnMesh &fnMesh, std::vector<float> &normal
    return false;
 }
 
-bool CGeometryTranslator::GetTangents(MFnMesh &fnMesh,
+bool CGeometryTranslator::GetTangents(const MObject &geometry,
                                       std::vector<float> &tangents,
                                       std::vector<float> &bitangents,
                                       MSpace::Space space,
                                       bool force)
 {
+   MStatus status;
+   MFnMesh fnMesh(geometry);
+
    bool doExport;
    if (force)
    {
@@ -152,9 +167,8 @@ bool CGeometryTranslator::GetTangents(MFnMesh &fnMesh,
    }
    else
    {
-      MStatus stat;
-      MPlug pExportTangents = fnMesh.findPlug("aiExportTangents", false, &stat);
-      doExport = (stat == MStatus::kSuccess && pExportTangents.asBool());
+      MPlug pExportTangents = fnMesh.findPlug("aiExportTangents", false, &status);
+      doExport = (status == MStatus::kSuccess && pExportTangents.asBool());
    }
 
    if (!doExport)
@@ -177,7 +191,8 @@ bool CGeometryTranslator::GetTangents(MFnMesh &fnMesh,
    {
       // A mesh has no transform, we must trace it back in the DAG
       MDagPath dp;
-      fnMesh.getPath(dp);
+      status = fnMesh.getPath(dp);
+      CHECK_MSTATUS(status);
       tangentFn.setObject(dp);
    }
    else
@@ -224,56 +239,62 @@ bool CGeometryTranslator::GetTangents(MFnMesh &fnMesh,
    return true;
 }
 
-bool CGeometryTranslator::GetMeshRefObj(MFnMesh &fnMesh)
+MDagPath CGeometryTranslator::GetMeshRefObj()
 {
-   if (!m_isRefSmooth)
+   MFnMesh fnMesh(m_dagPath);
+
+   // If it has already been set (by the smooth reference fix)
+   if (!m_dagPathRef.isValid())
    {
       MStatus stat;
       MObject referenceObj;
       // Check if there is a referenceObject plug
       MPlug pReferenceObject = fnMesh.findPlug("referenceObject", false, &stat);
       if (stat != MStatus::kSuccess)
-         return false;
+      {
+         return m_dagPathRef;
+      }
       MPlugArray connectedPlugs;
       // Check if anything is connected to .referenceObject plug
       pReferenceObject.connectedTo(connectedPlugs, true, true, &stat);
       if (stat != MStatus::kSuccess || 1 != connectedPlugs.length())
       {
-         return false;
+         return m_dagPathRef;
       }
       else
       {
          // Checking if a script is not going rogue : the object must be a mesh !
          referenceObj = connectedPlugs[0].node();
          if (referenceObj.hasFn(MFn::kMesh) != 1)
-            return false;
+         {
+            return m_dagPathRef;
+         }
       }
 
-      m_fnMeshRef.setObject(referenceObj);
-
+      MFnMesh fnMeshRef(referenceObj);
       // Check if the numbers of vertices is the same as the current object
-      if (m_fnMeshRef.numVertices() != fnMesh.numVertices())
+      if (fnMeshRef.numVertices() != fnMesh.numVertices())
       {
-         return false;
+         return m_dagPathRef;
       }
 
-      return true;
+      MFnDagNode dag_node(referenceObj);
+      dag_node.getPath(m_dagPathRef);
    }
-   else
-   {
-      return true;
-   }
+
+   return m_dagPathRef;
 }
 
-bool CGeometryTranslator::GetRefObj(MFnMesh &fnMesh,
-                                    std::vector<float> &refVertices,
+bool CGeometryTranslator::GetRefObj(std::vector<float> &refVertices,
                                     std::vector<float> &refNormals,
                                     std::vector<float> &refTangents,
                                     std::vector<float> &refBitangents)
 {
-   bool getMesh = GetMeshRefObj(fnMesh);
+   MFnMesh fnMesh(m_dagPath);
+   MDagPath dagPathRef = GetMeshRefObj();
+   MObject geometryRef = dagPathRef.node();
 
-   if (getMesh)
+   if (dagPathRef.isValid())
    {
       // Find whether we're exporting points/normals/tangents
       MStatus stat;
@@ -282,7 +303,7 @@ bool CGeometryTranslator::GetRefObj(MFnMesh &fnMesh,
       if (stat == MStatus::kSuccess && pExportRefPoints.asBool())
       {
          // Get vertices of the reference object in world space
-         GetVertices(m_fnMeshRef, refVertices, MSpace::kWorld);
+         GetVertices(geometryRef, refVertices, MSpace::kWorld);
       }
 
       MPlug pExportRefNormals = fnMesh.findPlug("aiExportRefNormals", false,
@@ -292,7 +313,7 @@ bool CGeometryTranslator::GetRefObj(MFnMesh &fnMesh,
          // Get normals of the reference object (as we are outputing this as a user-data varying data,
          // we must have 1 normal per vertex
          // Also, even if subdivision is applied we want to get the normals data
-         GetPerVertexNormals(m_fnMeshRef, refNormals, MSpace::kWorld, true);
+         GetPerVertexNormals(geometryRef, refNormals, MSpace::kWorld, true);
       }
 
       MPlug pExportRefTangents = fnMesh.findPlug("aiExportRefTangents", false,
@@ -301,17 +322,15 @@ bool CGeometryTranslator::GetRefObj(MFnMesh &fnMesh,
       {
          // Get tangents of the reference object in world space
          // Also, even if subdivision is applied we want to get the tangent data
-         GetTangents(m_fnMeshRef, refTangents, refBitangents, MSpace::kWorld,
-                     true);
+         GetTangents(geometryRef, refTangents, refBitangents, MSpace::kWorld, true);
       }
       // If we are using a smoothed reference object, we need to delete it.
       //FIXME : This is somehow dirty, but I can't find a way to have a real "virtual" DAG object from generateSmoothMesh.
       if (m_isRefSmooth)
       {
-         MDagPath dp;
-         m_fnMeshRef.getPath(dp);
-         MObject node = dp.node();
-         MGlobal::removeFromModel(node);
+         MGlobal::removeFromModel(m_dagPathRef.node());
+         m_dagPathRef = MDagPath();
+         m_isRefSmooth = false;
       }
       return true;
    }
@@ -319,8 +338,11 @@ bool CGeometryTranslator::GetRefObj(MFnMesh &fnMesh,
       return false;
 }
 
-bool CGeometryTranslator::GetUVs(MFnMesh &fnMesh, std::vector<float> &uvs)
+bool CGeometryTranslator::GetUVs(const MObject &geometry,
+                                 std::vector<float> &uvs)
 {
+   MFnMesh fnMesh(geometry);
+
    // Get all UVs
    if (fnMesh.numUVs() > 0)
    {
@@ -339,8 +361,11 @@ bool CGeometryTranslator::GetUVs(MFnMesh &fnMesh, std::vector<float> &uvs)
    return false;
 }
 
-bool CGeometryTranslator::GetVertexColors(MFnMesh &fnMesh, std::map<std::string, std::vector<float> > &vcolors)
+bool CGeometryTranslator::GetVertexColors(const MObject &geometry,
+                                          std::map<std::string, std::vector<float> > &vcolors)
 {
+   MFnMesh fnMesh(geometry);
+
    bool exportColors = false;
 
    if (fnMesh.numColorSets() > 0)
@@ -400,7 +425,7 @@ bool CGeometryTranslator::GetVertexColors(MFnMesh &fnMesh, std::map<std::string,
    return exportColors;
 }
 
-void CGeometryTranslator::GetComponentIDs(MFnMesh &fnMesh,
+bool CGeometryTranslator::GetComponentIDs(const MObject &geometry,
       std::vector<unsigned int> &nsides,
       std::vector<AtUInt32> &vidxs,
       std::vector<AtUInt32> &nidxs,
@@ -408,49 +433,62 @@ void CGeometryTranslator::GetComponentIDs(MFnMesh &fnMesh,
       bool exportNormals,
       bool exportUVs)
 {
+   MFnMesh fnMesh(geometry);
+
    int uv_id = 0;
    // Traverse all polygons to export vidxs, uvindxs and nsides
-   nsides.reserve(fnMesh.numPolygons());
-   for (int p(0); p < fnMesh.numPolygons(); ++p)
+   unsigned int np = fnMesh.numPolygons();
+   if (np > 0)
    {
-      // Num points/sides to the poly.
-      nsides.push_back(fnMesh.polygonVertexCount(p));
-      // Vertex indicies.
-      MIntArray p_vidxs;
-      fnMesh.getPolygonVertices(p, p_vidxs);
-      for(uint v(0); v < p_vidxs.length(); ++v)
+      nsides.reserve(np);
+      for (unsigned int p(0); p < np; ++p)
       {
-         vidxs.push_back(p_vidxs[v]);
-         // UVs
-         if (exportUVs)
+         // Num points/sides to the poly.
+         nsides.push_back(fnMesh.polygonVertexCount(p));
+         // Vertex indicies.
+         MIntArray p_vidxs;
+         fnMesh.getPolygonVertices(p, p_vidxs);
+         for(uint v(0); v < p_vidxs.length(); ++v)
          {
-            m_fnMesh.getPolygonUVid(p, v, uv_id);
-            uvidxs.push_back(uv_id);
+            vidxs.push_back(p_vidxs[v]);
+            // UVs
+            if (exportUVs)
+            {
+               fnMesh.getPolygonUVid(p, v, uv_id);
+               uvidxs.push_back(uv_id);
+            }
          }
       }
+
+      // Normals.
+      if (exportNormals)
+      {
+         MIntArray vertex_counts, normal_ids;
+         fnMesh.getNormalIds(vertex_counts, normal_ids);
+         for(uint n(0); n < normal_ids.length(); ++n) nidxs.push_back(normal_ids[n]);
+      }
+
+      return true;
    }
 
-   // Normals.
-   if (exportNormals)
-   {
-      MIntArray vertex_counts, normal_ids;
-      m_fnMesh.getNormalIds(vertex_counts, normal_ids);
-      for(uint n(0); n < normal_ids.length(); ++n) nidxs.push_back(normal_ids[n]);
-   }
+   return false;
 }
 
 void CGeometryTranslator::ExportShaders()
 {
-   ExportMeshShaders(GetArnoldRootNode(), m_fnMesh);
+   ExportMeshShaders(GetArnoldRootNode(), m_dagPath);
 }
 
-void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
+void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
+                                            const MDagPath &path)
 {
+   MFnMesh fnMesh(path);
+
    int instanceNum = m_dagPath.isInstanced() ? m_dagPath.instanceNumber() : 0;
 
    std::vector<AtNode*> meshShaders;
 
-   MObject shadingGroup = GetNodeShadingGroup(m_dagPath.node(), instanceNum);
+   MObject shadingGroup = GetNodeShadingGroup(path.node(), instanceNum);
    if (!shadingGroup.isNull())
    {
       MPlugArray        connections;
@@ -500,7 +538,11 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
          }
       }
       
-      AiNodeSetArray(polymesh, "shader", AiArrayConvert((int)meshShaders.size(), 1, AI_TYPE_NODE, &meshShaders[0]));
+      int numMeshShaders = (int)meshShaders.size();
+      if (numMeshShaders > 0)
+      { 
+         AiNodeSetArray(polymesh, "shader", AiArrayConvert(numMeshShaders, 1, AI_TYPE_NODE, &meshShaders[0]));
+      }
 
       // Export face to shader indices
       // First convert from MIntArray to unsigned int vector
@@ -509,10 +551,10 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
       // int facesOffset = 0;
       int multiplier = 0;
       
-      if (m_fnMesh.findPlug("displaySmoothMesh").asBool())
+      if (fnMesh.findPlug("displaySmoothMesh").asBool())
       {
          MMeshSmoothOptions options;
-         MStatus status = m_fnMesh.getSmoothMeshDisplayOptions(options);
+         MStatus status = fnMesh.getSmoothMeshDisplayOptions(options);
          
          CHECK_MSTATUS(status);
          
@@ -524,12 +566,17 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
       std::vector<unsigned int> shidxs;
       for (unsigned int i = 0; i < indices.length(); i++)
       {
-         int subdivisions = multiplier * m_fnMesh.polygonVertexCount(i);
+         int subdivisions = multiplier * fnMesh.polygonVertexCount(i);
          shidxs.push_back(indices[i]);
          for (int j = 0; j < subdivisions -1; j++)
             shidxs.push_back(indices[i]);
       }
-      AiNodeSetArray(polymesh, "shidxs", AiArrayConvert((int)shidxs.size(), 1, AI_TYPE_UINT, &(shidxs[0])));
+
+      int numFaceShaders = (int)shidxs.size();
+      if (numFaceShaders > 0)
+      {
+         AiNodeSetArray(polymesh, "shidxs", AiArrayConvert(numFaceShaders, 1, AI_TYPE_UINT, &(shidxs[0])));
+      }
    }
 
    //
@@ -589,59 +636,26 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh)
 
 void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
 {
-   m_isRefSmooth = false;
+   MFnMesh fnMesh(m_geometry);
+   MObject geometry(m_geometry);
 
-   // Check if the object is smoothed with maya method
-   if (m_fnMesh.findPlug("displaySmoothMesh").asBool())
-   {
-      MMeshSmoothOptions options;
-      MStatus status = m_fnMesh.getSmoothMeshDisplayOptions(options);
-
-      CHECK_MSTATUS(status);
-
-      if(!m_fnMesh.findPlug("useSmoothPreviewForRender", false, &status).asBool())
-         options.setDivisions(m_fnMesh.findPlug("renderSmoothLevel", false, &status).asInt());
-
-      if (options.divisions() > 0)
-      {
-         // Check if mesh got a reference object. If so, we must also smooth it and reconnect it
-         //FIXME : This has to be done in a better way, but how ?
-         bool getMesh = GetMeshRefObj(m_fnMesh);
-
-         if (getMesh)
-         {
-            m_isRefSmooth = true;
-            MDagPath dp;
-            m_fnMeshRef.getPath(dp);
-            MDagPath transform(dp);
-            transform.pop();
-            MObject mesh_mobj_ref = m_fnMeshRef.generateSmoothMesh(transform.node(), &options,
-                  &status);
-            CHECK_MSTATUS(status);
-            m_fnMeshRef.setObject(mesh_mobj_ref);
-         }
-
-         MFnMeshData meshData;
-         // This is a member variable. We have to keep hold of it or Maya will release it.
-         m_data_mobj = meshData.create();
-         MObject mesh_mobj = m_fnMesh.generateSmoothMesh(m_data_mobj, &options, &status);
-         CHECK_MSTATUS(status);
-         m_fnMesh.setObject(mesh_mobj);
-      }
-   }
    //
    // GEOMETRY
    //
    std::vector<float> vertices, normals, tangents, bitangents;
+   unsigned int numVerts = fnMesh.numVertices();
+   unsigned int numNorms = fnMesh.numNormals();
+   unsigned int numUVs = fnMesh.numUVs();
+   unsigned int numPolys = fnMesh.numPolygons();
 
    // Get all vertices
-   GetVertices(m_fnMesh, vertices, MSpace::kObject);
+   bool exportVertices = GetVertices(geometry, vertices, MSpace::kObject);
 
    // Get all normals
-   bool exportNormals = GetNormals(m_fnMesh, normals);
+   bool exportNormals = GetNormals(geometry, normals);
 
    // Get all tangents, bitangents
-   bool exportTangents = GetTangents(m_fnMesh, tangents, bitangents,
+   bool exportTangents = GetTangents(geometry, tangents, bitangents,
                                      MSpace::kObject);
 
    if (step == 0)
@@ -653,19 +667,19 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
       std::vector<float> refVertices, refNormals, refTangents, refBitangents;
 
       // Get UVs
-      bool exportUVs = GetUVs(m_fnMesh, uvs);
+      bool exportUVs = GetUVs(geometry, uvs);
 
       // Get reference objects
-      bool exportReferenceObjects = GetRefObj(m_fnMesh, refVertices, refNormals,
+      bool exportReferenceObjects = GetRefObj(refVertices, refNormals,
                                               refTangents, refBitangents);
       bool exportRefVerts = (refVertices.size() > 0);
       bool exportRefNorms = (refNormals.size() > 0);
       bool exportRefTangents = (refTangents.size() > 0 && refBitangents.size() > 0);
 
       // Get Component IDs
-      GetComponentIDs(m_fnMesh, nsides, vidxs, nidxs, uvidxs, exportNormals, exportUVs);
+      bool exportCompIDs = GetComponentIDs(geometry, nsides, vidxs, nidxs, uvidxs, exportNormals, exportUVs);
       // Get Vertex Colors
-      bool exportColors = GetVertexColors(m_fnMesh, vcolors);
+      bool exportColors = GetVertexColors(geometry, vcolors);
 
       // Declare user parameters for tangents
       if (exportTangents)
@@ -712,52 +726,60 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
       if (!m_motionDeform || !IsLocalMotionBlurEnabled())
       {
          // No deformation motion blur, so we create normal arrays
-         AiNodeSetArray(polymesh, "vlist", AiArrayConvert(m_fnMesh.numVertices() * 3, 1, AI_TYPE_FLOAT, &(vertices[0])));
-
-         if (exportNormals && (m_fnMesh.numNormals() > 0))
-            AiNodeSetArray(polymesh, "nlist", AiArrayConvert(m_fnMesh.numNormals() * 3, 1, AI_TYPE_FLOAT, &(normals[0])));
-
+         if (exportVertices)
+         {
+            AiNodeSetArray(polymesh, "vlist", AiArrayConvert(numVerts * 3, 1, AI_TYPE_FLOAT, &(vertices[0])));
+         }
+         if (exportNormals)
+         {
+            AiNodeSetArray(polymesh, "nlist", AiArrayConvert(numNorms * 3, 1, AI_TYPE_FLOAT, &(normals[0])));
+         }
          if (exportTangents)
          {
-            AiNodeSetArray(polymesh, "tangent", AiArrayConvert(m_fnMesh.numVertices(), 1, AI_TYPE_VECTOR, &(tangents[0])));
-            AiNodeSetArray(polymesh, "bitangent", AiArrayConvert(m_fnMesh.numVertices(), 1, AI_TYPE_VECTOR, &(bitangents[0])));
+            AiNodeSetArray(polymesh, "tangent", AiArrayConvert(numVerts, 1, AI_TYPE_VECTOR, &(tangents[0])));
+            AiNodeSetArray(polymesh, "bitangent", AiArrayConvert(numVerts, 1, AI_TYPE_VECTOR, &(bitangents[0])));
          }
       }
       else
       {
          // Deformation motion blur. We need to create keyable arrays for vlist and nlist
-         AtArray* vlist_array = AiArrayAllocate(m_fnMesh.numVertices(), GetNumMotionSteps(), AI_TYPE_POINT);
-         SetKeyData(vlist_array, step, vertices, m_fnMesh.numVertices());
-         AiNodeSetArray(polymesh, "vlist", vlist_array);
-
+         if (exportVertices)
+         {
+            AtArray* vlist_array = AiArrayAllocate(numVerts, GetNumMotionSteps(), AI_TYPE_POINT);
+            SetKeyData(vlist_array, step, vertices, numVerts);
+            AiNodeSetArray(polymesh, "vlist", vlist_array);
+         }
          if (exportNormals)
          {
-            AtArray* nlist_array = AiArrayAllocate(m_fnMesh.numNormals(), GetNumMotionSteps(), AI_TYPE_VECTOR);
-            SetKeyData(nlist_array, step, normals, m_fnMesh.numNormals());
+            AtArray* nlist_array = AiArrayAllocate(numNorms, GetNumMotionSteps(), AI_TYPE_VECTOR);
+            SetKeyData(nlist_array, step, normals, numNorms);
             AiNodeSetArray(polymesh, "nlist", nlist_array);
          }
-
          if (exportTangents)
          {
-            AtArray* tangent_array = AiArrayAllocate(m_fnMesh.numVertices(), GetNumMotionSteps(), AI_TYPE_VECTOR);
-            SetKeyData(tangent_array, step, tangents, m_fnMesh.numVertices());
+            AtArray* tangent_array = AiArrayAllocate(numVerts, GetNumMotionSteps(), AI_TYPE_VECTOR);
+            SetKeyData(tangent_array, step, tangents, numVerts);
             AiNodeSetArray(polymesh, "tangent", tangent_array);
 
-            AtArray* bitangent_array = AiArrayAllocate(m_fnMesh.numVertices(), GetNumMotionSteps(), AI_TYPE_VECTOR);
-            SetKeyData(bitangent_array, step, bitangents, m_fnMesh.numVertices());
+            AtArray* bitangent_array = AiArrayAllocate(numVerts, GetNumMotionSteps(), AI_TYPE_VECTOR);
+            SetKeyData(bitangent_array, step, bitangents, numVerts);
             AiNodeSetArray(polymesh, "bitangent", bitangent_array);
          }
       }
 
-      AiNodeSetArray(polymesh, "nsides", AiArrayConvert((int)nsides.size(), 1, AI_TYPE_UINT, &(nsides[0])));
+      if (exportCompIDs)
+      {
+         AiNodeSetArray(polymesh, "nsides", AiArrayConvert((int)nsides.size(), 1, AI_TYPE_UINT, &(nsides[0])));
 
-      // Passing vidxs directly put Arnold in trouble
-      //AiNodeSetArray(polymesh, "vidxs", AiArrayConvert(vidxs.size(), 1, AI_TYPE_UINT, &(vidxs[0])));
-      AtArray *vidxsTmp = AiArrayAllocate((int)vidxs.size(), 1, AI_TYPE_UINT);
-      for(unsigned int i = 0; (i < vidxs.size()); i++)
-         AiArraySetUInt(vidxsTmp, i, vidxs[i]);
-      AiNodeSetArray(polymesh, "vidxs", vidxsTmp);
-
+         // Passing vidxs directly put Arnold in trouble
+         //AiNodeSetArray(polymesh, "vidxs", AiArrayConvert(vidxs.size(), 1, AI_TYPE_UINT, &(vidxs[0])));
+         AtArray *vidxsTmp = AiArrayAllocate((int)vidxs.size(), 1, AI_TYPE_UINT);
+         for(unsigned int i = 0; (i < vidxs.size()); i++)
+         {
+            AiArraySetUInt(vidxsTmp, i, vidxs[i]);
+         }
+         AiNodeSetArray(polymesh, "vidxs", vidxsTmp);
+      }
       if (exportNormals)
       {
          // Same goes here
@@ -767,27 +789,25 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
             AiArraySetUInt(nidxsTmp, i, nidxs[i]);
          AiNodeSetArray(polymesh, "nidxs", nidxsTmp);
       }
-
       if (exportReferenceObjects)
       {
           if (exportRefVerts)
          {
-            AiNodeSetArray(polymesh, "Pref", AiArrayConvert(m_fnMesh.numVertices(), 1, AI_TYPE_POINT, &(refVertices[0])));
+            AiNodeSetArray(polymesh, "Pref", AiArrayConvert(numVerts, 1, AI_TYPE_POINT, &(refVertices[0])));
          }
          if (exportRefNorms)
          {
-            AiNodeSetArray(polymesh, "Nref", AiArrayConvert(m_fnMesh.numNormals(), 1, AI_TYPE_VECTOR, &(refNormals[0])));
+            AiNodeSetArray(polymesh, "Nref", AiArrayConvert(numNorms, 1, AI_TYPE_VECTOR, &(refNormals[0])));
          }
          if (exportRefTangents)
          {
-            AiNodeSetArray(polymesh, "Tref", AiArrayConvert(m_fnMesh.numVertices(), 1, AI_TYPE_VECTOR, &(refTangents[0])));
-            AiNodeSetArray(polymesh, "BTref", AiArrayConvert(m_fnMesh.numVertices(), 1, AI_TYPE_VECTOR, &(refBitangents[0])));
+            AiNodeSetArray(polymesh, "Tref", AiArrayConvert(numVerts, 1, AI_TYPE_VECTOR, &(refTangents[0])));
+            AiNodeSetArray(polymesh, "BTref", AiArrayConvert(numVerts, 1, AI_TYPE_VECTOR, &(refBitangents[0])));
          }
       }
-
       if (exportUVs)
       {
-         AiNodeSetArray(polymesh, "uvlist", AiArrayConvert(m_fnMesh.numUVs() * 2, 1, AI_TYPE_FLOAT, &(uvs[0])));
+         AiNodeSetArray(polymesh, "uvlist", AiArrayConvert(numUVs * 2, 1, AI_TYPE_FLOAT, &(uvs[0])));
          // Same problem here
          //AiNodeSetArray(polymesh, "uvidxs", AiArrayConvert(uvidxs.size(), 1, AI_TYPE_UINT, &(uvidxs[0])));
          AtArray *uvidxsTmp = AiArrayAllocate((int)uvidxs.size(), 1, AI_TYPE_UINT);
@@ -795,7 +815,6 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
             AiArraySetUInt(uvidxsTmp, i, uvidxs[i]);
          AiNodeSetArray(polymesh, "uvidxs", uvidxsTmp);
       }
-
       if (exportColors)
       {
          std::map<std::string, std::vector<float> >::iterator it = vcolors.begin();
@@ -803,7 +822,7 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
          {
             if (strcmp(it->first.c_str(), "sss_faceset") != 0)
             {
-               AiNodeSetArray(polymesh, it->first.c_str(), AiArrayConvert(m_fnMesh.numVertices(), 1, AI_TYPE_RGBA, &(it->second[0])));
+               AiNodeSetArray(polymesh, it->first.c_str(), AiArrayConvert(numVerts, 1, AI_TYPE_RGBA, &(it->second[0])));
             }
             else
             {
@@ -813,19 +832,19 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
                MString m_colorSetName = "sss_faceset";
                MColor m_defaultColor  = MColor(0.0f, 0.0f, 0.0f);
 
-               AtArray *m_sss_faceset_bool = AiArray(m_fnMesh.numPolygons(), 1, AI_TYPE_BOOLEAN, NULL);
+               AtArray *m_sss_faceset_bool = AiArray(numPolys, 1, AI_TYPE_BOOLEAN, NULL);
 
-               m_fnMesh.getFaceVertexColors(colors, &m_colorSetName, &m_defaultColor);
+               fnMesh.getFaceVertexColors(colors, &m_colorSetName, &m_defaultColor);
 
-               for (int m_polygonId = 0; (m_polygonId < (int)m_fnMesh.numPolygons()); m_polygonId++)
+               for (int m_polygonId = 0; (m_polygonId < (int)numPolys); m_polygonId++)
                {
                   MIntArray m_vertexList;
-                  m_fnMesh.getPolygonVertices(m_polygonId, m_vertexList);
+                  fnMesh.getPolygonVertices(m_polygonId, m_vertexList);
 
                   m_count = 0.0f;
                   for (int m_vertexId = 0; (m_vertexId < (int)m_vertexList.length()); m_vertexId++)
                   {
-                     m_fnMesh.getFaceVertexColorIndex(m_polygonId, m_vertexId, m_colorId, &m_colorSetName);
+                     fnMesh.getFaceVertexColorIndex(m_polygonId, m_vertexId, m_colorId, &m_colorSetName);
                      m_count += (colors[m_colorId][0]+colors[m_colorId][1]+colors[m_colorId][2])/3.0f;
                   }
                   if (m_count/(float)m_vertexList.length() >= 0.5f)
@@ -848,51 +867,33 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
       // Export motion blur keys information (for deformation)
 
       // Vertices
-      AtArray* vlist_array = AiNodeGetArray(polymesh, "vlist");
-      SetKeyData(vlist_array, step, vertices, m_fnMesh.numVertices());
-
+      if (exportVertices)
+      {
+         AtArray* vlist_array = AiNodeGetArray(polymesh, "vlist");
+         SetKeyData(vlist_array, step, vertices, numVerts);
+      }
       // Normals
       if (exportNormals)
       {
          AtArray* nlist_array = AiNodeGetArray(polymesh, "nlist");
-         SetKeyData(nlist_array, step, normals, m_fnMesh.numNormals());
+         SetKeyData(nlist_array, step, normals, numNorms);
       }
-
       // Tangents
       if (exportTangents)
       {
          AtArray* tangent_array = AiNodeGetArray(polymesh, "tangent");
-         SetKeyData(tangent_array, step, tangents, m_fnMesh.numVertices());
+         SetKeyData(tangent_array, step, tangents, numVerts);
 
          AtArray* bitangent_array = AiNodeGetArray(polymesh, "bitangent");
-         SetKeyData(bitangent_array, step, bitangents, m_fnMesh.numVertices());
+         SetKeyData(bitangent_array, step, bitangents, numVerts);
       }
    }
 }
 
+// Specific implementation for each geometry type
 bool CGeometryTranslator::IsGeoDeforming()
 {
-    bool history = false;
-    bool pnts = false;
-
-    MPlug inMeshPlug = m_fnMesh.findPlug("inMesh");
-    MPlugArray conn;
-    inMeshPlug.connectedTo(conn, true, false);
-    if (conn.length())
-    {
-        history = true;
-    }
- 
-    inMeshPlug = m_fnMesh.findPlug("pnts");
-    inMeshPlug.connectedTo(conn, true, false);
-    if (conn.length())
-    {
-        pnts = true;
-    }
-
-    if (!history && !pnts && !m_displaced)
-        return false;
-    return true;
+   return true;
 }
 
 void CGeometryTranslator::ExportMeshParameters(AtNode* polymesh)
@@ -937,15 +938,15 @@ AtNode* CGeometryTranslator::ExportMesh(AtNode* polymesh, bool update)
 {
    ExportMatrix(polymesh, 0);
    ExportMeshParameters(polymesh);
-   ExportMeshShaders(polymesh, m_fnMesh);
+   ExportMeshShaders(polymesh, m_dagPath);
    ExportLightLinking(polymesh);
    // if enabled, double check motion deform
-   if (m_motionDeform)
-      m_motionDeform = IsGeoDeforming();
-
-   IsGeoDeforming();
+   m_motionDeform = m_motionDeform && IsGeoDeforming();
    if (!update)
+   {
       ExportMeshGeoData(polymesh, 0);
+   }
+
    return polymesh;
 }
 
@@ -966,7 +967,8 @@ AtNode* CGeometryTranslator::ExportInstance(AtNode *instance, const MDagPath& ma
    //
    // SHADERS
    //
-   MFnMesh           meshNode(m_dagPath.node());
+   // MFnMesh           meshNode(m_dagPath.node());
+   MFnMesh           meshNode(m_geometry);
    MObjectArray      shaders, shadersMaster;
    MIntArray         indices, indicesMaster;
 
@@ -1033,9 +1035,6 @@ void CGeometryTranslator::Update(AtNode *anode)
 
 void CGeometryTranslator::ExportMotion(AtNode* anode, unsigned int step)
 {
-   // Ran into a strange bug where the object must be reset to
-   // avoid a crash.  even calling .hasObj() was enough to avoid it
-   m_fnMesh.setObject(m_object);
    if (m_isMasterDag)
    {
       ExportMatrix(anode, step);
@@ -1057,7 +1056,7 @@ void CGeometryTranslator::UpdateMotion(AtNode* anode, unsigned int step)
 
 void CGeometryTranslator::AddUpdateCallbacks()
 {
-   AddShaderAssignmentCallbacks(m_object);
+   AddShaderAssignmentCallbacks(m_dagPath.node());
    CDagTranslator::AddUpdateCallbacks();
 }
 

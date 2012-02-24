@@ -33,6 +33,7 @@ public:
    {
       m_displaced = false;
       m_isRefSmooth = false;
+      m_geometry = dagPath.node();
       return CShapeTranslator::Init(session, dagPath, outputAttr);
    }
    virtual void Update(AtNode* anode);
@@ -43,28 +44,31 @@ public:
 
 protected:
 
-   bool GetVertices(MFnMesh &fnMesh,
+   bool GetVertices(const MObject &geometry,
          std::vector<float> &vertices,
          MSpace::Space space=MSpace::kObject);
-   bool GetPerVertexNormals(MFnMesh &fnMesh,
+   bool GetPerVertexNormals(const MObject &geometry,
          std::vector<float> &normals,
          MSpace::Space space=MSpace::kObject,
          bool force=false);
-   bool GetNormals(MFnMesh &fnMesh, std::vector<float> &normals);
-   bool GetTangents(MFnMesh &fnMesh,
+   bool GetNormals(const MObject &geometry,
+         std::vector<float> &normals);
+   bool GetTangents(const MObject &geometry,
          std::vector<float> &tangents,
          std::vector<float> &bitangents,
          MSpace::Space space=MSpace::kObject,
          bool force=false);
-   bool GetUVs(MFnMesh &fnMesh, std::vector<float> &uvs);
-   bool GetMeshRefObj(MFnMesh &fnMesh);
-   bool GetRefObj(MFnMesh &fnMesh,
+   bool GetUVs(const MObject &geometry,
+               std::vector<float> &uvs);
+   MDagPath GetMeshRefObj();
+   bool GetRefObj(
          std::vector<float> &refVertices,
          std::vector<float> &refNormals,
          std::vector<float> &refTangents,
          std::vector<float> &refBitangents);
-   bool GetVertexColors(MFnMesh &fnMesh, std::map<std::string, std::vector<float> > &vcolors);
-   void GetComponentIDs(MFnMesh &fnMesh,
+   bool GetVertexColors(const MObject &geometry,
+         std::map<std::string, std::vector<float> > &vcolors);
+   bool GetComponentIDs(const MObject &geometry,
          std::vector<unsigned int> &nsides,
          std::vector<AtUInt32> &vidxs,
          std::vector<AtUInt32> &nidxs,
@@ -73,7 +77,7 @@ protected:
          bool exportUVs);
 
    MObject GetNodeShader(MObject dagNode, int instanceNum);
-   void ExportMeshShaders(AtNode* polymesh, MFnMesh &fnMesh);
+   void ExportMeshShaders(AtNode* polymesh, const MDagPath& path);
    virtual void ExportShaders();
 
    void ExportMeshGeoData(AtNode* polymesh, unsigned int step);
@@ -91,9 +95,8 @@ protected:
    bool m_isMasterDag;
    bool m_displaced;
    bool m_isRefSmooth;
-   MObject m_data_mobj;
-   MFnMesh m_fnMesh;
-   MFnMesh m_fnMeshRef;
+   MObject m_geometry;
+   MDagPath m_dagPathRef;
    MDagPath m_masterDag;
 };
 

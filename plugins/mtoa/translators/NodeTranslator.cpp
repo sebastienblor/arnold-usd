@@ -63,14 +63,16 @@ namespace // <anonymous>
 AtNode* CNodeTranslator::DoExport(unsigned int step)
 {
    AtNode* node = GetArnoldNode("");
+   MString outputAttr = GetMayaAttributeName();
+
    if (node != NULL)
    {
       m_step = step;
       if (step == 0)
       {
-         if (m_outputAttr != "")
+         if (outputAttr != "")
             AiMsgDebug("[mtoa.translator]  %-30s | Exporting on plug %s (%s)",
-                       GetMayaNodeName().asChar(), m_outputAttr.asChar(), GetTranslatorName().asChar());
+                       GetMayaNodeName().asChar(), outputAttr.asChar(), GetTranslatorName().asChar());
          else
             AiMsgDebug("[mtoa.translator]  %-30s | Exporting (%s)",
                        GetMayaNodeName().asChar(), GetTranslatorName().asChar());
@@ -79,9 +81,9 @@ AtNode* CNodeTranslator::DoExport(unsigned int step)
       }
       else if (RequiresMotionData())
       {
-         if (m_outputAttr != "")
+         if (outputAttr != "")
             AiMsgDebug("[mtoa.translator]  %-30s | Exporting Motion on plug %s (%s)",
-                       GetMayaNodeName().asChar(), m_outputAttr.asChar(), GetTranslatorName().asChar());
+                       GetMayaNodeName().asChar(), outputAttr.asChar(), GetTranslatorName().asChar());
          else
             AiMsgDebug("[mtoa.translator]  %-30s | Exporting Motion (%s)",
                        GetMayaNodeName().asChar(), GetTranslatorName().asChar());
@@ -202,8 +204,9 @@ AtNode* CNodeTranslator::AddArnoldNode(const char* type, const char* tag)
 void CNodeTranslator::SetArnoldNodeName(AtNode* arnoldNode, const char* tag)
 {
    MString name = GetMayaNodeName();
-   if (m_outputAttr.numChars())
-      name = name + AI_ATT_SEP + m_outputAttr;
+   MString outputAttr = GetMayaAttributeName();
+   if (outputAttr.numChars())
+      name = name + AI_ATT_SEP + outputAttr;
    if (strlen(tag))
       name = name + AI_TAG_SEP + tag;
 
@@ -242,22 +245,24 @@ void CNodeTranslator::AddUpdateCallbacks()
    AiMsgDebug("[mtoa.translator.ipr] %-30s | Add Update callbacks", GetMayaNodeName().asChar());
    MStatus status;
    MCallbackId id;
+
+   MObject object = GetMayaObject();
    // So we update on attribute/input changes.
-   id = MNodeMessage::addNodeDirtyCallback(m_object,
+   id = MNodeMessage::addNodeDirtyCallback(object,
                                            NodeDirtyCallback,
                                            this,
                                            &status);
    if (MS::kSuccess == status) ManageUpdateCallback(id);
 
    // In case we're deleted!
-   id = MNodeMessage::addNodeAboutToDeleteCallback(m_object,
+   id = MNodeMessage::addNodeAboutToDeleteCallback(object,
                                                    NodeDeletedCallback,
                                                    this,
                                                    &status);
    if (MS::kSuccess == status) ManageUpdateCallback(id);
 
    // Just so people don't get confused with debug output.
-   id = MNodeMessage::addNameChangedCallback(m_object,
+   id = MNodeMessage::addNameChangedCallback(object,
                                              NameChangedCallback,
                                              this,
                                              &status);
@@ -349,6 +354,7 @@ void CNodeTranslator::RequestUpdate(void *clientData)
    }
    else
    {
+      // Deletion doesn't pass a translator
       AiMsgDebug("[mtoa.translator.ipr] RequestUpdate: no translator in client data: %p.", clientData);
    }
 
@@ -358,14 +364,16 @@ void CNodeTranslator::RequestUpdate(void *clientData)
 
 void CNodeTranslator::ExportUserAttribute(AtNode *anode)
 {
+   MObject object = GetMayaObject();
    MFnDependencyNode fnDepNode(GetMayaObject());
+
 
    for (unsigned int i=0; i<fnDepNode.attributeCount(); ++i)
    {
       MObject oAttr = fnDepNode.attribute(i);
 
       MFnAttribute fnAttr(oAttr);
-      MPlug pAttr(m_object, oAttr);
+      MPlug pAttr(object, oAttr);
 
       MString name = fnAttr.name();
       if (name.indexW("mtoa_") == 0)
@@ -756,7 +764,7 @@ bool CNodeTranslator::ProcessParameterComponentInputs(AtNode* arnoldNode, const 
 }
 
 
-// Using the translator's MObject m_object and corresponding attrbuteName (default behavior)
+// Using the translator's m_handle Maya Object and corresponding attrbuteName (default behavior)
 AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName,
                                           int arnoldParamType, int element)
 {
@@ -765,10 +773,11 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnold
    // attr name name remap
    const AtNodeEntry* arnoldNodeEntry = AiNodeGetNodeEntry(arnoldNode);
    CBaseAttrHelper helper(arnoldNodeEntry);
+   MFnDependencyNode fnNode(GetMayaObject());
    if (!helper.IsHidden(arnoldParamName))
    {
       MString mayaAttribName = helper.GetMayaAttrName(arnoldParamName);
-      MPlug plug = m_fnNode.findPlug(mayaAttribName, true, &status);
+      MPlug plug = fnNode.findPlug(mayaAttribName, true, &status);
 
       if (MStatus::kSuccess == status && !plug.isNull())
       {
@@ -783,7 +792,7 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnold
             else
             {
                AiMsgWarning("[mtoa.translator]  %s: Plug %s does not represent a multi attribute, can't get element %i.",
-                     GetTranslatorName().asChar(), m_fnNode.name().asChar(), element);
+                     GetTranslatorName().asChar(), fnNode.name().asChar(), element);
             }
          }
          return ProcessParameter(arnoldNode, arnoldParamName, arnoldParamType, plug);
@@ -1191,15 +1200,13 @@ void CNodeTranslator::ProcessConstantArrayElement(int type, AtArray* array, unsi
 //------------ CDagTranslator ------------//
 void CDagTranslator::SetArnoldNodeName(AtNode* arnoldNode, const char* tag)
 {
-   MString name;
+   MString name = m_dagPath.partialPathName();
    // TODO: add a global option to control how names are exported
-   if (true)
-      name = m_dagPath.partialPathName();
-   else
-      name = m_dagPath.fullPathName();
+   // MString name = m_dagPath.fullPathName();
+   MString outputAttr = GetMayaAttributeName();
 
-   if (m_outputAttr.numChars())
-      name = name + AI_ATT_SEP + m_outputAttr;
+   if (outputAttr.numChars())
+      name = name + AI_ATT_SEP + outputAttr;
    if (strlen(tag))
       name = name + AI_TAG_SEP + tag;
 

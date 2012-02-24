@@ -48,32 +48,45 @@ public:
 
    virtual ~CNodeTranslator()
    {}
-   virtual AtNode* Init(CArnoldSession* session, const MObject& object, MString outputAttr="")
+   virtual AtNode* Init(CArnoldSession* session, const MObject& nodeObject, const MString& attrName="")
    {
-      m_session = session;
-      m_object = object;
-      m_fnNode.setObject(object);
-      m_outputAttr = outputAttr;
-      return DoCreateArnoldNodes();
+      return Init(session, CNodeAttrHandle(nodeObject, attrName));
    }
-   virtual MObject GetMayaObject() const { return m_object; }
-   virtual MString GetMayaNodeName() const { return m_fnNode.name(); }
-   virtual MString GetMayaNodeTypeName() const { return m_fnNode.typeName(); }
-   virtual MObject GetMayaObjectAttribute(MString attributeName) const { return m_fnNode.attribute(attributeName); }
-   virtual MPlug FindMayaObjectPlug(MString attributeName) const { return m_fnNode.findPlug(attributeName); }
+   virtual AtNode* Init(CArnoldSession* session, const MPlug& plug)
+   {
+      return Init(session, CNodeAttrHandle(plug));
+   }
+
+   virtual MObject GetMayaObject() const { return m_handle.object(); }
+   virtual MString GetMayaNodeName() const { return MFnDependencyNode(m_handle.object()).name(); }
+   virtual MString GetMayaAttributeName() const { return m_handle.attribute(); }
+   virtual MString GetMayaNodeTypeName() const { return MFnDependencyNode(m_handle.object()).typeName(); }
+   virtual MObject GetMayaObjectAttribute(MString attributeName) const { return MFnDependencyNode(m_handle.object()).attribute(attributeName); }
+   virtual MPlug FindMayaObjectPlug(MString attributeName) const { return MFnDependencyNode(m_handle.object()).findPlug(attributeName); }
 
    virtual bool IsMayaTypeDag() {return false;}
    virtual bool IsMayaTypeRenderable() {return false;}
    virtual bool DependsOnExportCamera() {return false;}
+   /// Instead of caching translator exports, allow a Maya node to be exported multiple times, each time generating new arnold nodes
+   virtual bool DisableCaching() {return false;}
 
 protected:
    CNodeTranslator()  :
       m_abstract(CAbTranslator()),
       m_session(NULL),
       m_atNode(NULL),
-      m_outputAttr(""),
+      m_handle(CNodeAttrHandle()),
       m_step(0)
    {}
+
+   AtNode* Init(CArnoldSession* session, const CNodeAttrHandle& object)
+   {
+      m_session = session;
+      m_handle = object;
+      return DoCreateArnoldNodes();
+   }
+   CNodeAttrHandle GetMayaHandle() const { return m_handle; }
+
    virtual void Export(AtNode* atNode) = 0;
    virtual void ExportMotion(AtNode* atNode, unsigned int step){}
    // Update runs during IPR for step==0 (calls Export by default)
@@ -81,8 +94,6 @@ protected:
    // UpdateMotion runs during IPR for step>0 (calls ExportMotion by default)
    virtual void UpdateMotion(AtNode* atNode, unsigned int step){ExportMotion(atNode, step);}
    virtual bool RequiresMotionData() {return false;}
-   /// Instead of caching translator exports, allow a Maya node to be exported multiple times, each time generating new arnold nodes
-   virtual bool DisableCaching() {return false;}
    /// Create nodes using AddArnoldNode(), and return the node which forms the root of the exported network
    virtual AtNode* CreateArnoldNodes() = 0;
    /// Return false if the passed outputAttribute is invalid
@@ -155,6 +166,7 @@ protected:
    static void NameChangedCallback(MObject &node, const MString &str, void *clientData);
    static void NodeDeletedCallback(MObject &node, MDGModifier &modifier, void *clientData);
    void ConvertMatrix(AtMatrix& matrix, const MMatrix& mayaMatrix);
+
 protected:
 
    CAbTranslator m_abstract;
@@ -163,16 +175,16 @@ protected:
 
    AtNode* m_atNode;
    std::map<std::string, AtNode*> m_atNodes;
-   MObject m_object;
-   MFnDependencyNode m_fnNode;
-   MString m_outputAttr;
+
    unsigned int m_step;
 
    // This stores callback IDs for the callbacks this
    // translator creates.
    MCallbackIdArray m_mayaCallbackIDs;
 
+private:
    
+   CNodeAttrHandle m_handle;
 };
 
 // Abstract base class for Dag node translators
@@ -185,11 +197,9 @@ class DLLEXPORT CDagTranslator : public CNodeTranslator
 public:
    virtual AtNode* Init(CArnoldSession* session, MDagPath& dagPath, MString outputAttr="")
    {
-      m_session = session;
       m_dagPath = dagPath;
-      m_fnDagNode.setObject(dagPath);
       // must call this after member initialization to ensure they are available to virtual functions like SetArnoldNodeName
-      AtNode * tmpRet = CNodeTranslator::Init(session, dagPath.node(), outputAttr);
+      AtNode * tmpRet = CNodeTranslator::Init(session, CNodeAttrHandle(dagPath, outputAttr));
       return tmpRet;
    }
 
@@ -201,7 +211,7 @@ public:
    }
 
    virtual MDagPath GetMayaDagPath() const { return m_dagPath; }
-   virtual MString GetMayaPartialPathName() const { return m_fnDagNode.partialPathName(); }
+   virtual MString GetMayaPartialPathName() const { return m_dagPath.partialPathName(); }
    virtual bool IsMayaTypeDag() {return true;}
    virtual bool IsMayaTypeRenderable() {return true;}
 
@@ -224,7 +234,6 @@ protected:
 
 protected:
    MDagPath m_dagPath;
-   MFnDagNode m_fnDagNode;
 };
 
 

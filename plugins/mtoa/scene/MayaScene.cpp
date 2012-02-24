@@ -56,7 +56,7 @@ bool CMayaScene::IsActive()
          && (s_renderSession != NULL && s_renderSession->IsActive());
 }
 
-const ArnoldSessionMode& CMayaScene::GetSessionMode()
+ArnoldSessionMode CMayaScene::GetSessionMode()
 {
    if (s_arnoldSession != NULL)
       return s_arnoldSession->GetSessionMode();
@@ -186,6 +186,25 @@ MStatus CMayaScene::End()
    return status;
 }
 
+MObject CMayaScene::GetSceneArnoldRenderOptionsNode()
+{
+   // Get the current Arnold Render Options
+   MSelectionList    list;
+   MObject           ArnoldRenderOptionsNode;
+   
+   list.add("defaultArnoldRenderOptions");
+   if (list.length() > 0)
+   {
+      list.getDependNode(0, ArnoldRenderOptionsNode);
+   }
+   else
+   {
+      AiMsgError("[mtoa] could not find defaultArnoldRenderOptions");
+   }
+
+   return ArnoldRenderOptionsNode;
+}
+
 MStatus CMayaScene::Export(MSelectionList* selected)
 {
    MStatus status;
@@ -216,7 +235,7 @@ MStatus CMayaScene::Render()
       bool isIpr = (s_arnoldSession->GetSessionMode() == MTOA_SESSION_IPR) ? true : false;
       // if (isIpr) status = SetupIPRCallbacks();
 
-      // FIXME: a generic renderSessio->Render() method that chooses render from the ArnoldSessionMode ?
+      // FIXME: a generic renderSession->Render() method that chooses render from the ArnoldSessionMode ?
       if (isIpr)
       {
          s_renderSession->DoIPRRender();
@@ -227,9 +246,6 @@ MStatus CMayaScene::Render()
       }
 
       // if (isIpr) ClearIPRCallbacks();
-
-      // Restorecurrent frame
-      // MGlobal::viewFrame(MTime(currentFrame, MTime::uiUnit()));
    }
    else
    {
@@ -301,8 +317,18 @@ MStatus CMayaScene::SetupIPRCallbacks()
    if (s_NewNodeCallbackId == 0)
    {
       id = MDGMessage::addNodeAddedCallback(IPRNewNodeCallback, "dependNode", NULL, &status);
-      if (status == MS::kSuccess) s_NewNodeCallbackId = id;
+      if (status == MS::kSuccess)
+      {
+         s_NewNodeCallbackId = id;
+      }
+      else
+      {
+         AiMsgError("[mtoa] Unable to install IPR node added callback");
+      }
    }
+   // TODO : might add a forceUpdateCallback to re-export when frame changes
+   // static MCallbackId 	addForceUpdateCallback (MMessage::MTimeFunction func, void *clientData=NULL, MStatus *ReturnStatus=NULL)
+ 	// This method registers a callback that is called after the time changes and after all nodes have been evaluated in the dependency graph. 
 
    return status;
 }
@@ -331,57 +357,36 @@ void CMayaScene::ClearIPRCallbacks()
 
 // Actuall callback functions
 
+// FIXME: we probably need to be able to directly pass a path or add an instance number here
 void CMayaScene::IPRNewNodeCallback(MObject & node, void *)
 {
    // If this is a node we've exported before (e.g. user deletes then undos)
    // we can shortcut and just call the update for it's already existing translator.
    // Interupt rendering
-   CRenderSession* renderSession = GetRenderSession();
+   MFnDependencyNode depNodeFn(node);
+
+   // Getting name can impact performance
+#ifndef NDEBUG
+   MString name = depNodeFn.name();
+   MString type = depNodeFn.typeName();
+   AiMsgDebug("[mtoa] IPRNewNodeCallback on %s(%s)", name.asChar(), type.asChar());
+#endif
+
    CArnoldSession* arnoldSession = GetArnoldSession();
-   renderSession->InterruptRender();
-   std::vector<CNodeTranslator *> translators;
-   if (arnoldSession->GetActiveTranslators(node, translators))
+
+   MFnDagNode dagNodeFn(node);
+   MDagPath path;
+   const MStatus status = dagNodeFn.getPath(path);
+   if (status == MS::kSuccess)
    {
-      for (unsigned int i=0; i < translators.size(); ++i)
-         arnoldSession->QueueForUpdate(translators[i]);
+      arnoldSession->QueueForUpdate(path);
    }
    else
    {
-      // Else export this node as it's completely new to us.
-      MFnDagNode dag_node(node);
-      MDagPath path;
-      const MStatus status = dag_node.getPath(path);
-      if (status == MS::kSuccess)
-      {
-         AiMsgDebug("[mtoa] Exporting new node: %s", path.partialPathName().asChar());
-         arnoldSession->ExportDagPath(path);
-         // arnoldSession->QueueForUpdate(); // add it?
-      }
-   }
-   
-   // Get the current Arnold Render Options
-   MSelectionList    list;
-   MObject           ArnoldRenderOptionsNode;
-   
-   list.add("defaultArnoldRenderOptions");
-   if (list.length() > 0)
-   {
-      list.getDependNode(0, ArnoldRenderOptionsNode);
-   }
-   else
-   {
-      AiMsgError("[mtoa] could not find defaultArnoldRenderOptions");
+      arnoldSession->QueueForUpdate(node);
    }
 
-   MFnDependencyNode fnArnoldRenderOptions(ArnoldRenderOptionsNode);
-   bool forceUpdate = fnArnoldRenderOptions.findPlug("force_scene_update_before_IPR_refresh").asBool();
-   
-   if(forceUpdate)
-   {
-      arnoldSession->RequestUpdate();
-   }
-
-   UpdateIPR();
+   arnoldSession->RequestUpdate();
 }
 
 
@@ -398,25 +403,8 @@ void CMayaScene::IPRIdleCallback(void *)
    if (s_arnoldSession->NeedsUpdate())
    {
       s_renderSession->InterruptRender();
-      s_arnoldSession->SetExportFrame(MAnimControl::currentTime().as(MTime::uiUnit()));
-      s_arnoldSession->DoUpdate();
-      
-      
-      // Get the current Arnold Render Options
-      MSelectionList    list;
-      MObject           ArnoldRenderOptionsNode;
-      
-      list.add("defaultArnoldRenderOptions");
-      if (list.length() > 0)
-      {
-         list.getDependNode(0, ArnoldRenderOptionsNode);
-      }
-      else
-      {
-         AiMsgError("[mtoa] could not find defaultArnoldRenderOptions");
-      }
 
-      MFnDependencyNode fnArnoldRenderOptions(ArnoldRenderOptionsNode);
+      MFnDependencyNode fnArnoldRenderOptions(GetSceneArnoldRenderOptionsNode());
       bool forceUpdate = fnArnoldRenderOptions.findPlug("force_scene_update_before_IPR_refresh").asBool();
             
       if(forceUpdate)
@@ -424,6 +412,11 @@ void CMayaScene::IPRIdleCallback(void *)
          CMayaScene::End();
          CMayaScene::Begin(MTOA_SESSION_IPR);
          CMayaScene::Export();
+      }
+      else
+      {
+         s_arnoldSession->SetExportFrame(MAnimControl::currentTime().as(MTime::uiUnit()));
+         s_arnoldSession->DoUpdate();
       }
       
       s_renderSession->DoIPRRender();

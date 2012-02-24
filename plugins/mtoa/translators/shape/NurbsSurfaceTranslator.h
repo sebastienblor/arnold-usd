@@ -28,8 +28,7 @@ protected:
       m_abstract.arnold = "polymesh";
    }
 private:
-   MObject m_data_mobj;
-   bool Tessellate(MDagPath & dagPath);
+   MStatus Tessellate(const MDagPath &dagPath);
    void GetTessellationOptions(MTesselationParams & params,
                         MFnNurbsSurface & surface);
 

@@ -8,11 +8,13 @@ class CMeshTranslator : public CGeometryTranslator
 public:
    virtual AtNode* Init(CArnoldSession* session, MDagPath& dagPath, MString outputAttr="")
    {
-      m_fnMesh.setObject(dagPath);
       return CGeometryTranslator::Init(session, dagPath, outputAttr);
    }
 
    virtual void Export(AtNode* anode);
+
+   virtual bool IsGeoDeforming();
+
    static void* creator()
    {
       return new CMeshTranslator();
@@ -27,6 +29,8 @@ protected:
       m_abstract.arnold = "polymesh";
    }
 private:
+   MObject m_dataMesh;
+   MStatus Tessellate(const MDagPath &dagPath);
    unsigned int GetNumMeshGroups();
 };
 

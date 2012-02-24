@@ -45,11 +45,11 @@ class COptionsTranslator;
 // depend nodes map from Node + Attr MObject to translator(s)
 typedef std::multimap<CNodeAttrHandle, CNodeTranslator*> ObjectToTranslatorMap;
 typedef std::pair<CNodeAttrHandle, CNodeTranslator*> ObjectToTranslatorPair;
-// dag nodes: have one translator per instance, so they map MObject to a sub-map, from dag instance number to translator
-typedef std::map<CNodeAttrHandle, std::map<int, CNodeTranslator*> > ObjectToDagTranslatorMap;
-// Abstract base class for Dag node translators
-//
+
+
+// Map dag object handles to master instance
 typedef std::map<MObjectHandle, MDagPath, MObjectCompare> ObjectHandleToDagMap;
+
 /// Opens an Arnold session, in which you can make changes to the Arnold universe: create or edit Arnold nodes.
 
 /// This class handles exporting all or part of the Maya scene to Arnold, for rendering, exporting as an ass
@@ -79,8 +79,7 @@ public:
    AtNode* ExportFilter(MObject node, const MString &translatorName);
    AtNode* ExportOptions();
 
-   bool GetActiveTranslators(const MObject& object, std::vector<CNodeTranslator* >& result);
-   CNodeTranslator * GetActiveTranslator(const MPlug& plug);
+   unsigned int GetActiveTranslators(const CNodeAttrHandle &handle, std::vector<CNodeTranslator* >& result);
    static bool IsRenderablePath(MDagPath dagPath);
 
    inline const ArnoldSessionMode& GetSessionMode() const         { return m_sessionOptions.GetSessionMode(); }
@@ -127,6 +126,7 @@ public:
 
    // Updates
    void QueueForUpdate(CNodeTranslator * translator);
+   void QueueForUpdate(const CNodeAttrHandle & handle);
    void RequestUpdate();
 
    // Instances
@@ -215,7 +215,7 @@ private:
    std::vector<double> m_motion_frames;
 
    bool m_requestUpdate;
-   std::vector< CNodeTranslator * > m_translatorsToUpdate;
+   std::vector<ObjectToTranslatorPair> m_objectsToUpdate;
 
    // depend nodes and dag nodes are a multimap with CNodeAttrHandle as a key
    ObjectToTranslatorMap m_processedTranslators;

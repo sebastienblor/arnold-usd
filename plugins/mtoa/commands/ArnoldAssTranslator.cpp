@@ -150,13 +150,13 @@ MStatus CArnoldAssTranslator::reader(const MFileObject& file,
       // If we have not StandIns selected. Create a StandIns and set it
       if(!standInCreated)
       {
-         MFnDagNode m_fnDagNode;
-         MObject m_standin = m_fnDagNode.create("aiStandIn","ArnoldStandInShape");
-         for (uint i=0;i<m_fnDagNode.childCount();i++)
+         MFnDagNode fnDagNode;
+         MObject m_standin = fnDagNode.create("aiStandIn","ArnoldStandInShape");
+         for (uint i=0;i<fnDagNode.childCount();i++)
          {
-            m_standin = m_fnDagNode.child(i);
-            MFnDagNode m_fnDagNodeChildren(m_standin);
-            MPlug m_dso = m_fnDagNodeChildren.findPlug("dso");
+            m_standin = fnDagNode.child(i);
+            MFnDagNode fnDagNodeChildren(m_standin);
+            MPlug m_dso = fnDagNodeChildren.findPlug("dso");
             if (!m_dso.isNull())
             {
                m_dso.setValue(file.resolvedFullName());

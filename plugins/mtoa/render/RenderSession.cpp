@@ -727,8 +727,6 @@ void CRenderSession::DoSwatchRender(const int resolution)
 
 bool CRenderSession::GetSwatchImage(MImage & image)
 {
-   assert(AiUniverseIsActive());
-
    if (CMayaScene::GetSessionMode() != MTOA_SESSION_SWATCH
          || NULL == m_render_thread)
    {

@@ -175,7 +175,7 @@ void CFileTranslator::Export(AtNode* shader)
       MString frameNumber("0"); 
       MStatus status; 
       frameNumber += GetExportFrame() + FindMayaObjectPlug("frameOffset").asInt(); 
-      MRenderUtil::exactFileTextureName(m_object, filename); 
+      MRenderUtil::exactFileTextureName(GetMayaObject(), filename);
       resolvedFilename = MRenderUtil::exactFileTextureName(filename, FindMayaObjectPlug("useFrameExtension").asBool(), frameNumber, &status); 
       if (status == MStatus::kSuccess) 
       { 
@@ -245,17 +245,19 @@ void CBump3DTranslator::Export(AtNode* shader)
 //
 AtNode* CSamplerInfoTranslator::CreateArnoldNodes()
 {
-   if (m_outputAttr == "facingRatio")
+   MString outputAttr = GetMayaAttributeName();
+
+   if (outputAttr == "facingRatio")
    {
       return AddArnoldNode("MayaFacingRatio");
    }
-   else if (m_outputAttr == "flippedNormal")
+   else if (outputAttr == "flippedNormal")
    {
       return AddArnoldNode("MayaFlippedNormal");
    }
    else
    {
-      AiMsgError("[mtoa] [translator %s] invalid output attribute requested: %s", GetTranslatorName().asChar(), m_outputAttr.asChar());
+      AiMsgError("[mtoa] [translator %s] invalid output attribute requested: %s", GetTranslatorName().asChar(), outputAttr.asChar());
       return NULL;
    }
 }
@@ -267,21 +269,23 @@ void CSamplerInfoTranslator::Export(AtNode* shader)
 //
 AtNode* CPlusMinusAverageTranslator::CreateArnoldNodes()
 {
-   if (m_outputAttr == "output1D")
+   MString outputAttr = GetMayaAttributeName();
+
+   if (outputAttr == "output1D")
    {
       return AddArnoldNode("MayaPlusMinusAverage1D");
    }
-   else if (m_outputAttr == "output2D")
+   else if (outputAttr == "output2D")
    {
       return AddArnoldNode("MayaPlusMinusAverage2D");
    }
-   else if (m_outputAttr == "output3D")
+   else if (outputAttr == "output3D")
    {
       return AddArnoldNode("MayaPlusMinusAverage3D");
    }
    else
    {
-      AiMsgError("[mtoa] [translator %s] invalid output attribute requested: %s", GetTranslatorName().asChar(), m_outputAttr.asChar());
+      AiMsgError("[mtoa] [translator %s] invalid output attribute requested: %s", GetTranslatorName().asChar(), outputAttr.asChar());
       return NULL;
    }
 }
@@ -295,59 +299,61 @@ void CPlusMinusAverageTranslator::Export(AtNode* shader)
 //
 AtNode* CParticleSamplerInfoTranslator::CreateArnoldNodes()
 {
+   MString outputAttr = GetMayaAttributeName();
+
    if (
-         m_outputAttr == "outColor" ||
-         m_outputAttr == "outIncandescence" ||
-         m_outputAttr == "outTransparency"||
-         m_outputAttr == "rgbPP" ||
-         m_outputAttr == "incandescensePP" ||
-         m_outputAttr == "incandescense"
+         outputAttr == "outColor" ||
+         outputAttr == "outIncandescence" ||
+         outputAttr == "outTransparency"||
+         outputAttr == "rgbPP" ||
+         outputAttr == "incandescensePP" ||
+         outputAttr == "incandescense"
       )
    {
       return AddArnoldNode("userDataColor");
    }
 
    else if(
-         m_outputAttr == "acceleration" ||
-         m_outputAttr == "force" ||
-         m_outputAttr == "position" ||
-         m_outputAttr == "worldPosition" ||
-         m_outputAttr == "birthPosition" ||
-         m_outputAttr == "birthWorldPosition" ||
-         m_outputAttr == "velocity" ||
-         m_outputAttr == "worldVelocity" ||
-         m_outputAttr == "userVector1PP" ||
-         m_outputAttr == "userVector2PP" ||
-         m_outputAttr == "userVector3PP" ||
-         m_outputAttr == "userVector4PP" ||
-         m_outputAttr == "userVector5PP"
+         outputAttr == "acceleration" ||
+         outputAttr == "force" ||
+         outputAttr == "position" ||
+         outputAttr == "worldPosition" ||
+         outputAttr == "birthPosition" ||
+         outputAttr == "birthWorldPosition" ||
+         outputAttr == "velocity" ||
+         outputAttr == "worldVelocity" ||
+         outputAttr == "userVector1PP" ||
+         outputAttr == "userVector2PP" ||
+         outputAttr == "userVector3PP" ||
+         outputAttr == "userVector4PP" ||
+         outputAttr == "userVector5PP"
          )
    {
       return AddArnoldNode("userDataVector");
    }
    else if (
-         m_outputAttr == "ageNormalized" ||
-         m_outputAttr == "colorRed" ||
-         m_outputAttr == "colorGreen" ||
-         m_outputAttr == "colorBlue" ||
-         m_outputAttr == "opacityPP" ||
-         m_outputAttr == "opacity" ||
-         m_outputAttr == "particleId" ||
-         m_outputAttr == "lifespanPP" ||
-         m_outputAttr == "lifespan" ||
-         m_outputAttr == "age" ||
-         m_outputAttr == "birthTime" ||
-         m_outputAttr == "parentU" ||
-         m_outputAttr == "parentV" ||
-         m_outputAttr == "collisionU" ||
-         m_outputAttr == "collisionV" ||
-         m_outputAttr == "radiusPP" ||
-         m_outputAttr == "radius" ||
-         m_outputAttr == "userScalar1PP" ||
-         m_outputAttr == "userScalar2PP" ||
-         m_outputAttr == "userScalar3PP" ||
-         m_outputAttr == "userScalar4PP" ||
-         m_outputAttr == "userScalar5PP"
+         outputAttr == "ageNormalized" ||
+         outputAttr == "colorRed" ||
+         outputAttr == "colorGreen" ||
+         outputAttr == "colorBlue" ||
+         outputAttr == "opacityPP" ||
+         outputAttr == "opacity" ||
+         outputAttr == "particleId" ||
+         outputAttr == "lifespanPP" ||
+         outputAttr == "lifespan" ||
+         outputAttr == "age" ||
+         outputAttr == "birthTime" ||
+         outputAttr == "parentU" ||
+         outputAttr == "parentV" ||
+         outputAttr == "collisionU" ||
+         outputAttr == "collisionV" ||
+         outputAttr == "radiusPP" ||
+         outputAttr == "radius" ||
+         outputAttr == "userScalar1PP" ||
+         outputAttr == "userScalar2PP" ||
+         outputAttr == "userScalar3PP" ||
+         outputAttr == "userScalar4PP" ||
+         outputAttr == "userScalar5PP"
          )
    {
       return AddArnoldNode("userDataFloat");
@@ -358,69 +364,71 @@ AtNode* CParticleSamplerInfoTranslator::CreateArnoldNodes()
 
 void CParticleSamplerInfoTranslator::Export(AtNode* shader)
 {
-   if (m_outputAttr == "outColor" || m_outputAttr == "rgbPP")
+   MString outputAttr = GetMayaAttributeName();
+
+   if (outputAttr == "outColor" || outputAttr == "rgbPP")
    {
       AiNodeSetStr(shader, "colorAttrName", "rgbPP");
    }
-   else if (m_outputAttr == "outTransparency" )
+   else if (outputAttr == "outTransparency" )
    {
       AiNodeSetStr(shader, "colorAttrName", "opacityPP");
    }
-   else if ( m_outputAttr == "opacityPP" || m_outputAttr == "opacity")
+   else if ( outputAttr == "opacityPP" || outputAttr == "opacity")
    {
       AiNodeSetStr(shader, "floatAttrName" , "opacityPP");
    }
-   else if (m_outputAttr == "outIncandescence" || m_outputAttr == "incandescensePP" || m_outputAttr == "incandescense" )
+   else if (outputAttr == "outIncandescence" || outputAttr == "incandescensePP" || outputAttr == "incandescense" )
    {
       AiNodeSetStr(shader, "colorAttrName", "incandescencePP");
    }
-   else if (m_outputAttr == "lifespanPP" || m_outputAttr == "lifespan")
+   else if (outputAttr == "lifespanPP" || outputAttr == "lifespan")
    {
       AiNodeSetStr(shader, "floatAttrName", "lifespanPP");
    }
-   else if (m_outputAttr == "radiusPP" || m_outputAttr == "radius")
+   else if (outputAttr == "radiusPP" || outputAttr == "radius")
    {
       AiNodeSetStr(shader, "floatAttrName", "radiusPP");
    }
 
    else if(
-            m_outputAttr == "acceleration" ||
-            m_outputAttr == "force" ||
-            m_outputAttr == "position" ||
-            m_outputAttr == "worldPosition" ||
-            m_outputAttr == "birthPosition" ||
-            m_outputAttr == "birthWorldPosition" ||
-            m_outputAttr == "velocity" ||
-            m_outputAttr == "worldVelocity" ||
-            m_outputAttr == "userVector1PP" ||
-            m_outputAttr == "userVector2PP" ||
-            m_outputAttr == "userVector3PP" ||
-            m_outputAttr == "userVector4PP" ||
-            m_outputAttr == "userVector5PP"
+            outputAttr == "acceleration" ||
+            outputAttr == "force" ||
+            outputAttr == "position" ||
+            outputAttr == "worldPosition" ||
+            outputAttr == "birthPosition" ||
+            outputAttr == "birthWorldPosition" ||
+            outputAttr == "velocity" ||
+            outputAttr == "worldVelocity" ||
+            outputAttr == "userVector1PP" ||
+            outputAttr == "userVector2PP" ||
+            outputAttr == "userVector3PP" ||
+            outputAttr == "userVector4PP" ||
+            outputAttr == "userVector5PP"
             )
       {
-         AiNodeSetStr(shader, "vectorAttrName", m_outputAttr.asChar());
+         AiNodeSetStr(shader, "vectorAttrName", outputAttr.asChar());
       }
    else if (
-            m_outputAttr == "ageNormalized" ||
-            m_outputAttr == "colorRed" ||
-            m_outputAttr == "colorGreen" ||
-            m_outputAttr == "colorBlue" ||
-            m_outputAttr == "particleId" ||
-            m_outputAttr == "age" ||
-            m_outputAttr == "birthTime" ||
-            m_outputAttr == "parentU" ||
-            m_outputAttr == "parentV" ||
-            m_outputAttr == "collisionU" ||
-            m_outputAttr == "collisionV" ||
-            m_outputAttr == "userScalar1PP" ||
-            m_outputAttr == "userScalar2PP" ||
-            m_outputAttr == "userScalar3PP" ||
-            m_outputAttr == "userScalar4PP" ||
-            m_outputAttr == "userScalar5PP"
+            outputAttr == "ageNormalized" ||
+            outputAttr == "colorRed" ||
+            outputAttr == "colorGreen" ||
+            outputAttr == "colorBlue" ||
+            outputAttr == "particleId" ||
+            outputAttr == "age" ||
+            outputAttr == "birthTime" ||
+            outputAttr == "parentU" ||
+            outputAttr == "parentV" ||
+            outputAttr == "collisionU" ||
+            outputAttr == "collisionV" ||
+            outputAttr == "userScalar1PP" ||
+            outputAttr == "userScalar2PP" ||
+            outputAttr == "userScalar3PP" ||
+            outputAttr == "userScalar4PP" ||
+            outputAttr == "userScalar5PP"
             )
       {
-         AiNodeSetStr(shader, "floatAttrName", m_outputAttr.asChar());
+         AiNodeSetStr(shader, "floatAttrName", outputAttr.asChar());
       }
 }
 
@@ -428,24 +436,28 @@ void CParticleSamplerInfoTranslator::Export(AtNode* shader)
 //
 AtNode* CRemapValueTranslator::CreateArnoldNodes()
 {
-   if (m_outputAttr == "outValue")
+   MString outputAttr = GetMayaAttributeName();
+
+   if (outputAttr == "outValue")
    {
       return AddArnoldNode("MayaRemapValueToValue");
    }
-   else if (m_outputAttr == "outColor")
+   else if (outputAttr == "outColor")
    {
       return AddArnoldNode("MayaRemapValueToColor");
    }
    else
    {
-      AiMsgError("[mtoa] [translator %s] invalid output attribute requested: %s", GetTranslatorName().asChar(), m_outputAttr.asChar());
+      AiMsgError("[mtoa] [translator %s] invalid output attribute requested: %s", GetTranslatorName().asChar(), outputAttr.asChar());
       return NULL;
    }
 }
 
 void CRemapValueTranslator::Export(AtNode* shader)
 {
-   if (m_outputAttr == "outValue")
+   MString outputAttr = GetMayaAttributeName();
+
+   if (outputAttr == "outValue")
    {
       MPlug attr, elem, pos, val, interp;
 
@@ -477,7 +489,7 @@ void CRemapValueTranslator::Export(AtNode* shader)
          ProcessArrayParameterElement(shader, "interpolations", interp, AI_TYPE_INT, i);
       }
    }
-   else if (m_outputAttr == "outColor")
+   else if (outputAttr == "outColor")
    {
       MPlug attr, elem, pos, val, interp;
 

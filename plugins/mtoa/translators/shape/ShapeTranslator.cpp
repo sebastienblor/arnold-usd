@@ -108,6 +108,8 @@ void CShapeTranslator::ExportLightLinking(AtNode* shape)
       {
          AiMsgDebug("[mtoa] Skipping light linking on %s (linked to all %i total scene lights)",
                      MayaShapeName.asChar(), nbSceneLights );
+         AiNodeSetBool(shape, "use_light_group", false);
+         AiNodeSetBool(shape, "use_shadow_group", false);
       }
    }
 
@@ -162,6 +164,7 @@ void CShapeTranslator::ExportLightLinking(AtNode* shape)
       {
          AiMsgDebug("[mtoa] Skipping shadow linking on %s (linked to all %i total scene lights)",
                   MayaShapeName.asChar(), nbSceneLights );
+         AiNodeSetBool(shape, "use_shadow_group", false);
       }
    }
 }

@@ -57,11 +57,12 @@ public:
 
    static bool IsActive();
 
-   static const ArnoldSessionMode& GetSessionMode();
+   static ArnoldSessionMode GetSessionMode();
    static bool IsExportingMotion();
 
    static MStatus Begin(ArnoldSessionMode mode);
    static MStatus End();
+   static MObject GetSceneArnoldRenderOptionsNode();
    /// Must be called between Begin and End
    static MStatus Export(MSelectionList* selected = NULL);
    /// Must be called between Begin and End, after Export

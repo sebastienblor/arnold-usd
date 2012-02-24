@@ -68,7 +68,7 @@ void CNurbsSurfaceTranslator::GetTessellationOptions(MTesselationParams & params
    params.setSubdivisionFlag(MTesselationParams::kUseTriangleEdgeSwapping, edgeSwap);
 }
 
-bool CNurbsSurfaceTranslator::Tessellate(MDagPath & dagPath)
+MStatus CNurbsSurfaceTranslator::Tessellate(const MDagPath &dagPath)
 {
    MStatus status;
    MFnNurbsSurface surface(dagPath, &status);
@@ -76,28 +76,28 @@ bool CNurbsSurfaceTranslator::Tessellate(MDagPath & dagPath)
    {
       AiMsgError("[mtoa] [translator %s] Could not attach to NURBS surface for tessellation: %s",
             GetTranslatorName().asChar(), status.errorString().asChar());
-      return false;
+      return status;
    }
 
    MFnMeshData meshData;
    // This is a member variable. We have to keep hold of it or Maya will release it.
-   m_data_mobj = meshData.create();
+   MObject mesh_mobj = meshData.create();
 
    MTesselationParams params(MTesselationParams::kGeneralFormat, MTesselationParams::kTriangles);
    GetTessellationOptions(params, surface);
-   MObject mesh_mobj = surface.tesselate(params,
-                                         m_data_mobj,
-                                         &status);
+   mesh_mobj = surface.tesselate(params, mesh_mobj, &status);
    if (!status)
    {
       AiMsgError("[mtoa] [translator %s] Could not tessallate NURBS surface: %s",
             GetTranslatorName().asChar(), status.errorString().asChar());
-      return false;
+      return status;
    }
 
-   // set the MFnMesh to the newly created node
-   m_fnMesh.setObject(mesh_mobj);
-   return true;
+   // set the m_geometry to the newly created (tessellated) node
+   // This is a member variable. We have to keep hold of it or Maya will release it.
+   m_geometry = mesh_mobj;
+
+   return status;
 }
 
 AtNode* CNurbsSurfaceTranslator::CreateArnoldNodes()

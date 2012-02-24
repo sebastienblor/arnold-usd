@@ -137,7 +137,7 @@ AtNode * COptionsTranslator::CreateFileOutput(MStringArray &outputs, AtNode *def
 
    // set the output driver
    MString driverType = FindMayaObjectPlug("imageFormat").asString();
-   m_driver = m_session->ExportDriver(m_object, driverType);
+   m_driver = m_session->ExportDriver(GetMayaObject(), driverType);
    if (m_driver != NULL)
    {
       AiNodeSetStr(m_driver, "name", AiNodeEntryGetName(AiNodeGetNodeEntry(m_driver)));

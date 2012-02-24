@@ -312,28 +312,17 @@ AtNode* CArnoldSession::ExportFilter(MObject mayaNode, const MString &translator
    return ExportWithTranslator(mayaNode, "<filter>", translatorName);
 }
 
-bool CArnoldSession::GetActiveTranslators(const MObject& object, std::vector<CNodeTranslator* >& result)
+unsigned int CArnoldSession::GetActiveTranslators(const CNodeAttrHandle &handle, std::vector<CNodeTranslator* >& result)
 {
-   CNodeAttrHandle handle(object);
-   ObjectToTranslatorMap::iterator it = m_processedTranslators.find(handle);
-   if (it == m_processedTranslators.end())
-      return false;
-   for (; it != m_processedTranslators.end(); ++it)
+   result.clear();
+   ObjectToTranslatorMap::iterator it, itlo, itup;
+   itlo = m_processedTranslators.lower_bound(handle);
+   itup = m_processedTranslators.upper_bound(handle);
+   for (it = itlo; it != itup; it++)
    {
       result.push_back(static_cast< CNodeTranslator* >(it->second));
    }
-   return true;
-}
-
-CNodeTranslator * CArnoldSession::GetActiveTranslator(const MPlug& plug)
-{
-   CNodeAttrHandle handle(plug);
-   ObjectToTranslatorMap::iterator it = m_processedTranslators.find(handle);
-   if (it != m_processedTranslators.end())
-   {
-      return static_cast< CNodeTranslator* >(it->second);
-   }
-   return NULL;
+   return result.size();
 }
 
 bool CArnoldSession::IsRenderablePath(MDagPath dagPath)
@@ -421,7 +410,7 @@ MStatus CArnoldSession::End()
    }
    // Any translators are in the processed translators map, so already deleted
    m_processedTranslators.clear();
-   m_translatorsToUpdate.clear();
+   m_objectsToUpdate.clear();
    m_optionsTranslator = NULL;
    m_masterInstances.clear();
    // Clear motion frames storage
@@ -514,7 +503,17 @@ AtNode* CArnoldSession::ExportOptions()
    MPlug optPlug = fnNode.findPlug("message");
    AtNode* result = ExportNode(optPlug);
    // Store the options translator for later use
-   m_optionsTranslator = (COptionsTranslator*)GetActiveTranslator(optPlug);
+   std::vector<CNodeTranslator *> translators;
+   if (GetActiveTranslators(optPlug, translators) > 0)
+   {
+      m_optionsTranslator = (COptionsTranslator*)translators[0];
+   }
+   else
+   {
+      AiMsgError("[mtoa] Unable to store options translator for Arnold options '%s'", fnNode.name().asChar());
+      m_optionsTranslator = NULL;
+   }
+
    return result;
 }
 
@@ -919,9 +918,14 @@ DagFiltered CArnoldSession::FilteredStatus(MDagPath path)
 }
 
 // updates
+void CArnoldSession::QueueForUpdate(const CNodeAttrHandle & handle)
+{
+   m_objectsToUpdate.push_back(ObjectToTranslatorPair(handle, NULL));
+}
+
 void CArnoldSession::QueueForUpdate(CNodeTranslator * translator)
 {
-   if (translator != NULL) m_translatorsToUpdate.push_back(translator);
+   m_objectsToUpdate.push_back(ObjectToTranslatorPair(translator->GetMayaHandle(), translator));
 }
 
 void CArnoldSession::RequestUpdate()
@@ -932,28 +936,94 @@ void CArnoldSession::RequestUpdate()
 
 void CArnoldSession::DoUpdate()
 {
+   MStatus status;
    assert(AiUniverseIsActive());
-   // Are we motion blurred?
-   bool mb = IsMotionBlurEnabled();
-   if (mb)
+
+   std::vector< CNodeTranslator * > translatorsToUpdate;
+   std::vector<ObjectToTranslatorPair>::iterator itObj;
+   bool newDag = false;
+   bool reqMob = false;
+   bool moBlur = IsMotionBlurEnabled();
+   for (itObj = m_objectsToUpdate.begin(); itObj != m_objectsToUpdate.end(); itObj++)
    {
-      // don't step through frames if our translators don't need motion blur
-      mb = false;
-      for (std::vector<CNodeTranslator*>::iterator iter = m_translatorsToUpdate.begin();
-         iter != m_translatorsToUpdate.end(); ++iter)
+      CNodeAttrHandle handle(itObj->first);           // TODO : test isValid and isAlive ?
+      CNodeTranslator * translator = itObj->second;
+      if (translator != NULL)
       {
-         if ((*iter)->RequiresMotionData())
+         // A translator was provided, just add it to the list
+         if (moBlur) reqMob = reqMob || translator->RequiresMotionData();
+         translatorsToUpdate.push_back(translator);
+      }
+      else
+      {
+         // No translator was provided, it's either a new node creation or
+         // the undo of a delete node
+         MObject node = handle.object();
+         MString name = MFnDependencyNode(node).name();
+         std::vector< CNodeTranslator * > translators;
+         if (GetActiveTranslators(handle, translators))
          {
-            mb = true;
-            break;
+            // Restored node, we have the translator(s) already
+            AiMsgDebug("[mtoa] Updating restored node translators: %s", name.asChar());
+         }
+         else
+         {
+            // New node, dag node or dependency node?
+            MFnDagNode dagNodeFn(node);
+            MDagPath path;
+            status = dagNodeFn.getPath(path);
+            if (status == MS::kSuccess)
+            {
+               // This is a Dag node, is it instanced ?
+               int instanceNum = handle.instanceNum();
+               if (instanceNum >= 0)
+               {
+                  MDagPathArray allPaths;
+                  dagNodeFn.getAllPaths(allPaths);
+                  if (instanceNum < allPaths.length())
+                  {
+                     path = allPaths[instanceNum];
+                  }
+               }
+               // Just export it then
+               ExportDagPath(path, &status);
+               if (MStatus::kSuccess == status)
+               {
+                  name = path.partialPathName();
+                  AiMsgDebug("[mtoa] Exported new node: %s", name.asChar());
+                  newDag = true;
+                  // Then queue newly created translators to the list
+                  GetActiveTranslators(handle, translators);
+               }
+            }
+            // Dependency nodes are not exported by themselves, their export
+            // will be requested if they're connected to an exported node
+         }
+         // Add the newly recovered or created translators to the list
+         for (unsigned int i=0; i < translators.size(); ++i)
+         {
+            if (moBlur) reqMob = reqMob || translators[i]->RequiresMotionData();
+            translatorsToUpdate.push_back(translators[i]);
          }
       }
    }
 
-   if (!mb)
+     // FIXME: this will be unncessary when we have a real light link node translater able 
+   // to trigger updates on light linking changes
+   if (newDag)
    {
-      for (std::vector<CNodeTranslator*>::iterator iter = m_translatorsToUpdate.begin();
-         iter != m_translatorsToUpdate.end(); ++iter)
+      // AiUniverseCacheFlush(AI_CACHE_ALL);
+      UpdateLightLinks();
+   }
+
+   // Now do an update for all the translators in our list
+   // TODO : we'll probably need to be able to passe precisely to each
+   // translator what event or plug triggered the update request
+
+   if (!reqMob)
+   {
+      for (std::vector<CNodeTranslator*>::iterator iter = translatorsToUpdate.begin();
+         iter != translatorsToUpdate.end(); ++iter)
       {
          CNodeTranslator* translator = (*iter);
          if (translator != NULL) translator->DoUpdate(0);
@@ -967,8 +1037,8 @@ void CArnoldSession::DoUpdate()
       {
          AiMsgDebug("[mtoa.session]     Updating step %d at frame %f", step, m_motion_frames[step]);
          MGlobal::viewFrame(MTime(m_motion_frames[step], MTime::uiUnit()));
-         for (std::vector<CNodeTranslator*>::iterator iter = m_translatorsToUpdate.begin();
-             iter != m_translatorsToUpdate.end(); ++iter)
+         for (std::vector<CNodeTranslator*>::iterator iter = translatorsToUpdate.begin();
+             iter != translatorsToUpdate.end(); ++iter)
          {
             CNodeTranslator* translator = (*iter);
             if (translator != NULL) translator->DoUpdate(step);
@@ -979,27 +1049,32 @@ void CArnoldSession::DoUpdate()
       m_isExportingMotion = false;
    }
 
-   // add callbacks after all is done
+   // Refresh translator callbacks after all is done
    if (GetSessionMode() == MTOA_SESSION_IPR)
    {
       // re-add IPR callbacks to all updated translators after ALL updates are done
-      for(std::vector<CNodeTranslator*>::iterator iter = m_translatorsToUpdate.begin();
-         iter != m_translatorsToUpdate.end(); ++iter)
+      for(std::vector<CNodeTranslator*>::iterator iter = translatorsToUpdate.begin();
+         iter != translatorsToUpdate.end(); ++iter)
       {
          CNodeTranslator* translator = (*iter);
-         if (translator != NULL) translator->AddUpdateCallbacks();
+         if (translator != NULL)
+         {
+            translator->RemoveUpdateCallbacks();
+            translator->AddUpdateCallbacks();
+         }
       }
    }
 
    // Clear the list and the request update flag.
-   m_translatorsToUpdate.clear();
+   translatorsToUpdate.clear();
+   m_objectsToUpdate.clear();
    m_requestUpdate = false;
 }
 
 void CArnoldSession::ClearUpdateCallbacks()
 {
    // Clear the list of translators to update.
-   m_translatorsToUpdate.clear();
+   m_objectsToUpdate.clear();
 
    ObjectToTranslatorMap::iterator it;
    for(it = m_processedTranslators.begin(); it != m_processedTranslators.end(); ++it)
