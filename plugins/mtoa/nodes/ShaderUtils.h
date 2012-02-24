@@ -22,6 +22,24 @@ const MString CLASSIFY_SHADER_UTILITY("utility");
 
 #define ARNOLD_CLASSIFY( classification ) (MString("arnold/") + classification)
 
+const MString CLASSIFY_ARNOLD_DISPLACEMENT(ARNOLD_CLASSIFY(CLASSIFY_SHADER_DISPLACEMENT));
+const MString CLASSIFY_ARNOLD_LIGHT(ARNOLD_CLASSIFY(CLASSIFY_SHADER_LIGHT));
+const MString CLASSIFY_ARNOLD_ENVIRONMENT(ARNOLD_CLASSIFY(CLASSIFY_SHADER_ENVIRONMENT));
+
+const MString DISPLACEMENT_NO_SWATCH = CLASSIFY_ARNOLD_DISPLACEMENT
+                               + ":" + CLASSIFY_SHADER_DISPLACEMENT;
+const MString DISPLACEMENT_WITH_SWATCH = DISPLACEMENT_NO_SWATCH
+                               + ":swatch/" + ARNOLD_SWATCH;
+
+const MString LIGHT_NO_SWATCH = CLASSIFY_ARNOLD_LIGHT
+                              + ":" + CLASSIFY_SHADER_LIGHT;
+const MString LIGHT_WITH_SWATCH = LIGHT_NO_SWATCH
+                              + ":swatch/" + ARNOLD_SWATCH;
+
+const MString ENVIRONMENT_NO_SWATCH = CLASSIFY_ARNOLD_ENVIRONMENT
+                              + ":" + CLASSIFY_SHADER_ENVIRONMENT;
+const MString ENVIRONMENT_WITH_SWATCH = ENVIRONMENT_NO_SWATCH
+                              + ":swatch/" + ARNOLD_SWATCH;
 
 // attrFn.setCached(true);
 // attrFn.setInternal(true);

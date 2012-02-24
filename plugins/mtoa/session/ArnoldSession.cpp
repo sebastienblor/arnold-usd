@@ -4,6 +4,7 @@
 #include "extension/ExtensionsManager.h"
 #include "scene/MayaScene.h"
 #include "translators/options/OptionsTranslator.h"
+#include "nodes/ShaderUtils.h"
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
@@ -378,7 +379,6 @@ MStatus CArnoldSession::Begin(const CSessionOptions &options)
 
    m_sessionOptions = options;
 
-   status = UpdateLightLinks();
    status = UpdateMotionFrames();
 
    m_is_active = true;
@@ -423,11 +423,25 @@ MStatus CArnoldSession::End()
 
 MStatus CArnoldSession::UpdateLightLinks()
 {
+   // FIXME: we are not sure all these lights will actually have been exported to 
+   // the Arnold universe
+   // Possible solution, make sure ExportLights is done first, before dag objects
+   // are exported and light linking queried, and count the number of lights
+   // actually in the Arnold universe
    m_numLights = 0;
-   MItDependencyNodes DgIterLights(MFn::kLight);
-   for (; (!DgIterLights.isDone()); DgIterLights.next())
+   MItDag dagIterLights(MItDag::kDepthFirst, MFn::kLight);
+   for (; (!dagIterLights.isDone()); dagIterLights.next())
    {
       m_numLights += 1;
+   }
+   // For plugin lights, 
+   MItDag dagIterPlugin(MItDag::kDepthFirst, MFn::kPluginLocatorNode);
+   for (; (!dagIterPlugin.isDone()); dagIterPlugin.next())
+   {
+      if (CMayaScene::IsArnoldLight(dagIterPlugin.currentItem()))
+      {
+         m_numLights += 1;
+      }
    }
    // TODO : turn off light linking option if we detect here that all lights
    // "illuminate by default" ?
@@ -587,10 +601,14 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
          // And for render selected we need the lights too
          status = ExportLights();
          // m_sessionOptions.m_filter.excluded.insert(MFn::kLight);
+         status = UpdateLightLinks();
          status = ExportSelection(*selected);
       }
       else
       {
+         // Update light linking info
+         // FIXME: use a translator for light linker node(s)
+         status = UpdateLightLinks();
          status = ExportScene();
       }
    }
@@ -600,6 +618,7 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
       {
          // If we export selected to a file, not as a full render,
          // we don't need to export all lights / cameras
+         status = UpdateLightLinks();
          status = ExportSelection(*selected);
       }
       else
@@ -616,6 +635,9 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
          }
          // Then we filter them out to avoid double exporting cameras
          // m_sessionOptions.m_filter.excluded.insert(MFn::kCamera);
+         // Update light linking info
+         // FIXME: use a translator for light linker node(s)
+         status = UpdateLightLinks();
          status = ExportScene();
       }
    }
@@ -659,8 +681,6 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
    // add callbacks after all is done
    if (GetSessionMode() == MTOA_SESSION_IPR)
    {
-      // TODO: unify storage for translators, this is cumbersome
-      // For Node translators
       ObjectToTranslatorMap::iterator it;
       for (it = m_processedTranslators.begin(); it != m_processedTranslators.end(); ++it)
       {
@@ -722,14 +742,14 @@ MStatus CArnoldSession::ExportLights()
    MDagPath path;
    MItDag   dagIterLights(MItDag::kDepthFirst, MFn::kLight);
 
-   // First we export all cameras
+   // First we export all lights
    // We do not reset the iterator to avoid getting kWorld
    unsigned int mask = GetExportFilter();
    for (; (!dagIterLights.isDone()); dagIterLights.next())
    {
       if (dagIterLights.getPath(path))
       {
-         // Only check for cameras being visible, not templated and in render layer
+         // Only check for lights being visible, not templated and in render layer
          // FIXME: does a light need to be in layer to render actually in Maya?
          MFnDagNode node(path.node());
          MString name = node.name();
@@ -746,6 +766,37 @@ MStatus CArnoldSession::ExportLights()
       {
          AiMsgError("[mtoa] Could not get path for Maya lights DAG iterator.");
          status = MS::kFailure;
+      }
+   }
+
+   // Above will not catch plugin lights, 
+   MFnDependencyNode depFn;
+   MString classification;
+   MItDag dagIterPlugin(MItDag::kDepthFirst, MFn::kPluginLocatorNode);
+   for (; (!dagIterPlugin.isDone()); dagIterPlugin.next())
+   {
+      if (CMayaScene::IsArnoldLight(dagIterPlugin.currentItem()))
+      {
+         if (dagIterPlugin.getPath(path))
+         {
+            // Only check for lights being visible, not templated and in render layer
+            // FIXME: does a light need to be in layer to render actually in Maya?
+            MFnDagNode node(path.node());
+            MString name = node.name();
+            if ((mask & MTOA_FILTER_LAYER) && !IsInRenderLayer(path))
+               continue;
+            if ((mask & MTOA_FILTER_TEMPLATED) && IsTemplatedPath(path))
+               continue;
+            if ((mask & MTOA_FILTER_HIDDEN) && !IsVisiblePath(path))
+               continue;
+            if (ExportDagPath(path) == NULL)
+               status = MStatus::kFailure;
+         }
+         else
+         {
+            AiMsgError("[mtoa] Could not get path for Arnold plugin lights DAG iterator.");
+            status = MS::kFailure;
+         }
       }
    }
 
@@ -980,7 +1031,7 @@ void CArnoldSession::DoUpdate()
                {
                   MDagPathArray allPaths;
                   dagNodeFn.getAllPaths(allPaths);
-                  if (instanceNum < allPaths.length())
+                  if (instanceNum < (int)allPaths.length())
                   {
                      path = allPaths[instanceNum];
                   }

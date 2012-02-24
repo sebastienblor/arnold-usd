@@ -62,6 +62,8 @@ public:
 
    static MStatus Begin(ArnoldSessionMode mode);
    static MStatus End();
+
+   static bool IsArnoldLight(const MObject & object);
    static MObject GetSceneArnoldRenderOptionsNode();
    /// Must be called between Begin and End
    static MStatus Export(MSelectionList* selected = NULL);

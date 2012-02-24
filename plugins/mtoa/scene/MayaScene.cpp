@@ -2,6 +2,7 @@
 #include "MayaScene.h"
 #include "extension/ExtensionsManager.h"
 #include "utils/MtoaLog.h"
+#include "nodes/ShaderUtils.h"
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
@@ -29,6 +30,8 @@
 #include <maya/MDGMessage.h>
 #include <maya/MFnMatrixData.h>
 #include <maya/MFileObject.h>
+
+#include <string>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -185,6 +188,17 @@ MStatus CMayaScene::End()
 
    return status;
 }
+
+bool CMayaScene::IsArnoldLight(const MObject & object)
+{
+   MFnDependencyNode depFn(object);
+   std::string classification(MFnDependencyNode::classification(depFn.typeName()).asChar());
+   if (classification.find(CLASSIFY_ARNOLD_LIGHT.asChar()) != std::string::npos)
+      return true;
+   else
+      return false;
+}
+
 
 MObject CMayaScene::GetSceneArnoldRenderOptionsNode()
 {
