@@ -154,12 +154,13 @@ class PointLightTemplate(lightTemplate.LightTemplate):
     def customDecayTypeAttach(self, attr):
         nodeName = ""+attr
         if(cmds.attributeQuery("decayRate", node=nodeName, exists=True)):
-            destAttrName = nodeName + ".decayRate"
-            origAttrName = nodeName + ".aiDecayType"
+            origAttrName = nodeName + ".decayRate"
+            destAttrName = nodeName + ".aiDecayType"
             cmds.setAttr(destAttrName, lock=False)
+            cmds.setAttr(origAttrName, lock=False)
             value = cmds.getAttr(origAttrName)
             cmds.setAttr(destAttrName, lock=False)
-            cmds.setAttr(destAttrName, value*2)
+            cmds.setAttr(destAttrName, value/2)
             cmds.setAttr(destAttrName, lock=True)
 templates.registerTranslatorUI(PointLightTemplate, "pointLight")
 
@@ -198,12 +199,13 @@ class SpotLightTemplate(lightTemplate.LightTemplate):
     def customDecayTypeAttach(self, attr):
         nodeName = ""+attr
         if(cmds.attributeQuery("decayRate", node=nodeName, exists=True)):
-            destAttrName = nodeName + ".decayRate"
-            origAttrName = nodeName + ".aiDecayType"
+            origAttrName = nodeName + ".decayRate"
+            destAttrName = nodeName + ".aiDecayType"
             cmds.setAttr(destAttrName, lock=False)
+            cmds.setAttr(origAttrName, lock=False)
             value = cmds.getAttr(origAttrName)
             cmds.setAttr(destAttrName, lock=False)
-            cmds.setAttr(destAttrName, value*2)
+            cmds.setAttr(destAttrName, value/2)
             cmds.setAttr(destAttrName, lock=True)
 templates.registerTranslatorUI(SpotLightTemplate, "spotLight")
 
@@ -241,12 +243,13 @@ class AreaLightTemplate(lightTemplate.LightTemplate):
     def customDecayTypeAttach(self, attr):
         nodeName = ""+attr
         if(cmds.attributeQuery("decayRate", node=nodeName, exists=True)):
-            destAttrName = nodeName + ".decayRate"
-            origAttrName = nodeName + ".aiDecayType"
+            origAttrName = nodeName + ".decayRate"
+            destAttrName = nodeName + ".aiDecayType"
             cmds.setAttr(destAttrName, lock=False)
+            cmds.setAttr(origAttrName, lock=False)
             value = cmds.getAttr(origAttrName)
             cmds.setAttr(destAttrName, lock=False)
-            cmds.setAttr(destAttrName, value*2)
+            cmds.setAttr(destAttrName, value/2)
             cmds.setAttr(destAttrName, lock=True)
 templates.registerTranslatorUI(AreaLightTemplate, "areaLight")
 
