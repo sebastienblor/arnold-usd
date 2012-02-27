@@ -76,8 +76,8 @@ protected:
       m_abstract(CAbTranslator()),
       m_session(NULL),
       m_atNode(NULL),
-      m_handle(CNodeAttrHandle()),
-      m_step(0)
+      m_step(0),
+      m_handle(CNodeAttrHandle())
    {}
 
    AtNode* Init(CArnoldSession* session, const CNodeAttrHandle& object)

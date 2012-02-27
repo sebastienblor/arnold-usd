@@ -328,7 +328,8 @@ bool CGeometryTranslator::GetRefObj(std::vector<float> &refVertices,
       //FIXME : This is somehow dirty, but I can't find a way to have a real "virtual" DAG object from generateSmoothMesh.
       if (m_isRefSmooth)
       {
-         MGlobal::removeFromModel(m_dagPathRef.node());
+         MObject node = m_dagPathRef.node();
+         MGlobal::removeFromModel(node);
          m_dagPathRef = MDagPath();
          m_isRefSmooth = false;
       }
