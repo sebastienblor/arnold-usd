@@ -66,6 +66,7 @@ public:
 
    virtual bool IsMayaTypeDag() {return false;}
    virtual bool IsMayaTypeRenderable() {return false;}
+   virtual bool IsMayaTypeLight() { return false; }
    virtual bool DependsOnExportCamera() {return false;}
    /// Instead of caching translator exports, allow a Maya node to be exported multiple times, each time generating new arnold nodes
    virtual bool DisableCaching() {return false;}
@@ -99,7 +100,6 @@ protected:
    /// Return false if the passed outputAttribute is invalid
    virtual bool ResolveOutputPlug(const MPlug& outputPlug, MPlug &resolvedOutputPlug);
    virtual void Delete() {}
-   void DoDelete();
 
    // Using the translator's MObject m_object and corresponding attrbuteName (default behavior)
    virtual AtNode* ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, int element=-1);

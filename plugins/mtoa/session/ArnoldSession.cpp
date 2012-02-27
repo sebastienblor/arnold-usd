@@ -382,6 +382,7 @@ MStatus CArnoldSession::Begin(const CSessionOptions &options)
    status = UpdateMotionFrames();
 
    m_is_active = true;
+   m_requestUpdate = false;
 
    //ProcessAOVs();
    return status;
@@ -391,6 +392,7 @@ MStatus CArnoldSession::End()
 {
    MStatus status = MStatus::kSuccess;
 
+   m_requestUpdate = false;
    if (GetSessionMode() == MTOA_SESSION_IPR)
    {
       ClearUpdateCallbacks();
@@ -992,6 +994,8 @@ void CArnoldSession::DoUpdate()
 
    std::vector< CNodeTranslator * > translatorsToUpdate;
    std::vector<ObjectToTranslatorPair>::iterator itObj;
+   bool aDag   = false;
+   bool aLight = false;
    bool newDag = false;
    bool reqMob = false;
    bool moBlur = IsMotionBlurEnabled();
@@ -1003,6 +1007,8 @@ void CArnoldSession::DoUpdate()
       {
          // A translator was provided, just add it to the list
          if (moBlur) reqMob = reqMob || translator->RequiresMotionData();
+         // if (translator->IsMayaTypeLight()) aLight = true;
+         if (translator->IsMayaTypeDag()) aDag = true;
          translatorsToUpdate.push_back(translator);
       }
       else
@@ -1054,19 +1060,24 @@ void CArnoldSession::DoUpdate()
          for (unsigned int i=0; i < translators.size(); ++i)
          {
             if (moBlur) reqMob = reqMob || translators[i]->RequiresMotionData();
+            // if (translators[i]->IsMayaTypeLight()) aLight = true;
+            if (translators[i]->IsMayaTypeDag()) aDag = true;
             translatorsToUpdate.push_back(translators[i]);
          }
       }
    }
 
-     // FIXME: this will be unncessary when we have a real light link node translater able 
+   // FIXME: this will be unncessary when we have a real light link node translater able
    // to trigger updates on light linking changes
    if (newDag)
    {
-      // AiUniverseCacheFlush(AI_CACHE_ALL);
       UpdateLightLinks();
    }
-
+   // Need something finer to determine if the changes have an influence
+   if (aDag)
+   {
+      AiUniverseCacheFlush(AI_CACHE_SSS & AI_CACHE_HAIR_DIFFUSE);
+   }
    // Now do an update for all the translators in our list
    // TODO : we'll probably need to be able to passe precisely to each
    // translator what event or plug triggered the update request

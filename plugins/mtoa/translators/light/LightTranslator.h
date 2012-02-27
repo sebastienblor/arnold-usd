@@ -18,6 +18,7 @@ public:
       return m_session->IsMotionBlurEnabled(MTOA_MBLUR_LIGHT);
    }
 protected:
+   virtual bool IsMayaTypeLight() { return true; }
    virtual void Export(AtNode* light);
    virtual void ExportMotion(AtNode* light, unsigned int step);
    virtual void ExportLightFilters(AtNode* light, const MPlugArray &filters);

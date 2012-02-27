@@ -39,13 +39,13 @@ enum DagFiltered
 class CNodeTranslator;
 class COptionsTranslator;
 
-// TODO : translator per output attribute / arnold node for Maya node that can alternatively
-// generate different Arnold nodes (multiple outputs), possibly in the same Arnold universe
-// when the maya node is shared (Trac #351)
-// depend nodes map from Node + Attr MObject to translator(s)
+// Map translated Maya objects (node, dag node with instance number, or plug) to
+// their processed translator.
+// It's a multimap as there can be one different Arnold node and translator per output attribute
+// for Maya node with multiple outputs (until Arnold nodes support multiple outputs)
+// (Trac #351)
 typedef std::multimap<CNodeAttrHandle, CNodeTranslator*> ObjectToTranslatorMap;
 typedef std::pair<CNodeAttrHandle, CNodeTranslator*> ObjectToTranslatorPair;
-
 
 // Map dag object handles to master instance
 typedef std::map<MObjectHandle, MDagPath, MObjectCompare> ObjectHandleToDagMap;
@@ -216,7 +216,7 @@ private:
 
    bool m_requestUpdate;
    std::vector<ObjectToTranslatorPair> m_objectsToUpdate;
-
+   
    // depend nodes and dag nodes are a multimap with CNodeAttrHandle as a key
    ObjectToTranslatorMap m_processedTranslators;
 
