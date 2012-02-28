@@ -155,32 +155,32 @@ void CArnoldStandInsTranslator::ExportStandinsShaders(AtNode* procedural)
 
    std::vector<AtNode*> meshShaders;
 
-   MObject shadingGroup = GetNodeShadingGroup(m_dagPath.node(), instanceNum);
-   if (!shadingGroup.isNull())
+   MPlug shadingGroupPlug = GetNodeShadingGroup(m_dagPath.node(), instanceNum);
+   if (!shadingGroupPlug.isNull())
    {
-      MPlugArray connections;
-      MFnDependencyNode fnDGNode(shadingGroup);
-      MPlug shaderPlug = fnDGNode.findPlug("surfaceShader");
-      shaderPlug.connectedTo(connections, true, false);
-      if (connections.length() > 0)
+      AtNode *shader = ExportNode(shadingGroupPlug);
+      if (shader != NULL)
       {
-         // shader assigned to node
-         AtNode* shader = ExportNode(connections[0]);
          AiNodeSetPtr(procedural, "shader", shader);
          meshShaders.push_back(shader);
       }
       else
-         AiMsgWarning("[mtoa] ShadingGroup %s has no surfaceShader input.",
-               fnDGNode.name().asChar());
+      {
+         AiMsgWarning("[mtoa] [translator %s] ShadingGroup %s has no surfaceShader input",
+               GetTranslatorName().asChar(), MFnDependencyNode(shadingGroupPlug.node()).name().asChar());
+         /*AiMsgWarning("[mtoa] ShadingGroup %s has no surfaceShader input.",
+               fnDGNode.name().asChar());*/
+         AiNodeSetPtr(procedural, "shader", NULL);
+      }
    }
    //
    // DISPLACEMENT
    //
    // currently does not work for per-face assignment
-   if (!shadingGroup.isNull())
+   if (!shadingGroupPlug.isNull())
    {
       MPlugArray connections;
-      MFnDependencyNode fnDGNode(shadingGroup);
+      MFnDependencyNode fnDGNode(shadingGroupPlug);
       MPlug shaderPlug = fnDGNode.findPlug("displacementShader");
       shaderPlug.connectedTo(connections, true, false);
 
