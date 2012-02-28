@@ -781,29 +781,66 @@ AtNode*  CLayeredShaderTranslator::CreateArnoldNodes()
 
 void CLayeredShaderTranslator::Export(AtNode* shader)
 {
+   MPlug attr, elem, color, transp;
+   MPlugArray connections;
+   MObject colorSrc, transpSrc;
+   bool useTransparency;
+   // char mayaAttr[64];
+   char aiAttr[64];
+
    ProcessParameter(shader, "compositingFlag", AI_TYPE_ENUM);
 
-   MPlug inputs, elemt, color, trans;
-   inputs = FindMayaObjectPlug("inputs");
-   MObject ocol = GetMayaObjectAttribute("color");
-   MObject otrs = GetMayaObjectAttribute("transparency");
-   unsigned int numElements = inputs.numElements();
-
-   // Init shader array parameters
-
-   InitArrayParameter(shader, "color", AI_TYPE_RGBA, numElements);
-   InitArrayParameter(shader, "transparency", AI_TYPE_RGB, numElements);
-
-   // Loop on input entries
-
-   for (unsigned int i=0; i<numElements; ++i)
+   attr = m_fnNode.findPlug("inputs");
+   unsigned int numElements = attr.numElements();
+   if (numElements > 8)
    {
-      elemt = inputs.elementByPhysicalIndex(i);
-      color = elemt.child(ocol);
-      trans = elemt.child(otrs);
+      AiMsgWarning("[mtoa] [translator %s] LayeredShader node has more than 8 inputs, only the first 8 will be handled", GetTranslatorName().asChar());
+      numElements = 8;
+   }
 
-      ProcessArrayParameterElement(shader, "color", color, AI_TYPE_RGBA, i);
-      ProcessArrayParameterElement(shader, "transparency", trans, AI_TYPE_RGB, i);
+   AiNodeSetUInt(shader, "numInputs", numElements);
+
+   MObject colorAttr = m_fnNode.attribute("color");
+   MObject transpAttr = m_fnNode.attribute("transparency");
+
+   for (unsigned int i = 0; i < numElements; ++i)
+   {
+      elem = attr.elementByPhysicalIndex(i);
+
+      color = elem.child(colorAttr);
+      transp = elem.child(transpAttr);
+
+      colorSrc = MObject::kNullObj;
+      transpSrc = MObject::kNullObj;
+
+      connections.clear();
+      color.connectedTo(connections, true, false);
+      if (connections.length() > 0)
+         colorSrc = connections[0].node();
+
+      connections.clear();
+      transp.connectedTo(connections, true, false);
+      if (connections.length() > 0)
+         transpSrc = connections[0].node();
+
+      if (transpSrc.isNull())
+         useTransparency = true;
+      else
+         useTransparency = (colorSrc != transpSrc);
+
+      // sprintf(mayaAttr, "inputs[%u].color", elem.logicalIndex());
+      sprintf(aiAttr, "color%u", i);
+      ProcessParameter(shader, aiAttr, AI_TYPE_RGB, color);
+
+      sprintf(aiAttr, "useTransparency%u", i);
+      AiNodeSetBool(shader, aiAttr, useTransparency ? TRUE : FALSE);
+
+      if (useTransparency)
+      {
+         // sprintf(mayaAttr, "inputs[%u].transparency", elem.logicalIndex());
+         sprintf(aiAttr, "transparency%u", i);
+         ProcessParameter(shader, aiAttr, AI_TYPE_RGB, transp);
+      }
    }
 }
 

@@ -59,6 +59,12 @@ struct AOVLayer
    const char* name;
 };
 
+struct ShaderData
+{
+   AtArray *aovs;
+   AtUInt naovs;
+};
+
 void layer_op(AtShaderGlobals *sg, AtInt flag, AtRGB color, AtRGB opacity, AtBoolean useTransparency,
               AtRGB &curColor, AtRGB &curOpacity)
 {
@@ -151,10 +157,21 @@ node_initialize
 
 node_update
 {
+   ShaderData* localData = (ShaderData*) AiMalloc(sizeof(ShaderData));
+   localData->aovs = NULL;
+   localData->naovs = 0;
+
+   localData->aovs = AiNodeGetArray(node, "mtoa_aovs");
+   if (localData->aovs)
+      localData->naovs = localData->aovs->nelements;
+
+   AiNodeSetLocalData(node, localData);
 }
 
 node_finish
 {
+   ShaderData* localData = (ShaderData*) AiNodeGetLocalData(node);
+   AiFree(localData);
 }
 
 shader_evaluate
@@ -167,21 +184,20 @@ shader_evaluate
 
    if (numInputs > 0)
    {
-      AtArray *aovs = NULL;
-      AtUInt naovs = 0;
-      if (AiUDataGetArray("mtoa_aovs", &aovs))
-        naovs = aovs->nelements;
-      // array for the accumulated results, will be empty if there are no aovs
-      std::vector<AOVLayer> AOVValues(naovs);
+      ShaderData* localData = (ShaderData*) AiNodeGetLocalData(node);
+
+      std::vector<AOVLayer> AOVValues(localData->naovs);
       AtUInt i=0;
       for (std::vector<AOVLayer>::iterator it = AOVValues.begin(); it!=AOVValues.end(); ++it)
       {
          it->color = AI_RGB_BLACK;
          it->opacity = AI_RGB_BLACK;
-         it->name = AiArrayGetStr(aovs, i);
+         it->name = AiArrayGetStr(localData->aovs, i);
          ++i;
       }
-
+      
+      AiNodeSetLocalData(node, localData);
+      
       AtRGB curColor = AI_RGB_BLACK;
       AtRGB curOpacity = AI_RGB_BLACK;
 
@@ -195,7 +211,7 @@ shader_evaluate
                   useTransparency,
                   curColor, curOpacity);
 
-         if (naovs)
+         if (localData->naovs > 0)
          {
             for (std::vector<AOVLayer>::iterator it = AOVValues.begin(); it!=AOVValues.end(); ++it)
             {
