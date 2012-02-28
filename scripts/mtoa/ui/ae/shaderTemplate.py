@@ -15,7 +15,11 @@ def newAOVPrompt(default=''):
     if result == 'Create':
         core.createOptions()
         newAOV = pm.promptDialog(query=True, text=True)
-        return newAOV, aovs.AOVInterface().addAOV(newAOV)
+        if str(newAOV).replace("_","").isalnum():
+            return newAOV, aovs.AOVInterface().addAOV(newAOV)
+        else:
+            print "Invalid AOV Name"
+            return None, None
     else:
         print "AOV creation canceled"
         return None, None
@@ -35,6 +39,8 @@ class AOVOptionMenuGrp(templates.BaseTemplate):
         self.allowDisable = allowDisable
         self.allowEmpty = allowEmpty
         self._label = label
+        self._defaultLabel = ""
+        self._prevLabel = ""
     # TODO: convert to propertycache
     @property
     def menuName(self):
@@ -52,13 +58,17 @@ class AOVOptionMenuGrp(templates.BaseTemplate):
             # the the current value is inactive, fill this in as the starting text
             currVal = pm.getAttr(nodeAttr)
             if currVal not in self.activeNames:
-                default = currVal
+                if currVal != self.EMPTY_AOV_ITEM and currVal != self.NEW_AOV_ITEM and currVal != self.BEAUTY_ITEM:
+                    default = str(currVal).replace(" (Inactive)", "")
+                else:
+                    default = ''
             else:
                 # TODO: reset menu to previous value?
                 default = ''
 
             aovName, aovNode = newAOVPrompt(default)
             if aovNode is None:
+                pm.setAttr(nodeAttr, self.NEW_AOV_ITEM)
                 return
         elif newAOV == self.BEAUTY_ITEM:
             aovName = self.BEAUTY_ITEM
@@ -70,14 +80,34 @@ class AOVOptionMenuGrp(templates.BaseTemplate):
 
     def updateMenu(self, nodeAttr):
         self.clear()
-        currVal = pm.getAttr(nodeAttr)
+        currVal = str(pm.getAttr(nodeAttr))
+        prevVal = str(self._prevLabel)
+        defval = str(self._defaultLabel)
+        currVal = currVal.replace(" (Inactive)", "")
+        prevVal = prevVal.replace(" (Inactive)", "")
+        if defval == "":
+            self._defaultLabel = currVal
+            defval = str(self._defaultLabel)
+        
+        if currVal == self.NEW_AOV_ITEM:
+            currVal = prevVal
         activeNodes = dict(aovs.getAOVNodes(names=True))
+
         self.activeNames = sorted(activeNodes.keys())
-        if not currVal:
+        
+        # If default value is not used, add it to the menu list
+        if defval != currVal:
+            if defval not in self.activeNames and defval != self.BEAUTY_ITEM:
+                defval = self.UNKNOWN_AOV_ITEM % defval
+                pm.menuItem(label=defval, parent=(self.menuName))
+        
+        
+        if not currVal or currVal == self.EMPTY_AOV_ITEM:
             currVal = self.EMPTY_AOV_ITEM
         elif currVal not in self.activeNames and currVal != self.BEAUTY_ITEM:
             currVal = self.UNKNOWN_AOV_ITEM % currVal
             pm.menuItem(label=currVal, parent=(self.menuName))
+            
 
         if self.includeBeauty:
             pm.menuItem(label=self.BEAUTY_ITEM, parent=(self.menuName))
@@ -93,6 +123,7 @@ class AOVOptionMenuGrp(templates.BaseTemplate):
             pm.menuItem(label=self.NEW_AOV_ITEM, parent=(self.menuName))
         # set active
         pm.optionMenu(self.menuName, edit=True, value=currVal)
+        self._prevLabel = currVal
 
     def clear(self):
         for item in pm.optionMenu(self.menuName, query=True, itemListLong=True) or []:
