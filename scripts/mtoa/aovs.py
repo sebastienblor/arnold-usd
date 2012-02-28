@@ -192,7 +192,7 @@ class AOVInterface(object):
         exclude: a list of AOV names to exclude
         '''
         result = [SceneAOV(fromAttr.node(), toAttr) for toAttr, fromAttr in self._aovAttr.inputs(plugs=True, connections=True)]
-        if sorted:
+        if sort:
             result = sorted(result)
         if enabled is not None:
             result = [aov for aov in result if aov.node.attr('enabled').get() == enabled]
@@ -242,7 +242,7 @@ class AOVInterface(object):
         pm.connectAttr('defaultArnoldDriver.message', out.driver)
         filter = defaultFiltersByName.get(aovName, None)
         if filter:
-            node = pm.createNode('aiAOVFilter')
+            node = pm.createNode('aiAOVFilter', skipSelect=True)
             node.aiTranslator.set(filter)
             filterAttr = node.attr('message')
         else:

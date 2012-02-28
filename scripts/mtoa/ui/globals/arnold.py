@@ -962,4 +962,3 @@ def updateArnoldRendererGlobalsTab(*args):
     updateSamplingSettings()
     updateMotionBlurSettings()
     updateLogSettings()
-    updateBackgroundSettings()
