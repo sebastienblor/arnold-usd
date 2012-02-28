@@ -186,7 +186,8 @@ void CNodeTranslator::AddAOVDefaults(AtNode* shadingEngine, std::vector<AtNode*>
          //ProcessParameter(shader, plug, "input", AI_TYPE_RGB);
       }
    }
-   AiNodeSetArray(shadingEngine, "aov_inputs", AiArrayConvert(aovShaders.size(), 1, AI_TYPE_NODE, &aovShaders[0]));
+   if (aovShaders.size() > 0)
+      AiNodeSetArray(shadingEngine, "aov_inputs", AiArrayConvert(aovShaders.size(), 1, AI_TYPE_NODE, &aovShaders[0]));
 }
 
 void CNodeTranslator::WriteAOVUserAttributes(AtNode* atNode)
