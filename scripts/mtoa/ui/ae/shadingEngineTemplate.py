@@ -18,8 +18,13 @@ def getAOVsInNetwork(rootNode):
     '''
     results = {}
     for node in pm.listHistory(rootNode, pruneDagObjects=True):
-        # TOOD: cache this result
-        results[node] = [node.attr(at).get() for (aov, at, type) in aovs.getNodeGlobalAOVData(node.type())]
+        # TODO: Create a general method to assign AOVs of hidden nodes
+        # lambert shader has only translator registered so this is a Lambert Maya node and does not have an AOV tab
+        if pm.nodeType(node) == "lambert":
+            results[node] = [u'direct_diffuse', u'indirect_diffuse']
+        else:
+            # TODO: cache this result
+            results[node] = [node.attr(at).get() for (aov, at, type) in aovs.getNodeGlobalAOVData(node.type())]
     return results
 
 class ShadingEngineTemplate(templates.AttributeEditorTemplate):
@@ -113,8 +118,8 @@ class ShadingEngineTemplate(templates.AttributeEditorTemplate):
         pm.cmds.rowLayout(nc=2)
         pm.cmds.text(label='')
         pm.cmds.button(label='AOV Browser',
-                       c=lambda *args: aoveditor.arnoldAOVBrowser(listAOVGroups=False,
-                                                             nodeTypes=self.networkNodeTypes))
+                       c=lambda *args: aoveditor.arnoldAOVBrowser(listAOVGroups=True,
+                                                                  nodeTypes=self.networkNodeTypes))
         pm.setParent('..') # rowLayout
 
         pm.cmds.frameLayout(labelVisible=False, collapsable=False)

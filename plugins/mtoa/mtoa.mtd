@@ -732,6 +732,12 @@
 
 [node lambert]
     maya.hide               BOOL    True
+    
+    # AOVs
+    [attr aov_direct_diffuse]
+    aov.type                INT     0x06
+    [attr aov_indirect_diffuse]
+    aov.type                INT     0x06
 
 [node noise]
     desc                    STRING  "2D procedural noise"
@@ -814,6 +820,14 @@
     [attr tipcolor]
         desc                STRING  "Color at hair tip."
         label               STRING  "Tip Color"
+        
+    # AOVs
+    [attr aov_direct_diffuse]
+    aov.type                INT     0x06
+    [attr aov_direct_specular]
+    aov.type                INT     0x06
+    [attr aov_indirect_diffuse]
+    aov.type                INT     0x06
 
 [node sky]
     desc                    STRING  "Sky environment texture."

@@ -158,10 +158,7 @@ namespace // <anonymous>
       builtin->RegisterTranslator("aiOptions",
                                   "",
                                   COptionsTranslator::creator);
-      builtin->RegisterTranslator("lambert",
-                                  "",
-                                  CLambertTranslator::creator);
-      // A Dag node in Maya but a depend node in Arnold
+       // A Dag node in Maya but a depend node in Arnold
        builtin->RegisterTranslator("aiSky",
                                    "",
                                    CSkyShaderTranslator::creator);
@@ -283,6 +280,9 @@ namespace // <anonymous>
       // Overrides for mtoa_shaders if load was successful
       if (MStatus::kSuccess == status)
       {
+         shaders->RegisterTranslator("lambert",
+                                     "",
+                                     CLambertTranslator::creator);
          shaders->RegisterTranslator("layeredShader",
                                      "",
                                      CLayeredShaderTranslator::creator);
