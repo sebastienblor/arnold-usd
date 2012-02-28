@@ -189,7 +189,10 @@ class AOVBrowser(object):
             groups = pm.textScrollList(self.groupLst, query=True, selectItem=True)
 
         # first, find out what's selected, so we can reselect any persistent items
-        sel = pm.textScrollList(self.availableLst, query=True, selectItem=True)
+        availableSel = pm.textScrollList(self.availableLst, query=True, selectItem=True)
+        activeSel = pm.textScrollList(self.activeLst, query=True, selectItem=True)
+        availableList = []
+        activeList = []
 
         # update the available list
         pm.textScrollList(self.availableLst, edit=True, removeAll=True)
@@ -208,11 +211,23 @@ class AOVBrowser(object):
             self.allAOVs.update(aovList)
             for aovName in aovList:
                 if aovName not in activeAOVs:
-                    pm.textScrollList(self.availableLst, edit=True, append=aovName)
-                    if aovName in sel:
-                        pm.textScrollList(self.availableLst, edit=True, selectItem=aovName)
+                    if aovName not in availableList:
+                        availableList.append(aovName)
                 else:
-                    pm.textScrollList(self.activeLst, edit=True, append=aovName)
+                    if aovName not in activeList:
+                        activeList.append(aovName)
+        # update sorted and not duplicated available AOVs
+        availableList.sort()
+        for aovName in availableList:
+            pm.textScrollList(self.availableLst, edit=True, append=aovName)
+            if aovName in availableSel:
+                pm.textScrollList(self.availableLst, edit=True, selectItem=aovName)
+        # update sorted and not duplicated active AOVs
+        activeList.sort()
+        for aovName in activeList:
+            pm.textScrollList(self.activeLst, edit=True, append=aovName)
+            if aovName in activeSel:
+                pm.textScrollList(self.activeLst, edit=True, selectItem=aovName)
 
 class AOVItem(object):
     '''
