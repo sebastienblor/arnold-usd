@@ -732,19 +732,20 @@ bool CRenderSession::GetSwatchImage(MImage & image)
    {
       return false;
    }
-
-   // Store the image in the passed in MImage reference.
-   bool success =  DisplayUpdateQueueToMImage(image);
-
-   // Wait for the thread to clear.
-   if (m_render_thread != NULL)
+   else
    {
-      AiThreadWait(m_render_thread);
-      AiThreadClose(m_render_thread);
-      m_render_thread = NULL;		// Until this is handled by AiThreadClose? Had issues where it tried to close an already closed thread
+      // Wait for the thread to clear.
+      if (m_render_thread != NULL)
+      {
+         AiThreadWait(m_render_thread);
+         AiThreadClose(m_render_thread);
+         m_render_thread = NULL;
+      }
+      // Store the image in the passed in MImage reference.
+      bool success = DisplayUpdateQueueToMImage(image);
+      // Clear the display queue
+      ClearDisplayUpdateQueue();
+      return success;
    }
-   ClearDisplayUpdateQueue();
-
-   return success;
 }
 

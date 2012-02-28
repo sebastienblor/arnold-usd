@@ -125,12 +125,6 @@ MStatus CRenderSwatchGenerator::BuildArnoldScene()
 {
    MStatus status;
 
-   if (MStatus::kSuccess != CMayaScene::Begin(MTOA_SESSION_SWATCH))
-   {
-      ErrorSwatch("Could not create Arnold swatch render session");
-      return MStatus::kFailure;
-   }
-
    MObject mayaNode = swatchNode();
    
    // What is this? Seem to always get the same node
@@ -500,11 +494,13 @@ MStatus CRenderSwatchGenerator::ApplyOverrides(CNodeTranslator* translator)
    return MStatus::kSuccess;
 }
 
+// Output driver writes a float image, but we reset it as byte here
+// as it is what Maya expects (it is converted if render succeeds)
 void CRenderSwatchGenerator::ClearSwatch()
 {
-   image().release();
-   const int num_pixels(resolution() * resolution());
-   image().create(resolution(), resolution(), 4, MImage::kByte);
+   const int res(resolution());
+   const int num_pixels(res * res);
+   image().create(res, res, 4, MImage::kByte);
    unsigned char * pixels = image().pixels();
    memset(pixels, 0, num_pixels * 4 * sizeof(char));
 }
@@ -519,86 +515,123 @@ bool CRenderSwatchGenerator::doIteration()
 {
    MStatus status;
    
-   MSelectionList list;
-   MObject ArnoldRenderOptionsNode;
-   
-   list.add("defaultArnoldRenderOptions");
-   if (list.length() > 0)
+   if (CMayaScene::GetSessionMode() == MTOA_SESSION_IPR)
    {
-      list.getDependNode(0, ArnoldRenderOptionsNode);
+      return true;
    }
-   else
+
+   if (m_iteration == 0)
    {
-      AiMsgError("[mtoa] could not find defaultArnoldRenderOptions");
-   }
-   
-   if (MFnDependencyNode(ArnoldRenderOptionsNode).findPlug("enable_swatch_render").asBool())
-   {
-      // Arnold is in IPR mode, no point wasting our time with a swatch.
-      // Return true so were not called again.
-      // We don't want to end the current session there
-      if ( CMayaScene::GetSessionMode() == MTOA_SESSION_IPR)
+     // No need to start a new swatch iteration process if option is off
+      MObject ArnoldRenderOptionsNode = CMayaScene::GetSceneArnoldRenderOptionsNode();
+      if (!MFnDependencyNode(ArnoldRenderOptionsNode).findPlug("enable_swatch_render").asBool())
       {
          return true;
       }
-      // Arnold is rendering, so bail out. Return false to be called again.
-      // This is how we manage to render many swatches "at the same time".
-      // We don't want to end the current session there
-      if (AiRendering())
+      // Start, must build the swatch scene
+      // Arnold can only render one thing at a time. It may be an option to block/wait here,
+      // but only if it's another swatch render taking place. We don't want to end the
+      // current session there
+      // if (AiUniverseIsActive())
+      if (CMayaScene::IsActive())
       {
-         return false;
-      }
-
-      if (m_iteration == 0)
-      {
-         // Start, must build the swatch scene
-         // Arnold can only render one thing at a time. It may be an option to block/wait here,
-         // but only if it's another swatch render taking place. We don't want to end the
-         // current session there
-         if (AiUniverseIsActive())
+         // Other export or rendering process in progress.
+         // Wait if it's another swatch, abort else.
+         if (CMayaScene::GetSessionMode() == MTOA_SESSION_SWATCH)
          {
             return false;
          }
+         else
+         {
+            return true;
+         }
+      }
+      // If all clear, begin a swatch session
+      if (MStatus::kSuccess == CMayaScene::Begin(MTOA_SESSION_SWATCH))
+      {
          // Build the swatch scene, abort swatch in case of error
          status = BuildArnoldScene();
          if (MStatus::kSuccess == status)
          {
-            // Return to be called again
-            m_iteration++;
+            // Set iteration to 1 and return to be called again
+            m_iteration = 1;
             return false;
          }
          else
          {
             // Abort
-            ErrorSwatch("Render failed: could not complete swatch scene.");
+            ErrorSwatch("Could not build swatch scene.");
             CMayaScene::End();
             return true;
          }
       }
-      else if (m_iteration == 1)
+      else
       {
-         // Scene/ass is built, so start the render.
-         if (AiUniverseIsActive())
+         ErrorSwatch("Could not create Arnold swatch render session");
+         return true;
+      }
+   }
+   else if (m_iteration == 1)
+   {
+      // Scene/ass is built, so start the render.
+      if (CMayaScene::IsActive())
+      {
+         // Arnold is rendering, so bail out. Return false to be called again.
+         // This is how we manage to render many swatches "at the same time".
+         // We don't want to end the current session there
+         if (AiRendering())
+         {
+             // Restart if it's another swatch already rendering, abort else.
+            if (CMayaScene::GetSessionMode() == MTOA_SESSION_SWATCH)
+            {
+               m_iteration = 0;
+               return false;
+            }
+            else
+            {
+               return true;
+            }
+         }
+         else
          {
             // Uncomment this to get a debug ass for swatches, but then set preserve_scene_data or disable actual render
             // CMayaScene::GetRenderSession()->DoAssWrite("/mnt/data/orenouard/maya/projects/Arnold/ASS/swatch.ass");
             CMayaScene::GetRenderSession()->DoSwatchRender(resolution());
-            m_iteration++;
+            m_iteration = 2;
             return false;
-         }
-         else
-         {
-            ErrorSwatch("Render failed: Arnold universe not active.");
-            // Stop iterating/rendering.
-            CMayaScene::End();
-            return true; 
          }
       }
       else
       {
-         // We must be done rendering.
-         if (CMayaScene::GetRenderSession()->GetSwatchImage(image()))
+         ErrorSwatch("Render cannot be started, CMayaScene (and probably Arnold universe) not active.");
+         // Stop iterating/rendering.
+         CMayaScene::End();
+         return true; 
+      }
+   }
+   else
+   {
+      // We must be done rendering.
+      if (CMayaScene::IsActive())
+      {
+         // Abort if it's not a swatch render, if is it should
+         // be this swatch since another cannot start while one is active
+         if (CMayaScene::GetSessionMode() != MTOA_SESSION_SWATCH)
          {
+            return true;
+         }
+         bool success = CMayaScene::GetRenderSession()->GetSwatchImage(image());
+         if (success)
+         {
+#ifndef NDEBUG
+            // Catch this as it would lead to a Maya UI crash
+            // with no proper stack info on what caused it
+            unsigned int iWidth, iHeight;
+            image().getSize(iWidth, iHeight);
+            assert(resolution() == iWidth);
+            assert(resolution() == iHeight);
+            assert(MImage::kFloat == image().pixelType());
+#endif
             image().convertPixelFormat(MImage::kByte, 1.0f/255);
             // Stop being called/iterated.
             CMayaScene::End();
@@ -606,19 +639,20 @@ bool CRenderSwatchGenerator::doIteration()
          }
          else
          {
-            // Start again as we were interupted.
+            // Start again as it didn't complete.
             CMayaScene::End();
             m_iteration = 0;
-            return false;
+            return false;     
          }
       }
+      else
+      {
+         ErrorSwatch("Cannot get image, CMayaScene (and probably Arnold universe) not active.");
+         // Stop iterating/rendering.
+         CMayaScene::End();
+         return true; 
+      }
    }
-   else
-   {
-      CMayaScene::End();
-      return true;
-   }
-
 }
 
 // This will create a polygon sphere for swatching

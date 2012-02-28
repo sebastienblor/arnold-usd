@@ -316,7 +316,6 @@ void CopyBucketToBuffer(float * to_pixels,
 // The resulting image will be flipped, just how Maya likes it.
 bool DisplayUpdateQueueToMImage(MImage & image)
 {
-   image.release();
    image.create(s_outputDriverData.imageWidth,
                 s_outputDriverData.imageHeight,
                 4,                               // RGBA
@@ -335,7 +334,10 @@ bool DisplayUpdateQueueToMImage(MImage & image)
             CopyBucketToBuffer(image.floatPixels(), msg);
             break;
          case MSG_IMAGE_COMPLETE:
+            ClearDisplayUpdateQueue();
+            return true;
          case MSG_RENDER_DONE:
+            ClearDisplayUpdateQueue();
             return true;
          }
       }
