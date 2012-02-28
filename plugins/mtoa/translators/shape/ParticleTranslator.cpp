@@ -1218,14 +1218,7 @@ AtNode* CParticleTranslator::ExportInstance(AtNode *instance, const MDagPath& ma
    if (iogConnectionsMaster[0].node() != iogConnections[0].node())
    {
       //FIXME : Is it ok to assume that the shader is the first Dag member ?
-      sgNode = iogConnections[0].node();
-      dsgNode.setObject(sgNode);
-      MPlug             shaderPlug(sgNode, dsgNode.attribute("surfaceShader"));
-      MPlugArray        connections;
-
-      shaderPlug.connectedTo(connections, true, false);
-
-      AtNode* shader = ExportNode(connections[0]);
+      AtNode *shader = ExportNode(iogConnections[0]);
       AiNodeSetPtr(instance, "shader", shader);
    }
 
