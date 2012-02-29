@@ -24,11 +24,9 @@ node_parameters
    AiMetaDataSetStr(mds, NULL, "maya.classification", "shader/utility");
    AiMetaDataSetBool(mds, NULL, "maya.swatch", false);
 
-   AiParameterRGBA("beauty", 0, 0, 0, 0);
-   AiParameterRGBA("input", 0, 0, 0, 0);
+   AiParameterRGBA("beauty", 0.0f, 0.0f, 0.0f, 1.0f);
+   AiParameterRGBA("input", 0.0f, 0.0f, 0.0f, 1.0f);
    AiParameterSTR("aov_name", "");
-
-   AiMetaDataSetInt(mds, "aov_name", "aov.type", AI_TYPE_RGBA);
 }
 
 shader_evaluate

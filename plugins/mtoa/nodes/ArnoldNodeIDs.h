@@ -7,6 +7,9 @@
 #define ARNOLD_NODEID_RENDER_OPTIONS            0x00115C00
 #define ARNOLD_NODEID_STAND_INS                 0x00115C01
 #define ARNOLD_NODEID_SPHERE_LOCATOR            0x00115C02
+#define ARNOLD_NODEID_DRIVER                    0x00115C03
+#define ARNOLD_NODEID_FILTER                    0x00115C04
+
 // Arnold Lights and light filters
 #define ARNOLD_NODEID_BARNDOOR                  0x00115C80
 #define ARNOLD_NODEID_GOBO                      0x00115C81
@@ -22,18 +25,23 @@
 #define ARNOLD_NODEID_UTILITY                   0x00115D03
 #define ARNOLD_NODEID_RAY_SWITCH                0x00115D04
 #define ARNOLD_NODEID_MESH_INFO                 0x00115D05
-#define ARNOLD_NODEID_AOV                       0x00115D06
+#define ARNOLD_NODEID_AOV                       0x00115D06  // FIXME: move to non-shader ID section above?
 #define ARNOLD_NODEID_AMBIENT_OCCLUSION         0x00115D07
 #define ARNOLD_NODEID_WIREFRAME                 0x00115D08
 #define ARNOLD_NODEID_HAIR                      0x00115D09
 #define ARNOLD_NODEID_FOG                       0x00115D0A
 #define ARNOLD_NODEID_VOLUME_SCATTERING         0x00115D0B
-#define ARNOLD_NODEID_WRITECOLOR                0x00115D10
-#define ARNOLD_NODEID_WRITEFLOAT                0x00115D11
-#define ARNOLD_NODEID_USERDATAFLOAT             0x00115D12
-#define ARNOLD_NODEID_USERDATAVECTOR            0x00115D13
-#define ARNOLD_NODEID_USERDATACOLOR             0x00115D14
-#define ARNOLD_NODEID_USERDATASTRING            0x00115D15
+#define ARNOLD_NODEID_BUMP2D                    0x00115D0C
+#define ARNOLD_NODEID_NOISE                     0x00115D0D
+#define ARNOLD_NODEID_BUMP3D                    0x00115D0E
+#define ARNOLD_NODEID_MOTION_VECTOR             0x00115D0F
+#define ARNOLD_NODEID_WRITE_COLOR               0x00115D10
+#define ARNOLD_NODEID_WRITE_FLOAT               0x00115D11
+#define ARNOLD_NODEID_USER_DATA_FLOAT           0x00115D12
+#define ARNOLD_NODEID_USER_DATA_VECTOR          0x00115D13
+#define ARNOLD_NODEID_USER_DATA_COLOR           0x00115D14
+#define ARNOLD_NODEID_USER_DAT_ASTRING          0x00115D15
+
 // For automatic node generation
 #define ARNOLD_NODEID_AUTOGEN                   0x00115E00
 

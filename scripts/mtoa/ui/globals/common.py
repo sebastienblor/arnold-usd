@@ -30,6 +30,7 @@ import pymel.core as pm
 import mtoa.utils as utils
 from mtoa.ui.ae.shapeTemplate import createTranslatorMenu
 from mtoa.callbacks import *
+import mtoa.core as core
 
 if pm.mel.getApplicationVersionAsFloat() >= 2011:
     from maya.app.stereo import stereoCameraRig
@@ -623,9 +624,10 @@ def createArnoldImageFormatControl():
     if pm.layout(fullPath, exists=True):
         pm.deleteUI(fullPath)
 
-    createTranslatorMenu('defaultArnoldRenderOptions.imageFormat', 
+    # TODO: connect node to options
+    createTranslatorMenu('defaultArnoldDriver.aiTranslator', 
                          label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kImageFormatMenu"),
-                         nodeType='<driver>',
+                         nodeType='aiAOVDriver',
                          default='exr',
                          optionMenuName='imageMenuMayaSW')
 
@@ -639,7 +641,7 @@ def createArnoldImageFormatControl():
 
     pm.scriptJob(
         parent=parent,
-        attributeChange=("defaultArnoldRenderOptions.imageFormat",
+        attributeChange=("defaultArnoldDriver.aiTranslator",
                          updateArnoldImageFormatControl))
 
 #    changeArnoldImageFormat()
@@ -647,9 +649,8 @@ def createArnoldImageFormatControl():
 
 
 def updateArnoldImageFormatControl(*args):
-    if not pm.objExists('defaultArnoldRenderOptions'):
-        pm.createNode('aiOptions', skipSelect=True, shared=True, name='defaultArnoldRenderOptions')
-    curr = pm.getAttr('defaultArnoldRenderOptions.imageFormat')
+    core.createOptions()
+    curr = pm.getAttr('defaultArnoldDriver.aiTranslator')
     pm.setAttr('defaultRenderGlobals.imageFormat', 51)
     pm.setAttr('defaultRenderGlobals.imfkey', str(curr))
 
@@ -2144,7 +2145,7 @@ def updateArnoldRendererCommonGlobalsTab(*args):
      current renderer.
     '''
     # Re check for aiOptions node to exists
-    pm.createNode('aiOptions', skipSelect=True, shared=True, name="defaultArnoldRenderOptions")
+    core.createOptions()
 
     updateArnoldFileNamePrefixControl()
     updateArnoldFileNameFormatControl()
@@ -2179,7 +2180,7 @@ def createArnoldRendererCommonGlobalsTab():
     '''
 
     # Make sure the aiOptions node exists
-    pm.createNode('aiOptions', skipSelect=True, shared=True, name="defaultArnoldRenderOptions")
+    core.createOptions()
 
     parentForm = pm.setParent(query=True)
 

@@ -3,6 +3,10 @@
 #include <maya/MPlugArray.h>
 #include <maya/MDagPathArray.h>
 
+#include <algorithm>
+
+#include <maya/MPlugArray.h>
+
 // computes and sets the visibility mask as well as other shape attributes related to ray visibility
 // (self_shadows, opaque)
 void CShapeTranslator::ProcessRenderFlags(AtNode* node)
@@ -185,7 +189,32 @@ void CShapeTranslator::MakeCommonAttributes(CBaseAttrHelper& helper)
    MakeArnoldVisibilityFlags(helper);
 }
 
-MObject CShapeTranslator::GetNodeShadingGroup(MObject dagNode, int instanceNum)
+AtNode* CShapeTranslator::CreateShadingGroupShader(AtNode *rootShader, std::vector<AtNode*> &aovShaders)
+{
+   // insert shading group shader to evaluate extra AOV inputs
+   AtNode* shadingEngine = AiNode("MayaShadingEngine");
+
+   AddAOVDefaults(shadingEngine, aovShaders);
+
+   AiNodeSetStr(shadingEngine, "name", (GetMayaNodeName() + "@SG").asChar());
+   AiNodeLink(rootShader, "beauty", shadingEngine);
+   return shadingEngine;
+}
+
+// called for shaders connected directly to shapes
+AtNode* CShapeTranslator::ExportRootShader(const MPlug& plug)
+{
+   return ExportRootShader(ExportNode(plug));
+}
+
+// called for root shaders that have already been created
+AtNode* CShapeTranslator::ExportRootShader(AtNode *rootShader)
+{
+   std::vector<AtNode*> aovShaders;
+   return CreateShadingGroupShader(rootShader, aovShaders);
+}
+
+MPlug CShapeTranslator::GetNodeShadingGroup(MObject dagNode, int instanceNum)
 {
    MPlugArray        connections;
    MFnDependencyNode fnDGNode(dagNode);
@@ -196,11 +225,11 @@ MObject CShapeTranslator::GetNodeShadingGroup(MObject dagNode, int instanceNum)
 
    for (unsigned int k=0; k<connections.length(); ++k)
    {
-      MObject shadingGroup(connections[k].node());
-      if (shadingGroup.apiType() == MFn::kShadingEngine)
+      MPlug sgPlug = connections[k];
+      if (sgPlug.node().apiType() == MFn::kShadingEngine)
       {
-         return shadingGroup;
+         return sgPlug;
       }
    }
-   return MObject::kNullObj;
+   return MPlug();
 }

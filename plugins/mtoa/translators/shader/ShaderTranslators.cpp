@@ -69,7 +69,7 @@ void CSkyShaderTranslator::Export(AtNode* shader)
 //
 AtNode*  CLambertTranslator::CreateArnoldNodes()
 {
-   return AddArnoldNode("lambert");
+   return ProcessAOVOutput(AddArnoldNode("lambert"));
 }
 
 void CLambertTranslator::Export(AtNode* shader)
@@ -133,7 +133,7 @@ void CLambertTranslator::Export(AtNode* shader)
 //
 AtNode*  CFileTranslator::CreateArnoldNodes()
 {
-   return AddArnoldNode("MayaFile");
+   return ProcessAOVOutput(AddArnoldNode("MayaFile"));
 }
 
 void CFileTranslator::Export(AtNode* shader)
@@ -232,7 +232,7 @@ void CBump2DTranslator::Export(AtNode* shader)
 //
 AtNode*  CBump3DTranslator::CreateArnoldNodes()
 {
-   return AddArnoldNode("bump3d");
+   return  ProcessAOVOutput(AddArnoldNode("bump3d"));
 }
 
 void CBump3DTranslator::Export(AtNode* shader)
@@ -249,11 +249,11 @@ AtNode* CSamplerInfoTranslator::CreateArnoldNodes()
 
    if (outputAttr == "facingRatio")
    {
-      return AddArnoldNode("MayaFacingRatio");
+      return ProcessAOVOutput(AddArnoldNode("MayaFacingRatio"));
    }
    else if (outputAttr == "flippedNormal")
    {
-      return AddArnoldNode("MayaFlippedNormal");
+      return ProcessAOVOutput(AddArnoldNode("MayaFlippedNormal"));
    }
    else
    {
@@ -273,15 +273,15 @@ AtNode* CPlusMinusAverageTranslator::CreateArnoldNodes()
 
    if (outputAttr == "output1D")
    {
-      return AddArnoldNode("MayaPlusMinusAverage1D");
+      return ProcessAOVOutput(AddArnoldNode("MayaPlusMinusAverage1D"));
    }
    else if (outputAttr == "output2D")
    {
-      return AddArnoldNode("MayaPlusMinusAverage2D");
+      return ProcessAOVOutput(AddArnoldNode("MayaPlusMinusAverage2D"));
    }
    else if (outputAttr == "output3D")
    {
-      return AddArnoldNode("MayaPlusMinusAverage3D");
+      return ProcessAOVOutput(AddArnoldNode("MayaPlusMinusAverage3D"));
    }
    else
    {
@@ -440,11 +440,11 @@ AtNode* CRemapValueTranslator::CreateArnoldNodes()
 
    if (outputAttr == "outValue")
    {
-      return AddArnoldNode("MayaRemapValueToValue");
+      return ProcessAOVOutput(AddArnoldNode("MayaRemapValueToValue"));
    }
    else if (outputAttr == "outColor")
    {
-      return AddArnoldNode("MayaRemapValueToColor");
+      return ProcessAOVOutput(AddArnoldNode("MayaRemapValueToColor"));
    }
    else
    {
@@ -528,7 +528,7 @@ void CRemapValueTranslator::Export(AtNode* shader)
 //
 AtNode* CRemapColorTranslator::CreateArnoldNodes()
 {
-   return AddArnoldNode("MayaRemapColor");
+   return ProcessAOVOutput(AddArnoldNode("MayaRemapColor"));
 }
 
 void CRemapColorTranslator::Export(AtNode* shader)
@@ -669,7 +669,7 @@ void CProjectionTranslator::Export(AtNode* shader)
 //
 AtNode*  CRampTranslator::CreateArnoldNodes()
 {
-   return AddArnoldNode("MayaRamp");
+   return ProcessAOVOutput(AddArnoldNode("MayaRamp"));
 }
 
 void CRampTranslator::Export(AtNode* shader)
@@ -722,7 +722,7 @@ void CRampTranslator::Export(AtNode* shader)
 
 AtNode*  CPlace2DTextureTranslator::CreateArnoldNodes()
 {
-   return AddArnoldNode("MayaPlace2DTexture");
+   return ProcessAOVOutput(AddArnoldNode("MayaPlace2DTexture"));
 }
 
 void CPlace2DTextureTranslator::Export(AtNode* shader)
@@ -745,7 +745,7 @@ void CPlace2DTextureTranslator::Export(AtNode* shader)
 //
 AtNode*  CLayeredTextureTranslator::CreateArnoldNodes()
 {
-   return AddArnoldNode("MayaLayeredTexture");
+   return ProcessAOVOutput(AddArnoldNode("MayaLayeredTexture"));
 }
 
 void CLayeredTextureTranslator::Export(AtNode* shader)
@@ -788,34 +788,72 @@ void CLayeredTextureTranslator::Export(AtNode* shader)
 //
 AtNode*  CLayeredShaderTranslator::CreateArnoldNodes()
 {
-   return AddArnoldNode("MayaLayeredShader");
+   return ProcessAOVOutput(AddArnoldNode("MayaLayeredShader"));
 }
 
 void CLayeredShaderTranslator::Export(AtNode* shader)
 {
+   MPlug attr, elem, color, transp;
+   MPlugArray connections;
+   MObject colorSrc, transpSrc;
+   bool useTransparency;
+   // char mayaAttr[64];
+   char aiAttr[64];
+
    ProcessParameter(shader, "compositingFlag", AI_TYPE_ENUM);
-
-   MPlug inputs, elemt, color, trans;
-   inputs = FindMayaObjectPlug("inputs");
-   MObject ocol = GetMayaObjectAttribute("color");
-   MObject otrs = GetMayaObjectAttribute("transparency");
-   unsigned int numElements = inputs.numElements();
-
-   // Init shader array parameters
-
-   InitArrayParameter(shader, "color", AI_TYPE_RGBA, numElements);
-   InitArrayParameter(shader, "transparency", AI_TYPE_RGB, numElements);
-
-   // Loop on input entries
-
-   for (unsigned int i=0; i<numElements; ++i)
+   
+   MFnDependencyNode fnNode(GetMayaObject());
+   attr = fnNode.findPlug("inputs");
+   unsigned int numElements = attr.numElements();
+   if (numElements > 8)
    {
-      elemt = inputs.elementByPhysicalIndex(i);
-      color = elemt.child(ocol);
-      trans = elemt.child(otrs);
+      AiMsgWarning("[mtoa] [translator %s] LayeredShader node has more than 8 inputs, only the first 8 will be handled", GetTranslatorName().asChar());
+      numElements = 8;
+   }
 
-      ProcessArrayParameterElement(shader, "color", color, AI_TYPE_RGBA, i);
-      ProcessArrayParameterElement(shader, "transparency", trans, AI_TYPE_RGB, i);
+   AiNodeSetUInt(shader, "numInputs", numElements);
+
+   MObject colorAttr = fnNode.attribute("color");
+   MObject transpAttr = fnNode.attribute("transparency");
+
+   for (unsigned int i = 0; i < numElements; ++i)
+   {
+      elem = attr.elementByPhysicalIndex(i);
+
+      color = elem.child(colorAttr);
+      transp = elem.child(transpAttr);
+
+      colorSrc = MObject::kNullObj;
+      transpSrc = MObject::kNullObj;
+
+      connections.clear();
+      color.connectedTo(connections, true, false);
+      if (connections.length() > 0)
+         colorSrc = connections[0].node();
+
+      connections.clear();
+      transp.connectedTo(connections, true, false);
+      if (connections.length() > 0)
+         transpSrc = connections[0].node();
+
+      if (transpSrc.isNull())
+         useTransparency = true;
+      else
+         useTransparency = (colorSrc != transpSrc);
+
+      // sprintf(mayaAttr, "inputs[%u].color", elem.logicalIndex());
+      sprintf(aiAttr, "color%u", i);
+      ProcessParameter(shader, aiAttr, AI_TYPE_RGB, color);
+
+      sprintf(aiAttr, "useTransparency%u", i);
+      AiNodeSetBool(shader, aiAttr, useTransparency ? TRUE : FALSE);
+
+      if (useTransparency)
+      {
+         // sprintf(mayaAttr, "inputs[%u].transparency", elem.logicalIndex());
+         sprintf(aiAttr, "transparency%u", i);
+         ProcessParameter(shader, aiAttr, AI_TYPE_RGB, transp);
+      }
    }
 }
 

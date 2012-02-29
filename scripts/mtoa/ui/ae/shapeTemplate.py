@@ -94,14 +94,14 @@ class BaseTemplate(object):
         '''
         build the UI from the list of added attributes
         '''
-        self._setActiveNode(nodeAttr)
+        self._setActiveNodeAttr(nodeAttr)
         self.setup()
 
     def _doUpdate(self, nodeAttr, *args):
-        self._setActiveNode(nodeAttr)
+        self._setActiveNodeAttr(nodeAttr)
         self.update()
 
-    def _setActiveNode(self, nodeName):
+    def _setActiveNodeAttr(self, nodeName):
         "set the active node"
         parts = nodeName.split('.', 1)
         self._nodeName = parts[0]
@@ -165,7 +165,7 @@ class AttributeTemplate(BaseTemplate):
         '''
         build the UI from the list of added attributes
         '''
-        self._setActiveNode(nodeAttr)
+        self._setActiveNodeAttr(nodeAttr)
         pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
         self._layoutStack = [pm.setParent(query=True)]
         for func, args, kwargs in self._actions:
@@ -173,7 +173,7 @@ class AttributeTemplate(BaseTemplate):
         pm.setUITemplate(popTemplate=True)
 
     def _doUpdate(self, nodeAttr):
-        self._setActiveNode(nodeAttr)
+        self._setActiveNodeAttr(nodeAttr)
         self.update()
 
     def setup(self):
@@ -260,7 +260,7 @@ class AttributeTemplate(BaseTemplate):
 if pymel.__version__ >= '1.0.1':
     class DisableLoader(pm.uitypes.AELoader):
         """
-        Metaclass which disables the automatic loading behavior of AETemplate
+        Metaclass which disables the automatic loading behavior of pymel's AETemplate
         """
         def __new__(cls, classname, bases, classdict):
             return type.__new__(cls, classname, bases, classdict)
@@ -299,14 +299,14 @@ class AttributeEditorTemplate(pm.uitypes.AETemplate):
         '''
         build the UI from the list of added attributes
         '''
-        self._setActiveNode(nodeAttr)
+        self._setActiveNodeAttr(nodeAttr)
         self.setup()
 
     def _doUpdate(self, nodeAttr, *args):
-        self._setActiveNode(nodeAttr)
+        self._setActiveNodeAttr(nodeAttr)
         self.update()
 
-    def _setActiveNode(self, nodeName):
+    def _setActiveNodeAttr(self, nodeName):
         "set the active node"
         parts = nodeName.split('.', 1)
         self._nodeName = parts[0]
@@ -397,21 +397,30 @@ class ShapeTranslatorTemplate(AttributeTemplate, ShapeMixin):
 #        for name, template in templates.items():
 #            if name == default:
 #                continue
-#            template._setActiveNode(nodeName)
+#            template._setActiveNodeAttr(nodeName)
 #            template.showInChannelBox(False)
 #        # We need to run this last for cases where templates share attributes
 #        if default in templates:
-#            templates[default]._setActiveNode(nodeName)
+#            templates[default]._setActiveNodeAttr(nodeName)
 #            templates[default].showInChannelBox(True)
 
 class AutoTranslatorTemplate(AttributeTemplate):
+    '''
+    A translator template which automatically builds itself based on data queries from
+    an arnold node type
+    
+    It is highly recommended that you use the utility function registerAutoTranslatorUI()
+    to create a template of this type
+    '''
     _arnoldNodeType = None
-
+    _attribData = None
     def setup(self):
         """
         default setup automatically builds a UI based on metadata
         """
-        for paramName, attrName, label, annotation in core.getAttributeData(self._arnoldNodeType):
+        if self.__class__._attribData is None:
+            self.__class__._attribData = core.getAttributeData(self._arnoldNodeType)
+        for paramName, attrName, label, annotation in self._attribData:
             self.addControl(attrName,
                             label if label else prettify(paramName),
                             annotation)
@@ -425,7 +434,7 @@ class TranslatorControl(AttributeEditorTemplate):
     '''
     def __init__(self, nodeType, label='Arnold Translator', controlAttr='aiTranslator', default=None, optionMenuName=None):
         super(TranslatorControl, self).__init__(nodeType)
-        self._optionMenu = optionMenuName if optionMenuName is not None else controlAttr + "OMG"
+        self._optionMenu = optionMenuName if optionMenuName is not None else (nodeType + '_' + controlAttr + "OMG")
         self._translators = None
         self._label = label
 
@@ -654,11 +663,11 @@ class TranslatorControlUI(TranslatorControl):
 def registerAETemplate(templateClass, nodeType, *args, **kwargs):
     assert inspect.isclass(templateClass) and issubclass(templateClass, (AttributeTemplate, AttributeEditorTemplate)), \
         "you must pass a subclass of AttributeTemplate or AttributeEditorTemplate"
-    print "registering attribute template for %s" % nodeType
     global _templates
     if nodeType not in _templates:
         try:
             _templates[nodeType] = templateClass(nodeType, *args, **kwargs)
+            print "registered attribute template for %s" % nodeType
         except:
             print "Failed to instantiate AE Template", templateClass
             import traceback
@@ -675,7 +684,7 @@ def aeTemplate(nodeType, baseClass=AttributeTemplate):
         return func
     return registerUIDecorator
 
-def registerTranslatorUI(templateClass, nodeType, translatorName='<built-in>'):
+def registerTranslatorUI(templateClass, mayaNodeType, translatorName='<built-in>'):
     """
     A translator UI is a specialized attribute template based on the AttributeTemplate class. 
     
@@ -685,15 +694,31 @@ def registerTranslatorUI(templateClass, nodeType, translatorName='<built-in>'):
     UI is registered.
     """
     global _translatorTemplates
-    translators = getTranslators(nodeType)
+    translators = getTranslators(mayaNodeType)
     if translatorName not in translators:
         pm.warning('[mtoa] Registering unknown translator "%s" for Maya node %s. Valid choices are: %s' % \
-                   (translatorName, nodeType, ', '.join(['"%s"' % x for x in translators])))
+                   (translatorName, mayaNodeType, ', '.join(['"%s"' % x for x in translators])))
 #    assert inspect.isclass(templateClass) and issubclass(templateClass, AttributeTemplate),\
 #        "you must pass a subclass of AttributeTemplate"
-    _translatorTemplates[nodeType][translatorName] = templateClass
+    _translatorTemplates[mayaNodeType][translatorName] = templateClass
 
-    registerAETemplate(TranslatorControl, nodeType)
+    registerAETemplate(TranslatorControl, mayaNodeType)
+
+def registerAutoTranslatorUI(arnoldNode, mayaNodeType, translatorName='<built-in>'):
+    """
+    Utility function for automatically creating a translator UI template based on an arnold
+    node type
+    """
+    translatorName = str(translatorName) # doesn't like unicode
+    # we query the attribute data up front instead of when the translator is initialized or setup
+    # so that it is done when mtoa.cmds.registerArnoldRenderer is first  called and the Arnold
+    # universe is already active. otherwise, successive calls to core.getAttributeData later on cause
+    # the Arnold universe to repeatedly begin and end.
+    cls = type('%s_%sTemplate' % (mayaNodeType, translatorName),
+               (AutoTranslatorTemplate,),
+               dict(_arnoldNodeType=arnoldNode,
+                    _attribData = core.getAttributeData(arnoldNode)))
+    registerTranslatorUI(cls, mayaNodeType, translatorName)
 
 # FIXME: should we just get rid of this?
 def translatorUI(nodeType, translatorName='<built-in>', baseClass=AttributeTemplate):
@@ -734,7 +759,8 @@ def shapeTemplate(nodeName):
     """
     override for the builtin maya shapeTemplate procedure
     """
-    #Run the hooks.
+    # Run the hooks.
+    # see mtoa.registerArnoldRenderer._addAEHooks for where loadArnoldTemplate gets added to AEshapeHooks
     for hook in pm.melGlobals['AEshapeHooks']:
         pm.mel.eval(hook + ' "' + nodeName + '"')
 
@@ -747,7 +773,10 @@ def shapeTemplate(nodeName):
     # include/call base class/node attributes
     pm.mel.AEdagNodeInclude(nodeName)
 
-def arnoldShapeHook(nodeName):
+def loadArnoldTemplate(nodeName):
+    """
+    Create the "Arnold" AE template for the passed node
+    """
     global _templates
     nodeType = pm.objectType(nodeName)
 

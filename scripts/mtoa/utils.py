@@ -24,11 +24,14 @@ def groupn(iterable, n):
     '''
     return zip(*[iter(iterable)]*n)
 
-_objectStore = {}
+def createColor(node, name):
+    node = str(node)
+    cmds.addAttr(node, longName=name, at='float3', usedAsColor=True)
+    cmds.addAttr(node, longName=name + 'R', at='float', parent=name)
+    cmds.addAttr(node, longName=name + 'G', at='float', parent=name)
+    cmds.addAttr(node, longName=name + 'B', at='float', parent=name)
 
-def mtoaPackageRoot():
-    '''return the path to the mtoa python package directory'''
-    return os.path.dirname(inspect.getfile(inspect.currentframe()))
+_objectStore = {}
 
 def pyToMelProc(pyobj, args=(), returnType=None, procName=None, useName=False, procPrefix='pyToMel_'):
     '''
@@ -121,6 +124,13 @@ def findMelScript(name):
                 go=False
                 break
     return proc
+
+def safeDelete(node):
+    '''delete a node, or disconnect it, if it is read-only'''
+    if node.isReadOnly():
+        node.message.disconnect()
+    else:
+        cmds.delete(str(node))
 
 def _substitute(parts, tokens, allOrNothing=False):
     result = []

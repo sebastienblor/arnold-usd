@@ -26,9 +26,14 @@ public:
    // enumerator that corresponds to arnold's data type enum
    static MObject s_type;
    static MObject s_prefix;
+   static MObject s_defaultValue;
 
    static MObject s_imageFormat;
    static MObject s_filterType;
+
+   static MObject s_outputs;
+   static MObject s_driver;
+   static MObject s_filter;
 };  // class CArnoldAOVNode
 
 #endif // ARNOLDAOVNODE_H

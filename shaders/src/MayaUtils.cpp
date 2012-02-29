@@ -1042,6 +1042,50 @@ float CosWaves(float posX,
    return noiseValue;
 }
 
+bool IsInShadingGroup(AtArray* set_ids, AtShaderGlobals* sg)
+{
+   if (set_ids != NULL && set_ids->nelements > 0)
+   {
+      //AiMsgInfo("set_ids length: %d", set_ids->nelements);
+      //AtArray *sets = AiNodeGetArray(sg->Op, "shader");
+      //if (sets != NULL && sets->nelements > 0)
+      AtArray *sets = NULL;
+      if (AiUDataGetArray("mtoa_shading_groups", &sets) && sets->nelements > 0)
+      {
+         if (sets->nelements == 1)
+         {
+            AtNode* shader = (AtNode*)AiArrayGetPtr(sets, 0);
+            for (unsigned int i=0; i < set_ids->nelements; ++i)
+            {
+               if (shader == (AtNode*)AiArrayGetPtr(set_ids, i))
+                  return true;
+            }
+            return false;
+         }
+//         else if (sets->nelements > 1)
+//         {
+//            //AiMsgInfo("here1 %s", AiNodeGetName(sg->Op));
+//            AtArray* shidxs = AiNodeGetArray(sg->Op, "shidxs");
+//            if (shidxs != NULL)
+//            {
+//               //AiMsgInfo("here2 %d %d", shidxs->nelements, sg->fi);
+//               if (shidxs->nelements > 0)
+//               {
+//                  AtByte index = AiArrayGetByte(shidxs, sg->fi);
+//                  if (set_id != AiArrayGetPtr(sets, index))
+//                  {
+//                     //AiMsgInfo("face assignment: %d != %d", set_id, AiArrayGetUInt(sets, index));
+//                     return false;
+//                  }
+//               }
+//            }
+//         }
+      }
+   }
+   return true;
+}
+
+
 // Set sg->P to Pref if Pref is existing on the object.
 //
 // How to use it in your shader :

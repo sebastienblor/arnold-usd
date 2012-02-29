@@ -3,6 +3,8 @@
 
 #include <maya/MNodeMessage.h>
 
+#include <algorithm>
+
 namespace
 {
    void SetKeyData(AtArray* arr, unsigned int step, const std::vector<float>& data, unsigned int size)
@@ -489,24 +491,19 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
 
    std::vector<AtNode*> meshShaders;
 
-   MObject shadingGroup = GetNodeShadingGroup(path.node(), instanceNum);
-   if (!shadingGroup.isNull())
+   MPlug shadingGroupPlug = GetNodeShadingGroup(path.node(), instanceNum);
+   if (!shadingGroupPlug.isNull())
    {
-      MPlugArray        connections;
-      MFnDependencyNode fnDGNode(shadingGroup);
-      MPlug shaderPlug = fnDGNode.findPlug("surfaceShader");
-      shaderPlug.connectedTo(connections, true, false);
-      if (connections.length() > 0)
+      AtNode *shader = ExportNode(shadingGroupPlug);
+      if (shader != NULL)
       {
-         // shader assigned to node
-         AtNode* shader = ExportNode(connections[0]);
-
+         meshShaders.push_back(shader);
          AiNodeSetPtr(polymesh, "shader", shader);
       }
       else
       {
          AiMsgWarning("[mtoa] [translator %s] ShadingGroup %s has no surfaceShader input",
-               GetTranslatorName().asChar(), fnDGNode.name().asChar());
+               GetTranslatorName().asChar(), MFnDependencyNode(shadingGroupPlug.node()).name().asChar());
          AiNodeSetPtr(polymesh, "shader", NULL);
       }
    }
@@ -519,23 +516,42 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
       // Indices are used later when exporting shidxs
       fnMesh.getConnectedShaders(instanceNum, shadingGroups, indices);
 
+      // MPlugs must to Shader Groups must be exported in the same order they appear in "shadingGroups"
       for (int J = 0; (J < (int) shadingGroups.length()); J++)
       {
-         MPlugArray        connections;
-         MFnDependencyNode fnDGNode(shadingGroups[J]);
-         MPlug             shaderPlug(shadingGroups[J], fnDGNode.attribute("surfaceShader"));
-
-         shaderPlug.connectedTo(connections, true, false);
+         MFnDependencyNode fnDGNode(m_dagPath.node());
+         MPlug plug(m_dagPath.node(), fnDGNode.attribute("instObjGroups"));
+         plug = plug.elementByLogicalIndex(instanceNum);
+         MObject obGr = GetMayaObjectAttribute("objectGroups");
+         plug = plug.child(obGr);
          
-         if (connections.length() > 0)
+         bool exported = false;
+         // Loop over all MPlugs to Shader Nodes
+         int plugElements = plug.evaluateNumElements();
+         for (int i = 0; i < plugElements; i++)
          {
-            meshShaders.push_back(ExportNode(connections[0]));
+            MPlugArray        connections;
+            plug.elementByLogicalIndex(i).connectedTo(connections, false, true);
+
+            // Only export if MPlug matches the connected Shader Group
+            if ((connections.length() > 0) && (shadingGroups[J] == connections[0].node()))
+            {
+               AtNode *shader = ExportNode(connections[0]);
+               if (shader != NULL)
+               {
+                  meshShaders.push_back(shader);
+                  exported = true;
+                  break;
+               }
+            }
          }
-         else
+         
+         // If not exported, export NULL so order of Shader Groups will be the same
+         if (!exported)
          {
             AiMsgWarning("[mtoa] [translator %s] ShadingGroup %s has no surfaceShader input",
-               GetTranslatorName().asChar(), fnDGNode.name().asChar());
-            meshShaders.push_back(NULL);
+                  GetTranslatorName().asChar(), MFnDependencyNode(shadingGroupPlug.node()).name().asChar());
+            AiNodeSetPtr(polymesh, "shader", NULL);
          }
       }
       
@@ -549,7 +565,6 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
       // First convert from MIntArray to unsigned int vector
       
       int divisions = 0;
-      // int facesOffset = 0;
       int multiplier = 0;
       
       if (fnMesh.findPlug("displaySmoothMesh").asBool())
@@ -579,15 +594,19 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
          AiNodeSetArray(polymesh, "shidxs", AiArrayConvert(numFaceShaders, 1, AI_TYPE_UINT, &(shidxs[0])));
       }
    }
+   // we must write this as user data bc AiNodeGet* is thread-locked while AIUDataGet* is not
+   AiNodeDeclare(polymesh, "mtoa_shading_groups", "constant ARRAY NODE");
+   AiNodeSetArray(polymesh, "mtoa_shading_groups",
+                  AiArrayConvert(meshShaders.size(), 1, AI_TYPE_NODE, &(meshShaders[0])));
 
    //
    // DISPLACEMENT
    //
    // Currently Arnold does not support displacement per-face assignment
-   if (!shadingGroup.isNull())
+   if (!shadingGroupPlug.isNull())
    {
       MPlugArray        connections;
-      MFnDependencyNode fnDGNode(shadingGroup);
+      MFnDependencyNode fnDGNode(shadingGroupPlug.node());
       MPlug shaderPlug = fnDGNode.findPlug("displacementShader");
       shaderPlug.connectedTo(connections, true, false);
 
@@ -639,6 +658,7 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
 {
    MFnMesh fnMesh(m_geometry);
    MObject geometry(m_geometry);
+
 
    //
    // GEOMETRY
@@ -1002,17 +1022,36 @@ AtNode* CGeometryTranslator::ExportInstance(AtNode *instance, const MDagPath& ma
 
    if ((shaders.length() > 0) && (shadersMaster.length() > 0))
    {
-      MPlugArray        connections;
       MFnDependencyNode fnDGNode(shaders[0]);
       MPlug             shaderPlug(shaders[0], fnDGNode.attribute("surfaceShader"));
       MPlug             shaderPlugMaster(shadersMaster[0], fnDGNode.attribute("surfaceShader"));
 
-      shaderPlug.connectedTo(connections, true, false);
-
       if ((shaderPlug != shaderPlugMaster) || (!equalShaderArrays))
       {
-         AtNode* shader = ExportNode(connections[0]);
+         MPlug shadingGroupPlug = GetNodeShadingGroup(m_geometry, instanceNum);
+         
+         // In case Instance has per face assignment, use first SG assigned to it
+         if(shadingGroupPlug.isNull())
+         {
+            MPlugArray        connections;
+            MFnDependencyNode fnDGNode(m_geometry);
+            MPlug plug(m_geometry, fnDGNode.attribute("instObjGroups"));
+            plug = plug.elementByLogicalIndex(instanceNum);
+            MObject obGr = GetMayaObjectAttribute("objectGroups");
+            plug = plug.child(obGr);
+            plug.elementByLogicalIndex(0).connectedTo(connections, false, true);
+            if(connections.length() > 0)
+            {
+               shadingGroupPlug = connections[0];
+            }
+         }
+         
+         AtNode* shader = ExportNode(shadingGroupPlug);
          AiNodeSetPtr(instance, "shader", shader);
+         // we must write this as user data bc AiNodeGet* is thread-locked while AIUDataGet* is not
+         AiNodeDeclare(instance, "mtoa_shading_groups", "constant ARRAY NODE");
+         AiNodeSetArray(instance, "mtoa_shading_groups",
+               AiArrayConvert(1, 1, AI_TYPE_NODE, shader));
       }
    }
 

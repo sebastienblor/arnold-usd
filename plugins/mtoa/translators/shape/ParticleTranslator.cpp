@@ -107,28 +107,15 @@ void CParticleTranslator::ExportParticleShaders(AtNode* particle)
 {
    int instanceNum = m_dagPath.isInstanced() ? m_dagPath.instanceNumber() : 0;
 
-   std::vector<AtNode*> meshShaders;
-
-   MObject shadingGroup = GetNodeShadingGroup(m_dagPath.node(), instanceNum);
-   if (!shadingGroup.isNull())
+   MPlug shadingGroupPlug = GetNodeShadingGroup(m_dagPath.node(), instanceNum);
+   if (!shadingGroupPlug.isNull())
    {
-      MPlugArray        connections;
-      MFnDependencyNode fnDGNode(shadingGroup);
-      MPlug shaderPlug = fnDGNode.findPlug("surfaceShader");
-      shaderPlug.connectedTo(connections, true, false);
-      if (connections.length() > 0)
+      AtNode *rootShader = ExportNode(shadingGroupPlug);
+      if (rootShader != NULL)
       {
-         // shader assigned to node
-         AtNode* shader = ExportNode(connections[0]);
-
-         AiNodeSetPtr(particle, "shader", shader);
-         meshShaders.push_back(shader);
+         AiNodeSetPtr(particle, "shader", rootShader);
       }
-      else
-         AiMsgWarning("[mtoa] Particle system %s shadingGroup %s has no surfaceShader input",
-            m_fnParticleSystem.partialPathName().asChar(), fnDGNode.name().asChar());
    }
-
 }
 
 /// parse the m_customAttrs and populate the step vectors for each type of custom export attrs.
@@ -1231,14 +1218,7 @@ AtNode* CParticleTranslator::ExportInstance(AtNode *instance, const MDagPath& ma
    if (iogConnectionsMaster[0].node() != iogConnections[0].node())
    {
       //FIXME : Is it ok to assume that the shader is the first Dag member ?
-      sgNode = iogConnections[0].node();
-      dsgNode.setObject(sgNode);
-      MPlug             shaderPlug(sgNode, dsgNode.attribute("surfaceShader"));
-      MPlugArray        connections;
-
-      shaderPlug.connectedTo(connections, true, false);
-
-      AtNode* shader = ExportNode(connections[0]);
+      AtNode *shader = ExportNode(iogConnections[0]);
       AiNodeSetPtr(instance, "shader", shader);
    }
 

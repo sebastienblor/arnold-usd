@@ -86,7 +86,7 @@ void CHairTranslator::Update( AtNode *curve )
          plug.connectedTo(hairShaderPlugs, true, false);
          if (hairShaderPlugs.length() > 0)
          {
-            shader = ExportNode(hairShaderPlugs[0]);
+            shader = ExportRootShader(hairShaderPlugs[0]);
          }
       }
    }
@@ -101,6 +101,8 @@ void CHairTranslator::Update( AtNode *curve )
       // Add shader uparam and vparam names
       AiNodeSetStr(shader, "uparam", "uparamcoord");
       AiNodeSetStr(shader, "vparam", "vparamcoord");
+      
+      shader = ExportRootShader(shader);
 
       // TODO PROCESS MAYA HAIR SHADING ATTRIBUTES
       // With mtoa Hair shader (also TODO) ticket 109

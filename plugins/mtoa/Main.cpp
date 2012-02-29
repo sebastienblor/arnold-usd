@@ -11,6 +11,8 @@
 #include "nodes/TxTextureFile.h"
 #include "nodes/ShaderUtils.h"
 #include "nodes/ArnoldAOVNode.h"
+#include "nodes/ArnoldDriverNode.h"
+#include "nodes/ArnoldFilterNode.h"
 #include "nodes/MayaNodeIDs.h"
 #include "nodes/ArnoldNodeIDs.h"
 #include "nodes/SphereLocator.h"
@@ -33,7 +35,7 @@
 #include "translators/shape/ParticleTranslator.h"
 #include "translators/shape/NParticleTranslator.h"
 #include "translators/shape/InstancerTranslator.h"
-
+#include "translators/shader/ShadingEngineTranslator.h"
 
 #include "render/RenderSwatch.h"
 
@@ -86,6 +88,17 @@ namespace // <anonymous>
                                    CArnoldAOVNode::initialize);
       CHECK_MSTATUS(status);
 
+      status = plugin.registerNode("aiAOVDriver",
+                                   CArnoldDriverNode::id,
+                                   CArnoldDriverNode::creator,
+                                   CArnoldDriverNode::initialize);
+      CHECK_MSTATUS(status);
+
+      status = plugin.registerNode("aiAOVFilter",
+                                   CArnoldFilterNode::id,
+                                   CArnoldFilterNode::creator,
+                                   CArnoldFilterNode::initialize);
+      CHECK_MSTATUS(status);
 
 
       // Displacement Shaders
@@ -134,10 +147,7 @@ namespace // <anonymous>
       builtin->RegisterTranslator("aiOptions",
                                   "",
                                   COptionsTranslator::creator);
-      builtin->RegisterTranslator("lambert",
-                                  "",
-                                  CLambertTranslator::creator);
-      // A Dag node in Maya but a depend node in Arnold
+       // A Dag node in Maya but a depend node in Arnold
        builtin->RegisterTranslator("aiSky",
                                    "",
                                    CSkyShaderTranslator::creator);
@@ -259,6 +269,9 @@ namespace // <anonymous>
       // Overrides for mtoa_shaders if load was successful
       if (MStatus::kSuccess == status)
       {
+         shaders->RegisterTranslator("lambert",
+                                     "",
+                                     CLambertTranslator::creator);
          shaders->RegisterTranslator("layeredShader",
                                      "",
                                      CLayeredShaderTranslator::creator);
@@ -311,9 +324,16 @@ namespace // <anonymous>
          shaders->RegisterTranslator("animCurveTU",
                                      "",
                                      CAnimCurveTranslator::creator);
+
+         shaders->RegisterTranslator("shadingEngine",
+                                     "",
+                                     CShadingEngineTranslator::creator,
+                                     CShadingEngineTranslator::NodeInitializer);
       }
 
       // Will load all found plugins and try to register nodes and translators
+
+
       // for the new Arnold node each create. A CExtension is initialized.
       status = CExtensionsManager::LoadExtensions();
       status = CExtensionsManager::LoadArnoldPlugins();

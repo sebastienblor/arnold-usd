@@ -1,19 +1,17 @@
-﻿import re
+import re
 import maya.cmds as cmds
 import maya.mel as mel
 from mtoa.ui.ae.utils import aeCallback
+import mtoa.core as core
 
-def LoadStandInButtonPush(*arg):
+def LoadStandInButtonPush(nodeName):
     basicFilter = 'Arnold Archive (*.ass *.ass.gz *.obj);;Arnold Procedural (*.so *.dll)'
     ret = cmds.fileDialog2(fileFilter=basicFilter, dialogStyle=2,cap='Load StandIn',okc='Load',fm=4)
-    if ret != None:
-        if len(ret):
-            ArnoldStandInDsoEdit(ret[0])
-        
-def ArnoldStandInDsoEdit(mPath) :
+    if ret is not None and len(ret):
+        ArnoldStandInDsoEdit(nodeName, ret[0])
+
+def ArnoldStandInDsoEdit(nodeName, mPath) :
     mArchivePath = ''
-    # Get AE tab name
-    nodeName = mel.eval('$tempNode = $gAECurrentTab')
     
     # Sequence of .ass
     if re.search(r'([-_/a-zA-Z0-9.]*[-/a-zA-Z])[_.]([0-9.]+?)(.ass)',mPath) != None:
@@ -84,9 +82,9 @@ def ArnoldStandInDataEdit(mData) :
 def ArnoldStandInTemplateDsoNew(nodeName) :
     cmds.rowColumnLayout( numberOfColumns=3, columnAlign=(1, "right"), columnAttach=[(1, "right", 0), (2, "both", 0), (3, "right", 0)], columnWidth=[(1,145),(3,30)] )
     cmds.text(label="Path ")
-    path = cmds.textField("standInDsoPath",changeCommand=ArnoldStandInDsoEdit)
+    path = cmds.textField("standInDsoPath",changeCommand=lambda *args: ArnoldStandInDsoEdit(nodeName, *args))
     cmds.textField( path, edit=True, text=cmds.getAttr(nodeName) )
-    cmds.button( label="...", command=LoadStandInButtonPush)
+    cmds.button( label="...", command=lambda *args: LoadStandInButtonPush(nodeName))
     
 def ArnoldStandInTemplateDataNew(nodeName) :
     print 'ArnoldStandInTemplateDataNew',nodeName

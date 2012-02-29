@@ -190,7 +190,7 @@ AtNode* CArnoldSession::ExportDagPath(MDagPath &dagPath, MStatus* stat)
 
 // Export a plug (dependency node output attribute)
 //
-AtNode* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, MStatus *stat)
+AtNode* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNodeSet* nodes, AOVSet* aovs, MStatus *stat)
 {
    MObject mayaNode = shaderOutputPlug.node();
    MStatus status = MStatus::kSuccess;
@@ -263,54 +263,27 @@ AtNode* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, MStatus *stat)
    if (arnoldNode == NULL)
    {
       status = MStatus::kSuccess;
+      translator->TrackShaders(nodes);
       translator->Init(this, mayaNode, resultPlug.partialName(false, false, false, false, false, true));
       m_processedTranslators.insert(ObjectToTranslatorPair(handle, translator));
       arnoldNode = translator->DoExport(0);
    }
+   if (arnoldNode != NULL)
+   {
+      if (nodes != NULL)
+      {
+         std::map<std::string, AtNode*>::iterator nodeIt;
+         for (nodeIt = translator->m_atNodes.begin(); nodeIt != translator->m_atNodes.end(); ++nodeIt)
+         {
+            nodes->insert(nodeIt->second);
+         }
+      }
+      if (aovs != NULL)
+         translator->TrackAOVs(aovs);
+   }
    if (NULL != stat) *stat = status;
    AiMsgTab(-1);
    return arnoldNode;
-}
-
-// FIXME: it's a very bad idea to export without registering the translator, leads to multiple exports in IPR
-AtNode* CArnoldSession::ExportWithTranslator(MObject mayaNode, const MString &mayaNodeClass, const MString &translatorName)
-{
-   assert(AiUniverseIsActive());
-
-   AtNode* shader = NULL;
-
-   AiMsgTab(1);
-   CNodeTranslator* translator = CExtensionsManager::GetTranslator(mayaNodeClass, translatorName);
-   if (translator != NULL)
-   {
-      shader = translator->Init(this, mayaNode);
-      AiMsgDebug("[mtoa.session]     %-30s | Exporting type %s using translator: \"%s\"",
-            MFnDependencyNode(mayaNode).name().asChar(),
-            mayaNodeClass.asChar(),
-            translatorName.asChar());
-      translator->DoExport(0);
-      CNodeAttrHandle handle(mayaNode, translatorName);
-      m_processedTranslators.insert(ObjectToTranslatorPair(handle, translator));
-   }
-   else
-   {
-      AiMsgDebug("[mtoa.session]     %-30s | Skipping export of type %s: translator type not supported: \"%s\"",
-            MFnDependencyNode(mayaNode).name().asChar(),
-            mayaNodeClass.asChar(),
-            translatorName.asChar());
-   }
-   AiMsgTab(-1);
-   return shader;
-}
-
-AtNode* CArnoldSession::ExportDriver(MObject mayaNode, const MString &translatorName)
-{
-   return ExportWithTranslator(mayaNode, "<driver>", translatorName);
-}
-
-AtNode* CArnoldSession::ExportFilter(MObject mayaNode, const MString &translatorName)
-{
-   return ExportWithTranslator(mayaNode, "<filter>", translatorName);
 }
 
 unsigned int CArnoldSession::GetActiveTranslators(const CNodeAttrHandle &handle, std::vector<CNodeTranslator* >& result)

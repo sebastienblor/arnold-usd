@@ -2,6 +2,8 @@
 
 #include "MayaUtils.h"
 
+#include <vector>
+
 AI_SHADER_NODE_EXPORT_METHODS(MayaLayeredShaderMtd);
 
 namespace
@@ -9,8 +11,31 @@ namespace
    enum MayaLayeredShaderParams
    {
       p_compositingFlag = 0,
-      p_color,
-      p_transparency
+      p_numInputs,
+      p_color0,
+      p_color1,
+      p_color2,
+      p_color3,
+      p_color4,
+      p_color5,
+      p_color6,
+      p_color7,
+      p_transparency0,
+      p_transparency1,
+      p_transparency2,
+      p_transparency3,
+      p_transparency4,
+      p_transparency5,
+      p_transparency6,
+      p_transparency7,
+      p_useTransparency0,
+      p_useTransparency1,
+      p_useTransparency2,
+      p_useTransparency3,
+      p_useTransparency4,
+      p_useTransparency5,
+      p_useTransparency6,
+      p_useTransparency7,
    };
 
    enum CompositingFlag
@@ -27,12 +52,102 @@ namespace
    };
 }
 
+struct AOVLayer
+{
+   AtRGB color;
+   AtRGB opacity;
+   const char* name;
+};
+
+struct ShaderData
+{
+   AtArray *aovs;
+   AtUInt naovs;
+};
+
+void layer_op(AtShaderGlobals *sg, AtInt flag, AtRGB color, AtRGB opacity, AtBoolean useTransparency,
+              AtRGB &curColor, AtRGB &curOpacity)
+{
+   AtColor orgOpacity = sg->out_opacity;
+   if (useTransparency)
+   {
+      opacity = 1.0f - opacity;
+      // Consider color pre-multiplied already
+   }
+   else
+   {
+      opacity = sg->out_opacity;
+      // Pre-multiply color
+      color.r *= opacity.r;
+      color.g *= opacity.g;
+      color.b *= opacity.b;
+   }
+
+   if (flag == CF_TEXTURE)
+   {
+      color *= opacity;
+   }
+
+   curColor += (1.0f - curOpacity) * color;
+   curOpacity += (1.0f - curOpacity) * opacity;
+
+   sg->out_opacity = orgOpacity;
+}
+
+AtRGBA post_process(const AtRGB &curColor, const AtRGB &curOpacity)
+{
+   AtRGBA result;
+   result.r = curColor.r;
+   result.g = curColor.g;
+   result.b = curColor.b;
+
+   // Un-premultiply color
+   if (curOpacity.r > AI_EPSILON)
+   {
+      result.r /= curOpacity.r;
+   }
+   if (curOpacity.g > AI_EPSILON)
+   {
+      result.g /= curOpacity.g;
+   }
+   if (curOpacity.b > AI_EPSILON)
+   {
+      result.b /= curOpacity.b;
+   }
+
+   result.a = CLAMP(Luminance(curOpacity), 0.0f, 1.0f);
+   return result;
+}
+
 node_parameters
 {
    AiParameterENUM("compositingFlag", 0, gs_CompositingFlagNames);
-   AiParameterARRAY("color", AiArray(0, 0, AI_TYPE_RGBA));
-   AiParameterARRAY("transparency", AiArray(0, 0, AI_TYPE_RGB));
-  	
+   AiParameterUINT("numInputs", 0);
+   AiParameterRGB("color0", 0.0f, 0.0f, 0.0f);
+   AiParameterRGB("color1", 0.0f, 0.0f, 0.0f);
+   AiParameterRGB("color2", 0.0f, 0.0f, 0.0f);
+   AiParameterRGB("color3", 0.0f, 0.0f, 0.0f);
+   AiParameterRGB("color4", 0.0f, 0.0f, 0.0f);
+   AiParameterRGB("color5", 0.0f, 0.0f, 0.0f);
+   AiParameterRGB("color6", 0.0f, 0.0f, 0.0f);
+   AiParameterRGB("color7", 0.0f, 0.0f, 0.0f);
+   AiParameterRGB("transparency0", 1.0f, 1.0f, 1.0f);
+   AiParameterRGB("transparency1", 1.0f, 1.0f, 1.0f);
+   AiParameterRGB("transparency2", 1.0f, 1.0f, 1.0f);
+   AiParameterRGB("transparency3", 1.0f, 1.0f, 1.0f);
+   AiParameterRGB("transparency4", 1.0f, 1.0f, 1.0f);
+   AiParameterRGB("transparency5", 1.0f, 1.0f, 1.0f);
+   AiParameterRGB("transparency6", 1.0f, 1.0f, 1.0f);
+   AiParameterRGB("transparency7", 1.0f, 1.0f, 1.0f);
+   AiParameterBOOL("useTransparency0", FALSE);
+   AiParameterBOOL("useTransparency1", FALSE);
+   AiParameterBOOL("useTransparency2", FALSE);
+   AiParameterBOOL("useTransparency3", FALSE);
+   AiParameterBOOL("useTransparency4", FALSE);
+   AiParameterBOOL("useTransparency5", FALSE);
+   AiParameterBOOL("useTransparency6", FALSE);
+   AiParameterBOOL("useTransparency7", FALSE);
+
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }
 
@@ -42,74 +157,87 @@ node_initialize
 
 node_update
 {
+   ShaderData* localData = (ShaderData*) AiMalloc(sizeof(ShaderData));
+   localData->aovs = NULL;
+   localData->naovs = 0;
+
+   localData->aovs = AiNodeGetArray(node, "mtoa_aovs");
+   if (localData->aovs)
+      localData->naovs = localData->aovs->nelements;
+
+   AiNodeSetLocalData(node, localData);
 }
 
 node_finish
 {
+   ShaderData* localData = (ShaderData*) AiNodeGetLocalData(node);
+   AiFree(localData);
 }
 
 shader_evaluate
 {
+   unsigned int numInputs = AiShaderEvalParamUInt(p_numInputs);
    int flag = AiShaderEvalParamInt(p_compositingFlag);
 
-   AtArray* colors = AiShaderEvalParamArray(p_color);
-   AtArray* transparencies = AiShaderEvalParamArray(p_transparency);
-   unsigned int numInputs = colors->nelements;
-
-   AtRGBA outColor = AI_RGBA_BLACK;
+   AtRGBA result = AI_RGBA_BLACK;
    AtRGB outOpacity = AI_RGB_WHITE;
 
    if (numInputs > 0)
    {
+      ShaderData* localData = (ShaderData*) AiNodeGetLocalData(node);
+
+      std::vector<AOVLayer> AOVValues(localData->naovs);
+      AtUInt i=0;
+      for (std::vector<AOVLayer>::iterator it = AOVValues.begin(); it!=AOVValues.end(); ++it)
+      {
+         it->color = AI_RGB_BLACK;
+         it->opacity = AI_RGB_BLACK;
+         it->name = AiArrayGetStr(localData->aovs, i);
+         ++i;
+      }
+      
+      AiNodeSetLocalData(node, localData);
+      
       AtRGB curColor = AI_RGB_BLACK;
       AtRGB curOpacity = AI_RGB_BLACK;
 
       for (unsigned int i = 0; i < numInputs; ++i)
       {
-         AtRGB opacity = 1.0f - AiArrayGetRGB(transparencies, i);
-         AtRGBA colorAlpha = AiArrayGetRGBA(colors, i);
+         AtRGB transparency = AiShaderEvalParamRGB(p_transparency0+i);
+         AtBoolean useTransparency = AiShaderEvalParamBool(p_useTransparency0+i);
+         layer_op(sg, flag,
+                  AiShaderEvalParamRGB(p_color0+i),
+                  transparency,
+                  useTransparency,
+                  curColor, curOpacity);
 
-         // Maya layer premults color by input shader opacity
-         // FIXME: we need actual opacity for each shader
-         // color *= sg->out_opacity;
-         AtRGB color;
-         color.r = colorAlpha.r;
-         color.g = colorAlpha.g;
-         color.b = colorAlpha.b;
-
-         if (flag == CF_TEXTURE)
+         if (localData->naovs > 0)
          {
-            color *= opacity;
+            for (std::vector<AOVLayer>::iterator it = AOVValues.begin(); it!=AOVValues.end(); ++it)
+            {
+               AtRGB color = AI_RGB_BLACK;
+               // save the current value
+               AiAOVGetRGB(sg, it->name, color);
+               // layer it into the accumulated results for this AOV
+               // TODO: look into getting a pointer from AiAOVGetRGB
+               layer_op(sg, flag,
+                        color,
+                        transparency,
+                        useTransparency,
+                        it->color, it->opacity);
+            }
          }
-
-         curColor += (1.0f - curOpacity) * color;
-         curOpacity += (1.0f - curOpacity) * opacity;
-
       }
-
-      outColor.r = curColor.r;
-      outColor.g = curColor.g;
-      outColor.b = curColor.b;
-      // Shader resulting opacity
+      result = post_process(curColor, curOpacity);
       outOpacity = curOpacity;
 
-      // Un-premultiply output color ans set its alpha
-      if (outOpacity.r > AI_EPSILON)
+      for (std::vector<AOVLayer>::iterator it = AOVValues.begin(); it!=AOVValues.end(); ++it)
       {
-         outColor.r /= outOpacity.r;
+         AtRGBA aovResult = post_process(it->color, it->opacity);
+         AiAOVSetRGBA(sg, it->name, aovResult);
       }
-      if (outOpacity.g > AI_EPSILON)
-      {
-         outColor.g /= outOpacity.g;
-      }
-      if (outOpacity.b > AI_EPSILON)
-      {
-         outColor.b /= outOpacity.b;
-      }
-      outColor.a = CLAMP(Luminance(outOpacity), 0.0f, 1.0f);
    }
 
-   sg->out.RGBA = outColor;
+   sg->out.RGBA = result;
    sg->out_opacity = outOpacity;
-
 }

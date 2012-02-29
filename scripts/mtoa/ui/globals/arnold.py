@@ -1,6 +1,7 @@
 ﻿import pymel.core as pm
 from mtoa.ui.ae.shapeTemplate import createTranslatorMenu
 from mtoa.callbacks import *
+import mtoa.core as core
 
 def updateRenderSettings(*args):
     flag = pm.getAttr('defaultArnoldRenderOptions.threads_autodetect') == False
@@ -379,9 +380,10 @@ def createArnoldSamplingSettings():
 #    pm.rowLayout(numberOfColumns=2, columnWidth=(1, 80))
 #    pm.separator(style='none')
 
-    createTranslatorMenu('defaultArnoldRenderOptions.filterType',
+    # TODO: connect node to options
+    createTranslatorMenu('defaultArnoldFilter.aiTranslator',
                          label='Filter Type',
-                         nodeType='<filter>',
+                         nodeType='aiAOVFilter',
                          default='gaussian')
 
 #    pm.attrEnumOptionMenu('os_filter_type',
@@ -855,7 +857,7 @@ def createArnoldLogSettings():
 def createArnoldRendererGlobalsTab():
 
     # Make sure the aiOptions node exists
-    pm.createNode('aiOptions', skipSelect=True, shared=True, name='defaultArnoldRenderOptions')
+    core.createOptions()
 
     parentForm = pm.setParent(query=True)
 
@@ -964,4 +966,3 @@ def updateArnoldRendererGlobalsTab(*args):
     updateSamplingSettings()
     updateMotionBlurSettings()
     updateLogSettings()
-    updateBackgroundSettings()

@@ -19,17 +19,24 @@ public:
    {
       return (m_motion && IsLocalMotionBlurEnabled());
    }
-   
+
+protected:
    virtual void ProcessRenderFlags(AtNode* node);
    void ExportLightLinking(AtNode* polymesh);
    // for initializer callbacks:
    static void MakeCommonAttributes(CBaseAttrHelper& helper);
 
+   virtual AtNode* ExportRootShader(const MPlug& plug);
+   virtual AtNode* ExportRootShader(AtNode *rootShader);
+   AtNode* CreateShadingGroupShader(AtNode *rootShader, std::vector<AtNode*> &aovShaders);
+   MPlug GetNodeShadingGroup(MObject dagNode, int instanceNum);
+
 protected:
    bool m_motion;
    bool m_motionDeform;
 
-   MObject GetNodeShadingGroup(MObject dagNode, int instanceNum);
+
 };
 
 #endif // SHAPETRANSLATOR_H
+

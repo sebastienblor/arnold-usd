@@ -184,6 +184,25 @@ MStatus CExtension::RegisterTranslator(const MString &mayaTypeName,
                         0,
                         m_extensionName,
                         m_extensionFile);
+
+   // TODO: Make this code more general for hidden nodes
+   if (mayaTypeName == "lambert")
+   {
+		   
+	   CAOVData data;
+	   data.attribute = "aov_direct_diffuse";
+	   data.name = "direct_diffuse";
+	   data.type = AI_TYPE_RGBA;
+	   mayaNode.m_aovs.push_back(data);
+
+	   CAOVData data2;
+	   data2.attribute = "aov_indirect_diffuse";
+	   data2.name = "indirect_diffuse";
+	   data2.type = AI_TYPE_RGBA;
+	   mayaNode.m_aovs.push_back(data2);
+
+   }
+
    MString transName;
    if (translatorName.numChars() != 0)
       transName = translatorName;

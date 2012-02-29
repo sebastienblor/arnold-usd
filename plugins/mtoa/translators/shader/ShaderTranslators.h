@@ -3,7 +3,6 @@
 
 #include "ShaderTranslator.h"
 
-// we use ShaderTranslator here for its specialized ResolveOutputPlug method
 #define SHADER_TRANSLATOR(name)\
    class name : public CShaderTranslator\
    {\
@@ -13,14 +12,15 @@
       AtNode* CreateArnoldNodes();\
    };
 
-// we don't use ShaderTranslator here to get a simpler ResolveOutputPlug method
 #define SHADER_TRANSLATOR_MULTIOUT(name)\
-   class name : public CNodeTranslator\
+   class name : public CShaderTranslator\
    {\
    public:\
       static void* creator(){return new name();}\
       virtual void Export(AtNode* shader);\
       AtNode* CreateArnoldNodes();\
+   protected:\
+      bool ResolveOutputPlug(const MPlug& outputPlug, MPlug &resolvedOutputPlug){resolvedOutputPlug=outputPlug;return true;}\
    };
 
 class CSkyShaderTranslator

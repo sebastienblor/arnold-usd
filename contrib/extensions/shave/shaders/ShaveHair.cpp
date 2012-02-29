@@ -24,7 +24,10 @@ enum ShaveHairParams
    p_vparam,
    p_direct_diffuse,
    p_indirect_diffuse,
-   p_diffuse_cache
+   p_diffuse_cache,
+   p_aov_direct_diffuse,
+   p_aov_direct_specular,
+   p_aov_indirect_diffuse
 };
 
 node_parameters
@@ -48,7 +51,14 @@ node_parameters
    AiParameterFLT(       "indirect_diffuse" , 1.0f);
    AiParameterBOOL(      "diffuse_cache"    , true);
 
-   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
+   AiParameterSTR ( "aov_direct_diffuse"             , "direct_diffuse"    );
+   AiMetaDataSetInt(mds, "aov_direct_diffuse"        , "aov.type", AI_TYPE_RGB);
+   AiParameterSTR ( "aov_direct_specular"            , "direct_specular"   );
+   AiMetaDataSetInt(mds, "aov_direct_specular"       , "aov.type", AI_TYPE_RGB);
+   AiParameterSTR ( "aov_indirect_diffuse"           , "indirect_diffuse"  );
+   AiMetaDataSetInt(mds, "aov_indirect_diffuse"      , "aov.type", AI_TYPE_RGB);
+
+   AiMetaDataSetStr(mds, NULL, "maya.name", "shaveHair");
 }
 
 typedef struct
@@ -186,20 +196,26 @@ shader_evaluate
          }
       }
    }
+   Cdiff *= diff_color;
+   AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_direct_diffuse), Cdiff);
+
+   Cspec *= spec * spec_color;
+   AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_direct_specular), Cspec);
 
    // indirect diffuse or ambient
    // if kd_ind = 0 then use ambient
    // FIXME: we should be checking for the arnold diffuse depth before we use Indirect gi
    //
    float kd_ind = AiShaderEvalParamFlt(p_kd_ind);
+   AtColor ind_diff;
    if (kd_ind > 0)
-      Cdiff += (kd_ind * AiIndirectDiffuse(&V,sg)) * indirect_c;
+      ind_diff = (kd_ind * AiIndirectDiffuse(&V,sg)) * indirect_c;
    else
-      Cdiff +=  AiShaderEvalParamRGB(p_ambient);
+      ind_diff = AiShaderEvalParamRGB(p_ambient);
+   ind_diff *= diff_color;
+   AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_indirect_diffuse), ind_diff);
+   Cdiff += ind_diff;
 
-
-   Cdiff *= diff_color;
-   Cspec *= spec * spec_color;
    sg->out.RGB = Cdiff + Cspec;
 }
 

@@ -412,6 +412,16 @@ MStatus CExtensionsManager::RegisterExtension(CExtension* extension)
          ret = s_registeredMayaNodes.insert(*mayaNode);
          regNewNodes++;
       }
+      else
+      {
+         // FIXME: whether or not to create a maya node is determined in CExtension::RegisterNode, depending
+         // on if a node with the specified name already exists. For deferred extensions
+         // this may occur before the required maya plugin is loaded, and therefore the counterpart node will
+         // not exist and the extension will erroneously mark the node for creation.
+         // A temporary fix is to allow this node creation error to slip by for deferred extensions
+         if (extension->IsDeferred())
+            nodeStatus = MS::kSuccess;
+      }
       // Update return status
       if (MStatus::kSuccess != nodeStatus)
       {
@@ -867,12 +877,17 @@ void CExtensionsManager::GetNodeAOVs(const MString &mayaTypeName, MStringArray& 
 {
    CPxMayaNode mayaType(mayaTypeName);
    MayaNodeToTranslatorsMap::iterator transIt = s_registeredTranslators.find(mayaType);
+   if (transIt == s_registeredTranslators.end())
+      return;
+
    mayaType = transIt->first;
 
    for (unsigned int i = 0; i < mayaType.m_aovs.size(); ++i)
    {
       result.append(mayaType.m_aovs[i].name);
       result.append(mayaType.m_aovs[i].attribute);
+      MString type = AiParamGetTypeName(mayaType.m_aovs[i].type);
+      result.append(type.toLowerCase());
    }
 }
 

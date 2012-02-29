@@ -56,6 +56,67 @@ void COptionsTranslator::ProcessAOVs()
       AiMsgDebug("[mtoa] [aovs] disabled");
 }
 
+///// Set the filenames for all output drivers
+//MString COptionsTranslator::SetImageFilenames(CAOV* aov)
+//{
+//   MString imageFilename;
+//   MString cameraFolderName;
+//   MObject renderLayer = MFnRenderLayer::currentLayer();
+//   double fileFrameNumber = MAnimControl::currentTime().value();
+//
+//   // file name
+//   MFileObject fileObj;
+//   fileObj.setRawFullName(MFileIO::currentFile());
+//   MString sceneFileName = fileObj.resolvedName();
+//   sceneFileName = sceneFileName.substringW(0, sceneFileName.rindexW('.')-1);
+//
+//   MFnDagNode camDagTransform(m_session->GetExportCamera().transform());
+//   MString nameCamera = camDagTransform.name();
+//
+//   // Notes on MCommonRenderSettingsData::getImageName:
+//   //   - sceneFileName is only used if defaultRenderGlobals.imageFilePrefix is not set
+//   //   - a "<RenderPass>/" token is added before the file name if any pass nodes are
+//   //     connected to a render layer AND <RenderPass> does not appear in defaultRenderGlobals.imageFilePrefix
+//   // because getImageName ignores the sceneFileName arg when defaultRenderGlobals.imageFilePrefix is non-empty,
+//   // we can only achieve the proper addition of the <RenderPass> token by creating a dummy render pass node.
+//   // TODO: write a complete replacement for MCommonRenderSettingsData::getImageName
+//   MCommonRenderSettingsData::MpathType pathType;
+//   MCommonRenderSettingsData defaultRenderGlobalsData;
+//   MRenderUtil::getCommonRenderSettings(defaultRenderGlobalsData);
+//   if (m_session->IsBatch())
+//   {
+//      pathType = defaultRenderGlobalsData.kFullPathImage;
+//   }
+//   else
+//   {
+//      pathType = defaultRenderGlobalsData.kFullPathTmp;
+//   }
+//
+//   // FIXME: only add RenderPass tokens if custom AOVs are enabled
+//   if (defaultRenderGlobalsData.name == "")
+//   {
+//      // setup the default RenderPass token
+//      sceneFileName = "<RenderPass>/" + sceneFileName;
+//      // FIXME: hard-wiring convention here:
+//      // need a a complete replacement for MCommonRenderSettingsData::getImageName to avoid this
+//      // (see mtoa.utils.expandFileTokens for the beginning of one)
+//      sceneFileName += "_<RenderPass>";
+//   }
+//
+//   MStringArray extensions;
+//   aov->GetImageFormats(extensions);
+//   MString tokens = MString("RenderPass=") + aov->GetName();
+//   for (unsigned int i=0; i<extensions.length(); ++i)
+//   {
+//      MString filename = defaultRenderGlobalsData.getImageName(pathType, fileFrameNumber,
+//                                                               sceneFileName, nameCamera,
+//                                                               extensions[i], renderLayer,
+//                                                               tokens, 1);
+//      // FIXME: the driver is not getting its filename set
+//      aov->SetImageFilename(filename);
+//   }
+//}
+
 /// Set the filenames for all output drivers
 MString COptionsTranslator::SetImageFilenames(MDagPath &camera)
 {
@@ -102,7 +163,7 @@ MString COptionsTranslator::SetImageFilenames(MDagPath &camera)
                                                          "", renderLayer,
                                                          "RenderPass=beauty", 1);
 
-   if (m_driver != NULL)
+   if (m_driver != NULL && AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(m_driver), "filename") != NULL)
       AiNodeSetStr(m_driver, "filename", imageFilename.asChar());
 
    if (defaultRenderGlobalsData.name == "")
@@ -118,12 +179,16 @@ MString COptionsTranslator::SetImageFilenames(MDagPath &camera)
    for (AOVSet::iterator it=m_aovs.begin(); it!=m_aovs.end(); ++it)
    {
       MString tokens = MString("RenderPass=") + it->GetName();
-      MString filename = defaultRenderGlobalsData.getImageName(pathType, fileFrameNumber,
-                                                               sceneFileName, nameCamera,
-                                                               "", renderLayer,
-                                                               tokens, 1);
-      // FIXME: the driver is not getting its filename set
-      it->SetImageFilename(filename);
+      const MStringArray extensions = it->GetImageFormats();
+      for (unsigned int i=0; i<extensions.length(); ++i)
+      {
+         MString filename = defaultRenderGlobalsData.getImageName(pathType, fileFrameNumber,
+                                                                  sceneFileName, nameCamera,
+                                                                  extensions[i], renderLayer,
+                                                                  tokens, 1);
+         // FIXME: the driver is not getting its filename set
+         it->SetImageFilename(i, filename);
+      }
    }
    return imageFilename;
 }
@@ -136,8 +201,11 @@ AtNode * COptionsTranslator::CreateFileOutput(MStringArray &outputs, AtNode *def
    ProcessAOVs();
 
    // set the output driver
-   MString driverType = FindMayaObjectPlug("imageFormat").asString();
-   m_driver = m_session->ExportDriver(GetMayaObject(), driverType);
+   MPlug driverPlug = FindMayaObjectPlug("driver");
+   MPlugArray conn;
+   driverPlug.connectedTo(conn, true, false);
+   if (conn.length())
+      m_driver = m_session->ExportNode(conn[0]);
    if (m_driver != NULL)
    {
       AiNodeSetStr(m_driver, "name", AiNodeEntryGetName(AiNodeGetNodeEntry(m_driver)));
@@ -154,7 +222,8 @@ AtNode * COptionsTranslator::CreateFileOutput(MStringArray &outputs, AtNode *def
    for (AOVSet::iterator it=m_aovs.begin(); it!=m_aovs.end(); ++it)
    {
       CAOV aov = (*it);
-      outputs.append(aov.SetupOutput(m_driver, defaultFilter));
+      MStringArray currOutputs;
+      aov.SetupOutputs(outputs, m_driver, defaultFilter);
       newAOVs.insert(aov);
    }
    m_aovs = newAOVs;
@@ -164,8 +233,12 @@ AtNode * COptionsTranslator::CreateFileOutput(MStringArray &outputs, AtNode *def
 AtNode * COptionsTranslator::CreateOutputFilter()
 {
    // set the output driver
-   MString filterType = FindMayaObjectPlug("filterType").asString();
-   AtNode* filter = m_session->ExportFilter(GetMayaObject(), filterType);
+   AtNode* filter = NULL;
+   MPlug filterPlug = FindMayaObjectPlug("filter");
+   MPlugArray conn;
+   filterPlug.connectedTo(conn, true, false);
+   if (conn.length())
+      filter = m_session->ExportNode(conn[0]);
    if (filter != NULL)
    {
       AiNodeSetStr(filter, "name", AiNodeEntryGetName(AiNodeGetNodeEntry(filter)));
@@ -214,8 +287,9 @@ void COptionsTranslator::SetupRenderOutput(AtNode* options)
    AiNodeSetArray(options, "outputs", outputs);
 }
 
-void COptionsTranslator::SetCamera(AtNode *options, MDagPath& cameraNode)
+void COptionsTranslator::SetCamera(AtNode *options)
 {
+   MDagPath cameraNode = m_session->GetExportCamera();
    if (!cameraNode.isValid())
       return;
 
@@ -237,8 +311,7 @@ void COptionsTranslator::Export(AtNode *options)
 
    SetupRenderOutput(options);
    // set the camera
-   MDagPath camera = m_session->GetExportCamera();
-   SetCamera(options, camera);
+   SetCamera(options);
 
    MStatus status;
 
@@ -348,6 +421,5 @@ void COptionsTranslator::Export(AtNode *options)
 void COptionsTranslator::Update(AtNode *options)
 {
    // set the camera
-   MDagPath camera = m_session->GetExportCamera();
-   SetCamera(options, camera);
+   SetCamera(options);
 }

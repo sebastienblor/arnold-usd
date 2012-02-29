@@ -92,6 +92,15 @@ AtNode* CShaveTranslator::CreateShaveShader(AtNode* curve)
    plug = fnNode.findPlug("aiDirectDiffuse");
    ProcessParameter(shader, "direct_diffuse", AI_TYPE_FLOAT, plug);
 
+   plug = m_fnNode.findPlug("aiAovDirectDiffuse");
+   ProcessParameter(shader, "aov_direct_diffuse", AI_TYPE_STRING, plug);
+
+   plug = m_fnNode.findPlug("aiAovIndirectDiffuse");
+   ProcessParameter(shader, "aov_indirect_diffuse", AI_TYPE_STRING, plug);
+
+   plug = m_fnNode.findPlug("aiAovDirectSpecular");
+   ProcessParameter(shader, "aov_direct_specular", AI_TYPE_STRING, plug);
+
    return shader;
 }
 
@@ -124,7 +133,7 @@ void CShaveTranslator::Update(AtNode* curve)
          plug.connectedTo(curveShaderPlug, true, false);
          if (curveShaderPlug.length() > 0)
          {
-            shader = ExportNode(curveShaderPlug[0]);
+            shader = ExportRootShader(curveShaderPlug[0]);
          }
       }
    }
@@ -132,7 +141,7 @@ void CShaveTranslator::Update(AtNode* curve)
    // Default to the ShaveHair shader if nothing else has been set.
    if (shader == NULL)
    {
-      shader = CreateShaveShader(curve);
+      shader = ExportRootShader(CreateShaveShader(curve));
    }
    
    if (shader != NULL)
@@ -422,4 +431,8 @@ void CShaveTranslator::NodeInitializer(CAbTranslator context)
    helper2.GetAttrData("kd_ind", data);
    data.name = "aiIndirect";
    helper2.MakeInputFloat(data);
+
+   helper2.MakeInput("aov_direct_diffuse");
+   helper2.MakeInput("aov_direct_specular");
+   helper2.MakeInput("aov_indirect_diffuse");
 }

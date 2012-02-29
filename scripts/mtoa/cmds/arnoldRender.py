@@ -1,12 +1,15 @@
 import maya.cmds as cmds
 import maya.mel as mel
+import mtoa.core as core
 
 def arnoldRender(width, height, doShadows, doGlowPass, camera, options):
     # Make sure the aiOptions node exists
-    cmds.createNode('aiOptions', skipSelect=True, shared=True, name='defaultArnoldRenderOptions')
+    core.createOptions()
     cmds.arnoldRender(cam=camera, w=width, h=height)
 
 def arnoldBatchRender(option):
+    # Make sure the aiOptions node exists
+    core.createOptions()
     # Parse option string
     kwargs = {}
     options = option.split(" ")
@@ -37,7 +40,7 @@ def arnoldBatchRender(option):
 
 def arnoldIprStart(editor, resolutionX, resolutionY, camera):
     # Make sure the aiOptions node exists
-    cmds.createNode('aiOptions', skipSelect=True, shared=True, name='defaultArnoldRenderOptions')
+    core.createOptions()
     cmds.arnoldIpr(cam=camera, w=resolutionX, h=resolutionY, mode='start')
 
 def arnoldIprStop():

@@ -33,6 +33,8 @@
 #endif
 
 
+extern AtNodeMethods* mtoa_driver_mtd;
+
 CRenderOptions::CRenderOptions()
 :  m_minx(0), m_miny(0), m_maxx(0), m_maxy(0)
 ,  m_width(0), m_height(0)

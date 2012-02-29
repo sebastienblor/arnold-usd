@@ -24,6 +24,8 @@
 #define AI_ATT_SEP "."
 #define AI_TAG_SEP "@"
 
+MString GetAOVNodeType(int type);
+
 // Abstract base class for all Maya-to-Arnold node translators
 //
 class DLLEXPORT CNodeTranslator
@@ -62,12 +64,14 @@ public:
    virtual MString GetMayaAttributeName() const { return m_handle.attribute(); }
    virtual MString GetMayaNodeTypeName() const { return MFnDependencyNode(m_handle.object()).typeName(); }
    virtual MObject GetMayaObjectAttribute(MString attributeName) const { return MFnDependencyNode(m_handle.object()).attribute(attributeName); }
-   virtual MPlug FindMayaObjectPlug(MString attributeName) const { return MFnDependencyNode(m_handle.object()).findPlug(attributeName); }
+   virtual MPlug FindMayaObjectPlug(MString attributeName, MStatus* ReturnStatus=NULL) const { return MFnDependencyNode(m_handle.object()).findPlug(attributeName, ReturnStatus); }
 
    virtual bool IsMayaTypeDag() {return false;}
    virtual bool IsMayaTypeRenderable() {return false;}
    virtual bool IsMayaTypeLight() { return false; }
    virtual bool DependsOnExportCamera() {return false;}
+   virtual void TrackAOVs(AOVSet* aovs);
+   virtual void TrackShaders(AtNodeSet* nodes) {m_shaders = nodes;};
    /// Instead of caching translator exports, allow a Maya node to be exported multiple times, each time generating new arnold nodes
    virtual bool DisableCaching() {return false;}
 
@@ -77,9 +81,16 @@ protected:
       m_session(NULL),
       m_atNode(NULL),
       m_step(0),
-      m_handle(CNodeAttrHandle())
+      m_handle(CNodeAttrHandle()),
+      m_localAOVs(),
+      m_upstreamAOVs(),
+      m_shaders(NULL)
    {}
 
+   virtual void ComputeAOVs();
+   void AddAOVDefaults(AtNode* shadingEngine, std::vector<AtNode*> &aovShaders);
+   void WriteAOVUserAttributes(AtNode* atNode);
+   
    AtNode* Init(CArnoldSession* session, const CNodeAttrHandle& object)
    {
       m_session = session;
@@ -136,7 +147,7 @@ protected:
    inline double GetMotionByFrame() const {return m_session->GetMotionByFrame(); }
 
    // session action
-   AtNode* ExportNode(const MPlug& outputPlug) {return m_session->ExportNode(outputPlug);}
+   AtNode* ExportNode(const MPlug& outputPlug) {return m_session->ExportNode(outputPlug, m_shaders, &m_upstreamAOVs);}
    AtNode* ExportDagPath(MDagPath &dagPath) {return m_session->ExportDagPath(dagPath);}
 
    // get the arnold node that this translator is exporting (should only be used after all export steps are complete)
@@ -177,6 +188,9 @@ protected:
    std::map<std::string, AtNode*> m_atNodes;
 
    unsigned int m_step;
+   AOVSet m_localAOVs;
+   AOVSet m_upstreamAOVs;
+   AtNodeSet* m_shaders;
 
    // This stores callback IDs for the callbacks this
    // translator creates.

@@ -12,6 +12,7 @@ enum WriteFloatParams
    p_name
 };
 
+
 };
 
 AI_SHADER_NODE_EXPORT_METHODS(WriteFloatMtd);
@@ -24,11 +25,9 @@ node_parameters
    AiMetaDataSetStr(mds, NULL, "maya.classification", "shader/utility");
    AiMetaDataSetBool(mds, NULL, "maya.swatch", false);
 
-   AiParameterRGBA("beauty", 0, 0, 0, 0);
-   AiParameterRGBA("input", 0, 0, 0, 0);
    AiParameterSTR("aov_name", "");
-
-   AiMetaDataSetInt(mds, "aov_name", "aov.type", AI_TYPE_FLOAT);
+   AiParameterRGBA("beauty", 0.0f, 0.0f, 0.0f, 1.0f);
+   AiParameterFLT("input", 0.0f);
 }
 
 shader_evaluate
