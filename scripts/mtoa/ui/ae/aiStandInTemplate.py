@@ -12,6 +12,7 @@ def LoadStandInButtonPush(nodeName):
 
 def ArnoldStandInDsoEdit(nodeName, mPath) :
     mArchivePath = ''
+    nodeName = nodeName.replace(".dso","")
     
     # Sequence of .ass
     if re.search(r'([-_/a-zA-Z0-9.]*[-/a-zA-Z])[_.]([0-9.]+?)(.ass)',mPath) != None:
