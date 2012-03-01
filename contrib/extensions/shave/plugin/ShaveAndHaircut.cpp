@@ -92,13 +92,13 @@ AtNode* CShaveTranslator::CreateShaveShader(AtNode* curve)
    plug = fnNode.findPlug("aiDirectDiffuse");
    ProcessParameter(shader, "direct_diffuse", AI_TYPE_FLOAT, plug);
 
-   plug = m_fnNode.findPlug("aiAovDirectDiffuse");
+   plug = fnNode.findPlug("aiAovDirectDiffuse");
    ProcessParameter(shader, "aov_direct_diffuse", AI_TYPE_STRING, plug);
 
-   plug = m_fnNode.findPlug("aiAovIndirectDiffuse");
+   plug = fnNode.findPlug("aiAovIndirectDiffuse");
    ProcessParameter(shader, "aov_indirect_diffuse", AI_TYPE_STRING, plug);
 
-   plug = m_fnNode.findPlug("aiAovDirectSpecular");
+   plug = fnNode.findPlug("aiAovDirectSpecular");
    ProcessParameter(shader, "aov_direct_specular", AI_TYPE_STRING, plug);
 
    return shader;
