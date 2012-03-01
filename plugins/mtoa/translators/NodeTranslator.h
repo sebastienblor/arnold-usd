@@ -81,10 +81,10 @@ protected:
       m_session(NULL),
       m_atNode(NULL),
       m_step(0),
-      m_handle(CNodeAttrHandle()),
       m_localAOVs(),
       m_upstreamAOVs(),
-      m_shaders(NULL)
+      m_shaders(NULL),
+      m_handle(CNodeAttrHandle())
    {}
 
    virtual void ComputeAOVs();

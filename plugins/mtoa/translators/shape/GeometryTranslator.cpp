@@ -1096,7 +1096,8 @@ void CGeometryTranslator::UpdateMotion(AtNode* anode, unsigned int step)
 
 void CGeometryTranslator::AddUpdateCallbacks()
 {
-   AddShaderAssignmentCallbacks(m_dagPath.node());
+   MObject dagPathNode= m_dagPath.node();
+   AddShaderAssignmentCallbacks(dagPathNode);
    CDagTranslator::AddUpdateCallbacks();
 }
 
