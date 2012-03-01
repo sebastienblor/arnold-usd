@@ -160,8 +160,8 @@ class PointLightTemplate(lightTemplate.LightTemplate):
             cmds.setAttr(origAttrName, lock=False)
             value = cmds.getAttr(origAttrName)
             cmds.setAttr(destAttrName, lock=False)
-            cmds.setAttr(destAttrName, value/2)
-            cmds.setAttr(destAttrName, lock=True)
+            #cmds.setAttr(destAttrName, value/2)
+            #cmds.setAttr(destAttrName, lock=True)
 templates.registerTranslatorUI(PointLightTemplate, "pointLight")
 
 class SpotLightTemplate(lightTemplate.LightTemplate):
@@ -205,8 +205,8 @@ class SpotLightTemplate(lightTemplate.LightTemplate):
             cmds.setAttr(origAttrName, lock=False)
             value = cmds.getAttr(origAttrName)
             cmds.setAttr(destAttrName, lock=False)
-            cmds.setAttr(destAttrName, value/2)
-            cmds.setAttr(destAttrName, lock=True)
+            #cmds.setAttr(destAttrName, value/2)
+            #cmds.setAttr(destAttrName, lock=True)
 templates.registerTranslatorUI(SpotLightTemplate, "spotLight")
 
 class AreaLightTemplate(lightTemplate.LightTemplate):
@@ -249,8 +249,8 @@ class AreaLightTemplate(lightTemplate.LightTemplate):
             cmds.setAttr(origAttrName, lock=False)
             value = cmds.getAttr(origAttrName)
             cmds.setAttr(destAttrName, lock=False)
-            cmds.setAttr(destAttrName, value/2)
-            cmds.setAttr(destAttrName, lock=True)
+            #cmds.setAttr(destAttrName, value/2)
+            #cmds.setAttr(destAttrName, lock=True)
 templates.registerTranslatorUI(AreaLightTemplate, "areaLight")
 
 # Actually currently connecting the other way round, filter's decayRate
