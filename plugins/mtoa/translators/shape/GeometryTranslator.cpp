@@ -530,8 +530,8 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
          int plugElements = plug.evaluateNumElements();
          for (int i = 0; i < plugElements; i++)
          {
-            MPlugArray        connections;
-            plug.elementByLogicalIndex(i).connectedTo(connections, false, true);
+            MPlugArray connections;
+            plug.elementByPhysicalIndex(i).connectedTo(connections, false, true);
 
             // Only export if MPlug matches the connected Shader Group
             if ((connections.length() > 0) && (shadingGroups[J] == connections[0].node()))
@@ -1039,7 +1039,7 @@ AtNode* CGeometryTranslator::ExportInstance(AtNode *instance, const MDagPath& ma
             plug = plug.elementByLogicalIndex(instanceNum);
             MObject obGr = GetMayaObjectAttribute("objectGroups");
             plug = plug.child(obGr);
-            plug.elementByLogicalIndex(0).connectedTo(connections, false, true);
+            plug.elementByPhysicalIndex(0).connectedTo(connections, false, true);
             if(connections.length() > 0)
             {
                shadingGroupPlug = connections[0];
