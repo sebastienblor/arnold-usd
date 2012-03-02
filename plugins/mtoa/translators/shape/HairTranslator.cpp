@@ -203,7 +203,7 @@ void CHairTranslator::Update( AtNode *curve )
    // Allocate memory for all curve points and widths
    AtArray* curvePoints = AiArrayAllocate(numPointsInterpolation, GetNumMotionSteps(), AI_TYPE_POINT);
    AtArray* curveWidths = AiArrayAllocate(numPoints,              GetNumMotionSteps(), AI_TYPE_FLOAT);
-   AtArray* curveColors = AiArrayAllocate(numPoints,              GetNumMotionSteps(), AI_TYPE_RGB);
+   AtArray* curveColors = AiArrayAllocate(m_numMainLines,         GetNumMotionSteps(), AI_TYPE_RGB);
 
    ProcessHairLines(0,
                     curvePoints,
@@ -319,6 +319,10 @@ void CHairTranslator::ProcessHairLines(unsigned int step,
                        curveLineInterpStartsIdx + (step * numPointsPerStep),
                        curvePoint);
 
+         AiArraySetRGB(curveColors,
+                       strand + (step * m_numMainLines),
+                       AiColorCreate(static_cast<float>(colors[0].x), static_cast<float>(colors[0].y), static_cast<float>(colors[0].z)));
+                       
          // Run down the strand adding the points and widths.
          for (int j = 0; j < renderLineLength; ++j, ++lineVertex)
          {
@@ -326,9 +330,6 @@ void CHairTranslator::ProcessHairLines(unsigned int step,
             AiArraySetPnt(curvePoints,
                           j+1 + curveLineInterpStartsIdx + (step * numPointsPerStep),
                           curvePoint);
-            AiArraySetRGB(curveColors,
-                          j+curveLineStartsIdx + (step * numPointsPerStep),
-                          AiColorCreate(static_cast<float>(colors[j].x), static_cast<float>(colors[j].y), static_cast<float>(colors[j].z)));
             // Animated widths are not supported, so just export on step 0
             if (step == 0)
             {
