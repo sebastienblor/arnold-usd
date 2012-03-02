@@ -1249,9 +1249,6 @@ MStatus CExtensionAttrHelper::addAttribute(MObject& attrib)
    }
    else
    {
-      stat = dgMod.linkExtensionAttributeToPlugin(CExtensionsManager::GetMayaPlugin(), attrib);
-      if (stat != MStatus::kSuccess)
-         AiMsgError("[mtoa] Unable to link extension attribute %s.%s to mtoa plugin", nodeType.asChar(), attrName.asChar());
       AiMsgDebug("[mtoa] Added extension attribute %s.%s", nodeType.asChar(), attrName.asChar());
       stat = dgMod.doIt();
    }
