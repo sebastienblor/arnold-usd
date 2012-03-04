@@ -144,7 +144,7 @@ MStatus CRenderSession::Begin(const CRenderOptions &options)
    else
    {
       AiMsgError("[mtoa] Could not initialize the Arnold universe in CRenderSession.Begin(CRenderOptions* options)");
-   	  return MStatus::kFailure;
+        return MStatus::kFailure;
    }
 }
 
@@ -697,6 +697,7 @@ void CRenderSession::DoSwatchRender(const int resolution)
    AiNodeSetFlt(render_view, "gamma", gamma);
 
    AtNode * const filter = AiNode("gaussian_filter");
+   AiNodeSetStr(filter, "name", "swatch_renderview_filter");
    AiNodeSetFlt(filter, "width", 2.0f);
 
    AtNode * const options     = AiUniverseGetOptions();
