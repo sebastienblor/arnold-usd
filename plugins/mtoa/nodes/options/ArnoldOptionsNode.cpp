@@ -288,6 +288,8 @@ MStatus CArnoldOptionsNode::initialize()
       eAttr.setDefault(MTOA_SHADOWLINK_LIGHT);
       addAttribute(s_shadow_linking);
 
+   s_attributes.MakeInput("low_light_threshold");
+
    s_motion_blur_enable = nAttr.create("motion_blur_enable", "mb_en", MFnNumericData::kBoolean, 0);
    nAttr.setKeyable(false);
    addAttribute(s_motion_blur_enable);

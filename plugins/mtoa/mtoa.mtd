@@ -166,6 +166,10 @@
         softmin             INT     1
         softmax             INT     10        
         default             INT     4        
+    [attr low_light_threshold]
+        maya.keyable        BOOL    False
+        min                 FLOAT   0.0
+        softmax             FLOAT   0.1
 
 # lights
 

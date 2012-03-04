@@ -663,10 +663,16 @@ def createArnoldSSSSettings():
 
     pm.setUITemplate(popTemplate=True)
 
-def createArnoldLightLinkSettings():
+def createArnoldLightSettings():
 
     pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
     pm.columnLayout(adjustableColumn=True)
+
+    pm.attrControlGrp('lightThreshold',
+                      label="Low Light Threshold",
+                      attribute='defaultArnoldRenderOptions.lowLightThreshold')
+
+    pm.separator()
 
     pm.attrControlGrp('lightLinking',
                         label="Light Linking",
@@ -897,8 +903,8 @@ def createArnoldRendererGlobalsTab():
 
     # Light Linking
     #
-    pm.frameLayout('arnoldLightLinkSettings', label="Light Linking", cll= True, cl=1)
-    createArnoldLightLinkSettings()
+    pm.frameLayout('arnoldLightSettings', label="Lights", cll= True, cl=1)
+    createArnoldLightSettings()
     pm.setParent('..')
 
     # Subdivision Surfaces
