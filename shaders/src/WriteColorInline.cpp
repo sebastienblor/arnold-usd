@@ -30,7 +30,7 @@ shader_evaluate
 {
    sg->out.RGBA = AiShaderEvalParamRGBA(p_input);
 
-   if (IsInShadingGroup(AiShaderEvalParamArray(p_sets), sg))
+   if ((sg->Rt & AI_RAY_CAMERA) && IsInShadingGroup(AiShaderEvalParamArray(p_sets), sg))
       AiAOVSetRGBA(sg, AiShaderEvalParamStr(p_name), sg->out.RGBA);
 }
 

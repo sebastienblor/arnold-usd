@@ -33,8 +33,8 @@ node_parameters
 shader_evaluate
 {
    sg->out.RGBA = AiShaderEvalParamRGBA(p_beauty);
-
-   AiAOVSetFlt(sg, AiShaderEvalParamStr(p_name), AiShaderEvalParamFlt(p_input));
+   if (sg->Rt & AI_RAY_CAMERA)
+      AiAOVSetFlt(sg, AiShaderEvalParamStr(p_name), AiShaderEvalParamFlt(p_input));
 }
 
 node_initialize

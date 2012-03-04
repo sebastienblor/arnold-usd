@@ -29,7 +29,7 @@ node_parameters
 shader_evaluate
 {
    sg->out.FLT = AiShaderEvalParamFlt(p_input);
-   if (!IsInShadingGroup(AiShaderEvalParamArray(p_sets), sg))
+   if ((sg->Rt & AI_RAY_CAMERA) && IsInShadingGroup(AiShaderEvalParamArray(p_sets), sg))
       AiAOVSetFlt(sg, AiShaderEvalParamStr(p_name), sg->out.FLT);
 }
 
