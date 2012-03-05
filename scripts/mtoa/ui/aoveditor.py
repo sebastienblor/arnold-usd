@@ -395,8 +395,7 @@ class AOVOutputItem(object):
         Add a new Driver and Filter row within the AOVItem row
         '''
         pm.setParent(self.parent)
-        defaultDriver = '<%s>' % pm.getAttr('defaultArnoldDriver.aiTranslator')
-        defaultFilter = '<%s>' % pm.getAttr('defaultArnoldFilter.aiTranslator')
+        
 
         # DRIVER UI ----------
         self.row = pm.cmds.rowLayout(nc=2,
@@ -407,6 +406,7 @@ class AOVOutputItem(object):
                                              changeCommand=lambda newDriver, at=self.outputAttr.driver: \
                                              self.driverMenuChanged(at, newDriver))
 
+        defaultDriver = '<%s>' % pm.getAttr('defaultArnoldDriver.aiTranslator')
         pm.cmds.menuItem(label=defaultDriver)
         for tran in templates.getTranslators('aiAOVDriver'):
             pm.cmds.menuItem(label=tran)
@@ -422,16 +422,22 @@ class AOVOutputItem(object):
         except RuntimeError:
             pm.warning("[mtoa] %s: Unknown driver %r" % (self.driverNode, driver))
         else:
-            drivTransAttr = self.driverNode.attr('aiTranslator')
-            pm.scriptJob(attributeChange=[drivTransAttr,
-                                          lambda: self.translatorChanged(drivTransAttr, self.driverMenu, isDefaultDriver, 'aiAOVDriver')],
-                         parent=self.driverMenu)
-
+            if not isDefaultDriver:
+                drivTransAttr = self.driverNode.attr('aiTranslator')
+                self.driverJobId = pm.scriptJob(attributeChange=[drivTransAttr,
+                                              lambda: self.translatorChanged(drivTransAttr, self.driverMenu)],
+                             parent=self.driverMenu)
+            # rebuild the menu when the default driver changes
+            pm.scriptJob(attributeChange=['defaultArnoldDriver.aiTranslator',
+                                          lambda: self.defaultTranslatorChanged('defaultArnoldDriver', self.driverMenu, 'aiAOVDriver')],
+                                          parent=self.parent)
+            
         # FILTER UI ----------
         self.filterMenu = pm.cmds.optionMenu(label='', w=60,
                                              changeCommand=lambda newFilter, at=self.outputAttr.filter: \
                                              self.filterMenuChanged(at, newFilter))
         
+        defaultFilter = '<%s>' % pm.getAttr('defaultArnoldFilter.aiTranslator')
         pm.cmds.menuItem(label=defaultFilter)
         for tran in templates.getTranslators('aiAOVFilter'):
             pm.cmds.menuItem(label=tran)
@@ -447,10 +453,16 @@ class AOVOutputItem(object):
         except RuntimeError:
             pm.warning("[mtoa] %s: Unknown filter %r" % (self.filterNode, filter))
         else:
-            filtTransAttr = self.filterNode.attr('aiTranslator')
-            pm.scriptJob(attributeChange=[filtTransAttr,
-                                          lambda: self.translatorChanged(filtTransAttr, self.filterMenu, isDefaultFilter, 'aiAOVFilter')],
-                         parent=self.filterMenu)
+            if not isDefaultFilter:
+                filtTransAttr = self.filterNode.attr('aiTranslator')
+                self.filterJobId = pm.scriptJob(attributeChange=[filtTransAttr,
+                                              lambda: self.translatorChanged(filtTransAttr, self.filterMenu, isDefaultFilter, 'aiAOVFilter')],
+                             parent=self.filterMenu)
+            # rebuild the menu when the default filter changes
+            pm.scriptJob(attributeChange=['defaultArnoldFilter.aiTranslator',
+                                          lambda: self.defaultTranslatorChanged('defaultArnoldFilter', self.filterMenu, 'aiAOVFilter')],
+                                          parent=self.parent)
+
         callbacks.DelayedIdleCallbackQueue(self.fixOptionMenus)
 
     def delete(self):
@@ -466,30 +478,42 @@ class AOVOutputItem(object):
         self.outputAttr.remove()
         pm.deleteUI(self.row)
 
-    def translatorChanged(self, translatorAttr, menu, isDefault, outputType):
+    def translatorChanged(self, translatorAttr, menu):
         '''
         called when the aiTranslator attribute of a driver/filter node changes
-        so that we can change the corresponding menu
+        so that we can update the corresponding menu
         '''
         value = translatorAttr.get()
-        if isDefault:
-            # clear menu
-            for item in pm.optionMenu(menu, query=True, itemListLong=True) or []:
-                pm.deleteUI(item)
-            value = '<%s>' % value
-            pm.cmds.menuItem(parent=menu, label=value)
-            for tran in templates.getTranslators(outputType):
-                pm.cmds.menuItem(parent=menu, label=tran)
-            callbacks.DelayedIdleCallbackQueue(self.fixOptionMenus)
         pm.cmds.optionMenu(menu, e=True, value=value)
 
+    def defaultTranslatorChanged(self, defaultNode, menu, outputType):
+        '''
+        rebuilds the menu, updating the value for the default driver/filter and
+        restoring the selected item to the proper value
+        '''
+        # clear menu
+        value = pm.optionMenu(menu, query=True, value=True)
+        for item in pm.optionMenu(menu, query=True, itemListLong=True) or []:
+            pm.deleteUI(item)
+        default = '<%s>' % pm.getAttr(defaultNode + '.aiTranslator')
+        pm.cmds.menuItem(parent=menu, label=default)
+        for tran in templates.getTranslators(outputType):
+            pm.cmds.menuItem(parent=menu, label=tran)
+        callbacks.DelayedIdleCallbackQueue(self.fixOptionMenus)
+        if value.startswith('<'):
+            value = default
+        pm.cmds.optionMenu(menu, e=True, value=value)
+
+    def dummy(self, *args):
+        pass
+
     def driverMenuChanged(self, aovOutputAttr, newValue):
-        self.outputChangedCallback(aovOutputAttr, newValue, 'aiAOVDriver', 'defaultArnoldDriver.message')
+        self.outputChangedCallback(aovOutputAttr, newValue, 'aiAOVDriver', 'defaultArnoldDriver')
 
     def filterMenuChanged(self, aovOutputAttr, newValue):
-        self.outputChangedCallback(aovOutputAttr, newValue, 'aiAOVFilter', 'defaultArnoldFilter.message')
+        self.outputChangedCallback(aovOutputAttr, newValue, 'aiAOVFilter', 'defaultArnoldFilter')
 
-    def outputChangedCallback(self, aovOutputAttr, newValue, outputType, defaultNodePlug):
+    def outputChangedCallback(self, aovOutputAttr, newValue, outputType, defaultNode):
         """
         change callback for both filter and driver menus
         
@@ -498,8 +522,8 @@ class AOVOutputItem(object):
         conn = aovOutputAttr.inputs()
         if newValue.startswith('<'):
             isDefault=True
-            pm.connectAttr(defaultNodePlug, aovOutputAttr, force=True)
-            outputNode = pm.PyNode(defaultNodePlug.split('.')[0])
+            pm.connectAttr(defaultNode + '.message', aovOutputAttr, force=True)
+            outputNode = pm.PyNode(defaultNode)
             pm.select(outputNode)
             if conn and not conn[0].outputs():
                 utils.safeDelete(conn[0])
@@ -522,9 +546,16 @@ class AOVOutputItem(object):
             menu = self.driverMenu
 
         transAttr = outputNode.attr('aiTranslator')
-        pm.scriptJob(attributeChange=[transAttr, lambda: self.translatorChanged(transAttr, menu, isDefault, outputType)],
-                     replacePrevious=True,
-                     parent=menu)
+        if not isDefault:
+            # change the selected menu item when the translator attribute changes for our driver/filter
+            pm.scriptJob(attributeChange=[transAttr, lambda: self.translatorChanged(transAttr, menu)],
+                         replacePrevious=True,
+                         parent=menu)
+        else:
+            # delete pre-existing scriptJob
+            pm.scriptJob(attributeChange=[transAttr, lambda: self.dummy()],
+                         replacePrevious=True,
+                         parent=menu)
 
         self.aovItem.outputsChanged = True
 
