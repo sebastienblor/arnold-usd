@@ -63,11 +63,11 @@ MString GetAOVNodeType(int type)
    switch (type)
    {
    case AI_TYPE_FLOAT:
-      nodeType = "writeFloatInline";
+      nodeType = "aovWriteFloat";
       break;
    case AI_TYPE_RGB:
    case AI_TYPE_RGBA:
-      nodeType = "writeColorInline";
+      nodeType = "aovWriteColor";
       break;
    case AI_TYPE_VECTOR:
       nodeType = "writeVectorInline";

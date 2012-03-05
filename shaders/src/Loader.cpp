@@ -417,7 +417,7 @@ node_loader
    case 49:
       node->methods     = WriteColorInlineMtd;
       node->output_type = AI_TYPE_RGBA;
-      node->name        = "writeColorInline";
+      node->name        = "aovWriteColor";
       node->node_type   = AI_NODE_SHADER;
       break;
 
@@ -431,7 +431,7 @@ node_loader
    case 51:
       node->methods     = WriteFloatInlineMtd;
       node->output_type = AI_TYPE_FLOAT;
-      node->name        = "writeFloatInline";
+      node->name        = "aovWriteFloat";
       node->node_type   = AI_NODE_SHADER;
       break;
 
