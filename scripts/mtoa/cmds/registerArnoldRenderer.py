@@ -299,7 +299,8 @@ def registerArnoldRenderer():
                 createArnoldMenu()
 
             # version specific overrides or additions
-            #_overridePythonScripts()
+            if pm.mel.getApplicationVersionAsFloat() < 2013:
+                _overridePythonScripts()
             _overrideMelScripts()
 
             # Add option box for file translator
