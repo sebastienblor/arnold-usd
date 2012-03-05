@@ -335,8 +335,6 @@ def cameraOrthographicChanged(orthoPlug, *args):
         newTrans = 'perspective'
     #print "newTrans", newTrans
     if newTrans:
-        if pm.optionMenuGrp('aiTranslatorOMG', exists=True):
-            pm.optionMenuGrp('aiTranslatorOMG', edit=True, value=newTrans)
         transPlug.setString(newTrans)
 
 def cameraTranslatorChanged(transPlug, *args):

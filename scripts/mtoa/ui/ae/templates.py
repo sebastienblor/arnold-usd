@@ -537,12 +537,20 @@ class TranslatorControl(AttributeEditorTemplate):
         # last child is the 'hide_me' control that always needs to be hidden
         pm.layout(children[-1], edit=True, visible=False)
 
+    def attributeChanged(self, nodeName, attr, *args):
+        """
+        called when the translator attribute is changed
+        """
+        transName = pm.getAttr(attr)
+        pm.optionMenuGrp(self._optionMenu, edit=True, value=transName)
+        self.updateChildren(nodeName, transName)
+
     def menuChanged(self, nodeName, currentTranslator):
         """
         called when the translator optionMenuGrp (aiTranslatorOMG) changes
         """
+        # this setAttr triggers attributeChanged to call updateChildren
         pm.setAttr(nodeName + "." + self._attr, currentTranslator)
-        self.updateChildren(nodeName, currentTranslator)
 
     def createMenu(self, nodeName):
         """
@@ -557,6 +565,11 @@ class TranslatorControl(AttributeEditorTemplate):
 
         transName = self.getCurrentTranslator(nodeName)
         pm.optionMenuGrp(self._optionMenu, edit=True, value=transName)
+
+        transAttr = nodeName + "." + self._attr
+        pm.scriptJob(attributeChange=[transAttr, lambda *args: self.attributeChanged(nodeName, transAttr, *args)],
+                     replacePrevious=True,
+                     parent=self._optionMenu)
 
     def updateMenu(self, nodeName):
         """
@@ -576,6 +589,11 @@ class TranslatorControl(AttributeEditorTemplate):
         pm.optionMenuGrp(self._optionMenu, edit=True, value=transName,
                            cc=lambda *args: self.menuChanged(nodeName, args[0]))
         self.updateChildren(nodeName, transName)
+
+        transAttr = nodeName + "." + self._attr
+        pm.scriptJob(attributeChange=[transAttr, lambda *args: self.attributeChanged(nodeName, transAttr, *args)],
+                     replacePrevious=True,
+                     parent=self._optionMenu)
 
     def getTranslators(self):
         if self._translators is None:
