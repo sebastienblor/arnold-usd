@@ -585,7 +585,7 @@ class ArnoldAOVEditor(object):
         pm.cmds.rowLayout('arnoldAOVButtonRow', nc=3, columnWidth3=[140, 100, 100], columnAttach3=['right', 'both', 'both'])
         pm.cmds.text(label='')
         pm.cmds.button(label='Add Custom', c=lambda *args: shaderTemplate.newAOVPrompt())
-        pm.cmds.button(label='Delete All', c=lambda *args: pm.delete(pm.ls(type='aiAOV')))
+        pm.cmds.button(label='Delete All', c=lambda *args: self.renderOptions.removeAOVs(self.aovRows.keys()))
         pm.setParent('..') # rowLayout
 
         pm.cmds.separator(style='in')

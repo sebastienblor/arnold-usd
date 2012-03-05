@@ -39,34 +39,57 @@ GlobalAOVData = namedtuple('GlobalAOVData', ['name', 'attribute', 'type'])
 
 SceneAOVData = namedtuple('SceneAOVData', ['name', 'type', 'index', 'node'])
 
+def nextAvailableIndex(attr):
+    lastIndex = -1
+    for at in attr:
+        currIndex = at.index()
+        if currIndex > (lastIndex +1):
+            return lastIndex +1
+        lastIndex = currIndex
+    return lastIndex +1
+
 def getShadingGroupAOVMap(nodeAttr):
     '''
-    return a mapping from aov name to element plug on aiCustomAOVs 
+    return a mapping from aov name to element 'aovName' plug on aiCustomAOVs, and the next available index
     '''
+    lastIndex = -1
+    nextIndex = None
     nameToAttr = {}
     for at in nodeAttr:
+        currIndex = at.index()
+        if nextIndex is None and currIndex > (lastIndex +1):
+            nextIndex = lastIndex +1
         name = at.aovName.get()
         if name:
             nameToAttr[name] = at
-    return nameToAttr
+        lastIndex = currIndex
+    if nextIndex is None:
+        nextIndex = lastIndex +1
+    return nameToAttr, nextIndex
 
 def removeAliases(aovs):
     for sg in pm.ls(type='shadingEngine'):
         for aov in aovs:
             try:
-                pm.aliasAttr(sg + '.ai_aov_' + aov.name, remove=True)
+                pm.removeMultiInstance(sg + '.ai_aov_' + aov.name)
             except RuntimeError, err:
                 pass #print err
 
 def addAliases(aovs):
     for sg in pm.ls(type='shadingEngine'):
         sgAttr = sg.aiCustomAOVs
-        nameMapping = getShadingGroupAOVMap(sgAttr)
+        nameMapping, nextIndex = getShadingGroupAOVMap(sgAttr)
         for aov in aovs:
             try:
-                pm.aliasAttr('ai_aov_' + aov.name, nameMapping[aov.name])
-            except (RuntimeError, KeyError) as err:
-                pass #print err
+                plug = nameMapping[aov.name]
+            except KeyError:
+                plug = sgAttr[nextIndex]
+                plug.aovName.set(aov.name)
+            try:
+                pm.aliasAttr('ai_aov_' + aov.name, plug)
+            except RuntimeError as err:
+                pm.aliasAttr(sg + '.ai_aov_' + aov.name, remove=True)
+                pm.aliasAttr('ai_aov_' + aov.name, plug)
 
 def refreshAliases():
     aovList = getAOVs()
