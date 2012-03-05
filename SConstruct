@@ -523,6 +523,8 @@ MTOA_API_DOCS = env.SConscript('docs/doxygen_api/SConscript',
 SConscriptChdir(1)
 
 env.Install(TARGET_PLUGIN_PATH, os.path.join('plugins', 'mtoa', 'mtoa.mtd'))
+env.Install(TARGET_SHADER_PATH, os.path.join('shaders', 'mtoa_shaders.mtd'))
+
 if system.os() == 'windows':
    # Rename plugins as .mll and install them in the target path
    mtoa_new = os.path.splitext(str(MTOA[0]))[0] + '.mll'

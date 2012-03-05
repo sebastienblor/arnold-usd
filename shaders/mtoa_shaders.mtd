@@ -1,0 +1,62 @@
+# skin_sss                    0x00115D16
+
+[node skin_sss]
+    maya.name               STRING  "aiSkinSss"
+    maya.id                 INT     0x00115D16
+    maya.classification     STRING  "shader/surface"
+    maya.output_name        STRING  "outColor"
+    maya.output_shortname   STRING  "out"
+
+    [attr diffuse_color]
+        maya.name           STRING  "color"
+    [attr diffuse_weight]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr sss_weight]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr shallow_scatter_weight]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr shallow_scatter_radius]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr mid_scatter_weight]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr mid_scatter_radius]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0        
+    [attr deep_scatter_weight]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr deep_scatter_radius]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0     
+    [attr primary_reflection_weight]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0        
+    [attr primary_reflection_specular_weight]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr primary_reflection_reflection_weight]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+    [attr primary_reflection_fresnel_coefficient]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0        
+    [attr secondary_reflection_weight]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0        
+    [attr secondary_reflection_specular_weight]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0        
+    [attr secondary_reflection_reflection_weight]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0    
+    [attr secondary_reflection_fresnel_coefficient]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0               
+    [attr global_sss_radius_multiplier]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
