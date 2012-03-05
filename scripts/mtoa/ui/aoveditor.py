@@ -499,8 +499,8 @@ class AOVOutputItem(object):
         if newValue.startswith('<'):
             isDefault=True
             pm.connectAttr(defaultNodePlug, aovOutputAttr, force=True)
-            pm.select(defaultNodePlug.split('.')[0])
-            outputNode = defaultNodePlug
+            outputNode = pm.PyNode(defaultNodePlug.split('.')[0])
+            pm.select(outputNode)
             if conn and not conn[0].outputs():
                 utils.safeDelete(conn[0])
         else:
