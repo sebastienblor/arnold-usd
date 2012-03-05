@@ -80,20 +80,33 @@ AtNode* CShaderTranslator::ProcessAOVOutput(AtNode* shader)
 
       AiNodeSetStr(writeNode, "aov_name", aovName);
 
+      MPlugArray plugs = it->second;
+      /*
+       * this is the more "pure" way of doing things, because we set a node pointer
+       * instead of a node name as a string (as below).  however, in order to get the
+       * node pointer we must export all shading engines here (otherwise we have no
+       * guarantee that a node pointer even exists yet), which causes problems.
+      AtArray* sets = AiArrayAllocate(plugs.length(), 1, AI_TYPE_NODE);
+      for (unsigned int i = 0; i < plugs.length(); i++)
+      {
+         MFnDependencyNode fnNode(plugs[i].node());
+         MPlug plug = fnNode.findPlug("dagSetMembers");
+         AtNode* node = m_session->ExportNode(plug);
+         AiArraySetPtr(sets, i, node);
+      }
+      */
+      AtArray* sets = AiArrayAllocate(plugs.length(), 1, AI_TYPE_STRING);
+      for (unsigned int i = 0; i < plugs.length(); i++)
+      {
+         MFnDependencyNode fnNode(plugs[i].node());
+         MString nodeName = fnNode.name() + ".dagSetMembers";
+         AiArraySetStr(sets, i, nodeName.asChar());
+      }
+      AiNodeSetArray(writeNode, "sets", sets);
+
       // link output of currNode to input of writeNode
       AiNodeLink(currNode, "input", writeNode);
       currNode = writeNode;
-      /*
-      MFnDependencyNode fnNode(sgPlug.node());
-      MPlug plug = fnNode.findPlug("surfaceShader");
-      MPlugArray connections;
-      // get incoming connections to surfaceShader plug
-      plug.connectedTo(connections, true, false);
-      if (connections.length() > 0)
-      {
-         AtNode* node = m_session->ExportNode(connections[0]);
-         cout << node << endl;
-      }*/
    }
    return currNode;
 }
@@ -166,7 +179,9 @@ void CShaderTranslator::Export(AtNode *shader)
          SetArnoldRootNode(bump);
       }
    }
-   AssociateAOVsWithShadingGroups();
+   // This routine is not currently used. It could eventually be used in order for
+   // MayaShadingEngine.sets to be a node array instead of a string array
+   //AssociateAOVsWithShadingGroups();
 }
 
 void CShaderTranslator::ExportMotion(AtNode *shader, unsigned int step)
