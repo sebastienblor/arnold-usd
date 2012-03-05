@@ -1,6 +1,6 @@
 import pymel.core as pm
 import mtoa.aovs as aovs
-import mtoa.ui.ae.shapeTemplate as templates
+import mtoa.ui.ae.templates as templates
 import mtoa.ui.ae.shaderTemplate as shaderTemplate
 import mtoa.ui.aoveditor as aoveditor
 from collections import defaultdict

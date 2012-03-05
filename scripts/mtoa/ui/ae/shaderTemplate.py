@@ -2,7 +2,7 @@
 import mtoa.aovs as aovs
 import mtoa.ui.ae.aiSwatchDisplay as aiSwatchDisplay
 from mtoa.ui.ae.utils import interToUI
-import mtoa.ui.ae.shapeTemplate as templates
+import mtoa.ui.ae.templates as templates
 import mtoa.core as core
 
 def newAOVPrompt(default=''):

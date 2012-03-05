@@ -92,8 +92,8 @@ def _addAEHooks():
     # so we will too, unless a more popular convention is found.
     pm.melGlobals.initVar('string[]', 'AEshapeHooks')
     hooks = list(pm.melGlobals['AEshapeHooks'])
-    import mtoa.ui.ae.shapeTemplate
-    procName = utils.pyToMelProc(mtoa.ui.ae.shapeTemplate.loadArnoldTemplate, [('string', 'nodeName')], useName=True)
+    import mtoa.ui.ae.templates
+    procName = utils.pyToMelProc(mtoa.ui.ae.templates.loadArnoldTemplate, [('string', 'nodeName')], useName=True)
     hooks.append(procName)
     pm.melGlobals['AEshapeHooks'] = hooks
 
@@ -287,7 +287,10 @@ def registerArnoldRenderer():
             # AE Templates
             # the following must occur even in batch mode because they contain calls to registerDefaultTranslator
             pm.evalDeferred(aeUtils.loadAETemplates)
-            _addAEHooks()
+            if pm.mel.getApplicationVersionAsFloat() < 2013:
+                _addAEHooks()
+            else:
+                import rendererCallbacks
             import mtoa.ui.ae.customShapeAttributes
             if not pm.about(batch=True):
                 # Reload the AE Window if it has already been opened
@@ -296,7 +299,7 @@ def registerArnoldRenderer():
                 createArnoldMenu()
 
             # version specific overrides or additions
-            _overridePythonScripts()
+            #_overridePythonScripts()
             _overrideMelScripts()
 
             # Add option box for file translator

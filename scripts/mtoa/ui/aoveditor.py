@@ -3,7 +3,7 @@ from mtoa.callbacks import *
 import mtoa.aovs as aovs
 import mtoa.utils as utils
 import mtoa.ui.ae.shaderTemplate as shaderTemplate
-import mtoa.ui.ae.shapeTemplate as shapeTemplate
+import mtoa.ui.ae.templates as templates
 import mtoa.core as core
 import mtoa.callbacks as callbacks
 from collections import defaultdict
@@ -408,7 +408,7 @@ class AOVOutputItem(object):
                                              self.driverMenuChanged(at, newDriver))
 
         pm.cmds.menuItem(label=defaultDriver)
-        for tran in shapeTemplate.getTranslators('aiAOVDriver'):
+        for tran in templates.getTranslators('aiAOVDriver'):
             pm.cmds.menuItem(label=tran)
         if self.driverNode.name() == 'defaultArnoldDriver':
             driver = defaultDriver
@@ -433,7 +433,7 @@ class AOVOutputItem(object):
                                              self.filterMenuChanged(at, newFilter))
         
         pm.cmds.menuItem(label=defaultFilter)
-        for tran in shapeTemplate.getTranslators('aiAOVFilter'):
+        for tran in templates.getTranslators('aiAOVFilter'):
             pm.cmds.menuItem(label=tran)
         if self.filterNode.name() == 'defaultArnoldFilter':
             filter = defaultFilter
@@ -478,7 +478,7 @@ class AOVOutputItem(object):
                 pm.deleteUI(item)
             value = '<%s>' % value
             pm.cmds.menuItem(parent=menu, label=value)
-            for tran in shapeTemplate.getTranslators(outputType):
+            for tran in templates.getTranslators(outputType):
                 pm.cmds.menuItem(parent=menu, label=tran)
             callbacks.DelayedIdleCallbackQueue(self.fixOptionMenus)
         pm.cmds.optionMenu(menu, e=True, value=value)

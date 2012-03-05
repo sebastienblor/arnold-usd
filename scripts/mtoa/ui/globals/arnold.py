@@ -1,5 +1,5 @@
 ﻿import pymel.core as pm
-from mtoa.ui.ae.shapeTemplate import createTranslatorMenu
+from mtoa.ui.ae.templates import createTranslatorMenu
 from mtoa.callbacks import *
 import mtoa.core as core
 

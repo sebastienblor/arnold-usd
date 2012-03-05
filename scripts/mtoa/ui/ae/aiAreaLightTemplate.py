@@ -1,7 +1,7 @@
 import pymel.core as pm
 import mtoa.ui.ae.lightTemplate as lightTemplate
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
-import mtoa.ui.ae.shapeTemplate as templates
+import mtoa.ui.ae.templates as templates
 
 class AEaiAreaLightTemplate(ShaderAETemplate):
     def makeLightExclusive(self, attr):

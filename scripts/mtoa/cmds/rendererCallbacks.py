@@ -2,6 +2,7 @@ import maya.cmds as cmds
 import maya.mel as mel
 import mtoa.utils as utils
 from mtoa.ui.nodeTreeLister import aiHyperShadeCreateMenu_BuildMenu, createArnoldNodesTreeLister_Content
+import mtoa.ui.ae.templates as templates
 
 def aiHyperShadePanelBuildCreateMenu() :
     print "callback : aiHyperShadePanelBuildCreateMenu"
@@ -41,37 +42,22 @@ def aiBuildRenderNodeTreeListerContentCallback(renderNodeTreeLister, postCommand
     
 # Add the callbacks
 
-# we probably don't need this if we correctly import in global namespace
+cmds.callbacks(addCallback=aiHyperShadePanelBuildCreateMenu,
+               hook="hyperShadePanelBuildCreateMenu",
+               owner="arnold")
 
-utils.pyToMelProc(aiHyperShadePanelBuildCreateMenu, [], useName=True)
+cmds.callbacks(addCallback=aiHyperShadePanelBuildCreateSubMenu,
+               hook="hyperShadePanelBuildCreateSubMenu",
+               owner="arnold")
 
-utils.pyToMelProc(aiHyperShadePanelBuildCreateSubMenu, [], useName=True)    
+cmds.callbacks(addCallback=aiCreateRenderNodeSelectNodeCategoriesCallback,
+               hook="createRenderNodeSelectNodeCategories",
+               owner="arnold")
 
-mel.eval("callbacks -addCallback \"aiHyperShadePanelBuildCreateMenu\" -hook \"hyperShadePanelBuildCreateMenu\" -owner \"arnold\"")
+cmds.callbacks(addCallback=aiBuildRenderNodeTreeListerContentCallback,
+               hook="buildRenderNodeTreeListerContent",
+               owner="arnold")
 
-mel.eval("callbacks -addCallback \"aiHyperShadePanelBuildCreateSubMenu\" -hook \"hyperShadePanelBuildCreateSubMenu\" -owner \"arnold\"")
-
-
-#cmds.callbacks(addCallback="aiHyperShadePanelBuildCreateMenu()", hook="hyperShadePanelBuildCreateMenu", owner="arnold")
-
-#cmds.callbacks(addCallback="aiHyperShadePanelBuildCreateSubMenu()", hook="hyperShadePanelBuildCreateSubMenu", owner="arnold")
-
-# however until callbacks support python functions with arguments, we do need these hacks
-
-utils.pyToMelProc(aiCreateRenderNodeSelectNodeCategoriesCallback,
-                        [('string', 'nodeTypesFlag'),
-                         ('string', 'renderNodeTreeLister')], useName=True)
-
-utils.pyToMelProc(aiBuildRenderNodeTreeListerContentCallback,
-                        [('string', 'renderNodeTreeLister'),
-                         ('string', 'postCommand'),
-                         ('string', 'filterString')], useName=True)
-
-mel.eval("callbacks -addCallback \"aiCreateRenderNodeSelectNodeCategoriesCallback\" -hook \"createRenderNodeSelectNodeCategories\" -owner \"arnold\"")
-
-mel.eval("callbacks -addCallback \"aiBuildRenderNodeTreeListerContentCallback\" -hook \"buildRenderNodeTreeListerContent\" -owner \"arnold\"")
-
-#cmds.callbacks(addCallback="aiCreateRenderNodeSelectNodeCategoriesCallback", hook="createRenderNodeSelectNodeCategories", owner="arnold")
-
-#cmds.callbacks(addCallback="aiBuildRenderNodeTreeListerContentCallback", hook="buildRenderNodeTreeListerContent", owner="arnold")
-
+cmds.callbacks(addCallback=templates.loadArnoldTemplate,
+               hook="AETemplateCustomContent",
+               owner="arnold")

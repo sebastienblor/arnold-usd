@@ -28,7 +28,7 @@ import re
 import pymel.core as pm
 
 import mtoa.utils as utils
-from mtoa.ui.ae.shapeTemplate import createTranslatorMenu
+from mtoa.ui.ae.templates import createTranslatorMenu
 from mtoa.callbacks import *
 import mtoa.core as core
 

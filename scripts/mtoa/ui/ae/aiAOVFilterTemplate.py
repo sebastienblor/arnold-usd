@@ -1,5 +1,5 @@
 import pymel.core as pm
-from mtoa.ui.ae.shapeTemplate import TranslatorControl
+from mtoa.ui.ae.templates import TranslatorControl
 from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
 class AEaiAOVFilterTemplate(ShaderAETemplate):

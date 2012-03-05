@@ -3,7 +3,7 @@ from pymel.mayautils import executeDeferred
 import mtoa.ui.ae.utils as aeUtils
 import mtoa.core as core
 from mtoa.callbacks import *
-from mtoa.ui.ae.shapeTemplate import AttributeTemplate
+from mtoa.ui.ae.templates import AttributeTemplate
 from mtoa.utils import prettify
 import mtoa.callbacks as callbacks
 

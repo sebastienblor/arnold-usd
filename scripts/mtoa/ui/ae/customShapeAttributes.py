@@ -3,7 +3,7 @@ import maya.cmds as cmds
 import maya.OpenMaya as om
 import mtoa.ui.ae.lightTemplate as lightTemplate
 from mtoa.ui.ae.utils import aeCallback
-import mtoa.ui.ae.shapeTemplate as templates
+import mtoa.ui.ae.templates as templates
 import mtoa.callbacks as callbacks
 import mtoa.core as core
 
