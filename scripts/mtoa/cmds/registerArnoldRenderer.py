@@ -42,7 +42,7 @@ try:
     import mtoa.ui.nodeTreeLister as nodeTreeLister
     import mtoa.ui.globals.common
     from mtoa.ui.globals.common import createArnoldRendererCommonGlobalsTab, updateArnoldRendererCommonGlobalsTab
-    from mtoa.ui.globals.arnold import createArnoldRendererGlobalsTab, updateArnoldRendererGlobalsTab, updateBackgroundSettings
+    from mtoa.ui.globals.settings import createArnoldRendererGlobalsTab, updateArnoldRendererGlobalsTab, updateBackgroundSettings
     from mtoa.ui.aoveditor import createArnoldAOVTab, updateArnoldAOVTab
     import mtoa.ui.ae.utils as aeUtils
     from mtoa.ui.arnoldmenu import createArnoldMenu
