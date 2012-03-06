@@ -18,6 +18,7 @@
 # noise                       0x00115D0D
 # bump3d                      0x00115D0E
 # motion_vector               0x00115D0F
+# image                       0x00115D17
 
 # options
 
@@ -759,7 +760,10 @@
         default             FLOAT   0.01
 
 [node image]
-    maya.hide               BOOL    True
+    desc                    STRING  "Image"
+    maya.name               STRING  "aiImage"
+    maya.id                 INT     0x00115D17
+    maya.classification     STRING  "shader/utility"
 
 [node motion_vector]
     desc                    STRING  "Motion vectors"
