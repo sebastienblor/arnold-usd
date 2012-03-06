@@ -36,6 +36,10 @@
     [attr primary_reflection_weight]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0        
+    [attr primary_reflection_roughness]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0   
+        default             FLOAT   0.5
     [attr primary_reflection_specular_weight]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0
@@ -44,13 +48,17 @@
         softmax             FLOAT   1.0
     [attr primary_reflection_fresnel_coefficient]
         min                 FLOAT   0.0
-        softmax             FLOAT   1.0        
+        softmax             FLOAT   1.0
     [attr secondary_reflection_weight]
         min                 FLOAT   0.0
-        softmax             FLOAT   1.0        
+        softmax             FLOAT   1.0
+    [attr secondary_reflection_roughness]
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
+        default             FLOAT   0.5
     [attr secondary_reflection_specular_weight]
         min                 FLOAT   0.0
-        softmax             FLOAT   1.0        
+        softmax             FLOAT   1.0
     [attr secondary_reflection_reflection_weight]
         min                 FLOAT   0.0
         softmax             FLOAT   1.0    

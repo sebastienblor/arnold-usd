@@ -478,12 +478,14 @@ enum SSSParams {
    p_deep_scatter_radius,
    p_primary_reflection_color,
    p_primary_reflection_weight,
+   p_primary_reflection_roughness,
    p_primary_reflection_specular_weight,
    p_primary_reflection_reflection_weight,
    p_primary_reflection_enable_fresnel_falloff,
    p_primary_reflection_fresnel_coefficient,
    p_secondary_reflection_color,
    p_secondary_reflection_weight,
+   p_secondary_reflection_roughness,
    p_secondary_reflection_specular_weight,
    p_secondary_reflection_reflection_weight,
    p_secondary_reflection_enable_fresnel_falloff,
@@ -510,12 +512,14 @@ node_parameters
    AiParameterFLT ("deep_scatter_radius", 0.6f);
    AiParameterRGB ("primary_reflection_color", 0.75f, 0.9f, 1.0f);
    AiParameterFLT ("primary_reflection_weight", 0.8f);
+   AiParameterFLT ("primary_reflection_roughness", 0.5f);
    AiParameterFLT ("primary_reflection_specular_weight", 1.0f);
    AiParameterFLT ("primary_reflection_reflection_weight", 0.0f);
    AiParameterBOOL("primary_reflection_enable_fresnel_falloff", true);
    AiParameterFLT ("primary_reflection_fresnel_coefficient", 0.08f);
    AiParameterRGB ("secondary_reflection_color", 0.75f, 0.9f, 1.0f);
    AiParameterFLT ("secondary_reflection_weight", 0.6f);
+   AiParameterFLT ("secondary_reflection_roughness", 0.35f);
    AiParameterFLT ("secondary_reflection_specular_weight", 1.0f);
    AiParameterFLT ("secondary_reflection_reflection_weight", 0.0f);
    AiParameterBOOL("secondary_reflection_enable_fresnel_falloff", true);
@@ -543,12 +547,14 @@ public:
    float deep_scatter_radius;
    AtColor primary_reflection_color;
    float primary_reflection_weight;
+   float primary_reflection_roughness;
    float primary_reflection_specular_weight;
    float primary_reflection_reflection_weight;
    bool  primary_reflection_enable_fresnel_falloff;
    float primary_reflection_fresnel_coefficient;
    AtColor secondary_reflection_color;
    float secondary_reflection_weight;
+   float secondary_reflection_roughness;
    float secondary_reflection_specular_weight;
    float secondary_reflection_reflection_weight;
    bool  secondary_reflection_enable_fresnel_falloff;
@@ -580,7 +586,6 @@ public:
    void SetNames()
    {
       Standard_Diffuse_Primary_Specular.name = "Standard_Diffuse_Primary_Specular";
-      Standard_Diffuse_Primary_Specular.name = "Standard_Diffuse_Primary_Specular";
       Standard_Secondary_Specular.name = "Standard_Secondary_Specular";
       Standard.name = "Standard";
       Standard_SSS_Shallow.name = "Standard_SSS_Shallow";
@@ -600,11 +605,14 @@ public:
       Multiply_Shallow_Radius.name = "Multiply_Shallow_Radius";
       Multiply_Mid_Radius.name = "Multiply_Mid_Radius";
       Multiply_Deep_Radius.name = "Multiply_Deep_Radius";
+      Multiply_By_Global_SSS_Weight.name = "Multiply_By_Global_SSS_Weight";
       Multiply_By_Global_SSS_Radius.name = "Multiply_By_Global_SSS_Radius";
-      Divide_By_Five.name = "Divide_By_Five";
+      Divide_By_Three.name = "Divide_By_Three";
       Add_Diffuse_Shallow_Weights.name = "Add_Diffuse_Shallow_Weights";
       Add_Scatter_Weight.name = "Add_Scatter_Weight";
       Add_Deep_Weight.name = "Add_Deep_Weight";
+      Add_Shallow_Mid_Radius.name = "Add_Shallow_Mid_Radius";
+      Add_Deep_Radius.name = "Add_Deep_Radius";
       Screen.name = "Screen";
       Clip_Diffuse_Primary_Specular.name = "Clip_Diffuse_Primary_Specular";
       Clip_Secondary_Specular.name = "Clip_Secondary_Specular";
@@ -636,10 +644,12 @@ public:
                    Multiply_Shallow_Radius, 
                    Multiply_Mid_Radius, 
                    Multiply_Deep_Radius,
+                   Multiply_By_Global_SSS_Weight, 
                    Multiply_By_Global_SSS_Radius, 
-                   Divide_By_Five;
+                   Divide_By_Three;
    CScalarAdd      Add_Diffuse_Shallow_Weights, 
-                   Add_Scatter_Weight, Add_Deep_Weight;
+                   Add_Scatter_Weight, Add_Deep_Weight,
+                   Add_Shallow_Mid_Radius, Add_Deep_Radius;
    CColorsScreen   Screen;
    CColorClip      Clip_Diffuse_Primary_Specular, 
                    Clip_Secondary_Specular, 

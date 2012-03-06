@@ -23,12 +23,14 @@ void CSSSParams::Evaluate(AtNode* node, AtShaderGlobals *sg)
    deep_scatter_radius    = AiShaderEvalParamFlt(p_deep_scatter_radius);
    primary_reflection_color               = AiShaderEvalParamRGB(p_primary_reflection_color);
    primary_reflection_weight              = AiShaderEvalParamFlt(p_primary_reflection_weight);
+   primary_reflection_roughness           = AiShaderEvalParamFlt(p_primary_reflection_roughness);
    primary_reflection_specular_weight     = AiShaderEvalParamFlt(p_primary_reflection_specular_weight);
    primary_reflection_reflection_weight   = AiShaderEvalParamFlt(p_primary_reflection_reflection_weight);
    primary_reflection_enable_fresnel_falloff   = AiShaderEvalParamBool(p_primary_reflection_enable_fresnel_falloff);
    primary_reflection_fresnel_coefficient      = AiShaderEvalParamFlt(p_primary_reflection_fresnel_coefficient);
    secondary_reflection_color               = AiShaderEvalParamRGB(p_secondary_reflection_color);
    secondary_reflection_weight              = AiShaderEvalParamFlt(p_secondary_reflection_weight);
+   secondary_reflection_roughness           = AiShaderEvalParamFlt(p_secondary_reflection_roughness);
    secondary_reflection_specular_weight     = AiShaderEvalParamFlt(p_secondary_reflection_specular_weight);
    secondary_reflection_reflection_weight   = AiShaderEvalParamFlt(p_secondary_reflection_reflection_weight);
    secondary_reflection_enable_fresnel_falloff   = AiShaderEvalParamBool(p_secondary_reflection_enable_fresnel_falloff);
@@ -68,12 +70,21 @@ node_initialize
    iData->Screen_Switch.params.p_input2 = &iData->Screen;
    // Standard
    iData->Standard.params.p_Ksss_color = &iData->Divide_By_Four;
-   iData->Standard.params.p_Ksss = &iData->Multiply_By_Global_SSS_Radius;
+   iData->Standard.params.p_Ksss = &iData->Multiply_By_Global_SSS_Weight;
    iData->Standard.params.p_sss_radius = &iData->Radius_To_Color;
+
    // Radius_To_Color
-   iData->Radius_To_Color.params.p_input = &iData->Divide_By_Five;
+   iData->Radius_To_Color.params.p_input = &iData->Multiply_By_Global_SSS_Radius;
    // Multiply_By_Global_SSS_Radius
-   iData->Multiply_By_Global_SSS_Radius.params.p_input1 = &iData->Add_Deep_Weight;
+   iData->Multiply_By_Global_SSS_Radius.params.p_input2 = &iData->Divide_By_Three;
+   // Divide_By_Three
+   iData->Divide_By_Three.params.p_input1 = &iData->Add_Deep_Radius;
+   // Add_Deep_Radius
+   iData->Add_Deep_Radius.params.p_input1 = &iData->Add_Shallow_Mid_Radius;
+
+   // Multiply_By_Global_SSS_Weight
+   iData->Multiply_By_Global_SSS_Weight.params.p_input1 = &iData->Add_Deep_Weight;
+
    // Divide_By_Four
    iData->Divide_By_Four.params.p_color1 = &iData->Colors_Add;
    // Add_Deep_Weight
@@ -149,21 +160,33 @@ shader_evaluate
    iData->Diffuse_Switch.params.switcher = params.sample_sss_only_in_glossy_rays;
    // Glossy_Switch
    iData->Glossy_Switch.params.switcher = params.sample_sss_only_in_glossy_rays;
-   // Multiply_By_Global_SSS_Radius
-   iData->Multiply_By_Global_SSS_Radius.params.input2 = params.sss_weight;
+   // Multiply_By_Global_SSS_Weight
+   iData->Multiply_By_Global_SSS_Weight.params.input2 = params.sss_weight;
    // Add_Deep_Weight
    iData->Add_Deep_Weight.params.input2 = params.deep_scatter_weight;
    // Add_Scatter_Weight
    iData->Add_Scatter_Weight.params.input2 = params.mid_scatter_weight;
-   // Divide_By_Five == multiply by 0.2
-   iData->Divide_By_Five.params.input1 = params.global_sss_radius_multiplier;
-   iData->Divide_By_Five.params.input2 = 0.2f;
+
+   // The radii section, changed with the latest compound version from https://trac.solidangle.com/sitoa/wiki/SkinShader
+   // Multiply_By_Global_SSS_Radius
+   iData->Multiply_By_Global_SSS_Radius.params.input1 = params.global_sss_radius_multiplier;
+   // Divide_By_Three == multiply by 0.3333
+   iData->Divide_By_Three.params.input2 = 0.3333f;
+   // Add_Deep_Radius
+   iData->Add_Deep_Radius.params.input2 = params.deep_scatter_radius;
+   // Add_Shallow_Mid_Radius
+   iData->Add_Shallow_Mid_Radius.params.input1 = params.shallow_scatter_radius;
+   iData->Add_Shallow_Mid_Radius.params.input2 = params.mid_scatter_radius;
+
    // Add_Diffuse_Shallow_Weights
    iData->Add_Diffuse_Shallow_Weights.params.input1 = params.diffuse_weight;
    iData->Add_Diffuse_Shallow_Weights.params.input2 = params.shallow_scatter_weight;
    // Standard_Secondary_Specular
    iData->Standard_Secondary_Specular.params.Ks_color = params.secondary_reflection_color;
    iData->Standard_Secondary_Specular.params.Ks = params.secondary_reflection_weight;
+   // Spec roughness added in the latest compound version
+   iData->Standard_Secondary_Specular.params.specular_roughness = params.secondary_reflection_roughness;
+
    iData->Standard_Secondary_Specular.params.direct_specular = params.secondary_reflection_specular_weight;
    iData->Standard_Secondary_Specular.params.indirect_specular = params.secondary_reflection_reflection_weight;
    iData->Standard_Secondary_Specular.params.spec_Fresnel = params.secondary_reflection_enable_fresnel_falloff;
@@ -179,6 +202,9 @@ shader_evaluate
    iData->Standard_Diffuse_Primary_Specular.params.Kd = params.diffuse_weight;
    iData->Standard_Diffuse_Primary_Specular.params.Ks_color = params.primary_reflection_color;
    iData->Standard_Diffuse_Primary_Specular.params.Ks = params.primary_reflection_weight;
+   // Spec roughness added in the latest compound version
+   iData->Standard_Diffuse_Primary_Specular.params.specular_roughness = params.primary_reflection_roughness;
+   
    iData->Standard_Diffuse_Primary_Specular.params.direct_specular = params.primary_reflection_specular_weight;
    iData->Standard_Diffuse_Primary_Specular.params.indirect_specular = params.primary_reflection_reflection_weight;
    iData->Standard_Diffuse_Primary_Specular.params.spec_Fresnel = params.primary_reflection_enable_fresnel_falloff;
