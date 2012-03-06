@@ -289,6 +289,7 @@ def registerArnoldRenderer():
             pm.evalDeferred(aeUtils.loadAETemplates)
             if pm.mel.getApplicationVersionAsFloat() < 2013:
                 _addAEHooks()
+                aeUtils._makeAEProc('templates', 'shapeTemplate', 'AEshapeTemplate')
             else:
                 import rendererCallbacks
             import mtoa.ui.ae.customShapeAttributes
@@ -299,8 +300,7 @@ def registerArnoldRenderer():
                 createArnoldMenu()
 
             # version specific overrides or additions
-            if pm.mel.getApplicationVersionAsFloat() < 2013:
-                _overridePythonScripts()
+            #_overridePythonScripts()
             _overrideMelScripts()
 
             # Add option box for file translator
