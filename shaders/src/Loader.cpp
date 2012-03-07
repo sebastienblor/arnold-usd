@@ -8,8 +8,6 @@ extern AtNodeMethods* MayaGammaCorrectMtd;
 extern AtNodeMethods* MayaConditionMtd;
 extern AtNodeMethods* MayaReverseMtd;
 extern AtNodeMethods* MayaBlendColorsMtd;
-extern AtNodeMethods* MayaFacingRatioMtd;
-extern AtNodeMethods* MayaFlippedNormalMtd;
 extern AtNodeMethods* MayaPlusMinusAverage1DMtd;
 extern AtNodeMethods* MayaPlusMinusAverage2DMtd;
 extern AtNodeMethods* MayaPlusMinusAverage3DMtd;
@@ -67,6 +65,9 @@ extern AtNodeMethods* UserDataColorMtd;
 extern AtNodeMethods* UserDataStringMtd;
 extern AtNodeMethods* MayaShadingEngineMtd;
 extern AtNodeMethods* SkinSssMethods;
+extern AtNodeMethods* MayaSamplerInfo1DMtd;
+extern AtNodeMethods* MayaSamplerInfo2DMtd;
+extern AtNodeMethods* MayaSamplerInfo3DMtd;
 
 node_loader
 {
@@ -115,16 +116,16 @@ node_loader
       break;
 
    case 6:
-      node->methods     = MayaFacingRatioMtd;
+      node->methods     = MayaSamplerInfo1DMtd;
       node->output_type = AI_TYPE_FLOAT;
-      node->name        = "MayaFacingRatio";
+      node->name        = "MayaSamplerInfo1D";
       node->node_type   = AI_NODE_SHADER;
       break;
 
    case 7:
-      node->methods     = MayaFlippedNormalMtd;
-      node->output_type = AI_TYPE_FLOAT;
-      node->name        = "MayaFlippedNormal";
+      node->methods     = MayaSamplerInfo2DMtd;
+      node->output_type = AI_TYPE_POINT2;
+      node->name        = "MayaSamplerInfo2D";
       node->node_type   = AI_NODE_SHADER;
       break;
 
@@ -512,13 +513,20 @@ node_loader
       node->name        = "MayaShadingEngine";
       node->node_type   = AI_NODE_SHADER;
       break;
-      
+
    case 63:
       node->methods     = SkinSssMethods;
       node->output_type = AI_TYPE_RGB;
       node->name        = "skin_sss";
       node->node_type   = AI_NODE_SHADER;
-      break;      
+      break;
+
+   case 64:
+      node->methods     = MayaSamplerInfo3DMtd;
+      node->output_type = AI_TYPE_RGB;
+      node->name        = "MayaSamplerInfo3D";
+      node->node_type   = AI_NODE_SHADER;
+      break;
 
    default:
       return false;

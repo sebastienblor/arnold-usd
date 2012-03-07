@@ -246,20 +246,29 @@ void CBump3DTranslator::Export(AtNode* shader)
 AtNode* CSamplerInfoTranslator::CreateArnoldNodes()
 {
    MString outputAttr = GetMayaAttributeName();
-
-   if (outputAttr == "facingRatio")
+   AtNode* shader = NULL;
+   if (outputAttr == "facingRatio" || outputAttr == "flippedNormal")
    {
-      return ProcessAOVOutput(AddArnoldNode("MayaFacingRatio"));
+      shader = AddArnoldNode("MayaSamplerInfo1D");
    }
-   else if (outputAttr == "flippedNormal")
+   else if (outputAttr == "uvCoord" || outputAttr == "pixelCenter")
    {
-      return ProcessAOVOutput(AddArnoldNode("MayaFlippedNormal"));
+      shader = AddArnoldNode("MayaSamplerInfo2D");
+   }
+   else if (outputAttr == "pointWorld" || outputAttr == "pointObj" || outputAttr == "pointCamera" ||
+            outputAttr == "normalCamera" || outputAttr == "rayDirection" ||
+            outputAttr == "tangentUCamera" ||outputAttr == "tangentVCamera")
+   {
+      shader = AddArnoldNode("MayaSamplerInfo3D");
    }
    else
    {
       AiMsgError("[mtoa] [translator %s] invalid output attribute requested: %s", GetTranslatorName().asChar(), outputAttr.asChar());
       return NULL;
    }
+   AtEnum modeEnum = AiParamGetEnum(AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(shader), "mode"));
+   AiNodeSetInt(shader, "mode", AiEnumGetValue(modeEnum, outputAttr.asChar()));
+   return ProcessAOVOutput(shader);
 }
 
 void CSamplerInfoTranslator::Export(AtNode* shader)
