@@ -51,9 +51,12 @@ extern AtNodeMethods* VectorToFloatMtd;
 extern AtNodeMethods* PointToFloatMtd;
 extern AtNodeMethods* Point2ToFloatMtd;
 extern AtNodeMethods* WriteColorMtd;
-extern AtNodeMethods* WriteColorInlineMtd;
 extern AtNodeMethods* WriteFloatMtd;
+extern AtNodeMethods* WriteColorInlineMtd;
 extern AtNodeMethods* WriteFloatInlineMtd;
+extern AtNodeMethods* WriteVectorInlineMtd;
+extern AtNodeMethods* WritePointInlineMtd;
+extern AtNodeMethods* WritePoint2InlineMtd;
 extern AtNodeMethods* AnimMatrixMtd;
 extern AtNodeMethods* AnimFloatMtd;
 extern AtNodeMethods* AnimPointMtd;
@@ -528,6 +531,26 @@ node_loader
       node->node_type   = AI_NODE_SHADER;
       break;
 
+   case 65:
+      node->methods     = WriteVectorInlineMtd;
+      node->output_type = AI_TYPE_VECTOR;
+      node->name        = "aovWriteVector";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+
+   case 66:
+      node->methods     = WritePointInlineMtd;
+      node->output_type = AI_TYPE_POINT;
+      node->name        = "aovWritePoint";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+
+   case 67:
+      node->methods     = WritePoint2InlineMtd;
+      node->output_type = AI_TYPE_POINT2;
+      node->name        = "aovWritePoint2";
+      node->node_type   = AI_NODE_SHADER;
+      break;
    default:
       return false;
    }

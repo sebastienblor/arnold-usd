@@ -1085,6 +1085,19 @@ bool IsInShadingGroup(AtArray* set_ids, AtShaderGlobals* sg)
    return true;
 }
 
+AtArray* StringArrayToNodeArray(AtArray* setNames)
+{
+   std::vector<AtNode*> setNodes;
+   for (unsigned int i=0; i < setNames->nelements; i++)
+   {
+      const char* nodeName = AiArrayGetStr(setNames, i);
+      AtNode* setNode = AiNodeLookUpByName(nodeName);
+      if (setNode != NULL)
+         setNodes.push_back(setNode);
+   }
+   return AiArrayConvert((int)setNodes.size(), 1, AI_TYPE_NODE, &setNodes[0]);
+}
+
 
 // Set sg->P to Pref if Pref is existing on the object.
 //

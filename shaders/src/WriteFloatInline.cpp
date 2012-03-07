@@ -42,16 +42,7 @@ node_update
    AtArray* sets = (AtArray*)AiNodeGetLocalData(node);
    if (sets != NULL)
       AiArrayDestroy(sets);
-   AtArray* setNames = AiNodeGetArray(node, "sets");
-   std::vector<AtNode*> setNodes;
-   for (unsigned int i=0; i < setNames->nelements; i++)
-   {
-      const char* nodeName = AiArrayGetStr(setNames, i);
-      AtNode* setNode = AiNodeLookUpByName(nodeName);
-      if (setNode != NULL)
-         setNodes.push_back(setNode);
-   }
-   sets = AiArrayConvert((int)setNodes.size(), 1, AI_TYPE_NODE, &setNodes[0]);
+   sets = StringArrayToNodeArray(AiNodeGetArray(node, "sets"));
    AiNodeSetLocalData(node, sets);
 }
 

@@ -4,7 +4,7 @@
 namespace
 {
 
-enum WriteColorInlineParams
+enum WritePoint2InlineParams
 {
    p_input,
    p_name,
@@ -14,24 +14,24 @@ enum WriteColorInlineParams
 
 };
 
-AI_SHADER_NODE_EXPORT_METHODS(WriteColorInlineMtd);
+AI_SHADER_NODE_EXPORT_METHODS(WritePoint2InlineMtd);
 
 node_parameters
 {
    // Node metadata
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 
-   AiParameterRGBA("input", 0.0f, 0.0f, 0.0f, 1.0f);
+   AiParameterPnt2("input", 0.0f, 0.0f);
    AiParameterSTR("aov_name", "");
    AiParameterARRAY("sets", AiArray(0, 0, AI_TYPE_STRING));
 }
 
 shader_evaluate
 {
-   sg->out.RGBA = AiShaderEvalParamRGBA(p_input);
+   sg->out.PNT2 = AiShaderEvalParamPnt2(p_input);
 
    if ((sg->Rt & AI_RAY_CAMERA) && IsInShadingGroup((AtArray*)AiNodeGetLocalData(node), sg))
-      AiAOVSetRGBA(sg, AiShaderEvalParamStr(p_name), sg->out.RGBA);
+      AiAOVSetPnt2(sg, AiShaderEvalParamStr(p_name), sg->out.PNT2);
 }
 
 node_initialize

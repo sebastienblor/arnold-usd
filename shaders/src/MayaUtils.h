@@ -111,7 +111,9 @@ float BillowNoise(const AtPoint &p, float time, int dim, float radius, float siz
 
 float CosWaves(float posX, float posY, float posTime, int numWaves);
 
+// used by AOV nodes
 bool IsInShadingGroup(AtArray* set_ids, AtShaderGlobals* sg);
+AtArray* StringArrayToNodeArray(AtArray* setNames);
 
 bool SetRefererencePoints(AtShaderGlobals *sg, AtPoint &tmpPts);
 bool SetRefererenceNormals(AtShaderGlobals *sg, AtVector &tmpNmrs);

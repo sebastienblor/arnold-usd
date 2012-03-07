@@ -70,13 +70,13 @@ MString GetAOVNodeType(int type)
       nodeType = "aovWriteColor";
       break;
    case AI_TYPE_VECTOR:
-      nodeType = "writeVectorInline";
+      nodeType = "aovWriteVector";
       break;
    case AI_TYPE_POINT:
-      nodeType = "writePointInline";
+      nodeType = "aovWritePoint";
       break;
    case AI_TYPE_POINT2:
-      nodeType = "writePoint2Inline";
+      nodeType = "aovWritePoint2";
       break;
    default:
       {
