@@ -530,20 +530,21 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
          bool exported = false;
          // Loop over all MPlugs to Shader Nodes
          int plugElements = plug.evaluateNumElements();
-         for (int i = 0; i < plugElements; i++)
+         for (int i = 0; i < plugElements && !exported ; i++)
          {
             MPlugArray connections;
             plug.elementByPhysicalIndex(i).connectedTo(connections, false, true);
-
             // Only export if MPlug matches the connected Shader Group
-            if ((connections.length() > 0) && (shadingGroups[J] == connections[0].node()))
+            for(int j = 0; j < connections.length() && !exported ; j++)
             {
-               AtNode *shader = ExportNode(connections[0]);
-               if (shader != NULL)
+               if (shadingGroups[J] == connections[j].node())
                {
-                  meshShaders.push_back(shader);
-                  exported = true;
-                  break;
+                  AtNode *shader = ExportNode(connections[j]);
+                  if (shader != NULL)
+                  {
+                    meshShaders.push_back(shader);
+                    exported = true;
+                  }
                }
             }
          }
@@ -597,9 +598,13 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
       }
    }
    // we must write this as user data bc AiNodeGet* is thread-locked while AIUDataGet* is not
-   AiNodeDeclare(polymesh, "mtoa_shading_groups", "constant ARRAY NODE");
-   AiNodeSetArray(polymesh, "mtoa_shading_groups",
-                  AiArrayConvert(meshShaders.size(), 1, AI_TYPE_NODE, &(meshShaders[0])));
+   if (meshShaders.size() > 0)
+   {
+      AiNodeDeclare(polymesh, "mtoa_shading_groups", "constant ARRAY NODE");
+      AiNodeSetArray(polymesh, "mtoa_shading_groups",
+         AiArrayConvert(meshShaders.size(), 1, AI_TYPE_NODE, &(meshShaders[0])));
+   }
+   
 
    //
    // DISPLACEMENT
