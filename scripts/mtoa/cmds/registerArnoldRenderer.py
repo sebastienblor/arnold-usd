@@ -300,7 +300,7 @@ def registerArnoldRenderer():
                 createArnoldMenu()
 
             # version specific overrides or additions
-            #_overridePythonScripts()
+            _overridePythonScripts()
             _overrideMelScripts()
 
             # Add option box for file translator

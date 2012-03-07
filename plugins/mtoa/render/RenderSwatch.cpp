@@ -525,9 +525,12 @@ bool CRenderSwatchGenerator::doIteration()
 
    if (m_iteration == 0)
    {
-     // No need to start a new swatch iteration process if option is off
+      // No need to start a new swatch iteration process if option is off
       MObject ArnoldRenderOptionsNode = CMayaScene::GetSceneArnoldRenderOptionsNode();
-      if (!MFnDependencyNode(ArnoldRenderOptionsNode).findPlug("enable_swatch_render").asBool())
+      // FIXME: what do we want to do when no ArnoldOptionsNode exists yet
+      // (happens if you open hypershade and create a shader before opening render settings
+      if (!ArnoldRenderOptionsNode.isNull()
+         && !MFnDependencyNode(ArnoldRenderOptionsNode).findPlug("enable_swatch_render").asBool())
       {
          return true;
       }
