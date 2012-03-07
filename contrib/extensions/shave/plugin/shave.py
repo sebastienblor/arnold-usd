@@ -5,6 +5,9 @@ from mtoa.ui.ae.shaderTemplate import ShaderMixin
 
 class ShaveHairTemplate(AttributeTemplate, ShapeMixin, ShaderMixin):
     def setup(self):
+        self.commonShapeAttributes()
+        self.addSeparator()
+
         self.addControl("aiOverrideHair")
         self.addControl("aiHairShader")
     
