@@ -1,6 +1,7 @@
 
 #include "CameraTranslator.h"
 #include "attributes/AttrHelper.h"
+#include "utils/time.h"
 
 #include <ai_cameras.h>
 #include <ai_constants.h>
@@ -241,10 +242,13 @@ void CCameraTranslator::ExportImagePlane(unsigned int step, MObject& imgPlane)
 
          //AtNode* imagePlaneShader = AiNode("MayaImagePlane");
          AtNode* imagePlaneShader = AiNode("flat");
+         char nodeName[MAX_NAME_SIZE];
+         AiNodeSetStr(imagePlaneShader, "name", NodeUniqueName(imagePlaneShader, nodeName));
 
          if (type == 0)
          {
             AtNode* file = AiNode("image");
+            AiNodeSetStr(file, "name", NodeUniqueName(file, nodeName));
             AiNodeSetStr(file, "filename", imageName.asChar());
             AiNodeLink(file, "color", imagePlaneShader);
             /*

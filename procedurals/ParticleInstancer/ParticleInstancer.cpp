@@ -11,6 +11,8 @@
 #include <cstring>
 #include <cstdio>
 
+#include "../../plugins/mtoa/utils/time.h"
+
 //FIXME Remove global variables
 
 int nbInsts = 0;
@@ -259,6 +261,9 @@ static AtNode *GetNode(void *user_ptr, int i)
    AtNode *procnode = (AtNode*) user_ptr;
    AtNode *instance;
    instance = AiNode("ginstance");
+   char nodeName[MAX_NAME_SIZE];
+   AiNodeSetStr(instance, "name", NodeUniqueName(instance, nodeName));
+   
    //AiNodeSetInt(instance, "visibility", AI_RAY_ALL);
    int idx = AiArrayGetInt(indxArray, i);
    AtNode* obj = AiNodeLookUpByName(AiArrayGetStr(objArray,idx));

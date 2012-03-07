@@ -5,6 +5,8 @@
 
 #include <ai_nodes.h>
 
+#include "utils/time.h"
+
 class CExtensionAttrHelper;
 
 MStatus CShaveTranslator::UpdateHairInfo()
@@ -37,7 +39,8 @@ void CShaveTranslator::Export(AtNode* curve)
 AtNode* CShaveTranslator::CreateShaveShader(AtNode* curve)
 {
    AtNode* shader = AiNode("ShaveHair");
-
+   char nodeName[MAX_NAME_SIZE];
+   AiNodeSetStr(shader, "name", NodeUniqueName(shader, nodeName));
    MFnDependencyNode fnNode(GetMayaObject());
    // Fade the hairstrand towards the tip.
    MPlug plug = fnNode.findPlug("tipFade");
@@ -48,7 +51,9 @@ AtNode* CShaveTranslator::CreateShaveShader(AtNode* curve)
       AiNodeSetBool(curve, "opaque", false);
 
       AtNode* ramp = AiNode("MayaRamp");
+      AiNodeSetStr(ramp, "name", NodeUniqueName(ramp, nodeName));
       AtNode* placementNode = AiNode("MayaPlace2DTexture");
+      AiNodeSetStr(placementNode, "name", NodeUniqueName(placementNode, nodeName));
       AiNodeSetStr(ramp, "type", "v");
 
       AiNodeSetUInt(ramp, "numEntries", 2);

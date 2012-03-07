@@ -2,6 +2,8 @@
 
 #include "scene/MayaScene.h"
 
+#include "utils/time.h"
+
 #include <maya/MFnDagNode.h>
 
 
@@ -407,6 +409,8 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, AtUInt step)
          {
             AtNode *instance;
             instance = AiNode("ginstance");
+            char nodeName[MAX_NAME_SIZE];
+            AiNodeSetStr(instance, "name", NodeUniqueName(instance, nodeName));
 
             int idx = m_pathIndicesArray[j];
             AtNode* obj = AiNodeLookUpByName(m_objectNames[idx].asChar());

@@ -2,6 +2,7 @@
 
 #include "render/RenderSession.h"
 #include "attributes/AttrHelper.h"
+#include "utils/time.h"
 
 #include <ai_msg.h>
 #include <ai_nodes.h>
@@ -206,6 +207,8 @@ void CArnoldStandInsTranslator::ExportStandinsShaders(AtNode* procedural)
             if (!pVectorDisp.isNull() && pVectorDisp.asBool())
             {
                AtNode* tangentToObject = AiNode("tangentToObjectSpace");
+               char nodeName[MAX_NAME_SIZE];
+               AiNodeSetStr(tangentToObject, "name", NodeUniqueName(tangentToObject, nodeName));
                MPlug pVectorDispScale = dispNode.findPlug("vector_displacement_scale", false);
                // FIXME : do this using a translator instead
                ProcessParameter(tangentToObject, "scale", AI_TYPE_VECTOR, pVectorDispScale);

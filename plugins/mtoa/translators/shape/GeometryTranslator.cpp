@@ -5,6 +5,8 @@
 
 #include <algorithm>
 
+#include "utils/time.h"
+
 namespace
 {
    void SetKeyData(AtArray* arr, unsigned int step, const std::vector<float>& data, unsigned int size)
@@ -638,6 +640,8 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
             if (!pVectorDisp.isNull() && pVectorDisp.asBool())
             {
                AtNode* tangentToObject = AiNode("TangentToObjectSpace");
+               char nodeName[MAX_NAME_SIZE];
+               AiNodeSetStr(tangentToObject, "name", NodeUniqueName(tangentToObject, nodeName));
                MPlug pVectorDispScale = dispNode.findPlug("vector_displacement_scale", false);
                // FIXME : do this using a translator instead
                ProcessParameter(tangentToObject, "scale", AI_TYPE_VECTOR, pVectorDispScale);

@@ -5,6 +5,7 @@
 #include "RenderSwatch.h"
 
 #include "extension/ExtensionsManager.h"
+#include "utils/time.h"
 
 #include <maya/MImage.h>
 #include <ai_msg.h>
@@ -364,6 +365,8 @@ MStatus CRenderSwatchGenerator::AssignNode(AtNode* arnoldNode, CNodeTranslator* 
             {
                MPlug pVectorDispScale = depFn.findPlug("vector_displacement_scale", false);
                AtNode* tangentToObject = AiNode("TangentToObjectSpace");
+               char nodeName[MAX_NAME_SIZE];
+               AiNodeSetStr(tangentToObject, "name", NodeUniqueName(tangentToObject, nodeName));
                translator->ProcessParameter(tangentToObject, "scale", AI_TYPE_VECTOR, pVectorDispScale);
                AiNodeLink(dispImage, "map", tangentToObject);
                AiNodeSetPtr(geometry, "disp_map", tangentToObject);
