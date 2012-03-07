@@ -1,6 +1,12 @@
 
+#ifdef _WIN32
 #include <windows.h>
+#else
+#include <sys/time.h>
+#endif
+
 #include <sys/timeb.h>
+
 #include <ai_types.h>
 #include <ai_nodes.h>
 #include <ai_node_entry.h>
