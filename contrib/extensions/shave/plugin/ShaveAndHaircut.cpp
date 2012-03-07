@@ -56,13 +56,23 @@ AtNode* CShaveTranslator::CreateShaveShader(AtNode* curve)
       AiNodeSetStr(placementNode, "name", NodeUniqueName(placementNode, nodeName));
       AiNodeSetStr(ramp, "type", "v");
 
-      AiNodeSetUInt(ramp, "numEntries", 2);
-      AiNodeSetFlt(ramp, "position0", 0.55f);
-      AiNodeSetRGB(ramp, "color0", 1.0f, 1.0f, 1.0f);
-
-      AiNodeSetFlt(ramp, "position1", 1.0f);
-      AiNodeSetRGB(ramp, "color1", 0.0f, 0.0f, 0.0f);
-
+      AtArray* positions  = AiArrayAllocate(2, 1, AI_TYPE_FLOAT);
+      AtArray* colors  = AiArrayAllocate(2, 1, AI_TYPE_RGB);
+      
+      AiArraySetFlt(positions, 0, 0.55f);
+      AiArraySetFlt(positions, 1, 1.0f);
+      
+      AtRGB color;
+      
+      color.r = 1.0f; color.g = 1.0f; color.b = 1.0f;
+      AiArraySetRGB(colors, 0, color);
+      
+      color.r = 0.0f; color.g = 0.0f; color.b = 0.0f;
+      AiArraySetRGB(colors, 1, color);
+      
+      AiNodeSetArray(ramp, "position", positions);
+      AiNodeSetArray(ramp, "color", colors);
+   
       AiNodeLink (placementNode, "uvCoord", ramp);
       AiNodeLink (ramp, "strand_opacity", shader);
    }
