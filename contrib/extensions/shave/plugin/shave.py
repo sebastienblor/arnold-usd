@@ -1,7 +1,7 @@
 import pymel.core as pm
-import mtoa.ui.ae.shapeTemplate as templates
+import mtoa.ui.ae.templates as templates
 from mtoa.ui.ae.templates import AttributeTemplate, ShapeMixin, registerTranslatorUI
-from mtoa.ui.ae.templates import ShaderMixin
+from mtoa.ui.ae.shaderTemplate import ShaderMixin
 
 class ShaveHairTemplate(AttributeTemplate, ShapeMixin, ShaderMixin):
     def setup(self):
