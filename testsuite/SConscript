@@ -120,7 +120,7 @@ def run_test(target, source, env):
    TEST_NAME = env['TEST_NAME']
    
    test_env = env.Clone()
-   output_image = test_env['OUTPUT_IMAGE']
+   output_image = os.path.abspath(test_env['OUTPUT_IMAGE'])
 
    # add libai to library search path, and Arnold bin dir to path
    if system.os() == 'darwin':
@@ -170,7 +170,7 @@ def run_test(target, source, env):
       output_to_file = not show_test_output
       before_time = time.time()
       
-      output_image_dir, output_image_name = os.path.split(os.path.abspath(output_image))
+      output_image_dir, output_image_name = os.path.split(output_image)
       # replace test render dir with this test dir
       # image filename "testrender" and format "Tiff" are set in the test scene render settings
       # cmd = string.replace(cmd, "test.log", os.path.join(os.path.abspath(os.path.dirname(test_env['OUTPUT_IMAGE'])), (test_env['TEST_NAME']+'.log')))
