@@ -85,7 +85,7 @@ global proc addToRenderNodeTreeLister(
 	string $nodes[];
 	string $mentalrayClassfication = "rendernode/mentalray";
 	// Begin MTOA
-	string $arnoldClassfication = "arnold";
+	string $arnoldClassfication = "rendernode/arnold";
 
 	if( startsWith($classification, $mentalrayClassfication) ||
 		startsWith($classification, $arnoldClassfication)) 

@@ -4,49 +4,45 @@ import mtoa.utils as utils
 from mtoa.ui.nodeTreeLister import aiHyperShadeCreateMenu_BuildMenu, createArnoldNodesTreeLister_Content
 import mtoa.ui.ae.templates as templates
 
-def aiHyperShadePanelBuildCreateMenu() :
-    print "callback : aiHyperShadePanelBuildCreateMenu"
+def aiHyperShadePanelBuildCreateMenuCallback() :
+    print "aiHyperShadePanelBuildCreateMenuCallback"
     if cmds.pluginInfo('mtoa', query=True, loaded=True) :
         aiHyperShadeCreateMenu_BuildMenu()
         cmds.menuItem(divider=True)
 
-def aiHyperShadePanelBuildCreateSubMenu() :
-    print "callback : aiHyperShadePanelBuildCreateSubMenu"
-    parent = cmds.setParent(query=True, menu=True)
-    label = cmds.menuItem(parent, query=True, label=True)
-    annotation = cmds.menuItem(parent, query=True, annotation=True)
-    # print "parent   : %s" % parent
-    # print "label    : %s" % label
-    # print "annotation   : %s" % annotation
-    # how can we deduce what category to return to (uf i understood well)
-    # prevent arnold nodes from also appearing in the create submenus?
-    # return ("arnold/shader",)
+def aiHyperShadePanelBuildCreateSubMenuCallback() :
+    print "aiHyperShadePanelBuildCreateSubMenuCallback"
     return "rendernode/arnold"
 
 def aiRenderNodeClassificationCallback() :
-    print "callback : aiRenderNodeClassificationCallback"
+    print "aiRenderNodeClassificationCallback"
     return "rendernode/arnold"
 
+def aiCreateRenderNodePluginChangeCallback(classification) :
+    print "aiCreateRenderNodePluginChangeCallback"
+    return classification.startswith("rendernode/arnold")
+
 def aiCreateRenderNodeSelectNodeCategoriesCallback(nodeTypesFlag, renderNodeTreeLister) :
-    print "callback : aiCreateRenderNodeSelectNodeCategoriesCallback"
+    print "aiCreateRenderNodeSelectNodeCategoriesCallback"
     if (nodeTypesFlag == "allWithArnoldUp") :
         cmds.treeLister(renderNodeTreeLister, edit=True, selectPath="arnold")
 
 def aiBuildRenderNodeTreeListerContentCallback(renderNodeTreeLister, postCommand, filterString) :
-    print "callback : aiBuildRenderNodeTreeListerContentCallback"
+    print "aiBuildRenderNodeTreeListerContentCallback"
     # seems a list is passed after all ?
     # filterClassArray = filterString.split(" ")
+    print "filterString   : %s" % filterString
     filterClassArray = filterString
     createArnoldNodesTreeLister_Content(renderNodeTreeLister, postCommand, filterClassArray)
 
     
 # Add the callbacks
 
-cmds.callbacks(addCallback=aiHyperShadePanelBuildCreateMenu,
+cmds.callbacks(addCallback=aiHyperShadePanelBuildCreateMenuCallback,
                hook="hyperShadePanelBuildCreateMenu",
                owner="arnold")
 
-cmds.callbacks(addCallback=aiHyperShadePanelBuildCreateSubMenu,
+cmds.callbacks(addCallback=aiHyperShadePanelBuildCreateSubMenuCallback,
                hook="hyperShadePanelBuildCreateSubMenu",
                owner="arnold")
 
@@ -54,8 +50,16 @@ cmds.callbacks(addCallback=aiCreateRenderNodeSelectNodeCategoriesCallback,
                hook="createRenderNodeSelectNodeCategories",
                owner="arnold")
 
+cmds.callbacks(addCallback=aiRenderNodeClassificationCallback,
+               hook="addToRenderNodeTreeLister",
+               owner="arnold")
+
 cmds.callbacks(addCallback=aiBuildRenderNodeTreeListerContentCallback,
                hook="buildRenderNodeTreeListerContent",
+               owner="arnold")
+
+cmds.callbacks(addCallback=aiCreateRenderNodePluginChangeCallback,
+               hook="createRenderNodePluginChange",
                owner="arnold")
 
 cmds.callbacks(addCallback=templates.loadArnoldTemplate,

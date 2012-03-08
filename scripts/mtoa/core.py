@@ -19,14 +19,16 @@ def _processClass(nodeType):
     convert the passed node type's classification string to a tuple containing a formatted path string
     compatible with the node lister and the runtime classification.
     
-    e.g. from 'aiStandard' to ('arnold/shader/surface', 'asShader', 'Arnold/Shader/Surface')
+    e.g. from 'aiStandard' to ('rendernode/arnold/shader/surface', 'asShader', 'Arnold/Shader/Surface')
     '''
     for klass in pm.getClassification(nodeType):
-        if klass.startswith('arnold'):
+        if klass.startswith('rendernode/arnold'):
             parts = klass.split('/')
-            if len(parts) < 2:
+            if len(parts) < 3:
                 return (klass, 'asUtility', 'Arnold')
             else :
+                # remove the rendernode first token
+                parts.pop(0)
                 label = '/'.join([utils.prettify(x) for x in parts])
                 cat = 'asUtility'
                 # find a runtime classification. try matching from most specific to most generic
@@ -46,7 +48,7 @@ def isSubClassification(testClass, otherClass):
     '''
     returns True if the first classification is contained within the second
     
-    for example 'arnold/shader/displacement' is a sub-filter of 'arnold/shader'
+    for example 'rendernode/arnold/shader/displacement' is a sub-filter of 'rendernode/arnold/shader'
     '''
     otherParts = otherClass.split('/')
     testParts = testClass.split('/')

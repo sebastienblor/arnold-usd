@@ -72,7 +72,6 @@ def _overridePythonScripts():
     maya_version = versions.shortName()
     path = os.path.join(root, maya_version)
     if not os.path.isdir(path):
-        print>>sys.__stdout__, "MtoA python override directory does not exist: %s" % (path)
         return
     sys.path.insert(0, path)
     # for root, dirnames, filenames in os.walk('path'): 

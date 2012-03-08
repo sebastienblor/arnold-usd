@@ -1,7 +1,7 @@
 """
 add arnold nodes to maya's node tree lister
 
-there are several options for getting callbacks for adding our own nodes, but because autodesk gives Mayatomr specail
+Before 2013 there are several options for getting callbacks for adding our own nodes, but because autodesk gives Mayatomr specail
 treatment it is very hard for 3rd party renderers to properly integrate.
  
 options:
@@ -44,7 +44,7 @@ def getTypeInfo():
         tmpmap = {}
         nodeTypes = []
         for cat in CATEGORIES:
-            catTypes = pm.listNodeTypes('arnold/' + cat)
+            catTypes = pm.listNodeTypes('rendernode/arnold/' + cat)
             if catTypes :
                 nodeTypes.extend(catTypes)
         if nodeTypes:
@@ -59,7 +59,7 @@ def getTypeInfo():
         tmplist = []
         # known types first.
         for cat in CATEGORIES:
-            cat = 'arnold/' + cat
+            cat = 'rendernode/arnold/' + cat
             if cat in tmpmap:
                 values = tmpmap.pop(cat)
                 tmplist.append(NodeClassInfo(*([cat] + values)))
@@ -96,7 +96,7 @@ def aiHyperShadeCreateMenu_BuildMenu():
     #
     for (staticClass, runtimeClass, nodePath, nodeTypes) in getTypeInfo():
         # skip unclassified
-        if staticClass == 'arnold' or staticClass == 'arnold/shader':
+        if staticClass == 'rendernode/arnold' or staticClass == 'rendernode/arnold/shader':
             continue
         pm.menuItem(label = nodePath.replace('/', ' '), 
                       tearOff = True, subMenu = True)

@@ -20,7 +20,7 @@ const MString CLASSIFY_SHADER_TEXTURE("texture");
 const MString CLASSIFY_SHADER_ENVIRONMENT("texture/environment");
 const MString CLASSIFY_SHADER_UTILITY("utility");
 
-#define ARNOLD_CLASSIFY( classification ) (MString("arnold/") + classification)
+#define ARNOLD_CLASSIFY( classification ) (MString("rendernode/arnold/") + classification)
 
 const MString CLASSIFY_ARNOLD_DISPLACEMENT(ARNOLD_CLASSIFY(CLASSIFY_SHADER_DISPLACEMENT));
 const MString CLASSIFY_ARNOLD_LIGHT(ARNOLD_CLASSIFY(CLASSIFY_SHADER_LIGHT));
