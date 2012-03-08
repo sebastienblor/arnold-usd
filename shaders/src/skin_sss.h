@@ -4,8 +4,8 @@
 #include <ai.h>
 #include <stdio.h>
 #include <math.h>
-#include <string>
-using namespace std;
+//#include <string>
+//using namespace std;
 
 #define MAX_NB_THREADS 256 // maybe wasting a little memory, better be sure
 
@@ -98,11 +98,6 @@ public:
    float     bounce_factor;
    AtColor   opacity;
 
-   // parameters that get a connection in the compound
-   CNode *p_Ksss,
-         *p_Ksss_color,
-         *p_sss_radius;
-
    CStandardParams() // all zero-ed
    {
       Kd = 0.0f; // diffuse scale
@@ -147,10 +142,6 @@ public:
       sss_radius = 0.1f;
       bounce_factor = 1.0f;
       opacity = AI_RGB_WHITE;
-      // parameters that get a connection in the compound
-      p_Ksss       = NULL;
-      p_Ksss_color = NULL;
-      p_sss_radius = NULL;
    }
 };
 
@@ -159,10 +150,19 @@ public:
 class CStandard : public CNode
 {
 public:
-   CStandardParams params;
+   CStandardParams params[MAX_NB_THREADS];
+   // parameters that get a connection in the compound
+   CNode *p_Ksss, *p_Ksss_color, *p_sss_radius;
+
    CStandardOutput outputs[MAX_NB_THREADS];
 
-   CStandard() {}
+   CStandard() 
+   {
+      // parameters that get a connection in the compound
+      p_Ksss       = NULL;
+      p_Ksss_color = NULL;
+      p_sss_radius = NULL;
+   }
    // CStandard(const char* in_name) : CNode(in_name) {}
    void *Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions options);
 };
@@ -178,13 +178,6 @@ public:
    AtColor refraction;
    AtColor diffuse;
    AtColor glossy;
-   // parameters that get a connection in the compound
-   CNode *p_camera;
-   CNode *p_shadow;
-   CNode *p_reflection;
-   CNode *p_refraction;
-   CNode *p_diffuse;
-   CNode *p_glossy;
 
    CRaySwitchParams()
    {
@@ -194,9 +187,6 @@ public:
       refraction = AI_RGB_WHITE;
       diffuse    = AI_RGB_WHITE;
       glossy     = AI_RGB_WHITE;
-
-      p_camera = p_shadow = p_reflection = 
-      p_refraction = p_diffuse = p_glossy = NULL;
    }
 };
 
@@ -204,10 +194,22 @@ public:
 class CRaySwitch : public CNode
 {
 public:
-   CRaySwitchParams params;
+   CRaySwitchParams params[MAX_NB_THREADS];
+   // parameters that get a connection in the compound
+   CNode *p_camera;
+   CNode *p_shadow;
+   CNode *p_reflection;
+   CNode *p_refraction;
+   CNode *p_diffuse;
+   CNode *p_glossy;
+
    AtColor          outputs[MAX_NB_THREADS];
 
-   CRaySwitch() {}
+   CRaySwitch() 
+   {
+      p_camera = p_shadow = p_reflection = 
+      p_refraction = p_diffuse = p_glossy = NULL;
+   }
    // CRaySwitch(const char* in_name) : CNode(in_name) {}
    void *Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions options);
 };
@@ -220,15 +222,12 @@ public:
    AtColor   input1;
    AtColor   input2;
    bool      switcher;
-   // parameters that get a connection in the compound
-   CNode     *p_input1, *p_input2;
 
    CColorSwitchParams()
    {
       input1   = AI_RGB_RED;
       input2   = AI_RGB_BLUE;
       switcher = true;
-      p_input1 = p_input2 = NULL;
    }
 };
 
@@ -236,10 +235,15 @@ public:
 class CColorSwitch : public CNode
 {
 public:
-   CColorSwitchParams params;
+   CColorSwitchParams params[MAX_NB_THREADS];
+   // parameters that get a connection in the compound
+   CNode              *p_input1, *p_input2;
    AtColor            outputs[MAX_NB_THREADS];
 
-   CColorSwitch() {}
+   CColorSwitch() 
+   {
+      p_input1 = p_input2 = NULL;
+   }
    // CColorSwitch(const char* in_name) : CNode(in_name) {}
    void *Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions options);
 };
@@ -250,14 +254,11 @@ class CScalarToColorParams
 {
 public:
    float input, alpha;
-   // parameters that get a connection in the compound
-   CNode   *p_input;;
 
    CScalarToColorParams()
    {
       input = 0.5f;
       input = 1.0f;
-      p_input = NULL;
    }
 };
 
@@ -265,10 +266,15 @@ public:
 class CScalarToColor : public CNode
 {
 public:
-   CScalarToColorParams params;
+   CScalarToColorParams params[MAX_NB_THREADS];
+   // parameters that get a connection in the compound
+   CNode                *p_input;
    AtColor              outputs[MAX_NB_THREADS];
 
-   CScalarToColor() {}
+   CScalarToColor() 
+   {
+      p_input = NULL;
+   }
    // CScalarToColor(const char* in_name) : CNode(in_name) {}
    void *Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions options);
 };
@@ -279,14 +285,11 @@ class CScalarMultiplyParams
 {
 public:
    float input1, input2;
-   // parameters that get a connection in the compound
-   CNode     *p_input1, *p_input2;
 
    CScalarMultiplyParams()
    {
       input2 = 0.5f;
       input2 = 1.0f;
-      p_input1 = p_input2 = NULL;
    }
 };
 
@@ -294,10 +297,15 @@ public:
 class CScalarMultiply : public CNode
 {
 public:
-   CScalarMultiplyParams params;
-   float               outputs[MAX_NB_THREADS];
+   CScalarMultiplyParams params[MAX_NB_THREADS];
+   // parameters that get a connection in the compound
+   CNode                 *p_input1, *p_input2;
+   float                 outputs[MAX_NB_THREADS];
 
-   CScalarMultiply() {}
+   CScalarMultiply() 
+   {
+      p_input1 = p_input2 = NULL;
+   }
    // CScalarMultiply(const char* in_name) : CNode(in_name) {}
    void *Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions options);
 };
@@ -308,14 +316,11 @@ class CScalarAddParams
 {
 public:
    float input1, input2;
-   // parameters that get a connection in the compound
-   CNode     *p_input1, *p_input2;
 
    CScalarAddParams()
    {
       input2 = 0.0f;
       input2 = 0.0f;
-      p_input1 = p_input2 = NULL;
    }
 };
 
@@ -323,10 +328,15 @@ public:
 class CScalarAdd : public CNode
 {
 public:
-   CScalarAddParams params;
+   CScalarAddParams params[MAX_NB_THREADS];
+   // parameters that get a connection in the compound
+   CNode          *p_input1, *p_input2;
    float          outputs[MAX_NB_THREADS];
 
-   CScalarAdd() {}
+   CScalarAdd() 
+   {
+      p_input1 = p_input2 = NULL;
+   }
    // CScalarAdd(const char* in_name) : CNode(in_name) {}
    void *Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions options);
 };
@@ -337,8 +347,6 @@ class CColorsAddParams
 {
 public:
    AtColor baseColor, color1, color2, color3, color4;
-   // parameters that get a connection in the compound
-   CNode *p_baseColor, *p_color1, *p_color2, *p_color3, *p_color4;
 
    CColorsAddParams()
    {
@@ -347,8 +355,6 @@ public:
       color2 = AI_RGB_BLACK;
       color3 = AI_RGB_BLACK;
       color4 = AI_RGB_BLACK;
-
-      p_baseColor = p_color1 = p_color2 = p_color3 = p_color4 = NULL;
    }
 };
 
@@ -356,10 +362,15 @@ public:
 class CColorsAdd : public CNode
 {
 public:
-   CColorsAddParams params;
+   CColorsAddParams params[MAX_NB_THREADS];
+   // parameters that get a connection in the compound
+   CNode            *p_baseColor, *p_color1, *p_color2, *p_color3, *p_color4;
    AtColor          outputs[MAX_NB_THREADS];
 
-   CColorsAdd() {}
+   CColorsAdd() 
+   {
+      p_baseColor = p_color1 = p_color2 = p_color3 = p_color4 = NULL;
+   }
    // CColorsAdd(const char* in_name) : CNode(in_name) {}
    void *Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions options);
 };
@@ -371,13 +382,10 @@ class CColorClipParams
 {
 public:
    AtColor color;
-   // parameters that get a connection in the compound
-   CNode *p_color;
 
    CColorClipParams()
    {
       color = AI_RGB_BLACK;
-      p_color = NULL;
    }
 };
 
@@ -385,10 +393,15 @@ public:
 class CColorClip : public CNode
 {
 public:
-   CColorClipParams params;
+   CColorClipParams params[MAX_NB_THREADS];
+   // parameters that get a connection in the compound
+   CNode            *p_color;
    AtColor          outputs[MAX_NB_THREADS];
 
-   CColorClip() {}
+   CColorClip() 
+   {
+      p_color = NULL;
+   }
    // CColorClip(const char* in_name) : CNode(in_name) {}
    void *Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions options);
 };
@@ -399,8 +412,6 @@ class CColorsScreenParams
 {
 public:
    AtColor baseColor, color1, color2, color3, color4;
-   // parameters that get a connection in the compound
-   CNode *p_baseColor, *p_color1, *p_color2, *p_color3, *p_color4;
 
    CColorsScreenParams()
    {
@@ -409,8 +420,6 @@ public:
       color2 = AI_RGB_BLACK;
       color3 = AI_RGB_BLACK;
       color4 = AI_RGB_BLACK;
-
-      p_baseColor = p_color1 = p_color2 = p_color3 = p_color4 = NULL;
    }
 };
 
@@ -418,10 +427,15 @@ public:
 class CColorsScreen : public CNode
 {
 public:
-   CColorsScreenParams params;
+   CColorsScreenParams params[MAX_NB_THREADS];
+   // parameters that get a connection in the compound
+   CNode               *p_baseColor, *p_color1, *p_color2, *p_color3, *p_color4;
    AtColor             outputs[MAX_NB_THREADS];
 
-   CColorsScreen() {}
+   CColorsScreen() 
+   {
+      p_baseColor = p_color1 = p_color2 = p_color3 = p_color4 = NULL;
+   }
    // CColorsScreen(const char* in_name) : CNode(in_name) {}
    void *Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions options);
 };
@@ -433,15 +447,11 @@ class CColorsDivideParams
 {
 public:
    AtColor color1, color2;
-   // parameters that get a connection in the compound
-   CNode *p_color1, *p_color2;
 
    CColorsDivideParams()
    {
       color1 = AI_RGB_BLACK;
       color2.r = color2.g = color2.b = 4.0f;
-
-      p_color1 = p_color2 = NULL;
    }
 };
 
@@ -449,10 +459,15 @@ public:
 class CColorsDivide : public CNode
 {
 public:
-   CColorsDivideParams params;
+   CColorsDivideParams params[MAX_NB_THREADS];
+   // parameters that get a connection in the compound
+   CNode               *p_color1, *p_color2;
    AtColor             outputs[MAX_NB_THREADS];
 
-   CColorsDivide() {}
+   CColorsDivide() 
+   {
+      p_color1 = p_color2 = NULL;
+   }
    // CColorsDivide(const char* in_name) : CNode(in_name) {}
    void *Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions options);
 };
