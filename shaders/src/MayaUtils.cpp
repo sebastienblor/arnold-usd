@@ -1095,7 +1095,14 @@ AtArray* StringArrayToNodeArray(AtArray* setNames)
       if (setNode != NULL)
          setNodes.push_back(setNode);
    }
-   return AiArrayConvert((int)setNodes.size(), 1, AI_TYPE_NODE, &setNodes[0]);
+   if (setNodes.size() > 0)
+   {
+      return AiArrayConvert((int)setNodes.size(), 1, AI_TYPE_NODE, &setNodes[0]);
+   }
+   else
+   {
+      return NULL;
+   }
 }
 
 
