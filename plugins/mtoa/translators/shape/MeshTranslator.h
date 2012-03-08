@@ -28,10 +28,12 @@ protected:
       // through the CreateArnoldNodes method
       m_abstract.arnold = "polymesh";
    }
+   // overridden from CDagTranslator to add a GetNumMeshGroups check
+   virtual bool IsMasterInstance(MDagPath &masterDag);
 private:
    MObject m_dataMesh;
    MStatus Tessellate(const MDagPath &dagPath);
-   unsigned int GetNumMeshGroups();
+   unsigned int GetNumMeshGroups(const MDagPath& dagPath);
 };
 
 #endif // MESHTRANSLATOR_H

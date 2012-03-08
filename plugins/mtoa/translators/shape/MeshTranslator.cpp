@@ -5,13 +5,15 @@
 #include <maya/MItMeshPolygon.h>
 #include <maya/MMeshSmoothOptions.h>
 #include <maya/MItMeshVertex.h>
+#include <maya/MDagPathArray.h>
 
-
-unsigned int CMeshTranslator::GetNumMeshGroups()
+unsigned int CMeshTranslator::GetNumMeshGroups(const MDagPath& dagPath)
 {
-   MObject node = m_dagPath.node();
+   // FIXME: what happens when the master instance has no shading groups, but another instance does?
+   // Will we skip exporting the master and thereby break the others?
+   MObject node = dagPath.node();
    MFnDependencyNode fnDGNode(node);
-   int instanceNum = m_dagPath.isInstanced() ? m_dagPath.instanceNumber() : 0;
+   int instanceNum = dagPath.isInstanced() ? dagPath.instanceNumber() : 0;
 
    MPlug plug = fnDGNode.findPlug("instObjGroups");
 
@@ -31,8 +33,74 @@ unsigned int CMeshTranslator::GetNumMeshGroups()
    }
 }
 
+// Return whether the dag object in dagPath is the master instance. The master
+// is the first instance that is completely visible (including parent transforms)
+// for which full geometry should be exported
+//
+// always returns true if dagPath is not instanced.
+// if dagPath is instanced, this searches the preceding instances
+// for the first that is visible. if none are found, dagPath is considered the master.
+//
+// note: dagPath is assumed to be visible.
+//
+// @param[out] masterDag    the master MDagPath result, only filled if result is false
+// @return                  whether or not dagPath is a master
+//
+bool CMeshTranslator::IsMasterInstance(MDagPath &masterDag)
+{
+   if (m_dagPath.isInstanced())
+   {
+      MObjectHandle handle = MObjectHandle(m_dagPath.node());
+      unsigned int instNum = m_dagPath.instanceNumber();
+      // first instance
+      if (instNum == 0)
+      {
+         // first visible instance is always the master (passed m_dagPath is assumed to be visible)
+         m_session->AddMasterInstanceHandle(handle, m_dagPath);
+         return true;
+      }
+      else
+      {
+         // if handle is not in the map, a new entry will be made with a default value
+         MDagPath currDag = m_session->GetMasterInstanceDagPath(handle);
+         if (currDag.isValid())
+         {
+            // previously found the master
+            masterDag.set(currDag);
+            return false;
+         }
+         // find the master by searching preceding instances
+         MDagPathArray allInstances;
+         MDagPath::getAllPathsTo(m_dagPath.node(), allInstances);
+         for (unsigned int master_index = 0; master_index < instNum; master_index++)
+         {
+            currDag = allInstances[master_index];
+            // The following line was overridden to add the GetNumMeshGroups check
+            if (CArnoldSession::IsRenderablePath(currDag) && GetNumMeshGroups(currDag) > 0)
+            {
+               // found it
+               m_session->AddMasterInstanceHandle(handle, currDag);
+               masterDag.set(currDag);
+               return false;
+            }
+         }
+         // didn't find a master: m_dagPath is the master
+         m_session->AddMasterInstanceHandle(handle, m_dagPath);
+         return true;
+      }
+   }
+   // not instanced: m_dagPath is the master
+   return true;
+}
+
 AtNode* CMeshTranslator::CreateArnoldNodes()
 {
+   if (GetNumMeshGroups(m_dagPath) == 0)
+   {
+      AiMsgError("[mtoa.translator]  %-30s | Mesh not exported, it has 0 shading groups.", GetMayaNodeName().asChar());
+      return NULL;
+   }
+
    m_isMasterDag = IsMasterInstance(m_masterDag);
    if (m_isMasterDag)
    {
@@ -46,11 +114,6 @@ AtNode* CMeshTranslator::CreateArnoldNodes()
 
 void CMeshTranslator::Export(AtNode* anode)
 {
-   if (GetNumMeshGroups() == 0)
-   {
-      AiMsgError("[mtoa.translator]  %-30s | Mesh not exported, it has 0 shading groups.", GetMayaNodeName().asChar());
-      return;
-   }
    const char* nodeType = AiNodeEntryGetName(AiNodeGetNodeEntry(anode));
    if (strcmp(nodeType, "ginstance") == 0)
    {
