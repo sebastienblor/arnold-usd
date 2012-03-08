@@ -900,22 +900,39 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
       if (exportVertices)
       {
          AtArray* vlist_array = AiNodeGetArray(polymesh, "vlist");
-         SetKeyData(vlist_array, step, vertices, numVerts);
+         if (vlist_array->nelements != numVerts)
+            AiMsgError("[mtoa.translator]  %-30s | Number of vertices changed between motion steps: %d -> %d",
+                       GetMayaNodeName().asChar(), vlist_array->nelements, numVerts);
+         else
+            SetKeyData(vlist_array, step, vertices, numVerts);
+
       }
       // Normals
       if (exportNormals)
       {
          AtArray* nlist_array = AiNodeGetArray(polymesh, "nlist");
-         SetKeyData(nlist_array, step, normals, numNorms);
+         if (nlist_array->nelements != numNorms)
+            AiMsgError("[mtoa.translator]  %-30s | Number of normals changed between motion steps: %d -> %d",
+                       GetMayaNodeName().asChar(), nlist_array->nelements, numNorms);
+         else
+            SetKeyData(nlist_array, step, normals, numNorms);
       }
       // Tangents
       if (exportTangents)
       {
          AtArray* tangent_array = AiNodeGetArray(polymesh, "tangent");
-         SetKeyData(tangent_array, step, tangents, numVerts);
+         if (tangent_array->nelements != numVerts)
+            AiMsgError("[mtoa.translator]  %-30s | Number of tangents changed between motion steps: %d -> %d",
+                       GetMayaNodeName().asChar(), tangent_array->nelements, numVerts);
+         else
+            SetKeyData(tangent_array, step, tangents, numVerts);
 
          AtArray* bitangent_array = AiNodeGetArray(polymesh, "bitangent");
-         SetKeyData(bitangent_array, step, bitangents, numVerts);
+         if (bitangent_array->nelements != numVerts)
+            AiMsgError("[mtoa.translator]  %-30s | Number of bi-tangents changed between motion steps: %d -> %d",
+                       GetMayaNodeName().asChar(), bitangent_array->nelements, numVerts);
+         else
+            SetKeyData(bitangent_array, step, bitangents, numVerts);
       }
    }
 }
