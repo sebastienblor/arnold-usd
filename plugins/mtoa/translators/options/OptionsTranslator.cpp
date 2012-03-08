@@ -128,7 +128,7 @@ MString COptionsTranslator::SetImageFilenames(MDagPath &camera)
    MString imageFilename;
    MString cameraFolderName;
    MObject renderLayer = MFnRenderLayer::currentLayer();
-   double fileFrameNumber = MAnimControl::currentTime().value();
+   double fileFrameNumber = GetExportFrame();
 
    // file name
    MFileObject fileObj;
