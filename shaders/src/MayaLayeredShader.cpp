@@ -161,10 +161,12 @@ node_update
    localData->aovs = NULL;
    localData->naovs = 0;
 
-   localData->aovs = AiNodeGetArray(node, "mtoa_aovs");
-   if (localData->aovs)
-      localData->naovs = localData->aovs->nelements;
-
+   if (AiNodeLookUpUserParameter(node, "mtoa_aovs"))
+   {
+      localData->aovs = AiNodeGetArray(node, "mtoa_aovs");
+      if (localData->aovs)
+         localData->naovs = localData->aovs->nelements;
+   }
    AiNodeSetLocalData(node, localData);
 }
 

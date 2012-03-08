@@ -259,7 +259,7 @@ AtNode * COptionsTranslator::CreateRenderViewOutput(MStringArray &outputs, AtNod
 
    AiNodeSetFlt(driver, "gamma", FindMayaObjectPlug("display_gamma").asFloat());
    char   str[1024];
-   AiMsgWarning("display AOV: %s", FindMayaObjectPlug("displayAOV").asString().asChar());
+   AiMsgInfo("display AOV: %s", FindMayaObjectPlug("displayAOV").asString().asChar());
    sprintf(str, "%s RGBA %s %s", FindMayaObjectPlug("displayAOV").asString().asChar(),
            AiNodeGetName(defaultFilter), AiNodeGetName(driver));
    outputs.append(str);
