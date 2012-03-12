@@ -5,33 +5,24 @@ from mtoa.ui.nodeTreeLister import aiHyperShadeCreateMenu_BuildMenu, createArnol
 import mtoa.ui.ae.templates as templates
 
 def aiHyperShadePanelBuildCreateMenuCallback() :
-    print "aiHyperShadePanelBuildCreateMenuCallback"
     if cmds.pluginInfo('mtoa', query=True, loaded=True) :
         aiHyperShadeCreateMenu_BuildMenu()
         cmds.menuItem(divider=True)
 
-def aiHyperShadePanelBuildCreateSubMenuCallback() :
-    print "aiHyperShadePanelBuildCreateSubMenuCallback"
+def aiHyperShadePanelBuildCreateSubMenuCallback() :  
     return "rendernode/arnold"
 
 def aiRenderNodeClassificationCallback() :
-    print "aiRenderNodeClassificationCallback"
     return "rendernode/arnold"
 
 def aiCreateRenderNodePluginChangeCallback(classification) :
-    print "aiCreateRenderNodePluginChangeCallback"
     return classification.startswith("rendernode/arnold")
 
 def aiCreateRenderNodeSelectNodeCategoriesCallback(nodeTypesFlag, renderNodeTreeLister) :
-    print "aiCreateRenderNodeSelectNodeCategoriesCallback"
     if (nodeTypesFlag == "allWithArnoldUp") :
         cmds.treeLister(renderNodeTreeLister, edit=True, selectPath="arnold")
 
 def aiBuildRenderNodeTreeListerContentCallback(renderNodeTreeLister, postCommand, filterString) :
-    print "aiBuildRenderNodeTreeListerContentCallback"
-    # seems a list is passed after all ?
-    # filterClassArray = filterString.split(" ")
-    print "filterString   : %s" % filterString
     filterClassArray = filterString
     createArnoldNodesTreeLister_Content(renderNodeTreeLister, postCommand, filterClassArray)
 
@@ -50,8 +41,14 @@ cmds.callbacks(addCallback=aiCreateRenderNodeSelectNodeCategoriesCallback,
                hook="createRenderNodeSelectNodeCategories",
                owner="arnold")
 
+# FIXME: Maya doc is wrong
+#cmds.callbacks(addCallback=aiRenderNodeClassificationCallback,
+#               hook="addToRenderNodeTreeLister",
+#              owner="arnold")
+# Should be this instead
+
 cmds.callbacks(addCallback=aiRenderNodeClassificationCallback,
-               hook="addToRenderNodeTreeLister",
+               hook="renderNodeClassification",
                owner="arnold")
 
 cmds.callbacks(addCallback=aiBuildRenderNodeTreeListerContentCallback,
