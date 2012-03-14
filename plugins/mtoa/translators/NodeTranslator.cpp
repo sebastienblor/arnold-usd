@@ -1252,17 +1252,20 @@ void CNodeTranslator::ProcessArrayParameter(AtNode* arnoldNode, const char* arno
 
    // for now do all elements
    unsigned int size = plug.numElements();
-   AtArray* array = InitArrayParameter(arnoldParamType, size);
-   MPlug elemPlug;
-   for (unsigned int i = 0; i < size; ++i)
+   if (size > 0)
    {
-      // cout << plug.partialName(true, false, false, false, false, true) << " index " << i << endl;
-      //plug.selectAncestorLogicalIndex(i, plug.attribute());
-      elemPlug = plug[i];
+      AtArray* array = InitArrayParameter(arnoldParamType, size);
+      MPlug elemPlug;
+      for (unsigned int i = 0; i < size; ++i)
+      {
+        // cout << plug.partialName(true, false, false, false, false, true) << " index " << i << endl;
+        //plug.selectAncestorLogicalIndex(i, plug.attribute());
+        elemPlug = plug[i];
 
-      ProcessArrayParameterElement(arnoldNode, array, arnoldParamName, elemPlug, arnoldParamType, i);
+        ProcessArrayParameterElement(arnoldNode, array, arnoldParamName, elemPlug, arnoldParamType, i);
+      }
+      SetArrayParameter(arnoldNode, arnoldParamName, array);
    }
-   SetArrayParameter(arnoldNode, arnoldParamName, array);
 }
 
 void CNodeTranslator::ProcessConstantArrayElement(int type, AtArray* array, unsigned int i, const MPlug& elem)
