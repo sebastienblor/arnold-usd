@@ -1179,15 +1179,18 @@ AtNode* CNodeTranslator::ProcessConstantParameter(AtNode* arnoldNode, const char
    return NULL;
 }
 
-void CNodeTranslator::InitArrayParameter(AtNode* arnoldNode, const char* arnoldParamName, unsigned int arnoldParamType, unsigned int size)
+AtArray* CNodeTranslator::InitArrayParameter(unsigned int arnoldParamType, unsigned int size)
 {
-   AtArray* array = AiArrayAllocate(size, 1, arnoldParamType);
+   return AiArrayAllocate(size, 1, arnoldParamType);
+}
+
+void CNodeTranslator::SetArrayParameter(AtNode* arnoldNode, const char* arnoldParamName, AtArray* array)
+{
    AiNodeSetArray(arnoldNode, arnoldParamName, array);
 }
 
-void CNodeTranslator::ProcessArrayParameterElement(AtNode* arnoldNode, const char* arnoldParamName, const MPlug& elemPlug, unsigned int arnoldParamType, unsigned int pos)
+void CNodeTranslator::ProcessArrayParameterElement(AtNode* arnoldNode, AtArray* array, const char* arnoldParamName, const MPlug& elemPlug, unsigned int arnoldParamType, unsigned int pos)
 {
-   AtArray* array = AiNodeGetArray(arnoldNode, arnoldParamName);
    // connections:
    // An AI_TYPE_NODE param is controlled via a Maya message attribute. Unlike numeric attributes, in Maya
    // there is no way of assigning the value of a message attribute other than via a connection.
@@ -1249,7 +1252,7 @@ void CNodeTranslator::ProcessArrayParameter(AtNode* arnoldNode, const char* arno
 
    // for now do all elements
    unsigned int size = plug.numElements();
-   InitArrayParameter(arnoldNode, arnoldParamName, arnoldParamType, size);
+   AtArray* array = InitArrayParameter(arnoldParamType, size);
    MPlug elemPlug;
    for (unsigned int i = 0; i < size; ++i)
    {
@@ -1257,8 +1260,9 @@ void CNodeTranslator::ProcessArrayParameter(AtNode* arnoldNode, const char* arno
       //plug.selectAncestorLogicalIndex(i, plug.attribute());
       elemPlug = plug[i];
 
-      ProcessArrayParameterElement(arnoldNode, arnoldParamName, elemPlug, arnoldParamType, i);
+      ProcessArrayParameterElement(arnoldNode, array, arnoldParamName, elemPlug, arnoldParamType, i);
    }
+   SetArrayParameter(arnoldNode, arnoldParamName, array);
 }
 
 void CNodeTranslator::ProcessConstantArrayElement(int type, AtArray* array, unsigned int i, const MPlug& elem)

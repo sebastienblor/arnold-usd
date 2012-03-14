@@ -116,8 +116,9 @@ protected:
    virtual AtNode* ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, int element=-1);
    // For a specific Maya plug
    virtual AtNode* ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, const MPlug& plug);
-   void InitArrayParameter(AtNode* arnoldNode, const char* arnoldParamName, unsigned int arnoldParamType, unsigned int size);
-   virtual void ProcessArrayParameterElement(AtNode* arnoldNode, const char* arnoldParamName, const MPlug& elemPlug, unsigned int arnoldParamType, unsigned int pos);
+   AtArray* InitArrayParameter(unsigned int arnoldParamType, unsigned int size);
+   void SetArrayParameter(AtNode* arnoldNode, const char* arnoldParamName, AtArray* array);
+   virtual void ProcessArrayParameterElement(AtNode* arnoldNode, AtArray* array, const char* arnoldParamName, const MPlug& elemPlug, unsigned int arnoldParamType, unsigned int pos);
    virtual void ProcessArrayParameter(AtNode* arnoldNode, const char* arnoldParamName, const MPlug& plug);
    void ProcessConstantArrayElement(int type, AtArray* array, unsigned int i, const MPlug& elem);
    void ProcessAnimatedParameter(AtNode* arnoldNode, const char* arnoldParamName, const MPlug& plug, unsigned int step);
