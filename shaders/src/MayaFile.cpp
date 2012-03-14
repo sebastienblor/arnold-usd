@@ -167,7 +167,12 @@ node_update
          }
          else if (sub.substr(0, 5) == "<udim")
          {
-            // mari/zbrush/cyslice-style udim patches: 1001
+            /*
+            mari/zbrush/cyslice-style
+            Mari has a 4 digit number equal to 1000 + (u + 1 + v*10). UV tile [0,0] x (1,1) is assigned 1001
+            UV tile [0,1]x(1,2) is assigned 1011 etc. 
+            */
+
             std::string::size_type len = sub.length();
             // default dimension
             int dim = 10;
@@ -498,7 +503,12 @@ shader_evaluate
                }
                case TILE:
                {
-                  // mudbox-style uv tiles: u1_v1
+                  /*
+                  mudbox-style uv tiles: u1_v1
+                  Mudbox default format is to use _uU_vV in the file name where U = u + 1 and V = v + 1 are the tile coordinates plus one.
+                  UV tile [0,0] x (1,1) is marked with _u1_v1
+                  UV tile [0,1]x(1,2) is marked with _u1_v2 etc.
+                  */
                   int row = static_cast<int>(floorf(inV)) + 1;
                   int col = static_cast<int>(floorf(inU)) + 1;
                   char buf[7];
