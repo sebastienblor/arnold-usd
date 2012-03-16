@@ -6,6 +6,7 @@
 #include <algorithm>
 
 #include "utils/time.h"
+#include "scene/MayaScene.h"
 
 namespace
 {
@@ -1143,8 +1144,8 @@ void CGeometryTranslator::ShaderAssignmentCallback(MNodeMessage::AttributeMessag
       CGeometryTranslator * translator = static_cast< CGeometryTranslator* >(clientData);
       if (translator != NULL)
       {
-         // FIXME: this is not working. Interrupting render wasn't working either in 0.8
-         // so removed it.
+         // Interrupt render before exporting shaders
+         CMayaScene::GetRenderSession()->InterruptRender();
          // Export the new shaders.
          translator->ExportShaders();
          // Update Arnold without passing a translator, this just forces a redraw.
