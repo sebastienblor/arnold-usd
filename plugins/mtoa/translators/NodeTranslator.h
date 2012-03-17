@@ -87,6 +87,10 @@ protected:
       m_handle(CNodeAttrHandle())
    {}
 
+   virtual MStatus FindOverrideSets(MObject object, MObjectArray &overrideSets);
+   virtual MStatus UpdateOverrideSets();
+   virtual MPlug FindOverridePlug(const MPlug &plug) const;
+   virtual MPlug FindOverridePlug(const MString &attrName) const;
    virtual void ComputeAOVs();
    void AddAOVDefaults(AtNode* shadingEngine, std::vector<AtNode*> &aovShaders);
    void WriteAOVUserAttributes(AtNode* atNode);
@@ -188,7 +192,10 @@ protected:
    AtNode* m_atNode;
    std::map<std::string, AtNode*> m_atNodes;
 
+   MObjectArray m_overrideSets;
+
    unsigned int m_step;
+
    AOVSet m_localAOVs;
    AOVSet m_upstreamAOVs;
    AtNodeSet* m_shaders;
@@ -238,6 +245,8 @@ public:
 
 protected:
    CDagTranslator() : CNodeTranslator(){}
+   virtual MStatus FindOverrideSets(MDagPath path, MObjectArray &overrideSets);
+   virtual MStatus UpdateOverrideSets();
    virtual bool IsMasterInstance(MDagPath &masterDag);
    void GetRotationMatrix(AtMatrix& matrix);
    virtual void GetMatrix(AtMatrix& matrix);
