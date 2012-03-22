@@ -34,7 +34,7 @@ void CShadingEngineTranslator::ComputeAOVs()
 {
    MPlugArray connections;
    // loop through and export custom AOV networks
-   MPlug arrayPlug = FindMayaObjectPlug("aiCustomAOVs");
+   MPlug arrayPlug = FindMayaPlug("aiCustomAOVs");
    for (unsigned int i = 0; i < arrayPlug.numElements (); i++)
    {
       MPlug msgPlug = arrayPlug[i].child(1);
@@ -71,7 +71,7 @@ void CShadingEngineTranslator::Export(AtNode *shadingEngine)
    std::vector<AtNode*> aovShaders;
    AtNode* rootShader = NULL;
    MPlugArray        connections;
-   MPlug shaderPlug = FindMayaObjectPlug("surfaceShader");
+   MPlug shaderPlug = FindMayaPlug("surfaceShader");
    shaderPlug.connectedTo(connections, true, false);
    if (connections.length() > 0)
    {

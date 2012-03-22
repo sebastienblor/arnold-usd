@@ -75,15 +75,15 @@ AtNode*  CLambertTranslator::CreateArnoldNodes()
 void CLambertTranslator::Export(AtNode* shader)
 {
    // One to one translations
-   ProcessParameter(shader, "Kd", AI_TYPE_FLOAT, FindMayaObjectPlug("diffuse"));
-   ProcessParameter(shader, "Kd_color", AI_TYPE_RGB, FindMayaObjectPlug("color"));
+   ProcessParameter(shader, "Kd", AI_TYPE_FLOAT, "diffuse");
+   ProcessParameter(shader, "Kd_color", AI_TYPE_RGB, "color");
 
    // Custom translation
    MPlugArray connections;
    MPlug plug;
 
    // Transparency to opacity
-   plug = FindMayaObjectPlug("transparency");
+   plug = FindMayaPlug("transparency");
    if (!plug.isNull())
    {
       // For IPR unlink first
@@ -112,7 +112,7 @@ void CLambertTranslator::Export(AtNode* shader)
    }
 
    // Normal camera
-   plug = FindMayaObjectPlug("normalCamera");
+   plug = FindMayaPlug("normalCamera");
    if (!plug.isNull())
    {
       // For IPR unlink first
@@ -140,7 +140,7 @@ void CFileTranslator::Export(AtNode* shader)
 {
    MPlugArray connections;
 
-   MPlug plug = FindMayaObjectPlug("uvCoord");
+   MPlug plug = FindMayaPlug("uvCoord");
 
    plug.connectedTo(connections, true, false);
 
@@ -168,15 +168,15 @@ void CFileTranslator::Export(AtNode* shader)
       }
    }
    
-   if (NULL == ProcessParameter(shader, "filename", AI_TYPE_STRING, FindMayaObjectPlug("fileTextureName")))
+   if (NULL == ProcessParameter(shader, "filename", AI_TYPE_STRING, "fileTextureName"))
    {
       MString filename; 
       MString resolvedFilename; 
       MString frameNumber("0"); 
       MStatus status; 
-      frameNumber += GetExportFrame() + FindMayaObjectPlug("frameOffset").asInt(); 
+      frameNumber += GetExportFrame() + FindMayaPlug("frameOffset").asInt();
       MRenderUtil::exactFileTextureName(GetMayaObject(), filename);
-      resolvedFilename = MRenderUtil::exactFileTextureName(filename, FindMayaObjectPlug("useFrameExtension").asBool(), frameNumber, &status); 
+      resolvedFilename = MRenderUtil::exactFileTextureName(filename, FindMayaPlug("useFrameExtension").asBool(), frameNumber, &status);
       if (status == MStatus::kSuccess) 
       { 
          // Cancels above resolution since it ruins tokens
@@ -184,7 +184,7 @@ void CFileTranslator::Export(AtNode* shader)
       } 
       else 
       { 
-         resolvedFilename = FindMayaObjectPlug("fileTextureName").asString(); 
+         resolvedFilename = FindMayaPlug("fileTextureName").asString();
       } 
       
       // FIXME really inconvenient, a CRenderOptions instance should be stored in session 
@@ -224,8 +224,8 @@ AtNode*  CBump2DTranslator::CreateArnoldNodes()
 
 void CBump2DTranslator::Export(AtNode* shader)
 {
-   ProcessParameter(shader, "bump_map", AI_TYPE_FLOAT, FindMayaObjectPlug("bumpValue"));
-   ProcessParameter(shader, "bump_height", AI_TYPE_FLOAT, FindMayaObjectPlug("bumpDepth"));
+   ProcessParameter(shader, "bump_map", AI_TYPE_FLOAT, "bumpValue");
+   ProcessParameter(shader, "bump_height", AI_TYPE_FLOAT, "bumpDepth");
 }
 
 // Bump3d
@@ -237,8 +237,8 @@ AtNode*  CBump3DTranslator::CreateArnoldNodes()
 
 void CBump3DTranslator::Export(AtNode* shader)
 {
-   ProcessParameter(shader, "bump_map", AI_TYPE_FLOAT, FindMayaObjectPlug("bumpValue"));
-   ProcessParameter(shader, "bump_height", AI_TYPE_FLOAT, FindMayaObjectPlug("bumpDepth"));
+   ProcessParameter(shader, "bump_map", AI_TYPE_FLOAT, "bumpValue");
+   ProcessParameter(shader, "bump_height", AI_TYPE_FLOAT, "bumpDepth");
 }
 
 // SamplerInfo
@@ -475,13 +475,13 @@ void CRemapValueTranslator::Export(AtNode* shader)
       MObject ointerp = GetMayaObjectAttribute("value_Interp");
 
       // FIXME: make inputValue the name of the parameter on the MayaRemapValue shader or set metadata
-      ProcessParameter(shader, "input", AI_TYPE_FLOAT, FindMayaObjectPlug("inputValue"));
+      ProcessParameter(shader, "input", AI_TYPE_FLOAT, "inputValue");
       ProcessParameter(shader, "inputMin", AI_TYPE_FLOAT);
       ProcessParameter(shader, "inputMax", AI_TYPE_FLOAT);
       ProcessParameter(shader, "outputMin", AI_TYPE_FLOAT);
       ProcessParameter(shader, "outputMax", AI_TYPE_FLOAT);
       
-      attr = FindMayaObjectPlug("value");
+      attr = FindMayaPlug("value");
       unsigned int numElements = attr.numElements();
       AtArray* positions = InitArrayParameter(AI_TYPE_FLOAT, numElements);
       AtArray* values = InitArrayParameter(AI_TYPE_FLOAT, numElements);
@@ -510,14 +510,14 @@ void CRemapValueTranslator::Export(AtNode* shader)
       MObject ointerp = GetMayaObjectAttribute("color_Interp");
 
       // FIXME: make inputValue the name of the parameter on the MayaRemapValue shader
-      ProcessParameter(shader, "input", AI_TYPE_FLOAT, FindMayaObjectPlug("inputValue"));
+      ProcessParameter(shader, "input", AI_TYPE_FLOAT, "inputValue");
 
       ProcessParameter(shader, "inputMin", AI_TYPE_FLOAT);
       ProcessParameter(shader, "inputMax", AI_TYPE_FLOAT);
       ProcessParameter(shader, "outputMin", AI_TYPE_FLOAT);
       ProcessParameter(shader, "outputMax", AI_TYPE_FLOAT);
 
-      attr = FindMayaObjectPlug("color");
+      attr = FindMayaPlug("color");
       unsigned int numElements = attr.numElements();
       AtArray* positions = InitArrayParameter(AI_TYPE_FLOAT, numElements);
       AtArray* values = InitArrayParameter(AI_TYPE_RGB, numElements);
@@ -562,7 +562,7 @@ void CRemapColorTranslator::Export(AtNode* shader)
                                  "blue_Interp",  "bInterpolations"};
 
    // FIXME: change shader parameter name to match maya
-   ProcessParameter(shader, "input", AI_TYPE_RGB, FindMayaObjectPlug("color"));
+   ProcessParameter(shader, "input", AI_TYPE_RGB, "color");
    ProcessParameter(shader, "inputMin", AI_TYPE_FLOAT);
    ProcessParameter(shader, "inputMax", AI_TYPE_FLOAT);
    ProcessParameter(shader, "outputMin", AI_TYPE_FLOAT);
@@ -574,7 +574,7 @@ void CRemapColorTranslator::Export(AtNode* shader)
       MObject oval = GetMayaObjectAttribute(valNames[ci*2]);
       MObject ointerp = GetMayaObjectAttribute(interpNames[ci*2]);
       
-      attr = FindMayaObjectPlug(plugNames[ci]);
+      attr = FindMayaPlug(plugNames[ci]);
       unsigned int numElements = attr.numElements();
       AtArray* positions = InitArrayParameter(AI_TYPE_FLOAT, numElements);
       AtArray* values = InitArrayParameter(AI_TYPE_FLOAT, numElements);
@@ -619,7 +619,7 @@ void CRemapHsvTranslator::Export(AtNode* shader)
                                  "value_Interp",  "vInterpolations"};
 
    // FIXME: change shader parameter name to match maya
-   ProcessParameter(shader, "input", AI_TYPE_RGB, FindMayaObjectPlug("color"));
+   ProcessParameter(shader, "input", AI_TYPE_RGB, "color");
    ProcessParameter(shader, "inputMin", AI_TYPE_FLOAT);
    ProcessParameter(shader, "inputMax", AI_TYPE_FLOAT);
    ProcessParameter(shader, "outputMin", AI_TYPE_FLOAT);
@@ -631,7 +631,7 @@ void CRemapHsvTranslator::Export(AtNode* shader)
       MObject oval = GetMayaObjectAttribute(valNames[ci*2]);
       MObject ointerp = GetMayaObjectAttribute(interpNames[ci*2]);
 
-      attr = FindMayaObjectPlug(plugNames[ci]);
+      attr = FindMayaPlug(plugNames[ci]);
       unsigned int numElements = attr.numElements();
       AtArray* positions = InitArrayParameter(AI_TYPE_FLOAT, numElements);
       AtArray* values = InitArrayParameter(AI_TYPE_FLOAT, numElements);
@@ -666,8 +666,8 @@ void CProjectionTranslator::Export(AtNode* shader)
 
    CShaderTranslator::Export(shader);
 
-   MPlug typePlug = FindMayaObjectPlug("projType");
-   MPlug camPlug = FindMayaObjectPlug("linkedCamera");
+   MPlug typePlug = FindMayaPlug("projType");
+   MPlug camPlug = FindMayaPlug("linkedCamera");
    MPlugArray connections;
    camPlug.connectedTo(connections, true, false);
    if (connections.length() >= 1 && typePlug.asInt() == 8)
@@ -720,7 +720,7 @@ void CRampTranslator::Export(AtNode* shader)
 
    MObject opos = GetMayaObjectAttribute("position");
    MObject ocol = GetMayaObjectAttribute("color");
-   plug = FindMayaObjectPlug("colorEntryList");
+   plug = FindMayaPlug("colorEntryList");
    unsigned int numElements = plug.numElements();
 
    // Loop on color entries (position, color)
@@ -760,7 +760,7 @@ void CPlace2DTextureTranslator::Export(AtNode* shader)
    ProcessParameter(shader, "stagger", AI_TYPE_BOOLEAN);
    ProcessParameter(shader, "repeatUV", AI_TYPE_POINT2);
    ProcessParameter(shader, "rotateUV", AI_TYPE_FLOAT);
-   ProcessParameter(shader, "offsetUV", AI_TYPE_POINT2, FindMayaObjectPlug("offset"));
+   ProcessParameter(shader, "offsetUV", AI_TYPE_POINT2, "offset");
    ProcessParameter(shader, "noiseUV", AI_TYPE_POINT2);
 }
 
@@ -776,7 +776,7 @@ void CLayeredTextureTranslator::Export(AtNode* shader)
    ProcessParameter(shader, "alphaIsLuminance", AI_TYPE_BOOLEAN);
 
    MPlug inputs, elemt, col, alph, mode, vis;
-   inputs = FindMayaObjectPlug("inputs");
+   inputs = FindMayaPlug("inputs");
    MObject ocolor = GetMayaObjectAttribute("color");
    MObject oalpha = GetMayaObjectAttribute("alpha");
    MObject omode = GetMayaObjectAttribute("blendMode");

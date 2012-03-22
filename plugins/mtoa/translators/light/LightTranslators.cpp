@@ -27,7 +27,7 @@ void CDirectionalLightTranslator::Export(AtNode* light)
 {
    CLightTranslator::Export(light);
 
-   AiNodeSetFlt(light, "angle", FindMayaObjectPlug("aiAngle").asFloat());
+   AiNodeSetFlt(light, "angle", FindMayaPlug("aiAngle").asFloat());
 
 }
 
@@ -49,11 +49,11 @@ void CPointLightTranslator::Export(AtNode* light)
    MPlug plug;
    MFnPointLight fnLight(m_dagPath);
 
-   AiNodeSetFlt(light, "radius", FindMayaObjectPlug("aiRadius").asFloat());
+   AiNodeSetFlt(light, "radius", FindMayaPlug("aiRadius").asFloat());
 
-   AiNodeSetInt(light,  "decay_type",      FindMayaObjectPlug("aiDecayType").asInt());
-   AiNodeSetBool(light, "affect_volumetrics", FindMayaObjectPlug("aiAffectVolumetrics").asBool());
-   AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaObjectPlug("aiCastVolumetricShadows").asBool());
+   AiNodeSetInt(light,  "decay_type",      FindMayaPlug("aiDecayType").asInt());
+   AiNodeSetBool(light, "affect_volumetrics", FindMayaPlug("aiAffectVolumetrics").asBool());
+   AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaPlug("aiCastVolumetricShadows").asBool());
 }
 
 void CPointLightTranslator::NodeInitializer(CAbTranslator context)
@@ -82,14 +82,14 @@ void CSpotLightTranslator::Export(AtNode* light)
    AiNodeSetFlt(light, "penumbra_angle", static_cast<float>(fabs(fnLight.penumbraAngle()) * AI_RTOD));
    AiNodeSetFlt(light, "cosine_power", static_cast<float>(fnLight.dropOff()));
 
-   AiNodeSetFlt(light, "radius", FindMayaObjectPlug("aiRadius").asFloat());
+   AiNodeSetFlt(light, "radius", FindMayaPlug("aiRadius").asFloat());
 
-   AiNodeSetInt(light,  "decay_type",      FindMayaObjectPlug("aiDecayType").asInt());
-   AiNodeSetBool(light, "affect_volumetrics", FindMayaObjectPlug("aiAffectVolumetrics").asBool());
-   AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaObjectPlug("aiCastVolumetricShadows").asBool());
+   AiNodeSetInt(light,  "decay_type",      FindMayaPlug("aiDecayType").asInt());
+   AiNodeSetBool(light, "affect_volumetrics", FindMayaPlug("aiAffectVolumetrics").asBool());
+   AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaPlug("aiCastVolumetricShadows").asBool());
 
-   AiNodeSetFlt(light, "aspect_ratio", FindMayaObjectPlug("aiAspectRatio").asFloat());
-   AiNodeSetFlt(light, "lens_radius", FindMayaObjectPlug("aiLensRadius").asFloat());
+   AiNodeSetFlt(light, "aspect_ratio", FindMayaPlug("aiAspectRatio").asFloat());
+   AiNodeSetFlt(light, "lens_radius", FindMayaPlug("aiLensRadius").asFloat());
 }
 
 void CSpotLightTranslator::NodeInitializer(CAbTranslator context)
@@ -122,10 +122,10 @@ void CQuadLightTranslator::Export(AtNode* light)
 
    AiNodeSetArray(light, "vertices", AiArrayConvert(4, 1, AI_TYPE_POINT, vertices));
 
-   AiNodeSetInt(light,  "decay_type",      FindMayaObjectPlug("aiDecayType").asInt());
-   AiNodeSetInt(light, "resolution", FindMayaObjectPlug("aiResolution").asInt());
-   AiNodeSetBool(light, "affect_volumetrics", FindMayaObjectPlug("aiAffectVolumetrics").asBool());
-   AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaObjectPlug("aiCastVolumetricShadows").asBool());
+   AiNodeSetInt(light,  "decay_type",      FindMayaPlug("aiDecayType").asInt());
+   AiNodeSetInt(light, "resolution", FindMayaPlug("aiResolution").asInt());
+   AiNodeSetBool(light, "affect_volumetrics", FindMayaPlug("aiAffectVolumetrics").asBool());
+   AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaPlug("aiCastVolumetricShadows").asBool());
 }
 
 void CQuadLightTranslator::NodeInitializer(CAbTranslator context)
@@ -146,9 +146,9 @@ void CCylinderLightTranslator::Export(AtNode* light)
 {
    CLightTranslator::Export(light);
 
-   AiNodeSetInt(light,  "decay_type",      FindMayaObjectPlug("aiDecayType").asInt());
-   AiNodeSetBool(light, "affect_volumetrics", FindMayaObjectPlug("aiAffectVolumetrics").asBool());
-   AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaObjectPlug("aiCastVolumetricShadows").asBool());
+   AiNodeSetInt(light,  "decay_type",      FindMayaPlug("aiDecayType").asInt());
+   AiNodeSetBool(light, "affect_volumetrics", FindMayaPlug("aiAffectVolumetrics").asBool());
+   AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaPlug("aiCastVolumetricShadows").asBool());
 
    MTransformationMatrix tm(m_dagPath.inclusiveMatrix());
    double scale[3] = {1.0f, 1.0f, 1.0f};
@@ -172,9 +172,9 @@ void CDiskLightTranslator::Export(AtNode* light)
 {
    CLightTranslator::Export(light);
 
-   AiNodeSetInt(light,  "decay_type",      FindMayaObjectPlug("aiDecayType").asInt());
-   AiNodeSetBool(light, "affect_volumetrics", FindMayaObjectPlug("aiAffectVolumetrics").asBool());
-   AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaObjectPlug("aiCastVolumetricShadows").asBool());
+   AiNodeSetInt(light,  "decay_type",      FindMayaPlug("aiDecayType").asInt());
+   AiNodeSetBool(light, "affect_volumetrics", FindMayaPlug("aiAffectVolumetrics").asBool());
+   AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaPlug("aiCastVolumetricShadows").asBool());
    MTransformationMatrix tm(m_dagPath.inclusiveMatrix());
    double scale[3] = {1.0f, 1.0f, 1.0f};
    tm.getScale(scale, MSpace::kPreTransform);
@@ -214,10 +214,10 @@ void CSkyDomeLightTranslator::Export(AtNode* light)
 {
    CLightTranslator::Export(light);
 
-   AiNodeSetInt(light, "resolution", FindMayaObjectPlug("resolution").asInt());
-   AiNodeSetInt(light, "format", FindMayaObjectPlug("format").asInt());
-   AiNodeSetFlt(light, "shadow_density", FindMayaObjectPlug("shadow_density").asFloat());
-   AiNodeSetRGB(light, "shadow_color", FindMayaObjectPlug("shadow_colorR").asFloat(), FindMayaObjectPlug("shadow_colorG").asFloat(), FindMayaObjectPlug("shadow_colorB").asFloat());
+   AiNodeSetInt(light, "resolution", FindMayaPlug("resolution").asInt());
+   AiNodeSetInt(light, "format", FindMayaPlug("format").asInt());
+   AiNodeSetFlt(light, "shadow_density", FindMayaPlug("shadow_density").asFloat());
+   AiNodeSetRGB(light, "shadow_color", FindMayaPlug("shadow_colorR").asFloat(), FindMayaPlug("shadow_colorG").asFloat(), FindMayaPlug("shadow_colorB").asFloat());
 }
 
 void CSkyDomeLightTranslator::NodeInitializer(CAbTranslator context)

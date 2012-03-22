@@ -15,21 +15,11 @@ void CShapeTranslator::ProcessRenderFlags(AtNode* node)
 
    MPlug plug;
 
-   plug = FindMayaObjectPlug("aiSelfShadows");
-   if (!plug.isNull()) ProcessParameter(node, "self_shadows", AI_TYPE_BOOLEAN, plug);
-
-   plug = FindMayaObjectPlug("aiOpaque");
-   if (!plug.isNull()) ProcessParameter(node, "opaque", AI_TYPE_BOOLEAN, plug);
-
-   plug = FindMayaObjectPlug("receiveShadows");
-   if (!plug.isNull()) ProcessParameter(node, "receive_shadows", AI_TYPE_BOOLEAN, plug);
-
-   // Sub-Surface Scattering
-   plug = FindMayaObjectPlug("aiSssSampleDistribution");
-   if (!plug.isNull()) ProcessParameter(node, "sss_sample_distribution", AI_TYPE_INT, plug);
-
-   plug = FindMayaObjectPlug("aiSssSampleSpacing");
-   if (!plug.isNull()) ProcessParameter(node, "sss_sample_spacing", AI_TYPE_FLOAT, plug);
+   ProcessParameter(node, "self_shadows", AI_TYPE_BOOLEAN, "aiSelfShadows");
+   ProcessParameter(node, "opaque", AI_TYPE_BOOLEAN, "aiOpaque");
+   ProcessParameter(node, "receive_shadows", AI_TYPE_BOOLEAN, "receiveShadows");
+   ProcessParameter(node, "sss_sample_distribution", AI_TYPE_INT, "aiSssSampleDistribution");
+   ProcessParameter(node, "sss_sample_spacing", AI_TYPE_FLOAT, "aiSssSampleSpacing");
 }
 
 

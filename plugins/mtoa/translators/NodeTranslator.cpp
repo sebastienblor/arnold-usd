@@ -87,11 +87,108 @@ MString GetAOVNodeType(int type)
    return nodeType;
 }
 
+// Utility function to check plug for any incoming connection on it or its childs or elements
+bool HasIncomingConnection(const MPlug &plug)
+{
+   MStatus status;
+
+   if (!plug.isNull())
+   {
+      // Is directly connected
+      MPlugArray inConnections;
+      if (plug.connectedTo(inConnections, true, false, &status)
+            && (inConnections.length() > 0))
+      {
+         return true;
+      }
+      // Is compound and has connected childs ?
+      if (plug.isCompound())
+      {
+         unsigned int nc = plug.numChildren();
+         for (unsigned int i=0; i<nc; i++) {
+            if (HasIncomingConnection(plug.child(i)))
+            {
+               return true;
+            }
+         }
+      }
+      // Is array and has connected elements ?
+      if (plug.isArray() && (plug.numConnectedElements() > 0))
+      {
+         unsigned int ne = plug.numElements();
+         for (unsigned int i=0; i<ne; i++) {
+            if (HasIncomingConnection(plug.elementByPhysicalIndex(i)))
+            {
+               return true;
+            }
+         }
+      }
+   }
+
+   return false;
+}
+
 //------------ CNodeTranslator ------------//
+
+/// Get a plug for that attribute name on the maya translated object
+MPlug CNodeTranslator::FindMayaObjectPlug(const MString &attrName, MStatus* ReturnStatus) const
+{
+   MFnDependencyNode fnNode(m_handle.object());
+   return fnNode.findPlug(attrName, ReturnStatus);
+}
+
+/// Get a plug for that attribute name on the maya override sets, if any
+MPlug CNodeTranslator::FindMayaOverridePlug(const MString &attrName, MStatus* ReturnStatus) const
+{
+   MStatus status(MStatus::kSuccess);
+   MPlug plug;     // Empty plug
+   // Check if a set override this plug's value
+   MFnSet fnSet;
+   unsigned int novr = m_overrideSets.length();
+   for (unsigned int i=0; i<novr; i++)
+   {
+      fnSet.setObject(m_overrideSets[i]);
+      // MString setName = fnSet.name();
+      MPlug p = fnSet.findPlug(attrName, &status);
+      if ((MStatus::kSuccess == status) && !p.isNull())
+      {
+         // FIXME: multiple sets containing one object make no sense,
+         // only first will be taken into account, display warnings there?
+         plug = p;
+         break;
+      }
+   }
+
+   if (ReturnStatus != NULL) *ReturnStatus = status;
+   return plug;
+}
+
+/// Get actual plug to be used for that attribute name, either the one on the translated maya object,
+/// or the one on the override set to be used, if any.
+MPlug CNodeTranslator::FindMayaPlug(const MString &attrName, MStatus* ReturnStatus) const
+{
+   MStatus status(MStatus::kSuccess);
+
+   MPlug plug = FindMayaObjectPlug(attrName, &status);
+   if ((MStatus::kSuccess == status) && !plug.isNull() && !HasIncomingConnection(plug))
+   {
+      MStatus overstat;
+      MString attrLongName = plug.partialName(false, true, true, false, true, true, &overstat);
+      MPlug overridePlug = FindMayaOverridePlug(attrLongName, &overstat);
+      if ((MStatus::kSuccess == overstat) && !overridePlug.isNull())
+      {
+         plug = overridePlug;
+         status = overstat;
+      }
+   }
+
+   if (ReturnStatus != NULL) *ReturnStatus = status;
+   return plug;
+}
 
 /// find override sets containing the passed Maya node
 /// and add them to the passed MObjectArray
-MStatus CNodeTranslator::FindOverrideSets(MObject object, MObjectArray &overrideSets)
+MStatus CNodeTranslator::GetOverrideSets(MObject object, MObjectArray &overrideSets)
 {
    MStatus status;
 
@@ -127,54 +224,34 @@ MStatus CNodeTranslator::UpdateOverrideSets()
    MStatus status;
 
    m_overrideSets.clear();
-   status = FindOverrideSets(m_handle.object(), m_overrideSets);
+   status = GetOverrideSets(m_handle.object(), m_overrideSets);
 
    return status;
 }
 
-/// Get the override plug for the passed plug if there is one,
-/// if not the passed plug is returned
-MPlug CNodeTranslator::FindOverridePlug(const MPlug &plug) const
+/// Get the override plug for the passed maya plug,
+/// if there is one and the maya plug isn't connected.
+/// Otherwise, returns the Maya plug.
+MPlug CNodeTranslator::GetOverridePlug(const MPlug &plug, MStatus* ReturnStatus) const
 {
-   MStatus status;
-   // Check if a set override this plug's value
-   unsigned int novr = m_overrideSets.length();
-   if (novr > 0)
+   MStatus status(MStatus::kSuccess);
+   MPlug resultPlug(plug);
+
+   if (!HasIncomingConnection(plug))
    {
-      MFnSet fnSet;
-      MString plugFullName = plug.name();
       // MPlug::partialName signature is
       // (bool includeNodeName=false, bool includeNonMandatoryIndices=false,
       // bool includeInstancedIndices=false, bool useAlias=false, bool useFullAttributePath=false,
-      // bool useLongNames=false, MStatus *ReturnStatus=NULL) 
-      MString plugName = plug.partialName(false, true, true, false, true, true, &status);
-      for (unsigned int i=0; i<novr; i++)
-      {
-         fnSet.setObject(m_overrideSets[i]);
-         MString setName = fnSet.name();
-         MPlug p = fnSet.findPlug(plugName, &status);
-         if ((MStatus::kSuccess == status) && !p.isNull())
-         {
-            // FIXME: multiple sets containing one object make no sense,
-            // only first will be taken into account, display warnings there?
-            return p;
-         }
-      }
+      // bool useLongNames=false, MStatus *ReturnStatus=NULL)
+      MString attrName = plug.partialName(false, true, true, false, true, true, &status);
+      MPlug overridePlug = FindMayaOverridePlug(attrName, &status);
+      CHECK_MSTATUS(status)
+      if ((MStatus::kSuccess == status) && !overridePlug.isNull())
+         resultPlug = overridePlug;
    }
-   return plug;
-}
 
-/// Get the override plug for the passed attribute name,
-/// the plug will be either on the maya object or on the override set
-/// if one was found
-MPlug CNodeTranslator::FindOverridePlug(const MString &attrName) const
-{
-   MStatus status;
-   MPlug plug = FindMayaObjectPlug(attrName, &status);
-   if ((MStatus::kSuccess == status) && !plug.isNull())
-      return FindOverridePlug(plug);
-   else
-      return plug;
+   if (ReturnStatus != NULL) *ReturnStatus = status;
+   return resultPlug;
 }
 
 /// gather up the active AOVs for the current node and add them to m_AOVs
@@ -191,7 +268,7 @@ void CNodeTranslator::ComputeAOVs()
    MPlug plug;
    for (unsigned int i=1; i < aovAttrs.length(); i+=3)
    {
-      plug = FindMayaObjectPlug(aovAttrs[i], &stat);
+      plug = FindMayaPlug(aovAttrs[i], &stat);
       if (stat == MS::kSuccess)
       {
          CAOV aov;
@@ -1032,9 +1109,9 @@ bool CNodeTranslator::ProcessParameterComponentInputs(AtNode* arnoldNode, const 
 }
 
 
-// Using the translator's m_handle Maya Object and corresponding attrbuteName (default behavior)
+/// Using the translator's m_handle Maya Object and corresponding attrbuteName (default behavior)
 AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName,
-                                          int arnoldParamType, int element)
+                                          int arnoldParamType)
 {
    MStatus status;
 
@@ -1045,37 +1122,38 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnold
    if (!helper.IsHidden(arnoldParamName))
    {
       MString mayaAttribName = helper.GetMayaAttrName(arnoldParamName);
-      MPlug plug = fnNode.findPlug(mayaAttribName, true, &status);
-
-      if (MStatus::kSuccess == status && !plug.isNull())
-      {
-         if (element >= 0)
-         {
-            // FIXME: I'd expect elementByLogicalIndex for a user passed parameter
-            // but I've never seen element used in the code anyway
-            if (plug.isArray())
-            {
-               plug = plug.elementByPhysicalIndex(element);
-            }
-            else
-            {
-               AiMsgWarning("[mtoa.translator]  %s: Plug %s does not represent a multi attribute, can't get element %i.",
-                     GetTranslatorName().asChar(), fnNode.name().asChar(), element);
-            }
-         }
-         return ProcessParameter(arnoldNode, arnoldParamName, arnoldParamType, plug);
-      }
-      else
-      {
-         AiMsgWarning("[mtoa.translator]  %s: Maya node %s(%s) does not have attribute %s to match parameter %s on Arnold node %s(%s).",
-               GetTranslatorName().asChar(),
-               GetMayaNodeName().asChar(), GetMayaNodeTypeName().asChar(),
-               mayaAttribName.asChar(), arnoldParamName,
-               AiNodeGetName(arnoldNode), AiNodeEntryGetName(arnoldNodeEntry));
-      }
+      return ProcessParameter(arnoldNode, arnoldParamName, arnoldParamType, mayaAttribName);
+   }
+   else
+   {
+      AiMsgDebug("[mtoa.translator]  %s: Parameter %s is hidden on Arnold node %s(%s).",
+            GetTranslatorName().asChar(), arnoldParamName,
+            AiNodeGetName(arnoldNode), AiNodeEntryGetName(arnoldNodeEntry));
    }
 
    return NULL;
+}
+
+/// Using the translator's m_handle Maya Object and specific attrName
+AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName,
+                                          int arnoldParamType, const MString& mayaAttrName)
+{
+   MStatus status;
+
+   // Get plug on the Maya object or override set if there is one
+   MPlug plug = FindMayaPlug(mayaAttrName, &status);
+   if ((MStatus::kSuccess == status) && !plug.isNull())
+   {
+      return ProcessParameter(arnoldNode, arnoldParamName, arnoldParamType, plug);
+   }
+   else
+   {
+      AiMsgWarning("[mtoa.translator]  %s: Maya node %s(%s) does not have attribute %s to match parameter %s on Arnold node %s(%s).",
+            GetTranslatorName().asChar(),
+            GetMayaNodeName().asChar(), GetMayaNodeTypeName().asChar(),
+            mayaAttrName.asChar(), arnoldParamName,
+            AiNodeGetName(arnoldNode), AiNodeEntryGetName(AiNodeGetNodeEntry(arnoldNode)));
+   }
 }
 
 /// Main entry point to export values to an arnold parameter from a maya plug, recursively following
@@ -1092,7 +1170,7 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnold
    }
    if (plug.isNull())
    {
-      AiMsgError("[mtoa.translator]  %s: Null Maya plug was passed as source for parameter %s on Arnold node %s(%s)",
+      AiMsgError("[mtoa.translator]  %s: Invalid Maya plug was passed as source for parameter %s on Arnold node %s(%s)",
             GetTranslatorName().asChar(), arnoldParamName,
             AiNodeGetName(arnoldNode), AiNodeEntryGetName(AiNodeGetNodeEntry(arnoldNode)));
       return NULL;
@@ -1145,20 +1223,14 @@ AtNode* CNodeTranslator::ProcessConstantParameter(AtNode* arnoldNode, const char
                                                   int arnoldParamType, const MPlug& plug)
 {
    MStatus status;
-   MPlug actualPlug = FindOverridePlug(plug);
 
    if (plug.isCompound())
    {
-      // No overrides or direct write for connections
+      // Process the childs for compound plugs with at least one connected child
       if (ProcessParameterComponentInputs(arnoldNode, plug, arnoldParamName, arnoldParamType))
       {
          return NULL;
       }
-   }
-   if (actualPlug != plug)
-   {
-      // Process the overriding plug instead (that may be connected)
-      return ProcessParameter(arnoldNode, arnoldParamName, arnoldParamType, actualPlug);
    }
 
    switch(arnoldParamType)
@@ -1724,38 +1796,38 @@ int CDagTranslator::ComputeVisibility()
    int visibility = AI_RAY_ALL;
    MPlug plug;
 
-   plug = FindOverridePlug("castsShadows");
+   plug = FindMayaPlug("castsShadows");
    if (!plug.isNull() && !plug.asBool())
    {
       visibility &= ~AI_RAY_SHADOW;
    }
 
-   plug = FindOverridePlug("primaryVisibility");
+   plug = FindMayaPlug("primaryVisibility");
    MString plugName = plug.name();
    if (!plug.isNull() && !plug.asBool())
    {
       visibility &= ~AI_RAY_CAMERA;
    }
 
-   plug = FindOverridePlug("visibleInReflections");
+   plug = FindMayaPlug("visibleInReflections");
    if (!plug.isNull() && !plug.asBool())
    {
       visibility &= ~AI_RAY_REFLECTED;
    }
 
-   plug = FindOverridePlug("visibleInRefractions");
+   plug = FindMayaPlug("visibleInRefractions");
    if (!plug.isNull() && !plug.asBool())
    {
       visibility &= ~AI_RAY_REFRACTED;
    }
 
-   plug = FindOverridePlug("aiVisibleInDiffuse");
+   plug = FindMayaPlug("aiVisibleInDiffuse");
    if (!plug.isNull() && !plug.asBool())
    {
       visibility &= ~AI_RAY_DIFFUSE;
    }
 
-   plug = FindOverridePlug("aiVisibleInGlossy");
+   plug = FindMayaPlug("aiVisibleInGlossy");
    if (!plug.isNull() && !plug.asBool())
    {
       visibility &= ~AI_RAY_GLOSSY;

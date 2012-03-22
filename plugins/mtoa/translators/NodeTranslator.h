@@ -64,7 +64,10 @@ public:
    virtual MString GetMayaAttributeName() const { return m_handle.attribute(); }
    virtual MString GetMayaNodeTypeName() const { return MFnDependencyNode(m_handle.object()).typeName(); }
    virtual MObject GetMayaObjectAttribute(MString attributeName) const { return MFnDependencyNode(m_handle.object()).attribute(attributeName); }
-   virtual MPlug FindMayaObjectPlug(MString attributeName, MStatus* ReturnStatus=NULL) const { return MFnDependencyNode(m_handle.object()).findPlug(attributeName, ReturnStatus); }
+
+   virtual MPlug FindMayaObjectPlug(const MString &attrName, MStatus* ReturnStatus=NULL) const;
+   virtual MPlug FindMayaOverridePlug(const MString &attrName, MStatus* ReturnStatus=NULL) const;
+   virtual MPlug FindMayaPlug(const MString &attrName, MStatus* ReturnStatus=NULL) const;
 
    virtual bool IsMayaTypeDag() {return false;}
    virtual bool IsMayaTypeRenderable() {return false;}
@@ -87,10 +90,10 @@ protected:
       m_handle(CNodeAttrHandle())
    {}
 
-   virtual MStatus FindOverrideSets(MObject object, MObjectArray &overrideSets);
+   virtual MStatus GetOverrideSets(MObject object, MObjectArray &overrideSets);
    virtual MStatus UpdateOverrideSets();
-   virtual MPlug FindOverridePlug(const MPlug &plug) const;
-   virtual MPlug FindOverridePlug(const MString &attrName) const;
+   virtual MPlug GetOverridePlug(const MPlug &plug, MStatus* ReturnStatus=NULL) const;
+
    virtual void ComputeAOVs();
    void AddAOVDefaults(AtNode* shadingEngine, std::vector<AtNode*> &aovShaders);
    void WriteAOVUserAttributes(AtNode* atNode);
@@ -117,7 +120,9 @@ protected:
    virtual void Delete() {}
 
    // Using the translator's MObject m_object and corresponding attrbuteName (default behavior)
-   virtual AtNode* ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, int element=-1);
+   virtual AtNode* ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType);
+   // For a specific Maya attribute on the translator Maya node
+   virtual AtNode* ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, const MString& mayaAttrName);
    // For a specific Maya plug
    virtual AtNode* ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, const MPlug& plug);
    AtArray* InitArrayParameter(unsigned int arnoldParamType, unsigned int size);
@@ -136,7 +141,7 @@ protected:
    bool IsLocalMotionBlurEnabled() const
    {
       bool local_motion_attr(true);
-      MPlug plug = FindMayaObjectPlug("motionBlur");
+      MPlug plug = FindMayaPlug("motionBlur");
       if (!plug.isNull())
          local_motion_attr = plug.asBool();
       return local_motion_attr;
