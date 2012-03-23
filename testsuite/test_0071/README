@@ -1,0 +1,5 @@
+Make Deformation Motion Blur work if geometry is smoothed by Maya
+
+Make Deformation Motion Blur work if geometry is smoothed by Maya (Ticket #788)
+
+author: pedro.gomez
