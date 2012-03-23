@@ -128,10 +128,29 @@ void CMeshTranslator::Export(AtNode* anode)
    }
 }
 
+void CMeshTranslator::ExportMotion(AtNode* anode, unsigned int step)
+{
+   const char* nodeType = AiNodeEntryGetName(AiNodeGetNodeEntry(anode));
+   if (strcmp(nodeType, "ginstance") == 0)
+   {
+      ExportMatrix(anode, step);
+   }
+   else if (strcmp(nodeType, "polymesh") == 0)
+   {
+      ExportMatrix(anode, step);
+      if (m_motionDeform)
+      {
+         // Early return if we can't tessalate.
+         if (!Tessellate(m_dagPath))
+            return;
+         ExportMeshGeoData(anode, step);
+      }
+   }
+}
+
 bool CMeshTranslator::IsGeoDeforming()
 {
-   // MFnMesh fnMesh(m_dagPath);
-   MFnMesh fnMesh(m_geometry);
+   MFnMesh fnMesh(m_dagPath);
    bool history = false;
    bool pnts = false;
 
