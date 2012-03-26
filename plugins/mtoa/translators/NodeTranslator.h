@@ -65,6 +65,11 @@ public:
    virtual MString GetMayaNodeTypeName() const { return MFnDependencyNode(m_handle.object()).typeName(); }
    virtual MObject GetMayaObjectAttribute(MString attributeName) const { return MFnDependencyNode(m_handle.object()).attribute(attributeName); }
 
+   virtual AtNode* GetArnoldRootNode();
+   virtual AtNode* GetArnoldNode(const char* tag="");
+   virtual const char* GetArnoldNodeName(const char* tag="");
+   virtual const char* GetArnoldTypeName(const char* tag="");
+
    virtual MPlug FindMayaObjectPlug(const MString &attrName, MStatus* ReturnStatus=NULL) const;
    virtual MPlug FindMayaOverridePlug(const MString &attrName, MStatus* ReturnStatus=NULL) const;
    virtual MPlug FindMayaPlug(const MString &attrName, MStatus* ReturnStatus=NULL) const;
@@ -78,12 +83,23 @@ public:
    /// Instead of caching translator exports, allow a Maya node to be exported multiple times, each time generating new arnold nodes
    virtual bool DisableCaching() {return false;}
 
+   // Overide this if you have some special callbacks to install.
+   virtual void AddUpdateCallbacks();
+   // Remove callbacks installed. This is virtual incase
+   // a translator needs to do more than remove the managed
+   // callbacks.
+   virtual void RemoveUpdateCallbacks();
+   // This is a help that tells mtoa to re-export/update the node passed in.
+   // Used by the Update callbacks.
+   virtual void RequestUpdate(void * clientData = NULL);
+
 protected:
    CNodeTranslator()  :
       m_abstract(CAbTranslator()),
       m_session(NULL),
       m_atNode(NULL),
       m_step(0),
+      m_overrideSets(),
       m_localAOVs(),
       m_upstreamAOVs(),
       m_shaders(NULL),
@@ -91,7 +107,7 @@ protected:
    {}
 
    virtual MStatus GetOverrideSets(MObject object, MObjectArray &overrideSets);
-   virtual MStatus UpdateOverrideSets();
+   virtual MStatus ExportOverrideSets();
    virtual MPlug GetOverridePlug(const MPlug &plug, MStatus* ReturnStatus=NULL) const;
 
    virtual void ComputeAOVs();
@@ -160,27 +176,13 @@ protected:
    AtNode* ExportNode(const MPlug& outputPlug) {return m_session->ExportNode(outputPlug, m_shaders, &m_upstreamAOVs);}
    AtNode* ExportDagPath(MDagPath &dagPath) {return m_session->ExportDagPath(dagPath);}
 
-   // get the arnold node that this translator is exporting (should only be used after all export steps are complete)
-   AtNode* GetArnoldRootNode();
-   void SetArnoldRootNode(AtNode* node);
-   AtNode* GetArnoldNode(const char* tag="");
-   AtNode* AddArnoldNode(const char* type, const char* tag="");
+   // set the arnold node that this translator is exporting (should only be used after all export steps are complete)
+   virtual void SetArnoldRootNode(AtNode* node);
+   virtual AtNode* AddArnoldNode(const char* type, const char* tag="");
    virtual void SetArnoldNodeName(AtNode* arnoldNode, const char* tag="");
-   virtual const char* GetArnoldNodeName(const char* tag="");
-   virtual const char* GetArnoldTypeName(const char* tag="");
 
    // Add a callback to the list to manage.
    void ManageUpdateCallback(const MCallbackId id);
-
-   // Overide this if you have some special callbacks to install.
-   virtual void AddUpdateCallbacks();
-   // Remove callbacks installed. This is virtual incase
-   // a translator needs to do more than remove the managed
-   // callbacks.
-   virtual void RemoveUpdateCallbacks();
-   // This is a help that tells mtoa to re-export/update the node passed in.
-   // Used by the Update callbacks.
-   void RequestUpdate(void * clientData = NULL);
 
    // Some simple callbacks used by many translators.
    static void NodeDirtyCallback(MObject &node, MPlug &plug, void *clientData);
@@ -250,8 +252,8 @@ public:
 
 protected:
    CDagTranslator() : CNodeTranslator(){}
-   virtual MStatus FindOverrideSets(MDagPath path, MObjectArray &overrideSets);
-   virtual MStatus UpdateOverrideSets();
+   virtual MStatus GetOverrideSets(MDagPath path, MObjectArray &overrideSets);
+   virtual MStatus ExportOverrideSets();
    virtual bool IsMasterInstance(MDagPath &masterDag);
    void GetRotationMatrix(AtMatrix& matrix);
    virtual void GetMatrix(AtMatrix& matrix);

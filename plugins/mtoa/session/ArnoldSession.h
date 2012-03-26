@@ -44,6 +44,7 @@ class COptionsTranslator;
 // It's a multimap as there can be one different Arnold node and translator per output attribute
 // for Maya node with multiple outputs (until Arnold nodes support multiple outputs)
 // (Trac #351)
+// FIXME: careful that multiple occurrence of same translator will cause a crash when clearing map and deleting them!
 typedef std::multimap<CNodeAttrHandle, CNodeTranslator*> ObjectToTranslatorMap;
 typedef std::pair<CNodeAttrHandle, CNodeTranslator*> ObjectToTranslatorPair;
 

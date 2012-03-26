@@ -2,7 +2,7 @@
 #define OBJECT_SET_TRANSLATOR_H
 
 #include "NodeTranslator.h"
-
+#include <maya/MNodeMessage.h>
 
 class DLLEXPORT CObjectSetTranslator : public CNodeTranslator
 {
@@ -18,6 +18,12 @@ protected:
    {}
    virtual ~CObjectSetTranslator()
    {}
+   virtual void AddUpdateCallbacks();
+   virtual void RequestUpdate(void *clientData);
+
+   static void AttributeChangedCallback(MNodeMessage::AttributeMessage msg,
+                                        MPlug& plug, MPlug& otherPlug,
+                                        void* clientData);
 
 };
 

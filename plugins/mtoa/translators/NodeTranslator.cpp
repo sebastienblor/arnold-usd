@@ -219,12 +219,20 @@ MStatus CNodeTranslator::GetOverrideSets(MObject object, MObjectArray &overrideS
 }
 
 /// gather the active override sets containing this node
-MStatus CNodeTranslator::UpdateOverrideSets()
+MStatus CNodeTranslator::ExportOverrideSets()
 {
    MStatus status;
 
    m_overrideSets.clear();
    status = GetOverrideSets(m_handle.object(), m_overrideSets);
+   // Exporting a set creates no Arnold object but allows IPR to track it
+   MFnSet fnSet;
+   unsigned int ns = m_overrideSets.length();
+   for (unsigned int i=0; i<ns; i++)
+   {
+      fnSet.setObject(m_overrideSets[i]);
+      m_session->ExportNode(fnSet.findPlug("message"));
+   }
 
    return status;
 }
@@ -413,7 +421,7 @@ AtNode* CNodeTranslator::DoExport(unsigned int step)
          else
             AiMsgDebug("[mtoa.translator]  %-30s | Exporting (%s)",
                        GetMayaNodeName().asChar(), GetTranslatorName().asChar());
-         UpdateOverrideSets();
+         ExportOverrideSets();
          ComputeAOVs();
          Export(node);
          ExportUserAttribute(node);
@@ -449,7 +457,7 @@ AtNode* CNodeTranslator::DoUpdate(unsigned int step)
 
       if (step == 0)
       {
-         UpdateOverrideSets();
+         ExportOverrideSets();
          Update(node);
          ExportUserAttribute(node);
       }
@@ -460,8 +468,19 @@ AtNode* CNodeTranslator::DoUpdate(unsigned int step)
    }
    else
    {
-      AiMsgWarning("[mtoa.translator]  %-30s | Update requested but no Arnold node was created by this translator (%s)",
+      AiMsgDebug("[mtoa.translator]  %-30s | Update requested but no Arnold node was created by this translator (%s)",
                    GetMayaNodeName().asChar(), GetTranslatorName().asChar());
+
+      if (step == 0)
+      {
+         ExportOverrideSets();
+         Update(node);
+         ExportUserAttribute(node);
+      }
+      else if (RequiresMotionData())
+      {
+         UpdateMotion(node, step);
+      }
    }
 
    return GetArnoldRootNode();
@@ -471,7 +490,7 @@ AtNode* CNodeTranslator::DoCreateArnoldNodes()
 {
    m_atNode = CreateArnoldNodes();
    if (m_atNode == NULL)
-      AiMsgWarning("[mtoa.translator]  %s (%s): Translator %s returned an empty Arnold root node.",
+      AiMsgDebug("[mtoa.translator]  %s (%s): Translator %s returned an empty Arnold root node.",
             GetMayaNodeName().asChar(), GetMayaNodeTypeName().asChar(), GetTranslatorName().asChar());
    if (m_atNodes.count("") == 0)
       m_atNodes[""] = m_atNode;
@@ -585,7 +604,8 @@ bool CNodeTranslator::ResolveOutputPlug(const MPlug& outputPlug, MPlug &resolved
 // add whatever callbacks you need to trigger a fresh.
 void CNodeTranslator::AddUpdateCallbacks()
 {
-   AiMsgDebug("[mtoa.translator.ipr] %-30s | Add Update callbacks", GetMayaNodeName().asChar());
+   AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: Add update callbacks for translator %p",
+      GetMayaNodeName().asChar(), GetTranslatorName().asChar(), this);
    MStatus status;
    MCallbackId id;
 
@@ -1546,9 +1566,9 @@ void CNodeTranslator::ProcessConstantArrayElement(int type, AtArray* array, unsi
 }
 
 //------------ CDagTranslator ------------//
-/// find override sets containing the passed Maya dag path
+/// get override sets containing the passed Maya dag path
 /// and add them to the passed MObjectArray
-MStatus CDagTranslator::FindOverrideSets(MDagPath path, MObjectArray &overrideSets)
+MStatus CDagTranslator::GetOverrideSets(MDagPath path, MObjectArray &overrideSets)
 {
    MStatus status;
 
@@ -1580,14 +1600,15 @@ MStatus CDagTranslator::FindOverrideSets(MDagPath path, MObjectArray &overrideSe
 }
 
 /// gather the active override sets containing this node
-MStatus CDagTranslator::UpdateOverrideSets()
+/// and export them
+MStatus CDagTranslator::ExportOverrideSets()
 {
    MStatus status;
 
    m_overrideSets.clear();
    MDagPath path = m_dagPath;
    // Check for passed path
-   status = FindOverrideSets(path, m_overrideSets);
+   status = GetOverrideSets(path, m_overrideSets);
    CHECK_MSTATUS(status)
    // If passed path is a shape, check for its transform as well
    // FIXME: do we want to consider full hierarchy ?
@@ -1600,7 +1621,15 @@ MStatus CDagTranslator::UpdateOverrideSets()
    }
    if (!(path == m_dagPath))
    {
-      status = FindOverrideSets(path, m_overrideSets);
+      status = GetOverrideSets(path, m_overrideSets);
+   }
+   // Exporting a set creates no Arnold object but allow IPR to track it
+   MFnSet fnSet;
+   unsigned int ns = m_overrideSets.length();
+   for (unsigned int i=0; i<ns; i++)
+   {
+      fnSet.setObject(m_overrideSets[i]);
+      m_session->ExportNode(fnSet.findPlug("message"));
    }
 
    return status;
@@ -1624,7 +1653,8 @@ void CDagTranslator::SetArnoldNodeName(AtNode* arnoldNode, const char* tag)
 
 void CDagTranslator::AddHierarchyCallbacks(const MDagPath & path)
 {
-   AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: Adding callbacks to DAG parents", path.partialPathName().asChar(), GetTranslatorName().asChar());
+   AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: Add DAG parents update callbacks for translator %p",
+      path.partialPathName().asChar(), GetTranslatorName().asChar(), this);
 
    // Loop through the whole dag path adding callbacks to them.
    MStatus status;

@@ -32,10 +32,10 @@ public:
          m_attrName(""),
          m_instanceNum(-1)
    {}
-   CNodeAttrHandle(const MObject& nodeObject, const MString& attrName="") :
+   CNodeAttrHandle(const MObject& nodeObject, const MString& attrName="", int instanceNum=-1) :
          m_nodeHandle(nodeObject),
          m_attrName(attrName),
-         m_instanceNum(-1)
+         m_instanceNum(instanceNum)
    {}
    CNodeAttrHandle(const MDagPath& dagPath, const MString& attrName="") :
          m_nodeHandle(dagPath.node()),
