@@ -108,7 +108,7 @@ private:
    inline unsigned int GetExportFilter() const { return m_filter.state_mask; }
    inline void SetExportFilter(unsigned int mask) { m_filter.state_mask = mask; }
 
-   inline bool IsMotionBlurEnabled(int type = MTOA_MBLUR_ALL) const { return m_motion.enable_mask && type; }
+   inline bool IsMotionBlurEnabled(int type = MTOA_MBLUR_ALL) const { return m_motion.enable_mask & type; }
    inline unsigned int GetNumMotionSteps() const { return m_motion.steps; }
    inline float GetShutterSize() const { return m_motion.shutter_size; }
    inline unsigned int GetShutterType() const { return m_motion.shutter_type; }
