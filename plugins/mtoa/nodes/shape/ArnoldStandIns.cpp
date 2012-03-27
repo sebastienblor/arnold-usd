@@ -692,17 +692,20 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
          bool subFrames = ((framestep - floor(framestep)) >= 0.001);
          char frameExtWithHash[64];
          char frameExtWithDot[64];
+         char frameExt[64];
          if (subFrames || fGeometry.useSubFrame)
          {
             int fullFrame = (int) floor(framestep);
             int subFrame = (int) floor((framestep - fullFrame) * 1000);
             sprintf(frameExtWithHash, "_%04d.%03d", fullFrame, subFrame);
             sprintf(frameExtWithDot, ".%04d.%03d", fullFrame, subFrame);
+            sprintf(frameExt, "%04d.%03d", fullFrame, subFrame);
          }
          else
          {
             sprintf(frameExtWithHash, "_%04d", (int) framestep);
             sprintf(frameExtWithDot, ".%04d", (int) framestep);
+            sprintf(frameExt, "%04d", (int) framestep);
          }
          frameNumber = frameExtWithDot;
 
@@ -715,7 +718,20 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
             resolved = MRenderUtil::exactFileTextureName(fGeometry.dso, fGeometry.useFrameExtension,
                frameNumber, fGeometry.filename);
          }
-         
+
+         if (!resolved)
+         {
+            // If file has ".ass.gz" extension, MRenderUtil::exactFileTextureName has problems to
+            //  find the file.
+            int len = fGeometry.dso.length();
+            if (len > 8 && fGeometry.dso.substring(len - 7, len - 1) == ".ass.gz")
+            {
+               MString baseName = fGeometry.dso.substring(0, len - 9) + frameExt + ".ass.gz";
+               resolved = MRenderUtil::exactFileTextureName(baseName, false,
+               frameNumber, fGeometry.filename);
+            }
+         }
+
          if (!resolved)
          {
             fGeometry.filename = fGeometry.dso;

@@ -276,17 +276,20 @@ AtNode* CArnoldStandInsTranslator::ExportProcedural(AtNode* procedural, bool upd
       bool subFrames = ((framestep - floor(framestep)) >= 0.001);
       char frameExtWithHash[64];
       char frameExtWithDot[64];
+      char frameExt[64];
       if (subFrames || useSubFrame)
       {
          int fullFrame = (int) floor(framestep);
          int subFrame = (int) floor((framestep - fullFrame) * 1000);
          sprintf(frameExtWithHash, "_%04d.%03d", fullFrame, subFrame);
          sprintf(frameExtWithDot, ".%04d.%03d", fullFrame, subFrame);
+         sprintf(frameExt, "%04d.%03d", fullFrame, subFrame);
       }
       else
       {
          sprintf(frameExtWithHash, "_%04d", (int) framestep);
          sprintf(frameExtWithDot, ".%04d", (int) framestep);
+         sprintf(frameExt, "%04d", (int) framestep);
       }
       frameNumber = frameExtWithDot;
 
@@ -296,6 +299,18 @@ AtNode* CArnoldStandInsTranslator::ExportProcedural(AtNode* procedural, bool upd
       {
          frameNumber = frameExtWithHash;
          resolved = MRenderUtil::exactFileTextureName(dso, useFrameExtension, frameNumber, filename);
+      }
+      
+      if (!resolved)
+      {
+         // If file has ".ass.gz" extension, MRenderUtil::exactFileTextureName has problems to
+         //  find the file.
+         int len = dso.length();
+         if (len > 8 && dso.substring(len - 7, len - 1) == ".ass.gz")
+         {
+            MString baseName = dso.substring(0, len - 9) + frameExt + ".ass.gz";
+            resolved = MRenderUtil::exactFileTextureName(baseName, false, frameNumber, filename);
+         }
       }
 
       MString resolvedName;

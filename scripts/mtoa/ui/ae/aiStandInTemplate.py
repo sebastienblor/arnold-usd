@@ -14,30 +14,30 @@ def ArnoldStandInDsoEdit(nodeName, mPath) :
     mArchivePath = ''
     nodeName = nodeName.replace(".dso","")
     
-    # Sequence of .ass
-    if re.search(r'([-_/a-zA-Z0-9.]*[-/a-zA-Z])[_.]([0-9.]+?)(.ass)',mPath) != None:
-        m_groups = re.search(r'([-_/a-zA-Z0-9.]*[-/a-zA-Z])[_.]([0-9.]+)(.ass)',mPath).groups()
-        mArchivePath = m_groups[0]+'.#'+m_groups[2]
-        if '.' in m_groups[1]:
-            cmds.setAttr(nodeName+".useSubFrame",True)
-        else:
-            cmds.setAttr(nodeName+".useSubFrame",False)
-        cmds.setAttr(nodeName+".useFrameExtension",True)
-    # Single .ass
-    elif re.search(r'([-_/a-zA-Z0-9.]+)(\.ass)',mPath) != None:
-        mArchivePath = mPath
-        cmds.setAttr(nodeName+".useFrameExtension",False)
     # Sequence of .ass.gz
-    elif re.search(r'([-_/a-zA-Z0-9.]*[-/a-zA-Z])[_.]([0-9.]+)(.ass.gz)',mPath) != None:
-        m_groups = re.search(r'([-_/a-zA-Z0-9.]*[-/a-zA-Z])[_.]([0-9.]+)(.ass.gz)',mPath).groups()
-        mArchivePath = m_groups[0]+'.#'+m_groups[2]
-        if '.' in m_groups[1]:
+    if re.search(r'([-_/a-zA-Z0-9.]*[-/a-zA-Z])([_.])([0-9.]+)(.ass.gz)',mPath) != None:
+        m_groups = re.search(r'([-_/a-zA-Z0-9.]*[-/a-zA-Z])([_.])([0-9.]+)(.ass.gz)',mPath).groups()
+        mArchivePath = m_groups[0]+m_groups[1]+'#'+m_groups[3]
+        if '.' in m_groups[2]:
             cmds.setAttr(nodeName+".useSubFrame",True)
         else:
             cmds.setAttr(nodeName+".useSubFrame",False)
         cmds.setAttr(nodeName+".useFrameExtension",True)
     # Single .ass.gz
     elif re.search(r'([-_/a-zA-Z0-9.]+)(\.ass.gz)',mPath) != None:
+        mArchivePath = mPath
+        cmds.setAttr(nodeName+".useFrameExtension",False)
+    # Sequence of .ass
+    elif re.search(r'([-_/a-zA-Z0-9.]*[-/a-zA-Z])([_.])([0-9.]+?)(.ass)',mPath) != None:
+        m_groups = re.search(r'([-_/a-zA-Z0-9.]*[-/a-zA-Z])([_.])([0-9.]+)(.ass)',mPath).groups()
+        mArchivePath = m_groups[0]+m_groups[1]+'#'+m_groups[3]
+        if '.' in m_groups[2]:
+            cmds.setAttr(nodeName+".useSubFrame",True)
+        else:
+            cmds.setAttr(nodeName+".useSubFrame",False)
+        cmds.setAttr(nodeName+".useFrameExtension",True)
+    # Single .ass
+    elif re.search(r'([-_/a-zA-Z0-9.]+)(\.ass)',mPath) != None:
         mArchivePath = mPath
         cmds.setAttr(nodeName+".useFrameExtension",False)
     # Sequence of .obj
