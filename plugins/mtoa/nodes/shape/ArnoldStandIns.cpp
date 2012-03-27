@@ -646,6 +646,7 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
 
    MString tmpFilename = fGeometry.filename;
    MString tmpDso = fGeometry.dso;
+   MString tmpData = fGeometry.data;
    bool tmpDeferStandinLoad =  fGeometry.deferStandinLoad;
    float tmpScale =  fGeometry.scale;
    bool tmpUseFrameExtension = fGeometry.useFrameExtension;
@@ -748,7 +749,7 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
       fGeometry.updateBBox = true;
    }
 
-   if (fGeometry.filename != tmpFilename)
+   if (fGeometry.filename != tmpFilename || fGeometry.data != tmpData)
    {
       //refresh bounding box
       if (fGeometry.mode != 0 || !LoadBoundingBox())
