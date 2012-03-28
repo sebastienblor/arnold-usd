@@ -19,12 +19,11 @@ protected:
    virtual ~CObjectSetTranslator()
    {}
    virtual void AddUpdateCallbacks();
-   virtual void RequestUpdate(void *clientData);
-
+   static void NodeDirtyCallback(MObject &node, MPlug &plug, void *clientData);
    static void AttributeChangedCallback(MNodeMessage::AttributeMessage msg,
                                         MPlug& plug, MPlug& otherPlug,
                                         void* clientData);
-
+   virtual void RequestUpdate(void *clientData);
 };
 
 
