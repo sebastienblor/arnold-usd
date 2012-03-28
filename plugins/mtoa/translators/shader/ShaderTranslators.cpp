@@ -785,7 +785,7 @@ void CLayeredTextureTranslator::Export(AtNode* shader)
 
    // Init shader array parameters
 
-   AtArray* color = InitArrayParameter(AI_TYPE_RGBA, numElements);
+   AtArray* color = InitArrayParameter(AI_TYPE_RGB, numElements);
    AtArray* alpha = InitArrayParameter(AI_TYPE_FLOAT, numElements);
    AtArray* blendMode = InitArrayParameter(AI_TYPE_INT, numElements);
    AtArray* visible = InitArrayParameter(AI_TYPE_BOOLEAN, numElements);
@@ -800,7 +800,7 @@ void CLayeredTextureTranslator::Export(AtNode* shader)
       mode = elemt.child(omode);
       vis = elemt.child(ovisible);
 
-      ProcessArrayParameterElement(shader, color, "color", col, AI_TYPE_RGBA, i);
+      ProcessArrayParameterElement(shader, color, "color", col, AI_TYPE_RGB, i);
       ProcessArrayParameterElement(shader, alpha, "alpha", alph, AI_TYPE_FLOAT, i);
       ProcessArrayParameterElement(shader, blendMode, "blendMode", mode, AI_TYPE_INT, i);
       ProcessArrayParameterElement(shader, visible, "visible", vis, AI_TYPE_BOOLEAN, i);

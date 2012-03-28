@@ -61,7 +61,7 @@ namespace
 node_parameters
 {
    AiParameterBOOL("alphaIsLuminance", false);
-   AiParameterARRAY("color", AiArray(0, 0, AI_TYPE_RGBA));
+   AiParameterARRAY("color", AiArray(0, 0, AI_TYPE_RGB));
    AiParameterARRAY("alpha", AiArray(0, 0, AI_TYPE_FLOAT));
    AiParameterARRAY("blendMode", AiArray(0, 0, AI_TYPE_INT));
    AiParameterARRAY("visible", AiArray(0, false, AI_TYPE_BOOLEAN));
@@ -98,11 +98,9 @@ shader_evaluate
          bool visible = AiArrayGetBool(visibles, i);
          if (visible == false) continue;
 
-         AtRGBA color = AiArrayGetRGBA(colors, i);
+         AtRGB color = AiArrayGetRGB(colors, i);
          float alpha = AiArrayGetFlt(alphas, i);
          BlendMode mode = (BlendMode) AiArrayGetInt(modes, i);
-
-         alpha *= color.a;
 
          switch (mode)
          {
@@ -224,7 +222,7 @@ shader_evaluate
 
    if (AiShaderEvalParamBool(p_alphaIsLuminance) == true)
    {
-      result.a = result.r*0.30f + result.g*0.59f + result.b*0.11f; // NTSC luminance
+      result.a =Luminance(result); // NTSC luminance
    }
    sg->out.RGBA = result;
 }
