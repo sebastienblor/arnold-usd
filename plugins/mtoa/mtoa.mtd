@@ -516,8 +516,8 @@
     [attr aperture_blade_curvature]
         min                 FLOAT   -20.0
         max                 FLOAT   20.0
-        softmin             FLOAT   -5.0
-        softmax             FLOAT   5.0
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
     [attr aperture_rotation]
         min                 FLOAT   0.0
         max                 FLOAT   360.0
@@ -559,8 +559,8 @@
     [attr aperture_blade_curvature]
         min                 FLOAT   -20.0
         max                 FLOAT   20.0
-        softmin             FLOAT   -5.0
-        softmax             FLOAT   5.0
+        softmin             FLOAT   0.0
+        softmax             FLOAT   1.0
     [attr aperture_rotation]
         min                 FLOAT   0.0
         max                 FLOAT   360.0
