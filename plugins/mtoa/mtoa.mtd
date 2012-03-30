@@ -819,6 +819,8 @@
     [attr spec]
         desc                STRING  "Specular value."
         label               STRING  "Specular"
+        min                 FLOAT   0.0
+        softmax             FLOAT   1.0
     [attr spec_color]
         desc                STRING  "Specular color."
         label               STRING  "Specular Color"

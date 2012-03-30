@@ -20,6 +20,16 @@ void CHairTranslator::NodeInitializer(CAbTranslator context)
    CAttrData data;
 
    data.defaultValue.BOOL = true;
+   data.name = "primaryVisibility";
+   data.shortName = "vis";
+   helper.MakeInputBoolean(data);
+   
+   data.defaultValue.BOOL = true;
+   data.name = "castsShadows";
+   data.shortName = "csh";
+   helper.MakeInputBoolean(data);
+   
+   data.defaultValue.BOOL = true;
    data.name = "aiExportHairIDs";
    data.shortName = "ai_export_hair_ids";
    helper.MakeInputBoolean(data);

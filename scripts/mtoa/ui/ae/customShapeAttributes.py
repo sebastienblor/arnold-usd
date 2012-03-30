@@ -77,6 +77,9 @@ templates.registerTranslatorUI(MeshTemplate, "nurbsSurface", "<built-in>")
 
 class HairSystemTemplate(templates.ShapeTranslatorTemplate):
     def setup(self):
+        self.addControl("primaryVisibility")
+        self.addControl("castsShadows")
+        self.addSeparator()
         self.commonShapeAttributes()
         self.addSeparator()
         self.addControl("aiExportHairIDs")
