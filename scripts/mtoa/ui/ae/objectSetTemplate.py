@@ -33,11 +33,11 @@ class AttributeListWindow(object):
                             doubleClickCommand=Callback(cmd))
 
         if mode == 'add':
-            self._attributes = self.getCandidateAttributes()
-            for attr in self.getExistingAttributes():
+            self._attributes = self.template.getCandidateAttributes()
+            for attr in self.template.getExistingAttributes():
                 self._attributes.pop(attr, None)
         else:
-            self._attributes = self.getExistingAttributes()
+            self._attributes = self.template.getExistingAttributes()
             
         if self._attributes :
             labels = self._attributes.keys()
@@ -55,26 +55,6 @@ class AttributeListWindow(object):
 
         pm.showWindow(self.win)
 
-    def getCandidateAttributes(self):
-        candidates = {}
-        elts = pm.sets(self.template.nodeName, query=True)
-        for elt in elts :
-            attrs = elt.listAttr(write=True, visible=True)
-            for attr in attrs :
-                name = attr.longName(fullPath=True)
-                if not name in candidates :
-                    candidates[name] = attr  
-        return candidates
-
-    def getExistingAttributes(self):
-        existing = {}
-        attrs = pm.PyNode(self.template.nodeName).listAttr(userDefined=True)
-        for attr in attrs :
-            name = attr.longName(fullPath=True)
-            if not name in existing :
-                existing[name] = attr
-        return existing
-
     def addAttrAndHide(self):
         pm.window(self.win, edit=True, visible=False)
         attrLabels = pm.textScrollList(self.scrollList, q=True, si=True)
@@ -89,8 +69,6 @@ class AttributeListWindow(object):
 
 
 class ObjectSetTemplate(templates.AttributeEditorTemplate):
-    
-    _overrides = {}
         
     def setup(self):
         self.addControl("aiOverride")
@@ -124,34 +102,110 @@ class ObjectSetTemplate(templates.AttributeEditorTemplate):
     def updateAttributesButtons(self, attr):
         print "Update Buttons %s" % attr
         pass
+   
+    def getCandidateAttributes(self):
+        candidates = {}
+        elts = pm.sets(self.nodeName, query=True)
+        for elt in elts :
+            attrs = elt.listAttr(write=True, visible=True)
+            for attr in attrs :
+                name = attr.longName(fullPath=True)
+                if not name in candidates :
+                    candidates[name] = attr  
+        return candidates
+
+    def getExistingAttributes(self):
+        existing = {}
+        attrs = pm.PyNode(self.nodeName).listAttr(userDefined=True)
+        for attr in attrs :
+            name = attr.longName(fullPath=True)
+            if not name in existing :
+                existing[name] = attr
+        return existing   
         
     def addAttr(self, attrs):    
         print "addAttr %r" % attrs
-        destNode = pm.PyNode(self.nodeName)
         for attr in attrs:
-            name = attr.name(includeNode=False, longName=True, fullAttrPath=True, fullDagPath=False, placeHolderIndices=True)
-            print "add %s.%s by copying from %r" % (self.nodeName, name, attr)
-            if attr.isCompound():
-                print "Is compound"
-            if attr.isArray():
-                print "Is array"    
-            if attr.isElement():
-                print "Is element" 
-            if attr.isMulti():
-                print "Is multi"  
-            sourceNode = attr.node()
-            attrQueryName = attr.attrName(longName=True)
-            ln = pm.attributeQuery(attrQueryName, node=sourceNode, longName=True)
-            sn = pm.attributeQuery(attrQueryName, node=sourceNode, shortName=True)
-            at = pm.attributeQuery(attrQueryName, node=sourceNode, attributeType=True)
-            print "%s(%s) attribute type %s" % (ln, sn, at)  
-            pm.addAttr(destNode, longName=ln, shortName=sn, attributeType=at)
-            
+            # must add from top parent
+            parent = attr.getParent(-1, True)
+            self._doAdd(parent.node(), parent.attrName(longName=True), None)
+       
+    def _doAdd(self, srcNode, attrName, parentName):
+        dstNode = pm.PyNode(self.nodeName)
+        print "Create %s.%s by copying from %s.%s" % (dstNode, attrName, srcNode, attrName)
+        
+        args                     = {}
+        if parentName:
+            args['parent']              = parentName  
+        args['longName']         = pm.attributeQuery(attrName, node=srcNode, longName=True)
+        args['shortName']        = pm.attributeQuery(attrName, node=srcNode, shortName=True)
+        args['niceName']         = pm.attributeQuery(attrName, node=srcNode, niceName=True)
+        args['category']         = pm.attributeQuery(attrName, node=srcNode, categories=True)   
+        args['attributeType']    = pm.attributeQuery(attrName, node=srcNode, attributeType=True)
+        # args['dataType']       = None
+        isEnum                   = pm.attributeQuery(attrName, node=srcNode, enum=True)
+        if isEnum:
+            args['enumName']            = pm.attributeQuery(attrName, node=srcNode, listEnum=True)
+        isMulti                  = pm.attributeQuery(attrName, node=srcNode, multi=True)
+        if isMulti:
+            args['multi']               = True
+            args['indexMatters']        = pm.attributeQuery(attrName, node=srcNode, indexMatters=True)
+        children                 = pm.attributeQuery(attrName, node=srcNode, listChildren=True)
+        if children:
+            args['numberOfChildren']    = len(children)
+        else:
+            children             = []
+            try:
+                defaultValue            = pm.attributeQuery(attrName, node=srcNode, listDefault=True)
+                args['defaultValue']    = defaultValue[0]
+            except:
+                pass
+        hasMin                   = pm.attributeQuery(attrName, node=srcNode, minExists=True)
+        if hasMin:
+            try:
+                minValue               = pm.attributeQuery(attrName, node=srcNode, minimum=True)
+                args['minValue']       = minValue[0]
+            except:
+                pass        
+        hasMax                   = pm.attributeQuery(attrName, node=srcNode, maxExists=True)
+        if hasMax:    
+            try:
+                maxValue               = pm.attributeQuery(attrName, node=srcNode, maximum=True)
+                args['maxValue']       = maxValue[0]
+            except:
+                pass
+        hasSoftMin                   = pm.attributeQuery(attrName, node=srcNode, softMinExists=True)
+        if hasSoftMin:
+            try:
+                softMinValue           = pm.attributeQuery(attrName, node=srcNode, softMin=True)
+                args['softMinValue']   = softMinValue[0]
+            except:
+                pass
+        hasSoftMax                   = pm.attributeQuery(attrName, node=srcNode, softMaxExists=True)
+        if hasSoftMax:
+            try:
+                softMaxValue           = pm.attributeQuery(attrName, node=srcNode, softMax=True)
+                args['softMaxValue']   = softMaxValue[0]
+            except:
+                pass                                                
+        args['usedAsColor']      = pm.attributeQuery(attrName, node=srcNode, usedAsColor=True)
+        args['usedAsFilename']   = pm.attributeQuery(attrName, node=srcNode, usedAsFilename=True)
+        args['keyable']          = pm.attributeQuery(attrName, node=srcNode, keyable=True) 
+        # connectable            = pm.attributeQuery(attrName, node=srcNode, connectable=True)     
+        
+        pm.addAttr(dstNode, **args)
+        for child in children:
+            self._doAdd(srcNode, child, args['longName'])       
+
+              
     def removeAttr(self, attrs):
         print "removeAttr %r" % attrs
         for attr in attrs:
-            print "remove %r" % attr
-            attr.delete()
-        
+            # Can only delete top parent of compound / multi attributes
+            parent = attr.getParent(-1, True)
+            print "remove %r will need to remove %r" % (attr, parent)
+            parent.delete()
+            
+            
 templates.registerAETemplate(ObjectSetTemplate, "objectSet")
 
