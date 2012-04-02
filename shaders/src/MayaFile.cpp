@@ -509,10 +509,10 @@ shader_evaluate
                   UV tile [0,0] x (1,1) is marked with _u1_v1
                   UV tile [0,1]x(1,2) is marked with _u1_v2 etc.
                   */
-                  int row = static_cast<int>(floorf(inV)) + 1;
-                  int col = static_cast<int>(floorf(inU)) + 1;
+                  int tileU = static_cast<int>(floorf(inU)) + 1;
+                  int tileV = static_cast<int>(floorf(inV)) + 1;
                   char buf[7];
-                  sprintf(buf, "%d_%d", row, col);
+                  sprintf(buf, "u%d_v%d", tileU, tileV);
                   newfname += buf;
                   break;
                }
