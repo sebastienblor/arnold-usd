@@ -100,18 +100,23 @@ class ObjectSetTemplate(templates.AttributeEditorTemplate):
         pm.setUITemplate('attributeEditorTemplate', popTemplate=True)
         
     def updateAttributesButtons(self, attr):
-        print "Update Buttons %s" % attr
+        print "Update Buttons %s %s" % (self.nodeName, attr)
         pass
    
     def getCandidateAttributes(self):
         candidates = {}
         elts = pm.sets(self.nodeName, query=True)
         for elt in elts :
-            attrs = elt.listAttr(write=True, visible=True)
-            for attr in attrs :
-                name = attr.longName(fullPath=True)
-                if not name in candidates :
-                    candidates[name] = attr  
+            dag = pm.listRelatives(elt, allDescendents=True)
+            dag.append(elt)
+            for node in dag:                
+                attrs = node.listAttr(write=True, visible=True)
+                for attr in attrs :
+                    name = attr.longName(fullPath=True)
+                    if not name in candidates :
+                        candidates[name] = attr
+
+            
         return candidates
 
     def getExistingAttributes(self):
@@ -133,15 +138,24 @@ class ObjectSetTemplate(templates.AttributeEditorTemplate):
     def _doAdd(self, srcNode, attrName, parentName):
         dstNode = pm.PyNode(self.nodeName)
         print "Create %s.%s by copying from %s.%s" % (dstNode, attrName, srcNode, attrName)
-        
+        print "Get %s.%s info" % (srcNode, attrName)
         args                     = {}
         if parentName:
             args['parent']              = parentName  
         args['longName']         = pm.attributeQuery(attrName, node=srcNode, longName=True)
         args['shortName']        = pm.attributeQuery(attrName, node=srcNode, shortName=True)
-        args['niceName']         = pm.attributeQuery(attrName, node=srcNode, niceName=True)
-        args['category']         = pm.attributeQuery(attrName, node=srcNode, categories=True)   
-        args['attributeType']    = pm.attributeQuery(attrName, node=srcNode, attributeType=True)
+        try:
+            args['niceName']         = pm.attributeQuery(attrName, node=srcNode, niceName=True)
+        except:
+            pass             
+        try:
+            args['category']         = pm.attributeQuery(attrName, node=srcNode, categories=True)
+        except:
+            pass 
+        if pm.mel.getApplicationVersionAsFloat() < 2013:
+            args['attributeType']    = pm.getAttr("%s.%s" % (srcNode, attrName), type=True)
+        else:
+            args['attributeType']    = pm.attributeQuery(attrName, node=srcNode, attributeType=True)
         # args['dataType']       = None
         isEnum                   = pm.attributeQuery(attrName, node=srcNode, enum=True)
         if isEnum:
@@ -187,12 +201,19 @@ class ObjectSetTemplate(templates.AttributeEditorTemplate):
                 softMaxValue           = pm.attributeQuery(attrName, node=srcNode, softMax=True)
                 args['softMaxValue']   = softMaxValue[0]
             except:
-                pass                                                
-        args['usedAsColor']      = pm.attributeQuery(attrName, node=srcNode, usedAsColor=True)
-        args['usedAsFilename']   = pm.attributeQuery(attrName, node=srcNode, usedAsFilename=True)
+                pass
+        try:                                              
+            args['usedAsColor']      = pm.attributeQuery(attrName, node=srcNode, usedAsColor=True)
+        except:
+            pass            
+        try:
+            args['usedAsFilename']   = pm.attributeQuery(attrName, node=srcNode, usedAsFilename=True)
+        except:
+            pass           
         args['keyable']          = pm.attributeQuery(attrName, node=srcNode, keyable=True) 
         # connectable            = pm.attributeQuery(attrName, node=srcNode, connectable=True)     
         
+        print "Add %s.%s with options: %s" % (dstNode, attrName, args)
         pm.addAttr(dstNode, **args)
         for child in children:
             self._doAdd(srcNode, child, args['longName'])       
