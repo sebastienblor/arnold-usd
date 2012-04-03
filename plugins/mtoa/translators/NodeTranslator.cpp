@@ -144,7 +144,7 @@ MPlug CNodeTranslator::FindMayaObjectPlug(const MString &attrName, MStatus* Retu
 MPlug CNodeTranslator::FindMayaOverridePlug(const MString &attrName, MStatus* ReturnStatus) const
 {
    MStatus status(MStatus::kSuccess);
-   MPlug plug;     // Empty plug
+   MPlug plug, p;
    // Check if a set override this plug's value
    CNodeTranslator* translator;
    std::vector<CNodeTranslator*>::iterator it;
@@ -158,15 +158,20 @@ MPlug CNodeTranslator::FindMayaOverridePlug(const MString &attrName, MStatus* Re
       {
          translator = *it;
          // MString setName = translator->GetMayaObjectName();
-         MPlug p = translator->FindMayaObjectPlug(attrName, &status);
-         if ((MStatus::kSuccess == status) && !p.isNull())
+         // Search only on active translators
+         if (translator->FindMayaObjectPlug("aiOverride", &status).asBool())
          {
-            // FIXME: when multiple sets contain one object and more than one
-            // have the desired attribute, which one should be taken into account?
-            // Currently first to appear on search will, display warnings there?
-            plug = p;
-            break;
+            p = translator->FindMayaObjectPlug(attrName, &status);
+            if ((MStatus::kSuccess == status) && !p.isNull())
+            {
+               // FIXME: when multiple sets contain one object and more than one
+               // have the desired attribute, which one should be taken into account?
+               // Currently first to appear on search will, display warnings there?
+               plug = p;
+               break;
+            }
          }
+         // But chain on all
          // It's a depth first search on sets of sets
          p = translator->FindMayaOverridePlug(attrName, &status);
          if ((MStatus::kSuccess == status) && !p.isNull())
@@ -225,7 +230,10 @@ MStatus CNodeTranslator::GetOverrideSets(MObject object, MObjectArray &overrideS
          if (MStatus::kSuccess == fnSet.setObject(set))
          {
             // MString setName = fnSet.name();
-            if (fnSet.findPlug("aiOverride", true, &status).asBool())
+            // Also add sets with override turned off to allow chaining
+            // on these as well
+            MPlug p = fnSet.findPlug("aiOverride", true, &status);
+            if ((MStatus::kSuccess == status) && !p.isNull())
             {
                overrideSets.append(set);
             }
@@ -241,6 +249,7 @@ MStatus CNodeTranslator::ExportOverrideSets()
 {
    MStatus status;
 
+   MString nodeName = GetMayaNodeName();
    m_overrideSets.clear();
    status = GetOverrideSets(m_handle.object(), m_overrideSets);
    // Exporting a set creates no Arnold object but allows IPR to track it
@@ -251,7 +260,8 @@ MStatus CNodeTranslator::ExportOverrideSets()
       fnSet.setObject(m_overrideSets[i]);
       m_session->ExportNode(fnSet.findPlug("message"));
    }
-
+   AiMsgDebug("[mtoa.translator]  %-30s | %s: Exported %i override sets.",
+              GetMayaNodeName().asChar(), GetTranslatorName().asChar(), ns);
    return status;
 }
 
@@ -1609,7 +1619,10 @@ MStatus CDagTranslator::GetOverrideSets(MDagPath path, MObjectArray &overrideSet
          if (MStatus::kSuccess == fnSet.setObject(set))
          {
             // MString setName = fnSet.name();
-            if (fnSet.findPlug("aiOverride", true, &status).asBool())
+            // Also add sets with override turned off to allow chaining
+            // on these as well
+            MPlug p = fnSet.findPlug("aiOverride", true, &status);
+            if ((MStatus::kSuccess == status) && !p.isNull())
             {
                overrideSets.append(set);
             }

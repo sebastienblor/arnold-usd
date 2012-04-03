@@ -72,7 +72,7 @@ class ObjectSetTemplate(templates.AttributeEditorTemplate):
         
     def setup(self):
         self.addControl("aiOverride")
-        print "setup %s" % self.nodeName
+        print "ObjectSetTemplate setup %s" % self.nodeName
         # print self.attributeCandidates()
         self.addCustom("aiOverride", self.createAttributesButtons, self.updateAttributesButtons)
         self.addSeparator()
@@ -82,11 +82,14 @@ class ObjectSetTemplate(templates.AttributeEditorTemplate):
         #self.endScrollLayout()
                 
     def update(self):
-        print "update %s" % self.nodeName
-        #if self.nodeName is None or not pm.objExists(self.nodeName):
+        print "ObjectSetTemplate update %s" % self.nodeName
+        # FIXME seems never to get called
         
     def createAttributesButtons(self, attr):
-        print "Create Buttons %s" % attr
+        print "ObjectSetTemplate Create Buttons %r for %r" % (self.nodeName, attr)
+        # self.nodeName = attr.split(".")[0]
+        self._doUpdate(attr)
+        print "ObjectSetTemplate Created Buttons %r for %r" % (self.nodeName, attr)
         pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
         pm.rowLayout(numberOfColumns=3,
                        columnWidth3=(140, 80, 80),
@@ -100,7 +103,10 @@ class ObjectSetTemplate(templates.AttributeEditorTemplate):
         pm.setUITemplate('attributeEditorTemplate', popTemplate=True)
         
     def updateAttributesButtons(self, attr):
-        print "Update Buttons %s %s" % (self.nodeName, attr)
+        print "ObjectSetTemplate Update Buttons %r for %r" % (self.nodeName, attr)
+        # self.nodeName = attr.split(".")[0]
+        self._doUpdate(attr)
+        print "ObjectSetTemplate Updated Buttons %r for %r" % (self.nodeName, attr)
         pass
    
     def getCandidateAttributes(self):
@@ -159,7 +165,11 @@ class ObjectSetTemplate(templates.AttributeEditorTemplate):
         # args['dataType']       = None
         isEnum                   = pm.attributeQuery(attrName, node=srcNode, enum=True)
         if isEnum:
-            args['enumName']            = pm.attributeQuery(attrName, node=srcNode, listEnum=True)
+            try:
+                listEnum                = pm.attributeQuery(attrName, node=srcNode, listEnum=True)
+                args['enumName']        = listEnum[0]
+            except:
+                pass
         isMulti                  = pm.attributeQuery(attrName, node=srcNode, multi=True)
         if isMulti:
             args['multi']               = True
@@ -177,8 +187,8 @@ class ObjectSetTemplate(templates.AttributeEditorTemplate):
         hasMin                   = pm.attributeQuery(attrName, node=srcNode, minExists=True)
         if hasMin:
             try:
-                minValue               = pm.attributeQuery(attrName, node=srcNode, minimum=True)
-                args['minValue']       = minValue[0]
+                minValue                = pm.attributeQuery(attrName, node=srcNode, minimum=True)
+                args['minValue']        = minValue[0]
             except:
                 pass        
         hasMax                   = pm.attributeQuery(attrName, node=srcNode, maxExists=True)

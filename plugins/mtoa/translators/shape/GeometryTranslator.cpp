@@ -945,6 +945,9 @@ bool CGeometryTranslator::IsGeoDeforming()
 
 void CGeometryTranslator::ExportMeshParameters(AtNode* polymesh)
 {
+   // Visibility options
+   ProcessRenderFlags(polymesh);
+
    // Check if custom attributes have been created, ignore them otherwise
    if (FindMayaPlug("aiSubdivType").isNull()) return;
 
@@ -957,9 +960,6 @@ void CGeometryTranslator::ExportMeshParameters(AtNode* polymesh)
       AiNodeSetBool(polymesh, "invert_normals", FindMayaPlug("opposite").asBool());
       AiNodeSetInt(polymesh, "sidedness", 0);
    }
-
-   // Visibility options
-   ProcessRenderFlags(polymesh);
 
    // Subdivision surfaces
    //
