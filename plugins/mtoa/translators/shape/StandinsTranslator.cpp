@@ -55,24 +55,24 @@ void CArnoldStandInsTranslator::ProcessRenderFlags(AtNode* node)
    AiNodeSetInt(node, "visibility", ComputeVisibility());
 
    MPlug plug;
-   plug = FindMayaObjectPlug("aiSelfShadows");
+   plug = FindMayaPlug("aiSelfShadows");
    if (!plug.isNull()) AiNodeSetBool(node, "self_shadows", plug.asBool());
 
    // for standins, we check
-   plug = FindMayaObjectPlug("overrideOpaque");
+   plug = FindMayaPlug("overrideOpaque");
    if (plug.isNull() || plug.asBool())
    {
-      plug = FindMayaObjectPlug("aiOpaque");
+      plug = FindMayaPlug("aiOpaque");
       if (!plug.isNull()) AiNodeSetBool(node, "opaque", plug.asBool());
    }
-   plug = FindMayaObjectPlug("receiveShadows");
+   plug = FindMayaPlug("receiveShadows");
    if (!plug.isNull()) AiNodeSetBool(node, "receive_shadows", plug.asBool());
 
    // Sub-Surface Scattering
-   plug = FindMayaObjectPlug("aiSssSampleDistribution");
+   plug = FindMayaPlug("aiSssSampleDistribution");
    if (!plug.isNull()) AiNodeSetInt(node, "sss_sample_distribution", plug.asInt());
 
-   plug = FindMayaObjectPlug("aiSssSampleSpacing");
+   plug = FindMayaPlug("aiSssSampleSpacing");
    if (!plug.isNull()) AiNodeSetFlt(node, "sss_sample_spacing", plug.asFloat());
 
 }

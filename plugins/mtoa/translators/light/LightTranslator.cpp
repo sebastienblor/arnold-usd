@@ -65,17 +65,17 @@ void CLightTranslator::Export(AtNode* light)
    ProcessParameter(light, "color", AI_TYPE_RGB);
    ProcessParameter(light, "intensity", AI_TYPE_FLOAT);
 
-   AiNodeSetBool(light, "affect_diffuse",  FindMayaObjectPlug("emitDiffuse").asBool());
-   AiNodeSetBool(light, "affect_specular", FindMayaObjectPlug("emitSpecular").asBool());
-   AiNodeSetBool(light, "cast_shadows",    FindMayaObjectPlug("aiCastShadows").asBool());
-   AiNodeSetFlt(light,  "exposure",        FindMayaObjectPlug("aiExposure").asFloat());
-   AiNodeSetInt(light,  "samples",         FindMayaObjectPlug("aiSamples").asInt());
-   AiNodeSetBool(light, "normalize",       FindMayaObjectPlug("aiNormalize").asBool());
-   AiNodeSetInt(light,  "bounces",         FindMayaObjectPlug("aiBounces").asInt());
-   AiNodeSetFlt(light,  "bounce_factor",   FindMayaObjectPlug("aiBounceFactor").asFloat());
+   AiNodeSetBool(light, "affect_diffuse",  FindMayaPlug("emitDiffuse").asBool());
+   AiNodeSetBool(light, "affect_specular", FindMayaPlug("emitSpecular").asBool());
+   AiNodeSetBool(light, "cast_shadows",    FindMayaPlug("aiCastShadows").asBool());
+   AiNodeSetFlt(light,  "exposure",        FindMayaPlug("aiExposure").asFloat());
+   AiNodeSetInt(light,  "samples",         FindMayaPlug("aiSamples").asInt());
+   AiNodeSetBool(light, "normalize",       FindMayaPlug("aiNormalize").asBool());
+   AiNodeSetInt(light,  "bounces",         FindMayaPlug("aiBounces").asInt());
+   AiNodeSetFlt(light,  "bounce_factor",   FindMayaPlug("aiBounceFactor").asFloat());
  
    MStatus status;
-   MPlug pFilters = FindMayaObjectPlug("aiFilters");
+   MPlug pFilters = FindMayaPlug("aiFilters");
    if (!pFilters.isNull())
    {
       MPlugArray filters;

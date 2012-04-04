@@ -36,6 +36,7 @@
 #include "translators/shape/NParticleTranslator.h"
 #include "translators/shape/InstancerTranslator.h"
 #include "translators/shader/ShadingEngineTranslator.h"
+#include "translators/ObjectSetTranslator.h"
 
 #include "render/RenderSwatch.h"
 
@@ -261,6 +262,10 @@ namespace // <anonymous>
                                    CInstancerTranslator::creator,
                                    CInstancerTranslator::NodeInitializer);
 
+       builtin->RegisterTranslator("objectSet",
+                                   "",
+                                   CObjectSetTranslator::creator,
+                                   CObjectSetTranslator::NodeInitializer);
 
       // Load all plugins path or only shaders?
       CExtension* shaders;

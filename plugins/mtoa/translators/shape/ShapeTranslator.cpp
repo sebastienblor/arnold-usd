@@ -14,22 +14,12 @@ void CShapeTranslator::ProcessRenderFlags(AtNode* node)
    AiNodeSetInt(node, "visibility", ComputeVisibility());
 
    MPlug plug;
-   plug = FindMayaObjectPlug("aiSelfShadows");
-   if (!plug.isNull()) AiNodeSetBool(node, "self_shadows", plug.asBool());
 
-   plug = FindMayaObjectPlug("aiOpaque");
-   if (!plug.isNull()) AiNodeSetBool(node, "opaque", plug.asBool());
-
-   plug = FindMayaObjectPlug("receiveShadows");
-   if (!plug.isNull()) AiNodeSetBool(node, "receive_shadows", plug.asBool());
-
-   // Sub-Surface Scattering
-   plug = FindMayaObjectPlug("aiSssSampleDistribution");
-   if (!plug.isNull()) AiNodeSetInt(node, "sss_sample_distribution", plug.asInt());
-
-   plug = FindMayaObjectPlug("aiSssSampleSpacing");
-   if (!plug.isNull()) AiNodeSetFlt(node, "sss_sample_spacing", plug.asFloat());
-
+   ProcessParameter(node, "self_shadows", AI_TYPE_BOOLEAN, "aiSelfShadows");
+   ProcessParameter(node, "opaque", AI_TYPE_BOOLEAN, "aiOpaque");
+   ProcessParameter(node, "receive_shadows", AI_TYPE_BOOLEAN, "receiveShadows");
+   ProcessParameter(node, "sss_sample_distribution", AI_TYPE_INT, "aiSssSampleDistribution");
+   ProcessParameter(node, "sss_sample_spacing", AI_TYPE_FLOAT, "aiSssSampleSpacing");
 }
 
 

@@ -75,9 +75,9 @@ void CCameraTranslator::ExportImagePlane(unsigned int step, MObject& imgPlane)
       double planeDepth = fnRes.findPlug("depth").asDouble();
 
       // values from camera
-      double camFocal = FindMayaObjectPlug("focalLength").asDouble();
-      double camScale = FindMayaObjectPlug("cameraScale").asDouble();
-      double lensSqueeze = FindMayaObjectPlug("lensSqueezeRatio").asDouble();
+      double camFocal = FindMayaPlug("focalLength").asDouble();
+      double camScale = FindMayaPlug("cameraScale").asDouble();
+      double lensSqueeze = FindMayaPlug("lensSqueezeRatio").asDouble();
 
       double ipWidth;
       double ipHeight;
@@ -387,7 +387,7 @@ void CCameraTranslator::ExportImagePlanes(unsigned int step)
    MStatus    status;
 
    // first we get the image planes connected to this camera
-   imagePlanePlug = FindMayaObjectPlug("imagePlane");
+   imagePlanePlug = FindMayaPlug("imagePlane");
 
    if (imagePlanePlug.numConnectedElements() > 0)
    {
@@ -408,13 +408,13 @@ void CCameraTranslator::ExportImagePlanes(unsigned int step)
 void CCameraTranslator::ExportDOF(AtNode* camera)
 {
    // FIXME: focus_distance and aperture_size are animated and should be exported with motion blur
-   if (FindMayaObjectPlug("aiEnableDOF").asBool())
+   if (FindMayaPlug("aiEnableDOF").asBool())
    {
-      AiNodeSetFlt(camera, "focus_distance",          FindMayaObjectPlug("aiFocusDistance").asFloat());
-      AiNodeSetFlt(camera, "aperture_size",           FindMayaObjectPlug("aiApertureSize").asFloat());
-      AiNodeSetInt(camera, "aperture_blades",         FindMayaObjectPlug("aiApertureBlades").asInt());
-      AiNodeSetFlt(camera, "aperture_rotation",       FindMayaObjectPlug("aiApertureRotation").asFloat());
-      AiNodeSetFlt(camera, "aperture_blade_curvature",FindMayaObjectPlug("aiApertureBladeCurvature").asFloat());
+      AiNodeSetFlt(camera, "focus_distance",          FindMayaPlug("aiFocusDistance").asFloat());
+      AiNodeSetFlt(camera, "aperture_size",           FindMayaPlug("aiApertureSize").asFloat());
+      AiNodeSetInt(camera, "aperture_blades",         FindMayaPlug("aiApertureBlades").asInt());
+      AiNodeSetFlt(camera, "aperture_rotation",       FindMayaPlug("aiApertureRotation").asFloat());
+      AiNodeSetFlt(camera, "aperture_blade_curvature",FindMayaPlug("aiApertureBladeCurvature").asFloat());
    }
 }
 
@@ -422,8 +422,8 @@ void CCameraTranslator::ExportCameraData(AtNode* camera)
 {
    AtMatrix matrix;
 
-   AiNodeSetFlt(camera, "near_clip", FindMayaObjectPlug("nearClipPlane").asFloat());
-   AiNodeSetFlt(camera, "far_clip",  FindMayaObjectPlug("farClipPlane").asFloat());
+   AiNodeSetFlt(camera, "near_clip", FindMayaPlug("nearClipPlane").asFloat());
+   AiNodeSetFlt(camera, "far_clip",  FindMayaPlug("farClipPlane").asFloat());
 
    if (IsMotionBlurEnabled())
    {

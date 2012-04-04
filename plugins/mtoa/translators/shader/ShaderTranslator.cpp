@@ -166,7 +166,7 @@ void CShaderTranslator::Export(AtNode *shader)
 
    MPlugArray connections;
 
-   MPlug plug = FindMayaObjectPlug("normalCamera");
+   MPlug plug = FindMayaPlug("normalCamera");
 
    plug.connectedTo(connections, true, false);
    if (connections.length() > 0)
@@ -197,7 +197,7 @@ void CShaderTranslator::ExportMotion(AtNode *shader, unsigned int step)
       if (strcmp(paramName, "placementMatrix") == 0)
       {
          AtArray* matrices = AiNodeGetArray(GetArnoldNode(paramName), "values");
-         ProcessConstantArrayElement(AI_TYPE_MATRIX, matrices, GetMotionStep(), FindMayaObjectPlug(paramName));
+         ProcessConstantArrayElement(AI_TYPE_MATRIX, matrices, GetMotionStep(), FindMayaPlug(paramName));
       }
    }
    AiParamIteratorDestroy(nodeParam);

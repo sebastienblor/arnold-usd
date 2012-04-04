@@ -99,7 +99,7 @@ bool CGeometryTranslator::GetPerVertexNormals(const MObject &geometry,
    MFnMesh fnMesh(geometry);
 
    int nnorms = fnMesh.numNormals();
-   if (nnorms > 0 && (force || (FindMayaObjectPlug("smoothShading").asBool() && !FindMayaObjectPlug("aiSubdivType").asBool())))
+   if (nnorms > 0 && (force || (FindMayaPlug("smoothShading").asBool() && !FindMayaPlug("aiSubdivType").asBool())))
    {
       normals.resize(fnMesh.numVertices() * 3);
 
@@ -136,8 +136,8 @@ bool CGeometryTranslator::GetNormals(const MObject &geometry,
    MFnMesh fnMesh(geometry);
 
    int nnorms = fnMesh.numNormals();
-   if (FindMayaObjectPlug("smoothShading").asBool() &&
-         !FindMayaObjectPlug("aiSubdivType").asBool() &&
+   if (FindMayaPlug("smoothShading").asBool() &&
+         !FindMayaPlug("aiSubdivType").asBool() &&
          nnorms > 0)
    {
       normals.resize(nnorms * 3);
@@ -536,7 +536,7 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
             MPlugArray connections;
             plug.elementByPhysicalIndex(i).connectedTo(connections, false, true);
             // Only export if MPlug matches the connected Shader Group
-            for(int j = 0; j < connections.length() && !exported ; j++)
+            for(unsigned int j=0; j < connections.length() && !exported ; j++)
             {
                if (shadingGroups[J] == connections[j].node())
                {
@@ -946,38 +946,38 @@ bool CGeometryTranslator::IsGeoDeforming()
 
 void CGeometryTranslator::ExportMeshParameters(AtNode* polymesh)
 {
-   // Check if custom attributes have been created, ignore them otherwise
-   if (FindMayaObjectPlug("aiSubdivType").isNull()) return;
-
-   AiNodeSetBool(polymesh, "smoothing", FindMayaObjectPlug("smoothShading").asBool());
-
-   if (FindMayaObjectPlug("doubleSided").asBool())
-      AiNodeSetInt(polymesh, "sidedness", 65535);
-   else
-   {
-      AiNodeSetBool(polymesh, "invert_normals", FindMayaObjectPlug("opposite").asBool());
-      AiNodeSetInt(polymesh, "sidedness", 0);
-   }
-
    // Visibility options
    ProcessRenderFlags(polymesh);
 
+   // Check if custom attributes have been created, ignore them otherwise
+   if (FindMayaPlug("aiSubdivType").isNull()) return;
+
+   AiNodeSetBool(polymesh, "smoothing", FindMayaPlug("smoothShading").asBool());
+
+   if (FindMayaPlug("doubleSided").asBool())
+      AiNodeSetInt(polymesh, "sidedness", 65535);
+   else
+   {
+      AiNodeSetBool(polymesh, "invert_normals", FindMayaPlug("opposite").asBool());
+      AiNodeSetInt(polymesh, "sidedness", 0);
+   }
+
    // Subdivision surfaces
    //
-   const int subdivision = FindMayaObjectPlug("aiSubdivType").asInt();
+   const int subdivision = FindMayaPlug("aiSubdivType").asInt();
    if (subdivision!=0)
    {
       if (subdivision==1)
          AiNodeSetStr(polymesh, "subdiv_type",           "catclark");
       else
          AiNodeSetStr(polymesh, "subdiv_type",           "linear");
-      AiNodeSetInt(polymesh, "subdiv_iterations",     FindMayaObjectPlug("aiSubdivIterations").asInt());
-      AiNodeSetInt(polymesh, "subdiv_adaptive_metric",FindMayaObjectPlug("aiSubdivAdaptiveMetric").asInt());
-      AiNodeSetFlt(polymesh, "subdiv_pixel_error",    FindMayaObjectPlug("aiSubdivPixelError").asFloat());
-      AiNodeSetInt(polymesh, "subdiv_uv_smoothing",   FindMayaObjectPlug("aiSubdivUvSmoothing").asInt());
-      AiNodeSetBool(polymesh, "subdiv_smooth_derivs", FindMayaObjectPlug("aiSubdivSmoothDerivs").asBool());
+      AiNodeSetInt(polymesh, "subdiv_iterations",     FindMayaPlug("aiSubdivIterations").asInt());
+      AiNodeSetInt(polymesh, "subdiv_adaptive_metric",FindMayaPlug("aiSubdivAdaptiveMetric").asInt());
+      AiNodeSetFlt(polymesh, "subdiv_pixel_error",    FindMayaPlug("aiSubdivPixelError").asFloat());
+      AiNodeSetInt(polymesh, "subdiv_uv_smoothing",   FindMayaPlug("aiSubdivUvSmoothing").asInt());
+      AiNodeSetBool(polymesh, "subdiv_smooth_derivs", FindMayaPlug("aiSubdivSmoothDerivs").asBool());
 
-      ProcessParameter(polymesh, "subdiv_dicing_camera", AI_TYPE_NODE, FindMayaObjectPlug("aiSubdivDicingCamera"));
+      ProcessParameter(polymesh, "subdiv_dicing_camera", AI_TYPE_NODE, "aiSubdivDicingCamera");
 
    }
 }

@@ -161,12 +161,17 @@ AtNode* CArnoldSession::ExportDagPath(MDagPath &dagPath, MStatus* stat)
    }
 
    AiMsgDebug("[mtoa.session]     %-30s | Exporting DAG node of type %s", name.asChar(), type.asChar());
-
    CNodeAttrHandle handle(dagPath);
+
+   ObjectToTranslatorMap::iterator it = m_processedTranslators.end();
    if (!translator->DisableCaching())
    {
       // Check if node has already been processed
-      ObjectToTranslatorMap::iterator it = m_processedTranslators.find(handle);
+      // FIXME: since it's a multimap there can be more than one translator associated ?
+      // ObjectToTranslatorMap::iterator it, itlo, itup;
+      // itlo = m_processedTranslators.lower_bound(handle);
+      // itup = m_processedTranslators.upper_bound(handle);
+      it = m_processedTranslators.find(handle);
       if (it != m_processedTranslators.end())
       {
          delete translator;
@@ -179,7 +184,14 @@ AtNode* CArnoldSession::ExportDagPath(MDagPath &dagPath, MStatus* stat)
    {
       status = MStatus::kSuccess;
       translator->Init(this, dagPath);
-      m_processedTranslators.insert(ObjectToTranslatorPair(handle, translator));
+      if (it != m_processedTranslators.end())
+      {
+         it->second = translator;
+      }
+      else
+      {
+         m_processedTranslators.insert(ObjectToTranslatorPair(handle, translator));
+      }
       arnoldNode = translator->DoExport(0);
    }
 
@@ -197,6 +209,7 @@ AtNode* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNodeSet* nod
    AtNode* arnoldNode = NULL;
 
    MDagPath dagPath;
+   // FIXME: should get correct instance number from plug
    if (MDagPath::getAPathTo(mayaNode, dagPath) == MS::kSuccess)
    {
       MStatus status = MStatus::kSuccess;
@@ -209,24 +222,24 @@ AtNode* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNodeSet* nod
       }
    }
 
-   AiMsgTab(1);
+   MFnDependencyNode fnNode(mayaNode);
+   MString name = fnNode.name();
+   MString type = fnNode.typeName();
+
    CNodeTranslator* translator = CExtensionsManager::GetTranslator(mayaNode);
+   AiMsgTab(1);
 
    if (translator == NULL)
    {
       status = MStatus::kNotImplemented;
-      MFnDependencyNode fnNode(mayaNode);
-      AiMsgDebug("[mtoa.session]     %30s: Maya node type not supported: %s", fnNode.name().asChar(),
-                 fnNode.typeName().asChar());
+      AiMsgDebug("[mtoa.session]     %30s: Maya node type not supported: %s", name.asChar(), type.asChar());
       AiMsgTab(-1);
       return NULL;
    }
+
    MPlug resultPlug;
-
    // returns the primary attribute (i.e. if the shaderOutputPlug is outColorR, resultPlug is outColor)
-
    ResolveFloatComponent(shaderOutputPlug, resultPlug);
-
    MPlug resolvedPlug;
    // resolving the plug gives translators a chance to replace ".message" with ".outColor",
    // for example, or to reject it outright.
@@ -241,17 +254,25 @@ AtNode* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNodeSet* nod
       translator = NULL;
       status = MStatus::kNotImplemented;
       MFnDependencyNode fnNode(mayaNode);
-      AiMsgDebug("[mtoa] [maya %s] Invalid output attribute: \"%s\"", fnNode.name().asChar(),
+      AiMsgDebug("[mtoa] [maya %s] Invalid output attribute: \"%s\"", name.asChar(),
                  resultPlug.partialName(false, false, false, false, false, true).asChar());
       AiMsgTab(-1);
       return NULL;
    }
 
+   MString plugName = resultPlug.name();
+   AiMsgDebug("[mtoa.session]     %-30s | Exporting plug %s for type %s",
+      name.asChar(), plugName.asChar(), type.asChar());
    CNodeAttrHandle handle(resultPlug);
+   ObjectToTranslatorMap::iterator it = m_processedTranslators.end();
    if (!translator->DisableCaching())
    {
       // Check if node has already been processed
-      ObjectToTranslatorMap::iterator it = m_processedTranslators.find(handle);
+      // FIXME: since it's a multimap there can be more than one translator associated ?
+      // ObjectToTranslatorMap::iterator it, itlo, itup;
+      // itlo = m_processedTranslators.lower_bound(handle);
+      // itup = m_processedTranslators.upper_bound(handle);
+      it = m_processedTranslators.find(handle);
       if (it != m_processedTranslators.end())
       {
          delete translator;
@@ -265,7 +286,14 @@ AtNode* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNodeSet* nod
       status = MStatus::kSuccess;
       translator->TrackShaders(nodes);
       translator->Init(this, mayaNode, resultPlug.partialName(false, false, false, false, false, true));
-      m_processedTranslators.insert(ObjectToTranslatorPair(handle, translator));
+      if (it != m_processedTranslators.end())
+      {
+         it->second = translator;
+      }
+      else
+      {
+         m_processedTranslators.insert(ObjectToTranslatorPair(handle, translator));
+      }
       arnoldNode = translator->DoExport(0);
    }
    if (arnoldNode != NULL)
@@ -380,7 +408,7 @@ MStatus CArnoldSession::End()
    ObjectToTranslatorMap::iterator it;
    for(it = m_processedTranslators.begin(); it != m_processedTranslators.end(); ++it)
    {
-      //AiMsgDebug("[mtoa] Deleting translator for %s", MFnDependencyNode(it->first.object()).name().asChar());
+      AiMsgDebug("[mtoa] Deleting translator for %s in %p", MFnDependencyNode(it->first.object()).name().asChar(), it->second);
       delete it->second;
    }
    // Any translators are in the processed translators map, so already deleted
@@ -957,6 +985,7 @@ void CArnoldSession::QueueForUpdate(CNodeTranslator * translator)
 void CArnoldSession::RequestUpdate()
 {
    m_requestUpdate = true;
+   // Loads the IPRIdleCallback
    CMayaScene::UpdateIPR();
 }
 

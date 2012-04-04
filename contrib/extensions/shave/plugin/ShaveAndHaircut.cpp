@@ -30,7 +30,7 @@ AtNode*  CShaveTranslator::CreateArnoldNodes()
 void CShaveTranslator::Export(AtNode* curve)
 {
    // Only translate the shave node if its marked as a active
-   if (!FindMayaObjectPlug("active").asBool())
+   if (!FindMayaPlug("active").asBool())
       return;
 
    Update(curve);
@@ -41,9 +41,9 @@ AtNode* CShaveTranslator::CreateShaveShader(AtNode* curve)
    AtNode* shader = AiNode("ShaveHair");
    char nodeName[MAX_NAME_SIZE];
    AiNodeSetStr(shader, "name", NodeUniqueName(shader, nodeName));
-   MFnDependencyNode fnNode(GetMayaObject());
+
    // Fade the hairstrand towards the tip.
-   MPlug plug = fnNode.findPlug("tipFade");
+   MPlug plug = FindMayaPlug("tipFade");
    if (plug.asBool())
    {
       // If tip fade is on then the hairs are not opaque no
@@ -86,35 +86,16 @@ AtNode* CShaveTranslator::CreateShaveShader(AtNode* curve)
    AiNodeSetStr(shader, "tipcolor", "tipcolorparam");
 
    // Set specular and gloss.
-   plug = fnNode.findPlug("specular");
-   ProcessParameter(shader, "spec", AI_TYPE_FLOAT, plug);
-
-   plug = fnNode.findPlug("gloss");
-   ProcessParameter(shader, "gloss", AI_TYPE_FLOAT, plug);
-
-   plug = fnNode.findPlug("specularTint");
-   ProcessParameter(shader, "spec_color", AI_TYPE_RGB, plug);
-
-   plug = fnNode.findPlug("amb/diff");
-   ProcessParameter(shader, "ambdiff", AI_TYPE_FLOAT, plug);
-
-   plug = fnNode.findPlug("aiDiffuseCache");
-   ProcessParameter(shader, "diffuse_cache", AI_TYPE_BOOLEAN, plug);
-
-   plug = fnNode.findPlug("aiIndirect");
-   ProcessParameter(shader, "kd_ind", AI_TYPE_FLOAT, plug);
-
-   plug = fnNode.findPlug("aiDirectDiffuse");
-   ProcessParameter(shader, "direct_diffuse", AI_TYPE_FLOAT, plug);
-
-   plug = fnNode.findPlug("aiAovDirectDiffuse");
-   ProcessParameter(shader, "aov_direct_diffuse", AI_TYPE_STRING, plug);
-
-   plug = fnNode.findPlug("aiAovIndirectDiffuse");
-   ProcessParameter(shader, "aov_indirect_diffuse", AI_TYPE_STRING, plug);
-
-   plug = fnNode.findPlug("aiAovDirectSpecular");
-   ProcessParameter(shader, "aov_direct_specular", AI_TYPE_STRING, plug);
+   ProcessParameter(shader, "spec", AI_TYPE_FLOAT, "specular");
+   ProcessParameter(shader, "gloss", AI_TYPE_FLOAT, "gloss");
+   ProcessParameter(shader, "spec_color", AI_TYPE_RGB, "specularTint");
+   ProcessParameter(shader, "ambdiff", AI_TYPE_FLOAT, "amb/diff");
+   ProcessParameter(shader, "diffuse_cache", AI_TYPE_BOOLEAN, "aiDiffuseCache");
+   ProcessParameter(shader, "kd_ind", AI_TYPE_FLOAT, "aiIndirect");
+   ProcessParameter(shader, "direct_diffuse", AI_TYPE_FLOAT, "aiDirectDiffuse");
+   ProcessParameter(shader, "aov_direct_diffuse", AI_TYPE_STRING, "aiAovDirectDiffuse");
+   ProcessParameter(shader, "aov_indirect_diffuse", AI_TYPE_STRING, "aiAovIndirectDiffuse");
+   ProcessParameter(shader, "aov_direct_specular", AI_TYPE_STRING, "aiAovDirectSpecular");
 
    return shader;
 }
@@ -137,12 +118,11 @@ void CShaveTranslator::Update(AtNode* curve)
 
    // Curves shader
    MPlug plug;
-   MFnDependencyNode fnNode(GetMayaObject());
-   plug = fnNode.findPlug("aiOverrideHair");
+   plug = FindMayaPlug("aiOverrideHair");
    if (!plug.isNull() && plug.asBool())
    {
       MPlugArray curveShaderPlug;
-      plug = fnNode.findPlug("aiHairShader");
+      plug = FindMayaPlug("aiHairShader");
       if (!plug.isNull())
       {
          plug.connectedTo(curveShaderPlug, true, false);
@@ -166,7 +146,7 @@ void CShaveTranslator::Update(AtNode* curve)
 
    // Should we export the hair root and tip colour? Default to true.
    // Turning it off gives us a slimmer ass.
-   plug = fnNode.findPlug("aiExportHairColors");
+   plug = FindMayaPlug("aiExportHairColors");
    bool export_curve_color = true;
    if (!plug.isNull())
    {
@@ -185,7 +165,7 @@ void CShaveTranslator::Update(AtNode* curve)
       tipColor  = AiArrayAllocate(m_hairInfo.numHairs, 1, AI_TYPE_RGB);
    }
 
-   plug = fnNode.findPlug("aiExportHairIDs");
+   plug = FindMayaPlug("aiExportHairIDs");
    bool export_curve_id = true;
    if (!plug.isNull())
    {
@@ -299,14 +279,14 @@ void CShaveTranslator::Update(AtNode* curve)
    AiNodeSetStr(curve, "basis", "catmull-rom");
 
    // Hair specific Arnold render settings.
-   plug = fnNode.findPlug("aiMinPixelWidth");
+   plug = FindMayaPlug("aiMinPixelWidth");
    if (!plug.isNull())
    {
       AiNodeSetFlt(curve, "min_pixel_width", plug.asFloat());
    }
 
    // Mode is an enum, 0 == ribbon, 1 == tubes.
-   plug = fnNode.findPlug("aiMode");
+   plug = FindMayaPlug("aiMode");
    if (!plug.isNull())
    {
       AiNodeSetInt(curve, "mode", plug.asInt());

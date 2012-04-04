@@ -26,12 +26,12 @@ AtNode* COptionsTranslator::CreateArnoldNodes()
 /// For each active AOV add a CAOV class to m_aovs
 void COptionsTranslator::ProcessAOVs()
 {
-   AOVMode aovMode = AOVMode(FindMayaObjectPlug("aovMode").asInt());
+   AOVMode aovMode = AOVMode(FindMayaPlug("aovMode").asInt());
    if (aovMode == AOV_MODE_ENABLED ||
          (m_session->IsBatch() && aovMode == AOV_MODE_BATCH_ONLY))
    {
       MPlugArray conns;
-      MPlug pAOVs = FindMayaObjectPlug("aovs");
+      MPlug pAOVs = FindMayaPlug("aovs");
       for (unsigned int i = 0; i < pAOVs.evaluateNumElements(); ++i)
       {
          if (pAOVs[i].connectedTo(conns, true, false))
@@ -201,7 +201,7 @@ AtNode * COptionsTranslator::CreateFileOutput(MStringArray &outputs, AtNode *def
    ProcessAOVs();
 
    // set the output driver
-   MPlug driverPlug = FindMayaObjectPlug("driver");
+   MPlug driverPlug = FindMayaPlug("driver");
    MPlugArray conn;
    driverPlug.connectedTo(conn, true, false);
    if (conn.length())
@@ -234,7 +234,7 @@ AtNode * COptionsTranslator::CreateOutputFilter()
 {
    // set the output driver
    AtNode* filter = NULL;
-   MPlug filterPlug = FindMayaObjectPlug("filter");
+   MPlug filterPlug = FindMayaPlug("filter");
    MPlugArray conn;
    filterPlug.connectedTo(conn, true, false);
    if (conn.length())
@@ -257,10 +257,10 @@ AtNode * COptionsTranslator::CreateRenderViewOutput(MStringArray &outputs, AtNod
    AtNode* driver = AiNode("renderview_display");
    AiNodeSetStr(driver, "name", "renderview_display");
 
-   AiNodeSetFlt(driver, "gamma", FindMayaObjectPlug("display_gamma").asFloat());
+   AiNodeSetFlt(driver, "gamma", FindMayaPlug("display_gamma").asFloat());
    char   str[1024];
-   AiMsgInfo("display AOV: %s", FindMayaObjectPlug("displayAOV").asString().asChar());
-   sprintf(str, "%s RGBA %s %s", FindMayaObjectPlug("displayAOV").asString().asChar(),
+   AiMsgInfo("display AOV: %s", FindMayaPlug("displayAOV").asString().asChar());
+   sprintf(str, "%s RGBA %s %s", FindMayaPlug("displayAOV").asString().asChar(),
            AiNodeGetName(defaultFilter), AiNodeGetName(driver));
    outputs.append(str);
    //sprintf(str, "RGBA RGBA %s %s", AiNodeGetName(filter), AiNodeGetName(render_view));
@@ -327,11 +327,11 @@ void COptionsTranslator::Export(AtNode *options)
          // Special cases
          if (strcmp(paramName, "threads") == 0)
          {
-            AiNodeSetInt(options, "threads", FindMayaObjectPlug("threads_autodetect").asBool() ? 0 : FindMayaObjectPlug("threads").asInt());
+            AiNodeSetInt(options, "threads", FindMayaPlug("threads_autodetect").asBool() ? 0 : FindMayaPlug("threads").asInt());
          }
          else if (strcmp(paramName, "AA_sample_clamp") == 0)
          {
-            if (FindMayaObjectPlug("use_sample_clamp").asBool())
+            if (FindMayaPlug("use_sample_clamp").asBool())
             {
                ProcessParameter(options, "AA_sample_clamp", AI_TYPE_FLOAT);
             }
@@ -339,7 +339,7 @@ void COptionsTranslator::Export(AtNode *options)
          else if (strcmp(paramName, "AA_seed") == 0)
          {
             // FIXME: this is supposed to use a connection to AA_seed attribute
-            if (!FindMayaObjectPlug("lock_sampling_noise").asBool())
+            if (!FindMayaPlug("lock_sampling_noise").asBool())
             {
                AiNodeSetInt(options, "AA_seed", (int)GetExportFrame());
             }
@@ -354,11 +354,11 @@ void COptionsTranslator::Export(AtNode *options)
             MPlug plug;
             if (AiMetaDataGetStr(optionsEntry, paramName, "maya.name", &attrName))
             {
-               plug = FindMayaObjectPlug(attrName);
+               plug = FindMayaPlug(attrName);
             }
             else
             {
-               plug = FindMayaObjectPlug(paramName);
+               plug = FindMayaPlug(paramName);
             }
             // Don't print warnings, just debug for missing options attributes are there are a lot
             // that are not exposed in Maya
@@ -379,7 +379,7 @@ void COptionsTranslator::Export(AtNode *options)
    // BACKGROUND SHADER
    //
    MPlugArray conns;
-   MPlug pBG = FindMayaObjectPlug("background");
+   MPlug pBG = FindMayaPlug("background");
    pBG.connectedTo(conns, true, false);
    if (conns.length() == 1)
    {
@@ -391,7 +391,7 @@ void COptionsTranslator::Export(AtNode *options)
    MSelectionList list;
    MPlug        shader;
 
-   int atmosphere = FindMayaObjectPlug("atmosphere").asInt();
+   int atmosphere = FindMayaPlug("atmosphere").asInt();
    switch (atmosphere)
    {
    case 0:

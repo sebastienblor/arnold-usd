@@ -64,7 +64,15 @@ public:
    virtual MString GetMayaAttributeName() const { return m_handle.attribute(); }
    virtual MString GetMayaNodeTypeName() const { return MFnDependencyNode(m_handle.object()).typeName(); }
    virtual MObject GetMayaObjectAttribute(MString attributeName) const { return MFnDependencyNode(m_handle.object()).attribute(attributeName); }
-   virtual MPlug FindMayaObjectPlug(MString attributeName, MStatus* ReturnStatus=NULL) const { return MFnDependencyNode(m_handle.object()).findPlug(attributeName, ReturnStatus); }
+
+   virtual AtNode* GetArnoldRootNode();
+   virtual AtNode* GetArnoldNode(const char* tag="");
+   virtual const char* GetArnoldNodeName(const char* tag="");
+   virtual const char* GetArnoldTypeName(const char* tag="");
+
+   virtual MPlug FindMayaObjectPlug(const MString &attrName, MStatus* ReturnStatus=NULL) const;
+   virtual MPlug FindMayaOverridePlug(const MString &attrName, MStatus* ReturnStatus=NULL) const;
+   virtual MPlug FindMayaPlug(const MString &attrName, MStatus* ReturnStatus=NULL) const;
 
    virtual bool IsMayaTypeDag() {return false;}
    virtual bool IsMayaTypeRenderable() {return false;}
@@ -75,17 +83,32 @@ public:
    /// Instead of caching translator exports, allow a Maya node to be exported multiple times, each time generating new arnold nodes
    virtual bool DisableCaching() {return false;}
 
+   // Overide this if you have some special callbacks to install.
+   virtual void AddUpdateCallbacks();
+   // Remove callbacks installed. This is virtual incase
+   // a translator needs to do more than remove the managed
+   // callbacks.
+   virtual void RemoveUpdateCallbacks();
+   // This is a help that tells mtoa to re-export/update the node passed in.
+   // Used by the Update callbacks.
+   virtual void RequestUpdate(void * clientData = NULL);
+
 protected:
    CNodeTranslator()  :
       m_abstract(CAbTranslator()),
       m_session(NULL),
       m_atNode(NULL),
       m_step(0),
+      m_overrideSets(),
       m_localAOVs(),
       m_upstreamAOVs(),
       m_shaders(NULL),
       m_handle(CNodeAttrHandle())
    {}
+
+   virtual MStatus GetOverrideSets(MObject object, MObjectArray &overrideSets);
+   virtual MStatus ExportOverrideSets();
+   virtual MPlug GetOverridePlug(const MPlug &plug, MStatus* ReturnStatus=NULL) const;
 
    virtual void ComputeAOVs();
    void AddAOVDefaults(AtNode* shadingEngine, std::vector<AtNode*> &aovShaders);
@@ -113,7 +136,9 @@ protected:
    virtual void Delete() {}
 
    // Using the translator's MObject m_object and corresponding attrbuteName (default behavior)
-   virtual AtNode* ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, int element=-1);
+   virtual AtNode* ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType);
+   // For a specific Maya attribute on the translator Maya node
+   virtual AtNode* ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, const MString& mayaAttrName);
    // For a specific Maya plug
    virtual AtNode* ProcessParameter(AtNode* arnoldNode, const char* arnoldParamName, int arnoldParamType, const MPlug& plug);
    AtArray* InitArrayParameter(unsigned int arnoldParamType, unsigned int size);
@@ -132,7 +157,7 @@ protected:
    bool IsLocalMotionBlurEnabled() const
    {
       bool local_motion_attr(true);
-      MPlug plug = FindMayaObjectPlug("motionBlur");
+      MPlug plug = FindMayaPlug("motionBlur");
       if (!plug.isNull())
          local_motion_attr = plug.asBool();
       return local_motion_attr;
@@ -151,27 +176,13 @@ protected:
    AtNode* ExportNode(const MPlug& outputPlug) {return m_session->ExportNode(outputPlug, m_shaders, &m_upstreamAOVs);}
    AtNode* ExportDagPath(MDagPath &dagPath) {return m_session->ExportDagPath(dagPath);}
 
-   // get the arnold node that this translator is exporting (should only be used after all export steps are complete)
-   AtNode* GetArnoldRootNode();
-   void SetArnoldRootNode(AtNode* node);
-   AtNode* GetArnoldNode(const char* tag="");
-   AtNode* AddArnoldNode(const char* type, const char* tag="");
+   // set the arnold node that this translator is exporting (should only be used after all export steps are complete)
+   virtual void SetArnoldRootNode(AtNode* node);
+   virtual AtNode* AddArnoldNode(const char* type, const char* tag="");
    virtual void SetArnoldNodeName(AtNode* arnoldNode, const char* tag="");
-   virtual const char* GetArnoldNodeName(const char* tag="");
-   virtual const char* GetArnoldTypeName(const char* tag="");
 
    // Add a callback to the list to manage.
    void ManageUpdateCallback(const MCallbackId id);
-
-   // Overide this if you have some special callbacks to install.
-   virtual void AddUpdateCallbacks();
-   // Remove callbacks installed. This is virtual incase
-   // a translator needs to do more than remove the managed
-   // callbacks.
-   virtual void RemoveUpdateCallbacks();
-   // This is a help that tells mtoa to re-export/update the node passed in.
-   // Used by the Update callbacks.
-   void RequestUpdate(void * clientData = NULL);
 
    // Some simple callbacks used by many translators.
    static void NodeDirtyCallback(MObject &node, MPlug &plug, void *clientData);
@@ -188,7 +199,10 @@ protected:
    AtNode* m_atNode;
    std::map<std::string, AtNode*> m_atNodes;
 
+   MObjectArray m_overrideSets;
+
    unsigned int m_step;
+
    AOVSet m_localAOVs;
    AOVSet m_upstreamAOVs;
    AtNodeSet* m_shaders;
@@ -238,6 +252,8 @@ public:
 
 protected:
    CDagTranslator() : CNodeTranslator(){}
+   virtual MStatus GetOverrideSets(MDagPath path, MObjectArray &overrideSets);
+   virtual MStatus ExportOverrideSets();
    virtual bool IsMasterInstance(MDagPath &masterDag);
    void GetRotationMatrix(AtMatrix& matrix);
    virtual void GetMatrix(AtMatrix& matrix);
