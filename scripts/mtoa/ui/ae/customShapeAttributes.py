@@ -290,19 +290,21 @@ templates.registerTranslatorUI(CylCameraTemplate, "stereoRigCamera", "cylindrica
 
 def cameraOrthographicChanged(orthoPlug, *args):
     "called to sync .aiTranslator when .orthographic changes"
-    fnCam = om.MFnCamera(orthoPlug.node())
-    isOrtho = orthoPlug.asBool()
+    fnCam = om.MFnCamera(orthoPlug.node())    
     transPlug = fnCam.findPlug('aiTranslator')
-    currTrans = transPlug.asString()
-    #print "cameraOrthographicChanged", fnCam.name(), currTrans, isOrtho
-    newTrans = None
-    if isOrtho and currTrans != 'orthographic':
-        newTrans = 'orthographic'
-    elif not isOrtho and currTrans == 'orthographic':
-        newTrans = 'perspective'
-    #print "newTrans", newTrans
-    if newTrans:
-        transPlug.setString(newTrans)
+    if not transPlug.isNull():
+        isOrtho = orthoPlug.asBool()
+        
+        currTrans = transPlug.asString()
+        #print "cameraOrthographicChanged", fnCam.name(), currTrans, isOrtho
+        newTrans = None
+        if isOrtho and currTrans != 'orthographic':
+            newTrans = 'orthographic'
+        elif not isOrtho and currTrans == 'orthographic':
+            newTrans = 'perspective'
+        #print "newTrans", newTrans
+        if newTrans:
+            transPlug.setString(newTrans)
 
 def cameraTranslatorChanged(transPlug, *args):
     "called to sync .orthographic when .aiTranslator changes"
