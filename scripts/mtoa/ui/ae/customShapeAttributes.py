@@ -67,6 +67,13 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
         self.addControl("aiExportColors", label="Export Vertex Colors")
         self.addControl("aiExportRefNormals", label="Export Reference Normals")
         self.addControl("aiExportRefTangents", label="Export Reference Tangents")
+        
+        self.beginLayout('Displacement Attributes', collapse=False)
+        self.addControl("aiDispHeight", label="Height")
+        self.addControl("aiDispPadding", label="Padding")
+        self.addControl("aiDispZeroValue", label="Zero Value")
+        self.addControl("aiDispAutobump", label="Auto Bump")
+        self.endLayout()
         #pm.editorTemplate("aiExportHairIDs", label="Export Hair IDs", addDynamicControl=True)
         # FIXME: these are not on the shape node!
 #       ui.addSeparator()

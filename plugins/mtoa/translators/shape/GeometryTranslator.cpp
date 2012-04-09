@@ -493,13 +493,19 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
    int instanceNum = m_dagPath.isInstanced() ? m_dagPath.instanceNumber() : 0;
 
    std::vector<AtNode*> meshShaders;
+   std::vector<AtNode*> meshDisps;
 
    MPlug shadingGroupPlug = GetNodeShadingGroup(path.node(), instanceNum);
+   m_displaced = false;
+
+   // Only one Shading Group applied to Mesh
    if (!shadingGroupPlug.isNull())
    {
+      // SURFACE MATERIAL EXPORT
       AtNode *shader = ExportNode(shadingGroupPlug);
       if (shader != NULL)
       {
+         // Push the shader in the vector to be assigned later to mtoa_shading_groups
          meshShaders.push_back(shader);
          AiNodeSetPtr(polymesh, "shader", shader);
       }
@@ -509,19 +515,39 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
                GetTranslatorName().asChar(), MFnDependencyNode(shadingGroupPlug.node()).name().asChar());
          AiNodeSetPtr(polymesh, "shader", NULL);
       }
+
+      // DISPLACEMENT MATERIAL EXPORT
+      MPlugArray        connections;
+      MFnDependencyNode fnDGShadingGroup(shadingGroupPlug.node());
+      MPlug shaderPlug = fnDGShadingGroup.findPlug("displacementShader");
+      shaderPlug.connectedTo(connections, true, false);
+
+      // are there any connections to displacementShader?
+      if (connections.length() > 0)
+      {
+         m_displaced = true;
+         MFnDependencyNode dispNode(connections[0].node());
+
+         AtNode* dispImage(ExportNode(connections[0]));
+         AiNodeSetPtr(polymesh, "disp_map", dispImage);
+      }
    }
+
+   // PER-FACE Shading Group applied to Mesh
    else
    {
       MIntArray indices;
       // Per-face assignment
       MObjectArray shadingGroups;
-
       // Indices are used later when exporting shidxs
       fnMesh.getConnectedShaders(instanceNum, shadingGroups, indices);
 
-      // MPlugs must to Shader Groups must be exported in the same order they appear in "shadingGroups"
       for (int J = 0; (J < (int) shadingGroups.length()); J++)
       {
+         // SURFACE MATERIAL EXPORT
+
+         // We have an array of Shading Groups in shadingGroups, but we need the MPlugs to them
+         // MPlugs to Shader Groups must be exported in the same order they appear in "shadingGroups"
          MFnDependencyNode fnDGNode(m_dagPath.node());
          MPlug plug(m_dagPath.node(), fnDGNode.attribute("instObjGroups"));
          plug = plug.elementByLogicalIndex(instanceNum);
@@ -535,11 +561,12 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
          {
             MPlugArray connections;
             plug.elementByPhysicalIndex(i).connectedTo(connections, false, true);
-            // Only export if MPlug matches the connected Shader Group
             for(unsigned int j=0; j < connections.length() && !exported ; j++)
             {
+               // Only export if MPlug matches the connected Shader Group
                if (shadingGroups[J] == connections[j].node())
                {
+                  // connections[j] is the MPlug to shadingGroups[J]
                   AtNode *shader = ExportNode(connections[j]);
                   if (shader != NULL)
                   {
@@ -549,13 +576,33 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
                }
             }
          }
-         
-         // If not exported, export NULL so order of Shader Groups will be the same
+         // If not exported, it means that the Shading Group MPlug has not been found
          if (!exported)
          {
-            AiMsgWarning("[mtoa] [translator %s] ShadingGroup %s has no surfaceShader input",
-                  GetTranslatorName().asChar(), MFnDependencyNode(shadingGroupPlug.node()).name().asChar());
-            AiNodeSetPtr(polymesh, "shader", NULL);
+            AiMsgWarning("[mtoa] [translator %s] ShadingGroup %s MPlug not found",
+                  GetTranslatorName().asChar(), MFnDependencyNode(shadingGroups[J]).name().asChar());
+            meshShaders.push_back(NULL);
+         }
+
+         // DISPLACEMENT MATERIAL EXPORT
+
+         MPlugArray        connections;
+         MFnDependencyNode fnDGShadingGroup(shadingGroups[J]);
+         MPlug shaderPlug = fnDGShadingGroup.findPlug("displacementShader");
+         shaderPlug.connectedTo(connections, true, false);
+
+         // are there any connections to displacementShader?
+         // If no connection found, add a NULL to meshDisps to match
+         //  meshShaders distribution
+         if (connections.length() > 0)
+         {
+            m_displaced = true;
+            AtNode* dispImage(ExportNode(connections[0]));
+            meshDisps.push_back(dispImage);
+         }
+         else
+         {
+            meshDisps.push_back(NULL);
          }
       }
       
@@ -563,6 +610,12 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
       if (numMeshShaders > 0)
       { 
          AiNodeSetArray(polymesh, "shader", AiArrayConvert(numMeshShaders, 1, AI_TYPE_NODE, &meshShaders[0]));
+      }
+
+      int numMeshDisps = (int)meshDisps.size();
+      if (numMeshDisps > 0)
+      { 
+         AiNodeSetArray(polymesh, "disp_map", AiArrayConvert(numMeshDisps, 1, AI_TYPE_NODE, &meshDisps[0]));
       }
 
       // Export face to shader indices
@@ -587,9 +640,18 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
       for (unsigned int i = 0; i < indices.length(); i++)
       {
          int subdivisions = multiplier * fnMesh.polygonVertexCount(i);
-         shidxs.push_back(indices[i]);
-         for (int j = 0; j < subdivisions -1; j++)
+         // indices[i] == -1 when a Shading Group is not connected
+         if (indices[i] == -1)
+            shidxs.push_back(0);
+         else
             shidxs.push_back(indices[i]);
+         for (int j = 0; j < subdivisions -1; j++)
+         {
+            if (indices[i] == -1)
+               shidxs.push_back(0);
+            else
+               shidxs.push_back(indices[i]);
+         }
       }
 
       int numFaceShaders = (int)shidxs.size();
@@ -598,69 +660,24 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
          AiNodeSetArray(polymesh, "shidxs", AiArrayConvert(numFaceShaders, 1, AI_TYPE_UINT, &(shidxs[0])));
       }
    }
+
+   // Only export displacement attributes if a displacement is applied
+   if (m_displaced)
+   {
+      // Note that disp_height has no actual influence on the scale of the displacement if it is vector based
+      // it only influences the computation of the displacement bounds
+      AiNodeSetFlt(polymesh, "disp_height",  FindMayaObjectPlug("aiDispHeight").asFloat());
+      AiNodeSetFlt(polymesh, "disp_padding", FindMayaObjectPlug("aiDispPadding").asFloat());
+      AiNodeSetFlt(polymesh, "disp_zero_value", FindMayaObjectPlug("aiDispZeroValue").asFloat());
+      AiNodeSetBool(polymesh, "disp_autobump", FindMayaObjectPlug("aiDispAutobump").asBool());
+   }
+
    // we must write this as user data bc AiNodeGet* is thread-locked while AIUDataGet* is not
    if (meshShaders.size() > 0)
    {
       AiNodeDeclare(polymesh, "mtoa_shading_groups", "constant ARRAY NODE");
       AiNodeSetArray(polymesh, "mtoa_shading_groups",
          AiArrayConvert(meshShaders.size(), 1, AI_TYPE_NODE, &(meshShaders[0])));
-   }
-   
-
-   //
-   // DISPLACEMENT
-   //
-   // Currently Arnold does not support displacement per-face assignment
-   if (!shadingGroupPlug.isNull())
-   {
-      MPlugArray        connections;
-      MFnDependencyNode fnDGNode(shadingGroupPlug.node());
-      MPlug shaderPlug = fnDGNode.findPlug("displacementShader");
-      shaderPlug.connectedTo(connections, true, false);
-
-      m_displaced = false;
-
-      // are there any connections to displacementShader?
-      if (connections.length() > 0)
-      {
-         m_displaced = true;
-         MFnDependencyNode dispNode(connections[0].node());
-
-         // Note that disp_height has no actual influence on the scale of the displacement if it is vector based
-         // it only influences the computation of the displacement bounds
-         AiNodeSetFlt(polymesh, "disp_height", dispNode.findPlug("disp_height").asFloat());
-         AiNodeSetFlt(polymesh, "disp_padding", dispNode.findPlug("disp_padding").asFloat());
-         AiNodeSetFlt(polymesh, "disp_zero_value", dispNode.findPlug("disp_zero_value").asFloat());
-         AiNodeSetBool(polymesh, "disp_autobump", dispNode.findPlug("disp_autobump").asBool());
-
-         connections.clear();
-         dispNode.findPlug("disp_map").connectedTo(connections, true, false);
-
-         if (connections.length() > 0)
-         {
-            MString attrName = connections[0].partialName(false, false, false, false, false, true);
-            AtNode* dispImage(ExportNode(connections[0]));
-
-            // FIXME : why request a non networked plug?
-            MPlug pVectorDisp = dispNode.findPlug("vector_displacement", false);
-            if (!pVectorDisp.isNull() && pVectorDisp.asBool())
-            {
-               AtNode* tangentToObject = AiNode("TangentToObjectSpace");
-               char nodeName[MAX_NAME_SIZE];
-               AiNodeSetStr(tangentToObject, "name", NodeUniqueName(tangentToObject, nodeName));
-               MPlug pVectorDispScale = dispNode.findPlug("vector_displacement_scale", false);
-               // FIXME : do this using a translator instead
-               ProcessParameter(tangentToObject, "scale", AI_TYPE_VECTOR, pVectorDispScale);
-               AiNodeLink(dispImage, "map", tangentToObject);
-
-               AiNodeSetPtr(polymesh, "disp_map", tangentToObject);
-            }
-            else
-            {
-               AiNodeSetPtr(polymesh, "disp_map", dispImage);
-            }
-         }
-      }
    }
 }
 
@@ -1169,6 +1186,10 @@ void CGeometryTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInput("subdiv_uv_smoothing");
    helper.MakeInput("subdiv_smooth_derivs");
 
+   helper.MakeInput("disp_height");
+   helper.MakeInput("disp_padding");
+   helper.MakeInput("disp_zero_value");
+   helper.MakeInput("disp_autobump");
 
    CAttrData data;
 

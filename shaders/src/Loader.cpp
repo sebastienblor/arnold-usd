@@ -71,6 +71,7 @@ extern AtNodeMethods* SkinSssMethods;
 extern AtNodeMethods* MayaSamplerInfo1DMtd;
 extern AtNodeMethods* MayaSamplerInfo2DMtd;
 extern AtNodeMethods* MayaSamplerInfo3DMtd;
+extern AtNodeMethods* MayaDisplacementMtd;
 
 node_loader
 {
@@ -551,6 +552,14 @@ node_loader
       node->name        = "aovWritePoint2";
       node->node_type   = AI_NODE_SHADER;
       break;
+      
+   case 68:
+      node->methods     = MayaDisplacementMtd;
+      node->output_type = AI_TYPE_VECTOR;
+      node->name        = "MayaDisplacement";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+
    default:
       return false;
    }

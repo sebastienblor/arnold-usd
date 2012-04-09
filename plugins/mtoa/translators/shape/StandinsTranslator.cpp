@@ -174,55 +174,6 @@ void CArnoldStandInsTranslator::ExportStandinsShaders(AtNode* procedural)
          AiNodeSetPtr(procedural, "shader", NULL);
       }
    }
-   //
-   // DISPLACEMENT
-   //
-   // currently does not work for per-face assignment
-   if (!shadingGroupPlug.isNull())
-   {
-      MPlugArray connections;
-      MFnDependencyNode fnDGNode(shadingGroupPlug);
-      MPlug shaderPlug = fnDGNode.findPlug("displacementShader");
-      shaderPlug.connectedTo(connections, true, false);
-
-      // are there any connections to displacementShader?
-      if (connections.length() > 0)
-      {
-         MFnDependencyNode dispNode(connections[0]);
-
-         // Note that disp_height has no actual influence on the scale of the displacement if it is vector based
-         // it only influences the computation of the displacement bounds
-         AiNodeSetFlt(procedural, "disp_height", dispNode.findPlug("disp_height").asFloat());
-         AiNodeSetFlt(procedural, "disp_padding", dispNode.findPlug("disp_padding").asFloat());
-         AiNodeSetFlt(procedural, "disp_zero_value", dispNode.findPlug("disp_zero_value").asFloat());
-
-         connections.clear();
-         dispNode.findPlug("disp_map").connectedTo(connections, true, false);
-
-         if (connections.length() > 0)
-         {
-            AtNode* dispImage(ExportNode(connections[0]));
-
-            MPlug pVectorDisp = dispNode.findPlug("vector_displacement", false);
-            if (!pVectorDisp.isNull() && pVectorDisp.asBool())
-            {
-               AtNode* tangentToObject = AiNode("tangentToObjectSpace");
-               char nodeName[MAX_NAME_SIZE];
-               AiNodeSetStr(tangentToObject, "name", NodeUniqueName(tangentToObject, nodeName));
-               MPlug pVectorDispScale = dispNode.findPlug("vector_displacement_scale", false);
-               // FIXME : do this using a translator instead
-               ProcessParameter(tangentToObject, "scale", AI_TYPE_VECTOR, pVectorDispScale);
-               AiNodeLink(dispImage, "map", tangentToObject);
-
-               AiNodeSetPtr(procedural, "disp_map", tangentToObject);
-            }
-            else
-            {
-               AiNodeSetPtr(procedural, "disp_map", dispImage);
-            }
-         }
-      }
-   }
 }
 
 void CArnoldStandInsTranslator::ExportBoundingBox(AtNode* procedural)

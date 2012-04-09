@@ -103,13 +103,13 @@ namespace // <anonymous>
 
 
       // Displacement Shaders
-      status = plugin.registerNode("aiDisplacement",
+      /*status = plugin.registerNode("aiDisplacement",
                                    CArnoldDisplacementNode::id,
                                    CArnoldDisplacementNode::creator,
                                    CArnoldDisplacementNode::initialize,
                                    MPxNode::kDependNode,
                                    &DISPLACEMENT_WITH_SWATCH);
-      CHECK_MSTATUS(status);
+      CHECK_MSTATUS(status);*/
 
       // Light Shaders
       status = plugin.registerNode("aiSkyDomeLight",
