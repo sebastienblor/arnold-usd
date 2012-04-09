@@ -1,0 +1,124 @@
+\section{Creating a Shader Loader}
+
+
+If you write several shaders, it could be useful to create a loader that will load all of them from the same library file.
+It will be also posible to create a metadata file with all the metadata information of all the shaders.
+
+\subsection{Two basic shaders}
+
+The first thing you need are the shaders you want to include; here are two very basic ones:
+
+\inputminted[mathescape,
+linenos,
+numbersep=5pt,
+frame=lines,
+framesep=2mm,
+baselinestretch=1,
+fontsize=\footnotesize,
+tabsize=3,
+label=myShader1.cpp]
+{c++}{myShader1.cpp}
+
+$ $\\
+
+\inputminted[mathescape,
+linenos,
+numbersep=5pt,
+frame=lines,
+framesep=2mm,
+baselinestretch=1,
+fontsize=\footnotesize,
+tabsize=3,
+label=myShader2.cpp]
+{c++}{myShader2.cpp}
+
+\subsection{The loader}
+
+With these two shaders, it will be easy to write a loader for them:
+
+\inputminted[mathescape,
+linenos,
+numbersep=5pt,
+frame=lines,
+framesep=2mm,
+baselinestretch=1,
+fontsize=\footnotesize,
+tabsize=3,
+label=loader.cpp]
+{c++}{loader.cpp}
+
+When you have these files, you can compile them in a similar way to a single shader:
+
+\begin{description}
+\item[In Windows] \hfill \\
+Open a Visual Studio command prompt and execute the following:\\
+\verb|cl /LD /I %ARNOLD_PATH%\include /EHsc|\\
+\verb|       loader.cpp myShader1.cpp myShader2.cpp|\\
+\verb|       /link /LIBPATH:%ARNOLD_PATH%\lib ai.lib|\\
+Or you can compile each shader separately and then link them to the loader:\\
+\verb|cl /c /I %ARNOLD_PATH%\include /EHsc myShader1.cpp|\\
+\verb|cl /c /I %ARNOLD_PATH%\include /EHsc myShader2.cpp|\\
+\verb|cl /LD /I %ARNOLD_PATH%\include /EHsc loader.cpp|\\
+\verb|       myShader1.obj myShader2.obj|\\
+\verb|       /link /LIBPATH:%ARNOLD_PATH%\lib ai.lib|\\
+\end{description}
+
+
+Now you can, as with your first shader, use \texttt{kick} with the \texttt{-info} option to check if they have been correctly created and loaded by Arnold.
+
+{\footnotesize \begin{verbatim}
+>> %ARNOLD_PATH%\bin\kick -l <path_to_shader> -info myShader1
+
+node:         myShader1
+type:         shader
+output:       RGB
+parameters:   2
+filename:     <path_to_shader>/loader.dll
+version:      X.X.X.X
+
+Type          Name                              Default
+------------  --------------------------------  --------------------------
+RGB           color                             0, 0, 0
+STRING        name                              default_name
+
+>> %ARNOLD_PATH%\bin\kick -l <path_to_shader> -info myShader2
+
+node:         myShader2
+type:         shader
+output:       RGB
+parameters:   2
+filename:     <path_to_shader>/loader.dll
+version:      X.X.X.X
+
+Type          Name                              Default
+------------  --------------------------------  --------------------------
+RGB           color                             1, 1, 1
+STRING        name                              default_name
+\end{verbatim}}
+
+
+Finally, to make these shaders availables to MtoA, you should copy the compiled file to this location:\\
+\verb|%MTOA_PATH%\shaders\|\\
+
+\subsection{Add the metadata file}
+
+To make MtoA recognize metadata information for the created shaders, you can create a metadata file for all the shaders.
+
+A simple metadata file for these shaders could be like this:
+
+\inputminted[mathescape,
+linenos,
+numbersep=5pt,
+frame=lines,
+framesep=2mm,
+baselinestretch=1,
+fontsize=\footnotesize,
+tabsize=3,
+label=loader.mtd]
+{mtd}{loader.mtd}
+
+Then copy this file to the same folder where the compiled shaders are:
+
+\texttt{\%MTOA\_PATH\%\textbackslash shaders\textbackslash}\\
+
+Remember that the metafile name should be the same as the compiled shader; if for example, your loader is called \texttt{loader.dll}, the metadata file must be \texttt{loader.mtd}.

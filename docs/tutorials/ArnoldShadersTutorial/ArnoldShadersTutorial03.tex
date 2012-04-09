@@ -1,0 +1,105 @@
+
+\section{Adding parameters to your shader}
+
+Here we will add more different parameters to our shader and they will be integrated to the Maya interface. This will allow us to have an easy way to modify our shader in Maya.
+
+\subsection{Creating the shader}
+
+We can add a new shader to the previous shader loader we created in the previous section:
+
+First, create the shader:
+
+\inputminted[mathescape,
+linenos,
+numbersep=5pt,
+frame=lines,
+framesep=2mm,
+baselinestretch=1,
+fontsize=\footnotesize,
+tabsize=3,
+label=parametersShader.cpp]
+{c++}{parametersShader.cpp}
+
+You can see that node parameters of different types are defined, but only the \texttt{RGBParam} is used.
+
+Now, to add the shader to the loader, you only need to add this code to the previous \texttt{Loader.cpp} file from the previous section:
+
+\begin{minted}[mathescape,
+numbersep=5pt,
+frame=lines,
+framesep=2mm,
+baselinestretch=1,
+fontsize=\footnotesize,
+label=loader.cpp,
+tabsize=3]
+{c++}
+
+extern AtNodeMethods* ParametersShaderMtd;
+
+...
+
+case 2:
+      node->methods      = ParametersShaderMtd;
+      node->output_type  = AI_TYPE_RGB;
+      node->name         = "parametersShader";
+      node->node_type    = AI_NODE_SHADER;
+      break;
+
+\end{minted}
+
+You will be able to compile the loader again as described in the previous section,
+check that Arnold can load the shader correctly, and copy the compiled shader to the correct folder in the plugin so that Maya can use it.
+But if you do so, you will discover that it is usable but not well integrated in Maya.
+
+\subsection{Integrating the shader in Maya}
+
+To integrate this new shader, we can, as in the first section, add information to the metadata file and create a template script for this shader.
+
+\subsubsection{Adding metadata information}
+
+To add the metadata information, you only have to add this to the \texttt{loader.mtd} file created in the previous section that you placed in this folder:\\
+\verb|%MTOA_PATH%\shaders\|\\
+
+\inputminted[mathescape,
+linenos,
+numbersep=5pt,
+frame=lines,
+framesep=2mm,
+baselinestretch=1,
+fontsize=\footnotesize,
+tabsize=3,
+label=loader.mtd,
+firstline=25,
+firstnumber=25]
+{mtd}{loader2.mtd}
+
+This describes attributes that will be used for the Maya representation of the parameters as name, shortname, slider limits, descriptions and default values.
+
+\subsubsection{Adding a Maya template}
+
+The last task to do is to create a Maya template for this shader. This is similar to the one created in the first section, but adding the rest of the controls. The correct control for each attribute will be created automatically.
+
+Create an \texttt{aiParametersShaderTemplate.py} file in this folder:\\
+\verb|%MTOA_PATH%\scripts\mtoa\ui\ae\|\\
+
+\inputminted[mathescape,
+linenos,
+numbersep=5pt,
+frame=lines,
+framesep=2mm,
+baselinestretch=1,
+fontsize=\footnotesize,
+tabsize=3,
+label=aiParametersShaderTemplate.py]
+{python}{aiParametersShaderTemplate.py}
+
+When you use the ParametersShader in Maya, you will be able to see this Attribute Editor for it.
+
+\begin{figure}[H]
+\centering
+\colorbox{black}{\includegraphics[width=9cm]{ParameterShaderInterface.png}}
+\caption{ParametersShader Template}
+\label{ParametersShaderTemplate}
+\end{figure}
+
+Now you will be able to configure your shader's input parameters from Maya.

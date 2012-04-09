@@ -1,0 +1,98 @@
+# myShader1                    0x00070001
+# myShader2                    0x00070002
+# parametersShader             0x00070003
+
+[node myShader1]
+    maya.name               STRING  "aiMyShader1"
+    maya.id                 INT     0x00070001
+    maya.classification     STRING  "shader/surface"
+    maya.output_name        STRING  "outColor"
+    maya.output_shortname   STRING  "out"
+
+    [attr color1]
+        maya.name           STRING  "color"
+        
+[node myShader2]
+    maya.name               STRING  "aiMyShader2"
+    maya.id                 INT     0x00070002
+    maya.classification     STRING  "shader/surface"
+    maya.output_name        STRING  "outColor"
+    maya.output_shortname   STRING  "out"
+
+    [attr color2]
+        maya.name           STRING  "color"
+        
+[node parametersShader]
+    desc                    STRING  "Arnold shader to test parameters."
+    maya.name               STRING  "aiParametersShader"
+    maya.id                 INT     0x00070003
+    maya.classification     STRING  "shader/surface"
+    maya.output_name        STRING  "outColor"
+    maya.output_shortname   STRING  "out"
+
+    [attr IntParam]
+        desc                STRING  "Integer parameter."
+        min                 INT     -100
+        max                 INT     100
+        softmin             INT     -10
+        softmax             INT     10
+        default             INT     -10
+        maya.shortname      STRING  "int"
+        maya.name           STRING  "integer"
+    [attr UIntParam]
+        desc                STRING  "UInteger parameter."
+        min                 INT     0
+        max                 INT     100
+        softmin             INT     0
+        softmax             INT     10
+        default             INT     0
+        maya.shortname      STRING  "uint"
+        maya.name           STRING  "uinteger"
+    [attr BoolParam]
+        desc                STRING  "Bool parameter."
+        default             BOOL     True
+        maya.shortname      STRING  "bl"
+        maya.name           STRING  "bool"
+    [attr FltParam]
+        desc                STRING  "Float parameter."
+        min                 FLOAT   0
+        max                 FLOAT   10
+        softmin             FLOAT   0
+        softmax             FLOAT   1
+        default             FLOAT   0.5
+        maya.shortname      STRING  "flt"
+        maya.name           STRING  "float"
+    [attr RGBParam]
+        desc                STRING  "RGB parameter."
+        maya.name           STRING  "color"
+        maya.shortname      STRING  "cl"
+    [attr VecParam]
+        desc                STRING  "Vector parameter."
+        maya.name           STRING  "vector"
+        maya.shortname      STRING  "vec"
+    [attr PntParam]
+        desc                STRING  "Point parameter."
+        maya.name           STRING  "point"
+        maya.shortname      STRING  "pnt"
+    [attr Pnt2Param]
+        desc                STRING  "2D Point parameter."
+        maya.name           STRING  "point2"
+        maya.shortname      STRING  "pnt2"
+    [attr StrParam]
+        desc                STRING  "String parameter."
+        maya.name           STRING  "string"
+        maya.shortname      STRING  "str"
+        default             STRING  "empty"
+    [attr MtxParam]
+        desc                STRING  "Matrix parameter."
+        maya.name           STRING  "matrix"
+        maya.shortname      STRING  "mtx"
+    [attr EnumParam]
+        desc                STRING  "Enumeration parameter."
+        default             INT     1
+        maya.name           STRING  "enumeration"
+        maya.shortname      STRING  "enum"
+    [attr ArrayParam]
+        desc                STRING  "Color Array parameter."
+        maya.name           STRING  "colorarray"
+        maya.shortname      STRING  "carray"

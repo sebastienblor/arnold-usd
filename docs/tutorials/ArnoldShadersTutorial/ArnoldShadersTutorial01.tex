@@ -1,0 +1,280 @@
+\section{Creating your first Arnold shader}
+
+\subsection{Pre-requisites}
+
+To be able to create Arnold shaders, you need to meet the following pre-requisites
+
+\begin{description}
+
+\item[Arnold SDK] \hfill \\
+You will need to download and install the Arnold SDK. For the purposes of this tutorial, we will assume that you will set the environment variable \texttt{ARNOLD\_PATH} to the path where the Arnold SDK is located. For example, in Windows, if you have installed Arnold in this folder:\\
+\verb|C:\solidAngle\releases\Arnold-X.X.X.X-platform|\\
+You will set \texttt{ARNOLD\_PATH} to that folder using this command:\\
+{\footnotesize \verb|set ARNOLD_PATH="C:\solidAngle\releases\Arnold-X.X.X.X-platform"| }
+
+\item[C++ Compiler] \hfill \\
+You will need a C++ compiler to create your shaders. If you work in Windows, Visual Studio 2008 will be required. Visual Studio 2010 may also work but it is currently not supported.
+\end{description}
+
+\subsection{Creating a shader}
+
+To create your first Arnold shader, write the following code in a file called \texttt{simpleShader.cpp}.
+
+\inputminted[mathescape,
+linenos,
+numbersep=5pt,
+frame=lines,
+framesep=2mm,
+baselinestretch=1,
+fontsize=\footnotesize,
+tabsize=3,
+label=simpleShader.cpp]
+{c++}{simpleShader.cpp}
+
+To compile the shader, do the following depending on your OS:
+
+\begin{description}
+
+\item[In Windows] \hfill \\
+Open a Visual Studio command prompt and execute the following command:\\
+\verb|cl /LD /I %ARNOLD_PATH%\include /EHsc simpleShader.cpp|\\
+\verb|       /link /LIBPATH:%ARNOLD_PATH%\lib ai.lib|\\
+Of course you can also create a Visual Studio project and adjust the settings to specify the include folder, the lib folder, add the ai.lib, and set it to create a .dll file
+
+\end{description}
+
+Congratulations! You have created your first shader. Now, to check if Arnold can recognize it, execute the following command:\\
+\verb|%ARNOLD_PATH%\bin\kick -l <path_to_shader> -info simple|\\
+If you execute this command in the same folder where your shader is located, the \verb|-l <path_to_shader>| is not required.\\
+
+You should get this result:
+{\footnotesize \begin{verbatim}
+node:         simple
+type:         shader
+output:       RGB
+parameters:   2
+filename:     <path_to_shader>/simpleShader.dll
+version:      X.X.X.X
+
+Type          Name                              Default
+------------  --------------------------------  --------------------------
+RGB           constantColor                     0.7, 0.7, 0.7
+STRING        name                              default_name
+\end{verbatim}}
+
+
+To test how the shader is working, you can use the following simple scene:
+
+\inputminted[mathescape,
+linenos,
+numbersep=5pt,
+frame=lines,
+framesep=2mm,
+baselinestretch=1,
+fontsize=\footnotesize,
+tabsize=3,
+label=simpleScene.ass]
+{ass}{simpleScene.ass}
+
+Render this scene using this command:\\
+\verb|%ARNOLD_PATH%\bin\kick -l <path_to_shader> simpleScene.ass|\\
+
+And you will get the following image:
+\begin{figure}[H]
+\centering
+\colorbox{black}{\includegraphics[width=3cm]{simpleScene.png}}
+\caption{simpleScene}
+\label{simpleScene.png}
+\end{figure}
+
+In case that the shader cannot be loaded, you will get this warning:\\
+{\footnotesize \verb=00:00:00   10MB WARNING |  [ass] line 28: node "simple" is not installed=}\\
+And this image:
+\begin{figure}[H]
+\centering
+\colorbox{black}{\includegraphics[width=3cm]{simpleSceneError.png}}
+\caption{simpleScene Error}
+\label{simpleSceneError.png}
+\end{figure}
+
+\subsection{Using the shader in Maya}
+\subsubsection{Installing MtoA}
+The first thing you have to do is to install MtoA, that is the Maya plugin for Arnold in your system. Depending on your OS, follow the corresponding steps to install it.
+\paragraph{Windows}
+
+In order to install MtoA in windows, you will have to download the required version package, for example: \texttt{MtoA-0.15.0-win64-2012.rar}.\\
+
+Unpack it to this folder:\\
+\verb|C:\solidAngle\mtoadeploy\2012\|\\
+
+Check that the path in the file:\\
+\verb|C:\solidAngle\mtoadeploy\2012\mtoa.mod|\\
+points to the folder where you have unrar the plugin:\\
+\verb|+ mtoa any C:\solidAngle\mtoadeploy\2012\|\\
+
+
+Edit this file:\\
+\verb|C:\Users\<User_Name>\Documents\maya\2012-x64\Maya.env|\\
+and add these definitions:
+{\footnotesize \begin{verbatim}
+MAYA_MODULE_PATH      = C:\solidangle\mtoadeploy\2012
+ARNOLD_PLUGIN_PATH    = C:\solidangle\mtoadeploy\2012\shaders
+MTOA_EXTENSIONS_PATH  = C:\solidangle\mtoadeploy\2012\extensions
+MAYA_RENDER_DESC_PATH = C:\solidangle\mtoadeploy\2012
+PATH = %PATH%;C:\solidangle\mtoadeploy\2012\bin
+\end{verbatim}}
+
+Now, when you start Maya, you will be able to load MtoA in the Plug-in Manager.\\
+
+Of course you can select another folder that suits you better, so for the rest of the tutorial, we will assume that you have set the environment variable \texttt{MTOA\_PATH} set to the path where the MtoA plugin is located. In this case, you should have to execute this command:\\
+\verb|set MTOA_PATH="C:\solidAngle\mtoadeploy\2012"|
+
+\subsubsection{Installing MtoA Troubleshooting}
+If after following these instrunctions, MtoA does not work. Try these steps:
+
+\begin{description}
+
+\item[If you cannot see the MtoA plugin in Maya Plug-in Manager] \hfill \\
+Try to set the following environment variables in your system:
+{\footnotesize \begin{verbatim}
+MAYA_PLUG_IN_PATH=C:\solidAngle\mtoadeploy\2012\plug-ins
+MAYA_SCRIPT_PATH=C:\solidAngle\mtoadeploy\2012\scripts
+XBMLANGPATH=C:\solidAngle\mtoadeploy\2012\icons
+\end{verbatim}}
+
+\item[If you can see the MtoA plugin, but it does not load] \hfill \\
+If you can see the MtoA plugin but it does not load or it crashes when trying to load, try these steps:
+\begin{enumerate}
+\item Set the following environment variable:\\
+\verb|PYTHONPATH=C:\solidangle\mtoadeploy\2012\scripts|
+
+\item Create global environment variables for the definitions in the file\\
+\verb|C:\Users\<User_Name>\Documents\maya\2012-x64\Maya.env|\\
+
+{\footnotesize \begin{verbatim}
+MAYA_MODULE_PATH      = C:\solidangle\mtoadeploy\2012
+ARNOLD_PLUGIN_PATH    = C:\solidangle\mtoadeploy\2012\shaders
+MTOA_EXTENSIONS_PATH  = C:\solidangle\mtoadeploy\2012\extensions
+MAYA_RENDER_DESC_PATH = C:\solidangle\mtoadeploy\2012
+PATH = %PATH%;C:\solidangle\mtoadeploy\2012\bin
+\end{verbatim}}
+
+\item Remove (and backup) your Maya preferences folder:\\
+\verb|C:\Users\<User_Name>\Documents\maya\2012-x64\prefs|
+
+\item Try MtoA using a clean Maya installation
+
+\item Try MtoA using a clean configured computer
+
+\end{enumerate}
+
+\end{description}
+
+\subsubsection{Adding Maya Metadata to your shader with a metadata file}
+In order that your shader is correctly recognized by Maya, you need to add some metadata to it.
+The prefered way to do this is creating a metadata file that will be automatically used when the shader is loaded.
+This way, it will be easier to make modifications without having to recompile the shader.
+This will also keep the Maya specific metadata in the MtoA folders, rather than in the shaders themselves (which you might want to re-use outside Maya).
+It is shown in the following code:
+
+\inputminted[mathescape,
+linenos,
+numbersep=5pt,
+frame=lines,
+framesep=2mm,
+baselinestretch=1,
+fontsize=\footnotesize,
+tabsize=3,
+label=simpleShader.mtd]
+{mtd}{simpleShader.mtd}
+
+
+\subsubsection{Choosing a Maya ID for the shader}
+
+From Autodesk help:
+
+\begin{quotation}
+For plug-ins that will forever be internal to your site use the
+constructor that takes a single unsigned int parameter. The numeric
+range 0 - 0x7ffff (524288 ids) has been reserved for such plug-ins.
+
+The example plug-ins provided with Maya in the plug-in development kit
+will use ids in the range 0x80000 - 0xfffff (524288 ids). If you
+customize one of these example plug-ins, you should change the id to
+avoid future conflicts.
+
+Plug-ins that are intended to be shared between sites will need to
+have a globally unique id. The Autodesk Developer Network (ADN) will
+provide such id's in blocks of 256. You will be assigned one or more
+24-bit prefixes. Once this has been obtained, used the MTypeId
+constructor that takes 2 unsigned int parameters. The prefix goes in
+the first parameter, and you are responsible for managing the
+allocation of the 256 ids that go into the second parameter.
+\end{quotation}
+
+For the purposes of this text, we will use IDs begining from 0x70000, but feel free to use the ones that could suit you better.
+Also, if you are developing a quality shader that you would like to share with the MtoA comunity, feel free to ask us for an ID granted by Autodesk to MtoA.
+
+\subsubsection{Creating the Maya interface for your shader}
+
+If you also want to create a Maya interface for this shader, create the following file:\\
+
+\inputminted[mathescape,
+linenos,
+numbersep=5pt,
+frame=lines,
+framesep=2mm,
+baselinestretch=1,
+fontsize=\footnotesize,
+tabsize=3,
+label=aiSimpleTemplate.py]
+{python}{aiSimpleTemplate.py}
+
+Note that the name of the defined class should be: \verb|AE<shader_name>Template| where \verb|<shader_name>| is the value of the \verb|maya.name| metadata of the shader.
+
+\subsubsection{Where to place your files}
+
+In order that your shader works correctly in Maya, it is very important that you name and place the files in the correct locations. You should have three files:
+
+\begin{description}
+
+\item[Compiled Shader] \hfill \\
+This is the shader you compiled, and it will be responsible of the shader behaviour. In this example, it is \fcolorbox{backGroundColor}{backGroundColor}{\texttt{simpleShader.dll}} in Windows. You should copy it to:
+\fcolorbox{backGroundColor}{backGroundColor}{\texttt{\%MTOA\_PATH\%\textbackslash shaders\textbackslash}}\\
+
+\item[Metadata File] \hfill \\
+This is the file where all the metadata information is located. This will add information that Maya needs about the shader. The name of this file must be thes same as the shader,
+but with a \texttt{.mtd} extension. In this example its name will be \fcolorbox{backGroundColor}{backGroundColor}{\texttt{simpleShader.mtd}}. This file will have to be copied also to this folder:
+\fcolorbox{backGroundColor}{backGroundColor}{\texttt{\%MTOA\_PATH\%\textbackslash shaders\textbackslash}}\\
+
+\item[Template File] \hfill \\
+This is the file where the Maya Template for this shader is defined. The name of this file is not important as the class name inside it follows the rules from previous section.
+But for clarity, we will name it \fcolorbox{backGroundColor}{backGroundColor}{\texttt{aiSimpleTemplate.py}}. This file must be copied to this folder:
+\fcolorbox{backGroundColor}{backGroundColor}{\texttt{\%MTOA\_PATH\%\textbackslash scripts\textbackslash mtoa\textbackslash ui\textbackslash  ae\textbackslash }}\\
+
+\end{description}
+
+Now, with everything in its correct place, when you use the aiSimple shader in Maya, you will be able to see this Attribute Editor for it.
+
+\begin{figure}[H]
+\centering
+\colorbox{black}{\includegraphics[width=8cm]{SimpleInterface.png}}
+\caption{Simple Template}
+\label{SimpleTemplate}
+\end{figure}
+
+\subsubsection{Adding Maya Metadata to your shader in its source code (Advanced)}
+
+In case you need to add the metadata in the code instead of using a metadata file. You can take a look to the following example. But remember that the recomended method is to create a metadata file.
+
+\inputminted[mathescape,
+numbersep=5pt,
+frame=lines,
+framesep=2mm,
+baselinestretch=1,
+fontsize=\footnotesize,
+tabsize=3,
+label=mayaShader.cpp,
+firstline=9,
+lastline=20]
+{cpp}{mayaShader.cpp}
