@@ -1,6 +1,7 @@
 # NOTE: this module should not import PyMEL
 import maya.cmds as cmds
 import maya.mel as mel
+import pymel.core as pm
 import inspect
 import re
 import os
@@ -154,10 +155,10 @@ def expandFileTokens(path, tokens, customOnly=False):
     customOnly: if True, standard tokens filled by Maya are left unexpanded so that
     the result can be passed to MCommonRenderSettingsData.getFileName()
 
-    This is a more advanced token expansion system based on Maya's.
+    This is a token expansion system based on Maya's, but with several improvements.
     In addition to standard tokens of the form <MyToken>, it also supports
     conditional groups using brackets, which will only be expanded if all the
-    tokens within it exist
+    tokens within it exist.
 
     for example, in the following case, the group's contents (the underscore) are
     included because the RenderPass token is filled:
@@ -188,3 +189,150 @@ def expandFileTokens(path, tokens, customOnly=False):
             result.append(_substitute(parts, tokens, allOrNothing=False))
     return ''.join(result)
 
+def getFileName(pathType, tokens, path='<Scene>', frame=None, fileType='images',
+                 createDirectory=True, isSequence=None):
+    """
+    A more generic replacement for MCommonRenderSettingsData.getImageName() that also works for types other
+    than images.
+    
+    The naming scheme defined by the `path` argument is error-checked and corrected where necessary.
+    For example, if there are multiple renderable cameras in the scene but a <Camera> token does not appear
+    in the passed `path` naming scheme, then a <Camera> sub-directory will be added to `path`.
+    A similar check is performed for render layers and AOVs.
+    
+    This function largely reproduces the behavior of MCommonRenderSettingsData.getFileName() with
+    several important exceptions:
+    
+        - If 'RenderPass' is in the passed tokens map but not in the naming scheme, a <RenderPass>
+          sub-directory will be automatically added.  By default, MCommonRenderSettingsData.getImageName()
+          would only perform this operation if a Maya render pass node was setup in the scene (which
+          MtoA does not use)
+        - Whether or not the generated path is a sequence can be overridden by the `isSequence` argument,
+          a setting which MCommonRenderSettingsData.getImageName() always pulled from the globals
+        - MCommonRenderSettingsData.getImageName() only works for images, adding them to the workspace directory
+          set for the 'images' type.  This function can work for any registered file rule (see the MEL
+          workspace command), including 'ASS'.
+
+    pathType : 
+            one of MCommonRenderSettingsData.kFullPathImage, MCommonRenderSettingsData.kRelativePath,
+            or MCommonRenderSettingsData.kFullPathTmp
+    path :
+            unexpanded path, containing tokens of the form <MyToken>
+    tokens :
+            dictionary of the form {'MyToken' : value} or space separated string of form 
+            'MyToken=value Other=foo'
+    frame :
+            float or int. If None, current frame is used
+    fileType :
+            a valid type to pass to workspace -fileRuleEntry
+    createDirectory:
+            whether or not to create the directory
+    """
+    # convert tokens to dictionary
+    if isinstance(tokens, basestring):
+        tokens = dict([pair.split('=') for pair in tokens.split()])
+
+    if '<Scene>' in path and 'Scene' not in tokens:
+        sceneName = pm.sceneName().namebase
+        if sceneName == '':
+            sceneName = 'untitled'
+        tokens['Scene'] = sceneName
+
+    isRelPath = not os.path.isabs(path)
+
+    if '<RenderPass>' not in path and 'RenderPass' in tokens:
+        path = '<RenderPass>/' + path
+
+    if '<Camera>' in path:
+        if 'Camera' not in tokens:
+            raise ValueError("You must provide a value for Camera token")
+    elif len([c for c in pm.ls(type='camera') if c.renderable.get()]) > 1:
+        if isRelPath:
+            path = '<Camera>/' + path
+            if 'Camera' not in tokens:
+                raise ValueError("You must provide a value for Camera token")
+        else:
+            cmds.warning('[mtoa] Multiple renderable cameras exist, but output path is absolute and without <Camera> token: "%s"' % path)
+
+    if '<RenderLayer>' in path:
+        if 'RenderLayer' not in tokens:
+            tokens['RenderLayer'] = cmds.editRenderLayerGlobals(q=True, currentRenderLayer=True)
+    elif len(pm.ls('*', type='renderLayer')) > 1: # the '*' ensures that we only find layers in the empty namespace
+        if isRelPath:
+            path = '<RenderLayer>/' + path
+            if 'RenderLayer' not in tokens:
+                tokens['RenderLayer'] = cmds.editRenderLayerGlobals(q=True, currentRenderLayer=True)
+        else:
+            cmds.warning('[mtoa] Multiple renderable render layers exist, but output path is absolute and without <RenderLayer> token: "%s"' % path)
+
+    if tokens.get('RenderLayer', None) == 'defaultRenderLayer':
+        tokens['RenderLayer'] = 'masterLayer'
+
+    if '<Version>' in path and 'Version' not in tokens:
+        tokens['Version'] = pm.getAttr('defaultRenderGlobals.renderVersion')
+
+    # get info from globals
+    # NOTE: there is a bug in the wrapper of this class that prevents us from retrieving the
+    # 'namePattern' property, so that must be properly passed in via the 'path' argument
+    settings = pm.api.MCommonRenderSettingsData()
+    pm.api.MRenderUtil.getCommonRenderSettings(settings)
+    if isSequence is None:
+        isSequence = settings.isAnimated()
+    if isSequence:
+        schemes = ('',
+                   '.<Extension>',
+                   '.<Frame>.<Extension>',
+                   '.<Extension>.<Frame>',
+                   '<Frame>',
+                   '<Frame>.<Extension>',
+                   '_<Frame>.<Extension>')
+    else:
+        schemes = ('',
+                   '.<Extension>',
+                   '.<Extension>',
+                   '.<Extension>',
+                   '',
+                   '.<Extension>',
+                   '.<Extension>')
+    path += schemes[settings.namingScheme]
+
+
+    if '<Extension>' in path and 'Extension' not in tokens:
+        tokens['Extension'] = pm.getAttr('defaultRenderGlobals.imfPluginKey')
+    if '<Frame>' in path and 'Frame' not in tokens:
+        # TODO: add handling of sub-frames
+        if frame is None:
+            frame = pm.currentTime()
+        else:
+            frame = float(frame)
+        if settings.renumberFrames:
+            byFrame = settings.renumberBy/settings.frameBy
+            frame = frame * byFrame - (settings.frameStart.value()-settings.renumberStart) - (byFrame-1.0)
+        frame = str(int(round(frame)))
+        # add padding
+        frame = ((settings.framePadding -len(frame)) * '0') + frame
+        tokens['Frame'] = frame
+    #print path, tokens
+    partialPath = expandFileTokens(path, tokens)
+    if pathType == pm.api.MCommonRenderSettingsData.kRelativePath:
+        return partialPath
+
+    rootPath = pm.workspace(q=True, o=True)
+    imageDir = pm.workspace(fileType, q=True, fileRuleEntry=True)
+    imageDir = imageDir if imageDir else 'data'
+
+    if not os.path.isabs(imageDir):
+        imageDir = os.path.join(rootPath, imageDir)
+
+    if pathType == pm.api.MCommonRenderSettingsData.kFullPathTmp:
+        result = os.path.join(imageDir, 'tmp', partialPath)
+    elif pathType == pm.api.MCommonRenderSettingsData.kFullPathImage:
+        result = os.path.join(imageDir, partialPath)
+    else:
+        raise TypeError("Invalid pathType")
+
+    if createDirectory:
+        dir =  os.path.dirname(result)
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+    return result
