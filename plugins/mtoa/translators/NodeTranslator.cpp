@@ -193,7 +193,7 @@ MPlug CNodeTranslator::FindMayaPlug(const MString &attrName, MStatus* ReturnStat
    MStatus status(MStatus::kSuccess);
 
    MPlug plug = FindMayaObjectPlug(attrName, &status);
-   if ((MStatus::kSuccess == status) && !plug.isNull() && !HasIncomingConnection(plug))
+   if ((MStatus::kSuccess == status) && !plug.isNull())
    {
       MStatus overstat;
       MString attrLongName = plug.partialName(false, true, true, false, true, true, &overstat);
@@ -265,26 +265,22 @@ MStatus CNodeTranslator::ExportOverrideSets()
    return status;
 }
 
-/// Get the override plug for the passed maya plug,
-/// if there is one and the maya plug isn't connected.
-/// Otherwise, returns the Maya plug.
+/// Get the override plug for the passed maya plug
+/// if there is one, otherwise, returns the passed maya plug.
 MPlug CNodeTranslator::GetOverridePlug(const MPlug &plug, MStatus* ReturnStatus) const
 {
    MStatus status(MStatus::kSuccess);
    MPlug resultPlug(plug);
 
-   if (!HasIncomingConnection(plug))
-   {
-      // MPlug::partialName signature is
-      // (bool includeNodeName=false, bool includeNonMandatoryIndices=false,
-      // bool includeInstancedIndices=false, bool useAlias=false, bool useFullAttributePath=false,
-      // bool useLongNames=false, MStatus *ReturnStatus=NULL)
-      MString attrName = plug.partialName(false, true, true, false, true, true, &status);
-      MPlug overridePlug = FindMayaOverridePlug(attrName, &status);
-      CHECK_MSTATUS(status)
-      if ((MStatus::kSuccess == status) && !overridePlug.isNull())
-         resultPlug = overridePlug;
-   }
+   // MPlug::partialName signature is
+   // (bool includeNodeName=false, bool includeNonMandatoryIndices=false,
+   // bool includeInstancedIndices=false, bool useAlias=false, bool useFullAttributePath=false,
+   // bool useLongNames=false, MStatus *ReturnStatus=NULL)
+   MString attrName = plug.partialName(false, true, true, false, true, true, &status);
+   MPlug overridePlug = FindMayaOverridePlug(attrName, &status);
+   CHECK_MSTATUS(status)
+   if ((MStatus::kSuccess == status) && !overridePlug.isNull())
+      resultPlug = overridePlug;
 
    if (ReturnStatus != NULL) *ReturnStatus = status;
    return resultPlug;
