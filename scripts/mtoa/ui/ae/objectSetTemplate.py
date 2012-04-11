@@ -18,11 +18,9 @@ class AttributeListWindow(object):
                     sizeable=True,
                     resizeToFitChildren=False)
         #pm.windowPref(removeAll=True)
-        pm.columnLayout(adjustableColumn=True,
-                          columnOffset=("both", 10),
-                          rowSpacing=10)
-    
-        self.scrollList = pm.textScrollList('alf_attribute_list', nr=100, ams=True)
+        form = pm.formLayout('form')    
+        list = pm.textScrollList('alf_attribute_list', nr=1, ams=True)
+        self.scrollList = list
         if mode == 'add':
             cmd = self.addAttrAndHide
         else:
@@ -44,13 +42,16 @@ class AttributeListWindow(object):
             for attr in labels:
                 pm.textScrollList(self.scrollList, edit=True, append=attr)
 
-        pm.rowLayout(numberOfColumns=2, columnAlign2=("center", "center"))
+        row = pm.rowLayout(numberOfColumns=2, columnAlign2=("center", "center"))
         # pm.button(width=100, label=modeLabel, c=lambda *args: self.addAttrAndHide())        
         pm.button(width=100, label=modeLabel, command=Callback(cmd))
-        pm.button(width=100, label="Cancel", c=lambda *args: pm.deleteUI(self.win, window=True))
-    
+        pm.button(width=100, label="Cancel", c=lambda *args: pm.deleteUI(self.win, window=True))  
         pm.setParent('..')
         pm.setParent('..')
+        
+        pm.formLayout(form, edit=True,
+                attachForm=[(list, 'top', 5), (list, 'left', 5), (list, 'right', 5), (row, 'bottom', 5), (row, 'left', 5), (row, 'right', 5)],
+                attachControl=[(list, 'bottom', 5, row)])
 
         pm.showWindow(self.win)
 
@@ -71,7 +72,7 @@ class ObjectSetTemplate(templates.AttributeEditorTemplate):
         
     def setup(self):
         self.addControl("aiOverride")
-        print "ObjectSetTemplate setup %s" % self.nodeName
+        # print "ObjectSetTemplate setup %s" % self.nodeName
         # print self.attributeCandidates()
         self.addCustom("aiOverride", self.createAttributesButtons, self.updateAttributesButtons)
         self.addSeparator()
@@ -81,14 +82,15 @@ class ObjectSetTemplate(templates.AttributeEditorTemplate):
         #self.endScrollLayout()
                 
     def update(self):
-        print "ObjectSetTemplate update %s" % self.nodeName
+        pass
+        # print "ObjectSetTemplate update %s" % self.nodeName
         # FIXME seems never to get called
         
     def createAttributesButtons(self, attr):
-        print "ObjectSetTemplate Create Buttons %r for %r" % (self.nodeName, attr)
+        # print "ObjectSetTemplate Create Buttons %r for %r" % (self.nodeName, attr)
         # self.nodeName = attr.split(".")[0]
         self._doUpdate(attr)
-        print "ObjectSetTemplate Created Buttons %r for %r" % (self.nodeName, attr)
+        # print "ObjectSetTemplate Created Buttons %r for %r" % (self.nodeName, attr)
         pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
         pm.rowLayout(numberOfColumns=3,
                        columnWidth3=(140, 80, 80),
@@ -102,11 +104,10 @@ class ObjectSetTemplate(templates.AttributeEditorTemplate):
         pm.setUITemplate('attributeEditorTemplate', popTemplate=True)
         
     def updateAttributesButtons(self, attr):
-        print "ObjectSetTemplate Update Buttons %r for %r" % (self.nodeName, attr)
+        # print "ObjectSetTemplate Update Buttons %r for %r" % (self.nodeName, attr)
         # self.nodeName = attr.split(".")[0]
         self._doUpdate(attr)
-        print "ObjectSetTemplate Updated Buttons %r for %r" % (self.nodeName, attr)
-        pass
+        # print "ObjectSetTemplate Updated Buttons %r for %r" % (self.nodeName, attr)
    
     def getCandidateAttributes(self):
         candidates = {}
@@ -134,7 +135,7 @@ class ObjectSetTemplate(templates.AttributeEditorTemplate):
         return existing   
         
     def addAttr(self, attrs):    
-        print "addAttr %r" % attrs
+        # print "addAttr %r" % attrs
         for attr in attrs:
             # must add from top parent
             parent = attr.getParent(-1, True)
@@ -142,8 +143,8 @@ class ObjectSetTemplate(templates.AttributeEditorTemplate):
        
     def _doAdd(self, srcNode, attrName, parentName):
         dstNode = pm.PyNode(self.nodeName)
-        print "Create %s.%s by copying from %s.%s" % (dstNode, attrName, srcNode, attrName)
-        print "Get %s.%s info" % (srcNode, attrName)
+        # print "Create %s.%s by copying from %s.%s" % (dstNode, attrName, srcNode, attrName)
+        # print "Get %s.%s info" % (srcNode, attrName)
         args                     = {}
         if parentName:
             args['parent']              = parentName  
@@ -152,16 +153,29 @@ class ObjectSetTemplate(templates.AttributeEditorTemplate):
         try:
             args['niceName']         = pm.attributeQuery(attrName, node=srcNode, niceName=True)
         except:
-            pass             
-        try:
-            args['category']         = pm.attributeQuery(attrName, node=srcNode, categories=True)
-        except:
-            pass 
+            pass
+        children                 = pm.attributeQuery(attrName, node=srcNode, listChildren=True)
+        if children:
+            args['numberOfChildren']    = len(children)
+        else:
+            children             = []
+            try:
+                defaultValue            = pm.attributeQuery(attrName, node=srcNode, listDefault=True)
+                args['defaultValue']    = defaultValue[0]
+            except:
+                pass           
         if pm.mel.getApplicationVersionAsFloat() < 2013:
             args['attributeType']    = pm.getAttr("%s.%s" % (srcNode, attrName), type=True)
+            # silly 2012 bug, returns float3 as type on surfaceShader attribute
+            if (args['attributeType'] == 'float3' and not children):
+                args['attributeType'] = 'typed'
         else:
             args['attributeType']    = pm.attributeQuery(attrName, node=srcNode, attributeType=True)
         # args['dataType']       = None
+        try:
+            args['category']         = pm.attributeQuery(attrName, node=srcNode, categories=True)
+        except:
+            pass         
         isEnum                   = pm.attributeQuery(attrName, node=srcNode, enum=True)
         if isEnum:
             try:
@@ -173,16 +187,6 @@ class ObjectSetTemplate(templates.AttributeEditorTemplate):
         if isMulti:
             args['multi']               = True
             args['indexMatters']        = pm.attributeQuery(attrName, node=srcNode, indexMatters=True)
-        children                 = pm.attributeQuery(attrName, node=srcNode, listChildren=True)
-        if children:
-            args['numberOfChildren']    = len(children)
-        else:
-            children             = []
-            try:
-                defaultValue            = pm.attributeQuery(attrName, node=srcNode, listDefault=True)
-                args['defaultValue']    = defaultValue[0]
-            except:
-                pass
         hasMin                   = pm.attributeQuery(attrName, node=srcNode, minExists=True)
         if hasMin:
             try:
@@ -222,18 +226,18 @@ class ObjectSetTemplate(templates.AttributeEditorTemplate):
         args['keyable']          = pm.attributeQuery(attrName, node=srcNode, keyable=True) 
         # connectable            = pm.attributeQuery(attrName, node=srcNode, connectable=True)     
         
-        print "Add %s.%s with options: %s" % (dstNode, attrName, args)
+        # print "Add %s.%s with options: %s" % (dstNode, attrName, args)
         pm.addAttr(dstNode, **args)
         for child in children:
             self._doAdd(srcNode, child, args['longName'])       
 
               
     def removeAttr(self, attrs):
-        print "removeAttr %r" % attrs
+        # print "removeAttr %r" % attrs
         for attr in attrs:
             # Can only delete top parent of compound / multi attributes
             parent = attr.getParent(-1, True)
-            print "remove %r will need to remove %r" % (attr, parent)
+            # print "remove %r will need to remove %r" % (attr, parent)
             parent.delete()
             
             
