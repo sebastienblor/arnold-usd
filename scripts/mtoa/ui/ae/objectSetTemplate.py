@@ -20,10 +20,9 @@ class AttributeListWindow(object):
         #pm.windowPref(removeAll=True)
         pm.columnLayout(adjustableColumn=True,
                           columnOffset=("both", 10),
-                          #columnAttach=('both',1),
                           rowSpacing=10)
     
-        self.scrollList = pm.textScrollList('alf_attribute_list', nr=30, ams=True)
+        self.scrollList = pm.textScrollList('alf_attribute_list', nr=100, ams=True)
         if mode == 'add':
             cmd = self.addAttrAndHide
         else:
