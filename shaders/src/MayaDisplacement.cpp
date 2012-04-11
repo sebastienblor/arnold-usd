@@ -53,7 +53,7 @@ node_parameters
    AiParameterFlt("displacement", 0.0f);
    AiParameterVec("vectorDisplacement", 0.0f, 0.0f, 0.0f);
    AiParameterFlt("scale", 1.0f);
-   AiParameterEnum("vectorEncoding", 1, vector_encoding_enum);
+   AiParameterEnum("vectorEncoding", 0, vector_encoding_enum);
    AiParameterEnum("vectorSpace", 1, vector_space_enum);
    AiParameterVec("tangent", 0.0f, 0.0f, 0.0f);
 }
@@ -65,6 +65,7 @@ shader_evaluate
    int vectorEncoding = AiShaderEvalParamInt(p_vectorEncoding);
    int vectorSpace = AiShaderEvalParamInt(p_vectorSpace);
    float scale = AiShaderEvalParamFlt(p_scale);
+   AtVector tangent = AiShaderEvalParamVec(p_tangent);
    
    AtVector normal = sg->Nf;
    
@@ -79,41 +80,36 @@ shader_evaluate
    switch (vectorSpace)
    {
    case VS_WORLD:
-      AiM4VectorByMatrixTMult(&transformedVectorDisplacement, sg->Minv, &vectorDisp);
+      AiM4VectorByMatrixMult(&transformedVectorDisplacement, sg->Minv, &vectorDisp);
       break;
    case VS_OBJECT:
       transformedVectorDisplacement = vectorDisp;
       break;
    case VS_TANGENT:
-
-      AtVector v, T, B;
-      AtMatrix m;
-
-      AiM4Identity(m);
-
-      if (!AiUDataGetVec("tangent", &T) || !AiUDataGetVec("bitangent", &B))
-      {
-         // Cannot convert
-         transformedVectorDisplacement.x = 0.0f;
-         transformedVectorDisplacement.y = 0.0f;
-         transformedVectorDisplacement.z = 0.0f;
-         return;
-      }
-
-      m[0][0] = T.x;
-      m[0][1] = T.y;
-      m[0][2] = T.z;
-      m[1][0] = B.x;
-      m[1][1] = B.y;
-      m[1][2] = B.z;
-      m[2][0] = sg->Nf.x;
-      m[2][1] = sg->Nf.y;
-      m[2][2] = sg->Nf.z;
-
-      AiV3Create(v, vectorDisp.x, vectorDisp.z, vectorDisp.y);
-
-      AiM4VectorByMatrixMult(&(transformedVectorDisplacement), m, &v);
+      AtVector T, B, N;
       
+      N = AiV3Normalize(sg->Nf);
+
+      if (!AiV3IsZero(tangent))
+      {
+         T = AiV3Normalize(tangent);
+         B = AiV3Cross(N,T);
+      }
+      else if (!AiUDataGetVec("tangent", &T) || !AiUDataGetVec("bitangent", &B))
+      {
+         if (!AiV3IsZero(sg->dPdu) && !AiV3IsZero(sg->dPdv))
+         {
+            // tangents available, use them
+            T = AiV3Normalize(sg->dPdu - AiV3Dot(sg->dPdu, N) * N);
+            B = AiV3Cross(N,T);
+         }
+         else
+         {
+            // no tangents given, compute a pair
+            AiBuildLocalFramePolar(&T, &B, &sg->Nf);
+         }
+      }
+      transformedVectorDisplacement = vectorDisp.x * T + vectorDisp.z * B + vectorDisp.y * N;
       break;
    }
    
