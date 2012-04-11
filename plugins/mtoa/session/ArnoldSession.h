@@ -101,13 +101,14 @@ public:
 
    inline const MDagPath& GetExportCamera() const         { return m_sessionOptions.GetExportCamera(); }
    void SetExportCamera(MDagPath camera);
-   inline unsigned int GetExportFilter() const { return m_sessionOptions.GetExportFilter(); }
-   inline void SetExportFilter(unsigned int mask) { m_sessionOptions.SetExportFilter(mask); }
+   inline const CMayaExportFilter& GetExportFilter() const { return m_sessionOptions.GetExportFilter(); }
+   inline unsigned int GetExportFilterMask() const { return m_sessionOptions.GetExportFilterMask(); }
+   inline void SetExportFilterMask(unsigned int mask) { m_sessionOptions.SetExportFilterMask(mask); }
 
    // Export options
-   inline const CSessionOptions& GetSessionOptions() const  { return m_sessionOptions; }
+   inline const CSessionOptions& GetSessionOptions() const { return m_sessionOptions; }
    // Arnoldrender options
-   inline const MObject& GetArnoldRenderOptions() const   { return m_sessionOptions.GetArnoldRenderOptions(); }
+   inline const MObject& GetArnoldRenderOptions() const { return m_sessionOptions.GetArnoldRenderOptions(); }
    
    inline bool IsMotionBlurEnabled(int type = MTOA_MBLUR_ALL) const { return m_sessionOptions.IsMotionBlurEnabled(type); }
    inline unsigned int GetNumMotionSteps() const { return m_sessionOptions.GetNumMotionSteps(); }
@@ -116,6 +117,7 @@ public:
    inline double GetMotionByFrame() const {return m_sessionOptions.GetMotionByFrame(); }
 
    // Light linker
+   MStatus UpdateLightLinks();
    inline MLightLinks* MayaLightLinks() { return &m_lightLinks; }
    inline unsigned int MayaLightCount() const { return m_numLights; }
 
@@ -137,7 +139,7 @@ public:
    bool IsActiveAOV(CAOV &aov) const;
    AOVSet GetActiveAOVs() const;
 
-   DagFiltered FilteredStatus(MDagPath dagPath);
+   DagFiltered FilteredStatus(const MDagPath &dagPath, const CMayaExportFilter *filter=NULL) const;
    
 /*
    bool IsActiveAOV(CAOV &aov) const
@@ -182,17 +184,15 @@ private:
    /// Terminate an export session
    MStatus End();
 
-   MStatus UpdateLightLinks();
    MStatus UpdateMotionFrames();
    
    MStatus Export(MSelectionList* selected = NULL);
 
-   MStatus ExportScene();
-   MStatus ExportCameras();
-   MStatus ExportLights();
+   MStatus FlattenSelection(MSelectionList* selected);
 
-   MStatus ExportSelection(MSelectionList& selected);
-   MStatus IterSelection(MSelectionList& selected);
+   MStatus ExportCameras(MSelectionList* selected = NULL);
+   MStatus ExportLights(MSelectionList* selected = NULL);
+   MStatus ExportDag(MSelectionList* selected = NULL);
 
    inline bool NeedsUpdate() const { return m_requestUpdate; }
 

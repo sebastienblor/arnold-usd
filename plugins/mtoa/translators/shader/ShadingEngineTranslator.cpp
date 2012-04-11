@@ -72,6 +72,7 @@ void CShadingEngineTranslator::Export(AtNode *shadingEngine)
    AtNode* rootShader = NULL;
    MPlugArray        connections;
    MPlug shaderPlug = FindMayaPlug("surfaceShader");
+   AiMsgDebug("[mtoa] CShadingEngineTranslator::Export found surfaceShader plug %s", shaderPlug.name().asChar());
    shaderPlug.connectedTo(connections, true, false);
    if (connections.length() > 0)
    {

@@ -105,8 +105,9 @@ private:
    inline const MDagPath& GetExportCamera() const { return m_camera; }
    inline void SetExportCamera(MDagPath camera) { camera.extendToShape();m_camera = camera; }
 
-   inline unsigned int GetExportFilter() const { return m_filter.state_mask; }
-   inline void SetExportFilter(unsigned int mask) { m_filter.state_mask = mask; }
+   inline const CMayaExportFilter& GetExportFilter() const { return m_filter; }
+   inline unsigned int GetExportFilterMask() const { return m_filter.state_mask; }
+   inline void SetExportFilterMask(unsigned int mask) { m_filter.state_mask = mask; }
 
    inline bool IsMotionBlurEnabled(int type = MTOA_MBLUR_ALL) const { return m_motion.enable_mask & type; }
    inline unsigned int GetNumMotionSteps() const { return m_motion.steps; }

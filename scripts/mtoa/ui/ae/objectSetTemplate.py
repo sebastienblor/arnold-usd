@@ -72,24 +72,22 @@ class ObjectSetTemplate(templates.AttributeEditorTemplate):
         
     def setup(self):
         self.addControl("aiOverride")
-        print "ObjectSetTemplate setup %s" % self.nodeName
+        # print "ObjectSetTemplate setup %s" % self.nodeName
         # print self.attributeCandidates()
         self.addCustom("aiOverride", self.createAttributesButtons, self.updateAttributesButtons)
         self.addSeparator()
-        #self.beginScrollLayout()
         # FIXME: need a proper listing of override attributes
         self.addExtraControls()
-        #self.endScrollLayout()
                 
     def update(self):
-        print "ObjectSetTemplate update %s" % self.nodeName
+        # print "ObjectSetTemplate update %s" % self.nodeName
         # FIXME seems never to get called
-        
+        pass
+            
     def createAttributesButtons(self, attr):
-        print "ObjectSetTemplate Create Buttons %r for %r" % (self.nodeName, attr)
-        # self.nodeName = attr.split(".")[0]
+        # print "ObjectSetTemplate Create Buttons %r for %r" % (self.nodeName, attr)
         self._doUpdate(attr)
-        print "ObjectSetTemplate Created Buttons %r for %r" % (self.nodeName, attr)
+        # print "ObjectSetTemplate Created Buttons %r for %r" % (self.nodeName, attr)
         pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
         pm.rowLayout(numberOfColumns=3,
                        columnWidth3=(140, 80, 80),
@@ -103,10 +101,9 @@ class ObjectSetTemplate(templates.AttributeEditorTemplate):
         pm.setUITemplate('attributeEditorTemplate', popTemplate=True)
         
     def updateAttributesButtons(self, attr):
-        print "ObjectSetTemplate Update Buttons %r for %r" % (self.nodeName, attr)
-        # self.nodeName = attr.split(".")[0]
+        # print "ObjectSetTemplate Update Buttons %r for %r" % (self.nodeName, attr)
         self._doUpdate(attr)
-        print "ObjectSetTemplate Updated Buttons %r for %r" % (self.nodeName, attr)
+        # print "ObjectSetTemplate Updated Buttons %r for %r" % (self.nodeName, attr)
         pass
    
     def getCandidateAttributes(self):
@@ -135,7 +132,7 @@ class ObjectSetTemplate(templates.AttributeEditorTemplate):
         return existing   
         
     def addAttr(self, attrs):    
-        print "addAttr %r" % attrs
+        # print "addAttr %r" % attrs
         for attr in attrs:
             # must add from top parent
             parent = attr.getParent(-1, True)
@@ -143,8 +140,8 @@ class ObjectSetTemplate(templates.AttributeEditorTemplate):
        
     def _doAdd(self, srcNode, attrName, parentName):
         dstNode = pm.PyNode(self.nodeName)
-        print "Create %s.%s by copying from %s.%s" % (dstNode, attrName, srcNode, attrName)
-        print "Get %s.%s info" % (srcNode, attrName)
+        # print "Create %s.%s by copying from %s.%s" % (dstNode, attrName, srcNode, attrName)
+        # print "Get %s.%s info" % (srcNode, attrName)
         args                     = {}
         if parentName:
             args['parent']              = parentName  
@@ -223,18 +220,18 @@ class ObjectSetTemplate(templates.AttributeEditorTemplate):
         args['keyable']          = pm.attributeQuery(attrName, node=srcNode, keyable=True) 
         # connectable            = pm.attributeQuery(attrName, node=srcNode, connectable=True)     
         
-        print "Add %s.%s with options: %s" % (dstNode, attrName, args)
+        # print "Add %s.%s with options: %s" % (dstNode, attrName, args)
         pm.addAttr(dstNode, **args)
         for child in children:
             self._doAdd(srcNode, child, args['longName'])       
 
               
     def removeAttr(self, attrs):
-        print "removeAttr %r" % attrs
+        # print "removeAttr %r" % attrs
         for attr in attrs:
             # Can only delete top parent of compound / multi attributes
             parent = attr.getParent(-1, True)
-            print "remove %r will need to remove %r" % (attr, parent)
+            # print "remove %r will need to remove %r" % (attr, parent)
             parent.delete()
             
             
