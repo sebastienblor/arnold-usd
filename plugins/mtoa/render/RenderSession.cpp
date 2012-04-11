@@ -1,6 +1,7 @@
 #include "platform/Platform.h"
 #include "utils/Universe.h"
 #include "utils/MtoaLog.h"
+#include "utils/MayaUtils.h"
 #include "RenderSession.h"
 #include "RenderOptions.h"
 #include "OutputDriver.h"
@@ -402,7 +403,6 @@ MString CRenderSession::GetAssName(const MString& customName,
                                         MStatus *ReturnStatus) const
 {
    MStatus status;
-   MString assFileName = customName;
    // Current Maya file and directory
    MFileObject sceneFile;
    sceneFile.overrideResolvedFullName(sceneName);
@@ -418,96 +418,25 @@ MString CRenderSession::GetAssName(const MString& customName,
          sceneFileName = sceneFileName.substringW(0, nscn-4);
       }
    }
-   // TODO: since .ass is a registered Maya file extension (through the translator),
-   // we can output ass files in their own registered project subdir.
-   // It's the default Maya behavior a relative path / filename is specified.
-   // Problem is it won't be affected by Render command argument redirecting the output file.
-   // Thus in bath mode we usually want to use the absolute path.
-   // Current behavior is use the custom file name if one is explicitely passed
-   // (ie direct call to arnoldExportAss command)
-   // If no name is passed (ie call by render command) then :
-   // Use render globals file name, but output in projects' ass subdirectory if not in batch mode
-   // Use render globals file name and absolute path if in batch mode
-   if (customName.numChars())
-   {
-      if (isSequence)
-      {
-         // TODO: some of maya tools support fractionnal frame numbers
-         char frameExt[64];
-         if (subFrames)
-         {
-            int fullFrame = (int) floor(frameNumber);
-            int subFrame = (int) floor((frameNumber - fullFrame) * 1000);
-            sprintf(frameExt, ".%04d.%03d", fullFrame, subFrame);
-         }
-         else
-         {
-            sprintf(frameExt, ".%04d", (int) frameNumber);
-         }
 
-         assFileName = customName + frameExt;
-      }
-      else
-         assFileName = customName;
-   }
-   else
-   {
-      MCommonRenderSettingsData::MpathType pathType;
-      if (isBatch)
-      {
-         pathType = MCommonRenderSettingsData::kFullPathImage;
-      }
-      else
-      {
-         pathType = MCommonRenderSettingsData::kRelativePath;
-      }
-      assFileName = renderGlobals.getImageName(pathType,
-                                               frameNumber,
-                                               sceneFileName,
-                                               cameraName,
-                                               fileFormat,
-                                               layer,
-                                               createDirectory,
-                                               &status);
-   }
-   // Add desired extension if not present
-   MString ext = MString(".") + fileFormat;
-   unsigned int next = ext.length();
-   unsigned int nchars = assFileName.numChars();
-   if (nchars <= next || assFileName.substringW(nchars-next, nchars) != ext)
-   {
-      assFileName += ext;
-   }
-   // If we didn't have an absolute path specified for the file name, then
-   // if we got an active, non default project, use the subdirectory registered for ass files
-   // else use same directory as Maya file name
-   MFileObject assFile;
-   status = assFile.setRawFullName(assFileName);
-   // If a relative path was specified, use project settings
-   if (MStatus::kSuccess == status && assFile.expandedPath().numChars() == 0)
-   {
-      // Relative file name, check if we got an active project
-      MString curProject = MGlobal::executeCommandStringResult("workspace -q -o");
-      MString dirProject = "";
-      MString assDir = "";
-      if (curProject.numChars())
-      {
-         // If we got an active project, query the subdirectory registered for ass files
-         dirProject = MGlobal::executeCommandStringResult("workspace -q -rd \"" + curProject + "\"");
-         assDir = MGlobal::executeCommandStringResult("workspace -q -fileRuleEntry ASS");
-      }
-      // Use current project ass files subdir, or if none found, use current maya scene dir
-      if (dirProject.numChars() && assDir.numChars())
-      {
-         assFile.setRawPath(dirProject + "/" + assDir);
-      }
-      else
-      {
-         assFile.setRawPath(sceneDir);
-      }
-   }
-   // Get expanded full name
-   assFileName = assFile.resolvedFullName();
+   MString filename =  m_renderOptions.outputAssFile().expandEnvironmentVariablesAndTilde();
+
+   MString path = "";
+   if (customName.numChars())
+      path = customName;
+   else if (filename.numChars())
+      path = filename;
+
+   MString assFileName = getFileName(MCommonRenderSettingsData::kFullPathImage,
+                                      frameNumber,
+                                      sceneFileName,
+                                      cameraName,
+                                      fileFormat,
+                                      layer, "",
+                                      createDirectory,
+                                      "ASS",
+                                      path,
+                                      &isSequence);
 
    if (NULL != ReturnStatus) *ReturnStatus = status;
    return assFileName;

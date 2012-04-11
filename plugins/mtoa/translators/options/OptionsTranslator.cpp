@@ -1,6 +1,7 @@
 #include "OptionsTranslator.h"
 #include "render/RenderSession.h"
 #include "render/RenderOptions.h"
+#include "utils/MayaUtils.h"
 
 #include <ai_universe.h>
 #include <ai_msg.h>
@@ -139,13 +140,6 @@ MString COptionsTranslator::SetImageFilenames(MDagPath &camera)
    MFnDagNode camDagTransform(camera.transform());
    MString nameCamera = camDagTransform.name();
 
-   // Notes on MCommonRenderSettingsData::getImageName:
-   //   - sceneFileName is only used if defaultRenderGlobals.imageFilePrefix is not set
-   //   - a "<RenderPass>/" token is added before the file name if any pass nodes are
-   //     connected to a render layer AND <RenderPass> does not appear in defaultRenderGlobals.imageFilePrefix
-   // because getImageName ignores the sceneFileName arg when defaultRenderGlobals.imageFilePrefix is non-empty,
-   // we can only achieve the proper addition of the <RenderPass> token by creating a dummy render pass node.
-   // TODO: write a complete replacement for MCommonRenderSettingsData::getImageName
    MCommonRenderSettingsData::MpathType pathType;
    MCommonRenderSettingsData defaultRenderGlobalsData;
    MRenderUtil::getCommonRenderSettings(defaultRenderGlobalsData);
@@ -158,23 +152,20 @@ MString COptionsTranslator::SetImageFilenames(MDagPath &camera)
       pathType = defaultRenderGlobalsData.kFullPathTmp;
    }
 
-   imageFilename = defaultRenderGlobalsData.getImageName(pathType, fileFrameNumber,
-                                                         sceneFileName, nameCamera,
-                                                         "", renderLayer,
-                                                         "RenderPass=beauty", 1);
+   MString path = defaultRenderGlobalsData.name;
+   imageFilename = getFileName(pathType,
+                                fileFrameNumber,
+                                sceneFileName,
+                                nameCamera,
+                                "",
+                                renderLayer,
+                                "RenderPass=beauty",
+                                true,
+                                "images",
+                                path);
 
    if (m_driver != NULL && AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(m_driver), "filename") != NULL)
       AiNodeSetStr(m_driver, "filename", imageFilename.asChar());
-
-   if (defaultRenderGlobalsData.name == "")
-   {
-      // setup the default RenderPass token
-      sceneFileName = "<RenderPass>/" + sceneFileName;
-      // FIXME: hard-wiring convention here:
-      // need a a complete replacement for MCommonRenderSettingsData::getImageName to avoid this
-      // (see mtoa.utils.expandFileTokens for the beginning of one)
-      sceneFileName += ".<RenderPass>";
-   }
 
    for (AOVSet::iterator it=m_aovs.begin(); it!=m_aovs.end(); ++it)
    {
@@ -182,10 +173,16 @@ MString COptionsTranslator::SetImageFilenames(MDagPath &camera)
       const MStringArray extensions = it->GetImageFormats();
       for (unsigned int i=0; i<extensions.length(); ++i)
       {
-         MString filename = defaultRenderGlobalsData.getImageName(pathType, fileFrameNumber,
-                                                                  sceneFileName, nameCamera,
-                                                                  extensions[i], renderLayer,
-                                                                  tokens, 1);
+         MString filename = getFileName(pathType,
+                                         fileFrameNumber,
+                                         sceneFileName,
+                                         nameCamera,
+                                         extensions[i],
+                                         renderLayer,
+                                         tokens,
+                                         true,
+                                         "images",
+                                         path);
          // FIXME: the driver is not getting its filename set
          it->SetImageFilename(i, filename);
       }
