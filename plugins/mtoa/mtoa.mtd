@@ -662,21 +662,21 @@
    
     # AOVs
     [attr aov_emission]
-    aov.type                INT     0x06
+    aov.type                INT     0x05
     [attr aov_direct_diffuse]
-    aov.type                INT     0x06
+    aov.type                INT     0x05
     [attr aov_direct_specular]
-    aov.type                INT     0x06
+    aov.type                INT     0x05
     [attr aov_indirect_diffuse]
-    aov.type                INT     0x06
+    aov.type                INT     0x05
     [attr aov_indirect_specular]
-    aov.type                INT     0x06
+    aov.type                INT     0x05
     [attr aov_reflection]
-    aov.type                INT     0x06
+    aov.type                INT     0x05
     [attr aov_refraction]
-    aov.type                INT     0x06
+    aov.type                INT     0x05
     [attr aov_sss]
-    aov.type                INT     0x06
+    aov.type                INT     0x05
 
 [node utility]
     desc                    STRING  "This shader can be used to display various info on a geometry."
@@ -737,9 +737,9 @@
     
     # AOVs
     [attr aov_direct_diffuse]
-    aov.type                INT     0x06
+    aov.type                INT     0x05
     [attr aov_indirect_diffuse]
-    aov.type                INT     0x06
+    aov.type                INT     0x05
 
 [node noise]
     desc                    STRING  "2D procedural noise"
@@ -830,11 +830,11 @@
         
     # AOVs
     [attr aov_direct_diffuse]
-    aov.type                INT     0x06
+    aov.type                INT     0x05
     [attr aov_direct_specular]
-    aov.type                INT     0x06
+    aov.type                INT     0x05
     [attr aov_indirect_diffuse]
-    aov.type                INT     0x06
+    aov.type                INT     0x05
 
 [node sky]
     desc                    STRING  "Sky environment texture."

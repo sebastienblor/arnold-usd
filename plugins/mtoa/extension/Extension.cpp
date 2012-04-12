@@ -192,13 +192,13 @@ MStatus CExtension::RegisterTranslator(const MString &mayaTypeName,
 	   CAOVData data;
 	   data.attribute = "aov_direct_diffuse";
 	   data.name = "direct_diffuse";
-	   data.type = AI_TYPE_RGBA;
+	   data.type = AI_TYPE_RGB;
 	   mayaNode.m_aovs.push_back(data);
 
 	   CAOVData data2;
 	   data2.attribute = "aov_indirect_diffuse";
 	   data2.name = "indirect_diffuse";
-	   data2.type = AI_TYPE_RGBA;
+	   data2.type = AI_TYPE_RGB;
 	   mayaNode.m_aovs.push_back(data2);
 
    }
