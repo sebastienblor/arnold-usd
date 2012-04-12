@@ -42,6 +42,9 @@ global proc AEobjectSetTemplate ( string $nodeName )
 	editorTemplate -beginScrollLayout;
 		AEobjectSetNoScroll $nodeName;
 
-	editorTemplate -addExtraControls;
+		// MTOA
+		loadArnoldTemplate($nodeName);
+
+		editorTemplate -addExtraControls;
 	editorTemplate -endScrollLayout;
 }

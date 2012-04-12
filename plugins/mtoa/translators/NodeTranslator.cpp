@@ -144,7 +144,7 @@ MPlug CNodeTranslator::FindMayaObjectPlug(const MString &attrName, MStatus* Retu
 MPlug CNodeTranslator::FindMayaOverridePlug(const MString &attrName, MStatus* ReturnStatus) const
 {
    MStatus status(MStatus::kSuccess);
-   MPlug plug, p;
+   MPlug plug;
    // Check if a set override this plug's value
    CNodeTranslator* translator;
    std::vector<CNodeTranslator*>::iterator it;
@@ -156,30 +156,28 @@ MPlug CNodeTranslator::FindMayaOverridePlug(const MString &attrName, MStatus* Re
       m_session->GetActiveTranslators(handle, translators);
       for (it=translators.begin(); it!=translators.end(); it++)
       {
+         MPlug p;
          translator = *it;
          // MString setName = translator->GetMayaObjectName();
          // Search only on active translators
          if (translator->FindMayaObjectPlug("aiOverride", &status).asBool())
          {
             p = translator->FindMayaObjectPlug(attrName, &status);
-            if ((MStatus::kSuccess == status) && !p.isNull())
-            {
-               // FIXME: when multiple sets contain one object and more than one
-               // have the desired attribute, which one should be taken into account?
-               // Currently first to appear on search will, display warnings there?
-               plug = p;
-               break;
-            }
          }
-         // But chain on all
-         // It's a depth first search on sets of sets
-         p = translator->FindMayaOverridePlug(attrName, &status);
-         if ((MStatus::kSuccess == status) && !p.isNull())
+         if (p.isNull())
+         {
+            // But chain on all
+            // It's a depth first search on sets of sets
+            p = translator->FindMayaOverridePlug(attrName, &status);
+         }
+         if (!p.isNull())
          {
             plug = p;
             break;
          }
       }
+      // More than one (non nested) set contains object, stop on first one
+      if (!plug.isNull()) break;
    }
 
    if (ReturnStatus != NULL) *ReturnStatus = status;
@@ -217,7 +215,6 @@ MStatus CNodeTranslator::GetOverrideSets(MObject object, MObjectArray &overrideS
 
    MFnDependencyNode fnNode(object);
    MPlug message = fnNode.findPlug("message", true, &status);
-   CHECK_MSTATUS(status)
    MPlugArray connections;
    MFnSet fnSet;
    // MString plugName = message.name();
@@ -1639,12 +1636,10 @@ MStatus CDagTranslator::ExportOverrideSets()
    MDagPath path = m_dagPath;
    // Check for passed path
    status = GetOverrideSets(path, m_overrideSets);
-   CHECK_MSTATUS(status)
    // If passed path is a shape, check for its transform as well
    // FIXME: do we want to consider full hierarchy ?
    // Also consider the sets the transform of that shape might be in
    const MObject transformObj = path.transform(&status);
-   CHECK_MSTATUS(status)
    while ((MStatus::kSuccess == status) && (transformObj != path.node(&status)))
    {
       status = path.pop();

@@ -1110,10 +1110,16 @@ MStatus CDynamicAttrHelper::addAttribute(MObject& attrib)
    MStatus statAttr;
    MFnDependencyNode fnNode;
    fnNode.setObject(m_instance);
-   MObject mAttr = fnNode.attribute(MFnAttribute(attrib).name(),&statAttr);
+   MFnAttribute fnAttr(attrib);
+#if MAYA_API_VERSION >= 201200
+   fnAttr.addToCategory("arnold");
+#endif
+   // Check if an attribute of same name already exists
+   MObject mAttr = fnNode.attribute(fnAttr.name(),&statAttr);
    if (statAttr == MS::kSuccess)
    {
-      if (MFnAttribute(attrib).type() == MFnAttribute(mAttr).type())
+      // If same type then all is good
+      if (fnAttr.type() == MFnAttribute(mAttr).type())
       {
          return stat;
       }
@@ -1239,7 +1245,11 @@ MStatus CExtensionAttrHelper::addAttribute(MObject& attrib)
    MStatus stat;
 
    MString nodeType = m_class.typeName();
-   MString attrName = MFnAttribute(attrib).name();
+   MFnAttribute fnAttr(attrib);
+#if MAYA_API_VERSION >= 201200
+   fnAttr.addToCategory("arnold");
+#endif
+   MString attrName = fnAttr.name();
 
    MDGModifier dgMod;
    stat = dgMod.addExtensionAttribute(m_class, attrib);

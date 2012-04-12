@@ -1,4 +1,5 @@
 import pymel.core as pm
+import maya.OpenMaya as om
 import mtoa.ui.ae.templates as templates
 from mtoa.callbacks import Callback
 
@@ -19,7 +20,10 @@ class AttributeListWindow(object):
                     resizeToFitChildren=False)
         #pm.windowPref(removeAll=True)
         form = pm.formLayout('form')    
-        list = pm.textScrollList('alf_attribute_list', nr=1, ams=True)
+        if pm.mel.getApplicationVersionAsFloat() < 2013:
+            list = pm.textScrollList('alf_attribute_list', nr=10, ams=True)
+        else:
+            list = pm.textScrollList('alf_attribute_list', ams=True)
         self.scrollList = list
         if mode == 'add':
             cmd = self.addAttrAndHide
@@ -119,10 +123,14 @@ class ObjectSetTemplate(templates.AttributeEditorTemplate):
                 attrs = node.listAttr(write=True, visible=True)
                 for attr in attrs :
                     name = attr.longName(fullPath=True)
+                    # Too restrictive, missing useful attributes like "primary visibility" on shapes
+                    # or "Out Matte Opacity" on surface shader for instance.
+                    # Why it's not marked as render source or affects appearance beats me but point
+                    # is these distinctions don't seem reliable enough in Maya yet to filter useful attrs
+                    # fnAttr = om.MFnAttribute(attr.__apimobject__())
+                    # if (fnAttr.isRenderSource() or fnAttr.affectsAppearance() or fnAttr.hasCategory('arnold')) :                       
                     if not name in candidates :
                         candidates[name] = attr
-
-            
         return candidates
 
     def getExistingAttributes(self):
