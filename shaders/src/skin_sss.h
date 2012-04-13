@@ -14,12 +14,14 @@ class COptions
 {
 public:
    int GI_reflection_depth, GI_refraction_depth;
+   // int threads;
 
    COptions() {}
    COptions(AtNode *in_node)
    {
       GI_reflection_depth = AiNodeGetInt(in_node, "GI_reflection_depth");
       GI_refraction_depth = AiNodeGetInt(in_node, "GI_refraction_depth");
+      // threads = AiNodeGetInt(in_node, "threads");
    }
 };
 
@@ -98,6 +100,11 @@ public:
    float     bounce_factor;
    AtColor   opacity;
 
+   bool      writeAOVs;
+   char      directDiffuseAOV[512];
+   char      inDirectDiffuseAOV[512];
+   char      primarySpecularAOV[512];
+
    CStandardParams() // all zero-ed
    {
       Kd = 0.0f; // diffuse scale
@@ -142,6 +149,8 @@ public:
       sss_radius = 0.1f;
       bounce_factor = 1.0f;
       opacity = AI_RGB_WHITE;
+
+      writeAOVs = false;
    }
 };
 
@@ -474,6 +483,37 @@ public:
 
 
 
+// COLOR STORE IN CHANNEL
+class CColorStoreInChannelParams 
+{
+public:
+   char    channel[512];
+   AtRGBA  input;
+
+   CColorStoreInChannelParams()
+   {
+      input = AI_RGBA_BLACK;
+   }
+};
+
+
+class CColorStoreInChannel : public CNode
+{
+public:
+   CColorStoreInChannelParams params[MAX_NB_THREADS];
+   // parameters that get a connection in the compound
+   CNode   *p_input;
+   AtRGBA  outputs[MAX_NB_THREADS];
+
+   CColorStoreInChannel() 
+   {
+      p_input = NULL;
+   }
+
+   void *Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions options);
+};
+
+
 /////////////////////////////
 // SSS PARAMETERS
 /////////////////////////////
@@ -508,7 +548,14 @@ enum SSSParams {
    p_global_sss_radius_multiplier,
    p_use_screen_compositing_for_colors,
    p_sample_sss_only_in_gi_rays,
-   p_sample_sss_only_in_glossy_rays
+   p_sample_sss_only_in_glossy_rays,
+   p_aov_direct_diffuse,
+   p_aov_indirect_diffuse,
+   p_aov_primary_specular,
+   p_aov_secondary_specular,
+   p_aov_shallow_scatter,
+   p_aov_mid_scatter,
+   p_aov_deep_scatter
 };
 
 node_parameters
@@ -543,6 +590,14 @@ node_parameters
    AiParameterBOOL("use_screen_compositing_for_colors", true);
    AiParameterBOOL("sample_sss_only_in_gi_rays", true);
    AiParameterBOOL("sample_sss_only_in_glossy_rays", true);
+
+   AiParameterStr ("aov_direct_diffuse", "direct_diffuse");
+   AiParameterStr ("aov_indirect_diffuse", "indirect_diffuse");
+   AiParameterStr ("aov_primary_specular", "primary_specular");
+   AiParameterStr ("aov_secondary_specular", "secondary_specular");
+   AiParameterStr ("aov_shallow_scatter", "shallow_scatter");
+   AiParameterStr ("aov_mid_scatter", "mid_scatter");
+   AiParameterStr ("aov_deep_scatter", "deep_scatter");
 }
 
 class CSSSParams
@@ -593,7 +648,7 @@ public:
    {
       // SetNames(); // handy for debugging
    }
-   CInstanceData(AtNode *in_node) : options(in_node) 
+   CInstanceData(AtNode *in_optionsNode) : options(in_optionsNode) 
    {
       // SetNames(); // handy for debugging
    }
@@ -672,6 +727,12 @@ public:
    CColorsDivide   Divide_By_Four;
    CColorsAdd      Standards_Add, 
                    Colors_Add;
+   // the four channel storers. The other aovs (primarySpecular, directDiffuse, 
+   // inDirectDiffuse) are written directly by Standard_Diffuse_Primary_Specular
+   CColorStoreInChannel Store_Secondary_Specular,
+                        Store_Shallow_Scatter, 
+                        Store_Mid_Scatter,
+                        Store_Deep_Scatter;
 };
 
 #endif

@@ -166,7 +166,6 @@ void *CStandard::Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions opti
    {
       AtColor emission_color = pParams->emission_color;
       output->rgb += emission * emission_color;
-      // stefano
       // AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_emission), emission * emission_color);
    }
 
@@ -301,10 +300,12 @@ void *CStandard::Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions opti
       if (Fresnel_on_diff)
          direct_diffuse *= 1 - refl_fresnel - spec_fresnel;
       output->rgb += direct_diffuse;
-      // stefano
-      // AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_direct_diffuse), direct_diffuse);
+      // #1311
+      if (pParams->writeAOVs)
+         AiAOVSetRGB(sg, pParams->directDiffuseAOV, direct_diffuse);
    }
 
+   AtColor specularSum = AI_RGB_BLACK;
    //
    // Direct specular layer (with MIS)
    //
@@ -322,7 +323,7 @@ void *CStandard::Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions opti
       if (spec_Fresnel)
          direct_specular *= spec_fresnel;
       output->rgb += direct_specular;
-      // stefano
+      specularSum += direct_specular;
       // AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_direct_specular), direct_specular);
    }
 
@@ -353,8 +354,9 @@ void *CStandard::Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions opti
       if (Fresnel_on_diff)
          indirect_diffuse *= 1 - refl_fresnel - spec_fresnel;
       output->rgb += indirect_diffuse;
-      // stefano
-      // AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_indirect_diffuse), indirect_diffuse);
+      // #1311
+      if (pParams->writeAOVs)
+         AiAOVSetRGB(sg, pParams->inDirectDiffuseAOV, indirect_diffuse);
    }
 
    //
@@ -370,9 +372,13 @@ void *CStandard::Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions opti
       if (spec_Fresnel)
          indirect_specular *= spec_fresnel;
       output->rgb += indirect_specular;
-      // stefano
+      specularSum += indirect_specular;
       // AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_indirect_specular), indirect_specular);
    }
+
+   // #1311
+   if (pParams->writeAOVs)
+      AiAOVSetRGB(sg, pParams->primarySpecularAOV, specularSum);
 
    //
    // Mirror reflection layer
@@ -409,7 +415,6 @@ void *CStandard::Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions opti
       if (Fresnel)
          reflection *= refl_fresnel;
       output->rgb += reflection;
-      // stefano
       // AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_reflection), reflection);
    }
 
@@ -501,7 +506,6 @@ void *CStandard::Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions opti
       refraction *= Kt * (1 - refl_fresnel - spec_fresnel);
 
       output->rgb += refraction;
-      // stefano
       // AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_refraction), refraction);
    }
 
@@ -516,7 +520,6 @@ void *CStandard::Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions opti
       if (Fresnel_on_diff)
          sss *= 1 - refl_fresnel - spec_fresnel;
       output->rgb += sss;
-      // stefano
       // AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_sss), sss);
    }
 
@@ -817,3 +820,23 @@ void* CColorsDivide::Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions 
    *output = color1 / color2;
    return (void*)output;
 }
+
+
+// COLOR STORE IN CHANNEL
+void* CColorStoreInChannel::Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions options)
+{
+   AtRGBA *output = &outputs[sg->tid];
+   CColorStoreInChannelParams *pParams = &params[sg->tid];
+
+   AtRGBA input;
+
+   if (p_input)
+      input = *(AtRGBA*)p_input->Evaluate(node, sg, options);
+   else
+      input = pParams->input;
+
+   AiAOVSetRGBA(sg, pParams->channel, input);
+   *output = input;
+   return (void*)output;
+}
+

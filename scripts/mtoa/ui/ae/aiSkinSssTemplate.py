@@ -73,6 +73,8 @@ class AEaiSkinSssTemplate(ShaderAETemplate):
         pm.mel.eval('AEhardwareTextureTemplate "%s"' % self.nodeName + r'("color")')
         self.endLayout()
 
+        self.addAOVLayout()
+        
         # include/call base class/node attributes
         pm.mel.AEdependNodeTemplate(self.nodeName)
         

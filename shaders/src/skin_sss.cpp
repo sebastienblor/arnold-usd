@@ -44,7 +44,7 @@ void CSSSParams::Evaluate(AtNode* node, AtShaderGlobals *sg)
 
 node_initialize
 {
-   // Initialize by options. iData hosts all the nodes in teh graph
+   // Initialize by options. iData hosts all the nodes in the graph
    CInstanceData *iData = new CInstanceData(AiUniverseGetOptions());
    // Set iData as the shader's local data
    AiNodeSetLocalData(node, (void*)iData);
@@ -91,28 +91,44 @@ node_initialize
    iData->Add_Deep_Weight.p_input1 = &iData->Add_Scatter_Weight;
    // Add_Scatter_Weight
    iData->Add_Scatter_Weight.p_input1 = &iData->Add_Diffuse_Shallow_Weights;
+
+   // #1311
+   iData->Store_Secondary_Specular.p_input = &iData->Standard_Secondary_Specular;
+   iData->Store_Shallow_Scatter.p_input = &iData->Standard_SSS_Shallow;
+   iData->Store_Mid_Scatter.p_input = &iData->Standard_SSS_Mid;
+   iData->Store_Deep_Scatter.p_input = &iData->Standard_SSS_Deep;
+
    // Standards_Add
+   // iData->Standards_Add.p_baseColor = &iData->Standard_Diffuse_Primary_Specular;
+   // iData->Standards_Add.p_color1 = &iData->Standard_Secondary_Specular;
+   // iData->Standards_Add.p_color2 = &iData->Standard_SSS_Shallow;
+   // iData->Standards_Add.p_color3 = &iData->Standard_SSS_Mid;
+   // iData->Standards_Add.p_color4 = &iData->Standard_SSS_Deep;
+   // #1311
    iData->Standards_Add.p_baseColor = &iData->Standard_Diffuse_Primary_Specular;
-   iData->Standards_Add.p_color1 = &iData->Standard_Secondary_Specular;
-   iData->Standards_Add.p_color2 = &iData->Standard_SSS_Shallow;
-   iData->Standards_Add.p_color3 = &iData->Standard_SSS_Mid;
-   iData->Standards_Add.p_color4 = &iData->Standard_SSS_Deep;
+   iData->Standards_Add.p_color1 = &iData->Store_Secondary_Specular;
+   iData->Standards_Add.p_color2 = &iData->Store_Shallow_Scatter;
+   iData->Standards_Add.p_color3 = &iData->Store_Mid_Scatter;
+   iData->Standards_Add.p_color4 = &iData->Store_Deep_Scatter;
+
    // Screen
    iData->Screen.p_baseColor = &iData->Clip_Diffuse_Primary_Specular;
    iData->Screen.p_color1 = &iData->Clip_Secondary_Specular;
    iData->Screen.p_color2 = &iData->Clip_Shallow;
    iData->Screen.p_color3 = &iData->Clip_Mid;
    iData->Screen.p_color4 = &iData->Clip_Deep;
+
+
    // Clip_Diffuse_Primary_Specular
    iData->Clip_Diffuse_Primary_Specular.p_color = &iData->Standard_Diffuse_Primary_Specular;
    // Clip_Secondary_Specular
-   iData->Clip_Secondary_Specular.p_color = &iData->Standard_Secondary_Specular;
+   iData->Clip_Secondary_Specular.p_color = &iData->Store_Secondary_Specular;
    // Clip_Shallow
-   iData->Clip_Shallow.p_color = &iData->Standard_SSS_Shallow;
+   iData->Clip_Shallow.p_color = &iData->Store_Shallow_Scatter;
    // Clip_Mid
-   iData->Clip_Mid.p_color = &iData->Standard_SSS_Mid;
+   iData->Clip_Mid.p_color = &iData->Store_Mid_Scatter;
    // Clip_Deep
-   iData->Clip_Deep.p_color = &iData->Standard_SSS_Deep;
+   iData->Clip_Deep.p_color = &iData->Store_Deep_Scatter;
    // Standard_SSS_Shallow
    iData->Standard_SSS_Shallow.p_Ksss = &iData->Multiply_ShallowSSS;
    iData->Standard_SSS_Shallow.p_sss_radius = &iData->Shallow_Radius_Scalar_To_Color;
@@ -131,7 +147,44 @@ node_initialize
 }
 
 
-node_update {}
+node_update 
+{
+   AiAOVRegister(AiNodeGetStr(node, "aov_direct_diffuse"), AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
+   AiAOVRegister(AiNodeGetStr(node, "aov_indirect_diffuse"), AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
+   AiAOVRegister(AiNodeGetStr(node, "aov_primary_specular"), AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
+   AiAOVRegister(AiNodeGetStr(node, "aov_secondary_specular"), AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
+   AiAOVRegister(AiNodeGetStr(node, "aov_shallow_scatter"), AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
+   AiAOVRegister(AiNodeGetStr(node, "aov_mid_scatter"), AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
+   AiAOVRegister(AiNodeGetStr(node, "aov_deep_scatter"), AI_TYPE_RGB, AI_AOV_BLEND_OPACITY);
+
+   // Get the instance data
+   CInstanceData *iData = (CInstanceData*)AiNodeGetLocalData(node);
+
+   const char *directDiffuse     = AiNodeGetStr(node, "aov_direct_diffuse");
+   const char *inDirectDiffuse   = AiNodeGetStr(node, "aov_indirect_diffuse");
+   const char *primarySpecular   = AiNodeGetStr(node, "aov_primary_specular");
+   const char *secondarySpecular = AiNodeGetStr(node, "aov_secondary_specular");
+   const char *shallowScatter    = AiNodeGetStr(node, "aov_shallow_scatter");
+   const char *midScatter        = AiNodeGetStr(node, "aov_mid_scatter");
+   const char *deepScatter       = AiNodeGetStr(node, "aov_deep_scatter");
+
+   // wasting time here, the string is read only, so thread safe.
+   // Anyway, it's a one time only assignment, let's keep the param structure consistent
+   // with all the other CNode types
+   for (int i=0; i<MAX_NB_THREADS; i++)
+   {
+      strcpy(iData->Store_Secondary_Specular.params[i].channel, secondarySpecular);
+      strcpy(iData->Store_Shallow_Scatter.params[i].channel,    shallowScatter);
+      strcpy(iData->Store_Mid_Scatter.params[i].channel,        midScatter);
+      strcpy(iData->Store_Deep_Scatter.params[i].channel,       deepScatter);
+      // the only standard contributing to the diffuse AOVs:
+      iData->Standard_Diffuse_Primary_Specular.params[i].writeAOVs = true;
+      strcpy(iData->Standard_Diffuse_Primary_Specular.params[i].primarySpecularAOV, primarySpecular);
+      strcpy(iData->Standard_Diffuse_Primary_Specular.params[i].directDiffuseAOV,   directDiffuse);
+      strcpy(iData->Standard_Diffuse_Primary_Specular.params[i].inDirectDiffuseAOV, inDirectDiffuse);
+   }
+
+}
 
 
 node_finish
