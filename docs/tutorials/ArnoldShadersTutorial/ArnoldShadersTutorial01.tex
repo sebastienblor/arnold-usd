@@ -87,7 +87,7 @@ And you will get the following image:
 \label{simpleScene.png}
 \end{figure}
 
-In case that the shader cannot be loaded, you will get this warning:\\
+If the shader cannot be loaded, you will get this warning:\\
 {\footnotesize \verb=00:00:00   10MB WARNING |  [ass] line 28: node "simple" is not installed=}\\
 And this image:
 \begin{figure}[H]
@@ -129,8 +129,8 @@ Now, when you start Maya, you will be able to load MtoA in the Plug-in Manager.\
 Of course you can select another folder that suits you better, so for the rest of the tutorial, we will assume that you have set the environment variable \texttt{MTOA\_PATH} set to the path where the MtoA plugin is located. In this case, you should have to execute this command:\\
 \verb|set MTOA_PATH="C:\solidAngle\mtoadeploy\2012"|
 
-\subsubsection{Installing MtoA Troubleshooting}
-If after following these instrunctions, MtoA does not work. Try these steps:
+\subsubsection{Installing MtoA --- Troubleshooting}
+If after following these instrunctions, MtoA does not work, try these steps:
 
 \begin{description}
 
@@ -172,10 +172,10 @@ PATH = %PATH%;C:\solidangle\mtoadeploy\2012\bin
 
 \subsubsection{Adding Maya Metadata to your shader with a metadata file}
 In order that your shader is correctly recognized by Maya, you need to add some metadata to it.
-The prefered way to do this is creating a metadata file that will be automatically used when the shader is loaded.
+The preferred way to do this is to create a metadata file that will be automatically used when the shader is loaded.
 This way, it will be easier to make modifications without having to recompile the shader.
 This will also keep the Maya specific metadata in the MtoA folders, rather than in the shaders themselves (which you might want to re-use outside Maya).
-It is shown in the following code:
+This is shown in the following code:
 
 \inputminted[mathescape,
 linenos,
@@ -265,7 +265,10 @@ Now, with everything in its correct place, when you use the aiSimple shader in M
 
 \subsubsection{Adding Maya Metadata to your shader in its source code (Advanced)}
 
-In case you need to add the metadata in the code instead of using a metadata file. You can take a look to the following example. But remember that the recomended method is to create a metadata file.
+It is also possible, though not recommended, to place Maya metadata
+in the code, instead of using a metadata file. The following example
+code shows the syntax for this; but remember that
+a separate metadata file is more flexible.
 
 \inputminted[mathescape,
 numbersep=5pt,
