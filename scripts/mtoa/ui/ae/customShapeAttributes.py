@@ -70,7 +70,7 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
         
         self.beginLayout('Displacement Attributes', collapse=False)
         self.addControl("aiDispHeight", label="Height")
-        self.addControl("aiDispPadding", label="Padding")
+        self.addControl("aiDispPadding", label="Bounds Padding")
         self.addControl("aiDispZeroValue", label="Zero Value")
         self.addControl("aiDispAutobump", label="Auto Bump")
         self.endLayout()
