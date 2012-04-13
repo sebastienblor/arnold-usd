@@ -685,9 +685,9 @@ def registerAETemplate(templateClass, nodeType, *args, **kwargs):
     if nodeType not in _templates:
         try:
             _templates[nodeType] = templateClass(nodeType, *args, **kwargs)
-            print "registered attribute template for %s" % nodeType
+            arnold.AiMsgDebug("registered attribute template for %s", nodeType)
         except:
-            print "Failed to instantiate AE Template", templateClass
+            arnold.AiMsgError("Failed to instantiate AE Template %s", templateClass)
             import traceback
             traceback.print_exc()
 

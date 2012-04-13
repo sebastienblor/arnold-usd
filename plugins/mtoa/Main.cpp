@@ -428,7 +428,6 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    if (MStatus::kSuccess == status)
    {
       AiMsgInfo("Successfully registered Arnold ass file exporter");
-      MGlobal::displayInfo("Successfully registered Arnold ass file exporter");
    }
    else
    {
@@ -448,7 +447,6 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    if (MStatus::kSuccess == status)
    {
       AiMsgInfo("Successfully registered Arnold ass file importer");
-      MGlobal::displayInfo("Successfully registered Arnold ass file importer");
    }
    else
    {
@@ -469,7 +467,6 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    if (MStatus::kSuccess == status)
    {
       AiMsgInfo("Successfully registered tx texture file");
-      MGlobal::displayInfo("Successfully registered tx texture file");
    }
    else
    {
@@ -486,7 +483,6 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    if (MStatus::kSuccess == status)
    {
       AiMsgInfo("Successfully registered Arnold swatch renderer");
-      MGlobal::displayInfo("Successfully registered Arnold swatch renderer");
    }
    else
    {
@@ -501,7 +497,6 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    if (MStatus::kSuccess == status)
    {
       AiMsgInfo("Successfully registered 'arnoldRender' command");
-      MGlobal::displayInfo("Successfully registered 'arnoldRender' command");
    }
    else
    {
@@ -515,7 +510,6 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    if (MStatus::kSuccess == status)
    {
       AiMsgInfo("Successfully registered 'arnoldIpr' command");
-      MGlobal::displayInfo("Successfully registered 'arnoldIpr command");
    }
    else
    {
@@ -529,7 +523,6 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    if (MStatus::kSuccess == status)
    {
       AiMsgInfo("Successfully registered 'arnoldExportAss' command");
-      MGlobal::displayInfo("Successfully registered 'arnoldExportAss' command");
    }
    else
    {
@@ -543,7 +536,6 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    if (MStatus::kSuccess == status)
    {
       AiMsgInfo("Successfully registered 'arnoldPlugins' command");
-      MGlobal::displayInfo("Successfully registered 'arnoldPlugins' command");
    }
    else
    {
@@ -557,7 +549,6 @@ DLLEXPORT MStatus initializePlugin(MObject object)
    if (MStatus::kSuccess == status)
    {
       AiMsgInfo("Successfully registered Arnold nodes");
-      MGlobal::displayInfo("Successfully registered Arnold nodes");
    }
    else
    {

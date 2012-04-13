@@ -46,8 +46,8 @@ CRenderOptions::CRenderOptions()
 ,  m_outputAssMask(AI_NODE_ALL)
 ,  m_log_filename("")
 ,  m_log_max_warnings(100)
-,  m_log_console_verbosity(5)
-,  m_log_file_verbosity(5)
+,  m_log_console_verbosity(DEFAULT_LOG_FLAGS)
+,  m_log_file_verbosity(DEFAULT_LOG_FLAGS)
 {}
 
 MStatus CRenderOptions::GetFromMaya()
@@ -179,8 +179,8 @@ MStatus CRenderOptions::ProcessArnoldRenderOptions()
 
       m_log_filename          = fnArnoldRenderOptions.findPlug("log_filename").asString();
       m_log_max_warnings      = fnArnoldRenderOptions.findPlug("log_max_warnings").asInt();
-      m_log_console_verbosity = fnArnoldRenderOptions.findPlug("log_console_verbosity").asInt();
-      m_log_file_verbosity    = fnArnoldRenderOptions.findPlug("log_file_verbosity").asInt();
+      m_log_console_verbosity = GetFlagsFromVerbosityLevel(fnArnoldRenderOptions.findPlug("log_console_verbosity").asInt());
+      m_log_file_verbosity    = GetFlagsFromVerbosityLevel(fnArnoldRenderOptions.findPlug("log_file_verbosity").asInt());
 
       status = MStatus::kSuccess;
    }
@@ -200,8 +200,8 @@ void CRenderOptions::SetupLog() const
       AiMsgSetLogFileName(m_log_filename.expandEnvironmentVariablesAndTilde().asChar());
 
    AiMsgSetMaxWarnings(m_log_max_warnings);
-   AiMsgSetConsoleFlags(GetFlagsFromVerbosityLevel(m_log_console_verbosity) | AI_LOG_COLOR);
-   AiMsgSetLogFileFlags(GetFlagsFromVerbosityLevel(m_log_file_verbosity));
+   AiMsgSetConsoleFlags(m_log_console_verbosity | AI_LOG_COLOR);
+   AiMsgSetLogFileFlags(m_log_file_verbosity);
 
    // Not working correctly until we can add to callback rather than replace it,
    // or have access to original callback code

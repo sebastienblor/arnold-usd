@@ -119,51 +119,44 @@ MStatus CMayaScene::Begin(ArnoldSessionMode mode)
    sessionOptions.SetExportFrame(MAnimControl::currentTime().as(MTime::uiUnit()));
 
    CRenderOptions renderOptions;
-   renderOptions.SetArnoldRenderOptions(ArnoldRenderOptionsNode);
+   // Don't use the scene render options (aiOptions) for swatches
+   if (mode != MTOA_SESSION_SWATCH)
+   {
+      sessionOptions.GetFromMaya();
+      renderOptions.SetArnoldRenderOptions(ArnoldRenderOptionsNode);
+      renderOptions.GetFromMaya();
+   }
+   // Setup log
+   renderOptions.SetupLog();
 
    if (mode == MTOA_SESSION_SWATCH)
    {
       // FIXME: default or use swatch defaults
-      //renderOptions.SetBatch(false);
+      // renderOptions.SetBatch(false);
       renderOptions.SetProgressive(false);
-      //FIXME: renderOptions.SetupLog() should do this for given mode
-      MtoaSetupLogging(DEFAULT_SWATCH_LOG_FLAGS);
    }
    else if (mode == MTOA_SESSION_ASS)
    {
-      sessionOptions.GetFromMaya();
-      renderOptions.GetFromMaya();
-      //renderOptions.SetBatch(true);
-      renderOptions.SetupLog();
+      // renderOptions.SetBatch(true);
    }
    else if (mode == MTOA_SESSION_IPR)
    {
-      sessionOptions.GetFromMaya();
-      renderOptions.GetFromMaya();
-      //renderOptions.SetBatch(false);
-      renderOptions.SetupLog();
+      // renderOptions.SetBatch(false);
       status = SetupIPRCallbacks();
    }
    else if (mode == MTOA_SESSION_RENDER)
    {
-      sessionOptions.GetFromMaya();
-      renderOptions.GetFromMaya();
-      //renderOptions.SetBatch(false);
+      // renderOptions.SetBatch(false);
       renderOptions.SetProgressive(false);
-      renderOptions.SetupLog();
    }
    else if (mode == MTOA_SESSION_BATCH)
    {
-      sessionOptions.GetFromMaya();
-      renderOptions.GetFromMaya();
-      //renderOptions.SetBatch(true);
-      renderOptions.SetupLog();
+      // renderOptions.SetBatch(true);
    }
 
    // Init both render and export sessions
    status = s_renderSession->Begin(renderOptions);
    status = s_arnoldSession->Begin(sessionOptions);
-
 
    return status;
 }

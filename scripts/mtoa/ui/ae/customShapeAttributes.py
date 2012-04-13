@@ -339,7 +339,6 @@ def getCameraDefault(cam):
 templates.registerDefaultTranslator('camera', getCameraDefault)
 templates.registerDefaultTranslator('stereoRigCamera', getCameraDefault)
 
-print "Adding attribute changed callback for camera"
 callbacks.addAttributeChangedCallbacks('camera',
                                        [('aiTranslator', cameraTranslatorChanged),
                                         ('orthographic', cameraOrthographicChanged)])
