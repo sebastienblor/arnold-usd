@@ -1,7 +1,5 @@
-#include <ai.h>
-#include <stdio.h>
-#include <math.h>
 #include "skin_sss.h"
+#include <string.h>
 
 
 AI_SHADER_NODE_EXPORT_METHODS(SkinSssMethods);
