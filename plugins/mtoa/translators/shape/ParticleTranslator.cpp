@@ -84,11 +84,6 @@ void CParticleTranslator::NodeInitializer(CAbTranslator context)
    data.shortName = "ai_delete_dead_particles";
    helper.MakeInputBoolean(data);
 
-   data.defaultValue.BOOL = false;
-   data.name = "aiInheritCacheTransform";
-   data.shortName = "ai_inherit_cache_transform";
-   helper.MakeInputBoolean(data);
-
    data.defaultValue.BOOL = true;
    data.name = "aiInterpolateBlur";
    data.shortName = "ai_interpolate_blur";
@@ -760,7 +755,7 @@ void CParticleTranslator::InterpolateBlurSteps(AtNode* particle, AtUInt step)
    std::map <std::string, std::vector< MDoubleArray* > >::iterator doubleIt;
    std::map <std::string, std::vector< MIntArray* > >::iterator intIt;
 
-    particle = GetArnoldRootNode();
+   particle = GetArnoldRootNode();
 
 
    // add in a new vector entry for this step to all the  maps/vectors
@@ -867,17 +862,13 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
    AtFloat a_a;
    //getting the matrix of the point particle object
 
-   AtMatrix apm;
-   MMatrix mpm;
-   if (!m_inheritCacheTxfm)  //  if we  want to inherit the transform we need to not remove it from the particles when we export
+   AtMatrix inclMatrix;
+   if (m_inheritCacheTxfm)
    {
+      MMatrix mpm;
       mpm = m_dagPath.inclusiveMatrix();
-
       // convert it to AtMatrix
-      ConvertMatrix (apm, mpm); // util From CNodeTranslator
-
-      // inverting the matrix
-      AiM4Invert (apm, apm);
+      ConvertMatrix (inclMatrix, mpm); // util From CNodeTranslator
    }
 
    // declare the arrays  now that we have gathered all the particle info from each step
@@ -930,10 +921,11 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
                a_v.y = AtFloat(m_v.y+(AiPerlin4(noisePoint,i+j+23.1203093f)*m_multiRadius));
                a_v.z = AtFloat(m_v.z+(AiPerlin4(noisePoint,i+j-0.4874771f)*m_multiRadius));
 
-               //remove matrix for the point if inherit from transform is not  set
-               if (!m_inheritCacheTxfm)
-                  AiM4PointByMatrixMult (&a_v, apm, &a_v);
-
+               // MFnParticleSystem::position returns values in different spaces depending on whether
+               // the system is cached or not. As a result, we need to apply the inclusive matrix if the
+               // particle system has been cached.
+               if (m_inheritCacheTxfm)
+                  AiM4PointByMatrixMult (&a_v, inclMatrix, &a_v);
 
                // Calculated offset index
                int  index =  s*(m_particleCount*m_multiCount) +i*m_multiCount+j;
@@ -1120,6 +1112,23 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
    // end  last step export
 }
 
+/// determine if the particles are cached
+bool CParticleTranslator::IsCached()
+{
+   // right now this is kind of a hack, as it assumes that if the dynGlobals is set
+   // that there must be a particle cache for this  object which may not always be the case.
+   // however, there is no alternative for determining if a particle is cached.
+
+   // FIXME: some of this may end up having to change once we have per node frame-step in place;
+   MStatus stat;
+   MSelectionList list;
+   list.add("dynGlobals1");
+   MObject dynGlobals;
+   list.getDependNode(0, dynGlobals);
+   MFnDependencyNode dynGlobalsNode(dynGlobals, &stat);
+   return (stat == MS::kSuccess && dynGlobalsNode.findPlug("useParticleDiskCache").asBool());
+}
+
 void CParticleTranslator::GatherStandardPPData( MVectorArray*   positionArray ,
                                                 MDoubleArray*   radiusArray ,
                                                 MDoubleArray*   spriteScaleXPP ,
@@ -1129,6 +1138,16 @@ void CParticleTranslator::GatherStandardPPData( MVectorArray*   positionArray ,
                                                 MVectorArray    &velocityArray,
                                                 MIntArray       &particleId)
 {
+   // cached particles need special treatment
+   if (IsCached())
+   {
+      MTime curTime = MAnimControl::currentTime();
+      // force an evaluation of particles (don't runupFromStart).
+      // Good to do in all cases, but particularly important when motion blur
+      // is enabled so that values are correct on other steps
+      m_fnParticleSystem.evaluateDynamics(curTime, false);
+      m_inheritCacheTxfm = true; // defaults to false
+   }
 
    uint numParticles = m_fnParticleSystem.count();
 

@@ -75,11 +75,6 @@ void CNParticleTranslator::NodeInitializer(CAbTranslator context)
    data.shortName = "ai_delete_dead_particles";
    helper.MakeInputBoolean(data);
 
-   data.defaultValue.BOOL = false;
-   data.name = "aiInheritCacheTransform";
-   data.shortName = "ai_inherit_cache_transform";
-   helper.MakeInputBoolean(data);
-
    data.defaultValue.BOOL = true;
    data.name = "aiInterpolateBlur";
    data.shortName = "ai_interpolate_blur";

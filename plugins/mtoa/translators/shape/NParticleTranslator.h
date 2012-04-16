@@ -34,6 +34,8 @@ public:
 
    static void NodeInitializer(CAbTranslator context);
 
+   // TODO: override this with nParticle-specific code
+   //virtual bool IsCached();
 };
 
 #endif // NPARTICLE_H
