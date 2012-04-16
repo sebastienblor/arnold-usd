@@ -1000,7 +1000,6 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
       }
    }// end  numMotionSteps
 
-
    //write the points
    AiNodeSetArray(particle, "points", a_positionArray);
 
@@ -1040,14 +1039,21 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
          AtArray* a_attributes = AiArrayAllocate(m_particleCount*m_multiCount, GetNumMotionSteps(), AI_TYPE_FLOAT);
          for (uint s = 0; s < GetNumMotionSteps(); s++)
          {
-            for (int i = 0; i < m_particleCount; i++)
+            int i = 0;
+            for (it = m_particleIDMap.begin(); it != m_particleIDMap.end();  it++)
             {
-               for (int j = 0; j< m_multiCount; j++)
+               int pindex = it->second;
+               if (pindex >= 0)
                {
-                  // Calculated offset index
-                  int  index =  s*(m_particleCount*m_multiCount) +i*m_multiCount+j;
-                  AiArraySetFlt(a_attributes, index, (AtFloat)(*doubleIt->second[s])[i]);
+
+                  for (int j = 0; j< m_multiCount; j++)
+                  {
+                     // Calculated offset index
+                     int  index =  s*(m_particleCount*m_multiCount) +i*m_multiCount+j;
+                     AiArraySetFlt(a_attributes, index, (AtFloat)(*doubleIt->second[s])[pindex]);
+                  }
                }
+               i++;
             }
             // memory cleanup
             //std::cout << "cleaning up extra Double attr memory " << doubleIt->second[s] << std::endl;
@@ -1062,20 +1068,26 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
          AtArray* a_attributes = AiArrayAllocate(m_particleCount*m_multiCount, GetNumMotionSteps(), AI_TYPE_VECTOR);
          for (uint s = 0; s < GetNumMotionSteps(); s++)
          {
-            for (int i = 0; i < m_particleCount; i++)
+            int i = 0;
+            for (it = m_particleIDMap.begin(); it != m_particleIDMap.end();  it++)
             {
-               for (int j = 0; j< m_multiCount; j++)
+               int pindex = it->second;
+               if (pindex >= 0)
                {
-                  // Calculated offset index
-                  int  index =  s*(m_particleCount*m_multiCount) +i*m_multiCount+j;
-                  AtVector a_attr;
+                  for (int j = 0; j< m_multiCount; j++)
+                  {
+                     // Calculated offset index
+                     int  index =  s*(m_particleCount*m_multiCount) +i*m_multiCount+j;
+                     AtVector a_attr;
 
-                  a_attr.x = (AtFloat)(*vecIt->second[s])[i].x;
-                  a_attr.y = (AtFloat)(*vecIt->second[s])[i].y;
-                  a_attr.z = (AtFloat)(*vecIt->second[s])[i].z;
+                     a_attr.x = (AtFloat)(*vecIt->second[s])[pindex].x;
+                     a_attr.y = (AtFloat)(*vecIt->second[s])[pindex].y;
+                     a_attr.z = (AtFloat)(*vecIt->second[s])[pindex].z;
 
-                  AiArraySetVec(a_attributes, index, a_attr);
+                     AiArraySetVec(a_attributes, index, a_attr);
+                  }
                }
+               i++;
             }
             // memory cleanup
             //std::cout << "cleaning up extra Vector attr memory " << vecIt->second[s] << std::endl;
@@ -1090,14 +1102,21 @@ void CParticleTranslator::WriteOutParticle(AtNode* particle)
          AtArray* a_attributes = AiArrayAllocate(m_particleCount*m_multiCount, GetNumMotionSteps(), AI_TYPE_INT);
         for (uint s = 0; s < GetNumMotionSteps(); s++)
         {
-           for (int i = 0; i < m_particleCount; i++)
-           {
-              for (int j = 0; j< m_multiCount; j++)
-              {
-                 // Calculated offset index
-                 int  index =  s*(m_particleCount*m_multiCount) +i*m_multiCount+j;
-                 AiArraySetInt(a_attributes, index, (*intIt->second[s])[i]);
-              }
+           int i = 0;
+            for (it = m_particleIDMap.begin(); it != m_particleIDMap.end();  it++)
+            {
+               int pindex = it->second;
+               if (pindex >= 0)
+               {
+
+                 for (int j = 0; j< m_multiCount; j++)
+                 {
+                    // Calculated offset index
+                    int  index =  s*(m_particleCount*m_multiCount) +i*m_multiCount+j;
+                    AiArraySetInt(a_attributes, index, (*intIt->second[s])[i]);
+                 }
+               }
+               i++;
            }
            // memory cleanup
            //std::cout << "cleaning up extra Int attr memory " << vecIt->second[s] << std::endl;
@@ -1188,6 +1207,7 @@ void CParticleTranslator::GatherStandardPPData( MVectorArray*   positionArray ,
          (*radiusArray).append(m_particleSize);
       }
    }
+
 
    m_fnParticleSystem.position(*positionArray);
    m_fnParticleSystem.velocity(velocityArray);
