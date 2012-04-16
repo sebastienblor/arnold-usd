@@ -43,44 +43,33 @@ MSyntax CArnoldExportAssCmd::newSyntax()
    return syntax;
 }
 
-MDagPath CArnoldExportAssCmd::GetCamera()
+// Return all renderable cameras
+int CArnoldExportAssCmd::GetRenderCameras(MDagPathArray &cameras)
 {
-   MDagPath camera;
-   if (MGlobal::mayaState() == MGlobal::kInteractive)
-      M3dView::active3dView().getCamera(camera);
-
-   if (!camera.isValid())
+   MItDag dagIter(MItDag::kDepthFirst, MFn::kCamera);
+   MDagPath cameraPath;
+   // MFnCamera cameraNode;
+   MFnDagNode cameraNode;
+   MPlug renderable;
+   MStatus stat;
+   while (!dagIter.isDone())
    {
-      MItDag dagIter(MItDag::kDepthFirst, MFn::kCamera);
-      MDagPath cameraPath;
-      // MFnCamera cameraNode;
-      MFnDagNode cameraNode;
-      MPlug renderable;
-      MStatus stat;
-      while (!dagIter.isDone())
+      dagIter.getPath(cameraPath);
+      cameraNode.setObject(cameraPath);
+      renderable = cameraNode.findPlug("renderable", false, &stat);
+      if (stat && renderable.asBool())
       {
-         dagIter.getPath(cameraPath);
-         cameraNode.setObject(cameraPath);
-         renderable = cameraNode.findPlug("renderable", false, &stat);
-         if (stat && renderable.asBool())
-         {
-            if (!camera.isValid())
-            {
-               camera = cameraPath;
-            }
-            else
-            {
-               MGlobal::displayWarning("More than one renderable camera, using first one. (use the -cam/-camera option to override)");
-               break;
-            }
-         }
-         dagIter.next();
+         cameras.append(cameraPath);
       }
+      dagIter.next();
    }
-   if (!camera.isValid())
-      MGlobal::displayWarning("Did not find a renderable camera. (use the -cam/-camera option to specify one)");
 
-   return camera;
+   int size = cameras.length();
+   if (size > 1)
+      MGlobal::displayWarning("More than one renderable camera. (use the -cam/-camera option to override)");
+   else if (!size)
+      MGlobal::displayWarning("Did not find a renderable camera. (use the -cam/-camera option to specify one)");
+   return size;
 }
 
 // FIXME: that should be a method on CMayaScene so we can share it between commands
@@ -240,11 +229,15 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    // or the first found renderable camera in batch mode
    // FIXME if you're exporting in selected mode to reuse in a standing
    // you probably don't want a camera anyway, remove this search and warnings in that case?
-   if (!camera.isValid())
+   MDagPathArray cameras;
+   if (camera.isValid())
    {
-      camera = GetCamera();
+      cameras.append(camera);
    }
-   cameraName = camera.partialPathName();
+   else
+   {
+      GetRenderCameras(cameras);
+   }
 
    // FIXME use the passed renderGlobals or options intead?
    MCommonRenderSettingsData renderGlobals;
@@ -278,7 +271,6 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
       CRenderSession* renderSession = CMayaScene::GetRenderSession();
       // Not filtering out of render layer
       arnoldSession->SetExportFilter(arnoldSession->GetExportFilter() & ~MTOA_FILTER_LAYER);
-      arnoldSession->SetExportCamera(camera);
       arnoldSession->SetExportFrame(curframe);
       // Set mask for nodes to export or use Arnold Render Globals if not passed
       if (mask != -1)
@@ -295,30 +287,7 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
       {
          arnoldSession->SetShadowLinkMode(ArnoldShadowLinkMode(shadowLinks));
       }
-      // getting ass file name
-      curfilename = renderSession->GetAssName(customFileName,
-                                              renderGlobals,
-                                              curframe,
-                                              sceneName,
-                                              cameraName,
-                                              assExtension,
-                                              renderLayer,
-                                              createDirectory,
-                                              isSequence,
-                                              subFrames,
-                                              batch, &status);
-      // getting ass toc file name
-      tocfilename = renderSession->GetAssName(customFileName,
-                                              renderGlobals,
-                                              curframe,
-                                              sceneName,
-                                              cameraName,
-                                              "asstoc",
-                                              renderLayer,
-                                              createDirectory,
-                                              isSequence,
-                                              subFrames,
-                                              batch, &status);
+      MFnDependencyNode fnCam;
 
       MString mayaVersion = MGlobal::mayaVersion();     
       MString appString = MString("MtoA ") + MTOA_VERSION + " Maya " + mayaVersion;
@@ -335,18 +304,58 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
       {
          CMayaScene::Export();
       }
-      // TODO: package all of this in a method
-      if (writeBox) AiNodeSetBool(AiUniverseGetOptions(), "preserve_scene_data", true);
-      // ascii ass export
-      if (!asciiAss) AiNodeSetBool(AiUniverseGetOptions(), "binary_ass", false);
-      renderSession->DoAssWrite(curfilename, compressed);
-      if (writeBox) renderSession->WriteAsstoc(tocfilename, renderSession->GetBoundingBox());
 
+      for (unsigned int arrayIter = 0; (arrayIter < cameras.length()); arrayIter++)
+      {
+         // It is ok to set the camera here, because if camera is no set at export time,
+         // all the cameras are exported during the export.
+         arnoldSession->SetExportCamera(cameras[arrayIter]);
+         fnCam.setObject(cameras[arrayIter].transform());
+         cameraName = fnCam.name();
+         // getting ass file name
+         curfilename = renderSession->GetAssName(customFileName,
+                                                 renderGlobals,
+                                                 curframe,
+                                                 sceneName,
+                                                 cameraName,
+                                                 assExtension,
+                                                 renderLayer,
+                                                 createDirectory,
+                                                 isSequence,
+                                                 subFrames,
+                                                 batch, &status);
+
+         appendToResult(curfilename);
+
+         // TODO: package all of this in a method
+         // FIXME: is there a reason not to preserve_scene_data?  CMayaScene::End() below will destroy the scene.
+         AiNodeSetBool(AiUniverseGetOptions(), "preserve_scene_data", true);
+         // ascii ass export
+         if (!asciiAss){
+            AiNodeSetBool(AiUniverseGetOptions(), "binary_ass", false);
+         }
+         renderSession->DoAssWrite(curfilename, compressed);
+
+         if (writeBox)
+         {
+            // getting ass toc file name
+            tocfilename = renderSession->GetAssName(customFileName,
+                                                    renderGlobals,
+                                                    curframe,
+                                                    sceneName,
+                                                    cameraName,
+                                                    "asstoc",
+                                                    renderLayer,
+                                                    createDirectory,
+                                                    isSequence,
+                                                    subFrames,
+                                                    batch, &status);
+            renderSession->WriteAsstoc(tocfilename, renderSession->GetBoundingBox());
+         }
+      }
       CMayaScene::End();
 
       CMayaScene::ExecuteScript(renderGlobals.postRenderMel);
-
-      appendToResult(curfilename);
    }
 
 

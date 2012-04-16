@@ -382,7 +382,6 @@ MStatus CArnoldOptionsNode::initialize()
 
    s_output_ass_filename = tAttr.create("output_ass_filename", "file", MFnData::kString);
    tAttr.setKeyable(false);
-   tAttr.setDefault(sData.create("$MTOA_ASS_PATH/mtoa.ass"));
    addAttribute(s_output_ass_filename);
 
    s_output_ass_compressed = nAttr.create("output_ass_compressed", "oasc", MFnNumericData::kBoolean, 0);

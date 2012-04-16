@@ -11,6 +11,7 @@
 
 #include <maya/MGlobal.h>
 #include <maya/MStringArray.h>
+#include <maya/M3dView.h>
 
 // Set some fixed values in the translator class
 char CArnoldAssTranslator::fileTypeImport[]        = "ASS";
@@ -207,8 +208,14 @@ MStatus CArnoldAssTranslator::writer(const MFileObject& file,
    {
       cmdStr += " " + optionList[i];
    }
-
-   return MGlobal::executeCommand(cmdStr);
+   // If we're interactive, use the active camera
+   if (MGlobal::mayaState() == MGlobal::kInteractive)
+   {
+      MDagPath camera;
+      M3dView::active3dView().getCamera(camera);
+      cmdStr += "-cam " + camera.partialPathName();
+   }
+   return MGlobal::executeCommand(cmdStr, true);
 
 }
 

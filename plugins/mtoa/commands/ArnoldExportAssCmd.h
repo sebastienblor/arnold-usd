@@ -6,7 +6,7 @@
 #include <maya/MSyntax.h>
 #include <maya/MCommonRenderSettingsData.h>
 #include <maya/MDagPath.h>
-
+#include <maya/MDagPathArray.h>
 
 class CArnoldExportAssCmd
    :   public MPxCommand
@@ -20,7 +20,7 @@ public:
    }
 
    static MSyntax newSyntax();
-   static MDagPath GetCamera();
+   static int GetRenderCameras(MDagPathArray &cameras);
    MStatus doIt(const MArgList& argList);
 
 }; // class CArnoldExportAssCmd
