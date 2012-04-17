@@ -1268,6 +1268,16 @@ AtNode* CNodeTranslator::ProcessConstantParameter(AtNode* arnoldNode, const char
 {
    MStatus status;
 
+   if (plug.isArray())
+   {
+      if (arnoldParamType != AI_TYPE_ARRAY)
+      {
+         MGlobal::displayError("[mtoa] Maya attribute is of type array, but Arnold parameter is not");
+         return NULL;
+      }
+      ProcessArrayParameter(arnoldNode, arnoldParamName, plug);
+      return NULL;
+   }
    if (plug.isCompound())
    {
       // Process the childs for compound plugs with at least one connected child
