@@ -190,7 +190,7 @@ def expandFileTokens(path, tokens, customOnly=False):
     return ''.join(result)
 
 def getFileName(pathType, tokens, path='<Scene>', frame=None, fileType='images',
-                 createDirectory=True, hasAOVs=True, isSequence=None):
+                 createDirectory=True, isSequence=None):
     """
     A more generic replacement for MCommonRenderSettingsData.getImageName() that also works for types other
     than images.
@@ -240,7 +240,7 @@ def getFileName(pathType, tokens, path='<Scene>', frame=None, fileType='images',
 
     isRelPath = not os.path.isabs(path)
 
-    if '<RenderPass>' not in path and 'RenderPass' in tokens and hasAOVs:
+    if '<RenderPass>' not in path and 'RenderPass' in tokens:
         path = '<RenderPass>/' + path
 
     if '<Camera>' in path:

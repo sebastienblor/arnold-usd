@@ -153,18 +153,16 @@ MString COptionsTranslator::SetImageFilenames(MDagPath &camera)
    }
 
    MString path = defaultRenderGlobalsData.name;
-   bool hasAOVs = m_aovs.size() > 0;
    imageFilename = getFileName(pathType,
                                 fileFrameNumber,
                                 sceneFileName,
                                 nameCamera,
                                 "",
                                 renderLayer,
-                                "RenderPass=beauty",
+                                (m_aovs.size() > 0) ? "RenderPass=beauty" : "",
                                 true,
                                 "images",
-                                path,
-                                hasAOVs);
+                                path);
 
    if (m_driver != NULL && AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(m_driver), "filename") != NULL)
       AiNodeSetStr(m_driver, "filename", imageFilename.asChar());

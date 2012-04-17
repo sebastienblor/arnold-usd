@@ -12,8 +12,7 @@ MString getFileName(MCommonRenderSettingsData::MpathType pathType,
                      bool createDirectory,
                      const MString& fileRuleType,
                      const MString& path,
-                     bool hasAOVs,
-                     const bool* isSequence) // Tri state bool
+                     const bool* isSequence)
 {
    MString cmd = "import mtoa.utils;mtoa.utils.getFileName(";
    cmd += pathType;
@@ -33,8 +32,7 @@ MString getFileName(MCommonRenderSettingsData::MpathType pathType,
       cmd += "path='" + path + "', ";
    if (fileRuleType.numChars())
       cmd += "fileType='" + fileRuleType + "', ";
-   cmd += MString("createDirectory=") + (createDirectory ? "True" : "False") + ", ";
-   cmd += MString("hasAOVs=") + (hasAOVs ? "True" : "False")  + ");";
+   cmd += MString("createDirectory=") + (createDirectory ? "True" : "False")  + ");";
    if (isSequence != NULL)
       cmd += MString("isSequence=") + (*isSequence ? "True" : "False")  + ", ";
 
