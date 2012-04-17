@@ -42,10 +42,12 @@ void CShapeTranslator::ExportLightLinking(AtNode* shape)
       std::vector<AtNode*> lights;
       MDagPathArray mayaLights;
 
-      AiMsgDebug("[mtoa] Querying light linking on %s", MayaShapeName.asChar());
-      status = mayaLightLinks->getLinkedLights(MayaShapePath, MObject::kNullObj, mayaLights);
-      CHECK_MSTATUS(status);
-
+      if (nbSceneLights > 0)
+      {
+         AiMsgDebug("[mtoa] Querying light linking on %s", MayaShapeName.asChar());
+         status = mayaLightLinks->getLinkedLights(MayaShapePath, MObject::kNullObj, mayaLights);
+         CHECK_MSTATUS(status);
+      }
       unsigned int nbLinkedLights = mayaLights.length();
 
       // No need for a list if linked to all lights in scene
@@ -113,10 +115,12 @@ void CShapeTranslator::ExportLightLinking(AtNode* shape)
       std::vector<AtNode*> shadows;
       MDagPathArray mayaShadows;
 
-      AiMsgDebug("[mtoa] Querying shadow linking on %s", MayaShapeName.asChar());
-      status = mayaLightLinks->getShadowLinkedLights(MayaShapePath, MObject::kNullObj, mayaShadows);
-      CHECK_MSTATUS(status);
-
+      if (nbSceneLights > 0)
+      {
+         AiMsgDebug("[mtoa] Querying shadow linking on %s", MayaShapeName.asChar());
+         status = mayaLightLinks->getShadowLinkedLights(MayaShapePath, MObject::kNullObj, mayaShadows);
+         CHECK_MSTATUS(status);
+      }
       unsigned int nbLinkedShadows = mayaShadows.length();
 
       // No need for a list if linked to all lights in scene
