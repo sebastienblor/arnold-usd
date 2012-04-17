@@ -190,7 +190,7 @@ def expandFileTokens(path, tokens, customOnly=False):
     return ''.join(result)
 
 def getFileName(pathType, tokens, path='<Scene>', frame=None, fileType='images',
-                 createDirectory=True, isSequence=None):
+                 createDirectory=True, hasAOVs=True, isSequence=None):
     """
     A more generic replacement for MCommonRenderSettingsData.getImageName() that also works for types other
     than images.
@@ -240,7 +240,7 @@ def getFileName(pathType, tokens, path='<Scene>', frame=None, fileType='images',
 
     isRelPath = not os.path.isabs(path)
 
-    if '<RenderPass>' not in path and 'RenderPass' in tokens:
+    if '<RenderPass>' not in path and 'RenderPass' in tokens and hasAOVs:
         path = '<RenderPass>/' + path
 
     if '<Camera>' in path:
@@ -298,7 +298,7 @@ def getFileName(pathType, tokens, path='<Scene>', frame=None, fileType='images',
 
 
     if '<Extension>' in path and 'Extension' not in tokens:
-        tokens['Extension'] = pm.getAttr('defaultRenderGlobals.imfPluginKey')
+        tokens['Extension'] = pm.getAttr('defaultArnoldDriver.aiTranslator')
     if '<Frame>' in path and 'Frame' not in tokens:
         # TODO: add handling of sub-frames
         if frame is None:
@@ -317,7 +317,7 @@ def getFileName(pathType, tokens, path='<Scene>', frame=None, fileType='images',
     if pathType == pm.api.MCommonRenderSettingsData.kRelativePath:
         return partialPath
 
-    rootPath = pm.workspace(q=True, o=True)
+    rootPath = pm.workspace(q=True, rd=True)
     imageDir = pm.workspace(fileType, q=True, fileRuleEntry=True)
     imageDir = imageDir if imageDir else 'data'
 
@@ -331,6 +331,7 @@ def getFileName(pathType, tokens, path='<Scene>', frame=None, fileType='images',
     else:
         raise TypeError("Invalid pathType")
 
+    result = result.replace("\\", "/")
     if createDirectory:
         dir =  os.path.dirname(result)
         if not os.path.exists(dir):

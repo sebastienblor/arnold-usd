@@ -14,6 +14,7 @@ MString getFileName(MCommonRenderSettingsData::MpathType pathType,
                      bool createDirectory=true,
                      const MString& fileRuleType="",
                      const MString& path="",
-                     const bool* isSequence=NULL);
+                     bool hasAOVs=true,
+                     const bool* isSequence=NULL);  // Tri state bool
 
 #endif
