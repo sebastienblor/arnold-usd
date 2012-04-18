@@ -625,7 +625,7 @@ def createArnoldImageFormatControl():
         pm.deleteUI(fullPath)
 
     # TODO: connect node to options
-    createTranslatorMenu('defaultArnoldDriver.aiTranslator', 
+    createTranslatorMenu('defaultArnoldDriver', 
                          label=pm.mel.uiRes("m_createMayaSoftwareCommonGlobalsTab.kImageFormatMenu"),
                          nodeType='aiAOVDriver',
                          default='exr',
