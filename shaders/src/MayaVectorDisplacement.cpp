@@ -1,6 +1,6 @@
 #include <ai.h>
 
-AI_SHADER_NODE_EXPORT_METHODS(MayaDisplacementMtd);
+AI_SHADER_NODE_EXPORT_METHODS(MayaVectorDisplacementMtd);
 
 namespace
 {

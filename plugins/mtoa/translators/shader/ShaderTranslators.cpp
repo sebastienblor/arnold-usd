@@ -918,3 +918,34 @@ void CAnimCurveTranslator::ExportMotion(AtNode* shader, unsigned int step)
    AtArray* values = AiNodeGetArray(shader, "values");
    AiArraySetFlt(values, step, value);
 }
+
+
+// Displacement
+//
+AtNode*  CDisplacementTranslator::CreateArnoldNodes()
+{
+   MPlugArray connections;
+
+   MPlug plug = FindMayaPlug("vectorDisplacement");
+
+   plug.connectedTo(connections, true, false);
+
+   if (connections.length() != 0)
+   {
+      return AddArnoldNode("MayaVectorDisplacement");
+   }
+   else
+   {
+      return AddArnoldNode("MayaNormalDisplacement");
+   }
+}
+
+void CDisplacementTranslator::Export(AtNode* shader)
+{
+   ProcessParameter(shader, "displacement", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "vectorDisplacement", AI_TYPE_VECTOR);
+   ProcessParameter(shader, "scale", AI_TYPE_FLOAT);
+   ProcessParameter(shader, "vectorEncoding", AI_TYPE_INT);
+   ProcessParameter(shader, "vectorSpace", AI_TYPE_INT);
+   ProcessParameter(shader, "tangent", AI_TYPE_VECTOR);
+}

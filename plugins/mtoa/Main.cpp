@@ -334,6 +334,9 @@ namespace // <anonymous>
                                      "",
                                      CShadingEngineTranslator::creator,
                                      CShadingEngineTranslator::NodeInitializer);
+         shaders->RegisterTranslator("displacementShader",
+                                     "",
+                                     CDisplacementTranslator::creator);
       }
 
       // Will load all found plugins and try to register nodes and translators

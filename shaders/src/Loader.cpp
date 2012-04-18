@@ -71,7 +71,8 @@ extern AtNodeMethods* SkinSssMethods;
 extern AtNodeMethods* MayaSamplerInfo1DMtd;
 extern AtNodeMethods* MayaSamplerInfo2DMtd;
 extern AtNodeMethods* MayaSamplerInfo3DMtd;
-extern AtNodeMethods* MayaDisplacementMtd;
+extern AtNodeMethods* MayaVectorDisplacementMtd;
+extern AtNodeMethods* MayaNormalDisplacementMtd;
 
 node_loader
 {
@@ -554,9 +555,16 @@ node_loader
       break;
       
    case 68:
-      node->methods     = MayaDisplacementMtd;
+      node->methods     = MayaNormalDisplacementMtd;
+      node->output_type = AI_TYPE_FLOAT;
+      node->name        = "MayaNormalDisplacement";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+      
+   case 69:
+      node->methods     = MayaVectorDisplacementMtd;
       node->output_type = AI_TYPE_VECTOR;
-      node->name        = "MayaDisplacement";
+      node->name        = "MayaVectorDisplacement";
       node->node_type   = AI_NODE_SHADER;
       break;
 
