@@ -36,6 +36,7 @@ MObject CArnoldOptionsNode::s_threads_autodetect;
 MObject CArnoldOptionsNode::s_clear_before_render;
 MObject CArnoldOptionsNode::s_plugins_path;
 MObject CArnoldOptionsNode::s_use_sample_clamp;
+MObject CArnoldOptionsNode::s_use_sample_clamp_AOVs;
 MObject CArnoldOptionsNode::s_AA_sample_clamp;
 MObject CArnoldOptionsNode::s_lock_sampling_noise;
 MObject CArnoldOptionsNode::s_aa_seed;
@@ -212,6 +213,10 @@ MStatus CArnoldOptionsNode::initialize()
    nAttr.setKeyable(false);
    addAttribute(s_use_sample_clamp);
 
+   s_use_sample_clamp_AOVs = nAttr.create("use_sample_clamp_AOVs", "usesmpclampaovs", MFnNumericData::kBoolean, 0);
+   nAttr.setKeyable(false);
+   addAttribute(s_use_sample_clamp_AOVs);
+   
    s_attributes.MakeInput("AA_sample_clamp");
 
    s_lock_sampling_noise = nAttr.create("lock_sampling_noise", "locksn", MFnNumericData::kBoolean, 0);

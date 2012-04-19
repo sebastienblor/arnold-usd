@@ -227,6 +227,7 @@ private:
    unsigned int   m_GI_glossy_samples;
    unsigned int   m_sss_sample_factor;
    float    m_AA_sample_clamp;
+   float    m_AA_sample_clamp_AOVs;
    bool     m_lock_sampling_noise;
 
    bool m_use_existing_tiled_textures;

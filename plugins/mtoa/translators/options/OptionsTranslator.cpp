@@ -332,6 +332,10 @@ void COptionsTranslator::Export(AtNode *options)
             {
                ProcessParameter(options, "AA_sample_clamp", AI_TYPE_FLOAT);
             }
+            if (FindMayaPlug("use_sample_clamp_AOVs").asBool())
+            {
+               ProcessParameter(options, "use_sample_clamp_AOVs", AI_TYPE_BOOLEAN);
+            }
          }
          else if (strcmp(paramName, "AA_seed") == 0)
          {

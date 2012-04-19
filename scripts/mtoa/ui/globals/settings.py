@@ -8,8 +8,9 @@ def updateRenderSettings(*args):
     pm.attrControlGrp('os_threads', edit=True, enable=flag)
 
 def updateSamplingSettings(*args):
-    flag = pm.getAttr('defaultArnoldRenderOptions.use_sample_clamp') == True
+    flag = (pm.getAttr('defaultArnoldRenderOptions.use_sample_clamp') == True) 
     pm.attrControlGrp('ss_max_value', edit=True, enable=flag)
+    pm.attrControlGrp('ss_clamp_sample_values_AOVs', edit=True, enable=flag)
 
 def updateComputeSamples(*args):
     AASamples = pm.getAttr('defaultArnoldRenderOptions.AASamples')
@@ -358,6 +359,13 @@ def createArnoldSamplingSettings():
     pm.connectControl('ss_clamp_sample_values', 'defaultArnoldRenderOptions.use_sample_clamp', index=1)
     pm.connectControl('ss_clamp_sample_values', 'defaultArnoldRenderOptions.use_sample_clamp', index=2)
 
+    pm.checkBoxGrp('ss_clamp_sample_values_AOVs',
+                     cc=updateSamplingSettings,
+                     label='Clamp Affect AOVs')
+
+    pm.connectControl('ss_clamp_sample_values_AOVs', 'defaultArnoldRenderOptions.use_sample_clamp_AOVs', index=1)
+    pm.connectControl('ss_clamp_sample_values_AOVs', 'defaultArnoldRenderOptions.use_sample_clamp_AOVs', index=2)
+    
     '''
     pm.attrControlGrp('ss_clamp_sample_values',
                         label="Clamp Sample Values",

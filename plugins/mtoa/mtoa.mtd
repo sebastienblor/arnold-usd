@@ -55,6 +55,9 @@
         softmax             FLOAT   100.0
         default             FLOAT   10.0
         maya.orig_shortname STRING  "smpclamp"
+    [attr AA_sample_clamp_affects_aovs]
+        maya.keyable        BOOL    False    
+        maya.name           STRING  "use_sample_clamp_AOVs"
     [attr ignore_textures]
         maya.keyable        BOOL    False
     [attr ignore_shaders]
