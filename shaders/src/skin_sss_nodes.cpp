@@ -10,7 +10,7 @@
 #define AI_SPECULAR_BRDF_WARDDUER         1
 #define AI_SPECULAR_BRDF_COOKTORRANCE     2
 
-static const char* enum_specular_brdf[] = { "stretched_phong", "ward_duer", "cook_torrance", NULL };
+// static const char* enum_specular_brdf[] = { "stretched_phong", "ward_duer", "cook_torrance", NULL };
 
 typedef void* (*InitBrdfFunc)(const AtShaderGlobals *sg, const AtVector *U, const AtVector *V, float rx, float ry);
 typedef AtColor (*IntegrateBrdfFunc)(void *brdf_data, AtShaderGlobals *sg);
