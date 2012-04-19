@@ -27,6 +27,7 @@
 #include "translators/options/OptionsTranslator.h"
 #include "translators/camera/CameraTranslators.h"
 #include "translators/light/LightTranslators.h"
+#include "translators/light/LightLinkerTranslator.h"
 #include "translators/shader/ShaderTranslators.h"
 #include "translators/shape/MeshTranslator.h"
 #include "translators/shape/NurbsSurfaceTranslator.h"
@@ -192,6 +193,11 @@ namespace // <anonymous>
                                    "",
                                    CSkyDomeLightTranslator::creator,
                                    CSkyDomeLightTranslator::NodeInitializer);
+
+       builtin->RegisterTranslator("lightLinker",
+                                   "",
+                                   CLightLinkerTranslator::creator);
+
        // Geometry
        builtin->RegisterTranslator("mesh",
                                    "",

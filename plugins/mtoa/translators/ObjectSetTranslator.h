@@ -23,6 +23,7 @@ protected:
    static void AttributeChangedCallback(MNodeMessage::AttributeMessage msg,
                                         MPlug& plug, MPlug& otherPlug,
                                         void* clientData);
+   static void SetMembersChangedCallback(MObject &node, void *clientData);
    virtual void RequestUpdate(void *clientData);
 };
 

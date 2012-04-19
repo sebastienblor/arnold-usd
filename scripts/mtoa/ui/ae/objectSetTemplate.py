@@ -80,19 +80,17 @@ class ObjectSetTemplate(templates.AttributeEditorTemplate):
         # print self.attributeCandidates()
         self.addCustom("aiOverride", self.createAttributesButtons, self.updateAttributesButtons)
         self.addSeparator()
-        #self.beginScrollLayout()
         # FIXME: need a proper listing of override attributes
         self.addExtraControls()
-        #self.endScrollLayout()
                 
     def update(self):
         pass
         # print "ObjectSetTemplate update %s" % self.nodeName
         # FIXME seems never to get called
-        
+        pass
+            
     def createAttributesButtons(self, attr):
         # print "ObjectSetTemplate Create Buttons %r for %r" % (self.nodeName, attr)
-        # self.nodeName = attr.split(".")[0]
         self._doUpdate(attr)
         # print "ObjectSetTemplate Created Buttons %r for %r" % (self.nodeName, attr)
         pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
@@ -109,7 +107,6 @@ class ObjectSetTemplate(templates.AttributeEditorTemplate):
         
     def updateAttributesButtons(self, attr):
         # print "ObjectSetTemplate Update Buttons %r for %r" % (self.nodeName, attr)
-        # self.nodeName = attr.split(".")[0]
         self._doUpdate(attr)
         # print "ObjectSetTemplate Updated Buttons %r for %r" % (self.nodeName, attr)
    

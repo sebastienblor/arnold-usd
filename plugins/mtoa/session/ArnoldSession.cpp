@@ -466,7 +466,7 @@ MStatus CArnoldSession::UpdateLightLinks()
       }
       else
       {
-         AiMsgError("[mtoa] Failed to pare light linking information for %i lights", m_numLights);
+         AiMsgError("[mtoa] Failed to parse light linking information for %i lights", m_numLights);
       }
    }
    else
@@ -474,6 +474,7 @@ MStatus CArnoldSession::UpdateLightLinks()
       AiMsgWarning("[mtoa] No light in scene");
    }
 
+   FlagLightLinksDirty(false);
    return status;
 }
 
@@ -550,7 +551,10 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
    bool exportSelected = (NULL != selected) ? true : false;
    if (exportSelected)
    {
-      AiMsgDebug("[mtoa] Exporting selection (%i objects)", selected->length());
+      unsigned int ns = selected->length();
+      status = FlattenSelection(selected);
+      unsigned int fns = selected->length();
+      AiMsgDebug("[mtoa] Exporting selection (%i:%i)", ns, fns);
    }
    else
    {
@@ -599,30 +603,21 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
       }
       // Then we filter them out to avoid double exporting cameras
       // m_sessionOptions.m_filter.excluded.insert(MFn::kCamera);
-      if (exportSelected)
-      {
-         // And for render selected we need the lights too
-         status = ExportLights();
-         // m_sessionOptions.m_filter.excluded.insert(MFn::kLight);
-         status = UpdateLightLinks();
-         status = ExportSelection(*selected);
-      }
-      else
-      {
-         // Update light linking info
-         // FIXME: use a translator for light linker node(s)
-         status = UpdateLightLinks();
-         status = ExportScene();
-      }
+      // For render selected we need all the lights (including unselected ones)
+      status = ExportLights();
+      // m_sessionOptions.m_filter.excluded.insert(MFn::kLight);
+      status = ExportDag(selected);
    }
    else if (exportMode == MTOA_SESSION_ASS)
    {
       if (exportSelected)
       {
          // If we export selected to a file, not as a full render,
-         // we don't need to export all lights / cameras
-         status = UpdateLightLinks();
-         status = ExportSelection(*selected);
+         // we don't need to export all lights / cameras, but
+         // we export the selected ones first
+         status = ExportCameras(selected);
+         status = ExportLights(selected);
+         status = ExportDag(selected);
       }
       else
       {
@@ -640,8 +635,8 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
          // m_sessionOptions.m_filter.excluded.insert(MFn::kCamera);
          // Update light linking info
          // FIXME: use a translator for light linker node(s)
-         status = UpdateLightLinks();
-         status = ExportScene();
+         status = ExportLights();
+         status = ExportDag();
       }
    }
    else
@@ -698,37 +693,59 @@ MStatus CArnoldSession::Export(MSelectionList* selected)
 //
 // @return              MS::kSuccess / MS::kFailure is returned in case of failure.
 //
-MStatus CArnoldSession::ExportCameras()
+MStatus CArnoldSession::ExportCameras(MSelectionList* selected)
 {
    MStatus status = MStatus::kSuccess;
-   MDagPath path;
-   MItDag   dagIterCameras(MItDag::kDepthFirst, MFn::kCamera);
 
-   // First we export all cameras
-   // We do not reset the iterator to avoid getting kWorld
-   for (; (!dagIterCameras.isDone()); dagIterCameras.next())
+   // If we got a selection list iterate it and pick cameras
+   if (NULL != selected)
    {
-      if (dagIterCameras.getPath(path))
+      MItSelectionList it(*selected, MFn::kInvalid, &status);
+      MDagPath path;
+      for (it.reset(); !it.isDone(); it.next())
       {
-         // Only check for cameras being visible, not templated and in render layer
-         // FIXME: does a camera need to be visible to render actually in Maya?
-         /*
-         MFnDagNode node(path.node());
-         MString name = node.name();
-         if (m_sessionOptions.m_filter.notinlayer == true && !IsInRenderLayer(path))
-            continue;
-         if (m_sessionOptions.m_filter.templated == true && IsTemplatedPath(path))
-            continue;
-         if (m_sessionOptions.m_filter.hidden == true && !IsVisiblePath(path))
-            continue;
-         */
-         if (ExportDagPath(path) == NULL)
-            status = MStatus::kFailure;
+         // Silently skip non dag and non camera items in selection
+         if (it.getDagPath(path) == MStatus::kSuccess)
+         {
+            if (path.node().hasFn(MFn::kCamera))
+            {
+               if (ExportDagPath(path) == NULL) status = MStatus::kFailure;
+            }
+         }
       }
-      else
+   }
+   else
+   {
+      // No selection we need all cameras in scene
+      MDagPath path;
+      MItDag   dagIterCameras(MItDag::kDepthFirst, MFn::kCamera);
+
+      // First we export all cameras
+      // We do not reset the iterator to avoid getting kWorld
+      for (; (!dagIterCameras.isDone()); dagIterCameras.next())
       {
-         AiMsgError("[mtoa] Could not get path for Maya cameras DAG iterator.");
-         status = MS::kFailure;
+         if (dagIterCameras.getPath(path))
+         {
+            // Only check for cameras being visible, not templated and in render layer
+            // FIXME: does a camera need to be visible to render actually in Maya?
+            /*
+            MFnDagNode node(path.node());
+            MString name = node.name();
+            if (m_sessionOptions.m_filter.notinlayer == true && !IsInRenderLayer(path))
+               continue;
+            if (m_sessionOptions.m_filter.templated == true && IsTemplatedPath(path))
+               continue;
+            if (m_sessionOptions.m_filter.hidden == true && !IsVisiblePath(path))
+               continue;
+            */
+            if (ExportDagPath(path) == NULL)
+               status = MStatus::kFailure;
+         }
+         else
+         {
+            AiMsgError("[mtoa] Could not get path for Maya cameras DAG iterator.");
+            status = MS::kFailure;
+         }
       }
    }
 
@@ -739,48 +756,42 @@ MStatus CArnoldSession::ExportCameras()
 //
 // @return              MS::kSuccess / MS::kFailure is returned in case of failure.
 //
-MStatus CArnoldSession::ExportLights()
+MStatus CArnoldSession::ExportLights(MSelectionList* selected)
 {
    MStatus status = MStatus::kSuccess;
-   MDagPath path;
-   MItDag   dagIterLights(MItDag::kDepthFirst, MFn::kLight);
 
-   // First we export all lights
-   // We do not reset the iterator to avoid getting kWorld
-   unsigned int mask = GetExportFilter();
-   for (; (!dagIterLights.isDone()); dagIterLights.next())
+   // If we got a selection list iterate it and pick lights
+   if (NULL != selected)
    {
-      if (dagIterLights.getPath(path))
+      MItSelectionList it(*selected, MFn::kInvalid, &status);
+      MDagPath path;
+      MObject node;
+      for (it.reset(); !it.isDone(); it.next())
       {
-         // Only check for lights being visible, not templated and in render layer
-         // FIXME: does a light need to be in layer to render actually in Maya?
-         MFnDagNode node(path.node());
-         MString name = node.name();
-         if ((mask & MTOA_FILTER_LAYER) && !IsInRenderLayer(path))
-            continue;
-         if ((mask & MTOA_FILTER_TEMPLATED) && IsTemplatedPath(path))
-            continue;
-         if ((mask & MTOA_FILTER_HIDDEN) && !IsVisiblePath(path))
-            continue;
-         if (ExportDagPath(path) == NULL)
-            status = MStatus::kFailure;
-      }
-      else
-      {
-         AiMsgError("[mtoa] Could not get path for Maya lights DAG iterator.");
-         status = MS::kFailure;
+         // Silently skip non dag and non light items in selection
+         if (it.getDagPath(path) == MStatus::kSuccess)
+         {
+            node = path.node();
+            if (node.hasFn(MFn::kLight) || CMayaScene::IsArnoldLight(node))
+            {
+               if (ExportDagPath(path) == NULL) status = MStatus::kFailure;
+            }
+         }
       }
    }
-
-   // Above will not catch plugin lights, 
-   MFnDependencyNode depFn;
-   MString classification;
-   MItDag dagIterPlugin(MItDag::kDepthFirst, MFn::kPluginLocatorNode);
-   for (; (!dagIterPlugin.isDone()); dagIterPlugin.next())
+   else
    {
-      if (CMayaScene::IsArnoldLight(dagIterPlugin.currentItem()))
+      // No selection we need all lights in scene
+
+      MDagPath path;
+      MItDag   dagIterLights(MItDag::kDepthFirst, MFn::kLight, &status);
+
+      // First we export all lights
+      // We do not reset the iterator to avoid getting kWorld
+      unsigned int mask = GetExportFilterMask();
+      for (; (!dagIterLights.isDone()); dagIterLights.next())
       {
-         if (dagIterPlugin.getPath(path))
+         if (dagIterLights.getPath(path))
          {
             // Only check for lights being visible, not templated and in render layer
             // FIXME: does a light need to be in layer to render actually in Maya?
@@ -797,91 +808,139 @@ MStatus CArnoldSession::ExportLights()
          }
          else
          {
-            AiMsgError("[mtoa] Could not get path for Arnold plugin lights DAG iterator.");
+            AiMsgError("[mtoa] Could not get path for Maya lights DAG iterator.");
             status = MS::kFailure;
+         }
+      }
+
+      // Above will not catch plugin lights,
+      MString           classification;
+      MItDag            dagIterPlugin(MItDag::kDepthFirst, MFn::kPluginLocatorNode, &status);
+      for (; (!dagIterPlugin.isDone()); dagIterPlugin.next())
+      {
+         if (CMayaScene::IsArnoldLight(dagIterPlugin.currentItem()))
+         {
+            if (dagIterPlugin.getPath(path))
+            {
+               // Only check for lights being visible, not templated and in render layer
+               // FIXME: does a light need to be in layer to render actually in Maya?
+               MFnDagNode node(path.node());
+               MString name = node.name();
+               if ((mask & MTOA_FILTER_LAYER) && !IsInRenderLayer(path))
+                  continue;
+               if ((mask & MTOA_FILTER_TEMPLATED) && IsTemplatedPath(path))
+                  continue;
+               if ((mask & MTOA_FILTER_HIDDEN) && !IsVisiblePath(path))
+                  continue;
+               if (ExportDagPath(path) == NULL)
+                  status = MStatus::kFailure;
+            }
+            else
+            {
+               AiMsgError("[mtoa] Could not get path for Arnold plugin lights DAG iterator.");
+               status = MS::kFailure;
+            }
+         }
+      }
+
+      // Now export light linker nodes
+      MFnDependencyNode depFn;
+      MItDependencyNodes depIterLinkers(MFn::kLightLink, &status);
+      for (; (!depIterLinkers.isDone()); depIterLinkers.next())
+      {
+         MObject node = depIterLinkers.thisNode(&status);
+         if (MStatus::kSuccess == status)
+         {
+            depFn.setObject(node);
+            MPlug plug = depFn.findPlug("message");
+            ExportNode(plug);
+         }
+         else
+         {
+            AiMsgError("[mtoa] Could not get node for Arnold plugin lights DAG iterator.");
          }
       }
    }
 
+   // UpdateLightLinks refreshes global light linking info
+   MStatus updateSuccess = UpdateLightLinks();
+
    return status;
 }
 
-// Export the full maya scene
+// Export the full maya scene or the passed selection
 //
 // @return              MS::kSuccess / MS::kFailure is returned in case of failure.
 //
-MStatus CArnoldSession::ExportScene()
+MStatus CArnoldSession::ExportDag(MSelectionList* selected)
 {
    MStatus status = MStatus::kSuccess;
-   MDagPath path;
 
-   DagFiltered filtered;
-   MItDag   dagIterator(MItDag::kDepthFirst, MFn::kInvalid);
-   for (dagIterator.reset(); (!dagIterator.isDone()); dagIterator.next())
+   // If we got a selection list iterate it and export
+   if (NULL != selected)
    {
-      if (dagIterator.getPath(path))
+      MItSelectionList it(*selected, MFn::kInvalid, &status);
+      MDagPath path;
+      MObject node;
+      for (it.reset(); !it.isDone(); it.next())
       {
-         if (path.apiType() == MFn::kWorld)
-            continue;
-         MObject obj = path.node();
-         MFnDagNode node(obj);
-         MString name = node.name();
-         filtered = FilteredStatus(path);
-         if (filtered != MTOA_EXPORT_ACCEPTED)
+         if (it.getDagPath(path) == MStatus::kSuccess)
          {
-            // Ignore node for MTOA_EXPORT_REJECTED_NODE or whole branch
-            // for MTOA_EXPORT_REJECTED_BRANCH
-            if (filtered == MTOA_EXPORT_REJECTED_BRANCH)
-               dagIterator.prune();
-            continue;
+            if (ExportDagPath(path) == NULL)
+               status = MStatus::kFailure;
          }
-         ExportDagPath(path, &status);
+         else
+         {
+            status = MStatus::kFailure;
+         }
       }
-      else
+   }
+   else
+   {
+      // No selection export whole scene
+
+      MDagPath path;
+
+      DagFiltered filtered;
+      MItDag   dagIterator(MItDag::kDepthFirst, MFn::kInvalid);
+      for (dagIterator.reset(); (!dagIterator.isDone()); dagIterator.next())
       {
-         AiMsgError("[mtoa] Could not get path for Maya DAG iterator.");
-         status = MStatus::kInvalidParameter;
+         if (dagIterator.getPath(path))
+         {
+            if (path.apiType() == MFn::kWorld)
+               continue;
+            MObject obj = path.node();
+            MFnDagNode node(obj);
+            MString name = node.name();
+            filtered = FilteredStatus(path);
+            if (filtered != MTOA_EXPORT_ACCEPTED)
+            {
+               // Ignore node for MTOA_EXPORT_REJECTED_NODE or whole branch
+               // for MTOA_EXPORT_REJECTED_BRANCH
+               if (filtered == MTOA_EXPORT_REJECTED_BRANCH)
+                  dagIterator.prune();
+               continue;
+            }
+            ExportDagPath(path, &status);
+         }
+         else
+         {
+            AiMsgError("[mtoa] Could not get path for Maya DAG iterator.");
+            status = MStatus::kInvalidParameter;
+         }
       }
    }
    
    return status;
 }
 
-// Get the selection from maya and export it with the IterSelection methode
+
+// Filter and expand the selection, and all its hirarchy down stream.
+// Also flattens sets in selection.
 //
 // @return              MS::kSuccess / MS::kFailure is returned in case of failure.
 //
-MStatus CArnoldSession::ExportSelection(MSelectionList& selected)
-{
-   MStatus status = MStatus::kSuccess;
-
-   // Get a expanded, flattened, filtered list of every dag
-   // paths we need to export
-   status = IterSelection(selected);
-   MItSelectionList it(selected, MFn::kInvalid, &status);
-   MDagPath path;
-   for (it.reset(); !it.isDone(); it.next())
-   {
-      if (it.getDagPath(path) == MStatus::kSuccess)
-      {
-         if (ExportDagPath(path) == NULL)
-            status = MStatus::kFailure;
-      }
-      else
-      {
-         status = MStatus::kFailure;
-      }
-   }
-   selected.clear();
-
-   return status;
-}
-
-// Loop and export the selection, and all its hirarchy down stream
-//
-// @return              MS::kSuccess / MS::kFailure is returned in case of failure.
-//
-MStatus CArnoldSession::IterSelection(MSelectionList& selected)
+MStatus CArnoldSession::FlattenSelection(MSelectionList* selected)
 {
    MStatus status;
 
@@ -891,8 +950,8 @@ MStatus CArnoldSession::IterSelection(MSelectionList& selected)
    MFnSet set;
    MSelectionList children;
    // loop users selection
-   MItSelectionList it(selected, MFn::kInvalid, &status);
-   selected.clear();
+   MItSelectionList it(*selected, MFn::kInvalid, &status);
+   selected->clear();
    for (it.reset(); !it.isDone(); it.next())
    {
       if (it.getDagPath(path) == MStatus::kSuccess)
@@ -909,11 +968,11 @@ MStatus CArnoldSession::IterSelection(MSelectionList& selected)
                children.add(path.fullPathName());
                dgNode.setObject(path.node());
                if (!dgNode.isIntermediateObject())
-                  selected.add (path, MObject::kNullObj, true);
+                  selected->add (path, MObject::kNullObj, true);
                path.pop(1);
-               if (MStatus::kSuccess != IterSelection(children))
+               if (MStatus::kSuccess != FlattenSelection(&children))
                   status = MStatus::kFailure;
-               selected.merge(children);
+               selected->merge(children);
             }
          }
       }
@@ -928,9 +987,9 @@ MStatus CArnoldSession::IterSelection(MSelectionList& selected)
             // get set members, we don't set flatten to true in case we'd want a
             // test on each set recursively
             set.getMembers(children, false);
-            if (MStatus::kSuccess != IterSelection(children))
+            if (MStatus::kSuccess != FlattenSelection(&children))
                status = MStatus::kFailure;
-            selected.merge(children);
+            selected->merge(children);
          }
          else
          {
@@ -947,10 +1006,11 @@ MStatus CArnoldSession::IterSelection(MSelectionList& selected)
    return status;
 }
 
-DagFiltered CArnoldSession::FilteredStatus(MDagPath path)
+DagFiltered CArnoldSession::FilteredStatus(const MDagPath &path, const CMayaExportFilter *filter) const
 {
+   if (NULL == filter) filter = &GetExportFilter();
    // Tests that cause the whole branch to be pruned
-   unsigned int mask = GetExportFilter();
+   unsigned int mask = filter->state_mask;
    if ((mask & MTOA_FILTER_TEMPLATED) && IsTemplatedPath(path))
       return MTOA_EXPORT_REJECTED_BRANCH;
    if ((mask & MTOA_FILTER_HIDDEN) && !IsVisiblePath(path))
@@ -963,7 +1023,7 @@ DagFiltered CArnoldSession::FilteredStatus(MDagPath path)
    MObject obj = path.node();
    MFnDagNode node(obj);
    MString name = node.name();
-   MFnTypeSet::const_iterator sit(m_sessionOptions.m_filter.excluded.begin()), send(m_sessionOptions.m_filter.excluded.end());
+   MFnTypeSet::const_iterator sit(filter->excluded.begin()), send(filter->excluded.end());
    for(; sit!=send;++sit)
       if (obj.hasFn(*sit))
          return MTOA_EXPORT_REJECTED_NODE;
@@ -1068,13 +1128,12 @@ void CArnoldSession::DoUpdate()
          }
       }
    }
-
-   // FIXME: this will be unncessary when we have a real light link node translater able
-   // to trigger updates on light linking changes
-   if (newDag)
+   // FIXME: n
+   if (newDag || IsLightLinksDirty())
    {
       UpdateLightLinks();
    }
+
    // Need something finer to determine if the changes have an influence
    if (aDag)
    {
