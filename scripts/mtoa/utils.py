@@ -5,6 +5,7 @@ import pymel.core as pm
 import inspect
 import re
 import os
+import shlex
 
 def even(num):
     return bool(num % 2)
@@ -172,7 +173,7 @@ def expandFileTokens(path, tokens, customOnly=False):
         'filename.jpg'
     """
     if isinstance(tokens, basestring):
-        tokens = dict([pair.split('=') for pair in tokens.split()])
+        tokens = dict([pair.split('=') for pair in shlex.split(tokens)])
     if customOnly:
         newTokens = tokens.copy()
         for tok in ['Scene', 'RenderLayer', 'Camera', 'Extension', 'Version']:
@@ -230,7 +231,7 @@ def getFileName(pathType, tokens, path='<Scene>', frame=None, fileType='images',
     """
     # convert tokens to dictionary
     if isinstance(tokens, basestring):
-        tokens = dict([pair.split('=') for pair in tokens.split()])
+        tokens = dict([pair.split('=') for pair in shlex.split(tokens)])
 
     if '<Scene>' in path and 'Scene' not in tokens:
         sceneName = pm.sceneName().namebase

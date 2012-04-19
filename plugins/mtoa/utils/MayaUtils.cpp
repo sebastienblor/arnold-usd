@@ -26,7 +26,8 @@ MString getFileName(MCommonRenderSettingsData::MpathType pathType,
    if (fileFormat.numChars())
       cmd += "Extension=" + fileFormat + " ";
    if (sceneFileName.numChars())
-      cmd += "Scene=" + sceneFileName + "', ";
+      cmd += "Scene=\"" + sceneFileName + "\"";
+   cmd += "', ";
    cmd += MString("frame=") + frameNumber + ", ";
    if (path.numChars())
       cmd += "path='" + path + "', ";
