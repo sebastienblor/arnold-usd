@@ -117,6 +117,8 @@ public:
    inline double GetMotionByFrame() const {return m_sessionOptions.GetMotionByFrame(); }
 
    // Light linker
+   inline void FlagLightLinksDirty(bool flag=true) { m_lightLinksDirty = flag; }
+   inline bool IsLightLinksDirty() const { return m_lightLinksDirty; }
    MStatus UpdateLightLinks();
    inline MLightLinks* MayaLightLinks() { return &m_lightLinks; }
    inline unsigned int MayaLightCount() const { return m_numLights; }
@@ -164,6 +166,7 @@ private:
 
    CArnoldSession()
       :  m_sessionOptions(CSessionOptions())
+      ,  m_lightLinksDirty(false)
       ,  m_numLights(0)
       ,  m_lightLinks(MLightLinks())
       ,  m_isExportingMotion(false)
@@ -206,6 +209,7 @@ private:
 
    CSessionOptions m_sessionOptions;
 
+   bool m_lightLinksDirty;
    unsigned int m_numLights;
    MLightLinks m_lightLinks;
 

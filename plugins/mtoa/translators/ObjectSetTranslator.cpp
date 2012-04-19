@@ -1,6 +1,8 @@
 #include "ObjectSetTranslator.h"
 #include <maya/MFnSet.h>
 #include <maya/MDagPathArray.h>
+#include <maya/MObjectSetMessage.h>
+#include <maya/MItDependencyGraph.h>
 
 void CObjectSetTranslator::NodeInitializer(CAbTranslator context)
 {
@@ -25,6 +27,7 @@ void CObjectSetTranslator::Export(AtNode *set)
 {
    AiMsgDebug("[mtoa.translator]  %s: Maya node %s(%s).",
                GetTranslatorName().asChar(), GetMayaNodeName().asChar(), GetMayaNodeTypeName().asChar());
+
 }
 
 /// Sets have extra specific callback addAttributeChangedCallback
@@ -50,12 +53,20 @@ void CObjectSetTranslator::AddUpdateCallbacks()
                                                    &status);
    if (MS::kSuccess == status) ManageUpdateCallback(id);
 
-   // Set members change
+   // Set members change (with precise info of what was added or removed)
    id = MNodeMessage::addAttributeChangedCallback(object,
                                                   AttributeChangedCallback,
                                                   this,
                                                   &status);
    if (MS::kSuccess == status) ManageUpdateCallback(id);
+
+   // Set members have changed
+   id = MObjectSetMessage::addSetMembersModifiedCallback(object,
+                                                         SetMembersChangedCallback,
+                                                         this,
+                                                         &status);
+   if (MS::kSuccess == status) ManageUpdateCallback(id);
+
 }
 
 void CObjectSetTranslator::NodeDirtyCallback(MObject &node, MPlug &plug, void *clientData)
@@ -65,7 +76,7 @@ void CObjectSetTranslator::NodeDirtyCallback(MObject &node, MPlug &plug, void *c
    AiMsgDebug("[mtoa.translator.ipr] %-30s | NodeDirtyCallback: plug that fired: %s, client data: %p.",
                nodeName.asChar(), plugName.asChar(), clientData);
 
-   CNodeTranslator * translator = static_cast< CNodeTranslator* >(clientData);
+   CObjectSetTranslator * translator = static_cast< CObjectSetTranslator* >(clientData);
    if (translator != NULL)
    {
       if ((plug.partialName()=="dsm") || (plug.partialName()=="dnsm"))
@@ -110,10 +121,11 @@ void CObjectSetTranslator::AttributeChangedCallback(MNodeMessage::AttributeMessa
                && (msg & MNodeMessage::kOtherPlugSet)
                && translator->FindMayaPlug("aiOverride").asBool())
          {
+            MString pname = plug.partialName();
             CNodeTranslator* tr;
             std::vector<CNodeTranslator*> translators;
             std::vector<CNodeTranslator*>::iterator it;
-            if (plug.partialName() == "dsm")
+            if (pname == "dsm")
             {
                // dag node
                MObject object(otherPlug.node());
@@ -161,7 +173,7 @@ void CObjectSetTranslator::AttributeChangedCallback(MNodeMessage::AttributeMessa
                   }
                }
             }
-            else if (plug.partialName() == "dnsm")
+            else if (pname == "dnsm")
             {
                // dependency node
                CNodeAttrHandle handle(otherPlug.node());
@@ -203,6 +215,84 @@ void CObjectSetTranslator::AttributeChangedCallback(MNodeMessage::AttributeMessa
    {
       // No translator in client data
       AiMsgError("[mtoa.translator.ipr] AttributeChangedCallback: no translator in client data: %p.", clientData);
+   }
+}
+
+/// For sets that are used by light linkers we must know it to trigger an update on the light linker
+void CObjectSetTranslator::SetMembersChangedCallback(MObject &node, void *clientData)
+{
+   MStatus stat;
+   MString nodeName = MFnDependencyNode(node).name();
+   AiMsgDebug("[mtoa.translator.ipr] %-30s | SetMembersChangedCallback: client data: %p.",
+               nodeName.asChar(), clientData);
+
+   CObjectSetTranslator * translator = static_cast< CObjectSetTranslator* >(clientData);
+   if (translator != NULL)
+   {
+      // Should be a translator for that node
+      if (node != translator->GetMayaObject())
+      {
+         MString translatedNodeName = translator->GetMayaNodeName();
+         AiMsgError("[mtoa.translator.ipr] %-30s | SetMembersChangedCallback: translator in client data is not translating the node that triggered the callback.",
+                     nodeName.asChar(), translatedNodeName.asChar());
+         return;
+      }
+      MFnSet fnSet(node);
+      MPlug msg = fnSet.findPlug("message");
+      MItDependencyGraph iter(msg,
+                              MFn::kLightLink,
+                              MItDependencyGraph::kDownstream,
+                              MItDependencyGraph::kDepthFirst,
+                                 MItDependencyGraph::kPlugLevel,
+                                 &stat);
+      for ( ; !iter.isDone(); iter.next() ) {
+         MPlug plug = iter.thisPlug(&stat);
+         MObject linker = plug.node();
+         MString linkerName = MFnDependencyNode(linker).name();
+         MString plugName = plug.name();
+         AiMsgDebug("[mtoa.translator.ipr] %-30s | SetMembersChangedCallback: found connected light linker node %s downstream.",
+                     nodeName.asChar(), plugName.asChar());
+         MStringArray plugNameParts;
+         MString plugShortName = plug.partialName();
+         plugShortName.split('.', plugNameParts);
+         MString leafAttrName = plugNameParts[plugNameParts.length()-1];
+         if ((leafAttrName == "olnk") || (leafAttrName == "solk"))
+         {
+            AiMsgDebug("[mtoa.translator.ipr] %-30s | SetMembersChangedCallback: set of objects for the light linker %s has changed, updating the objects.",
+                        nodeName.asChar(), linkerName.asChar());
+            // If we got a connected light linker downstream, we need to update the set
+            // FIXME: we could probably only update the added / removed node if we knew them
+            translator->RequestUpdate(clientData);
+         }
+         else if ((leafAttrName == "llnk") || (leafAttrName == "sllk"))
+         {
+            CNodeAttrHandle handle(linker);
+            // If we changed lights the whole list of objects in the light linker need an update
+            AiMsgDebug("[mtoa.translator.ipr] %-30s | SetMembersChangedCallback: set of lights for the light linker %s has changed, requesting full update on linker.",
+                        nodeName.asChar(), linkerName.asChar());
+            CNodeTranslator* tr;
+            std::vector<CNodeTranslator*> translators;
+            std::vector<CNodeTranslator*>::iterator it;
+            if (translator->m_session->GetActiveTranslators(handle, translators) > 0)
+            {
+               for (it=translators.begin(); it!=translators.end(); it++)
+               {
+                  tr = static_cast< CNodeTranslator* >(*it);
+                  tr->RequestUpdate((void *)tr);
+               }
+            }
+         }
+         else
+         {
+            AiMsgDebug("[mtoa.translator.ipr] %-30s | SetMembersChangedCallback: connection %s is irrelevant and ignored.",
+                        nodeName.asChar(), plugName.asChar());
+         }
+      }
+   }
+   else
+   {
+      AiMsgWarning("[mtoa.translator.ipr] %-30s | SetMembersChangedCallback: no translator in client data: %p.",
+                     nodeName.asChar(), clientData);
    }
 }
 
@@ -302,3 +392,4 @@ void CObjectSetTranslator::RequestUpdate(void *clientData)
       m_session->RequestUpdate();
    }
 }
+

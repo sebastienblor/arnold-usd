@@ -466,7 +466,7 @@ MStatus CArnoldSession::UpdateLightLinks()
       }
       else
       {
-         AiMsgError("[mtoa] Failed to pare light linking information for %i lights", m_numLights);
+         AiMsgError("[mtoa] Failed to parse light linking information for %i lights", m_numLights);
       }
    }
    else
@@ -474,6 +474,7 @@ MStatus CArnoldSession::UpdateLightLinks()
       AiMsgWarning("[mtoa] No light in scene");
    }
 
+   FlagLightLinksDirty(false);
    return status;
 }
 
@@ -1127,11 +1128,12 @@ void CArnoldSession::DoUpdate()
          }
       }
    }
-
-   if (newDag)
+   // FIXME: n
+   if (newDag || IsLightLinksDirty())
    {
       UpdateLightLinks();
    }
+
    // Need something finer to determine if the changes have an influence
    if (aDag)
    {

@@ -1,5 +1,5 @@
 #include "LightLinkerTranslator.h"
-#include <maya/MFnSet.h>
+#include <maya/MPlugArray.h>
 #include <maya/MDagPathArray.h>
 
 
@@ -12,10 +12,10 @@ AtNode* CLightLinkerTranslator::CreateArnoldNodes()
 
 void CLightLinkerTranslator::Export(AtNode *set)
 {
-   AiMsgDebug("[mtoa.translator]  %s: Maya node %s(%s).",
+   AiMsgDebug("[mtoa.translator]  %s: Maya node %s(%s), exporting and updating light links lookup.",
                GetTranslatorName().asChar(), GetMayaNodeName().asChar(), GetMayaNodeTypeName().asChar());
-   // FIXME: flag light link as requesting update instead
-   // m_session->UpdateLightLinks();
+   // flag light link as requesting update
+   m_session->FlagLightLinksDirty(true);
 }
 
 /// Sets have extra specific callback addAttributeChangedCallback
@@ -56,7 +56,7 @@ void CLightLinkerTranslator::NodeDirtyCallback(MObject &node, MPlug &plug, void 
    AiMsgDebug("[mtoa.translator.ipr] %-30s | NodeDirtyCallback: plug that fired: %s, client data: %p.",
                nodeName.asChar(), plugName.asChar(), clientData);
 
-   CNodeTranslator * translator = static_cast< CNodeTranslator* >(clientData);
+   CLightLinkerTranslator * translator = static_cast< CLightLinkerTranslator* >(clientData);
    if (translator != NULL)
    {
       AiMsgDebug("[mtoa.translator.ipr] %-30s | NodeDirtyCallback: client data is translator %s, providing Arnold %s(%s): %p",
@@ -81,42 +81,79 @@ void CLightLinkerTranslator::AttributeChangedCallback(MNodeMessage::AttributeMes
       AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: AttributeChangedCallback %s to or from %s, attributeMessage %i, clientData %p.",
                  translator->GetMayaNodeName().asChar(), translator->GetTranslatorName().asChar(),
                  plug.name().asChar(), otherPlug.name().asChar(), msg, clientData);
-      // NOTE: no need for full refresh of set
-      // translator->RequestUpdate(clientData);
-      // Only refresh new member or removed member
+      // No need for full update when an object is added / removed from the linker
+      // But needs a full update when a light is
       if (msg & (MNodeMessage::kConnectionMade | MNodeMessage::kConnectionBroken))
       {
-         // If this set is active (the set aiOverride is true) but also if any set containing this set
-         // is active means we need an update on membership change
          if ((msg & MNodeMessage::kIncomingDirection)
                && (msg & MNodeMessage::kOtherPlugSet))
          {
+            MStringArray plugNameParts;
+            MString plugName = plug.partialName();
+            plugName.split('.', plugNameParts);
+            MString leafAttrName = plugNameParts[plugNameParts.length()-1];
             CNodeTranslator* tr;
             std::vector<CNodeTranslator*> translators;
             std::vector<CNodeTranslator*>::iterator it;
-            if (plug.partialName() == "dsm")
+            if ((leafAttrName == "olnk") || (leafAttrName == "solk"))
             {
-               // dag node
+               // An object as been added or removed from set, partial update.
                MObject object(otherPlug.node());
-               MFnDagNode fnDag(object);
-               unsigned int instanceNumber = -1;
-               instanceNumber = otherPlug.logicalIndex();
-               MDagPath path;
-               if (instanceNumber == -1)
+               // Can be a dag node or not (if not probably a set or shading set)
+               if (object.hasFn(MFn::kDagNode))
                {
-                  fnDag.getPath(path);
-               }
+                  MFnDagNode fnDag(object);
+                  unsigned int instanceNumber = -1;
+                  instanceNumber = otherPlug.logicalIndex();
+                  MDagPath path;
+                  if (instanceNumber == -1)
+                  {
+                     fnDag.getPath(path);
+                  }
+                  else
+                  {
+                     MDagPathArray allPaths;
+                     fnDag.getAllPaths(allPaths);
+                     path = allPaths[instanceNumber];
+                  }
+                  if (path.isValid())
+                  {
+                     CNodeAttrHandle handle(path);
+                     AiMsgDebug("[mtoa.translator.ipr] %-30s | Looking for processed translators for %s.",
+                         translator->GetMayaNodeName().asChar(), path.partialPathName().asChar());
+                     if (translator->m_session->GetActiveTranslators(handle, translators) > 0)
+                     {
+                        for (it=translators.begin(); it!=translators.end(); it++)
+                        {
+                           tr = static_cast< CNodeTranslator* >(*it);
+                           tr->RequestUpdate((void *)tr);
+                        }
+                     }
+                  }
+                  // Check also for shapes
+                  if (MStatus::kSuccess == path.extendToShape())
+                  {
+                     CNodeAttrHandle handle(path);
+                     AiMsgDebug("[mtoa.translator.ipr] %-30s | Looking for processed translators for %s.",
+                         translator->GetMayaNodeName().asChar(), path.partialPathName().asChar());
+                     if (translator->m_session->GetActiveTranslators(handle, translators) > 0)
+                     {
+                        for (it=translators.begin(); it!=translators.end(); it++)
+                        {
+                           tr = static_cast< CNodeTranslator* >(*it);
+                           tr->RequestUpdate((void *)tr);
+                        }
+                     }
+                  }
+               } // if (object.hasFn(MFn::kDagNode))
                else
                {
-                  MDagPathArray allPaths;
-                  fnDag.getAllPaths(allPaths);
-                  path = allPaths[instanceNumber];
-               }
-               if (path.isValid())
-               {
-                  CNodeAttrHandle handle(path);
+                  // We don't need to explicitely request an update for all set members since we got
+                  // a translator for sets
+                  CNodeAttrHandle handle(object);
+                  MString nodeName = MFnDependencyNode(handle.object()).name();
                   AiMsgDebug("[mtoa.translator.ipr] %-30s | Looking for processed translators for %s.",
-                      translator->GetMayaNodeName().asChar(), path.partialPathName().asChar());
+                      translator->GetMayaNodeName().asChar(), nodeName.asChar());
                   if (translator->m_session->GetActiveTranslators(handle, translators) > 0)
                   {
                      for (it=translators.begin(); it!=translators.end(); it++)
@@ -126,30 +163,31 @@ void CLightLinkerTranslator::AttributeChangedCallback(MNodeMessage::AttributeMes
                      }
                   }
                }
-               // Check also for shapes
-               if (MStatus::kSuccess == path.extendToShape())
-               {
-                  CNodeAttrHandle handle(path);
-                  AiMsgDebug("[mtoa.translator.ipr] %-30s | Looking for processed translators for %s.",
-                      translator->GetMayaNodeName().asChar(), path.partialPathName().asChar());
-                  if (translator->m_session->GetActiveTranslators(handle, translators) > 0)
-                  {
-                     for (it=translators.begin(); it!=translators.end(); it++)
-                     {
-                        tr = static_cast< CNodeTranslator* >(*it);
-                        tr->RequestUpdate((void *)tr);
-                     }
-                  }
-               }
+            } // if ((leafAttrName == "olnk") || (leafAttrName == "solk"))
+            else if ((leafAttrName == "llnk") || (leafAttrName == "sllk"))
+            {
+               // An light as been added or removed from set, partial update.
+               // FIXME: When a light goes from illuminate by default to being linked
+               // it's actually all dag nodes in scene that might be affected
+               translator->RequestUpdate(clientData);
+            } // else if ((leafAttrName == "llnk") || (leafAttrName == "sllk"))
+            else
+            {
+               AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: Connection made or broken on %s->%s is ignored.",
+                          translator->GetMayaNodeName().asChar(), translator->GetTranslatorName().asChar(),
+                          otherPlug.name().asChar(), plug.name().asChar());
             }
+         }
+         else
+         {
+            AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: Not an incoming connection on %s, ignored.",
+                          translator->GetMayaNodeName().asChar(), translator->GetTranslatorName().asChar(), plug.name().asChar());
          }
       }
       else
       {
-         AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: Ignored on %s.",
+         AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: Not a made or broken on %s, ignored.",
                     translator->GetMayaNodeName().asChar(), translator->GetTranslatorName().asChar(), plug.name().asChar());
-         // Should not be necessary, should have triggered nodeDirty callback
-         // NodeDirtyCallback(plug.node(), plug, clientData);
       }
    }
    else
@@ -159,15 +197,30 @@ void CLightLinkerTranslator::AttributeChangedCallback(MNodeMessage::AttributeMes
    }
 }
 
-/// Update a set means update all members
+/// Update a light linker means update all member objects (not lights)
 void CLightLinkerTranslator::RequestUpdate(void *clientData)
 {
+   MStatus stat;
+
    // Update means all members should be updated
-   AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: RequestUpdate for set updates all light linker members.",
+   AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: RequestUpdate for light linker updates all objects in light linker.",
               GetMayaNodeName().asChar(), GetTranslatorName().asChar());
-   MFnSet fnSet(GetMayaObject());
+   MFnDependencyNode fnDep(GetMayaObject());
+
    MSelectionList list;
-   fnSet.getMembers(list, false);
+   if ((GetLightLinkMode() != MTOA_LIGHTLINK_NONE) || (GetShadowLinkMode() == MTOA_SHADOWLINK_LIGHT))
+   {
+      MPlug link = fnDep.findPlug("link", true, &stat);
+      CHECK_MSTATUS(stat);
+      if (!link.isNull()) GetMembers(list, link, false, true);
+   }
+   if (GetShadowLinkMode() == MTOA_SHADOWLINK_MAYA)
+   {
+      MPlug link = fnDep.findPlug("shadowLink", true, &stat);
+      CHECK_MSTATUS(stat);
+      if (!link.isNull()) GetMembers(list, link, false, true);
+   }
+   // TODO: No support for ignore / shadow ignore currently
    MObject element;
    MDagPath path;
 
@@ -210,26 +263,12 @@ void CLightLinkerTranslator::RequestUpdate(void *clientData)
                   tr->RequestUpdate((void *)tr);
                }
             }
-            // Check also for shape
-            // FIXME: check for whole hierarchy?
-            if (MStatus::kSuccess == path.extendToShape())
-            {
-               CNodeAttrHandle handle(path);
-               MString pathName = path.partialPathName();
-               AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: Looking for processed translators for %s.",
-                           translator->GetMayaNodeName().asChar(), translator->GetTranslatorName().asChar(), pathName.asChar());
-               if (m_session->GetActiveTranslators(handle, translators) > 0)
-               {
-                  for (it=translators.begin(); it!=translators.end(); it++)
-                  {
-                     tr = static_cast< CDagTranslator* >(*it);
-                     tr->RequestUpdate((void *)tr);
-                  }
-               }
-            }
+            // No need to check for shape, it's always the shape that Maya connects to light linker(s)
+            // NOTE: It's preferable to group the objects in sets and connect the sets though
          }
          else if (MStatus::kSuccess == list.getDependNode(i, element))
          {
+            // Should be a set of objects logically
             CNodeAttrHandle handle(element);
             MString nodeName = MFnDependencyNode(handle.object()).name().asChar();
             AiMsgDebug("[mtoa.translator.ipr] %-30s | %s: Looking for processed translators for %s.%s",
@@ -254,4 +293,34 @@ void CLightLinkerTranslator::RequestUpdate(void *clientData)
       // Pass the update request to the export session
       m_session->RequestUpdate();
    }
+
+}
+
+unsigned int CLightLinkerTranslator::GetMembers(MSelectionList &list, const MPlug &plug, bool doLights, bool doObjects)
+{
+   MStatus stat;
+   unsigned int count = list.length();
+
+   MPlugArray inConnections;
+   MPlug elt, child, msg;
+   unsigned int cs = static_cast<unsigned int>(!doLights);
+   unsigned int ce = static_cast<unsigned int>(doLights + 2 * doObjects);
+   unsigned int ne = plug.numElements();
+   for (unsigned int i=0; i<ne; i++)
+   {
+      elt = plug.elementByPhysicalIndex(i);
+      for (unsigned int c=cs; c<ce; c++)
+      {
+         child = elt.child(c);
+         child.connectedTo(inConnections, true, false, &stat);
+         unsigned int nc = inConnections.length();
+         for (unsigned int j=0; j<nc; j++)
+         {
+            stat = list.add(inConnections[j].node(), true);
+            CHECK_MSTATUS(stat);
+         }
+      }
+   }
+
+   return (list.length() - count);
 }

@@ -11,6 +11,9 @@ public:
    virtual void Export(AtNode* shader);
    AtNode* CreateArnoldNodes();
 
+   inline const ArnoldLightLinkMode& GetLightLinkMode() const {return m_session->GetLightLinkMode();}
+   inline const ArnoldShadowLinkMode& GetShadowLinkMode() const {return m_session->GetShadowLinkMode();}
+
 protected:
    CLightLinkerTranslator() :
       CNodeTranslator()
@@ -23,6 +26,9 @@ protected:
                                         MPlug& plug, MPlug& otherPlug,
                                         void* clientData);
    virtual void RequestUpdate(void *clientData);
+
+private:
+   unsigned int GetMembers(MSelectionList &list, const MPlug &plug, bool doLights, bool doObjects);
 };
 
 
