@@ -3,8 +3,8 @@ import pymel.core as pm
 from maya.utils import executeDeferred
 from mtoa.ui.ae.utils import aeCallback, AttrControlGrp
 from mtoa.utils import prettify
+import mtoa.callbacks as callbacks
 import mtoa.core as core
-from mtoa.core import registerDefaultTranslator, getDefaultTranslator
 import arnold
 
 from collections import defaultdict
@@ -18,6 +18,37 @@ _templates = {}
 
 def getTranslators(nodeType):
     return [x[0] for x in core.listTranslators(nodeType)]
+
+#-------------------------------------------------
+# translator defaults
+#-------------------------------------------------
+
+def registerDefaultTranslator(nodeType, stringOrFunc):
+    """
+    Register the default translator for a node type. The second argument identifies the name of the
+    translator.  Pass a string if the default is always the same,
+    or a function that takes the current node and returns a string.
+
+    The default will automatically be set whenever a node of the given type is added to the scene.
+    """
+
+    global _templates
+    try:
+        inst = _templates[nodeType]
+    except KeyError:
+        # create a new subclass
+        inst = TranslatorControl(nodeType)
+        _templates[nodeType] = inst
+
+    inst.setDefaultTranslator(stringOrFunc)
+
+    # set defaults for existing nodes
+    for node in pm.ls(exactType=nodeType):
+        # this will set aiTranslator if it is not set
+        inst.getCurrentTranslator(node)
+
+    callbacks.addNodeAddedCallback(inst._doSetDefaultTranslator, nodeType)
+
 
 #-------------------------------------------------
 # AE templates
@@ -401,19 +432,39 @@ class TranslatorControl(AttributeEditorTemplate):
     each node that has registered arnold translator UIs. Manually creating a TranslatorControl is only necessary if you
     need to customize the default controller behavior.
     '''
-    def __init__(self, nodeType, label='Arnold Translator', optionMenuName=None):
+    def __init__(self, nodeType, label='Arnold Translator', controlAttr='aiTranslator', default=None, optionMenuName=None):
         super(TranslatorControl, self).__init__(nodeType)
-        self._optionMenu = optionMenuName if optionMenuName is not None else (nodeType + '_aiTranslatorOMG')
+        self._optionMenu = optionMenuName if optionMenuName is not None else (nodeType + '_' + controlAttr + "OMG")
         self._translators = None
         self._label = label
 
         # class attributes
-        self._attr = 'aiTranslator'
+        if self._attr is None:
+            self._attr = controlAttr
+        if not (default is None or isinstance(default, basestring) or callable(default)):
+            pm.warning("[mtoa] default translator must be a string or a function")
+            return
+        self._default = default
 
     #---- translator methods
 
     def nodeType(self):
         return self._nodeType
+
+    def _doSetDefaultTranslator(self, node):
+        try:
+            node.attr(self._attr).set(self.getDefaultTranslator(node))
+        except RuntimeError:
+            pm.warning("failed to set default translator for %s" % node.name())
+
+    def setDefaultTranslator(self, default):
+        self._default = default
+
+    def getDefaultTranslator(self, node):
+        if isinstance(self._default, basestring):
+            return self._default
+        elif callable(self._default):
+            return self._default(node)
 
     def getCurrentTranslator(self, nodeName):
         """
@@ -427,7 +478,7 @@ class TranslatorControl(AttributeEditorTemplate):
         translators = self.getTranslators()
         if not transName or transName not in translators:
             # set default
-            transName = getDefaultTranslator(nodeName)
+            transName = self.getDefaultTranslator(nodeName)
             if transName is None:
                 if not translators:
                     pm.warning("cannot find default translator for %s" % nodeName)
@@ -704,21 +755,22 @@ def translatorUI(nodeType, translatorName='<built-in>', baseClass=AttributeTempl
         return func
     return registerUIDecorator
 
-def createTranslatorMenu(node, label=None, nodeType=None, default=None, optionMenuName=None):
+def createTranslatorMenu(nodeAttr, label=None, nodeType=None, default=None, optionMenuName=None):
     '''
     convenience function for creating a TranslatorControl and attaching it to a UI
     '''
+    node, controlAttr = nodeAttr.split('.', 1)
     if nodeType is None:
         nodeType = pm.nodeType(node)
-    kwargs = {}
+    kwargs = {'controlAttr' : controlAttr}
     if label:
         kwargs['label'] = label
     if optionMenuName:
         kwargs['optionMenuName'] = optionMenuName
     if default:
-        registerDefaultTranslator(nodeType, default)
+        kwargs['default'] = default
     trans = TranslatorControlUI(nodeType, **kwargs)
-    trans._doSetup(node + '.aiTranslator')
+    trans._doSetup(nodeAttr)
     return trans
 
 def shapeTemplate(nodeName):
