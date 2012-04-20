@@ -368,18 +368,9 @@ void CRenderSession::DoInteractiveRender()
    // has hit escape.
    ProcessDisplayUpdateQueueWithInterupt(comp);
 
-   // Wait for the thread to clear.
-   if (m_render_thread != NULL)
-   {
-      AiThreadWait(m_render_thread);
-      AiThreadClose(m_render_thread);
-      m_render_thread = NULL;		// Until this is handled by AiThreadClose? Had issues where it tried to close an already closed thread
-   }
+   InterruptRender();
 
    comp.endComputation();
-   ClearDisplayUpdateQueue();
-   MRenderView::endRender();
-
    // DEBUG_MEMORY;
 }
 
