@@ -1,5 +1,5 @@
 #include <ai.h>
-#include <string.h>
+#include <cstring>
 // A Simple Shader
 AI_SHADER_NODE_EXPORT_METHODS(SimpleMethods);
 

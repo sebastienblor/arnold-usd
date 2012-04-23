@@ -1,5 +1,5 @@
 #include <ai.h>
-#include <cstdio>
+#include <cstring>
 
 extern AtNodeMethods* MyShader1Mtd;
 extern AtNodeMethods* MyShader2Mtd;
@@ -26,7 +26,7 @@ node_loader
       return false;
    }
 
-   sprintf(node->version, AI_VERSION);
+   strcpy(node->version, AI_VERSION);
 
    return true;
 }

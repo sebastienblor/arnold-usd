@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <string.h>
+#include <cstring>
 #include <ai.h>
 
 AI_SHADER_NODE_EXPORT_METHODS(MayaSimpleMethods);
