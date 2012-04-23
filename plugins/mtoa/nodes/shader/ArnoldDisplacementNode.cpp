@@ -54,7 +54,7 @@ MStatus CArnoldDisplacementNode::initialize()
 {
    MFnNumericAttribute  nAttr;
 
-   /*s_height = nAttr.create("disp_height", "hgt", MFnNumericData::kFloat, 1);
+   s_height = nAttr.create("disp_height", "hgt", MFnNumericData::kFloat, 1);
    nAttr.setSoftMin(0);
    nAttr.setSoftMax(10);
    nAttr.setConnectable(false);
@@ -70,13 +70,13 @@ MStatus CArnoldDisplacementNode::initialize()
    nAttr.setSoftMin(0);
    nAttr.setSoftMax(1);
    nAttr.setConnectable(false);
-   MAKE_INPUT(nAttr, s_zero_value);*/
+   MAKE_INPUT(nAttr, s_zero_value);
 
    MAKE_COLOR(s_map, "disp_map", "map", 1, 1, 1);
    MAKE_INPUT(nAttr, s_map);
 
-   /*s_autobump = nAttr.create("disp_autobump", "atbmp", MFnNumericData::kBoolean, 0);
-   MAKE_INPUT(nAttr, s_autobump);*/
+   s_autobump = nAttr.create("disp_autobump", "atbmp", MFnNumericData::kBoolean, 0);
+   MAKE_INPUT(nAttr, s_autobump);
 
    s_vector_displacement = nAttr.create("vector_displacement", "vdisp", MFnNumericData::kBoolean, 0);
    MAKE_INPUT(nAttr, s_vector_displacement);
