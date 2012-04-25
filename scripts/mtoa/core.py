@@ -91,6 +91,10 @@ def getAttributeData(nodeType):
     data = [x or None for x in data]
     return utils.groupn(data, 4)
 
+def arnoldIsCurrentRenderer():
+    "return whether arnold is the current renderer"
+    return pm.getAttr('defaultRenderGlobals.currentRenderer') == 'arnold'
+
 def listTranslators(nodeType):
     '''
     return a list of (translator, arnoldNode) pairs
@@ -205,7 +209,7 @@ def createOptions():
 _defaultTranslators = {}
 
 def _doSetDefaultTranslator(node):
-    if pm.mel.currentRenderer() != 'arnold': return
+    if not arnoldIsCurrentRenderer(): return
     try:
         node.attr('aiTranslator').set(getDefaultTranslator(node))
     except RuntimeError:
@@ -215,7 +219,7 @@ def registerDefaultTranslator(nodeType, stringOrFunc):
     """
     Register the default translator for a node type. The second argument identifies the name of the
     translator.  Pass a string if the default is always the same,
-    or a function that takes the current node and returns a string.
+    or a function that takes the current node as a pymel PyNode and returns the translator name as a string.
 
     The default will automatically be set whenever a node of the given type is added to the scene.
     """
@@ -223,7 +227,7 @@ def registerDefaultTranslator(nodeType, stringOrFunc):
     global _defaultTranslators
     _defaultTranslators[nodeType] = stringOrFunc
 
-    if pm.mel.currentRenderer() == 'arnold':
+    if arnoldIsCurrentRenderer():
         # set defaults for existing nodes
         for node in pm.ls(exactType=nodeType):
             # this will set aiTranslator if it is not set
@@ -232,6 +236,8 @@ def registerDefaultTranslator(nodeType, stringOrFunc):
     callbacks.addNodeAddedCallback(_doSetDefaultTranslator, nodeType)
 
 def getDefaultTranslator(node):
+    if isinstance(node, basestring):
+        node = pm.PyNode(node)
     global _defaultTranslators
     try:
         default = _defaultTranslators[node.type()]
@@ -243,7 +249,6 @@ def getDefaultTranslator(node):
         pass
 
 def _rendererChanged(plug, *args):
-    print "rendererChanged", plug.asString()
     if plug.asString() == 'arnold':
         global _defaultTranslators
         for nodeType, default in _defaultTranslators.iteritems():
@@ -252,7 +257,7 @@ def _rendererChanged(plug, *args):
                 for node in pm.ls(exactType=nodeType):
                     if callable(default):
                         default = default(node)
-                    print "setting default", node, default 
+
                     # this will set aiTranslator if it is not set
                     node.attr('aiTranslator').set(getDefaultTranslator(node))
 

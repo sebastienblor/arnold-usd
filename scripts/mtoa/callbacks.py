@@ -114,6 +114,7 @@ def _makeInstallAttributeChangedCallback(nodeType):
                 # functions which should execute on any attribute change have a key of None
                 funcList = funcMap.get(plugName, []) + funcMap.get(None, [])
 
+                #if funcList: print "attr changed", plugName, msg
                 for func, context in funcList:
                     if context & msg:
                         func(plug, otherPlug, *args)
