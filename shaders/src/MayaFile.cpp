@@ -95,131 +95,140 @@ node_update
    // will not suffice, we need to free memory between updates
    Finish(node);
 
-   const char *filename = params[p_filename].STR;
-
-   // calculate file tokens
-   std::vector<TokenData> tokens;
-
-   std::string fname(filename);
-   std::string newfname("");
-   std::map< std::string, std::string > processedTokens;
-   std::map< std::string, std::string >::iterator iter;
-   std::string::size_type lastPos = 0;
-   // Find first "non-delimiter".
-   std::string::size_type pos = 0;
-   std::string::size_type end = fname.length();
-   bool opened = false;
-   while ( pos < end && pos != std::string::npos &&
-         lastPos < end && lastPos != std::string::npos)
+   AtImageData *idata = (AtImageData*) AiMalloc(sizeof(AtImageData));
+   idata->path = NULL;
+   idata->tokens = NULL;      
+   idata->ntokens = 0;
+   idata->texture_handle = NULL;   
+   
+   // Check if the filename has a shading network. If it does, we will fallback to the name based
+   // lookup and avoid the token computation
+   if (!AiNodeGetLink(node, "filename"))
    {
-      lastPos = pos;
-      // Find next "non-delimiter"
-      if (opened)
-      {
-         pos = fname.find(">", lastPos);
-         opened = false;
-         if (pos != std::string::npos)
-            pos = pos + 1;
-      }
-      else
-      {
-         pos = fname.find("<", lastPos);
-         opened = true;
-      }
+      const char *filename = params[p_filename].STR;
 
-      // Found a token, add it to the vector.
-      const std::string token = fname.substr(lastPos, pos - lastPos);
-      std::string sub = fname.substr(lastPos, pos - lastPos);
-      //AiMsgInfo( "(%d, %d) found token '%s'", lastPos, pos, sub.c_str());
-      if (opened)
-      {
-         // a non-token file path part
-         newfname += sub;
-      }
-      else
-      {
-         // calculate the value of the map
-         if (sub == "<shapeName>")
-         {
-            TokenData data;
-            data.mode = SHAPE_NAME;
-            data.position = (unsigned int)lastPos;
-            data.extra = NULL;
-            tokens.push_back(data);
-         }
-         else if (sub == "<shapePath>")
-         {
-            TokenData data;
-            data.mode = SHAPE_PATH;
-            data.position = (unsigned int)lastPos;
-            data.extra = NULL;
-            tokens.push_back(data);
-         }
-         else if (sub.substr(0, 6) == "<attr:")
-         {
-            std::string attr = sub.substr(6, sub.length()-7);
-            TokenData data;
-            data.mode = USER_PARAM;
-            data.position = (unsigned int)lastPos;
-            data.extra = AiMalloc((unsigned long)attr.size());
-            strcpy((char*)data.extra, attr.c_str());
-            tokens.push_back(data);
-         }
-         else if (sub.substr(0, 5) == "<udim")
-         {
-            /*
-            mari/zbrush/cyslice-style
-            Mari has a 4 digit number equal to 1000 + (u + 1 + v*10). UV tile [0,0] x (1,1) is assigned 1001
-            UV tile [0,1]x(1,2) is assigned 1011 etc. 
-            */
+      // calculate file tokens
+      std::vector<TokenData> tokens;
 
-            std::string::size_type len = sub.length();
-            // default dimension
-            int dim = 10;
-            // a specific dimension can be provided with <udim:5>
-            if (len > 7)
-            {
-               dim = atoi(sub.substr(6, len-7).c_str());
-               dim = dim <= 0 ? 1 : dim;
-            }
-            TokenData data;
-            data.mode = UDIM;
-            data.position = (unsigned int)lastPos;
-            //data.extra = NULL;
-            data.extra = AiMalloc(sizeof(int));
-            *((int*)data.extra) = dim;
-            tokens.push_back(data);
-         }
-         else if (sub == "<tile>" )
+      std::string fname(filename);
+      std::string newfname("");
+      std::map< std::string, std::string > processedTokens;
+      std::map< std::string, std::string >::iterator iter;
+      std::string::size_type lastPos = 0;
+      // Find first "non-delimiter".
+      std::string::size_type pos = 0;
+      std::string::size_type end = fname.length();
+      bool opened = false;
+      while ( pos < end && pos != std::string::npos &&
+            lastPos < end && lastPos != std::string::npos)
+      {
+         lastPos = pos;
+         // Find next "non-delimiter"
+         if (opened)
          {
-            TokenData data;
-            data.mode = TILE;
-            data.position = (unsigned int)lastPos;
-            data.extra = NULL;
-            tokens.push_back(data);
+            pos = fname.find(">", lastPos);
+            opened = false;
+            if (pos != std::string::npos)
+               pos = pos + 1;
          }
          else
          {
-            AiMsgError("unknown token %s", sub.c_str());
+            pos = fname.find("<", lastPos);
+            opened = true;
+         }
+
+         // Found a token, add it to the vector.
+         const std::string token = fname.substr(lastPos, pos - lastPos);
+         std::string sub = fname.substr(lastPos, pos - lastPos);
+         //AiMsgInfo( "(%d, %d) found token '%s'", lastPos, pos, sub.c_str());
+         if (opened)
+         {
+            // a non-token file path part
             newfname += sub;
          }
+         else
+         {
+            // calculate the value of the map
+            if (sub == "<shapeName>")
+            {
+               TokenData data;
+               data.mode = SHAPE_NAME;
+               data.position = (unsigned int)lastPos;
+               data.extra = NULL;
+               tokens.push_back(data);
+            }
+            else if (sub == "<shapePath>")
+            {
+               TokenData data;
+               data.mode = SHAPE_PATH;
+               data.position = (unsigned int)lastPos;
+               data.extra = NULL;
+               tokens.push_back(data);
+            }
+            else if (sub.substr(0, 6) == "<attr:")
+            {
+               std::string attr = sub.substr(6, sub.length()-7);
+               TokenData data;
+               data.mode = USER_PARAM;
+               data.position = (unsigned int)lastPos;
+               data.extra = AiMalloc((unsigned long)attr.size());
+               strcpy((char*)data.extra, attr.c_str());
+               tokens.push_back(data);
+            }
+            else if (sub.substr(0, 5) == "<udim")
+            {
+               /*
+               mari/zbrush/cyslice-style
+               Mari has a 4 digit number equal to 1000 + (u + 1 + v*10). UV tile [0,0] x (1,1) is assigned 1001
+               UV tile [0,1]x(1,2) is assigned 1011 etc. 
+               */
+
+               std::string::size_type len = sub.length();
+               // default dimension
+               int dim = 10;
+               // a specific dimension can be provided with <udim:5>
+               if (len > 7)
+               {
+                  dim = atoi(sub.substr(6, len-7).c_str());
+                  dim = dim <= 0 ? 1 : dim;
+               }
+               TokenData data;
+               data.mode = UDIM;
+               data.position = (unsigned int)lastPos;
+               //data.extra = NULL;
+               data.extra = AiMalloc(sizeof(int));
+               *((int*)data.extra) = dim;
+               tokens.push_back(data);
+            }
+            else if (sub == "<tile>" )
+            {
+               TokenData data;
+               data.mode = TILE;
+               data.position = (unsigned int)lastPos;
+               data.extra = NULL;
+               tokens.push_back(data);
+            }
+            else
+            {
+               AiMsgError("unknown token %s", sub.c_str());
+               newfname += sub;
+            }
+         }
       }
-   }
 
-   AtImageData *idata = (AtImageData*) AiMalloc(sizeof(AtImageData));
-   idata->ntokens = (unsigned int)tokens.size();
-   if (tokens.size())
-   {
-      idata->tokens = (TokenData*) AiMalloc((unsigned long) (sizeof(TokenData) * tokens.size()));
-      std::copy(tokens.begin(), tokens.end(), idata->tokens);
+      idata->ntokens = (unsigned int)tokens.size();
+      if (tokens.size())
+      {
+         idata->tokens = (TokenData*) AiMalloc((unsigned long) (sizeof(TokenData) * tokens.size()));
+         std::copy(tokens.begin(), tokens.end(), idata->tokens);
 
-      idata->path = (char*) AiMalloc(newfname.size() + 1);
-      strcpy(idata->path, newfname.c_str());
-      idata->texture_handle = NULL;
+         idata->path = (char*) AiMalloc(newfname.size() + 1);
+         strcpy(idata->path, newfname.c_str());
+      }
+      else
+         idata->texture_handle = AiTextureHandleCreate(AiNodeGetStr(node, "filename"));      
    }
-   else
-      idata->texture_handle = AiTextureHandleCreate(AiNodeGetStr(node, "filename"));
-   AiNodeSetLocalData(node, idata);
+   AiNodeSetLocalData(node, idata);   
 }
 
 node_finish
@@ -228,7 +237,10 @@ node_finish
    if (idata != NULL)
    {
       // Freeing ShaderData
-      if (idata->ntokens)
+      if(idata->texture_handle != NULL)
+         AiTextureHandleDestroy(idata->texture_handle);      
+         
+      if (idata->ntokens > 0)
       {
          TokenData* token = idata->tokens;
          for (unsigned int i=0; i < idata->ntokens; i++, token++)
@@ -239,8 +251,7 @@ node_finish
          AiFree(idata->tokens);
          AiFree(idata->path);
       }
-      else
-         AiTextureHandleDestroy(idata->texture_handle);
+         
       AiFree(idata);
    }
 }
@@ -525,9 +536,13 @@ shader_evaluate
          }
          //AiMsgInfo("FILE: new name: %s", newfname.c_str());
       }
-      else
+      else if (idata->texture_handle != NULL)
       {
          sg->out.RGBA = AiTextureHandleAccess(sg, idata->texture_handle, &texparams, &success);
+      }
+      else
+      {       
+         sg->out.RGBA = AiTextureAccess(sg, AiShaderEvalParamStr(p_filename), &texparams, &success);
       }
       if (success)
          MayaColorBalance(sg, node, p_defaultColor, sg->out.RGBA);
