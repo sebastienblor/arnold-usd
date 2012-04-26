@@ -215,23 +215,24 @@ def _doSetDefaultTranslator(node):
     except RuntimeError:
         pm.warning("failed to set default translator for %s" % node.name())
 
-def registerDefaultTranslator(nodeType, stringOrFunc):
+def registerDefaultTranslator(nodeType, default):
     """
     Register the default translator for a node type. The second argument identifies the name of the
-    translator.  Pass a string if the default is always the same,
+    translator.  Pass the translator name (as a string) if the default is always the same,
     or a function that takes the current node as a pymel PyNode and returns the translator name as a string.
 
     The default will automatically be set whenever a node of the given type is added to the scene.
     """
 
     global _defaultTranslators
-    _defaultTranslators[nodeType] = stringOrFunc
+    _defaultTranslators[nodeType] = default
 
     if arnoldIsCurrentRenderer():
-        # set defaults for existing nodes
+        # set defaults for existing nodes of this type
         for node in pm.ls(exactType=nodeType):
-            # this will set aiTranslator if it is not set
-            node.attr('aiTranslator').set(getDefaultTranslator(node))
+            if callable(default):
+                default = default(node)
+            node.attr('aiTranslator').set(default)
 
     callbacks.addNodeAddedCallback(_doSetDefaultTranslator, nodeType)
 
@@ -241,10 +242,10 @@ def getDefaultTranslator(node):
     global _defaultTranslators
     try:
         default = _defaultTranslators[node.type()]
-        if isinstance(default, basestring):
-            return default
-        elif callable(default):
+        if callable(default):
             return default(node)
+        else:
+            return default
     except KeyError:
         pass
 
@@ -255,11 +256,12 @@ def _rendererChanged(plug, *args):
             if default:
                 # set defaults for existing nodes
                 for node in pm.ls(exactType=nodeType):
-                    if callable(default):
-                        default = default(node)
-
-                    # this will set aiTranslator if it is not set
-                    node.attr('aiTranslator').set(getDefaultTranslator(node))
+                    # only set the default if it has not already been set
+                    at = node.attr('aiTranslator')
+                    if not at.get():
+                        if callable(default):
+                            default = default(node)
+                        at.set(default)
 
 
 callbacks.addAttributeChangedCallback(_rendererChanged, 'renderGlobals', 'currentRenderer')
