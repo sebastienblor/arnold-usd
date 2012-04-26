@@ -231,8 +231,10 @@ def registerDefaultTranslator(nodeType, default):
         # set defaults for existing nodes of this type
         for node in pm.ls(exactType=nodeType):
             if callable(default):
-                default = default(node)
-            node.attr('aiTranslator').set(default)
+                val = default(node)
+            else:
+                val = default
+            node.attr('aiTranslator').set(val)
 
     callbacks.addNodeAddedCallback(_doSetDefaultTranslator, nodeType)
 
@@ -260,8 +262,10 @@ def _rendererChanged(plug, *args):
                     at = node.attr('aiTranslator')
                     if not at.get():
                         if callable(default):
-                            default = default(node)
-                        at.set(default)
+                            val = default(node)
+                        else:
+                            val = default
+                        at.set(val)
 
 
 callbacks.addAttributeChangedCallback(_rendererChanged, 'renderGlobals', 'currentRenderer')
