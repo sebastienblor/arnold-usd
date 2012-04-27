@@ -104,6 +104,10 @@ MStatus CArnoldStandInShape::compute(const MPlug& plug, MDataBlock& data)
 //
 MStatus CArnoldStandInShape::GetPointsFromAss()
 {
+   // If we are in a batch render, it is not needed and it will cause the render crash. 
+   if(CMayaScene::GetArnoldSession() && CMayaScene::GetArnoldSession()->IsBatch())
+      return MS::kSuccess;
+
    MStatus status;
 
    CArnoldStandInShape* nonConstThis = const_cast<CArnoldStandInShape*> (this);
