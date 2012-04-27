@@ -389,7 +389,7 @@ def createArnoldSamplingSettings():
 #    pm.separator(style='none')
 
     # TODO: connect node to options
-    createTranslatorMenu('defaultArnoldFilter.aiTranslator',
+    createTranslatorMenu('defaultArnoldFilter',
                          label='Filter Type',
                          nodeType='aiAOVFilter',
                          default='gaussian')

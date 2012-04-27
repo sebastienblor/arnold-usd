@@ -3,8 +3,9 @@ functions for dealing with mtoa node types and classifications
 '''
 
 import pymel.core as pm
-import mtoa.utils as utils
-import mtoa.aovs as aovs
+from . import utils
+from . import aovs
+from . import callbacks
 
 CATEGORY_TO_RUNTIME_CLASS = {
                 ('shader',):            'asShader',
@@ -89,6 +90,10 @@ def getAttributeData(nodeType):
     # convert empty strings to None
     data = [x or None for x in data]
     return utils.groupn(data, 4)
+
+def arnoldIsCurrentRenderer():
+    "return whether arnold is the current renderer"
+    return pm.getAttr('defaultRenderGlobals.currentRenderer') == 'arnold'
 
 def listTranslators(nodeType):
     '''
@@ -196,3 +201,71 @@ def createOptions():
     driverNode.message.connect(options.driver, force=True)
 
 
+
+#-------------------------------------------------
+# translator defaults
+#-------------------------------------------------
+
+_defaultTranslators = {}
+
+def _doSetDefaultTranslator(node):
+    if not arnoldIsCurrentRenderer(): return
+    try:
+        node.attr('aiTranslator').set(getDefaultTranslator(node))
+    except RuntimeError:
+        pm.warning("failed to set default translator for %s" % node.name())
+
+def registerDefaultTranslator(nodeType, default):
+    """
+    Register the default translator for a node type. The second argument identifies the name of the
+    translator.  Pass the translator name (as a string) if the default is always the same,
+    or a function that takes the current node as a pymel PyNode and returns the translator name as a string.
+
+    The default will automatically be set whenever a node of the given type is added to the scene.
+    """
+
+    global _defaultTranslators
+    _defaultTranslators[nodeType] = default
+
+    if arnoldIsCurrentRenderer():
+        # set defaults for existing nodes of this type
+        for node in pm.ls(exactType=nodeType):
+            if callable(default):
+                val = default(node)
+            else:
+                val = default
+            node.attr('aiTranslator').set(val)
+
+    callbacks.addNodeAddedCallback(_doSetDefaultTranslator, nodeType)
+
+def getDefaultTranslator(node):
+    if isinstance(node, basestring):
+        node = pm.PyNode(node)
+    global _defaultTranslators
+    try:
+        default = _defaultTranslators[node.type()]
+        if callable(default):
+            return default(node)
+        else:
+            return default
+    except KeyError:
+        pass
+
+def _rendererChanged(plug, *args):
+    if plug.asString() == 'arnold':
+        global _defaultTranslators
+        for nodeType, default in _defaultTranslators.iteritems():
+            if default:
+                # set defaults for existing nodes
+                for node in pm.ls(exactType=nodeType):
+                    # only set the default if it has not already been set
+                    at = node.attr('aiTranslator')
+                    if not at.get():
+                        if callable(default):
+                            val = default(node)
+                        else:
+                            val = default
+                        at.set(val)
+
+
+callbacks.addAttributeChangedCallback(_rendererChanged, 'renderGlobals', 'currentRenderer')
