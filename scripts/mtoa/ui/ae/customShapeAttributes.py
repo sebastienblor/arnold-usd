@@ -64,6 +64,7 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
         self.addSeparator()
         self.addControl("aiExportTangents", label="Export Tangents")
         self.addControl("aiExportColors", label="Export Vertex Colors")
+        self.addControl("aiExportRefPoints", label="Export Reference Positions")
         self.addControl("aiExportRefNormals", label="Export Reference Normals")
         self.addControl("aiExportRefTangents", label="Export Reference Tangents")
         
