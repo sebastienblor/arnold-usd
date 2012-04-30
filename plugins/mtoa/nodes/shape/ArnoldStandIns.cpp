@@ -104,14 +104,18 @@ MStatus CArnoldStandInShape::compute(const MPlug& plug, MDataBlock& data)
 //
 MStatus CArnoldStandInShape::GetPointsFromAss()
 {
-   // If we are in a batch render, it is not needed and it will cause the render crash. 
-   if(CMayaScene::GetArnoldSession() && CMayaScene::GetArnoldSession()->IsBatch())
-      return MS::kSuccess;
-
    MStatus status;
 
    CArnoldStandInShape* nonConstThis = const_cast<CArnoldStandInShape*> (this);
    CArnoldStandInGeom* geom = nonConstThis->geometry();
+   
+   // If we are in a batch render, it is not needed and it will cause the render crash. 
+   if(CMayaScene::GetArnoldSession() && CMayaScene::GetArnoldSession()->IsBatch())
+   {
+      geom->bbox.clear();
+      return MS::kSuccess;
+   }
+   
 
    MString assfile = geom->filename;
    MString dsoData = geom->data;
@@ -464,6 +468,15 @@ MStatus CArnoldStandInShape::GetPointPlugValue(MPlug plug, float3 & value)
    return MS::kSuccess;
 }
 
+MStatus CArnoldStandInShape::SetPointPlugValue(MPlug plug, float3   value)
+{  
+   plug.child(0).setDouble(value[0]);
+   plug.child(1).setDouble(value[1]);
+   plug.child(2).setDouble(value[2]);
+   
+   return MS::kSuccess;
+}
+
 bool CArnoldStandInShape::LoadBoundingBox()
 {
    CArnoldStandInShape* nonConstThis = const_cast<CArnoldStandInShape*> (this);
@@ -778,6 +791,23 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
 
          fGeometry.bbox = MBoundingBox(fGeometry.BBmin, fGeometry.BBmax);
       }
+      else
+      {
+         float3 m_value;
+         m_value[0] = bbMin.x;
+         m_value[1] = bbMin.y;
+         m_value[2] = bbMin.z;
+         plug.setAttribute(s_boundingBoxMin);
+         SetPointPlugValue(plug, m_value);
+         fGeometry.BBmin = MPoint(m_value[0], m_value[1], m_value[2]);
+
+         m_value[0] = bbMax.x;
+         m_value[1] = bbMax.y;
+         m_value[2] = bbMax.z;
+         plug.setAttribute(s_boundingBoxMax);
+         SetPointPlugValue(plug, m_value);
+         fGeometry.BBmax = MPoint(m_value[0], m_value[1], m_value[2]);
+      }
       
       fGeometry.updateView = true;
    }
@@ -803,6 +833,23 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
             fGeometry.BBmax = MPoint(m_value[0], m_value[1], m_value[2]);
 
             fGeometry.bbox = MBoundingBox(fGeometry.BBmin, fGeometry.BBmax);
+         }
+         else
+         {
+            float3 m_value;
+            m_value[0] = bbMin.x;
+            m_value[1] = bbMin.y;
+            m_value[2] = bbMin.z;
+            plug.setAttribute(s_boundingBoxMin);
+            SetPointPlugValue(plug, m_value);
+            fGeometry.BBmin = MPoint(m_value[0], m_value[1], m_value[2]);
+
+            m_value[0] = bbMax.x;
+            m_value[1] = bbMax.y;
+            m_value[2] = bbMax.z;
+            plug.setAttribute(s_boundingBoxMax);
+            SetPointPlugValue(plug, m_value);
+            fGeometry.BBmax = MPoint(m_value[0], m_value[1], m_value[2]);
          }
       }
       fGeometry.updateView = true;
@@ -831,6 +878,23 @@ CArnoldStandInGeom* CArnoldStandInShape::geometry()
 
          fGeometry.bbox = MBoundingBox(fGeometry.BBmin, fGeometry.BBmax);
          fGeometry.mode = 0;
+      }
+      else
+      {
+         float3 m_value;
+         m_value[0] = bbMin.x;
+         m_value[1] = bbMin.y;
+         m_value[2] = bbMin.z;
+         plug.setAttribute(s_boundingBoxMin);
+         SetPointPlugValue(plug, m_value);
+         fGeometry.BBmin = MPoint(m_value[0], m_value[1], m_value[2]);
+
+         m_value[0] = bbMax.x;
+         m_value[1] = bbMax.y;
+         m_value[2] = bbMax.z;
+         plug.setAttribute(s_boundingBoxMax);
+         SetPointPlugValue(plug, m_value);
+         fGeometry.BBmax = MPoint(m_value[0], m_value[1], m_value[2]);
       }
       
       fGeometry.updateView = true;

@@ -61,6 +61,7 @@ public:
    virtual MBoundingBox boundingBox() const;
 
    MStatus GetPointPlugValue( MPlug plug, float3 & value );
+   MStatus SetPointPlugValue( MPlug plug, float3   value );
    void CreateBoundingBox();
    bool LoadBoundingBox();
    MStatus GetPointsFromAss();
