@@ -75,4 +75,22 @@ protected:
    // return FOV
    void ExportFilmback(AtNode* camera, float fovs[]);
 };
+
+class CSphericalCameraTranslator
+      :   public CCameraTranslator
+{
+public:
+   void Export(AtNode* camera);
+   void ExportMotion(AtNode* camera, unsigned int step);
+   static void NodeInitializer(CAbTranslator context);
+   static void* creator()
+   {
+      return new CSphericalCameraTranslator();
+   }
+   AtNode* CreateArnoldNodes();
+
+protected:
+   // return FOV
+   void ExportFilmback(AtNode* camera);
+};
 #endif // CAMERA_TRANSLATORS_H

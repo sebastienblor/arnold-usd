@@ -228,6 +228,10 @@ namespace // <anonymous>
                                    "cylindrical",
                                    CCylCameraTranslator::creator,
                                    CCylCameraTranslator::NodeInitializer);
+       builtin->RegisterTranslator("camera",
+                                   "spherical",
+                                   CSphericalCameraTranslator::creator,
+                                   CSphericalCameraTranslator::NodeInitializer);                                   
 
       // stereoCameraRig is a sub-type of the maya camera, and is also renderable
       builtin->RegisterTranslator("stereoRigCamera",

@@ -295,6 +295,13 @@ class CylCameraTemplate(CameraTemplate):
 templates.registerTranslatorUI(CylCameraTemplate, "camera", "cylindrical")
 templates.registerTranslatorUI(CylCameraTemplate, "stereoRigCamera", "cylindrical")
 
+class SphericalCameraTemplate(CameraTemplate):
+    def setup(self):
+        self.addDOFAttributes()
+
+templates.registerTranslatorUI(SphericalCameraTemplate, "camera", "spherical")
+templates.registerTranslatorUI(SphericalCameraTemplate, "stereoRigCamera", "spherical")
+
 def cameraOrthographicChanged(orthoPlug, *args):
     "called to sync .aiTranslator when .orthographic changes"
     if not core.arnoldIsCurrentRenderer(): return

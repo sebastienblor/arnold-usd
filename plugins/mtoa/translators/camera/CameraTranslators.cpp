@@ -363,3 +363,39 @@ void CCylCameraTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInput("vertical_fov");
    helper.MakeInput("projective");
 }
+
+// Spherical Camera
+//
+AtNode*  CSphericalCameraTranslator::CreateArnoldNodes()
+{
+   return AddArnoldNode("spherical_camera");
+}
+
+// returns FOV
+void CSphericalCameraTranslator::ExportFilmback(AtNode* camera)
+{
+   SetFilmTransform(camera);
+}
+
+void CSphericalCameraTranslator::Export(AtNode* camera)
+{
+   ExportFilmback(camera);
+
+   ExportCameraData(camera);
+   ExportDOF(camera);
+   ExportImagePlanes(0);
+}
+
+void CSphericalCameraTranslator::ExportMotion(AtNode* camera, unsigned int step)
+{
+   ExportFilmback(camera);
+
+   ExportCameraMBData(camera, step);
+   ExportImagePlanes(step);
+}
+
+void CSphericalCameraTranslator::NodeInitializer(CAbTranslator context)
+{
+   CExtensionAttrHelper helper(context.maya, "spherical_camera");
+   MakeDefaultAttributes(helper);
+}

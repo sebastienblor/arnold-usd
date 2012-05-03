@@ -585,6 +585,11 @@
         softmax             FLOAT   180.0
         animatable          BOOL    True
 
+[node spherical_camera]
+    maya.name               STRING  "camera"
+    maya.id                 INT     0x4443414d
+    maya.translator         STRING  "spherical"
+        
 # shaders
 
 [node standard]
