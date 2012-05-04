@@ -1057,7 +1057,6 @@ void CArnoldSession::DoUpdate()
    std::vector< CNodeTranslator * > translatorsToUpdate;
    std::vector<ObjectToTranslatorPair>::iterator itObj;
    bool aDag   = false;
-   bool aLight = false;
    bool newDag = false;
    bool reqMob = false;
    bool moBlur = IsMotionBlurEnabled();
@@ -1069,7 +1068,6 @@ void CArnoldSession::DoUpdate()
       {
          // A translator was provided, just add it to the list
          if (moBlur) reqMob = reqMob || translator->RequiresMotionData();
-         // if (translator->IsMayaTypeLight()) aLight = true;
          if (translator->IsMayaTypeDag()) aDag = true;
          translatorsToUpdate.push_back(translator);
       }
@@ -1122,7 +1120,6 @@ void CArnoldSession::DoUpdate()
          for (unsigned int i=0; i < translators.size(); ++i)
          {
             if (moBlur) reqMob = reqMob || translators[i]->RequiresMotionData();
-            // if (translators[i]->IsMayaTypeLight()) aLight = true;
             if (translators[i]->IsMayaTypeDag()) aDag = true;
             translatorsToUpdate.push_back(translators[i]);
          }
