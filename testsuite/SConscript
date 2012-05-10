@@ -111,8 +111,9 @@ author: --''' % testname)
    f.close()
    
    return None ## always succeeds
+
 maketest_bld = Builder(action = Action(make_test, "Creating test '$TARGET'..."))
-      
+
 def run_test(target, source, env):
    global TOTAL_RUNNING_TIME
    status = 'OK'
@@ -168,7 +169,7 @@ def run_test(target, source, env):
       if test_env['UPDATE_REFERENCE']:
           show_test_output = False
       output_to_file = not show_test_output
-      before_time = time.time()
+      
       
       output_image_dir, output_image_name = os.path.split(output_image)
       # replace test render dir with this test dir
@@ -192,7 +193,8 @@ def run_test(target, source, env):
             cmd = '%s  1> "%s" 2>&1' % (cmd, logfile)
          else:
             cmd = '%s  > "%s" 2>> "%s"' % (cmd, logfile, logfile)
-         
+      
+      before_time = time.time()
       retcode = os.system(cmd)
                        
       ## redirect test output (if not using os.system
@@ -385,6 +387,12 @@ Arnold testsuite - %s
 runtest_bld = Builder(action = run_test)
 
 def process_testsuite(target, source, env):
+   html_index = str(target[0])
+   results_dir = os.path.dirname(html_index)
+   if not os.path.exists(results_dir):
+      print "mkdir ", results_dir
+      os.mkdir(results_dir)
+          
    global TOTAL_RUNNING_TIME
    ## get number of failed tests
    passed = 0
@@ -407,7 +415,7 @@ def process_testsuite(target, source, env):
    (REVISION, URL) = get_latest_revision()
          
    ## create testsuite html
-   outfile = open(str(target[0]), 'w')
+   outfile = open(html_index, 'w')
    outfile.write('''
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
@@ -453,7 +461,17 @@ Arnold testsuite
    for test in source:
       test_dir  = str(test.dir)
       test_name = os.path.basename(test_dir)
+      test_results_dir = os.path.join(results_dir, test_name)
       test_link = os.path.join(test_name, os.path.basename(str(test)))
+      
+      def copy_to_results(file):
+          if os.path.exists(file):
+              dest = os.path.join(test_results_dir, os.path.basename(file))
+              print "copying", file, dest
+              shutil.copy(file, dest)
+          else:
+             print "does not exist", file
+
       f = open(os.path.join(test_dir, 'STATUS'), 'r')
       status = f.readline() ## just one line
       f.close()
@@ -461,8 +479,19 @@ Arnold testsuite
       description = f.readline() ## just one line
       f.close()
       bgcolor = status == 'OK' and '#ececec' or '#ffa0a0'
+      
+      if not os.path.exists(test_results_dir):
+          os.mkdir(test_results_dir)
+
+      copy_to_results(str(test))
+
+      # copy images to results directory
       new_img = os.path.join(test_dir, 'new.jpg')
+      copy_to_results(new_img)
+      
       ref_img = os.path.join(test_dir, 'ref.jpg')
+      copy_to_results(ref_img)
+
       outfile.write('''
 <tr>
   <td bgcolor="%s"><font face="Arial">&nbsp;<a href="%s">%s</a>&nbsp;</font></td>
@@ -488,11 +517,12 @@ Arnold testsuite
 </html>
    ''')
    outfile.close()
-   print 'View testsuite results at: file://%s' % (os.path.abspath(str(target[0])))
+   print 'View testsuite results at: file://%s' % (os.path.abspath(html_index))
    return None ## always succeeds
+
 testsuite_bld = Builder(action = process_testsuite)
 
-class Test:
+class Test(object):
    def __init__(self,
                 script = 'Render -proj "%proj%" -rd "%dir%" -r arnold -x 160 -y 120 %options% "%file%"',
                 plugin_sources      = '*.c*',
@@ -597,10 +627,6 @@ class Test:
 
       return True  # The test has been prepared and can be run
 
-      
-## extra custom command line arguments for specific tests
-tests = dict()
-
 # process build targets
 TESTSUITE = []
 TESTS = []
@@ -638,7 +664,7 @@ index = 0
 while True:
    if index == len(BUILD_TARGETS):
       break
-      
+
    target = BUILD_TARGETS[index]
    
    (l, s, r) = strpartition(target, ':')
@@ -736,6 +762,7 @@ for o in system.get_valid_oses():
    if o != system.os():
       BLACKLIST.extend(find_test_group(o))
    
+
 BUILD_TARGETS.sort()
 index = 0
 while True:
@@ -744,7 +771,7 @@ while True:
       
    target = BUILD_TARGETS[index]
    if target.startswith('test_'):
-      if not tests.get(target, Test()).prepare_test(target):
+      if not Test().prepare_test(target):
          # Test could not be build, so we remove it from the build target list
          del BUILD_TARGETS[index]
       else:
@@ -752,10 +779,11 @@ while True:
    else:
       index += 1
 
+
 ## create top-level makeweb html
 if len(TESTS) > 1:
    BUILD_TARGETS += ["testsuite"]
-   TESTSUITE = test_env.Testsuite(os.path.abspath(os.path.join(BUILD_BASE_DIR, 'testsuite', 'index.html')),
+   TESTSUITE = test_env.Testsuite(os.path.abspath(os.path.join(BUILD_BASE_DIR, 'testsuite', 'results', 'index.html')),
                                   TESTS,
                                   PRINT_CMD_LINE_FUNC = lambda a, b, c, d : None, ## silence the builder
                                   chdir = 0
