@@ -11,6 +11,7 @@ import time
 import subprocess
 import sys
 import signal
+from colorama import Fore
 
 # SCons overrides pickle with cPickle, which causes problems with multiprocessing 
 sys.modules.pop('pickle')
@@ -381,11 +382,11 @@ class MayaTestRunner(object):
              passed += 1
           else:
              failed += 1
-       print "\n"
+
        if failed == 0:
-          print 'Ran %d regression tests - ALL TESTS OK' % (len(self.tests))
+          print Fore.CYAN + ('\nRan %d regression tests - ' % len(self.tests)) + Fore.GREEN + 'ALL TESTS OK' 
        else:
-          print 'Ran %d regression tests - %d failed!' % (len(self.tests), failed)
+          print Fore.CYAN + ('\nRan %d regression tests - ' % len(self.tests)) + Fore.RED + ('%d failed!' % failed)
     
        MTOA_VERSION    = '<not available>'
        ARNOLD_VERSION  = arnold_version

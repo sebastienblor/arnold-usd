@@ -9,7 +9,12 @@ import os
 import shutil
 import string
 import system
+import colorama
+from colorama import Fore, Style
+
 from build_tools import process_return_code, saferemove
+
+colorama.init(autoreset=True)
 
 def do_run_test(args):
     return run_test(*args)
@@ -18,9 +23,9 @@ def print_banner(test_name):
     f = open('README', 'r')
     summary = f.readline().strip('\n')
     f.close()
-    print '='*80
-    print  '%s %s' % (test_name.ljust(15), summary)
-    print '-'*80
+    print Fore.MAGENTA + Style.BRIGHT + '='*80
+    print Fore.MAGENTA + Style.BRIGHT +  test_name.ljust(15) + Style.RESET_ALL + Fore.MAGENTA + summary
+    print Fore.MAGENTA + Style.BRIGHT + '-'*80
 
 def run_test(test_name, lock, test_dir, cmd, output_image, reference_image, expected_result, update_reference=False, show_test_output=True):
     os.chdir(test_dir)
@@ -156,7 +161,7 @@ def run_test(test_name, lock, test_dir, cmd, output_image, reference_image, expe
         os.system('tiff2jpeg %s ref.jpg' % (reference_image))
 
     if show_test_output:
-        print '-'*80
+        print Fore.MAGENTA + Style.BRIGHT + '-'*80
     else:
         lock.acquire()
         print_banner(test_name)
@@ -165,9 +170,12 @@ def run_test(test_name, lock, test_dir, cmd, output_image, reference_image, expe
     print '%s %s' % ('time'.ljust(15), running_time)
         
     ## progress text (scream if the test didn't pass)
-    print '%s %s' % ('status'.ljust(15), status)
-    if status != 'OK':
-        print '%s %s' % ('cause'.ljust(15), cause)
+    
+    if status == 'OK':
+        print Fore.GREEN + '%s %s' % ('status'.ljust(15), status)
+    else:
+        print Fore.RED + '%s %s' % ('status'.ljust(15), status)
+        print Fore.RED + '%s %s' % ('cause'.ljust(15), cause)
     lock.release()
 
     ## get README so that we can stick it inside the html file
