@@ -899,14 +899,11 @@
         desc                STRING  "Scattering eccentricity."
         min                 FLOAT   -1.0
         max                 FLOAT   1.0
-    [attr mscattering_depth]
-        desc                STRING  "Scattering depth."
-        min                 FLOAT   0.0
-        softmax             FLOAT   10.0
-    [attr mscattering_sample]
+    [attr samples]
         desc                STRING  "Scattering number of samples."
-        min                 INT     0
+        min                 INT     1
         softmax             INT     64
+		max					INT		100
 
 # dag nodes
 
