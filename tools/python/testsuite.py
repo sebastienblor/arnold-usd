@@ -39,23 +39,20 @@ def run_test(test_name, lock, test_dir, cmd, output_image, reference_image, expe
 
     output_image = os.path.abspath(output_image)
 
-    
+    ## TODO: attach valgrind to each command
+    if update_reference:
+        show_test_output = False
+    output_to_file = not show_test_output
+
     if show_test_output:
         # if we are showing output we need to lock around the entire thing, which negates all the benefits of multi-threading
-        lock.aquire()
+        lock.acquire()
         print_banner(test_name)
     else:
         # otherwise, we print a little something so that we know when the process is hung, and print the rest at the end
         lock.acquire()
         print '...starting %s...' % test_name
         lock.release()
-
-
-    ## TODO: attach valgrind to each command
-    if update_reference:
-        show_test_output = False
-    output_to_file = not show_test_output
-    
     
     output_image_dir, output_image_name = os.path.split(output_image)
     # replace test render dir with this test dir
@@ -68,8 +65,8 @@ def run_test(test_name, lock, test_dir, cmd, output_image, reference_image, expe
     # verbose and log options for Render cmd : -verb -log "test.log" 
     if show_test_output:
         cmd = string.replace(cmd, "%options%", '-im %s' % os.path.splitext(output_image_name)[0])
-        print cmd
-        print '-'*80
+        print Fore.CYAN + cmd
+        print Fore.MAGENTA + Style.BRIGHT + '-'*80
     else:
         logfile = "%s.log" % (test_name)
         logfile = os.path.join(output_image_dir, logfile)
@@ -165,8 +162,8 @@ def run_test(test_name, lock, test_dir, cmd, output_image, reference_image, expe
     else:
         lock.acquire()
         print_banner(test_name)
+        print "logged to", logfile
 
-    print "logged to", logfile
     print '%s %s' % ('time'.ljust(15), running_time)
         
     ## progress text (scream if the test didn't pass)
@@ -176,6 +173,7 @@ def run_test(test_name, lock, test_dir, cmd, output_image, reference_image, expe
     else:
         print Fore.RED + '%s %s' % ('status'.ljust(15), status)
         print Fore.RED + '%s %s' % ('cause'.ljust(15), cause)
+
     lock.release()
 
     ## get README so that we can stick it inside the html file

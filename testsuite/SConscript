@@ -309,7 +309,11 @@ class MayaTestRunner(object):
        
        manager = multiprocessing.Manager()
        self.pool = multiprocessing.Pool(test_env['TEST_THREADS'])
-       self._setup_sig_handler()
+       try:
+           self._setup_sig_handler()
+       except ValueError:
+           print "Sorry, you can't use --jobs or -j with testsuite"
+           return
        lock = manager.Lock()
        args = []
        self.tests.sort()
