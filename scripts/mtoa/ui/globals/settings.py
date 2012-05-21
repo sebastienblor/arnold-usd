@@ -307,7 +307,7 @@ def createArnoldSamplingSettings():
                         )
     '''
     pm.intSliderGrp('ss_hemi_samples',
-                        label="Hemi Samples",
+                        label="Diffuse Samples",
                         maxValue = 10,
                         fieldMaxValue=100,
                         cc=lambda *args: pm.evalDeferred(updateComputeSamples))
