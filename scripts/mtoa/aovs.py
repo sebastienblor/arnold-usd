@@ -409,6 +409,8 @@ if not pm.about(batch=True):
 
 def createAliases(sg):
     # This will run on scene startup but the list of AOVs will be unknown
+    if not sg:
+        return
     if sg.name() == "swatchShadingGroup":
         return
     aovList = getAOVs()
