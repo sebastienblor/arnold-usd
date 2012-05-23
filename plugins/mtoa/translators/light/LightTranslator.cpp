@@ -64,10 +64,12 @@ void CLightTranslator::Export(AtNode* light)
    // this doesn't always make sense in the context of a light.
    ProcessParameter(light, "color", AI_TYPE_RGB);
    ProcessParameter(light, "intensity", AI_TYPE_FLOAT);
+   ProcessParameter(light, "shadow_color", AI_TYPE_RGB);
 
    AiNodeSetBool(light, "affect_diffuse",  FindMayaPlug("emitDiffuse").asBool());
    AiNodeSetBool(light, "affect_specular", FindMayaPlug("emitSpecular").asBool());
    AiNodeSetBool(light, "cast_shadows",    FindMayaPlug("aiCastShadows").asBool());
+   AiNodeSetFlt(light,  "shadow_density",  FindMayaObjectPlug("aiShadowDensity").asFloat());
    AiNodeSetFlt(light,  "exposure",        FindMayaPlug("aiExposure").asFloat());
    AiNodeSetInt(light,  "samples",         FindMayaPlug("aiSamples").asInt());
    AiNodeSetBool(light, "normalize",       FindMayaPlug("aiNormalize").asBool());
@@ -120,6 +122,7 @@ void CLightTranslator::ExportMotion(AtNode* light, unsigned int step)
 void CLightTranslator::MakeCommonAttributes(CBaseAttrHelper& helper)
 {
    helper.MakeInput("cast_shadows");
+   helper.MakeInput("shadow_density"); 
    helper.MakeInput("exposure");
    helper.MakeInput("samples");
    helper.MakeInput("normalize");

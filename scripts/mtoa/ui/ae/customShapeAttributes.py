@@ -109,6 +109,7 @@ class AmbientLightTemplate(lightTemplate.LightTemplate):
         self.addSeparator()
         
         self.addControl("aiCastShadows")
+        self.addControl("aiShadowDensity")
 
         self.addSeparator()
         self.commonLightAttributes()
@@ -130,6 +131,7 @@ class DirectionalLightTemplate(lightTemplate.LightTemplate):
         self.addSeparator()
         
         self.addControl("aiCastShadows")
+        self.addControl("aiShadowDensity")
 
         self.addSeparator()
 
@@ -153,6 +155,7 @@ class PointLightTemplate(lightTemplate.LightTemplate):
         self.addSeparator()
 
         self.addControl("aiCastShadows")
+        self.addControl("aiShadowDensity")
 
         self.addSeparator()
 
@@ -179,6 +182,7 @@ class SpotLightTemplate(lightTemplate.LightTemplate):
         self.addSeparator()
 
         self.addControl("aiCastShadows")
+        self.addControl("aiShadowDensity")
 
         self.addSeparator()
 
@@ -212,6 +216,7 @@ class AreaLightTemplate(lightTemplate.LightTemplate):
         self.addSeparator()
 
         self.addControl("aiCastShadows")
+        self.addControl("aiShadowDensity")
 
         self.addSeparator()
 

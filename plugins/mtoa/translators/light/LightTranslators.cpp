@@ -126,6 +126,15 @@ void CQuadLightTranslator::Export(AtNode* light)
    AiNodeSetInt(light, "resolution", FindMayaPlug("aiResolution").asInt());
    AiNodeSetBool(light, "affect_volumetrics", FindMayaPlug("aiAffectVolumetrics").asBool());
    AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaPlug("aiCastVolumetricShadows").asBool());
+   
+   // This translator is used both for Maya Area light and Arnold Quad light. Maya light has the shadowColor attribute,
+   // so, if this attribute is found, it has already been exported in the CLightTranslator::Export method
+   // If shadowColor is not found, it is an Arnold Quad light and we will need to export the aiShadowColor attribute
+   MPlug shadowColorPlug = FindMayaPlug("shadowColor");
+   if (shadowColorPlug.isNull())
+   {
+      AiNodeSetRGB(light, "shadow_color", FindMayaPlug("aiShadowColorR").asFloat(), FindMayaPlug("aiShadowColorG").asFloat(), FindMayaPlug("aiShadowColorB").asFloat());
+   }
 }
 
 void CQuadLightTranslator::NodeInitializer(CAbTranslator context)
@@ -134,6 +143,7 @@ void CQuadLightTranslator::NodeInitializer(CAbTranslator context)
    // common attributes
    MakeCommonAttributes(helper);
    // quad light attributes
+   helper.MakeInput("shadow_color");
    helper.MakeInput("decay_type");
    helper.MakeInput("resolution");
    helper.MakeInput("affect_volumetrics");
@@ -149,6 +159,8 @@ void CCylinderLightTranslator::Export(AtNode* light)
    AiNodeSetInt(light,  "decay_type",      FindMayaPlug("aiDecayType").asInt());
    AiNodeSetBool(light, "affect_volumetrics", FindMayaPlug("aiAffectVolumetrics").asBool());
    AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaPlug("aiCastVolumetricShadows").asBool());
+   
+   AiNodeSetRGB(light, "shadow_color", FindMayaPlug("aiShadowColorR").asFloat(), FindMayaPlug("aiShadowColorG").asFloat(), FindMayaPlug("aiShadowColorB").asFloat());
 
    MTransformationMatrix tm(m_dagPath.inclusiveMatrix());
    double scale[3] = {1.0f, 1.0f, 1.0f};
@@ -161,6 +173,7 @@ void CCylinderLightTranslator::NodeInitializer(CAbTranslator context)
    CExtensionAttrHelper helper(context.maya, "cylinder_light");
    // common attributes
    MakeCommonAttributes(helper);
+   helper.MakeInput("shadow_color");
    helper.MakeInput("decay_type");
    helper.MakeInput("affect_volumetrics");
    helper.MakeInput("cast_volumetric_shadows");
@@ -175,6 +188,9 @@ void CDiskLightTranslator::Export(AtNode* light)
    AiNodeSetInt(light,  "decay_type",      FindMayaPlug("aiDecayType").asInt());
    AiNodeSetBool(light, "affect_volumetrics", FindMayaPlug("aiAffectVolumetrics").asBool());
    AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaPlug("aiCastVolumetricShadows").asBool());
+   
+   AiNodeSetRGB(light, "shadow_color", FindMayaPlug("aiShadowColorR").asFloat(), FindMayaPlug("aiShadowColorG").asFloat(), FindMayaPlug("aiShadowColorB").asFloat());
+   
    MTransformationMatrix tm(m_dagPath.inclusiveMatrix());
    double scale[3] = {1.0f, 1.0f, 1.0f};
    tm.getScale(scale, MSpace::kPreTransform);
@@ -186,6 +202,7 @@ void CDiskLightTranslator::NodeInitializer(CAbTranslator context)
    CExtensionAttrHelper helper(context.maya, "disk_light");
    // common attributes
    MakeCommonAttributes(helper);
+   helper.MakeInput("shadow_color");
    helper.MakeInput("decay_type");
    helper.MakeInput("affect_volumetrics");
    helper.MakeInput("cast_volumetric_shadows");
@@ -217,7 +234,7 @@ void CSkyDomeLightTranslator::Export(AtNode* light)
    AiNodeSetInt(light, "resolution", FindMayaPlug("resolution").asInt());
    AiNodeSetInt(light, "format", FindMayaPlug("format").asInt());
    AiNodeSetFlt(light, "shadow_density", FindMayaPlug("shadow_density").asFloat());
-   AiNodeSetRGB(light, "shadow_color", FindMayaPlug("shadow_colorR").asFloat(), FindMayaPlug("shadow_colorG").asFloat(), FindMayaPlug("shadow_colorB").asFloat());
+   AiNodeSetRGB(light, "shadow_color", FindMayaPlug("shadow_colorr").asFloat(), FindMayaPlug("shadow_colorg").asFloat(), FindMayaPlug("shadow_colorb").asFloat());
 }
 
 void CSkyDomeLightTranslator::NodeInitializer(CAbTranslator context)

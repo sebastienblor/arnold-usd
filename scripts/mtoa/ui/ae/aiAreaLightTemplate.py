@@ -50,6 +50,8 @@ class BaseAreaLightTemplate(lightTemplate.LightTemplate):
         self.addSeparator()
 
         self.addControl("aiCastShadows")
+        self.addControl("aiShadowDensity")
+        self.addControl("aiShadowColor")
 
         self.addSeparator()
         
