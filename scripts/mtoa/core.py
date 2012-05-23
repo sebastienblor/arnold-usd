@@ -124,7 +124,7 @@ def upgradeAOVOutput(options, defaultFilter=None, defaultDriver=None):
     Upgrades scenes to use new node-base filter and drivers
 
     Unfortunately, in Maya 2012 old driver/filter attributes are extension attributes, so no longer
-    exist on the aiAOV node.  As a result AOVs that overrode the global value will lose 
+    exist on the aiAOV node.  As a result AOVs that override the global value will lose 
     driver/filter specific settings like compression and quality.
     """
     print "[mtoa] upgrading to new AOV driver/filter setup"
@@ -136,10 +136,12 @@ def upgradeAOVOutput(options, defaultFilter=None, defaultDriver=None):
         defaultFilter = pm.nt.DependNode('defaultArnoldFilter')
 
     driver = options.imageFormat.get()
-    defaultDriver.aiTranslator.set(driver)
+    if driver:
+        defaultDriver.aiTranslator.set(driver)
 
     filter = options.filterType.get()
-    defaultFilter.aiTranslator.set(filter)
+    if filter:
+        defaultFilter.aiTranslator.set(filter)
 
     data = [(aovNodes, 'aiAOVDriver', '.outputs[0].driver', 'imageFormat', defaultDriver),
             (aovNodes, 'aiAOVFilter', '.outputs[0].filter', 'filterType', defaultFilter)]
