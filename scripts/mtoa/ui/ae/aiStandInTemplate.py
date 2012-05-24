@@ -15,8 +15,8 @@ def ArnoldStandInDsoEdit(nodeName, mPath) :
     nodeName = nodeName.replace(".dso","")
     
     # Sequence of .ass.gz
-    if re.search(r'([-_/a-zA-Z0-9.]*[-/a-zA-Z])([_.])([0-9.]+)(.ass.gz)',mPath) != None:
-        m_groups = re.search(r'([-_/a-zA-Z0-9.]*[-/a-zA-Z])([_.])([0-9.]+)(.ass.gz)',mPath).groups()
+    if re.search(r'(.*[a-zA-Z0-9])([_.])([0-9.]+)(.ass.gz)',mPath) != None:
+        m_groups = re.search(r'(.*[a-zA-Z0-9])([_.])([0-9.]+)(.ass.gz)',mPath).groups()
         mArchivePath = m_groups[0]+m_groups[1]+'#'+m_groups[3]
         if '.' in m_groups[2]:
             cmds.setAttr(nodeName+".useSubFrame",True)
@@ -28,8 +28,8 @@ def ArnoldStandInDsoEdit(nodeName, mPath) :
         mArchivePath = mPath
         cmds.setAttr(nodeName+".useFrameExtension",False)
     # Sequence of .ass
-    elif re.search(r'([-_/a-zA-Z0-9.]*[-/a-zA-Z])([_.])([0-9.]+?)(.ass)',mPath) != None:
-        m_groups = re.search(r'([-_/a-zA-Z0-9.]*[-/a-zA-Z])([_.])([0-9.]+)(.ass)',mPath).groups()
+    elif re.search(r'(.*[a-zA-Z0-9])([_.])([0-9.]+)(.ass)',mPath) != None:
+        m_groups = re.search(r'(.*[a-zA-Z0-9])([_.])([0-9.]+)(.ass)',mPath).groups()
         mArchivePath = m_groups[0]+m_groups[1]+'#'+m_groups[3]
         if '.' in m_groups[2]:
             cmds.setAttr(nodeName+".useSubFrame",True)
@@ -41,8 +41,8 @@ def ArnoldStandInDsoEdit(nodeName, mPath) :
         mArchivePath = mPath
         cmds.setAttr(nodeName+".useFrameExtension",False)
     # Sequence of .obj
-    elif re.search(r'([-_/a-zA-Z0-9.]*[-/a-zA-Z])[_.]([0-9.]+)(.obj)',mPath) != None:
-        m_groups = re.search(r'([-_/a-zA-Z0-9.]*[-/a-zA-Z])[_.]([0-9.]+)(.obj)',mPath).groups()
+    elif re.search(r'(.*[a-zA-Z0-9])([_.])([0-9.]+)(.obj)',mPath) != None:
+        m_groups = re.search(r'(.*[a-zA-Z0-9])([_.])([0-9.]+)(.obj)',mPath).groups()
         mArchivePath = m_groups[0]+'.#'+m_groups[2]
         if '.' in m_groups[1]:
             cmds.setAttr(nodeName+".useSubFrame",True)
