@@ -484,7 +484,16 @@ bool CArnoldStandInShape::LoadBoundingBox()
 
    MString path_val = geom->filename;
 
-   MString fileBase = path_val.substringW(0, path_val.rindex('.') - 1);
+   MString fileBase = "";
+   
+   if(path_val.rindexW(".ass.gz") != -1)
+   {
+      fileBase = path_val.substringW(0, path_val.rindexW(".ass.gz") - 1);
+   }
+   else
+   {
+      fileBase = path_val.substringW(0, path_val.rindex('.') - 1);
+   }
 
    MString asstocfile = fileBase + ".asstoc";
 
