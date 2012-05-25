@@ -443,6 +443,7 @@ AtNode* CNodeTranslator::DoExport(unsigned int step)
    {
       AiMsgDebug("[mtoa.translator]  %-30s | Export requested but no Arnold node was created by this translator (%s)",
                    GetMayaNodeName().asChar(), GetTranslatorName().asChar());
+      return NULL;
    }
 
    if (step == 0)
