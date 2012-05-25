@@ -37,8 +37,6 @@ def aiSkyDomeLightTemplate(nodeName):
 
     cmds.editorTemplate(addSeparator=True)
     cmds.editorTemplate("aiCastShadows", addControl=True, label="Cast Shadows")
-    cmds.editorTemplate("shadowDensity", addControl=True, label="Shadow Density")
-    cmds.editorTemplate("shadowColor", addControl=True, label="Shadow Color")
 
     # FIXME: use light template code here
     cmds.editorTemplate(addSeparator=True)

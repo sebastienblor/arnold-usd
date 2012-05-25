@@ -23,8 +23,6 @@ CStaticAttrHelper CArnoldSkyDomeLightNode::s_attributes(CArnoldSkyDomeLightNode:
 MObject CArnoldSkyDomeLightNode::s_intensity;
 // MObject CArnoldSkyDomeLightNode::s_exposure;
 // MObject CArnoldSkyDomeLightNode::s_castShadows;
-MObject CArnoldSkyDomeLightNode::s_shadowDensity;
-MObject CArnoldSkyDomeLightNode::s_shadowColor;
 // MObject CArnoldSkyDomeLightNode::s_samples;
 // MObject CArnoldSkyDomeLightNode::s_normalize;
 MObject CArnoldSkyDomeLightNode::s_affectDiffuse;
@@ -70,9 +68,6 @@ MStatus CArnoldSkyDomeLightNode::initialize()
    //s_attributes.MakeMatrixInput(s_matrix, "matrix");
 
    s_intensity = s_attributes.MakeInput("intensity");
-
-   s_shadowDensity = s_attributes.MakeInput("shadow_density");
-   s_shadowColor = s_attributes.MakeInput("shadow_color");
 
    // Metadata must be present to get it as Maya attributes emitDiffuse and emitSpecular
    s_affectDiffuse = s_attributes.MakeInput("affect_diffuse");
@@ -205,8 +200,6 @@ MStatus CArnoldSkyDomeLightNode::initialize()
    // attributeAffects(s_exposure, aLightData);
    attributeAffects(s_format, aLightData);
    // attributeAffects(s_castShadows, aLightData);
-   attributeAffects(s_shadowDensity, aLightData);
-   attributeAffects(s_shadowColor, aLightData);
    // attributeAffects(s_samples, aLightData);
    // attributeAffects(s_normalize, aLightData);
    attributeAffects(s_affectDiffuse, aLightData);

@@ -233,8 +233,6 @@ void CSkyDomeLightTranslator::Export(AtNode* light)
 
    AiNodeSetInt(light, "resolution", FindMayaPlug("resolution").asInt());
    AiNodeSetInt(light, "format", FindMayaPlug("format").asInt());
-   AiNodeSetFlt(light, "shadow_density", FindMayaPlug("shadow_density").asFloat());
-   AiNodeSetRGB(light, "shadow_color", FindMayaPlug("shadow_colorr").asFloat(), FindMayaPlug("shadow_colorg").asFloat(), FindMayaPlug("shadow_colorb").asFloat());
 }
 
 void CSkyDomeLightTranslator::NodeInitializer(CAbTranslator context)
