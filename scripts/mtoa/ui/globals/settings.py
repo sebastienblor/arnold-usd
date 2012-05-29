@@ -24,6 +24,10 @@ def updateComputeSamples(*args):
     
     if AASamples <= 0:
         AASamples = 1
+        
+    print "#### ",AASamples
+    pm.setAttr('defaultArnoldRenderOptions.AASamples', 0+AASamples)
+    
     AASamplesComputed = AASamples * AASamples
     
     GISamplesComputed = GISamples * GISamples * AASamplesComputed

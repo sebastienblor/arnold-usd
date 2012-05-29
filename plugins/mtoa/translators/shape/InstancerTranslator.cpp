@@ -317,7 +317,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, AtUInt step)
                // now compute the previous steps velocity matrices
                for (uint i = 0; i<step; i++)
                {
-                  int k = (i-(int)(totalSteps/2));
+                  int k = (i-step);
                   MVector velocitySubstep = (((velocities[j]/fps)*GetMotionByFrame())/(GetNumMotionSteps()-1))*k;
                   AtMatrix substepMatrix;
                   addVelocityToMatrix (substepMatrix, matrix, velocitySubstep);
@@ -382,8 +382,7 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, AtUInt step)
          for (it = tempMap.begin(); it != tempMap.end(); it++)
          {
             // get last steps  matrix
-            int k = (step-(int)(totalSteps/2));
-            MVector velocitySubstep = (((m_instantVeloArray[it->second]/fps)*GetMotionByFrame())/(GetNumMotionSteps()-1))*k;
+            MVector velocitySubstep = (((m_instantVeloArray[it->second]/fps)*GetMotionByFrame())/(GetNumMotionSteps()-1));
             AtMatrix substepMatrix;
             AiArrayGetMtx(m_vec_matrixArrays[it->second], step-1, substepMatrix);
             addVelocityToMatrix (substepMatrix, substepMatrix, velocitySubstep);
