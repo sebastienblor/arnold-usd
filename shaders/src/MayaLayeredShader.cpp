@@ -65,13 +65,13 @@ struct ShaderData
    AtUInt naovs;
 };
 
-void layer_op(AtShaderGlobals *sg, AtInt flag, AtRGB color, AtRGB opacity, AtBoolean useTransparency,
+void layer_op(AtShaderGlobals *sg, AtInt flag, AtRGB color, AtRGB transparency, AtBoolean useTransparency,
               AtRGB &curColor, AtRGB &curOpacity)
 {
-   AtColor orgOpacity = sg->out_opacity;
+   AtRGB opacity = AI_RGB_BLACK;
    if (useTransparency)
    {
-      opacity = 1.0f - opacity;
+      opacity = 1.0f - transparency;
       // Consider color pre-multiplied already
    }
    else
@@ -90,8 +90,6 @@ void layer_op(AtShaderGlobals *sg, AtInt flag, AtRGB color, AtRGB opacity, AtBoo
 
    curColor += (1.0f - curOpacity) * color;
    curOpacity += (1.0f - curOpacity) * opacity;
-
-   sg->out_opacity = orgOpacity;
 }
 
 AtRGBA post_process(const AtRGB &curColor, const AtRGB &curOpacity)
@@ -203,30 +201,43 @@ shader_evaluate
       AtRGB curColor = AI_RGB_BLACK;
       AtRGB curOpacity = AI_RGB_BLACK;
 
+      AtColor orgOpacity = sg->out_opacity;
+      
       for (unsigned int i = 0; i < numInputs; ++i)
       {
-         AtRGB transparency = AiShaderEvalParamRGB(p_transparency0+i);
+         AtRGB color = AI_RGB_BLACK;
+         AtRGB transparency = AI_RGB_BLACK;
          AtBoolean useTransparency = AiShaderEvalParamBool(p_useTransparency0+i);
-         layer_op(sg, flag,
-                  AiShaderEvalParamRGB(p_color0+i),
-                  transparency,
-                  useTransparency,
-                  curColor, curOpacity);
-
-         if (localData->naovs > 0)
+         
+         if(useTransparency && (curOpacity.r < 1 || curOpacity.g < 1 || curOpacity.b < 1))
+            transparency = AiShaderEvalParamRGB(p_transparency0+i);
+         if((curOpacity.r < 1 || curOpacity.g < 1 || curOpacity.b < 1 ) &&
+            ( (flag != CF_TEXTURE)  || (transparency.r < 1 || transparency.g < 1 || transparency.b < 1)) )
          {
-            for (std::vector<AOVLayer>::iterator it = AOVValues.begin(); it!=AOVValues.end(); ++it)
+            color = AiShaderEvalParamRGB(p_color0+i);
+            layer_op(sg, flag,
+                     color,
+                     transparency,
+                     useTransparency,
+                     curColor, curOpacity);
+
+            sg->out_opacity = orgOpacity;
+            
+            if (localData->naovs > 0)
             {
-               AtRGB color = AI_RGB_BLACK;
-               // save the current value
-               AiAOVGetRGB(sg, it->name, color);
-               // layer it into the accumulated results for this AOV
-               // TODO: look into getting a pointer from AiAOVGetRGB
-               layer_op(sg, flag,
-                        color,
-                        transparency,
-                        useTransparency,
-                        it->color, it->opacity);
+               for (std::vector<AOVLayer>::iterator it = AOVValues.begin(); it!=AOVValues.end(); ++it)
+               {
+                  AtRGB AOVColor = AI_RGB_BLACK;
+                  // save the current value
+                  AiAOVGetRGB(sg, it->name, AOVColor);
+                  // layer it into the accumulated results for this AOV
+                  // TODO: look into getting a pointer from AiAOVGetRGB
+                  layer_op(sg, flag,
+                           AOVColor,
+                           transparency,
+                           useTransparency,
+                           it->color, it->opacity);
+               }
             }
          }
       }
