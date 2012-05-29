@@ -3,7 +3,7 @@
 ## load our own python modules
 import system
 from build_tools import *
-from testsuite import do_run_test
+from testsuite import do_run_test, run_test
 import os
 import glob
 import shutil
@@ -306,52 +306,67 @@ class MayaTestRunner(object):
     
        show_test_output = (test_env['SHOW_TEST_OUTPUT'] == 'always') or (test_env['SHOW_TEST_OUTPUT'] == 'single' and (len(self.tests) == 1))
 
-       
-       manager = multiprocessing.Manager()
-       self.pool = multiprocessing.Pool(test_env['TEST_THREADS'])
-       try:
-           self._setup_sig_handler()
-       except ValueError:
-           print "Sorry, you can't use --jobs or -j with testsuite"
-           return
-       lock = manager.Lock()
-       args = []
        self.tests.sort()
-       for test_name in self.tests:
-           test_dir       = os.path.join(self.build_dir, test_name)
-           args.append( (test_name,
-                       lock,
-                       test_dir,
-                       self.script,
-                       self.output_image,
-                       os.path.join(self.source_dir, test_name, self.reference_image), # give the path to the real reference image so it can be updated
-                       self.force_result,
-                       test_env['UPDATE_REFERENCE'],
-                       show_test_output) )
 
-       # trying to work around a bug in python (http://bugs.python.org/issue8296) that is made
-       # even more treacherous by Scons and its heavy use of exec (at least that's my theory).
-
-#        # no KeyboardInterrupts are detected at any level:
-#       results = self.pool.map(do_run_test, args)
-#       self.total_running_time = sum(results)
-
-       # This succeeds in allowing scons to detect the KeyboardInterrupt, but not us.
-       # Scons hangs bc we cannot terminate the pool.
-       results = self.pool.imap(do_run_test, args)
-       try:
-          while 1:
-              # timeout seconds per job
-              self.total_running_time += results.next(timeout=60)
-       except StopIteration:
-           self.pool.close()
-           self.pool.join()
-       except KeyboardInterrupt:
-           # this never gets called
-           print "terminating"
-           self.pool.terminate()
-
-       self._reset_sig_handler()
+       if system.os() == 'windows':
+           # disable multi-threading for windows
+           for test_name in self.tests:
+               test_dir       = os.path.join(self.build_dir, test_name)
+               result = run_test(test_name,
+                           lock,
+                           test_dir,
+                           self.script,
+                           self.output_image,
+                           os.path.join(self.source_dir, test_name, self.reference_image), # give the path to the real reference image so it can be updated
+                           self.force_result,
+                           test_env['UPDATE_REFERENCE'],
+                           show_test_output)
+               self.total_running_time += result
+       else:
+           manager = multiprocessing.Manager()
+           self.pool = multiprocessing.Pool(test_env['TEST_THREADS'])
+           try:
+               self._setup_sig_handler()
+           except ValueError:
+               print "Sorry, you can't use --jobs or -j with testsuite"
+               return
+           lock = manager.Lock()
+           args = []
+           for test_name in self.tests:
+               test_dir       = os.path.join(self.build_dir, test_name)
+               args.append( (test_name,
+                           lock,
+                           test_dir,
+                           self.script,
+                           self.output_image,
+                           os.path.join(self.source_dir, test_name, self.reference_image), # give the path to the real reference image so it can be updated
+                           self.force_result,
+                           test_env['UPDATE_REFERENCE'],
+                           show_test_output) )
+    
+           # trying to work around a bug in python (http://bugs.python.org/issue8296) that is made
+           # even more treacherous by Scons and its heavy use of exec (at least that's my theory).
+    
+#            # no KeyboardInterrupts are detected at any level:
+#           results = self.pool.map(do_run_test, args)
+#           self.total_running_time = sum(results)
+    
+           # This succeeds in allowing scons to detect the KeyboardInterrupt, but not us.
+           # Scons hangs bc we cannot terminate the pool.
+           results = self.pool.imap(do_run_test, args)
+           try:
+              while 1:
+                  # timeout seconds per job
+                  self.total_running_time += results.next(timeout=60)
+           except StopIteration:
+               self.pool.close()
+               self.pool.join()
+           except KeyboardInterrupt:
+               # this never gets called
+               print "terminating"
+               self.pool.terminate()
+    
+           self._reset_sig_handler()
 
        ## restore environment
        if previous_path :
