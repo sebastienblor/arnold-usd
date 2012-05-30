@@ -3,7 +3,6 @@
 ## load our own python modules
 import system
 from build_tools import *
-from testsuite import do_run_test, run_test
 import os
 import glob
 import shutil
@@ -13,10 +12,14 @@ import sys
 import signal
 from colorama import Fore
 
-# SCons overrides pickle with cPickle, which causes problems with multiprocessing 
-sys.modules.pop('pickle')
-import pickle
-import multiprocessing
+if system.os() == 'windows':
+    from testsuite import DummyLock, run_test
+else:
+    from testsuite import do_run_test
+    # SCons overrides pickle with cPickle, which causes problems with multiprocessing 
+    sys.modules.pop('pickle')
+    import pickle
+    import multiprocessing
 
 
 ## Finds a test group and returns a list of all tests included
@@ -310,6 +313,7 @@ class MayaTestRunner(object):
 
        if system.os() == 'windows':
            # disable multi-threading for windows
+           lock = DummyLock()
            for test_name in self.tests:
                test_dir       = os.path.join(self.build_dir, test_name)
                result = run_test(test_name,

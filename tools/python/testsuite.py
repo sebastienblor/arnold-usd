@@ -16,6 +16,13 @@ from build_tools import process_return_code, saferemove
 
 colorama.init(autoreset=True)
 
+# for windows we use a fake lock to keep the code cleaner
+class DummyLock(object):
+    def acquire(self):
+        pass
+    def release(self):
+        pass
+
 def do_run_test(args):
     return run_test(*args)
 
