@@ -1,0 +1,6 @@
+shadow_color and shadow_density in lights
+
+The light parameters shadow_color and shadow_density are not exported 
+(ticket #769)
+
+author: r3D
