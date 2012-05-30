@@ -9,35 +9,53 @@
 class CHairLine
 {
 public:
-   void SetCurvePoints(MVectorArray &points) { curvePoints = points; }
-   void SetCurveWidths(MDoubleArray &widths) { curveWidths = widths; }
-   void SetCurveColors(MVectorArray &colors) { curveColors = colors; }
-   void SetCurveRootUV(float2 &uv) { root_uv[0] = uv[0]; root_uv[1] = uv[1]; }
-   void GetCurvePoints(MVectorArray &points) const { points = curvePoints; }
-   void GetCurveWidths(MDoubleArray &widths) const { widths = curveWidths; }
-   void GetCurveColors(MVectorArray &colors) { colors = curveColors; }
-   void GetCurveRootUV(float2 &uv) const { uv[0] = root_uv[0]; uv[1] = root_uv[1]; }
+
+   void SetCurvePoints(MVectorArray &points) { m_curvePoints = points; }
+   void SetCurveWidths(MDoubleArray &widths) { m_curveWidths = widths; }
+   void SetCurveColors(MVectorArray &colors) { m_curveColors = colors; }
+   void SetCurveRootUV(float2 &uv) { m_root_uv[0] = uv[0]; m_root_uv[1] = uv[1]; }
+   void GetCurvePoints(MVectorArray &points) const { points = m_curvePoints; }
+   void GetCurveWidths(MDoubleArray &widths) const { widths = m_curveWidths; }
+   void GetCurveColors(MVectorArray &colors) { colors = m_curveColors; }
+   void GetCurveRootUV(float2 &uv) const { uv[0] = m_root_uv[0]; uv[1] = m_root_uv[1]; }
    void clear()
    {
-      curvePoints.clear();
-      curveWidths.clear();
-      curveColors.clear();
+      m_curvePoints.clear();
+      m_curveWidths.clear();
+      m_curveColors.clear();
    }
-
+  
 private:
-   MVectorArray curvePoints;
-   MDoubleArray curveWidths;
-   MVectorArray curveColors;
-   float2       root_uv;
+   MVectorArray m_curvePoints;
+   MDoubleArray m_curveWidths;
+   MVectorArray m_curveColors;
+   float2       m_root_uv;
+};
+
+class CHairLines
+{
+   public:
+      CHairLines() :
+         m_numPoints(0),
+         m_numPointsInterpolation(0)
+      {
+      }
+      
+      std::vector<CHairLine>& get()
+      {
+         return m_hairLines;
+      }
+      
+      unsigned int m_numPoints;
+      unsigned int m_numPointsInterpolation;   
+      std::vector<CHairLine> m_hairLines;      
 };
 
 class CHairTranslator
-   :   public CGeometryTranslator
+   :   public CShapeTranslator
 {
 public:
-   CHairTranslator() :
-      CGeometryTranslator(),
-      m_numMainLines(0)
+   CHairTranslator()
    {
       // Just for debug info, translator creates whatever arnold nodes are required
       // through the CreateArnoldNodes method
@@ -56,25 +74,31 @@ public:
 
    
 private:
-   void ProcessHairLines(unsigned int step,
+   void ProcessHairLines(const unsigned int step,
                          AtArray* curvePoints,
-                         AtArray* curveNextLineStartsInterp,
-                         AtArray* curveNextLineStarts,
+                         AtArray* curveNumPoints,
                          AtArray* curveWidths,
-                         AtArray* curveColors);
+                         AtArray* curveColors,
+                         AtArray* curveID = NULL,
+                         AtArray* curveUParamCoord = NULL,
+                         AtArray* curveVParamCoord = NULL);
+                         
    AtVector2 GetHairRootUVs(const MVector& lineStart, MMeshIntersector& meshInt, MFnMesh& mesh);
    void GetHairShapeMeshes(const MObject& hair, MDagPathArray& shapes);
-   unsigned int GetHairLines(MObject& hair, std::vector<CHairLine>& hairLines);
+   unsigned int GetHairLines(MObject& hair, CHairLines& hairLines);
    void clear()
    {
-      m_numMainLines = 0;
-      m_hairLines.clear();
+      m_hairLines.get().clear();
    }
 
 private:
-   std::vector<CHairLine> m_hairLines;
-   unsigned int m_numMainLines;
-
+   CHairLines       m_hairLines;
+   MObject          m_hairInfo;
+   bool             m_export_curve_uvs;
+   bool             m_export_curve_id;
+   MMeshIntersector m_meshInt;
+   MFnMesh          m_mesh;
+   bool             m_hasConnectedShapes;
    
 };
 
