@@ -268,7 +268,8 @@ void CHairTranslator::ProcessHairLines(unsigned int step,
       const int pointsInterpolationLine = renderLineLength + 2;
 
       // Set num points
-      AiArraySetInt(curveNumPoints, strand, pointsInterpolationLine);
+      AiArraySetUInt(curveNumPoints, strand, pointsInterpolationLine);
+      
 
       // Set UVs
       if (m_export_curve_uvs)
