@@ -5,7 +5,6 @@
 
 #include <maya/MFnParticleSystem.h>
 #include <maya/MFnInstancer.h>
-#include <maya/MFnInstancer.h>
 #include <maya/MDagPathArray.h>
 #include <maya/MPlug.h>
 #include <maya/MPlugArray.h>
@@ -14,6 +13,7 @@
 #include <maya/MIntArray.h>
 #include <maya/MTime.h>
 #include <maya/MBoundingBox.h>
+#include <maya/MFnArrayAttrsData.h>
 #include <vector>
 #include <map>
 
@@ -54,6 +54,7 @@ protected:
    AtInt m_particleCount;
    MDagPath m_masterDag;
    MString m_customAttrs;
+
 
    std::map<std::string, MVectorArray > m_out_customVectorAttrArrays;
    std::map<std::string, MDoubleArray > m_out_customDoubleAttrArrays;
