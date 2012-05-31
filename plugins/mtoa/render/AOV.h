@@ -55,13 +55,13 @@ public:
    inline const MString& GetName() const { return m_name; }
    inline void SetName(const MString &name) { m_name = name; }
 
-   inline MObject GetNode() { return m_object; }
+   inline MObject GetNode() const { return m_object; }
 
    inline const MString& GetPrefix() const { return m_prefix; }
 
    inline const MStringArray& GetImageFormats() const { return m_extensions; }
 
-   bool IsEnabled() { return m_enabled; }
+   bool IsEnabled() const { return m_enabled; }
    bool FromMaya(MObject &o);
 
    void SetImageFilename(unsigned int driverNum, const MString &filename) const;
