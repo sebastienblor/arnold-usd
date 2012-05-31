@@ -3,6 +3,7 @@ import maya.cmds as cmds
 import maya.mel as mel
 import pymel.core as pm
 import inspect
+import types
 import re
 import os
 import shlex
@@ -79,6 +80,20 @@ def pyToMelProc(pyobj, args=(), returnType=None, procName=None, useName=False, p
     elif useName:
         d['procname'] = pyobj.__name__
     else:
+        # prefix
+        # try to add some extra info to the name for easier debugging
+        if isinstance(pyobj, types.LambdaType):
+            procPrefix += '_lambda'
+        elif isinstance(pyobj, (types.FunctionType, types.BuiltinFunctionType)):
+            try:
+                procPrefix += '_' + pyobj.__name__
+            except (AttributeError, TypeError):
+                pass
+        elif isinstance(pyobj, types.MethodType):
+            try:
+                procPrefix += '_' + pyobj.im_class.__name__ + '_' + pyobj.__name__
+            except (AttributeError, TypeError):
+                pass
         d['procname'] = '%s%s' % (procPrefix, objId)
 
     d['melParams'] = ', '.join(melParams)
