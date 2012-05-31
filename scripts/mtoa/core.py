@@ -255,8 +255,9 @@ def getDefaultTranslator(node):
     except KeyError:
         pass
 
-def _rendererChanged(plug, *args):
-    if plug.asString() == 'arnold':
+def _rendererChanged(*args):
+    #if args[0].asString() == 'arnold':
+    if pm.getAttr('defaultRenderGlobals.currentRenderer') == 'arnold':
         global _defaultTranslators
         for nodeType, default in _defaultTranslators.iteritems():
             if default:
@@ -271,5 +272,6 @@ def _rendererChanged(plug, *args):
                             val = default
                         at.set(val)
 
-
-callbacks.addAttributeChangedCallback(_rendererChanged, 'renderGlobals', 'currentRenderer')
+# certain scenes fail to execute this callback:
+#callbacks.addAttributeChangedCallback(_rendererChanged, 'renderGlobals', 'currentRenderer')
+pm.scriptJob(attributeChange=['defaultRenderGlobals.currentRenderer', _rendererChanged] )
