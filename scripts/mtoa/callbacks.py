@@ -81,7 +81,8 @@ def addNodeAddedCallback(func, nodeType, applyToExisting=True, apiArgs=False):
         if True, api objects (MObjects, MPlugs, etc) are left as is. If False, they're converted to string names
     """
     if nodeType not in _nodeAddedCallbacks:
-        manageCallback(om.MDGMessage.addNodeAddedCallback(_makeNodeAddedCB(nodeType), nodeType))
+        cb = _makeNodeAddedCB(nodeType)
+        manageCallback(om.MDGMessage.addNodeAddedCallback(cb, nodeType))
     _nodeAddedCallbacks[nodeType].append((func, apiArgs))
     
     if applyToExisting and apiArgs:
@@ -157,6 +158,7 @@ def addAttributeChangedCallback(func, nodeType, attribute, context=ANY_CHANGE, a
     applyToExisting : boolean
         whether to apply the function to existing nodes
     """
+    assert callable(func), "please pass a function as the first argument"
     global _attrChangedCallbacks
     nodeAddedCallback = _makeInstallAttributeChangedCallback(nodeType)
     if nodeType not in _attrChangedCallbacks:
@@ -209,6 +211,7 @@ def addAttributeChangedCallbacks(nodeType, attrFuncs, context=ANY_CHANGE):
 def removeAttributeChangedCallbacks(nodeType, attribute):
     return _attrChangedCallbacks[nodeType].pop(attribute)
 
+# cleanup callbacks once the mtoa plugin unloads
 manageCallback(om.MSceneMessage.addStringArrayCallback(om.MSceneMessage.kAfterPluginUnload, _removeCallbacks, None))
 
 

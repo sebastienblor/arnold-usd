@@ -117,36 +117,21 @@ def renderSettingsTabLabel_melToUI(smel):
     # be localized. This procedure uses the first string
     # argument that is passed with the "-addGlobalsTab"
     # flag in the "renderer" command.
-    result = smel
 
-    if smel == 'Common':
-        result = pm.mel.uiRes("m_unifiedRenderGlobalsWindow.kCommon")
-
-    elif smel == 'Passes':
-        result = pm.mel.uiRes("m_unifiedRenderGlobalsWindow.kPassesTab")
-
-    elif smel == 'Maya Software':
-        result = pm.mel.uiRes("m_unifiedRenderGlobalsWindow.kMayaSoftware")
-
-    elif smel == 'Maya Hardware':
-        result = pm.mel.uiRes("m_unifiedRenderGlobalsWindow.kMayaHardware")
-
-    elif smel == 'Maya Vector':
-        result = pm.mel.uiRes("m_unifiedRenderGlobalsWindow.kMayaVector")
-
-    elif smel == 'Features':
-        result = pm.mel.uiRes("m_unifiedRenderGlobalsWindow.kFeatures")
-
-    elif smel == 'Quality':
-        result = pm.mel.uiRes("m_unifiedRenderGlobalsWindow.kQuality")
-
-    elif smel == 'Indirect Lighting':
-        result = pm.mel.uiRes("m_unifiedRenderGlobalsWindow.kIndirectLighting")
-
-    elif smel == 'Options':
-        result = pm.mel.uiRes("m_unifiedRenderGlobalsWindow.kOptions")
-
-    else:
+    try:
+        result = pm.mel.uiRes({
+            'Common'             : "m_unifiedRenderGlobalsWindow.kCommon",
+            'Passes'             : "m_unifiedRenderGlobalsWindow.kPassesTab",
+            'Maya Software'      : "m_unifiedRenderGlobalsWindow.kMayaSoftware",
+            'Maya Hardware'      : "m_unifiedRenderGlobalsWindow.kMayaHardware",
+            'Maya Vector'        : "m_unifiedRenderGlobalsWindow.kMayaVector",
+            'Features'           : "m_unifiedRenderGlobalsWindow.kFeatures",
+            'Quality'            : "m_unifiedRenderGlobalsWindow.kQuality",
+            'Indirect Lighting'  : "m_unifiedRenderGlobalsWindow.kIndirectLighting",
+            'Options'            : "m_unifiedRenderGlobalsWindow.kOptions"
+            }[smel])
+    except:
+        result = smel
         pm.mel.uiToMelMsg("renderSettingsTabLabel_melToUI", smel, 0)
 
     return result
