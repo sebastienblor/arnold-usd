@@ -1292,19 +1292,62 @@ AtNode* CNodeTranslator::ProcessConstantParameter(AtNode* arnoldNode, const char
    {
    case AI_TYPE_RGB:
       {
-         AiNodeSetRGB(arnoldNode, arnoldParamName,
-                      plug.child(0).asFloat(),
-                      plug.child(1).asFloat(),
-                      plug.child(2).asFloat());
+         unsigned int numChildren = plug.numChildren();
+         if (numChildren== 3)
+         {
+            AiNodeSetRGB(arnoldNode, arnoldParamName,
+                         plug.child(0).asFloat(),
+                         plug.child(1).asFloat(),
+                         plug.child(2).asFloat());
+         }
+         else
+         {
+            AiMsgError("[mtoa] Improper RGB attribute %s",
+                       plug.partialName(true, false, false, false, false, true).asChar());
+         }
       }
       break;
    case AI_TYPE_RGBA:
       {
-         AiNodeSetRGBA(arnoldNode, arnoldParamName,
-                       plug.child(0).asFloat(),
-                       plug.child(1).asFloat(),
-                       plug.child(2).asFloat(),
-                       plug.child(3).asFloat());
+         unsigned int numChildren = plug.numChildren();
+
+         if (numChildren== 4)
+         {
+            // this type of plug is not created by MtoA, custom nodes may implement RGBA this way
+            AiNodeSetRGBA(arnoldNode, arnoldParamName,
+                          plug.child(0).asFloat(),
+                          plug.child(1).asFloat(),
+                          plug.child(2).asFloat(),
+                          plug.child(3).asFloat());
+         }
+         else if (numChildren== 3)
+         {
+            MStatus stat;
+            MString alphaName = plug.partialName(false, false, false, false, false, true) + "A";
+            MPlug alphaPlug = MFnDependencyNode(plug.node()).findPlug(alphaName, false, &stat);
+            if (stat == MS::kSuccess)
+            {
+               AiNodeSetRGBA(arnoldNode, arnoldParamName,
+                             plug.child(0).asFloat(),
+                             plug.child(1).asFloat(),
+                             plug.child(2).asFloat(),
+                             alphaPlug.asFloat());
+            }
+            else
+            {
+               AiMsgWarning("[mtoa] RGBA attribute %s has no alpha component: exporting as RGBA",
+                            plug.partialName(true, false, false, false, false, true).asChar());
+               AiNodeSetRGB(arnoldNode, arnoldParamName,
+                            plug.child(0).asFloat(),
+                            plug.child(1).asFloat(),
+                            plug.child(2).asFloat());
+            }
+         }
+         else
+         {
+            AiMsgError("[mtoa] Improper RGBA attribute %s",
+                       plug.partialName(true, false, false, false, false, true).asChar());
+         }
       }
       break;
    case AI_TYPE_FLOAT:
