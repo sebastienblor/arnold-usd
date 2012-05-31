@@ -474,6 +474,7 @@ class MayaTestRunner(object):
               if os.path.exists(file):
                   dest = os.path.join(test_results_dir, os.path.basename(file))
                   shutil.copy(file, dest)
+                  return dest
               #else:  print "does not exist", file
     
           f = open(os.path.join(self.build_dir, test_dir, 'STATUS'), 'r')
@@ -491,10 +492,10 @@ class MayaTestRunner(object):
     
           # copy images to results directory
           new_img = os.path.join(test_dir, 'new.jpg')
-          copy_to_results(new_img)
+          new_img_dest = copy_to_results(new_img)
           
           ref_img = os.path.join(test_dir, 'ref.jpg')
-          copy_to_results(ref_img)
+          ref_img_dest = copy_to_results(ref_img)
 
           dif_img = os.path.join(test_dir, 'dif.jpg')
           copy_to_results(dif_img)
@@ -512,10 +513,10 @@ class MayaTestRunner(object):
                  bgcolor,
                  description,
                  test_link,
-                 os.path.exists(new_img) and '''<img src="%s/new.jpg" border="0" hspace="1" width="60" height="45" alt="new image" />''' % (test_name)
+                 os.path.exists(new_img_dest) and '''<img src="%s/new.jpg" border="0" hspace="1" width="60" height="45" alt="new image" />''' % (test_name)
                                           or '''<center>&nbsp;<br /><b>no</b><br />&nbsp;</center>''',
                  test_link,
-                 os.path.exists(ref_img) and '''<img src="%s/ref.jpg" border="0" hspace="1" width="60" height="45" alt="ref image" />''' % (test_name)
+                 os.path.exists(ref_img_dest) and '''<img src="%s/ref.jpg" border="0" hspace="1" width="60" height="45" alt="ref image" />''' % (test_name)
                                           or '''<center>&nbsp;<br /><b>image</b><br />&nbsp;</center>''',
                  ))
        outfile.write('''
