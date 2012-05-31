@@ -1240,17 +1240,3 @@ AOVSet CArnoldSession::GetActiveAOVs() const
    return empty;
 }
 
-// Returns the instance number of the master instance (it's not always 0!)
-// Returns -1 if no master instance has been encountered yet
-int CArnoldSession::GetMasterInstanceNumber(MObject node)
-{
-   MObjectHandle handle = MObjectHandle(node);
-   // if handle is not in the map, a new entry will be made with a default value
-   MDagPath dagPath = m_masterInstances[handle];
-   if (dagPath.isValid())
-   {
-      return dagPath.instanceNumber();
-   }
-   return -1;
-}
-

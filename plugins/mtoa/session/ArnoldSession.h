@@ -132,7 +132,6 @@ public:
    void RequestUpdate();
 
    // Instances
-   int GetMasterInstanceNumber(MObject node);
    inline void AddMasterInstanceHandle(MObjectHandle handle, MDagPath dagPath){m_masterInstances[handle] = dagPath;};
    inline MDagPath GetMasterInstanceDagPath(MObjectHandle handle){return m_masterInstances[handle];};
 
