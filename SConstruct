@@ -51,6 +51,7 @@ vars.AddVariables(
       BoolVariable('COLOR_CMDS' , 'Display colored output messages when building', False),
       EnumVariable('SHOW_TEST_OUTPUT', 'Display the test log as it is being run', 'single', allowed_values=('always', 'never', 'single')),
       BoolVariable('UPDATE_REFERENCE', 'Update the reference log/image for the specified targets', False),
+      ('TEST_THREADS' , 'Number of simultaneous tests to run', 4),
       ('TEST_PATTERN' , 'Glob pattern of tests to be run', 'test_*'),
       ('GCC_OPT_FLAGS', 'Optimization flags for gcc', '-O3 -funroll-loops'),
 
