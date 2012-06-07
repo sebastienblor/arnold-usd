@@ -287,7 +287,7 @@ class AOVInterface(object):
         returns True if the node was found and removed, False otherwise
         '''
         if isinstance(aov, basestring):
-            matches = self.getAOV(include=[aov])
+            matches = self.getAOVs(include=[aov])
             if not matches:
                 return False
             assert len(matches) == 1
