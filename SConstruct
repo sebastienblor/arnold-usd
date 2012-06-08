@@ -8,6 +8,8 @@ import system, glob
 from build_tools import *
 from solidangle_tools import *
 
+import SCons
+
 from colorama import init
 init()
 from colorama import Fore, Back, Style
@@ -199,6 +201,7 @@ print 'Mode           : %s' % (env['MODE'])
 print 'Host OS        : %s' % (system.os())
 print 'Host arch.     : %s' % (system.host_arch())
 print 'Target arch.   : %s' % (system.target_arch())
+print 'SCons          : %s' % (SCons.__version__)
 print ''
 
 
