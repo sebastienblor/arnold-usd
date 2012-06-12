@@ -66,6 +66,7 @@ extern AtNodeMethods* UserDataFloatMtd;
 extern AtNodeMethods* UserDataVectorMtd;
 extern AtNodeMethods* UserDataColorMtd;
 extern AtNodeMethods* UserDataStringMtd;
+extern AtNodeMethods* UserDataBoolMtd;
 extern AtNodeMethods* MayaShadingEngineMtd;
 extern AtNodeMethods* SkinSssMethods;
 extern AtNodeMethods* MayaSamplerInfo1DMtd;
@@ -565,6 +566,13 @@ node_loader
       node->methods     = MayaVectorDisplacementMtd;
       node->output_type = AI_TYPE_VECTOR;
       node->name        = "MayaVectorDisplacement";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+      
+   case 70:
+      node->methods     = UserDataBoolMtd;
+      node->output_type = AI_TYPE_BOOLEAN;
+      node->name        = "userDataBool";
       node->node_type   = AI_NODE_SHADER;
       break;
 
