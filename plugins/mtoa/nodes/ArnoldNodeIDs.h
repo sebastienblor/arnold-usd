@@ -51,6 +51,7 @@
 #define ARNOLD_NODEID_USER_DATA_VECTOR          0x00115D13
 #define ARNOLD_NODEID_USER_DATA_COLOR           0x00115D14
 #define ARNOLD_NODEID_USER_DAT_ASTRING          0x00115D15
+#define ARNOLD_NODEID_USER_DATA_BOOL            0x00115D18
 
 // For automatic node generation
 #define ARNOLD_NODEID_AUTOGEN                   0x00115E00
