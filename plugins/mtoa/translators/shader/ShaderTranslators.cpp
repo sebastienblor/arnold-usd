@@ -832,10 +832,10 @@ void CLayeredShaderTranslator::Export(AtNode* shader)
    MFnDependencyNode fnNode(GetMayaObject());
    attr = fnNode.findPlug("inputs");
    unsigned int numElements = attr.numElements();
-   if (numElements > 8)
+   if (numElements > 16)
    {
-      AiMsgWarning("[mtoa] [translator %s] LayeredShader node has more than 8 inputs, only the first 8 will be handled", GetTranslatorName().asChar());
-      numElements = 8;
+      AiMsgWarning("[mtoa] [translator %s] LayeredShader node has more than 16 inputs, only the first 16 will be handled", GetTranslatorName().asChar());
+      numElements = 16;
    }
 
    AiNodeSetUInt(shader, "numInputs", numElements);

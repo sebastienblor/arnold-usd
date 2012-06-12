@@ -20,6 +20,14 @@ namespace
       p_color5,
       p_color6,
       p_color7,
+      p_color8,
+      p_color9,
+      p_color10,
+      p_color11,
+      p_color12,
+      p_color13,
+      p_color14,
+      p_color15,
       p_transparency0,
       p_transparency1,
       p_transparency2,
@@ -28,6 +36,14 @@ namespace
       p_transparency5,
       p_transparency6,
       p_transparency7,
+      p_transparency8,
+      p_transparency9,
+      p_transparency10,
+      p_transparency11,
+      p_transparency12,
+      p_transparency13,
+      p_transparency14,
+      p_transparency15,
       p_useTransparency0,
       p_useTransparency1,
       p_useTransparency2,
@@ -36,6 +52,14 @@ namespace
       p_useTransparency5,
       p_useTransparency6,
       p_useTransparency7,
+      p_useTransparency8,
+      p_useTransparency9,
+      p_useTransparency10,
+      p_useTransparency11,
+      p_useTransparency12,
+      p_useTransparency13,
+      p_useTransparency14,
+      p_useTransparency15,
    };
 
    enum CompositingFlag
@@ -129,6 +153,14 @@ node_parameters
    AiParameterRGB("color5", 0.0f, 0.0f, 0.0f);
    AiParameterRGB("color6", 0.0f, 0.0f, 0.0f);
    AiParameterRGB("color7", 0.0f, 0.0f, 0.0f);
+   AiParameterRGB("color8", 0.0f, 0.0f, 0.0f);
+   AiParameterRGB("color9", 0.0f, 0.0f, 0.0f);
+   AiParameterRGB("color10", 0.0f, 0.0f, 0.0f);
+   AiParameterRGB("color11", 0.0f, 0.0f, 0.0f);
+   AiParameterRGB("color12", 0.0f, 0.0f, 0.0f);
+   AiParameterRGB("color13", 0.0f, 0.0f, 0.0f);
+   AiParameterRGB("color14", 0.0f, 0.0f, 0.0f);
+   AiParameterRGB("color15", 0.0f, 0.0f, 0.0f);
    AiParameterRGB("transparency0", 1.0f, 1.0f, 1.0f);
    AiParameterRGB("transparency1", 1.0f, 1.0f, 1.0f);
    AiParameterRGB("transparency2", 1.0f, 1.0f, 1.0f);
@@ -137,6 +169,14 @@ node_parameters
    AiParameterRGB("transparency5", 1.0f, 1.0f, 1.0f);
    AiParameterRGB("transparency6", 1.0f, 1.0f, 1.0f);
    AiParameterRGB("transparency7", 1.0f, 1.0f, 1.0f);
+   AiParameterRGB("transparency8", 1.0f, 1.0f, 1.0f);
+   AiParameterRGB("transparency9", 1.0f, 1.0f, 1.0f);
+   AiParameterRGB("transparency10", 1.0f, 1.0f, 1.0f);
+   AiParameterRGB("transparency11", 1.0f, 1.0f, 1.0f);
+   AiParameterRGB("transparency12", 1.0f, 1.0f, 1.0f);
+   AiParameterRGB("transparency13", 1.0f, 1.0f, 1.0f);
+   AiParameterRGB("transparency14", 1.0f, 1.0f, 1.0f);
+   AiParameterRGB("transparency15", 1.0f, 1.0f, 1.0f);
    AiParameterBOOL("useTransparency0", FALSE);
    AiParameterBOOL("useTransparency1", FALSE);
    AiParameterBOOL("useTransparency2", FALSE);
@@ -145,6 +185,14 @@ node_parameters
    AiParameterBOOL("useTransparency5", FALSE);
    AiParameterBOOL("useTransparency6", FALSE);
    AiParameterBOOL("useTransparency7", FALSE);
+   AiParameterBOOL("useTransparency8", FALSE);
+   AiParameterBOOL("useTransparency9", FALSE);
+   AiParameterBOOL("useTransparency10", FALSE);
+   AiParameterBOOL("useTransparency11", FALSE);
+   AiParameterBOOL("useTransparency12", FALSE);
+   AiParameterBOOL("useTransparency13", FALSE);
+   AiParameterBOOL("useTransparency14", FALSE);
+   AiParameterBOOL("useTransparency15", FALSE);
 
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }
