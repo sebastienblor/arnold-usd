@@ -54,7 +54,6 @@ public:
    static void* creator(){return new CBump2DTranslator();}
    virtual void Export(AtNode* shader);
    AtNode* CreateArnoldNodes();
-   bool DisableCaching() {return true;};
 };
 
 class CAnimCurveTranslator : public CShaderTranslator

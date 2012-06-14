@@ -175,8 +175,7 @@ void CShaderTranslator::Export(AtNode *shader)
 
       if (bump != NULL)
       {
-         AiNodeLink(shader, "shader", bump);
-         SetArnoldRootNode(bump);
+         AiNodeLink(bump, "@before", shader);
       }
    }
    // This routine is not currently used. It could eventually be used in order for
