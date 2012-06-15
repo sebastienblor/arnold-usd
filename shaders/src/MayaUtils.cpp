@@ -1183,3 +1183,20 @@ void RestoreNormals(AtShaderGlobals *sg, AtVector tmpNmrs)
    sg->N = tmpNmrs;
 }
 
+float sfrand(unsigned int *seed)
+{
+   union
+   {
+       float fres;
+       unsigned int ires;
+   };
+
+   seed[0] *= 16807;
+   *((unsigned int *) &ires) = ( ((unsigned int)seed[0])>>9 ) | 0x40000000;
+   return fres-3.0f;
+}
+
+float rand01(unsigned int *seed)
+{
+   return sfrand(seed)*0.5f + 0.5f;
+}

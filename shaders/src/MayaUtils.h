@@ -120,4 +120,8 @@ bool SetRefererenceNormals(AtShaderGlobals *sg, AtVector &tmpNmrs);
 void RestorePoints(AtShaderGlobals *sg, AtPoint tmpPts);
 void RestoreNormals(AtShaderGlobals *sg, AtVector tmpNmrs);
 
+// some random tools from Borja
+float sfrand(unsigned int *seed);
+float rand01(unsigned int *seed);
+
 #endif // MAYAUTILS_H

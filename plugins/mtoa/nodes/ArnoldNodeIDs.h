@@ -53,6 +53,7 @@
 #define ARNOLD_NODEID_USER_DAT_ASTRING          0x00115D15
 #define ARNOLD_NODEID_USER_DATA_BOOL            0x00115D18
 #define ANROLD_NODEID_SHADOW_CATCHER            0x00115D19
+#define ARNOLD_NODEID_MAYA_HAIR                 0x00115D1A
 
 // For automatic node generation
 #define ARNOLD_NODEID_AUTOGEN                   0x00115E00

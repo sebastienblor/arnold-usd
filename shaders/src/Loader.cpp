@@ -75,6 +75,7 @@ extern AtNodeMethods* MayaSamplerInfo3DMtd;
 extern AtNodeMethods* MayaVectorDisplacementMtd;
 extern AtNodeMethods* MayaNormalDisplacementMtd;
 extern AtNodeMethods* ShadowCatcherMtd;
+extern AtNodeMethods* MayaHairMtd;
 
 node_loader
 {
@@ -581,6 +582,13 @@ node_loader
       node->methods     = ShadowCatcherMtd;
       node->output_type = AI_TYPE_RGBA;
       node->name        = "shadowCatcher";
+      node->node_type   = AI_NODE_SHADER;
+      break;
+      
+   case 72:
+      node->methods     = MayaHairMtd;
+      node->output_type = AI_TYPE_RGBA;
+      node->name        = "MayaHair";
       node->node_type   = AI_NODE_SHADER;
       break;
 

@@ -91,24 +91,68 @@ void CHairTranslator::Update( AtNode *curve )
          }
       }
    }
+   
+   plug = FindMayaPlug("aiExportHairIDs");
+   m_export_curve_id = true;
+   if (!plug.isNull())
+   {
+      m_export_curve_id = plug.asBool();
+   }
 
    // Default to the Hair shader if nothing else has been set.
    if (shader == NULL)
    {
-      shader = AiNode("hair");
+      shader = AiNode("MayaHair");
       MString hairShaderName = fnDepNodeHair.name();
       hairShaderName += "_hairShader";
       AiNodeSetStr(shader, "name", hairShaderName.asChar());
-
-      // Add shader uparam and vparam names
-      AiNodeSetStr(shader, "uparam", "uparamcoord");
-      AiNodeSetStr(shader, "vparam", "vparamcoord");
+      ProcessParameter(shader, "hairColor", AI_TYPE_RGB, fnDepNodeHair.findPlug("hairColor"));
+      ProcessParameter(shader, "opacity", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("opacity"));
+      ProcessParameter(shader, "translucence", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("translucence"));
+      ProcessParameter(shader, "specularColor", AI_TYPE_RGB, fnDepNodeHair.findPlug("specularColor"));
+      ProcessParameter(shader, "specularPower", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("specularPower"));
+      ProcessParameter(shader, "castShadows", AI_TYPE_BOOLEAN, fnDepNodeHair.findPlug("castShadows"));
+      
+      const bool diffuseRandConnected = ProcessParameter(shader, "diffuseRand", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("diffuseRand")) != 0;
+      const bool specularRandConnected = ProcessParameter(shader, "specularRand", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("specularRand")) != 0;
+      const bool hueRandConnected = ProcessParameter(shader, "hueRand", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("hueRand")) != 0;
+      const bool valRandConnected = ProcessParameter(shader, "valRand", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("valRand")) != 0;
+      const bool satRandConnected = ProcessParameter(shader, "satRand", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("satRand")) != 0;      
+      
+      // if any of the random parameters are not zero, we need to export the ids
+      // for the hashing functions
+      // export when either diffuseRand or specularRand is enabled
+      // AND when at least one of the components are randomized
+      // otherwise we won`t need the curve id data
+      if ((diffuseRandConnected || (AiNodeGetFlt(shader, "diffuseRand") > AI_EPSILON) ||
+          specularRandConnected || (AiNodeGetFlt(shader, "specularRand") > AI_EPSILON)) &&
+          (hueRandConnected || (AiNodeGetFlt(shader, "hueRand") > AI_EPSILON) ||
+          satRandConnected || (AiNodeGetFlt(shader, "satRand") > AI_EPSILON) ||
+          valRandConnected || (AiNodeGetFlt(shader, "valRand") > AI_EPSILON)))
+         m_export_curve_id = true;
+      
+      MStatus status;
+      MRampAttribute rampAttr(fnDepNodeHair.findPlug("hairColorScale"), &status);
+      if (status)
+      {
+         // add some treshold later
+         // if the two of the closest point are closer than 1.f / 512.f
+         // increase the Frequency to have at least 8-16-32 samples 
+         // between any point
+         const int sampleFrequency = 512; 
+         const float sampleFrequencyDiv = 1.f / (float)(sampleFrequency - 1);
+         AtArray* rampArr = AiArrayAllocate(512, 1, AI_TYPE_RGB);
+         for (int i = 0; i < sampleFrequency; ++i)
+         {
+            MColor color(1.0, 1.0, 1.0, 1.0);
+            rampAttr.getColorAtPosition((float)i * sampleFrequencyDiv, color);
+            AtRGB aColor = {(float)color.r , (float)color.g, (float)color.b};
+            AiArraySetRGB(rampArr, i, aColor);
+         }
+         AiNodeSetArray(shader, "hairColorScale", rampArr);
+      }
       
       shader = ExportRootShader(shader);
-
-      // TODO PROCESS MAYA HAIR SHADING ATTRIBUTES
-      // With mtoa Hair shader (also TODO) ticket 109
-      // https://trac.solidangle.com/mtoa/ticket/109
    }
 
    plug = FindMayaPlug("aiExportHairUVs");
@@ -139,13 +183,6 @@ void CHairTranslator::Update( AtNode *curve )
          m_meshInt.create(shapeNode, matrix);
          m_mesh.setObject(shapeNode);
       }
-   }
-
-   plug = FindMayaPlug("aiExportHairIDs");
-   m_export_curve_id = true;
-   if (!plug.isNull())
-   {
-      m_export_curve_id = plug.asBool();
    }
 
    AtArray * curveID = NULL;
@@ -197,7 +234,7 @@ void CHairTranslator::Update( AtNode *curve )
    AiNodeSetArray(curve, "points",                    curvePoints);
    AiNodeSetArray(curve, "colors",                    curveColors);
 
-   if(m_export_curve_uvs)
+   if (m_export_curve_uvs)
    {
       AiNodeDeclare(curve, "uparamcoord", "uniform FLOAT");
       AiNodeDeclare(curve, "vparamcoord", "uniform FLOAT");
@@ -205,7 +242,7 @@ void CHairTranslator::Update( AtNode *curve )
       AiNodeSetArray(curve, "vparamcoord", curveVParamCoord);
    }
 
-   if(m_export_curve_id)
+   if (m_export_curve_id)
    {
       AiNodeDeclare(curve, "curve_id", "uniform UINT");
       AiNodeSetArray(curve, "curve_id", curveID);
