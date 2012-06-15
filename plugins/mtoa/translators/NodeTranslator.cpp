@@ -37,6 +37,8 @@
 #include <ai_universe.h>
 #include <assert.h>
 
+#include "utils/time.h"
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -588,13 +590,22 @@ AtNode* CNodeTranslator::AddArnoldNode(const char* type, const char* tag)
 void CNodeTranslator::SetArnoldNodeName(AtNode* arnoldNode, const char* tag)
 {
    MString name = GetMayaNodeName();
+   char nodeName[MAX_NAME_SIZE];
    MString outputAttr = GetMayaAttributeName();
    if (outputAttr.numChars())
       name = name + AI_ATT_SEP + outputAttr;
    if (strlen(tag))
       name = name + AI_TAG_SEP + tag;
 
-   AiNodeSetStr(arnoldNode, "name", name.asChar());
+   // If name is alredy used, create a new one
+   if(AiNodeLookUpByName(name.asChar()))
+   {
+      AiNodeSetStr(arnoldNode, "name", NodeUniqueName(arnoldNode, nodeName));
+   }
+   else
+   {
+      AiNodeSetStr(arnoldNode, "name", name.asChar());
+   }
 }
 
 const char* CNodeTranslator::GetArnoldNodeName(const char* tag)
