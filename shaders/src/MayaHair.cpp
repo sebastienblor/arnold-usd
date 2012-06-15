@@ -68,8 +68,8 @@ shader_evaluate
          sg->out_opacity = AI_RGB_BLACK;
       return;
    }
-   sg->out_opacity = AiShaderEvalParamFlt(p_opacity);
-   if (AiShaderGlobalsApplyOpacity(sg, sg->out_opacity))
+   const AtRGB opacity = AiShaderEvalParamFlt(p_opacity) * AI_RGB_WHITE;
+   if (AiShaderGlobalsApplyOpacity(sg, opacity))
       return;
    
    AtRGB hairColor = AiShaderEvalParamRGB(p_hair_color);
@@ -82,7 +82,7 @@ shader_evaluate
       const int idb = (int)idbf;
       if (idb < 0)
          hairColor *= AiArrayGetRGB(hairColorScale, 0);
-      else if (idb >= (hairColorScale->nelements - 1))
+      else if (idb >= (int)(hairColorScale->nelements - 1))
          hairColor *= AiArrayGetRGB(hairColorScale, hairColorScale->nelements - 1);
       else
       {
@@ -190,4 +190,5 @@ shader_evaluate
    
    sg->out.RGB = diffuse + specular;
    sg->out.RGBA.a = 1.0f;
+   sg->out_opacity = opacity;
 }
