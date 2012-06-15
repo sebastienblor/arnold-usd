@@ -579,7 +579,7 @@ node_loader
       
    case 71:
       node->methods     = ShadowCatcherMtd;
-      node->output_type = AI_TYPE_RGB;
+      node->output_type = AI_TYPE_RGBA;
       node->name        = "shadowCatcher";
       node->node_type   = AI_NODE_SHADER;
       break;
