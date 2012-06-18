@@ -214,10 +214,6 @@ def createArnoldRenderSettings():
 
     pm.separator()
 
-    pm.attrControlGrp('os_enable_hit_refinement',
-                   label="Enable Hit Refinement",
-                   attribute='defaultArnoldRenderOptions.enable_hit_refinement')
-
     pm.attrControlGrp('os_physically_based',
                    label="Physically Based",
                    attribute='defaultArnoldRenderOptions.physicallyBased')
