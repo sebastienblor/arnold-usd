@@ -65,6 +65,7 @@ public:
    virtual void Export(AtNode* curve);
    virtual void Update(AtNode* curve);
    virtual void ExportMotion(AtNode* curve, unsigned int step);
+   virtual void GetMatrix(AtMatrix& matrix);
    static void NodeInitializer(CAbTranslator context);
    AtNode* CreateArnoldNodes();
    static void* creator()

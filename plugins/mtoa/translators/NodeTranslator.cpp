@@ -538,15 +538,15 @@ void CNodeTranslator::SetArnoldRootNode(AtNode* node)
 
 /// convert from maya matrix to AtMatrix
 void CNodeTranslator::ConvertMatrix(AtMatrix& matrix, const MMatrix& mayaMatrix)
+{
+   for (int J = 0; (J < 4); ++J)
    {
-      for (int J = 0; (J < 4); ++J)
+      for (int I = 0; (I < 4); ++I)
       {
-         for (int I = 0; (I < 4); ++I)
-         {
-            matrix[I][J] = (float) mayaMatrix[I][J];
-         }
+         matrix[I][J] = (float) mayaMatrix[I][J];
       }
    }
+}
 
 /// Retrieve a node previously created using AddArnoldNode()
 AtNode* CNodeTranslator::GetArnoldNode(const char* tag)
@@ -1861,21 +1861,20 @@ void CDagTranslator::GetRotationMatrix(AtMatrix& matrix)
    }
 }
 
-void CDagTranslator::GetMatrix(AtMatrix& matrix)
+void CDagTranslator::GetMatrix(AtMatrix& matrix, const MDagPath& path)
 {
    MStatus stat;
-   MMatrix tm = m_dagPath.inclusiveMatrix(&stat);
+   MMatrix tm = path.inclusiveMatrix(&stat);
    if (MStatus::kSuccess != stat)
    {
-      AiMsgError("Failed to get transformation matrix for %s",  m_dagPath.partialPathName().asChar());
+      AiMsgError("Failed to get transformation matrix for %s",  path.partialPathName().asChar());
    }
-   for (int J = 0; (J < 4); ++J)
-   {
-      for (int I = 0; (I < 4); ++I)
-      {
-         matrix[I][J] = (float) tm[I][J];
-      }
-   }
+   ConvertMatrix(matrix, tm);
+}
+
+void CDagTranslator::GetMatrix(AtMatrix& matrix)
+{
+   GetMatrix(matrix, m_dagPath);
 }
 
 // this is a utility method which handles the common tasks associated with

@@ -80,7 +80,7 @@ void CHairTranslator::Update( AtNode *curve )
    // TODO: Kill these and export it properly.
    AtNode* shader       = NULL;
    
-   // Set curve matrix for step 0
+   // Set curve matrix for step 0   
    ExportMatrix(curve, 0);
 
    MPlug plug;
@@ -283,6 +283,11 @@ void CHairTranslator::ExportMotion(AtNode *curve, unsigned int step)
    clear();
 }
 
+void CHairTranslator::GetMatrix(AtMatrix& matrix)
+{
+   CDagTranslator::GetMatrix(matrix, m_pfxHairPath);
+}
+
 void CHairTranslator::ProcessHairLines(unsigned int step,
                                        AtArray* curvePoints,
                                        AtArray* curveNumPoints,
@@ -314,7 +319,6 @@ void CHairTranslator::ProcessHairLines(unsigned int step,
 
       // Set num points
       AiArraySetUInt(curveNumPoints, strand, pointsInterpolationLine);
-      
 
       // Set UVs
       if (m_export_curve_uvs)
@@ -460,7 +464,7 @@ unsigned int CHairTranslator::GetHairLines(MObject& hair, CHairLines& hairLines)
       // getLineData (MRenderLineArray &mainLines, MRenderLineArray &leafLines, MRenderLineArray &flowerLines,
       // bool doLines, bool doTwist, bool doWidth, bool doFlatness, bool doParameter,
       // bool doColor, bool doIncandescence, bool doTransparency, bool worldSpace)
-      pfxHair.getLineData(mainLines, leafLines, flowerLines, true, true, true, true, true, true, true, false, true);
+      pfxHair.getLineData(mainLines, leafLines, flowerLines, true, true, true, true, true, true, true, false, false);
       numMainLines += mainLines.length();
       hairLines.get().reserve(numMainLines);
 

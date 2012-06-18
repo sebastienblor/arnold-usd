@@ -188,7 +188,7 @@ protected:
    static void NodeDirtyCallback(MObject &node, MPlug &plug, void *clientData);
    static void NameChangedCallback(MObject &node, const MString &str, void *clientData);
    static void NodeDeletedCallback(MObject &node, MDGModifier &modifier, void *clientData);
-   void ConvertMatrix(AtMatrix& matrix, const MMatrix& mayaMatrix);
+   static void ConvertMatrix(AtMatrix& matrix, const MMatrix& mayaMatrix);
 
 protected:
 
@@ -256,6 +256,7 @@ protected:
    virtual MStatus ExportOverrideSets();
    virtual bool IsMasterInstance(MDagPath &masterDag);
    void GetRotationMatrix(AtMatrix& matrix);
+   static void GetMatrix(AtMatrix& matrix, const MDagPath& path);
    virtual void GetMatrix(AtMatrix& matrix);
    void ExportMatrix(AtNode* node, unsigned int step);
    // for computing a path different from m_dagPath
