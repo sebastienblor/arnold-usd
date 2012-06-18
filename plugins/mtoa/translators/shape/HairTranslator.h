@@ -78,7 +78,6 @@ private:
    void ProcessHairLines(const unsigned int step,
                          AtArray* curvePoints,
                          AtArray* curveWidths,
-                         AtArray* curveColors,
                          AtArray* curveUParamCoord = NULL,
                          AtArray* curveVParamCoord = NULL);
                          

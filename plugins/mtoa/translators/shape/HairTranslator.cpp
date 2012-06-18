@@ -202,37 +202,50 @@ void CHairTranslator::Update( AtNode *curve )
    }
 
    ProcessRenderFlags(curve);
-   AiNodeSetInt(curve, "visibility", ComputeVisibility(m_pfxHairPath));                  
-   // Allocate memory for all curve points and widths   
-   AtArray* curveNumPoints = AiArrayAllocate(numLines, GetNumMotionSteps(), AI_TYPE_UINT);
+   AiNodeSetInt(curve, "visibility", ComputeVisibility(m_pfxHairPath));
+   
+   // Allocate the memory for parameters that are not motion blurred
+   AtArray* curveNumPoints = AiArrayAllocate(numLines, 1, AI_TYPE_UINT);
+   AtArray* curveColors = AiArrayAllocate(m_hairLines.m_numPointsInterpolation, 1, AI_TYPE_RGB);   
+   unsigned int id = 0;
    for (unsigned int i = 0; i < numLines; ++i)
    {
        MVectorArray line;
+       MVectorArray colors;
+       
        m_hairLines.get()[i].GetCurvePoints(line);
-       AiArraySetUInt(curveNumPoints, i, line.length() + 2);
+       m_hairLines.get()[i].GetCurveColors(colors);
+       
+       const unsigned int numPointsInterpolation = line.length() + 2;
+       AiArraySetUInt(curveNumPoints, i, numPointsInterpolation);
+       for (unsigned int j = 0; j < numPointsInterpolation; ++j)
+       {
+          MVector color = colors[j];
+          AtRGB aColor = {(float)color.x, (float)color.y, (float)color.z};
+          AiArraySetRGB(curveColors, id, aColor);
+          ++id;
+       }
    }
    
    AiNodeSetArray(curve, "num_points", curveNumPoints);
+   AiNodeDeclare(curve, "colors", "varying  ARRAY RGB");
+   AiNodeSetArray(curve, "colors", curveColors);
    
+   // Allocate memory for all curve data what are motion blurred
    AtArray* curvePoints = AiArrayAllocate(m_hairLines.m_numPointsInterpolation, GetNumMotionSteps(), AI_TYPE_POINT);
    AtArray* curveWidths = AiArrayAllocate(m_hairLines.m_numPoints, GetNumMotionSteps(), AI_TYPE_FLOAT);
-   AtArray* curveColors = AiArrayAllocate(numLines, 1, AI_TYPE_RGB);
+   
    ProcessHairLines(0,
                     curvePoints,
                     curveWidths,
-                    curveColors,
                     curveUParamCoord,
                     curveVParamCoord);
                     
    // Clear out the temporary arrays.
-   clear();
-
-   // Extra attributes
-   AiNodeDeclare(curve, "colors",      "uniform  ARRAY RGB");
+   clear();  
 
    // Assign shader
    if (shader != NULL) AiNodeSetPtr(curve, "shader", shader);
-
 
    // Hair specific Arnold render settings.
    plug = FindMayaPlug("aiMinPixelWidth");
@@ -247,7 +260,7 @@ void CHairTranslator::Update( AtNode *curve )
    // Set all arrays on the curve node
    AiNodeSetArray(curve, "radius",                    curveWidths);   
    AiNodeSetArray(curve, "points",                    curvePoints);
-   AiNodeSetArray(curve, "colors",                    curveColors);
+   
 
    if (m_export_curve_uvs)
    {
@@ -292,7 +305,6 @@ void CHairTranslator::GetMatrix(AtMatrix& matrix)
 void CHairTranslator::ProcessHairLines(unsigned int step,
                                        AtArray* curvePoints,
                                        AtArray* curveWidths,
-                                       AtArray* curveColors,
                                        AtArray* curveUParamCoord,
                                        AtArray* curveVParamCoord)
 {
@@ -306,12 +318,9 @@ void CHairTranslator::ProcessHairLines(unsigned int step,
 
       MVectorArray line;
       MDoubleArray widths;
-      MVectorArray colors;
       
       m_hairLines.get()[strand].GetCurvePoints(line);      
       m_hairLines.get()[strand].GetCurveWidths(widths);      
-      m_hairLines.get()[strand].GetCurveColors(colors);
-      m_hairLines.get()[strand].GetCurvePoints(line);      
       const int renderLineLength = line.length();
 
       const int pointsInterpolationLine = renderLineLength + 2;
@@ -346,13 +355,6 @@ void CHairTranslator::ProcessHairLines(unsigned int step,
          AiArraySetPnt(curvePoints,
                        numPointsInterpolation + (step * pointsInterpolationLine),
                        curvePoint);
-
-         if (step == 0)
-         {
-            AiArraySetRGB(curveColors,
-                          strand,
-                          AiColorCreate(static_cast<float>(colors[0].x), static_cast<float>(colors[0].y), static_cast<float>(colors[0].z)));
-         }
                        
          // Run down the strand adding the points and widths.
          for (int j = 0; j < renderLineLength; ++j, ++lineVertex)
@@ -365,7 +367,6 @@ void CHairTranslator::ProcessHairLines(unsigned int step,
             if (step == 0)
             {
                AiArraySetFlt(curveWidths, j + numPoints, static_cast<float>(widths[j]/2.0));
-               // AiArraySetRGB(curveColors, j + curveLineStartsIdx, AiColorCreate(colors[j].x, colors[j].y, colors[j].z));
             }
          }
 
