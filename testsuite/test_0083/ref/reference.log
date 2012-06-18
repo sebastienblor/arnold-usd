@@ -1,0 +1,49 @@
+
+Starting "/usr/autodesk/maya2013-x64/bin/maya"
+
+mental ray for Maya 2013 
+mental ray: version 3.10.1.4, Jan 31 2012, revision 165283
+[31m00:00:00 ERROR   | [mtoa] Error opening $MTOA_EXTENSIONS_PATH.[0m
+Successfully imported python module 'arnold'
+Successfully imported python module 'mtoa'
+pymel.core : INFO : Updating pymel with pre-loaded plugins: OpenEXRLoader, AbcImport, mayaHIK, mtoa, ikSpringSolver, Mayatomr, tiffFloatReader, AbcExport, quatNodes, gpuCache, mayaCharacterization, rotateHelper, Substance, MayaMuscle, OneClick, retargeterNodes, matrixNodes, ik2Bsolver
+Maya 2013 importing module pymel 1.0.4 (/usr/autodesk/maya2013-x64/lib/python2.6/site-packages/pymel/__init__.pyc)
+Standard pymel version 1.0.4 loaded
+Warning: [mtoa] Registering unknown translator "spherical" for Maya node stereoRigCamera. Valid choices are: "cylindrical", "fisheye", "orthographic", "perspective"
+Successfully registered renderer 'arnold'
+File read in 1 seconds.
+Result: /work/mtoa-main/build/linux_x86_64/2013/gcc_opt/testsuite/test_0083/test.ma
+Warning: file: /usr/tmp/ASTMP7XNXz2.mel line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
+Warning: file: /usr/tmp/ASTMP7XNXz2.mel line 9: The flag "-renderType" is obsolete and has been replaced by the "-fileRule" flag.  Please use the new flag.
+00:00:00   352MB         | log started Mon Jun 18 16:39:39 2012
+00:00:00   352MB         | Arnold 4.0.6.0 linux 64-bit gcc412 glibc212 oiio1008 rlm932 sse (build date: Jun 15 2012 21:27:19)
+00:00:00   352MB         | running on samad003-pc
+00:00:00   352MB         |  1 x Intel(R) Xeon(R) CPU E31245 @ 3.30GHz (4 cores, 8 logical) with 7828MB
+00:00:00   352MB         |  CentOS 6.2 (Final), Linux kernel 2.6.32-220.el6.x86_64
+00:00:00   352MB         |  
+00:00:00   352MB         |  
+00:00:00   352MB         | [rlm] checkout of arnold (version 400) from 192.168.1.10 OK
+00:00:00   352MB         |  
+00:00:00   352MB         | there are 1 light and 2 objects:
+00:00:00   352MB         |  1 polymesh
+00:00:00   352MB         |  1 curve
+00:00:00   352MB         |  
+00:00:00   352MB         | rendering image at 160 x 120, 3 AA samples, 2 GI samples, 1 GI bounces
+00:00:00   352MB         |  active camera: 'perspShape'
+00:00:00   352MB         |  initializing 18 nodes ...
+00:00:00   352MB         |  node initialization done in 0:00.00
+00:00:00   353MB         |  creating root object list ...
+00:00:00   353MB         |   scene bounds: (-6.33968 0 -6.04632) -> (6.29834 18.8388 13.6295)
+00:00:00   353MB         |  updating 19 nodes ...
+00:00:00   353MB         |  node update done in 0:00.00
+00:00:00   353MB         |  [aov] registered driver: "driver_tiff" (driver_tiff)
+00:00:00   353MB         |  [aov]  * "RGBA" of type RGBA filtered by "gaussian_filter" (gaussian_filter)
+00:00:00   353MB         |  [aov] done preparing 1 AOV for 1 output to 1 driver (0 deep AOVs)
+00:00:00   353MB         |  starting 8 bucket workers of size 64x64 ...
+00:00:00   365MB         |  bucket workers done in 0:00.24
+00:00:00   365MB         | render done
+00:00:00   365MB         | [driver_tiff] writing file `/work/mtoa-main/build/linux_x86_64/2013/gcc_opt/testsuite/test_0083/testrender.tif'
+00:00:00   365MB         |  
+00:00:00   365MB         | releasing resources
+00:00:00   355MB         | Arnold shutdown
+Scene /work/mtoa-main/build/linux_x86_64/2013/gcc_opt/testsuite/test_0083/test.ma completed.
