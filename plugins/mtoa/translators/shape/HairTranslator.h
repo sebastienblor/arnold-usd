@@ -83,7 +83,7 @@ private:
                          
    AtVector2 GetHairRootUVs(const MVector& lineStart, MMeshIntersector& meshInt, MFnMesh& mesh);
    void GetHairShapeMeshes(const MObject& hair, MDagPathArray& shapes);
-   unsigned int GetHairLines(MObject& hair, CHairLines& hairLines);
+   unsigned int GetHairLines(MObject& hair, CHairLines& hairLines, bool firstStep = true);
    void clear()
    {
       m_hairLines.get().clear();
