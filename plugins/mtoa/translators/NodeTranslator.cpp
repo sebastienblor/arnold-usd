@@ -1906,11 +1906,10 @@ void CDagTranslator::ExportMatrix(AtNode* node, unsigned int step)
    }
 }
 
-// use standardized render flag names to compute an arnold visibility mask
-int CDagTranslator::ComputeVisibility()
+int CDagTranslator::ComputeVisibility(const MDagPath& path)
 {
    // Usually invisible nodes are not exported at all, just making sure here
-   if (false == CArnoldSession::IsRenderablePath(m_dagPath))
+   if (false == CArnoldSession::IsRenderablePath(path))
       return AI_RAY_UNDEFINED;
 
    int visibility = AI_RAY_ALL;
@@ -1954,6 +1953,12 @@ int CDagTranslator::ComputeVisibility()
    }
 
    return visibility;
+}
+
+// use standardized render flag names to compute an arnold visibility mask
+int CDagTranslator::ComputeVisibility()
+{
+   return ComputeVisibility(m_dagPath);
 }
 
 // Create Maya visibility attributes with standardized render flag names

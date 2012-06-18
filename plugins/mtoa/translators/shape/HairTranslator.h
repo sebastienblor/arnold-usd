@@ -99,6 +99,7 @@ private:
    MMeshIntersector m_meshInt;
    MFnMesh          m_mesh;
    bool             m_hasConnectedShapes;
+   MDagPath         m_pfxHairPath;
    
 };
 

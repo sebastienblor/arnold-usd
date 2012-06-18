@@ -67,6 +67,13 @@ void CHairTranslator::Update( AtNode *curve )
    MFnDagNode fnDagNodeHairShape(m_hairInfo);
    MFnDependencyNode fnDepNodeHair(m_hairInfo);
    
+   // look for the pfxHairShape to get transforms
+   // visibilities etc correctly   
+   MPlugArray pArr;
+   fnDepNodeHair.findPlug("outputRenderHairs").connectedTo(pArr, false, true);
+   if (pArr.length())
+      m_pfxHairPath = MDagPath::getAPathTo(pArr[0].node());
+   
    const unsigned int numLines = GetHairLines(m_hairInfo, m_hairLines);
    
    // The shader nodes
@@ -191,7 +198,8 @@ void CHairTranslator::Update( AtNode *curve )
       curveID = AiArrayAllocate(numLines, 1, AI_TYPE_UINT);
    }
 
-   ProcessRenderFlags(curve);    
+   ProcessRenderFlags(curve);
+   AiNodeSetInt(curve, "visibility", ComputeVisibility(m_pfxHairPath));
                   
    // Allocate memory for all curve points and widths
    AtArray* curvePoints = AiArrayAllocate(m_hairLines.m_numPointsInterpolation, GetNumMotionSteps(), AI_TYPE_POINT);

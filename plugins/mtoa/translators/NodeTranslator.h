@@ -258,7 +258,9 @@ protected:
    void GetRotationMatrix(AtMatrix& matrix);
    virtual void GetMatrix(AtMatrix& matrix);
    void ExportMatrix(AtNode* node, unsigned int step);
-   int ComputeVisibility();
+   // for computing a path different from m_dagPath
+   int ComputeVisibility(const MDagPath& path);
+   int ComputeVisibility();   
    virtual void Delete();
    void AddHierarchyCallbacks(const MDagPath & path);
    void SetArnoldNodeName(AtNode* arnoldNode, const char* tag="");
