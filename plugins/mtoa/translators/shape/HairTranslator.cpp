@@ -192,27 +192,35 @@ void CHairTranslator::Update( AtNode *curve )
       }
    }
 
-   AtArray * curveID = NULL;
    if (m_export_curve_id)
    {
-      curveID = AiArrayAllocate(numLines, 1, AI_TYPE_UINT);
+      AtArray* curveID = AiArrayAllocate(numLines, 1, AI_TYPE_UINT);
+      for (unsigned int i = 0; i < numLines; ++i)
+         AiArraySetUInt(curveID, i, i);
+      AiNodeDeclare(curve, "curve_id", "uniform UINT");
+      AiNodeSetArray(curve, "curve_id", curveID);
    }
 
    ProcessRenderFlags(curve);
-   AiNodeSetInt(curve, "visibility", ComputeVisibility(m_pfxHairPath));
-                  
-   // Allocate memory for all curve points and widths
+   AiNodeSetInt(curve, "visibility", ComputeVisibility(m_pfxHairPath));                  
+   // Allocate memory for all curve points and widths   
+   AtArray* curveNumPoints = AiArrayAllocate(numLines, GetNumMotionSteps(), AI_TYPE_UINT);
+   for (unsigned int i = 0; i < numLines; ++i)
+   {
+       MVectorArray line;
+       m_hairLines.get()[i].GetCurvePoints(line);
+       AiArraySetUInt(curveNumPoints, i, line.length() + 2);
+   }
+   
+   AiNodeSetArray(curve, "num_points", curveNumPoints);
+   
    AtArray* curvePoints = AiArrayAllocate(m_hairLines.m_numPointsInterpolation, GetNumMotionSteps(), AI_TYPE_POINT);
    AtArray* curveWidths = AiArrayAllocate(m_hairLines.m_numPoints, GetNumMotionSteps(), AI_TYPE_FLOAT);
-   AtArray* curveColors = AiArrayAllocate(numLines, GetNumMotionSteps(), AI_TYPE_RGB);
-   AtArray* curveNumPoints = AiArrayAllocate(numLines, GetNumMotionSteps(), AI_TYPE_UINT);
-
+   AtArray* curveColors = AiArrayAllocate(numLines, 1, AI_TYPE_RGB);
    ProcessHairLines(0,
                     curvePoints,
-                    curveNumPoints,
                     curveWidths,
                     curveColors,
-                    curveID,
                     curveUParamCoord,
                     curveVParamCoord);
                     
@@ -237,8 +245,7 @@ void CHairTranslator::Update( AtNode *curve )
    AiNodeSetStr(curve, "basis", "catmull-rom");
 
    // Set all arrays on the curve node
-   AiNodeSetArray(curve, "radius",                    curveWidths);
-   AiNodeSetArray(curve, "num_points",                curveNumPoints);
+   AiNodeSetArray(curve, "radius",                    curveWidths);   
    AiNodeSetArray(curve, "points",                    curvePoints);
    AiNodeSetArray(curve, "colors",                    curveColors);
 
@@ -248,12 +255,6 @@ void CHairTranslator::Update( AtNode *curve )
       AiNodeDeclare(curve, "vparamcoord", "uniform FLOAT");
       AiNodeSetArray(curve, "uparamcoord", curveUParamCoord);
       AiNodeSetArray(curve, "vparamcoord", curveVParamCoord);
-   }
-
-   if (m_export_curve_id)
-   {
-      AiNodeDeclare(curve, "curve_id", "uniform UINT");
-      AiNodeSetArray(curve, "curve_id", curveID);
    }
 }
 
@@ -290,10 +291,8 @@ void CHairTranslator::GetMatrix(AtMatrix& matrix)
 
 void CHairTranslator::ProcessHairLines(unsigned int step,
                                        AtArray* curvePoints,
-                                       AtArray* curveNumPoints,
                                        AtArray* curveWidths,
                                        AtArray* curveColors,
-                                       AtArray* curveID,
                                        AtArray* curveUParamCoord,
                                        AtArray* curveVParamCoord)
 {
@@ -317,11 +316,8 @@ void CHairTranslator::ProcessHairLines(unsigned int step,
 
       const int pointsInterpolationLine = renderLineLength + 2;
 
-      // Set num points
-      AiArraySetUInt(curveNumPoints, strand, pointsInterpolationLine);
-
       // Set UVs
-      if (m_export_curve_uvs)
+      if (m_export_curve_uvs && (step == 0))
       {
          // We should get the UV from the closest mesh for all connected shapes
          // To support a hairsystem that was applied to more than one mesh
@@ -335,11 +331,6 @@ void CHairTranslator::ProcessHairLines(unsigned int step,
             uvparam = GetHairRootUVs(line[0], m_meshInt, m_mesh);
          AiArraySetFlt(curveUParamCoord, strand, uvparam.x);
          AiArraySetFlt(curveVParamCoord, strand, uvparam.y);
-      }
-
-      if (m_export_curve_id)
-      {
-         AiArraySetUInt(curveID, strand, strand);
       }
    
       // Ignore one or less cv curves
@@ -356,9 +347,12 @@ void CHairTranslator::ProcessHairLines(unsigned int step,
                        numPointsInterpolation + (step * pointsInterpolationLine),
                        curvePoint);
 
-         AiArraySetRGB(curveColors,
-                       strand + (step * m_hairLines.get().size()),
-                       AiColorCreate(static_cast<float>(colors[0].x), static_cast<float>(colors[0].y), static_cast<float>(colors[0].z)));
+         if (step == 0)
+         {
+            AiArraySetRGB(curveColors,
+                          strand,
+                          AiColorCreate(static_cast<float>(colors[0].x), static_cast<float>(colors[0].y), static_cast<float>(colors[0].z)));
+         }
                        
          // Run down the strand adding the points and widths.
          for (int j = 0; j < renderLineLength; ++j, ++lineVertex)
