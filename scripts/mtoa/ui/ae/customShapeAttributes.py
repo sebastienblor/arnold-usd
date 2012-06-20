@@ -256,9 +256,13 @@ callbacks.addAttributeChangedCallback(lightDecayChanged, 'aiAreaLight', 'decayRa
 templates.registerAETemplate(templates.TranslatorControl, "camera", label="Camera Type")
 
 class CameraTemplate(templates.AttributeTemplate):
+
+    def addCommonAttributes(self):
+        self.addControl("aiExposure")
+        
     def addDOFAttributes(self):
-        self.addControl("aiEnableDOF")
         self.addSeparator()
+        self.addControl("aiEnableDOF", label="Enable DOF")
         self.addControl("aiFocusDistance")
         self.addControl("aiApertureSize")
         self.addControl("aiApertureBlades")
@@ -267,9 +271,10 @@ class CameraTemplate(templates.AttributeTemplate):
 
 class PerspCameraTemplate(CameraTemplate):
     def setup(self):
+        self.addCommonAttributes()
         self.addDOFAttributes()
         self.addSeparator()
-        self.addControl('aiUvRemap')
+        self.addControl('aiUvRemap', label="UV Remap")
 
 templates.registerTranslatorUI(PerspCameraTemplate, "camera", "perspective")
 templates.registerTranslatorUI(PerspCameraTemplate, "stereoRigCamera", "perspective")
@@ -277,13 +282,14 @@ templates.registerTranslatorUI(PerspCameraTemplate, "stereoRigCamera", "perspect
 
 class OrthographicTemplate(CameraTemplate):
     def setup(self):
-        pass
+        self.addCommonAttributes()
 
 templates.registerTranslatorUI(OrthographicTemplate, "camera", "orthographic")
 templates.registerTranslatorUI(OrthographicTemplate, "stereoRigCamera", "orthographic")
 
 class FisheyeCameraTemplate(CameraTemplate):
     def setup(self):
+        self.addCommonAttributes()
         self.addDOFAttributes()
         self.addSeparator()
         self.addControl('aiFov')
@@ -294,6 +300,7 @@ templates.registerTranslatorUI(FisheyeCameraTemplate, "stereoRigCamera", "fishey
 
 class CylCameraTemplate(CameraTemplate):
     def setup(self):
+        self.addCommonAttributes()
         self.addControl('aiHorizontalFov')
         self.addControl('aiVerticalFov')
         self.addControl('aiProjective')
@@ -303,7 +310,7 @@ templates.registerTranslatorUI(CylCameraTemplate, "stereoRigCamera", "cylindrica
 
 class SphericalCameraTemplate(CameraTemplate):
     def setup(self):
-        self.addDOFAttributes()
+        self.addCommonAttributes()
 
 templates.registerTranslatorUI(SphericalCameraTemplate, "camera", "spherical")
 templates.registerTranslatorUI(SphericalCameraTemplate, "stereoRigCamera", "spherical")

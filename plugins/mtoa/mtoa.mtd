@@ -526,11 +526,21 @@
         max                 FLOAT   360.0
         softmin             FLOAT   0.0
         softmax             FLOAT   50.0
+    [attr exposure]
+        min                 FLOAT   -100.0
+        max                 FLOAT   100.0
+        softmin             FLOAT   -5.0
+        softmax             FLOAT   5.0
 
 [node ortho_camera]
     maya.name               STRING  "camera"
     maya.id                 INT     0x4443414d
     maya.translator         STRING  "orthographic"
+    [attr exposure]
+        min                 FLOAT   -100.0
+        max                 FLOAT   100.0
+        softmin             FLOAT   -5.0
+        softmax             FLOAT   5.0
 
 [node fisheye_camera]
     maya.name               STRING  "camera"
@@ -569,7 +579,12 @@
         max                 FLOAT   360.0
         softmin             FLOAT   0.0
         softmax             FLOAT   50.0
-
+    [attr exposure]
+        min                 FLOAT   -100.0
+        max                 FLOAT   100.0
+        softmin             FLOAT   -5.0
+        softmax             FLOAT   5.0
+        
 [node cyl_camera]
     maya.name               STRING  "camera"
     maya.id                 INT     0x4443414d
@@ -584,11 +599,21 @@
         max                 FLOAT   1000000000.0
         softmax             FLOAT   180.0
         animatable          BOOL    True
+    [attr exposure]
+        min                 FLOAT   -100.0
+        max                 FLOAT   100.0
+        softmin             FLOAT   -5.0
+        softmax             FLOAT   5.0        
 
 [node spherical_camera]
     maya.name               STRING  "camera"
     maya.id                 INT     0x4443414d
     maya.translator         STRING  "spherical"
+    [attr exposure]
+        min                 FLOAT   -100.0
+        max                 FLOAT   100.0
+        softmin             FLOAT   -5.0
+        softmax             FLOAT   5.0
         
 # shaders
 

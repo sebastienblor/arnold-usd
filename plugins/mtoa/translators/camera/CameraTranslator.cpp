@@ -422,6 +422,8 @@ void CCameraTranslator::ExportCameraData(AtNode* camera)
 {
    AtMatrix matrix;
 
+   AiNodeSetFlt(camera, "exposure", FindMayaPlug("aiExposure").asFloat());
+   
    AiNodeSetFlt(camera, "near_clip", FindMayaPlug("nearClipPlane").asFloat());
    AiNodeSetFlt(camera, "far_clip",  FindMayaPlug("farClipPlane").asFloat());
 
@@ -604,6 +606,7 @@ void CCameraTranslator::SetFilmTransform(AtNode* camera, double factorX, double 
 
 void CCameraTranslator::MakeDefaultAttributes(CExtensionAttrHelper &helper)
 {
+   helper.MakeInput("exposure");
    helper.MakeInput("filtermap");
 }
 
