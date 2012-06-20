@@ -39,6 +39,11 @@ void CHairTranslator::NodeInitializer(CAbTranslator context)
    data.name = "aiExportHairUVs";
    data.shortName = "ai_export_hair_uvs";
    helper.MakeInputBoolean(data);
+   
+   data.defaultValue.BOOL = false;
+   data.name = "aiExportHairColors";
+   data.shortName = "ai_export_hair_colors";
+   helper.MakeInputBoolean(data);
 
    data.defaultValue.BOOL = false;
    data.name = "aiOverrideHair";
@@ -225,6 +230,13 @@ void CHairTranslator::Update( AtNode *curve )
       AiNodeDeclare(curve, "curve_id", "uniform UINT");
       AiNodeSetArray(curve, "curve_id", curveID);
    }
+   
+   plug = FindMayaPlug("aiExportHairColors");
+   const bool exportCurveColors = plug.isNull() ? false : plug.asBool();
+   
+   AtArray* curveColors = 0;
+   if (exportCurveColors)
+      curveColors = AiArrayAllocate(numPoints, 1, AI_TYPE_RGB);
 
    ProcessRenderFlags(curve);
    AiNodeSetInt(curve, "visibility", ComputeVisibility(m_pfxHairPath));
@@ -234,7 +246,6 @@ void CHairTranslator::Update( AtNode *curve )
    // Is not enabled
    AtArray* curvePoints = AiArrayAllocate(m_numPointsInterpolation, GetNumMotionSteps(), AI_TYPE_POINT);   
    AtArray* curveNumPoints = AiArrayAllocate(numLines, 1, AI_TYPE_UINT);
-   AtArray* curveColors = AiArrayAllocate(numPoints, 1, AI_TYPE_RGB); 
    AtArray* curveWidths = AiArrayAllocate(numPoints, 1, AI_TYPE_FLOAT);
    
    unsigned int iid = 0; // for the position data
@@ -247,10 +258,13 @@ void CHairTranslator::Update( AtNode *curve )
       const unsigned int numPoints = line.length();
       
       if (numPoints < 2)
-         continue;
+         continue;      
       
-      MVectorArray colors = renderLine.getColor();
       MDoubleArray widths = renderLine.getWidth();
+      
+      MVectorArray colors;      
+      if (exportCurveColors)
+         colors = renderLine.getColor();
       
       MVector* lineVertex = &(line[0]);
       
@@ -265,9 +279,12 @@ void CHairTranslator::Update( AtNode *curve )
       AiArraySetUInt(curveNumPoints, i, numPointsInterpolation);
       for (unsigned int j = 0; j < numPoints; ++j, ++lineVertex)
       {
-         MVector color = colors[j];
-         AtRGB aColor = {(float)color.x, (float)color.y, (float)color.z};
-         AiArraySetRGB(curveColors, id, aColor);
+         if (exportCurveColors)
+         {
+            MVector color = colors[j];
+            AtRGB aColor = {(float)color.x, (float)color.y, (float)color.z};
+            AiArraySetRGB(curveColors, id, aColor);
+         }
          AiArraySetFlt(curveWidths, id, (float)widths[j] / 2.0f);
          ++id;
          cv.x = (float)lineVertex->x;
@@ -292,8 +309,11 @@ void CHairTranslator::Update( AtNode *curve )
    AiNodeSetArray(curve, "points", curvePoints); 
    AiNodeSetArray(curve, "num_points", curveNumPoints);
    AiNodeSetArray(curve, "radius", curveWidths);
-   AiNodeDeclare(curve, "colors", "varying  ARRAY RGB");
-   AiNodeSetArray(curve, "colors", curveColors);
+   if (exportCurveColors)
+   {
+      AiNodeDeclare(curve, "colors", "varying  RGB");
+      AiNodeSetArray(curve, "colors", curveColors);
+   }
    
    if (m_export_curve_uvs)
    {

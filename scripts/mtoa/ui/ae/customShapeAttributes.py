@@ -91,6 +91,7 @@ class HairSystemTemplate(templates.ShapeTranslatorTemplate):
         self.addSeparator()
         self.addControl("aiExportHairIDs", label="Export Hair IDs")
         self.addControl("aiExportHairUVs", label="Export Hair UVs")
+        self.addControl("aiExportHairColors", label="Export Hair Colors")
         self.addControl("aiOverrideHair")
         self.addControl("aiHairShader")
         self.addSeparator()
