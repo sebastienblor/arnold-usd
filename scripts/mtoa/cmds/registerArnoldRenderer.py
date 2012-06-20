@@ -292,6 +292,11 @@ def registerArnoldRenderer():
                               [('string', 'parent'), ('string', 'action'),
                                ('string', 'initialSettings'), ('string', 'resultCallback')],
                                useName=True)
+            
+            # callbacks
+            import mtoa.core as core
+            core.installCallbacks()
+
     except:
         import traceback
         traceback.print_exc(file=sys.__stderr__)
