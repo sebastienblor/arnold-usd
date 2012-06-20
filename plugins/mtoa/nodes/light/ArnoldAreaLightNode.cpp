@@ -322,3 +322,8 @@ MStatus CArnoldAreaLightNode::initialize()
 
    return MS::kSuccess;
 }
+
+bool CArnoldAreaLightNode::excludeAsLocator() const
+{
+   return false;
+}

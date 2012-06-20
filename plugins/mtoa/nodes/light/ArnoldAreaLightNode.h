@@ -34,6 +34,7 @@ public:
    virtual MBoundingBox    boundingBox() const;
    static  void *          creator();
    static  MStatus         initialize();
+   virtual bool            excludeAsLocator() const;
 
    static CStaticAttrHelper s_attributes;
 
