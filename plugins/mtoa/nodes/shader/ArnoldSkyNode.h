@@ -22,7 +22,7 @@ public:
       MString destName = destPlug.name();
       
       if(srcName == "message" && destName == "defaultArnoldRenderOptions.background")
-         MGlobal::executeCommand("updateBackgroundSettings()");
+         MGlobal::executeCommandOnIdle("updateBackgroundSettings()");
    }
 
    virtual void postConstructor()
