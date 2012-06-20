@@ -231,7 +231,7 @@ namespace // <anonymous>
        builtin->RegisterTranslator("camera",
                                    "spherical",
                                    CSphericalCameraTranslator::creator,
-                                   CSphericalCameraTranslator::NodeInitializer);                                   
+                                   CSphericalCameraTranslator::NodeInitializer);
 
       // stereoCameraRig is a sub-type of the maya camera, and is also renderable
       builtin->RegisterTranslator("stereoRigCamera",
@@ -250,7 +250,11 @@ namespace // <anonymous>
                                   "cylindrical",
                                   CCylCameraTranslator::creator,
                                   CCylCameraTranslator::NodeInitializer);
-
+      builtin->RegisterTranslator("stereoRigCamera",
+                                  "spherical",
+                                  CSphericalCameraTranslator::creator,
+                                  CSphericalCameraTranslator::NodeInitializer);
+                                  
        // Hair
        builtin->RegisterTranslator("hairSystem",
                                    "",
