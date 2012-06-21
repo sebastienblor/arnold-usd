@@ -2,6 +2,7 @@
 import os
 import sys
 import inspect
+import mtoa.utils
 
 def mtoaPackageRoot():
     '''return the path to the mtoa python package directory'''
@@ -58,7 +59,7 @@ def _overrideMelScripts():
     root = mtoaPackageRoot()
     maya_version = versions.shortName()
     meldir = os.path.join(root, maya_version, 'mel')
-    os.environ['MAYA_SCRIPT_PATH'] = meldir + os.pathsep + os.environ['MAYA_SCRIPT_PATH']
+    mtoa.utils.setEnvironmentVariable(u'MAYA_SCRIPT_PATH', meldir + os.pathsep + mtoa.utils.getEnvironmentVariable(u'MAYA_SCRIPT_PATH'))
     for f in glob.glob(os.path.join(meldir, '*.mel')):
         print>>sys.__stdout__, "Maya %s sourcing MEL override %s" % (maya_version, f)
         print "Maya %s sourcing MEL override %s" % (maya_version, f)

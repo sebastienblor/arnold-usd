@@ -7,6 +7,8 @@ import types
 import re
 import os
 import shlex
+import sys
+import ctypes
 
 def even(num):
     return bool(num % 2)
@@ -353,3 +355,27 @@ def getFileName(pathType, tokens, path='<Scene>', frame=None, fileType='images',
         if not os.path.exists(dir):
             os.makedirs(dir)
     return result
+
+def getEnvironmentVariable(name):
+    '''
+    This function is meant to support unicode environment variables in python 2.*
+    '''
+    if sys.platform == 'win32':
+        n= ctypes.windll.kernel32.GetEnvironmentVariableW(name, None, 0)
+        if n==0:
+            return None
+        buf= ctypes.create_unicode_buffer(u'\0'*n)
+        ctypes.windll.kernel32.GetEnvironmentVariableW(name, buf, n)
+        return buf.value
+    else:
+        return os.environ[name]
+
+def setEnvironmentVariable(name, value):
+    '''
+    This function is meant to support unicode environment variables in python 2.*
+    '''
+    if sys.platform == 'win32':    
+        buf= ctypes.create_unicode_buffer(unicode(value))
+        ctypes.windll.kernel32.SetEnvironmentVariableW(name, buf)
+    else:
+        os.environ[name] = value    
