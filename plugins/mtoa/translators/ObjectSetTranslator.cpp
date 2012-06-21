@@ -130,7 +130,7 @@ void CObjectSetTranslator::AttributeChangedCallback(MNodeMessage::AttributeMessa
                // dag node
                MObject object(otherPlug.node());
                MFnDagNode fnDag(object);
-               unsigned int instanceNumber = -1;
+               int instanceNumber = -1;
                instanceNumber = otherPlug.logicalIndex();
                MDagPath path;
                if (instanceNumber == -1)
@@ -233,7 +233,7 @@ void CObjectSetTranslator::SetMembersChangedCallback(MObject &node, void *client
       if (node != translator->GetMayaObject())
       {
          MString translatedNodeName = translator->GetMayaNodeName();
-         AiMsgError("[mtoa.translator.ipr] %-30s | SetMembersChangedCallback: translator in client data is not translating the node that triggered the callback.",
+         AiMsgError("[mtoa.translator.ipr] %-30s | SetMembersChangedCallback: translator in client data is not translating the node %s that triggered the callback.",
                      nodeName.asChar(), translatedNodeName.asChar());
          return;
       }
