@@ -252,16 +252,19 @@ class AOVInterface(object):
         elif matches:
             return matches[0].node
 
-    def addAOV(self, aovName, aovType='rgba'):
+    def addAOV(self, aovName, aovType=None):
         '''
         add an AOV to the active list for this AOV node
 
         returns the created AOV node
         '''
+        if aovType is None:
+            aovType = getAOVTypeMap().get(aovName, 'rgba')
         if not isinstance(aovType, int):
             aovType = dict(TYPES)[aovType]
         aovNode = pm.createNode('aiAOV', name='aiAOV_' + aovName, skipSelect=True)
         out = aovNode.attr('outputs')[0]
+
         pm.connectAttr('defaultArnoldDriver.message', out.driver)
         filter = defaultFiltersByName.get(aovName, None)
         if filter:
@@ -271,6 +274,7 @@ class AOVInterface(object):
         else:
             filterAttr = 'defaultArnoldFilter.message'
         pm.connectAttr(filterAttr, out.filter)
+
         aovNode.attr('name').set(aovName)
         aovNode.attr('type').set(aovType)
         nextPlug = self._aovAttr.elementByLogicalIndex(self._aovAttr.numElements())
@@ -380,6 +384,19 @@ def getNodeGlobalAOVData(nodeType):
 
 def getNodeTypesWithAOVs():
     return sorted(pm.cmds.arnoldPlugins(listAOVNodeTypes=True))
+
+_aovTypeMap = None
+def getAOVTypeMap():
+    "return a dictionary of AOV name to AOV type"
+    # TODO: update this cached result when new nodes are added
+    global _aovTypeMap
+    if _aovTypeMap is None:
+        _aovTypeMap = {}
+        for nodeType in getNodeTypesWithAOVs():
+            for aovName, attr, type in getNodeGlobalAOVData(nodeType):
+                _aovTypeMap[aovName] = type
+        _aovTypeMap.update(dict(BUILTIN_AOVS))
+    return _aovTypeMap
 
 #- groups
 

@@ -140,21 +140,13 @@ class AOVBrowser(object):
         create the selected AOVs, and connect the new AOV nodes to their corresponding
         AOV attributes for any nodes in the scene.
         '''
-        map = defaultdict(list)
-        typeMap = {}
-        for nodeType in self.nodeTypes:
-            for aovName, attr, type in aovs.getNodeGlobalAOVData(nodeType):
-                map[aovName].append((nodeType, attr))
-                typeMap[aovName] = type
-        typeMap.update(dict(aovs.BUILTIN_AOVS))
-        
         sel = pm.textScrollList(self.availableLst, query=True, selectItem=True)
         if sel:
             global _updating
             _updating = True
             try:
                 for aovName in sel:
-                    aov = self.renderOptions.addAOV(aovName, typeMap[aovName])
+                    aov = self.renderOptions.addAOV(aovName)
             finally:
                 _updating = False
             self.updateActiveAOVs()
