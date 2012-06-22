@@ -9,7 +9,6 @@ import os
 import shlex
 import sys
 import ctypes
-import string
 
 def even(num):
     return bool(num % 2)
@@ -356,13 +355,6 @@ def getFileName(pathType, tokens, path='<Scene>', frame=None, fileType='images',
         if not os.path.exists(dir):
             os.makedirs(dir)
     return result
-
-def convertToUnicode(s):
-    try:
-        s = s.encode('utf-8')
-    except UnicodeDecodeError:
-        pass
-    return s
 
 def getEnvironmentVariable(name):
     '''
