@@ -1,4 +1,5 @@
 #include "platform/Platform.h"
+#include "translators/NodeTranslator.h"
 #include "AOV.h"
 #include "scene/MayaScene.h"
 
@@ -186,7 +187,7 @@ void CAOV::SetupOutputs(MStringArray &result, AtNode *defaultDriver, AtNode *def
       }
       else
       {
-         AtNode* filter = CMayaScene::GetArnoldSession()->ExportNode(conn[0]);
+         AtNode* filter = CMayaScene::GetArnoldSession()->ExportNode(conn[0])->GetArnoldRootNode();
          MString nodeTypeName = AiNodeEntryGetName(AiNodeGetNodeEntry(filter));
          filterName = nodeTypeName + "_" + m_name;
          AiNodeSetStr(filter, "name", filterName.asChar());
@@ -207,7 +208,7 @@ void CAOV::SetupOutputs(MStringArray &result, AtNode *defaultDriver, AtNode *def
       }
       else
       {
-         driver = CMayaScene::GetArnoldSession()->ExportNode(conn[0]);
+         driver = CMayaScene::GetArnoldSession()->ExportNode(conn[0])->GetArnoldRootNode();
       }
 
       MString nodeTypeName = AiNodeEntryGetName(AiNodeGetNodeEntry(driver));

@@ -202,7 +202,7 @@ AtNode * COptionsTranslator::CreateFileOutput(MStringArray &outputs, AtNode *def
    MPlugArray conn;
    driverPlug.connectedTo(conn, true, false);
    if (conn.length())
-      m_driver = m_session->ExportNode(conn[0]);
+      m_driver = ExportNode(conn[0], false);
    if (m_driver != NULL)
    {
       AiNodeSetStr(m_driver, "name", AiNodeEntryGetName(AiNodeGetNodeEntry(m_driver)));
@@ -235,7 +235,7 @@ AtNode * COptionsTranslator::CreateOutputFilter()
    MPlugArray conn;
    filterPlug.connectedTo(conn, true, false);
    if (conn.length())
-      filter = m_session->ExportNode(conn[0]);
+      filter = ExportNode(conn[0], false);
    if (filter != NULL)
    {
       AiNodeSetStr(filter, "name", AiNodeEntryGetName(AiNodeGetNodeEntry(filter)));

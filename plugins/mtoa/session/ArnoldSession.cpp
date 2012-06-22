@@ -134,7 +134,7 @@ namespace // <anonymous>
 
 // Export a single dag path (a dag node or an instance of a dag node)
 // Considered to be already filtered and checked
-AtNode* CArnoldSession::ExportDagPath(MDagPath &dagPath, bool initOnly, MStatus* stat)
+CDagTranslator* CArnoldSession::ExportDagPath(MDagPath &dagPath, bool initOnly, MStatus* stat)
 {
    MStatus status = MStatus::kSuccess;
    AtNode* arnoldNode = NULL;
@@ -203,29 +203,29 @@ AtNode* CArnoldSession::ExportDagPath(MDagPath &dagPath, bool initOnly, MStatus*
 
    if (NULL != stat) *stat = status;
    AiMsgTab(-1);
-   return arnoldNode;
+   return translator;
 }
 
 // Export a plug (dependency node output attribute)
 //
-AtNode* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNodeSet* nodes, AOVSet* aovs,
+CNodeTranslator* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNodeSet* nodes, AOVSet* aovs,
                                    bool initOnly, MStatus *stat)
 {
    MObject mayaNode = shaderOutputPlug.node();
    MStatus status = MStatus::kSuccess;
    AtNode* arnoldNode = NULL;
-
+   CNodeTranslator* translator = NULL;
    MDagPath dagPath;
    // FIXME: should get correct instance number from plug
    if (MDagPath::getAPathTo(mayaNode, dagPath) == MS::kSuccess)
    {
       MStatus status = MStatus::kSuccess;
-      arnoldNode = ExportDagPath(dagPath, initOnly, &status);
+      translator = (CNodeTranslator*)ExportDagPath(dagPath, initOnly, &status);
       // kInvalidParameter is returned when a non-DAG translator is used on a DAG node, but we can still export that here
       if (status != MStatus::kInvalidParameter)
       {
          if (stat != NULL) *stat = status;
-         return arnoldNode;
+         return translator;
       }
    }
 
@@ -233,7 +233,7 @@ AtNode* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNodeSet* nod
    MString name = fnNode.name();
    MString type = fnNode.typeName();
 
-   CNodeTranslator* translator = CExtensionsManager::GetTranslator(mayaNode);
+   translator = CExtensionsManager::GetTranslator(mayaNode);
    AiMsgTab(1);
 
    if (translator == NULL)
@@ -324,7 +324,7 @@ AtNode* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNodeSet* nod
    }
    if (NULL != stat) *stat = status;
    AiMsgTab(-1);
-   return arnoldNode;
+   return translator;
 }
 
 unsigned int CArnoldSession::GetActiveTranslators(const CNodeAttrHandle &handle, std::vector<CNodeTranslator* >& result)
@@ -532,20 +532,9 @@ AtNode* CArnoldSession::ExportOptions()
    MFnDependencyNode fnNode(options);
    AiMsgDebug("[mtoa] Exporting Arnold options '%s'", fnNode.name().asChar());
    MPlug optPlug = fnNode.findPlug("message");
-   AtNode* result = ExportNode(optPlug, NULL, NULL, true);
-   // Store the options translator for later use
-   std::vector<CNodeTranslator *> translators;
-   if (GetActiveTranslators(optPlug, translators) > 0)
-   {
-      m_optionsTranslator = (COptionsTranslator*)translators[0];
-   }
-   else
-   {
-      AiMsgError("[mtoa] Unable to store options translator for Arnold options '%s'", fnNode.name().asChar());
-      m_optionsTranslator = NULL;
-   }
+   m_optionsTranslator = (COptionsTranslator*)ExportNode(optPlug, NULL, NULL, true);
 
-   return result;
+   return m_optionsTranslator->GetArnoldRootNode();
 }
 
 /// Primary entry point for exporting a Maya scene to Arnold

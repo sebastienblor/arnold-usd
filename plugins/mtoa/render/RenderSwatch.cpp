@@ -356,7 +356,7 @@ MStatus CRenderSwatchGenerator::AssignNode(AtNode* arnoldNode, CNodeTranslator* 
       if (connections.length() > 0)
       {
          MString attrName = connections[0].partialName(false, false, false, false, false, true);
-         AtNode* dispImage(exportSession->ExportNode(connections[0]));
+         AtNode* dispImage(exportSession->ExportNode(connections[0])->GetArnoldRootNode());
          if (dispImage != NULL)
          {
             // FIXME : why request a non networked plug?

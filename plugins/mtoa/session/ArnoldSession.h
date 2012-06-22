@@ -37,6 +37,7 @@ enum DagFiltered
 };
 
 class CNodeTranslator;
+class CDagTranslator;
 class COptionsTranslator;
 
 // Map translated Maya objects (node, dag node with instance number, or plug) to
@@ -73,8 +74,8 @@ class DLLEXPORT CArnoldSession
 public:
 
    // Called by translators
-   AtNode* ExportDagPath(MDagPath &dagPath, bool initOnly=false, MStatus* stat=NULL);
-   AtNode* ExportNode(const MPlug& shaderOutputPlug, AtNodeSet* nodes=NULL, AOVSet* aovs=NULL,
+   CDagTranslator* ExportDagPath(MDagPath &dagPath, bool initOnly=false, MStatus* stat=NULL);
+   CNodeTranslator* ExportNode(const MPlug& shaderOutputPlug, AtNodeSet* nodes=NULL, AOVSet* aovs=NULL,
                       bool initOnly=false, MStatus* stat=NULL);
    AtNode* ExportOptions();
 
