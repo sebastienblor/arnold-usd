@@ -73,12 +73,13 @@ class DLLEXPORT CArnoldSession
 public:
 
    // Called by translators
-   AtNode* ExportDagPath(MDagPath &dagPath, MStatus* stat=NULL);
-   AtNode* ExportNode(const MPlug& shaderOutputPlug, AtNodeSet* nodes=NULL, AOVSet* aovs=NULL, MStatus* stat=NULL);
+   AtNode* ExportDagPath(MDagPath &dagPath, bool initOnly=false, MStatus* stat=NULL);
+   AtNode* ExportNode(const MPlug& shaderOutputPlug, AtNodeSet* nodes=NULL, AOVSet* aovs=NULL,
+                      bool initOnly=false, MStatus* stat=NULL);
    AtNode* ExportOptions();
 
    unsigned int GetActiveTranslators(const CNodeAttrHandle &handle, std::vector<CNodeTranslator* >& result);
-   static bool IsRenderablePath(MDagPath dagPath);
+   bool IsRenderablePath(MDagPath dagPath);
 
    inline const ArnoldSessionMode& GetSessionMode() const         { return m_sessionOptions.GetSessionMode(); }
    inline void SetSessionMode(ArnoldSessionMode mode)             { m_sessionOptions.SetSessionMode(mode); }
@@ -140,7 +141,7 @@ public:
    bool IsActiveAOV(CAOV &aov) const;
    AOVSet GetActiveAOVs() const;
 
-   DagFiltered FilteredStatus(const MDagPath &dagPath, const CMayaExportFilter *filter=NULL) const;
+   DagFiltered FilteredStatus(const MDagPath &dagPath, MDGContext &ctx=MDGContext::fsNormal, const CMayaExportFilter *filter=NULL) const;
    
 /*
    bool IsActiveAOV(CAOV &aov) const
@@ -220,7 +221,7 @@ private:
    
    // depend nodes and dag nodes are a multimap with CNodeAttrHandle as a key
    ObjectToTranslatorMap m_processedTranslators;
-
+   std::vector<CNodeTranslator*> m_processedTranslatorList;
 protected:
    ObjectHandleToDagMap m_masterInstances;
 

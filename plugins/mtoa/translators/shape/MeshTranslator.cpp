@@ -76,7 +76,7 @@ bool CMeshTranslator::IsMasterInstance(MDagPath &masterDag)
          {
             currDag = allInstances[master_index];
             // The following line was overridden to add the GetNumMeshGroups check
-            if (CArnoldSession::IsRenderablePath(currDag) && GetNumMeshGroups(currDag) > 0)
+            if (m_session->IsRenderablePath(currDag) && GetNumMeshGroups(currDag) > 0)
             {
                // found it
                m_session->AddMasterInstanceHandle(handle, currDag);

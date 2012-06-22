@@ -1827,7 +1827,7 @@ bool CDagTranslator::IsMasterInstance(MDagPath &masterDag)
          for (; (master_index < m_dagPath.instanceNumber()); master_index++)
          {
             currDag = allInstances[master_index];
-            if (CArnoldSession::IsRenderablePath(currDag))
+            if (m_session->IsRenderablePath(currDag))
             {
                // found it
                m_session->AddMasterInstanceHandle(handle, currDag);
@@ -1908,7 +1908,7 @@ void CDagTranslator::ExportMatrix(AtNode* node, unsigned int step)
 int CDagTranslator::ComputeVisibility(const MDagPath& path)
 {
    // Usually invisible nodes are not exported at all, just making sure here
-   if (false == CArnoldSession::IsRenderablePath(path))
+   if (false == m_session->IsRenderablePath(path))
       return AI_RAY_UNDEFINED;
 
    int visibility = AI_RAY_ALL;
