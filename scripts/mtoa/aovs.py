@@ -204,7 +204,10 @@ class AOVInterface(object):
         if not self._node.exists():
             raise TypeError("node doesn't exist")
         return self._node
-    
+
+    def nextAvailableAttr(self):
+        return self._aovAttr.elementByLogicalIndex(self._aovAttr.numElements())
+
     def getAOVs(self, group=False, sort=True, enabled=None, include=None, exclude=None):
         '''
         return a list of SceneAOV classes for all AOVs in the scene
@@ -271,13 +274,15 @@ class AOVInterface(object):
             node = pm.createNode('aiAOVFilter', skipSelect=True)
             node.aiTranslator.set(filter)
             filterAttr = node.attr('message')
+            from . import hooks
+            hooks.setupFilter(filter, aovName)
         else:
             filterAttr = 'defaultArnoldFilter.message'
         pm.connectAttr(filterAttr, out.filter)
 
         aovNode.attr('name').set(aovName)
         aovNode.attr('type').set(aovType)
-        nextPlug = self._aovAttr.elementByLogicalIndex(self._aovAttr.numElements())
+        nextPlug = self.nextAvailableAttr()
         aovNode.message.connect(nextPlug)
         aov = SceneAOV(aovNode, nextPlug)
         addAliases([aov])
