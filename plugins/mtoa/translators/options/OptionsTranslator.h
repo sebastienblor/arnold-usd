@@ -3,6 +3,25 @@
 
 #include "translators/NodeTranslator.h"
 
+struct CAOVOutput
+{
+   AtNode* driver;
+   AtNode* filter;
+   bool splitAOVs; // whether or not to split AOVs
+   bool singleLayer;
+   MString prefix;
+};
+
+struct CAOVOutputArray
+{
+   MString name;
+   int type;
+   MString tokens;
+   std::vector<CAOVOutput> outputs;
+};
+
+
+
 class DLLEXPORT COptionsTranslator : public CNodeTranslator
 {
 public:
@@ -29,22 +48,31 @@ public:
 protected:
    COptionsTranslator()  :
       CNodeTranslator(),
-      m_driver(NULL)
+      m_aovs(),
+      m_aovsEnabled(true),
+      m_aovsInUse(false)
    {
       // Just for debug info, translator creates whatever arnold nodes are required
       // through the CreateArnoldNodes method
       m_abstract.arnold = "options";
    }
    void ProcessAOVs();
-   MString SetImageFilenames(MDagPath &camera);
-   AtNode * CreateFileOutput(MStringArray &outputs, AtNode *defaultFilter);
-   AtNode * CreateOutputFilter();
-   AtNode * CreateRenderViewOutput(MStringArray &outputs, AtNode *defaultFilter);
-   void SetupRenderOutput(AtNode* options);
+   void SetImageFilenames(MStringArray &outputs);
+   void ExportAOVs();
+   void CreateFileDirectory(const MString &filename) const;
+   AtNode * CreateDefaultFilter();
+   inline AtNode * CreateDisplayDriver(MString& prefix, bool& singleLayer);
+   unsigned int GetDriversAndFilters(const CAOV& aov,
+                                     std::vector<CAOVOutput>& outputs);
+   AtNode* ExportDriver(const MPlug& driverPlug, MString& prefix, bool& splitAOVs, bool& singleLayer);
+   AtNode* ExportFilter(const MPlug& filterPlug);
 
 protected:
-   AtNode* m_driver;
    AOVSet m_aovs;
+   std::vector<CAOVOutputArray> m_aovData;
+   bool m_aovsEnabled;
+   bool m_aovsInUse;
+   std::map<std::string, AtNode*> m_multiDriverMap;
 };
 
 #endif // OPTIONSTRANSLATOR_H

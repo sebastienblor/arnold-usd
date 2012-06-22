@@ -85,6 +85,8 @@ node_parameters
 {
    AiParameterFLT ("gamma", 1.0f);
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
+   AiMetaDataSetBool(mds, NULL, "single_layer_driver", true);
+   AiMetaDataSetBool(mds, NULL, "display_driver", true);
 }
 
 node_initialize
