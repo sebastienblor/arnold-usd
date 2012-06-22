@@ -256,7 +256,7 @@ namespace // <anonymous>
                                   CSphericalCameraTranslator::NodeInitializer);
                                   
        // Hair
-       builtin->RegisterTranslator("hairSystem",
+       builtin->RegisterTranslator("pfxHair",
                                    "",
                                    CHairTranslator::creator,
                                    CHairTranslator::NodeInitializer);
