@@ -948,4 +948,28 @@ void CDisplacementTranslator::Export(AtNode* shader)
    ProcessParameter(shader, "vectorEncoding", AI_TYPE_INT);
    ProcessParameter(shader, "vectorSpace", AI_TYPE_INT);
    ProcessParameter(shader, "tangent", AI_TYPE_VECTOR);
+   if (AiNodeIs(shader, "MayaNormalDisplacement"))
+      ProcessParameter(shader, "zeroValue", AI_TYPE_FLOAT, "aiDisplacementZeroValue");
+}
+
+void DisplacementTranslatorNodeInitializer(CAbTranslator context)
+{
+   CExtensionAttrHelper helper("displacementShader");
+   
+   CAttrData data;
+
+   data.defaultValue.FLT = 0.f;
+   data.name = "aiDisplacementPadding";
+   data.shortName = "ai_displacement_padding";
+   helper.MakeInputFloat(data);
+   
+   data.defaultValue.FLT = 0.f;
+   data.name = "aiDisplacementZeroValue";
+   data.shortName = "ai_displacement_zero_value";
+   helper.MakeInputFloat(data);
+   
+   data.defaultValue.BOOL = false;
+   data.name = "aiDisplacementAutoBump";
+   data.shortName = "ai_displacement_auto_bump";
+   helper.MakeInputBoolean(data);
 }

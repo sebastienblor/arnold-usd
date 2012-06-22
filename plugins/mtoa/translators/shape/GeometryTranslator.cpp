@@ -497,6 +497,10 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
 
    MPlug shadingGroupPlug = GetNodeShadingGroup(path.node(), instanceNum);
    m_displaced = false;
+   
+   float maximumDisplacementPadding = -AI_BIG;
+   bool enableAutoBump = false;
+   MPlug plug;
 
    // Only one Shading Group applied to Mesh
    if (!shadingGroupPlug.isNull())
@@ -527,9 +531,16 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
       {
          m_displaced = true;
          MFnDependencyNode dispNode(connections[0].node());
+         plug = dispNode.findPlug("aiDisplacementPadding");
+         if (!plug.isNull())
+            maximumDisplacementPadding = MAX(maximumDisplacementPadding, plug.asFloat());
+         plug = dispNode.findPlug("aiDisplacementAutoBump");
+         if (!plug.isNull())
+            enableAutoBump = enableAutoBump || plug.asBool();
 
          AtNode* dispImage(ExportNode(connections[0]));
          AiNodeSetPtr(polymesh, "disp_map", dispImage);
+         
       }
    }
 
@@ -597,6 +608,13 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
          if (connections.length() > 0)
          {
             m_displaced = true;
+            MFnDependencyNode dispNode(connections[0].node());
+            plug = dispNode.findPlug("aiDisplacementPadding");
+            if (!plug.isNull())
+               maximumDisplacementPadding = MAX(maximumDisplacementPadding, plug.asFloat());
+            plug = dispNode.findPlug("aiDisplacementAutoBump");
+            if (!plug.isNull())
+               enableAutoBump = enableAutoBump || plug.asBool();
             AtNode* dispImage(ExportNode(connections[0]));
             meshDisps.push_back(dispImage);
          }
@@ -667,9 +685,9 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
       // Note that disp_height has no actual influence on the scale of the displacement if it is vector based
       // it only influences the computation of the displacement bounds
       AiNodeSetFlt(polymesh, "disp_height",  FindMayaObjectPlug("aiDispHeight").asFloat());
-      AiNodeSetFlt(polymesh, "disp_padding", FindMayaObjectPlug("aiDispPadding").asFloat());
+      AiNodeSetFlt(polymesh, "disp_padding", MAX(maximumDisplacementPadding, FindMayaObjectPlug("aiDispPadding").asFloat()));
       AiNodeSetFlt(polymesh, "disp_zero_value", FindMayaObjectPlug("aiDispZeroValue").asFloat());
-      AiNodeSetBool(polymesh, "disp_autobump", FindMayaObjectPlug("aiDispAutobump").asBool());
+      AiNodeSetBool(polymesh, "disp_autobump", FindMayaObjectPlug("aiDispAutobump").asBool() || enableAutoBump);
    }
 
    // we must write this as user data bc AiNodeGet* is thread-locked while AIUDataGet* is not

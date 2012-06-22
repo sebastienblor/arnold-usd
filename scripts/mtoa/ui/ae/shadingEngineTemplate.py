@@ -208,8 +208,9 @@ templates.registerAETemplate(ShadingEngineTemplate, "shadingEngine")
 
 class DisplacementShaderTemplate(templates.AttributeEditorTemplate):
     def setup(self):
-        self.addControl("aiDisplacementPadding", label="Displacement Padding")
-        self.addControl("aiDisplacementZeroValue", label="Displacement Zero Value")
+        self.addControl("aiDisplacementPadding", label="Bounds Padding")
+        self.addControl("aiDisplacementZeroValue", label="Scalar Zero Value")
+        self.addControl("aiDisplacementAutoBump", label="Auto Bump")
 
 templates.registerAETemplate(DisplacementShaderTemplate, "displacementShader")
 
