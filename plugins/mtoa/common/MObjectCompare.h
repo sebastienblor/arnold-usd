@@ -53,6 +53,26 @@ public:
    // inline const MObject & objectRef() const { return m_nodeHandle.objectRef(); }
    inline MString attribute() const { return m_attrName; }
    inline int instanceNum() const { return m_instanceNum; }
+
+   void set(const MObject& nodeObject, const MString& attrName="", int instanceNum=-1)
+   {
+      m_nodeHandle = MObjectHandle(nodeObject);
+      m_attrName = attrName;
+      m_instanceNum = instanceNum;
+   }
+   void set(const MDagPath& dagPath, const MString& attrName="")
+   {
+      m_nodeHandle = MObjectHandle(dagPath.node());
+      m_attrName = attrName;
+      m_instanceNum = dagPath.instanceNumber();
+   }
+   void set(const MPlug& plug, int instanceNum=-1)
+   {
+      m_nodeHandle = MObjectHandle(plug.node());
+      m_attrName = plug.partialName(false, false, false, false, false, true);
+      m_instanceNum = instanceNum;
+   }
+
    bool operator<(const CNodeAttrHandle &other) const
    {
       // check if same node

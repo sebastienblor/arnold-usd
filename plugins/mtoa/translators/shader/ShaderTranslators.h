@@ -19,6 +19,7 @@
       static void* creator(){return new name();}\
       virtual void Export(AtNode* shader);\
       AtNode* CreateArnoldNodes();\
+      bool DependsOnOutputPlug() { return true; } \
    protected:\
       bool ResolveOutputPlug(const MPlug& outputPlug, MPlug &resolvedOutputPlug){resolvedOutputPlug=outputPlug;return true;}\
    };

@@ -270,7 +270,11 @@ CNodeTranslator* CArnoldSession::ExportNode(const MPlug& shaderOutputPlug, AtNod
    MString plugName = resultPlug.name();
    AiMsgDebug("[mtoa.session]     %-30s | Exporting plug %s for type %s",
       name.asChar(), plugName.asChar(), type.asChar());
-   CNodeAttrHandle handle(resultPlug);
+   CNodeAttrHandle handle;
+   if (translator->DependsOnOutputPlug())
+      handle.set(resultPlug);
+   else
+      handle.set(mayaNode);
    ObjectToTranslatorMap::iterator it = m_processedTranslators.end();
    if (!translator->DisableCaching())
    {

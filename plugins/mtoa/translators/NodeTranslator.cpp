@@ -603,9 +603,12 @@ void CNodeTranslator::SetArnoldNodeName(AtNode* arnoldNode, const char* tag)
 {
    MString name = GetMayaNodeName();
    char nodeName[MAX_NAME_SIZE];
-   MString outputAttr = GetMayaAttributeName();
-   if (outputAttr.numChars())
-      name = name + AI_ATT_SEP + outputAttr;
+   if (DependsOnOutputPlug())
+   {
+      MString outputAttr = GetMayaAttributeName();
+      if (outputAttr.numChars())
+         name = name + AI_ATT_SEP + outputAttr;
+   }
    if (strlen(tag))
       name = name + AI_TAG_SEP + tag;
 
@@ -1744,10 +1747,13 @@ void CDagTranslator::SetArnoldNodeName(AtNode* arnoldNode, const char* tag)
    MString name = m_dagPath.partialPathName();
    // TODO: add a global option to control how names are exported
    // MString name = m_dagPath.fullPathName();
-   MString outputAttr = GetMayaAttributeName();
+   if (DependsOnOutputPlug())
+   {
+      MString outputAttr = GetMayaAttributeName();
 
-   if (outputAttr.numChars())
-      name = name + AI_ATT_SEP + outputAttr;
+      if (outputAttr.numChars())
+         name = name + AI_ATT_SEP + outputAttr;
+   }
    if (strlen(tag))
       name = name + AI_TAG_SEP + tag;
 

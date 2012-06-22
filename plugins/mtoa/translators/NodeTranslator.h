@@ -74,14 +74,17 @@ public:
    virtual MPlug FindMayaOverridePlug(const MString &attrName, MStatus* ReturnStatus=NULL) const;
    virtual MPlug FindMayaPlug(const MString &attrName, MStatus* ReturnStatus=NULL) const;
 
+   // overridable translator properties
    virtual bool IsMayaTypeDag() {return false;}
    virtual bool IsMayaTypeRenderable() {return false;}
    virtual bool IsMayaTypeLight() { return false; }
    virtual bool DependsOnExportCamera() {return false;}
-   virtual void TrackAOVs(AOVSet* aovs);
-   virtual void TrackShaders(AtNodeSet* nodes) {m_shaders = nodes;};
    /// Instead of caching translator exports, allow a Maya node to be exported multiple times, each time generating new arnold nodes
    virtual bool DisableCaching() {return false;}
+   virtual bool DependsOnOutputPlug() {return false;} // translator performs different operations depending on the type of output plug
+
+   virtual void TrackAOVs(AOVSet* aovs);
+   virtual void TrackShaders(AtNodeSet* nodes) {m_shaders = nodes;};
 
    // Overide this if you have some special callbacks to install.
    virtual void AddUpdateCallbacks();
