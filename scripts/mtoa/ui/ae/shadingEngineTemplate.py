@@ -27,7 +27,7 @@ def getAOVsInNetwork(rootNode):
             results[node] = [node.attr(at).get() for (aov, at, type) in aovs.getNodeGlobalAOVData(node.type())]
     return results
 
-class ShadingEngineTemplate(templates.AttributeEditorTemplate):
+class ShadingEngineTemplate(templates.AttributeTemplate):
     def __init__(self, nodeType):
         self._msgCtrls = []
         aovs.addAOVChangedCallback(self.update, 'ShadingEngineTemplate')
@@ -99,7 +99,7 @@ class ShadingEngineTemplate(templates.AttributeEditorTemplate):
                 self.aovNodes[aov].append(node)
 
     def buildAOVFrame(self, nodeAttr):
-        # TODO: move this into AttributeEditorTemplate
+        # TODO: move this into AttributeTemplate
         self._setActiveNodeAttr(nodeAttr)
         nodeAttr = pm.Attribute(nodeAttr)
 
@@ -153,7 +153,7 @@ class ShadingEngineTemplate(templates.AttributeEditorTemplate):
         pm.setUITemplate('attributeEditorTemplate', popTemplate=True)
 
     def updateAOVFrame(self, nodeAttr):
-        # TODO: move this into AttributeEditorTemplate
+        # TODO: move this into AttributeTemplate
         self._setActiveNodeAttr(nodeAttr)
         nodeAttr = pm.Attribute(nodeAttr)
 
@@ -205,11 +205,4 @@ class ShadingEngineTemplate(templates.AttributeEditorTemplate):
 
 
 templates.registerAETemplate(ShadingEngineTemplate, "shadingEngine")
-
-class DisplacementShaderTemplate(templates.AttributeEditorTemplate):
-    def setup(self):
-        self.addControl("aiDisplacementPadding", label="Displacement Padding")
-        self.addControl("aiDisplacementZeroValue", label="Displacement Zero Value")
-
-templates.registerAETemplate(DisplacementShaderTemplate, "displacementShader")
 

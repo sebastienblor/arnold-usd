@@ -16,12 +16,15 @@ _translatorTemplates = defaultdict(dict)
 global _templates
 _templates = {}
 
-def getTranslators(nodeType):
-    return [x[0] for x in core.listTranslators(nodeType)]
+#-------------------------------------------------
+# Queries
+#-------------------------------------------------
 
-#-------------------------------------------------
-# AE templates
-#-------------------------------------------------
+def getTranslators(nodeType):
+    """
+    Return a list of translator names for the given nodeType
+    """
+    return [x[0] for x in core.listTranslators(nodeType)]
 
 def getTranslatorTemplates(nodeType):
     """
@@ -33,19 +36,30 @@ def getTranslatorTemplates(nodeType):
 
 def getTranslatorTemplate(nodeType, translatorName):
     """
-    return a template instance for the given nodeType, or None if one has not been registered
+    Return an `AttributeTemplate` instance for the given nodeType and translator, or None if one has not been registered
     """
     try:
-        return getTranslatorTemplates(nodeType)[translatorName](nodeType)
+        inst = getTranslatorTemplates(nodeType)[translatorName](nodeType)
+        inst._setToChildMode()
+        return inst
     except KeyError:
         pass
 
 def getNodeTemplate(nodeType):
+    """
+    Return an `AttributeTemplate` instance for the given nodeType or None if one has not been registered.
+    
+    This is the root template for the node type. Unlike translator UIs, there can be only one template per node type.
+    """
     global _templates
     try:
         return _templates[nodeType]
     except KeyError:
         pass
+
+#-------------------------------------------------
+# AE templates
+#-------------------------------------------------
 
 class BaseTemplate(object):
     """
@@ -56,8 +70,8 @@ class BaseTemplate(object):
         self._nodeName = None
         self._attr = None
 
-    def __repr__(self):
-        return '%s(%r)' % (self.__class__.__name__, self.nodeType())
+#    def __repr__(self):
+#        return '%s(%r)' % (self.__class__.__name__, self.nodeType())
 
     def _doSetup(self, nodeAttr, *args):
         '''
@@ -99,51 +113,70 @@ class BaseTemplate(object):
     def nodeAttrExists(self, attr):
         return pm.addAttr(self.nodeAttr(attr), q=True, ex=True)
 
-def delayedAttr(func):
+
+def modeAttrMethod(func):
     def wrapped(self, attr, *args, **kwargs):
-        self._actions.append((func, (attr,) + args, kwargs))
+        self._actions.append((func.__name__, (attr,) + args, kwargs))
+        getattr(self._mode, func.__name__)(attr, *args, **kwargs)
         self._attributes.append(attr)
     wrapped.__doc__ = func.__doc__
     wrapped.__name__ = func.__name__
     wrapped._orig = func
     return wrapped
 
-def delayed(func):
+def modeMethod(func):
     def wrapped(self, *args, **kwargs):
-        self._actions.append((func, args, kwargs))
+        self._actions.append((func.__name__, args, kwargs))
+        getattr(self._mode, func.__name__)(*args, **kwargs)
     wrapped.__doc__ = func.__doc__
     wrapped.__name__ = func.__name__
     wrapped._orig = func
     return wrapped
 
+
 class AttributeTemplate(BaseTemplate):
     """
-    This class provides a framework for creating and managing AE-like templates and is largely compatible with pymel's
-    AETemplate class.
+    This class provides a framework for creating and managing Attribute Editor templates.
+    
+    When building Attribute Editor templates, there are major restrictions on what types of UI commands
+    can be issued, depending on context:
+        - editorTemplate commands may only be issued directly within the body of an Attribute Editor template
+        - normal Maya UI commands may only be used in the context of the `editorTemplate -callCustom` callback
+    The two types of commands must remain segregated.
+    
+    The goal of this class is to remove this complex distinction and provide a single unified, and 
+    modular template class which may be used in either context, or even chained together. The user need
+    not care what context their template class will be used in.
+    
+    The context-based functionality is implemented in AERootMode and AEChildMode.
     """
     def __init__(self, nodeType):
         super(AttributeTemplate, self).__init__(nodeType)
+        self._rootMode = AERootMode(self)
+        self._childMode = AEChildMode(self)
+        self._mode = self._rootMode
         self._actions = []
         self._attributes = []
-        self._controls = []
-        self._builders = []
-        self._layoutStack = []
-        self.setup()
+
+    def _setToRootMode(self):
+        self._mode = self._rootMode
+
+    def _setToChildMode(self):
+        self._mode = self._childMode
 
     def _doSetup(self, nodeAttr):
         '''
         build the UI from the list of added attributes
         '''
         self._setActiveNodeAttr(nodeAttr)
-        pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
-        self._layoutStack = [pm.setParent(query=True)]
-        for func, args, kwargs in self._actions:
-            func(self, *args, **kwargs)
-        pm.setUITemplate(popTemplate=True)
+        self._mode._setActiveNodeAttr(nodeAttr)
+        self._mode.preSetup()
+        self.setup()
+        self._mode.postSetup()
 
     def _doUpdate(self, nodeAttr):
-        self._setActiveNodeAttr(nodeAttr)
-        self.update()
+        self._mode._setActiveNodeAttr(nodeAttr)
+        self._mode.update()
 
     def setup(self):
         """
@@ -152,6 +185,81 @@ class AttributeTemplate(BaseTemplate):
         """
         pass
 
+    @modeAttrMethod
+    def addChildTemplate(self, attr, template):
+        pass
+
+    @modeAttrMethod
+    def addControl(self, attr, label=None, annotation=None):
+        pass
+
+    @modeMethod
+    def addSeparator(self):
+        pass
+
+    @modeAttrMethod
+    def addCustom(self, attr, createFunc, updateFunc):
+        pass
+
+    @modeMethod
+    def beginLayout(self, label, **kwargs):
+        '''
+        begin a frameLayout.
+        accepts any keyword args valid for creating a frameLayout
+        '''
+        pass
+
+    @modeMethod
+    def endLayout(self):
+        '''
+        end the current frameLayout
+        '''
+        pass
+
+    @modeMethod
+    def beginNoOptimize(self):
+        pass
+
+    @modeMethod
+    def endNoOptimize(self):
+        pass
+
+    @modeMethod
+    def beginScrollLayout(self):
+        pass
+
+    @modeMethod
+    def endScrollLayout(self):
+        pass
+
+    @modeMethod
+    def addExtraControls(self):
+        pass
+
+#-------------------------------------------------
+# AE template Modes (internal)
+#-------------------------------------------------
+
+class AEChildMode(BaseTemplate):
+    """
+    Interprets `AttributeEditor` actions as custom Maya UI code
+    
+    This mode is used for:
+        - Partial AE Templates that are used with callCustom
+    """
+    def __init__(self, template):
+        self.template = template
+        super(AEChildMode, self).__init__(template.nodeType())
+        self._controls = []
+        self._layoutStack = []
+
+    def preSetup(self):
+        pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+        self._layoutStack = [pm.setParent(query=True)]
+
+    def postSetup(self):
+        pm.setUITemplate(popTemplate=True)
+
     def update(self):
         pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
         for attr, updateFunc, parent in self._controls:
@@ -159,17 +267,12 @@ class AttributeTemplate(BaseTemplate):
             updateFunc(self.nodeAttr(attr))
         pm.setUITemplate(popTemplate=True)
 
-    # building
-    def _manageControl(self, attr, updateFunc, parent):
-        self._controls.append((attr, updateFunc, parent))
-
-    @delayedAttr
     def addChildTemplate(self, attr, template):
         if isinstance(template, pm.uitypes.AETemplate):
             print "this is a pm.uitypes.AETemplate subclass. this will probably break"
-        self.addCustom._orig(self, attr, template._doSetup, template._doUpdate)
+        # don't use the wrapped version of addCustom: we don't want a delay
+        self.addCustom(attr, template._doSetup, template._doUpdate)
 
-    @delayedAttr
     def addControl(self, attr, label=None, annotation=None):
         # TODO: lookup label and descr from metadata
         if not label:
@@ -184,20 +287,17 @@ class AttributeTemplate(BaseTemplate):
         parent = self._layoutStack[-1]
         pm.setParent(parent)
         control = AttrControlGrp(**kwargs)
-        self._manageControl(attr, control.setAttribute, parent)
+        self._controls.append((attr, control.setAttribute, parent))
 
-    @delayed
     def addSeparator(self):
         pm.separator()
 
-    @delayedAttr
     def addCustom(self, attr, createFunc, updateFunc):
         parent = self._layoutStack[-1]
         pm.setParent(parent)
         createFunc(self.nodeAttr(attr))
-        self._manageControl(attr, updateFunc, parent)
+        self._controls.append((attr, updateFunc, parent))
 
-    @delayed
     def beginLayout(self, label, **kwargs):
         '''
         begin a frameLayout.
@@ -208,7 +308,6 @@ class AttributeTemplate(BaseTemplate):
         pm.frameLayout(**kwargs)
         self._layoutStack.append(pm.columnLayout(adjustableColumn=True))
 
-    @delayed
     def endLayout(self):
         '''
         end the current frameLayout
@@ -217,13 +316,23 @@ class AttributeTemplate(BaseTemplate):
         pm.setParent(self._layoutStack[-1])
 
     # for compatibility with pymel.core.uitypes.AETemplate
-    @delayed
     def beginNoOptimize(self):
         pass
 
     # for compatibility with pymel.core.uitypes.AETemplate
-    @delayed
     def endNoOptimize(self):
+        pass
+
+    # for compatibility with pymel.core.uitypes.AETemplate
+    def beginScrollLayout(self):
+        pass
+
+    # for compatibility with pymel.core.uitypes.AETemplate
+    def endScrollLayout(self):
+        pass
+
+    # for compatibility with pymel.core.uitypes.AETemplate
+    def addExtraControls(self):
         pass
 
 if pymel.__version__ >= '1.0.1':
@@ -234,63 +343,29 @@ if pymel.__version__ >= '1.0.1':
         def __new__(cls, classname, bases, classdict):
             return type.__new__(cls, classname, bases, classdict)
 
-class AttributeEditorTemplate(pm.uitypes.AETemplate):
+
+class AERootMode(pm.uitypes.AETemplate, BaseTemplate):
     """
-    A sub-class of pymel.uitypes.AETemplate.  A properly defined AETemplate class will automatically
-    register itself as the AE Template for the specified node type.  (See the documentation for pymel.uitypes.AETemplate for more
-    on how to specify the desired node type).
+    Interprets `AttributeEditor` actions as editorTemplate commands.
 
-    This sub-class adds a compatibility layer to make it behave more like mtoa's AttributeTemplate class,
-    which is used for translator UIs. 
-
-    AttributeEditorTemplates are used for:
+    This mode is used for:
         - Full AE Node Templates
         - Partial AE Templates that are used inline (cannot be used with callCustom)
-
-    AttributeTemplates are used for:
-        - Partial AE Templates that are used with callCustom
     """
     if pymel.__version__ >= '1.0.1':
         __metaclass__ = DisableLoader
 
-    def __init__(self, arg, doSetup=False):
+    def __init__(self, template):
+        self.template = template
         self._attr = None
-        if doSetup:
-            # arg is a node name
-            print "doing Setup"
-            self._doSetup(arg)
-        else:
-            # argument is a node type
-            self._nodeName = None
-            self._nodeType = arg
+        # argument is a node type
+        self._nodeName = None
+        self._nodeType = self.template.nodeType()
 
-    def _doSetup(self, nodeAttr, *args):
-        '''
-        build the UI from the list of added attributes
-        '''
-        self._setActiveNodeAttr(nodeAttr)
-        self.setup()
+    def preSetup(self):
+        pass
 
-    def _doUpdate(self, nodeAttr, *args):
-        self._setActiveNodeAttr(nodeAttr)
-        self.update()
-
-    def _setActiveNodeAttr(self, nodeName):
-        "set the active node"
-        parts = nodeName.split('.', 1)
-        self._nodeName = parts[0]
-        if len(parts) > 1:
-            self._attr = parts[1]
-
-    def nodeType(self):
-        if self._nodeType is None:
-            self._nodeType = pm.objectType(self.nodeName)
-        return self._nodeType
-
-    def nodeAttr(self, attr):
-        return self.nodeName + '.' + attr
-
-    def setup(self):
+    def postSetup(self):
         pass
 
     def update(self):
@@ -324,9 +399,6 @@ class ShapeMixin(object):
         self.addControl("aiOpaque")
         self.addControl("aiVisibleInDiffuse")
         self.addControl("aiVisibleInGlossy")
-
-class ShapeAETemplate(AttributeEditorTemplate, ShapeMixin):
-    pass
 
 class ShapeTranslatorTemplate(AttributeTemplate, ShapeMixin):
     pass
@@ -375,10 +447,10 @@ class ShapeTranslatorTemplate(AttributeTemplate, ShapeMixin):
 
 class AutoTranslatorTemplate(AttributeTemplate):
     '''
-    A translator template which automatically builds itself based on data queries from
+    A translator template which automatically builds itself based on data queried from
     an arnold node type
     
-    It is highly recommended that you use the utility function registerAutoTranslatorUI()
+    It is highly recommended that you use the utility function `registerAutoTranslatorUI()`
     to create a template of this type
     '''
     _arnoldNodeType = None
@@ -394,11 +466,13 @@ class AutoTranslatorTemplate(AttributeTemplate):
                             label if label else prettify(paramName),
                             annotation)
 
-class TranslatorControl(AttributeEditorTemplate):
+class TranslatorControl(AttributeTemplate):
     '''
     Allows multiple AttributeTemplates, each representing an arnold translator, to be controlled via
-    one optionMenu, such that only the active template is visible.  A default controller is automatically created for
-    each node that has registered arnold translator UIs. Manually creating a TranslatorControl is only necessary if you
+    one optionMenu, such that only the active template is visible.
+    
+    A default `TranslatorControl` is automatically created for each node that registers an arnold
+    translator UIs via `registerTranslatorUI`. Manually creating a `TranslatorControl` is only necessary if you
     need to customize the default controller behavior.
     '''
     def __init__(self, nodeType, label='Arnold Translator', optionMenuName=None):
@@ -627,9 +701,18 @@ class TranslatorControlUI(TranslatorControl):
             pm.setParent(mainCol)
             pm.setParent('..')
 
+#-------------------------------------------------
+# Registration
+#-------------------------------------------------
+
 def registerAETemplate(templateClass, nodeType, *args, **kwargs):
-    assert inspect.isclass(templateClass) and issubclass(templateClass, (AttributeTemplate, AttributeEditorTemplate)), \
-        "you must pass a subclass of AttributeTemplate or AttributeEditorTemplate"
+    """
+    Register an `AttributeTemplate` class to be used with the given nodeType.
+    
+    This is the root template for the node type. Unlike translator UIs, there can be only one template per node type.
+    """
+    assert inspect.isclass(templateClass) and issubclass(templateClass, AttributeTemplate), \
+        "you must pass a subclass of AttributeTemplate"
     global _templates
     if nodeType not in _templates:
         try:
@@ -642,7 +725,7 @@ def registerAETemplate(templateClass, nodeType, *args, **kwargs):
 
 def aeTemplate(nodeType, baseClass=AttributeTemplate):
     """
-    decorator
+    decorator to convert a simple UI function into an AttributeTemplate class.
     """
     def registerUIDecorator(func):
         cls = type(nodeType + "Template", (baseClass,), dict(setup=func))
@@ -653,18 +736,21 @@ def aeTemplate(nodeType, baseClass=AttributeTemplate):
 
 def registerTranslatorUI(templateClass, mayaNodeType, translatorName='<built-in>'):
     """
-    A translator UI is a specialized attribute template based on the AttributeTemplate class. 
+    A translator UI is a specialized `AttributeTemplate` subclass that is associated with a specific mtoa translator. 
     
-    Every node type can have multiple mtoa translators. Each translator UI class
-    is responsible for creating the UI for a single translator.  The TranslatorControl class creates a parent
-    UI which switches between the available translator UIs. It is automatically created when the first translator
-    UI is registered.
+    Every node type can have multiple translators. Each translator UI class is responsible for creating the UI for
+    a single translator. For example, the camera node registers a separate `AttributeTemplate`
+    for each of its various translators:  perspective, orthographic, spherical, fisheye, etc.
     """
     global _translatorTemplates
     translators = getTranslators(mayaNodeType)
     if translatorName not in translators:
-        pm.warning('[mtoa] Registering unknown translator "%s" for Maya node %s. Valid choices are: %s' % \
+        if translators:
+            pm.warning('[mtoa] Registering UI for unknown translator "%s" for Maya node %s. Valid choices are: %s' % \
                    (translatorName, mayaNodeType, ', '.join(['"%s"' % x for x in translators])))
+        else:
+            pm.warning('[mtoa] Registering UI for translator "%s" for Maya node %s, but node has no translators. Did you mean to call registerAETemplate?' % \
+                   (translatorName, mayaNodeType))
 #    assert inspect.isclass(templateClass) and issubclass(templateClass, AttributeTemplate),\
 #        "you must pass a subclass of AttributeTemplate"
     _translatorTemplates[mayaNodeType][translatorName] = templateClass
@@ -674,7 +760,7 @@ def registerTranslatorUI(templateClass, mayaNodeType, translatorName='<built-in>
 def registerAutoTranslatorUI(arnoldNode, mayaNodeType, translatorName='<built-in>'):
     """
     Utility function for automatically creating a translator UI template based on an arnold
-    node type
+    node type.
     """
     translatorName = str(translatorName) # doesn't like unicode
     # we query the attribute data up front instead of when the translator is initialized or setup
@@ -721,6 +807,10 @@ def createTranslatorMenu(node, label=None, nodeType=None, default=None, optionMe
     trans._doSetup(node + '.aiTranslator')
     return trans
 
+#----------------------------------------------------------------
+# functions used internally for loading templates
+#----------------------------------------------------------------
+
 def shapeTemplate(nodeName):
     """
     override for the builtin maya shapeTemplate procedure
@@ -739,7 +829,6 @@ def shapeTemplate(nodeName):
     # include/call base class/node attributes
     pm.mel.AEdagNodeInclude(nodeName)
 
-    
 def loadArnoldTemplate(nodeName):
     """
     Create the "Arnold" AE template for the passed node
@@ -756,4 +845,3 @@ def loadArnoldTemplate(nodeName):
         pm.editorTemplate(beginLayout='Arnold', collapse=True)
         template._doSetup(nodeName)
         pm.editorTemplate(endLayout=True)
-
