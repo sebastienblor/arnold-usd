@@ -7,6 +7,7 @@ from collections import defaultdict
 
 class DisplacementShaderTemplate(templates.AttributeEditorTemplate):
     def setup(self):
+        self.addControl("aiAbsolutePadding", label="Absolute Padding")
         self.addControl("aiDisplacementPadding", label="Bounds Padding")
         self.addControl("aiDisplacementZeroValue", label="Scalar Zero Value")
         self.addControl("aiDisplacementAutoBump", label="Auto Bump")
