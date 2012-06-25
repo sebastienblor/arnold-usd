@@ -4,7 +4,6 @@ functions for dealing with mtoa node types and classifications
 
 import pymel.core as pm
 from . import utils
-from . import aovs
 from . import callbacks
 
 CATEGORY_TO_RUNTIME_CLASS = {
@@ -272,6 +271,16 @@ def _rendererChanged(*args):
                             val = default
                         at.set(val)
 
-# certain scenes fail to execute this callback:
-#callbacks.addAttributeChangedCallback(_rendererChanged, 'renderGlobals', 'currentRenderer')
-pm.scriptJob(attributeChange=['defaultRenderGlobals.currentRenderer', _rendererChanged] )
+def installCallbacks():
+    """
+    install all callbacks
+    """
+    # certain scenes fail to execute this callback:
+    #callbacks.addAttributeChangedCallback(_rendererChanged, 'renderGlobals', 'currentRenderer')
+    pm.scriptJob(attributeChange=['defaultRenderGlobals.currentRenderer', _rendererChanged] )
+    from . import aovs
+    aovs.installCallbacks()
+
+def uninstallCallbacks():
+    #TODO: write uninstall code
+    pass
