@@ -97,7 +97,7 @@ class HairSystemTemplate(templates.ShapeTranslatorTemplate):
         self.addSeparator()
         self.addControl("aiMinPixelWidth")
         self.addControl("aiMode")
-templates.registerTranslatorUI(HairSystemTemplate, "hairSystem", "<built-in>")
+templates.registerAETemplate(HairSystemTemplate, "hairSystem", "<built-in>")
 
 class AmbientLightTemplate(lightTemplate.LightTemplate):
     # TODO: handle filter association via metadata
