@@ -255,7 +255,6 @@ def getDefaultTranslator(node):
         pass
 
 def _rendererChanged(*args):
-    #if args[0].asString() == 'arnold':
     if pm.getAttr('defaultRenderGlobals.currentRenderer') == 'arnold':
         global _defaultTranslators
         for nodeType, default in _defaultTranslators.iteritems():
@@ -277,7 +276,12 @@ def installCallbacks():
     """
     # certain scenes fail to execute this callback:
     #callbacks.addAttributeChangedCallback(_rendererChanged, 'renderGlobals', 'currentRenderer')
-    pm.scriptJob(attributeChange=['defaultRenderGlobals.currentRenderer', _rendererChanged] )
+    if pm.about(batch=True):
+        callbacks.addAttributeChangedCallback(_rendererChanged, 'renderGlobals', 'currentRenderer')
+    else:
+        pm.scriptJob(attributeChange=['defaultRenderGlobals.currentRenderer', _rendererChanged] )
+        pm.scriptJob(event =['SceneOpened', _rendererChanged] )
+
     from . import aovs
     aovs.installCallbacks()
 
