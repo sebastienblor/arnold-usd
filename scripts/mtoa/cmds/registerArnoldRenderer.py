@@ -281,6 +281,7 @@ def registerArnoldRenderer():
             else:
                 import rendererCallbacks
             import mtoa.ui.ae.customShapeAttributes
+            import mtoa.ui.ae.customShaderTemplates
             if not pm.about(batch=True):
                 # Reload the AE Window if it has already been opened
                 pm.evalDeferred(aeUtils.rebuildAE)
