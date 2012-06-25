@@ -13,7 +13,7 @@
 
 void CHairTranslator::NodeInitializer(CAbTranslator context)
 {
-   CExtensionAttrHelper helper = CExtensionAttrHelper(context.maya, "curves");
+   CExtensionAttrHelper helper = CExtensionAttrHelper("hairSystem", "curves");
    CShapeTranslator::MakeCommonAttributes(helper);
    helper.MakeInput("min_pixel_width");
    helper.MakeInput("mode");
@@ -70,16 +70,19 @@ void CHairTranslator::Update( AtNode *curve )
    m_hairInfo = MObject(m_dagPath.node());
 
    MFnDagNode fnDagNodeHairShape(m_hairInfo);
-   MFnDependencyNode fnDepNodeHair(m_hairInfo);
+   MFnDependencyNode fnDepNodePfxHair(m_hairInfo);
    
    // look for the pfxHairShape to get transforms
    // visibilities etc correctly   
    MPlugArray pArr;
-   fnDepNodeHair.findPlug("outputRenderHairs").connectedTo(pArr, false, true);
+   MObject hairSystemObject;
+   fnDepNodePfxHair.findPlug("renderHairs").connectedTo(pArr, true, false);
    if (pArr.length())
-      m_pfxHairPath = MDagPath::getAPathTo(pArr[0].node());
-   
-   //const unsigned int numLines = GetHairLines(m_hairInfo, m_hairLines);
+      hairSystemObject = pArr[0].node();
+   else
+      return;
+
+   MFnDependencyNode fnDepNodeHair(hairSystemObject);
    
    // The shader nodes
    // TODO: Kill these and export it properly.
@@ -89,7 +92,7 @@ void CHairTranslator::Update( AtNode *curve )
    ExportMatrix(curve, 0);
 
    MPlug plug;
-   plug = FindMayaPlug("aiOverrideHair");
+   plug = fnDepNodeHair.findPlug("aiOverrideHair");
    if (!plug.isNull() && plug.asBool())
    {
       MPlugArray curveShaderPlug;
@@ -104,7 +107,7 @@ void CHairTranslator::Update( AtNode *curve )
       }
    }
    
-   plug = FindMayaPlug("aiExportHairIDs");
+   plug = fnDepNodeHair.findPlug("aiExportHairIDs");
    m_export_curve_id = true;
    if (!plug.isNull())
    {
@@ -192,7 +195,7 @@ void CHairTranslator::Update( AtNode *curve )
       }
    }
 
-   plug = FindMayaPlug("aiExportHairUVs");
+   plug = fnDepNodeHair.findPlug("aiExportHairUVs");
    m_export_curve_uvs = plug.isNull() ? false : plug.asBool();
 
    // TODO : MMeshIntersector is useless for UVs query
@@ -208,7 +211,7 @@ void CHairTranslator::Update( AtNode *curve )
 
       // Get connected shapes
       MDagPathArray connectedShapes;
-      GetHairShapeMeshes(m_hairInfo, connectedShapes);
+      GetHairShapeMeshes(hairSystemObject, connectedShapes);
       m_hasConnectedShapes = connectedShapes.length() > 0;
       // Prepare connected shape info and intersection data
       // Support hairsystem that was applied to only one mesh
@@ -231,15 +234,30 @@ void CHairTranslator::Update( AtNode *curve )
       AiNodeSetArray(curve, "curve_id", curveID);
    }
    
-   plug = FindMayaPlug("aiExportHairColors");
+   plug = fnDepNodeHair.findPlug("aiExportHairColors");
    const bool exportCurveColors = plug.isNull() ? false : plug.asBool();
    
    AtArray* curveColors = 0;
    if (exportCurveColors)
       curveColors = AiArrayAllocate(numPoints, 1, AI_TYPE_RGB);
 
-   ProcessRenderFlags(curve);
-   AiNodeSetInt(curve, "visibility", ComputeVisibility(m_pfxHairPath));
+   //ProcessRenderFlags(curve);
+   AiNodeSetInt(curve, "visibility", ComputeVisibility(m_dagPath));
+   plug = fnDepNodeHair.findPlug("aiOpaque");
+   if (!plug.isNull())
+      AiNodeSetBool(curve, "opaque", plug.asBool());
+   plug = fnDepNodeHair.findPlug("aiSelfShadows");
+   if (!plug.isNull())
+      AiNodeSetBool(curve, "self_shadows", plug.asBool());
+   plug = fnDepNodeHair.findPlug("receiveShadows");
+   if (!plug.isNull())
+      AiNodeSetBool(curve, "receive_shadows", plug.asBool());
+   plug = fnDepNodeHair.findPlug("aiSssSampleDistribution");
+   if (!plug.isNull())
+      AiNodeSetInt(curve, "sss_sample_distribution", plug.asInt());
+   plug = fnDepNodeHair.findPlug("aiSssSampleSpacing");
+   if (!plug.isNull())
+      AiNodeSetFlt(curve, "sss_sample_spacing", plug.asFloat());
    
    // Allocate the memory for parameters
    // No need for multiple keys with the points if deformation motion blur
@@ -324,11 +342,11 @@ void CHairTranslator::Update( AtNode *curve )
    }
 
    // Hair specific Arnold render settings.
-   plug = FindMayaPlug("aiMinPixelWidth");
+   plug = fnDepNodeHair.findPlug("aiMinPixelWidth");
    if (!plug.isNull()) AiNodeSetFlt(curve, "min_pixel_width", plug.asFloat());
 
    // Mode is an enum, 0 == ribbon, 1 == tubes.
-   plug = FindMayaPlug("aiMode");
+   plug = fnDepNodeHair.findPlug("aiMode");
    if (!plug.isNull()) AiNodeSetInt(curve, "mode", plug.asInt());
 
    AiNodeSetStr(curve, "basis", "catmull-rom");
@@ -389,11 +407,6 @@ void CHairTranslator::ExportMotion(AtNode *curve, unsigned int step)
    
    mainLines.deleteArray();
 }
-
-void CHairTranslator::GetMatrix(AtMatrix& matrix)
-{
-   CDagTranslator::GetMatrix(matrix, m_pfxHairPath);
-}
  
 AtVector2 CHairTranslator::GetHairRootUVs(const MVector& lineStart, MMeshIntersector& meshInt, MFnMesh& mesh)
 {
@@ -453,26 +466,20 @@ void CHairTranslator::GetHairShapeMeshes(const MObject& hair, MDagPathArray& sha
 
 void CHairTranslator::GetHairLines(MObject& hair, MRenderLineArray& mainLines, bool firstStep)
 {
-   MPlugArray pfxHairPlug;
-   MFnDependencyNode fnDepNodeHair(hair);
-   fnDepNodeHair.findPlug("outputRenderHairs").connectedTo(pfxHairPlug, false, true);
-   if (pfxHairPlug.length() > 0)
-   {
-      MFnPfxGeometry pfxHair(pfxHairPlug[0].node());
+   MFnPfxGeometry pfxHair(hair);
 
-      MRenderLineArray leafLines;
-      MRenderLineArray flowerLines;
-      
-      // And then all lines, we'll only need mainLines
-      // we don`t need twist, flatness, parameter, incandescence and transparency at all
-      // and we only need color and width in the first step
-      // getLineData (MRenderLineArray &mainLines, MRenderLineArray &leafLines, MRenderLineArray &flowerLines,
-      // bool doLines, bool doTwist, bool doWidth, bool doFlatness, bool doParameter,
-      // bool doColor, bool doIncandescence, bool doTransparency, bool worldSpace)
-      pfxHair.getLineData(mainLines, leafLines, flowerLines, true, false, firstStep, false, false, firstStep, false, false, false);
-      
-      // removing the unused parameters
-      leafLines.deleteArray();
-      flowerLines.deleteArray();
-   }
+   MRenderLineArray leafLines;
+   MRenderLineArray flowerLines;
+
+   // And then all lines, we'll only need mainLines
+   // we don`t need twist, flatness, parameter, incandescence and transparency at all
+   // and we only need color and width in the first step
+   // getLineData (MRenderLineArray &mainLines, MRenderLineArray &leafLines, MRenderLineArray &flowerLines,
+   // bool doLines, bool doTwist, bool doWidth, bool doFlatness, bool doParameter,
+   // bool doColor, bool doIncandescence, bool doTransparency, bool worldSpace)
+   pfxHair.getLineData(mainLines, leafLines, flowerLines, true, false, firstStep, false, false, firstStep, false, false, false);
+
+   // removing the unused parameters
+   leafLines.deleteArray();
+   flowerLines.deleteArray();
 }

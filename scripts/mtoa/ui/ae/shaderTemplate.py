@@ -205,6 +205,6 @@ class ShaderMixin(object):
             self.endLayout()
 
 
-class ShaderAETemplate(templates.AttributeEditorTemplate, ShaderMixin):
+class ShaderAETemplate(templates.AttributeTemplate, ShaderMixin):
     pass
 
