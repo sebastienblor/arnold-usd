@@ -407,11 +407,6 @@ void CHairTranslator::ExportMotion(AtNode *curve, unsigned int step)
    
    mainLines.deleteArray();
 }
-
-void CHairTranslator::GetMatrix(AtMatrix& matrix)
-{
-   CDagTranslator::GetMatrix(matrix, m_dagPath);
-}
  
 AtVector2 CHairTranslator::GetHairRootUVs(const MVector& lineStart, MMeshIntersector& meshInt, MFnMesh& mesh)
 {
