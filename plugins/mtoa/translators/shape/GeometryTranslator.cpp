@@ -485,6 +485,29 @@ void CGeometryTranslator::ExportShaders()
    ExportMeshShaders(GetArnoldRootNode(), m_dagPath);
 }
 
+void CGeometryTranslator::GetDisplacement(MObject& obj, 
+                                          float& dispPadding, 
+                                          bool& enableAutoBump)
+{
+   MFnDependencyNode dNode(obj);
+   MPlug plug = dNode.findPlug("aiDisplacementPadding");
+   if (!plug.isNull())
+   {
+      const float dp = plug.asFloat();
+      plug = dNode.findPlug("scale");
+      if (!plug.isNull())
+         dispPadding = MAX(dispPadding, dp * plug.asFloat());
+      else
+         dispPadding = MAX(dispPadding, dp);
+   }
+   if (!enableAutoBump)
+   {
+      plug = dNode.findPlug("aiDisplacementAutoBump");
+      if (!plug.isNull())
+         enableAutoBump = enableAutoBump || plug.asBool();
+   }
+}
+
 void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
                                             const MDagPath &path)
 {
@@ -530,17 +553,11 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
       if (connections.length() > 0)
       {
          m_displaced = true;
-         MFnDependencyNode dispNode(connections[0].node());
-         plug = dispNode.findPlug("aiDisplacementPadding");
-         if (!plug.isNull())
-            maximumDisplacementPadding = MAX(maximumDisplacementPadding, plug.asFloat());
-         plug = dispNode.findPlug("aiDisplacementAutoBump");
-         if (!plug.isNull())
-            enableAutoBump = enableAutoBump || plug.asBool();
-
-         AtNode* dispImage(ExportNode(connections[0]));
-         AiNodeSetPtr(polymesh, "disp_map", dispImage);
+         MObject dispNode = connections[0].node();
+         GetDisplacement(dispNode, maximumDisplacementPadding, enableAutoBump);
          
+         AtNode* dispImage(ExportNode(connections[0]));
+         AiNodeSetPtr(polymesh, "disp_map", dispImage);         
       }
    }
 
@@ -606,15 +623,10 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
          // If no connection found, add a NULL to meshDisps to match
          //  meshShaders distribution
          if (connections.length() > 0)
-         {
+         {            
             m_displaced = true;
-            MFnDependencyNode dispNode(connections[0].node());
-            plug = dispNode.findPlug("aiDisplacementPadding");
-            if (!plug.isNull())
-               maximumDisplacementPadding = MAX(maximumDisplacementPadding, plug.asFloat());
-            plug = dispNode.findPlug("aiDisplacementAutoBump");
-            if (!plug.isNull())
-               enableAutoBump = enableAutoBump || plug.asBool();
+            MObject dispNode = connections[0].node();
+            GetDisplacement(dispNode, maximumDisplacementPadding, enableAutoBump);
             AtNode* dispImage(ExportNode(connections[0]));
             meshDisps.push_back(dispImage);
          }

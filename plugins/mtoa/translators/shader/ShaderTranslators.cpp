@@ -958,7 +958,7 @@ void DisplacementTranslatorNodeInitializer(CAbTranslator context)
    
    CAttrData data;
 
-   data.defaultValue.FLT = 0.f;
+   data.defaultValue.FLT = 1.f;
    data.name = "aiDisplacementPadding";
    data.shortName = "ai_displacement_padding";
    helper.MakeInputFloat(data);
@@ -968,7 +968,7 @@ void DisplacementTranslatorNodeInitializer(CAbTranslator context)
    data.shortName = "ai_displacement_zero_value";
    helper.MakeInputFloat(data);
    
-   data.defaultValue.BOOL = false;
+   data.defaultValue.BOOL = true;
    data.name = "aiDisplacementAutoBump";
    data.shortName = "ai_displacement_auto_bump";
    helper.MakeInputBoolean(data);
