@@ -957,13 +957,8 @@ void DisplacementTranslatorNodeInitializer(CAbTranslator context)
    CExtensionAttrHelper helper("displacementShader");
    
    CAttrData data;
-
-   data.defaultValue.BOOL = false;
-   data.name = "aiAbsolutePadding";
-   data.shortName = "ai_absolute_padding";
-   helper.MakeInputBoolean(data);
    
-   data.defaultValue.FLT = 1.f;
+   data.defaultValue.FLT = 0.f;
    data.name = "aiDisplacementPadding";
    data.shortName = "ai_displacement_padding";
    helper.MakeInputFloat(data);

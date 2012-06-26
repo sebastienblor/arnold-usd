@@ -492,14 +492,7 @@ void CGeometryTranslator::GetDisplacement(MObject& obj,
    MFnDependencyNode dNode(obj);
    MPlug plug = dNode.findPlug("aiDisplacementPadding");
    if (!plug.isNull())
-   {
-      const float dp = plug.asFloat();
-      plug = dNode.findPlug("scale");
-      if (!plug.isNull())
-         dispPadding = MAX(dispPadding, dp * plug.asFloat());
-      else
-         dispPadding = MAX(dispPadding, dp);
-   }
+      dispPadding = MAX(dispPadding, plug.asFloat());
    if (!enableAutoBump)
    {
       plug = dNode.findPlug("aiDisplacementAutoBump");
