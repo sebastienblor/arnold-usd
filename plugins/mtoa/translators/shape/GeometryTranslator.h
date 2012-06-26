@@ -75,6 +75,10 @@ protected:
          std::vector<AtUInt32> &uvidxs,
          bool exportNormals,
          bool exportUVs);
+   
+   void GetDisplacement(MObject& obj, 
+         float& dispPadding, 
+         bool& enableAutoBump);
 
    MObject GetNodeShader(MObject dagNode, int instanceNum);
    void ExportMeshShaders(AtNode* polymesh, const MDagPath& path);
