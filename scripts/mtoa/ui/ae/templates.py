@@ -395,10 +395,10 @@ class ShapeMixin(object):
         self.addControl("visibleInRefractions")
 
     def commonShapeAttributes(self):
-        self.addControl("aiSelfShadows")
-        self.addControl("aiOpaque")
-        self.addControl("aiVisibleInDiffuse")
-        self.addControl("aiVisibleInGlossy")
+        self.addControl("aiSelfShadows", label="Self Shadows")
+        self.addControl("aiOpaque", label="Opaque")
+        self.addControl("aiVisibleInDiffuse", label="Visible In Diffuse")
+        self.addControl("aiVisibleInGlossy", label="Visible In Glossy")
 
 class ShapeTranslatorTemplate(AttributeTemplate, ShapeMixin):
     pass

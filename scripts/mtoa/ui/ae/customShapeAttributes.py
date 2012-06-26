@@ -92,11 +92,11 @@ class HairSystemTemplate(templates.ShapeTranslatorTemplate):
         self.addControl("aiExportHairIDs", label="Export Hair IDs")
         self.addControl("aiExportHairUVs", label="Export Hair UVs")
         self.addControl("aiExportHairColors", label="Export Hair Colors")
-        self.addControl("aiOverrideHair")
-        self.addControl("aiHairShader")
+        self.addControl("aiOverrideHair", label="Override Hair")
+        self.addControl("aiHairShader", label="Hair Shader")
         self.addSeparator()
-        self.addControl("aiMinPixelWidth")
-        self.addControl("aiMode")
+        self.addControl("aiMinPixelWidth", label="Min Pixel Width")
+        self.addControl("aiMode", label="Mode")
 templates.registerAETemplate(HairSystemTemplate, "hairSystem")
 
 class AmbientLightTemplate(lightTemplate.LightTemplate):
