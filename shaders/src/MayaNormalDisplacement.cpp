@@ -12,7 +12,8 @@ enum DisplacementParams
    p_scale,
    p_vectorEncoding,
    p_vectorSpace,
-   p_tangent
+   p_tangent,
+   p_zeroValue
 };
 
 enum VectorEncodingType
@@ -56,14 +57,16 @@ node_parameters
    AiParameterEnum("vectorEncoding", 0, vector_encoding_enum);
    AiParameterEnum("vectorSpace", 1, vector_space_enum);
    AiParameterVec("tangent", 0.0f, 0.0f, 0.0f);
+   AiParameterFlt("zeroValue", 0.0f);
 }
 
 shader_evaluate
 {
    float disp = AiShaderEvalParamFlt(p_displacement);
    float scale = AiShaderEvalParamFlt(p_scale);
+   float zeroValue = AiShaderEvalParamFlt(p_zeroValue);
    
-   sg->out.FLT = disp * scale;
+   sg->out.FLT = disp * scale - zeroValue;
 }
 
 node_initialize

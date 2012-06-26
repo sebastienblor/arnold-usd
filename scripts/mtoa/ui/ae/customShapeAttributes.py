@@ -71,7 +71,7 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
         self.beginLayout('Displacement Attributes', collapse=False)
         self.addControl("aiDispHeight", label="Height")
         self.addControl("aiDispPadding", label="Bounds Padding")
-        self.addControl("aiDispZeroValue", label="Zero Value")
+        self.addControl("aiDispZeroValue", label="Scalar Zero Value")
         self.addControl("aiDispAutobump", label="Auto Bump")
         self.endLayout()
         #pm.editorTemplate("aiExportHairIDs", label="Export Hair IDs", addDynamicControl=True)
