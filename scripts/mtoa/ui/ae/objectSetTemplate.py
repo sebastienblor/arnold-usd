@@ -72,7 +72,7 @@ class AttributeListWindow(object):
             self.template.removeAttr([self._attributes[x] for x in attrLabels])
 
 
-class ObjectSetTemplate(templates.AttributeTemplate):
+class ObjectSetTemplate(templates.AttributeEditorTemplate):
         
     def setup(self):
         self.addControl("aiOverride")

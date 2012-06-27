@@ -82,7 +82,7 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
 templates.registerTranslatorUI(MeshTemplate, "mesh", "<built-in>")
 templates.registerTranslatorUI(MeshTemplate, "nurbsSurface", "<built-in>")
 
-class HairSystemTemplate(templates.ShapeTranslatorTemplate):
+class HairSystemTemplate(templates.ShapeAETemplate):
     def setup(self):
         self.addControl("primaryVisibility")
         self.addControl("castsShadows")
