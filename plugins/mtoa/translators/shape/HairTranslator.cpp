@@ -96,7 +96,7 @@ void CHairTranslator::Update( AtNode *curve )
    if (!plug.isNull() && plug.asBool())
    {
       MPlugArray curveShaderPlug;
-      plug = FindMayaPlug("aiHairShader");
+      plug = fnDepNodeHair.findPlug("aiHairShader");
       if (!plug.isNull())
       {
          plug.connectedTo(curveShaderPlug, true, false);
