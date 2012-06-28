@@ -24,7 +24,7 @@ def newAOVPrompt(default=''):
         print "AOV creation canceled"
         return None, None
 
-class AOVOptionMenuGrp(templates.BaseTemplate):
+class AOVOptionMenuGrp(templates.AttributeTemplate):
     EMPTY_AOV_ITEM = "<None>"
     NEW_AOV_ITEM = "<Create New...>"
     UNKNOWN_AOV_ITEM = "%s (Inactive)"
