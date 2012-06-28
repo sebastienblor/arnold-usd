@@ -1,4 +1,4 @@
-﻿import pymel
+import pymel
 import pymel.core as pm
 from maya.utils import executeDeferred
 from mtoa.ui.ae.utils import aeCallback, AttrControlGrp
@@ -444,10 +444,10 @@ class ShapeMixin(object):
         self.addControl("visibleInRefractions")
 
     def commonShapeAttributes(self):
-        self.addControl("aiSelfShadows")
-        self.addControl("aiOpaque")
-        self.addControl("aiVisibleInDiffuse")
-        self.addControl("aiVisibleInGlossy")
+        self.addControl("aiSelfShadows", label="Self Shadows")
+        self.addControl("aiOpaque", label="Opaque")
+        self.addControl("aiVisibleInDiffuse", label="Visible In Diffuse")
+        self.addControl("aiVisibleInGlossy", label="Visible In Glossy")
 
 class ShapeTranslatorTemplate(AttributeTemplate, ShapeMixin):
     pass
