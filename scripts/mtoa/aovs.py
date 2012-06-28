@@ -395,17 +395,12 @@ def getGroupAOVs(groupName):
 #------------------------------------------------------------
 # callbacks
 #------------------------------------------------------------
-
 _aovOptionsChangedCallbacks = callbacks.DeferredCallbackQueue()
-
 # a public function for adding AOV callbacks
 def addAOVChangedCallback(func, key=None):
     _aovOptionsChangedCallbacks.addCallback(func, key)
 
-if not pm.about(batch=True):
-    callbacks.addAttributeChangedCallback(_aovOptionsChangedCallbacks, 'aiOptions', 'aovList',
-                                          context=pm.api.MNodeMessage.kConnectionMade | pm.api.MNodeMessage.kConnectionBroken,
-                                          applyToExisting=True)
+
 
 def createAliases(sg):
     # This will run on scene startup but the list of AOVs will be unknown
@@ -421,9 +416,15 @@ def createAliases(sg):
         except RuntimeError, err:
             pass #print err
 
-_sgAliasesCallbacks = callbacks.SceneLoadCallbackQueue()
-_sgAliasesCallbacks.addCallback(createAliases, passArgs=True)
-callbacks.addNodeAddedCallback(_sgAliasesCallbacks, 'shadingEngine', applyToExisting=True, apiArgs=False)
-
+def installCallbacks():
+    _sgAliasesCallbacks = callbacks.SceneLoadCallbackQueue()
+    _sgAliasesCallbacks.addCallback(createAliases, passArgs=True)
+    callbacks.addNodeAddedCallback(_sgAliasesCallbacks, 'shadingEngine',
+                                   applyToExisting=True, apiArgs=False)
+    
+    if not pm.about(batch=True):
+        callbacks.addAttributeChangedCallback(_aovOptionsChangedCallbacks, 'aiOptions', 'aovList',
+                                  context=pm.api.MNodeMessage.kConnectionMade | pm.api.MNodeMessage.kConnectionBroken,
+                                  applyToExisting=True)
     #callbacks.addAttributeChangedCallback(_aovOptionsChangedCallbacks.entryCallback, 'aiAOV', None, applyToExisting=True)
 
