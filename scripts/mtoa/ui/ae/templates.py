@@ -415,6 +415,26 @@ class AERootMode(pm.uitypes.AETemplate, BaseTemplate):
                           attr,
                           callCustom=True)
 
+    def addControl(self, control, label=None, changeCommand=None, annotation=None, preventOverride=False, dynamic=False):
+        args = [control]
+        kwargs = {}
+#        kwargs['preventOverride'] = preventOverride
+        if dynamic:
+            kwargs['addDynamicControl'] = True
+        else:
+            kwargs['addControl'] = True
+#        if changeCommand:
+#            if hasattr(changeCommand, '__call__'):
+#                import pymel.tools.py2mel
+#                name = self.__class__.__name__ + '_callCustom_changeCommand_' + control
+#                changeCommand = pymel.tools.py2mel.py2melProc(changeCommand, procName=name, argTypes=['string'])
+#            args.append(changeCommand)
+        if label:
+            kwargs['label'] = label
+        if annotation:
+            kwargs['annotation'] = annotation
+        pm.cmds.editorTemplate(*args, **kwargs)
+
 class ShapeMixin(object):
     def renderStatsAttributes(self):
         self.addControl("castsShadows")
