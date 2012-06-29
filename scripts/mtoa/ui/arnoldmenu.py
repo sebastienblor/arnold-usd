@@ -13,6 +13,11 @@ def doExportStandin():
 def doExportOptionsStandin():
     pm.mel.eval('ExportSelectionOptions')
     pm.mel.eval('setCurrentFileTypeOption ExportActive "" "ASS Export"')
+
+def doCreateLight(lightType):
+    lpNode = pm.createNode('transform', name='%s1' % lightType)
+    lId = lpNode.name()[len(lightType):]
+    pm.createNode(lightType, name='%sShape%s' % (lightType, lId), parent=lpNode)
    
 def createArnoldMenu():
     # Add an Arnold menu in Maya main window
@@ -27,9 +32,8 @@ def createArnoldMenu():
                     c=lambda *args: doExportStandin())
         pm.menuItem('ArnoldExportOptionsStandIn', parent='ArnoldStandIn', optionBox=True,
                     c=lambda *args: doExportOptionsStandin())
-
         pm.menuItem('ArnoldLights', label='Lights', parent='ArnoldMenu', subMenu=True)
         pm.menuItem('ArnoldAreaLights', parent='ArnoldLights', label="Area Light",
-                    c=lambda *args: pm.shadingNode('aiAreaLight', name='aiAreaLight', asLight=True))
+                    c=lambda *args: doCreateLight('aiAreaLight'))
         pm.menuItem('SkydomeLight', parent='ArnoldLights', label="Skydome Light",
-                    c=lambda *args: pm.shadingNode('aiSkyDomeLight', name='aiSkyDomeLight', asLight=True))
+                    c=lambda *args: doCreateLight('aiSkyDomeLight'))
