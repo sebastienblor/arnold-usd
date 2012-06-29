@@ -205,7 +205,7 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
 
                // The same AtNode* driver may appear in m_aovData several times.  This happens because
                // ExportNode() caches the results of previous exports to avoid creating duplicates.
-               // When a single aiArnoldDriver node produces multiple files with unique names (via tokens)
+               // When a single aiAOVDriver node produces multiple files with unique names (via tokens)
                // AND that node appears elsewhere in our list of output drivers then we have to clone the node.
 
                bool found = false;
@@ -217,11 +217,12 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
                      break;
                   }
                }
+               MString driverName = AiNodeGetName(output.driver);
+               driverName += "." + aovData.name;
+
                if (found)
                   output.driver = AiNodeClone(output.driver);
 
-               MString driverName = AiNodeGetName(output.driver);
-               driverName += "." + aovData.name;
                AiNodeSetStr(output.driver, "name", driverName.asChar());
                m_multiDriverMap[filename.asChar()] = output.driver;
             }
