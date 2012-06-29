@@ -1,4 +1,4 @@
-﻿import pymel
+import pymel
 import pymel.core as pm
 from maya.utils import executeDeferred
 from mtoa.ui.ae.utils import aeCallback, AttrControlGrp
@@ -15,6 +15,8 @@ _translatorTemplates = defaultdict(dict)
 
 global _templates
 _templates = {}
+
+showAllTranslators = False
 
 #-------------------------------------------------
 # Queries
@@ -39,7 +41,12 @@ def getTranslatorTemplate(nodeType, translatorName):
     Return an `AttributeTemplate` instance for the given nodeType and translator, or None if one has not been registered
     """
     try:
-        inst = getTranslatorTemplates(nodeType)[translatorName](nodeType)
+        cls = getTranslatorTemplates(nodeType)[translatorName]
+        assert "translator UI must be AttributeTemplate sub class", issubclass(cls, AttributeTemplate)
+        inst = cls(nodeType)
+        
+        # translator templates must be in child mode because multiple templates may reference the same attribute
+        # something that editorTemplate (used by root mode) does not allow
         inst._setToChildMode()
         return inst
     except KeyError:
@@ -161,8 +168,14 @@ class AttributeTemplate(BaseTemplate):
     def _setToRootMode(self):
         self._mode = self._rootMode
 
+    def _isRootMode(self):
+        return self._mode == self._rootMode
+
     def _setToChildMode(self):
         self._mode = self._childMode
+
+    def _isChildMode(self):
+        return self._mode == self._childMode
 
     def _doSetup(self, nodeAttr):
         '''
@@ -186,11 +199,15 @@ class AttributeTemplate(BaseTemplate):
         pass
 
     @modeAttrMethod
+    def addTemplate(self, attr, template):
+        pass
+
+    @modeAttrMethod
     def addChildTemplate(self, attr, template):
         pass
 
     @modeAttrMethod
-    def addControl(self, attr, label=None, annotation=None):
+    def addControl(self, attr, label=None, changeCommand=None, annotation=None, preventOverride=False, dynamic=False):
         pass
 
     @modeMethod
@@ -267,13 +284,14 @@ class AEChildMode(BaseTemplate):
             updateFunc(self.nodeAttr(attr))
         pm.setUITemplate(popTemplate=True)
 
+    def addTemplate(self, attr, template):
+        self.addChildTemplate(attr, template)
+
     def addChildTemplate(self, attr, template):
-        if isinstance(template, pm.uitypes.AETemplate):
-            print "this is a pm.uitypes.AETemplate subclass. this will probably break"
-        # don't use the wrapped version of addCustom: we don't want a delay
+        template._setChildMode()
         self.addCustom(attr, template._doSetup, template._doUpdate)
 
-    def addControl(self, attr, label=None, annotation=None):
+    def addControl(self, attr, label=None, changeCommand=None, annotation=None, preventOverride=False, dynamic=False):
         # TODO: lookup label and descr from metadata
         if not label:
             label = prettify(attr)
@@ -371,20 +389,51 @@ class AERootMode(pm.uitypes.AETemplate, BaseTemplate):
     def update(self):
         pass
 
+    def addControl(self, attr, label=None, changeCommand=None, annotation=None, preventOverride=False, dynamic=False):
+        if not label:
+            label = prettify(attr)
+            if label.startswith('Ai '):
+                label = label[3:]
+        super(AERootMode, self).addControl(attr, label, changeCommand, annotation, preventOverride, dynamic)
+
     def addCustom(self, attr, newFunc, replaceFunc):
         self.callCustom(newFunc, replaceFunc, attr)
 
-    def addChildTemplate(self, attr, template):
-        if isinstance(template, pm.uitypes.AETemplate):
+    def addTemplate(self, attr, template):
+        if template._isRootMode():
             template._doSetup(self.nodeAttr(attr))
         else:
-            if hasattr(template, '_attributes'):
-                for attr in template._attributes:
-                    pm.editorTemplate(suppress=attr)
-            pm.editorTemplate(aeCallback(template._doSetup),
-                              aeCallback(template._doUpdate),
-                              attr,
-                              callCustom=True)
+            self.addChildTemplate(attr, template)
+
+    def addChildTemplate(self, attr, template):
+        template._setToChildMode()
+        if hasattr(template, '_attributes'):
+            for attr in template._attributes:
+                pm.editorTemplate(suppress=attr)
+        pm.editorTemplate(aeCallback(template._doSetup),
+                          aeCallback(template._doUpdate),
+                          attr,
+                          callCustom=True)
+
+    def addControl(self, control, label=None, changeCommand=None, annotation=None, preventOverride=False, dynamic=False):
+        args = [control]
+        kwargs = {}
+#        kwargs['preventOverride'] = preventOverride
+        if dynamic:
+            kwargs['addDynamicControl'] = True
+        else:
+            kwargs['addControl'] = True
+#        if changeCommand:
+#            if hasattr(changeCommand, '__call__'):
+#                import pymel.tools.py2mel
+#                name = self.__class__.__name__ + '_callCustom_changeCommand_' + control
+#                changeCommand = pymel.tools.py2mel.py2melProc(changeCommand, procName=name, argTypes=['string'])
+#            args.append(changeCommand)
+        if label:
+            kwargs['label'] = label
+        if annotation:
+            kwargs['annotation'] = annotation
+        pm.cmds.editorTemplate(*args, **kwargs)
 
 class ShapeMixin(object):
     def renderStatsAttributes(self):
@@ -395,10 +444,10 @@ class ShapeMixin(object):
         self.addControl("visibleInRefractions")
 
     def commonShapeAttributes(self):
-        self.addControl("aiSelfShadows")
-        self.addControl("aiOpaque")
-        self.addControl("aiVisibleInDiffuse")
-        self.addControl("aiVisibleInGlossy")
+        self.addControl("aiSelfShadows", label="Self Shadows")
+        self.addControl("aiOpaque", label="Opaque")
+        self.addControl("aiVisibleInDiffuse", label="Visible In Diffuse")
+        self.addControl("aiVisibleInGlossy", label="Visible In Glossy")
 
 class ShapeTranslatorTemplate(AttributeTemplate, ShapeMixin):
     pass
@@ -538,7 +587,7 @@ class TranslatorControl(AttributeTemplate):
         # get the great-grand parent frame layout
         frame = fullpath.rsplit('|', 3)[0]
         try:
-            pm.frameLayout(frame, edit=True, collapsable=False, labelVisible=False)
+            pm.frameLayout(frame, edit=True, collapsable=False, labelVisible=False, borderVisible=False)
         except RuntimeError:
             # this is a little dirty: it will only succeed when attaching to AE
             pass
@@ -552,8 +601,12 @@ class TranslatorControl(AttributeTemplate):
             if objType == 'frameLayout':
                 label = pm.frameLayout(child, query=True, label=True)
                 # turn collapsable and label off
-                pm.frameLayout(child, edit=True, collapsable=False, labelVisible=False,
-                                 visible=(label == currentTranslator))
+                if showAllTranslators:
+                    pm.frameLayout(child, edit=True, collapsable=False, labelVisible=True,
+                                     visible=True)
+                else:
+                    pm.frameLayout(child, edit=True, collapsable=False, labelVisible=False,
+                                     visible=(label == currentTranslator))
         # FIXME: this needs a check for read-only nodes from referenced files. also, not sure
         # changing attribute properties is the best approach
         #AttributeTemplate.syncChannelBox(nodeName, nodeType, currentTranslator)
@@ -629,31 +682,33 @@ class TranslatorControl(AttributeTemplate):
                         for translator in self.getTranslators()])
 
     def setup(self):
-        translatorTemplates = self.getTranslatorTemplates()
-        if translatorTemplates:
-            if len(translatorTemplates) > 1:
-                pm.editorTemplate(beginLayout='hide', collapse=False)
+        translators = self.getTranslators()
+        if translators:
+            if len(translators) > 1:
+                self.beginLayout('hide', collapse=False)
                 # if there is more than one translator, we group each in its own layout
                 # create the menu for selecting the translator
-                pm.editorTemplate(aeCallback(lambda attr: self.createMenu(attr.split('.')[0])),
-                                    aeCallback(lambda attr: self.updateMenu(attr.split('.')[0])),
-                                    self._attr, callCustom=True)
-                for translator, template in translatorTemplates:
+                self.addCustom(self._attr,
+                               aeCallback(lambda attr: self.createMenu(attr.split('.')[0])),
+                               aeCallback(lambda attr: self.updateMenu(attr.split('.')[0])))
+
+                for translator, template in self.getTranslatorTemplates():
                     # we always create a layout, even if it's empty
-                    pm.editorTemplate(beginLayout=translator, collapse=False)
+                    self.beginLayout(translator, collapse=False)
                     self.addChildTemplate('message', template)
-                    pm.editorTemplate(endLayout=True)
+                    self.endLayout()
                 # timing on AE's is difficult: the frameLayouts are not created at this point even though
                 # the `editorTemplate -beginLayout` calls have been made. this is a little hack
                 # to ensure we get a callback after the AE ui elements have been built: normal controls can get
                 # an update callback, but we don't have any normal controls around, so we'll have to make one and
                 # hide it
-                pm.editorTemplate('message',
-                                    aeCallback(self.updateChildrenCallback),
-                                    addDynamicControl=True, label='hide_me')
-                pm.editorTemplate(endLayout=True)
+                self.addControl('message',
+                                label='hide_me',
+                                changeCommand=aeCallback(self.updateChildrenCallback),
+                                dynamic=True)
+                self.endLayout()
             else:
-                translator, template = translatorTemplates[0]
+                translator, template = self.getTranslatorTemplates()[0]
                 self.addChildTemplate('message', template)
 
 class TranslatorControlUI(TranslatorControl):
@@ -751,13 +806,13 @@ def registerTranslatorUI(templateClass, mayaNodeType, translatorName='<built-in>
         else:
             pm.warning('[mtoa] Registering UI for translator "%s" for Maya node %s, but node has no translators. Did you mean to call registerAETemplate?' % \
                    (translatorName, mayaNodeType))
-#    assert inspect.isclass(templateClass) and issubclass(templateClass, AttributeTemplate),\
-#        "you must pass a subclass of AttributeTemplate"
+    assert inspect.isclass(templateClass) and issubclass(templateClass, AttributeTemplate),\
+        "you must pass a subclass of AttributeTemplate"
     _translatorTemplates[mayaNodeType][translatorName] = templateClass
 
     registerAETemplate(TranslatorControl, mayaNodeType)
 
-def registerAutoTranslatorUI(arnoldNode, mayaNodeType, translatorName='<built-in>'):
+def registerAutoTranslatorUI(arnoldNode, mayaNodeType, translatorName='<built-in>', skipEmpty=False):
     """
     Utility function for automatically creating a translator UI template based on an arnold
     node type.
@@ -767,10 +822,13 @@ def registerAutoTranslatorUI(arnoldNode, mayaNodeType, translatorName='<built-in
     # so that it is done when mtoa.cmds.registerArnoldRenderer is first  called and the Arnold
     # universe is already active. otherwise, successive calls to core.getAttributeData later on cause
     # the Arnold universe to repeatedly begin and end.
+    attribs = core.getAttributeData(arnoldNode)
+    if skipEmpty and not attribs:
+        return
     cls = type('%s_%sTemplate' % (mayaNodeType, translatorName),
                (AutoTranslatorTemplate,),
                dict(_arnoldNodeType=arnoldNode,
-                    _attribData = core.getAttributeData(arnoldNode)))
+                    _attribData = attribs))
     registerTranslatorUI(cls, mayaNodeType, translatorName)
 
 # FIXME: should we just get rid of this?
@@ -816,7 +874,8 @@ def shapeTemplate(nodeName):
     override for the builtin maya shapeTemplate procedure
     """
     # Run the hooks.
-    # see mtoa.registerArnoldRenderer._addAEHooks for where loadArnoldTemplate gets added to AEshapeHooks
+    # see mtoa.registerArnoldRenderer._addAEHooks for where loadArnoldTemplate gets added to AEshapeHooks.
+    # note that this is not called in 2013: loadArnoldTemplate is called for both depend and DAG nodes 
     for hook in pm.melGlobals['AEshapeHooks']:
         pm.mel.eval(hook + ' "' + nodeName + '"')
 
@@ -835,6 +894,12 @@ def loadArnoldTemplate(nodeName):
     """
     global _templates
     nodeType = pm.objectType(nodeName)
+
+    # skip nodes that were created by mtoa, these should not generate an "Arnold" section.
+    # this is here mostly for versions > 2013, because the new hook system causes this function to be
+    # called for every AE
+    if core.isMtoaNode(nodeType):
+        return
 
     try:
         # has one been explicitly registered?

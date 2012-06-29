@@ -83,6 +83,16 @@ def createArnoldNode(nodeType, name=None, skipSelect=False, runtimeClassificatio
 
     return node
 
+_mtoaNodes = None
+def isMtoaNode(nodeType):
+    """
+    return whether the passed node type was created by mtoa
+    """
+    global _mtoaNodes
+    if _mtoaNodes is None:
+        _mtoaNodes = pm.pluginInfo('mtoa', query=True, dependNode=True)
+    return nodeType in _mtoaNodes
+
 def getAttributeData(nodeType):
     import maya.cmds as cmds
     data = cmds.arnoldPlugins(getAttrData=nodeType) or []

@@ -49,6 +49,8 @@ SHADER_TRANSLATOR(CLayeredShaderTranslator);
 SHADER_TRANSLATOR(CRemapHsvTranslator);
 SHADER_TRANSLATOR_MULTIOUT(CDisplacementTranslator);
 
+void DisplacementTranslatorNodeInitializer(CAbTranslator context);
+
 class CBump2DTranslator : public CNodeTranslator
 {
 public:
