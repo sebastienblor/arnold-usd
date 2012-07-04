@@ -241,3 +241,18 @@ void CSkyDomeLightTranslator::NodeInitializer(CAbTranslator context)
    // Cannot be created both on Node and here
    MakeCommonAttributes(helper);
 }
+
+void CMeshLightTranslator::GetMatrix(AtMatrix& matrix)
+{
+   
+}
+
+void CMeshLightTranslator::Export(AtNode* light)
+{
+   
+}
+
+void CMeshLightTranslator::NodeInitializer(CAbTranslator context)
+{
+   
+}

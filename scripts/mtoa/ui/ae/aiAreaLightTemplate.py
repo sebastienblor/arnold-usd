@@ -72,3 +72,4 @@ templates.registerAETemplate(templates.TranslatorControl, "aiAreaLight", label="
 templates.registerTranslatorUI(QuadAreaLightTemplate, "aiAreaLight", "quad")
 templates.registerTranslatorUI(BaseAreaLightTemplate, "aiAreaLight", "cylinder")
 templates.registerTranslatorUI(BaseAreaLightTemplate, "aiAreaLight", "disk")
+templates.registerTranslatorUI(BaseAreaLighttemplate, "aiAreaLight", "mesh")

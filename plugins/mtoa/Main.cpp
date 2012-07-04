@@ -187,7 +187,11 @@ namespace // <anonymous>
        builtin->RegisterTranslator("aiAreaLight",
                                    "disk",
                                    CDiskLightTranslator::creator,
-                                   CDiskLightTranslator::NodeInitializer);
+                                   CDiskLightTranslator::NodeInitializer);       
+       builtin->RegisterTranslator("aiAreaLight",
+                                   "mesh",
+                                   CMeshLightTranslator::creator,
+                                   CMeshLightTranslator::NodeInitializer);
        // Arnold skyDomeLight node
        builtin->RegisterTranslator("aiSkyDomeLight",
                                    "",
