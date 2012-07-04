@@ -773,42 +773,85 @@ AtNode*  CLayeredTextureTranslator::CreateArnoldNodes()
 
 void CLayeredTextureTranslator::Export(AtNode* shader)
 {
-   ProcessParameter(shader, "alphaIsLuminance", AI_TYPE_BOOLEAN);
+   MPlug attr, elem, color, alpha, blendMode, isVisible;
+   MPlugArray connections;
+   MObject colorSrc, alphaSrc;
+   bool colorConnectedToAlpha;
+   char aiAttr[64];
+   
+   MFnDependencyNode fnNode(GetMayaObject());
 
-   MPlug inputs, elemt, col, alph, mode, vis;
-   inputs = FindMayaPlug("inputs");
-   MObject ocolor = GetMayaObjectAttribute("color");
-   MObject oalpha = GetMayaObjectAttribute("alpha");
-   MObject omode = GetMayaObjectAttribute("blendMode");
-   MObject ovisible = GetMayaObjectAttribute("isVisible");
-   unsigned int numElements = inputs.numElements();
-
-   // Init shader array parameters
-
-   AtArray* color = InitArrayParameter(AI_TYPE_RGB, numElements);
-   AtArray* alpha = InitArrayParameter(AI_TYPE_FLOAT, numElements);
-   AtArray* blendMode = InitArrayParameter(AI_TYPE_INT, numElements);
-   AtArray* visible = InitArrayParameter(AI_TYPE_BOOLEAN, numElements);
-
-   // Loop on input entries
-
-   for (unsigned int i=0; i<numElements; ++i)
+   attr = fnNode.findPlug("inputs");
+   unsigned int numElements = attr.numElements();
+   if (numElements > 16)
    {
-      elemt = inputs.elementByPhysicalIndex(i);
-      col = elemt.child(ocolor);
-      alph = elemt.child(oalpha);
-      mode = elemt.child(omode);
-      vis = elemt.child(ovisible);
-
-      ProcessArrayParameterElement(shader, color, "color", col, AI_TYPE_RGB, i);
-      ProcessArrayParameterElement(shader, alpha, "alpha", alph, AI_TYPE_FLOAT, i);
-      ProcessArrayParameterElement(shader, blendMode, "blendMode", mode, AI_TYPE_INT, i);
-      ProcessArrayParameterElement(shader, visible, "visible", vis, AI_TYPE_BOOLEAN, i);
+      AiMsgWarning("[mtoa] [translator %s] layeredTexture node has more than 16 inputs, only the first 16 will be handled", GetTranslatorName().asChar());
+      numElements = 16;
    }
-   SetArrayParameter(shader, "color", color);
-   SetArrayParameter(shader, "alpha", alpha);
-   SetArrayParameter(shader, "blendMode", blendMode);
-   SetArrayParameter(shader, "visible", visible);
+
+   AiNodeSetUInt(shader, "numInputs", numElements);
+
+   ProcessParameter(shader, "alphaIsLuminance", AI_TYPE_BOOLEAN);
+   
+   MObject colorAttr = fnNode.attribute("color");
+   MObject alphaAttr = fnNode.attribute("alpha");
+   MObject blendModeAttr = fnNode.attribute("blendMode");
+   MObject isVisibleAttr = fnNode.attribute("isVisible");
+
+   for (unsigned int i = 0; i < numElements; ++i)
+   {
+      elem = attr.elementByPhysicalIndex(i);
+
+      color = elem.child(colorAttr);
+      alpha = elem.child(alphaAttr);
+      blendMode = elem.child(blendModeAttr);
+      isVisible = elem.child(isVisibleAttr);
+
+      sprintf(aiAttr, "color%u", i);
+      ProcessParameter(shader, aiAttr, AI_TYPE_RGBA, color);
+
+      // Alpha connection is only handled when 
+      // The input in color and alpha is the same
+
+      colorSrc = MObject::kNullObj;
+      alphaSrc = MObject::kNullObj;
+
+      color.connectedTo(connections, true, false);
+      if (connections.length() > 0)
+         colorSrc = connections[0].node();
+
+      connections.clear();
+      alpha.connectedTo(connections, true, false);
+      if (connections.length() > 0)
+         alphaSrc = connections[0].node();
+
+      if (alphaSrc.isNull())
+         colorConnectedToAlpha = false;
+      else
+         colorConnectedToAlpha = (colorSrc == alphaSrc);
+
+      sprintf(aiAttr, "colorConnectedToAlpha%u", i);
+      AiNodeSetBool(shader, aiAttr, colorConnectedToAlpha ? TRUE : FALSE);
+
+      if (!colorConnectedToAlpha && alphaSrc.isNull())
+      {
+         // Export alpha value when it's not connected
+
+         sprintf(aiAttr, "alpha%u", i);
+         AiNodeSetFlt(shader, aiAttr, alpha.asFloat());
+      }
+      else
+      {
+         sprintf(aiAttr, "alpha%u", i);
+         ProcessParameter(shader, aiAttr, AI_TYPE_FLOAT, alpha);
+      }
+
+      sprintf(aiAttr, "blendMode%u", i);
+      ProcessParameter(shader, aiAttr, AI_TYPE_ENUM, blendMode);
+
+      sprintf(aiAttr, "visible%u", i);
+      ProcessParameter(shader, aiAttr, AI_TYPE_BOOLEAN, isVisible);
+   }
 }
 
 // LayeredShader

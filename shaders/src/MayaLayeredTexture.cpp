@@ -14,11 +14,88 @@ namespace
 
    enum MayaLayeredTextureParams
    {
+      p_numInputs,
       p_alphaIsLuminance,
-      p_color,
-      p_alpha,
-      p_blendMode,
-      p_visible
+      p_color0,
+      p_color1,
+      p_color2,
+      p_color3,
+      p_color4,
+      p_color5,
+      p_color6,
+      p_color7,
+      p_color8,
+      p_color9,
+      p_color10,
+      p_color11,
+      p_color12,
+      p_color13,
+      p_color14,
+      p_color15,
+      p_alpha0,
+      p_alpha1,
+      p_alpha2,
+      p_alpha3,
+      p_alpha4,
+      p_alpha5,
+      p_alpha6,
+      p_alpha7,
+      p_alpha8,
+      p_alpha9,
+      p_alpha10,
+      p_alpha11,
+      p_alpha12,
+      p_alpha13,
+      p_alpha14,
+      p_alpha15,
+      p_colorConnectedToAlpha0,
+      p_colorConnectedToAlpha1,
+      p_colorConnectedToAlpha2,
+      p_colorConnectedToAlpha3,
+      p_colorConnectedToAlpha4,
+      p_colorConnectedToAlpha5,
+      p_colorConnectedToAlpha6,
+      p_colorConnectedToAlpha7,
+      p_colorConnectedToAlpha8,
+      p_colorConnectedToAlpha9,
+      p_colorConnectedToAlpha10,
+      p_colorConnectedToAlpha11,
+      p_colorConnectedToAlpha12,
+      p_colorConnectedToAlpha13,
+      p_colorConnectedToAlpha14,
+      p_colorConnectedToAlpha15,
+      p_blendMode0,
+      p_blendMode1,
+      p_blendMode2,
+      p_blendMode3,
+      p_blendMode4,
+      p_blendMode5,
+      p_blendMode6,
+      p_blendMode7,
+      p_blendMode8,
+      p_blendMode9,
+      p_blendMode10,
+      p_blendMode11,
+      p_blendMode12,
+      p_blendMode13,
+      p_blendMode14,
+      p_blendMode15,
+      p_visible0,
+      p_visible1,
+      p_visible2,
+      p_visible3,
+      p_visible4,
+      p_visible5,
+      p_visible6,
+      p_visible7,
+      p_visible8,
+      p_visible9,
+      p_visible10,
+      p_visible11,
+      p_visible12,
+      p_visible13,
+      p_visible14,
+      p_visible15,
    };
 
    enum BlendMode
@@ -60,11 +137,88 @@ namespace
 
 node_parameters
 {
-   AiParameterBOOL("alphaIsLuminance", false);
-   AiParameterARRAY("color", AiArray(0, 0, AI_TYPE_RGB));
-   AiParameterARRAY("alpha", AiArray(0, 0, AI_TYPE_FLOAT));
-   AiParameterARRAY("blendMode", AiArray(0, 0, AI_TYPE_INT));
-   AiParameterARRAY("visible", AiArray(0, false, AI_TYPE_BOOLEAN));
+   AiParameterUINT("numInputs", 0);
+   AiParameterBOOL("alphaIsLuminance", FALSE);
+   AiParameterRGBA("color0", 0.0f, 0.0f, 0.0f, 1.0f);
+   AiParameterRGBA("color1", 0.0f, 0.0f, 0.0f, 1.0f);
+   AiParameterRGBA("color2", 0.0f, 0.0f, 0.0f, 1.0f);
+   AiParameterRGBA("color3", 0.0f, 0.0f, 0.0f, 1.0f);
+   AiParameterRGBA("color4", 0.0f, 0.0f, 0.0f, 1.0f);
+   AiParameterRGBA("color5", 0.0f, 0.0f, 0.0f, 1.0f);
+   AiParameterRGBA("color6", 0.0f, 0.0f, 0.0f, 1.0f);
+   AiParameterRGBA("color7", 0.0f, 0.0f, 0.0f, 1.0f);
+   AiParameterRGBA("color8", 0.0f, 0.0f, 0.0f, 1.0f);
+   AiParameterRGBA("color9", 0.0f, 0.0f, 0.0f, 1.0f);
+   AiParameterRGBA("color10", 0.0f, 0.0f, 0.0f, 1.0f);
+   AiParameterRGBA("color11", 0.0f, 0.0f, 0.0f, 1.0f);
+   AiParameterRGBA("color12", 0.0f, 0.0f, 0.0f, 1.0f);
+   AiParameterRGBA("color13", 0.0f, 0.0f, 0.0f, 1.0f);
+   AiParameterRGBA("color14", 0.0f, 0.0f, 0.0f, 1.0f);
+   AiParameterRGBA("color15", 0.0f, 0.0f, 0.0f, 1.0f);
+   AiParameterFLT("alpha0", 1.0f);
+   AiParameterFLT("alpha1", 1.0f);
+   AiParameterFLT("alpha2", 1.0f);
+   AiParameterFLT("alpha3", 1.0f); 
+   AiParameterFLT("alpha4", 1.0f);
+   AiParameterFLT("alpha5", 1.0f);
+   AiParameterFLT("alpha6", 1.0f);
+   AiParameterFLT("alpha7", 1.0f);
+   AiParameterFLT("alpha8", 1.0f);
+   AiParameterFLT("alpha9", 1.0f);
+   AiParameterFLT("alpha10", 1.0f);
+   AiParameterFLT("alpha11", 1.0f); 
+   AiParameterFLT("alpha12", 1.0f);
+   AiParameterFLT("alpha13", 1.0f);
+   AiParameterFLT("alpha14", 1.0f);
+   AiParameterFLT("alpha15", 1.0f);
+   AiParameterBOOL("colorConnectedToAlpha0", FALSE);
+   AiParameterBOOL("colorConnectedToAlpha1", FALSE);
+   AiParameterBOOL("colorConnectedToAlpha2", FALSE);
+   AiParameterBOOL("colorConnectedToAlpha3", FALSE);
+   AiParameterBOOL("colorConnectedToAlpha4", FALSE);
+   AiParameterBOOL("colorConnectedToAlpha5", FALSE);
+   AiParameterBOOL("colorConnectedToAlpha6", FALSE);
+   AiParameterBOOL("colorConnectedToAlpha7", FALSE);
+   AiParameterBOOL("colorConnectedToAlpha8", FALSE);
+   AiParameterBOOL("colorConnectedToAlpha9", FALSE);
+   AiParameterBOOL("colorConnectedToAlpha10", FALSE);
+   AiParameterBOOL("colorConnectedToAlpha11", FALSE);
+   AiParameterBOOL("colorConnectedToAlpha12", FALSE);
+   AiParameterBOOL("colorConnectedToAlpha13", FALSE);
+   AiParameterBOOL("colorConnectedToAlpha14", FALSE);
+   AiParameterBOOL("colorConnectedToAlpha15", FALSE);
+   AiParameterENUM("blendMode0", 0, gs_BlendModeNames);
+   AiParameterENUM("blendMode1", 0, gs_BlendModeNames);
+   AiParameterENUM("blendMode2", 0, gs_BlendModeNames);
+   AiParameterENUM("blendMode3", 0, gs_BlendModeNames);
+   AiParameterENUM("blendMode4", 0, gs_BlendModeNames);
+   AiParameterENUM("blendMode5", 0, gs_BlendModeNames);
+   AiParameterENUM("blendMode6", 0, gs_BlendModeNames);
+   AiParameterENUM("blendMode7", 0, gs_BlendModeNames);
+   AiParameterENUM("blendMode8", 0, gs_BlendModeNames);
+   AiParameterENUM("blendMode9", 0, gs_BlendModeNames);
+   AiParameterENUM("blendMode10", 0, gs_BlendModeNames);
+   AiParameterENUM("blendMode11", 0, gs_BlendModeNames);
+   AiParameterENUM("blendMode12", 0, gs_BlendModeNames);
+   AiParameterENUM("blendMode13", 0, gs_BlendModeNames);
+   AiParameterENUM("blendMode14", 0, gs_BlendModeNames);
+   AiParameterENUM("blendMode15", 0, gs_BlendModeNames);
+   AiParameterBOOL("visible0", FALSE);
+   AiParameterBOOL("visible1", FALSE);
+   AiParameterBOOL("visible2", FALSE);
+   AiParameterBOOL("visible3", FALSE);
+   AiParameterBOOL("visible4", FALSE);
+   AiParameterBOOL("visible5", FALSE);
+   AiParameterBOOL("visible6", FALSE);
+   AiParameterBOOL("visible7", FALSE);
+   AiParameterBOOL("visible8", FALSE);
+   AiParameterBOOL("visible9", FALSE);
+   AiParameterBOOL("visible10", FALSE);
+   AiParameterBOOL("visible11", FALSE);
+   AiParameterBOOL("visible12", FALSE);
+   AiParameterBOOL("visible13", FALSE);
+   AiParameterBOOL("visible14", FALSE);
+   AiParameterBOOL("visible15", FALSE);
 
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
 }
@@ -83,11 +237,7 @@ node_finish
 
 shader_evaluate
 {
-   AtArray* colors = AiShaderEvalParamArray(p_color);
-   AtArray* alphas = AiShaderEvalParamArray(p_alpha);
-   AtArray* modes = AiShaderEvalParamArray(p_blendMode);
-   AtArray* visibles = AiShaderEvalParamArray(p_visible);
-   unsigned int numInputs = colors->nelements;
+   unsigned int numInputs = AiShaderEvalParamUInt(p_numInputs);
 
    AtRGBA result = AI_RGBA_BLACK;
 
@@ -95,14 +245,22 @@ shader_evaluate
    {
       for (int i = numInputs-1; i >= 0; --i)
       {
-         bool visible = AiArrayGetBool(visibles, i);
-         if (visible == false) continue;
+         if (AiShaderEvalParamBool(p_visible0+i) == FALSE)   // Disabled, skip
+            continue;
 
-         AtRGB color = AiArrayGetRGB(colors, i);
-         float alpha = AiArrayGetFlt(alphas, i);
-         BlendMode mode = (BlendMode) AiArrayGetInt(modes, i);
+         AtRGBA color = AiShaderEvalParamRGBA(p_color0+i);
+         float alpha = AiShaderEvalParamFlt(p_alpha0+i);
+         int blendMode = AiShaderEvalParamInt(p_blendMode0+i);
 
-         switch (mode)
+         AtBoolean colorConnectedToAlpha = AiShaderEvalParamBool(p_colorConnectedToAlpha0+i);
+
+         // Multiply input alpha with the color's alpha value to support alpha texturing
+         // Until Arnold has a proper connectable array attribute
+
+         if (colorConnectedToAlpha)
+            alpha *= color.a;
+
+         switch (blendMode)
          {
             case BM_NONE:
             {
@@ -215,14 +373,9 @@ shader_evaluate
       }
    }
 
-   // AiArrayDestroy(colors);
-   // AiArrayDestroy(alphas);
-   // AiArrayDestroy(modes);
-   // AiArrayDestroy(visibles);
-
-   if (AiShaderEvalParamBool(p_alphaIsLuminance) == true)
+   if (AiShaderEvalParamBool(p_alphaIsLuminance) == TRUE)
    {
-      result.a =Luminance(result); // NTSC luminance
+      result.a = result.r*0.30f + result.g*0.59f + result.b*0.11f; // NTSC luminance
    }
    sg->out.RGBA = result;
 }
