@@ -49,6 +49,7 @@ public:
    static  MObject s_affectDiffuse;
    static  MObject s_affectSpecular;
    static  MObject s_inputMesh; // for the mesh_light
+   static  MObject s_lightVisible;
 
    // Arnold outputs
    static  MObject s_OUT_colorR;

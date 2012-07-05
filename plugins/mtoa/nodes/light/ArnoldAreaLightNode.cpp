@@ -33,6 +33,7 @@ MObject CArnoldAreaLightNode::s_intensity;
 MObject CArnoldAreaLightNode::s_affectDiffuse;
 MObject CArnoldAreaLightNode::s_affectSpecular;
 MObject CArnoldAreaLightNode::s_inputMesh;
+MObject CArnoldAreaLightNode::s_lightVisible;
 // Arnold outputs
 MObject CArnoldAreaLightNode::s_OUT_colorR;
 MObject CArnoldAreaLightNode::s_OUT_colorG;
@@ -84,6 +85,8 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
    MPlug translatorPlug = myNode.findPlug("aiTranslator");
    MString areaType = translatorPlug.asString();
 
+   m_boundingBox = MBoundingBox(MPoint(1.0, 1.0, 1.0), MPoint(-1.0, -1.0, -1.0));
+   
    view.beginGL();
    // Get all GL bits
    glPushAttrib(GL_ALL_ATTRIB_BITS);
@@ -156,8 +159,16 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
       {
          // TODO do this in the compute
          // Also calculate the m_boundingBox there
+         
+         m_boundingBox.clear();
          const int numVertices = inputMesh.numVertices();
          const AtVector* vertices = (const AtVector*)inputMesh.getRawPoints(&status);
+         for (int i = 0; i < numVertices; ++i)
+         {
+            const AtVector& cv = vertices[i];
+            m_boundingBox.expand(MPoint(cv.x, cv.y, cv.z));
+         }
+         
          const int numPolygons = inputMesh.numPolygons();         
          
          for (unsigned int i = 0; i < numPolygons; ++i) 
@@ -170,7 +181,7 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
                glVertex3fv(&vertices[vidx[j]].x);
             glVertex3fv(&vertices[vidx[0]].x);
             glEnd();
-         }         
+         }
       }
    }
    // Cylinder
@@ -256,6 +267,10 @@ MStatus CArnoldAreaLightNode::initialize()
    s_inputMesh = tAttr.create("inputMesh", "input_mesh", MFnData::kMesh);
    tAttr.setStorable(true);
    addAttribute(s_inputMesh);
+   
+   s_lightVisible = nAttr.create("lightVisible", "light_visible", MFnNumericData::kBoolean);
+   nAttr.setDefault(true);
+   addAttribute(s_lightVisible);
 
    // OUTPUT ATTRIBUTES
 

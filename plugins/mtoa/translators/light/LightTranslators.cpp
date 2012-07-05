@@ -264,7 +264,7 @@ void CMeshLightTranslator::Export(AtNode* light)
       AtNode* shaderNode = AiNode("MayaSurfaceShader");
       AtRGB color = AiNodeGetRGB(light, "color") * 
               AiNodeGetFlt(light, "intensity") * 
-              powf(2.f, AiNodeGetFlt(light, "exposure"));      
+              powf(2.f, AiNodeGetFlt(light, "exposure"));
       
       AiNodeSetRGB(shaderNode, "outColor", color.r, color.g, color.b);
       AiNodeSetStr(shaderNode, "name", shaderName.asChar());
@@ -304,8 +304,10 @@ void CMeshLightTranslator::Export(AtNode* light)
       AiNodeSetPtr(light, "mesh", meshNode);
       
       AiNodeSetArray(meshNode, "matrix", AiArrayCopy(AiNodeGetArray(light, "matrix")));
-      AiNodeSetBool(meshNode, "use_light_group", 0);
-      AiNodeSetInt(meshNode, "visibility", AI_RAY_CAMERA | (AI_RAY_CAMERA << 8));      
+      if (fnDepNode.findPlug("lightVisible").asBool())
+         AiNodeSetInt(meshNode, "visibility", AI_RAY_CAMERA | (AI_RAY_CAMERA << 8));
+      else
+         AiNodeSetInt(meshNode, "visibility", 0);
    }
 }
 
