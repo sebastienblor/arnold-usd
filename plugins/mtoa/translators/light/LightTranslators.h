@@ -127,7 +127,6 @@ public:
 class CMeshLightTranslator : public CLightTranslator
 {
 public:
-   void GetMatrix(AtMatrix& matrix);
    void Export(AtNode* light);
    static void NodeInitializer(CAbTranslator context);
    static void* creator()

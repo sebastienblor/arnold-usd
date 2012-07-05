@@ -12,6 +12,7 @@
 #include <maya/MFloatVector.h>
 #include <maya/MHardwareRenderer.h>
 #include <maya/MGLFunctionTable.h>
+#include <maya/MFnMesh.h>
 
 #define LEAD_COLOR            18 // green
 #define ACTIVE_COLOR          15 // white
@@ -31,6 +32,7 @@ MObject CArnoldAreaLightNode::s_color;
 MObject CArnoldAreaLightNode::s_intensity;
 MObject CArnoldAreaLightNode::s_affectDiffuse;
 MObject CArnoldAreaLightNode::s_affectSpecular;
+MObject CArnoldAreaLightNode::s_inputMesh;
 // Arnold outputs
 MObject CArnoldAreaLightNode::s_OUT_colorR;
 MObject CArnoldAreaLightNode::s_OUT_colorG;
@@ -73,7 +75,9 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
    //M3dView::ColorTable dormantColorTable = M3dView::kDormantColors;
    //
 
-   MFnDependencyNode myNode(thisMObject());
+   MStatus status;
+   MObject tmo = thisMObject();
+   MFnDependencyNode myNode(tmo);
    MPlug translatorPlug = myNode.findPlug("aiTranslator");
    MString areaType = translatorPlug.asString();
 
@@ -139,6 +143,21 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
       gGLFT->glVertex3f( 0.0f, 0.0f, 0.0f);
       gGLFT->glVertex3f( 0.0f, 0.0f,-1.0f);
       gGLFT->glEnd();
+   }
+   // Mesh
+   else if (areaType == "mesh")
+   {
+      MPlug inputMeshPlug(tmo, s_inputMesh);
+      MFnMesh inputMesh(inputMeshPlug.asMDataHandle().asMesh(), &status);
+      if (status)
+      {
+         const int numVertices = inputMesh.numVertices();
+         glEnable(GL_VERTEX_ARRAY);
+         glVertexPointer(3, GL_FLOAT, 0, inputMesh.getRawPoints(&status));
+         glPointSize(5.0f); // temporary solution
+         glDrawArrays(GL_POINTS, 0, numVertices);
+         glDisable(GL_VERTEX_ARRAY);
+      }
    }
    // Cylinder
    else
@@ -222,6 +241,10 @@ MStatus CArnoldAreaLightNode::initialize()
    nAttr.setReadable(true);
    nAttr.setWritable(true);
    addAttribute(s_normalCamera);
+   
+   s_inputMesh = tAttr.create("inputMesh", "input_mesh", MFnData::kMesh);
+   tAttr.setStorable(true);
+   addAttribute(s_inputMesh);
 
    // OUTPUT ATTRIBUTES
 
@@ -319,6 +342,7 @@ MStatus CArnoldAreaLightNode::initialize()
    attributeAffects(s_intensity, aLightData);
    attributeAffects(s_affectDiffuse, aLightData);
    attributeAffects(s_affectSpecular, aLightData);
+   attributeAffects(s_inputMesh, aLightData);
 
    return MS::kSuccess;
 }

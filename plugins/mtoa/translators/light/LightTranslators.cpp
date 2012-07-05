@@ -5,6 +5,8 @@
 #include <maya/MFnDirectionalLight.h>
 #include <maya/MFnPointLight.h>
 #include <maya/MFnSpotLight.h>
+#include <maya/MFnMesh.h>
+#include <maya/MItMeshPolygon.h>
 
 // AmbientLight
 //
@@ -242,17 +244,65 @@ void CSkyDomeLightTranslator::NodeInitializer(CAbTranslator context)
    MakeCommonAttributes(helper);
 }
 
-void CMeshLightTranslator::GetMatrix(AtMatrix& matrix)
-{
-   
-}
-
 void CMeshLightTranslator::Export(AtNode* light)
 {
+   CLightTranslator::Export(light);
    
+   MStatus status;
+   
+   MFnDependencyNode fnDepNode(m_dagPath.node());
+   MPlug plug = fnDepNode.findPlug("inputMesh");
+   MFnMesh mesh(plug.asMDataHandle().asMesh(), &status);
+   if (status) // simple mesh export at first, nothing to see here
+   {
+      MString nodeName = AiNodeGetName(light);
+      nodeName += "_mesh";
+      AtNode* meshNode = AiNode("polymesh");
+      AiNodeSetStr(meshNode, "name", nodeName.asChar());
+      
+      const int numVertices = mesh.numVertices();
+      
+      AiNodeSetArray(meshNode, "vlist", AiArrayConvert(numVertices, 1, AI_TYPE_POINT, mesh.getRawPoints(&status)));
+      
+      const int numPolygons = mesh.numPolygons();
+      AtArray* nsides = AiArrayAllocate(numPolygons, 1, AI_TYPE_UINT);
+      
+      unsigned int numIndices = 0;
+      
+      for(unsigned int i = 0; i < numPolygons; ++i)
+      {
+         int vertexCount = mesh.polygonVertexCount(i);
+         numIndices += (unsigned int)vertexCount;
+         AiArraySetUInt(nsides, i, vertexCount);
+      }
+      
+      AiNodeSetArray(meshNode, "nsides", nsides);
+      
+      AtArray* vidxs = AiArrayAllocate(numIndices, 1, AI_TYPE_UINT);
+      
+      for(unsigned int i = 0, id = 0; i < numPolygons; ++i)
+      {
+         int vertexCount = AiArrayGetUInt(nsides, i);         
+         MIntArray vidx;
+         mesh.getPolygonVertices(i, vidx);
+         for (unsigned int j = 0; j < vertexCount; ++j)
+            AiArraySetUInt(vidxs, id++, vidx[j]);  
+      }
+      AiNodeSetArray(meshNode, "vidxs", vidxs);
+      
+      AiNodeSetPtr(light, "mesh", meshNode);
+      
+      AiNodeSetArray(meshNode, "matrix", AiNodeGetArray(light, "matrix"));
+      AiNodeSetBool(meshNode, "use_light_group", 0);
+   }
 }
 
 void CMeshLightTranslator::NodeInitializer(CAbTranslator context)
 {
+   CExtensionAttrHelper helper(context.maya, "mesh_light");
+   // common attributes
+   MakeCommonAttributes(helper);
+   helper.MakeInput("shadow_color");
+   helper.MakeInput("decay_type");
    
 }
