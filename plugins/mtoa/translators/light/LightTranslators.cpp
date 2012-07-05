@@ -292,7 +292,7 @@ void CMeshLightTranslator::Export(AtNode* light)
       
       AiNodeSetPtr(light, "mesh", meshNode);
       
-      AiNodeSetArray(meshNode, "matrix", AiNodeGetArray(light, "matrix"));
+      AiNodeSetArray(meshNode, "matrix", AiArrayCopy(AiNodeGetArray(light, "matrix")));
       AiNodeSetBool(meshNode, "use_light_group", 0);
    }
 }
