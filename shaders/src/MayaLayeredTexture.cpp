@@ -248,7 +248,7 @@ shader_evaluate
          if (AiShaderEvalParamBool(p_visible0+i) == FALSE)   // Disabled, skip
             continue;
 
-         AtRGBA color = AiShaderEvalParamRGBA(p_color0+i);
+         AtRGBA color = AI_RGBA_BLACK;
          float alpha = AiShaderEvalParamFlt(p_alpha0+i);
          int blendMode = AiShaderEvalParamInt(p_blendMode0+i);
 
@@ -258,12 +258,16 @@ shader_evaluate
          // Until Arnold has a proper connectable array attribute
 
          if (colorConnectedToAlpha)
-            alpha *= color.a;
+         {
+            ;//Only color is needed to be evaluated
+            // Make a way to only evaluate color and use its alpha component as layer alpha to increase performance
+         }
 
          switch (blendMode)
          {
             case BM_NONE:
             {
+               color = AiShaderEvalParamRGBA(p_color0+i);
                result.r = color.r;
                result.g = color.g;
                result.b = color.b;
@@ -273,10 +277,14 @@ shader_evaluate
 
             case BM_OVER:
             {
-               result.r = color.r * alpha + (result.r * (1.0f - alpha));
-               result.g = color.g * alpha + (result.g * (1.0f - alpha));
-               result.b = color.b * alpha + (result.b * (1.0f - alpha));
-               result.a = 1.0f - ((1.0f - result.a) * (1.0f - alpha));
+               if(alpha > 0.0f)
+               {
+                  color = AiShaderEvalParamRGBA(p_color0+i);
+                  result.r = color.r * alpha + (result.r * (1.0f - alpha));
+                  result.g = color.g * alpha + (result.g * (1.0f - alpha));
+                  result.b = color.b * alpha + (result.b * (1.0f - alpha));
+                  result.a = 1.0f - ((1.0f - result.a) * (1.0f - alpha));
+               }
             }
             break;
 
@@ -300,73 +308,109 @@ shader_evaluate
 
             case BM_ADD:
             {
-               result.r += color.r * alpha;
-               result.g += color.g * alpha;
-               result.b += color.b * alpha;
+               if(alpha > 0.0f)
+               {
+                  color = AiShaderEvalParamRGBA(p_color0+i);
+                  result.r += color.r * alpha;
+                  result.g += color.g * alpha;
+                  result.b += color.b * alpha;
+               }
             }
             break;
 
             case BM_SUBTRACT:
             {
-               result.r -= color.r * alpha;
-               result.g -= color.g * alpha;
-               result.b -= color.b * alpha;
+               if(alpha > 0.0f)
+               {
+                  color = AiShaderEvalParamRGBA(p_color0+i);
+                  result.r -= color.r * alpha;
+                  result.g -= color.g * alpha;
+                  result.b -= color.b * alpha;
+               }
             }
             break;
 
             case BM_MULTIPLY:
             {
-               result.r *= (color.r * alpha + 1.0f - alpha);
-               result.g *= (color.g * alpha + 1.0f - alpha);
-               result.b *= (color.b * alpha + 1.0f - alpha);
+               if(alpha > 0.0f && (result.r > 0.0f || result.g > 0.0f || result.b > 0.0f))
+               {
+                  color = AiShaderEvalParamRGBA(p_color0+i);
+                  result.r *= (color.r * alpha + 1.0f - alpha);
+                  result.g *= (color.g * alpha + 1.0f - alpha);
+                  result.b *= (color.b * alpha + 1.0f - alpha);
+               }
             }
             break;
 
             case BM_DIFFERENCE:
             {
-               result.r = (fabs((color.r * alpha) - result.r)) * alpha + result.r * (1.0f - alpha);
-               result.g = (fabs((color.g * alpha) - result.g)) * alpha + result.g * (1.0f - alpha);
-               result.b = (fabs((color.b * alpha) - result.b)) * alpha + result.b * (1.0f - alpha);
+               if(alpha > 0.0f)
+               {
+                  color = AiShaderEvalParamRGBA(p_color0+i);
+                  result.r = (fabs((color.r * alpha) - result.r)) * alpha + result.r * (1.0f - alpha);
+                  result.g = (fabs((color.g * alpha) - result.g)) * alpha + result.g * (1.0f - alpha);
+                  result.b = (fabs((color.b * alpha) - result.b)) * alpha + result.b * (1.0f - alpha);
+               }
             }
             break;
 
             case BM_LIGHTEN:
             {
-               result.r = (MAX((color.r * alpha), result.r)) * alpha + result.r * (1.0f - alpha);
-               result.g = (MAX((color.g * alpha), result.g)) * alpha + result.g * (1.0f - alpha);
-               result.b = (MAX((color.b * alpha), result.b)) * alpha + result.b * (1.0f - alpha);
+               if(alpha > 0.0f)
+               {
+                  color = AiShaderEvalParamRGBA(p_color0+i);
+                  result.r = (MAX((color.r * alpha), result.r)) * alpha + result.r * (1.0f - alpha);
+                  result.g = (MAX((color.g * alpha), result.g)) * alpha + result.g * (1.0f - alpha);
+                  result.b = (MAX((color.b * alpha), result.b)) * alpha + result.b * (1.0f - alpha);
+               }
             }
             break;
 
             case BM_DARKEN:
             {
-               result.r = (MIN((color.r * alpha), result.r)) * alpha + result.r * (1.0f - alpha);
-               result.g = (MIN((color.g * alpha), result.g)) * alpha + result.g * (1.0f - alpha);
-               result.b = (MIN((color.b * alpha), result.b)) * alpha + result.b * (1.0f - alpha);
+               if(alpha > 0.0f)
+               {
+                  color = AiShaderEvalParamRGBA(p_color0+i);
+                  result.r = (MIN((color.r * alpha), result.r)) * alpha + result.r * (1.0f - alpha);
+                  result.g = (MIN((color.g * alpha), result.g)) * alpha + result.g * (1.0f - alpha);
+                  result.b = (MIN((color.b * alpha), result.b)) * alpha + result.b * (1.0f - alpha);
+               }
             }
             break;
 
             case BM_SATURATE:
             {
-               result.r *= (1.0f + (color.r * alpha));
-               result.g *= (1.0f + (color.g * alpha));
-               result.b *= (1.0f + (color.b * alpha));
+               if(alpha > 0.0f && (result.r > 0.0f || result.g > 0.0f || result.b > 0.0f))
+               {
+                  color = AiShaderEvalParamRGBA(p_color0+i);
+                  result.r *= (1.0f + (color.r * alpha));
+                  result.g *= (1.0f + (color.g * alpha));
+                  result.b *= (1.0f + (color.b * alpha));
+               }
             }
             break;
 
             case BM_DESATURATE:
             {
-               result.r *= (1.0f - (color.r * alpha));
-               result.g *= (1.0f - (color.g * alpha));
-               result.b *= (1.0f - (color.b * alpha));
+               if(alpha > 0.0f && (result.r > 0.0f || result.g > 0.0f || result.b > 0.0f))
+               {
+                  color = AiShaderEvalParamRGBA(p_color0+i);
+                  result.r *= (1.0f - (color.r * alpha));
+                  result.g *= (1.0f - (color.g * alpha));
+                  result.b *= (1.0f - (color.b * alpha));
+               }
             }
             break;
 
             case BM_ILLUMINATE:
             {
-               result.r *= (2.0f * color.r * alpha + 1.0f - alpha);
-               result.g *= (2.0f * color.g * alpha + 1.0f - alpha);
-               result.b *= (2.0f * color.b * alpha + 1.0f - alpha);
+               if(alpha > 0.0f && (result.r > 0.0f || result.g > 0.0f || result.b > 0.0f))
+               {
+                  color = AiShaderEvalParamRGBA(p_color0+i);
+                  result.r *= (2.0f * color.r * alpha + 1.0f - alpha);
+                  result.g *= (2.0f * color.g * alpha + 1.0f - alpha);
+                  result.b *= (2.0f * color.b * alpha + 1.0f - alpha);
+               }
             }
             break;
          }
@@ -375,7 +419,7 @@ shader_evaluate
 
    if (AiShaderEvalParamBool(p_alphaIsLuminance) == TRUE)
    {
-      result.a = result.r*0.30f + result.g*0.59f + result.b*0.11f; // NTSC luminance
+      result.a = Luminance(result); // NTSC luminance
    }
    sg->out.RGBA = result;
 }
