@@ -258,7 +258,7 @@ void CMeshLightTranslator::Export(AtNode* light)
       MString nodeName = AiNodeGetName(light);
       MString shaderName = nodeName;
       nodeName += "_mesh";
-      nodeName += "_shader";
+      shaderName += "_shader";
       AtNode* meshNode = AiNode("polymesh");
       AiNodeSetStr(meshNode, "name", nodeName.asChar());
       AtNode* shaderNode = AiNode("MayaSurfaceShader");
@@ -267,6 +267,7 @@ void CMeshLightTranslator::Export(AtNode* light)
               powf(2.f, AiNodeGetFlt(light, "exposure"));      
       
       AiNodeSetRGB(shaderNode, "outColor", color.r, color.g, color.b);
+      AiNodeSetStr(shaderNode, "name", shaderName.asChar());
       
       AiNodeSetPtr(meshNode, "shader", shaderNode);
       
