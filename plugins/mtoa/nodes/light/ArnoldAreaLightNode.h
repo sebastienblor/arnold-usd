@@ -74,6 +74,7 @@ public:
    static  MObject aLightData;
 
 public:
+   MBoundingBox         m_boundingBox;
    static   MTypeId     id;
 };  // class CArnoldAreaLightNode
 

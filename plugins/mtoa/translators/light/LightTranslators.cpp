@@ -256,9 +256,19 @@ void CMeshLightTranslator::Export(AtNode* light)
    if (status) // simple mesh export at first, nothing to see here
    {
       MString nodeName = AiNodeGetName(light);
+      MString shaderName = nodeName;
       nodeName += "_mesh";
+      nodeName += "_shader";
       AtNode* meshNode = AiNode("polymesh");
       AiNodeSetStr(meshNode, "name", nodeName.asChar());
+      AtNode* shaderNode = AiNode("MayaSurfaceShader");
+      AtRGB color = AiNodeGetRGB(light, "color") * 
+              AiNodeGetFlt(light, "intensity") * 
+              powf(2.f, AiNodeGetFlt(light, "exposure"));      
+      
+      AiNodeSetRGB(shaderNode, "outColor", color.r, color.g, color.b);
+      
+      AiNodeSetPtr(meshNode, "shader", shaderNode);
       
       const int numVertices = mesh.numVertices();
       
@@ -278,12 +288,12 @@ void CMeshLightTranslator::Export(AtNode* light)
       
       AiNodeSetArray(meshNode, "nsides", nsides);
       
-      AtArray* vidxs = AiArrayAllocate(numIndices, 1, AI_TYPE_UINT);
+      AtArray* vidxs = AiArrayAllocate(numIndices, 1, AI_TYPE_UINT);      
       
       for(unsigned int i = 0, id = 0; i < numPolygons; ++i)
       {
-         int vertexCount = AiArrayGetUInt(nsides, i);         
          MIntArray vidx;
+         int vertexCount = AiArrayGetUInt(nsides, i);         
          mesh.getPolygonVertices(i, vidx);
          for (unsigned int j = 0; j < vertexCount; ++j)
             AiArraySetUInt(vidxs, id++, vidx[j]);  
@@ -294,6 +304,7 @@ void CMeshLightTranslator::Export(AtNode* light)
       
       AiNodeSetArray(meshNode, "matrix", AiArrayCopy(AiNodeGetArray(light, "matrix")));
       AiNodeSetBool(meshNode, "use_light_group", 0);
+      AiNodeSetInt(meshNode, "visibility", AI_RAY_CAMERA | (AI_RAY_CAMERA << 8));      
    }
 }
 

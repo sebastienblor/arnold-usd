@@ -56,7 +56,10 @@ MObject CArnoldAreaLightNode::aPreShadowIntensity;
 MObject CArnoldAreaLightNode::aLightBlindData;
 MObject CArnoldAreaLightNode::aLightData;
 
-CArnoldAreaLightNode::CArnoldAreaLightNode() {}
+CArnoldAreaLightNode::CArnoldAreaLightNode() :
+   m_boundingBox(MPoint(1.0, 1.0, 1.0), MPoint(-1.0, -1.0, -1.0))
+{ }
+
 CArnoldAreaLightNode::~CArnoldAreaLightNode() {}
 
 MStatus CArnoldAreaLightNode::compute( const MPlug&, MDataBlock& )
@@ -151,12 +154,23 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
       MFnMesh inputMesh(inputMeshPlug.asMDataHandle().asMesh(), &status);
       if (status)
       {
+         // TODO do this in the compute
+         // Also calculate the m_boundingBox there
          const int numVertices = inputMesh.numVertices();
-         glEnable(GL_VERTEX_ARRAY);
-         glVertexPointer(3, GL_FLOAT, 0, inputMesh.getRawPoints(&status));
-         glPointSize(5.0f); // temporary solution
-         glDrawArrays(GL_POINTS, 0, numVertices);
-         glDisable(GL_VERTEX_ARRAY);
+         const AtVector* vertices = (const AtVector*)inputMesh.getRawPoints(&status);
+         const int numPolygons = inputMesh.numPolygons();         
+         
+         for (unsigned int i = 0; i < numPolygons; ++i) 
+         {
+            glBegin(GL_LINE_STRIP);
+            MIntArray vidx;
+            inputMesh.getPolygonVertices(i, vidx);
+            const unsigned int numVertices = vidx.length();
+            for (unsigned int j = 0; j < numVertices; ++j)
+               glVertex3fv(&vertices[vidx[j]].x);
+            glVertex3fv(&vertices[vidx[0]].x);
+            glEnd();
+         }         
       }
    }
    // Cylinder
@@ -182,10 +196,7 @@ bool CArnoldAreaLightNode::isBounded() const
 
 MBoundingBox CArnoldAreaLightNode::boundingBox() const
 {
-   MPoint corner1( -1.0, -1.0, -1.0 );
-   MPoint corner2( 1.0, 1.0, 1.0 );
-
-   return MBoundingBox( corner1, corner2 );
+   return m_boundingBox;;
 }
 
 void* CArnoldAreaLightNode::creator()
