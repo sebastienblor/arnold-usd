@@ -135,6 +135,309 @@ namespace
 
 };
 
+
+AtRGBA process_layers(AtShaderGlobals *sg, AtNode* node, int start, int end)
+{
+   AtRGBA result = AI_RGBA_BLACK;
+   bool finished = false;
+
+   for (int i = start; i < end && !finished; ++i)
+   {
+      if (AiShaderEvalParamBool(p_visible0+i) == FALSE)   // Disabled, skip
+         continue;
+
+      AtRGBA color = AI_RGBA_BLACK;
+      float alpha = 0.0f;
+      int blendMode = AiShaderEvalParamInt(p_blendMode0+i);
+
+      AtBoolean colorConnectedToAlpha = AiShaderEvalParamBool(p_colorConnectedToAlpha0+i);
+
+      if (colorConnectedToAlpha)
+      {
+         ;//Only color is needed to be evaluated
+         // Make a way to only evaluate color and use its alpha component as layer alpha to increase performance
+      }
+
+      switch (blendMode)
+      {
+         case BM_NONE:
+         {
+            color = AiShaderEvalParamRGBA(p_color0+i);
+            alpha = AiShaderEvalParamFlt(p_alpha0+i);
+            result.r += color.r * (1.0f - result.a);
+            result.g += color.g * (1.0f - result.a);
+            result.b += color.b * (1.0f - result.a);
+            result.a += alpha * (1.0f - result.a);
+            finished = true;
+         }
+         break;
+
+         case BM_OVER:
+         {
+            if (result.a < 1.0f)
+            {
+               alpha = AiShaderEvalParamFlt(p_alpha0+i);
+               if (alpha > 0.0f)
+               {
+                  color = AiShaderEvalParamRGBA(p_color0+i);
+                  result.r += color.r * alpha * (1.0f - result.a);
+                  result.g += color.g * alpha * (1.0f - result.a);
+                  result.b += color.b * alpha * (1.0f - result.a);
+                  result.a += alpha * (1.0f - result.a);
+               }
+            }
+         }
+         break;
+
+         case BM_IN:
+         {
+            if (result.a < 1.0f)
+            {
+               alpha = AiShaderEvalParamFlt(p_alpha0+i);
+               result.a += (1.0f - alpha) * (1.0f - result.a);
+            }
+         }
+         break;
+
+         case BM_OUT:
+         {
+            if (result.a < 1.0f)
+            {
+               alpha = AiShaderEvalParamFlt(p_alpha0+i);
+               result.a += (alpha) * (1.0f - result.a);
+            }
+         }
+         break;
+
+         case BM_ADD:
+         {
+            if (result.a < 1.0f)
+            {
+               alpha = AiShaderEvalParamFlt(p_alpha0+i);
+               if (alpha > 0.0f)
+               {
+                  color = AiShaderEvalParamRGBA(p_color0+i);
+                  result.r += color.r * alpha * (1.0f - result.a);
+                  result.g += color.g * alpha * (1.0f - result.a);
+                  result.b += color.b * alpha * (1.0f - result.a);
+               }
+            }
+         }
+         break;
+
+         case BM_SUBTRACT:
+         {
+            if (result.a < 1.0f)
+            {
+               alpha = AiShaderEvalParamFlt(p_alpha0+i);
+               if (alpha > 0.0f)
+               {
+                  color = AiShaderEvalParamRGBA(p_color0+i);
+                  result.r -= color.r * alpha * (1.0f - result.a);
+                  result.g -= color.g * alpha * (1.0f - result.a);
+                  result.b -= color.b * alpha * (1.0f - result.a);
+               }
+            }
+         }
+         break;
+         
+         case BM_MULTIPLY:
+         {
+            if (result.a < 1.0f)
+            {
+               alpha = AiShaderEvalParamFlt(p_alpha0+i);
+               AtRGBA bottom = AI_RGBA_BLACK;
+               bottom = process_layers(sg, node, i+1, end);
+               float tmpa = result.a;
+               if (alpha > 0.0f)
+               {
+                  color = AiShaderEvalParamRGBA(p_color0+i);
+                  result.r += (color.r * alpha * (1.0f - tmpa) * bottom.r);
+                  result.g += (color.g * alpha * (1.0f - tmpa) * bottom.g);
+                  result.b += (color.b * alpha * (1.0f - tmpa) * bottom.b);
+                  result.a += alpha * (1.0f - tmpa) * bottom.a;
+               }
+               if (alpha < 1.0f)
+               {
+                  result.r += ((1.0f - alpha) * (1.0f - tmpa)  * bottom.r);
+                  result.g += ((1.0f - alpha) * (1.0f - tmpa)  * bottom.g);
+                  result.b += ((1.0f - alpha) * (1.0f - tmpa)  * bottom.b);
+                  result.a += (1.0f - alpha) * (1.0f - tmpa)  * bottom.a;
+               }
+            }
+            finished = true;
+         }
+         break;
+         
+         case BM_DIFFERENCE:
+         {
+            if (result.a < 1.0f)
+            {
+               alpha = AiShaderEvalParamFlt(p_alpha0+i);
+               AtRGBA bottom = AI_RGBA_BLACK;
+               bottom = process_layers(sg, node, i+1, end);
+               float tmpa = result.a;
+               if (alpha > 0.0f)
+               {
+                  color = AiShaderEvalParamRGBA(p_color0+i);
+                  result.r += (fabs(color.r - bottom.r)) * alpha * (1.0f - tmpa);
+                  result.g += (fabs(color.g - bottom.g)) * alpha * (1.0f - tmpa);
+                  result.b += (fabs(color.b - bottom.b)) * alpha * (1.0f - tmpa);
+                  result.a += (fabs(alpha - bottom.a)) * alpha * (1.0f - tmpa);
+               }
+               if (alpha < 1.0f)
+               {
+                  result.r += ((1.0f - alpha) * (1.0f - tmpa)  * bottom.r);
+                  result.g += ((1.0f - alpha) * (1.0f - tmpa)  * bottom.g);
+                  result.b += ((1.0f - alpha) * (1.0f - tmpa)  * bottom.b);
+                  result.a += (1.0f - alpha) * (1.0f - tmpa)  * bottom.a;
+               }
+            }
+            finished = true;
+         }
+         break;
+         
+         case BM_LIGHTEN:
+         {
+            if (result.a < 1.0f)
+            {
+               alpha = AiShaderEvalParamFlt(p_alpha0+i);
+               AtRGBA bottom = AI_RGBA_BLACK;
+               bottom = process_layers(sg, node, i+1, end);
+               float tmpa = result.a;
+               if (alpha > 0.0f)
+               {
+                  color = AiShaderEvalParamRGBA(p_color0+i);
+                  result.r += (MAX(color.r, bottom.r)) * alpha * (1.0f - tmpa);
+                  result.g += (MAX(color.g, bottom.g)) * alpha * (1.0f - tmpa);
+                  result.b += (MAX(color.b, bottom.b)) * alpha * (1.0f - tmpa);
+                  result.a += (MAX(alpha, bottom.a)) * alpha * (1.0f - tmpa);
+               }
+               if (alpha < 1.0f)
+               {
+                  result.r += ((1.0f - alpha) * (1.0f - tmpa)  * bottom.r);
+                  result.g += ((1.0f - alpha) * (1.0f - tmpa)  * bottom.g);
+                  result.b += ((1.0f - alpha) * (1.0f - tmpa)  * bottom.b);
+                  result.a += (1.0f - alpha) * (1.0f - tmpa)  * bottom.a;
+               }
+            }
+            finished = true;
+         }
+         break;
+         
+         case BM_DARKEN:
+         {
+            if (result.a < 1.0f)
+            {
+               alpha = AiShaderEvalParamFlt(p_alpha0+i);
+               AtRGBA bottom = AI_RGBA_BLACK;
+               bottom = process_layers(sg, node, i+1, end);
+               float tmpa = result.a;
+               if (alpha > 0.0f)
+               {
+                  color = AiShaderEvalParamRGBA(p_color0+i);
+                  result.r += (MIN(color.r, bottom.r)) * alpha * (1.0f - tmpa);
+                  result.g += (MIN(color.g, bottom.g)) * alpha * (1.0f - tmpa);
+                  result.b += (MIN(color.b, bottom.b)) * alpha * (1.0f - tmpa);
+                  result.a += (MIN(alpha, bottom.a)) * alpha * (1.0f - tmpa);
+               }
+               if (alpha < 1.0f)
+               {
+                  result.r += ((1.0f - alpha) * (1.0f - tmpa)  * bottom.r);
+                  result.g += ((1.0f - alpha) * (1.0f - tmpa)  * bottom.g);
+                  result.b += ((1.0f - alpha) * (1.0f - tmpa)  * bottom.b);
+                  result.a += (1.0f - alpha) * (1.0f - tmpa)  * bottom.a;
+               }
+            }
+            finished = true;
+         }
+         break;
+         
+         case BM_SATURATE:
+         {
+            if (result.a < 1.0f)
+            {
+               alpha = AiShaderEvalParamFlt(p_alpha0+i);
+               AtRGBA bottom = AI_RGBA_BLACK;
+               bottom = process_layers(sg, node, i+1, end);
+               float tmpa = result.a;
+               if (alpha > 0.0f)
+               {
+                  color = AiShaderEvalParamRGBA(p_color0+i);
+                  result.r += color.r * bottom.r * alpha * (1.0f - tmpa);
+                  result.g += color.g * bottom.g * alpha * (1.0f - tmpa);
+                  result.b += color.b * bottom.b * alpha * (1.0f - tmpa);
+                  result.a += alpha * bottom.a * alpha * (1.0f - tmpa);
+               }
+
+               result.r += ((1.0f - tmpa)  * bottom.r);
+               result.g += ((1.0f - tmpa)  * bottom.g);
+               result.b += ((1.0f - tmpa)  * bottom.b);
+               result.a += (1.0f - tmpa)  * bottom.a;
+            }
+            finished = true;
+         }
+         break;
+
+         case BM_DESATURATE:
+         {
+            if (result.a < 1.0f)
+            {
+               alpha = AiShaderEvalParamFlt(p_alpha0+i);
+               AtRGBA bottom = AI_RGBA_BLACK;
+               bottom = process_layers(sg, node, i+1, end);
+               float tmpa = result.a;
+               if (alpha > 0.0f)
+               {
+                  color = AiShaderEvalParamRGBA(p_color0+i);
+                  result.r -= color.r * bottom.r * alpha * (1.0f - tmpa);
+                  result.g -= color.g * bottom.g * alpha * (1.0f - tmpa);
+                  result.b -= color.b * bottom.b * alpha * (1.0f - tmpa);
+                  result.a -= alpha * bottom.a * alpha * (1.0f - tmpa);
+               }
+
+               result.r += ((1.0f - tmpa)  * bottom.r);
+               result.g += ((1.0f - tmpa)  * bottom.g);
+               result.b += ((1.0f - tmpa)  * bottom.b);
+               result.a += (1.0f - tmpa)  * bottom.a;
+            }
+            finished = true;
+         }
+         break;
+         
+         case BM_ILLUMINATE:
+         {
+            if (result.a < 1.0f)
+            {
+               alpha = AiShaderEvalParamFlt(p_alpha0+i);
+               AtRGBA bottom = AI_RGBA_BLACK;
+               bottom = process_layers(sg, node, i+1, end);
+               float tmpa = result.a;
+               if (alpha > 0.0f)
+               {
+                  color = AiShaderEvalParamRGBA(p_color0+i);
+                  result.r += 2.0f * color.r * bottom.r * alpha * (1.0f - tmpa);
+                  result.g += 2.0f * color.g * bottom.g * alpha * (1.0f - tmpa);
+                  result.b += 2.0f * color.b * bottom.b * alpha * (1.0f - tmpa);
+                  result.a += alpha * bottom.a * alpha * (1.0f - tmpa);
+               }
+               if (alpha < 1.0f)
+               {
+                  result.r += ((1.0f - alpha) * (1.0f - tmpa)  * bottom.r);
+                  result.g += ((1.0f - alpha) * (1.0f - tmpa)  * bottom.g);
+                  result.b += ((1.0f - alpha) * (1.0f - tmpa)  * bottom.b);
+                  result.a += (1.0f - alpha) * (1.0f - tmpa)  * bottom.a;
+               }
+            }
+            finished = true;
+         }
+         break;
+      }
+   }
+
+   return result;
+}
+
 node_parameters
 {
    AiParameterUINT("numInputs", 0);
@@ -240,181 +543,11 @@ shader_evaluate
    unsigned int numInputs = AiShaderEvalParamUInt(p_numInputs);
 
    AtRGBA result = AI_RGBA_BLACK;
+   bool finished = false;
 
    if (numInputs > 0)
    {
-      for (int i = numInputs-1; i >= 0; --i)
-      {
-         if (AiShaderEvalParamBool(p_visible0+i) == FALSE)   // Disabled, skip
-            continue;
-
-         AtRGBA color = AI_RGBA_BLACK;
-         float alpha = AiShaderEvalParamFlt(p_alpha0+i);
-         int blendMode = AiShaderEvalParamInt(p_blendMode0+i);
-
-         AtBoolean colorConnectedToAlpha = AiShaderEvalParamBool(p_colorConnectedToAlpha0+i);
-
-         // Multiply input alpha with the color's alpha value to support alpha texturing
-         // Until Arnold has a proper connectable array attribute
-
-         if (colorConnectedToAlpha)
-         {
-            ;//Only color is needed to be evaluated
-            // Make a way to only evaluate color and use its alpha component as layer alpha to increase performance
-         }
-
-         switch (blendMode)
-         {
-            case BM_NONE:
-            {
-               color = AiShaderEvalParamRGBA(p_color0+i);
-               result.r = color.r;
-               result.g = color.g;
-               result.b = color.b;
-               result.a = alpha;
-            }
-            break;
-
-            case BM_OVER:
-            {
-               if(alpha > 0.0f)
-               {
-                  color = AiShaderEvalParamRGBA(p_color0+i);
-                  result.r = color.r * alpha + (result.r * (1.0f - alpha));
-                  result.g = color.g * alpha + (result.g * (1.0f - alpha));
-                  result.b = color.b * alpha + (result.b * (1.0f - alpha));
-                  result.a = 1.0f - ((1.0f - result.a) * (1.0f - alpha));
-               }
-            }
-            break;
-
-            case BM_IN:
-            {
-               result.r *= alpha;
-               result.g *= alpha;
-               result.b *= alpha;
-               result.a *= alpha;
-            }
-            break;
-
-            case BM_OUT:
-            {
-               result.r *= (1.0f - alpha);
-               result.g *= (1.0f - alpha);
-               result.b *= (1.0f - alpha);
-               result.a *= (1.0f - alpha);
-            }
-            break;
-
-            case BM_ADD:
-            {
-               if(alpha > 0.0f)
-               {
-                  color = AiShaderEvalParamRGBA(p_color0+i);
-                  result.r += color.r * alpha;
-                  result.g += color.g * alpha;
-                  result.b += color.b * alpha;
-               }
-            }
-            break;
-
-            case BM_SUBTRACT:
-            {
-               if(alpha > 0.0f)
-               {
-                  color = AiShaderEvalParamRGBA(p_color0+i);
-                  result.r -= color.r * alpha;
-                  result.g -= color.g * alpha;
-                  result.b -= color.b * alpha;
-               }
-            }
-            break;
-
-            case BM_MULTIPLY:
-            {
-               if(alpha > 0.0f && (result.r > 0.0f || result.g > 0.0f || result.b > 0.0f))
-               {
-                  color = AiShaderEvalParamRGBA(p_color0+i);
-                  result.r *= (color.r * alpha + 1.0f - alpha);
-                  result.g *= (color.g * alpha + 1.0f - alpha);
-                  result.b *= (color.b * alpha + 1.0f - alpha);
-               }
-            }
-            break;
-
-            case BM_DIFFERENCE:
-            {
-               if(alpha > 0.0f)
-               {
-                  color = AiShaderEvalParamRGBA(p_color0+i);
-                  result.r = (fabs((color.r * alpha) - result.r)) * alpha + result.r * (1.0f - alpha);
-                  result.g = (fabs((color.g * alpha) - result.g)) * alpha + result.g * (1.0f - alpha);
-                  result.b = (fabs((color.b * alpha) - result.b)) * alpha + result.b * (1.0f - alpha);
-               }
-            }
-            break;
-
-            case BM_LIGHTEN:
-            {
-               if(alpha > 0.0f)
-               {
-                  color = AiShaderEvalParamRGBA(p_color0+i);
-                  result.r = (MAX((color.r * alpha), result.r)) * alpha + result.r * (1.0f - alpha);
-                  result.g = (MAX((color.g * alpha), result.g)) * alpha + result.g * (1.0f - alpha);
-                  result.b = (MAX((color.b * alpha), result.b)) * alpha + result.b * (1.0f - alpha);
-               }
-            }
-            break;
-
-            case BM_DARKEN:
-            {
-               if(alpha > 0.0f)
-               {
-                  color = AiShaderEvalParamRGBA(p_color0+i);
-                  result.r = (MIN((color.r * alpha), result.r)) * alpha + result.r * (1.0f - alpha);
-                  result.g = (MIN((color.g * alpha), result.g)) * alpha + result.g * (1.0f - alpha);
-                  result.b = (MIN((color.b * alpha), result.b)) * alpha + result.b * (1.0f - alpha);
-               }
-            }
-            break;
-
-            case BM_SATURATE:
-            {
-               if(alpha > 0.0f && (result.r > 0.0f || result.g > 0.0f || result.b > 0.0f))
-               {
-                  color = AiShaderEvalParamRGBA(p_color0+i);
-                  result.r *= (1.0f + (color.r * alpha));
-                  result.g *= (1.0f + (color.g * alpha));
-                  result.b *= (1.0f + (color.b * alpha));
-               }
-            }
-            break;
-
-            case BM_DESATURATE:
-            {
-               if(alpha > 0.0f && (result.r > 0.0f || result.g > 0.0f || result.b > 0.0f))
-               {
-                  color = AiShaderEvalParamRGBA(p_color0+i);
-                  result.r *= (1.0f - (color.r * alpha));
-                  result.g *= (1.0f - (color.g * alpha));
-                  result.b *= (1.0f - (color.b * alpha));
-               }
-            }
-            break;
-
-            case BM_ILLUMINATE:
-            {
-               if(alpha > 0.0f && (result.r > 0.0f || result.g > 0.0f || result.b > 0.0f))
-               {
-                  color = AiShaderEvalParamRGBA(p_color0+i);
-                  result.r *= (2.0f * color.r * alpha + 1.0f - alpha);
-                  result.g *= (2.0f * color.g * alpha + 1.0f - alpha);
-                  result.b *= (2.0f * color.b * alpha + 1.0f - alpha);
-               }
-            }
-            break;
-         }
-      }
+      result = process_layers(sg, node, 0, numInputs);
    }
 
    if (AiShaderEvalParamBool(p_alphaIsLuminance) == TRUE)
