@@ -253,62 +253,65 @@ void CMeshLightTranslator::Export(AtNode* light)
    MFnDependencyNode fnDepNode(m_dagPath.node());
    MPlug plug = fnDepNode.findPlug("inputMesh");
    MFnMesh mesh(plug.asMDataHandle().asMesh(), &status);
-   if (status) // simple mesh export at first, nothing to see here
+   if (!status) // simple mesh export at first, nothing to see here
+      return;
+   
+   const int numVertices = mesh.numVertices();
+   
+   if (numVertices == 0)
+      return;
+   
+   MString nodeName = AiNodeGetName(light);
+   MString shaderName = nodeName;
+   nodeName += "_mesh";
+   shaderName += "_shader";
+   AtNode* meshNode = AiNode("polymesh");
+   AiNodeSetStr(meshNode, "name", nodeName.asChar());
+   AtNode* shaderNode = AiNode("MayaSurfaceShader");
+   AtRGB color = AiNodeGetRGB(light, "color") * 
+            AiNodeGetFlt(light, "intensity") * 
+            powf(2.f, AiNodeGetFlt(light, "exposure"));
+
+   AiNodeSetRGB(shaderNode, "outColor", color.r, color.g, color.b);
+   AiNodeSetStr(shaderNode, "name", shaderName.asChar());
+
+   AiNodeSetPtr(meshNode, "shader", shaderNode);  
+
+   AiNodeSetArray(meshNode, "vlist", AiArrayConvert(numVertices, 1, AI_TYPE_POINT, mesh.getRawPoints(&status)));
+
+   const int numPolygons = mesh.numPolygons();
+   AtArray* nsides = AiArrayAllocate(numPolygons, 1, AI_TYPE_UINT);
+
+   unsigned int numIndices = 0;
+
+   for(unsigned int i = 0; i < numPolygons; ++i)
    {
-      MString nodeName = AiNodeGetName(light);
-      MString shaderName = nodeName;
-      nodeName += "_mesh";
-      shaderName += "_shader";
-      AtNode* meshNode = AiNode("polymesh");
-      AiNodeSetStr(meshNode, "name", nodeName.asChar());
-      AtNode* shaderNode = AiNode("MayaSurfaceShader");
-      AtRGB color = AiNodeGetRGB(light, "color") * 
-              AiNodeGetFlt(light, "intensity") * 
-              powf(2.f, AiNodeGetFlt(light, "exposure"));
-      
-      AiNodeSetRGB(shaderNode, "outColor", color.r, color.g, color.b);
-      AiNodeSetStr(shaderNode, "name", shaderName.asChar());
-      
-      AiNodeSetPtr(meshNode, "shader", shaderNode);
-      
-      const int numVertices = mesh.numVertices();
-      
-      AiNodeSetArray(meshNode, "vlist", AiArrayConvert(numVertices, 1, AI_TYPE_POINT, mesh.getRawPoints(&status)));
-      
-      const int numPolygons = mesh.numPolygons();
-      AtArray* nsides = AiArrayAllocate(numPolygons, 1, AI_TYPE_UINT);
-      
-      unsigned int numIndices = 0;
-      
-      for(unsigned int i = 0; i < numPolygons; ++i)
-      {
-         int vertexCount = mesh.polygonVertexCount(i);
-         numIndices += (unsigned int)vertexCount;
-         AiArraySetUInt(nsides, i, vertexCount);
-      }
-      
-      AiNodeSetArray(meshNode, "nsides", nsides);
-      
-      AtArray* vidxs = AiArrayAllocate(numIndices, 1, AI_TYPE_UINT);      
-      
-      for(unsigned int i = 0, id = 0; i < numPolygons; ++i)
-      {
-         MIntArray vidx;
-         int vertexCount = AiArrayGetUInt(nsides, i);         
-         mesh.getPolygonVertices(i, vidx);
-         for (unsigned int j = 0; j < vertexCount; ++j)
-            AiArraySetUInt(vidxs, id++, vidx[j]);  
-      }
-      AiNodeSetArray(meshNode, "vidxs", vidxs);
-      
-      AiNodeSetPtr(light, "mesh", meshNode);
-      
-      AiNodeSetArray(meshNode, "matrix", AiArrayCopy(AiNodeGetArray(light, "matrix")));
-      if (fnDepNode.findPlug("lightVisible").asBool())
-         AiNodeSetInt(meshNode, "visibility", AI_RAY_CAMERA | (AI_RAY_CAMERA << 8));
-      else
-         AiNodeSetInt(meshNode, "visibility", 0);
+      int vertexCount = mesh.polygonVertexCount(i);
+      numIndices += (unsigned int)vertexCount;
+      AiArraySetUInt(nsides, i, vertexCount);
    }
+
+   AiNodeSetArray(meshNode, "nsides", nsides);
+
+   AtArray* vidxs = AiArrayAllocate(numIndices, 1, AI_TYPE_UINT);      
+
+   for(unsigned int i = 0, id = 0; i < numPolygons; ++i)
+   {
+      MIntArray vidx;
+      int vertexCount = AiArrayGetUInt(nsides, i);         
+      mesh.getPolygonVertices(i, vidx);
+      for (unsigned int j = 0; j < vertexCount; ++j)
+         AiArraySetUInt(vidxs, id++, vidx[j]);  
+   }
+   AiNodeSetArray(meshNode, "vidxs", vidxs);
+
+   AiNodeSetPtr(light, "mesh", meshNode);
+
+   AiNodeSetArray(meshNode, "matrix", AiArrayCopy(AiNodeGetArray(light, "matrix")));
+   if (fnDepNode.findPlug("lightVisible").asBool())
+      AiNodeSetInt(meshNode, "visibility", AI_RAY_CAMERA | (AI_RAY_CAMERA << 8));
+   else
+      AiNodeSetInt(meshNode, "visibility", 0);
 }
 
 void CMeshLightTranslator::NodeInitializer(CAbTranslator context)
