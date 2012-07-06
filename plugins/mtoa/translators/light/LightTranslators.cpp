@@ -258,9 +258,9 @@ void CMeshLightTranslator::Export(AtNode* light)
    if (!status) // simple mesh export at first, nothing to see here
       return;
    
-   const int numVertices = mesh.numVertices();
+   m_numVertices = mesh.numVertices();
    
-   if (numVertices == 0)
+   if (m_numVertices == 0)
       return;
    
    MString nodeName = AiNodeGetName(light);
@@ -278,8 +278,13 @@ void CMeshLightTranslator::Export(AtNode* light)
    AiNodeSetStr(shaderNode, "name", shaderName.asChar());
 
    AiNodeSetPtr(meshNode, "shader", shaderNode);  
-
-   AiNodeSetArray(meshNode, "vlist", AiArrayConvert(numVertices, 1, AI_TYPE_POINT, mesh.getRawPoints(&status)));
+   const AtVector* vertices = (const AtVector*)mesh.getRawPoints(&status);
+   std::cerr << "Motion step : " << GetMotionStep() << std::endl;
+   AtArray* vlist = AiArrayAllocate(m_numVertices, GetNumMotionSteps(), AI_TYPE_POINT);
+   for (int i = 0; i < m_numVertices; ++i)
+      AiArraySetVec(vlist, i, vertices[i]);
+   
+   AiNodeSetArray(meshNode, "vlist", vlist);
 
    const int numPolygons = mesh.numPolygons();
    AtArray* nsides = AiArrayAllocate(numPolygons, 1, AI_TYPE_UINT);
@@ -295,7 +300,7 @@ void CMeshLightTranslator::Export(AtNode* light)
 
    AiNodeSetArray(meshNode, "nsides", nsides);
 
-   AtArray* vidxs = AiArrayAllocate(numIndices, 1, AI_TYPE_UINT);      
+   AtArray* vidxs = AiArrayAllocate(numIndices, 1, AI_TYPE_UINT);
 
    for(unsigned int i = 0, id = 0; i < numPolygons; ++i)
    {
@@ -336,5 +341,20 @@ void CMeshLightTranslator::ExportMotion(AtNode* light, unsigned int step)
    
    AtNode* meshNode = (AtNode*)AiNodeGetPtr(light, "mesh");
    if (meshNode != 0) // just simply copy the matrices
-       AiNodeSetArray(meshNode, "matrix", AiArrayCopy(AiNodeGetArray(light, "matrix")));
+   {
+      AiNodeSetArray(meshNode, "matrix", AiArrayCopy(AiNodeGetArray(light, "matrix")));
+      AtArray* vlist = AiNodeGetArray(meshNode, "vlist");
+       
+      MFnDependencyNode fnDepNode(m_dagPath.node());
+      MPlug plug = fnDepNode.findPlug("inputMesh");
+      MObject meshObject;
+      plug.getValue(meshObject);
+      MFnMesh mesh(meshObject); // no need to check the status, because if it
+      // worked for the first time, it`s going to work for the second
+      
+      MStatus status;
+      const AtVector* vertices = (const AtVector*)mesh.getRawPoints(&status);
+      for (int i = 0, j = m_numVertices * step; i < m_numVertices; ++i, ++j)
+         AiArraySetVec(vlist, j, vertices[i]);      
+   }  
 }

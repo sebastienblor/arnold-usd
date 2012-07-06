@@ -139,6 +139,9 @@ public:
    }
    
    virtual void ExportMotion(AtNode* light, unsigned int step);
+   
+private:
+   int m_numVertices;
 };
 
 #endif // LIGHT_TRANSLATORS_H
