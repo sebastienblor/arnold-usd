@@ -387,3 +387,9 @@ def setEnvironmentVariable(name, value):
         ctypes.windll.kernel32.SetEnvironmentVariableW(name, buf)
     else:
         os.environ[name] = value    
+        
+def createLocator(locatorType):
+    lNode = pm.createNode('transform', name='%s1' % locatorType)
+    lId = lNode.name()[len(locatorType):]
+    pm.createNode(locatorType, name='%sShape%s' % (locatorType, lId), parent=lNode)       
+
