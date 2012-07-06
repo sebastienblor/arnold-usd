@@ -68,7 +68,12 @@ shader_evaluate
          sg->out_opacity = AI_RGB_BLACK;
       return;
    }
-   const AtRGB opacity = AiShaderEvalParamFlt(p_opacity) * AI_RGB_WHITE;
+   
+   AtRGB opacity = AiShaderEvalParamFlt(p_opacity) * AI_RGB_WHITE;
+   float geo_opacity;
+   if (AiUDataGetFlt("geo_opacity", &geo_opacity))
+      opacity *= geo_opacity;
+   
    if (AiShaderGlobalsApplyOpacity(sg, opacity))
       return;
    
