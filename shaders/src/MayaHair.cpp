@@ -60,19 +60,19 @@ node_finish
 
 shader_evaluate
 {
-   if (sg->Rt & AI_RAY_SHADOW)
-   {
-      if (AiShaderEvalParamBool(p_cast_shadows))
-         sg->out_opacity = AiShaderEvalParamFlt(p_opacity);
-      else
-         sg->out_opacity = AI_RGB_BLACK;
-      return;
-   }
-   
    AtRGB opacity = AiShaderEvalParamFlt(p_opacity) * AI_RGB_WHITE;
    float geo_opacity;
    if (AiUDataGetFlt("geo_opacity", &geo_opacity))
       opacity *= geo_opacity;
+   
+   if (sg->Rt & AI_RAY_SHADOW)
+   {
+      if (AiShaderEvalParamBool(p_cast_shadows))
+         sg->out_opacity = opacity;
+      else
+         sg->out_opacity = AI_RGB_BLACK;
+      return;
+   }   
    
    if (AiShaderGlobalsApplyOpacity(sg, opacity))
       return;
