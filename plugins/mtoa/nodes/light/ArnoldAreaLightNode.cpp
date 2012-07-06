@@ -76,8 +76,6 @@ MStatus CArnoldAreaLightNode::compute(const MPlug& plug, MDataBlock& block)
    // the mesh is changed, because aiTranslator cannot affect update
    block.setClean(s_update);
    
-   MFnDependencyNode myNode(thisMObject());
-   
    MStatus status;
    
    MFnMesh inputMesh(block.inputValue(s_inputMesh).asMesh(), &status);
@@ -93,7 +91,7 @@ MStatus CArnoldAreaLightNode::compute(const MPlug& plug, MDataBlock& block)
    const int numVertices = inputMesh.numVertices();
    
    if (numVertices == 0)
-      return;  
+      return MS::kSuccess;
    
    m_boundingBox.clear();
    
