@@ -391,5 +391,7 @@ def setEnvironmentVariable(name, value):
 def createLocator(locatorType):
     lNode = pm.createNode('transform', name='%s1' % locatorType)
     lId = lNode.name()[len(locatorType):]
-    pm.createNode(locatorType, name='%sShape%s' % (locatorType, lId), parent=lNode)       
+    shapeName = '%sShape%s' % (locatorType, lId)
+    pm.createNode(locatorType, name=shapeName, parent=lNode)       
+    return shapeName       
 
