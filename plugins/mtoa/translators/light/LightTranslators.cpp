@@ -323,3 +323,16 @@ void CMeshLightTranslator::NodeInitializer(CAbTranslator context)
    helper.MakeInput("decay_type");
    
 }
+
+void CMeshLightTranslator::ExportMotion(AtNode* light, unsigned int step)
+{
+   AtMatrix matrix;
+   GetMatrix(matrix);
+
+   AtArray* matrices = AiNodeGetArray(light, "matrix");
+   AiArraySetMtx(matrices, step, matrix);
+   
+   AtNode* meshNode = (AtNode*)AiNodeGetPtr(light, "mesh");
+   if (meshNode != 0) // just simply copy the matrices
+       AiNodeSetArray(meshNode, "matrix", AiArrayCopy(AiNodeGetArray(light, "matrix")));
+}

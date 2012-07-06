@@ -137,6 +137,8 @@ public:
    {
       return AddArnoldNode("mesh_light");
    }
+   
+   virtual void ExportMotion(AtNode* light, unsigned int step);
 };
 
 #endif // LIGHT_TRANSLATORS_H
