@@ -252,7 +252,9 @@ void CMeshLightTranslator::Export(AtNode* light)
    
    MFnDependencyNode fnDepNode(m_dagPath.node());
    MPlug plug = fnDepNode.findPlug("inputMesh");
-   MFnMesh mesh(plug.asMDataHandle().asMesh(), &status);
+   MObject meshObject;
+   plug.getValue(meshObject);
+   MFnMesh mesh(meshObject, &status); 
    if (!status) // simple mesh export at first, nothing to see here
       return;
    
