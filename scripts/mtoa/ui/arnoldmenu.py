@@ -25,7 +25,7 @@ def doCreateMeshLight():
     if len(shs) == 0:
         print 'The selected transform has no meshes'
         return
-    lShape = mutils.createLocator('aiAreaLight')
+    lShape = mutils.createLocator('aiAreaLight', asLight=True)
     cmds.connectAttr('%s.outMesh' % shs[0], '%s.inputMesh' % lShape, force=True)
     cmds.setAttr('%s.aiTranslator' % lShape, 'mesh', type='string')
    
@@ -45,9 +45,9 @@ def createArnoldMenu():
         pm.menuItem('ArnoldLights', label='Lights', parent='ArnoldMenu', subMenu=True)
         
         pm.menuItem('ArnoldAreaLights', parent='ArnoldLights', label="Area Light",
-                    c=lambda *args: mutils.createLocator('aiAreaLight'))
+                    c=lambda *args: mutils.createLocator('aiAreaLight', asLight=True))
         pm.menuItem('SkydomeLight', parent='ArnoldLights', label="Skydome Light",
-                    c=lambda *args: mutils.createLocator('aiSkyDomeLight'))
+                    c=lambda *args: mutils.createLocator('aiSkyDomeLight', asLight=True))
         pm.menuItem('ArnoldMeshLight', parent='ArnoldLights', label='Mesh Light',
                     c=lambda *args: doCreateMeshLight())
 

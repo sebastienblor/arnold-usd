@@ -388,10 +388,13 @@ def setEnvironmentVariable(name, value):
     else:
         os.environ[name] = value    
         
-def createLocator(locatorType):
+def createLocator(locatorType, asLight=False):
     lNode = pm.createNode('transform', name='%s1' % locatorType)
-    lId = lNode.name()[len(locatorType):]
+    lName = lNode.name()
+    lId = lName[len(locatorType):]
     shapeName = '%sShape%s' % (locatorType, lId)
     pm.createNode(locatorType, name=shapeName, parent=lNode)       
+    if asLight:
+        cmds.connectAttr('%s.instObjGroups' % lName, 'defaultLightSet.dagSetMembers', nextAvailable=True)
     return shapeName       
 
