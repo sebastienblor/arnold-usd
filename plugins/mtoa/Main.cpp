@@ -22,6 +22,7 @@
 #include "nodes/shape/ArnoldStandIns.h"
 #include "nodes/light/ArnoldSkyDomeLightNode.h"
 #include "nodes/light/ArnoldAreaLightNode.h"
+#include "nodes/light/ArnoldLightBlockerNode.h"
 #include "nodes/shader/ArnoldStandardNode.h"
 
 #include "translators/options/OptionsTranslator.h"
@@ -124,13 +125,20 @@ namespace // <anonymous>
       CHECK_MSTATUS(status);
 
       status = plugin.registerNode("aiAreaLight",
-                                    CArnoldAreaLightNode::id,
-                                    CArnoldAreaLightNode::creator,
-                                    CArnoldAreaLightNode::initialize,
-                                    MPxNode::kLocatorNode,
-                                    &LIGHT_WITH_SWATCH);
+                                   CArnoldAreaLightNode::id,
+                                   CArnoldAreaLightNode::creator,
+                                   CArnoldAreaLightNode::initialize,
+                                   MPxNode::kLocatorNode,
+                                   &LIGHT_WITH_SWATCH);
       CHECK_MSTATUS(status);
-
+      
+      status = plugin.registerNode("aiLightBlocker",
+                                   CArnoldLightBlockerNode::id,
+                                   CArnoldLightBlockerNode::creator,
+                                   CArnoldLightBlockerNode::initialize,
+                                   MPxNode::kLocatorNode);
+      
+      CHECK_MSTATUS(status);
 
       // Special shaders (not visible from Maya shaders menu)
       status = plugin.registerNode("aiSky",
