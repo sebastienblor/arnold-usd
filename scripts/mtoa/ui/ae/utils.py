@@ -108,22 +108,22 @@ def rebuildAE():
 
 class AttrControlGrp(object):
     UI_TYPES = {
-        'float':pm.cmds.attrFieldSliderGrp,
-        'float2':pm.cmds.attrFieldGrp,
-        'float3':pm.cmds.attrFieldGrp,
-        'color':pm.cmds.attrColorSliderGrp,
-        'bool':pm.cmds.attrControlGrp,
-        'long':pm.cmds.attrFieldSliderGrp,
-        'long2':pm.cmds.attrFieldGrp,
-        'long3':pm.cmds.attrFieldGrp,
-        'short':pm.cmds.attrFieldSliderGrp,
-        'short2':pm.cmds.attrFieldGrp,
-        'short3':pm.cmds.attrFieldGrp,
-        'enum':pm.cmds.attrEnumOptionMenuGrp,
-        'double':pm.cmds.attrFieldSliderGrp,
+        'float':  pm.cmds.attrFieldSliderGrp,
+        'float2': pm.cmds.attrFieldGrp,
+        'float3': pm.cmds.attrFieldGrp,
+        'color':  pm.cmds.attrColorSliderGrp,
+        'bool':   pm.cmds.attrControlGrp,
+        'long':   pm.cmds.attrFieldSliderGrp,
+        'long2':  pm.cmds.attrFieldGrp,
+        'long3':  pm.cmds.attrFieldGrp,
+        'short':  pm.cmds.attrFieldSliderGrp,
+        'short2': pm.cmds.attrFieldGrp,
+        'short3': pm.cmds.attrFieldGrp,
+        'enum':   pm.cmds.attrEnumOptionMenuGrp,
+        'double': pm.cmds.attrFieldSliderGrp,
         'double2':pm.cmds.attrFieldGrp,
         'double3':pm.cmds.attrFieldGrp,
-        'string':pm.cmds.attrControlGrp,
+        'string': pm.cmds.attrControlGrp,
         'message':pm.cmds.attrNavigationControlGrp
     }
     def __init__(self, attribute, *args, **kwargs):
@@ -131,8 +131,20 @@ class AttrControlGrp(object):
         self.type = kwargs.pop('type', kwargs.pop('typ', None))
         if not self.type:
             self.type = attrType(self.attribute)
+        if self.type in ['color', 'enum', 'message']:
+            cb = kwargs.pop('changeCommand', None)
+        else:
+            cb = None
         kwargs['attribute'] = self.attribute
-        self.control = self.UI_TYPES[self.type](*args, **kwargs)
+        cmd = self.UI_TYPES[self.type]
+        try:
+            self.control = cmd(*args, **kwargs)
+        except RuntimeError:
+            print "Error creating %s:" % cmd.__name__
+            raise
+        if cb:
+            pm.scriptJob(attributeChange=[self.attribute, cb],
+                         replacePrevious=True, parent=self.control)
 
     def edit(self, **kwargs):
         kwargs['edit'] = True
