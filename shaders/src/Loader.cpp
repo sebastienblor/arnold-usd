@@ -76,6 +76,7 @@ extern AtNodeMethods* MayaVectorDisplacementMtd;
 extern AtNodeMethods* MayaNormalDisplacementMtd;
 extern AtNodeMethods* ShadowCatcherMtd;
 extern AtNodeMethods* MayaHairMtd;
+extern AtNodeMethods* SolidColorMtd;
 
 node_loader
 {
@@ -591,6 +592,13 @@ node_loader
       node->name        = "MayaHair";
       node->node_type   = AI_NODE_SHADER;
       break;
+      
+   case 73:
+      node->methods     = SolidColorMtd;
+      node->output_type = AI_TYPE_RGBA;
+      node->name        = "solidColor";
+      node->node_type   = AI_NODE_SHADER;
+      break;         
 
    default:
       return false;
