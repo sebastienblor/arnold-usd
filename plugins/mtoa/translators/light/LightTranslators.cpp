@@ -5,6 +5,8 @@
 #include <maya/MFnDirectionalLight.h>
 #include <maya/MFnPointLight.h>
 #include <maya/MFnSpotLight.h>
+#include <maya/MFnMesh.h>
+#include <maya/MItMeshPolygon.h>
 
 // AmbientLight
 //
@@ -240,4 +242,157 @@ void CSkyDomeLightTranslator::NodeInitializer(CAbTranslator context)
    CExtensionAttrHelper helper(context.maya, "skydome_light");
    // Cannot be created both on Node and here
    MakeCommonAttributes(helper);
+}
+
+double CalculateTriangleArea(const AtVector& p0, 
+        const AtVector& p1, const AtVector& p2)
+{
+   const AtVector t0 = {p1.x - p0.x, p1.y - p0.y, p1.z - p0.z};
+   const AtVector t1 = {p2.x - p0.x, p2.y - p0.y, p2.z - p0.z};
+   return double(AiV3Length(AiV3Cross(t0, t1)) * 0.5f);
+}
+
+void CMeshLightTranslator::Export(AtNode* light)
+{
+   CLightTranslator::Export(light);
+   
+   MStatus status;
+   
+   MFnDependencyNode fnDepNode(m_dagPath.node());
+   MPlug plug = fnDepNode.findPlug("inputMesh");
+   MObject meshObject;
+   plug.getValue(meshObject);
+   MFnMesh mesh(meshObject, &status); 
+   if (!status) // simple mesh export at first, nothing to see here
+      return;
+   
+   m_numVertices = mesh.numVertices();
+   
+   if (m_numVertices == 0)
+      return;
+   
+   MString nodeName = AiNodeGetName(light);
+   MString shaderName = nodeName;
+   nodeName += "_mesh";   
+   AtNode* meshNode = AiNode("polymesh");
+   AiNodeSetStr(meshNode, "name", nodeName.asChar());
+   
+   const AtVector* vertices = (const AtVector*)mesh.getRawPoints(&status);
+   std::cerr << "Motion step : " << GetMotionStep() << std::endl;
+   AtArray* vlist = AiArrayAllocate(m_numVertices, GetNumMotionSteps(), AI_TYPE_POINT);
+   for (int i = 0; i < m_numVertices; ++i)
+      AiArraySetVec(vlist, i, vertices[i]);
+   
+   AiNodeSetArray(meshNode, "vlist", vlist);
+
+   const int numPolygons = mesh.numPolygons();
+   AtArray* nsides = AiArrayAllocate(numPolygons, 1, AI_TYPE_UINT);
+
+   unsigned int numIndices = 0;
+
+   for(unsigned int i = 0; i < numPolygons; ++i)
+   {
+      int vertexCount = mesh.polygonVertexCount(i);
+      numIndices += (unsigned int)vertexCount;
+      AiArraySetUInt(nsides, i, vertexCount);
+   }
+
+   AiNodeSetArray(meshNode, "nsides", nsides);
+
+   AtArray* vidxs = AiArrayAllocate(numIndices, 1, AI_TYPE_UINT);
+
+   for(unsigned int i = 0, id = 0; i < numPolygons; ++i)
+   {
+      MIntArray vidx;
+      int vertexCount = AiArrayGetUInt(nsides, i);
+      mesh.getPolygonVertices(i, vidx);
+      for (unsigned int j = 0; j < vertexCount; ++j)
+         AiArraySetUInt(vidxs, id++, vidx[j]);  
+   }
+   AiNodeSetArray(meshNode, "vidxs", vidxs);
+
+   AiNodeSetPtr(light, "mesh", meshNode);
+
+   AiNodeSetArray(meshNode, "matrix", AiArrayCopy(AiNodeGetArray(light, "matrix")));
+   if (fnDepNode.findPlug("lightVisible").asBool())
+   {
+      AiNodeSetInt(meshNode, "visibility", AI_RAY_CAMERA | AI_RAY_REFLECTED | AI_RAY_REFRACTED);
+      shaderName += "_shader";
+      AtNode* shaderNode = AiNode("meshLightMaterial");
+      AtRGB color = AiNodeGetRGB(light, "color");
+      const float light_gamma = AiNodeGetFlt(AiUniverseGetOptions(), "light_gamma");
+      AiColorGamma(&color, light_gamma);
+      color = color * AiNodeGetFlt(light, "intensity") * 
+         powf(2.f, AiNodeGetFlt(light, "exposure"));
+      AiNodeSetStr(shaderNode, "name", shaderName.asChar());
+      AiNodeSetPtr(meshNode, "shader", shaderNode);
+      
+      // if normalize is set to false, we need to multiply
+      // the color with the surface area
+      // doing a very simple triangulation, good for
+      // approximating the Arnold one
+      if (AiNodeGetInt(light, "normalize"))
+      {
+         double surfaceArea = 0.f;
+         for (unsigned int i = 0, id = 0; i < numPolygons; ++i)
+         {
+            const int vertexCount = AiArrayGetUInt(nsides, i);
+            if (vertexCount)
+            {
+               const AtVector p0 = vertices[id];
+               for (unsigned int j = 1; j < vertexCount - 1; ++j)
+               {
+                  const int id1 = id + j;
+                  const AtVector p1 = vertices[id1];
+                  const AtVector p2 = vertices[id1 + 1];
+                  surfaceArea += CalculateTriangleArea(p0, p1, p2);
+               }
+            }
+            id += vertexCount;
+         }
+         color = color / (float)surfaceArea;
+      }
+      
+      AiNodeSetRGB(shaderNode, "color", color.r, color.g, color.b);
+   }
+   else
+      AiNodeSetInt(meshNode, "visibility", 0);
+}
+
+void CMeshLightTranslator::NodeInitializer(CAbTranslator context)
+{
+   CExtensionAttrHelper helper(context.maya, "mesh_light");
+   // common attributes
+   MakeCommonAttributes(helper);
+   helper.MakeInput("shadow_color");
+   helper.MakeInput("decay_type");
+   
+}
+
+void CMeshLightTranslator::ExportMotion(AtNode* light, unsigned int step)
+{
+   AtMatrix matrix;
+   GetMatrix(matrix);
+
+   AtArray* matrices = AiNodeGetArray(light, "matrix");
+   AiArraySetMtx(matrices, step, matrix);
+   
+   AtNode* meshNode = (AtNode*)AiNodeGetPtr(light, "mesh");
+   if (meshNode != 0) // just simply copy the matrices
+   {
+      AiNodeSetArray(meshNode, "matrix", AiArrayCopy(AiNodeGetArray(light, "matrix")));
+      AtArray* vlist = AiNodeGetArray(meshNode, "vlist");
+       
+      MFnDependencyNode fnDepNode(m_dagPath.node());
+      MPlug plug = fnDepNode.findPlug("inputMesh");
+      MObject meshObject;
+      plug.getValue(meshObject);
+      MFnMesh mesh(meshObject); // no need to check the status, because if it
+      // worked for the first time, it`s going to work for the second
+      
+      MStatus status;
+      const AtVector* vertices = (const AtVector*)mesh.getRawPoints(&status);
+      for (int i = 0, j = m_numVertices * step; i < m_numVertices; ++i, ++j)
+         AiArraySetVec(vlist, j, vertices[i]);      
+   }  
 }
