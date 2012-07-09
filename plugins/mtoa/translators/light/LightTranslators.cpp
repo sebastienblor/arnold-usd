@@ -318,7 +318,7 @@ void CMeshLightTranslator::Export(AtNode* light)
    {
       AiNodeSetInt(meshNode, "visibility", AI_RAY_CAMERA | AI_RAY_REFLECTED | AI_RAY_REFRACTED);
       shaderName += "_shader";
-      AtNode* shaderNode = AiNode("solidColor");
+      AtNode* shaderNode = AiNode("meshLightMaterial");
       AtRGB color = AiNodeGetRGB(light, "color") * 
          AiNodeGetFlt(light, "intensity") * 
          powf(2.f, AiNodeGetFlt(light, "exposure"));      

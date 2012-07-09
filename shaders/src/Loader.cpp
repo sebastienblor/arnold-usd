@@ -76,7 +76,7 @@ extern AtNodeMethods* MayaVectorDisplacementMtd;
 extern AtNodeMethods* MayaNormalDisplacementMtd;
 extern AtNodeMethods* ShadowCatcherMtd;
 extern AtNodeMethods* MayaHairMtd;
-extern AtNodeMethods* SolidColorMtd;
+extern AtNodeMethods* MeshLightMaterialMtd;
 
 node_loader
 {
@@ -594,9 +594,9 @@ node_loader
       break;
       
    case 73:
-      node->methods     = SolidColorMtd;
+      node->methods     = MeshLightMaterialMtd;
       node->output_type = AI_TYPE_RGBA;
-      node->name        = "solidColor";
+      node->name        = "meshLightMaterial";
       node->node_type   = AI_NODE_SHADER;
       break;         
 
