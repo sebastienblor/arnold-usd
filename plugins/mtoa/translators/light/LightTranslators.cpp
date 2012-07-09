@@ -319,9 +319,11 @@ void CMeshLightTranslator::Export(AtNode* light)
       AiNodeSetInt(meshNode, "visibility", AI_RAY_CAMERA | AI_RAY_REFLECTED | AI_RAY_REFRACTED);
       shaderName += "_shader";
       AtNode* shaderNode = AiNode("meshLightMaterial");
-      AtRGB color = AiNodeGetRGB(light, "color") * 
-         AiNodeGetFlt(light, "intensity") * 
-         powf(2.f, AiNodeGetFlt(light, "exposure"));      
+      AtRGB color = AiNodeGetRGB(light, "color");
+      const float light_gamma = AiNodeGetFlt(AiUniverseGetOptions(), "light_gamma");
+      AiColorGamma(&color, light_gamma);
+      color = color * AiNodeGetFlt(light, "intensity") * 
+         powf(2.f, AiNodeGetFlt(light, "exposure"));
       AiNodeSetStr(shaderNode, "name", shaderName.asChar());
       AiNodeSetPtr(meshNode, "shader", shaderNode);
       
@@ -329,7 +331,7 @@ void CMeshLightTranslator::Export(AtNode* light)
       // the color with the surface area
       // doing a very simple triangulation, good for
       // approximating the Arnold one
-      if (!AiNodeGetInt(light, "normalize"))
+      if (AiNodeGetInt(light, "normalize"))
       {
          double surfaceArea = 0.f;
          for (unsigned int i = 0, id = 0; i < numPolygons; ++i)
@@ -348,7 +350,7 @@ void CMeshLightTranslator::Export(AtNode* light)
             }
             id += vertexCount;
          }
-         color = color * (float)surfaceArea;
+         color = color / (float)surfaceArea;
       }
       
       AiNodeSetRGB(shaderNode, "color", color.r, color.g, color.b);
