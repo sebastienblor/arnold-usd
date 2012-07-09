@@ -244,6 +244,14 @@ void CSkyDomeLightTranslator::NodeInitializer(CAbTranslator context)
    MakeCommonAttributes(helper);
 }
 
+double CalculateTriangleArea(const AtVector& p0, 
+        const AtVector& p1, const AtVector& p2)
+{
+   const AtVector t0 = {p1.x - p0.x, p1.y - p0.y, p1.z - p0.z};
+   const AtVector t1 = {p2.x - p0.x, p2.y - p0.y, p2.z - p0.z};
+   return double(AiV3Length(AiV3Cross(t0, t1)) * 0.5f);
+}
+
 void CMeshLightTranslator::Export(AtNode* light)
 {
    CLightTranslator::Export(light);
@@ -265,19 +273,10 @@ void CMeshLightTranslator::Export(AtNode* light)
    
    MString nodeName = AiNodeGetName(light);
    MString shaderName = nodeName;
-   nodeName += "_mesh";
-   shaderName += "_shader";
+   nodeName += "_mesh";   
    AtNode* meshNode = AiNode("polymesh");
    AiNodeSetStr(meshNode, "name", nodeName.asChar());
-   AtNode* shaderNode = AiNode("MayaSurfaceShader");
-   AtRGB color = AiNodeGetRGB(light, "color") * 
-            AiNodeGetFlt(light, "intensity") * 
-            powf(2.f, AiNodeGetFlt(light, "exposure"));
-
-   AiNodeSetRGB(shaderNode, "outColor", color.r, color.g, color.b);
-   AiNodeSetStr(shaderNode, "name", shaderName.asChar());
-
-   AiNodeSetPtr(meshNode, "shader", shaderNode);  
+   
    const AtVector* vertices = (const AtVector*)mesh.getRawPoints(&status);
    std::cerr << "Motion step : " << GetMotionStep() << std::endl;
    AtArray* vlist = AiArrayAllocate(m_numVertices, GetNumMotionSteps(), AI_TYPE_POINT);
@@ -305,7 +304,7 @@ void CMeshLightTranslator::Export(AtNode* light)
    for(unsigned int i = 0, id = 0; i < numPolygons; ++i)
    {
       MIntArray vidx;
-      int vertexCount = AiArrayGetUInt(nsides, i);         
+      int vertexCount = AiArrayGetUInt(nsides, i);
       mesh.getPolygonVertices(i, vidx);
       for (unsigned int j = 0; j < vertexCount; ++j)
          AiArraySetUInt(vidxs, id++, vidx[j]);  
@@ -316,7 +315,44 @@ void CMeshLightTranslator::Export(AtNode* light)
 
    AiNodeSetArray(meshNode, "matrix", AiArrayCopy(AiNodeGetArray(light, "matrix")));
    if (fnDepNode.findPlug("lightVisible").asBool())
+   {
       AiNodeSetInt(meshNode, "visibility", AI_RAY_CAMERA | AI_RAY_REFLECTED | AI_RAY_REFRACTED);
+      shaderName += "_shader";
+      AtNode* shaderNode = AiNode("solidColor");
+      AtRGB color = AiNodeGetRGB(light, "color") * 
+         AiNodeGetFlt(light, "intensity") * 
+         powf(2.f, AiNodeGetFlt(light, "exposure"));      
+      AiNodeSetStr(shaderNode, "name", shaderName.asChar());
+      AiNodeSetPtr(meshNode, "shader", shaderNode);
+      
+      // if normalize is set to false, we need to multiply
+      // the color with the surface area
+      // doing a very simple triangulation, good for
+      // approximating the Arnold one
+      if (!AiNodeGetInt(light, "normalize"))
+      {
+         double surfaceArea = 0.f;
+         for (unsigned int i = 0, id = 0; i < numPolygons; ++i)
+         {
+            const int vertexCount = AiArrayGetUInt(nsides, i);
+            if (vertexCount)
+            {
+               const AtVector p0 = vertices[id];
+               for (unsigned int j = 1; j < vertexCount - 1; ++j)
+               {
+                  const int id1 = id + j;
+                  const AtVector p1 = vertices[id1];
+                  const AtVector p2 = vertices[id1 + 1];
+                  surfaceArea += CalculateTriangleArea(p0, p1, p2);
+               }
+            }
+            id += vertexCount;
+         }
+         color = color * (float)surfaceArea;
+      }
+      
+      AiNodeSetRGB(shaderNode, "color", color.r, color.g, color.b);
+   }
    else
       AiNodeSetInt(meshNode, "visibility", 0);
 }
