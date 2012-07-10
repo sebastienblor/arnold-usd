@@ -67,10 +67,7 @@ shader_evaluate
    
    if (sg->Rt & AI_RAY_SHADOW)
    {
-      if (AiShaderEvalParamBool(p_cast_shadows))
-         sg->out_opacity = opacity;
-      else
-         sg->out_opacity = AI_RGB_BLACK;
+      sg->out_opacity = opacity;
       return;
    }   
    
