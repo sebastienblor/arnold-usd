@@ -290,7 +290,7 @@ void CMeshLightTranslator::Export(AtNode* light)
 
    unsigned int numIndices = 0;
 
-   for(unsigned int i = 0; i < numPolygons; ++i)
+   for(int i = 0; i < numPolygons; ++i)
    {
       int vertexCount = mesh.polygonVertexCount(i);
       numIndices += (unsigned int)vertexCount;
@@ -301,12 +301,12 @@ void CMeshLightTranslator::Export(AtNode* light)
 
    AtArray* vidxs = AiArrayAllocate(numIndices, 1, AI_TYPE_UINT);
 
-   for(unsigned int i = 0, id = 0; i < numPolygons; ++i)
+   for(int i = 0, id = 0; i < numPolygons; ++i)
    {
       MIntArray vidx;
       int vertexCount = AiArrayGetUInt(nsides, i);
       mesh.getPolygonVertices(i, vidx);
-      for (unsigned int j = 0; j < vertexCount; ++j)
+      for (int j = 0; j < vertexCount; ++j)
          AiArraySetUInt(vidxs, id++, vidx[j]);  
    }
    AiNodeSetArray(meshNode, "vidxs", vidxs);
@@ -334,17 +334,17 @@ void CMeshLightTranslator::Export(AtNode* light)
       if (AiNodeGetInt(light, "normalize"))
       {
          double surfaceArea = 0.f;
-         for (unsigned int i = 0, id = 0; i < numPolygons; ++i)
+         for (int i = 0, id = 0; i < numPolygons; ++i)
          {
             const int vertexCount = AiArrayGetUInt(nsides, i);
             if (vertexCount)
             {
-               const AtVector p0 = vertices[id];
-               for (unsigned int j = 1; j < vertexCount - 1; ++j)
+               const AtVector p0 = vertices[AiArrayGetUInt(vidxs, id)];
+               for (int j = 1; j < vertexCount - 1; ++j)
                {
                   const int id1 = id + j;
-                  const AtVector p1 = vertices[id1];
-                  const AtVector p2 = vertices[id1 + 1];
+                  const AtVector p1 = vertices[AiArrayGetUInt(vidxs, id1)];
+                  const AtVector p2 = vertices[AiArrayGetUInt(vidxs, id1 + 1)];
                   surfaceArea += CalculateTriangleArea(p0, p1, p2);
                }
             }
