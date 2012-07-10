@@ -22,6 +22,14 @@ public:
    
    static const MTypeId id;      
 private:
+   
+   static MObject s_geometryType;
+   static MObject s_density;
+   static MObject s_roundness;
+   static MObject s_widthEdge;
+   static MObject s_heightEdge;
+   static MObject s_ramp;
+   static MObject s_rampAxis;
 };
 
 #endif // ARNOLDLIGHTBLOCKERNODE_H
