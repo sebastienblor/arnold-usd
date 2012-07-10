@@ -115,6 +115,9 @@ void CHairTranslator::Update( AtNode *curve )
    }
    
    MStatus status;
+   
+   //ProcessRenderFlags(curve);
+   int visibility = ComputeVisibility(m_dagPath);
 
    // Default to the Hair shader if nothing else has been set.
    if (shader == NULL)
@@ -128,7 +131,12 @@ void CHairTranslator::Update( AtNode *curve )
       ProcessParameter(shader, "translucence", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("translucence"));
       ProcessParameter(shader, "specularColor", AI_TYPE_RGB, fnDepNodeHair.findPlug("specularColor"));
       ProcessParameter(shader, "specularPower", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("specularPower"));
-      ProcessParameter(shader, "castShadows", AI_TYPE_BOOLEAN, fnDepNodeHair.findPlug("castShadows"));
+      plug = fnDepNodeHair.findPlug("castShadows");
+      
+      if (plug.asBool())
+         visibility = visibility | AI_RAY_SHADOW;
+      else
+         visibility = visibility & ~AI_RAY_SHADOW;
       
       const bool diffuseRandConnected = ProcessParameter(shader, "diffuseRand", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("diffuseRand")) != 0;
       const bool specularRandConnected = ProcessParameter(shader, "specularRand", AI_TYPE_FLOAT, fnDepNodeHair.findPlug("specularRand")) != 0;
@@ -170,6 +178,8 @@ void CHairTranslator::Update( AtNode *curve )
       
       shader = ExportRootShader(shader);
    }
+   
+   AiNodeSetInt(curve, "visibility", visibility);
    
    // Assign shader
    if (shader != NULL) AiNodeSetPtr(curve, "shader", shader);
@@ -241,8 +251,6 @@ void CHairTranslator::Update( AtNode *curve )
    if (exportCurveColors)
       curveColors = AiArrayAllocate(numPoints, 1, AI_TYPE_RGB);
 
-   //ProcessRenderFlags(curve);
-   AiNodeSetInt(curve, "visibility", ComputeVisibility(m_dagPath));
    plug = fnDepNodeHair.findPlug("aiOpaque");
    if (!plug.isNull())
       AiNodeSetBool(curve, "opaque", plug.asBool());

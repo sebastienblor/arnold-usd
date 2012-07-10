@@ -123,4 +123,25 @@ public:
       return AddArnoldNode("skydome_light");
    }
 };
+
+class CMeshLightTranslator : public CLightTranslator
+{
+public:
+   void Export(AtNode* light);
+   static void NodeInitializer(CAbTranslator context);
+   static void* creator()
+   {
+      return new CMeshLightTranslator();
+   }
+   AtNode* CreateArnoldNodes()
+   {
+      return AddArnoldNode("mesh_light");
+   }
+   
+   virtual void ExportMotion(AtNode* light, unsigned int step);
+   
+private:
+   int m_numVertices;
+};
+
 #endif // LIGHT_TRANSLATORS_H

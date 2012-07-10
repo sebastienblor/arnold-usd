@@ -1,7 +1,7 @@
 !include "MUI2.nsh"
 
-Name "MtoA 2013 0.17.0"
-OutFile "MtoA_0.17.0_2013_Installer.exe"
+Name "MtoA 0.17.0 Maya 2013"
+OutFile "MtoA-0.17.0-win64-2013.exe"
 
 ;Default installation folder
 InstallDir "C:\solidangle\mtoadeploy\2013"
@@ -40,7 +40,7 @@ Var StartMenuFolder
 !insertmacro MUI_LANGUAGE "English"
 
 
-Section "MtoA 2013" MtoA2013
+Section "MtoA for Maya 2013" MtoA2013
 
   ; Check to see if already installed
   SetRegView 64
@@ -48,7 +48,7 @@ Section "MtoA 2013" MtoA2013
   StrCmp $R0 "" NotInstalled Installed
   Installed:
   MessageBox MB_TOPMOST|MB_OKCANCEL  \
-    "MtoA2013 is already installed. Remove installed version?" \
+    "MtoA for Maya 2013 is already installed. Remove installed version?" \
     IDOK Uninstall IDCANCEL QuitPart
   Uninstall:
     Exec $R0
@@ -57,7 +57,7 @@ Section "MtoA 2013" MtoA2013
 
   NotInstalled:
   SetOutPath "$INSTDIR"
-  File /r /x *.exe /x *.nsi *.*
+  File /r /x *.nsi *.*
 
   ;Store installation folder
   SetRegView 32
@@ -76,13 +76,13 @@ Section "MtoA 2013" MtoA2013
   
   SetRegView 64
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\MtoA2013" \
-                 "DisplayName" "MtoA 0.17.0 2013"
+                 "DisplayName" "MtoA 0.17.0 Maya 2013"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\MtoA2013" \
                  "UninstallString" "$\"$INSTDIR\uninstall.exe$\""
 
 SectionEnd
 
-Section "MtoA 2013 Env Variables" MtoA2013EnvVariables
+Section "MtoA for Maya 2013 Env Variables" MtoA2013EnvVariables
 
   SetOutPath "$INSTDIR"
   
@@ -96,8 +96,6 @@ Section "MtoA 2013 Env Variables" MtoA2013EnvVariables
     FileOpen $0 "$R1\maya\2013-x64\modules\mtoa.mod" w
     FileWrite $0 "+ mtoa any $R0"
     FileClose $0
-    
-    MessageBox MB_OK "$R1\maya\2013-x64\modules\mtoa.mod"
     
     ;Create a backup of Maya.env
     CreateDirectory "$PROFILE\Documents\maya\2013-x64\MtoA_backup"
@@ -124,8 +122,8 @@ SectionEnd
 ;Descriptions
 
   ;Language strings
-  LangString DESC_MtoA2013 ${LANG_ENGLISH} "Install all MtoA 2013 files."
-  LangString DESC_MtoA2013EnvVariables ${LANG_ENGLISH} "Configure MtoA 2013 Maya Environment variables."
+  LangString DESC_MtoA2013 ${LANG_ENGLISH} "Install all MtoA for Maya 2013 files."
+  LangString DESC_MtoA2013EnvVariables ${LANG_ENGLISH} "Configure MtoA for Maya 2013 Maya Environment variables."
 
   ;Assign language strings to sections
   !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN

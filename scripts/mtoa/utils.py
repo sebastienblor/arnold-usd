@@ -387,3 +387,14 @@ def setEnvironmentVariable(name, value):
         ctypes.windll.kernel32.SetEnvironmentVariableW(name, buf)
     else:
         os.environ[name] = value    
+        
+def createLocator(locatorType, asLight=False):
+    lNode = pm.createNode('transform', name='%s1' % locatorType)
+    lName = lNode.name()
+    lId = lName[len(locatorType):]
+    shapeName = '%sShape%s' % (locatorType, lId)
+    pm.createNode(locatorType, name=shapeName, parent=lNode)       
+    if asLight:
+        cmds.connectAttr('%s.instObjGroups' % lName, 'defaultLightSet.dagSetMembers', nextAvailable=True)
+    return shapeName       
+

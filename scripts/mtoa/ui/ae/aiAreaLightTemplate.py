@@ -29,6 +29,7 @@ class AEaiAreaLightTemplate(ShaderAETemplate):
         self.addControl("emitDiffuse")
         self.addControl("emitSpecular")
         self.addControl("aiDecayType")
+        self.addControl("lightVisible")
         
         self.addChildTemplate('aiTranslator', templates.getNodeTemplate('aiAreaLight'))
         self.endLayout()
@@ -40,9 +41,6 @@ class AEaiAreaLightTemplate(ShaderAETemplate):
         self.endScrollLayout()
 
 class BaseAreaLightTemplate(lightTemplate.LightTemplate):
-    def validFilters(self):
-        return ['aiLightBlocker', 'aiLightDecay']
-
     def setup(self):
         self.addControl("aiSamples")
         self.addControl("aiNormalize")
@@ -62,6 +60,22 @@ class BaseAreaLightTemplate(lightTemplate.LightTemplate):
 
         self.commonLightAttributes()
 
+class MeshLightTemplate(lightTemplate.LightTemplate):
+    def setup(self):
+        self.addControl("aiSamples")
+        self.addControl("aiNormalize")
+
+        self.addSeparator()
+
+        self.addControl("aiCastShadows")
+        self.addControl("aiShadowDensity")
+        self.addControl("aiShadowColor")
+
+        self.addSeparator()
+
+        self.commonLightAttributes()
+
+
 class QuadAreaLightTemplate(BaseAreaLightTemplate):
     def setup(self):
         self.addControl("aiResolution")
@@ -72,3 +86,4 @@ templates.registerAETemplate(templates.TranslatorControl, "aiAreaLight", label="
 templates.registerTranslatorUI(QuadAreaLightTemplate, "aiAreaLight", "quad")
 templates.registerTranslatorUI(BaseAreaLightTemplate, "aiAreaLight", "cylinder")
 templates.registerTranslatorUI(BaseAreaLightTemplate, "aiAreaLight", "disk")
+templates.registerTranslatorUI(MeshLightTemplate, "aiAreaLight", "mesh")
