@@ -16,6 +16,7 @@ This makes it easy to extend the built-in functionality within your override.  F
     mtoa.hooks.getDefaultAOVs = getDefaultAOVs
 """
 import os
+import pymel.core as pm
 
 def setupFilter(filter, aovName=None):
     """
@@ -104,7 +105,12 @@ _fileTokenScene = fileTokenScene
 
 def fileTokenRenderPass(path, tokens, **kwargs):
     if not kwargs.get('strictAOVs', False) and '<RenderPass>' not in path and 'RenderPass' in tokens:
-        path = '<RenderPass>/' + path
+        if not os.path.isabs(path):
+            path = '<RenderPass>/' + path
+            if 'RenderPass' not in tokens:
+                raise ValueError("You must provide a value for RenderPass token")
+        else:
+            pm.cmds.warning('[mtoa] Multiple renderable render passes exist, but output path is absolute and without <RenderPass> token: "%s"' % path)
     return path
 _fileTokenRenderPass = fileTokenRenderPass
 

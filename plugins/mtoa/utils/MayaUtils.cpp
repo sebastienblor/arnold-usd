@@ -27,11 +27,11 @@ MString getFileName(MCommonRenderSettingsData::MpathType pathType,
    if (fileFormat.numChars())
       cmd += "Extension=" + fileFormat + " ";
    if (sceneFileName.numChars())
-      cmd += "Scene=\"" + sceneFileName + "\"";
+      cmd += "Scene=r\"" + sceneFileName + "\"";
    cmd += "', ";
    cmd += MString("frame=") + frameNumber + ", ";
    if (path.numChars())
-      cmd += "path='" + path + "', ";
+      cmd += "path=r'" + path + "', ";
    if (fileRuleType.numChars())
       cmd += "fileType='" + fileRuleType + "', ";
    if (isSequence != NULL)
@@ -39,5 +39,6 @@ MString getFileName(MCommonRenderSettingsData::MpathType pathType,
    if (strictAOVs != NULL)
       cmd += MString("strictAOVs=") + (*strictAOVs ? "True" : "False")  + ", ";
    cmd += MString("createDirectory=") + (createDirectory ? "True" : "False")  + ");";
+
    return MGlobal::executePythonCommandStringResult(cmd);
 }
