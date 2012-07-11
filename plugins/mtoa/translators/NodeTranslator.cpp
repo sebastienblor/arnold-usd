@@ -772,11 +772,16 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
 
       MFnAttribute fnAttr(oAttr);
       MPlug pAttr(object, oAttr);
-
-      MString name = fnAttr.name();
-      if (name.indexW("mtoa_") == 0)
+      // The indexW in the MString is very slow!
+      // so hard coding the check is a better option
+      MString name = fnAttr.name();      
+      if (name.length() < 6)
+         continue;
+      const char *aname = name.asChar();
+      if ((aname[0] == 'm') && (aname[1] == 't') &&
+          (aname[2] == 'o') && (aname[3] == 'a') && (aname[4] == '_'))
       {
-         const char *aname = name.asChar() + 5;
+         aname = aname + 5;
          if (AiNodeLookUpUserParameter(anode, aname) != NULL)
          {
             continue;
