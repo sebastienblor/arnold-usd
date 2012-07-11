@@ -190,6 +190,9 @@ def createOptions():
     """
     override this with your own function to set defaults
     """
+    from . import aovs
+    from . import hooks
+
     # the shared option ensures that it is only created if it does not exist
     options = pm.createNode('aiOptions', skipSelect=True, shared=True, name='defaultArnoldRenderOptions')
     filterNode = pm.createNode('aiAOVFilter', name='defaultArnoldFilter', skipSelect=True, shared=True)
@@ -201,11 +204,23 @@ def createOptions():
         upgradeAOVOutput(options, filterNode, driverNode)
 
     # if we're just creating the options node, then be sure to connect up the driver and filter
-    if not filterNode:
+    if filterNode:
+        # newly created default filter
+        hooks.setupFilter(filterNode)
+    else:
         filterNode = pm.nt.DependNode('defaultArnoldFilter')
-    if not driverNode:
+
+    if driverNode:
+        # newly created default driver
+        hooks.setupDriver(driverNode)
+    else:
         driverNode = pm.nt.DependNode('defaultArnoldDriver')
-    if not options:
+
+    if options:
+        # newly created options
+        hooks.setupDefaultAOVs(aovs.AOVInterface(options))
+        hooks.setupOptions(options)
+    else:
         options = pm.nt.DependNode('defaultArnoldRenderOptions')
 
     filterNode.message.connect(options.filter, force=True)

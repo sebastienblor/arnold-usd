@@ -27,7 +27,7 @@ def getAOVsInNetwork(rootNode):
             results[node] = [node.attr(at).get() for (aov, at, type) in aovs.getNodeGlobalAOVData(node.type())]
     return results
 
-class ShadingEngineTemplate(templates.AttributeTemplate):
+class ShadingEngineTemplate(templates.AttributeEditorTemplate):
     def __init__(self, nodeType):
         self._msgCtrls = []
         aovs.addAOVChangedCallback(self.update, 'ShadingEngineTemplate')
@@ -99,7 +99,7 @@ class ShadingEngineTemplate(templates.AttributeTemplate):
                 self.aovNodes[aov].append(node)
 
     def buildAOVFrame(self, nodeAttr):
-        # TODO: move this into AttributeTemplate
+        # TODO: move this into AttributeEditorTemplate
         self._setActiveNodeAttr(nodeAttr)
         nodeAttr = pm.Attribute(nodeAttr)
 
@@ -153,7 +153,7 @@ class ShadingEngineTemplate(templates.AttributeTemplate):
         pm.setUITemplate('attributeEditorTemplate', popTemplate=True)
 
     def updateAOVFrame(self, nodeAttr):
-        # TODO: move this into AttributeTemplate
+        # TODO: move this into AttributeEditorTemplate
         self._setActiveNodeAttr(nodeAttr)
         nodeAttr = pm.Attribute(nodeAttr)
 

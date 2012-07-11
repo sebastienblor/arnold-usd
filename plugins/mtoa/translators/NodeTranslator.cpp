@@ -132,6 +132,27 @@ bool HasIncomingConnection(const MPlug &plug)
 
 //------------ CNodeTranslator ------------//
 
+AtNode* CNodeTranslator::ExportNode(const MPlug& outputPlug, bool trackAOVs)
+{
+   CNodeTranslator* translator = NULL;
+   if (trackAOVs)
+      translator = m_session->ExportNode(outputPlug, m_shaders, &m_upstreamAOVs);
+   else
+      translator = m_session->ExportNode(outputPlug, m_shaders);
+   if (translator != NULL)
+      return translator->GetArnoldRootNode();
+   return NULL;
+}
+
+AtNode* CNodeTranslator::ExportDagPath(MDagPath &dagPath)
+{
+   CDagTranslator* translator = NULL;
+   translator = m_session->ExportDagPath(dagPath);
+   if (translator != NULL)
+      return translator->GetArnoldRootNode();
+   return NULL;
+}
+
 /// Get a plug for that attribute name on the maya translated object
 MPlug CNodeTranslator::FindMayaObjectPlug(const MString &attrName, MStatus* ReturnStatus) const
 {
@@ -148,36 +169,26 @@ MPlug CNodeTranslator::FindMayaOverridePlug(const MString &attrName, MStatus* Re
    MStatus status(MStatus::kSuccess);
    MPlug plug;
    // Check if a set override this plug's value
-   CNodeTranslator* translator;
    std::vector<CNodeTranslator*>::iterator it;
    std::vector<CNodeTranslator*> translators;
-   unsigned int novr = m_overrideSets.length();
+   unsigned int novr = m_overrideSets.size();
    for (unsigned int i=0; i<novr; i++)
    {
-      CNodeAttrHandle handle(m_overrideSets[i], "message");
-      m_session->GetActiveTranslators(handle, translators);
-      for (it=translators.begin(); it!=translators.end(); it++)
+      CNodeTranslator* translator = m_overrideSets[i];
+
+      // MString setName = translator->GetMayaObjectName();
+      // Search only on active translators
+      if (translator->FindMayaObjectPlug("aiOverride", &status).asBool())
       {
-         MPlug p;
-         translator = *it;
-         // MString setName = translator->GetMayaObjectName();
-         // Search only on active translators
-         if (translator->FindMayaObjectPlug("aiOverride", &status).asBool())
-         {
-            p = translator->FindMayaObjectPlug(attrName, &status);
-         }
-         if (p.isNull())
-         {
-            // But chain on all
-            // It's a depth first search on sets of sets
-            p = translator->FindMayaOverridePlug(attrName, &status);
-         }
-         if (!p.isNull())
-         {
-            plug = p;
-            break;
-         }
+         plug = translator->FindMayaObjectPlug(attrName, &status);
       }
+      if (plug.isNull())
+      {
+         // But chain on all
+         // It's a depth first search on sets of sets
+         plug = translator->FindMayaOverridePlug(attrName, &status);
+      }
+
       // More than one (non nested) set contains object, stop on first one
       if (!plug.isNull()) break;
    }
@@ -250,14 +261,15 @@ MStatus CNodeTranslator::ExportOverrideSets()
 
    MString nodeName = GetMayaNodeName();
    m_overrideSets.clear();
-   status = GetOverrideSets(m_handle.object(), m_overrideSets);
+   MObjectArray overrideSetObjs;
+   status = GetOverrideSets(m_handle.object(), overrideSetObjs);
    // Exporting a set creates no Arnold object but allows IPR to track it
    MFnSet fnSet;
-   unsigned int ns = m_overrideSets.length();
+   unsigned int ns = overrideSetObjs.length();
    for (unsigned int i=0; i<ns; i++)
    {
-      fnSet.setObject(m_overrideSets[i]);
-      m_session->ExportNode(fnSet.findPlug("message"));
+      fnSet.setObject(overrideSetObjs[i]);
+      m_overrideSets.push_back(m_session->ExportNode(fnSet.findPlug("message")));
    }
    AiMsgDebug("[mtoa.translator]  %-30s | %s: Exported %i override sets.",
               GetMayaNodeName().asChar(), GetTranslatorName().asChar(), ns);
@@ -367,8 +379,8 @@ void CNodeTranslator::AddAOVDefaults(AtNode* shadingEngine, std::vector<AtNode*>
             MString nodeType = GetAOVNodeType(outType);
 
             // process connections
-            // use m_session->ExportNode to avoid processing aovs for this node
-            AtNode* linkedNode = m_session->ExportNode(connections[0]);
+            // use false to avoid processing aovs for this node
+            AtNode* linkedNode = ExportNode(connections[0], false);
             if (linkedNode != NULL)
             {
                const char* aovName = aov.GetName().asChar();
@@ -591,9 +603,12 @@ void CNodeTranslator::SetArnoldNodeName(AtNode* arnoldNode, const char* tag)
 {
    MString name = GetMayaNodeName();
    char nodeName[MAX_NAME_SIZE];
-   MString outputAttr = GetMayaAttributeName();
-   if (outputAttr.numChars())
-      name = name + AI_ATT_SEP + outputAttr;
+   if (DependsOnOutputPlug())
+   {
+      MString outputAttr = GetMayaAttributeName();
+      if (outputAttr.numChars())
+         name = name + AI_ATT_SEP + outputAttr;
+   }
    if (strlen(tag))
       name = name + AI_TAG_SEP + tag;
 
@@ -1348,10 +1363,11 @@ AtNode* CNodeTranslator::ProcessConstantParameter(AtNode* arnoldNode, const char
             {
                AiMsgWarning("[mtoa] RGBA attribute %s has no alpha component: exporting as RGBA",
                             plug.partialName(true, false, false, false, false, true).asChar());
-               AiNodeSetRGB(arnoldNode, arnoldParamName,
+               AiNodeSetRGBA(arnoldNode, arnoldParamName,
                             plug.child(0).asFloat(),
                             plug.child(1).asFloat(),
-                            plug.child(2).asFloat());
+                            plug.child(2).asFloat(),
+                            1.0f);
             }
          }
          else
@@ -1700,7 +1716,8 @@ MStatus CDagTranslator::ExportOverrideSets()
    m_overrideSets.clear();
    MDagPath path = m_dagPath;
    // Check for passed path
-   status = GetOverrideSets(path, m_overrideSets);
+   MObjectArray overrideSetObjs;
+   status = GetOverrideSets(path, overrideSetObjs);
    // If passed path is a shape, check for its transform as well
    // FIXME: do we want to consider full hierarchy ?
    // Also consider the sets the transform of that shape might be in
@@ -1711,15 +1728,15 @@ MStatus CDagTranslator::ExportOverrideSets()
    }
    if (!(path == m_dagPath))
    {
-      status = GetOverrideSets(path, m_overrideSets);
+      status = GetOverrideSets(path, overrideSetObjs);
    }
    // Exporting a set creates no Arnold object but allow IPR to track it
    MFnSet fnSet;
-   unsigned int ns = m_overrideSets.length();
+   unsigned int ns = overrideSetObjs.length();
    for (unsigned int i=0; i<ns; i++)
    {
-      fnSet.setObject(m_overrideSets[i]);
-      m_session->ExportNode(fnSet.findPlug("message"));
+      fnSet.setObject(overrideSetObjs[i]);
+      m_overrideSets.push_back(m_session->ExportNode(fnSet.findPlug("message")));
    }
 
    return status;
@@ -1731,10 +1748,13 @@ void CDagTranslator::SetArnoldNodeName(AtNode* arnoldNode, const char* tag)
    MString name = m_dagPath.partialPathName();
    // TODO: add a global option to control how names are exported
    // MString name = m_dagPath.fullPathName();
-   MString outputAttr = GetMayaAttributeName();
+   if (DependsOnOutputPlug())
+   {
+      MString outputAttr = GetMayaAttributeName();
 
-   if (outputAttr.numChars())
-      name = name + AI_ATT_SEP + outputAttr;
+      if (outputAttr.numChars())
+         name = name + AI_ATT_SEP + outputAttr;
+   }
    if (strlen(tag))
       name = name + AI_TAG_SEP + tag;
 
@@ -1827,7 +1847,7 @@ bool CDagTranslator::IsMasterInstance(MDagPath &masterDag)
          for (; (master_index < m_dagPath.instanceNumber()); master_index++)
          {
             currDag = allInstances[master_index];
-            if (CArnoldSession::IsRenderablePath(currDag))
+            if (m_session->IsRenderablePath(currDag))
             {
                // found it
                m_session->AddMasterInstanceHandle(handle, currDag);
@@ -1908,7 +1928,7 @@ void CDagTranslator::ExportMatrix(AtNode* node, unsigned int step)
 int CDagTranslator::ComputeVisibility(const MDagPath& path)
 {
    // Usually invisible nodes are not exported at all, just making sure here
-   if (false == CArnoldSession::IsRenderablePath(path))
+   if (false == m_session->IsRenderablePath(path))
       return AI_RAY_UNDEFINED;
 
    int visibility = AI_RAY_ALL;

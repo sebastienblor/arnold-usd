@@ -1,4 +1,4 @@
-﻿import pymel.core as pm
+import pymel.core as pm
 import mtoa.aovs as aovs
 import mtoa.ui.ae.aiSwatchDisplay as aiSwatchDisplay
 from mtoa.ui.ae.utils import interToUI

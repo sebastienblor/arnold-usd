@@ -76,5 +76,13 @@ class QuadAreaLightTemplate(templates.AttributeTemplate):
     def setup(self):
         self.addControl("aiResolution")
 
+class MeshLightTemplate(templates.AttributeTemplate):
+    def setup(self):
+        self.addControl("aiCastShadows")
+        self.addControl("aiShadowDensity")
+        self.addControl("aiShadowColor")
+        self.addControl("lightVisible")
+
 templates.registerAETemplate(templates.TranslatorControl, "aiAreaLight", label="Light Shape")
 templates.registerTranslatorUI(QuadAreaLightTemplate, "aiAreaLight", "quad")
+templates.registerTranslatorUI(MeshLightTemplate, "aiAreaLight", "mesh")

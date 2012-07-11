@@ -75,8 +75,7 @@ def _aeLoader(modname, objname, nodename):
         if inspect.isfunction(f):
             f(nodename)
         elif inspect.isclass(f):
-            inst = f(pm.nodeType(nodename))
-            inst._doSetup(nodename)
+            f(nodename, doSetup=True)
         else:
             print "AE object %s has invalid type %s" % (f, type(f))
     except Exception:

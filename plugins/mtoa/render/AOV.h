@@ -58,15 +58,12 @@ public:
    inline MObject GetNode() const { return m_object; }
 
    inline const MString& GetPrefix() const { return m_prefix; }
+   inline int GetDataType() const { return m_type; };
 
    inline const MStringArray& GetImageFormats() const { return m_extensions; }
 
    bool IsEnabled() const { return m_enabled; }
    bool FromMaya(MObject &o);
-
-   void SetImageFilename(unsigned int driverNum, const MString &filename) const;
-
-   void SetupOutputs(MStringArray &result, AtNode *defaultDriver, AtNode *defaultFilter);
 
 protected:
 
@@ -78,7 +75,7 @@ protected:
 
    MString   m_name;
    // enumerator that corresponds to arnold's data type enum
-   int     m_type;
+   int       m_type;
    bool      m_enabled;
    MString   m_prefix;
    MString   m_imageformat;
