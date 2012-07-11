@@ -1070,12 +1070,24 @@ AtNode* CGeometryTranslator::ExportInstance(AtNode *instance, const MDagPath& ma
    
    // checking if it`s connected to a different shading network
    // this should be enough, because arnold does not supports
-   // overriding per face assigment per instance
-   if ((conns0.length() * connsI.length()) > 0)
+   // overriding per face assignment per instance
+   // it`s safe to ignore if the instanced object is
+   // using a different per face assignment
+   // If the original object has per face assignment
+   // then the length is zero (because the shading group is
+   // connected to a different place)
+   const unsigned int conns0Length = conns0.length();
+   const unsigned int connsILength = connsI.length();
+   if (conns0Length != connsILength)
+      shadersDifferent = true;
+   else
    {
-      if (conns0[0].node() != connsI[0].node())
-         shadersDifferent = true;
-   }   
+      if (conns0Length  > 0)
+      {
+         if (conns0[0].node() != connsI[0].node())
+            shadersDifferent = true;
+      }
+   }
    
    if (shadersDifferent)
    {
