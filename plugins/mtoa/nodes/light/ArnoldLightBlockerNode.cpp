@@ -71,13 +71,13 @@ MStatus CArnoldLightBlockerNode::initialize()
    s_widthEdge = nAttr.create("widthEdge", "width_edge", MFnNumericData::kFloat);
    nAttr.setDefault(0.f);
    nAttr.setSoftMin(0.f);
-   nAttr.setSoftMax(0.f);
+   nAttr.setSoftMax(1.f);
    addAttribute(s_widthEdge);
    
    s_heightEdge = nAttr.create("heightEdge", "height_edge", MFnNumericData::kFloat);
    nAttr.setDefault(0.f);
    nAttr.setSoftMin(0.f);
-   nAttr.setSoftMax(0.f);
+   nAttr.setSoftMax(1.f);
    addAttribute(s_heightEdge);
    
    s_ramp = nAttr.create("ramp", "rmp", MFnNumericData::kFloat);
