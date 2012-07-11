@@ -19,8 +19,6 @@ public:
    static void NodeInitializer(CAbTranslator context);
    AtNode* CreateArnoldNodes();
    void Export(AtNode* atNode);
-   // we want defaultArnoldFilter/Driver to export multiple times
-   bool DisableCaching(){return true;};
 
 protected:
    // FIXME: not implemented until these translators are tracked

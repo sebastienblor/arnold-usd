@@ -6,6 +6,8 @@ import mtoa.ui.ae.shaderTemplate as shaderTemplate
 import mtoa.ui.ae.templates as templates
 import mtoa.core as core
 import mtoa.callbacks as callbacks
+import mtoa.hooks as hooks
+
 from collections import defaultdict
 import sys
 
@@ -140,21 +142,13 @@ class AOVBrowser(object):
         create the selected AOVs, and connect the new AOV nodes to their corresponding
         AOV attributes for any nodes in the scene.
         '''
-        map = defaultdict(list)
-        typeMap = {}
-        for nodeType in self.nodeTypes:
-            for aovName, attr, type in aovs.getNodeGlobalAOVData(nodeType):
-                map[aovName].append((nodeType, attr))
-                typeMap[aovName] = type
-        typeMap.update(dict(aovs.BUILTIN_AOVS))
-        
         sel = pm.textScrollList(self.availableLst, query=True, selectItem=True)
         if sel:
             global _updating
             _updating = True
             try:
                 for aovName in sel:
-                    aov = self.renderOptions.addAOV(aovName, typeMap[aovName])
+                    aov = self.renderOptions.addAOV(aovName)
             finally:
                 _updating = False
             self.updateActiveAOVs()
@@ -307,6 +301,8 @@ class AOVItem(object):
         pm.setParent('..')
         pm.setParent('..')
 
+    def aovName(self):
+        return self.aov.node.attr('name').get()
 
     def getMenus(self):
         '''
@@ -540,9 +536,11 @@ class AOVOutputItem(object):
 
         if outputType == 'aiAOVFilter':
             self.filterNode = outputNode
+            hooks.setupFilter(outputNode, self.aovItem.aovName())
             menu = self.filterMenu
         else:
             self.driverNode = outputNode
+            hooks.setupDriver(outputNode, self.aovItem.aovName())
             menu = self.driverMenu
 
         transAttr = outputNode.attr('aiTranslator')
@@ -585,7 +583,8 @@ class ArnoldAOVEditor(object):
         pm.cmds.rowLayout('arnoldAOVButtonRow', nc=3, columnWidth3=[140, 100, 100], columnAttach3=['right', 'both', 'both'])
         pm.cmds.text(label='')
         pm.cmds.button(label='Add Custom', c=lambda *args: shaderTemplate.newAOVPrompt())
-        pm.cmds.button(label='Delete All', c=lambda *args: self.renderOptions.removeAOVs(self.aovRows.keys()))
+        pm.cmds.button(label='Delete All', c=lambda *args: (self.renderOptions.removeAOVs(self.aovRows.keys()), \
+                                                            hooks.setupDefaultAOVs(self.renderOptions)))
         pm.setParent('..') # rowLayout
 
         pm.cmds.separator(style='in')

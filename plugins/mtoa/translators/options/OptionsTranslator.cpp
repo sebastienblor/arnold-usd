@@ -28,106 +28,109 @@ AtNode* COptionsTranslator::CreateArnoldNodes()
 void COptionsTranslator::ProcessAOVs()
 {
    AOVMode aovMode = AOVMode(FindMayaPlug("aovMode").asInt());
-   if (aovMode == AOV_MODE_ENABLED ||
-         (m_session->IsBatch() && aovMode == AOV_MODE_BATCH_ONLY))
+   m_aovsEnabled = aovMode == AOV_MODE_ENABLED ||
+         (m_session->IsBatch() && aovMode == AOV_MODE_BATCH_ONLY);
+
+   bool foundBeauty = false;
+   MPlugArray conns;
+   MPlug pAOVs = FindMayaPlug("aovs");
+   for (unsigned int i = 0; i < pAOVs.evaluateNumElements(); ++i)
    {
-      MPlugArray conns;
-      MPlug pAOVs = FindMayaPlug("aovs");
-      for (unsigned int i = 0; i < pAOVs.evaluateNumElements(); ++i)
+      if (pAOVs[i].connectedTo(conns, true, false))
       {
-         if (pAOVs[i].connectedTo(conns, true, false))
+         CAOV aov;
+         MObject oAOV = conns[0].node();
+         if (aov.FromMaya(oAOV))
          {
-            CAOV aov;
-            MObject oAOV = conns[0].node();
-            if (aov.FromMaya(oAOV))
+            if (aov.GetName() == "beauty")
             {
-               if (aov.IsEnabled())
-               {
-                  m_aovs.insert(aov);
-               }
+               m_aovs.insert(aov);
+               foundBeauty = true;
             }
             else
             {
-               MGlobal::displayWarning("[mtoa] Could not setup AOV attribute " + MFnDependencyNode(oAOV).name());
+               // AOVs are considered "in-use" even if they are not enabled
+               m_aovsInUse = true;
+               if (m_aovsEnabled && aov.IsEnabled())
+                  m_aovs.insert(aov);
             }
+         }
+         else
+         {
+            MGlobal::displayWarning("[mtoa] Could not setup AOV attribute " + MFnDependencyNode(oAOV).name());
          }
       }
    }
-   else
+   if (!foundBeauty)
+   {
+      CAOV aov;
+      // CAOV is enabled and RGBA by default
+      aov.SetName("beauty");
+      m_aovs.insert(aov);
+   }
+   if (!m_aovsEnabled)
       AiMsgDebug("[mtoa] [aovs] disabled");
 }
 
-///// Set the filenames for all output drivers
-//MString COptionsTranslator::SetImageFilenames(CAOV* aov)
-//{
-//   MString imageFilename;
-//   MString cameraFolderName;
-//   MObject renderLayer = MFnRenderLayer::currentLayer();
-//   double fileFrameNumber = MAnimControl::currentTime().value();
-//
-//   // file name
-//   MFileObject fileObj;
-//   fileObj.setRawFullName(MFileIO::currentFile());
-//   MString sceneFileName = fileObj.resolvedName();
-//   sceneFileName = sceneFileName.substringW(0, sceneFileName.rindexW('.')-1);
-//
-//   MFnDagNode camDagTransform(m_session->GetExportCamera().transform());
-//   MString nameCamera = camDagTransform.name();
-//
-//   // Notes on MCommonRenderSettingsData::getImageName:
-//   //   - sceneFileName is only used if defaultRenderGlobals.imageFilePrefix is not set
-//   //   - a "<RenderPass>/" token is added before the file name if any pass nodes are
-//   //     connected to a render layer AND <RenderPass> does not appear in defaultRenderGlobals.imageFilePrefix
-//   // because getImageName ignores the sceneFileName arg when defaultRenderGlobals.imageFilePrefix is non-empty,
-//   // we can only achieve the proper addition of the <RenderPass> token by creating a dummy render pass node.
-//   // TODO: write a complete replacement for MCommonRenderSettingsData::getImageName
-//   MCommonRenderSettingsData::MpathType pathType;
-//   MCommonRenderSettingsData defaultRenderGlobalsData;
-//   MRenderUtil::getCommonRenderSettings(defaultRenderGlobalsData);
-//   if (m_session->IsBatch())
-//   {
-//      pathType = defaultRenderGlobalsData.kFullPathImage;
-//   }
-//   else
-//   {
-//      pathType = defaultRenderGlobalsData.kFullPathTmp;
-//   }
-//
-//   // FIXME: only add RenderPass tokens if custom AOVs are enabled
-//   if (defaultRenderGlobalsData.name == "")
-//   {
-//      // setup the default RenderPass token
-//      sceneFileName = "<RenderPass>/" + sceneFileName;
-//      // FIXME: hard-wiring convention here:
-//      // need a a complete replacement for MCommonRenderSettingsData::getImageName to avoid this
-//      // (see mtoa.utils.expandFileTokens for the beginning of one)
-//      sceneFileName += "_<RenderPass>";
-//   }
-//
-//   MStringArray extensions;
-//   aov->GetImageFormats(extensions);
-//   MString tokens = MString("RenderPass=") + aov->GetName();
-//   for (unsigned int i=0; i<extensions.length(); ++i)
-//   {
-//      MString filename = defaultRenderGlobalsData.getImageName(pathType, fileFrameNumber,
-//                                                               sceneFileName, nameCamera,
-//                                                               extensions[i], renderLayer,
-//                                                               tokens, 1);
-//      // FIXME: the driver is not getting its filename set
-//      aov->SetImageFilename(filename);
-//   }
-//}
+/// Set the filenames for all output drivers
+void COptionsTranslator::ExportAOVs()
+{
+   ProcessAOVs();
+
+   MString displayAOV = FindMayaPlug("displayAOV").asString();
+   // for backward compatibility
+   if ((displayAOV == "RGBA") || (displayAOV == "RGB"))
+      displayAOV = "beauty";
+
+   AtNode* defaultFilter = CreateDefaultFilter();
+
+   bool singleLayerDisplay = false;
+   CAOVOutput displayOutput;
+   displayOutput.driver = CreateDisplayDriver(displayOutput.prefix, singleLayerDisplay);
+   displayOutput.filter = defaultFilter;
+   displayOutput.splitAOVs = false;  // FIXME: get a proper value
+
+   // loop through AOVs
+   for (AOVSet::iterator it=m_aovs.begin(); it!=m_aovs.end(); ++it)
+   {
+      MString name = it->GetName();
+      CAOVOutputArray aovData;
+      aovData.type = it->GetDataType();
+
+      AiMsgDebug("[mtoa] [aov %s] Setting AOV output: filter and driver.", name.asChar());
+
+      GetDriversAndFilters(*it, aovData.outputs);
+      if (displayOutput.driver != NULL && (!singleLayerDisplay || name == displayAOV))
+         aovData.outputs.push_back(displayOutput);
+
+      aovData.tokens = MString("RenderPass=") + name;
+
+      if (name == "beauty")
+      {
+         // add default driver
+         CAOVOutput output;
+         output.driver = ExportDriver(FindMayaPlug("driver"), output.prefix, output.splitAOVs, output.singleLayer);
+         output.filter = defaultFilter;
+         aovData.outputs.push_back(output);
+
+         // RGBA/RGB AOVs are a special case because the AOV name and the data type are linked.
+         // We provide the term "beauty" to encapsulate these under one term. The data type of the beauty
+         // pass determines whether we use the name "RGBA" or "RGB".
+         name = (aovData.type == AI_TYPE_RGBA) ? "RGBA" : "RGB";
+      }
+      aovData.name = name;
+      m_aovData.push_back(aovData);
+   }
+}
 
 /// Set the filenames for all output drivers
-MString COptionsTranslator::SetImageFilenames(MDagPath &camera)
+void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
 {
+   MDagPath camera = m_session->GetExportCamera();
    if (!camera.isValid())
    {
-      return "";
+      return;
    }
-
-   MString imageFilename;
-   MString cameraFolderName;
    MObject renderLayer = MFnRenderLayer::currentLayer();
    double fileFrameNumber = GetExportFrame();
 
@@ -137,6 +140,7 @@ MString COptionsTranslator::SetImageFilenames(MDagPath &camera)
    MString sceneFileName = fileObj.resolvedName();
    sceneFileName = sceneFileName.substringW(0, sceneFileName.rindexW('.')-1);
 
+   // camera name
    MFnDagNode camDagTransform(camera.transform());
    MString nameCamera = camDagTransform.name();
 
@@ -152,136 +156,234 @@ MString COptionsTranslator::SetImageFilenames(MDagPath &camera)
       pathType = defaultRenderGlobalsData.kFullPathTmp;
    }
 
-   MString path = defaultRenderGlobalsData.name;
-   imageFilename = getFileName(pathType,
-                                fileFrameNumber,
-                                sceneFileName,
-                                nameCamera,
-                                "",
-                                renderLayer,
-                                (m_aovs.size() > 0) ? "RenderPass=beauty" : "",
-                                true,
-                                "images",
-                                path);
-
-   if (m_driver != NULL && AiNodeEntryLookUpParameter(AiNodeGetNodeEntry(m_driver), "filename") != NULL)
-      AiNodeSetStr(m_driver, "filename", imageFilename.asChar());
-
-   for (AOVSet::iterator it=m_aovs.begin(); it!=m_aovs.end(); ++it)
+   // loop through aovs
+   unsigned int nAOVs = m_aovData.size();
+   for (unsigned int i = 0; i < nAOVs; ++i)
    {
-      MString tokens = MString("RenderPass=") + it->GetName();
-      const MStringArray extensions = it->GetImageFormats();
-      for (unsigned int i=0; i<extensions.length(); ++i)
+      CAOVOutputArray& aovData = m_aovData[i];
+
+      // loop through outputs
+      unsigned int nOutputs = aovData.outputs.size();
+      for (unsigned int j=0; j < nOutputs; ++j)
       {
-         MString filename = getFileName(pathType,
-                                         fileFrameNumber,
-                                         sceneFileName,
-                                         nameCamera,
-                                         extensions[i],
-                                         renderLayer,
-                                         tokens,
-                                         true,
-                                         "images",
-                                         path);
-         // FIXME: the driver is not getting its filename set
-         it->SetImageFilename(i, filename);
+         CAOVOutput& output = aovData.outputs[j];
+         const AtNodeEntry* driverEntry = AiNodeGetNodeEntry(output.driver);
+
+         // handle drivers with filename parameters
+         if (AiNodeEntryLookUpParameter(driverEntry, "filename") != NULL)
+         {
+            const char* ext = "";
+            AiMetaDataGetStr(driverEntry, NULL, "maya.translator", &ext);
+
+            MString tokens = aovData.tokens;
+            MString path = output.prefix;
+            if (path == "")
+               // No override provided, use globals default
+               path = defaultRenderGlobalsData.name;
+
+            bool strictAOVs = !(m_aovsEnabled && m_aovsInUse && output.splitAOVs);
+
+            MString filename = getFileName( pathType,
+                                            fileFrameNumber,
+                                            sceneFileName,
+                                            nameCamera,
+                                            ext,
+                                            renderLayer,
+                                            tokens,
+                                            true,
+                                            "images",
+                                            path,
+                                            NULL,
+                                            &strictAOVs);
+
+            MString nodeTypeName = AiNodeEntryGetName(driverEntry);
+            std::map<std::string, AtNode*>::iterator it;
+            it = m_multiDriverMap.find(filename.asChar());
+            if (it == m_multiDriverMap.end())
+            {
+               // The filename has not been encountered yet.
+
+               // The same AtNode* driver may appear in m_aovData several times.  This happens because
+               // ExportNode() caches the results of previous exports to avoid creating duplicates.
+               // When a single aiArnoldDriver node produces multiple files with unique names (via tokens)
+               // AND that node appears elsewhere in our list of output drivers then we have to clone the node.
+
+               bool found = false;
+               for (it = m_multiDriverMap.begin(); it != m_multiDriverMap.end(); ++it)
+               {
+                  if (it->second == output.driver)
+                  {
+                     found = true;
+                     break;
+                  }
+               }
+               if (found)
+                  output.driver = AiNodeClone(output.driver);
+
+               MString driverName = AiNodeGetName(output.driver);
+               driverName += "." + aovData.name;
+               AiNodeSetStr(output.driver, "name", driverName.asChar());
+               m_multiDriverMap[filename.asChar()] = output.driver;
+            }
+            else
+            {
+               // Found an existing driver with the same filename.
+               // Check that it's the same driver.
+               if (output.driver != it->second)
+               {
+                  // NOTE: it could be possible to merge the output of multiple drivers of the same type, but if their settings differ
+                  // it will be unclear to the user which node's settings should be used
+                  AiMsgWarning("[mtoa] Two drivers produced the same output path. AOV merging is only supported using a single driver node: \"%s\", \"%s\"",
+                               AiNodeGetName(output.driver), AiNodeGetName(it->second));
+                  // skip this output
+                  continue;
+               }
+            }
+
+            if (strictAOVs && (path.indexW("<RenderPass>") > -1))
+            {
+               AiMsgWarning("[mtoa] Driver \"%s\" set to merge AOVs, but path prefix includes <RenderPass> token. Resulting outputs will not be merged",
+                            AiNodeGetName(output.driver));
+            }
+
+            AiNodeSetStr(output.driver, "filename", filename.asChar());
+            // FIXME: isn't this already handled by getImageName?
+            CreateFileDirectory(filename);
+         }
+         // output statement
+         char str[1024];
+         sprintf(str, "%s %s %s %s", aovData.name.asChar(), AiParamGetTypeName(aovData.type),
+                 AiNodeGetName(output.filter), AiNodeGetName(output.driver));
+         AiMsgDebug("[mtoa] [aov %s] output line: %s", aovData.name.asChar(), str);
+
+         outputs.append(MString(str));
       }
    }
-   return imageFilename;
+   m_multiDriverMap.clear();
 }
 
-AtNode * COptionsTranslator::CreateFileOutput(MStringArray &outputs, AtNode *defaultFilter)
+void COptionsTranslator::CreateFileDirectory(const MString &filename) const
 {
-   // Don't install the file driver when in IPR mode.
-   if (m_session->GetSessionMode() == MTOA_SESSION_IPR) return NULL;
+   if (filename != "")
+   {
+      // create the output directory
+      int result;
+      std::string outDir = filename.asChar();
+      size_t p0 = outDir.find_last_of("\\/");
+      if (p0 != std::string::npos)
+      {
+         outDir = outDir.substr(0, p0);
+         MGlobal::executeCommand("sysFile -makeDir \"" + MString(outDir.c_str()) + "\"", result);
+      }
+   }
+}
 
-   ProcessAOVs();
-
-   // set the output driver
-   MPlug driverPlug = FindMayaPlug("driver");
+AtNode* COptionsTranslator::ExportDriver(const MPlug& driverPlug, MString& prefix, bool& splitAOVs, bool& singleLayer)
+{
    MPlugArray conn;
    driverPlug.connectedTo(conn, true, false);
-   if (conn.length())
-      m_driver = m_session->ExportNode(conn[0]);
-   if (m_driver != NULL)
-   {
-      AiNodeSetStr(m_driver, "name", AiNodeEntryGetName(AiNodeGetNodeEntry(m_driver)));
-      char   str[1024];
-      sprintf(str, "RGBA RGBA %s %s", AiNodeGetName(defaultFilter), AiNodeGetName(m_driver));
-      outputs.append(str);
-   }
-   else
-      AiMsgError("[mtoa] image driver is NULL");
 
-   // because sets are ordered, their contents are const. we must make a new set
-   // and overwrite it.
-   AOVSet newAOVs;
-   for (AOVSet::iterator it=m_aovs.begin(); it!=m_aovs.end(); ++it)
+   if (!conn.length())//driverType == "<Use Globals>" || driverType == "")
+      return NULL;
+
+   // this generates a unique node every export
+   AtNode* driver = ExportNode(conn[0]);
+   if (driver == NULL)
+      return NULL;
+
+   const AtNodeEntry* entry = AiNodeGetNodeEntry(driver);
+
+   bool displayDriver = false;
+   if ((AiNodeEntryLookUpParameter(entry, "gamma") != NULL) &&
+        AiMetaDataGetBool(entry, NULL, "display_driver", &displayDriver) &&
+        displayDriver)
    {
-      CAOV aov = (*it);
-      MStringArray currOutputs;
-      aov.SetupOutputs(outputs, m_driver, defaultFilter);
-      newAOVs.insert(aov);
+      AiNodeSetFlt(driver, "gamma", FindMayaPlug("display_gamma").asFloat());
    }
-   m_aovs = newAOVs;
-   return m_driver;
+
+   MFnDependencyNode fnNode(conn[0].node());
+   singleLayer = false;
+   AiMetaDataGetBool(entry, NULL, "single_layer_driver", &singleLayer);
+   if (!singleLayer)
+      splitAOVs = fnNode.findPlug("splitAOVs").asBool();
+   else
+      splitAOVs = false;
+   prefix = fnNode.findPlug("prefix").asString();
+   return driver;
 }
 
-AtNode * COptionsTranslator::CreateOutputFilter()
+AtNode* COptionsTranslator::ExportFilter(const MPlug& filterPlug)
 {
-   // set the output driver
-   AtNode* filter = NULL;
-   MPlug filterPlug = FindMayaPlug("filter");
    MPlugArray conn;
    filterPlug.connectedTo(conn, true, false);
-   if (conn.length())
-      filter = m_session->ExportNode(conn[0]);
-   if (filter != NULL)
-   {
-      AiNodeSetStr(filter, "name", AiNodeEntryGetName(AiNodeGetNodeEntry(filter)));
-   }
-   else
-      AiMsgError("[mtoa] filter is NULL");
+
+   if (!conn.length())//filterType == "<Use Globals>" || filterType == "")
+      return NULL;
+
+   AtNode* filter = ExportNode(conn[0]);
+   if (filter == NULL)
+      return NULL;
 
    return filter;
 }
 
-AtNode * COptionsTranslator::CreateRenderViewOutput(MStringArray &outputs, AtNode *defaultFilter)
+unsigned int COptionsTranslator::GetDriversAndFilters(const CAOV& aov,
+                                                      std::vector<CAOVOutput>& outputs)
+{
+   MFnDependencyNode fnNode;
+   MObject aovNode = aov.GetNode();
+   if (aovNode.isNull())
+      return 0;
+   fnNode.setObject(aovNode);
+   MString name = aov.GetName();
+   MPlugArray conn;
+   MPlug outputsPlug = fnNode.findPlug("outputs", true);
+   for (unsigned int i=0; i<outputsPlug.numElements(); ++i)
+   {
+      // Filter
+      CAOVOutput output;
+      output.filter = ExportFilter(outputsPlug[i].child(1));
+      if (output.filter == NULL)
+         continue;
+
+      // Driver
+      output.driver = ExportDriver(outputsPlug[i].child(0), output.prefix, output.splitAOVs, output.singleLayer);
+      if (output.driver == NULL)
+         continue;
+
+      outputs.push_back(output);
+   }
+   return outputs.size();
+}
+
+AtNode * COptionsTranslator::CreateDefaultFilter()
+{
+   // set the output driver
+   AtNode* filter = ExportFilter(FindMayaPlug("filter"));
+   if (filter == NULL)
+      AiMsgError("[mtoa] default filter is NULL");
+   return filter;
+}
+
+AtNode * COptionsTranslator::CreateDisplayDriver(MString& prefix, bool& singleLayer)
 {
    // Don't create it if we're in batch mode.
    if (m_session->IsBatch()) return NULL;
 
    AtNode* driver = AiNode("renderview_display");
-   AiNodeSetStr(driver, "name", "renderview_display");
+
+   const AtNodeEntry* entry = AiNodeGetNodeEntry(driver);
+   MString nodeTypeName = AiNodeEntryGetName(entry);
+   MString driverName = nodeTypeName + "@display";
+   AiNodeSetStr(driver, "name", driverName.asChar());
 
    AiNodeSetFlt(driver, "gamma", FindMayaPlug("display_gamma").asFloat());
-   char   str[1024];
-   AiMsgInfo("display AOV: %s", FindMayaPlug("displayAOV").asString().asChar());
-   sprintf(str, "%s RGBA %s %s", FindMayaPlug("displayAOV").asString().asChar(),
-           AiNodeGetName(defaultFilter), AiNodeGetName(driver));
-   outputs.append(str);
-   //sprintf(str, "RGBA RGBA %s %s", AiNodeGetName(filter), AiNodeGetName(render_view));
 
+   singleLayer = false;
+   AiMetaDataGetBool(entry, NULL, "single_layer_driver", &singleLayer);
+
+   prefix = "";
    return driver;
-}
-
-/// Create and setup all filters and drivers and output statements
-void COptionsTranslator::SetupRenderOutput(AtNode* options)
-{
-   MStringArray outputStrings;
-   AtNode * filter = CreateOutputFilter();
-   CreateRenderViewOutput(outputStrings, filter);
-   CreateFileOutput(outputStrings, filter);
-
-   // OUTPUT STRINGS
-   int ndrivers = outputStrings.length();
-   AtArray* outputs  = AiArrayAllocate(ndrivers, 1, AI_TYPE_STRING);
-
-   for (unsigned int i=0; i < outputStrings.length(); ++i)
-   {
-      AiArraySetStr(outputs, i, outputStrings[i].asChar());
-   }
-   AiNodeSetArray(options, "outputs", outputs);
 }
 
 void COptionsTranslator::SetCamera(AtNode *options)
@@ -299,15 +401,27 @@ void COptionsTranslator::SetCamera(AtNode *options)
       return;
    }
    AiNodeSetPtr(options, "camera", camera);
-   SetImageFilenames(cameraNode);
+   MStringArray outputStrings;
+   SetImageFilenames(outputStrings);
+
+   // OUTPUT STRINGS
+   unsigned int ndrivers = outputStrings.length();
+   AtArray* outputs  = AiArrayAllocate(ndrivers, 1, AI_TYPE_STRING);
+
+   for (unsigned int i=0; i < ndrivers; ++i)
+      AiArraySetStr(outputs, i, outputStrings[i].asChar());
+   AiNodeSetArray(options, "outputs", outputs);
 }
 
 void COptionsTranslator::Export(AtNode *options)
 {
    assert(AiUniverseIsActive());
 
-   SetupRenderOutput(options);
-   // set the camera
+   MStringArray outputStrings;
+
+   ExportAOVs(); // file outputs are skipped during IPR, so no need to call this in Update
+
+
    SetCamera(options);
 
    MStatus status;
