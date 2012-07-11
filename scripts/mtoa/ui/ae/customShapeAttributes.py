@@ -89,7 +89,7 @@ def HairSystemTemplateCCU1(attrName):
 def HairSystemTemplateCCU2(attrName):
     cmds.attrNavigationControlGrp("HairSystemTemplateShader", edit=True, attribute=attrName)
 
-class HairSystemTemplate(templates.ShapeAETemplate):
+class HairSystemTemplate(templates.ShapeTranslatorTemplate):
     def setup(self):
         self.addControl("primaryVisibility")
         self.addControl("castsShadows")
