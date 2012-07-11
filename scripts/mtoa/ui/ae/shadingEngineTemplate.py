@@ -99,7 +99,7 @@ class ShadingEngineTemplate(templates.AttributeTemplate):
                 self.aovNodes[aov].append(node)
 
     def buildAOVFrame(self, nodeAttr):
-        # TODO: move this into AttributeTemplate
+        # TODO: move this into AttributeEditorTemplate
         self._setActiveNodeAttr(nodeAttr)
         nodeAttr = pm.Attribute(nodeAttr)
 
@@ -153,7 +153,7 @@ class ShadingEngineTemplate(templates.AttributeTemplate):
         pm.setUITemplate('attributeEditorTemplate', popTemplate=True)
 
     def updateAOVFrame(self, nodeAttr):
-        # TODO: move this into AttributeTemplate
+        # TODO: move this into AttributeEditorTemplate
         self._setActiveNodeAttr(nodeAttr)
         nodeAttr = pm.Attribute(nodeAttr)
 

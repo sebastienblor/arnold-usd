@@ -14,6 +14,22 @@ AtRGB _GetArrayRGB(AtArray *a, unsigned int i)
    return AiArrayGetRGB(a, i);
 }
 
+// This one is defined for the RampT template function to work properly
+float RampLuminance(float v)
+{
+   return v;
+}
+
+float RampLuminance(const AtRGB &color)
+{
+   return (0.3f * color.r + 0.3f * color.g + 0.3f * color.b);
+}
+
+float RampLuminance(const AtRGBA &color)
+{
+   return (0.3f * color.r + 0.3f * color.g + 0.3f * color.b);
+}
+
 template <typename ValType>
 void RampT(AtArray *p, AtArray *c, float t, RampInterpolationType it, ValType &result, ValType (*getv)(AtArray*, unsigned int), unsigned int *shuffle)
 {
@@ -129,22 +145,6 @@ float Luminance(const AtRGB &color)
 float Luminance(const AtRGBA &color)
 {
    return (0.3f * color.r + 0.59f * color.g + 0.11f * color.b);
-}
-
-// This one is defined for the RampT template function to work properly
-float RampLuminance(float v)
-{
-   return v;
-}
-
-float RampLuminance(const AtRGB &color)
-{
-   return (0.3f * color.r + 0.3f * color.g + 0.3f * color.b);
-}
-
-float RampLuminance(const AtRGBA &color)
-{
-   return (0.3f * color.r + 0.3f * color.g + 0.3f * color.b);
 }
 
 float Mix(float a, float b, float t)

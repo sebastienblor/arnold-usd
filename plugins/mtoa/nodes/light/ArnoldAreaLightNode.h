@@ -28,7 +28,7 @@ public:
    CArnoldAreaLightNode();
    virtual ~CArnoldAreaLightNode();
 
-   virtual MStatus        compute( const MPlug& plug, MDataBlock& data );
+   virtual MStatus         compute(const MPlug& plug, MDataBlock& data);
    virtual void            draw( M3dView & view, const MDagPath & path, M3dView::DisplayStyle style, M3dView::DisplayStatus displayStatus );
    virtual bool            isBounded() const;
    virtual MBoundingBox    boundingBox() const;
@@ -48,6 +48,9 @@ public:
    static  MObject s_intensity;
    static  MObject s_affectDiffuse;
    static  MObject s_affectSpecular;
+   static  MObject s_inputMesh; // for the mesh_light
+   static  MObject s_lightVisible;
+   static  MObject s_update;
 
    // Arnold outputs
    static  MObject s_OUT_colorR;
@@ -73,6 +76,8 @@ public:
    static  MObject aLightData;
 
 public:
+   MBoundingBox         m_boundingBox;
+   int                  m_displayList;
    static   MTypeId     id;
 };  // class CArnoldAreaLightNode
 

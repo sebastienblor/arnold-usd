@@ -12,6 +12,8 @@
 #include <maya/MFloatVector.h>
 #include <maya/MHardwareRenderer.h>
 #include <maya/MGLFunctionTable.h>
+#include <maya/MFnMesh.h>
+#include <maya/MGlobal.h>
 
 #define LEAD_COLOR            18 // green
 #define ACTIVE_COLOR          15 // white
@@ -31,6 +33,9 @@ MObject CArnoldAreaLightNode::s_color;
 MObject CArnoldAreaLightNode::s_intensity;
 MObject CArnoldAreaLightNode::s_affectDiffuse;
 MObject CArnoldAreaLightNode::s_affectSpecular;
+MObject CArnoldAreaLightNode::s_inputMesh;
+MObject CArnoldAreaLightNode::s_lightVisible;
+MObject CArnoldAreaLightNode::s_update;
 // Arnold outputs
 MObject CArnoldAreaLightNode::s_OUT_colorR;
 MObject CArnoldAreaLightNode::s_OUT_colorG;
@@ -54,12 +59,71 @@ MObject CArnoldAreaLightNode::aPreShadowIntensity;
 MObject CArnoldAreaLightNode::aLightBlindData;
 MObject CArnoldAreaLightNode::aLightData;
 
-CArnoldAreaLightNode::CArnoldAreaLightNode() {}
+CArnoldAreaLightNode::CArnoldAreaLightNode() :
+        m_boundingBox(MPoint(1.0, 1.0, 1.0), MPoint(-1.0, -1.0, -1.0)),
+        m_displayList(-1)
+{ }
+
 CArnoldAreaLightNode::~CArnoldAreaLightNode() {}
 
-MStatus CArnoldAreaLightNode::compute( const MPlug&, MDataBlock& )
+MStatus CArnoldAreaLightNode::compute(const MPlug& plug, MDataBlock& block)
 {
-   return MS::kUnknownParameter;
+   // no need for GL stuff in the batch mode
+   if (plug != s_update || MGlobal::mayaState() == MGlobal::kBatch)
+      return MS::kUnknownParameter;
+   
+   // do this calculation every time if
+   // the mesh is changed, because aiTranslator cannot affect update
+   block.setClean(s_update);
+   
+   MStatus status;
+   
+   MFnMesh inputMesh(block.inputValue(s_inputMesh).asMesh(), &status);
+   
+   if (m_displayList != -1)
+      glDeleteLists(m_displayList, 1);
+   
+   m_displayList = -1;   
+   
+   if (!status)
+      return MS::kSuccess;
+   
+   const int numVertices = inputMesh.numVertices();
+   
+   if (numVertices == 0)
+      return MS::kSuccess;
+   
+   m_boundingBox.clear();
+   
+   const AtVector* vertices = (const AtVector*)inputMesh.getRawPoints(&status);
+   for (int i = 0; i < numVertices; ++i)
+   {
+      const AtVector& cv = vertices[i];
+      m_boundingBox.expand(MPoint(cv.x, cv.y, cv.z));
+   }
+   
+   m_displayList = glGenLists(1); // these are kinda old, but still one of the
+   // fastest solution for simple display
+   
+   glNewList(m_displayList, GL_COMPILE);
+   
+   const int numPolygons = inputMesh.numPolygons();         
+
+   for (unsigned int i = 0; i < numPolygons; ++i) 
+   {
+      glBegin(GL_LINE_STRIP);
+      MIntArray vidx;
+      inputMesh.getPolygonVertices(i, vidx);
+      const unsigned int numVertices = vidx.length();
+      for (unsigned int j = 0; j < numVertices; ++j)
+         glVertex3fv(&vertices[vidx[j]].x);
+      glVertex3fv(&vertices[vidx[0]].x);
+      glEnd();
+   }
+   
+   glEndList();
+   
+   return MS::kSuccess;
 }
 
 void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dView::DisplayStyle style, M3dView::DisplayStatus displayStatus )
@@ -73,10 +137,12 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
    //M3dView::ColorTable dormantColorTable = M3dView::kDormantColors;
    //
 
-   MFnDependencyNode myNode(thisMObject());
+   MStatus status;
+   MObject tmo = thisMObject();
+   MFnDependencyNode myNode(tmo);
    MPlug translatorPlug = myNode.findPlug("aiTranslator");
-   MString areaType = translatorPlug.asString();
-
+   MString areaType = translatorPlug.asString();   
+   
    view.beginGL();
    // Get all GL bits
    glPushAttrib(GL_ALL_ATTRIB_BITS);
@@ -107,6 +173,7 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
    }
    GLUquadricObj *qobj;
    qobj = gluNewQuadric();
+   bool setBoundingBox = true;
    // Quad
    if (areaType == "quad")
    {
@@ -140,6 +207,15 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
       gGLFT->glVertex3f( 0.0f, 0.0f,-1.0f);
       gGLFT->glEnd();
    }
+   // Mesh
+   else if (areaType == "mesh")
+   {
+      setBoundingBox = false;
+      if (MPlug(tmo, s_update).asBool()) // forcing the compute to be called
+         return;
+      if (m_displayList != -1)
+         glCallList(m_displayList);
+   }
    // Cylinder
    else
    {
@@ -151,6 +227,13 @@ void CArnoldAreaLightNode::draw( M3dView & view, const MDagPath & dagPath, M3dVi
       gluCylinder(qobj, 1.0f, 1.0f, 2.0f, 20, 1);
       gGLFT->glPopMatrix();
    }
+   
+   // There is a reason for this
+   // I can`t set attributeAffects with aiTranslator
+   // because that parameter is not created in this node
+   if (setBoundingBox)
+      m_boundingBox = MBoundingBox(MPoint(1.0, 1.0, 1.0), MPoint(-1.0, -1.0, -1.0));
+   
    // Restore all GL bits
    gGLFT->glPopAttrib();
    view.endGL();
@@ -163,10 +246,7 @@ bool CArnoldAreaLightNode::isBounded() const
 
 MBoundingBox CArnoldAreaLightNode::boundingBox() const
 {
-   MPoint corner1( -1.0, -1.0, -1.0 );
-   MPoint corner2( 1.0, 1.0, 1.0 );
-
-   return MBoundingBox( corner1, corner2 );
+   return m_boundingBox;;
 }
 
 void* CArnoldAreaLightNode::creator()
@@ -222,6 +302,18 @@ MStatus CArnoldAreaLightNode::initialize()
    nAttr.setReadable(true);
    nAttr.setWritable(true);
    addAttribute(s_normalCamera);
+   
+   s_inputMesh = tAttr.create("inputMesh", "input_mesh", MFnData::kMesh);
+   tAttr.setStorable(true);
+   addAttribute(s_inputMesh);
+   
+   s_lightVisible = nAttr.create("lightVisible", "light_visible", MFnNumericData::kBoolean);
+   nAttr.setDefault(true);
+   addAttribute(s_lightVisible);
+   
+   s_update = nAttr.create("update", "upt", MFnNumericData::kBoolean);
+   nAttr.setDefault(false);
+   addAttribute(s_update);
 
    // OUTPUT ATTRIBUTES
 
@@ -319,6 +411,9 @@ MStatus CArnoldAreaLightNode::initialize()
    attributeAffects(s_intensity, aLightData);
    attributeAffects(s_affectDiffuse, aLightData);
    attributeAffects(s_affectSpecular, aLightData);
+   attributeAffects(s_inputMesh, aLightData);
+   
+   attributeAffects(s_inputMesh, s_update);
 
    return MS::kSuccess;
 }
