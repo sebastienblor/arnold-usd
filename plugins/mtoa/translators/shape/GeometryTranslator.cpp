@@ -1059,7 +1059,23 @@ AtNode* CGeometryTranslator::ExportInstance(AtNode *instance, const MDagPath& ma
    MFnMesh meshNode(m_geometry);
    MPlug plug = meshNode.findPlug("instObjGroups");
    
+   MPlugArray conns0, connsI;
+   
    bool shadersDifferent = false;
+   
+   // checking the connections from the master instance
+   plug.elementByLogicalIndex(0).connectedTo(conns0, false, true); 
+   // checking the connections from the actual instance
+   plug.elementByLogicalIndex(instanceNum).connectedTo(connsI, false, true); 
+   
+   // checking if it`s connected to a different shading network
+   // this should be enough, because arnold does not supports
+   // overriding per face assigment per instance
+   if ((conns0.length() * connsI.length()) > 0)
+   {
+      if (conns0[0].node() != connsI[0].node())
+         shadersDifferent = true;
+   }   
    
    if (shadersDifferent)
    {
