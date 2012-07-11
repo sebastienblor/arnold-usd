@@ -1056,70 +1056,41 @@ AtNode* CGeometryTranslator::ExportInstance(AtNode *instance, const MDagPath& ma
    // SHADERS
    //
    // MFnMesh           meshNode(m_dagPath.node());
-   MFnMesh           meshNode(m_geometry);
-   MObjectArray      shaders, shadersMaster;
-   MIntArray         indices, indicesMaster;
-
-   meshNode.getConnectedShaders(instanceNum, shaders, indices);
-   // FIXME: it is incorrect to assume that instance 0 is the master as it may be hidden (chad)
-   meshNode.getConnectedShaders(0, shadersMaster, indicesMaster);
-
-   // As arnold does not support different shaders per face
-   // on ginstances
-   // we keep the master's per face assignment only
-   // if it's completely the same
-   bool equalShaderArrays = ((shaders.length() == shadersMaster.length()) && (indices.length() == indicesMaster.length()));
-
-   // Compare face arrays
-   for(unsigned int j=0; (equalShaderArrays && (j < indices.length())); j++)
+   MFnMesh meshNode(m_geometry);
+   MPlug plug = meshNode.findPlug("instObjGroups");
+   
+   bool shadersDifferent = false;
+   
+   if (shadersDifferent)
    {
-      if (indices[j] != indicesMaster[j])
-      {
-         equalShaderArrays = false;
-      }
-   }
-   // Compare shader (actually SG) arrays
-   for(unsigned int i=0; (equalShaderArrays && (i < shaders.length())); i++)
-   {
-      if (shaders[i] != shadersMaster[i])
-      {
-         equalShaderArrays = false;
-      }
-   }
-
-   if ((shaders.length() > 0) && (shadersMaster.length() > 0))
-   {
-      MFnDependencyNode fnDGNode(shaders[0]);
-      MPlug             shaderPlug(shaders[0], fnDGNode.attribute("surfaceShader"));
-      MPlug             shaderPlugMaster(shadersMaster[0], fnDGNode.attribute("surfaceShader"));
-
-      if ((shaderPlug != shaderPlugMaster) || (!equalShaderArrays))
-      {
-         MPlug shadingGroupPlug = GetNodeShadingGroup(m_geometry, instanceNum);
+      MObjectArray shaders;
+      MIntArray indices;
+      meshNode.getConnectedShaders(instanceNum, shaders, indices);
+      
+      MPlug shadingGroupPlug = GetNodeShadingGroup(m_geometry, instanceNum);
          
          // In case Instance has per face assignment, use first SG assigned to it
-         if(shadingGroupPlug.isNull())
+      if(shadingGroupPlug.isNull())
+      {
+         MPlugArray        connections;
+         MFnDependencyNode fnDGNode(m_geometry);
+         MPlug plug(m_geometry, fnDGNode.attribute("instObjGroups"));
+         plug = plug.elementByLogicalIndex(instanceNum);
+         MObject obGr = GetMayaObjectAttribute("objectGroups");
+         plug = plug.child(obGr);
+         plug.elementByPhysicalIndex(0).connectedTo(connections, false, true);
+         if(connections.length() > 0)
          {
-            MPlugArray        connections;
-            MFnDependencyNode fnDGNode(m_geometry);
-            MPlug plug(m_geometry, fnDGNode.attribute("instObjGroups"));
-            plug = plug.elementByLogicalIndex(instanceNum);
-            MObject obGr = GetMayaObjectAttribute("objectGroups");
-            plug = plug.child(obGr);
-            plug.elementByPhysicalIndex(0).connectedTo(connections, false, true);
-            if(connections.length() > 0)
-            {
-               shadingGroupPlug = connections[0];
-            }
+            shadingGroupPlug = connections[0];
          }
-         
-         AtNode* shader = ExportNode(shadingGroupPlug);
-         AiNodeSetPtr(instance, "shader", shader);
-         // we must write this as user data bc AiNodeGet* is thread-locked while AIUDataGet* is not
-         AiNodeDeclare(instance, "mtoa_shading_groups", "constant ARRAY NODE");
-         AiNodeSetArray(instance, "mtoa_shading_groups",
-               AiArrayConvert(1, 1, AI_TYPE_NODE, shader));
       }
+
+      AtNode* shader = ExportNode(shadingGroupPlug);
+      AiNodeSetPtr(instance, "shader", shader);
+      // we must write this as user data bc AiNodeGet* is thread-locked while AIUDataGet* is not
+      AiNodeDeclare(instance, "mtoa_shading_groups", "constant ARRAY NODE");
+      AiNodeSetArray(instance, "mtoa_shading_groups",
+            AiArrayConvert(1, 1, AI_TYPE_NODE, shader));
    }
 
    // Export light linking per instance
