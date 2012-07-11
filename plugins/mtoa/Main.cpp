@@ -29,6 +29,7 @@
 #include "translators/camera/CameraTranslators.h"
 #include "translators/light/LightTranslators.h"
 #include "translators/light/LightLinkerTranslator.h"
+#include "translators/light/LightBlockerTranslator.h"
 #include "translators/shader/ShaderTranslators.h"
 #include "translators/shape/MeshTranslator.h"
 #include "translators/shape/NurbsSurfaceTranslator.h"
@@ -200,6 +201,9 @@ namespace // <anonymous>
                                    "mesh",
                                    CMeshLightTranslator::creator,
                                    CMeshLightTranslator::NodeInitializer);
+       builtin->RegisterTranslator("aiLightBlocker",
+                                   "",
+                                   CLightBlockerTranslator::creator);
        // Arnold skyDomeLight node
        builtin->RegisterTranslator("aiSkyDomeLight",
                                    "",
