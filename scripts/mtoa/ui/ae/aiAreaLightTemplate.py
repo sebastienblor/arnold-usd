@@ -30,14 +30,23 @@ class AEaiAreaLightTemplate(lightTemplate.LightTemplate):
 
         self.addControl("color")
         self.addControl("intensity")
-        self.addControl("aiExposure", label = "Exposure")
+        self.addControl("aiExposure", label = "Exposure")        
         self.addCustom("instObjGroups", self.makeLightExclusive, self.replaceLightExclusive)
         self.addControl("emitDiffuse")
         self.addControl("emitSpecular")
         self.addControl("aiDecayType")
+        
+        self.addChildTemplate('aiTranslator', templates.getNodeTemplate('aiAreaLight'))
+        self.endLayout()
 
-        self.addSeparator()
+        # include/call base class/node attributes
+        pm.mel.AEdependNodeTemplate(self.nodeName)
 
+        self.addExtraControls()
+        self.endScrollLayout()
+
+class BaseAreaLightTemplate(lightTemplate.LightTemplate):
+    def setup(self):
         self.addControl("aiSamples")
         self.addControl("aiNormalize")
 
@@ -54,35 +63,35 @@ class AEaiAreaLightTemplate(lightTemplate.LightTemplate):
 
         self.addSeparator()
 
-        # get the TranslatorControl template that was registered on startup (below)
-        self.addTemplate('aiTranslator',
-                         templates.getNodeTemplate('aiAreaLight'))
+        self.commonLightAttributes()
+        
+class QuadAreaLightTemplate(BaseAreaLightTemplate):
+    def setup(self):
+        self.addControl("aiResolution")
+        self.addSeparator()
+        super(QuadAreaLightTemplate, self).setup()
+
+class MeshLightTemplate(lightTemplate.LightTemplate):
+    def setup(self):
+        self.addControl("lightVisible")
+        
+        self.addSeparator()
+        
+        self.addControl("aiSamples")
+        self.addControl("aiNormalize")
+
+        self.addSeparator()
+
+        self.addControl("aiCastShadows")
+        self.addControl("aiShadowDensity")
+        self.addControl("aiShadowColor")
 
         self.addSeparator()
 
         self.commonLightAttributes()
 
-        #templates.TranslatorControl('aiAreaLight', label="Light Shape"))
-        self.endLayout()
-
-        # include/call base class/node attributes
-        pm.mel.AEdependNodeTemplate(self.nodeName)
-
-        self.addExtraControls()
-        self.endScrollLayout()
-
-
-class QuadAreaLightTemplate(templates.AttributeTemplate):
-    def setup(self):
-        self.addControl("aiResolution")
-
-class MeshLightTemplate(templates.AttributeTemplate):
-    def setup(self):
-        self.addControl("aiCastShadows")
-        self.addControl("aiShadowDensity")
-        self.addControl("aiShadowColor")
-        self.addControl("lightVisible")
-
 templates.registerAETemplate(templates.TranslatorControl, "aiAreaLight", label="Light Shape")
 templates.registerTranslatorUI(QuadAreaLightTemplate, "aiAreaLight", "quad")
+templates.registerTranslatorUI(BaseAreaLightTemplate, "aiAreaLight", "cylinder")
+templates.registerTranslatorUI(BaseAreaLightTemplate, "aiAreaLight", "disk")
 templates.registerTranslatorUI(MeshLightTemplate, "aiAreaLight", "mesh")
