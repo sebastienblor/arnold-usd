@@ -37,6 +37,11 @@ class AEaiAreaLightTemplate(lightTemplate.LightTemplate):
         self.addControl("aiDecayType")
         
         self.addChildTemplate('aiTranslator', templates.getNodeTemplate('aiAreaLight'))
+        
+        self.addSeparator()
+
+        self.commonLightAttributes()
+        
         self.endLayout()
 
         # include/call base class/node attributes
@@ -61,9 +66,7 @@ class BaseAreaLightTemplate(lightTemplate.LightTemplate):
         self.addControl("aiAffectVolumetrics")
         self.addControl("aiCastVolumetricShadows")
 
-        self.addSeparator()
-
-        self.commonLightAttributes()
+       
         
 class QuadAreaLightTemplate(BaseAreaLightTemplate):
     def setup(self):
@@ -86,9 +89,6 @@ class MeshLightTemplate(lightTemplate.LightTemplate):
         self.addControl("aiShadowDensity")
         self.addControl("aiShadowColor")
 
-        self.addSeparator()
-
-        self.commonLightAttributes()
 
 templates.registerAETemplate(templates.TranslatorControl, "aiAreaLight", label="Light Shape")
 templates.registerTranslatorUI(QuadAreaLightTemplate, "aiAreaLight", "quad")
