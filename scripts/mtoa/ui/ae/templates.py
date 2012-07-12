@@ -712,17 +712,17 @@ class TranslatorControl(AttributeTemplate):
                     self.addChildTemplate('message', template)
                     self.endLayout()
                 self.endLayout()
+                # timing on AE's is difficult: the frameLayouts are not created at this point even though
+                # the `editorTemplate -beginLayout` calls have been made. this is a little hack
+                # to ensure we get a callback after the AE ui elements have been built: normal controls can get
+                # an update callback, but we don't have any normal controls around, so we'll have to make one and
+                # hide it
+                self.addCustom('message',
+                               aeCallback(self.updateChildrenCallback),
+                               aeCallback(self.updateChildrenCallback))
             else:
                 translator, template = self.getTranslatorTemplates()[0]
                 self.addChildTemplate('message', template)
-            # timing on AE's is difficult: the frameLayouts are not created at this point even though
-            # the `editorTemplate -beginLayout` calls have been made. this is a little hack
-            # to ensure we get a callback after the AE ui elements have been built: normal controls can get
-            # an update callback, but we don't have any normal controls around, so we'll have to make one and
-            # hide it
-            self.addCustom('message',
-                           aeCallback(self.updateChildrenCallback),
-                           aeCallback(self.updateChildrenCallback))
 
 #-------------------------------------------------
 # Registration
