@@ -132,7 +132,7 @@ def fileTokenRenderLayer(path, tokens, **kwargs):
     if '<RenderLayer>' in path:
         if 'RenderLayer' not in tokens:
             tokens['RenderLayer'] = pm.cmds.editRenderLayerGlobals(q=True, currentRenderLayer=True)
-    elif len(pm.ls('*', type='renderLayer')) > 1: # the '*' ensures that we only find layers in the empty namespace
+    elif len(pm.cmds.listConnections('renderLayerManager.renderLayerId', source=False, destination=True)) > 1:
         if not os.path.isabs(path):
             path = '<RenderLayer>/' + path
             if 'RenderLayer' not in tokens:
