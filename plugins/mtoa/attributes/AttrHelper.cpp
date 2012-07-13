@@ -46,7 +46,7 @@ MString toMayaStyle(MString s)
 }
 
 /// Whether or not an Arnold parameter is hidden in Maya
-bool CBaseAttrHelper::IsHidden(const char* paramName)
+bool CBaseAttrHelper::IsHidden(const char* paramName) const
 {
    // name is always hidden
    if (strcmp(paramName, "name") == 0) // 0 is match
@@ -62,7 +62,7 @@ bool CBaseAttrHelper::IsHidden(const char* paramName)
 // uses "maya.name" parameter metadata if set, otherwise, converts from
 // "arnold_style" to "mayaStyle"
 // Add ai prefix to avoid clashes
-MString CBaseAttrHelper::GetMayaAttrName(const char* paramName)
+MString CBaseAttrHelper::GetMayaAttrName(const char* paramName) const
 {
    const char* attrName;
    if (AiMetaDataGetStr(m_nodeEntry, paramName, "maya.name", &attrName))
@@ -73,7 +73,7 @@ MString CBaseAttrHelper::GetMayaAttrName(const char* paramName)
 
 // uses "maya.shortname" parameter metadata if set, otherwise, uses the arnold
 // parameter name
-MString CBaseAttrHelper::GetMayaAttrShortName(const char* paramName)
+MString CBaseAttrHelper::GetMayaAttrShortName(const char* paramName) const
 {
    const char* attrShortName;
    if (AiMetaDataGetStr(m_nodeEntry, paramName, "maya.shortname", &attrShortName))
@@ -85,15 +85,18 @@ MString CBaseAttrHelper::GetMayaAttrShortName(const char* paramName)
 bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
 {
    if (m_nodeEntry == NULL)
+   {
+      AiMsgError("[mtoa.attr] A valid node entry must be passed to query data for parameter \"%s\"", paramName);
       return false;
+   }
 
    const char* nodeName = AiNodeEntryGetName(m_nodeEntry);
-   // AiMsgDebug("[mtoa] [node %s] [attr %s] Reading metadata", nodeName, paramName);
+   // AiMsgDebug("[mtoa.attr] [node %s] [attr %s] Reading metadata", nodeName, paramName);
 
    const AtParamEntry* paramEntry = AiNodeEntryLookUpParameter(m_nodeEntry, paramName);
    if (paramEntry == NULL)
    {
-      AiMsgError("[mtoa] [node %s] [attr %s] Attribute does not exist.", nodeName, paramName);
+      AiMsgError("[mtoa.attr] Arnold parameter \"%s.%s\" does not exist.", nodeName, paramName);
       return false;
    }
 
@@ -203,7 +206,7 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
             }
             default:
             {
-               AiMsgError("[mtoa] [node %s] [attr %s] Unknown parameter type %s", nodeName, paramName, typeName);
+               AiMsgError("[mtoa.attr] [node %s] [attr %s] Unknown parameter type %s", nodeName, paramName, typeName);
                break;
             }
          }
@@ -312,9 +315,11 @@ bool CBaseAttrHelper::GetAttrData(const char* paramName, CAttrData& data)
 void CBaseAttrHelper::MakeInputInt(MObject& attrib, const char* paramName)
 {
    CAttrData data;
-   GetAttrData(paramName, data);
-   MakeInputInt(attrib, data);
-   addAttribute(attrib);
+   if (GetAttrData(paramName, data))
+   {
+      MakeInputInt(attrib, data);
+      addAttribute(attrib);
+   }
 }
 
 void CBaseAttrHelper::MakeInputInt(CAttrData& data)
@@ -348,9 +353,11 @@ void CBaseAttrHelper::MakeInputInt(MObject& attrib, CAttrData& data)
 void CBaseAttrHelper::MakeInputBoolean(MObject& attrib, const char* paramName)
 {
    CAttrData data;
-   GetAttrData(paramName, data);
-   MakeInputBoolean(attrib, data);
-   addAttribute(attrib);
+   if (GetAttrData(paramName, data))
+   {
+      MakeInputBoolean(attrib, data);
+      addAttribute(attrib);
+   }
 }
 
 void CBaseAttrHelper::MakeInputBoolean(CAttrData& data)
@@ -374,9 +381,11 @@ void CBaseAttrHelper::MakeInputBoolean(MObject& attrib, CAttrData& data)
 void CBaseAttrHelper::MakeInputFloat(MObject& attrib, const char* paramName)
 {
    CAttrData data;
-   GetAttrData(paramName, data);
-   MakeInputFloat(attrib, data);
-   addAttribute(attrib);
+   if (GetAttrData(paramName, data))
+   {
+      MakeInputFloat(attrib, data);
+      addAttribute(attrib);
+   }
 }
 
 void CBaseAttrHelper::MakeInputFloat(CAttrData& data)
@@ -408,9 +417,11 @@ void CBaseAttrHelper::MakeInputFloat(MObject& attrib, CAttrData& data)
 void CBaseAttrHelper::MakeInputRGB(MObject& attrib, const char* paramName)
 {
    CAttrData data;
-   GetAttrData(paramName, data);
-   MakeInputRGB(attrib, data);
-   addAttribute(attrib);
+   if (GetAttrData(paramName, data))
+   {
+      MakeInputRGB(attrib, data);
+      addAttribute(attrib);
+   }
 }
 
 void CBaseAttrHelper::MakeInputRGB(CAttrData& data)
@@ -436,10 +447,12 @@ void CBaseAttrHelper::MakeInputRGB(MObject& attrib, CAttrData& data)
 void CBaseAttrHelper::MakeInputRGBA(MObject& attrib, MObject& attribA, const char* paramName)
 {
    CAttrData data;
-   GetAttrData(paramName, data);
-   MakeInputRGBA(attrib, attribA, data);
-   addAttribute(attrib);
-   addAttribute(attribA);
+   if (GetAttrData(paramName, data))
+   {
+      MakeInputRGBA(attrib, attribA, data);
+      addAttribute(attrib);
+      addAttribute(attribA);
+   }
 }
 
 void CBaseAttrHelper::MakeInputRGBA(CAttrData& data)
@@ -474,9 +487,11 @@ void CBaseAttrHelper::MakeInputRGBA(MObject& attrib, MObject& attribA, CAttrData
 void CBaseAttrHelper::MakeInputVector(MObject& attrib, const char* paramName)
 {
    CAttrData data;
-   GetAttrData(paramName, data);
-   MakeInputVector(attrib, data);
-   addAttribute(attrib);
+   if (GetAttrData(paramName, data))
+   {
+      MakeInputVector(attrib, data);
+      addAttribute(attrib);
+   }
 }
 
 void CBaseAttrHelper::MakeInputVector(CAttrData& data)
@@ -502,9 +517,11 @@ void CBaseAttrHelper::MakeInputVector(MObject& attrib, CAttrData& data)
 void CBaseAttrHelper::MakeInputPoint(MObject& attrib, const char* paramName)
 {
    CAttrData data;
-   GetAttrData(paramName, data);
-   MakeInputPoint(attrib, data);
-   addAttribute(attrib);
+   if (GetAttrData(paramName, data))
+   {
+      MakeInputPoint(attrib, data);
+      addAttribute(attrib);
+   }
 }
 
 void CBaseAttrHelper::MakeInputPoint(CAttrData& data)
@@ -529,9 +546,11 @@ void CBaseAttrHelper::MakeInputPoint(MObject& attrib, CAttrData& data)
 void CBaseAttrHelper::MakeInputPoint2(MObject& attrib, MObject& attribX, MObject& attribY, const char* paramName)
 {
    CAttrData data;
-   GetAttrData(paramName, data);
-   MakeInputPoint2(attrib, attribX, attribY, data);
-   addAttribute(attrib);
+   if (GetAttrData(paramName, data))
+   {
+      MakeInputPoint2(attrib, attribX, attribY, data);
+      addAttribute(attrib);
+   }
 }
 
 void CBaseAttrHelper::MakeInputPoint2(CAttrData& data)
@@ -562,9 +581,11 @@ void CBaseAttrHelper::MakeInputPoint2(MObject& attrib, MObject& attribX, MObject
 void CBaseAttrHelper::MakeInputString(MObject& attrib, const char* paramName)
 {
    CAttrData data;
-   GetAttrData(paramName, data);
-   MakeInputString(attrib, data);
-   addAttribute(attrib);
+   if (GetAttrData(paramName, data))
+   {
+      MakeInputString(attrib, data);
+      addAttribute(attrib);
+   }
 }
 
 void CBaseAttrHelper::MakeInputString(CAttrData& data)
@@ -592,9 +613,11 @@ void CBaseAttrHelper::MakeInputString(MObject& attrib, CAttrData& data)
 void CBaseAttrHelper::MakeInputMatrix(MObject& attrib, const char* paramName)
 {
    CAttrData data;
-   GetAttrData(paramName, data);
-   MakeInputMatrix(attrib, data);
-   addAttribute(attrib);
+   if (GetAttrData(paramName, data))
+   {
+      MakeInputMatrix(attrib, data);
+      addAttribute(attrib);
+   }
 }
 
 void CBaseAttrHelper::MakeInputMatrix(CAttrData& data)
@@ -623,9 +646,11 @@ void CBaseAttrHelper::MakeInputMatrix(MObject& attrib, CAttrData& data)
 void CBaseAttrHelper::MakeInputEnum(MObject& attrib, const char* paramName)
 {
    CAttrData data;
-   GetAttrData(paramName, data);
-   MakeInputEnum(attrib, data);
-   addAttribute(attrib);
+   if (GetAttrData(paramName, data))
+   {
+      MakeInputEnum(attrib, data);
+      addAttribute(attrib);
+   }
 }
 
 void CBaseAttrHelper::MakeInputEnum(CAttrData& data)
@@ -651,9 +676,11 @@ void CBaseAttrHelper::MakeInputEnum(MObject& attrib, CAttrData& data)
 void CBaseAttrHelper::MakeInputNode(MObject& attrib, const char* paramName)
 {
    CAttrData data;
-   GetAttrData(paramName, data);
-   MakeInputNode(attrib, data);
-   addAttribute(attrib);
+   if (GetAttrData(paramName, data))
+   {
+      MakeInputNode(attrib, data);
+      addAttribute(attrib);
+   }
 }
 
 void CBaseAttrHelper::MakeInputNode(CAttrData& data)
@@ -710,15 +737,18 @@ void CBaseAttrHelper::MakeInputCompound(MObject& attrib, CAttrData& data, std::v
 MObject CBaseAttrHelper::MakeInput(const char* paramName)
 {
    CAttrData attrData;
-   GetAttrData(paramName, attrData);
-   return MakeInput(attrData);
+   if (GetAttrData(paramName, attrData))
+      return MakeInput(attrData);
+   else
+      return MObject::kNullObj;
 }
 
 MObject CBaseAttrHelper::MakeInput(CAttrData& attrData)
 {
    MObject input;
    MakeInput(input, attrData);
-   if (input != MObject::kNullObj) addAttribute(input);
+   if (input != MObject::kNullObj)
+      addAttribute(input);
    return input;
 }
 
@@ -805,18 +835,22 @@ void CBaseAttrHelper::MakeInput(MObject& input, CAttrData& attrData)
       case AI_TYPE_POINTER:
       {
          const char* typeName = AiParamGetTypeName(attrData.type);
-         AiMsgWarning("[mtoa] Unable to create input attribute \"%s\": parameters of type %s are not supported", attrData.name.asChar(), typeName);
+         AiMsgWarning("[mtoa.attr] Unable to create input attribute \"%s\": parameters of type %s are not supported", attrData.name.asChar(), typeName);
          return;
       }
       case AI_TYPE_UNDEFINED: // same as AI_TYPE_NONE
       {
-         MGlobal::displayWarning(MString("[mtoa] Unable to create attribute \"") + attrData.name + "\": parameters type is undefined");
+         if (m_nodeEntry == NULL)
+            AiMsgError("[mtoa.attr] Unable to create attribute \"%s\": parameters type is undefined", attrData.name.asChar());
+         else
+            AiMsgError("[mtoa.attr] Unable to create attribute \"%s\" from arnold node \"%s\": parameters type is undefined",
+                       attrData.name.asChar(), AiNodeEntryGetName(m_nodeEntry));
          input = MObject::kNullObj;
          return;
       }
       default:
       {
-         AiMsgError("[mtoa] Unable to create input attribute \"%s\": unknown parameter type", attrData.name.asChar());
+         AiMsgError("[mtoa.attr] Unable to create input attribute \"%s\": unknown parameter type", attrData.name.asChar());
          input = MObject::kNullObj;
          return;
       }
@@ -939,11 +973,11 @@ MObject CBaseAttrHelper::MakeOutput()
 
    if (m_nodeEntry == NULL)
    {
-      AiMsgError("[mtoa] Cannot retrieve output metadata from a null node entry.");
+      AiMsgError("[mtoa.attr] Cannot retrieve output metadata from a null node entry.");
       return output;
    }
    // const char* nodeName = AiNodeEntryGetName(m_nodeEntry);
-   // AiMsgDebug("[mtoa] [node %s] Reading output metadata", nodeName);
+   // AiMsgDebug("[mtoa.attr] [node %s] Reading output metadata", nodeName);
 
    CAttrData data;
    data.isArray = false;
@@ -1051,12 +1085,12 @@ MObject CBaseAttrHelper::MakeOutput()
       case AI_TYPE_BYTE:
       case AI_TYPE_POINTER:
       {
-         AiMsgWarning("[mtoa] Unable to create output attribute \"%s\": parameters of type %s are not supported", data.name.asChar(), typeName);
+         AiMsgWarning("[mtoa.attr] Unable to create output attribute \"%s\": parameters of type %s are not supported", data.name.asChar(), typeName);
          return MObject::kNullObj;
       }
       default:
       {
-         AiMsgError("[mtoa] Unable to create output attribute \"%s\": unknown parameter type", data.name.asChar());
+         AiMsgError("[mtoa.attr] Unable to create output attribute \"%s\": unknown parameter type", data.name.asChar());
          return MObject::kNullObj;
       }
    } // switch
@@ -1091,11 +1125,11 @@ MStatus CStaticAttrHelper::addAttribute(MObject& attrib)
    // FIXME: not reliable to use MFnAttribute to get the name: the MObject could be invalid
    if (stat != MS::kSuccess)
    {
-      AiMsgError("[mtoa] Unable to create static attribute corresponding to %s.%s", AiNodeEntryGetName(m_nodeEntry), MFnAttribute(attrib).name().asChar());
+      AiMsgError("[mtoa.attr] Unable to create static attribute corresponding to %s.%s", AiNodeEntryGetName(m_nodeEntry), MFnAttribute(attrib).name().asChar());
    }
    else
    {
-      AiMsgDebug("[mtoa] Added static attribute %s.%s", AiNodeEntryGetName(m_nodeEntry), MFnAttribute(attrib).name().asChar());
+      AiMsgDebug("[mtoa.attr] Added static attribute %s.%s", AiNodeEntryGetName(m_nodeEntry), MFnAttribute(attrib).name().asChar());
    }
    CHECK_MSTATUS(stat);
    return stat;
@@ -1128,11 +1162,11 @@ MStatus CDynamicAttrHelper::addAttribute(MObject& attrib)
    // FIXME: not reliable to use MFnAttribute to get the name: the MObject could be invalid
    if (stat != MS::kSuccess)
    {
-      AiMsgError("[mtoa] Unable to create dynamic attribute %s.%s", fnNode.name().asChar(), MFnAttribute(attrib).name().asChar());
+      AiMsgError("[mtoa.attr] Unable to create dynamic attribute %s.%s", fnNode.name().asChar(), MFnAttribute(attrib).name().asChar());
    }
    else
    {
-      AiMsgDebug("[mtoa] Added dynamic attribute %s.%s", fnNode.name().asChar(), MFnAttribute(attrib).name().asChar());
+      AiMsgDebug("[mtoa.attr] Added dynamic attribute %s.%s", fnNode.name().asChar(), MFnAttribute(attrib).name().asChar());
    }
    CHECK_MSTATUS(stat);
    return stat;
@@ -1255,11 +1289,11 @@ MStatus CExtensionAttrHelper::addAttribute(MObject& attrib)
    stat = dgMod.addExtensionAttribute(m_class, attrib);
    if (MStatus::kSuccess != stat)
    {
-      AiMsgError("[mtoa] Unable to create extension attribute %s.%s", nodeType.asChar(), attrName.asChar());
+      AiMsgError("[mtoa.attr] Unable to create extension attribute %s.%s", nodeType.asChar(), attrName.asChar());
    }
    else
    {
-      AiMsgDebug("[mtoa] Added extension attribute %s.%s", nodeType.asChar(), attrName.asChar());
+      AiMsgDebug("[mtoa.attr] Added extension attribute %s.%s", nodeType.asChar(), attrName.asChar());
       stat = dgMod.doIt();
    }
    CHECK_MSTATUS(stat);
