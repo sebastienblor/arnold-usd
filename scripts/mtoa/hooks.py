@@ -16,6 +16,7 @@ This makes it easy to extend the built-in functionality within your override.  F
     mtoa.hooks.getDefaultAOVs = getDefaultAOVs
 """
 import os
+from posixpath import join
 
 def setupFilter(filter, aovName=None):
     """
@@ -106,7 +107,7 @@ def fileTokenRenderPass(path, tokens, **kwargs):
     import pymel.core as pm
     if not kwargs.get('strictAOVs', False) and '<RenderPass>' not in path and 'RenderPass' in tokens:
         if not os.path.isabs(path):
-            path = '<RenderPass>/' + path
+            path = join('<RenderPass>', path)
         else:
             pm.cmds.warning('[mtoa] Multiple render passes (AOVs) exist, but output path is absolute and without <RenderPass> token: "%s"' % path)
     return path
@@ -119,7 +120,7 @@ def fileTokenCamera(path, tokens, **kwargs):
             raise ValueError("You must provide a value for Camera token")
     elif len([c for c in pm.ls(type='camera') if c.renderable.get()]) > 1:
         if not os.path.isabs(path):
-            path = '<Camera>/' + path
+            path = join('<Camera>', path)
             if 'Camera' not in tokens:
                 raise ValueError("You must provide a value for Camera token")
         else:
@@ -134,7 +135,7 @@ def fileTokenRenderLayer(path, tokens, **kwargs):
             tokens['RenderLayer'] = pm.cmds.editRenderLayerGlobals(q=True, currentRenderLayer=True)
     elif len(pm.cmds.listConnections('renderLayerManager.renderLayerId', source=False, destination=True)) > 1:
         if not os.path.isabs(path):
-            path = '<RenderLayer>/' + path
+            path = join('<RenderLayer>', path)
             if 'RenderLayer' not in tokens:
                 tokens['RenderLayer'] = pm.cmds.editRenderLayerGlobals(q=True, currentRenderLayer=True)
         else:
