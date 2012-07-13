@@ -866,6 +866,12 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
             ++it;
          }
       }
+      
+      if (exportTangents) // Arnold doesn`t support motion blurred user data
+      {
+         AiNodeSetArray(polymesh, "tangent", AiArrayConvert(numVerts, 1, AI_TYPE_VECTOR, &(tangents[0])));
+         AiNodeSetArray(polymesh, "bitangent", AiArrayConvert(numVerts, 1, AI_TYPE_VECTOR, &(bitangents[0])));
+      }
 
       if (!m_motionDeform || !IsLocalMotionBlurEnabled())
       {
@@ -877,12 +883,7 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
          if (exportNormals)
          {
             AiNodeSetArray(polymesh, "nlist", AiArrayConvert(numNorms * 3, 1, AI_TYPE_FLOAT, &(normals[0])));
-         }
-         if (exportTangents)
-         {
-            AiNodeSetArray(polymesh, "tangent", AiArrayConvert(numVerts, 1, AI_TYPE_VECTOR, &(tangents[0])));
-            AiNodeSetArray(polymesh, "bitangent", AiArrayConvert(numVerts, 1, AI_TYPE_VECTOR, &(bitangents[0])));
-         }
+         }         
       }
       else
       {
@@ -898,16 +899,6 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
             AtArray* nlist_array = AiArrayAllocate(numNorms, GetNumMotionSteps(), AI_TYPE_VECTOR);
             SetKeyData(nlist_array, step, normals, numNorms);
             AiNodeSetArray(polymesh, "nlist", nlist_array);
-         }
-         if (exportTangents)
-         {
-            AtArray* tangent_array = AiArrayAllocate(numVerts, GetNumMotionSteps(), AI_TYPE_VECTOR);
-            SetKeyData(tangent_array, step, tangents, numVerts);
-            AiNodeSetArray(polymesh, "tangent", tangent_array);
-
-            AtArray* bitangent_array = AiArrayAllocate(numVerts, GetNumMotionSteps(), AI_TYPE_VECTOR);
-            SetKeyData(bitangent_array, step, bitangents, numVerts);
-            AiNodeSetArray(polymesh, "bitangent", bitangent_array);
          }
       }
 
@@ -1037,23 +1028,6 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
                        GetMayaNodeName().asChar(), nlist_array->nelements, numNorms);
          else
             SetKeyData(nlist_array, step, normals, numNorms);
-      }
-      // Tangents
-      if (exportTangents)
-      {
-         AtArray* tangent_array = AiNodeGetArray(polymesh, "tangent");
-         if (tangent_array->nelements != numVerts)
-            AiMsgError("[mtoa.translator]  %-30s | Number of tangents changed between motion steps: %d -> %d",
-                       GetMayaNodeName().asChar(), tangent_array->nelements, numVerts);
-         else
-            SetKeyData(tangent_array, step, tangents, numVerts);
-
-         AtArray* bitangent_array = AiNodeGetArray(polymesh, "bitangent");
-         if (bitangent_array->nelements != numVerts)
-            AiMsgError("[mtoa.translator]  %-30s | Number of bi-tangents changed between motion steps: %d -> %d",
-                       GetMayaNodeName().asChar(), bitangent_array->nelements, numVerts);
-         else
-            SetKeyData(bitangent_array, step, bitangents, numVerts);
       }
    }
 }
