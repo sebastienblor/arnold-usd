@@ -784,18 +784,26 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
    for (unsigned int i=0; i<fnDepNode.attributeCount(); ++i)
    {
       MObject oAttr = fnDepNode.attribute(i);
+      if (fnDepNode.attributeClass(oAttr) == MFnDependencyNode::kNormalAttr)
+         continue; // we don`t need to check normal attributes,
+      // they should be exported by the translator
 
-      MFnAttribute fnAttr(oAttr);
-      MPlug pAttr(object, oAttr);
-
-      MString name = fnAttr.name();
-      if (name.indexW("mtoa_") == 0)
+      MFnAttribute fnAttr(oAttr);      
+      // The indexW in the MString is very slow!
+      // so hard coding the check is a better option
+      MString name = fnAttr.name();      
+      if (name.length() < 6)
+         continue;
+      const char *aname = name.asChar();
+      if ((aname[0] == 'm') && (aname[1] == 't') &&
+          (aname[2] == 'o') && (aname[3] == 'a') && (aname[4] == '_'))
       {
-         const char *aname = name.asChar() + 5;
+         aname = aname + 5;
          if (AiNodeLookUpUserParameter(anode, aname) != NULL)
          {
             continue;
          }
+         MPlug pAttr(object, oAttr);
          if (oAttr.hasFn(MFn::kNumericAttribute))
          {
             MFnNumericAttribute nattr(oAttr);
