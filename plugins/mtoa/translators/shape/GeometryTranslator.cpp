@@ -226,17 +226,7 @@ bool CGeometryTranslator::GetTangents(const MObject &geometry,
       return false;
 
    MObject meshObject = fnMesh.object();
-   MItMeshVertex itVertex(meshObject);
-   MIntArray iarray;
-   MVector ttmp, btmp, tangent, bitangent;
-   float scale = 1.0f;
-   unsigned int i = 0;
-
-   int nverts = fnMesh.numVertices();
-
-   tangents.resize(nverts * 3);
-   bitangents.resize(nverts * 3);
-
+   
    MFnMesh tangentFn;
    if (space == MSpace::kWorld)
    {
@@ -250,41 +240,61 @@ bool CGeometryTranslator::GetTangents(const MObject &geometry,
    {
       tangentFn.setObject(fnMesh.object());
    }
-       
-   for (unsigned int i = 0;!itVertex.isDone(); itVertex.next(), i += 3)
-   {
-      iarray.clear();
-      itVertex.getConnectedFaces(iarray);
 
-      tangent = MVector::zero;
-      bitangent = MVector::zero;
-      
-      unsigned int iaLength = iarray.length();
+   int nverts = fnMesh.numVertices();
 
-      if (iaLength > 0)
+   tangents.resize(nverts * 3);
+   bitangents.resize(nverts * 3);
+   
+   AtVector* arnoldTangents = (AtVector*)&tangents[0];
+   AtVector* arnoldBinormals = (AtVector*)&bitangents[0];
+   
+   MFloatVectorArray mayaTangents;
+   MFloatVectorArray mayaBinormals;
+   
+   tangentFn.getTangents(mayaTangents, space);
+   tangentFn.getBinormals(mayaBinormals, space);
+   
+   std::vector<int> weights;
+   weights.resize(nverts, 0);
+   
+   MItMeshPolygon iter(fnMesh.object());
+   MIntArray vids;
+   
+   for (;iter.isDone(); iter.next())
+   {      
+      iter.getVertices(vids);
+      for (unsigned int i = 0; i < vids.length(); ++i)
       {
-         scale = 1.0f / float(iaLength);
-
-         for (unsigned int j=0; j < iaLength; ++j)
-         {
-            tangentFn.getFaceVertexTangent(iarray[j], itVertex.index(), ttmp, space);
-            tangentFn.getFaceVertexBinormal(iarray[j], itVertex.index(), btmp, space);
-            tangent += ttmp;
-            bitangent += btmp;
-         }
-
-         tangent *= scale;
-         bitangent *= scale;
+         unsigned int tid = iter.tangentIndex(i);
+         unsigned int vid = vids[i];
+         ++weights[vid];
+         MFloatVector tv = mayaTangents[tid];
+         arnoldTangents[vid].x += tv.x;
+         arnoldTangents[vid].y += tv.y;
+         arnoldTangents[vid].z += tv.z;
+         tv = mayaBinormals[tid];
+         arnoldBinormals[vid].x += tv.x;
+         arnoldBinormals[vid].y += tv.y;
+         arnoldBinormals[vid].z += tv.z;
       }
-
-      tangents[i] = (float) tangent.x;
-      tangents[i+1] = (float) tangent.y;
-      tangents[i+2] = (float) tangent.z;
-
-      bitangents[i] = (float) bitangent.x;
-      bitangents[i+1] = (float) bitangent.y;
-      bitangents[i+2] = (float) bitangent.z;
    }
+   
+   for (int i = 0; i < nverts; ++i)
+   {
+      if (weights[i] == 0)
+      {
+         arnoldTangents[i] = AI_V3_ZERO;
+         arnoldBinormals[i] = AI_V3_ZERO;
+      }
+      else
+      {
+         const float w = 1.0f / (float)weights[i];
+         arnoldTangents[i] *= w;
+         arnoldBinormals[i] *= w;
+      }
+   }
+
    return true;
 }
 
@@ -495,12 +505,13 @@ bool CGeometryTranslator::GetComponentIDs(const MObject &geometry,
       vidxs.reserve(np * 4); // guessing the number of required ids
       nidxs.reserve(np * 4);
       uvidxs.reserve(np * 4);
+      // Vertex indicies.
+      MIntArray p_vidxs;
       for (unsigned int p(0); p < np; ++p)
       {
          // Num points/sides to the poly.
-         nsides.push_back(fnMesh.polygonVertexCount(p));
-         // Vertex indicies.
-         MIntArray p_vidxs;
+         nsides.push_back(fnMesh.polygonVertexCount(p));         
+         
          fnMesh.getPolygonVertices(p, p_vidxs);
          for(uint v(0); v < p_vidxs.length(); ++v)
          {
@@ -514,10 +525,10 @@ bool CGeometryTranslator::GetComponentIDs(const MObject &geometry,
          }
       }
 
+      MIntArray vertex_counts, normal_ids;
       // Normals.
       if (exportNormals)
-      {
-         MIntArray vertex_counts, normal_ids;
+      {         
          fnMesh.getNormalIds(vertex_counts, normal_ids);
          for(uint n(0); n < normal_ids.length(); ++n) nidxs.push_back(normal_ids[n]);
       }
