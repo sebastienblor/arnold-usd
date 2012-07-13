@@ -1091,13 +1091,9 @@ AtNode* CGeometryTranslator::ExportInstance(AtNode *instance, const MDagPath& ma
    
    if (shadersDifferent)
    {
-      MObjectArray shaders;
-      MIntArray indices;
-      meshNode.getConnectedShaders(instanceNum, shaders, indices);
-      
       MPlug shadingGroupPlug = GetNodeShadingGroup(m_geometry, instanceNum);
          
-         // In case Instance has per face assignment, use first SG assigned to it
+      // In case Instance has per face assignment, use first SG assigned to it
       if(shadingGroupPlug.isNull())
       {
          MPlugArray        connections;

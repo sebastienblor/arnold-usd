@@ -123,7 +123,6 @@ void CInstancerTranslator::ExportInstances(AtNode* instancer, AtUInt step)
    MTime oneSec(1.0, MTime::kSeconds);
    // FIXME: was it intended to be rounded to int ?
    float fps =  (float)oneSec.asUnits(MTime::uiUnit());
-   unsigned int totalSteps = GetNumMotionSteps();
    //unsigned int middleStep = ((totalSteps/2)+1)-1;
 
    MFnInstancer m_fnMayaInstancer(m_dagPath);

@@ -769,9 +769,11 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
    for (unsigned int i=0; i<fnDepNode.attributeCount(); ++i)
    {
       MObject oAttr = fnDepNode.attribute(i);
+      if (fnDepNode.attributeClass(oAttr) == MFnDependencyNode::kNormalAttr)
+         continue; // we don`t need to check normal attributes,
+      // they should be exported by the translator
 
-      MFnAttribute fnAttr(oAttr);
-      MPlug pAttr(object, oAttr);
+      MFnAttribute fnAttr(oAttr);      
       // The indexW in the MString is very slow!
       // so hard coding the check is a better option
       MString name = fnAttr.name();      
@@ -786,6 +788,7 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
          {
             continue;
          }
+         MPlug pAttr(object, oAttr);
          if (oAttr.hasFn(MFn::kNumericAttribute))
          {
             MFnNumericAttribute nattr(oAttr);
