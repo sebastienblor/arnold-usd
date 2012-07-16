@@ -2,7 +2,7 @@ import maya.cmds as cmds
 import maya.mel as mel
 from mtoa.ui.ae.aiSwatchDisplay import aiSwatchDisplay
 
-def aiLightBlockerTemplate(nodeName):
+def AEaiLightBlockerTemplate(nodeName):
 
     aiSwatchDisplay(nodeName)
 
@@ -23,13 +23,6 @@ def aiLightBlockerTemplate(nodeName):
 
     cmds.editorTemplate(endLayout=True)
 
-    cmds.editorTemplate(beginLayout="Transform Attributes", collapse=False)
-
-    cmds.editorTemplate("geometry_matrix", addControl=True, label="Geometry Matrix")
-
-    cmds.editorTemplate(endLayout=True)
-
-    # include/call base class/node attributes
-    mel.eval('AEdependNodeTemplate "%s"'%nodeName)
     cmds.editorTemplate(addExtraControls=True)
     cmds.editorTemplate(endScrollLayout=True)
+
