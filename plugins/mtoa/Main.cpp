@@ -22,12 +22,14 @@
 #include "nodes/shape/ArnoldStandIns.h"
 #include "nodes/light/ArnoldSkyDomeLightNode.h"
 #include "nodes/light/ArnoldAreaLightNode.h"
+#include "nodes/light/ArnoldLightBlockerNode.h"
 #include "nodes/shader/ArnoldStandardNode.h"
 
 #include "translators/options/OptionsTranslator.h"
 #include "translators/camera/CameraTranslators.h"
 #include "translators/light/LightTranslators.h"
 #include "translators/light/LightLinkerTranslator.h"
+#include "translators/light/LightBlockerTranslator.h"
 #include "translators/shader/ShaderTranslators.h"
 #include "translators/shape/MeshTranslator.h"
 #include "translators/shape/NurbsSurfaceTranslator.h"
@@ -124,13 +126,20 @@ namespace // <anonymous>
       CHECK_MSTATUS(status);
 
       status = plugin.registerNode("aiAreaLight",
-                                    CArnoldAreaLightNode::id,
-                                    CArnoldAreaLightNode::creator,
-                                    CArnoldAreaLightNode::initialize,
-                                    MPxNode::kLocatorNode,
-                                    &LIGHT_WITH_SWATCH);
+                                   CArnoldAreaLightNode::id,
+                                   CArnoldAreaLightNode::creator,
+                                   CArnoldAreaLightNode::initialize,
+                                   MPxNode::kLocatorNode,
+                                   &LIGHT_WITH_SWATCH);
       CHECK_MSTATUS(status);
-
+      
+      status = plugin.registerNode("aiLightBlocker",
+                                   CArnoldLightBlockerNode::id,
+                                   CArnoldLightBlockerNode::creator,
+                                   CArnoldLightBlockerNode::initialize,
+                                   MPxNode::kLocatorNode);
+      
+      CHECK_MSTATUS(status);
 
       // Special shaders (not visible from Maya shaders menu)
       status = plugin.registerNode("aiSky",
@@ -192,6 +201,9 @@ namespace // <anonymous>
                                    "mesh",
                                    CMeshLightTranslator::creator,
                                    CMeshLightTranslator::NodeInitializer);
+       builtin->RegisterTranslator("aiLightBlocker",
+                                   "",
+                                   CLightBlockerTranslator::creator);
        // Arnold skyDomeLight node
        builtin->RegisterTranslator("aiSkyDomeLight",
                                    "",
