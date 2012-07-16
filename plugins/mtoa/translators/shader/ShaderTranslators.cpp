@@ -973,3 +973,24 @@ void DisplacementTranslatorNodeInitializer(CAbTranslator context)
    data.shortName = "ai_displacement_auto_bump";
    helper.MakeInputBoolean(data);
 }
+
+void CMayaBlinnTranslator::Export(AtNode* shader)
+{
+   ProcessParameter(shader, "Kd", AI_TYPE_FLOAT, "diffuse");
+   ProcessParameter(shader, "Kd_color", AI_TYPE_RGB, "color");
+   
+   ProcessParameter(shader, "Ks", AI_TYPE_FLOAT, "specularRollOff");
+   ProcessParameter(shader, "specular_roughness", AI_TYPE_FLOAT, "eccentricity");
+   ProcessParameter(shader, "Ks_color", AI_TYPE_RGB, "specularColor");
+   
+   ProcessParameter(shader, "Kr", AI_TYPE_FLOAT, "reflectivity");
+   ProcessParameter(shader, "Kr_color", AI_TYPE_RGB, "reflectedColor");
+   
+   AiNodeSetFlt(shader, "emission", 1.f);
+   ProcessParameter(shader, "emission_color", AI_TYPE_RGB, "incandescence");
+}
+
+AtNode* CMayaBlinnTranslator::CreateArnoldNodes()
+{
+   return ProcessAOVOutput(AddArnoldNode("standard"));
+}

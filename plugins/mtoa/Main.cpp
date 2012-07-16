@@ -368,7 +368,10 @@ namespace // <anonymous>
          shaders->RegisterTranslator("displacementShader",
                                      "",
                                      CDisplacementTranslator::creator,
-                                     DisplacementTranslatorNodeInitializer);
+                                     DisplacementTranslatorNodeInitializer);         
+         shaders->RegisterTranslator("blinn",
+                                     "",
+                                     CMayaBlinnTranslator::creator);
       }
 
       // Will load all found plugins and try to register nodes and translators
