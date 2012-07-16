@@ -99,7 +99,7 @@ AtNode* CShaderTranslator::ProcessAOVOutput(AtNode* shader)
       for (unsigned int i = 0; i < plugs.length(); i++)
       {
          MFnDependencyNode fnNode(plugs[i].node());
-         MString nodeName = fnNode.name() + ".dagSetMembers";
+         MString nodeName = fnNode.name();
          AiArraySetStr(sets, i, nodeName.asChar());
       }
       AiNodeSetArray(writeNode, "sets", sets);

@@ -89,7 +89,7 @@ def HairSystemTemplateCCU1(attrName):
 def HairSystemTemplateCCU2(attrName):
     cmds.attrNavigationControlGrp("HairSystemTemplateShader", edit=True, attribute=attrName)
 
-class HairSystemTemplate(templates.ShapeAETemplate):
+class HairSystemTemplate(templates.ShapeTranslatorTemplate):
     def setup(self):
         self.addControl("primaryVisibility")
         self.addControl("castsShadows")
@@ -100,7 +100,7 @@ class HairSystemTemplate(templates.ShapeAETemplate):
         self.addControl("aiExportHairUVs", label="Export Hair UVs")
         self.addControl("aiExportHairColors", label="Export Hair Colors")
         self.addControl("aiOverrideHair", label="Override Hair")
-        pm.uitypes.AETemplate.callCustom(self, HairSystemTemplateCCU1, HairSystemTemplateCCU2, "aiHairShader")
+        pm.uitypes.AETemplate.callCustom(self._rootMode, HairSystemTemplateCCU1, HairSystemTemplateCCU2, "aiHairShader")
         self.addSeparator()
         self.addControl("aiMinPixelWidth", label="Min Pixel Width")
         self.addControl("aiMode", label="Mode")

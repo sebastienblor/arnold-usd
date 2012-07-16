@@ -19,6 +19,7 @@
       static void* creator(){return new name();}\
       virtual void Export(AtNode* shader);\
       AtNode* CreateArnoldNodes();\
+      bool DependsOnOutputPlug() { return true; } \
    protected:\
       bool ResolveOutputPlug(const MPlug& outputPlug, MPlug &resolvedOutputPlug){resolvedOutputPlug=outputPlug;return true;}\
    };
@@ -47,6 +48,7 @@ SHADER_TRANSLATOR(CLayeredTextureTranslator);
 SHADER_TRANSLATOR(CLayeredShaderTranslator);
 SHADER_TRANSLATOR(CRemapHsvTranslator);
 SHADER_TRANSLATOR_MULTIOUT(CDisplacementTranslator);
+SHADER_TRANSLATOR(CMayaBlinnTranslator);
 
 void DisplacementTranslatorNodeInitializer(CAbTranslator context);
 

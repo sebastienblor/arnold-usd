@@ -12,7 +12,8 @@ MString getFileName(MCommonRenderSettingsData::MpathType pathType,
                      bool createDirectory,
                      const MString& fileRuleType,
                      const MString& path,
-                     const bool* isSequence)
+                     const bool* isSequence,
+                     const bool* strictAOVs)
 {
    MString cmd = "import mtoa.utils;mtoa.utils.getFileName(";
    cmd += pathType;
@@ -30,12 +31,14 @@ MString getFileName(MCommonRenderSettingsData::MpathType pathType,
    cmd += "', ";
    cmd += MString("frame=") + frameNumber + ", ";
    if (path.numChars())
-      cmd += "path='" + path + "', ";
+      cmd += "path=r'" + path + "', ";
    if (fileRuleType.numChars())
       cmd += "fileType='" + fileRuleType + "', ";
-   cmd += MString("createDirectory=") + (createDirectory ? "True" : "False")  + ");";
    if (isSequence != NULL)
       cmd += MString("isSequence=") + (*isSequence ? "True" : "False")  + ", ";
+   if (strictAOVs != NULL)
+      cmd += MString("strictAOVs=") + (*strictAOVs ? "True" : "False")  + ", ";
+   cmd += MString("createDirectory=") + (createDirectory ? "True" : "False")  + ");";
 
    return MGlobal::executePythonCommandStringResult(cmd);
 }

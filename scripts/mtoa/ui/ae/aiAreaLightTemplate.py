@@ -1,9 +1,15 @@
 import pymel.core as pm
 import mtoa.ui.ae.lightTemplate as lightTemplate
-from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
+import mtoa.ui.ae.aiSwatchDisplay as aiSwatchDisplay
 import mtoa.ui.ae.templates as templates
 
-class AEaiAreaLightTemplate(ShaderAETemplate):
+class AEaiAreaLightTemplate(lightTemplate.LightTemplate):
+    def validFilters(self):
+        return ['aiLightBlocker', 'aiLightDecay']
+
+    def addSwatch(self):
+        self.addCustom("message", aiSwatchDisplay.aiSwatchDisplayNew, aiSwatchDisplay.aiSwatchDisplayReplace)
+
     def makeLightExclusive(self, attr):
         lightName = attr.split(".")[0]
         pm.rowLayout(nc=2, cal=[2, 'left'])
@@ -29,9 +35,13 @@ class AEaiAreaLightTemplate(ShaderAETemplate):
         self.addControl("emitDiffuse")
         self.addControl("emitSpecular")
         self.addControl("aiDecayType")
-        self.addControl("lightVisible")
         
         self.addChildTemplate('aiTranslator', templates.getNodeTemplate('aiAreaLight'))
+        
+        self.addSeparator()
+
+        self.commonLightAttributes()
+        
         self.endLayout()
 
         # include/call base class/node attributes
@@ -56,12 +66,20 @@ class BaseAreaLightTemplate(lightTemplate.LightTemplate):
         self.addControl("aiAffectVolumetrics")
         self.addControl("aiCastVolumetricShadows")
 
+       
+        
+class QuadAreaLightTemplate(BaseAreaLightTemplate):
+    def setup(self):
+        self.addControl("aiResolution")
         self.addSeparator()
-
-        self.commonLightAttributes()
+        super(QuadAreaLightTemplate, self).setup()
 
 class MeshLightTemplate(lightTemplate.LightTemplate):
     def setup(self):
+        self.addControl("lightVisible")
+        
+        self.addSeparator()
+        
         self.addControl("aiSamples")
         self.addControl("aiNormalize")
 
@@ -71,16 +89,6 @@ class MeshLightTemplate(lightTemplate.LightTemplate):
         self.addControl("aiShadowDensity")
         self.addControl("aiShadowColor")
 
-        self.addSeparator()
-
-        self.commonLightAttributes()
-
-
-class QuadAreaLightTemplate(BaseAreaLightTemplate):
-    def setup(self):
-        self.addControl("aiResolution")
-        self.addSeparator()
-        super(QuadAreaLightTemplate, self).setup()
 
 templates.registerAETemplate(templates.TranslatorControl, "aiAreaLight", label="Light Shape")
 templates.registerTranslatorUI(QuadAreaLightTemplate, "aiAreaLight", "quad")

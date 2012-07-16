@@ -27,7 +27,7 @@ MSyntax CArnoldExportAssCmd::newSyntax()
    syntax.addFlag("b", "batch", MSyntax::kNoArg);
    syntax.addFlag("s", "selected");
    syntax.addFlag("f", "filename", MSyntax::kString);
-   syntax.addFlag("cam", "camera", MSyntax::kSelectionItem);
+   syntax.addFlag("cam", "camera", MSyntax::kString);
    syntax.addFlag("sf", "startFrame", MSyntax::kDouble);
    syntax.addFlag("ef", "endFrame", MSyntax::kDouble);
    syntax.addFlag("fs", "frameStep", MSyntax::kDouble);
@@ -145,10 +145,17 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
    // Custom camera
    if (argDB.isFlagSet("camera"))
    {
+      MString camName;
+      argDB.getFlagArgument("camera", 0, camName);
       MSelectionList sel;
-      argDB.getFlagArgument("camera", 0, sel);
+      sel.add(camName);
       MStatus status;
       status = sel.getDagPath(0, camera);
+      if (status != MStatus::kSuccess)
+      {
+         MGlobal::displayError("[mtoa] Invalid camera \"" + camName + "\": " + status.errorString());
+         return MS::kFailure;
+      }
    }
    // Output bounding box
    if (argDB.isFlagSet("boundingBox"))

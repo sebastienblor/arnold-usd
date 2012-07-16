@@ -23,13 +23,14 @@ unsigned int CMeshTranslator::GetNumMeshGroups(const MDagPath& dagPath)
    }
    else
    {
-      MFnMesh      mesh(node);
-      MObjectArray shaders;
-      MIntArray    indices;
-
-      mesh.getConnectedShaders(instanceNum, shaders, indices);
-
-      return shaders.length();
+      MFnMesh mesh(node);
+      MPlug plug = mesh.findPlug("instObjGroups").elementByLogicalIndex(instanceNum);
+      MPlugArray conns;
+      plug.connectedTo(conns, false, true);
+      if (conns.length() != 0) // no per face assigment
+         return 1;
+      else // check for per face assigment
+         return plug.child(0).numElements();
    }
 }
 
@@ -76,7 +77,7 @@ bool CMeshTranslator::IsMasterInstance(MDagPath &masterDag)
          {
             currDag = allInstances[master_index];
             // The following line was overridden to add the GetNumMeshGroups check
-            if (CArnoldSession::IsRenderablePath(currDag) && GetNumMeshGroups(currDag) > 0)
+            if (m_session->IsRenderablePath(currDag) && GetNumMeshGroups(currDag) > 0)
             {
                // found it
                m_session->AddMasterInstanceHandle(handle, currDag);

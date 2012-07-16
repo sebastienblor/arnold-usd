@@ -27,7 +27,7 @@ def getAOVsInNetwork(rootNode):
             results[node] = [node.attr(at).get() for (aov, at, type) in aovs.getNodeGlobalAOVData(node.type())]
     return results
 
-class ShadingEngineTemplate(templates.AttributeEditorTemplate):
+class ShadingEngineTemplate(templates.AttributeTemplate):
     def __init__(self, nodeType):
         self._msgCtrls = []
         aovs.addAOVChangedCallback(self.update, 'ShadingEngineTemplate')

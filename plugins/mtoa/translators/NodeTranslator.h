@@ -74,14 +74,17 @@ public:
    virtual MPlug FindMayaOverridePlug(const MString &attrName, MStatus* ReturnStatus=NULL) const;
    virtual MPlug FindMayaPlug(const MString &attrName, MStatus* ReturnStatus=NULL) const;
 
+   // overridable translator properties
    virtual bool IsMayaTypeDag() {return false;}
    virtual bool IsMayaTypeRenderable() {return false;}
    virtual bool IsMayaTypeLight() { return false; }
    virtual bool DependsOnExportCamera() {return false;}
-   virtual void TrackAOVs(AOVSet* aovs);
-   virtual void TrackShaders(AtNodeSet* nodes) {m_shaders = nodes;};
    /// Instead of caching translator exports, allow a Maya node to be exported multiple times, each time generating new arnold nodes
    virtual bool DisableCaching() {return false;}
+   virtual bool DependsOnOutputPlug() {return false;} // translator performs different operations depending on the type of output plug
+
+   virtual void TrackAOVs(AOVSet* aovs);
+   virtual void TrackShaders(AtNodeSet* nodes) {m_shaders = nodes;};
 
    // Overide this if you have some special callbacks to install.
    virtual void AddUpdateCallbacks();
@@ -173,8 +176,8 @@ protected:
    inline double GetMotionByFrame() const {return m_session->GetMotionByFrame(); }
 
    // session action
-   AtNode* ExportNode(const MPlug& outputPlug) {return m_session->ExportNode(outputPlug, m_shaders, &m_upstreamAOVs);}
-   AtNode* ExportDagPath(MDagPath &dagPath) {return m_session->ExportDagPath(dagPath);}
+   AtNode* ExportNode(const MPlug& outputPlug, bool trackAOVs=true);
+   AtNode* ExportDagPath(MDagPath &dagPath);
 
    // set the arnold node that this translator is exporting (should only be used after all export steps are complete)
    virtual void SetArnoldRootNode(AtNode* node);
@@ -199,7 +202,7 @@ protected:
    AtNode* m_atNode;
    std::map<std::string, AtNode*> m_atNodes;
 
-   MObjectArray m_overrideSets;
+   std::vector<CNodeTranslator*> m_overrideSets;
 
    unsigned int m_step;
 
