@@ -780,28 +780,6 @@ void CGeometryTranslator::ExportMeshShaders(AtNode* polymesh,
    }
 }
 
-class FParallelVectorMultiplication{
-private:
-   AtArray* p_aVector;
-   const AtVector* p_mVector;
-   const AtMatrix& m_worldMatrix;
-public:
-   FParallelVectorMultiplication(AtArray* aVector, const AtVector* mVector, const AtMatrix& matrix) :
-      p_aVector(aVector), p_mVector(mVector), m_worldMatrix(matrix)
-   { }
-   
-   void operator()(const tbb::blocked_range<unsigned int>& r) const
-   {
-      AtVector v0, v1;
-      for (unsigned int i = r.begin(); i != r.end(); ++i)
-      {
-         v1 = p_mVector[i];
-         AiM4PointByMatrixMult(&v0, m_worldMatrix, &v1);
-         AiArraySetVec(p_aVector, i, v0);
-      }
-   }
-};
-
 void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
 {
    MFnMesh fnMesh(m_geometry);
@@ -927,16 +905,20 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
       
       if (exportReferenceObjects) // TODO : use local space for this and manually transform that later, 
          // that makes a few functions much simpler
-      {
-         tbb::task_scheduler_init task_init;
-         AtMatrix worldMatrix;
-         ConvertMatrix(worldMatrix, m_dagPathRef.inclusiveMatrix());
+      {         
          if (exportRefVerts)
          {
+            AtMatrix worldMatrix;
+            ConvertMatrix(worldMatrix, m_dagPathRef.inclusiveMatrix());
             AtArray* aRefVertices = AiArrayAllocate(numVerts, 1, AI_TYPE_POINT);
-            //AiNodeSetArray(polymesh, "Pref", aRefVertices);
-            tbb::parallel_for(tbb::blocked_range<unsigned int>(0, numVerts), 
-                    FParallelVectorMultiplication(aRefVertices, (const AtVector*)refVertices, worldMatrix));
+            const AtVector* vRefVertices = (const AtVector*)refVertices;
+            for (unsigned int i = 0; i < numVerts; ++i)
+            {
+               AtVector v;
+               AiM4PointByMatrixMult(&v, worldMatrix, vRefVertices + i);
+               AiArraySetVec(aRefVertices, i, v);
+            }
+            AiNodeSetArray(polymesh, "Pref", aRefVertices);
          }
          if (exportRefNorms)
             AiNodeSetArray(polymesh, "Nref", refNormals);
