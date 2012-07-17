@@ -406,23 +406,25 @@ bool CGeometryTranslator::GetRefObj(const float*& refVertices,
 }
 
 bool CGeometryTranslator::GetUVs(const MObject &geometry,
-                                 std::vector<float> &uvs)
+                                 AtArray*& uvs)
 {
    MFnMesh fnMesh(geometry);
 
    // Get all UVs
-   if (fnMesh.numUVs() > 0)
+   int numUVs = fnMesh.numUVs();
+   if (numUVs > 0)
    {
-      uvs.resize(fnMesh.numUVs() * 2);
+      uvs = AiArrayAllocate(numUVs, 1, AI_TYPE_POINT2);
 
       MFloatArray uArray, vArray;
       fnMesh.getUVs(uArray, vArray);
       
-      const int numUVs = fnMesh.numUVs();
       for (int j = 0; j < numUVs; ++j)
       {
-         uvs[j * 2 + 0] = uArray[j];
-         uvs[j * 2 + 1] = vArray[j];
+         AtPoint2 atv;
+         atv.x = uArray[j];
+         atv.y = vArray[j];
+         AiArraySetPnt2(uvs, j, atv);
       }
       return true;
    }
@@ -822,7 +824,7 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
 
    if (step == 0)
    {
-      std::vector<float> uvs;
+      AtArray* uvs = 0;
       AtArray* nsides = 0;
       AtArray* vidxs = 0; AtArray* nidxs = 0; AtArray* uvidxs = 0;
       std::map<std::string, std::vector<float> > vcolors;
@@ -946,7 +948,7 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
       }
       if (exportUVs)
       {
-         AiNodeSetArray(polymesh, "uvlist", AiArrayConvert(numUVs * 2, 1, AI_TYPE_FLOAT, &(uvs[0])));
+         AiNodeSetArray(polymesh, "uvlist", uvs);
          AiNodeSetArray(polymesh, "uvidxs", uvidxs);
       }
       if (exportColors)

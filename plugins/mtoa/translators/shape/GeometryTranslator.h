@@ -61,7 +61,7 @@ protected:
          MSpace::Space space=MSpace::kObject,
          bool force=false);
    bool GetUVs(const MObject &geometry,
-               std::vector<float> &uvs);
+               AtArray*& uvs);
    MDagPath GetMeshRefObj();
    bool GetRefObj(const float*& refVertices,
          AtArray*& refNormals,
