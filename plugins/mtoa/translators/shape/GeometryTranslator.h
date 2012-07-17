@@ -70,10 +70,10 @@ protected:
    bool GetVertexColors(const MObject &geometry,
          std::map<std::string, std::vector<float> > &vcolors);
    bool GetComponentIDs(const MObject &geometry,
-         std::vector<unsigned int> &nsides,
-         std::vector<AtUInt32> &vidxs,
-         std::vector<AtUInt32> &nidxs,
-         std::vector<AtUInt32> &uvidxs,
+         AtArray*& nsides,
+         AtArray*& vidxs,
+         AtArray*& nidxs,
+         AtArray*& uvidxs,
          bool exportNormals,
          bool exportUVs);
    

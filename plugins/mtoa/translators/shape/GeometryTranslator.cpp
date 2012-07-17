@@ -494,10 +494,10 @@ bool CGeometryTranslator::GetVertexColors(const MObject &geometry,
 }
 
 bool CGeometryTranslator::GetComponentIDs(const MObject &geometry,
-      std::vector<unsigned int> &nsides,
-      std::vector<AtUInt32> &vidxs,
-      std::vector<AtUInt32> &nidxs,
-      std::vector<AtUInt32> &uvidxs,
+      AtArray*& nsides,
+      AtArray*& vidxs,
+      AtArray*& nidxs,
+      AtArray*& uvidxs,
       bool exportNormals,
       bool exportUVs)
 {
@@ -508,26 +508,32 @@ bool CGeometryTranslator::GetComponentIDs(const MObject &geometry,
    unsigned int np = fnMesh.numPolygons();
    if (np > 0)
    {
-      nsides.reserve(np);
-      vidxs.reserve(np * 4); // guessing the number of required ids
-      nidxs.reserve(np * 4);
-      uvidxs.reserve(np * 4);
-      // Vertex indicies.
-      MIntArray p_vidxs;
+      nsides = AiArrayAllocate(np, 1, AI_TYPE_UINT);
+      unsigned int polygonVertexCount = 0; // for counting the number of ids
       for (unsigned int p(0); p < np; ++p)
       {
+         int numPolygonVertexCount = fnMesh.polygonVertexCount(p);
+         polygonVertexCount += numPolygonVertexCount;
          // Num points/sides to the poly.
-         nsides.push_back(fnMesh.polygonVertexCount(p));         
-         
+         AiArraySetUInt(nsides, p, (unsigned int)numPolygonVertexCount);
+      }
+      vidxs = AiArrayAllocate(polygonVertexCount, 1, AI_TYPE_UINT);
+      if (exportUVs)
+         uvidxs = AiArrayAllocate(polygonVertexCount, 1, AI_TYPE_UINT);
+      // Vertex indicies.
+      MIntArray p_vidxs;
+      unsigned int id = 0;
+      for (unsigned int p(0); p < np; ++p)
+      {
          fnMesh.getPolygonVertices(p, p_vidxs);
-         for(uint v(0); v < p_vidxs.length(); ++v)
+         for(uint v(0); v < p_vidxs.length(); ++v, ++id)
          {
-            vidxs.push_back(p_vidxs[v]);
+            AiArraySetUInt(vidxs, id, p_vidxs[v]);
             // UVs
             if (exportUVs)
             {
                fnMesh.getPolygonUVid(p, v, uv_id);
-               uvidxs.push_back(uv_id);
+               AiArraySetUInt(uvidxs, id, uv_id);
             }
          }
       }
@@ -535,9 +541,11 @@ bool CGeometryTranslator::GetComponentIDs(const MObject &geometry,
       MIntArray vertex_counts, normal_ids;
       // Normals.
       if (exportNormals)
-      {         
+      {
+         nidxs = AiArrayAllocate(polygonVertexCount, 1, AI_TYPE_UINT);
+         id = 0;
          fnMesh.getNormalIds(vertex_counts, normal_ids);
-         for(uint n(0); n < normal_ids.length(); ++n) nidxs.push_back(normal_ids[n]);
+         for(uint n(0); n < normal_ids.length(); ++n, ++id) AiArraySetUInt(nidxs, id, normal_ids[n]);
       }
 
       return true;
@@ -815,8 +823,8 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
    if (step == 0)
    {
       std::vector<float> uvs;
-      std::vector<unsigned int> nsides;
-      std::vector<AtUInt32> vidxs, nidxs, uvidxs;
+      AtArray* nsides = 0;
+      AtArray* vidxs = 0; AtArray* nidxs = 0; AtArray* uvidxs = 0;
       std::map<std::string, std::vector<float> > vcolors;
       AtArray* refNormals = 0; AtArray* refTangents = 0; AtArray* refBitangents = 0;
       const float* refVertices = 0;
@@ -886,13 +894,9 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
       {
          // No deformation motion blur, so we create normal arrays
          if (exportVertices)
-         {
             AiNodeSetArray(polymesh, "vlist", AiArrayConvert(numVerts * 3, 1, AI_TYPE_FLOAT, &(vertices[0])));
-         }
          if (exportNormals)
-         {
             AiNodeSetArray(polymesh, "nlist", AiArrayConvert(numNorms * 3, 1, AI_TYPE_FLOAT, &(normals[0])));
-         }         
       }
       else
       {
@@ -913,26 +917,12 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
 
       if (exportCompIDs)
       {
-         AiNodeSetArray(polymesh, "nsides", AiArrayConvert((int)nsides.size(), 1, AI_TYPE_UINT, &(nsides[0])));
-
-         // Passing vidxs directly put Arnold in trouble
-         //AiNodeSetArray(polymesh, "vidxs", AiArrayConvert(vidxs.size(), 1, AI_TYPE_UINT, &(vidxs[0])));
-         AtArray *vidxsTmp = AiArrayAllocate((int)vidxs.size(), 1, AI_TYPE_UINT);
-         for(unsigned int i = 0; (i < vidxs.size()); i++)
-         {
-            AiArraySetUInt(vidxsTmp, i, vidxs[i]);
-         }
-         AiNodeSetArray(polymesh, "vidxs", vidxsTmp);
+         AiNodeSetArray(polymesh, "nsides", nsides);
+         AiNodeSetArray(polymesh, "vidxs", vidxs);
+         if (exportNormals)
+            AiNodeSetArray(polymesh, "nidxs", nidxs);
       }
-      if (exportNormals)
-      {
-         // Same goes here
-         //AiNodeSetArray(polymesh, "nidxs", AiArrayConvert(nidxs.size(), 1, AI_TYPE_UINT, &(nidxs[0])));
-         AtArray *nidxsTmp = AiArrayAllocate((int)nidxs.size(), 1, AI_TYPE_UINT);
-         for(unsigned int i = 0; (i < nidxs.size()); i++)
-            AiArraySetUInt(nidxsTmp, i, nidxs[i]);
-         AiNodeSetArray(polymesh, "nidxs", nidxsTmp);
-      }
+      
       if (exportReferenceObjects) // TODO : use local space for this and manually transform that later, 
          // that makes a few functions much simpler
       {
@@ -957,12 +947,7 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
       if (exportUVs)
       {
          AiNodeSetArray(polymesh, "uvlist", AiArrayConvert(numUVs * 2, 1, AI_TYPE_FLOAT, &(uvs[0])));
-         // Same problem here
-         //AiNodeSetArray(polymesh, "uvidxs", AiArrayConvert(uvidxs.size(), 1, AI_TYPE_UINT, &(uvidxs[0])));
-         AtArray *uvidxsTmp = AiArrayAllocate((int)uvidxs.size(), 1, AI_TYPE_UINT);
-         for(unsigned int i = 0; (i < uvidxs.size()); i++)
-            AiArraySetUInt(uvidxsTmp, i, uvidxs[i]);
-         AiNodeSetArray(polymesh, "uvidxs", uvidxsTmp);
+         AiNodeSetArray(polymesh, "uvidxs", uvidxs);
       }
       if (exportColors)
       {
