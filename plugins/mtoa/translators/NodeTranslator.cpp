@@ -1197,8 +1197,27 @@ AtNode* CNodeTranslator::ProcessParameter(AtNode* arnoldNode, const char* arnold
    MFnDependencyNode fnNode(GetMayaObject());
    if (!helper.IsHidden(arnoldParamName))
    {
+      // check paramName
       MString mayaAttribName = helper.GetMayaAttrName(arnoldParamName);
-      return ProcessParameter(arnoldNode, arnoldParamName, arnoldParamType, mayaAttribName);
+      MPlug plug = FindMayaPlug(mayaAttribName, &status);
+      if ((MStatus::kSuccess != status) || plug.isNull())
+      {
+         // check aiParamName
+         helper.SetPrefix("ai_");
+         MString mayaExtAttribName = helper.GetMayaAttrName(arnoldParamName);
+         plug = FindMayaPlug(mayaExtAttribName, &status);
+         if ((MStatus::kSuccess != status) || plug.isNull())
+         {
+            AiMsgWarning("[mtoa.translator]  %s: Maya node %s(%s) does not have attribute %s or %s to match parameter %s on Arnold node %s(%s).",
+                  GetTranslatorName().asChar(),
+                  GetMayaNodeName().asChar(), GetMayaNodeTypeName().asChar(),
+                  mayaAttribName.asChar(), mayaExtAttribName.asChar(), arnoldParamName,
+                  AiNodeGetName(arnoldNode), AiNodeEntryGetName(AiNodeGetNodeEntry(arnoldNode)));
+            return NULL;
+         }
+         mayaAttribName = mayaExtAttribName;
+      }
+      return ProcessParameter(arnoldNode, arnoldParamName, arnoldParamType, plug);
    }
    else
    {
