@@ -43,10 +43,6 @@ public:
    virtual void AddUpdateCallbacks();
 
 protected:
-
-   bool GetVertices(const MObject &geometry,
-         std::vector<float> &vertices,
-         MSpace::Space space=MSpace::kObject);
    bool GetVertices(const MObject& geometry,
          const float*& vertices);
    bool GetPerVertexNormals(const MObject &geometry,

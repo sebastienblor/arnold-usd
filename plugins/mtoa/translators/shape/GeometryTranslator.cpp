@@ -88,43 +88,6 @@ MObject CGeometryTranslator::GetNodeShader(MObject dagNode, int instanceNum)
    return connections[0].node();
 }
 
-bool CGeometryTranslator::GetVertices(const MObject &geometry,
-                                      std::vector<float> &vertices,
-                                      MSpace::Space space)
-{
-   MStatus status;
-   MFnMesh fnMesh(geometry);
-   int nverts = fnMesh.numVertices();
-   if (nverts > 0)
-   {
-      vertices.resize(nverts * 3);
-
-      MFloatPointArray pointsArray;
-      if (space == MSpace::kWorld)
-      {
-         // A mesh has no transform, we must trace it back in the DAG
-         // FIXME : won't work for smoothed mesh or tessellated nurbs
-         MDagPath dp;
-         status = fnMesh.getPath(dp);
-         CHECK_MSTATUS(status);
-         MFnMesh pointFn(dp);
-         pointFn.getPoints(pointsArray, MSpace::kWorld);
-      }
-      else
-      {
-         fnMesh.getPoints(pointsArray, space);
-      }
-      for (int J = 0; (J < nverts); ++J)
-      {
-         vertices[J * 3 + 0] = pointsArray[J].x;
-         vertices[J * 3 + 1] = pointsArray[J].y;
-         vertices[J * 3 + 2] = pointsArray[J].z;
-      }
-      return true;
-   }
-   return false;
-}
-
 bool CGeometryTranslator::GetVertices(const MObject& geometry,
                                       const float*& vertices)
 {
@@ -442,9 +405,7 @@ bool CGeometryTranslator::GetVertexColors(const MObject &geometry,
    {
       MPlug plug = fnMesh.findPlug("aiExportColors");
       if (!plug.isNull())
-      {
          exportColors = plug.asBool();
-      }
    }
    if (exportColors)
    {
@@ -478,14 +439,10 @@ bool CGeometryTranslator::GetVertexColors(const MObject &geometry,
                {
                   itVertex.getColor(col, faces[k], &names[j]);
                   for (int l=0; l<dim; ++l)
-                  {
                      colors[i+l] += col[l];
-                  }
                }
                for (int l=0; l<dim; ++l)
-               {
                   colors[i+l] *= scale;
-               }
             }
 
             itVertex.next();
@@ -838,13 +795,9 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
       if (exportReferenceObjects)
       {
          if (exportRefVerts)
-         {
             AiNodeDeclare(polymesh, "Pref", "varying POINT");
-         }
          if (exportRefNorms)
-         {
             AiNodeDeclare(polymesh, "Nref", "varying VECTOR");
-         }
          if (exportRefTangents)
          {
             AiNodeDeclare(polymesh, "Tref", "varying VECTOR");
@@ -859,13 +812,9 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
          while (it != vcolors.end())
          {
             if (strcmp(it->first.c_str(), "sss_faceset") != 0)
-            {
                AiNodeDeclare(polymesh, it->first.c_str(), "varying RGBA");
-            }
             else
-            {
                AiNodeDeclare(polymesh, "sss_faceset", "uniform BOOL");
-            }
             ++it;
          }
       }
