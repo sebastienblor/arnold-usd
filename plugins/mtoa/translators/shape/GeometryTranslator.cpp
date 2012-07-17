@@ -143,7 +143,7 @@ bool CGeometryTranslator::GetVertices(const MObject& geometry,
 }
 
 bool CGeometryTranslator::GetPerVertexNormals(const MObject &geometry,
-                                              std::vector<float> &normals,
+                                              AtArray*& normals,
                                               MSpace::Space space,
                                               bool force)
 {
@@ -153,7 +153,8 @@ bool CGeometryTranslator::GetPerVertexNormals(const MObject &geometry,
    int nnorms = fnMesh.numNormals();
    if (nnorms > 0 && (force || (FindMayaPlug("smoothShading").asBool() && !FindMayaPlug("aiSubdivType").asBool())))
    {
-      normals.resize(fnMesh.numVertices() * 3);
+      int numVerts = fnMesh.numVertices();
+      normals = AiArrayAllocate(numVerts, 1, AI_TYPE_VECTOR);
 
       MFloatVectorArray normalArray;
       if (space == MSpace::kWorld)
@@ -171,11 +172,13 @@ bool CGeometryTranslator::GetPerVertexNormals(const MObject &geometry,
          fnMesh.getVertexNormals(false, normalArray, space);
       }
 
-      for (int J = 0; (J < fnMesh.numVertices()); ++J)
+      for (int J = 0; J < numVerts; ++J)
       {
-         normals[J * 3 + 0] = normalArray[J].x;
-         normals[J * 3 + 1] = normalArray[J].y;
-         normals[J * 3 + 2] = normalArray[J].z;
+         AtVector atv;
+         atv.x = normalArray[J].x;
+         atv.y = normalArray[J].y;
+         atv.z = normalArray[J].z;
+         AiArraySetVec(normals, J, atv);
       }
       return true;
    }
@@ -203,8 +206,8 @@ bool CGeometryTranslator::GetNormals(const MObject& geometry,
 }
 
 bool CGeometryTranslator::GetTangents(const MObject &geometry,
-                                      std::vector<float> &tangents,
-                                      std::vector<float> &bitangents,
+                                      AtArray*& tangents,
+                                      AtArray*& bitangents,
                                       MSpace::Space space,
                                       bool force)
 {
@@ -213,9 +216,7 @@ bool CGeometryTranslator::GetTangents(const MObject &geometry,
 
    bool doExport;
    if (force)
-   {
       doExport = true;
-   }
    else
    {
       MPlug pExportTangents = fnMesh.findPlug("aiExportTangents", false, &status);
@@ -237,23 +238,24 @@ bool CGeometryTranslator::GetTangents(const MObject &geometry,
       tangentFn.setObject(dp);
    }
    else
-   {
       tangentFn.setObject(fnMesh.object());
-   }
 
    int nverts = fnMesh.numVertices();
 
-   tangents.resize(nverts * 3);
-   bitangents.resize(nverts * 3);
+   tangents = AiArrayAllocate(nverts, 1, AI_TYPE_VECTOR);
+   bitangents = AiArrayAllocate(nverts, 1, AI_TYPE_VECTOR);
    
-   AtVector* arnoldTangents = (AtVector*)&tangents[0];
-   AtVector* arnoldBinormals = (AtVector*)&bitangents[0];
+   for (int i = 0; i < nverts; ++i)
+   {
+      AiArraySetVec(tangents, i, AI_V3_ZERO);
+      AiArraySetVec(bitangents, i, AI_V3_ZERO);
+   }
    
    MFloatVectorArray mayaTangents;
-   MFloatVectorArray mayaBinormals;
+   MFloatVectorArray mayaBitangents;
    
    tangentFn.getTangents(mayaTangents, space);
-   tangentFn.getBinormals(mayaBinormals, space);
+   tangentFn.getBinormals(mayaBitangents, space);
    
    std::vector<int> weights;
    weights.resize(nverts, 0);
@@ -270,28 +272,33 @@ bool CGeometryTranslator::GetTangents(const MObject &geometry,
          unsigned int vid = vids[i];
          ++weights[vid];
          MFloatVector tv = mayaTangents[tid];
-         arnoldTangents[vid].x += tv.x;
-         arnoldTangents[vid].y += tv.y;
-         arnoldTangents[vid].z += tv.z;
-         tv = mayaBinormals[tid];
-         arnoldBinormals[vid].x += tv.x;
-         arnoldBinormals[vid].y += tv.y;
-         arnoldBinormals[vid].z += tv.z;
+         AtVector atv = AiArrayGetVec(tangents, vid);
+         atv.x += tv.x;
+         atv.y += tv.y;
+         atv.z += tv.z;
+         AiArraySetVec(tangents, vid, atv);
+         tv = mayaBitangents[tid];
+         atv = AiArrayGetVec(bitangents, vid);
+         atv.x += tv.x;
+         atv.y += tv.y;
+         atv.z += tv.z;
+         AiArraySetVec(bitangents, vid, atv);
       }
    }
    
    for (int i = 0; i < nverts; ++i)
    {
-      if (weights[i] == 0)
-      {
-         arnoldTangents[i] = AI_V3_ZERO;
-         arnoldBinormals[i] = AI_V3_ZERO;
-      }
-      else
+      if (weights[i] != 0)
       {
          const float w = 1.0f / (float)weights[i];
-         arnoldTangents[i] *= w;
-         arnoldBinormals[i] *= w;
+         
+         AtVector atv = AiArrayGetVec(tangents, i);
+         atv *= w;
+         AiArraySetVec(tangents, i, atv);         
+         
+         atv = AiArrayGetVec(bitangents, i);
+         atv *= w;
+         AiArraySetVec(bitangents, i, atv);
       }
    }
 
@@ -345,9 +352,9 @@ MDagPath CGeometryTranslator::GetMeshRefObj()
 }
 
 bool CGeometryTranslator::GetRefObj(const float*& refVertices,
-                                    std::vector<float> &refNormals,
-                                    std::vector<float> &refTangents,
-                                    std::vector<float> &refBitangents)
+                                    AtArray*& refNormals,
+                                    AtArray*& refTangents,
+                                    AtArray*& refBitangents)
 {
    MFnMesh fnMesh(m_dagPath);
    MDagPath dagPathRef = GetMeshRefObj();
@@ -789,12 +796,9 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
 {
    MFnMesh fnMesh(m_geometry);
    MObject geometry(m_geometry);
-
-
    //
    // GEOMETRY
-   //
-   std::vector<float> tangents, bitangents;
+   //   
    unsigned int numVerts = fnMesh.numVertices();
    unsigned int numNorms = fnMesh.numNormals();
    unsigned int numUVs = fnMesh.numUVs();
@@ -806,11 +810,7 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
 
    const float* normals = 0;
    // Get all normals
-   bool exportNormals = GetNormals(geometry, normals);
-
-   // Get all tangents, bitangents
-   bool exportTangents = GetTangents(geometry, tangents, bitangents,
-                                     MSpace::kObject);
+   bool exportNormals = GetNormals(geometry, normals);  
 
    if (step == 0)
    {
@@ -818,7 +818,7 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
       std::vector<unsigned int> nsides;
       std::vector<AtUInt32> vidxs, nidxs, uvidxs;
       std::map<std::string, std::vector<float> > vcolors;
-      std::vector<float> refNormals, refTangents, refBitangents;
+      AtArray* refNormals = 0; AtArray* refTangents = 0; AtArray* refBitangents = 0;
       const float* refVertices = 0;
 
       // Get UVs
@@ -828,19 +828,23 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
       bool exportReferenceObjects = GetRefObj(refVertices, refNormals,
                                               refTangents, refBitangents);
       bool exportRefVerts = refVertices != 0;
-      bool exportRefNorms = (refNormals.size() > 0);
-      bool exportRefTangents = (refTangents.size() > 0 && refBitangents.size() > 0);
+      bool exportRefNorms = refNormals != 0;
+      bool exportRefTangents = refTangents != 0;
 
       // Get Component IDs
       bool exportCompIDs = GetComponentIDs(geometry, nsides, vidxs, nidxs, uvidxs, exportNormals, exportUVs);
       // Get Vertex Colors
       bool exportColors = GetVertexColors(geometry, vcolors);
 
-      // Declare user parameters for tangents
-      if (exportTangents)
+      // Get all tangents, bitangents
+      AtArray* tangents; AtArray* bitangents;
+      if (GetTangents(geometry, tangents, bitangents, MSpace::kObject)) // Arnold doesn't support motion blurred user data
       {
          AiNodeDeclare(polymesh, "tangent", "varying VECTOR");
          AiNodeDeclare(polymesh, "bitangent", "varying VECTOR");
+         
+         AiNodeSetArray(polymesh, "tangent", tangents);
+         AiNodeSetArray(polymesh, "bitangent", bitangents);
       }
 
       if (exportReferenceObjects)
@@ -876,12 +880,6 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
             }
             ++it;
          }
-      }
-      
-      if (exportTangents) // Arnold doesn`t support motion blurred user data
-      {
-         AiNodeSetArray(polymesh, "tangent", AiArrayConvert(numVerts, 1, AI_TYPE_VECTOR, &(tangents[0])));
-         AiNodeSetArray(polymesh, "bitangent", AiArrayConvert(numVerts, 1, AI_TYPE_VECTOR, &(bitangents[0])));
       }
 
       if (!m_motionDeform || !IsLocalMotionBlurEnabled())
@@ -949,13 +947,11 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
                     FParallelVectorMultiplication(aRefVertices, (const AtVector*)refVertices, worldMatrix));
          }
          if (exportRefNorms)
-         {
-            AiNodeSetArray(polymesh, "Nref", AiArrayConvert(numNorms, 1, AI_TYPE_VECTOR, &(refNormals[0])));
-         }
+            AiNodeSetArray(polymesh, "Nref", refNormals);
          if (exportRefTangents)
          {
-            AiNodeSetArray(polymesh, "Tref", AiArrayConvert(numVerts, 1, AI_TYPE_VECTOR, &(refTangents[0])));
-            AiNodeSetArray(polymesh, "BTref", AiArrayConvert(numVerts, 1, AI_TYPE_VECTOR, &(refBitangents[0])));
+            AiNodeSetArray(polymesh, "Tref", refTangents);
+            AiNodeSetArray(polymesh, "BTref", refBitangents);
          }
       }
       if (exportUVs)

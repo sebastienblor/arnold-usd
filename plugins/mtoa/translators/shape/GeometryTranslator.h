@@ -50,24 +50,23 @@ protected:
    bool GetVertices(const MObject& geometry,
          const float*& vertices);
    bool GetPerVertexNormals(const MObject &geometry,
-         std::vector<float> &normals,
+         AtArray*& normals,
          MSpace::Space space=MSpace::kObject,
          bool force=false);
    bool GetNormals(const MObject& geometry,
            const float*& normals);
    bool GetTangents(const MObject &geometry,
-         std::vector<float> &tangents,
-         std::vector<float> &bitangents,
+         AtArray*& tangents,
+         AtArray*& bitangents,
          MSpace::Space space=MSpace::kObject,
          bool force=false);
    bool GetUVs(const MObject &geometry,
                std::vector<float> &uvs);
    MDagPath GetMeshRefObj();
-   bool GetRefObj(
-         const float*& refVertices,
-         std::vector<float>& refNormals,
-         std::vector<float>& refTangents,
-         std::vector<float>& refBitangents);
+   bool GetRefObj(const float*& refVertices,
+         AtArray*& refNormals,
+         AtArray*& refTangents,
+         AtArray*& refBitangents);
    bool GetVertexColors(const MObject &geometry,
          std::map<std::string, std::vector<float> > &vcolors);
    bool GetComponentIDs(const MObject &geometry,
