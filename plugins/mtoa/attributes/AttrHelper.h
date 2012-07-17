@@ -351,7 +351,7 @@ public:
       if (m_nodeEntry == NULL)
       {
          AiMsgWarning("[mtoa.attr] CExtensionAttrHelper was passed an unknown Arnold node type \"%s\" for Maya node type \"%s\"",
-                      mayaNodeClassName.asChar(), mayaNodeClassName.asChar());
+                      arnoldNodeEntryName.asChar(), mayaNodeClassName.asChar());
       }
    }
 
