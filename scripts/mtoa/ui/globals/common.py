@@ -165,7 +165,7 @@ def createArnoldTargetFilePreview():
                  "defaultResolution.pixelDensityUnits",
                  "defaultRenderGlobals.renderVersion",
                  "defaultArnoldRenderOptions.aovMode",
-                 "defaultArnoldDriver.splitAOVs"]
+                 "defaultArnoldDriver.mergeAOVs"]
 
     # Now we establish scriptJobs to invoke the procedure which updates the
     # target file preview when any of the above attributes change.
@@ -224,7 +224,7 @@ def updateArnoldTargetFilePreview(*args):
     aovsEnabled = pm.getAttr('defaultArnoldRenderOptions.aovMode') and aovs.getAOVs(enabled=True, exclude=['beauty', 'RGBA', 'RGB'])
     if aovsEnabled:
         tokens['RenderPass'] = '<RenderPass>'
-    kwargs['strictAOVs'] = not (aovsEnabled and pm.getAttr('defaultArnoldDriver.splitAOVs'))
+    kwargs['strictAOVs'] = not (aovsEnabled and not pm.getAttr('defaultArnoldDriver.mergeAOVs'))
     tokens['Frame'] = pm.getAttr('defaultRenderGlobals.startFrame')
     first = utils.getFileName('relative', tokens, **kwargs)
 
