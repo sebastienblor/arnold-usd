@@ -93,14 +93,21 @@ void CArnoldLightLinks::ParseLightLinks()
    for (;!nodeIter.isDone(); nodeIter.next())
    {
       MFnDependencyNode dNode(nodeIter.item());
-      ReadLinks(dNode.findPlug("link"), m_lightLinks, lightMap);
-      ReadLinks(dNode.findPlug("shadowLink"), m_shadowLinks, lightMap);
       std::map<std::string, std::vector<AtNode*> > tempMap;
-      ReadLinks(dNode.findPlug("ignore"), tempMap, lightMap);
-      AppendIgnores(tempMap, m_lightLinks, lights);
-      tempMap.clear();
-      ReadLinks(dNode.findPlug("shadowIgnore"), tempMap, lightMap);
-      AppendIgnores(tempMap, m_shadowLinks, lights);
+      if (m_lightMode == MTOA_LIGHTLINK_MAYA)
+      {
+         ReadLinks(dNode.findPlug("link"), m_lightLinks, lightMap);               
+         ReadLinks(dNode.findPlug("ignore"), tempMap, lightMap);         
+         AppendIgnores(tempMap, m_lightLinks, lights);
+         tempMap.clear();
+      }
+      
+      if (m_shadowMode == MTOA_SHADOWLINK_MAYA)
+      {
+         ReadLinks(dNode.findPlug("shadowLink"), m_shadowLinks, lightMap);         
+         ReadLinks(dNode.findPlug("shadowIgnore"), tempMap, lightMap);
+         AppendIgnores(tempMap, m_shadowLinks, lights);
+      }
    }
 }
 
