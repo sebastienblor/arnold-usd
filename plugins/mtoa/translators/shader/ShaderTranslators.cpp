@@ -112,21 +112,21 @@ void CLambertTranslator::Export(AtNode* shader)
    }
 
    // Normal camera
+   
    plug = FindMayaPlug("normalCamera");
-   if (!plug.isNull())
+
+   plug.connectedTo(connections, true, false);
+   if (connections.length() > 0)
    {
-      // For IPR unlink first
-      if (AiNodeIsLinked(shader, "@before")) AiNodeUnlink(shader, "@before");
-      plug.connectedTo(connections, true, false);
-      if (connections.length() > 0)
+      AtNode* bump = ExportNode(connections[0]);
+
+      if (bump != NULL)
       {
-         AtNode* inNode = ExportNode(connections[0]);
-         if (inNode != NULL)
-         {
-            AiNodeLink(inNode, "@before", shader);
-         }
+         AiNodeLink(shader, "shader", bump);
+         SetArnoldRootNode(bump);
       }
    }
+   
 }
 
 // File
