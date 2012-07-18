@@ -5,6 +5,7 @@
 
 #include <map>
 #include <set>
+#include <vector>
 #include <string>
 
 class CArnoldLightLinks{
@@ -16,14 +17,15 @@ public:
    void ClearLightLinks();
    void ParseLightLinks();
    void ExportLightLinking(AtNode* shape);
+   void SetLinkingMode(int light, int shadow);
 private:
-   // I could try using an MObject for this, or some other trick
-   std::map<std::string, std::set<AtNode*> > m_links;
-   std::map<std::string, std::set<AtNode*> > m_ignores;
+   // Try using an MObject for this, or some other trick, instead of strings
+   // that might cause problems with specially named / grouped nodes or something
+   std::map<std::string, std::vector<AtNode*> > m_lightLinks;
+   std::map<std::string, std::vector<AtNode*> > m_shadowLinks;
    
-   AtNode** p_lights;
-   std::vector<AtNode*> m_tempLights;
-   unsigned int m_numLights;
+   int m_lightMode;
+   int m_shadowMode;
 };
 
 #endif	/* ARNOLDLIGHTLINKS_H */
