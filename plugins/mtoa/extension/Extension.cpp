@@ -407,7 +407,7 @@ MStatus CExtension::RegisterPluginNodesAndTranslators(const MString &plugin)
    unsigned int prevTrsNodes = TranslatedNodesCount();
    unsigned int prevTrsCount = TranslatorCount();
 
-   AtNodeEntryIterator* nodeIter = AiUniverseGetNodeEntryIterator(AI_NODE_ALL);
+   AtNodeEntryIterator* nodeIter = AiUniverseGetNodeEntryIterator(AI_NODE_ALL & ~AI_NODE_SHAPE);
    while (!AiNodeEntryIteratorFinished(nodeIter))
    {
       AtNodeEntry* nentry = AiNodeEntryIteratorGetNext(nodeIter);

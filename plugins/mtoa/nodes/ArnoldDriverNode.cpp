@@ -12,7 +12,7 @@
 
 MTypeId CArnoldDriverNode::id(ARNOLD_NODEID_DRIVER);
 
-MObject CArnoldDriverNode::s_split_aovs;
+MObject CArnoldDriverNode::s_mergeAOVs;
 MObject CArnoldDriverNode::s_driver;
 MObject CArnoldDriverNode::s_prefix;
 
@@ -29,9 +29,9 @@ MStatus CArnoldDriverNode::initialize()
    MFnMessageAttribute mAttr;
    MFnStringData sData;
 
-   s_split_aovs = nAttr.create("splitAOVs", "split", MFnNumericData::kBoolean, true);
+   s_mergeAOVs = nAttr.create("mergeAOVs", "merge_AOVs", MFnNumericData::kBoolean, false);
    nAttr.setKeyable(false);
-   addAttribute(s_split_aovs);
+   addAttribute(s_mergeAOVs);
 
    s_driver = tAttr.create("aiTranslator", "ai_translator", MFnData::kString);
    tAttr.setKeyable(false);

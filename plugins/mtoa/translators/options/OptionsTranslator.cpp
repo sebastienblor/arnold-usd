@@ -88,7 +88,7 @@ void COptionsTranslator::ExportAOVs()
    CAOVOutput displayOutput;
    displayOutput.driver = CreateDisplayDriver(displayOutput.prefix, singleLayerDisplay);
    displayOutput.filter = defaultFilter;
-   displayOutput.splitAOVs = false;  // FIXME: get a proper value
+   displayOutput.mergeAOVs = false;  // FIXME: get a proper value
 
    // loop through AOVs
    for (AOVSet::iterator it=m_aovs.begin(); it!=m_aovs.end(); ++it)
@@ -109,7 +109,7 @@ void COptionsTranslator::ExportAOVs()
       {
          // add default driver
          CAOVOutput output;
-         output.driver = ExportDriver(FindMayaPlug("driver"), output.prefix, output.splitAOVs, output.singleLayer);
+         output.driver = ExportDriver(FindMayaPlug("driver"), output.prefix, output.mergeAOVs, output.singleLayer);
          output.filter = defaultFilter;
          aovData.outputs.push_back(output);
 
@@ -181,7 +181,7 @@ void COptionsTranslator::SetImageFilenames(MStringArray &outputs)
                // No override provided, use globals default
                path = defaultRenderGlobalsData.name;
 
-            bool strictAOVs = !(m_aovsEnabled && m_aovsInUse && output.splitAOVs);
+            bool strictAOVs = !(m_aovsEnabled && m_aovsInUse && !output.mergeAOVs);
 
             MString filename = getFileName( pathType,
                                             fileFrameNumber,
@@ -279,7 +279,7 @@ void COptionsTranslator::CreateFileDirectory(const MString &filename) const
    }
 }
 
-AtNode* COptionsTranslator::ExportDriver(const MPlug& driverPlug, MString& prefix, bool& splitAOVs, bool& singleLayer)
+AtNode* COptionsTranslator::ExportDriver(const MPlug& driverPlug, MString& prefix, bool& mergeAOVs, bool& singleLayer)
 {
    MPlugArray conn;
    driverPlug.connectedTo(conn, true, false);
@@ -306,9 +306,9 @@ AtNode* COptionsTranslator::ExportDriver(const MPlug& driverPlug, MString& prefi
    singleLayer = false;
    AiMetaDataGetBool(entry, NULL, "single_layer_driver", &singleLayer);
    if (!singleLayer)
-      splitAOVs = fnNode.findPlug("splitAOVs").asBool();
+      mergeAOVs = fnNode.findPlug("mergeAOVs").asBool();
    else
-      splitAOVs = false;
+      mergeAOVs = false;
    prefix = fnNode.findPlug("prefix").asString();
    return driver;
 }
@@ -348,7 +348,7 @@ unsigned int COptionsTranslator::GetDriversAndFilters(const CAOV& aov,
          continue;
 
       // Driver
-      output.driver = ExportDriver(outputsPlug[i].child(0), output.prefix, output.splitAOVs, output.singleLayer);
+      output.driver = ExportDriver(outputsPlug[i].child(0), output.prefix, output.mergeAOVs, output.singleLayer);
       if (output.driver == NULL)
          continue;
 
