@@ -24,10 +24,12 @@ void CShapeTranslator::ProcessRenderFlags(AtNode* node)
 
 
 void CShapeTranslator::ExportLightLinking(AtNode* shape)
-{
-   MStatus status;
-
+{  
    CArnoldSession* session = GetSession();
+   session->ExportLightLinking(shape);
+   return;
+   
+   /*MStatus status;   
    ArnoldLightLinkMode lightLinkMode = session->GetLightLinkMode();
    ArnoldShadowLinkMode shadowLinkMode = session->GetShadowLinkMode();
    MLightLinks* mayaLightLinks = session->MayaLightLinks();
@@ -164,7 +166,7 @@ void CShapeTranslator::ExportLightLinking(AtNode* shape)
                   MayaShapeName.asChar(), nbSceneLights );
          AiNodeSetBool(shape, "use_shadow_group", false);
       }
-   }
+   }*/
 }
 
 // create attributes common to arnold shape nodes

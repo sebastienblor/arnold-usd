@@ -5,6 +5,7 @@
 #include "platform/Platform.h"
 #include "render/AOV.h"
 #include "SessionOptions.h"
+#include "ArnoldLightLinks.h"
 
 #include <ai_nodes.h>
 
@@ -121,9 +122,10 @@ public:
    // Light linker
    inline void FlagLightLinksDirty(bool flag=true) { m_lightLinksDirty = flag; }
    inline bool IsLightLinksDirty() const { return m_lightLinksDirty; }
-   MStatus UpdateLightLinks();
+   MStatus UpdateLightLinks();   
    inline MLightLinks* MayaLightLinks() { return &m_lightLinks; }
    inline unsigned int MayaLightCount() const { return m_numLights; }
+   void ExportLightLinking(AtNode* shape) {m_arnoldLightLinks.ExportLightLinking(shape);}
 
    // Flag to avoid IPR loops
    inline bool IsExportingMotion() const {return m_isExportingMotion; }
@@ -142,7 +144,8 @@ public:
    bool IsActiveAOV(CAOV &aov) const;
    AOVSet GetActiveAOVs() const;
 
-   DagFiltered FilteredStatus(const MDagPath &dagPath, MDGContext &ctx=MDGContext::fsNormal, const CMayaExportFilter *filter=NULL) const;
+   DagFiltered FilteredStatus(const MDagPath &dagPath, MDGContext &ctx=MDGContext::fsNormal, const CMayaExportFilter *filter=NULL) const;  
+   
    
 /*
    bool IsActiveAOV(CAOV &aov) const
@@ -213,6 +216,7 @@ private:
    bool m_lightLinksDirty;
    unsigned int m_numLights;
    MLightLinks m_lightLinks;
+   CArnoldLightLinks m_arnoldLightLinks;
 
    bool m_isExportingMotion;
    std::vector<double> m_motion_frames;
