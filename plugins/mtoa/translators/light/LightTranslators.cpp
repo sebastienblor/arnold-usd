@@ -316,7 +316,7 @@ void CMeshLightTranslator::Export(AtNode* light)
    AiNodeSetArray(meshNode, "matrix", AiArrayCopy(AiNodeGetArray(light, "matrix")));
    if (fnDepNode.findPlug("lightVisible").asBool())
    {
-      AiNodeSetInt(meshNode, "visibility", AI_RAY_CAMERA | AI_RAY_REFLECTED | AI_RAY_REFRACTED);
+      AiNodeSetInt(meshNode, "visibility", AI_RAY_ALL);
       shaderName += "_shader";
       AtNode* shaderNode = AiNode("meshLightMaterial");
       AtRGB color = AiNodeGetRGB(light, "color");

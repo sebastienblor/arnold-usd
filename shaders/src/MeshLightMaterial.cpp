@@ -33,7 +33,11 @@ node_finish
 shader_evaluate
 {
    if (sg->Rt & AI_RAY_DIFFUSE || sg->Rt & AI_RAY_GLOSSY)
+   {
       sg->out.RGBA = AI_RGBA_BLACK;   
+      return;
+   }
+   
    sg->out.RGB = AiShaderEvalParamRGB(p_color);
    sg->out.RGBA.a = 1.f;
 }
