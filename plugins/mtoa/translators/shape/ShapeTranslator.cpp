@@ -24,9 +24,10 @@ void CShapeTranslator::ProcessRenderFlags(AtNode* node)
 
 
 void CShapeTranslator::ExportLightLinking(AtNode* shape)
-{  
+{
+   MFnDependencyNode dNode(m_dagPath.node());
    CArnoldSession* session = GetSession();
-   session->ExportLightLinking(shape);
+   session->ExportLightLinking(shape, dNode);
    return;
 }
 

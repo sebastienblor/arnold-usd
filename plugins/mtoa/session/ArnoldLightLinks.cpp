@@ -111,12 +111,12 @@ void CArnoldLightLinks::ParseLightLinks()
    }
 }
 
-void CArnoldLightLinks::ExportLightLinking(AtNode* shape)
+void CArnoldLightLinks::ExportLightLinking(AtNode* shape, MFnDependencyNode& dNode)
 {
-   const char* shapeName = AiNodeGetName(shape);
+   const std::string name = dNode.name().asChar();
    if (m_lightMode == MTOA_LIGHTLINK_MAYA)
    {
-      std::map<std::string, std::vector<AtNode*> >::iterator it = m_lightLinks.find(shapeName);
+      std::map<std::string, std::vector<AtNode*> >::iterator it = m_lightLinks.find(name);
    
       if (it != m_lightLinks.end())
       {
@@ -139,7 +139,7 @@ void CArnoldLightLinks::ExportLightLinking(AtNode* shape)
    
    if (m_shadowMode == MTOA_SHADOWLINK_MAYA)
    {
-      std::map<std::string, std::vector<AtNode*> >::iterator it = m_shadowLinks.find(shapeName);
+      std::map<std::string, std::vector<AtNode*> >::iterator it = m_shadowLinks.find(name);
    
       if (it != m_shadowLinks.end())
       {
