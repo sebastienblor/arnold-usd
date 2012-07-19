@@ -259,6 +259,13 @@ void CMeshLightTranslator::Export(AtNode* light)
    MStatus status;
    
    MFnDependencyNode fnDepNode(m_dagPath.node());
+   
+   AiNodeSetInt(light, "decay_type", FindMayaPlug("aiDecayType").asInt());
+   AiNodeSetRGB(light, "shadow_color", FindMayaPlug("aiShadowColorR").asFloat(),
+           FindMayaPlug("aiShadowColorG").asFloat(), FindMayaPlug("aiShadowColorB").asFloat());
+   AiNodeSetBool(light, "affect_volumetrics", FindMayaPlug("aiAffectVolumetrics").asBool());
+   AiNodeSetBool(light, "cast_volumetric_shadows", FindMayaPlug("aiCastVolumetricShadows").asBool());
+   
    MPlug plug = fnDepNode.findPlug("inputMesh");
    MObject meshObject;
    plug.getValue(meshObject);
@@ -278,7 +285,6 @@ void CMeshLightTranslator::Export(AtNode* light)
    AiNodeSetStr(meshNode, "name", nodeName.asChar());
    
    const AtVector* vertices = (const AtVector*)mesh.getRawPoints(&status);
-   std::cerr << "Motion step : " << GetMotionStep() << std::endl;
    AtArray* vlist = AiArrayAllocate(m_numVertices, GetNumMotionSteps(), AI_TYPE_POINT);
    for (int i = 0; i < m_numVertices; ++i)
       AiArraySetVec(vlist, i, vertices[i]);
