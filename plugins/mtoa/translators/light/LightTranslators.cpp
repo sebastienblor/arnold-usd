@@ -282,7 +282,6 @@ void CMeshLightTranslator::Export(AtNode* light)
    MString shaderName = nodeName;
    nodeName += "_mesh";   
    AtNode* meshNode = AiNode("polymesh");
-   AiNodeSetStr(meshNode, "name", nodeName.asChar());
    
    const AtVector* vertices = (const AtVector*)mesh.getRawPoints(&status);
    AtArray* vlist = AiArrayAllocate(m_numVertices, GetNumMotionSteps(), AI_TYPE_POINT);
@@ -330,14 +329,13 @@ void CMeshLightTranslator::Export(AtNode* light)
       AiColorGamma(&color, light_gamma);
       color = color * AiNodeGetFlt(light, "intensity") * 
          powf(2.f, AiNodeGetFlt(light, "exposure"));
-      AiNodeSetStr(shaderNode, "name", shaderName.asChar());
       AiNodeSetPtr(meshNode, "shader", shaderNode);
       
       // if normalize is set to false, we need to multiply
       // the color with the surface area
       // doing a very simple triangulation, good for
       // approximating the Arnold one
-      if (AiNodeGetInt(light, "normalize"))
+      if (AiNodeGetBool(light, "normalize"))
       {
          double surfaceArea = 0.f;
          for (int i = 0, id = 0; i < numPolygons; ++i)

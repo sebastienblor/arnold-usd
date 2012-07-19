@@ -51,7 +51,7 @@ class AEaiAreaLightTemplate(lightTemplate.LightTemplate):
         self.endScrollLayout()
 
 class BaseAreaLightTemplate(lightTemplate.LightTemplate):
-    def setup(self):
+    def addCommonParameters(self):
         self.addControl("aiSamples")
         self.addControl("aiNormalize")
 
@@ -66,29 +66,22 @@ class BaseAreaLightTemplate(lightTemplate.LightTemplate):
         self.addControl("aiAffectVolumetrics")
         self.addControl("aiCastVolumetricShadows")
 
-       
+    def setup(self):
+        self.addCommonParameters()       
         
 class QuadAreaLightTemplate(BaseAreaLightTemplate):
     def setup(self):
         self.addControl("aiResolution")
         self.addSeparator()
-        super(QuadAreaLightTemplate, self).setup()
+        self.addCommonParameters()
 
-class MeshLightTemplate(lightTemplate.LightTemplate):
+class MeshLightTemplate(BaseAreaLightTemplate):
     def setup(self):
         self.addControl("lightVisible")
         
         self.addSeparator()
         
-        self.addControl("aiSamples")
-        self.addControl("aiNormalize")
-
-        self.addSeparator()
-
-        self.addControl("aiCastShadows")
-        self.addControl("aiShadowDensity")
-        self.addControl("aiShadowColor")
-
+        self.addCommonParameters()
 
 templates.registerAETemplate(templates.TranslatorControl, "aiAreaLight", label="Light Shape")
 templates.registerTranslatorUI(QuadAreaLightTemplate, "aiAreaLight", "quad")
