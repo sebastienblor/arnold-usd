@@ -347,24 +347,22 @@ void CMeshLightTranslator::Export(AtNode* light)
       {
          const AtVector* vertices = (const AtVector*)mesh.getRawPoints(&status);
          const int numPolygons = mesh.numPolygons();
-         AtArray* nsides = AiNodeGetArray(meshNode, "nsides");
-         AtArray* vidxs = AiNodeGetArray(meshNode, "vidxs");
          double surfaceArea = 0.f;
-         for (int i = 0, id = 0; i < numPolygons; ++i)
+         for (int i = 0; i < numPolygons; ++i)
          {
-            const int vertexCount = AiArrayGetUInt(nsides, i);
+            MIntArray vidx;
+            mesh.getPolygonVertices(i, vidx);
+            const int vertexCount = vidx.length();
             if (vertexCount)
             {
-               const AtVector p0 = vertices[AiArrayGetUInt(vidxs, id)];
+               const AtVector p0 = vertices[vidx[0]];
                for (int j = 1; j < vertexCount - 1; ++j)
                {
-                  const int id1 = id + j;
-                  const AtVector p1 = vertices[AiArrayGetUInt(vidxs, id1)];
-                  const AtVector p2 = vertices[AiArrayGetUInt(vidxs, id1 + 1)];
+                  const AtVector p1 = vertices[vidx[j]];
+                  const AtVector p2 = vertices[vidx[j + 1]];
                   surfaceArea += CalculateTriangleArea(p0, p1, p2);
                }
             }
-            id += vertexCount;
          }
          color = color / (float)surfaceArea;
       }
