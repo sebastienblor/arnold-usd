@@ -176,7 +176,7 @@ protected:
    inline double GetMotionByFrame() const {return m_session->GetMotionByFrame(); }
 
    // session action
-   AtNode* ExportNode(const MPlug& outputPlug, bool trackAOVs=true);
+   AtNode* ExportNode(const MPlug& outputPlug, bool track=true);
    AtNode* ExportDagPath(MDagPath &dagPath);
 
    // set the arnold node that this translator is exporting (should only be used after all export steps are complete)
