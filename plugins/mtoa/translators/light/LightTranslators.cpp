@@ -279,57 +279,65 @@ void CMeshLightTranslator::Export(AtNode* light)
       return;
    
    MString nodeName = AiNodeGetName(light);
-   MString shaderName = nodeName;
-   nodeName += "_mesh";   
-   AtNode* meshNode = AiNode("polymesh");
-   
-   const AtVector* vertices = (const AtVector*)mesh.getRawPoints(&status);
-   AtArray* vlist = AiArrayAllocate(m_numVertices, GetNumMotionSteps(), AI_TYPE_POINT);
-   for (int i = 0; i < m_numVertices; ++i)
-      AiArraySetVec(vlist, i, vertices[i]);
-   
-   AiNodeSetArray(meshNode, "vlist", vlist);
-
-   const int numPolygons = mesh.numPolygons();
-   AtArray* nsides = AiArrayAllocate(numPolygons, 1, AI_TYPE_UINT);
-
-   unsigned int numIndices = 0;
-
-   for(int i = 0; i < numPolygons; ++i)
+   AtNode* meshNode = (AtNode*)AiNodeGetPtr(light, "mesh");
+   if (meshNode == 0)
    {
-      int vertexCount = mesh.polygonVertexCount(i);
-      numIndices += (unsigned int)vertexCount;
-      AiArraySetUInt(nsides, i, vertexCount);
+      meshNode = AiNode("polymesh");
+      AiNodeSetStr(meshNode, "name", (nodeName + MString("_mesh")).asChar());
+   
+      const AtVector* vertices = (const AtVector*)mesh.getRawPoints(&status);
+      AtArray* vlist = AiArrayAllocate(m_numVertices, GetNumMotionSteps(), AI_TYPE_POINT);
+      for (int i = 0; i < m_numVertices; ++i)
+         AiArraySetVec(vlist, i, vertices[i]);
+
+      AiNodeSetArray(meshNode, "vlist", vlist);
+
+      const int numPolygons = mesh.numPolygons();
+      AtArray* nsides = AiArrayAllocate(numPolygons, 1, AI_TYPE_UINT);
+
+      unsigned int numIndices = 0;
+
+      for(int i = 0; i < numPolygons; ++i)
+      {
+         int vertexCount = mesh.polygonVertexCount(i);
+         numIndices += (unsigned int)vertexCount;
+         AiArraySetUInt(nsides, i, vertexCount);
+      }
+
+      AiNodeSetArray(meshNode, "nsides", nsides);
+
+      AtArray* vidxs = AiArrayAllocate(numIndices, 1, AI_TYPE_UINT);
+
+      for(int i = 0, id = 0; i < numPolygons; ++i)
+      {
+         MIntArray vidx;
+         int vertexCount = AiArrayGetUInt(nsides, i);
+         mesh.getPolygonVertices(i, vidx);
+         for (int j = 0; j < vertexCount; ++j)
+            AiArraySetUInt(vidxs, id++, vidx[j]);  
+      }
+      AiNodeSetArray(meshNode, "vidxs", vidxs);
+
+      AiNodeSetPtr(light, "mesh", meshNode);
+      AiNodeSetPtr(meshNode, "shader", 0);
    }
-
-   AiNodeSetArray(meshNode, "nsides", nsides);
-
-   AtArray* vidxs = AiArrayAllocate(numIndices, 1, AI_TYPE_UINT);
-
-   for(int i = 0, id = 0; i < numPolygons; ++i)
-   {
-      MIntArray vidx;
-      int vertexCount = AiArrayGetUInt(nsides, i);
-      mesh.getPolygonVertices(i, vidx);
-      for (int j = 0; j < vertexCount; ++j)
-         AiArraySetUInt(vidxs, id++, vidx[j]);  
-   }
-   AiNodeSetArray(meshNode, "vidxs", vidxs);
-
-   AiNodeSetPtr(light, "mesh", meshNode);
 
    AiNodeSetArray(meshNode, "matrix", AiArrayCopy(AiNodeGetArray(light, "matrix")));
    if (fnDepNode.findPlug("lightVisible").asBool())
-   {
+   {      
       AiNodeSetInt(meshNode, "visibility", AI_RAY_ALL);
-      shaderName += "_shader";
-      AtNode* shaderNode = AiNode("meshLightMaterial");
+      AtNode* shaderNode = (AtNode*)AiNodeGetPtr(meshNode, "shader");
+      if (shaderNode == 0)
+      {
+         shaderNode = AiNode("meshLightMaterial");
+         AiNodeSetStr(shaderNode, "name", (nodeName + MString("_shader")).asChar());
+         AiNodeSetPtr(meshNode, "shader", shaderNode);
+      }
       AtRGB color = AiNodeGetRGB(light, "color");
       const float light_gamma = AiNodeGetFlt(AiUniverseGetOptions(), "light_gamma");
       AiColorGamma(&color, light_gamma);
       color = color * AiNodeGetFlt(light, "intensity") * 
-         powf(2.f, AiNodeGetFlt(light, "exposure"));
-      AiNodeSetPtr(meshNode, "shader", shaderNode);
+         powf(2.f, AiNodeGetFlt(light, "exposure"));      
       
       // if normalize is set to false, we need to multiply
       // the color with the surface area
@@ -337,6 +345,10 @@ void CMeshLightTranslator::Export(AtNode* light)
       // approximating the Arnold one
       if (AiNodeGetBool(light, "normalize"))
       {
+         const AtVector* vertices = (const AtVector*)mesh.getRawPoints(&status);
+         const int numPolygons = mesh.numPolygons();
+         AtArray* nsides = AiNodeGetArray(meshNode, "nsides");
+         AtArray* vidxs = AiNodeGetArray(meshNode, "vidxs");
          double surfaceArea = 0.f;
          for (int i = 0, id = 0; i < numPolygons; ++i)
          {
