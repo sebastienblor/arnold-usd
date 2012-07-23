@@ -278,11 +278,12 @@ class AEChildMode(BaseTemplate):
         self._layoutStack = []
 
     def preSetup(self):
-        pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
+        pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)        
         self._layoutStack = [pm.setParent(query=True)]
 
-    def postSetup(self):
+    def postSetup(self):        
         pm.setUITemplate(popTemplate=True)
+        self.addControl("aiUnexposedOptions", label="Unexposed Options")
 
     def update(self):
         pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
