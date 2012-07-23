@@ -222,8 +222,8 @@ bool CGeometryTranslator::GetTangents(const MObject &geometry,
    MItMeshPolygon iter(fnMesh.object());
    MIntArray vids;
    
-   for (;iter.isDone(); iter.next())
-   {      
+   for (;!iter.isDone(); iter.next())
+   {
       iter.getVertices(vids);
       for (unsigned int i = 0; i < vids.length(); ++i)
       {
