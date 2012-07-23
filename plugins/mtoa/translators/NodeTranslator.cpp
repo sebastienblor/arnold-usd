@@ -1099,6 +1099,12 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
                   GetTranslatorName().asChar(), pAttr.partialName(true, false, false, false, false, true).asChar());
       }
    }
+   
+   // Exporting the UnexposedOptions parameter
+   
+   MPlug plug = fnDepNode.findPlug("aiUnexposedOptions");
+   if (!plug.isNull())
+      AiNodeSetAttributes(anode, plug.asString().asChar());
 }
 
 /// Calls ExportNode and AiNodeLink if there are incoming connections to 'plug'
