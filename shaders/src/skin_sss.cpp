@@ -255,7 +255,7 @@ shader_evaluate
    // Ray_Switch
    iData->Screen_Switch.params[sg->tid].switcher = params.use_screen_compositing_for_colors;
    // Diffuse_Switch 
-   iData->Diffuse_Switch.params[sg->tid].switcher = params.sample_sss_only_in_glossy_rays;
+   iData->Diffuse_Switch.params[sg->tid].switcher = params.sample_sss_only_in_gi_rays;
    // Glossy_Switch
    iData->Glossy_Switch.params[sg->tid].switcher = params.sample_sss_only_in_glossy_rays;
    // Multiply_By_Global_SSS_Weight

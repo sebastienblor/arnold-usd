@@ -63,8 +63,8 @@ class AEaiSkinSssTemplate(ShaderAETemplate):
         self.beginLayout("Options", collapse=True)
         self.addControl("global_sss_radius_multiplier", label="SSS Radius Multiplier")
         self.addControl("use_screen_compositing_for_colors", label="Use Screen Compositing")
-        self.addControl("sample_sss_only_in_gi_rays", label="Sample SSS only in GI rays")
-        self.addControl("sample_sss_only_in_glossy_rays", label="Sample SSS only in Glossy rays")
+        self.addControl("sample_sss_only_in_gi_rays", label="Sample only SSS in GI rays")
+        self.addControl("sample_sss_only_in_glossy_rays", label="Sample only SSS in Glossy rays")
         self.endLayout()
 
         self.addBumpLayout()
