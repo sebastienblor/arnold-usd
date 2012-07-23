@@ -335,7 +335,8 @@ public:
       {
          AiMsgWarning("[mtoa.attr] CExtensionAttrHelper was passed an unknown Maya node type \"%s\"",
                       mayaNodeClassName.asChar());
-      }
+      }      
+      AddCommonAttributes();
    }
    /// @param mayaNodeClassName  name of maya class to add attributes to
    /// @param arnoldNodeEntryName  arnold node entry to use when checking parameter metadata
@@ -353,6 +354,7 @@ public:
          AiMsgWarning("[mtoa.attr] CExtensionAttrHelper was passed an unknown Arnold node type \"%s\" for Maya node type \"%s\"",
                       arnoldNodeEntryName.asChar(), mayaNodeClassName.asChar());
       }
+      AddCommonAttributes();
    }
 
    MString GetMayaNodeTypeName() const {return m_class.typeName();}
@@ -376,6 +378,7 @@ public:
    MObject MakeInput(CAttrData& attrData);
 #else
 protected:
+   void AddCommonAttributes();
    MStatus virtual addAttribute(MObject& attrib);
 #endif
 

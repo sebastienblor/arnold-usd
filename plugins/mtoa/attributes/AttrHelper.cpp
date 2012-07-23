@@ -1175,6 +1175,16 @@ MStatus CDynamicAttrHelper::addAttribute(MObject& attrib)
 // CExtensionAttrHelper
 //
 
+void CExtensionAttrHelper::AddCommonAttributes()
+{
+   CAttrData data;
+
+   data.name = "aiUnexposedOptions";
+   data.shortName = "ai_unexposed_options";
+   data.stringDefault = "";
+   MakeInputString(data);
+}
+
 #if MAYA_API_VERSION < 201200
 
 void CExtensionAttrHelper::MakeInputInt(CAttrData& data)
