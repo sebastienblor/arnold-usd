@@ -316,7 +316,8 @@ namespace // <anonymous>
                                      CLayeredTextureTranslator::creator);
          shaders->RegisterTranslator("file",
                                      "",
-                                     CFileTranslator::creator);
+                                     CFileTranslator::creator,
+                                     CFileTranslator::NodeInitializer);
          shaders->RegisterTranslator("place2dTexture",
                                      "",
                                      CPlace2DTextureTranslator::creator);

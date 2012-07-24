@@ -50,6 +50,7 @@ enum MayaFileParams
    p_rotate,
    p_filename,
    p_noise,
+   p_mip_bias,
    MAYA_COLOR_BALANCE_ENUM
 };
 
@@ -93,6 +94,7 @@ node_parameters
    AiParameterFLT("rotateUV", 0.0f);
    AiParameterSTR("filename", "");
    AiParameterPNT2("noiseUV", 0.0f, 0.0f);
+   AiParameterINT("mipBias", 0);
    AddMayaColorBalanceParams(params, mds);
    
    AiMetaDataSetBool(mds, NULL, "maya.hide", true);
@@ -520,6 +522,7 @@ shader_evaluate
       // do texture lookup
       AtTextureParams texparams;
       AiTextureParamsSetDefaults(&texparams);
+      texparams.mipmap_bias = AiShaderEvalParamInt(p_mip_bias);
       // setup filter?
       bool success = true;
       if (idata->ntokens > 0)
