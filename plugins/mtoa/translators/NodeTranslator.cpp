@@ -132,13 +132,13 @@ bool HasIncomingConnection(const MPlug &plug)
 
 //------------ CNodeTranslator ------------//
 
-AtNode* CNodeTranslator::ExportNode(const MPlug& outputPlug, bool trackAOVs)
+AtNode* CNodeTranslator::ExportNode(const MPlug& outputPlug, bool track)
 {
    CNodeTranslator* translator = NULL;
-   if (trackAOVs)
+   if (track)
       translator = m_session->ExportNode(outputPlug, m_shaders, &m_upstreamAOVs);
    else
-      translator = m_session->ExportNode(outputPlug, m_shaders);
+      translator = m_session->ExportNode(outputPlug);
    if (translator != NULL)
       return translator->GetArnoldRootNode();
    return NULL;
