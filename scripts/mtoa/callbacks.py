@@ -61,6 +61,7 @@ def _makeNodeAddedCB(nodeType):
                 func(obj)
             else:
                 func(node)
+    pm._factories.addMayaType(nodeType)
     # no unicode allowed
     nodeAddedCB.__name__ = "nodeAddedCB_" + str(nodeType) 
     return nodeAddedCB
