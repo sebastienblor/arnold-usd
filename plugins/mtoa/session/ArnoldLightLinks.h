@@ -11,8 +11,8 @@
 
 class CArnoldLightLinks{
 public:
-   CArnoldLightLinks();
-   ~CArnoldLightLinks();
+   CArnoldLightLinks() {}
+   ~CArnoldLightLinks() {}
    
    // Building the database from the lightLinker nodes
    void ClearLightLinks();

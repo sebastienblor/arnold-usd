@@ -125,7 +125,7 @@ public:
    MStatus UpdateLightLinks();   
    inline MLightLinks* MayaLightLinks() { return &m_lightLinks; }
    inline unsigned int MayaLightCount() const { return m_numLights; }
-   void ExportLightLinking(AtNode* shape, MFnDependencyNode& dNode) {m_arnoldLightLinks.ExportLightLinking(shape, dNode);}
+   void ExportLightLinking(AtNode* shape, MFnDependencyNode& dNode);
 
    // Flag to avoid IPR loops
    inline bool IsExportingMotion() const {return m_isExportingMotion; }

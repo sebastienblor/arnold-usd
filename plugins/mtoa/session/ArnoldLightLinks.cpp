@@ -15,16 +15,6 @@
 
 #include <algorithm>
 
-CArnoldLightLinks::CArnoldLightLinks()
-{
-
-}
-
-CArnoldLightLinks::~CArnoldLightLinks()
-{
-   
-}
-
 void CArnoldLightLinks::ClearLightLinks()
 {
    m_lightLinks.clear();

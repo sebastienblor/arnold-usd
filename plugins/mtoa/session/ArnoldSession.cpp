@@ -1044,6 +1044,11 @@ DagFiltered CArnoldSession::FilteredStatus(const MDagPath &path, MDGContext &ctx
    return MTOA_EXPORT_ACCEPTED;
 }
 
+void CArnoldSession::ExportLightLinking(AtNode* shape, MFnDependencyNode& dNode)
+{
+   m_arnoldLightLinks.ExportLightLinking(shape, dNode);
+}
+
 // updates
 void CArnoldSession::QueueForUpdate(const CNodeAttrHandle & handle)
 {
