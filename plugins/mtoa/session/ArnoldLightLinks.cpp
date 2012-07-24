@@ -9,8 +9,6 @@
 #include <maya/MPlugArray.h>
 #include <maya/MPlug.h>
 
-#include <tbb/tick_count.h>
-
 #include <ai.h>
 
 #include <algorithm>
