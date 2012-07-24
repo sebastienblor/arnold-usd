@@ -33,6 +33,7 @@
 
 #include <string>
 #include <algorithm>
+#include <iterator>
 
 #include <ai_universe.h>
 #include <assert.h>

@@ -1052,7 +1052,7 @@ void CArnoldSession::ExportLightLinking(AtNode* shape, MFnDependencyNode& dNode)
 // updates
 void CArnoldSession::QueueForUpdate(const CNodeAttrHandle & handle)
 {
-   m_objectsToUpdate.push_back(ObjectToTranslatorPair(handle, NULL));
+   m_objectsToUpdate.push_back(ObjectToTranslatorPair(handle, (CNodeTranslator*)NULL));
 }
 
 void CArnoldSession::QueueForUpdate(CNodeTranslator * translator)
