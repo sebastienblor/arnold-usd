@@ -83,7 +83,7 @@ void CShadingEngineTranslator::Export(AtNode *shadingEngine)
       // loop through and export custom AOV networks
       for (unsigned int i = 0; i < m_customAOVPlugs.length(); i++)
       {
-         // by passing false we avoid tracking aovs.
+         // by passing false we avoid tracking shaders and aovs.
          AtNode* writeNode = ExportNode(m_customAOVPlugs[i], false);
          // since we know this maya node is connected to aiCustomAOVs it will have a write node
          // inserted after it by CShaderTranslator::ProcessAOVOutput (assuming the node is translated by
