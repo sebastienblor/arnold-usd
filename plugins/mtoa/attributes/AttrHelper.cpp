@@ -1179,8 +1179,8 @@ void CExtensionAttrHelper::AddCommonAttributes()
 {
    CAttrData data;
 
-   data.name = "aiUnexposedOptions";
-   data.shortName = "ai_unexposed_options";
+   data.name = "aiUserOptions";
+   data.shortName = "ai_user_options";
    data.stringDefault = "";
    MakeInputString(data);
 }

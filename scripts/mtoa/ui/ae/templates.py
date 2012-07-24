@@ -283,7 +283,7 @@ class AEChildMode(BaseTemplate):
 
     def postSetup(self):        
         pm.setUITemplate(popTemplate=True)
-        self.addControl("aiUnexposedOptions", label="Unexposed Options")
+        self.addControl("aiUserOptions", label="User Options")
 
     def update(self):
         pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)

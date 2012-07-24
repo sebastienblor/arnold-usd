@@ -1102,7 +1102,7 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
    
    // Exporting the UnexposedOptions parameter
    
-   MPlug plug = fnDepNode.findPlug("aiUnexposedOptions");
+   MPlug plug = fnDepNode.findPlug("aiUserOptions");
    if (!plug.isNull())
       AiNodeSetAttributes(anode, plug.asString().asChar());
 }
