@@ -217,16 +217,16 @@ void CSphereLocator::SampleSN(MPlug &colorPlug)
 
       if (m_colorData != NULL)
          delete[] m_colorData;
-      m_colorData = new char[numSamples * 4];
+      m_colorData = new unsigned char[numSamples * 4];
       int alpha = 255;
       for(unsigned int i = 0; (i < colors.length()); i++)
       {
          MFloatVector fv = colors[i];
          fv *= 255;
-         m_colorData[(i * 4) + 0] = static_cast<char>(static_cast<int>(fv.x));
-         m_colorData[(i * 4) + 1] = static_cast<char>(static_cast<int>(fv.y));
-         m_colorData[(i * 4) + 2] = static_cast<char>(static_cast<int>(fv.z));
-         m_colorData[(i * 4) + 3] = static_cast<char>(static_cast<int>(alpha));
+         m_colorData[(i * 4) + 0] = static_cast<unsigned char>(CLAMP(static_cast<int>(fv.x), 0, 255));
+         m_colorData[(i * 4) + 1] = static_cast<unsigned char>(CLAMP(static_cast<int>(fv.y), 0, 255));
+         m_colorData[(i * 4) + 2] = static_cast<unsigned char>(CLAMP(static_cast<int>(fv.z), 0, 255));
+         m_colorData[(i * 4) + 3] = static_cast<unsigned char>(alpha);
       }
    }
    m_goSample = false;
