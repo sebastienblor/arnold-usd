@@ -280,7 +280,6 @@ void *CStandard::Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions opti
 
       void *oren_nayar_brdf = AiOrenNayarMISCreateData(sg, roughness);
 
-      AtVector V = -sg->Rd;
       AtColor direct_diffuse = AI_RGB_BLACK;
       AiLightsPrepare(sg);
       while (AiLightsGetSample(sg))

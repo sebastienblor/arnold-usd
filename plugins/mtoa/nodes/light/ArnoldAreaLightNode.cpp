@@ -109,7 +109,7 @@ MStatus CArnoldAreaLightNode::compute(const MPlug& plug, MDataBlock& block)
    
    const int numPolygons = inputMesh.numPolygons();         
 
-   for (unsigned int i = 0; i < numPolygons; ++i) 
+   for (int i = 0; i < numPolygons; ++i) 
    {
       glBegin(GL_LINE_STRIP);
       MIntArray vidx;
