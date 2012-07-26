@@ -38,23 +38,6 @@ namespace
       BM_ILLUMINATE
    };
 
-   static const char* gs_BlendModeNames[] =
-   {
-      "None",
-      "Over",
-      "In",
-      "Out",
-      "Add",
-      "Subtract",
-      "Multiply",
-      "Difference",
-      "Lighten",
-      "Darken",
-      "Saturate",
-      "Desaturate",
-      "Illuminate",
-      0,
-   };
 
 };
 
