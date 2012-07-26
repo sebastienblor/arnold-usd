@@ -163,8 +163,9 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
             processRead = true;
          }
       }
-      // If it is a .obj file
-      else if (nchars > 4 && assfile.substring(nchars - 4, nchars).toLowerCase() == ".obj")
+      // If it is a .obj or a .ply file
+      else if (nchars > 4 && (assfile.substring(nchars - 4, nchars).toLowerCase() == ".obj" || 
+              assfile.substring(nchars - 4, nchars).toLowerCase() == ".ply"))
       {
          AtNode *options = AiUniverseGetOptions();
          AiNodeSetBool(options, "preserve_scene_data", true);
