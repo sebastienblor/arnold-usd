@@ -43,6 +43,7 @@ shader_evaluate
    AtChar transp[] = "opacityPP";
 
    AtRGB c;
+   AtRGBA ca;
    AtVector v;
    AtFloat f;
 
@@ -68,7 +69,12 @@ shader_evaluate
          sg->out.RGB.r = c.r;
          sg->out.RGB.g = c.g;
          sg->out.RGB.b = c.b;
-
+      }
+      else if (AiUDataGetRGBA(name, &ca))
+      {
+         sg->out.RGB.r = ca.r;
+         sg->out.RGB.g = ca.g;
+         sg->out.RGB.b = ca.b;
       }
       else if (AiUDataGetVec(name, &v))
       {
