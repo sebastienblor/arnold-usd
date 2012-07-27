@@ -45,6 +45,7 @@ vars.AddVariables(
       EnumVariable('WARN_LEVEL' , 'Set warning level'         , 'strict'            , allowed_values=('strict', 'warn-only', 'none')),
       EnumVariable('COMPILER'   , 'Set compiler to use'       , ALLOWED_COMPILERS[0], allowed_values=ALLOWED_COMPILERS),
       EnumVariable('TARGET_ARCH', 'Allows compiling for a different architecture', system.host_arch(), allowed_values=system.get_valid_target_archs()),
+      BoolVariable('MULTIPROCESS','Enable multiprocessing in the testsuite', True),
       BoolVariable('SHOW_CMDS'  , 'Display the actual command lines used for building', False),
       PathVariable('LINK', 'Linker to use', None),
       PathVariable('SHCC', 'Path to C++ (gcc) compiler used', None),
