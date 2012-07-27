@@ -205,6 +205,7 @@ void CFileTranslator::Export(AtNode* shader)
       AiNodeSetStr(shader, "filename", resolvedFilename.asChar()); 
    }
 
+   ProcessParameter(shader, "mipBias", AI_TYPE_INT);
 
    ProcessParameter(shader, "colorGain", AI_TYPE_RGB);
    ProcessParameter(shader, "colorOffset", AI_TYPE_RGB);
@@ -213,6 +214,12 @@ void CFileTranslator::Export(AtNode* shader)
    ProcessParameter(shader, "alphaIsLuminance", AI_TYPE_BOOLEAN);
    ProcessParameter(shader, "invert", AI_TYPE_BOOLEAN);
    ProcessParameter(shader, "defaultColor", AI_TYPE_RGB);
+}
+
+void CFileTranslator::NodeInitializer(CAbTranslator context)
+{
+   CExtensionAttrHelper helper(context.maya, "MayaFile");
+   helper.MakeInput("mipBias");
 }
 
 // Bump2d
