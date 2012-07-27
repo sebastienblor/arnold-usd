@@ -526,6 +526,7 @@ MStatus CArnoldStandInShape::initialize()
    eAttr.addField("Polywire", 1);
    eAttr.addField("Wireframe", 2);
    eAttr.addField("Point Cloud", 3);
+   eAttr.addField("Shaded", 4);
    //eAttr.setInternal(true);
    addAttribute(s_mode);
 
@@ -905,6 +906,11 @@ void CArnoldStandInShapeUI::getDrawRequests(const MDrawInfo & info, bool /*objec
       getDrawRequestsWireFrame(request, info);
       queue.add(request);
       break;
+   case 4:
+      // points
+      getDrawRequestsWireFrame(request, info);
+      queue.add(request);
+      break;
    default:
       break;
    }
@@ -1100,8 +1106,30 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
          gGLFT->glDisable(MGL_POINT_SMOOTH);
          gGLFT->glPopAttrib();
          break;
+      case 4: // shaded
+         gGLFT->glNewList(geom->dList, MGL_COMPILE);
+         gGLFT->glPushAttrib(MGL_ALL_ATTRIB_BITS);
+         gGLFT->glEnable(MGL_POLYGON_OFFSET_FILL);
+         gGLFT->glEnable(MGL_LIGHTING);
+         
+         gGLFT->glColor4f(0.5f, 0.5f, 0.5f, 1.0f);
+         
+         for (std::vector<CArnoldStandInGeometry*>::iterator it = geom->m_geometryList.begin();
+                 it != geom->m_geometryList.end(); ++it)
+         {
+            
+            (*it)->DrawNormalAndPolygons();
+         }
+         gGLFT->glPopAttrib();
+         
+         for (std::vector<CArnoldStandInGeometry*>::iterator it = geom->m_geometryList.begin();
+                 it != geom->m_geometryList.end(); ++it)
+         {
+            (*it)->DrawWireframe();
+         }         
+         gGLFT->glEndList();         
+         break;            
       }
-      // Release facelist memory
       for (std::vector<CArnoldStandInGeometry*>::iterator it = geom->m_geometryList.begin();
               it != geom->m_geometryList.end(); ++it)
          delete *it;
