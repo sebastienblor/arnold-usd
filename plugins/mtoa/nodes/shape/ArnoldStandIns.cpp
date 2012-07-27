@@ -80,6 +80,14 @@ CArnoldStandInGeom::CArnoldStandInGeom()
    dList = 0;
 }
 
+CArnoldStandInGeom::~CArnoldStandInGeom()
+{
+   for (std::vector<CArnoldStandInGeometry*>::iterator it = m_geometryList.begin();
+           it != m_geometryList.end(); ++it)
+      delete *it;
+   m_geometryList.clear();
+}
+
 CArnoldStandInShape::CArnoldStandInShape()
 {
 }
@@ -196,19 +204,12 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
       {
          geom->geomLoaded = geom->filename;
          //clear current geo
-         geom->faceList.clear();
          geom->bbox.clear();
-
-         std::vector<AtPoint> vertices;
-         std::vector<AtUInt32> vidxs;
-         std::vector<unsigned int> nsides;
-
-         int num_vertices(0);
-         int num_vidxs(0);
-         int num_nsides(0);
-
-         int i(0);
-         int obj(0);
+         
+         for (std::vector<CArnoldStandInGeometry*>::iterator it = geom->m_geometryList.begin();
+                 it != geom->m_geometryList.end(); ++it)
+            delete *it;
+         geom->m_geometryList.clear();
 
          AtNodeIterator *iter = AiUniverseGetNodeIterator(AI_NODE_SHAPE);
          //iterate all shape in file
@@ -238,73 +239,7 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
                }
                if (AiNodeIs(node, "polymesh"))
                {
-                  // We can load a exact BBox, or compute it if not available
-                  vertices.clear();
-                  vidxs.clear();
-                  nsides.clear();
-
-                  AtMatrix current_matrix;
-                  AiNodeGetMatrix(node, "matrix", current_matrix);
-                  if (inherit_xform)
-                  {
-                     AiM4Mult(total_matrix, total_matrix, current_matrix);
-                  }
-
-                  myArray = AiNodeGetArray(node, "vlist");
-                  if (myArray->type == 8)
-                  {
-                     num_vertices = myArray->nelements * myArray->nkeys;
-                     vertices.resize(num_vertices);
-                     for (i = 0; i < num_vertices; i++)
-                     {
-                        AtPoint localTmpPnt = AiArrayGetPnt(myArray, i);
-                        AiM4PointByMatrixMult(&localTmpPnt, total_matrix, &localTmpPnt);
-                        vertices[i] = localTmpPnt;
-                        geom->bbox.expand(MPoint(MVector(localTmpPnt.x, localTmpPnt.y, localTmpPnt.z)));
-                     }
-                  }
-                  myArray = AiNodeGetArray(node, "vidxs");
-
-                  if (myArray->type == 2)
-                  {
-                     num_vidxs = myArray->nelements * myArray->nkeys;
-                     vidxs.resize(num_vidxs);
-                     for (i = 0; i < num_vidxs; i++)
-                     {
-                        unsigned int localTmpPnt = AiArrayGetUInt(myArray, i);
-                        vidxs[i] = localTmpPnt;
-
-                     }
-                  }
-
-                  myArray = AiNodeGetArray(node, "nsides");
-                  if (myArray->type == 2)
-                  {
-                     num_nsides = myArray->nelements * myArray->nkeys;
-                     nsides.resize(num_nsides);
-                     for (i = 0; i < num_nsides; i++)
-                     {
-                        unsigned int localTmpPnt = AiArrayGetUInt(myArray, i);
-                        nsides[i] = localTmpPnt;
-                     }
-                  }
-                  // Now we treat the datas for drawing purpose.
-                  geom->faceList.resize(obj + 1);
-                  int cursor = 0;
-                  for (int j = 0; j < num_nsides; j++)
-                  {
-                     geom->faceList[obj].resize(j + 1);
-
-                     int c_nsides = nsides[j];
-                     for (int k = cursor; k < cursor + c_nsides; k++)
-                     {
-                        AtUInt32 face = vidxs[k];
-                        AtPoint pnt = vertices[face];
-                        geom->faceList[obj][j].push_back(pnt);
-                     }
-                     cursor = cursor + c_nsides;
-                  }
-                  ++obj;
+                  geom->m_geometryList.push_back(new CArnoldPolymeshGeometry(node, total_matrix, geom->bbox));
                }
             }
          }
@@ -980,7 +915,10 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
    // Initialize GL function table first time through
    static MGLFunctionTable *gGLFT = NULL;
    if (gGLFT == NULL)
+   {
       gGLFT = MHardwareRenderer::theRenderer()->glFunctionTable();
+      CArnoldStandInGeometry::setGLFTable(gGLFT);
+   }
       
    MDrawData data = request.drawData();
    CArnoldStandInGeom * geom = (CArnoldStandInGeom*) data.geometry();
@@ -1106,60 +1044,43 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
          gGLFT->glEndList();
          break;
 
-      case 1:
+      case 1: // filled polygon
          gGLFT->glNewList(geom->dList, MGL_COMPILE);
          gGLFT->glPushAttrib(MGL_CURRENT_BIT);
          gGLFT->glEnable(MGL_POLYGON_OFFSET_FILL);
-
-         for (unsigned int i = 0; i < geom->faceList.size(); ++i)
+         
+         gGLFT->glColor4f(0.5f, 0.5f, 0.5f, 1.0f);
+         
+         for (std::vector<CArnoldStandInGeometry*>::iterator it = geom->m_geometryList.begin();
+                 it != geom->m_geometryList.end(); ++it)
          {
-            for (unsigned int j = 0; j < geom->faceList[i].size(); ++j)
-            {
-               gGLFT->glBegin(MGL_POLYGON);
-               for (unsigned int k = 0; k < geom->faceList[i][j].size(); ++k)
-               {
-                  gGLFT->glColor4f(0.5, 0.5, 0.5, 1);
-                  gGLFT->glVertex3f(geom->faceList[i][j][k].x, geom->faceList[i][j][k].y, geom->faceList[i][j][k].z);
-               }
-               gGLFT->glEnd();
-            }
+            
+            (*it)->DrawPolygons();
          }
-
+         
          gGLFT->glPopAttrib();
-         for (unsigned int i = 0; i < geom->faceList.size(); ++i)
+         
+         for (std::vector<CArnoldStandInGeometry*>::iterator it = geom->m_geometryList.begin();
+                 it != geom->m_geometryList.end(); ++it)
          {
-            for (unsigned int j = 0; j < geom->faceList[i].size(); ++j)
-            {
-               gGLFT->glBegin(MGL_LINE_STRIP);
-               for (unsigned int k = 0; k < geom->faceList[i][j].size(); ++k)
-               {
-                  gGLFT->glVertex3f(geom->faceList[i][j][k].x, geom->faceList[i][j][k].y, geom->faceList[i][j][k].z);
-               }
-               gGLFT->glEnd();
-            }
+            (*it)->DrawWireframe();
          }
+         
          gGLFT->glEndList();
          break;
 
-      case 2:
+      case 2: // wireframe
          gGLFT->glNewList(geom->dList, MGL_COMPILE);
-         for (unsigned int i = 0; i < geom->faceList.size(); ++i)
+         for (std::vector<CArnoldStandInGeometry*>::iterator it = geom->m_geometryList.begin();
+                 it != geom->m_geometryList.end(); ++it)
          {
-            for (unsigned int j = 0; j < geom->faceList[i].size(); ++j)
-            {
-               gGLFT->glBegin(MGL_LINE_STRIP);
-               for (unsigned int k = 0; k < geom->faceList[i][j].size(); ++k)
-               {
-                  gGLFT->glVertex3f(geom->faceList[i][j][k].x, geom->faceList[i][j][k].y, geom->faceList[i][j][k].z);
-               }
-               gGLFT->glEnd();
-            }
+            (*it)->DrawWireframe();
          }
          gGLFT->glEndList();
          
          break;
 
-      case 3:
+      case 3: // points
          gGLFT->glPushAttrib(MGL_CURRENT_BIT);
          gGLFT->glEnable(MGL_POINT_SMOOTH);
          // Make round points, not square points and not working
@@ -1168,19 +1089,12 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
          gGLFT->glDepthMask(MGL_TRUE);
          gGLFT->glBlendFunc(MGL_SRC_ALPHA, MGL_ONE_MINUS_SRC_ALPHA);
          gGLFT->glNewList(geom->dList, MGL_COMPILE);
-         gGLFT->glBegin(MGL_POINTS);
-
-         for (unsigned int i = 0; i < geom->faceList.size(); ++i)
+         for (std::vector<CArnoldStandInGeometry*>::iterator it = geom->m_geometryList.begin();
+                 it != geom->m_geometryList.end(); ++it)
          {
-            for (unsigned int j = 0; j < geom->faceList[i].size(); ++j)
-            {
-               for (unsigned int k = 0; k < geom->faceList[i][j].size(); ++k)
-               {
-                  gGLFT->glVertex3f(geom->faceList[i][j][k].x, geom->faceList[i][j][k].y, geom->faceList[i][j][k].z);
-               }
-            }
+            (*it)->DrawPoints(); // it's a bit unnecessary to call glBegin and glEnd
+            // per geometry here, but I am doing this for consistency reasons
          }
-         gGLFT->glEnd();
          gGLFT->glEndList();
          
          gGLFT->glDisable(MGL_POINT_SMOOTH);
@@ -1188,7 +1102,10 @@ void CArnoldStandInShapeUI::draw(const MDrawRequest & request, M3dView & view) c
          break;
       }
       // Release facelist memory
-      geom->faceList.clear();
+      for (std::vector<CArnoldStandInGeometry*>::iterator it = geom->m_geometryList.begin();
+              it != geom->m_geometryList.end(); ++it)
+         delete *it;
+      geom->m_geometryList.clear();
       geom->updateView = false;
    }
    
