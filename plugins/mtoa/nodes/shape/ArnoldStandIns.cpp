@@ -199,9 +199,9 @@ MStatus CArnoldStandInShape::GetPointsFromAss()
          geom->faceList.clear();
          geom->bbox.clear();
 
-         vector<AtPoint> vertices;
-         vector<AtUInt32> vidxs;
-         vector<unsigned int> nsides;
+         std::vector<AtPoint> vertices;
+         std::vector<AtUInt32> vidxs;
+         std::vector<unsigned int> nsides;
 
          int num_vertices(0);
          int num_vidxs(0);

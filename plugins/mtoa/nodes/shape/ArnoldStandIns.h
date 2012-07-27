@@ -12,9 +12,6 @@
 
 #include <vector>
 
-using std::vector;
-
-
 // Geometry class
 class CArnoldStandInGeom
 {
@@ -35,7 +32,7 @@ public:
    float scale;
    MPoint BBmin;
    MPoint BBmax;
-   vector<vector<vector<AtPoint> > > faceList;
+   std::vector<std::vector<std::vector<AtPoint> > > faceList;
    int dList;
    int updateView;
    int updateBBox;
