@@ -12,16 +12,6 @@ import sys
 import signal
 from colorama import Fore
 
-if system.os() == 'windows':
-    from testsuite import DummyLock, run_test
-else:
-    from testsuite import do_run_test
-    # SCons overrides pickle with cPickle, which causes problems with multiprocessing 
-    sys.modules.pop('pickle')
-    import pickle
-    import multiprocessing
-
-
 ## Finds a test group and returns a list of all tests included
 def find_test_group(group):
 
@@ -131,7 +121,8 @@ class MayaTestRunner(object):
                 plugin_dependencies = '',
                 output_image        = 'testrender.tif',     ## can be '' if the test does not generate an image
                 reference_image     = os.path.join('ref', 'reference.tif'),  ## can be '' if the test does not generate an image
-                force_result        = 'OK'):
+                force_result        = 'OK',
+                multiprocess        = True):
       ## save the params
       if system.os() == 'windows':
          self.script = os.path.normpath(script)
@@ -144,6 +135,7 @@ class MayaTestRunner(object):
       self.output_image = output_image
       self.reference_image = reference_image
       self.force_result = force_result
+      self.multiprocess = multiprocess
       self.tests = []
       self.total_running_time = 0
       self.black_list = []
@@ -310,8 +302,7 @@ class MayaTestRunner(object):
        show_test_output = (test_env['SHOW_TEST_OUTPUT'] == 'always') or (test_env['SHOW_TEST_OUTPUT'] == 'single' and (len(self.tests) == 1))
 
        self.tests.sort()
-
-       if system.os() == 'windows':
+       if not self.multiprocess:
            # disable multi-threading for windows
            lock = DummyLock()
            for test_name in self.tests:
@@ -543,6 +534,23 @@ if __name__ == 'SCons.Script':
     else:
        test_env = env.Clone(SHLIBPREFIX = '', SHLIBSUFFIX='.so')
 
+    # Disable multiprocess if the operating system is Windows or a Linux without multiprocessing 
+    multiprocess = False
+    if test_env['MULTIPROCESS'] == True:
+        if system.os() != 'windows':
+            try:
+                import multiprocessing
+                multiprocess = True
+            except:
+                pass
+    if multiprocess:
+        from testsuite import do_run_test
+        # SCons overrides pickle with cPickle, which causes problems with multiprocessing 
+        sys.modules.pop('pickle')
+        import pickle
+    else:
+        from testsuite import DummyLock, run_test
+    
     listtest_bld = Builder(action = Action(list_tests, "Listing tests..."))
     listtesterrors_bld = Builder(action = Action(list_test_errors, "Listing broken tests..."))
     maketest_bld = Builder(action = Action(make_test, "Creating test '$TARGET'..."))
@@ -564,7 +572,7 @@ if __name__ == 'SCons.Script':
     ## and Maya's
     prepend_to_path(test_env, os.path.join(test_env['MAYA_ROOT'], 'bin'))
     
-    testRunner = MayaTestRunner()
+    testRunner = MayaTestRunner(multiprocess = multiprocess)
     testrunner_bld = Builder(action = testRunner.run)
     test_env.Append(BUILDERS = {'Testsuite' : testrunner_bld})
     
