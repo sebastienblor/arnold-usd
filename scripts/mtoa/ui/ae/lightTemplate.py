@@ -301,7 +301,7 @@ class LightTemplate(AttributeTemplate):
                        columnOffset2=(2, 2))
 
         pm.button('lf_add_button', label="Add", c=Callback(self.addLightFilterWin))
-        pm.button('lf_remove_button', label="Remove", c=Callback(self.removeLightFilter))
+        pm.button('lf_remove_button', label="Disconnect", c=Callback(self.removeLightFilter))
         # implicit end of row layout
         pm.setParent('..') # back to column layout
         pm.setParent('..') # back to row layout
