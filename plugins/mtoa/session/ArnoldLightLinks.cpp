@@ -8,6 +8,7 @@
 #include <maya/MItDependencyNodes.h>
 #include <maya/MPlugArray.h>
 #include <maya/MPlug.h>
+#include <maya/MFnSet.h>
 
 #include <ai.h>
 
@@ -40,11 +41,34 @@ void ReadLinks(const MPlug& plug, std::map<std::string, std::vector<AtNode*> >& 
       cPlug.child(1).connectedTo(paObject, true, false);
       if (paLight.length() == 0 || paObject.length() == 0)
          continue;
-      MFnDependencyNode light(paLight[0].node());
       MFnDependencyNode object(paObject[0].node());
-      std::map<std::string, AtNode*>::iterator lightMapIter = lightMap.find(light.name().asChar());
-      if (lightMapIter != lightMap.end())
-         target[object.name().asChar()].push_back(lightMapIter->second);
+      MFnDependencyNode linkedLights(paLight[0].node()); // this can be a set
+      if (linkedLights.typeName() == MString("objectSet"))
+      {
+         MStatus status;
+         MFnSet objectSet(paLight[0].node());
+         MSelectionList sList;
+         objectSet.getMembers(sList, true);
+         for (unsigned int i = 0; i < sList.length(); ++i)
+         {
+            MDagPath dgPath;
+            if (!sList.getDagPath(i, dgPath))
+               continue;
+            dgPath.extendToShape();
+            MFnDependencyNode linkedLight(dgPath.node(), &status);
+            if (!status)
+               continue;
+            std::map<std::string, AtNode*>::iterator lightMapIter = lightMap.find(linkedLight.name().asChar());
+            if (lightMapIter != lightMap.end())
+               target[object.name().asChar()].push_back(lightMapIter->second);
+         }
+      }
+      else
+      {
+         std::map<std::string, AtNode*>::iterator lightMapIter = lightMap.find(linkedLights.name().asChar());
+         if (lightMapIter != lightMap.end())
+            target[object.name().asChar()].push_back(lightMapIter->second);
+      }
    }
 }
 
