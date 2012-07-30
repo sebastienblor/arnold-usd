@@ -98,10 +98,14 @@ BrdfMethods brdf_methods_array[3] = { phong_methods, ward_duer_methods, cook_tor
 // Here is the evaluator
 void *CStandard::Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions options)
 {
-   CStandardOutput *output = &outputs[sg->tid];
+   //CStandardOutput *output = &outputs[sg->tid];
+   // #1403: use a local output to store the result, and assign it to the member output
+   // only before returning it. Else, if the object is re-hit by secondary rays leaving from this
+   // method, the method would be recalled and outputs[sg->tid] overwritten
+   CStandardOutput output;
    CStandardParams *pParams = &params[sg->tid];
 
-   output->opacity = pParams->opacity;
+   output.opacity = pParams->opacity;
 
    float Ksss = pParams->Ksss;
    AtColor Ksss_color = pParams->Ksss_color;
@@ -123,7 +127,7 @@ void *CStandard::Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions opti
          // approximate colored shadows from refractive objects
          AtColor Kt_color = pParams->Kt_color;
          AtColor shadow_opacity = 1 - (Kt_color * Kt);
-         output->opacity *= shadow_opacity;
+         output.opacity *= shadow_opacity;
 
          // apply Beer's Law on interval between forward and back face intersections
          const AtColor transmittance = pParams->transmittance;
@@ -142,7 +146,7 @@ void *CStandard::Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions opti
                   const AtColor attenuation = { expf(-attenuation_coefficient.r * distance),
                                                 expf(-attenuation_coefficient.g * distance),
                                                 expf(-attenuation_coefficient.b * distance) };
-                  output->opacity = 1 - attenuation * (1 - output->opacity);
+                  output.opacity = 1 - attenuation * (1 - output.opacity);
                }
             }
             else
@@ -151,28 +155,35 @@ void *CStandard::Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions opti
             }
          }
       }
-      return (void*)output;
+      outputs[sg->tid] = output;
+      return (void*)&outputs[sg->tid];
    }
 
    // early out for nearly transparent surfaces
-   if (AiColorIsZero(output->opacity))
-      return (void*)output;
+   if (AiColorIsZero(output.opacity))
+   {
+      outputs[sg->tid] = output;
+      return (void*)&outputs[sg->tid];
+   }
 
-   output->rgb = AI_RGB_BLACK;
+   output.rgb = AI_RGB_BLACK;
 
    // emission
    float emission = pParams->emission;
    if (emission != 0.f)
    {
       AtColor emission_color = pParams->emission_color;
-      output->rgb += emission * emission_color;
+      output.rgb += emission * emission_color;
       // AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_emission), emission * emission_color);
    }
 
    // early out if bounce_factor is set to 0
    float bounce_coef = pParams->bounce_factor;
    if ((sg->Rt & (AI_RAY_DIFFUSE | AI_RAY_GLOSSY)) && bounce_coef == 0.f)
-      return (void*)output;
+   {
+      outputs[sg->tid] = output;
+      return (void*)&outputs[sg->tid];
+   }
 
    // setup Fresnel weights
    float refl_fresnel = 0;
@@ -269,7 +280,6 @@ void *CStandard::Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions opti
 
       void *oren_nayar_brdf = AiOrenNayarMISCreateData(sg, roughness);
 
-      AtVector V = -sg->Rd;
       AtColor direct_diffuse = AI_RGB_BLACK;
       AiLightsPrepare(sg);
       while (AiLightsGetSample(sg))
@@ -299,7 +309,7 @@ void *CStandard::Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions opti
       direct_diffuse *= Kd * pParams->direct_diffuse;
       if (Fresnel_on_diff)
          direct_diffuse *= 1 - refl_fresnel - spec_fresnel;
-      output->rgb += direct_diffuse;
+      output.rgb += direct_diffuse;
       // #1311
       if (pParams->writeAOVs)
          AiAOVSetRGB(sg, pParams->directDiffuseAOV, direct_diffuse);
@@ -322,7 +332,7 @@ void *CStandard::Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions opti
       direct_specular *= Ks * pParams->direct_specular;
       if (spec_Fresnel)
          direct_specular *= spec_fresnel;
-      output->rgb += direct_specular;
+      output.rgb += direct_specular;
       specularSum += direct_specular;
       // AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_direct_specular), direct_specular);
    }
@@ -353,7 +363,7 @@ void *CStandard::Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions opti
       indirect_diffuse *= Kd_indirect;
       if (Fresnel_on_diff)
          indirect_diffuse *= 1 - refl_fresnel - spec_fresnel;
-      output->rgb += indirect_diffuse;
+      output.rgb += indirect_diffuse;
       // #1311
       if (pParams->writeAOVs)
          AiAOVSetRGB(sg, pParams->inDirectDiffuseAOV, indirect_diffuse);
@@ -371,7 +381,7 @@ void *CStandard::Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions opti
       AtColor indirect_specular = Ks_indirect * brdf_methods.integrate_func(brdf_data, sg);
       if (spec_Fresnel)
          indirect_specular *= spec_fresnel;
-      output->rgb += indirect_specular;
+      output.rgb += indirect_specular;
       specularSum += indirect_specular;
       // AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_indirect_specular), indirect_specular);
    }
@@ -414,7 +424,7 @@ void *CStandard::Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions opti
       reflection *= Kr;
       if (Fresnel)
          reflection *= refl_fresnel;
-      output->rgb += reflection;
+      output.rgb += reflection;
       // AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_reflection), reflection);
    }
 
@@ -505,7 +515,7 @@ void *CStandard::Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions opti
 
       refraction *= Kt * (1 - refl_fresnel - spec_fresnel);
 
-      output->rgb += refraction;
+      output.rgb += refraction;
       // AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_refraction), refraction);
    }
 
@@ -519,15 +529,16 @@ void *CStandard::Evaluate(AtNode *node, AtShaderGlobals *sg, const COptions opti
       AtColor sss = cKsss * AiSSSPointCloudLookupCubic(sg, csss_radius);
       if (Fresnel_on_diff)
          sss *= 1 - refl_fresnel - spec_fresnel;
-      output->rgb += sss;
+      output.rgb += sss;
       // AiAOVSetRGB(sg, AiShaderEvalParamStr(p_aov_sss), sss);
    }
 
    // artificially pump up the bounces
    if (sg->Rt & (AI_RAY_DIFFUSE | AI_RAY_GLOSSY))
-      output->rgb *= bounce_coef;
+      output.rgb *= bounce_coef;
 
-   return (void*)output;
+   outputs[sg->tid] = output;
+   return (void*)&outputs[sg->tid];
 }
 
 

@@ -174,7 +174,7 @@ class LightTemplate(AttributeTemplate):
         This callback is triggered when the filter menu changes.  The filter menu contains a list of 
         filter types, and of existing filter nodes.
         """
-        if not name:
+        if not name or name == '<Add Filter>':
             # selected a menu divider. reset
             self.updateAddMenu()
             return

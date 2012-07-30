@@ -61,6 +61,8 @@ def _makeNodeAddedCB(nodeType):
                 func(obj)
             else:
                 func(node)
+    if pm.mel.getApplicationVersionAsFloat() > 2011 and not pm.about(batch=True):
+        pm._factories.addMayaType(nodeType)
     # no unicode allowed
     nodeAddedCB.__name__ = "nodeAddedCB_" + str(nodeType) 
     return nodeAddedCB

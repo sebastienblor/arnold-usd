@@ -5,7 +5,7 @@ from mtoa.ui.ae.utils import aeCallback
 import mtoa.core as core
 
 def LoadStandInButtonPush(nodeName):
-    basicFilter = 'Arnold Archive (*.ass *.ass.gz *.obj);;Arnold Procedural (*.so *.dll)'
+    basicFilter = 'Arnold Archive (*.ass *.ass.gz *.obj *.ply);;Arnold Procedural (*.so *.dll)'
     ret = cmds.fileDialog2(fileFilter=basicFilter, dialogStyle=2,cap='Load StandIn',okc='Load',fm=4)
     if ret is not None and len(ret):
         ArnoldStandInDsoEdit(nodeName, ret[0])
@@ -51,6 +51,19 @@ def ArnoldStandInDsoEdit(nodeName, mPath) :
         cmds.setAttr(nodeName+".useFrameExtension",True)
     # Single .obj
     elif re.search(r'([-_/a-zA-Z0-9.]+)(\.obj)',mPath) != None:
+        mArchivePath = mPath
+        cmds.setAttr(nodeName+".useFrameExtension",False)
+    # Sequence of .ply
+    elif re.search(r'(.*[a-zA-Z0-9])([_.])([0-9.]+)(.ply)',mPath) != None:
+        m_groups = re.search(r'(.*[a-zA-Z0-9])([_.])([0-9.]+)(.ply)',mPath).groups()
+        mArchivePath = m_groups[0]+'.#'+m_groups[2]
+        if '.' in m_groups[1]:
+            cmds.setAttr(nodeName+".useSubFrame",True)
+        else:
+            cmds.setAttr(nodeName+".useSubFrame",False)
+        cmds.setAttr(nodeName+".useFrameExtension",True)
+    # Single .ply
+    elif re.search(r'([-_/a-zA-Z0-9.]+)(\.ply)',mPath) != None:
         mArchivePath = mPath
         cmds.setAttr(nodeName+".useFrameExtension",False)
     # Other

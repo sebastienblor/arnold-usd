@@ -125,11 +125,6 @@ shader_evaluate
    ss = Mod(ss, 1.000001f);
    tt = Mod(tt, 1.000001f);
 
-   AtPoint pp;
-   pp.x = ss * 15.0f;
-   pp.y = tt * 15.0f;
-   pp.z = 0.0f;
-
    float curFreq = 10.0f;
    float curTimeFreq = 10.0f;
    float pixelSize = float(AI_EPSILON);

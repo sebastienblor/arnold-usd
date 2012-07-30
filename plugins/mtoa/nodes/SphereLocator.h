@@ -62,9 +62,9 @@ public:
    static MObject s_sampling;
    static MObject s_hwtexalpha;
 
-   char  * m_colorData;
-   float * m_UData;
-   float * m_VData;
+   unsigned char* m_colorData;
+   float*         m_UData;
+   float*         m_VData;
 
    // Need to check if sampling again is needed
    bool   m_goSample;

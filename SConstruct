@@ -45,6 +45,7 @@ vars.AddVariables(
       EnumVariable('WARN_LEVEL' , 'Set warning level'         , 'strict'            , allowed_values=('strict', 'warn-only', 'none')),
       EnumVariable('COMPILER'   , 'Set compiler to use'       , ALLOWED_COMPILERS[0], allowed_values=ALLOWED_COMPILERS),
       EnumVariable('TARGET_ARCH', 'Allows compiling for a different architecture', system.host_arch(), allowed_values=system.get_valid_target_archs()),
+      BoolVariable('MULTIPROCESS','Enable multiprocessing in the testsuite', True),
       BoolVariable('SHOW_CMDS'  , 'Display the actual command lines used for building', False),
       PathVariable('LINK', 'Linker to use', None),
       PathVariable('SHCC', 'Path to C++ (gcc) compiler used', None),
@@ -123,7 +124,7 @@ vars.AddVariables(
 )
 
 if system.os() == 'windows':
-   vars.Add(EnumVariable('MSVC_VERSION', 'Version of MS Visual Studio to use', '9.0', allowed_values=('8.0', '8.0Exp', '9.0', '9.0Exp')))
+   vars.Add(EnumVariable('MSVC_VERSION', 'Version of MS Visual Studio to use', '9.0', allowed_values=('8.0', '8.0Exp', '9.0', '9.0Exp', '10.0')))
 
 if system.os() == 'windows':
    # Ugly hack. Create a temporary environment, without loading any tool, so we can set the MSVC_ARCH

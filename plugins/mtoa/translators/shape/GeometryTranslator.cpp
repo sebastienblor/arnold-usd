@@ -742,7 +742,6 @@ void CGeometryTranslator::ExportMeshGeoData(AtNode* polymesh, unsigned int step)
    //   
    unsigned int numVerts = fnMesh.numVertices();
    unsigned int numNorms = fnMesh.numNormals();
-   unsigned int numUVs = fnMesh.numUVs();
    unsigned int numPolys = fnMesh.numPolygons();
    
    const float* vertices = 0;

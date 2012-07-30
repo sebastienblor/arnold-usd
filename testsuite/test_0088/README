@@ -1,0 +1,6 @@
+renderable NURBS curves
+
+Enable rendering of maya nurbs curves directly with shader override and profile width ramp controls.
+(Ticket #105)
+
+author: redpawfx

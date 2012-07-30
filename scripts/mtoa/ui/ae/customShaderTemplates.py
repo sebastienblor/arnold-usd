@@ -13,3 +13,8 @@ class DisplacementShaderTemplate(templates.AttributeTemplate):
 
 templates.registerAETemplate(DisplacementShaderTemplate, "displacementShader")
 
+class FileTemplate(templates.AttributeTemplate):
+    def setup(self):
+        self.addControl("aiMipBias", label="Mip-Mapping Bias")
+
+templates.registerAETemplate(FileTemplate, "file")
