@@ -532,6 +532,9 @@ void COptionsTranslator::Export(AtNode *options)
       break;
    }
 
+   // frame number
+   AiNodeDeclare(options, "frame", "constant FLOAT");
+   AiNodeSetFlt(options, "frame", (AtFloat)GetExportFrame());
 }
 
 void COptionsTranslator::Update(AtNode *options)
