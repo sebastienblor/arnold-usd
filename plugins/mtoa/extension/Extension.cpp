@@ -871,7 +871,7 @@ MString CExtension::FindFileInPath(const MString &file,
 
    MFileObject fileObject;
    fileObject.setRawName(file);
-   fileObject.setRawPath(path);
+   fileObject.setRawPath(path.expandEnvironmentVariablesAndTilde());
    unsigned int nbSearchPath = fileObject.pathCount();
    for (unsigned int i=0; i<nbSearchPath; i++)
    {
@@ -900,7 +900,7 @@ MStringArray CExtension::FindLibraries(const MString &path,
    MStatus status = MStatus::kNotFound;
    MStringArray files;
 
-   MString resolvedPathList = path.expandFilePath();
+   MString resolvedPathList = path.expandEnvironmentVariablesAndTilde();
    MStringArray pluginPaths;
    resolvedPathList.split(PATHSEP, pluginPaths);
    for (unsigned int i=0; i<pluginPaths.length(); ++i)
