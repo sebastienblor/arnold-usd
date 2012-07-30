@@ -229,6 +229,7 @@ class LightTemplate(AttributeTemplate):
                 #pm.delete(filter)
 
         self.lightFiltersUpdateList()
+        self.updateAddMenu()
 
     def getConnectedLightFilters(self):
         nfilters = getConnectedCount(self.nodeAttr('aiFilters'))
