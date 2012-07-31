@@ -111,28 +111,8 @@ node_initialize
    iData->Screen_Switch.p_input1 = &iData->Standards_Add;
    iData->Screen_Switch.p_input2 = &iData->Screen;
    // Standard
-   iData->Standard.p_Ksss_color = &iData->Divide_By_Four;
-   iData->Standard.p_Ksss = &iData->Multiply_By_Global_SSS_Weight;
+   iData->Standard.p_Ksss_color = &iData->Colors_Add;
    iData->Standard.p_sss_radius = &iData->Radius_To_Color;
-
-   // Radius_To_Color
-   iData->Radius_To_Color.p_input = &iData->Multiply_By_Global_SSS_Radius;
-   // Multiply_By_Global_SSS_Radius
-   iData->Multiply_By_Global_SSS_Radius.p_input2 = &iData->Divide_By_Three;
-   // Divide_By_Three
-   iData->Divide_By_Three.p_input1 = &iData->Add_Deep_Radius;
-   // Add_Deep_Radius
-   iData->Add_Deep_Radius.p_input1 = &iData->Add_Shallow_Mid_Radius;
-
-   // Multiply_By_Global_SSS_Weight
-   iData->Multiply_By_Global_SSS_Weight.p_input1 = &iData->Add_Deep_Weight;
-
-   // Divide_By_Four
-   iData->Divide_By_Four.p_color1 = &iData->Colors_Add;
-   // Add_Deep_Weight
-   iData->Add_Deep_Weight.p_input1 = &iData->Add_Scatter_Weight;
-   // Add_Scatter_Weight
-   iData->Add_Scatter_Weight.p_input1 = &iData->Add_Diffuse_Shallow_Weights;
 
    // #1311
    iData->Store_Secondary_Specular.p_input = &iData->Standard_Secondary_Specular;
@@ -258,27 +238,14 @@ shader_evaluate
    iData->Diffuse_Switch.params[sg->tid].switcher = params.sample_sss_only_in_gi_rays;
    // Glossy_Switch
    iData->Glossy_Switch.params[sg->tid].switcher = params.sample_sss_only_in_glossy_rays;
-   // Multiply_By_Global_SSS_Weight
-   iData->Multiply_By_Global_SSS_Weight.params[sg->tid].input2 = params.sss_weight;
-   // Add_Deep_Weight
-   iData->Add_Deep_Weight.params[sg->tid].input2 = params.deep_scatter_weight;
-   // Add_Scatter_Weight
-   iData->Add_Scatter_Weight.params[sg->tid].input2 = params.mid_scatter_weight;
+   // Standard
+   iData->Standard.params[sg->tid].Ksss = params.sss_weight;
+   iData->Radius_To_Color.params[sg->tid].input = (params.shallow_scatter_radius * params.shallow_scatter_weight +
+                                              params.mid_scatter_radius * params.mid_scatter_weight +
+                                              params.deep_scatter_radius * params.deep_scatter_weight) /
+                                              (params.shallow_scatter_weight + params.mid_scatter_weight + params.deep_scatter_weight) *
+                                              params.global_sss_radius_multiplier;
 
-   // The radii section, changed with the latest compound version from https://trac.solidangle.com/sitoa/wiki/SkinShader
-   // Multiply_By_Global_SSS_Radius
-   iData->Multiply_By_Global_SSS_Radius.params[sg->tid].input1 = params.global_sss_radius_multiplier;
-   // Divide_By_Three == multiply by 0.3333
-   iData->Divide_By_Three.params[sg->tid].input2 = 0.3333f;
-   // Add_Deep_Radius
-   iData->Add_Deep_Radius.params[sg->tid].input2 = params.deep_scatter_radius;
-   // Add_Shallow_Mid_Radius
-   iData->Add_Shallow_Mid_Radius.params[sg->tid].input1 = params.shallow_scatter_radius;
-   iData->Add_Shallow_Mid_Radius.params[sg->tid].input2 = params.mid_scatter_radius;
-
-   // Add_Diffuse_Shallow_Weights
-   iData->Add_Diffuse_Shallow_Weights.params[sg->tid].input1 = params.diffuse_weight;
-   iData->Add_Diffuse_Shallow_Weights.params[sg->tid].input2 = params.shallow_scatter_weight;
    // Standard_Secondary_Specular
    iData->Standard_Secondary_Specular.params[sg->tid].Ks_color = params.secondary_reflection_color;
    iData->Standard_Secondary_Specular.params[sg->tid].Ks = params.secondary_reflection_weight;
@@ -308,10 +275,10 @@ shader_evaluate
    iData->Standard_Diffuse_Primary_Specular.params[sg->tid].spec_Fresnel = params.primary_reflection_enable_fresnel_falloff;
    iData->Standard_Diffuse_Primary_Specular.params[sg->tid].Ksn = params.primary_reflection_fresnel_coefficient;
    // Colors_Add
-   iData->Colors_Add.params[sg->tid].baseColor = params.diffuse_color;
-   iData->Colors_Add.params[sg->tid].color1 = params.shallow_scatter_color;
-   iData->Colors_Add.params[sg->tid].color2 = params.mid_scatter_color;
-   iData->Colors_Add.params[sg->tid].color3 = params.deep_scatter_color;
+   iData->Colors_Add.params[sg->tid].baseColor = params.diffuse_color * params.diffuse_weight;
+   iData->Colors_Add.params[sg->tid].color1 = params.shallow_scatter_color * params.shallow_scatter_weight;
+   iData->Colors_Add.params[sg->tid].color2 = params.mid_scatter_color * params.mid_scatter_weight;
+   iData->Colors_Add.params[sg->tid].color3 = params.deep_scatter_color * params.deep_scatter_weight;
    // Multiply_ShallowSSS
    iData->Multiply_ShallowSSS.params[sg->tid].input1 = params.shallow_scatter_weight;
    iData->Multiply_ShallowSSS.params[sg->tid].input2 = params.sss_weight;
