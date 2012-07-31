@@ -460,6 +460,13 @@ void COptionsTranslator::Export(AtNode *options)
                AiNodeSetInt(options, "AA_seed", (int)GetExportFrame());
             }
          }
+         else if (strcmp(paramName, "sss_bssrdf_samples") == 0)
+         {
+            if (FindMayaPlug("enable_raytraced_SSS").asBool())
+               ProcessParameter(options, "sss_bssrdf_samples", AI_TYPE_INT);
+            else
+               AiNodeSetInt(options, "sss_bssrdf_samples", 0);
+         }
          else
          {
             // Process parameter automatically

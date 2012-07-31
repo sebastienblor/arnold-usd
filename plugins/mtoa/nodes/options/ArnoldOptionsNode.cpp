@@ -59,6 +59,7 @@ MObject CArnoldOptionsNode::s_shutter_offset;
 MObject CArnoldOptionsNode::s_shutter_type;
 MObject CArnoldOptionsNode::s_motion_steps;
 MObject CArnoldOptionsNode::s_motion_frames;
+MObject CArnoldOptionsNode::s_enable_raytraced_SSS;
 MObject CArnoldOptionsNode::s_use_existing_tiled_textures;
 MObject CArnoldOptionsNode::s_output_ass_filename;
 MObject CArnoldOptionsNode::s_output_ass_compressed;
@@ -207,7 +208,12 @@ MStatus CArnoldOptionsNode::initialize()
    s_attributes.MakeInput("GI_diffuse_samples");
    s_attributes.MakeInput("GI_glossy_samples");
    s_attributes.MakeInput("GI_refraction_samples");
+   s_attributes.MakeInput("sss_bssrdf_samples");
    s_attributes.MakeInput("sss_sample_factor");
+   
+   s_enable_raytraced_SSS = nAttr.create("enable_raytraced_SSS", "enablRaytSSS", MFnNumericData::kBoolean, 0);
+   nAttr.setKeyable(false);
+   addAttribute(s_enable_raytraced_SSS);
 
    s_use_sample_clamp = nAttr.create("use_sample_clamp", "usesmpclamp", MFnNumericData::kBoolean, 0);
    nAttr.setKeyable(false);

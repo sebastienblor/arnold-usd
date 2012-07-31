@@ -163,6 +163,13 @@
         max                 INT     100
         softmin             INT     0
         softmax             INT     10
+    [attr sss_bssrdf_samples]
+        maya.keyable        BOOL    False
+        min                 INT     1
+        max                 INT     100
+        softmin             INT     1
+        softmax             INT     10
+        default             INT     1
     [attr sss_sample_factor]
         maya.keyable        BOOL    False
         min                 INT     1
