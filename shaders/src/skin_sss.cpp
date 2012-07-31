@@ -254,7 +254,7 @@ shader_evaluate
 
    iData->Standard_Secondary_Specular.params[sg->tid].direct_specular = params.secondary_reflection_specular_weight;
    iData->Standard_Secondary_Specular.params[sg->tid].indirect_specular = params.secondary_reflection_reflection_weight;
-   iData->Standard_Secondary_Specular.params[sg->tid].spec_Fresnel = params.secondary_reflection_enable_fresnel_falloff;
+   iData->Standard_Secondary_Specular.params[sg->tid].spec_Fresnel = params.secondary_reflection_weight == 0.0f ? false : params.secondary_reflection_enable_fresnel_falloff;
    iData->Standard_Secondary_Specular.params[sg->tid].Ksn = params.secondary_reflection_fresnel_coefficient;
    // Standard_SSS_Shallow
    iData->Standard_SSS_Shallow.params[sg->tid].Ksss_color = params.shallow_scatter_color;
@@ -272,7 +272,7 @@ shader_evaluate
    
    iData->Standard_Diffuse_Primary_Specular.params[sg->tid].direct_specular = params.primary_reflection_specular_weight;
    iData->Standard_Diffuse_Primary_Specular.params[sg->tid].indirect_specular = params.primary_reflection_reflection_weight;
-   iData->Standard_Diffuse_Primary_Specular.params[sg->tid].spec_Fresnel = params.primary_reflection_enable_fresnel_falloff;
+   iData->Standard_Diffuse_Primary_Specular.params[sg->tid].spec_Fresnel = params.primary_reflection_weight == 0.0f ? false : params.primary_reflection_enable_fresnel_falloff;
    iData->Standard_Diffuse_Primary_Specular.params[sg->tid].Ksn = params.primary_reflection_fresnel_coefficient;
    // Colors_Add
    iData->Colors_Add.params[sg->tid].baseColor = params.diffuse_color * params.diffuse_weight;
