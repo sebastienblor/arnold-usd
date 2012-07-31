@@ -344,9 +344,7 @@ def createArnoldSamplingSettings():
                         attribute='defaultArnoldRenderOptions.giGlossySamples')
     '''
     
-    pm.attrControlGrp('ss_sss_sample_factor',
-                   label="SSS Sample Factor",
-                   attribute='defaultArnoldRenderOptions.sss_sample_factor')
+    pm.separator()
 
     pm.checkBoxGrp('ss_clamp_sample_values',
                      cc=updateSamplingSettings,
@@ -653,6 +651,11 @@ def createArnoldMotionBlurSettings():
 
     pm.setUITemplate(popTemplate=True)
 
+def raytracedSSSChanged():
+    enableRaytracedSSS = pm.getAttr('defaultArnoldRenderOptions.enable_raytraced_SSS')
+    pm.attrControlGrp('ss_sss_bssrdf_samples', edit=True, enable=enableRaytracedSSS)
+    pm.attrControlGrp('ss_sss_sample_factor', edit=True, enable=not enableRaytracedSSS)
+
 
 def createArnoldSSSSettings():
 
@@ -662,6 +665,24 @@ def createArnoldSSSSettings():
     pm.attrControlGrp('mb_show_samples',
                         label="Show samples",
                         attribute='defaultArnoldRenderOptions.showSamples')
+    pm.separator()
+    
+    pm.attrControlGrp('ss_enable_raytraced_SSS',
+                   label="Enable Raytraced SSS",
+                   cc=raytracedSSSChanged,
+                   attribute='defaultArnoldRenderOptions.enable_raytraced_SSS')
+                   
+    enableRaytracedSSS = pm.getAttr('defaultArnoldRenderOptions.enable_raytraced_SSS')
+                        
+    pm.attrControlGrp('ss_sss_bssrdf_samples',
+                   label="Raytrace Samples",
+                   enable=enableRaytracedSSS,
+                   attribute='defaultArnoldRenderOptions.sss_bssrdf_samples')
+    
+    pm.attrControlGrp('ss_sss_sample_factor',
+                   label="PointCloud Sample Factor",
+                   enable=not enableRaytracedSSS,
+                   attribute='defaultArnoldRenderOptions.sss_sample_factor')
 
     pm.setParent('..')
 
