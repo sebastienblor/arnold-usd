@@ -44,19 +44,19 @@ def updateComputeSamples(*args):
 
     pm.text( "textGISamples",
                edit=True, 
-               label='Max GI Samples (with Max Depth) : %i (%i)' % (GISamplesComputed, GISamplesComputedDepth))
+               label='GI Samples (with Max Depth) : %i (%i)' % (GISamplesComputed, GISamplesComputedDepth))
     
     pm.text( "textGlossySamples",
                edit=True, 
-               label='Max Glossy Samples (with Max Depth) : %i (%i)' % (glossySamplesComputed, glossySamplesComputedDepth))
+               label='Glossy Samples (with Max Depth) : %i (%i)' % (glossySamplesComputed, glossySamplesComputedDepth))
         
     pm.text( "textRefractionSamples",
                edit=True, 
-               label='Max Refraction Samples (with Max Depth) : %i (%i)' % (refractionSamplesComputed, refractionSamplesComputedDepth))
+               label='Refraction Samples (with Max Depth) : %i (%i)' % (refractionSamplesComputed, refractionSamplesComputedDepth))
         
     pm.text( "textTotalSamples",
                edit=True, 
-               label='Max Total Samples without lights (with Max Depth) : %i (%i)' % (totalSamples, totalSamplesDepth))
+               label='Total Samples without lights (with Max Depth) : %i (%i)' % (totalSamples, totalSamplesDepth))
 
 
 def updateMotionBlurSettings(*args):
@@ -248,6 +248,10 @@ def createArnoldRenderSettings():
 def updateArnoldFilterOptions(*args):
     pass
 
+def raytracedSSSChanged():
+    enableRaytracedSSS = pm.getAttr('defaultArnoldRenderOptions.enable_raytraced_SSS')
+    pm.attrControlGrp('ss_sss_bssrdf_samples', edit=True, enable=enableRaytracedSSS)
+    pm.attrControlGrp('ss_sss_sample_factor', edit=True, enable=not enableRaytracedSSS)
 
 def createArnoldSamplingSettings():
 
@@ -345,6 +349,33 @@ def createArnoldSamplingSettings():
     '''
     
     pm.separator()
+    
+    pm.attrControlGrp('ss_lock_sampling_noise',
+                        label="Lock sample noise",
+                        attribute='defaultArnoldRenderOptions.lock_sampling_noise')
+    
+    pm.frameLayout(label="Diffusion SSS", collapse=False)
+    
+    pm.attrControlGrp('ss_enable_raytraced_SSS',
+                   label="Raytraced",
+                   cc=raytracedSSSChanged,
+                   attribute='defaultArnoldRenderOptions.enable_raytraced_SSS')
+                   
+    enableRaytracedSSS = pm.getAttr('defaultArnoldRenderOptions.enable_raytraced_SSS')
+                        
+    pm.attrControlGrp('ss_sss_bssrdf_samples',
+                   label="BSSRDF Samples",
+                   enable=enableRaytracedSSS,
+                   attribute='defaultArnoldRenderOptions.sss_bssrdf_samples')
+    
+    pm.attrControlGrp('ss_sss_sample_factor',
+                   label="PointCloud Sample Factor",
+                   enable=not enableRaytracedSSS,
+                   attribute='defaultArnoldRenderOptions.sss_sample_factor')
+    
+    pm.setParent('..')
+    
+    pm.frameLayout(label="Clamping", collapse=True)
 
     pm.checkBoxGrp('ss_clamp_sample_values',
                      cc=updateSamplingSettings,
@@ -355,7 +386,7 @@ def createArnoldSamplingSettings():
 
     pm.checkBoxGrp('ss_clamp_sample_values_AOVs',
                      cc=updateSamplingSettings,
-                     label='Clamp Affect AOVs')
+                     label='Affect AOVs')
 
     pm.connectControl('ss_clamp_sample_values_AOVs', 'defaultArnoldRenderOptions.use_sample_clamp_AOVs', index=1)
     pm.connectControl('ss_clamp_sample_values_AOVs', 'defaultArnoldRenderOptions.use_sample_clamp_AOVs', index=2)
@@ -368,25 +399,25 @@ def createArnoldSamplingSettings():
     '''
 
     pm.attrControlGrp('ss_max_value',
-                        label="Max. Value",
+                        label="Max Value",
                         attribute='defaultArnoldRenderOptions.AASampleClamp')
-
-    pm.separator()
-
-    pm.attrControlGrp('ss_lock_sampling_noise',
-                        label="Lock sample noise",
-                        attribute='defaultArnoldRenderOptions.lock_sampling_noise')
-
-    pm.separator()
+                        
+    pm.setParent('..')
+    
+    pm.frameLayout(label="Sample Filtering", collapse=True)
+    
+    createTranslatorMenu('defaultArnoldFilter',
+                         label='Filter Type',
+                         nodeType='aiAOVFilter',
+                         default='gaussian')
+     
+    pm.setParent('..')
 
 #    pm.rowLayout(numberOfColumns=2, columnWidth=(1, 80))
 #    pm.separator(style='none')
 
     # TODO: connect node to options
-    createTranslatorMenu('defaultArnoldFilter',
-                         label='Filter Type',
-                         nodeType='aiAOVFilter',
-                         default='gaussian')
+    
 
 #    pm.attrEnumOptionMenu('os_filter_type',
 #                               cc=updateArnoldFilterOptions,
@@ -651,12 +682,6 @@ def createArnoldMotionBlurSettings():
 
     pm.setUITemplate(popTemplate=True)
 
-def raytracedSSSChanged():
-    enableRaytracedSSS = pm.getAttr('defaultArnoldRenderOptions.enable_raytraced_SSS')
-    pm.attrControlGrp('ss_sss_bssrdf_samples', edit=True, enable=enableRaytracedSSS)
-    pm.attrControlGrp('ss_sss_sample_factor', edit=True, enable=not enableRaytracedSSS)
-
-
 def createArnoldSSSSettings():
 
     pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
@@ -664,25 +689,7 @@ def createArnoldSSSSettings():
 
     pm.attrControlGrp('mb_show_samples',
                         label="Show samples",
-                        attribute='defaultArnoldRenderOptions.showSamples')
-    pm.separator()
-    
-    pm.attrControlGrp('ss_enable_raytraced_SSS',
-                   label="Enable Raytraced SSS",
-                   cc=raytracedSSSChanged,
-                   attribute='defaultArnoldRenderOptions.enable_raytraced_SSS')
-                   
-    enableRaytracedSSS = pm.getAttr('defaultArnoldRenderOptions.enable_raytraced_SSS')
-                        
-    pm.attrControlGrp('ss_sss_bssrdf_samples',
-                   label="Raytrace Samples",
-                   enable=enableRaytracedSSS,
-                   attribute='defaultArnoldRenderOptions.sss_bssrdf_samples')
-    
-    pm.attrControlGrp('ss_sss_sample_factor',
-                   label="PointCloud Sample Factor",
-                   enable=not enableRaytracedSSS,
-                   attribute='defaultArnoldRenderOptions.sss_sample_factor')
+                        attribute='defaultArnoldRenderOptions.showSamples')   
 
     pm.setParent('..')
 
