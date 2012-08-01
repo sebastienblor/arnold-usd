@@ -1223,6 +1223,16 @@ MStatus CDynamicAttrHelper::addAttribute(MObject& attrib)
 // CExtensionAttrHelper
 //
 
+void CExtensionAttrHelper::AddCommonAttributes()
+{
+   CAttrData data;
+
+   data.name = "aiUserOptions";
+   data.shortName = "ai_user_options";
+   data.stringDefault = "";
+   MakeInputString(data);
+}
+
 #if MAYA_API_VERSION < 201200
 
 void CExtensionAttrHelper::MakeInputInt(CAttrData& data)

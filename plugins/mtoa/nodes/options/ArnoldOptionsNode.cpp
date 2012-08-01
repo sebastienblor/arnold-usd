@@ -75,6 +75,7 @@ MObject CArnoldOptionsNode::s_enable_swatch_render;
 MObject CArnoldOptionsNode::s_texture_searchpath;
 MObject CArnoldOptionsNode::s_procedural_searchpath;
 MObject CArnoldOptionsNode::s_shader_searchpath;
+MObject CArnoldOptionsNode::s_user_options;
 
 CStaticAttrHelper CArnoldOptionsNode::s_attributes(CArnoldOptionsNode::addAttribute);
 
@@ -474,6 +475,10 @@ MStatus CArnoldOptionsNode::initialize()
    s_filter = mAttr.create("filter", "filt");
    mAttr.setKeyable(false);
    addAttribute(s_filter);
+   
+   s_user_options = tAttr.create("aiUserOptions", "ai_user_options", MFnData::kString);
+   tAttr.setKeyable(false);
+   addAttribute(s_user_options);
 
    return MS::kSuccess;
 }
