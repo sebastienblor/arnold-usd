@@ -28,6 +28,11 @@ void CCurveTranslator::NodeInitializer(CAbTranslator context)
    data.shortName = "cwdth";
    helper.MakeInputFloat(data);
 
+   data.defaultValue.INT = 5;
+   data.name = "sampleRate";
+   data.shortName = "srate";
+   helper.MakeInputInt(data);
+
    // FIXME: look into using CDagTranslator::MakeMayaVisibilityFlags
    data.defaultValue.BOOL = true;
    data.name = "primaryVisibility";
@@ -37,11 +42,6 @@ void CCurveTranslator::NodeInitializer(CAbTranslator context)
    data.defaultValue.BOOL = true;
    data.name = "castsShadows";
    data.shortName = "csh";
-   helper.MakeInputBoolean(data);
-
-   data.defaultValue.BOOL = false;
-   data.name = "aiOverrideCurveShader";
-   data.shortName = "ai_override_curve_shader";
    helper.MakeInputBoolean(data);
 
    data.name = "aiCurveShader";
@@ -96,18 +96,14 @@ void CCurveTranslator::Update( AtNode *curve )
 
    // Check if we using a custom curve shader.
    AtNode* shader = NULL;
-   plug = fnNode.findPlug("aiOverrideCurveShader");
-   if (!plug.isNull() && plug.asBool())
+   MPlugArray curveShaderPlugs;
+   plug = fnDepNodeCurve.findPlug("aiCurveShader");
+   if (!plug.isNull())
    {
-      MPlugArray curveShaderPlugs;
-      plug = fnDepNodeCurve.findPlug("aiCurveShader");
-      if (!plug.isNull())
+      plug.connectedTo(curveShaderPlugs, true, false);
+      if (curveShaderPlugs.length() > 0)
       {
-         plug.connectedTo(curveShaderPlugs, true, false);
-         if (curveShaderPlugs.length() > 0)
-         {
-            shader = ExportRootShader(curveShaderPlugs[0]);
-         }
+         shader = ExportRootShader(curveShaderPlugs[0]);
       }
    }
 
@@ -288,8 +284,30 @@ MStatus CCurveTranslator::GetCurveLines(MObject& curve)
       MFnNurbsCurve nurbsCurve(curve);
 
       MPointArray cvs;
-      nurbsCurve.getCVs(cvs, MSpace::kWorld);
-      unsigned int numcvs = cvs.length();
+      double start, end;
+      unsigned int numcvs;
+      unsigned int sampleRate = 5;
+      double incPerSample;
+
+      plug = fnNode.findPlug("sampleRate");
+      if (!plug.isNull())
+      {
+        sampleRate =  plug.asInt();
+      }
+      
+      nurbsCurve.getKnotDomain(start, end);
+      numcvs = std::ceil((end - start) * sampleRate); 
+      incPerSample = 1.0 / sampleRate;
+
+      MPoint point;
+      for(int i = 0; i < numcvs - 1; i++)
+      {
+         nurbsCurve.getPointAtParam(start + incPerSample*i, point, MSpace::kWorld);
+         cvs.append(point);
+      }
+      nurbsCurve.getPointAtParam(end, point, MSpace::kWorld);
+      cvs.append(point);
+
       if (numcvs <=0)
       {
          return MStatus::kFailure;
