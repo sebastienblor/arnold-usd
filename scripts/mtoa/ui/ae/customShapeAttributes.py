@@ -25,6 +25,8 @@ class ParticleTemplate(templates.ShapeTranslatorTemplate):
         self.addSeparator()
         self.addControl("aiDeleteDeadParticles", label="Delete Dead Particles")
         self.addControl("aiInterpolateBlur", label="Interpolate Blur Steps")
+        self.addSeparator()
+        self.addControl("aiUserOptions", label="User Options")
         
 templates.registerTranslatorUI(ParticleTemplate, "particle", "<built-in>")
 
@@ -74,6 +76,7 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
         self.addControl("aiDispZeroValue", label="Scalar Zero Value")
         self.addControl("aiDispAutobump", label="Auto Bump")
         self.endLayout()
+        self.addControl("aiUserOptions", label="User Options")
         #pm.editorTemplate("aiExportHairIDs", label="Export Hair IDs", addDynamicControl=True)
         # FIXME: these are not on the shape node!
 #       ui.addSeparator()
@@ -104,6 +107,8 @@ class HairSystemTemplate(templates.ShapeTranslatorTemplate):
         self.addSeparator()
         self.addControl("aiMinPixelWidth", label="Min Pixel Width")
         self.addControl("aiMode", label="Mode")
+        self.addSeparator()
+        self.addControl("aiUserOptions", label="User Options")
 templates.registerAETemplate(HairSystemTemplate, "hairSystem")
 
 class AmbientLightTemplate(lightTemplate.LightTemplate):
@@ -282,6 +287,8 @@ class PerspCameraTemplate(CameraTemplate):
         self.addDOFAttributes()
         self.addSeparator()
         self.addControl('aiUvRemap', label="UV Remap")
+        self.addSeparator()
+        self.addControl("aiUserOptions", label="User Options")
 
 templates.registerTranslatorUI(PerspCameraTemplate, "camera", "perspective")
 templates.registerTranslatorUI(PerspCameraTemplate, "stereoRigCamera", "perspective")
@@ -290,6 +297,8 @@ templates.registerTranslatorUI(PerspCameraTemplate, "stereoRigCamera", "perspect
 class OrthographicTemplate(CameraTemplate):
     def setup(self):
         self.addCommonAttributes()
+        self.addSeparator()
+        self.addControl("aiUserOptions", label="User Options")
 
 templates.registerTranslatorUI(OrthographicTemplate, "camera", "orthographic")
 templates.registerTranslatorUI(OrthographicTemplate, "stereoRigCamera", "orthographic")
@@ -301,6 +310,8 @@ class FisheyeCameraTemplate(CameraTemplate):
         self.addSeparator()
         self.addControl('aiFov')
         self.addControl('aiAutocrop')
+        self.addSeparator()
+        self.addControl("aiUserOptions", label="User Options")
 
 templates.registerTranslatorUI(FisheyeCameraTemplate, "camera", "fisheye")
 templates.registerTranslatorUI(FisheyeCameraTemplate, "stereoRigCamera", "fisheye")
@@ -311,6 +322,8 @@ class CylCameraTemplate(CameraTemplate):
         self.addControl('aiHorizontalFov')
         self.addControl('aiVerticalFov')
         self.addControl('aiProjective')
+        self.addSeparator()
+        self.addControl("aiUserOptions", label="User Options")
 
 templates.registerTranslatorUI(CylCameraTemplate, "camera", "cylindrical")
 templates.registerTranslatorUI(CylCameraTemplate, "stereoRigCamera", "cylindrical")
@@ -318,6 +331,8 @@ templates.registerTranslatorUI(CylCameraTemplate, "stereoRigCamera", "cylindrica
 class SphericalCameraTemplate(CameraTemplate):
     def setup(self):
         self.addCommonAttributes()
+        self.addSeparator()
+        self.addControl("aiUserOptions", label="User Options")
 
 templates.registerTranslatorUI(SphericalCameraTemplate, "camera", "spherical")
 templates.registerTranslatorUI(SphericalCameraTemplate, "stereoRigCamera", "spherical")

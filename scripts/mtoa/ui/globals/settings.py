@@ -239,6 +239,12 @@ def createArnoldRenderSettings():
     pm.attrControlGrp('os_enable_swatch_render',
                    label="Enable Swatch Render",
                    attribute='defaultArnoldRenderOptions.enable_swatch_render')
+                   
+    pm.separator()
+    
+    pm.attrControlGrp('os_user_options',
+                   label="User Options",
+                   attribute='defaultArnoldRenderOptions.aiUserOptions')
              
     pm.setParent('..')
 

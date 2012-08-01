@@ -127,6 +127,8 @@ class LightTemplate(AttributeTemplate):
         self.addSeparator()
 
         self.lightFiltersLayout()
+        
+        self.addControl("aiUserOptions", "User Options")
 
     def lightFiltersLayout(self):
         self.beginLayout("Light Filters", collapse=False)
