@@ -443,5 +443,5 @@ def createLocator(locatorType, asLight=False):
     pm.createNode(locatorType, name=shapeName, parent=lNode)       
     if asLight:
         cmds.connectAttr('%s.instObjGroups' % lName, 'defaultLightSet.dagSetMembers', nextAvailable=True)
-    return shapeName       
+    return (shapeName, lName)
 

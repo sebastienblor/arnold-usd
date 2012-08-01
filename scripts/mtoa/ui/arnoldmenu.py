@@ -28,7 +28,11 @@ def doCreateMeshLight():
     elif len(shs) == 0:
         cmds.confirmDialog(title='Error', message='The selected transform has no meshes', button='Ok')
         return
-    lShape = mutils.createLocator('aiAreaLight', asLight=True)
+    ll = mutils.createLocator('aiAreaLight', asLight=True)
+    lShape = ll[0]
+    lLocator = ll[1]
+    wm = cmds.xform(sls[0], query=True, matrix=True, worldSpace=True)
+    cmds.xform(lLocator, worldSpace=True, matrix=wm)
     cmds.connectAttr('%s.outMesh' % shs[0], '%s.inputMesh' % lShape, force=True)
     cmds.setAttr('%s.aiTranslator' % lShape, 'mesh', type='string')
    
