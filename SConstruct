@@ -279,7 +279,7 @@ elif env['COMPILER'] == 'msvc':
    if export_symbols:
       MSVC_FLAGS += " /Zi"  # generates complete debug information
 
-   LINK_FLAGS  = " /LARGEADDRESSAWARE"
+   LINK_FLAGS  = " /MANIFEST"
 
    if env['MODE'] in ['opt', 'profile']:
       MSVC_FLAGS += " /Ob2"    # enables inlining of ANY function (compiler discretion)
