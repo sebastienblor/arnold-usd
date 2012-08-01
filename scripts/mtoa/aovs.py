@@ -274,7 +274,7 @@ class AOVInterface(object):
             node = pm.createNode('aiAOVFilter', skipSelect=True)
             node.aiTranslator.set(filter)
             filterAttr = node.attr('message')
-            from . import hooks
+            import mtoa.hooks as hooks
             hooks.setupFilter(filter, aovName)
         else:
             filterAttr = 'defaultArnoldFilter.message'

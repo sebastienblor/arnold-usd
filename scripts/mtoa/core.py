@@ -3,8 +3,8 @@ functions for dealing with mtoa node types and classifications
 '''
 
 import pymel.core as pm
-from . import utils
-from . import callbacks
+import mtoa.utils as utils
+import mtoa.callbacks as callbacks
 
 CATEGORY_TO_RUNTIME_CLASS = {
                 ('shader',):            'asShader',
@@ -190,8 +190,8 @@ def createOptions():
     """
     override this with your own function to set defaults
     """
-    from . import aovs
-    from . import hooks
+    import mtoa.aovs as aovs
+    import mtoa.hooks as hooks
 
     # the shared option ensures that it is only created if it does not exist
     options = pm.createNode('aiOptions', skipSelect=True, shared=True, name='defaultArnoldRenderOptions')
@@ -307,7 +307,7 @@ def installCallbacks():
         pm.scriptJob(attributeChange=['defaultRenderGlobals.currentRenderer', _rendererChanged] )
         pm.scriptJob(event =['SceneOpened', _rendererChanged] )
 
-    from . import aovs
+    import mtoa.aovs as aovs
     aovs.installCallbacks()
 
 def uninstallCallbacks():
