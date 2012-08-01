@@ -44,7 +44,7 @@ def aiSkyDomeLightTemplate(nodeName):
     cmds.editorTemplate("aiBounces", addControl=True, label="Bounces")
     
     cmds.editorTemplate(addSeparator=True)
-    cmds.editorTemplate("aiUnexposedOptions", addControl=True, label="Unexposed Options")
+    cmds.editorTemplate("aiUserOptions", addControl=True, label="User Options")
     
     cmds.editorTemplate(endLayout=True)
 
