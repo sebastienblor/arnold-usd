@@ -350,6 +350,52 @@ void CBaseAttrHelper::MakeInputInt(MObject& attrib, CAttrData& data)
    nAttr.setWritable(true);
 }
 
+void CBaseAttrHelper::MakeInputCurveRamp(MObject& attrib, const char* paramName)
+{
+   CAttrData data;
+   GetAttrData(paramName, data);
+   MakeInputCurveRamp(attrib, data);
+   addAttribute(attrib);
+}
+
+void CBaseAttrHelper::MakeInputCurveRamp(CAttrData& data)
+{
+   MObject attrib;
+   MakeInputCurveRamp(attrib, data);
+   addAttribute(attrib);
+}
+
+void CBaseAttrHelper::MakeInputCurveRamp(MObject& attrib, CAttrData& data)
+{
+   MRampAttribute rAttr;
+   MStatus status;
+   attrib = rAttr.createCurveRamp(data.name, data.shortName, &status);
+   CHECK_MSTATUS(status);
+}
+
+void CBaseAttrHelper::MakeInputColorRamp(MObject& attrib, const char* paramName)
+{
+   CAttrData data;
+   GetAttrData(paramName, data);
+   MakeInputColorRamp(attrib, data);
+   addAttribute(attrib);
+}
+
+void CBaseAttrHelper::MakeInputColorRamp(CAttrData& data)
+{
+   MObject attrib;
+   MakeInputColorRamp(attrib, data);
+   addAttribute(attrib);
+}
+
+void CBaseAttrHelper::MakeInputColorRamp(MObject& attrib, CAttrData& data)
+{
+   MRampAttribute rAttr;
+   MStatus status;
+   attrib = rAttr.createColorRamp(data.name, data.shortName, &status);
+   CHECK_MSTATUS(status);
+}
+
 void CBaseAttrHelper::MakeInputBoolean(MObject& attrib, const char* paramName)
 {
    CAttrData data;

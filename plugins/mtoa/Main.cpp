@@ -34,6 +34,7 @@
 #include "translators/shape/MeshTranslator.h"
 #include "translators/shape/NurbsSurfaceTranslator.h"
 #include "translators/shape/HairTranslator.h"
+#include "translators/shape/CurveTranslator.h"
 #include "translators/shape/StandinsTranslator.h"
 #include "translators/shape/ParticleTranslator.h"
 #include "translators/shape/NParticleTranslator.h"
@@ -276,6 +277,11 @@ namespace // <anonymous>
                                    "",
                                    CHairTranslator::creator,
                                    CHairTranslator::NodeInitializer);
+       // Curves
+              builtin->RegisterTranslator("nurbsCurve",
+                                          "",
+                                          CCurveTranslator::creator,
+                                          CCurveTranslator::NodeInitializer);
 
        // Particles
        builtin->RegisterTranslator("particle",

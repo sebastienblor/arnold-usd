@@ -106,6 +106,24 @@ class HairSystemTemplate(templates.ShapeTranslatorTemplate):
         self.addControl("aiMode", label="Mode")
 templates.registerAETemplate(HairSystemTemplate, "hairSystem")
 
+class NurbsCurveTemplate(templates.ShapeTranslatorTemplate):
+    def setup(self):
+        #pm.mel.eval('AEaddRampControl("widthProfile")')
+        #pm.mel.eval('AEaddRampControl("colorTable")')
+        self.addControl("renderCurve")
+        self.addControl("curveWidth")
+        self.addControl("sampleRate")
+        self.addControl("aiCurveShader")
+        self.addSeparator()
+        self.addControl("primaryVisibility")
+        self.addControl("castsShadows")
+        self.commonShapeAttributes()
+        self.addSeparator()
+        self.addControl("aiMinPixelWidth")
+        self.addControl("aiMode")
+templates.registerTranslatorUI(NurbsCurveTemplate, "nurbsCurve", "<built-in>")
+
+
 class AmbientLightTemplate(lightTemplate.LightTemplate):
     # TODO: handle filter association via metadata
     def validFilters(self):
