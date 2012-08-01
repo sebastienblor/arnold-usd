@@ -48,9 +48,9 @@ void CCurveTranslator::NodeInitializer(CAbTranslator context)
    data.shortName = "ai_curve_shader";
    helper.MakeInputNode(data);
 
-   data.name = "widthProfile";
+   /*data.name = "widthProfile";
    data.shortName = "wdthP";
-   helper.MakeInputCurveRamp(data);
+   helper.MakeInputCurveRamp(data);*/
 
 }
 
@@ -267,8 +267,8 @@ MStatus CCurveTranslator::GetCurveLines(MObject& curve)
      globalWidth =  plug.asFloat();
    }
 
-   plug = fnNode.findPlug("widthProfile");
-   MRampAttribute curveWidthTable(plug);
+   //plug = fnNode.findPlug("widthProfile");
+   //MRampAttribute curveWidthTable(plug);
 
 
    MFnDependencyNode fnDepNodeCurve(curve);
@@ -322,7 +322,7 @@ MStatus CCurveTranslator::GetCurveLines(MObject& curve)
 
       /// HACK, but ramp stuff is a pain to initialize
       //  this rule basically says, if the curve has no entries, then set it all to 1.0
-      if (curveWidthTable.getNumEntries() == 0)
+      /*if (curveWidthTable.getNumEntries() == 0)
       {
         MFloatArray positions(1);
         MFloatArray values(1);
@@ -331,7 +331,7 @@ MStatus CCurveTranslator::GetCurveLines(MObject& curve)
         values[0] = 1.0;
         interps[0] = 1;
         curveWidthTable.addEntries(positions,values,interps);
-      }
+      }*/
 
 
       // Transform from MPointArray to MVectorArray
@@ -339,7 +339,7 @@ MStatus CCurveTranslator::GetCurveLines(MObject& curve)
       {
          MVector vector(cvs[j]);
          line[j] = vector;
-         double rampParam;
+         /*double rampParam;
          double closestPointTolerance = .1;
 
          nurbsCurve.getParamAtPoint(cvs[j], rampParam, closestPointTolerance);
@@ -349,7 +349,8 @@ MStatus CCurveTranslator::GetCurveLines(MObject& curve)
          rampParam = (rampParam + minDomain) / (maxDomain + minDomain);
          float rampValue;
          curveWidthTable.getValueAtPosition(float(rampParam), rampValue);
-         width[j] = globalWidth * rampValue;
+         width[j] = globalWidth * rampValue;*/
+         width[j] = globalWidth;
 
       }
 

@@ -350,6 +350,7 @@ void CBaseAttrHelper::MakeInputInt(MObject& attrib, CAttrData& data)
    nAttr.setWritable(true);
 }
 
+/*
 void CBaseAttrHelper::MakeInputCurveRamp(MObject& attrib, const char* paramName)
 {
    CAttrData data;
@@ -395,6 +396,7 @@ void CBaseAttrHelper::MakeInputColorRamp(MObject& attrib, CAttrData& data)
    attrib = rAttr.createColorRamp(data.name, data.shortName, &status);
    CHECK_MSTATUS(status);
 }
+*/
 
 void CBaseAttrHelper::MakeInputBoolean(MObject& attrib, const char* paramName)
 {

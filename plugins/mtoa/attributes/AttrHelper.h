@@ -180,10 +180,10 @@ public:
    virtual void MakeInputEnum(CAttrData& data);
    virtual void MakeInputNode(MObject& attrib, const char* paramName);
    virtual void MakeInputNode(CAttrData& data);
+   /*virtual void MakeInputCurveRamp(MObject& attrib, const char* paramName);
    virtual void MakeInputCurveRamp(CAttrData& data);
-   virtual void MakeInputCurveRamp(MObject& attrib, const char* paramName);
-   virtual void MakeInputColorRamp(CAttrData& data);
    virtual void MakeInputColorRamp(MObject& attrib, const char* paramName);
+   virtual void MakeInputColorRamp(CAttrData& data);*/
 
    virtual void MakeInputCompound(CAttrData& data, std::vector<CAttrData>& children);
    virtual void MakeInputCompound(MObject& attrib, CAttrData& data, std::vector<CAttrData>& children);
@@ -234,8 +234,8 @@ protected:
    virtual void MakeInputMatrix(MObject& attrib, CAttrData& data);
    virtual void MakeInputEnum(MObject& attrib, CAttrData& data);
    virtual void MakeInputNode(MObject& attrib, CAttrData& data);
-   virtual void MakeInputCurveRamp(MObject& attrib, CAttrData& data);
-   virtual void MakeInputColorRamp(MObject& attrib, CAttrData& data);
+   /*virtual void MakeInputCurveRamp(MObject& attrib, CAttrData& data);
+   virtual void MakeInputColorRamp(MObject& attrib, CAttrData& data);*/
    virtual void MakeInput(MObject& input, CAttrData& attrData);
 
    const AtNodeEntry* m_nodeEntry;
@@ -377,8 +377,8 @@ public:
    void MakeInputMatrix(CAttrData& data);
    void MakeInputEnum(CAttrData& data);
    void MakeInputNode(CAttrData& data);
-   void MakeInputCurveRamp(CAttrData& data);
-   void MakeInputColorRamp(CAttrData& data);
+   /*void MakeInputCurveRamp(CAttrData& data);
+   void MakeInputColorRamp(CAttrData& data);*/
    void MakeInputCompound(CAttrData& data, std::vector<CAttrData>& children);
    MObject MakeInput(const char* paramName);
    MObject MakeInput(CAttrData& attrData);
