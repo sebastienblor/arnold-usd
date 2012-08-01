@@ -804,28 +804,23 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
       const char *aname = name.asChar();
       EAttributeDeclarationType attributeDeclaration = DECLARATION_CONSTANT;
       if ((aname[0] != 'm') || (aname[1] != 't') ||
-          (aname[2] != 'o') || (aname[3] != 'a'))
+          (aname[2] != 'o') || (aname[3] != 'a') || (aname[4] != '_'))
          continue;
-      aname += 4;
-      if (aname[0] == '_')
-      {
-         AiMsgWarning("[mtoa] The mtoa_ prefix for constant attributes is deprecated, please use mtoaConstant_!");
-         aname += 1;
-      }
-      else if (strncmp(aname, "Constant_", 9) == 0)
+      aname += 5;
+      if (strncmp(aname, "constant_", 9) == 0)
          aname += 9;
-      else if (strncmp(aname, "Uniform_", 8) == 0)
+      if (strncmp(aname, "uniform_", 8) == 0)
       {
          attributeDeclaration = DECLARATION_UNIFORM;
          aname += 8;
       }
-      else if (strncmp(aname, "Varying_", 8) == 0)
+      else if (strncmp(aname, "varying_", 8) == 0)
       {
          attributeDeclaration = DECLARATION_VARYING;
          aname += 8;
       }
       else
-         continue;
+         AiMsgWarning("[mtoa] The mtoa_ prefix for constant attributes is deprecated, please use mtoa_constant_!");
       if (AiNodeLookUpUserParameter(anode, aname) != NULL)
          continue;
       MPlug pAttr(object, oAttr);
