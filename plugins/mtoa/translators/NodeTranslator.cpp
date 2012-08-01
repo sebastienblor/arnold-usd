@@ -1177,6 +1177,12 @@ void CNodeTranslator::ExportUserAttribute(AtNode *anode)
          AiMsgError("[mtoa.translator]  %s: Unsupported user attribute type for %s",
                GetTranslatorName().asChar(), pAttr.partialName(true, false, false, false, false, true).asChar());
    }
+   
+   // Exporting the UnexposedOptions parameter
+   
+   MPlug plug = fnDepNode.findPlug("aiUserOptions");
+   if (!plug.isNull())
+      AiNodeSetAttributes(anode, plug.asString().asChar());
 }
 
 /// Calls ExportNode and AiNodeLink if there are incoming connections to 'plug'
