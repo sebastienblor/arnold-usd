@@ -385,12 +385,12 @@ public:
    MObject MakeInput(const char* paramName);
    MObject MakeInput(CAttrData& attrData);
 #else
-protected:
-   void AddCommonAttributes();
+protected:   
    MStatus virtual addAttribute(MObject& attrib);
 #endif
 
 protected:
+   void AddCommonAttributes();
    MNodeClass m_class;
 
 };
