@@ -35,7 +35,6 @@ def doCreateMeshLight():
     cmds.xform(lLocator, worldSpace=True, matrix=wm)
     cmds.connectAttr('%s.outMesh' % shs[0], '%s.inputMesh' % lShape, force=True)
     cmds.setAttr('%s.aiTranslator' % lShape, 'mesh', type='string')
-    cmds.setAttr('%s.template' % shs[0], 1)
    
 def createArnoldMenu():
     # Add an Arnold menu in Maya main window
