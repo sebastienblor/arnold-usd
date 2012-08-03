@@ -88,9 +88,33 @@ templates.registerTranslatorUI(MeshTemplate, "nurbsSurface", "<built-in>")
 def HairSystemTemplateCCU1(attrName):
     cmds.columnLayout()
     cmds.attrNavigationControlGrp("HairSystemTemplateShader", attribute=attrName, label="Hair Shader")
+    cmds.setParent('..')
 
 def HairSystemTemplateCCU2(attrName):
     cmds.attrNavigationControlGrp("HairSystemTemplateShader", edit=True, attribute=attrName)
+    
+def HairSystemTemplateCCU3(attrName):
+    cmds.columnLayout()
+    isEnabled = not (cmds.getAttr("%s.aiMode" % (attrName.split(".")[0])) is 1)
+    cmds.attrControlGrp("HairTemplateMinPixelWidth", attribute=attrName, label="Min Pixel Width", enable=isEnabled)
+    cmds.setParent('..')
+
+def HairSystemTemplateCCU4(attrName):
+    cmds.attrControlGrp("HairTemplateMinPixelWidth", edit=True, attribute=attrName)
+    
+def HairSystemTemplateChangeCommand1(attrName):
+    if cmds.getAttr(attrName) == 1:
+        cmds.attrControlGrp("HairTemplateMinPixelWidth", edit=True, enable=False)
+    else:
+        cmds.attrControlGrp("HairTemplateMinPixelWidth", edit=True, enable=True)
+    
+def HairSystemTemplateCCU5(attrName):
+    cmds.columnLayout()
+    cmds.attrControlGrp("HairTemplateMode", attribute=attrName, label="Mode", changeCommand=lambda *args: HairSystemTemplateChangeCommand1(attrName))
+    cmds.setParent('..')
+    
+def HairSystemTemplateCCU6(attrName):
+    cmds.attrControlGrp("HairTemplateMode", edit=True, attribute=attrName, changeCommand=lambda *args: HairSystemTemplateChangeCommand1(attrName))
 
 class HairSystemTemplate(templates.ShapeTranslatorTemplate):
     def setup(self):
@@ -105,8 +129,10 @@ class HairSystemTemplate(templates.ShapeTranslatorTemplate):
         self.addControl("aiOverrideHair", label="Override Hair")
         pm.uitypes.AETemplate.callCustom(self._rootMode, HairSystemTemplateCCU1, HairSystemTemplateCCU2, "aiHairShader")
         self.addSeparator()
-        self.addControl("aiMinPixelWidth", label="Min Pixel Width")
-        self.addControl("aiMode", label="Mode")
+        pm.uitypes.AETemplate.callCustom(self._rootMode, HairSystemTemplateCCU3, HairSystemTemplateCCU4, "aiMinPixelWidth")
+        pm.uitypes.AETemplate.callCustom(self._rootMode, HairSystemTemplateCCU5, HairSystemTemplateCCU6, "aiMode")
+        #self.addControl("aiMinPixelWidth", label="Min Pixel Width")
+        #self.addControl("aiMode", label="Mode")
         self.addSeparator()
         self.addControl("aiUserOptions", label="User Options")
 templates.registerAETemplate(HairSystemTemplate, "hairSystem")
