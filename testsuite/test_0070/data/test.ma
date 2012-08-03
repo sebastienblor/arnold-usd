@@ -1,21 +1,24 @@
 //Maya ASCII 2011 scene
 //Name: test.ma
-//Last modified: Mon, Apr 02, 2012 02:57:02 PM
-//Codeset: 1252
+//Last modified: Fri, Aug 03, 2012 03:22:22 PM
+//Codeset: UTF-8
 requires maya "2011";
+requires "mtoa" "0.19.0.dev";
 requires "stereoCamera" "10.0";
-requires "mtoa" "0.15.0";
 currentUnit -l centimeter -a degree -t film;
 fileInfo "application" "maya";
 fileInfo "product" "Maya 2011";
 fileInfo "version" "2011 x64";
-fileInfo "cutIdentifier" "201009060330-781623";
-fileInfo "osv" "Microsoft Windows 7 Business Edition, 64-bit Windows 7 Service Pack 1 (Build 7601)\n";
+fileInfo "cutIdentifier" "201009060248-781623";
+fileInfo "osv" "Linux 3.4.6-2.fc17.x86_64 #1 SMP Thu Jul 19 22:54:16 UTC 2012 x86_64";
 createNode transform -s -n "persp";
 	setAttr ".v" no;
 	setAttr ".t" -type "double3" 8.5791324620954406 26.535189106703033 4.1248791192375176 ;
 	setAttr ".r" -type "double3" -86.138352729604705 0.2000000000000258 0 ;
 createNode camera -s -n "perspShape" -p "persp";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "ai_exposure" -ln "aiExposure" -min -100 -max 100 -smn -5 -smx 
+		5 -at "float";
 	addAttr -ci true -k true -sn "ai_filtermap" -ln "aiFiltermap" -at "message";
 	addAttr -ci true -sn "ai_horizontal_fov" -ln "aiHorizontalFov" -dv 60 -min 0 -max 
 		1000000000 -smx 360 -at "float";
@@ -56,6 +59,9 @@ createNode transform -s -n "top";
 	setAttr ".t" -type "double3" 0 100.1 0 ;
 	setAttr ".r" -type "double3" -89.999999999999986 0 0 ;
 createNode camera -s -n "topShape" -p "top";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "ai_exposure" -ln "aiExposure" -min -100 -max 100 -smn -5 -smx 
+		5 -at "float";
 	addAttr -ci true -k true -sn "ai_filtermap" -ln "aiFiltermap" -at "message";
 	addAttr -ci true -sn "ai_horizontal_fov" -ln "aiHorizontalFov" -dv 60 -min 0 -max 
 		1000000000 -smx 360 -at "float";
@@ -96,6 +102,9 @@ createNode transform -s -n "front";
 	setAttr ".v" no;
 	setAttr ".t" -type "double3" 0 0 100.1 ;
 createNode camera -s -n "frontShape" -p "front";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "ai_exposure" -ln "aiExposure" -min -100 -max 100 -smn -5 -smx 
+		5 -at "float";
 	addAttr -ci true -k true -sn "ai_filtermap" -ln "aiFiltermap" -at "message";
 	addAttr -ci true -sn "ai_horizontal_fov" -ln "aiHorizontalFov" -dv 60 -min 0 -max 
 		1000000000 -smx 360 -at "float";
@@ -137,6 +146,9 @@ createNode transform -s -n "side";
 	setAttr ".t" -type "double3" 100.1 0 0 ;
 	setAttr ".r" -type "double3" 0 89.999999999999986 0 ;
 createNode camera -s -n "sideShape" -p "side";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "ai_exposure" -ln "aiExposure" -min -100 -max 100 -smn -5 -smx 
+		5 -at "float";
 	addAttr -ci true -k true -sn "ai_filtermap" -ln "aiFiltermap" -at "message";
 	addAttr -ci true -sn "ai_horizontal_fov" -ln "aiHorizontalFov" -dv 60 -min 0 -max 
 		1000000000 -smx 360 -at "float";
@@ -176,6 +188,7 @@ createNode camera -s -n "sideShape" -p "side";
 createNode transform -n "pPlane1";
 	setAttr ".t" -type "double3" 1.8991104903154916 0 2.3337462221316119 ;
 createNode mesh -n "pPlaneShape1" -p "pPlane1";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
 	addAttr -ci true -sn "ai_sss_sample_distribution" -ln "aiSssSampleDistribution" 
 		-min 0 -max 3 -en "blue_noise:blue_noise_Pref:triangle_midpoint:polygon_midpoint" 
 		-at "enum";
@@ -201,6 +214,10 @@ createNode mesh -n "pPlaneShape1" -p "pPlane1";
 		3 -en "pin_corners:pin_borders:linear:smooth" -at "enum";
 	addAttr -ci true -sn "ai_subdiv_smooth_derivs" -ln "aiSubdivSmoothDerivs" -min 0 
 		-max 1 -at "bool";
+	addAttr -ci true -sn "ai_disp_height" -ln "aiDispHeight" -dv 1 -at "float";
+	addAttr -ci true -sn "ai_disp_padding" -ln "aiDispPadding" -at "float";
+	addAttr -ci true -sn "ai_disp_zero_value" -ln "aiDispZeroValue" -at "float";
+	addAttr -ci true -sn "ai_disp_autobump" -ln "aiDispAutobump" -min 0 -max 1 -at "bool";
 	addAttr -ci true -k true -sn "ai_exptan" -ln "aiExportTangents" -min 0 -max 1 -at "bool";
 	addAttr -ci true -k true -sn "ai_expcol" -ln "aiExportColors" -min 0 -max 1 -at "bool";
 	addAttr -ci true -k true -sn "ai_exprpt" -ln "aiExportRefPoints" -dv 1 -min 0 -max 
@@ -222,16 +239,17 @@ createNode mesh -n "pPlaneShape1" -p "pPlane1";
 	setAttr ".dcc" -type "string" "Ambient+Diffuse";
 	setAttr ".covm[0]"  0 1 1;
 	setAttr ".cdvm[0]"  0 1 1;
-	setAttr -s 9 ".pt[0:8]" -type "float3"  0 -2.3841858e-007 0 0 -2.3841858e-007 
-		0 0 -2.3841858e-007 0 0 2.646978e-023 6.6174449e-024 0 2.646978e-023 6.6174449e-024 
-		0 2.646978e-023 6.6174449e-024 0 2.3841858e-007 0 0 2.3841858e-007 0 0 2.3841858e-007 
-		0;
+	setAttr -s 9 ".pt[0:8]" -type "float3"  0 -2.3841858e-07 0 0 -2.3841858e-07 0 0 
+		-2.3841858e-07 0 0 2.646978e-23 6.6174449e-24 0 2.646978e-23 6.6174449e-24 0 2.646978e-23 
+		6.6174449e-24 0 2.3841858e-07 0 0 2.3841858e-07 0 0 2.3841858e-07 0;
 createNode transform -n "directionalLight1";
 	setAttr ".t" -type "double3" 0 5.1628475931277249 3.1280933277221914 ;
 	setAttr ".r" -type "double3" -38.968848577268517 0 0 ;
 createNode directionalLight -n "directionalLightShape1" -p "directionalLight1";
-	addAttr -ci true -sn "ai_cast_shadows" -ln "aiCastShadows" -dv 1 -min 0 -max 1 
-		-at "bool";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "ai_cast_shadows" -ln "aiCastShadows" -dv 1 -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "ai_shadow_density" -ln "aiShadowDensity" -dv 1 -min 0 -max 
+		1 -smn 0 -smx 1 -at "float";
 	addAttr -ci true -sn "ai_exposure" -ln "aiExposure" -min 0 -smx 10 -at "float";
 	addAttr -ci true -sn "ai_samples" -ln "aiSamples" -dv 1 -min 1 -max 100 -at "long";
 	addAttr -ci true -sn "ai_normalize" -ln "aiNormalize" -dv 1 -min 0 -max 1 -at "bool";
@@ -244,6 +262,7 @@ createNode directionalLight -n "directionalLightShape1" -p "directionalLight1";
 createNode transform -n "pPlane2";
 	setAttr ".t" -type "double3" 14.219113811147881 0 2.3337462221316119 ;
 createNode mesh -n "pPlaneShape2" -p "pPlane2";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
 	addAttr -ci true -sn "ai_sss_sample_distribution" -ln "aiSssSampleDistribution" 
 		-min 0 -max 3 -en "blue_noise:blue_noise_Pref:triangle_midpoint:polygon_midpoint" 
 		-at "enum";
@@ -269,6 +288,10 @@ createNode mesh -n "pPlaneShape2" -p "pPlane2";
 		3 -en "pin_corners:pin_borders:linear:smooth" -at "enum";
 	addAttr -ci true -sn "ai_subdiv_smooth_derivs" -ln "aiSubdivSmoothDerivs" -min 0 
 		-max 1 -at "bool";
+	addAttr -ci true -sn "ai_disp_height" -ln "aiDispHeight" -dv 1 -at "float";
+	addAttr -ci true -sn "ai_disp_padding" -ln "aiDispPadding" -at "float";
+	addAttr -ci true -sn "ai_disp_zero_value" -ln "aiDispZeroValue" -at "float";
+	addAttr -ci true -sn "ai_disp_autobump" -ln "aiDispAutobump" -min 0 -max 1 -at "bool";
 	addAttr -ci true -k true -sn "ai_exptan" -ln "aiExportTangents" -min 0 -max 1 -at "bool";
 	addAttr -ci true -k true -sn "ai_expcol" -ln "aiExportColors" -min 0 -max 1 -at "bool";
 	addAttr -ci true -k true -sn "ai_exprpt" -ln "aiExportRefPoints" -dv 1 -min 0 -max 
@@ -286,27 +309,24 @@ createNode mesh -n "pPlaneShape2" -p "pPlane2";
 	setAttr ".vif" yes;
 	setAttr ".pv" -type "double2" 1.0315449237823486 1.5064982054507841 ;
 	setAttr ".uvst[0].uvsn" -type "string" "map1";
-	setAttr -s 16 ".uvst[0].uvsp[0:15]" -type "float2" 1.2438611 1.3030871 
-		1.7438611 1.3030871 0.81922877 1.2787113 0.29912809 0.29390275 1.2378938 0.30627072 
-		0.81922877 1.7099094 0.29912809 0.72510093 1.2378938 0.73746872 1.7378938 0.73746872 
-		0.79912812 0.72510093 0.31922877 1.7099094 1.7438611 1.734285 0.79912812 0.29390275 
-		1.7378938 0.30627072 1.2438611 1.734285 0.31922877 1.2787113;
+	setAttr -s 16 ".uvst[0].uvsp[0:15]" -type "float2" 1.2438611 1.3030871 1.7438611 
+		1.3030871 0.81922877 1.2787113 0.29912809 0.29390275 1.2378938 0.30627072 0.81922877 
+		1.7099094 0.29912809 0.72510093 1.2378938 0.73746872 1.7378938 0.73746872 0.79912812 
+		0.72510093 0.31922877 1.7099094 1.7438611 1.734285 0.79912812 0.29390275 1.7378938 
+		0.30627072 1.2438611 1.734285 0.31922877 1.2787113;
 	setAttr ".cuvs" -type "string" "map1";
 	setAttr ".dcc" -type "string" "Ambient+Diffuse";
 	setAttr ".covm[0]"  0 1 1;
 	setAttr ".cdvm[0]"  0 1 1;
-	setAttr -s 9 ".pt[0:8]" -type "float3"  0 -2.3841858e-007 0 0 -2.3841858e-007 
-		0 0 -2.3841858e-007 0 0 2.646978e-023 6.6174449e-024 0 2.646978e-023 6.6174449e-024 
-		0 2.646978e-023 6.6174449e-024 0 2.3841858e-007 0 0 2.3841858e-007 0 0 2.3841858e-007 
-		0;
-	setAttr -s 9 ".vt[0:8]"  -5.781405 -2.3841858e-007 4.9858618 0 -2.3841858e-007 
-		4.9858618 5.781405 -2.3841858e-007 4.9858618 -5.781405 2.646978e-023 6.6174449e-024 
-		0 2.646978e-023 6.6174449e-024 5.781405 2.646978e-023 6.6174449e-024 -5.781405 2.3841858e-007 
-		-4.9858618 0 2.3841858e-007 -4.9858618 5.781405 2.3841858e-007 -4.9858618;
-	setAttr -s 12 ".ed[0:11]"  0 1 0 0 3 0 
-		1 2 0 1 4 1 2 5 0 3 4 1 
-		3 6 0 4 5 1 4 7 1 5 8 0 
-		6 7 0 7 8 0;
+	setAttr -s 9 ".pt[0:8]" -type "float3"  0 -2.3841858e-07 0 0 -2.3841858e-07 0 0 
+		-2.3841858e-07 0 0 2.646978e-23 6.6174449e-24 0 2.646978e-23 6.6174449e-24 0 2.646978e-23 
+		6.6174449e-24 0 2.3841858e-07 0 0 2.3841858e-07 0 0 2.3841858e-07 0;
+	setAttr -s 9 ".vt[0:8]"  -5.781405 -2.3841858e-07 4.9858618 0 -2.3841858e-07 4.9858618 
+		5.781405 -2.3841858e-07 4.9858618 -5.781405 2.646978e-23 6.6174449e-24 0 2.646978e-23 
+		6.6174449e-24 5.781405 2.646978e-23 6.6174449e-24 -5.781405 2.3841858e-07 -4.9858618 
+		0 2.3841858e-07 -4.9858618 5.781405 2.3841858e-07 -4.9858618;
+	setAttr -s 12 ".ed[0:11]"  0 1 0 0 3 0 1 2 0 1 4 1 2 5 0 3 4 1 3 6 0 4 5 1 4 7 1 
+		5 8 0 6 7 0 7 8 0;
 	setAttr -s 4 ".fc[0:3]" -type "polyFaces" 
 		f 4 0 3 -6 -2 
 		mu 0 4 0 1 11 14 
@@ -335,6 +355,7 @@ createNode polyPlane -n "polyPlane1";
 	setAttr ".cuv" 2;
 createNode aiOptions -s -n "defaultArnoldRenderOptions";
 createNode aiAOVFilter -s -n "defaultArnoldFilter";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
 	addAttr -ci true -sn "width" -ln "width" -dv 2 -at "float";
 	addAttr -ci true -sn "domain" -ln "domain" -min 0 -max 1 -en "first_hit:all_hits" 
 		-at "enum";
@@ -343,16 +364,18 @@ createNode aiAOVFilter -s -n "defaultArnoldFilter";
 	addAttr -ci true -sn "scalar_mode" -ln "scalarMode" -min 0 -max 1 -at "bool";
 	setAttr ".ai_translator" -type "string" "gaussian";
 createNode aiAOVDriver -s -n "defaultArnoldDriver";
-	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 2 -min 0 -max 4 
-		-en "none:rle:zip:piz:pxr24" -at "enum";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "exr_compression" -ln "exrCompression" -dv 3 -min 0 -max 5 
+		-en "none:rle:zips:zip:piz:pxr24" -at "enum";
 	addAttr -ci true -sn "half_precision" -ln "halfPrecision" -min 0 -max 1 -at "bool";
 	addAttr -ci true -sn "tiled" -ln "tiled" -dv 1 -min 0 -max 1 -at "bool";
 	addAttr -ci true -sn "preserve_layer_name" -ln "preserveLayerName" -min 0 -max 1 
 		-at "bool";
 	addAttr -ci true -sn "autocrop" -ln "autocrop" -min 0 -max 1 -at "bool";
+	addAttr -ci true -sn "append" -ln "append" -min 0 -max 1 -at "bool";
 	addAttr -ci true -sn "quality" -ln "quality" -dv 100 -min 0 -max 100 -at "long";
 	addAttr -ci true -sn "output_padded" -ln "outputPadded" -min 0 -max 1 -at "bool";
-	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-005 
+	addAttr -ci true -sn "gamma" -ln "gamma" -dv 2.2000000476837158 -min 9.9999997473787516e-05 
 		-smx 5 -at "float";
 	addAttr -ci true -sn "dither_amplitude" -ln "ditherAmplitude" -dv 1 -at "float";
 	addAttr -ci true -sn "png_format" -ln "pngFormat" -min 0 -max 1 -en "int8:int16" 
@@ -366,6 +389,7 @@ createNode aiAOVDriver -s -n "defaultArnoldDriver";
 	setAttr ".tiled" no;
 createNode aiStandard -n "aiStandard1";
 createNode shadingEngine -n "aiStandard1SG";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
 	addAttr -ci true -m -sn "aovs" -ln "aiCustomAOVs" -at "compound" -nc 2;
 	addAttr -ci true -k true -sn "aov_name" -ln "aovName" -dt "string" -p "aiCustomAOVs";
 	addAttr -ci true -k true -sn "aov_input" -ln "aovInput" -at "message" -p "aiCustomAOVs";
@@ -373,7 +397,9 @@ createNode shadingEngine -n "aiStandard1SG";
 	setAttr ".ro" yes;
 createNode materialInfo -n "materialInfo1";
 createNode file -n "file1";
-	setAttr ".ftn" -type "string" "C:/solidangle/mtoa/testsuite/test_0070/data/mari.<udim>.jpg";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "ai_mipBias" -ln "aiMipBias" -at "long";
+	setAttr ".ftn" -type "string" "./data/test/mari.<udim>.jpg";
 createNode place2dTexture -n "place2dTexture1";
 createNode script -n "uiConfigurationScriptNode";
 	setAttr ".b" -type "string" (
@@ -421,8 +447,8 @@ createNode script -n "uiConfigurationScriptNode";
 		+ "                -imageEnabled 0\n                -graphType \"DAG\" \n                -heatMapDisplay 0\n                -updateSelection 1\n                -updateNodeAdded 1\n                -useDrawOverrideColor 0\n                -limitGraphTraversal -1\n                -range 0 0 \n                -iconSize \"smallIcons\" \n                -showCachedConnections 0\n                $editorName;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Hypergraph Hierarchy\")) -mbv $menusOkayInPanels  $panelName;\n\n\t\t\t$editorName = ($panelName+\"HyperGraphEd\");\n            hyperGraph -e \n                -graphLayoutStyle \"hierarchicalLayout\" \n                -orientation \"horiz\" \n                -mergeConnections 0\n                -zoom 1\n                -animateTransition 0\n                -showRelationships 1\n                -showShapes 0\n                -showDeformers 0\n                -showExpressions 0\n                -showConstraints 0\n                -showUnderworld 0\n                -showInvisible 0\n"
 		+ "                -transitionFrames 1\n                -opaqueContainers 0\n                -freeform 0\n                -imagePosition 0 0 \n                -imageScale 1\n                -imageEnabled 0\n                -graphType \"DAG\" \n                -heatMapDisplay 0\n                -updateSelection 1\n                -updateNodeAdded 1\n                -useDrawOverrideColor 0\n                -limitGraphTraversal -1\n                -range 0 0 \n                -iconSize \"smallIcons\" \n                -showCachedConnections 0\n                $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"hyperShadePanel\" (localizedPanelLabel(\"Hypershade\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"hyperShadePanel\" -l (localizedPanelLabel(\"Hypershade\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Hypershade\")) -mbv $menusOkayInPanels  $panelName;\n"
 		+ "\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"visorPanel\" (localizedPanelLabel(\"Visor\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"visorPanel\" -l (localizedPanelLabel(\"Visor\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Visor\")) -mbv $menusOkayInPanels  $panelName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"polyTexturePlacementPanel\" (localizedPanelLabel(\"UV Texture Editor\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"polyTexturePlacementPanel\" -l (localizedPanelLabel(\"UV Texture Editor\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"UV Texture Editor\")) -mbv $menusOkayInPanels  $panelName;\n"
-		+ "\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"renderWindowPanel\" (localizedPanelLabel(\"Render View\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"renderWindowPanel\" -l (localizedPanelLabel(\"Render View\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Render View\")) -mbv $menusOkayInPanels  $panelName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextPanel \"blendShapePanel\" (localizedPanelLabel(\"Blend Shape\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\tblendShapePanel -unParent -l (localizedPanelLabel(\"Blend Shape\")) -mbv $menusOkayInPanels ;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tblendShapePanel -edit -l (localizedPanelLabel(\"Blend Shape\")) -mbv $menusOkayInPanels  $panelName;\n\t\tif (!$useSceneConfig) {\n"
-		+ "\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"dynRelEdPanel\" (localizedPanelLabel(\"Dynamic Relationships\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"dynRelEdPanel\" -l (localizedPanelLabel(\"Dynamic Relationships\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Dynamic Relationships\")) -mbv $menusOkayInPanels  $panelName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"relationshipPanel\" (localizedPanelLabel(\"Relationship Editor\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"relationshipPanel\" -l (localizedPanelLabel(\"Relationship Editor\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Relationship Editor\")) -mbv $menusOkayInPanels  $panelName;\n"
+		+ "\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"renderWindowPanel\" (localizedPanelLabel(\"Render View\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"renderWindowPanel\" -l (localizedPanelLabel(\"Render View\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Render View\")) -mbv $menusOkayInPanels  $panelName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\tif ($useSceneConfig) {\n\t\tscriptedPanel -e -to $panelName;\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextPanel \"blendShapePanel\" (localizedPanelLabel(\"Blend Shape\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\tblendShapePanel -unParent -l (localizedPanelLabel(\"Blend Shape\")) -mbv $menusOkayInPanels ;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tblendShapePanel -edit -l (localizedPanelLabel(\"Blend Shape\")) -mbv $menusOkayInPanels  $panelName;\n"
+		+ "\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"dynRelEdPanel\" (localizedPanelLabel(\"Dynamic Relationships\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"dynRelEdPanel\" -l (localizedPanelLabel(\"Dynamic Relationships\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Dynamic Relationships\")) -mbv $menusOkayInPanels  $panelName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"relationshipPanel\" (localizedPanelLabel(\"Relationship Editor\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"relationshipPanel\" -l (localizedPanelLabel(\"Relationship Editor\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Relationship Editor\")) -mbv $menusOkayInPanels  $panelName;\n"
 		+ "\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"referenceEditorPanel\" (localizedPanelLabel(\"Reference Editor\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"referenceEditorPanel\" -l (localizedPanelLabel(\"Reference Editor\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Reference Editor\")) -mbv $menusOkayInPanels  $panelName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"componentEditorPanel\" (localizedPanelLabel(\"Component Editor\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"componentEditorPanel\" -l (localizedPanelLabel(\"Component Editor\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Component Editor\")) -mbv $menusOkayInPanels  $panelName;\n"
 		+ "\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"dynPaintScriptedPanelType\" (localizedPanelLabel(\"Paint Effects\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"dynPaintScriptedPanelType\" -l (localizedPanelLabel(\"Paint Effects\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Paint Effects\")) -mbv $menusOkayInPanels  $panelName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"scriptEditorPanel\" (localizedPanelLabel(\"Script Editor\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"scriptEditorPanel\" -l (localizedPanelLabel(\"Script Editor\")) -mbv $menusOkayInPanels `;\n\t\t}\n\t} else {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Script Editor\")) -mbv $menusOkayInPanels  $panelName;\n"
 		+ "\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"Stereo\" (localizedPanelLabel(\"Stereo\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `scriptedPanel -unParent  -type \"Stereo\" -l (localizedPanelLabel(\"Stereo\")) -mbv $menusOkayInPanels `;\nstring $editorName = ($panelName+\"Editor\");\n            stereoCameraView -e \n                -camera \"persp\" \n                -useInteractiveMode 0\n                -displayLights \"default\" \n                -displayAppearance \"wireframe\" \n                -activeOnly 0\n                -ignorePanZoom 0\n                -wireframeOnShaded 0\n                -headsUpDisplay 1\n                -selectionHiliteDisplay 1\n                -useDefaultMaterial 0\n                -bufferMode \"double\" \n                -twoSidedLighting 1\n                -backfaceCulling 0\n                -xray 0\n                -jointXray 0\n                -activeComponentsXray 0\n                -displayTextures 0\n"
@@ -441,10 +467,9 @@ createNode script -n "sceneConfigurationScriptNode";
 	setAttr ".st" 6;
 createNode polyTweakUV -n "polyTweakUV1";
 	setAttr ".uopa" yes;
-	setAttr -s 9 ".uvtk[0:8]" -type "float2" 0.033340443 0.038897183 
-		0.033340458 0.038897183 0.033340398 0.038897183 0.033340443 0.03889719 0.033340458 
-		0.03889719 0.033340398 0.03889719 0.033340443 0.03889716 0.033340458 0.03889716 0.033340398 
-		0.03889716;
+	setAttr -s 9 ".uvtk[0:8]" -type "float2" 0.033340443 0.038897183 0.033340458 0.038897183 
+		0.033340398 0.038897183 0.033340443 0.03889719 0.033340458 0.03889719 0.033340398 
+		0.03889719 0.033340443 0.03889716 0.033340458 0.03889716 0.033340398 0.03889716;
 createNode polyMapCut -n "polyMapCut1";
 	setAttr ".uopa" yes;
 	setAttr ".ics" -type "componentList" 2 "e[8]" "e[10:11]";
@@ -456,13 +481,14 @@ createNode polyMapCut -n "polyMapCut3";
 	setAttr ".ics" -type "componentList" 3 "e[3]" "e[5]" "e[7:8]";
 createNode polyTweakUV -n "polyTweakUV2";
 	setAttr ".uopa" yes;
-	setAttr -s 16 ".uvtk[0:15]" -type "float2" 3.1110625 0.26085815 3.1110625 
-		0.26085815 1.6381931 0.26542473 0.26578763 -0.17619254 0.70455343 -0.16382457 1.6381931 
-		0.26542473 0.26578763 -0.17619248 0.70455343 -0.16382466 0.70455343 -0.16382466 0.26578766 
-		-0.17619248 1.6381931 0.26542473 3.1110625 0.260858 0.26578766 -0.17619254 0.70455343 
-		-0.16382457 3.1110625 0.260858 1.6381931 0.26542473;
+	setAttr -s 16 ".uvtk[0:15]" -type "float2" 3.1110625 0.26085815 3.1110625 0.26085815 
+		1.6381931 0.26542473 0.26578763 -0.17619254 0.70455343 -0.16382457 1.6381931 0.26542473 
+		0.26578763 -0.17619248 0.70455343 -0.16382466 0.70455343 -0.16382466 0.26578766 -0.17619248 
+		1.6381931 0.26542473 3.1110625 0.260858 0.26578766 -0.17619254 0.70455343 -0.16382457 
+		3.1110625 0.260858 1.6381931 0.26542473;
 createNode aiStandard -n "aiStandard2";
 createNode shadingEngine -n "aiStandard2SG";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
 	addAttr -ci true -m -sn "aovs" -ln "aiCustomAOVs" -at "compound" -nc 2;
 	addAttr -ci true -k true -sn "aov_name" -ln "aovName" -dt "string" -p "aiCustomAOVs";
 	addAttr -ci true -k true -sn "aov_input" -ln "aovInput" -at "message" -p "aiCustomAOVs";
@@ -470,7 +496,9 @@ createNode shadingEngine -n "aiStandard2SG";
 	setAttr ".ro" yes;
 createNode materialInfo -n "materialInfo2";
 createNode file -n "file2";
-	setAttr ".ftn" -type "string" "C:/solidangle/mtoa/testsuite/test_0070/data/mudbox.<tile>.jpg";
+	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
+	addAttr -ci true -sn "ai_mipBias" -ln "aiMipBias" -at "long";
+	setAttr ".ftn" -type "string" "./data/test/mudbox.<tile>.jpg";
 createNode place2dTexture -n "place2dTexture2";
 select -ne :time1;
 	setAttr -av -k on ".cch";
