@@ -1,6 +1,6 @@
 //Maya ASCII 2011 scene
 //Name: test.ma
-//Last modified: Fri, Aug 03, 2012 03:22:22 PM
+//Last modified: Fri, Aug 03, 2012 03:39:17 PM
 //Codeset: UTF-8
 requires maya "2011";
 requires "mtoa" "0.19.0.dev";
@@ -399,7 +399,7 @@ createNode materialInfo -n "materialInfo1";
 createNode file -n "file1";
 	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
 	addAttr -ci true -sn "ai_mipBias" -ln "aiMipBias" -at "long";
-	setAttr ".ftn" -type "string" "./data/test/mari.<udim>.jpg";
+	setAttr ".ftn" -type "string" "./test/mari.<udim>.jpg";
 createNode place2dTexture -n "place2dTexture1";
 createNode script -n "uiConfigurationScriptNode";
 	setAttr ".b" -type "string" (
@@ -498,7 +498,7 @@ createNode materialInfo -n "materialInfo2";
 createNode file -n "file2";
 	addAttr -ci true -k true -sn "ai_user_options" -ln "aiUserOptions" -dt "string";
 	addAttr -ci true -sn "ai_mipBias" -ln "aiMipBias" -at "long";
-	setAttr ".ftn" -type "string" "./data/test/mudbox.<tile>.jpg";
+	setAttr ".ftn" -type "string" "./test/mudbox.<tile>.jpg";
 createNode place2dTexture -n "place2dTexture2";
 select -ne :time1;
 	setAttr -av -k on ".cch";
