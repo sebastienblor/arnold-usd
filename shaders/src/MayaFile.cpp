@@ -523,7 +523,8 @@ shader_evaluate
       AtTextureParams texparams;
       AiTextureParamsSetDefaults(&texparams);
       texparams.mipmap_bias = AiShaderEvalParamInt(p_mip_bias);
-      // setup filter?
+      if (sg->Rt & AI_RAY_DIFFUSE)
+         texparams.filter = AI_TEXTURE_BILINEAR;
       bool success = true;
       if (idata->ntokens > 0)
       {
