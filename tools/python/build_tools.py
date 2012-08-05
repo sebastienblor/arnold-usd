@@ -3,7 +3,12 @@
 ## load our own python modules
 import system
 
-import os, string, platform, subprocess, shutil
+import os
+import string
+import platform
+import subprocess
+import shutil
+import glob
 
 ALIASES = ''
 def top_level_alias(env, name, targets):
@@ -66,8 +71,9 @@ def saferemove(path):
    '''
    handy function to remove files only if they exist
    '''
-   if os.path.exists(path):
-      os.remove(path)
+   for p in glob.glob(path):
+      if os.path.isfile(p):
+          os.remove(p)
 
 def copy_file_or_link(src, target):
    '''
