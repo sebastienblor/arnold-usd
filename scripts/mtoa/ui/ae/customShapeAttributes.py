@@ -85,14 +85,37 @@ class MeshTemplate(templates.ShapeTranslatorTemplate):
 templates.registerTranslatorUI(MeshTemplate, "mesh", "<built-in>")
 templates.registerTranslatorUI(MeshTemplate, "nurbsSurface", "<built-in>")
 
-def HairSystemTemplateCCU1(attrName):
-    cmds.columnLayout()
-    cmds.attrNavigationControlGrp("HairSystemTemplateShader", attribute=attrName, label="Hair Shader")
-
-def HairSystemTemplateCCU2(attrName):
-    cmds.attrNavigationControlGrp("HairSystemTemplateShader", edit=True, attribute=attrName)
-
 class HairSystemTemplate(templates.ShapeTranslatorTemplate):
+    def shaderCreate(self, attrName):
+        cmds.columnLayout()
+        cmds.attrNavigationControlGrp("HairSystemTemplateShader", attribute=attrName, label="Hair Shader")
+        cmds.setParent('..')
+
+    def shaderUpdate(self, attrName):
+        cmds.attrNavigationControlGrp("HairSystemTemplateShader", edit=True, attribute=attrName)
+
+    def minPixelCreate(self, attrName):
+        cmds.columnLayout()
+        isEnabled = not (cmds.getAttr("%s.aiMode" % (attrName.split(".")[0])) is 1)
+        cmds.attrControlGrp("HairTemplateMinPixelWidth", label="Min Pixel Width",
+                            attribute=attrName, enable=isEnabled)
+        cmds.setParent('..')
+    
+    def minPixelUpdate(self, attrName):
+        isEnabled = not (cmds.getAttr("%s.aiMode" % (attrName.split(".")[0])) is 1)
+        cmds.attrControlGrp("HairTemplateMinPixelWidth", edit=True,
+                            attribute=attrName, enable=isEnabled)
+
+    def modeChanged(self, *args):
+        try:
+            if cmds.getAttr(self.nodeAttr('aiMode')) == 1:
+                cmds.attrControlGrp("HairTemplateMinPixelWidth", edit=True, enable=False)
+            else:
+                cmds.attrControlGrp("HairTemplateMinPixelWidth", edit=True, enable=True)
+        except RuntimeError:
+            # this callback runs immediately, before HairTemplateMinPixelWidth exists
+            pass
+
     def setup(self):
         self.addControl("primaryVisibility")
         self.addControl("castsShadows")
@@ -103,15 +126,37 @@ class HairSystemTemplate(templates.ShapeTranslatorTemplate):
         self.addControl("aiExportHairUVs", label="Export Hair UVs")
         self.addControl("aiExportHairColors", label="Export Hair Colors")
         self.addControl("aiOverrideHair", label="Override Hair")
-        pm.uitypes.AETemplate.callCustom(self._rootMode, HairSystemTemplateCCU1, HairSystemTemplateCCU2, "aiHairShader")
+        self.addCustom("aiHairShader", self.shaderCreate, self.shaderUpdate)
         self.addSeparator()
-        self.addControl("aiMinPixelWidth", label="Min Pixel Width")
-        self.addControl("aiMode", label="Mode")
+        self.addCustom("aiMinPixelWidth", self.minPixelCreate, self.minPixelUpdate)
+        self.addControl("aiMode", label="Mode", changeCommand=self.modeChanged)
         self.addSeparator()
         self.addControl("aiUserOptions", label="User Options")
 templates.registerAETemplate(HairSystemTemplate, "hairSystem")
 
 class NurbsCurveTemplate(templates.ShapeTranslatorTemplate):
+    def minPixelCreate(self, attrName):
+        cmds.columnLayout()
+        isEnabled = not (cmds.getAttr("%s.aiMode" % (attrName.split(".")[0])) is 1)
+        cmds.attrControlGrp("NurbsCurveTemplateMinPixelWidth", label="Min Pixel Width",
+                            attribute=attrName, enable=isEnabled)
+        cmds.setParent('..')
+    
+    def minPixelUpdate(self, attrName):
+        isEnabled = not (cmds.getAttr("%s.aiMode" % (attrName.split(".")[0])) is 1)
+        cmds.attrControlGrp("NurbsCurveTemplateMinPixelWidth", edit=True,
+                            attribute=attrName, enable=isEnabled)
+
+    def modeChanged(self, *args):
+        try:
+            if cmds.getAttr(self.nodeAttr('aiMode')) == 1:
+                cmds.attrControlGrp("NurbsCurveTemplateMinPixelWidth", edit=True, enable=False)
+            else:
+                cmds.attrControlGrp("NurbsCurveTemplateMinPixelWidth", edit=True, enable=True)
+        except RuntimeError:
+            # this callback runs immediately, before NurbsCurveTemplateMinPixelWidth exists
+            pass
+            
     def setup(self):
         #pm.mel.eval('AEaddRampControl("widthProfile")')
         #pm.mel.eval('AEaddRampControl("colorTable")')
@@ -124,8 +169,10 @@ class NurbsCurveTemplate(templates.ShapeTranslatorTemplate):
         self.addControl("castsShadows")
         self.commonShapeAttributes()
         self.addSeparator()
-        self.addControl("aiMinPixelWidth")
-        self.addControl("aiMode")
+        self.addCustom("aiMinPixelWidth", self.minPixelCreate, self.minPixelUpdate)
+        self.addControl("aiMode", label="Mode", changeCommand=self.modeChanged)
+        self.addSeparator()
+        self.addControl("aiUserOptions", label="User Options")
 templates.registerTranslatorUI(NurbsCurveTemplate, "nurbsCurve", "<built-in>")
 
 
