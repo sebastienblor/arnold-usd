@@ -135,6 +135,28 @@ class HairSystemTemplate(templates.ShapeTranslatorTemplate):
 templates.registerAETemplate(HairSystemTemplate, "hairSystem")
 
 class NurbsCurveTemplate(templates.ShapeTranslatorTemplate):
+    def minPixelCreate(self, attrName):
+        cmds.columnLayout()
+        isEnabled = not (cmds.getAttr("%s.aiMode" % (attrName.split(".")[0])) is 1)
+        cmds.attrControlGrp("NurbsCurveTemplateMinPixelWidth", label="Min Pixel Width",
+                            attribute=attrName, enable=isEnabled)
+        cmds.setParent('..')
+    
+    def minPixelUpdate(self, attrName):
+        isEnabled = not (cmds.getAttr("%s.aiMode" % (attrName.split(".")[0])) is 1)
+        cmds.attrControlGrp("NurbsCurveTemplateMinPixelWidth", edit=True,
+                            attribute=attrName, enable=isEnabled)
+
+    def modeChanged(self, *args):
+        try:
+            if cmds.getAttr(self.nodeAttr('aiMode')) == 1:
+                cmds.attrControlGrp("NurbsCurveTemplateMinPixelWidth", edit=True, enable=False)
+            else:
+                cmds.attrControlGrp("NurbsCurveTemplateMinPixelWidth", edit=True, enable=True)
+        except RuntimeError:
+            # this callback runs immediately, before NurbsCurveTemplateMinPixelWidth exists
+            pass
+            
     def setup(self):
         #pm.mel.eval('AEaddRampControl("widthProfile")')
         #pm.mel.eval('AEaddRampControl("colorTable")')
@@ -147,8 +169,10 @@ class NurbsCurveTemplate(templates.ShapeTranslatorTemplate):
         self.addControl("castsShadows")
         self.commonShapeAttributes()
         self.addSeparator()
-        self.addControl("aiMinPixelWidth")
-        self.addControl("aiMode")
+        self.addCustom("aiMinPixelWidth", self.minPixelCreate, self.minPixelUpdate)
+        self.addControl("aiMode", label="Mode", changeCommand=self.modeChanged)
+        self.addSeparator()
+        self.addControl("aiUserOptions", label="User Options")
 templates.registerTranslatorUI(NurbsCurveTemplate, "nurbsCurve", "<built-in>")
 
 
