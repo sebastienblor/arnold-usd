@@ -91,7 +91,6 @@ class ObjectSetTemplate(templates.AttributeTemplate):
             
     def createAttributesButtons(self, attr):
         # print "ObjectSetTemplate Create Buttons %r for %r" % (self.nodeName, attr)
-        self._doUpdate(attr)
         # print "ObjectSetTemplate Created Buttons %r for %r" % (self.nodeName, attr)
         pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
         pm.rowLayout(numberOfColumns=3,
@@ -107,9 +106,9 @@ class ObjectSetTemplate(templates.AttributeTemplate):
         
     def updateAttributesButtons(self, attr):
         # print "ObjectSetTemplate Update Buttons %r for %r" % (self.nodeName, attr)
-        self._doUpdate(attr)
         # print "ObjectSetTemplate Updated Buttons %r for %r" % (self.nodeName, attr)
-   
+        pass
+
     def getCandidateAttributes(self):
         candidates = {}
         elts = pm.sets(self.nodeName, query=True)

@@ -87,24 +87,6 @@ class BaseTemplate(object):
 #    def __repr__(self):
 #        return '%s(%r)' % (self.__class__.__name__, self.nodeType())
 
-    def _doSetup(self, nodeAttr, *args):
-        '''
-        build the UI from the list of added attributes
-        '''
-        self._setActiveNodeAttr(nodeAttr)
-        self.setup()
-
-    def _doUpdate(self, nodeAttr, *args):
-        self._setActiveNodeAttr(nodeAttr)
-        self.update()
-
-    def _setActiveNodeAttr(self, nodeName):
-        "set the active node"
-        parts = nodeName.split('.', 1)
-        self._nodeName = parts[0]
-        if len(parts) > 1:
-            self._attr = parts[1]
-
     # queries
     @property
     def nodeName(self):
@@ -126,7 +108,6 @@ class BaseTemplate(object):
 
     def nodeAttrExists(self, attr):
         return pm.addAttr(self.nodeAttr(attr), q=True, ex=True)
-
 
 def modeAttrMethod(func):
     def wrapped(self, attr, *args, **kwargs):
@@ -184,18 +165,24 @@ class AttributeTemplate(BaseTemplate):
     def _isChildMode(self):
         return self._mode == self._childMode
 
+    def _setActiveNodeAttr(self, nodeName):
+        "set the active node"
+        parts = nodeName.split('.', 1)
+        self._nodeName = parts[0]
+        if len(parts) > 1:
+            self._attr = parts[1]
+            
     def _doSetup(self, nodeAttr):
         '''
         build the UI from the list of added attributes
         '''
         self._setActiveNodeAttr(nodeAttr)
-        self._mode._setActiveNodeAttr(nodeAttr)
         self._mode.preSetup()
         self.setup()
         self._mode.postSetup()
 
     def _doUpdate(self, nodeAttr):
-        self._mode._setActiveNodeAttr(nodeAttr)
+        self._setActiveNodeAttr(nodeAttr)
         self._mode.update()
 
     def setup(self):
@@ -264,7 +251,34 @@ class AttributeTemplate(BaseTemplate):
 # AE template Modes (internal)
 #-------------------------------------------------
 
-class AEChildMode(BaseTemplate):
+class BaseMode(object):
+    def __init__(self, template):
+        self.template = template
+
+#    def __repr__(self):
+#        return '%s(%r)' % (self.__class__.__name__, self.nodeType())
+
+    # queries
+    @property
+    def nodeName(self):
+        "get the active node"
+        # assert self._nodeName, "%r: nodeName should be set by now" % self
+        return self.tempalte.nodeName
+
+    @property
+    def attr(self):
+        return self.tempalte.attr
+
+    def nodeType(self):
+        self.template.nodeType()
+
+    def nodeAttr(self, attr):
+        return self.template.nodeAttr(attr)
+
+    def nodeAttrExists(self, attr):
+        return self.template.nodeAttrExists(attr)
+
+class AEChildMode(BaseMode):
     """
     Interprets `AttributeEditor` actions as custom Maya UI code
     
@@ -272,8 +286,7 @@ class AEChildMode(BaseTemplate):
         - Partial AE Templates that are used with callCustom
     """
     def __init__(self, template):
-        self.template = template
-        super(AEChildMode, self).__init__(template.nodeType())
+        super(AEChildMode, self).__init__(template)
         self._controls = []
         self._layoutStack = []
 
@@ -377,7 +390,7 @@ if pymel.__version__ >= '1.0.1':
             return type.__new__(cls, classname, bases, classdict)
 
 
-class AERootMode(pm.uitypes.AETemplate, BaseTemplate):
+class AERootMode(BaseMode, pm.uitypes.AETemplate):
     """
     Interprets `AttributeEditor` actions as editorTemplate commands.
 
@@ -389,14 +402,17 @@ class AERootMode(pm.uitypes.AETemplate, BaseTemplate):
         __metaclass__ = DisableLoader
 
     def __init__(self, template):
-        self.template = template
+        super(AERootMode, self).__init__(template)
         self._attr = None
         # argument is a node type
         self._nodeName = None
         self._nodeType = self.template.nodeType()
 
+    def _updateCallback(self, nodeAttr):
+        self.template._doUpdate(nodeAttr.split('.')[0])
+
     def preSetup(self):
-        pass
+        self.addCustom('message', self._updateCallback, self._updateCallback)
 
     def postSetup(self):
         pass
@@ -740,9 +756,9 @@ def registerAETemplate(templateClass, nodeType, *args, **kwargs):
     if nodeType not in _templates:
         try:
             _templates[nodeType] = templateClass(nodeType, *args, **kwargs)
-            arnold.AiMsgDebug("registered attribute template for %s", nodeType)
+            arnold.AiMsgDebug("registered attribute template for %s" % nodeType)
         except:
-            arnold.AiMsgError("Failed to instantiate AE Template %s", templateClass)
+            arnold.AiMsgError("Failed to instantiate AE Template %s" % templateClass)
             import traceback
             traceback.print_exc()
 
