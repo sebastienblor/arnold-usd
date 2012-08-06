@@ -44,7 +44,6 @@ vars.AddVariables(
       EnumVariable('MODE'       , 'Set compiler configuration', 'debug'             , allowed_values=('opt', 'debug', 'profile')),
       EnumVariable('WARN_LEVEL' , 'Set warning level'         , 'strict'            , allowed_values=('strict', 'warn-only', 'none')),
       EnumVariable('COMPILER'   , 'Set compiler to use'       , ALLOWED_COMPILERS[0], allowed_values=ALLOWED_COMPILERS),
-      EnumVariable('TARGET_ARCH', 'Allows compiling for a different architecture', system.host_arch(), allowed_values=system.get_valid_target_archs()),
       BoolVariable('MULTIPROCESS','Enable multiprocessing in the testsuite', True),
       BoolVariable('SHOW_CMDS'  , 'Display the actual command lines used for building', False),
       PathVariable('LINK', 'Linker to use', None),
@@ -130,13 +129,10 @@ if system.os() == 'windows':
    # Ugly hack. Create a temporary environment, without loading any tool, so we can set the MSVC_ARCH
    # variable from the contents of the TARGET_ARCH variable. Then we can load tools.
    tmp_env = Environment(variables = vars, tools=[])
-   if tmp_env['TARGET_ARCH'] == 'x86_64':
-      tmp_env.Append(MSVC_ARCH = 'amd64')
-   else:
-      tmp_env.Append(MSVC_ARCH = 'x86')
+   tmp_env.Append(MSVC_ARCH = 'amd64')
    env = tmp_env.Clone(tools=['default'])
    # restore as the Clone overrides it
-   env['TARGET_ARCH'] = tmp_env['TARGET_ARCH']
+   env['TARGET_ARCH'] = 'x86_64'
 else:
    env = Environment(variables = vars)
 
@@ -146,7 +142,7 @@ if env['TARGET_MODULE_PATH'] == '.':
 
 env.Append(BUILDERS = {'MakeModule' : make_module})
 
-system.set_target_arch(env['TARGET_ARCH'])
+system.set_target_arch('x86_64')
 
 # Configure colored output
 color_green   = ''
@@ -257,14 +253,9 @@ if env['COMPILER'] == 'gcc':
       env.Append(LINKFLAGS = Split('-pg'))
 
    if system.os() == 'darwin':
-      if system.target_arch() == 'x86_64':
-         ## tell gcc to compile a 64 bit binary
-         env.Append(CCFLAGS = Split('-arch x86_64'))
-         env.Append(LINKFLAGS = Split('-arch x86_64'))
-      else:
-         ## tell gcc to compile a 32 bit binary
-         env.Append(CCFLAGS = Split('-arch i386'))
-         env.Append(LINKFLAGS = Split('-arch i386'))
+      ## tell gcc to compile a 64 bit binary
+      env.Append(CCFLAGS = Split('-arch x86_64'))
+      env.Append(LINKFLAGS = Split('-arch x86_64'))
 
 elif env['COMPILER'] == 'msvc':
    MSVC_FLAGS  = " /W3"         # Warning level : 3
@@ -311,11 +302,8 @@ elif env['COMPILER'] == 'msvc':
 
    env.Append(CPPDEFINES = Split('_CRT_SECURE_NO_WARNINGS'))
 elif env['COMPILER'] == 'icc':
-   if system.target_arch() == 'x86_64':
-      env.Tool('intelc', abi = 'intel64')
-   else:
-      env.Tool('intelc', abi = 'x86')
-   
+   env.Tool('intelc', abi = 'intel64')
+
    ICC_FLAGS  = " /W3"            # displays remarks, warnings, and errors
    ICC_FLAGS += " /Qstd:c99"      # conforms to The ISO/IEC 9899:1999 International Standard
    ICC_FLAGS += " /EHsc"          # enable synchronous C++ exception handling model & 
@@ -323,9 +311,6 @@ elif env['COMPILER'] == 'icc':
    ICC_FLAGS += " /GS"            # generates code that detects some buffer overruns 
    ICC_FLAGS += " /Qprec"         # improves floating-point precision and consistency 
    ICC_FLAGS += " /Qvec-report0"  # disables diagnostic information reported by the vectorizer 
-
-   if system.target_arch() != 'x86_64':
-      ICC_FLAGS += " /Gd"  # makes __cdecl the default calling convention 
 
    if env['WARN_LEVEL'] == 'strict':
       ICC_FLAGS += " /WX"  # treats warnings as errors
@@ -382,8 +367,7 @@ if env['MODE'] == 'debug':
 ## platform related defines
 if system.os() == 'windows':
    env.Append(CPPDEFINES = Split('_WINDOWS _WIN32 WIN32'))
-   if system.target_arch() == 'x86_64':
-      env.Append(CPPDEFINES = Split('_WIN64'))
+   env.Append(CPPDEFINES = Split('_WIN64'))
 elif system.os() == 'darwin':
    env.Append(CPPDEFINES = Split('_DARWIN OSMac_'))
 elif system.os() == 'linux':
