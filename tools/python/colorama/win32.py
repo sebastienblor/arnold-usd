@@ -62,8 +62,8 @@ else:
 
     def SetConsoleTextAttribute(stream_id, attrs):
         handle = handles[stream_id]
-        success = windll.kernel32.SetConsoleTextAttribute(handle, attrs)
-        assert success
+        return windll.kernel32.SetConsoleTextAttribute(handle, attrs)
+
 
     def SetConsoleCursorPosition(stream_id, position):
         handle = handles[stream_id]

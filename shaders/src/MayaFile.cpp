@@ -378,20 +378,14 @@ shader_evaluate
 
    if (noise.x > 0.0f)
    {
-      AtPoint uv;
-      uv.x = inU * 16;
-      uv.y = inV * 16;
-      uv.z = 0.0f;
-      outU += noise.x * AiPerlin3(uv);
+      AtVector2 uv = {inU * 16, inV * 16};
+      outU += noise.x * AiPerlin2(uv);
    }
 
    if (noise.y > 0.0f)
    {
-      AtPoint uv;
-      uv.x = (1 - inU) * 16;
-      uv.y = (1 - inV) * 16;
-      uv.z = 0.0f;
-      outV += noise.y * AiPerlin3(uv);
+      AtVector2 uv = {(1 - inU) * 16, (1 - inV) * 16};
+      outV += noise.y * AiPerlin2(uv);
    }
 
    // for frame, rotate first then translate
@@ -523,7 +517,8 @@ shader_evaluate
       AtTextureParams texparams;
       AiTextureParamsSetDefaults(&texparams);
       texparams.mipmap_bias = AiShaderEvalParamInt(p_mip_bias);
-      // setup filter?
+      if (sg->Rt & AI_RAY_DIFFUSE)
+         texparams.filter = AI_TEXTURE_BILINEAR;
       bool success = true;
       if (idata->ntokens > 0)
       {
