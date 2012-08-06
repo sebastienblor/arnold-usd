@@ -800,7 +800,7 @@ top_level_alias(env, 'pack', PACKAGE)
 env.AlwaysBuild(PACKAGE)
 
 #env.AlwaysBuild('install')
-Default('mtoa')
+Default(['mtoa', 'shaders'])
 
 ## Process top level aliases into the help message
 Help('''%s
