@@ -75,13 +75,12 @@ char *LibraryLastError()
 
 void *LibraryLoad(const char *filename)
 {
-   int dllFlag = RTLD_LOCAL;
-   if (filename)
-   {
-      if (filename[strlen(filename) - 1] == 'g')
-         dllFlag = RTLD_GLOBAL;
-   }
-   return dlopen(filename, RTLD_LAZY | dllFlag);
+   int len = strlen(filename);
+   int symbol_scope = RTLD_LOCAL;
+   if (filename && (len > 4) && !strcmp(filename + len - 4, ".sog"))
+      symbol_scope = RTLD_GLOBAL;
+
+   return dlopen(filename, RTLD_LAZY | symbol_scope);
 }
 
 void LibraryUnload(void *handle)
