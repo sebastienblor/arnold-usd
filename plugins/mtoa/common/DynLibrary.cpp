@@ -5,6 +5,8 @@
 
 #include <ai_allocate.h>
 
+#include <cstring>
+
 #if defined(_WIN32)
 #define NOMINMAX
 #define WIN32_LEAN_AND_MEAN
@@ -73,7 +75,12 @@ char *LibraryLastError()
 
 void *LibraryLoad(const char *filename)
 {
-   return dlopen(filename, RTLD_LAZY | RTLD_LOCAL);
+   int len = strlen(filename);
+   int symbol_scope = RTLD_LOCAL;
+   if (filename && (len > 4) && !strcmp(filename + len - 4, ".sog"))
+      symbol_scope = RTLD_GLOBAL;
+
+   return dlopen(filename, RTLD_LAZY | symbol_scope);
 }
 
 void LibraryUnload(void *handle)
