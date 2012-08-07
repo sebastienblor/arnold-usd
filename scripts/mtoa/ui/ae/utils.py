@@ -131,10 +131,11 @@ class AttrControlGrp(object):
         self.type = kwargs.pop('type', kwargs.pop('typ', None))
         if not self.type:
             self.type = attrType(self.attribute)
+
         if self.type in ['color', 'enum', 'message']:
-            cb = kwargs.pop('changeCommand', None)
+            self.callback = kwargs.pop('changeCommand', None)
         else:
-            cb = None
+            self.callback = None
         kwargs['attribute'] = self.attribute
         cmd = self.UI_TYPES[self.type]
         try:
@@ -142,8 +143,8 @@ class AttrControlGrp(object):
         except RuntimeError:
             print "Error creating %s:" % cmd.__name__
             raise
-        if cb:
-            pm.scriptJob(attributeChange=[self.attribute, cb],
+        if self.callback:
+            pm.scriptJob(attributeChange=[self.attribute, self.callback],
                          replacePrevious=True, parent=self.control)
 
     def edit(self, **kwargs):
@@ -153,3 +154,6 @@ class AttrControlGrp(object):
     def setAttribute(self, attribute):
         self.attribute = attribute
         self.UI_TYPES[self.type](self.control, edit=True, attribute=self.attribute)
+        if self.callback:
+            pm.scriptJob(attributeChange=[self.attribute, self.callback],
+                         replacePrevious=True, parent=self.control)
