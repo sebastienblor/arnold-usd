@@ -7,6 +7,7 @@ enum ShadowCatcherParams
    p_catch_shadows = 0,
    p_shadow_color,
    p_enable_transparency,
+   p_shadow_transparency,
    
    p_catch_diffuse,
    p_diffuse_color
@@ -22,6 +23,7 @@ node_parameters
    AiParameterBOOL("catchShadows", true);
    AiParameterRGB("shadowColor", 0.0f, 0.0f, 0.0f);
    AiParameterBOOL("enableTransparency", false);
+   AiParameterRGB("shadowTransparency", 0.0f, 0.0f, 0.0f);
    
    AiParameterBOOL("catchDiffuse", false);
    AiParameterRGB("diffuseColor", 0.0f, 0.0f, 0.0f);
@@ -51,7 +53,7 @@ shader_evaluate
       result = AiShaderEvalParamRGB(p_shadow_color) * matte;
       resultAlpha = (matte.r + matte.g + matte.b) / 3.0f;
       if (AiShaderEvalParamBool(p_enable_transparency))
-         resultOpacity = matte;
+         resultOpacity = matte * (1.0f - AiShaderEvalParamRGB(p_shadow_transparency));
    }
    
    if (AiShaderEvalParamBool(p_catch_diffuse))

@@ -10,6 +10,7 @@ class AEaiShadowCatcherTemplate(ShaderAETemplate):
         self.addControl("catchShadows", label="Catch Shadows")
         self.addControl("shadowColor", label="Shadow Color")
         self.addControl("enableTransparency", label="Enable Transparency")
+        self.addControl("shadowTransparency", label="Shadow Transparency")
         self.endLayout()
 
         self.beginLayout("Diffuse", collapse=False)
