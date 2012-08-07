@@ -712,6 +712,8 @@ def arnoldAOVBrowser(**kwargs):
     return browser
 
 
+_aovDisplayCtrl= None
+
 def createArnoldAOVTab():
     parentForm = cmds.setParent(query=True)
 
@@ -722,12 +724,21 @@ def createArnoldAOVTab():
 
     pm.attrControlGrp(attribute=aovNode.node.aovMode, label='Mode')
 
-    ctrl = shaderTemplate.AOVOptionMenuGrp('aiOptions', label='Render View AOV',
+    # the tab gets recreated from scratch each time rather than updated and each
+    # time the AOVOptionMenuGrp adds itself to the AOVChanged callback list. 
+    # we must remove it or we'll leave behind invalid copies
+    global _aovDisplayCtrl
+    if _aovDisplayCtrl is not None:
+        aovs.removeAOVChangedCallback(_aovDisplayCtrl.update)
+
+    _aovDisplayCtrl = shaderTemplate.AOVOptionMenuGrp('aiOptions', 'displayAOV', label='Render View AOV',
                                            allowCreation=False,
                                            includeBeauty=True,
                                            allowEmpty=False,
                                            allowDisable=False)
-    ctrl._doSetup(aovNode.node.name() + '.displayAOV')
+    _aovDisplayCtrl._setToChildMode()
+    _aovDisplayCtrl._doSetup(aovNode.node.name() + '.displayAOV')
+
     pm.attrControlGrp('enable_aov_composition',
                       attribute = 'defaultArnoldRenderOptions.enable_aov_composition',
                       label = 'Enable AOV Composition')

@@ -25,6 +25,11 @@ def prettify(s):
     "convert from '_fooBar_Spangle22poop1' to 'Foo Bar Spangle22 Poop1'"
     return ' '.join([capitalize(x) for x in re.findall('[a-zA-Z][a-z]*[0-9]*',s)])
 
+def toMayaStyle(s):
+    "convert from this_style to thisStyle"
+    parts = s.split('_')
+    return ''.join([parts[0]] + [capitalize(x) for x in parts[1:]])
+
 def groupn(iterable, n):
     '''
     group a flat list into tuples of length n
