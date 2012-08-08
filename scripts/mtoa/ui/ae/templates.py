@@ -220,7 +220,8 @@ class AttributeTemplate(BaseTemplate):
         pass
 
     @modeAttrMethod
-    def addControl(self, attr, label=None, changeCommand=None, annotation=None, preventOverride=False, dynamic=False):
+    def addControl(self, attr, label=None, changeCommand=None, annotation=None,
+                   preventOverride=False, dynamic=False):
         pass
 
     @modeMethod
@@ -310,7 +311,7 @@ class AEChildMode(BaseMode):
         self._layoutStack = []
 
     def preSetup(self):
-        pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)        
+        pm.setUITemplate('attributeEditorTemplate', pushTemplate=True)
         self._layoutStack = [pm.setParent(query=True)]
 
     def postSetup(self):        
@@ -339,12 +340,13 @@ class AEChildMode(BaseMode):
         template.setup()
         for attr in template._attributes:
             try:
-                pm.editorTemplate(suppress=attr)
+                pm.cmds.editorTemplate(suppress=attr)
             except RuntimeError:
                 pass
         self.addCustom(attr, template._doSetup, template._doUpdate)
 
-    def addControl(self, attr, label=None, changeCommand=None, annotation=None, preventOverride=False, dynamic=False):
+    def addControl(self, attr, label=None, changeCommand=None, annotation=None,
+                   preventOverride=False, dynamic=False):
         # TODO: lookup label and descr from metadata
         if not label:
             label = prettify(attr)
@@ -362,9 +364,6 @@ class AEChildMode(BaseMode):
         control = AttrControlGrp(**kwargs)
         self._controls.append((attr, control.setAttribute, parent))
 
-    def addSeparator(self):
-        pm.separator()
-
     def addCustom(self, attr, createFunc, updateFunc):
         parent = self._layoutStack[-1]
         pm.setParent(parent)
@@ -376,6 +375,9 @@ class AEChildMode(BaseMode):
         createFunc(self.nodeAttr(attr))
         pm.setParent(parent)
         self._controls.append((attr, updateFunc, col))
+
+    def addSeparator(self):
+        pm.separator()
 
     def beginLayout(self, label, **kwargs):
         '''
@@ -414,16 +416,7 @@ class AEChildMode(BaseMode):
     def addExtraControls(self):
         pass
 
-if pymel.__version__ >= '1.0.1':
-    class DisableLoader(pm.uitypes.AELoader):
-        """
-        Metaclass which disables the automatic loading behavior of pymel's AETemplate
-        """
-        def __new__(cls, classname, bases, classdict):
-            return type.__new__(cls, classname, bases, classdict)
-
-
-class AERootMode(BaseMode, pm.uitypes.AETemplate):
+class AERootMode(BaseMode):
     """
     Interprets `AttributeEditor` actions as editorTemplate commands.
 
@@ -431,8 +424,6 @@ class AERootMode(BaseMode, pm.uitypes.AETemplate):
         - Full AE Node Templates
         - Partial AE Templates that are used inline (cannot be used with callCustom)
     """
-    if pymel.__version__ >= '1.0.1':
-        __metaclass__ = DisableLoader
 
     def __init__(self, template):
         super(AERootMode, self).__init__(template)
@@ -453,9 +444,6 @@ class AERootMode(BaseMode, pm.uitypes.AETemplate):
     def update(self):
         pass
 
-    def addCustom(self, attr, newFunc, replaceFunc):
-        self.callCustom(newFunc, replaceFunc, attr)
-
     def addTemplate(self, attr, template):
         if template._isRootMode():
             template._doSetup(self.nodeAttr(attr))
@@ -468,15 +456,16 @@ class AERootMode(BaseMode, pm.uitypes.AETemplate):
         template.setup()
         for attr in template._attributes:
             try:
-                pm.editorTemplate(suppress=attr)
+                pm.cmds.editorTemplate(suppress=attr)
             except RuntimeError:
                 pass
-        pm.editorTemplate(aeCallback(template._doSetup),
+        pm.cmds.editorTemplate(aeCallback(template._doSetup),
                           aeCallback(template._doUpdate),
                           attr,
                           callCustom=True)
 
-    def addControl(self, attr, label=None, changeCommand=None, annotation=None, preventOverride=False, dynamic=False):
+    def addControl(self, attr, label=None, changeCommand=None, annotation=None,
+                   preventOverride=False, dynamic=False):
         if not label:
             label = prettify(attr)
             if label.startswith('Ai '):
@@ -498,6 +487,54 @@ class AERootMode(BaseMode, pm.uitypes.AETemplate):
             kwargs['annotation'] = annotation
         pm.cmds.editorTemplate(*args, **kwargs)
 
+    def addCustom(self, attr, newFunc, replaceFunc):
+        # TODO: support multiple attributes passed
+        if hasattr(newFunc, '__call__'):
+            newFunc = aeCallback(newFunc)
+        if hasattr(replaceFunc, '__call__'):
+            replaceFunc = aeCallback(replaceFunc)
+        args = (newFunc, replaceFunc, attr) 
+        pm.cmds.editorTemplate(callCustom=1, *args)
+
+    def addSeparator(self):
+        pm.cmds.editorTemplate(addSeparator=True)
+
+    def suppress(self, control):
+        pm.cmds.editorTemplate(suppress=control)
+
+    def dimControl(self, nodeName, control, state):
+        pm.cmds.editorTemplate(dimControl=(nodeName, control, state))
+
+    def beginLayout(self, name, collapse=True):
+        pm.cmds.editorTemplate(beginLayout=name, collapse=collapse)
+
+    def endLayout(self):
+        pm.cmds.editorTemplate(endLayout=True)
+
+    def beginScrollLayout(self):
+        pm.cmds.editorTemplate(beginScrollLayout=True)
+
+    def endScrollLayout(self):
+        pm.cmds.editorTemplate(endScrollLayout=True)
+
+    def beginNoOptimize(self):
+        pm.cmds.editorTemplate(beginNoOptimize=True)
+
+    def endNoOptimize(self):
+        pm.cmds.editorTemplate(endNoOptimize=True)
+
+    def interruptOptimize(self):
+        pm.cmds.editorTemplate(interruptOptimize=True)
+
+    def addComponents(self):
+        pm.cmds.editorTemplate(addComponents=True)
+
+    def addExtraControls(self, label=None):
+        kwargs = {}
+        if label:
+            kwargs['extraControlsLabel'] = label
+        pm.cmds.editorTemplate(addExtraControls=True, **kwargs)
+
 class ShapeMixin(object):
     def renderStatsAttributes(self):
         self.addControl("castsShadows")
@@ -514,48 +551,6 @@ class ShapeMixin(object):
 
 class ShapeTranslatorTemplate(AttributeTemplate, ShapeMixin):
     pass
-
-
-#class AttributeTemplate(AttributeTemplate):
-#    """
-#    To implement an AE template for a custom translator, create a subclass of this class and
-#    register it using registerTranslatorUI
-#    """
-#    def __init__(self, nodeType):
-#        super(AttributeTemplate, self).__init__(nodeType)
-#        self._keyableDefaults = {}
-#
-#    def showInChannelBox(self, enabled):
-#        for attr in self.getAttributes():
-#            type = self.nodeAttrType(attr)
-#            keyable = enabled and pm.attributeQuery(attr, node=self.nodeName, keyable=True)
-#            if pm.attributeQuery(attr, node=self.nodeName, numberOfChildren=True):
-#                children = pm.attributeQuery(attr, node=self.nodeName, listChildren=True)
-#                for c in children:
-#                    # some sort of a bug forces a call like this in order to set keyable and channelbox correctly...
-#                    pm.setAttr(self.nodeAttr(c), channelBox=enabled, keyable=keyable)
-#                    pm.setAttr(self.nodeAttr(c), keyable=keyable)
-#            else:
-#                # some sort of a bug forces a call like this in order to set keyable and channelbox correctly...
-#                pm.setAttr(self.nodeAttr(attr), channelBox=enabled, keyable=keyable)
-#                pm.setAttr(self.nodeAttr(attr), keyable=keyable)
-#
-#    @staticmethod
-#    def syncChannelBox(nodeName, nodeType, default):
-#        """
-#        make only the attributes for the active translator visible in the channel box
-#        """
-#        templates = getTranslatorTemplates(nodeType)
-#        # Do the actual syncing with the ChannelBox
-#        for name, template in templates.items():
-#            if name == default:
-#                continue
-#            template._setActiveNodeAttr(nodeName)
-#            template.showInChannelBox(False)
-#        # We need to run this last for cases where templates share attributes
-#        if default in templates:
-#            templates[default]._setActiveNodeAttr(nodeName)
-#            templates[default].showInChannelBox(True)
 
 class AutoTranslatorTemplate(AttributeTemplate):
     '''
@@ -898,11 +893,11 @@ def shapeTemplate(nodeName):
     for hook in pm.melGlobals['AEshapeHooks']:
         pm.mel.eval(hook + ' "' + nodeName + '"')
 
-    pm.editorTemplate(beginLayout=pm.mel.uiRes("m_AEshapeTemplate.kObjectDisplay"))
+    pm.cmds.editorTemplate(beginLayout=pm.mel.uiRes("m_AEshapeTemplate.kObjectDisplay"))
 
     # include/call base class/node attributes
     pm.mel.AEdagNodeCommon(nodeName)
-    pm.editorTemplate(endLayout=True)
+    pm.cmds.editorTemplate(endLayout=True)
 
     # include/call base class/node attributes
     pm.mel.AEdagNodeInclude(nodeName)
@@ -926,9 +921,9 @@ def loadArnoldTemplate(nodeName):
     except KeyError:
         pass
     else:
-        pm.editorTemplate(beginLayout='Arnold', collapse=True)
+        pm.cmds.editorTemplate(beginLayout='Arnold', collapse=True)
         template._doSetup(nodeName)
         if hasattr(template, '_attributes'):
             for attr in template._attributes:
-                pm.editorTemplate(suppress=attr)
-        pm.editorTemplate(endLayout=True)
+                pm.cmds.editorTemplate(suppress=attr)
+        pm.cmds.editorTemplate(endLayout=True)
