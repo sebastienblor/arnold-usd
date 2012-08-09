@@ -5,6 +5,8 @@ class AEaiShadowCatcherTemplate(ShaderAETemplate):
     
     def setup(self):
         self.beginScrollLayout()
+        
+        self.addControl("surfaceShader", label="Surface Shader")
 
         self.beginLayout("Shadows", collapse=False)
         self.addControl("catchShadows", label="Catch Shadows")
