@@ -51,12 +51,12 @@ shader_evaluate
    
    AtRGB backgroundColor = AiShaderEvalParamRGB(p_background_color);
    
-   if (!(sg->Rt & AI_RAY_CAMERA))
+   /*if (!(sg->Rt & AI_RAY_CAMERA))
    {
-      sg->out.RGB = backgroundColor;
-      sg->out.RGBA.a = 1.0f;
+      sg->out.RGB = backgroundColor * ;
+      sg->out.RGBA.a = 1.0f;      
       return;
-   }
+   }*/
 
    AtRGB result = AI_RGB_BLACK;
    AtRGB resultOpacity = AI_RGB_WHITE;
