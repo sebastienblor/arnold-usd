@@ -537,6 +537,13 @@ void COptionsTranslator::Export(AtNode *options)
          AiNodeSetPtr(options, "atmosphere", ExportNode(shader));
       }
       break;
+      
+   case 3:
+      shader = FindMayaPlug("atmosphereShader");
+      shader.connectedTo(conns, true, false);
+      if (conns.length())
+         AiNodeSetPtr(options, "atmosphere", ExportNode(conns[0]));
+      break;
    }
 
    // frame number
