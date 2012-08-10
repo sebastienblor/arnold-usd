@@ -750,9 +750,9 @@ CNodeTranslator* CExtensionsManager::GetTranslator(const MString &typeName,
       {
          searchTrs.name = "";
          foundTrs = FindRegisteredTranslator(mayaNode, searchTrs);
-         AiMsgDebug("[mtoa.extensions]  %s Found no translator named \"%s\", defaulting on translator \"%s\", provided by %s(%s).",
-               mayaNode.name.asChar(), translatorName.asChar(), foundTrs->name.asChar(),
-               foundTrs->provider.asChar(), foundTrs->file.asChar());
+         AiMsgWarning("[mtoa.extensions]  %s Found no translator named \"%s\"",
+               mayaNode.name.asChar(), translatorName.asChar(), foundTrs->name.asChar());
+         return NULL;
       }
    }
    else
