@@ -312,7 +312,7 @@ class CallbackQueue(object):
         self._callbackQueue[key] = (func, passArgs)
 
     def removeCallback(self, key):
-        self._callbackQueu.pop(key)
+        self._callbackQueue.pop(key)
 
     def clearCallbacks(self):
         self._callbackQueue = {}

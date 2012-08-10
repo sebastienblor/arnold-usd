@@ -2,6 +2,7 @@ import pymel.core as pm
 import mtoa.aovs as aovs
 import mtoa.ui.ae.aiSwatchDisplay as aiSwatchDisplay
 from mtoa.ui.ae.utils import interToUI
+from mtoa.utils import toMayaStyle
 import mtoa.ui.ae.templates as templates
 import mtoa.core as core
 
@@ -31,13 +32,14 @@ class AOVOptionMenuGrp(templates.AttributeTemplate):
     BEAUTY_ITEM = "RGBA"
     _instances = []
     
-    def __init__(self, nodeType, label=None, allowCreation=True, includeBeauty=False, allowEmpty=True, allowDisable=False):
+    def __init__(self, nodeType, attr, label=None, allowCreation=True, includeBeauty=False, allowEmpty=True, allowDisable=False):
         super(AOVOptionMenuGrp, self).__init__(nodeType)
         aovs.addAOVChangedCallback(self.update)
         self.allowCreation = allowCreation
         self.includeBeauty = includeBeauty
         self.allowDisable = allowDisable
         self.allowEmpty = allowEmpty
+        self._attr = attr
         self._label = label
         self._defaultLabel = ""
         self._prevLabel = ""
@@ -125,12 +127,20 @@ class AOVOptionMenuGrp(templates.AttributeTemplate):
         pm.optionMenu(self.menuName, edit=True, value=currVal)
         self._prevLabel = currVal
 
+        menu = pm.optionMenu(self.menuName, edit=True,
+                             changeCommand=lambda *args: self.changeCallback(nodeAttr, *args))
+        pm.scriptJob(parent=menu, replacePrevious=True,
+                     attributeChange=(nodeAttr, lambda: self.updateMenu(nodeAttr)))
+
     def clear(self):
         for item in pm.optionMenu(self.menuName, query=True, itemListLong=True) or []:
             pm.deleteUI(item)
 
     def setup(self):
-        nodeAttr = self.nodeAttr(self.attr)
+        self.addCustom(self.attr, self.createMenu, self.updateMenu)
+
+    def createMenu(self, nodeAttr):
+        #nodeAttr = self.nodeAttr(self.attr)
 
         pm.setUITemplate(popTemplate=1)
         
@@ -150,22 +160,7 @@ class AOVOptionMenuGrp(templates.AttributeTemplate):
         pm.setParent('..')
 
         self.updateMenu(nodeAttr)
-        menu = pm.optionMenu(self.menuName, edit=True,
-                             changeCommand=lambda *args: self.changeCallback(nodeAttr, *args))
 
-        # make sure the UI gets updated if the attribute changes while we have the AE open
-        pm.scriptJob(parent=menu,
-                     attributeChange=(nodeAttr, lambda: self.updateMenu(nodeAttr)))
-
-    def update(self):
-        if self.nodeName is None or not pm.objExists(self.nodeName) or not pm.control(self.menuName, exists=True):
-            return
-        nodeAttr = self.nodeAttr(self.attr)
-        self.updateMenu(nodeAttr)
-        menu = pm.optionMenu(self.menuName, edit=True,
-                             changeCommand=lambda *args: self.changeCallback(nodeAttr, *args))
-        pm.scriptJob(parent=menu, replacePrevious=True,
-                     attributeChange=(nodeAttr, lambda: self.updateMenu(nodeAttr)))
 
 class ShaderMixin(object):
     def bumpNew(self, attrName):
@@ -185,7 +180,7 @@ class ShaderMixin(object):
         self.addCustom("message", aiSwatchDisplay.aiSwatchDisplayNew, aiSwatchDisplay.aiSwatchDisplayReplace)
 
     def addAOVControl(self, attr):
-        menu = AOVOptionMenuGrp(self.nodeType())
+        menu = AOVOptionMenuGrp(self.nodeType(), attr)
         self.addChildTemplate(attr, menu)
 
     def addAOVLayout(self):
@@ -201,6 +196,8 @@ class ShaderMixin(object):
             for name, attr, type in aovAttrs:
                 if dynamic:
                     attr = 'ai_' + attr
+                if self.convertToMayaStyle:
+                    attr = toMayaStyle(attr)
                 self.addAOVControl(attr)
             self.endLayout()
 

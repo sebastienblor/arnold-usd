@@ -5,7 +5,7 @@ from mtoa.ui.ae.shaderTemplate import ShaderAETemplate
 
 
 class AEaiStandardTemplate(ShaderAETemplate):
-
+    convertToMayaStyle = True
     def checkSpecularBrdf(self, nodeName):
         fullAttr = '%s.%s'%(nodeName, "specular_brdf")
         brdfValue = pm.getAttr(fullAttr)

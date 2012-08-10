@@ -277,7 +277,14 @@ MStatus CArnoldExportAssCmd::doIt(const MArgList& argList)
       CArnoldSession* arnoldSession = CMayaScene::GetArnoldSession();
       CRenderSession* renderSession = CMayaScene::GetRenderSession();
       // Not filtering out of render layer
-      arnoldSession->SetExportFilterMask(arnoldSession->GetExportFilterMask() & ~MTOA_FILTER_LAYER);
+      if (exportSelected)
+      {
+         arnoldSession->SetExportFilterMask(arnoldSession->GetExportFilterMask() & ~MTOA_FILTER_LAYER);
+      }
+      else
+      {
+         arnoldSession->SetExportFilterMask(arnoldSession->GetExportFilterMask());
+      }
       arnoldSession->SetExportFrame(curframe);
       // Set mask for nodes to export or use Arnold Render Globals if not passed
       if (mask != -1)
