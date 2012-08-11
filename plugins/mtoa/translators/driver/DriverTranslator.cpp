@@ -8,6 +8,19 @@ AtNode* CDriverTranslator::CreateArnoldNodes()
 {
    assert(AiUniverseIsActive());
 
+   // for now don't assume this attribute exists, since this is also the filter translator
+   MStatus status;
+   MPlug plug = FindMayaPlug("outputMode", &status);
+   if (status == MS::kSuccess)
+   {
+      int mode = plug.asInt();
+      // ("GUI Only", 0);
+      // ("Batch Only", 1);
+      // ("GUI and Batch", 2);
+      if ((mode == 0 && m_session->IsBatch()) || (mode == 1 && !m_session->IsBatch()))
+         return NULL;
+   }
+
    MString mayaShader = GetMayaNodeTypeName();
    AtNode* created = AddArnoldNode(m_abstract.arnold.asChar(), m_abstract.arnold.asChar());
    return created;
