@@ -868,7 +868,7 @@ def createTranslatorMenu(node, label=None, nodeType=None, default=None, optionMe
     if nodeType is None:
         nodeType = pm.nodeType(node)
     kwargs = {}
-    if label:
+    if label is not None:
         kwargs['label'] = label
     if optionMenuName:
         kwargs['optionMenuName'] = optionMenuName

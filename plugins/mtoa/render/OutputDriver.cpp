@@ -84,7 +84,8 @@ static MString                                 s_panel_name;
 node_parameters
 {
    AiParameterFLT ("gamma", 1.0f);
-   AiMetaDataSetBool(mds, NULL, "maya.hide", true);
+   AiMetaDataSetStr(mds, NULL, "maya.translator", "maya");
+   AiMetaDataSetStr(mds, NULL, "maya.attr_prefix", "");
    AiMetaDataSetBool(mds, NULL, "single_layer_driver", true);
    AiMetaDataSetBool(mds, NULL, "display_driver", true);
 }
