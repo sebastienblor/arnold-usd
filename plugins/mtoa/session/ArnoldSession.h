@@ -113,7 +113,7 @@ public:
    // Arnoldrender options
    inline const MObject& GetArnoldRenderOptions() const { return m_sessionOptions.GetArnoldRenderOptions(); }
    
-   inline bool IsMotionBlurEnabled(int type = MTOA_MBLUR_ALL) const { return m_sessionOptions.IsMotionBlurEnabled(type); }
+   inline bool IsMotionBlurEnabled(int type = MTOA_MBLUR_ANY) const { return m_sessionOptions.IsMotionBlurEnabled(type); }
    inline unsigned int GetNumMotionSteps() const { return m_sessionOptions.GetNumMotionSteps(); }
    inline float GetShutterSize() const { return m_sessionOptions.GetShutterSize(); }
    inline unsigned int GetShutterType() const { return m_sessionOptions.GetShutterType(); }

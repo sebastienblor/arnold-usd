@@ -36,7 +36,7 @@ enum ArnoldShadowLinkMode
 #define MTOA_FILTER_HIDDEN    0x0001
 #define MTOA_FILTER_TEMPLATED 0x0002
 #define MTOA_FILTER_LAYER     0x0004
-#define MTOA_FILTER_ALL       0xFFFF
+#define MTOA_FILTER_ANY       0xFFFF
 
 typedef std::set<MFn::Type> MFnTypeSet;
 
@@ -45,7 +45,7 @@ struct CMayaExportFilter
    unsigned int state_mask;
    MFnTypeSet excluded;
 
-   CMayaExportFilter() :  state_mask(MTOA_FILTER_ALL) {}
+   CMayaExportFilter() :  state_mask(MTOA_FILTER_ANY) {}
 };
 
 #define MTOA_MBLUR_DISABLE 0x0000
@@ -54,7 +54,7 @@ struct CMayaExportFilter
 #define MTOA_MBLUR_OBJECT  0x0004
 #define MTOA_MBLUR_DEFORM  0x0008
 #define MTOA_MBLUR_SHADER  0x0010
-#define MTOA_MBLUR_ALL     0xFFFF
+#define MTOA_MBLUR_ANY     0xFFFF
 
 struct CMotionBlurOptions
 {
@@ -109,7 +109,7 @@ private:
    inline unsigned int GetExportFilterMask() const { return m_filter.state_mask; }
    inline void SetExportFilterMask(unsigned int mask) { m_filter.state_mask = mask; }
 
-   inline bool IsMotionBlurEnabled(int type = MTOA_MBLUR_ALL) const { return m_motion.enable_mask & type; }
+   inline bool IsMotionBlurEnabled(int type = MTOA_MBLUR_ANY) const { return m_motion.enable_mask & type; }
    inline unsigned int GetNumMotionSteps() const { return m_motion.steps; }
    inline float GetShutterSize() const { return m_motion.shutter_size; }
    inline unsigned int GetShutterType() const { return m_motion.shutter_type; }
