@@ -1,20 +1,20 @@
-#ifndef DRIVER_TRANSLATOR_H
-#define DRIVER_TRANSLATOR_H
+#ifndef FILTER_TRANSLATOR_H
+#define FILTER_TRANSLATOR_H
 
 #include "translators/NodeTranslator.h"
 
 
 
-//--------------- DriverTranslator ------------------------------------------
+//--------------- FilterTranslator ------------------------------------------
 
 
-class DLLEXPORT CDriverTranslator
+class DLLEXPORT CFilterTranslator
    :  public CNodeTranslator
 {
 public:
    static void* creator()
    {
-      return new CDriverTranslator();
+      return new CFilterTranslator();
    }
    static void NodeInitializer(CAbTranslator context);
    AtNode* CreateArnoldNodes();
@@ -27,4 +27,4 @@ protected:
 };
 
 
-#endif // DRIVER_TRANSLATOR_H
+#endif // FILTER_TRANSLATOR_H

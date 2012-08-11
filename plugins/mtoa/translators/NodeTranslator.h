@@ -47,6 +47,8 @@ private:
 
 public:
    MString GetTranslatorName() {return m_abstract.name;}
+   /// for translators that are associated with a specific arnold node
+   MString GetArnoldNodeType() {return m_abstract.arnold;};
 
    virtual ~CNodeTranslator()
    {}

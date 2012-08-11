@@ -1,0 +1,60 @@
+#include "FilterTranslator.h"
+#include "utils/Universe.h"
+
+#include <assert.h>
+
+AtNode* CFilterTranslator::CreateArnoldNodes()
+{
+   assert(AiUniverseIsActive());
+
+   AtNode* created = AddArnoldNode(GetArnoldNodeType().asChar(), GetArnoldNodeType().asChar());
+   return created;
+}
+
+void CFilterTranslator::Export(AtNode *shader)
+{
+   MStatus status;
+   const AtNodeEntry* entry = AiNodeGetNodeEntry(shader);
+   AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(entry);
+   while (!AiParamIteratorFinished(nodeParam))
+   {
+      const AtParamEntry *paramEntry = AiParamIteratorGetNext(nodeParam);
+      const char* paramName = AiParamGetName(paramEntry);
+
+      if (strcmp(paramName, "name") != 0) ProcessParameter(shader, paramName, AiParamGetType(paramEntry));
+   }
+   AiParamIteratorDestroy(nodeParam);
+}
+
+void CFilterTranslator::NodeInitializer(CAbTranslator context)
+{
+   MString maya = context.maya;
+   MString arnold = context.arnold;
+   MString provider = context.provider;
+   const AtNodeEntry *nodeEntry = AiNodeEntryLookUp(arnold.asChar());
+
+   CExtensionAttrHelper helper(maya, nodeEntry);
+   // inputs
+   AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(nodeEntry);
+   while (!AiParamIteratorFinished(nodeParam))
+   {
+      const AtParamEntry *paramEntry = AiParamIteratorGetNext(nodeParam);
+      const char* paramName = AiParamGetName(paramEntry);
+      if (!helper.IsHidden(paramName))
+      {
+         helper.MakeInput(paramName);
+      }
+   }
+   AiParamIteratorDestroy(nodeParam);
+
+}
+
+// No callbacks currently
+void CFilterTranslator::AddUpdateCallbacks()
+{
+}
+
+void CFilterTranslator::RemoveUpdateCallbacks()
+{
+}
+

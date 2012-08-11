@@ -2,7 +2,6 @@
 #include "utils/Universe.h"
 
 #include <assert.h>
-#include <ai_universe.h>
 
 AtNode* CDriverTranslator::CreateArnoldNodes()
 {
@@ -21,17 +20,31 @@ AtNode* CDriverTranslator::CreateArnoldNodes()
          return NULL;
    }
 
-   MString mayaShader = GetMayaNodeTypeName();
-   AtNode* created = AddArnoldNode(m_abstract.arnold.asChar(), m_abstract.arnold.asChar());
+   const char* driverType = GetArnoldNodeType().asChar();
+   const AtNodeEntry* entry = AiNodeEntryLookUp(driverType);
+   if (entry != NULL)
+   {
+      bool displayDriver = false;
+      // don't export display drivers during batch
+      if (AiMetaDataGetBool(entry, NULL, "display_driver", &displayDriver) && displayDriver)
+      {
+         if (GetSessionMode() == MTOA_SESSION_BATCH)
+            return NULL;
+      }
+      // don't export non-display drivers during IPR
+      else if (GetSessionMode() == MTOA_SESSION_IPR)
+         return NULL;
+   }
+
+   AtNode* created = AddArnoldNode(driverType, driverType);
    return created;
 }
 
 void CDriverTranslator::Export(AtNode *shader)
 {
-   assert(AiUniverseIsActive());
-
    MStatus status;
-   AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(AiNodeGetNodeEntry(shader));
+   const AtNodeEntry* entry = AiNodeGetNodeEntry(shader);
+   AtParamIterator* nodeParam = AiNodeEntryGetParamIterator(entry);
    while (!AiParamIteratorFinished(nodeParam))
    {
       const AtParamEntry *paramEntry = AiParamIteratorGetNext(nodeParam);
@@ -40,6 +53,14 @@ void CDriverTranslator::Export(AtNode *shader)
       if (strcmp(paramName, "name") != 0) ProcessParameter(shader, paramName, AiParamGetType(paramEntry));
    }
    AiParamIteratorDestroy(nodeParam);
+
+   bool displayDriver = false;
+   if (AiMetaDataGetBool(entry, NULL, "display_driver", &displayDriver) && displayDriver)
+   {
+      MFnDependencyNode fnOpts(GetArnoldRenderOptions());
+      if (AiNodeEntryLookUpParameter(entry, "gamma") != NULL)
+         AiNodeSetFlt(shader, "gamma", fnOpts.findPlug("display_gamma").asFloat());
+   }
 }
 
 void CDriverTranslator::NodeInitializer(CAbTranslator context)

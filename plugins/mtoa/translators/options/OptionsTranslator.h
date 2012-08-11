@@ -60,11 +60,15 @@ protected:
    void SetImageFilenames(MStringArray &outputs);
    void ExportAOVs();
    void CreateFileDirectory(const MString &filename) const;
-   AtNode * CreateDefaultFilter();
-   inline AtNode * CreateDisplayDriver(MString& prefix, bool& singleLayer);
-   unsigned int GetDriversAndFilters(const CAOV& aov,
+   unsigned int GetOutputArray(const CAOV& aov,
                                      std::vector<CAOVOutput>& outputs);
-   AtNode* ExportDriver(const MPlug& driverPlug, MString& prefix, bool& mergeAOVs, bool& singleLayer);
+   bool GetOutput(const MPlug& driverPlug,
+                  const MPlug& filterPlug,
+                  CAOVOutput& output);
+   AtNode* ExportDriver(const MPlug& driverPlug,
+                        MString& prefix,
+                        bool& mergeAOVs,
+                        bool& singleLayer);
    AtNode* ExportFilter(const MPlug& filterPlug);
 
 protected:

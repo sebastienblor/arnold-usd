@@ -26,6 +26,7 @@ MObject CArnoldOptionsNode::s_imageFormat;
 MObject CArnoldOptionsNode::s_aovs;
 MObject CArnoldOptionsNode::s_aovMode;
 MObject CArnoldOptionsNode::s_driver;
+MObject CArnoldOptionsNode::s_drivers;
 MObject CArnoldOptionsNode::s_renderType;
 MObject CArnoldOptionsNode::s_outputAssBoundingBox;
 MObject CArnoldOptionsNode::s_progressive_rendering;
@@ -431,6 +432,7 @@ MStatus CArnoldOptionsNode::initialize()
 
    s_background = mAttr.create("background", "bkg");
    mAttr.setKeyable(false);
+   mAttr.setReadable(false);
    addAttribute(s_background);
 
    s_atmosphere = eAttr.create("atmosphere", "atm", 0);
@@ -470,15 +472,24 @@ MStatus CArnoldOptionsNode::initialize()
 
    s_driver = mAttr.create("driver", "drvr");
    mAttr.setKeyable(false);
+   mAttr.setReadable(false);
    addAttribute(s_driver);
 
    s_filter = mAttr.create("filter", "filt");
    mAttr.setKeyable(false);
+   mAttr.setReadable(false);
    addAttribute(s_filter);
    
    s_user_options = tAttr.create("aiUserOptions", "ai_user_options", MFnData::kString);
    tAttr.setKeyable(false);
    addAttribute(s_user_options);
+
+   s_drivers = mAttr.create("drivers", "drivers");
+   mAttr.setKeyable(false);
+   mAttr.setArray(true);
+   mAttr.setReadable(false);
+   mAttr.setIndexMatters(false);
+   addAttribute(s_drivers);
 
    return MS::kSuccess;
 }

@@ -572,12 +572,33 @@ class ArnoldAOVEditor(object):
 
         self.mainCol = pm.cmds.columnLayout('arnoldAOVMainColumn')
 
-        pm.cmds.frameLayout('arnoldAOVBrowserFrame', label='AOV Browser', width=WIDTH, collapsable=True, collapse=False)
+        # global drivers
+        pm.cmds.frameLayout('arnoldDisplayDriverFrame', label='Default Drivers',
+                            width=WIDTH, collapsable=True, collapse=True)
+        pm.cmds.columnLayout(adj=True)
+        for attr in self.renderOptions.node.drivers:
+            driver = attr.inputs()
+            if driver:
+                pm.cmds.rowLayout(nc=2, columnAttach2=['both', 'right'], adjustableColumn=1, rowAttach=[2, 'top', 5])
+                pm.cmds.columnLayout(adj=True)
+                templates.createTranslatorMenu(driver[0], 
+                                     label=utils.prettify(driver[0].name()),
+                                     nodeType='aiAOVDriver')
+                pm.cmds.setParent('..')
+                pm.cmds.symbolButton(image="navButtonConnected.png",
+                                      command=Callback(pm.select, driver))
+        pm.cmds.setParent('..')
+
+        pm.setParent(self.mainCol)
+
+        pm.cmds.frameLayout('arnoldAOVBrowserFrame', label='AOV Browser', width=WIDTH,
+                            collapsable=True, collapse=False)
 
         self.browser = AOVBrowser(self.renderOptions)
         pm.setParent(self.mainCol)
 
-        pm.cmds.frameLayout('arnoldAOVPrimaryFrame', label='AOVs', width=WIDTH, collapsable=True, collapse=False)
+        pm.cmds.frameLayout('arnoldAOVPrimaryFrame', label='AOVs', width=WIDTH,
+                            collapsable=True, collapse=False)
         self.aovCol = pm.cmds.columnLayout('arnoldAOVListColumn', adj=True)
 
         pm.cmds.rowLayout('arnoldAOVButtonRow', nc=3, columnWidth3=[140, 100, 100], columnAttach3=['right', 'both', 'both'])
@@ -607,6 +628,7 @@ class ArnoldAOVEditor(object):
 
         # add all control rows
         self.addRows()
+
         aovs.addAOVChangedCallback(self.refresh, 'aoveditor')
         
         # update AOV imageFormat of all rows when the default imageFormat changes.  a scriptJob will suffice here 
