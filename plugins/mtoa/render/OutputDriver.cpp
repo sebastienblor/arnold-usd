@@ -28,49 +28,14 @@ time_t s_start_time;
 /// These are the methods that make up the arnold side of the Render View update code.
 /// @{
 
-
-#define _gamma  (params[0].FLT)  /**< accessor for driver's gamma parameter */
-
 AI_DRIVER_NODE_EXPORT_METHODS(mtoa_driver_mtd);
 
 
-struct COutputDriverData
+enum MayaDisplayDriverParams
 {
-   AtBBox2   refresh_bbox;
-   float     gamma;
-   unsigned int    imageWidth, imageHeight;
-   bool rendering;
-};
-
-enum EDisplayUpdateMessageType
-{
-   MSG_BUCKET_PREPARE,
-   MSG_BUCKET_UPDATE,
-   MSG_IMAGE_COMPLETE,
-   MSG_RENDER_DONE
-};
-
-// Do not use copy constructor and assignment operator outside
-// of a critical section
-// (basically do not use them, CMTBlockingQueue uses them)
-struct CDisplayUpdateMessage
-{
-
-   EDisplayUpdateMessageType msgType;
-   AtBBox2                   bucketRect;
-   RV_PIXEL*                 pixels;
-
-   CDisplayUpdateMessage(EDisplayUpdateMessageType msg = MSG_BUCKET_PREPARE,
-                           int minx = 0, int miny = 0, int maxx = 0, int maxy = 0,
-                           RV_PIXEL* px = NULL)
-   {
-      msgType         = msg;
-      bucketRect.minx = minx;
-      bucketRect.miny = miny;
-      bucketRect.maxx = maxx;
-      bucketRect.maxy = maxy;
-      pixels          = px;
-   }
+   p_gamma,
+   p_progressive,
+   p_swatch
 };
 
 static CMTBlockingQueue<CDisplayUpdateMessage> s_displayUpdateQueue;
@@ -78,12 +43,19 @@ static COutputDriverData                       s_outputDriverData;
 static bool                                    s_finishedRendering;
 static MString                                 s_camera_name;
 static MString                                 s_panel_name;
+static MCallbackId                             s_idle_cb = 0;
+static MCallbackId                             s_timer_cb = 0;
 
 /// \name Arnold Output Driver.
 /// \{
 node_parameters
 {
    AiParameterFLT ("gamma", 1.0f);
+   AiMetaDataSetBool(mds, "gamma", "maya.hide", true);
+   AiParameterBOOL("progressive", false);
+   AiMetaDataSetBool(mds, "progressive", "maya.hide", true);
+   AiParameterPTR("swatch", NULL);
+   AiMetaDataSetBool(mds, "swatch", "maya.hide", true);
    AiMetaDataSetStr(mds, NULL, "maya.translator", "maya");
    AiMetaDataSetStr(mds, NULL, "maya.attr_prefix", "");
    AiMetaDataSetBool(mds, NULL, "single_layer_driver", true);
@@ -92,6 +64,13 @@ node_parameters
 
 node_initialize
 {
+   s_outputDriverData.swatchPixels = (float*)params[p_swatch].PTR;
+   InitializeDisplayUpdateQueue("", "");
+
+   CDisplayUpdateMessage msg;
+   msg.msgType = MSG_RENDER_BEGIN;
+   s_displayUpdateQueue.push(msg);
+
    AiDriverInitialize(node, false, NULL);
 }
 
@@ -124,19 +103,42 @@ driver_open
    {
       s_outputDriverData.imageWidth  = display_window.maxx - display_window.minx + 1;
       s_outputDriverData.imageHeight = display_window.maxy - display_window.miny + 1;
-      s_outputDriverData.gamma       = _gamma;
-      s_outputDriverData.rendering   = true;
+      s_outputDriverData.gamma       = params[p_gamma].FLT;
+//      s_outputDriverData.rendering   = true;
+
+      if (params[p_swatch].PTR == NULL)
+      {
+         s_outputDriverData.isProgressive = params[p_progressive].BOOL;
+//         cout << data_window.minx << ", " << data_window.maxx << endl;
+//         cout << data_window.miny << ", " << data_window.maxy << endl;
+//         cout << display_window.minx << ", " << display_window.maxx << endl;
+//         cout << display_window.miny << ", " << display_window.maxy << endl;
+
+         if (  (data_window.maxx == display_window.maxx) &&
+               (data_window.maxy == display_window.maxy) &&
+               (data_window.minx == display_window.minx) &&
+               (data_window.miny == display_window.miny) )
+         {
+            s_outputDriverData.isRegion = false;
+         }
+         else
+         {
+            s_outputDriverData.isRegion = true;
+         }
+         MStatus status;
+         s_idle_cb = MEventMessage::addEventCallback("idle",
+                                                    TransferTilesToRenderView,
+                                                    NULL,
+                                                    &status);
+         CHECK_MSTATUS(status);
+         if (status != MS::kSuccess)
+            AiMsgError("Render view is not able to render");
+      }
    }
 }
 
 driver_prepare_bucket
 {
-   CDisplayUpdateMessage   msg(MSG_BUCKET_PREPARE,
-                               bucket_xo, bucket_yo,
-                               bucket_xo + bucket_size_x - 1, bucket_yo + bucket_size_y - 1,
-                               NULL) ;
-
-   s_displayUpdateQueue.push(msg);
 }
 
 /// Convert the data to Maya format.
@@ -204,10 +206,10 @@ driver_write_bucket
 
                AiRGBAGamma(&rgba, s_outputDriverData.gamma);
 
-               pixel->r = rgba.r * 255;
-               pixel->g = rgba.g * 255;
-               pixel->b = rgba.b * 255;
-               pixel->a = rgba.a * 255;
+               pixel->r = rgba.r;
+               pixel->g = rgba.g;
+               pixel->b = rgba.b;
+               pixel->a = rgba.a;
             }
          }
          break;
@@ -215,7 +217,11 @@ driver_write_bucket
    }
 
    CDisplayUpdateMessage msg(MSG_BUCKET_UPDATE, minx, miny, maxx, maxy, pixels);
-   s_displayUpdateQueue.push(msg);
+   if (s_outputDriverData.swatchPixels)
+      // swatches render on the same thread and provide their own buffer to write to
+      CopyBucketToBuffer(s_outputDriverData.swatchPixels, msg);
+   else
+      s_displayUpdateQueue.push(msg);
 }
 
 
@@ -224,12 +230,14 @@ driver_close
    CDisplayUpdateMessage msg;
    msg.msgType = MSG_IMAGE_COMPLETE;
    s_displayUpdateQueue.push(msg);
-
-   s_outputDriverData.rendering = false;
 }
 
 node_finish
 {
+   CDisplayUpdateMessage msg;
+   msg.msgType = MSG_RENDER_END;
+   s_displayUpdateQueue.push(msg);
+
    // release the driver
    AiDriverDestroy(node);
 }
@@ -246,7 +254,9 @@ void UpdateBucket(CDisplayUpdateMessage & msg, const bool refresh)
    const int miny = s_outputDriverData.imageHeight - msg.bucketRect.maxy - 1;
    const int maxy = s_outputDriverData.imageHeight - msg.bucketRect.miny - 1;
 
-   MRenderView::updatePixels(msg.bucketRect.minx, msg.bucketRect.maxx, miny, maxy, msg.pixels);
+   // last argument tells the RenderView that these are float pixels
+   MRenderView::updatePixels(msg.bucketRect.minx, msg.bucketRect.maxx, miny, maxy,
+                             msg.pixels, true);
    if (refresh)
    {
       MRenderView::refresh(msg.bucketRect.minx, msg.bucketRect.maxx, miny, maxy);
@@ -315,40 +325,6 @@ void CopyBucketToBuffer(float * to_pixels,
    }
 }
 
-// Create an MImage from the buffer/queue rendered from Arnold.
-// The resulting image will be flipped, just how Maya likes it.
-bool DisplayUpdateQueueToMImage(MImage & image)
-{
-   image.create(s_outputDriverData.imageWidth,
-                s_outputDriverData.imageHeight,
-                4,                               // RGBA
-                MImage::kFloat);                // Has to be for swatches it seems.
-
-   CDisplayUpdateMessage msg;
-   while(!s_displayUpdateQueue.isEmpty())
-   {
-      if (s_displayUpdateQueue.pop(msg))
-      {
-         switch (msg.msgType)
-         {
-         case MSG_BUCKET_PREPARE:
-            continue;
-         case MSG_BUCKET_UPDATE:
-            CopyBucketToBuffer(image.floatPixels(), msg);
-            break;
-         case MSG_IMAGE_COMPLETE:
-            ClearDisplayUpdateQueue();
-            return true;
-         case MSG_RENDER_DONE:
-            ClearDisplayUpdateQueue();
-            return true;
-         }
-      }
-   }
-   // If we get here, then we've not got a whole image.
-   return false;
-}
-
 void InitializeDisplayUpdateQueue(const MString camera, const MString panel)
 {
    // Clears the display update queue, in case we had aborted a previous render.
@@ -359,7 +335,55 @@ void InitializeDisplayUpdateQueue(const MString camera, const MString panel)
    s_panel_name = panel;
 }
 
-void FinishedWithDisplayUpdateQueue()
+void RenderBegin()
+{
+   // TODO: Implement this...      MStatus status;
+   // This is not the most reliable way to get the camera, since it relies on the camera names matching
+   // but theoretically, if the camera was exported by mtoa they should match.
+   MStatus status;
+   MString camName = AiNodeGetName(AiUniverseGetCamera());
+   MDagPath camera;
+   MSelectionList list;
+   list.add(camName);
+   if (list.length() > 0)
+      list.getDagPath(0, camera);
+   else
+      AiMsgError("[mtoa] display driver could not find render camera \"%s\"", camName.asChar());
+   // An alternate solution:
+   //       MDagPath camera = CMayaScene::GetRenderSession()->GetCamera();
+   status = MRenderView::setCurrentCamera(camera);
+   // last arg is immediateFeedback
+
+   if (s_outputDriverData.isRegion)
+   {
+      unsigned int left(-1);
+      unsigned int right(-1);
+      unsigned int bottom(-1);
+      unsigned int top(-1);
+
+      status = MRenderView::getRenderRegion(left, right, bottom, top);
+      status = MRenderView::startRegionRender(  s_outputDriverData.imageWidth,
+                                                s_outputDriverData.imageHeight,
+                                                left,
+                                                right,
+                                                bottom,
+                                                top,
+                                                true, // don't clear buffer on region renders
+                                                true);
+   }
+   else
+   {
+      status = MRenderView::startRender(s_outputDriverData.imageWidth,
+                                        s_outputDriverData.imageHeight,
+                                        s_outputDriverData.isProgressive,
+                                        true);
+   }
+
+   CHECK_MSTATUS(status);
+   s_outputDriverData.rendering  = true;
+}
+
+void RenderEnd()
 {
    // Get some data from Arnold before it gets deleted with the universe.
    const int AA_Samples(AiNodeGetInt(AiUniverseGetOptions(), "AA_samples"));
@@ -406,7 +430,23 @@ void FinishedWithDisplayUpdateQueue()
       MGlobal::executeCommandOnIdle(rvInfo, false);
    }
 
+   // clear callbacks
+   if (s_idle_cb != 0)
+   {
+      MMessage::removeCallback(s_idle_cb);
+      s_idle_cb = 0;
+   }
+
+   if (s_timer_cb != 0)
+   {
+      MMessage::removeCallback(s_timer_cb);
+      s_timer_cb = 0;
+   }
+
    ClearDisplayUpdateQueue();
+
+   s_outputDriverData.rendering = false;
+   MRenderView::endRender();
 }
 
 void ClearDisplayUpdateQueue()
@@ -415,13 +455,8 @@ void ClearDisplayUpdateQueue()
    s_finishedRendering = false;
 }
 
-void DisplayUpdateQueueRenderFinished()
-{
-   CDisplayUpdateMessage msg(MSG_RENDER_DONE);
-   s_displayUpdateQueue.push(msg);
-   s_finishedRendering = true;
-}
 
+// return false if render is done
 bool ProcessUpdateMessage(const bool refresh)
 {
    if (s_displayUpdateQueue.waitForNotEmpty(10))
@@ -431,6 +466,9 @@ bool ProcessUpdateMessage(const bool refresh)
       {
          switch (msg.msgType)
          {
+         case MSG_RENDER_BEGIN:
+            RenderBegin();
+            break;
          case MSG_BUCKET_PREPARE:
             // TODO: Implement this...
             break;
@@ -439,45 +477,38 @@ bool ProcessUpdateMessage(const bool refresh)
             break;
          case MSG_IMAGE_COMPLETE:
             // Received "end-of-image" message.
-            // AiMsgDebug("[mtoa] Got end image");
             break;
-         case MSG_RENDER_DONE:
+         case MSG_RENDER_END:
             // Recieved "end-of-rendering" message.
-            // AiMsgDebug("[mtoa] Got end render message");
-            FinishedWithDisplayUpdateQueue();           
-            return false;
+            RenderEnd();
+            break;
          }
       }
+      return true;
    }
-   
-   return true;
+   return false;
 }
 
-
-void ProcessDisplayUpdateQueue()
+void RefreshRenderView(float, float, void *)
 {
-   while(!s_displayUpdateQueue.isEmpty())
-   {
-      ProcessUpdateMessage(false);
-   }
+   // This will make the render view show any tiles.
+   RefreshRenderViewBBox();
 }
 
-void ProcessDisplayUpdateQueueWithInterupt(MComputation & comp)
+void TransferTilesToRenderView(void*)
 {
-   // Break out the loop when we've displayed the last complete image.
-   // ProcessUpdateMessage returns false on end of render message.
-   // s_finishedRendering = false while rendering, but while rendering
-   // is going on, we want to refresh the render view, hence it's negated.
-   while(ProcessUpdateMessage(!s_finishedRendering))
+   // Send the tiles to the render view. The false argument
+   // tells it not to display them just yet.
+   unsigned int i = 0;
+   while(true)
    {
-      // Break if the user wants out.
-      if (comp.isInterruptRequested())
-      {
-         FinishedWithDisplayUpdateQueue();
+      ++i;
+      if (!ProcessUpdateMessage(false))
          break;
-      }
    }
+   RefreshRenderViewBBox();
 }
+
 /// \}
 /// @}
 

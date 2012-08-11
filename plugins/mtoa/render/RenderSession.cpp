@@ -4,7 +4,6 @@
 #include "utils/MayaUtils.h"
 #include "RenderSession.h"
 #include "RenderOptions.h"
-#include "OutputDriver.h"
 #include "scene/MayaScene.h"
 #include "translators/NodeTranslator.h"
 #include "extension/Extension.h"
@@ -21,11 +20,9 @@
 #include <maya/MGlobal.h>
 #include <maya/MSelectionList.h>
 #include <maya/MFnDagNode.h>
-#include <maya/MComputation.h>
 #include <maya/MEventMessage.h>
 #include <maya/MNodeMessage.h>
 #include <maya/MTimerMessage.h>
-#include <maya/MMessage.h> // for MCallbackId
 #include <maya/MCommonRenderSettingsData.h>
 #include <maya/MRenderUtil.h>
 #include <maya/MStatus.h>
@@ -33,9 +30,7 @@
 #include <maya/MPlugArray.h>
 #include <maya/MImage.h>
 #include <maya/MFileObject.h>
-
 #include <maya/M3dView.h>
-#include <maya/MRenderView.h>
 
 #include <cstdio>
 #include <assert.h>
@@ -74,60 +69,11 @@ namespace
    }
 }
 
-// This will update the render view if needed.
-// It's called from a maya idle event callback.
-// This means it's called a *lot*.
-void CRenderSession::RefreshRenderView(float, float, void *)
-{
-   // This will make the render view show any tiles.
-   RefreshRenderViewBBox();
-}
-
-void CRenderSession::TransferTilesToRenderView(void*)
-{
-   // Send the tiles to the render view. The false argument
-   // tells it not to display them just yet.
-   ProcessUpdateMessage(false);
-}
-
-// This is the code for the render thread. This version is used for IPR
-// to run the AiRender() process outside of the main thread.
-// This is *static*.
-unsigned int CRenderSession::RenderThread(void* data)
-{
-   CRenderOptions * render_options = static_cast< CRenderOptions * >(data);
-   // set progressive start point on AA
-   const int num_aa_samples = AiNodeGetInt(AiUniverseGetOptions(), "AA_samples");
-   const int sminInit = render_options->progressiveInitialLevel();
-   int init_progressive_samples = render_options->isProgressive() ? sminInit : num_aa_samples;
-
-   int ai_status(AI_SUCCESS);
-   for (int i = init_progressive_samples; i <= num_aa_samples; i++)
-   {
-      int sampling = i ;
-      if (sampling >= 0) sampling = num_aa_samples;
-
-      AiNodeSetInt(AiUniverseGetOptions(), "AA_samples", sampling);
-      // Begin a render!
-      ai_status = AiRender(AI_RENDER_MODE_CAMERA);
-      if (ai_status != AI_SUCCESS) break;
-      if (sampling > 0) break;
-   }
-
-   // Put this back after we're done interating through.
-   AiNodeSetInt(AiUniverseGetOptions(), "AA_samples", num_aa_samples);
-   
-   DisplayUpdateQueueRenderFinished();
-
-   return 0;
-}
-
 MStatus CRenderSession::Begin(const CRenderOptions &options)
 {
    if (AiUniverseIsActive())
    {
       AiMsgWarning("[mtoa] There can only be one RenderSession active.");
-      // AiRenderAbort();
       InterruptRender();
       ArnoldUniverseEnd();
    }
@@ -140,6 +86,7 @@ MStatus CRenderSession::Begin(const CRenderOptions &options)
       m_renderOptions = options;
       m_renderOptions.SetupLog();
       InstallNodes();
+      AiCritSecInit(&m_render_lock);
       return MStatus::kSuccess;
    }
    else
@@ -149,11 +96,26 @@ MStatus CRenderSession::Begin(const CRenderOptions &options)
    }
 }
 
+void CRenderSession::SetRendering(bool renderState)
+{
+   AiCritSecEnter(&m_render_lock);
+   m_rendering = renderState;
+   AiCritSecLeave(&m_render_lock);
+}
+
+bool CRenderSession::IsRendering()
+{
+   bool rendering = false;
+   AiCritSecEnter(&m_render_lock);
+   rendering = m_rendering;
+   AiCritSecLeave(&m_render_lock);
+   return rendering;
+}
+
 MStatus CRenderSession::End()
 {
    MStatus status = MStatus::kSuccess;
 
-   // AiRenderAbort();
    InterruptRender();
 
    if (!AiUniverseIsActive())
@@ -165,9 +127,9 @@ MStatus CRenderSession::End()
       ArnoldUniverseEnd();
    }
    m_is_active = false;
+   AiCritSecClose(&m_render_lock);
    // Restore "out of rendering" logging
    MtoaSetupLogging();
-
    return status;
 }
 
@@ -219,16 +181,30 @@ MStatus CRenderSession::WriteAsstoc(const MString& filename, const AtBBox& bBox)
    }
 }
 
+/// This static function runs on the main thread and checks for render interrupts (pressing the Esc key).
+/// It only runs for non-IPR renders.
+void CRenderSession::CheckForRenderInterrupt(void *data)
+{
+   CRenderSession * renderSession = static_cast< CRenderSession * >(data);
+   if (renderSession->m_comp.isInterruptRequested())
+   {
+      // This causes AiRender to break, after which the CMayaScene::End()
+      // which clears this callback.
+      AiRenderInterrupt();
+   }
+   return;
+}
+
 void CRenderSession::InterruptRender()
 {
-   if (AiRendering())
+   if (IsRendering())
    {
       AiRenderInterrupt();
    }
 
    // Stop the Idle update if there was one
    ClearIdleRenderViewCallback();
-
+   SetRendering(false);
    // Wait for the thread to clear.
    if (m_render_thread != NULL)
    {
@@ -236,11 +212,6 @@ void CRenderSession::InterruptRender()
       AiThreadClose(m_render_thread);
       m_render_thread = NULL;	
    }
-
-   // Clear the display queue if any
-   ClearDisplayUpdateQueue();
-   // Stop updating Render view if it was an interactive render
-   MRenderView::endRender();
 }
 
 void CRenderSession::SetResolution(const int width, const int height)
@@ -343,34 +314,69 @@ void CRenderSession::SetRenderViewPanelName(const MString &panel)
    m_renderOptions.SetRenderViewPanelName(panel);
 }
 
-void CRenderSession::DoInteractiveRender()
+unsigned int CRenderSession::ProgressiveRenderThread(void* data)
+{
+   CRenderSession * renderSession = static_cast< CRenderSession * >(data);
+   // set progressive start point on AA
+   const int num_aa_samples = AiNodeGetInt(AiUniverseGetOptions(), "AA_samples");
+   const int progressive_start = renderSession->m_renderOptions.progressiveInitialLevel();
+   const int steps = (progressive_start < 0) ? abs(progressive_start) + 1 : 1;
+   int ai_status(AI_SUCCESS);
+   renderSession->SetRendering(true);
+   int sampling, i;
+   for (sampling = progressive_start, i=1; sampling <= num_aa_samples; ++sampling, ++i)
+   {
+      if (sampling >= 0)
+         sampling = num_aa_samples;
+
+      AiNodeSetInt(AiUniverseGetOptions(), "AA_samples", sampling);
+      // Begin a render!
+      AiMsgInfo("[mtoa] Beginning progressive sampling at %d AA (step %d of %d)", sampling, i, steps);
+      ai_status = AiRender(AI_RENDER_MODE_CAMERA);
+
+      if (ai_status != AI_SUCCESS) break;
+      if (sampling > 0) break;
+   }
+   // Put this back after we're done interating through.
+   AiNodeSetInt(AiUniverseGetOptions(), "AA_samples", num_aa_samples);
+   renderSession->SetRendering(false);
+
+   return 0;
+}
+
+unsigned int CRenderSession::InteractiveRenderThread(void* data)
+{
+   CRenderSession * renderSession = static_cast< CRenderSession * >(data);
+
+   if (renderSession->m_renderOptions.isProgressive())
+      ProgressiveRenderThread(data);
+   else
+   {
+      renderSession->SetRendering(true);
+      AiRender(AI_RENDER_MODE_CAMERA);
+      renderSession->SetRendering(false);
+   }
+   // get the post-MEL before ending the MayaScene
+   MString postMel = renderSession->m_postRenderMel;
+   CMayaScene::End();
+   // don't echo, and do on idle
+   CMayaScene::ExecuteScript(postMel, false, true);
+
+   return 0;
+}
+
+void CRenderSession::DoInteractiveRender(const MString& postRenderMel)
 {
    assert(AiUniverseIsActive());
-
-   MComputation comp;
-   comp.beginComputation();
 
    // Interrupt existing render and close rendering thread if any
    InterruptRender();
 
-   PrepareRenderView();
-
-   // Get rid of any previous renders tiles that have not yet been displayed,
-   // and prepare the display update queue for rendered camera in render view panel
-   InitializeDisplayUpdateQueue(RenderOptions()->GetCameraName(), RenderOptions()->GetRenderViewPanelName());
-
-   // Start the render thread.
-   m_render_thread = AiThreadCreate(CRenderSession::RenderThread,
-                                    &m_renderOptions,
+   m_render_thread = AiThreadCreate(CRenderSession::InteractiveRenderThread,
+                                    this,
                                     AI_PRIORITY_LOW);
 
-   // This returns when the render is done or if someone
-   // has hit escape.
-   ProcessDisplayUpdateQueueWithInterupt(comp);
-
-   InterruptRender();
-
-   comp.endComputation();
+   AddIdleRenderViewCallback(postRenderMel);
    // DEBUG_MEMORY;
 }
 
@@ -463,47 +469,6 @@ void CRenderSession::DoAssWrite(MString customFileName, const bool compressed)
    }
 }
 
-MStatus CRenderSession::PrepareRenderView(bool addIdleRenderViewUpdate)
-{
-   MStatus status(MS::kSuccess);
-   
-   // We need to set the current camera in renderView,
-   // so the buttons render from the camera you want.
-   MDagPath camera = GetCamera();
-   MRenderView::setCurrentCamera(camera);
-
-   if (m_renderOptions.useRenderRegion())
-   {
-      status = MRenderView::startRegionRender(m_renderOptions.width(),
-                                                m_renderOptions.height(),
-                                                m_renderOptions.minX(),
-                                                m_renderOptions.maxX(),
-                                                m_renderOptions.minY(),
-                                                m_renderOptions.maxY(),
-                                                !m_renderOptions.clearBeforeRender(),
-                                                true);
-   }
-   else
-   {
-      status = MRenderView::startRender(m_renderOptions.width(),
-                                        m_renderOptions.height(),
-                                        !m_renderOptions.clearBeforeRender(),
-                                        true);
-   }
-
-   if (MStatus::kSuccess != status)
-   {
-      MGlobal::displayError("Render view is not able to render.");
-      return status;
-   }
-
-   ClearIdleRenderViewCallback();
-   if (addIdleRenderViewUpdate)
-      AddIdleRenderViewCallback();
-
-   return status;
-}
-
 void CRenderSession::DoIPRRender()
 {
    assert(AiUniverseIsActive());
@@ -513,38 +478,28 @@ void CRenderSession::DoIPRRender()
       // Interrupt existing render if any
       InterruptRender();
 
-      // Get rid of any previous renders tiles that have not yet been displayed,
-      // and prepare the display update queue for rendered camera in render view panel
-      InitializeDisplayUpdateQueue(RenderOptions()->GetCameraName(), RenderOptions()->GetRenderViewPanelName());
       // DEBUG_MEMORY;
 
-      // Install callbacks.
-      PrepareRenderView(true);
-
       // Start the render thread.
-      m_render_thread = AiThreadCreate(CRenderSession::RenderThread,
-                                       &m_renderOptions,
+      m_render_thread = AiThreadCreate(CRenderSession::ProgressiveRenderThread,
+                                       this,
                                        AI_PRIORITY_LOW);
 
    }
 }
 
-void CRenderSession::FinishedIPRTuning()
+void CRenderSession::StopIPR()
 {
-   ClearIdleRenderViewCallback();
-   ClearDisplayUpdateQueue();
-   MRenderView::endRender();
-   // DEBUG_MEMORY;
+   assert(AiUniverseIsActive());
+
+   InterruptRender();
 }
 
 void CRenderSession::PauseIPR()
 {
    assert(AiUniverseIsActive());
 
-   ClearIdleRenderViewCallback();
-   ClearDisplayUpdateQueue();
-   MRenderView::endRender();
-
+   InterruptRender();
    m_paused_ipr = true;
 }
 
@@ -562,29 +517,39 @@ AtUInt64 CRenderSession::GetUsedMemory()
    return AiMsgUtilGetUsedMemory() / 1024 / 1024;
 }
 
+/// Replace the idle event installed by AddIdleRenderViewCallback with one that
+/// actually does the interrupt checking.
+void CRenderSession::DoAddIdleRenderViewCallback(void* data)
+{
+   CRenderSession * renderSession = static_cast< CRenderSession * >(data);
+   renderSession->m_comp.beginComputation();
 
-void CRenderSession::AddIdleRenderViewCallback()
+   MMessage::removeCallback(renderSession->m_idle_cb);
+   MStatus status;
+
+   renderSession->m_idle_cb = MEventMessage::addEventCallback("idle",
+                                                CRenderSession::CheckForRenderInterrupt,
+                                                (void*)data,
+                                                &status);
+}
+
+// there is a very strange bug with Maya where MComputation will lock up the GUI if
+// it is created somewhere below a MEL script that returns a value.  We sidestep this problem
+// by using this idle event callback to setup the MComputation. The callback runs only once.
+void CRenderSession::AddIdleRenderViewCallback(const MString& postRenderMel)
 {
    MStatus status;
-   if (m_idle_cb == 0)
-   {
-      m_idle_cb = MEventMessage::addEventCallback("idle",
-                                                   CRenderSession::TransferTilesToRenderView,
-                                                   NULL,
-                                                   &status);
-   }
-
-   if (m_timer_cb == 0)
-   {
-      m_timer_cb = MTimerMessage::addTimerCallback( 1.0f / 12.0f,
-                                                    CRenderSession::RefreshRenderView,
-                                                    NULL,
-                                                    &status);
-   }
+   m_postRenderMel = postRenderMel;
+   m_idle_cb = MEventMessage::addEventCallback("idle",
+                                                CRenderSession::DoAddIdleRenderViewCallback,
+                                                this,
+                                                &status);
 }
 
 void CRenderSession::ClearIdleRenderViewCallback()
 {
+   m_postRenderMel = "";
+   m_comp.endComputation();
    // Don't clear the callback if we're in the middle of a render.
    if (m_idle_cb != 0 || m_timer_cb != 0)
    {
@@ -593,7 +558,7 @@ void CRenderSession::ClearIdleRenderViewCallback()
          MMessage::removeCallback(m_idle_cb);
          m_idle_cb = 0;
       }
-   
+
       if (m_timer_cb != 0)
       {
          MMessage::removeCallback(m_timer_cb);
@@ -602,7 +567,7 @@ void CRenderSession::ClearIdleRenderViewCallback()
    }
 }
 
-void CRenderSession::DoSwatchRender(const int resolution)
+void CRenderSession::DoSwatchRender(MImage & image, const int resolution)
 {
    assert(AiUniverseIsActive());
 
@@ -611,6 +576,8 @@ void CRenderSession::DoSwatchRender(const int resolution)
    // See DisplayUpdateQueueToMImage() for how we get the image.
    AtNode * const render_view = AiNode("renderview_display");
    AiNodeSetStr(render_view, "name", "swatch_renderview_display");
+
+   AiNodeSetPtr(render_view, "swatch", image.floatPixels());
 
    MObject optNode = m_renderOptions.GetArnoldRenderOptions();
    float gamma =  optNode != MObject::kNullObj ? MFnDependencyNode(optNode).findPlug("display_gamma").asFloat() : 2.2f;
@@ -637,36 +604,8 @@ void CRenderSession::DoSwatchRender(const int resolution)
 
    // Close existing render if any
    InterruptRender();
-   // Get rid of any previous renders tiles that have not yet been displayed.
-   // We have no render view to display info to
-   InitializeDisplayUpdateQueue();
-   // Start the render thread.
-   m_render_thread = AiThreadCreate(CRenderSession::RenderThread,
-                                    &m_renderOptions,
-                                    AI_PRIORITY_LOW);
-}
 
-bool CRenderSession::GetSwatchImage(MImage & image)
-{
-   if (CMayaScene::GetSessionMode() != MTOA_SESSION_SWATCH
-         || NULL == m_render_thread)
-   {
-      return false;
-   }
-   else
-   {
-      // Wait for the thread to clear.
-      if (m_render_thread != NULL)
-      {
-         AiThreadWait(m_render_thread);
-         AiThreadClose(m_render_thread);
-         m_render_thread = NULL;
-      }
-      // Store the image in the passed in MImage reference.
-      bool success = DisplayUpdateQueueToMImage(image);
-      // Clear the display queue
-      ClearDisplayUpdateQueue();
-      return success;
-   }
+   // Start the render on the current thread.
+   AiRender(AI_RENDER_MODE_CAMERA);
 }
 

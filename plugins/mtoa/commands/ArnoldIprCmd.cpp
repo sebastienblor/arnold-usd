@@ -219,8 +219,6 @@ MStatus CArnoldIprCmd::doIt(const MArgList& argList)
 
       // We might be rendering again by the time this is called.
       if (AiRendering()) return status;
-         
-      CMayaScene::GetRenderSession()->FinishedIPRTuning();
 
       CMayaScene::End();
    }

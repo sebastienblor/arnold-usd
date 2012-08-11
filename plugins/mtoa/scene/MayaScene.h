@@ -74,7 +74,7 @@ public:
    static MStatus ExportAndRenderFrame(ArnoldSessionMode mode, MSelectionList* selected = NULL);
    static MStatus ExportAndRenderSequence(ArnoldSessionMode mode, MSelectionList* selected = NULL);
 
-   static MStatus ExecuteScript(const MString &str, bool echo=false);
+   static MStatus ExecuteScript(const MString &str, bool echo=false, bool idle=false);
 
    static MStatus UpdateIPR();
 

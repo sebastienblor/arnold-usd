@@ -10,6 +10,7 @@
 #include <ai_bbox.h>
 
 #include <maya/MMessage.h> // for MCallbackId
+#include <maya/MThreadAsync.h>
 #include <maya/MComputation.h>
 
 class MImage;
@@ -32,13 +33,15 @@ public:
    /// Terminate a render. This will shutdown the Arnold universe.
    MStatus End();
 
-   /// Get the render view ready.
-   /// \param addIdleRenderViewUpdate Optionally install a callback for IPR.
-   MStatus PrepareRenderView(bool addIdleRenderViewUpdate=false);
+   void SetRendering(bool renderState);
+   // This provide an alternative to AiRendering that returns true between progressive
+   // render levels. It should be used instead of AiRendering to prevent false
+   // detection of rendering done.
+   bool IsRendering();
 
    // Render Methods.
    /// Render into the Render View, not IPR.
-   void DoInteractiveRender();
+   void DoInteractiveRender(const MString& postRenderMel="");
    /// Render in the background of Maya.
    int DoBatchRender();
    /// Get a valid ass name
@@ -61,18 +64,20 @@ public:
    AtBBox GetBoundingBox();
    MStatus WriteAsstoc(const MString& filename, const AtBBox& bBox);
 
+   /// For interactive render, watch for interrupt or render end.
+   static void CheckForRenderInterrupt(void *data);
+
    /// Stop a render, leaving Arnold univierse active.
    void InterruptRender();
 
    /// Start and IPR render.
    void DoIPRRender();
+   void StopIPR();
    /// Pause IPR, callbacks will still fire and Arnold will get the changes.
    void PauseIPR();
    /// Start off rendering again.
    void UnPauseIPR();
-   /// When the progressive renders are all done this is called to update
-   /// the render view with a render time and memory usage data.
-   void FinishedIPRTuning();
+
    /// Get memory usage from Arnold.
    /// \return memory used in MB.
    AtUInt64 GetUsedMemory();
@@ -80,11 +85,7 @@ public:
    // Swatch Rendering methods
    /// Start a swatch render.
    /// \param resolution the resolution of the swatch, it must be square.
-   void DoSwatchRender(const int resolution);
-   /// Return the rendered swatch.
-   /// \param image storage to place the rendered image into.
-   /// \return returns false if there was no complete image.
-   bool GetSwatchImage(MImage & image);
+   void DoSwatchRender(MImage & image, const int resolution);
 
    /// Set the ass output mask
    inline void SetOutputAssMask(unsigned int mask) { m_renderOptions.SetOutputAssMask(mask); }
@@ -125,26 +126,24 @@ private:
    CRenderSession()
       : m_paused_ipr(false)
       , m_is_active(false)
-      , m_idle_cb(0)
-      , m_timer_cb(0)
       , m_render_thread(NULL)
    {
    }
 
    ~CRenderSession() { End(); };
 
-   /// This is the static method which is the thread that calls AiRender().
-   static unsigned int RenderThread(void* data);
-   
    /// The idle callback is used to update the
    /// render view when rendering IPR.
-   void AddIdleRenderViewCallback();
+   void AddIdleRenderViewCallback(const MString& postRenderMel);
+   static void DoAddIdleRenderViewCallback(void* data);
    void ClearIdleRenderViewCallback();
-   /// Tells the render view to update the image, it's called during idle time.
-   static void RefreshRenderView(float, float, void *);
-   /// Passes the pending tiles from the output driver to the render view, called by a
-   /// timer so we don't overload the render view (it's very slow).
-   static void TransferTilesToRenderView(void*);
+
+   /// This is the static method for performing a progressive render.
+   /// data should be a CRenderSession pointer.
+   static unsigned int ProgressiveRenderThread(void* data);
+   /// This is the static method for performing an interactive render.
+   /// data should be a CRenderSession pointer.
+   static unsigned int InteractiveRenderThread(void* data);
 
 private:
 
@@ -159,8 +158,11 @@ private:
    MCallbackId    m_timer_cb;
 
    /// This is a pointer to the thread which is running RenderThread.
-   void*        m_render_thread;
-
+   void*          m_render_thread;
+   AtCritSec      m_render_lock;
+   bool           m_rendering;
+   MComputation   m_comp;
+   MString        m_postRenderMel;
 
 }; // class CRenderSession
 

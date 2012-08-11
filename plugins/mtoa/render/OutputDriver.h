@@ -1,8 +1,63 @@
 #ifndef OUTPUTDRIVER_H
 #define OUTPUTDRIVER_H
 
+#include <ai_drivers.h>
+#include <ai_render.h>
+#include <ai_msg.h>
+#include <ai_universe.h>
+
+#include <maya/MSelectionList.h>
 #include <maya/MComputation.h>
 #include <maya/MImage.h>
+#include <maya/MRenderView.h>
+
+#include <maya/MEventMessage.h>
+#include <maya/MNodeMessage.h>
+#include <maya/MTimerMessage.h>
+
+struct COutputDriverData
+{
+   AtBBox2         refresh_bbox;
+   bool            isRegion;
+   bool            isProgressive;
+   float           gamma;
+   unsigned int    imageWidth;
+   unsigned int    imageHeight;
+   bool            rendering;
+   float*          swatchPixels;
+};
+
+enum EDisplayUpdateMessageType
+{
+   MSG_RENDER_BEGIN,
+   MSG_BUCKET_PREPARE,
+   MSG_BUCKET_UPDATE,
+   MSG_IMAGE_COMPLETE,
+   MSG_RENDER_END
+};
+
+// Do not use copy constructor and assignment operator outside
+// of a critical section
+// (basically do not use them, CMTBlockingQueue uses them)
+struct CDisplayUpdateMessage
+{
+
+   EDisplayUpdateMessageType msgType;
+   AtBBox2                   bucketRect;
+   RV_PIXEL*                 pixels;
+
+   CDisplayUpdateMessage(EDisplayUpdateMessageType msg = MSG_BUCKET_PREPARE,
+                           int minx = 0, int miny = 0, int maxx = 0, int maxy = 0,
+                           RV_PIXEL* px = NULL)
+   {
+      msgType         = msg;
+      bucketRect.minx = minx;
+      bucketRect.miny = miny;
+      bucketRect.maxx = maxx;
+      bucketRect.maxy = maxy;
+      pixels          = px;
+   }
+};
 
 /// Initialize the display queue for a new render.
 void InitializeDisplayUpdateQueue(const MString camera="", const MString panel="");
@@ -11,24 +66,20 @@ void InitializeDisplayUpdateQueue(const MString camera="", const MString panel="
 /// \param refresh the render view is slow to refresh, so pass false if possible.
 bool ProcessUpdateMessage(const bool refresh=true);
 
-/// Process the whole queue until empty.
-void ProcessDisplayUpdateQueue();
-
-/// Process the queue until either the user interupts or and ender of render message processed.
-/// \param comp a MComputation that should already have had begin() called.
-void ProcessDisplayUpdateQueueWithInterupt(MComputation & comp);
+void UpdateBucket(RV_PIXEL* pixels, int minx, int miny, int maxx, int maxy, const bool refresh);
 
 void RefreshRenderViewBBox();
+
+void CopyBucketToBuffer(float * to_pixels,
+                        CDisplayUpdateMessage & msg);
 
 /// Clear the queue.
 void ClearDisplayUpdateQueue();
 
-/// Add a finished render message to the queue.
-void DisplayUpdateQueueRenderFinished();
+void RefreshRenderView(float, float, void *);
 
-/// Convert the image in the queue to an MImage.
-/// \param image the image from the queue is placed this MImage.
-/// \return returns false if the queue doesn't contain a complete image.
-bool DisplayUpdateQueueToMImage(MImage & image);
+void TransferTilesToRenderView(void*);
 
 #endif  // OUTPUTDRIVER_H
+
+
