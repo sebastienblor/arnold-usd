@@ -88,7 +88,8 @@ private:
                         m_options(MObject()),
                         m_camera(MDagPath()),
                         m_filter(CMayaExportFilter()),
-                        m_motion(CMotionBlurOptions())
+                        m_motion(CMotionBlurOptions()),
+                        m_progressive_rendering(false)
    {
       m_frame = MAnimControl::currentTime().as(MTime::uiUnit());
    }
@@ -121,6 +122,9 @@ private:
 
    inline void SetExportFrame(double frame) { m_frame = frame; }
 
+   inline bool isProgressive() const { return m_progressive_rendering; }
+   inline void SetProgressive(const bool is_progressive) { m_progressive_rendering = is_progressive; }
+
    MStatus GetFromMaya();
 
 private:
@@ -136,6 +140,7 @@ private:
    CMayaExportFilter    m_filter;
    CMotionBlurOptions   m_motion;
 
+   bool                 m_progressive_rendering;
 };
 
 #endif // SESSIONOPTIONS_H

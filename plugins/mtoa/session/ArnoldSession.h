@@ -118,6 +118,7 @@ public:
    inline float GetShutterSize() const { return m_sessionOptions.GetShutterSize(); }
    inline unsigned int GetShutterType() const { return m_sessionOptions.GetShutterType(); }
    inline double GetMotionByFrame() const {return m_sessionOptions.GetMotionByFrame(); }
+   inline bool isProgressive() const { return m_sessionOptions.isProgressive(); }
 
    // Light linker
    inline void FlagLightLinksDirty(bool flag=true) { m_lightLinksDirty = flag; }

@@ -134,6 +134,7 @@ MStatus CMayaScene::Begin(ArnoldSessionMode mode)
       // FIXME: default or use swatch defaults
       // renderOptions.SetBatch(false);
       renderOptions.SetProgressive(false);
+      sessionOptions.SetProgressive(false);
    }
    else if (mode == MTOA_SESSION_ASS)
    {
@@ -148,6 +149,7 @@ MStatus CMayaScene::Begin(ArnoldSessionMode mode)
    {
       // renderOptions.SetBatch(false);
       renderOptions.SetProgressive(false);
+      sessionOptions.SetProgressive(false);
    }
    else if (mode == MTOA_SESSION_BATCH)
    {

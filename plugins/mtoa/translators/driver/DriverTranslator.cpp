@@ -60,6 +60,8 @@ void CDriverTranslator::Export(AtNode *shader)
       MFnDependencyNode fnOpts(GetArnoldRenderOptions());
       if (AiNodeEntryLookUpParameter(entry, "gamma") != NULL)
          AiNodeSetFlt(shader, "gamma", fnOpts.findPlug("display_gamma").asFloat());
+      if (AiNodeEntryLookUpParameter(entry, "progressive") != NULL)
+         AiNodeSetBool(shader, "progressive", m_session->isProgressive());
    }
 }
 
