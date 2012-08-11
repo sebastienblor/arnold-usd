@@ -110,7 +110,7 @@ void COptionsTranslator::ExportAOVs()
          // add default driver
          CAOVOutput output;
          output.driver = ExportDriver(FindMayaPlug("driver"), output.prefix, output.mergeAOVs, output.singleLayer);
-         output.filter = defaultFilter;
+         output.filter = ExportFilter(FindMayaPlug("filter"));
          aovData.outputs.push_back(output);
 
          // RGBA/RGB AOVs are a special case because the AOV name and the data type are linked.

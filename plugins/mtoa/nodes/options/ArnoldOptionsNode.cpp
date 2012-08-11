@@ -442,7 +442,7 @@ MStatus CArnoldOptionsNode::initialize()
 
    s_displayAOV = tAttr.create("displayAOV", "daov", MFnData::kString);
    tAttr.setKeyable(false);
-   tAttr.setDefault(sData.create("RGBA"));
+   tAttr.setDefault(sData.create("beauty"));
    addAttribute(s_displayAOV);
 
    s_attributes.MakeInput("binary_ass");
